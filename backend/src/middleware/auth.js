@@ -1,4 +1,4 @@
-const { supabase } = require('../lib/supabase');
+const { supabase, authSupabase } = require('../lib/supabase');
 
 async function verifyJwt(req, res, next) {
   const header = req.headers.authorization;
@@ -6,7 +6,8 @@ async function verifyJwt(req, res, next) {
     return res.status(401).json({ error: 'Missing authorization header' });
   }
   const token = header.slice(7);
-  const { data, error } = await supabase.auth.getUser(token);
+  // Use isolated authSupabase so session pollution never contaminates db queries
+  const { data, error } = await authSupabase.auth.getUser(token);
   if (error || !data.user) return res.status(401).json({ error: 'Invalid token' });
 
   const { data: prof, error: profErr } = await supabase

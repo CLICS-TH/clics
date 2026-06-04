@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { z } = require('zod');
-const { supabase } = require('../lib/supabase');
+const { supabase, authSupabase } = require('../lib/supabase');
 const { verifyJwt } = require('../middleware/auth');
 
 const router = Router();
@@ -14,7 +14,7 @@ router.post('/login', async (req, res) => {
   const parsed = LoginSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data, error } = await authSupabase.auth.signInWithPassword(parsed.data);
   if (error) return res.status(401).json({ error: error.message });
 
   const { data: prof } = await supabase
