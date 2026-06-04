@@ -22,7 +22,7 @@ export default function LpdpPage() {
   return (
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-xl font-bold mb-6">{name || 'LPDP'} — ความก้าวหน้า</h1>
-      {data.length ? <LpdpChart data={data} /> : <p className="text-slate-400">ยังไม่มีข้อมูล</p>}
+      {data.length ? <LpdpChart data={data} /> : <p className="text-muted-foreground">ยังไม่มีข้อมูล</p>}
     </div>
   );
 }

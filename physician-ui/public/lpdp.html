@@ -4,7 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CLICS — ความก้าวหน้า</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/main.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 </head>
@@ -31,7 +33,7 @@
         type: 'line',
         data: {
           labels: data.map((_, i) => `PLE ${i + 1}`),
-          datasets: [{ label: 'คะแนน PIS-7', data: data.map(d => d.composite_score), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', tension: 0.3, pointRadius: 5 }],
+          datasets: [{ label: 'คะแนน PIS-7', data: data.map(d => d.composite_score), borderColor: '#cc785c', backgroundColor: 'rgba(204,120,92,0.10)', tension: 0.3, pointRadius: 5, pointBackgroundColor: '#cc785c' }],
         },
         options: {
           scales: { y: { min: 0, max: 100, title: { display: true, text: 'คะแนน / 100' } } },

@@ -24,11 +24,11 @@ export function DomainSliders({ scores, onChange, disabled }: Props) {
         <div key={key}>
           <div className="flex justify-between mb-1">
             <span className="text-sm font-medium">{label}</span>
-            <span className="text-sm text-slate-500">{weight} · <strong>{scores[key] ?? 0}/5</strong></span>
+            <span className="text-sm text-muted-foreground">{weight} · <strong>{scores[key] ?? 0}/5</strong></span>
           </div>
           <Slider min={0} max={5} step={1} value={scores[key] ?? 0}
             onValueChange={(v) => onChange(key, v as number)} disabled={disabled} className="w-full" />
-          <div className="flex justify-between text-[10px] text-slate-400 mt-1 px-0.5">
+          <div className="flex justify-between text-[10px] text-muted-foreground mt-1 px-0.5">
             <span>0 ไม่พบ</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5 ดีเยี่ยม</span>
           </div>
         </div>

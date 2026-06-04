@@ -36,7 +36,7 @@ export default function AdminPlesPage() {
     <>
       <NavBar />
       <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-xl font-bold mb-4">จัดการ PLEs ทั้งหมด / Manage All PLEs</h1>
+      <h1 className="text-xl font-bold mb-4 font-heading">จัดการ PLEs ทั้งหมด / Manage All PLEs</h1>
       <div className="flex gap-2 mb-4 flex-wrap">
         {['','active','cle_pass','cle_flag_t2','evaluated'].map(s => (
           <Button key={s} variant={filter===s?'default':'outline'} size="sm" onClick={() => setFilter(s)}>
@@ -46,14 +46,14 @@ export default function AdminPlesPage() {
       </div>
       <div className="border rounded-xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50"><tr>
+          <thead className="bg-secondary"><tr>
             <th className="px-4 py-3 text-left">แพทย์ / Physician</th>
             <th className="px-4 py-3 text-left">วันที่ / Date</th>
             <th className="px-4 py-3 text-left">สถานะ / Status</th>
             <th className="px-4 py-3 text-left">มอบหมาย / Assign Auditor</th>
           </tr></thead>
           <tbody>{filtered.map(p => (
-            <tr key={p.id} className="border-t hover:bg-slate-50">
+            <tr key={p.id} className="border-t hover:bg-secondary">
               <td className="px-4 py-3">{p.professionals?.full_name_th ?? '—'}</td>
               <td className="px-4 py-3">{new Date(p.started_at).toLocaleDateString('th-TH')}</td>
               <td className="px-4 py-3"><Badge variant="outline">{STATUS_MAP[p.status]??p.status}</Badge></td>
@@ -64,7 +64,7 @@ export default function AdminPlesPage() {
                       <option value="">เลือก Auditor...</option>
                       {auditors.map((a:any) => <option key={a.id} value={a.id}>{a.full_name_th}</option>)}
                     </select>
-                  : p.auditor_id ? <span className="text-xs text-green-600">✓ Assigned</span> : null
+                  : p.auditor_id ? <span className="text-xs text-[#5db872]">✓ Assigned</span> : null
                 }
               </td>
             </tr>

@@ -29,18 +29,18 @@ export default function FlaggedPage() {
     <>
       <NavBar />
       <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-xl font-bold mb-6">QA Queue — Tier 2 Flagged Sessions</h1>
+      <h1 className="text-xl font-bold mb-6 font-heading">QA Queue — Tier 2 Flagged Sessions</h1>
       {ples.length === 0
-        ? <p className="text-slate-400 text-center py-10">ไม่มี session รอตรวจสอบ ✅</p>
+        ? <p className="text-muted-foreground text-center py-10">ไม่มี session รอตรวจสอบ ✅</p>
         : ples.map(p => (
           <div key={p.id} className="border rounded-xl p-4 mb-3">
             <div className="flex justify-between items-start">
               <div>
                 <p className="font-semibold">{p.professionals?.full_name_th ?? 'Unknown'}</p>
-                <p className="text-xs text-slate-500">{p.turn_count} รอบ · {p.token_count} tokens</p>
+                <p className="text-xs text-muted-foreground">{p.turn_count} รอบ · {p.token_count} tokens</p>
                 <div className="flex gap-3 mt-2 text-xs">
                   {['c4','c5','c6'].map(c => (
-                    <span key={c} className={p[c+'_pass'] ? 'text-green-600' : 'text-red-500'}>
+                    <span key={c} className={p[c+'_pass'] ? 'text-[#5db872]' : 'text-destructive'}>
                       {c.toUpperCase()}: {p[c+'_pass'] ? '✓' : '✗'}
                     </span>
                   ))}

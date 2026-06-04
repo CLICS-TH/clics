@@ -50,7 +50,7 @@ export default function AuditorScorePage() {
     }
   }
 
-  if (!data) return <div className="p-8 text-slate-400">กำลังโหลด...</div>;
+  if (!data) return <div className="p-8 text-muted-foreground">กำลังโหลด...</div>;
   const composite = computeComposite(scores);
 
   return (
@@ -58,14 +58,14 @@ export default function AuditorScorePage() {
       <NavBar />
       <div className="max-w-3xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-xl font-bold">ประเมิน CLE (Blinded)</h1>
+        <h1 className="text-xl font-bold font-heading">ประเมิน CLE (Blinded)</h1>
         <Button variant="outline" onClick={() => router.push('/auditor/queue')}>← กลับ</Button>
       </div>
       <TranscriptView messages={data.messages ?? []} />
       <div className="border rounded-xl p-5">
         <h2 className="font-semibold mb-4">PIS-7 Scoring</h2>
         <DomainSliders scores={scores} onChange={(k,v) => setScores(s => ({...s,[k]:v}))} disabled={submitted} />
-        <div className="mt-4 text-right text-lg font-bold text-blue-600">คะแนนรวม: {composite.toFixed(1)} / 100</div>
+        <div className="mt-4 text-right text-lg font-bold text-primary">คะแนนรวม: {composite.toFixed(1)} / 100</div>
         <textarea className="w-full border rounded-lg p-3 text-sm mt-3" rows={3}
           placeholder="หมายเหตุ / Notes (optional)" value={notes}
           onChange={e => setNotes(e.target.value)} disabled={submitted} />
@@ -73,14 +73,14 @@ export default function AuditorScorePage() {
           ? <Button className="w-full mt-3" onClick={submit} disabled={submitting}>
               {submitting ? 'กำลังบันทึก...' : 'ส่งคะแนน / Submit Score'}
             </Button>
-          : <p className="text-green-600 font-medium mt-3 text-center">✅ บันทึกแล้ว</p>
+          : <p className="text-[#5db872] font-medium mt-3 text-center">✅ บันทึกแล้ว</p>
         }
       </div>
       {submitted && data.ai_evaluation && (
-        <div className="border rounded-xl p-5 bg-blue-50">
+        <div className="border rounded-xl p-5 bg-secondary">
           <h2 className="font-semibold mb-2">AI Score (เปิดเผยหลังส่งคะแนน)</h2>
-          <p className="text-2xl font-bold text-blue-600">{Number(data.ai_evaluation.composite_score).toFixed(1)} / 100</p>
-          <p className="text-sm text-slate-500 mt-1">คะแนนของคุณ: {composite.toFixed(1)}</p>
+          <p className="text-2xl font-bold text-primary">{Number(data.ai_evaluation.composite_score).toFixed(1)} / 100</p>
+          <p className="text-sm text-muted-foreground mt-1">คะแนนของคุณ: {composite.toFixed(1)}</p>
         </div>
       )}
     </div>

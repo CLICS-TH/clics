@@ -36,7 +36,7 @@ export default function UsersPage() {
       <NavBar />
       <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-bold">จัดการผู้ใช้งาน / User Management</h1>
+        <h1 className="text-xl font-bold font-heading">จัดการผู้ใช้งาน / User Management</h1>
         <Button onClick={() => setShowForm(v => !v)}>+ เพิ่มผู้ใช้ / Add User</Button>
       </div>
       {showForm && (
@@ -51,21 +51,21 @@ export default function UsersPage() {
             value={form.role} onChange={e => setForm(s => ({ ...s, role: e.target.value }))}>
             {Object.entries(ROLE_LABELS).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
           </select>
-          {err && <p className="text-red-500 text-sm">{err}</p>}
+          {err && <p className="text-destructive text-sm">{err}</p>}
           <Button className="w-full" onClick={createUser}>สร้างผู้ใช้</Button>
         </div>
       )}
       <div className="border rounded-xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50"><tr>
+          <thead className="bg-secondary"><tr>
             <th className="px-4 py-3 text-left">ชื่อ (TH)</th>
             <th className="px-4 py-3 text-left">ชื่อ (EN)</th>
             <th className="px-4 py-3 text-left">Role</th>
           </tr></thead>
           <tbody>{users.map(u => (
-            <tr key={u.id} className="border-t hover:bg-slate-50">
+            <tr key={u.id} className="border-t hover:bg-secondary">
               <td className="px-4 py-3">{u.full_name_th}</td>
-              <td className="px-4 py-3 text-slate-500">{u.full_name_en}</td>
+              <td className="px-4 py-3 text-muted-foreground">{u.full_name_en}</td>
               <td className="px-4 py-3"><Badge variant="outline">{ROLE_LABELS[u.role]??u.role}</Badge></td>
             </tr>
           ))}</tbody>
