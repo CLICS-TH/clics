@@ -17,9 +17,7 @@ export default function AdminPlesPage() {
 
   useEffect(() => {
     apiFetch<any[]>('/admin/ples').then(d => setPlEs(d ?? []));
-    apiFetch<any[]>('/admin/users').then(all =>
-      setAuditors((all ?? []).filter((u: any) => u.role === 'auditor'))
-    );
+    apiFetch<any[]>('/admin/auditors').then(d => setAuditors(d ?? []));
   }, []);
 
   const filtered = filter ? ples.filter(p => p.status === filter) : ples;

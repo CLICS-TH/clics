@@ -4,23 +4,43 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CLICS — ผลการประเมิน</title>
+  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/main.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <link rel="prefetch" href="/dashboard" />
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <nav><span class="brand">CLICS</span><div><a href="/dashboard">← Dashboard</a></div></nav>
   <div class="container" style="max-width:640px">
-    <div id="content"><p style="text-align:center;padding:40px;color:#94a3b8">กำลังโหลด...</p></div>
+    <div id="content"><p style="text-align:center;padding:40px;color:var(--muted-soft)">กำลังโหลด...</p></div>
   </div>
   <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
+  <script src="/js/boot.js" defer></script>
   <script>
-    auth.guardPage();
     const pleId = new URLSearchParams(location.search).get('id');
+    function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+    let radarChart = null, lastScores = null;
+    function buildRadar() {
+      if (!lastScores || typeof Chart === 'undefined') return;
+      const el = document.getElementById('radarChart');
+      if (!el) return;
+      if (radarChart) radarChart.destroy();
+      const coral = cssVar('--coral'), grid = cssVar('--hairline'), text = cssVar('--muted');
+      radarChart = new Chart(el, {
+        type: 'radar',
+        data: {
+          labels: DOMAIN_LABELS.map(l => l.split(' ').slice(0,2).join(' ')),
+          datasets: [{ label: 'PIS-7 Score', data: lastScores, backgroundColor: coral + '26', borderColor: coral, pointBackgroundColor: coral }],
+        },
+        options: { scales: { r: { min: 0, max: 5, ticks: { stepSize: 1, color: text, backdropColor: 'transparent' }, grid: { color: grid }, angleLines: { color: grid }, pointLabels: { color: text } } }, plugins: { legend: { display: false } } },
+      });
+    }
+    window.addEventListener('clics:themechange', buildRadar);
     const DOMAIN_LABELS = [
       'Clinical Question Intelligence','Reasoning Depth','Contextual Integration',
       'Iterative Inquiry','Critical Appraisal','Reflective Synthesis','AI Literacy &amp; Prompt Skill',
@@ -97,16 +117,10 @@
             </div>`).join('')}
         </div>`;
 
-      new Chart(document.getElementById('radarChart'), {
-        type: 'radar',
-        data: {
-          labels: DOMAIN_LABELS.map(l => l.split(' ').slice(0,2).join(' ')),
-          datasets: [{ label: 'PIS-7 Score', data: scores, backgroundColor: 'rgba(204,120,92,0.15)', borderColor: '#cc785c', pointBackgroundColor: '#cc785c' }],
-        },
-        options: { scales: { r: { min: 0, max: 5, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } },
-      });
+      lastScores = scores;
+      buildRadar();
     }
-    load();
+    window.addEventListener('DOMContentLoaded', load);
   </script>
 </body>
 </html>

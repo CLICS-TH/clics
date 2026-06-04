@@ -1,3 +1,3 @@
 // Runtime configuration — override these values before deploying
-window.CLICS_API_URL = 'http://localhost:3001';
-window.CLICS_DASHBOARD_URL = 'http://localhost:3002';
+window.CLICS_API_URL = 'https://backend-production-c12e4.up.railway.app';
+window.CLICS_DASHBOARD_URL = 'https://audit-dashboard-rouge.vercel.app';

@@ -79,6 +79,18 @@ router.post('/ples/:id/assign', async (req, res) => {
   res.json({ ok: true });
 });
 
+// Read-only auditor list for the assignment dropdown — admins need this but
+// GET /admin/users is superadmin-only, so expose just the auditors to admin+superadmin.
+router.get('/auditors', async (req, res) => {
+  const { data, error } = await supabase
+    .from('professionals')
+    .select('id, full_name_th, full_name_en')
+    .eq('role', 'auditor')
+    .order('full_name_th');
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
 router.get('/stats', async (req, res) => {
   const { data: ples } = await supabase.from('ples').select('status');
   const total = ples?.length ?? 0;

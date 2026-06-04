@@ -34,6 +34,17 @@ router.get('/', async (req, res) => {
   res.json(data);
 });
 
+// Physician's own longitudinal profile (LPDP). Mirrors the superadmin-only
+// /admin/lpdp/:id, scoped to the authenticated physician. Declared before /:id.
+router.get('/lpdp/me', async (req, res) => {
+  const { data, error } = await supabase
+    .from('lpdp_snapshots').select('*')
+    .eq('physician_id', req.user.id)
+    .order('snapshot_at');
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
 // Get single PLE with messages
 router.get('/:id', async (req, res) => {
   const { data: ple, error } = await supabase

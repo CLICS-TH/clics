@@ -60,9 +60,8 @@ function LoginForm() {
 interface ClicsUser { id: string; role: string; full_name_th: string; full_name_en: string; }
 
 function redirectByRole(role: string, router: ReturnType<typeof useRouter>) {
-  if (role === 'auditor') router.push('/auditor/queue');
-  else if (role === 'admin') router.push('/admin/ples');
-  else if (role === 'superadmin') router.push('/admin/icc');
+  // All dashboard roles land on the role-aware /home; each card links into its workspace.
+  if (role === 'auditor' || role === 'admin' || role === 'superadmin') router.push('/home');
   else router.push('/login');
 }
 

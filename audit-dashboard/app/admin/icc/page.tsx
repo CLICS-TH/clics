@@ -4,6 +4,7 @@ import { apiFetch } from '@/lib/api';
 import { IccPanel } from '@/components/IccPanel';
 import { BlandAltmanPlot } from '@/components/BlandAltmanPlot';
 import { NavBar } from '@/components/NavBar';
+import { Skeleton } from '@/components/Skeleton';
 
 const DOMAIN_LABELS = ['CQI','RD','CI','II','CA','RS','ALPS'];
 
@@ -11,8 +12,22 @@ export default function IccPage() {
   const [data, setData] = useState<any>(null);
   useEffect(() => { apiFetch<any>('/admin/icc').then(setData); }, []);
 
-  if (!data) return <div className="p-8 text-muted-foreground">กำลังโหลด...</div>;
-  if (!data.overall) return <div className="p-8 text-muted-foreground">ยังไม่มีข้อมูล ICC — รอให้ Auditors ส่งคะแนน</div>;
+  if (!data) return (
+    <>
+      <NavBar />
+      <div className="mx-auto max-w-4xl space-y-6 p-6 md:p-8">
+        <div className="h-7 w-48 animate-pulse rounded bg-muted" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-48 w-full" />
+      </div>
+    </>
+  );
+  if (!data.overall) return (
+    <>
+      <NavBar />
+      <div className="mx-auto max-w-4xl p-6 md:p-8 text-muted-foreground">ยังไม่มีข้อมูล ICC — รอให้ Auditors ส่งคะแนน</div>
+    </>
+  );
 
   const { overall, per_domain } = data;
 

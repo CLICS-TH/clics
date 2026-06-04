@@ -1,4 +1,3 @@
-auth.guardPage();
 const pleId = new URLSearchParams(location.search).get('id');
 if (!pleId) window.location.href = '/dashboard';
 
@@ -17,7 +16,8 @@ function renderMessage(role, content, refs, socratic) {
     div.textContent = content;
   } else {
     const mainContent = content.replace(/\n❓[^\n]*$/, '').trim();
-    div.innerHTML = marked.parse(mainContent);
+    if (typeof marked !== 'undefined') div.innerHTML = marked.parse(mainContent);
+    else div.textContent = mainContent;
     if (refs?.length) {
       const r = document.createElement('div');
       r.className = 'msg-refs';
@@ -53,7 +53,7 @@ async function sendMessage() {
   renderMessage('physician', message);
   const language = /[฀-๿]/.test(message) ? 'th' : 'en';
   const loading = document.createElement('div');
-  loading.className = 'msg-assistant'; loading.style.color = '#94a3b8';
+  loading.className = 'msg-assistant'; loading.style.color = 'var(--muted-soft)';
   loading.textContent = 'กำลังคิด... / Thinking...';
   document.getElementById('messages').appendChild(loading);
   const res = await api.sendMessage(pleId, { message, language });

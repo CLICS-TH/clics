@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-public>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CLICS — เข้าสู่ระบบ</title>
+  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
@@ -13,7 +14,7 @@
     .login-box { width: 100%; max-width: 420px; }
     .logo { text-align: center; margin-bottom: 32px; }
     .logo h1 { font-size: 28px; font-weight: 700; color: var(--coral); font-family: var(--font-display); }
-    .logo p { color: #64748b; font-size: 13px; margin-top: 4px; }
+    .logo p { color: var(--muted); font-size: 13px; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -21,6 +22,8 @@
     <div class="logo">
       <h1>CLICS</h1>
       <p>Clinical Learning Intelligence Credit System</p>
+      <div style="margin-top:14px"><span class="role-badge">แพทย์อาสา · Physician Portal</span></div>
+      <p class="role-tagline">ผู้ดูแลระบบ / ผู้ตรวจประเมิน เข้าสู่ระบบที่นี่และจะถูกนำไปยังคอนโซลของท่าน<br/>Admin &amp; Auditor sign in here too — routed to your console.</p>
     </div>
     <div class="card">
       <div class="form-group">
@@ -37,6 +40,7 @@
   </div>
   <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>
+  <script src="/js/boot.js" defer></script>
   <script>
     if (localStorage.getItem('clics_token')) window.location.href = '/dashboard';
 

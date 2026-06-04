@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Footer } from "@/components/Footer";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ViewportProvider } from "@/components/ViewportProvider";
+import { AppShell } from "@/components/AppShell";
 import {
   Inter,
   Cormorant_Garamond,
@@ -51,11 +54,24 @@ export default function RootLayout({
   return (
     <html
       lang="th"
+      suppressHydrationWarning
       className={`${inter.variable} ${cormorantGaramond.variable} ${jetbrainsMono.variable} ${notoSansThai.variable} ${notoSerifThai.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {children}
-        <Footer />
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var t=localStorage.getItem('clics_theme');var d=t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();",
+          }}
+        />
+        <ThemeProvider>
+          <ViewportProvider>
+            <AppShell>
+              {children}
+              <Footer />
+            </AppShell>
+          </ViewportProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

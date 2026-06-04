@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { NavBar } from '@/components/NavBar';
+import { CardGridSkeleton } from '@/components/Skeleton';
 
 export default function StatsPage() {
   const [stats, setStats] = useState<any>(null);
@@ -10,7 +11,15 @@ export default function StatsPage() {
     apiFetch('/admin/stats').then(setStats);
     apiFetch('/admin/icc').then(setIcc);
   }, []);
-  if (!stats) return <div className="p-8 text-muted-foreground">กำลังโหลด...</div>;
+  if (!stats) return (
+    <>
+      <NavBar />
+      <div className="mx-auto max-w-4xl space-y-8 p-6 md:p-8">
+        <div className="h-7 w-72 animate-pulse rounded bg-muted" />
+        <CardGridSkeleton />
+      </div>
+    </>
+  );
   const cards = [
     { label: 'PLEs ทั้งหมด', value: stats.total },
     { label: 'ผ่าน CLE', value: stats.cle_pass ?? 0 },
