@@ -1,0 +1,10 @@
+{
+  "name": "clics-physician-ui",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npx serve public -l 3000 --cors"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLICS — เข้าสู่ระบบ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-box { width: 100%; max-width: 420px; }
+    .logo { text-align: center; margin-bottom: 32px; }
+    .logo h1 { font-size: 28px; font-weight: 700; color: #2563eb; }
+    .logo p { color: #64748b; font-size: 13px; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <div class="logo">
+      <h1>CLICS</h1>
+      <p>Clinical Learning Intelligence Credit System</p>
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label for="email">อีเมล / Email</label>
+        <input type="email" id="email" placeholder="doctor@hospital.th" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="password">รหัสผ่าน / Password</label>
+        <input type="password" id="password" autocomplete="current-password" />
+      </div>
+      <div id="error" class="error-msg" style="display:none"></div>
+      <button class="btn btn-primary" style="width:100%" id="loginBtn">เข้าสู่ระบบ / Login</button>
+    </div>
+  </div>
+  <script src="/js/api.js"></script>
+  <script>
+    if (localStorage.getItem('clics_token')) window.location.href = '/dashboard.html';
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errEl = document.getElementById('error');
+      errEl.style.display = 'none';
+      if (!email || !password) {
+        errEl.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน';
+        errEl.style.display = 'block';
+        return;
+      }
+      const btn = document.getElementById('loginBtn');
+      btn.textContent = 'กำลังเข้าสู่ระบบ...'; btn.disabled = true;
+      const data = await api.login(email, password);
+      btn.textContent = 'เข้าสู่ระบบ / Login'; btn.disabled = false;
+      if (data?.access_token) {
+        localStorage.setItem('clics_token', data.access_token);
+        localStorage.setItem('clics_user', JSON.stringify(data.user));
+        if (data.user.role === 'physician') window.location.href = '/dashboard.html';
+        else window.location.href = 'http://localhost:3002/login?token=' + encodeURIComponent(data.access_token);
+      } else {
+        errEl.textContent = data?.error ?? 'เข้าสู่ระบบไม่สำเร็จ';
+        errEl.style.display = 'block';
+      }
+    });
+    document.getElementById('password').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('loginBtn').click();
+    });
+  </script>
+</body>
+</html>

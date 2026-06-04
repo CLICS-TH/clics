@@ -1,0 +1,30 @@
+const BASE = 'http://localhost:3001';
+
+function getToken() { return localStorage.getItem('clics_token'); }
+
+async function apiFetch(path, options = {}) {
+  const token = getToken();
+  const res = await fetch(`${BASE}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers ?? {}),
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+  if (res.status === 401) { localStorage.clear(); window.location.href = '/index.html'; return; }
+  return res.json();
+}
+
+window.api = {
+  login: (email, password) => apiFetch('/auth/login', { method: 'POST', body: { email, password } }),
+  logout: () => apiFetch('/auth/logout', { method: 'POST' }),
+  me: () => apiFetch('/auth/me'),
+  createPle: (body) => apiFetch('/ples', { method: 'POST', body }),
+  getPlEs: () => apiFetch('/ples'),
+  getPle: (id) => apiFetch(`/ples/${id}`),
+  sendMessage: (id, body) => apiFetch(`/ples/${id}/message`, { method: 'POST', body }),
+  endPle: (id) => apiFetch(`/ples/${id}/end`, { method: 'POST' }),
+  getEvaluation: (id) => apiFetch(`/ples/${id}/evaluation`),
+};

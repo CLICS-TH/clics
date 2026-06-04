@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLICS — ความก้าวหน้า</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <nav><span class="brand">CLICS</span><div><a href="/dashboard.html">← Dashboard</a></div></nav>
+  <div class="container" style="max-width:700px">
+    <h2 style="margin-bottom:20px">ความก้าวหน้าของคุณ / Your LPDP</h2>
+    <div class="card"><canvas id="lpdpChart" height="220"></canvas></div>
+    <p id="noData" style="display:none;color:#94a3b8;text-align:center;padding:20px">ยังไม่มีข้อมูล — กรุณาทำ PLE ให้ผ่านก่อน</p>
+  </div>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    auth.guardPage();
+    const user = auth.getUser();
+    fetch(`http://localhost:3001/admin/lpdp/${user.id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('clics_token')}` }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (!data?.length) { document.getElementById('noData').style.display = 'block'; return; }
+      new Chart(document.getElementById('lpdpChart'), {
+        type: 'line',
+        data: {
+          labels: data.map((_, i) => `PLE ${i + 1}`),
+          datasets: [{ label: 'คะแนน PIS-7', data: data.map(d => d.composite_score), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', tension: 0.3, pointRadius: 5 }],
+        },
+        options: {
+          scales: { y: { min: 0, max: 100, title: { display: true, text: 'คะแนน / 100' } } },
+          plugins: { legend: { display: false } },
+        },
+      });
+    });
+  </script>
+</body>
+</html>

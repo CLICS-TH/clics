@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLICS — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+  <nav>
+    <span class="brand">CLICS</span>
+    <div>
+      <a href="/dashboard.html">หน้าหลัก</a>
+      <a href="/lpdp.html">ความก้าวหน้า</a>
+      <a href="#" id="logoutBtn">ออกจากระบบ</a>
+    </div>
+  </nav>
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div>
+        <h2 id="greeting" style="font-size:20px;font-weight:700"></h2>
+        <p style="color:#64748b;font-size:13px">Clinical Learning Episodes ของคุณ</p>
+      </div>
+      <a href="/ple-new.html" class="btn btn-primary">+ เริ่ม PLE ใหม่</a>
+    </div>
+    <div id="pleList"><p style="color:#94a3b8;text-align:center;padding:40px">กำลังโหลด...</p></div>
+  </div>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

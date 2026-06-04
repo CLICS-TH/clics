@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLICS — ผลการประเมิน</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <nav><span class="brand">CLICS</span><div><a href="/dashboard.html">← Dashboard</a></div></nav>
+  <div class="container" style="max-width:640px">
+    <div id="content"><p style="text-align:center;padding:40px;color:#94a3b8">กำลังโหลด...</p></div>
+  </div>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    auth.guardPage();
+    const pleId = new URLSearchParams(location.search).get('id');
+    const DOMAIN_LABELS = [
+      'Clinical Question Intelligence','Reasoning Depth','Contextual Integration',
+      'Iterative Inquiry','Critical Appraisal','Reflective Synthesis','AI Literacy &amp; Prompt Skill',
+    ];
+    const CRITERIA_LABELS = {
+      c1:'ระยะเวลา ≥ 15 นาที', c2:'จำนวนรอบ ≥ 4', c3:'Tokens ≥ 800',
+      c4:'คำถามเชิงคลินิก', c5:'Follow-up เชิงลึก ≥ 2', c6:'สรุปการเรียนรู้',
+    };
+
+    async function load() {
+      const ple = await api.getPle(pleId);
+      const container = document.getElementById('content');
+      if (!ple || ple.status === 'active') { container.innerHTML = '<p>กรุณาจบ session ก่อน</p>'; return; }
+
+      if (ple.status === 'cle_fail_t1' || ple.status === 'cle_flag_t2') {
+        const criteria = ['c1','c2','c3','c4','c5','c6'];
+        container.innerHTML = `
+          <div class="card">
+            <h2 style="color:#dc2626;margin-bottom:16px">
+              ${ple.status === 'cle_fail_t1' ? '❌ ไม่ผ่านเกณฑ์ CLE (Tier 1)' : '⏳ รอตรวจสอบ (Tier 2)'}
+            </h2>
+            <p style="color:#64748b;margin-bottom:16px">ผลเกณฑ์ทั้ง 6 ข้อ:</p>
+            ${criteria.map(c => `
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <span>${ple[c + '_pass'] ? '✅' : '❌'}</span>
+                <span>${CRITERIA_LABELS[c]}</span>
+              </div>`).join('')}
+            <a href="/dashboard.html" class="btn btn-ghost" style="display:inline-block;margin-top:16px">← กลับ</a>
+          </div>`;
+        return;
+      }
+
+      if (ple.status === 'cle_pass') {
+        container.innerHTML = `
+          <div class="card" style="text-align:center">
+            <p style="font-size:32px;margin-bottom:8px">✅</p>
+            <h2>ผ่านเกณฑ์ CLE แล้ว</h2>
+            <p style="color:#64748b;margin-top:8px">กำลังประเมินผล PIS-7 อยู่...</p>
+            <button class="btn btn-ghost" onclick="load()" style="margin-top:16px">🔄 รีเฟรช</button>
+          </div>`;
+        return;
+      }
+
+      const eval_ = await api.getEvaluation(pleId);
+      if (!eval_ || eval_.status) {
+        container.innerHTML = `<div class="card" style="text-align:center"><p>กำลังประเมิน... <button class="btn btn-ghost" onclick="load()">รีเฟรช</button></p></div>`;
+        return;
+      }
+
+      const scores = [eval_.d1,eval_.d2,eval_.d3,eval_.d4,eval_.d5,eval_.d6,eval_.d7];
+      container.innerHTML = `
+        <div class="card" style="text-align:center;margin-bottom:16px">
+          <p style="font-size:48px;font-weight:700;color:#2563eb">${Math.round(eval_.composite_score)}</p>
+          <p style="color:#64748b">คะแนน PIS-7 / 100</p>
+          <div class="badge badge-evaluated" style="margin-top:8px">✅ ได้รับ CPD Credit</div>
+        </div>
+        <div class="card"><canvas id="radarChart" height="260"></canvas></div>
+        <div class="card">
+          <h3 style="margin-bottom:12px">ผลรายโดเมน</h3>
+          ${DOMAIN_LABELS.map((label, i) => `
+            <div style="margin-bottom:12px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span style="font-size:13px">${label}</span>
+                <strong>${scores[i]}/5</strong>
+              </div>
+              <div style="background:#f1f5f9;border-radius:4px;height:6px">
+                <div style="background:#2563eb;height:6px;border-radius:4px;width:${scores[i]/5*100}%"></div>
+              </div>
+              <p style="font-size:12px;color:#64748b;margin-top:4px">${eval_.domain_rationale?.['d'+(i+1)] ?? ''}</p>
+            </div>`).join('')}
+        </div>`;
+
+      new Chart(document.getElementById('radarChart'), {
+        type: 'radar',
+        data: {
+          labels: DOMAIN_LABELS.map(l => l.split(' ').slice(0,2).join(' ')),
+          datasets: [{ label: 'PIS-7 Score', data: scores, backgroundColor: 'rgba(37,99,235,0.15)', borderColor: '#2563eb', pointBackgroundColor: '#2563eb' }],
+        },
+        options: { scales: { r: { min: 0, max: 5, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } },
+      });
+    }
+    load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLICS — เริ่ม PLE ใหม่</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+  <nav><span class="brand">CLICS</span><div><a href="/dashboard.html">← กลับ</a></div></nav>
+  <div class="container" style="max-width:560px">
+    <h2 style="margin-bottom:24px;font-size:20px">เริ่ม PLE ใหม่ / New Clinical Learning Episode</h2>
+    <div class="card">
+      <div class="form-group">
+        <label>สาขาวิชา / Specialty</label>
+        <select id="specialty">
+          <option value="">เลือกสาขา...</option>
+          <option>Internal Medicine / อายุรศาสตร์</option>
+          <option>Family Medicine / เวชศาสตร์ครอบครัว</option>
+          <option>Surgery / ศัลยศาสตร์</option>
+          <option>Pediatrics / กุมารเวชศาสตร์</option>
+          <option>Emergency Medicine / เวชศาสตร์ฉุกเฉิน</option>
+          <option>Obstetrics &amp; Gynecology / สูติ-นรีเวช</option>
+          <option>Other / อื่น ๆ</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>อาการสำคัญ / Chief Complaint <span style="color:#dc2626">*</span></label>
+        <textarea id="complaint" rows="3" placeholder="เช่น ผู้ป่วยมาด้วยเจ็บหน้าอก / e.g. Patient presents with chest pain"></textarea>
+      </div>
+      <div id="error" class="error-msg" style="display:none"></div>
+      <button class="btn btn-primary" id="startBtn" style="width:100%">เริ่มการสนทนา / Start Session</button>
+    </div>
+  </div>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    auth.guardPage();
+    document.getElementById('startBtn').addEventListener('click', async () => {
+      const complaint = document.getElementById('complaint').value.trim();
+      const specialty = document.getElementById('specialty').value;
+      const errEl = document.getElementById('error');
+      if (!complaint) { errEl.textContent = 'กรุณากรอกอาการสำคัญ'; errEl.style.display = 'block'; return; }
+      errEl.style.display = 'none';
+      const btn = document.getElementById('startBtn');
+      btn.disabled = true; btn.textContent = 'กำลังสร้าง...';
+      const ple = await api.createPle({ specialty, chief_complaint: complaint });
+      if (ple?.id) window.location.href = `/ple-chat.html?id=${ple.id}`;
+      else {
+        errEl.textContent = ple?.error ?? 'เกิดข้อผิดพลาด';
+        errEl.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'เริ่มการสนทนา / Start Session';
+      }
+    });
+  </script>
+</body>
+</html>
