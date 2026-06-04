@@ -1,0 +1,32 @@
+const { computeICC21 } = require('../src/services/icc');
+
+describe('computeICC21', () => {
+  test('returns null for fewer than 2 pairs', () => {
+    expect(computeICC21([{ ai: 80, human: 75 }])).toBeNull();
+  });
+
+  test('returns high ICC for near-identical ratings', () => {
+    const pairs = Array.from({ length: 10 }, (_, i) => ({ ai: 70 + i, human: 70 + i + 1 }));
+    const result = computeICC21(pairs);
+    expect(result.icc).toBeGreaterThan(0.90);
+    expect(result.n).toBe(10);
+  });
+
+  test('returns low ICC for random-like ratings', () => {
+    const pairs = [
+      { ai: 90, human: 40 }, { ai: 50, human: 85 }, { ai: 70, human: 30 },
+      { ai: 40, human: 90 }, { ai: 60, human: 75 },
+    ];
+    expect(computeICC21(pairs).icc).toBeLessThan(0.5);
+  });
+
+  test('result has lower, upper, interpretation', () => {
+    const pairs = Array.from({ length: 20 }, (_, i) => ({ ai: 60 + i * 1.5, human: 62 + i * 1.5 }));
+    const result = computeICC21(pairs);
+    expect(result).toHaveProperty('lower');
+    expect(result).toHaveProperty('upper');
+    expect(result).toHaveProperty('interpretation');
+    expect(result.lower).toBeLessThanOrEqual(result.icc);
+    expect(result.upper).toBeGreaterThanOrEqual(result.icc);
+  });
+});
