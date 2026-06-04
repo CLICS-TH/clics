@@ -54,7 +54,7 @@ router.post('/', async (req, res) => {
 
     res.json({
       content: text,
-      references: extractReferences(text),
+      refs: extractReferences(text),
       socratic_question: extractSocraticQuestion(text),
       token_count: tokenCount,
     });

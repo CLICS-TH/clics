@@ -37,7 +37,7 @@ create table public.messages (
   ple_id            uuid not null references public.ples(id) on delete cascade,
   role              text not null check (role in ('physician','assistant')),
   content           text not null,
-  references        jsonb default '[]'::jsonb,
+  refs              jsonb default '[]'::jsonb,
   socratic_question text,
   token_count       integer default 0,
   created_at        timestamptz default now()

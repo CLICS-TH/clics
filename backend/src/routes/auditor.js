@@ -26,7 +26,7 @@ router.get('/ples/:id', async (req, res) => {
   if (!ple) return res.status(404).json({ error: 'Not found or not assigned' });
 
   const { data: messages } = await supabase
-    .from('messages').select('role, content, references, socratic_question, created_at')
+    .from('messages').select('role, content, refs, socratic_question, created_at')
     .eq('ple_id', req.params.id).order('created_at');
 
   const { data: existing } = await supabase

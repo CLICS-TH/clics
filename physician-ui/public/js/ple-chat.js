@@ -36,12 +36,12 @@ function renderMessage(role, content, refs, socratic) {
 }
 
 api.getPle(pleId).then(ple => {
-  if (!ple || ple.status !== 'active') { window.location.href = `/ple-result.html?id=${pleId}`; return; }
+  if (!ple || ple.status !== 'active') { window.location.href = `/ple-result?id=${pleId}`; return; }
   startTime = new Date(ple.started_at).getTime();
   turns = ple.turn_count ?? 0; tokens = ple.token_count ?? 0;
   document.getElementById('turns').textContent = turns;
   document.getElementById('tokens').textContent = tokens;
-  (ple.messages ?? []).forEach(m => renderMessage(m.role, m.content, m.references, m.socratic_question));
+  (ple.messages ?? []).forEach(m => renderMessage(m.role, m.content, m.refs, m.socratic_question));
 });
 
 async function sendMessage() {
@@ -59,7 +59,7 @@ async function sendMessage() {
   const res = await api.sendMessage(pleId, { message, language });
   loading.remove();
   if (res?.content) {
-    renderMessage('assistant', res.content, res.references, res.socratic_question);
+    renderMessage('assistant', res.content, res.refs, res.socratic_question);
     turns += 1; tokens += res.token_count ?? 0;
     document.getElementById('turns').textContent = turns;
     document.getElementById('tokens').textContent = tokens;
@@ -79,5 +79,5 @@ document.getElementById('endBtn').addEventListener('click', async () => {
   document.getElementById('endBtn').disabled = true;
   document.getElementById('endBtn').textContent = 'กำลังประมวลผล...';
   await api.endPle(pleId);
-  window.location.href = `/ple-result.html?id=${pleId}`;
+  window.location.href = `/ple-result?id=${pleId}`;
 });

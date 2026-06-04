@@ -46,7 +46,7 @@
       const btn = document.getElementById('startBtn');
       btn.disabled = true; btn.textContent = 'กำลังสร้าง...';
       const ple = await api.createPle({ specialty, chief_complaint: complaint });
-      if (ple?.id) window.location.href = `/ple-chat.html?id=${ple.id}`;
+      if (ple?.id) window.location.href = `/ple-chat?id=${ple.id}`;
       else {
         errEl.textContent = ple?.error ?? 'เกิดข้อผิดพลาด';
         errEl.style.display = 'block';

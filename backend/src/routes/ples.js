@@ -77,7 +77,7 @@ router.post('/:id/message', async (req, res) => {
   await supabase.from('messages').insert({
     ple_id: req.params.id, role: 'assistant',
     content: rimplResponse.content,
-    references: rimplResponse.references,
+    refs: rimplResponse.refs,
     socratic_question: rimplResponse.socratic_question,
     token_count: rimplResponse.token_count,
   });

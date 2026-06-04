@@ -21,7 +21,7 @@ function renderPlEs(ples) {
     return;
   }
   container.innerHTML = ples.map(p => `
-    <div class="card" style="cursor:pointer" onclick="window.location.href='/ple-chat.html?id=${p.id}'">
+    <div class="card" style="cursor:pointer" onclick="window.location.href='/ple-chat?id=${p.id}'">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
           <p style="font-weight:600;margin-bottom:4px">PLE ${new Date(p.started_at).toLocaleDateString('th-TH')}</p>
