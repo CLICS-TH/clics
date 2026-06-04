@@ -2,14 +2,33 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { NavBar } from '@/components/NavBar';
 
 export default function FlaggedPage() {
   const [ples, setPlEs] = useState<any[]>([]);
   const load = () => apiFetch<any[]>('/admin/ples/flagged').then(d => setPlEs(d ?? []));
   useEffect(() => { load(); }, []);
 
+  async function approve(id: string) {
+    try {
+      const res: any = await apiFetch(`/admin/ples/${id}/approve`, { method: 'POST' });
+      if (res?.error) { alert(`ไม่สำเร็จ: ${res.error}`); return; }
+      load();
+    } catch { alert('เกิดข้อผิดพลาด / Error approving session'); }
+  }
+
+  async function reject(id: string) {
+    try {
+      const res: any = await apiFetch(`/admin/ples/${id}/reject`, { method: 'POST' });
+      if (res?.error) { alert(`ไม่สำเร็จ: ${res.error}`); return; }
+      load();
+    } catch { alert('เกิดข้อผิดพลาด / Error rejecting session'); }
+  }
+
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <>
+      <NavBar />
+      <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-xl font-bold mb-6">QA Queue — Tier 2 Flagged Sessions</h1>
       {ples.length === 0
         ? <p className="text-slate-400 text-center py-10">ไม่มี session รอตรวจสอบ ✅</p>
@@ -28,13 +47,14 @@ export default function FlaggedPage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" onClick={async () => { await apiFetch(`/admin/ples/${p.id}/approve`, { method: 'POST' }); load(); }}>✅ อนุมัติ</Button>
-                <Button size="sm" variant="destructive" onClick={async () => { await apiFetch(`/admin/ples/${p.id}/reject`, { method: 'POST' }); load(); }}>❌ ปฏิเสธ</Button>
+                <Button size="sm" onClick={() => approve(p.id)}>✅ อนุมัติ</Button>
+                <Button size="sm" variant="destructive" onClick={() => reject(p.id)}>❌ ปฏิเสธ</Button>
               </div>
             </div>
           </div>
         ))
       }
     </div>
+    </>
   );
 }

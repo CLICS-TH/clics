@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { IccPanel } from '@/components/IccPanel';
 import { BlandAltmanPlot } from '@/components/BlandAltmanPlot';
+import { NavBar } from '@/components/NavBar';
 
 const DOMAIN_LABELS = ['CQI','RD','CI','II','CA','RS','ALPS'];
 
@@ -16,7 +17,9 @@ export default function IccPage() {
   const { overall, per_domain } = data;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <>
+      <NavBar />
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
       <h1 className="text-xl font-bold">ICC Dashboard</h1>
       <IccPanel {...overall} />
       {per_domain && (
@@ -37,5 +40,6 @@ export default function IccPage() {
         </div>
       )}
     </div>
+    </>
   );
 }

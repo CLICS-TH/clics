@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
+import { NavBar } from '@/components/NavBar';
 
 export default function StatsPage() {
   const [stats, setStats] = useState<any>(null);
@@ -17,8 +18,10 @@ export default function StatsPage() {
     { label: 'รอ QA', value: stats.cle_flag_t2 ?? 0 },
   ];
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-xl font-bold mb-6">สถิติ Pilot Study</h1>
+    <>
+      <NavBar />
+      <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-xl font-bold mb-6">สถิติ Pilot Study / Pilot Study Statistics</h1>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {cards.map(c => (
           <div key={c.label} className="border rounded-xl p-4 text-center">
@@ -38,5 +41,6 @@ export default function StatsPage() {
         </div>
       )}
     </div>
+    </>
   );
 }

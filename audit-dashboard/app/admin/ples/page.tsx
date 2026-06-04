@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { NavBar } from '@/components/NavBar';
 
 const STATUS_MAP: Record<string,string> = {
   active:'กำลังดำเนินการ', ended:'สิ้นสุด', cle_pass:'ผ่าน CLE',
@@ -24,27 +25,32 @@ export default function AdminPlesPage() {
   const filtered = filter ? ples.filter(p => p.status === filter) : ples;
 
   async function assign(pleId: string, auditorId: string) {
-    await apiFetch(`/admin/ples/${pleId}/assign`, { method: 'POST', body: JSON.stringify({ auditor_id: auditorId }) });
-    apiFetch<any[]>('/admin/ples').then(d => setPlEs(d ?? []));
+    try {
+      const res: any = await apiFetch(`/admin/ples/${pleId}/assign`, { method: 'POST', body: JSON.stringify({ auditor_id: auditorId }) });
+      if (res?.error) { alert(`ไม่สำเร็จ: ${res.error}`); return; }
+      apiFetch<any[]>('/admin/ples').then(d => setPlEs(d ?? []));
+    } catch { alert('เกิดข้อผิดพลาด / Error assigning auditor'); }
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-xl font-bold mb-4">จัดการ PLEs ทั้งหมด</h1>
+    <>
+      <NavBar />
+      <div className="max-w-5xl mx-auto p-6">
+      <h1 className="text-xl font-bold mb-4">จัดการ PLEs ทั้งหมด / Manage All PLEs</h1>
       <div className="flex gap-2 mb-4 flex-wrap">
         {['','active','cle_pass','cle_flag_t2','evaluated'].map(s => (
           <Button key={s} variant={filter===s?'default':'outline'} size="sm" onClick={() => setFilter(s)}>
-            {s ? STATUS_MAP[s] : 'ทั้งหมด'}
+            {s ? STATUS_MAP[s] : 'ทั้งหมด / All'}
           </Button>
         ))}
       </div>
       <div className="border rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-slate-50"><tr>
-            <th className="px-4 py-3 text-left">แพทย์</th>
-            <th className="px-4 py-3 text-left">วันที่</th>
-            <th className="px-4 py-3 text-left">สถานะ</th>
-            <th className="px-4 py-3 text-left">Assign Auditor</th>
+            <th className="px-4 py-3 text-left">แพทย์ / Physician</th>
+            <th className="px-4 py-3 text-left">วันที่ / Date</th>
+            <th className="px-4 py-3 text-left">สถานะ / Status</th>
+            <th className="px-4 py-3 text-left">มอบหมาย / Assign Auditor</th>
           </tr></thead>
           <tbody>{filtered.map(p => (
             <tr key={p.id} className="border-t hover:bg-slate-50">
@@ -66,5 +72,6 @@ export default function AdminPlesPage() {
         </table>
       </div>
     </div>
+    </>
   );
 }

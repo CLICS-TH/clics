@@ -49,7 +49,8 @@ router.post('/', async (req, res) => {
       model_version: 'CCME_LLM_v8.0',
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[RIMPL evaluate] error:', err);
+    res.status(500).json({ error: 'Evaluation service temporarily unavailable.' });
   }
 });
 

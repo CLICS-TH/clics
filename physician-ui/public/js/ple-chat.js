@@ -1,6 +1,6 @@
 auth.guardPage();
 const pleId = new URLSearchParams(location.search).get('id');
-if (!pleId) window.location.href = '/dashboard.html';
+if (!pleId) window.location.href = '/dashboard';
 
 let turns = 0, tokens = 0, startTime = Date.now();
 let timerInterval = setInterval(() => {

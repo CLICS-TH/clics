@@ -34,9 +34,10 @@
       <button class="btn btn-primary" style="width:100%" id="loginBtn">เข้าสู่ระบบ / Login</button>
     </div>
   </div>
+  <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>
   <script>
-    if (localStorage.getItem('clics_token')) window.location.href = '/dashboard.html';
+    if (localStorage.getItem('clics_token')) window.location.href = '/dashboard';
 
     document.getElementById('loginBtn').addEventListener('click', async () => {
       const email = document.getElementById('email').value.trim();
@@ -55,8 +56,8 @@
       if (data?.access_token) {
         localStorage.setItem('clics_token', data.access_token);
         localStorage.setItem('clics_user', JSON.stringify(data.user));
-        if (data.user.role === 'physician') window.location.href = '/dashboard.html';
-        else window.location.href = 'http://localhost:3002/login?token=' + encodeURIComponent(data.access_token);
+        if (data.user.role === 'physician') window.location.href = '/dashboard';
+        else window.location.href = (window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?token=' + encodeURIComponent(data.access_token);
       } else {
         errEl.textContent = data?.error ?? 'เข้าสู่ระบบไม่สำเร็จ';
         errEl.style.display = 'block';

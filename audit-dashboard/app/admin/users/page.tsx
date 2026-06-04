@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { NavBar } from '@/components/NavBar';
 
 const ROLE_LABELS: Record<string,string> = { superadmin:'Superadmin', admin:'Admin', physician:'แพทย์', auditor:'Auditor' };
 
@@ -21,17 +22,28 @@ export default function UsersPage() {
     else setErr(res?.error?.fieldErrors ? JSON.stringify(res.error.fieldErrors) : res?.error ?? 'Error');
   }
 
+  const FIELD_PLACEHOLDERS: Record<string, string> = {
+    full_name_th: 'ชื่อภาษาไทย / Thai Name',
+    full_name_en: 'Full Name (English)',
+    email: 'Email',
+    password: 'Password',
+    specialty: 'สาขาวิชา / Specialty',
+    license_number: 'เลขใบอนุญาต / License No.',
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <>
+      <NavBar />
+      <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-bold">จัดการผู้ใช้งาน</h1>
-        <Button onClick={() => setShowForm(v => !v)}>+ เพิ่มผู้ใช้</Button>
+        <h1 className="text-xl font-bold">จัดการผู้ใช้งาน / User Management</h1>
+        <Button onClick={() => setShowForm(v => !v)}>+ เพิ่มผู้ใช้ / Add User</Button>
       </div>
       {showForm && (
         <div className="border rounded-xl p-5 mb-6 space-y-3">
           {(['full_name_th','full_name_en','email','password','specialty','license_number'] as const).map(f => (
             <input key={f} className="w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder={f} value={(form as any)[f]}
+              placeholder={FIELD_PLACEHOLDERS[f]} value={(form as any)[f]}
               type={f==='password'?'password':'text'}
               onChange={e => setForm(s => ({ ...s, [f]: e.target.value }))} />
           ))}
@@ -60,5 +72,6 @@ export default function UsersPage() {
         </table>
       </div>
     </div>
+    </>
   );
 }

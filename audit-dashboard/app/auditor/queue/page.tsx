@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { Badge } from '@/components/ui/badge';
+import { NavBar } from '@/components/NavBar';
 
 interface PleItem { id: string; ended_at: string; turn_count: number; token_count: number; }
 
@@ -18,7 +19,9 @@ export default function AuditorQueue() {
   }, [router]);
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <>
+      <NavBar />
+      <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-xl font-bold mb-6">คิวการประเมิน / Scoring Queue</h1>
       {ples.length === 0
         ? <p className="text-slate-400 text-center py-10">ยังไม่มี CLE ที่ได้รับมอบหมาย</p>
@@ -36,5 +39,6 @@ export default function AuditorQueue() {
         ))
       }
     </div>
+    </>
   );
 }

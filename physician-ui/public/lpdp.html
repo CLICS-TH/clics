@@ -9,21 +9,22 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <nav><span class="brand">CLICS</span><div><a href="/dashboard.html">← Dashboard</a></div></nav>
+  <nav><span class="brand">CLICS</span><div><a href="/dashboard">← Dashboard</a></div></nav>
   <div class="container" style="max-width:700px">
     <h2 style="margin-bottom:20px">ความก้าวหน้าของคุณ / Your LPDP</h2>
     <div class="card"><canvas id="lpdpChart" height="220"></canvas></div>
     <p id="noData" style="display:none;color:#94a3b8;text-align:center;padding:20px">ยังไม่มีข้อมูล — กรุณาทำ PLE ให้ผ่านก่อน</p>
   </div>
+  <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
   <script>
     auth.guardPage();
     const user = auth.getUser();
-    fetch(`http://localhost:3001/admin/lpdp/${user.id}`, {
+    fetch(`${window.CLICS_API_URL || 'http://localhost:3001'}/admin/lpdp/${user.id}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('clics_token')}` }
     })
-    .then(r => r.json())
+    .then(r => { if (!r.ok) { if (r.status === 401) { localStorage.clear(); window.location.href = '/'; } throw new Error('Failed'); } return r.json(); })
     .then(data => {
       if (!data?.length) { document.getElementById('noData').style.display = 'block'; return; }
       new Chart(document.getElementById('lpdpChart'), {
@@ -37,7 +38,8 @@
           plugins: { legend: { display: false } },
         },
       });
-    });
+    })
+    .catch(() => { document.getElementById('noData').style.display = 'block'; });
   </script>
 </body>
 </html>

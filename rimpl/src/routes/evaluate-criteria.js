@@ -33,7 +33,8 @@ router.post('/', async (req, res) => {
 
     res.json({ c4: !!result.c4, c5: !!result.c5, c6: !!result.c6 });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[RIMPL evaluate-criteria] error:', err);
+    res.status(500).json({ error: 'Criteria evaluation service temporarily unavailable.' });
   }
 });
 

@@ -11,6 +11,7 @@ async function embedText(text) {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify({ model: 'text-embedding-3-small', input: text }),
+    signal: AbortSignal.timeout(15000),
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error?.message ?? 'Embedding failed');

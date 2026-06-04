@@ -1,6 +1,6 @@
 interface Message {
   role: string; content: string;
-  references?: { source: string; title?: string }[];
+  refs?: { source: string; title?: string }[];
   socratic_question?: string;
 }
 export function TranscriptView({ messages }: { messages: Message[] }) {
@@ -11,8 +11,8 @@ export function TranscriptView({ messages }: { messages: Message[] }) {
           m.role === 'physician' ? 'ml-auto bg-blue-600 text-white' : 'bg-white border'
         }`}>
           <p className="whitespace-pre-wrap">{m.content}</p>
-          {m.references?.length ? (
-            <p className="mt-1 text-xs opacity-70">📎 {m.references.map(r => r.source ?? r.title).join(' · ')}</p>
+          {m.refs?.length ? (
+            <p className="mt-1 text-xs opacity-70">📎 {m.refs.map(r => r.source ?? r.title).join(' · ')}</p>
           ) : null}
           {m.socratic_question && (
             <p className="mt-1 text-xs italic text-blue-300">❓ {m.socratic_question}</p>

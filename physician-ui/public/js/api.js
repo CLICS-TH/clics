@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:3001';
+const BASE = window.CLICS_API_URL || 'http://localhost:3001';
 
 function getToken() { return localStorage.getItem('clics_token'); }
 
@@ -13,7 +13,7 @@ async function apiFetch(path, options = {}) {
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
-  if (res.status === 401) { localStorage.clear(); window.location.href = '/index.html'; return; }
+  if (res.status === 401) { localStorage.clear(); window.location.href = '/'; return; }
   return res.json();
 }
 

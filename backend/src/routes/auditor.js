@@ -77,7 +77,8 @@ router.get('/icc', async (req, res) => {
     return ai ? [{ ai: Number(ai.composite_score), human: Number(audit.composite_score) }] : [];
   });
 
-  res.json(computeICC21(pairs) ?? { icc: null, n: 0 });
+  const iccResult = computeICC21(pairs);
+  res.json(iccResult ?? { icc: null, n: pairs.length });
 });
 
 module.exports = router;

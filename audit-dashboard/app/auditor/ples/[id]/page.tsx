@@ -5,6 +5,7 @@ import { apiFetch } from '@/lib/api';
 import { DomainSliders } from '@/components/DomainSliders';
 import { TranscriptView } from '@/components/TranscriptView';
 import { Button } from '@/components/ui/button';
+import { NavBar } from '@/components/NavBar';
 
 const WEIGHTS: Record<string, number> = { d1:0.15, d2:0.20, d3:0.15, d4:0.15, d5:0.15, d6:0.10, d7:0.10 };
 const computeComposite = (s: Record<string,number>) =>
@@ -31,18 +32,31 @@ export default function AuditorScorePage() {
 
   async function submit() {
     setSubmitting(true);
-    await apiFetch(`/auditor/ples/${id}/score`, {
-      method: 'POST', body: JSON.stringify({ ...scores, notes }),
-    });
-    setSubmitted(true); setSubmitting(false);
-    loadData();
+    try {
+      const res: any = await apiFetch(`/auditor/ples/${id}/score`, {
+        method: 'POST', body: JSON.stringify({ ...scores, notes }),
+      });
+      if (res?.error) {
+        alert(`ส่งไม่สำเร็จ: ${res.error}`);
+        setSubmitting(false);
+        return;
+      }
+      setSubmitted(true);
+      loadData();
+    } catch {
+      alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (!data) return <div className="p-8 text-slate-400">กำลังโหลด...</div>;
   const composite = computeComposite(scores);
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
+    <>
+      <NavBar />
+      <div className="max-w-3xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-xl font-bold">ประเมิน CLE (Blinded)</h1>
         <Button variant="outline" onClick={() => router.push('/auditor/queue')}>← กลับ</Button>
@@ -70,5 +84,6 @@ export default function AuditorScorePage() {
         </div>
       )}
     </div>
+    </>
   );
 }

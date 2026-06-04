@@ -6,12 +6,16 @@ document.getElementById('greeting').textContent = `สวัสดี, ${user.fu
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await api.logout();
   localStorage.clear();
-  window.location.href = '/index.html';
+  window.location.href = '/';
 });
 
 const STATUS_LABELS = {
-  active: 'กำลังดำเนินการ', ended: 'สิ้นสุดแล้ว', cle_pass: 'ผ่าน CLE',
-  cle_fail_t1: 'ไม่ผ่าน CLE', cle_flag_t2: 'รอตรวจสอบ', evaluated: 'ประเมินแล้ว',
+  active: 'กำลังดำเนินการ / Active',
+  ended: 'สิ้นสุดแล้ว / Ended',
+  cle_pass: 'ผ่าน CLE / Passed',
+  cle_fail_t1: 'ไม่ผ่าน CLE / Failed',
+  cle_flag_t2: 'รอตรวจสอบ / Under Review',
+  evaluated: 'ประเมินแล้ว / Evaluated',
 };
 
 function renderPlEs(ples) {

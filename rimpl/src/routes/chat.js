@@ -59,7 +59,8 @@ router.post('/', async (req, res) => {
       token_count: tokenCount,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[RIMPL chat] error:', err);
+    res.status(500).json({ error: 'AI service temporarily unavailable. Please try again.' });
   }
 });
 

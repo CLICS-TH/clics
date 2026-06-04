@@ -69,23 +69,26 @@ router.post('/:id/message', async (req, res) => {
 
   const physicianTokens = Math.ceil(message.length / 4);
 
-  await supabase.from('messages').insert({
+  const { error: msgErr1 } = await supabase.from('messages').insert({
     ple_id: req.params.id, role: 'physician',
     content: message, token_count: physicianTokens,
   });
+  if (msgErr1) console.error('[ples] failed to persist physician message:', msgErr1.message);
 
-  await supabase.from('messages').insert({
+  const { error: msgErr2 } = await supabase.from('messages').insert({
     ple_id: req.params.id, role: 'assistant',
     content: rimplResponse.content,
     refs: rimplResponse.refs,
     socratic_question: rimplResponse.socratic_question,
     token_count: rimplResponse.token_count,
   });
+  if (msgErr2) console.error('[ples] failed to persist assistant message:', msgErr2.message);
 
-  await supabase.from('ples').update({
+  const { error: counterErr } = await supabase.from('ples').update({
     turn_count: (ple.turn_count ?? 0) + 1,
     token_count: (ple.token_count ?? 0) + (rimplResponse.token_count ?? 0) + physicianTokens,
   }).eq('id', req.params.id);
+  if (counterErr) console.error('[ples] failed to update counters:', counterErr.message);
 
   res.json(rimplResponse);
 });
@@ -138,31 +141,37 @@ router.post('/:id/end', async (req, res) => {
   }).eq('id', req.params.id);
 
   // Fire-and-forget evaluation
-  triggerEvaluation(req.params.id, transcript, ple.physician_id).catch(console.error);
+  triggerEvaluation(req.params.id, transcript, ple.physician_id).catch(err => {
+    console.error(`[EVAL] triggerEvaluation failed for PLE ${req.params.id}:`, err.message);
+  });
 
   res.json({ status: 'cle_pass', criteria: allCriteria });
 });
 
 async function triggerEvaluation(pleId, transcript, physicianId) {
-  const result = await rimplEvaluate({ ple_id: pleId, transcript });
-  const composite = compositeScore(result);
+  try {
+    const result = await rimplEvaluate({ ple_id: pleId, transcript });
+    const composite = compositeScore(result);
 
-  await supabase.from('ai_evaluations').insert({
-    ple_id: pleId,
-    d1: result.d1, d2: result.d2, d3: result.d3, d4: result.d4,
-    d5: result.d5, d6: result.d6, d7: result.d7,
-    composite_score: composite,
-    domain_rationale: result.domain_rationale,
-    model_version: result.model_version ?? 'CCME_LLM_v8.0',
-  });
+    await supabase.from('ai_evaluations').insert({
+      ple_id: pleId,
+      d1: result.d1, d2: result.d2, d3: result.d3, d4: result.d4,
+      d5: result.d5, d6: result.d6, d7: result.d7,
+      composite_score: composite,
+      domain_rationale: result.domain_rationale,
+      model_version: result.model_version ?? 'CCME_LLM_v8.0',
+    });
 
-  await supabase.from('lpdp_snapshots').insert({
-    physician_id: physicianId, ple_id: pleId,
-    composite_score: composite,
-    domain_scores: { d1: result.d1, d2: result.d2, d3: result.d3, d4: result.d4, d5: result.d5, d6: result.d6, d7: result.d7 },
-  });
+    await supabase.from('lpdp_snapshots').insert({
+      physician_id: physicianId, ple_id: pleId,
+      composite_score: composite,
+      domain_scores: { d1: result.d1, d2: result.d2, d3: result.d3, d4: result.d4, d5: result.d5, d6: result.d6, d7: result.d7 },
+    });
 
-  await supabase.from('ples').update({ status: 'evaluated' }).eq('id', pleId);
+    await supabase.from('ples').update({ status: 'evaluated' }).eq('id', pleId);
+  } catch (err) {
+    throw new Error(`Evaluation pipeline failed for ${pleId}: ${err.message}`);
+  }
 }
 
 // Get AI evaluation result
