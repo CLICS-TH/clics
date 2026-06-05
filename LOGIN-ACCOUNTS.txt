@@ -1,0 +1,42 @@
+CLICS — Demo Login Accounts
+============================
+(Throwaway demo credentials for the pilot walkthrough — rotate before the real pilot.)
+
+LIVE URLS
+---------
+Physician portal              : https://physician-ui.vercel.app
+Audit dashboard (A / B / D)   : https://audit-dashboard-rouge.vercel.app
+Backend API                   : https://backend-production-c12e4.up.railway.app
+
+
+ACCOUNTS (4 ROLES)
+------------------
+A — SUPERADMIN  (full system oversight)
+    Login at : https://audit-dashboard-rouge.vercel.app/login
+    Email    : superadmin@clics.th
+    Password : ClicsSuper#2026
+
+B — ADMIN  (manages the pilot cohort)
+    Login at : https://audit-dashboard-rouge.vercel.app/login
+    Email    : admin@clics.th
+    Password : ClicsAdmin#2026
+
+C — PHYSICIAN / แพทย์อาสา  (completes PLEs, earns CPD credit)
+    Login at : https://physician-ui.vercel.app
+    Email    : doctor1@clics.th
+    Password : ClicsDoc#2026
+
+D — EXPERT AUDITOR  (blind-reviews PLEs for ICC calibration)
+    Login at : https://audit-dashboard-rouge.vercel.app/login
+    Email    : auditor1@clics.th
+    Password : ClicsAudit#2026
+
+
+NOTES
+-----
+- All four log in with email + password. The physician uses the physician
+  portal; the other three use the audit dashboard.
+- A/B/D can all sign in at the dashboard /login — each is routed to its own
+  role-aware console automatically.
+- Re-seed / reset these accounts any time (idempotent):
+      cd backend && NODE_PATH="$PWD/node_modules" node ../db/seed-users.js

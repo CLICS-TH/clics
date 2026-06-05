@@ -1,106 +1,26 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code working in this repository. This file is an **index** — detailed docs live in [`docs/`](docs/). Read the relevant doc before changing that area.
 
-## Project Overview
+**CLICS** (Clinical Learning & Intelligence Credit System) is an AI-mediated platform that scores physician clinical reasoning from physician–AI dialogue sessions (**PLEs**), replacing attendance-based CME/CPD credit. On-premise pilot for a Thai medical licensing body, July–September 2026.
 
-**CLICS** (Clinical Learning & Intelligence Credit System) is an AI-mediated platform for assessing physician clinical reasoning in Continuing Medical Education (CME/CPD). It replaces attendance-based credits with evidence of cognitive engagement captured from physician–AI dialogue sessions called **PLEs** (Professional/Clinical Learning Episodes).
+## Critical rules (read before changing anything)
 
-This is an on-premise pilot system for a Thai medical licensing body. The pilot runs July–September 2026 with ~75 physicians completing 3 PLEs each.
+1. **Data boundary:** PII never leaves the on-premise RIMPL layer; only de-identified JSON reaches cloud AI. See [docs/architecture.md](docs/architecture.md).
+2. **No secrets in git:** live keys live only in gitignored `backend/.env` / `rimpl/.env` and platform env vars. Never `git add -A` blindly. See [docs/constraints.md](docs/constraints.md).
+3. **Railway deploys need `railway up . --path-as-root --ci`** (plain `railway up` builds but never promotes); the audit-dashboard needs `NEXT_PUBLIC_API_URL` on Vercel. See [docs/deployment.md](docs/deployment.md).
+4. **audit-dashboard is Next.js 16** — newer than training data; read `audit-dashboard/node_modules/next/dist/docs/` before touching Next APIs.
 
----
+## Documentation index
 
-## Planned Architecture (4-Layer, On-Premise)
-
-```
-Browser / Mobile
-       │  HTTPS · JWT Auth · REST API (port 3001)
-       ▼
-L1  Frontend — HTML/JS (port 3000) + Next.js Audit Dashboard (port 3002)
-       │  Login · PLE Editor · Dashboard · Audit Sliders · LPDP Charts
-       ▼
-L2  Backend — Node.js/Express (port 3001) + Supabase SDK
-       │  Auth · PLE screening (C1–C6) · SBMA · Credit Engine · ICC calc · Audit trail
-       ▼
-L3  RIMPL Middleware — on-premise CPU
-       │  Pre-filter 4 signals · De-identify PII · Anti-sycophancy + ELM
-       ▼
-L4  API Randomization Layer — สุ่ม provider ต่อ session
-       │  hashSessionId() · Failover · Log provider_used · HTTPS/TLS 1.3 outbound
-       ▼
-Cloud AI (GPU) — randomized per session, no PII leaves on-premise
-  ┌─────────┬──────────┬────────────────┬────────────┐
-  │ Claude  │  GPT-4o  │    Gemini      │  Mistral   │
-  └─────────┴──────────┴────────────────┴────────────┘
-       │  JSON response → RIMPL post-filter
-       ▼
-Supabase (PostgreSQL · AES-256)
-  Tables: professionals · ples · audit_trail · professions · lpdp_snapshots
-```
-
-**Critical data-boundary rule:** PII never leaves the on-premise RIMPL layer. Only de-identified JSON fragments reach cloud AI providers.
-
----
-
-## Domain Concepts
-
-| Term | Meaning |
-|------|---------|
-| **PLE / CLE** | Professional/Clinical Learning Episode — a single physician–AI dialogue session |
-| **PIS-7** | 7-domain scoring rubric (0–5 per domain) used to evaluate physician reasoning quality in a PLE |
-| **RIMPL** | On-premise middleware: pre-filters prompts, strips PII, injects anti-sycophancy + ELM signals |
-| **SBMA** | Score Behavior Matching Algorithm — matches PLE patterns to scoring profiles |
-| **ICC** | Intraclass Correlation Coefficient — primary metric for AI vs. expert-auditor agreement (target ≥ 0.75) |
-| **LPDP** | Longitudinal Professional Development Profile — per-physician score trajectory chart |
-| **C1–C6** | PLE screening criteria (quality gate before scoring) |
-| **Credit Engine** | Converts validated PLE scores into CPD credit units |
-
-### PIS-7 Domains (weights)
-1. Clinical Question Intelligence (15%)
-2. Reasoning Depth (20%)
-3. Contextual Integration (15%)
-4. Iterative Inquiry (15%)
-5. Critical Appraisal (15%)
-6. Reflective Synthesis (10%)
-7. AI Literacy & Prompt Skill (10%)
-
----
-
-## User Roles
-
-| Role | Description |
-|------|-------------|
-| **A — Superadmin** | Full system oversight |
-| **B — Admin** | Professional body admin; manages pilot cohort |
-| **C — Physician** | Completes PLEs, receives credit |
-| **D — Expert Auditor** | Blind-reviews PLEs for ICC calibration |
-
----
-
-## Tech Stack (Planned)
-
-- **Frontend:** HTML/JS (port 3000), Next.js (port 3002 — audit dashboard)
-- **Backend:** Node.js + Express (port 3001), Supabase SDK, Anthropic SDK
-- **Database:** Supabase / PostgreSQL, AES-256 at rest, row-level security
-- **Auth:** JWT (HTTPS only)
-- **AI Providers:** Claude (Anthropic), GPT-4o (OpenAI), Gemini (Google Vertex AI), Mistral — randomized per session via L4
-- **Middleware:** RIMPL (custom, on-premise)
-
----
-
-## Key Constraints
-
-- **On-premise mandate:** All PII and audit trail data must remain on-premise. Only stripped JSON reaches cloud APIs.
-- **Provider randomization:** L4 selects AI provider per session using `hashSessionId()`. One provider is used per PLE. `provider_used` is logged for audit.
-- **Pseudonymization:** Physicians mapped P-001…P-075; CLEs mapped CLE-001…CLE-150. Lookup table is encrypted and access-gated.
-- **Reproducibility:** All CCME LLM evaluation runs tagged with model version (`CCME_LLM_v8.0`). If model updates mid-study, re-evaluate the Tier 2 sample for drift.
-- **ICC gate:** Calibration Workshop must achieve ICC ≥ 0.75 before Tier 2 audit begins.
-
----
-
-## Pilot Timeline
-
-| Month | Milestone |
-|-------|-----------|
-| July 2026 | Calibration Workshop — establish inter-rater ICC ≥ 0.75 |
-| Aug–Sep 2026 | Pilot Study — 75 physicians × 3 PLEs = 225 PLEs |
+| Doc | Contents |
+|-----|----------|
+| [docs/overview.md](docs/overview.md) | What CLICS is + repository layout |
+| [docs/architecture.md](docs/architecture.md) | 4-layer on-premise architecture, request flow, planned vs. as-built |
+| [docs/roles.md](docs/roles.md) | The 4 roles (A/B/C/D), post-login routing, role-keyed nav |
+| [docs/domain-concepts.md](docs/domain-concepts.md) | PLE, PIS-7 rubric + weights, C1–C6 screening, ICC, glossary |
+| [docs/tech-stack.md](docs/tech-stack.md) | Stack per layer, framework versions, design system |
+| [docs/constraints.md](docs/constraints.md) | On-premise mandate, randomization, pseudonymization, ICC gate, security |
+| [docs/deployment.md](docs/deployment.md) | Live URLs, deploy commands + gotchas, env vars, seeding, demo creds |
+| [docs/pilot-timeline.md](docs/pilot-timeline.md) | Milestones and pilot targets |
+| [docs/MIDDLEWARE-KNOWN-GAPS.md](docs/MIDDLEWARE-KNOWN-GAPS.md) | As-built RIMPL gaps vs. the flowchart (L4, PII, ELM, etc.) |
