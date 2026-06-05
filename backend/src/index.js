@@ -22,6 +22,7 @@ app.use((req, res, next) => {
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/auth', require('./routes/auth'));
+app.use('/ples/folders', require('./routes/folders')); // before /ples so "folders" isn't read as :id
 app.use('/ples', require('./routes/ples'));
 app.use('/admin', require('./routes/admin'));
 app.use('/auditor', require('./routes/auditor'));

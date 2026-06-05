@@ -3,11 +3,9 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { NavBar } from '@/components/NavBar';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
-
-const ROLE_LABELS: Record<string,string> = { superadmin:'Superadmin', admin:'Admin', physician:'แพทย์', auditor:'Auditor' };
+import { ROLE_LABELS } from '@/lib/labels';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -36,7 +34,6 @@ export default function UsersPage() {
 
   return (
     <>
-      <NavBar />
       <div className="max-w-4xl mx-auto p-6 md:p-10">
       <PageIntro
         eyebrow="Admin · Users"

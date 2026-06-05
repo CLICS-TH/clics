@@ -41,7 +41,7 @@ create table public.ples (
   token_count      integer default 0,
   c1_pass boolean, c2_pass boolean, c3_pass boolean,
   c4_pass boolean, c5_pass boolean, c6_pass boolean,
-  provider_used    text default 'claude',
+  provider_used    text default 'claude',   -- reserved for L4 multi-provider rotation (roadmap); currently always 'claude'
   created_at       timestamptz default now()
 );
 create index ples_folder_idx on public.ples(folder_id);

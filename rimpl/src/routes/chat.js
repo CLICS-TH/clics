@@ -13,9 +13,15 @@ const ChatSchema = z.object({
   history: z.array(z.object({ role: z.string(), content: z.string() })),
   message: z.string().min(1),
   language: z.enum(['th', 'en']).default('th'),
+  chief_complaint: z.string().optional(),
 });
 
-async function buildMessages(history, message, ragDocs) {
+async function buildMessages(history, message, ragDocs, chiefComplaint) {
+  // Ground every turn in the case the physician opened the session with, so the AI
+  // never has to ask for patient details it was already given at creation.
+  const cc = chiefComplaint
+    ? `ข้อมูลผู้ป่วยเบื้องต้น / Case (chief complaint): ${stripPii(chiefComplaint)}\n\n`
+    : '';
   const context = ragDocs.length
     ? `\n\nRelevant guidelines:\n${ragDocs.map(d => `[${d.source}] ${d.content}`).join('\n')}`
     : '';
@@ -23,18 +29,18 @@ async function buildMessages(history, message, ragDocs) {
     role: m.role === 'physician' ? 'user' : 'assistant',
     content: m.content,
   }));
-  return [...cleanHistory, { role: 'user', content: stripPii(message) + context }];
+  return [...cleanHistory, { role: 'user', content: cc + stripPii(message) + context }];
 }
 
 router.post('/', async (req, res) => {
   const parsed = ChatSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { history, message, language } = parsed.data;
+  const { history, message, language, chief_complaint } = parsed.data;
 
   try {
     const ragDocs = await ragLookup(message);
-    const messages = await buildMessages(history, message, ragDocs);
+    const messages = await buildMessages(history, message, ragDocs, chief_complaint);
 
     let { text, tokenCount } = await callClaude({ systemPrompt: RIMPL_SYSTEM_PROMPT, messages, maxTokens: 2500 });
 
