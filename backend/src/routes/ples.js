@@ -128,6 +128,22 @@ router.patch('/:id', async (req, res) => {
   res.json(data);
 });
 
+// Delete a conversation (and its data). Physician can remove their own sessions.
+router.delete('/:id', async (req, res) => {
+  const { data: ple } = await supabase
+    .from('ples').select('id').eq('id', req.params.id).eq('physician_id', req.user.id).single();
+  if (!ple) return res.status(404).json({ error: 'Not found' });
+
+  // messages / ai_evaluations / audit_scores cascade on delete; lpdp_snapshots FK has no
+  // ON DELETE CASCADE, so remove those rows first to avoid a foreign-key violation.
+  await supabase.from('lpdp_snapshots').delete().eq('ple_id', req.params.id);
+
+  const { error } = await supabase
+    .from('ples').delete().eq('id', req.params.id).eq('physician_id', req.user.id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
 // Physician's own longitudinal profile (LPDP). Mirrors the superadmin-only
 // /admin/lpdp/:id, scoped to the authenticated physician. Declared before /:id.
 router.get('/lpdp/me', async (req, res) => {
@@ -205,16 +221,23 @@ router.post('/:id/end', async (req, res) => {
   if (!ple || ple.status !== 'active') return res.status(400).json({ error: 'PLE not active' });
 
   const endedAt = new Date();
-  const durationSeconds = Math.floor((endedAt - new Date(ple.started_at)) / 1000);
+  const wallClockSeconds = Math.floor((endedAt - new Date(ple.started_at)) / 1000);
+  // Prefer the client-reported active-engagement time (idle/backgrounded time excluded);
+  // fall back to wall-clock if the client didn't report it.
+  const reported = Number(req.body?.active_seconds);
+  const durationSeconds = Number.isFinite(reported) && reported >= 0 ? Math.round(reported) : wallClockSeconds;
   const updatedPle = { ...ple, duration_seconds: durationSeconds };
 
   const tier1 = computeTier1(updatedPle);
+  // CLE-gate booleans live in the c1_pass..c6_pass columns; map {c1..} -> {c1_pass..}.
+  const toPassCols = (crit) => Object.fromEntries(Object.entries(crit).map(([k, v]) => [`${k}_pass`, v]));
 
   if (!tier1.c1 || !tier1.c2 || !tier1.c3) {
-    await supabase.from('ples').update({
+    const { error: e } = await supabase.from('ples').update({
       status: 'cle_fail_t1', ended_at: endedAt.toISOString(),
-      duration_seconds: durationSeconds, ...tier1,
+      duration_seconds: durationSeconds, ...toPassCols(tier1),
     }).eq('id', req.params.id);
+    if (e) { console.error('[ples] end (t1) update failed:', e.message); return res.status(500).json({ error: e.message }); }
     return res.json({ status: 'cle_fail_t1', criteria: tier1 });
   }
 
@@ -233,17 +256,19 @@ router.post('/:id/end', async (req, res) => {
   const tier2Pass = tier2.c4 && tier2.c5 && tier2.c6;
 
   if (!tier2Pass) {
-    await supabase.from('ples').update({
+    const { error: e } = await supabase.from('ples').update({
       status: 'cle_flag_t2', ended_at: endedAt.toISOString(),
-      duration_seconds: durationSeconds, ...allCriteria,
+      duration_seconds: durationSeconds, ...toPassCols(allCriteria),
     }).eq('id', req.params.id);
+    if (e) { console.error('[ples] end (t2) update failed:', e.message); return res.status(500).json({ error: e.message }); }
     return res.json({ status: 'cle_flag_t2', criteria: allCriteria });
   }
 
-  await supabase.from('ples').update({
+  const { error: passErr } = await supabase.from('ples').update({
     status: 'cle_pass', ended_at: endedAt.toISOString(),
-    duration_seconds: durationSeconds, ...allCriteria,
+    duration_seconds: durationSeconds, ...toPassCols(allCriteria),
   }).eq('id', req.params.id);
+  if (passErr) { console.error('[ples] end (pass) update failed:', passErr.message); return res.status(500).json({ error: passErr.message }); }
 
   // Fire-and-forget evaluation
   triggerEvaluation(req.params.id, transcript, ple.physician_id).catch(err => {

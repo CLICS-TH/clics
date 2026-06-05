@@ -36,18 +36,18 @@ router.post('/', async (req, res) => {
     const ragDocs = await ragLookup(message);
     const messages = await buildMessages(history, message, ragDocs);
 
-    let { text, tokenCount } = await callClaude({ systemPrompt: RIMPL_SYSTEM_PROMPT, messages });
+    let { text, tokenCount } = await callClaude({ systemPrompt: RIMPL_SYSTEM_PROMPT, messages, maxTokens: 2500 });
 
     // Retry once if citation or socratic question missing
     if (!hasCitation(text) || !extractSocraticQuestion(text)) {
       const retryPrompt = language === 'th'
-        ? 'กรุณาตอบใหม่ โดยต้องมี (แหล่งอ้างอิง, ปี) และคำถาม ❓ ท้ายคำตอบ'
-        : 'Please revise: include at least one (Source, Year) citation and end with an ❓ question.';
+        ? 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) และปิดท้ายด้วยคำถามชวนคิดขึ้นบรรทัดใหม่นำหน้าด้วย ❓ — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม'
+        : 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation and end with a ❓ question on its own line. Engage with the question — do not decline to answer.';
       const retryMessages = [...messages,
         { role: 'assistant', content: text },
         { role: 'user', content: retryPrompt },
       ];
-      const retry = await callClaude({ systemPrompt: RIMPL_SYSTEM_PROMPT, messages: retryMessages });
+      const retry = await callClaude({ systemPrompt: RIMPL_SYSTEM_PROMPT, messages: retryMessages, maxTokens: 2500 });
       text = retry.text;
       tokenCount += retry.tokenCount;
     }

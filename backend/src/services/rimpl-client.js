@@ -5,7 +5,7 @@ async function rimplChat({ ple_id, history, message, language }) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
     body: JSON.stringify({ ple_id, history, message, language }),
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(75000), // chat may make up to 2 Claude calls (initial + citation retry)
   });
   if (!res.ok) throw new Error(`RIMPL /chat error: ${res.status}`);
   return res.json();
