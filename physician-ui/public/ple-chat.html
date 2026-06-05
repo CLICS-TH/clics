@@ -21,17 +21,21 @@
       <p class="sub">ถาม–ตอบกับผู้ช่วย AI · ทุกคำตอบมีการอ้างอิงและคำถามชวนคิด (Socratic)</p>
     </header>
     <div class="session-bar">
-      <div>⏱ <span id="timer">00:00</span></div>
+      <div title="เวลาใช้งานจริง — นับเฉพาะตอนพิมพ์และ AI ตอบ ไม่นับตอนพักหน้าจอ / Active time only">⏱ <span id="timer">00:00</span></div>
       <div>💬 <span id="turns">0</span> รอบ</div>
       <div>📝 <span id="tokens">0</span> tokens</div>
-      <div style="margin-left:auto"><button class="btn btn-danger" id="endBtn">จบ Session / End</button></div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <a href="/dashboard" class="btn btn-ghost" id="pauseBtn" title="กลับหน้าหลักโดยไม่จบ session — กลับมาทำต่อได้">⏸ พักไว้ / Pause</a>
+        <button class="btn btn-danger" id="endBtn">จบ Session / End</button>
+      </div>
     </div>
+    <p style="font-size:11px;color:var(--muted-soft);margin:-6px 0 12px">⏸ พักไว้ = บันทึกอัตโนมัติและกลับมาทำต่อภายหลังได้ · จบ Session = ส่งประเมินคะแนน</p>
     <div class="chat-window card" style="padding:0">
       <div class="chat-messages" id="messages" style="padding:16px"></div>
       <div style="padding:12px 16px;border-top:1px solid var(--hairline)">
         <div class="chat-input-row">
           <textarea id="input" rows="2" placeholder="พิมพ์คำถามเกี่ยวกับเคส... / Type your clinical question..."></textarea>
-          <button class="btn btn-primary" id="sendBtn">ส่ง</button>
+          <button class="btn btn-primary" id="sendBtn">ส่ง&nbsp;➤</button>
         </div>
         <p style="font-size:11px;color:var(--muted-soft);margin-top:6px">Shift+Enter ขึ้นบรรทัดใหม่ · Enter ส่ง</p>
       </div>

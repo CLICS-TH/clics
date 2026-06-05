@@ -65,6 +65,7 @@ function convRow(p) {
           <select class="conv-move" title="ย้ายโฟลเดอร์ / Move to folder" data-action="move-conv" data-id="${esc(p.id)}">
             ${folderOptions(p.folder_id)}
           </select>
+          <button class="icon-btn icon-btn-danger" type="button" title="ลบ / Delete" data-action="delete-conv" data-id="${esc(p.id)}">🗑</button>
         </div>
       </div>
     </div>`;
@@ -182,6 +183,17 @@ listEl.addEventListener('click', async (e) => {
       const p = ples.find(x => x.id === id);
       if (p && updated?.title) p.title = updated.title;
     });
+  } else if (action === 'delete-conv') {
+    const id = t.dataset.id;
+    const p = ples.find(x => x.id === id);
+    if (!confirm(`ลบการสนทนานี้ถาวร? / Delete this conversation permanently?\n"${p ? convTitle(p) : ''}"`)) return;
+    const res = await api.deletePle(id);
+    if (res && res.ok) {
+      ples = ples.filter(x => x.id !== id);
+      render();
+    } else {
+      alert('ลบไม่สำเร็จ / Could not delete');
+    }
   }
 });
 

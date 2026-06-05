@@ -1,12 +1,25 @@
 const pleId = new URLSearchParams(location.search).get('id');
 if (!pleId) window.location.href = '/dashboard';
 
-let turns = 0, tokens = 0, startTime = Date.now();
+let turns = 0, tokens = 0;
+
+// Active-engagement timer: count a second only while the tab is VISIBLE and the
+// physician is actually working — typed/sent within the grace window, or the AI is
+// answering. Idle or backgrounded ("open frozen screen") time is not counted.
+let activeSeconds = 0, lastActivity = Date.now(), aiInFlight = false;
+const IDLE_GRACE_MS = 90000;
+function markActivity() { lastActivity = Date.now(); }
 let timerInterval = setInterval(() => {
-  const e = Math.floor((Date.now() - startTime) / 1000);
+  const idleMs = Date.now() - lastActivity;
+  const engaged = document.visibilityState === 'visible' && (aiInFlight || idleMs < IDLE_GRACE_MS);
+  if (engaged) activeSeconds += 1;
   document.getElementById('timer').textContent =
-    String(Math.floor(e / 60)).padStart(2,'0') + ':' + String(e % 60).padStart(2,'0');
+    String(Math.floor(activeSeconds / 60)).padStart(2,'0') + ':' + String(activeSeconds % 60).padStart(2,'0');
 }, 1000);
+
+['input','keydown','focus','pointerdown'].forEach(ev =>
+  document.getElementById('input').addEventListener(ev, markActivity));
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') markActivity(); });
 
 function renderMessage(role, content, refs, socratic) {
   const container = document.getElementById('messages');
@@ -45,7 +58,6 @@ api.getPle(pleId).then(ple => {
   if (!ple || ple.status !== 'active') { window.location.href = `/ple-result?id=${pleId}`; return; }
   const titleEl = document.getElementById('chatTitle');
   if (titleEl && (ple.title || ple.chief_complaint)) titleEl.textContent = ple.title || ple.chief_complaint;
-  startTime = new Date(ple.started_at).getTime();
   turns = ple.turn_count ?? 0; tokens = ple.token_count ?? 0;
   document.getElementById('turns').textContent = turns;
   document.getElementById('tokens').textContent = tokens;
@@ -64,7 +76,9 @@ async function sendMessage() {
   loading.className = 'msg-assistant'; loading.style.color = 'var(--muted-soft)';
   loading.textContent = 'กำลังคิด... / Thinking...';
   document.getElementById('messages').appendChild(loading);
+  markActivity(); aiInFlight = true;          // keep the timer running while the AI answers
   const res = await api.sendMessage(pleId, { message, language });
+  aiInFlight = false; markActivity();
   loading.remove();
   if (res?.content) {
     renderMessage('assistant', res.content, res.refs, res.socratic_question);
@@ -86,6 +100,6 @@ document.getElementById('endBtn').addEventListener('click', async () => {
   clearInterval(timerInterval);
   document.getElementById('endBtn').disabled = true;
   document.getElementById('endBtn').textContent = 'กำลังประมวลผล...';
-  await api.endPle(pleId);
+  await api.endPle(pleId, { active_seconds: activeSeconds });
   window.location.href = `/ple-result?id=${pleId}`;
 });

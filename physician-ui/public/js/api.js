@@ -26,8 +26,9 @@ window.api = {
   getPlEs: () => apiFetch('/ples'),
   getPle: (id) => apiFetch(`/ples/${id}`),
   updatePle: (id, body) => apiFetch(`/ples/${id}`, { method: 'PATCH', body }),
+  deletePle: (id) => apiFetch(`/ples/${id}`, { method: 'DELETE' }),
   sendMessage: (id, body) => apiFetch(`/ples/${id}/message`, { method: 'POST', body }),
-  endPle: (id) => apiFetch(`/ples/${id}/end`, { method: 'POST' }),
+  endPle: (id, body) => apiFetch(`/ples/${id}/end`, { method: 'POST', body }),
   getEvaluation: (id) => apiFetch(`/ples/${id}/evaluation`),
   // Conversation folders
   getFolders: () => apiFetch('/ples/folders'),
