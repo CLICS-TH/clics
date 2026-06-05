@@ -1,10 +1,10 @@
 const RIMPL_URL = process.env.RIMPL_URL || 'http://localhost:3003';
 
-async function rimplChat({ ple_id, history, message, language }) {
+async function rimplChat({ ple_id, history, message, language, chief_complaint }) {
   const res = await fetch(`${RIMPL_URL}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
-    body: JSON.stringify({ ple_id, history, message, language }),
+    body: JSON.stringify({ ple_id, history, message, language, chief_complaint }),
     signal: AbortSignal.timeout(75000), // chat may make up to 2 Claude calls (initial + citation retry)
   });
   if (!res.ok) throw new Error(`RIMPL /chat error: ${res.status}`);

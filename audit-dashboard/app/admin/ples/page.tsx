@@ -3,14 +3,9 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { NavBar } from '@/components/NavBar';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
-
-const STATUS_MAP: Record<string,string> = {
-  active:'กำลังดำเนินการ', ended:'สิ้นสุด', cle_pass:'ผ่าน CLE',
-  cle_fail_t1:'ไม่ผ่าน T1', cle_flag_t2:'รอตรวจสอบ', evaluated:'ประเมินแล้ว',
-};
+import { STATUS_MAP } from '@/lib/labels';
 
 export default function AdminPlesPage() {
   const [ples, setPlEs] = useState<any[]>([]);
@@ -45,7 +40,6 @@ export default function AdminPlesPage() {
 
   return (
     <>
-      <NavBar />
       <div className="max-w-5xl mx-auto p-6 md:p-10">
       <PageIntro
         eyebrow="Admin · PLE Management"

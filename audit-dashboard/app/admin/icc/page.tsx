@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { IccPanel } from '@/components/IccPanel';
 import { BlandAltmanPlot } from '@/components/BlandAltmanPlot';
-import { NavBar } from '@/components/NavBar';
 import { PageIntro } from '@/components/PageIntro';
 import { Skeleton } from '@/components/Skeleton';
 
@@ -15,7 +14,6 @@ export default function IccPage() {
 
   if (!data) return (
     <>
-      <NavBar />
       <div className="mx-auto max-w-4xl space-y-6 p-6 md:p-8">
         <div className="h-7 w-48 animate-pulse rounded bg-muted" />
         <Skeleton className="h-32 w-full" />
@@ -25,7 +23,6 @@ export default function IccPage() {
   );
   if (!data.overall) return (
     <>
-      <NavBar />
       <div className="mx-auto max-w-4xl p-6 md:p-8 text-muted-foreground">ยังไม่มีข้อมูล ICC — รอให้ Auditors ส่งคะแนน</div>
     </>
   );
@@ -34,7 +31,6 @@ export default function IccPage() {
 
   return (
     <>
-      <NavBar />
       <div className="max-w-4xl mx-auto p-6 md:p-10 space-y-6">
       <PageIntro
         eyebrow="Superadmin · Calibration"

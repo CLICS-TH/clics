@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { z } = require('zod');
 const { callClaude } = require('../services/claude');
 const { PIS7_EVALUATOR_PROMPT } = require('../lib/prompts');
+const { parseJsonObject } = require('../lib/parse');
 
 const router = Router();
 
@@ -30,7 +31,7 @@ router.post('/', async (req, res) => {
 
     let scores;
     try {
-      scores = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
+      scores = parseJsonObject(text);
     } catch {
       return res.status(502).json({ error: 'Evaluator returned invalid JSON' });
     }

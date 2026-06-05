@@ -25,10 +25,10 @@
   <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
+  <script src="/js/labels.js"></script>
   <script src="/js/boot.js" defer></script>
   <script>
     const pleId = new URLSearchParams(location.search).get('id');
-    function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
     let radarChart = null, lastScores = null;
     function buildRadar() {
       if (!lastScores || typeof Chart === 'undefined') return;
@@ -46,18 +46,7 @@
       });
     }
     window.addEventListener('clics:themechange', buildRadar);
-    const DOMAIN_LABELS = [
-      'Clinical Question Intelligence','Reasoning Depth','Contextual Integration',
-      'Iterative Inquiry','Critical Appraisal','Reflective Synthesis','AI Literacy &amp; Prompt Skill',
-    ];
-    const CRITERIA_LABELS = {
-      c1: 'ระยะเวลา ≥ 15 นาที / Duration ≥ 15 min',
-      c2: 'จำนวนรอบ ≥ 4 / Turns ≥ 4',
-      c3: 'Tokens ≥ 800',
-      c4: 'คำถามเชิงคลินิก / Clinical Question',
-      c5: 'Follow-up เชิงลึก ≥ 2 / Deep Follow-ups ≥ 2',
-      c6: 'สรุปการเรียนรู้ / Learning Summary',
-    };
+    // DOMAIN_LABELS / CRITERIA_LABELS come from /js/labels.js
 
     async function load() {
       const ple = await api.getPle(pleId);

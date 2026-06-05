@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { NavBar } from '@/components/NavBar';
 import { PageIntro } from '@/components/PageIntro';
 
 export default function FlaggedPage() {
@@ -28,7 +27,6 @@ export default function FlaggedPage() {
 
   return (
     <>
-      <NavBar />
       <div className="max-w-3xl mx-auto p-6 md:p-10">
       <PageIntro
         eyebrow="Admin · QA Queue"

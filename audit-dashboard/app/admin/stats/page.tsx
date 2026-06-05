@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
-import { NavBar } from '@/components/NavBar';
 import { PageIntro } from '@/components/PageIntro';
 import { CardGridSkeleton } from '@/components/Skeleton';
 
@@ -14,7 +13,6 @@ export default function StatsPage() {
   }, []);
   if (!stats) return (
     <>
-      <NavBar />
       <div className="mx-auto max-w-4xl space-y-8 p-6 md:p-8">
         <div className="h-7 w-72 animate-pulse rounded bg-muted" />
         <CardGridSkeleton />
@@ -29,7 +27,6 @@ export default function StatsPage() {
   ];
   return (
     <>
-      <NavBar />
       <div className="max-w-4xl mx-auto p-6 md:p-10">
       <PageIntro
         eyebrow="Admin · Pilot Statistics"

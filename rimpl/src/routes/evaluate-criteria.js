@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { z } = require('zod');
 const { callClaude } = require('../services/claude');
 const { CRITERIA_CLASSIFIER_PROMPT } = require('../lib/prompts');
+const { parseJsonObject } = require('../lib/parse');
 
 const router = Router();
 
@@ -26,7 +27,7 @@ router.post('/', async (req, res) => {
 
     let result;
     try {
-      result = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
+      result = parseJsonObject(text);
     } catch {
       return res.status(502).json({ error: 'Classifier returned invalid JSON' });
     }

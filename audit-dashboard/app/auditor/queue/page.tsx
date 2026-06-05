@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { Badge } from '@/components/ui/badge';
-import { NavBar } from '@/components/NavBar';
 import { PageIntro } from '@/components/PageIntro';
 
 interface PleItem { id: string; ended_at: string; turn_count: number; token_count: number; }
@@ -21,7 +20,6 @@ export default function AuditorQueue() {
 
   return (
     <>
-      <NavBar />
       <div className="max-w-2xl mx-auto p-6 md:p-10">
       <PageIntro
         eyebrow="Auditor · Scoring Queue"

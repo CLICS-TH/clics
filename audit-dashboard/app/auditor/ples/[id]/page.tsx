@@ -5,12 +5,8 @@ import { apiFetch } from '@/lib/api';
 import { DomainSliders } from '@/components/DomainSliders';
 import { TranscriptView } from '@/components/TranscriptView';
 import { Button } from '@/components/ui/button';
-import { NavBar } from '@/components/NavBar';
 import { PageIntro } from '@/components/PageIntro';
-
-const WEIGHTS: Record<string, number> = { d1:0.15, d2:0.20, d3:0.15, d4:0.15, d5:0.15, d6:0.10, d7:0.10 };
-const computeComposite = (s: Record<string,number>) =>
-  Object.entries(WEIGHTS).reduce((a,[k,w]) => a + (s[k]??0)*w, 0) * 20;
+import { computeComposite } from '@/lib/labels';
 
 export default function AuditorScorePage() {
   const { id } = useParams<{ id: string }>();
@@ -56,7 +52,6 @@ export default function AuditorScorePage() {
 
   return (
     <>
-      <NavBar />
       <div className="max-w-3xl mx-auto p-6 md:p-10 space-y-6">
       <PageIntro
         eyebrow="Auditor · Blind Scoring"
