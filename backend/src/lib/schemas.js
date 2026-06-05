@@ -19,10 +19,28 @@ const ScoreSchema = z.object({
 const CreatePleSchema = z.object({
   specialty: z.string().optional(),
   chief_complaint: z.string().min(1).max(500),
+  folder_id: z.string().uuid().optional(),
 });
 
 const AssignSchema = z.object({
   auditor_id: z.string().uuid(),
 });
 
-module.exports = { MessageSchema, ScoreSchema, CreatePleSchema, AssignSchema };
+// Conversation folders (physician-owned)
+const CreateFolderSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+});
+const UpdateFolderSchema = CreateFolderSchema;
+
+// Rename / move a conversation. folder_id null => move to "Uncategorized".
+const UpdatePleSchema = z.object({
+  title: z.string().trim().min(1).max(120).optional(),
+  folder_id: z.string().uuid().nullable().optional(),
+}).refine((b) => b.title !== undefined || b.folder_id !== undefined, {
+  message: 'Provide at least one of: title, folder_id',
+});
+
+module.exports = {
+  MessageSchema, ScoreSchema, CreatePleSchema, AssignSchema,
+  CreateFolderSchema, UpdateFolderSchema, UpdatePleSchema,
+};

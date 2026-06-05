@@ -13,8 +13,9 @@
     body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
     .login-box { width: 100%; max-width: 420px; }
     .logo { text-align: center; margin-bottom: 32px; }
-    .logo h1 { font-size: 28px; font-weight: 700; color: var(--coral); font-family: var(--font-display); }
+    .logo h1 { font-size: 32px; font-weight: 600; color: var(--coral); font-family: var(--font-display); letter-spacing: -0.02em; }
     .logo p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    @media (prefers-reduced-motion: no-preference) { .logo { animation: clics-rise .6s ease both; } }
   </style>
 </head>
 <body>

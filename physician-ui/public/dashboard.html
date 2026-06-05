@@ -21,17 +21,26 @@
     </div>
   </nav>
   <div class="container">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <h2 id="greeting" style="font-size:20px;font-weight:700"></h2>
-          <span class="role-badge">แพทย์อาสา / Physician</span>
-        </div>
-        <p style="color:var(--muted);font-size:13px">Clinical Learning Episodes ของคุณ</p>
+    <header class="page-intro">
+      <p class="eyebrow">แดชบอร์ด · Dashboard</p>
+      <div class="page-intro-row">
+        <h1 id="greeting"></h1>
+        <span class="role-badge">แพทย์อาสา / Physician</span>
       </div>
-      <a href="/ple-new" class="btn btn-primary">+ เริ่ม PLE ใหม่</a>
+      <p class="sub">Clinical Learning Episodes ของคุณ — จัดระเบียบด้วยโฟลเดอร์ / Organize your episodes in folders</p>
+    </header>
+
+    <div class="dash-toolbar">
+      <button class="btn btn-ghost" id="newFolderBtn" type="button">+ โฟลเดอร์ใหม่ / New folder</button>
+      <a href="/ple-new" class="btn btn-primary">+ เริ่ม PLE ใหม่ / New PLE</a>
     </div>
-    <div id="pleList"><p style="color:var(--muted-soft);text-align:center;padding:40px">กำลังโหลด...</p></div>
+    <form class="folder-form" id="newFolderForm" hidden>
+      <input id="newFolderName" type="text" maxlength="80" placeholder="ชื่อโฟลเดอร์ / Folder name…" autocomplete="off" />
+      <button class="btn btn-primary" id="createFolderBtn" type="submit">สร้าง / Create</button>
+      <button class="btn btn-ghost" id="cancelFolderBtn" type="button">ยกเลิก / Cancel</button>
+    </form>
+
+    <div id="pleList"><p class="list-empty">กำลังโหลด...</p></div>
   </div>
   <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>

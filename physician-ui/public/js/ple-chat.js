@@ -21,7 +21,13 @@ function renderMessage(role, content, refs, socratic) {
     if (refs?.length) {
       const r = document.createElement('div');
       r.className = 'msg-refs';
-      r.innerHTML = '📎 ' + refs.map(r => `<em>${r.source ?? r.title ?? r}</em>`).join(' · ');
+      r.append('📎 ');
+      refs.forEach((ref, i) => {
+        if (i) r.append(' · ');
+        const em = document.createElement('em');
+        em.textContent = ref.source ?? ref.title ?? ref;
+        r.appendChild(em);
+      });
       div.appendChild(r);
     }
     if (socratic) {
@@ -37,6 +43,8 @@ function renderMessage(role, content, refs, socratic) {
 
 api.getPle(pleId).then(ple => {
   if (!ple || ple.status !== 'active') { window.location.href = `/ple-result?id=${pleId}`; return; }
+  const titleEl = document.getElementById('chatTitle');
+  if (titleEl && (ple.title || ple.chief_complaint)) titleEl.textContent = ple.title || ple.chief_complaint;
   startTime = new Date(ple.started_at).getTime();
   turns = ple.turn_count ?? 0; tokens = ple.token_count ?? 0;
   document.getElementById('turns').textContent = turns;

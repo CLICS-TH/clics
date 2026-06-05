@@ -30,3 +30,23 @@ export function ViewportProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useViewport = () => useContext(ViewportCtx);
+
+// Single source of truth for "render the mobile layout" — mirrors NavBar's logic
+// so the manual ViewportToggle (which only shrinks the container, not the real
+// viewport) still flips page bodies between table and stacked-card layouts.
+// Returns false until mounted so SSR and first client render match.
+export function useIsMobile() {
+  const { forcedMobile, forcedDesktop } = useViewport();
+  const [isNarrow, setIsNarrow] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const sync = () => setIsNarrow(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+  if (!mounted) return false;
+  return forcedMobile || (!forcedDesktop && isNarrow);
+}

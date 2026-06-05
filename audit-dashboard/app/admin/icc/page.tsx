@@ -4,6 +4,7 @@ import { apiFetch } from '@/lib/api';
 import { IccPanel } from '@/components/IccPanel';
 import { BlandAltmanPlot } from '@/components/BlandAltmanPlot';
 import { NavBar } from '@/components/NavBar';
+import { PageIntro } from '@/components/PageIntro';
 import { Skeleton } from '@/components/Skeleton';
 
 const DOMAIN_LABELS = ['CQI','RD','CI','II','CA','RS','ALPS'];
@@ -34,8 +35,12 @@ export default function IccPage() {
   return (
     <>
       <NavBar />
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <h1 className="text-xl font-bold font-heading">ICC Dashboard</h1>
+      <div className="max-w-4xl mx-auto p-6 md:p-10 space-y-6">
+      <PageIntro
+        eyebrow="Superadmin · Calibration"
+        title="ICC Dashboard"
+        subtitle="Inter-rater reliability (AI vs Expert Auditor) — gate ≥ 0.75"
+      />
       <IccPanel {...overall} />
       {per_domain && (
         <div className="border rounded-xl p-5">

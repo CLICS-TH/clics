@@ -39,10 +39,13 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <div className="w-full max-w-sm space-y-4 p-8 bg-card rounded-xl shadow border border-border">
-        <h1 className="text-2xl font-bold text-center text-primary font-heading">CLICS</h1>
-        <p className="text-center text-sm text-muted-foreground">Audit Dashboard</p>
+    <div className="flex items-center justify-center min-h-screen bg-background p-6">
+      <div className="w-full max-w-sm space-y-5 p-8 bg-card rounded-xl shadow border border-border animate-in fade-in slide-in-from-bottom-2 duration-500 motion-reduce:animate-none">
+        <div className="text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">Audit Dashboard</p>
+          <h1 className="mt-2 text-3xl font-semibold text-primary font-heading tracking-tight">CLICS</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Admin · Superadmin · Auditor</p>
+        </div>
         <input className="w-full border rounded-lg px-3 py-2 text-sm" type="email"
           placeholder="อีเมล / Email" value={email} onChange={e => setEmail(e.target.value)} />
         <input className="w-full border rounded-lg px-3 py-2 text-sm" type="password"

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { NavBar } from '@/components/NavBar';
+import { PageIntro } from '@/components/PageIntro';
 import { Button } from '@/components/ui/button';
 import { getUser, type ClicsUser } from '@/lib/auth';
 
@@ -22,13 +23,11 @@ export default function HomePage() {
     <>
       <NavBar />
       <div className="mx-auto w-full max-w-5xl p-8 md:p-12">
-        <header className="mb-10">
-          <p className="text-sm text-muted-foreground">CLICS · Clinical Learning &amp; Intelligence Credit System</p>
-          <h1 className="mt-1 font-heading text-3xl text-foreground">
-            ยินดีต้อนรับ{user ? `, ${user.full_name_th || user.full_name_en}` : ''}
-          </h1>
-          <p className="mt-2 text-muted-foreground">ระบบ 4 บทบาทตามผังสถาปัตยกรรม / The four roles in the CLICS architecture</p>
-        </header>
+        <PageIntro
+          eyebrow="CLICS · Clinical Learning & Intelligence Credit System"
+          title={`ยินดีต้อนรับ${user ? `, ${user.full_name_th || user.full_name_en}` : ''}`}
+          subtitle="ระบบ 4 บทบาทตามผังสถาปัตยกรรม / The four roles in the CLICS architecture"
+        />
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {ROLES.map(r => {
@@ -36,7 +35,7 @@ export default function HomePage() {
             return (
               <div
                 key={r.key}
-                className={`rounded-xl border p-8 transition-colors ${active ? 'border-primary bg-primary/5 shadow-sm' : 'border-border bg-card'}`}
+                className={`rounded-xl border p-8 transition-all hover:-translate-y-0.5 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none ${active ? 'border-primary bg-primary/5 shadow-sm' : 'border-border bg-card'}`}
               >
                 <div className="flex items-center gap-3">
                   <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${active ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}>{r.code}</span>

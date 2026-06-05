@@ -13,7 +13,11 @@
 <body>
   <nav><span class="brand">CLICS</span><div><a href="/dashboard">← กลับ</a></div></nav>
   <div class="container" style="max-width:560px">
-    <h2 style="margin-bottom:24px;font-size:20px">เริ่ม PLE ใหม่ / New Clinical Learning Episode</h2>
+    <header class="page-intro">
+      <p class="eyebrow">PLE · New Session</p>
+      <h1>เริ่ม PLE ใหม่</h1>
+      <p class="sub">New Clinical Learning Episode — เริ่มบทสนทนากับผู้ช่วย AI เพื่อฝึกการให้เหตุผลทางคลินิก</p>
+    </header>
     <div class="card">
       <div class="form-group">
         <label>สาขาวิชา / Specialty</label>
@@ -29,6 +33,12 @@
         </select>
       </div>
       <div class="form-group">
+        <label>โฟลเดอร์ / Folder</label>
+        <select id="folder">
+          <option value="">— ไม่จัดหมวด / Uncategorized</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label>อาการสำคัญ / Chief Complaint <span style="color:var(--error)">*</span></label>
         <textarea id="complaint" rows="3" placeholder="เช่น ผู้ป่วยมาด้วยเจ็บหน้าอก / e.g. Patient presents with chest pain"></textarea>
       </div>
@@ -41,15 +51,29 @@
   <script src="/js/auth.js"></script>
   <script src="/js/boot.js" defer></script>
   <script>
+    // Pre-fill the folder picker (and honor ?folder=<id> deep links from the dashboard).
+    (async () => {
+      const sel = document.getElementById('folder');
+      const folders = await api.getFolders().catch(() => []);
+      const preset = new URLSearchParams(location.search).get('folder');
+      for (const f of (folders || [])) {
+        const o = document.createElement('option');
+        o.value = f.id; o.textContent = f.name;
+        if (preset && preset === f.id) o.selected = true;
+        sel.appendChild(o);
+      }
+    })();
+
     document.getElementById('startBtn').addEventListener('click', async () => {
       const complaint = document.getElementById('complaint').value.trim();
       const specialty = document.getElementById('specialty').value;
+      const folder_id = document.getElementById('folder').value || undefined;
       const errEl = document.getElementById('error');
       if (!complaint) { errEl.textContent = 'กรุณากรอกอาการสำคัญ'; errEl.style.display = 'block'; return; }
       errEl.style.display = 'none';
       const btn = document.getElementById('startBtn');
       btn.disabled = true; btn.textContent = 'กำลังสร้าง...';
-      const ple = await api.createPle({ specialty, chief_complaint: complaint });
+      const ple = await api.createPle({ specialty, chief_complaint: complaint, folder_id });
       if (ple?.id) window.location.href = `/ple-chat?id=${ple.id}`;
       else {
         errEl.textContent = ple?.error ?? 'เกิดข้อผิดพลาด';

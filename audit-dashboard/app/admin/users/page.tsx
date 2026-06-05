@@ -4,6 +4,8 @@ import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { NavBar } from '@/components/NavBar';
+import { PageIntro } from '@/components/PageIntro';
+import { useIsMobile } from '@/components/ViewportProvider';
 
 const ROLE_LABELS: Record<string,string> = { superadmin:'Superadmin', admin:'Admin', physician:'แพทย์', auditor:'Auditor' };
 
@@ -12,6 +14,7 @@ export default function UsersPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ email:'', password:'', role:'physician', full_name_th:'', full_name_en:'', specialty:'', license_number:'' });
   const [err, setErr] = useState('');
+  const mobile = useIsMobile();
   const load = () => apiFetch<any[]>('/admin/users').then(d => setUsers(d ?? []));
   useEffect(() => { load(); }, []);
 
@@ -34,13 +37,15 @@ export default function UsersPage() {
   return (
     <>
       <NavBar />
-      <div className="max-w-4xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-bold font-heading">จัดการผู้ใช้งาน / User Management</h1>
-        <Button onClick={() => setShowForm(v => !v)}>+ เพิ่มผู้ใช้ / Add User</Button>
-      </div>
+      <div className="max-w-4xl mx-auto p-6 md:p-10">
+      <PageIntro
+        eyebrow="Admin · Users"
+        title="จัดการผู้ใช้งาน"
+        subtitle="User Management — บัญชีผู้ใช้ทั้งหมดในระบบ"
+        action={<Button onClick={() => setShowForm(v => !v)}>+ เพิ่มผู้ใช้ / Add User</Button>}
+      />
       {showForm && (
-        <div className="border rounded-xl p-5 mb-6 space-y-3">
+        <div className="border rounded-xl p-5 mb-6 space-y-4">
           {(['full_name_th','full_name_en','email','password','specialty','license_number'] as const).map(f => (
             <input key={f} className="w-full border rounded-lg px-3 py-2 text-sm"
               placeholder={FIELD_PLACEHOLDERS[f]} value={(form as any)[f]}
@@ -55,22 +60,38 @@ export default function UsersPage() {
           <Button className="w-full" onClick={createUser}>สร้างผู้ใช้</Button>
         </div>
       )}
-      <div className="border rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-secondary"><tr>
-            <th className="px-4 py-3 text-left">ชื่อ (TH)</th>
-            <th className="px-4 py-3 text-left">ชื่อ (EN)</th>
-            <th className="px-4 py-3 text-left">Role</th>
-          </tr></thead>
-          <tbody>{users.map(u => (
-            <tr key={u.id} className="border-t hover:bg-secondary">
-              <td className="px-4 py-3">{u.full_name_th}</td>
-              <td className="px-4 py-3 text-muted-foreground">{u.full_name_en}</td>
-              <td className="px-4 py-3"><Badge variant="outline">{ROLE_LABELS[u.role]??u.role}</Badge></td>
-            </tr>
-          ))}</tbody>
-        </table>
-      </div>
+      {mobile ? (
+        /* Mobile: stacked cards */
+        <div className="space-y-3">
+          {users.map(u => (
+            <div key={u.id} className="rounded-xl border border-border p-4">
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-medium">{u.full_name_th}</p>
+                <Badge variant="outline">{ROLE_LABELS[u.role]??u.role}</Badge>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">{u.full_name_en}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Desktop: table */
+        <div className="border rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-secondary"><tr>
+              <th className="px-4 py-3 text-left">ชื่อ (TH)</th>
+              <th className="px-4 py-3 text-left">ชื่อ (EN)</th>
+              <th className="px-4 py-3 text-left">Role</th>
+            </tr></thead>
+            <tbody>{users.map(u => (
+              <tr key={u.id} className="border-t hover:bg-secondary">
+                <td className="px-4 py-3">{u.full_name_th}</td>
+                <td className="px-4 py-3 text-muted-foreground">{u.full_name_en}</td>
+                <td className="px-4 py-3"><Badge variant="outline">{ROLE_LABELS[u.role]??u.role}</Badge></td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      )}
     </div>
     </>
   );

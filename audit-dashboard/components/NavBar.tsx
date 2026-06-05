@@ -65,7 +65,7 @@ export function NavBar() {
       : 'text-muted-foreground hover:text-foreground text-sm';
 
   return (
-    <nav className="border-b border-border bg-background px-6 py-3">
+    <nav className="border-b border-border bg-background px-6 py-4 md:px-8">
       <div className="flex items-center gap-4">
         <Link href="/home" className="font-heading font-semibold text-primary text-lg tracking-tight">CLICS</Link>
 
@@ -97,7 +97,7 @@ export function NavBar() {
 
       {/* Mobile dropdown */}
       {mobile && open && (
-        <div className="mt-3 flex flex-col gap-1 border-t border-border pt-3 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3 animate-in fade-in slide-in-from-top-2 duration-200">
           {links.map(l => (
             <Link key={l.href} href={l.href}
               className={`rounded-md px-2 py-2 text-sm ${pathname === l.href ? 'bg-secondary text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>

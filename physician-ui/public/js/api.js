@@ -14,6 +14,7 @@ async function apiFetch(path, options = {}) {
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
   if (res.status === 401) { localStorage.clear(); window.location.href = '/'; return; }
+  if (res.status === 204) return null;
   return res.json();
 }
 
@@ -24,7 +25,13 @@ window.api = {
   createPle: (body) => apiFetch('/ples', { method: 'POST', body }),
   getPlEs: () => apiFetch('/ples'),
   getPle: (id) => apiFetch(`/ples/${id}`),
+  updatePle: (id, body) => apiFetch(`/ples/${id}`, { method: 'PATCH', body }),
   sendMessage: (id, body) => apiFetch(`/ples/${id}/message`, { method: 'POST', body }),
   endPle: (id) => apiFetch(`/ples/${id}/end`, { method: 'POST' }),
   getEvaluation: (id) => apiFetch(`/ples/${id}/evaluation`),
+  // Conversation folders
+  getFolders: () => apiFetch('/ples/folders'),
+  createFolder: (name) => apiFetch('/ples/folders', { method: 'POST', body: { name } }),
+  renameFolder: (id, name) => apiFetch(`/ples/folders/${id}`, { method: 'PATCH', body: { name } }),
+  deleteFolder: (id) => apiFetch(`/ples/folders/${id}`, { method: 'DELETE' }),
 };

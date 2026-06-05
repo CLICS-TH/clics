@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { NavBar } from '@/components/NavBar';
+import { PageIntro } from '@/components/PageIntro';
 
 export default function FlaggedPage() {
   const [ples, setPlEs] = useState<any[]>([]);
@@ -28,12 +29,16 @@ export default function FlaggedPage() {
   return (
     <>
       <NavBar />
-      <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-xl font-bold mb-6 font-heading">QA Queue — Tier 2 Flagged Sessions</h1>
+      <div className="max-w-3xl mx-auto p-6 md:p-10">
+      <PageIntro
+        eyebrow="Admin · QA Queue"
+        title="ตรวจสอบ Tier 2"
+        subtitle="QA Queue — sessions flagged for manual review (C4–C6)"
+      />
       {ples.length === 0
         ? <p className="text-muted-foreground text-center py-10">ไม่มี session รอตรวจสอบ ✅</p>
         : ples.map(p => (
-          <div key={p.id} className="border rounded-xl p-4 mb-3">
+          <div key={p.id} className="border rounded-xl p-5 mb-3">
             <div className="flex justify-between items-start">
               <div>
                 <p className="font-semibold">{p.professionals?.full_name_th ?? 'Unknown'}</p>

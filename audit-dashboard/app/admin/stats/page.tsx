@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { NavBar } from '@/components/NavBar';
+import { PageIntro } from '@/components/PageIntro';
 import { CardGridSkeleton } from '@/components/Skeleton';
 
 export default function StatsPage() {
@@ -29,8 +30,12 @@ export default function StatsPage() {
   return (
     <>
       <NavBar />
-      <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-xl font-bold mb-6 font-heading">สถิติ Pilot Study / Pilot Study Statistics</h1>
+      <div className="max-w-4xl mx-auto p-6 md:p-10">
+      <PageIntro
+        eyebrow="Admin · Pilot Statistics"
+        title="สถิติ Pilot Study"
+        subtitle="Pilot Study Statistics — ภาพรวมความคืบหน้าและคุณภาพ"
+      />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {cards.map(c => (
           <div key={c.label} className="border rounded-xl p-4 text-center">

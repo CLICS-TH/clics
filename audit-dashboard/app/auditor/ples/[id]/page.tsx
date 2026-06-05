@@ -6,6 +6,7 @@ import { DomainSliders } from '@/components/DomainSliders';
 import { TranscriptView } from '@/components/TranscriptView';
 import { Button } from '@/components/ui/button';
 import { NavBar } from '@/components/NavBar';
+import { PageIntro } from '@/components/PageIntro';
 
 const WEIGHTS: Record<string, number> = { d1:0.15, d2:0.20, d3:0.15, d4:0.15, d5:0.15, d6:0.10, d7:0.10 };
 const computeComposite = (s: Record<string,number>) =>
@@ -56,11 +57,13 @@ export default function AuditorScorePage() {
   return (
     <>
       <NavBar />
-      <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-xl font-bold font-heading">ประเมิน CLE (Blinded)</h1>
-        <Button variant="outline" onClick={() => router.push('/auditor/queue')}>← กลับ</Button>
-      </div>
+      <div className="max-w-3xl mx-auto p-6 md:p-10 space-y-6">
+      <PageIntro
+        eyebrow="Auditor · Blind Scoring"
+        title="ประเมิน CLE"
+        subtitle="Score the transcript on PIS-7 — the AI's score stays hidden until you submit"
+        action={<Button variant="outline" onClick={() => router.push('/auditor/queue')}>← กลับ</Button>}
+      />
       <TranscriptView messages={data.messages ?? []} />
       <div className="border rounded-xl p-5">
         <h2 className="font-semibold mb-4">PIS-7 Scoring</h2>

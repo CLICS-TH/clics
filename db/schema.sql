@@ -13,11 +13,25 @@ create table public.professionals (
   created_at     timestamptz default now()
 );
 
+-- Physician-created folders for organizing conversations (see db/migration-folders.sql)
+create table public.ple_folders (
+  id           uuid primary key default gen_random_uuid(),
+  physician_id uuid not null references public.professionals(id) on delete cascade,
+  name         text not null,
+  sort_order   integer default 0,
+  created_at   timestamptz default now(),
+  updated_at   timestamptz default now()
+);
+create index ple_folders_physician_idx on public.ple_folders(physician_id);
+
 -- One row per physician session
 create table public.ples (
   id               uuid primary key default gen_random_uuid(),
   physician_id     uuid not null references public.professionals(id),
   auditor_id       uuid references public.professionals(id),
+  folder_id        uuid references public.ple_folders(id) on delete set null,  -- null = Uncategorized
+  title            text,                                                       -- physician-editable label
+  chief_complaint  text,
   status           text not null default 'active'
                    check (status in ('active','ended','cle_pass','cle_fail_t1','cle_flag_t2','evaluated')),
   started_at       timestamptz not null default now(),
@@ -30,6 +44,7 @@ create table public.ples (
   provider_used    text default 'claude',
   created_at       timestamptz default now()
 );
+create index ples_folder_idx on public.ples(folder_id);
 
 -- One row per chat turn
 create table public.messages (
@@ -100,6 +115,7 @@ create table public.lpdp_snapshots (
 
 -- RLS
 alter table public.professionals    enable row level security;
+alter table public.ple_folders      enable row level security;
 alter table public.ples             enable row level security;
 alter table public.messages         enable row level security;
 alter table public.ai_evaluations   enable row level security;
@@ -117,6 +133,16 @@ create policy "prof: admin read all"
 create policy "prof: superadmin write"
   on public.professionals for insert with check (
     exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
+  );
+
+-- ple_folders policies
+drop policy if exists "folders: physician own" on public.ple_folders;
+create policy "folders: physician own"
+  on public.ple_folders for all using (physician_id = auth.uid());
+drop policy if exists "folders: admin read" on public.ple_folders;
+create policy "folders: admin read"
+  on public.ple_folders for select using (
+    exists (select 1 from public.professionals p where p.id = auth.uid() and p.role in ('admin','superadmin'))
   );
 
 -- ples policies

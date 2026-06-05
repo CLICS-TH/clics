@@ -1,22 +1,44 @@
 const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
-const { MessageSchema, CreatePleSchema } = require('../lib/schemas');
+const {
+  MessageSchema, CreatePleSchema,
+  CreateFolderSchema, UpdateFolderSchema, UpdatePleSchema,
+} = require('../lib/schemas');
 const { computeTier1, compositeScore } = require('../services/cle-gate');
 const { rimplChat, rimplEvaluate, rimplEvaluateCriteria } = require('../services/rimpl-client');
 
 const router = Router();
 router.use(verifyJwt, requireRole('physician'));
 
+// Confirm a folder belongs to the authenticated physician (null = Uncategorized, always allowed).
+async function ownsFolder(physicianId, folderId) {
+  if (folderId == null) return true;
+  const { data } = await supabase
+    .from('ple_folders').select('id').eq('id', folderId).eq('physician_id', physicianId).single();
+  return !!data;
+}
+
 // Create new PLE session
 router.post('/', async (req, res) => {
   const parsed = CreatePleSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
+  const { chief_complaint, folder_id } = parsed.data;
+  if (!(await ownsFolder(req.user.id, folder_id))) {
+    return res.status(403).json({ error: 'Folder not found' });
+  }
+
+  // Auto-title from the chief complaint (previously discarded); physician can rename later.
+  const title = chief_complaint.trim().slice(0, 120);
+
   const { data, error } = await supabase.from('ples').insert({
     physician_id: req.user.id,
     status: 'active',
     started_at: new Date().toISOString(),
+    chief_complaint,
+    title,
+    folder_id: folder_id ?? null,
   }).select().single();
 
   if (error) return res.status(500).json({ error: error.message });
@@ -27,10 +49,82 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   const { data, error } = await supabase
     .from('ples')
-    .select('id, status, started_at, ended_at, turn_count, token_count, c1_pass, c2_pass, c3_pass, c4_pass, c5_pass, c6_pass')
+    .select('id, title, chief_complaint, folder_id, status, started_at, ended_at, turn_count, token_count, c1_pass, c2_pass, c3_pass, c4_pass, c5_pass, c6_pass')
     .eq('physician_id', req.user.id)
     .order('started_at', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+// ===== Conversation folders (declared before /:id so "folders" isn't read as an id) =====
+
+// List physician's own folders
+router.get('/folders', async (req, res) => {
+  const { data, error } = await supabase
+    .from('ple_folders')
+    .select('id, name, sort_order, created_at')
+    .eq('physician_id', req.user.id)
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: true });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+// Create a folder
+router.post('/folders', async (req, res) => {
+  const parsed = CreateFolderSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const { data, error } = await supabase
+    .from('ple_folders')
+    .insert({ physician_id: req.user.id, name: parsed.data.name })
+    .select('id, name, sort_order, created_at').single();
+  if (error) return res.status(500).json({ error: error.message });
+  res.status(201).json(data);
+});
+
+// Rename a folder
+router.patch('/folders/:id', async (req, res) => {
+  const parsed = UpdateFolderSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const { data, error } = await supabase
+    .from('ple_folders')
+    .update({ name: parsed.data.name, updated_at: new Date().toISOString() })
+    .eq('id', req.params.id).eq('physician_id', req.user.id)
+    .select('id, name, sort_order, created_at').single();
+  if (error || !data) return res.status(404).json({ error: 'Folder not found' });
+  res.json(data);
+});
+
+// Delete a folder (its conversations fall back to Uncategorized via FK on delete set null)
+router.delete('/folders/:id', async (req, res) => {
+  const { data, error } = await supabase
+    .from('ple_folders').delete()
+    .eq('id', req.params.id).eq('physician_id', req.user.id)
+    .select('id');
+  if (error) return res.status(500).json({ error: error.message });
+  if (!data || !data.length) return res.status(404).json({ error: 'Folder not found' });
+  res.json({ ok: true }); // JSON body (not 204) — the client always calls res.json()
+});
+
+// Rename a conversation and/or move it between folders
+router.patch('/:id', async (req, res) => {
+  const parsed = UpdatePleSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const { title, folder_id } = parsed.data;
+
+  if (folder_id !== undefined && !(await ownsFolder(req.user.id, folder_id))) {
+    return res.status(403).json({ error: 'Folder not found' });
+  }
+
+  const patch = {};
+  if (title !== undefined) patch.title = title;
+  if (folder_id !== undefined) patch.folder_id = folder_id;
+
+  const { data, error } = await supabase
+    .from('ples').update(patch)
+    .eq('id', req.params.id).eq('physician_id', req.user.id)
+    .select('id, title, chief_complaint, folder_id, status, started_at, turn_count, token_count').single();
+  if (error || !data) return res.status(404).json({ error: 'Not found' });
   res.json(data);
 });
 
