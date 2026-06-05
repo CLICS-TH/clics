@@ -1,0 +1,40 @@
+# CLICS Roadmap
+
+Next steps, ordered by priority. Framed against the pilot timeline (see [pilot-timeline.md](pilot-timeline.md)):
+**July 2026** = calibration workshop, target inter-rater **ICC ≥ 0.75**; **Aug–Sep 2026** = pilot study, 75 physicians × 3 PLEs.
+
+The prototype is feature-complete and live (4 roles, folders, chat, CLE gate, PIS-7 scoring, auditor blind-scoring, ICC). These items take it from prototype → pilot-grade → full spec.
+
+---
+
+## P1 — Pilot-readiness (do next)
+
+The smallest set that makes the prototype safe and credible for real physicians in July.
+
+- **Thread the chief complaint into the AI context.** *(done in the simplification pass)* The case the physician enters at session creation now reaches the model, so a vague first question no longer gets "please give me patient details."
+- **`db/reset-demo.js` — one-command clean demo.** Wipe accumulated test PLEs and seed a reproducible demo set: a couple of folders, a few sample conversations, and one evaluated **and assigned** PLE so the auditor queue is always demoable. Run before any walkthrough.
+- **Security before pilot.** Rotate the `ANTHROPIC_API_KEY` (RIMPL Railway env) and replace the throwaway demo passwords (`db/seed-users.js`) with real per-user credentials. Secrets stay out of git (already enforced).
+- **Backend route tests (supertest).** Today only `cle-gate` + `icc` are unit-tested. Add request-level tests: folder CRUD, PLE create/rename/move/delete, `/end` gate transitions (cle_fail_t1 / flag_t2 / pass), auditor double-submit 409, and role-guards (admin denied the superadmin-only routes).
+- **Cross-pause active-time.** Persist `active_seconds` incrementally (e.g. per turn) so a session the physician pauses and resumes accumulates engagement time for the C1 duration gate, not just the current sitting.
+- **`/health/deep` on RIMPL** + a backend pre-routing check, so a RIMPL outage surfaces clearly instead of as a per-message 502.
+
+## P2 — Close documented spec gaps
+
+From [MIDDLEWARE-KNOWN-GAPS.md](MIDDLEWARE-KNOWN-GAPS.md) — narrower-than-flowchart items to revisit before production:
+
+- **Full PII pseudonymization.** Replace the literal regex masks (`[HN]`, `[DATE]`, `[WARD]`) with a stable, reversible **P-001…/CLE-001…** lookup table, and broaden coverage (names, ages, phone, MRN variants, Thai-name patterns). Keeps the on-premise boundary while preserving longitudinal identity.
+- **The "4 pre-filter signals" (L3).** Define and compute the four signals the flowchart specifies (currently only a single citation/Socratic retry loop exists).
+- **ELM.** Define-or-formally-drop the "ELM" injection referenced in the spec but never implemented.
+
+## P3 — Flagship features
+
+Larger build-outs once the pilot is stable:
+
+- **L4 multi-provider rotation.** Route each session across Claude / GPT-4o / Gemini / Mistral via `hashSessionId()`, with failover and real `provider_used` logging (the column is already reserved). Exercises the vendor-rotation privacy/bias rationale.
+- **Credit Engine.** Turn PIS-7 composite scores into issued CME/CPD credit (the system's reason for being) — issuance rules, certificates, an audit trail.
+- **ICC calibration-workshop tooling.** Support the July workshop: paired AI-vs-auditor scoring views, drift monitoring, the ICC ≥ 0.75 gate that releases Tier-2 auditing.
+- **Observability.** Structured logging + error tracking across the 4 layers.
+
+---
+
+*Reproducibility note:* AI evaluations are tagged `CCME_LLM_v8.0` while the model is pinned to `claude-sonnet-4-6` in `rimpl/src/services/claude.js`. If the model is changed, re-run the Tier-2 calibration sample for drift (pilot protocol).

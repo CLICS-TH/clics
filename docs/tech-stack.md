@@ -1,6 +1,6 @@
 # Tech Stack
 
-- **Physician UI:** static HTML/JS (no build step), single `public/css/main.css` (CSS custom-property design tokens), Chart.js via CDN. Dark/light + desktop/mobile toggles via `public/js/boot.js`. Served on Vercel (`vercel.json`: `outputDirectory: public`, `cleanUrls: true`).
+- **Physician UI:** static HTML/JS (no build step), single `public/css/main.css` (CSS custom-property design tokens), Chart.js via CDN. Dark/light + desktop/mobile toggles via `public/js/boot.js`; shared bilingual labels + the `cssVar` helper in `public/js/labels.js`. Served on Vercel (`vercel.json`: `outputDirectory: public`, `cleanUrls: true`). Note: the per-page `<head>` (the no-FOUC boot snippet + font links) is intentionally duplicated across the 6 HTML files — without a build step there's no way to share it, and the boot snippet must be inline to run before first paint.
 - **Audit Dashboard:** Next.js **16.2.7** (App Router), React **19.2.4**, Tailwind **v4** (`@theme` block, config-less), shadcn-on-Base-UI, recharts. Custom `ThemeProvider` / `ViewportProvider` (no `next-themes`). ⚠️ This Next is newer than most training data — read `audit-dashboard/node_modules/next/dist/docs/` before touching Next APIs (see `audit-dashboard/AGENTS.md`).
 - **Backend:** Node.js + Express (port 3001), Supabase SDK (auth + DB), Anthropic SDK (via RIMPL). JWT auth via Supabase Auth (`signInWithPassword` / `auth.getUser`).
 - **Database:** Supabase / PostgreSQL, AES-256 at rest, row-level security.
