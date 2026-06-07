@@ -36,6 +36,28 @@ PHASE D — guest AI (Claude)
 - **Login bursts are the one limit, and it's a Supabase platform limit, not the app.** Firing 50–100 logins in the same instant trips GoTrue's auth rate-limiter (returned as 401). This does **not** affect sustained usage (logins are naturally staggered across a real cohort), but it matters for an **onboarding-day mass sign-in**.
 - **AI path is healthy under concurrency:** 10 simultaneous guest chats all succeeded; latency (~15 s) is Claude generation time, not backend contention.
 
+## Concurrent **AI-chat** test — the AI path is the real ceiling (~13 concurrent)
+
+The reads scale to 200+; the **AI chat path does not**. `scripts/loadtest/ai-concurrency.js` fired **40 simultaneous** real Claude generations (guest mode → RIMPL → Claude, zero DB writes):
+
+| Metric | Result |
+|--------|--------|
+| Succeeded | **13 / 40 (33%)** |
+| Failed | 27 → `RIMPL /chat error: 5xx` (upstream Claude rate-limit / overload surfaced as 502) |
+| Latency (successful) | p50 **15.5 s**, max 28.8 s |
+| Avg assistant response | ~1,301 tokens |
+| Actual Claude spend | **≈ $0.40** (failures rejected upstream before generating — far under the $3 cap) |
+
+**Interpretation:** an earlier 10-concurrent burst succeeded 10/10, but at 40 only ~13 get through — so the AI path **saturates at roughly ~13 concurrent generations** on the current Anthropic tier + single RIMPL instance. The limiter is almost certainly the **Anthropic API rate limit** (the account accepts ~N concurrent calls and 429s the rest; RIMPL surfaces that as a 5xx, and the backend returns 502). RIMPL itself stayed up (13 succeeded), so this is upstream throttling, not a RIMPL crash.
+
+**Consequence:** **100 concurrent AI chats is NOT supported today** — it would fail for the majority. Real usage is gentler (physicians read/think between turns, so true simultaneity is far below the user count), but a large cohort with bursty "send" timing needs the fixes below.
+
+### To raise AI-chat concurrency
+1. **Raise the Anthropic API rate-limit tier** (requests- and tokens-per-minute) — the dominant constraint.
+2. **Queue + retry-with-backoff in RIMPL** so a burst *queues* (and retries 429s) instead of failing — same pattern already added to the evaluation path. Turns a hard failure into graceful latency.
+3. **Scale RIMPL** (replicas) and consider provisioned throughput / a fallback provider for the L4 multi-provider roadmap item.
+4. For the pilot's size, size the Anthropic tier to the expected *peak simultaneous generations*, not the headcount.
+
 ## Recommendations (to scale beyond ~200 / harden for launch day)
 1. **Login bursts:** raise Supabase **auth rate limits** (project settings) or **stagger** onboarding; optionally have the backend surface `429 Too Many Requests` distinctly from `401` so clients can back off. *(Low effort, highest value for a launch-day cohort.)*
 2. **Horizontal scale:** add **Railway replicas** (the backend is a single stateless instance) to lift the raw HTTP ceiling and absorb spikes.
@@ -62,4 +84,4 @@ node scripts/loadtest/loadtest.js     # writes /tmp/loadtest-results.json
 ```
 Budget-safe: only Phase D spends Claude, hard-capped at 12 guest turns (≈ $0.5). Phases A–C are free; Phase D uses ephemeral guest sessions (no DB writes).
 
-**Bottom line:** **> 100 concurrent users is met with margin** — proven two ways: **200 concurrent requests, 0 errors** (request-flood) **and 110 genuinely-distinct logged-in users, 0 errors** (faithful test). The only ceiling found is Supabase's login-*burst* rate-limit — relevant only for simultaneous mass sign-in, with a clear, low-effort mitigation (stagger logins / raise the burst limit).
+**Bottom line:** **>100 concurrent users for browsing / dashboards / sessions is met with margin** — proven two ways: **200 concurrent requests, 0 errors** and **110 genuinely-distinct logged-in users, 0 errors**. **But the AI-chat path is the real limit: it saturates around ~13 concurrent generations** (40 concurrent → only 33% succeed) because of the Anthropic API rate limit + single RIMPL instance — so **100 concurrent AI chats is not supported today** and needs the fixes above (raise the Anthropic tier, queue/retry in RIMPL, scale RIMPL). Two smaller ceilings: Supabase login-*burst* rate-limit (stagger mass sign-in) and the single Railway instance (add replicas beyond ~200).
