@@ -11,7 +11,7 @@ A pilot platform for a Thai medical licensing body, July–September 2026.
 | Audit dashboard (Admin / Auditor / Superadmin) | https://audit-dashboard-rouge.vercel.app |
 | Backend API | https://backend-production-c12e4.up.railway.app |
 
-> **To review the pilot:** sign in to the **audit dashboard** as **Superadmin** (sees everything) or **Admin** (sees the cohort + onboarding history). Logins are in **`LOGIN-ACCOUNTS.txt`** and summarised in §9 below.
+> **To review the pilot:** sign in to the **audit dashboard** as **Superadmin** (sees everything) or **Admin** (sees the cohort + onboarding history). Logins are in **`LOGIN-ACCOUNTS.txt`** and summarised in §10 below.
 
 ---
 
@@ -83,26 +83,41 @@ A full written review (with the funnel, per-doctor outcomes and the agreement nu
 
 ---
 
-## 7. Privacy & safety (important for the pilot)
+## 7. Scale & reliability — can it handle many users at once?
+
+We load-tested the **live** system to confirm it holds up for a real cohort:
+
+- **100+ concurrent users — confirmed.** Everyday use (logging in, dashboards, viewing scores/sessions) ran cleanly at **200 simultaneous requests** and **110 distinct logged-in users** with **zero errors** — comfortably past the 100-user goal.
+- **AI tutor under heavy load — hardened.** When many doctors chat with the AI at the *exact same moment*, success at a 40-at-once burst was raised from **33% → 88%** by adding smart **queuing + automatic retry**. Realistic usage (doctors don't all send at the same instant) is effectively **100%**.
+- **One remaining lever is a plan upgrade, not code.** Live diagnostics pinpointed the limit precisely — the AI provider's **per-minute output allowance** on our current plan. Raising that tier is the single change needed to handle very large simultaneous AI bursts.
+- **Cost-controlled** — all load testing stayed within a tight, pre-agreed API budget.
+
+A full written report (numbers, methods, recommendations) is in **`docs/LOADTEST-2026-06.md`**.
+
+---
+
+## 8. Privacy & safety (important for the pilot)
 
 - **Patient/doctor identifying information stays on-premise.** Only **de-identified** text is ever sent to the cloud AI.
 - Real identities (incl. Google/LINE) live in an **encrypted on-premise vault**; only pseudonyms (*P-001…*) appear in reviews/exports. Guest sessions store nothing.
 - The AI is built to **avoid making things up** and to **cite evidence** — reducing the risk of confident-but-wrong advice.
 - All accounts are role-restricted: each person only sees what their role allows.
+- **The superadmin (system owner) account is locked** — it can never be disabled, demoted, deleted, or duplicated, *even by itself*, enforced in both the app and the database (always exactly one superadmin).
 
 ---
 
-## 8. What is *not* in this prototype yet (roadmap, not bugs)
+## 9. What is *not* in this prototype yet (roadmap, not bugs)
 
 - **Calibrating the AI scorer** to the expert consensus — the July workshop's main task (see §6).
 - Rotating between **multiple AI providers** (today it runs on a single, high-quality model).
+- **Raising the AI provider's per-minute output limit** — to support very large *simultaneous* AI-chat bursts (the binding limit was pinpointed precisely in load testing; see §7). A plan/billing change, not code.
 - **Full pseudonymisation** of all free-text identifiers (today: an encrypted identity vault + pattern-based de-identification).
 - The automated **credit-issuing engine** (scores are produced; formal credit issuance is a later step).
 - Real **Google/LINE sign-in** handshake (the buttons + the private identity vault are built; the live social-login handshake is stubbed pending credentials).
 
 ---
 
-## 9. How to try it
+## 10. How to try it
 
 **Live links** are at the top of this document. Full credentials (all roles) are in **`LOGIN-ACCOUNTS.txt`**. For a manager review, the two accounts to use are:
 
