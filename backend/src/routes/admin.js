@@ -108,11 +108,30 @@ router.get('/auditors', async (req, res) => {
 
 // ---- Access-request approval queue (admin + superadmin) -------------------
 
-router.get('/access-requests', async (_req, res) => {
-  const { data, error } = await supabase
-    .from('access_requests').select('*').eq('status', 'pending').order('created_at');
+// List access requests. Default (no query) = the pending queue (unchanged). ?status=approved|rejected
+// filters to that outcome; ?status=all returns the full onboarding trail. Reviewed rows carry the
+// reviewer's name so admins can see who approved/rejected whom and when.
+router.get('/access-requests', async (req, res) => {
+  const status = typeof req.query.status === 'string' ? req.query.status : 'pending';
+  let query = supabase.from('access_requests').select('*').order('created_at');
+  if (status !== 'all') {
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'status must be one of: pending, approved, rejected, all' });
+    }
+    query = query.eq('status', status);
+  }
+  const { data, error } = await query;
   if (sendDbError(res, error)) return;
-  res.json(data);
+
+  // Attach reviewer names for any reviewed rows (no fragile FK-name embed; one extra lookup).
+  const reviewerIds = [...new Set((data ?? []).map(r => r.reviewed_by).filter(Boolean))];
+  let reviewers = {};
+  if (reviewerIds.length) {
+    const { data: revs } = await supabase
+      .from('professionals').select('id, full_name_en, full_name_th, pseudonym').in('id', reviewerIds);
+    reviewers = Object.fromEntries((revs ?? []).map(p => [p.id, p]));
+  }
+  res.json((data ?? []).map(r => ({ ...r, reviewer: r.reviewed_by ? reviewers[r.reviewed_by] ?? null : null })));
 });
 
 // Approve a request into a role slot. Approval ASSIGNS the role (requesters never self-assign).
