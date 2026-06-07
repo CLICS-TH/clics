@@ -20,6 +20,16 @@ Dependency-free (Node 18+ global `fetch`). Writes `/tmp/loadtest-results.json`.
 
 Per level it reports: requests, ok/errors, error-rate, throughput (req/s), and latency p50/p95/p99/max. The **verdict** line states the highest concurrency each phase sustained at <1% errors.
 
+## Faithful distinct-user variant — `loadtest-distinct.js`
+
+`loadtest.js` Phase B reuses 4 tokens (a request-flood). For a literal "N *unique* users at once":
+
+```bash
+cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/loadtest/loadtest-distinct.js
+```
+
+It provisions 120 distinct accounts (service-role), logs each in for its own token (staggered, to respect the auth rate-limit), fires concurrent reads where **every request carries a different user's token**, then **deletes all the accounts**. Read-only → $0 Claude. Note: from a single IP, Supabase's per-IP auth rate-limit caps how many distinct tokens you can mint at once (~60 in practice) — a test-machine artifact, not an app limit (real users log in from many IPs). See `docs/LOADTEST-2026-06.md`.
+
 ## Budget safety
 Only Phase D calls Claude. A global counter (`aiCalls`) stops at `MAX_AI_CALLS` (≈ $0.5 worst-case) — well under $1. Phase D uses **guest** sessions, which hit the AI but write **zero** DB rows (no pollution). Phases A–C are read/auth only.
 

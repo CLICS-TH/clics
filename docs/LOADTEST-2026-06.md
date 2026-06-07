@@ -42,6 +42,17 @@ PHASE D — guest AI (Claude)
 3. **DB throughput:** raise the **Supabase pool / plan**, and **cache hot reads** (`/admin/slots`, `/admin/users`, `/admin/auditors`) to cut latency at high concurrency.
 4. **No code throttles exist** (no rate-limiting middleware) — fine for the pilot; add a light per-IP limiter before public launch to resist abuse.
 
+## Distinct-user test (faithful: each request a *different* logged-in user)
+
+Phase B above reused 4 tokens. To test literal "N unique users at once", a second run (`/tmp/loadtest-distinct.js`) provisioned **120 distinct accounts**, logged each in for its **own token**, then fired concurrent reads where **every in-flight request carries a different user's token** (distinct `verifyJwt` auth + distinct per-user DB queries — no shared cache). Read-only → **$0 Claude**. Accounts were deleted afterward (physicians back to 10).
+
+| Distinct users (unique tokens) | Requests | Errors | p50 | p95 |
+|--------------------------------|----------|--------|-----|-----|
+| 50 | 150 | **0 (0%)** | 626 ms | 1332 ms |
+| 60 | 180 | **0 (0%)** | 794 ms | 1398 ms |
+
+**Result: 60 genuinely-distinct concurrent users served with 0 errors.** The run could not reach 100+ *distinct tokens* — Supabase's **per-IP auth rate-limit** (same as Phase C) capped token issuance from the single test machine at ~60, despite staggering + backoff. This is a **test-environment artifact, not an app limit**: in production, 100+ users log in from 100+ different IPs over time and never hit a single-IP burst cap. App *serving* capacity is already shown at 200 concurrent requests (Phase B); this run confirms distinct identities run just as clean. To demonstrate ≥100 *distinct* tokens in one shot would require minting them from multiple IPs or over a longer window than one rate-limit bucket allows.
+
 ## How to reproduce
 ```bash
 node scripts/loadtest/loadtest.js     # writes /tmp/loadtest-results.json
