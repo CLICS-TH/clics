@@ -7,3 +7,8 @@ node_modules/
 *.docx
 *.jpg
 *.rtf
+
+# Credentials — never track real or demo logins / generated participant passwords
+LOGIN-ACCOUNTS.txt
+scripts/provision/credentials-*.txt
+*.creds

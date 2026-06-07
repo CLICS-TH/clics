@@ -12,12 +12,14 @@ const supabase = createClient(
   { auth: { persistSession: false, autoRefreshToken: false } }
 );
 
-// Demo passwords rotated 2026-06 (the "r2" family). Still throwaway — rotate again before the real pilot.
+// Passwords come from env so no real credential is hardcoded in the repo. The values below are
+// throwaway DEMO fallbacks for local/dev convenience only — set SEED_*_PW in any shared or real
+// environment (and prefer the participant provisioning script for real accounts).
 const USERS = [
-  { email: 'superadmin@clics.th', password: 'ClicsSuper#2026r2', role: 'superadmin', status: 'active', full_name_th: 'ผู้ดูแลระบบสูงสุด', full_name_en: 'Super Admin' },
-  { email: 'admin@clics.th',      password: 'ClicsAdmin#2026r2', role: 'admin',      status: 'active', full_name_th: 'ผู้จัดการโครงการ',  full_name_en: 'Pilot Admin' },
-  { email: 'doctor1@clics.th',    password: 'ClicsDoc#2026r2',   role: 'physician',  status: 'active', pseudonym: 'P-001', full_name_th: 'นพ. อาสา ทดสอบ',     full_name_en: 'Dr Asa Test', specialty: 'Internal Medicine', license_number: 'TH-DEMO-001' },
-  { email: 'auditor1@clics.th',   password: 'ClicsAudit#2026r2', role: 'auditor',    status: 'active', full_name_th: 'ผู้ตรวจประเมิน',     full_name_en: 'Expert Auditor' },
+  { email: 'superadmin@clics.th', password: process.env.SEED_SUPERADMIN_PW || 'ClicsSuper#2026r2', role: 'superadmin', status: 'active', full_name_th: 'ผู้ดูแลระบบสูงสุด', full_name_en: 'Super Admin' },
+  { email: 'admin@clics.th',      password: process.env.SEED_ADMIN_PW      || 'ClicsAdmin#2026r2', role: 'admin',      status: 'active', full_name_th: 'ผู้จัดการโครงการ',  full_name_en: 'Pilot Admin' },
+  { email: 'doctor1@clics.th',    password: process.env.SEED_DOCTOR_PW     || 'ClicsDoc#2026r2',   role: 'physician',  status: 'active', pseudonym: 'P-001', full_name_th: 'นพ. อาสา ทดสอบ',     full_name_en: 'Dr Asa Test', specialty: 'Internal Medicine', license_number: 'TH-DEMO-001' },
+  { email: 'auditor1@clics.th',   password: process.env.SEED_AUDITOR_PW    || 'ClicsAudit#2026r2', role: 'auditor',    status: 'active', full_name_th: 'ผู้ตรวจประเมิน',     full_name_en: 'Expert Auditor' },
 ];
 
 // Default role slot-pool capacities (superadmin locked at 1).

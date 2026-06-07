@@ -1,0 +1,16 @@
+[
+  {
+    "email": "physician01@hospital.example",
+    "full_name_th": "นพ. ชื่อ นามสกุล",
+    "full_name_en": "Dr Given Family",
+    "specialty": "Internal Medicine",
+    "license_number": ""
+  },
+  {
+    "email": "physician02@hospital.example",
+    "full_name_th": "พญ. ชื่อ นามสกุล",
+    "full_name_en": "Dr Given Family",
+    "specialty": "",
+    "license_number": ""
+  }
+]
