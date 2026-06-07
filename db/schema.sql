@@ -14,6 +14,9 @@ create table public.professionals (
   pseudonym      text unique,   -- P-NNN; the only identifier allowed in exports/audit
   created_at     timestamptz default now()
 );
+-- Exactly one superadmin, ever (DB-level guarantee; the API also blocks every 2nd-superadmin path).
+create unique index if not exists professionals_single_superadmin
+  on public.professionals ((role)) where role = 'superadmin';
 
 -- Editable per-role capacity pool (superadmin-managed). See db/migration-accounts.sql.
 create table public.role_slots (

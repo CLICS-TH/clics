@@ -44,8 +44,10 @@ export default function UsersPage() {
     setMsg('');
     const body: any = {
       full_name_th: editing.full_name_th, full_name_en: editing.full_name_en,
-      specialty: editing.specialty ?? '', license_number: editing.license_number ?? '', role: editing.role,
+      specialty: editing.specialty ?? '', license_number: editing.license_number ?? '',
     };
+    // The superadmin role is immutable — never send a role change for it (backend rejects it too).
+    if (editing.role !== 'superadmin') body.role = editing.role;
     const res: any = await apiFetch(`/admin/users/${editing.id}`, { method:'PATCH', body: JSON.stringify(body) });
     if (res?.id) { setEditing(null); setMsg('บันทึกแล้ว / Saved.'); loadUsers(); loadSlots(); }
     else setMsg(res?.error ?? 'แก้ไขไม่สำเร็จ / Update failed.');
@@ -125,7 +127,7 @@ export default function UsersPage() {
           ))}
           <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
             value={form.role} onChange={e => setForm(s => ({ ...s, role: e.target.value }))}>
-            {Object.entries(ROLE_LABELS).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+            {Object.entries(ROLE_LABELS).filter(([v]) => v !== 'superadmin').map(([v,l]) => <option key={v} value={v}>{l}</option>)}
           </select>
           {err && <p className="text-destructive text-sm">{err}</p>}
           <Button className="w-full" onClick={createUser}>สร้างผู้ใช้ (active ทันที)</Button>
@@ -144,10 +146,15 @@ export default function UsersPage() {
             placeholder="สาขาวิชา / Specialty" onChange={e => setEditing(u => u && ({ ...u, specialty: e.target.value }))} />
           <input className="w-full border rounded-lg px-3 py-2 text-sm" value={editing.license_number ?? ''}
             placeholder="เลขใบอนุญาต / License No." onChange={e => setEditing(u => u && ({ ...u, license_number: e.target.value }))} />
-          <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
-            value={editing.role} onChange={e => setEditing(u => u && ({ ...u, role: e.target.value }))}>
-            {Object.entries(ROLE_LABELS).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
+          {editing.role === 'superadmin' ? (
+            <input className="w-full border rounded-lg px-3 py-2 text-sm bg-muted text-muted-foreground"
+              value="Superadmin (locked)" disabled readOnly />
+          ) : (
+            <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
+              value={editing.role} onChange={e => setEditing(u => u && ({ ...u, role: e.target.value }))}>
+              {Object.entries(ROLE_LABELS).filter(([v]) => v !== 'superadmin').map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          )}
           <div className="flex gap-2">
             <Button onClick={saveEdit}>บันทึก / Save</Button>
             <Button variant="outline" onClick={() => setEditing(null)}>ยกเลิก</Button>
@@ -168,7 +175,7 @@ export default function UsersPage() {
                 <StatusBadge s={u.status} />
                 <div className="flex gap-2">
                   <Button variant="outline" className="text-xs px-2 py-1 h-auto" onClick={() => setEditing(u)}>แก้ไข</Button>
-                  <Button variant="outline" className="text-xs px-2 py-1 h-auto" onClick={() => toggleStatus(u)}>
+                  <Button variant="outline" className="text-xs px-2 py-1 h-auto" disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)}>
                     {u.status === 'deactivated' ? 'เปิดใช้' : 'ปิดใช้'}
                   </Button>
                 </div>
@@ -194,7 +201,7 @@ export default function UsersPage() {
                 <td className="px-4 py-3"><StatusBadge s={u.status} /></td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
                   <Button variant="outline" className="text-xs px-2 py-1 h-auto mr-2" onClick={() => setEditing(u)}>แก้ไข</Button>
-                  <Button variant="outline" className="text-xs px-2 py-1 h-auto" onClick={() => toggleStatus(u)}>
+                  <Button variant="outline" className="text-xs px-2 py-1 h-auto" disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)}>
                     {u.status === 'deactivated' ? 'เปิดใช้' : 'ปิดใช้'}
                   </Button>
                 </td>

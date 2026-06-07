@@ -9,10 +9,15 @@ const { assertSlotAvailable, nextPseudonym, allSlotUsage, ROLES } = require('../
 const router = Router();
 router.use(verifyJwt, requireRole('superadmin'));
 
+// Superadmin is a locked singleton: it is bootstrapped directly (db/reset-demo.js / seed-users.js)
+// and can never be created or assigned through the API, so it is intentionally absent from these enums.
+// specialty + license_number are optional at every layer (DB nullable, here .optional(), no form `required`).
+const GRANTABLE_ROLES = ['admin', 'physician', 'auditor'];
+
 const CreateUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-  role: z.enum(['superadmin', 'admin', 'physician', 'auditor']),
+  role: z.enum(GRANTABLE_ROLES),
   full_name_th: z.string().min(1),
   full_name_en: z.string().min(1),
   specialty: z.string().optional(),
@@ -24,7 +29,7 @@ const UpdateUserSchema = z.object({
   full_name_en: z.string().min(1).optional(),
   specialty: z.string().optional(),
   license_number: z.string().optional(),
-  role: z.enum(['superadmin', 'admin', 'physician', 'auditor']).optional(),
+  role: z.enum(GRANTABLE_ROLES).optional(),
 }).refine((b) => Object.keys(b).length > 0, { message: 'No fields to update' });
 
 const StatusSchema = z.object({ status: z.enum(['active', 'deactivated']) });
@@ -72,6 +77,12 @@ router.patch('/users/:id', async (req, res) => {
     .from('professionals').select('*').eq('id', req.params.id).single();
   if (curErr || !current) return res.status(404).json({ error: 'User not found' });
 
+  // The superadmin role is immutable — it cannot be changed away, even by the superadmin itself
+  // (target-based, so self-demotion is also blocked). Profile edits (name/specialty/license) are allowed.
+  if (current.role === 'superadmin' && parsed.data.role && parsed.data.role !== 'superadmin') {
+    return res.status(403).json({ error: 'The superadmin role is immutable and cannot be changed.' });
+  }
+
   const patch = { ...parsed.data };
 
   if (patch.role && patch.role !== current.role) {
@@ -98,8 +109,9 @@ router.patch('/users/:id/status', async (req, res) => {
     .from('professionals').select('role, status').eq('id', req.params.id).single();
   if (curErr || !current) return res.status(404).json({ error: 'User not found' });
 
-  if (status === 'deactivated' && current.role === 'superadmin') {
-    return res.status(400).json({ error: 'Cannot deactivate the superadmin account.' });
+  // The superadmin can never be turned off OR back on — its status is locked (cannot be eliminated).
+  if (current.role === 'superadmin') {
+    return res.status(403).json({ error: 'The superadmin account status is locked and cannot be changed.' });
   }
   if (status === 'active' && current.status !== 'active') {
     const slot = await assertSlotAvailable(current.role);
@@ -111,6 +123,10 @@ router.patch('/users/:id/status', async (req, res) => {
   if (sendDbError(res, error)) return;
   res.json(data);
 });
+
+// INVARIANT: there is intentionally NO DELETE /users/:id route — the superadmin must be
+// indestructible. If a member-deletion route is ever added, it MUST refuse to delete a superadmin
+// (and the DB index `professionals_single_superadmin` keeps the singleton guarantee regardless).
 
 // Role slot pools — used/capacity/remaining per role, and capacity editing.
 router.get('/slots', async (_req, res) => {
@@ -167,3 +183,6 @@ router.get('/lpdp/:physicianId', async (req, res) => {
 });
 
 module.exports = router;
+// Exposed for unit tests (superadmin absent from role enums; specialty/license optional).
+module.exports.CreateUserSchema = CreateUserSchema;
+module.exports.UpdateUserSchema = UpdateUserSchema;
