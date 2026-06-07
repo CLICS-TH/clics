@@ -30,6 +30,17 @@ test('POST /ples is blocked (403 consent_required) before consent', async () => 
   expect(res.body.code).toBe('consent_required');
 });
 
+// Defense-in-depth: the gate must also cover the session-writing routes, not just creation.
+test('POST /ples/:id/message and /end are also gated before consent', async () => {
+  const msg = await auth(request(app).post('/ples/ple1/message')).send({ message: 'hello', language: 'en' });
+  expect(msg.status).toBe(403);
+  expect(msg.body.code).toBe('consent_required');
+
+  const end = await auth(request(app).post('/ples/ple1/end')).send({ active_seconds: 1000 });
+  expect(end.status).toBe(403);
+  expect(end.body.code).toBe('consent_required');
+});
+
 test('POST /ples passes the consent gate once consented', async () => {
   mockProf = { data: { id: 'doc1', role: 'physician', status: 'active', consented_at: '2026-06-07T00:00:00Z' }, error: null };
   const res = await auth(request(app).post('/ples')).send({ chief_complaint: 'chest pain in a 58yo' });

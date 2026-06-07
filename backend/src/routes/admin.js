@@ -1,4 +1,5 @@
 const { Router } = require('express');
+const { createHash } = require('crypto');
 const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
@@ -276,8 +277,11 @@ router.get('/export', async (req, res) => {
   const { data: ai } = await supabase.from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
   const aiBy = Object.fromEntries((ai ?? []).map(e => [e.ple_id, e]));
   const { data: audits } = await supabase.from('audit_scores').select('ple_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+  // Auditors are study staff, not research subjects — pseudonymize their id too so the exported
+  // file carries no reversible identity (stable A-<hash>: same auditor → same label across exports).
+  const auditorTag = (id) => 'A-' + createHash('sha256').update(String(id)).digest('hex').slice(0, 8);
   const audBy = {};
-  (audits ?? []).forEach(s => { (audBy[s.ple_id] ??= []).push({ auditor_id: s.auditor_id, composite: Number(s.composite_score), d1: s.d1, d2: s.d2, d3: s.d3, d4: s.d4, d5: s.d5, d6: s.d6, d7: s.d7 }); });
+  (audits ?? []).forEach(s => { (audBy[s.ple_id] ??= []).push({ auditor: auditorTag(s.auditor_id), composite: Number(s.composite_score), d1: s.d1, d2: s.d2, d3: s.d3, d4: s.d4, d5: s.d5, d6: s.d6, d7: s.d7 }); });
   const sessions = (ples ?? []).map(p => {
     const e = aiBy[p.id];
     return {

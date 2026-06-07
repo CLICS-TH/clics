@@ -10,15 +10,21 @@ const { triggerEvaluation } = require('../services/ple-evaluation');
 const router = Router();
 router.use(verifyJwt, requireRole('physician'));
 
+// Human-subjects pilot: any route that creates OR extends study data (start a session,
+// send a turn, finalize) requires recorded informed consent. Read/rename/delete are not
+// gated (a non-consenting physician has no sessions to act on, and may still tidy up).
+function requireConsent(req, res, next) {
+  if (!req.user.consented_at) {
+    return res.status(403).json({ error: 'Informed consent required before starting a session.', code: 'consent_required' });
+  }
+  next();
+}
+
 // CLE-gate booleans live in the c1_pass..c6_pass columns; map {c1..} -> {c1_pass..}.
 const toPassCols = (crit) => Object.fromEntries(Object.entries(crit).map(([k, v]) => [`${k}_pass`, v]));
 
 // Create new PLE session
-router.post('/', async (req, res) => {
-  // Human-subjects pilot: no session may start until the participant has given informed consent.
-  if (!req.user.consented_at) {
-    return res.status(403).json({ error: 'Informed consent required before starting a session.', code: 'consent_required' });
-  }
+router.post('/', requireConsent, async (req, res) => {
   const parsed = CreatePleSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
@@ -113,7 +119,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Send a message turn
-router.post('/:id/message', async (req, res) => {
+router.post('/:id/message', requireConsent, async (req, res) => {
   const parsed = MessageSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
@@ -164,7 +170,7 @@ router.post('/:id/message', async (req, res) => {
 });
 
 // End session and run CLE quality gate
-router.post('/:id/end', async (req, res) => {
+router.post('/:id/end', requireConsent, async (req, res) => {
   const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id);
   if (!ple || ple.status !== 'active') return res.status(400).json({ error: 'PLE not active' });
 

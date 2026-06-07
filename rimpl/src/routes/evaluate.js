@@ -3,6 +3,7 @@ const { z } = require('zod');
 const { callClaude } = require('../services/claude');
 const { PIS7_EVALUATOR_PROMPT } = require('../lib/prompts');
 const { parseJsonObject } = require('../lib/parse');
+const { stripHistoryPii } = require('../services/pii-filter');
 
 const router = Router();
 
@@ -18,7 +19,8 @@ router.post('/', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { ple_id, transcript } = parsed.data;
-  const transcriptText = transcript
+  // Defense-in-depth: strip PII before the transcript reaches the cloud model (mirrors /chat).
+  const transcriptText = stripHistoryPii(transcript)
     .map(m => `[${m.role.toUpperCase()}]: ${m.content}`)
     .join('\n\n');
 
