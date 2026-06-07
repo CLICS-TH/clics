@@ -19,7 +19,7 @@ describe('POST /chat', () => {
     });
     expect(res.status).toBe(200);
     expect(res.body.content).toContain('Metformin');
-    expect(res.body.references.length).toBeGreaterThan(0);
+    expect(res.body.refs.length).toBeGreaterThan(0);
     expect(res.body.socratic_question).toContain('renal function');
     expect(res.body.token_count).toBe(120);
   });

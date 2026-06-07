@@ -8,12 +8,11 @@ Decisions: **de-identified/hypothetical cases** (cloud OK, on-prem not triggered
 - **Study + reliability:** `GET /admin/export` (pseudonym-keyed, de-identified sessions + AI + auditor scores) and `POST /admin/reconcile-evaluations` (re-scores any session stranded at `cle_pass` so no credit is silently lost).
 - Tests: `consent-gate` added; backend `jest` 38/38 green.
 
-## ⚠️ ONE required step before deploy (you run it)
-The consent feature adds a DB column I can't create remotely. Run this once in the **Supabase SQL editor** (same as the superadmin index), *before* the backend redeploy so physicians aren't blocked:
-```sql
-alter table public.professionals add column if not exists consented_at timestamptz;
-```
-(Also in `db/migration-consent.sql`.) Then I deploy backend + physician-ui and verify the gated flow.
+## ✅ Deployed + verified live (2026-06-07)
+- Migration `consented_at timestamptz` applied (Supabase). Backend redeployed to Railway, physician-ui to Vercel.
+- **Backend hardening confirmed live** on the prod response: `helmet` headers (`x-content-type-options`, HSTS, `x-frame-options`, no `x-powered-by`) + `ratelimit-*` headers.
+- **physician-ui live**: consent modal + TH/EN "de-identified / provisional" banner present in the deployed JS.
+- **Smoke E2E 15/15 green** (`scripts/smoke/go-live-smoke.js`): consent gate blocks before consent → passes after; 4 live AI turns return content+refs+socratic_question; CLE gate runs; `/admin/export` is de-identified (pseudonym-keyed, no PII); `/admin/reconcile-evaluations` reports nothing stranded.
 
 ## Track B — org / process (only your team can do these)
 1. **Ethics/IRB approval** + the final **consent + privacy-notice wording** (the screen is built; supply the text).

@@ -44,10 +44,12 @@ Defined in `db/seed-users.js`:
 
 | Role | Email | Password |
 |------|-------|----------|
-| Superadmin | superadmin@clics.th | ClicsSuper#2026 |
-| Admin | admin@clics.th | ClicsAdmin#2026 |
-| Physician | doctor1@clics.th | ClicsDoc#2026 |
-| Auditor | auditor1@clics.th | ClicsAudit#2026 |
+| Superadmin | superadmin@clics.th | ClicsSuper#2026r2 |
+| Admin | admin@clics.th | ClicsAdmin#2026r2 |
+| Physician | doctor1@clics.th | ClicsDoc#2026r2 |
+| Auditor | auditor1@clics.th | ClicsAudit#2026r2 |
+
+(Passwords rotated to the `r2` family in `db/seed-users.js`. A separate soak/E2E cohort — `soakdoc01..NN@example.com`, `soakaud1..N@example.com`, password `SoakPass#2026` — exists from load testing; `db/reset-demo.js` clears it before the real pilot.)
 
 ## Verify after deploying
 
