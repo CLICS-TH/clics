@@ -7,7 +7,14 @@
 | **C — Physician** | Completes PLEs, receives CPD credit | `physician` |
 | **D — Expert Auditor** | Blind-reviews PLEs for ICC calibration | `auditor` |
 
-All four are distinct roles enforced by `requireRole(...)` middleware in `backend/`. Superadmin is **not** an alias of admin — superadmin-only routes are `GET/POST /admin/users`, `GET /admin/icc`, `GET /admin/lpdp/:id`.
+All four are distinct roles enforced by `requireRole(...)` middleware in `backend/`. Superadmin is **not** an alias of admin — superadmin-only routes are `GET/POST/PATCH /admin/users`, `PATCH /admin/users/:id/status`, `GET/PATCH /admin/slots`, `GET /admin/icc`, `GET /admin/lpdp/:id`.
+
+## Account lifecycle, requests & slot pools
+
+- **Invite/approve only:** new people use **Request access** (physician portal — email or Google/LINE). A request creates a Supabase auth user but **no** `professionals` row, so they stay **pending** (`verifyJwt`/`login` return 403 `code:pending`) until approved. No self-activation; requesters never self-assign a role.
+- **Approval queue** (`GET /admin/access-requests`, `…/approve`, `…/reject`) is visible to **admin _and_ superadmin** (nav: "Requests"). Approval **assigns** the role and consumes a slot. Admin may grant `physician`/`auditor`; only **superadmin** may grant `admin`; `superadmin` is never grantable (pool = 1, bootstrap-only via `seed-users.js`).
+- **Role slot pools** (`role_slots`) and **member management** (add/edit/deactivate any member) are **superadmin-only** (nav: "Users"). Caps are enforced on approval/create/reactivate (full pool → 409). Deactivated members free their slot; `verifyJwt` 403s them (`code:deactivated`).
+- **Guest** is a pseudo-role (no account): an ephemeral 2-prompt trial from the physician portal ("Try as guest"); nothing is persisted. See [constraints.md](constraints.md).
 
 ## Post-login routing (which app + landing)
 

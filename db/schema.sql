@@ -10,8 +10,50 @@ create table public.professionals (
   full_name_en   text not null,
   specialty      text,
   license_number text,
+  status         text not null default 'active' check (status in ('active','deactivated')),
+  pseudonym      text unique,   -- P-NNN; the only identifier allowed in exports/audit
   created_at     timestamptz default now()
 );
+
+-- Editable per-role capacity pool (superadmin-managed). See db/migration-accounts.sql.
+create table public.role_slots (
+  role       text primary key check (role in ('superadmin','admin','physician','auditor')),
+  capacity   int not null check (capacity >= 0),
+  updated_at timestamptz default now()
+);
+
+-- Pending holding area for self-service access requests (email + OAuth).
+-- auth_user_id points at a Supabase auth.users row that has NO professionals row yet.
+create table public.access_requests (
+  id              uuid primary key default gen_random_uuid(),
+  email           text,
+  full_name_th    text,
+  full_name_en    text,
+  specialty       text,
+  provider        text not null default 'email' check (provider in ('email','google','line')),
+  provider_subject text,
+  auth_user_id    uuid,
+  requested_role  text default 'physician',
+  status          text not null default 'pending' check (status in ('pending','approved','rejected')),
+  note            text,
+  reviewed_by     uuid references public.professionals(id),
+  reviewed_at     timestamptz,
+  created_at      timestamptz default now()
+);
+create index access_requests_status_idx on public.access_requests(status);
+
+-- On-prem ENCRYPTED identity vault (OAuth real identity). Never leaves on-premise,
+-- never read by RIMPL. identity_encrypted = AES-256-GCM (key IDENTITY_ENC_KEY).
+create table public.oauth_identities (
+  id                uuid primary key default gen_random_uuid(),
+  professional_id   uuid references public.professionals(id) on delete cascade,
+  auth_user_id      uuid,
+  provider          text check (provider in ('google','line')),
+  provider_subject  text,
+  identity_encrypted text not null,
+  created_at        timestamptz default now()
+);
+create index oauth_identities_prof_idx on public.oauth_identities(professional_id);
 
 -- Physician-created folders for organizing conversations (see db/migration-folders.sql)
 create table public.ple_folders (
@@ -122,6 +164,9 @@ alter table public.ai_evaluations   enable row level security;
 alter table public.audit_scores     enable row level security;
 alter table public.documents        enable row level security;
 alter table public.lpdp_snapshots   enable row level security;
+alter table public.role_slots       enable row level security;
+alter table public.access_requests  enable row level security;
+alter table public.oauth_identities enable row level security;  -- DENY-ALL (no policy below)
 
 -- professionals policies
 create policy "prof: own read"
@@ -210,6 +255,25 @@ create policy "lpdp: admin all"
   on public.lpdp_snapshots for all using (
     exists (select 1 from public.professionals p where p.id = auth.uid() and p.role in ('admin','superadmin'))
   );
+
+-- role_slots policies
+create policy "slots: admin read"
+  on public.role_slots for select using (
+    exists (select 1 from public.professionals p where p.id = auth.uid() and p.role in ('admin','superadmin'))
+  );
+create policy "slots: superadmin write"
+  on public.role_slots for all using (
+    exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
+  );
+
+-- access_requests policies (admins/superadmins review)
+create policy "requests: admin all"
+  on public.access_requests for all using (
+    exists (select 1 from public.professionals p where p.id = auth.uid() and p.role in ('admin','superadmin'))
+  );
+
+-- oauth_identities: DENY-ALL — RLS enabled with NO permissive policy, so only the
+-- service-role key (backend) can read/write the on-prem identity vault.
 
 -- pgvector similarity search function
 create or replace function match_documents(

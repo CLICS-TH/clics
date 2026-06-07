@@ -37,6 +37,23 @@
       </div>
       <div id="error" class="error-msg" style="display:none"></div>
       <button class="btn btn-primary" style="width:100%" id="loginBtn">เข้าสู่ระบบ / Login</button>
+
+      <div class="auth-divider"><span>หรือ / or</span></div>
+
+      <div class="auth-oauth">
+        <a class="btn btn-ghost" href="/request-access?provider=google">
+          <span class="oauth-mark">G</span> Continue with Google
+        </a>
+        <a class="btn btn-ghost" href="/request-access?provider=line">
+          <span class="oauth-mark oauth-line">L</span> Continue with LINE
+        </a>
+      </div>
+
+      <p class="auth-links">
+        ยังไม่มีบัญชี? <a href="/request-access">ขอเข้าใช้งาน / Request access</a>
+        &nbsp;·&nbsp;
+        <a href="/guest-chat">ลองใช้แบบผู้เยี่ยมชม / Try as guest</a>
+      </p>
     </div>
   </div>
   <script src="/js/config.js"></script>

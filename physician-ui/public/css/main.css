@@ -228,6 +228,22 @@ nav a:hover { color:var(--ink); }
 :root[data-theme="dark"] .role-badge { background:rgba(217,141,114,0.18); }
 .role-tagline { color:var(--muted-soft); font-size:12px; margin-top:10px; }
 
+/* ===== Sign-in extras: OAuth + sign-up / guest links ===== */
+.auth-divider { display:flex; align-items:center; gap:12px; margin:18px 0; color:var(--muted-soft); font-size:12px; }
+.auth-divider::before, .auth-divider::after { content:""; flex:1; height:1px; background:var(--hairline); }
+.auth-oauth { display:flex; flex-direction:column; gap:10px; }
+.auth-oauth .btn { width:100%; }
+.oauth-mark { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:var(--r-sm); background:var(--coral); color:#fff; font-weight:700; font-size:12px; }
+.oauth-mark.oauth-line { background:#06c755; }
+.auth-links { text-align:center; font-size:13px; color:var(--muted); margin-top:18px; }
+.auth-links a { color:var(--coral); font-weight:600; text-decoration:none; }
+.auth-links a:hover { text-decoration:underline; }
+
+/* Guest mode banner + pill */
+.guest-banner { background:var(--surface-soft); border:1px solid var(--hairline); border-radius:var(--r-lg); padding:12px 16px; font-size:13px; color:var(--muted); margin-bottom:16px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.guest-pill { display:inline-block; padding:2px 10px; border-radius:var(--r-pill); font-size:12px; font-weight:700; background:rgba(204,120,92,0.12); color:var(--coral); }
+.auth-success { background:var(--success-bg); color:var(--success-text); border-radius:var(--r-md); padding:14px 16px; font-size:14px; line-height:1.55; }
+
 /* ===== Dark / view toggle controls (injected by boot.js) ===== */
 .toggle-cluster { display:inline-flex; align-items:center; gap:6px; margin-left:16px; }
 .toggle-cluster-float { position:fixed; top:14px; right:14px; margin:0; z-index:50; }

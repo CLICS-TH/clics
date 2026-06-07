@@ -17,6 +17,26 @@ export const ROLE_LABELS: Record<string, string> = {
   auditor: 'Auditor',
 };
 
+// Account lifecycle (NOT the same as PLE status above).
+export const ACCOUNT_STATUS_MAP: Record<string, string> = {
+  active: 'ใช้งาน / Active',
+  deactivated: 'ปิดใช้งาน / Deactivated',
+};
+
+// Access-request lifecycle.
+export const REQUEST_STATUS_MAP: Record<string, string> = {
+  pending: 'รออนุมัติ / Pending',
+  approved: 'อนุมัติแล้ว / Approved',
+  rejected: 'ปฏิเสธ / Rejected',
+};
+
+// Provider label for an access request / linked identity.
+export const PROVIDER_LABELS: Record<string, string> = {
+  email: 'Email',
+  google: 'Google',
+  line: 'LINE',
+};
+
 // PIS-7 domain weights (must mirror backend/src/services/cle-gate.js).
 export const WEIGHTS: Record<string, number> = {
   d1: 0.15, d2: 0.20, d3: 0.15, d4: 0.15, d5: 0.15, d6: 0.10, d7: 0.10,

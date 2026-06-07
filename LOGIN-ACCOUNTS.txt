@@ -11,32 +11,44 @@ Backend API                   : https://backend-production-c12e4.up.railway.app
 
 ACCOUNTS (4 ROLES)
 ------------------
-A — SUPERADMIN  (full system oversight)
+A — SUPERADMIN  (full system oversight; manages members + role slot pools)
     Login at : https://audit-dashboard-rouge.vercel.app/login
     Email    : superadmin@clics.th
-    Password : ClicsSuper#2026
+    Password : ClicsSuper#2026r2
 
-B — ADMIN  (manages the pilot cohort)
+B — ADMIN  (manages the pilot cohort; approves access requests)
     Login at : https://audit-dashboard-rouge.vercel.app/login
     Email    : admin@clics.th
-    Password : ClicsAdmin#2026
+    Password : ClicsAdmin#2026r2
 
-C — PHYSICIAN / แพทย์อาสา  (completes PLEs, earns CPD credit)
+C — PHYSICIAN / แพทย์อาสา  (completes PLEs, earns CPD credit; pseudonym P-001)
     Login at : https://physician-ui.vercel.app
     Email    : doctor1@clics.th
-    Password : ClicsDoc#2026
+    Password : ClicsDoc#2026r2
 
 D — EXPERT AUDITOR  (blind-reviews PLEs for ICC calibration)
     Login at : https://audit-dashboard-rouge.vercel.app/login
     Email    : auditor1@clics.th
-    Password : ClicsAudit#2026
+    Password : ClicsAudit#2026r2
+
+
+SELF-SERVICE & GUEST (no account needed to try)
+-----------------------------------------------
+- Request access : physician portal → "Request access" (email or Google/LINE).
+  Stays PENDING until a superadmin/admin approves it into a free role slot.
+- Guest mode     : physician portal → "Try as guest" — 2 prompts, fully
+  ephemeral (no account, nothing saved).
 
 
 NOTES
 -----
-- All four log in with email + password. The physician uses the physician
+- Demo passwords ROTATED 2026-06 (the "r2" family). Still throwaway — rotate
+  again before the real pilot.
+- All four roles log in with email + password. The physician uses the physician
   portal; the other three use the audit dashboard.
 - A/B/D can all sign in at the dashboard /login — each is routed to its own
   role-aware console automatically.
-- Re-seed / reset these accounts any time (idempotent):
+- Google/LINE OAuth buttons are present but the handshake is STUBBED in this
+  build (mock identity); the real identity↔pseudonym vault is live.
+- Re-seed / reset accounts + slot pools any time (idempotent):
       cd backend && NODE_PATH="$PWD/node_modules" node ../db/seed-users.js
