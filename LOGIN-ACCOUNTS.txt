@@ -22,20 +22,21 @@ B — ADMIN  (the cohort's sessions, the manual-review queue, the onboarding his
     Password : ClicsAdmin#2026r2
 
 
-LIVE DRY-RUN COHORT (the 1-week soak — 10 physicians P-001..P-010 + 3 auditors)
+LIVE E2E COHORT (fresh run — 6 physicians P-001..P-006 + 3 auditors)
 -------------------------------------------------------------------------------
-C — PHYSICIAN sample  (Dr Kongphop, pseudonym P-009 — top performer; 2 scored sessions + chart)
+C — PHYSICIAN sample  (Dr Kongphop, pseudonym P-005 — top performer; an evaluated session + chart)
     Login at : https://physician-ui.vercel.app
-    Email    : soakdoc09@example.com
+    Email    : soakdoc05@example.com
     Password : SoakPass#2026
 
-D — EXPERT AUDITOR sample  (Auditor 1 — assigned reviews, blind-scoring, an ICC figure)
+D — EXPERT AUDITOR sample  (Auditor 1 — has 2 UNSCORED assigned sessions ready to score)
     Login at : https://audit-dashboard-rouge.vercel.app/login
     Email    : soakaud1@example.com
     Password : SoakPass#2026
 
-   (All physicians = soakdoc01..10@example.com · all auditors = soakaud1..3@example.com ·
-    both admins of record = soakadmin1/2@example.com — all share the password SoakPass#2026.)
+   (All physicians = soakdoc01..06@example.com · all auditors = soakaud1..3@example.com —
+    all share the password SoakPass#2026. Outcomes: P-001 failed gate, P-002 awaiting QA,
+    P-003..P-006 evaluated and assigned to auditors, unscored.)
 
 
 SELF-SERVICE & GUEST (no account needed to try)

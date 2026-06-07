@@ -174,6 +174,7 @@ export default function UsersPage() {
               <div className="flex items-center justify-between pt-1">
                 <StatusBadge s={u.status} />
                 <div className="flex gap-2">
+                  {u.role === 'physician' && <a href={`/admin/lpdp/${u.id}`} className="text-xs px-2 py-1 border rounded-lg inline-flex items-center hover:bg-secondary">คะแนน</a>}
                   <Button variant="outline" className="text-xs px-2 py-1 h-auto" onClick={() => setEditing(u)}>แก้ไข</Button>
                   <Button variant="outline" className="text-xs px-2 py-1 h-auto" disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)}>
                     {u.status === 'deactivated' ? 'เปิดใช้' : 'ปิดใช้'}
@@ -200,6 +201,7 @@ export default function UsersPage() {
                 <td className="px-4 py-3"><Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge></td>
                 <td className="px-4 py-3"><StatusBadge s={u.status} /></td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
+                  {u.role === 'physician' && <a href={`/admin/lpdp/${u.id}`} className="text-xs px-2 py-1 mr-2 border rounded-lg inline-flex items-center hover:bg-secondary">คะแนน / Scores</a>}
                   <Button variant="outline" className="text-xs px-2 py-1 h-auto mr-2" onClick={() => setEditing(u)}>แก้ไข</Button>
                   <Button variant="outline" className="text-xs px-2 py-1 h-auto" disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)}>
                     {u.status === 'deactivated' ? 'เปิดใช้' : 'ปิดใช้'}

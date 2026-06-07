@@ -213,4 +213,42 @@ router.get('/stats', async (req, res) => {
   res.json({ total, ...counts });
 });
 
+// Per-physician score explorer (admin + superadmin): the physician + all their sessions, each joined
+// with its AI evaluation and auditor scores, plus the LPDP trajectory and folder names. Powers the
+// "click a user → see their scores" view and the by-status / by-case / by-folder groupings.
+router.get('/physicians/:id/profile', async (req, res) => {
+  const { data: physician } = await supabase
+    .from('professionals').select('id, full_name_th, full_name_en, specialty, pseudonym, role')
+    .eq('id', req.params.id).single();
+  if (!physician) return res.status(404).json({ error: 'Not found' });
+
+  const { data: ples } = await supabase
+    .from('ples')
+    .select('id, status, chief_complaint, turn_count, token_count, started_at, folder_id')
+    .eq('physician_id', req.params.id).order('started_at');
+  const ids = (ples ?? []).map(p => p.id);
+  const empty = Promise.resolve({ data: [] });
+
+  const [{ data: ai }, { data: audits }, { data: folders }, { data: lpdp }] = await Promise.all([
+    ids.length ? supabase.from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('ple_id', ids) : empty,
+    ids.length ? supabase.from('audit_scores').select('ple_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('ple_id', ids) : empty,
+    supabase.from('ple_folders').select('id, name').eq('physician_id', req.params.id),
+    supabase.from('lpdp_snapshots').select('ple_id, composite_score, domain_scores, snapshot_at').eq('physician_id', req.params.id).order('snapshot_at'),
+  ]);
+
+  const aiBy = Object.fromEntries((ai ?? []).map(e => [e.ple_id, e]));
+  const auditsBy = {};
+  (audits ?? []).forEach(s => { (auditsBy[s.ple_id] ??= []).push(s); });
+  const folderName = Object.fromEntries((folders ?? []).map(f => [f.id, f.name]));
+
+  const sessions = (ples ?? []).map(p => ({
+    ...p,
+    folder_name: p.folder_id ? (folderName[p.folder_id] ?? null) : null,
+    ai: aiBy[p.id] ?? null,
+    audits: auditsBy[p.id] ?? [],
+  }));
+
+  res.json({ physician, sessions, lpdp: lpdp ?? [] });
+});
+
 module.exports = router;

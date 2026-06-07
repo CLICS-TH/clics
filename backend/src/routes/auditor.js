@@ -16,7 +16,17 @@ router.get('/queue', async (req, res) => {
     .eq('status', 'evaluated')
     .order('ended_at');
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+
+  // Flag which assigned PLEs this auditor has ALREADY scored, so the queue can mark them and
+  // surface the ones still to score (rather than locking the whole list as "already evaluated").
+  const ids = (data ?? []).map(p => p.id);
+  let scored = new Set();
+  if (ids.length) {
+    const { data: rows } = await supabase
+      .from('audit_scores').select('ple_id').eq('auditor_id', req.user.id).in('ple_id', ids);
+    scored = new Set((rows ?? []).map(r => r.ple_id));
+  }
+  res.json((data ?? []).map(p => ({ ...p, scored: scored.has(p.id) })));
 });
 
 router.get('/ples/:id', async (req, res) => {

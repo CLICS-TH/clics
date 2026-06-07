@@ -17,7 +17,7 @@
 |------|-----------|-------|----------|
 | **Superadmin** (sees everything) | dashboard | `superadmin@clics.th` | `ClicsSuper#2026r2` |
 | **Admin** (runs the group) | dashboard | `admin@clics.th` | `ClicsAdmin#2026r2` |
-| **Doctor** (sample) | doctor portal | `soakdoc09@example.com` | `SoakPass#2026` |
+| **Doctor** (sample) | doctor portal | `soakdoc05@example.com` | `SoakPass#2026` |
 | **Auditor** (sample) | dashboard | `soakaud1@example.com` | `SoakPass#2026` |
 
 *(These are temporary demo logins for the walkthrough.)*

@@ -46,3 +46,14 @@ export const WEIGHTS: Record<string, number> = {
 export function computeComposite(scores: Record<string, number>): number {
   return Object.entries(WEIGHTS).reduce((a, [k, w]) => a + (scores[k] ?? 0) * w, 0) * 20;
 }
+
+// Coarse clinical topic from a chief complaint — used to categorize a user's sessions "by case type".
+export function caseCategory(chief?: string | null): string {
+  const c = (chief || '').toLowerCase();
+  if (/chest pain|substernal|angina|acs/.test(c)) return 'เจ็บหน้าอก / Chest pain';
+  if (/dyspn|breathless|short(ness)? of breath|\bsob\b|หายใจ/.test(c)) return 'หอบเหนื่อย / Dyspnea';
+  if (/fever|cough|pneumonia|sepsis|ไข้|ไอ/.test(c)) return 'ไข้/ไอ / Fever & cough';
+  if (/abdom|\brlq\b|appendic|ปวดท้อง/.test(c)) return 'ปวดท้อง / Abdominal';
+  if (/headache|occipital|thunderclap|ปวดหัว|ปวดศีรษะ/.test(c)) return 'ปวดศีรษะ / Headache';
+  return 'อื่นๆ / Other';
+}
