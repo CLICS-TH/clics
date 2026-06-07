@@ -56,31 +56,7 @@
       </div>
       <div id="emailErr" class="error-msg" style="display:none"></div>
       <button class="btn btn-primary" style="width:100%" id="submitBtn">ส่งคำขอ / Submit request</button>
-
-      <div class="auth-divider"><span>หรือ / or</span></div>
-      <div class="auth-oauth">
-        <button class="btn btn-ghost" type="button" data-provider="google"><span class="oauth-mark">G</span> Request via Google</button>
-        <button class="btn btn-ghost" type="button" data-provider="line"><span class="oauth-mark oauth-line">L</span> Request via LINE</button>
-      </div>
-      <p class="role-tagline" style="text-align:center">ปุ่ม OAuth จำลองการล็อกอิน (handshake แบบ stub ในรุ่นนี้) — identity จะถูกเก็บแบบเข้ารหัสในระบบ on-prem<br/>OAuth buttons simulate sign-in (stubbed handshake); the real identity is stored encrypted on-prem.</p>
       <p class="auth-links"><a href="/">← กลับเข้าสู่ระบบ / Back to login</a></p>
-    </div>
-
-    <!-- OAuth simulate panel -->
-    <div class="card" id="oauthCard" style="display:none">
-      <h3 id="oauthTitle" style="margin-bottom:6px"></h3>
-      <p class="role-tagline" id="oauthNote"></p>
-      <div class="form-group">
-        <label for="oauthName">ชื่อที่แสดง / Display name</label>
-        <input type="text" id="oauthName" placeholder="Dr Somchai (from provider)" />
-      </div>
-      <div class="form-group">
-        <label for="oauthEmail">อีเมล (ถ้ามี) / Email (optional)</label>
-        <input type="email" id="oauthEmail" placeholder="provider email" />
-      </div>
-      <div id="oauthErr" class="error-msg" style="display:none"></div>
-      <button class="btn btn-primary" style="width:100%" id="oauthSubmit">ดำเนินการต่อ / Continue</button>
-      <p class="auth-links"><a href="/request-access">← ใช้อีเมลแทน / Use email instead</a></p>
     </div>
   </div>
 

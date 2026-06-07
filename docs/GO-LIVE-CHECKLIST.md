@@ -6,7 +6,8 @@ Decisions: **de-identified/hypothetical cases** (cloud OK, on-prem not triggered
 - **Security:** rate limiting (`/auth/login` 10/min, `/auth/request-access` 5/hr, `/guest` 15/min, general 300/min) + `helmet` + 1 MB body cap + `trust proxy`; **fail-closed boot check** (prod refuses to start without the 6 secrets) + **CORS locked** to the two prod origins; account-creation **password policy** (≥10 chars, letter + digit).
 - **Informed consent:** `consented_at` column + `POST /auth/consent`; **`POST /ples` is gated** (403 `consent_required`) until consent; physician-ui shows a consent + privacy screen on first login and an **always-on banner** ("de-identified cases only · scores provisional, not CME credit").
 - **Study + reliability:** `GET /admin/export` (pseudonym-keyed, de-identified sessions + AI + auditor scores) and `POST /admin/reconcile-evaluations` (re-scores any session stranded at `cle_pass` so no credit is silently lost).
-- Tests: `consent-gate` added; backend `jest` 38/38 green.
+- **Login = email + password only.** Social sign-in (Google/LINE) was a stubbed handshake with a public `mock-callback` (could mint pending users) — now **disabled**: backend routes 404 unless `OAUTH_ENABLED=true`, and the Google/LINE buttons are removed from the physician-ui login + request-access pages. Re-enable only when a real provider handshake is wired.
+- Tests: `consent-gate`, `oauth-disabled` added; backend `jest` 41/41 green.
 
 ## ✅ Deployed + verified live (2026-06-07)
 - Migration `consented_at timestamptz` applied (Supabase). Backend redeployed to Railway, physician-ui to Vercel.

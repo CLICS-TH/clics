@@ -54,10 +54,9 @@ window.api = {
   renameFolder: (id, name) => apiFetch(`/ples/folders/${id}`, { method: 'PATCH', body: { name } }),
   deleteFolder: (id) => apiFetch(`/ples/folders/${id}`, { method: 'DELETE' }),
 
-  // Self-service access requests + OAuth (stubbed handshake) — return { ok, status, body }.
+  // Self-service access request (email+password) — returns { ok, status, body }.
+  // Social sign-in (Google/LINE) is disabled for the pilot; the stub endpoints 404.
   requestAccess: (body) => publicFetch('/auth/request-access', { method: 'POST', body }),
-  oauthStart: (provider) => publicFetch(`/auth/oauth/${provider}/start`, { method: 'POST' }),
-  oauthMock: (provider, body) => publicFetch(`/auth/oauth/${provider}/mock-callback`, { method: 'POST', body }),
 
   // Guest mode (ephemeral; token is NOT stored in localStorage).
   guestStart: () => publicFetch('/guest/start', { method: 'POST' }),

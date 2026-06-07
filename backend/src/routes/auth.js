@@ -32,6 +32,16 @@ const MockOAuthSchema = z.object({
 
 const OAUTH_PROVIDERS = ['google', 'line'];
 
+// Social sign-in (Google/LINE) is a STUBBED handshake — no real provider wiring yet — and the
+// mock-callback is public (it can mint pending users), so it is DISABLED by default. The pilot
+// uses email+password only. Set OAUTH_ENABLED=true to re-enable for dev or once the real
+// provider handshake is implemented. Disabled routes 404 so the path effectively does not exist.
+const OAUTH_ENABLED = process.env.OAUTH_ENABLED === 'true';
+function oauthGate(_req, res, next) {
+  if (!OAUTH_ENABLED) return res.status(404).json({ error: 'Social sign-in is not available.' });
+  next();
+}
+
 router.post('/login', async (req, res) => {
   const parsed = LoginSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
@@ -113,7 +123,7 @@ router.post('/request-access', async (req, res) => {
 
 // GET/POST /auth/oauth/:provider/start — in production this 302s to the provider's
 // authorize URL. STUBBED here: returns the mock-callback endpoint to simulate sign-in.
-router.all('/oauth/:provider/start', (req, res) => {
+router.all('/oauth/:provider/start', oauthGate, (req, res) => {
   const { provider } = req.params;
   if (!OAUTH_PROVIDERS.includes(provider)) return res.status(400).json({ error: 'Unsupported provider' });
   res.json({
@@ -127,7 +137,7 @@ router.all('/oauth/:provider/start', (req, res) => {
 // POST /auth/oauth/:provider/mock-callback — simulates the provider redirect with a profile.
 // REAL WIRING (see docs/architecture.md): replace this with the provider token exchange +
 // userinfo fetch, then run the exact same downstream logic below.
-router.post('/oauth/:provider/mock-callback', async (req, res) => {
+router.post('/oauth/:provider/mock-callback', oauthGate, async (req, res) => {
   const { provider } = req.params;
   if (!OAUTH_PROVIDERS.includes(provider)) return res.status(400).json({ error: 'Unsupported provider' });
   const parsed = MockOAuthSchema.safeParse(req.body);
