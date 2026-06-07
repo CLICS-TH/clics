@@ -12,7 +12,15 @@ Decisions: **de-identified/hypothetical cases** (cloud OK, on-prem not triggered
 - Migration `consented_at timestamptz` applied (Supabase). Backend redeployed to Railway, physician-ui to Vercel.
 - **Backend hardening confirmed live** on the prod response: `helmet` headers (`x-content-type-options`, HSTS, `x-frame-options`, no `x-powered-by`) + `ratelimit-*` headers.
 - **physician-ui live**: consent modal + TH/EN "de-identified / provisional" banner present in the deployed JS.
-- **Smoke E2E 15/15 green** (`scripts/smoke/go-live-smoke.js`): consent gate blocks before consent → passes after; 4 live AI turns return content+refs+socratic_question; CLE gate runs; `/admin/export` is de-identified (pseudonym-keyed, no PII); `/admin/reconcile-evaluations` reports nothing stranded.
+- **Smoke E2E 18/18 green** (`scripts/smoke/go-live-smoke.js`): consent gate blocks `POST /ples` **and** `/message` + `/end` before consent → passes after; 4 live AI turns return content+refs+socratic_question; CLE gate runs; `/admin/export` is de-identified (pseudonym-keyed, no PII); `/admin/reconcile-evaluations` reports nothing stranded.
+
+### Pre-launch adversarial review (read-only, 15 agents) — verdict: **GO**
+Independent agents audited consent-integrity, authz/roles, PII→cloud leak, and config/DoS/secrets, each finding cross-verified by skeptics. **0 launch-blocking.** The 4 confirmed real-but-non-blocking items: 3 were fixed + redeployed immediately as defense-in-depth —
+- consent gate extended to `POST /ples/:id/message` + `/end` (was creation-only);
+- rimpl `/evaluate` + `/evaluate-criteria` now `stripHistoryPii()` before Claude (matches `/chat`);
+- `/admin/export` pseudonymizes `auditor_id` (stable `A-<hash>`).
+
+The 4th (**live Supabase/Anthropic keys in local `.env`** — correctly gitignored, not in git history) is a **Track B** action: confirm prod reads keys from platform env (already true) and **rotate `ANTHROPIC_API_KEY`** before participants hit prod.
 
 ## Track B — org / process (only your team can do these)
 1. **Ethics/IRB approval** + the final **consent + privacy-notice wording** (the screen is built; supply the text).

@@ -57,11 +57,19 @@ const TURNS = [
   const pToken = login.json.access_token;
   console.log(`   consented_at at login: ${login.json.user?.consented_at ?? 'null'}`);
 
-  // 2. Consent gate BEFORE consent — must 403 consent_required
+  // 2. Consent gate BEFORE consent — must 403 consent_required on create AND the
+  //    session-writing routes (downstream defense-in-depth), no AI spend.
   console.log('2) Consent gate (before consent)');
   const blocked = await req('POST', '/ples', { token: pToken, body: { chief_complaint: 'exertional chest pain (hypothetical)' } });
   ok(blocked.status === 403 && blocked.json?.code === 'consent_required',
      'POST /ples blocked 403 consent_required', `status=${blocked.status} code=${blocked.json?.code}`);
+  const dummy = '00000000-0000-0000-0000-000000000000';
+  const blockedMsg = await req('POST', `/ples/${dummy}/message`, { token: pToken, body: { message: 'x', language: 'en' } });
+  ok(blockedMsg.status === 403 && blockedMsg.json?.code === 'consent_required',
+     'POST /ples/:id/message blocked before consent', `status=${blockedMsg.status} code=${blockedMsg.json?.code}`);
+  const blockedEnd = await req('POST', `/ples/${dummy}/end`, { token: pToken, body: { active_seconds: 1000 } });
+  ok(blockedEnd.status === 403 && blockedEnd.json?.code === 'consent_required',
+     'POST /ples/:id/end blocked before consent', `status=${blockedEnd.status} code=${blockedEnd.json?.code}`);
 
   // 3. Record consent
   console.log('3) Record informed consent');
@@ -123,9 +131,14 @@ const TURNS = [
   const exp = await req('GET', '/admin/export', { token: sToken });
   const sessions = exp.json?.sessions ?? [];
   ok(exp.status === 200 && Array.isArray(sessions) && sessions.length >= 1, 'GET /admin/export returns sessions', `n=${exp.json?.n}`);
-  // de-identification check: no name/email keys leak; physician keyed by pseudonym only
+  // de-identification check: no name/email/raw-id keys leak; physician keyed by pseudonym only
   const leak = sessions.some(s => 'email' in s || 'full_name_th' in s || 'full_name_en' in s || 'physician_id' in s);
   ok(!leak, 'export is de-identified (no email/name/raw-id keys)', leak ? 'LEAK DETECTED' : 'pseudonym-keyed only');
+  // auditor scores must be pseudonymized too (A-<hash>, never the raw UUID)
+  const auditorEntries = sessions.flatMap(s => s.auditor_scores ?? []);
+  const audLeak = auditorEntries.some(a => 'auditor_id' in a || !/^A-[0-9a-f]{8}$/.test(a.auditor ?? ''));
+  ok(!audLeak, 'auditor scores pseudonymized (A-<hash>, no raw auditor_id)',
+     auditorEntries.length ? `${auditorEntries.length} entries checked` : 'no auditor scores present to check');
   const mine = sessions.find(s => s.cle_id === pleId);
   ok(!!mine, 'our smoke session present in export', mine ? `physician=${mine.physician} status=${mine.status} ai_composite=${mine.ai_composite}` : 'not found');
 
