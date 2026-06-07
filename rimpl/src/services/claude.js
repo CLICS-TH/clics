@@ -10,7 +10,7 @@ const MODEL = 'claude-sonnet-4-6';
 // the Anthropic API at once and tripped its rate limit. Cap the number of IN-FLIGHT Claude calls;
 // excess calls wait in a FIFO queue instead of failing, smoothing the burst under the rate limit.
 // Tunable via CLAUDE_MAX_CONCURRENCY (default 10 — safely under the observed per-account ceiling).
-const MAX_CONCURRENCY = Math.max(1, parseInt(process.env.CLAUDE_MAX_CONCURRENCY || '10', 10));
+const MAX_CONCURRENCY = Math.max(1, parseInt(process.env.CLAUDE_MAX_CONCURRENCY || '12', 10));
 let active = 0;
 const waiters = [];
 function acquire() {
@@ -49,21 +49,46 @@ function backoffMs(attempt, err) {
   return base + Math.floor(Math.random() * 400); // jitter to de-sync concurrent retries
 }
 
+// Observability: surface which Anthropic rate-limit dimension binds (RPM vs ITPM vs OTPM vs concurrent)
+// so CLAUDE_MAX_CONCURRENCY / the account tier can be tuned with data instead of guesses.
+let tierLogged = false;
+function logRateLimit(headers, where) {
+  if (!headers) return;
+  const get = k => (headers.get ? headers.get(k) : headers[k]);
+  const reqRem = get('anthropic-ratelimit-requests-remaining');
+  const tokRem = get('anthropic-ratelimit-tokens-remaining');
+  const inRem = get('anthropic-ratelimit-input-tokens-remaining');
+  const outRem = get('anthropic-ratelimit-output-tokens-remaining');
+  if (!tierLogged) { // log the tier (the *-limit values) once at startup
+    tierLogged = true;
+    console.log(`[claude] rate-limit tier — requests:${get('anthropic-ratelimit-requests-limit')} tokens:${get('anthropic-ratelimit-tokens-limit')} input:${get('anthropic-ratelimit-input-tokens-limit')} output:${get('anthropic-ratelimit-output-tokens-limit')}`);
+  }
+  const low = (v, t) => v != null && Number(v) <= t; // flag the dimension that's running out
+  if (low(reqRem, 5) || low(tokRem, 8000) || low(inRem, 8000) || low(outRem, 4000)) {
+    console.warn(`[claude] rate-limit LOW (${where}) — req:${reqRem} tok:${tokRem} in:${inRem} out:${outRem}`);
+  }
+}
+
 async function callClaude({ systemPrompt, messages, maxTokens = 1500 }) {
   await acquire(); // queue if we're already at max in-flight
   try {
     let lastErr;
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const response = await client.messages.create({ model: MODEL, max_tokens: maxTokens, system: systemPrompt, messages });
-        const text = response.content[0]?.text ?? '';
-        const inputTokens = response.usage?.input_tokens ?? 0;
-        const outputTokens = response.usage?.output_tokens ?? 0;
+        // .withResponse() yields the same Message as `data` PLUS the HTTP response, so we can read
+        // the anthropic-ratelimit-* headers to learn the binding dimension.
+        const { data, response: httpResp } = await client.messages.create({ model: MODEL, max_tokens: maxTokens, system: systemPrompt, messages }).withResponse();
+        logRateLimit(httpResp?.headers, 'ok');
+        const text = data.content[0]?.text ?? '';
+        const inputTokens = data.usage?.input_tokens ?? 0;
+        const outputTokens = data.usage?.output_tokens ?? 0;
         return { text, tokenCount: inputTokens + outputTokens };
       } catch (err) {
         lastErr = err;
         if (attempt < MAX_RETRIES && isRetryable(err)) {
-          console.warn(`[claude] retryable error (status ${err?.status ?? '?'}), attempt ${attempt + 1}/${MAX_RETRIES} — backing off`);
+          const ra = retryAfterMs(err);
+          console.warn(`[claude] retryable error (status ${err?.status ?? '?'}${ra != null ? `, retry-after ${Math.round(ra / 1000)}s` : ''}), attempt ${attempt + 1}/${MAX_RETRIES} — backing off`);
+          logRateLimit(err?.headers, '429');
           await sleep(backoffMs(attempt, err)); // slot stays held during backoff → naturally eases pressure
           continue;
         }

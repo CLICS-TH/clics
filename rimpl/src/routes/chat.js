@@ -53,7 +53,9 @@ router.post('/', async (req, res) => {
         { role: 'assistant', content: text },
         { role: 'user', content: retryPrompt },
       ];
-      const retry = await callClaude({ systemPrompt: RIMPL_SYSTEM_PROMPT, messages: retryMessages, maxTokens: 2500 });
+      // Cheaper than the first call: the answer target is "<400 words", so a 1500-token cap is ample
+      // for a corrected reply and roughly halves the retry's load on the Anthropic rate limit.
+      const retry = await callClaude({ systemPrompt: RIMPL_SYSTEM_PROMPT, messages: retryMessages, maxTokens: 1500 });
       text = retry.text;
       tokenCount += retry.tokenCount;
     }
