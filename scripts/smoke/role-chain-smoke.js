@@ -1,0 +1,155 @@
+#!/usr/bin/env node
+/*
+ * Live role-chain smoke — proves the Admin → Auditor → Superadmin flow end to end
+ * against the deployed backend, with NO AI spend (assignment + scoring are pure CRUD):
+ *   Superadmin: sees all roles + role-slot pool + stats + ICC
+ *   Admin:      lists evaluated sessions + auditors + access requests, assigns a session
+ *   Auditor:    sees only its blind queue (no physician identity), scores a session
+ *   Superadmin: the auditor score reaches ICC + the de-identified export
+ *
+ * Usage: node scripts/smoke/role-chain-smoke.js
+ */
+const BASE = process.env.SMOKE_BASE || 'https://backend-production-c12e4.up.railway.app';
+const SUPER = { email: 'superadmin@clics.th', password: process.env.SMOKE_SUPER_PW || 'ClicsSuper#2026r2' };
+const ADMIN = { email: 'admin@clics.th', password: process.env.SMOKE_ADMIN_PW || 'ClicsAdmin#2026r2' };
+const AUDITOR = { email: process.env.SMOKE_AUD_EMAIL || 'soakaud1@example.com', password: process.env.SMOKE_AUD_PW || 'SoakPass#2026' };
+
+let pass = 0, fail = 0;
+const ok = (cond, label, extra = '') => {
+  if (cond) { pass++; console.log(`  ✅ ${label}${extra ? ' — ' + extra : ''}`); }
+  else { fail++; console.log(`  ❌ ${label}${extra ? ' — ' + extra : ''}`); }
+  return cond;
+};
+const info = (m) => console.log(`  ·  ${m}`);
+
+async function req(method, path, { token, body } = {}) {
+  const res = await fetch(BASE + path, {
+    method,
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  let json = null; try { json = await res.json(); } catch {}
+  return { status: res.status, json };
+}
+const login = async (c) => (await req('POST', '/auth/login', { body: c }));
+
+// keys that would reveal physician identity to a blind auditor
+const ID_KEYS = ['physician_id', 'full_name_th', 'full_name_en', 'pseudonym', 'professionals', 'email', 'specialty'];
+const leaksIdentity = (obj) => {
+  const seen = [];
+  const walk = (o) => {
+    if (!o || typeof o !== 'object') return;
+    for (const k of Object.keys(o)) { if (ID_KEYS.includes(k) && o[k] != null) seen.push(k); walk(o[k]); }
+  };
+  walk(obj);
+  return seen;
+};
+
+(async () => {
+  console.log(`\n=== CLICS role-chain smoke → ${BASE} ===\n`);
+
+  // ---- SUPERADMIN: monitor all roles + manage pool ----
+  console.log('A) Superadmin — monitor everything + manage pool');
+  const sa = await login(SUPER);
+  if (!ok(sa.status === 200 && sa.json?.access_token, 'superadmin login', `status=${sa.status}`)) return finish();
+  const saT = sa.json.access_token;
+
+  const users = await req('GET', '/admin/users', { token: saT });
+  const roles = (users.json ?? []).reduce((a, u) => (a[u.role] = (a[u.role] ?? 0) + 1, a), {});
+  ok(users.status === 200 && Array.isArray(users.json) && ['superadmin','admin','auditor','physician'].every(r => roles[r] > 0),
+     'GET /admin/users sees all four roles', JSON.stringify(roles));
+
+  const slots = await req('GET', '/admin/slots', { token: saT });
+  ok(slots.status === 200 && Array.isArray(slots.json) && slots.json.length >= 4, 'GET /admin/slots (role pool)',
+     (slots.json ?? []).map(s => `${s.role}:${s.capacity}`).join(' '));
+
+  const stats = await req('GET', '/admin/stats', { token: saT });
+  ok(stats.status === 200 && typeof stats.json?.total === 'number', 'GET /admin/stats (outcome counts)', JSON.stringify(stats.json));
+
+  const iccBefore = await req('GET', '/admin/icc', { token: saT });
+  ok(iccBefore.status === 200, 'GET /admin/icc (agreement metric)', `icc=${iccBefore.json?.icc ?? 'null'} n=${iccBefore.json?.n ?? 0}`);
+
+  // ---- find the auditor's own id via /auth/me (queue is keyed by auditor_id) ----
+  console.log('B) Auditor identity');
+  const au = await login(AUDITOR);
+  if (!ok(au.status === 200 && au.json?.access_token, `auditor login (${AUDITOR.email})`, `status=${au.status}`)) return finish();
+  const auT = au.json.access_token;
+  const me = await req('GET', '/auth/me', { token: auT });
+  const auditorId = me.json?.user?.id;
+  ok(!!auditorId && me.json?.user?.role === 'auditor', 'GET /auth/me returns auditor id', `id=${auditorId}`);
+
+  // ---- ADMIN: list evaluated sessions, auditors, requests; assign ----
+  console.log('C) Admin — organize sessions + manage requests');
+  let adminT = saT, adminAs = 'superadmin (admin login unavailable)';
+  const ad = await login(ADMIN);
+  if (ad.status === 200 && ad.json?.access_token) { adminT = ad.json.access_token; adminAs = ADMIN.email; }
+  info(`acting as admin: ${adminAs}`);
+
+  const evald = await req('GET', '/admin/ples?status=evaluated', { token: adminT });
+  const evList = evald.json ?? [];
+  ok(evald.status === 200 && Array.isArray(evList), 'GET /admin/ples?status=evaluated', `n=${evList.length}`);
+
+  const auditors = await req('GET', '/admin/auditors', { token: adminT });
+  ok(auditors.status === 200 && Array.isArray(auditors.json) && auditors.json.length >= 1, 'GET /admin/auditors (assign dropdown)', `n=${auditors.json?.length}`);
+
+  const reqs = await req('GET', '/admin/access-requests', { token: adminT });
+  ok(reqs.status === 200 && Array.isArray(reqs.json), 'GET /admin/access-requests (request queue)', `pending=${reqs.json?.length}`);
+
+  if (!evList.length) { info('no evaluated sessions to assign — cannot exercise the assign→score chain'); return finish(); }
+
+  // Assign evaluated sessions to our auditor until we find one they have NOT scored yet.
+  console.log('D) Admin assigns → Auditor blind queue → score');
+  let scorablePle = null, queueChecked = false;
+  for (const ple of evList) {
+    const asg = await req('POST', `/admin/ples/${ple.id}/assign`, { token: adminT, body: { auditor_id: auditorId } });
+    if (asg.status !== 200) { info(`assign ${ple.id.slice(0,8)} → ${asg.status}`); continue; }
+    const q = await req('GET', '/auditor/queue', { token: auT });
+    queueChecked = true;
+    const mine = (q.json ?? []).find(x => x.id === ple.id);
+    if (mine && mine.scored === false) { scorablePle = ple.id; break; }
+  }
+  ok(queueChecked, 'POST /admin/ples/:id/assign accepted (status=evaluated gate)');
+
+  // Re-fetch the queue for the blind-property assertion.
+  const queue = await req('GET', '/auditor/queue', { token: auT });
+  ok(queue.status === 200 && Array.isArray(queue.json) && queue.json.length >= 1, 'GET /auditor/queue (assigned work)', `n=${queue.json?.length}`);
+  const qLeak = leaksIdentity(queue.json);
+  ok(qLeak.length === 0, 'auditor queue is BLIND (no physician identity)', qLeak.length ? `LEAK: ${qLeak}` : 'session fields only');
+
+  if (scorablePle) {
+    const detail = await req('GET', `/auditor/ples/${scorablePle}`, { token: auT });
+    const dLeak = leaksIdentity(detail.json?.ple);
+    ok(detail.status === 200 && !!detail.json?.messages, 'GET /auditor/ples/:id (blind transcript)', `turns=${detail.json?.messages?.length}`);
+    ok(dLeak.length === 0, 'auditor session detail is BLIND', dLeak.length ? `LEAK: ${dLeak}` : 'no identity fields');
+
+    const score = await req('POST', `/auditor/ples/${scorablePle}/score`, { token: auT, body: { d1:4,d2:4,d3:3,d4:4,d5:4,d6:3,d7:4, notes: 'role-chain smoke (de-identified)' } });
+    ok(score.status === 200 && typeof score.json?.composite_score === 'number', 'POST /auditor/ples/:id/score', `composite=${score.json?.composite_score}`);
+  } else {
+    info('all assigned evaluated sessions already scored by this auditor — verifying the double-submit guard instead');
+    const firstAssigned = (queue.json ?? [])[0];
+    if (firstAssigned) {
+      const dup = await req('POST', `/auditor/ples/${firstAssigned.id}/score`, { token: auT, body: { d1:4,d2:4,d3:3,d4:4,d5:4,d6:3,d7:4 } });
+      ok(dup.status === 409, 'double-submit guard (409 Already scored)', `status=${dup.status}`);
+    }
+  }
+
+  // ---- SUPERADMIN: score reaches ICC + export ----
+  console.log('E) Superadmin — auditor score reaches ICC + export');
+  const iccAfter = await req('GET', '/admin/icc', { token: saT });
+  ok(iccAfter.status === 200 && (iccAfter.json?.n ?? 0) >= 1, 'GET /admin/icc has ≥1 AI↔auditor pair', `icc=${iccAfter.json?.icc ?? 'null'} n=${iccAfter.json?.n}`);
+
+  const exp = await req('GET', '/admin/export', { token: saT });
+  const auditorEntries = (exp.json?.sessions ?? []).flatMap(s => s.auditor_scores ?? []);
+  ok(exp.status === 200, 'GET /admin/export', `sessions=${exp.json?.n}`);
+  ok(auditorEntries.length >= 1, 'export contains ≥1 auditor score', `entries=${auditorEntries.length}`);
+  const audOk = auditorEntries.every(a => !('auditor_id' in a) && /^A-[0-9a-f]{8}$/.test(a.auditor ?? ''));
+  ok(auditorEntries.length === 0 || audOk, 'exported auditor scores pseudonymized (A-<hash>)',
+     auditorEntries.length ? `sample=${auditorEntries[0]?.auditor}` : 'none');
+
+  finish();
+})().catch(e => { console.error('FATAL', e); process.exit(1); });
+
+function finish() {
+  console.log(`\n=== role-chain result: ${pass} passed, ${fail} failed ===\n`);
+  process.exit(fail ? 1 : 0);
+}
