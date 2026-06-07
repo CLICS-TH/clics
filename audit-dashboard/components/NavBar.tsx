@@ -11,11 +11,13 @@ import { useViewport } from './ViewportProvider';
 // in the backend (an admin clicking them would 403).
 const ADMIN_LINKS = [
   { href: '/admin/ples', label: 'PLEs' },
+  { href: '/admin/requests', label: 'คำขอ / Requests' },
   { href: '/admin/flagged', label: 'QA Queue' },
   { href: '/admin/stats', label: 'สถิติ / Stats' },
 ];
 const SUPERADMIN_LINKS = [
   { href: '/admin/ples', label: 'PLEs' },
+  { href: '/admin/requests', label: 'คำขอ / Requests' },
   { href: '/admin/users', label: 'ผู้ใช้งาน / Users' },
   { href: '/admin/flagged', label: 'QA Queue' },
   { href: '/admin/icc', label: 'ICC' },

@@ -12,11 +12,18 @@ async function verifyJwt(req, res, next) {
 
   const { data: prof, error: profErr } = await supabase
     .from('professionals')
-    .select('role, full_name_th, full_name_en')
+    .select('role, full_name_th, full_name_en, status, pseudonym')
     .eq('id', data.user.id)
     .single();
 
-  if (profErr || !prof) return res.status(403).json({ error: 'User not in professionals table' });
+  // No professionals row = the account hasn't been approved into a role yet
+  // (self-service / OAuth requests live in access_requests until a superadmin/admin approves).
+  if (profErr || !prof) {
+    return res.status(403).json({ error: 'Account pending approval', code: 'pending' });
+  }
+  if (prof.status === 'deactivated') {
+    return res.status(403).json({ error: 'Account deactivated. Contact an administrator.', code: 'deactivated' });
+  }
 
   req.user = { id: data.user.id, email: data.user.email, ...prof };
   next();

@@ -10,9 +10,12 @@ _Status as of the July–September 2026 pilot build. The middleware **works end-
 
 ## PII de-identification — REAL BUT MINIMAL
 - `rimpl/src/services/pii-filter.js` applies **4 regex patterns over 3 categories**: HN, DATE (two patterns), WARD → literal masks (`[HN]`, `[DATE]`, `[WARD]`).
-- The flowchart's **stable pseudonymization** (P-001…P-075, CLE-001…CLE-150 lookup table) is **not implemented** — masks are literal, not reversible identifiers.
+- The flowchart's **stable pseudonymization** is **partially built now**: `professionals.pseudonym` (P-NNN) is assigned at account creation/approval, and OAuth real identities are AES-256-GCM-encrypted in the deny-all `oauth_identities` vault (see [constraints.md](constraints.md)). Still pending (roadmap P2): the **CLE-001…CLE-150** pseudonyms, a reversible lookup beyond OAuth identities, and broader PII coverage. In-message masks remain literal, not reversible.
 - Not covered: patient names, ages, phone numbers, email, MRN variants, Thai-name patterns beyond `ห้อง` (ward).
 - **Impact:** PII *is* stripped before the outbound cloud call (the on-premise boundary holds for the covered categories), but coverage is narrow.
+
+## Social sign-in (Google/LINE OAuth) — UI + PIPELINE BUILT, HANDSHAKE STUBBED
+- The request→approve→slot flow, the on-prem encrypted identity vault, and the Google/LINE sign-up UI **are built**. The actual provider handshake is **stubbed** (`POST /auth/oauth/:provider/mock-callback` mints a mock identity). Real wiring (Google via Supabase's native provider; LINE via a custom OIDC integration — Supabase has no native LINE provider) needs provider credentials and is a documented follow-up. The downstream logic (vault write + pending request + approval) is the same for the stub and the real handshake.
 
 ## "4 pre-filter signals" — NOT IMPLEMENTED
 - The flowchart lists "Pre-filter 4 signals" at L3. No code defines or computes these four signals.
