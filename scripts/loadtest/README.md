@@ -20,15 +20,17 @@ Dependency-free (Node 18+ global `fetch`). Writes `/tmp/loadtest-results.json`.
 
 Per level it reports: requests, ok/errors, error-rate, throughput (req/s), and latency p50/p95/p99/max. The **verdict** line states the highest concurrency each phase sustained at <1% errors.
 
-## Faithful distinct-user variant — `loadtest-distinct.js`
+## Faithful distinct-user variant — `loadtest-distinct-long.js` (recommended)
 
 `loadtest.js` Phase B reuses 4 tokens (a request-flood). For a literal "N *unique* users at once":
 
 ```bash
-cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/loadtest/loadtest-distinct.js
+cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/loadtest/loadtest-distinct-long.js
 ```
 
-It provisions 120 distinct accounts (service-role), logs each in for its own token (staggered, to respect the auth rate-limit), fires concurrent reads where **every request carries a different user's token**, then **deletes all the accounts**. Read-only → $0 Claude. Note: from a single IP, Supabase's per-IP auth rate-limit caps how many distinct tokens you can mint at once (~60 in practice) — a test-machine artifact, not an app limit (real users log in from many IPs). See `docs/LOADTEST-2026-06.md`.
+It provisions 130 distinct accounts (service-role), logs each in for its own token **paced sequentially** (≈1 login/1.5 s — avoids the auth *burst* limit), fires concurrent reads where **every request carries a different user's token**, then **deletes all the accounts**. Read-only → $0 Claude. **Achieves ≥110 distinct concurrent users at 0 errors** (see `docs/LOADTEST-2026-06.md`).
+
+`loadtest-distinct.js` is the earlier *bursted* variant (batches of 8) — it stalls at ~60 tokens because Supabase's auth limit is **burst/concurrency-based**, not a volume cap. Kept for comparison; prefer the `-long` script.
 
 ## Budget safety
 Only Phase D calls Claude. A global counter (`aiCalls`) stops at `MAX_AI_CALLS` (≈ $0.5 worst-case) — well under $1. Phase D uses **guest** sessions, which hit the AI but write **zero** DB rows (no pollution). Phases A–C are read/auth only.

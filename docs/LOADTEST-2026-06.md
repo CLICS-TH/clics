@@ -42,16 +42,19 @@ PHASE D — guest AI (Claude)
 3. **DB throughput:** raise the **Supabase pool / plan**, and **cache hot reads** (`/admin/slots`, `/admin/users`, `/admin/auditors`) to cut latency at high concurrency.
 4. **No code throttles exist** (no rate-limiting middleware) — fine for the pilot; add a light per-IP limiter before public launch to resist abuse.
 
-## Distinct-user test (faithful: each request a *different* logged-in user)
+## Distinct-user test (faithful: each request a *different* logged-in user) — **≥100 distinct, 0 errors**
 
-Phase B above reused 4 tokens. To test literal "N unique users at once", a second run (`/tmp/loadtest-distinct.js`) provisioned **120 distinct accounts**, logged each in for its **own token**, then fired concurrent reads where **every in-flight request carries a different user's token** (distinct `verifyJwt` auth + distinct per-user DB queries — no shared cache). Read-only → **$0 Claude**. Accounts were deleted afterward (physicians back to 10).
+Phase B above reused 4 tokens. To test literal "N **unique** users at once", `scripts/loadtest/loadtest-distinct-long.js` provisioned **130 distinct accounts**, logged each in for its **own token**, then fired concurrent reads where **every in-flight request carries a different user's token** (distinct `verifyJwt` auth + distinct per-user DB queries — no shared cache). Read-only → **$0 Claude**. All accounts deleted afterward (physicians back to 10).
 
 | Distinct users (unique tokens) | Requests | Errors | p50 | p95 |
 |--------------------------------|----------|--------|-----|-----|
-| 50 | 150 | **0 (0%)** | 626 ms | 1332 ms |
-| 60 | 180 | **0 (0%)** | 794 ms | 1398 ms |
+| 50 | 150 | **0 (0%)** | 642 ms | 1458 ms |
+| **100** | **300** | **0 (0%)** | 626 ms | 1106 ms |
+| **110** | **330** | **0 (0%)** | 645 ms | 1456 ms |
 
-**Result: 60 genuinely-distinct concurrent users served with 0 errors.** The run could not reach 100+ *distinct tokens* — Supabase's **per-IP auth rate-limit** (same as Phase C) capped token issuance from the single test machine at ~60, despite staggering + backoff. This is a **test-environment artifact, not an app limit**: in production, 100+ users log in from 100+ different IPs over time and never hit a single-IP burst cap. App *serving* capacity is already shown at 200 concurrent requests (Phase B); this run confirms distinct identities run just as clean. To demonstrate ≥100 *distinct* tokens in one shot would require minting them from multiple IPs or over a longer window than one rate-limit bucket allows.
+**Result: 110 genuinely-distinct, simultaneously-logged-in users served with 0 errors** — the >100 goal demonstrated outright, not just by proxy.
+
+**About the login rate-limit (corrected):** an earlier attempt that *burst* logins (8 at a time) stalled at ~60 tokens. Collecting the same tokens **paced sequentially (1 login per ~1.5 s)** hit **110 with zero throttling** — so Supabase's auth limit is a **burst/concurrency limit, not a hard volume cap**. Practical takeaways: (a) serving 100+ concurrent *sessions* is fine; (b) the only thing to manage is **simultaneous login spikes** (Phase C) — for an onboarding-day mass sign-in, stagger logins or raise the Supabase auth burst limit.
 
 ## How to reproduce
 ```bash
@@ -59,4 +62,4 @@ node scripts/loadtest/loadtest.js     # writes /tmp/loadtest-results.json
 ```
 Budget-safe: only Phase D spends Claude, hard-capped at 12 guest turns (≈ $0.5). Phases A–C are free; Phase D uses ephemeral guest sessions (no DB writes).
 
-**Bottom line:** **> 100 concurrent users is met with margin (≥ 200, 0 errors)** on the realistic workload. The only ceiling found is Supabase's login-burst rate-limit — relevant only for simultaneous mass sign-in, with a clear, low-effort mitigation.
+**Bottom line:** **> 100 concurrent users is met with margin** — proven two ways: **200 concurrent requests, 0 errors** (request-flood) **and 110 genuinely-distinct logged-in users, 0 errors** (faithful test). The only ceiling found is Supabase's login-*burst* rate-limit — relevant only for simultaneous mass sign-in, with a clear, low-effort mitigation (stagger logins / raise the burst limit).
