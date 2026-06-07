@@ -39,6 +39,7 @@ window.api = {
   login: (email, password) => apiFetch('/auth/login', { method: 'POST', body: { email, password } }),
   logout: () => apiFetch('/auth/logout', { method: 'POST' }),
   me: () => apiFetch('/auth/me'),
+  consent: () => apiFetch('/auth/consent', { method: 'POST' }),
   createPle: (body) => apiFetch('/ples', { method: 'POST', body }),
   getPlEs: () => apiFetch('/ples'),
   getPle: (id) => apiFetch(`/ples/${id}`),

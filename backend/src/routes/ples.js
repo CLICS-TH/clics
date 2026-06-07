@@ -15,6 +15,10 @@ const toPassCols = (crit) => Object.fromEntries(Object.entries(crit).map(([k, v]
 
 // Create new PLE session
 router.post('/', async (req, res) => {
+  // Human-subjects pilot: no session may start until the participant has given informed consent.
+  if (!req.user.consented_at) {
+    return res.status(403).json({ error: 'Informed consent required before starting a session.', code: 'consent_required' });
+  }
   const parsed = CreatePleSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 

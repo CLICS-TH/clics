@@ -2,6 +2,43 @@ auth.guardRole('physician');
 const user = auth.getUser();
 document.getElementById('greeting').textContent = `สวัสดี, ${user.full_name_th || user.full_name_en}`;
 
+// ---- Pilot: expectation banner + informed-consent gate (human-subjects study) ----
+(function pilotGate() {
+  const host = document.querySelector('main') || document.body;
+  const banner = document.createElement('div');
+  banner.style.cssText = 'background:#fff5e6;border:1px solid #e8a55a;color:#6b4a1a;padding:8px 14px;border-radius:10px;font-size:13px;margin:0 0 14px;';
+  banner.innerHTML = '⚠️ ใช้เคสที่ไม่ระบุตัวตนผู้ป่วยเท่านั้น · คะแนนเป็นเบื้องต้น ยังไม่ใช่หน่วยกิต CME — Use de-identified cases only · scores are provisional (not yet CME credit).';
+  host.insertBefore(banner, host.firstChild);
+
+  if (user.consented_at) return; // already consented
+
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;';
+  ov.innerHTML = `
+    <div style="background:var(--surface,#fff);color:var(--fg,#1a1a1a);max-width:560px;border-radius:16px;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,.3);max-height:85vh;overflow:auto;">
+      <h2 style="margin:0 0 10px;">ความยินยอมเข้าร่วม / Informed consent</h2>
+      <p style="font-size:14px;line-height:1.6;">
+        นี่คือการศึกษานำร่อง (pilot) ของระบบ CLICS เพื่อพัฒนาการประเมินการให้เหตุผลทางคลินิก บทสนทนาของคุณจะถูกบันทึกและประเมินด้วย AI และผู้ตรวจประเมิน <b>กรุณาใช้เฉพาะเคสที่ไม่ระบุตัวตนผู้ป่วย</b> และคะแนนในระยะนี้ยังไม่ใช่หน่วยกิต CME<br><br>
+        This is a CLICS pilot study. Your conversations are recorded and scored (by AI + expert auditors) to validate the system. <b>Use de-identified cases only.</b> Scores in this phase are provisional and do not yet count as CME credit.
+      </p>
+      <p id="consentErr" style="color:#c0392b;font-size:13px;display:none;"></p>
+      <button id="consentBtn" class="btn btn-primary" style="width:100%;margin-top:8px;">ยอมรับและเริ่มใช้งาน / I consent</button>
+    </div>`;
+  document.body.appendChild(ov);
+  document.getElementById('consentBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('consentBtn'); btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+    const r = await api.consent();
+    if (r?.ok) {
+      user.consented_at = r.consented_at;
+      try { localStorage.setItem('clics_user', JSON.stringify(user)); } catch {}
+      ov.remove();
+    } else {
+      const e = document.getElementById('consentErr'); e.textContent = r?.error || 'บันทึกไม่สำเร็จ ลองใหม่'; e.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'ยอมรับและเริ่มใช้งาน / I consent';
+    }
+  });
+})();
+
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await api.logout();
   localStorage.clear();

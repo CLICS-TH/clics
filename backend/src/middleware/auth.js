@@ -12,7 +12,7 @@ async function verifyJwt(req, res, next) {
 
   const { data: prof, error: profErr } = await supabase
     .from('professionals')
-    .select('role, full_name_th, full_name_en, status, pseudonym')
+    .select('*') // includes consented_at once the migration is applied; resilient if not yet
     .eq('id', data.user.id)
     .single();
 

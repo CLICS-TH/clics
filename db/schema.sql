@@ -12,6 +12,7 @@ create table public.professionals (
   license_number text,
   status         text not null default 'active' check (status in ('active','deactivated')),
   pseudonym      text unique,   -- P-NNN; the only identifier allowed in exports/audit
+  consented_at   timestamptz,   -- informed consent for the pilot; session creation is gated on this
   created_at     timestamptz default now()
 );
 -- Exactly one superadmin, ever (DB-level guarantee; the API also blocks every 2nd-superadmin path).

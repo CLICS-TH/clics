@@ -6,14 +6,18 @@ const { encryptJson } = require('../lib/crypto');
 
 const router = Router();
 
+// Account-creation password policy (pilot): ≥10 chars incl. a letter and a digit.
+const strongPassword = z.string().min(10, 'Password must be at least 10 characters')
+  .regex(/[A-Za-z]/, 'Must include a letter').regex(/[0-9]/, 'Must include a digit');
+
 const LoginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(8),
 });
 
 const RequestAccessSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: strongPassword,
   full_name_th: z.string().min(1),
   full_name_en: z.string().min(1),
   specialty: z.string().optional(),
@@ -37,7 +41,7 @@ router.post('/login', async (req, res) => {
 
   const { data: prof } = await supabase
     .from('professionals')
-    .select('role, full_name_th, full_name_en, specialty, status, pseudonym')
+    .select('*') // includes consented_at once the migration is applied; resilient if not yet
     .eq('id', data.user.id)
     .maybeSingle();
 
@@ -63,6 +67,14 @@ router.post('/logout', verifyJwt, async (_req, res) => {
 
 router.get('/me', verifyJwt, (req, res) => {
   res.json({ user: req.user });
+});
+
+// Record the participant's informed consent (human-subjects pilot). Session creation is gated on this.
+router.post('/consent', verifyJwt, async (req, res) => {
+  const now = new Date().toISOString();
+  const { error } = await supabase.from('professionals').update({ consented_at: now }).eq('id', req.user.id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true, consented_at: now });
 });
 
 // ---------------------------------------------------------------------------

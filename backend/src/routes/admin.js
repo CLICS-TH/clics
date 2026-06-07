@@ -251,4 +251,44 @@ router.get('/physicians/:id/profile', async (req, res) => {
   res.json({ physician, sessions, lpdp: lpdp ?? [] });
 });
 
+// Defensive sweep: re-evaluate any session that passed the gate but never got an AI score (e.g. a
+// transient RIMPL failure exhausted the retries). Keeps a study from silently losing credit-eligible
+// sessions. Safe + idempotent (skips anything already evaluated).
+router.post('/reconcile-evaluations', async (req, res) => {
+  const { data: stuck } = await supabase.from('ples').select('id, physician_id').eq('status', 'cle_pass');
+  let recovered = 0, failed = 0;
+  for (const p of stuck ?? []) {
+    const { data: ex } = await supabase.from('ai_evaluations').select('id').eq('ple_id', p.id).maybeSingle();
+    if (ex) continue;
+    const { data: msgs } = await supabase.from('messages').select('role, content').eq('ple_id', p.id).order('created_at');
+    try { await triggerEvaluation(p.id, (msgs ?? []).map(m => ({ role: m.role, content: m.content })), p.physician_id); recovered++; }
+    catch { failed++; }
+  }
+  res.json({ stuck: (stuck ?? []).length, recovered, failed });
+});
+
+// De-identified study export (admin + superadmin): pseudonym-keyed sessions + AI + auditor scores.
+// Only pseudonyms (P-NNN) leave here — no names/emails. For the research team.
+router.get('/export', async (req, res) => {
+  const { data: pros } = await supabase.from('professionals').select('id, pseudonym').eq('role', 'physician');
+  const pseudo = Object.fromEntries((pros ?? []).map(p => [p.id, p.pseudonym]));
+  const { data: ples } = await supabase.from('ples').select('id, physician_id, status, turn_count, token_count, duration_seconds, started_at');
+  const { data: ai } = await supabase.from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+  const aiBy = Object.fromEntries((ai ?? []).map(e => [e.ple_id, e]));
+  const { data: audits } = await supabase.from('audit_scores').select('ple_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+  const audBy = {};
+  (audits ?? []).forEach(s => { (audBy[s.ple_id] ??= []).push({ auditor_id: s.auditor_id, composite: Number(s.composite_score), d1: s.d1, d2: s.d2, d3: s.d3, d4: s.d4, d5: s.d5, d6: s.d6, d7: s.d7 }); });
+  const sessions = (ples ?? []).map(p => {
+    const e = aiBy[p.id];
+    return {
+      cle_id: p.id, physician: pseudo[p.physician_id] ?? null, status: p.status,
+      turns: p.turn_count, tokens: p.token_count, duration_seconds: p.duration_seconds, started_at: p.started_at,
+      ai_composite: e ? Number(e.composite_score) : null,
+      ai_domains: e ? { d1: e.d1, d2: e.d2, d3: e.d3, d4: e.d4, d5: e.d5, d6: e.d6, d7: e.d7 } : null,
+      auditor_scores: audBy[p.id] ?? [],
+    };
+  });
+  res.json({ exported_at: new Date().toISOString(), n: sessions.length, sessions });
+});
+
 module.exports = router;
