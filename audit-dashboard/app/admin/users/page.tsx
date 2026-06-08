@@ -146,6 +146,25 @@ export default function UsersPage() {
     );
   };
 
+  // Compact square icon button for dense table rows (tooltip carries the bilingual label).
+  const IconBtn = ({ icon, title, onClick, disabled, href }: { icon: string; title: string; onClick?: () => void; disabled?: boolean; href?: string }) => {
+    const cls = 'w-8 h-8 inline-flex items-center justify-center border border-border rounded-md text-base leading-none hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent';
+    return href
+      ? <a href={href} title={title} aria-label={title} className={cls}>{icon}</a>
+      : <button type="button" title={title} aria-label={title} onClick={onClick} disabled={disabled} className={cls}>{icon}</button>;
+  };
+
+  // Inline row actions, shared by the desktop table and the mobile cards.
+  const RowActions = ({ u }: { u: User }) => (
+    <div className="inline-flex items-center gap-1.5">
+      {u.role === 'physician' && <IconBtn icon="📊" title="คะแนน / Scores" href={`/admin/lpdp/${u.id}`} />}
+      {u.role === 'physician' && <IconBtn icon="↺" title="รีเซ็ตการใช้งาน / Reset usage" onClick={() => resetUsage(u)} />}
+      <IconBtn icon="✎" title="แก้ไข / Edit" onClick={() => openEdit(u)} />
+      <IconBtn icon="⏻" title={u.status === 'deactivated' ? 'เปิดใช้ / Activate' : 'ปิดใช้ / Deactivate'}
+        disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)} />
+    </div>
+  );
+
   const FIELD_PLACEHOLDERS: Record<string, string> = {
     full_name_th: 'ชื่อภาษาไทย / Thai Name', full_name_en: 'Full Name (English)',
     email: 'Email', password: 'Password',
@@ -158,7 +177,7 @@ export default function UsersPage() {
   const poolTone = poolPct >= 90 ? 'bg-destructive' : poolPct >= 75 ? 'bg-[#e08a1e]' : 'bg-[#5db872]';
 
   return (
-    <div className="max-w-6xl mx-auto p-6 md:p-10">
+    <div className="max-w-7xl mx-auto p-6 md:p-10">
       <PageIntro
         eyebrow="Admin · Users"
         title="จัดการผู้ใช้งาน"
@@ -166,8 +185,9 @@ export default function UsersPage() {
         action={<Button onClick={() => setShowForm(v => !v)}>+ เพิ่มผู้ใช้ / Add User</Button>}
       />
 
-      {/* Role slot pools */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      {/* Role slot pools — drive columns off the mobile flag (the view toggle shrinks the
+          container but not the viewport, so Tailwind md: would wrongly stay 4-up). */}
+      <div className={`grid gap-3 mb-6 ${mobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
         {slots.map(s => {
           const locked = s.role === 'superadmin';
           const full = s.remaining <= 0;
@@ -176,12 +196,12 @@ export default function UsersPage() {
               <p className="text-sm font-medium">{ROLE_LABELS[s.role] ?? s.role}</p>
               <p className={`text-2xl font-heading mt-1 ${full ? 'text-destructive' : ''}`}>{s.used}<span className="text-muted-foreground text-base">/{s.capacity}</span></p>
               <p className="text-xs text-muted-foreground">เหลือ {s.remaining} ช่อง / {s.remaining} left</p>
-              <div className="flex items-center gap-1 mt-2">
+              <div className="flex items-center gap-1.5 mt-2">
                 <input type="number" min={0} disabled={locked}
-                  className="w-16 border rounded-md px-2 py-1 text-sm bg-background disabled:opacity-50"
+                  className="flex-1 min-w-0 border rounded-md px-2 py-1 text-sm bg-background disabled:opacity-50"
                   value={cap[s.role] ?? ''} onChange={e => setCap(c => ({ ...c, [s.role]: e.target.value }))} />
-                <Button variant="outline" className="text-xs px-2 py-1 h-auto" disabled={locked} onClick={() => saveCap(s.role)}>
-                  {locked ? 'locked' : 'ตั้งค่า'}
+                <Button variant="outline" className="text-xs px-2 py-1 h-auto shrink-0" disabled={locked} onClick={() => saveCap(s.role)}>
+                  {locked ? '🔒' : 'ตั้งค่า'}
                 </Button>
               </div>
             </div>
@@ -300,21 +320,10 @@ export default function UsersPage() {
                 <Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge>
               </div>
               <p className="text-sm text-muted-foreground">{u.full_name_en}</p>
-              {u.role === 'physician' && (
-                <div className="flex items-center justify-between gap-3 pt-1">
-                  <UsageCell u={u} />
-                  <Button variant="outline" className="text-xs px-2 py-1 h-auto" onClick={() => resetUsage(u)}>รีเซ็ต / Reset</Button>
-                </div>
-              )}
+              {u.role === 'physician' && <div className="pt-1"><UsageCell u={u} /></div>}
               <div className="flex items-center justify-between pt-1">
                 <StatusBadge s={u.status} />
-                <div className="flex gap-2">
-                  {u.role === 'physician' && <a href={`/admin/lpdp/${u.id}`} className="text-xs px-2 py-1 border rounded-lg inline-flex items-center hover:bg-secondary">คะแนน</a>}
-                  <Button variant="outline" className="text-xs px-2 py-1 h-auto" onClick={() => openEdit(u)}>แก้ไข</Button>
-                  <Button variant="outline" className="text-xs px-2 py-1 h-auto" disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)}>
-                    {u.status === 'deactivated' ? 'เปิดใช้' : 'ปิดใช้'}
-                  </Button>
-                </div>
+                <RowActions u={u} />
               </div>
             </div>
           ))}
@@ -323,28 +332,21 @@ export default function UsersPage() {
         <div className="border rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-secondary"><tr>
-              <th className="px-4 py-3 text-left whitespace-nowrap">ชื่อ (TH)</th>
-              <th className="px-4 py-3 text-left whitespace-nowrap">ชื่อ (EN)</th>
-              <th className="px-4 py-3 text-left whitespace-nowrap">Role</th>
-              <th className="px-4 py-3 text-left whitespace-nowrap">การใช้งาน AI / Usage</th>
-              <th className="px-4 py-3 text-left whitespace-nowrap">สถานะ / Status</th>
-              <th className="px-4 py-3 text-right whitespace-nowrap">การจัดการ / Actions</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">ชื่อ (TH)</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">ชื่อ (EN)</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">Role</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">การใช้งาน AI / Usage</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">สถานะ / Status</th>
+              <th className="px-3 py-3 text-right whitespace-nowrap">การจัดการ / Actions</th>
             </tr></thead>
             <tbody>{users.map(u => (
               <tr key={u.id} className="border-t hover:bg-secondary/60">
-                <td className="px-4 py-3 whitespace-nowrap">{u.full_name_th}{u.pseudonym ? <span className="text-muted-foreground text-xs"> · {u.pseudonym}</span> : ''}</td>
-                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{u.full_name_en}</td>
-                <td className="px-4 py-3 whitespace-nowrap"><Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge></td>
-                <td className="px-4 py-3"><UsageCell u={u} /></td>
-                <td className="px-4 py-3 whitespace-nowrap"><StatusBadge s={u.status} /></td>
-                <td className="px-4 py-3 text-right whitespace-nowrap">
-                  {u.role === 'physician' && <a href={`/admin/lpdp/${u.id}`} className="text-xs px-2 py-1 mr-2 border rounded-lg inline-flex items-center hover:bg-secondary">คะแนน / Scores</a>}
-                  {u.role === 'physician' && <Button variant="outline" className="text-xs px-2 py-1 h-auto mr-2" onClick={() => resetUsage(u)}>รีเซ็ต / Reset</Button>}
-                  <Button variant="outline" className="text-xs px-2 py-1 h-auto mr-2" onClick={() => openEdit(u)}>แก้ไข</Button>
-                  <Button variant="outline" className="text-xs px-2 py-1 h-auto" disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)}>
-                    {u.status === 'deactivated' ? 'เปิดใช้' : 'ปิดใช้'}
-                  </Button>
-                </td>
+                <td className="px-3 py-3 whitespace-nowrap">{u.full_name_th}{u.pseudonym ? <span className="text-muted-foreground text-xs"> · {u.pseudonym}</span> : ''}</td>
+                <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">{u.full_name_en}</td>
+                <td className="px-3 py-3 whitespace-nowrap"><Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge></td>
+                <td className="px-3 py-3"><UsageCell u={u} /></td>
+                <td className="px-3 py-3 whitespace-nowrap"><StatusBadge s={u.status} /></td>
+                <td className="px-3 py-3 text-right"><RowActions u={u} /></td>
               </tr>
             ))}</tbody>
           </table>
