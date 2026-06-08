@@ -16,9 +16,25 @@ export default function AdminPlesPage() {
   useEffect(() => {
     apiFetch<any[]>('/admin/ples').then(d => setPlEs(d ?? []));
     apiFetch<any[]>('/admin/auditors').then(d => setAuditors(d ?? []));
+    // Honor a ?status= deep-link from the Stats page drill-down.
+    const s = new URLSearchParams(window.location.search).get('status');
+    if (s) setFilter(s);
   }, []);
 
-  const filtered = filter ? ples.filter(p => p.status === filter) : ples;
+  // 'in_progress' is a stats bucket spanning three live statuses; others map 1:1.
+  const STATUS_SETS: Record<string, string[]> = { in_progress: ['active', 'ended', 'cle_pass'] };
+  const filtered = !filter ? ples
+    : STATUS_SETS[filter] ? ples.filter(p => STATUS_SETS[filter].includes(p.status))
+    : ples.filter(p => p.status === filter);
+
+  // Filter chips mirror the Stats page categories so the drill-down highlights the right one.
+  const FILTERS: { key: string; label: string }[] = [
+    { key: '', label: 'ทั้งหมด / All' },
+    { key: 'in_progress', label: 'กำลังดำเนินการ / In progress' },
+    { key: 'evaluated', label: STATUS_MAP.evaluated },
+    { key: 'cle_flag_t2', label: STATUS_MAP.cle_flag_t2 },
+    { key: 'cle_fail_t1', label: STATUS_MAP.cle_fail_t1 },
+  ];
 
   // Shared assign control (used by both the desktop table and the mobile card list).
   const assignControl = (p: any) =>
@@ -47,9 +63,9 @@ export default function AdminPlesPage() {
         subtitle="Manage all Clinical Learning Episodes — มอบหมายให้ผู้ตรวจประเมินเมื่อประเมินผลแล้ว"
       />
       <div className="flex gap-2 mb-5 flex-wrap">
-        {['','active','cle_pass','cle_flag_t2','evaluated'].map(s => (
-          <Button key={s} variant={filter===s?'default':'outline'} size="sm" onClick={() => setFilter(s)}>
-            {s ? STATUS_MAP[s] : 'ทั้งหมด / All'}
+        {FILTERS.map(f => (
+          <Button key={f.key} variant={filter===f.key?'default':'outline'} size="sm" onClick={() => setFilter(f.key)}>
+            {f.label}
           </Button>
         ))}
       </div>
