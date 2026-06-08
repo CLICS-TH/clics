@@ -34,27 +34,30 @@
 4. **Finish the session** when you're done.
 5. **See your result** — a score across 7 areas of clinical thinking, plus a chart of your progress over time.
 
-💡 You can keep conversations tidy in **folders** and rename them.
+💡 Keep conversations tidy in **folders** and rename them.
+🔋 **AI usage allowance:** your home page shows a small bar of how much of your AI budget you've used (each doctor has a set limit). If you reach it, you can still *finish* an open session but can't start a new one — an admin can top it up.
 
 ## 🗂️ How an ADMIN uses it
 
 1. **Sign in** at the dashboard.
 2. **Requests** — approve people who asked to join, and choose their role.
-3. **Sessions** — see all the doctors' conversations and where each one stands.
-4. **History** — see who was approved, by whom, and when.
+3. **Sessions (PLEs)** — see every doctor's conversations and where each one stands; **assign a finished session to an auditor** to review.
+4. **QA Queue** — sessions the AI flagged for a second look: **Approve** (send it for scoring) or **Reject** (it won't count).
+5. **History** — who was approved, by whom, and when.
 
 ## 🔍 How an AUDITOR uses it
 
 1. **Sign in** at the dashboard.
 2. **Open your assigned cases.**
-3. **Read the conversation and give your own score.** You won't see the AI's score until *after* you submit yours — this keeps the review fair and independent.
-4. **Submit.**
+3. **Read the conversation and give your own score.** You won't see the AI's score — or the doctor's real identity — until *after* you submit yours. This keeps the review fair and independent.
+4. **Submit.** Your score is compared with the AI's to measure how well they agree (the study's reliability check).
 
 ## ⚙️ How the SUPERADMIN uses it
 
 1. **Sign in** at the dashboard.
-2. **See everything** — every member, every session, and the overall results.
+2. **See everything** — every member, every session, and the overall results. On the **Stats** page, click any category (Evaluated, Awaiting QA, In progress…) to drill into exactly which sessions are in it.
 3. **Manage accounts** — add people, set how many each role can have, turn accounts on/off.
+4. **Control AI spend** — set the standard per-doctor usage limit, override it for an individual, reset a doctor's usage, and watch the **total API budget pool** used across everyone.
 
 ---
 
