@@ -26,6 +26,8 @@ export default function UsersPage() {
   const [editing, setEditing] = useState<User | null>(null);
   const [editLimit, setEditLimit] = useState('');           // per-user usage limit override ($), '' = standard
   const [stdLimit, setStdLimit] = useState('');             // org standard usage limit ($)
+  const [poolLimit, setPoolLimit] = useState('');           // total API budget pool ($)
+  const [totalUsed, setTotalUsed] = useState(0);            // total spent across all members ($)
   const mobile = useIsMobile();
 
   const loadUsers = () => apiFetch<User[]>('/admin/users').then(d => setUsers(d ?? []));
@@ -33,8 +35,12 @@ export default function UsersPage() {
     setSlots(d ?? []);
     setCap(Object.fromEntries((d ?? []).map(s => [s.role, String(s.capacity)])));
   });
-  const loadUsageSettings = () => apiFetch<{ standard_limit_usd: number }>('/admin/usage-settings')
-    .then(d => setStdLimit(d?.standard_limit_usd != null ? String(d.standard_limit_usd) : ''));
+  const loadUsageSettings = () => apiFetch<{ standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number }>('/admin/usage-settings')
+    .then(d => {
+      setStdLimit(d?.standard_limit_usd != null ? String(d.standard_limit_usd) : '');
+      setPoolLimit(d?.api_budget_pool_usd ? String(d.api_budget_pool_usd) : '');
+      setTotalUsed(Number(d?.total_used_usd ?? 0));
+    });
   useEffect(() => { loadUsers(); loadSlots(); loadUsageSettings(); }, []);
 
   function openEdit(u: User) {
@@ -78,6 +84,15 @@ export default function UsersPage() {
     if (!Number.isFinite(v) || v < 0) { setMsg('ขีดจำกัดมาตรฐานไม่ถูกต้อง / Invalid standard limit.'); return; }
     const res: any = await apiFetch('/admin/usage-settings', { method:'PATCH', body: JSON.stringify({ standard_limit_usd: v }) });
     if (res?.standard_limit_usd != null) { setMsg('บันทึกขีดจำกัดมาตรฐานแล้ว / Standard limit saved.'); loadUsageSettings(); loadUsers(); }
+    else setMsg(res?.error ?? 'บันทึกไม่สำเร็จ / Failed.');
+  }
+
+  async function savePool() {
+    setMsg('');
+    const v = parseFloat(poolLimit);
+    if (!Number.isFinite(v) || v < 0) { setMsg('งบประมาณรวมไม่ถูกต้อง / Invalid API budget pool.'); return; }
+    const res: any = await apiFetch('/admin/usage-settings', { method:'PATCH', body: JSON.stringify({ api_budget_pool_usd: v }) });
+    if (res?.api_budget_pool_usd != null) { setMsg('บันทึกงบประมาณรวมแล้ว / API budget pool saved.'); loadUsageSettings(); }
     else setMsg(res?.error ?? 'บันทึกไม่สำเร็จ / Failed.');
   }
 
@@ -137,8 +152,13 @@ export default function UsersPage() {
     specialty: 'สาขาวิชา / Specialty', license_number: 'เลขใบอนุญาต / License No.',
   };
 
+  const poolPctNum = parseFloat(poolLimit);
+  const poolHasValue = Number.isFinite(poolPctNum) && poolPctNum > 0;
+  const poolPct = poolHasValue ? Math.min(100, Math.round((totalUsed / poolPctNum) * 100)) : 0;
+  const poolTone = poolPct >= 90 ? 'bg-destructive' : poolPct >= 75 ? 'bg-[#e08a1e]' : 'bg-[#5db872]';
+
   return (
-    <div className="max-w-4xl mx-auto p-6 md:p-10">
+    <div className="max-w-6xl mx-auto p-6 md:p-10">
       <PageIntro
         eyebrow="Admin · Users"
         title="จัดการผู้ใช้งาน"
@@ -167,6 +187,39 @@ export default function UsersPage() {
             </div>
           );
         })}
+      </div>
+
+      {/* Total API budget pool — the org-wide Anthropic key allocation; tracks total spend vs pool. */}
+      <div className="rounded-xl border border-border p-4 mb-4">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <p className="text-sm font-medium">งบประมาณ API รวม / Total API budget pool</p>
+          <a href="https://console.anthropic.com/settings/billing" target="_blank" rel="noopener noreferrer"
+            className="text-xs px-2 py-1 border rounded-lg inline-flex items-center hover:bg-secondary">
+            🔑 API key / Anthropic Console ↗
+          </a>
+        </div>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          ยอดใช้รวมทุกสมาชิกเทียบกับงบของคีย์ API / Total spent across all members vs the API key&apos;s budget.
+        </p>
+        <div className="flex items-baseline justify-between gap-2 mt-2">
+          <span className="text-sm text-muted-foreground">ใช้ไปแล้ว / Used</span>
+          <span className={`text-lg font-heading tabular-nums ${poolPct >= 90 ? 'text-destructive' : ''}`}>
+            ${totalUsed.toFixed(4)}{poolHasValue ? <span className="text-muted-foreground text-sm"> / ${poolPctNum.toFixed(2)} ({poolPct}%)</span> : null}
+          </span>
+        </div>
+        {poolHasValue && (
+          <div className="h-2 mt-1.5 rounded-full bg-muted overflow-hidden"><div className={`h-full ${poolTone}`} style={{ width: `${poolPct}%` }} /></div>
+        )}
+        <div className="flex items-center gap-2 mt-3">
+          <span className="text-sm text-muted-foreground">ตั้งงบรวม $ / Set pool $</span>
+          <input type="number" min={0} step="1"
+            className="w-28 border rounded-md px-2 py-1 text-sm bg-background"
+            placeholder="เช่น 50" value={poolLimit} onChange={e => setPoolLimit(e.target.value)} />
+          <Button variant="outline" className="text-xs px-3 py-1 h-auto" onClick={savePool}>บันทึก / Save</Button>
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-1.5">
+          * ตัวเลขนี้คือยอดที่ระบบคำนวณ — ยอดคงเหลือจริงดูได้ที่ Anthropic Console / This is the amount metered by CLICS; the real remaining balance lives in the Anthropic Console (linked above).
+        </p>
       </div>
 
       {/* Standard AI usage limit — default budget per physician (per-user overrides set in Edit). */}
@@ -267,23 +320,23 @@ export default function UsersPage() {
           ))}
         </div>
       ) : (
-        <div className="border rounded-xl overflow-hidden">
+        <div className="border rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-secondary"><tr>
-              <th className="px-4 py-3 text-left">ชื่อ (TH)</th>
-              <th className="px-4 py-3 text-left">ชื่อ (EN)</th>
-              <th className="px-4 py-3 text-left">Role</th>
-              <th className="px-4 py-3 text-left">การใช้งาน AI / Usage</th>
-              <th className="px-4 py-3 text-left">สถานะ / Status</th>
-              <th className="px-4 py-3 text-right">การจัดการ</th>
+              <th className="px-4 py-3 text-left whitespace-nowrap">ชื่อ (TH)</th>
+              <th className="px-4 py-3 text-left whitespace-nowrap">ชื่อ (EN)</th>
+              <th className="px-4 py-3 text-left whitespace-nowrap">Role</th>
+              <th className="px-4 py-3 text-left whitespace-nowrap">การใช้งาน AI / Usage</th>
+              <th className="px-4 py-3 text-left whitespace-nowrap">สถานะ / Status</th>
+              <th className="px-4 py-3 text-right whitespace-nowrap">การจัดการ / Actions</th>
             </tr></thead>
             <tbody>{users.map(u => (
               <tr key={u.id} className="border-t hover:bg-secondary/60">
-                <td className="px-4 py-3">{u.full_name_th}{u.pseudonym ? <span className="text-muted-foreground text-xs"> · {u.pseudonym}</span> : ''}</td>
-                <td className="px-4 py-3 text-muted-foreground">{u.full_name_en}</td>
-                <td className="px-4 py-3"><Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge></td>
+                <td className="px-4 py-3 whitespace-nowrap">{u.full_name_th}{u.pseudonym ? <span className="text-muted-foreground text-xs"> · {u.pseudonym}</span> : ''}</td>
+                <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{u.full_name_en}</td>
+                <td className="px-4 py-3 whitespace-nowrap"><Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge></td>
                 <td className="px-4 py-3"><UsageCell u={u} /></td>
-                <td className="px-4 py-3"><StatusBadge s={u.status} /></td>
+                <td className="px-4 py-3 whitespace-nowrap"><StatusBadge s={u.status} /></td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
                   {u.role === 'physician' && <a href={`/admin/lpdp/${u.id}`} className="text-xs px-2 py-1 mr-2 border rounded-lg inline-flex items-center hover:bg-secondary">คะแนน / Scores</a>}
                   {u.role === 'physician' && <Button variant="outline" className="text-xs px-2 py-1 h-auto mr-2" onClick={() => resetUsage(u)}>รีเซ็ต / Reset</Button>}

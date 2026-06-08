@@ -46,10 +46,12 @@ test('UpdateUserSchema rejects a negative usage_limit_usd', () => {
   expect(UpdateUserSchema.safeParse({ usage_limit_usd: -1 }).success).toBe(false);
 });
 
-test('GET /admin/usage-settings returns the standard limit', async () => {
+test('GET /admin/usage-settings returns standard limit, API pool, and total used', async () => {
   const res = await auth(request(app).get('/admin/usage-settings'));
   expect(res.status).toBe(200);
   expect(res.body.standard_limit_usd).toBe(0.5);
+  expect(res.body).toHaveProperty('api_budget_pool_usd');
+  expect(res.body).toHaveProperty('total_used_usd');
 });
 
 test('PATCH /admin/usage-settings updates the standard limit', async () => {
@@ -59,8 +61,20 @@ test('PATCH /admin/usage-settings updates the standard limit', async () => {
   expect(res.body.standard_limit_usd).toBe(0.75);
 });
 
+test('PATCH /admin/usage-settings updates the API budget pool', async () => {
+  mockSetting = { data: { value: 50 }, error: null };
+  const res = await auth(request(app).patch('/admin/usage-settings')).send({ api_budget_pool_usd: 50 });
+  expect(res.status).toBe(200);
+  expect(res.body.api_budget_pool_usd).toBe(50);
+});
+
 test('PATCH /admin/usage-settings rejects a negative value', async () => {
   const res = await auth(request(app).patch('/admin/usage-settings')).send({ standard_limit_usd: -5 });
+  expect(res.status).toBe(400);
+});
+
+test('PATCH /admin/usage-settings rejects an empty body', async () => {
+  const res = await auth(request(app).patch('/admin/usage-settings')).send({});
   expect(res.status).toBe(400);
 });
 

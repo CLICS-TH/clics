@@ -36,7 +36,10 @@ const UpdateUserSchema = z.object({
 
 const StatusSchema = z.object({ status: z.enum(['active', 'deactivated']) });
 const SlotSchema = z.object({ capacity: z.number().int().min(0) });
-const UsageSettingsSchema = z.object({ standard_limit_usd: z.number().nonnegative() });
+const UsageSettingsSchema = z.object({
+  standard_limit_usd: z.number().nonnegative().optional(),
+  api_budget_pool_usd: z.number().nonnegative().optional(),
+}).refine((b) => Object.keys(b).length > 0, { message: 'No settings to update' });
 
 router.get('/users', async (req, res) => {
   const { data, error } = await supabase.from('professionals').select('*').order('created_at');
@@ -150,23 +153,39 @@ router.patch('/slots/:role', async (req, res) => {
   res.json(data);
 });
 
-// Standard (default) AI usage limit — applies to any physician without a per-user override.
-// Stored in app_settings; mirrors the role-slot capacity GET/PATCH shape.
-router.get('/usage-settings', async (_req, res) => {
-  const { data } = await supabase
-    .from('app_settings').select('value').eq('key', 'standard_usage_limit_usd').single();
+// AI usage settings (superadmin): the per-physician standard default + the org-wide API budget pool,
+// plus the live total already spent across all members. Stored in app_settings; mirrors /slots.
+async function readSetting(key, fallback) {
+  const { data } = await supabase.from('app_settings').select('value').eq('key', key).single();
   const v = Number(data?.value);
-  res.json({ standard_limit_usd: Number.isFinite(v) ? v : 0.5 });
+  return Number.isFinite(v) ? v : fallback;
+}
+
+router.get('/usage-settings', async (_req, res) => {
+  const [standard_limit_usd, api_budget_pool_usd] = await Promise.all([
+    readSetting('standard_usage_limit_usd', 0.5),
+    readSetting('api_budget_pool_usd', 0),
+  ]);
+  // Total spent so far = sum of every member's running meter (only physicians accrue).
+  const { data: rows } = await supabase.from('professionals').select('usage_cost_usd');
+  const total_used_usd = (rows ?? []).reduce((acc, r) => acc + Number(r.usage_cost_usd ?? 0), 0);
+  res.json({ standard_limit_usd, api_budget_pool_usd, total_used_usd });
 });
 
 router.patch('/usage-settings', async (req, res) => {
   const parsed = UsageSettingsSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  const { data, error } = await supabase.from('app_settings')
-    .upsert({ key: 'standard_usage_limit_usd', value: parsed.data.standard_limit_usd, updated_at: new Date().toISOString() })
-    .select('value').single();
+  const now = new Date().toISOString();
+  const upserts = [];
+  if (parsed.data.standard_limit_usd != null) upserts.push({ key: 'standard_usage_limit_usd', value: parsed.data.standard_limit_usd, updated_at: now });
+  if (parsed.data.api_budget_pool_usd != null) upserts.push({ key: 'api_budget_pool_usd', value: parsed.data.api_budget_pool_usd, updated_at: now });
+  const { error } = await supabase.from('app_settings').upsert(upserts);
   if (sendDbError(res, error)) return;
-  res.json({ standard_limit_usd: Number(data.value) });
+  const [standard_limit_usd, api_budget_pool_usd] = await Promise.all([
+    readSetting('standard_usage_limit_usd', 0.5),
+    readSetting('api_budget_pool_usd', 0),
+  ]);
+  res.json({ standard_limit_usd, api_budget_pool_usd });
 });
 
 // Reset a member's running AI usage meter back to zero (manual-reset escape hatch).

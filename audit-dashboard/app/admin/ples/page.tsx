@@ -71,7 +71,7 @@ export default function AdminPlesPage() {
         </div>
       ) : (
         /* Desktop: table */
-        <div className="border rounded-xl overflow-hidden">
+        <div className="border rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-secondary"><tr>
               <th className="px-4 py-3 text-left">แพทย์ / Physician</th>
