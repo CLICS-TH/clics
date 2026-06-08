@@ -2,6 +2,7 @@
 const { supabase } = require('../lib/supabase');
 const { compositeScore } = require('./cle-gate');
 const { rimplEvaluate } = require('./rimpl-client');
+const { accrueUsage } = require('../lib/usage');
 
 // Persist an AI evaluation + LPDP snapshot and mark the PLE evaluated.
 // Ordered + error-checked: the scored row must land before we write the LPDP snapshot or flip the
@@ -48,6 +49,8 @@ async function evaluateWithRetry(payload, attempts = 3) {
 // Run the PIS-7 evaluation for a passed PLE and persist it. Throws on failure (caller logs).
 async function triggerEvaluation(pleId, transcript, physicianId) {
   const result = await evaluateWithRetry({ ple_id: pleId, transcript });
+  // Accrue the PIS-7 evaluation's Claude cost to the physician's usage meter.
+  await accrueUsage(physicianId, result.input_tokens, result.output_tokens);
   await persistEvaluation(pleId, physicianId, result);
 }
 

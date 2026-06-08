@@ -23,7 +23,7 @@ beforeEach(() => { mockCall.mockReset(); });
 test('retries a 429 (rate-limit) then succeeds', async () => {
   mockCall.mockRejectedValueOnce({ status: 429 }).mockRejectedValueOnce({ status: 429 }).mockResolvedValueOnce(okResp);
   const r = await callClaude(args());
-  expect(r).toEqual({ text: 'hi', tokenCount: 12 });
+  expect(r).toEqual({ text: 'hi', inputTokens: 5, outputTokens: 7, tokenCount: 12 });
   expect(mockCall).toHaveBeenCalledTimes(3);
 });
 

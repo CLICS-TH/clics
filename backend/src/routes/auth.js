@@ -3,6 +3,7 @@ const { z } = require('zod');
 const { supabase, authSupabase } = require('../lib/supabase');
 const { verifyJwt } = require('../middleware/auth');
 const { encryptJson } = require('../lib/crypto');
+const { effectiveLimit } = require('../lib/usage');
 
 const router = Router();
 
@@ -75,8 +76,11 @@ router.post('/logout', verifyJwt, async (_req, res) => {
   res.json({ ok: true });
 });
 
-router.get('/me', verifyJwt, (req, res) => {
-  res.json({ user: req.user });
+router.get('/me', verifyJwt, async (req, res) => {
+  // Attach the effective AI-usage limit so the client can render the usage bar without
+  // needing to know the org standard default (usage_cost_usd already flows via req.user).
+  const usage_limit_effective_usd = await effectiveLimit(req.user);
+  res.json({ user: { ...req.user, usage_limit_effective_usd } });
 });
 
 // Record the participant's informed consent (human-subjects pilot). Session creation is gated on this.

@@ -39,6 +39,36 @@ document.getElementById('greeting').textContent = `สวัสดี, ${user.fu
   });
 })();
 
+// ---- AI usage meter (pilot budget) ----
+// Pull fresh figures from the server (cached login user predates any spend).
+(async function usageMeter() {
+  const host = document.getElementById('usageBar');
+  if (!host) return;
+  let me;
+  try { me = await api.me(); } catch { return; }
+  const u = me?.user;
+  const limit = Number(u?.usage_limit_effective_usd);
+  if (!u || !Number.isFinite(limit) || limit <= 0) return; // nothing meaningful to show
+  const used = Number(u.usage_cost_usd ?? 0);
+  const pct = Math.min(100, Math.round((used / limit) * 100));
+  const over = used >= limit;
+  const color = over ? '#c0392b' : pct >= 80 ? '#e08a1e' : '#3a8a52';
+  const note = over
+    ? '<br><b>ถึงขีดจำกัดแล้ว — ติดต่อผู้ดูแลระบบ / Limit reached — contact an administrator.</b>'
+    : '';
+  host.innerHTML = `
+    <div style="background:var(--surface,#fff);border:1px solid var(--border,#e2e2e2);border-radius:12px;padding:10px 14px;margin:0 0 14px;font-size:13px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+        <span>การใช้งาน AI / AI usage</span>
+        <span style="font-variant-numeric:tabular-nums;color:${color};font-weight:600;">$${used.toFixed(4)} / $${limit.toFixed(2)} (${pct}%)</span>
+      </div>
+      <div style="height:8px;background:#e9eef4;border-radius:99px;overflow:hidden;margin-top:6px;">
+        <div style="height:100%;width:${pct}%;background:${color};transition:width .3s;"></div>
+      </div>
+      <div style="color:#6b7785;margin-top:4px;">งบสำหรับการนำร่อง / Pilot budget.${note}</div>
+    </div>`;
+})();
+
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await api.logout();
   localStorage.clear();

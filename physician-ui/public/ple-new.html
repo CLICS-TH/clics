@@ -76,7 +76,9 @@
       const ple = await api.createPle({ specialty, chief_complaint: complaint, folder_id });
       if (ple?.id) window.location.href = `/ple-chat?id=${ple.id}`;
       else {
-        errEl.textContent = ple?.error ?? 'เกิดข้อผิดพลาด';
+        errEl.textContent = ple?.code === 'budget_exceeded'
+          ? 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ / AI usage limit reached — contact an administrator.'
+          : (ple?.error ?? 'เกิดข้อผิดพลาด');
         errEl.style.display = 'block';
         btn.disabled = false; btn.textContent = 'เริ่มการสนทนา / Start Session';
       }

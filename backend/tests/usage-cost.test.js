@@ -1,0 +1,46 @@
+// Unit tests for the usage cost model + effective-limit resolution.
+// usage.js reads the standard limit from app_settings; mock supabase so standardLimit() resolves.
+let mockSetting = { data: { value: 0.5 }, error: null };
+jest.mock('../src/lib/supabase', () => ({
+  supabase: {
+    from: () => ({ select: () => ({ eq: () => ({ single: () => Promise.resolve(mockSetting) }) }) }),
+    rpc: () => Promise.resolve({ error: null }),
+  },
+  authSupabase: { auth: {} },
+}));
+
+const { costUsd, INPUT_PER_M, OUTPUT_PER_M } = require('../src/lib/pricing');
+const { effectiveLimit, standardLimit } = require('../src/lib/usage');
+
+beforeEach(() => { mockSetting = { data: { value: 0.5 }, error: null }; });
+
+test('costUsd: default Sonnet pricing — 1M in + 1M out = $18', () => {
+  expect(INPUT_PER_M).toBe(3);
+  expect(OUTPUT_PER_M).toBe(15);
+  expect(costUsd(1_000_000, 1_000_000)).toBeCloseTo(18, 6);
+});
+
+test('costUsd: zero / missing tokens cost nothing', () => {
+  expect(costUsd(0, 0)).toBe(0);
+  expect(costUsd()).toBe(0);
+});
+
+test('costUsd: input and output priced separately', () => {
+  expect(costUsd(1_000_000, 0)).toBeCloseTo(3, 6);
+  expect(costUsd(0, 1_000_000)).toBeCloseTo(15, 6);
+});
+
+test('effectiveLimit: a per-user override wins over the standard default', async () => {
+  await expect(effectiveLimit({ usage_limit_usd: 0.25 })).resolves.toBe(0.25);
+  await expect(effectiveLimit({ usage_limit_usd: 0 })).resolves.toBe(0); // 0 is a real (blocking) limit, not "unset"
+});
+
+test('effectiveLimit: with no override, falls back to the standard default', async () => {
+  await expect(effectiveLimit({})).resolves.toBe(0.5);
+  await expect(effectiveLimit({ usage_limit_usd: null })).resolves.toBe(0.5);
+});
+
+test('standardLimit: falls back to the constant when app_settings is missing', async () => {
+  mockSetting = { data: null, error: null };
+  await expect(standardLimit()).resolves.toBe(0.5);
+});

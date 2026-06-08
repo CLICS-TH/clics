@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
     .join('\n\n');
 
   try {
-    const { text } = await callClaude({
+    const { text, inputTokens, outputTokens } = await callClaude({
       systemPrompt: PIS7_EVALUATOR_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
       maxTokens: 1000,
@@ -50,6 +50,8 @@ router.post('/', async (req, res) => {
       composite_score: Math.round(composite * 100) / 100,
       domain_rationale: scores.rationale ?? {},
       model_version: 'CCME_LLM_v8.0',
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
     });
   } catch (err) {
     console.error('[RIMPL evaluate] error:', err);

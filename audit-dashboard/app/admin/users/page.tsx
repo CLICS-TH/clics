@@ -11,6 +11,7 @@ type User = {
   id: string; role: string; full_name_th: string; full_name_en: string;
   specialty?: string | null; license_number?: string | null;
   status?: string; pseudonym?: string | null;
+  usage_cost_usd?: number | null; usage_limit_usd?: number | null;
 };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
 
@@ -23,6 +24,8 @@ export default function UsersPage() {
   const [err, setErr] = useState('');
   const [msg, setMsg] = useState('');
   const [editing, setEditing] = useState<User | null>(null);
+  const [editLimit, setEditLimit] = useState('');           // per-user usage limit override ($), '' = standard
+  const [stdLimit, setStdLimit] = useState('');             // org standard usage limit ($)
   const mobile = useIsMobile();
 
   const loadUsers = () => apiFetch<User[]>('/admin/users').then(d => setUsers(d ?? []));
@@ -30,7 +33,17 @@ export default function UsersPage() {
     setSlots(d ?? []);
     setCap(Object.fromEntries((d ?? []).map(s => [s.role, String(s.capacity)])));
   });
-  useEffect(() => { loadUsers(); loadSlots(); }, []);
+  const loadUsageSettings = () => apiFetch<{ standard_limit_usd: number }>('/admin/usage-settings')
+    .then(d => setStdLimit(d?.standard_limit_usd != null ? String(d.standard_limit_usd) : ''));
+  useEffect(() => { loadUsers(); loadSlots(); loadUsageSettings(); }, []);
+
+  function openEdit(u: User) {
+    setEditing(u);
+    setEditLimit(u.usage_limit_usd != null ? String(u.usage_limit_usd) : '');
+  }
+
+  // Effective limit shown in the list: per-user override if set, else the org standard.
+  const effLimit = (u: User) => u.usage_limit_usd != null ? u.usage_limit_usd : (parseFloat(stdLimit) || 0);
 
   async function createUser() {
     setErr('');
@@ -48,9 +61,32 @@ export default function UsersPage() {
     };
     // The superadmin role is immutable — never send a role change for it (backend rejects it too).
     if (editing.role !== 'superadmin') body.role = editing.role;
+    // Usage limit override: a number sets a per-user cap; empty clears it (null => standard default).
+    const trimmed = editLimit.trim();
+    body.usage_limit_usd = trimmed === '' ? null : Number(trimmed);
+    if (body.usage_limit_usd != null && (!Number.isFinite(body.usage_limit_usd) || body.usage_limit_usd < 0)) {
+      setMsg('ขีดจำกัดไม่ถูกต้อง / Invalid usage limit.'); return;
+    }
     const res: any = await apiFetch(`/admin/users/${editing.id}`, { method:'PATCH', body: JSON.stringify(body) });
     if (res?.id) { setEditing(null); setMsg('บันทึกแล้ว / Saved.'); loadUsers(); loadSlots(); }
     else setMsg(res?.error ?? 'แก้ไขไม่สำเร็จ / Update failed.');
+  }
+
+  async function saveStdLimit() {
+    setMsg('');
+    const v = parseFloat(stdLimit);
+    if (!Number.isFinite(v) || v < 0) { setMsg('ขีดจำกัดมาตรฐานไม่ถูกต้อง / Invalid standard limit.'); return; }
+    const res: any = await apiFetch('/admin/usage-settings', { method:'PATCH', body: JSON.stringify({ standard_limit_usd: v }) });
+    if (res?.standard_limit_usd != null) { setMsg('บันทึกขีดจำกัดมาตรฐานแล้ว / Standard limit saved.'); loadUsageSettings(); loadUsers(); }
+    else setMsg(res?.error ?? 'บันทึกไม่สำเร็จ / Failed.');
+  }
+
+  async function resetUsage(u: User) {
+    if (!confirm(`รีเซ็ตการใช้งานของ ${u.full_name_en} เป็น $0? / Reset this member's AI usage to $0?`)) return;
+    setMsg('');
+    const res: any = await apiFetch(`/admin/users/${u.id}/reset-usage`, { method:'POST', body: JSON.stringify({}) });
+    if (res?.id) { setMsg('รีเซ็ตการใช้งานแล้ว / Usage reset.'); loadUsers(); }
+    else setMsg(res?.error ?? 'รีเซ็ตไม่สำเร็จ / Reset failed.');
   }
 
   async function toggleStatus(u: User) {
@@ -76,6 +112,24 @@ export default function UsersPage() {
       {ACCOUNT_STATUS_MAP[s ?? 'active'] ?? s}
     </span>
   );
+
+  // AI usage meter for a physician: $used / $effective-limit + a thin bar.
+  const UsageCell = ({ u }: { u: User }) => {
+    if (u.role !== 'physician') return <span className="text-xs text-muted-foreground">—</span>;
+    const used = Number(u.usage_cost_usd ?? 0);
+    const limit = effLimit(u);
+    const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+    const over = limit > 0 && used >= limit;
+    const tone = over ? 'bg-destructive' : pct >= 80 ? 'bg-[#e08a1e]' : 'bg-[#5db872]';
+    return (
+      <div className="min-w-[120px]">
+        <p className={`text-xs tabular-nums ${over ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+          ${used.toFixed(4)} / ${limit.toFixed(2)}{u.usage_limit_usd != null ? ' *' : ''}
+        </p>
+        <div className="h-1.5 mt-1 rounded-full bg-muted overflow-hidden"><div className={`h-full ${tone}`} style={{ width: `${pct}%` }} /></div>
+      </div>
+    );
+  };
 
   const FIELD_PLACEHOLDERS: Record<string, string> = {
     full_name_th: 'ชื่อภาษาไทย / Thai Name', full_name_en: 'Full Name (English)',
@@ -115,6 +169,19 @@ export default function UsersPage() {
         })}
       </div>
 
+      {/* Standard AI usage limit — default budget per physician (per-user overrides set in Edit). */}
+      <div className="rounded-xl border border-border p-4 mb-6">
+        <p className="text-sm font-medium">ขีดจำกัดการใช้งาน AI มาตรฐาน / Standard AI usage limit</p>
+        <p className="text-xs text-muted-foreground mt-0.5">ใช้กับแพทย์ทุกคนที่ไม่ได้ตั้งค่าเฉพาะราย / Applies to every physician without a per-user override.</p>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-sm text-muted-foreground">$</span>
+          <input type="number" min={0} step="0.05"
+            className="w-24 border rounded-md px-2 py-1 text-sm bg-background"
+            value={stdLimit} onChange={e => setStdLimit(e.target.value)} />
+          <Button variant="outline" className="text-xs px-3 py-1 h-auto" onClick={saveStdLimit}>บันทึก / Save</Button>
+        </div>
+      </div>
+
       {msg && <p className="mb-4 text-sm rounded-lg border border-border bg-secondary px-3 py-2">{msg}</p>}
 
       {showForm && (
@@ -146,6 +213,15 @@ export default function UsersPage() {
             placeholder="สาขาวิชา / Specialty" onChange={e => setEditing(u => u && ({ ...u, specialty: e.target.value }))} />
           <input className="w-full border rounded-lg px-3 py-2 text-sm" value={editing.license_number ?? ''}
             placeholder="เลขใบอนุญาต / License No." onChange={e => setEditing(u => u && ({ ...u, license_number: e.target.value }))} />
+          {editing.role === 'physician' && (
+            <div>
+              <input className="w-full border rounded-lg px-3 py-2 text-sm" type="number" min={0} step="0.05"
+                value={editLimit}
+                placeholder="ขีดจำกัดการใช้งาน AI ($) — เว้นว่าง = ใช้ค่ามาตรฐาน / AI usage limit ($) — blank = standard"
+                onChange={e => setEditLimit(e.target.value)} />
+              <p className="text-xs text-muted-foreground mt-1">เว้นว่างเพื่อใช้ค่ามาตรฐาน (${parseFloat(stdLimit) || 0}) / Leave blank to use the standard limit.</p>
+            </div>
+          )}
           {editing.role === 'superadmin' ? (
             <input className="w-full border rounded-lg px-3 py-2 text-sm bg-muted text-muted-foreground"
               value="Superadmin (locked)" disabled readOnly />
@@ -171,11 +247,17 @@ export default function UsersPage() {
                 <Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge>
               </div>
               <p className="text-sm text-muted-foreground">{u.full_name_en}</p>
+              {u.role === 'physician' && (
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <UsageCell u={u} />
+                  <Button variant="outline" className="text-xs px-2 py-1 h-auto" onClick={() => resetUsage(u)}>รีเซ็ต / Reset</Button>
+                </div>
+              )}
               <div className="flex items-center justify-between pt-1">
                 <StatusBadge s={u.status} />
                 <div className="flex gap-2">
                   {u.role === 'physician' && <a href={`/admin/lpdp/${u.id}`} className="text-xs px-2 py-1 border rounded-lg inline-flex items-center hover:bg-secondary">คะแนน</a>}
-                  <Button variant="outline" className="text-xs px-2 py-1 h-auto" onClick={() => setEditing(u)}>แก้ไข</Button>
+                  <Button variant="outline" className="text-xs px-2 py-1 h-auto" onClick={() => openEdit(u)}>แก้ไข</Button>
                   <Button variant="outline" className="text-xs px-2 py-1 h-auto" disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)}>
                     {u.status === 'deactivated' ? 'เปิดใช้' : 'ปิดใช้'}
                   </Button>
@@ -191,6 +273,7 @@ export default function UsersPage() {
               <th className="px-4 py-3 text-left">ชื่อ (TH)</th>
               <th className="px-4 py-3 text-left">ชื่อ (EN)</th>
               <th className="px-4 py-3 text-left">Role</th>
+              <th className="px-4 py-3 text-left">การใช้งาน AI / Usage</th>
               <th className="px-4 py-3 text-left">สถานะ / Status</th>
               <th className="px-4 py-3 text-right">การจัดการ</th>
             </tr></thead>
@@ -199,10 +282,12 @@ export default function UsersPage() {
                 <td className="px-4 py-3">{u.full_name_th}{u.pseudonym ? <span className="text-muted-foreground text-xs"> · {u.pseudonym}</span> : ''}</td>
                 <td className="px-4 py-3 text-muted-foreground">{u.full_name_en}</td>
                 <td className="px-4 py-3"><Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge></td>
+                <td className="px-4 py-3"><UsageCell u={u} /></td>
                 <td className="px-4 py-3"><StatusBadge s={u.status} /></td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
                   {u.role === 'physician' && <a href={`/admin/lpdp/${u.id}`} className="text-xs px-2 py-1 mr-2 border rounded-lg inline-flex items-center hover:bg-secondary">คะแนน / Scores</a>}
-                  <Button variant="outline" className="text-xs px-2 py-1 h-auto mr-2" onClick={() => setEditing(u)}>แก้ไข</Button>
+                  {u.role === 'physician' && <Button variant="outline" className="text-xs px-2 py-1 h-auto mr-2" onClick={() => resetUsage(u)}>รีเซ็ต / Reset</Button>}
+                  <Button variant="outline" className="text-xs px-2 py-1 h-auto mr-2" onClick={() => openEdit(u)}>แก้ไข</Button>
                   <Button variant="outline" className="text-xs px-2 py-1 h-auto" disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)}>
                     {u.status === 'deactivated' ? 'เปิดใช้' : 'ปิดใช้'}
                   </Button>

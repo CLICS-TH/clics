@@ -30,10 +30,13 @@ const UpdateUserSchema = z.object({
   specialty: z.string().optional(),
   license_number: z.string().optional(),
   role: z.enum(GRANTABLE_ROLES).optional(),
+  // Per-user AI usage limit override ($). null clears the override -> the standard default applies.
+  usage_limit_usd: z.number().nonnegative().nullable().optional(),
 }).refine((b) => Object.keys(b).length > 0, { message: 'No fields to update' });
 
 const StatusSchema = z.object({ status: z.enum(['active', 'deactivated']) });
 const SlotSchema = z.object({ capacity: z.number().int().min(0) });
+const UsageSettingsSchema = z.object({ standard_limit_usd: z.number().nonnegative() });
 
 router.get('/users', async (req, res) => {
   const { data, error } = await supabase.from('professionals').select('*').order('created_at');
@@ -144,6 +147,34 @@ router.patch('/slots/:role', async (req, res) => {
     .update({ capacity: parsed.data.capacity, updated_at: new Date().toISOString() })
     .eq('role', role).select('*').single();
   if (sendDbError(res, error)) return;
+  res.json(data);
+});
+
+// Standard (default) AI usage limit — applies to any physician without a per-user override.
+// Stored in app_settings; mirrors the role-slot capacity GET/PATCH shape.
+router.get('/usage-settings', async (_req, res) => {
+  const { data } = await supabase
+    .from('app_settings').select('value').eq('key', 'standard_usage_limit_usd').single();
+  const v = Number(data?.value);
+  res.json({ standard_limit_usd: Number.isFinite(v) ? v : 0.5 });
+});
+
+router.patch('/usage-settings', async (req, res) => {
+  const parsed = UsageSettingsSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const { data, error } = await supabase.from('app_settings')
+    .upsert({ key: 'standard_usage_limit_usd', value: parsed.data.standard_limit_usd, updated_at: new Date().toISOString() })
+    .select('value').single();
+  if (sendDbError(res, error)) return;
+  res.json({ standard_limit_usd: Number(data.value) });
+});
+
+// Reset a member's running AI usage meter back to zero (manual-reset escape hatch).
+router.post('/users/:id/reset-usage', async (req, res) => {
+  const { data, error } = await supabase.from('professionals')
+    .update({ usage_cost_usd: 0, usage_input_tokens: 0, usage_output_tokens: 0 })
+    .eq('id', req.params.id).select('id, usage_cost_usd').single();
+  if (error || !data) return res.status(404).json({ error: 'User not found' });
   res.json(data);
 });
 

@@ -85,6 +85,8 @@ async function sendMessage() {
     turns += 1; tokens += res.token_count ?? 0;
     document.getElementById('turns').textContent = turns;
     document.getElementById('tokens').textContent = tokens;
+  } else if (res?.code === 'budget_exceeded') {
+    renderMessage('assistant', '⚠️ ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ คุณยังสามารถจบเซสชันนี้ได้ / AI usage limit reached — contact an administrator. You can still end this session.', [], null);
   } else {
     renderMessage('assistant', '⚠️ เกิดข้อผิดพลาด กรุณาลองใหม่', [], null);
   }

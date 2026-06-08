@@ -13,7 +13,19 @@ create table public.professionals (
   status         text not null default 'active' check (status in ('active','deactivated')),
   pseudonym      text unique,   -- P-NNN; the only identifier allowed in exports/audit
   consented_at   timestamptz,   -- informed consent for the pilot; session creation is gated on this
+  -- Per-physician AI usage meter + per-user limit override (see db/migration-usage-limits.sql).
+  usage_cost_usd      numeric not null default 0,
+  usage_input_tokens  bigint  not null default 0,
+  usage_output_tokens bigint  not null default 0,
+  usage_limit_usd     numeric,   -- null => the standard default (app_settings) applies
   created_at     timestamptz default now()
+);
+
+-- Reusable keyed app settings (e.g. standard_usage_limit_usd). Superadmin-managed.
+create table public.app_settings (
+  key        text primary key,
+  value      numeric not null,
+  updated_at timestamptz default now()
 );
 -- Exactly one superadmin, ever (DB-level guarantee; the API also blocks every 2nd-superadmin path).
 create unique index if not exists professionals_single_superadmin
@@ -84,7 +96,9 @@ create table public.ples (
   ended_at         timestamptz,
   duration_seconds integer,
   turn_count       integer default 0,
-  token_count      integer default 0,
+  token_count      integer default 0,   -- input+output summed; the C3 CLE gate reads this
+  input_tokens     bigint  not null default 0,   -- billed input tokens (cost auditability)
+  output_tokens    bigint  not null default 0,   -- billed output tokens (cost auditability)
   c1_pass boolean, c2_pass boolean, c3_pass boolean,
   c4_pass boolean, c5_pass boolean, c6_pass boolean,
   provider_used    text default 'claude',   -- reserved for L4 multi-provider rotation (roadmap); currently always 'claude'
@@ -171,6 +185,7 @@ alter table public.lpdp_snapshots   enable row level security;
 alter table public.role_slots       enable row level security;
 alter table public.access_requests  enable row level security;
 alter table public.oauth_identities enable row level security;  -- DENY-ALL (no policy below)
+alter table public.app_settings     enable row level security;
 
 -- professionals policies
 create policy "prof: own read"
@@ -278,6 +293,28 @@ create policy "requests: admin all"
 
 -- oauth_identities: DENY-ALL — RLS enabled with NO permissive policy, so only the
 -- service-role key (backend) can read/write the on-prem identity vault.
+
+-- app_settings policies (admins read; only superadmin writes — mirrors role_slots)
+create policy "app_settings: admin read"
+  on public.app_settings for select using (
+    exists (select 1 from public.professionals p where p.id = auth.uid() and p.role in ('admin','superadmin'))
+  );
+create policy "app_settings: superadmin write"
+  on public.app_settings for all using (
+    exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
+  );
+
+-- Atomic increment of a physician's running usage meter (see db/migration-usage-limits.sql).
+create or replace function public.increment_usage(
+  p_id uuid, p_cost numeric, p_in bigint, p_out bigint
+) returns void
+language sql as $$
+  update public.professionals
+     set usage_cost_usd      = usage_cost_usd      + p_cost,
+         usage_input_tokens  = usage_input_tokens  + p_in,
+         usage_output_tokens = usage_output_tokens + p_out
+   where id = p_id;
+$$;
 
 -- pgvector similarity search function
 create or replace function match_documents(

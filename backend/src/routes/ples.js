@@ -6,6 +6,7 @@ const { computeTier1 } = require('../services/cle-gate');
 const { rimplChat, rimplEvaluateCriteria } = require('../services/rimpl-client');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
 const { triggerEvaluation } = require('../services/ple-evaluation');
+const { effectiveLimit, accrueUsage } = require('../lib/usage');
 
 const router = Router();
 router.use(verifyJwt, requireRole('physician'));
@@ -20,11 +21,29 @@ function requireConsent(req, res, next) {
   next();
 }
 
+// Pilot AI-cost budget: once a physician's running cost reaches their effective limit, block
+// starting a new session and sending further turns (strict, per-turn). Finalizing an open session
+// (/end) is intentionally NOT gated, so a session is never stranded and its evaluation still runs.
+async function requireBudget(req, res, next) {
+  try {
+    const limit = await effectiveLimit(req.user);
+    if (Number(req.user.usage_cost_usd ?? 0) >= limit) {
+      return res.status(403).json({
+        error: `AI usage limit reached ($${limit.toFixed(2)}). Contact an administrator.`,
+        code: 'budget_exceeded',
+      });
+    }
+  } catch (e) {
+    console.error('[ples] budget check failed:', e.message); // fail-open: never block on a meter error
+  }
+  next();
+}
+
 // CLE-gate booleans live in the c1_pass..c6_pass columns; map {c1..} -> {c1_pass..}.
 const toPassCols = (crit) => Object.fromEntries(Object.entries(crit).map(([k, v]) => [`${k}_pass`, v]));
 
 // Create new PLE session
-router.post('/', requireConsent, async (req, res) => {
+router.post('/', requireConsent, requireBudget, async (req, res) => {
   const parsed = CreatePleSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
@@ -119,7 +138,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Send a message turn
-router.post('/:id/message', requireConsent, async (req, res) => {
+router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   const parsed = MessageSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
@@ -160,11 +179,18 @@ router.post('/:id/message', requireConsent, async (req, res) => {
     return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
   }
 
+  const turnIn = rimplResponse.input_tokens ?? 0;
+  const turnOut = rimplResponse.output_tokens ?? 0;
   const { error: counterErr } = await supabase.from('ples').update({
     turn_count: (ple.turn_count ?? 0) + 1,
     token_count: (ple.token_count ?? 0) + (rimplResponse.token_count ?? 0) + physicianTokens,
+    input_tokens: (ple.input_tokens ?? 0) + turnIn,
+    output_tokens: (ple.output_tokens ?? 0) + turnOut,
   }).eq('id', req.params.id);
   if (counterErr) console.error('[ples] failed to update counters:', counterErr.message);
+
+  // Accrue the turn's real Claude cost to the physician's usage meter (atomic).
+  await accrueUsage(req.user.id, turnIn, turnOut);
 
   res.json(rimplResponse);
 });
@@ -199,7 +225,11 @@ router.post('/:id/end', requireConsent, async (req, res) => {
 
   let tier2 = { c4: false, c5: false, c6: false };
   try {
-    tier2 = await rimplEvaluateCriteria({ transcript });
+    const crit = await rimplEvaluateCriteria({ transcript });
+    // Keep only the criteria booleans here — allCriteria feeds toPassCols(), which maps every
+    // key to a *_pass column; token fields would create non-existent columns.
+    tier2 = { c4: crit.c4, c5: crit.c5, c6: crit.c6 };
+    await accrueUsage(ple.physician_id, crit.input_tokens, crit.output_tokens);
   } catch {
     // RIMPL down — flag for manual QA
   }

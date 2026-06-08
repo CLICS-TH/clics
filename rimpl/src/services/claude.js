@@ -82,7 +82,8 @@ async function callClaude({ systemPrompt, messages, maxTokens = 1500 }) {
         const text = data.content[0]?.text ?? '';
         const inputTokens = data.usage?.input_tokens ?? 0;
         const outputTokens = data.usage?.output_tokens ?? 0;
-        return { text, tokenCount: inputTokens + outputTokens };
+        // tokenCount (summed) is kept for the C3 CLE gate; input/output are split out for cost.
+        return { text, inputTokens, outputTokens, tokenCount: inputTokens + outputTokens };
       } catch (err) {
         lastErr = err;
         if (attempt < MAX_RETRIES && isRetryable(err)) {

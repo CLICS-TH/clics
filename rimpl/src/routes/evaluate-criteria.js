@@ -21,7 +21,7 @@ router.post('/', async (req, res) => {
     .join('\n\n');
 
   try {
-    const { text } = await callClaude({
+    const { text, inputTokens, outputTokens } = await callClaude({
       systemPrompt: CRITERIA_CLASSIFIER_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
       maxTokens: 200,
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
       return res.status(502).json({ error: 'Classifier returned invalid JSON' });
     }
 
-    res.json({ c4: !!result.c4, c5: !!result.c5, c6: !!result.c6 });
+    res.json({ c4: !!result.c4, c5: !!result.c5, c6: !!result.c6, input_tokens: inputTokens, output_tokens: outputTokens });
   } catch (err) {
     console.error('[RIMPL evaluate-criteria] error:', err);
     res.status(500).json({ error: 'Criteria evaluation service temporarily unavailable.' });

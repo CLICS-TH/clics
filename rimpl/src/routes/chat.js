@@ -42,7 +42,7 @@ router.post('/', async (req, res) => {
     const ragDocs = await ragLookup(message);
     const messages = await buildMessages(history, message, ragDocs, chief_complaint);
 
-    let { text, tokenCount } = await callClaude({ systemPrompt: RIMPL_SYSTEM_PROMPT, messages, maxTokens: 2500 });
+    let { text, tokenCount, inputTokens, outputTokens } = await callClaude({ systemPrompt: RIMPL_SYSTEM_PROMPT, messages, maxTokens: 2500 });
 
     // Retry once if citation or socratic question missing
     if (!hasCitation(text) || !extractSocraticQuestion(text)) {
@@ -58,6 +58,8 @@ router.post('/', async (req, res) => {
       const retry = await callClaude({ systemPrompt: RIMPL_SYSTEM_PROMPT, messages: retryMessages, maxTokens: 1500 });
       text = retry.text;
       tokenCount += retry.tokenCount;
+      inputTokens += retry.inputTokens;
+      outputTokens += retry.outputTokens;
     }
 
     res.json({
@@ -65,6 +67,8 @@ router.post('/', async (req, res) => {
       refs: extractReferences(text),
       socratic_question: extractSocraticQuestion(text),
       token_count: tokenCount,
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
     });
   } catch (err) {
     console.error('[RIMPL chat] error:', err);
