@@ -65,6 +65,13 @@
 
 On the doctor portal, click **"Try as guest"** — you get **2 free questions** with the AI, and nothing is saved. A quick way to feel what the AI tutor is like.
 
+## How many can use it at once (capacity)
+
+- **Signing in:** everyone can be **logged in at the same time** — there's no practical limit for a pilot group; being signed in uses no shared resource.
+- **Chatting with the AI:** the system generates about **12 AI replies simultaneously**. If more people press *send* at the very same moment, the extra turns **wait a few seconds in line and are answered automatically** — nothing fails or is lost, and it **retries on its own** if the AI is momentarily busy. This burst behaviour was **stress-tested**.
+- **In practice:** because doctors read and type at their own pace, all ~30 pilot participants can work at once and it feels immediate. Only a single, fully-synchronised "everyone sends on the same second" demo would create a short queue (seconds, not failures).
+- **Spend stays bounded:** each AI reply is roughly **$0.01–0.02**, and every doctor has a usage cap, so heavy concurrent use can't run up a surprise bill.
+
 ## Good to know
 
 - The AI gives substantive, referenced answers — it's a **mentor, not a search box**, and it won't simply agree with you.
