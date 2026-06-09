@@ -57,6 +57,7 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
 
   const { data, error } = await supabase.from('ples').insert({
     physician_id: req.user.id,
+    council_id: req.user.council_id,   // denormalized from the physician; scopes admin/auditor access
     status: 'active',
     started_at: new Date().toISOString(),
     chief_complaint,

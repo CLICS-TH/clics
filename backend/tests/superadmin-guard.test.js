@@ -36,7 +36,7 @@ beforeEach(() => {
 
 // ---- schema invariants (no HTTP) ----
 const { CreateUserSchema, UpdateUserSchema } = superadminRouter;
-const baseUser = { email: 'a@b.co', password: 'longenough1', full_name_th: 'ก', full_name_en: 'A' };
+const baseUser = { email: 'a@b.co', password: 'longenough1', council_id: '11111111-1111-1111-1111-111111111111', full_name_th: 'ก', full_name_en: 'A' };
 
 test('CreateUserSchema rejects role=superadmin (cannot create a 2nd)', () => {
   expect(CreateUserSchema.safeParse({ ...baseUser, role: 'superadmin' }).success).toBe(false);
