@@ -1,7 +1,7 @@
 // Google OAuth callback. Supabase redirected back here with the session in the URL;
 // supabase-client.js (detectSessionInUrl) turns it into a session we read with getSession().
 // Then one of two flows runs, distinguished by sessionStorage('clics_oauth_flow'):
-//   - invite  → POST /auth/invite/:token/accept { method:'google', access_token, license_number? }
+//   - invite  → POST /auth/invite/:token/accept { method:'google', access_token }
 //   - signup  → POST /auth/oauth/google/complete { access_token, council_id }  (prompt council 1st time)
 // On success we store clics_token/clics_user and route by role.
 
@@ -61,16 +61,10 @@ async function completeInvite() {
   const res = await api.acceptInvite(flow.token, {
     method: 'google',
     access_token: accessToken,
-    license_number: flow.license_number || undefined,
   });
-  if (res.status === 201 && res.body?.status === 'active') {
+  // An accepted invite is always active immediately (physician or auditor) — 201.
+  if ((res.status === 201 || res.ok) && res.body?.access_token) {
     routeActive(res.body);
-  } else if (res.status === 202 && res.body?.status === 'pending_license_review') {
-    document.getElementById('doneMsg').innerHTML =
-      '⏳ <strong>ส่งเรื่องเพื่อตรวจสอบใบประกอบวิชาชีพ / Submitted for license review.</strong><br/>' +
-      'บัญชีผู้ตรวจประเมินของคุณจะใช้งานได้เมื่อผู้ดูแลยืนยันใบประกอบวิชาชีพแล้ว<br/>' +
-      'Your auditor account will activate once an administrator verifies your license.';
-    show(doneCard);
   } else {
     showError(errText(res.body));
   }

@@ -1,22 +1,15 @@
-// New-auth integration tests: the two self-service / invited entry paths and the manual
-// license override. The point of these tests is to pin the LICENSE GATE behaviour end-to-end
-// through the real (deterministic) stub verifier + provisioning layer:
-//
-//   physician = SOFT gate  → always provisioned 'active'; license_status just mirrors the result.
-//   auditor   = HARD gate  → 'active' only if verified/manual_verified, else 'deactivated' +
-//                            HTTP 202 pending_license_review.
+// New-auth integration tests for the Google + invite onboarding model (License No. + TMC retired
+// 2026-06-09). The A/B invite IS the vetting: BOTH physicians and auditors are provisioned ACTIVE
+// immediately on accept — no license gate, no pending_license_review, no license columns written.
+// Public email-OTP self-signup was removed (signup-auth.test.js covers the 404).
 //
 // Only the edges are mocked: the two Supabase auth clients (OTP verify / token decode) and the
-// Supabase data layer. The license verifier itself is the REAL stub adapter (pure, keyed off the
-// license digit per the contract), so these assertions exercise the genuine mapping:
-//   ...0/2/4/6/8 → verified ; ...1/3 → name_mismatch ; ...5/7/9 → not_found ; 'UNAVAIL' → unavailable
-//   toLicenseStatus: verified→verified, name_mismatch→name_mismatch, not_found→not_found, unavailable→unverified.
-//
-// The supabase mock is table-aware. Because a jest.mock() factory is hoisted and may not close
-// over normal outer variables, ALL mutable mock state lives inside the factory and is re-exported
-// as `__mock` (a `mock`-prefixed name is the one exception jest allows). Tests grab it via require
-// and steer each table read through `m.state.*`; the `professionals` insert payload is captured
-// into `m.state.lastInsert` so we can assert the provisioned row shape.
+// Supabase data layer. The supabase mock is table-aware. Because a jest.mock() factory is hoisted
+// and may not close over normal outer variables, ALL mutable mock state lives inside the factory
+// and is re-exported as `__mock` (a `mock`-prefixed name is the one exception jest allows). Tests
+// grab it via require and steer each table read through `m.state.*`; the `professionals` insert
+// payload is captured into `m.state.lastInsert` so we can assert the provisioned row shape (and
+// that the dormant license_* columns are NOT written).
 
 const COUNCIL_ID = '11111111-1111-1111-1111-111111111111';
 
@@ -143,107 +136,53 @@ function otpUser({ id, email, signup, invite_signup }) {
 }
 
 // ---------------------------------------------------------------------------
-// 1) Self-service signup: verify-otp → license check → auto-provision physician (SOFT gate)
+// 1) Invite accept (password method) — the A/B invite IS the vetting; NO license gate.
+//    BOTH physicians and auditors are provisioned ACTIVE immediately on accept.
 // ---------------------------------------------------------------------------
 
-test('signup verify-otp: valid OTP + verified license → physician active, license_status=verified', async () => {
-  m.auth.verifyOtp = otpUser({
-    id: 'phys-verified', email: 'a@example.com',
-    signup: { council_id: COUNCIL_ID, full_name_th: 'หมอ', full_name_en: 'Doc', license_number: '12340', specialty: null },
-  });
-
-  const r = await request(app).post('/auth/signup/verify-otp').send({ email: 'a@example.com', token: '123456' });
-
-  expect(r.status).toBe(201);
-  expect(r.body.license_status).toBe('verified');
-  expect(m.state.lastInsert).toMatchObject({
-    id: 'phys-verified', role: 'physician', status: 'active',
-    license_status: 'verified', council_id: COUNCIL_ID, license_number: '12340',
-  });
-  expect(m.state.lastInsert.pseudonym).toBe('P-001');           // physicians get a pseudonym
-  expect(m.state.lastInsert.license_verified_at).toBeTruthy();   // set when verified
-  expect(r.body.user).toMatchObject({ id: 'phys-verified', role: 'physician', status: 'active' });
-});
-
-test('signup verify-otp: valid OTP + UNAVAIL license → physician STILL active, license_status=unverified (soft)', async () => {
-  m.auth.verifyOtp = otpUser({
-    id: 'phys-unavail', email: 'b@example.com',
-    signup: { council_id: COUNCIL_ID, full_name_th: 'หมอ', full_name_en: 'Doc', license_number: 'UNAVAIL', specialty: null },
-  });
-
-  const r = await request(app).post('/auth/signup/verify-otp').send({ email: 'b@example.com', token: '123456' });
-
-  expect(r.status).toBe(201);
-  expect(r.body.license_status).toBe('unverified'); // unavailable → unverified, still provisioned
-  expect(m.state.lastInsert).toMatchObject({ id: 'phys-unavail', role: 'physician', status: 'active', license_status: 'unverified' });
-  expect(m.state.lastInsert.license_verified_at).toBeUndefined(); // NOT set when not verified
-});
-
-test('signup verify-otp: INVALID OTP → 400 and NO provisioning', async () => {
-  m.auth.verifyOtp = () => Promise.resolve({ data: null, error: { message: 'invalid' } });
-
-  const r = await request(app).post('/auth/signup/verify-otp').send({ email: 'c@example.com', token: '000000' });
-
-  expect(r.status).toBe(400);
-  expect(r.body.error).toMatch(/invalid or expired/i);
-  expect(m.state.lastInsert).toBeNull(); // nothing provisioned
-});
-
-// ---------------------------------------------------------------------------
-// 2) Invite accept (password method, step 2 with mocked OTP) — the license gate matrix
-// ---------------------------------------------------------------------------
-
-test('invite accept: physician invite with a NAME_MISMATCH license → active (soft gate)', async () => {
+test('invite accept: physician invite → 201 active; dormant license columns NOT written', async () => {
   m.state.invite = pendingInvite('physician');
   m.auth.verifyOtp = otpUser({
     id: 'phys-inv', email: 'invitee@example.com',
-    invite_signup: { full_name_th: 'หมอ', full_name_en: 'Doc', license_number: '13' }, // ...3 → name_mismatch
+    invite_signup: { full_name_th: 'หมอ', full_name_en: 'Doc' },
   });
 
   const r = await request(app).post(`/auth/invite/${VALID_INVITE_TOKEN}/accept`).send({
-    method: 'password', otp: '123456', full_name_th: 'หมอ', full_name_en: 'Doc', license_number: '13',
+    method: 'password', otp: '123456', full_name_th: 'หมอ', full_name_en: 'Doc',
   });
 
   expect(r.status).toBe(201);
   expect(r.body.status).toBe('active');
-  expect(r.body.license_status).toBe('name_mismatch');
-  expect(m.state.lastInsert).toMatchObject({ id: 'phys-inv', role: 'physician', status: 'active', license_status: 'name_mismatch' });
+  expect(r.body.license_status).toBeUndefined();            // license no longer in the response
+  expect(m.state.lastInsert).toMatchObject({ id: 'phys-inv', role: 'physician', status: 'active' });
+  expect(m.state.lastInsert.license_status).toBeUndefined(); // dormant column unwritten
+  expect(m.state.lastInsert.license_number).toBeUndefined();
 });
 
-test('invite accept: auditor invite with a NON-verified license → 202 pending_license_review, status NOT active', async () => {
+test('invite accept: AUDITOR invite → 201 ACTIVE on accept (was 202 pending under the old gate)', async () => {
   m.state.invite = pendingInvite('auditor');
   m.auth.verifyOtp = otpUser({
-    id: 'aud-pending', email: 'invitee@example.com',
-    invite_signup: { full_name_th: 'ผู้ตรวจ', full_name_en: 'Auditor', license_number: '15' }, // ...5 → not_found
+    id: 'aud-inv', email: 'invitee@example.com',
+    invite_signup: { full_name_th: 'ผู้ตรวจ', full_name_en: 'Auditor' },
   });
 
   const r = await request(app).post(`/auth/invite/${VALID_INVITE_TOKEN}/accept`).send({
-    method: 'password', otp: '123456', full_name_th: 'ผู้ตรวจ', full_name_en: 'Auditor', license_number: '15',
+    method: 'password', otp: '123456', full_name_th: 'ผู้ตรวจ', full_name_en: 'Auditor',
   });
 
+  expect(r.status).toBe(201);
+  expect(r.body.status).toBe('active');
+  expect(m.state.lastInsert).toMatchObject({ id: 'aud-inv', role: 'auditor', status: 'active' });
+});
+
+test('invite accept: auditor invite no longer demands a license_number (step 1 → otp_sent)', async () => {
+  m.state.invite = pendingInvite('auditor');
+  // step 1 (no otp): name + password only. Old code 400'd here for a missing auditor license.
+  const r = await request(app).post(`/auth/invite/${VALID_INVITE_TOKEN}/accept`).send({
+    method: 'password', password: 'longenough1', full_name_th: 'ผู้ตรวจ', full_name_en: 'Auditor',
+  });
   expect(r.status).toBe(202);
-  expect(r.body.status).toBe('pending_license_review');
-  expect(r.body.license_status).toBe('not_found');
-  expect(m.state.lastInsert).toMatchObject({ id: 'aud-pending', role: 'auditor', license_status: 'not_found' });
-  expect(m.state.lastInsert.status).toBe('deactivated'); // HARD gate → not active
-});
-
-test('invite accept: auditor invite with a VERIFIED license → 201 active', async () => {
-  m.state.invite = pendingInvite('auditor');
-  m.auth.verifyOtp = otpUser({
-    id: 'aud-active', email: 'invitee@example.com',
-    invite_signup: { full_name_th: 'ผู้ตรวจ', full_name_en: 'Auditor', license_number: '246' }, // ...6 → verified
-  });
-
-  const r = await request(app).post(`/auth/invite/${VALID_INVITE_TOKEN}/accept`).send({
-    method: 'password', otp: '123456', full_name_th: 'ผู้ตรวจ', full_name_en: 'Auditor', license_number: '246',
-  });
-
-  expect(r.status).toBe(201);
-  expect(r.body.status).toBe('active');
-  expect(r.body.license_status).toBe('verified');
-  expect(m.state.lastInsert).toMatchObject({ id: 'aud-active', role: 'auditor', status: 'active', license_status: 'verified' });
-  expect(m.state.lastInsert.license_verified_at).toBeTruthy();
+  expect(r.body.status).toBe('otp_sent');
 });
 
 // ---------------------------------------------------------------------------
@@ -274,32 +213,4 @@ test('invite accept: an invite whose row is no longer pending → 404 (idempoten
     method: 'password', otp: '123456', full_name_th: 'หมอ', full_name_en: 'Doc', license_number: '12340',
   });
   expect(r.status).toBe(404);
-});
-
-// ---------------------------------------------------------------------------
-// 4) POST /admin/users/:id/verify-license — manual override → manual_verified
-// ---------------------------------------------------------------------------
-
-test('POST /admin/users/:id/verify-license: pending auditor → manual_verified + activated, returns updated row', async () => {
-  // verifyJwt decodes the Bearer to an active superadmin (superadmin skips council scoping).
-  m.auth.getUser = () => Promise.resolve({ data: { user: { id: 'admin-1', email: 'admin@clics.th' } }, error: null });
-
-  const target = { id: 'aud-target', role: 'auditor', status: 'deactivated', council_id: COUNCIL_ID, license_number: '15', full_name_th: 'ผู้ตรวจ' };
-  const updated = { ...target, license_status: 'manual_verified', status: 'active', license_verified_at: new Date().toISOString() };
-
-  // professionals .single() is read three times in order:
-  //   1) verifyJwt → the SUPERADMIN caller
-  //   2) the route's target read  → the pending auditor
-  //   3) the UPDATE ... .select('*').single() → the updated row the route returns
-  m.state.singleQueue = [
-    { id: 'admin-1', role: 'superadmin', status: 'active' },
-    target,
-    updated,
-  ];
-
-  const r = await request(app).post('/admin/users/aud-target/verify-license').set('Authorization', 'Bearer admin-token').send({});
-
-  expect(r.status).toBe(200);
-  expect(r.body).toMatchObject({ id: 'aud-target', license_status: 'manual_verified', status: 'active' });
-  expect(r.body.license_verified_at).toBeTruthy();
 });

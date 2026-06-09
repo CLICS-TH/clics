@@ -42,17 +42,15 @@
         <a href="/forgot">ลืมรหัสผ่าน? / Forgot password?</a>
       </p>
 
-      <!-- Google sign-in (shown only when Supabase OAuth is configured) -->
+      <!-- Google self-service sign-up / sign-in (shown only when Supabase OAuth is configured) -->
       <div id="googleWrap" style="display:none">
-        <div class="auth-divider">หรือ / or</div>
+        <div class="auth-divider">ยังไม่มีบัญชี? / New here?</div>
         <div class="auth-oauth">
-          <button type="button" class="btn btn-ghost" id="googleBtn"><span class="oauth-mark">G</span> เข้าสู่ระบบด้วย Google / Sign in with Google</button>
+          <button type="button" class="btn btn-primary" style="width:100%" id="googleBtn"><span class="oauth-mark">G</span> สมัคร / เข้าสู่ระบบด้วย Google · Sign up or in with Google</button>
         </div>
       </div>
 
       <p class="auth-links">
-        ยังไม่มีบัญชี? <a href="/signup">สมัครใช้งาน / Sign up</a>
-        &nbsp;·&nbsp;
         <a href="/request-access">ขอเข้าใช้งาน / Request access</a>
         &nbsp;·&nbsp;
         <a href="/guest-chat">ลองใช้แบบผู้เยี่ยมชม / Try as guest</a>

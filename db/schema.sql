@@ -491,21 +491,10 @@ create trigger audit_scores_guard_trg
   before insert on public.audit_scores
   for each row execute function public.audit_scores_guard();
 
--- Backstop: an auditor may never be active without a verified/manual_verified license.
-create or replace function public.enforce_auditor_license()
-returns trigger language plpgsql as $$
-begin
-  if new.role = 'auditor' and new.status = 'active'
-     and new.license_status not in ('verified','manual_verified') then
-    raise exception 'An auditor cannot be active without a verified license.';
-  end if;
-  return new;
-end;
-$$;
-drop trigger if exists enforce_auditor_license_trg on public.professionals;
-create trigger enforce_auditor_license_trg
-  before insert or update on public.professionals
-  for each row execute function public.enforce_auditor_license();
+-- License No. / TMC verification RETIRED (2026-06-09): onboarding is Google self-service +
+-- A/B invite links, and an A/B invite alone activates an auditor. The license_* columns +
+-- license_verifications table are kept DORMANT (nullable, unwritten) for reversibility; the
+-- enforcing trigger is intentionally NOT created. See db/migration-drop-license-gate.sql.
 
 -- Atomic increment of a physician's running usage meter (see db/migration-usage-limits.sql).
 create or replace function public.increment_usage(

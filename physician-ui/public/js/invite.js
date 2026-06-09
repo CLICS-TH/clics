@@ -1,9 +1,10 @@
 // Invite acceptance. Reads ?token=, looks up the invite (email + role + council bound to it),
 // then lets the invitee finish via Google (OAuth) OR a password (two-step OTP).
 // Backend: GET /auth/invite/:token  →  POST /auth/invite/:token/accept.
-//  - password step1 (no otp) → 202 otp_sent;  step2 (with otp) → 201 active / 202 pending_license_review
-//  - google → 201 active / 202 pending_license_review  (auditors REQUIRE a license number)
-// Auditors are HARD-gated: unverified ⇒ 'pending_license_review' (deactivated until A/B verifies).
+//  - password step1 (no otp) → 202 otp_sent;  step2 (with otp) → 201 active
+//  - google → 201 active
+// An accepted invite is always 'active' immediately — physicians AND auditors. There is
+// no license gate and no 'pending_license_review' state.
 
 const loadingCard = document.getElementById('loadingCard');
 const invalidCard = document.getElementById('invalidCard');
@@ -54,13 +55,6 @@ function roleLabel(role) {
     `อีเมล / Email: <strong>${invite.email}</strong><br/>` +
     `สภาวิชาชีพ / Council: <strong>${councilName}</strong>`;
 
-  // License: required for auditors (HARD gate), optional for physicians.
-  if (invite.role === 'auditor') {
-    document.getElementById('licenseReq').textContent = '*';
-  } else {
-    document.getElementById('licenseWrap').style.display = 'none';
-  }
-
   show(acceptCard);
 })();
 
@@ -76,15 +70,9 @@ withClient(() => {
   document.getElementById('googleBtn').addEventListener('click', async () => {
     const acceptErr = document.getElementById('acceptErr');
     hideErr(acceptErr);
-    // Auditors must supply a license number even via Google.
-    const license = document.getElementById('license').value.trim();
-    if (invite.role === 'auditor' && !license) {
-      showErr(acceptErr, 'ผู้ตรวจประเมินต้องกรอกเลขใบประกอบวิชาชีพ / Auditors must enter a license number.');
-      return;
-    }
     // Stash the invite context so /auth/callback knows to acceptInvite (not the normal signup).
     sessionStorage.setItem('clics_oauth_flow', JSON.stringify({
-      kind: 'invite', token, license_number: license || null,
+      kind: 'invite', token,
     }));
     const redirectTo = location.origin + '/auth/callback';
     const { error } = await window.sbClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
@@ -100,11 +88,9 @@ passwordBtn.addEventListener('click', async () => {
   hideErr(acceptErr);
   const full_name_th = document.getElementById('th').value.trim();
   const full_name_en = document.getElementById('en').value.trim();
-  const license_number = document.getElementById('license').value.trim();
   const password = document.getElementById('password').value;
 
   if (!full_name_th || !full_name_en) { showErr(acceptErr, 'กรุณากรอกชื่อ–สกุล / Please enter your full name.'); return; }
-  if (invite.role === 'auditor' && !license_number) { showErr(acceptErr, 'ผู้ตรวจประเมินต้องกรอกเลขใบประกอบวิชาชีพ / Auditors must enter a license number.'); return; }
   if (password.length < 10 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
     showErr(acceptErr, 'รหัสผ่านต้องยาว ≥ 10 ตัว และมีทั้งตัวอักษรและตัวเลข / Password must be 10+ chars with a letter and a digit.');
     return;
@@ -113,7 +99,6 @@ passwordBtn.addEventListener('click', async () => {
   passwordBtn.disabled = true; passwordBtn.textContent = 'กำลังส่ง... / Sending...';
   const res = await api.acceptInvite(token, {
     method: 'password', password, full_name_th, full_name_en,
-    license_number: license_number || undefined,
   });
   passwordBtn.disabled = false; passwordBtn.textContent = 'ตั้งรหัสผ่านและส่งรหัส / Set password & send code';
 
@@ -141,7 +126,6 @@ verifyBtn.addEventListener('click', async () => {
     method: 'password', otp,
     full_name_th: document.getElementById('th').value.trim(),
     full_name_en: document.getElementById('en').value.trim(),
-    license_number: document.getElementById('license').value.trim() || undefined,
   });
   verifyBtn.disabled = false; verifyBtn.textContent = 'ยืนยันและเข้าร่วม / Verify & join';
 
@@ -154,33 +138,22 @@ verifyBtn.addEventListener('click', async () => {
 
 otpInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyBtn.click(); });
 
-// ---- Done: handle 'active' vs 'pending_license_review' ----
+// ---- Done: an accepted invite is always active (physician or auditor) ----
 function finishAccept(body) {
-  const status = body?.status;
   const cta = document.getElementById('doneCta');
 
-  if (status === 'active' && body?.access_token) {
-    // Active → store session + route by role.
-    localStorage.setItem('clics_token', body.access_token);
-    if (body.user) localStorage.setItem('clics_user', JSON.stringify(body.user));
-    const role = body.user?.role || invite.role;
-    document.getElementById('doneMsg').innerHTML =
-      '✅ <strong>เข้าร่วมเรียบร้อย / You\'re in.</strong><br/>บัญชีของคุณพร้อมใช้งานแล้ว<br/>Your account is active.';
-    if (role === 'physician') {
-      cta.textContent = 'ไปที่แดชบอร์ด / Go to dashboard →';
-      cta.href = '/dashboard';
-    } else {
-      cta.textContent = 'ไปที่คอนโซล / Go to console →';
-      cta.href = (window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?token=' + encodeURIComponent(body.access_token);
-    }
+  // Active → store session + route by role.
+  localStorage.setItem('clics_token', body.access_token);
+  if (body.user) localStorage.setItem('clics_user', JSON.stringify(body.user));
+  const role = body.user?.role || invite.role;
+  document.getElementById('doneMsg').innerHTML =
+    '✅ <strong>เข้าร่วมเรียบร้อย / You\'re in.</strong><br/>บัญชีของคุณพร้อมใช้งานแล้ว<br/>Your account is active.';
+  if (role === 'physician') {
+    cta.textContent = 'ไปที่แดชบอร์ด / Go to dashboard →';
+    cta.href = '/dashboard';
   } else {
-    // pending_license_review (auditor, unverified license) — deactivated until A/B verifies.
-    document.getElementById('doneMsg').innerHTML =
-      '⏳ <strong>ส่งเรื่องเพื่อตรวจสอบใบประกอบวิชาชีพ / Submitted for license review.</strong><br/>' +
-      'บัญชีผู้ตรวจประเมินของคุณจะใช้งานได้เมื่อผู้ดูแลยืนยันใบประกอบวิชาชีพแล้ว<br/>' +
-      'Your auditor account will be activated once an administrator verifies your license.';
-    cta.textContent = 'ไปหน้าเข้าสู่ระบบ / Go to login →';
-    cta.href = '/';
+    cta.textContent = 'ไปที่คอนโซล / Go to console →';
+    cta.href = (window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?token=' + encodeURIComponent(body.access_token);
   }
   show(doneCard);
 }

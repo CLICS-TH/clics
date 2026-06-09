@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
-import { ROLE_LABELS, ACCOUNT_STATUS_MAP, LICENSE_STATUS_MAP } from '@/lib/labels';
+import { ROLE_LABELS, ACCOUNT_STATUS_MAP } from '@/lib/labels';
 
 const PAGE_SIZE = 50;
 
@@ -14,7 +14,6 @@ type User = {
   specialty?: string | null; license_number?: string | null;
   status?: string; pseudonym?: string | null; council_id?: string | null;
   usage_cost_usd?: number | null; usage_limit_usd?: number | null;
-  license_status?: string | null;
 };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
 type Council = { id: string; code: string; name_th: string; name_en: string };
@@ -45,7 +44,7 @@ export default function UsersPage() {
     });
 
   // Reload the currently-loaded range from the top so mutations don't drop rows
-  // (used by create/edit/verify/status/reset handlers below).
+  // (used by create/edit/status/reset handlers below).
   const loadUsers = () => {
     const count = Math.min(Math.max(users.length, PAGE_SIZE), 200);
     return apiFetchPaged<User>(`/admin/users?limit=${count}&offset=0`).then(({ items, total }) => {
@@ -136,16 +135,6 @@ export default function UsersPage() {
     else setMsg(res?.error ?? 'รีเซ็ตไม่สำเร็จ / Reset failed.');
   }
 
-  // Manual license override — marks the member manual_verified and ACTIVATES a
-  // pending auditor (the valve for when the licence scraper is down).
-  async function verifyLicense(u: User) {
-    if (!confirm(`ยืนยันใบอนุญาตของ ${u.full_name_en} ด้วยตนเอง? / Manually verify this member's license?`)) return;
-    setMsg('');
-    const res: any = await apiFetch(`/admin/users/${u.id}/verify-license`, { method: 'POST', body: JSON.stringify({}) });
-    if (res?.id) { setMsg('ยืนยันใบอนุญาตแล้ว / License verified.'); loadUsers(); loadSlots(); }
-    else setMsg(typeof res?.error === 'string' ? res.error : 'ยืนยันไม่สำเร็จ / Verification failed.');
-  }
-
   async function toggleStatus(u: User) {
     const next = u.status === 'deactivated' ? 'active' : 'deactivated';
     if (!confirm(next === 'deactivated' ? 'ปิดใช้งานบัญชีนี้? / Deactivate this account?' : 'เปิดใช้งานอีกครั้ง? / Reactivate?')) return;
@@ -169,25 +158,6 @@ export default function UsersPage() {
       {ACCOUNT_STATUS_MAP[s ?? 'active'] ?? s}
     </span>
   );
-
-  // License-verification badge. Only auditors carry a meaningful licence status
-  // (physicians are added directly); '—' for everyone else.
-  const LicenseBadge = ({ u }: { u: User }) => {
-    if (u.role !== 'auditor') return <span className="text-xs text-muted-foreground">—</span>;
-    const ls = u.license_status ?? 'unverified';
-    const good = ls === 'verified' || ls === 'manual_verified';
-    return (
-      <Badge variant={good ? 'default' : ls === 'unverified' ? 'outline' : 'destructive'}>
-        {LICENSE_STATUS_MAP[ls] ?? ls}
-      </Badge>
-    );
-  };
-
-  // An auditor needs manual verification when their licence isn't (manually) verified
-  // OR their account is still deactivated/pending — verify() activates them.
-  const needsVerify = (u: User) =>
-    u.role === 'auditor' &&
-    (!(u.license_status === 'verified' || u.license_status === 'manual_verified') || u.status === 'deactivated');
 
   // AI usage meter for a physician: $used / $effective-limit + a thin bar.
   const UsageCell = ({ u }: { u: User }) => {
@@ -218,11 +188,6 @@ export default function UsersPage() {
   // Inline row actions, shared by the desktop table and the mobile cards.
   const RowActions = ({ u }: { u: User }) => (
     <div className="inline-flex items-center gap-1.5">
-      {needsVerify(u) && (
-        <Button size="sm" className="px-2 py-1 h-auto text-xs" onClick={() => verifyLicense(u)}>
-          ✓ ยืนยันใบอนุญาต / Verify
-        </Button>
-      )}
       {u.role === 'physician' && <IconBtn icon="📊" title="คะแนน / Scores" href={`/admin/lpdp/${u.id}`} />}
       {u.role === 'physician' && <IconBtn icon="↺" title="รีเซ็ตการใช้งาน / Reset usage" onClick={() => resetUsage(u)} />}
       <IconBtn icon="✎" title="แก้ไข / Edit" onClick={() => openEdit(u)} />
@@ -405,11 +370,6 @@ export default function UsersPage() {
               <p className="text-sm text-muted-foreground">{u.full_name_en}</p>
               {u.role !== 'superadmin' && <p className="text-xs text-muted-foreground">🏛 {councilName(u.council_id)}</p>}
               {u.role === 'physician' && <div className="pt-1"><UsageCell u={u} /></div>}
-              {u.role === 'auditor' && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1.5 pt-1">
-                  ใบอนุญาต / License: <LicenseBadge u={u} />
-                </p>
-              )}
               <div className="flex items-center justify-between pt-1">
                 <StatusBadge s={u.status} />
                 <RowActions u={u} />
@@ -426,7 +386,6 @@ export default function UsersPage() {
               <th className="px-3 py-3 text-left whitespace-nowrap">Role</th>
               <th className="px-3 py-3 text-left whitespace-nowrap">สภา / Council</th>
               <th className="px-3 py-3 text-left whitespace-nowrap">การใช้งาน AI / Usage</th>
-              <th className="px-3 py-3 text-left whitespace-nowrap">ใบอนุญาต / License</th>
               <th className="px-3 py-3 text-left whitespace-nowrap">สถานะ / Status</th>
               <th className="px-3 py-3 text-right whitespace-nowrap">การจัดการ / Actions</th>
             </tr></thead>
@@ -437,7 +396,6 @@ export default function UsersPage() {
                 <td className="px-3 py-3 whitespace-nowrap"><Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge></td>
                 <td className="px-3 py-3 whitespace-nowrap text-muted-foreground">{u.role === 'superadmin' ? '— ทุกสภา / All' : councilName(u.council_id)}</td>
                 <td className="px-3 py-3"><UsageCell u={u} /></td>
-                <td className="px-3 py-3 whitespace-nowrap"><LicenseBadge u={u} /></td>
                 <td className="px-3 py-3 whitespace-nowrap"><StatusBadge s={u.status} /></td>
                 <td className="px-3 py-3 text-right"><RowActions u={u} /></td>
               </tr>

@@ -29,7 +29,7 @@ const scopeToCouncil = (req, query) =>
 const sameCouncil = (req, councilId) =>
   req.user.role !== 'admin' || councilId === req.user.council_id;
 
-// Auditors are INVITE-ONLY now (the invite-accept flow enforces the license gate), so the legacy
+// Auditors are INVITE-ONLY (an A/B invite activates them; there is no license gate), so the legacy
 // access-request approval can grant only admin/physician — never auditor.
 const ApproveSchema = z.object({ granted_role: z.enum(['admin', 'physician']).optional() });
 const RejectSchema = z.object({ note: z.string().max(500).optional() });
@@ -450,27 +450,7 @@ router.delete('/invites/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
-// Manual license override (the valve for when the scraper is down). Marks the member
-// 'manual_verified' and ACTIVATES a pending auditor (after a slot check). Admin own council / superadmin.
-router.post('/users/:id/verify-license', async (req, res) => {
-  const { data: u } = await supabase.from('professionals')
-    .select('id, role, status, council_id, license_number, full_name_th').eq('id', req.params.id).single();
-  if (!u) return res.status(404).json({ error: 'Not found' });
-  if (!sameCouncil(req, u.council_id)) return res.status(404).json({ error: 'Not found' });
-
-  const patch = { license_status: 'manual_verified', license_verified_at: new Date().toISOString() };
-  if (u.role === 'auditor' && u.status !== 'active') {
-    const slot = await assertSlotAvailable('auditor', u.council_id);
-    if (!slot.ok) return res.status(409).json({ error: slot.error });
-    patch.status = 'active';
-  }
-  const { data, error } = await supabase.from('professionals').update(patch).eq('id', req.params.id).select('*').single();
-  if (sendDbError(res, error)) return;
-  await supabase.from('license_verifications').insert({
-    professional_id: u.id, license_number: u.license_number ?? 'manual', name_checked: u.full_name_th,
-    status: 'manual_verified', source: 'manual',
-  });
-  res.json(data);
-});
+// (License verification + the manual-verify override were retired 2026-06-09 — onboarding is
+// Google self-service + A/B invites, and an invite activates an auditor with no license gate.)
 
 module.exports = router;

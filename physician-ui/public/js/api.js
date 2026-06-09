@@ -61,13 +61,9 @@ window.api = {
   // Social sign-in (Google/LINE) is disabled for the pilot; the stub endpoints 404.
   requestAccess: (body) => publicFetch('/auth/request-access', { method: 'POST', body }),
 
-  // ---- Public signup / auth flows (all return { ok, status, body }) ----
-  // Email signup → emails a 6-digit OTP (202 { status:'otp_sent', email }).
-  signupEmail: (body) => publicFetch('/auth/signup/email', { method: 'POST', body }),
-  // Verify the signup OTP → 201 { access_token, user, license_status }.
-  verifySignupOtp: (email, token) => publicFetch('/auth/signup/verify-otp', { method: 'POST', body: { email, token } }),
-  // Resend the signup OTP (202 { status:'otp_sent' }; never reveals if the email exists).
-  resendSignupOtp: (email) => publicFetch('/auth/signup/resend-otp', { method: 'POST', body: { email } }),
+  // ---- Public auth flows (all return { ok, status, body }) ----
+  // Public email-OTP self-signup was retired — physicians self-serve via Google
+  // (oauthGoogleComplete below); A/B send invites for physicians + auditors.
   // Forgot password — ALWAYS 200 { ok:true } (never leaks whether the account exists).
   forgotPassword: (email) => publicFetch('/auth/forgot-password', { method: 'POST', body: { email } }),
   // Invite lookup → { email, role, council } (404 missing, 410 expired).

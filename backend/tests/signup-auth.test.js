@@ -44,10 +44,10 @@ test('POST /auth/oauth/google/complete is 404 while OAUTH_ENABLED is unset', asy
   expect(r.status).toBe(404);
 });
 
-test('POST /auth/signup/email rejects missing license_number (400)', async () => {
+test('public email-OTP self-signup was retired → POST /auth/signup/email is 404', async () => {
   const r = await request(app).post('/auth/signup/email').send({
     email: 'a@b.co', password: 'longenough1', council_id: '11111111-1111-1111-1111-111111111111',
     full_name_th: 'ก', full_name_en: 'A',
   });
-  expect(r.status).toBe(400);
+  expect(r.status).toBe(404);
 });

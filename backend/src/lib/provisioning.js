@@ -10,8 +10,10 @@ const { encryptJson } = require('./crypto');
 
 async function provisionProfessional({
   authUserId, role, councilId,
-  full_name_th, full_name_en, specialty = null, license_number = null,
-  license_status = 'unverified', status = 'active',
+  full_name_th, full_name_en, specialty = null, status = 'active',
+  // License No. + TMC verification were retired (2026-06-09): onboarding is Google + invite.
+  // These columns are kept DORMANT — written ONLY if a caller still passes them (reversible).
+  license_number = null, license_status = null,
   identity = null, // { provider, provider_subject, payload } -> on-prem encrypted vault row
 }) {
   const slot = await assertSlotAvailable(role, councilId);
@@ -24,12 +26,14 @@ async function provisionProfessional({
     full_name_th: full_name_th || full_name_en || 'Unknown',
     full_name_en: full_name_en || full_name_th || 'Unknown',
     specialty,
-    license_number,
-    license_status,
     status,
   };
-  if (license_status === 'verified' || license_status === 'manual_verified') {
-    insert.license_verified_at = new Date().toISOString();
+  if (license_number != null) insert.license_number = license_number;
+  if (license_status != null) {
+    insert.license_status = license_status;
+    if (license_status === 'verified' || license_status === 'manual_verified') {
+      insert.license_verified_at = new Date().toISOString();
+    }
   }
   if (role === 'physician') insert.pseudonym = await nextPseudonym();
 
