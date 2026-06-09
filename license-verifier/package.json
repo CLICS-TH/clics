@@ -1,0 +1,17 @@
+{
+  "name": "clics-license-verifier",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dedicated TMC (Medical Council of Thailand) license-verification scraper microservice for CLICS. Isolated from the API host; called only by the backend's tmc_scrape adapter over internal HTTP.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "playwright": "^1.40.0"
+  }
+}
