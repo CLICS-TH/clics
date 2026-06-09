@@ -16,20 +16,35 @@ function errText(body) {
   return 'กรุณาตรวจสอบข้อมูล / Please check your input.';
 }
 
+// ---- Populate the council picker ----
+(async () => {
+  const sel = document.getElementById('council');
+  const res = await api.councils();
+  if (res.ok && Array.isArray(res.body)) {
+    for (const c of res.body) {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = `${c.name_th} / ${c.name_en}`;
+      sel.appendChild(opt);
+    }
+  }
+})();
+
 // ---- Email request ----
 const submitBtn = document.getElementById('submitBtn');
 submitBtn.addEventListener('click', async () => {
   const body = {
     full_name_th: document.getElementById('th').value.trim(),
     full_name_en: document.getElementById('en').value.trim(),
+    council_id: document.getElementById('council').value || undefined,
     email: document.getElementById('email').value.trim(),
     password: document.getElementById('password').value,
     specialty: document.getElementById('specialty').value.trim() || undefined,
   };
   const err = document.getElementById('emailErr');
   err.style.display = 'none';
-  if (!body.full_name_th || !body.full_name_en || !body.email || body.password.length < 8) {
-    err.textContent = 'กรอกชื่อ อีเมล และรหัสผ่าน (≥ 8 ตัว) / Name, email, and an 8+ char password are required.';
+  if (!body.full_name_th || !body.full_name_en || !body.council_id || !body.email || body.password.length < 8) {
+    err.textContent = 'กรอกชื่อ สภาวิชาชีพ อีเมล และรหัสผ่าน (≥ 8 ตัว) / Name, council, email, and an 8+ char password are required.';
     err.style.display = 'block';
     return;
   }

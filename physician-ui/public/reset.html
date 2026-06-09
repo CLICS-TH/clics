@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="th" data-public>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLICS — ตั้งรหัสผ่านใหม่ / Reset password</title>
+  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);}catch(e){}})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .login-box { width:100%; max-width:420px; }
+    .logo { text-align:center; margin-bottom:32px; }
+    .logo h1 { font-size:32px; font-weight:600; color:var(--coral); font-family:var(--font-display); letter-spacing:-0.02em; }
+    .logo p { color:var(--muted); font-size:13px; margin-top:4px; }
+    @media (prefers-reduced-motion: no-preference) { .logo { animation: clics-rise .6s ease both; } }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <div class="logo">
+      <h1>CLICS</h1>
+      <p>ตั้งรหัสผ่านใหม่ · Reset password</p>
+    </div>
+
+    <!-- Loading / verifying the recovery link -->
+    <div class="card" id="loadingCard">
+      <p style="font-size:14px; color:var(--muted); text-align:center" id="loadingMsg">
+        กำลังตรวจสอบลิงก์... / Verifying your link...
+      </p>
+    </div>
+
+    <!-- New-password form -->
+    <div class="card" id="formCard" style="display:none">
+      <div class="form-group">
+        <label for="password">รหัสผ่านใหม่ / New password (≥ 10, ตัวอักษร+ตัวเลข)</label>
+        <input type="password" id="password" autocomplete="new-password" />
+      </div>
+      <div class="form-group">
+        <label for="confirm">ยืนยันรหัสผ่าน / Confirm password</label>
+        <input type="password" id="confirm" autocomplete="new-password" />
+      </div>
+      <div id="formErr" class="error-msg" style="display:none"></div>
+      <button class="btn btn-primary" style="width:100%" id="saveBtn">บันทึกรหัสผ่านใหม่ / Save new password</button>
+    </div>
+
+    <!-- Invalid / expired link -->
+    <div class="card" id="invalidCard" style="display:none">
+      <div class="error-msg" id="invalidMsg" style="display:block; font-size:14px; line-height:1.55"></div>
+      <a href="/forgot" class="btn btn-primary" style="width:100%;margin-top:16px">ขอลิงก์ใหม่ / Request a new link</a>
+      <p class="auth-links"><a href="/">← กลับเข้าสู่ระบบ / Back to login</a></p>
+    </div>
+
+    <!-- Success -->
+    <div class="card" id="successCard" style="display:none">
+      <div class="auth-success">
+        ✅ <strong>ตั้งรหัสผ่านใหม่เรียบร้อย / Password updated.</strong><br/>
+        เข้าสู่ระบบด้วยรหัสผ่านใหม่ได้เลย<br/>Sign in with your new password.
+      </div>
+      <a href="/" class="btn btn-primary" style="width:100%;margin-top:16px">ไปหน้าเข้าสู่ระบบ / Go to login →</a>
+    </div>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script type="module" src="/js/supabase-client.js"></script>
+  <script src="/js/reset.js"></script>
+  <script src="/js/boot.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="th" data-public>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLICS — ลืมรหัสผ่าน / Forgot password</title>
+  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);}catch(e){}})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .login-box { width:100%; max-width:420px; }
+    .logo { text-align:center; margin-bottom:32px; }
+    .logo h1 { font-size:32px; font-weight:600; color:var(--coral); font-family:var(--font-display); letter-spacing:-0.02em; }
+    .logo p { color:var(--muted); font-size:13px; margin-top:4px; }
+    @media (prefers-reduced-motion: no-preference) { .logo { animation: clics-rise .6s ease both; } }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <div class="logo">
+      <h1>CLICS</h1>
+      <p>ลืมรหัสผ่าน · Forgot password</p>
+    </div>
+
+    <!-- Request form -->
+    <div class="card" id="formCard">
+      <p style="font-size:14px; color:var(--muted); margin-bottom:16px; line-height:1.55">
+        กรอกอีเมลของคุณ เราจะส่งลิงก์สำหรับตั้งรหัสผ่านใหม่<br/>
+        Enter your email and we'll send a reset link.
+      </p>
+      <div class="form-group">
+        <label for="email">อีเมล / Email</label>
+        <input type="email" id="email" placeholder="doctor@hospital.th" autocomplete="email" />
+      </div>
+      <div id="formErr" class="error-msg" style="display:none"></div>
+      <button class="btn btn-primary" style="width:100%" id="sendBtn">ส่งลิงก์ตั้งรหัสผ่าน / Send reset link</button>
+      <p class="auth-links"><a href="/">← กลับเข้าสู่ระบบ / Back to login</a></p>
+    </div>
+
+    <!-- Always-on success state (never leaks whether the account exists) -->
+    <div class="card" id="successCard" style="display:none">
+      <div class="auth-success">
+        ✉️ <strong>หากมีอีเมลนี้ในระบบ เราได้ส่งลิงก์ตั้งรหัสผ่านไปแล้ว</strong><br/>
+        If an account exists for that email, a reset link has been sent. Check your inbox (and spam).
+      </div>
+      <a href="https://mail.google.com" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;margin-top:16px">เปิด Gmail / Open Gmail ↗</a>
+      <p class="auth-links"><a href="/">← กลับเข้าสู่ระบบ / Back to login</a></p>
+    </div>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/forgot.js"></script>
+  <script src="/js/boot.js" defer></script>
+</body>
+</html>
