@@ -192,6 +192,21 @@ create table public.ples (
 create index ples_folder_idx on public.ples(folder_id);
 create index ples_council_idx on public.ples(council_id);
 
+-- Structured patient identifier, PHYSICALLY ISOLATED from `ples` so it never leaks into the
+-- cloud-AI payload / auditor blind queue / de-identified export (which all read `ples`). Only the
+-- owning physician reads it. See db/migration-patient-intake.sql.
+create table public.ple_patient_refs (
+  ple_id        uuid primary key references public.ples(id) on delete cascade,
+  physician_id  uuid not null references public.professionals(id) on delete cascade,
+  patient_ref   text,
+  created_at    timestamptz not null default now()
+);
+create index ple_patient_refs_physician_idx on public.ple_patient_refs(physician_id);
+alter table public.ple_patient_refs enable row level security;
+drop policy if exists ple_patient_refs_owner on public.ple_patient_refs;
+create policy ple_patient_refs_owner on public.ple_patient_refs
+  for all using (physician_id = auth.uid()) with check (physician_id = auth.uid());
+
 -- One row per chat turn
 create table public.messages (
   id                uuid primary key default gen_random_uuid(),

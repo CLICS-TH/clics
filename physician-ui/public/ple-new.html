@@ -42,6 +42,11 @@
         <label>อาการสำคัญ / Chief Complaint <span style="color:var(--error)">*</span></label>
         <textarea id="complaint" rows="3" placeholder="เช่น ผู้ป่วยมาด้วยเจ็บหน้าอก / e.g. Patient presents with chest pain"></textarea>
       </div>
+      <div class="form-group">
+        <label>ตัวระบุผู้ป่วย / Patient identifier <span style="font-weight:400;opacity:.65">(ส่วนตัว / private)</span></label>
+        <input id="patientRef" type="text" maxlength="200" placeholder="เช่น HN หรือชื่อย่อ / e.g. HN or initials" />
+        <p style="font-size:.8rem;opacity:.7;margin:.4rem 0 0">เก็บเป็นความลับฝั่งคุณเท่านั้น — ไม่ส่งให้ AI ผู้ตรวจ หรือรายงาน • อย่าใส่ชื่อผู้ป่วยในช่องอาการสำคัญด้านบน<br/>Kept private to you — never sent to the AI, auditors, or reports. Keep patient names out of the Chief Complaint above.</p>
+      </div>
       <div id="error" class="error-msg" style="display:none"></div>
       <button class="btn btn-primary" id="startBtn" style="width:100%">เริ่มการสนทนา / Start Session</button>
     </div>
@@ -68,12 +73,13 @@
       const complaint = document.getElementById('complaint').value.trim();
       const specialty = document.getElementById('specialty').value;
       const folder_id = document.getElementById('folder').value || undefined;
+      const patient_ref = document.getElementById('patientRef').value.trim() || undefined;
       const errEl = document.getElementById('error');
       if (!complaint) { errEl.textContent = 'กรุณากรอกอาการสำคัญ'; errEl.style.display = 'block'; return; }
       errEl.style.display = 'none';
       const btn = document.getElementById('startBtn');
       btn.disabled = true; btn.textContent = 'กำลังสร้าง...';
-      const ple = await api.createPle({ specialty, chief_complaint: complaint, folder_id });
+      const ple = await api.createPle({ specialty, chief_complaint: complaint, folder_id, patient_ref });
       if (ple?.id) window.location.href = `/ple-chat?id=${ple.id}`;
       else {
         errEl.textContent = ple?.code === 'budget_exceeded'
