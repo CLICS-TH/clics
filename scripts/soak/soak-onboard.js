@@ -39,6 +39,10 @@ const TIERS = [
   const saT = sa.body.access_token;
   log('superadmin logged in.');
 
+  // Everyone joins the Medical Council in this soak cohort.
+  const TMC = ((await api('GET', '/admin/councils', { token: saT })).body || []).find(c => c.code === 'TMC')?.id;
+  if (!TMC) throw new Error('Medical Council (TMC) not found — run db/migration-councils.sql');
+
   // --- superadmin creates admins + auditors (the "invite") ---
   const admins = [
     { email: 'soakadmin1@example.com', full_name_th: 'ผู้จัดการ หนึ่ง', full_name_en: 'Pilot Admin 1' },
@@ -50,18 +54,18 @@ const TIERS = [
     { email: 'soakaud3@example.com', full_name_th: 'ผู้ตรวจ สาม', full_name_en: 'Auditor 3' },
   ];
   for (const a of admins) {
-    const r = await api('POST', '/admin/users', { token: saT, body: { ...a, password: PW, role: 'admin' } });
+    const r = await api('POST', '/admin/users', { token: saT, body: { ...a, password: PW, role: 'admin', council_id: TMC } });
     log(`  create admin   ${a.email}: ${r.status}`);
   }
   for (const a of auditors) {
-    const r = await api('POST', '/admin/users', { token: saT, body: { ...a, password: PW, role: 'auditor' } });
+    const r = await api('POST', '/admin/users', { token: saT, body: { ...a, password: PW, role: 'auditor', council_id: TMC } });
     log(`  create auditor ${a.email}: ${r.status}`);
   }
 
   // --- 10 users self-register ---
   for (const p of TIERS) {
     const email = `soakdoc${p.n}@example.com`;
-    const r = await api('POST', '/auth/request-access', { body: { email, password: PW, full_name_th: p.th, full_name_en: p.en, specialty: 'Internal Medicine' } });
+    const r = await api('POST', '/auth/request-access', { body: { email, password: PW, council_id: TMC, full_name_th: p.th, full_name_en: p.en, specialty: 'Internal Medicine' } });
     log(`  request-access ${email} (${p.tier}): ${r.status}`);
   }
 
