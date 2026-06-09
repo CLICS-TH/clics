@@ -37,6 +37,23 @@ export const PROVIDER_LABELS: Record<string, string> = {
   line: 'LINE',
 };
 
+// Invite lifecycle (POST/GET /admin/invites).
+export const INVITE_STATUS_MAP: Record<string, string> = {
+  pending: 'รอตอบรับ / Pending',
+  accepted: 'ตอบรับแล้ว / Accepted',
+  revoked: 'เพิกถอน / Revoked',
+  expired: 'หมดอายุ / Expired',
+};
+
+// License verification status on a professional row (license_status).
+export const LICENSE_STATUS_MAP: Record<string, string> = {
+  unverified: 'ยังไม่ตรวจสอบ / Unverified',
+  verified: 'ตรวจสอบแล้ว / Verified',
+  not_found: 'ไม่พบใบอนุญาต / Not found',
+  name_mismatch: 'ชื่อไม่ตรงกัน / Name mismatch',
+  manual_verified: 'ตรวจสอบโดยเจ้าหน้าที่ / Manual verified',
+};
+
 // PIS-7 domain weights (must mirror backend/src/services/cle-gate.js).
 export const WEIGHTS: Record<string, number> = {
   d1: 0.15, d2: 0.20, d3: 0.15, d4: 0.15, d5: 0.15, d6: 0.10, d7: 0.10,

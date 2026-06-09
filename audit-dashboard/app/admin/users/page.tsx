@@ -1,26 +1,31 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, apiFetchPaged } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
-import { ROLE_LABELS, ACCOUNT_STATUS_MAP } from '@/lib/labels';
+import { ROLE_LABELS, ACCOUNT_STATUS_MAP, LICENSE_STATUS_MAP } from '@/lib/labels';
+
+const PAGE_SIZE = 50;
 
 type User = {
   id: string; role: string; full_name_th: string; full_name_en: string;
   specialty?: string | null; license_number?: string | null;
-  status?: string; pseudonym?: string | null;
+  status?: string; pseudonym?: string | null; council_id?: string | null;
   usage_cost_usd?: number | null; usage_limit_usd?: number | null;
+  license_status?: string | null;
 };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
+type Council = { id: string; code: string; name_th: string; name_en: string };
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [cap, setCap] = useState<Record<string, string>>({});
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ email:'', password:'', role:'physician', full_name_th:'', full_name_en:'', specialty:'', license_number:'' });
+  const [councils, setCouncils] = useState<Council[]>([]);
+  const [form, setForm] = useState({ email:'', password:'', role:'physician', council_id:'', full_name_th:'', full_name_en:'', specialty:'', license_number:'' });
   const [err, setErr] = useState('');
   const [msg, setMsg] = useState('');
   const [editing, setEditing] = useState<User | null>(null);
@@ -28,9 +33,32 @@ export default function UsersPage() {
   const [stdLimit, setStdLimit] = useState('');             // org standard usage limit ($)
   const [poolLimit, setPoolLimit] = useState('');           // total API budget pool ($)
   const [totalUsed, setTotalUsed] = useState(0);            // total spent across all members ($)
+  const [total, setTotal] = useState(0);                    // total user count (X-Total-Count)
+  const [loadingMore, setLoadingMore] = useState(false);
   const mobile = useIsMobile();
 
-  const loadUsers = () => apiFetch<User[]>('/admin/users').then(d => setUsers(d ?? []));
+  // Fetch one page (newest-first) and append, or replace from offset 0.
+  const loadUsersPage = (offset: number) =>
+    apiFetchPaged<User>(`/admin/users?limit=${PAGE_SIZE}&offset=${offset}`).then(({ items, total }) => {
+      setTotal(total);
+      setUsers(prev => (offset === 0 ? items : [...prev, ...items]));
+    });
+
+  // Reload the currently-loaded range from the top so mutations don't drop rows
+  // (used by create/edit/verify/status/reset handlers below).
+  const loadUsers = () => {
+    const count = Math.min(Math.max(users.length, PAGE_SIZE), 200);
+    return apiFetchPaged<User>(`/admin/users?limit=${count}&offset=0`).then(({ items, total }) => {
+      setTotal(total);
+      setUsers(items);
+    });
+  };
+
+  const loadMore = async () => {
+    setLoadingMore(true);
+    try { await loadUsersPage(users.length); }
+    finally { setLoadingMore(false); }
+  };
   const loadSlots = () => apiFetch<Slot[]>('/admin/slots').then(d => {
     setSlots(d ?? []);
     setCap(Object.fromEntries((d ?? []).map(s => [s.role, String(s.capacity)])));
@@ -41,7 +69,10 @@ export default function UsersPage() {
       setPoolLimit(d?.api_budget_pool_usd ? String(d.api_budget_pool_usd) : '');
       setTotalUsed(Number(d?.total_used_usd ?? 0));
     });
-  useEffect(() => { loadUsers(); loadSlots(); loadUsageSettings(); }, []);
+  const loadCouncils = () => apiFetch<Council[]>('/admin/councils').then(d => setCouncils(d ?? []));
+  useEffect(() => { loadUsersPage(0); loadSlots(); loadUsageSettings(); loadCouncils(); }, []);
+
+  const councilName = (id?: string | null) => councils.find(c => c.id === id)?.name_th ?? '—';
 
   function openEdit(u: User) {
     setEditing(u);
@@ -53,8 +84,9 @@ export default function UsersPage() {
 
   async function createUser() {
     setErr('');
+    if (!form.council_id) { setErr('เลือกสภาวิชาชีพ / Select a council.'); return; }
     const res: any = await apiFetch('/admin/users', { method:'POST', body: JSON.stringify(form) });
-    if (res?.id) { setShowForm(false); loadUsers(); loadSlots(); }
+    if (res?.id) { setShowForm(false); setForm(s => ({ ...s, council_id:'' })); loadUsers(); loadSlots(); }
     else setErr(res?.error?.fieldErrors ? JSON.stringify(res.error.fieldErrors) : res?.error ?? 'Error');
   }
 
@@ -66,7 +98,7 @@ export default function UsersPage() {
       specialty: editing.specialty ?? '', license_number: editing.license_number ?? '',
     };
     // The superadmin role is immutable — never send a role change for it (backend rejects it too).
-    if (editing.role !== 'superadmin') body.role = editing.role;
+    if (editing.role !== 'superadmin') { body.role = editing.role; body.council_id = editing.council_id; }
     // Usage limit override: a number sets a per-user cap; empty clears it (null => standard default).
     const trimmed = editLimit.trim();
     body.usage_limit_usd = trimmed === '' ? null : Number(trimmed);
@@ -104,6 +136,16 @@ export default function UsersPage() {
     else setMsg(res?.error ?? 'รีเซ็ตไม่สำเร็จ / Reset failed.');
   }
 
+  // Manual license override — marks the member manual_verified and ACTIVATES a
+  // pending auditor (the valve for when the licence scraper is down).
+  async function verifyLicense(u: User) {
+    if (!confirm(`ยืนยันใบอนุญาตของ ${u.full_name_en} ด้วยตนเอง? / Manually verify this member's license?`)) return;
+    setMsg('');
+    const res: any = await apiFetch(`/admin/users/${u.id}/verify-license`, { method: 'POST', body: JSON.stringify({}) });
+    if (res?.id) { setMsg('ยืนยันใบอนุญาตแล้ว / License verified.'); loadUsers(); loadSlots(); }
+    else setMsg(typeof res?.error === 'string' ? res.error : 'ยืนยันไม่สำเร็จ / Verification failed.');
+  }
+
   async function toggleStatus(u: User) {
     const next = u.status === 'deactivated' ? 'active' : 'deactivated';
     if (!confirm(next === 'deactivated' ? 'ปิดใช้งานบัญชีนี้? / Deactivate this account?' : 'เปิดใช้งานอีกครั้ง? / Reactivate?')) return;
@@ -127,6 +169,25 @@ export default function UsersPage() {
       {ACCOUNT_STATUS_MAP[s ?? 'active'] ?? s}
     </span>
   );
+
+  // License-verification badge. Only auditors carry a meaningful licence status
+  // (physicians are added directly); '—' for everyone else.
+  const LicenseBadge = ({ u }: { u: User }) => {
+    if (u.role !== 'auditor') return <span className="text-xs text-muted-foreground">—</span>;
+    const ls = u.license_status ?? 'unverified';
+    const good = ls === 'verified' || ls === 'manual_verified';
+    return (
+      <Badge variant={good ? 'default' : ls === 'unverified' ? 'outline' : 'destructive'}>
+        {LICENSE_STATUS_MAP[ls] ?? ls}
+      </Badge>
+    );
+  };
+
+  // An auditor needs manual verification when their licence isn't (manually) verified
+  // OR their account is still deactivated/pending — verify() activates them.
+  const needsVerify = (u: User) =>
+    u.role === 'auditor' &&
+    (!(u.license_status === 'verified' || u.license_status === 'manual_verified') || u.status === 'deactivated');
 
   // AI usage meter for a physician: $used / $effective-limit + a thin bar.
   const UsageCell = ({ u }: { u: User }) => {
@@ -157,6 +218,11 @@ export default function UsersPage() {
   // Inline row actions, shared by the desktop table and the mobile cards.
   const RowActions = ({ u }: { u: User }) => (
     <div className="inline-flex items-center gap-1.5">
+      {needsVerify(u) && (
+        <Button size="sm" className="px-2 py-1 h-auto text-xs" onClick={() => verifyLicense(u)}>
+          ✓ ยืนยันใบอนุญาต / Verify
+        </Button>
+      )}
       {u.role === 'physician' && <IconBtn icon="📊" title="คะแนน / Scores" href={`/admin/lpdp/${u.id}`} />}
       {u.role === 'physician' && <IconBtn icon="↺" title="รีเซ็ตการใช้งาน / Reset usage" onClick={() => resetUsage(u)} />}
       <IconBtn icon="✎" title="แก้ไข / Edit" onClick={() => openEdit(u)} />
@@ -269,6 +335,11 @@ export default function UsersPage() {
             value={form.role} onChange={e => setForm(s => ({ ...s, role: e.target.value }))}>
             {Object.entries(ROLE_LABELS).filter(([v]) => v !== 'superadmin').map(([v,l]) => <option key={v} value={v}>{l}</option>)}
           </select>
+          <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
+            value={form.council_id} onChange={e => setForm(s => ({ ...s, council_id: e.target.value }))}>
+            <option value="">— เลือกสภาวิชาชีพ / Select council —</option>
+            {councils.map(c => <option key={c.id} value={c.id}>{c.name_th} / {c.name_en}</option>)}
+          </select>
           {err && <p className="text-destructive text-sm">{err}</p>}
           <Button className="w-full" onClick={createUser}>สร้างผู้ใช้ (active ทันที)</Button>
         </div>
@@ -299,10 +370,17 @@ export default function UsersPage() {
             <input className="w-full border rounded-lg px-3 py-2 text-sm bg-muted text-muted-foreground"
               value="Superadmin (locked)" disabled readOnly />
           ) : (
-            <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
-              value={editing.role} onChange={e => setEditing(u => u && ({ ...u, role: e.target.value }))}>
-              {Object.entries(ROLE_LABELS).filter(([v]) => v !== 'superadmin').map(([v,l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
+            <>
+              <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
+                value={editing.role} onChange={e => setEditing(u => u && ({ ...u, role: e.target.value }))}>
+                {Object.entries(ROLE_LABELS).filter(([v]) => v !== 'superadmin').map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+              <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
+                value={editing.council_id ?? ''} onChange={e => setEditing(u => u && ({ ...u, council_id: e.target.value }))}>
+                <option value="">— เลือกสภาวิชาชีพ / Select council —</option>
+                {councils.map(c => <option key={c.id} value={c.id}>{c.name_th} / {c.name_en}</option>)}
+              </select>
+            </>
           )}
           <div className="flex gap-2">
             <Button onClick={saveEdit}>บันทึก / Save</Button>
@@ -310,6 +388,11 @@ export default function UsersPage() {
           </div>
         </div>
       )}
+
+      {/* Loaded-vs-total count for the user list. */}
+      <p className="mb-3 text-xs text-muted-foreground">
+        แสดง {users.length} จาก {total} / Showing {users.length} of {total}
+      </p>
 
       {mobile ? (
         <div className="space-y-3">
@@ -320,7 +403,13 @@ export default function UsersPage() {
                 <Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge>
               </div>
               <p className="text-sm text-muted-foreground">{u.full_name_en}</p>
+              {u.role !== 'superadmin' && <p className="text-xs text-muted-foreground">🏛 {councilName(u.council_id)}</p>}
               {u.role === 'physician' && <div className="pt-1"><UsageCell u={u} /></div>}
+              {u.role === 'auditor' && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5 pt-1">
+                  ใบอนุญาต / License: <LicenseBadge u={u} />
+                </p>
+              )}
               <div className="flex items-center justify-between pt-1">
                 <StatusBadge s={u.status} />
                 <RowActions u={u} />
@@ -335,7 +424,9 @@ export default function UsersPage() {
               <th className="px-3 py-3 text-left whitespace-nowrap">ชื่อ (TH)</th>
               <th className="px-3 py-3 text-left whitespace-nowrap">ชื่อ (EN)</th>
               <th className="px-3 py-3 text-left whitespace-nowrap">Role</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">สภา / Council</th>
               <th className="px-3 py-3 text-left whitespace-nowrap">การใช้งาน AI / Usage</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">ใบอนุญาต / License</th>
               <th className="px-3 py-3 text-left whitespace-nowrap">สถานะ / Status</th>
               <th className="px-3 py-3 text-right whitespace-nowrap">การจัดการ / Actions</th>
             </tr></thead>
@@ -344,12 +435,22 @@ export default function UsersPage() {
                 <td className="px-3 py-3 whitespace-nowrap">{u.full_name_th}{u.pseudonym ? <span className="text-muted-foreground text-xs"> · {u.pseudonym}</span> : ''}</td>
                 <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">{u.full_name_en}</td>
                 <td className="px-3 py-3 whitespace-nowrap"><Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge></td>
+                <td className="px-3 py-3 whitespace-nowrap text-muted-foreground">{u.role === 'superadmin' ? '— ทุกสภา / All' : councilName(u.council_id)}</td>
                 <td className="px-3 py-3"><UsageCell u={u} /></td>
+                <td className="px-3 py-3 whitespace-nowrap"><LicenseBadge u={u} /></td>
                 <td className="px-3 py-3 whitespace-nowrap"><StatusBadge s={u.status} /></td>
                 <td className="px-3 py-3 text-right"><RowActions u={u} /></td>
               </tr>
             ))}</tbody>
           </table>
+        </div>
+      )}
+
+      {users.length < total && (
+        <div className="mt-5 flex justify-center">
+          <Button variant="outline" onClick={loadMore} disabled={loadingMore}>
+            {loadingMore ? 'กำลังโหลด… / Loading…' : 'โหลดเพิ่ม / Load more'}
+          </Button>
         </div>
       )}
     </div>

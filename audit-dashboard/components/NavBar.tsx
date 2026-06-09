@@ -12,12 +12,14 @@ import { useViewport } from './ViewportProvider';
 const ADMIN_LINKS = [
   { href: '/admin/ples', label: 'PLEs' },
   { href: '/admin/requests', label: 'คำขอ / Requests' },
+  { href: '/admin/invites', label: 'คำเชิญ / Invites' },
   { href: '/admin/flagged', label: 'QA Queue' },
   { href: '/admin/stats', label: 'สถิติ / Stats' },
 ];
 const SUPERADMIN_LINKS = [
   { href: '/admin/ples', label: 'PLEs' },
   { href: '/admin/requests', label: 'คำขอ / Requests' },
+  { href: '/admin/invites', label: 'คำเชิญ / Invites' },
   { href: '/admin/users', label: 'ผู้ใช้งาน / Users' },
   { href: '/admin/flagged', label: 'QA Queue' },
   { href: '/admin/icc', label: 'ICC' },

@@ -1,8 +1,18 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { getSupabaseBrowser, isSupabaseConfigured } from '@/lib/supabase-browser';
+
+interface ClicsUser { id: string; role: string; full_name_th: string; full_name_en: string; }
+
+function redirectByRole(role: string, router: ReturnType<typeof useRouter>) {
+  // All dashboard roles land on the role-aware /home; each card links into its workspace.
+  if (role === 'auditor' || role === 'admin' || role === 'superadmin') router.push('/home');
+  else router.push('/login');
+}
 
 function LoginForm() {
   const router = useRouter();
@@ -11,6 +21,8 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
+  const oauthEnabled = isSupabaseConfigured();
 
   useEffect(() => {
     const token = params.get('token');
@@ -22,6 +34,44 @@ function LoginForm() {
       });
     }
   }, [params, router]);
+
+  // Finish a Google sign-in after Supabase redirects back here with a session in
+  // the URL hash. The browser client (detectSessionInUrl:true) parses it; we hand
+  // the access_token to the backend, which validates it and returns our CLICS user.
+  useEffect(() => {
+    if (!oauthEnabled) return;
+    let cancelled = false;
+    const sb = (() => { try { return getSupabaseBrowser(); } catch { return null; } })();
+    if (!sb) return;
+
+    async function complete(accessToken: string) {
+      // The backend ignores council_id for an existing professional, but its schema
+      // still requires a UUID — pass the first known council to satisfy validation.
+      const councils = await apiFetch<{ id: string }[]>('/auth/councils').catch(() => []);
+      const council_id = councils?.[0]?.id;
+      const res: any = await apiFetch('/auth/oauth/google/complete', {
+        method: 'POST', body: JSON.stringify({ access_token: accessToken, council_id }),
+      });
+      if (cancelled) return;
+      if (res?.access_token) {
+        localStorage.setItem('clics_token', res.access_token);
+        localStorage.setItem('clics_user', JSON.stringify(res.user));
+        await sb!.auth.signOut().catch(() => {});
+        redirectByRole(res.user.role, router);
+      } else {
+        setError(typeof res?.error === 'string' ? res.error : 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ / Google sign-in failed.');
+      }
+    }
+
+    sb.auth.getSession().then(({ data }) => {
+      if (!cancelled && data?.session?.access_token) complete(data.session.access_token);
+    });
+    const { data: sub } = sb.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.access_token) complete(session.access_token);
+    });
+    return () => { cancelled = true; sub.subscription.unsubscribe(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [oauthEnabled, router]);
 
   async function handleLogin() {
     setError(''); setLoading(true);
@@ -35,6 +85,20 @@ function LoginForm() {
       redirectByRole(data.user.role, router);
     } else {
       setError(data?.error ?? 'เข้าสู่ระบบไม่สำเร็จ');
+    }
+  }
+
+  async function handleGoogle() {
+    setError(''); setGoogleBusy(true);
+    try {
+      const sb = getSupabaseBrowser();
+      const redirectTo = `${window.location.origin}/login`;
+      const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
+      if (error) { setError(error.message); setGoogleBusy(false); }
+      // On success the browser navigates away to Google; no further code runs here.
+    } catch (e: any) {
+      setError(e?.message ?? 'ไม่สามารถเริ่ม Google ได้ / Could not start Google sign-in.');
+      setGoogleBusy(false);
     }
   }
 
@@ -55,17 +119,28 @@ function LoginForm() {
         <Button className="w-full" onClick={handleLogin} disabled={loading}>
           {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ / Login'}
         </Button>
+
+        {oauthEnabled && (
+          <>
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">หรือ / or</span>
+              <span className="h-px flex-1 bg-border" />
+            </div>
+            <Button variant="outline" className="w-full" onClick={handleGoogle} disabled={googleBusy}>
+              {googleBusy ? 'กำลังเปิด Google…' : 'เข้าสู่ระบบด้วย Google / Sign in with Google'}
+            </Button>
+          </>
+        )}
+
+        <p className="text-center">
+          <Link href="/forgot" className="text-sm text-primary underline-offset-4 hover:underline">
+            ลืมรหัสผ่าน? / Forgot password?
+          </Link>
+        </p>
       </div>
     </div>
   );
-}
-
-interface ClicsUser { id: string; role: string; full_name_th: string; full_name_en: string; }
-
-function redirectByRole(role: string, router: ReturnType<typeof useRouter>) {
-  // All dashboard roles land on the role-aware /home; each card links into its workspace.
-  if (role === 'auditor' || role === 'admin' || role === 'superadmin') router.push('/home');
-  else router.push('/login');
 }
 
 export default function LoginPage() {

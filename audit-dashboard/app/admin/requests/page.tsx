@@ -11,7 +11,7 @@ import { ROLE_LABELS, PROVIDER_LABELS, REQUEST_STATUS_MAP } from '@/lib/labels';
 type Reviewer = { full_name_en: string | null; full_name_th: string | null; pseudonym: string | null };
 type Req = {
   id: string; email: string | null; full_name_th: string | null; full_name_en: string | null;
-  specialty: string | null; provider: string; requested_role: string; created_at: string;
+  specialty: string | null; council_id: string | null; provider: string; requested_role: string; created_at: string;
   status: string; reviewed_at: string | null; note: string | null; reviewer?: Reviewer | null;
 };
 
@@ -29,7 +29,14 @@ export default function RequestsPage() {
   const [grant, setGrant] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState('');
+  const [councils, setCouncils] = useState<Record<string, string>>({});
   const mobile = useIsMobile();
+
+  useEffect(() => {
+    apiFetch<any[]>('/admin/councils').then(d =>
+      setCouncils(Object.fromEntries((d ?? []).map((c: any) => [c.id, c.name_th]))));
+  }, []);
+  const councilName = (id: string | null) => (id && councils[id]) || '—';
 
   // Only a superadmin may grant the admin role (backend enforces this too).
   const isSuper = getUser()?.role === 'superadmin';
@@ -137,7 +144,7 @@ export default function RequestsPage() {
                 <tr key={r.id} className="border-t align-middle">
                   <td className="px-4 py-3">
                     <div className="font-medium">{r.full_name_th || r.full_name_en || '—'}</div>
-                    <div className="text-muted-foreground text-xs">{r.full_name_en}{r.specialty ? ` · ${r.specialty}` : ''}</div>
+                    <div className="text-muted-foreground text-xs">{r.full_name_en}{r.specialty ? ` · ${r.specialty}` : ''} · 🏛 {councilName(r.council_id)}</div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{r.email ?? '—'}</td>
                   <td className="px-4 py-3"><Badge variant="outline">{PROVIDER_LABELS[r.provider] ?? r.provider}</Badge></td>
@@ -184,7 +191,7 @@ export default function RequestsPage() {
                 <tr key={r.id} className="border-t align-middle">
                   <td className="px-4 py-3">
                     <div className="font-medium">{r.full_name_th || r.full_name_en || '—'}</div>
-                    <div className="text-muted-foreground text-xs">{r.full_name_en}{r.specialty ? ` · ${r.specialty}` : ''}</div>
+                    <div className="text-muted-foreground text-xs">{r.full_name_en}{r.specialty ? ` · ${r.specialty}` : ''} · 🏛 {councilName(r.council_id)}</div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{r.email ?? '—'}</td>
                   <td className="px-4 py-3">{ROLE_LABELS[r.requested_role] ?? r.requested_role}</td>
