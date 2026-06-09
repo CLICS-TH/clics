@@ -1,13 +1,14 @@
-// db/reset-demo.js — FULL CLEAN SLATE reset of the CLICS app.
+// db/reset-demo.js — reset the CLICS app to a clean slate, PRESERVING test history.
 //
-// Wipes ALL activity (PLEs + messages + AI evals + audit scores + LPDP + access
-// requests + OAuth identities) and ALL accounts EXCEPT the superadmin bootstrap,
-// then resets the role slot pools. Use before a fresh demo/soak run.
+// Wipes all REAL activity (PLEs + messages + AI evals + audit scores + LPDP where is_test=false)
+// and every non-superadmin account EXCEPT the accounts that own or scored a TEST session
+// (ples.is_test = true). Test sessions are kept so they can keep feeding the audit system.
+// councils + council_slots are CONFIGURATION and are never wiped.
 //
 //   cd backend && NODE_PATH="$PWD/node_modules" node ../db/reset-demo.js
 //
-// Reads backend/.env for the prod Supabase service-role key. DESTRUCTIVE — there is
-// no undo. Re-create demo accounts afterwards with db/seed-users.js if desired.
+// Mark sessions test first with db/mark-test-sessions.js. Reads backend/.env for the prod
+// Supabase service-role key. DESTRUCTIVE for real data — there is no undo.
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 
@@ -30,7 +31,7 @@ async function count(table) {
   return count ?? 0;
 }
 async function snapshot(label) {
-  const tables = ['professionals', 'ples', 'messages', 'ai_evaluations', 'audit_scores', 'lpdp_snapshots', 'access_requests', 'oauth_identities'];
+  const tables = ['councils', 'professionals', 'ples', 'messages', 'ai_evaluations', 'audit_scores', 'lpdp_snapshots', 'access_requests', 'oauth_identities'];
   const out = {};
   for (const t of tables) out[t] = await count(t);
   console.log(`\n${label}:`);
@@ -51,29 +52,54 @@ async function listAllUsers() {
   }
 }
 
+// IDs of every account that owns or scored a TEST session — these must survive the reset,
+// or the FK ples.physician_id → professionals would be orphaned.
+async function testAccountIds() {
+  const keep = new Set();
+  const { data: testPles } = await supabase.from('ples').select('id, physician_id, auditor_id').eq('is_test', true);
+  const ids = [];
+  for (const p of testPles ?? []) {
+    if (p.physician_id) keep.add(p.physician_id);
+    if (p.auditor_id) keep.add(p.auditor_id);
+    ids.push(p.id);
+  }
+  if (ids.length) {
+    const { data: scores } = await supabase.from('audit_scores').select('auditor_id').in('ple_id', ids);
+    for (const s of scores ?? []) if (s.auditor_id) keep.add(s.auditor_id);
+  }
+  return keep;
+}
+
 (async () => {
-  console.log('CLICS FULL RESET — wiping all activity + non-superadmin accounts.');
+  console.log('CLICS RESET — wiping REAL activity + accounts; keeping test sessions + their accounts.');
   await snapshot('BEFORE');
 
-  // Order matters: lpdp + ples-cascade first (FKs to professionals have no cascade),
-  // then standalone tables, then auth users (deleting an auth user cascades its professional).
-  await wipe('lpdp_snapshots');
-  await wipe('ples');             // cascades messages, ai_evaluations, audit_scores
+  // Delete only REAL sessions (is_test=false). Their messages/ai_evaluations/audit_scores cascade;
+  // lpdp_snapshots has no cascade, so remove those rows by ple_id first.
+  const { data: realPles } = await supabase.from('ples').select('id').eq('is_test', false);
+  const realIds = (realPles ?? []).map(p => p.id);
+  if (realIds.length) {
+    await supabase.from('lpdp_snapshots').delete().in('ple_id', realIds);
+    await supabase.from('ples').delete().in('id', realIds);
+  }
   await wipe('access_requests');
-  await wipe('oauth_identities');
 
+  // Accounts to keep = superadmin + everyone tied to a surviving test session.
   const all = await listAllUsers();
-  const keep = all.find(u => u.email?.toLowerCase() === KEEP_SUPERADMIN.toLowerCase());
-  let deleted = 0;
+  const sa = all.find(u => u.email?.toLowerCase() === KEEP_SUPERADMIN.toLowerCase());
+  const keepIds = await testAccountIds();
+  if (sa) keepIds.add(sa.id);
+
+  let deleted = 0, kept = 0;
   for (const u of all) {
-    if (keep && u.id === keep.id) continue;
-    await supabase.auth.admin.deleteUser(u.id); // cascades the professionals row
+    if (keepIds.has(u.id)) { kept++; continue; }
+    await supabase.auth.admin.deleteUser(u.id); // cascades the professionals row + oauth_identities
     deleted++;
   }
-  console.log(`\nDeleted ${deleted} non-superadmin auth users.`);
+  console.log(`\nDeleted ${deleted} accounts; kept ${kept} (superadmin + test-session owners/scorers).`);
 
-  // Ensure the superadmin bootstrap exists, active, with a known password.
-  let saId = keep?.id;
+  // Ensure the superadmin bootstrap exists, active, with a known password and no council.
+  let saId = sa?.id;
   if (saId) {
     await supabase.auth.admin.updateUserById(saId, { password: SUPERADMIN_PW, email_confirm: true });
   } else {
@@ -82,14 +108,21 @@ async function listAllUsers() {
     saId = data.user.id;
   }
   await supabase.from('professionals').upsert({
-    id: saId, role: 'superadmin', status: 'active',
+    id: saId, role: 'superadmin', status: 'active', council_id: null,
     full_name_th: 'ผู้ดูแลระบบสูงสุด', full_name_en: 'Super Admin',
   }, { onConflict: 'id' });
 
+  // Restore global slot pools; restore per-council admin/auditor pools for every council.
   await supabase.from('role_slots').upsert(SLOTS, { onConflict: 'role' });
-  console.log('Superadmin reset; slot pools restored to defaults.');
+  const { data: councils } = await supabase.from('councils').select('id');
+  const councilSlots = (councils ?? []).flatMap(c => [
+    { council_id: c.id, role: 'admin', capacity: 5 },
+    { council_id: c.id, role: 'auditor', capacity: 20 },
+  ]);
+  if (councilSlots.length) await supabase.from('council_slots').upsert(councilSlots, { onConflict: 'council_id,role' });
+  console.log('Superadmin reset; global + per-council slot pools restored. Councils preserved.');
 
   await snapshot('AFTER');
-  console.log('\nClean slate ready. Only the superadmin remains.');
+  console.log('\nReset complete. Real data cleared; test history + councils preserved.');
   process.exit(0);
 })().catch(e => { console.error('RESET FAILED:', e.message); process.exit(1); });
