@@ -9,11 +9,20 @@
 
 All four are distinct roles enforced by `requireRole(...)` middleware in `backend/`. Superadmin is **not** an alias of admin — superadmin-only routes are `GET/POST/PATCH /admin/users`, `PATCH /admin/users/:id/status`, `GET/PATCH /admin/slots`, `GET /admin/icc`, `GET /admin/lpdp/:id`.
 
+## Professional councils (สภาวิชาชีพ) & scoping
+
+CLICS is organized by **professional council** (`councils` table — Medical/แพทยสภา, Pharmacy, Dental, Engineering, …; superadmin-seeded). Every physician/auditor/admin belongs to **exactly one** council (`professionals.council_id`); the **superadmin spans all** councils (`council_id = NULL`, enforced by the `prof_council_required` check).
+
+- **Admin (B) is the "director" of one council** and sees only that council's C and D, PLEs, requests, ICC, and exports. Scoping is enforced in the **routes** (`scopeToCouncil`/`sameCouncil` in `admin.js`) — the backend uses the service-role key and bypasses RLS, so route filters are load-bearing; the council-scoped RLS policies are defense-in-depth for any future direct-JWT client.
+- **Superadmin (A) sees every council** and a **per-council ICC breakdown** (`GET /admin/icc` returns `per_council`).
+- Sessions denormalize `council_id` at creation (`ples.council_id`, `audit_scores.council_id`) so filtering/ICC never join `professionals` at 80K scale; this is set at write time and never re-synced on a council change.
+
 ## Account lifecycle, requests & slot pools
 
-- **Invite/approve only:** new people use **Request access** (physician portal — email or Google/LINE). A request creates a Supabase auth user but **no** `professionals` row, so they stay **pending** (`verifyJwt`/`login` return 403 `code:pending`) until approved. No self-activation; requesters never self-assign a role.
-- **Approval queue** (`GET /admin/access-requests`, `…/approve`, `…/reject`) is visible to **admin _and_ superadmin** (nav: "Requests"). Approval **assigns** the role and consumes a slot. Admin may grant `physician`/`auditor`; only **superadmin** may grant `admin`; `superadmin` is never grantable (pool = 1, bootstrap-only via `seed-users.js`).
-- **Role slot pools** (`role_slots`) and **member management** (add/edit/deactivate any member) are **superadmin-only** (nav: "Users"). Caps are enforced on approval/create/reactivate (full pool → 409). Deactivated members free their slot; `verifyJwt` 403s them (`code:deactivated`).
+- **Google auto-verify (physicians):** a Google sign-in **auto-provisions an active physician** with the self-selected council and **no admin approval** (the load reducer for ~80K users). OAuth is gated by `OAUTH_ENABLED`. Email **Request access** still creates a Supabase auth user with **no** `professionals` row → **pending** (`code:pending`) until approved. Both paths require a `council_id`.
+- **Auditor (D) elevation always needs A/B approval** via the access-request queue (`GET /admin/access-requests`, `…/approve`, `…/reject`, nav "Requests"). Approval **assigns** the role + council and consumes a slot. Admin may grant `physician`/`auditor` **within their own council**; only **superadmin** may grant `admin`; `superadmin` is never grantable (bootstrap-only via `seed-users.js`).
+- **One person is either C or D, never both, and never evaluates their own work:** the assign route + the `audit_scores_guard` DB trigger reject assigning/scoring where the auditor is the physician, or the auditor's council ≠ the session's council.
+- **Slot pools:** physicians are **uncapped** (Google self-signup); `admin`/`auditor` capacity is **per-council** (`council_slots`); `superadmin` stays a global singleton. Member management (add/edit/deactivate, set council) is **superadmin-only** (nav: "Users").
 - **Guest** is a pseudo-role (no account): an ephemeral 2-prompt trial from the physician portal ("Try as guest"); nothing is persisted. See [constraints.md](constraints.md).
 
 ## Post-login routing (which app + landing)

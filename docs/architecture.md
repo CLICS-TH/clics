@@ -23,7 +23,7 @@ Cloud AI (GPU) — randomized per session, no PII leaves on-premise
        │  JSON response → RIMPL post-filter
        ▼
 Supabase (PostgreSQL · AES-256)
-  Tables: professionals · ples · audit_trail · professions · lpdp_snapshots
+  Tables: professionals · councils · ples · audit_scores · lpdp_snapshots
 ```
 
 **Critical data-boundary rule:** PII never leaves the on-premise RIMPL layer. Only de-identified JSON fragments reach cloud AI providers.
