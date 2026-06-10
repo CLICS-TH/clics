@@ -233,7 +233,8 @@ nav a:hover { color:var(--ink); }
 .auth-divider::before, .auth-divider::after { content:""; flex:1; height:1px; background:var(--hairline); }
 .auth-oauth { display:flex; flex-direction:column; gap:10px; }
 .auth-oauth .btn { width:100%; }
-.oauth-mark { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:var(--r-sm); background:var(--coral); color:#fff; font-weight:700; font-size:12px; }
+.oauth-mark { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:#fff; color:#fff; font-weight:700; font-size:12px; }
+.oauth-mark svg { width:14px; height:14px; display:block; }
 .oauth-mark.oauth-line { background:#06c755; }
 .auth-links { text-align:center; font-size:13px; color:var(--muted); margin-top:18px; }
 .auth-links a { color:var(--coral); font-weight:600; text-decoration:none; }

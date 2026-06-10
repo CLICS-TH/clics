@@ -1,14 +1,9 @@
 const user = auth.guardRole('physician'); // throws (and heals storage) when the session is unusable
 document.getElementById('greeting').textContent = `สวัสดี, ${user.full_name_th || user.full_name_en}`;
 
-// ---- Pilot: expectation banner + informed-consent gate (human-subjects study) ----
+// ---- Pilot: informed-consent gate (human-subjects study). The banner was removed by request;
+// the de-identified-cases + provisional-scores expectations live in the consent dialog text. ----
 (function pilotGate() {
-  const host = document.querySelector('main') || document.body;
-  const banner = document.createElement('div');
-  banner.style.cssText = 'background:#fff5e6;border:1px solid #e8a55a;color:#6b4a1a;padding:8px 14px;border-radius:10px;font-size:13px;margin:0 0 14px;';
-  banner.innerHTML = '⚠️ ใช้เคสที่ไม่ระบุตัวตนผู้ป่วยเท่านั้น · คะแนนเป็นเบื้องต้น ยังไม่ใช่หน่วยกิต CME — Use de-identified cases only · scores are provisional (not yet CME credit).';
-  host.insertBefore(banner, host.firstChild);
-
   if (user.consented_at) return; // already consented
 
   const ov = document.createElement('div');
