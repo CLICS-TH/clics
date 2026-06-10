@@ -235,6 +235,13 @@ nav a:hover { color:var(--ink); }
 .auth-oauth .btn { width:100%; }
 .oauth-mark { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:#fff; color:#fff; font-weight:700; font-size:12px; }
 .oauth-mark svg { width:14px; height:14px; display:block; }
+.btn .oauth-g { width:16px; height:16px; flex:none; margin-right:8px; vertical-align:-3px; }
+/* Password reveal (matches the audit-dashboard's lucide eye / eye-off toggle) */
+.pw-toggle { position:absolute; top:50%; right:6px; transform:translateY(-50%); display:flex; align-items:center; background:none; border:none; cursor:pointer; padding:6px; color:var(--muted); }
+.pw-toggle:hover { color:var(--ink); }
+.pw-toggle .pw-eye-off { display:none; }
+.pw-toggle.pw-on .pw-eye { display:none; }
+.pw-toggle.pw-on .pw-eye-off { display:block; }
 .oauth-mark.oauth-line { background:#06c755; }
 .auth-links { text-align:center; font-size:13px; color:var(--muted); margin-top:18px; }
 .auth-links a { color:var(--coral); font-weight:600; text-decoration:none; }
