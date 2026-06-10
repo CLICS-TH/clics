@@ -1,5 +1,7 @@
 # CLICS E2E Audit + 80K-Scale + TMC Scraper — Report
 
+> **Superseded in part (2026-06-09 manager decision):** License No. + TMC verification were **retired** after this audit — onboarding is now Google self-service (physicians) + A/B invite links that activate immediately (auditors too), and public email-OTP self-signup was removed. The license/TMC sections below (license gates, `pending_license_review`, manual verify, the scraper) are kept as a **historical record**; the schema stays dormant for reversibility — see `db/migration-drop-license-gate.sql`.
+
 _Audit of: all-roles E2E, the new Google/invite/license flows, ~80K-user DB scale, and the live TMC scraper. Generated during the 2026-06-09 audit session._
 
 ## 1. Summary
