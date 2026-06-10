@@ -26,6 +26,7 @@ function getTransport() {
     secure: port === 465,
     ...(process.env.SMTP_USER ? { auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } } : {}),
     connectionTimeout: 10_000,
+    greetingTimeout: 10_000,   // nodemailer's default is 30s — a blackholed SMTP greeting must not hold the invite response
     socketTimeout: 10_000,
   });
   return _transport;

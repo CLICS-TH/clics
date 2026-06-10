@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { computeICC21 } = require('../services/icc');
-const { sendDbError, pageParams } = require('../lib/db-helpers');
+const { sendDbError } = require('../lib/db-helpers');
 const { assertSlotAvailable, nextPseudonym, allSlotUsage, ROLES } = require('../lib/accounts');
 
 const router = Router();

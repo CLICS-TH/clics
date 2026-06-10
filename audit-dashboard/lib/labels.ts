@@ -23,20 +23,6 @@ export const ACCOUNT_STATUS_MAP: Record<string, string> = {
   deactivated: 'ปิดใช้งาน / Deactivated',
 };
 
-// Access-request lifecycle.
-export const REQUEST_STATUS_MAP: Record<string, string> = {
-  pending: 'รออนุมัติ / Pending',
-  approved: 'อนุมัติแล้ว / Approved',
-  rejected: 'ปฏิเสธ / Rejected',
-};
-
-// Provider label for an access request / linked identity.
-export const PROVIDER_LABELS: Record<string, string> = {
-  email: 'Email',
-  google: 'Google',
-  line: 'LINE',
-};
-
 // Invite lifecycle (POST/GET /admin/invites).
 export const INVITE_STATUS_MAP: Record<string, string> = {
   pending: 'รอตอบรับ / Pending',
@@ -49,6 +35,31 @@ export const INVITE_STATUS_MAP: Record<string, string> = {
 export const WEIGHTS: Record<string, number> = {
   d1: 0.15, d2: 0.20, d3: 0.15, d4: 0.15, d5: 0.15, d6: 0.10, d7: 0.10,
 };
+
+// PIS-7 domain keys + abbreviated labels, positionally aligned (ICC dashboard + executive overview).
+export const DOMAIN_KEYS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
+export const DOMAIN_LABELS = ['CQI', 'RD', 'CI', 'II', 'CA', 'RS', 'ALPS'];
+
+// Headline PLE cards from GET /admin/stats. Covers EVERY status so the cards reconcile to the
+// total (Evaluated + Awaiting QA + Did-not-pass + In-progress = Total) — cle_fail_t1 once had no
+// card and the numbers never added up. key '' = all; in_progress = active+ended+cle_pass (the
+// same UI bucket the PLEs page filters by).
+export function pleStatusCards(stats: Record<string, number> | null | undefined) {
+  const s = stats ?? {};
+  const inProgress = (s.active ?? 0) + (s.ended ?? 0) + (s.cle_pass ?? 0);
+  return [
+    { label: 'PLEs ทั้งหมด / Total', value: s.total ?? 0, key: '' },
+    { label: 'ประเมินแล้ว / Evaluated', value: s.evaluated ?? 0, key: 'evaluated' },
+    { label: 'รอ QA / Awaiting QA', value: s.cle_flag_t2 ?? 0, key: 'cle_flag_t2' },
+    { label: 'ไม่ผ่านเกณฑ์ / Did not pass', value: s.cle_fail_t1 ?? 0, key: 'cle_fail_t1' },
+    { label: 'กำลังดำเนินการ / In progress', value: inProgress, key: 'in_progress' },
+  ];
+}
+
+// Org API-budget meter tone — one set of thresholds/colors everywhere (amber ≥75%, red ≥90%).
+export function budgetToneHex(fraction: number): string {
+  return fraction >= 0.9 ? '#c64545' : fraction >= 0.75 ? '#e08a1e' : '#5db872';
+}
 
 // 0–5 domain scores → 0–100 composite (max = 5 × 1.0 × 20).
 export function computeComposite(scores: Record<string, number>): number {

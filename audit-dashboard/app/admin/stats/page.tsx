@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
+import { pleStatusCards } from '@/lib/labels';
 import { PageIntro } from '@/components/PageIntro';
 import { CardGridSkeleton } from '@/components/Skeleton';
 
@@ -19,17 +20,9 @@ export default function StatsPage() {
       </div>
     </>
   );
-  // Cover EVERY status so the cards reconcile to the total (Evaluated + Awaiting QA + Did-not-pass
-  // + In-progress = Total). Previously cle_fail_t1 had no card, so the numbers never added up.
-  const inProgress = (stats.active ?? 0) + (stats.ended ?? 0) + (stats.cle_pass ?? 0);
+  // Shared card set (lib/labels.ts) — every status covered so the cards reconcile to the total.
   // Each card drills into /admin/ples filtered by that category (key '' = all).
-  const cards = [
-    { label: 'PLEs ทั้งหมด / Total', value: stats.total, key: '' },
-    { label: 'ประเมินแล้ว / Evaluated', value: stats.evaluated ?? 0, key: 'evaluated' },
-    { label: 'รอ QA / Awaiting QA', value: stats.cle_flag_t2 ?? 0, key: 'cle_flag_t2' },
-    { label: 'ไม่ผ่านเกณฑ์ / Did not pass', value: stats.cle_fail_t1 ?? 0, key: 'cle_fail_t1' },
-    { label: 'กำลังดำเนินการ / In progress', value: inProgress, key: 'in_progress' },
-  ];
+  const cards = pleStatusCards(stats);
   return (
     <>
       <div className="max-w-4xl mx-auto p-6 md:p-10">

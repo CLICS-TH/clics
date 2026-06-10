@@ -7,7 +7,7 @@ const { AssignSchema } = require('../lib/schemas');
 const { triggerEvaluation } = require('../services/ple-evaluation');
 const { reconcileEvaluations } = require('../services/reconcile');
 const { sendDbError, pageParams } = require('../lib/db-helpers');
-const { assertSlotAvailable, nextPseudonym } = require('../lib/accounts');
+const { assertSlotAvailable } = require('../lib/accounts');
 const { newInviteToken } = require('../lib/invite-token');
 const { isMailerEnabled, sendInviteEmail } = require('../lib/mailer');
 
@@ -345,9 +345,11 @@ router.post('/invites', async (req, res) => {
       councilNameTh: council?.name_th, councilNameEn: council?.name_en, expiresAt: expires_at,
     });
     if (email_sent) {
-      // Best-effort stamp; swallow errors so a pre-migration DB can't break invite creation.
+      // Best-effort stamp; never break invite creation over it (e.g. a pre-migration DB) — but do
+      // log: supabase-js RESOLVES with { error }, so a silent .then would hide real failures.
       await supabase.from('invites').update({ email_sent_at: new Date().toISOString() }).eq('id', data.id)
-        .then(() => {}, () => {});
+        .then(({ error: e }) => { if (e) console.error('[invites] email_sent_at stamp failed:', e.message); },
+              (e) => console.error('[invites] email_sent_at stamp failed:', e.message));
     }
   }
   res.status(201).json({ ...data, accept_url, email_sent });
@@ -356,7 +358,7 @@ router.post('/invites', async (req, res) => {
 // List invites (admins see only their council; superadmin all). Optional ?status= filter.
 router.get('/invites', async (req, res) => {
   let q = supabase.from('invites')
-    .select('id, email, role, council_id, status, expires_at, accepted_at, created_at')
+    .select('id, email, role, council_id, status, expires_at, accepted_at, email_sent_at, created_at')
     .order('created_at', { ascending: false });
   if (typeof req.query.status === 'string') q = q.eq('status', req.query.status);
   q = scopeToCouncil(req, q);

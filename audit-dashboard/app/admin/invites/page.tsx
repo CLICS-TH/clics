@@ -145,14 +145,15 @@ export default function InvitesPage() {
             แสดงเพียงครั้งเดียว — คัดลอกและส่งให้ผู้รับ / Shown once only — copy it and send it to the recipient.
           </p>
           {/* Email-delivery status — only when the backend reported it (backward compatible). */}
-          {created.email_sent === true && (
-            <p className="inline-flex items-center gap-1 rounded-full border border-green-300 bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300">
-              ส่งอีเมลถึงผู้รับแล้ว ✓ / Invite email sent
-            </p>
-          )}
-          {created.email_sent === false && (
-            <p className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
-              ยังไม่ได้ส่งอีเมล — คัดลอกลิงก์ด้านล่างไปส่งเอง / Email not sent — share the link below
+          {created.email_sent !== undefined && (
+            <p className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${
+              created.email_sent
+                ? 'border-green-300 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300'
+                : 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300'
+            }`}>
+              {created.email_sent
+                ? 'ส่งอีเมลถึงผู้รับแล้ว ✓ / Invite email sent'
+                : 'ยังไม่ได้ส่งอีเมล — คัดลอกลิงก์ด้านล่างไปส่งเอง / Email not sent — share the link below'}
             </p>
           )}
           <div className="flex items-center gap-2">

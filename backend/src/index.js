@@ -38,13 +38,8 @@ app.use((req, res, next) => {
 const limit = (windowMs, max, message) => rateLimit({ windowMs, max, standardHeaders: true, legacyHeaders: false, message: { error: message } });
 app.use(limit(60_000, 300, 'Too many requests — slow down.'));            // general: 300/min/IP
 app.use('/auth/login', limit(60_000, 10, 'Too many login attempts — wait a minute.'));
-app.use('/auth/request-access', limit(60 * 60_000, 5, 'Too many access requests — try again later.'));
-// Split the signup caps: tight on the email-sending actions, more generous on OTP verify so a
-// user who mistypes the code a few times isn't locked out. (Supabase's own otp/email rate limits
-// are the per-email guard — see docs/AUTH-SETUP.md.)
-app.use('/auth/signup/email', limit(60 * 60_000, 5, 'Too many signup attempts — try again later.'));
-app.use('/auth/signup/resend-otp', limit(60 * 60_000, 6, 'Too many code requests — try again later.'));
-app.use('/auth/signup/verify-otp', limit(60_000, 15, 'Too many code attempts — wait a minute.'));
+// (request-access + signup/* limiters removed with those flows — the routes are 404 stubs now;
+// Supabase's own otp/email rate limits remain the per-email guard — see docs/AUTH-SETUP.md.)
 app.use('/auth/forgot-password', limit(60 * 60_000, 5, 'Too many reset requests — try again later.'));
 app.use('/auth/invite', limit(60_000, 12, 'Too many invite attempts — slow down.'));
 app.use('/guest', limit(60_000, 15, 'Guest limit reached — slow down.'));
@@ -54,6 +49,9 @@ app.use('/auth', require('./routes/auth'));
 app.use('/guest', require('./routes/guest')); // ephemeral guest mode (no auth, no persistence)
 app.use('/ples/folders', require('./routes/folders')); // before /ples so "folders" isn't read as :id
 app.use('/ples', require('./routes/ples'));
+// ORDER LOAD-BEARING: admin.js must mount before superadmin.js — superadmin.js opens with a
+// router-level requireRole('superadmin') that 403s and ENDS every admin-role request, and
+// admin.js's GET /users intentionally shadows the same path (dual-role, council-scoped).
 app.use('/admin', require('./routes/admin'));
 app.use('/auditor', require('./routes/auditor'));
 app.use('/admin', require('./routes/superadmin'));

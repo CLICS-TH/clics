@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
-import { ROLE_LABELS, ACCOUNT_STATUS_MAP } from '@/lib/labels';
+import { ROLE_LABELS, ACCOUNT_STATUS_MAP, budgetToneHex } from '@/lib/labels';
 
 const PAGE_SIZE = 50;
 
@@ -217,7 +217,7 @@ export default function UsersPage() {
   const poolPctNum = parseFloat(poolLimit);
   const poolHasValue = Number.isFinite(poolPctNum) && poolPctNum > 0;
   const poolPct = poolHasValue ? Math.min(100, Math.round((totalUsed / poolPctNum) * 100)) : 0;
-  const poolTone = poolPct >= 90 ? 'bg-destructive' : poolPct >= 75 ? 'bg-[#e08a1e]' : 'bg-[#5db872]';
+  const poolToneColor = budgetToneHex(poolPct / 100); // shared thresholds/colors (lib/labels.ts)
 
   return (
     <div className="max-w-7xl mx-auto p-6 md:p-10">
@@ -273,7 +273,7 @@ export default function UsersPage() {
           </span>
         </div>
         {poolHasValue && (
-          <div className="h-2 mt-1.5 rounded-full bg-muted overflow-hidden"><div className={`h-full ${poolTone}`} style={{ width: `${poolPct}%` }} /></div>
+          <div className="h-2 mt-1.5 rounded-full bg-muted overflow-hidden"><div className="h-full" style={{ width: `${poolPct}%`, backgroundColor: poolToneColor }} /></div>
         )}
         <div className="flex items-center gap-2 mt-3">
           <span className="text-sm text-muted-foreground">ตั้งงบรวม $ / Set pool $</span>

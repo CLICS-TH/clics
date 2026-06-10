@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
+import { DOMAIN_KEYS, DOMAIN_LABELS, ROLE_LABELS, pleStatusCards, budgetToneHex } from '@/lib/labels';
 import { PageIntro } from '@/components/PageIntro';
 import { IccPanel } from '@/components/IccPanel';
 import { Skeleton, CardGridSkeleton } from '@/components/Skeleton';
@@ -25,11 +26,6 @@ type UsageSettings = { standard_limit_usd: number; api_budget_pool_usd: number; 
 type CountRow = { council_id: string; role: string; n: number };
 type Invite = { id: string; email: string; status: string };
 
-const DOMAIN_KEYS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
-const DOMAIN_LABELS = ['CQI', 'RD', 'CI', 'II', 'CA', 'RS', 'ALPS'];
-const SLOT_ROLE_LABELS: Record<string, string> = {
-  superadmin: 'Superadmin', admin: 'Admin', physician: 'แพทย์ / Physician', auditor: 'Auditor',
-};
 
 export default function OverviewPage() {
   const router = useRouter();
@@ -53,14 +49,8 @@ export default function OverviewPage() {
     apiFetch<Invite[]>('/admin/invites?status=pending').then(d => setPendingInvites(Array.isArray(d) ? d : [])).catch(() => setPendingInvites([]));
   }, [router]);
 
-  // ---- ① Headline cards (mirrors /admin/stats bucketing: in_progress = active+ended+cle_pass) ----
-  const inProgress = stats ? (stats.active ?? 0) + (stats.ended ?? 0) + (stats.cle_pass ?? 0) : 0;
-  const headline = [
-    { label: 'PLEs ทั้งหมด / Total', value: stats?.total ?? 0, key: '' },
-    { label: 'ประเมินแล้ว / Evaluated', value: stats?.evaluated ?? 0, key: 'evaluated' },
-    { label: 'รอ QA / Awaiting QA', value: stats?.cle_flag_t2 ?? 0, key: 'cle_flag_t2' },
-    { label: 'กำลังดำเนินการ / In progress', value: inProgress, key: 'in_progress' },
-  ];
+  // ---- ① Headline cards — the shared /admin/stats card set (reconciles to the total) ----
+  const headline = pleStatusCards(stats);
 
   // ---- ② Per-domain chart data ----
   const domainData = icc
@@ -76,7 +66,7 @@ export default function OverviewPage() {
   const pool = usage?.api_budget_pool_usd ?? 0;
   const used = usage?.total_used_usd ?? 0;
   const budgetPct = pool > 0 ? Math.min(used / pool, 1) : 0;
-  const budgetColor = budgetPct >= 0.9 ? '#c64545' : budgetPct >= 0.75 ? '#e8a55a' : '#5db872';
+  const budgetColor = budgetToneHex(budgetPct);
 
   return (
     <div className="mx-auto w-full max-w-5xl p-6 md:p-10 space-y-8">
@@ -89,7 +79,7 @@ export default function OverviewPage() {
       {/* ① Headline PLE cards — each drills into /admin/ples filtered by its bucket. */}
       <section>
         {stats ? (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
             {headline.map(c => (
               <a key={c.label} href={`/admin/ples${c.key ? `?status=${c.key}` : ''}`}
                 className="block rounded-xl border p-5 text-center transition-colors hover:bg-secondary hover:border-primary/40 cursor-pointer"
@@ -99,7 +89,7 @@ export default function OverviewPage() {
               </a>
             ))}
           </div>
-        ) : <CardGridSkeleton cards={4} />}
+        ) : <CardGridSkeleton cards={5} />}
       </section>
 
       {/* ② Calibration hero — overall ICC + gate badge beside the per-domain bar chart. */}
@@ -196,7 +186,7 @@ export default function OverviewPage() {
                   const pct = s.capacity > 0 ? Math.min(s.used / s.capacity, 1) : 0;
                   return (
                     <div key={s.role} className="flex items-center gap-3">
-                      <span className="w-36 shrink-0 text-xs text-muted-foreground">{SLOT_ROLE_LABELS[s.role] ?? s.role}</span>
+                      <span className="w-36 shrink-0 text-xs text-muted-foreground">{ROLE_LABELS[s.role] ?? s.role}</span>
                       <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-muted">
                         <div className={`h-full rounded-full ${full ? 'bg-destructive' : 'bg-primary'}`}
                           style={{ width: `${pct * 100}%` }} />

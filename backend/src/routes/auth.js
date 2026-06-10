@@ -128,7 +128,10 @@ router.post('/request-access', (_req, res) =>
 // Public email-OTP self-signup was RETIRED (2026-06-09): physicians self-serve via Google
 // (POST /auth/oauth/google/complete) and A/B invite links. Email+password LOGIN still serves
 // superadmin/admin, admin-provisioned, and password-invite accounts.
+// Loud 404 stubs (same style as /request-access below) so stale clients fail with a clear message.
 // ---------------------------------------------------------------------------
+router.post(['/signup/email', '/signup/verify-otp', '/signup/resend-otp'], (_req, res) =>
+  res.status(404).json({ error: 'Self-service signup is retired — sign in with Google or use an invite link.' }));
 
 // POST /auth/forgot-password — always 200 (never leak whether an account exists).
 router.post('/forgot-password', async (req, res) => {

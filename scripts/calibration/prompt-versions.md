@@ -18,7 +18,7 @@ runs below measure against the regenerated cohort; archived under `runs/`.
 ⚠️ v2's first measurement read 0.487 — poisoned by ONE malformed eval (AI=0, missing domains). The
 harness now validates each eval (retry once, drop on second failure). The clean re-run (n=30; one
 PLE dropped — the 46k-token transcript truncates the evaluator's 1000-token output) gave 0.811.
-Follow-up: raise `maxTokens` in `rimpl/src/routes/evaluate.js` for very long transcripts.
+(Follow-up done 2026-06-10: `maxTokens` raised to 2000 in `rimpl/src/routes/evaluate.js`.)
 
 ## Notes per version
 

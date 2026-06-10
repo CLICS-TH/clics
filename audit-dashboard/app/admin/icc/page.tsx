@@ -5,8 +5,7 @@ import { IccPanel } from '@/components/IccPanel';
 import { BlandAltmanPlot } from '@/components/BlandAltmanPlot';
 import { PageIntro } from '@/components/PageIntro';
 import { Skeleton } from '@/components/Skeleton';
-
-const DOMAIN_LABELS = ['CQI','RD','CI','II','CA','RS','ALPS'];
+import { DOMAIN_LABELS } from '@/lib/labels';
 
 export default function IccPage() {
   const [data, setData] = useState<any>(null);
