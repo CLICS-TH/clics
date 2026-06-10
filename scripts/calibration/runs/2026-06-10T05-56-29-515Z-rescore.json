@@ -1,0 +1,138 @@
+{
+  "stamp": "2026-06-10T05-56-29-515Z",
+  "mode": "rescore",
+  "prompt_sha": "a849c6b21b946a0c882bb181298cf24606b1dcb9f28707c5e582af753f73e8c1",
+  "gate": 0.75,
+  "baseline_icc": 0.662,
+  "icc": {
+    "icc": 0.811,
+    "lower": 0.636,
+    "upper": 0.906,
+    "n": 30,
+    "interpretation": "Good"
+  },
+  "pairCount": 30,
+  "perPle": [
+    {
+      "pseudonym": "P-012",
+      "ai": 39,
+      "human": 35,
+      "delta": 4,
+      "n_human": 3
+    },
+    {
+      "pseudonym": "P-013",
+      "ai": 64,
+      "human": 61.3,
+      "delta": 2.7,
+      "n_human": 3
+    },
+    {
+      "pseudonym": "P-014",
+      "ai": 68,
+      "human": 59.3,
+      "delta": 8.7,
+      "n_human": 3
+    },
+    {
+      "pseudonym": "P-015",
+      "ai": 65,
+      "human": 61.3,
+      "delta": 3.7,
+      "n_human": 3
+    },
+    {
+      "pseudonym": "P-013",
+      "ai": 63,
+      "human": 61.3,
+      "delta": 1.7,
+      "n_human": 3
+    },
+    {
+      "pseudonym": "P-017",
+      "ai": 75,
+      "human": 85.7,
+      "delta": -10.7,
+      "n_human": 3
+    },
+    {
+      "pseudonym": "P-017",
+      "ai": 84,
+      "human": 85.7,
+      "delta": -1.7,
+      "n_human": 3
+    },
+    {
+      "pseudonym": "P-015",
+      "ai": 60,
+      "human": 61.3,
+      "delta": -1.3,
+      "n_human": 3
+    },
+    {
+      "pseudonym": "P-014",
+      "ai": 49,
+      "human": 59.3,
+      "delta": -10.3,
+      "n_human": 3
+    },
+    {
+      "pseudonym": "P-016",
+      "ai": 85,
+      "human": 78.7,
+      "delta": 6.3,
+      "n_human": 3
+    }
+  ],
+  "domain": {
+    "d1": {
+      "name": "ClinQ",
+      "weight": 0.15,
+      "ai": 3.8,
+      "human": 3.5,
+      "delta": 0.3
+    },
+    "d2": {
+      "name": "Reason",
+      "weight": 0.2,
+      "ai": 3.7,
+      "human": 3.27,
+      "delta": 0.43
+    },
+    "d3": {
+      "name": "Context",
+      "weight": 0.15,
+      "ai": 3.3,
+      "human": 3.1,
+      "delta": 0.2
+    },
+    "d4": {
+      "name": "Iterative",
+      "weight": 0.15,
+      "ai": 3.2,
+      "human": 3.53,
+      "delta": -0.33
+    },
+    "d5": {
+      "name": "Appraisal",
+      "weight": 0.15,
+      "ai": 2.5,
+      "human": 2.77,
+      "delta": -0.27
+    },
+    "d6": {
+      "name": "Reflect",
+      "weight": 0.1,
+      "ai": 2.9,
+      "human": 3.1,
+      "delta": -0.2
+    },
+    "d7": {
+      "name": "AILit",
+      "weight": 0.1,
+      "ai": 3.1,
+      "human": 3.47,
+      "delta": -0.37
+    }
+  }
+}

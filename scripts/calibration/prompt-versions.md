@@ -1,14 +1,24 @@
 # PIS-7 Evaluator Prompt — Calibration Versions
 
-Archive of `PIS7_EVALUATOR_PROMPT` (`rimpl/src/lib/prompts.js`) revisions and the ICC each produced
-on the fixed soak cohort (`--mode rescore`). Goal: lift AI↔human ICC from 0.66 toward ≥0.75 by
-removing the AI's leniency on templated/structured reasoning. (See README caveats — these are
-directional, not a passed gate.)
+Archive of `PIS7_EVALUATOR_PROMPT` (`rimpl/src/lib/prompts.js`) revisions and the ICC each produced.
+Goal: lift AI↔human ICC toward ≥0.75 by removing the AI's leniency on templated/structured reasoning.
+(See README caveats — these are directional, not a passed gate.)
 
-| Version | Prompt sha (first 12) | ICC (95% CI) | d2 Δ | d3 Δ | What changed |
-|---------|-----------------------|--------------|------|------|--------------|
-| v0 (soak baseline) | _from `--mode baseline`_ | 0.662 (0.40–0.83) | +0.80 | +0.83 | original prompt (2026-06-07) |
-| v1 | _tbd_ | _tbd_ | _tbd_ | _tbd_ | _tbd_ |
+**Cohort note (2026-06-10):** the original 2026-06-07 soak cohort (ICC 0.662) was wiped by its own
+clean-slate step and had no backups, so the cohort was REGENERATED on the scaletest project via
+`scripts/soak/` (11 evaluated PLEs, 3 agent-rater stances, 33 ratings; inter-rater ICC 0.742). All
+runs below measure against the regenerated cohort; archived under `runs/`.
+
+| Version | Prompt sha (first 12) | ICC (95% CI, regen cohort) | Mean bias | What changed |
+|---------|-----------------------|----------------------------|-----------|--------------|
+| v0 (original) | `--mode baseline` 2026-06-10 | **0.377** (0.04–0.64) n=33 | **+16.4** lenient | original prompt (2026-06-07); worst d2 +1.36, d6 +1.24, d1 +1.15 |
+| v1 | 4d23a997f403 | **0.700** (0.47–0.84) n=33 | ≈ −8 | calibration rules: structure ≠ depth, quote-evidence threshold for 4–5, template caps, "expect 2–3" — overcorrected the top tier (P-016/17 −12…−16) |
+| **v2 (CURRENT)** | a849c6b21b94 | **0.811** (0.64–0.91) n=30 | ≈ ±0 | kept v1's brakes; removed middle-compression ("use the FULL scale", award evidenced 4–5 confidently, linkage phrases count when they engage content) — all domain Δ ≤ \|0.43\| |
+
+⚠️ v2's first measurement read 0.487 — poisoned by ONE malformed eval (AI=0, missing domains). The
+harness now validates each eval (retry once, drop on second failure). The clean re-run (n=30; one
+PLE dropped — the 46k-token transcript truncates the evaluator's 1000-token output) gave 0.811.
+Follow-up: raise `maxTokens` in `rimpl/src/routes/evaluate.js` for very long transcripts.
 
 ## Notes per version
 
@@ -16,7 +26,7 @@ directional, not a passed gate.)
 Domains/weights only, 0–5 scale with one-word anchors (0 Not observed … 5 Very High). No guidance
 distinguishing genuine reasoning depth from templated structure → AI rewards effort/structure.
 
-### v1 — PROPOSED (not yet applied — measure the live baseline first)
+### v1 — measured 0.700 (superseded by v2)
 
 Targets the measured divergence (AI lenient on d2 +0.8 / d3 +0.83 / d1 +0.73 / d6 +0.73; slightly
 harsh on d5 −0.23). Apply by replacing the body of `PIS7_EVALUATOR_PROMPT` in

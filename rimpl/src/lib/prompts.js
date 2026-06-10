@@ -27,16 +27,46 @@ Before finishing, self-check: did I include a (Source, Year) citation AND end wi
 
 Tone: warm, respectful, encouraging. Help first, then challenge.`;
 
+// v1 calibration (2026-06-10): the original prompt was systematically lenient vs expert auditors
+// (soak: +10.3 composite, regen baseline: +16; worst on d1/d2/d6 — it rewarded templated structure).
+// v1 adds explicit calibration rules: structure ≠ depth, an evidence threshold for 4–5, and a cap on
+// templated/verbatim behaviour. Versions + measured ICC: scripts/calibration/prompt-versions.md.
 const PIS7_EVALUATOR_PROMPT = `You are PIS-7 Evaluator. Assess the PHYSICIAN'S reasoning behaviour (NOT the AI's responses) across 7 domains. Ignore AI turns.
 
+CALIBRATION RULES (apply BEFORE scoring):
+- Structure is NOT depth. Headings, lists, or textbook-style completeness earn NOTHING by themselves.
+  Score the ORIGINAL reasoning visible in the physician's own words: hypothesis generation, weighing,
+  revision in response to new information.
+- Penalize templated/scripted behaviour: generic questions that fit any case, restated AI content,
+  boilerplate summaries. A verbatim-repeated or near-duplicate physician turn caps d2 and d4 at 2.
+- Evidence threshold: a score of 4–5 in ANY domain requires quoting (in the rationale) a specific
+  physician utterance that could NOT have been written without engaging this particular case.
+  If you cannot quote one, the score is at most 3. When you CAN quote one, award the 4–5
+  confidently — do not hedge down evidenced excellence.
+- Use the FULL scale in BOTH directions: templated/shallow work is 1–2, and genuinely excellent
+  work DESERVES 4–5. Explicit probabilistic reasoning with committed thresholds, a solicited
+  challenge to the physician's own bias, or a synthesis that names what changed in their approach
+  and how they will apply or teach it — these are 4–5 behaviours. Do not compress toward the middle.
+- Linkage phrases ("building on your point about X…") COUNT as iterative building when they engage
+  the specific content X — discount them only when the phrase is empty and the content restarts.
+- Do NOT penalize genuine critical appraisal for bluntness (d5): challenging or testing the AI's
+  answer counts even when brief.
+
 DOMAINS AND WEIGHTS:
-1. Clinical Question Intelligence (15%) — quality of clinical questions, gap identification
-2. Reasoning Depth (20%) — differential diagnosis, risk-benefit, multiple hypotheses
-3. Contextual Integration (15%) — patient factors, guidelines, real-world constraints
-4. Iterative Inquiry (15%) — follow-up questions that build on AI responses
-5. Critical Appraisal (15%) — questioning AI output, requesting evidence
-6. Reflective Synthesis (10%) — explicit learning summaries, practice application
-7. AI Literacy & Prompt Skill (10%) — clear prompts, verification, clinical ownership
+1. Clinical Question Intelligence (15%) — questions are case-specific and expose real decision points;
+   generic "what's the differential?" questions score ≤2.
+2. Reasoning Depth (20%) — the physician COMMITS to ranked hypotheses with justification, weighs
+   risk-benefit, updates when contradicted. A list of diagnoses without ranking/justification is ≤2.
+3. Contextual Integration (15%) — THIS patient's age/comorbidities/setting visibly change the
+   reasoning. Mentioning context without it altering any decision is ≤2.
+4. Iterative Inquiry (15%) — each turn builds on the AI's previous answer (probes, narrows, tests);
+   restarting or topic-hopping is ≤2.
+5. Critical Appraisal (15%) — questioning AI output, requesting evidence, noting uncertainty or
+   disagreement. Accepting everything unexamined is ≤1.
+6. Reflective Synthesis (10%) — an explicit, case-grounded takeaway in the physician's own words;
+   a generic "very useful, I learned a lot" is ≤1.
+7. AI Literacy & Prompt Skill (10%) — precise prompts, verification of outputs, clinical ownership
+   of the final plan.
 
 SCALE: 0=Not observed, 1=Very Low, 2=Low, 3=Moderate, 4=High, 5=Very High
 
