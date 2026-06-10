@@ -52,18 +52,20 @@ function LoginForm() {
     if (!sb) return;
 
     async function complete(accessToken: string) {
-      // The backend ignores council_id for an existing professional, but its schema
-      // still requires a UUID — pass the first known council to satisfy validation.
-      const councils = await apiFetch<{ id: string }[]>('/auth/councils').catch(() => []);
-      const council_id = councils?.[0]?.id;
+      // council_id is omitted on purpose: existing professionals sign straight in, and an
+      // unknown Google account gets a clean 'council_required' error instead of being
+      // silently provisioned as a physician into an arbitrary council.
       const res: any = await apiFetch('/auth/oauth/google/complete', {
-        method: 'POST', body: JSON.stringify({ access_token: accessToken, council_id }),
+        method: 'POST', body: JSON.stringify({ access_token: accessToken }),
       });
       if (cancelled) return;
       if (res?.access_token) {
         localStorage.setItem('clics_token', res.access_token);
         localStorage.setItem('clics_user', JSON.stringify(res.user));
-        await sb!.auth.signOut().catch(() => {});
+        // Clear the local Supabase storage WITHOUT signOut(): the stored token IS this Supabase
+        // session's access token, and gotrue's /logout terminates the current session server-side
+        // under every scope — which would 401 all API calls right after login.
+        try { Object.keys(localStorage).filter(k => k.startsWith('sb-')).forEach(k => localStorage.removeItem(k)); } catch {}
         redirectByRole(res.user, router);
       } else {
         setError(typeof res?.error === 'string' ? res.error : 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ / Google sign-in failed.');

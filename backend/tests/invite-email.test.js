@@ -80,7 +80,7 @@ const auth = (r) => r.set('Authorization', 'Bearer test');
 const COUNCIL_ID = '22222222-2222-2222-2222-222222222222';
 const BODY = { email: 'invitee@example.com', role: 'physician', council_id: COUNCIL_ID };
 
-const MAIL_ENV = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS', 'MAIL_FROM'];
+const MAIL_ENV = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS', 'MAIL_FROM', 'RESEND_API_KEY'];
 const savedEnv = {};
 beforeAll(() => { for (const k of MAIL_ENV) savedEnv[k] = process.env[k]; });
 afterAll(() => {

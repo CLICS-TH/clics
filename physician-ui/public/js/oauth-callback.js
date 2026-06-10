@@ -43,6 +43,9 @@ withClient(async () => {
     showError('Google ยังไม่ถูกตั้งค่าในระบบนี้ / Google sign-in is not configured for this deployment.');
     return;
   }
+  // A fresh sign-in supersedes any stored CLICS session — and a stale token here is actively
+  // harmful (the login page auto-forwards on it, ping-ponging against the role guard).
+  try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); } catch {}
   // Prefer localStorage (survives the OAuth round-trip even in a fresh browsing context);
   // sessionStorage is the legacy fallback for markers written by older pages.
   try {
@@ -151,8 +154,11 @@ function routeActive(body) {
   localStorage.setItem('clics_token', body.access_token);
   if (body.user) localStorage.setItem('clics_user', JSON.stringify(body.user));
   const role = body.user?.role || 'physician';
-  // Clean any Supabase session so only the backend token governs the app.
-  if (window.sbClient) window.sbClient.auth.signOut().catch(() => {});
+  // Drop the local Supabase storage copy WITHOUT calling signOut(): the token we just stored as
+  // clics_token IS this Supabase session's access token (verifyJwt validates via auth.getUser),
+  // and gotrue's /logout terminates the current session server-side under EVERY scope (including
+  // 'local' — that only spares other sessions), 401-ing all API calls right after login.
+  try { for (const k of Object.keys(localStorage)) if (k.indexOf('sb-') === 0) localStorage.removeItem(k); } catch {}
   if (role === 'physician') {
     window.location.href = '/dashboard';
   } else {

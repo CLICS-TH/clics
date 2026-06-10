@@ -64,7 +64,22 @@
   <script type="module" src="/js/supabase-client.js"></script>
   <script src="/js/boot.js" defer></script>
   <script>
-    if (localStorage.getItem('clics_token')) window.location.href = '/dashboard';
+    // Auto-forward signed-in users — but NEVER when the URL carries an OAuth return
+    // (hash tokens / ?code=): the head forwarder has a replace() to /auth/callback pending,
+    // and this href assignment would win the race and eat the sign-in.
+    if (localStorage.getItem('clics_token') && !location.hash && location.search.indexOf('code=') === -1) {
+      window.location.href = '/dashboard';
+    }
+    // Surface why the user was just signed out (written by auth.js / api.js before redirecting).
+    try {
+      var authMsg = sessionStorage.getItem('clics_auth_msg');
+      if (authMsg) {
+        sessionStorage.removeItem('clics_auth_msg');
+        var authErrEl = document.getElementById('error');
+        authErrEl.textContent = authMsg;
+        authErrEl.style.display = 'block';
+      }
+    } catch (e) {}
 
     // Wire the Google button once we know whether Supabase OAuth is configured.
     (function () {

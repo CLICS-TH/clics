@@ -13,7 +13,10 @@ async function apiFetch(path, options = {}) {
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
-  if (res.status === 401) { localStorage.clear(); window.location.href = '/'; return; }
+  if (res.status === 401) {
+    try { sessionStorage.setItem('clics_auth_msg', 'เซสชันหมดอายุ — กรุณาเข้าสู่ระบบอีกครั้ง / Session expired — please sign in again.'); } catch {}
+    localStorage.clear(); window.location.href = '/'; return;
+  }
   if (res.status === 204) return null;
   return res.json();
 }

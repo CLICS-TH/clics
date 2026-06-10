@@ -12,8 +12,11 @@ const ROLE_LABELS = {
 let _transport = null;
 
 // Read env at CALL time (not module load) so tests and config reloads behave.
+// RESEND_API_KEY (HTTPS) is preferred over SMTP: Railway's egress drops outbound SMTP
+// connections (observed: 10s connection timeouts to smtp.resend.com:465 while HTTPS
+// egress works), so the provider API is the reliable path in prod.
 function isMailerEnabled() {
-  return Boolean(process.env.SMTP_HOST && process.env.MAIL_FROM);
+  return Boolean((process.env.RESEND_API_KEY || process.env.SMTP_HOST) && process.env.MAIL_FROM);
 }
 
 function getTransport() {
@@ -58,12 +61,24 @@ async function sendInviteEmail({ to, acceptUrl, role, councilNameTh, councilName
     `<p style="color:#666;font-size:12px">${acceptUrl}</p>`,
   ].join('\n');
   try {
-    await getTransport().sendMail({ from: process.env.MAIL_FROM, to, subject, text, html });
+    const message = { from: process.env.MAIL_FROM, to, subject, text, html };
+    if (process.env.RESEND_API_KEY) await sendViaResendApi(message);
+    else await getTransport().sendMail(message);
     return true;
   } catch (e) {
     console.error('[mailer] invite email failed:', e.message);
     return false;
   }
+}
+
+async function sendViaResendApi({ from, to, subject, text, html }) {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from, to: [to], subject, text, html }),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!res.ok) throw new Error(`Resend API ${res.status}: ${(await res.text()).slice(0, 300)}`);
 }
 
 module.exports = { isMailerEnabled, sendInviteEmail, _resetTransport };

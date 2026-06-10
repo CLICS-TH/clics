@@ -1,5 +1,4 @@
-auth.guardRole('physician');
-const user = auth.getUser();
+const user = auth.guardRole('physician'); // throws (and heals storage) when the session is unusable
 document.getElementById('greeting').textContent = `สวัสดี, ${user.full_name_th || user.full_name_en}`;
 
 // ---- Pilot: expectation banner + informed-consent gate (human-subjects study) ----
