@@ -66,8 +66,19 @@ window.api = {
   getInvite: (token) => publicFetch(`/auth/invite/${encodeURIComponent(token)}`),
   // Accept an invite (password two-step OTP, or google). See backend contract.
   acceptInvite: (token, body) => publicFetch(`/auth/invite/${encodeURIComponent(token)}/accept`, { method: 'POST', body }),
-  // Finish Google sign-in: post the Supabase session token + a chosen council (404 if OAUTH disabled).
-  oauthGoogleComplete: (access_token, council_id) => publicFetch('/auth/oauth/google/complete', { method: 'POST', body: { access_token, council_id } }),
+  // Finish Google sign-in: post the Supabase session token (+ a chosen council for NEW users).
+  // council_id is OMITTED when undefined — the backend zod schema rejects an explicit null,
+  // and existing users must be able to complete without any council (404 if OAUTH disabled).
+  oauthGoogleComplete: (access_token, council_id) => publicFetch('/auth/oauth/google/complete', {
+    method: 'POST',
+    body: council_id === undefined ? { access_token } : { access_token, council_id },
+  }),
+
+  // ---- Dual-role: physician requests auditor rights (both return { ok, status, body }) ----
+  // POST → 202 {status:'pending'} | 409 {code:'already_auditor'} | 409 {code:'pending'}.
+  requestAuditor: () => publicFetch('/auth/request-auditor', { method: 'POST', token: getToken() }),
+  // GET → { request: {status, reviewed_at} | null, can_audit: boolean } — drives the button state.
+  getAuditorRequest: () => publicFetch('/auth/request-auditor', { token: getToken() }),
 
   // Guest mode (ephemeral; token is NOT stored in localStorage).
   guestStart: () => publicFetch('/guest/start', { method: 'POST' }),

@@ -5,14 +5,18 @@ import Link from 'next/link';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { getSupabaseBrowser, isSupabaseConfigured } from '@/lib/supabase-browser';
+import { Eye, EyeOff } from 'lucide-react';
 
-interface ClicsUser { id: string; role: string; full_name_th: string; full_name_en: string; }
+interface ClicsUser { id: string; role: string; full_name_th: string; full_name_en: string; can_audit?: boolean; }
 
-function redirectByRole(role: string, router: ReturnType<typeof useRouter>) {
+function redirectByRole(user: Pick<ClicsUser, 'role' | 'can_audit'>, router: ReturnType<typeof useRouter>) {
   // Superadmin lands straight on the executive overview; admin/auditor land on the
-  // role-aware /home, whose cards link into each workspace.
-  if (role === 'superadmin') router.push('/admin/overview');
-  else if (role === 'auditor' || role === 'admin') router.push('/home');
+  // role-aware /home, whose cards link into each workspace. A physician with
+  // can_audit (dual-role "Special" user) enters straight at the auditor queue —
+  // this is the token-handoff entry point from the physician app.
+  if (user.role === 'superadmin') router.push('/admin/overview');
+  else if (user.role === 'auditor' || user.role === 'admin') router.push('/home');
+  else if (user.role === 'physician' && user.can_audit) router.push('/auditor/queue');
   else router.push('/login');
 }
 
@@ -24,6 +28,7 @@ function LoginForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
+  const [showPw, setShowPw] = useState(false);
   const oauthEnabled = isSupabaseConfigured();
 
   useEffect(() => {
@@ -32,7 +37,7 @@ function LoginForm() {
       localStorage.setItem('clics_token', token);
       apiFetch<{ user: ClicsUser }>('/auth/me').then(({ user }) => {
         localStorage.setItem('clics_user', JSON.stringify(user));
-        redirectByRole(user.role, router);
+        redirectByRole(user, router);
       });
     }
   }, [params, router]);
@@ -59,7 +64,7 @@ function LoginForm() {
         localStorage.setItem('clics_token', res.access_token);
         localStorage.setItem('clics_user', JSON.stringify(res.user));
         await sb!.auth.signOut().catch(() => {});
-        redirectByRole(res.user.role, router);
+        redirectByRole(res.user, router);
       } else {
         setError(typeof res?.error === 'string' ? res.error : 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ / Google sign-in failed.');
       }
@@ -84,7 +89,7 @@ function LoginForm() {
     if (data?.access_token) {
       localStorage.setItem('clics_token', data.access_token);
       localStorage.setItem('clics_user', JSON.stringify(data.user));
-      redirectByRole(data.user.role, router);
+      redirectByRole(data.user, router);
     } else {
       setError(data?.error ?? 'เข้าสู่ระบบไม่สำเร็จ');
     }
@@ -114,9 +119,16 @@ function LoginForm() {
         </div>
         <input className="w-full border rounded-lg px-3 py-2 text-sm" type="email"
           placeholder="อีเมล / Email" value={email} onChange={e => setEmail(e.target.value)} />
-        <input className="w-full border rounded-lg px-3 py-2 text-sm" type="password"
-          placeholder="รหัสผ่าน / Password" value={password} onChange={e => setPassword(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleLogin()} />
+        <div className="relative">
+          <input className="w-full border rounded-lg px-3 py-2 pr-10 text-sm" type={showPw ? 'text' : 'password'}
+            placeholder="รหัสผ่าน / Password" value={password} onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleLogin()} />
+          <button type="button" onClick={() => setShowPw(s => !s)}
+            aria-label={showPw ? 'ซ่อนรหัสผ่าน / Hide password' : 'แสดงรหัสผ่าน / Show password'}
+            className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground">
+            {showPw ? <EyeOff className="size-4" aria-hidden="true" /> : <Eye className="size-4" aria-hidden="true" />}
+          </button>
+        </div>
         {error && <p className="text-destructive text-sm">{error}</p>}
         <Button className="w-full" onClick={handleLogin} disabled={loading}>
           {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ / Login'}

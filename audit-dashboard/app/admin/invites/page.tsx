@@ -13,6 +13,7 @@ type Invite = {
   id: string; email: string; role: string; council_id: string | null;
   status: string; expires_at: string | null; accepted_at: string | null; created_at: string;
   email_sent_at?: string | null; // optional — backend may not return it
+  can_audit?: boolean; // physician invite that ALSO grants auditor access ("Special")
 };
 type CreatedInvite = Invite & { accept_url?: string; email_sent?: boolean };
 
@@ -59,9 +60,16 @@ export default function InvitesPage() {
     if (!form.email.trim()) { setErr('กรอกอีเมล / Enter an email.'); return; }
     if (!form.council_id) { setErr('เลือกสภาวิชาชีพ / Select a council.'); return; }
     setBusy(true);
+    // 'special' is a UI-only role value: a physician invite that also grants auditor access.
+    const special = form.role === 'special';
     const res: any = await apiFetch('/admin/invites', {
       method: 'POST',
-      body: JSON.stringify({ email: form.email.trim(), role: form.role, council_id: form.council_id }),
+      body: JSON.stringify({
+        email: form.email.trim(),
+        role: special ? 'physician' : form.role,
+        council_id: form.council_id,
+        ...(special ? { can_audit: true } : {}),
+      }),
     });
     setBusy(false);
     if (res?.id) {
@@ -88,6 +96,13 @@ export default function InvitesPage() {
     if (res?.ok) { setMsg('เพิกถอนคำเชิญแล้ว / Invite revoked.'); load(); }
     else setMsg(typeof res?.error === 'string' ? res.error : 'เพิกถอนไม่สำเร็จ / Revoke failed.');
   }
+
+  // Small chip marking a physician invite that also grants auditor access.
+  const SpecialChip = () => (
+    <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+      Special
+    </span>
+  );
 
   const StatusBadge = ({ s }: { s: string }) => (
     <Badge variant={s === 'accepted' ? 'default' : s === 'revoked' || s === 'expired' ? 'destructive' : 'outline'}>
@@ -122,6 +137,7 @@ export default function InvitesPage() {
           value={form.role} onChange={e => setForm(s => ({ ...s, role: e.target.value }))}>
           <option value="physician">{ROLE_LABELS.physician} / Physician</option>
           <option value="auditor">{ROLE_LABELS.auditor} / Auditor</option>
+          <option value="special">พิเศษ (User+Auditor) / Special</option>
         </select>
         {CouncilSelect}
         {!isSuper && (
@@ -140,6 +156,7 @@ export default function InvitesPage() {
         <div className="border border-primary/40 bg-primary/5 rounded-xl p-5 mb-6 space-y-2">
           <p className="text-sm font-medium">
             ลิงก์คำเชิญสำหรับ {created.email} / Accept link for {created.email}
+            {created.can_audit && ' — พิเศษ / Special (User+Auditor)'}
           </p>
           <p className="text-xs text-muted-foreground">
             แสดงเพียงครั้งเดียว — คัดลอกและส่งให้ผู้รับ / Shown once only — copy it and send it to the recipient.
@@ -182,6 +199,7 @@ export default function InvitesPage() {
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Badge variant="outline">{ROLE_LABELS[inv.role] ?? inv.role}</Badge>
+                {inv.can_audit && <SpecialChip />}
                 <span>🏛 {councilName(inv.council_id)}</span>
                 {inv.email_sent_at && <span title={fmt(inv.email_sent_at)}>✉ sent</span>}
               </div>
@@ -213,7 +231,12 @@ export default function InvitesPage() {
                     <span className="ml-2 text-xs text-muted-foreground" title={fmt(inv.email_sent_at)}>✉ sent</span>
                   )}
                 </td>
-                <td className="px-4 py-3"><Badge variant="outline">{ROLE_LABELS[inv.role] ?? inv.role}</Badge></td>
+                <td className="px-4 py-3">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Badge variant="outline">{ROLE_LABELS[inv.role] ?? inv.role}</Badge>
+                    {inv.can_audit && <SpecialChip />}
+                  </span>
+                </td>
                 <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{councilName(inv.council_id)}</td>
                 <td className="px-4 py-3"><StatusBadge s={inv.status} /></td>
                 <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{fmt(inv.expires_at)}</td>

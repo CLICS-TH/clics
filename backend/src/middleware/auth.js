@@ -29,9 +29,13 @@ async function verifyJwt(req, res, next) {
   next();
 }
 
+// Role gate. The "special" dual role (manager, 2026-06-10) is a physician with can_audit=true —
+// they pass any gate that accepts 'auditor' (the auditor console/queue/scoring), while their
+// primary role stays 'physician' (slots, pseudonym, physician routes all unchanged).
 function requireRole(...roles) {
   return (req, res, next) => {
-    if (!roles.includes(req.user?.role)) {
+    const ok = roles.includes(req.user?.role) || (roles.includes('auditor') && req.user?.can_audit === true);
+    if (!ok) {
       return res.status(403).json({ error: `Requires role: ${roles.join(' or ')}` });
     }
     next();

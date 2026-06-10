@@ -56,7 +56,9 @@ export function NavBar() {
 
   const links =
     user.role === 'superadmin' ? SUPERADMIN_LINKS :
-    user.role === 'admin' ? ADMIN_LINKS : AUDITOR_LINKS;
+    user.role === 'admin' ? ADMIN_LINKS :
+    // Auditors and dual-role physicians (can_audit) get the auditor workspace.
+    user.role === 'auditor' || (user.role === 'physician' && user.can_audit) ? AUDITOR_LINKS : [];
   const mobile = forcedMobile || (!forcedDesktop && isNarrow);
 
   function logout() {

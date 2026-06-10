@@ -37,6 +37,9 @@ create table public.professionals (
                       check (license_status in ('unverified','verified','not_found','name_mismatch','manual_verified')),
   license_verified_at timestamptz,
   status         text not null default 'active' check (status in ('active','deactivated')),
+  -- "Special" dual role: a physician who may ALSO audit (passes auditor gates; keeps pseudonym;
+  -- consumes no auditor slot). Granted via Special invites or admin approval of a role request.
+  can_audit      boolean not null default false,
   pseudonym      text unique,   -- P-NNN; the only identifier allowed in exports/audit
   consented_at   timestamptz,   -- informed consent for the pilot; session creation is gated on this
   -- Per-physician AI usage meter + per-user limit override (see db/migration-usage-limits.sql).
@@ -91,7 +94,8 @@ create table public.access_requests (
   full_name_th    text,
   full_name_en    text,
   specialty       text,
-  provider        text not null default 'email' check (provider in ('email','google','line')),
+  -- 'role_request' = an existing physician asking for auditor rights (the "special" dual role).
+  provider        text not null default 'email' check (provider in ('email','google','line','role_request')),
   provider_subject text,
   auth_user_id    uuid,
   council_id      uuid references public.councils(id),  -- council the requester will join
@@ -145,6 +149,7 @@ create table public.invites (
   created_by      uuid references public.professionals(id),
   status          text not null default 'pending' check (status in ('pending','accepted','revoked','expired')),
   expires_at      timestamptz not null,
+  can_audit       boolean not null default false,   -- "Special" invite: physician + auditor rights
   accepted_at     timestamptz,
   email_sent_at   timestamptz,   -- stamped when the accept-link email was delivered (mailer is fail-soft)
   professional_id uuid references public.professionals(id),

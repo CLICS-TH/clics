@@ -3,7 +3,8 @@
 // PUBLIC value shipped to browsers by design (see config.js). If config.js still holds the
 // placeholders, we DO NOT build a client — window.sbClient stays null and the UI degrades
 // gracefully (Google button hidden / reset page shows a "link not configured" notice).
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// PINNED version — '@2' floats to whatever esm.sh serves and has broken hash handling before.
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
 
 const url = window.CLICS_SUPABASE_URL;
 const anonKey = window.CLICS_SUPABASE_ANON_KEY;
@@ -16,8 +17,10 @@ const configured =
 window.sbClient = configured
   ? createClient(url, anonKey, {
       auth: {
-        // Recovery links + OAuth redirects come back with the session in the URL hash;
+        // Recovery links + OAuth redirects come back with the session in the URL hash
+        // (flowType 'implicit' — the hash-based flow our /auth/callback handling expects);
         // detectSessionInUrl lets the client pick it up automatically on /reset and /auth/callback.
+        flowType: 'implicit',
         detectSessionInUrl: true,
         persistSession: true,
         autoRefreshToken: true,

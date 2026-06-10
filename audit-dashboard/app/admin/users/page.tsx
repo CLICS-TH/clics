@@ -15,9 +15,29 @@ type User = {
   specialty?: string | null; license_number?: string | null;
   status?: string; pseudonym?: string | null; council_id?: string | null;
   usage_cost_usd?: number | null; usage_limit_usd?: number | null;
+  can_audit?: boolean | null;          // "Special" dual role: physician + auditor rights
 };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
 type Council = { id: string; code: string; name_th: string; name_en: string };
+type AuditorRequest = {
+  id: string; email?: string | null; created_at: string;
+  full_name_th?: string | null; full_name_en?: string | null;
+};
+
+// Account-status filter chips (server-side ?status= on /admin/users; '' = all).
+const STATUS_FILTERS: { key: string; label: string }[] = [
+  { key: 'active', label: ACCOUNT_STATUS_MAP.active },
+  { key: 'deactivated', label: ACCOUNT_STATUS_MAP.deactivated },
+  { key: '', label: 'ทั้งหมด / All' },
+];
+
+// Edit-panel role options — 'special' is a UI-only value that maps to {role:'physician', can_audit:true}.
+const EDIT_ROLE_OPTIONS: { key: string; label: string }[] = [
+  { key: 'admin', label: 'Admin' },
+  { key: 'physician', label: 'แพทย์ Physician' },
+  { key: 'auditor', label: 'Auditor' },
+  { key: 'special', label: 'พิเศษ Special (User+Auditor)' },
+];
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -35,15 +55,24 @@ export default function UsersPage() {
   const [totalUsed, setTotalUsed] = useState(0);            // total spent across all members ($)
   const [total, setTotal] = useState(0);                    // total user count (X-Total-Count)
   const [loadingMore, setLoadingMore] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('active'); // default hides deactivated; '' = all
+  const [requests, setRequests] = useState<AuditorRequest[]>([]); // pending auditor-role requests
   const mobile = useIsMobile();
 
   // Admins get a read-only view (the dual-role GET /admin/users is council-scoped for them);
   // all mutations + /admin/slots + /admin/usage-settings remain superadmin-only.
   const isSuper = getUser()?.role === 'superadmin';
 
+  // Query string for /admin/users — server-side status filter (omitted for All) + pagination.
+  const usersQS = (limit: number, offset: number) => {
+    const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+    if (statusFilter) qs.set('status', statusFilter);
+    return qs.toString();
+  };
+
   // Fetch one page (newest-first) and append, or replace from offset 0.
   const loadUsersPage = (offset: number) =>
-    apiFetchPaged<User>(`/admin/users?limit=${PAGE_SIZE}&offset=${offset}`).then(({ items, total }) => {
+    apiFetchPaged<User>(`/admin/users?${usersQS(PAGE_SIZE, offset)}`).then(({ items, total }) => {
       setTotal(total);
       setUsers(prev => (offset === 0 ? items : [...prev, ...items]));
     });
@@ -52,7 +81,7 @@ export default function UsersPage() {
   // (used by create/edit/status/reset handlers below).
   const loadUsers = () => {
     const count = Math.min(Math.max(users.length, PAGE_SIZE), 200);
-    return apiFetchPaged<User>(`/admin/users?limit=${count}&offset=0`).then(({ items, total }) => {
+    return apiFetchPaged<User>(`/admin/users?${usersQS(count, 0)}`).then(({ items, total }) => {
       setTotal(total);
       setUsers(items);
     });
@@ -74,12 +103,17 @@ export default function UsersPage() {
       setTotalUsed(Number(d?.total_used_usd ?? 0));
     });
   const loadCouncils = () => apiFetch<Council[]>('/admin/councils').then(d => setCouncils(d ?? []));
+  // Pending auditor-role requests (admin: own council; superadmin: all) — section hides when empty.
+  const loadRequests = () => apiFetch<AuditorRequest[]>('/admin/auditor-requests').then(d => setRequests(Array.isArray(d) ? d : []));
   useEffect(() => {
-    loadUsersPage(0); loadCouncils();
+    loadCouncils(); loadRequests();
     // Slot pools and usage settings are superadmin-only endpoints — skip for admins.
     if (isSuper) { loadSlots(); loadUsageSettings(); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // (Re)load page 0 whenever the status filter changes (incl. on mount) — resets pagination to offset 0.
+  useEffect(() => { loadUsersPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [statusFilter]);
 
   const councilName = (id?: string | null) => councils.find(c => c.id === id)?.name_th ?? '—';
 
@@ -107,7 +141,8 @@ export default function UsersPage() {
       specialty: editing.specialty ?? '', license_number: editing.license_number ?? '',
     };
     // The superadmin role is immutable — never send a role change for it (backend rejects it too).
-    if (editing.role !== 'superadmin') { body.role = editing.role; body.council_id = editing.council_id; }
+    // can_audit travels with the role: 'Special' = {role:'physician', can_audit:true}; any other role clears it.
+    if (editing.role !== 'superadmin') { body.role = editing.role; body.council_id = editing.council_id; body.can_audit = editing.can_audit === true; }
     // Usage limit override: a number sets a per-user cap; empty clears it (null => standard default).
     const trimmed = editLimit.trim();
     body.usage_limit_usd = trimmed === '' ? null : Number(trimmed);
@@ -154,6 +189,17 @@ export default function UsersPage() {
     else setMsg(res?.error ?? 'อัปเดตไม่สำเร็จ / Failed.');
   }
 
+  // Approve/reject a pending auditor-role request, then refresh both the section and the
+  // users list (approve flips can_audit on the professional, so the Special chip appears).
+  async function decideRequest(r: AuditorRequest, action: 'approve' | 'reject') {
+    setMsg('');
+    const res: any = await apiFetch(`/admin/auditor-requests/${r.id}/${action}`, { method: 'POST', body: JSON.stringify({}) });
+    if (res?.ok) {
+      setMsg(action === 'approve' ? 'อนุมัติคำขอแล้ว / Request approved.' : 'ปฏิเสธคำขอแล้ว / Request rejected.');
+      loadRequests(); loadUsers();
+    } else setMsg(res?.error ?? 'ดำเนินการไม่สำเร็จ / Failed.');
+  }
+
   async function saveCap(role: string) {
     setMsg('');
     const capacity = parseInt(cap[role] ?? '', 10);
@@ -166,6 +212,14 @@ export default function UsersPage() {
   const StatusBadge = ({ s }: { s?: string }) => (
     <span className={`text-xs px-2 py-0.5 rounded-full ${s === 'deactivated' ? 'bg-muted text-muted-foreground' : 'bg-[#5db872]/20 text-foreground'}`}>
       {ACCOUNT_STATUS_MAP[s ?? 'active'] ?? s}
+    </span>
+  );
+
+  // Dual-role marker: a physician who also holds auditor rights (professionals.can_audit).
+  const SpecialChip = () => (
+    <span title="แพทย์ที่เป็นผู้ตรวจด้วย / Physician with auditor rights"
+      className="text-[10px] px-1.5 py-0.5 rounded-full border border-border bg-secondary text-muted-foreground whitespace-nowrap">
+      🩺+🔍 Special
     </span>
   );
 
@@ -351,9 +405,16 @@ export default function UsersPage() {
               value="Superadmin (locked)" disabled readOnly />
           ) : (
             <>
+              {/* 'special' is UI-only: it selects when role=physician + can_audit, and maps back on change. */}
               <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
-                value={editing.role} onChange={e => setEditing(u => u && ({ ...u, role: e.target.value }))}>
-                {Object.entries(ROLE_LABELS).filter(([v]) => v !== 'superadmin').map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                value={editing.role === 'physician' && editing.can_audit ? 'special' : editing.role}
+                onChange={e => {
+                  const v = e.target.value;
+                  setEditing(u => u && (v === 'special'
+                    ? { ...u, role: 'physician', can_audit: true }
+                    : { ...u, role: v, can_audit: false }));
+                }}>
+                {EDIT_ROLE_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
               </select>
               <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
                 value={editing.council_id ?? ''} onChange={e => setEditing(u => u && ({ ...u, council_id: e.target.value }))}>
@@ -369,7 +430,40 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* Loaded-vs-total count for the user list. */}
+      {/* Pending auditor-role requests — admin (council-scoped) + superadmin; renders nothing when empty. */}
+      {requests.length > 0 && (
+        <div className="border rounded-xl p-4 mb-6">
+          <p className="text-sm font-medium">คำขอเป็นผู้ตรวจ / Auditor-role requests <span className="text-muted-foreground font-normal">({requests.length})</span></p>
+          <div className="mt-2 space-y-2">
+            {requests.map(r => (
+              <div key={r.id} className="flex items-center justify-between gap-3 flex-wrap border-t border-border pt-2 first:border-t-0 first:pt-0">
+                <div className="min-w-0">
+                  <p className="text-sm">
+                    {r.full_name_th || r.full_name_en || '—'}
+                    {r.full_name_th && r.full_name_en ? <span className="text-xs text-muted-foreground"> · {r.full_name_en}</span> : null}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{r.email ?? '—'} · {new Date(r.created_at).toLocaleDateString('th-TH')}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button size="sm" onClick={() => decideRequest(r, 'approve')}>อนุมัติ / Approve</Button>
+                  <Button size="sm" variant="outline" onClick={() => decideRequest(r, 'reject')}>ปฏิเสธ / Reject</Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Account-status filter (server-side; default hides deactivated members). */}
+      <div className="flex gap-2 mb-3 flex-wrap">
+        {STATUS_FILTERS.map(f => (
+          <Button key={f.key} variant={statusFilter === f.key ? 'default' : 'outline'} size="sm" onClick={() => setStatusFilter(f.key)}>
+            {f.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Loaded-vs-total count for the user list (respects the active status filter). */}
       <p className="mb-3 text-xs text-muted-foreground">
         แสดง {users.length} จาก {total} / Showing {users.length} of {total}
       </p>
@@ -380,7 +474,10 @@ export default function UsersPage() {
             <div key={u.id} className="rounded-xl border border-border p-4 space-y-2">
               <div className="flex items-start justify-between gap-3">
                 <p className="font-medium">{u.full_name_th}{u.pseudonym ? ` · ${u.pseudonym}` : ''}</p>
-                <Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge>
+                <span className="inline-flex items-center gap-1.5 shrink-0">
+                  <Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge>
+                  {u.can_audit && <SpecialChip />}
+                </span>
               </div>
               <p className="text-sm text-muted-foreground">{u.full_name_en}</p>
               {u.role !== 'superadmin' && <p className="text-xs text-muted-foreground">🏛 {councilName(u.council_id)}</p>}
@@ -408,7 +505,12 @@ export default function UsersPage() {
               <tr key={u.id} className="border-t hover:bg-secondary/60">
                 <td className="px-3 py-3 whitespace-nowrap">{u.full_name_th}{u.pseudonym ? <span className="text-muted-foreground text-xs"> · {u.pseudonym}</span> : ''}</td>
                 <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">{u.full_name_en}</td>
-                <td className="px-3 py-3 whitespace-nowrap"><Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge></td>
+                <td className="px-3 py-3 whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge>
+                    {u.can_audit && <SpecialChip />}
+                  </span>
+                </td>
                 <td className="px-3 py-3 whitespace-nowrap text-muted-foreground">{u.role === 'superadmin' ? '— ทุกสภา / All' : councilName(u.council_id)}</td>
                 <td className="px-3 py-3"><UsageCell u={u} /></td>
                 <td className="px-3 py-3 whitespace-nowrap"><StatusBadge s={u.status} /></td>

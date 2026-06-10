@@ -19,6 +19,8 @@ const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 const InviteSchema = z.object({
   email: z.string().email(),
   role: z.enum(['physician', 'auditor']),
+  // "Special" invite = physician + can_audit (dual role). Meaningless with role 'auditor'.
+  can_audit: z.boolean().optional(),
   council_id: z.string().uuid(),
 });
 
@@ -151,10 +153,12 @@ router.post('/ples/:id/assign', async (req, res) => {
   if (!sameCouncil(req, ple.council_id)) return res.status(404).json({ error: 'Not found' });
   if (ple.status !== 'evaluated') return res.status(400).json({ error: 'PLE is not ready for assignment' });
 
-  // The auditor must be an active auditor in the SAME council, and never the physician who ran it.
+  // The assignee must be an active auditor (or a "special" can_audit physician) in the SAME
+  // council, and never the physician who ran the session.
   const { data: auditor } = await supabase.from('professionals')
-    .select('id, role, status, council_id').eq('id', auditorId).single();
-  if (!auditor || auditor.role !== 'auditor' || auditor.status !== 'active') {
+    .select('id, role, status, council_id, can_audit').eq('id', auditorId).single();
+  const canAudit = auditor && (auditor.role === 'auditor' || auditor.can_audit === true);
+  if (!auditor || !canAudit || auditor.status !== 'active') {
     return res.status(400).json({ error: 'Not an active auditor' });
   }
   if (auditor.id === ple.physician_id) {
@@ -180,6 +184,11 @@ router.get('/users', async (req, res) => {
   const { limit, offset } = pageParams(req);   // paginated — never pull all 80K professionals at once
   let query = supabase.from('professionals')
     .select('*', { count: 'exact' }).order('created_at').range(offset, offset + limit - 1);
+  // Server-side status filter (the UI hides deactivated members by default) — applied before
+  // pagination so X-Total-Count stays correct.
+  if (req.query.status === 'active' || req.query.status === 'deactivated') {
+    query = query.eq('status', req.query.status);
+  }
   query = scopeToCouncil(req, query);
   const { data, error, count } = await query;
   if (sendDbError(res, error)) return;
@@ -187,13 +196,13 @@ router.get('/users', async (req, res) => {
   res.json(data);
 });
 
-// Read-only auditor list for the assignment dropdown (active auditors only, id+names —
-// /users above returns full rows of every role).
+// Read-only auditor list for the assignment dropdown: active pure auditors PLUS "special"
+// can_audit physicians (id+names — /users above returns full rows of every role).
 router.get('/auditors', async (req, res) => {
   let query = supabase
     .from('professionals')
-    .select('id, full_name_th, full_name_en')
-    .eq('role', 'auditor')
+    .select('id, full_name_th, full_name_en, role, can_audit')
+    .or('role.eq.auditor,can_audit.eq.true')
     .eq('status', 'active');
   query = scopeToCouncil(req, query);   // admins only assign auditors from their own council
   const { data, error } = await query.order('full_name_th');
@@ -208,6 +217,45 @@ router.get('/auditors', async (req, res) => {
 router.get('/access-requests', (_req, res) => res.status(404).json({ error: 'The access-request queue was retired — onboarding is Google sign-in + invites.' }));
 router.post('/access-requests/:id/approve', (_req, res) => res.status(404).json({ error: 'The access-request queue was retired.' }));
 router.post('/access-requests/:id/reject', (_req, res) => res.status(404).json({ error: 'The access-request queue was retired.' }));
+
+// ---- Auditor-rights requests (the "special" dual role) ----------------------
+// A physician asks to ALSO audit (POST /auth/request-auditor); admin (own council) or superadmin
+// approves → can_audit=true. Lives in access_requests with requested_role='auditor'.
+router.get('/auditor-requests', async (req, res) => {
+  let q = supabase.from('access_requests').select('*')
+    .eq('requested_role', 'auditor').eq('provider', 'role_request').eq('status', 'pending')
+    .order('created_at');
+  q = scopeToCouncil(req, q);
+  const { data, error } = await q;
+  if (sendDbError(res, error)) return;
+  res.json(data ?? []);
+});
+
+router.post('/auditor-requests/:id/approve', async (req, res) => {
+  const { data: r } = await supabase.from('access_requests').select('*').eq('id', req.params.id).single();
+  if (!r || r.requested_role !== 'auditor' || r.provider !== 'role_request') return res.status(404).json({ error: 'Request not found' });
+  if (r.status !== 'pending') return res.status(409).json({ error: 'Request already processed' });
+  if (!sameCouncil(req, r.council_id)) return res.status(404).json({ error: 'Request not found' });
+
+  const { error: upErr } = await supabase.from('professionals').update({ can_audit: true }).eq('id', r.auth_user_id);
+  if (sendDbError(res, upErr)) return;
+  await supabase.from('access_requests')
+    .update({ status: 'approved', reviewed_by: req.user.id, reviewed_at: new Date().toISOString() })
+    .eq('id', req.params.id);
+  res.json({ ok: true, professional_id: r.auth_user_id, can_audit: true });
+});
+
+router.post('/auditor-requests/:id/reject', async (req, res) => {
+  const { data: r } = await supabase.from('access_requests').select('*').eq('id', req.params.id).single();
+  if (!r || r.requested_role !== 'auditor' || r.provider !== 'role_request') return res.status(404).json({ error: 'Request not found' });
+  if (r.status !== 'pending') return res.status(409).json({ error: 'Request already processed' });
+  if (!sameCouncil(req, r.council_id)) return res.status(404).json({ error: 'Request not found' });
+  const { error } = await supabase.from('access_requests')
+    .update({ status: 'rejected', reviewed_by: req.user.id, reviewed_at: new Date().toISOString() })
+    .eq('id', req.params.id);
+  if (sendDbError(res, error)) return;
+  res.json({ ok: true });
+});
 
 router.get('/stats', async (req, res) => {
   const includeTest = req.query.include_test === 'true';
@@ -319,6 +367,7 @@ router.post('/invites', async (req, res) => {
   const parsed = InviteSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   const { email, role, council_id } = parsed.data;
+  const can_audit = role === 'physician' && parsed.data.can_audit === true; // Special = physician+auditor
   if (!sameCouncil(req, council_id)) return res.status(403).json({ error: 'You can only invite into your own council.' });
 
   const slot = await assertSlotAvailable(role, council_id);
@@ -327,8 +376,8 @@ router.post('/invites', async (req, res) => {
   const { raw, hash } = newInviteToken();
   const expires_at = new Date(Date.now() + INVITE_EXPIRY_DAYS * 86_400_000).toISOString();
   const { data, error } = await supabase.from('invites').insert({
-    token_hash: hash, email, role, council_id, created_by: req.user.id, status: 'pending', expires_at,
-  }).select('id, email, role, council_id, status, expires_at, created_at').single();
+    token_hash: hash, email, role, can_audit, council_id, created_by: req.user.id, status: 'pending', expires_at,
+  }).select('id, email, role, can_audit, council_id, status, expires_at, created_at').single();
   if (error) {
     if (error.code === '23505') return res.status(409).json({ error: 'A pending invite for this email and role already exists.' });
     return res.status(500).json({ error: error.message });
@@ -358,7 +407,7 @@ router.post('/invites', async (req, res) => {
 // List invites (admins see only their council; superadmin all). Optional ?status= filter.
 router.get('/invites', async (req, res) => {
   let q = supabase.from('invites')
-    .select('id, email, role, council_id, status, expires_at, accepted_at, email_sent_at, created_at')
+    .select('id, email, role, can_audit, council_id, status, expires_at, accepted_at, email_sent_at, created_at')
     .order('created_at', { ascending: false });
   if (typeof req.query.status === 'string') q = q.eq('status', req.query.status);
   q = scopeToCouncil(req, q);

@@ -71,7 +71,9 @@ withClient(() => {
     const acceptErr = document.getElementById('acceptErr');
     hideErr(acceptErr);
     // Stash the invite context so /auth/callback knows to acceptInvite (not the normal signup).
-    sessionStorage.setItem('clics_oauth_flow', JSON.stringify({
+    // localStorage (not sessionStorage): the OAuth round-trip can come back in a fresh
+    // browsing context where sessionStorage is empty.
+    localStorage.setItem('clics_oauth_flow', JSON.stringify({
       kind: 'invite', token,
     }));
     const redirectTo = location.origin + '/auth/callback';

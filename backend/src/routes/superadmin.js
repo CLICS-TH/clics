@@ -32,6 +32,7 @@ const UpdateUserSchema = z.object({
   specialty: z.string().optional(),
   license_number: z.string().optional(),
   role: z.enum(GRANTABLE_ROLES).optional(),
+  can_audit: z.boolean().optional(),          // "special" dual role: physician + auditor rights
   council_id: z.string().uuid().optional(),   // move a member to another council
   // Per-user AI usage limit override ($). null clears the override -> the standard default applies.
   usage_limit_usd: z.number().nonnegative().nullable().optional(),

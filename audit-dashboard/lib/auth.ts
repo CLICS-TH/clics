@@ -5,6 +5,8 @@ export interface ClicsUser {
   full_name_th: string;
   full_name_en: string;
   council_id?: string | null;
+  /** Dual-role: a physician with can_audit=true also passes auditor gates. */
+  can_audit?: boolean;
 }
 
 export function getUser(): ClicsUser | null {

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CLICS — เข้าสู่ระบบ</title>
+  <script>(function(){try{var h=location.hash,s=location.search;if(h.indexOf('access_token')!==-1||h.indexOf('error_description')!==-1||s.indexOf('code=')!==-1){location.replace('/auth/callback'+s+h);}}catch(e){}})();</script>
   <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -33,7 +34,10 @@
       </div>
       <div class="form-group">
         <label for="password">รหัสผ่าน / Password</label>
-        <input type="password" id="password" autocomplete="current-password" />
+        <div style="position:relative">
+          <input type="password" id="password" autocomplete="current-password" style="padding-right:44px" />
+          <button type="button" aria-label="แสดงรหัสผ่าน / Show password" style="position:absolute;top:50%;right:6px;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px;font-size:16px;line-height:1;color:var(--muted)" onclick="var i=document.getElementById('password');i.type=i.type==='password'?'text':'password'">👁</button>
+        </div>
       </div>
       <div id="error" class="error-msg" style="display:none"></div>
       <button class="btn btn-primary" style="width:100%" id="loginBtn">เข้าสู่ระบบ / Login</button>
@@ -68,7 +72,7 @@
         if (!window.sbClient) return; // not configured → leave Google hidden
         document.getElementById('googleWrap').style.display = '';
         document.getElementById('googleBtn').addEventListener('click', async () => {
-          sessionStorage.setItem('clics_oauth_flow', JSON.stringify({ kind: 'signup' }));
+          localStorage.setItem('clics_oauth_flow', JSON.stringify({ kind: 'signup' }));
           const redirectTo = location.origin + '/auth/callback';
           const { error } = await window.sbClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
           if (error) {

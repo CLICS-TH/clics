@@ -11,6 +11,7 @@ const { encryptJson } = require('./crypto');
 async function provisionProfessional({
   authUserId, role, councilId,
   full_name_th, full_name_en, specialty = null, status = 'active',
+  can_audit = false, // "Special" dual role: physician + auditor rights (Special invites)
   // License No. + TMC verification were retired (2026-06-09): onboarding is Google + invite.
   // These columns are kept DORMANT — written ONLY if a caller still passes them (reversible).
   license_number = null, license_status = null,
@@ -28,6 +29,7 @@ async function provisionProfessional({
     specialty,
     status,
   };
+  if (can_audit === true) insert.can_audit = true; // only write when set (pre-migration tolerant)
   if (license_number != null) insert.license_number = license_number;
   if (license_status != null) {
     insert.license_status = license_status;

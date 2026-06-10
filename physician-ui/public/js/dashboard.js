@@ -67,6 +67,59 @@ document.getElementById('greeting').textContent = `สวัสดี, ${user.fu
     </div>`;
 })();
 
+// ---- Dual-role: auditor-console shortcut / request-auditor button (header slot) ----
+// can_audit physicians get a direct link to the auditor console; plain physicians can
+// request the role (POST /auth/request-auditor → admin approval). GET drives initial state.
+(async function auditorEntry() {
+  const slot = document.getElementById('auditorSlot');
+  if (!slot) return;
+
+  function makeBtn(text) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn btn-ghost';
+    b.style.cssText = 'font-size:12px;padding:6px 12px;';
+    b.textContent = text;
+    return b;
+  }
+  function renderShortcut() {
+    const a = document.createElement('a');
+    a.className = 'btn btn-ghost';
+    a.style.cssText = 'font-size:12px;padding:6px 12px;';
+    a.textContent = 'ตรวจประเมิน / Auditor console →';
+    a.href = (window.CLICS_DASHBOARD_URL || 'http://localhost:3002')
+      + '/login?token=' + encodeURIComponent(localStorage.getItem('clics_token'));
+    slot.replaceChildren(a);
+  }
+  function renderPending() {
+    const b = makeBtn('รออนุมัติ / Pending approval');
+    b.disabled = true;
+    slot.replaceChildren(b);
+  }
+  function renderRequest() {
+    const b = makeBtn('ขอสิทธิ์ผู้ตรวจ / Request auditor role');
+    b.addEventListener('click', async () => {
+      b.disabled = true; b.textContent = 'กำลังส่ง... / Sending...';
+      const res = await api.requestAuditor();
+      const code = res?.body?.code;
+      if (res?.status === 202 || (res?.status === 409 && code === 'pending')) renderPending();
+      else if (res?.status === 409 && code === 'already_auditor') renderShortcut();
+      else { b.disabled = false; b.textContent = 'ขอสิทธิ์ผู้ตรวจ / Request auditor role'; }
+    });
+    slot.replaceChildren(b);
+  }
+
+  if (user.can_audit) { renderShortcut(); return; }
+  if (user.role !== 'physician') return;
+  // Stored user may be stale (rights granted after login) — ask the server for the truth.
+  let res = null;
+  try { res = await api.getAuditorRequest(); } catch { /* leave the slot empty on failure */ }
+  if (!res || !res.ok || !res.body) return;
+  if (res.body.can_audit) renderShortcut();
+  else if (res.body.request?.status === 'pending') renderPending();
+  else renderRequest();
+})();
+
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await api.logout();
   localStorage.clear();

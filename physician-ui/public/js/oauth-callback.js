@@ -1,8 +1,11 @@
 // Google OAuth callback. Supabase redirected back here with the session in the URL;
 // supabase-client.js (detectSessionInUrl) turns it into a session we read with getSession().
-// Then one of two flows runs, distinguished by sessionStorage('clics_oauth_flow'):
+// Then one of two flows runs, distinguished by localStorage('clics_oauth_flow')
+// (sessionStorage is read as a legacy fallback):
 //   - invite  → POST /auth/invite/:token/accept { method:'google', access_token }
-//   - signup  → POST /auth/oauth/google/complete { access_token, council_id }  (prompt council 1st time)
+//   - signup  → POST /auth/oauth/google/complete { access_token } first; the council
+//               picker shows ONLY if the backend answers 400 {code:'council_required'}
+//               (i.e. a brand-new user) — existing users sign straight in.
 // On success we store clics_token/clics_user and route by role.
 
 const loadingCard = document.getElementById('loadingCard');
@@ -40,8 +43,14 @@ withClient(async () => {
     showError('Google ยังไม่ถูกตั้งค่าในระบบนี้ / Google sign-in is not configured for this deployment.');
     return;
   }
-  try { flow = JSON.parse(sessionStorage.getItem('clics_oauth_flow') || '{}'); } catch { flow = {}; }
-  sessionStorage.removeItem('clics_oauth_flow');
+  // Prefer localStorage (survives the OAuth round-trip even in a fresh browsing context);
+  // sessionStorage is the legacy fallback for markers written by older pages.
+  try {
+    const raw = localStorage.getItem('clics_oauth_flow') || sessionStorage.getItem('clics_oauth_flow');
+    flow = JSON.parse(raw || '{}');
+  } catch { flow = {}; }
+  try { localStorage.removeItem('clics_oauth_flow'); } catch {}
+  try { sessionStorage.removeItem('clics_oauth_flow'); } catch {}
   if (!flow.kind) flow.kind = 'signup';
 
   const { data } = await window.sbClient.auth.getSession();
@@ -72,18 +81,22 @@ async function completeInvite() {
 
 // ---- Normal Google signup flow ----
 async function completeSignup() {
-  // If a council was already chosen (re-entry after the picker), use it; else try with none,
-  // and on the very first sign-in the backend needs a council — so we prompt.
-  const councilId = flow.council_id || null;
-  if (!councilId) {
-    // Existing users (already provisioned) don't need a council; the backend ignores it for them.
-    // But new users do. We can't tell ahead of time, so attempt with a placeholder-free prompt:
+  // If a council was already chosen (re-entry after the picker), use it directly.
+  if (flow.council_id) {
+    const res = await api.oauthGoogleComplete(accessToken, flow.council_id);
+    handleSignupResult(res);
+    return;
+  }
+  // Otherwise try WITHOUT a council first: existing professionals get their account
+  // straight back (no picker, ever). Only a brand-new user gets 400 'council_required'.
+  const res = await api.oauthGoogleComplete(accessToken, undefined);
+  const code = res.body?.error?.code || res.body?.code;
+  if (res.status === 400 && code === 'council_required') {
     await populateCouncils();
     show(councilCard);
     return;
   }
-  const res = await api.oauthGoogleComplete(accessToken, councilId);
-  handleSignupResult(res);
+  handleSignupResult(res); // ok/201 → routeActive; anything else → error card
 }
 
 async function populateCouncils() {

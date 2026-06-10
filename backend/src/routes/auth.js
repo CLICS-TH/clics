@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { z } = require('zod');
 const { supabase, authSupabase, authAnon } = require('../lib/supabase');
 const { verifyJwt } = require('../middleware/auth');
+const { sendDbError } = require('../lib/db-helpers');
 const { effectiveLimit } = require('../lib/usage');
 const { provisionProfessional } = require('../lib/provisioning');
 const { hashToken } = require('../lib/invite-token');
@@ -32,9 +33,12 @@ const InviteAcceptSchema = z.object({
 });
 
 // Google sign-in completes client-side via Supabase; the browser posts the session token here.
+// council_id is OPTIONAL: existing professionals never need one (the route returns their account
+// before any council logic), and new users are told via 400 {code:'council_required'} — so the UI
+// shows the council picker only when it is genuinely needed.
 const GoogleCompleteSchema = z.object({
   access_token: z.string().min(10),
-  council_id: z.string().uuid(),
+  council_id: z.string().uuid().optional(),
 });
 
 // A council a new member may join must exist AND be active.
@@ -108,6 +112,32 @@ router.get('/me', verifyJwt, async (req, res) => {
   res.json({ user: { ...req.user, usage_limit_effective_usd } });
 });
 
+// A physician asks to ALSO become an auditor (the "special" dual role). Creates a pending
+// role request that an admin (own council) or superadmin approves via /admin/auditor-requests.
+// Reuses the access_requests table (requested_role='auditor') — no new table.
+router.post('/request-auditor', verifyJwt, async (req, res) => {
+  if (req.user.role !== 'physician') return res.status(403).json({ error: 'Only physicians can request auditor rights.' });
+  if (req.user.can_audit) return res.status(409).json({ error: 'You already have auditor rights.', code: 'already_auditor' });
+  const { data: dup } = await supabase.from('access_requests')
+    .select('id').eq('auth_user_id', req.user.id).eq('requested_role', 'auditor').eq('status', 'pending').maybeSingle();
+  if (dup) return res.status(409).json({ error: 'Your request is already pending.', code: 'pending' });
+  const { error } = await supabase.from('access_requests').insert({
+    email: req.user.email, full_name_th: req.user.full_name_th, full_name_en: req.user.full_name_en,
+    specialty: req.user.specialty ?? null, council_id: req.user.council_id,
+    provider: 'role_request', auth_user_id: req.user.id, requested_role: 'auditor', status: 'pending',
+  });
+  if (sendDbError(res, error)) return;
+  res.status(202).json({ status: 'pending' });
+});
+
+// GET /auth/request-auditor — the caller's own pending/last auditor request (drives the button state).
+router.get('/request-auditor', verifyJwt, async (req, res) => {
+  const { data } = await supabase.from('access_requests')
+    .select('status, reviewed_at').eq('auth_user_id', req.user.id).eq('requested_role', 'auditor')
+    .order('created_at', { ascending: false }).limit(1).maybeSingle();
+  res.json({ request: data ?? null, can_audit: req.user.can_audit === true });
+});
+
 // Record the participant's informed consent (human-subjects pilot). Session creation is gated on this.
 router.post('/consent', verifyJwt, async (req, res) => {
   const now = new Date().toISOString();
@@ -163,6 +193,8 @@ router.post('/oauth/google/complete', oauthGate, async (req, res) => {
     return res.json({ access_token, user: { id: user.id, email: user.email, ...prof } });
   }
 
+  // A NEW user needs a council — tell the client to prompt for one (the only time the picker shows).
+  if (!council_id) return res.status(400).json({ error: 'เลือกสภาวิชาชีพ / Pick your professional council.', code: 'council_required' });
   if (!(await activeCouncil(council_id))) return res.status(400).json({ error: 'Unknown or inactive council.' });
 
   // Identity is read from the VALIDATED token, never from the request body.
@@ -211,11 +243,12 @@ router.post('/invite/:token/accept', async (req, res) => {
   if (!inv) return;
 
   // Shared: provision in the invited role (ACTIVE on accept — the A/B invite is the vetting),
-  // then consume the invite atomically.
+  // then consume the invite atomically. A "Special" invite (physician + can_audit) flows through.
   async function finalize({ authUserId, full_name_th, full_name_en, identity, session_token }) {
     const prov = await provisionProfessional({
       authUserId, role: inv.role, councilId: inv.council_id,
       full_name_th, full_name_en, status: 'active', identity,
+      can_audit: inv.can_audit === true,
     });
     if (!prov.ok) return { http: prov.code === 'slot_full' ? 409 : 500, json: { error: prov.error } };
     // Consume the invite ATOMICALLY: only succeeds if it's still pending (guards concurrent accepts).

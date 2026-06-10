@@ -131,3 +131,12 @@
     @apply font-heading;
   }
 }
+
+/* Desktop scale: bump the root font to 150% of the 16px default on wide screens.
+   Tailwind's rem-based spacing/type chain scales the whole app; mobile/tablet
+   (< 1280px) keep the standard 16px root. */
+@media (min-width: 1280px) {
+  html {
+    font-size: 24px;
+  }
+}

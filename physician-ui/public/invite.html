@@ -60,7 +60,10 @@
       </div>
       <div class="form-group">
         <label for="password">ตั้งรหัสผ่าน / Set password (≥ 10, ตัวอักษร+ตัวเลข)</label>
-        <input type="password" id="password" autocomplete="new-password" />
+        <div style="position:relative">
+          <input type="password" id="password" autocomplete="new-password" style="padding-right:44px" />
+          <button type="button" aria-label="แสดงรหัสผ่าน / Show password" style="position:absolute;top:50%;right:6px;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px;font-size:16px;line-height:1;color:var(--muted)" onclick="var i=document.getElementById('password');i.type=i.type==='password'?'text':'password'">👁</button>
+        </div>
       </div>
       <div id="acceptErr" class="error-msg" style="display:none"></div>
       <button class="btn btn-primary" style="width:100%" id="passwordBtn">ตั้งรหัสผ่านและส่งรหัส / Set password &amp; send code</button>

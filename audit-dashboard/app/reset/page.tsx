@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { getSupabaseBrowser, isSupabaseConfigured } from '@/lib/supabase-browser';
+import { Eye, EyeOff } from 'lucide-react';
 
 type Phase = 'loading' | 'form' | 'invalid' | 'success';
 const PW_OK = (p: string) => p.length >= 10 && /[A-Za-z]/.test(p) && /[0-9]/.test(p);
@@ -14,6 +15,8 @@ export default function ResetPage() {
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // The recovery link from Supabase lands here with a recovery token in the URL hash.
   // The browser client (detectSessionInUrl:true) parses it and emits PASSWORD_RECOVERY /
@@ -90,13 +93,27 @@ export default function ResetPage() {
 
         {phase === 'form' && (
           <>
-            <input className="w-full border rounded-lg px-3 py-2 text-sm" type="password"
-              placeholder="รหัสผ่านใหม่ / New password" value={password}
-              onChange={e => setPassword(e.target.value)} />
-            <input className="w-full border rounded-lg px-3 py-2 text-sm" type="password"
-              placeholder="ยืนยันรหัสผ่าน / Confirm password" value={confirm}
-              onChange={e => setConfirm(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && save()} />
+            <div className="relative">
+              <input className="w-full border rounded-lg px-3 py-2 pr-10 text-sm" type={showPw ? 'text' : 'password'}
+                placeholder="รหัสผ่านใหม่ / New password" value={password}
+                onChange={e => setPassword(e.target.value)} />
+              <button type="button" onClick={() => setShowPw(s => !s)}
+                aria-label={showPw ? 'ซ่อนรหัสผ่าน / Hide password' : 'แสดงรหัสผ่าน / Show password'}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground">
+                {showPw ? <EyeOff className="size-4" aria-hidden="true" /> : <Eye className="size-4" aria-hidden="true" />}
+              </button>
+            </div>
+            <div className="relative">
+              <input className="w-full border rounded-lg px-3 py-2 pr-10 text-sm" type={showConfirm ? 'text' : 'password'}
+                placeholder="ยืนยันรหัสผ่าน / Confirm password" value={confirm}
+                onChange={e => setConfirm(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && save()} />
+              <button type="button" onClick={() => setShowConfirm(s => !s)}
+                aria-label={showConfirm ? 'ซ่อนรหัสผ่าน / Hide password' : 'แสดงรหัสผ่าน / Show password'}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground">
+                {showConfirm ? <EyeOff className="size-4" aria-hidden="true" /> : <Eye className="size-4" aria-hidden="true" />}
+              </button>
+            </div>
             {error && <p className="text-destructive text-sm">{error}</p>}
             <Button className="w-full" onClick={save} disabled={busy}>
               {busy ? 'กำลังบันทึก...' : 'บันทึกรหัสผ่านใหม่ / Save new password'}

@@ -256,6 +256,11 @@ nav a:hover { color:var(--ink); }
 .toggle-btn:hover { color:var(--ink); border-color:var(--muted-soft); }
 
 /* ===== Responsive — first breakpoints in this codebase ===== */
+/* Large desktop: scale the base type up ~150% (px-sized components keep their size;
+   inherited text grows). Skipped when the user forces mobile view via data-view. */
+@media (min-width: 1280px) {
+  html:not([data-view="mobile"]) body { font-size: 22px; }
+}
 /* Tablet */
 @media (min-width: 768px) and (max-width: 1023px) {
   html:not([data-view="desktop"]) .container { max-width: 720px; }

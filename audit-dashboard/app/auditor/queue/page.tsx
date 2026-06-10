@@ -14,7 +14,8 @@ export default function AuditorQueue() {
 
   useEffect(() => {
     const user = getUser();
-    if (!user || user.role !== 'auditor') { router.push('/login'); return; }
+    const allowed = user && (user.role === 'auditor' || (user.role === 'physician' && user.can_audit));
+    if (!allowed) { router.push('/login'); return; }
     // Unscored first, so the items still to do sit at the top.
     apiFetch<PleItem[]>('/auditor/queue').then(d =>
       setPlEs([...(d ?? [])].sort((a, b) => Number(!!a.scored) - Number(!!b.scored)))
