@@ -4,7 +4,9 @@
 //  - the 2 admins approve all 10 (reviewer-stamped, split 5/5)
 // Writes /tmp/soak-personas.json with creds + tiers + ids for the soak workflow.
 const fs = require('fs');
-const BASE = 'https://backend-production-c12e4.up.railway.app';
+// SOAK_BASE/SOAK_COUNCIL let the soak run against a non-prod stack (e.g. local backend + scaletest DB).
+const BASE = process.env.SOAK_BASE || 'https://backend-production-c12e4.up.railway.app';
+const COUNCIL_CODE = process.env.SOAK_COUNCIL || 'TMC';
 const PW = 'SoakPass#2026';
 
 async function api(method, path, { token, body } = {}) {
@@ -39,9 +41,9 @@ const TIERS = [
   const saT = sa.body.access_token;
   log('superadmin logged in.');
 
-  // Everyone joins the Medical Council in this soak cohort.
-  const TMC = ((await api('GET', '/admin/councils', { token: saT })).body || []).find(c => c.code === 'TMC')?.id;
-  if (!TMC) throw new Error('Medical Council (TMC) not found — run db/migration-councils.sql');
+  // Everyone joins the same council in this soak cohort (default TMC; override via SOAK_COUNCIL).
+  const TMC = ((await api('GET', '/admin/councils', { token: saT })).body || []).find(c => c.code === COUNCIL_CODE)?.id;
+  if (!TMC) throw new Error(`council ${COUNCIL_CODE} not found — run db/migration-councils.sql`);
 
   // --- superadmin creates admins + auditors (the "invite") ---
   const admins = [

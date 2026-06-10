@@ -143,11 +143,19 @@ function writeRun(mode, report, sha) {
   } else if (MODE === 'rescore') {
     sha = promptSha();
     console.log(`Re-scoring via RIMPL ${process.env.RIMPL_URL || 'http://localhost:3003'} (live Claude). prompt sha=${sha.slice(0, 12)}\n`);
+    // An eval is valid only if every domain is numeric (the model occasionally returns malformed
+    // JSON, which would silently score 0 and poison the ICC) — retry once, else drop the PLE.
+    const validEval = (e) => e && DOMS.every(d => Number.isFinite(Number(e[d]))) && Number(e.composite_score) > 0;
     const newMap = new Map();
     for (const c of cohort) {
       const messages = await fetchMessages(c.ple_id);
       try {
-        const e = await rimplEvaluate({ ple_id: c.ple_id, transcript: messages });
+        let e = await rimplEvaluate({ ple_id: c.ple_id, transcript: messages });
+        if (!validEval(e)) {
+          console.log(`  ↻ ${String(c.pseudonym).padEnd(8)} invalid eval (missing domains) — retrying once`);
+          e = await rimplEvaluate({ ple_id: c.ple_id, transcript: messages });
+        }
+        if (!validEval(e)) { console.error(`  ✗ ${String(c.pseudonym).padEnd(8)} invalid eval twice — dropped from this run`); continue; }
         newMap.set(c.ple_id, e);
         console.log(`  ✓ ${String(c.pseudonym).padEnd(8)} composite=${e.composite_score}`);
       } catch (err) {
