@@ -13,8 +13,9 @@ structured patient intake, reconcile sweep.
    3. `db/migration-drop-license-gate.sql` ← **must land with (or before) the backend deploy** —
       the old trigger 500s auditor invite-accepts under the new model
    4. `db/migration-patient-intake.sql`
+   5. `db/migration-overview-mailer.sql` (executive-overview RPC + `invites.email_sent_at`)
 3. Spot-check: `invites` / `license_verifications` / `ple_patient_refs` exist; `next_pseudonym()`
-   returns a value; `enforce_auditor_license_trg` is GONE.
+   returns a value; `council_member_counts()` returns rows; `enforce_auditor_license_trg` is GONE.
 
 ## 2. Prod Supabase dashboard (per docs/AUTH-SETUP.md)
 - **Custom SMTP with a VERIFIED sending domain** (sandbox only mails your own address — invitees and
@@ -26,8 +27,10 @@ structured patient intake, reconcile sweep.
 
 ## 3. Env vars
 - **Backend (Railway)**: `SUPABASE_ANON_KEY` ← **required, fails closed in prod without it**;
-  `OAUTH_ENABLED=true`; `SITE_URL=<prod physician-ui>`; `INVITE_EXPIRY_DAYS=7`; optional
-  `RECONCILE_INTERVAL_MS` (default 6h sweep). Leave `LICENSE_VERIFIER_ADAPTER` unset (retired/dormant).
+  `OAUTH_ENABLED=true`; `SITE_URL=<prod physician-ui>`; `INVITE_EXPIRY_DAYS=7`; **invite emails:**
+  `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` (same creds as the Supabase SMTP
+  config; fail-soft — unset = copy-link only); optional `RECONCILE_INTERVAL_MS` (default 6h sweep).
+  Leave `LICENSE_VERIFIER_ADAPTER` unset (retired/dormant).
 - **audit-dashboard (Vercel)**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   (+ existing `NEXT_PUBLIC_API_URL`).
 - **physician-ui**: fill `public/js/config.js` `CLICS_SUPABASE_URL` + `CLICS_SUPABASE_ANON_KEY`
