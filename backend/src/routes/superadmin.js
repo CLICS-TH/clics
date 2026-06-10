@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { computeICC21 } = require('../services/icc');
-const { sendDbError } = require('../lib/db-helpers');
+const { sendDbError, pageParams } = require('../lib/db-helpers');
 const { assertSlotAvailable, nextPseudonym, allSlotUsage, ROLES } = require('../lib/accounts');
 
 const router = Router();
@@ -18,6 +18,8 @@ const CreateUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   role: z.enum(GRANTABLE_ROLES),
+  // Every non-superadmin belongs to exactly one council (enforced by prof_council_required).
+  council_id: z.string().uuid(),
   full_name_th: z.string().min(1),
   full_name_en: z.string().min(1),
   specialty: z.string().optional(),
@@ -30,6 +32,7 @@ const UpdateUserSchema = z.object({
   specialty: z.string().optional(),
   license_number: z.string().optional(),
   role: z.enum(GRANTABLE_ROLES).optional(),
+  council_id: z.string().uuid().optional(),   // move a member to another council
   // Per-user AI usage limit override ($). null clears the override -> the standard default applies.
   usage_limit_usd: z.number().nonnegative().nullable().optional(),
 }).refine((b) => Object.keys(b).length > 0, { message: 'No fields to update' });
@@ -42,8 +45,11 @@ const UsageSettingsSchema = z.object({
 }).refine((b) => Object.keys(b).length > 0, { message: 'No settings to update' });
 
 router.get('/users', async (req, res) => {
-  const { data, error } = await supabase.from('professionals').select('*').order('created_at');
+  const { limit, offset } = pageParams(req);   // paginated — never pull all 80K professionals at once
+  const { data, error, count } = await supabase.from('professionals')
+    .select('*', { count: 'exact' }).order('created_at').range(offset, offset + limit - 1);
   if (error) return res.status(500).json({ error: error.message });
+  res.setHeader('X-Total-Count', count ?? 0);
   res.json(data);
 });
 
@@ -53,8 +59,8 @@ router.post('/users', async (req, res) => {
 
   const { email, password, ...profile } = parsed.data;
 
-  // Enforce the role slot pool (superadmin pool is 1 → a 2nd superadmin is rejected here).
-  const slot = await assertSlotAvailable(profile.role);
+  // Enforce the slot pool: physician uncapped, admin/auditor per-council.
+  const slot = await assertSlotAvailable(profile.role, profile.council_id);
   if (!slot.ok) return res.status(409).json({ error: slot.error });
 
   const { data: authUser, error: authErr } = await supabase.auth.admin.createUser({
@@ -64,6 +70,9 @@ router.post('/users', async (req, res) => {
 
   const insert = { id: authUser.user.id, ...profile, status: 'active' };
   if (profile.role === 'physician') insert.pseudonym = await nextPseudonym();
+  // Superadmin directly creating an auditor IS a trusted manual verification (the enforce_auditor_license
+  // trigger blocks an active auditor that is still 'unverified').
+  if (profile.role === 'auditor') { insert.license_status = 'manual_verified'; insert.license_verified_at = new Date().toISOString(); }
 
   const { error: profErr } = await supabase.from('professionals').insert(insert);
   if (profErr) {
@@ -88,12 +97,17 @@ router.patch('/users/:id', async (req, res) => {
   if (current.role === 'superadmin' && parsed.data.role && parsed.data.role !== 'superadmin') {
     return res.status(403).json({ error: 'The superadmin role is immutable and cannot be changed.' });
   }
+  // The superadmin spans all councils — it must never be pinned to one.
+  if (current.role === 'superadmin' && parsed.data.council_id !== undefined) {
+    return res.status(403).json({ error: 'The superadmin is not scoped to a council.' });
+  }
 
   const patch = { ...parsed.data };
+  const targetCouncil = patch.council_id ?? current.council_id;
 
   if (patch.role && patch.role !== current.role) {
     if (current.status === 'active') {
-      const slot = await assertSlotAvailable(patch.role); // current user counts in their OLD pool
+      const slot = await assertSlotAvailable(patch.role, targetCouncil); // current user counts in their OLD pool
       if (!slot.ok) return res.status(409).json({ error: slot.error });
     }
     if (patch.role === 'physician' && !current.pseudonym) patch.pseudonym = await nextPseudonym();
@@ -112,7 +126,7 @@ router.patch('/users/:id/status', async (req, res) => {
   const { status } = parsed.data;
 
   const { data: current, error: curErr } = await supabase
-    .from('professionals').select('role, status').eq('id', req.params.id).single();
+    .from('professionals').select('role, status, council_id').eq('id', req.params.id).single();
   if (curErr || !current) return res.status(404).json({ error: 'User not found' });
 
   // The superadmin can never be turned off OR back on — its status is locked (cannot be eliminated).
@@ -120,7 +134,8 @@ router.patch('/users/:id/status', async (req, res) => {
     return res.status(403).json({ error: 'The superadmin account status is locked and cannot be changed.' });
   }
   if (status === 'active' && current.status !== 'active') {
-    const slot = await assertSlotAvailable(current.role);
+    // Reactivation re-consumes a slot — check the member's own (per-council for admin/auditor) pool.
+    const slot = await assertSlotAvailable(current.role, current.council_id);
     if (!slot.ok) return res.status(409).json({ error: slot.error });
   }
 
@@ -166,9 +181,15 @@ router.get('/usage-settings', async (_req, res) => {
     readSetting('standard_usage_limit_usd', 0.5),
     readSetting('api_budget_pool_usd', 0),
   ]);
-  // Total spent so far = sum of every member's running meter (only physicians accrue).
-  const { data: rows } = await supabase.from('professionals').select('usage_cost_usd');
-  const total_used_usd = (rows ?? []).reduce((acc, r) => acc + Number(r.usage_cost_usd ?? 0), 0);
+  // Total spent so far = SQL SUM (no whole-table load). Fall back to the JS reduce pre-migration.
+  let total_used_usd;
+  const { data: sum, error: sumErr } = await supabase.rpc('total_usage_sum');
+  if (!sumErr && sum != null) {
+    total_used_usd = Number(sum);
+  } else {
+    const { data: rows } = await supabase.from('professionals').select('usage_cost_usd');
+    total_used_usd = (rows ?? []).reduce((acc, r) => acc + Number(r.usage_cost_usd ?? 0), 0);
+  }
   res.json({ standard_limit_usd, api_budget_pool_usd, total_used_usd });
 });
 
@@ -197,30 +218,55 @@ router.post('/users/:id/reset-usage', async (req, res) => {
   res.json(data);
 });
 
+// ICC(2,1) calibration — overall + per-domain, AND a per-council breakdown so the superadmin
+// can see each profession separately. Test sessions are excluded unless ?include_test=true.
+const ICC_DOMAINS = ['d1','d2','d3','d4','d5','d6','d7'];
+function iccBundle(pairs) {
+  const overall = computeICC21(pairs.map(p => ({ ai: Number(p.ai.composite_score), human: Number(p.audit.composite_score) })));
+  const per_domain = {};
+  for (const d of ICC_DOMAINS) {
+    per_domain[d] = computeICC21(pairs.map(p => ({ ai: Number(p.ai[d]), human: Number(p.audit[d]) })));
+  }
+  return { overall, per_domain, n: pairs.length };
+}
+
 router.get('/icc', async (req, res) => {
+  const includeTest = req.query.include_test === 'true';
+
+  // Bounded by SCORED sessions (audit_scores is small — few auditors), not all 400K ples.
+  // audit_scores carries a denormalized council_id, so we only need is_test from the scored ples.
   const { data: auditScores } = await supabase
-    .from('audit_scores').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+    .from('audit_scores').select('ple_id, council_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+  if (!auditScores?.length) return res.json({ overall: null, per_domain: {}, per_council: {}, n: 0 });
+
+  const scoredIds = [...new Set(auditScores.map(a => a.ple_id))];
   const { data: aiScores } = await supabase
-    .from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+    .from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('ple_id', scoredIds);
+  const { data: ples } = await supabase.from('ples').select('id, is_test').in('id', scoredIds);
+  const testOf = Object.fromEntries((ples ?? []).map(p => [p.id, p.is_test]));
 
-  if (!auditScores?.length) return res.json({ overall: null, per_domain: {} });
-
-  const pairs = auditScores.flatMap(a => {
-    const ai = aiScores?.find(s => s.ple_id === a.ple_id);
-    return ai ? [{ ai: Number(ai.composite_score), human: Number(a.composite_score), auditDomains: a, aiDomains: ai }] : [];
-  });
-
-  const overall = computeICC21(pairs.map(p => ({ ai: p.ai, human: p.human })));
-
-  const perDomain = {};
-  for (const d of ['d1','d2','d3','d4','d5','d6','d7']) {
-    perDomain[d] = computeICC21(pairs.map(p => ({
-      ai: Number(p.aiDomains[d]),
-      human: Number(p.auditDomains[d]),
-    })));
+  const aiBy = Object.fromEntries((aiScores ?? []).map(s => [s.ple_id, s]));
+  const allPairs = [];
+  for (const a of auditScores) {
+    const ai = aiBy[a.ple_id];
+    if (!ai) continue;
+    if (!includeTest && testOf[a.ple_id]) continue;
+    allPairs.push({ council_id: a.council_id, ai, audit: a });
   }
 
-  res.json({ overall, per_domain: perDomain, n: pairs.length });
+  const global = iccBundle(allPairs);
+
+  // Bucket by council and label each with its names.
+  const byCouncil = {};
+  for (const p of allPairs) (byCouncil[p.council_id] ??= []).push(p);
+  const { data: councils } = await supabase.from('councils').select('id, code, name_th, name_en');
+  const councilName = Object.fromEntries((councils ?? []).map(c => [c.id, c]));
+  const per_council = {};
+  for (const [cid, pairs] of Object.entries(byCouncil)) {
+    per_council[cid] = { council: councilName[cid] ?? null, ...iccBundle(pairs) };
+  }
+
+  res.json({ overall: global.overall, per_domain: global.per_domain, per_council, n: global.n });
 });
 
 router.get('/lpdp/:physicianId', async (req, res) => {

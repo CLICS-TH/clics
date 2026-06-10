@@ -56,6 +56,15 @@ router.post('/ples/:id/score', async (req, res) => {
   const parsed = ScoreSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
+  // An auditor may only score a session that is assigned to them, in their own council, and
+  // never one they ran themselves. (The audit_scores_guard trigger is the DB-level backstop.)
+  const { data: ple } = await supabase
+    .from('ples').select('id, auditor_id, council_id, physician_id').eq('id', req.params.id).single();
+  if (!ple) return res.status(404).json({ error: 'Not found' });
+  if (ple.auditor_id !== req.user.id) return res.status(403).json({ error: 'Not assigned to you' });
+  if (ple.physician_id === req.user.id) return res.status(403).json({ error: 'You cannot score your own session.' });
+  if (ple.council_id !== req.user.council_id) return res.status(403).json({ error: 'Cross-council scoring is not allowed.' });
+
   const { data: existing } = await supabase
     .from('audit_scores').select('id').eq('ple_id', req.params.id).eq('auditor_id', req.user.id).single();
   if (existing) return res.status(409).json({ error: 'Already scored' });

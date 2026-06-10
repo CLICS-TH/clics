@@ -7,7 +7,7 @@ const rateLimit = require('express-rate-limit');
 // and locked CORS all depend on these. Refuse to start without them rather than degrade silently.
 const IS_PROD = !!process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production';
 if (IS_PROD) {
-  const required = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'INTERNAL_TOKEN', 'GUEST_TOKEN_SECRET', 'IDENTITY_ENC_KEY', 'ALLOWED_ORIGINS'];
+  const required = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_ANON_KEY', 'INTERNAL_TOKEN', 'GUEST_TOKEN_SECRET', 'IDENTITY_ENC_KEY', 'ALLOWED_ORIGINS'];
   const missing = required.filter(k => !process.env[k]);
   if (missing.length) throw new Error(`Refusing to start in production — missing env: ${missing.join(', ')}`);
 }
@@ -28,6 +28,7 @@ app.use((req, res, next) => {
     res.header('Vary', 'Origin');
   }
   res.header('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+  res.header('Access-Control-Expose-Headers', 'X-Total-Count'); // let the browser READ the pagination total cross-origin
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
@@ -38,6 +39,14 @@ const limit = (windowMs, max, message) => rateLimit({ windowMs, max, standardHea
 app.use(limit(60_000, 300, 'Too many requests — slow down.'));            // general: 300/min/IP
 app.use('/auth/login', limit(60_000, 10, 'Too many login attempts — wait a minute.'));
 app.use('/auth/request-access', limit(60 * 60_000, 5, 'Too many access requests — try again later.'));
+// Split the signup caps: tight on the email-sending actions, more generous on OTP verify so a
+// user who mistypes the code a few times isn't locked out. (Supabase's own otp/email rate limits
+// are the per-email guard — see docs/AUTH-SETUP.md.)
+app.use('/auth/signup/email', limit(60 * 60_000, 5, 'Too many signup attempts — try again later.'));
+app.use('/auth/signup/resend-otp', limit(60 * 60_000, 6, 'Too many code requests — try again later.'));
+app.use('/auth/signup/verify-otp', limit(60_000, 15, 'Too many code attempts — wait a minute.'));
+app.use('/auth/forgot-password', limit(60 * 60_000, 5, 'Too many reset requests — try again later.'));
+app.use('/auth/invite', limit(60_000, 12, 'Too many invite attempts — slow down.'));
 app.use('/guest', limit(60_000, 15, 'Guest limit reached — slow down.'));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
@@ -48,6 +57,28 @@ app.use('/ples', require('./routes/ples'));
 app.use('/admin', require('./routes/admin'));
 app.use('/auditor', require('./routes/auditor'));
 app.use('/admin', require('./routes/superadmin'));
+
+// Scheduled reconcile sweep (soak finding F1): sessions stranded at cle_pass with no AI evaluation
+// silently lose credit, and recovery was manual-only. Re-run the sweep every RECONCILE_INTERVAL_MS
+// (default 6h; 0/negative disables). First run lands one interval after boot, and a sweep still in
+// flight makes the next tick skip rather than overlap.
+const RECONCILE_INTERVAL_MS = parseInt(process.env.RECONCILE_INTERVAL_MS || `${6 * 60 * 60_000}`, 10);
+if (process.env.NODE_ENV !== 'test' && RECONCILE_INTERVAL_MS > 0) {
+  const { reconcileEvaluations } = require('./services/reconcile');
+  let sweeping = false;
+  setInterval(async () => {
+    if (sweeping) return console.log('[reconcile] previous sweep still in flight — skipping this run');
+    sweeping = true;
+    try {
+      const { stuck, recovered, failed } = await reconcileEvaluations();
+      console.log(`[reconcile] swept ${stuck} cle_pass session(s): recovered=${recovered} failed=${failed}`);
+    } catch (err) {
+      console.error(`[reconcile] sweep failed: ${err.message}`);
+    } finally {
+      sweeping = false;
+    }
+  }, RECONCILE_INTERVAL_MS).unref(); // unref: the timer alone must not keep a script that imports `app` alive
+}
 
 if (require.main === module) {
   const PORT = process.env.PORT || 3001;

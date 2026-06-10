@@ -15,11 +15,17 @@ const supabase = createClient(
 // Passwords come from env so no real credential is hardcoded in the repo. The values below are
 // throwaway DEMO fallbacks for local/dev convenience only — set SEED_*_PW in any shared or real
 // environment (and prefer the participant provisioning script for real accounts).
+// Non-superadmin demo accounts are placed in the Medical Council (code TMC); the
+// prof_council_required check rejects any non-superadmin without a council. council_id
+// is resolved at runtime (see resolveMedicalCouncil) and merged in before upsert.
+const MEDICAL_COUNCIL_CODE = 'TMC';
 const USERS = [
   { email: 'superadmin@clics.th', password: process.env.SEED_SUPERADMIN_PW || 'ClicsSuper#2026r2', role: 'superadmin', status: 'active', full_name_th: 'ผู้ดูแลระบบสูงสุด', full_name_en: 'Super Admin' },
-  { email: 'admin@clics.th',      password: process.env.SEED_ADMIN_PW      || 'ClicsAdmin#2026r2', role: 'admin',      status: 'active', full_name_th: 'ผู้จัดการโครงการ',  full_name_en: 'Pilot Admin' },
-  { email: 'doctor1@clics.th',    password: process.env.SEED_DOCTOR_PW     || 'ClicsDoc#2026r2',   role: 'physician',  status: 'active', pseudonym: 'P-001', full_name_th: 'นพ. อาสา ทดสอบ',     full_name_en: 'Dr Asa Test', specialty: 'Internal Medicine', license_number: 'TH-DEMO-001' },
-  { email: 'auditor1@clics.th',   password: process.env.SEED_AUDITOR_PW    || 'ClicsAudit#2026r2', role: 'auditor',    status: 'active', full_name_th: 'ผู้ตรวจประเมิน',     full_name_en: 'Expert Auditor' },
+  { email: 'admin@clics.th',      password: process.env.SEED_ADMIN_PW      || 'ClicsAdmin#2026r2', role: 'admin',      status: 'active', council: MEDICAL_COUNCIL_CODE, full_name_th: 'ผู้จัดการโครงการ',  full_name_en: 'Pilot Admin' },
+  { email: 'doctor1@clics.th',    password: process.env.SEED_DOCTOR_PW     || 'ClicsDoc#2026r2',   role: 'physician',  status: 'active', council: MEDICAL_COUNCIL_CODE, pseudonym: 'P-001', full_name_th: 'นพ. อาสา ทดสอบ',     full_name_en: 'Dr Asa Test', specialty: 'Internal Medicine', license_number: 'TH-DEMO-001' },
+  // Auditor demo account is manual_verified: the enforce_auditor_license trigger forbids an
+  // ACTIVE auditor whose license is still 'unverified' (db/migration-license-invites.sql).
+  { email: 'auditor1@clics.th',   password: process.env.SEED_AUDITOR_PW    || 'ClicsAudit#2026r2', role: 'auditor',    status: 'active', council: MEDICAL_COUNCIL_CODE, license_status: 'manual_verified', full_name_th: 'ผู้ตรวจประเมิน',     full_name_en: 'Expert Auditor' },
 ];
 
 // Default role slot-pool capacities (superadmin locked at 1).
@@ -41,8 +47,16 @@ async function findByEmail(email) {
   }
 }
 
+// Resolve a council code -> id (the prof_council_required check needs council_id on non-superadmins).
+async function resolveCouncilId(code) {
+  const { data, error } = await supabase.from('councils').select('id').eq('code', code).single();
+  if (error || !data) throw new Error(`council "${code}" not found — run db/migration-councils.sql first`);
+  return data.id;
+}
+
 async function seedOne(u) {
-  const { email, password, ...profile } = u;
+  const { email, password, council, ...profile } = u;
+  if (council) profile.council_id = await resolveCouncilId(council);
   let authUser = await findByEmail(email);
   let action;
   if (authUser) {

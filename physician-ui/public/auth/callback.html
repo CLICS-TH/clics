@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="th" data-public>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLICS — เข้าสู่ระบบด้วย Google / Signing in</title>
+  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);}catch(e){}})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .login-box { width:100%; max-width:440px; padding:24px 0; }
+    .logo { text-align:center; margin-bottom:24px; }
+    .logo h1 { font-size:30px; font-weight:600; color:var(--coral); font-family:var(--font-display); letter-spacing:-0.02em; }
+    .logo p { color:var(--muted); font-size:13px; margin-top:4px; }
+    @media (prefers-reduced-motion: no-preference) { .logo { animation: clics-rise .6s ease both; } }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <div class="logo">
+      <h1>CLICS</h1>
+      <p>เข้าสู่ระบบด้วย Google · Google sign-in</p>
+    </div>
+
+    <!-- Working -->
+    <div class="card" id="loadingCard">
+      <p style="font-size:14px; color:var(--muted); text-align:center" id="loadingMsg">กำลังเข้าสู่ระบบ... / Completing sign-in...</p>
+    </div>
+
+    <!-- First-time council pick -->
+    <div class="card" id="councilCard" style="display:none">
+      <p style="font-size:14px; color:var(--muted); margin-bottom:16px; line-height:1.55">
+        เลือกสภาวิชาชีพของคุณเพื่อสร้างบัญชี<br/>Pick your professional council to finish creating your account.
+      </p>
+      <div class="form-group">
+        <label for="council">สภาวิชาชีพ / Professional council</label>
+        <select id="council"><option value="">— เลือกสภา / Select a council —</option></select>
+      </div>
+      <div id="councilErr" class="error-msg" style="display:none"></div>
+      <button class="btn btn-primary" style="width:100%" id="councilBtn">ดำเนินการต่อ / Continue</button>
+    </div>
+
+    <!-- Error -->
+    <div class="card" id="errorCard" style="display:none">
+      <div class="error-msg" id="errorMsg" style="display:block; font-size:14px; line-height:1.55"></div>
+      <a href="/" class="btn btn-primary" style="width:100%;margin-top:16px">ไปหน้าเข้าสู่ระบบ / Go to login →</a>
+    </div>
+
+    <!-- Done (invite pending review) -->
+    <div class="card" id="doneCard" style="display:none">
+      <div class="auth-success" id="doneMsg"></div>
+      <a href="/" id="doneCta" class="btn btn-primary" style="width:100%;margin-top:16px">ไปหน้าเข้าสู่ระบบ / Go to login →</a>
+    </div>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
+  <script type="module" src="/js/supabase-client.js"></script>
+  <script src="/js/oauth-callback.js"></script>
+  <script src="/js/boot.js" defer></script>
+</body>
+</html>

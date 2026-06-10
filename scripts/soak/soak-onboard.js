@@ -4,7 +4,9 @@
 //  - the 2 admins approve all 10 (reviewer-stamped, split 5/5)
 // Writes /tmp/soak-personas.json with creds + tiers + ids for the soak workflow.
 const fs = require('fs');
-const BASE = 'https://backend-production-c12e4.up.railway.app';
+// SOAK_BASE/SOAK_COUNCIL let the soak run against a non-prod stack (e.g. local backend + scaletest DB).
+const BASE = process.env.SOAK_BASE || 'https://backend-production-c12e4.up.railway.app';
+const COUNCIL_CODE = process.env.SOAK_COUNCIL || 'TMC';
 const PW = 'SoakPass#2026';
 
 async function api(method, path, { token, body } = {}) {
@@ -39,6 +41,10 @@ const TIERS = [
   const saT = sa.body.access_token;
   log('superadmin logged in.');
 
+  // Everyone joins the same council in this soak cohort (default TMC; override via SOAK_COUNCIL).
+  const TMC = ((await api('GET', '/admin/councils', { token: saT })).body || []).find(c => c.code === COUNCIL_CODE)?.id;
+  if (!TMC) throw new Error(`council ${COUNCIL_CODE} not found — run db/migration-councils.sql`);
+
   // --- superadmin creates admins + auditors (the "invite") ---
   const admins = [
     { email: 'soakadmin1@example.com', full_name_th: 'ผู้จัดการ หนึ่ง', full_name_en: 'Pilot Admin 1' },
@@ -50,18 +56,18 @@ const TIERS = [
     { email: 'soakaud3@example.com', full_name_th: 'ผู้ตรวจ สาม', full_name_en: 'Auditor 3' },
   ];
   for (const a of admins) {
-    const r = await api('POST', '/admin/users', { token: saT, body: { ...a, password: PW, role: 'admin' } });
+    const r = await api('POST', '/admin/users', { token: saT, body: { ...a, password: PW, role: 'admin', council_id: TMC } });
     log(`  create admin   ${a.email}: ${r.status}`);
   }
   for (const a of auditors) {
-    const r = await api('POST', '/admin/users', { token: saT, body: { ...a, password: PW, role: 'auditor' } });
+    const r = await api('POST', '/admin/users', { token: saT, body: { ...a, password: PW, role: 'auditor', council_id: TMC } });
     log(`  create auditor ${a.email}: ${r.status}`);
   }
 
   // --- 10 users self-register ---
   for (const p of TIERS) {
     const email = `soakdoc${p.n}@example.com`;
-    const r = await api('POST', '/auth/request-access', { body: { email, password: PW, full_name_th: p.th, full_name_en: p.en, specialty: 'Internal Medicine' } });
+    const r = await api('POST', '/auth/request-access', { body: { email, password: PW, council_id: TMC, full_name_th: p.th, full_name_en: p.en, specialty: 'Internal Medicine' } });
     log(`  request-access ${email} (${p.tier}): ${r.status}`);
   }
 

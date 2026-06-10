@@ -24,16 +24,20 @@ const PHYS = [
   if (!sa) throw new Error('superadmin login failed');
   console.log('superadmin in.');
 
+  // Everyone joins the Medical Council in this E2E cohort.
+  const TMC = ((await api('GET', '/admin/councils', { token: sa })).body || []).find(c => c.code === 'TMC')?.id;
+  if (!TMC) throw new Error('Medical Council (TMC) not found — run db/migration-councils.sql');
+
   // manager admin + 3 auditors (the "invite")
-  console.log('  create admin@clics.th:', (await api('POST', '/admin/users', { token: sa, body: { email: 'admin@clics.th', password: 'ClicsAdmin#2026r2', role: 'admin', full_name_th: 'ผู้ดูแลระบบ', full_name_en: 'Pilot Admin' } })).status);
+  console.log('  create admin@clics.th:', (await api('POST', '/admin/users', { token: sa, body: { email: 'admin@clics.th', password: 'ClicsAdmin#2026r2', role: 'admin', council_id: TMC, full_name_th: 'ผู้ดูแลระบบ', full_name_en: 'Pilot Admin' } })).status);
   for (const n of [1, 2, 3]) {
-    const r = await api('POST', '/admin/users', { token: sa, body: { email: `soakaud${n}@example.com`, password: SOAK, role: 'auditor', full_name_th: `ผู้ตรวจ ${n}`, full_name_en: `Auditor ${n}` } });
+    const r = await api('POST', '/admin/users', { token: sa, body: { email: `soakaud${n}@example.com`, password: SOAK, role: 'auditor', council_id: TMC, full_name_th: `ผู้ตรวจ ${n}`, full_name_en: `Auditor ${n}` } });
     console.log(`  create auditor ${n}:`, r.status);
   }
 
   // 6 physicians self-register
   for (const p of PHYS) {
-    const r = await api('POST', '/auth/request-access', { body: { email: `soakdoc${p.n}@example.com`, password: SOAK, full_name_th: p.th, full_name_en: p.en, specialty: 'Internal Medicine' } });
+    const r = await api('POST', '/auth/request-access', { body: { email: `soakdoc${p.n}@example.com`, password: SOAK, council_id: TMC, full_name_th: p.th, full_name_en: p.en, specialty: 'Internal Medicine' } });
     console.log(`  request-access soakdoc${p.n} (${p.tier}):`, r.status);
   }
 

@@ -85,7 +85,7 @@ const leaksIdentity = (obj) => {
   if (ad.status === 200 && ad.json?.access_token) { adminT = ad.json.access_token; adminAs = ADMIN.email; }
   info(`acting as admin: ${adminAs}`);
 
-  const evald = await req('GET', '/admin/ples?status=evaluated', { token: adminT });
+  const evald = await req('GET', '/admin/ples?status=evaluated&limit=200', { token: adminT });
   const evList = evald.json ?? [];
   ok(evald.status === 200 && Array.isArray(evList), 'GET /admin/ples?status=evaluated', `n=${evList.length}`);
 

@@ -24,4 +24,12 @@ function sendDbError(res, error) {
   return false;
 }
 
-module.exports = { fetchOwnedPle, ownsFolder, sendDbError };
+// Parse ?limit&offset (clamped) for paginated list endpoints — bounds the rows pulled from an
+// 80K/400K-row table and dodges PostgREST's silent 1000-row truncation. Default 50, max 200.
+function pageParams(req, { def = 50, max = 200 } = {}) {
+  const limit = Math.min(max, Math.max(1, parseInt(req.query.limit, 10) || def));
+  const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
+  return { limit, offset };
+}
+
+module.exports = { fetchOwnedPle, ownsFolder, sendDbError, pageParams };

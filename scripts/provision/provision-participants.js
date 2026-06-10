@@ -34,6 +34,9 @@ const SUPER = {
 };
 const ROSTER = process.env.PROVISION_ROSTER || path.join('scripts', 'provision', 'roster.json');
 const CONFIRM = process.argv.includes('--confirm');
+// Council each participant joins. Per-entry override via roster "council" (a council code,
+// e.g. TMC/PHARM/DENT/ENG); otherwise this default. The backend requires a council on create.
+const DEFAULT_COUNCIL = process.env.PROVISION_COUNCIL || 'TMC';
 
 // Strong, unique, easy-to-read-aloud password that satisfies the account policy (letter + digit, long).
 function genPassword() {
@@ -87,11 +90,25 @@ async function req(method, p, { token, body } = {}) {
   }
   const token = login.json.access_token;
 
+  // Resolve council codes → ids (every participant must belong to a council).
+  const cr = await req('GET', '/admin/councils', { token });
+  const byCode = Object.fromEntries((cr.json ?? []).map(c => [c.code, c.id]));
+  if (!byCode[DEFAULT_COUNCIL]) {
+    console.error(`✗ Default council "${DEFAULT_COUNCIL}" not found. Run db/migration-councils.sql, or set PROVISION_COUNCIL.`);
+    process.exit(1);
+  }
+
   const created = [], skipped = [], failed = [];
   for (const p of roster) {
+    const councilCode = p.council || DEFAULT_COUNCIL;
+    const council_id = byCode[councilCode];
+    if (!council_id) {
+      failed.push({ email: p.email, why: `unknown council "${councilCode}"` });
+      console.log(`  ✗ ${p.email.padEnd(34)} unknown council "${councilCode}"`); continue;
+    }
     const password = genPassword();
     const r = await req('POST', '/admin/users', { token, body: {
-      email: p.email, password, role: 'physician',
+      email: p.email, password, role: 'physician', council_id,
       full_name_th: p.full_name_th, full_name_en: p.full_name_en,
       specialty: p.specialty || undefined, license_number: p.license_number || undefined,
     }});

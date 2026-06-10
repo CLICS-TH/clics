@@ -20,6 +20,9 @@ const CreatePleSchema = z.object({
   specialty: z.string().optional(),
   chief_complaint: z.string().min(1).max(500),
   folder_id: z.string().uuid().optional(),
+  // Structured patient identifier — stored in the isolated ple_patient_refs table ONLY, NEVER sent
+  // to the cloud AI / auditors / export. Lets the case narrative stay name-free (real-PII de-id).
+  patient_ref: z.string().max(200).optional(),
 });
 
 const AssignSchema = z.object({

@@ -10,5 +10,6 @@ node_modules/
 
 # Credentials — never track real or demo logins / generated participant passwords
 LOGIN-ACCOUNTS.txt
+scripts/provision/roster.json
 scripts/provision/credentials-*.txt
 *.creds

@@ -5,7 +5,7 @@
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 const s = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
-const BASE = 'https://backend-production-c12e4.up.railway.app';
+const BASE = process.env.SOAK_BASE || 'https://backend-production-c12e4.up.railway.app';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function api(method, path, { token, body } = {}) {
   const res = await fetch(BASE + path, { method, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: body ? JSON.stringify(body) : undefined });

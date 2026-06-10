@@ -47,7 +47,7 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
   const parsed = CreatePleSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { chief_complaint, folder_id } = parsed.data;
+  const { chief_complaint, folder_id, patient_ref } = parsed.data;
   if (!(await ownsFolder(req.user.id, folder_id))) {
     return res.status(403).json({ error: 'Folder not found' });
   }
@@ -57,6 +57,7 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
 
   const { data, error } = await supabase.from('ples').insert({
     physician_id: req.user.id,
+    council_id: req.user.council_id,   // denormalized from the physician; scopes admin/auditor access
     status: 'active',
     started_at: new Date().toISOString(),
     chief_complaint,
@@ -65,7 +66,18 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
   }).select().single();
 
   if (sendDbError(res, error)) return;
-  res.status(201).json(data);
+
+  // The structured patient identifier (name/HN/…) goes into a PHYSICALLY SEPARATE table that the
+  // chat→cloud path, the auditor blind queue, and the de-identified export NEVER read — only the
+  // owning physician does. So real patient PII stays out of the cloud AI entirely. Best-effort:
+  // a failure here must not strand the session that was just created.
+  const ref = patient_ref?.trim();
+  if (ref) {
+    const { error: refErr } = await supabase.from('ple_patient_refs')
+      .insert({ ple_id: data.id, physician_id: req.user.id, patient_ref: ref });
+    if (refErr) console.error('[ples] failed to store patient_ref:', refErr.message);
+  }
+  res.status(201).json({ ...data, patient_ref: ref || null });
 });
 
 // List physician's own PLEs
@@ -134,7 +146,11 @@ router.get('/:id', async (req, res) => {
   const { data: messages } = await supabase
     .from('messages').select('*').eq('ple_id', req.params.id).order('created_at');
 
-  res.json({ ...ple, messages: messages ?? [] });
+  // The private patient identifier is read ONLY here, scoped to the owning physician.
+  const { data: ref } = await supabase.from('ple_patient_refs')
+    .select('patient_ref').eq('ple_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
+
+  res.json({ ...ple, patient_ref: ref?.patient_ref ?? null, messages: messages ?? [] });
 });
 
 // Send a message turn

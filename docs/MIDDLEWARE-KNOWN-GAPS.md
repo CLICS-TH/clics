@@ -8,14 +8,15 @@ _Status as of the July–September 2026 pilot build. The middleware **works end-
 - `ples.provider_used` exists in `db/schema.sql` but is a static default (`'claude'`), not a logged runtime choice.
 - **Impact:** the privacy/bias rationale of vendor rotation is not exercised. All de-identified traffic goes to Claude.
 
-## PII de-identification — REAL BUT MINIMAL
-- `rimpl/src/services/pii-filter.js` applies **4 regex patterns over 3 categories**: HN, DATE (two patterns), WARD → literal masks (`[HN]`, `[DATE]`, `[WARD]`).
-- The flowchart's **stable pseudonymization** is **partially built now**: `professionals.pseudonym` (P-NNN) is assigned at account creation/approval, and OAuth real identities are AES-256-GCM-encrypted in the deny-all `oauth_identities` vault (see [constraints.md](constraints.md)). Still pending (roadmap P2): the **CLE-001…CLE-150** pseudonyms, a reversible lookup beyond OAuth identities, and broader PII coverage. In-message masks remain literal, not reversible.
-- Not covered: patient names, ages, phone numbers, email, MRN variants, Thai-name patterns beyond `ห้อง` (ward).
-- **Impact:** PII *is* stripped before the outbound cloud call (the on-premise boundary holds for the covered categories), but coverage is narrow.
+## PII de-identification — BROADENED (2026-06-09); residual free-text-name risk
+- `rimpl/src/services/pii-filter.js` is now a **multi-category de-identifier**: NAME (Thai/English title-led, labelled `ชื่อ…นามสกุล…`, nicknames, plus bare re-occurrences of already-seen names), EMAIL, LINE id, Thai national ID, HN, MRN/AN, PHONE (Thai + international), DATE, WARD, ADDR (house no. / หมู่ / ตำบล-อำเภอ-จังหวัด) — with **stable per-category indexed tokens** (`[NAME-1]`, `[HN-1]`, …) so repeated mentions collapse to one referent.
+- It is complemented by a **structured patient-identifier intake**: `ple_patient_refs` (`db/migration-patient-intake.sql`) holds the patient identifier in a physically separate, **owner-only** table (deny-all RLS + route-layer physician filter) that is **never** read by the cloud-AI payload, the auditor blind queue, or the export — keeping the case narrative name-free by construction; the filter remains the backstop for anything typed into the narrative.
+- The flowchart's **stable pseudonymization** is **partially built now**: `professionals.pseudonym` (P-NNN) is assigned at account creation/approval, and OAuth real identities are AES-256-GCM-encrypted in the deny-all `oauth_identities` vault (see [constraints.md](constraints.md)). Still pending (roadmap P2): the **CLE-001…CLE-150** pseudonyms and a reversible lookup beyond OAuth identities. In-message masks remain literal, not reversible.
+- **Known limit:** a **bare free-text name** with no title, label, or prior masked occurrence (e.g. a mid-sentence "สมชายมาด้วยไข้") is not caught — the structured intake plus physician guidance are the mitigation.
+- **Impact:** PII *is* stripped before the outbound cloud call across the covered categories; free-text names without an anchor remain the residual risk.
 
-## Social sign-in (Google/LINE OAuth) — UI + PIPELINE BUILT, HANDSHAKE STUBBED
-- The request→approve→slot flow, the on-prem encrypted identity vault, and the Google/LINE sign-up UI **are built**. The actual provider handshake is **stubbed** (`POST /auth/oauth/:provider/mock-callback` mints a mock identity). Real wiring (Google via Supabase's native provider; LINE via a custom OIDC integration — Supabase has no native LINE provider) needs provider credentials and is a documented follow-up. The downstream logic (vault write + pending request + approval) is the same for the stub and the real handshake.
+## Social sign-in (Google/LINE OAuth) — GOOGLE LIVE, LINE ABSENT
+- The **real Google handshake is now wired via Supabase's native provider** (updated 2026-06-09): the browser completes `signInWithOAuth({provider:'google'})`, the backend validates the session token server-side (`POST /auth/oauth/google/complete`) and writes the identity to the on-prem encrypted vault — the old mock-callback stub is gone. **LINE is still absent**: Supabase has no native LINE provider, so it needs a custom OIDC integration and remains a documented follow-up.
 
 ## "4 pre-filter signals" — NOT IMPLEMENTED
 - The flowchart lists "Pre-filter 4 signals" at L3. No code defines or computes these four signals.

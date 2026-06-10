@@ -38,8 +38,20 @@
       <div id="error" class="error-msg" style="display:none"></div>
       <button class="btn btn-primary" style="width:100%" id="loginBtn">เข้าสู่ระบบ / Login</button>
 
+      <p class="auth-links" style="margin-top:12px">
+        <a href="/forgot">ลืมรหัสผ่าน? / Forgot password?</a>
+      </p>
+
+      <!-- Google self-service sign-up / sign-in (shown only when Supabase OAuth is configured) -->
+      <div id="googleWrap" style="display:none">
+        <div class="auth-divider">ยังไม่มีบัญชี? / New here?</div>
+        <div class="auth-oauth">
+          <button type="button" class="btn btn-primary" style="width:100%" id="googleBtn"><span class="oauth-mark">G</span> สมัคร / เข้าสู่ระบบด้วย Google · Sign up or in with Google</button>
+        </div>
+      </div>
+
       <p class="auth-links">
-        ยังไม่มีบัญชี? <a href="/request-access">ขอเข้าใช้งาน / Request access</a>
+        <a href="/request-access">ขอเข้าใช้งาน / Request access</a>
         &nbsp;·&nbsp;
         <a href="/guest-chat">ลองใช้แบบผู้เยี่ยมชม / Try as guest</a>
       </p>
@@ -47,9 +59,30 @@
   </div>
   <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>
+  <script type="module" src="/js/supabase-client.js"></script>
   <script src="/js/boot.js" defer></script>
   <script>
     if (localStorage.getItem('clics_token')) window.location.href = '/dashboard';
+
+    // Wire the Google button once we know whether Supabase OAuth is configured.
+    (function () {
+      function setup() {
+        if (!window.sbClient) return; // not configured → leave Google hidden
+        document.getElementById('googleWrap').style.display = '';
+        document.getElementById('googleBtn').addEventListener('click', async () => {
+          sessionStorage.setItem('clics_oauth_flow', JSON.stringify({ kind: 'signup' }));
+          const redirectTo = location.origin + '/auth/callback';
+          const { error } = await window.sbClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
+          if (error) {
+            const errEl = document.getElementById('error');
+            errEl.textContent = error.message || 'ไม่สามารถเริ่ม Google ได้ / Could not start Google sign-in.';
+            errEl.style.display = 'block';
+          }
+        });
+      }
+      if (typeof window.CLICS_SUPABASE_CONFIGURED === 'boolean') setup();
+      else window.addEventListener('clics:sbready', setup, { once: true });
+    })();
 
     document.getElementById('loginBtn').addEventListener('click', async () => {
       const email = document.getElementById('email').value.trim();

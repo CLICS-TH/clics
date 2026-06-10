@@ -4,6 +4,7 @@ export interface ClicsUser {
   role: 'superadmin' | 'admin' | 'physician' | 'auditor';
   full_name_th: string;
   full_name_en: string;
+  council_id?: string | null;
 }
 
 export function getUser(): ClicsUser | null {

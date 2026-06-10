@@ -15,8 +15,8 @@ document.getElementById('greeting').textContent = `สวัสดี, ${user.fu
   const ov = document.createElement('div');
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;';
   ov.innerHTML = `
-    <div style="background:var(--surface,#fff);color:var(--fg,#1a1a1a);max-width:560px;border-radius:16px;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,.3);max-height:85vh;overflow:auto;">
-      <h2 style="margin:0 0 10px;">ความยินยอมเข้าร่วม / Informed consent</h2>
+    <div style="background:var(--surface-card,#fff);color:var(--body-color,#1a1a1a);max-width:560px;border-radius:16px;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,.3);max-height:85vh;overflow:auto;">
+      <h2 style="margin:0 0 10px;color:var(--ink,#141413);">ความยินยอมเข้าร่วม / Informed consent</h2>
       <p style="font-size:14px;line-height:1.6;">
         นี่คือการศึกษานำร่อง (pilot) ของระบบ CLICS เพื่อพัฒนาการประเมินการให้เหตุผลทางคลินิก บทสนทนาของคุณจะถูกบันทึกและประเมินด้วย AI และผู้ตรวจประเมิน <b>กรุณาใช้เฉพาะเคสที่ไม่ระบุตัวตนผู้ป่วย</b> และคะแนนในระยะนี้ยังไม่ใช่หน่วยกิต CME<br><br>
         This is a CLICS pilot study. Your conversations are recorded and scored (by AI + expert auditors) to validate the system. <b>Use de-identified cases only.</b> Scores in this phase are provisional and do not yet count as CME credit.
@@ -50,22 +50,20 @@ document.getElementById('greeting').textContent = `สวัสดี, ${user.fu
   const limit = Number(u?.usage_limit_effective_usd);
   if (!u || !Number.isFinite(limit) || limit <= 0) return; // nothing meaningful to show
   const used = Number(u.usage_cost_usd ?? 0);
+  const tokens = (Number(u.usage_input_tokens) || 0) + (Number(u.usage_output_tokens) || 0);
   const pct = Math.min(100, Math.round((used / limit) * 100));
   const over = used >= limit;
   const color = over ? '#c0392b' : pct >= 80 ? '#e08a1e' : '#3a8a52';
-  const note = over
-    ? '<br><b>ถึงขีดจำกัดแล้ว — ติดต่อผู้ดูแลระบบ / Limit reached — contact an administrator.</b>'
-    : '';
   host.innerHTML = `
-    <div style="background:var(--surface,#fff);border:1px solid var(--border,#e2e2e2);border-radius:12px;padding:10px 14px;margin:0 0 14px;font-size:13px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+    <div style="background:var(--surface-card,#fff);border:1px solid var(--hairline,#e2e2e2);color:var(--body-color,#1a1a1a);border-radius:12px;padding:10px 14px;margin:0 0 14px;font-size:13px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;">
         <span>การใช้งาน AI / AI usage</span>
-        <span style="font-variant-numeric:tabular-nums;color:${color};font-weight:600;">$${used.toFixed(4)} / $${limit.toFixed(2)} (${pct}%)</span>
+        <span style="font-variant-numeric:tabular-nums;color:${color};font-weight:600;">$${used.toFixed(4)} / $${limit.toFixed(2)} (${pct}%) <span style="color:var(--muted,#6c6a64);font-weight:400;">· ${tokens.toLocaleString()} tokens</span></span>
       </div>
-      <div style="height:8px;background:#e9eef4;border-radius:99px;overflow:hidden;margin-top:6px;">
+      <div style="height:8px;background:rgba(127,127,127,.22);border-radius:99px;overflow:hidden;margin-top:6px;">
         <div style="height:100%;width:${pct}%;background:${color};transition:width .3s;"></div>
       </div>
-      <div style="color:#6b7785;margin-top:4px;">งบสำหรับการนำร่อง / Pilot budget.${note}</div>
+      ${over ? '<div style="color:#c0392b;font-weight:600;margin-top:5px;">ถึงขีดจำกัดแล้ว — ติดต่อผู้ดูแลระบบ / Limit reached — contact an administrator.</div>' : ''}
     </div>`;
 })();
 

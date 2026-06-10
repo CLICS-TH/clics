@@ -9,7 +9,7 @@ const { computeICC21 } = require('../../backend/src/services/icc');
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY,
   { auth: { persistSession: false, autoRefreshToken: false } });
 
-const BASE = 'https://backend-production-c12e4.up.railway.app';
+const BASE = process.env.SOAK_BASE || 'https://backend-production-c12e4.up.railway.app';
 const PW = 'SoakPass#2026';
 async function api(method, path, { token, body } = {}) {
   const res = await fetch(BASE + path, {
@@ -19,7 +19,8 @@ async function api(method, path, { token, body } = {}) {
   let json = null; try { json = await res.json(); } catch {}
   return { status: res.status, body: json };
 }
-const login = e => api('POST', '/auth/login', { body: { email: e, password: PW } });
+// (email, password?) — the superadmin passes its own password; soak personas default to PW.
+const login = (e, pw = PW) => api('POST', '/auth/login', { body: { email: e, password: pw } });
 
 // mean composite over pairwise raters (inter-rater ICC(2,1) generalised to k raters via avg pairwise)
 function pairwiseInterRater(byPle) {
@@ -45,28 +46,31 @@ function pairwiseInterRater(byPle) {
     auditorIds[a.auditor] = me.body.user.id;
   }
 
-  // collect all evaluated ple ids (union across auditors) for round-robin assignment
+  // collect all evaluated ple ids (union across auditors)
   const allPles = [...new Set(audits.flatMap(a => a.scores.map(s => s.ple_id)))];
   const auditorEmails = audits.map(a => a.auditor);
   let posted = 0, assigned = 0;
 
-  // round-robin primary assignment (dashboard/queue realism)
+  // post every auditor's blind scores. ples.auditor_id holds a SINGLE assignee and the score route
+  // enforces it, so rotate the assignment to each rater just-in-time — that lets all three score
+  // the same PLE through the real API (409 'Already scored' makes re-runs idempotent).
+  for (const a of audits) {
+    for (const s of a.scores) {
+      const { ple_id, notes, ref, d1, d2, d3, d4, d5, d6, d7 } = s;
+      await api('POST', `/admin/ples/${ple_id}/assign`, { token: sa, body: { auditor_id: auditorIds[a.auditor] } });
+      const r = await api('POST', `/auditor/ples/${ple_id}/score`, { token: auditorTokens[a.auditor], body: { d1, d2, d3, d4, d5, d6, d7, notes } });
+      if (r.status === 200) posted++;
+      else if (r.status !== 409) console.log(`  score ${a.auditor} ${ple_id.slice(0,8)}: ${r.status} ${JSON.stringify(r.body).slice(0,120)}`);
+    }
+  }
+
+  // final round-robin pass = the lasting "primary" assignee shown in the dashboard/queue
   for (let i = 0; i < allPles.length; i++) {
     const primary = auditorEmails[i % auditorEmails.length];
     const r = await api('POST', `/admin/ples/${allPles[i]}/assign`, { token: sa, body: { auditor_id: auditorIds[primary] } });
     if (r.status === 200) assigned++;
   }
-
-  // post every auditor's blind scores
-  for (const a of audits) {
-    for (const s of a.scores) {
-      const { ple_id, notes, ref, d1, d2, d3, d4, d5, d6, d7 } = s;
-      const r = await api('POST', `/auditor/ples/${ple_id}/score`, { token: auditorTokens[a.auditor], body: { d1, d2, d3, d4, d5, d6, d7, notes } });
-      if (r.status === 200) posted++;
-      else console.log(`  score ${a.auditor} ${ple_id.slice(0,8)}: ${r.status} ${JSON.stringify(r.body).slice(0,120)}`);
-    }
-  }
-  console.log(`Assigned ${assigned}/${allPles.length} PLEs (round-robin). Posted ${posted} auditor scores.`);
+  console.log(`Posted ${posted} new auditor scores. Final round-robin assignment: ${assigned}/${allPles.length}.`);
 
   // --- ICC ---
   console.log('\n=== ICC (AI vs human, per auditor — via API) ===');

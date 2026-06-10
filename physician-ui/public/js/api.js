@@ -54,9 +54,24 @@ window.api = {
   renameFolder: (id, name) => apiFetch(`/ples/folders/${id}`, { method: 'PATCH', body: { name } }),
   deleteFolder: (id) => apiFetch(`/ples/folders/${id}`, { method: 'DELETE' }),
 
+  // Active professional councils for the sign-up picker (public).
+  councils: () => publicFetch('/auth/councils'),
+
   // Self-service access request (email+password) — returns { ok, status, body }.
   // Social sign-in (Google/LINE) is disabled for the pilot; the stub endpoints 404.
   requestAccess: (body) => publicFetch('/auth/request-access', { method: 'POST', body }),
+
+  // ---- Public auth flows (all return { ok, status, body }) ----
+  // Public email-OTP self-signup was retired — physicians self-serve via Google
+  // (oauthGoogleComplete below); A/B send invites for physicians + auditors.
+  // Forgot password — ALWAYS 200 { ok:true } (never leaks whether the account exists).
+  forgotPassword: (email) => publicFetch('/auth/forgot-password', { method: 'POST', body: { email } }),
+  // Invite lookup → { email, role, council } (404 missing, 410 expired).
+  getInvite: (token) => publicFetch(`/auth/invite/${encodeURIComponent(token)}`),
+  // Accept an invite (password two-step OTP, or google). See backend contract.
+  acceptInvite: (token, body) => publicFetch(`/auth/invite/${encodeURIComponent(token)}/accept`, { method: 'POST', body }),
+  // Finish Google sign-in: post the Supabase session token + a chosen council (404 if OAUTH disabled).
+  oauthGoogleComplete: (access_token, council_id) => publicFetch('/auth/oauth/google/complete', { method: 'POST', body: { access_token, council_id } }),
 
   // Guest mode (ephemeral; token is NOT stored in localStorage).
   guestStart: () => publicFetch('/guest/start', { method: 'POST' }),
