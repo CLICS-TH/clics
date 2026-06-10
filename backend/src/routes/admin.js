@@ -5,6 +5,7 @@ const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { AssignSchema } = require('../lib/schemas');
 const { triggerEvaluation } = require('../services/ple-evaluation');
+const { reconcileEvaluations } = require('../services/reconcile');
 const { sendDbError, pageParams } = require('../lib/db-helpers');
 const { assertSlotAvailable, nextPseudonym } = require('../lib/accounts');
 const { newInviteToken } = require('../lib/invite-token');
@@ -350,19 +351,10 @@ router.get('/physicians/:id/profile', async (req, res) => {
 
 // Defensive sweep: re-evaluate any session that passed the gate but never got an AI score (e.g. a
 // transient RIMPL failure exhausted the retries). Keeps a study from silently losing credit-eligible
-// sessions. Safe + idempotent (skips anything already evaluated).
+// sessions. Safe + idempotent (skips anything already evaluated). The same sweep also runs on a
+// schedule (RECONCILE_INTERVAL_MS in index.js); this endpoint is the manual/on-demand trigger.
 router.post('/reconcile-evaluations', async (req, res) => {
-  // Batch-bounded: recover up to 200 stranded sessions per call (re-run to drain more).
-  const { data: stuck } = await supabase.from('ples').select('id, physician_id').eq('status', 'cle_pass').limit(200);
-  let recovered = 0, failed = 0;
-  for (const p of stuck ?? []) {
-    const { data: ex } = await supabase.from('ai_evaluations').select('id').eq('ple_id', p.id).maybeSingle();
-    if (ex) continue;
-    const { data: msgs } = await supabase.from('messages').select('role, content').eq('ple_id', p.id).order('created_at');
-    try { await triggerEvaluation(p.id, (msgs ?? []).map(m => ({ role: m.role, content: m.content })), p.physician_id); recovered++; }
-    catch { failed++; }
-  }
-  res.json({ stuck: (stuck ?? []).length, recovered, failed });
+  res.json(await reconcileEvaluations());
 });
 
 // De-identified study export (admin + superadmin): pseudonym-keyed sessions + AI + auditor scores.

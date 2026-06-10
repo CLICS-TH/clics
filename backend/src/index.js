@@ -58,6 +58,28 @@ app.use('/admin', require('./routes/admin'));
 app.use('/auditor', require('./routes/auditor'));
 app.use('/admin', require('./routes/superadmin'));
 
+// Scheduled reconcile sweep (soak finding F1): sessions stranded at cle_pass with no AI evaluation
+// silently lose credit, and recovery was manual-only. Re-run the sweep every RECONCILE_INTERVAL_MS
+// (default 6h; 0/negative disables). First run lands one interval after boot, and a sweep still in
+// flight makes the next tick skip rather than overlap.
+const RECONCILE_INTERVAL_MS = parseInt(process.env.RECONCILE_INTERVAL_MS || `${6 * 60 * 60_000}`, 10);
+if (process.env.NODE_ENV !== 'test' && RECONCILE_INTERVAL_MS > 0) {
+  const { reconcileEvaluations } = require('./services/reconcile');
+  let sweeping = false;
+  setInterval(async () => {
+    if (sweeping) return console.log('[reconcile] previous sweep still in flight — skipping this run');
+    sweeping = true;
+    try {
+      const { stuck, recovered, failed } = await reconcileEvaluations();
+      console.log(`[reconcile] swept ${stuck} cle_pass session(s): recovered=${recovered} failed=${failed}`);
+    } catch (err) {
+      console.error(`[reconcile] sweep failed: ${err.message}`);
+    } finally {
+      sweeping = false;
+    }
+  }, RECONCILE_INTERVAL_MS).unref(); // unref: the timer alone must not keep a script that imports `app` alive
+}
+
 if (require.main === module) {
   const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
