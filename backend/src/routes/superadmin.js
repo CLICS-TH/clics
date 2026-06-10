@@ -44,13 +44,14 @@ const UsageSettingsSchema = z.object({
   api_budget_pool_usd: z.number().nonnegative().optional(),
 }).refine((b) => Object.keys(b).length > 0, { message: 'No settings to update' });
 
-router.get('/users', async (req, res) => {
-  const { limit, offset } = pageParams(req);   // paginated — never pull all 80K professionals at once
-  const { data, error, count } = await supabase.from('professionals')
-    .select('*', { count: 'exact' }).order('created_at').range(offset, offset + limit - 1);
-  if (error) return res.status(500).json({ error: error.message });
-  res.setHeader('X-Total-Count', count ?? 0);
-  res.json(data);
+// GET /users moved to routes/admin.js (mounted first on the same /admin prefix): it is now
+// dual-role — council-scoped for admins, unscoped for superadmin. All user MUTATIONS stay here.
+
+// Executive overview: active members grouped by council × role (powers /admin/overview).
+router.get('/overview-counts', async (_req, res) => {
+  const { data, error } = await supabase.rpc('council_member_counts');
+  if (sendDbError(res, error)) return;
+  res.json(data ?? []);
 });
 
 router.post('/users', async (req, res) => {

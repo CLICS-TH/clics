@@ -8,7 +8,7 @@ import { getUser, type ClicsUser } from '@/lib/auth';
 
 // The 4 roles from the CLICS architecture flowchart.
 const ROLES = [
-  { key: 'superadmin', code: 'A', title: 'Superadmin', th: 'ดูแลภาพรวมทั้งระบบ', en: 'System oversight · ICC calibration · governance', href: '/admin/icc', cta: 'เปิดแดชบอร์ด ICC / Oversight' },
+  { key: 'superadmin', code: 'A', title: 'Superadmin', th: 'ดูแลภาพรวมทั้งระบบ', en: 'System oversight · ICC calibration · governance', href: '/admin/overview', cta: 'ภาพรวมผู้บริหาร / Executive overview' },
   { key: 'admin', code: 'B', title: 'Admin', th: 'จัดการ pilot cohort', en: 'Manage PLEs · QA queue · pilot stats', href: '/admin/ples', cta: 'จัดการ PLEs / Manage' },
   { key: 'physician', code: 'C', title: 'Physician · แพทย์อาสา', th: 'ทำ PLE และรับ CPD credit', en: 'Runs PLEs in the separate Physician Portal', href: null, cta: 'พอร์ทัลแพทย์ (แยกต่างหาก)' },
   { key: 'auditor', code: 'D', title: 'Expert Auditor', th: 'ตรวจประเมิน PLE แบบ blind', en: 'Blind PIS-7 scoring for ICC', href: '/auditor/queue', cta: 'เข้าคิวประเมิน / Queue' },

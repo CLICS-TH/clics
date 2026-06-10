@@ -31,15 +31,6 @@ const InviteAcceptSchema = z.object({
   access_token: z.string().min(10).optional(),
 });
 
-const RequestAccessSchema = z.object({
-  email: z.string().email(),
-  password: strongPassword,
-  council_id: z.string().uuid(),   // the council the requester will join (required for approval)
-  full_name_th: z.string().min(1),
-  full_name_en: z.string().min(1),
-  specialty: z.string().optional(),
-});
-
 // Google sign-in completes client-side via Supabase; the browser posts the session token here.
 const GoogleCompleteSchema = z.object({
   access_token: z.string().min(10),
@@ -126,40 +117,12 @@ router.post('/consent', verifyJwt, async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// Self-service access requests (invite/approve-only — no self-activation).
-// A requester gets a Supabase auth.users row but NO professionals row, so they
-// stay pending (verifyJwt 403s) until a superadmin/admin approves them into a
-// role slot. Requesters can never self-assign a role — approval assigns it.
+// Self-service access requests were RETIRED (2026-06-10): physicians self-serve via Google
+// (POST /auth/oauth/google/complete) and A/B invite links — no pending/approval queue, which
+// removes the approval load on superadmin/admin. The access_requests table stays as history.
 // ---------------------------------------------------------------------------
-
-// POST /auth/request-access — email/password request (public).
-router.post('/request-access', async (req, res) => {
-  const parsed = RequestAccessSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  const { email, password, council_id, full_name_th, full_name_en, specialty } = parsed.data;
-
-  if (!(await activeCouncil(council_id))) return res.status(400).json({ error: 'Unknown or inactive council.' });
-
-  const { data: existing } = await supabase
-    .from('access_requests').select('id').eq('email', email).eq('status', 'pending').maybeSingle();
-  if (existing) return res.status(409).json({ error: 'A request for this email is already pending.' });
-
-  // Create the auth user now (sets the password) but no professionals row yet ⇒ pending.
-  const { data: authUser, error: authErr } = await supabase.auth.admin.createUser({
-    email, password, email_confirm: true,
-  });
-  if (authErr) return res.status(400).json({ error: authErr.message });
-
-  const { error: reqErr } = await supabase.from('access_requests').insert({
-    email, full_name_th, full_name_en, specialty: specialty ?? null, council_id,
-    provider: 'email', auth_user_id: authUser.user.id, requested_role: 'physician', status: 'pending',
-  });
-  if (reqErr) {
-    await supabase.auth.admin.deleteUser(authUser.user.id); // roll back the orphan auth user
-    return res.status(500).json({ error: reqErr.message });
-  }
-  res.status(202).json({ status: 'pending', message: 'Your request has been submitted and is pending approval.' });
-});
+router.post('/request-access', (_req, res) =>
+  res.status(404).json({ error: 'Self-service requests are retired — sign in with Google or use an invite link.' }));
 
 // ---------------------------------------------------------------------------
 // Public email-OTP self-signup was RETIRED (2026-06-09): physicians self-serve via Google

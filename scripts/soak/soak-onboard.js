@@ -1,7 +1,7 @@
 // Onboard the 16 soak personas via the REAL API flows (traceable history):
-//  - superadmin direct-creates 2 admins + 3 auditors  (the "invite")
-//  - 10 users self-register via /auth/request-access
-//  - the 2 admins approve all 10 (reviewer-stamped, split 5/5)
+//  - superadmin direct-creates 2 admins + 3 auditors + 10 physicians via POST /admin/users
+// Onboarding now mirrors production (direct-create + invites): /auth/request-access was
+// retired (404s), so physicians can no longer self-register and there is no approval queue.
 // Writes /tmp/soak-personas.json with creds + tiers + ids for the soak workflow.
 const fs = require('fs');
 // SOAK_BASE/SOAK_COUNCIL let the soak run against a non-prod stack (e.g. local backend + scaletest DB).
@@ -64,28 +64,13 @@ const TIERS = [
     log(`  create auditor ${a.email}: ${r.status}`);
   }
 
-  // --- 10 users self-register ---
+  // --- superadmin direct-creates the 10 physicians (production-style onboarding) ---
+  const physicians = [];
   for (const p of TIERS) {
     const email = `soakdoc${p.n}@example.com`;
-    const r = await api('POST', '/auth/request-access', { body: { email, password: PW, council_id: TMC, full_name_th: p.th, full_name_en: p.en, specialty: 'Internal Medicine' } });
-    log(`  request-access ${email} (${p.tier}): ${r.status}`);
-  }
-
-  // --- admins approve all 10 (split 5/5, reviewer-stamped) ---
-  const ad1 = (await login('soakadmin1@example.com', PW)).body.access_token;
-  const ad2 = (await login('soakadmin2@example.com', PW)).body.access_token;
-  const pending = (await api('GET', '/admin/access-requests', { token: saT })).body || [];
-  log(`\nPending requests to approve: ${pending.length}`);
-  const physicians = [];
-  let i = 0;
-  for (const req of pending) {
-    const approver = i % 2 === 0 ? ad1 : ad2;
-    const approverEmail = i % 2 === 0 ? 'soakadmin1@example.com' : 'soakadmin2@example.com';
-    const r = await api('POST', `/admin/access-requests/${req.id}/approve`, { token: approver, body: { granted_role: 'physician' } });
-    const tier = TIERS.find(t => req.email === `soakdoc${t.n}@example.com`)?.tier ?? 'average';
-    physicians.push({ email: req.email, password: PW, tier, professional_id: r.body?.professional_id, pseudonym: r.body?.pseudonym, full_name_en: req.full_name_en });
-    log(`  approve ${req.email} by ${approverEmail}: ${r.status} ${r.body?.pseudonym ?? r.body?.error ?? ''}`);
-    i++;
+    const r = await api('POST', '/admin/users', { token: saT, body: { email, password: PW, role: 'physician', council_id: TMC, full_name_th: p.th, full_name_en: p.en, specialty: 'Internal Medicine' } });
+    physicians.push({ email, password: PW, tier: p.tier, professional_id: r.body?.id, pseudonym: r.body?.pseudonym, full_name_en: p.en });
+    log(`  create physician ${email} (${p.tier}): ${r.status} ${r.body?.pseudonym ?? r.body?.error ?? ''}`);
   }
 
   const out = {

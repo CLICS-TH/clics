@@ -12,8 +12,9 @@ type Council = { id: string; code: string; name_th: string; name_en: string; act
 type Invite = {
   id: string; email: string; role: string; council_id: string | null;
   status: string; expires_at: string | null; accepted_at: string | null; created_at: string;
+  email_sent_at?: string | null; // optional — backend may not return it
 };
-type CreatedInvite = Invite & { accept_url?: string };
+type CreatedInvite = Invite & { accept_url?: string; email_sent?: boolean };
 
 const fmt = (d: string | null) =>
   d ? new Date(d).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
@@ -143,6 +144,17 @@ export default function InvitesPage() {
           <p className="text-xs text-muted-foreground">
             แสดงเพียงครั้งเดียว — คัดลอกและส่งให้ผู้รับ / Shown once only — copy it and send it to the recipient.
           </p>
+          {/* Email-delivery status — only when the backend reported it (backward compatible). */}
+          {created.email_sent === true && (
+            <p className="inline-flex items-center gap-1 rounded-full border border-green-300 bg-green-50 px-3 py-1 text-xs font-medium text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300">
+              ส่งอีเมลถึงผู้รับแล้ว ✓ / Invite email sent
+            </p>
+          )}
+          {created.email_sent === false && (
+            <p className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
+              ยังไม่ได้ส่งอีเมล — คัดลอกลิงก์ด้านล่างไปส่งเอง / Email not sent — share the link below
+            </p>
+          )}
           <div className="flex items-center gap-2">
             <input readOnly value={created.accept_url}
               onFocus={e => e.currentTarget.select()}
@@ -170,6 +182,7 @@ export default function InvitesPage() {
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Badge variant="outline">{ROLE_LABELS[inv.role] ?? inv.role}</Badge>
                 <span>🏛 {councilName(inv.council_id)}</span>
+                {inv.email_sent_at && <span title={fmt(inv.email_sent_at)}>✉ sent</span>}
               </div>
               <p className="text-xs text-muted-foreground">
                 สร้าง / Created {fmt(inv.created_at)} · หมดอายุ / Expires {fmt(inv.expires_at)}
@@ -193,7 +206,12 @@ export default function InvitesPage() {
             </tr></thead>
             <tbody>{invites.map(inv => (
               <tr key={inv.id} className="border-t align-middle hover:bg-secondary/60">
-                <td className="px-4 py-3">{inv.email}</td>
+                <td className="px-4 py-3">
+                  {inv.email}
+                  {inv.email_sent_at && (
+                    <span className="ml-2 text-xs text-muted-foreground" title={fmt(inv.email_sent_at)}>✉ sent</span>
+                  )}
+                </td>
                 <td className="px-4 py-3"><Badge variant="outline">{ROLE_LABELS[inv.role] ?? inv.role}</Badge></td>
                 <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{councilName(inv.council_id)}</td>
                 <td className="px-4 py-3"><StatusBadge s={inv.status} /></td>

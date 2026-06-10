@@ -3,7 +3,7 @@
  * Live role-chain smoke — proves the Admin → Auditor → Superadmin flow end to end
  * against the deployed backend, with NO AI spend (assignment + scoring are pure CRUD):
  *   Superadmin: sees all roles + role-slot pool + stats + ICC
- *   Admin:      lists evaluated sessions + auditors + access requests, assigns a session
+ *   Admin:      lists evaluated sessions + auditors + invites, assigns a session
  *   Auditor:    sees only its blind queue (no physician identity), scores a session
  *   Superadmin: the auditor score reaches ICC + the de-identified export
  *
@@ -79,7 +79,7 @@ const leaksIdentity = (obj) => {
   ok(!!auditorId && me.json?.user?.role === 'auditor', 'GET /auth/me returns auditor id', `id=${auditorId}`);
 
   // ---- ADMIN: list evaluated sessions, auditors, requests; assign ----
-  console.log('C) Admin — organize sessions + manage requests');
+  console.log('C) Admin — organize sessions + manage invites');
   let adminT = saT, adminAs = 'superadmin (admin login unavailable)';
   const ad = await login(ADMIN);
   if (ad.status === 200 && ad.json?.access_token) { adminT = ad.json.access_token; adminAs = ADMIN.email; }
@@ -92,8 +92,9 @@ const leaksIdentity = (obj) => {
   const auditors = await req('GET', '/admin/auditors', { token: adminT });
   ok(auditors.status === 200 && Array.isArray(auditors.json) && auditors.json.length >= 1, 'GET /admin/auditors (assign dropdown)', `n=${auditors.json?.length}`);
 
-  const reqs = await req('GET', '/admin/access-requests', { token: adminT });
-  ok(reqs.status === 200 && Array.isArray(reqs.json), 'GET /admin/access-requests (request queue)', `pending=${reqs.json?.length}`);
+  // access-requests was retired (404s) — invites are the onboarding surface now.
+  const invites = await req('GET', '/admin/invites', { token: adminT });
+  ok(invites.status === 200 && Array.isArray(invites.json), 'GET /admin/invites (onboarding surface)', `n=${invites.json?.length}`);
 
   if (!evList.length) { info('no evaluated sessions to assign — cannot exercise the assign→score chain'); return finish(); }
 

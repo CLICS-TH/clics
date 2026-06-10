@@ -7,18 +7,19 @@ import { RoleBadge } from './RoleBadge';
 import { ThemeToggle, ViewportToggle } from './Toggles';
 import { useViewport } from './ViewportProvider';
 
-// Role-keyed nav. Admin must NOT see Users/ICC — those endpoints are superadmin-only
-// in the backend (an admin clicking them would 403).
+// Role-keyed nav. Users is council-scoped for admins (read-only view); Overview + ICC stay
+// superadmin-only (those endpoints 403 for admins). Requests was retired with the
+// request-access flow (onboarding = Google self-service + invites).
 const ADMIN_LINKS = [
   { href: '/admin/ples', label: 'PLEs' },
-  { href: '/admin/requests', label: 'คำขอ / Requests' },
   { href: '/admin/invites', label: 'คำเชิญ / Invites' },
+  { href: '/admin/users', label: 'ผู้ใช้งาน / Users' },
   { href: '/admin/flagged', label: 'QA Queue' },
   { href: '/admin/stats', label: 'สถิติ / Stats' },
 ];
 const SUPERADMIN_LINKS = [
+  { href: '/admin/overview', label: 'ภาพรวม / Overview' },
   { href: '/admin/ples', label: 'PLEs' },
-  { href: '/admin/requests', label: 'คำขอ / Requests' },
   { href: '/admin/invites', label: 'คำเชิญ / Invites' },
   { href: '/admin/users', label: 'ผู้ใช้งาน / Users' },
   { href: '/admin/flagged', label: 'QA Queue' },

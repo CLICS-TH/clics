@@ -20,6 +20,10 @@ Onboarding is **Google self-service for physicians (auto-active) + A/B invite li
 
 **audit-dashboard** (Vercel): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (+ existing `NEXT_PUBLIC_API_URL`).
 
+### Invite emails (backend mailer)
+
+The backend sends invite accept-links itself (not via Supabase Auth) using `backend/src/lib/mailer.js`. Point it at the **same SMTP credentials you configured in the Supabase dashboard** (§1): `SMTP_HOST`, `SMTP_PORT` (587), `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` — see `backend/.env.example`. It is **fail-soft**: enabled only when `SMTP_HOST` + `MAIL_FROM` are both set; left unset, `POST /admin/invites` still succeeds and returns `accept_url` + `email_sent:false`, so admins copy the link manually. The same caveat as §1 applies — a verified sending domain at your SMTP provider gates real delivery here too.
+
 **physician-ui**: `window.CLICS_SUPABASE_URL` / `window.CLICS_SUPABASE_ANON_KEY` in `public/js/config.js` (public values).
 
 ## 3. License verification — RETIRED (2026-06-09, kept dormant)

@@ -9,6 +9,7 @@ const { reconcileEvaluations } = require('../services/reconcile');
 const { sendDbError, pageParams } = require('../lib/db-helpers');
 const { assertSlotAvailable, nextPseudonym } = require('../lib/accounts');
 const { newInviteToken } = require('../lib/invite-token');
+const { isMailerEnabled, sendInviteEmail } = require('../lib/mailer');
 
 const router = Router();
 router.use(verifyJwt, requireRole('admin', 'superadmin'));
@@ -30,10 +31,7 @@ const scopeToCouncil = (req, query) =>
 const sameCouncil = (req, councilId) =>
   req.user.role !== 'admin' || councilId === req.user.council_id;
 
-// Auditors are INVITE-ONLY (an A/B invite activates them; there is no license gate), so the legacy
-// access-request approval can grant only admin/physician — never auditor.
-const ApproveSchema = z.object({ granted_role: z.enum(['admin', 'physician']).optional() });
-const RejectSchema = z.object({ note: z.string().max(500).optional() });
+// (The access-request approval schemas were retired with the request-access flow — see below.)
 
 router.get('/ples', async (req, res) => {
   const { status } = req.query;
@@ -174,8 +172,23 @@ router.post('/ples/:id/assign', async (req, res) => {
   res.json({ ok: true });
 });
 
-// Read-only auditor list for the assignment dropdown — admins need this but
-// GET /admin/users is superadmin-only, so expose just the auditors to admin+superadmin.
+// Members list — dual-role: an admin sees ONLY their own council's members (read-only in the
+// dashboard); superadmin sees all (scopeToCouncil is a no-op for them). Lives here (not
+// superadmin.js) because this router is mounted first on /admin and would shadow it anyway.
+// All user MUTATIONS (create/edit/status/usage) remain superadmin-only in routes/superadmin.js.
+router.get('/users', async (req, res) => {
+  const { limit, offset } = pageParams(req);   // paginated — never pull all 80K professionals at once
+  let query = supabase.from('professionals')
+    .select('*', { count: 'exact' }).order('created_at').range(offset, offset + limit - 1);
+  query = scopeToCouncil(req, query);
+  const { data, error, count } = await query;
+  if (sendDbError(res, error)) return;
+  res.setHeader('X-Total-Count', count ?? 0);
+  res.json(data);
+});
+
+// Read-only auditor list for the assignment dropdown (active auditors only, id+names —
+// /users above returns full rows of every role).
 router.get('/auditors', async (req, res) => {
   let query = supabase
     .from('professionals')
@@ -188,109 +201,13 @@ router.get('/auditors', async (req, res) => {
   res.json(data);
 });
 
-// ---- Access-request approval queue (admin + superadmin) -------------------
-
-// List access requests. Default (no query) = the pending queue (unchanged). ?status=approved|rejected
-// filters to that outcome; ?status=all returns the full onboarding trail. Reviewed rows carry the
-// reviewer's name so admins can see who approved/rejected whom and when.
-router.get('/access-requests', async (req, res) => {
-  const status = typeof req.query.status === 'string' ? req.query.status : 'pending';
-  let query = supabase.from('access_requests').select('*').order('created_at');
-  if (status !== 'all') {
-    if (!['pending', 'approved', 'rejected'].includes(status)) {
-      return res.status(400).json({ error: 'status must be one of: pending, approved, rejected, all' });
-    }
-    query = query.eq('status', status);
-  }
-  query = scopeToCouncil(req, query);   // admins review only their own council's requests
-  const { data, error } = await query;
-  if (sendDbError(res, error)) return;
-
-  // Attach reviewer names for any reviewed rows (no fragile FK-name embed; one extra lookup).
-  const reviewerIds = [...new Set((data ?? []).map(r => r.reviewed_by).filter(Boolean))];
-  let reviewers = {};
-  if (reviewerIds.length) {
-    const { data: revs } = await supabase
-      .from('professionals').select('id, full_name_en, full_name_th, pseudonym').in('id', reviewerIds);
-    reviewers = Object.fromEntries((revs ?? []).map(p => [p.id, p]));
-  }
-  res.json((data ?? []).map(r => ({ ...r, reviewer: r.reviewed_by ? reviewers[r.reviewed_by] ?? null : null })));
-});
-
-// Approve a request into a role slot. Approval ASSIGNS the role (requesters never self-assign).
-// admin may grant physician/auditor; only superadmin may grant admin; superadmin isn't grantable.
-router.post('/access-requests/:id/approve', async (req, res) => {
-  const parsed = ApproveSchema.safeParse(req.body ?? {});
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-
-  const { data: reqRow, error: reqErr } = await supabase
-    .from('access_requests').select('*').eq('id', req.params.id).single();
-  if (reqErr || !reqRow) return res.status(404).json({ error: 'Request not found' });
-  if (reqRow.status !== 'pending') return res.status(409).json({ error: 'Request already processed' });
-  if (!reqRow.auth_user_id) return res.status(400).json({ error: 'Request has no pending auth user' });
-  // An admin may only approve requests for their own council.
-  if (!sameCouncil(req, reqRow.council_id)) return res.status(404).json({ error: 'Request not found' });
-
-  const grantedRole = parsed.data.granted_role || reqRow.requested_role || 'physician';
-  if (grantedRole === 'auditor') {
-    return res.status(400).json({ error: 'Auditors are created via invite links, not access-request approval.' });
-  }
-  if (grantedRole === 'admin' && req.user.role !== 'superadmin') {
-    return res.status(403).json({ error: 'Only a superadmin can grant the admin role.' });
-  }
-
-  const slot = await assertSlotAvailable(grantedRole, reqRow.council_id);
-  if (!slot.ok) return res.status(409).json({ error: slot.error });
-
-  const insert = {
-    id: reqRow.auth_user_id,
-    role: grantedRole,
-    council_id: reqRow.council_id,
-    full_name_th: reqRow.full_name_th || reqRow.full_name_en || 'Unknown',
-    full_name_en: reqRow.full_name_en || reqRow.full_name_th || 'Unknown',
-    specialty: reqRow.specialty ?? null,
-    status: 'active',
-  };
-  if (grantedRole === 'physician') insert.pseudonym = await nextPseudonym();
-
-  const { error: profErr } = await supabase.from('professionals').insert(insert);
-  if (profErr) return res.status(500).json({ error: profErr.message });
-
-  // Link the on-prem identity vault row to the new professional (OAuth requests only).
-  if (reqRow.provider !== 'email') {
-    await supabase.from('oauth_identities')
-      .update({ professional_id: reqRow.auth_user_id }).eq('auth_user_id', reqRow.auth_user_id);
-  }
-
-  const { error: updErr } = await supabase.from('access_requests')
-    .update({ status: 'approved', reviewed_by: req.user.id, reviewed_at: new Date().toISOString() })
-    .eq('id', req.params.id);
-  if (sendDbError(res, updErr)) return;
-
-  res.json({ ok: true, professional_id: reqRow.auth_user_id, role: grantedRole, pseudonym: insert.pseudonym ?? null });
-});
-
-router.post('/access-requests/:id/reject', async (req, res) => {
-  const parsed = RejectSchema.safeParse(req.body ?? {});
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-
-  const { data: reqRow } = await supabase
-    .from('access_requests').select('*').eq('id', req.params.id).single();
-  if (!reqRow) return res.status(404).json({ error: 'Request not found' });
-  if (reqRow.status !== 'pending') return res.status(409).json({ error: 'Request already processed' });
-
-  // Remove the pending auth user + any vault row so the email/identity can re-apply later.
-  if (reqRow.auth_user_id) {
-    await supabase.from('oauth_identities').delete().eq('auth_user_id', reqRow.auth_user_id);
-    await supabase.auth.admin.deleteUser(reqRow.auth_user_id).catch(() => {});
-  }
-
-  const { error } = await supabase.from('access_requests')
-    .update({ status: 'rejected', note: parsed.data.note ?? null, reviewed_by: req.user.id, reviewed_at: new Date().toISOString() })
-    .eq('id', req.params.id);
-  if (sendDbError(res, error)) return;
-  res.json({ ok: true });
-});
+// ---- Access-request approval queue — RETIRED (2026-06-10) -------------------
+// The self-service request-access flow was removed (onboarding = Google self-service + A/B
+// invites), so the approval queue went with it. The access_requests table is kept as a
+// historical record. 404 stubs (not silent removal) so stale clients fail loudly.
+router.get('/access-requests', (_req, res) => res.status(404).json({ error: 'The access-request queue was retired — onboarding is Google sign-in + invites.' }));
+router.post('/access-requests/:id/approve', (_req, res) => res.status(404).json({ error: 'The access-request queue was retired.' }));
+router.post('/access-requests/:id/reject', (_req, res) => res.status(404).json({ error: 'The access-request queue was retired.' }));
 
 router.get('/stats', async (req, res) => {
   const includeTest = req.query.include_test === 'true';
@@ -416,7 +333,24 @@ router.post('/invites', async (req, res) => {
     if (error.code === '23505') return res.status(409).json({ error: 'A pending invite for this email and role already exists.' });
     return res.status(500).json({ error: error.message });
   }
-  res.status(201).json({ ...data, accept_url: `${SITE_URL}/invite.html?token=${raw}` });
+
+  // Deliver the accept link by email — FAIL-SOFT: the invite is already created, so a mail
+  // failure must never fail the request; the admin still gets accept_url to share manually.
+  const accept_url = `${SITE_URL}/invite.html?token=${raw}`;
+  let email_sent = false;
+  if (isMailerEnabled()) {
+    const { data: council } = await supabase.from('councils').select('name_th, name_en').eq('id', council_id).maybeSingle();
+    email_sent = await sendInviteEmail({
+      to: email, acceptUrl: accept_url, role,
+      councilNameTh: council?.name_th, councilNameEn: council?.name_en, expiresAt: expires_at,
+    });
+    if (email_sent) {
+      // Best-effort stamp; swallow errors so a pre-migration DB can't break invite creation.
+      await supabase.from('invites').update({ email_sent_at: new Date().toISOString() }).eq('id', data.id)
+        .then(() => {}, () => {});
+    }
+  }
+  res.status(201).json({ ...data, accept_url, email_sent });
 });
 
 // List invites (admins see only their council; superadmin all). Optional ?status= filter.

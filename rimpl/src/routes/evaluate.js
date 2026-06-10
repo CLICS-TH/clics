@@ -28,7 +28,8 @@ router.post('/', async (req, res) => {
     const { text, inputTokens, outputTokens } = await callClaude({
       systemPrompt: PIS7_EVALUATOR_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
-      maxTokens: 1000,
+      // 2000, not 1000: calibration showed 1000 truncates rationales on ~46k-token transcripts → malformed evals.
+      maxTokens: 2000,
     });
 
     let scores;

@@ -146,6 +146,7 @@ create table public.invites (
   status          text not null default 'pending' check (status in ('pending','accepted','revoked','expired')),
   expires_at      timestamptz not null,
   accepted_at     timestamptz,
+  email_sent_at   timestamptz,   -- stamped when the accept-link email was delivered (mailer is fail-soft)
   professional_id uuid references public.professionals(id),
   created_at      timestamptz default now()
 );
@@ -571,4 +572,13 @@ $$;
 
 create or replace function public.total_usage_sum() returns numeric language sql stable as $$
   select coalesce(sum(usage_cost_usd), 0) from public.professionals;
+$$;
+
+-- Active members grouped by council × role (superadmin executive overview).
+create or replace function public.council_member_counts()
+returns table(council_id uuid, role text, n bigint) language sql stable as $$
+  select council_id, role, count(*)::bigint
+  from public.professionals
+  where status = 'active' and council_id is not null
+  group by council_id, role;
 $$;

@@ -9,8 +9,10 @@ import { getSupabaseBrowser, isSupabaseConfigured } from '@/lib/supabase-browser
 interface ClicsUser { id: string; role: string; full_name_th: string; full_name_en: string; }
 
 function redirectByRole(role: string, router: ReturnType<typeof useRouter>) {
-  // All dashboard roles land on the role-aware /home; each card links into its workspace.
-  if (role === 'auditor' || role === 'admin' || role === 'superadmin') router.push('/home');
+  // Superadmin lands straight on the executive overview; admin/auditor land on the
+  // role-aware /home, whose cards link into each workspace.
+  if (role === 'superadmin') router.push('/admin/overview');
+  else if (role === 'auditor' || role === 'admin') router.push('/home');
   else router.push('/login');
 }
 

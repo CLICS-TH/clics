@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { apiFetch, apiFetchPaged } from '@/lib/api';
+import { getUser } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
@@ -36,6 +37,10 @@ export default function UsersPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const mobile = useIsMobile();
 
+  // Admins get a read-only view (the dual-role GET /admin/users is council-scoped for them);
+  // all mutations + /admin/slots + /admin/usage-settings remain superadmin-only.
+  const isSuper = getUser()?.role === 'superadmin';
+
   // Fetch one page (newest-first) and append, or replace from offset 0.
   const loadUsersPage = (offset: number) =>
     apiFetchPaged<User>(`/admin/users?limit=${PAGE_SIZE}&offset=${offset}`).then(({ items, total }) => {
@@ -69,7 +74,12 @@ export default function UsersPage() {
       setTotalUsed(Number(d?.total_used_usd ?? 0));
     });
   const loadCouncils = () => apiFetch<Council[]>('/admin/councils').then(d => setCouncils(d ?? []));
-  useEffect(() => { loadUsersPage(0); loadSlots(); loadUsageSettings(); loadCouncils(); }, []);
+  useEffect(() => {
+    loadUsersPage(0); loadCouncils();
+    // Slot pools and usage settings are superadmin-only endpoints — skip for admins.
+    if (isSuper) { loadSlots(); loadUsageSettings(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const councilName = (id?: string | null) => councils.find(c => c.id === id)?.name_th ?? '—';
 
@@ -163,6 +173,8 @@ export default function UsersPage() {
   const UsageCell = ({ u }: { u: User }) => {
     if (u.role !== 'physician') return <span className="text-xs text-muted-foreground">—</span>;
     const used = Number(u.usage_cost_usd ?? 0);
+    // Admins can't read /admin/usage-settings, so there is no effective limit — show spend only.
+    if (!isSuper) return <p className="text-xs tabular-nums text-muted-foreground">${used.toFixed(4)}</p>;
     const limit = effLimit(u);
     const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
     const over = limit > 0 && used >= limit;
@@ -189,10 +201,10 @@ export default function UsersPage() {
   const RowActions = ({ u }: { u: User }) => (
     <div className="inline-flex items-center gap-1.5">
       {u.role === 'physician' && <IconBtn icon="📊" title="คะแนน / Scores" href={`/admin/lpdp/${u.id}`} />}
-      {u.role === 'physician' && <IconBtn icon="↺" title="รีเซ็ตการใช้งาน / Reset usage" onClick={() => resetUsage(u)} />}
-      <IconBtn icon="✎" title="แก้ไข / Edit" onClick={() => openEdit(u)} />
-      <IconBtn icon="⏻" title={u.status === 'deactivated' ? 'เปิดใช้ / Activate' : 'ปิดใช้ / Deactivate'}
-        disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)} />
+      {isSuper && u.role === 'physician' && <IconBtn icon="↺" title="รีเซ็ตการใช้งาน / Reset usage" onClick={() => resetUsage(u)} />}
+      {isSuper && <IconBtn icon="✎" title="แก้ไข / Edit" onClick={() => openEdit(u)} />}
+      {isSuper && <IconBtn icon="⏻" title={u.status === 'deactivated' ? 'เปิดใช้ / Activate' : 'ปิดใช้ / Deactivate'}
+        disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)} />}
     </div>
   );
 
@@ -213,11 +225,13 @@ export default function UsersPage() {
         eyebrow="Admin · Users"
         title="จัดการผู้ใช้งาน"
         subtitle="User Management — สมาชิก, สถานะบัญชี และจำนวนช่องต่อบทบาท · Members, account status, and role slot pools."
-        action={<Button onClick={() => setShowForm(v => !v)}>+ เพิ่มผู้ใช้ / Add User</Button>}
+        action={isSuper ? <Button onClick={() => setShowForm(v => !v)}>+ เพิ่มผู้ใช้ / Add User</Button> : undefined}
       />
 
-      {/* Role slot pools — drive columns off the mobile flag (the view toggle shrinks the
+      {/* Role slot pools — superadmin-only (admins can't read /admin/slots).
+          Drive columns off the mobile flag (the view toggle shrinks the
           container but not the viewport, so Tailwind md: would wrongly stay 4-up). */}
+      {isSuper && (<>
       <div className={`grid gap-3 mb-6 ${mobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
         {slots.map(s => {
           const locked = s.role === 'superadmin';
@@ -285,10 +299,11 @@ export default function UsersPage() {
           <Button variant="outline" className="text-xs px-3 py-1 h-auto" onClick={saveStdLimit}>บันทึก / Save</Button>
         </div>
       </div>
+      </>)}
 
       {msg && <p className="mb-4 text-sm rounded-lg border border-border bg-secondary px-3 py-2">{msg}</p>}
 
-      {showForm && (
+      {isSuper && showForm && (
         <div className="border rounded-xl p-5 mb-6 space-y-4">
           {(['full_name_th','full_name_en','email','password','specialty','license_number'] as const).map(f => (
             <input key={f} className="w-full border rounded-lg px-3 py-2 text-sm"

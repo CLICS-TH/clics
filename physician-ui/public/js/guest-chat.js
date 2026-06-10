@@ -55,7 +55,7 @@ function endSession(msg) {
   sendBtn.disabled = true;
   remainingEl.textContent = 'session ended';
   hintEl.innerHTML = (msg || 'จบโหมดผู้เยี่ยมชมแล้ว / Guest session ended.')
-    + ' &nbsp;<a href="/request-access" style="color:var(--coral);font-weight:600">ขอบัญชีเพื่อใช้ต่อ / Request an account →</a>';
+    + ' &nbsp;<a href="/" style="color:var(--coral);font-weight:600">สมัครด้วย Google / Sign up with Google →</a>';
 }
 
 async function start() {

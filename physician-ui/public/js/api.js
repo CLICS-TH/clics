@@ -57,10 +57,6 @@ window.api = {
   // Active professional councils for the sign-up picker (public).
   councils: () => publicFetch('/auth/councils'),
 
-  // Self-service access request (email+password) — returns { ok, status, body }.
-  // Social sign-in (Google/LINE) is disabled for the pilot; the stub endpoints 404.
-  requestAccess: (body) => publicFetch('/auth/request-access', { method: 'POST', body }),
-
   // ---- Public auth flows (all return { ok, status, body }) ----
   // Public email-OTP self-signup was retired — physicians self-serve via Google
   // (oauthGoogleComplete below); A/B send invites for physicians + auditors.
