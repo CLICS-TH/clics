@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
-import { ROLE_LABELS, INVITE_STATUS_MAP } from '@/lib/labels';
+import { ROLE_LABELS, INVITE_STATUS_MAP, roleToWire } from '@/lib/labels';
 
 type Council = { id: string; code: string; name_th: string; name_en: string; active?: boolean };
 type Invite = {
@@ -56,25 +56,15 @@ export default function InvitesPage() {
 
   const councilName = (id?: string | null) => councils.find(c => c.id === id)?.name_th ?? '—';
 
-  // Bilingual role label for invite chips — 'admin' gets its council-admin reading
-  // (ROLE_LABELS.admin is just 'Admin'); everything else falls through to ROLE_LABELS.
-  const roleLabel = (r: string) => (r === 'admin' ? 'ผู้ดูแลสภา / Admin' : ROLE_LABELS[r] ?? r);
-
   async function createInvite() {
     setErr(''); setMsg(''); setCreated(null); setCopied(false);
     if (!form.email.trim()) { setErr('กรอกอีเมล / Enter an email.'); return; }
     if (!form.council_id) { setErr('เลือกสภาวิชาชีพ / Select a council.'); return; }
     setBusy(true);
-    // 'special' is a UI-only role value: a physician invite that also grants auditor access.
-    const special = form.role === 'special';
     const res: any = await apiFetch('/admin/invites', {
       method: 'POST',
-      body: JSON.stringify({
-        email: form.email.trim(),
-        role: special ? 'physician' : form.role,
-        council_id: form.council_id,
-        ...(special ? { can_audit: true } : {}),
-      }),
+      // roleToWire turns the UI's 'special' into {role:'physician', can_audit:true}.
+      body: JSON.stringify({ email: form.email.trim(), council_id: form.council_id, ...roleToWire(form.role) }),
     });
     setBusy(false);
     if (res?.id) {
@@ -228,7 +218,7 @@ export default function InvitesPage() {
                 <StatusBadge s={inv.status} />
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Badge variant="outline">{roleLabel(inv.role)}</Badge>
+                <Badge variant="outline">{ROLE_LABELS[inv.role] ?? inv.role}</Badge>
                 {inv.can_audit && <SpecialChip />}
                 <span>🏛 {councilName(inv.council_id)}</span>
                 {inv.email_sent_at && <span title={fmt(inv.email_sent_at)}>✉ sent</span>}
@@ -267,7 +257,7 @@ export default function InvitesPage() {
                 </td>
                 <td className="px-4 py-3">
                   <span className="inline-flex items-center gap-1.5">
-                    <Badge variant="outline">{roleLabel(inv.role)}</Badge>
+                    <Badge variant="outline">{ROLE_LABELS[inv.role] ?? inv.role}</Badge>
                     {inv.can_audit && <SpecialChip />}
                   </span>
                 </td>

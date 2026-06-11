@@ -12,10 +12,20 @@ export const STATUS_MAP: Record<string, string> = {
 
 export const ROLE_LABELS: Record<string, string> = {
   superadmin: 'Superadmin',
-  admin: 'Admin',
+  admin: 'ผู้ดูแลสภา / Admin',
   physician: 'แพทย์',
   auditor: 'Auditor',
 };
+
+// "special" is a UI-only role value = a physician who ALSO holds auditor rights (can_audit).
+// These two helpers are the single home for that virtual-role encoding, so the rule can't drift
+// across the invites + users admin pages.
+export function roleToWire(uiRole: string): { role: string; can_audit: boolean } {
+  return uiRole === 'special' ? { role: 'physician', can_audit: true } : { role: uiRole, can_audit: false };
+}
+export function roleToUi(role: string, can_audit?: boolean | null): string {
+  return role === 'physician' && can_audit ? 'special' : role;
+}
 
 // Account lifecycle (NOT the same as PLE status above).
 export const ACCOUNT_STATUS_MAP: Record<string, string> = {

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
-import { ROLE_LABELS, ACCOUNT_STATUS_MAP, budgetToneHex } from '@/lib/labels';
+import { ROLE_LABELS, ACCOUNT_STATUS_MAP, budgetToneHex, roleToUi, roleToWire } from '@/lib/labels';
 
 const PAGE_SIZE = 50;
 
@@ -427,15 +427,10 @@ export default function UsersPage() {
               value="Superadmin (locked)" disabled readOnly />
           ) : (
             <>
-              {/* 'special' is UI-only: it selects when role=physician + can_audit, and maps back on change. */}
+              {/* 'special' is UI-only — roleToUi/roleToWire (lib/labels) encode the physician+can_audit pair. */}
               <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
-                value={editing.role === 'physician' && editing.can_audit ? 'special' : editing.role}
-                onChange={e => {
-                  const v = e.target.value;
-                  setEditing(u => u && (v === 'special'
-                    ? { ...u, role: 'physician', can_audit: true }
-                    : { ...u, role: v, can_audit: false }));
-                }}>
+                value={roleToUi(editing.role, editing.can_audit)}
+                onChange={e => setEditing(u => u && ({ ...u, ...roleToWire(e.target.value) }))}>
                 {EDIT_ROLE_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
               </select>
               <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"

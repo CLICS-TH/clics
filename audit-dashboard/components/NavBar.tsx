@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getUser } from '@/lib/auth';
+import { getUser, canAudit } from '@/lib/auth';
 import { RoleBadge } from './RoleBadge';
 import { ThemeToggle, ViewportToggle } from './Toggles';
 import { useViewport } from './ViewportProvider';
@@ -58,7 +58,7 @@ export function NavBar() {
     user.role === 'superadmin' ? SUPERADMIN_LINKS :
     user.role === 'admin' ? ADMIN_LINKS :
     // Auditors and dual-role physicians (can_audit) get the auditor workspace.
-    user.role === 'auditor' || (user.role === 'physician' && user.can_audit) ? AUDITOR_LINKS : [];
+    canAudit(user) ? AUDITOR_LINKS : [];
   const mobile = forcedMobile || (!forcedDesktop && isNarrow);
 
   function logout() {

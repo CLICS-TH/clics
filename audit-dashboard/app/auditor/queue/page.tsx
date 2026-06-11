@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
-import { getUser } from '@/lib/auth';
+import { getUser, canAudit } from '@/lib/auth';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 
@@ -18,9 +18,7 @@ export default function AuditorQueue() {
   const router = useRouter();
 
   useEffect(() => {
-    const user = getUser();
-    const allowed = user && (user.role === 'auditor' || (user.role === 'physician' && user.can_audit));
-    if (!allowed) { router.push('/login'); return; }
+    if (!canAudit(getUser())) { router.push('/login'); return; }
     // Unscored first, so the items still to do sit at the top.
     apiFetch<PleItem[]>('/auditor/queue').then(d =>
       setPlEs([...(d ?? [])].sort((a, b) => Number(!!a.scored) - Number(!!b.scored)))
