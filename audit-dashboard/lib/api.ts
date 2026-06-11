@@ -43,7 +43,14 @@ export async function apiFetchPaged<T>(
     localStorage.clear();
     window.location.href = '/login';
   }
-  const items = ((await res.json()) ?? []) as T[];
+  const body = await res.json().catch(() => null);
+  // A non-ok response carries a JSON error object, not the page array — if it leaked
+  // through as `items`, list pages would crash on .map. Log it and return an empty page.
+  if (!res.ok || !Array.isArray(body)) {
+    console.error(`apiFetchPaged ${path} failed (status ${res.status})`, body);
+    return { items: [], total: 0 };
+  }
+  const items = body as T[];
   const header = res.headers.get('X-Total-Count');
   const parsed = header == null ? NaN : Number(header);
   const total = Number.isFinite(parsed) ? parsed : items.length;

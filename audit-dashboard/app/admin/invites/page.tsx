@@ -27,6 +27,7 @@ export default function InvitesPage() {
   const [created, setCreated] = useState<CreatedInvite | null>(null);
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [rowBusy, setRowBusy] = useState<string | null>(null); // invite id with a revoke/delete in flight
   const [err, setErr] = useState('');
   const [msg, setMsg] = useState('');
   const mobile = useIsMobile();
@@ -96,19 +97,31 @@ export default function InvitesPage() {
   async function revoke(inv: Invite) {
     if (!confirm(`เพิกถอนคำเชิญของ ${inv.email}? / Revoke the invite for ${inv.email}?`)) return;
     setMsg(''); setErr('');
-    const res: any = await apiFetch(`/admin/invites/${inv.id}`, { method: 'DELETE' });
-    if (res?.ok) { setMsg('เพิกถอนคำเชิญแล้ว / Invite revoked.'); load(); }
-    else setMsg(typeof res?.error === 'string' ? res.error : 'เพิกถอนไม่สำเร็จ / Revoke failed.');
+    setRowBusy(inv.id);
+    try {
+      const res: any = await apiFetch(`/admin/invites/${inv.id}`, { method: 'DELETE' });
+      if (res?.ok) { setMsg('เพิกถอนคำเชิญแล้ว / Invite revoked.'); load(); }
+      // Plain DELETE on a row that is no longer pending now 409s ("already processed") —
+      // the row went stale under us, so just refresh the list.
+      else if (typeof res?.error === 'string' && res.error.toLowerCase().includes('already processed')) {
+        setMsg('คำเชิญไม่อยู่ในสถานะรอแล้ว — รีเฟรชรายการ / Invite is no longer pending — refreshing the list.');
+        load();
+      }
+      else setMsg(typeof res?.error === 'string' ? res.error : 'เพิกถอนไม่สำเร็จ / Revoke failed.');
+    } finally { setRowBusy(null); }
   }
 
-  // Hard-delete a non-pending (history) row — the same DELETE endpoint hard-deletes anything
-  // that is not 'pending' and answers { deleted: true }.
+  // Hard-delete a non-pending (history) row — the DELETE endpoint requires the explicit
+  // ?purge=1 flag for hard-delete and answers { deleted: true }.
   async function removeInvite(inv: Invite) {
     if (!confirm(`ลบประวัติคำเชิญของ ${inv.email}? / Delete the invite history for ${inv.email}?`)) return;
     setMsg(''); setErr('');
-    const res: any = await apiFetch(`/admin/invites/${inv.id}`, { method: 'DELETE' });
-    if (res?.deleted) { setMsg('ลบคำเชิญแล้ว / Invite deleted.'); setInvites(s => s.filter(i => i.id !== inv.id)); }
-    else setMsg(typeof res?.error === 'string' ? res.error : 'ลบไม่สำเร็จ / Delete failed.');
+    setRowBusy(inv.id);
+    try {
+      const res: any = await apiFetch(`/admin/invites/${inv.id}?purge=1`, { method: 'DELETE' });
+      if (res?.deleted) { setMsg('ลบคำเชิญแล้ว / Invite deleted.'); setInvites(s => s.filter(i => i.id !== inv.id)); }
+      else setMsg(typeof res?.error === 'string' ? res.error : 'ลบไม่สำเร็จ / Delete failed.');
+    } finally { setRowBusy(null); }
   }
 
   // Small chip marking a physician invite that also grants auditor access.
@@ -224,8 +237,12 @@ export default function InvitesPage() {
                 สร้าง / Created {fmt(inv.created_at)} · หมดอายุ / Expires {fmt(inv.expires_at)}
               </p>
               {inv.status === 'pending'
-                ? <Button variant="outline" size="sm" onClick={() => revoke(inv)}>เพิกถอน / Revoke</Button>
-                : <Button variant="destructive" size="sm" onClick={() => removeInvite(inv)}>ลบ / Delete</Button>}
+                ? <Button variant="outline" size="sm" disabled={rowBusy !== null} onClick={() => revoke(inv)}>
+                    {rowBusy === inv.id ? 'กำลังเพิกถอน… / Revoking…' : 'เพิกถอน / Revoke'}
+                  </Button>
+                : <Button variant="destructive" size="sm" disabled={rowBusy !== null} onClick={() => removeInvite(inv)}>
+                    {rowBusy === inv.id ? 'กำลังลบ… / Deleting…' : 'ลบ / Delete'}
+                  </Button>}
             </div>
           ))}
         </div>
@@ -259,8 +276,12 @@ export default function InvitesPage() {
                 <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{fmt(inv.expires_at)}</td>
                 <td className="px-4 py-3 text-right">
                   {inv.status === 'pending'
-                    ? <Button variant="outline" size="sm" onClick={() => revoke(inv)}>เพิกถอน / Revoke</Button>
-                    : <Button variant="destructive" size="sm" onClick={() => removeInvite(inv)}>ลบ / Delete</Button>}
+                    ? <Button variant="outline" size="sm" disabled={rowBusy !== null} onClick={() => revoke(inv)}>
+                        {rowBusy === inv.id ? 'กำลังเพิกถอน… / Revoking…' : 'เพิกถอน / Revoke'}
+                      </Button>
+                    : <Button variant="destructive" size="sm" disabled={rowBusy !== null} onClick={() => removeInvite(inv)}>
+                        {rowBusy === inv.id ? 'กำลังลบ… / Deleting…' : 'ลบ / Delete'}
+                      </Button>}
                 </td>
               </tr>
             ))}</tbody>

@@ -4,15 +4,22 @@ function getToken() { return localStorage.getItem('clics_token'); }
 
 async function apiFetch(path, options = {}) {
   const token = getToken();
-  const res = await fetch(`${BASE}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers ?? {}),
-    },
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
+  let res;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers ?? {}),
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined,
+    });
+  } catch {
+    // Network rejection (offline / DNS / blocked) — return the same { error } shape callers
+    // already branch on, so awaited buttons re-enable instead of staying disabled forever.
+    return { error: 'เครือข่ายขัดข้อง กรุณาลองใหม่ / Network error — please try again.' };
+  }
   // Session-expiry handling — ONLY when a token was attached. An unauthenticated 401
   // (e.g. a wrong password on /auth/login) must fall through so the page shows the
   // error inline instead of bouncing through the "session expired" redirect.
@@ -28,14 +35,21 @@ async function apiFetch(path, options = {}) {
 // trigger the 401-redirect side effect, and they surface status so callers can show
 // "pending" / "already requested" messages.
 async function publicFetch(path, options = {}) {
-  const res = await fetch(`${BASE}${path}`, {
-    method: options.method || 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
-    },
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
+  let res;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      method: options.method || 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined,
+    });
+  } catch {
+    // Network rejection — synthetic envelope (status 0) so callers' { ok, status, body }
+    // branches fall through to their error display and re-enable their buttons.
+    return { ok: false, status: 0, body: { error: 'เครือข่ายขัดข้อง กรุณาลองใหม่ / Network error — please try again.' } };
+  }
   let body = null;
   try { body = await res.json(); } catch { /* empty body */ }
   return { ok: res.ok, status: res.status, body };

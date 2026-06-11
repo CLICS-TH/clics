@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
+import { getUser } from '@/lib/auth';
 import { pleStatusCards } from '@/lib/labels';
 import { PageIntro } from '@/components/PageIntro';
 import { CardGridSkeleton } from '@/components/Skeleton';
@@ -10,7 +11,9 @@ export default function StatsPage() {
   const [icc, setIcc] = useState<any>(null);
   useEffect(() => {
     apiFetch('/admin/stats').then(setStats);
-    apiFetch('/admin/icc').then(setIcc);
+    // /admin/icc is superadmin-only — for admins it 403s and the section silently hides,
+    // so don't fire the request at all unless the viewer is a superadmin.
+    if (getUser()?.role === 'superadmin') apiFetch('/admin/icc').then(setIcc);
   }, []);
   if (!stats) return (
     <>

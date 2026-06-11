@@ -16,11 +16,21 @@ export default function PhysicianProfilePage() {
   const [group, setGroup] = useState<GroupBy>('status');
 
   useEffect(() => {
-    apiFetch<any>(`/admin/physicians/${id}/profile`).then(setProfile);
+    // On 404/403 apiFetch resolves with the JSON error body (no .physician) — keep it so the
+    // error card below renders; a rejected fetch gets an empty object for the same reason.
+    apiFetch<any>(`/admin/physicians/${id}/profile`).then(setProfile).catch(() => setProfile({}));
   }, [id]);
 
   if (!profile) return (
     <div className="max-w-3xl mx-auto p-6 md:p-10"><p className="text-muted-foreground">กำลังโหลด… / Loading…</p></div>
+  );
+
+  if (!profile.physician) return (
+    <div className="max-w-3xl mx-auto p-6 md:p-10">
+      <div className="border rounded-xl p-5 text-sm text-muted-foreground">
+        ไม่พบข้อมูล / Could not load this user&apos;s profile.
+      </div>
+    </div>
   );
 
   const { physician, sessions = [], lpdp = [] } = profile;

@@ -17,7 +17,8 @@ const ScoreSchema = z.object({
 });
 
 const CreatePleSchema = z.object({
-  specialty: z.string().optional(),
+  // (per-PLE specialty was collected but never persisted — ples has no such column; the select
+  // was removed from ple-new. Unknown keys from older cached clients are stripped by zod.)
   chief_complaint: z.string().min(1).max(500),
   folder_id: z.string().uuid().optional(),
   // Structured patient identifier — stored in the isolated ple_patient_refs table ONLY, NEVER sent

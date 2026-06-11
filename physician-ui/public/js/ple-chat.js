@@ -65,10 +65,11 @@ api.getPle(pleId).then(ple => {
 });
 
 async function sendMessage() {
+  const sendBtn = document.getElementById('sendBtn');
+  if (sendBtn.disabled) return; // a turn is in flight — Enter must not start a concurrent one
   const input = document.getElementById('input');
   const message = input.value.trim();
   if (!message) return;
-  const sendBtn = document.getElementById('sendBtn');
   sendBtn.disabled = true; input.value = '';
   renderMessage('physician', message);
   const language = /[฀-๿]/.test(message) ? 'th' : 'en';

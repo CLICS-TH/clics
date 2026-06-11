@@ -133,6 +133,24 @@ function esc(s) {
   ));
 }
 
+// Transient error banner for folder/conversation mutations (failures used to revert silently).
+// Uses the server's error string when it has one; zod-flatten objects fall back to the message.
+let flashErrTimer = null;
+function flashError(res, fallback) {
+  const msg = (typeof res?.error === 'string' && res.error) || fallback;
+  let el = document.getElementById('listErr');
+  if (!el) {
+    el = document.createElement('p');
+    el.id = 'listErr';
+    el.className = 'error-msg';
+    listEl.before(el);
+  }
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(flashErrTimer);
+  flashErrTimer = setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
 function collapsedSet() {
   try { return new Set(JSON.parse(localStorage.getItem('clics_folders_collapsed') || '[]')); }
   catch { return new Set(); }
@@ -223,12 +241,13 @@ function render() {
 }
 
 // ----- inline editing helper -----
-function inlineEdit(spanEl, current, onSave) {
+// maxLen mirrors the backend zod limits: 80 for folder names, 120 for conversation titles.
+function inlineEdit(spanEl, current, onSave, maxLen = 120) {
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'inline-edit';
   input.value = current;
-  input.maxLength = 120;
+  input.maxLength = maxLen;
   // The span lives inside a data-action element (conv-main "open" / folder-toggle);
   // stop pointer events so clicking into the field doesn't navigate or collapse.
   input.addEventListener('mousedown', e => e.stopPropagation());
@@ -270,22 +289,31 @@ listEl.addEventListener('click', async (e) => {
     const nameSpan = t.closest('.folder-head').querySelector('.folder-name');
     inlineEdit(nameSpan, nameSpan.dataset.name, async (val) => {
       const updated = await api.renameFolder(id, val);
-      const f = folders.find(x => x.id === id);
-      if (f && updated?.name) f.name = updated.name;
-    });
+      if (updated?.name) {
+        const f = folders.find(x => x.id === id);
+        if (f) f.name = updated.name;
+      } else {
+        flashError(updated, 'เปลี่ยนชื่อโฟลเดอร์ไม่สำเร็จ / Could not rename folder');
+      }
+    }, 80);
   } else if (action === 'delete-folder') {
     const id = t.dataset.id;
     const f = folders.find(x => x.id === id);
     if (!confirm(`ลบโฟลเดอร์ "${f?.name ?? ''}"? การสนทนาจะย้ายไปยัง "ไม่จัดหมวด"\nDelete folder? Its conversations move to Uncategorized.`)) return;
-    await api.deleteFolder(id);
-    await load();
+    const res = await api.deleteFolder(id);
+    if (!res?.ok) flashError(res, 'ลบโฟลเดอร์ไม่สำเร็จ / Could not delete folder');
+    await load(); // resync either way (the folder may already be gone server-side)
   } else if (action === 'rename-conv') {
     const id = t.dataset.id;
     const titleEl = t.closest('.conv-row').querySelector('.conv-title');
     inlineEdit(titleEl, titleEl.dataset.title, async (val) => {
       const updated = await api.updatePle(id, { title: val });
-      const p = ples.find(x => x.id === id);
-      if (p && updated?.title) p.title = updated.title;
+      if (updated?.title) {
+        const p = ples.find(x => x.id === id);
+        if (p) p.title = updated.title;
+      } else {
+        flashError(updated, 'เปลี่ยนชื่อไม่สำเร็จ / Could not rename conversation');
+      }
     });
   } else if (action === 'delete-conv') {
     const id = t.dataset.id;
@@ -343,6 +371,7 @@ newFolderForm.addEventListener('submit', async (e) => {
   if (!name) return;
   const created = await api.createFolder(name);
   if (created?.id) { folders.push(created); newFolderName.value = ''; newFolderForm.hidden = true; render(); }
+  else flashError(created, 'สร้างโฟลเดอร์ไม่สำเร็จ / Could not create folder');
 });
 
 // ----- load -----

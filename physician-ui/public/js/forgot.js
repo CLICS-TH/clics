@@ -14,6 +14,7 @@ function showForm() {
 }
 
 async function submit() {
+  if (sendBtn.disabled) return; // request in flight — Enter must not fire a duplicate send
   formErr.style.display = 'none';
   const email = emailInput.value.trim();
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {

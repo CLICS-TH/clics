@@ -94,8 +94,12 @@ router.post('/ples/:id/approve', async (req, res) => {
   if (!ple || !sameCouncil(req, ple.council_id)) return res.status(404).json({ error: 'Not found' });
   if (ple.status !== 'cle_flag_t2') return res.status(400).json({ error: 'Not a flagged PLE' });
 
-  const { error } = await supabase.from('ples').update({ status: 'cle_pass' }).eq('id', req.params.id);
+  // Conditional update: a double-clicked Approve must not re-trigger the (paid) AI evaluation.
+  // Only the click that actually flips cle_flag_t2 → cle_pass proceeds; any racer gets 409.
+  const { data: flipped, error } = await supabase.from('ples')
+    .update({ status: 'cle_pass' }).eq('id', req.params.id).eq('status', 'cle_flag_t2').select('id');
   if (sendDbError(res, error)) return;
+  if (!flipped?.length) return res.status(409).json({ error: 'Already processed' });
 
   const { data: messages } = await supabase
     .from('messages').select('role, content').eq('ple_id', req.params.id).order('created_at');
@@ -184,7 +188,8 @@ router.post('/ples/:id/assign', async (req, res) => {
 router.get('/users', async (req, res) => {
   const { limit, offset } = pageParams(req);   // paginated — never pull all 80K professionals at once
   let query = supabase.from('professionals')
-    .select('*', { count: 'exact' }).order('created_at').range(offset, offset + limit - 1);
+    // Newest first: a just-created user must be visible on the reloaded first page.
+    .select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(offset, offset + limit - 1);
   // Server-side status filter (the UI hides deactivated members by default) — applied before
   // pagination so X-Total-Count stays correct.
   if (req.query.status === 'active' || req.query.status === 'deactivated') {
@@ -440,8 +445,10 @@ router.get('/invites', async (req, res) => {
 });
 
 // Delete an invite (own council for admins). A PENDING invite is revoked — it stays in the
-// history so the admin can see it was cancelled. Any other status (revoked / accepted / expired)
-// is already just history, so deleting it hard-removes the row ("delete invite history").
+// history so the admin can see it was cancelled. Hard-removing a history row (revoked /
+// accepted / expired) requires the EXPLICIT ?purge=1 flag: without it, a double-clicked
+// Revoke (first click revokes, second lands on the now-revoked row) must NOT escalate
+// into silently destroying the history entry.
 router.delete('/invites/:id', async (req, res) => {
   const { data: inv } = await supabase.from('invites').select('id, council_id, status').eq('id', req.params.id).single();
   if (!inv) return res.status(404).json({ error: 'Not found' });
@@ -450,6 +457,9 @@ router.delete('/invites/:id', async (req, res) => {
     const { error } = await supabase.from('invites').update({ status: 'revoked' }).eq('id', req.params.id);
     if (sendDbError(res, error)) return;
     return res.json({ ok: true });
+  }
+  if (req.query.purge !== '1') {
+    return res.status(409).json({ error: 'Invite already processed — pass ?purge=1 to remove it from history.' });
   }
   const { error } = await supabase.from('invites').delete().eq('id', req.params.id);
   if (sendDbError(res, error)) return;

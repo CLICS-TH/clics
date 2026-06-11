@@ -55,6 +55,8 @@ export default function UsersPage() {
   const [totalUsed, setTotalUsed] = useState(0);            // total spent across all members ($)
   const [total, setTotal] = useState(0);                    // total user count (X-Total-Count)
   const [loadingMore, setLoadingMore] = useState(false);
+  const [creating, setCreating] = useState(false);          // create-user request in flight
+  const [saving, setSaving] = useState(false);              // edit-panel save in flight
   const [statusFilter, setStatusFilter] = useState('active'); // default hides deactivated; '' = all
   const [q, setQ] = useState('');             // search box (live value)
   const [searchQ, setSearchQ] = useState(''); // debounced value sent as ?q= (server-side filter)
@@ -139,9 +141,12 @@ export default function UsersPage() {
   async function createUser() {
     setErr('');
     if (!form.council_id) { setErr('เลือกสภาวิชาชีพ / Select a council.'); return; }
-    const res: any = await apiFetch('/admin/users', { method:'POST', body: JSON.stringify(form) });
-    if (res?.id) { setShowForm(false); setForm(s => ({ ...s, council_id:'' })); loadUsers(); loadSlots(); }
-    else setErr(res?.error?.fieldErrors ? JSON.stringify(res.error.fieldErrors) : res?.error ?? 'Error');
+    setCreating(true);
+    try {
+      const res: any = await apiFetch('/admin/users', { method:'POST', body: JSON.stringify(form) });
+      if (res?.id) { setShowForm(false); setForm(s => ({ ...s, council_id:'' })); loadUsers(); loadSlots(); }
+      else setErr(res?.error?.fieldErrors ? JSON.stringify(res.error.fieldErrors) : typeof res?.error === 'string' ? res.error : 'Error');
+    } finally { setCreating(false); }
   }
 
   async function saveEdit() {
@@ -160,9 +165,13 @@ export default function UsersPage() {
     if (body.usage_limit_usd != null && (!Number.isFinite(body.usage_limit_usd) || body.usage_limit_usd < 0)) {
       setMsg('ขีดจำกัดไม่ถูกต้อง / Invalid usage limit.'); return;
     }
-    const res: any = await apiFetch(`/admin/users/${editing.id}`, { method:'PATCH', body: JSON.stringify(body) });
-    if (res?.id) { setEditing(null); setMsg('บันทึกแล้ว / Saved.'); loadUsers(); loadSlots(); }
-    else setMsg(res?.error ?? 'แก้ไขไม่สำเร็จ / Update failed.');
+    setSaving(true);
+    try {
+      const res: any = await apiFetch(`/admin/users/${editing.id}`, { method:'PATCH', body: JSON.stringify(body) });
+      if (res?.id) { setEditing(null); setMsg('บันทึกแล้ว / Saved.'); loadUsers(); loadSlots(); }
+      // res.error can be a zod-flatten OBJECT — rendering an object in JSX throws, so stringify it.
+      else setMsg(res?.error?.fieldErrors ? JSON.stringify(res.error.fieldErrors) : typeof res?.error === 'string' ? res.error : 'แก้ไขไม่สำเร็จ / Update failed.');
+    } finally { setSaving(false); }
   }
 
   async function saveStdLimit() {
@@ -386,7 +395,9 @@ export default function UsersPage() {
             {councils.map(c => <option key={c.id} value={c.id}>{c.name_th} / {c.name_en}</option>)}
           </select>
           {err && <p className="text-destructive text-sm">{err}</p>}
-          <Button className="w-full" onClick={createUser}>สร้างผู้ใช้ (active ทันที)</Button>
+          <Button className="w-full" onClick={createUser} disabled={creating}>
+            {creating ? 'กำลังสร้าง… / Creating…' : 'สร้างผู้ใช้ (active ทันที)'}
+          </Button>
         </div>
       )}
 
@@ -435,7 +446,7 @@ export default function UsersPage() {
             </>
           )}
           <div className="flex gap-2">
-            <Button onClick={saveEdit}>บันทึก / Save</Button>
+            <Button onClick={saveEdit} disabled={saving}>{saving ? 'กำลังบันทึก… / Saving…' : 'บันทึก / Save'}</Button>
             <Button variant="outline" onClick={() => setEditing(null)}>ยกเลิก</Button>
           </div>
         </div>

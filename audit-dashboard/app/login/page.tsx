@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 
@@ -25,15 +25,29 @@ function LoginGate() {
   const router = useRouter();
   const params = useSearchParams();
   const hasToken = !!params.get('token');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = params.get('token');
     if (token) {
       localStorage.setItem('clics_token', token);
-      apiFetch<{ user: ClicsUser }>('/auth/me').then(({ user }) => {
-        localStorage.setItem('clics_user', JSON.stringify(user));
-        redirectByRole(user, router);
-      });
+      // apiFetch only special-cases 401 — a 403 (account pending/deactivated) resolves with
+      // the JSON error body ({ error, code }), NOT { user }. Validate the shape before
+      // storing, and clear the bad token on any failure so the next visit re-enters the portal.
+      apiFetch<{ user?: ClicsUser; error?: string }>('/auth/me')
+        .then(res => {
+          if (res?.user?.role) {
+            localStorage.setItem('clics_user', JSON.stringify(res.user));
+            redirectByRole(res.user, router);
+          } else {
+            localStorage.removeItem('clics_token');
+            setError(typeof res?.error === 'string' ? res.error : 'เข้าสู่ระบบไม่สำเร็จ / Sign-in failed.');
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem('clics_token');
+          setError('เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ / Could not reach the server.');
+        });
     } else {
       // No handoff token — send the visitor to the single sign-in portal.
       window.location.replace(PORTAL_URL);
@@ -45,9 +59,18 @@ function LoginGate() {
       <div className="w-full max-w-sm space-y-2 p-8 bg-card rounded-xl shadow border border-border text-center animate-in fade-in slide-in-from-bottom-2 duration-500 motion-reduce:animate-none">
         <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">Audit Dashboard</p>
         <h1 className="mt-2 text-3xl font-semibold text-primary font-heading tracking-tight">CLICS</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {hasToken ? 'กำลังเข้าสู่ระบบ… / Signing you in…' : 'กำลังนำไปยังหน้าเข้าสู่ระบบ… / Redirecting to sign-in…'}
-        </p>
+        {error ? (
+          <>
+            <p className="mt-1 text-sm text-destructive">{error}</p>
+            <a href={PORTAL_URL} className="mt-3 inline-block text-sm text-primary underline underline-offset-4">
+              กลับไปหน้าเข้าสู่ระบบ / Back to the sign-in portal
+            </a>
+          </>
+        ) : (
+          <p className="mt-1 text-sm text-muted-foreground">
+            {hasToken ? 'กำลังเข้าสู่ระบบ… / Signing you in…' : 'กำลังนำไปยังหน้าเข้าสู่ระบบ… / Redirecting to sign-in…'}
+          </p>
+        )}
       </div>
     </div>
   );

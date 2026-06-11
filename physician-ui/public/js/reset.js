@@ -23,7 +23,13 @@ function showInvalid(msg) {
 // synchronous script executes. withClient resolves once we know the answer either way.
 function withClient(cb) {
   if (typeof window.CLICS_SUPABASE_CONFIGURED === 'boolean') { cb(); return; }
-  window.addEventListener('clics:sbready', () => cb(), { once: true });
+  let called = false;
+  const run = () => { if (called) return; called = true; cb(); };
+  window.addEventListener('clics:sbready', () => run(), { once: true });
+  // Watchdog: if the pinned esm.sh module never loads (CDN unreachable/blocked), proceed
+  // anyway — window.sbClient stays undefined and the page shows its "not configured" error
+  // instead of waiting forever on loadingCard.
+  setTimeout(run, 8000);
 }
 
 withClient(async () => {

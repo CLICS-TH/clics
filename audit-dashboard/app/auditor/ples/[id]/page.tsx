@@ -23,7 +23,7 @@ export default function AuditorScorePage() {
       const { d1,d2,d3,d4,d5,d6,d7, notes: n } = d.audit_score;
       setScores({ d1,d2,d3,d4,d5,d6,d7 }); setNotes(n ?? ''); setSubmitted(true);
     }
-  });
+  }).catch(() => setData({ error: 'โหลดข้อมูลไม่สำเร็จ / Could not load this session.' }));
 
   useEffect(() => { loadData(); }, [id]);
 
@@ -48,6 +48,21 @@ export default function AuditorScorePage() {
   }
 
   if (!data) return <div className="p-8 text-muted-foreground">กำลังโหลด...</div>;
+
+  // A 404 ("Not found or not assigned") resolves with the JSON error body — explain it
+  // instead of rendering an empty scoring UI the auditor could submit against.
+  if (data.error) return (
+    <div className="max-w-3xl mx-auto p-6 md:p-10">
+      <div className="border rounded-xl p-6 text-center space-y-3">
+        <p className="font-medium">ไม่พบเซสชันนี้ หรือคุณไม่ได้รับมอบหมายให้ตรวจ</p>
+        <p className="text-sm text-muted-foreground">
+          This session could not be found, or it is not assigned to you. ({String(data.error)})
+        </p>
+        <Button variant="outline" onClick={() => router.push('/auditor/queue')}>← กลับไปที่คิว / Back to queue</Button>
+      </div>
+    </div>
+  );
+
   const composite = computeComposite(scores);
 
   return (

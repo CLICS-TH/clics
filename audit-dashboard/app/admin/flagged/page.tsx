@@ -6,23 +6,30 @@ import { PageIntro } from '@/components/PageIntro';
 
 export default function FlaggedPage() {
   const [ples, setPlEs] = useState<any[]>([]);
+  const [actingId, setActingId] = useState<string | null>(null); // approve/reject in flight
   const load = () => apiFetch<any[]>('/admin/ples/flagged').then(d => setPlEs(d ?? []));
   useEffect(() => { load(); }, []);
 
   async function approve(id: string) {
+    setActingId(id);
     try {
       const res: any = await apiFetch(`/admin/ples/${id}/approve`, { method: 'POST' });
-      if (res?.error) { alert(`ไม่สำเร็จ: ${res.error}`); return; }
+      // A second approve now 409s with { error: 'Already processed' } — surface it, then
+      // refresh so the stale row leaves the queue.
+      if (res?.error) { alert(`ไม่สำเร็จ: ${res.error}`); load(); return; }
       load();
     } catch { alert('เกิดข้อผิดพลาด / Error approving session'); }
+    finally { setActingId(null); }
   }
 
   async function reject(id: string) {
+    setActingId(id);
     try {
       const res: any = await apiFetch(`/admin/ples/${id}/reject`, { method: 'POST' });
-      if (res?.error) { alert(`ไม่สำเร็จ: ${res.error}`); return; }
+      if (res?.error) { alert(`ไม่สำเร็จ: ${res.error}`); load(); return; }
       load();
     } catch { alert('เกิดข้อผิดพลาด / Error rejecting session'); }
+    finally { setActingId(null); }
   }
 
   return (
@@ -50,8 +57,10 @@ export default function FlaggedPage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" onClick={() => approve(p.id)}>✅ อนุมัติ</Button>
-                <Button size="sm" variant="destructive" onClick={() => reject(p.id)}>❌ ปฏิเสธ</Button>
+                <Button size="sm" disabled={actingId !== null} onClick={() => approve(p.id)}>
+                  {actingId === p.id ? 'กำลังบันทึก…' : '✅ อนุมัติ'}
+                </Button>
+                <Button size="sm" variant="destructive" disabled={actingId !== null} onClick={() => reject(p.id)}>❌ ปฏิเสธ</Button>
               </div>
             </div>
           </div>

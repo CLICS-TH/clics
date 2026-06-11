@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
+import { getUser } from '@/lib/auth';
 import { IccPanel } from '@/components/IccPanel';
 import { BlandAltmanPlot } from '@/components/BlandAltmanPlot';
 import { PageIntro } from '@/components/PageIntro';
@@ -8,8 +10,14 @@ import { Skeleton } from '@/components/Skeleton';
 import { DOMAIN_LABELS } from '@/lib/labels';
 
 export default function IccPage() {
+  const router = useRouter();
   const [data, setData] = useState<any>(null);
-  useEffect(() => { apiFetch<any>('/admin/icc').then(setData); }, []);
+  useEffect(() => {
+    // /admin/icc is superadmin-only (the API 403s silently otherwise) — same client gate
+    // as /admin/overview: everyone else lands back on /home.
+    if (getUser()?.role !== 'superadmin') { router.push('/home'); return; }
+    apiFetch<any>('/admin/icc').then(setData);
+  }, [router]);
 
   if (!data) return (
     <>

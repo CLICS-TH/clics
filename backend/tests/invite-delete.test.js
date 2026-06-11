@@ -68,6 +68,7 @@ const ADMIN_A = { id: 'adm-1', role: 'admin', status: 'active', council_id: COUN
 
 const invite = (status, council_id = COUNCIL_A) => ({ id: 'inv-1', council_id, status });
 const del = () => auth(request(app).delete('/admin/invites/inv-1'));
+const purge = () => auth(request(app).delete('/admin/invites/inv-1?purge=1'));
 
 beforeEach(() => m.reset());
 
@@ -83,11 +84,11 @@ test('pending → revoked (soft): { ok: true }, status update — NO hard delete
   expect(m.state.deletes).toHaveLength(0);
 });
 
-test('revoked → HARD delete: { deleted: true }, row deleted — NO status update', async () => {
+test('revoked + ?purge=1 → HARD delete: { deleted: true }, row deleted — NO status update', async () => {
   m.state.caller = SUPERADMIN;
   m.state.invite = invite('revoked');
 
-  const r = await del();
+  const r = await purge();
 
   expect(r.status).toBe(200);
   expect(r.body).toEqual({ deleted: true });
@@ -95,11 +96,22 @@ test('revoked → HARD delete: { deleted: true }, row deleted — NO status upda
   expect(m.state.updates).toHaveLength(0);
 });
 
-test.each(['accepted', 'expired'])('%s (history row) → HARD delete with { deleted: true }', async (status) => {
+test('revoked WITHOUT purge → 409 and NO mutation (a double-clicked Revoke must not escalate)', async () => {
+  m.state.caller = SUPERADMIN;
+  m.state.invite = invite('revoked');
+
+  const r = await del();
+
+  expect(r.status).toBe(409);
+  expect(m.state.deletes).toHaveLength(0);
+  expect(m.state.updates).toHaveLength(0);
+});
+
+test.each(['accepted', 'expired'])('%s (history row) + ?purge=1 → HARD delete with { deleted: true }', async (status) => {
   m.state.caller = SUPERADMIN;
   m.state.invite = invite(status);
 
-  const r = await del();
+  const r = await purge();
 
   expect(r.status).toBe(200);
   expect(r.body).toEqual({ deleted: true });

@@ -20,19 +20,6 @@
     </header>
     <div class="card">
       <div class="form-group">
-        <label>สาขาวิชา / Specialty</label>
-        <select id="specialty">
-          <option value="">เลือกสาขา...</option>
-          <option>Internal Medicine / อายุรศาสตร์</option>
-          <option>Family Medicine / เวชศาสตร์ครอบครัว</option>
-          <option>Surgery / ศัลยศาสตร์</option>
-          <option>Pediatrics / กุมารเวชศาสตร์</option>
-          <option>Emergency Medicine / เวชศาสตร์ฉุกเฉิน</option>
-          <option>Obstetrics &amp; Gynecology / สูติ-นรีเวช</option>
-          <option>Other / อื่น ๆ</option>
-        </select>
-      </div>
-      <div class="form-group">
         <label>โฟลเดอร์ / Folder</label>
         <select id="folder">
           <option value="">— ไม่จัดหมวด / Uncategorized</option>
@@ -71,7 +58,6 @@
 
     document.getElementById('startBtn').addEventListener('click', async () => {
       const complaint = document.getElementById('complaint').value.trim();
-      const specialty = document.getElementById('specialty').value;
       const folder_id = document.getElementById('folder').value || undefined;
       const patient_ref = document.getElementById('patientRef').value.trim() || undefined;
       const errEl = document.getElementById('error');
@@ -79,7 +65,7 @@
       errEl.style.display = 'none';
       const btn = document.getElementById('startBtn');
       btn.disabled = true; btn.textContent = 'กำลังสร้าง...';
-      const ple = await api.createPle({ specialty, chief_complaint: complaint, folder_id, patient_ref });
+      const ple = await api.createPle({ chief_complaint: complaint, folder_id, patient_ref });
       if (ple?.id) window.location.href = `/ple-chat?id=${ple.id}`;
       else {
         errEl.textContent = ple?.code === 'budget_exceeded'
