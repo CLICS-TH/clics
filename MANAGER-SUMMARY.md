@@ -1,79 +1,82 @@
-# CLICS — How to Use the App (a quick guide)
+# CLICS — Feature & Status Report for Management
 
-**CLICS** lets a doctor have a real clinical conversation with an **AI tutor** about a patient case. The system then gives the doctor a score for *how well they reasoned* — designed to replace attendance-based continuing-education credit. This guide shows you how to sign in and use it. No technical knowledge needed.
+**CLICS** (Clinical Learning & Intelligence Credit System) scores a physician's **clinical reasoning** from a real conversation with an AI tutor, to replace attendance-based CME/CPD credit. This report summarises what the platform does today, what was built this cycle, and what remains before live participant testing.
 
-> **About this first pilot:** this is a **trial run to check the scoring works**. Please use **made-up / de-identified cases only** (no real patient names or numbers), and note that **scores are provisional — they don't count as official CME credit yet**.
+> **สรุปผู้บริหาร / Executive summary:** ระบบพร้อมใช้งานในระดับวิศวกรรมแล้ว — แพทย์สนทนากับ AI, ระบบให้คะแนนการให้เหตุผลทางคลินิก (PIS-7), และผู้ตรวจประเมินอิสระให้คะแนนคู่ขนานเพื่อตรวจสอบความน่าเชื่อถือ. รอบนี้เพิ่มระบบสมัคร/เข้าสู่ระบบที่ปลอดภัย (Google + คำเชิญ), หน้าเข้าสู่ระบบเดียว, บทบาทพิเศษ (แพทย์และผู้ตรวจ), และผ่านการทดสอบ end-to-end และโหลด. **สิ่งที่เหลือเป็นเรื่ององค์กร** (จริยธรรมการวิจัย IRB, การปรับเทียบคะแนนกับผู้เชี่ยวชาญในเดือนกรกฎาคม) ไม่ใช่งานวิศวกรรม. **คะแนนยังเป็นเบื้องต้น ยังไม่นับเป็นหน่วยกิต** จนกว่าจะปรับเทียบเสร็จ.
 
----
-
-## Where to sign in
-
-| You are a… | Open this link |
-|------------|----------------|
-| **Doctor** | https://physician-ui.vercel.app |
-| **Admin / Auditor / Superadmin** (reviewers) | https://audit-dashboard-rouge.vercel.app |
-
-## Logins to try each role
-
-| Role | Sign in at | Email | Password |
-|------|-----------|-------|----------|
-| **Superadmin** (sees everything) | dashboard | `superadmin@clics.th` | `ClicsSuper#2026r2` |
-| **Admin** (runs the group) | dashboard | `admin@clics.th` | `ClicsAdmin#2026r2` |
-| **Doctor** (sample) | doctor portal | `soakdoc05@example.com` | `SoakPass#2026` |
-| **Auditor** (sample) | dashboard | `soakaud1@example.com` | `SoakPass#2026` |
-
-*(These are temporary demo logins for the walkthrough.)*
+**Pilot:** on-premise trial for a Thai medical licensing body · **75 physicians × 3 sessions** · Aug–Sep 2026.
 
 ---
 
-## 👩‍⚕️ How a DOCTOR uses it
+## Status at a glance
 
-1. **Sign in** at the doctor portal (email + password). The first time, you'll read and accept a short **consent notice**.
-2. **Start a new conversation** and type the patient's main problem — e.g. *"chest pain in a 58-year-old man"* (a **made-up / de-identified** case — no real patient details).
-3. **Talk it through with the AI tutor** — ask questions, suggest a diagnosis, reason out loud. The AI explains its thinking, backs answers with references, gently corrects mistakes (it won't just agree with you), and ends each reply with a question to push you a step further.
-4. **Finish the session** when you're done.
-5. **See your result** — a score across 7 areas of clinical thinking, plus a chart of your progress over time.
-
-💡 Keep conversations tidy in **folders** and rename them.
-🔋 **AI usage allowance:** your home page shows a small bar of how much of your AI budget you've used (each doctor has a set limit). If you reach it, you can still *finish* an open session but can't start a new one — an admin can top it up.
-
-## 🗂️ How an ADMIN uses it
-
-1. **Sign in** at the dashboard.
-2. **Requests** — approve people who asked to join, and choose their role.
-3. **Sessions (PLEs)** — see every doctor's conversations and where each one stands; **assign a finished session to an auditor** to review.
-4. **QA Queue** — sessions the AI flagged for a second look: **Approve** (send it for scoring) or **Reject** (it won't count).
-5. **History** — who was approved, by whom, and when.
-
-## 🔍 How an AUDITOR uses it
-
-1. **Sign in** at the dashboard.
-2. **Open your assigned cases.**
-3. **Read the conversation and give your own score.** You won't see the AI's score — or the doctor's real identity — until *after* you submit yours. This keeps the review fair and independent.
-4. **Submit.** Your score is compared with the AI's to measure how well they agree (the study's reliability check).
-
-## ⚙️ How the SUPERADMIN uses it
-
-1. **Sign in** at the dashboard.
-2. **See everything** — every member, every session, and the overall results. On the **Stats** page, click any category (Evaluated, Awaiting QA, In progress…) to drill into exactly which sessions are in it.
-3. **Manage accounts** — add people, set how many each role can have, turn accounts on/off.
-4. **Control AI spend** — set the standard per-doctor usage limit, override it for an individual, reset a doctor's usage, and watch the **total API budget pool** used across everyone.
+| Area | Status |
+|------|--------|
+| Core learning loop (chat → score → review) | ✅ Built, verified end-to-end on production |
+| Secure sign-up & login (Google + invites) | ✅ Built & deployed |
+| The 4 roles + the new "Special" dual role | ✅ Built & deployed |
+| AI scoring (PIS-7) + independent auditor review | ✅ Built; calibration with experts pending (July) |
+| Privacy / de-identification | ✅ Enforced (patient + physician identities protected) |
+| Capacity / load | ✅ Benchmarked — comfortable for pilot scale |
+| **Credit issuance** | ⏸ **Off by design** until the July calibration passes |
+| Organisational gates (IRB, key rotation, sending domain) | ⏳ Pending — not engineering |
 
 ---
 
-## ✨ Just want to try it? (no account needed)
+## What the platform does, by role
 
-On the doctor portal, click **"Try as guest"** — you get **2 free questions** with the AI, and nothing is saved. A quick way to feel what the AI tutor is like.
+**👩‍⚕️ Physician** — signs in, accepts a one-time consent notice, starts a conversation about a **de-identified** case, reasons it through with an AI tutor (which explains, cites references, gently corrects, and ends each turn with a probing question), then finishes and sees a 7-dimension score plus a progress chart over time. Conversations organise into folders. A usage bar shows each physician's AI budget.
 
-## How many can use it at once (capacity)
+**🔍 Auditor** — opens assigned sessions and gives an **independent, blind** score (cannot see the AI's score or the physician's real identity until after submitting). This is the study's reliability check (AI vs. human agreement).
 
-- **Signing in:** everyone can be **logged in at the same time** — there's no practical limit for a pilot group; being signed in uses no shared resource.
-- **Chatting with the AI:** the system generates about **12 AI replies simultaneously**. If more people press *send* at the very same moment, the extra turns **wait a few seconds in line and are answered automatically** — nothing fails or is lost, and it **retries on its own** if the AI is momentarily busy. This burst behaviour was **stress-tested**.
-- **In practice:** because doctors read and type at their own pace, all ~30 pilot participants can work at once and it feels immediate. Only a single, fully-synchronised "everyone sends on the same second" demo would create a short queue (seconds, not failures).
-- **Spend stays bounded:** each AI reply is roughly **$0.01–0.02**, and every doctor has a usage cap, so heavy concurrent use can't run up a surprise bill.
+**🛠️ Admin** (per council) — sees and organises **only their own council's** members and sessions, sends invites, assigns finished sessions to auditors, and works the QA queue (approve/reject AI-flagged sessions).
 
-## Good to know
+**⚙️ Superadmin** — sees everything across councils, manages every account and role, controls AI spend (per-physician limits + the overall budget pool), and is the **only** role that can change a member's role or approve auditor-rights requests.
 
-- The AI gives substantive, referenced answers — it's a **mentor, not a search box**, and it won't simply agree with you.
-- **Patient and doctor information is kept private.** Reviewers see each case under a code name (e.g. *P-001*), never the doctor's real name.
-- This is a **validation pilot**: use **de-identified / made-up cases only**, and **scores are provisional** — official credit follows once the scoring is calibrated with expert reviewers.
+**🩺+🔍 Special (User + Auditor)** — a physician who *also* holds auditor rights: they keep their physician workspace and get a shortcut to the auditor console. Any physician can **request** this; a superadmin approves.
+
+---
+
+## What was built this cycle
+
+A focus on making onboarding secure and the platform participant-ready:
+
+- **One sign-in portal for everyone.** Physicians, admins, auditors and superadmins all sign in at one place; reviewers are routed automatically to their console. Simpler and less error-prone than two separate logins.
+- **Real Google sign-in + invitation links.** Physicians self-serve with Google (same account every time — no re-registration); admins/auditors/special/admin-roles join via one-time invite links. The old License-number / TMC step was **retired** at management's direction.
+- **The "Special" dual role** + a self-service **"request auditor rights"** button (superadmin approves).
+- **Council isolation, verified.** An admin can see and manage only their own council's data — confirmed by an end-to-end security audit.
+- **Role changes locked to the superadmin** (admins can view the request queue but not grant rights).
+- **Quality & safety hardening:** every button on both apps was audited and wired correctly; double-clicks can no longer re-trigger paid AI scoring or delete history; the apps now show clear messages instead of blank error pages; password-reveal toggles, user search, and a larger desktop view were added.
+
+---
+
+## Verification (evidence, not assertion)
+
+- **Automated test suite:** 132 backend tests passing.
+- **Full live journey on production:** physician consent → 5 AI turns → screening gate → AI evaluation → assign → blind auditor score → duplicate-submission blocked. Re-run repeatedly; AI and auditor scores both land correctly.
+- **Concurrency / load (see the Performance Benchmark doc):** **100 distinct simultaneous logged-in users with 0 errors**; 200 concurrent requests with 0 errors. The AI-chat path queues and retries under bursts so nothing is lost. Comfortable for 75 physicians, who in practice never all act in the same instant.
+- **Cost is bounded:** each AI reply is roughly **$0.01–0.02**, and every physician has a hard usage cap, so concurrent use cannot run up a surprise bill.
+
+---
+
+## Privacy
+
+- **Patient identity** stays out of the AI entirely — cases are de-identified, and any structured patient reference is stored in an isolated table never sent to the cloud or to reviewers.
+- **Physician identity** is hidden from auditors behind a code name (e.g. *P-001*) so review stays impartial.
+- No live secrets are stored in the codebase.
+
+---
+
+## What remains before live participant testing
+
+These are **organisational**, not engineering:
+
+| Item | Owner |
+|------|-------|
+| IRB / informed-consent text finalised | Project / ethics |
+| Rotate demo passwords + production API keys before real users | Project |
+| Verify a sending domain (so invite emails reach any address, not just the owner's) | Project / IT |
+| **July calibration workshop** — agreement between AI and expert reviewers must reach the reliability target (ICC ≥ 0.75) | Clinical experts |
+| Turn on credit issuance — **only after** calibration passes | Governance |
+
+**Bottom line:** the engineering is built, deployed, and verified for pilot scale. The remaining gates are organisational and on schedule for the Aug–Sep 2026 pilot. Scores remain **provisional** until expert calibration; credit issuance stays off until then.

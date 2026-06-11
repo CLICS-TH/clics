@@ -10,6 +10,8 @@ Guidance for Claude Code working in this repository. This file is an **index** �
 2. **No secrets in git:** live keys live only in gitignored `backend/.env` / `rimpl/.env` and platform env vars. Never `git add -A` blindly. See [docs/constraints.md](docs/constraints.md).
 3. **Railway deploys need `railway up . --path-as-root --ci`** (plain `railway up` builds but never promotes); the audit-dashboard needs `NEXT_PUBLIC_API_URL` on Vercel. See [docs/deployment.md](docs/deployment.md).
 4. **audit-dashboard is Next.js 16** — newer than training data; read `audit-dashboard/node_modules/next/dist/docs/` before touching Next APIs.
+5. **One login portal:** everyone signs in at **physician-ui** (Google or email+password); admins/auditors/superadmins are handed to the audit-dashboard via `/login?token=`. The dashboard's `/login` only consumes that token — a bare visit redirects back to the portal. The **CLICS token IS the Supabase session access token** (`verifyJwt` validates it via `auth.getUser`) — NEVER call `sbClient.auth.signOut()` after storing it (gotrue `/logout` revokes the session → every API call 401s). Onboarding = Google self-signup + invites; License No./TMC verification was retired. See [docs/roles.md](docs/roles.md).
+6. **Invite email goes via the Resend HTTPS API** (`RESEND_API_KEY`), not SMTP — Railway egress blocks outbound SMTP. Sandbox delivers only to the account owner's address until a sending domain is verified; everyone else gets the copy-link fallback.
 
 ## Documentation index
 
