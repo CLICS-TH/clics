@@ -401,9 +401,14 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* Edit panel */}
+      {/* Edit panel — a centered modal overlay so it's always in view (the ✎ button can be far
+          down a long table; an inline panel would open above the fold and look like it did nothing).
+          Click the backdrop or Cancel to close. */}
       {editing && (
-        <div className="border rounded-xl p-5 mb-6 space-y-3">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4"
+          onClick={() => setEditing(null)}>
+        <div className="w-full max-w-lg my-8 border rounded-xl bg-card p-5 space-y-3 shadow-xl animate-in fade-in zoom-in-95 duration-150"
+          onClick={e => e.stopPropagation()}>
           <p className="font-medium">แก้ไข / Edit — {editing.full_name_en}</p>
           <input className="w-full border rounded-lg px-3 py-2 text-sm" value={editing.full_name_th}
             placeholder="ชื่อภาษาไทย" onChange={e => setEditing(u => u && ({ ...u, full_name_th: e.target.value }))} />
@@ -444,6 +449,7 @@ export default function UsersPage() {
             <Button onClick={saveEdit} disabled={saving}>{saving ? 'กำลังบันทึก… / Saving…' : 'บันทึก / Save'}</Button>
             <Button variant="outline" onClick={() => setEditing(null)}>ยกเลิก</Button>
           </div>
+        </div>
         </div>
       )}
 
