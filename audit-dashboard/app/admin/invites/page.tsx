@@ -97,6 +97,16 @@ export default function InvitesPage() {
     else setMsg(typeof res?.error === 'string' ? res.error : 'เพิกถอนไม่สำเร็จ / Revoke failed.');
   }
 
+  // Hard-delete a non-pending (history) row — the same DELETE endpoint hard-deletes anything
+  // that is not 'pending' and answers { deleted: true }.
+  async function removeInvite(inv: Invite) {
+    if (!confirm(`ลบประวัติคำเชิญของ ${inv.email}? / Delete the invite history for ${inv.email}?`)) return;
+    setMsg(''); setErr('');
+    const res: any = await apiFetch(`/admin/invites/${inv.id}`, { method: 'DELETE' });
+    if (res?.deleted) { setMsg('ลบคำเชิญแล้ว / Invite deleted.'); setInvites(s => s.filter(i => i.id !== inv.id)); }
+    else setMsg(typeof res?.error === 'string' ? res.error : 'ลบไม่สำเร็จ / Delete failed.');
+  }
+
   // Small chip marking a physician invite that also grants auditor access.
   const SpecialChip = () => (
     <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
@@ -206,9 +216,9 @@ export default function InvitesPage() {
               <p className="text-xs text-muted-foreground">
                 สร้าง / Created {fmt(inv.created_at)} · หมดอายุ / Expires {fmt(inv.expires_at)}
               </p>
-              {inv.status === 'pending' && (
-                <Button variant="outline" size="sm" onClick={() => revoke(inv)}>เพิกถอน / Revoke</Button>
-              )}
+              {inv.status === 'pending'
+                ? <Button variant="outline" size="sm" onClick={() => revoke(inv)}>เพิกถอน / Revoke</Button>
+                : <Button variant="destructive" size="sm" onClick={() => removeInvite(inv)}>ลบ / Delete</Button>}
             </div>
           ))}
         </div>
@@ -243,7 +253,7 @@ export default function InvitesPage() {
                 <td className="px-4 py-3 text-right">
                   {inv.status === 'pending'
                     ? <Button variant="outline" size="sm" onClick={() => revoke(inv)}>เพิกถอน / Revoke</Button>
-                    : <span className="text-xs text-muted-foreground">—</span>}
+                    : <Button variant="destructive" size="sm" onClick={() => removeInvite(inv)}>ลบ / Delete</Button>}
                 </td>
               </tr>
             ))}</tbody>

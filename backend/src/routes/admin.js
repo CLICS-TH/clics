@@ -90,8 +90,9 @@ router.get('/councils', async (_req, res) => {
 
 router.post('/ples/:id/approve', async (req, res) => {
   const { data: ple } = await supabase.from('ples').select('*').eq('id', req.params.id).single();
-  if (!ple || ple.status !== 'cle_flag_t2') return res.status(400).json({ error: 'Not a flagged PLE' });
-  if (!sameCouncil(req, ple.council_id)) return res.status(404).json({ error: 'Not found' });
+  // Council check FIRST: a foreign-council id must be an opaque 404 regardless of its status.
+  if (!ple || !sameCouncil(req, ple.council_id)) return res.status(404).json({ error: 'Not found' });
+  if (ple.status !== 'cle_flag_t2') return res.status(400).json({ error: 'Not a flagged PLE' });
 
   const { error } = await supabase.from('ples').update({ status: 'cle_pass' }).eq('id', req.params.id);
   if (sendDbError(res, error)) return;
@@ -324,6 +325,9 @@ router.get('/physicians/:id/profile', async (req, res) => {
 // sessions. Safe + idempotent (skips anything already evaluated). The same sweep also runs on a
 // schedule (RECONCILE_INTERVAL_MS in index.js); this endpoint is the manual/on-demand trigger.
 router.post('/reconcile-evaluations', async (req, res) => {
+  // Sweeps EVERY council (and burns AI spend) — ops-level, so superadmin only. The 6h
+  // scheduler in index.js covers the routine case; admins don't need the manual trigger.
+  if (req.user.role !== 'superadmin') return res.status(403).json({ error: 'Superadmin only.' });
   res.json(await reconcileEvaluations());
 });
 
@@ -421,15 +425,21 @@ router.get('/invites', async (req, res) => {
   res.json(data ?? []);
 });
 
-// Revoke a pending invite (own council for admins). Refuses an already-accepted one.
+// Delete an invite (own council for admins). A PENDING invite is revoked — it stays in the
+// history so the admin can see it was cancelled. Any other status (revoked / accepted / expired)
+// is already just history, so deleting it hard-removes the row ("delete invite history").
 router.delete('/invites/:id', async (req, res) => {
   const { data: inv } = await supabase.from('invites').select('id, council_id, status').eq('id', req.params.id).single();
   if (!inv) return res.status(404).json({ error: 'Not found' });
   if (!sameCouncil(req, inv.council_id)) return res.status(404).json({ error: 'Not found' });
-  if (inv.status === 'accepted') return res.status(409).json({ error: 'Invite already accepted.' });
-  const { error } = await supabase.from('invites').update({ status: 'revoked' }).eq('id', req.params.id);
+  if (inv.status === 'pending') {
+    const { error } = await supabase.from('invites').update({ status: 'revoked' }).eq('id', req.params.id);
+    if (sendDbError(res, error)) return;
+    return res.json({ ok: true });
+  }
+  const { error } = await supabase.from('invites').delete().eq('id', req.params.id);
   if (sendDbError(res, error)) return;
-  res.json({ ok: true });
+  res.json({ deleted: true });
 });
 
 // (License verification + the manual-verify override were retired 2026-06-09 — onboarding is
