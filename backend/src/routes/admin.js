@@ -219,8 +219,9 @@ router.post('/access-requests/:id/approve', (_req, res) => res.status(404).json(
 router.post('/access-requests/:id/reject', (_req, res) => res.status(404).json({ error: 'The access-request queue was retired.' }));
 
 // ---- Auditor-rights requests (the "special" dual role) ----------------------
-// A physician asks to ALSO audit (POST /auth/request-auditor); admin (own council) or superadmin
-// approves → can_audit=true. Lives in access_requests with requested_role='auditor'.
+// A physician asks to ALSO audit (POST /auth/request-auditor). Admins see their own council's
+// queue (GET below), but approving/rejecting is a ROLE MUTATION — superadmin ONLY (approve flips
+// professionals.can_audit=true). Lives in access_requests with requested_role='auditor'.
 router.get('/auditor-requests', async (req, res) => {
   let q = supabase.from('access_requests').select('*')
     .eq('requested_role', 'auditor').eq('provider', 'role_request').eq('status', 'pending')
@@ -232,6 +233,8 @@ router.get('/auditor-requests', async (req, res) => {
 });
 
 router.post('/auditor-requests/:id/approve', async (req, res) => {
+  // Role mutations are superadmin-only — an admin may see the queue but never grant can_audit.
+  if (req.user.role !== 'superadmin') return res.status(403).json({ error: 'Superadmin only.' });
   const { data: r } = await supabase.from('access_requests').select('*').eq('id', req.params.id).single();
   if (!r || r.requested_role !== 'auditor' || r.provider !== 'role_request') return res.status(404).json({ error: 'Request not found' });
   if (r.status !== 'pending') return res.status(409).json({ error: 'Request already processed' });
@@ -246,6 +249,8 @@ router.post('/auditor-requests/:id/approve', async (req, res) => {
 });
 
 router.post('/auditor-requests/:id/reject', async (req, res) => {
+  // Same lock as /approve: deciding a role request is superadmin-only.
+  if (req.user.role !== 'superadmin') return res.status(403).json({ error: 'Superadmin only.' });
   const { data: r } = await supabase.from('access_requests').select('*').eq('id', req.params.id).single();
   if (!r || r.requested_role !== 'auditor' || r.provider !== 'role_request') return res.status(404).json({ error: 'Request not found' });
   if (r.status !== 'pending') return res.status(409).json({ error: 'Request already processed' });

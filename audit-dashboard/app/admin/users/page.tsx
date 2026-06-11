@@ -445,8 +445,15 @@ export default function UsersPage() {
                   <p className="text-xs text-muted-foreground">{r.email ?? '—'} · {new Date(r.created_at).toLocaleDateString('th-TH')}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <Button size="sm" onClick={() => decideRequest(r, 'approve')}>อนุมัติ / Approve</Button>
-                  <Button size="sm" variant="outline" onClick={() => decideRequest(r, 'reject')}>ปฏิเสธ / Reject</Button>
+                  {/* Admins see pending requests read-only; only superadmin can decide them. */}
+                  {isSuper ? (
+                    <>
+                      <Button size="sm" onClick={() => decideRequest(r, 'approve')}>อนุมัติ / Approve</Button>
+                      <Button size="sm" variant="outline" onClick={() => decideRequest(r, 'reject')}>ปฏิเสธ / Reject</Button>
+                    </>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">รอ Superadmin อนุมัติ / Awaiting superadmin approval</span>
+                  )}
                 </div>
               </div>
             ))}

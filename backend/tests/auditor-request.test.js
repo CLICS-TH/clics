@@ -1,12 +1,14 @@
 // Auditor-rights requests (the "special" dual role, 2026-06-10). A physician asks to ALSO audit
 // via POST /auth/request-auditor — the request lives in access_requests (requested_role='auditor',
-// provider='role_request'); an admin/superadmin approves via POST /admin/auditor-requests/:id/approve,
-// which flips professionals.can_audit=true and marks the request approved. Under test:
+// provider='role_request'); ONLY a superadmin approves via POST /admin/auditor-requests/:id/approve,
+// which flips professionals.can_audit=true and marks the request approved (admins keep read-only
+// queue visibility but every role mutation is superadmin-locked). Under test:
 //   - physician without can_audit → 202 {status:'pending'} + the access_requests insert payload
 //   - physician WITH can_audit    → 409 {code:'already_auditor'} (and NO insert)
 //   - duplicate pending request   → 409 {code:'pending'} (and NO insert)
 //   - non-physician caller        → 403 (the dual role only extends physicians)
 //   - approve (superadmin)        → professionals update {can_audit:true} captured + request marked approved
+//   - approve/reject (admin)      → 403 'Superadmin only.' and NOTHING is touched
 //   - already-processed request   → 409 (and the professional is NOT touched)
 //
 // Only the Supabase edge is mocked (table-aware recording mock, same pattern as
@@ -92,6 +94,7 @@ const PHYSICIAN = {
 };
 const SPECIAL_PHYSICIAN = { ...PHYSICIAN, can_audit: true };
 const AUDITOR = { id: 'aud-1', role: 'auditor', status: 'active', council_id: 'C1' };
+const ADMIN = { id: 'adm-1', role: 'admin', status: 'active', council_id: 'C1' };
 const SUPERADMIN = { id: 'sa-1', role: 'superadmin', status: 'active', council_id: null };
 
 const findInsert = (table) => m.state.queries.find((q) => q.table === table && q.op === 'insert');
@@ -195,4 +198,46 @@ test('approve an already-processed request → 409 and the professional is NOT t
   expect(r.body.error).toMatch(/already processed/i);
   expect(findUpdate('professionals')).toBeUndefined();
   expect(findUpdate('access_requests')).toBeUndefined();
+});
+
+// Role mutations are superadmin-locked: an admin keeps GET queue visibility (own council) but
+// can neither approve nor reject — even a pending request in their OWN council.
+
+test('approve (admin, own council) → 403 Superadmin only; nothing is touched', async () => {
+  m.state.caller = ADMIN;
+  m.state.requestRow = PENDING_REQUEST;   // same council (C1) — council scope is NOT the blocker
+
+  const r = await auth(request(app).post('/admin/auditor-requests/req-1/approve'));
+
+  expect(r.status).toBe(403);
+  expect(r.body).toEqual({ error: 'Superadmin only.' });
+  expect(findUpdate('professionals')).toBeUndefined();
+  expect(findUpdate('access_requests')).toBeUndefined();
+});
+
+test('reject (admin, own council) → 403 Superadmin only; the request stays pending', async () => {
+  m.state.caller = ADMIN;
+  m.state.requestRow = PENDING_REQUEST;
+
+  const r = await auth(request(app).post('/admin/auditor-requests/req-1/reject'));
+
+  expect(r.status).toBe(403);
+  expect(r.body).toEqual({ error: 'Superadmin only.' });
+  expect(findUpdate('access_requests')).toBeUndefined();
+});
+
+test('reject (superadmin) → request closed out as rejected with the reviewer stamped', async () => {
+  m.state.caller = SUPERADMIN;
+  m.state.requestRow = PENDING_REQUEST;
+
+  const r = await auth(request(app).post('/admin/auditor-requests/req-1/reject'));
+
+  expect(r.status).toBe(200);
+  expect(r.body).toEqual({ ok: true });
+
+  expect(findUpdate('professionals')).toBeUndefined();   // rejection never grants rights
+  const closed = findUpdate('access_requests');
+  expect(closed).toBeDefined();
+  expect(closed.payload).toMatchObject({ status: 'rejected', reviewed_by: 'sa-1' });
+  expect(closed.eqs).toContainEqual(['id', 'req-1']);
 });

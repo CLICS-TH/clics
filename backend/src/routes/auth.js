@@ -113,8 +113,8 @@ router.get('/me', verifyJwt, async (req, res) => {
 });
 
 // A physician asks to ALSO become an auditor (the "special" dual role). Creates a pending
-// role request that an admin (own council) or superadmin approves via /admin/auditor-requests.
-// Reuses the access_requests table (requested_role='auditor') — no new table.
+// role request that ONLY a superadmin approves via /admin/auditor-requests (admins see their
+// council's queue read-only). Reuses the access_requests table (requested_role='auditor').
 router.post('/request-auditor', verifyJwt, async (req, res) => {
   if (req.user.role !== 'physician') return res.status(403).json({ error: 'Only physicians can request auditor rights.' });
   if (req.user.can_audit) return res.status(409).json({ error: 'You already have auditor rights.', code: 'already_auditor' });
