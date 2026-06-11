@@ -313,7 +313,7 @@ export default function UsersPage() {
           return (
             <div key={s.role} className="rounded-xl border border-border p-4">
               <p className="text-sm font-medium">{ROLE_LABELS[s.role] ?? s.role}</p>
-              <p className={`text-2xl font-heading mt-1 ${full ? 'text-destructive' : ''}`}>{s.used}<span className="text-muted-foreground text-base">/{s.capacity}</span></p>
+              <p className={`text-2xl font-semibold tabular-nums mt-1 ${full ? 'text-destructive' : ''}`}>{s.used}<span className="text-muted-foreground text-base">/{s.capacity}</span></p>
               <p className="text-xs text-muted-foreground">เหลือ {s.remaining} ช่อง / {s.remaining} left</p>
               <div className="flex items-center gap-1.5 mt-2">
                 <input type="number" min={0} disabled={locked}
@@ -342,7 +342,7 @@ export default function UsersPage() {
         </p>
         <div className="flex items-baseline justify-between gap-2 mt-2">
           <span className="text-sm text-muted-foreground">ใช้ไปแล้ว / Used</span>
-          <span className={`text-lg font-heading tabular-nums ${poolPct >= 90 ? 'text-destructive' : ''}`}>
+          <span className={`text-lg font-semibold tabular-nums ${poolPct >= 90 ? 'text-destructive' : ''}`}>
             ${totalUsed.toFixed(4)}{poolHasValue ? <span className="text-muted-foreground text-sm"> / ${poolPctNum.toFixed(2)} ({poolPct}%)</span> : null}
           </span>
         </div>
