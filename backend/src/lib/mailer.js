@@ -7,6 +7,7 @@
 const ROLE_LABELS = {
   physician: 'แพทย์อาสา / Physician',
   auditor: 'ผู้ตรวจประเมิน / Auditor',
+  admin: 'ผู้ดูแลสภา / Council admin',
 };
 
 let _transport = null;

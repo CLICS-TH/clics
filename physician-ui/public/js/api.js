@@ -13,7 +13,10 @@ async function apiFetch(path, options = {}) {
     },
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
-  if (res.status === 401) {
+  // Session-expiry handling — ONLY when a token was attached. An unauthenticated 401
+  // (e.g. a wrong password on /auth/login) must fall through so the page shows the
+  // error inline instead of bouncing through the "session expired" redirect.
+  if (res.status === 401 && token) {
     try { sessionStorage.setItem('clics_auth_msg', 'เซสชันหมดอายุ — กรุณาเข้าสู่ระบบอีกครั้ง / Session expired — please sign in again.'); } catch {}
     localStorage.clear(); window.location.href = '/'; return;
   }

@@ -138,13 +138,14 @@ create table public.license_verifications (
 create index license_verifications_prof_idx on public.license_verifications(professional_id);
 create index license_verifications_lic_idx  on public.license_verifications(license_number);
 
--- A/B invite links → create a physician or auditor bound to an email. DB stores only sha256(token);
+-- A/B invite links → create a physician/auditor (or superadmin-issued admin) bound to an email.
+-- DB stores only sha256(token);
 -- the raw token lives only in the accept link. RLS deny-all (service-role only).
 create table public.invites (
   id              uuid primary key default gen_random_uuid(),
   token_hash      text not null unique,
   email           text not null,
-  role            text not null check (role in ('physician','auditor')),
+  role            text not null check (role in ('physician','auditor','admin')),
   council_id      uuid not null references public.councils(id),
   created_by      uuid references public.professionals(id),
   status          text not null default 'pending' check (status in ('pending','accepted','revoked','expired')),

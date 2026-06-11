@@ -55,6 +55,10 @@ export default function InvitesPage() {
 
   const councilName = (id?: string | null) => councils.find(c => c.id === id)?.name_th ?? '—';
 
+  // Bilingual role label for invite chips — 'admin' gets its council-admin reading
+  // (ROLE_LABELS.admin is just 'Admin'); everything else falls through to ROLE_LABELS.
+  const roleLabel = (r: string) => (r === 'admin' ? 'ผู้ดูแลสภา / Admin' : ROLE_LABELS[r] ?? r);
+
   async function createInvite() {
     setErr(''); setMsg(''); setCreated(null); setCopied(false);
     if (!form.email.trim()) { setErr('กรอกอีเมล / Enter an email.'); return; }
@@ -148,6 +152,8 @@ export default function InvitesPage() {
           <option value="physician">{ROLE_LABELS.physician} / Physician</option>
           <option value="auditor">{ROLE_LABELS.auditor} / Auditor</option>
           <option value="special">พิเศษ (User+Auditor) / Special</option>
+          {/* Council-admin invites are a superadmin-only power. Maps to {role:'admin'} (no can_audit). */}
+          {isSuper && <option value="admin">ผู้ดูแลสภา / Admin</option>}
         </select>
         {CouncilSelect}
         {!isSuper && (
@@ -167,6 +173,7 @@ export default function InvitesPage() {
           <p className="text-sm font-medium">
             ลิงก์คำเชิญสำหรับ {created.email} / Accept link for {created.email}
             {created.can_audit && ' — พิเศษ / Special (User+Auditor)'}
+            {created.role === 'admin' && ' — ผู้ดูแลสภา / Admin'}
           </p>
           <p className="text-xs text-muted-foreground">
             แสดงเพียงครั้งเดียว — คัดลอกและส่งให้ผู้รับ / Shown once only — copy it and send it to the recipient.
@@ -208,7 +215,7 @@ export default function InvitesPage() {
                 <StatusBadge s={inv.status} />
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Badge variant="outline">{ROLE_LABELS[inv.role] ?? inv.role}</Badge>
+                <Badge variant="outline">{roleLabel(inv.role)}</Badge>
                 {inv.can_audit && <SpecialChip />}
                 <span>🏛 {councilName(inv.council_id)}</span>
                 {inv.email_sent_at && <span title={fmt(inv.email_sent_at)}>✉ sent</span>}
@@ -243,7 +250,7 @@ export default function InvitesPage() {
                 </td>
                 <td className="px-4 py-3">
                   <span className="inline-flex items-center gap-1.5">
-                    <Badge variant="outline">{ROLE_LABELS[inv.role] ?? inv.role}</Badge>
+                    <Badge variant="outline">{roleLabel(inv.role)}</Badge>
                     {inv.can_audit && <SpecialChip />}
                   </span>
                 </td>

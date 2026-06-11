@@ -38,6 +38,7 @@ function errText(body) {
 function roleLabel(role) {
   return role === 'auditor' ? 'ผู้ตรวจประเมิน / Auditor'
     : role === 'physician' ? 'แพทย์ / Physician'
+    : role === 'admin' ? 'ผู้ดูแลสภา / Council admin'
     : role;
 }
 

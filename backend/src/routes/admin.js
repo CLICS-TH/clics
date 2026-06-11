@@ -18,7 +18,7 @@ const INVITE_EXPIRY_DAYS = parseInt(process.env.INVITE_EXPIRY_DAYS || '7', 10);
 const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 const InviteSchema = z.object({
   email: z.string().email(),
-  role: z.enum(['physician', 'auditor']),
+  role: z.enum(['physician', 'auditor', 'admin']),
   // "Special" invite = physician + can_audit (dual role). Meaningless with role 'auditor'.
   can_audit: z.boolean().optional(),
   council_id: z.string().uuid(),
@@ -189,6 +189,14 @@ router.get('/users', async (req, res) => {
   // pagination so X-Total-Count stays correct.
   if (req.query.status === 'active' || req.query.status === 'deactivated') {
     query = query.eq('status', req.query.status);
+  }
+  // Optional ?q= search — case-insensitive on the Thai/English names (professionals carries NO
+  // email column; emails live in auth.users). Server-side (filters compose with ?status and
+  // count:'exact', so pagination + X-Total-Count stay correct). q is sanitized first: commas,
+  // parens and % would break PostgREST .or() syntax; if nothing survives, skip the filter.
+  if (typeof req.query.q === 'string') {
+    const q = req.query.q.replace(/[,()%]/g, ' ').trim();
+    if (q) query = query.or(`full_name_th.ilike.*${q}*,full_name_en.ilike.*${q}*`);
   }
   query = scopeToCouncil(req, query);
   const { data, error, count } = await query;
@@ -367,7 +375,8 @@ router.get('/export', async (req, res) => {
   res.json({ exported_at: new Date().toISOString(), n: sessions.length, total: count ?? 0, limit, offset, sessions });
 });
 
-// ---- Invite links (A/B create a physician or auditor bound to an email) -------------------
+// ---- Invite links (A/B create a physician or auditor bound to an email; A may also ----------
+// ---- invite an admin — see the superadmin-only guard below) --------------------------------
 
 // Create an invite. Admin (B) may only invite into their OWN council; superadmin (A) any council.
 // Slot-prechecked so we never issue an invite that can't be redeemed. Returns the raw accept
@@ -377,6 +386,11 @@ router.post('/invites', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   const { email, role, council_id } = parsed.data;
   const can_audit = role === 'physician' && parsed.data.can_audit === true; // Special = physician+auditor
+  // Creating a council ADMIN is a role-power grant — superadmin only (an admin must never be
+  // able to mint another admin). Mirrors the auditor-request approve/reject guard.
+  if (role === 'admin' && req.user.role !== 'superadmin') {
+    return res.status(403).json({ error: 'Superadmin only.' });
+  }
   if (!sameCouncil(req, council_id)) return res.status(403).json({ error: 'You can only invite into your own council.' });
 
   const slot = await assertSlotAvailable(role, council_id);

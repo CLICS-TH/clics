@@ -56,6 +56,8 @@ export default function UsersPage() {
   const [total, setTotal] = useState(0);                    // total user count (X-Total-Count)
   const [loadingMore, setLoadingMore] = useState(false);
   const [statusFilter, setStatusFilter] = useState('active'); // default hides deactivated; '' = all
+  const [q, setQ] = useState('');             // search box (live value)
+  const [searchQ, setSearchQ] = useState(''); // debounced value sent as ?q= (server-side filter)
   const [requests, setRequests] = useState<AuditorRequest[]>([]); // pending auditor-role requests
   const mobile = useIsMobile();
 
@@ -63,10 +65,12 @@ export default function UsersPage() {
   // all mutations + /admin/slots + /admin/usage-settings remain superadmin-only.
   const isSuper = getUser()?.role === 'superadmin';
 
-  // Query string for /admin/users — server-side status filter (omitted for All) + pagination.
+  // Query string for /admin/users — server-side status filter (omitted for All) + name/email
+  // search (?q=, omitted when empty) + pagination. URLSearchParams handles the encoding.
   const usersQS = (limit: number, offset: number) => {
     const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) });
     if (statusFilter) qs.set('status', statusFilter);
+    if (searchQ) qs.set('q', searchQ);
     return qs.toString();
   };
 
@@ -112,8 +116,15 @@ export default function UsersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // (Re)load page 0 whenever the status filter changes (incl. on mount) — resets pagination to offset 0.
-  useEffect(() => { loadUsersPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [statusFilter]);
+  // Debounce the search box (~350ms) into searchQ, which drives the refetch below.
+  useEffect(() => {
+    const t = setTimeout(() => setSearchQ(q.trim()), 350);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  // (Re)load page 0 whenever the status filter or the (debounced) search changes (incl. on
+  // mount) — resets pagination to offset 0.
+  useEffect(() => { loadUsersPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [statusFilter, searchQ]);
 
   const councilName = (id?: string | null) => councils.find(c => c.id === id)?.name_th ?? '—';
 
@@ -460,6 +471,13 @@ export default function UsersPage() {
           </div>
         </div>
       )}
+
+      {/* Name search — debounced server-side ?q= (professionals carries no email column);
+          composes with the status chips below. */}
+      <input
+        className="w-full max-w-sm border rounded-lg px-3 py-2 text-sm mb-3 bg-background"
+        placeholder="ค้นหาชื่อ / Search name…"
+        value={q} onChange={e => setQ(e.target.value)} />
 
       {/* Account-status filter (server-side; default hides deactivated members). */}
       <div className="flex gap-2 mb-3 flex-wrap">
