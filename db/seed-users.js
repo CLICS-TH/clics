@@ -69,6 +69,25 @@ async function seedOne(u) {
     authUser = data.user;
     action = 'created';
   }
+  // Pseudonyms are globally unique. On re-runs keep the row's existing pseudonym; on first
+  // insert fall back to the next free P-NNN when the preferred one is already owned by a
+  // real participant (e.g. P-001 went to a Google signup before the demo seed ran).
+  if (profile.pseudonym) {
+    const { data: own } = await supabase.from('professionals')
+      .select('pseudonym').eq('id', authUser.id).maybeSingle();
+    if (own?.pseudonym) {
+      profile.pseudonym = own.pseudonym;
+    } else {
+      const { data: taken } = await supabase.from('professionals')
+        .select('id').eq('pseudonym', profile.pseudonym).maybeSingle();
+      if (taken) {
+        const { data: top } = await supabase.from('professionals').select('pseudonym')
+          .like('pseudonym', 'P-%').order('pseudonym', { ascending: false }).limit(1);
+        const next = parseInt((top?.[0]?.pseudonym || 'P-000').slice(2), 10) + 1;
+        profile.pseudonym = `P-${String(next).padStart(3, '0')}`;
+      }
+    }
+  }
   const { error: profErr } = await supabase
     .from('professionals')
     .upsert({ id: authUser.id, ...profile }, { onConflict: 'id' });
