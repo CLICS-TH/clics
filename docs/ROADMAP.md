@@ -35,6 +35,7 @@ Larger build-outs once the pilot is stable:
 - **Credit Engine.** Turn PIS-7 composite scores into issued CME/CPD credit (the system's reason for being) — issuance rules, certificates, an audit trail.
 - **ICC calibration-workshop tooling.** Support the July workshop: paired AI-vs-auditor scoring views, drift monitoring, the ICC ≥ 0.75 gate that releases Tier-2 auditing.
 - **Observability.** Structured logging + error tracking across the 4 layers.
+- **Scale beyond pilot.** Pilot scale is benchmarked and passing (100 distinct concurrent users, 0 errors — see [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)). For a larger cohort, execute that doc's scale-up playbook: raise the Anthropic **OTPM** tier (the binding AI limit), add **Railway replicas** + raise the **Supabase pool**, stagger onboarding-day logins, and re-measure raw ceilings with a **multi-IP** load test (single-IP tests now bottom out on the per-IP rate limiters).
 
 ---
 

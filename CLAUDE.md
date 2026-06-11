@@ -23,5 +23,6 @@ Guidance for Claude Code working in this repository. This file is an **index** �
 | [docs/constraints.md](docs/constraints.md) | On-premise mandate, randomization, pseudonymization, ICC gate, security |
 | [docs/deployment.md](docs/deployment.md) | Live URLs, deploy commands + gotchas, env vars, seeding, demo creds |
 | [docs/pilot-timeline.md](docs/pilot-timeline.md) | Milestones and pilot targets |
+| [docs/PERFORMANCE-BENCHMARK.md](docs/PERFORMANCE-BENCHMARK.md) | Load-test acceptance baseline + scale-up playbook (single-IP caveat, OTPM ceiling) |
 | [docs/MIDDLEWARE-KNOWN-GAPS.md](docs/MIDDLEWARE-KNOWN-GAPS.md) | As-built RIMPL gaps vs. the flowchart (L4, PII, ELM, etc.) |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Prioritized next steps (pilot-readiness → spec gaps → flagship) |
