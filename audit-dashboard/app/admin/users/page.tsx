@@ -209,6 +209,26 @@ export default function UsersPage() {
     else setMsg(res?.error ?? 'อัปเดตไม่สำเร็จ / Failed.');
   }
 
+  // PURGE — irreversibly delete a deactivated user and ALL their data (IRB right-to-erasure /
+  // consent withdrawal). Distinct from deactivate (which keeps history). Two safety gates: the
+  // backend requires the user to be deactivated first, and here the superadmin must type the
+  // person's exact name to confirm.
+  async function purgeUser(u: User) {
+    const typed = window.prompt(
+      `⚠️ ลบผู้ใช้และประวัติทั้งหมดอย่างถาวร (กู้คืนไม่ได้) — พิมพ์ชื่อให้ตรงเพื่อยืนยัน\n` +
+      `PERMANENTLY delete this user and ALL their sessions/scores (cannot be undone). Type the name to confirm:\n\n${u.full_name_en}`,
+    );
+    if (typed == null) return; // cancelled
+    if (typed.trim() !== u.full_name_en) { setMsg('ชื่อยืนยันไม่ตรง — ยกเลิกการลบ / Name did not match — purge cancelled.'); return; }
+    setMsg('');
+    const res: any = await apiFetch(`/admin/users/${u.id}/purge`, { method: 'DELETE', body: JSON.stringify({ confirm_name: u.full_name_en }) });
+    if (res?.purged) {
+      setUsers(s => s.filter(x => x.id !== u.id));
+      setMsg(`ลบผู้ใช้ถาวรแล้ว (${res.deleted_ples} เซสชัน) / User purged — ${res.deleted_ples} session(s) removed.`);
+      loadSlots();
+    } else setMsg(res?.error ?? 'ลบไม่สำเร็จ / Purge failed.');
+  }
+
   // Approve/reject a pending auditor-role request, then refresh both the section and the
   // users list (approve flips can_audit on the professional, so the Special chip appears).
   async function decideRequest(r: AuditorRequest, action: 'approve' | 'reject') {
@@ -279,6 +299,9 @@ export default function UsersPage() {
       {isSuper && <IconBtn icon="✎" title="แก้ไข / Edit" onClick={() => openEdit(u)} />}
       {isSuper && <IconBtn icon="⏻" title={u.status === 'deactivated' ? 'เปิดใช้ / Activate' : 'ปิดใช้ / Deactivate'}
         disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)} />}
+      {/* Purge appears ONLY on already-deactivated, non-superadmin users — a deliberate second step. */}
+      {isSuper && u.status === 'deactivated' && u.role !== 'superadmin' &&
+        <IconBtn icon="🗑" title="ลบถาวร / Purge (delete all data)" onClick={() => purgeUser(u)} />}
     </div>
   );
 

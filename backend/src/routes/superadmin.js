@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { z } = require('zod');
-const { supabase } = require('../lib/supabase');
+const { supabase, authSupabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { computeICC21 } = require('../services/icc');
 const { sendDbError } = require('../lib/db-helpers');
@@ -147,9 +147,53 @@ router.patch('/users/:id/status', async (req, res) => {
   res.json(data);
 });
 
-// INVARIANT: there is intentionally NO DELETE /users/:id route — the superadmin must be
-// indestructible. If a member-deletion route is ever added, it MUST refuse to delete a superadmin
-// (and the DB index `professionals_single_superadmin` keeps the singleton guarantee regardless).
+// PURGE — hard-delete a user and ALL their data (IRB right-to-erasure / consent withdrawal).
+// IRREVERSIBLE, and deliberately distinct from deactivate (which only flips status + KEEPS history).
+// Guards: superadmin-only (router-level); the target must already be DEACTIVATED (a two-step so it
+// can't be done by accident); NEVER the superadmin (it must stay indestructible — the
+// `professionals_single_superadmin` index backs this regardless); and the caller must echo the
+// user's full name (type-to-confirm). No DB transaction is available over the REST client, so every
+// foreign-key reference is cleared in dependency order before the row is removed.
+router.delete('/users/:id/purge', async (req, res) => {
+  const id = req.params.id;
+  const { data: prof } = await supabase.from('professionals')
+    .select('id, role, status, full_name_en').eq('id', id).single();
+  if (!prof) return res.status(404).json({ error: 'User not found' });
+  if (prof.role === 'superadmin') return res.status(403).json({ error: 'The superadmin account cannot be purged.' });
+  if (prof.status !== 'deactivated') return res.status(409).json({ error: 'Deactivate the user first, then purge.' });
+  if ((req.body?.confirm_name || '') !== prof.full_name_en) {
+    return res.status(400).json({ error: 'Confirmation name does not match.' });
+  }
+
+  // The user's OWN sessions: lpdp_snapshots has no cascade (clear first), then deleting the ples
+  // cascades messages / ai_evaluations / audit_scores / ple_patient_refs by ple_id.
+  const { data: ownPles } = await supabase.from('ples').select('id').eq('physician_id', id);
+  const deletedPles = ownPles?.length ?? 0;
+  await supabase.from('lpdp_snapshots').delete().eq('physician_id', id);
+  const delPles = await supabase.from('ples').delete().eq('physician_id', id);
+  if (sendDbError(res, delPles.error)) return;
+
+  // This user as an AUDITOR of OTHERS' sessions: un-assign from their PLEs + delete authored scores.
+  await supabase.from('ples').update({ auditor_id: null }).eq('auditor_id', id);
+  await supabase.from('audit_scores').delete().eq('auditor_id', id);
+
+  // Clear the remaining no-cascade references to professionals(id) so the row can be removed.
+  await supabase.from('access_requests').delete().eq('auth_user_id', id);
+  await supabase.from('access_requests').update({ reviewed_by: null }).eq('reviewed_by', id);
+  await supabase.from('invites').update({ created_by: null }).eq('created_by', id);
+  await supabase.from('invites').update({ professional_id: null }).eq('professional_id', id);
+
+  // The professional row — cascades oauth_identities, ple_folders, ple_patient_refs(by physician);
+  // SET NULLs license_verifications.
+  const delProf = await supabase.from('professionals').delete().eq('id', id);
+  if (sendDbError(res, delProf.error)) return;
+
+  // Finally the Supabase auth user (isolated auth client — never the data client's session).
+  const { error: authErr } = await authSupabase.auth.admin.deleteUser(id);
+  if (authErr) console.error('[purge] auth user delete failed (professional row already gone):', authErr.message);
+
+  res.json({ purged: true, deleted_ples: deletedPles, auth_deleted: !authErr });
+});
 
 // Role slot pools — used/capacity/remaining per role, and capacity editing.
 router.get('/slots', async (_req, res) => {
