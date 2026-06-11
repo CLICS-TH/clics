@@ -1,11 +1,11 @@
 // CLICS — concurrent AI-chat test. Fires ~40 SIMULTANEOUS real Claude generations through guest mode
 // (each /guest/message = 1 Claude call via RIMPL; guest writes ZERO DB rows). Measures how the AI path
 // behaves under true concurrency: successes, errors (502 = RIMPL/Claude failure or rate-limit), latency.
-// Hard budget cap. ~$0.06-0.07/call → 40 calls ≈ $2.5-2.8.
+// Hard budget cap. ~$0.065/call (observed lower, ~$0.045). User cap 2026-06-11: ≤ $2.
 //   cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/loadtest/ai-concurrency.js
 const BASE = 'https://backend-production-c12e4.up.railway.app';
-const CONCURRENCY = 40;          // simultaneous AI chats
-const MAX_AI_CALLS = 45;         // hard budget cap (~$3)
+const CONCURRENCY = 28;          // simultaneous AI chats (= cap, so the fan-out is never pre-truncated)
+const MAX_AI_CALLS = 28;         // hard budget cap: 28 × $0.065 = $1.82 < $2
 const COST_PER_CALL = 0.065;
 const REQ_TIMEOUT_MS = 95000;    // RIMPL chat timeout is 75s; allow headroom under load
 const PROMPTS = [

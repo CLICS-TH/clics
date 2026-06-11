@@ -31,11 +31,17 @@ const pctl = (a, p) => { const s2 = [...a].sort((x, y) => x - y); return s2.leng
   console.log(`LONG distinct-user test → ${BASE}\nProvisioning ${N} accounts, target ${TARGET} distinct tokens...`);
   const emails = Array.from({ length: N }, (_, i) => `loadtest-${String(i + 1).padStart(3, '0')}@${DOMAIN}`);
 
+  // Resolve a council — the prof_council_required constraint (added with the multi-council
+  // migration, after this script was first written) rejects a non-superadmin with no council_id.
+  const { data: council } = await s.from('councils').select('id').eq('code', 'TMC').single();
+  if (!council) throw new Error('council TMC not found — run db/migration-councils.sql first');
+  const COUNCIL_ID = council.id;
+
   // 1) provision (idempotent-ish: createUser fails if exists, then we still try the professionals upsert)
   let created = 0;
   await pool(emails, 10, async (email) => {
     const { data } = await s.auth.admin.createUser({ email, password: PW, email_confirm: true });
-    if (data?.user) { const { error } = await s.from('professionals').upsert({ id: data.user.id, role: 'physician', full_name_th: 'โหลดเทสต์', full_name_en: 'Load Test', status: 'active' }, { onConflict: 'id' }); if (!error) created++; }
+    if (data?.user) { const { error } = await s.from('professionals').upsert({ id: data.user.id, role: 'physician', council_id: COUNCIL_ID, full_name_th: 'โหลดเทสต์', full_name_en: 'Load Test', status: 'active' }, { onConflict: 'id' }); if (!error) created++; }
   });
   console.log(`  created ${created} accounts`);
 
