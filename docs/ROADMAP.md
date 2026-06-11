@@ -17,6 +17,7 @@ The smallest set that makes the prototype safe and credible for real physicians 
 - **Backend route tests (supertest).** Today only `cle-gate` + `icc` are unit-tested. Add request-level tests: folder CRUD, PLE create/rename/move/delete, `/end` gate transitions (cle_fail_t1 / flag_t2 / pass), auditor double-submit 409, and role-guards (admin denied the superadmin-only routes).
 - **Cross-pause active-time.** Persist `active_seconds` incrementally (e.g. per turn) so a session the physician pauses and resumes accumulates engagement time for the C1 duration gate, not just the current sitting.
 - **`/health/deep` on RIMPL** + a backend pre-routing check, so a RIMPL outage surfaces clearly instead of as a per-message 502.
+- **Invite email to any recipient — verify a sending domain in Resend.** The mailer is live (Resend HTTPS API) but the sandbox only delivers to the account owner's own address; everyone else gets the copy-link fallback (decision 2026-06-11: ship with manual link-sharing for now). To lift it: own/obtain a domain (or have the licensing body's IT delegate a subdomain, e.g. `clics.tmc.or.th`), add Resend's 3 DNS records at resend.com/domains, then set `MAIL_FROM` to that domain on the backend Railway service.
 
 ## P2 — Close documented spec gaps
 
