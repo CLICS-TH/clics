@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CLICS — เข้าสู่ระบบ</title>
+  <!-- Logout endpoint: the dashboard (a different origin) sends staff here with ?logout=1 to clear
+       the PORTAL-origin token too — otherwise autoForward below would re-log them straight back in.
+       Runs FIRST, before any storage is read; keeps the theme/view display prefs across logout. -->
+  <script>(function(){try{if(location.search.indexOf('logout=1')!==-1){var t=localStorage.getItem('clics_theme'),v=localStorage.getItem('clics_view');localStorage.clear();sessionStorage.clear();if(t)localStorage.setItem('clics_theme',t);if(v)localStorage.setItem('clics_view',v);if(history.replaceState)history.replaceState(null,'',location.pathname);}}catch(e){}})();</script>
   <script>(function(){try{var h=location.hash,s=location.search;if(h.indexOf('access_token')!==-1||h.indexOf('error_description')!==-1||s.indexOf('code=')!==-1){location.replace('/auth/callback'+s+h);}}catch(e){}})();</script>
   <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />

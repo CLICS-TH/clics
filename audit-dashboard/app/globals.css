@@ -64,6 +64,7 @@
   --accent: #efe9de;
   --accent-foreground: #141413;
   --destructive: #c64545;
+  --ok: #1a6630;            /* success text — dark enough to read on the light canvas (~6.5:1) */
   --border: #e6dfd8;
   --input: #e6dfd8;
   --ring: #cc785c;
@@ -99,6 +100,7 @@
   --accent: #1f1e1b;
   --accent-foreground: #faf9f5;
   --destructive: #c64545;
+  --ok: #5db872;            /* success text — bright green reads well on the dark canvas (~7:1) */
   --border: rgba(250,249,245,0.10);
   --input: rgba(250,249,245,0.15);
   --ring: #cc785c;

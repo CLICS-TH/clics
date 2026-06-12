@@ -75,7 +75,9 @@ export default function PhysicianProfilePage() {
                 ? round(s.audits.reduce((a: number, x: any) => a + Number(x.composite_score), 0) / s.audits.length)
                 : null;
               return (
-                <div key={s.id} className="border rounded-xl p-4">
+                // The whole card links to the session transcript so an admin can explore the chat history.
+                <a key={s.id} href={`/admin/ples/${s.id}`}
+                  className="block border rounded-xl p-4 transition-colors hover:border-primary hover:shadow-sm">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">{s.chief_complaint || '—'}</p>
@@ -88,7 +90,15 @@ export default function PhysicianProfilePage() {
                       <p className="text-muted-foreground">ผู้ตรวจ / Auditor: {humanAvg != null ? `${humanAvg} (n=${s.audits.length})` : '—'}</p>
                     </div>
                   </div>
-                </div>
+                  {/* WHO scored it — traceability of each evaluation. */}
+                  {s.audits?.length > 0 && (
+                    <p className="mt-2 border-t border-border/60 pt-2 text-xs text-muted-foreground">
+                      ผู้ประเมิน / Scored by:{' '}
+                      {s.audits.map((a: any) => `${a.auditor_name || 'ไม่ทราบชื่อ / Unknown'} (${round(Number(a.composite_score))})`).join(' · ')}
+                    </p>
+                  )}
+                  <p className="mt-2 text-xs text-primary">ดูบทสนทนา / View chat →</p>
+                </a>
               );
             })}
           </div>

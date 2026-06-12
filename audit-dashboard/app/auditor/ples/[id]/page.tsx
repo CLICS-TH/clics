@@ -86,7 +86,7 @@ export default function AuditorScorePage() {
           ? <Button className="w-full mt-3" onClick={submit} disabled={submitting}>
               {submitting ? 'กำลังบันทึก...' : 'ส่งคะแนน / Submit Score'}
             </Button>
-          : <p className="text-[#5db872] font-medium mt-3 text-center">✅ บันทึกแล้ว</p>
+          : <p className="text-[var(--ok)] font-medium mt-3 text-center">✅ บันทึกแล้ว</p>
         }
       </div>
       {submitted && data.ai_evaluation && (

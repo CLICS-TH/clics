@@ -52,7 +52,7 @@ export default function StatsPage() {
           <h2 className="font-semibold mb-2">ICC ปัจจุบัน (AI vs Auditor)</h2>
           <p className="text-3xl font-bold text-primary">{icc.overall.icc}</p>
           <p className="text-sm text-muted-foreground">95% CI: [{icc.overall.lower}, {icc.overall.upper}] · n={icc.overall.n}</p>
-          <p className={`text-sm font-medium mt-1 ${icc.overall.icc >= 0.75 ? 'text-[#5db872]' : 'text-destructive'}`}>
+          <p className={`text-sm font-medium mt-1 ${icc.overall.icc >= 0.75 ? 'text-[var(--ok)]' : 'text-destructive'}`}>
             {icc.overall.interpretation}
           </p>
         </div>

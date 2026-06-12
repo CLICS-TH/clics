@@ -59,7 +59,7 @@ export default function IccPage() {
                 <div key={c.council?.id ?? c.council?.code} className="rounded-xl border border-border p-4">
                   <p className="text-sm font-medium">{c.council?.name_th ?? '—'}</p>
                   <p className="text-xs text-muted-foreground">{c.council?.name_en ?? ''}</p>
-                  <p className={`text-2xl font-bold mt-1 ${ok ? 'text-[#5db872]' : 'text-destructive'}`}>{icc.toFixed(3)}</p>
+                  <p className={`text-2xl font-bold mt-1 ${ok ? 'text-[var(--ok)]' : 'text-destructive'}`}>{icc.toFixed(3)}</p>
                   <p className="text-xs text-muted-foreground">95% CI [{c.overall.lower.toFixed(2)}, {c.overall.upper.toFixed(2)}] · n = {c.overall.n}</p>
                 </div>
               );

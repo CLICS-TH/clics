@@ -47,17 +47,20 @@ document.getElementById('greeting').textContent = `สวัสดี, ${user.fu
   const tokens = (Number(u.usage_input_tokens) || 0) + (Number(u.usage_output_tokens) || 0);
   const pct = Math.min(100, Math.round((used / limit) * 100));
   const over = used >= limit;
-  const color = over ? '#c0392b' : pct >= 80 ? '#e08a1e' : '#3a8a52';
+  // The bar fill uses the vivid status color; the TEXT uses the theme-aware *-text token so the
+  // $-amount stays legible on the card in both light and dark (the vivid hues fail contrast as text).
+  const barColor  = over ? 'var(--error,#c64545)'    : pct >= 80 ? 'var(--warning,#d4a017)'    : 'var(--success,#5db872)';
+  const textColor = over ? 'var(--error-text,#7a1c1c)' : pct >= 80 ? 'var(--warning-text,#7a5900)' : 'var(--success-text,#1a6630)';
   host.innerHTML = `
     <div style="background:var(--surface-card,#fff);border:1px solid var(--hairline,#e2e2e2);color:var(--body-color,#1a1a1a);border-radius:12px;padding:10px 14px;margin:0 0 14px;font-size:13px;">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;">
         <span>การใช้งาน AI / AI usage</span>
-        <span style="font-variant-numeric:tabular-nums;color:${color};font-weight:600;">$${used.toFixed(4)} / $${limit.toFixed(2)} (${pct}%) <span style="color:var(--muted,#6c6a64);font-weight:400;">· ${tokens.toLocaleString()} tokens</span></span>
+        <span style="font-variant-numeric:tabular-nums;color:${textColor};font-weight:600;">$${used.toFixed(4)} / $${limit.toFixed(2)} (${pct}%) <span style="color:var(--muted,#6c6a64);font-weight:400;">· ${tokens.toLocaleString()} tokens</span></span>
       </div>
       <div style="height:8px;background:rgba(127,127,127,.22);border-radius:99px;overflow:hidden;margin-top:6px;">
-        <div style="height:100%;width:${pct}%;background:${color};transition:width .3s;"></div>
+        <div style="height:100%;width:${pct}%;background:${barColor};transition:width .3s;"></div>
       </div>
-      ${over ? '<div style="color:#c0392b;font-weight:600;margin-top:5px;">ถึงขีดจำกัดแล้ว — ติดต่อผู้ดูแลระบบ / Limit reached — contact an administrator.</div>' : ''}
+      ${over ? '<div style="color:var(--error-text,#7a1c1c);font-weight:600;margin-top:5px;">ถึงขีดจำกัดแล้ว — ติดต่อผู้ดูแลระบบ / Limit reached — contact an administrator.</div>' : ''}
     </div>`;
 })();
 

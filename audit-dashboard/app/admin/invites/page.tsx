@@ -116,7 +116,7 @@ export default function InvitesPage() {
 
   // Small chip marking a physician invite that also grants auditor access.
   const SpecialChip = () => (
-    <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+    <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-foreground">
       Special
     </span>
   );

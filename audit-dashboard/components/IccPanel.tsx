@@ -1,6 +1,6 @@
 interface Props { icc: number; lower: number; upper: number; n: number; interpretation: string; }
 export function IccPanel({ icc, lower, upper, n, interpretation }: Props) {
-  const color = icc >= 0.75 ? 'text-[#5db872]' : 'text-destructive';
+  const color = icc >= 0.75 ? 'text-[var(--ok)]' : 'text-destructive';
   return (
     <div className="border rounded-xl p-5">
       <h2 className="font-semibold mb-3">ICC(2,1) — AI vs Expert Auditor</h2>
@@ -8,7 +8,7 @@ export function IccPanel({ icc, lower, upper, n, interpretation }: Props) {
       <p className="text-sm text-muted-foreground mt-1">95% CI: [{lower.toFixed(3)}, {upper.toFixed(3)}] · n = {n}</p>
       <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold ${
         icc >= 0.95 ? 'bg-[#d1f5dc] text-[#1a6630]' :
-        icc >= 0.85 ? 'bg-secondary text-primary' :
+        icc >= 0.85 ? 'bg-secondary text-foreground' :
         icc >= 0.75 ? 'bg-[#fef3cd] text-[#7a5900]' :
         'bg-destructive/10 text-destructive'
       }`}>{interpretation}</span>

@@ -66,7 +66,7 @@ export default function AdminPlesPage() {
           <option value="">เลือก Auditor...</option>
           {auditors.map((a:any) => <option key={a.id} value={a.id}>{a.full_name_th}</option>)}
         </select>
-      : p.auditor_id ? <span className="text-xs text-[#5db872]">✓ Assigned</span> : <span className="text-xs text-muted-foreground">—</span>;
+      : p.auditor_id ? <span className="text-xs text-[var(--ok)]">✓ Assigned</span> : <span className="text-xs text-muted-foreground">—</span>;
 
   async function assign(pleId: string, auditorId: string) {
     try {

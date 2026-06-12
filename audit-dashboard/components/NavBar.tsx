@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getUser, canAudit } from '@/lib/auth';
 import { RoleBadge } from './RoleBadge';
@@ -29,7 +29,6 @@ const SUPERADMIN_LINKS = [
 const AUDITOR_LINKS = [{ href: '/auditor/queue', label: 'คิวประเมิน / Queue' }];
 
 export function NavBar() {
-  const router = useRouter();
   const pathname = usePathname();
   const { forcedMobile, forcedDesktop } = useViewport();
   const [isNarrow, setIsNarrow] = useState(false);
@@ -62,8 +61,12 @@ export function NavBar() {
   const mobile = forcedMobile || (!forcedDesktop && isNarrow);
 
   function logout() {
+    // Clearing only our (dashboard-origin) token isn't enough — the PORTAL origin still holds a valid
+    // token and autoForward there would re-log us straight back in. Bounce to the portal's logout,
+    // which clears its own storage and shows the login form (so you can sign in as another account).
     localStorage.clear();
-    router.push('/login');
+    const portal = process.env.NEXT_PUBLIC_PORTAL_URL || 'https://physician-ui.vercel.app';
+    window.location.href = `${portal}/?logout=1`;
   }
 
   const linkClass = (href: string) =>

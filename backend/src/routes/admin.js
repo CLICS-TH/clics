@@ -320,8 +320,18 @@ router.get('/physicians/:id/profile', async (req, res) => {
   ]);
 
   const aiBy = Object.fromEntries((ai ?? []).map(e => [e.ple_id, e]));
+
+  // Auditor names — WHO scored each session, for admin accountability/traceability on this internal
+  // profile view. (Distinct from GET /export, which pseudonymizes auditors as A-<hash> because that
+  // file leaves the system.) Auditors are study staff, not research subjects.
+  const auditorIds = [...new Set((audits ?? []).map(s => s.auditor_id))];
+  const { data: auditorRows } = auditorIds.length
+    ? await supabase.from('professionals').select('id, full_name_th, full_name_en').in('id', auditorIds)
+    : { data: [] };
+  const auditorName = Object.fromEntries((auditorRows ?? []).map(a => [a.id, a.full_name_th || a.full_name_en]));
+
   const auditsBy = {};
-  (audits ?? []).forEach(s => { (auditsBy[s.ple_id] ??= []).push(s); });
+  (audits ?? []).forEach(s => { (auditsBy[s.ple_id] ??= []).push({ ...s, auditor_name: auditorName[s.auditor_id] ?? null }); });
   const folderName = Object.fromEntries((folders ?? []).map(f => [f.id, f.name]));
 
   const sessions = (ples ?? []).map(p => ({
