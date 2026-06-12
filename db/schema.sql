@@ -259,7 +259,8 @@ create table public.audit_scores (
   d7 smallint not null check (d7 between 0 and 5),
   composite_score numeric not null,
   notes           text,
-  scored_at       timestamptz default now()
+  scored_at       timestamptz default now(),
+  unique (ple_id, auditor_id)   -- one score per (session, auditor); backstops the SELECT-then-INSERT race
 );
 
 -- RAG knowledge base (seeded via seed-documents.js)

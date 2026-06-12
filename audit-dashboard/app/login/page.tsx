@@ -38,7 +38,12 @@ function LoginGate() {
         .then(res => {
           if (res?.user?.role) {
             localStorage.setItem('clics_user', JSON.stringify(res.user));
-            redirectByRole(res.user, router);
+            // If the user was bounced here by a mid-session expiry, return them to that exact page
+            // (set by lib/api.ts before the redirect). Only honor a same-origin path, never /login.
+            let next: string | null = null;
+            try { next = sessionStorage.getItem('clics_reauth_next'); sessionStorage.removeItem('clics_reauth_next'); } catch {}
+            if (next && next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/login')) router.push(next);
+            else redirectByRole(res.user, router);
           } else {
             localStorage.removeItem('clics_token');
             setError(typeof res?.error === 'string' ? res.error : 'เข้าสู่ระบบไม่สำเร็จ / Sign-in failed.');

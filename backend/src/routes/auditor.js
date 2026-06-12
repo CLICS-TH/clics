@@ -76,7 +76,12 @@ router.post('/ples/:id/score', async (req, res) => {
     ple_id: req.params.id, auditor_id: req.user.id,
     ...scores, composite_score: composite, notes,
   });
-  if (error) return res.status(500).json({ error: error.message });
+  // The SELECT above is a friendly pre-check; the audit_scores_ple_auditor_uniq constraint is the
+  // backstop for a true concurrent double-submit — the loser surfaces as 23505, not a duplicate row.
+  if (error) {
+    if (error.code === '23505') return res.status(409).json({ error: 'Already scored' });
+    return res.status(500).json({ error: error.message });
+  }
 
   res.json({ composite_score: composite });
 });

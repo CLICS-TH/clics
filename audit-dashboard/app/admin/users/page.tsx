@@ -108,7 +108,7 @@ export default function UsersPage() {
       setPoolLimit(d?.api_budget_pool_usd ? String(d.api_budget_pool_usd) : '');
       setTotalUsed(Number(d?.total_used_usd ?? 0));
     });
-  const loadCouncils = () => apiFetch<Council[]>('/admin/councils').then(d => setCouncils(d ?? []));
+  const loadCouncils = () => apiFetch<Council[]>('/admin/councils').then(d => setCouncils(Array.isArray(d) ? d : []));
   // Pending auditor-role requests (admin: own council; superadmin: all) — section hides when empty.
   const loadRequests = () => apiFetch<AuditorRequest[]>('/admin/auditor-requests').then(d => setRequests(Array.isArray(d) ? d : []));
   useEffect(() => {
@@ -143,7 +143,8 @@ export default function UsersPage() {
     if (!form.council_id) { setErr('เลือกสภาวิชาชีพ / Select a council.'); return; }
     setCreating(true);
     try {
-      const res: any = await apiFetch('/admin/users', { method:'POST', body: JSON.stringify(form) });
+      // 'special' is a UI-only role value; roleToWire turns it into {role:'physician', can_audit:true}.
+      const res: any = await apiFetch('/admin/users', { method:'POST', body: JSON.stringify({ ...form, ...roleToWire(form.role) }) });
       if (res?.id) { setShowForm(false); setForm(s => ({ ...s, council_id:'' })); loadUsers(); loadSlots(); }
       else setErr(res?.error?.fieldErrors ? JSON.stringify(res.error.fieldErrors) : typeof res?.error === 'string' ? res.error : 'Error');
     } finally { setCreating(false); }
@@ -408,9 +409,10 @@ export default function UsersPage() {
               type={f==='password'?'password':'text'}
               onChange={e => setForm(s => ({ ...s, [f]: e.target.value }))} />
           ))}
+          {/* Same options as the edit panel — 'special' (User+Auditor) maps to physician+can_audit via roleToWire. */}
           <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
             value={form.role} onChange={e => setForm(s => ({ ...s, role: e.target.value }))}>
-            {Object.entries(ROLE_LABELS).filter(([v]) => v !== 'superadmin').map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+            {EDIT_ROLE_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
           </select>
           <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
             value={form.council_id} onChange={e => setForm(s => ({ ...s, council_id: e.target.value }))}>

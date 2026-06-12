@@ -202,3 +202,35 @@ test('google/complete: NEW user (no professionals row) without council_id → 40
   expect(r.status).toBe(400);
   expect(r.body.code).toBe('council_required');
 });
+
+// ---------------------------------------------------------------------------
+// (d) normalizeCanAudit — the single source of truth shared by POST /admin/users,
+//     PATCH /admin/users/:id, and POST /admin/invites. The audit found a parity bug when this
+//     rule was duplicated inline and PATCH drifted (an admin could keep can_audit=true). Lock the
+//     matrix so the flag can NEVER ride on a non-physician.
+// ---------------------------------------------------------------------------
+
+describe('normalizeCanAudit — Special = physician + can_audit only', () => {
+  const { normalizeCanAudit } = require('../src/lib/dual-role');
+
+  test('physician + true → true (the only Special combination)', () => {
+    expect(normalizeCanAudit('physician', true)).toBe(true);
+  });
+
+  test('physician + false/undefined → false', () => {
+    expect(normalizeCanAudit('physician', false)).toBe(false);
+    expect(normalizeCanAudit('physician', undefined)).toBe(false);
+  });
+
+  test('admin / auditor / superadmin + true → false (never rides on a non-physician)', () => {
+    expect(normalizeCanAudit('admin', true)).toBe(false);
+    expect(normalizeCanAudit('auditor', true)).toBe(false);
+    expect(normalizeCanAudit('superadmin', true)).toBe(false);
+  });
+
+  test('only the boolean literal true counts — truthy junk does not slip through', () => {
+    expect(normalizeCanAudit('physician', 'true')).toBe(false);
+    expect(normalizeCanAudit('physician', 1)).toBe(false);
+    expect(normalizeCanAudit('physician', null)).toBe(false);
+  });
+});

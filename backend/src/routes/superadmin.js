@@ -5,6 +5,7 @@ const { verifyJwt, requireRole } = require('../middleware/auth');
 const { computeICC21 } = require('../services/icc');
 const { sendDbError } = require('../lib/db-helpers');
 const { assertSlotAvailable, nextPseudonym, allSlotUsage, ROLES } = require('../lib/accounts');
+const { normalizeCanAudit } = require('../lib/dual-role');
 
 const router = Router();
 router.use(verifyJwt, requireRole('superadmin'));
@@ -18,6 +19,9 @@ const CreateUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   role: z.enum(GRANTABLE_ROLES),
+  // "Special" = a physician who ALSO holds auditor rights (can_audit). Only meaningful with
+  // role 'physician'; normalized server-side so it can never ride on an admin/auditor.
+  can_audit: z.boolean().optional(),
   // Every non-superadmin belongs to exactly one council (enforced by prof_council_required).
   council_id: z.string().uuid(),
   full_name_th: z.string().min(1),
@@ -71,6 +75,9 @@ router.post('/users', async (req, res) => {
   if (authErr) return res.status(400).json({ error: authErr.message });
 
   const insert = { id: authUser.user.id, ...profile, status: 'active' };
+  // "Special" (can_audit) applies ONLY to a physician — normalized in one place (lib/dual-role) so
+  // create / invite / edit can never drift apart and let the flag ride on an admin/auditor.
+  insert.can_audit = normalizeCanAudit(profile.role, parsed.data.can_audit);
   if (profile.role === 'physician') insert.pseudonym = await nextPseudonym();
   // Superadmin directly creating an auditor IS a trusted manual verification (the enforce_auditor_license
   // trigger blocks an active auditor that is still 'unverified').
@@ -106,6 +113,15 @@ router.patch('/users/:id', async (req, res) => {
 
   const patch = { ...parsed.data };
   const targetCouncil = patch.council_id ?? current.council_id;
+
+  // Normalize the dual-role flag against the EFFECTIVE role (post-edit) — one source of truth shared
+  // with POST /users and the invite path (lib/dual-role) so "Special" can never ride on an admin/auditor.
+  // Only touch it when the caller sent it OR is changing role, so an unrelated profile edit can't
+  // silently flip an existing flag, while a demotion away from physician always clears it.
+  if ('can_audit' in patch || (patch.role && patch.role !== current.role)) {
+    const effectiveRole = patch.role ?? current.role;
+    patch.can_audit = normalizeCanAudit(effectiveRole, patch.can_audit ?? current.can_audit);
+  }
 
   if (patch.role && patch.role !== current.role) {
     if (current.status === 'active') {
@@ -169,7 +185,10 @@ router.delete('/users/:id/purge', async (req, res) => {
   // cascades messages / ai_evaluations / audit_scores / ple_patient_refs by ple_id.
   const { data: ownPles } = await supabase.from('ples').select('id').eq('physician_id', id);
   const deletedPles = ownPles?.length ?? 0;
-  await supabase.from('lpdp_snapshots').delete().eq('physician_id', id);
+  // Check this delete: if it fails silently the next (ples) delete trips the lpdp_snapshots FK and
+  // reports a misleading 'ples' error instead of the real cause.
+  const delSnap = await supabase.from('lpdp_snapshots').delete().eq('physician_id', id);
+  if (sendDbError(res, delSnap.error)) return;
   const delPles = await supabase.from('ples').delete().eq('physician_id', id);
   if (sendDbError(res, delPles.error)) return;
 

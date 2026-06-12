@@ -37,9 +37,9 @@ export default function AdminPlesPage() {
 
   // Auditors + councils once; read a ?status= drill-down from the URL into the filter.
   useEffect(() => {
-    apiFetch<any[]>('/admin/auditors').then(d => setAuditors(d ?? []));
+    apiFetch<any[]>('/admin/auditors').then(d => setAuditors(Array.isArray(d) ? d : []));
     apiFetch<any[]>('/admin/councils').then(d =>
-      setCouncils(Object.fromEntries((d ?? []).map((c: any) => [c.id, c.name_th]))));
+      setCouncils(Object.fromEntries((Array.isArray(d) ? d : []).map((c: any) => [c.id, c.name_th]))));
     const s = new URLSearchParams(window.location.search).get('status');
     if (s) setFilter(s);
   }, []);

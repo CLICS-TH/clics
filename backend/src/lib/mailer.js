@@ -39,25 +39,30 @@ function getTransport() {
 function _resetTransport() { _transport = null; } // tests
 
 // → Promise<boolean>. True only when the SMTP server accepted the message.
-async function sendInviteEmail({ to, acceptUrl, role, councilNameTh, councilNameEn, expiresAt }) {
+async function sendInviteEmail({ to, acceptUrl, role, can_audit, councilNameTh, councilNameEn, expiresAt }) {
   if (!isMailerEnabled()) return false;
   const roleLabel = ROLE_LABELS[role] || role;
+  // A "Special" invite is a physician who ALSO gets auditor rights — say so, or the email reads
+  // as a plain physician invite and the extra access is a surprise on first login.
+  const isSpecial = role === 'physician' && can_audit === true;
+  const specialTh = isSpecial ? ' (พร้อมสิทธิ์ผู้ตรวจประเมิน / Special)' : '';
+  const specialEn = isSpecial ? ' (with auditor rights / Special)' : '';
   const council = [councilNameTh, councilNameEn].filter(Boolean).join(' / ') || '-';
   const expiry = expiresAt ? new Date(expiresAt).toISOString().slice(0, 10) : '';
-  const subject = `คำเชิญเข้าใช้งาน CLICS / Your CLICS invitation (${roleLabel})`;
+  const subject = `คำเชิญเข้าใช้งาน CLICS / Your CLICS invitation (${roleLabel}${specialTh})`;
   const text = [
-    `คุณได้รับเชิญให้เข้าใช้งานระบบ CLICS ในบทบาท ${roleLabel}`,
+    `คุณได้รับเชิญให้เข้าใช้งานระบบ CLICS ในบทบาท ${roleLabel}${specialTh}`,
     `สภาวิชาชีพ: ${council}`,
     `เปิดลิงก์นี้เพื่อยืนยันตัวตนและเริ่มใช้งาน (หมดอายุ ${expiry}):`,
     acceptUrl,
     ``,
-    `You have been invited to CLICS as ${roleLabel} (council: ${council}).`,
+    `You have been invited to CLICS as ${roleLabel}${specialEn} (council: ${council}).`,
     `Open this link to verify your identity and activate your account (expires ${expiry}):`,
     acceptUrl,
   ].join('\n');
   const html = [
-    `<p>คุณได้รับเชิญให้เข้าใช้งานระบบ <strong>CLICS</strong> ในบทบาท <strong>${roleLabel}</strong><br/>สภาวิชาชีพ: ${council}</p>`,
-    `<p>You have been invited to <strong>CLICS</strong> as <strong>${roleLabel}</strong> (council: ${council}).</p>`,
+    `<p>คุณได้รับเชิญให้เข้าใช้งานระบบ <strong>CLICS</strong> ในบทบาท <strong>${roleLabel}${specialTh}</strong><br/>สภาวิชาชีพ: ${council}</p>`,
+    `<p>You have been invited to <strong>CLICS</strong> as <strong>${roleLabel}${specialEn}</strong> (council: ${council}).</p>`,
     `<p><a href="${acceptUrl}">ยืนยันตัวตนและเริ่มใช้งาน / Accept your invitation</a> (expires ${expiry})</p>`,
     `<p style="color:#666;font-size:12px">${acceptUrl}</p>`,
   ].join('\n');

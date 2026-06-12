@@ -5,6 +5,16 @@ export function getToken(): string | null {
   return localStorage.getItem('clics_token');
 }
 
+// Session expiry → bounce to /login (which re-enters the portal). Remember where we were FIRST, in
+// sessionStorage (same-origin, survives the portal round-trip and the localStorage.clear below) so
+// the login gate can return the user to the exact page after they sign back in.
+function redirectToLogin(): void {
+  if (typeof window === 'undefined') return;
+  try { sessionStorage.setItem('clics_reauth_next', window.location.pathname + window.location.search); } catch {}
+  localStorage.clear();
+  window.location.href = '/login';
+}
+
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const res = await fetch(`${BASE}${path}`, {
@@ -16,8 +26,8 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     },
   });
   if (res.status === 401 && typeof window !== 'undefined') {
-    localStorage.clear();
-    window.location.href = '/login';
+    redirectToLogin();
+    return undefined as unknown as T; // stop here — the page is navigating away
   }
   return res.json() as Promise<T>;
 }
@@ -40,8 +50,8 @@ export async function apiFetchPaged<T>(
     },
   });
   if (res.status === 401 && typeof window !== 'undefined') {
-    localStorage.clear();
-    window.location.href = '/login';
+    redirectToLogin();
+    return { items: [], total: 0 };
   }
   const body = await res.json().catch(() => null);
   // A non-ok response carries a JSON error object, not the page array — if it leaked

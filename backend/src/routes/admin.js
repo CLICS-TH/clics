@@ -10,6 +10,7 @@ const { sendDbError, pageParams } = require('../lib/db-helpers');
 const { assertSlotAvailable } = require('../lib/accounts');
 const { newInviteToken } = require('../lib/invite-token');
 const { isMailerEnabled, sendInviteEmail } = require('../lib/mailer');
+const { normalizeCanAudit } = require('../lib/dual-role');
 
 const router = Router();
 router.use(verifyJwt, requireRole('admin', 'superadmin'));
@@ -390,7 +391,7 @@ router.post('/invites', async (req, res) => {
   const parsed = InviteSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   const { email, role, council_id } = parsed.data;
-  const can_audit = role === 'physician' && parsed.data.can_audit === true; // Special = physician+auditor
+  const can_audit = normalizeCanAudit(role, parsed.data.can_audit); // Special = physician+auditor
   // Creating a council ADMIN is a role-power grant — superadmin only (an admin must never be
   // able to mint another admin). Mirrors the auditor-request approve/reject guard.
   if (role === 'admin' && req.user.role !== 'superadmin') {
@@ -418,7 +419,7 @@ router.post('/invites', async (req, res) => {
   if (isMailerEnabled()) {
     const { data: council } = await supabase.from('councils').select('name_th, name_en').eq('id', council_id).maybeSingle();
     email_sent = await sendInviteEmail({
-      to: email, acceptUrl: accept_url, role,
+      to: email, acceptUrl: accept_url, role, can_audit,
       councilNameTh: council?.name_th, councilNameEn: council?.name_en, expiresAt: expires_at,
     });
     if (email_sent) {
