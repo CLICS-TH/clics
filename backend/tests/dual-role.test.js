@@ -174,6 +174,39 @@ test('GET /admin/users with an unknown status value applies NO status filter', a
   expect(listQuery().eqs.map(([col]) => col)).not.toContain('status');
 });
 
+// --- ?role= / ?council= filters — superadmin narrows the list server-side (compose with the
+//     count:'exact' query so "Showing X of Y" stays correct). ---
+
+test('GET /admin/users?role=auditor applies .eq(role, auditor)', async () => {
+  m.state.caller = SUPERADMIN;
+  const r = await auth(request(app).get('/admin/users?role=auditor'));
+  expect(r.status).toBe(200);
+  expect(listQuery().eqs).toContainEqual(['role', 'auditor']);
+});
+
+test('GET /admin/users?role=special applies .eq(role, physician) + .eq(can_audit, true)', async () => {
+  m.state.caller = SUPERADMIN;
+  const r = await auth(request(app).get('/admin/users?role=special'));
+  expect(r.status).toBe(200);
+  const eqs = listQuery().eqs;
+  expect(eqs).toContainEqual(['role', 'physician']);
+  expect(eqs).toContainEqual(['can_audit', true]);
+});
+
+test('GET /admin/users?council=<id> applies .eq(council_id, id)', async () => {
+  m.state.caller = SUPERADMIN;
+  const r = await auth(request(app).get('/admin/users?council=council-eng'));
+  expect(r.status).toBe(200);
+  expect(listQuery().eqs).toContainEqual(['council_id', 'council-eng']);
+});
+
+test('GET /admin/users with an unknown role value applies NO role filter', async () => {
+  m.state.caller = SUPERADMIN;
+  const r = await auth(request(app).get('/admin/users?role=banana'));
+  expect(r.status).toBe(200);
+  expect(listQuery().eqs.map(([col]) => col)).not.toContain('role');
+});
+
 // ---------------------------------------------------------------------------
 // (c) POST /auth/oauth/google/complete with OAUTH_ENABLED=true — council_id is OPTIONAL
 // ---------------------------------------------------------------------------

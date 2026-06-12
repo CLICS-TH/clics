@@ -204,6 +204,19 @@ router.get('/users', async (req, res) => {
     const q = req.query.q.replace(/[,()%]/g, ' ').trim();
     if (q) query = query.or(`full_name_th.ilike.*${q}*,full_name_en.ilike.*${q}*`);
   }
+  // Optional ?role= filter (allowlisted). 'special' is the dual-role pair (physician + can_audit);
+  // every other allowed value is a plain role match. Unknown values fall through with no filter,
+  // mirroring how ?status= ignores anything but active/deactivated.
+  if (req.query.role === 'special') {
+    query = query.eq('role', 'physician').eq('can_audit', true);
+  } else if (['physician', 'admin', 'auditor', 'superadmin'].includes(req.query.role)) {
+    query = query.eq('role', req.query.role);
+  }
+  // Optional ?council= filter — narrows the superadmin's view to one council. Harmless for an admin:
+  // scopeToCouncil below still pins them to their own council, so a foreign id just yields 0 rows.
+  if (typeof req.query.council === 'string' && req.query.council) {
+    query = query.eq('council_id', req.query.council);
+  }
   query = scopeToCouncil(req, query);
   const { data, error, count } = await query;
   if (sendDbError(res, error)) return;

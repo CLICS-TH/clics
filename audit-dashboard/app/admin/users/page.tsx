@@ -39,6 +39,14 @@ const EDIT_ROLE_OPTIONS: { key: string; label: string }[] = [
   { key: 'special', label: 'พิเศษ Special (User+Auditor)' },
 ];
 
+// Role filter chips (superadmin only; server-side ?role= on /admin/users; '' = all). Reuses the
+// EDIT_ROLE_OPTIONS labels (incl. 'special' = physician + can_audit) and adds Superadmin.
+const ROLE_FILTERS: { key: string; label: string }[] = [
+  { key: '', label: 'ทุกบทบาท / All roles' },
+  ...EDIT_ROLE_OPTIONS,
+  { key: 'superadmin', label: 'Superadmin' },
+];
+
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -58,6 +66,8 @@ export default function UsersPage() {
   const [creating, setCreating] = useState(false);          // create-user request in flight
   const [saving, setSaving] = useState(false);              // edit-panel save in flight
   const [statusFilter, setStatusFilter] = useState('active'); // default hides deactivated; '' = all
+  const [roleFilter, setRoleFilter] = useState('');           // server-side ?role= (superadmin only); '' = all
+  const [councilFilter, setCouncilFilter] = useState('');     // server-side ?council= (superadmin only); '' = all
   const [q, setQ] = useState('');             // search box (live value)
   const [searchQ, setSearchQ] = useState(''); // debounced value sent as ?q= (server-side filter)
   const [requests, setRequests] = useState<AuditorRequest[]>([]); // pending auditor-role requests
@@ -73,6 +83,8 @@ export default function UsersPage() {
     const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) });
     if (statusFilter) qs.set('status', statusFilter);
     if (searchQ) qs.set('q', searchQ);
+    if (roleFilter) qs.set('role', roleFilter);
+    if (councilFilter) qs.set('council', councilFilter);
     return qs.toString();
   };
 
@@ -126,7 +138,7 @@ export default function UsersPage() {
 
   // (Re)load page 0 whenever the status filter or the (debounced) search changes (incl. on
   // mount) — resets pagination to offset 0.
-  useEffect(() => { loadUsersPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [statusFilter, searchQ]);
+  useEffect(() => { loadUsersPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [statusFilter, searchQ, roleFilter, councilFilter]);
 
   const councilName = (id?: string | null) => councils.find(c => c.id === id)?.name_th ?? '—';
 
@@ -517,13 +529,37 @@ export default function UsersPage() {
         value={q} onChange={e => setQ(e.target.value)} />
 
       {/* Account-status filter (server-side; default hides deactivated members). */}
-      <div className="flex gap-2 mb-3 flex-wrap">
+      <div className="flex gap-2 mb-2 flex-wrap">
         {STATUS_FILTERS.map(f => (
           <Button key={f.key} variant={statusFilter === f.key ? 'default' : 'outline'} size="sm" onClick={() => setStatusFilter(f.key)}>
             {f.label}
           </Button>
         ))}
       </div>
+
+      {/* Role + Council filters — superadmin only (admins are already pinned to one council; all
+          three filter rows compose server-side, so "Showing X of Y" stays correct). */}
+      {isSuper && (
+        <>
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <span className="mr-1 text-xs text-muted-foreground">Role</span>
+            {ROLE_FILTERS.map(f => (
+              <Button key={f.key || 'all'} variant={roleFilter === f.key ? 'default' : 'outline'} size="sm" onClick={() => setRoleFilter(f.key)}>
+                {f.label}
+              </Button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <span className="mr-1 text-xs text-muted-foreground">สภา / Council</span>
+            <Button variant={councilFilter === '' ? 'default' : 'outline'} size="sm" onClick={() => setCouncilFilter('')}>ทุกสภา / All</Button>
+            {councils.map(c => (
+              <Button key={c.id} variant={councilFilter === c.id ? 'default' : 'outline'} size="sm" onClick={() => setCouncilFilter(c.id)}>
+                {c.name_th}
+              </Button>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Loaded-vs-total count for the user list (respects the active status filter). */}
       <p className="mb-3 text-xs text-muted-foreground">
