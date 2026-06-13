@@ -1,5 +1,6 @@
 'use client';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ReferenceLine, Tooltip, ResponsiveContainer } from 'recharts';
+import { CHART } from '@/lib/chart-colors';
 
 interface Props { pairs: { ai: number; human: number }[]; }
 
@@ -21,8 +22,8 @@ export function BlandAltmanPlot({ pairs }: Props) {
           <YAxis dataKey="diff" name="AI − Human" label={{ value:'AI − Human', angle:-90, position:'insideLeft' }} tick={{ fill: 'currentColor', fontSize: 11 }} />
           <Tooltip />
           <ReferenceLine y={meanDiff} stroke="#5db8a6" strokeDasharray="4 4" />
-          <ReferenceLine y={meanDiff + loa} stroke="#c64545" strokeDasharray="3 3" />
-          <ReferenceLine y={meanDiff - loa} stroke="#c64545" strokeDasharray="3 3" />
+          <ReferenceLine y={meanDiff + loa} stroke={CHART.fail} strokeDasharray="3 3" />
+          <ReferenceLine y={meanDiff - loa} stroke={CHART.fail} strokeDasharray="3 3" />
           <Scatter data={data} fill="#cc785c" opacity={0.7} />
         </ScatterChart>
       </ResponsiveContainer>

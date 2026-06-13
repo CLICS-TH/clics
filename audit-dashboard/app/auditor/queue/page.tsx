@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { getUser, canAudit } from '@/lib/auth';
 import { Badge } from '@/components/ui/badge';
+import { Check } from 'lucide-react';
 import { PageIntro } from '@/components/PageIntro';
 
 interface PleItem {
@@ -57,7 +58,7 @@ export default function AuditorQueue() {
         <>
           <p className="text-sm text-muted-foreground mb-4">
             เหลือ <span className="font-semibold text-foreground">{toScore}</span> รอประเมิน / {toScore} to score
-            {toScore === 0 && ' — ประเมินครบแล้ว ✓'}
+            {toScore === 0 && ' — ประเมินครบแล้ว / all scored'}
           </p>
           <input
             className="w-full max-w-sm border rounded-lg px-3 py-2 text-sm mb-4 bg-background"
@@ -85,7 +86,7 @@ export default function AuditorQueue() {
                 <p className="text-xs text-muted-foreground">{p.turn_count} รอบ · {p.token_count} tokens</p>
               </div>
               {p.scored
-                ? <Badge variant="default">✓ ให้คะแนนแล้ว</Badge>
+                ? <Badge variant="default"><Check className="size-3.5" /> ให้คะแนนแล้ว</Badge>
                 : <Badge variant="outline">รอประเมิน</Badge>}
             </div>
           </div>

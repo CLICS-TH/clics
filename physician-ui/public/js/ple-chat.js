@@ -1,7 +1,7 @@
 const pleId = new URLSearchParams(location.search).get('id');
 if (!pleId) window.location.href = '/dashboard';
 
-let turns = 0, tokens = 0;
+let turns = 0;
 
 // Active-engagement timer: count a second only while the tab is VISIBLE and the
 // physician is actually working — typed/sent within the grace window, or the AI is
@@ -39,7 +39,8 @@ function renderMessage(role, content, refs, socratic) {
     if (refs?.length) {
       const r = document.createElement('div');
       r.className = 'msg-refs';
-      r.append('📎 ');
+      r.insertAdjacentHTML('beforeend', icon('paperclip', 14));
+      r.append(' ');
       refs.forEach((ref, i) => {
         if (i) r.append(' · ');
         const em = document.createElement('em');
@@ -51,7 +52,10 @@ function renderMessage(role, content, refs, socratic) {
     if (socratic) {
       const sq = document.createElement('div');
       sq.className = 'msg-socratic';
-      sq.textContent = '❓ ' + socratic;
+      sq.insertAdjacentHTML('beforeend', icon('help', 16));
+      const sqt = document.createElement('span');
+      sqt.textContent = ' ' + socratic;
+      sq.appendChild(sqt);
       div.appendChild(sq);
     }
   }
@@ -64,15 +68,14 @@ api.getPle(pleId).then(ple => {
   // (which would then falsely read "Episode not found"); show a recoverable message in place.
   if (ple && ple.error) {
     document.getElementById('messages').innerHTML =
-      '<div class="msg-assistant">⚠️ โหลดเซสชันไม่สำเร็จ กรุณารีเฟรชหน้านี้ / Could not load this session — please refresh.</div>';
+      '<div class="msg-assistant">' + icon('warn', 16) + ' โหลดเซสชันไม่สำเร็จ กรุณารีเฟรชหน้านี้ / Could not load this session — please refresh.</div>';
     return;
   }
   if (!ple || ple.status !== 'active') { window.location.href = `/ple-result?id=${pleId}`; return; }
   const titleEl = document.getElementById('chatTitle');
   if (titleEl && (ple.title || ple.chief_complaint)) titleEl.textContent = ple.title || ple.chief_complaint;
-  turns = ple.turn_count ?? 0; tokens = ple.token_count ?? 0;
+  turns = ple.turn_count ?? 0;
   document.getElementById('turns').textContent = turns;
-  document.getElementById('tokens').textContent = tokens;
   (ple.messages ?? []).forEach(m => renderMessage(m.role, m.content, m.refs, m.socratic_question));
 });
 
@@ -95,16 +98,15 @@ async function sendMessage() {
   loading.remove();
   if (res?.content) {
     renderMessage('assistant', res.content, res.refs, res.socratic_question);
-    turns += 1; tokens += res.token_count ?? 0;
+    turns += 1;
     document.getElementById('turns').textContent = turns;
-    document.getElementById('tokens').textContent = tokens;
   } else if (res?.code === 'budget_exceeded') {
-    renderMessage('assistant', '⚠️ ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ คุณยังสามารถจบเซสชันนี้ได้ / AI usage limit reached — contact an administrator. You can still end this session.', [], null);
+    renderMessage('assistant', 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ คุณยังสามารถจบเซสชันนี้ได้ / AI usage limit reached — contact an administrator. You can still end this session.', [], null);
     input.value = message; // don't discard the question they typed — restore it (consistent w/ the error branch)
   } else {
     // The turn failed — RESTORE the physician's text (it was cleared on send) so they can retry
     // without retyping the whole clinical question.
-    renderMessage('assistant', '⚠️ เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong — your message is restored below, please try again.', [], null);
+    renderMessage('assistant', 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong — your message is restored below, please try again.', [], null);
     input.value = message;
   }
   sendBtn.disabled = false; input.focus();
@@ -115,9 +117,14 @@ document.getElementById('input').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 document.getElementById('endBtn').addEventListener('click', async () => {
-  if (!confirm('จบ Session นี้หรือไม่? / End this session?')) return;
+  const ok = await confirmModal({
+    title: 'จบและส่งประเมิน? / End & submit?',
+    body: 'เซสชันจะถูกส่งให้ประเมินคะแนนและ<b>ทำต่อไม่ได้อีก</b><br><span style="color:var(--muted)">This session will be submitted for scoring and can\'t be resumed.</span>',
+    confirmLabel: 'จบและส่ง / End & submit', cancelLabel: 'ยังไม่จบ / Keep going',
+  });
+  if (!ok) return;
   const endBtn = document.getElementById('endBtn');
-  const origLabel = endBtn.textContent;
+  const origLabel = endBtn.innerHTML;
   endBtn.disabled = true;
   endBtn.textContent = 'กำลังประมวลผล... / Finishing…';
   const res = await api.endPle(pleId, { active_seconds: activeSeconds });
@@ -139,7 +146,7 @@ document.getElementById('endBtn').addEventListener('click', async () => {
     window.location.href = `/ple-result?id=${pleId}`;
     return;
   }
-  alert(res && res.error ? `จบไม่สำเร็จ / Could not finish: ${res.error}` : 'จบไม่สำเร็จ กรุณาลองใหม่ / Could not finish — please try again.');
+  toast(res && res.error ? `จบไม่สำเร็จ / Could not finish: ${res.error}` : 'จบไม่สำเร็จ กรุณาลองใหม่ / Could not finish — please try again.', 'error');
   endBtn.disabled = false;
-  endBtn.textContent = origLabel;
+  endBtn.innerHTML = origLabel;
 });

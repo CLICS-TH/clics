@@ -1,5 +1,6 @@
 // Single source of truth for status/role labels and the PIS-7 weighting,
 // shared across the admin and auditor pages.
+import { CHART } from './chart-colors';
 
 export const STATUS_MAP: Record<string, string> = {
   active: 'กำลังดำเนินการ',
@@ -66,9 +67,10 @@ export function pleStatusCards(stats: Record<string, number> | null | undefined)
   ];
 }
 
-// Org API-budget meter tone — one set of thresholds/colors everywhere (amber ≥75%, red ≥90%).
+// Org API-budget meter tone — one set of thresholds everywhere (amber ≥75%, red ≥90%).
+// Colors come from the shared CHART palette so the meter, charts, and --chart-* tokens never drift.
 export function budgetToneHex(fraction: number): string {
-  return fraction >= 0.9 ? '#c64545' : fraction >= 0.75 ? '#e08a1e' : '#5db872';
+  return fraction >= 0.9 ? CHART.fail : fraction >= 0.75 ? CHART.warn : CHART.pass;
 }
 
 // 0–5 domain scores → 0–100 composite (max = 5 × 1.0 × 20).

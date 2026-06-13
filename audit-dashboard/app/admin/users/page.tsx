@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
 import { ROLE_LABELS, ACCOUNT_STATUS_MAP, budgetToneHex, roleToUi, roleToWire } from '@/lib/labels';
+import { confirmDialog } from '@/components/Overlays';
+import { BarChart3, RotateCcw, Pencil, Power, Trash2, Building2 } from 'lucide-react';
 
 const PAGE_SIZE = 50;
 
@@ -243,7 +245,12 @@ export default function UsersPage() {
   }
 
   async function resetUsage(u: User) {
-    if (!confirm(`รีเซ็ตการใช้งานของ ${u.full_name_en} เป็น $0? / Reset this member's AI usage to $0?`)) return;
+    const ok = await confirmDialog({
+      title: 'รีเซ็ตการใช้งาน? / Reset usage?',
+      body: `รีเซ็ตการใช้งาน AI ของ ${u.full_name_en} เป็น $0? / Reset this member's AI usage to $0?`,
+      confirmLabel: 'รีเซ็ต / Reset',
+    });
+    if (!ok) return;
     setMsg('');
     const res: any = await apiFetch(`/admin/users/${u.id}/reset-usage`, { method:'POST', body: JSON.stringify({}) });
     if (res?.id) { setMsg('รีเซ็ตการใช้งานแล้ว / Usage reset.'); loadUsers(); }
@@ -252,7 +259,15 @@ export default function UsersPage() {
 
   async function toggleStatus(u: User) {
     const next = u.status === 'deactivated' ? 'active' : 'deactivated';
-    if (!confirm(next === 'deactivated' ? 'ปิดใช้งานบัญชีนี้? / Deactivate this account?' : 'เปิดใช้งานอีกครั้ง? / Reactivate?')) return;
+    const deact = next === 'deactivated';
+    const ok = await confirmDialog({
+      title: deact ? 'ปิดใช้งานบัญชี? / Deactivate account?' : 'เปิดใช้งานอีกครั้ง? / Reactivate account?',
+      body: deact
+        ? 'ผู้ใช้จะเข้าสู่ระบบไม่ได้จนกว่าจะเปิดใช้งานใหม่ / The user won\'t be able to sign in until reactivated.'
+        : 'ผู้ใช้จะกลับมาเข้าสู่ระบบได้ / The user will be able to sign in again.',
+      danger: deact, confirmLabel: deact ? 'ปิดใช้งาน / Deactivate' : 'เปิดใช้งาน / Reactivate',
+    });
+    if (!ok) return;
     setMsg('');
     const res: any = await apiFetch(`/admin/users/${u.id}/status`, { method:'PATCH', body: JSON.stringify({ status: next }) });
     if (res?.id) { setMsg('อัปเดตสถานะแล้ว / Status updated.'); loadUsers(); loadSlots(); }
@@ -264,8 +279,10 @@ export default function UsersPage() {
   // backend requires the user to be deactivated first, and here the superadmin must type the
   // person's exact name to confirm.
   async function purgeUser(u: User) {
+    // Native prompt is kept ONLY here: a typed-name match is a deliberate high-friction gate for an
+    // irreversible IRB erasure (superadmin-only, rare). Routine confirms use the themed dialog.
     const typed = window.prompt(
-      `⚠️ ลบผู้ใช้และประวัติทั้งหมดอย่างถาวร (กู้คืนไม่ได้) — พิมพ์ชื่อให้ตรงเพื่อยืนยัน\n` +
+      `ลบผู้ใช้และประวัติทั้งหมดอย่างถาวร (กู้คืนไม่ได้) — พิมพ์ชื่อให้ตรงเพื่อยืนยัน\n` +
       `PERMANENTLY delete this user and ALL their sessions/scores (cannot be undone). Type the name to confirm:\n\n${u.full_name_en}`,
     );
     if (typed == null) return; // cancelled
@@ -318,7 +335,7 @@ export default function UsersPage() {
   }
 
   const StatusBadge = ({ s }: { s?: string }) => (
-    <span className={`text-xs px-2 py-0.5 rounded-full ${s === 'deactivated' ? 'bg-muted text-muted-foreground' : 'bg-[#5db872]/20 text-foreground'}`}>
+    <span className={`text-xs px-2 py-0.5 rounded-full ${s === 'deactivated' ? 'bg-muted text-muted-foreground' : 'bg-[var(--chart-pass)]/20 text-foreground'}`}>
       {ACCOUNT_STATUS_MAP[s ?? 'active'] ?? s}
     </span>
   );
@@ -326,8 +343,8 @@ export default function UsersPage() {
   // Dual-role marker: a physician who also holds auditor rights (professionals.can_audit).
   const SpecialChip = () => (
     <span title="แพทย์ที่เป็นผู้ตรวจด้วย / Physician with auditor rights"
-      className="text-[10px] px-1.5 py-0.5 rounded-full border border-border bg-secondary text-muted-foreground whitespace-nowrap">
-      🩺+🔍 Special
+      className="text-[10px] px-1.5 py-0.5 rounded-full border border-primary/40 bg-primary/10 text-foreground whitespace-nowrap">
+      Special
     </span>
   );
 
@@ -340,7 +357,7 @@ export default function UsersPage() {
     const limit = effLimit(u);
     const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
     const over = limit > 0 && used >= limit;
-    const tone = over ? 'bg-destructive' : pct >= 80 ? 'bg-[#e08a1e]' : 'bg-[#5db872]';
+    const tone = over ? 'bg-destructive' : pct >= 80 ? 'bg-[var(--chart-warn)]' : 'bg-[var(--chart-pass)]';
     return (
       <div className="min-w-[120px]">
         <p className={`text-xs tabular-nums ${over ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
@@ -352,8 +369,8 @@ export default function UsersPage() {
   };
 
   // Compact square icon button for dense table rows (tooltip carries the bilingual label).
-  const IconBtn = ({ icon, title, onClick, disabled, href }: { icon: string; title: string; onClick?: () => void; disabled?: boolean; href?: string }) => {
-    const cls = 'w-8 h-8 inline-flex items-center justify-center border border-border rounded-md text-base leading-none hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent';
+  const IconBtn = ({ icon, title, onClick, disabled, href }: { icon: React.ReactNode; title: string; onClick?: () => void; disabled?: boolean; href?: string }) => {
+    const cls = 'w-8 h-8 inline-flex items-center justify-center border border-border rounded-md leading-none hover:bg-secondary disabled:opacity-40 disabled:hover:bg-transparent [&_svg]:size-4';
     return href
       ? <a href={href} title={title} aria-label={title} className={cls}>{icon}</a>
       : <button type="button" title={title} aria-label={title} onClick={onClick} disabled={disabled} className={cls}>{icon}</button>;
@@ -362,14 +379,14 @@ export default function UsersPage() {
   // Inline row actions, shared by the desktop table and the mobile cards.
   const RowActions = ({ u }: { u: User }) => (
     <div className="inline-flex items-center gap-1.5">
-      {u.role === 'physician' && <IconBtn icon="📊" title="คะแนน / Scores" href={`/admin/lpdp/${u.id}`} />}
-      {isSuper && u.role === 'physician' && <IconBtn icon="↺" title="รีเซ็ตการใช้งาน / Reset usage" onClick={() => resetUsage(u)} />}
-      {isSuper && <IconBtn icon="✎" title="แก้ไข / Edit" onClick={() => openEdit(u)} />}
-      {isSuper && <IconBtn icon="⏻" title={u.status === 'deactivated' ? 'เปิดใช้ / Activate' : 'ปิดใช้ / Deactivate'}
+      {u.role === 'physician' && <IconBtn icon={<BarChart3 />} title="คะแนน / Scores" href={`/admin/lpdp/${u.id}`} />}
+      {isSuper && u.role === 'physician' && <IconBtn icon={<RotateCcw />} title="รีเซ็ตการใช้งาน / Reset usage" onClick={() => resetUsage(u)} />}
+      {isSuper && <IconBtn icon={<Pencil />} title="แก้ไข / Edit" onClick={() => openEdit(u)} />}
+      {isSuper && <IconBtn icon={<Power />} title={u.status === 'deactivated' ? 'เปิดใช้ / Activate' : 'ปิดใช้ / Deactivate'}
         disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)} />}
       {/* Purge appears ONLY on already-deactivated, non-superadmin users — a deliberate second step. */}
       {isSuper && u.status === 'deactivated' && u.role !== 'superadmin' &&
-        <IconBtn icon="🗑" title="ลบถาวร / Purge (delete all data)" onClick={() => purgeUser(u)} />}
+        <IconBtn icon={<Trash2 />} title="ลบถาวร / Purge (delete all data)" onClick={() => purgeUser(u)} />}
     </div>
   );
 
@@ -673,7 +690,7 @@ export default function UsersPage() {
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">{u.full_name_en}</p>
-              {u.role !== 'superadmin' && <p className="text-xs text-muted-foreground">🏛 {councilName(u.council_id)}</p>}
+              {u.role !== 'superadmin' && <p className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Building2 className="size-3.5" /> {councilName(u.council_id)}</p>}
               {u.role === 'physician' && <div className="pt-1"><UsageCell u={u} /></div>}
               <div className="flex items-center justify-between pt-1">
                 <StatusBadge s={u.status} />

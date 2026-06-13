@@ -6,8 +6,25 @@ import { Button } from '@/components/ui/button';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
 import { STATUS_MAP } from '@/lib/labels';
+import { BiLabel } from '@/components/BiLabel';
+import { toast } from '@/components/Overlays';
+import { Check } from 'lucide-react';
 
 const PAGE_SIZE = 50;
+
+// Color-code status so admins can triage at a glance (was a monochrome outline badge).
+// cle_pass and evaluated share the "passing" tone — keep it single-sourced so they can't drift.
+const PASS_TONE = 'border-transparent bg-[var(--chart-pass-bg)] text-[var(--chart-pass-text)]';
+const STATUS_TONE: Record<string, string> = {
+  cle_pass: PASS_TONE,
+  evaluated: PASS_TONE,
+  cle_flag_t2: 'border-transparent bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+  cle_fail_t1: 'border-transparent bg-destructive/10 text-destructive',
+};
+function StatusBadge({ status }: { status: string }) {
+  const tone = STATUS_TONE[status];
+  return <Badge variant="outline" className={tone}>{STATUS_MAP[status] ?? status}</Badge>;
+}
 
 export default function AdminPlesPage() {
   const [ples, setPlEs] = useState<any[]>([]);
@@ -71,12 +88,12 @@ export default function AdminPlesPage() {
           <option value="">เลือก Auditor...</option>
           {auditors.map((a:any) => <option key={a.id} value={a.id}>{a.full_name_th}</option>)}
         </select>
-      : p.auditor_id ? <span className="text-xs text-[var(--ok)]">✓ Assigned</span> : <span className="text-xs text-muted-foreground">—</span>;
+      : p.auditor_id ? <span className="inline-flex items-center gap-1 text-xs text-[var(--ok)]"><Check className="size-3.5" /> Assigned</span> : <span className="text-xs text-muted-foreground">—</span>;
 
   async function assign(pleId: string, auditorId: string) {
     try {
       const res: any = await apiFetch(`/admin/ples/${pleId}/assign`, { method: 'POST', body: JSON.stringify({ auditor_id: auditorId }) });
-      if (res?.error) { alert(`ไม่สำเร็จ: ${res.error}`); return; }
+      if (res?.error) { toast(`ไม่สำเร็จ / Failed: ${res.error}`, 'error'); return; }
       // Re-fetch the currently-loaded range (newest-first, same filter) to reflect the assignment.
       const lim = Math.min(Math.max(ples.length, PAGE_SIZE), 200);
       const qs = new URLSearchParams({ limit: String(lim), offset: '0' });
@@ -84,7 +101,7 @@ export default function AdminPlesPage() {
       const { items, total } = await apiFetchPaged<any>(`/admin/ples?${qs.toString()}`);
       setTotal(total);
       setPlEs(items);
-    } catch { alert('เกิดข้อผิดพลาด / Error assigning auditor'); }
+    } catch { toast('เกิดข้อผิดพลาด / Error assigning auditor', 'error'); }
   }
 
   return (
@@ -115,7 +132,7 @@ export default function AdminPlesPage() {
             <div key={p.id} className="rounded-xl border border-border p-4">
               <div className="flex items-start justify-between gap-3">
                 <p className="font-medium">{p.professionals?.full_name_th ?? '—'}{p.is_test && <span className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground border border-border rounded px-1">test</span>}</p>
-                <Badge variant="outline">{STATUS_MAP[p.status]??p.status}</Badge>
+                <StatusBadge status={p.status} />
               </div>
               <p className="mt-1 text-xs text-muted-foreground">{new Date(p.started_at).toLocaleDateString('th-TH')} · {councilName(p)}</p>
               <p className="mt-3 text-xs text-muted-foreground">มอบหมาย / Assign</p>
@@ -131,19 +148,19 @@ export default function AdminPlesPage() {
         <div className="border rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-secondary"><tr>
-              <th className="px-4 py-3 text-left">แพทย์ / Physician</th>
-              <th className="px-4 py-3 text-left">สภา / Council</th>
-              <th className="px-4 py-3 text-left">วันที่ / Date</th>
-              <th className="px-4 py-3 text-left">สถานะ / Status</th>
-              <th className="px-4 py-3 text-left">มอบหมาย / Assign Auditor</th>
-              <th className="px-4 py-3 text-left">บทสนทนา / Session</th>
+              <th className="px-4 py-3 text-left"><BiLabel th="แพทย์" en="Physician" tooltip /></th>
+              <th className="px-4 py-3 text-left"><BiLabel th="สภา" en="Council" tooltip /></th>
+              <th className="px-4 py-3 text-left"><BiLabel th="วันที่" en="Date" tooltip /></th>
+              <th className="px-4 py-3 text-left"><BiLabel th="สถานะ" en="Status" tooltip /></th>
+              <th className="px-4 py-3 text-left"><BiLabel th="มอบหมายผู้ตรวจ" en="Assign Auditor" tooltip /></th>
+              <th className="px-4 py-3 text-left"><BiLabel th="บทสนทนา" en="Session" tooltip /></th>
             </tr></thead>
             <tbody>{ples.map(p => (
               <tr key={p.id} className="border-t hover:bg-secondary">
                 <td className="px-4 py-3">{p.professionals?.full_name_th ?? '—'}{p.is_test && <span className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground border border-border rounded px-1">test</span>}</td>
                 <td className="px-4 py-3 text-muted-foreground">{councilName(p)}</td>
                 <td className="px-4 py-3">{new Date(p.started_at).toLocaleDateString('th-TH')}</td>
-                <td className="px-4 py-3"><Badge variant="outline">{STATUS_MAP[p.status]??p.status}</Badge></td>
+                <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
                 <td className="px-4 py-3">{assignControl(p)}</td>
                 <td className="px-4 py-3"><a href={`/admin/ples/${p.id}`} className="text-xs underline text-primary">ดู / View</a></td>
               </tr>

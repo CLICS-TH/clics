@@ -76,7 +76,7 @@ export default function IccPage() {
               <div key={key} className="flex items-center gap-3">
                 <span className="w-12 text-xs text-muted-foreground">{DOMAIN_LABELS[i]}</span>
                 <div className="flex-1 bg-muted rounded-full h-4 relative overflow-hidden">
-                  <div className={`h-full rounded-full ${(d?.icc??0) >= 0.75 ? 'bg-[#5db872]' : 'bg-destructive'}`}
+                  <div className={`h-full rounded-full ${(d?.icc??0) >= 0.75 ? 'bg-[var(--chart-pass)]' : 'bg-destructive'}`}
                     style={{ width: `${Math.max(0, (d?.icc ?? 0)) * 100}%` }} />
                 </div>
                 <span className="text-sm font-mono w-14">{d?.icc?.toFixed(3) ?? '—'}</span>

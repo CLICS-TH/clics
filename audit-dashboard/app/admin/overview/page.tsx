@@ -8,6 +8,7 @@ import {
 import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { DOMAIN_KEYS, DOMAIN_LABELS, ROLE_LABELS, pleStatusCards, budgetToneHex } from '@/lib/labels';
+import { CHART } from '@/lib/chart-colors';
 import { PageIntro } from '@/components/PageIntro';
 import { IccPanel } from '@/components/IccPanel';
 import { Skeleton, CardGridSkeleton } from '@/components/Skeleton';
@@ -127,10 +128,10 @@ export default function OverviewPage() {
                   <XAxis dataKey="domain" tick={{ fill: 'currentColor', fontSize: 11 }} />
                   <YAxis domain={[0, 1]} tick={{ fill: 'currentColor', fontSize: 11 }} />
                   <Tooltip />
-                  <ReferenceLine y={0.75} stroke="#e8a55a" strokeDasharray="4 4" label="เกณฑ์ 0.75" />
+                  <ReferenceLine y={0.75} stroke={CHART.threshold} strokeDasharray="4 4" label="เกณฑ์ 0.75" />
                   <Bar dataKey="icc" radius={[4, 4, 0, 0]}>
                     {domainData.map(d => (
-                      <Cell key={d.domain} fill={(d.icc ?? 0) >= 0.75 ? '#5db872' : '#c64545'} />
+                      <Cell key={d.domain} fill={(d.icc ?? 0) >= 0.75 ? CHART.pass : CHART.fail} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -161,7 +162,7 @@ export default function OverviewPage() {
                     </div>
                     <span
                       className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums ${
-                        cIcc ? (cIcc.icc >= 0.75 ? 'bg-[#d1f5dc] text-[#1a6630]' : 'bg-destructive/10 text-destructive') : 'bg-secondary text-muted-foreground'
+                        cIcc ? (cIcc.icc >= 0.75 ? 'bg-[var(--chart-pass-bg)] text-[var(--chart-pass-text)]' : 'bg-destructive/10 text-destructive') : 'bg-secondary text-muted-foreground'
                       }`}
                       title="ICC ของสภานี้ / This council's ICC">
                       ICC {cIcc ? cIcc.icc.toFixed(3) : '—'}

@@ -153,7 +153,7 @@ function finishAccept(body) {
   if (body.user) localStorage.setItem('clics_user', JSON.stringify(body.user));
   const role = body.user?.role || invite.role;
   document.getElementById('doneMsg').innerHTML =
-    '✅ <strong>เข้าร่วมเรียบร้อย / You\'re in.</strong><br/>บัญชีของคุณพร้อมใช้งานแล้ว<br/>Your account is active.';
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> <strong>เข้าร่วมเรียบร้อย / You\'re in.</strong><br/>บัญชีของคุณพร้อมใช้งานแล้ว<br/>Your account is active.';
   if (role === 'physician') {
     cta.textContent = 'ไปที่แดชบอร์ด / Go to dashboard →';
     cta.href = '/dashboard';

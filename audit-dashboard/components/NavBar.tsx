@@ -6,27 +6,30 @@ import { getUser, canAudit } from '@/lib/auth';
 import { RoleBadge } from './RoleBadge';
 import { ThemeToggle, ViewportToggle } from './Toggles';
 import { useViewport } from './ViewportProvider';
+import { BiLabel } from './BiLabel';
+import { Menu } from 'lucide-react';
 
 // Role-keyed nav. Users is council-scoped for admins (read-only view); Overview + ICC stay
 // superadmin-only (those endpoints 403 for admins). Requests was retired with the
 // request-access flow (onboarding = Google self-service + invites).
+// Labels are {th, en} for the hierarchy renderer (#12a) — Thai primary, English smaller + dimmed.
 const ADMIN_LINKS = [
-  { href: '/admin/ples', label: 'PLEs' },
-  { href: '/admin/invites', label: 'คำเชิญ / Invites' },
-  { href: '/admin/users', label: 'ผู้ใช้งาน / Users' },
-  { href: '/admin/flagged', label: 'QA Queue' },
-  { href: '/admin/stats', label: 'สถิติ / Stats' },
+  { href: '/admin/ples', th: 'PLEs' },
+  { href: '/admin/invites', th: 'คำเชิญ', en: 'Invites' },
+  { href: '/admin/users', th: 'ผู้ใช้งาน', en: 'Users' },
+  { href: '/admin/flagged', th: 'QA Queue' },
+  { href: '/admin/stats', th: 'สถิติ', en: 'Stats' },
 ];
 const SUPERADMIN_LINKS = [
-  { href: '/admin/overview', label: 'ภาพรวม / Overview' },
-  { href: '/admin/ples', label: 'PLEs' },
-  { href: '/admin/invites', label: 'คำเชิญ / Invites' },
-  { href: '/admin/users', label: 'ผู้ใช้งาน / Users' },
-  { href: '/admin/flagged', label: 'QA Queue' },
-  { href: '/admin/icc', label: 'ICC' },
-  { href: '/admin/stats', label: 'สถิติ / Stats' },
+  { href: '/admin/overview', th: 'ภาพรวม', en: 'Overview' },
+  { href: '/admin/ples', th: 'PLEs' },
+  { href: '/admin/invites', th: 'คำเชิญ', en: 'Invites' },
+  { href: '/admin/users', th: 'ผู้ใช้งาน', en: 'Users' },
+  { href: '/admin/flagged', th: 'QA Queue' },
+  { href: '/admin/icc', th: 'ICC' },
+  { href: '/admin/stats', th: 'สถิติ', en: 'Stats' },
 ];
-const AUDITOR_LINKS = [{ href: '/auditor/queue', label: 'คิวประเมิน / Queue' }];
+const AUDITOR_LINKS = [{ href: '/auditor/queue', th: 'คิวประเมิน', en: 'Queue' }];
 
 export function NavBar() {
   const pathname = usePathname();
@@ -96,7 +99,7 @@ export function NavBar() {
         {/* Desktop links */}
         {!mobile && (
           <div className="flex flex-1 items-center gap-5">
-            {links.map(l => <Link key={l.href} href={l.href} className={linkClass(l.href)}>{l.label}</Link>)}
+            {links.map(l => <Link key={l.href} href={l.href} className={linkClass(l.href)}><BiLabel th={l.th} en={l.en} /></Link>)}
           </div>
         )}
 
@@ -107,13 +110,13 @@ export function NavBar() {
           {!mobile && (
             <button onClick={logout}
               className="rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-destructive">
-              ออกจากระบบ / Logout
+              <BiLabel th="ออกจากระบบ" en="Logout" />
             </button>
           )}
           {mobile && (
             <button onClick={() => setOpen(o => !o)} aria-label="เมนู / Menu" aria-expanded={open}
-              className="rounded-md border border-border px-2.5 py-1 text-sm text-muted-foreground hover:text-foreground">
-              ☰
+              className="rounded-md border border-border p-1.5 text-muted-foreground hover:text-foreground">
+              <Menu className="size-5" />
             </button>
           )}
         </div>
@@ -125,12 +128,12 @@ export function NavBar() {
           {links.map(l => (
             <Link key={l.href} href={l.href}
               className={`rounded-md px-2 py-2 text-sm ${isActive(l.href) ? 'bg-secondary text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
-              {l.label}
+              <BiLabel th={l.th} en={l.en} />
             </Link>
           ))}
           <button onClick={logout}
             className="mt-1 rounded-md px-2 py-2 text-left text-sm text-muted-foreground hover:text-destructive">
-            ออกจากระบบ / Logout
+            <BiLabel th="ออกจากระบบ" en="Logout" />
           </button>
         </div>
       )}

@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
 import { ROLE_LABELS, INVITE_STATUS_MAP, roleToWire } from '@/lib/labels';
+import { confirmDialog } from '@/components/Overlays';
+import { Check, Copy, Mail, Building2 } from 'lucide-react';
 
 type Council = { id: string; code: string; name_th: string; name_en: string; active?: boolean };
 type Invite = {
@@ -89,7 +91,12 @@ export default function InvitesPage() {
   }
 
   async function revoke(inv: Invite) {
-    if (!confirm(`เพิกถอนคำเชิญของ ${inv.email}? / Revoke the invite for ${inv.email}?`)) return;
+    const ok = await confirmDialog({
+      title: 'เพิกถอนคำเชิญ? / Revoke invite?',
+      body: `เพิกถอนคำเชิญของ ${inv.email}? / Revoke the invite for ${inv.email}?`,
+      danger: true, confirmLabel: 'เพิกถอน / Revoke',
+    });
+    if (!ok) return;
     setMsg(''); setErr('');
     setRowBusy(inv.id);
     try {
@@ -108,7 +115,12 @@ export default function InvitesPage() {
   // Hard-delete a non-pending (history) row — the DELETE endpoint requires the explicit
   // ?purge=1 flag for hard-delete and answers { deleted: true }.
   async function removeInvite(inv: Invite) {
-    if (!confirm(`ลบประวัติคำเชิญของ ${inv.email}? / Delete the invite history for ${inv.email}?`)) return;
+    const ok = await confirmDialog({
+      title: 'ลบประวัติคำเชิญ? / Delete invite history?',
+      body: `ลบประวัติคำเชิญของ ${inv.email}? / Delete the invite history for ${inv.email}?`,
+      danger: true, confirmLabel: 'ลบ / Delete',
+    });
+    if (!ok) return;
     setMsg(''); setErr('');
     setRowBusy(inv.id);
     try {
@@ -164,8 +176,8 @@ export default function InvitesPage() {
         </select>
         {CouncilSelect}
         {!isSuper && (
-          <p className="text-xs text-muted-foreground">
-            🏛 ล็อกไว้ที่สภาของคุณ / Locked to your council: {councilName(form.council_id)}
+          <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Building2 className="size-3.5" /> ล็อกไว้ที่สภาของคุณ / Locked to your council: {councilName(form.council_id)}
           </p>
         )}
         {err && <p className="text-destructive text-sm">{err}</p>}
@@ -193,7 +205,7 @@ export default function InvitesPage() {
                 : 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300'
             }`}>
               {created.email_sent
-                ? 'ส่งอีเมลถึงผู้รับแล้ว ✓ / Invite email sent'
+                ? 'ส่งอีเมลถึงผู้รับแล้ว / Invite email sent'
                 : 'ยังไม่ได้ส่งอีเมล — คัดลอกลิงก์ด้านล่างไปส่งเอง / Email not sent — share the link below'}
             </p>
           )}
@@ -202,7 +214,7 @@ export default function InvitesPage() {
               onFocus={e => e.currentTarget.select()}
               className="flex-1 min-w-0 border rounded-lg px-3 py-2 text-xs bg-background font-mono" />
             <Button variant="outline" className="shrink-0" onClick={() => copyLink(created.accept_url)}>
-              {copied ? '✓ คัดลอกแล้ว / Copied' : '📋 คัดลอก / Copy'}
+              {copied ? <><Check className="size-4" /> คัดลอกแล้ว / Copied</> : <><Copy className="size-4" /> คัดลอก / Copy</>}
             </Button>
           </div>
         </div>
@@ -231,8 +243,8 @@ export default function InvitesPage() {
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Badge variant="outline">{ROLE_LABELS[inv.role] ?? inv.role}</Badge>
                 {inv.can_audit && <SpecialChip />}
-                <span>🏛 {councilName(inv.council_id)}</span>
-                {inv.email_sent_at && <span title={fmt(inv.email_sent_at)}>✉ sent</span>}
+                <span className="inline-flex items-center gap-1"><Building2 className="size-3.5" /> {councilName(inv.council_id)}</span>
+                {inv.email_sent_at && <span className="inline-flex items-center gap-1" title={fmt(inv.email_sent_at)}><Mail className="size-3.5" /> sent</span>}
               </div>
               <p className="text-xs text-muted-foreground">
                 สร้าง / Created {fmt(inv.created_at)} · หมดอายุ / Expires {fmt(inv.expires_at)}
@@ -263,7 +275,7 @@ export default function InvitesPage() {
                 <td className="px-4 py-3">
                   {inv.email}
                   {inv.email_sent_at && (
-                    <span className="ml-2 text-xs text-muted-foreground" title={fmt(inv.email_sent_at)}>✉ sent</span>
+                    <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted-foreground" title={fmt(inv.email_sent_at)}><Mail className="size-3.5" /> sent</span>
                   )}
                 </td>
                 <td className="px-4 py-3">

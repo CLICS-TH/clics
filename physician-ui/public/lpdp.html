@@ -20,8 +20,9 @@
       <h1>ความก้าวหน้าของคุณ</h1>
       <p class="sub">Longitudinal Personal Development Profile — เส้นทางคะแนน PIS-7 ของคุณตลอดการเรียนรู้</p>
     </header>
+    <div id="lpdpSummary" class="lpdp-summary" style="display:none"></div>
     <div class="card"><canvas id="lpdpChart" height="220"></canvas></div>
-    <p id="noData" style="display:none;color:var(--muted-soft);text-align:center;padding:20px">ยังไม่มีข้อมูล — กรุณาทำ PLE ให้ผ่านก่อน</p>
+    <p id="noData" style="display:none;color:var(--muted);text-align:center;padding:20px">ยังไม่มีข้อมูล — กรุณาทำ PLE ให้ผ่านก่อน / No progress yet — pass a PLE first.</p>
   </div>
   <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>
@@ -40,7 +41,8 @@
       lpdpChart = new Chart(el, {
         type: 'line',
         data: {
-          labels: lpdpData.map((_, i) => `PLE ${i + 1}`),
+          // Date the timeline so it's meaningful — not anonymous "PLE 1, PLE 2…".
+          labels: lpdpData.map(d => d.snapshot_at ? new Date(d.snapshot_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : ''),
           datasets: [{ label: 'คะแนน PIS-7', data: lpdpData.map(d => d.composite_score), borderColor: coral, backgroundColor: coral + '1a', tension: 0.3, pointRadius: 5, pointBackgroundColor: coral }],
         },
         options: {
@@ -53,6 +55,21 @@
       });
     }
     window.addEventListener('clics:themechange', buildLine);
+    // Frame the lonely chart: lead with the latest score + how it moved, so progress feels personal.
+    function renderSummary(data) {
+      const host = document.getElementById('lpdpSummary');
+      const latest = Math.round(data[data.length - 1].composite_score);
+      const prev = data.length > 1 ? data[data.length - 2].composite_score : null;
+      const delta = prev != null ? Math.round(latest - prev) : null;
+      let trend;
+      if (delta == null) trend = '<span class="lpdp-trend">PLE แรกของคุณ<span class="bi-en">Your first episode</span></span>';
+      else if (delta >= 0) trend = `<span class="lpdp-trend is-up">▲ +${delta} <span style="opacity:.75">จากครั้งก่อน / vs last</span></span>`;
+      else trend = `<span class="lpdp-trend is-down">▼ ${delta} <span style="opacity:.75">จากครั้งก่อน / vs last</span></span>`;
+      host.innerHTML = `
+        <div><p class="lpdp-latest">${latest}</p><p class="lpdp-latest-cap">คะแนนล่าสุด / Latest · ${data.length} PLE</p></div>
+        <div>${trend}</div>`;
+      host.style.display = 'flex';
+    }
     // Empty state: hide the (otherwise blank, broken-looking) chart card and show only the notice.
     function showEmpty() {
       const card = document.querySelector('.card');
@@ -88,6 +105,7 @@
       .then(data => {
         if (!data?.length) { showEmpty(); return; }
         lpdpData = data;
+        renderSummary(data);
         buildLine();
       })
       .catch((e) => { if (e && e.message === 'auth') return; showError(); });

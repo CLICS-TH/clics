@@ -29,7 +29,8 @@ function renderMessage(role, content, refs, socratic) {
     if (refs?.length) {
       const r = document.createElement('div');
       r.className = 'msg-refs';
-      r.append('📎 ');
+      r.insertAdjacentHTML('beforeend', icon('paperclip', 14));
+      r.append(' ');
       refs.forEach((ref, i) => {
         if (i) r.append(' · ');
         const em = document.createElement('em');
@@ -41,7 +42,10 @@ function renderMessage(role, content, refs, socratic) {
     if (socratic) {
       const sq = document.createElement('div');
       sq.className = 'msg-socratic';
-      sq.textContent = '❓ ' + socratic;
+      sq.insertAdjacentHTML('beforeend', icon('help', 16));
+      const sqt = document.createElement('span');
+      sqt.textContent = ' ' + socratic;
+      sq.appendChild(sqt);
       div.appendChild(sq);
     }
   }
@@ -51,16 +55,32 @@ function renderMessage(role, content, refs, socratic) {
 
 function setRemaining(n) {
   promptsRemaining = n;
-  remainingEl.textContent = n === 1 ? '1 prompt left' : `${n} prompts left`;
+  // Visible countdown in the pill.
+  remainingEl.textContent = n === 1 ? 'เหลือ 1 คำถาม / 1 left' : `เหลือ ${n} คำถาม / ${n} left`;
 }
 
 function endSession(msg) {
   ended = true;
   inputEl.disabled = true;
   sendBtn.disabled = true;
-  remainingEl.textContent = 'session ended';
-  hintEl.innerHTML = (msg || 'จบโหมดผู้เยี่ยมชมแล้ว / Guest session ended.')
-    + ' &nbsp;<a href="/" style="color:var(--coral);font-weight:600">สมัครด้วย Google / Sign up with Google →</a>';
+  remainingEl.textContent = 'ครบแล้ว / Done';
+  if (msg) hintEl.textContent = msg;
+  // A designed "you're out" moment — show what signing up unlocks (the whole point of the trial).
+  const cta = document.getElementById('guestCta');
+  if (cta && !cta.childElementCount) {
+    cta.innerHTML = `
+      <div class="card" style="margin-bottom:0">
+        <p class="eyebrow">พร้อมไปต่อ? · Keep going</p>
+        <h2 style="font-family:var(--font-display);font-size:25px;font-weight:600;margin-bottom:4px">สมัครเพื่อปลดล็อกการเรียนรู้เต็มรูปแบบ<span class="bi-en" style="display:block;font-size:15px;margin-top:2px">Sign up to unlock the full experience</span></h2>
+        <div style="display:flex;flex-direction:column;gap:14px;margin:18px 0;">
+          <div class="consent-point">${icon('folder', 22)}<div><b>บันทึกประวัติการเรียนรู้<span class="bi-en">Saved learning history</span></b><p>เก็บทุก Episode จัดเป็นโฟลเดอร์ กลับมาทบทวนได้ / Keep every episode, organised and revisitable.</p></div></div>
+          <div class="consent-point">${icon('shield', 22)}<div><b>เครดิต CPD / CME<span class="bi-en">CPD / CME credit</span></b><p>คะแนน PIS-7 ที่นับเป็นหน่วยกิตการศึกษาต่อเนื่อง / PIS-7 scores that count toward continuing-education credit.</p></div></div>
+          <div class="consent-point">${icon('checkCircle', 22)}<div><b>ติดตามความก้าวหน้า<span class="bi-en">Track your progress</span></b><p>ดูพัฒนาการการให้เหตุผลทางคลินิกของคุณตามเวลา / Watch your clinical reasoning improve over time.</p></div></div>
+        </div>
+        <a href="/" class="btn btn-primary btn-lg" style="width:100%">สมัครด้วย Google<span class="bi-en">Sign up with Google</span></a>
+      </div>`;
+    cta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 }
 
 async function start() {
@@ -75,8 +95,8 @@ async function start() {
     // Don't dead-end with the send button stuck disabled and no session — tell the guest how to retry.
     const busy = res.status === 429 || res.status === 503;
     renderMessage('assistant', busy
-      ? '⚠️ ระบบทดลองใช้งานไม่ว่างขณะนี้ กรุณารีเฟรชเพื่อลองใหม่ / The trial is busy right now — please refresh to try again.'
-      : '⚠️ ไม่สามารถเริ่มเซสชันผู้เยี่ยมชมได้ กรุณารีเฟรช / Could not start a guest session — please refresh to try again.');
+      ? 'ระบบทดลองใช้งานไม่ว่างขณะนี้ กรุณารีเฟรชเพื่อลองใหม่ / The trial is busy right now — please refresh to try again.'
+      : 'ไม่สามารถเริ่มเซสชันผู้เยี่ยมชมได้ กรุณารีเฟรช / Could not start a guest session — please refresh to try again.');
   }
 }
 
@@ -111,7 +131,7 @@ async function send() {
   } else if (res.status === 403) {
     endSession(res.body?.error);
   } else {
-    renderMessage('assistant', '⚠️ ' + (res.body?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong.'));
+    renderMessage('assistant', (res.body?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong.'));
     setRemaining(promptsRemaining); // unchanged display
     history.pop();                  // the turn failed — drop it so a retry doesn't duplicate the turn
     inputEl.value = message;        // restore the typed text so the guest can retry

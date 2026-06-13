@@ -15,9 +15,9 @@
   <nav>
     <span class="brand">CLICS</span>
     <div>
-      <a href="/dashboard">หน้าหลัก / Home</a>
-      <a href="/lpdp">ความก้าวหน้า / Progress</a>
-      <a href="#" id="logoutBtn">ออกจากระบบ / Logout</a>
+      <a href="/dashboard">หน้าหลัก<span class="bi-en">Home</span></a>
+      <a href="/lpdp">ความก้าวหน้า<span class="bi-en">Progress</span></a>
+      <a href="#" id="logoutBtn">ออกจากระบบ<span class="bi-en">Logout</span></a>
     </div>
   </nav>
   <div class="container">
@@ -25,7 +25,7 @@
       <p class="eyebrow">แดชบอร์ด · Dashboard</p>
       <div class="page-intro-row">
         <h1 id="greeting"></h1>
-        <span class="role-badge">แพทย์อาสา / Physician</span>
+        <span class="role-badge">แพทย์อาสา<span class="bi-en">Physician</span></span>
         <span id="auditorSlot"></span>
       </div>
       <p class="sub">Clinical Learning Episodes ของคุณ — จัดระเบียบด้วยโฟลเดอร์ / Organize your episodes in folders</p>
@@ -34,13 +34,13 @@
     <div id="usageBar"></div>
 
     <div class="dash-toolbar">
-      <button class="btn btn-ghost" id="newFolderBtn" type="button">+ โฟลเดอร์ใหม่ / New folder</button>
-      <a href="/ple-new" class="btn btn-primary">+ เริ่ม PLE ใหม่ / New PLE</a>
+      <button class="btn btn-ghost" id="newFolderBtn" type="button">+ โฟลเดอร์ใหม่<span class="bi-en">New folder</span></button>
+      <a href="/ple-new" class="btn btn-primary">+ เริ่ม PLE ใหม่<span class="bi-en">New PLE</span></a>
     </div>
     <form class="folder-form" id="newFolderForm" hidden>
       <input id="newFolderName" type="text" maxlength="80" placeholder="ชื่อโฟลเดอร์ / Folder name…" autocomplete="off" />
-      <button class="btn btn-primary" id="createFolderBtn" type="submit">สร้าง / Create</button>
-      <button class="btn btn-ghost" id="cancelFolderBtn" type="button">ยกเลิก / Cancel</button>
+      <button class="btn btn-primary" id="createFolderBtn" type="submit">สร้าง<span class="bi-en">Create</span></button>
+      <button class="btn btn-ghost" id="cancelFolderBtn" type="button">ยกเลิก<span class="bi-en">Cancel</span></button>
     </form>
 
     <div id="pleList"><p class="list-empty">กำลังโหลด...</p></div>
@@ -49,6 +49,8 @@
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/labels.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/ui.js"></script>
   <script src="/js/dashboard.js"></script>
   <script src="/js/boot.js" defer></script>
 </body>

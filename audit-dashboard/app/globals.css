@@ -35,6 +35,11 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-coral-active: var(--coral-active);
+  --color-chart-pass: var(--chart-pass);
+  --color-chart-fail: var(--chart-fail);
+  --color-chart-threshold: var(--chart-threshold);
+  --color-chart-warn: var(--chart-warn);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -57,6 +62,9 @@
   --popover-foreground: #141413;
   --primary: #cc785c;
   --primary-foreground: #ffffff;
+  /* Button FILL: #a9583e gives white text ~4.6:1 (WCAG AA); bright --primary stays for links,
+     focus rings, active nav, accents & charts — just never small white text on it. */
+  --coral-active: #a9583e;
   --secondary: #efe9de;
   --secondary-foreground: #141413;
   --muted: #f5f0e8;
@@ -73,6 +81,14 @@
   --chart-3: #5db8a6;
   --chart-4: #e8a55a;
   --chart-5: #6c6a64;
+  /* Semantic status colours for charts/badges — centralised so dark mode + rebrands stay consistent
+     (was hardcoded #5db872/#c64545/#e8a55a inline in overview/icc). */
+  --chart-pass: #5db872;
+  --chart-fail: #c64545;
+  --chart-threshold: #e8a55a;
+  --chart-warn: #e08a1e;   /* saturated amber for solid fills (usage/budget meters) — same in both modes */
+  --chart-pass-bg: #d1f5dc;
+  --chart-pass-text: #1a6630;
   --radius: 0.75rem;
   --sidebar: #faf9f5;
   --sidebar-foreground: #141413;
@@ -93,6 +109,7 @@
   --popover-foreground: #faf9f5;
   --primary: #cc785c;
   --primary-foreground: #ffffff;
+  --coral-active: #a9583e;  /* white text ~4.6:1 on any canvas */
   --secondary: #1f1e1b;
   --secondary-foreground: #faf9f5;
   --muted: #1f1e1b;
@@ -109,6 +126,12 @@
   --chart-3: #5db8a6;
   --chart-4: #e8a55a;
   --chart-5: #a09d96;
+  --chart-pass: #5db872;
+  --chart-fail: #c64545;
+  --chart-threshold: #e8a55a;
+  --chart-warn: #e08a1e;
+  --chart-pass-bg: #16331f;
+  --chart-pass-text: #8fe0a3;
   --sidebar: #252320;
   --sidebar-foreground: #faf9f5;
   --sidebar-primary: #cc785c;
@@ -134,13 +157,12 @@
   }
 }
 
-/* Desktop scale: bump the root font to 150% of the 16px default on wide screens.
-   Tailwind's rem-based spacing/type chain scales the whole app; mobile/tablet
-   (< 1280px) keep the standard 16px root. */
-@media (min-width: 1280px) {
-  html {
-    /* Percentage, not a fixed 24px: still ~150% of a default 16px, but it scales from the user's own
-       browser default font-size (WCAG 1.4.4) instead of pinning everyone to exactly 24px. */
-    font-size: 150%;
-  }
-}
+/* Desktop scale: scale the root font up on wide screens (Tailwind's rem chain scales the whole app).
+   GENTLER than the old single 150%@1280px jump, which felt oversized on the common 1280–1440 laptop
+   range. Two soft steps instead, scaling from the user's own browser default (WCAG 1.4.4). */
+@media (min-width: 1280px) { html { font-size: 118%; } }
+@media (min-width: 1600px) { html { font-size: 132%; } }
+@media (min-width: 1920px) { html { font-size: 145%; } }
+
+/* Serif (--font-heading) is the brand voice: section headers + key numbers. Minimum legible serif
+   size is 1.5rem (24px) / weight 600 — a thin serif below that on cream is low-contrast. */

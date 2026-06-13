@@ -1,5 +1,6 @@
 'use client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { CHART } from '@/lib/chart-colors';
 
 interface Props { data: { label: string; composite_score: number }[]; }
 export function LpdpChart({ data }: Props) {
@@ -15,7 +16,7 @@ export function LpdpChart({ data }: Props) {
           <XAxis dataKey="label" tick={{ fill: 'currentColor', fontSize: 11 }} />
           <YAxis domain={[0,100]} label={{ value:'Score/100', angle:-90, position:'insideLeft' }} tick={{ fill: 'currentColor', fontSize: 11 }} />
           <Tooltip />
-          <ReferenceLine y={75} stroke="#e8a55a" strokeDasharray="4 4" label="เป้าหมาย" />
+          <ReferenceLine y={75} stroke={CHART.threshold} strokeDasharray="4 4" label="เป้าหมาย" />
           <Line type="monotone" dataKey="composite_score" stroke="#cc785c" strokeWidth={2} dot={{ r:4 }} />
         </LineChart>
       </ResponsiveContainer>

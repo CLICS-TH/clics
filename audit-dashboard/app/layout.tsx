@@ -3,6 +3,7 @@ import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ViewportProvider } from "@/components/ViewportProvider";
 import { AppShell } from "@/components/AppShell";
+import { Overlays } from "@/components/Overlays";
 import {
   Inter,
   Cormorant_Garamond,
@@ -70,6 +71,7 @@ export default function RootLayout({
               {children}
               <Footer />
             </AppShell>
+            <Overlays />
           </ViewportProvider>
         </ThemeProvider>
       </body>

@@ -1,15 +1,16 @@
 'use client';
+import { Sun, Moon, Smartphone, Monitor, MonitorSmartphone } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useViewport } from './ViewportProvider';
 
-const BTN = 'rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors';
+const BTN = 'inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors';
 
 export function ThemeToggle() {
   const { theme, toggle } = useTheme();
   return (
     <button type="button" onClick={toggle} className={BTN}
       aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
-      {theme === 'dark' ? '☀️ สว่าง' : '🌙 มืด'}
+      {theme === 'dark' ? <><Sun className="size-3.5" /> สว่าง</> : <><Moon className="size-3.5" /> มืด</>}
     </button>
   );
 }
@@ -18,10 +19,13 @@ export function ViewportToggle() {
   const { view, setView } = useViewport();
   const order: Array<'auto' | 'mobile' | 'desktop'> = ['auto', 'mobile', 'desktop'];
   const cycle = () => setView(order[(order.indexOf(view) + 1) % order.length]);
-  const label = view === 'mobile' ? '📱 Mobile' : view === 'desktop' ? '💻 Desktop' : '🖥 Auto';
+  const content =
+    view === 'mobile' ? <><Smartphone className="size-3.5" /> Mobile</> :
+    view === 'desktop' ? <><Monitor className="size-3.5" /> Desktop</> :
+    <><MonitorSmartphone className="size-3.5" /> Auto</>;
   return (
     <button type="button" onClick={cycle} className={BTN} aria-label={`Layout view: ${view}`}>
-      {label}
+      {content}
     </button>
   );
 }

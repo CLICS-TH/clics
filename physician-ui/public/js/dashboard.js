@@ -6,29 +6,33 @@ document.getElementById('greeting').textContent = `สวัสดี, ${user.fu
 (function pilotGate() {
   if (user.consented_at) return; // already consented
 
+  // A warm, scannable welcome — three promises as icon rows, not a wall of legal text.
   const ov = document.createElement('div');
-  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;';
+  ov.className = 'modal-overlay';
   ov.innerHTML = `
-    <div style="background:var(--surface-card,#fff);color:var(--body-color,#1a1a1a);max-width:560px;border-radius:16px;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,.3);max-height:85vh;overflow:auto;">
-      <h2 style="margin:0 0 10px;color:var(--ink,#141413);">ความยินยอมเข้าร่วม / Informed consent</h2>
-      <p style="font-size:14px;line-height:1.6;">
-        นี่คือการศึกษานำร่อง (pilot) ของระบบ CLICS เพื่อพัฒนาการประเมินการให้เหตุผลทางคลินิก บทสนทนาของคุณจะถูกบันทึกและประเมินด้วย AI และผู้ตรวจประเมิน <b>กรุณาใช้เฉพาะเคสที่ไม่ระบุตัวตนผู้ป่วย</b> และคะแนนในระยะนี้ยังไม่ใช่หน่วยกิต CME<br><br>
-        This is a CLICS pilot study. Your conversations are recorded and scored (by AI + expert auditors) to validate the system. <b>Use de-identified cases only.</b> Scores in this phase are provisional and do not yet count as CME credit.
-      </p>
-      <p id="consentErr" style="color:#c0392b;font-size:13px;display:none;"></p>
-      <button id="consentBtn" class="btn btn-primary" style="width:100%;margin-top:8px;">ยอมรับและเริ่มใช้งาน / I consent</button>
+    <div class="modal-card" style="max-width:520px;max-height:90vh;overflow:auto;" role="dialog" aria-modal="true">
+      <p class="eyebrow">ยินดีต้อนรับสู่โครงการนำร่อง · Welcome</p>
+      <h2 style="margin-bottom:6px;">ก่อนเริ่ม มีสามเรื่องที่อยากให้มั่นใจ<span class="bi-en" style="display:block;font-size:15px;margin-top:3px;">Three things, before you begin</span></h2>
+      <div style="display:flex;flex-direction:column;gap:16px;margin:20px 0 18px;">
+        <div class="consent-point">${icon('shield', 22)}<div><b>ใช้เฉพาะเคสที่ไม่ระบุตัวตน<span class="bi-en">Use de-identified cases only</span></b><p>ไม่ต้องใส่ชื่อหรือรหัสผู้ป่วย — ระบบเก็บเฉพาะการให้เหตุผลของคุณ / No patient names or IDs — we keep only your reasoning.</p></div></div>
+        <div class="consent-point">${icon('hourglass', 22)}<div><b>คะแนนระยะนี้เป็นการทดลอง<span class="bi-en">Scores are provisional for now</span></b><p>ยังไม่นับเป็นหน่วยกิต CME — ระยะนี้คือการปรับเทียบเครื่องมือ / Not yet CME credit — this phase calibrates the instrument.</p></div></div>
+        <div class="consent-point">${icon('checkCircle', 22)}<div><b>บันทึกและตรวจโดย AI และผู้ตรวจประเมิน<span class="bi-en">Recorded & reviewed by AI + auditors</span></b><p>เพื่อตรวจสอบความเที่ยงตรงและเป็นธรรมของการให้คะแนน / To validate that scoring is accurate and fair.</p></div></div>
+      </div>
+      <p id="consentErr" class="error-msg" style="display:none;"></p>
+      <button id="consentBtn" class="btn btn-primary" style="width:100%;">ยอมรับและเริ่มใช้งาน<span class="bi-en">I consent — let's begin</span></button>
     </div>`;
   document.body.appendChild(ov);
+  const consentLabel = ov.querySelector('#consentBtn').innerHTML;
   document.getElementById('consentBtn').addEventListener('click', async () => {
-    const btn = document.getElementById('consentBtn'); btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+    const btn = document.getElementById('consentBtn'); btn.disabled = true; btn.textContent = 'กำลังบันทึก… / Saving…';
     const r = await api.consent();
     if (r?.ok) {
       user.consented_at = r.consented_at;
       try { localStorage.setItem('clics_user', JSON.stringify(user)); } catch {}
       ov.remove();
     } else {
-      const e = document.getElementById('consentErr'); e.textContent = r?.error || 'บันทึกไม่สำเร็จ ลองใหม่'; e.style.display = 'block';
-      btn.disabled = false; btn.textContent = 'ยอมรับและเริ่มใช้งาน / I consent';
+      const e = document.getElementById('consentErr'); e.textContent = r?.error || 'บันทึกไม่สำเร็จ ลองใหม่ / Could not save — please try again.'; e.style.display = 'block';
+      btn.disabled = false; btn.innerHTML = consentLabel;
     }
   });
 })();
@@ -44,23 +48,22 @@ document.getElementById('greeting').textContent = `สวัสดี, ${user.fu
   const limit = Number(u?.usage_limit_effective_usd);
   if (!u || !Number.isFinite(limit) || limit <= 0) return; // nothing meaningful to show
   const used = Number(u.usage_cost_usd ?? 0);
-  const tokens = (Number(u.usage_input_tokens) || 0) + (Number(u.usage_output_tokens) || 0);
   const pct = Math.min(100, Math.round((used / limit) * 100));
   const over = used >= limit;
-  // The bar fill uses the vivid status color; the TEXT uses the theme-aware *-text token so the
-  // $-amount stays legible on the card in both light and dark (the vivid hues fail contrast as text).
+  // Express the cap in HUMAN terms — raw $ and token counts are operator metrics that read as
+  // "spending" to a physician practising reasoning. Show only how much of the AI allowance is used.
   const barColor  = over ? 'var(--error,#c64545)'    : pct >= 80 ? 'var(--warning,#d4a017)'    : 'var(--success,#5db872)';
   const textColor = over ? 'var(--error-text,#7a1c1c)' : pct >= 80 ? 'var(--warning-text,#7a5900)' : 'var(--success-text,#1a6630)';
   host.innerHTML = `
     <div style="background:var(--surface-card,#fff);border:1px solid var(--hairline,#e2e2e2);color:var(--body-color,#1a1a1a);border-radius:12px;padding:10px 14px;margin:0 0 14px;font-size:13px;">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;">
-        <span>การใช้งาน AI / AI usage</span>
-        <span style="font-variant-numeric:tabular-nums;color:${textColor};font-weight:600;">$${used.toFixed(4)} / $${limit.toFixed(2)} (${pct}%) <span style="color:var(--muted,#6c6a64);font-weight:400;">· ${tokens.toLocaleString()} tokens</span></span>
+        <span>โควตา AI ของคุณ<span class="bi-en">Your AI allowance</span></span>
+        <span style="font-variant-numeric:tabular-nums;color:${textColor};font-weight:600;">ใช้ไปแล้ว ${pct}%<span class="bi-en">${pct}% used</span></span>
       </div>
       <div style="height:8px;background:rgba(127,127,127,.22);border-radius:99px;overflow:hidden;margin-top:6px;">
         <div style="height:100%;width:${pct}%;background:${barColor};transition:width .3s;"></div>
       </div>
-      ${over ? '<div style="color:var(--error-text,#7a1c1c);font-weight:600;margin-top:5px;">ถึงขีดจำกัดแล้ว — ติดต่อผู้ดูแลระบบ / Limit reached — contact an administrator.</div>' : ''}
+      ${over ? '<div style="color:var(--error-text,#7a1c1c);font-weight:600;margin-top:5px;">ใช้โควตาครบแล้ว — ติดต่อผู้ดูแลระบบ / Allowance used up — contact an administrator.</div>' : ''}
     </div>`;
 })();
 
@@ -180,22 +183,26 @@ function folderOptions(currentId) {
   return opts.join('');
 }
 
+// Invariant glyphs (no per-row data) — build the SVG once, not per conversation row on every render().
+const ICON_PENCIL = icon('pencil');
+const ICON_TRASH = icon('trash');
+
 function convRow(p) {
   const date = new Date(p.started_at).toLocaleDateString('th-TH');
   return `
     <div class="conv-row" data-id="${esc(p.id)}">
       <div class="conv-main" data-action="open" data-id="${esc(p.id)}" role="button" tabindex="0">
         <p class="conv-title" data-title="${esc(convTitle(p))}">${esc(convTitle(p))}</p>
-        <p class="conv-meta">${p.turn_count ?? 0} รอบ · ${p.token_count ?? 0} tokens · ${esc(date)}</p>
+        <p class="conv-meta">${p.turn_count ?? 0} รอบ · ${esc(date)}</p>
       </div>
       <div class="conv-side">
         <span class="badge badge-${esc(p.status)}">${esc(STATUS_LABELS[p.status] ?? p.status)}</span>
         <div class="conv-actions">
-          <button class="icon-btn" type="button" title="เปลี่ยนชื่อ / Rename" data-action="rename-conv" data-id="${esc(p.id)}">✎</button>
+          <button class="icon-btn" type="button" title="เปลี่ยนชื่อ / Rename" aria-label="เปลี่ยนชื่อ / Rename" data-action="rename-conv" data-id="${esc(p.id)}">${ICON_PENCIL}</button>
           <select class="conv-move" title="ย้ายโฟลเดอร์ / Move to folder" data-action="move-conv" data-id="${esc(p.id)}">
             ${folderOptions(p.folder_id)}
           </select>
-          <button class="icon-btn icon-btn-danger" type="button" title="ลบ / Delete" data-action="delete-conv" data-id="${esc(p.id)}">🗑</button>
+          <button class="icon-btn icon-btn-danger" type="button" title="ลบ / Delete" aria-label="ลบ / Delete" data-action="delete-conv" data-id="${esc(p.id)}">${ICON_TRASH}</button>
         </div>
       </div>
     </div>`;
@@ -205,8 +212,8 @@ function groupHtml(key, name, items, { deletable }) {
   const collapsed = collapsedSet().has(key);
   const controls = deletable ? `
     <span class="folder-controls">
-      <button class="icon-btn" type="button" title="เปลี่ยนชื่อโฟลเดอร์ / Rename folder" data-action="rename-folder" data-id="${esc(key)}">✎</button>
-      <button class="icon-btn icon-btn-danger" type="button" title="ลบโฟลเดอร์ / Delete folder" data-action="delete-folder" data-id="${esc(key)}">🗑</button>
+      <button class="icon-btn" type="button" title="เปลี่ยนชื่อโฟลเดอร์ / Rename folder" aria-label="เปลี่ยนชื่อโฟลเดอร์ / Rename folder" data-action="rename-folder" data-id="${esc(key)}">${ICON_PENCIL}</button>
+      <button class="icon-btn icon-btn-danger" type="button" title="ลบโฟลเดอร์ / Delete folder" aria-label="ลบโฟลเดอร์ / Delete folder" data-action="delete-folder" data-id="${esc(key)}">${ICON_TRASH}</button>
     </span>` : '';
   const body = items.length
     ? items.map(convRow).join('')
@@ -227,7 +234,13 @@ function groupHtml(key, name, items, { deletable }) {
 
 function render() {
   if (!ples.length && !folders.length) {
-    listEl.innerHTML = '<p class="list-empty" style="padding:40px">ยังไม่มี PLE — เริ่มต้นได้เลย! / No episodes yet — get started!</p>';
+    // The call-to-action lives IN the void, where the eye lands — not only up in the toolbar.
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <h3>ยังไม่มี PLE</h3>
+        <p>เริ่มบทเรียนทางคลินิกแรกของคุณได้เลย / Start your first clinical learning episode.</p>
+        <a href="/ple-new" class="btn btn-primary btn-lg">+ เริ่ม PLE ใหม่<span class="bi-en">New PLE</span></a>
+      </div>`;
     return;
   }
   const byFolder = new Map();
@@ -307,7 +320,12 @@ listEl.addEventListener('click', async (e) => {
   } else if (action === 'delete-folder') {
     const id = t.dataset.id;
     const f = folders.find(x => x.id === id);
-    if (!confirm(`ลบโฟลเดอร์ "${f?.name ?? ''}"? การสนทนาจะย้ายไปยัง "ไม่จัดหมวด"\nDelete folder? Its conversations move to Uncategorized.`)) return;
+    const okDel = await confirmModal({
+      title: 'ลบโฟลเดอร์? / Delete folder?',
+      body: `ลบโฟลเดอร์ <b>"${esc(f?.name ?? '')}"</b>? การสนทนาจะย้ายไปยัง “ไม่จัดหมวด”<br><span style="color:var(--muted)">Its conversations move to Uncategorized.</span>`,
+      confirmLabel: 'ลบ / Delete', danger: true,
+    });
+    if (!okDel) return;
     const res = await api.deleteFolder(id);
     if (!res?.ok) flashError(res, 'ลบโฟลเดอร์ไม่สำเร็จ / Could not delete folder');
     await load(); // resync either way (the folder may already be gone server-side)
@@ -326,13 +344,18 @@ listEl.addEventListener('click', async (e) => {
   } else if (action === 'delete-conv') {
     const id = t.dataset.id;
     const p = ples.find(x => x.id === id);
-    if (!confirm(`ลบการสนทนานี้ถาวร? / Delete this conversation permanently?\n"${p ? convTitle(p) : ''}"`)) return;
+    const okDel = await confirmModal({
+      title: 'ลบการสนทนา? / Delete conversation?',
+      body: `ลบถาวร: <b>"${esc(p ? convTitle(p) : '')}"</b><br><span style="color:var(--muted)">This cannot be undone.</span>`,
+      confirmLabel: 'ลบ / Delete', danger: true,
+    });
+    if (!okDel) return;
     const res = await api.deletePle(id);
     if (res && res.ok) {
       ples = ples.filter(x => x.id !== id);
       render();
     } else {
-      alert('ลบไม่สำเร็จ / Could not delete');
+      toast('ลบไม่สำเร็จ / Could not delete', 'error');
     }
   }
 });
@@ -349,7 +372,7 @@ listEl.addEventListener('change', async (e) => {
     if (p) p.folder_id = updated.folder_id ?? null;
     render();
   } else {
-    alert('ย้ายโฟลเดอร์ไม่สำเร็จ / Could not move conversation');
+    toast('ย้ายโฟลเดอร์ไม่สำเร็จ / Could not move conversation', 'error');
     await load(); // resync from server
   }
 });
