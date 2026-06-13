@@ -98,6 +98,13 @@ export default function UsersPage() {
   // stale rows. Only the most recently-issued request is allowed to apply its result.
   const reqSeq = useRef(0);
 
+  // The Add-User form renders BELOW the slot/budget admin panels, so on a superadmin screen it opens
+  // off-screen — clicking "+ Add User" at the top looked like nothing happened. Scroll it into view.
+  const addFormRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (showForm) addFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [showForm]);
+
   // Fetch one page (newest-first) and append, or replace from offset 0.
   const loadUsersPage = (offset: number) => {
     const my = ++reqSeq.current;
@@ -501,7 +508,7 @@ export default function UsersPage() {
       {msg && <p className="mb-4 text-sm rounded-lg border border-border bg-secondary px-3 py-2">{msg}</p>}
 
       {isSuper && showForm && (
-        <div className="border rounded-xl p-5 mb-6 space-y-4">
+        <div ref={addFormRef} className="border rounded-xl p-5 mb-6 space-y-4">
           {(['full_name_th','full_name_en','email','password','specialty','license_number'] as const).map(f => (
             <input key={f} className="w-full border rounded-lg px-3 py-2 text-sm"
               placeholder={FIELD_PLACEHOLDERS[f]} value={(form as any)[f]}
