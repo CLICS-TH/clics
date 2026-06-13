@@ -13,29 +13,37 @@ interface PleItem {
 }
 
 export default function AuditorQueue() {
-  const [ples, setPlEs] = useState<PleItem[]>([]);
+  const [ples, setPlEs] = useState<PleItem[] | null>(null); // null = still loading
+  const [err, setErr] = useState(false);
   const [filter, setFilter] = useState(''); // client-side only — the queue is small
   const router = useRouter();
 
+  const load = () => {
+    setErr(false); setPlEs(null);
+    // Defensive: a 500 resolves with a non-array error body — guard the spread (it used to throw and
+    // blank the page), and .catch a network reject so the auditor sees an error, not a false "empty".
+    apiFetch<PleItem[]>('/auditor/queue')
+      .then(d => setPlEs(Array.isArray(d) ? [...d].sort((a, b) => Number(!!a.scored) - Number(!!b.scored)) : []))
+      .catch(() => setErr(true));
+  };
+
   useEffect(() => {
     if (!canAudit(getUser())) { router.push('/login'); return; }
-    // Unscored first, so the items still to do sit at the top.
-    apiFetch<PleItem[]>('/auditor/queue').then(d =>
-      setPlEs([...(d ?? [])].sort((a, b) => Number(!!a.scored) - Number(!!b.scored)))
-    );
+    load();
   }, [router]);
 
-  const toScore = ples.filter(p => !p.scored).length;
+  const list = ples ?? [];
+  const toScore = list.filter(p => !p.scored).length;
 
   // Narrow the visible rows by pseudonym / case text (plus the row's visible date/counts).
   const needle = filter.trim().toLowerCase();
   const visible = needle
-    ? ples.filter(p =>
+    ? list.filter(p =>
         [p.pseudonym, p.title, p.chief_complaint, p.id,
          new Date(p.ended_at).toLocaleDateString('th-TH'),
          `${p.turn_count} รอบ`, `${p.token_count} tokens`]
           .filter(Boolean).join(' ').toLowerCase().includes(needle))
-    : ples;
+    : list;
 
   return (
     <>
@@ -45,7 +53,7 @@ export default function AuditorQueue() {
         title="คิวการประเมิน"
         subtitle="Blind PIS-7 scoring — เลือก CLE เพื่อให้คะแนน (คะแนน AI ถูกซ่อนไว้)"
       />
-      {ples.length > 0 && (
+      {list.length > 0 && (
         <>
           <p className="text-sm text-muted-foreground mb-4">
             เหลือ <span className="font-semibold text-foreground">{toScore}</span> รอประเมิน / {toScore} to score
@@ -57,8 +65,15 @@ export default function AuditorQueue() {
             value={filter} onChange={e => setFilter(e.target.value)} />
         </>
       )}
-      {ples.length === 0
-        ? <p className="text-muted-foreground text-center py-10">ยังไม่มี CLE ที่ได้รับมอบหมาย</p>
+      {err
+        ? <div className="text-center py-10">
+            <p className="text-muted-foreground mb-3">โหลดคิวไม่สำเร็จ / Could not load the queue.</p>
+            <button className="text-sm text-primary underline" onClick={load}>ลองใหม่ / Retry</button>
+          </div>
+        : ples === null
+        ? <p className="text-muted-foreground text-center py-10">กำลังโหลด… / Loading…</p>
+        : list.length === 0
+        ? <p className="text-muted-foreground text-center py-10">ยังไม่มี CLE ที่ได้รับมอบหมาย / No CLEs assigned yet.</p>
         : visible.length === 0
         ? <p className="text-muted-foreground text-center py-10">ไม่พบรายการที่ตรงกับคำค้น / No items match the filter.</p>
         : visible.map(p => (

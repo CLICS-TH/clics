@@ -28,20 +28,29 @@ export default function AuditorScorePage() {
   useEffect(() => { loadData(); }, [id]);
 
   async function submit() {
+    // The score is IRREVERSIBLE (backend 409s any re-score) and the sliders default to 0, so guard an
+    // accidental unedited submit — an all-zeros score would permanently corrupt this auditor's ICC.
+    const allZero = Object.values(scores).every((v) => v === 0);
+    if (allZero && !confirm('ยืนยันให้คะแนน 0/100 ทุกหมวด? / Submit a score of 0 for every domain?')) return;
     setSubmitting(true);
     try {
       const res: any = await apiFetch(`/auditor/ples/${id}/score`, {
         method: 'POST', body: JSON.stringify({ ...scores, notes }),
       });
       if (res?.error) {
-        alert(`ส่งไม่สำเร็จ: ${res.error}`);
-        setSubmitting(false);
+        // Already scored (409, e.g. a concurrent double-submit): localize and flip to read-only with
+        // the existing score, instead of a raw English alert on an editable-but-locked form.
+        if (/already scored/i.test(String(res.error))) {
+          alert('คุณให้คะแนนเซสชันนี้ไปแล้ว / You have already scored this session.');
+          setSubmitted(true); loadData(); return;
+        }
+        alert(`ส่งไม่สำเร็จ / Submit failed: ${res.error}`);
         return;
       }
       setSubmitted(true);
       loadData();
     } catch {
-      alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
+      alert('เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong. Please try again.');
     } finally {
       setSubmitting(false);
     }

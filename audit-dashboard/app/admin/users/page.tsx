@@ -51,6 +51,11 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [cap, setCap] = useState<Record<string, string>>({});
+  // Per-council admin/auditor capacity (the pool actually enforced — the global admin/auditor row is
+  // display-only). Editing was impossible via any API before /admin/councils/:id/slots.
+  const [slotCouncil, setSlotCouncil] = useState('');
+  const [councilSlots, setCouncilSlots] = useState<Slot[]>([]);
+  const [ccap, setCcap] = useState<Record<string, string>>({});
   const [showForm, setShowForm] = useState(false);
   const [councils, setCouncils] = useState<Council[]>([]);
   const [form, setForm] = useState({ email:'', password:'', role:'physician', council_id:'', full_name_th:'', full_name_en:'', specialty:'', license_number:'' });
@@ -140,6 +145,15 @@ export default function UsersPage() {
   // mount) — resets pagination to offset 0.
   useEffect(() => { loadUsersPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [statusFilter, searchQ, roleFilter, councilFilter]);
 
+  // Edit modal a11y: Escape closes it (the overlay is role=dialog/aria-modal; backdrop click already
+  // closes). Keyboard users could otherwise only reach Cancel by tabbing the whole form.
+  useEffect(() => {
+    if (!editing) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setEditing(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [editing]);
+
   const councilName = (id?: string | null) => councils.find(c => c.id === id)?.name_th ?? '—';
 
   function openEdit(u: User) {
@@ -157,7 +171,13 @@ export default function UsersPage() {
     try {
       // 'special' is a UI-only role value; roleToWire turns it into {role:'physician', can_audit:true}.
       const res: any = await apiFetch('/admin/users', { method:'POST', body: JSON.stringify({ ...form, ...roleToWire(form.role) }) });
-      if (res?.id) { setShowForm(false); setForm(s => ({ ...s, council_id:'' })); loadUsers(); loadSlots(); }
+      if (res?.id) {
+        setShowForm(false);
+        // Reset the WHOLE form — leaving email/password/names behind pre-filled the next "+ Add User"
+        // with the previous person's credentials (incl. their password).
+        setForm({ email:'', password:'', role:'physician', council_id:'', full_name_th:'', full_name_en:'', specialty:'', license_number:'' });
+        loadUsers(); loadSlots();
+      }
       else setErr(res?.error?.fieldErrors ? JSON.stringify(res.error.fieldErrors) : typeof res?.error === 'string' ? res.error : 'Error');
     } finally { setCreating(false); }
   }
@@ -251,6 +271,24 @@ export default function UsersPage() {
       setMsg(action === 'approve' ? 'อนุมัติคำขอแล้ว / Request approved.' : 'ปฏิเสธคำขอแล้ว / Request rejected.');
       loadRequests(); loadUsers();
     } else setMsg(res?.error ?? 'ดำเนินการไม่สำเร็จ / Failed.');
+  }
+
+  const loadCouncilSlots = (cid: string) => {
+    if (!cid) { setCouncilSlots([]); setCcap({}); return; }
+    apiFetch<Slot[]>(`/admin/councils/${cid}/slots`).then(d => {
+      const arr = Array.isArray(d) ? d : [];
+      setCouncilSlots(arr);
+      setCcap(Object.fromEntries(arr.map(s => [s.role, String(s.capacity)])));
+    }).catch(() => { setCouncilSlots([]); setCcap({}); });
+  };
+
+  async function saveCouncilCap(role: string) {
+    const capacity = parseInt(ccap[role] ?? '', 10);
+    if (!slotCouncil) return;
+    if (!Number.isFinite(capacity) || capacity < 0) { setMsg('จำนวนช่องไม่ถูกต้อง / Invalid capacity.'); return; }
+    const res: any = await apiFetch(`/admin/councils/${slotCouncil}/slots/${role}`, { method:'PATCH', body: JSON.stringify({ capacity }) });
+    if (res?.role) { setMsg('บันทึกจำนวนช่องของสภาแล้ว / Council capacity saved.'); loadCouncilSlots(slotCouncil); loadUsers(); }
+    else setMsg(res?.error ?? 'บันทึกไม่สำเร็จ / Failed.');
   }
 
   async function saveCap(role: string) {
@@ -364,6 +402,39 @@ export default function UsersPage() {
         })}
       </div>
 
+      {/* Per-council admin/auditor capacity — the pool actually enforced (the global admin/auditor
+          card above is display-only). Pick a council to edit its real capacity. */}
+      <div className="rounded-xl border border-border p-4 mb-4">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <p className="text-sm font-medium">ความจุต่อสภา (Admin/Auditor) / Per-council capacity</p>
+          <select className="border rounded-md px-2 py-1 text-sm bg-background"
+            value={slotCouncil} onChange={e => { setSlotCouncil(e.target.value); loadCouncilSlots(e.target.value); }}>
+            <option value="">— เลือกสภา / Select a council —</option>
+            {councils.map(c => <option key={c.id} value={c.id}>{c.name_th} / {c.name_en}</option>)}
+          </select>
+        </div>
+        {slotCouncil && (
+          <div className={`grid gap-3 mt-3 ${mobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            {councilSlots.map(s => {
+              const full = s.remaining <= 0;
+              return (
+                <div key={s.role} className="rounded-lg border border-border p-3">
+                  <p className="text-sm font-medium">{ROLE_LABELS[s.role] ?? s.role}</p>
+                  <p className={`text-xl font-semibold tabular-nums mt-1 ${full ? 'text-destructive' : ''}`}>{s.used}<span className="text-muted-foreground text-base">/{s.capacity}</span></p>
+                  <p className="text-xs text-muted-foreground">เหลือ {s.remaining} ช่อง / {s.remaining} left</p>
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <input type="number" min={0}
+                      className="flex-1 min-w-0 border rounded-md px-2 py-1 text-sm bg-background"
+                      value={ccap[s.role] ?? ''} onChange={e => setCcap(c => ({ ...c, [s.role]: e.target.value }))} />
+                    <Button variant="outline" className="text-xs px-2 py-1 h-auto shrink-0" onClick={() => saveCouncilCap(s.role)}>ตั้งค่า / Set</Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Total API budget pool — the org-wide Anthropic key allocation; tracks total spend vs pool. */}
       <div className="rounded-xl border border-border p-4 mb-4">
         <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -444,7 +515,8 @@ export default function UsersPage() {
       {editing && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4"
           onClick={() => setEditing(null)}>
-        <div className="w-full max-w-lg my-8 border rounded-xl bg-card p-5 space-y-3 shadow-xl animate-in fade-in zoom-in-95 duration-150"
+        <div role="dialog" aria-modal="true" aria-label={`แก้ไขผู้ใช้ / Edit user — ${editing.full_name_en}`}
+          className="w-full max-w-lg my-8 border rounded-xl bg-card p-5 space-y-3 shadow-xl animate-in fade-in zoom-in-95 duration-150"
           onClick={e => e.stopPropagation()}>
           <p className="font-medium">แก้ไข / Edit — {editing.full_name_en}</p>
           <input className="w-full border rounded-lg px-3 py-2 text-sm" value={editing.full_name_th}

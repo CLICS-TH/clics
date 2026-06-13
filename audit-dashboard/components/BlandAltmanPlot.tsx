@@ -13,11 +13,12 @@ export function BlandAltmanPlot({ pairs }: Props) {
     <div className="border rounded-xl p-5">
       <h2 className="font-semibold mb-1">Bland-Altman Plot</h2>
       <p className="text-xs text-muted-foreground mb-3">Mean diff: {meanDiff.toFixed(2)} · LoA: ±{loa.toFixed(2)}</p>
+      <div className="text-muted-foreground">
       <ResponsiveContainer width="100%" height={220}>
         <ScatterChart>
-          <CartesianGrid stroke="#e6dfd8" />
-          <XAxis dataKey="mean" name="Mean" label={{ value:'Mean score', position:'insideBottom', offset:-2 }} tick={{ fill: '#6c6a64', fontSize: 11 }} />
-          <YAxis dataKey="diff" name="AI − Human" label={{ value:'AI − Human', angle:-90, position:'insideLeft' }} tick={{ fill: '#6c6a64', fontSize: 11 }} />
+          <CartesianGrid stroke="currentColor" strokeOpacity={0.18} />
+          <XAxis dataKey="mean" name="Mean" label={{ value:'Mean score', position:'insideBottom', offset:-2 }} tick={{ fill: 'currentColor', fontSize: 11 }} />
+          <YAxis dataKey="diff" name="AI − Human" label={{ value:'AI − Human', angle:-90, position:'insideLeft' }} tick={{ fill: 'currentColor', fontSize: 11 }} />
           <Tooltip />
           <ReferenceLine y={meanDiff} stroke="#5db8a6" strokeDasharray="4 4" />
           <ReferenceLine y={meanDiff + loa} stroke="#c64545" strokeDasharray="3 3" />
@@ -25,6 +26,7 @@ export function BlandAltmanPlot({ pairs }: Props) {
           <Scatter data={data} fill="#cc785c" opacity={0.7} />
         </ScatterChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }

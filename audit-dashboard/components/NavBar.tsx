@@ -64,13 +64,27 @@ export function NavBar() {
     // Clearing only our (dashboard-origin) token isn't enough — the PORTAL origin still holds a valid
     // token and autoForward there would re-log us straight back in. Bounce to the portal's logout,
     // which clears its own storage and shows the login form (so you can sign in as another account).
+    // Preserve the dashboard-origin theme/view prefs (mirror the portal's ?logout=1 handler) so logging
+    // out doesn't reset a dark-mode user to light.
+    const theme = localStorage.getItem('clics_theme');
+    const view = localStorage.getItem('clics_view');
     localStorage.clear();
+    if (theme) localStorage.setItem('clics_theme', theme);
+    if (view) localStorage.setItem('clics_view', view);
     const portal = process.env.NEXT_PUBLIC_PORTAL_URL || 'https://physician-ui.vercel.app';
     window.location.href = `${portal}/?logout=1`;
   }
 
+  // Active when the path matches OR is a child (detail page) of the link, so /admin/ples/[id] keeps
+  // 'PLEs' lit and /auditor/ples/[id] keeps 'Queue' lit. /home (exact) never false-matches a section.
+  const isActive = (href: string) =>
+    pathname === href ||
+    pathname.startsWith(href + '/') ||
+    // The auditor's only tab is the queue; its scoring detail lives under /auditor/ples/...
+    (href === '/auditor/queue' && pathname.startsWith('/auditor/'));
+
   const linkClass = (href: string) =>
-    pathname === href
+    isActive(href)
       ? 'text-primary border-b-2 border-primary pb-0.5 text-sm font-medium'
       : 'text-muted-foreground hover:text-foreground text-sm';
 
@@ -110,7 +124,7 @@ export function NavBar() {
         <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3 animate-in fade-in slide-in-from-top-2 duration-200">
           {links.map(l => (
             <Link key={l.href} href={l.href}
-              className={`rounded-md px-2 py-2 text-sm ${pathname === l.href ? 'bg-secondary text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
+              className={`rounded-md px-2 py-2 text-sm ${isActive(l.href) ? 'bg-secondary text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
               {l.label}
             </Link>
           ))}

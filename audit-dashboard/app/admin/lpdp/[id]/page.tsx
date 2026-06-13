@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
+import { getUser } from '@/lib/auth';
 import { LpdpChart } from '@/components/LpdpChart';
 import { PageIntro } from '@/components/PageIntro';
 import { Button } from '@/components/ui/button';
@@ -51,7 +52,7 @@ export default function PhysicianProfilePage() {
   return (
     <div className="max-w-3xl mx-auto p-6 md:p-10">
       <PageIntro
-        eyebrow="Superadmin · Physician scores"
+        eyebrow={`${getUser()?.role === 'superadmin' ? 'Superadmin' : 'Admin'} · Physician scores`}
         title={`${physician.full_name_th || physician.full_name_en}${physician.pseudonym ? ` · ${physician.pseudonym}` : ''}`}
         subtitle={`${physician.specialty ? physician.specialty + ' — ' : ''}สำรวจคะแนนและเซสชันรายบุคคล / Explore this user's scores & sessions`}
       />
@@ -87,7 +88,7 @@ export default function PhysicianProfilePage() {
                     </div>
                     <div className="text-right whitespace-nowrap text-sm">
                       <p>AI: <span className="font-semibold">{s.ai ? round(Number(s.ai.composite_score)) : '—'}</span></p>
-                      <p className="text-muted-foreground">ผู้ตรวจ / Auditor: {humanAvg != null ? `${humanAvg} (n=${s.audits.length})` : '—'}</p>
+                      <p className="text-muted-foreground">ผู้ตรวจประเมิน / Auditor: {humanAvg != null ? `${humanAvg} (n=${s.audits.length})` : '—'}</p>
                     </div>
                   </div>
                   {/* WHO scored it — traceability of each evaluation. */}

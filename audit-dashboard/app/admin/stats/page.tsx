@@ -9,12 +9,20 @@ import { CardGridSkeleton } from '@/components/Skeleton';
 export default function StatsPage() {
   const [stats, setStats] = useState<any>(null);
   const [icc, setIcc] = useState<any>(null);
+  const [statsErr, setStatsErr] = useState(false);
   useEffect(() => {
-    apiFetch('/admin/stats').then(setStats);
+    // .catch so a failed load shows an error instead of hanging on the skeleton forever.
+    apiFetch('/admin/stats').then(setStats).catch(() => setStatsErr(true));
     // /admin/icc is superadmin-only — for admins it 403s and the section silently hides,
     // so don't fire the request at all unless the viewer is a superadmin.
-    if (getUser()?.role === 'superadmin') apiFetch('/admin/icc').then(setIcc);
+    if (getUser()?.role === 'superadmin') apiFetch('/admin/icc').then(setIcc).catch(() => {});
   }, []);
+  if (statsErr) return (
+    <div className="mx-auto max-w-4xl p-6 md:p-8 text-center">
+      <p className="text-muted-foreground mb-3">โหลดสถิติไม่สำเร็จ / Could not load stats.</p>
+      <button className="text-sm text-primary underline" onClick={() => location.reload()}>ลองใหม่ / Retry</button>
+    </div>
+  );
   if (!stats) return (
     <>
       <div className="mx-auto max-w-4xl space-y-8 p-6 md:p-8">

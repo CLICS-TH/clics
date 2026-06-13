@@ -27,6 +27,7 @@ export function DomainSliders({ scores, onChange, disabled }: Props) {
             <span className="text-sm text-muted-foreground">{weight} · <strong>{scores[key] ?? 0}/5</strong></span>
           </div>
           <Slider min={0} max={5} step={1} value={scores[key] ?? 0}
+            aria-label={`${label} (0–5)`}
             onValueChange={(v) => onChange(key, v as number)} disabled={disabled} className="w-full" />
           <div className="flex justify-between text-[10px] text-muted-foreground mt-1 px-0.5">
             <span>0 ไม่พบ</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5 ดีเยี่ยม</span>

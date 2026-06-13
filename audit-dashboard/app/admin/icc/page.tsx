@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { IccPanel } from '@/components/IccPanel';
-import { BlandAltmanPlot } from '@/components/BlandAltmanPlot';
 import { PageIntro } from '@/components/PageIntro';
 import { Skeleton } from '@/components/Skeleton';
 import { DOMAIN_LABELS } from '@/lib/labels';
@@ -53,14 +52,14 @@ export default function IccPage() {
           <p className="text-xs text-muted-foreground mb-4">ดูความน่าเชื่อถือของแต่ละวิชาชีพแยกกัน / Each profession&apos;s calibration, separately.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {councils.map((c: any) => {
-              const icc = c.overall.icc;
-              const ok = icc >= 0.75;
+              const icc = c.overall.icc; // may be null (degenerate / insufficient variance)
+              const ok = icc != null && icc >= 0.75;
               return (
                 <div key={c.council?.id ?? c.council?.code} className="rounded-xl border border-border p-4">
                   <p className="text-sm font-medium">{c.council?.name_th ?? '—'}</p>
                   <p className="text-xs text-muted-foreground">{c.council?.name_en ?? ''}</p>
-                  <p className={`text-2xl font-bold mt-1 ${ok ? 'text-[var(--ok)]' : 'text-destructive'}`}>{icc.toFixed(3)}</p>
-                  <p className="text-xs text-muted-foreground">95% CI [{c.overall.lower.toFixed(2)}, {c.overall.upper.toFixed(2)}] · n = {c.overall.n}</p>
+                  <p className={`text-2xl font-bold mt-1 ${icc == null ? 'text-muted-foreground' : ok ? 'text-[var(--ok)]' : 'text-destructive'}`}>{icc?.toFixed(3) ?? '—'}</p>
+                  <p className="text-xs text-muted-foreground">95% CI [{c.overall.lower?.toFixed(2) ?? '—'}, {c.overall.upper?.toFixed(2) ?? '—'}] · n = {c.overall.n}</p>
                 </div>
               );
             })}

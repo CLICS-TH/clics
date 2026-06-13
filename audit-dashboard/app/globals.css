@@ -139,6 +139,8 @@
    (< 1280px) keep the standard 16px root. */
 @media (min-width: 1280px) {
   html {
-    font-size: 24px;
+    /* Percentage, not a fixed 24px: still ~150% of a default 16px, but it scales from the user's own
+       browser default font-size (WCAG 1.4.4) instead of pinning everyone to exactly 24px. */
+    font-size: 150%;
   }
 }

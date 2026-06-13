@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { PageIntro } from '@/components/PageIntro';
 
 export default function FlaggedPage() {
-  const [ples, setPlEs] = useState<any[]>([]);
+  const [ples, setPlEs] = useState<any[] | null>(null); // null = loading
+  const [err, setErr] = useState(false);
   const [actingId, setActingId] = useState<string | null>(null); // approve/reject in flight
-  const load = () => apiFetch<any[]>('/admin/ples/flagged').then(d => setPlEs(d ?? []));
+  // Guard the spread/map: a non-401 error resolves with the error object (not an array); .catch a reject.
+  const load = () => { setErr(false); apiFetch<any[]>('/admin/ples/flagged').then(d => setPlEs(Array.isArray(d) ? d : [])).catch(() => setErr(true)); };
   useEffect(() => { load(); }, []);
 
   async function approve(id: string) {
@@ -16,17 +18,19 @@ export default function FlaggedPage() {
       const res: any = await apiFetch(`/admin/ples/${id}/approve`, { method: 'POST' });
       // A second approve now 409s with { error: 'Already processed' } — surface it, then
       // refresh so the stale row leaves the queue.
-      if (res?.error) { alert(`ไม่สำเร็จ: ${res.error}`); load(); return; }
+      if (res?.error) { alert(`ไม่สำเร็จ / Failed: ${res.error}`); load(); return; }
       load();
     } catch { alert('เกิดข้อผิดพลาด / Error approving session'); }
     finally { setActingId(null); }
   }
 
   async function reject(id: string) {
+    // Rejecting denies the physician credit for this session — confirm before the irreversible action.
+    if (!confirm('ปฏิเสธ session นี้? ผู้เรียนจะไม่ได้รับเครดิต / Reject this session? The physician will not receive credit.')) return;
     setActingId(id);
     try {
       const res: any = await apiFetch(`/admin/ples/${id}/reject`, { method: 'POST' });
-      if (res?.error) { alert(`ไม่สำเร็จ: ${res.error}`); load(); return; }
+      if (res?.error) { alert(`ไม่สำเร็จ / Failed: ${res.error}`); load(); return; }
       load();
     } catch { alert('เกิดข้อผิดพลาด / Error rejecting session'); }
     finally { setActingId(null); }
@@ -40,8 +44,15 @@ export default function FlaggedPage() {
         title="ตรวจสอบ Tier 2"
         subtitle="QA Queue — sessions flagged for manual review (C4–C6)"
       />
-      {ples.length === 0
-        ? <p className="text-muted-foreground text-center py-10">ไม่มี session รอตรวจสอบ ✅</p>
+      {err
+        ? <div className="text-center py-10">
+            <p className="text-muted-foreground mb-3">โหลดคิวไม่สำเร็จ / Could not load the queue.</p>
+            <button className="text-sm text-primary underline" onClick={load}>ลองใหม่ / Retry</button>
+          </div>
+        : ples === null
+        ? <p className="text-muted-foreground text-center py-10">กำลังโหลด… / Loading…</p>
+        : ples.length === 0
+        ? <p className="text-muted-foreground text-center py-10">ไม่มี session รอตรวจสอบ / No sessions awaiting review ✅</p>
         : ples.map(p => (
           <div key={p.id} className="border rounded-xl p-5 mb-3">
             <div className="flex justify-between items-start">
@@ -58,9 +69,11 @@ export default function FlaggedPage() {
               </div>
               <div className="flex gap-2">
                 <Button size="sm" disabled={actingId !== null} onClick={() => approve(p.id)}>
-                  {actingId === p.id ? 'กำลังบันทึก…' : '✅ อนุมัติ'}
+                  {actingId === p.id ? 'กำลังบันทึก… / Saving…' : '✅ อนุมัติ / Approve'}
                 </Button>
-                <Button size="sm" variant="destructive" disabled={actingId !== null} onClick={() => reject(p.id)}>❌ ปฏิเสธ</Button>
+                <Button size="sm" variant="destructive" disabled={actingId !== null} onClick={() => reject(p.id)}>
+                  {actingId === p.id ? 'กำลังบันทึก… / Saving…' : '❌ ปฏิเสธ / Reject'}
+                </Button>
               </div>
             </div>
           </div>

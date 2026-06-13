@@ -8,13 +8,21 @@ function Slider({
   value,
   min = 0,
   max = 100,
+  "aria-label": ariaLabel,
   ...props
-}: SliderPrimitive.Root.Props) {
+}: SliderPrimitive.Root.Props & { "aria-label"?: string }) {
+  // Wrap a SCALAR value/defaultValue in a 1-element array. The old fallback only handled arrays, so a
+  // single-value slider (DomainSliders passes value={0..5}) fell through to [min,max] — length 2 —
+  // and rendered TWO draggable thumbs on every PIS-7 domain. Thumb count = _values.length.
   const _values = Array.isArray(value)
     ? value
-    : Array.isArray(defaultValue)
-      ? defaultValue
-      : [min, max]
+    : value != null
+      ? [value]
+      : Array.isArray(defaultValue)
+        ? defaultValue
+        : defaultValue != null
+          ? [defaultValue]
+          : [min, max]
 
   return (
     <SliderPrimitive.Root
@@ -41,6 +49,7 @@ function Slider({
           <SliderPrimitive.Thumb
             data-slot="slider-thumb"
             key={index}
+            aria-label={ariaLabel}
             className="relative block size-3 shrink-0 rounded-full border border-ring bg-white ring-ring/50 transition-[color,box-shadow] select-none after:absolute after:-inset-2 hover:ring-3 focus-visible:ring-3 focus-visible:outline-hidden active:ring-3 disabled:pointer-events-none disabled:opacity-50"
           />
         ))}

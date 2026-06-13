@@ -17,11 +17,14 @@ type Invite = {
 };
 type CreatedInvite = Invite & { accept_url?: string; email_sent?: boolean };
 
+// th-TH to match every other dashboard page (admin/ples, users, lpdp, auditor/queue all use th-TH /
+// Buddhist-era). en-GB here showed Gregorian 2026 next to 2569 elsewhere — confusing + off-by-543.
 const fmt = (d: string | null) =>
-  d ? new Date(d).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+  d ? new Date(d).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
 
 export default function InvitesPage() {
-  const [invites, setInvites] = useState<Invite[]>([]);
+  const [invites, setInvites] = useState<Invite[] | null>(null); // null = loading
+  const [loadErr, setLoadErr] = useState(false);
   const [councils, setCouncils] = useState<Council[]>([]);
   const [form, setForm] = useState({ email: '', role: 'physician', council_id: '' });
   const [created, setCreated] = useState<CreatedInvite | null>(null);
@@ -35,7 +38,8 @@ export default function InvitesPage() {
   const me = getUser();
   const isSuper = me?.role === 'superadmin';
 
-  const load = () => apiFetch<Invite[]>('/admin/invites').then(d => setInvites(d ?? []));
+  // Guard the .map: a non-401 error resolves with the error object (not an array); .catch a reject.
+  const load = () => { setLoadErr(false); apiFetch<Invite[]>('/admin/invites').then(d => setInvites(Array.isArray(d) ? d : [])).catch(() => setLoadErr(true)); };
 
   useEffect(() => {
     load();
@@ -109,7 +113,7 @@ export default function InvitesPage() {
     setRowBusy(inv.id);
     try {
       const res: any = await apiFetch(`/admin/invites/${inv.id}?purge=1`, { method: 'DELETE' });
-      if (res?.deleted) { setMsg('ลบคำเชิญแล้ว / Invite deleted.'); setInvites(s => s.filter(i => i.id !== inv.id)); }
+      if (res?.deleted) { setMsg('ลบคำเชิญแล้ว / Invite deleted.'); setInvites(s => (s ?? []).filter(i => i.id !== inv.id)); }
       else setMsg(typeof res?.error === 'string' ? res.error : 'ลบไม่สำเร็จ / Delete failed.');
     } finally { setRowBusy(null); }
   }
@@ -207,7 +211,14 @@ export default function InvitesPage() {
       {msg && <p className="mb-4 text-sm rounded-lg border border-border bg-secondary px-3 py-2">{msg}</p>}
 
       {/* Invite list */}
-      {invites.length === 0 ? (
+      {loadErr ? (
+        <div className="py-10 text-center">
+          <p className="text-muted-foreground text-sm mb-3">โหลดรายการไม่สำเร็จ / Could not load invites.</p>
+          <button className="text-sm text-primary underline" onClick={load}>ลองใหม่ / Retry</button>
+        </div>
+      ) : invites === null ? (
+        <p className="text-muted-foreground text-sm py-10 text-center">กำลังโหลด… / Loading…</p>
+      ) : invites.length === 0 ? (
         <p className="text-muted-foreground text-sm py-10 text-center">ยังไม่มีคำเชิญ / No invites yet.</p>
       ) : mobile ? (
         <div className="space-y-3">

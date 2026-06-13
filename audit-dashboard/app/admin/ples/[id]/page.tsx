@@ -13,9 +13,10 @@ export default function AdminTranscriptPage() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    // .catch a network/non-JSON failure too — without it the page hangs on "Loading…" forever.
     apiFetch<any>(`/admin/ples/${id}/transcript`).then(d => {
       if (d?.error) setNotFound(true); else setData(d);
-    });
+    }).catch(() => setNotFound(true));
   }, [id]);
 
   if (notFound) return (
