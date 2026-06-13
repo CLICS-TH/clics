@@ -4,7 +4,7 @@ const { supabase, authSupabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { computeICC21 } = require('../services/icc');
 const { sendDbError } = require('../lib/db-helpers');
-const { assertSlotAvailable, nextPseudonym, allSlotUsage, ROLES } = require('../lib/accounts');
+const { assertSlotAvailable, nextPseudonym, allSlotUsage, allCouncilSlotUsage, ROLES } = require('../lib/accounts');
 const { normalizeCanAudit } = require('../lib/dual-role');
 
 const router = Router();
@@ -113,23 +113,26 @@ router.patch('/users/:id', async (req, res) => {
 
   const patch = { ...parsed.data };
   const targetCouncil = patch.council_id ?? current.council_id;
+  const effectiveRole = patch.role ?? current.role;
+  const roleChanged = patch.role && patch.role !== current.role;
+  const councilChanged = patch.council_id && patch.council_id !== current.council_id;
 
   // Normalize the dual-role flag against the EFFECTIVE role (post-edit) — one source of truth shared
   // with POST /users and the invite path (lib/dual-role) so "Special" can never ride on an admin/auditor.
   // Only touch it when the caller sent it OR is changing role, so an unrelated profile edit can't
   // silently flip an existing flag, while a demotion away from physician always clears it.
-  if ('can_audit' in patch || (patch.role && patch.role !== current.role)) {
-    const effectiveRole = patch.role ?? current.role;
+  if ('can_audit' in patch || roleChanged) {
     patch.can_audit = normalizeCanAudit(effectiveRole, patch.can_audit ?? current.can_audit);
   }
 
-  if (patch.role && patch.role !== current.role) {
-    if (current.status === 'active') {
-      const slot = await assertSlotAvailable(patch.role, targetCouncil); // current user counts in their OLD pool
-      if (!slot.ok) return res.status(409).json({ error: slot.error });
-    }
-    if (patch.role === 'physician' && !current.pseudonym) patch.pseudonym = await nextPseudonym();
+  // Slot-check whenever the member would occupy a NEW pool: a role change OR a council move. The
+  // admin/auditor pools are PER-COUNCIL, so moving an active director into a full target council must
+  // be blocked (a pure council move previously skipped this and could exceed the target's capacity).
+  if ((roleChanged || councilChanged) && current.status === 'active') {
+    const slot = await assertSlotAvailable(effectiveRole, targetCouncil);
+    if (!slot.ok) return res.status(409).json({ error: slot.error });
   }
+  if (roleChanged && patch.role === 'physician' && !current.pseudonym) patch.pseudonym = await nextPseudonym();
 
   const { data, error } = await supabase
     .from('professionals').update(patch).eq('id', req.params.id).select('*').single();
@@ -181,37 +184,58 @@ router.delete('/users/:id/purge', async (req, res) => {
     return res.status(400).json({ error: 'Confirmation name does not match.' });
   }
 
+  // Right-to-erasure also covers the invite that onboarded them: invites.email is PII that the old
+  // FK-null only UNLINKED, leaving the address behind. Look up the auth email so we can delete those
+  // rows. (Best-effort: if it fails we still erase by professional_id below.)
+  let email = null;
+  try {
+    const { data: au } = await authSupabase.auth.admin.getUserById(id);
+    email = au?.user?.email ?? null;
+  } catch (e) {
+    console.error('[purge] could not read auth email:', e.message);
+  }
+
   // The user's OWN sessions: lpdp_snapshots has no cascade (clear first), then deleting the ples
   // cascades messages / ai_evaluations / audit_scores / ple_patient_refs by ple_id.
   const { data: ownPles } = await supabase.from('ples').select('id').eq('physician_id', id);
   const deletedPles = ownPles?.length ?? 0;
-  // Check this delete: if it fails silently the next (ples) delete trips the lpdp_snapshots FK and
-  // reports a misleading 'ples' error instead of the real cause.
-  const delSnap = await supabase.from('lpdp_snapshots').delete().eq('physician_id', id);
-  if (sendDbError(res, delSnap.error)) return;
-  const delPles = await supabase.from('ples').delete().eq('physician_id', id);
-  if (sendDbError(res, delPles.error)) return;
 
-  // This user as an AUDITOR of OTHERS' sessions: un-assign from their PLEs + delete authored scores.
-  await supabase.from('ples').update({ auditor_id: null }).eq('auditor_id', id);
-  await supabase.from('audit_scores').delete().eq('auditor_id', id);
+  // EVERY step is error-checked in dependency order: an unchecked failure makes a LATER step trip an
+  // FK (misleading error) or — worse — leaves a partial purge that reports purged:true.
+  const steps = [
+    supabase.from('lpdp_snapshots').delete().eq('physician_id', id),
+    supabase.from('ples').delete().eq('physician_id', id),
+    // This user as an AUDITOR of OTHERS' sessions: un-assign + delete their authored scores.
+    supabase.from('ples').update({ auditor_id: null }).eq('auditor_id', id),
+    supabase.from('audit_scores').delete().eq('auditor_id', id),
+    // Their access requests + reviews of others.
+    supabase.from('access_requests').delete().eq('auth_user_id', id),
+    supabase.from('access_requests').update({ reviewed_by: null }).eq('reviewed_by', id),
+    // Invites they CREATED for others are about other people — keep the row, just unlink them.
+    supabase.from('invites').update({ created_by: null }).eq('created_by', id),
+    // Invites that are about THEM (accepted, or sent to their email) carry their PII — ERASE them.
+    supabase.from('invites').delete().eq('professional_id', id),
+  ];
+  if (email) steps.push(supabase.from('invites').delete().eq('email', email));
+  for (const step of steps) {
+    const { error } = await step;
+    if (sendDbError(res, error)) return;
+  }
 
-  // Clear the remaining no-cascade references to professionals(id) so the row can be removed.
-  await supabase.from('access_requests').delete().eq('auth_user_id', id);
-  await supabase.from('access_requests').update({ reviewed_by: null }).eq('reviewed_by', id);
-  await supabase.from('invites').update({ created_by: null }).eq('created_by', id);
-  await supabase.from('invites').update({ professional_id: null }).eq('professional_id', id);
-
-  // The professional row — cascades oauth_identities, ple_folders, ple_patient_refs(by physician);
-  // SET NULLs license_verifications.
+  // Delete the Supabase auth user FIRST — it holds the email PII, and professionals.id references
+  // auth.users ON DELETE CASCADE, so this removes the professionals row (and its cascade children:
+  // oauth_identities, ple_folders, ple_patient_refs) too. If it fails, STOP and report retryably —
+  // never claim purged:true while the credential + email are still live.
+  const { error: authErr } = await authSupabase.auth.admin.deleteUser(id);
+  if (authErr) {
+    console.error('[purge] auth user delete failed — purge halted:', authErr.message);
+    return res.status(500).json({ error: 'Could not remove the account credential — purge halted. Retry.' });
+  }
+  // Defensive: ensure the professionals row is gone even if the cascade did not fire.
   const delProf = await supabase.from('professionals').delete().eq('id', id);
   if (sendDbError(res, delProf.error)) return;
 
-  // Finally the Supabase auth user (isolated auth client — never the data client's session).
-  const { error: authErr } = await authSupabase.auth.admin.deleteUser(id);
-  if (authErr) console.error('[purge] auth user delete failed (professional row already gone):', authErr.message);
-
-  res.json({ purged: true, deleted_ples: deletedPles, auth_deleted: !authErr });
+  res.json({ purged: true, deleted_ples: deletedPles, auth_deleted: true });
 });
 
 // Role slot pools — used/capacity/remaining per role, and capacity editing.
@@ -229,6 +253,32 @@ router.patch('/slots/:role', async (req, res) => {
   const { data, error } = await supabase.from('role_slots')
     .update({ capacity: parsed.data.capacity, updated_at: new Date().toISOString() })
     .eq('role', role).select('*').single();
+  if (sendDbError(res, error)) return;
+  res.json(data);
+});
+
+// Per-council admin/auditor capacity — the pools assertSlotAvailable ACTUALLY enforces (the global
+// role_slots above is display-only for admin/auditor, so editing it changed nothing real). physician
+// is uncapped and superadmin is the global singleton, so neither is per-council.
+const COUNCIL_SLOT_ROLES = ['admin', 'auditor'];
+
+router.get('/councils/:id/slots', async (req, res) => {
+  res.json(await allCouncilSlotUsage(req.params.id)); // [{ role, council_id, capacity, used, remaining }]
+});
+
+router.patch('/councils/:id/slots/:role', async (req, res) => {
+  const { id, role } = req.params;
+  if (!COUNCIL_SLOT_ROLES.includes(role)) {
+    return res.status(400).json({ error: 'Per-council capacity applies only to admin/auditor (physician is uncapped, superadmin is global).' });
+  }
+  const parsed = SlotSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  // Upsert: a council added after the seed may not have a row yet.
+  const { data, error } = await supabase.from('council_slots')
+    .upsert({ council_id: id, role, capacity: parsed.data.capacity, updated_at: new Date().toISOString() },
+            { onConflict: 'council_id,role' })
+    .select('*').single();
   if (sendDbError(res, error)) return;
   res.json(data);
 });

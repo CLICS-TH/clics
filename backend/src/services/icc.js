@@ -15,6 +15,14 @@ function computeICC21(pairs) {
   const SStotal = pairs.reduce((a, p) => a + (p.ai - grandMean) ** 2 + (p.human - grandMean) ** 2, 0);
   const SSe = SStotal - SSr - SSc;
 
+  // Degenerate: every score is identical (AI == human, same value on every pair) — common per-domain
+  // when a 0-5 domain is scored the same across sessions. There is no variance to partition, so ICC
+  // is undefined. Return a clear 'insufficient variance' result instead of the spurious -0.999
+  // 'Below target' the MSe floor produced (perfect agreement was being reported as the worst case).
+  if (SStotal < 1e-9) {
+    return { icc: null, lower: null, upper: null, n, interpretation: 'Insufficient variance (identical scores)' };
+  }
+
   const MSr = SSr / (n - 1);
   const MSc = SSc / (k - 1);
   const MSe = Math.max(SSe / ((n - 1) * (k - 1)), 0.0001);
@@ -27,9 +35,11 @@ function computeICC21(pairs) {
   const lower = Math.tanh(z - 1.96 * se);
   const upper = Math.tanh(z + 1.96 * se);
 
-  const label = icc >= 0.95 ? 'Excellent'
-    : icc >= 0.85 ? 'Very Good'
-    : icc >= 0.75 ? 'Good'
+  // Label off the clamped value so it matches the displayed icc (a wildly negative raw value still
+  // reads as 'Below target', never flips the bands).
+  const label = safeIcc >= 0.95 ? 'Excellent'
+    : safeIcc >= 0.85 ? 'Very Good'
+    : safeIcc >= 0.75 ? 'Good'
     : 'Below target (< 0.75)';
 
   return {

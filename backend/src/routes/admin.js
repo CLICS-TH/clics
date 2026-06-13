@@ -102,9 +102,16 @@ router.post('/ples/:id/approve', async (req, res) => {
   if (sendDbError(res, error)) return;
   if (!flipped?.length) return res.status(409).json({ error: 'Already processed' });
 
-  const { data: messages } = await supabase
+  const { data: messages, error: msgErr } = await supabase
     .from('messages').select('role, content').eq('ple_id', req.params.id).order('created_at');
-  const transcript = (messages ?? []).map(m => ({ role: m.role, content: m.content }));
+  // The flag was already consumed (status=cle_pass). On a transient messages-query failure DON'T feed
+  // an empty transcript to the evaluator (it would persist a bogus score) — leave it at cle_pass for
+  // the scheduled reconcile sweep to retry.
+  if (msgErr || !messages?.length) {
+    console.error('[admin approve] messages fetch failed/empty — deferring to reconcile:', msgErr?.message);
+    return res.json({ ok: true, evaluation: 'deferred' });
+  }
+  const transcript = messages.map(m => ({ role: m.role, content: m.content }));
 
   // Fire-and-forget: evaluate + persist (same path as the physician /end flow).
   triggerEvaluation(req.params.id, transcript, ple.physician_id)
@@ -128,9 +135,11 @@ router.post('/ples/:id/reevaluate', async (req, res) => {
     .from('ai_evaluations').select('id').eq('ple_id', ple.id).maybeSingle();
   if (existing) return res.status(409).json({ error: 'Already evaluated' });
 
-  const { data: messages } = await supabase
+  const { data: messages, error: msgErr } = await supabase
     .from('messages').select('role, content').eq('ple_id', ple.id).order('created_at');
-  const transcript = (messages ?? []).map(m => ({ role: m.role, content: m.content }));
+  if (sendDbError(res, msgErr)) return;
+  if (!messages?.length) return res.status(409).json({ error: 'No transcript to evaluate.' });
+  const transcript = messages.map(m => ({ role: m.role, content: m.content }));
   try {
     await triggerEvaluation(ple.id, transcript, ple.physician_id);
     res.json({ ok: true, status: 'evaluated' });
@@ -140,11 +149,17 @@ router.post('/ples/:id/reevaluate', async (req, res) => {
 });
 
 router.post('/ples/:id/reject', async (req, res) => {
-  let query = supabase.from('ples')
-    .update({ status: 'cle_fail_t1' }).eq('id', req.params.id).eq('status', 'cle_flag_t2');
-  query = scopeToCouncil(req, query);
-  const { error } = await query;
+  // Mirror /approve: council check FIRST (opaque 404), then a conditional flip whose row count
+  // distinguishes a real reject from a no-op — the old handler returned {ok:true} for a nonexistent
+  // /foreign-council /already-processed /double-clicked id without touching anything.
+  const { data: ple } = await supabase.from('ples').select('id, council_id, status').eq('id', req.params.id).single();
+  if (!ple || !sameCouncil(req, ple.council_id)) return res.status(404).json({ error: 'Not found' });
+  if (ple.status !== 'cle_flag_t2') return res.status(400).json({ error: 'Not a flagged PLE' });
+
+  const { data: flipped, error } = await supabase.from('ples')
+    .update({ status: 'cle_fail_t1' }).eq('id', req.params.id).eq('status', 'cle_flag_t2').select('id');
   if (sendDbError(res, error)) return;
+  if (!flipped?.length) return res.status(409).json({ error: 'Already processed' });
   res.json({ ok: true });
 });
 
@@ -389,10 +404,17 @@ router.post('/reconcile-evaluations', async (req, res) => {
 router.get('/export', async (req, res) => {
   // Page-bounded: pull one page of sessions, then ONLY that page's physicians + scores (so the
   // research export streams in chunks instead of loading every physician + ple at 80K scale).
+  // Default to REAL sessions only — test sessions must not silently pollute the research export
+  // (mirrors /stats + /icc). ?include_test=true opts them in, and is_test is emitted so they're
+  // distinguishable either way.
+  const includeTest = req.query.include_test === 'true';
   const { limit, offset } = pageParams(req, { def: 200, max: 1000 });
-  let pq = scopeToCouncil(req, supabase.from('ples')
-    .select('id, physician_id, status, turn_count, token_count, duration_seconds, started_at', { count: 'exact' }));
-  const { data: ples, count } = await pq.order('started_at').range(offset, offset + limit - 1);
+  let pq = supabase.from('ples')
+    .select('id, physician_id, status, turn_count, token_count, duration_seconds, started_at, is_test', { count: 'exact' });
+  if (!includeTest) pq = pq.eq('is_test', false);
+  pq = scopeToCouncil(req, pq);
+  const { data: ples, count, error: plesErr } = await pq.order('started_at').range(offset, offset + limit - 1);
+  if (sendDbError(res, plesErr)) return; // a DB error must not look like an empty research export
   const pleIds = (ples ?? []).map(p => p.id);
   const physIds = [...new Set((ples ?? []).map(p => p.physician_id))];
   const empty = Promise.resolve({ data: [] });
@@ -409,7 +431,7 @@ router.get('/export', async (req, res) => {
   const sessions = (ples ?? []).map(p => {
     const e = aiBy[p.id];
     return {
-      cle_id: p.id, physician: pseudo[p.physician_id] ?? null, status: p.status,
+      cle_id: p.id, physician: pseudo[p.physician_id] ?? null, status: p.status, is_test: p.is_test,
       turns: p.turn_count, tokens: p.token_count, duration_seconds: p.duration_seconds, started_at: p.started_at,
       ai_composite: e ? Number(e.composite_score) : null,
       ai_domains: e ? { d1: e.d1, d2: e.d2, d3: e.d3, d4: e.d4, d5: e.d5, d6: e.d6, d7: e.d7 } : null,

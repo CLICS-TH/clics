@@ -68,8 +68,8 @@ if (process.env.NODE_ENV !== 'test' && RECONCILE_INTERVAL_MS > 0) {
     if (sweeping) return console.log('[reconcile] previous sweep still in flight — skipping this run');
     sweeping = true;
     try {
-      const { stuck, recovered, failed } = await reconcileEvaluations();
-      console.log(`[reconcile] swept ${stuck} cle_pass session(s): recovered=${recovered} failed=${failed}`);
+      const { stuck, recovered, repaired, failed } = await reconcileEvaluations();
+      console.log(`[reconcile] swept ${stuck} cle_pass session(s): recovered=${recovered} repaired=${repaired} failed=${failed}`);
     } catch (err) {
       console.error(`[reconcile] sweep failed: ${err.message}`);
     } finally {
