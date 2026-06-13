@@ -6,7 +6,7 @@ const { computeTier1, clampDuration } = require('../services/cle-gate');
 const { rimplChat, rimplEvaluateCriteria } = require('../services/rimpl-client');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
 const { triggerEvaluation } = require('../services/ple-evaluation');
-const { effectiveLimit, accrueUsage } = require('../lib/usage');
+const { effectiveLimit, accrueUsage, reserveUsage, settleUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
 
 const router = Router();
 router.use(verifyJwt, requireRole('physician'));
@@ -166,6 +166,18 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
 
   const { message, language } = parsed.data;
 
+  // ATOMICALLY reserve this turn's estimated cost before the paid call — closes the parallel-turn
+  // TOCTOU where concurrent turns all passed requireBudget's stale read before any spend landed.
+  // Reconciled to the real cost on success; refunded on any failure below.
+  const limit = await effectiveLimit(req.user);
+  const reserved = await reserveUsage(req.user.id, limit);
+  if (!reserved) {
+    return res.status(403).json({
+      error: `AI usage limit reached ($${limit.toFixed(2)}). Contact an administrator.`,
+      code: 'budget_exceeded',
+    });
+  }
+
   let rimplResponse;
   try {
     rimplResponse = await rimplChat({
@@ -173,6 +185,7 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
       chief_complaint: ple.chief_complaint, // give the AI the case context
     });
   } catch (err) {
+    await refundUsage(req.user.id, RESERVE_ESTIMATE_USD); // no turn delivered — release the reservation
     return res.status(502).json({ error: `RIMPL unavailable: ${err.message}` });
   }
 
@@ -192,6 +205,7 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   // Don't pretend success if the turn wasn't saved — let the client retry.
   if (msgErr1 || msgErr2) {
     console.error('[ples] failed to persist message:', (msgErr1 || msgErr2).message);
+    await refundUsage(req.user.id, RESERVE_ESTIMATE_USD); // turn not saved — release the reservation
     return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
   }
 
@@ -205,8 +219,8 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   }).eq('id', req.params.id);
   if (counterErr) console.error('[ples] failed to update counters:', counterErr.message);
 
-  // Accrue the turn's real Claude cost to the physician's usage meter (atomic).
-  await accrueUsage(req.user.id, turnIn, turnOut);
+  // Settle the reservation to the turn's REAL Claude cost (adds actual − estimate + the real tokens).
+  await settleUsage(req.user.id, RESERVE_ESTIMATE_USD, turnIn, turnOut);
 
   res.json(rimplResponse);
 });

@@ -83,6 +83,10 @@ async function testAccountIds() {
     await supabase.from('ples').delete().in('id', realIds);
   }
   await wipe('access_requests');
+  // invites.created_by / professional_id reference professionals with NO on-delete action (RESTRICT),
+  // so the auth-user delete below CANNOT cascade-remove an invite-linked account (the FK blocks it and
+  // deleteUser fails silently). Invites are demo ACTIVITY (not config like councils) — wipe them.
+  await wipe('invites');
 
   // Accounts to keep = superadmin + everyone tied to a surviving test session.
   const all = await listAllUsers();

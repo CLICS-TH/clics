@@ -10,7 +10,7 @@ jest.mock('../src/lib/supabase', () => {
     single: () => Promise.resolve(mockSetting),
   };
   const profChain = (val) => {
-    const c = { select: () => c, eq: () => c, update: () => c, order: () => Promise.resolve({ data: [], error: null }), single: () => Promise.resolve(val) };
+    const c = { select: () => c, eq: () => c, update: () => c, order: () => Promise.resolve({ data: [], error: null }), single: () => Promise.resolve(val), maybeSingle: () => Promise.resolve(val) };
     return c;
   };
   return {

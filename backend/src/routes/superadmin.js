@@ -39,14 +39,16 @@ const UpdateUserSchema = z.object({
   can_audit: z.boolean().optional(),          // "special" dual role: physician + auditor rights
   council_id: z.string().uuid().optional(),   // move a member to another council
   // Per-user AI usage limit override ($). null clears the override -> the standard default applies.
-  usage_limit_usd: z.number().nonnegative().nullable().optional(),
+  // Bounded: the standard cap is $0.50 (~$0.012/turn), so a fat-fingered 500 (instead of 0.50) would
+  // silently un-cap a user — reject it.
+  usage_limit_usd: z.number().nonnegative().max(50).nullable().optional(),
 }).refine((b) => Object.keys(b).length > 0, { message: 'No fields to update' });
 
 const StatusSchema = z.object({ status: z.enum(['active', 'deactivated']) });
-const SlotSchema = z.object({ capacity: z.number().int().min(0) });
+const SlotSchema = z.object({ capacity: z.number().int().min(0).max(100000) });
 const UsageSettingsSchema = z.object({
-  standard_limit_usd: z.number().nonnegative().optional(),
-  api_budget_pool_usd: z.number().nonnegative().optional(),
+  standard_limit_usd: z.number().nonnegative().max(50).optional(),       // per-user default; sanity ceiling
+  api_budget_pool_usd: z.number().nonnegative().max(1_000_000).optional(), // org-wide pool; sanity ceiling
 }).refine((b) => Object.keys(b).length > 0, { message: 'No settings to update' });
 
 // GET /users moved to routes/admin.js (mounted first on the same /admin prefix): it is now
@@ -328,8 +330,9 @@ router.patch('/usage-settings', async (req, res) => {
 router.post('/users/:id/reset-usage', async (req, res) => {
   const { data, error } = await supabase.from('professionals')
     .update({ usage_cost_usd: 0, usage_input_tokens: 0, usage_output_tokens: 0 })
-    .eq('id', req.params.id).select('id, usage_cost_usd').single();
-  if (error || !data) return res.status(404).json({ error: 'User not found' });
+    .eq('id', req.params.id).select('id, usage_cost_usd').maybeSingle();
+  if (sendDbError(res, error)) return;              // a real DB/connectivity error is not "not found"
+  if (!data) return res.status(404).json({ error: 'User not found' });
   res.json(data);
 });
 

@@ -79,7 +79,10 @@ async function callClaude({ systemPrompt, messages, maxTokens = 1500 }) {
         // the anthropic-ratelimit-* headers to learn the binding dimension.
         const { data, response: httpResp } = await client.messages.create({ model: MODEL, max_tokens: maxTokens, system: systemPrompt, messages }).withResponse();
         logRateLimit(httpResp?.headers, 'ok');
-        const text = data.content[0]?.text ?? '';
+        // Join ALL text blocks, not just content[0]: a reply led by a non-text block (thinking/tool)
+        // would otherwise silently become '' and degrade the chat (blank reply) or the eval (composite 0).
+        // Select by .text presence so thinking/tool_use blocks (no .text) drop out.
+        const text = (data.content || []).filter(b => typeof b.text === 'string').map(b => b.text).join('');
         const inputTokens = data.usage?.input_tokens ?? 0;
         const outputTokens = data.usage?.output_tokens ?? 0;
         // tokenCount (summed) is kept for the C3 CLE gate; input/output are split out for cost.

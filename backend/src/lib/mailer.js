@@ -10,6 +10,11 @@ const ROLE_LABELS = {
   admin: 'ผู้ดูแลสภา / Council admin',
 };
 
+// Minimal HTML escaper for the one user-influenced value (council names are superadmin-set) that
+// lands in the email body — defense-in-depth against markup/phishing links in a council name.
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 let _transport = null;
 
 // Read env at CALL time (not module load) so tests and config reloads behave.
@@ -48,7 +53,10 @@ async function sendInviteEmail({ to, acceptUrl, role, can_audit, councilNameTh, 
   const specialTh = isSpecial ? ' (พร้อมสิทธิ์ผู้ตรวจประเมิน / Special)' : '';
   const specialEn = isSpecial ? ' (with auditor rights / Special)' : '';
   const council = [councilNameTh, councilNameEn].filter(Boolean).join(' / ') || '-';
-  const expiry = expiresAt ? new Date(expiresAt).toISOString().slice(0, 10) : '';
+  // Compute defensively: this runs BEFORE the try below, and the contract is "NEVER throws" — an
+  // invalid expiresAt must not reject the promise and fail invite creation.
+  let expiry = '';
+  try { if (expiresAt) expiry = new Date(expiresAt).toISOString().slice(0, 10); } catch { /* leave blank */ }
   const subject = `คำเชิญเข้าใช้งาน CLICS / Your CLICS invitation (${roleLabel}${specialTh})`;
   const text = [
     `คุณได้รับเชิญให้เข้าใช้งานระบบ CLICS ในบทบาท ${roleLabel}${specialTh}`,
@@ -61,8 +69,8 @@ async function sendInviteEmail({ to, acceptUrl, role, can_audit, councilNameTh, 
     acceptUrl,
   ].join('\n');
   const html = [
-    `<p>คุณได้รับเชิญให้เข้าใช้งานระบบ <strong>CLICS</strong> ในบทบาท <strong>${roleLabel}${specialTh}</strong><br/>สภาวิชาชีพ: ${council}</p>`,
-    `<p>You have been invited to <strong>CLICS</strong> as <strong>${roleLabel}${specialEn}</strong> (council: ${council}).</p>`,
+    `<p>คุณได้รับเชิญให้เข้าใช้งานระบบ <strong>CLICS</strong> ในบทบาท <strong>${roleLabel}${specialTh}</strong><br/>สภาวิชาชีพ: ${esc(council)}</p>`,
+    `<p>You have been invited to <strong>CLICS</strong> as <strong>${roleLabel}${specialEn}</strong> (council: ${esc(council)}).</p>`,
     `<p><a href="${acceptUrl}">ยืนยันตัวตนและเริ่มใช้งาน / Accept your invitation</a> (expires ${expiry})</p>`,
     `<p style="color:#666;font-size:12px">${acceptUrl}</p>`,
   ].join('\n');

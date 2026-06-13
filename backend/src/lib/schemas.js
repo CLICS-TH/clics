@@ -13,7 +13,9 @@ const ScoreSchema = z.object({
   d5: z.number().int().min(0).max(5),
   d6: z.number().int().min(0).max(5),
   d7: z.number().int().min(0).max(5),
-  notes: z.string().optional(),
+  // Bound the one free-text field (every other text field here is capped); otherwise an auditor
+  // could persist up to the 1mb body limit into audit_scores.notes.
+  notes: z.string().max(4000).optional(),
 });
 
 const CreatePleSchema = z.object({

@@ -18,7 +18,9 @@ router.use(verifyJwt, requireRole('admin', 'superadmin'));
 const INVITE_EXPIRY_DAYS = parseInt(process.env.INVITE_EXPIRY_DAYS || '7', 10);
 const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 const InviteSchema = z.object({
-  email: z.string().email(),
+  // Normalize case so the invites_one_pending unique index (case-sensitive text) can't be bypassed
+  // with Doc@x.com vs doc@x.com, and so accept-by-email matches consistently.
+  email: z.string().email().transform(e => e.trim().toLowerCase()),
   role: z.enum(['physician', 'auditor', 'admin']),
   // "Special" invite = physician + can_audit (dual role). Meaningless with role 'auditor'.
   can_audit: z.boolean().optional(),
@@ -44,7 +46,10 @@ router.get('/ples', async (req, res) => {
   // 'in_progress' is a UI bucket spanning three live statuses; others map 1:1. Filtered server-side
   // so pagination + the Stats drill-down stay correct (not just over already-loaded rows).
   const STATUS_BUCKETS = { in_progress: ['active', 'ended', 'cle_pass'] };
-  if (status) query = STATUS_BUCKETS[status] ? query.in('status', STATUS_BUCKETS[status]) : query.eq('status', status);
+  // Own-property lookup only — a crafted ?status=constructor/toString would otherwise resolve to an
+  // inherited Object.prototype function and 500 the query.
+  const bucket = status && Object.hasOwn(STATUS_BUCKETS, status) ? STATUS_BUCKETS[status] : null;
+  if (status) query = bucket ? query.in('status', bucket) : query.eq('status', status);
   // The PLE list is the assignment surface — test sessions MUST appear here so they can be
   // assigned/scored (feeding the audit system). They carry is_test so the UI can badge them;
   // pass ?only_real=true to hide them. Headline counts live in /stats + /icc (real-only there).
@@ -244,9 +249,12 @@ router.get('/users', async (req, res) => {
 router.get('/auditors', async (req, res) => {
   let query = supabase
     .from('professionals')
-    .select('id, full_name_th, full_name_en, role, can_audit')
+    .select('id, full_name_th, full_name_en, role, can_audit, council_id')
     .or('role.eq.auditor,can_audit.eq.true')
     .eq('status', 'active');
+  // Optional ?council= so a superadmin can pre-filter the assignment dropdown to the PLE's council
+  // (assignment requires same-council, so a mixed list otherwise offers auditors that 409 on assign).
+  if (typeof req.query.council === 'string' && req.query.council) query = query.eq('council_id', req.query.council);
   query = scopeToCouncil(req, query);   // admins only assign auditors from their own council
   const { data, error } = await query.order('full_name_th');
   if (sendDbError(res, error)) return;

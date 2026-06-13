@@ -11,7 +11,10 @@ const ALGO = 'aes-256-gcm';
 function key() {
   let secret = process.env.IDENTITY_ENC_KEY;
   if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
+    // Match the app-wide production definition (index.js / supabase.js): Railway sets
+    // RAILWAY_ENVIRONMENT but not necessarily NODE_ENV, so keying on NODE_ENV alone would let the
+    // insecure dev key slip through on a Railway box if this ran outside the boot env-check.
+    if (!!process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production') {
       throw new Error('IDENTITY_ENC_KEY is required in production (identity vault encryption key)');
     }
     console.warn('[crypto] IDENTITY_ENC_KEY unset — using an INSECURE dev key. Set it in prod.');

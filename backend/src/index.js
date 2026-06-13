@@ -7,7 +7,9 @@ const rateLimit = require('express-rate-limit');
 // and locked CORS all depend on these. Refuse to start without them rather than degrade silently.
 const IS_PROD = !!process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production';
 if (IS_PROD) {
-  const required = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_ANON_KEY', 'INTERNAL_TOKEN', 'GUEST_TOKEN_SECRET', 'IDENTITY_ENC_KEY', 'ALLOWED_ORIGINS'];
+  // RIMPL_URL + SITE_URL both silently fall back to localhost (rimpl-client.js / auth.js), so a
+  // missing one leaves /health green while every chat turn and every invite link is broken — fail fast.
+  const required = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_ANON_KEY', 'INTERNAL_TOKEN', 'GUEST_TOKEN_SECRET', 'IDENTITY_ENC_KEY', 'ALLOWED_ORIGINS', 'RIMPL_URL', 'SITE_URL'];
   const missing = required.filter(k => !process.env[k]);
   if (missing.length) throw new Error(`Refusing to start in production — missing env: ${missing.join(', ')}`);
 }
@@ -15,7 +17,8 @@ if (IS_PROD) {
 const app = express();
 app.set('trust proxy', 1); // behind Railway's proxy — required for correct per-IP rate limiting
 app.use(helmet());
-app.use(express.json({ limit: '1mb' })); // cap payloads (transcripts fit well under 1mb)
+// CORS BEFORE the body parser: a malformed JSON body throws inside express.json, and that 400 must
+// still carry CORS headers (set below) so the browser can read it instead of a bare network error.
 app.use((req, res, next) => {
   const allowed = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim())
@@ -33,6 +36,7 @@ app.use((req, res, next) => {
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
+app.use(express.json({ limit: '1mb' })); // cap payloads (transcripts fit well under 1mb); after CORS
 
 // Rate limits: a general cap + stricter caps on the abuse-prone endpoints (auth + the costly guest AI).
 const limit = (windowMs, max, message) => rateLimit({ windowMs, max, standardHeaders: true, legacyHeaders: false, message: { error: message } });
@@ -55,6 +59,16 @@ app.use('/ples', require('./routes/ples'));
 app.use('/admin', require('./routes/admin'));
 app.use('/auditor', require('./routes/auditor'));
 app.use('/admin', require('./routes/superadmin'));
+
+// JSON 404 + terminal error handler — keep every response JSON (a malformed body or an unmatched
+// route used to return Express's default HTML, which the cross-origin clients can't parse).
+app.use((req, res) => res.status(404).json({ error: 'Not found' }));
+// eslint-disable-next-line no-unused-vars -- Express needs the 4-arg signature to treat this as an error handler
+app.use((err, req, res, _next) => {
+  const status = err.type === 'entity.parse.failed' || err.status === 400 ? 400 : 500;
+  if (status === 500) console.error('[error]', err.message);
+  res.status(status).json({ error: status === 400 ? 'Invalid request body' : (IS_PROD ? 'Internal server error' : err.message) });
+});
 
 // Scheduled reconcile sweep (soak finding F1): sessions stranded at cle_pass with no AI evaluation
 // silently lose credit, and recovery was manual-only. Re-run the sweep every RECONCILE_INTERVAL_MS
@@ -80,7 +94,17 @@ if (process.env.NODE_ENV !== 'test' && RECONCILE_INTERVAL_MS > 0) {
 
 if (require.main === module) {
   const PORT = process.env.PORT || 3001;
-  app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+  const server = app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+  // Graceful shutdown: on a Railway redeploy, drain in-flight requests (a chat turn can run up to
+  // ~100s and the Anthropic cost is already incurred) instead of killing them mid-write. Hard-exit
+  // after a grace window so a stuck connection can't block the deploy forever.
+  const shutdown = (sig) => {
+    console.log(`${sig} received — draining connections`);
+    server.close(() => { console.log('drained — exiting'); process.exit(0); });
+    setTimeout(() => { console.error('drain timed out — forcing exit'); process.exit(1); }, 15_000).unref();
+  };
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
 module.exports = app;

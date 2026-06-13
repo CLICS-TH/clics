@@ -62,6 +62,10 @@ create table public.app_settings (
   value      numeric not null,
   updated_at timestamptz default now()
 );
+-- Seed the org standard usage limit so a FRESH install matches migrated prod (migration-usage-limits.sql)
+-- — otherwise standardLimit() silently falls back to the code default and the superadmin settings read 0.
+insert into public.app_settings (key, value) values ('standard_usage_limit_usd', 0.50)
+on conflict (key) do nothing;
 -- Exactly one superadmin, ever (DB-level guarantee; the API also blocks every 2nd-superadmin path).
 create unique index if not exists professionals_single_superadmin
   on public.professionals ((role)) where role = 'superadmin';
@@ -74,6 +78,11 @@ create table public.role_slots (
   capacity   int not null check (capacity >= 0),
   updated_at timestamptz default now()
 );
+-- Seed defaults so a FRESH install matches migrated prod (migration-accounts.sql) instead of
+-- 500-ing PATCH /admin/slots/:role on an empty table.
+insert into public.role_slots (role, capacity) values
+  ('superadmin', 1), ('admin', 5), ('physician', 100), ('auditor', 20)
+on conflict (role) do nothing;
 
 -- Per-council capacity for the small governed pools (admin/auditor). See db/migration-councils.sql.
 create table public.council_slots (
@@ -565,6 +574,11 @@ create index if not exists audit_scores_auditor_idx               on public.audi
 create index if not exists lpdp_snapshots_physician_idx           on public.lpdp_snapshots(physician_id);
 create index if not exists professionals_created_idx              on public.professionals(created_at);
 create index if not exists ples_created_idx                       on public.ples(created_at);
+-- Hot filters that previously had no index: the auditor queue (auditor_id + status='evaluated'),
+-- the reconcile sweep + stats (status), and the LPDP/purge lookups by ple_id.
+create index if not exists ples_auditor_idx                       on public.ples(auditor_id);
+create index if not exists ples_status_idx                        on public.ples(status);
+create index if not exists lpdp_snapshots_ple_idx                 on public.lpdp_snapshots(ple_id);
 
 create sequence if not exists public.pseudonym_seq;
 select setval('public.pseudonym_seq',
