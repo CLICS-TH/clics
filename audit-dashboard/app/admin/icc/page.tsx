@@ -15,7 +15,9 @@ export default function IccPage() {
     // /admin/icc is superadmin-only (the API 403s silently otherwise) — same client gate
     // as /admin/overview: everyone else lands back on /home.
     if (getUser()?.role !== 'superadmin') { router.push('/home'); return; }
-    apiFetch<any>('/admin/icc').then(setData);
+    // .catch so a network failure renders the "no data" branch instead of stranding on the skeleton
+    // forever (the error boundary doesn't catch async-effect rejections). Sibling overview/stats catch too.
+    apiFetch<any>('/admin/icc').then(setData).catch(() => setData({ overall: null }));
   }, [router]);
 
   if (!data) return (

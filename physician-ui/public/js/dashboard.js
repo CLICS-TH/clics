@@ -385,11 +385,18 @@ newFolderForm.addEventListener('submit', async (e) => {
 // ----- load -----
 async function load() {
   const [f, p] = await Promise.all([api.getFolders(), api.getPlEs()]);
-  folders = Array.isArray(f) ? f : [];
-  ples = Array.isArray(p) ? p : [];
+  // An error envelope ({error}) is NOT an empty result. Coercing it to [] used to render the
+  // "ยังไม่มี PLE / No episodes yet" empty state on a 502/network blip — telling a physician with a
+  // full history they have nothing. Show the error + Retry instead; only render empty on a real [].
+  if (!Array.isArray(f) || !Array.isArray(p)) {
+    listEl.innerHTML = '<p class="error-msg">โหลดข้อมูลไม่สำเร็จ กรุณารีเฟรช / Could not load your episodes. Please refresh.</p>';
+    return;
+  }
+  folders = f;
+  ples = p;
   render();
 }
 
 load().catch(() => {
-  listEl.innerHTML = '<p class="error-msg">โหลดข้อมูลไม่สำเร็จ</p>';
+  listEl.innerHTML = '<p class="error-msg">โหลดข้อมูลไม่สำเร็จ กรุณารีเฟรช / Could not load your episodes. Please refresh.</p>';
 });

@@ -72,7 +72,11 @@ async function start() {
     sendBtn.disabled = false;
     inputEl.focus();
   } else {
-    renderMessage('assistant', '⚠️ ไม่สามารถเริ่มเซสชันผู้เยี่ยมชมได้ กรุณาลองใหม่ / Could not start a guest session.');
+    // Don't dead-end with the send button stuck disabled and no session — tell the guest how to retry.
+    const busy = res.status === 429 || res.status === 503;
+    renderMessage('assistant', busy
+      ? '⚠️ ระบบทดลองใช้งานไม่ว่างขณะนี้ กรุณารีเฟรชเพื่อลองใหม่ / The trial is busy right now — please refresh to try again.'
+      : '⚠️ ไม่สามารถเริ่มเซสชันผู้เยี่ยมชมได้ กรุณารีเฟรช / Could not start a guest session — please refresh to try again.');
   }
 }
 

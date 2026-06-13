@@ -59,17 +59,38 @@
       if (card) card.style.display = 'none';
       document.getElementById('noData').style.display = 'block';
     }
+    // A FETCH FAILURE is not "no data yet" — don't tell a physician with evaluated PLEs to "go pass a
+    // PLE." Show a distinct, retryable error instead.
+    function showError() {
+      const card = document.querySelector('.card');
+      if (card) card.style.display = 'none';
+      const nd = document.getElementById('noData');
+      nd.textContent = 'โหลดข้อมูลความก้าวหน้าไม่สำเร็จ กรุณารีเฟรช / Could not load your progress. Please refresh.';
+      nd.style.display = 'block';
+    }
     function loadLpdp() {
       fetch(`${window.CLICS_API_URL || 'http://localhost:3001'}/ples/lpdp/me`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('clics_token')}` }
       })
-      .then(r => { if (!r.ok) { if (r.status === 401) { localStorage.clear(); window.location.href = '/'; } throw new Error('Failed'); } return r.json(); })
+      .then(r => {
+        if (r.status === 401) {
+          // Preserve display prefs across the forced re-login (mirror js/api.js) — only the session dies.
+          const theme = localStorage.getItem('clics_theme'), view = localStorage.getItem('clics_view');
+          localStorage.clear();
+          if (theme) localStorage.setItem('clics_theme', theme);
+          if (view) localStorage.setItem('clics_view', view);
+          window.location.href = '/';
+          throw new Error('auth');
+        }
+        if (!r.ok) throw new Error('http ' + r.status);
+        return r.json();
+      })
       .then(data => {
         if (!data?.length) { showEmpty(); return; }
         lpdpData = data;
         buildLine();
       })
-      .catch(() => { showEmpty(); });
+      .catch((e) => { if (e && e.message === 'auth') return; showError(); });
     }
     window.addEventListener('DOMContentLoaded', loadLpdp);
   </script>

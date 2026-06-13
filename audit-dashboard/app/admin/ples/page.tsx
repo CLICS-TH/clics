@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { apiFetch, apiFetchPaged } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,10 +21,15 @@ export default function AdminPlesPage() {
   // Fetch one page (newest-first), filtered SERVER-side by the active status, then append (offset>0)
   // or replace (offset 0). The backend maps the 'in_progress' bucket to its three live statuses, so
   // a Stats drill-down stays correct across pages (not just over already-loaded rows).
+  // Monotonic request token: a fast filter change (or Load-more mid-change) fires overlapping GETs;
+  // only the most recently-issued one may apply, so a slow stale response can't overwrite the list.
+  const reqSeq = useRef(0);
   async function loadPage(offset: number) {
+    const my = ++reqSeq.current;
     const qs = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
     if (filter) qs.set('status', filter);
     const { items, total } = await apiFetchPaged<any>(`/admin/ples?${qs.toString()}`);
+    if (my !== reqSeq.current) return; // superseded by a newer filter/page — drop this response
     setTotal(total);
     setPlEs(prev => (offset === 0 ? items : [...prev, ...items]));
   }

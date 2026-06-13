@@ -100,6 +100,7 @@ async function sendMessage() {
     document.getElementById('tokens').textContent = tokens;
   } else if (res?.code === 'budget_exceeded') {
     renderMessage('assistant', '⚠️ ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ คุณยังสามารถจบเซสชันนี้ได้ / AI usage limit reached — contact an administrator. You can still end this session.', [], null);
+    input.value = message; // don't discard the question they typed — restore it (consistent w/ the error branch)
   } else {
     // The turn failed — RESTORE the physician's text (it was cleared on send) so they can retry
     // without retyping the whole clinical question.
@@ -120,16 +121,25 @@ document.getElementById('endBtn').addEventListener('click', async () => {
   endBtn.disabled = true;
   endBtn.textContent = 'กำลังประมวลผล... / Finishing…';
   const res = await api.endPle(pleId, { active_seconds: activeSeconds });
-  // Only navigate on a CONFIRMED terminal status. On failure (network {error}, 409/400, 5xx) keep the
-  // timer running, re-enable the button, and let the physician retry — don't strand them on a
-  // dead-end result page with the engagement time lost.
-  const TERMINAL = ['cle_pass', 'cle_fail_t1', 'cle_flag_t2'];
+  // Navigate on any status that means the session is DONE from the physician's view ('ended' = tier-2
+  // pending — reconcile finishes it; the result page shows "evaluating…"). On a genuine failure keep
+  // the timer running and let them retry — don't strand them with the engagement time lost.
+  const TERMINAL = ['cle_pass', 'cle_fail_t1', 'cle_flag_t2', 'ended', 'evaluated'];
   if (res && TERMINAL.includes(res.status)) {
     clearInterval(timerInterval);
     window.location.href = `/ple-result?id=${pleId}`;
-  } else {
-    alert(res && res.error ? `จบไม่สำเร็จ / Could not finish: ${res.error}` : 'จบไม่สำเร็จ กรุณาลองใหม่ / Could not finish — please try again.');
-    endBtn.disabled = false;
-    endBtn.textContent = origLabel;
+    return;
   }
+  // The response may have been LOST after the server already finished (a network drop on the way back).
+  // Re-query: if the session is no longer active, it WAS finished — route to the result instead of
+  // stranding the physician on a button that now 400s 'PLE not active' on every retry.
+  const check = await api.getPle(pleId).catch(() => null);
+  if (check && !check.error && check.status && check.status !== 'active') {
+    clearInterval(timerInterval);
+    window.location.href = `/ple-result?id=${pleId}`;
+    return;
+  }
+  alert(res && res.error ? `จบไม่สำเร็จ / Could not finish: ${res.error}` : 'จบไม่สำเร็จ กรุณาลองใหม่ / Could not finish — please try again.');
+  endBtn.disabled = false;
+  endBtn.textContent = origLabel;
 });

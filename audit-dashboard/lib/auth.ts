@@ -12,7 +12,16 @@ export interface ClicsUser {
 export function getUser(): ClicsUser | null {
   if (typeof window === 'undefined') return null;
   const raw = localStorage.getItem('clics_user');
-  return raw ? JSON.parse(raw) : null;
+  if (!raw) return null;
+  // Guard the parse: a corrupt clics_user (truncated write, manual tampering) would otherwise throw
+  // on every render and trap the page behind the error boundary (whose Retry just re-throws). Drop
+  // the bad value and treat the user as logged-out instead.
+  try {
+    return JSON.parse(raw) as ClicsUser;
+  } catch {
+    localStorage.removeItem('clics_user');
+    return null;
+  }
 }
 
 // The single "may this user audit?" predicate — an auditor, or a physician with can_audit

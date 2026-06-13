@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { apiFetch, apiFetchPaged } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -93,18 +93,28 @@ export default function UsersPage() {
     return qs.toString();
   };
 
+  // Monotonic request token: rapid filter/search changes (and a Load-more mid-change) fire overlapping
+  // GETs; if an earlier/slower one resolves last it would overwrite the current filter's list with
+  // stale rows. Only the most recently-issued request is allowed to apply its result.
+  const reqSeq = useRef(0);
+
   // Fetch one page (newest-first) and append, or replace from offset 0.
-  const loadUsersPage = (offset: number) =>
-    apiFetchPaged<User>(`/admin/users?${usersQS(PAGE_SIZE, offset)}`).then(({ items, total }) => {
+  const loadUsersPage = (offset: number) => {
+    const my = ++reqSeq.current;
+    return apiFetchPaged<User>(`/admin/users?${usersQS(PAGE_SIZE, offset)}`).then(({ items, total }) => {
+      if (my !== reqSeq.current) return; // a newer filter/search superseded this response — drop it
       setTotal(total);
       setUsers(prev => (offset === 0 ? items : [...prev, ...items]));
     });
+  };
 
   // Reload the currently-loaded range from the top so mutations don't drop rows
   // (used by create/edit/status/reset handlers below).
   const loadUsers = () => {
+    const my = ++reqSeq.current;
     const count = Math.min(Math.max(users.length, PAGE_SIZE), 200);
     return apiFetchPaged<User>(`/admin/users?${usersQS(count, 0)}`).then(({ items, total }) => {
+      if (my !== reqSeq.current) return;
       setTotal(total);
       setUsers(items);
     });
@@ -382,13 +392,19 @@ export default function UsersPage() {
       {isSuper && (<>
       <div className={`grid gap-3 mb-6 ${mobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
         {slots.map(s => {
-          const locked = s.role === 'superadmin';
-          const full = s.remaining <= 0;
+          // admin/auditor capacity is enforced PER-COUNCIL (council_slots), so the global pool is
+          // display-only for them — lock the edit here (the backend rejects it too) and point at the
+          // per-council panel below. Only superadmin (global singleton) stays locked for being fixed.
+          const perCouncil = s.role === 'admin' || s.role === 'auditor';
+          const locked = s.role === 'superadmin' || perCouncil;
+          const full = !perCouncil && s.remaining <= 0; // the cross-council aggregate isn't a real 'full'
           return (
             <div key={s.role} className="rounded-xl border border-border p-4">
               <p className="text-sm font-medium">{ROLE_LABELS[s.role] ?? s.role}</p>
               <p className={`text-2xl font-semibold tabular-nums mt-1 ${full ? 'text-destructive' : ''}`}>{s.used}<span className="text-muted-foreground text-base">/{s.capacity}</span></p>
-              <p className="text-xs text-muted-foreground">เหลือ {s.remaining} ช่อง / {s.remaining} left</p>
+              <p className="text-xs text-muted-foreground">
+                {perCouncil ? 'ตั้งค่าต่อสภาด้านล่าง / set per-council below' : `เหลือ ${s.remaining} ช่อง / ${s.remaining} left`}
+              </p>
               <div className="flex items-center gap-1.5 mt-2">
                 <input type="number" min={0} disabled={locked}
                   className="flex-1 min-w-0 border rounded-md px-2 py-1 text-sm bg-background disabled:opacity-50"

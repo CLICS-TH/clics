@@ -118,11 +118,14 @@ export default function OverviewPage() {
                 (same pattern as components/LpdpChart.tsx). */}
             <div className="rounded-xl border p-5">
               <h3 className="mb-3 font-semibold">ICC รายโดเมน / Per-domain (d1–d7)</h3>
+              {/* text-muted-foreground sets `color`, so currentColor grid/ticks track the theme
+                  (mirror components/LpdpChart.tsx) — the hardcoded light hex was invisible in dark mode. */}
+              <div className="text-muted-foreground">
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={domainData}>
-                  <CartesianGrid stroke="#e6dfd8" />
-                  <XAxis dataKey="domain" tick={{ fill: '#6c6a64', fontSize: 11 }} />
-                  <YAxis domain={[0, 1]} tick={{ fill: '#6c6a64', fontSize: 11 }} />
+                  <CartesianGrid stroke="currentColor" strokeOpacity={0.18} />
+                  <XAxis dataKey="domain" tick={{ fill: 'currentColor', fontSize: 11 }} />
+                  <YAxis domain={[0, 1]} tick={{ fill: 'currentColor', fontSize: 11 }} />
                   <Tooltip />
                   <ReferenceLine y={0.75} stroke="#e8a55a" strokeDasharray="4 4" label="เกณฑ์ 0.75" />
                   <Bar dataKey="icc" radius={[4, 4, 0, 0]}>
@@ -132,6 +135,7 @@ export default function OverviewPage() {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
+              </div>
             </div>
           </div>
         )}

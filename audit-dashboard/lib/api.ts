@@ -17,19 +17,33 @@ function redirectToLogin(): void {
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
-  const res = await fetch(`${BASE}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers ?? {}),
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers ?? {}),
+      },
+    });
+  } catch {
+    // Never REJECT on a network failure — callers check `.error`, so an envelope keeps action buttons
+    // (Approve/Reject/Create…) from stranding disabled. Mirrors apiFetchPaged's non-throwing contract.
+    return { error: 'เครือข่ายขัดข้อง กรุณาลองใหม่ / Network error. Please try again.' } as unknown as T;
+  }
   if (res.status === 401 && typeof window !== 'undefined') {
     redirectToLogin();
     return undefined as unknown as T; // stop here — the page is navigating away
   }
-  return res.json() as Promise<T>;
+  // Resolve an {error} envelope instead of THROWING when the body isn't JSON (a Railway proxy 502/504
+  // returns an HTML page). An unguarded res.json() reject left action buttons (e.g. invite Create)
+  // stranded disabled forever; callers check `.error`, so an envelope re-enables them cleanly.
+  const body = await res.json().catch(() => null);
+  if (body == null) {
+    return { error: 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณาลองใหม่ / The server did not respond. Please try again.' } as unknown as T;
+  }
+  return body as T;
 }
 
 // Paged fetch: returns the JSON array body plus the total row count from the
