@@ -1,14 +1,17 @@
-// The reconcile sweep (soak finding F1): a cle_pass session with NO ai_evaluations row must be
-// re-evaluated; one WITH an ai row is a PARTIAL persist (score landed, status/snapshot never did) and
-// must be REPAIRED in place (no paid re-eval); one failed re-evaluation must not abort the sweep.
+// The reconcile sweep recovers sessions stranded short of a terminal status:
+//   * cle_pass with NO ai_evaluations row → re-evaluate (recovered);
+//   * cle_pass WITH an ai row → PARTIAL persist, repair in place, no paid re-eval (repaired);
+//   * 'ended' (tier-1 passed, tier-2 never finished) → finish screening via finalizeScreening (recovered);
+//   * a DETERMINISTIC eval failure (502 bad output) → route to manual QA (flagged), don't loop forever;
+//   * a transient failure / empty transcript → counted failed, sweep continues.
 // (jest requires factory-referenced vars to be `mock`-prefixed.)
-let mockPles;   // rows returned for the status='cle_pass' sweep query
+let mockPles;   // rows returned for the sweep query
 let mockEvals;  // ple_id -> existing ai_evaluations row (absence = stranded; presence = partial persist)
 let mockMsgs;   // ple_id -> message rows
 let mockWrites; // captured insert/update ops for assertions
 
-// Table-aware thenable mock: ples sweep ends in .order().limit(); ai_evaluations in .maybeSingle();
-// messages in .order(); lpdp_snapshots .insert() and the ples status .update().eq() are awaited via .then.
+// Table-aware thenable mock: ples sweep ends in .in().lt().order().limit(); ai_evaluations in
+// .maybeSingle(); messages in .order(); inserts/updates are captured.
 jest.mock('../src/lib/supabase', () => ({
   supabase: {
     from: (table) => {
@@ -18,6 +21,8 @@ jest.mock('../src/lib/supabase', () => ({
         update: (p) => { op = 'update'; payload = p; return c; },
         insert: (p) => { op = 'insert'; payload = p; mockWrites.push({ table, op, payload }); return Promise.resolve({ error: null }); },
         eq: (col, val) => { if (col === 'ple_id') pleId = val; return c; },
+        in: () => c,
+        lt: () => c,
         order: () => c,
         limit: () => Promise.resolve({ data: mockPles, error: null }),
         maybeSingle: () => Promise.resolve({ data: mockEvals[pleId] ?? null, error: null }),
@@ -33,8 +38,13 @@ jest.mock('../src/lib/supabase', () => ({
 }));
 
 jest.mock('../src/services/ple-evaluation', () => ({ triggerEvaluation: jest.fn() }));
+jest.mock('../src/services/cle-finalize', () => ({ finalizeScreening: jest.fn() }));
+jest.mock('../src/services/rimpl-client', () => ({
+  isDeterministicRimplError: (e) => e && [400, 401, 403, 422, 502].includes(e.status),
+}));
 
 const { triggerEvaluation } = require('../src/services/ple-evaluation');
+const { finalizeScreening } = require('../src/services/cle-finalize');
 const { reconcileEvaluations } = require('../src/services/reconcile');
 
 beforeEach(() => {
@@ -43,10 +53,11 @@ beforeEach(() => {
   mockMsgs = {};
   mockWrites = [];
   triggerEvaluation.mockReset().mockResolvedValue(undefined);
+  finalizeScreening.mockReset().mockResolvedValue({ status: 'cle_pass', criteria: {} });
 });
 
 test('a stranded cle_pass session (no eval row) gets re-evaluated and counts as recovered', async () => {
-  mockPles = [{ id: 'ple1', physician_id: 'doc1' }];
+  mockPles = [{ id: 'ple1', physician_id: 'doc1', status: 'cle_pass' }];
   mockMsgs = { ple1: [{ role: 'physician', content: 'chest pain workup' }, { role: 'assistant', content: 'tell me more' }] };
   const result = await reconcileEvaluations();
   expect(triggerEvaluation).toHaveBeenCalledTimes(1);
@@ -55,33 +66,56 @@ test('a stranded cle_pass session (no eval row) gets re-evaluated and counts as 
     [{ role: 'physician', content: 'chest pain workup' }, { role: 'assistant', content: 'tell me more' }],
     'doc1'
   );
-  expect(result).toEqual({ stuck: 1, recovered: 1, repaired: 0, failed: 0 });
+  expect(result).toEqual({ stuck: 1, recovered: 1, repaired: 0, flagged: 0, failed: 0 });
+});
+
+test("a stranded 'ended' session finishes tier-2 via finalizeScreening (recovered)", async () => {
+  mockPles = [{ id: 'pleE', physician_id: 'doc1', status: 'ended', c1_pass: true, c2_pass: true, c3_pass: true }];
+  mockMsgs = { pleE: [{ role: 'physician', content: 'x' }, { role: 'assistant', content: 'y' }] };
+  const result = await reconcileEvaluations();
+  expect(finalizeScreening).toHaveBeenCalledTimes(1);
+  expect(finalizeScreening).toHaveBeenCalledWith(expect.objectContaining({
+    pleId: 'pleE', physicianId: 'doc1', tier1: { c1: true, c2: true, c3: true },
+  }));
+  expect(triggerEvaluation).not.toHaveBeenCalled();
+  expect(result).toEqual({ stuck: 1, recovered: 1, repaired: 0, flagged: 0, failed: 0 });
 });
 
 test('a PARTIAL persist (ai row exists, still cle_pass) is REPAIRED with no paid re-eval', async () => {
-  mockPles = [{ id: 'ple1', physician_id: 'doc1' }];
+  mockPles = [{ id: 'ple1', physician_id: 'doc1', status: 'cle_pass' }];
+  mockMsgs = { ple1: [{ role: 'physician', content: 'x' }] };
   mockEvals = { ple1: { d1: 3, d2: 3, d3: 3, d4: 3, d5: 3, d6: 3, d7: 3, composite_score: 60 } };
   const result = await reconcileEvaluations();
   expect(triggerEvaluation).not.toHaveBeenCalled();           // never pays for a re-evaluation
   expect(mockWrites.some(w => w.table === 'lpdp_snapshots' && w.op === 'insert')).toBe(true); // snapshot backfilled
   expect(mockWrites.some(w => w.table === 'ples' && w.op === 'update' && w.payload.status === 'evaluated')).toBe(true);
-  expect(result).toEqual({ stuck: 1, recovered: 0, repaired: 1, failed: 0 });
+  expect(result).toEqual({ stuck: 1, recovered: 0, repaired: 1, flagged: 0, failed: 0 });
 });
 
-test('a triggerEvaluation throw counts as failed and the sweep continues to the next session', async () => {
-  mockPles = [{ id: 'ple1', physician_id: 'doc1' }, { id: 'ple2', physician_id: 'doc2' }];
+test('a transient triggerEvaluation throw counts as failed and the sweep continues', async () => {
+  mockPles = [{ id: 'ple1', physician_id: 'doc1', status: 'cle_pass' }, { id: 'ple2', physician_id: 'doc2', status: 'cle_pass' }];
   mockMsgs = { ple1: [{ role: 'physician', content: 'x' }], ple2: [{ role: 'physician', content: 'y' }] };
   triggerEvaluation.mockImplementation((pleId) =>
     pleId === 'ple1' ? Promise.reject(new Error('RIMPL down')) : Promise.resolve());
   const result = await reconcileEvaluations();
   expect(triggerEvaluation).toHaveBeenCalledTimes(2); // ple2 still attempted after ple1 failed
-  expect(result).toEqual({ stuck: 2, recovered: 1, repaired: 0, failed: 1 });
+  expect(result).toEqual({ stuck: 2, recovered: 1, repaired: 0, flagged: 0, failed: 1 });
+});
+
+test('a DETERMINISTIC eval failure (502) routes the session to manual QA (flagged), not an infinite retry', async () => {
+  mockPles = [{ id: 'pleD', physician_id: 'doc1', status: 'cle_pass' }];
+  mockMsgs = { pleD: [{ role: 'physician', content: 'x' }] };
+  triggerEvaluation.mockImplementation(() => { const e = new Error('bad output'); e.status = 502; return Promise.reject(e); });
+  const result = await reconcileEvaluations();
+  expect(mockWrites.some(w => w.table === 'ples' && w.op === 'update' && w.payload.status === 'cle_flag_t2')).toBe(true);
+  expect(result).toEqual({ stuck: 1, recovered: 0, repaired: 0, flagged: 1, failed: 0 });
 });
 
 test('an empty/failed transcript is skipped (not scored) and counted as failed', async () => {
-  mockPles = [{ id: 'ple1', physician_id: 'doc1' }];
+  mockPles = [{ id: 'ple1', physician_id: 'doc1', status: 'cle_pass' }];
   mockMsgs = { ple1: [] }; // no messages — must NOT evaluate an empty transcript into a bogus score
   const result = await reconcileEvaluations();
   expect(triggerEvaluation).not.toHaveBeenCalled();
-  expect(result).toEqual({ stuck: 1, recovered: 0, repaired: 0, failed: 1 });
+  expect(finalizeScreening).not.toHaveBeenCalled();
+  expect(result).toEqual({ stuck: 1, recovered: 0, repaired: 0, flagged: 0, failed: 1 });
 });

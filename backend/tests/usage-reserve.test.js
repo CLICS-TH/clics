@@ -18,33 +18,47 @@ const { costUsd } = require('../src/lib/pricing');
 
 beforeEach(() => { mockReserve = { data: true, error: null }; mockIncrementCalls = []; });
 
-test('reserveUsage returns true when the meter is under budget', async () => {
+test('reserveUsage returns {ok,applied}=true/true when under budget (estimate applied)', async () => {
   mockReserve = { data: true, error: null };
-  await expect(reserveUsage('u1', 0.5)).resolves.toBe(true);
+  await expect(reserveUsage('u1', 0.5)).resolves.toEqual({ ok: true, applied: true });
 });
 
-test('reserveUsage returns false when over budget (turn blocked)', async () => {
+test('reserveUsage returns ok:false when over budget (turn blocked, nothing applied)', async () => {
   mockReserve = { data: false, error: null };
-  await expect(reserveUsage('u1', 0.5)).resolves.toBe(false);
+  await expect(reserveUsage('u1', 0.5)).resolves.toEqual({ ok: false, applied: false });
 });
 
-test('reserveUsage fails OPEN on an rpc error — never blocks a turn on a metering fault', async () => {
+test('reserveUsage fails OPEN on an rpc error but reports applied:false (estimate NOT added)', async () => {
   mockReserve = { data: null, error: { message: 'reserve_usage not found (pre-migration)' } };
-  await expect(reserveUsage('u1', 0.5)).resolves.toBe(true);
+  await expect(reserveUsage('u1', 0.5)).resolves.toEqual({ ok: true, applied: false });
 });
 
-test('settleUsage reconciles the reservation to the real cost (delta = actual − estimate)', async () => {
-  await settleUsage('u1', RESERVE_ESTIMATE_USD, 1000, 500);
+test('settleUsage(applied=true) reconciles to the real cost (delta = actual − estimate)', async () => {
+  await settleUsage('u1', RESERVE_ESTIMATE_USD, 1000, 500, true);
   expect(mockIncrementCalls).toHaveLength(1);
   expect(mockIncrementCalls[0].p_cost).toBeCloseTo(costUsd(1000, 500) - RESERVE_ESTIMATE_USD, 9);
   expect(mockIncrementCalls[0].p_in).toBe(1000);
   expect(mockIncrementCalls[0].p_out).toBe(500);
 });
 
-test('refundUsage releases the reservation (negative cost, no tokens)', async () => {
-  await refundUsage('u1', RESERVE_ESTIMATE_USD);
+// THE F1 REGRESSION GUARD: when reserve failed open (estimate never applied), settle must add the
+// FULL actual — NOT actual − estimate — or the meter runs negative every turn and the cap is defeated.
+test('settleUsage(applied=false) adds the FULL actual — meter never runs backwards', async () => {
+  await settleUsage('u1', RESERVE_ESTIMATE_USD, 1000, 500, false);
+  expect(mockIncrementCalls).toHaveLength(1);
+  expect(mockIncrementCalls[0].p_cost).toBeCloseTo(costUsd(1000, 500), 9);
+  expect(mockIncrementCalls[0].p_cost).toBeGreaterThan(0);
+});
+
+test('refundUsage(applied=true) releases the reservation (negative cost, no tokens)', async () => {
+  await refundUsage('u1', RESERVE_ESTIMATE_USD, true);
   expect(mockIncrementCalls).toHaveLength(1);
   expect(mockIncrementCalls[0].p_cost).toBeCloseTo(-RESERVE_ESTIMATE_USD, 9);
   expect(mockIncrementCalls[0].p_in).toBe(0);
   expect(mockIncrementCalls[0].p_out).toBe(0);
+});
+
+test('refundUsage(applied=false) is a no-op — nothing was reserved to release', async () => {
+  await refundUsage('u1', RESERVE_ESTIMATE_USD, false);
+  expect(mockIncrementCalls).toHaveLength(0);
 });

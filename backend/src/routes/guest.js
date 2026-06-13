@@ -36,6 +36,11 @@ router.post('/message', async (req, res) => {
 
   const reserve = consumeGuestPrompt(verified.sessionId);
   if (!reserve.ok) {
+    // The aggregate hourly guest ceiling is a transient brake (try again later), not a per-session
+    // terminal state — surface it as 503 so the client can retry, distinct from ended/expired (403).
+    if (reserve.reason === 'global_cap') {
+      return res.status(503).json({ error: 'Guest trial is busy right now — please try again later or request an account.', reason: 'global_cap' });
+    }
     const msg = reserve.reason === 'ended'
       ? `Guest session ended (max ${MAX_PROMPTS} prompts). Request an account to continue.`
       : 'Guest session expired. Start a new one.';

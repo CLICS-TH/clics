@@ -9,7 +9,7 @@ jest.mock('../src/services/rimpl-client', () => ({
 const express = require('express');
 const request = require('supertest');
 const { rimplChat } = require('../src/services/rimpl-client');
-const { startGuestSession, verifyGuestToken, consumeGuestPrompt } = require('../src/lib/guest');
+const { startGuestSession, verifyGuestToken, consumeGuestPrompt, GUEST_HOURLY_PROMPT_CAP, _resetGuestBudget } = require('../src/lib/guest');
 
 const app = express();
 app.use(express.json());
@@ -75,5 +75,25 @@ describe('guest route', () => {
     const r = await request(app).post('/guest/message')
       .set('Authorization', 'Bearer not.a.token').send({ message: 'x' });
     expect(r.status).toBe(401);
+  });
+});
+
+describe('guest aggregate AI-spend brake (F2)', () => {
+  test('total prompts across fresh sessions are capped at GUEST_HOURLY_PROMPT_CAP', () => {
+    _resetGuestBudget();
+    let consumed = 0, capped = false;
+    // Mint unlimited fresh sessions (each free) and spend until the GLOBAL ceiling trips — proving
+    // the per-session 2-prompt cap is no longer the only bound on guest Claude spend.
+    for (let i = 0; i < GUEST_HOURLY_PROMPT_CAP + 50 && !capped; i++) {
+      const { session_id } = startGuestSession();
+      for (let j = 0; j < 2; j++) {
+        const r = consumeGuestPrompt(session_id);
+        if (r.ok) consumed++;
+        else if (r.reason === 'global_cap') { capped = true; break; }
+      }
+    }
+    expect(capped).toBe(true);
+    expect(consumed).toBe(GUEST_HOURLY_PROMPT_CAP);
+    _resetGuestBudget(); // don't starve other suites
   });
 });

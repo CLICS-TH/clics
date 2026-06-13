@@ -99,6 +99,16 @@ describe('stripPii — personal NAMES (Thai honorific-led)', () => {
   test('masks คุณ + name', () => {
     expect(stripPii('คุณมานี มาตามนัด')).toBe('คุณ[NAME-1] มาตามนัด');
   });
+
+  // F3: the SPELLED-OUT pediatric titles (the common written form) must mask the child's name —
+  // previously only the abbreviations ด.ช./ด.ญ. did, so "เด็กชายสมศักดิ์" leaked the name to the cloud.
+  test('masks spelled-out เด็กชาย (boy) + name', () => {
+    expect(stripPii('เด็กชายสมศักดิ์ อายุ 8 ปี มีไข้')).toBe('เด็กชาย[NAME-1] [AGE-1] มีไข้');
+  });
+
+  test('masks spelled-out เด็กหญิง (girl) + name', () => {
+    expect(stripPii('เด็กหญิงสมศรี มาด้วยอาการไอ')).toBe('เด็กหญิง[NAME-1] มาด้วยอาการไอ');
+  });
 });
 
 describe('stripPii — personal NAMES (Thai labelled ชื่อ / นามสกุล)', () => {
@@ -108,6 +118,14 @@ describe('stripPii — personal NAMES (Thai labelled ชื่อ / นามส
 
   test('masks ชื่อ + given name alone', () => {
     expect(stripPii('ชื่อ มานะ')).toBe('ชื่อ [NAME-1]');
+  });
+
+  // F3: a standalone "นามสกุล Y" (no preceding ชื่อ) used to leak the surname — the given name was
+  // masked by the title rule but the labelled surname was not.
+  test('masks a standalone นามสกุล + surname (given name masked by the title rule)', () => {
+    // Both the given name and the labelled surname are masked (the security goal); token numbers just
+    // reflect pass order — the นามสกุล pass runs before the title pass, so the surname gets [NAME-1].
+    expect(stripPii('คนไข้ นายวีระ นามสกุล ทองดี')).toBe('คนไข้ นาย[NAME-2] นามสกุล [NAME-1]');
   });
 });
 

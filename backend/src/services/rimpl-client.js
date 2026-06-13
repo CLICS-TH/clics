@@ -8,6 +8,23 @@ const CHAT_TIMEOUT_MS = parseInt(process.env.RIMPL_CHAT_TIMEOUT_MS || '100000', 
 // were still queued, mis-routing sessions to manual QA / stranding credit. Default to the chat value.
 const EVAL_TIMEOUT_MS = parseInt(process.env.RIMPL_EVAL_TIMEOUT_MS || `${CHAT_TIMEOUT_MS}`, 10);
 
+// A RIMPL HTTP error with the status attached, so callers can tell a DETERMINISTIC bad-output
+// failure (400 bad request / 422 / 502 "evaluator returned out-of-range/invalid output") — which a
+// retry can never fix — from a TRANSIENT one (500 infra / timeout / network) worth retrying. Without
+// this, the reconcile sweep retries a deterministically-failing eval forever, re-paying Anthropic.
+function rimplError(path, status) {
+  const err = new Error(`RIMPL ${path} error: ${status}`);
+  err.status = status;
+  return err;
+}
+
+// 400/422/502 from RIMPL are deterministic (malformed request / validation / un-parseable or
+// out-of-range model output). A 401/403 is an INTERNAL_TOKEN misconfig — also not self-healing.
+const DETERMINISTIC_STATUSES = new Set([400, 401, 403, 422, 502]);
+function isDeterministicRimplError(err) {
+  return err && typeof err.status === 'number' && DETERMINISTIC_STATUSES.has(err.status);
+}
+
 async function rimplChat({ ple_id, history, message, language, chief_complaint }) {
   const res = await fetch(`${RIMPL_URL}/chat`, {
     method: 'POST',
@@ -15,7 +32,7 @@ async function rimplChat({ ple_id, history, message, language, chief_complaint }
     body: JSON.stringify({ ple_id, history, message, language, chief_complaint }),
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });
-  if (!res.ok) throw new Error(`RIMPL /chat error: ${res.status}`);
+  if (!res.ok) throw rimplError('/chat', res.status);
   return res.json();
 }
 
@@ -26,7 +43,7 @@ async function rimplEvaluate({ ple_id, transcript }) {
     body: JSON.stringify({ ple_id, transcript }),
     signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
   });
-  if (!res.ok) throw new Error(`RIMPL /evaluate error: ${res.status}`);
+  if (!res.ok) throw rimplError('/evaluate', res.status);
   return res.json();
 }
 
@@ -37,8 +54,8 @@ async function rimplEvaluateCriteria({ transcript }) {
     body: JSON.stringify({ transcript }),
     signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
   });
-  if (!res.ok) throw new Error(`RIMPL /evaluate-criteria error: ${res.status}`);
+  if (!res.ok) throw rimplError('/evaluate-criteria', res.status);
   return res.json();
 }
 
-module.exports = { rimplChat, rimplEvaluate, rimplEvaluateCriteria };
+module.exports = { rimplChat, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError };

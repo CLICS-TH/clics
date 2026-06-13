@@ -72,3 +72,12 @@ test('PATCH /admin/slots/superadmin is locked', async () => {
   expect(res.status).toBe(400);
   expect(res.body.error).toMatch(/locked at 1/i);
 });
+
+// F12: the global role_slots row is display-only for admin/auditor (enforcement reads per-council
+// council_slots), so a global edit must be REJECTED loudly — not silently "saved" while changing
+// nothing real. It points the operator at the per-council editor.
+test.each(['admin', 'auditor'])('PATCH /admin/slots/%s is rejected (per-council only)', async (role) => {
+  const res = await auth(request(app).patch(`/admin/slots/${role}`)).send({ capacity: 0 });
+  expect(res.status).toBe(400);
+  expect(res.body.error).toMatch(/per-council/i);
+});

@@ -44,8 +44,12 @@ router.get('/ples/:id', async (req, res) => {
 
   let aiEval = null;
   if (existing) {
+    // .order+limit(1)+maybeSingle, NOT .single(): a dup-eval race (possible until migration-eval-unique
+    // is applied) leaves two rows, on which .single() errors and returns null — the auditor's post-score
+    // AI-reveal panel would silently never render. Degrade to the first (earliest) evaluation.
     const { data } = await supabase
-      .from('ai_evaluations').select('*').eq('ple_id', req.params.id).single();
+      .from('ai_evaluations').select('*').eq('ple_id', req.params.id)
+      .order('evaluated_at', { ascending: true }).limit(1).maybeSingle();
     aiEval = data;
   }
 

@@ -81,8 +81,10 @@ function makeRegistry() {
 }
 
 // Thai honorific titles that lead a personal name.
-// นพ. = physician (male), พญ. = physician (female), ด.ช./ด.ญ. = boy/girl child.
-const TH_TITLES = ['นพ\\.', 'พญ\\.', 'ด\\.ช\\.', 'ด\\.ญ\\.', 'นางสาว', 'นาง', 'นาย', 'คุณ'];
+// นพ. = physician (male), พญ. = physician (female), ด.ช./ด.ญ. = boy/girl child (abbreviated), and the
+// SPELLED-OUT pediatric forms เด็กชาย/เด็กหญิง/เด็กทารก — the common written form for a named child
+// patient (e.g. "เด็กชายสมชาย"), which the abbreviations alone missed → the name leaked to the cloud.
+const TH_TITLES = ['นพ\\.', 'พญ\\.', 'ด\\.ช\\.', 'ด\\.ญ\\.', 'เด็กชาย', 'เด็กหญิง', 'เด็กทารก', 'นางสาว', 'นาง', 'นาย', 'คุณ'];
 // English honorifics. Order matters only for the alternation; \. is optional.
 const EN_TITLES = ['Mr', 'Mrs', 'Ms', 'Miss', 'Dr', 'Prof'];
 
@@ -164,6 +166,12 @@ const TH_LABELLED_RE = new RegExp(
   `ชื่อ\\s*(${TH_NAME})(?:\\s*นามสกุล\\s*(${TH_NAME})|\\s+(${TH_NAME}))?`,
   'g'
 );
+
+// Standalone labelled SURNAME: "นามสกุล Y" with no preceding "ชื่อ" in the same span (e.g.
+// "คนไข้ นายวีระ นามสกุล ทองดี" — the given name is masked by the title rule, but the surname leaked
+// because TH_LABELLED_RE anchors on ชื่อ). MUST run AFTER TH_LABELLED_RE so the combined
+// "ชื่อ X นามสกุล Y" form is consumed first and this can't re-grab the keyword as a bare surname.
+const TH_SURNAME_RE = new RegExp(`นามสกุล\\s*(${TH_NAME})`, 'g');
 
 // Each entry runs against the working text in order. `fn` receives (text, token).
 const PASSES = [
@@ -290,6 +298,7 @@ const PASSES = [
   // Order: labelled fields, then title-led. Each registers its parts as aliases
   // so the final 'bare-name' pass can catch later standalone occurrences.
   { re: TH_LABELLED_RE, cat: 'NAME', kind: 'th-labelled' },
+  { re: TH_SURNAME_RE, cat: 'NAME', kind: 'th-surname' },
   { re: TH_NAME_RE, cat: 'NAME', kind: 'th-title' },
   { re: EN_NAME_RE, cat: 'NAME', kind: 'en-title' },
   // Bare occurrences of an already-seen name part (no title), e.g. a transcript
@@ -381,6 +390,15 @@ function applyPass(text, pass, token) {
         const tok = token('NAME', surface);
         registerNameAliases(token, surface, tok);
         return 'ชื่อ ' + tok + trailing;
+      }
+      if (kind === 'th-surname') {
+        // Standalone "นามสกุล <surname>" — keep the explicit label, mask the surname token. The keyword
+        // is unambiguous (unlike a bare space-separated token), so no clinical-lead shield is needed.
+        const surname = g1;
+        if (MED_SHIELD.has(surname.trim())) return match;
+        const tok = token('NAME', surname);
+        registerNameAliases(token, surname, tok);
+        return 'นามสกุล ' + tok;
       }
       if (kind === 'th-title') {
         // Title + given name. Preserve the honorific (it can carry a clinical

@@ -3,10 +3,10 @@ const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { MessageSchema, CreatePleSchema, UpdatePleSchema } = require('../lib/schemas');
 const { computeTier1, clampDuration } = require('../services/cle-gate');
-const { rimplChat, rimplEvaluateCriteria } = require('../services/rimpl-client');
+const { rimplChat } = require('../services/rimpl-client');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
-const { triggerEvaluation } = require('../services/ple-evaluation');
-const { effectiveLimit, accrueUsage, reserveUsage, settleUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
+const { finalizeScreening, toPassCols } = require('../services/cle-finalize');
+const { effectiveLimit, reserveUsage, settleUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
 
 const router = Router();
 router.use(verifyJwt, requireRole('physician'));
@@ -39,8 +39,7 @@ async function requireBudget(req, res, next) {
   next();
 }
 
-// CLE-gate booleans live in the c1_pass..c6_pass columns; map {c1..} -> {c1_pass..}.
-const toPassCols = (crit) => Object.fromEntries(Object.entries(crit).map(([k, v]) => [`${k}_pass`, v]));
+// (toPassCols lives in services/cle-finalize — shared with the reconcile sweep.)
 
 // Create new PLE session
 router.post('/', requireConsent, requireBudget, async (req, res) => {
@@ -170,8 +169,8 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   // TOCTOU where concurrent turns all passed requireBudget's stale read before any spend landed.
   // Reconciled to the real cost on success; refunded on any failure below.
   const limit = await effectiveLimit(req.user);
-  const reserved = await reserveUsage(req.user.id, limit);
-  if (!reserved) {
+  const reservation = await reserveUsage(req.user.id, limit);
+  if (!reservation.ok) {
     return res.status(403).json({
       error: `AI usage limit reached ($${limit.toFixed(2)}). Contact an administrator.`,
       code: 'budget_exceeded',
@@ -185,7 +184,7 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
       chief_complaint: ple.chief_complaint, // give the AI the case context
     });
   } catch (err) {
-    await refundUsage(req.user.id, RESERVE_ESTIMATE_USD); // no turn delivered — release the reservation
+    await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
     return res.status(502).json({ error: `RIMPL unavailable: ${err.message}` });
   }
 
@@ -205,7 +204,7 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   // Don't pretend success if the turn wasn't saved — let the client retry.
   if (msgErr1 || msgErr2) {
     console.error('[ples] failed to persist message:', (msgErr1 || msgErr2).message);
-    await refundUsage(req.user.id, RESERVE_ESTIMATE_USD); // turn not saved — release the reservation
+    await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // turn not saved — release the reservation
     return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
   }
 
@@ -219,8 +218,9 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   }).eq('id', req.params.id);
   if (counterErr) console.error('[ples] failed to update counters:', counterErr.message);
 
-  // Settle the reservation to the turn's REAL Claude cost (adds actual − estimate + the real tokens).
-  await settleUsage(req.user.id, RESERVE_ESTIMATE_USD, turnIn, turnOut);
+  // Settle the reservation to the turn's REAL Claude cost (adds actual − estimate + the real tokens
+  // when the estimate was applied; the full actual when reserve failed open — never runs negative).
+  await settleUsage(req.user.id, RESERVE_ESTIMATE_USD, turnIn, turnOut, reservation.applied);
 
   res.json(rimplResponse);
 });
@@ -230,71 +230,55 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id);
   if (!ple || ple.status !== 'active') return res.status(400).json({ error: 'PLE not active' });
 
-  // Claim the session atomically BEFORE any paid evaluation work: a double-submit (double-click,
-  // two tabs, a client retry after a slow response) must never run two tier-2 RIMPL calls / two
-  // PIS-7 evaluations for one PLE. Only the request that flips active->ended proceeds; racers 409.
-  const { data: claimed } = await supabase.from('ples')
-    .update({ status: 'ended' }).eq('id', req.params.id).eq('status', 'active').select('id');
-  if (!claimed || claimed.length === 0) return res.status(409).json({ error: 'PLE not active' });
-
   const endedAt = new Date();
   const wallClockSeconds = Math.max(0, Math.floor((endedAt - new Date(ple.started_at)) / 1000));
   // Clamp the client-reported active-engagement time to wall-clock (see clampDuration): an unclamped
   // client value lets a physician POST active_seconds:99999 and pass C1's 15-min engagement gate on a
   // seconds-long session.
   const durationSeconds = clampDuration(req.body?.active_seconds, wallClockSeconds);
-  const updatedPle = { ...ple, duration_seconds: durationSeconds };
 
-  const tier1 = computeTier1(updatedPle);
-
-  if (!tier1.c1 || !tier1.c2 || !tier1.c3) {
-    const { error } = await supabase.from('ples').update({
-      status: 'cle_fail_t1', ended_at: endedAt.toISOString(),
-      duration_seconds: durationSeconds, ...toPassCols(tier1),
-    }).eq('id', req.params.id);
-    if (sendDbError(res, error)) return;
-    return res.json({ status: 'cle_fail_t1', criteria: tier1 });
-  }
-
+  // Derive turn/token counts from the SOURCE OF TRUTH (the messages rows), not the cached counters on
+  // the ple row — a concurrent /message does a non-atomic read-modify-write on those, so a lost
+  // increment could wrongly fail C2 (turns>=4) / C3 (tokens>=800) on a qualifying session. Read here
+  // (before the claim) so two racing /end requests both compute correctly; the claim is the sole gate.
   const { data: messages } = await supabase
-    .from('messages').select('role, content').eq('ple_id', req.params.id).order('created_at');
-  const transcript = (messages ?? []).map(m => ({ role: m.role, content: m.content }));
+    .from('messages').select('role, content, token_count').eq('ple_id', req.params.id).order('created_at');
+  const msgs = messages ?? [];
+  const turnCount = msgs.filter(m => m.role === 'physician').length;
+  const tokenCount = msgs.reduce((a, m) => a + (m.token_count ?? 0), 0);
 
-  let tier2 = { c4: false, c5: false, c6: false };
+  const tier1 = computeTier1({ duration_seconds: durationSeconds, turn_count: turnCount, token_count: tokenCount });
+  const tier1Pass = tier1.c1 && tier1.c2 && tier1.c3;
+
+  // Claim the session AND persist the full deterministic result in ONE atomic update. A double-submit
+  // (double-click, two tabs, a retry after a slow response) must never run two evaluations — only the
+  // request that flips active->{cle_fail_t1|ended} proceeds; racers see 0 rows and 409. Writing
+  // duration/counts/c1-c3/ended_at HERE (no network) means a process death during the tier-2 call
+  // below leaves a fully-recoverable 'ended' row: reconcile re-runs only the missing tier-2 step.
+  const claimStatus = tier1Pass ? 'ended' : 'cle_fail_t1';
+  const { data: claimed, error: claimErr } = await supabase.from('ples').update({
+    status: claimStatus, ended_at: endedAt.toISOString(),
+    duration_seconds: durationSeconds, turn_count: turnCount, token_count: tokenCount,
+    ...toPassCols(tier1),
+  }).eq('id', req.params.id).eq('status', 'active').select('id');
+  if (sendDbError(res, claimErr)) return;
+  if (!claimed || claimed.length === 0) return res.status(409).json({ error: 'PLE not active' });
+
+  if (!tier1Pass) return res.json({ status: 'cle_fail_t1', criteria: tier1 });
+
+  // Tier-1 passed: run tier-2 criteria (retried) and finalize. On a PERSISTENT RIMPL failure the
+  // session stays 'ended' (recoverable) and reconcile retries it — a transient blip must NOT
+  // permanently demote a qualifying session to manual QA.
+  const transcript = msgs.map(m => ({ role: m.role, content: m.content }));
   try {
-    const crit = await rimplEvaluateCriteria({ transcript });
-    // Keep only the criteria booleans here — allCriteria feeds toPassCols(), which maps every
-    // key to a *_pass column; token fields would create non-existent columns.
-    tier2 = { c4: crit.c4, c5: crit.c5, c6: crit.c6 };
-    await accrueUsage(ple.physician_id, crit.input_tokens, crit.output_tokens);
-  } catch {
-    // RIMPL down — flag for manual QA
+    const out = await finalizeScreening({
+      pleId: req.params.id, physicianId: ple.physician_id, transcript, tier1,
+    });
+    res.json(out);
+  } catch (err) {
+    console.error(`[ples] /end tier-2 finalize failed for ${req.params.id} — left 'ended' for reconcile:`, err.message);
+    res.status(202).json({ status: 'ended', criteria: tier1, pending: 'tier2' });
   }
-
-  const allCriteria = { ...tier1, ...tier2 };
-  const tier2Pass = tier2.c4 && tier2.c5 && tier2.c6;
-
-  if (!tier2Pass) {
-    const { error } = await supabase.from('ples').update({
-      status: 'cle_flag_t2', ended_at: endedAt.toISOString(),
-      duration_seconds: durationSeconds, ...toPassCols(allCriteria),
-    }).eq('id', req.params.id);
-    if (sendDbError(res, error)) return;
-    return res.json({ status: 'cle_flag_t2', criteria: allCriteria });
-  }
-
-  const { error } = await supabase.from('ples').update({
-    status: 'cle_pass', ended_at: endedAt.toISOString(),
-    duration_seconds: durationSeconds, ...toPassCols(allCriteria),
-  }).eq('id', req.params.id);
-  if (sendDbError(res, error)) return;
-
-  // Fire-and-forget evaluation
-  triggerEvaluation(req.params.id, transcript, ple.physician_id).catch(err => {
-    console.error(`[EVAL] triggerEvaluation failed for PLE ${req.params.id}:`, err.message);
-  });
-
-  res.json({ status: 'cle_pass', criteria: allCriteria });
 });
 
 // Get AI evaluation result
@@ -303,8 +287,12 @@ router.get('/:id/evaluation', async (req, res) => {
   if (!ple) return res.status(404).json({ error: 'Not found' });
   if (ple.status !== 'evaluated') return res.status(202).json({ status: ple.status });
 
+  // .order+limit(1)+maybeSingle, NOT .single(): if a dup-eval race left two ai_evaluations rows
+  // (possible until migration-eval-unique is applied), .single() errors on >1 row and returns null —
+  // the physician's earned score reads as "missing." Degrade to the FIRST (earliest) evaluation instead.
   const { data: eval_ } = await supabase
-    .from('ai_evaluations').select('*').eq('ple_id', req.params.id).single();
+    .from('ai_evaluations').select('*').eq('ple_id', req.params.id)
+    .order('evaluated_at', { ascending: true }).limit(1).maybeSingle();
   res.json(eval_);
 });
 

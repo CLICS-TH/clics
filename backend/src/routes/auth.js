@@ -195,6 +195,16 @@ router.post('/forgot-password', async (req, res) => {
   res.json({ ok: true });
 });
 
+// A Supabase session must actually be GOOGLE-issued before we trust its verified email to provision
+// (or onboard into) an account. The anon key is public, so a token minted via any other provider
+// (e.g. if email/password signup were ever enabled at Supabase) must not pass. Shared by BOTH the
+// self-signup path AND the invite-accept Google path so the two can never drift apart.
+function isGoogleSession(user) {
+  const providers = user.app_metadata?.providers
+    || (user.app_metadata?.provider ? [user.app_metadata.provider] : []);
+  return providers.includes('google');
+}
+
 // POST /auth/oauth/google/complete — the browser finishes Supabase's Google handshake client-side,
 // then posts the session access_token here. We VALIDATE it server-side (never trust client-sent
 // name/email), encrypt the identity into the on-prem vault, and auto-provision a physician.
@@ -218,12 +228,9 @@ router.post('/oauth/google/complete', oauthGate, async (req, res) => {
   }
 
   // Defense-in-depth: this endpoint AUTO-PROVISIONS an active physician with no invite, so the
-  // session must actually be Google-issued. The anon key is public, so a token minted via any other
-  // provider (e.g. if email/password signup were ever enabled at Supabase) must not auto-onboard.
-  // (Checked only on the new-user path — existing accounts already returned above, unaffected.)
-  const providers = user.app_metadata?.providers
-    || (user.app_metadata?.provider ? [user.app_metadata.provider] : []);
-  if (!providers.includes('google')) {
+  // session must actually be Google-issued. (Checked only on the new-user path — existing accounts
+  // already returned above, unaffected.)
+  if (!isGoogleSession(user)) {
     return res.status(403).json({ error: 'Google sign-in is required to create an account.' });
   }
 
@@ -305,6 +312,12 @@ router.post('/invite/:token/accept', async (req, res) => {
     const { data: uData, error } = await authSupabase.auth.getUser(body.access_token);
     if (error || !uData?.user) return res.status(401).json({ error: 'Invalid Google session.' });
     const user = uData.user;
+    // The invite path provisions admin/auditor (HIGHER privilege than self-signup), so it must apply
+    // the SAME provider guard as the signup path — otherwise a non-Google session for an invited email
+    // could claim the invited role. (Was missing here; the sibling /oauth/google/complete had it.)
+    if (!isGoogleSession(user)) {
+      return res.status(403).json({ error: 'Google sign-in is required to accept this invite.' });
+    }
     if ((user.email || '').toLowerCase() !== inv.email.toLowerCase()) {
       return res.status(403).json({ error: 'Your Google email must match the invited email.' });
     }

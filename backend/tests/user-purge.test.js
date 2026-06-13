@@ -10,6 +10,8 @@
 const mockCaller = { id: 'sa-1', role: 'superadmin', status: 'active', council_id: null, can_audit: false };
 let mockTarget = null;
 const mockDeleteUser = jest.fn(() => Promise.resolve({ error: null }));
+// F10: purge resolves the target's email up front (to erase email-keyed invite PII). Default: succeeds.
+const mockGetUserById = jest.fn(() => Promise.resolve({ data: { user: { id: 'phys-1', email: 'phys@clics.th' } }, error: null }));
 
 const mockThenable = (data = null) => {
   let lastId = null;
@@ -33,7 +35,7 @@ jest.mock('../src/lib/supabase', () => ({
   authSupabase: {
     auth: {
       getUser: () => Promise.resolve({ data: { user: { id: 'sa-1', email: 'superadmin@clics.th' } }, error: null }),
-      admin: { deleteUser: (...a) => mockDeleteUser(...a) },
+      admin: { deleteUser: (...a) => mockDeleteUser(...a), getUserById: (...a) => mockGetUserById(...a) },
     },
   },
 }));
@@ -49,7 +51,11 @@ const purge = (id, body) => request(app).delete(`/admin/users/${id}/purge`).set(
 
 const PHYS = { id: 'phys-1', role: 'physician', status: 'deactivated', full_name_en: 'Dr Test Purge' };
 
-beforeEach(() => { mockTarget = null; mockDeleteUser.mockClear(); });
+beforeEach(() => {
+  mockTarget = null;
+  mockDeleteUser.mockClear();
+  mockGetUserById.mockClear().mockResolvedValue({ data: { user: { id: 'phys-1', email: 'phys@clics.th' } }, error: null });
+});
 
 test('deactivated target + matching name → 200, purges and deletes the auth user', async () => {
   mockTarget = { ...PHYS };
@@ -84,5 +90,16 @@ test('missing user → 404', async () => {
   mockTarget = null;
   const r = await purge('nope', { confirm_name: 'x' });
   expect(r.status).toBe(404);
+  expect(mockDeleteUser).not.toHaveBeenCalled();
+});
+
+// F10: a transient email-lookup failure must HALT the purge (before any auth-user delete) rather than
+// skip the email-keyed invite erasure and orphan the address while still reporting purged:true.
+test('email-resolution failure → 500 halt, never deletes the auth user (no orphaned invite PII)', async () => {
+  mockTarget = { ...PHYS };
+  mockGetUserById.mockResolvedValueOnce({ data: null, error: { message: 'gotrue 503' } });
+  const r = await purge('phys-1', { confirm_name: 'Dr Test Purge' });
+  expect(r.status).toBe(500);
+  expect(r.body.purged).toBeUndefined();
   expect(mockDeleteUser).not.toHaveBeenCalled();
 });

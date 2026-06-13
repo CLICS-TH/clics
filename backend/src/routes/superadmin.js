@@ -186,15 +186,22 @@ router.delete('/users/:id/purge', async (req, res) => {
     return res.status(400).json({ error: 'Confirmation name does not match.' });
   }
 
-  // Right-to-erasure also covers the invite that onboarded them: invites.email is PII that the old
-  // FK-null only UNLINKED, leaving the address behind. Look up the auth email so we can delete those
-  // rows. (Best-effort: if it fails we still erase by professional_id below.)
+  // Right-to-erasure also covers the invite that onboarded them: invites.email is PII. PENDING invites
+  // carry professional_id=NULL (set only on accept), so the professional_id-keyed delete below MISSES
+  // them — they're erased ONLY by the email-keyed delete. So the email lookup is REQUIRED, not
+  // best-effort: if it fails we must HALT (before any deletion, so a retry is clean) rather than skip
+  // the email delete, sever the auth-user linkage, and orphan the address while reporting purged:true.
   let email = null;
   try {
-    const { data: au } = await authSupabase.auth.admin.getUserById(id);
-    email = au?.user?.email ?? null;
+    const { data: au, error: auErr } = await authSupabase.auth.admin.getUserById(id);
+    if (auErr) {
+      console.error('[purge] could not resolve auth email — purge halted:', auErr.message);
+      return res.status(500).json({ error: 'Could not resolve the account email for full erasure — purge halted. Retry.' });
+    }
+    email = au?.user?.email ?? null; // a legitimately null email (no address on file) → no email PII to erase
   } catch (e) {
-    console.error('[purge] could not read auth email:', e.message);
+    console.error('[purge] getUserById threw — purge halted:', e.message);
+    return res.status(500).json({ error: 'Could not resolve the account email for full erasure — purge halted. Retry.' });
   }
 
   // The user's OWN sessions: lpdp_snapshots has no cascade (clear first), then deleting the ples
@@ -249,6 +256,12 @@ router.patch('/slots/:role', async (req, res) => {
   const { role } = req.params;
   if (!ROLES.includes(role)) return res.status(400).json({ error: 'Unknown role' });
   if (role === 'superadmin') return res.status(400).json({ error: 'Superadmin capacity is locked at 1.' });
+  // admin/auditor capacity is ENFORCED per-council (council_slots); the global role_slots row is
+  // display-only for them. Writing it here used to succeed and show "saved" while changing nothing
+  // real (a superadmin who set Admin=0 still couldn't restrict admin creation) — reject loudly instead.
+  if (role === 'admin' || role === 'auditor') {
+    return res.status(400).json({ error: 'Admin/auditor capacity is per-council — set it via PATCH /admin/councils/:id/slots.' });
+  }
   const parsed = SlotSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 

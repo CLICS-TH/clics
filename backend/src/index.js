@@ -46,6 +46,9 @@ app.use('/auth/login', limit(60_000, 10, 'Too many login attempts — wait a min
 // Supabase's own otp/email rate limits remain the per-email guard — see docs/AUTH-SETUP.md.)
 app.use('/auth/forgot-password', limit(60 * 60_000, 5, 'Too many reset requests — try again later.'));
 app.use('/auth/invite', limit(60_000, 12, 'Too many invite attempts — slow down.'));
+// /start mints a free, unauthenticated session (each grants paid Claude turns), so cap session
+// creation harder than messaging — the in-memory aggregate ceiling (lib/guest.js) is the global bound.
+app.use('/guest/start', limit(60_000, 6, 'Too many guest sessions — slow down.'));
 app.use('/guest', limit(60_000, 15, 'Guest limit reached — slow down.'));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));

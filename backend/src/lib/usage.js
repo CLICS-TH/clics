@@ -55,31 +55,41 @@ async function accrueUsage(physicianId, inputTokens = 0, outputTokens = 0, costO
 }
 
 // ATOMICALLY reserve a turn's estimated cost iff the meter is still under the limit (closes the
-// parallel-turn TOCTOU). Returns true if reserved (turn allowed), false if over budget. Fail-OPEN on
-// an RPC error (e.g. pre-migration): never block a turn on a metering fault — requireBudget already
-// gave a soft check, and settle/refund still reconcile the real cost.
+// parallel-turn TOCTOU). Returns { ok, applied }:
+//   ok      — the turn is allowed (under budget, or fail-open on an RPC fault).
+//   applied — the estimate was ACTUALLY added to the meter. settle/refund MUST honor this: if the
+//             RPC is absent (pre-migration) we fail OPEN but add nothing, so a later settle that
+//             subtracts the estimate would drive the meter NEGATIVE every turn (cap defeated, meter
+//             runs backwards). applied:false tells settle to add the full actual and refund to no-op.
 async function reserveUsage(physicianId, limit, estimate = RESERVE_ESTIMATE_USD) {
   try {
     const { data, error } = await supabase.rpc('reserve_usage', {
       p_id: physicianId, p_estimate: estimate, p_limit: limit,
     });
-    if (error) { console.error('[usage] reserve_usage failed (fail-open):', error.message); return true; }
-    return data === true;
+    // Fail-OPEN on an RPC fault: never block a turn on a metering fault — requireBudget already gave
+    // a soft check — but report applied:false so settle/refund don't subtract an unreserved estimate.
+    if (error) { console.error('[usage] reserve_usage failed (fail-open, estimate NOT applied):', error.message); return { ok: true, applied: false }; }
+    // The RPC adds the estimate ONLY when under the limit (returns true). Over limit → false, nothing added.
+    return { ok: data === true, applied: data === true };
   } catch (e) {
-    console.error('[usage] reserve_usage threw (fail-open):', e.message);
-    return true;
+    console.error('[usage] reserve_usage threw (fail-open, estimate NOT applied):', e.message);
+    return { ok: true, applied: false };
   }
 }
 
-// Reconcile a reservation to the ACTUAL cost: the estimate was already added, so add (actual −
-// estimate) to cost and the real token counts. Net effect on the meter = the true turn cost.
-async function settleUsage(physicianId, estimate, inputTokens = 0, outputTokens = 0) {
+// Reconcile a reservation to the ACTUAL cost. When the estimate WAS applied by reserveUsage, the net
+// add is (actual − estimate). When it was NOT applied (fail-open / pre-migration), add the FULL actual
+// so the meter reflects real spend instead of running backwards.
+async function settleUsage(physicianId, estimate, inputTokens = 0, outputTokens = 0, applied = true) {
   const actual = costUsd(inputTokens, outputTokens);
-  return accrueUsage(physicianId, inputTokens, outputTokens, actual - estimate);
+  const delta = applied ? actual - estimate : actual;
+  return accrueUsage(physicianId, inputTokens, outputTokens, delta);
 }
 
-// Refund a reservation when the turn fails before any real cost is owed (RIMPL error / unsaved turn).
-async function refundUsage(physicianId, estimate) {
+// Release a reservation when the turn fails before any real cost is owed (RIMPL error / unsaved turn).
+// A no-op when the estimate was never applied — otherwise we'd subtract an amount never added.
+async function refundUsage(physicianId, estimate, applied = true) {
+  if (!applied) return { cost: 0, error: null };
   return accrueUsage(physicianId, 0, 0, -estimate);
 }
 
