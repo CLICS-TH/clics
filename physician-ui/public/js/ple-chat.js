@@ -60,6 +60,13 @@ function renderMessage(role, content, refs, socratic) {
 }
 
 api.getPle(pleId).then(ple => {
+  // A transient failure returns an { error } envelope (no .status) — DON'T bounce to /ple-result
+  // (which would then falsely read "Episode not found"); show a recoverable message in place.
+  if (ple && ple.error) {
+    document.getElementById('messages').innerHTML =
+      '<div class="msg-assistant">⚠️ โหลดเซสชันไม่สำเร็จ กรุณารีเฟรชหน้านี้ / Could not load this session — please refresh.</div>';
+    return;
+  }
   if (!ple || ple.status !== 'active') { window.location.href = `/ple-result?id=${pleId}`; return; }
   const titleEl = document.getElementById('chatTitle');
   if (titleEl && (ple.title || ple.chief_complaint)) titleEl.textContent = ple.title || ple.chief_complaint;
@@ -94,7 +101,10 @@ async function sendMessage() {
   } else if (res?.code === 'budget_exceeded') {
     renderMessage('assistant', '⚠️ ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ คุณยังสามารถจบเซสชันนี้ได้ / AI usage limit reached — contact an administrator. You can still end this session.', [], null);
   } else {
-    renderMessage('assistant', '⚠️ เกิดข้อผิดพลาด กรุณาลองใหม่', [], null);
+    // The turn failed — RESTORE the physician's text (it was cleared on send) so they can retry
+    // without retyping the whole clinical question.
+    renderMessage('assistant', '⚠️ เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong — your message is restored below, please try again.', [], null);
+    input.value = message;
   }
   sendBtn.disabled = false; input.focus();
 }
@@ -105,9 +115,21 @@ document.getElementById('input').addEventListener('keydown', e => {
 });
 document.getElementById('endBtn').addEventListener('click', async () => {
   if (!confirm('จบ Session นี้หรือไม่? / End this session?')) return;
-  clearInterval(timerInterval);
-  document.getElementById('endBtn').disabled = true;
-  document.getElementById('endBtn').textContent = 'กำลังประมวลผล...';
-  await api.endPle(pleId, { active_seconds: activeSeconds });
-  window.location.href = `/ple-result?id=${pleId}`;
+  const endBtn = document.getElementById('endBtn');
+  const origLabel = endBtn.textContent;
+  endBtn.disabled = true;
+  endBtn.textContent = 'กำลังประมวลผล... / Finishing…';
+  const res = await api.endPle(pleId, { active_seconds: activeSeconds });
+  // Only navigate on a CONFIRMED terminal status. On failure (network {error}, 409/400, 5xx) keep the
+  // timer running, re-enable the button, and let the physician retry — don't strand them on a
+  // dead-end result page with the engagement time lost.
+  const TERMINAL = ['cle_pass', 'cle_fail_t1', 'cle_flag_t2'];
+  if (res && TERMINAL.includes(res.status)) {
+    clearInterval(timerInterval);
+    window.location.href = `/ple-result?id=${pleId}`;
+  } else {
+    alert(res && res.error ? `จบไม่สำเร็จ / Could not finish: ${res.error}` : 'จบไม่สำเร็จ กรุณาลองใหม่ / Could not finish — please try again.');
+    endBtn.disabled = false;
+    endBtn.textContent = origLabel;
+  }
 });

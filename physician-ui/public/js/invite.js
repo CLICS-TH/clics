@@ -50,10 +50,13 @@ function roleLabel(role) {
   if (!res.ok || !res.body) { showInvalid('ไม่พบคำเชิญนี้ / Invite not found.'); return; }
 
   invite = res.body;
-  const councilName = invite.council ? `${invite.council.name_th} / ${invite.council.name_en}` : '—';
+  // Escape server-provided values before innerHTML (defense-in-depth: email passes zod and council
+  // names are superadmin-set, but this is the one spot interpolating API data into markup).
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const councilName = invite.council ? `${esc(invite.council.name_th)} / ${esc(invite.council.name_en)}` : '—';
   document.getElementById('inviteMeta').innerHTML =
-    `คุณได้รับเชิญในบทบาท / You're invited as:<br/><strong>${roleLabel(invite.role)}</strong><br/>` +
-    `อีเมล / Email: <strong>${invite.email}</strong><br/>` +
+    `คุณได้รับเชิญในบทบาท / You're invited as:<br/><strong>${esc(roleLabel(invite.role))}</strong><br/>` +
+    `อีเมล / Email: <strong>${esc(invite.email)}</strong><br/>` +
     `สภาวิชาชีพ / Council: <strong>${councilName}</strong>`;
 
   show(acceptCard);

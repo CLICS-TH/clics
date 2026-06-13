@@ -159,13 +159,25 @@
         if (data.user.role === 'physician') window.location.href = '/dashboard';
         else window.location.href = (window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?token=' + encodeURIComponent(data.access_token);
       } else {
-        errEl.textContent = data?.error ?? 'เข้าสู่ระบบไม่สำเร็จ';
+        // data.error may be a zod flatten OBJECT (invalid email / short password) — assigning it to
+        // textContent shows "[object Object]". Pull a readable string out.
+        errEl.textContent = errText(data?.error);
         errEl.style.display = 'block';
       }
     });
-    document.getElementById('password').addEventListener('keydown', e => {
+    // Turn a zod flatten ({fieldErrors, formErrors}) or a string into a displayable message.
+    function errText(e) {
+      if (typeof e === 'string') return e;
+      if (e && typeof e === 'object') {
+        const first = Object.values(e.fieldErrors || {}).flat()[0] || (e.formErrors || [])[0];
+        if (first) return first;
+      }
+      return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง / Invalid email or password.';
+    }
+    // Enter submits from either field (the inputs aren't in a <form>).
+    ['email', 'password'].forEach(id => document.getElementById(id).addEventListener('keydown', e => {
       if (e.key === 'Enter') document.getElementById('loginBtn').click();
-    });
+    }));
   </script>
 </body>
 </html>

@@ -212,7 +212,9 @@ nav a:hover { color:var(--ink); }
 
 /* Input row */
 .chat-input-row { display:flex; gap:10px; align-items:flex-end; padding-top:14px; border-top:1px solid var(--hairline); }
-.chat-input-row textarea { flex:1; padding:13px 16px; border:1px solid var(--hairline); border-radius:var(--r-lg); resize:none; font-family:var(--font-body); font-size:15px; line-height:1.5; background:var(--canvas); color:var(--ink); outline:none; transition:border-color .15s, box-shadow .15s; }
+/* 16px (not 15): iOS Safari auto-zooms the whole viewport when a focused input is < 16px, making the
+   chat jitter on every tap — the pilot's physicians are largely on phones. */
+.chat-input-row textarea { flex:1; padding:13px 16px; border:1px solid var(--hairline); border-radius:var(--r-lg); resize:none; font-family:var(--font-body); font-size:16px; line-height:1.5; background:var(--canvas); color:var(--ink); outline:none; transition:border-color .15s, box-shadow .15s; }
 .chat-input-row textarea:focus { border-color:var(--coral); box-shadow:0 0 0 3px var(--coral-ring); }
 .chat-input-row .btn { align-self:stretch; padding-left:24px; padding-right:24px; }
 

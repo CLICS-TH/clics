@@ -109,6 +109,8 @@ async function send() {
   } else {
     renderMessage('assistant', '⚠️ ' + (res.body?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong.'));
     setRemaining(promptsRemaining); // unchanged display
+    history.pop();                  // the turn failed — drop it so a retry doesn't duplicate the turn
+    inputEl.value = message;        // restore the typed text so the guest can retry
     sendBtn.disabled = false;
   }
 }

@@ -53,17 +53,23 @@
       });
     }
     window.addEventListener('clics:themechange', buildLine);
+    // Empty state: hide the (otherwise blank, broken-looking) chart card and show only the notice.
+    function showEmpty() {
+      const card = document.querySelector('.card');
+      if (card) card.style.display = 'none';
+      document.getElementById('noData').style.display = 'block';
+    }
     function loadLpdp() {
       fetch(`${window.CLICS_API_URL || 'http://localhost:3001'}/ples/lpdp/me`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('clics_token')}` }
       })
       .then(r => { if (!r.ok) { if (r.status === 401) { localStorage.clear(); window.location.href = '/'; } throw new Error('Failed'); } return r.json(); })
       .then(data => {
-        if (!data?.length) { document.getElementById('noData').style.display = 'block'; return; }
+        if (!data?.length) { showEmpty(); return; }
         lpdpData = data;
         buildLine();
       })
-      .catch(() => { document.getElementById('noData').style.display = 'block'; });
+      .catch(() => { showEmpty(); });
     }
     window.addEventListener('DOMContentLoaded', loadLpdp);
   </script>

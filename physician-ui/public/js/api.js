@@ -1,6 +1,14 @@
 const BASE = window.CLICS_API_URL || 'http://localhost:3001';
+// A hard client timeout so a hung request (RIMPL/Claude stall, dropped connection) surfaces as a
+// recoverable error instead of freezing the chat forever. Slightly above the backend chat ceiling
+// (~100s) so the server's own timeout normally fires first.
+const REQUEST_TIMEOUT_MS = 130000;
 
 function getToken() { return localStorage.getItem('clics_token'); }
+
+function timeoutSignal() {
+  try { return AbortSignal.timeout(REQUEST_TIMEOUT_MS); } catch { return undefined; } // older browsers: no timeout
+}
 
 async function apiFetch(path, options = {}) {
   const token = getToken();
@@ -14,10 +22,11 @@ async function apiFetch(path, options = {}) {
         ...(options.headers ?? {}),
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
+      signal: options.signal ?? timeoutSignal(),
     });
   } catch {
-    // Network rejection (offline / DNS / blocked) — return the same { error } shape callers
-    // already branch on, so awaited buttons re-enable instead of staying disabled forever.
+    // Network rejection OR timeout abort — return the same { error } shape callers already branch on,
+    // so awaited buttons re-enable instead of staying disabled forever.
     return { error: 'เครือข่ายขัดข้อง กรุณาลองใหม่ / Network error — please try again.' };
   }
   // Session-expiry handling — ONLY when a token was attached. An unauthenticated 401
@@ -25,10 +34,23 @@ async function apiFetch(path, options = {}) {
   // error inline instead of bouncing through the "session expired" redirect.
   if (res.status === 401 && token) {
     try { sessionStorage.setItem('clics_auth_msg', 'เซสชันหมดอายุ — กรุณาเข้าสู่ระบบอีกครั้ง / Session expired — please sign in again.'); } catch {}
-    localStorage.clear(); window.location.href = '/'; return;
+    // Preserve display prefs across the session-expiry wipe (mirror the portal's ?logout=1 handler) —
+    // a dark-mode user shouldn't get reset to light just because their token expired.
+    const t = localStorage.getItem('clics_theme'), v = localStorage.getItem('clics_view');
+    localStorage.clear();
+    if (t) localStorage.setItem('clics_theme', t);
+    if (v) localStorage.setItem('clics_view', v);
+    window.location.href = '/'; return;
   }
   if (res.status === 204) return null;
-  return res.json();
+  // Guard the body parse: Railway edge 502/503 (and proxy error pages) return non-JSON HTML, which
+  // would throw here and leave the caller's awaited button dead/disabled. Return the { error } shape
+  // callers already branch on.
+  try {
+    return await res.json();
+  } catch {
+    return { error: 'เซิร์ฟเวอร์ขัดข้องชั่วคราว กรุณาลองใหม่ / Server error — please try again.' };
+  }
 }
 
 // Public / unauthenticated calls (sign-up requests, OAuth, guest). These must NOT
@@ -44,6 +66,7 @@ async function publicFetch(path, options = {}) {
         ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
+      signal: timeoutSignal(),
     });
   } catch {
     // Network rejection — synthetic envelope (status 0) so callers' { ok, status, body }
