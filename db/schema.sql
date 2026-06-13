@@ -49,7 +49,10 @@ create table public.professionals (
   usage_limit_usd     numeric,   -- null => the standard default (app_settings) applies
   created_at     timestamptz default now(),
   -- Everyone except the single superadmin must belong to a council.
-  constraint prof_council_required check (role = 'superadmin' or council_id is not null)
+  constraint prof_council_required check (role = 'superadmin' or council_id is not null),
+  -- "Special" (can_audit) may ride ONLY on a physician — DB backstop for normalizeCanAudit so no
+  -- code path (provisioning, edit, auditor-request approve) can leave the flag on an admin/auditor.
+  constraint can_audit_physician_only check (can_audit = false or role = 'physician')
 );
 create index professionals_council_idx on public.professionals(council_id);
 

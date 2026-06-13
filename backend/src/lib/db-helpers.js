@@ -14,11 +14,16 @@ async function ownsFolder(physicianId, folderId) {
   return !!data;
 }
 
+// In production a raw Postgres/PostgREST error.message discloses table/column/constraint/trigger
+// names to the client (and one call site is the PUBLIC GET /auth/councils). Log it server-side, but
+// return a generic body in prod. Dev keeps the detail for debugging.
+const IS_PROD = !!process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production';
+
 // Standardize "supabase returned an error" -> 500. Returns true if it sent a response.
 function sendDbError(res, error) {
   if (error) {
     console.error('[db]', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: IS_PROD ? 'Internal server error' : error.message });
     return true;
   }
   return false;

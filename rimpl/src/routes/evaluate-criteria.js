@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { callClaude } = require('../services/claude');
 const { CRITERIA_CLASSIFIER_PROMPT } = require('../lib/prompts');
 const { parseJsonObject } = require('../lib/parse');
-const { stripHistoryPii } = require('../services/pii-filter');
+const { flattenForPrompt } = require('../lib/transcript');
 
 const router = Router();
 
@@ -15,10 +15,8 @@ router.post('/', async (req, res) => {
   const parsed = Schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  // Defense-in-depth: strip PII before the transcript reaches the cloud model (mirrors /chat).
-  const transcriptText = stripHistoryPii(parsed.data.transcript)
-    .map(m => `[${m.role.toUpperCase()}]: ${m.content}`)
-    .join('\n\n');
+  // PII-strip + defang injected role markers before the transcript reaches the cloud model.
+  const transcriptText = flattenForPrompt(parsed.data.transcript);
 
   try {
     const { text, inputTokens, outputTokens } = await callClaude({

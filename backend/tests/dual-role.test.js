@@ -212,8 +212,10 @@ test('GET /admin/users with an unknown role value applies NO role filter', async
 // ---------------------------------------------------------------------------
 
 const GOOGLE_TOKEN = 'g'.repeat(24);
+// A real Google session carries app_metadata.provider='google' — the /complete route now requires it
+// before auto-provisioning a NEW account (a token from any other provider must not self-onboard).
 const googleUser = (id, email) => () =>
-  Promise.resolve({ data: { user: { id, email, user_metadata: {} } }, error: null });
+  Promise.resolve({ data: { user: { id, email, user_metadata: {}, app_metadata: { provider: 'google', providers: ['google'] } } }, error: null });
 
 test('google/complete: EXISTING professional, NO council_id → 200 with their account', async () => {
   m.auth.getUser = googleUser('g-1', 'g@example.com');
@@ -234,6 +236,20 @@ test('google/complete: NEW user (no professionals row) without council_id → 40
 
   expect(r.status).toBe(400);
   expect(r.body.code).toBe('council_required');
+});
+
+test('google/complete: NEW user whose session is NOT Google-issued → 403 (no auto-provision)', async () => {
+  // A valid Supabase session minted via a non-Google provider must not self-onboard as a physician.
+  m.auth.getUser = () => Promise.resolve({
+    data: { user: { id: 'e-1', email: 'e@example.com', user_metadata: {}, app_metadata: { provider: 'email', providers: ['email'] } } },
+    error: null,
+  });
+  m.state.profByToken = null;
+
+  // No council_id needed: the provider check runs before the council prompt on the new-user path.
+  const r = await request(app).post('/auth/oauth/google/complete').send({ access_token: GOOGLE_TOKEN });
+
+  expect(r.status).toBe(403);
 });
 
 // ---------------------------------------------------------------------------

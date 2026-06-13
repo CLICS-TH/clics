@@ -7,6 +7,7 @@
 const { supabase } = require('./supabase');
 const { assertSlotAvailable, nextPseudonym } = require('./accounts');
 const { encryptJson } = require('./crypto');
+const { normalizeCanAudit } = require('./dual-role');
 
 async function provisionProfessional({
   authUserId, role, councilId,
@@ -29,7 +30,10 @@ async function provisionProfessional({
     specialty,
     status,
   };
-  if (can_audit === true) insert.can_audit = true; // only write when set (pre-migration tolerant)
+  // "Special" (can_audit) is valid ONLY on a physician — normalize through the single source of
+  // truth so OAuth signup / invite-accept can never set it on an admin/auditor (the DB CHECK
+  // can_audit_physician_only is the backstop). Only write when true (pre-migration tolerant).
+  if (normalizeCanAudit(role, can_audit)) insert.can_audit = true;
   if (license_number != null) insert.license_number = license_number;
   if (license_status != null) {
     insert.license_status = license_status;

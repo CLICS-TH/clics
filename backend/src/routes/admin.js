@@ -268,11 +268,25 @@ router.post('/auditor-requests/:id/approve', async (req, res) => {
   if (r.status !== 'pending') return res.status(409).json({ error: 'Request already processed' });
   if (!sameCouncil(req, r.council_id)) return res.status(404).json({ error: 'Request not found' });
 
+  // Re-validate the professional NOW — the request row is stale. can_audit is valid only on an
+  // ACTIVE physician (normalizeCanAudit / the can_audit_physician_only CHECK); a since-promoted
+  // (admin/auditor) or deactivated account must not be granted audit rights off an old request.
+  const { data: prof } = await supabase.from('professionals')
+    .select('id, role, status').eq('id', r.auth_user_id).maybeSingle();
+  if (!prof) return res.status(404).json({ error: 'Professional not found' });
+  if (prof.role !== 'physician' || prof.status !== 'active') {
+    return res.status(409).json({ error: 'Auditor rights apply only to an active physician.' });
+  }
+
+  // Claim the request atomically (pending -> approved) so a concurrent approve+reject can't both
+  // act and leave can_audit granted on a 'rejected' request.
+  const { data: claimed } = await supabase.from('access_requests')
+    .update({ status: 'approved', reviewed_by: req.user.id, reviewed_at: new Date().toISOString() })
+    .eq('id', req.params.id).eq('status', 'pending').select('id');
+  if (!claimed?.length) return res.status(409).json({ error: 'Request already processed' });
+
   const { error: upErr } = await supabase.from('professionals').update({ can_audit: true }).eq('id', r.auth_user_id);
   if (sendDbError(res, upErr)) return;
-  await supabase.from('access_requests')
-    .update({ status: 'approved', reviewed_by: req.user.id, reviewed_at: new Date().toISOString() })
-    .eq('id', req.params.id);
   res.json({ ok: true, professional_id: r.auth_user_id, can_audit: true });
 });
 
@@ -283,10 +297,12 @@ router.post('/auditor-requests/:id/reject', async (req, res) => {
   if (!r || r.requested_role !== 'auditor' || r.provider !== 'role_request') return res.status(404).json({ error: 'Request not found' });
   if (r.status !== 'pending') return res.status(409).json({ error: 'Request already processed' });
   if (!sameCouncil(req, r.council_id)) return res.status(404).json({ error: 'Request not found' });
-  const { error } = await supabase.from('access_requests')
+  // Atomic claim (pending -> rejected) — mirror /approve so a concurrent approve+reject can't race.
+  const { data: claimed, error } = await supabase.from('access_requests')
     .update({ status: 'rejected', reviewed_by: req.user.id, reviewed_at: new Date().toISOString() })
-    .eq('id', req.params.id);
+    .eq('id', req.params.id).eq('status', 'pending').select('id');
   if (sendDbError(res, error)) return;
+  if (!claimed?.length) return res.status(409).json({ error: 'Request already processed' });
   res.json({ ok: true });
 });
 

@@ -29,8 +29,13 @@ function renderMessage(role, content, refs, socratic) {
     div.textContent = content;
   } else {
     const mainContent = content.replace(/\n❓[^\n]*$/, '').trim();
-    if (typeof marked !== 'undefined') div.innerHTML = marked.parse(mainContent);
-    else div.textContent = mainContent;
+    // AI output is untrusted HTML once marked.parse runs it — sanitize before injecting, and
+    // fail SAFE to plain text if either lib is unavailable (never inject unsanitized markup).
+    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+      div.innerHTML = DOMPurify.sanitize(marked.parse(mainContent));
+    } else {
+      div.textContent = mainContent;
+    }
     if (refs?.length) {
       const r = document.createElement('div');
       r.className = 'msg-refs';

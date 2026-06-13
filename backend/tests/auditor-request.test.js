@@ -21,6 +21,7 @@ jest.mock('../src/lib/supabase', () => {
     caller: null,      // professionals .single() → the row verifyJwt sees for the bearer token
     dupPending: null,  // access_requests .maybeSingle() → the duplicate-pending check
     requestRow: null,  // access_requests .single() → the approve route's lookup
+    targetProf: null,  // professionals .maybeSingle() → the approve route's re-validation of the requester
     queries: [],       // every builder created: { table, op, selectArgs, eqs, payload }
   };
   const ok = (data) => Promise.resolve({ data, error: null });
@@ -39,9 +40,18 @@ jest.mock('../src/lib/supabase', () => {
       if (table === 'access_requests') return ok(state.requestRow);
       return ok(null);
     };
-    self.maybeSingle = () => (table === 'access_requests' ? ok(state.dupPending) : ok(null));
-    // Thenable terminal: the insert and the two updates are awaited directly.
-    self.then = (resolve, reject) => Promise.resolve({ data: null, error: null }).then(resolve, reject);
+    self.maybeSingle = () => {
+      if (table === 'access_requests') return ok(state.dupPending);
+      if (table === 'professionals') return ok(state.targetProf); // approve route's re-validation
+      return ok(null);
+    };
+    // Thenable terminal: insert + updates are awaited directly. An UPDATE that called .select() is an
+    // atomic claim — resolve with one row so the "winner" path proceeds (the loser is tested via a
+    // non-pending requestRow, which 409s at the pre-check before any claim).
+    self.then = (resolve, reject) => {
+      const claimed = rec.op === 'update' && rec.selectArgs !== null;
+      return Promise.resolve({ data: claimed ? [{ id: 'row-1' }] : null, error: null }).then(resolve, reject);
+    };
     return self;
   }
 
@@ -67,6 +77,7 @@ jest.mock('../src/lib/supabase', () => {
       state.caller = null;
       state.dupPending = null;
       state.requestRow = null;
+      state.targetProf = null;
       state.queries.length = 0;
     },
   };
@@ -168,6 +179,7 @@ const PENDING_REQUEST = {
 test('approve (superadmin) → professionals {can_audit:true} on the requester + request marked approved', async () => {
   m.state.caller = SUPERADMIN;
   m.state.requestRow = PENDING_REQUEST;
+  m.state.targetProf = PHYSICIAN; // the requester is still an active physician at approval time
 
   const r = await auth(request(app).post('/admin/auditor-requests/req-1/approve'));
 
@@ -186,6 +198,19 @@ test('approve (superadmin) → professionals {can_audit:true} on the requester +
   expect(closed.payload).toMatchObject({ status: 'approved', reviewed_by: 'sa-1' });
   expect(closed.payload.reviewed_at).toEqual(expect.any(String));
   expect(closed.eqs).toContainEqual(['id', 'req-1']);
+});
+
+test('approve when the requester is no longer an active physician → 409, can_audit NOT granted', async () => {
+  m.state.caller = SUPERADMIN;
+  m.state.requestRow = PENDING_REQUEST;
+  m.state.targetProf = { ...PHYSICIAN, role: 'admin' }; // since promoted away from physician
+
+  const r = await auth(request(app).post('/admin/auditor-requests/req-1/approve'));
+
+  expect(r.status).toBe(409);
+  expect(r.body.error).toMatch(/active physician/i);
+  expect(findUpdate('professionals')).toBeUndefined();   // never grants can_audit on a non-physician
+  expect(findUpdate('access_requests')).toBeUndefined(); // and never marks the request approved
 });
 
 test('approve an already-processed request → 409 and the professional is NOT touched', async () => {

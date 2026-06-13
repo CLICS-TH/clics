@@ -47,6 +47,20 @@ async function activeCouncil(councilId) {
   return data && data.active ? data : null;
 }
 
+// supabase-js has no getUserByEmail; scan the admin list (cheap at pilot scale). Used by the invite
+// password flow to recover a half-provisioned account whose email already has an auth user.
+async function findAuthUserByEmail(email) {
+  const target = (email || '').toLowerCase();
+  for (let page = 1; page <= 20; page++) { // cap 20*200 = 4000 users, ample for the pilot
+    const { data, error } = await authSupabase.auth.admin.listUsers({ page, perPage: 200 });
+    if (error || !data?.users?.length) return null;
+    const hit = data.users.find(u => (u.email || '').toLowerCase() === target);
+    if (hit) return hit;
+    if (data.users.length < 200) return null; // last page
+  }
+  return null;
+}
+
 // Verify an emailed OTP. An admin-created (unconfirmed) account produces a 'signup'-type token
 // (Confirm-signup email); a magic-link produces an 'email' token. Try both so either path verifies.
 async function verifyEmailOtp(email, token) {
@@ -60,7 +74,7 @@ router.get('/councils', async (_req, res) => {
   const { data, error } = await supabase
     .from('councils').select('id, code, name_th, name_en')
     .eq('active', true).order('sort');
-  if (error) return res.status(500).json({ error: error.message });
+  if (sendDbError(res, error)) return; // generic in prod — this is a PUBLIC pre-auth endpoint
   res.json(data ?? []);
 });
 
@@ -100,8 +114,18 @@ router.post('/login', async (req, res) => {
   });
 });
 
-router.post('/logout', verifyJwt, async (_req, res) => {
-  await supabase.auth.signOut();
+router.post('/logout', verifyJwt, async (req, res) => {
+  // Actually revoke the caller's session server-side. signOut() on the service-role data client is
+  // a no-op (it holds no session), so the token stayed valid for the full ~12h TTL after "logout".
+  // verifyJwt validates every request via authSupabase.auth.getUser, so an admin signOut of this
+  // JWT makes the token 401 on its next use. (Explicit logout — does NOT conflict with the
+  // "never signOut after STORING the token" login rule.)
+  const token = req.headers.authorization.slice(7);
+  try {
+    await authSupabase.auth.admin.signOut(token, 'global');
+  } catch (e) {
+    console.error('[auth] logout revoke failed:', e.message); // best-effort; client clears storage regardless
+  }
   res.json({ ok: true });
 });
 
@@ -191,6 +215,16 @@ router.post('/oauth/google/complete', oauthGate, async (req, res) => {
       return res.status(403).json({ error: 'Account deactivated. Contact an administrator.', code: 'deactivated' });
     }
     return res.json({ access_token, user: { id: user.id, email: user.email, ...prof } });
+  }
+
+  // Defense-in-depth: this endpoint AUTO-PROVISIONS an active physician with no invite, so the
+  // session must actually be Google-issued. The anon key is public, so a token minted via any other
+  // provider (e.g. if email/password signup were ever enabled at Supabase) must not auto-onboard.
+  // (Checked only on the new-user path — existing accounts already returned above, unaffected.)
+  const providers = user.app_metadata?.providers
+    || (user.app_metadata?.provider ? [user.app_metadata.provider] : []);
+  if (!providers.includes('google')) {
+    return res.status(403).json({ error: 'Google sign-in is required to create an account.' });
   }
 
   // A NEW user needs a council — tell the client to prompt for one (the only time the picker shows).
@@ -291,11 +325,26 @@ router.post('/invite/:token/accept', async (req, res) => {
 
   if (!body.otp) {
     if (!body.password) return res.status(400).json({ error: 'Password is required.' });
+    const userMeta = { invite_signup: { full_name_th: body.full_name_th, full_name_en: body.full_name_en } };
     const { data: created, error: cErr } = await supabase.auth.admin.createUser({
-      email: inv.email, password: body.password, email_confirm: false,
-      user_metadata: { invite_signup: { full_name_th: body.full_name_th, full_name_en: body.full_name_en } },
+      email: inv.email, password: body.password, email_confirm: false, user_metadata: userMeta,
     });
-    if (cErr) return res.status(409).json({ error: 'This email is already registered. Sign in instead.' });
+    if (cErr) {
+      // The email already has an auth user. Distinguish a HALF-PROVISIONED invite (an earlier
+      // attempt created the user + sent an OTP, then was abandoned → no professionals row yet) from a
+      // fully-registered account. Without recovery the invitee was bricked: retry 409'd "sign in",
+      // but sign-in 403s (no professionals row). Recover the half-provisioned case in place.
+      const existing = await findAuthUserByEmail(inv.email);
+      if (existing) {
+        const { data: prof } = await supabase.from('professionals').select('id').eq('id', existing.id).maybeSingle();
+        if (prof) return res.status(409).json({ error: 'This email is already registered. Sign in instead.' });
+        // Reuse the pending user: apply the newly-entered password + name, then (re)send the code.
+        await supabase.auth.admin.updateUserById(existing.id, { password: body.password, user_metadata: userMeta });
+      }
+      const { error: otpErr } = await authAnon.auth.signInWithOtp({ email: inv.email, options: { shouldCreateUser: false } });
+      if (otpErr) return res.status(502).json({ error: 'Could not send the verification code. Please try again.' });
+      return res.status(202).json({ status: 'otp_sent', email: inv.email });
+    }
     const { error: otpErr } = await authAnon.auth.signInWithOtp({ email: inv.email, options: { shouldCreateUser: false } });
     if (otpErr) { await supabase.auth.admin.deleteUser(created.user.id); return res.status(502).json({ error: 'Could not send the verification code.' }); }
     return res.status(202).json({ status: 'otp_sent', email: inv.email });
