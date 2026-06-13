@@ -240,7 +240,8 @@ create table public.ai_evaluations (
   composite_score  numeric not null,
   domain_rationale jsonb,
   model_version    text not null default 'CCME_LLM_v8.0',
-  evaluated_at     timestamptz default now()
+  evaluated_at     timestamptz default now(),
+  unique (ple_id)   -- one AI evaluation per session; backstops the duplicate-evaluation race
 );
 
 -- PIS-7 scored by Expert Auditor
@@ -281,7 +282,8 @@ create table public.lpdp_snapshots (
   ple_id          uuid not null references public.ples(id),
   composite_score numeric not null,
   domain_scores   jsonb not null,
-  snapshot_at     timestamptz default now()
+  snapshot_at     timestamptz default now(),
+  unique (ple_id)   -- one snapshot per session; backstops the duplicate-evaluation race
 );
 
 create index audit_scores_council_idx on public.audit_scores(council_id);

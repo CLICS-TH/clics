@@ -14,6 +14,15 @@ const EvalSchema = z.object({
   transcript: z.array(z.object({ role: z.string(), content: z.string() })),
 });
 
+// The evaluator's d1..d7 drive CME credit and are persisted into smallint CHECK(0..5) columns
+// downstream. Validate the model's parsed output HERE so a malformed/out-of-range/NaN score fails
+// fast (502) instead of poisoning the composite or throwing a CHECK violation in persistEvaluation
+// that the 6h reconcile sweep then retries forever (a paid call each time).
+const DOMAIN_KEYS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
+const DomainScoresSchema = z.object(
+  Object.fromEntries(DOMAIN_KEYS.map(k => [k, z.number().int().min(0).max(5)]))
+).passthrough();
+
 router.post('/', async (req, res) => {
   const parsed = EvalSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
@@ -32,16 +41,23 @@ router.post('/', async (req, res) => {
       maxTokens: 2000,
     });
 
-    let scores;
+    let parsedScores;
     try {
-      scores = parseJsonObject(text);
+      parsedScores = parseJsonObject(text);
     } catch {
       return res.status(502).json({ error: 'Evaluator returned invalid JSON' });
     }
 
+    const checked = DomainScoresSchema.safeParse(parsedScores);
+    if (!checked.success) {
+      console.error('[RIMPL evaluate] out-of-range/missing domain scores:', JSON.stringify(parsedScores).slice(0, 300));
+      return res.status(502).json({ error: 'Evaluator returned out-of-range or missing domain scores' });
+    }
+    const scores = checked.data;
+
     // ×20 gives 0-100 range: max = 5 × 1.0 × 20 = 100
     const composite = Object.entries(WEIGHTS).reduce(
-      (acc, [key, w]) => acc + (scores[key] ?? 0) * w, 0
+      (acc, [key, w]) => acc + scores[key] * w, 0
     ) * 20;
 
     res.json({

@@ -1,4 +1,4 @@
-const { computeTier1, compositeScore } = require('../src/services/cle-gate');
+const { computeTier1, compositeScore, clampDuration } = require('../src/services/cle-gate');
 
 describe('computeTier1', () => {
   test('passes when all criteria met', () => {
@@ -36,5 +36,30 @@ describe('compositeScore', () => {
   test('d1=4(15%) + d2=3(20%) = 24', () => {
     // (4*0.15 + 3*0.20) * 20 = (0.60 + 0.60) * 20 = 24
     expect(compositeScore({ d1: 4, d2: 3, d3: 0, d4: 0, d5: 0, d6: 0, d7: 0 })).toBeCloseTo(24, 1);
+  });
+
+  test('rounds away IEEE-754 float dust to 2dp', () => {
+    // {d7:3} -> 3*0.10*20 = 6, but raw float is 6.000000000000001
+    const v = compositeScore({ d1: 0, d2: 0, d3: 0, d4: 0, d5: 0, d6: 0, d7: 3 });
+    expect(v).toBe(6);
+    expect(Number.isInteger(v * 100)).toBe(true); // clean 2dp, no trailing dust
+  });
+});
+
+describe('clampDuration (C1 anti-gaming)', () => {
+  test('clamps an inflated client active_seconds to wall-clock', () => {
+    expect(clampDuration(99999, 120)).toBe(120); // a seconds-long session can't claim 15+ min
+  });
+  test('keeps a legitimate active time below wall-clock', () => {
+    expect(clampDuration(840, 1000)).toBe(840); // idle time excluded, under elapsed
+  });
+  test('falls back to wall-clock when the client reports nothing/garbage', () => {
+    expect(clampDuration(undefined, 950)).toBe(950);
+    expect(clampDuration('abc', 950)).toBe(950);
+    expect(clampDuration(-5, 950)).toBe(950);
+  });
+  test('a clamped fake CANNOT pass C1 while wall-clock is under 900s', () => {
+    const duration = clampDuration(100000, 300); // claimed 27h, actually 5 min
+    expect(computeTier1({ duration_seconds: duration, turn_count: 9, token_count: 9000 }).c1).toBe(false);
   });
 });

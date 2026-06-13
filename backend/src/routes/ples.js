@@ -2,7 +2,7 @@ const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { MessageSchema, CreatePleSchema, UpdatePleSchema } = require('../lib/schemas');
-const { computeTier1 } = require('../services/cle-gate');
+const { computeTier1, clampDuration } = require('../services/cle-gate');
 const { rimplChat, rimplEvaluateCriteria } = require('../services/rimpl-client');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
 const { triggerEvaluation } = require('../services/ple-evaluation');
@@ -216,12 +216,19 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id);
   if (!ple || ple.status !== 'active') return res.status(400).json({ error: 'PLE not active' });
 
+  // Claim the session atomically BEFORE any paid evaluation work: a double-submit (double-click,
+  // two tabs, a client retry after a slow response) must never run two tier-2 RIMPL calls / two
+  // PIS-7 evaluations for one PLE. Only the request that flips active->ended proceeds; racers 409.
+  const { data: claimed } = await supabase.from('ples')
+    .update({ status: 'ended' }).eq('id', req.params.id).eq('status', 'active').select('id');
+  if (!claimed || claimed.length === 0) return res.status(409).json({ error: 'PLE not active' });
+
   const endedAt = new Date();
-  const wallClockSeconds = Math.floor((endedAt - new Date(ple.started_at)) / 1000);
-  // Prefer the client-reported active-engagement time (idle/backgrounded time excluded);
-  // fall back to wall-clock if the client didn't report it.
-  const reported = Number(req.body?.active_seconds);
-  const durationSeconds = Number.isFinite(reported) && reported >= 0 ? Math.round(reported) : wallClockSeconds;
+  const wallClockSeconds = Math.max(0, Math.floor((endedAt - new Date(ple.started_at)) / 1000));
+  // Clamp the client-reported active-engagement time to wall-clock (see clampDuration): an unclamped
+  // client value lets a physician POST active_seconds:99999 and pass C1's 15-min engagement gate on a
+  // seconds-long session.
+  const durationSeconds = clampDuration(req.body?.active_seconds, wallClockSeconds);
   const updatedPle = { ...ple, duration_seconds: durationSeconds };
 
   const tier1 = computeTier1(updatedPle);

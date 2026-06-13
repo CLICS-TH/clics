@@ -20,13 +20,17 @@ async function persistEvaluation(pleId, physicianId, result) {
     domain_rationale: result.domain_rationale,
     model_version: result.model_version ?? 'CCME_LLM_v8.0',
   });
-  if (aiErr) throw new Error(`ai_evaluations insert failed: ${aiErr.message}`);
+  // UNIQUE(ple_id): a 23505 means a row already exists — a concurrent evaluation (the dup-eval race),
+  // or a previous PARTIAL persist where the ai row landed but the snapshot/status writes failed. In
+  // both cases DON'T throw (that would loop in reconcile); fall through to ensure the LPDP snapshot
+  // and 'evaluated' status are also written. The existing row's scores are kept (no double-write).
+  if (aiErr && aiErr.code !== '23505') throw new Error(`ai_evaluations insert failed: ${aiErr.message}`);
 
   const { error: lpdpErr } = await supabase.from('lpdp_snapshots').insert({
     physician_id: physicianId, ple_id: pleId,
     composite_score: composite, domain_scores: domain,
   });
-  if (lpdpErr) throw new Error(`lpdp_snapshots insert failed: ${lpdpErr.message}`);
+  if (lpdpErr && lpdpErr.code !== '23505') throw new Error(`lpdp_snapshots insert failed: ${lpdpErr.message}`);
 
   const { error: pleErr } = await supabase.from('ples').update({ status: 'evaluated' }).eq('id', pleId);
   if (pleErr) throw new Error(`ples status update failed: ${pleErr.message}`);

@@ -8,11 +8,22 @@ function computeTier1(ple) {
   };
 }
 
-// ×20 gives 0-100: max = 5 × 1.0 × 20 = 100
-function compositeScore(scores) {
-  return Object.entries(WEIGHTS).reduce(
-    (acc, [key, w]) => acc + (scores[key] ?? 0) * w, 0
-  ) * 20;
+// Active-engagement time is client-reported (idle/backgrounded time excluded) but can never exceed
+// elapsed wall-clock. Clamp it so C1 (>=900s, the 15-min CME-credit engagement gate) cannot be gamed
+// by an inflated active_seconds. Fall back to wall-clock when the client didn't report a usable value.
+function clampDuration(reportedSeconds, wallClockSeconds) {
+  const r = Number(reportedSeconds);
+  return Number.isFinite(r) && r >= 0 ? Math.min(Math.round(r), wallClockSeconds) : wallClockSeconds;
 }
 
-module.exports = { computeTier1, compositeScore, WEIGHTS };
+// ×20 gives 0-100: max = 5 × 1.0 × 20 = 100. Round to 2dp: the raw weighted sum produces IEEE-754
+// dust (e.g. {d7:3} -> 6.000000000000001) that would otherwise persist into ai_evaluations /
+// audit_scores / lpdp_snapshots and the ICC pairs.
+function compositeScore(scores) {
+  const raw = Object.entries(WEIGHTS).reduce(
+    (acc, [key, w]) => acc + (scores[key] ?? 0) * w, 0
+  ) * 20;
+  return Math.round(raw * 100) / 100;
+}
+
+module.exports = { computeTier1, compositeScore, clampDuration, WEIGHTS };

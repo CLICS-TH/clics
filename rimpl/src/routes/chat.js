@@ -16,7 +16,9 @@ const ChatSchema = z.object({
   chief_complaint: z.string().optional(),
 });
 
-async function buildMessages(history, message, ragDocs, chiefComplaint) {
+// `cleanMessage` MUST already be PII-stripped by the caller (see the route): the RAG embedding
+// and the Claude call must use the same de-identified text, and PII must never reach either.
+async function buildMessages(history, cleanMessage, ragDocs, chiefComplaint) {
   // Ground every turn in the case the physician opened the session with, so the AI
   // never has to ask for patient details it was already given at creation.
   const cc = chiefComplaint
@@ -29,7 +31,7 @@ async function buildMessages(history, message, ragDocs, chiefComplaint) {
     role: m.role === 'physician' ? 'user' : 'assistant',
     content: m.content,
   }));
-  return [...cleanHistory, { role: 'user', content: cc + stripPii(message) + context }];
+  return [...cleanHistory, { role: 'user', content: cc + cleanMessage + context }];
 }
 
 router.post('/', async (req, res) => {
@@ -39,8 +41,11 @@ router.post('/', async (req, res) => {
   const { history, message, language, chief_complaint } = parsed.data;
 
   try {
-    const ragDocs = await ragLookup(message);
-    const messages = await buildMessages(history, message, ragDocs, chief_complaint);
+    // De-identify ONCE, up front: PII must never leave the on-prem boundary — not to Claude and
+    // not to the OpenAI embeddings API behind RAG. ragLookup previously received the raw message.
+    const cleanMessage = stripPii(message);
+    const ragDocs = await ragLookup(cleanMessage);
+    const messages = await buildMessages(history, cleanMessage, ragDocs, chief_complaint);
 
     let { text, tokenCount, inputTokens, outputTokens } = await callClaude({ systemPrompt: RIMPL_SYSTEM_PROMPT, messages, maxTokens: 2500 });
 
