@@ -56,3 +56,22 @@ Defined in `db/seed-users.js`:
 - `curl <backend>/health` → `{"status":"ok"}`.
 - Live chat e2e: login as physician → create PLE → `POST /ples/:id/message` → expect content + ≥1 `(Source, Year)` ref + a `socratic_question`.
 - `curl <rimpl-internal>/health` from outside → `000` (confirms internal-only).
+
+### Migration-applied gate (run in the Supabase SQL editor — scaletest, then prod)
+
+The backend now degrades *safely* when these are absent (the usage meter no longer runs negative without
+`reserve_usage`; dup-eval reads fall back to the first row without `*_ple_uniq`), but the actual
+protections only exist once the SQL is applied. Each query returns rows iff applied:
+
+```sql
+select proname from pg_proc where proname = 'reserve_usage';                          -- usage-reserve
+select conname from pg_constraint
+  where conname in ('ai_evaluations_ple_uniq','lpdp_snapshots_ple_uniq',              -- eval-unique
+                    'can_audit_physician_only');                                       -- can-audit-check
+select indexname from pg_indexes
+  where indexname in ('ples_auditor_idx','ples_status_idx','lpdp_snapshots_ple_idx');  -- perf-indexes
+```
+
+**Deploy ordering:** apply `migration-usage-reserve.sql` + `migration-eval-unique.sql` BEFORE (or with)
+a backend deploy — never a new backend against a DB missing them. (`migration-eval-unique.sql` was
+historically orphaned from the runbooks — it is required, not optional.)
