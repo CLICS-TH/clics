@@ -1,6 +1,11 @@
 # CLICS — Clinical Learning Intelligence Credit System
 ## Design Specification · 2026-06-04
 
+> ⚠️ **SUPERSEDED / HISTORICAL (kept for reference).** Original 2026-06-04 spec. The auditor scorer
+> described here as "slider UI" is now tappable 0–5 chips (`audit-dashboard/components/DomainScorer.tsx`);
+> the UX was reworked in the 2026-06-13 Claude Design audit. For current state see
+> [`../../HANDOFF.md`](../../HANDOFF.md) and the per-layer READMEs.
+
 ---
 
 ## 1. Purpose

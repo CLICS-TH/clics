@@ -5,6 +5,11 @@ Next steps, ordered by priority. Framed against the pilot timeline (see [pilot-t
 
 The prototype is feature-complete and live (4 roles, folders, chat, CLE gate, PIS-7 scoring, auditor blind-scoring, ICC). These items take it from prototype → pilot-grade → full spec.
 
+**Recently shipped (2026-06-13/14):** the Claude Design UX/UI audit + a simplify pass (commit `bf9d5f8`,
+deployed to Vercel) — flat-coral AA contrast, the rubric-anchored `DomainScorer`, themed dialogs,
+line-icons, bilingual label hierarchy, chart-token centralization; and the developer-onboarding docs
+(root `README.md`, `CONTRIBUTING.md`, per-layer READMEs, `docs/HANDOFF.md`). See [HANDOFF.md](HANDOFF.md).
+
 ---
 
 ## P1 — Pilot-readiness (do next)

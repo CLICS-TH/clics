@@ -8,7 +8,7 @@ This is an on-premise pilot system for a Thai medical licensing body. The pilot 
 
 | Path | What it is | Deployed to |
 |------|------------|-------------|
-| `physician-ui/` | Static HTML/JS physician portal (6 pages, no build step) | Vercel |
+| `physician-ui/` | Static HTML/JS physician portal (10 HTML pages, no build step) | Vercel |
 | `audit-dashboard/` | Next.js 16 dashboard for Admin / Superadmin / Auditor | Vercel |
 | `backend/` | Node.js/Express REST API + Supabase SDK | Railway |
 | `rimpl/` | On-premise RIMPL middleware (internal-only) | Railway |

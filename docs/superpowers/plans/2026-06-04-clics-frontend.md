@@ -1,5 +1,11 @@
 # CLICS Frontend Implementation Plan
 
+> ⚠️ **SUPERSEDED / HISTORICAL (kept for reference).** This is the original 2026-06-04 build plan. Parts are
+> now out of date — notably, the auditor scorer is no longer sliders: it is tappable 0–5 chips in
+> `audit-dashboard/components/DomainScorer.tsx` (the old `DomainSliders.tsx` was deleted in the 2026-06-13
+> Claude Design audit). For the current state see [`../../HANDOFF.md`](../../HANDOFF.md) and the per-layer
+> READMEs; verify against the actual code before implementing anything from this doc.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build both CLICS frontend apps — the physician HTML/JS interface (port 3000) and the Next.js audit dashboard (port 3002) — on top of the completed backend (see `2026-06-04-clics-backend.md`).

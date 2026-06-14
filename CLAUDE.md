@@ -4,6 +4,8 @@ Guidance for Claude Code working in this repository. This file is an **index** �
 
 **CLICS** (Clinical Learning & Intelligence Credit System) is an AI-mediated platform that scores physician clinical reasoning from physician–AI dialogue sessions (**PLEs**), replacing attendance-based CME/CPD credit. On-premise pilot for a Thai medical licensing body, July–September 2026.
 
+**New here (human dev)?** Start with [README.md](README.md), then [CONTRIBUTING.md](CONTRIBUTING.md) (local setup + conventions) and [docs/HANDOFF.md](docs/HANDOFF.md) (current state + what to work on next). Each layer also has its own README: [backend](backend/README.md) · [rimpl](rimpl/README.md) · [physician-ui](physician-ui/README.md) · [audit-dashboard](audit-dashboard/README.md). The 2026-06 design audit added shared front-end primitives — physician-ui `js/{icons,ui}.js`; audit-dashboard `components/{BiLabel,Overlays,Markdown,DomainScorer}.tsx` + `lib/{chart-colors,pis7-rubric}.ts` (`pis7-rubric.ts` mirrors `rimpl/src/lib/prompts.js`).
+
 ## Critical rules (read before changing anything)
 
 1. **Data boundary:** PII never leaves the on-premise RIMPL layer; only de-identified JSON reaches cloud AI. See [docs/architecture.md](docs/architecture.md).
@@ -17,6 +19,7 @@ Guidance for Claude Code working in this repository. This file is an **index** �
 
 | Doc | Contents |
 |-----|----------|
+| [docs/HANDOFF.md](docs/HANDOFF.md) | State-of-the-app snapshot (what's live, what just shipped, where to start) |
 | [docs/overview.md](docs/overview.md) | What CLICS is + repository layout |
 | [docs/architecture.md](docs/architecture.md) | 4-layer on-premise architecture, request flow, planned vs. as-built |
 | [docs/roles.md](docs/roles.md) | The 4 roles (A/B/C/D), post-login routing, role-keyed nav |

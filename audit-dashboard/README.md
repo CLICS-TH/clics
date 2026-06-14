@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# audit-dashboard — Admin / Auditor / Superadmin consoles
 
-## Getting Started
+The staff dashboard: PLE management + assignment, the auditor's blind PIS-7 scorer, the ICC dashboard,
+invites, and user/usage management. **Next.js 16** (App Router) + React 19 + Tailwind **v4** + shadcn-on-
+Base-UI + recharts. Deployed to **Vercel**.
 
-First, run the development server:
+> ⚠️ **This is not the Next.js most training data knows.** Next 16 has breaking changes — **read
+> `node_modules/next/dist/docs/` before touching any Next API** (see [`AGENTS.md`](AGENTS.md)).
+
+## Run
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local           # NEXT_PUBLIC_API_URL + NEXT_PUBLIC_SUPABASE_*
+npm run dev -- -p 3002               # port 3002 (the portal expects the dashboard here; next dev
+                                     # defaults to 3000, which collides with physician-ui)
+npm run build && npm start           # production build / serve
+npm run lint                         # eslint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`NEXT_PUBLIC_*` is **inlined at build time** — after changing it (incl. on Vercel) you must rebuild, or
+the old value (e.g. `localhost:3001`) stays baked in and prod login silently hangs.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Layout
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `app/` — App Router. `login/` (consumes the `?token=` handoff from the portal — a bare visit redirects
+  back to the portal), `home/`, `admin/` (`overview`, `ples`, `ples/[id]`, `flagged`, `invites`, `users`,
+  `icc`, `lpdp`, `stats`), `auditor/` (`queue`, `ples/[id]`), `forgot/`, `reset/`. `globals.css` holds the
+  Tailwind v4 `@theme` block + design tokens.
+- `components/` — `NavBar`, `Toggles` (theme/viewport), `AppShell`, `PageIntro`, `Footer`, `RoleBadge`,
+  `Skeleton`, `ThemeProvider`, `ViewportProvider`; and the design-system pieces: **`BiLabel`** (bilingual
+  hierarchy), **`Overlays`** (`toast()` / `confirmDialog()`), **`Markdown`** (react-markdown + remark-gfm),
+  **`DomainScorer`** (the rubric-anchored 0–5-chip PIS-7 scorer), `TranscriptView` (memoized), `IccPanel`,
+  `LpdpChart`, `BlandAltmanPlot`. `components/ui/` is shadcn primitives.
+- `lib/` — `api.ts` (backend fetch + auth header), `auth.ts`, `supabase-browser.ts`, `labels.ts`
+  (status/role labels + the `WEIGHTS` source of truth), **`pis7-rubric.ts`** (rubric anchors — *mirrors*
+  `rimpl/src/lib/prompts.js`, keep in sync), **`chart-colors.ts`** (hex constants for recharts, mirroring
+  the `--chart-*` CSS tokens), `utils.ts`.
 
-## Learn More
+## Conventions
 
-To learn more about Next.js, take a look at the following resources:
+- **Design tokens** are CSS vars in `globals.css` (`--coral-active` for the primary CTA, `--chart-pass/
+  -fail/-threshold/-warn`). Tailwind utilities reference them via `bg-[var(--token)]`. **Recharts can't use
+  CSS `var()` in SVG attributes** — charts import `lib/chart-colors.ts` instead.
+- **Bilingual labels** → `BiLabel` (Thai primary, English dimmed). **Dialogs/toasts** → `Overlays`, not
+  native `confirm`/`alert`. **Markdown** (transcripts) → `Markdown`.
+- **Blind-scoring integrity:** the auditor's AI score stays hidden until they submit; `DomainScorer`
+  requires all 7 domains set before submit (no silent-0 default).
+- **Never `sbClient.auth.signOut()`** after storing the token (it revokes the Supabase session → 401s).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deploy: `vercel --prod --yes` (ensure `NEXT_PUBLIC_API_URL` is set on Vercel).
+See [../docs/deployment.md](../docs/deployment.md).
