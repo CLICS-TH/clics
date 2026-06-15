@@ -20,18 +20,23 @@ function makeSupabaseMock() {
   const state = { caller: null, resolve: () => undefined, queries: [] };
 
   const wrap = (v, isList = false) => {
+    // ADDITIVE: a resolve() return of { data, error, count } passes `count` through unchanged (for
+    // count:'exact' list endpoints that surface it as X-Total-Count). Resolves that omit `count`
+    // behave exactly as before (the key is simply absent). Non-list/legacy returns are untouched.
     if (v && typeof v === 'object' && !Array.isArray(v) && ('data' in v || 'error' in v)) {
-      return Promise.resolve({ data: v.data ?? null, error: v.error ?? null });
+      const r = { data: v.data ?? null, error: v.error ?? null };
+      if ('count' in v) r.count = v.count;
+      return Promise.resolve(r);
     }
     if (v === undefined) return Promise.resolve({ data: isList ? [] : null, error: null });
     return Promise.resolve({ data: v, error: null });
   };
 
   function builder(table) {
-    const rec = { table, op: 'select', selectArgs: null, eqs: [], payload: undefined };
+    const rec = { table, op: 'select', selectArgs: null, eqs: [], ors: [], payload: undefined };
     state.queries.push(rec);
     const ctx = () => ({
-      op: rec.op, eqs: rec.eqs, payload: rec.payload, selectArgs: rec.selectArgs,
+      op: rec.op, eqs: rec.eqs, ors: rec.ors, payload: rec.payload, selectArgs: rec.selectArgs,
       id: (col = 'id') => (rec.eqs.find((e) => e[0] === col) || [])[1],
     });
     const self = {};
@@ -40,7 +45,10 @@ function makeSupabaseMock() {
     self.update = (p) => { rec.op = 'update'; rec.payload = p; return self; };
     self.delete = () => { rec.op = 'delete'; return self; };
     self.eq = (c, v) => { rec.eqs.push([c, v]); return self; };
-    for (const fn of ['order', 'range', 'limit', 'in', 'neq', 'not', 'is', 'gte', 'lte', 'or', 'contains']) self[fn] = () => self;
+    // ADDITIVE: record .or() expressions (rec.ors) so search-filter suites can assert them; still
+    // chainable. Suites that never call .or() are unaffected (rec.ors stays []).
+    self.or = (expr) => { rec.ors.push(expr); return self; };
+    for (const fn of ['order', 'range', 'limit', 'in', 'neq', 'not', 'is', 'gte', 'lte', 'contains']) self[fn] = () => self;
 
     const read = (kind) => {
       const c = ctx();

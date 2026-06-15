@@ -3,64 +3,12 @@
 // The superadmin spans all councils: NO council_id filter. The list is paginated with a
 // count:'exact' select, surfaced as the X-Total-Count header (body stays an array).
 //
-// Only the Supabase edge is mocked (table-aware, same pattern as auth-flows.test.js): all mutable
-// state lives INSIDE the hoisted jest.mock factory and is re-exported as `__mock`. The builder
-// RECORDS every query (table, select args, eq calls) into state.queries so tests can assert
-// exactly which filters the route applied — not just the response shape.
+// Only the Supabase edge is mocked, via the shared table-aware recording mock (helpers/supabase-mock):
+// the builder RECORDS every query (table, select args, eq calls) into m.state.queries so tests can
+// assert exactly which filters the route applied — not just the response shape. The members-list read
+// is served from m.state.listRows / m.state.listCount (the awaited professionals list query).
 
-jest.mock('../src/lib/supabase', () => {
-  // Mutable state tests reach in and set (reset by m.reset()).
-  const state = {
-    caller: null,   // professionals row returned to verifyJwt (.single())
-    listRows: [],   // rows the awaited list query resolves with
-    listCount: 0,   // count:'exact' total the list query resolves with
-    queries: [],    // every builder created: { table, op, selectArgs, eqs: [[col, val], ...] }
-  };
-  const ok = (data) => Promise.resolve({ data, error: null });
-
-  function builder(table) {
-    const rec = { table, op: 'select', selectArgs: null, eqs: [] };
-    state.queries.push(rec);
-    const self = {};
-    self.select = (...args) => { rec.selectArgs = args; return self; };
-    self.eq = (col, val) => { rec.eqs.push([col, val]); return self; };
-    self.insert = (payload) => { rec.op = 'insert'; rec.payload = payload; return self; };
-    self.update = (payload) => { rec.op = 'update'; rec.payload = payload; return self; };
-    for (const fn of ['order', 'range', 'limit', 'in', 'neq', 'not', 'is', 'gte', 'lte']) self[fn] = () => self;
-    self.single = () => (table === 'professionals' ? ok(state.caller) : ok(null));
-    self.maybeSingle = () => ok(null);
-    // Thenable terminal: GET /users awaits the builder directly and destructures { data, error, count }.
-    self.then = (resolve, reject) => {
-      const value = table === 'professionals'
-        ? { data: state.listRows, error: null, count: state.listCount }
-        : { data: [], error: null, count: 0 };
-      return Promise.resolve(value).then(resolve, reject);
-    };
-    return self;
-  }
-
-  const mod = {
-    supabase: { from: builder, rpc: () => Promise.resolve({ data: null, error: null }) },
-    authSupabase: { auth: {
-      getUser: () => Promise.resolve(
-        state.caller
-          ? { data: { user: { id: state.caller.id, email: 'caller@test.local' } }, error: null }
-          : { data: { user: null }, error: { message: 'no caller set' } }
-      ),
-    } },
-  };
-
-  mod.__mock = {
-    state,
-    reset() {
-      state.caller = null;
-      state.listRows = [];
-      state.listCount = 0;
-      state.queries.length = 0;
-    },
-  };
-  return mod;
-});
+jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSupabaseMock());
 
 const request = require('supertest');
 const express = require('express');
@@ -72,7 +20,17 @@ app.use(express.json());
 app.use('/admin', adminRouter);
 const auth = (r) => r.set('Authorization', 'Bearer test');
 
-beforeEach(() => m.reset());
+beforeEach(() => {
+  m.reset();
+  m.state.listRows = [];
+  m.state.listCount = 0;
+  // The GET /admin/users members list is the only awaited professionals read; serve it from
+  // listRows/listCount. (verifyJwt's own caller lookup is a .single() → auto-returns m.state.caller.)
+  m.state.resolve = (table, kind) =>
+    (table === 'professionals' && kind === 'list')
+      ? { data: m.state.listRows, error: null, count: m.state.listCount }
+      : undefined;
+});
 
 const ADMIN_C1 = { id: 'adm-1', role: 'admin', status: 'active', council_id: 'C1' };
 const SUPERADMIN = { id: 'sa-1', role: 'superadmin', status: 'active', council_id: null };

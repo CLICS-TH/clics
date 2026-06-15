@@ -26,9 +26,15 @@ cd physician-ui     && for f in public/js/*.js; do node --check "$f"; done   # s
 > One-command local stack: `npm run dev` at the repo root boots all four layers together (backend 3001,
 > rimpl 3003, physician-ui 3000, dashboard 3002) via `concurrently` — see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
+> Coverage thresholds are enforced only when jest runs with `--coverage` — backend / rimpl / audit-dashboard
+> each carry `coverageThreshold` floors in their `jest.config.js`. CI runs them with `--coverage`; locally,
+> e.g. `cd backend && npm test -- --coverage`.
+
 CI (`.github/workflows/ci.yml`) runs the hermetic set on every push to `master` and every PR, on Node 22:
-backend + license-verifier (`npm test`), rimpl (`npm run test:ci`, no env needed), audit-dashboard
-(typecheck + jest + lint — **all three blocking**), and physician-ui JS syntax.
+backend + license-verifier, rimpl (no env needed), audit-dashboard (typecheck + jest + lint — **all three
+blocking**), and physician-ui JS syntax. backend / rimpl / audit-dashboard jest run with `--coverage`, so the
+`coverageThreshold` floors are enforced. A separate **manual** workflow, `.github/workflows/staging-smoke.yml`,
+runs the live role-chain smoke against a non-prod stack (see *Live gates*).
 
 ## Seamless cooperation between roles — the seam → test matrix
 
@@ -62,7 +68,8 @@ server-side in `auditor-scoring.test.js` and `role-chain.integration.test.js`.
 
 ## Writing a new cross-role test
 
-Reuse the shared helpers (additive — the older suites still carry their own inline mocks):
+Reuse the shared helpers (used by the cross-role suites + four migrated older ones; the remaining older
+suites keep bespoke inline mocks — see the roadmap):
 
 - `backend/tests/helpers/supabase-mock.js` — `makeSupabaseMock()`: a table-aware recording builder.
   Set `m.state.caller` (the row `verifyJwt` sees) and `m.state.resolve(table, kind, ctx)` to return rows.
@@ -83,7 +90,8 @@ which backend they target. Run them against demo accounts, ideally right after `
 
 - `scripts/smoke/role-chain-smoke.js` — superadmin → admin assign → auditor blind-score → ICC →
   de-identified export. The live counterpart of `role-chain.integration.test.js`. Env: `SMOKE_BASE`,
-  `SMOKE_SUPER_PW`, `SMOKE_ADMIN_PW`, `SMOKE_AUD_EMAIL`, `SMOKE_AUD_PW`.
+  `SMOKE_SUPER_PW`, `SMOKE_ADMIN_PW`, `SMOKE_AUD_EMAIL`, `SMOKE_AUD_PW`. Also runnable in CI via the manual
+  `staging-smoke` workflow (Actions tab) once those are added as repo secrets, pointing at a non-prod stack.
 - `scripts/smoke/go-live-smoke.js` — consent gate → chat turn → CLE eval → de-identified export.
 - `scripts/e2e/new-auth-e2e.js` — auth/invite lifecycle (dry-run unless `--confirm`).
 
@@ -101,12 +109,19 @@ which backend they target. Run them against demo accounts, ideally right after `
 - **ESLint promoted to a blocking CI gate** — the 65 findings fixed: `no-explicit-any` properly typed,
   and the `set-state-in-effect` effects migrated to `useSyncExternalStore` (`lib/client-store.ts`).
 
-**Phase 2 — remaining:**
-- **Wire `role-chain-smoke.js` into a staging CI job** (needs a non-prod Supabase + secrets).
-- **DRY the older backend suites** onto `tests/helpers/` (the 30 pre-helper suites still carry inline mocks).
+**Phase 2/3 — done (2026-06-15):**
+- **Staging smoke CI job** — `.github/workflows/staging-smoke.yml` (manual `workflow_dispatch`) runs the
+  live role-chain smoke against a non-prod stack; enable by adding the `SMOKE_*` repo secrets.
+- **Coverage thresholds** — `coverageThreshold` floors in each `jest.config.js`, enforced in CI via
+  `--coverage` (backend src/**, rimpl src/**, audit-dashboard tested units).
+- **DRY older backend suites** — the four cleanly-fitting suites (`consent-gate`, `usage-budget`,
+  `admin-users-scope`, `admin-users-search`) now use the shared helper (~100 lines of duplicate inline
+  mocks removed). The remaining ~20 keep bespoke inline mocks **by design**: they encode behavior the
+  generic helper can't express without contortion (atomic invite-consume / insert-echo, per-name RPC,
+  `auth.admin` spies, middleware-only stubs), so forcing them would risk the assertions for no real gain.
 
 **Phase 3 — later:** multi-IP load test (single-IP bottoms out on per-IP limiters — see
-[PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)); jest coverage thresholds; Playwright browser E2E.
+[PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)); Playwright browser E2E.
 
 ## Known limitations
 - Hermetic suites cover **route-level** guard logic; the **DB triggers** (`audit_scores_guard`) and **RLS**

@@ -8,61 +8,10 @@
 //   - q that sanitizes to '' → filter skipped entirely (no .or() call)
 //   - count:'exact' + X-Total-Count plumbing unchanged (the filter composes with pagination)
 //
-// Supabase mock follows admin-users-scope.test.js (table-aware; mutable state hoisted inside
-// the jest.mock factory, re-exported as `__mock`), extended to RECORD .or() expressions.
+// Supabase mock: the shared table-aware recording mock (helpers/supabase-mock) — it records .or()
+// expressions (m.state.queries[].ors) and serves the members list from m.state.listRows/listCount.
 
-jest.mock('../src/lib/supabase', () => {
-  // Mutable state tests reach in and set (reset by m.reset()).
-  const state = {
-    caller: null,   // professionals row returned to verifyJwt (.single())
-    listRows: [],   // rows the awaited list query resolves with
-    listCount: 0,   // count:'exact' total the list query resolves with
-    queries: [],    // every builder created: { table, op, selectArgs, eqs, ors }
-  };
-  const ok = (data) => Promise.resolve({ data, error: null });
-
-  function builder(table) {
-    const rec = { table, op: 'select', selectArgs: null, eqs: [], ors: [] };
-    state.queries.push(rec);
-    const self = {};
-    self.select = (...args) => { rec.selectArgs = args; return self; };
-    self.eq = (col, val) => { rec.eqs.push([col, val]); return self; };
-    self.or = (expr) => { rec.ors.push(expr); return self; };
-    for (const fn of ['order', 'range', 'limit', 'in', 'neq', 'not', 'is', 'gte', 'lte']) self[fn] = () => self;
-    self.single = () => (table === 'professionals' ? ok(state.caller) : ok(null));
-    self.maybeSingle = () => ok(null);
-    // Thenable terminal: GET /users awaits the builder directly and destructures { data, error, count }.
-    self.then = (resolve, reject) => {
-      const value = table === 'professionals'
-        ? { data: state.listRows, error: null, count: state.listCount }
-        : { data: [], error: null, count: 0 };
-      return Promise.resolve(value).then(resolve, reject);
-    };
-    return self;
-  }
-
-  const mod = {
-    supabase: { from: builder, rpc: () => Promise.resolve({ data: null, error: null }) },
-    authSupabase: { auth: {
-      getUser: () => Promise.resolve(
-        state.caller
-          ? { data: { user: { id: state.caller.id, email: 'caller@test.local' } }, error: null }
-          : { data: { user: null }, error: { message: 'no caller set' } }
-      ),
-    } },
-  };
-
-  mod.__mock = {
-    state,
-    reset() {
-      state.caller = null;
-      state.listRows = [];
-      state.listCount = 0;
-      state.queries.length = 0;
-    },
-  };
-  return mod;
-});
+jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSupabaseMock());
 
 const request = require('supertest');
 const express = require('express');
@@ -74,7 +23,17 @@ app.use(express.json());
 app.use('/admin', adminRouter);
 const auth = (r) => r.set('Authorization', 'Bearer test');
 
-beforeEach(() => m.reset());
+beforeEach(() => {
+  m.reset();
+  m.state.listRows = [];
+  m.state.listCount = 0;
+  // The GET /admin/users members list is the only awaited professionals read; serve it from
+  // listRows/listCount. (verifyJwt's own caller lookup is a .single() → auto-returns m.state.caller.)
+  m.state.resolve = (table, kind) =>
+    (table === 'professionals' && kind === 'list')
+      ? { data: m.state.listRows, error: null, count: m.state.listCount }
+      : undefined;
+});
 
 const ADMIN_C1 = { id: 'adm-1', role: 'admin', status: 'active', council_id: 'C1' };
 const SUPERADMIN = { id: 'sa-1', role: 'superadmin', status: 'active', council_id: null };
