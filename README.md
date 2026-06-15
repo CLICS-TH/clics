@@ -5,9 +5,10 @@ dialogue sessions (**PLEs** — Professional/Clinical Learning Episodes), replac
 CME/CPD credit with evidence of cognitive engagement. It is an **on-premise pilot** for a Thai
 medical licensing body, running **July–September 2026** (~75 physicians × 3 PLEs each).
 
-> **New here?** Read this page, then **[`CONTRIBUTING.md`](CONTRIBUTING.md)** (run it locally + how to
-> work in the repo) and **[`docs/HANDOFF.md`](docs/HANDOFF.md)** (current state + what to work on next).
-> `CLAUDE.md` is the index/critical-rules file for AI coding agents.
+> **New here? → Start with [`START-HERE.md`](START-HERE.md)** — the on-ramp (install · run · test ·
+> build · deploy, one page). Then **[`CONTRIBUTING.md`](CONTRIBUTING.md)** (local setup + conventions)
+> and **[`docs/HANDOFF.md`](docs/HANDOFF.md)** (current state + what to work on next). `CLAUDE.md` is the
+> index/critical-rules file for AI coding agents.
 
 ## Architecture at a glance
 
