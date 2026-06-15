@@ -1,22 +1,27 @@
 # Testing
 
-How CLICS is tested, how to run it, and the roadmap for closing the remaining gaps. The backend, rimpl,
-and license-verifier suites are **hermetic** — Supabase and the Anthropic SDK are mocked at the module
-level, so everything runs with **no secrets and no live infrastructure** (that's why CI can run it all).
+How CLICS is tested, how to run it, and the roadmap for closing the remaining gaps. The backend and
+license-verifier suites — and rimpl's **logic** suites — are **hermetic** (Supabase + the Anthropic SDK
+mocked at the module level), so CI runs them with no real secrets. rimpl's three **integration** suites
+(`chat`, `rag-pii`, `evaluate-validation`) make a real Supabase round-trip and are NOT hermetic — they run
+locally with creds, or via the live gate, not in unit CI.
 
 ## Run it
 
 ```bash
-cd backend          && npm test    # jest --runInBand  (36 suites / 222 tests)
-cd rimpl            && npm test    # jest --runInBand  (incl. PII-leak adversarial; 177 tests)
-cd license-verifier && npm test    # node --test       (8 tests)
+cd backend          && npm test       # jest --runInBand  (36 suites / 222 tests, hermetic)
+cd rimpl            && npm run test:ci # the 5 hermetic logic suites (170 tests, no creds)
+cd rimpl            && npm test        # ALL 8 suites — the 3 integration ones need a live Supabase in env
+cd license-verifier && npm test       # node --test       (8 tests, hermetic)
 cd audit-dashboard  && npx tsc --noEmit   # typecheck (blocking gate)
 cd audit-dashboard  && npm run lint       # ESLint (informational — see Phase 2)
 cd physician-ui     && for f in public/js/*.js; do node --check "$f"; done   # syntax
 ```
 
-CI (`.github/workflows/ci.yml`) runs all of the above on every push to `master` and every PR, on Node 22.
-The dashboard typecheck is blocking; lint is `continue-on-error` (pre-existing findings — Phase 2).
+CI (`.github/workflows/ci.yml`) runs the hermetic set on every push to `master` and every PR, on Node 22:
+backend + license-verifier (`npm test`), rimpl (`npm run test:ci`, with dummy placeholder env so the
+Supabase client constructs at import), dashboard typecheck (blocking) + lint (`continue-on-error` —
+pre-existing findings, Phase 2), and physician-ui JS syntax.
 
 ## Seamless cooperation between roles — the seam → test matrix
 
@@ -77,6 +82,8 @@ which backend they target. Run them against demo accounts, ideally right after `
 - **Wire `role-chain-smoke.js` into a staging CI job** (needs a non-prod Supabase + secrets).
 - **Fix the 65 dashboard ESLint findings**, then make `npm run lint` blocking in CI.
 - **DRY the older backend suites** onto `tests/helpers/`.
+- **Make rimpl's integration suites hermetic** — mock Supabase in `chat`/`rag-pii`/`evaluate-validation`
+  (they currently need a live DB), then fold them into CI and drop the `test:ci` carve-out.
 
 **Phase 3 — later:** multi-IP load test (single-IP bottoms out on per-IP limiters — see
 [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)); jest coverage thresholds; Playwright browser E2E.

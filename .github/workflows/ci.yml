@@ -1,7 +1,10 @@
 name: CI
 
-# Hermetic test pipeline — the backend/rimpl/license-verifier suites mock Supabase + the Anthropic SDK,
-# so every job runs with NO secrets and no live infrastructure. See docs/TESTING.md.
+# Hermetic test pipeline — backend + license-verifier + rimpl's logic suites mock Supabase + the
+# Anthropic SDK, so they run with NO real secrets and no live infrastructure. rimpl's 3 INTEGRATION
+# suites (chat, rag-pii, evaluate-validation) need a live Supabase and are excluded here (run via the
+# live gate — see docs/TESTING.md); the rimpl job passes dummy placeholder env only so the Supabase
+# client can construct at import.
 
 on:
   push:
@@ -13,14 +16,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Node service suites (jest for backend/rimpl, node --test for license-verifier).
+  # Fully-hermetic suites (jest for backend, node --test for license-verifier) — no env needed.
   test:
     name: test (${{ matrix.layer }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        layer: [backend, rimpl, license-verifier]
+        layer: [backend, license-verifier]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,6 +35,27 @@ jobs:
         working-directory: ${{ matrix.layer }}
       - run: npm test
         working-directory: ${{ matrix.layer }}
+
+  # rimpl: the hermetic logic suites (pii-filter, pii-leak-adversarial, post-filter, transcript-fence,
+  # claude). Dummy placeholder env lets src/lib/supabase construct the client at import (no real calls).
+  rimpl:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: https://ci-placeholder.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ci-placeholder
+      ANTHROPIC_API_KEY: ci-placeholder
+      INTERNAL_TOKEN: ci-placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: rimpl/package-lock.json
+      - run: npm ci
+        working-directory: rimpl
+      - run: npm run test:ci
+        working-directory: rimpl
 
   # Next.js dashboard: typecheck is the blocking gate; lint is informational (pre-existing findings).
   audit-dashboard:
