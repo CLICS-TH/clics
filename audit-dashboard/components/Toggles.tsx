@@ -10,7 +10,9 @@ export function ThemeToggle() {
   return (
     <button type="button" onClick={toggle} className={BTN}
       aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
-      {theme === 'dark' ? <><Sun className="size-3.5" /> สว่าง</> : <><Moon className="size-3.5" /> มืด</>}
+      {theme === 'dark'
+        ? <><Sun className="size-3.5" /><span className="hidden sm:inline">สว่าง</span></>
+        : <><Moon className="size-3.5" /><span className="hidden sm:inline">มืด</span></>}
     </button>
   );
 }
@@ -19,10 +21,11 @@ export function ViewportToggle() {
   const { view, setView } = useViewport();
   const order: Array<'auto' | 'mobile' | 'desktop'> = ['auto', 'mobile', 'desktop'];
   const cycle = () => setView(order[(order.indexOf(view) + 1) % order.length]);
+  // Icon-only on phones (text labels would overflow the nav action cluster < 640px).
   const content =
-    view === 'mobile' ? <><Smartphone className="size-3.5" /> Mobile</> :
-    view === 'desktop' ? <><Monitor className="size-3.5" /> Desktop</> :
-    <><MonitorSmartphone className="size-3.5" /> Auto</>;
+    view === 'mobile' ? <><Smartphone className="size-3.5" /><span className="hidden sm:inline">Mobile</span></> :
+    view === 'desktop' ? <><Monitor className="size-3.5" /><span className="hidden sm:inline">Desktop</span></> :
+    <><MonitorSmartphone className="size-3.5" /><span className="hidden sm:inline">Auto</span></>;
   return (
     <button type="button" onClick={cycle} className={BTN} aria-label={`Layout view: ${view}`}>
       {content}

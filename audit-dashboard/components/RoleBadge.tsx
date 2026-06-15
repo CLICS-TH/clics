@@ -1,12 +1,13 @@
 'use client';
 import { getUser } from '@/lib/auth';
 
-// Tinted-background + foreground-text so it stays legible in both themes.
-const ROLE: Record<string, { label: string; cls: string }> = {
-  superadmin: { label: 'Superadmin · ดูแลระบบ', cls: 'bg-primary text-primary-foreground' },
-  admin: { label: 'Admin · จัดการ pilot', cls: 'bg-[#5db8a6]/20 text-foreground' },
-  auditor: { label: 'Auditor · ผู้ตรวจประเมิน', cls: 'bg-[#e8a55a]/20 text-foreground' },
-  physician: { label: 'Physician · แพทย์อาสา', cls: 'bg-primary/15 text-foreground' },
+// Tinted-background + foreground-text so it stays legible in both themes. The Thai subtitle is dropped
+// on phones (< 640px) so the nav action cluster fits without horizontal overflow.
+const ROLE: Record<string, { label: string; sub: string; cls: string }> = {
+  superadmin: { label: 'Superadmin', sub: 'ดูแลระบบ', cls: 'bg-primary text-primary-foreground' },
+  admin: { label: 'Admin', sub: 'จัดการ pilot', cls: 'bg-[#5db8a6]/20 text-foreground' },
+  auditor: { label: 'Auditor', sub: 'ผู้ตรวจประเมิน', cls: 'bg-[#e8a55a]/20 text-foreground' },
+  physician: { label: 'Physician', sub: 'แพทย์อาสา', cls: 'bg-primary/15 text-foreground' },
 };
 
 export function RoleBadge() {
@@ -15,7 +16,7 @@ export function RoleBadge() {
   const m = ROLE[user.role] ?? ROLE.physician;
   return (
     <span className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${m.cls}`}>
-      {m.label}
+      {m.label}<span className="hidden sm:inline"> · {m.sub}</span>
     </span>
   );
 }
