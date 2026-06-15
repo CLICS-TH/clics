@@ -1,0 +1,66 @@
+name: CI
+
+# Hermetic test pipeline — the backend/rimpl/license-verifier suites mock Supabase + the Anthropic SDK,
+# so every job runs with NO secrets and no live infrastructure. See docs/TESTING.md.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Node service suites (jest for backend/rimpl, node --test for license-verifier).
+  test:
+    name: test (${{ matrix.layer }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        layer: [backend, rimpl, license-verifier]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.layer }}/package-lock.json
+      - run: npm ci
+        working-directory: ${{ matrix.layer }}
+      - run: npm test
+        working-directory: ${{ matrix.layer }}
+
+  # Next.js dashboard: typecheck is the blocking gate; lint is informational (pre-existing findings).
+  audit-dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: audit-dashboard/package-lock.json
+      - run: npm ci
+        working-directory: audit-dashboard
+      - name: Typecheck
+        run: npx tsc --noEmit
+        working-directory: audit-dashboard
+      - name: Lint (informational)
+        run: npm run lint
+        working-directory: audit-dashboard
+        continue-on-error: true
+
+  # Static portal has no build step — gate on JS syntax.
+  physician-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check JS
+        run: for f in public/js/*.js; do node --check "$f"; done
+        working-directory: physician-ui

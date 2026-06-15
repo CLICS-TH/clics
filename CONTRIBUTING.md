@@ -94,11 +94,12 @@ cd rimpl   && npm test     # jest --runInBand — 8 suites (incl. PII-leak adver
 cd audit-dashboard && npm run lint
 ```
 
-Strong coverage today: CLE gate, ICC math, auth/invite flows, usage budget, dual-role, crypto, PII
-filter + adversarial leak. **Known gaps (good first contributions — ROADMAP P1):** request-level tests
-for folder CRUD, PLE create/rename/move/delete, `/end` gate transitions (cle_fail_t1 / flag_t2 / pass),
-auditor double-submit 409, and role-guard rejections. End-to-end auth proof: `scripts/e2e/`. Load &
-soak: `scripts/loadtest/` and `scripts/soak/` (budget-capped — read the script header before running).
+Strong coverage today (38 hermetic suites): CLE gate, ICC math, auth/invite flows, usage budget,
+dual-role, crypto, PII filter + adversarial leak, and the **cross-role integration suites** (folder
+CRUD, PLE lifecycle, admin→auditor assign, auditor blind-score/409/ICC, role-access/council isolation,
+and an end-to-end role-chain). End-to-end auth proof: `scripts/e2e/`. Load & soak: `scripts/loadtest/`
+and `scripts/soak/` (budget-capped — read the script header before running). **Full coverage map,
+how-to-write-a-cross-role-test, CI, and the test roadmap live in [docs/TESTING.md](docs/TESTING.md).**
 
 ## 5. Commits, deploy, and the rules
 

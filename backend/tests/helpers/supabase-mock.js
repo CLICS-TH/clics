@@ -1,0 +1,87 @@
+// Shared, configurable Supabase mock for hermetic route-level tests.
+//
+// ADDITIVE: this is for the NEW cross-role integration suites. The existing per-file mocks are left
+// as-is (a future cleanup can DRY them onto this — see docs/TESTING.md). It generalizes the
+// table-aware recording builder from tests/auditor-request.test.js: the chaining + query recording
+// live here; the per-table DATA is supplied by a test-provided `resolve(table, kind, ctx)`.
+//
+// Usage (the jest.mock factory must be self-contained, but it MAY require this module):
+//   jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSupabaseMock());
+//   const { __mock: m } = require('../src/lib/supabase');
+//   beforeEach(() => m.reset());
+//   m.state.caller = ADMIN;                       // the row verifyJwt sees for the Bearer token
+//   m.state.resolve = (table, kind, ctx) => ...;  // return a row | array | {data,error}
+//
+// kind: 'single' | 'maybeSingle' | 'list' (a select awaited directly) | 'insert' | 'update' | 'delete'
+// ctx : { op, eqs:[[col,val],...], payload, selectArgs, id(col='id') }
+// professionals.single() filtered by the caller's own id auto-returns `state.caller` (so verifyJwt
+// works without the test having to special-case it); any other read falls through to `resolve`.
+function makeSupabaseMock() {
+  const state = { caller: null, resolve: () => undefined, queries: [] };
+
+  const wrap = (v, isList = false) => {
+    if (v && typeof v === 'object' && !Array.isArray(v) && ('data' in v || 'error' in v)) {
+      return Promise.resolve({ data: v.data ?? null, error: v.error ?? null });
+    }
+    if (v === undefined) return Promise.resolve({ data: isList ? [] : null, error: null });
+    return Promise.resolve({ data: v, error: null });
+  };
+
+  function builder(table) {
+    const rec = { table, op: 'select', selectArgs: null, eqs: [], payload: undefined };
+    state.queries.push(rec);
+    const ctx = () => ({
+      op: rec.op, eqs: rec.eqs, payload: rec.payload, selectArgs: rec.selectArgs,
+      id: (col = 'id') => (rec.eqs.find((e) => e[0] === col) || [])[1],
+    });
+    const self = {};
+    self.select = (...a) => { rec.selectArgs = a.length ? a : ['*']; return self; };
+    self.insert = (p) => { rec.op = 'insert'; rec.payload = p; return self; };
+    self.update = (p) => { rec.op = 'update'; rec.payload = p; return self; };
+    self.delete = () => { rec.op = 'delete'; return self; };
+    self.eq = (c, v) => { rec.eqs.push([c, v]); return self; };
+    for (const fn of ['order', 'range', 'limit', 'in', 'neq', 'not', 'is', 'gte', 'lte', 'or', 'contains']) self[fn] = () => self;
+
+    const read = (kind) => {
+      const c = ctx();
+      if (table === 'professionals' && state.caller && c.id('id') === state.caller.id) return wrap(state.caller);
+      return wrap(state.resolve(table, kind, c));
+    };
+    self.single = () => read('single');
+    self.maybeSingle = () => read('maybeSingle');
+    // A select/insert/update/delete awaited directly (no .single()).
+    self.then = (resolve, reject) => {
+      const kind = rec.op === 'select' ? 'list' : rec.op;
+      return wrap(state.resolve(table, kind, ctx()), rec.op === 'select').then(resolve, reject);
+    };
+    return self;
+  }
+
+  return {
+    supabase: { from: builder, rpc: () => Promise.resolve({ data: null, error: null }) },
+    authSupabase: {
+      auth: {
+        getUser: () => Promise.resolve(
+          state.caller
+            ? { data: { user: { id: state.caller.id, email: state.caller.email || 'caller@test.local' } }, error: null }
+            : { data: { user: null }, error: { message: 'no caller set' } }
+        ),
+      },
+    },
+    authAnon: {
+      auth: {
+        signInWithOtp: () => Promise.resolve({ error: null }),
+        verifyOtp: () => Promise.resolve({ data: null, error: { message: 'not set' } }),
+        resetPasswordForEmail: () => Promise.resolve({ error: null }),
+      },
+    },
+    __mock: {
+      state,
+      reset() { state.caller = null; state.resolve = () => undefined; state.queries.length = 0; },
+      find(table, op) { return state.queries.find((q) => q.table === table && (op ? q.op === op : true)); },
+      all(table, op) { return state.queries.filter((q) => q.table === table && (op ? q.op === op : true)); },
+    },
+  };
+}
+
+module.exports = { makeSupabaseMock };

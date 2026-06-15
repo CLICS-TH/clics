@@ -97,7 +97,7 @@ audit-dashboard `NEXT_PUBLIC_API_URL` on Vercel).
 - **Architecture & domain:** [overview](docs/overview.md) · [architecture](docs/architecture.md) · [roles](docs/roles.md) · [domain-concepts](docs/domain-concepts.md) · [tech-stack](docs/tech-stack.md) · [constraints](docs/constraints.md)
 - **Per layer:** [backend](backend/README.md) · [rimpl](rimpl/README.md) · [physician-ui](physician-ui/README.md) · [audit-dashboard](audit-dashboard/README.md)
 - **Operations:** [deployment](docs/deployment.md) · [AUTH-SETUP](docs/AUTH-SETUP.md) · [DEPLOY-STAGE2](docs/DEPLOY-STAGE2.md) · [GO-LIVE-CHECKLIST](docs/GO-LIVE-CHECKLIST.md)
-- **Testing & performance:** [E2E-RUNBOOK](docs/E2E-RUNBOOK.md) · [PERFORMANCE-BENCHMARK](docs/PERFORMANCE-BENCHMARK.md) · [LOADTEST-2026-06](docs/LOADTEST-2026-06.md)
+- **Testing & performance:** [TESTING](docs/TESTING.md) · [E2E-RUNBOOK](docs/E2E-RUNBOOK.md) · [PERFORMANCE-BENCHMARK](docs/PERFORMANCE-BENCHMARK.md) · [LOADTEST-2026-06](docs/LOADTEST-2026-06.md)
 - **Roadmap & gaps:** [ROADMAP](docs/ROADMAP.md) · [MIDDLEWARE-KNOWN-GAPS](docs/MIDDLEWARE-KNOWN-GAPS.md) · [pilot-timeline](docs/pilot-timeline.md)
 - **Design:** [DESIGN-claude.md](DESIGN-claude.md) (brand/design system) · [docs/design/](docs/design/) (the original Claude Design audit PDF)
 - **For end users / management:** [USER-GUIDE.md](USER-GUIDE.md) · [MANAGER-SUMMARY.md](MANAGER-SUMMARY.md)
