@@ -36,7 +36,7 @@ Deploys run from the **local working tree** (not GitHub). Backend + RIMPL on **R
 ```bash
 cd backend && NODE_PATH="$PWD/node_modules" node ../db/seed-users.js
 ```
-Reads `backend/.env` for the prod Supabase service-role key; creates/updates the four accounts (resets passwords each run). Solves the superadmin bootstrap (the only way to create the first superadmin, since `POST /admin/users` is itself superadmin-gated).
+Reads `backend/.env` for the prod Supabase service-role key; creates/updates the role accounts (incl. a 2nd-council Pharmacy auditor for cross-council tests; resets passwords each run). Solves the superadmin bootstrap (the only way to create the first superadmin, since `POST /admin/users` is itself superadmin-gated).
 
 ## Demo credentials (throwaway — rotate before the real pilot)
 
@@ -48,6 +48,7 @@ Defined in `db/seed-users.js`:
 | Admin | admin@clics.th | ClicsAdmin#2026r2 |
 | Physician | doctor1@clics.th | ClicsDoc#2026r2 |
 | Auditor | auditor1@clics.th | ClicsAudit#2026r2 |
+| Auditor · 2nd council (Pharmacy) | auditor2@clics.th | ClicsAudit2#2026r2 |
 
 (Passwords rotated to the `r2` family in `db/seed-users.js`. A separate soak/E2E cohort — `soakdoc01..NN@example.com`, `soakaud1..N@example.com`, password `SoakPass#2026` — exists from load testing; `db/reset-demo.js` clears it before the real pilot.)
 

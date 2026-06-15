@@ -1,4 +1,4 @@
-// Idempotent seed of the 4 CLICS role accounts (incl. the Superadmin bootstrap).
+// Idempotent seed of the CLICS role accounts (incl. the Superadmin bootstrap + a 2nd-council auditor).
 // Run from the repo root with the PROD Supabase service-role key, e.g.:
 //   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node db/seed-users.js
 // Re-runnable: existing users get their password reset; the professionals row is upserted on id.
@@ -26,6 +26,9 @@ const USERS = [
   // Auditor demo account is manual_verified: the enforce_auditor_license trigger forbids an
   // ACTIVE auditor whose license is still 'unverified' (db/migration-license-invites.sql).
   { email: 'auditor1@clics.th',   password: process.env.SEED_AUDITOR_PW    || 'ClicsAudit#2026r2', role: 'auditor',    status: 'active', council: MEDICAL_COUNCIL_CODE, license_status: 'manual_verified', full_name_th: 'ผู้ตรวจประเมิน',     full_name_en: 'Expert Auditor' },
+  // A second-council (Pharmacy) active auditor so cross-council guards are exercisable on real data
+  // (e.g. scripts/smoke/role-chain-smoke.js asserts a TMC session can't be assigned to this auditor).
+  { email: 'auditor2@clics.th',   password: process.env.SEED_AUDITOR2_PW   || 'ClicsAudit2#2026r2', role: 'auditor',    status: 'active', council: 'PHARM',           license_status: 'manual_verified', full_name_th: 'ผู้ตรวจประเมิน (สภาเภสัชกรรม)', full_name_en: 'Pharmacy Council Auditor' },
 ];
 
 // Default role slot-pool capacities (superadmin locked at 1).
@@ -102,7 +105,7 @@ async function seedSlots() {
 }
 
 (async () => {
-  console.log('Seeding 4 role accounts...');
+  console.log('Seeding role accounts...');
   let failures = 0;
   for (const u of USERS) {
     try { await seedOne(u); }
