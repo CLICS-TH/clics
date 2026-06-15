@@ -15,13 +15,18 @@ concurrency:
 
 jobs:
   # Fully-hermetic suites (jest for backend, node --test for license-verifier) — no env needed.
+  # backend enforces coverage thresholds (jest.config.js) via --coverage.
   test:
     name: test (${{ matrix.layer }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        layer: [backend, license-verifier]
+        include:
+          - layer: backend
+            cmd: npm test -- --coverage
+          - layer: license-verifier
+            cmd: npm test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,7 +36,7 @@ jobs:
           cache-dependency-path: ${{ matrix.layer }}/package-lock.json
       - run: npm ci
         working-directory: ${{ matrix.layer }}
-      - run: npm test
+      - run: ${{ matrix.cmd }}
         working-directory: ${{ matrix.layer }}
 
   # rimpl: all 8 suites are hermetic — Supabase + the Anthropic SDK are jest.mock'd (incl. the PII
@@ -47,10 +52,10 @@ jobs:
           cache-dependency-path: rimpl/package-lock.json
       - run: npm ci
         working-directory: rimpl
-      - run: npm run test:ci
+      - run: npm run test:ci -- --coverage
         working-directory: rimpl
 
-  # Next.js dashboard: typecheck is the blocking gate; lint is informational (pre-existing findings).
+  # Next.js dashboard: typecheck + jest (with coverage thresholds) + lint — all blocking.
   audit-dashboard:
     runs-on: ubuntu-latest
     steps:
@@ -65,8 +70,8 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
         working-directory: audit-dashboard
-      - name: Unit tests (jest)
-        run: npm test
+      - name: Unit tests (jest, coverage thresholds)
+        run: npm test -- --coverage
         working-directory: audit-dashboard
       - name: Lint
         run: npm run lint

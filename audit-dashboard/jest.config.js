@@ -11,6 +11,20 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: { '^@/(.*)$': '<rootDir>/$1' },
   testMatch: ['<rootDir>/__tests__/**/*.test.{ts,tsx}'],
+  // Coverage ratchet scoped to the units the suites are designed to cover (the dashboard is otherwise
+  // largely untested by design). These files are fully tested — keep them that way. Enforced with
+  // --coverage in CI. Add to this list (and add tests) as component coverage grows.
+  collectCoverageFrom: [
+    'lib/labels.ts',
+    'lib/pis7-rubric.ts',
+    'lib/chart-colors.ts',
+    'components/DomainScorer.tsx',
+    'components/TranscriptView.tsx',
+    'components/BiLabel.tsx',
+  ],
+  coverageThreshold: {
+    global: { statements: 100, branches: 90, functions: 100, lines: 100 },
+  },
 };
 
 module.exports = createJestConfig(config);

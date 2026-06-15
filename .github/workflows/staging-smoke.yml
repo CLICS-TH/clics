@@ -1,0 +1,41 @@
+name: Staging smoke (role-chain)
+
+# Live cross-role smoke against a RUNNING stack — the browser-less counterpart of
+# backend/tests/role-chain.integration.test.js. Unlike the hermetic CI (ci.yml), this hits a real
+# backend + Supabase, so it is MANUAL-ONLY (workflow_dispatch) and requires secrets.
+#
+# It WRITES a demo audit_score to whatever Supabase the target backend uses — point SMOKE_BASE at a
+# NON-PROD staging stack, never production. Enable it by adding these repo secrets
+# (Settings → Secrets and variables → Actions), then run it from the Actions tab:
+#   SMOKE_BASE       e.g. https://clics-backend-staging.up.railway.app
+#   SMOKE_SUPER_PW   superadmin demo password
+#   SMOKE_ADMIN_PW   admin demo password
+#   SMOKE_AUD_EMAIL  auditor demo email
+#   SMOKE_AUD_PW     auditor demo password
+# See docs/TESTING.md → Live gates.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  role-chain:
+    runs-on: ubuntu-latest
+    env:
+      SMOKE_BASE: ${{ secrets.SMOKE_BASE }}
+      SMOKE_SUPER_PW: ${{ secrets.SMOKE_SUPER_PW }}
+      SMOKE_ADMIN_PW: ${{ secrets.SMOKE_ADMIN_PW }}
+      SMOKE_AUD_EMAIL: ${{ secrets.SMOKE_AUD_EMAIL }}
+      SMOKE_AUD_PW: ${{ secrets.SMOKE_AUD_PW }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Require SMOKE_* secrets (non-prod staging stack)
+        run: |
+          if [ -z "$SMOKE_BASE" ]; then
+            echo "::error::SMOKE_* secrets are not configured. Add SMOKE_BASE / SMOKE_SUPER_PW / SMOKE_ADMIN_PW / SMOKE_AUD_EMAIL / SMOKE_AUD_PW (repo Settings → Secrets) pointing at a NON-PROD staging stack, then re-run. See docs/TESTING.md."
+            exit 1
+          fi
+      - name: Role-chain smoke (writes a demo audit_score)
+        run: node scripts/smoke/role-chain-smoke.js
