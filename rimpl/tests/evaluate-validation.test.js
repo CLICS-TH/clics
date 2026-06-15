@@ -2,6 +2,22 @@
 // /evaluate must reject malformed/out-of-range model output (502) rather than pass it through to
 // poison the composite (NaN) or trip a CHECK violation downstream that reconcile then retries forever.
 jest.mock('../src/services/claude', () => ({ callClaude: jest.fn() }));
+// Hermetic: src/index mounts every route, and the chat route's require chain pulls in
+// src/lib/supabase, whose createClient() throws "supabaseUrl is required" with no env.
+// Stub it so the suite needs no real Supabase URL/key and makes no network round-trip.
+jest.mock('../src/lib/supabase', () => {
+  const chain = {};
+  for (const m of ['select', 'insert', 'update', 'upsert', 'delete', 'eq', 'in', 'order', 'limit', 'single', 'maybeSingle']) {
+    chain[m] = jest.fn(() => chain);
+  }
+  chain.then = undefined; // not a thenable; tests don't await the builder here
+  return {
+    supabase: {
+      from: jest.fn(() => chain),
+      rpc: jest.fn().mockResolvedValue({ data: [], error: null }),
+    },
+  };
+});
 
 const request = require('supertest');
 const app = require('../src/index');

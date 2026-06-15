@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
 import { ROLE_LABELS, ACCOUNT_STATUS_MAP, budgetToneHex, roleToUi, roleToWire } from '@/lib/labels';
+import { type ApiResult, formatApiError } from '@/lib/types';
 import { confirmDialog } from '@/components/Overlays';
 import { BarChart3, RotateCcw, Pencil, Power, Trash2, Building2 } from 'lucide-react';
 
@@ -189,7 +190,7 @@ export default function UsersPage() {
     setCreating(true);
     try {
       // 'special' is a UI-only role value; roleToWire turns it into {role:'physician', can_audit:true}.
-      const res: any = await apiFetch('/admin/users', { method:'POST', body: JSON.stringify({ ...form, ...roleToWire(form.role) }) });
+      const res = await apiFetch<ApiResult<User>>('/admin/users', { method:'POST', body: JSON.stringify({ ...form, ...roleToWire(form.role) }) });
       if (res?.id) {
         setShowForm(false);
         // Reset the WHOLE form — leaving email/password/names behind pre-filled the next "+ Add User"
@@ -197,14 +198,19 @@ export default function UsersPage() {
         setForm({ email:'', password:'', role:'physician', council_id:'', full_name_th:'', full_name_en:'', specialty:'', license_number:'' });
         loadUsers(); loadSlots();
       }
-      else setErr(res?.error?.fieldErrors ? JSON.stringify(res.error.fieldErrors) : typeof res?.error === 'string' ? res.error : 'Error');
+      else setErr(formatApiError(res?.error, 'Error'));
     } finally { setCreating(false); }
   }
 
   async function saveEdit() {
     if (!editing) return;
     setMsg('');
-    const body: any = {
+    // PATCH /admin/users/:id body — name/specialty/license always; role/council/can_audit only for
+    // non-superadmins; usage_limit_usd is a number (cap) or null (clear → standard default).
+    const body: {
+      full_name_th: string; full_name_en: string; specialty: string; license_number: string;
+      role?: string; council_id?: string | null; can_audit?: boolean; usage_limit_usd?: number | null;
+    } = {
       full_name_th: editing.full_name_th, full_name_en: editing.full_name_en,
       specialty: editing.specialty ?? '', license_number: editing.license_number ?? '',
     };
@@ -219,10 +225,10 @@ export default function UsersPage() {
     }
     setSaving(true);
     try {
-      const res: any = await apiFetch(`/admin/users/${editing.id}`, { method:'PATCH', body: JSON.stringify(body) });
+      const res = await apiFetch<ApiResult<User>>(`/admin/users/${editing.id}`, { method:'PATCH', body: JSON.stringify(body) });
       if (res?.id) { setEditing(null); setMsg('บันทึกแล้ว / Saved.'); loadUsers(); loadSlots(); }
       // res.error can be a zod-flatten OBJECT — rendering an object in JSX throws, so stringify it.
-      else setMsg(res?.error?.fieldErrors ? JSON.stringify(res.error.fieldErrors) : typeof res?.error === 'string' ? res.error : 'แก้ไขไม่สำเร็จ / Update failed.');
+      else setMsg(formatApiError(res?.error, 'แก้ไขไม่สำเร็จ / Update failed.'));
     } finally { setSaving(false); }
   }
 
@@ -230,18 +236,18 @@ export default function UsersPage() {
     setMsg('');
     const v = parseFloat(stdLimit);
     if (!Number.isFinite(v) || v < 0) { setMsg('ขีดจำกัดมาตรฐานไม่ถูกต้อง / Invalid standard limit.'); return; }
-    const res: any = await apiFetch('/admin/usage-settings', { method:'PATCH', body: JSON.stringify({ standard_limit_usd: v }) });
+    const res = await apiFetch<ApiResult<{ standard_limit_usd: number }>>('/admin/usage-settings', { method:'PATCH', body: JSON.stringify({ standard_limit_usd: v }) });
     if (res?.standard_limit_usd != null) { setMsg('บันทึกขีดจำกัดมาตรฐานแล้ว / Standard limit saved.'); loadUsageSettings(); loadUsers(); }
-    else setMsg(res?.error ?? 'บันทึกไม่สำเร็จ / Failed.');
+    else setMsg(formatApiError(res?.error, 'บันทึกไม่สำเร็จ / Failed.'));
   }
 
   async function savePool() {
     setMsg('');
     const v = parseFloat(poolLimit);
     if (!Number.isFinite(v) || v < 0) { setMsg('งบประมาณรวมไม่ถูกต้อง / Invalid API budget pool.'); return; }
-    const res: any = await apiFetch('/admin/usage-settings', { method:'PATCH', body: JSON.stringify({ api_budget_pool_usd: v }) });
+    const res = await apiFetch<ApiResult<{ api_budget_pool_usd: number }>>('/admin/usage-settings', { method:'PATCH', body: JSON.stringify({ api_budget_pool_usd: v }) });
     if (res?.api_budget_pool_usd != null) { setMsg('บันทึกงบประมาณรวมแล้ว / API budget pool saved.'); loadUsageSettings(); }
-    else setMsg(res?.error ?? 'บันทึกไม่สำเร็จ / Failed.');
+    else setMsg(formatApiError(res?.error, 'บันทึกไม่สำเร็จ / Failed.'));
   }
 
   async function resetUsage(u: User) {
@@ -252,9 +258,9 @@ export default function UsersPage() {
     });
     if (!ok) return;
     setMsg('');
-    const res: any = await apiFetch(`/admin/users/${u.id}/reset-usage`, { method:'POST', body: JSON.stringify({}) });
+    const res = await apiFetch<ApiResult<User>>(`/admin/users/${u.id}/reset-usage`, { method:'POST', body: JSON.stringify({}) });
     if (res?.id) { setMsg('รีเซ็ตการใช้งานแล้ว / Usage reset.'); loadUsers(); }
-    else setMsg(res?.error ?? 'รีเซ็ตไม่สำเร็จ / Reset failed.');
+    else setMsg(formatApiError(res?.error, 'รีเซ็ตไม่สำเร็จ / Reset failed.'));
   }
 
   async function toggleStatus(u: User) {
@@ -269,9 +275,9 @@ export default function UsersPage() {
     });
     if (!ok) return;
     setMsg('');
-    const res: any = await apiFetch(`/admin/users/${u.id}/status`, { method:'PATCH', body: JSON.stringify({ status: next }) });
+    const res = await apiFetch<ApiResult<User>>(`/admin/users/${u.id}/status`, { method:'PATCH', body: JSON.stringify({ status: next }) });
     if (res?.id) { setMsg('อัปเดตสถานะแล้ว / Status updated.'); loadUsers(); loadSlots(); }
-    else setMsg(res?.error ?? 'อัปเดตไม่สำเร็จ / Failed.');
+    else setMsg(formatApiError(res?.error, 'อัปเดตไม่สำเร็จ / Failed.'));
   }
 
   // PURGE — irreversibly delete a deactivated user and ALL their data (IRB right-to-erasure /
@@ -288,23 +294,23 @@ export default function UsersPage() {
     if (typed == null) return; // cancelled
     if (typed.trim() !== u.full_name_en) { setMsg('ชื่อยืนยันไม่ตรง — ยกเลิกการลบ / Name did not match — purge cancelled.'); return; }
     setMsg('');
-    const res: any = await apiFetch(`/admin/users/${u.id}/purge`, { method: 'DELETE', body: JSON.stringify({ confirm_name: u.full_name_en }) });
+    const res = await apiFetch<ApiResult<{ purged: boolean; deleted_ples: number }>>(`/admin/users/${u.id}/purge`, { method: 'DELETE', body: JSON.stringify({ confirm_name: u.full_name_en }) });
     if (res?.purged) {
       setUsers(s => s.filter(x => x.id !== u.id));
       setMsg(`ลบผู้ใช้ถาวรแล้ว (${res.deleted_ples} เซสชัน) / User purged — ${res.deleted_ples} session(s) removed.`);
       loadSlots();
-    } else setMsg(res?.error ?? 'ลบไม่สำเร็จ / Purge failed.');
+    } else setMsg(formatApiError(res?.error, 'ลบไม่สำเร็จ / Purge failed.'));
   }
 
   // Approve/reject a pending auditor-role request, then refresh both the section and the
   // users list (approve flips can_audit on the professional, so the Special chip appears).
   async function decideRequest(r: AuditorRequest, action: 'approve' | 'reject') {
     setMsg('');
-    const res: any = await apiFetch(`/admin/auditor-requests/${r.id}/${action}`, { method: 'POST', body: JSON.stringify({}) });
+    const res = await apiFetch<ApiResult<{ ok: boolean }>>(`/admin/auditor-requests/${r.id}/${action}`, { method: 'POST', body: JSON.stringify({}) });
     if (res?.ok) {
       setMsg(action === 'approve' ? 'อนุมัติคำขอแล้ว / Request approved.' : 'ปฏิเสธคำขอแล้ว / Request rejected.');
       loadRequests(); loadUsers();
-    } else setMsg(res?.error ?? 'ดำเนินการไม่สำเร็จ / Failed.');
+    } else setMsg(formatApiError(res?.error, 'ดำเนินการไม่สำเร็จ / Failed.'));
   }
 
   const loadCouncilSlots = (cid: string) => {
@@ -320,18 +326,18 @@ export default function UsersPage() {
     const capacity = parseInt(ccap[role] ?? '', 10);
     if (!slotCouncil) return;
     if (!Number.isFinite(capacity) || capacity < 0) { setMsg('จำนวนช่องไม่ถูกต้อง / Invalid capacity.'); return; }
-    const res: any = await apiFetch(`/admin/councils/${slotCouncil}/slots/${role}`, { method:'PATCH', body: JSON.stringify({ capacity }) });
+    const res = await apiFetch<ApiResult<Slot>>(`/admin/councils/${slotCouncil}/slots/${role}`, { method:'PATCH', body: JSON.stringify({ capacity }) });
     if (res?.role) { setMsg('บันทึกจำนวนช่องของสภาแล้ว / Council capacity saved.'); loadCouncilSlots(slotCouncil); loadUsers(); }
-    else setMsg(res?.error ?? 'บันทึกไม่สำเร็จ / Failed.');
+    else setMsg(formatApiError(res?.error, 'บันทึกไม่สำเร็จ / Failed.'));
   }
 
   async function saveCap(role: string) {
     setMsg('');
     const capacity = parseInt(cap[role] ?? '', 10);
     if (!Number.isFinite(capacity) || capacity < 0) { setMsg('จำนวนช่องไม่ถูกต้อง / Invalid capacity.'); return; }
-    const res: any = await apiFetch(`/admin/slots/${role}`, { method:'PATCH', body: JSON.stringify({ capacity }) });
+    const res = await apiFetch<ApiResult<Slot>>(`/admin/slots/${role}`, { method:'PATCH', body: JSON.stringify({ capacity }) });
     if (res?.role) { setMsg('บันทึกจำนวนช่องแล้ว / Capacity saved.'); loadSlots(); }
-    else setMsg(res?.error ?? 'บันทึกไม่สำเร็จ / Failed.');
+    else setMsg(formatApiError(res?.error, 'บันทึกไม่สำเร็จ / Failed.'));
   }
 
   const StatusBadge = ({ s }: { s?: string }) => (
@@ -528,7 +534,7 @@ export default function UsersPage() {
         <div ref={addFormRef} className="border rounded-xl p-5 mb-6 space-y-4">
           {(['full_name_th','full_name_en','email','password','specialty','license_number'] as const).map(f => (
             <input key={f} className="w-full border rounded-lg px-3 py-2 text-sm"
-              placeholder={FIELD_PLACEHOLDERS[f]} value={(form as any)[f]}
+              placeholder={FIELD_PLACEHOLDERS[f]} value={form[f]}
               type={f==='password'?'password':'text'}
               onChange={e => setForm(s => ({ ...s, [f]: e.target.value }))} />
           ))}

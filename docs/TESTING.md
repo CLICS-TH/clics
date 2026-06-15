@@ -1,27 +1,34 @@
 # Testing
 
-How CLICS is tested, how to run it, and the roadmap for closing the remaining gaps. The backend and
-license-verifier suites — and rimpl's **logic** suites — are **hermetic** (Supabase + the Anthropic SDK
-mocked at the module level), so CI runs them with no real secrets. rimpl's three **integration** suites
-(`chat`, `rag-pii`, `evaluate-validation`) make a real Supabase round-trip and are NOT hermetic — they run
-locally with creds, or via the live gate, not in unit CI.
+How CLICS is tested, how to run it, and the roadmap for closing the remaining gaps. Every unit/route
+suite is **hermetic** — Supabase and the Anthropic SDK are mocked at the module level — so CI runs the
+whole set with no real secrets and no live infrastructure: backend (jest), audit-dashboard (jest +
+React Testing Library), license-verifier (node --test), and all 8 rimpl suites (including the PII
+boundary + adversarial-leak suites). The only tests that touch a live stack are the **live gates**
+(smoke/e2e scripts) below.
 
 ## Run it
 
 ```bash
-cd backend          && npm test       # jest --runInBand  (36 suites / 222 tests, hermetic)
-cd rimpl            && npm run test:ci # the 5 hermetic logic suites (170 tests, no creds)
-cd rimpl            && npm test        # ALL 8 suites — the 3 integration ones need a live Supabase in env
-cd license-verifier && npm test       # node --test       (8 tests, hermetic)
+# from the repo root — every hermetic suite at once:
+npm run test:all                          # backend + rimpl + license-verifier + audit-dashboard
+
+# …or per layer:
+cd backend          && npm test           # jest --runInBand (hermetic)
+cd rimpl            && npm test           # all 8 suites, hermetic (test:ci is identical)
+cd license-verifier && npm test           # node --test (hermetic)
+cd audit-dashboard  && npm test           # jest + React Testing Library (jsdom)
 cd audit-dashboard  && npx tsc --noEmit   # typecheck (blocking gate)
-cd audit-dashboard  && npm run lint       # ESLint (informational — see Phase 2)
+cd audit-dashboard  && npm run lint       # ESLint (blocking gate)
 cd physician-ui     && for f in public/js/*.js; do node --check "$f"; done   # syntax
 ```
 
+> One-command local stack: `npm run dev` at the repo root boots all four layers together (backend 3001,
+> rimpl 3003, physician-ui 3000, dashboard 3002) via `concurrently` — see [CONTRIBUTING.md](../CONTRIBUTING.md).
+
 CI (`.github/workflows/ci.yml`) runs the hermetic set on every push to `master` and every PR, on Node 22:
-backend + license-verifier (`npm test`), rimpl (`npm run test:ci`, with dummy placeholder env so the
-Supabase client constructs at import), dashboard typecheck (blocking) + lint (`continue-on-error` —
-pre-existing findings, Phase 2), and physician-ui JS syntax.
+backend + license-verifier (`npm test`), rimpl (`npm run test:ci`, no env needed), audit-dashboard
+(typecheck + jest + lint — **all three blocking**), and physician-ui JS syntax.
 
 ## Seamless cooperation between roles — the seam → test matrix
 
@@ -41,6 +48,17 @@ the persistence layer mocked). The guard logic verified here is also enforced by
 
 The **blind-scoring invariant** (the auditor cannot see the AI score until they submit) is asserted
 server-side in `auditor-scoring.test.js` and `role-chain.integration.test.js`.
+
+## Front-end component tests (audit-dashboard)
+
+`audit-dashboard/__tests__/` runs under jest + React Testing Library (jsdom), wired via `next/jest`
+(SWC transform, CSS/font mocks, `@/` alias — see `jest.config.js`). Current coverage:
+
+| Suite | Covers |
+|---|---|
+| `__tests__/lib-labels.test.ts` | the status/role label maps, the `can_audit` virtual-role encoding, PIS-7 weights (sum = 1.0), composite math, budget-meter thresholds, status-card reconciliation, the case categoriser — the single source of truth behind every status badge |
+| `__tests__/DomainScorer.test.tsx` | the rubric-anchored PIS-7 scorer: 7 domains × 6 levels, the weight badges, **no silent 0** for unset domains, the exact (domain, level) reported on tap, the ≥4 evidence-note gate, and the disabled state |
+| `__tests__/TranscriptView.test.tsx` | physician-vs-assistant rendering, Socratic-line stripping, the separate question line, the refs join (Markdown is mocked — react-markdown is ESM-only and a thin wrapper) |
 
 ## Writing a new cross-role test
 
@@ -74,16 +92,18 @@ which backend they target. Run them against demo accounts, ideally right after `
 **Phase 1 — done (2026-06-15):** CI pipeline; shared test helpers; the six cross-role suites above
 (+49 tests); fixed the license-verifier test runner (`node --test`).
 
-**Phase 2 — next:**
-- **audit-dashboard component tests** — add `jest + @testing-library/react` (jsdom); first targets:
-  `DomainScorer` (chips, no-silent-0, submit-gated), `TranscriptView` (markdown + memo), admin status badges.
-- **One-command local stack** — a `concurrently` script (or compose) to boot backend+rimpl+dashboard+
-  physician-ui together for live E2E (today it's 4 manual terminals).
+**Phase 2 — done (2026-06-15):**
+- **audit-dashboard component tests** — `jest + @testing-library/react` (jsdom, via `next/jest`):
+  `DomainScorer`, `TranscriptView`, and the labels/badge single-source-of-truth (see the section above).
+- **All 8 rimpl suites made hermetic** — `chat`/`rag-pii`/`evaluate-validation` now mock Supabase, so
+  the `test:ci` carve-out is gone (`test:ci` == `test`) and they run in CI with no env.
+- **One-command local stack** — `npm run dev` at the repo root boots all four layers via `concurrently`.
+- **ESLint promoted to a blocking CI gate** — the 65 findings fixed: `no-explicit-any` properly typed,
+  and the `set-state-in-effect` effects migrated to `useSyncExternalStore` (`lib/client-store.ts`).
+
+**Phase 2 — remaining:**
 - **Wire `role-chain-smoke.js` into a staging CI job** (needs a non-prod Supabase + secrets).
-- **Fix the 65 dashboard ESLint findings**, then make `npm run lint` blocking in CI.
-- **DRY the older backend suites** onto `tests/helpers/`.
-- **Make rimpl's integration suites hermetic** — mock Supabase in `chat`/`rag-pii`/`evaluate-validation`
-  (they currently need a live DB), then fold them into CI and drop the `test:ci` carve-out.
+- **DRY the older backend suites** onto `tests/helpers/` (the 30 pre-helper suites still carry inline mocks).
 
 **Phase 3 — later:** multi-IP load test (single-IP bottoms out on per-IP limiters — see
 [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)); jest coverage thresholds; Playwright browser E2E.

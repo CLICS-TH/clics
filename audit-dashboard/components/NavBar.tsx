@@ -1,11 +1,12 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { getUser, canAudit } from '@/lib/auth';
+import { useState } from 'react';
+import { canAudit } from '@/lib/auth';
 import { RoleBadge } from './RoleBadge';
 import { ThemeToggle, ViewportToggle } from './Toggles';
-import { useViewport } from './ViewportProvider';
+import { useIsMobile } from './ViewportProvider';
+import { useAuthUser } from '@/lib/client-store';
 import { BiLabel } from './BiLabel';
 import { Menu } from 'lucide-react';
 
@@ -33,35 +34,19 @@ const AUDITOR_LINKS = [{ href: '/auditor/queue', th: 'คิวประเม�
 
 export function NavBar() {
   const pathname = usePathname();
-  const { forcedMobile, forcedDesktop } = useViewport();
-  const [isNarrow, setIsNarrow] = useState(false);
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)');
-    const sync = () => setIsNarrow(mq.matches);
-    sync();
-    mq.addEventListener('change', sync);
-    return () => mq.removeEventListener('change', sync);
-  }, []);
-
-  // Close the mobile menu on navigation.
-  useEffect(() => { setOpen(false); }, [pathname]);
-
-  // Auth/viewport state is client-only — render nothing until mounted so the
-  // server HTML and first client render match (avoids hydration mismatch).
-  const user = mounted ? getUser() : null;
-  if (!mounted || !user) return null;
+  // Auth + viewport are client-only; useSyncExternalStore (no mount effect) keeps SSR and the first
+  // client render in agreement, then swaps to the live value — so we render null until the user is
+  // known, and the menu closes on selection via each link's onClick (below) rather than an effect.
+  const user = useAuthUser();
+  const mobile = useIsMobile();
+  if (!user) return null;
 
   const links =
     user.role === 'superadmin' ? SUPERADMIN_LINKS :
     user.role === 'admin' ? ADMIN_LINKS :
     // Auditors and dual-role physicians (can_audit) get the auditor workspace.
     canAudit(user) ? AUDITOR_LINKS : [];
-  const mobile = forcedMobile || (!forcedDesktop && isNarrow);
 
   function logout() {
     // Clearing only our (dashboard-origin) token isn't enough — the PORTAL origin still holds a valid
@@ -126,7 +111,7 @@ export function NavBar() {
       {mobile && open && (
         <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3 animate-in fade-in slide-in-from-top-2 duration-200">
           {links.map(l => (
-            <Link key={l.href} href={l.href}
+            <Link key={l.href} href={l.href} onClick={() => setOpen(false)}
               className={`rounded-md px-2 py-2 text-sm ${isActive(l.href) ? 'bg-secondary text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
               <BiLabel th={l.th} en={l.en} />
             </Link>

@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { apiFetch, apiFetchPaged } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { useIsMobile } from '@/components/ViewportProvider';
 import { STATUS_MAP } from '@/lib/labels';
 import { BiLabel } from '@/components/BiLabel';
 import { toast } from '@/components/Overlays';
+import type { PleRow, Auditor, Council, ApiResult } from '@/lib/types';
 import { Check } from 'lucide-react';
 
 const PAGE_SIZE = 50;
@@ -26,12 +28,16 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant="outline" className={tone}>{STATUS_MAP[status] ?? status}</Badge>;
 }
 
-export default function AdminPlesPage() {
-  const [ples, setPlEs] = useState<any[]>([]);
+function AdminPlesContent() {
+  // The ?status= drill-down (from the Stats cards) seeds the initial filter. useSearchParams is
+  // SSR-consistent, so this avoids a setState-in-effect and the hydration mismatch a window read
+  // would cause — the component is wrapped in <Suspense> below (Next requires it for useSearchParams).
+  const searchParams = useSearchParams();
+  const [ples, setPlEs] = useState<PleRow[]>([]);
   const [total, setTotal] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [filter, setFilter] = useState('');
-  const [auditors, setAuditors] = useState<any[]>([]);
+  const [filter, setFilter] = useState(searchParams.get('status') || '');
+  const [auditors, setAuditors] = useState<Auditor[]>([]);
   const [councils, setCouncils] = useState<Record<string, string>>({});
   const mobile = useIsMobile();
 
@@ -45,7 +51,7 @@ export default function AdminPlesPage() {
     const my = ++reqSeq.current;
     const qs = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
     if (filter) qs.set('status', filter);
-    const { items, total } = await apiFetchPaged<any>(`/admin/ples?${qs.toString()}`);
+    const { items, total } = await apiFetchPaged<PleRow>(`/admin/ples?${qs.toString()}`);
     if (my !== reqSeq.current) return; // superseded by a newer filter/page — drop this response
     setTotal(total);
     setPlEs(prev => (offset === 0 ? items : [...prev, ...items]));
@@ -57,19 +63,17 @@ export default function AdminPlesPage() {
     finally { setLoadingMore(false); }
   }
 
-  // Auditors + councils once; read a ?status= drill-down from the URL into the filter.
+  // Auditors + councils once (the ?status= drill-down seeds the initial filter via useSearchParams above).
   useEffect(() => {
-    apiFetch<any[]>('/admin/auditors').then(d => setAuditors(Array.isArray(d) ? d : []));
-    apiFetch<any[]>('/admin/councils').then(d =>
-      setCouncils(Object.fromEntries((Array.isArray(d) ? d : []).map((c: any) => [c.id, c.name_th]))));
-    const s = new URLSearchParams(window.location.search).get('status');
-    if (s) setFilter(s);
+    apiFetch<Auditor[]>('/admin/auditors').then(d => setAuditors(Array.isArray(d) ? d : []));
+    apiFetch<Council[]>('/admin/councils').then(d =>
+      setCouncils(Object.fromEntries((Array.isArray(d) ? d : []).map((c: Council) => [c.id, c.name_th]))));
   }, []);
 
   // (Re)load page 0 whenever the status filter changes (incl. on mount).
   useEffect(() => { loadPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [filter]);
 
-  const councilName = (p: any) => (p.council_id && councils[p.council_id]) || '—';
+  const councilName = (p: PleRow) => (p.council_id && councils[p.council_id]) || '—';
 
   // Filter chips mirror the Stats page categories so the drill-down highlights the right one.
   const FILTERS: { key: string; label: string }[] = [
@@ -81,24 +85,24 @@ export default function AdminPlesPage() {
   ];
 
   // Shared assign control (used by both the desktop table and the mobile card list).
-  const assignControl = (p: any) =>
+  const assignControl = (p: PleRow) =>
     p.status === 'evaluated' && !p.auditor_id
       ? <select className="rounded-md border border-border bg-background px-2 py-1.5 text-xs"
           onChange={e => e.target.value && assign(p.id, e.target.value)}>
           <option value="">เลือก Auditor...</option>
-          {auditors.map((a:any) => <option key={a.id} value={a.id}>{a.full_name_th}</option>)}
+          {auditors.map((a: Auditor) => <option key={a.id} value={a.id}>{a.full_name_th}</option>)}
         </select>
       : p.auditor_id ? <span className="inline-flex items-center gap-1 text-xs text-[var(--ok)]"><Check className="size-3.5" /> Assigned</span> : <span className="text-xs text-muted-foreground">—</span>;
 
   async function assign(pleId: string, auditorId: string) {
     try {
-      const res: any = await apiFetch(`/admin/ples/${pleId}/assign`, { method: 'POST', body: JSON.stringify({ auditor_id: auditorId }) });
-      if (res?.error) { toast(`ไม่สำเร็จ / Failed: ${res.error}`, 'error'); return; }
+      const res = await apiFetch<ApiResult<unknown>>(`/admin/ples/${pleId}/assign`, { method: 'POST', body: JSON.stringify({ auditor_id: auditorId }) });
+      if (res?.error) { toast(`ไม่สำเร็จ / Failed: ${String(res.error)}`, 'error'); return; }
       // Re-fetch the currently-loaded range (newest-first, same filter) to reflect the assignment.
       const lim = Math.min(Math.max(ples.length, PAGE_SIZE), 200);
       const qs = new URLSearchParams({ limit: String(lim), offset: '0' });
       if (filter) qs.set('status', filter);
-      const { items, total } = await apiFetchPaged<any>(`/admin/ples?${qs.toString()}`);
+      const { items, total } = await apiFetchPaged<PleRow>(`/admin/ples?${qs.toString()}`);
       setTotal(total);
       setPlEs(items);
     } catch { toast('เกิดข้อผิดพลาด / Error assigning auditor', 'error'); }
@@ -178,5 +182,14 @@ export default function AdminPlesPage() {
       )}
     </div>
     </>
+  );
+}
+
+export default function AdminPlesPage() {
+  // useSearchParams (in AdminPlesContent) requires a Suspense boundary in the App Router.
+  return (
+    <Suspense>
+      <AdminPlesContent />
+    </Suspense>
   );
 }

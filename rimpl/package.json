@@ -9,7 +9,7 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "test": "jest --runInBand",
-    "test:ci": "jest --runInBand --testPathIgnorePatterns /node_modules/ chat.test rag-pii.test evaluate-validation.test"
+    "test:ci": "jest --runInBand"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",

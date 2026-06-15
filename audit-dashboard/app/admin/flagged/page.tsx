@@ -1,26 +1,32 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { PageIntro } from '@/components/PageIntro';
 import { toast, confirmDialog } from '@/components/Overlays';
+import type { PleRow, ApiResult } from '@/lib/types';
 import { Check, X } from 'lucide-react';
 
 export default function FlaggedPage() {
-  const [ples, setPlEs] = useState<any[] | null>(null); // null = loading
+  const [ples, setPlEs] = useState<PleRow[] | null>(null); // null = loading
   const [err, setErr] = useState(false);
   const [actingId, setActingId] = useState<string | null>(null); // approve/reject in flight
   // Guard the spread/map: a non-401 error resolves with the error object (not an array); .catch a reject.
-  const load = () => { setErr(false); apiFetch<any[]>('/admin/ples/flagged').then(d => setPlEs(Array.isArray(d) ? d : [])).catch(() => setErr(true)); };
-  useEffect(() => { load(); }, []);
+  // The fetch only sets state asynchronously (keeps the mount effect free of synchronous setState); the
+  // `load` wrapper adds the error-reset for the Retry button + post-action refresh (both event handlers).
+  const fetchFlagged = useCallback(() => {
+    apiFetch<PleRow[]>('/admin/ples/flagged').then(d => setPlEs(Array.isArray(d) ? d : [])).catch(() => setErr(true));
+  }, []);
+  const load = () => { setErr(false); fetchFlagged(); };
+  useEffect(() => { fetchFlagged(); }, [fetchFlagged]);
 
   async function approve(id: string) {
     setActingId(id);
     try {
-      const res: any = await apiFetch(`/admin/ples/${id}/approve`, { method: 'POST' });
+      const res = await apiFetch<ApiResult<unknown>>(`/admin/ples/${id}/approve`, { method: 'POST' });
       // A second approve now 409s with { error: 'Already processed' } — surface it, then
       // refresh so the stale row leaves the queue.
-      if (res?.error) { toast(`ไม่สำเร็จ / Failed: ${res.error}`, 'error'); load(); return; }
+      if (res?.error) { toast(`ไม่สำเร็จ / Failed: ${String(res.error)}`, 'error'); load(); return; }
       load();
     } catch { toast('เกิดข้อผิดพลาด / Error approving session', 'error'); }
     finally { setActingId(null); }
@@ -36,8 +42,8 @@ export default function FlaggedPage() {
     if (!ok) return;
     setActingId(id);
     try {
-      const res: any = await apiFetch(`/admin/ples/${id}/reject`, { method: 'POST' });
-      if (res?.error) { toast(`ไม่สำเร็จ / Failed: ${res.error}`, 'error'); load(); return; }
+      const res = await apiFetch<ApiResult<unknown>>(`/admin/ples/${id}/reject`, { method: 'POST' });
+      if (res?.error) { toast(`ไม่สำเร็จ / Failed: ${String(res.error)}`, 'error'); load(); return; }
       load();
     } catch { toast('เกิดข้อผิดพลาด / Error rejecting session', 'error'); }
     finally { setActingId(null); }

@@ -5,6 +5,12 @@ jest.mock('../src/services/claude', () => ({
   }),
 }));
 jest.mock('../src/services/rag', () => ({ ragLookup: jest.fn().mockResolvedValue([]) }));
+// Hermetic: src/index mounts every route; the route require chain reaches src/lib/supabase,
+// whose createClient() throws "supabaseUrl is required" with no env. Stub it so the suite needs
+// no real Supabase URL/key and makes no network round-trip.
+jest.mock('../src/lib/supabase', () => ({
+  supabase: { from: jest.fn(() => ({})), rpc: jest.fn().mockResolvedValue({ data: [], error: null }) },
+}));
 
 const request = require('supertest');
 const app = require('../src/index');

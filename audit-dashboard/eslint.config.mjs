@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Jest tooling config — CJS by necessity (next/jest is loaded via require, per the Next docs).
+    "jest.config.js",
+    "jest.setup.js",
   ]),
 ]);
 

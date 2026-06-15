@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { DomainScorer } from '@/components/DomainScorer';
@@ -9,6 +9,7 @@ import { PageIntro } from '@/components/PageIntro';
 import { computeComposite } from '@/lib/labels';
 import { PIS7_RUBRIC } from '@/lib/pis7-rubric';
 import { confirmDialog, toast } from '@/components/Overlays';
+import type { AuditorPle, ApiResult } from '@/lib/types';
 import { Check } from 'lucide-react';
 
 const EMPTY_SCORES: Record<string, number | null> = { d1:null,d2:null,d3:null,d4:null,d5:null,d6:null,d7:null };
@@ -16,21 +17,21 @@ const EMPTY_SCORES: Record<string, number | null> = { d1:null,d2:null,d3:null,d4
 export default function AuditorScorePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<AuditorPle | null>(null);
   const [scores, setScores] = useState<Record<string,number|null>>({ ...EMPTY_SCORES });
   const [notes, setNotes] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const loadData = () => apiFetch<any>(`/auditor/ples/${id}`).then(d => {
+  const loadData = useCallback(() => apiFetch<AuditorPle>(`/auditor/ples/${id}`).then(d => {
     setData(d);
     if (d?.audit_score) {
       const { d1,d2,d3,d4,d5,d6,d7, notes: n } = d.audit_score;
       setScores({ d1,d2,d3,d4,d5,d6,d7 }); setNotes(n ?? ''); setSubmitted(true);
     }
-  }).catch(() => setData({ error: 'โหลดข้อมูลไม่สำเร็จ / Could not load this session.' }));
+  }).catch(() => setData({ error: 'โหลดข้อมูลไม่สำเร็จ / Could not load this session.' })), [id]);
 
-  useEffect(() => { loadData(); }, [id]);
+  useEffect(() => { loadData(); }, [loadData]);
 
   const allSet = PIS7_RUBRIC.every((d) => typeof scores[d.key] === 'number');
 
@@ -49,7 +50,7 @@ export default function AuditorScorePage() {
     }
     setSubmitting(true);
     try {
-      const res: any = await apiFetch(`/auditor/ples/${id}/score`, {
+      const res = await apiFetch<ApiResult<unknown>>(`/auditor/ples/${id}/score`, {
         method: 'POST', body: JSON.stringify({ ...scores, notes }),
       });
       if (res?.error) {
@@ -59,7 +60,7 @@ export default function AuditorScorePage() {
           toast('คุณให้คะแนนเซสชันนี้ไปแล้ว / You have already scored this session.', 'error');
           setSubmitted(true); loadData(); return;
         }
-        toast(`ส่งไม่สำเร็จ / Submit failed: ${res.error}`, 'error');
+        toast(`ส่งไม่สำเร็จ / Submit failed: ${String(res.error)}`, 'error');
         return;
       }
       setSubmitted(true);

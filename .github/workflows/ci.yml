@@ -1,10 +1,8 @@
 name: CI
 
-# Hermetic test pipeline — backend + license-verifier + rimpl's logic suites mock Supabase + the
-# Anthropic SDK, so they run with NO real secrets and no live infrastructure. rimpl's 3 INTEGRATION
-# suites (chat, rag-pii, evaluate-validation) need a live Supabase and are excluded here (run via the
-# live gate — see docs/TESTING.md); the rimpl job passes dummy placeholder env only so the Supabase
-# client can construct at import.
+# Hermetic test pipeline — every suite mocks Supabase + the Anthropic SDK, so they run with NO real
+# secrets and no live infrastructure: backend (jest), audit-dashboard (jest), license-verifier
+# (node --test), and all 8 rimpl suites. See docs/TESTING.md.
 
 on:
   push:
@@ -36,15 +34,10 @@ jobs:
       - run: npm test
         working-directory: ${{ matrix.layer }}
 
-  # rimpl: the hermetic logic suites (pii-filter, pii-leak-adversarial, post-filter, transcript-fence,
-  # claude). Dummy placeholder env lets src/lib/supabase construct the client at import (no real calls).
+  # rimpl: all 8 suites are hermetic — Supabase + the Anthropic SDK are jest.mock'd (incl. the PII
+  # boundary + adversarial-leak suites), so no env is needed. test:ci == test (jest --runInBand).
   rimpl:
     runs-on: ubuntu-latest
-    env:
-      SUPABASE_URL: https://ci-placeholder.supabase.co
-      SUPABASE_SERVICE_ROLE_KEY: ci-placeholder
-      ANTHROPIC_API_KEY: ci-placeholder
-      INTERNAL_TOKEN: ci-placeholder
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -72,10 +65,12 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
         working-directory: audit-dashboard
-      - name: Lint (informational)
+      - name: Unit tests (jest)
+        run: npm test
+        working-directory: audit-dashboard
+      - name: Lint
         run: npm run lint
         working-directory: audit-dashboard
-        continue-on-error: true
 
   # Static portal has no build step — gate on JS syntax.
   physician-ui:

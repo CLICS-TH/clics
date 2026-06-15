@@ -5,17 +5,18 @@ import { getUser } from '@/lib/auth';
 import { pleStatusCards } from '@/lib/labels';
 import { PageIntro } from '@/components/PageIntro';
 import { CardGridSkeleton } from '@/components/Skeleton';
+import type { PleStats, IccData } from '@/lib/types';
 
 export default function StatsPage() {
-  const [stats, setStats] = useState<any>(null);
-  const [icc, setIcc] = useState<any>(null);
+  const [stats, setStats] = useState<PleStats | null>(null);
+  const [icc, setIcc] = useState<IccData | null>(null);
   const [statsErr, setStatsErr] = useState(false);
   useEffect(() => {
     // .catch so a failed load shows an error instead of hanging on the skeleton forever.
-    apiFetch('/admin/stats').then(setStats).catch(() => setStatsErr(true));
+    apiFetch<PleStats>('/admin/stats').then(setStats).catch(() => setStatsErr(true));
     // /admin/icc is superadmin-only — for admins it 403s and the section silently hides,
     // so don't fire the request at all unless the viewer is a superadmin.
-    if (getUser()?.role === 'superadmin') apiFetch('/admin/icc').then(setIcc).catch(() => {});
+    if (getUser()?.role === 'superadmin') apiFetch<IccData>('/admin/icc').then(setIcc).catch(() => {});
   }, []);
   if (statsErr) return (
     <div className="mx-auto max-w-4xl p-6 md:p-8 text-center">
@@ -60,7 +61,7 @@ export default function StatsPage() {
           <h2 className="font-semibold mb-2">ICC ปัจจุบัน (AI vs Auditor)</h2>
           <p className="text-3xl font-bold text-primary">{icc.overall.icc}</p>
           <p className="text-sm text-muted-foreground">95% CI: [{icc.overall.lower}, {icc.overall.upper}] · n={icc.overall.n}</p>
-          <p className={`text-sm font-medium mt-1 ${icc.overall.icc >= 0.75 ? 'text-[var(--ok)]' : 'text-destructive'}`}>
+          <p className={`text-sm font-medium mt-1 ${(icc.overall.icc ?? 0) >= 0.75 ? 'text-[var(--ok)]' : 'text-destructive'}`}>
             {icc.overall.interpretation}
           </p>
         </div>

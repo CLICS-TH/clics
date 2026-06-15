@@ -12,6 +12,7 @@ import { CHART } from '@/lib/chart-colors';
 import { PageIntro } from '@/components/PageIntro';
 import { IccPanel } from '@/components/IccPanel';
 import { Skeleton, CardGridSkeleton } from '@/components/Skeleton';
+import type { PleStats } from '@/lib/types';
 
 // ---- API shapes (verified against backend/src/routes/admin.js + superadmin.js) ----
 type IccStat = { icc: number; lower: number; upper: number; n: number; interpretation: string } | null;
@@ -30,7 +31,7 @@ type Invite = { id: string; email: string; status: string };
 
 export default function OverviewPage() {
   const router = useRouter();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<PleStats | null>(null);
   const [icc, setIcc] = useState<IccData | null>(null);
   const [slots, setSlots] = useState<Slot[] | null>(null);
   const [usage, setUsage] = useState<UsageSettings | null>(null);
@@ -41,7 +42,7 @@ export default function OverviewPage() {
   useEffect(() => {
     // Executive overview is superadmin-only; everyone else lands back on /home.
     if (getUser()?.role !== 'superadmin') { router.push('/home'); return; }
-    apiFetch<any>('/admin/stats').then(setStats).catch(() => setStats({}));
+    apiFetch<PleStats>('/admin/stats').then(setStats).catch(() => setStats({}));
     apiFetch<IccData>('/admin/icc').then(setIcc).catch(() => setIcc({ overall: null, per_domain: {}, per_council: {}, n: 0 }));
     apiFetch<Slot[]>('/admin/slots').then(d => setSlots(Array.isArray(d) ? d : [])).catch(() => setSlots([]));
     apiFetch<UsageSettings>('/admin/usage-settings').then(setUsage).catch(() => setUsage(null));

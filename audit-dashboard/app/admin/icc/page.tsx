@@ -7,17 +7,23 @@ import { IccPanel } from '@/components/IccPanel';
 import { PageIntro } from '@/components/PageIntro';
 import { Skeleton } from '@/components/Skeleton';
 import { DOMAIN_LABELS } from '@/lib/labels';
+import type { IccData } from '@/lib/types';
+
+// A per-council ICC block, narrowed to the case where it carries an `overall` stat (the filter below
+// guarantees it), so the render can read c.overall.icc/lower/upper/n without re-checking for null.
+type RawCouncilIcc = NonNullable<NonNullable<IccData['per_council']>[string]>;
+type CouncilIcc = Omit<RawCouncilIcc, 'overall'> & { overall: NonNullable<RawCouncilIcc['overall']> };
 
 export default function IccPage() {
   const router = useRouter();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<IccData | null>(null);
   useEffect(() => {
     // /admin/icc is superadmin-only (the API 403s silently otherwise) — same client gate
     // as /admin/overview: everyone else lands back on /home.
     if (getUser()?.role !== 'superadmin') { router.push('/home'); return; }
     // .catch so a network failure renders the "no data" branch instead of stranding on the skeleton
     // forever (the error boundary doesn't catch async-effect rejections). Sibling overview/stats catch too.
-    apiFetch<any>('/admin/icc').then(setData).catch(() => setData({ overall: null }));
+    apiFetch<IccData>('/admin/icc').then(setData).catch(() => setData({ overall: null }));
   }, [router]);
 
   if (!data) return (
@@ -36,7 +42,9 @@ export default function IccPage() {
   );
 
   const { overall, per_domain, per_council } = data;
-  const councils: any[] = per_council ? Object.values(per_council).filter((c: any) => c?.overall) : [];
+  const councils: CouncilIcc[] = per_council
+    ? Object.values(per_council).filter((c): c is CouncilIcc => !!c?.overall)
+    : [];
 
   return (
     <>
@@ -53,7 +61,7 @@ export default function IccPage() {
           <h2 className="font-semibold mb-1">ICC แยกตามสภาวิชาชีพ / By professional council</h2>
           <p className="text-xs text-muted-foreground mb-4">ดูความน่าเชื่อถือของแต่ละวิชาชีพแยกกัน / Each profession&apos;s calibration, separately.</p>
           <div className="grid gap-3 sm:grid-cols-2">
-            {councils.map((c: any) => {
+            {councils.map((c) => {
               const icc = c.overall.icc; // may be null (degenerate / insufficient variance)
               const ok = icc != null && icc >= 0.75;
               return (
@@ -72,7 +80,7 @@ export default function IccPage() {
         <div className="border rounded-xl p-5">
           <h2 className="font-semibold mb-4">ICC รายโดเมน</h2>
           <div className="space-y-3">
-            {Object.entries(per_domain).map(([key, d]: any, i) => (
+            {Object.entries(per_domain).map(([key, d], i) => (
               <div key={key} className="flex items-center gap-3">
                 <span className="w-12 text-xs text-muted-foreground">{DOMAIN_LABELS[i]}</span>
                 <div className="flex-1 bg-muted rounded-full h-4 relative overflow-hidden">

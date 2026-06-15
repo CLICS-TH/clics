@@ -7,10 +7,14 @@ import { Eye, EyeOff } from 'lucide-react';
 
 type Phase = 'loading' | 'form' | 'invalid' | 'success';
 const PW_OK = (p: string) => p.length >= 10 && /[A-Za-z]/.test(p) && /[0-9]/.test(p);
+const NOT_CONFIGURED = 'การตั้งรหัสผ่านยังไม่ถูกตั้งค่าในระบบนี้ / Password reset is not configured for this deployment.';
 
 export default function ResetPage() {
-  const [phase, setPhase] = useState<Phase>('loading');
-  const [invalidMsg, setInvalidMsg] = useState('');
+  // Whether Supabase is configured is known at render time (build-inlined env, identical on server +
+  // client), so derive the initial phase from it via a lazy initializer instead of setting state in
+  // the mount effect (react-hooks/set-state-in-effect).
+  const [phase, setPhase] = useState<Phase>(() => (isSupabaseConfigured() ? 'loading' : 'invalid'));
+  const [invalidMsg, setInvalidMsg] = useState(() => (isSupabaseConfigured() ? '' : NOT_CONFIGURED));
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
@@ -22,34 +26,28 @@ export default function ResetPage() {
   // The browser client (detectSessionInUrl:true) parses it and emits PASSWORD_RECOVERY /
   // SIGNED_IN. Once a recovery session exists we show the form; otherwise the link is bad.
   useEffect(() => {
-    if (!isSupabaseConfigured()) {
-      setInvalidMsg('การตั้งรหัสผ่านยังไม่ถูกตั้งค่าในระบบนี้ / Password reset is not configured for this deployment.');
-      setPhase('invalid');
-      return;
-    }
+    if (!isSupabaseConfigured()) return; // initial state is already 'invalid'
     let resolved = false;
     const sb = (() => { try { return getSupabaseBrowser(); } catch { return null; } })();
-    if (!sb) {
-      setInvalidMsg('การตั้งรหัสผ่านยังไม่ถูกตั้งค่าในระบบนี้ / Password reset is not configured for this deployment.');
-      setPhase('invalid');
-      return;
-    }
-
     const ready = () => { if (!resolved) { resolved = true; setPhase('form'); } };
 
-    const { data: sub } = sb.auth.onAuthStateChange((event) => {
+    const sub = sb?.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') ready();
     });
-    sb.auth.getSession().then(({ data }) => { if (data?.session) ready(); });
+    sb?.auth.getSession().then(({ data }) => { if (data?.session) ready(); });
 
+    // Resolve to 'invalid' asynchronously (never a synchronous setState in the effect): immediately if
+    // the client couldn't be constructed, otherwise after the recovery session fails to arrive in time.
     const t = setTimeout(() => {
       if (!resolved) {
-        setInvalidMsg('ลิงก์ไม่ถูกต้องหรือหมดอายุ กรุณาขอลิงก์ใหม่ / This reset link is invalid or expired. Please request a new one.');
+        setInvalidMsg(sb
+          ? 'ลิงก์ไม่ถูกต้องหรือหมดอายุ กรุณาขอลิงก์ใหม่ / This reset link is invalid or expired. Please request a new one.'
+          : NOT_CONFIGURED);
         setPhase('invalid');
       }
-    }, 1500);
+    }, sb ? 1500 : 0);
 
-    return () => { clearTimeout(t); sub.subscription.unsubscribe(); };
+    return () => { clearTimeout(t); sub?.data.subscription.unsubscribe(); };
   }, []);
 
   async function save() {

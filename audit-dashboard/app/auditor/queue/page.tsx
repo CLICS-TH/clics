@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { getUser, canAudit } from '@/lib/auth';
@@ -19,19 +19,23 @@ export default function AuditorQueue() {
   const [filter, setFilter] = useState(''); // client-side only — the queue is small
   const router = useRouter();
 
-  const load = () => {
-    setErr(false); setPlEs(null);
-    // Defensive: a 500 resolves with a non-array error body — guard the spread (it used to throw and
-    // blank the page), and .catch a network reject so the auditor sees an error, not a false "empty".
+  // Fetch only sets state in its async callbacks — keeping the synchronous loading-reset out of the
+  // mount effect (react-hooks/set-state-in-effect). Defensive: a 500 resolves with a non-array error
+  // body, so guard the spread (it used to throw and blank the page); .catch surfaces a network reject
+  // as an error, not a false "empty".
+  const fetchQueue = useCallback(() => {
     apiFetch<PleItem[]>('/auditor/queue')
       .then(d => setPlEs(Array.isArray(d) ? [...d].sort((a, b) => Number(!!a.scored) - Number(!!b.scored)) : []))
       .catch(() => setErr(true));
-  };
+  }, []);
+
+  // Retry is a user event (setState here is fine): reset to the loading state, then refetch.
+  const retry = () => { setErr(false); setPlEs(null); fetchQueue(); };
 
   useEffect(() => {
     if (!canAudit(getUser())) { router.push('/login'); return; }
-    load();
-  }, [router]);
+    fetchQueue();
+  }, [fetchQueue, router]);
 
   const list = ples ?? [];
   const toScore = list.filter(p => !p.scored).length;
@@ -69,7 +73,7 @@ export default function AuditorQueue() {
       {err
         ? <div className="text-center py-10">
             <p className="text-muted-foreground mb-3">โหลดคิวไม่สำเร็จ / Could not load the queue.</p>
-            <button className="text-sm text-primary underline" onClick={load}>ลองใหม่ / Retry</button>
+            <button className="text-sm text-primary underline" onClick={retry}>ลองใหม่ / Retry</button>
           </div>
         : ples === null
         ? <p className="text-muted-foreground text-center py-10">กำลังโหลด… / Loading…</p>

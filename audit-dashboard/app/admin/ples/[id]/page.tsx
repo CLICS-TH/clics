@@ -6,15 +6,16 @@ import { PageIntro } from '@/components/PageIntro';
 import { TranscriptView } from '@/components/TranscriptView';
 import { Button } from '@/components/ui/button';
 import { STATUS_MAP } from '@/lib/labels';
+import type { PleTranscript } from '@/lib/types';
 
 export default function AdminTranscriptPage() {
   const { id } = useParams<{ id: string }>();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<PleTranscript | null>(null);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     // .catch a network/non-JSON failure too — without it the page hangs on "Loading…" forever.
-    apiFetch<any>(`/admin/ples/${id}/transcript`).then(d => {
+    apiFetch<PleTranscript>(`/admin/ples/${id}/transcript`).then(d => {
       if (d?.error) setNotFound(true); else setData(d);
     }).catch(() => setNotFound(true));
   }, [id]);

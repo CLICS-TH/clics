@@ -1,10 +1,9 @@
 'use client';
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { NavBar } from '@/components/NavBar';
 import { PageIntro } from '@/components/PageIntro';
 import { Button } from '@/components/ui/button';
-import { getUser, type ClicsUser } from '@/lib/auth';
+import { useAuthUser } from '@/lib/client-store';
 
 // The 4 roles from the CLICS architecture flowchart.
 const ROLES = [
@@ -15,8 +14,7 @@ const ROLES = [
 ];
 
 export default function HomePage() {
-  const [user, setUser] = useState<ClicsUser | null>(null);
-  useEffect(() => { setUser(getUser()); }, []);
+  const user = useAuthUser();
   const role = user?.role;
 
   return (

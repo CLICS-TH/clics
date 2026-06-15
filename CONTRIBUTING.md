@@ -17,7 +17,9 @@ cp rimpl/.env.example rimpl/.env
 cp audit-dashboard/.env.example audit-dashboard/.env.local
 ```
 
-Run the four layers (separate terminals). Locally the prod boot-checks are relaxed
+**One command (all four layers):** run `npm run install:all` once, then `npm run dev` from the repo
+root — it boots every layer together via `concurrently` (Ctrl-C stops all of them). Prefer separate
+terminals? Use the per-layer commands below. Locally the prod boot-checks are relaxed
 (`NODE_ENV` ≠ `production`), so missing optional vars fall back to dev defaults:
 
 | Layer | Command | Port |
@@ -89,17 +91,21 @@ rimpl → Claude via the Anthropic SDK.
 ## 4. Testing
 
 ```bash
-cd backend && npm test     # jest --runInBand — 19 suites
-cd rimpl   && npm test     # jest --runInBand — 8 suites (incl. PII-leak adversarial)
-cd audit-dashboard && npm run lint
+npm run test:all                 # repo root — every hermetic suite (backend + rimpl + license-verifier + dashboard)
+cd backend         && npm test   # jest — hermetic
+cd rimpl           && npm test   # jest — all 8 suites hermetic (incl. PII-leak adversarial)
+cd audit-dashboard && npm test   # jest + React Testing Library (jsdom)
+cd audit-dashboard && npm run lint && npx tsc --noEmit   # blocking CI gates
 ```
 
-Strong coverage today (38 hermetic suites): CLE gate, ICC math, auth/invite flows, usage budget,
-dual-role, crypto, PII filter + adversarial leak, and the **cross-role integration suites** (folder
-CRUD, PLE lifecycle, admin→auditor assign, auditor blind-score/409/ICC, role-access/council isolation,
-and an end-to-end role-chain). End-to-end auth proof: `scripts/e2e/`. Load & soak: `scripts/loadtest/`
-and `scripts/soak/` (budget-capped — read the script header before running). **Full coverage map,
-how-to-write-a-cross-role-test, CI, and the test roadmap live in [docs/TESTING.md](docs/TESTING.md).**
+Strong coverage today, **all hermetic**: CLE gate, ICC math, auth/invite flows, usage budget,
+dual-role, crypto, PII filter + adversarial leak, the **cross-role integration suites** (folder CRUD,
+PLE lifecycle, admin→auditor assign, auditor blind-score/409/ICC, role-access/council isolation, and an
+end-to-end role-chain), and **audit-dashboard component tests** (DomainScorer, TranscriptView, the
+labels/badge single source of truth). End-to-end auth proof: `scripts/e2e/`. Load & soak:
+`scripts/loadtest/` and `scripts/soak/` (budget-capped — read the script header before running).
+**Full coverage map, how-to-write-a-cross-role-test, CI, and the test roadmap live in
+[docs/TESTING.md](docs/TESTING.md).**
 
 ## 5. Commits, deploy, and the rules
 

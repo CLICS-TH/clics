@@ -7,19 +7,20 @@ import { LpdpChart } from '@/components/LpdpChart';
 import { PageIntro } from '@/components/PageIntro';
 import { Button } from '@/components/ui/button';
 import { STATUS_MAP, caseCategory } from '@/lib/labels';
+import type { PhysicianProfile, ProfileSession } from '@/lib/types';
 
 type GroupBy = 'status' | 'case' | 'folder';
 const round = (x: number) => Math.round(x);
 
 export default function PhysicianProfilePage() {
   const { id } = useParams<{ id: string }>();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<PhysicianProfile | null>(null);
   const [group, setGroup] = useState<GroupBy>('status');
 
   useEffect(() => {
     // On 404/403 apiFetch resolves with the JSON error body (no .physician) — keep it so the
     // error card below renders; a rejected fetch gets an empty object for the same reason.
-    apiFetch<any>(`/admin/physicians/${id}/profile`).then(setProfile).catch(() => setProfile({}));
+    apiFetch<PhysicianProfile>(`/admin/physicians/${id}/profile`).then(setProfile).catch(() => setProfile({}));
   }, [id]);
 
   if (!profile) return (
@@ -35,15 +36,15 @@ export default function PhysicianProfilePage() {
   );
 
   const { physician, sessions = [], lpdp = [] } = profile;
-  const chartData = lpdp.map((s: any, i: number) => ({ label: `PLE ${i + 1}`, composite_score: Number(s.composite_score) }));
+  const chartData = lpdp.map((s, i: number) => ({ label: `PLE ${i + 1}`, composite_score: Number(s.composite_score) }));
 
-  const keyFor = (s: any) =>
+  const keyFor = (s: ProfileSession) =>
     group === 'status' ? (STATUS_MAP[s.status] ?? s.status)
     : group === 'case' ? caseCategory(s.chief_complaint)
     : (s.folder_name || 'ไม่จัดหมวด / Uncategorized');
 
-  const groups: Record<string, any[]> = {};
-  sessions.forEach((s: any) => { (groups[keyFor(s)] ??= []).push(s); });
+  const groups: Record<string, ProfileSession[]> = {};
+  sessions.forEach((s) => { (groups[keyFor(s)] ??= []).push(s); });
 
   const tabs: [GroupBy, string][] = [
     ['status', 'สถานะ / Status'], ['case', 'ประเภทเคส / Case'], ['folder', 'โฟลเดอร์ / Folder'],
@@ -71,9 +72,9 @@ export default function PhysicianProfilePage() {
         <div key={label} className="mb-5">
           <h3 className="text-sm font-semibold text-primary mb-2">{label} <span className="text-muted-foreground font-normal">({items.length})</span></h3>
           <div className="space-y-2">
-            {items.map((s: any) => {
+            {items.map((s) => {
               const humanAvg = s.audits?.length
-                ? round(s.audits.reduce((a: number, x: any) => a + Number(x.composite_score), 0) / s.audits.length)
+                ? round(s.audits.reduce((a: number, x) => a + Number(x.composite_score), 0) / s.audits.length)
                 : null;
               return (
                 // The whole card links to the session transcript so an admin can explore the chat history.
@@ -88,14 +89,14 @@ export default function PhysicianProfilePage() {
                     </div>
                     <div className="text-right whitespace-nowrap text-sm">
                       <p>AI: <span className="font-semibold">{s.ai ? round(Number(s.ai.composite_score)) : '—'}</span></p>
-                      <p className="text-muted-foreground">ผู้ตรวจประเมิน / Auditor: {humanAvg != null ? `${humanAvg} (n=${s.audits.length})` : '—'}</p>
+                      <p className="text-muted-foreground">ผู้ตรวจประเมิน / Auditor: {humanAvg != null ? `${humanAvg} (n=${s.audits?.length})` : '—'}</p>
                     </div>
                   </div>
                   {/* WHO scored it — traceability of each evaluation. */}
-                  {s.audits?.length > 0 && (
+                  {(s.audits?.length ?? 0) > 0 && (
                     <p className="mt-2 border-t border-border/60 pt-2 text-xs text-muted-foreground">
                       ผู้ประเมิน / Scored by:{' '}
-                      {s.audits.map((a: any) => `${a.auditor_name || 'ไม่ทราบชื่อ / Unknown'} (${round(Number(a.composite_score))})`).join(' · ')}
+                      {(s.audits ?? []).map((a) => `${a.auditor_name || 'ไม่ทราบชื่อ / Unknown'} (${round(Number(a.composite_score))})`).join(' · ')}
                     </p>
                   )}
                   <p className="mt-2 text-xs text-primary">ดูบทสนทนา / View chat →</p>

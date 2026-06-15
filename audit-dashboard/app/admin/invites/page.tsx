@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
 import { ROLE_LABELS, INVITE_STATUS_MAP, roleToWire } from '@/lib/labels';
+import { type ApiResult, formatApiError } from '@/lib/types';
 import { confirmDialog } from '@/components/Overlays';
 import { Check, Copy, Mail, Building2 } from 'lucide-react';
 
@@ -41,10 +42,15 @@ export default function InvitesPage() {
   const isSuper = me?.role === 'superadmin';
 
   // Guard the .map: a non-401 error resolves with the error object (not an array); .catch a reject.
-  const load = () => { setLoadErr(false); apiFetch<Invite[]>('/admin/invites').then(d => setInvites(Array.isArray(d) ? d : [])).catch(() => setLoadErr(true)); };
+  // fetchInvites only sets state asynchronously (mount effect stays free of synchronous setState); the
+  // `load` wrapper adds the error-reset for the Retry button + post-action refresh (event handlers).
+  const fetchInvites = useCallback(() => {
+    apiFetch<Invite[]>('/admin/invites').then(d => setInvites(Array.isArray(d) ? d : [])).catch(() => setLoadErr(true));
+  }, []);
+  const load = () => { setLoadErr(false); fetchInvites(); };
 
   useEffect(() => {
-    load();
+    fetchInvites();
     apiFetch<Council[]>('/admin/councils').then(d => {
       const list = d ?? [];
       setCouncils(list);
@@ -67,7 +73,7 @@ export default function InvitesPage() {
     if (!form.email.trim()) { setErr('กรอกอีเมล / Enter an email.'); return; }
     if (!form.council_id) { setErr('เลือกสภาวิชาชีพ / Select a council.'); return; }
     setBusy(true);
-    const res: any = await apiFetch('/admin/invites', {
+    const res = await apiFetch<ApiResult<CreatedInvite>>('/admin/invites', {
       method: 'POST',
       // roleToWire turns the UI's 'special' into {role:'physician', can_audit:true}.
       body: JSON.stringify({ email: form.email.trim(), council_id: form.council_id, ...roleToWire(form.role) }),
@@ -78,9 +84,7 @@ export default function InvitesPage() {
       setForm(s => ({ ...s, email: '' }));
       load();
     } else {
-      setErr(typeof res?.error === 'string' ? res.error
-        : res?.error?.fieldErrors ? JSON.stringify(res.error.fieldErrors)
-        : 'สร้างคำเชิญไม่สำเร็จ / Could not create invite.');
+      setErr(formatApiError(res?.error, 'สร้างคำเชิญไม่สำเร็จ / Could not create invite.'));
     }
   }
 
@@ -100,7 +104,7 @@ export default function InvitesPage() {
     setMsg(''); setErr('');
     setRowBusy(inv.id);
     try {
-      const res: any = await apiFetch(`/admin/invites/${inv.id}`, { method: 'DELETE' });
+      const res = await apiFetch<ApiResult<{ ok: boolean }>>(`/admin/invites/${inv.id}`, { method: 'DELETE' });
       if (res?.ok) { setMsg('เพิกถอนคำเชิญแล้ว / Invite revoked.'); load(); }
       // Plain DELETE on a row that is no longer pending now 409s ("already processed") —
       // the row went stale under us, so just refresh the list.
@@ -124,7 +128,7 @@ export default function InvitesPage() {
     setMsg(''); setErr('');
     setRowBusy(inv.id);
     try {
-      const res: any = await apiFetch(`/admin/invites/${inv.id}?purge=1`, { method: 'DELETE' });
+      const res = await apiFetch<ApiResult<{ deleted: boolean }>>(`/admin/invites/${inv.id}?purge=1`, { method: 'DELETE' });
       if (res?.deleted) { setMsg('ลบคำเชิญแล้ว / Invite deleted.'); setInvites(s => (s ?? []).filter(i => i.id !== inv.id)); }
       else setMsg(typeof res?.error === 'string' ? res.error : 'ลบไม่สำเร็จ / Delete failed.');
     } finally { setRowBusy(null); }
