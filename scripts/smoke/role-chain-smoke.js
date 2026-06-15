@@ -98,6 +98,28 @@ const leaksIdentity = (obj) => {
 
   if (!evList.length) { info('no evaluated sessions to assign — cannot exercise the assign→score chain'); return finish(); }
 
+  // ---- COUNCIL MAPPING: a cross-council assignment is rejected (409) ----
+  // The assignee must belong to the PLE's council; assigning across councils is blocked. Pure CRUD —
+  // the request is refused BEFORE any write, so this exercises the guard with zero data change.
+  // (Matches backend/tests/admin-assign.test.js "cross-council auditor → 409".)
+  console.log('C2) Council mapping — cross-council assignment is rejected');
+  {
+    const ple = evList[0]; // an evaluated PLE in the admin's own council
+    const audRes = await req('GET', '/admin/users?role=auditor&status=active&limit=200', { token: saT }); // superadmin: all councils
+    const auditorsAll = Array.isArray(audRes.json) ? audRes.json : [];
+    const foreign = auditorsAll.find(u => u.council_id && ple?.council_id && u.council_id !== ple.council_id);
+    if (!ple?.council_id) {
+      info('cross-council — skipped (the evaluated PLE carries no council_id in this data)');
+    } else if (!foreign) {
+      info('cross-council — skipped (no active auditor in a council other than the evaluated PLEs’)');
+    } else {
+      const xc = await req('POST', `/admin/ples/${ple.id}/assign`, { token: adminT, body: { auditor_id: foreign.id } });
+      ok(xc.status === 409 && /cross-council/i.test(xc.json?.error || ''),
+         'cross-council assign rejected (409 Cross-council)',
+         `status=${xc.status} · ${xc.json?.error ?? ''}`);
+    }
+  }
+
   // Assign evaluated sessions to our auditor until we find one they have NOT scored yet.
   console.log('D) Admin assigns → Auditor blind queue → score');
   let scorablePle = null, queueChecked = false;

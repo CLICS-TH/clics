@@ -88,8 +88,9 @@ beforeEach(() => { m.reset(); m.state.caller = ADMIN; m.state.resolve = (t, k, c
 There is **no separate test database** — these scripts read/write the real Supabase project regardless of
 which backend they target. Run them against demo accounts, ideally right after `db/reset-demo.js`.
 
-- `scripts/smoke/role-chain-smoke.js` — superadmin → admin assign → auditor blind-score → ICC →
-  de-identified export. The live counterpart of `role-chain.integration.test.js`. Env: `SMOKE_BASE`,
+- `scripts/smoke/role-chain-smoke.js` — superadmin → admin assign → **cross-council assign rejection
+  (409)** → auditor blind-score → ICC → de-identified export. The live counterpart of
+  `role-chain.integration.test.js`. Env: `SMOKE_BASE`,
   `SMOKE_SUPER_PW`, `SMOKE_ADMIN_PW`, `SMOKE_AUD_EMAIL`, `SMOKE_AUD_PW`. Also runnable in CI via the manual
   `staging-smoke` workflow (Actions tab) once those are added as repo secrets, pointing at a non-prod stack.
 - `scripts/smoke/go-live-smoke.js` — consent gate → chat turn → CLE eval → de-identified export.
