@@ -18,6 +18,7 @@
 | AI scoring (PIS-7) + independent auditor review | ✅ Built; calibration with experts pending (July) |
 | Privacy / de-identification | ✅ Enforced (patient + physician identities protected) |
 | Capacity / load | ✅ Benchmarked — comfortable for pilot scale |
+| Automated testing & CI | ✅ Runs on every change, with coverage gates |
 | **Credit issuance** | ⏸ **Off by design** until the July calibration passes |
 | Organisational gates (IRB, key rotation, sending domain) | ⏳ Pending — not engineering |
 
@@ -47,12 +48,14 @@ A focus on making onboarding secure and the platform participant-ready:
 - **Council isolation, verified.** An admin can see and manage only their own council's data — confirmed by an end-to-end security audit.
 - **Role changes locked to the superadmin** (admins can view the request queue but not grant rights).
 - **Quality & safety hardening:** every button on both apps was audited and wired correctly; double-clicks can no longer re-trigger paid AI scoring or delete history; the apps now show clear messages instead of blank error pages; password-reveal toggles, user search, and a larger desktop view were added.
+- **Comprehensive automated testing + continuous integration.** A full test pipeline now runs on every code change (220+ backend tests, the dashboard's on-screen component tests, type-checks and linting) with coverage gates, so regressions are caught before they reach users. Cross-council isolation is re-checked by a live end-to-end test.
+- **Mobile polish.** The dashboard and the auditor scoring screen now lay out correctly on a phone — no more sideways scrolling — so reviewers can work on the go.
 
 ---
 
 ## Verification (evidence, not assertion)
 
-- **Automated test suite:** 132 backend tests passing.
+- **Automated test suite & CI:** **222** backend tests, plus a continuous-integration pipeline that runs the whole hermetic test set (backend, RIMPL, license checks, and the dashboard's component tests + type-check + lint) on every change, with coverage-floor gates. Six cross-role suites prove the role hand-offs; cross-council isolation is also re-checked by a live smoke (21/21).
 - **Full live journey on production:** physician consent → 5 AI turns → screening gate → AI evaluation → assign → blind auditor score → duplicate-submission blocked. Re-run repeatedly; AI and auditor scores both land correctly.
 - **Concurrency / load (see the Performance Benchmark doc):** **100 distinct simultaneous logged-in users with 0 errors**; 200 concurrent requests with 0 errors. The AI-chat path queues and retries under bursts so nothing is lost. Comfortable for 75 physicians, who in practice never all act in the same instant.
 - **Cost is bounded:** each AI reply is roughly **$0.01–0.02**, and every physician has a hard usage cap, so concurrent use cannot run up a surprise bill.

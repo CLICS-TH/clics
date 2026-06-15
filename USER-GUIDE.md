@@ -85,6 +85,7 @@ On the portal, tap **"ลองใช้แบบผู้เยี่ยมช�
 - The AI gives substantive, referenced answers — it's a **mentor, not a search box**, and it won't simply agree with you.
 - **Privacy:** use **de-identified / made-up cases only.** Reviewers see each case under a code name (e.g. *P-001*), never the doctor's real name.
 - **Capacity:** everyone can be signed in and working at once — the system handles the pilot group comfortably and answers AI turns in a few seconds even under load.
+- **Works on phone & computer:** the screens (including the auditor's scoring page) fit a phone, so you can review and manage on the go.
 - **This is a validation pilot:** **scores are provisional** — official credit follows once the scoring is calibrated with expert reviewers.
 
 *หากพบปัญหาการใช้งาน กรุณาแจ้งผู้ดูแลระบบ / If anything misbehaves, tell your administrator.*
