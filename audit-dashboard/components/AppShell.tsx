@@ -11,7 +11,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div
       data-app-shell
       className={cn(
-        'flex min-h-screen w-full flex-col',
+        // `@container` makes this the query container so layout grids use container queries
+        // (@min-[…]) instead of viewport breakpoints — that's what lets the forced-mobile frame
+        // (and real phones) actually collapse multi-column grids to one column.
+        '@container flex min-h-screen w-full flex-col',
         forcedMobile && 'mx-auto max-w-[460px] border-x border-border shadow-2xl'
       )}
     >

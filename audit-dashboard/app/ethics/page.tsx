@@ -32,7 +32,7 @@ export default function EthicsPage() {
       {!log ? <Skeleton className="h-64 w-full" /> : log.events.length === 0 ? (
         <div className="text-muted-foreground">ยังไม่มีเหตุการณ์ / No events recorded yet.</div>
       ) : (
-        <div className="border rounded-xl overflow-hidden">
+        <div className="border rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-secondary text-left">
               <tr>

@@ -60,7 +60,7 @@ export default function IccPage() {
         <div className="border rounded-xl p-5">
           <h2 className="font-semibold mb-1">ICC แยกตามสภาวิชาชีพ / By professional council</h2>
           <p className="text-xs text-muted-foreground mb-4">ดูความน่าเชื่อถือของแต่ละวิชาชีพแยกกัน / Each profession&apos;s calibration, separately.</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 @min-[640px]:grid-cols-2">
             {councils.map((c) => {
               const icc = c.overall.icc; // may be null (degenerate / insufficient variance)
               const ok = icc != null && icc >= 0.75;

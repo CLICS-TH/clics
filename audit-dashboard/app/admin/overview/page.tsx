@@ -96,7 +96,7 @@ export default function OverviewPage() {
       {/* ① Headline CLE cards — each drills into /admin/cles filtered by its bucket. */}
       <section>
         {stats ? (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+          <div className="grid grid-cols-2 gap-4 @min-[768px]:grid-cols-5">
             {headline.map(c => (
               <a key={c.label} href={`/admin/cles${c.key ? `?status=${c.key}` : ''}`}
                 className="block rounded-xl border p-5 text-center transition-colors hover:bg-secondary hover:border-primary/40 cursor-pointer"
@@ -118,7 +118,7 @@ export default function OverviewPage() {
           </a>
         </div>
         {!icc ? (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 @min-[768px]:grid-cols-2">
             <Skeleton className="h-44 w-full" />
             <div className="rounded-xl border p-5">
               <p className="text-sm text-muted-foreground">กำลังโหลดข้อมูล calibration… / Loading calibration data…</p>
@@ -129,7 +129,7 @@ export default function OverviewPage() {
             ยังไม่มีข้อมูล ICC — รอให้ Auditors ส่งคะแนน / No ICC data yet — awaiting auditor scores.
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 @min-[768px]:grid-cols-2">
             <IccPanel {...icc.overall} />
             {/* Chart renders only after data arrives — ResponsiveContainer measures post-mount
                 (same pattern as components/LpdpChart.tsx). */}
@@ -166,7 +166,7 @@ export default function OverviewPage() {
         ) : activeCouncils.length === 0 ? (
           <p className="rounded-xl border p-5 text-sm text-muted-foreground">ยังไม่มีสภาที่เปิดใช้งาน / No active councils.</p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 @min-[640px]:grid-cols-2">
             {activeCouncils.map(c => {
               const cIcc = icc?.per_council?.[c.id]?.overall ?? null;
               return (
@@ -197,7 +197,7 @@ export default function OverviewPage() {
       {/* ④ Capacity & budget — global role slot pools + the org-wide API budget pool. */}
       <section className="space-y-3">
         <h2 className="font-heading text-xl text-foreground">Capacity &amp; budget</h2>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 @min-[768px]:grid-cols-2">
           <div className="rounded-xl border p-5">
             <h3 className="mb-3 font-semibold">Slot ตามบทบาท / Role slots</h3>
             {!slots ? <Skeleton className="h-24 w-full" /> : (

@@ -27,7 +27,7 @@ export default function HomePage() {
           subtitle="ระบบ 4 บทบาทตามผังสถาปัตยกรรม / The four roles in the CLICS architecture"
         />
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 @min-[640px]:grid-cols-2">
           {ROLES.map(r => {
             const active = r.key === role;
             return (

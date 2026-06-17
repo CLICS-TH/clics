@@ -43,7 +43,7 @@ export default function StatsPage() {
         title="สถิติ Pilot Study"
         subtitle="Pilot Study Statistics — ภาพรวมความคืบหน้าและคุณภาพ"
       />
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-2">
+      <div className="grid grid-cols-2 @min-[768px]:grid-cols-5 gap-4 mb-2">
         {cards.map(c => (
           <a key={c.label} href={`/admin/cles${c.key ? `?status=${c.key}` : ''}`}
             className="border rounded-xl p-4 text-center block hover:bg-secondary hover:border-primary/40 transition-colors cursor-pointer"

@@ -123,7 +123,7 @@ export default function AuditorScorePage() {
       {/* Two-pane: the transcript stays sticky beside the scorer so raters don't scroll up to re-read.
           grid-cols-1 (not bare `grid`) gives a shrinkable minmax(0,1fr) column on mobile so a wide
           transcript can't blow the column out and overflow the viewport (the w-full textarea inherits it). */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
+      <div className="grid grid-cols-1 gap-6 @min-[1024px]:grid-cols-2 lg:items-start">
         <div className="lg:sticky lg:top-6">
           <TranscriptView messages={data.messages ?? []} />
         </div>

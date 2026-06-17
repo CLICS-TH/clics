@@ -20,7 +20,7 @@ export function TableSkeleton({ rows = 6, cols = 4 }: { rows?: number; cols?: nu
 
 export function CardGridSkeleton({ cards = 4 }: { cards?: number }) {
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 @min-[768px]:grid-cols-4">
       {Array.from({ length: cards }).map((_, i) => <Skeleton key={i} className="h-24" />)}
     </div>
   );

@@ -41,7 +41,7 @@ export default function CompensationPage() {
       />
       {!data ? <Skeleton className="h-64 w-full" /> : (
         <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 @min-[640px]:grid-cols-3">
             <div className="rounded-xl border p-4"><p className="text-2xl font-bold tabular-nums">{data.n}</p><p className="text-xs text-muted-foreground">ผู้รับ / Recipients</p></div>
             <div className="rounded-xl border p-4"><p className="text-2xl font-bold tabular-nums">฿{data.total_thb.toLocaleString()}</p><p className="text-xs text-muted-foreground">รวม / Total</p></div>
             <div className="rounded-xl border p-4"><p className="text-2xl font-bold tabular-nums">฿{data.rate_thb_per_cle}</p><p className="text-xs text-muted-foreground">ต่อ CLE / per CLE</p></div>
@@ -49,7 +49,7 @@ export default function CompensationPage() {
           {data.recipients.length === 0 ? (
             <div className="text-muted-foreground">ยังไม่มีผู้ทำ CLE ครบเกณฑ์ / No physician has a passed CLE yet.</div>
           ) : (
-            <div className="border rounded-xl overflow-hidden">
+            <div className="border rounded-xl overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-secondary text-left">
                   <tr><th className="p-3 font-medium">แพทย์ / Physician</th><th className="p-3 font-medium">CLE</th><th className="p-3 font-medium text-right">฿</th></tr>

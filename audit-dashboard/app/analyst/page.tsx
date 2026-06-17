@@ -38,7 +38,7 @@ export default function AnalystPage() {
       <div className="border rounded-xl p-5">
         <h2 className="font-semibold mb-3">สถานะ CLE / CLE status {stats ? <span className="text-muted-foreground text-sm">· n = {stats.total}</span> : null}</h2>
         {!stats ? <Skeleton className="h-20 w-full" /> : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 @min-[640px]:grid-cols-3">
             {Object.entries(STATUS_LABEL).map(([k, label]) => (
               <div key={k} className="rounded-xl border p-4">
                 <p className="text-2xl font-bold tabular-nums">{stats.counts[k] ?? 0}</p>

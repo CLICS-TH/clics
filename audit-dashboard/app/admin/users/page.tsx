@@ -420,7 +420,7 @@ export default function UsersPage() {
           Drive columns off the mobile flag (the view toggle shrinks the
           container but not the viewport, so Tailwind md: would wrongly stay 4-up). */}
       {isSuper && (<>
-      <div className={`grid gap-3 mb-6 ${mobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
+      <div className={`grid gap-3 mb-6 ${mobile ? 'grid-cols-2' : 'grid-cols-2 @min-[768px]:grid-cols-4'}`}>
         {slots.map(s => {
           // admin/auditor capacity is enforced PER-COUNCIL (council_slots), so the global pool is
           // display-only for them — lock the edit here (the backend rejects it too) and point at the
