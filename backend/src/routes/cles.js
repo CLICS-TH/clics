@@ -7,6 +7,7 @@ const { rimplChat } = require('../services/rimpl-client');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
 const { finalizeScreening, toPassCols } = require('../services/cle-finalize');
 const { effectiveLimit, reserveUsage, settleUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
+const { logEvent } = require('../lib/audit');
 
 const router = Router();
 router.use(verifyJwt, requireRole('physician'));
@@ -104,6 +105,9 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
       .insert({ cle_id: data.id, physician_id: req.user.id, patient_ref: ref });
     if (refErr) console.error('[cles] failed to store patient_ref:', refErr.message);
   }
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.create', targetType: 'cle',
+    targetId: data.cle_code ?? data.id, councilId: req.user.council_id,
+    metadata: { episode_number: episodeNumber, socratic_reason: socraticReason } });
   res.status(201).json({ ...data, patient_ref: ref || null });
 });
 
@@ -297,6 +301,9 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   // physician's NEXT natural session; any pass resets it. Best-effort — never block /end on it.
   const { error: rtErr } = await supabase.rpc('record_t1_outcome', { p_id: cle.physician_id, p_pass: tier1Pass });
   if (rtErr) console.error('[cles] record_t1_outcome failed:', rtErr.message);
+
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.end', targetType: 'cle',
+    targetId: cle.cle_code ?? req.params.id, councilId: cle.council_id ?? null, metadata: { tier1_pass: tier1Pass } });
 
   if (!tier1Pass) return res.json({ status: 'cle_fail_t1', criteria: tier1 });
 

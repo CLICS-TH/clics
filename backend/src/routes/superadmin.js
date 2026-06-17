@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { supabase, authSupabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { computeICC21 } = require('../services/icc');
-const { sendDbError } = require('../lib/db-helpers');
+const { sendDbError, pageParams } = require('../lib/db-helpers');
 const { assertSlotAvailable, nextPseudonym, allSlotUsage, allCouncilSlotUsage, ROLES } = require('../lib/accounts');
 const { normalizeCanAudit } = require('../lib/dual-role');
 
@@ -407,6 +407,18 @@ router.get('/lpdp/:physicianId', async (req, res) => {
     .order('snapshot_at');
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
+});
+
+// Audit trail (CLICS §9.4): newest-first, page-bounded. Read-only oversight view (the Tier-4
+// 'ethics' role gets the same data via its own route in the dashboard; RLS allows both).
+router.get('/audit-log', async (req, res) => {
+  const { limit, offset } = pageParams(req, { def: 100, max: 500 });
+  const { data, count, error } = await supabase
+    .from('audit_log').select('*', { count: 'exact' })
+    .order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+  if (sendDbError(res, error)) return;
+  res.setHeader('X-Total-Count', count ?? 0);
+  res.json({ total: count ?? 0, limit, offset, events: data ?? [] });
 });
 
 module.exports = router;

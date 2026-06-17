@@ -4,6 +4,7 @@ const { verifyJwt, requireRole } = require('../middleware/auth');
 const { ScoreSchema } = require('../lib/schemas');
 const { compositeScore } = require('../services/cle-gate');
 const { computeICC21 } = require('../services/icc');
+const { logEvent } = require('../lib/audit');
 
 const router = Router();
 router.use(verifyJwt, requireRole('auditor'));
@@ -86,6 +87,9 @@ router.post('/cles/:id/score', async (req, res) => {
     if (error.code === '23505') return res.status(409).json({ error: 'Already scored' });
     return res.status(500).json({ error: error.message });
   }
+
+  logEvent({ actorId: req.user.id, actorRole: 'auditor', action: 'audit.score', targetType: 'cle',
+    targetId: req.params.id, councilId: cle.council_id, metadata: { composite_score: composite } });
 
   res.json({ composite_score: composite });
 });

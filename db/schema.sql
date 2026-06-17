@@ -637,3 +637,23 @@ returns table(council_id uuid, role text, n bigint) language sql stable as $$
   where status = 'active' and council_id is not null
   group by council_id, role;
 $$;
+
+-- ===== Audit trail (see db/migration-audit-log.sql) — append-only event log for the ethics committee =====
+create table public.audit_log (
+  id          uuid primary key default gen_random_uuid(),
+  actor_id    uuid references public.professionals(id) on delete set null,
+  actor_role  text,
+  action      text not null,
+  target_type text,
+  target_id   text,
+  council_id  uuid references public.councils(id),
+  metadata    jsonb,
+  created_at  timestamptz not null default now()
+);
+create index audit_log_created_idx on public.audit_log(created_at);
+create index audit_log_target_idx  on public.audit_log(target_type, target_id);
+create index audit_log_actor_idx   on public.audit_log(actor_id);
+alter table public.audit_log enable row level security;
+create policy "audit_log: oversight read" on public.audit_log for select using (
+  exists (select 1 from public.professionals p where p.id = auth.uid() and p.role in ('superadmin','ethics'))
+);

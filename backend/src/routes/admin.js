@@ -11,6 +11,7 @@ const { assertSlotAvailable } = require('../lib/accounts');
 const { newInviteToken } = require('../lib/invite-token');
 const { isMailerEnabled, sendInviteEmail } = require('../lib/mailer');
 const { normalizeCanAudit } = require('../lib/dual-role');
+const { logEvent } = require('../lib/audit');
 
 const router = Router();
 router.use(verifyJwt, requireRole('admin', 'superadmin'));
@@ -147,6 +148,8 @@ router.post('/cles/:id/reevaluate', async (req, res) => {
   const transcript = messages.map(m => ({ role: m.role, content: m.content }));
   try {
     await triggerEvaluation(cle.id, transcript, cle.physician_id);
+    logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.reevaluate', targetType: 'cle',
+      targetId: cle.cle_code ?? cle.id, councilId: cle.council_id });
     res.json({ ok: true, status: 'evaluated' });
   } catch (e) {
     res.status(502).json({ error: `Evaluation failed: ${e.message}` });
@@ -199,6 +202,8 @@ router.post('/cles/:id/assign', async (req, res) => {
     .eq('id', req.params.id)
     .eq('status', 'evaluated');
   if (sendDbError(res, error)) return;
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.assign', targetType: 'cle',
+    targetId: req.params.id, councilId: cle.council_id, metadata: { auditor_id: auditorId } });
   res.json({ ok: true });
 });
 
@@ -454,6 +459,8 @@ router.get('/export', async (req, res) => {
     };
   });
   res.setHeader('X-Total-Count', count ?? 0);
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'export', targetType: 'export',
+    councilId: req.user.council_id, metadata: { n: sessions.length, include_test: includeTest, offset } });
   res.json({ exported_at: new Date().toISOString(), n: sessions.length, total: count ?? 0, limit, offset, sessions });
 });
 

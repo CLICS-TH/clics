@@ -8,6 +8,7 @@ const { supabase } = require('./supabase');
 const { assertSlotAvailable, nextPseudonym, nextExpCode } = require('./accounts');
 const { encryptJson } = require('./crypto');
 const { normalizeCanAudit } = require('./dual-role');
+const { logEvent } = require('./audit');
 
 async function provisionProfessional({
   authUserId, role, councilId,
@@ -62,6 +63,10 @@ async function provisionProfessional({
       return { ok: false, code: 'vault_failed', error: vaultErr.message };
     }
   }
+
+  logEvent({ actorRole: 'system', action: 'user.provision', targetType: 'professional',
+    targetId: data.pseudonym ?? data.exp_code ?? data.id, councilId: councilId,
+    metadata: { role, can_audit: !!insert.can_audit } });
 
   return { ok: true, professional: data };
 }

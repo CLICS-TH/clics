@@ -6,6 +6,7 @@ const { sendDbError } = require('../lib/db-helpers');
 const { effectiveLimit } = require('../lib/usage');
 const { provisionProfessional } = require('../lib/provisioning');
 const { hashToken } = require('../lib/invite-token');
+const { logEvent } = require('../lib/audit');
 
 const router = Router();
 
@@ -167,6 +168,8 @@ router.post('/consent', verifyJwt, async (req, res) => {
   const now = new Date().toISOString();
   const { error } = await supabase.from('professionals').update({ consented_at: now }).eq('id', req.user.id);
   if (error) return res.status(500).json({ error: error.message });
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'consent', targetType: 'professional',
+    targetId: req.user.pseudonym ?? req.user.exp_code ?? req.user.id, councilId: req.user.council_id });
   res.json({ ok: true, consented_at: now });
 });
 
