@@ -5,7 +5,7 @@
 // Returns { ok: true, professional } or { ok: false, code, error } (HTTP-mappable). It does
 // NOT create or delete the Supabase auth user — the caller owns that lifecycle/rollback.
 const { supabase } = require('./supabase');
-const { assertSlotAvailable, nextPseudonym } = require('./accounts');
+const { assertSlotAvailable, nextPseudonym, nextExpCode } = require('./accounts');
 const { encryptJson } = require('./crypto');
 const { normalizeCanAudit } = require('./dual-role');
 
@@ -42,6 +42,8 @@ async function provisionProfessional({
     }
   }
   if (role === 'physician') insert.pseudonym = await nextPseudonym();
+  // Expert auditors get an EXP-NNN study pseudonym (the only auditor id in the export/audit trail).
+  if (role === 'auditor') insert.exp_code = await nextExpCode();
 
   const { data, error } = await supabase.from('professionals').insert(insert).select('*').single();
   if (error) return { ok: false, code: 'insert_failed', error: error.message };

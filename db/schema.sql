@@ -40,7 +40,8 @@ create table public.professionals (
   -- "Special" dual role: a physician who may ALSO audit (passes auditor gates; keeps pseudonym;
   -- consumes no auditor slot). Granted via Special invites or admin approval of a role request.
   can_audit      boolean not null default false,
-  pseudonym      text unique,   -- P-NNN; the only identifier allowed in exports/audit
+  pseudonym      text unique,   -- P-NNN; the only physician identifier allowed in exports/audit
+  exp_code       text unique,   -- EXP-NNN expert-auditor pseudonym (auditors only); see migration-pseudonym-codes.sql
   consented_at   timestamptz,   -- informed consent for the pilot; session creation is gated on this
   -- CLICS §6.4: consecutive Tier-1 fails on natural CLEs; 3 in a row opens Socratic remediation on
   -- the next natural session. Reset to 0 on any Tier-1 pass. See db/migration-cle-episodes.sql.
@@ -214,6 +215,7 @@ create table public.cles (
   episode_number   smallint,
   socratic_active  boolean not null default false,
   socratic_reason  text check (socratic_reason is null or socratic_reason in ('cle2_examiner','t1_remediation')),
+  cle_code         text unique,   -- CLE-NNN study pseudonym (the only session id in exports); see migration-pseudonym-codes.sql
   provider_used    text default 'claude',   -- reserved for L4 multi-provider rotation (roadmap); currently always 'claude'
   created_at       timestamptz default now()
 );
@@ -604,6 +606,16 @@ language sql as $$
   update public.professionals
      set consecutive_t1_fails = case when p_pass then 0 else consecutive_t1_fails + 1 end
    where id = p_id;
+$$;
+
+-- CLICS §7.1/§9.2 study pseudonym series: CLE-NNN (sessions) + EXP-NNN (expert auditors).
+create sequence if not exists public.cle_code_seq;
+create or replace function public.next_cle_code() returns text language sql as $$
+  select 'CLE-' || lpad(nextval('public.cle_code_seq')::text, 3, '0');
+$$;
+create sequence if not exists public.exp_code_seq;
+create or replace function public.next_exp_code() returns text language sql as $$
+  select 'EXP-' || lpad(nextval('public.exp_code_seq')::text, 3, '0');
 $$;
 
 create or replace function public.cle_status_counts(p_council uuid default null, p_include_test boolean default false)

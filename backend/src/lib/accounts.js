@@ -115,8 +115,24 @@ async function nextPseudonym() {
   return `P-${String(max + 1).padStart(3, '0')}`;
 }
 
+// Next expert-auditor code in the EXP-NNN series (CLICS §9.2). Mirrors nextPseudonym: O(1) RPC
+// with a pre-migration fallback scan, so deploy order is safe.
+async function nextExpCode() {
+  const { data, error } = await supabase.rpc('next_exp_code');
+  if (!error && typeof data === 'string') return data;
+
+  const { data: rows } = await supabase
+    .from('professionals').select('exp_code').not('exp_code', 'is', null);
+  let max = 0;
+  for (const row of rows ?? []) {
+    const mm = /^EXP-(\d+)$/.exec(row.exp_code || '');
+    if (mm) max = Math.max(max, parseInt(mm[1], 10));
+  }
+  return `EXP-${String(max + 1).padStart(3, '0')}`;
+}
+
 module.exports = {
   ROLES, DEFAULT_CAPACITY,
-  slotUsage, allSlotUsage, assertSlotAvailable, nextPseudonym,
+  slotUsage, allSlotUsage, assertSlotAvailable, nextPseudonym, nextExpCode,
   councilSlotUsage, allCouncilSlotUsage,
 };

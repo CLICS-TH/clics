@@ -74,6 +74,10 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
   if (episodeNumber === 2) { socraticActive = true; socraticReason = 'cle2_examiner'; }
   else if ((req.user.consecutive_t1_fails ?? 0) >= 3) { socraticActive = true; socraticReason = 't1_remediation'; }
 
+  // CLE-NNN study pseudonym — the only session identifier that appears in the research export.
+  const { data: ccData } = await supabase.rpc('next_cle_code');
+  const cleCode = typeof ccData === 'string' ? ccData : null;
+
   const { data, error } = await supabase.from('cles').insert({
     physician_id: req.user.id,
     council_id: req.user.council_id,   // denormalized from the physician; scopes admin/auditor access
@@ -85,6 +89,7 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
     episode_number: episodeNumber,
     socratic_active: socraticActive,
     socratic_reason: socraticReason,
+    cle_code: cleCode,
   }).select().single();
 
   if (sendDbError(res, error)) return;

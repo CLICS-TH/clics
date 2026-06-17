@@ -418,7 +418,7 @@ router.get('/export', async (req, res) => {
   const includeTest = req.query.include_test === 'true';
   const { limit, offset } = pageParams(req, { def: 200, max: 1000 });
   let pq = supabase.from('cles')
-    .select('id, physician_id, status, turn_count, token_count, duration_seconds, started_at, is_test', { count: 'exact' });
+    .select('id, cle_code, physician_id, episode_number, socratic_active, socratic_reason, status, turn_count, token_count, duration_seconds, started_at, is_test', { count: 'exact' });
   if (!includeTest) pq = pq.eq('is_test', false);
   pq = scopeToCouncil(req, pq);
   const { data: cles, count, error: clesErr } = await pq.order('started_at').range(offset, offset + limit - 1);
@@ -431,15 +431,22 @@ router.get('/export', async (req, res) => {
   const { data: ai } = await (cleIds.length ? supabase.from('ai_evaluations').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('cle_id', cleIds) : empty);
   const aiBy = Object.fromEntries((ai ?? []).map(e => [e.cle_id, e]));
   const { data: audits } = await (cleIds.length ? supabase.from('audit_scores').select('cle_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('cle_id', cleIds) : empty);
-  // Auditors are study staff, not research subjects — pseudonymize their id too so the exported
-  // file carries no reversible identity (stable A-<hash>: same auditor → same label across exports).
-  const auditorTag = (id) => 'A-' + createHash('sha256').update(String(id)).digest('hex').slice(0, 8);
+  // Auditors are study staff, not research subjects — pseudonymize their id to the protocol's
+  // EXP-NNN code (CLICS §9.2). Fall back to a stable A-<hash> only if an auditor predates the code
+  // backfill, so the export never carries a reversible identity.
+  const audIds = [...new Set((audits ?? []).map(s => s.auditor_id))];
+  const { data: auditors } = await (audIds.length ? supabase.from('professionals').select('id, exp_code').in('id', audIds) : empty);
+  const expCode = Object.fromEntries((auditors ?? []).map(a => [a.id, a.exp_code]));
+  const auditorTag = (id) => expCode[id] || ('A-' + createHash('sha256').update(String(id)).digest('hex').slice(0, 8));
   const audBy = {};
   (audits ?? []).forEach(s => { (audBy[s.cle_id] ??= []).push({ auditor: auditorTag(s.auditor_id), composite: Number(s.composite_score), d1: s.d1, d2: s.d2, d3: s.d3, d4: s.d4, d5: s.d5, d6: s.d6, d7: s.d7 }); });
   const sessions = (cles ?? []).map(p => {
     const e = aiBy[p.id];
     return {
-      cle_id: p.id, physician: pseudo[p.physician_id] ?? null, status: p.status, is_test: p.is_test,
+      cle_id: p.id, cle_code: p.cle_code ?? null, physician: pseudo[p.physician_id] ?? null,
+      // Experimental-design fields (CLICS §6.4) so the research team can analyse the Socratic effect.
+      episode_number: p.episode_number ?? null, socratic_active: p.socratic_active ?? false, socratic_reason: p.socratic_reason ?? null,
+      status: p.status, is_test: p.is_test,
       turns: p.turn_count, tokens: p.token_count, duration_seconds: p.duration_seconds, started_at: p.started_at,
       ai_composite: e ? Number(e.composite_score) : null,
       ai_domains: e ? { d1: e.d1, d2: e.d2, d3: e.d3, d4: e.d4, d5: e.d5, d6: e.d6, d7: e.d7 } : null,
