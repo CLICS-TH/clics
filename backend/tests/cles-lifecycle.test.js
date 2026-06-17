@@ -21,14 +21,19 @@ app.use('/cles', clesRouter);
 const auth = (r) => r.set('Authorization', 'Bearer test');
 const FOLDER_UUID = '33333333-3333-3333-3333-333333333333';
 
-let cleRow, folderOwned;
+let cleRow, folderOwned, passedCount;
 beforeEach(() => {
   m.reset();
   m.state.caller = PHYSICIAN; // consented, usage_cost_usd 0
   cleRow = undefined;
   folderOwned = true;
+  passedCount = 0;            // # of the physician's prior PASSED CLEs (drives episode_number)
   m.state.resolve = (table, kind, ctx) => {
     if (table === 'cles') {
+      // The episode-count probe: select(head) filtered by status='cle_pass' → return the count.
+      if (ctx.op === 'select' && kind === 'list' && ctx.eqs.some(e => e[0] === 'status' && e[1] === 'cle_pass')) {
+        return { data: [], count: passedCount };
+      }
       if (ctx.op === 'insert') return { id: 'p-new', ...ctx.payload };
       if (ctx.op === 'update') return cleRow;                 // PATCH .single()
       if (ctx.op === 'select' && kind === 'single') return cleRow; // fetchOwnedPle (delete)
@@ -47,6 +52,41 @@ test('create: denormalizes council_id from the physician and starts active → 2
     physician_id: 'phys-1', council_id: COUNCIL_A, status: 'active',
     chief_complaint: 'Chest pain', title: 'Chest pain',
   });
+});
+
+test('create CLE1 (no prior passes) → episode 1, natural (no Socratic)', async () => {
+  const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
+  expect(r.status).toBe(201);
+  expect(m.find('cles', 'insert').payload).toMatchObject({
+    episode_number: 1, socratic_active: false, socratic_reason: null,
+  });
+});
+
+test('create CLE2 (1 prior pass) → episode 2, Socratic examiner from start', async () => {
+  passedCount = 1;
+  const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
+  expect(r.status).toBe(201);
+  expect(m.find('cles', 'insert').payload).toMatchObject({
+    episode_number: 2, socratic_active: true, socratic_reason: 'cle2_examiner',
+  });
+});
+
+test('create a natural CLE after 3 consecutive Tier-1 fails → Socratic remediation', async () => {
+  m.state.caller = { ...PHYSICIAN, consecutive_t1_fails: 3 };
+  passedCount = 0; // episode 1, but remediation kicks in
+  const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
+  expect(r.status).toBe(201);
+  expect(m.find('cles', 'insert').payload).toMatchObject({
+    episode_number: 1, socratic_active: true, socratic_reason: 't1_remediation',
+  });
+});
+
+test('create a 4th CLE after the 3 study CLEs have passed → 403 cle_limit_reached, no insert', async () => {
+  passedCount = 3;
+  const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
+  expect(r.status).toBe(403);
+  expect(r.body.code).toBe('cle_limit_reached');
+  expect(m.find('cles', 'insert')).toBeUndefined();
 });
 
 test('create without recorded consent → 403 consent_required', async () => {

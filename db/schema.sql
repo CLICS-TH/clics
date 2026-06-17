@@ -42,6 +42,9 @@ create table public.professionals (
   can_audit      boolean not null default false,
   pseudonym      text unique,   -- P-NNN; the only identifier allowed in exports/audit
   consented_at   timestamptz,   -- informed consent for the pilot; session creation is gated on this
+  -- CLICS §6.4: consecutive Tier-1 fails on natural CLEs; 3 in a row opens Socratic remediation on
+  -- the next natural session. Reset to 0 on any Tier-1 pass. See db/migration-cle-episodes.sql.
+  consecutive_t1_fails int not null default 0,
   -- Per-physician AI usage meter + per-user limit override (see db/migration-usage-limits.sql).
   usage_cost_usd      numeric not null default 0,
   usage_input_tokens  bigint  not null default 0,
@@ -205,6 +208,12 @@ create table public.cles (
   output_tokens    bigint  not null default 0,   -- billed output tokens (cost auditability)
   c1_pass boolean, c2_pass boolean, c3_pass boolean,
   c4_pass boolean, c5_pass boolean, c6_pass boolean,
+  -- CLICS protocol §6.4 experimental sequence: episode 1|2|3 (assigned at creation) + Socratic toggle.
+  -- CLE2 runs Socratic-from-start ('cle2_examiner'); CLE1/3 are natural unless 3× Tier-1 fails opens
+  -- remediation ('t1_remediation'). See db/migration-cle-episodes.sql.
+  episode_number   smallint,
+  socratic_active  boolean not null default false,
+  socratic_reason  text check (socratic_reason is null or socratic_reason in ('cle2_examiner','t1_remediation')),
   provider_used    text default 'claude',   -- reserved for L4 multi-provider rotation (roadmap); currently always 'claude'
   created_at       timestamptz default now()
 );
@@ -587,6 +596,14 @@ select setval('public.pseudonym_seq',
 
 create or replace function public.next_pseudonym() returns text language sql as $$
   select 'P-' || lpad(nextval('public.pseudonym_seq')::text, 3, '0');
+$$;
+
+-- CLICS §6.4 Tier-1 remediation counter: reset on a Tier-1 pass, increment on fail.
+create or replace function public.record_t1_outcome(p_id uuid, p_pass boolean) returns void
+language sql as $$
+  update public.professionals
+     set consecutive_t1_fails = case when p_pass then 0 else consecutive_t1_fails + 1 end
+   where id = p_id;
 $$;
 
 create or replace function public.cle_status_counts(p_council uuid default null, p_include_test boolean default false)

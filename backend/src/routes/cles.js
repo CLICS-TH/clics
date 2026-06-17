@@ -54,6 +54,26 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
   // Auto-title from the chief complaint (physician can rename later).
   const title = chief_complaint.trim().slice(0, 120);
 
+  // Episode sequencing (CLICS protocol §6.4): a physician produces exactly 3 valid CLEs.
+  // episode_number = (# of their PASSED CLEs) + 1, so a retried attempt keeps the same episode
+  // until it passes. Block a 4th once 3 have passed (is_test rows are seed/demo, excluded).
+  const { count: passedCount, error: countErr } = await supabase.from('cles')
+    .select('id', { count: 'exact', head: true })
+    .eq('physician_id', req.user.id).eq('status', 'cle_pass').eq('is_test', false);
+  if (sendDbError(res, countErr)) return;
+  const passed = passedCount ?? 0;
+  if (passed >= 3) {
+    return res.status(403).json({ error: 'You have completed all 3 CLEs for this study.', code: 'cle_limit_reached' });
+  }
+  const episodeNumber = passed + 1;
+
+  // Socratic mode: CLE2 runs as a Socratic clinical-examiner from the first turn. CLE1/CLE3 are
+  // natural, UNLESS the physician has failed Tier-1 three times in a row — then this natural session
+  // opens in Socratic remediation to help it develop into a qualifying CLE.
+  let socraticActive = false, socraticReason = null;
+  if (episodeNumber === 2) { socraticActive = true; socraticReason = 'cle2_examiner'; }
+  else if ((req.user.consecutive_t1_fails ?? 0) >= 3) { socraticActive = true; socraticReason = 't1_remediation'; }
+
   const { data, error } = await supabase.from('cles').insert({
     physician_id: req.user.id,
     council_id: req.user.council_id,   // denormalized from the physician; scopes admin/auditor access
@@ -62,6 +82,9 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
     chief_complaint,
     title,
     folder_id: folder_id ?? null,
+    episode_number: episodeNumber,
+    socratic_active: socraticActive,
+    socratic_reason: socraticReason,
   }).select().single();
 
   if (sendDbError(res, error)) return;
@@ -182,6 +205,7 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     rimplResponse = await rimplChat({
       cle_id: req.params.id, history: history ?? [], message, language,
       chief_complaint: cle.chief_complaint, // give the AI the case context
+      socratic: cle.socratic_active === true, // CLE2 / remediation → Socratic clinical-examiner mode
     });
   } catch (err) {
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
@@ -263,6 +287,11 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   }).eq('id', req.params.id).eq('status', 'active').select('id');
   if (sendDbError(res, claimErr)) return;
   if (!claimed || claimed.length === 0) return res.status(409).json({ error: 'CLE not active' });
+
+  // CLICS §6.4 remediation counter: 3 consecutive Tier-1 fails open Socratic remediation on the
+  // physician's NEXT natural session; any pass resets it. Best-effort — never block /end on it.
+  const { error: rtErr } = await supabase.rpc('record_t1_outcome', { p_id: cle.physician_id, p_pass: tier1Pass });
+  if (rtErr) console.error('[cles] record_t1_outcome failed:', rtErr.message);
 
   if (!tier1Pass) return res.json({ status: 'cle_fail_t1', criteria: tier1 });
 

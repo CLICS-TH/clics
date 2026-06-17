@@ -74,6 +74,10 @@ api.getPle(cleId).then(cle => {
   if (!cle || cle.status !== 'active') { window.location.href = `/cle-result?id=${cleId}`; return; }
   const titleEl = document.getElementById('chatTitle');
   if (titleEl && (cle.title || cle.chief_complaint)) titleEl.textContent = cle.title || cle.chief_complaint;
+  // Show which episode of the 3-CLE study sequence this is (CLICS §6.4). We show only the number,
+  // never the mode (natural vs Socratic), so the experimental manipulation stays blind to the physician.
+  const ebEl = document.getElementById('cleEyebrow');
+  if (ebEl && cle.episode_number) ebEl.textContent = `CLE ${cle.episode_number}/3 · Clinical Dialogue`;
   turns = cle.turn_count ?? 0;
   document.getElementById('turns').textContent = turns;
   (cle.messages ?? []).forEach(m => renderMessage(m.role, m.content, m.refs, m.socratic_question));

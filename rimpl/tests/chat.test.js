@@ -14,8 +14,25 @@ jest.mock('../src/lib/supabase', () => ({
 
 const request = require('supertest');
 const app = require('../src/index');
+const { callClaude } = require('../src/services/claude');
 
 describe('POST /chat', () => {
+  beforeEach(() => callClaude.mockClear());
+
+  test('natural mode (CLE1/3, socratic:false default) uses the non-Socratic prompt', async () => {
+    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en' });
+    const sys = callClaude.mock.calls[0][0].systemPrompt;
+    expect(sys).toMatch(/NATURAL, physician-led/);
+    expect(sys).not.toMatch(/SOCRATIC LEARNING/);
+  });
+
+  test('examiner mode (CLE2, socratic:true) uses the Socratic clinical-examiner prompt', async () => {
+    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en', socratic: true });
+    const sys = callClaude.mock.calls[0][0].systemPrompt;
+    expect(sys).toMatch(/Socratic clinical examiner/);
+    expect(sys).toMatch(/SOCRATIC LEARNING/);
+  });
+
   test('returns content, references, and socratic_question', async () => {
     const res = await request(app).post('/chat').send({
       cle_id: 'test-123',

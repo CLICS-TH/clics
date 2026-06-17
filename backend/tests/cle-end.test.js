@@ -25,6 +25,7 @@ jest.mock('../src/services/cle-finalize', () => ({
   toPassCols: (crit) => Object.fromEntries(Object.entries(crit).map(([k, v]) => [`${k}_pass`, v])),
 }));
 
+let mockT1Outcome;  // captured record_t1_outcome rpc args
 jest.mock('../src/lib/supabase', () => ({
   supabase: {
     from: () => {
@@ -37,6 +38,7 @@ jest.mock('../src/lib/supabase', () => ({
       };
       return c;
     },
+    rpc: (fn, args) => { if (fn === 'record_t1_outcome') mockT1Outcome = args; return Promise.resolve({ data: null, error: null }); },
   },
   authSupabase: { auth: {} },
 }));
@@ -61,6 +63,7 @@ beforeEach(() => {
   mockMsgs = qualifyingMsgs();
   mockClaimed = [{ id: 'ple1' }];
   mockUpdates = [];
+  mockT1Outcome = undefined;
   mockFinalize = jest.fn(async () => ({ status: 'cle_pass', criteria: { c1: true, c2: true, c3: true, c4: true, c5: true, c6: true } }));
 });
 
@@ -78,6 +81,8 @@ test('a qualifying session claims to ended (tier-1 persisted) then finalizes to 
   expect(mockFinalize).toHaveBeenCalledWith(expect.objectContaining({
     cleId: 'ple1', physicianId: 'doc1', tier1: { c1: true, c2: true, c3: true },
   }));
+  // Tier-1 passed → the remediation counter is reset (CLICS §6.4).
+  expect(mockT1Outcome).toEqual({ p_id: 'doc1', p_pass: true });
 });
 
 test("a persistent tier-2 RIMPL failure leaves the session at recoverable 'ended' (202), not cle_flag_t2", async () => {
@@ -97,6 +102,8 @@ test('a too-short session fails tier-1 (claim writes cle_fail_t1, no tier-2 call
   expect(res.body.status).toBe('cle_fail_t1');
   expect(mockUpdates[0].status).toBe('cle_fail_t1');
   expect(mockFinalize).not.toHaveBeenCalled();
+  // Tier-1 failed → the remediation counter is incremented (CLICS §6.4).
+  expect(mockT1Outcome).toEqual({ p_id: 'doc1', p_pass: false });
 });
 
 test('a lost claim race (0 rows) returns 409 without evaluating', async () => {
