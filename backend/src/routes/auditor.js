@@ -6,6 +6,15 @@ const { compositeScore } = require('../services/cle-gate');
 const { computeICC21 } = require('../services/icc');
 const { logEvent } = require('../lib/audit');
 
+// Auditors must record their confidentiality + COI consent (Appendix 04/15) before scoring — the
+// same consented_at signal physicians use, set via POST /auth/consent {context:'auditor'}.
+function requireAuditorConsent(req, res, next) {
+  if (!req.user.consented_at) {
+    return res.status(403).json({ error: 'Auditor consent (confidentiality + COI) is required before scoring.', code: 'auditor_consent_required' });
+  }
+  next();
+}
+
 const router = Router();
 router.use(verifyJwt, requireRole('auditor'));
 
@@ -57,7 +66,7 @@ router.get('/cles/:id', async (req, res) => {
   res.json({ cle, messages: messages ?? [], audit_score: existing ?? null, ai_evaluation: aiEval });
 });
 
-router.post('/cles/:id/score', async (req, res) => {
+router.post('/cles/:id/score', requireAuditorConsent, async (req, res) => {
   const parsed = ScoreSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 

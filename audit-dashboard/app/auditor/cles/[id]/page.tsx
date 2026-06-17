@@ -22,6 +22,13 @@ export default function AuditorScorePage() {
   const [notes, setNotes] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Auditor confidentiality + COI consent (Appendix 04/15) — required once before scoring. Surfaced
+  // reactively when the backend returns auditor_consent_required.
+  const [needsConsent, setNeedsConsent] = useState(false);
+  const [coiNone, setCoiNone] = useState(false);
+  const [conf, setConf] = useState(false);
+  const [calib, setCalib] = useState(false);
+  const consentReady = coiNone && conf && calib;
 
   const loadData = useCallback(() => apiFetch<AuditorPle>(`/auditor/cles/${id}`).then(d => {
     setData(d);
@@ -54,6 +61,8 @@ export default function AuditorScorePage() {
         method: 'POST', body: JSON.stringify({ ...scores, notes }),
       });
       if (res?.error) {
+        // Confidentiality + COI consent not yet recorded — open the one-time consent gate.
+        if ((res as { code?: string }).code === 'auditor_consent_required') { setNeedsConsent(true); return; }
         // Already scored (409, e.g. a concurrent double-submit): localize and flip to read-only with
         // the existing score, instead of a raw English alert on an editable-but-locked form.
         if (/already scored/i.test(String(res.error))) {
@@ -70,6 +79,19 @@ export default function AuditorScorePage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function recordConsent() {
+    const r = await apiFetch<ApiResult<unknown>>('/auth/consent', {
+      method: 'POST',
+      body: JSON.stringify({
+        context: 'auditor', version: 'auditor-v1',
+        checkboxes: { confidentiality: conf, calibration_ack: calib },
+        coi: { none: coiNone },
+      }),
+    });
+    if (r && !(r as { error?: string }).error) { setNeedsConsent(false); submit(); }
+    else toast('บันทึกความยินยอมไม่สำเร็จ / Could not record consent.', 'error');
   }
 
   if (!data) return <div className="p-8 text-muted-foreground">กำลังโหลด...</div>;
@@ -134,6 +156,22 @@ export default function AuditorScorePage() {
           )}
         </div>
       </div>
+
+      {needsConsent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-lg rounded-xl border bg-background p-6 space-y-4">
+            <h2 className="font-heading text-xl">ความยินยอมผู้เชี่ยวชาญประเมิน / Expert Auditor Consent</h2>
+            <p className="text-sm text-muted-foreground">ก่อนให้คะแนน กรุณายืนยันข้อตกลงด้านความลับและผลประโยชน์ทับซ้อน (Appendix 04/15) / Before scoring, confirm the confidentiality + COI terms.</p>
+            <label className="flex gap-2 text-sm"><input type="checkbox" checked={conf} onChange={e => setConf(e.target.checked)} /> รักษาความลับของ transcript คะแนน และข้อมูลวิจัย ไม่บันทึก/ดาวน์โหลด/ส่งต่อ / I will keep transcripts, scores, and research data confidential — no screenshots, downloads, or sharing.</label>
+            <label className="flex gap-2 text-sm"><input type="checkbox" checked={calib} onChange={e => setCalib(e.target.checked)} /> เข้าใจ rubric/behavioral anchors และจะประเมินตามเกณฑ์มาตรฐานเดียวกัน / I understand the PIS-7 rubric/anchors and will score by the calibrated standard.</label>
+            <label className="flex gap-2 text-sm"><input type="checkbox" checked={coiNone} onChange={e => setCoiNone(e.target.checked)} /> ไม่มีผลประโยชน์ทับซ้อนกับผู้เข้าร่วมวิจัยรายนี้ และจะแจ้งทันทีหากพบภายหลัง / I have no conflict of interest with this participant and will report any that arises.</label>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setNeedsConsent(false)}>ยกเลิก / Cancel</Button>
+              <Button disabled={!consentReady} onClick={recordConsent}>ยินยอมและส่งคะแนน / Consent &amp; submit</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

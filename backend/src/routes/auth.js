@@ -164,14 +164,38 @@ router.get('/request-auditor', verifyJwt, async (req, res) => {
   res.json({ request: data ?? null, can_audit: req.user.can_audit === true });
 });
 
-// Record the participant's informed consent (human-subjects pilot). Session creation is gated on this.
+// Record the participant's informed consent (human-subjects pilot). consented_at is the gate signal
+// for BOTH physician session creation (Appendix 03) and auditor scoring (Appendix 04 + COI 15); the
+// structured per-checkbox + COI record is kept in `consents` for the ethics audit.
+const ConsentSchema = z.object({
+  context: z.enum(['physician', 'auditor']).optional(),
+  version: z.string().max(40).optional(),
+  checkboxes: z.record(z.boolean()).optional(),
+  coi: z.record(z.any()).optional(),
+});
 router.post('/consent', verifyJwt, async (req, res) => {
+  const parsed = ConsentSchema.safeParse(req.body ?? {});
+  const body = parsed.success ? parsed.data : {};
+  const ctx = body.context ?? (req.user.role === 'auditor' ? 'auditor' : 'physician');
+  const version = body.version ?? (ctx === 'auditor' ? 'auditor-v1' : 'physician-v1');
   const now = new Date().toISOString();
+
   const { error } = await supabase.from('professionals').update({ consented_at: now }).eq('id', req.user.id);
   if (error) return res.status(500).json({ error: error.message });
+
+  // Structured auditable record. Fail-soft: a pre-migration environment (no `consents` table) or a
+  // test mock without .upsert must never block the consent itself — the gate signal already landed.
+  try {
+    await supabase.from('consents').upsert({
+      professional_id: req.user.id, role_context: ctx, consent_version: version,
+      checkboxes: body.checkboxes ?? {}, coi: body.coi ?? null, agreed_at: now,
+    }, { onConflict: 'professional_id,role_context,consent_version' });
+  } catch (e) { console.error('[consent] structured record failed:', e.message); }
+
   logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'consent', targetType: 'professional',
-    targetId: req.user.pseudonym ?? req.user.exp_code ?? req.user.id, councilId: req.user.council_id });
-  res.json({ ok: true, consented_at: now });
+    targetId: req.user.pseudonym ?? req.user.exp_code ?? req.user.id, councilId: req.user.council_id,
+    metadata: { context: ctx, version } });
+  res.json({ ok: true, consented_at: now, context: ctx });
 });
 
 // Whether Pilot Test Mode is on — lets the new-CLE page reveal the Natural/Socratic picker.

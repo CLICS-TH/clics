@@ -18,14 +18,26 @@ document.getElementById('greeting').textContent = `สวัสดี, ${user.fu
         <div class="consent-point">${icon('hourglass', 22)}<div><b>คะแนนระยะนี้เป็นการทดลอง<span class="bi-en">Scores are provisional for now</span></b><p>ยังไม่นับเป็นหน่วยกิต CME — ระยะนี้คือการปรับเทียบเครื่องมือ / Not yet CME credit — this phase calibrates the instrument.</p></div></div>
         <div class="consent-point">${icon('checkCircle', 22)}<div><b>บันทึกและตรวจโดย AI และผู้ตรวจประเมิน<span class="bi-en">Recorded & reviewed by AI + auditors</span></b><p>เพื่อตรวจสอบความเที่ยงตรงและเป็นธรรมของการให้คะแนน / To validate that scoring is accurate and fair.</p></div></div>
       </div>
+      <div id="consentChecks" style="display:flex;flex-direction:column;gap:9px;margin:4px 0 16px;font-size:13px;line-height:1.5;">
+        <label class="consent-chk"><input type="checkbox" data-k="voluntary"> เข้าร่วมโดยสมัครใจ ถอนตัวได้ทุกเมื่อ / I take part voluntarily and may withdraw anytime.</label>
+        <label class="consent-chk"><input type="checkbox" data-k="no_patient_data"> จะไม่กรอกข้อมูลที่ระบุตัวผู้ป่วย / I will not enter patient-identifiable data.</label>
+        <label class="consent-chk"><input type="checkbox" data-k="research_only"> เข้าใจว่าคะแนนเป็นข้อมูลวิจัย ไม่ใช้ตัดสินใบอนุญาต / Scores are research data, not used for licensure.</label>
+        <label class="consent-chk"><input type="checkbox" data-k="ai_expert_review"> ยินยอมให้ AI และผู้เชี่ยวชาญประเมินแบบไม่ระบุตัวตน / I consent to de-identified AI + expert evaluation.</label>
+      </div>
       <p id="consentErr" class="error-msg" style="display:none;"></p>
-      <button id="consentBtn" class="btn btn-primary" style="width:100%;">ยอมรับและเริ่มใช้งาน<span class="bi-en">I consent — let's begin</span></button>
+      <button id="consentBtn" class="btn btn-primary" style="width:100%;" disabled>ยอมรับและเริ่มใช้งาน<span class="bi-en">I consent — let's begin</span></button>
     </div>`;
   document.body.appendChild(ov);
   const consentLabel = ov.querySelector('#consentBtn').innerHTML;
+  // The button enables only when every required acknowledgement (Appendix 03) is ticked.
+  const checks = [...ov.querySelectorAll('#consentChecks input[type=checkbox]')];
+  const allChecked = () => checks.every(c => c.checked);
+  checks.forEach(c => c.addEventListener('change', () => { document.getElementById('consentBtn').disabled = !allChecked(); }));
   document.getElementById('consentBtn').addEventListener('click', async () => {
+    if (!allChecked()) return;
     const btn = document.getElementById('consentBtn'); btn.disabled = true; btn.textContent = 'กำลังบันทึก… / Saving…';
-    const r = await api.consent();
+    const checkboxes = Object.fromEntries(checks.map(c => [c.dataset.k, c.checked]));
+    const r = await api.consent({ context: 'physician', version: 'physician-v1', checkboxes });
     if (r?.ok) {
       user.consented_at = r.consented_at;
       try { localStorage.setItem('clics_user', JSON.stringify(user)); } catch {}

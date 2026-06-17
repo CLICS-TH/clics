@@ -13,7 +13,7 @@ const PHYSICIAN_B = { ...PHYSICIAN, id: 'phys-2', email: 'phys2@test.local', cou
 // "Special" dual role: a physician who ALSO holds auditor rights (can_audit=true).
 const SPECIAL = { ...PHYSICIAN, id: 'phys-aud', email: 'special@test.local', can_audit: true };
 
-const AUDITOR = { id: 'aud-1', email: 'aud1@test.local', role: 'auditor', status: 'active', council_id: COUNCIL_A };
+const AUDITOR = { id: 'aud-1', email: 'aud1@test.local', role: 'auditor', status: 'active', council_id: COUNCIL_A, consented_at: CONSENTED };
 const AUDITOR_B = { ...AUDITOR, id: 'aud-2', email: 'aud2@test.local', council_id: COUNCIL_B };
 
 const ADMIN = { id: 'adm-1', email: 'adm1@test.local', role: 'admin', status: 'active', council_id: COUNCIL_A };

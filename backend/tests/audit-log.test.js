@@ -11,7 +11,7 @@ app.use('/auditor', require('../src/routes/auditor'));
 app.use('/superadmin', require('../src/routes/superadmin'));
 const auth = (r) => r.set('Authorization', 'Bearer t');
 
-const AUDITOR = { id: 'aud1', role: 'auditor', council_id: 'cA', status: 'active', email: 'a@t' };
+const AUDITOR = { id: 'aud1', role: 'auditor', council_id: 'cA', status: 'active', email: 'a@t', consented_at: '2026-01-01T00:00:00Z' };
 const SUPER = { id: 'sa', role: 'superadmin', council_id: null, status: 'active', email: 's@t' };
 const FULL = { d1: 4, d2: 4, d3: 4, d4: 4, d5: 4, d6: 4, d7: 4 };
 

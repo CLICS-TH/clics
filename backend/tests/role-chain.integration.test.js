@@ -18,7 +18,7 @@ app.use('/auditor', auditorRouter);
 const auth = (r) => r.set('Authorization', 'Bearer test');
 
 const AUD_UUID = '44444444-4444-4444-4444-444444444444';
-const AUDITOR_ACTOR = { id: AUD_UUID, email: 'aud@test.local', role: 'auditor', status: 'active', council_id: COUNCIL_A };
+const AUDITOR_ACTOR = { id: AUD_UUID, email: 'aud@test.local', role: 'auditor', status: 'active', council_id: COUNCIL_A, consented_at: '2026-01-01T00:00:00Z' };
 const SCORES = { d1: 3, d2: 3, d3: 3, d4: 3, d5: 3, d6: 3, d7: 3 }; // composite 60
 
 test('physician→admin→auditor handoff chain connects end-to-end', async () => {

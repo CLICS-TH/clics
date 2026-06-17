@@ -663,3 +663,22 @@ alter table public.audit_log enable row level security;
 create policy "audit_log: oversight read" on public.audit_log for select using (
   exists (select 1 from public.professionals p where p.id = auth.uid() and p.role in ('superadmin','ethics'))
 );
+
+-- ===== Structured informed consent (see db/migration-consents.sql) — auditable consent records =====
+create table public.consents (
+  id              uuid primary key default gen_random_uuid(),
+  professional_id uuid not null references public.professionals(id) on delete cascade,
+  role_context    text not null check (role_context in ('physician','auditor')),
+  consent_version text not null,
+  checkboxes      jsonb not null default '{}'::jsonb,
+  coi             jsonb,
+  agreed_at       timestamptz not null default now(),
+  unique (professional_id, role_context, consent_version)
+);
+create index consents_prof_idx on public.consents(professional_id);
+alter table public.consents enable row level security;
+create policy "consents: own" on public.consents for all
+  using (professional_id = auth.uid()) with check (professional_id = auth.uid());
+create policy "consents: oversight read" on public.consents for select using (
+  exists (select 1 from public.professionals p where p.id = auth.uid() and p.role in ('superadmin','ethics'))
+);

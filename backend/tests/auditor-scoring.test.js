@@ -37,6 +37,14 @@ beforeEach(() => {
   };
 });
 
+test('scoring is blocked until the auditor has recorded consent (confidentiality + COI)', async () => {
+  m.state.caller = { ...AUDITOR, consented_at: null }; // not yet consented
+  const r = await auth(request(app).post('/auditor/cles/p1/score')).send(SCORES);
+  expect(r.status).toBe(403);
+  expect(r.body.code).toBe('auditor_consent_required');
+  expect(m.find('audit_scores', 'insert')).toBeUndefined();
+});
+
 test('GET /queue returns assigned evaluated CLEs with a scored flag', async () => {
   scoredRows = []; // none scored yet
   const r = await auth(request(app).get('/auditor/queue'));
