@@ -4,10 +4,9 @@ const { callClaude } = require('../services/claude');
 const { PIS7_EVALUATOR_PROMPT } = require('../lib/prompts');
 const { parseJsonObject } = require('../lib/parse');
 const { flattenForPrompt } = require('../lib/transcript');
+const { WEIGHTS, MODEL_VERSION, PROMPT_VERSION, RUBRIC_VERSION } = require('../lib/versions');
 
 const router = Router();
-
-const WEIGHTS = { d1: 0.15, d2: 0.20, d3: 0.15, d4: 0.15, d5: 0.15, d6: 0.10, d7: 0.10 };
 
 const EvalSchema = z.object({
   cle_id: z.string(),
@@ -64,7 +63,10 @@ router.post('/', async (req, res) => {
       d5: scores.d5, d6: scores.d6, d7: scores.d7,
       composite_score: Math.round(composite * 100) / 100,
       domain_rationale: scores.rationale ?? {},
-      model_version: 'CCME_LLM_v8.0',
+      // Locked-version provenance (§10.2): recorded per evaluation for the reliability/stability check.
+      model_version: MODEL_VERSION,
+      prompt_version: PROMPT_VERSION,
+      rubric_version: RUBRIC_VERSION,
       input_tokens: inputTokens,
       output_tokens: outputTokens,
     });

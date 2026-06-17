@@ -2,6 +2,10 @@
 const Anthropic = require('@anthropic-ai/sdk');
 
 // We do our own retry (below), so disable the SDK's internal retry to avoid double-retrying.
+// NOTE (CLICS §9.5, Appendix 17 / no-training): Anthropic's commercial API does NOT train on API
+// inputs/outputs by default — there is no per-request "no-training" header to set here. The
+// protocol's no-training + retention guarantee is satisfied by the ORG-LEVEL DPA / zero-data-
+// retention (ZDR) arrangement on the Anthropic account, not by code. Track that in GO-LIVE-CHECKLIST.
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 55000, maxRetries: 0 });
 const MODEL = 'claude-sonnet-4-6';
 
@@ -105,4 +109,4 @@ async function callClaude({ systemPrompt, messages, maxTokens = 1500 }) {
   }
 }
 
-module.exports = { callClaude };
+module.exports = { callClaude, MODEL };

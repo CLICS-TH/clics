@@ -433,7 +433,7 @@ router.get('/export', async (req, res) => {
   const empty = Promise.resolve({ data: [] });
   const { data: pros } = await (physIds.length ? supabase.from('professionals').select('id, pseudonym').in('id', physIds) : empty);
   const pseudo = Object.fromEntries((pros ?? []).map(p => [p.id, p.pseudonym]));
-  const { data: ai } = await (cleIds.length ? supabase.from('ai_evaluations').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('cle_id', cleIds) : empty);
+  const { data: ai } = await (cleIds.length ? supabase.from('ai_evaluations').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7, model_version, prompt_version, rubric_version').in('cle_id', cleIds) : empty);
   const aiBy = Object.fromEntries((ai ?? []).map(e => [e.cle_id, e]));
   const { data: audits } = await (cleIds.length ? supabase.from('audit_scores').select('cle_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('cle_id', cleIds) : empty);
   // Auditors are study staff, not research subjects — pseudonymize their id to the protocol's
@@ -455,6 +455,8 @@ router.get('/export', async (req, res) => {
       turns: p.turn_count, tokens: p.token_count, duration_seconds: p.duration_seconds, started_at: p.started_at,
       ai_composite: e ? Number(e.composite_score) : null,
       ai_domains: e ? { d1: e.d1, d2: e.d2, d3: e.d3, d4: e.d4, d5: e.d5, d6: e.d6, d7: e.d7 } : null,
+      // §10.2 locked-version provenance, per evaluation — lets the team verify scoring stability.
+      evaluator_version: e ? { model: e.model_version, prompt: e.prompt_version, rubric: e.rubric_version } : null,
       auditor_scores: audBy[p.id] ?? [],
     };
   });

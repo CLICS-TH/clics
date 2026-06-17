@@ -57,5 +57,8 @@ describe('POST /evaluate output validation', () => {
     // (3*.15+4*.20+3*.15+2*.15+5*.15+1*.10+4*.10)*20, rounded 2dp
     expect(res.body.composite_score).toBeGreaterThan(0);
     expect(Number.isFinite(res.body.composite_score)).toBe(true);
+    // §10.2 locked-version provenance travels with every evaluation.
+    expect(res.body.prompt_version).toMatch(/^pis7-prompt-[0-9a-f]{8}$/);
+    expect(res.body.rubric_version).toMatch(/^pis7-weights-[0-9a-f]{8}$/);
   });
 });

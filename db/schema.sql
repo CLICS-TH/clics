@@ -263,6 +263,8 @@ create table public.ai_evaluations (
   composite_score  numeric not null,
   domain_rationale jsonb,
   model_version    text not null default 'CCME_LLM_v8.0',
+  prompt_version   text,   -- §10.2 evaluator provenance: hash of the PIS-7 prompt at scoring time
+  rubric_version   text,   -- §10.2 evaluator provenance: hash of the PIS-7 weights at scoring time
   evaluated_at     timestamptz default now(),
   unique (cle_id)   -- one AI evaluation per session; backstops the duplicate-evaluation race
 );

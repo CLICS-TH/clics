@@ -19,6 +19,8 @@ async function persistEvaluation(cleId, physicianId, result) {
     composite_score: composite,
     domain_rationale: result.domain_rationale,
     model_version: result.model_version ?? 'CCME_LLM_v8.0',
+    prompt_version: result.prompt_version ?? null,
+    rubric_version: result.rubric_version ?? null,
   });
   // UNIQUE(cle_id): a 23505 means a row already exists — a concurrent evaluation (the dup-eval race),
   // or a previous PARTIAL persist where the ai row landed but the snapshot/status writes failed. In
