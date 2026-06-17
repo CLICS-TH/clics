@@ -14,7 +14,7 @@ Dependency-free (Node 18+ global `fetch`). Writes `/tmp/loadtest-results.json`.
 | Phase | Endpoint(s) | Cost | Measures |
 |-------|-------------|------|----------|
 | **A** | `GET /health` (no auth, no DB) | $0 | Raw Node/Railway-instance HTTP ceiling |
-| **B** | mixed authed reads (`/auth/me`, `/admin/users`, `/admin/ples`, `/auditor/queue`, `/ples`, …) | $0 | Realistic per-user load → the Supabase REST-pool ceiling |
+| **B** | mixed authed reads (`/auth/me`, `/admin/users`, `/admin/cles`, `/auditor/queue`, `/cles`, …) | $0 | Realistic per-user load → the Supabase REST-pool ceiling |
 | **C** | `POST /auth/login` | $0 | Supabase auth throughput |
 | **D** | `POST /guest/message` (guest mode → Claude) | ~$0.45 | AI-path concurrency, **hard-capped at `MAX_AI_CALLS=12`** turns |
 

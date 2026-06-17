@@ -1,16 +1,16 @@
 // Small shared data-access helpers used across the physician/admin routes.
 const { supabase } = require('./supabase');
 
-// Fetch a PLE the physician owns. Returns the supabase { data, error } result.
-function fetchOwnedPle(pleId, physicianId, cols = '*') {
-  return supabase.from('ples').select(cols).eq('id', pleId).eq('physician_id', physicianId).single();
+// Fetch a CLE the physician owns. Returns the supabase { data, error } result.
+function fetchOwnedPle(cleId, physicianId, cols = '*') {
+  return supabase.from('cles').select(cols).eq('id', cleId).eq('physician_id', physicianId).single();
 }
 
 // True if folderId is null (Uncategorized — always allowed) or belongs to the physician.
 async function ownsFolder(physicianId, folderId) {
   if (folderId == null) return true;
   const { data } = await supabase
-    .from('ple_folders').select('id').eq('id', folderId).eq('physician_id', physicianId).single();
+    .from('cle_folders').select('id').eq('id', folderId).eq('physician_id', physicianId).single();
   return !!data;
 }
 

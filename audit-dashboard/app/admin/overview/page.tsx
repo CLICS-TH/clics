@@ -7,12 +7,12 @@ import {
 } from 'recharts';
 import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
-import { DOMAIN_KEYS, DOMAIN_LABELS, ROLE_LABELS, pleStatusCards, budgetToneHex } from '@/lib/labels';
+import { DOMAIN_KEYS, DOMAIN_LABELS, ROLE_LABELS, cleStatusCards, budgetToneHex } from '@/lib/labels';
 import { CHART } from '@/lib/chart-colors';
 import { PageIntro } from '@/components/PageIntro';
 import { IccPanel } from '@/components/IccPanel';
 import { Skeleton, CardGridSkeleton } from '@/components/Skeleton';
-import type { PleStats } from '@/lib/types';
+import type { CleStats } from '@/lib/types';
 
 // ---- API shapes (verified against backend/src/routes/admin.js + superadmin.js) ----
 type IccStat = { icc: number; lower: number; upper: number; n: number; interpretation: string } | null;
@@ -31,7 +31,7 @@ type Invite = { id: string; email: string; status: string };
 
 export default function OverviewPage() {
   const router = useRouter();
-  const [stats, setStats] = useState<PleStats | null>(null);
+  const [stats, setStats] = useState<CleStats | null>(null);
   const [icc, setIcc] = useState<IccData | null>(null);
   const [slots, setSlots] = useState<Slot[] | null>(null);
   const [usage, setUsage] = useState<UsageSettings | null>(null);
@@ -42,7 +42,7 @@ export default function OverviewPage() {
   useEffect(() => {
     // Executive overview is superadmin-only; everyone else lands back on /home.
     if (getUser()?.role !== 'superadmin') { router.push('/home'); return; }
-    apiFetch<PleStats>('/admin/stats').then(setStats).catch(() => setStats({}));
+    apiFetch<CleStats>('/admin/stats').then(setStats).catch(() => setStats({}));
     apiFetch<IccData>('/admin/icc').then(setIcc).catch(() => setIcc({ overall: null, per_domain: {}, per_council: {}, n: 0 }));
     apiFetch<Slot[]>('/admin/slots').then(d => setSlots(Array.isArray(d) ? d : [])).catch(() => setSlots([]));
     apiFetch<UsageSettings>('/admin/usage-settings').then(setUsage).catch(() => setUsage(null));
@@ -52,7 +52,7 @@ export default function OverviewPage() {
   }, [router]);
 
   // ---- ① Headline cards — the shared /admin/stats card set (reconciles to the total) ----
-  const headline = pleStatusCards(stats);
+  const headline = cleStatusCards(stats);
 
   // ---- ② Per-domain chart data ----
   const domainData = icc
@@ -75,15 +75,15 @@ export default function OverviewPage() {
       <PageIntro
         eyebrow="Superadmin · Executive Overview"
         title="ภาพรวมผู้บริหาร"
-        subtitle="Executive overview — สถานะ pilot ทั้งระบบในหน้าเดียว: PLEs · calibration · สภาวิชาชีพ · capacity · budget"
+        subtitle="Executive overview — สถานะ pilot ทั้งระบบในหน้าเดียว: CLEs · calibration · สภาวิชาชีพ · capacity · budget"
       />
 
-      {/* ① Headline PLE cards — each drills into /admin/ples filtered by its bucket. */}
+      {/* ① Headline CLE cards — each drills into /admin/cles filtered by its bucket. */}
       <section>
         {stats ? (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
             {headline.map(c => (
-              <a key={c.label} href={`/admin/ples${c.key ? `?status=${c.key}` : ''}`}
+              <a key={c.label} href={`/admin/cles${c.key ? `?status=${c.key}` : ''}`}
                 className="block rounded-xl border p-5 text-center transition-colors hover:bg-secondary hover:border-primary/40 cursor-pointer"
                 title="คลิกเพื่อดูรายชื่อในหมวดนี้ / Click to explore this category">
                 <p className="text-4xl font-bold text-primary tabular-nums">{c.value}</p>

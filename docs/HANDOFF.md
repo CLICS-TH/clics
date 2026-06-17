@@ -13,13 +13,13 @@ Supabase Postgres). Working end-to-end today:
   email/password + invites. Four roles (Physician / Auditor / Admin / Superadmin) across **multiple
   councils** with council isolation. The CLICS token is the Supabase session token (see the never-`signOut`
   rule). License-No./TMC verification was retired. See [roles.md](roles.md), [AUTH-SETUP.md](AUTH-SETUP.md).
-- **Physician flow** — create a PLE (with chief complaint), chat with the AI (citations + a Socratic
+- **Physician flow** — create a CLE (with chief complaint), chat with the AI (citations + a Socratic
   follow-up per turn), pause/resume, end → CLE gate → PIS-7 evaluation → result + LPDP trend. Guest mode
   (anonymous, 2 prompts, no persistence). Per-user **$0.50 AI cap** with an allowance meter.
-- **Auditor flow** — blind PIS-7 scoring of *evaluated* sessions assigned via `ples.auditor_id`; the
+- **Auditor flow** — blind PIS-7 scoring of *evaluated* sessions assigned via `cles.auditor_id`; the
   rubric-anchored **DomainScorer** (tappable 0–5 chips, no silent-0 default, submit blocked until all 7
   domains are set); AI score revealed only after submit; ICC(2,1) of AI-vs-auditor.
-- **Admin/Superadmin** — PLE list + assignment, flagged-QA queue, invites, users + usage management,
+- **Admin/Superadmin** — CLE list + assignment, flagged-QA queue, invites, users + usage management,
   executive overview, ICC dashboard. De-identified `/admin/export`.
 - **Integrity** — consent gate, PII stripping in RIMPL before any cloud call, pseudonyms (`P-NNN`),
   Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
@@ -36,7 +36,7 @@ A test-hardening + mobile-polish cycle, pushed to master (`1d9a6db`…`e433d41`,
   (jest **component tests** + tsc + **blocking ESLint**), each with **coverage-threshold gates**
   (`--coverage`). Six cross-role suites prove the role handoffs. See [TESTING.md](TESTING.md).
 - **Dashboard refactor (deployed).** The `react-hooks/set-state-in-effect` debt fixed by migrating
-  theme/viewport/auth to `useSyncExternalStore` (`lib/client-store.ts`); `/admin/ples` reads its
+  theme/viewport/auth to `useSyncExternalStore` (`lib/client-store.ts`); `/admin/cles` reads its
   `?status=` drill-down via `useSearchParams` + a Suspense boundary; all 54 `no-explicit-any` typed
   (`lib/types.ts`). `next.config.ts` pins the Turbopack / output-tracing root (the new root
   `package.json` for the dev stack otherwise confused Next's multi-lockfile detection).
@@ -67,11 +67,11 @@ then **deployed to Vercel**. Highlights:
   **`lib/pis7-rubric.ts` mirrors `rimpl/src/lib/prompts.js` — keep the two in sync.**
 
 Prod auth'd smoke (superadmin + auditor) passed with **0 console errors**; the DomainScorer was verified
-live by reassigning an evaluated PLE to `auditor1`. The original Claude Design audit PDF is in
+live by reassigning an evaluated CLE to `auditor1`. The original Claude Design audit PDF is in
 [design/](design/).
 
 > ⚠️ **Demo-data note:** live verification (the design-audit smoke + the 2026-06-15 role-chain / browser
-> E2E / cross-council smokes) mutated demo data on the shared Supabase — several evaluated PLEs were
+> E2E / cross-council smokes) mutated demo data on the shared Supabase — several evaluated CLEs were
 > (re)assigned to auditor1 and one (`e2ba5470`) scored, and a 2nd-council demo auditor `auditor2@clics.th`
 > (Pharmacy) was seeded. All of it is throwaway pre-pilot data that `db/reset-demo.js` clears before real participants.
 
@@ -107,6 +107,6 @@ migration-applied gate ([deployment.md](deployment.md)); optionally verify a Res
 ## Verify the app works
 
 Sign in at the portal with a demo account (creds in [deployment.md](deployment.md)):
-`doctor1@clics.th` → create a PLE → chat → expect content + ≥1 `(Source, Year)` ref + a Socratic
-question → end → result. As `auditor1@clics.th` → QA Queue → an assigned evaluated PLE → DomainScorer.
+`doctor1@clics.th` → create a CLE → chat → expect content + ≥1 `(Source, Year)` ref + a Socratic
+question → end → result. As `auditor1@clics.th` → QA Queue → an assigned evaluated CLE → DomainScorer.
 As `superadmin@clics.th` → overview / ICC / users.

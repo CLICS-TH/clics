@@ -133,10 +133,10 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 
 // STATUS_LABELS comes from /js/labels.js (loaded before this script).
 const UNCAT = '__uncat__';
-const listEl = document.getElementById('pleList');
+const listEl = document.getElementById('cleList');
 
 let folders = [];      // [{id, name, ...}]
-let ples = [];         // [{id, title, chief_complaint, folder_id, status, ...}]
+let cles = [];         // [{id, title, chief_complaint, folder_id, status, ...}]
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => (
@@ -171,7 +171,7 @@ function persistCollapsed(set) {
 }
 
 function convTitle(p) {
-  return p.title || p.chief_complaint || `PLE ${new Date(p.started_at).toLocaleDateString('th-TH')}`;
+  return p.title || p.chief_complaint || `CLE ${new Date(p.started_at).toLocaleDateString('th-TH')}`;
 }
 
 function folderOptions(currentId) {
@@ -233,20 +233,20 @@ function groupHtml(key, name, items, { deletable }) {
 }
 
 function render() {
-  if (!ples.length && !folders.length) {
+  if (!cles.length && !folders.length) {
     // The call-to-action lives IN the void, where the eye lands — not only up in the toolbar.
     listEl.innerHTML = `
       <div class="empty-state">
-        <h3>ยังไม่มี PLE</h3>
+        <h3>ยังไม่มี CLE</h3>
         <p>เริ่มบทเรียนทางคลินิกแรกของคุณได้เลย / Start your first clinical learning episode.</p>
-        <a href="/ple-new" class="btn btn-primary btn-lg">+ เริ่ม PLE ใหม่<span class="bi-en">New PLE</span></a>
+        <a href="/cle-new" class="btn btn-primary btn-lg">+ เริ่ม CLE ใหม่<span class="bi-en">New CLE</span></a>
       </div>`;
     return;
   }
   const byFolder = new Map();
   for (const f of folders) byFolder.set(f.id, []);
   const uncat = [];
-  for (const p of ples) {
+  for (const p of cles) {
     if (p.folder_id && byFolder.has(p.folder_id)) byFolder.get(p.folder_id).push(p);
     else uncat.push(p);
   }
@@ -297,7 +297,7 @@ listEl.addEventListener('click', async (e) => {
   const action = t.dataset.action;
 
   if (action === 'open') {
-    window.location.href = `/ple-chat?id=${encodeURIComponent(t.dataset.id)}`;
+    window.location.href = `/cle-chat?id=${encodeURIComponent(t.dataset.id)}`;
   } else if (action === 'toggle') {
     const key = t.dataset.key;
     const set = collapsedSet();
@@ -335,7 +335,7 @@ listEl.addEventListener('click', async (e) => {
     inlineEdit(titleEl, titleEl.dataset.title, async (val) => {
       const updated = await api.updatePle(id, { title: val });
       if (updated?.title) {
-        const p = ples.find(x => x.id === id);
+        const p = cles.find(x => x.id === id);
         if (p) p.title = updated.title;
       } else {
         flashError(updated, 'เปลี่ยนชื่อไม่สำเร็จ / Could not rename conversation');
@@ -343,7 +343,7 @@ listEl.addEventListener('click', async (e) => {
     });
   } else if (action === 'delete-conv') {
     const id = t.dataset.id;
-    const p = ples.find(x => x.id === id);
+    const p = cles.find(x => x.id === id);
     const okDel = await confirmModal({
       title: 'ลบการสนทนา? / Delete conversation?',
       body: `ลบถาวร: <b>"${esc(p ? convTitle(p) : '')}"</b><br><span style="color:var(--muted)">This cannot be undone.</span>`,
@@ -352,7 +352,7 @@ listEl.addEventListener('click', async (e) => {
     if (!okDel) return;
     const res = await api.deletePle(id);
     if (res && res.ok) {
-      ples = ples.filter(x => x.id !== id);
+      cles = cles.filter(x => x.id !== id);
       render();
     } else {
       toast('ลบไม่สำเร็จ / Could not delete', 'error');
@@ -368,7 +368,7 @@ listEl.addEventListener('change', async (e) => {
   const folderId = sel.value || null;
   const updated = await api.updatePle(id, { folder_id: folderId });
   if (updated && updated.id) {
-    const p = ples.find(x => x.id === id);
+    const p = cles.find(x => x.id === id);
     if (p) p.folder_id = updated.folder_id ?? null;
     render();
   } else {
@@ -381,7 +381,7 @@ listEl.addEventListener('change', async (e) => {
 listEl.addEventListener('keydown', (e) => {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.classList?.contains('conv-main')) {
     e.preventDefault();
-    window.location.href = `/ple-chat?id=${encodeURIComponent(e.target.dataset.id)}`;
+    window.location.href = `/cle-chat?id=${encodeURIComponent(e.target.dataset.id)}`;
   }
 });
 
@@ -409,14 +409,14 @@ newFolderForm.addEventListener('submit', async (e) => {
 async function load() {
   const [f, p] = await Promise.all([api.getFolders(), api.getPlEs()]);
   // An error envelope ({error}) is NOT an empty result. Coercing it to [] used to render the
-  // "ยังไม่มี PLE / No episodes yet" empty state on a 502/network blip — telling a physician with a
+  // "ยังไม่มี CLE / No episodes yet" empty state on a 502/network blip — telling a physician with a
   // full history they have nothing. Show the error + Retry instead; only render empty on a real [].
   if (!Array.isArray(f) || !Array.isArray(p)) {
     listEl.innerHTML = '<p class="error-msg">โหลดข้อมูลไม่สำเร็จ กรุณารีเฟรช / Could not load your episodes. Please refresh.</p>';
     return;
   }
   folders = f;
-  ples = p;
+  cles = p;
   render();
 }
 

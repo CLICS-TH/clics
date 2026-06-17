@@ -1,7 +1,7 @@
 # START HERE
 
 New to CLICS? This is the on-ramp. **CLICS** (Clinical Learning & Intelligence Credit System) scores a
-physician's clinical reasoning from a physician–AI dialogue session (a **PLE**) to replace
+physician's clinical reasoning from a physician–AI dialogue session (a **CLE**) to replace
 attendance-based CME/CPD credit — an on-premise pilot for a Thai medical licensing body (Aug–Sep 2026).
 
 > ⚠️ **Deploys run from the local working tree, not from GitHub.** A `git push` updates the repo + runs

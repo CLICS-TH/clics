@@ -2,18 +2,18 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
-import { pleStatusCards } from '@/lib/labels';
+import { cleStatusCards } from '@/lib/labels';
 import { PageIntro } from '@/components/PageIntro';
 import { CardGridSkeleton } from '@/components/Skeleton';
-import type { PleStats, IccData } from '@/lib/types';
+import type { CleStats, IccData } from '@/lib/types';
 
 export default function StatsPage() {
-  const [stats, setStats] = useState<PleStats | null>(null);
+  const [stats, setStats] = useState<CleStats | null>(null);
   const [icc, setIcc] = useState<IccData | null>(null);
   const [statsErr, setStatsErr] = useState(false);
   useEffect(() => {
     // .catch so a failed load shows an error instead of hanging on the skeleton forever.
-    apiFetch<PleStats>('/admin/stats').then(setStats).catch(() => setStatsErr(true));
+    apiFetch<CleStats>('/admin/stats').then(setStats).catch(() => setStatsErr(true));
     // /admin/icc is superadmin-only — for admins it 403s and the section silently hides,
     // so don't fire the request at all unless the viewer is a superadmin.
     if (getUser()?.role === 'superadmin') apiFetch<IccData>('/admin/icc').then(setIcc).catch(() => {});
@@ -33,8 +33,8 @@ export default function StatsPage() {
     </>
   );
   // Shared card set (lib/labels.ts) — every status covered so the cards reconcile to the total.
-  // Each card drills into /admin/ples filtered by that category (key '' = all).
-  const cards = pleStatusCards(stats);
+  // Each card drills into /admin/cles filtered by that category (key '' = all).
+  const cards = cleStatusCards(stats);
   return (
     <>
       <div className="max-w-4xl mx-auto p-6 md:p-10">
@@ -45,7 +45,7 @@ export default function StatsPage() {
       />
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-2">
         {cards.map(c => (
-          <a key={c.label} href={`/admin/ples${c.key ? `?status=${c.key}` : ''}`}
+          <a key={c.label} href={`/admin/cles${c.key ? `?status=${c.key}` : ''}`}
             className="border rounded-xl p-4 text-center block hover:bg-secondary hover:border-primary/40 transition-colors cursor-pointer"
             title="คลิกเพื่อดูรายชื่อในหมวดนี้ / Click to explore this category">
             <p className="text-3xl font-bold text-primary">{c.value}</p>

@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
-const { MessageSchema, CreatePleSchema, UpdatePleSchema } = require('../lib/schemas');
+const { MessageSchema, CreateCleSchema, UpdateCleSchema } = require('../lib/schemas');
 const { computeTier1, clampDuration } = require('../services/cle-gate');
 const { rimplChat } = require('../services/rimpl-client');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
@@ -34,16 +34,16 @@ async function requireBudget(req, res, next) {
       });
     }
   } catch (e) {
-    console.error('[ples] budget check failed:', e.message); // fail-open: never block on a meter error
+    console.error('[cles] budget check failed:', e.message); // fail-open: never block on a meter error
   }
   next();
 }
 
 // (toPassCols lives in services/cle-finalize — shared with the reconcile sweep.)
 
-// Create new PLE session
+// Create new CLE session
 router.post('/', requireConsent, requireBudget, async (req, res) => {
-  const parsed = CreatePleSchema.safeParse(req.body);
+  const parsed = CreateCleSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { chief_complaint, folder_id, patient_ref } = parsed.data;
@@ -54,7 +54,7 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
   // Auto-title from the chief complaint (physician can rename later).
   const title = chief_complaint.trim().slice(0, 120);
 
-  const { data, error } = await supabase.from('ples').insert({
+  const { data, error } = await supabase.from('cles').insert({
     physician_id: req.user.id,
     council_id: req.user.council_id,   // denormalized from the physician; scopes admin/auditor access
     status: 'active',
@@ -72,17 +72,17 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
   // a failure here must not strand the session that was just created.
   const ref = patient_ref?.trim();
   if (ref) {
-    const { error: refErr } = await supabase.from('ple_patient_refs')
-      .insert({ ple_id: data.id, physician_id: req.user.id, patient_ref: ref });
-    if (refErr) console.error('[ples] failed to store patient_ref:', refErr.message);
+    const { error: refErr } = await supabase.from('cle_patient_refs')
+      .insert({ cle_id: data.id, physician_id: req.user.id, patient_ref: ref });
+    if (refErr) console.error('[cles] failed to store patient_ref:', refErr.message);
   }
   res.status(201).json({ ...data, patient_ref: ref || null });
 });
 
-// List physician's own PLEs
+// List physician's own CLEs
 router.get('/', async (req, res) => {
   const { data, error } = await supabase
-    .from('ples')
+    .from('cles')
     .select('id, title, chief_complaint, folder_id, status, started_at, ended_at, turn_count, token_count, c1_pass, c2_pass, c3_pass, c4_pass, c5_pass, c6_pass')
     .eq('physician_id', req.user.id)
     .order('started_at', { ascending: false });
@@ -92,7 +92,7 @@ router.get('/', async (req, res) => {
 
 // Rename a conversation and/or move it between folders
 router.patch('/:id', async (req, res) => {
-  const parsed = UpdatePleSchema.safeParse(req.body);
+  const parsed = UpdateCleSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   const { title, folder_id } = parsed.data;
 
@@ -105,7 +105,7 @@ router.patch('/:id', async (req, res) => {
   if (folder_id !== undefined) patch.folder_id = folder_id;
 
   const { data, error } = await supabase
-    .from('ples').update(patch)
+    .from('cles').update(patch)
     .eq('id', req.params.id).eq('physician_id', req.user.id)
     .select('id, title, chief_complaint, folder_id, status, started_at, turn_count, token_count').single();
   if (error || !data) return res.status(404).json({ error: 'Not found' });
@@ -114,15 +114,15 @@ router.patch('/:id', async (req, res) => {
 
 // Delete a conversation (and its data).
 router.delete('/:id', async (req, res) => {
-  const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id, 'id');
-  if (!ple) return res.status(404).json({ error: 'Not found' });
+  const { data: cle } = await fetchOwnedPle(req.params.id, req.user.id, 'id');
+  if (!cle) return res.status(404).json({ error: 'Not found' });
 
   // messages / ai_evaluations / audit_scores cascade on delete; lpdp_snapshots FK has no
   // ON DELETE CASCADE, so remove those rows first to avoid a foreign-key violation.
-  await supabase.from('lpdp_snapshots').delete().eq('ple_id', req.params.id);
+  await supabase.from('lpdp_snapshots').delete().eq('cle_id', req.params.id);
 
   const { error } = await supabase
-    .from('ples').delete().eq('id', req.params.id).eq('physician_id', req.user.id);
+    .from('cles').delete().eq('id', req.params.id).eq('physician_id', req.user.id);
   if (sendDbError(res, error)) return;
   res.json({ ok: true });
 });
@@ -137,19 +137,19 @@ router.get('/lpdp/me', async (req, res) => {
   res.json(data);
 });
 
-// Get single PLE with messages
+// Get single CLE with messages
 router.get('/:id', async (req, res) => {
-  const { data: ple, error } = await fetchOwnedPle(req.params.id, req.user.id);
-  if (error || !ple) return res.status(404).json({ error: 'Not found' });
+  const { data: cle, error } = await fetchOwnedPle(req.params.id, req.user.id);
+  if (error || !cle) return res.status(404).json({ error: 'Not found' });
 
   const { data: messages } = await supabase
-    .from('messages').select('*').eq('ple_id', req.params.id).order('created_at');
+    .from('messages').select('*').eq('cle_id', req.params.id).order('created_at');
 
   // The private patient identifier is read ONLY here, scoped to the owning physician.
-  const { data: ref } = await supabase.from('ple_patient_refs')
-    .select('patient_ref').eq('ple_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
+  const { data: ref } = await supabase.from('cle_patient_refs')
+    .select('patient_ref').eq('cle_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
 
-  res.json({ ...ple, patient_ref: ref?.patient_ref ?? null, messages: messages ?? [] });
+  res.json({ ...cle, patient_ref: ref?.patient_ref ?? null, messages: messages ?? [] });
 });
 
 // Send a message turn
@@ -157,11 +157,11 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   const parsed = MessageSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id);
-  if (!ple || ple.status !== 'active') return res.status(400).json({ error: 'PLE not active' });
+  const { data: cle } = await fetchOwnedPle(req.params.id, req.user.id);
+  if (!cle || cle.status !== 'active') return res.status(400).json({ error: 'CLE not active' });
 
   const { data: history } = await supabase
-    .from('messages').select('role, content').eq('ple_id', req.params.id).order('created_at');
+    .from('messages').select('role, content').eq('cle_id', req.params.id).order('created_at');
 
   const { message, language } = parsed.data;
 
@@ -180,8 +180,8 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   let rimplResponse;
   try {
     rimplResponse = await rimplChat({
-      ple_id: req.params.id, history: history ?? [], message, language,
-      chief_complaint: ple.chief_complaint, // give the AI the case context
+      cle_id: req.params.id, history: history ?? [], message, language,
+      chief_complaint: cle.chief_complaint, // give the AI the case context
     });
   } catch (err) {
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
@@ -191,11 +191,11 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   const physicianTokens = Math.ceil(message.length / 4);
 
   const { error: msgErr1 } = await supabase.from('messages').insert({
-    ple_id: req.params.id, role: 'physician',
+    cle_id: req.params.id, role: 'physician',
     content: message, token_count: physicianTokens,
   });
   const { error: msgErr2 } = await supabase.from('messages').insert({
-    ple_id: req.params.id, role: 'assistant',
+    cle_id: req.params.id, role: 'assistant',
     content: rimplResponse.content,
     refs: rimplResponse.refs,
     socratic_question: rimplResponse.socratic_question,
@@ -203,20 +203,20 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   });
   // Don't pretend success if the turn wasn't saved — let the client retry.
   if (msgErr1 || msgErr2) {
-    console.error('[ples] failed to persist message:', (msgErr1 || msgErr2).message);
+    console.error('[cles] failed to persist message:', (msgErr1 || msgErr2).message);
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // turn not saved — release the reservation
     return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
   }
 
   const turnIn = rimplResponse.input_tokens ?? 0;
   const turnOut = rimplResponse.output_tokens ?? 0;
-  const { error: counterErr } = await supabase.from('ples').update({
-    turn_count: (ple.turn_count ?? 0) + 1,
-    token_count: (ple.token_count ?? 0) + (rimplResponse.token_count ?? 0) + physicianTokens,
-    input_tokens: (ple.input_tokens ?? 0) + turnIn,
-    output_tokens: (ple.output_tokens ?? 0) + turnOut,
+  const { error: counterErr } = await supabase.from('cles').update({
+    turn_count: (cle.turn_count ?? 0) + 1,
+    token_count: (cle.token_count ?? 0) + (rimplResponse.token_count ?? 0) + physicianTokens,
+    input_tokens: (cle.input_tokens ?? 0) + turnIn,
+    output_tokens: (cle.output_tokens ?? 0) + turnOut,
   }).eq('id', req.params.id);
-  if (counterErr) console.error('[ples] failed to update counters:', counterErr.message);
+  if (counterErr) console.error('[cles] failed to update counters:', counterErr.message);
 
   // Settle the reservation to the turn's REAL Claude cost (adds actual − estimate + the real tokens
   // when the estimate was applied; the full actual when reserve failed open — never runs negative).
@@ -227,22 +227,22 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
 
 // End session and run CLE quality gate
 router.post('/:id/end', requireConsent, async (req, res) => {
-  const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id);
-  if (!ple || ple.status !== 'active') return res.status(400).json({ error: 'PLE not active' });
+  const { data: cle } = await fetchOwnedPle(req.params.id, req.user.id);
+  if (!cle || cle.status !== 'active') return res.status(400).json({ error: 'CLE not active' });
 
   const endedAt = new Date();
-  const wallClockSeconds = Math.max(0, Math.floor((endedAt - new Date(ple.started_at)) / 1000));
+  const wallClockSeconds = Math.max(0, Math.floor((endedAt - new Date(cle.started_at)) / 1000));
   // Clamp the client-reported active-engagement time to wall-clock (see clampDuration): an unclamped
   // client value lets a physician POST active_seconds:99999 and pass C1's 15-min engagement gate on a
   // seconds-long session.
   const durationSeconds = clampDuration(req.body?.active_seconds, wallClockSeconds);
 
   // Derive turn/token counts from the SOURCE OF TRUTH (the messages rows), not the cached counters on
-  // the ple row — a concurrent /message does a non-atomic read-modify-write on those, so a lost
+  // the cle row — a concurrent /message does a non-atomic read-modify-write on those, so a lost
   // increment could wrongly fail C2 (turns>=4) / C3 (tokens>=800) on a qualifying session. Read here
   // (before the claim) so two racing /end requests both compute correctly; the claim is the sole gate.
   const { data: messages } = await supabase
-    .from('messages').select('role, content, token_count').eq('ple_id', req.params.id).order('created_at');
+    .from('messages').select('role, content, token_count').eq('cle_id', req.params.id).order('created_at');
   const msgs = messages ?? [];
   const turnCount = msgs.filter(m => m.role === 'physician').length;
   const tokenCount = msgs.reduce((a, m) => a + (m.token_count ?? 0), 0);
@@ -256,13 +256,13 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   // duration/counts/c1-c3/ended_at HERE (no network) means a process death during the tier-2 call
   // below leaves a fully-recoverable 'ended' row: reconcile re-runs only the missing tier-2 step.
   const claimStatus = tier1Pass ? 'ended' : 'cle_fail_t1';
-  const { data: claimed, error: claimErr } = await supabase.from('ples').update({
+  const { data: claimed, error: claimErr } = await supabase.from('cles').update({
     status: claimStatus, ended_at: endedAt.toISOString(),
     duration_seconds: durationSeconds, turn_count: turnCount, token_count: tokenCount,
     ...toPassCols(tier1),
   }).eq('id', req.params.id).eq('status', 'active').select('id');
   if (sendDbError(res, claimErr)) return;
-  if (!claimed || claimed.length === 0) return res.status(409).json({ error: 'PLE not active' });
+  if (!claimed || claimed.length === 0) return res.status(409).json({ error: 'CLE not active' });
 
   if (!tier1Pass) return res.json({ status: 'cle_fail_t1', criteria: tier1 });
 
@@ -272,26 +272,26 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   const transcript = msgs.map(m => ({ role: m.role, content: m.content }));
   try {
     const out = await finalizeScreening({
-      pleId: req.params.id, physicianId: ple.physician_id, transcript, tier1,
+      cleId: req.params.id, physicianId: cle.physician_id, transcript, tier1,
     });
     res.json(out);
   } catch (err) {
-    console.error(`[ples] /end tier-2 finalize failed for ${req.params.id} — left 'ended' for reconcile:`, err.message);
+    console.error(`[cles] /end tier-2 finalize failed for ${req.params.id} — left 'ended' for reconcile:`, err.message);
     res.status(202).json({ status: 'ended', criteria: tier1, pending: 'tier2' });
   }
 });
 
 // Get AI evaluation result
 router.get('/:id/evaluation', async (req, res) => {
-  const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id, 'status');
-  if (!ple) return res.status(404).json({ error: 'Not found' });
-  if (ple.status !== 'evaluated') return res.status(202).json({ status: ple.status });
+  const { data: cle } = await fetchOwnedPle(req.params.id, req.user.id, 'status');
+  if (!cle) return res.status(404).json({ error: 'Not found' });
+  if (cle.status !== 'evaluated') return res.status(202).json({ status: cle.status });
 
   // .order+limit(1)+maybeSingle, NOT .single(): if a dup-eval race left two ai_evaluations rows
   // (possible until migration-eval-unique is applied), .single() errors on >1 row and returns null —
   // the physician's earned score reads as "missing." Degrade to the FIRST (earliest) evaluation instead.
   const { data: eval_ } = await supabase
-    .from('ai_evaluations').select('*').eq('ple_id', req.params.id)
+    .from('ai_evaluations').select('*').eq('cle_id', req.params.id)
     .order('evaluated_at', { ascending: true }).limit(1).maybeSingle();
   res.json(eval_);
 });

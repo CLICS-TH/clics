@@ -9,7 +9,7 @@ import { useIsMobile } from '@/components/ViewportProvider';
 import { STATUS_MAP } from '@/lib/labels';
 import { BiLabel } from '@/components/BiLabel';
 import { toast } from '@/components/Overlays';
-import type { PleRow, Auditor, Council, ApiResult } from '@/lib/types';
+import type { CleRow, Auditor, Council, ApiResult } from '@/lib/types';
 import { Check } from 'lucide-react';
 
 const PAGE_SIZE = 50;
@@ -28,12 +28,12 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant="outline" className={tone}>{STATUS_MAP[status] ?? status}</Badge>;
 }
 
-function AdminPlesContent() {
+function AdminClesContent() {
   // The ?status= drill-down (from the Stats cards) seeds the initial filter. useSearchParams is
   // SSR-consistent, so this avoids a setState-in-effect and the hydration mismatch a window read
   // would cause — the component is wrapped in <Suspense> below (Next requires it for useSearchParams).
   const searchParams = useSearchParams();
-  const [ples, setPlEs] = useState<PleRow[]>([]);
+  const [cles, setPlEs] = useState<CleRow[]>([]);
   const [total, setTotal] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [filter, setFilter] = useState(searchParams.get('status') || '');
@@ -51,7 +51,7 @@ function AdminPlesContent() {
     const my = ++reqSeq.current;
     const qs = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
     if (filter) qs.set('status', filter);
-    const { items, total } = await apiFetchPaged<PleRow>(`/admin/ples?${qs.toString()}`);
+    const { items, total } = await apiFetchPaged<CleRow>(`/admin/cles?${qs.toString()}`);
     if (my !== reqSeq.current) return; // superseded by a newer filter/page — drop this response
     setTotal(total);
     setPlEs(prev => (offset === 0 ? items : [...prev, ...items]));
@@ -59,7 +59,7 @@ function AdminPlesContent() {
 
   async function loadMore() {
     setLoadingMore(true);
-    try { await loadPage(ples.length); }
+    try { await loadPage(cles.length); }
     finally { setLoadingMore(false); }
   }
 
@@ -73,7 +73,7 @@ function AdminPlesContent() {
   // (Re)load page 0 whenever the status filter changes (incl. on mount).
   useEffect(() => { loadPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [filter]);
 
-  const councilName = (p: PleRow) => (p.council_id && councils[p.council_id]) || '—';
+  const councilName = (p: CleRow) => (p.council_id && councils[p.council_id]) || '—';
 
   // Filter chips mirror the Stats page categories so the drill-down highlights the right one.
   const FILTERS: { key: string; label: string }[] = [
@@ -85,7 +85,7 @@ function AdminPlesContent() {
   ];
 
   // Shared assign control (used by both the desktop table and the mobile card list).
-  const assignControl = (p: PleRow) =>
+  const assignControl = (p: CleRow) =>
     p.status === 'evaluated' && !p.auditor_id
       ? <select className="rounded-md border border-border bg-background px-2 py-1.5 text-xs"
           onChange={e => e.target.value && assign(p.id, e.target.value)}>
@@ -94,15 +94,15 @@ function AdminPlesContent() {
         </select>
       : p.auditor_id ? <span className="inline-flex items-center gap-1 text-xs text-[var(--ok)]"><Check className="size-3.5" /> Assigned</span> : <span className="text-xs text-muted-foreground">—</span>;
 
-  async function assign(pleId: string, auditorId: string) {
+  async function assign(cleId: string, auditorId: string) {
     try {
-      const res = await apiFetch<ApiResult<unknown>>(`/admin/ples/${pleId}/assign`, { method: 'POST', body: JSON.stringify({ auditor_id: auditorId }) });
+      const res = await apiFetch<ApiResult<unknown>>(`/admin/cles/${cleId}/assign`, { method: 'POST', body: JSON.stringify({ auditor_id: auditorId }) });
       if (res?.error) { toast(`ไม่สำเร็จ / Failed: ${String(res.error)}`, 'error'); return; }
       // Re-fetch the currently-loaded range (newest-first, same filter) to reflect the assignment.
-      const lim = Math.min(Math.max(ples.length, PAGE_SIZE), 200);
+      const lim = Math.min(Math.max(cles.length, PAGE_SIZE), 200);
       const qs = new URLSearchParams({ limit: String(lim), offset: '0' });
       if (filter) qs.set('status', filter);
-      const { items, total } = await apiFetchPaged<PleRow>(`/admin/ples?${qs.toString()}`);
+      const { items, total } = await apiFetchPaged<CleRow>(`/admin/cles?${qs.toString()}`);
       setTotal(total);
       setPlEs(items);
     } catch { toast('เกิดข้อผิดพลาด / Error assigning auditor', 'error'); }
@@ -112,8 +112,8 @@ function AdminPlesContent() {
     <>
       <div className="max-w-5xl mx-auto p-6 md:p-10">
       <PageIntro
-        eyebrow="Admin · PLE Management"
-        title="จัดการ PLEs ทั้งหมด"
+        eyebrow="Admin · CLE Management"
+        title="จัดการ CLEs ทั้งหมด"
         subtitle="Manage all Clinical Learning Episodes — มอบหมายให้ผู้ตรวจประเมินเมื่อประเมินผลแล้ว"
       />
       <div className="flex gap-2 mb-3 flex-wrap">
@@ -126,13 +126,13 @@ function AdminPlesContent() {
 
       {/* Loaded-vs-total for the active (server-side) filter. */}
       <p className="mb-5 text-xs text-muted-foreground">
-        แสดง {ples.length} จาก {total} / Showing {ples.length} of {total}
+        แสดง {cles.length} จาก {total} / Showing {cles.length} of {total}
       </p>
 
       {mobile ? (
         /* Mobile: stacked cards (full text, no squeezed columns) */
         <div className="space-y-3">
-          {ples.map(p => (
+          {cles.map(p => (
             <div key={p.id} className="rounded-xl border border-border p-4">
               <div className="flex items-start justify-between gap-3">
                 <p className="font-medium">{p.professionals?.full_name_th ?? '—'}{p.is_test && <span className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground border border-border rounded px-1">test</span>}</p>
@@ -142,7 +142,7 @@ function AdminPlesContent() {
               <p className="mt-3 text-xs text-muted-foreground">มอบหมาย / Assign</p>
               <div className="mt-1 flex items-center justify-between gap-2">
                 {assignControl(p)}
-                <a href={`/admin/ples/${p.id}`} className="text-xs underline text-primary">ดูบทสนทนา / View</a>
+                <a href={`/admin/cles/${p.id}`} className="text-xs underline text-primary">ดูบทสนทนา / View</a>
               </div>
             </div>
           ))}
@@ -159,21 +159,21 @@ function AdminPlesContent() {
               <th className="px-4 py-3 text-left"><BiLabel th="มอบหมายผู้ตรวจ" en="Assign Auditor" tooltip /></th>
               <th className="px-4 py-3 text-left"><BiLabel th="บทสนทนา" en="Session" tooltip /></th>
             </tr></thead>
-            <tbody>{ples.map(p => (
+            <tbody>{cles.map(p => (
               <tr key={p.id} className="border-t hover:bg-secondary">
                 <td className="px-4 py-3">{p.professionals?.full_name_th ?? '—'}{p.is_test && <span className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground border border-border rounded px-1">test</span>}</td>
                 <td className="px-4 py-3 text-muted-foreground">{councilName(p)}</td>
                 <td className="px-4 py-3">{new Date(p.started_at).toLocaleDateString('th-TH')}</td>
                 <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
                 <td className="px-4 py-3">{assignControl(p)}</td>
-                <td className="px-4 py-3"><a href={`/admin/ples/${p.id}`} className="text-xs underline text-primary">ดู / View</a></td>
+                <td className="px-4 py-3"><a href={`/admin/cles/${p.id}`} className="text-xs underline text-primary">ดู / View</a></td>
               </tr>
             ))}</tbody>
           </table>
         </div>
       )}
 
-      {ples.length < total && (
+      {cles.length < total && (
         <div className="mt-5 flex justify-center">
           <Button variant="outline" onClick={loadMore} disabled={loadingMore}>
             {loadingMore ? 'กำลังโหลด… / Loading…' : 'โหลดเพิ่ม / Load more'}
@@ -185,11 +185,11 @@ function AdminPlesContent() {
   );
 }
 
-export default function AdminPlesPage() {
-  // useSearchParams (in AdminPlesContent) requires a Suspense boundary in the App Router.
+export default function AdminClesPage() {
+  // useSearchParams (in AdminClesContent) requires a Suspense boundary in the App Router.
   return (
     <Suspense>
-      <AdminPlesContent />
+      <AdminClesContent />
     </Suspense>
   );
 }

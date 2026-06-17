@@ -19,7 +19,7 @@ cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/calibration/calibrat
 cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/calibration/calibrate.js --mode rescore
 ```
 
-Each run prints ICC + 95% CI + per-domain (AI vs human, +Δ = AI inflates) + per-PLE deltas, and
+Each run prints ICC + 95% CI + per-domain (AI vs human, +Δ = AI inflates) + per-CLE deltas, and
 archives a JSON to `runs/<stamp>-<mode>.json` (incl. the PIS-7 prompt sha, so runs are diffable).
 
 ## Iterate
@@ -32,7 +32,7 @@ archives a JSON to `runs/<stamp>-<mode>.json` (incl. the PIS-7 prompt sha, so ru
 
 ## ⚠️ Caveats — read before quoting a number
 
-- **Overfitting:** tuning the prompt on the *same* 10 PLEs you measure on inflates the apparent ICC.
+- **Overfitting:** tuning the prompt on the *same* 10 CLEs you measure on inflates the apparent ICC.
   ≥0.75 here is **necessary, not sufficient**.
 - **Wide CI:** at n≈30 pairs the 95% CI is ~0.40–0.83 — the point estimate is statistically fragile.
 - So a passing run here is a **directional signal**, not a passed gate. Real sign-off needs a larger

@@ -4,7 +4,7 @@ Decisions: **de-identified/hypothetical cases** (cloud OK, on-prem not triggered
 
 ## ✅ Track A — engineering hardening (delivered in code)
 - **Security:** rate limiting (`/auth/login` 10/min, `/auth/request-access` 5/hr, `/guest` 15/min, general 300/min) + `helmet` + 1 MB body cap + `trust proxy`; **fail-closed boot check** (prod refuses to start without the 6 secrets) + **CORS locked** to the two prod origins; account-creation **password policy** (≥10 chars, letter + digit).
-- **Informed consent:** `consented_at` column + `POST /auth/consent`; **`POST /ples` is gated** (403 `consent_required`) until consent; physician-ui shows a consent + privacy screen on first login and an **always-on banner** ("de-identified cases only · scores provisional, not CME credit").
+- **Informed consent:** `consented_at` column + `POST /auth/consent`; **`POST /cles` is gated** (403 `consent_required`) until consent; physician-ui shows a consent + privacy screen on first login and an **always-on banner** ("de-identified cases only · scores provisional, not CME credit").
 - **Study + reliability:** `GET /admin/export` (pseudonym-keyed, de-identified sessions + AI + auditor scores) and `POST /admin/reconcile-evaluations` (re-scores any session stranded at `cle_pass` so no credit is silently lost).
 - **Login = email + password only.** Social sign-in (Google/LINE) was a stubbed handshake with a public `mock-callback` (could mint pending users) — now **disabled**: backend routes 404 unless `OAUTH_ENABLED=true`, and the Google/LINE buttons are removed from the physician-ui login + request-access pages. Re-enable only when a real provider handshake is wired.
 - Tests: `consent-gate`, `oauth-disabled` added; backend `jest` 41/41 green.
@@ -13,11 +13,11 @@ Decisions: **de-identified/hypothetical cases** (cloud OK, on-prem not triggered
 - Migration `consented_at timestamptz` applied (Supabase). Backend redeployed to Railway, physician-ui to Vercel.
 - **Backend hardening confirmed live** on the prod response: `helmet` headers (`x-content-type-options`, HSTS, `x-frame-options`, no `x-powered-by`) + `ratelimit-*` headers.
 - **physician-ui live**: consent modal + TH/EN "de-identified / provisional" banner present in the deployed JS.
-- **Smoke E2E 18/18 green** (`scripts/smoke/go-live-smoke.js`): consent gate blocks `POST /ples` **and** `/message` + `/end` before consent → passes after; 4 live AI turns return content+refs+socratic_question; CLE gate runs; `/admin/export` is de-identified (pseudonym-keyed, no PII); `/admin/reconcile-evaluations` reports nothing stranded.
+- **Smoke E2E 18/18 green** (`scripts/smoke/go-live-smoke.js`): consent gate blocks `POST /cles` **and** `/message` + `/end` before consent → passes after; 4 live AI turns return content+refs+socratic_question; CLE gate runs; `/admin/export` is de-identified (pseudonym-keyed, no PII); `/admin/reconcile-evaluations` reports nothing stranded.
 
 ### Pre-launch adversarial review (read-only, 15 agents) — verdict: **GO**
 Independent agents audited consent-integrity, authz/roles, PII→cloud leak, and config/DoS/secrets, each finding cross-verified by skeptics. **0 launch-blocking.** The 4 confirmed real-but-non-blocking items: 3 were fixed + redeployed immediately as defense-in-depth —
-- consent gate extended to `POST /ples/:id/message` + `/end` (was creation-only);
+- consent gate extended to `POST /cles/:id/message` + `/end` (was creation-only);
 - rimpl `/evaluate` + `/evaluate-criteria` now `stripHistoryPii()` before Claude (matches `/chat`);
 - `/admin/export` pseudonymizes `auditor_id` (stable `A-<hash>`).
 

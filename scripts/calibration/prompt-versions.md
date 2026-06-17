@@ -6,7 +6,7 @@ Goal: lift AI↔human ICC toward ≥0.75 by removing the AI's leniency on templa
 
 **Cohort note (2026-06-10):** the original 2026-06-07 soak cohort (ICC 0.662) was wiped by its own
 clean-slate step and had no backups, so the cohort was REGENERATED on the scaletest project via
-`scripts/soak/` (11 evaluated PLEs, 3 agent-rater stances, 33 ratings; inter-rater ICC 0.742). All
+`scripts/soak/` (11 evaluated CLEs, 3 agent-rater stances, 33 ratings; inter-rater ICC 0.742). All
 runs below measure against the regenerated cohort; archived under `runs/`.
 
 | Version | Prompt sha (first 12) | ICC (95% CI, regen cohort) | Mean bias | What changed |
@@ -17,7 +17,7 @@ runs below measure against the regenerated cohort; archived under `runs/`.
 
 ⚠️ v2's first measurement read 0.487 — poisoned by ONE malformed eval (AI=0, missing domains). The
 harness now validates each eval (retry once, drop on second failure). The clean re-run (n=30; one
-PLE dropped — the 46k-token transcript truncates the evaluator's 1000-token output) gave 0.811.
+CLE dropped — the 46k-token transcript truncates the evaluator's 1000-token output) gave 0.811.
 (Follow-up done 2026-06-10: `maxTokens` raised to 2000 in `rimpl/src/routes/evaluate.js`.)
 
 ## Notes per version

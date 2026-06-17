@@ -7,14 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Check } from 'lucide-react';
 import { PageIntro } from '@/components/PageIntro';
 
-interface PleItem {
+interface CleItem {
   id: string; ended_at: string; turn_count: number; token_count: number; scored?: boolean;
   // Optional case/pseudonym fields — included in the client-side filter when the API sends them.
   pseudonym?: string | null; title?: string | null; chief_complaint?: string | null;
 }
 
 export default function AuditorQueue() {
-  const [ples, setPlEs] = useState<PleItem[] | null>(null); // null = still loading
+  const [cles, setPlEs] = useState<CleItem[] | null>(null); // null = still loading
   const [err, setErr] = useState(false);
   const [filter, setFilter] = useState(''); // client-side only — the queue is small
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function AuditorQueue() {
   // body, so guard the spread (it used to throw and blank the page); .catch surfaces a network reject
   // as an error, not a false "empty".
   const fetchQueue = useCallback(() => {
-    apiFetch<PleItem[]>('/auditor/queue')
+    apiFetch<CleItem[]>('/auditor/queue')
       .then(d => setPlEs(Array.isArray(d) ? [...d].sort((a, b) => Number(!!a.scored) - Number(!!b.scored)) : []))
       .catch(() => setErr(true));
   }, []);
@@ -37,7 +37,7 @@ export default function AuditorQueue() {
     fetchQueue();
   }, [fetchQueue, router]);
 
-  const list = ples ?? [];
+  const list = cles ?? [];
   const toScore = list.filter(p => !p.scored).length;
 
   // Narrow the visible rows by pseudonym / case text (plus the row's visible date/counts).
@@ -75,7 +75,7 @@ export default function AuditorQueue() {
             <p className="text-muted-foreground mb-3">โหลดคิวไม่สำเร็จ / Could not load the queue.</p>
             <button className="text-sm text-primary underline" onClick={retry}>ลองใหม่ / Retry</button>
           </div>
-        : ples === null
+        : cles === null
         ? <p className="text-muted-foreground text-center py-10">กำลังโหลด… / Loading…</p>
         : list.length === 0
         ? <p className="text-muted-foreground text-center py-10">ยังไม่มี CLE ที่ได้รับมอบหมาย / No CLEs assigned yet.</p>
@@ -83,7 +83,7 @@ export default function AuditorQueue() {
         ? <p className="text-muted-foreground text-center py-10">ไม่พบรายการที่ตรงกับคำค้น / No items match the filter.</p>
         : visible.map(p => (
           <div key={p.id} className={`border rounded-xl p-5 mb-3 cursor-pointer transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none ${p.scored ? 'opacity-60' : ''}`}
-            onClick={() => router.push(`/auditor/ples/${p.id}`)}>
+            onClick={() => router.push(`/auditor/cles/${p.id}`)}>
             <div className="flex justify-between items-center">
               <div>
                 <p className="font-semibold">CLE — {new Date(p.ended_at).toLocaleDateString('th-TH')}</p>

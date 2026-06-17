@@ -5,12 +5,12 @@ _Status as of the July–September 2026 pilot build. The middleware **works end-
 ## L4 — API Randomization Layer (multi-provider) — NOT IMPLEMENTED
 - The flowchart shows L4 randomizing the AI provider per session across **Claude / GPT-4o / Gemini / Mistral** via `hashSessionId()`, with failover and `provider_used` logging.
 - Reality: `rimpl/src/services/claude.js` hard-codes a single model (`claude-sonnet-4-6`) and is the only provider client. There is **no `hashSessionId()`, no GPT-4o/Gemini/Mistral client, no failover, and no per-session provider selection.**
-- `ples.provider_used` exists in `db/schema.sql` but is a static default (`'claude'`), not a logged runtime choice.
+- `cles.provider_used` exists in `db/schema.sql` but is a static default (`'claude'`), not a logged runtime choice.
 - **Impact:** the privacy/bias rationale of vendor rotation is not exercised. All de-identified traffic goes to Claude.
 
 ## PII de-identification — BROADENED (2026-06-09); residual free-text-name risk
 - `rimpl/src/services/pii-filter.js` is now a **multi-category de-identifier**: NAME (Thai/English title-led, labelled `ชื่อ…นามสกุล…`, nicknames, plus bare re-occurrences of already-seen names), EMAIL, LINE id, Thai national ID, HN, MRN/AN, PHONE (Thai + international), DATE, WARD, ADDR (house no. / หมู่ / ตำบล-อำเภอ-จังหวัด) — with **stable per-category indexed tokens** (`[NAME-1]`, `[HN-1]`, …) so repeated mentions collapse to one referent.
-- It is complemented by a **structured patient-identifier intake**: `ple_patient_refs` (`db/migration-patient-intake.sql`) holds the patient identifier in a physically separate, **owner-only** table (deny-all RLS + route-layer physician filter) that is **never** read by the cloud-AI payload, the auditor blind queue, or the export — keeping the case narrative name-free by construction; the filter remains the backstop for anything typed into the narrative.
+- It is complemented by a **structured patient-identifier intake**: `cle_patient_refs` (`db/migration-patient-intake.sql`) holds the patient identifier in a physically separate, **owner-only** table (deny-all RLS + route-layer physician filter) that is **never** read by the cloud-AI payload, the auditor blind queue, or the export — keeping the case narrative name-free by construction; the filter remains the backstop for anything typed into the narrative.
 - The flowchart's **stable pseudonymization** is **partially built now**: `professionals.pseudonym` (P-NNN) is assigned at account creation/approval, and OAuth real identities are AES-256-GCM-encrypted in the deny-all `oauth_identities` vault (see [constraints.md](constraints.md)). Still pending (roadmap P2): the **CLE-001…CLE-150** pseudonyms and a reversible lookup beyond OAuth identities. In-message masks remain literal, not reversible.
 - **Known limit:** a **bare free-text name** with no title, label, or prior masked occurrence (e.g. a mid-sentence "สมชายมาด้วยไข้") is not caught — the structured intake plus physician guidance are the mitigation.
 - **Impact:** PII *is* stripped before the outbound cloud call across the covered categories; free-text names without an anchor remain the residual risk.
@@ -27,7 +27,7 @@ _Status as of the July–September 2026 pilot build. The middleware **works end-
 
 ## Auth / fail modes (by design, documented)
 - RIMPL guards `/chat`, `/evaluate`, `/evaluate-criteria` with an `x-internal-token` shared secret. **Hardened this cycle:** RIMPL now **refuses to boot in production** if `INTERNAL_TOKEN` is unset (`rimpl/src/index.js`), so it can never run unauthenticated on Railway. Local dev with no token still skips the check.
-- Backend → RIMPL fail modes are intentionally asymmetric: `POST /ples/:id/message` **fails closed** (502 if RIMPL is down); `POST /ples/:id/end` Tier-2 check **fails open** (flags the session `cle_flag_t2` for manual QA).
+- Backend → RIMPL fail modes are intentionally asymmetric: `POST /cles/:id/message` **fails closed** (502 if RIMPL is down); `POST /cles/:id/end` Tier-2 check **fails open** (flags the session `cle_flag_t2` for manual QA).
 - There is **no backend health-check** of RIMPL before routing (`/health/deep` is a possible future add).
 
 ## Reproducibility

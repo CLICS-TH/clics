@@ -1,9 +1,9 @@
 # CLICS — Clinical Learning & Intelligence Credit System
 
 CLICS is an AI-mediated platform that scores physician **clinical reasoning** from physician–AI
-dialogue sessions (**PLEs** — Professional/Clinical Learning Episodes), replacing attendance-based
+dialogue sessions (**CLEs** — Clinical Learning Episodes), replacing attendance-based
 CME/CPD credit with evidence of cognitive engagement. It is an **on-premise pilot** for a Thai
-medical licensing body, running **July–September 2026** (~75 physicians × 3 PLEs each).
+medical licensing body, running **July–September 2026** (~75 physicians × 3 CLEs each).
 
 > **New here? → Start with [`START-HERE.md`](START-HERE.md)** — the on-ramp (install · run · test ·
 > build · deploy, one page). Then **[`CONTRIBUTING.md`](CONTRIBUTING.md)** (local setup + conventions)

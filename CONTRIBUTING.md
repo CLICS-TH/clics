@@ -100,7 +100,7 @@ cd audit-dashboard && npm run lint && npx tsc --noEmit   # blocking CI gates
 
 Strong coverage today, **all hermetic**: CLE gate, ICC math, auth/invite flows, usage budget,
 dual-role, crypto, PII filter + adversarial leak, the **cross-role integration suites** (folder CRUD,
-PLE lifecycle, admin→auditor assign, auditor blind-score/409/ICC, role-access/council isolation, and an
+CLE lifecycle, admin→auditor assign, auditor blind-score/409/ICC, role-access/council isolation, and an
 end-to-end role-chain), and **audit-dashboard component tests** (DomainScorer, TranscriptView, the
 labels/badge single source of truth). End-to-end auth proof: `scripts/e2e/`. Load & soak:
 `scripts/loadtest/` and `scripts/soak/` (budget-capped — read the script header before running).

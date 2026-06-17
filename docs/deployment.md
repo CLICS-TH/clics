@@ -55,7 +55,7 @@ Defined in `db/seed-users.js`:
 ## Verify after deploying
 
 - `curl <backend>/health` → `{"status":"ok"}`.
-- Live chat e2e: login as physician → create PLE → `POST /ples/:id/message` → expect content + ≥1 `(Source, Year)` ref + a `socratic_question`.
+- Live chat e2e: login as physician → create CLE → `POST /cles/:id/message` → expect content + ≥1 `(Source, Year)` ref + a `socratic_question`.
 - `curl <rimpl-internal>/health` from outside → `000` (confirms internal-only).
 
 ### Migration-applied gate (run in the Supabase SQL editor — scaletest, then prod)
@@ -70,7 +70,7 @@ select conname from pg_constraint
   where conname in ('ai_evaluations_ple_uniq','lpdp_snapshots_ple_uniq',              -- eval-unique
                     'can_audit_physician_only');                                       -- can-audit-check
 select indexname from pg_indexes
-  where indexname in ('ples_auditor_idx','ples_status_idx','lpdp_snapshots_ple_idx');  -- perf-indexes
+  where indexname in ('cles_auditor_idx','cles_status_idx','lpdp_snapshots_ple_idx');  -- perf-indexes
 ```
 
 **Deploy ordering:** apply `migration-usage-reserve.sql` + `migration-eval-unique.sql` BEFORE (or with)

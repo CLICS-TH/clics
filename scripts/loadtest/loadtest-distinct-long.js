@@ -82,7 +82,7 @@ const pctl = (a, p) => { const s2 = [...a].sort((x, y) => x - y); return s2.leng
     for (let r = 0; r < rounds; r++) for (let u = 0; u < conc; u++) reqs.push(tokens[u]);
     const lat = [], errs = {}; let ok = 0, next = 0; const w0 = process.hrtime.bigint();
     await Promise.all(Array.from({ length: conc }, async () => {
-      while (next < reqs.length) { const idx = next++; const res = await timed(idx % 2 ? '/auth/me' : '/ples', reqs[idx]); lat.push(res.ms); if (res.ok) ok++; else { const k = 'http_' + res.status; errs[k] = (errs[k] || 0) + 1; } }
+      while (next < reqs.length) { const idx = next++; const res = await timed(idx % 2 ? '/auth/me' : '/cles', reqs[idx]); lat.push(res.ms); if (res.ok) ok++; else { const k = 'http_' + res.status; errs[k] = (errs[k] || 0) + 1; } }
     }));
     const wall = Number(process.hrtime.bigint() - w0) / 1e6;
     results[conc] = { distinct_users: conc, requests: reqs.length, ok, errors: reqs.length - ok, errorRate: +((reqs.length - ok) / reqs.length * 100).toFixed(2), rps: +(reqs.length / (wall / 1000)).toFixed(1), p50: pctl(lat, 50), p95: pctl(lat, 95), p99: pctl(lat, 99), errs };

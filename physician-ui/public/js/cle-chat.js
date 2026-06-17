@@ -1,5 +1,5 @@
-const pleId = new URLSearchParams(location.search).get('id');
-if (!pleId) window.location.href = '/dashboard';
+const cleId = new URLSearchParams(location.search).get('id');
+if (!cleId) window.location.href = '/dashboard';
 
 let turns = 0;
 
@@ -63,20 +63,20 @@ function renderMessage(role, content, refs, socratic) {
   container.scrollTop = container.scrollHeight;
 }
 
-api.getPle(pleId).then(ple => {
-  // A transient failure returns an { error } envelope (no .status) — DON'T bounce to /ple-result
+api.getPle(cleId).then(cle => {
+  // A transient failure returns an { error } envelope (no .status) — DON'T bounce to /cle-result
   // (which would then falsely read "Episode not found"); show a recoverable message in place.
-  if (ple && ple.error) {
+  if (cle && cle.error) {
     document.getElementById('messages').innerHTML =
       '<div class="msg-assistant">' + icon('warn', 16) + ' โหลดเซสชันไม่สำเร็จ กรุณารีเฟรชหน้านี้ / Could not load this session — please refresh.</div>';
     return;
   }
-  if (!ple || ple.status !== 'active') { window.location.href = `/ple-result?id=${pleId}`; return; }
+  if (!cle || cle.status !== 'active') { window.location.href = `/cle-result?id=${cleId}`; return; }
   const titleEl = document.getElementById('chatTitle');
-  if (titleEl && (ple.title || ple.chief_complaint)) titleEl.textContent = ple.title || ple.chief_complaint;
-  turns = ple.turn_count ?? 0;
+  if (titleEl && (cle.title || cle.chief_complaint)) titleEl.textContent = cle.title || cle.chief_complaint;
+  turns = cle.turn_count ?? 0;
   document.getElementById('turns').textContent = turns;
-  (ple.messages ?? []).forEach(m => renderMessage(m.role, m.content, m.refs, m.socratic_question));
+  (cle.messages ?? []).forEach(m => renderMessage(m.role, m.content, m.refs, m.socratic_question));
 });
 
 async function sendMessage() {
@@ -93,7 +93,7 @@ async function sendMessage() {
   loading.textContent = 'กำลังคิด... / Thinking...';
   document.getElementById('messages').appendChild(loading);
   markActivity(); aiInFlight = true;          // keep the timer running while the AI answers
-  const res = await api.sendMessage(pleId, { message, language });
+  const res = await api.sendMessage(cleId, { message, language });
   aiInFlight = false; markActivity();
   loading.remove();
   if (res?.content) {
@@ -127,23 +127,23 @@ document.getElementById('endBtn').addEventListener('click', async () => {
   const origLabel = endBtn.innerHTML;
   endBtn.disabled = true;
   endBtn.textContent = 'กำลังประมวลผล... / Finishing…';
-  const res = await api.endPle(pleId, { active_seconds: activeSeconds });
+  const res = await api.endPle(cleId, { active_seconds: activeSeconds });
   // Navigate on any status that means the session is DONE from the physician's view ('ended' = tier-2
   // pending — reconcile finishes it; the result page shows "evaluating…"). On a genuine failure keep
   // the timer running and let them retry — don't strand them with the engagement time lost.
   const TERMINAL = ['cle_pass', 'cle_fail_t1', 'cle_flag_t2', 'ended', 'evaluated'];
   if (res && TERMINAL.includes(res.status)) {
     clearInterval(timerInterval);
-    window.location.href = `/ple-result?id=${pleId}`;
+    window.location.href = `/cle-result?id=${cleId}`;
     return;
   }
   // The response may have been LOST after the server already finished (a network drop on the way back).
   // Re-query: if the session is no longer active, it WAS finished — route to the result instead of
-  // stranding the physician on a button that now 400s 'PLE not active' on every retry.
-  const check = await api.getPle(pleId).catch(() => null);
+  // stranding the physician on a button that now 400s 'CLE not active' on every retry.
+  const check = await api.getPle(cleId).catch(() => null);
   if (check && !check.error && check.status && check.status !== 'active') {
     clearInterval(timerInterval);
-    window.location.href = `/ple-result?id=${pleId}`;
+    window.location.href = `/cle-result?id=${cleId}`;
     return;
   }
   toast(res && res.error ? `จบไม่สำเร็จ / Could not finish: ${res.error}` : 'จบไม่สำเร็จ กรุณาลองใหม่ / Could not finish — please try again.', 'error');

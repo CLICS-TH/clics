@@ -1,8 +1,8 @@
 // CLICS 1-week soak — deterministic physician driver (real E2E through backend -> RIMPL -> Claude).
 //
-// Why a Node script and not subagents: each physician needs token + PLE-id state held across
+// Why a Node script and not subagents: each physician needs token + CLE-id state held across
 // many sequential HTTP calls. Subagent Bash shell-state does NOT persist between calls, which
-// made the first soak lose PLE ids and spawn 18 orphaned sessions. One process fixes that.
+// made the first soak lose CLE ids and spawn 18 orphaned sessions. One process fixes that.
 //
 //   cd backend && NODE_PATH="$PWD/node_modules" node /tmp/soak-drive.js
 //
@@ -131,7 +131,7 @@ const SUMMARY = {
   top: c => `So to summarize and consolidate my learning: the key insight is to manage ${c.short} by the *most dangerous* diagnosis first, not the most likely — lead with the ${c.score}, screen relentlessly for ${c.redflags}, and treat ${c.workup} as Bayesian probability-updaters with explicit post-test thresholds for disposition. I'll apply this by building a personal checklist for ${c.cantmiss}, pre-committing to serial-testing and safety-netting criteria, and auditing my own anchoring bias. The most valuable correction was reframing the equivocal result as a probability question rather than a binary, and I'll teach that approach to my juniors.`,
 };
 
-const ACTIVE_SECONDS = { // per-PLE active engagement; weak deliberately below the 900s tier-1 gate
+const ACTIVE_SECONDS = { // per-CLE active engagement; weak deliberately below the 900s tier-1 gate
   weak:    (n, k) => 600 + n * 25 + k * 40,
   average: (n, k) => 960 + n * 35 + k * 60,
   good:    (n, k) => 1260 + n * 45 + k * 70,
@@ -140,7 +140,7 @@ const ACTIVE_SECONDS = { // per-PLE active engagement; weak deliberately below t
 
 // budget = effective AI-token allowance, graduated by how actively the admin "managed"/coached the
 // physician (the pilot's 10k/person is the unmanaged floor — see the budget finding in the report).
-// reflect = the physician writes an explicit learning summary (tier-2 C6). Passers get 2 PLEs for a
+// reflect = the physician writes an explicit learning summary (tier-2 C6). Passers get 2 CLEs for a
 // real longitudinal (LPDP) trend; non-passers get 1.
 const PHYS = [
   { n: '01', tier: 'weak',    budget: 10000, reflect: false, cases: ['chestpain'] },
@@ -164,36 +164,36 @@ async function drivePhysician(p) {
   const pseudonym = me.body?.user?.pseudonym ?? null;
 
   let spent = 0, cross10kAt = null;
-  const ples = [];
+  const cles = [];
   for (let k = 0; k < p.cases.length; k++) {
     const c = CASES[p.cases[k]];
-    const created = await api('POST', '/ples', { token, body: { chief_complaint: c.chief } });
-    const pleId = created.body?.id;
-    if (!pleId) { ples.push({ case: p.cases[k], error: `create failed: ${JSON.stringify(created.body)}` }); continue; }
+    const created = await api('POST', '/cles', { token, body: { chief_complaint: c.chief } });
+    const cleId = created.body?.id;
+    if (!cleId) { cles.push({ case: p.cases[k], error: `create failed: ${JSON.stringify(created.body)}` }); continue; }
 
     const turns = SCRIPT[p.tier](c).slice();
     if (p.reflect && SUMMARY[p.tier]) turns.push(SUMMARY[p.tier](c)); // closing learning summary (C6)
-    let sent = 0, pleTokens = 0;
+    let sent = 0, cleTokens = 0;
     for (const msg of turns) {
       if (spent >= p.budget) break;                 // per-management budget cap
-      const r = await api('POST', `/ples/${pleId}/message`, { token, body: { message: msg, language: 'en' } });
-      if (r.status !== 200) { ples.push({ id: pleId, case: p.cases[k], error: `msg ${sent + 1}: ${r.status} ${JSON.stringify(r.body)}` }); break; }
+      const r = await api('POST', `/cles/${cleId}/message`, { token, body: { message: msg, language: 'en' } });
+      if (r.status !== 200) { cles.push({ id: cleId, case: p.cases[k], error: `msg ${sent + 1}: ${r.status} ${JSON.stringify(r.body)}` }); break; }
       const aTok = r.body?.token_count ?? 0;
       const pTok = physTokens(msg);
-      spent += aTok + pTok; pleTokens += aTok + pTok; sent++;
-      if (cross10kAt === null && spent >= 10000) cross10kAt = { ple: k + 1, turn: sent };
+      spent += aTok + pTok; cleTokens += aTok + pTok; sent++;
+      if (cross10kAt === null && spent >= 10000) cross10kAt = { cle: k + 1, turn: sent };
       await sleep(250);
     }
 
     const active = ACTIVE_SECONDS[p.tier](Number(p.n), k);
-    const ended = await api('POST', `/ples/${pleId}/end`, { token, body: { active_seconds: active } });
-    ples.push({
-      id: pleId, case: p.cases[k], turns: sent, ple_tokens: pleTokens,
+    const ended = await api('POST', `/cles/${cleId}/end`, { token, body: { active_seconds: active } });
+    cles.push({
+      id: cleId, case: p.cases[k], turns: sent, ple_tokens: cleTokens,
       active_seconds: active, end_status: ended.body?.status ?? null,
       criteria: ended.body?.criteria ?? null,
     });
   }
-  return { email, tier: p.tier, pseudonym, budget: p.budget, spent, cross10kAt, ples };
+  return { email, tier: p.tier, pseudonym, budget: p.budget, spent, cross10kAt, cles };
 }
 
 // concurrency pool (independent sessions, safe in parallel; cap to be gentle on RIMPL/Claude)
@@ -215,8 +215,8 @@ async function pool(items, size, fn) {
   console.log(`\nDone in ${secs}s. Per-physician outcome:`);
   for (const r of results) {
     if (r.error) { console.log(`  ${r.email} (${r.tier}): ERROR ${r.error}`); continue; }
-    const statuses = r.ples.map(x => x.end_status ?? x.error ?? '?').join(', ');
-    console.log(`  ${String(r.pseudonym ?? r.email).padEnd(8)} ${r.tier.padEnd(8)} spent=${String(r.spent).padEnd(6)} budget=${r.budget}  [${statuses}]${r.cross10kAt ? `  (hit 10k at PLE${r.cross10kAt.ple} turn${r.cross10kAt.turn})` : ''}`);
+    const statuses = r.cles.map(x => x.end_status ?? x.error ?? '?').join(', ');
+    console.log(`  ${String(r.pseudonym ?? r.email).padEnd(8)} ${r.tier.padEnd(8)} spent=${String(r.spent).padEnd(6)} budget=${r.budget}  [${statuses}]${r.cross10kAt ? `  (hit 10k at CLE${r.cross10kAt.cle} turn${r.cross10kAt.turn})` : ''}`);
   }
   console.log('\nWrote /tmp/soak-results.json');
   process.exit(0);

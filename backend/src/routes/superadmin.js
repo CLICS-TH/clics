@@ -204,18 +204,18 @@ router.delete('/users/:id/purge', async (req, res) => {
     return res.status(500).json({ error: 'Could not resolve the account email for full erasure — purge halted. Retry.' });
   }
 
-  // The user's OWN sessions: lpdp_snapshots has no cascade (clear first), then deleting the ples
-  // cascades messages / ai_evaluations / audit_scores / ple_patient_refs by ple_id.
-  const { data: ownPles } = await supabase.from('ples').select('id').eq('physician_id', id);
-  const deletedPles = ownPles?.length ?? 0;
+  // The user's OWN sessions: lpdp_snapshots has no cascade (clear first), then deleting the cles
+  // cascades messages / ai_evaluations / audit_scores / cle_patient_refs by cle_id.
+  const { data: ownCles } = await supabase.from('cles').select('id').eq('physician_id', id);
+  const deletedCles = ownCles?.length ?? 0;
 
   // EVERY step is error-checked in dependency order: an unchecked failure makes a LATER step trip an
   // FK (misleading error) or — worse — leaves a partial purge that reports purged:true.
   const steps = [
     supabase.from('lpdp_snapshots').delete().eq('physician_id', id),
-    supabase.from('ples').delete().eq('physician_id', id),
+    supabase.from('cles').delete().eq('physician_id', id),
     // This user as an AUDITOR of OTHERS' sessions: un-assign + delete their authored scores.
-    supabase.from('ples').update({ auditor_id: null }).eq('auditor_id', id),
+    supabase.from('cles').update({ auditor_id: null }).eq('auditor_id', id),
     supabase.from('audit_scores').delete().eq('auditor_id', id),
     // Their access requests + reviews of others.
     supabase.from('access_requests').delete().eq('auth_user_id', id),
@@ -233,7 +233,7 @@ router.delete('/users/:id/purge', async (req, res) => {
 
   // Delete the Supabase auth user FIRST — it holds the email PII, and professionals.id references
   // auth.users ON DELETE CASCADE, so this removes the professionals row (and its cascade children:
-  // oauth_identities, ple_folders, ple_patient_refs) too. If it fails, STOP and report retryably —
+  // oauth_identities, cle_folders, cle_patient_refs) too. If it fails, STOP and report retryably —
   // never claim purged:true while the credential + email are still live.
   const { error: authErr } = await authSupabase.auth.admin.deleteUser(id);
   if (authErr) {
@@ -244,7 +244,7 @@ router.delete('/users/:id/purge', async (req, res) => {
   const delProf = await supabase.from('professionals').delete().eq('id', id);
   if (sendDbError(res, delProf.error)) return;
 
-  res.json({ purged: true, deleted_ples: deletedPles, auth_deleted: true });
+  res.json({ purged: true, deleted_ples: deletedCles, auth_deleted: true });
 });
 
 // Role slot pools — used/capacity/remaining per role, and capacity editing.
@@ -364,24 +364,24 @@ function iccBundle(pairs) {
 router.get('/icc', async (req, res) => {
   const includeTest = req.query.include_test === 'true';
 
-  // Bounded by SCORED sessions (audit_scores is small — few auditors), not all 400K ples.
-  // audit_scores carries a denormalized council_id, so we only need is_test from the scored ples.
+  // Bounded by SCORED sessions (audit_scores is small — few auditors), not all 400K cles.
+  // audit_scores carries a denormalized council_id, so we only need is_test from the scored cles.
   const { data: auditScores } = await supabase
-    .from('audit_scores').select('ple_id, council_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+    .from('audit_scores').select('cle_id, council_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
   if (!auditScores?.length) return res.json({ overall: null, per_domain: {}, per_council: {}, n: 0 });
 
-  const scoredIds = [...new Set(auditScores.map(a => a.ple_id))];
+  const scoredIds = [...new Set(auditScores.map(a => a.cle_id))];
   const { data: aiScores } = await supabase
-    .from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('ple_id', scoredIds);
-  const { data: ples } = await supabase.from('ples').select('id, is_test').in('id', scoredIds);
-  const testOf = Object.fromEntries((ples ?? []).map(p => [p.id, p.is_test]));
+    .from('ai_evaluations').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('cle_id', scoredIds);
+  const { data: cles } = await supabase.from('cles').select('id, is_test').in('id', scoredIds);
+  const testOf = Object.fromEntries((cles ?? []).map(p => [p.id, p.is_test]));
 
-  const aiBy = Object.fromEntries((aiScores ?? []).map(s => [s.ple_id, s]));
+  const aiBy = Object.fromEntries((aiScores ?? []).map(s => [s.cle_id, s]));
   const allPairs = [];
   for (const a of auditScores) {
-    const ai = aiBy[a.ple_id];
+    const ai = aiBy[a.cle_id];
     if (!ai) continue;
-    if (!includeTest && testOf[a.ple_id]) continue;
+    if (!includeTest && testOf[a.cle_id]) continue;
     allPairs.push({ council_id: a.council_id, ai, audit: a });
   }
 

@@ -6,16 +6,16 @@ import { PageIntro } from '@/components/PageIntro';
 import { TranscriptView } from '@/components/TranscriptView';
 import { Button } from '@/components/ui/button';
 import { STATUS_MAP } from '@/lib/labels';
-import type { PleTranscript } from '@/lib/types';
+import type { CleTranscript } from '@/lib/types';
 
 export default function AdminTranscriptPage() {
   const { id } = useParams<{ id: string }>();
-  const [data, setData] = useState<PleTranscript | null>(null);
+  const [data, setData] = useState<CleTranscript | null>(null);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     // .catch a network/non-JSON failure too — without it the page hangs on "Loading…" forever.
-    apiFetch<PleTranscript>(`/admin/ples/${id}/transcript`).then(d => {
+    apiFetch<CleTranscript>(`/admin/cles/${id}/transcript`).then(d => {
       if (d?.error) setNotFound(true); else setData(d);
     }).catch(() => setNotFound(true));
   }, [id]);
@@ -30,15 +30,15 @@ export default function AdminTranscriptPage() {
     <div className="max-w-3xl mx-auto p-6 md:p-10"><p className="text-muted-foreground">กำลังโหลด… / Loading…</p></div>
   );
 
-  const { ple, messages = [] } = data;
-  const physician = ple.professionals;
+  const { cle, messages = [] } = data;
+  const physician = cle.professionals;
 
   return (
     <div className="max-w-3xl mx-auto p-6 md:p-10">
       <PageIntro
         eyebrow="Admin · Investigate session"
-        title={ple.title || ple.chief_complaint || 'เซสชัน / Session'}
-        subtitle={`${physician?.full_name_th || physician?.full_name_en || ''}${physician?.pseudonym ? ` · ${physician.pseudonym}` : ''} — ${STATUS_MAP[ple.status] ?? ple.status} · ${ple.turn_count ?? 0} รอบ`}
+        title={cle.title || cle.chief_complaint || 'เซสชัน / Session'}
+        subtitle={`${physician?.full_name_th || physician?.full_name_en || ''}${physician?.pseudonym ? ` · ${physician.pseudonym}` : ''} — ${STATUS_MAP[cle.status] ?? cle.status} · ${cle.turn_count ?? 0} รอบ`}
       />
       <div className="mb-4">
         <Button variant="outline" size="sm" onClick={() => history.back()}>← กลับ / Back</Button>

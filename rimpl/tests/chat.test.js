@@ -18,7 +18,7 @@ const app = require('../src/index');
 describe('POST /chat', () => {
   test('returns content, references, and socratic_question', async () => {
     const res = await request(app).post('/chat').send({
-      ple_id: 'test-123',
+      cle_id: 'test-123',
       history: [],
       message: 'What is first-line for T2DM?',
       language: 'en',
@@ -31,7 +31,7 @@ describe('POST /chat', () => {
   });
 
   test('returns 400 when message is missing', async () => {
-    const res = await request(app).post('/chat').send({ ple_id: 'x', history: [] });
+    const res = await request(app).post('/chat').send({ cle_id: 'x', history: [] });
     expect(res.status).toBe(400);
   });
 });

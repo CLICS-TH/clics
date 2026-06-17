@@ -4,23 +4,23 @@ const { compositeScore } = require('./cle-gate');
 const { rimplEvaluate, isDeterministicRimplError } = require('./rimpl-client');
 const { accrueUsage } = require('../lib/usage');
 
-// Persist an AI evaluation + LPDP snapshot and mark the PLE evaluated.
+// Persist an AI evaluation + LPDP snapshot and mark the CLE evaluated.
 // Ordered + error-checked: the scored row must land before we write the LPDP snapshot or flip the
-// PLE to 'evaluated'. Otherwise a malformed result (e.g. an out-of-range domain score) used to leave
-// a composite=0 LPDP snapshot + missing ai_evaluation while the PLE still showed 'evaluated'.
-async function persistEvaluation(pleId, physicianId, result) {
+// CLE to 'evaluated'. Otherwise a malformed result (e.g. an out-of-range domain score) used to leave
+// a composite=0 LPDP snapshot + missing ai_evaluation while the CLE still showed 'evaluated'.
+async function persistEvaluation(cleId, physicianId, result) {
   const composite = compositeScore(result);
   const domain = {
     d1: result.d1, d2: result.d2, d3: result.d3, d4: result.d4,
     d5: result.d5, d6: result.d6, d7: result.d7,
   };
   const { error: aiErr } = await supabase.from('ai_evaluations').insert({
-    ple_id: pleId, ...domain,
+    cle_id: cleId, ...domain,
     composite_score: composite,
     domain_rationale: result.domain_rationale,
     model_version: result.model_version ?? 'CCME_LLM_v8.0',
   });
-  // UNIQUE(ple_id): a 23505 means a row already exists — a concurrent evaluation (the dup-eval race),
+  // UNIQUE(cle_id): a 23505 means a row already exists — a concurrent evaluation (the dup-eval race),
   // or a previous PARTIAL persist where the ai row landed but the snapshot/status writes failed. In
   // both cases DON'T throw (that would loop in reconcile); fall through to ensure the LPDP snapshot
   // and 'evaluated' status are also written. The existing row's scores are kept (no double-write).
@@ -30,18 +30,18 @@ async function persistEvaluation(pleId, physicianId, result) {
   const fresh = !aiErr;
 
   const { error: lpdpErr } = await supabase.from('lpdp_snapshots').insert({
-    physician_id: physicianId, ple_id: pleId,
+    physician_id: physicianId, cle_id: cleId,
     composite_score: composite, domain_scores: domain,
   });
   if (lpdpErr && lpdpErr.code !== '23505') throw new Error(`lpdp_snapshots insert failed: ${lpdpErr.message}`);
 
-  const { error: pleErr } = await supabase.from('ples').update({ status: 'evaluated' }).eq('id', pleId);
-  if (pleErr) throw new Error(`ples status update failed: ${pleErr.message}`);
+  const { error: cleErr } = await supabase.from('cles').update({ status: 'evaluated' }).eq('id', cleId);
+  if (cleErr) throw new Error(`cles status update failed: ${cleErr.message}`);
   return { fresh };
 }
 
 // The RIMPL evaluation is a network call to a Claude-backed service; a transient 5xx/timeout would
-// otherwise silently strand a credit-eligible PLE at cle_pass with no score. Retry with backoff —
+// otherwise silently strand a credit-eligible CLE at cle_pass with no score. Retry with backoff —
 // EXCEPT on a deterministic failure (bad/out-of-range model output → 502, or a token misconfig →
 // 401), where retrying just re-pays Anthropic for the same guaranteed failure. Re-throw immediately
 // so reconcile can route the session to manual QA instead of looping every sweep forever.
@@ -58,10 +58,10 @@ async function evaluateWithRetry(payload, attempts = 3) {
   throw lastErr;
 }
 
-// Run the PIS-7 evaluation for a passed PLE and persist it. Throws on failure (caller logs).
-async function triggerEvaluation(pleId, transcript, physicianId) {
-  const result = await evaluateWithRetry({ ple_id: pleId, transcript });
-  const { fresh } = await persistEvaluation(pleId, physicianId, result);
+// Run the PIS-7 evaluation for a passed CLE and persist it. Throws on failure (caller logs).
+async function triggerEvaluation(cleId, transcript, physicianId) {
+  const result = await evaluateWithRetry({ cle_id: cleId, transcript });
+  const { fresh } = await persistEvaluation(cleId, physicianId, result);
   // Accrue the PIS-7 evaluation's Claude cost to the physician's meter ONLY when this call actually
   // wrote the row — a dup-eval race (reconcile vs /end) must not double-charge the physician.
   if (fresh) await accrueUsage(physicianId, result.input_tokens, result.output_tokens);

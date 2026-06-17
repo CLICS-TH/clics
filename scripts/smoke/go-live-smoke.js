@@ -2,7 +2,7 @@
 /*
  * Go-live smoke E2E — runs against the LIVE backend to confirm the Stage-1
  * hardening works end-to-end after deploy:
- *   1. informed-consent gate (POST /ples 403 before consent, passes after)
+ *   1. informed-consent gate (POST /cles 403 before consent, passes after)
  *   2. a real chat turn path (content + refs + socratic_question)
  *   3. CLE gate + PIS-7 evaluation fire
  *   4. de-identified study export + reconcile sweep (admin/superadmin)
@@ -60,16 +60,16 @@ const TURNS = [
   // 2. Consent gate BEFORE consent — must 403 consent_required on create AND the
   //    session-writing routes (downstream defense-in-depth), no AI spend.
   console.log('2) Consent gate (before consent)');
-  const blocked = await req('POST', '/ples', { token: pToken, body: { chief_complaint: 'exertional chest pain (hypothetical)' } });
+  const blocked = await req('POST', '/cles', { token: pToken, body: { chief_complaint: 'exertional chest pain (hypothetical)' } });
   ok(blocked.status === 403 && blocked.json?.code === 'consent_required',
-     'POST /ples blocked 403 consent_required', `status=${blocked.status} code=${blocked.json?.code}`);
+     'POST /cles blocked 403 consent_required', `status=${blocked.status} code=${blocked.json?.code}`);
   const dummy = '00000000-0000-0000-0000-000000000000';
-  const blockedMsg = await req('POST', `/ples/${dummy}/message`, { token: pToken, body: { message: 'x', language: 'en' } });
+  const blockedMsg = await req('POST', `/cles/${dummy}/message`, { token: pToken, body: { message: 'x', language: 'en' } });
   ok(blockedMsg.status === 403 && blockedMsg.json?.code === 'consent_required',
-     'POST /ples/:id/message blocked before consent', `status=${blockedMsg.status} code=${blockedMsg.json?.code}`);
-  const blockedEnd = await req('POST', `/ples/${dummy}/end`, { token: pToken, body: { active_seconds: 1000 } });
+     'POST /cles/:id/message blocked before consent', `status=${blockedMsg.status} code=${blockedMsg.json?.code}`);
+  const blockedEnd = await req('POST', `/cles/${dummy}/end`, { token: pToken, body: { active_seconds: 1000 } });
   ok(blockedEnd.status === 403 && blockedEnd.json?.code === 'consent_required',
-     'POST /ples/:id/end blocked before consent', `status=${blockedEnd.status} code=${blockedEnd.json?.code}`);
+     'POST /cles/:id/end blocked before consent', `status=${blockedEnd.status} code=${blockedEnd.json?.code}`);
 
   // 3. Record consent
   console.log('3) Record informed consent');
@@ -78,17 +78,17 @@ const TURNS = [
 
   // 4. Consent gate AFTER consent — must create the session
   console.log('4) Start session (gate should be cleared)');
-  const create = await req('POST', '/ples', { token: pToken, body: { chief_complaint: 'exertional chest pain (hypothetical, de-identified)' } });
-  if (!ok(create.status === 201 && !!create.json?.id, 'POST /ples 201 + session id', `status=${create.status}`)) {
+  const create = await req('POST', '/cles', { token: pToken, body: { chief_complaint: 'exertional chest pain (hypothetical, de-identified)' } });
+  if (!ok(create.status === 201 && !!create.json?.id, 'POST /cles 201 + session id', `status=${create.status}`)) {
     return finish();
   }
-  const pleId = create.json.id;
-  console.log(`   ple_id=${pleId}`);
+  const cleId = create.json.id;
+  console.log(`   cle_id=${cleId}`);
 
   // 5. Chat turns — each must return content + refs + socratic_question
   console.log('5) Chat turns (live AI path)');
   for (let i = 0; i < TURNS.length; i++) {
-    const r = await req('POST', `/ples/${pleId}/message`, { token: pToken, body: { message: TURNS[i], language: 'en' } });
+    const r = await req('POST', `/cles/${cleId}/message`, { token: pToken, body: { message: TURNS[i], language: 'en' } });
     const j = r.json || {};
     ok(r.status === 200 && typeof j.content === 'string' && j.content.length > 0 && Array.isArray(j.refs) && typeof j.socratic_question === 'string',
        `turn ${i + 1}: content + refs[${Array.isArray(j.refs) ? j.refs.length : '?'}] + socratic_question`,
@@ -97,8 +97,8 @@ const TURNS = [
 
   // 6. End session → CLE gate
   console.log('6) End session → CLE gate');
-  const end = await req('POST', `/ples/${pleId}/end`, { token: pToken, body: { active_seconds: 1000 } });
-  ok(end.status === 200 && !!end.json?.status, `POST /ples/:id/end 200`, `status=${end.json?.status} criteria=${JSON.stringify(end.json?.criteria)}`);
+  const end = await req('POST', `/cles/${cleId}/end`, { token: pToken, body: { active_seconds: 1000 } });
+  ok(end.status === 200 && !!end.json?.status, `POST /cles/:id/end 200`, `status=${end.json?.status} criteria=${JSON.stringify(end.json?.criteria)}`);
   const cleStatus = end.json?.status;
 
   // 7. If it passed the gate, the PIS-7 evaluation fires — poll for it
@@ -107,7 +107,7 @@ const TURNS = [
     let evaluated = false;
     for (let t = 0; t < 15; t++) {
       await sleep(5000);
-      const ev = await req('GET', `/ples/${pleId}/evaluation`, { token: pToken });
+      const ev = await req('GET', `/cles/${cleId}/evaluation`, { token: pToken });
       if (ev.status === 200 && ev.json?.composite_score != null) {
         evaluated = true;
         ok(true, 'AI PIS-7 evaluation produced', `composite=${Number(ev.json.composite_score).toFixed(1)} d=[${[1,2,3,4,5,6,7].map(n => ev.json['d'+n]).join(',')}]`);
@@ -139,7 +139,7 @@ const TURNS = [
   const audLeak = auditorEntries.some(a => 'auditor_id' in a || !/^A-[0-9a-f]{8}$/.test(a.auditor ?? ''));
   ok(!audLeak, 'auditor scores pseudonymized (A-<hash>, no raw auditor_id)',
      auditorEntries.length ? `${auditorEntries.length} entries checked` : 'no auditor scores present to check');
-  const mine = sessions.find(s => s.cle_id === pleId);
+  const mine = sessions.find(s => s.cle_id === cleId);
   ok(!!mine, 'our smoke session present in export', mine ? `physician=${mine.physician} status=${mine.status} ai_composite=${mine.ai_composite}` : 'not found');
 
   const recon = await req('POST', '/admin/reconcile-evaluations', { token: sToken });

@@ -1,4 +1,4 @@
-// db/mark-test-sessions.js — flag the sessions of a demo/soak cohort as TEST (ples.is_test = true)
+// db/mark-test-sessions.js — flag the sessions of a demo/soak cohort as TEST (cles.is_test = true)
 // so a later db/reset-demo.js preserves them and they keep feeding the audit system.
 //
 // Sessions are created through the API as real (is_test=false); this is the operator step that
@@ -39,7 +39,7 @@ async function listAllUsers() {
   if (!cohortIds.length) { console.log('No matching accounts found. Nothing to do.'); process.exit(0); }
 
   const { data, error } = await supabase
-    .from('ples').update({ is_test: true })
+    .from('cles').update({ is_test: true })
     .in('physician_id', cohortIds).eq('is_test', false).select('id');
   if (error) { console.error('FAILED:', error.message); process.exit(1); }
   console.log(`Marked ${data?.length ?? 0} session(s) as test across ${cohortIds.length} account(s).`);

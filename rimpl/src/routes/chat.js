@@ -9,7 +9,7 @@ const { RIMPL_SYSTEM_PROMPT } = require('../lib/prompts');
 const router = Router();
 
 const ChatSchema = z.object({
-  ple_id: z.string(),
+  cle_id: z.string(),
   history: z.array(z.object({ role: z.string(), content: z.string() })),
   message: z.string().min(1),
   language: z.enum(['th', 'en']).default('th'),

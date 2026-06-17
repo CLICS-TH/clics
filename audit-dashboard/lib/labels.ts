@@ -28,7 +28,7 @@ export function roleToUi(role: string, can_audit?: boolean | null): string {
   return role === 'physician' && can_audit ? 'special' : role;
 }
 
-// Account lifecycle (NOT the same as PLE status above).
+// Account lifecycle (NOT the same as CLE status above).
 export const ACCOUNT_STATUS_MAP: Record<string, string> = {
   active: 'ใช้งาน / Active',
   deactivated: 'ปิดใช้งาน / Deactivated',
@@ -51,15 +51,15 @@ export const WEIGHTS: Record<string, number> = {
 export const DOMAIN_KEYS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 export const DOMAIN_LABELS = ['CQI', 'RD', 'CI', 'II', 'CA', 'RS', 'ALPS'];
 
-// Headline PLE cards from GET /admin/stats. Covers EVERY status so the cards reconcile to the
+// Headline CLE cards from GET /admin/stats. Covers EVERY status so the cards reconcile to the
 // total (Evaluated + Awaiting QA + Did-not-pass + In-progress = Total) — cle_fail_t1 once had no
 // card and the numbers never added up. key '' = all; in_progress = active+ended+cle_pass (the
-// same UI bucket the PLEs page filters by).
-export function pleStatusCards(stats: Record<string, number> | null | undefined) {
+// same UI bucket the CLEs page filters by).
+export function cleStatusCards(stats: Record<string, number> | null | undefined) {
   const s = stats ?? {};
   const inProgress = (s.active ?? 0) + (s.ended ?? 0) + (s.cle_pass ?? 0);
   return [
-    { label: 'PLEs ทั้งหมด / Total', value: s.total ?? 0, key: '' },
+    { label: 'CLEs ทั้งหมด / Total', value: s.total ?? 0, key: '' },
     { label: 'ประเมินแล้ว / Evaluated', value: s.evaluated ?? 0, key: 'evaluated' },
     { label: 'รอ QA / Awaiting QA', value: s.cle_flag_t2 ?? 0, key: 'cle_flag_t2' },
     { label: 'ไม่ผ่านเกณฑ์ / Did not pass', value: s.cle_fail_t1 ?? 0, key: 'cle_fail_t1' },

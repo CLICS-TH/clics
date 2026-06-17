@@ -101,10 +101,10 @@ function printRow(label, s) {
   console.log('\nPHASE B — realistic authed reads (mixed, DB-backed)');
   const reads = [
     { token: tokens.sa, path: '/auth/me' }, { token: tokens.sa, path: '/admin/users' },
-    { token: tokens.sa, path: '/admin/slots' }, { token: tokens.sa, path: '/admin/ples' },
-    { token: tokens.ad, path: '/admin/ples/flagged' }, { token: tokens.ad, path: '/admin/auditors' },
+    { token: tokens.sa, path: '/admin/slots' }, { token: tokens.sa, path: '/admin/cles' },
+    { token: tokens.ad, path: '/admin/cles/flagged' }, { token: tokens.ad, path: '/admin/auditors' },
     { token: tokens.au, path: '/auditor/queue' },
-    { token: tokens.ph, path: '/ples' }, { token: tokens.ph, path: '/ples/lpdp/me' },
+    { token: tokens.ph, path: '/cles' }, { token: tokens.ph, path: '/cles/lpdp/me' },
   ];
   out.phases.B = [];
   for (const c of LEVELS) { const s = await runLevel(REQS_PER_LEVEL(c), c, i => { const r = reads[i % reads.length]; return timed(r.path, { token: r.token }); }); out.phases.B.push(s); printRow('B', s); await sleep(1000); }

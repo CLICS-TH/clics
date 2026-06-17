@@ -27,17 +27,17 @@ clics/
 │   ├── public/
 │   │   ├── index.html             # Login page
 │   │   ├── dashboard.html
-│   │   ├── ple-new.html
-│   │   ├── ple-chat.html
-│   │   ├── ple-result.html
+│   │   ├── cle-new.html
+│   │   ├── cle-chat.html
+│   │   ├── cle-result.html
 │   │   ├── lpdp.html
 │   │   ├── js/
 │   │   │   ├── api.js             # fetch wrapper with JWT + BASE_URL
 │   │   │   ├── auth.js            # login(), logout(), getUser(), guardPage()
 │   │   │   ├── dashboard.js
-│   │   │   ├── ple-new.js
-│   │   │   ├── ple-chat.js        # chat loop, timer, turn/token counters
-│   │   │   ├── ple-result.js      # PIS-7 radar chart (Chart.js)
+│   │   │   ├── cle-new.js
+│   │   │   ├── cle-chat.js        # chat loop, timer, turn/token counters
+│   │   │   ├── cle-result.js      # PIS-7 radar chart (Chart.js)
 │   │   │   └── lpdp.js            # LPDP line chart (Chart.js)
 │   │   └── css/
 │   │       └── main.css
@@ -52,9 +52,9 @@ clics/
 │   │   │   └── page.tsx
 │   │   ├── auditor/
 │   │   │   ├── queue/page.tsx
-│   │   │   └── ples/[id]/page.tsx
+│   │   │   └── cles/[id]/page.tsx
 │   │   └── admin/
-│   │       ├── ples/page.tsx
+│   │       ├── cles/page.tsx
 │   │       ├── flagged/page.tsx
 │   │       ├── stats/page.tsx
 │   │       ├── users/page.tsx
@@ -130,12 +130,12 @@ window.api = {
     apiFetch('/auth/login', { method: 'POST', body: { email, password } }),
   logout: () => apiFetch('/auth/logout', { method: 'POST' }),
   me: () => apiFetch('/auth/me'),
-  createPle: (body) => apiFetch('/ples', { method: 'POST', body }),
-  getPlEs: () => apiFetch('/ples'),
-  getPle: (id) => apiFetch(`/ples/${id}`),
-  sendMessage: (id, body) => apiFetch(`/ples/${id}/message`, { method: 'POST', body }),
-  endPle: (id) => apiFetch(`/ples/${id}/end`, { method: 'POST' }),
-  getEvaluation: (id) => apiFetch(`/ples/${id}/evaluation`),
+  createPle: (body) => apiFetch('/cles', { method: 'POST', body }),
+  getPlEs: () => apiFetch('/cles'),
+  getPle: (id) => apiFetch(`/cles/${id}`),
+  sendMessage: (id, body) => apiFetch(`/cles/${id}/message`, { method: 'POST', body }),
+  endPle: (id) => apiFetch(`/cles/${id}/end`, { method: 'POST' }),
+  getEvaluation: (id) => apiFetch(`/cles/${id}/evaluation`),
   getLpdp: () => apiFetch('/auth/me').then(({ user }) =>
     apiFetch(`/admin/lpdp/${user.id}`)
   ),
@@ -482,9 +482,9 @@ git commit -m "feat: add physician login page"
         <h2 id="greeting" style="font-size:20px;font-weight:700"></h2>
         <p style="color:#64748b;font-size:13px">Clinical Learning Episodes ของคุณ</p>
       </div>
-      <a href="/ple-new.html" class="btn btn-primary">+ เริ่ม PLE ใหม่</a>
+      <a href="/cle-new.html" class="btn btn-primary">+ เริ่ม CLE ใหม่</a>
     </div>
-    <div id="pleList">
+    <div id="cleList">
       <p style="color:#94a3b8;text-align:center;padding:40px">กำลังโหลด...</p>
     </div>
   </div>
@@ -521,17 +521,17 @@ const STATUS_LABELS = {
   evaluated: 'ประเมินแล้ว',
 };
 
-function renderPlEs(ples) {
-  const container = document.getElementById('pleList');
-  if (!ples.length) {
-    container.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:40px">ยังไม่มี PLE — เริ่มต้นได้เลย!</p>';
+function renderPlEs(cles) {
+  const container = document.getElementById('cleList');
+  if (!cles.length) {
+    container.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:40px">ยังไม่มี CLE — เริ่มต้นได้เลย!</p>';
     return;
   }
-  container.innerHTML = ples.map(p => `
-    <div class="card" style="cursor:pointer" onclick="window.location.href='/ple-chat.html?id=${p.id}'">
+  container.innerHTML = cles.map(p => `
+    <div class="card" style="cursor:pointer" onclick="window.location.href='/cle-chat.html?id=${p.id}'">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
-          <p style="font-weight:600;margin-bottom:4px">PLE ${new Date(p.started_at).toLocaleDateString('th-TH')}</p>
+          <p style="font-weight:600;margin-bottom:4px">CLE ${new Date(p.started_at).toLocaleDateString('th-TH')}</p>
           <p style="font-size:12px;color:#64748b">${p.turn_count ?? 0} รอบ · ${p.token_count ?? 0} tokens</p>
         </div>
         <span class="badge badge-${p.status}">${STATUS_LABELS[p.status] ?? p.status}</span>
@@ -540,8 +540,8 @@ function renderPlEs(ples) {
   `).join('');
 }
 
-api.getPlEs().then(ples => renderPlEs(ples ?? [])).catch(() => {
-  document.getElementById('pleList').innerHTML = '<p class="error-msg">โหลดข้อมูลไม่สำเร็จ</p>';
+api.getPlEs().then(cles => renderPlEs(cles ?? [])).catch(() => {
+  document.getElementById('cleList').innerHTML = '<p class="error-msg">โหลดข้อมูลไม่สำเร็จ</p>';
 });
 ```
 
@@ -550,8 +550,8 @@ api.getPlEs().then(ples => renderPlEs(ples ?? [])).catch(() => {
 Open http://localhost:3000/dashboard.html after login. Verify:
 - Physician name shown in greeting
 - Empty state shows Thai message
-- PLE cards render with status badges
-- "เริ่ม PLE ใหม่" button navigates to `/ple-new.html`
+- CLE cards render with status badges
+- "เริ่ม CLE ใหม่" button navigates to `/cle-new.html`
 
 - [ ] **Step 4: Commit**
 
@@ -562,14 +562,14 @@ git commit -m "feat: add physician dashboard"
 
 ---
 
-## Task 22: Physician UI — New PLE + Chat Page
+## Task 22: Physician UI — New CLE + Chat Page
 
 **Files:**
-- Create: `physician-ui/public/ple-new.html`
-- Create: `physician-ui/public/ple-chat.html`
-- Create: `physician-ui/public/js/ple-chat.js`
+- Create: `physician-ui/public/cle-new.html`
+- Create: `physician-ui/public/cle-chat.html`
+- Create: `physician-ui/public/js/cle-chat.js`
 
-- [ ] **Step 1: Write ple-new.html**
+- [ ] **Step 1: Write cle-new.html**
 
 ```html
 <!DOCTYPE html>
@@ -577,7 +577,7 @@ git commit -m "feat: add physician dashboard"
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CLICS — เริ่ม PLE ใหม่</title>
+  <title>CLICS — เริ่ม CLE ใหม่</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/main.css" />
 </head>
@@ -587,7 +587,7 @@ git commit -m "feat: add physician dashboard"
     <div><a href="/dashboard.html">← กลับ</a></div>
   </nav>
   <div class="container" style="max-width:560px">
-    <h2 style="margin-bottom:24px;font-size:20px">เริ่ม PLE ใหม่ / New Clinical Learning Episode</h2>
+    <h2 style="margin-bottom:24px;font-size:20px">เริ่ม CLE ใหม่ / New Clinical Learning Episode</h2>
     <div class="card">
       <div class="form-group">
         <label>สาขาวิชา / Specialty</label>
@@ -626,11 +626,11 @@ git commit -m "feat: add physician dashboard"
       errEl.style.display = 'none';
       const btn = document.getElementById('startBtn');
       btn.disabled = true; btn.textContent = 'กำลังสร้าง...';
-      const ple = await api.createPle({ specialty, chief_complaint: complaint });
-      if (ple?.id) {
-        window.location.href = `/ple-chat.html?id=${ple.id}`;
+      const cle = await api.createPle({ specialty, chief_complaint: complaint });
+      if (cle?.id) {
+        window.location.href = `/cle-chat.html?id=${cle.id}`;
       } else {
-        errEl.textContent = ple?.error ?? 'เกิดข้อผิดพลาด';
+        errEl.textContent = cle?.error ?? 'เกิดข้อผิดพลาด';
         errEl.style.display = 'block';
         btn.disabled = false; btn.textContent = 'เริ่มการสนทนา / Start Session';
       }
@@ -640,7 +640,7 @@ git commit -m "feat: add physician dashboard"
 </html>
 ```
 
-- [ ] **Step 2: Write ple-chat.html**
+- [ ] **Step 2: Write cle-chat.html**
 
 ```html
 <!DOCTYPE html>
@@ -648,7 +648,7 @@ git commit -m "feat: add physician dashboard"
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CLICS — PLE</title>
+  <title>CLICS — CLE</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/main.css" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -680,19 +680,19 @@ git commit -m "feat: add physician dashboard"
   </div>
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
-  <script src="/js/ple-chat.js"></script>
+  <script src="/js/cle-chat.js"></script>
 </body>
 </html>
 ```
 
-- [ ] **Step 3: Write ple-chat.js**
+- [ ] **Step 3: Write cle-chat.js**
 
 ```javascript
-// physician-ui/public/js/ple-chat.js
+// physician-ui/public/js/cle-chat.js
 auth.guardPage();
 
-const pleId = new URLSearchParams(location.search).get('id');
-if (!pleId) window.location.href = '/dashboard.html';
+const cleId = new URLSearchParams(location.search).get('id');
+if (!cleId) window.location.href = '/dashboard.html';
 
 let turns = 0;
 let tokens = 0;
@@ -740,17 +740,17 @@ function renderMessage(role, content, refs, socratic) {
 }
 
 // Load existing messages on resume
-api.getPle(pleId).then(ple => {
-  if (ple?.status !== 'active') {
-    window.location.href = `/ple-result.html?id=${pleId}`;
+api.getPle(cleId).then(cle => {
+  if (cle?.status !== 'active') {
+    window.location.href = `/cle-result.html?id=${cleId}`;
     return;
   }
-  startTime = new Date(ple.started_at).getTime();
-  turns = ple.turn_count ?? 0;
-  tokens = ple.token_count ?? 0;
+  startTime = new Date(cle.started_at).getTime();
+  turns = cle.turn_count ?? 0;
+  tokens = cle.token_count ?? 0;
   document.getElementById('turns').textContent = turns;
   document.getElementById('tokens').textContent = tokens;
-  (ple.messages ?? []).forEach(m =>
+  (cle.messages ?? []).forEach(m =>
     renderMessage(m.role, m.content, m.references, m.socratic_question)
   );
 });
@@ -776,7 +776,7 @@ async function sendMessage() {
   loadingDiv.textContent = 'กำลังคิด... / Thinking...';
   document.getElementById('messages').appendChild(loadingDiv);
 
-  const res = await api.sendMessage(pleId, { message, language });
+  const res = await api.sendMessage(cleId, { message, language });
   loadingDiv.remove();
 
   if (res?.content) {
@@ -803,15 +803,15 @@ document.getElementById('endBtn').addEventListener('click', async () => {
   clearInterval(timerInterval);
   document.getElementById('endBtn').disabled = true;
   document.getElementById('endBtn').textContent = 'กำลังประมวลผล...';
-  const result = await api.endPle(pleId);
-  window.location.href = `/ple-result.html?id=${pleId}`;
+  const result = await api.endPle(cleId);
+  window.location.href = `/cle-result.html?id=${cleId}`;
 });
 ```
 
 - [ ] **Step 4: Manually test the chat flow**
 
 1. Login as a physician
-2. Create new PLE with a specialty and complaint
+2. Create new CLE with a specialty and complaint
 3. Send 4+ messages with clinical questions
 4. Verify: AI response renders with markdown, 📎 references appear, ❓ Socratic question appears in blue italic
 5. Verify session bar updates turn count and token count
@@ -820,8 +820,8 @@ document.getElementById('endBtn').addEventListener('click', async () => {
 - [ ] **Step 5: Commit**
 
 ```bash
-git add physician-ui/public/ple-new.html physician-ui/public/ple-chat.html physician-ui/public/js/ple-chat.js
-git commit -m "feat: add ple new and chat pages"
+git add physician-ui/public/cle-new.html physician-ui/public/cle-chat.html physician-ui/public/js/cle-chat.js
+git commit -m "feat: add cle new and chat pages"
 ```
 
 ---
@@ -829,10 +829,10 @@ git commit -m "feat: add ple new and chat pages"
 ## Task 23: Physician UI — Result + LPDP Pages
 
 **Files:**
-- Create: `physician-ui/public/ple-result.html`
+- Create: `physician-ui/public/cle-result.html`
 - Create: `physician-ui/public/lpdp.html`
 
-- [ ] **Step 1: Write ple-result.html**
+- [ ] **Step 1: Write cle-result.html**
 
 ```html
 <!DOCTYPE html>
@@ -854,7 +854,7 @@ git commit -m "feat: add ple new and chat pages"
   <script src="/js/auth.js"></script>
   <script>
     auth.guardPage();
-    const pleId = new URLSearchParams(location.search).get('id');
+    const cleId = new URLSearchParams(location.search).get('id');
 
     const DOMAIN_LABELS = [
       'Clinical Question Intelligence',
@@ -873,24 +873,24 @@ git commit -m "feat: add ple new and chat pages"
     };
 
     async function load() {
-      const ple = await api.getPle(pleId);
+      const cle = await api.getPle(cleId);
       const container = document.getElementById('content');
 
-      if (!ple || ple.status === 'active') {
+      if (!cle || cle.status === 'active') {
         container.innerHTML = '<p>กรุณาจบ session ก่อน</p>'; return;
       }
 
-      if (ple.status === 'cle_fail_t1' || ple.status === 'cle_flag_t2') {
+      if (cle.status === 'cle_fail_t1' || cle.status === 'cle_flag_t2') {
         const criteria = ['c1','c2','c3','c4','c5','c6'];
         container.innerHTML = `
           <div class="card">
             <h2 style="color:#dc2626;margin-bottom:16px">
-              ${ple.status === 'cle_fail_t1' ? '❌ ไม่ผ่านเกณฑ์ CLE (Tier 1)' : '⏳ รอตรวจสอบ (Tier 2)'}
+              ${cle.status === 'cle_fail_t1' ? '❌ ไม่ผ่านเกณฑ์ CLE (Tier 1)' : '⏳ รอตรวจสอบ (Tier 2)'}
             </h2>
             <p style="color:#64748b;margin-bottom:16px">ผลเกณฑ์ทั้ง 6 ข้อ:</p>
             ${criteria.map(c => `
               <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-                <span>${ple[c + '_pass'] ? '✅' : '❌'}</span>
+                <span>${cle[c + '_pass'] ? '✅' : '❌'}</span>
                 <span>${CRITERIA_LABELS[c]}</span>
               </div>`).join('')}
             <a href="/dashboard.html" class="btn btn-ghost" style="display:inline-block;margin-top:16px">← กลับ</a>
@@ -898,7 +898,7 @@ git commit -m "feat: add ple new and chat pages"
         return;
       }
 
-      if (ple.status === 'cle_pass') {
+      if (cle.status === 'cle_pass') {
         container.innerHTML = `
           <div class="card" style="text-align:center">
             <p style="font-size:32px;margin-bottom:8px">✅</p>
@@ -910,7 +910,7 @@ git commit -m "feat: add ple new and chat pages"
       }
 
       // Evaluated
-      const eval_ = await api.getEvaluation(pleId);
+      const eval_ = await api.getEvaluation(cleId);
       if (!eval_ || eval_.status === 'cle_pass') {
         container.innerHTML = `<div class="card" style="text-align:center"><p>กำลังประเมิน... <button class="btn btn-ghost" onclick="load()">รีเฟรช</button></p></div>`;
         return;
@@ -975,7 +975,7 @@ git commit -m "feat: add ple new and chat pages"
   <div class="container" style="max-width:700px">
     <h2 style="margin-bottom:20px">ความก้าวหน้าของคุณ / Your LPDP</h2>
     <div class="card"><canvas id="lpdpChart" height="220"></canvas></div>
-    <p id="noData" style="display:none;color:#94a3b8;text-align:center;padding:20px">ยังไม่มีข้อมูล — กรุณาทำ PLE ให้ผ่านก่อน</p>
+    <p id="noData" style="display:none;color:#94a3b8;text-align:center;padding:20px">ยังไม่มีข้อมูล — กรุณาทำ CLE ให้ผ่านก่อน</p>
   </div>
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
@@ -989,7 +989,7 @@ git commit -m "feat: add ple new and chat pages"
     .then(r => r.json())
     .then(data => {
       if (!data?.length) { document.getElementById('noData').style.display = 'block'; return; }
-      const labels = data.map((_, i) => `PLE ${i + 1}`);
+      const labels = data.map((_, i) => `CLE ${i + 1}`);
       const scores = data.map(d => d.composite_score);
       new Chart(document.getElementById('lpdpChart'), {
         type: 'line',
@@ -1010,7 +1010,7 @@ git commit -m "feat: add ple new and chat pages"
 
 - [ ] **Step 3: Manually test result and LPDP pages**
 
-1. Complete a full PLE session (≥15 min, ≥4 turns, ≥800 tokens)
+1. Complete a full CLE session (≥15 min, ≥4 turns, ≥800 tokens)
 2. End session → verify result page shows CLE gate outcome
 3. Wait for AI evaluation (fire-and-forget) → refresh → verify PIS-7 radar chart and scores render
 4. Visit `/lpdp.html` → verify line chart shows composite score progression
@@ -1018,8 +1018,8 @@ git commit -m "feat: add ple new and chat pages"
 - [ ] **Step 4: Commit**
 
 ```bash
-git add physician-ui/public/ple-result.html physician-ui/public/lpdp.html
-git commit -m "feat: add ple result and lpdp pages"
+git add physician-ui/public/cle-result.html physician-ui/public/lpdp.html
+git commit -m "feat: add cle result and lpdp pages"
 ```
 
 ---
@@ -1177,7 +1177,7 @@ export default function LoginPage() {
 
 function redirectByRole(role: string, router: any) {
   if (role === 'auditor') router.push('/auditor/queue');
-  else if (role === 'admin') router.push('/admin/ples');
+  else if (role === 'admin') router.push('/admin/cles');
   else if (role === 'superadmin') router.push('/admin/icc');
   else router.push('/login');
 }
@@ -1205,7 +1205,7 @@ git commit -m "feat: scaffold audit dashboard with auth"
 - Create: `audit-dashboard/components/DomainSliders.tsx`
 - Create: `audit-dashboard/components/TranscriptView.tsx`
 - Create: `audit-dashboard/app/auditor/queue/page.tsx`
-- Create: `audit-dashboard/app/auditor/ples/[id]/page.tsx`
+- Create: `audit-dashboard/app/auditor/cles/[id]/page.tsx`
 
 - [ ] **Step 1: Write DomainSliders.tsx**
 
@@ -1298,26 +1298,26 @@ import { apiFetch } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { getUser } from '@/lib/auth';
 
-interface PleItem { id: string; ended_at: string; turn_count: number; token_count: number; }
+interface CleItem { id: string; ended_at: string; turn_count: number; token_count: number; }
 
 export default function AuditorQueue() {
-  const [ples, setPlEs] = useState<PleItem[]>([]);
+  const [cles, setPlEs] = useState<CleItem[]>([]);
   const router = useRouter();
 
   useEffect(() => {
     const user = getUser();
     if (!user || user.role !== 'auditor') { router.push('/login'); return; }
-    apiFetch<PleItem[]>('/auditor/queue').then(setPlEs);
+    apiFetch<CleItem[]>('/auditor/queue').then(setPlEs);
   }, [router]);
 
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-xl font-bold mb-6">คิวการประเมิน / Scoring Queue</h1>
-      {ples.length === 0
+      {cles.length === 0
         ? <p className="text-slate-400 text-center py-10">ยังไม่มี CLE ที่ได้รับมอบหมาย</p>
-        : ples.map(p => (
+        : cles.map(p => (
           <div key={p.id} className="border rounded-xl p-4 mb-3 cursor-pointer hover:bg-slate-50"
-            onClick={() => router.push(`/auditor/ples/${p.id}`)}>
+            onClick={() => router.push(`/auditor/cles/${p.id}`)}>
             <div className="flex justify-between items-center">
               <div>
                 <p className="font-semibold">CLE — {new Date(p.ended_at).toLocaleDateString('th-TH')}</p>
@@ -1333,10 +1333,10 @@ export default function AuditorQueue() {
 }
 ```
 
-- [ ] **Step 4: Write auditor/ples/[id]/page.tsx**
+- [ ] **Step 4: Write auditor/cles/[id]/page.tsx**
 
 ```typescript
-// audit-dashboard/app/auditor/ples/[id]/page.tsx
+// audit-dashboard/app/auditor/cles/[id]/page.tsx
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -1361,7 +1361,7 @@ export default function AuditorScorePage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    apiFetch<any>(`/auditor/ples/${id}`).then(d => {
+    apiFetch<any>(`/auditor/cles/${id}`).then(d => {
       setData(d);
       if (d?.audit_score) {
         const { d1,d2,d3,d4,d5,d6,d7, notes: n } = d.audit_score;
@@ -1374,13 +1374,13 @@ export default function AuditorScorePage() {
 
   async function submit() {
     setSubmitting(true);
-    await apiFetch(`/auditor/ples/${id}/score`, {
+    await apiFetch(`/auditor/cles/${id}/score`, {
       method: 'POST', body: JSON.stringify({ ...scores, notes }),
     });
     setSubmitted(true);
     setSubmitting(false);
     // Reload to reveal AI scores
-    apiFetch<any>(`/auditor/ples/${id}`).then(setData);
+    apiFetch<any>(`/auditor/cles/${id}`).then(setData);
   }
 
   if (!data) return <div className="p-8 text-slate-400">กำลังโหลด...</div>;
@@ -1394,7 +1394,7 @@ export default function AuditorScorePage() {
         <Button variant="outline" onClick={() => router.push('/auditor/queue')}>← กลับ</Button>
       </div>
 
-      <TranscriptView messages={data.ple?.messages ?? data.messages ?? []} />
+      <TranscriptView messages={data.cle?.messages ?? data.messages ?? []} />
 
       <div className="border rounded-xl p-5">
         <h2 className="font-semibold mb-4">PIS-7 Scoring</h2>
@@ -1428,7 +1428,7 @@ export default function AuditorScorePage() {
 - [ ] **Step 5: Manually test auditor flow**
 
 1. Login as auditor → should redirect to `/auditor/queue`
-2. Verify assigned PLEs appear
+2. Verify assigned CLEs appear
 3. Open a CLE → transcript renders, 7 sliders visible
 4. Adjust sliders → composite score updates live
 5. Submit → AI score revealed below
@@ -1445,15 +1445,15 @@ git commit -m "feat: add auditor queue and scoring pages"
 ## Task 26: Audit Dashboard — Admin Pages
 
 **Files:**
-- Create: `audit-dashboard/app/admin/ples/page.tsx`
+- Create: `audit-dashboard/app/admin/cles/page.tsx`
 - Create: `audit-dashboard/app/admin/flagged/page.tsx`
 - Create: `audit-dashboard/app/admin/stats/page.tsx`
 - Create: `audit-dashboard/app/admin/users/page.tsx`
 
-- [ ] **Step 1: Write admin/ples/page.tsx**
+- [ ] **Step 1: Write admin/cles/page.tsx**
 
 ```typescript
-// audit-dashboard/app/admin/ples/page.tsx
+// audit-dashboard/app/admin/cles/page.tsx
 'use client';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
@@ -1465,28 +1465,28 @@ const STATUS_MAP: Record<string, string> = {
   cle_fail_t1:'ไม่ผ่าน T1', cle_flag_t2:'รอตรวจสอบ', evaluated:'ประเมินแล้ว',
 };
 
-export default function AdminPlesPage() {
-  const [ples, setPlEs] = useState<any[]>([]);
+export default function AdminClesPage() {
+  const [cles, setPlEs] = useState<any[]>([]);
   const [filter, setFilter] = useState('');
   const [auditors, setAuditors] = useState<any[]>([]);
 
   useEffect(() => {
-    apiFetch<any[]>('/admin/ples').then(setPlEs);
+    apiFetch<any[]>('/admin/cles').then(setPlEs);
     apiFetch<any[]>('/admin/users').then(all =>
       setAuditors((all ?? []).filter(u => u.role === 'auditor'))
     );
   }, []);
 
-  const filtered = filter ? ples.filter(p => p.status === filter) : ples;
+  const filtered = filter ? cles.filter(p => p.status === filter) : cles;
 
-  async function assign(pleId: string, auditorId: string) {
-    await apiFetch(`/admin/ples/${pleId}/assign`, { method: 'POST', body: JSON.stringify({ auditor_id: auditorId }) });
-    apiFetch<any[]>('/admin/ples').then(setPlEs);
+  async function assign(cleId: string, auditorId: string) {
+    await apiFetch(`/admin/cles/${cleId}/assign`, { method: 'POST', body: JSON.stringify({ auditor_id: auditorId }) });
+    apiFetch<any[]>('/admin/cles').then(setPlEs);
   }
 
   return (
     <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-xl font-bold mb-4">จัดการ PLEs ทั้งหมด</h1>
+      <h1 className="text-xl font-bold mb-4">จัดการ CLEs ทั้งหมด</h1>
       <div className="flex gap-2 mb-4 flex-wrap">
         {['','active','cle_pass','cle_flag_t2','evaluated'].map(s => (
           <Button key={s} variant={filter===s?'default':'outline'} size="sm" onClick={() => setFilter(s)}>
@@ -1536,27 +1536,27 @@ import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 
 export default function FlaggedPage() {
-  const [ples, setPlEs] = useState<any[]>([]);
+  const [cles, setPlEs] = useState<any[]>([]);
 
-  const load = () => apiFetch<any[]>('/admin/ples/flagged').then(setPlEs);
+  const load = () => apiFetch<any[]>('/admin/cles/flagged').then(setPlEs);
   useEffect(() => { load(); }, []);
 
   async function approve(id: string) {
-    await apiFetch(`/admin/ples/${id}/approve`, { method: 'POST' });
+    await apiFetch(`/admin/cles/${id}/approve`, { method: 'POST' });
     load();
   }
 
   async function reject(id: string) {
-    await apiFetch(`/admin/ples/${id}/reject`, { method: 'POST' });
+    await apiFetch(`/admin/cles/${id}/reject`, { method: 'POST' });
     load();
   }
 
   return (
     <div className="max-w-3xl mx-auto p-6">
       <h1 className="text-xl font-bold mb-6">QA Queue — Tier 2 Flagged Sessions</h1>
-      {ples.length === 0
+      {cles.length === 0
         ? <p className="text-slate-400 text-center py-10">ไม่มี session รอตรวจสอบ ✅</p>
-        : ples.map(p => (
+        : cles.map(p => (
           <div key={p.id} className="border rounded-xl p-4 mb-3">
             <div className="flex justify-between items-start">
               <div>
@@ -1603,7 +1603,7 @@ export default function StatsPage() {
   if (!stats) return <div className="p-8 text-slate-400">กำลังโหลด...</div>;
 
   const cards = [
-    { label: 'PLEs ทั้งหมด', value: stats.total },
+    { label: 'CLEs ทั้งหมด', value: stats.total },
     { label: 'ผ่าน CLE', value: stats.cle_pass ?? 0 },
     { label: 'ประเมินแล้ว', value: stats.evaluated ?? 0 },
     { label: 'รอ QA', value: stats.cle_flag_t2 ?? 0 },
@@ -1710,7 +1710,7 @@ export default function UsersPage() {
 
 ```bash
 git add audit-dashboard/app/admin/
-git commit -m "feat: add admin ples, flagged, stats, and users pages"
+git commit -m "feat: add admin cles, flagged, stats, and users pages"
 ```
 
 ---
@@ -1833,7 +1833,7 @@ export default function IccPage() {
     apiFetch<any>('/admin/icc').then(setData);
     // Fetch raw pairs for Bland-Altman
     Promise.all([
-      apiFetch<any[]>('/admin/ples?status=evaluated'),
+      apiFetch<any[]>('/admin/cles?status=evaluated'),
     ]).then(async () => {
       const raw = await apiFetch<any>('/admin/icc');
       setData(raw);
@@ -1887,7 +1887,7 @@ export default function LpdpPage() {
 
   useEffect(() => {
     apiFetch<any[]>(`/admin/lpdp/${id}`).then(d => {
-      setData((d ?? []).map((s, i) => ({ ...s, label: `PLE ${i+1}` })));
+      setData((d ?? []).map((s, i) => ({ ...s, label: `CLE ${i+1}` })));
     });
     apiFetch<any[]>('/admin/users').then(users => {
       const user = users?.find(u => u.id === id);
@@ -1938,9 +1938,9 @@ cd audit-dashboard && npm run dev -- -p 3002
 
 **Smoke test checklist:**
 - [ ] http://localhost:3000 — physician login renders
-- [ ] Login as physician → dashboard shows PLEs
-- [ ] Start PLE → chat sends message → AI response with refs + ❓ appears
-- [ ] End PLE → CLE gate result shown
+- [ ] Login as physician → dashboard shows CLEs
+- [ ] Start CLE → chat sends message → AI response with refs + ❓ appears
+- [ ] End CLE → CLE gate result shown
 - [ ] http://localhost:3002 — auditor/admin login works
 - [ ] Auditor queue shows assigned CLE → slider scoring works → AI score revealed
 - [ ] Admin stats page shows pilot counts + ICC

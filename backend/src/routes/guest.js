@@ -1,5 +1,5 @@
 // Guest mode — ephemeral, incognito-style trial of the AI (max 2 prompts, one session).
-// NO account, NO ples/messages/audit rows are ever written. The client holds the
+// NO account, NO cles/messages/audit rows are ever written. The client holds the
 // conversation history and replays it each turn; the only egress is the message text
 // → RIMPL (PII-stripped) → cloud AI, exactly like a physician turn. See backend/src/lib/guest.js.
 const { Router } = require('express');
@@ -50,7 +50,7 @@ router.post('/message', async (req, res) => {
   const { message, language, history } = parsed.data;
   let rimplResponse;
   try {
-    rimplResponse = await rimplChat({ ple_id: verified.sessionId, history, message, language });
+    rimplResponse = await rimplChat({ cle_id: verified.sessionId, history, message, language });
   } catch (err) {
     return res.status(502).json({ error: `RIMPL unavailable: ${err.message}` });
   }

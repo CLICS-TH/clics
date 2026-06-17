@@ -24,7 +24,7 @@ The soak also surfaced **two real reliability bugs** in the evaluation path. One
 | **Cohort design** | Competence spectrum: **2 weak**, **3 average** (1 reflective), **3 good**, **2 top**. Per-physician token budgets graduated by "how well the admin managed them" (10k → 72k). |
 | **Sessions** | A deterministic driver logged in as each physician and ran tier-appropriate multi-turn clinical reasoning (5 realistic chief complaints) through the live backend → RIMPL → Claude. Passing physicians ran 2 sessions for a longitudinal (LPDP) trend. |
 | **1-week span** | Activity backdated across May 31 – Jun 6; auditor review on Jun 7 ("after the week"). Fully visible to superadmin/admin in the dashboard. |
-| **Auditors** | Three auditors **blind-scored all 10 evaluated PLEs** on the PIS-7 rubric (no AI score shown), with distinct rater stances (balanced / strict / lenient) to surface realistic inter-rater variance. |
+| **Auditors** | Three auditors **blind-scored all 10 evaluated CLEs** on the PIS-7 rubric (no AI score shown), with distinct rater stances (balanced / strict / lenient) to surface realistic inter-rater variance. |
 
 > **Why a deterministic driver, not AI "physician" agents:** the first attempt used autonomous agents to drive the chats. They were unreliable — they lost session state between steps, spawned duplicate sessions, and stalled — producing a broken dataset (1 usable session of 10). Switching to a single-process driver that holds each physician's session id in memory produced a 100% reliable run. *This is a testing-harness lesson, not a product bug.*
 
@@ -79,7 +79,7 @@ The per-physician charts render correctly (the second session lands later in the
 
 ### 4.4 Auditor blind-scoring & ICC — **the key result**
 
-Three auditors independently scored all 10 evaluated PLEs (30 ratings).
+Three auditors independently scored all 10 evaluated CLEs (30 ratings).
 
 | Metric | ICC (95% CI) | Verdict |
 |--------|-------------|---------|
@@ -106,7 +106,7 @@ Auditor mean composites: 73.0 / 70.5 / 73.1 — the "strict" auditor is detectab
 |---|----------|---------|--------|
 | **F1** | **High** | **Silent loss of credit-eligible sessions.** The `/end` PIS-7 evaluation is fire-and-forget with no retry; a transient RIMPL 5xx left **3 of 9** passed sessions stuck at `cle_pass` with no score, invisible to auditors. | **Fixed + deployed** (retry-with-backoff + admin `reevaluate` endpoint; the 3 were recovered). |
 | **F2** | **High** | **AI evaluator is mis-calibrated vs experts** — systematically lenient (+10.3), AI↔human **ICC 0.66 < 0.75 gate**, while inter-rater is 0.97. | **Order #1** below (calibration). |
-| **F3** | **Medium** | **Partial-write on a failed evaluation.** `persistEvaluation` doesn't check its insert errors, so a bad result can leave a `composite=0` LPDP snapshot + missing `ai_evaluation` while the PLE is marked `evaluated` (seen once, on P-007). | **Fixed in this branch** (ordered + error-checked persistence). |
+| **F3** | **Medium** | **Partial-write on a failed evaluation.** `persistEvaluation` doesn't check its insert errors, so a bad result can leave a `composite=0` LPDP snapshot + missing `ai_evaluation` while the CLE is marked `evaluated` (seen once, on P-007). | **Fixed in this branch** (ordered + error-checked persistence). |
 | **F4** | **Medium** | **Tier-2 classifier false-negative.** The C4–C6 LLM classifier flagged one genuinely strong top-tier session (P-009), which manual QA then approved. The auto-gate has a non-zero false-negative rate on strong transcripts. | **Order #4** (manual-QA path works; monitor false-negative rate). |
 | **F5** | **Medium** | **The "10k tokens/physician" budget is incompatible with earning credit.** A credit-eligible session needs ≥4 turns ≈ 16k+ tokens (good/top ran 24–68k). Every non-weak physician crossed 10k by **turn 3–4** — before the 4-turn + learning-summary requirements. | **Order #3** (reconcile budget policy with the gate). |
 | **F6** | **Low** | **No server-side budget enforcement.** Budgets were simulated client-side; the platform has no per-physician token allowance or admin control over it. | **Order #5** (roadmap). |
@@ -118,7 +118,7 @@ Auditor mean composites: 73.0 / 70.5 / 73.1 — the "strict" auditor is detectab
 
 Prioritised, mapped to the pilot timeline (July = calibration workshop, target ICC ≥ 0.75).
 
-1. **(P1, before July) Recalibrate the PIS-7 AI evaluator against the human consensus.** Correct the **+10 leniency**, especially on d2/d3 and the over-reward of templated structure. Concretely: tighten the `PIS7_EVALUATOR_PROMPT` anchors (define what 4 vs 5 means with depth/originality, not structure), add a few human-scored exemplars, and re-measure AI↔human ICC on this same 10-PLE set as the regression gate. **Owner: clinical lead + RIMPL.**
+1. **(P1, before July) Recalibrate the PIS-7 AI evaluator against the human consensus.** Correct the **+10 leniency**, especially on d2/d3 and the over-reward of templated structure. Concretely: tighten the `PIS7_EVALUATOR_PROMPT` anchors (define what 4 vs 5 means with depth/originality, not structure), add a few human-scored exemplars, and re-measure AI↔human ICC on this same 10-CLE set as the regression gate. **Owner: clinical lead + RIMPL.**
 2. **(P1, done) Make evaluation durable.** ✅ Retry + `reevaluate` shipped (F1). Next: a small **reconcile job** that periodically re-evaluates any `cle_pass`-without-`ai_evaluation`, so no session is ever silently stranded even if all retries fail.
 3. **(P1) Decide the token-budget policy.** Either (a) raise the per-physician allowance to a workable floor (~24k for a 4–6-turn session), or (b) make the AI responses leaner, or (c) lower the C2 turn threshold. The current "10k" cannot coexist with the credit gate. **Owner: product + clinical.**
 4. **(P2) Monitor the tier-2 classifier's false-negative rate** and keep the admin manual-QA approve path as the safety valve (it correctly rescued P-009).
@@ -129,8 +129,8 @@ Prioritised, mapped to the pilot timeline (July = calibration workshop, target I
 
 ## 7. Fixed during this review (in this branch)
 
-- **`services/ple-evaluation.js`** — `evaluateWithRetry` (3× backoff) wraps the RIMPL evaluation; **+ ordered, error-checked persistence** so a failed insert can no longer leave partial state (F1, F3). Unit-tested (`tests/eval-retry.test.js`).
-- **`routes/admin.js`** — `POST /admin/ples/:id/reevaluate`: recovers a passed-but-unscored PLE; refuses (409) to touch an already-evaluated one, so it can never override a score (F1).
+- **`services/cle-evaluation.js`** — `evaluateWithRetry` (3× backoff) wraps the RIMPL evaluation; **+ ordered, error-checked persistence** so a failed insert can no longer leave partial state (F1, F3). Unit-tested (`tests/eval-retry.test.js`).
+- **`routes/admin.js`** — `POST /admin/cles/:id/reevaluate`: recovers a passed-but-unscored CLE; refuses (409) to touch an already-evaluated one, so it can never override a score (F1).
 - *(deployed to the production backend during the review; the 3 stranded sessions were recovered through this path.)*
 
 ---

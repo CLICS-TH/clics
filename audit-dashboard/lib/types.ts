@@ -23,16 +23,16 @@ export function formatApiError(error: ApiError | undefined, fallback: string): s
   return fallback;
 }
 
-// A physician/professional, as embedded in PLE rows and transcript headers.
+// A physician/professional, as embedded in CLE rows and transcript headers.
 export interface Professional {
   full_name_th?: string | null;
   full_name_en?: string | null;
   pseudonym?: string | null;
 }
 
-// PLE row from /admin/ples and /admin/ples/flagged. C-screen pass flags (c1_pass…c6_pass) are read
+// CLE row from /admin/cles and /admin/cles/flagged. C-screen pass flags (c1_pass…c6_pass) are read
 // dynamically by key, so they live in an index signature alongside the named fields.
-export interface PleRow {
+export interface CleRow {
   id: string;
   status: string;
   turn_count?: number;
@@ -63,15 +63,15 @@ export interface Council {
   active?: boolean;
 }
 
-// /admin/ples/:id/transcript — the PLE plus its messages.
+// /admin/cles/:id/transcript — the CLE plus its messages.
 export interface TranscriptMessage {
   role: string;
   content: string;
   refs?: { source: string; title?: string }[];
   socratic_question?: string;
 }
-export interface PleTranscript {
-  ple: {
+export interface CleTranscript {
+  cle: {
     title?: string | null;
     chief_complaint?: string | null;
     status: string;
@@ -100,8 +100,8 @@ export interface IccData {
   n?: number;
 }
 
-// /admin/stats — per-status PLE counts (every key optional; pleStatusCards tolerates gaps).
-export type PleStats = Record<string, number>;
+// /admin/stats — per-status CLE counts (every key optional; cleStatusCards tolerates gaps).
+export type CleStats = Record<string, number>;
 
 // /admin/physicians/:id/profile — the physician header, their sessions, and the LPDP series.
 export interface ProfileScore {
@@ -128,7 +128,7 @@ export interface PhysicianProfile {
   lpdp?: ProfileScore[];
 }
 
-// /auditor/ples/:id — transcript + (post-submit) the auditor's own score and the AI evaluation.
+// /auditor/cles/:id — transcript + (post-submit) the auditor's own score and the AI evaluation.
 export interface AuditorPle {
   messages?: TranscriptMessage[];
   audit_score?: {

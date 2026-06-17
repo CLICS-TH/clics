@@ -4,7 +4,7 @@ const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { AssignSchema } = require('../lib/schemas');
-const { triggerEvaluation } = require('../services/ple-evaluation');
+const { triggerEvaluation } = require('../services/cle-evaluation');
 const { reconcileEvaluations } = require('../services/reconcile');
 const { sendDbError, pageParams } = require('../lib/db-helpers');
 const { assertSlotAvailable } = require('../lib/accounts');
@@ -29,7 +29,7 @@ const InviteSchema = z.object({
 
 // Admins are "directors" of exactly one council and see only that council's data; the
 // superadmin spans all councils. scopeToCouncil() narrows any query on a table carrying a
-// council_id column (ples, professionals, audit_scores, access_requests) for an admin caller;
+// council_id column (cles, professionals, audit_scores, access_requests) for an admin caller;
 // sameCouncil() guards single-row actions.
 const scopeToCouncil = (req, query) =>
   req.user.role === 'admin' ? query.eq('council_id', req.user.council_id) : query;
@@ -38,11 +38,11 @@ const sameCouncil = (req, councilId) =>
 
 // (The access-request approval schemas were retired with the request-access flow — see below.)
 
-router.get('/ples', async (req, res) => {
+router.get('/cles', async (req, res) => {
   const { status } = req.query;
   const { limit, offset } = pageParams(req);   // paginated — never pull the whole 400K-row table
-  let query = supabase.from('ples')
-    .select('*, professionals!ples_physician_id_fkey(full_name_th, full_name_en, specialty)', { count: 'exact' });
+  let query = supabase.from('cles')
+    .select('*, professionals!cles_physician_id_fkey(full_name_th, full_name_en, specialty)', { count: 'exact' });
   // 'in_progress' is a UI bucket spanning three live statuses; others map 1:1. Filtered server-side
   // so pagination + the Stats drill-down stay correct (not just over already-loaded rows).
   const STATUS_BUCKETS = { in_progress: ['active', 'ended', 'cle_pass'] };
@@ -50,7 +50,7 @@ router.get('/ples', async (req, res) => {
   // inherited Object.prototype function and 500 the query.
   const bucket = status && Object.hasOwn(STATUS_BUCKETS, status) ? STATUS_BUCKETS[status] : null;
   if (status) query = bucket ? query.in('status', bucket) : query.eq('status', status);
-  // The PLE list is the assignment surface — test sessions MUST appear here so they can be
+  // The CLE list is the assignment surface — test sessions MUST appear here so they can be
   // assigned/scored (feeding the audit system). They carry is_test so the UI can badge them;
   // pass ?only_real=true to hide them. Headline counts live in /stats + /icc (real-only there).
   if (req.query.only_real === 'true') query = query.eq('is_test', false);
@@ -61,10 +61,10 @@ router.get('/ples', async (req, res) => {
   res.json(data);
 });
 
-router.get('/ples/flagged', async (req, res) => {
+router.get('/cles/flagged', async (req, res) => {
   let query = supabase
-    .from('ples')
-    .select('*, professionals!ples_physician_id_fkey(full_name_th, full_name_en)')
+    .from('cles')
+    .select('*, professionals!cles_physician_id_fkey(full_name_th, full_name_en)')
     .eq('status', 'cle_flag_t2');
   query = scopeToCouncil(req, query);
   const { data, error } = await query.order('ended_at');
@@ -73,17 +73,17 @@ router.get('/ples/flagged', async (req, res) => {
 });
 
 // Investigate a session transcript (admin scoped to own council; superadmin any council).
-router.get('/ples/:id/transcript', async (req, res) => {
-  const { data: ple } = await supabase.from('ples')
-    .select('id, council_id, status, chief_complaint, title, started_at, ended_at, turn_count, token_count, professionals!ples_physician_id_fkey(full_name_th, full_name_en, pseudonym)')
+router.get('/cles/:id/transcript', async (req, res) => {
+  const { data: cle } = await supabase.from('cles')
+    .select('id, council_id, status, chief_complaint, title, started_at, ended_at, turn_count, token_count, professionals!cles_physician_id_fkey(full_name_th, full_name_en, pseudonym)')
     .eq('id', req.params.id).single();
-  if (!ple) return res.status(404).json({ error: 'Not found' });
-  if (!sameCouncil(req, ple.council_id)) return res.status(404).json({ error: 'Not found' });
+  if (!cle) return res.status(404).json({ error: 'Not found' });
+  if (!sameCouncil(req, cle.council_id)) return res.status(404).json({ error: 'Not found' });
 
   const { data: messages } = await supabase.from('messages')
     .select('role, content, refs, socratic_question, created_at')
-    .eq('ple_id', req.params.id).order('created_at');
-  res.json({ ple, messages: messages ?? [] });
+    .eq('cle_id', req.params.id).order('created_at');
+  res.json({ cle, messages: messages ?? [] });
 });
 
 // Council list for dashboard labels/selectors (admin + superadmin).
@@ -94,21 +94,21 @@ router.get('/councils', async (_req, res) => {
   res.json(data ?? []);
 });
 
-router.post('/ples/:id/approve', async (req, res) => {
-  const { data: ple } = await supabase.from('ples').select('*').eq('id', req.params.id).single();
+router.post('/cles/:id/approve', async (req, res) => {
+  const { data: cle } = await supabase.from('cles').select('*').eq('id', req.params.id).single();
   // Council check FIRST: a foreign-council id must be an opaque 404 regardless of its status.
-  if (!ple || !sameCouncil(req, ple.council_id)) return res.status(404).json({ error: 'Not found' });
-  if (ple.status !== 'cle_flag_t2') return res.status(400).json({ error: 'Not a flagged PLE' });
+  if (!cle || !sameCouncil(req, cle.council_id)) return res.status(404).json({ error: 'Not found' });
+  if (cle.status !== 'cle_flag_t2') return res.status(400).json({ error: 'Not a flagged CLE' });
 
   // Conditional update: a double-clicked Approve must not re-trigger the (paid) AI evaluation.
   // Only the click that actually flips cle_flag_t2 → cle_pass proceeds; any racer gets 409.
-  const { data: flipped, error } = await supabase.from('ples')
+  const { data: flipped, error } = await supabase.from('cles')
     .update({ status: 'cle_pass' }).eq('id', req.params.id).eq('status', 'cle_flag_t2').select('id');
   if (sendDbError(res, error)) return;
   if (!flipped?.length) return res.status(409).json({ error: 'Already processed' });
 
   const { data: messages, error: msgErr } = await supabase
-    .from('messages').select('role, content').eq('ple_id', req.params.id).order('created_at');
+    .from('messages').select('role, content').eq('cle_id', req.params.id).order('created_at');
   // The flag was already consumed (status=cle_pass). On a transient messages-query failure DON'T feed
   // an empty transcript to the evaluator (it would persist a bogus score) — leave it at cle_pass for
   // the scheduled reconcile sweep to retry.
@@ -119,65 +119,65 @@ router.post('/ples/:id/approve', async (req, res) => {
   const transcript = messages.map(m => ({ role: m.role, content: m.content }));
 
   // Fire-and-forget: evaluate + persist (same path as the physician /end flow).
-  triggerEvaluation(req.params.id, transcript, ple.physician_id)
+  triggerEvaluation(req.params.id, transcript, cle.physician_id)
     .catch(e => console.error('[admin approve] evaluation failed:', e.message));
 
   res.json({ ok: true });
 });
 
-// Re-run the PIS-7 evaluation for a PLE that passed the gate but whose evaluation never landed
+// Re-run the PIS-7 evaluation for a CLE that passed the gate but whose evaluation never landed
 // (e.g. a transient RIMPL error left it stuck at cle_pass with no ai_evaluation). Unlike the
-// fire-and-forget /end path, this awaits the result. It refuses to touch an already-evaluated PLE
+// fire-and-forget /end path, this awaits the result. It refuses to touch an already-evaluated CLE
 // (409), so it can only recover stranded sessions — it never re-judges or overrides a score.
-router.post('/ples/:id/reevaluate', async (req, res) => {
-  const { data: ple } = await supabase.from('ples').select('*').eq('id', req.params.id).single();
-  if (!ple) return res.status(404).json({ error: 'Not found' });
-  if (!sameCouncil(req, ple.council_id)) return res.status(404).json({ error: 'Not found' });
-  if (!['cle_pass', 'evaluated'].includes(ple.status)) {
-    return res.status(400).json({ error: 'PLE has not passed the CLE gate' });
+router.post('/cles/:id/reevaluate', async (req, res) => {
+  const { data: cle } = await supabase.from('cles').select('*').eq('id', req.params.id).single();
+  if (!cle) return res.status(404).json({ error: 'Not found' });
+  if (!sameCouncil(req, cle.council_id)) return res.status(404).json({ error: 'Not found' });
+  if (!['cle_pass', 'evaluated'].includes(cle.status)) {
+    return res.status(400).json({ error: 'CLE has not passed the CLE gate' });
   }
   const { data: existing } = await supabase
-    .from('ai_evaluations').select('id').eq('ple_id', ple.id).maybeSingle();
+    .from('ai_evaluations').select('id').eq('cle_id', cle.id).maybeSingle();
   if (existing) return res.status(409).json({ error: 'Already evaluated' });
 
   const { data: messages, error: msgErr } = await supabase
-    .from('messages').select('role, content').eq('ple_id', ple.id).order('created_at');
+    .from('messages').select('role, content').eq('cle_id', cle.id).order('created_at');
   if (sendDbError(res, msgErr)) return;
   if (!messages?.length) return res.status(409).json({ error: 'No transcript to evaluate.' });
   const transcript = messages.map(m => ({ role: m.role, content: m.content }));
   try {
-    await triggerEvaluation(ple.id, transcript, ple.physician_id);
+    await triggerEvaluation(cle.id, transcript, cle.physician_id);
     res.json({ ok: true, status: 'evaluated' });
   } catch (e) {
     res.status(502).json({ error: `Evaluation failed: ${e.message}` });
   }
 });
 
-router.post('/ples/:id/reject', async (req, res) => {
+router.post('/cles/:id/reject', async (req, res) => {
   // Mirror /approve: council check FIRST (opaque 404), then a conditional flip whose row count
   // distinguishes a real reject from a no-op — the old handler returned {ok:true} for a nonexistent
   // /foreign-council /already-processed /double-clicked id without touching anything.
-  const { data: ple } = await supabase.from('ples').select('id, council_id, status').eq('id', req.params.id).single();
-  if (!ple || !sameCouncil(req, ple.council_id)) return res.status(404).json({ error: 'Not found' });
-  if (ple.status !== 'cle_flag_t2') return res.status(400).json({ error: 'Not a flagged PLE' });
+  const { data: cle } = await supabase.from('cles').select('id, council_id, status').eq('id', req.params.id).single();
+  if (!cle || !sameCouncil(req, cle.council_id)) return res.status(404).json({ error: 'Not found' });
+  if (cle.status !== 'cle_flag_t2') return res.status(400).json({ error: 'Not a flagged CLE' });
 
-  const { data: flipped, error } = await supabase.from('ples')
+  const { data: flipped, error } = await supabase.from('cles')
     .update({ status: 'cle_fail_t1' }).eq('id', req.params.id).eq('status', 'cle_flag_t2').select('id');
   if (sendDbError(res, error)) return;
   if (!flipped?.length) return res.status(409).json({ error: 'Already processed' });
   res.json({ ok: true });
 });
 
-router.post('/ples/:id/assign', async (req, res) => {
+router.post('/cles/:id/assign', async (req, res) => {
   const parsed = AssignSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   const auditorId = parsed.data.auditor_id;
 
-  const { data: ple } = await supabase.from('ples')
+  const { data: cle } = await supabase.from('cles')
     .select('id, status, council_id, physician_id').eq('id', req.params.id).single();
-  if (!ple) return res.status(404).json({ error: 'Not found' });
-  if (!sameCouncil(req, ple.council_id)) return res.status(404).json({ error: 'Not found' });
-  if (ple.status !== 'evaluated') return res.status(400).json({ error: 'PLE is not ready for assignment' });
+  if (!cle) return res.status(404).json({ error: 'Not found' });
+  if (!sameCouncil(req, cle.council_id)) return res.status(404).json({ error: 'Not found' });
+  if (cle.status !== 'evaluated') return res.status(400).json({ error: 'CLE is not ready for assignment' });
 
   // The assignee must be an active auditor (or a "special" can_audit physician) in the SAME
   // council, and never the physician who ran the session.
@@ -187,14 +187,14 @@ router.post('/ples/:id/assign', async (req, res) => {
   if (!auditor || !canAudit || auditor.status !== 'active') {
     return res.status(400).json({ error: 'Not an active auditor' });
   }
-  if (auditor.id === ple.physician_id) {
+  if (auditor.id === cle.physician_id) {
     return res.status(409).json({ error: 'An auditor cannot be assigned to their own session.' });
   }
-  if (auditor.council_id !== ple.council_id) {
+  if (auditor.council_id !== cle.council_id) {
     return res.status(409).json({ error: 'Cross-council assignment is not allowed.' });
   }
 
-  const { error } = await supabase.from('ples')
+  const { error } = await supabase.from('cles')
     .update({ auditor_id: auditorId })
     .eq('id', req.params.id)
     .eq('status', 'evaluated');
@@ -252,7 +252,7 @@ router.get('/auditors', async (req, res) => {
     .select('id, full_name_th, full_name_en, role, can_audit, council_id')
     .or('role.eq.auditor,can_audit.eq.true')
     .eq('status', 'active');
-  // Optional ?council= so a superadmin can pre-filter the assignment dropdown to the PLE's council
+  // Optional ?council= so a superadmin can pre-filter the assignment dropdown to the CLE's council
   // (assignment requires same-council, so a mixed list otherwise offers auditors that 409 on assign).
   if (typeof req.query.council === 'string' && req.query.council) query = query.eq('council_id', req.query.council);
   query = scopeToCouncil(req, query);   // admins only assign auditors from their own council
@@ -333,17 +333,17 @@ router.get('/stats', async (req, res) => {
   const includeTest = req.query.include_test === 'true';
   const councilId = req.user.role === 'admin' ? req.user.council_id : null;
   // SQL GROUP BY via RPC (no whole-table load). Fall back to the JS count pre-migration.
-  const { data: rows, error } = await supabase.rpc('ple_status_counts', { p_council: councilId, p_include_test: includeTest });
+  const { data: rows, error } = await supabase.rpc('cle_status_counts', { p_council: councilId, p_include_test: includeTest });
   if (!error && Array.isArray(rows)) {
     const counts = {}; let total = 0;
     for (const r of rows) { counts[r.status] = Number(r.n); total += Number(r.n); }
     return res.json({ total, ...counts });
   }
-  let q = supabase.from('ples').select('status');
+  let q = supabase.from('cles').select('status');
   if (!includeTest) q = q.eq('is_test', false);
-  const { data: ples } = await scopeToCouncil(req, q);
-  const counts = (ples ?? []).reduce((acc, p) => { acc[p.status] = (acc[p.status] ?? 0) + 1; return acc; }, {});
-  res.json({ total: ples?.length ?? 0, ...counts });
+  const { data: cles } = await scopeToCouncil(req, q);
+  const counts = (cles ?? []).reduce((acc, p) => { acc[p.status] = (acc[p.status] ?? 0) + 1; return acc; }, {});
+  res.json({ total: cles?.length ?? 0, ...counts });
 });
 
 // Per-physician score explorer (admin + superadmin): the physician + all their sessions, each joined
@@ -357,21 +357,21 @@ router.get('/physicians/:id/profile', async (req, res) => {
   // An admin may only inspect physicians in their own council.
   if (!sameCouncil(req, physician.council_id)) return res.status(404).json({ error: 'Not found' });
 
-  const { data: ples } = await supabase
-    .from('ples')
+  const { data: cles } = await supabase
+    .from('cles')
     .select('id, status, chief_complaint, turn_count, token_count, started_at, folder_id')
     .eq('physician_id', req.params.id).order('started_at').limit(500);   // defensive cap on a prolific physician
-  const ids = (ples ?? []).map(p => p.id);
+  const ids = (cles ?? []).map(p => p.id);
   const empty = Promise.resolve({ data: [] });
 
   const [{ data: ai }, { data: audits }, { data: folders }, { data: lpdp }] = await Promise.all([
-    ids.length ? supabase.from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('ple_id', ids) : empty,
-    ids.length ? supabase.from('audit_scores').select('ple_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('ple_id', ids) : empty,
-    supabase.from('ple_folders').select('id, name').eq('physician_id', req.params.id),
-    supabase.from('lpdp_snapshots').select('ple_id, composite_score, domain_scores, snapshot_at').eq('physician_id', req.params.id).order('snapshot_at'),
+    ids.length ? supabase.from('ai_evaluations').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('cle_id', ids) : empty,
+    ids.length ? supabase.from('audit_scores').select('cle_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('cle_id', ids) : empty,
+    supabase.from('cle_folders').select('id, name').eq('physician_id', req.params.id),
+    supabase.from('lpdp_snapshots').select('cle_id, composite_score, domain_scores, snapshot_at').eq('physician_id', req.params.id).order('snapshot_at'),
   ]);
 
-  const aiBy = Object.fromEntries((ai ?? []).map(e => [e.ple_id, e]));
+  const aiBy = Object.fromEntries((ai ?? []).map(e => [e.cle_id, e]));
 
   // Auditor names — WHO scored each session, for admin accountability/traceability on this internal
   // profile view. (Distinct from GET /export, which pseudonymizes auditors as A-<hash> because that
@@ -383,10 +383,10 @@ router.get('/physicians/:id/profile', async (req, res) => {
   const auditorName = Object.fromEntries((auditorRows ?? []).map(a => [a.id, a.full_name_th || a.full_name_en]));
 
   const auditsBy = {};
-  (audits ?? []).forEach(s => { (auditsBy[s.ple_id] ??= []).push({ ...s, auditor_name: auditorName[s.auditor_id] ?? null }); });
+  (audits ?? []).forEach(s => { (auditsBy[s.cle_id] ??= []).push({ ...s, auditor_name: auditorName[s.auditor_id] ?? null }); });
   const folderName = Object.fromEntries((folders ?? []).map(f => [f.id, f.name]));
 
-  const sessions = (ples ?? []).map(p => ({
+  const sessions = (cles ?? []).map(p => ({
     ...p,
     folder_name: p.folder_id ? (folderName[p.folder_id] ?? null) : null,
     ai: aiBy[p.id] ?? null,
@@ -411,32 +411,32 @@ router.post('/reconcile-evaluations', async (req, res) => {
 // Only pseudonyms (P-NNN) leave here — no names/emails. For the research team.
 router.get('/export', async (req, res) => {
   // Page-bounded: pull one page of sessions, then ONLY that page's physicians + scores (so the
-  // research export streams in chunks instead of loading every physician + ple at 80K scale).
+  // research export streams in chunks instead of loading every physician + cle at 80K scale).
   // Default to REAL sessions only — test sessions must not silently pollute the research export
   // (mirrors /stats + /icc). ?include_test=true opts them in, and is_test is emitted so they're
   // distinguishable either way.
   const includeTest = req.query.include_test === 'true';
   const { limit, offset } = pageParams(req, { def: 200, max: 1000 });
-  let pq = supabase.from('ples')
+  let pq = supabase.from('cles')
     .select('id, physician_id, status, turn_count, token_count, duration_seconds, started_at, is_test', { count: 'exact' });
   if (!includeTest) pq = pq.eq('is_test', false);
   pq = scopeToCouncil(req, pq);
-  const { data: ples, count, error: plesErr } = await pq.order('started_at').range(offset, offset + limit - 1);
-  if (sendDbError(res, plesErr)) return; // a DB error must not look like an empty research export
-  const pleIds = (ples ?? []).map(p => p.id);
-  const physIds = [...new Set((ples ?? []).map(p => p.physician_id))];
+  const { data: cles, count, error: clesErr } = await pq.order('started_at').range(offset, offset + limit - 1);
+  if (sendDbError(res, clesErr)) return; // a DB error must not look like an empty research export
+  const cleIds = (cles ?? []).map(p => p.id);
+  const physIds = [...new Set((cles ?? []).map(p => p.physician_id))];
   const empty = Promise.resolve({ data: [] });
   const { data: pros } = await (physIds.length ? supabase.from('professionals').select('id, pseudonym').in('id', physIds) : empty);
   const pseudo = Object.fromEntries((pros ?? []).map(p => [p.id, p.pseudonym]));
-  const { data: ai } = await (pleIds.length ? supabase.from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('ple_id', pleIds) : empty);
-  const aiBy = Object.fromEntries((ai ?? []).map(e => [e.ple_id, e]));
-  const { data: audits } = await (pleIds.length ? supabase.from('audit_scores').select('ple_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('ple_id', pleIds) : empty);
+  const { data: ai } = await (cleIds.length ? supabase.from('ai_evaluations').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('cle_id', cleIds) : empty);
+  const aiBy = Object.fromEntries((ai ?? []).map(e => [e.cle_id, e]));
+  const { data: audits } = await (cleIds.length ? supabase.from('audit_scores').select('cle_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('cle_id', cleIds) : empty);
   // Auditors are study staff, not research subjects — pseudonymize their id too so the exported
   // file carries no reversible identity (stable A-<hash>: same auditor → same label across exports).
   const auditorTag = (id) => 'A-' + createHash('sha256').update(String(id)).digest('hex').slice(0, 8);
   const audBy = {};
-  (audits ?? []).forEach(s => { (audBy[s.ple_id] ??= []).push({ auditor: auditorTag(s.auditor_id), composite: Number(s.composite_score), d1: s.d1, d2: s.d2, d3: s.d3, d4: s.d4, d5: s.d5, d6: s.d6, d7: s.d7 }); });
-  const sessions = (ples ?? []).map(p => {
+  (audits ?? []).forEach(s => { (audBy[s.cle_id] ??= []).push({ auditor: auditorTag(s.auditor_id), composite: Number(s.composite_score), d1: s.d1, d2: s.d2, d3: s.d3, d4: s.d4, d5: s.d5, d6: s.d6, d7: s.d7 }); });
+  const sessions = (cles ?? []).map(p => {
     const e = aiBy[p.id];
     return {
       cle_id: p.id, physician: pseudo[p.physician_id] ?? null, status: p.status, is_test: p.is_test,

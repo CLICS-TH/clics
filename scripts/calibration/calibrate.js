@@ -3,8 +3,8 @@
  * ICC calibration harness (G1 credit gate). Measures AI↔human inter-rater ICC on the FIXED soak
  * cohort and reports per-domain divergence so the PIS-7 evaluator prompt can be tuned toward ≥0.75.
  *
- * Cohort = every PLE that has BOTH an ai_evaluations row AND ≥1 audit_scores row (the 2026-06-07
- * soak's 10 PLEs / 30 human scores). Read-only on the DB in backend/.env.
+ * Cohort = every CLE that has BOTH an ai_evaluations row AND ≥1 audit_scores row (the 2026-06-07
+ * soak's 10 CLEs / 30 human scores). Read-only on the DB in backend/.env.
  *
  * Modes:
  *   --mode baseline   ICC from the STORED ai_evaluations (no Claude calls). Must reproduce ≈0.66 —
@@ -17,7 +17,7 @@
  *   cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/calibration/calibrate.js --mode rescore
  * (rescore also needs RIMPL running on RIMPL_URL with ANTHROPIC_API_KEY — see README.md.)
  *
- * CAVEATS (see README): tuning on the same 10 PLEs you measure on risks OVERFITTING; at n≈30 pairs
+ * CAVEATS (see README): tuning on the same 10 CLEs you measure on risks OVERFITTING; at n≈30 pairs
  * the 95% CI is wide (~0.40–0.83). A run hitting ≥0.75 here is necessary, NOT a passed gate.
  */
 require('dotenv').config();
@@ -55,23 +55,23 @@ const r1 = (x) => Math.round(x * 10) / 10;
 const r2 = (x) => Math.round(x * 100) / 100;
 
 async function loadCohort() {
-  const { data: ai, error: e1 } = await supabase.from('ai_evaluations').select('ple_id, d1,d2,d3,d4,d5,d6,d7, composite_score');
-  const { data: aud, error: e2 } = await supabase.from('audit_scores').select('ple_id, auditor_id, d1,d2,d3,d4,d5,d6,d7, composite_score');
+  const { data: ai, error: e1 } = await supabase.from('ai_evaluations').select('cle_id, d1,d2,d3,d4,d5,d6,d7, composite_score');
+  const { data: aud, error: e2 } = await supabase.from('audit_scores').select('cle_id, auditor_id, d1,d2,d3,d4,d5,d6,d7, composite_score');
   if (e1 || e2) throw new Error(`DB read failed: ${(e1 || e2).message}`);
-  const aiBy = new Map((ai || []).map(e => [e.ple_id, e]));
+  const aiBy = new Map((ai || []).map(e => [e.cle_id, e]));
   const audBy = new Map();
-  for (const s of aud || []) { (audBy.get(s.ple_id) || audBy.set(s.ple_id, []).get(s.ple_id)).push(s); }
+  for (const s of aud || []) { (audBy.get(s.cle_id) || audBy.set(s.cle_id, []).get(s.cle_id)).push(s); }
   const ids = [...aiBy.keys()].filter(id => audBy.has(id));
-  const { data: ples } = ids.length ? await supabase.from('ples').select('id, physician_id').in('id', ids) : { data: [] };
-  const physIds = [...new Set((ples || []).map(p => p.physician_id))];
+  const { data: cles } = ids.length ? await supabase.from('cles').select('id, physician_id').in('id', ids) : { data: [] };
+  const physIds = [...new Set((cles || []).map(p => p.physician_id))];
   const { data: pros } = physIds.length ? await supabase.from('professionals').select('id, pseudonym').in('id', physIds) : { data: [] };
   const pseudo = new Map((pros || []).map(p => [p.id, p.pseudonym]));
-  const label = new Map((ples || []).map(p => [p.id, pseudo.get(p.physician_id) || p.id.slice(0, 6)]));
-  return ids.map(id => ({ ple_id: id, pseudonym: label.get(id) || id.slice(0, 6), ai: aiBy.get(id), humans: audBy.get(id) }));
+  const label = new Map((cles || []).map(p => [p.id, pseudo.get(p.physician_id) || p.id.slice(0, 6)]));
+  return ids.map(id => ({ cle_id: id, pseudonym: label.get(id) || id.slice(0, 6), ai: aiBy.get(id), humans: audBy.get(id) }));
 }
 
-async function fetchMessages(ple_id) {
-  const { data } = await supabase.from('messages').select('role, content').eq('ple_id', ple_id).order('created_at');
+async function fetchMessages(cle_id) {
+  const { data } = await supabase.from('messages').select('role, content').eq('cle_id', cle_id).order('created_at');
   return (data || []).map(m => ({ role: m.role, content: m.content }));
 }
 
@@ -112,7 +112,7 @@ function printReport(mode, report, sha) {
   console.log(`\nPer-domain mean (AI vs human; +Δ = AI inflates):`);
   console.log(`  dom  name        w     AI    human   Δ`);
   for (const d of DOMS) { const x = domain[d]; console.log(`  ${d}   ${x.name.padEnd(10)} ${x.weight.toFixed(2)}  ${String(x.ai).padStart(4)}  ${String(x.human).padStart(5)}  ${x.delta >= 0 ? '+' : ''}${x.delta}`); }
-  console.log(`\nPer-PLE composite (AI vs mean-human):`);
+  console.log(`\nPer-CLE composite (AI vs mean-human):`);
   for (const p of perPle) console.log(`  ${String(p.pseudonym).padEnd(8)} AI ${String(p.ai).padStart(5)}  human ${String(p.human).padStart(5)}  Δ ${p.delta >= 0 ? '+' : ''}${p.delta}`);
   if (sha) console.log(`\nPIS-7 prompt sha256: ${sha.slice(0, 16)}`);
   console.log(`──────────────────────────────────────────────\n`);
@@ -131,9 +131,9 @@ function writeRun(mode, report, sha) {
   console.log(`\n=== CLICS ICC calibration — mode=${MODE} ===`);
   let cohort = await loadCohort();
   const totalHumans = cohort.reduce((a, c) => a + c.humans.length, 0);
-  console.log(`Cohort: ${cohort.length} PLEs (AI eval + ≥1 human score), ${totalHumans} human scores.`);
+  console.log(`Cohort: ${cohort.length} CLEs (AI eval + ≥1 human score), ${totalHumans} human scores.`);
   if (cohort.length < 2) {
-    console.error('Not enough doubly-scored PLEs to compute ICC — is backend/.env pointing at the DB that holds the soak cohort?');
+    console.error('Not enough doubly-scored CLEs to compute ICC — is backend/.env pointing at the DB that holds the soak cohort?');
     process.exit(1);
   }
 
@@ -144,27 +144,27 @@ function writeRun(mode, report, sha) {
     sha = promptSha();
     console.log(`Re-scoring via RIMPL ${process.env.RIMPL_URL || 'http://localhost:3003'} (live Claude). prompt sha=${sha.slice(0, 12)}\n`);
     // An eval is valid only if every domain is numeric (the model occasionally returns malformed
-    // JSON, which would silently score 0 and poison the ICC) — retry once, else drop the PLE.
+    // JSON, which would silently score 0 and poison the ICC) — retry once, else drop the CLE.
     const validEval = (e) => e && DOMS.every(d => Number.isFinite(Number(e[d]))) && Number(e.composite_score) > 0;
     const newMap = new Map();
     for (const c of cohort) {
-      const messages = await fetchMessages(c.ple_id);
+      const messages = await fetchMessages(c.cle_id);
       try {
-        let e = await rimplEvaluate({ ple_id: c.ple_id, transcript: messages });
+        let e = await rimplEvaluate({ cle_id: c.cle_id, transcript: messages });
         if (!validEval(e)) {
           console.log(`  ↻ ${String(c.pseudonym).padEnd(8)} invalid eval (missing domains) — retrying once`);
-          e = await rimplEvaluate({ ple_id: c.ple_id, transcript: messages });
+          e = await rimplEvaluate({ cle_id: c.cle_id, transcript: messages });
         }
         if (!validEval(e)) { console.error(`  ✗ ${String(c.pseudonym).padEnd(8)} invalid eval twice — dropped from this run`); continue; }
-        newMap.set(c.ple_id, e);
+        newMap.set(c.cle_id, e);
         console.log(`  ✓ ${String(c.pseudonym).padEnd(8)} composite=${e.composite_score}`);
       } catch (err) {
         console.error(`  ✗ ${String(c.pseudonym).padEnd(8)} ${err.message}`);
       }
     }
-    cohort = cohort.filter(c => newMap.has(c.ple_id));
+    cohort = cohort.filter(c => newMap.has(c.cle_id));
     if (cohort.length < 2) { console.error('\nToo few successful re-scores — is RIMPL up and ANTHROPIC_API_KEY set?'); process.exit(1); }
-    aiScoreOf = (c) => ({ ...pick(newMap.get(c.ple_id)), composite: num(newMap.get(c.ple_id).composite_score) });
+    aiScoreOf = (c) => ({ ...pick(newMap.get(c.cle_id)), composite: num(newMap.get(c.cle_id).composite_score) });
   } else {
     console.error(`Unknown --mode "${MODE}" (use baseline|rescore).`); process.exit(1);
   }

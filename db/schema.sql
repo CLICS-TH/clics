@@ -173,7 +173,7 @@ create index invites_status_idx on public.invites(status);
 create unique index invites_one_pending on public.invites(email, role, council_id) where status = 'pending';
 
 -- Physician-created folders for organizing conversations (see db/migration-folders.sql)
-create table public.ple_folders (
+create table public.cle_folders (
   id           uuid primary key default gen_random_uuid(),
   physician_id uuid not null references public.professionals(id) on delete cascade,
   name         text not null,
@@ -181,17 +181,17 @@ create table public.ple_folders (
   created_at   timestamptz default now(),
   updated_at   timestamptz default now()
 );
-create index ple_folders_physician_idx on public.ple_folders(physician_id);
+create index ple_folders_physician_idx on public.cle_folders(physician_id);
 
 -- One row per physician session
-create table public.ples (
+create table public.cles (
   id               uuid primary key default gen_random_uuid(),
   physician_id     uuid not null references public.professionals(id),
   auditor_id       uuid references public.professionals(id),
   -- Denormalized from the physician's council at creation time (never re-synced on council change).
   council_id       uuid references public.councils(id),
   is_test          boolean not null default false,   -- demo/test rows; preserved by reset-demo.js
-  folder_id        uuid references public.ple_folders(id) on delete set null,  -- null = Uncategorized
+  folder_id        uuid references public.cle_folders(id) on delete set null,  -- null = Uncategorized
   title            text,                                                       -- physician-editable label
   chief_complaint  text,
   status           text not null default 'active'
@@ -208,28 +208,28 @@ create table public.ples (
   provider_used    text default 'claude',   -- reserved for L4 multi-provider rotation (roadmap); currently always 'claude'
   created_at       timestamptz default now()
 );
-create index ples_folder_idx on public.ples(folder_id);
-create index ples_council_idx on public.ples(council_id);
+create index cles_folder_idx on public.cles(folder_id);
+create index cles_council_idx on public.cles(council_id);
 
--- Structured patient identifier, PHYSICALLY ISOLATED from `ples` so it never leaks into the
--- cloud-AI payload / auditor blind queue / de-identified export (which all read `ples`). Only the
+-- Structured patient identifier, PHYSICALLY ISOLATED from `cles` so it never leaks into the
+-- cloud-AI payload / auditor blind queue / de-identified export (which all read `cles`). Only the
 -- owning physician reads it. See db/migration-patient-intake.sql.
-create table public.ple_patient_refs (
-  ple_id        uuid primary key references public.ples(id) on delete cascade,
+create table public.cle_patient_refs (
+  cle_id        uuid primary key references public.cles(id) on delete cascade,
   physician_id  uuid not null references public.professionals(id) on delete cascade,
   patient_ref   text,
   created_at    timestamptz not null default now()
 );
-create index ple_patient_refs_physician_idx on public.ple_patient_refs(physician_id);
-alter table public.ple_patient_refs enable row level security;
-drop policy if exists ple_patient_refs_owner on public.ple_patient_refs;
-create policy ple_patient_refs_owner on public.ple_patient_refs
+create index ple_patient_refs_physician_idx on public.cle_patient_refs(physician_id);
+alter table public.cle_patient_refs enable row level security;
+drop policy if exists ple_patient_refs_owner on public.cle_patient_refs;
+create policy ple_patient_refs_owner on public.cle_patient_refs
   for all using (physician_id = auth.uid()) with check (physician_id = auth.uid());
 
 -- One row per chat turn
 create table public.messages (
   id                uuid primary key default gen_random_uuid(),
-  ple_id            uuid not null references public.ples(id) on delete cascade,
+  cle_id            uuid not null references public.cles(id) on delete cascade,
   role              text not null check (role in ('physician','assistant')),
   content           text not null,
   refs              jsonb default '[]'::jsonb,
@@ -241,7 +241,7 @@ create table public.messages (
 -- PIS-7 scored by AI
 create table public.ai_evaluations (
   id               uuid primary key default gen_random_uuid(),
-  ple_id           uuid not null references public.ples(id) on delete cascade,
+  cle_id           uuid not null references public.cles(id) on delete cascade,
   d1 smallint not null check (d1 between 0 and 5),
   d2 smallint not null check (d2 between 0 and 5),
   d3 smallint not null check (d3 between 0 and 5),
@@ -253,13 +253,13 @@ create table public.ai_evaluations (
   domain_rationale jsonb,
   model_version    text not null default 'CCME_LLM_v8.0',
   evaluated_at     timestamptz default now(),
-  unique (ple_id)   -- one AI evaluation per session; backstops the duplicate-evaluation race
+  unique (cle_id)   -- one AI evaluation per session; backstops the duplicate-evaluation race
 );
 
 -- PIS-7 scored by Expert Auditor
 create table public.audit_scores (
   id              uuid primary key default gen_random_uuid(),
-  ple_id          uuid not null references public.ples(id) on delete cascade,
+  cle_id          uuid not null references public.cles(id) on delete cascade,
   auditor_id      uuid not null references public.professionals(id),
   council_id      uuid references public.councils(id),  -- denormalized from the session; kept in sync by audit_scores_guard
 
@@ -273,7 +273,7 @@ create table public.audit_scores (
   composite_score numeric not null,
   notes           text,
   scored_at       timestamptz default now(),
-  unique (ple_id, auditor_id)   -- one score per (session, auditor); backstops the SELECT-then-INSERT race
+  unique (cle_id, auditor_id)   -- one score per (session, auditor); backstops the SELECT-then-INSERT race
 );
 
 -- RAG knowledge base (seeded via seed-documents.js)
@@ -287,15 +287,15 @@ create table public.documents (
   created_at timestamptz default now()
 );
 
--- Per-PLE score history for LPDP chart
+-- Per-CLE score history for LPDP chart
 create table public.lpdp_snapshots (
   id              uuid primary key default gen_random_uuid(),
   physician_id    uuid not null references public.professionals(id),
-  ple_id          uuid not null references public.ples(id),
+  cle_id          uuid not null references public.cles(id),
   composite_score numeric not null,
   domain_scores   jsonb not null,
   snapshot_at     timestamptz default now(),
-  unique (ple_id)   -- one snapshot per session; backstops the duplicate-evaluation race
+  unique (cle_id)   -- one snapshot per session; backstops the duplicate-evaluation race
 );
 
 create index audit_scores_council_idx on public.audit_scores(council_id);
@@ -304,8 +304,8 @@ create index audit_scores_council_idx on public.audit_scores(council_id);
 alter table public.councils         enable row level security;
 alter table public.council_slots    enable row level security;
 alter table public.professionals    enable row level security;
-alter table public.ple_folders      enable row level security;
-alter table public.ples             enable row level security;
+alter table public.cle_folders      enable row level security;
+alter table public.cles             enable row level security;
 alter table public.messages         enable row level security;
 alter table public.ai_evaluations   enable row level security;
 alter table public.audit_scores     enable row level security;
@@ -335,49 +335,49 @@ create policy "prof: superadmin write"
     exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
   );
 
--- ple_folders policies
-drop policy if exists "folders: physician own" on public.ple_folders;
+-- cle_folders policies
+drop policy if exists "folders: physician own" on public.cle_folders;
 create policy "folders: physician own"
-  on public.ple_folders for all using (physician_id = auth.uid());
-drop policy if exists "folders: admin read" on public.ple_folders;
+  on public.cle_folders for all using (physician_id = auth.uid());
+drop policy if exists "folders: admin read" on public.cle_folders;
 create policy "folders: superadmin read"
-  on public.ple_folders for select using (
+  on public.cle_folders for select using (
     exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
   );
 create policy "folders: admin read own council"
-  on public.ple_folders for select using (
+  on public.cle_folders for select using (
     exists (select 1 from public.professionals me
-            join public.professionals owner on owner.id = ple_folders.physician_id
+            join public.professionals owner on owner.id = cle_folders.physician_id
             where me.id = auth.uid() and me.role = 'admin' and me.council_id = owner.council_id)
   );
 
--- ples policies
-create policy "ples: physician own"
-  on public.ples for select using (physician_id = auth.uid());
-create policy "ples: auditor assigned"
-  on public.ples for select using (auditor_id = auth.uid());
-create policy "ples: superadmin all"
-  on public.ples for all using (
+-- cles policies
+create policy "cles: physician own"
+  on public.cles for select using (physician_id = auth.uid());
+create policy "cles: auditor assigned"
+  on public.cles for select using (auditor_id = auth.uid());
+create policy "cles: superadmin all"
+  on public.cles for all using (
     exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
   );
-create policy "ples: admin own council"
-  on public.ples for all using (
+create policy "cles: admin own council"
+  on public.cles for all using (
     exists (select 1 from public.professionals p
-            where p.id = auth.uid() and p.role = 'admin' and p.council_id = ples.council_id)
+            where p.id = auth.uid() and p.role = 'admin' and p.council_id = cles.council_id)
   );
-create policy "ples: physician insert"
-  on public.ples for insert with check (physician_id = auth.uid());
-create policy "ples: physician update own"
-  on public.ples for update using (physician_id = auth.uid());
+create policy "cles: physician insert"
+  on public.cles for insert with check (physician_id = auth.uid());
+create policy "cles: physician update own"
+  on public.cles for update using (physician_id = auth.uid());
 
 -- messages policies
-create policy "msg: physician own ple"
+create policy "msg: physician own cle"
   on public.messages for select using (
-    exists (select 1 from public.ples pl where pl.id = ple_id and pl.physician_id = auth.uid())
+    exists (select 1 from public.cles pl where pl.id = cle_id and pl.physician_id = auth.uid())
   );
-create policy "msg: auditor assigned ple"
+create policy "msg: auditor assigned cle"
   on public.messages for select using (
-    exists (select 1 from public.ples pl where pl.id = ple_id and pl.auditor_id = auth.uid())
+    exists (select 1 from public.cles pl where pl.id = cle_id and pl.auditor_id = auth.uid())
   );
 create policy "msg: superadmin all"
   on public.messages for all using (
@@ -386,18 +386,18 @@ create policy "msg: superadmin all"
 create policy "msg: admin own council"
   on public.messages for all using (
     exists (select 1 from public.professionals p
-            join public.ples pl on pl.id = messages.ple_id
+            join public.cles pl on pl.id = messages.cle_id
             where p.id = auth.uid() and p.role = 'admin' and p.council_id = pl.council_id)
   );
 create policy "msg: physician insert"
   on public.messages for insert with check (
-    exists (select 1 from public.ples pl where pl.id = ple_id and pl.physician_id = auth.uid())
+    exists (select 1 from public.cles pl where pl.id = cle_id and pl.physician_id = auth.uid())
   );
 
 -- ai_evaluations policies
 create policy "ai_eval: physician own"
   on public.ai_evaluations for select using (
-    exists (select 1 from public.ples pl where pl.id = ple_id and pl.physician_id = auth.uid())
+    exists (select 1 from public.cles pl where pl.id = cle_id and pl.physician_id = auth.uid())
   );
 create policy "ai_eval: superadmin all"
   on public.ai_evaluations for all using (
@@ -406,7 +406,7 @@ create policy "ai_eval: superadmin all"
 create policy "ai_eval: admin own council"
   on public.ai_evaluations for all using (
     exists (select 1 from public.professionals p
-            join public.ples pl on pl.id = ai_evaluations.ple_id
+            join public.cles pl on pl.id = ai_evaluations.cle_id
             where p.id = auth.uid() and p.role = 'admin' and p.council_id = pl.council_id)
   );
 
@@ -508,7 +508,7 @@ declare
   v_aud_council uuid;
 begin
   select council_id, physician_id into v_ple_council, v_physician
-    from public.ples where id = new.ple_id;
+    from public.cles where id = new.cle_id;
   select council_id into v_aud_council
     from public.professionals where id = new.auditor_id;
 
@@ -566,19 +566,19 @@ $$;
 create index if not exists professionals_role_status_idx          on public.professionals(role, status);
 create index if not exists professionals_council_role_status_idx  on public.professionals(council_id, role, status);
 create index if not exists professionals_pseudonym_idx            on public.professionals(pseudonym);
-create index if not exists ples_physician_idx                     on public.ples(physician_id);
-create index if not exists messages_ple_idx                       on public.messages(ple_id);
-create index if not exists ai_evaluations_ple_idx                 on public.ai_evaluations(ple_id);
-create index if not exists audit_scores_ple_idx                   on public.audit_scores(ple_id);
+create index if not exists cles_physician_idx                     on public.cles(physician_id);
+create index if not exists messages_ple_idx                       on public.messages(cle_id);
+create index if not exists ai_evaluations_ple_idx                 on public.ai_evaluations(cle_id);
+create index if not exists audit_scores_ple_idx                   on public.audit_scores(cle_id);
 create index if not exists audit_scores_auditor_idx               on public.audit_scores(auditor_id);
 create index if not exists lpdp_snapshots_physician_idx           on public.lpdp_snapshots(physician_id);
 create index if not exists professionals_created_idx              on public.professionals(created_at);
-create index if not exists ples_created_idx                       on public.ples(created_at);
+create index if not exists cles_created_idx                       on public.cles(created_at);
 -- Hot filters that previously had no index: the auditor queue (auditor_id + status='evaluated'),
--- the reconcile sweep + stats (status), and the LPDP/purge lookups by ple_id.
-create index if not exists ples_auditor_idx                       on public.ples(auditor_id);
-create index if not exists ples_status_idx                        on public.ples(status);
-create index if not exists lpdp_snapshots_ple_idx                 on public.lpdp_snapshots(ple_id);
+-- the reconcile sweep + stats (status), and the LPDP/purge lookups by cle_id.
+create index if not exists cles_auditor_idx                       on public.cles(auditor_id);
+create index if not exists cles_status_idx                        on public.cles(status);
+create index if not exists lpdp_snapshots_ple_idx                 on public.lpdp_snapshots(cle_id);
 
 create sequence if not exists public.pseudonym_seq;
 select setval('public.pseudonym_seq',
@@ -589,9 +589,9 @@ create or replace function public.next_pseudonym() returns text language sql as 
   select 'P-' || lpad(nextval('public.pseudonym_seq')::text, 3, '0');
 $$;
 
-create or replace function public.ple_status_counts(p_council uuid default null, p_include_test boolean default false)
+create or replace function public.cle_status_counts(p_council uuid default null, p_include_test boolean default false)
 returns table(status text, n bigint) language sql stable as $$
-  select status, count(*)::bigint from public.ples
+  select status, count(*)::bigint from public.cles
   where (p_council is null or council_id = p_council) and (p_include_test or is_test = false)
   group by status;
 $$;

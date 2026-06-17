@@ -54,8 +54,8 @@ app.use('/guest', limit(60_000, 15, 'Guest limit reached — slow down.'));
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/auth', require('./routes/auth'));
 app.use('/guest', require('./routes/guest')); // ephemeral guest mode (no auth, no persistence)
-app.use('/ples/folders', require('./routes/folders')); // before /ples so "folders" isn't read as :id
-app.use('/ples', require('./routes/ples'));
+app.use('/cles/folders', require('./routes/folders')); // before /cles so "folders" isn't read as :id
+app.use('/cles', require('./routes/cles'));
 // ORDER LOAD-BEARING: admin.js must mount before superadmin.js — superadmin.js opens with a
 // router-level requireRole('superadmin') that 403s and ENDS every admin-role request, and
 // admin.js's GET /users intentionally shadows the same path (dual-role, council-scoped).

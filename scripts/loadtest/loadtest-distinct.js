@@ -70,7 +70,7 @@ const pctl = (arr, p) => { const a = [...arr].sort((x, y) => x - y); return a.le
     const lat = [], errs = {}; let ok = 0;
     let next = 0; const wall0 = process.hrtime.bigint();
     await Promise.all(Array.from({ length: conc }, async () => {
-      while (next < reqs.length) { const idx = next++; const res = await timed(idx % 2 ? '/auth/me' : '/ples', reqs[idx]); lat.push(res.ms); if (res.ok) ok++; else { const k = res.err || 'http_' + res.status; errs[k] = (errs[k] || 0) + 1; } }
+      while (next < reqs.length) { const idx = next++; const res = await timed(idx % 2 ? '/auth/me' : '/cles', reqs[idx]); lat.push(res.ms); if (res.ok) ok++; else { const k = res.err || 'http_' + res.status; errs[k] = (errs[k] || 0) + 1; } }
     }));
     const wallMs = Number(process.hrtime.bigint() - wall0) / 1e6;
     const summary = { distinct_users: conc, requests: reqs.length, ok, errors: reqs.length - ok, errorRate: +((reqs.length - ok) / reqs.length * 100).toFixed(2), rps: +(reqs.length / (wallMs / 1000)).toFixed(1), p50: pctl(lat, 50), p95: pctl(lat, 95), p99: pctl(lat, 99), errs };

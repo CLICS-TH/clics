@@ -14,7 +14,7 @@ structured patient intake, reconcile sweep.
       the old trigger 500s auditor invite-accepts under the new model
    4. `db/migration-patient-intake.sql`
    5. `db/migration-overview-mailer.sql` (executive-overview RPC + `invites.email_sent_at`)
-3. Spot-check: `invites` / `license_verifications` / `ple_patient_refs` exist; `next_pseudonym()`
+3. Spot-check: `invites` / `license_verifications` / `cle_patient_refs` exist; `next_pseudonym()`
    returns a value; `council_member_counts()` returns rows; `enforce_auditor_license_trg` is GONE.
 
 ## 2. Prod Supabase dashboard (per docs/AUTH-SETUP.md)
@@ -45,8 +45,8 @@ cd ../physician-ui    && vercel --prod --yes
 curl https://<backend>/health        # {"status":"ok"}
 ```
 Smoke (mirror VALIDATE-SCALETEST steps 4–6 against prod, gently): all 4 role logins · one Google
-sign-in · one invite create→accept (physician AND auditor → active) · one PLE with the patient-
-identifier field · `/admin/ples` load-more + X-Total-Count.
+sign-in · one invite create→accept (physician AND auditor → active) · one CLE with the patient-
+identifier field · `/admin/cles` load-more + X-Total-Count.
 
 ## 5. Before real participants (org gates — team-only)
 IRB/ethics approval + final TH/EN consent text deployed · clear demo cohort (`db/reset-demo.js`,

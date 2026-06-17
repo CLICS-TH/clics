@@ -15,21 +15,21 @@ const round = (x, n = 1) => Math.round(x * 10 ** n) / 10 ** n;
   const tierByEmail = {}; tiers.forEach(t => { tierByEmail[t.pseudonym] = t.tier; });
 
   // ---- CLE funnel ----
-  const { data: ples } = await s.from('ples').select('id, physician_id, status, turn_count, token_count, duration_seconds, started_at').order('started_at');
-  const funnel = ples.reduce((a, p) => { a[p.status] = (a[p.status]||0)+1; return a; }, {});
+  const { data: cles } = await s.from('cles').select('id, physician_id, status, turn_count, token_count, duration_seconds, started_at').order('started_at');
+  const funnel = cles.reduce((a, p) => { a[p.status] = (a[p.status]||0)+1; return a; }, {});
   console.log('=== CLE FUNNEL ===');
-  console.log('total PLEs:', ples.length, JSON.stringify(funnel));
+  console.log('total CLEs:', cles.length, JSON.stringify(funnel));
 
   // ---- evaluations + audit scores ----
-  const { data: ai } = await s.from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
-  const aiBy = Object.fromEntries(ai.map(e => [e.ple_id, e]));
-  const { data: scores } = await s.from('audit_scores').select('ple_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
-  const scoresByPle = {}; scores.forEach(sc => (scoresByPle[sc.ple_id] ??= []).push(sc));
+  const { data: ai } = await s.from('ai_evaluations').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+  const aiBy = Object.fromEntries(ai.map(e => [e.cle_id, e]));
+  const { data: scores } = await s.from('audit_scores').select('cle_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+  const scoresByPle = {}; scores.forEach(sc => (scoresByPle[sc.cle_id] ??= []).push(sc));
 
-  // ---- per-PLE AI vs mean-human ----
-  console.log('\n=== PER-PLE: AI vs MEAN-HUMAN (evaluated) ===');
+  // ---- per-CLE AI vs mean-human ----
+  console.log('\n=== PER-CLE: AI vs MEAN-HUMAN (evaluated) ===');
   const rows = [];
-  for (const p of ples.filter(x => x.status === 'evaluated')) {
+  for (const p of cles.filter(x => x.status === 'evaluated')) {
     const aiC = Number(aiBy[p.id]?.composite_score);
     const hs = (scoresByPle[p.id] || []).map(x => Number(x.composite_score));
     const meanH = hs.reduce((a,b)=>a+b,0)/hs.length;
@@ -54,7 +54,7 @@ const round = (x, n = 1) => Math.round(x * 10 ** n) / 10 ** n;
   const byAud = {}; scores.forEach(sc => (byAud[sc.auditor_id] ??= []).push(Number(sc.composite_score)));
   for (const [aid, arr] of Object.entries(byAud)) console.log(`  ${pseudo[aid]}  mean=${round(arr.reduce((a,b)=>a+b,0)/arr.length)}  n=${arr.length}`);
 
-  // ---- LPDP trajectories (per physician, evaluated PLEs over time) ----
+  // ---- LPDP trajectories (per physician, evaluated CLEs over time) ----
   console.log('\n=== LPDP trajectories (composite over the week) ===');
   const { data: lpdp } = await s.from('lpdp_snapshots').select('physician_id, composite_score, snapshot_at').order('snapshot_at');
   const traj = {}; lpdp.forEach(l => (traj[pseudo[l.physician_id]] ??= []).push(round(Number(l.composite_score))));

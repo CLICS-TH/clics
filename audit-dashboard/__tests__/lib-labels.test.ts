@@ -1,6 +1,6 @@
 // Unit tests for lib/labels.ts — the single source of truth for status/role labels, the PIS-7
 // weighting, the composite math, the budget-meter thresholds and the case categoriser. These power
-// every status badge + the ICC dashboard, so a drift here silently mis-labels PLEs or mis-scores ICC.
+// every status badge + the ICC dashboard, so a drift here silently mis-labels CLEs or mis-scores ICC.
 import {
   STATUS_MAP,
   ROLE_LABELS,
@@ -11,7 +11,7 @@ import {
   DOMAIN_LABELS,
   roleToWire,
   roleToUi,
-  pleStatusCards,
+  cleStatusCards,
   budgetToneHex,
   computeComposite,
   caseCategory,
@@ -86,7 +86,7 @@ describe('roleToWire / roleToUi (the can_audit virtual-role encoding)', () => {
 });
 
 describe('label maps', () => {
-  it('STATUS_MAP covers every PLE lifecycle status', () => {
+  it('STATUS_MAP covers every CLE lifecycle status', () => {
     for (const k of ['active', 'ended', 'cle_pass', 'cle_fail_t1', 'cle_flag_t2', 'evaluated']) {
       expect(STATUS_MAP[k]).toBeTruthy();
     }
@@ -100,7 +100,7 @@ describe('label maps', () => {
   });
 });
 
-describe('pleStatusCards', () => {
+describe('cleStatusCards', () => {
   it('returns 5 cards whose buckets reconcile to the total', () => {
     const stats = {
       total: 30,
@@ -111,7 +111,7 @@ describe('pleStatusCards', () => {
       ended: 3,
       cle_pass: 2,
     };
-    const cards = pleStatusCards(stats);
+    const cards = cleStatusCards(stats);
     expect(cards).toHaveLength(5);
     const by = Object.fromEntries(cards.map((c) => [c.key, c.value]));
     // Evaluated + Awaiting QA + Did-not-pass + In-progress === Total
@@ -120,7 +120,7 @@ describe('pleStatusCards', () => {
     expect(by.in_progress).toBe(5 + 3 + 2);
   });
   it('defaults everything to 0 for null/empty stats', () => {
-    for (const c of pleStatusCards(null)) expect(c.value).toBe(0);
+    for (const c of cleStatusCards(null)) expect(c.value).toBe(0);
   });
 });
 

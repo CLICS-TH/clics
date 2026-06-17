@@ -10,7 +10,7 @@ const router = Router();
 const WEIGHTS = { d1: 0.15, d2: 0.20, d3: 0.15, d4: 0.15, d5: 0.15, d6: 0.10, d7: 0.10 };
 
 const EvalSchema = z.object({
-  ple_id: z.string(),
+  cle_id: z.string(),
   transcript: z.array(z.object({ role: z.string(), content: z.string() })),
 });
 
@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
   const parsed = EvalSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { ple_id, transcript } = parsed.data;
+  const { cle_id, transcript } = parsed.data;
   // PII-strip + defang injected role markers before the transcript reaches the cloud model.
   const transcriptText = flattenForPrompt(transcript);
 
@@ -59,7 +59,7 @@ router.post('/', async (req, res) => {
     ) * 20;
 
     res.json({
-      ple_id,
+      cle_id,
       d1: scores.d1, d2: scores.d2, d3: scores.d3, d4: scores.d4,
       d5: scores.d5, d6: scores.d6, d7: scores.d7,
       composite_score: Math.round(composite * 100) / 100,

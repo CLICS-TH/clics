@@ -23,7 +23,7 @@ export default function AuditorScorePage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const loadData = useCallback(() => apiFetch<AuditorPle>(`/auditor/ples/${id}`).then(d => {
+  const loadData = useCallback(() => apiFetch<AuditorPle>(`/auditor/cles/${id}`).then(d => {
     setData(d);
     if (d?.audit_score) {
       const { d1,d2,d3,d4,d5,d6,d7, notes: n } = d.audit_score;
@@ -50,7 +50,7 @@ export default function AuditorScorePage() {
     }
     setSubmitting(true);
     try {
-      const res = await apiFetch<ApiResult<unknown>>(`/auditor/ples/${id}/score`, {
+      const res = await apiFetch<ApiResult<unknown>>(`/auditor/cles/${id}/score`, {
         method: 'POST', body: JSON.stringify({ ...scores, notes }),
       });
       if (res?.error) {

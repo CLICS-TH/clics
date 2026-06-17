@@ -1,4 +1,4 @@
-// triggerEvaluation must retry a transient RIMPL failure instead of silently stranding a passed PLE.
+// triggerEvaluation must retry a transient RIMPL failure instead of silently stranding a passed CLE.
 // (jest requires factory-referenced vars to be `mock`-prefixed.)
 let mockUpdates = [];
 let mockInsertErr = {}; // { tableName: 'message' } to simulate an insert failure
@@ -34,21 +34,21 @@ jest.mock('../src/services/rimpl-client', () => ({
 const mockAccrue = jest.fn(async () => ({ cost: 0, error: null }));
 jest.mock('../src/lib/usage', () => ({ accrueUsage: (...a) => mockAccrue(...a) }));
 
-const { triggerEvaluation, persistEvaluation } = require('../src/services/ple-evaluation');
+const { triggerEvaluation, persistEvaluation } = require('../src/services/cle-evaluation');
 
 beforeEach(() => { mockAttempts = 0; mockFailFirst = 0; mockRejectStatus = null; mockUpdates = []; mockInsertErr = {}; mockAccrue.mockClear(); });
 
 test('succeeds on first try when RIMPL is healthy', async () => {
   await triggerEvaluation('ple1', [{ role: 'physician', content: 'x' }], 'doc1');
   expect(mockAttempts).toBe(1);
-  expect(mockUpdates.some(u => u.table === 'ples' && u.patch.status === 'evaluated')).toBe(true);
+  expect(mockUpdates.some(u => u.table === 'cles' && u.patch.status === 'evaluated')).toBe(true);
 });
 
 test('retries a transient RIMPL failure then succeeds', async () => {
   mockFailFirst = 2; // fail twice, succeed on the 3rd
   await triggerEvaluation('ple2', [{ role: 'physician', content: 'x' }], 'doc1');
   expect(mockAttempts).toBe(3);
-  expect(mockUpdates.some(u => u.table === 'ples' && u.patch.status === 'evaluated')).toBe(true);
+  expect(mockUpdates.some(u => u.table === 'cles' && u.patch.status === 'evaluated')).toBe(true);
 });
 
 test('gives up (throws) after exhausting retries', async () => {
@@ -65,12 +65,12 @@ test('does NOT retry a deterministic failure (502 bad output) — fails fast, on
 });
 
 test('accrues usage on a fresh eval, but NOT on a duplicate (23505) — no double-billing (F9)', async () => {
-  await triggerEvaluation('ple-fresh', [{ role: 'physician', content: 'x' }], 'doc1');
+  await triggerEvaluation('cle-fresh', [{ role: 'physician', content: 'x' }], 'doc1');
   expect(mockAccrue).toHaveBeenCalledTimes(1);
 
   mockAccrue.mockClear();
   mockInsertErr = { ai_evaluations: { code: '23505' } }; // a concurrent eval already wrote the row
-  await triggerEvaluation('ple-dup', [{ role: 'physician', content: 'x' }], 'doc1');
+  await triggerEvaluation('cle-dup', [{ role: 'physician', content: 'x' }], 'doc1');
   expect(mockAccrue).not.toHaveBeenCalled();
 });
 
@@ -78,6 +78,6 @@ test('persistEvaluation throws and does NOT flip status when the score insert fa
   mockInsertErr = { ai_evaluations: 'domain score out of range' };
   const result = { d1: 4, d2: 4, d3: 3, d4: 4, d5: 3, d6: 3, d7: 4, domain_rationale: {}, model_version: 'test' };
   await expect(persistEvaluation('ple4', 'doc1', result)).rejects.toThrow(/ai_evaluations insert failed/);
-  // no partial state: the PLE must not have been marked evaluated
-  expect(mockUpdates.some(u => u.table === 'ples' && u.patch.status === 'evaluated')).toBe(false);
+  // no partial state: the CLE must not have been marked evaluated
+  expect(mockUpdates.some(u => u.table === 'cles' && u.patch.status === 'evaluated')).toBe(false);
 });

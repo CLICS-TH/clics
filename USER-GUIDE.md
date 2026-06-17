@@ -33,7 +33,7 @@ You can sign in two ways:
 ## 2. 👩‍⚕️ For DOCTORS
 
 1. **Sign in** at the portal (Google or email + password). The first time, read and accept the short **consent notice**.
-2. **Start a new conversation (PLE)** and type the patient's main problem — e.g. *"chest pain in a 58-year-old man"* — using a **made-up / de-identified** case (no real patient details).
+2. **Start a new conversation (CLE)** and type the patient's main problem — e.g. *"chest pain in a 58-year-old man"* — using a **made-up / de-identified** case (no real patient details).
 3. **Talk it through with the AI tutor.** Ask questions, suggest a diagnosis, reason out loud. The AI explains its thinking, backs answers with references, gently corrects mistakes (it won't just agree with you), and ends each reply with a question to push you a step further.
 4. **Finish the session** when you're done.
 5. **See your result** — a score across **7 areas of clinical thinking**, plus a chart of your progress over time.
@@ -58,7 +58,7 @@ You can sign in two ways:
 1. **Sign in** at the portal — you'll be routed to the **dashboard**. You see and manage **only your own council**.
 2. **Invites** — invite a physician, auditor, or "Special" member by email; share the one-time link (or it's emailed, if email sending is enabled).
 3. **Users** — search members by name, see their scores, deactivate/reactivate accounts. *(Changing a member's role is a superadmin power.)*
-4. **Sessions (PLEs)** — see every session in your council and **assign a finished one to an auditor**.
+4. **Sessions (CLEs)** — see every session in your council and **assign a finished one to an auditor**.
 5. **QA Queue** — sessions the AI flagged for a second look: **Approve** (send for scoring) or **Reject** (won't count).
 6. **Auditor requests** — you can *see* who asked for auditor rights; a **superadmin** approves them.
 

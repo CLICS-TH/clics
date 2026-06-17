@@ -15,7 +15,7 @@ import { Menu } from 'lucide-react';
 // request-access flow (onboarding = Google self-service + invites).
 // Labels are {th, en} for the hierarchy renderer (#12a) — Thai primary, English smaller + dimmed.
 const ADMIN_LINKS = [
-  { href: '/admin/ples', th: 'PLEs' },
+  { href: '/admin/cles', th: 'CLEs' },
   { href: '/admin/invites', th: 'คำเชิญ', en: 'Invites' },
   { href: '/admin/users', th: 'ผู้ใช้งาน', en: 'Users' },
   { href: '/admin/flagged', th: 'QA Queue' },
@@ -23,7 +23,7 @@ const ADMIN_LINKS = [
 ];
 const SUPERADMIN_LINKS = [
   { href: '/admin/overview', th: 'ภาพรวม', en: 'Overview' },
-  { href: '/admin/ples', th: 'PLEs' },
+  { href: '/admin/cles', th: 'CLEs' },
   { href: '/admin/invites', th: 'คำเชิญ', en: 'Invites' },
   { href: '/admin/users', th: 'ผู้ใช้งาน', en: 'Users' },
   { href: '/admin/flagged', th: 'QA Queue' },
@@ -63,12 +63,12 @@ export function NavBar() {
     window.location.href = `${portal}/?logout=1`;
   }
 
-  // Active when the path matches OR is a child (detail page) of the link, so /admin/ples/[id] keeps
-  // 'PLEs' lit and /auditor/ples/[id] keeps 'Queue' lit. /home (exact) never false-matches a section.
+  // Active when the path matches OR is a child (detail page) of the link, so /admin/cles/[id] keeps
+  // 'CLEs' lit and /auditor/cles/[id] keeps 'Queue' lit. /home (exact) never false-matches a section.
   const isActive = (href: string) =>
     pathname === href ||
     pathname.startsWith(href + '/') ||
-    // The auditor's only tab is the queue; its scoring detail lives under /auditor/ples/...
+    // The auditor's only tab is the queue; its scoring detail lives under /auditor/cles/...
     (href === '/auditor/queue' && pathname.startsWith('/auditor/'));
 
   const linkClass = (href: string) =>

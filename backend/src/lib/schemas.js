@@ -18,12 +18,12 @@ const ScoreSchema = z.object({
   notes: z.string().max(4000).optional(),
 });
 
-const CreatePleSchema = z.object({
-  // (per-PLE specialty was collected but never persisted — ples has no such column; the select
-  // was removed from ple-new. Unknown keys from older cached clients are stripped by zod.)
+const CreateCleSchema = z.object({
+  // (per-CLE specialty was collected but never persisted — cles has no such column; the select
+  // was removed from cle-new. Unknown keys from older cached clients are stripped by zod.)
   chief_complaint: z.string().min(1).max(500),
   folder_id: z.string().uuid().optional(),
-  // Structured patient identifier — stored in the isolated ple_patient_refs table ONLY, NEVER sent
+  // Structured patient identifier — stored in the isolated cle_patient_refs table ONLY, NEVER sent
   // to the cloud AI / auditors / export. Lets the case narrative stay name-free (real-PII de-id).
   patient_ref: z.string().max(200).optional(),
 });
@@ -39,7 +39,7 @@ const CreateFolderSchema = z.object({
 const UpdateFolderSchema = CreateFolderSchema;
 
 // Rename / move a conversation. folder_id null => move to "Uncategorized".
-const UpdatePleSchema = z.object({
+const UpdateCleSchema = z.object({
   title: z.string().trim().min(1).max(120).optional(),
   folder_id: z.string().uuid().nullable().optional(),
 }).refine((b) => b.title !== undefined || b.folder_id !== undefined, {
@@ -47,6 +47,6 @@ const UpdatePleSchema = z.object({
 });
 
 module.exports = {
-  MessageSchema, ScoreSchema, CreatePleSchema, AssignSchema,
-  CreateFolderSchema, UpdateFolderSchema, UpdatePleSchema,
+  MessageSchema, ScoreSchema, CreateCleSchema, AssignSchema,
+  CreateFolderSchema, UpdateFolderSchema, UpdateCleSchema,
 };

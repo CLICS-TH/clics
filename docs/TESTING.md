@@ -44,10 +44,10 @@ the persistence layer mocked). The guard logic verified here is also enforced by
 
 | Handoff / seam | Endpoint(s) | Test |
 |---|---|---|
-| Physician PLE lifecycle (create · rename/move · delete) | `POST/PATCH/DELETE /ples` | `backend/tests/ples-lifecycle.test.js` |
-| `/end` CLE-gate transitions (T1/T2 → fail/flag/pass) | `POST /ples/:id/end` | `backend/tests/ple-end.test.js` |
-| Folder CRUD + ownership | `/ples/folders` | `backend/tests/folders.test.js` |
-| Admin → Auditor assignment (council, active, not-own, evaluated) | `POST /admin/ples/:id/assign` | `backend/tests/admin-assign.test.js` |
+| Physician CLE lifecycle (create · rename/move · delete) | `POST/PATCH/DELETE /cles` | `backend/tests/cles-lifecycle.test.js` |
+| `/end` CLE-gate transitions (T1/T2 → fail/flag/pass) | `POST /cles/:id/end` | `backend/tests/cle-end.test.js` |
+| Folder CRUD + ownership | `/cles/folders` | `backend/tests/folders.test.js` |
+| Admin → Auditor assignment (council, active, not-own, evaluated) | `POST /admin/cles/:id/assign` | `backend/tests/admin-assign.test.js` |
 | Auditor blind-score · double-submit 409 · self/cross-council guards · ICC | `/auditor/*` | `backend/tests/auditor-scoring.test.js` |
 | Role-access matrix · `can_audit` dual role · council scoping · deactivation | `requireRole`, `scopeToCouncil` | `backend/tests/council-isolation.test.js` |
 | **End-to-end chain:** admin assign → auditor blind → score → AI reveal → ICC | admin + auditor routers | `backend/tests/role-chain.integration.test.js` |
@@ -127,5 +127,5 @@ which backend they target. Run them against demo accounts, ideally right after `
 ## Known limitations
 - Hermetic suites cover **route-level** guard logic; the **DB triggers** (`audit_scores_guard`) and **RLS**
   are only exercised by the live smoke — don't read green CI as proof those backstops fire.
-- Evaluated PLEs need a **manual admin assignment** to reach an auditor (no auto-assign); `db/reset-demo.js`
-  should seed one assigned PLE so the auditor queue is always demoable.
+- Evaluated CLEs need a **manual admin assignment** to reach an auditor (no auto-assign); `db/reset-demo.js`
+  should seed one assigned CLE so the auditor queue is always demoable.

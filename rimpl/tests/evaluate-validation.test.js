@@ -24,7 +24,7 @@ const app = require('../src/index');
 const { callClaude } = require('../src/services/claude');
 
 const VALID = { d1: 3, d2: 4, d3: 3, d4: 2, d5: 5, d6: 1, d7: 4, rationale: {} };
-const body = { ple_id: 'x', transcript: [{ role: 'physician', content: 'hello' }] };
+const body = { cle_id: 'x', transcript: [{ role: 'physician', content: 'hello' }] };
 const reply = (obj) => ({ text: JSON.stringify(obj), inputTokens: 1, outputTokens: 1 });
 
 describe('POST /evaluate output validation', () => {

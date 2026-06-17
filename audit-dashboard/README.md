@@ -1,6 +1,6 @@
 # audit-dashboard — Admin / Auditor / Superadmin consoles
 
-The staff dashboard: PLE management + assignment, the auditor's blind PIS-7 scorer, the ICC dashboard,
+The staff dashboard: CLE management + assignment, the auditor's blind PIS-7 scorer, the ICC dashboard,
 invites, and user/usage management. **Next.js 16** (App Router) + React 19 + Tailwind **v4** + shadcn-on-
 Base-UI + recharts. Deployed to **Vercel**.
 
@@ -24,8 +24,8 @@ the old value (e.g. `localhost:3001`) stays baked in and prod login silently han
 ## Layout
 
 - `app/` — App Router. `login/` (consumes the `?token=` handoff from the portal — a bare visit redirects
-  back to the portal), `home/`, `admin/` (`overview`, `ples`, `ples/[id]`, `flagged`, `invites`, `users`,
-  `icc`, `lpdp`, `stats`), `auditor/` (`queue`, `ples/[id]`), `forgot/`, `reset/`. `globals.css` holds the
+  back to the portal), `home/`, `admin/` (`overview`, `cles`, `cles/[id]`, `flagged`, `invites`, `users`,
+  `icc`, `lpdp`, `stats`), `auditor/` (`queue`, `cles/[id]`), `forgot/`, `reset/`. `globals.css` holds the
   Tailwind v4 `@theme` block + design tokens.
 - `components/` — `NavBar`, `Toggles` (theme/viewport), `AppShell`, `PageIntro`, `Footer`, `RoleBadge`,
   `Skeleton`, `ThemeProvider`, `ViewportProvider`; and the design-system pieces: **`BiLabel`** (bilingual

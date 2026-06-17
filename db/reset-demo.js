@@ -1,8 +1,8 @@
 // db/reset-demo.js — reset the CLICS app to a clean slate, PRESERVING test history.
 //
-// Wipes all REAL activity (PLEs + messages + AI evals + audit scores + LPDP where is_test=false)
+// Wipes all REAL activity (CLEs + messages + AI evals + audit scores + LPDP where is_test=false)
 // and every non-superadmin account EXCEPT the accounts that own or scored a TEST session
-// (ples.is_test = true). Test sessions are kept so they can keep feeding the audit system.
+// (cles.is_test = true). Test sessions are kept so they can keep feeding the audit system.
 // councils + council_slots are CONFIGURATION and are never wiped.
 //
 //   cd backend && NODE_PATH="$PWD/node_modules" node ../db/reset-demo.js
@@ -31,7 +31,7 @@ async function count(table) {
   return count ?? 0;
 }
 async function snapshot(label) {
-  const tables = ['councils', 'professionals', 'ples', 'messages', 'ai_evaluations', 'audit_scores', 'lpdp_snapshots', 'access_requests', 'oauth_identities'];
+  const tables = ['councils', 'professionals', 'cles', 'messages', 'ai_evaluations', 'audit_scores', 'lpdp_snapshots', 'access_requests', 'oauth_identities'];
   const out = {};
   for (const t of tables) out[t] = await count(t);
   console.log(`\n${label}:`);
@@ -53,18 +53,18 @@ async function listAllUsers() {
 }
 
 // IDs of every account that owns or scored a TEST session — these must survive the reset,
-// or the FK ples.physician_id → professionals would be orphaned.
+// or the FK cles.physician_id → professionals would be orphaned.
 async function testAccountIds() {
   const keep = new Set();
-  const { data: testPles } = await supabase.from('ples').select('id, physician_id, auditor_id').eq('is_test', true);
+  const { data: testCles } = await supabase.from('cles').select('id, physician_id, auditor_id').eq('is_test', true);
   const ids = [];
-  for (const p of testPles ?? []) {
+  for (const p of testCles ?? []) {
     if (p.physician_id) keep.add(p.physician_id);
     if (p.auditor_id) keep.add(p.auditor_id);
     ids.push(p.id);
   }
   if (ids.length) {
-    const { data: scores } = await supabase.from('audit_scores').select('auditor_id').in('ple_id', ids);
+    const { data: scores } = await supabase.from('audit_scores').select('auditor_id').in('cle_id', ids);
     for (const s of scores ?? []) if (s.auditor_id) keep.add(s.auditor_id);
   }
   return keep;
@@ -75,12 +75,12 @@ async function testAccountIds() {
   await snapshot('BEFORE');
 
   // Delete only REAL sessions (is_test=false). Their messages/ai_evaluations/audit_scores cascade;
-  // lpdp_snapshots has no cascade, so remove those rows by ple_id first.
-  const { data: realPles } = await supabase.from('ples').select('id').eq('is_test', false);
-  const realIds = (realPles ?? []).map(p => p.id);
+  // lpdp_snapshots has no cascade, so remove those rows by cle_id first.
+  const { data: realCles } = await supabase.from('cles').select('id').eq('is_test', false);
+  const realIds = (realCles ?? []).map(p => p.id);
   if (realIds.length) {
-    await supabase.from('lpdp_snapshots').delete().in('ple_id', realIds);
-    await supabase.from('ples').delete().in('id', realIds);
+    await supabase.from('lpdp_snapshots').delete().in('cle_id', realIds);
+    await supabase.from('cles').delete().in('id', realIds);
   }
   await wipe('access_requests');
   // invites.created_by / professional_id reference professionals with NO on-delete action (RESTRICT),

@@ -1,7 +1,7 @@
 // Guest mode: a fully ephemeral, incognito-style trial of the AI.
 //
 // Boundary guarantees (see docs/constraints.md):
-//  - NO auth.users row, NO professionals row, NO ples/messages/audit rows — EVER.
+//  - NO auth.users row, NO professionals row, NO cles/messages/audit rows — EVER.
 //  - The only egress is the message text -> RIMPL PII-strip -> cloud AI (same boundary
 //    as a physician). The guest token carries only a random session id, no identity.
 //  - The 2-prompt cap is enforced by an in-memory TTL counter keyed by session id.

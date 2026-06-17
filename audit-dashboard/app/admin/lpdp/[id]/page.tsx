@@ -36,7 +36,7 @@ export default function PhysicianProfilePage() {
   );
 
   const { physician, sessions = [], lpdp = [] } = profile;
-  const chartData = lpdp.map((s, i: number) => ({ label: `PLE ${i + 1}`, composite_score: Number(s.composite_score) }));
+  const chartData = lpdp.map((s, i: number) => ({ label: `CLE ${i + 1}`, composite_score: Number(s.composite_score) }));
 
   const keyFor = (s: ProfileSession) =>
     group === 'status' ? (STATUS_MAP[s.status] ?? s.status)
@@ -78,7 +78,7 @@ export default function PhysicianProfilePage() {
                 : null;
               return (
                 // The whole card links to the session transcript so an admin can explore the chat history.
-                <a key={s.id} href={`/admin/ples/${s.id}`}
+                <a key={s.id} href={`/admin/cles/${s.id}`}
                   className="block border rounded-xl p-4 transition-colors hover:border-primary hover:shadow-sm">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">

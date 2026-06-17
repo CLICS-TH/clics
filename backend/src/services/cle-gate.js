@@ -1,10 +1,10 @@
 const WEIGHTS = { d1: 0.15, d2: 0.20, d3: 0.15, d4: 0.15, d5: 0.15, d6: 0.10, d7: 0.10 };
 
-function computeTier1(ple) {
+function computeTier1(cle) {
   return {
-    c1: (ple.duration_seconds ?? 0) >= 900,
-    c2: (ple.turn_count ?? 0) >= 4,
-    c3: (ple.token_count ?? 0) >= 800,
+    c1: (cle.duration_seconds ?? 0) >= 900,
+    c2: (cle.turn_count ?? 0) >= 4,
+    c3: (cle.token_count ?? 0) >= 800,
   };
 }
 

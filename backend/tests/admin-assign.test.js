@@ -1,4 +1,4 @@
-// Admin → Auditor handoff: POST /admin/ples/:id/assign guard branches + GET /admin/auditors scoping.
+// Admin → Auditor handoff: POST /admin/cles/:id/assign guard branches + GET /admin/auditors scoping.
 jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSupabaseMock());
 
 const request = require('supertest');
@@ -15,23 +15,23 @@ const auth = (r) => r.set('Authorization', 'Bearer test');
 // AssignSchema requires a UUID auditor_id (the caller id needn't be one — verifyJwt doesn't validate it).
 const AUD_UUID = '22222222-2222-2222-2222-222222222222';
 
-let ple, auditor, auditorsList;
+let cle, auditor, auditorsList;
 beforeEach(() => {
   m.reset();
   m.state.caller = ADMIN; // council A
-  ple = { id: 'p1', status: 'evaluated', council_id: COUNCIL_A, physician_id: 'phys-1' };
+  cle = { id: 'p1', status: 'evaluated', council_id: COUNCIL_A, physician_id: 'phys-1' };
   auditor = { id: AUD_UUID, role: 'auditor', status: 'active', council_id: COUNCIL_A, can_audit: false };
   auditorsList = [{ id: AUD_UUID, full_name_th: 'ผ', full_name_en: 'Aud', role: 'auditor', can_audit: false, council_id: COUNCIL_A }];
   m.state.resolve = (table, kind) => {
-    if (table === 'ples' && kind === 'single') return ple;
+    if (table === 'cles' && kind === 'single') return cle;
     if (table === 'professionals' && kind === 'single') return auditor; // the assignee lookup
     if (table === 'professionals' && kind === 'list') return auditorsList; // GET /admin/auditors
-    return undefined; // ples update → {error:null}
+    return undefined; // cles update → {error:null}
   };
 });
 
-const assign = (auditor_id = AUD_UUID, pleId = 'p1') =>
-  auth(request(app).post(`/admin/ples/${pleId}/assign`)).send({ auditor_id });
+const assign = (auditor_id = AUD_UUID, cleId = 'p1') =>
+  auth(request(app).post(`/admin/cles/${cleId}/assign`)).send({ auditor_id });
 // the /admin/auditors query is the LAST professionals read (verifyJwt's caller lookup is the first).
 const auditorsQuery = () => m.all('professionals').pop();
 
@@ -39,18 +39,18 @@ test('happy path: same-council active auditor → 200, auditor_id written, statu
   const r = await assign();
   expect(r.status).toBe(200);
   expect(r.body).toEqual({ ok: true });
-  const upd = m.find('ples', 'update');
+  const upd = m.find('cles', 'update');
   expect(upd.payload).toEqual({ auditor_id: AUD_UUID });
   expect(upd.eqs).toContainEqual(['id', 'p1']);
   expect(upd.eqs).toContainEqual(['status', 'evaluated']); // atomic — only assigns while still evaluated
 });
 
-test('PLE not yet evaluated → 400, no assignment', async () => {
-  ple.status = 'ended';
+test('CLE not yet evaluated → 400, no assignment', async () => {
+  cle.status = 'ended';
   const r = await assign();
   expect(r.status).toBe(400);
   expect(r.body.error).toMatch(/not ready/i);
-  expect(m.find('ples', 'update')).toBeUndefined();
+  expect(m.find('cles', 'update')).toBeUndefined();
 });
 
 test('a can_audit physician is a valid assignee → 200', async () => {
@@ -67,7 +67,7 @@ test('inactive auditor → 400 Not an active auditor', async () => {
 });
 
 test("assigning the session's own physician → 409", async () => {
-  ple.physician_id = AUD_UUID; // the assignee would be the runner
+  cle.physician_id = AUD_UUID; // the assignee would be the runner
   const r = await assign();
   expect(r.status).toBe(409);
   expect(r.body.error).toMatch(/own session/i);
@@ -80,23 +80,23 @@ test('cross-council auditor → 409', async () => {
   expect(r.body.error).toMatch(/cross-council/i);
 });
 
-test('admin assigning a PLE outside their council → opaque 404', async () => {
-  ple.council_id = COUNCIL_B; // admin is council A
+test('admin assigning a CLE outside their council → opaque 404', async () => {
+  cle.council_id = COUNCIL_B; // admin is council A
   const r = await assign();
   expect(r.status).toBe(404);
-  expect(m.find('ples', 'update')).toBeUndefined();
+  expect(m.find('cles', 'update')).toBeUndefined();
 });
 
 test('superadmin can assign across councils (sameCouncil is a no-op) → 200', async () => {
   m.state.caller = SUPERADMIN;
-  ple.council_id = COUNCIL_B;
-  auditor.council_id = COUNCIL_B; // assignee still must match the PLE council
+  cle.council_id = COUNCIL_B;
+  auditor.council_id = COUNCIL_B; // assignee still must match the CLE council
   const r = await assign();
   expect(r.status).toBe(200);
 });
 
 test('reassign while still evaluated is allowed (no auditor_id pre-check) → 200', async () => {
-  ple.auditor_id = 'someone-else';
+  cle.auditor_id = 'someone-else';
   const r = await assign();
   expect(r.status).toBe(200);
 });

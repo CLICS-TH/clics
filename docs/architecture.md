@@ -5,10 +5,10 @@ Browser / Mobile
        │  HTTPS · JWT Auth · REST API (port 3001)
        ▼
 L1  Frontend — HTML/JS (port 3000) + Next.js Audit Dashboard (port 3002)
-       │  Login · PLE Editor · Dashboard · Audit Sliders · LPDP Charts
+       │  Login · CLE Editor · Dashboard · Audit Sliders · LPDP Charts
        ▼
 L2  Backend — Node.js/Express (port 3001) + Supabase SDK
-       │  Auth · PLE screening (C1–C6) · SBMA · Credit Engine · ICC calc · Audit trail
+       │  Auth · CLE screening (C1–C6) · SBMA · Credit Engine · ICC calc · Audit trail
        ▼
 L3  RIMPL Middleware — on-premise CPU
        │  Pre-filter 4 signals · De-identify PII · Anti-sycophancy + ELM
@@ -23,7 +23,7 @@ Cloud AI (GPU) — randomized per session, no PII leaves on-premise
        │  JSON response → RIMPL post-filter
        ▼
 Supabase (PostgreSQL · AES-256)
-  Tables: professionals · councils · ples · audit_scores · lpdp_snapshots
+  Tables: professionals · councils · cles · audit_scores · lpdp_snapshots
 ```
 
 **Critical data-boundary rule:** PII never leaves the on-premise RIMPL layer. Only de-identified JSON fragments reach cloud AI providers.
@@ -34,7 +34,7 @@ The diagram above is the **target design**. As of the pilot build, L3/L4 run as 
 
 ## Request flow (chat)
 
-1. Physician sends a message → `POST /ples/:id/message` (backend, physician-gated).
+1. Physician sends a message → `POST /cles/:id/message` (backend, physician-gated).
 2. Backend forwards to RIMPL `POST /chat` over the internal network (`x-internal-token` auth).
 3. RIMPL strips PII, prepends the anti-sycophancy/citation/Socratic system prompt, does a RAG lookup, calls Claude, and retries once if the reply lacks a citation or Socratic question.
 4. Response (content + refs + `socratic_question` + token_count) returns to the backend, which persists the message pair and updates turn/token counters.

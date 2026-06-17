@@ -1,11 +1,11 @@
-// POST /ples/:id/end restructure (F4/F6/F8): the deterministic tier-1 result (duration, counts,
+// POST /cles/:id/end restructure (F4/F6/F8): the deterministic tier-1 result (duration, counts,
 // c1-c3) is persisted IN the atomic claim, and tier-2 runs via finalizeScreening. A persistent RIMPL
 // failure leaves the session at a RECOVERABLE 'ended' (202), never permanently stranded or wrongly
 // flagged. Turn/token counts are derived from the messages rows, not the racy cached counters.
 let mockPle;       // row returned by fetchOwnedPle
 let mockMsgs;      // messages rows
 let mockClaimed;   // rows returned by the atomic claim .select('id')
-let mockUpdates;   // captured ples updates
+let mockUpdates;   // captured cles updates
 let mockFinalize;  // finalizeScreening behavior
 
 jest.mock('../src/middleware/auth', () => ({
@@ -45,8 +45,8 @@ const request = require('supertest');
 const express = require('express');
 const app = express();
 app.use(express.json());
-app.use('/ples', require('../src/routes/ples'));
-const end = (id, body) => request(app).post(`/ples/${id}/end`).set('Authorization', 'Bearer t').send(body);
+app.use('/cles', require('../src/routes/cles'));
+const end = (id, body) => request(app).post(`/cles/${id}/end`).set('Authorization', 'Bearer t').send(body);
 
 const longAgo = () => new Date(Date.now() - 1200_000).toISOString(); // 20 min → wall-clock passes C1
 const qualifyingMsgs = () => ([
@@ -76,7 +76,7 @@ test('a qualifying session claims to ended (tier-1 persisted) then finalizes to 
   expect(claim.c1_pass && claim.c2_pass && claim.c3_pass).toBe(true);
   expect(claim.duration_seconds).toBeLessThanOrEqual(1300); // clamped to wall-clock, not 999999
   expect(mockFinalize).toHaveBeenCalledWith(expect.objectContaining({
-    pleId: 'ple1', physicianId: 'doc1', tier1: { c1: true, c2: true, c3: true },
+    cleId: 'ple1', physicianId: 'doc1', tier1: { c1: true, c2: true, c3: true },
   }));
 });
 

@@ -16,7 +16,7 @@
   <nav><span class="brand">CLICS</span><div><a href="/dashboard">← Dashboard</a></div></nav>
   <div class="container" style="max-width:640px">
     <header class="page-intro">
-      <p class="eyebrow">PLE · Evaluation</p>
+      <p class="eyebrow">CLE · Evaluation</p>
       <h1>ผลการประเมิน PIS-7</h1>
       <p class="sub">PIS-7 Evaluation — สรุปผลการให้เหตุผลทางคลินิกและเครดิต CPD ของ Episode นี้</p>
     </header>
@@ -29,7 +29,7 @@
   <script src="/js/icons.js"></script>
   <script src="/js/boot.js" defer></script>
   <script>
-    const pleId = new URLSearchParams(location.search).get('id');
+    const cleId = new URLSearchParams(location.search).get('id');
     let radarChart = null, lastScores = null;
     // Auto-poll while the evaluation is still running, instead of asking the user to hit "Refresh"
     // (the system should do its own polling). Bounded so it can't spin forever.
@@ -68,16 +68,16 @@
     }
 
     async function load() {
-      const ple = await api.getPle(pleId);
+      const cle = await api.getPle(cleId);
       const container = document.getElementById('content');
       // Unknown/deleted id (or network failure) → { error } with no status; don't fall
       // through to the scorecard, which would render NaN everywhere.
-      if (!ple || ple.error || !ple.status) { showMissing(container); return; }
-      if (ple.status === 'active') { container.innerHTML = '<p>กรุณาจบ session ก่อน</p>'; return; }
+      if (!cle || cle.error || !cle.status) { showMissing(container); return; }
+      if (cle.status === 'active') { container.innerHTML = '<p>กรุณาจบ session ก่อน</p>'; return; }
 
-      if (ple.status === 'cle_fail_t1' || ple.status === 'cle_flag_t2') {
+      if (cle.status === 'cle_fail_t1' || cle.status === 'cle_flag_t2') {
         const criteria = ['c1','c2','c3','c4','c5','c6'];
-        const isFail = ple.status === 'cle_fail_t1';
+        const isFail = cle.status === 'cle_fail_t1';
         container.innerHTML = `
           <div class="card">
             <div class="status-band ${isFail ? 'is-fail' : 'is-review'}" style="margin-bottom:16px">
@@ -86,8 +86,8 @@
             </div>
             <p style="color:var(--muted);margin-bottom:16px">ผลเกณฑ์ทั้ง 6 ข้อ / 6 Criteria:</p>
             ${criteria.map(c => `
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;color:${ple[c+'_pass'] ? 'var(--success-text)' : 'var(--error-text)'}">
-                ${icon(ple[c + '_pass'] ? 'checkCircle' : 'xCircle', 18)}
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;color:${cle[c+'_pass'] ? 'var(--success-text)' : 'var(--error-text)'}">
+                ${icon(cle[c + '_pass'] ? 'checkCircle' : 'xCircle', 18)}
                 <span style="color:var(--body-color)">${CRITERIA_LABELS[c]}</span>
               </div>`).join('')}
             <a href="/dashboard" class="btn btn-ghost" style="display:inline-block;margin-top:16px">← กลับ</a>
@@ -95,7 +95,7 @@
         return;
       }
 
-      if (ple.status === 'cle_pass') {
+      if (cle.status === 'cle_pass') {
         container.innerHTML = `
           <div class="card" style="text-align:center">
             <div class="status-band is-pass" style="justify-content:center;margin-bottom:14px">${icon('checkCircle', 28)}<span>ผ่านเกณฑ์ CLE แล้ว / CLE Passed</span></div>
@@ -105,7 +105,7 @@
         return;
       }
 
-      const eval_ = await api.getEvaluation(pleId);
+      const eval_ = await api.getEvaluation(cleId);
       if (!eval_ || eval_.status) {
         container.innerHTML = `<div class="card" style="text-align:center"><p style="color:var(--muted)">กำลังประเมิน… / Evaluating…</p></div>`;
         schedulePoll();

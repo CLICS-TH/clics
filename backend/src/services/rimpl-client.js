@@ -25,22 +25,22 @@ function isDeterministicRimplError(err) {
   return err && typeof err.status === 'number' && DETERMINISTIC_STATUSES.has(err.status);
 }
 
-async function rimplChat({ ple_id, history, message, language, chief_complaint }) {
+async function rimplChat({ cle_id, history, message, language, chief_complaint }) {
   const res = await fetch(`${RIMPL_URL}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
-    body: JSON.stringify({ ple_id, history, message, language, chief_complaint }),
+    body: JSON.stringify({ cle_id, history, message, language, chief_complaint }),
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });
   if (!res.ok) throw rimplError('/chat', res.status);
   return res.json();
 }
 
-async function rimplEvaluate({ ple_id, transcript }) {
+async function rimplEvaluate({ cle_id, transcript }) {
   const res = await fetch(`${RIMPL_URL}/evaluate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
-    body: JSON.stringify({ ple_id, transcript }),
+    body: JSON.stringify({ cle_id, transcript }),
     signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
   });
   if (!res.ok) throw rimplError('/evaluate', res.status);
