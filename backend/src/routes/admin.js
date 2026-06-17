@@ -466,6 +466,30 @@ router.get('/export', async (req, res) => {
   res.json({ exported_at: new Date().toISOString(), n: sessions.length, total: count ?? 0, limit, offset, sessions });
 });
 
+// Compensation report (admin + superadmin): per-physician payout = min(passed CLEs, 3) × ฿500,
+// capped at ฿1500 (CLICS_Proposal §12 / Appendix 03). REPORTING ONLY — no payment is processed.
+// Derived from cles (no schema change). Pilot-scale: passed non-test CLEs are ≤ ~225, well under the
+// PostgREST 1000-row cap; revisit with an RPC if the cohort ever grows past that.
+const COMP_RATE_THB = 500, COMP_CAP_CLES = 3;
+router.get('/compensation', async (req, res) => {
+  let q = supabase.from('cles').select('physician_id').eq('status', 'cle_pass').eq('is_test', false);
+  q = scopeToCouncil(req, q);
+  const { data: rows, error } = await q;
+  if (sendDbError(res, error)) return;
+  const countByPhys = {};
+  for (const r of rows ?? []) countByPhys[r.physician_id] = (countByPhys[r.physician_id] ?? 0) + 1;
+  const physIds = Object.keys(countByPhys);
+  const empty = Promise.resolve({ data: [] });
+  const { data: pros } = await (physIds.length ? supabase.from('professionals').select('id, pseudonym').in('id', physIds) : empty);
+  const pseudo = Object.fromEntries((pros ?? []).map(p => [p.id, p.pseudonym]));
+  const recipients = physIds.map((id) => {
+    const completed = Math.min(countByPhys[id], COMP_CAP_CLES);
+    return { physician: pseudo[id] ?? null, completed_cles: completed, amount_thb: completed * COMP_RATE_THB };
+  }).sort((a, b) => String(a.physician).localeCompare(String(b.physician)));
+  const total_thb = recipients.reduce((a, r) => a + r.amount_thb, 0);
+  res.json({ rate_thb_per_cle: COMP_RATE_THB, cap_cles: COMP_CAP_CLES, n: recipients.length, total_thb, recipients });
+});
+
 // ---- Invite links (A/B create a physician or auditor bound to an email; A may also ----------
 // ---- invite an admin — see the superadmin-only guard below) --------------------------------
 

@@ -19,6 +19,7 @@ const ADMIN_LINKS = [
   { href: '/admin/invites', th: 'คำเชิญ', en: 'Invites' },
   { href: '/admin/users', th: 'ผู้ใช้งาน', en: 'Users' },
   { href: '/admin/flagged', th: 'QA Queue' },
+  { href: '/admin/compensation', th: 'ค่าตอบแทน', en: 'Payouts' },
   { href: '/admin/stats', th: 'สถิติ', en: 'Stats' },
 ];
 const SUPERADMIN_LINKS = [
@@ -28,6 +29,7 @@ const SUPERADMIN_LINKS = [
   { href: '/admin/users', th: 'ผู้ใช้งาน', en: 'Users' },
   { href: '/admin/flagged', th: 'QA Queue' },
   { href: '/admin/icc', th: 'ICC' },
+  { href: '/admin/compensation', th: 'ค่าตอบแทน', en: 'Payouts' },
   { href: '/admin/stats', th: 'สถิติ', en: 'Stats' },
 ];
 const AUDITOR_LINKS = [{ href: '/auditor/queue', th: 'คิวประเมิน', en: 'Queue' }];
