@@ -34,6 +34,14 @@
         <input id="patientRef" type="text" maxlength="200" placeholder="เช่น HN หรือชื่อย่อ / e.g. HN or initials" />
         <p style="font-size:.8rem;opacity:.7;margin:.4rem 0 0">เก็บเป็นความลับฝั่งคุณเท่านั้น — ไม่ส่งให้ AI ผู้ตรวจ หรือรายงาน • อย่าใส่ชื่อผู้ป่วยในช่องอาการสำคัญด้านบน<br/>Kept private to you — never sent to the AI, auditors, or reports. Keep patient names out of the Chief Complaint above.</p>
       </div>
+      <div class="form-group" id="pilotBlock" style="display:none">
+        <label>🧪 Pilot Test Mode — โหมดสนทนา / Conversation mode</label>
+        <select id="pilotMode">
+          <option value="natural">Natural (CLE1/CLE3) — ปล่อยตามธรรมชาติ</option>
+          <option value="socratic">Socratic examiner (CLE2) — ถามนำตั้งแต่ต้น</option>
+        </select>
+        <p style="font-size:.8rem;opacity:.7;margin:.4rem 0 0">เซสชันนี้เป็น <b>test session</b> (ไม่นับรวมในข้อมูลวิจัยจริง) • เลือกโหมดเพื่อทดสอบ Socratic ได้โดยตรง<br/>This is a <b>test session</b> (excluded from real study data). Pick a mode to exercise Socratic directly.</p>
+      </div>
       <div id="error" class="error-msg" style="display:none"></div>
       <button class="btn btn-primary" id="startBtn" style="width:100%">เริ่มการสนทนา / Start Session</button>
     </div>
@@ -54,6 +62,9 @@
         if (preset && preset === f.id) o.selected = true;
         sel.appendChild(o);
       }
+      // Reveal the Natural/Socratic picker only when Pilot Test Mode is on.
+      const pm = await api.pilotMode().catch(() => null);
+      if (pm && pm.pilot_test_mode) document.getElementById('pilotBlock').style.display = '';
     })();
 
     document.getElementById('startBtn').addEventListener('click', async () => {
@@ -65,7 +76,13 @@
       errEl.style.display = 'none';
       const btn = document.getElementById('startBtn');
       btn.disabled = true; btn.textContent = 'กำลังสร้าง...';
-      const cle = await api.createPle({ chief_complaint: complaint, folder_id, patient_ref });
+      // In Pilot Test Mode, forward the chosen mode so the backend can create a Socratic/natural
+      // test session directly (ignored by the backend when pilot mode is off).
+      const pilotBlock = document.getElementById('pilotBlock');
+      const socratic = pilotBlock.style.display !== 'none'
+        ? document.getElementById('pilotMode').value === 'socratic'
+        : undefined;
+      const cle = await api.createPle({ chief_complaint: complaint, folder_id, patient_ref, socratic });
       if (cle?.id) window.location.href = `/cle-chat?id=${cle.id}`;
       else {
         errEl.textContent = cle?.code === 'budget_exceeded'

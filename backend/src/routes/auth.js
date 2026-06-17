@@ -7,6 +7,7 @@ const { effectiveLimit } = require('../lib/usage');
 const { provisionProfessional } = require('../lib/provisioning');
 const { hashToken } = require('../lib/invite-token');
 const { logEvent } = require('../lib/audit');
+const { pilotTestMode } = require('../lib/settings');
 
 const router = Router();
 
@@ -171,6 +172,11 @@ router.post('/consent', verifyJwt, async (req, res) => {
   logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'consent', targetType: 'professional',
     targetId: req.user.pseudonym ?? req.user.exp_code ?? req.user.id, councilId: req.user.council_id });
   res.json({ ok: true, consented_at: now });
+});
+
+// Whether Pilot Test Mode is on — lets the new-CLE page reveal the Natural/Socratic picker.
+router.get('/pilot-mode', verifyJwt, async (_req, res) => {
+  res.json({ pilot_test_mode: await pilotTestMode() });
 });
 
 // ---------------------------------------------------------------------------

@@ -24,7 +24,7 @@ type IccData = {
 };
 type Council = { id: string; code: string; name_th: string; name_en: string; active?: boolean };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
-type UsageSettings = { standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number };
+type UsageSettings = { standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number; pilot_test_mode?: boolean };
 type CountRow = { council_id: string; role: string; n: number };
 type Invite = { id: string; email: string; status: string };
 
@@ -63,6 +63,21 @@ export default function OverviewPage() {
   const countOf = (councilId: string, role: string) =>
     (counts ?? []).find(r => r.council_id === councilId && r.role === role)?.n ?? 0;
   const activeCouncils = (councils ?? []).filter(c => c.active !== false);
+
+  // ---- Pilot Test Mode toggle ----
+  const [pilotSaving, setPilotSaving] = useState(false);
+  const pilotOn = usage?.pilot_test_mode === true;
+  async function togglePilot() {
+    if (!usage) return;
+    setPilotSaving(true);
+    try {
+      const next = await apiFetch<UsageSettings>('/admin/usage-settings', {
+        method: 'PATCH', body: JSON.stringify({ pilot_test_mode: !pilotOn }),
+      });
+      setUsage(u => (u ? { ...u, pilot_test_mode: next.pilot_test_mode } : u));
+    } catch { /* leave state unchanged on failure */ }
+    setPilotSaving(false);
+  }
 
   // ---- ④ Budget ----
   const pool = usage?.api_budget_pool_usd ?? 0;
@@ -224,6 +239,31 @@ export default function OverviewPage() {
               </>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* Pilot Test Mode — when on, new CLEs are TEST sessions, the 3-CLE cap is bypassed, and the
+          physician can pick Natural/Socratic directly to exercise the experiment. */}
+      <section className="space-y-3">
+        <h2 className="font-heading text-xl text-foreground">Pilot Test Mode</h2>
+        <div className="flex items-center justify-between rounded-xl border p-5">
+          <div className="pr-4">
+            <p className="text-sm font-medium">🧪 โหมดทดสอบ Pilot / Pilot test mode</p>
+            <p className="text-xs text-muted-foreground">
+              เปิดเพื่อทดสอบ Socratic mode: CLE ที่สร้างจะเป็น test session (ไม่นับในข้อมูลจริง), ข้ามลิมิต 3 CLE,
+              และแพทย์เลือก Natural/Socratic ได้เอง • When on: new CLEs are test sessions, the 3-CLE cap is bypassed,
+              and the physician picks Natural/Socratic directly.
+            </p>
+          </div>
+          <button
+            onClick={togglePilot}
+            disabled={!usage || pilotSaving}
+            aria-pressed={pilotOn}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${pilotOn ? 'bg-primary' : 'bg-muted'}`}
+            title={pilotOn ? 'Pilot test mode is ON' : 'Pilot test mode is OFF'}
+          >
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${pilotOn ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
         </div>
       </section>
 

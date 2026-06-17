@@ -21,14 +21,16 @@ app.use('/cles', clesRouter);
 const auth = (r) => r.set('Authorization', 'Bearer test');
 const FOLDER_UUID = '33333333-3333-3333-3333-333333333333';
 
-let cleRow, folderOwned, passedCount;
+let cleRow, folderOwned, passedCount, pilotFlag;
 beforeEach(() => {
   m.reset();
   m.state.caller = PHYSICIAN; // consented, usage_cost_usd 0
   cleRow = undefined;
   folderOwned = true;
   passedCount = 0;            // # of the physician's prior PASSED CLEs (drives episode_number)
+  pilotFlag = 0;             // app_settings.pilot_test_mode (0 = off)
   m.state.resolve = (table, kind, ctx) => {
+    if (table === 'app_settings') return { value: pilotFlag }; // pilotTestMode()
     if (table === 'cles') {
       // The episode-count probe: select(head) filtered by status='cle_pass' → return the count.
       if (ctx.op === 'select' && kind === 'list' && ctx.eqs.some(e => e[0] === 'status' && e[1] === 'cle_pass')) {
@@ -87,6 +89,25 @@ test('create a 4th CLE after the 3 study CLEs have passed → 403 cle_limit_reac
   expect(r.status).toBe(403);
   expect(r.body.code).toBe('cle_limit_reached');
   expect(m.find('cles', 'insert')).toBeUndefined();
+});
+
+test('Pilot Test Mode: bypasses the 3-CLE cap, marks is_test, and honors a Socratic override', async () => {
+  pilotFlag = 1;        // pilot mode ON
+  passedCount = 3;      // would normally be cle_limit_reached
+  const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x', socratic: true });
+  expect(r.status).toBe(201);
+  expect(m.find('cles', 'insert').payload).toMatchObject({
+    is_test: true, socratic_active: true, socratic_reason: 'pilot_test',
+  });
+});
+
+test('Pilot Test Mode off: the socratic override is ignored (normal episode logic)', async () => {
+  pilotFlag = 0;
+  const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x', socratic: true });
+  expect(r.status).toBe(201);
+  const ins = m.find('cles', 'insert').payload;
+  expect(ins.socratic_reason).toBeNull();   // episode 1 natural, override ignored
+  expect(ins.is_test).toBeUndefined();
 });
 
 test('create without recorded consent → 403 consent_required', async () => {

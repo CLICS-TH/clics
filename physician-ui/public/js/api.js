@@ -83,6 +83,7 @@ window.api = {
   logout: () => apiFetch('/auth/logout', { method: 'POST' }),
   me: () => apiFetch('/auth/me'),
   consent: () => apiFetch('/auth/consent', { method: 'POST' }),
+  pilotMode: () => apiFetch('/auth/pilot-mode'),
   createPle: (body) => apiFetch('/cles', { method: 'POST', body }),
   getPlEs: () => apiFetch('/cles'),
   getPle: (id) => apiFetch(`/cles/${id}`),

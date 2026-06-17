@@ -70,6 +70,10 @@ create table public.app_settings (
 -- — otherwise standardLimit() silently falls back to the code default and the superadmin settings read 0.
 insert into public.app_settings (key, value) values ('standard_usage_limit_usd', 0.50)
 on conflict (key) do nothing;
+-- Pilot Test Mode toggle (0/1): when 1, new CLEs are test sessions, the 3-CLE cap is bypassed, and
+-- the physician may pick Natural/Socratic directly. See db/migration-pilot-test-mode.sql.
+insert into public.app_settings (key, value) values ('pilot_test_mode', 0)
+on conflict (key) do nothing;
 -- Exactly one superadmin, ever (DB-level guarantee; the API also blocks every 2nd-superadmin path).
 create unique index if not exists professionals_single_superadmin
   on public.professionals ((role)) where role = 'superadmin';
@@ -214,7 +218,7 @@ create table public.cles (
   -- remediation ('t1_remediation'). See db/migration-cle-episodes.sql.
   episode_number   smallint,
   socratic_active  boolean not null default false,
-  socratic_reason  text check (socratic_reason is null or socratic_reason in ('cle2_examiner','t1_remediation')),
+  socratic_reason  text check (socratic_reason is null or socratic_reason in ('cle2_examiner','t1_remediation','pilot_test')),
   cle_code         text unique,   -- CLE-NNN study pseudonym (the only session id in exports); see migration-pseudonym-codes.sql
   provider_used    text default 'claude',   -- reserved for L4 multi-provider rotation (roadmap); currently always 'claude'
   created_at       timestamptz default now()

@@ -26,6 +26,9 @@ const CreateCleSchema = z.object({
   // Structured patient identifier — stored in the isolated cle_patient_refs table ONLY, NEVER sent
   // to the cloud AI / auditors / export. Lets the case narrative stay name-free (real-PII de-id).
   patient_ref: z.string().max(200).optional(),
+  // Pilot Test Mode only: directly choose the conversation mode so a tester can exercise Socratic
+  // without completing the real CLE1→CLE2 sequence. Ignored unless pilot_test_mode is ON.
+  socratic: z.boolean().optional(),
 });
 
 const AssignSchema = z.object({

@@ -8,6 +8,7 @@ const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
 const { finalizeScreening, toPassCols } = require('../services/cle-finalize');
 const { effectiveLimit, reserveUsage, settleUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
 const { logEvent } = require('../lib/audit');
+const { pilotTestMode } = require('../lib/settings');
 
 const router = Router();
 router.use(verifyJwt, requireRole('physician'));
@@ -47,7 +48,7 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
   const parsed = CreateCleSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { chief_complaint, folder_id, patient_ref } = parsed.data;
+  const { chief_complaint, folder_id, patient_ref, socratic } = parsed.data;
   if (!(await ownsFolder(req.user.id, folder_id))) {
     return res.status(403).json({ error: 'Folder not found' });
   }
@@ -55,18 +56,20 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
   // Auto-title from the chief complaint (physician can rename later).
   const title = chief_complaint.trim().slice(0, 120);
 
+  const pilotMode = await pilotTestMode();
+
   // Episode sequencing (CLICS protocol §6.4): a physician produces exactly 3 valid CLEs.
   // episode_number = (# of their PASSED CLEs) + 1, so a retried attempt keeps the same episode
-  // until it passes. Block a 4th once 3 have passed (is_test rows are seed/demo, excluded).
+  // until it passes. Block a 4th once 3 have passed — UNLESS Pilot Test Mode is on (testers loop).
   const { count: passedCount, error: countErr } = await supabase.from('cles')
     .select('id', { count: 'exact', head: true })
     .eq('physician_id', req.user.id).eq('status', 'cle_pass').eq('is_test', false);
   if (sendDbError(res, countErr)) return;
   const passed = passedCount ?? 0;
-  if (passed >= 3) {
+  if (passed >= 3 && !pilotMode) {
     return res.status(403).json({ error: 'You have completed all 3 CLEs for this study.', code: 'cle_limit_reached' });
   }
-  const episodeNumber = passed + 1;
+  const episodeNumber = Math.min(passed + 1, 3);
 
   // Socratic mode: CLE2 runs as a Socratic clinical-examiner from the first turn. CLE1/CLE3 are
   // natural, UNLESS the physician has failed Tier-1 three times in a row — then this natural session
@@ -74,6 +77,12 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
   let socraticActive = false, socraticReason = null;
   if (episodeNumber === 2) { socraticActive = true; socraticReason = 'cle2_examiner'; }
   else if ((req.user.consecutive_t1_fails ?? 0) >= 3) { socraticActive = true; socraticReason = 't1_remediation'; }
+  // Pilot Test Mode override: a tester directly chooses the mode so they can exercise Socratic
+  // (or natural) on demand, regardless of episode. These sessions are flagged is_test below.
+  if (pilotMode && typeof socratic === 'boolean') {
+    socraticActive = socratic;
+    socraticReason = socratic ? 'pilot_test' : null;
+  }
 
   // CLE-NNN study pseudonym — the only session identifier that appears in the research export.
   const { data: ccData } = await supabase.rpc('next_cle_code');
@@ -83,6 +92,7 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
     physician_id: req.user.id,
     council_id: req.user.council_id,   // denormalized from the physician; scopes admin/auditor access
     status: 'active',
+    is_test: pilotMode || undefined,   // Pilot Test Mode sessions never pollute the real study data
     started_at: new Date().toISOString(),
     chief_complaint,
     title,
