@@ -70,6 +70,15 @@ export function NavBar() {
     window.location.href = `${portal}/?logout=1`;
   }
 
+  // "Special" dual-role user (a physician who also audits). They reach the auditor workspace via the
+  // portal token-handoff, so they can hop back to their physician workspace WITHOUT logging out — the
+  // session still lives on the portal origin.
+  const isSpecial = user.role === 'physician' && !!user.can_audit;
+  function returnToPhysician() {
+    const portal = process.env.NEXT_PUBLIC_PORTAL_URL || 'https://physician-ui.vercel.app';
+    window.location.href = `${portal}/dashboard`;
+  }
+
   // Active when the path matches OR is a child (detail page) of the link, so /admin/cles/[id] keeps
   // 'CLEs' lit and /auditor/cles/[id] keeps 'Queue' lit. /home (exact) never false-matches a section.
   const isActive = (href: string) =>
@@ -99,6 +108,12 @@ export function NavBar() {
           <RoleBadge />
           <ViewportToggle />
           <ThemeToggle />
+          {!mobile && isSpecial && (
+            <button onClick={returnToPhysician}
+              className="rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-primary">
+              <BiLabel th="กลับสู่หน้าแพทย์" en="Return to Physician" />
+            </button>
+          )}
           {!mobile && (
             <button onClick={logout}
               className="rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-destructive">
@@ -123,6 +138,12 @@ export function NavBar() {
               <BiLabel th={l.th} en={l.en} />
             </Link>
           ))}
+          {isSpecial && (
+            <button onClick={returnToPhysician}
+              className="rounded-md px-2 py-2 text-left text-sm text-muted-foreground hover:text-primary">
+              <BiLabel th="กลับสู่หน้าแพทย์" en="Return to Physician" />
+            </button>
+          )}
           <button onClick={logout}
             className="mt-1 rounded-md px-2 py-2 text-left text-sm text-muted-foreground hover:text-destructive">
             <BiLabel th="ออกจากระบบ" en="Logout" />
