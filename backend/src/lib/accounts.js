@@ -72,7 +72,8 @@ async function allCouncilSlotUsage(councilId) {
 //   superadmin → global pool.
 //   admin/auditor → per-council pool (councilId required).
 async function assertSlotAvailable(role, councilId) {
-  if (role === 'physician') return { ok: true };
+  // physician + the global oversight roles (analyst/ethics) are uncapped — no slot pool.
+  if (role === 'physician' || role === 'analyst' || role === 'ethics') return { ok: true };
 
   if (role === 'superadmin') {
     const usage = await slotUsage('superadmin');

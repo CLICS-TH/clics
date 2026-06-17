@@ -31,6 +31,9 @@ const SUPERADMIN_LINKS = [
   { href: '/admin/stats', th: 'สถิติ', en: 'Stats' },
 ];
 const AUDITOR_LINKS = [{ href: '/auditor/queue', th: 'คิวประเมิน', en: 'Queue' }];
+// Tier-3 analyst (aggregates only) + Tier-4 ethics (aggregates + audit log). Read-only, no transcripts.
+const ANALYST_LINKS = [{ href: '/analyst', th: 'ภาพรวม', en: 'Analytics' }];
+const ETHICS_LINKS = [{ href: '/ethics', th: 'บันทึกตรวจสอบ', en: 'Audit log' }];
 
 export function NavBar() {
   const pathname = usePathname();
@@ -45,6 +48,8 @@ export function NavBar() {
   const links =
     user.role === 'superadmin' ? SUPERADMIN_LINKS :
     user.role === 'admin' ? ADMIN_LINKS :
+    user.role === 'analyst' ? ANALYST_LINKS :
+    user.role === 'ethics' ? ETHICS_LINKS :
     // Auditors and dual-role physicians (can_audit) get the auditor workspace.
     canAudit(user) ? AUDITOR_LINKS : [];
 

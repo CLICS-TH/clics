@@ -62,6 +62,7 @@ app.use('/cles', require('./routes/cles'));
 app.use('/admin', require('./routes/admin'));
 app.use('/auditor', require('./routes/auditor'));
 app.use('/admin', require('./routes/superadmin'));
+app.use('/oversight', require('./routes/oversight')); // Tier-3 analyst + Tier-4 ethics (read-only)
 
 // JSON 404 + terminal error handler — keep every response JSON (a malformed body or an unmatched
 // route used to return Express's default HTML, which the cross-origin clients can't parse).

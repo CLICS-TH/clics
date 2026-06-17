@@ -14,7 +14,9 @@ router.use(verifyJwt, requireRole('superadmin'));
 // Superadmin is a locked singleton: it is bootstrapped directly (db/reset-demo.js / seed-users.js)
 // and can never be created or assigned through the API, so it is intentionally absent from these enums.
 // specialty + license_number are optional at every layer (DB nullable, here .optional(), no form `required`).
-const GRANTABLE_ROLES = ['admin', 'physician', 'auditor'];
+const GRANTABLE_ROLES = ['admin', 'physician', 'auditor', 'analyst', 'ethics'];
+// Global oversight roles have no council (prof_council_required allows them null).
+const GLOBAL_ROLES = ['analyst', 'ethics'];
 
 const CreateUserSchema = z.object({
   email: z.string().email(),
@@ -23,12 +25,14 @@ const CreateUserSchema = z.object({
   // "Special" = a physician who ALSO holds auditor rights (can_audit). Only meaningful with
   // role 'physician'; normalized server-side so it can never ride on an admin/auditor.
   can_audit: z.boolean().optional(),
-  // Every non-superadmin belongs to exactly one council (enforced by prof_council_required).
-  council_id: z.string().uuid(),
+  // Council-scoped roles need a council; analyst/ethics are global (council_id omitted).
+  council_id: z.string().uuid().optional(),
   full_name_th: z.string().min(1),
   full_name_en: z.string().min(1),
   specialty: z.string().optional(),
   license_number: z.string().optional(),
+}).refine((b) => GLOBAL_ROLES.includes(b.role) || !!b.council_id, {
+  message: 'council_id is required for this role', path: ['council_id'],
 });
 
 const UpdateUserSchema = z.object({

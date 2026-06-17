@@ -24,7 +24,8 @@ on conflict (code) do nothing;
 -- All users (all 4 roles)
 create table public.professionals (
   id             uuid primary key references auth.users(id) on delete cascade,
-  role           text not null check (role in ('superadmin','admin','physician','auditor')),
+  -- analyst (Tier-3, aggregate de-identified) + ethics (Tier-4, audit log) are global oversight roles.
+  role           text not null check (role in ('superadmin','admin','physician','auditor','analyst','ethics')),
   -- One council per non-superadmin (admin = "director" of this council). Superadmin = NULL.
   council_id     uuid references public.councils(id),
   full_name_th   text not null,
@@ -52,8 +53,8 @@ create table public.professionals (
   usage_output_tokens bigint  not null default 0,
   usage_limit_usd     numeric,   -- null => the standard default (app_settings) applies
   created_at     timestamptz default now(),
-  -- Everyone except the single superadmin must belong to a council.
-  constraint prof_council_required check (role = 'superadmin' or council_id is not null),
+  -- Everyone except the global oversight roles (superadmin/analyst/ethics) belongs to a council.
+  constraint prof_council_required check (role in ('superadmin','analyst','ethics') or council_id is not null),
   -- "Special" (can_audit) may ride ONLY on a physician — DB backstop for normalizeCanAudit so no
   -- code path (provisioning, edit, auditor-request approve) can leave the flag on an admin/auditor.
   constraint can_audit_physician_only check (can_audit = false or role = 'physician')

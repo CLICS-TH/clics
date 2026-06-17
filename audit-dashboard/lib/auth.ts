@@ -1,7 +1,7 @@
 export interface ClicsUser {
   id: string;
   email: string;
-  role: 'superadmin' | 'admin' | 'physician' | 'auditor';
+  role: 'superadmin' | 'admin' | 'physician' | 'auditor' | 'analyst' | 'ethics';
   full_name_th: string;
   full_name_en: string;
   council_id?: string | null;

@@ -16,6 +16,8 @@ function redirectByRole(user: Pick<ClicsUser, 'role' | 'can_audit'>, router: Ret
   // can_audit (dual-role "Special" user) enters straight at the auditor queue —
   // this is the token-handoff entry point from the physician app.
   if (user.role === 'superadmin') router.push('/admin/overview');
+  else if (user.role === 'analyst') router.push('/analyst');
+  else if (user.role === 'ethics') router.push('/ethics');
   else if (user.role === 'auditor' || user.role === 'admin') router.push('/home');
   else if (user.role === 'physician' && user.can_audit) router.push('/auditor/queue');
   else router.push('/login');
