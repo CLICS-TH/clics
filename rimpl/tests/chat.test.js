@@ -51,4 +51,14 @@ describe('POST /chat', () => {
     const res = await request(app).post('/chat').send({ cle_id: 'x', history: [] });
     expect(res.status).toBe(400);
   });
+
+  test('patient_ref scrubs an unlabelled name from what reaches the model', async () => {
+    await request(app).post('/chat').send({
+      cle_id: 'x', history: [], message: 'สมชายปวดท้องมา 2 วัน', language: 'th',
+      patient_ref: 'นายสมชาย ใจดี',
+    });
+    const sent = JSON.stringify(callClaude.mock.calls[0][0].messages);
+    expect(sent).not.toContain('สมชาย'); // the known patient name never reaches the cloud
+    expect(sent).toContain('[NAME-1]');
+  });
 });

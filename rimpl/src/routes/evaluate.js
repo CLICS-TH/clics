@@ -4,6 +4,7 @@ const { callClaude } = require('../services/claude');
 const { PIS7_EVALUATOR_PROMPT } = require('../lib/prompts');
 const { parseJsonObject } = require('../lib/parse');
 const { flattenForPrompt } = require('../lib/transcript');
+const { deriveHintTokens } = require('../services/pii-filter');
 const { WEIGHTS, MODEL_VERSION, PROMPT_VERSION, RUBRIC_VERSION } = require('../lib/versions');
 
 const router = Router();
@@ -11,6 +12,8 @@ const router = Router();
 const EvalSchema = z.object({
   cle_id: z.string(),
   transcript: z.array(z.object({ role: z.string(), content: z.string() })),
+  // On-prem patient identifier, scrubbed from the transcript before the cloud eval; never forwarded.
+  patient_ref: z.string().optional(),
 });
 
 // The evaluator's d1..d7 drive CME credit and are persisted into smallint CHECK(0..5) columns
@@ -26,9 +29,9 @@ router.post('/', async (req, res) => {
   const parsed = EvalSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { cle_id, transcript } = parsed.data;
-  // PII-strip + defang injected role markers before the transcript reaches the cloud model.
-  const transcriptText = flattenForPrompt(transcript);
+  const { cle_id, transcript, patient_ref } = parsed.data;
+  // PII-strip (incl. the known patient identifier) + defang injected role markers before the cloud model.
+  const transcriptText = flattenForPrompt(transcript, deriveHintTokens(patient_ref));
 
   try {
     const { text, inputTokens, outputTokens } = await callClaude({

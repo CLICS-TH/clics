@@ -26,7 +26,7 @@ Supabase (PostgreSQL · AES-256)
   Tables: professionals · councils · cles · audit_scores · lpdp_snapshots
 ```
 
-**Critical data-boundary rule:** PII never leaves the on-premise RIMPL layer. Only de-identified JSON fragments reach cloud AI providers.
+**Critical data-boundary rule:** PII never leaves the on-premise RIMPL layer. Only de-identified JSON fragments reach cloud AI providers. (The physician's structured `patient_ref` is the one PII field passed *into* RIMPL — on-prem, exclusively so RIMPL can scrub it from the narrative; it is never forwarded to the cloud.)
 
 ## Planned vs. as-built
 

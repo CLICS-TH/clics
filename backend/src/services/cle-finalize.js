@@ -31,8 +31,8 @@ async function evaluateCriteriaWithRetry(payload, attempts = 3) {
 // PIS-7 evaluation. THROWS on a persistent RIMPL error WITHOUT writing a terminal status — the session
 // stays 'ended' so the next reconcile sweep retries it, instead of a transient blip permanently
 // flagging a qualifying session to manual QA. Returns { status, criteria }.
-async function finalizeScreening({ cleId, physicianId, transcript, tier1 }) {
-  const crit = await evaluateCriteriaWithRetry({ transcript });
+async function finalizeScreening({ cleId, physicianId, transcript, tier1, patient_ref }) {
+  const crit = await evaluateCriteriaWithRetry({ transcript, patient_ref });
   const tier2 = { c4: crit.c4, c5: crit.c5, c6: crit.c6 };
   await accrueUsage(physicianId, crit.input_tokens, crit.output_tokens);
 
@@ -48,7 +48,7 @@ async function finalizeScreening({ cleId, physicianId, transcript, tier1 }) {
     .update({ status: 'cle_pass', ...toPassCols(allCriteria) }).eq('id', cleId);
   if (error) throw new Error(`finalizeScreening cle_pass update: ${error.message}`);
   // Fire-and-forget the PIS-7 evaluation (its own retry + idempotent persist + reconcile backstop).
-  triggerEvaluation(cleId, transcript, physicianId).catch(err =>
+  triggerEvaluation(cleId, transcript, physicianId, patient_ref).catch(err =>
     console.error(`[EVAL] triggerEvaluation failed for CLE ${cleId}:`, err.message));
   return { status: 'cle_pass', criteria: allCriteria };
 }

@@ -118,9 +118,13 @@ router.post('/cles/:id/approve', async (req, res) => {
     return res.json({ ok: true, evaluation: 'deferred' });
   }
   const transcript = messages.map(m => ({ role: m.role, content: m.content }));
+  // Patient identifier → scrubbed on-prem before the cloud eval. Admin is NOT the owner → read by
+  // cle_id only (service-role bypasses RLS).
+  const { data: apprRef } = await supabase.from('cle_patient_refs')
+    .select('patient_ref').eq('cle_id', req.params.id).maybeSingle();
 
   // Fire-and-forget: evaluate + persist (same path as the physician /end flow).
-  triggerEvaluation(req.params.id, transcript, cle.physician_id)
+  triggerEvaluation(req.params.id, transcript, cle.physician_id, apprRef?.patient_ref ?? null)
     .catch(e => console.error('[admin approve] evaluation failed:', e.message));
 
   res.json({ ok: true });
@@ -146,8 +150,11 @@ router.post('/cles/:id/reevaluate', async (req, res) => {
   if (sendDbError(res, msgErr)) return;
   if (!messages?.length) return res.status(409).json({ error: 'No transcript to evaluate.' });
   const transcript = messages.map(m => ({ role: m.role, content: m.content }));
+  // Patient identifier → scrubbed on-prem before the cloud eval (read by cle_id; service-role, non-owner).
+  const { data: reevalRef } = await supabase.from('cle_patient_refs')
+    .select('patient_ref').eq('cle_id', cle.id).maybeSingle();
   try {
-    await triggerEvaluation(cle.id, transcript, cle.physician_id);
+    await triggerEvaluation(cle.id, transcript, cle.physician_id, reevalRef?.patient_ref ?? null);
     logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.reevaluate', targetType: 'cle',
       targetId: cle.cle_code ?? cle.id, councilId: cle.council_id });
     res.json({ ok: true, status: 'evaluated' });

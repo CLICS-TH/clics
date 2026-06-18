@@ -35,6 +35,7 @@ jest.mock('../src/lib/supabase', () => ({
         update: (p) => { op = 'update'; mockUpdates.push(p); return c; },
         eq: () => c,
         order: () => Promise.resolve({ data: mockMsgs, error: null }),
+        maybeSingle: () => Promise.resolve({ data: null, error: null }), // cle_patient_refs read → no ref in these tests
       };
       return c;
     },

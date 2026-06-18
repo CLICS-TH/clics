@@ -61,8 +61,8 @@ async function evaluateWithRetry(payload, attempts = 3) {
 }
 
 // Run the PIS-7 evaluation for a passed CLE and persist it. Throws on failure (caller logs).
-async function triggerEvaluation(cleId, transcript, physicianId) {
-  const result = await evaluateWithRetry({ cle_id: cleId, transcript });
+async function triggerEvaluation(cleId, transcript, physicianId, patientRef) {
+  const result = await evaluateWithRetry({ cle_id: cleId, transcript, patient_ref: patientRef });
   const { fresh } = await persistEvaluation(cleId, physicianId, result);
   // Accrue the PIS-7 evaluation's Claude cost to the physician's meter ONLY when this call actually
   // wrote the row — a dup-eval race (reconcile vs /end) must not double-charge the physician.

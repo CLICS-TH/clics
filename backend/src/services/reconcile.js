@@ -38,6 +38,11 @@ async function reconcileEvaluations(now = Date.now()) {
         continue;
       }
       const transcript = msgs.map(m => ({ role: m.role, content: m.content }));
+      // Patient identifier → scrubbed from the transcript on-prem before the cloud eval. This sweep runs
+      // server-side (NOT as the owner), so read by cle_id only — the service-role key bypasses RLS.
+      const { data: pref } = await supabase.from('cle_patient_refs')
+        .select('patient_ref').eq('cle_id', p.id).maybeSingle();
+      const patientRef = pref?.patient_ref ?? null;
 
       if (p.status === 'ended') {
         // Tier-2 pending: finish screening from the persisted tier-1 (cle_flag_t2, or cle_pass + fire
@@ -45,6 +50,7 @@ async function reconcileEvaluations(now = Date.now()) {
         await finalizeScreening({
           cleId: p.id, physicianId: p.physician_id, transcript,
           tier1: { c1: p.c1_pass, c2: p.c2_pass, c3: p.c3_pass },
+          patient_ref: patientRef,
         });
         recovered++;
         continue;
@@ -65,7 +71,7 @@ async function reconcileEvaluations(now = Date.now()) {
         repaired++;
         continue;
       }
-      await triggerEvaluation(p.id, transcript, p.physician_id);
+      await triggerEvaluation(p.id, transcript, p.physician_id, patientRef);
       recovered++;
     } catch (e) {
       // A DETERMINISTIC RIMPL failure (bad/out-of-range model output → 502, or token misconfig → 401)

@@ -64,7 +64,8 @@ test('a stranded cle_pass session (no eval row) gets re-evaluated and counts as 
   expect(triggerEvaluation).toHaveBeenCalledWith(
     'ple1',
     [{ role: 'physician', content: 'chest pain workup' }, { role: 'assistant', content: 'tell me more' }],
-    'doc1'
+    'doc1',
+    null // patient_ref (none in this fixture; read by cle_id, service-role)
   );
   expect(result).toEqual({ stuck: 1, recovered: 1, repaired: 0, flagged: 0, failed: 0 });
 });

@@ -13,8 +13,10 @@ function defang(content) {
   return String(content).replace(ROLE_MARKER_RE, (m) => `［${m.slice(1, -1)}］`);
 }
 
-function flattenForPrompt(transcript) {
-  return stripHistoryPii(transcript)
+// `hints` = KNOWN patient identifiers (deriveHintTokens of the cle's patient_ref) scrubbed
+// deterministically, so a bare unlabelled name in the stored transcript is masked before the eval.
+function flattenForPrompt(transcript, hints = []) {
+  return stripHistoryPii(transcript, hints)
     .map((m) => `[${String(m.role).toUpperCase()}]: ${defang(m.content)}`)
     .join('\n\n');
 }

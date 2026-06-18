@@ -1,4 +1,4 @@
-const { stripPii, stripHistoryPii } = require('../src/services/pii-filter');
+const { stripPii, stripHistoryPii, deriveHintTokens } = require('../src/services/pii-filter');
 
 // ---------------------------------------------------------------------------
 // ADVERSARIAL red-team corpus for the RIMPL PII de-identifier.
@@ -277,5 +277,23 @@ describe('adversarial — coreference and multi-turn stability', () => {
   test('two distinct people get distinct tokens', () => {
     const out = stripPii('นพ.สมชาย ปรึกษา พญ.สมหญิง');
     expect(out).toBe('นพ.[NAME-1] ปรึกษา พญ.[NAME-2]');
+  });
+});
+
+// ===========================================================================
+// BARE-NAME LEAK — the documented residual, now closed by intake hints +
+// the conservative Thai given-name gazetteer.
+// ===========================================================================
+describe('adversarial — bare unlabelled names', () => {
+  test('intake hint scrubs an unanchored name a regex would miss', () => {
+    const raw = 'ผู้ป่วยรายนี้คือสมชายอุดมมาด้วยไข้สูง'; // no title, no label, glued mid-sentence
+    const out = stripPii(raw, undefined, deriveHintTokens('นายสมชายอุดม'));
+    expect(out).not.toContain('สมชายอุดม');
+  });
+  test('gazetteer catches a known bare given name before a clinical lead (no intake)', () => {
+    expect(stripPii('สมชายมาด้วยไข้')).not.toContain('สมชาย');
+  });
+  test('a clinical phrase that is NOT a gazetteer name survives byte-for-byte', () => {
+    assertSurvives('ผู้ป่วยมาด้วยอาการปวดท้องและไข้ 3 วัน');
   });
 });

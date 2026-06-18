@@ -25,33 +25,36 @@ function isDeterministicRimplError(err) {
   return err && typeof err.status === 'number' && DETERMINISTIC_STATUSES.has(err.status);
 }
 
-async function rimplChat({ cle_id, history, message, language, chief_complaint, socratic }) {
+// `patient_ref` (the physician's structured patient identifier) is forwarded to RIMPL on-prem SOLELY
+// so RIMPL can scrub it from the narrative/transcript before any cloud call — it is never forwarded
+// to the cloud AI. See docs/constraints.md (data boundary).
+async function rimplChat({ cle_id, history, message, language, chief_complaint, patient_ref, socratic }) {
   const res = await fetch(`${RIMPL_URL}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
-    body: JSON.stringify({ cle_id, history, message, language, chief_complaint, socratic: !!socratic }),
+    body: JSON.stringify({ cle_id, history, message, language, chief_complaint, patient_ref, socratic: !!socratic }),
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });
   if (!res.ok) throw rimplError('/chat', res.status);
   return res.json();
 }
 
-async function rimplEvaluate({ cle_id, transcript }) {
+async function rimplEvaluate({ cle_id, transcript, patient_ref }) {
   const res = await fetch(`${RIMPL_URL}/evaluate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
-    body: JSON.stringify({ cle_id, transcript }),
+    body: JSON.stringify({ cle_id, transcript, patient_ref }),
     signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
   });
   if (!res.ok) throw rimplError('/evaluate', res.status);
   return res.json();
 }
 
-async function rimplEvaluateCriteria({ transcript }) {
+async function rimplEvaluateCriteria({ transcript, patient_ref }) {
   const res = await fetch(`${RIMPL_URL}/evaluate-criteria`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
-    body: JSON.stringify({ transcript }),
+    body: JSON.stringify({ transcript, patient_ref }),
     signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
   });
   if (!res.ok) throw rimplError('/evaluate-criteria', res.status);

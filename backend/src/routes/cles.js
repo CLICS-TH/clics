@@ -205,6 +205,11 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   const { data: history } = await supabase
     .from('messages').select('role, content').eq('cle_id', req.params.id).order('created_at');
 
+  // The physician's structured patient identifier — sent to RIMPL (on-prem) ONLY so it can scrub the
+  // name from the narrative before the cloud call (never forwarded to the cloud). Owner-scoped read.
+  const { data: pref } = await supabase.from('cle_patient_refs')
+    .select('patient_ref').eq('cle_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
+
   const { message, language } = parsed.data;
 
   // ATOMICALLY reserve this turn's estimated cost before the paid call — closes the parallel-turn
@@ -224,6 +229,7 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     rimplResponse = await rimplChat({
       cle_id: req.params.id, history: history ?? [], message, language,
       chief_complaint: cle.chief_complaint, // give the AI the case context
+      patient_ref: pref?.patient_ref ?? null, // scrubbed on-prem; never reaches the cloud
       socratic: cle.socratic_active === true, // CLE2 / remediation → Socratic clinical-examiner mode
     });
   } catch (err) {
@@ -322,9 +328,13 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   // session stays 'ended' (recoverable) and reconcile retries it — a transient blip must NOT
   // permanently demote a qualifying session to manual QA.
   const transcript = msgs.map(m => ({ role: m.role, content: m.content }));
+  // Patient identifier → scrubbed from the transcript on-prem before the cloud eval (never forwarded).
+  const { data: endRef } = await supabase.from('cle_patient_refs')
+    .select('patient_ref').eq('cle_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
   try {
     const out = await finalizeScreening({
       cleId: req.params.id, physicianId: cle.physician_id, transcript, tier1,
+      patient_ref: endRef?.patient_ref ?? null,
     });
     res.json(out);
   } catch (err) {

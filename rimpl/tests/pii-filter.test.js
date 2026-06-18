@@ -1,4 +1,4 @@
-const { stripPii, stripHistoryPii } = require('../src/services/pii-filter');
+const { stripPii, stripHistoryPii, deriveHintTokens } = require('../src/services/pii-filter');
 
 // ---------------------------------------------------------------------------
 // PII de-identification tests.
@@ -309,5 +309,74 @@ describe('stripHistoryPii', () => {
     ];
     const out = stripHistoryPii(history);
     expect(out[0].content).toBe('นพ.[NAME-1] ปรึกษา พญ.[NAME-2]');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Intake hints — the structured patient_ref the physician recorded is scrubbed
+// deterministically (even an unanchored, mid-sentence Thai name). Closes the
+// bare-unlabelled-name leak for any name entered at intake.
+// ---------------------------------------------------------------------------
+describe('deriveHintTokens', () => {
+  test('keeps Thai/Latin name tokens, drops labels/digits/punct/honorifics', () => {
+    expect(deriveHintTokens('HN 12345 — สมชาย ใจดี')).toEqual(['สมชาย', 'ใจดี']);
+  });
+  test('strips a leading honorific', () => {
+    expect(deriveHintTokens('นายสมชาย')).toEqual(['สมชาย']);
+    expect(deriveHintTokens('Mr John Smith')).toEqual(['John', 'Smith']);
+  });
+  test('empty / non-string → []', () => {
+    expect(deriveHintTokens('')).toEqual([]);
+    expect(deriveHintTokens(null)).toEqual([]);
+    expect(deriveHintTokens(undefined)).toEqual([]);
+  });
+  test('de-dupes repeated tokens', () => {
+    expect(deriveHintTokens('สมชาย สมชาย')).toEqual(['สมชาย']);
+  });
+});
+
+describe('stripPii — intake hints', () => {
+  test('an unlabelled mid-sentence Thai name is masked, the symptom survives', () => {
+    expect(stripPii('สมชายมาด้วยไข้', undefined, ['สมชาย'])).toBe('[NAME-1]มาด้วยไข้');
+  });
+  test('hint coexists with a structured-id token', () => {
+    const out = stripPii('HN 12345678 สมชายปวดท้อง', undefined, ['สมชาย']);
+    expect(out).toContain('[HN-1]');
+    expect(out).toContain('[NAME-1]ปวดท้อง');
+    expect(out).not.toContain('สมชาย');
+  });
+  test('hint + later title-led occurrence fold to ONE token', () => {
+    expect(stripPii('วันนี้ สมชาย กลับมา และ นายสมชาย ดีขึ้น', undefined, ['สมชาย']))
+      .toBe('วันนี้ [NAME-1] กลับมา และ นาย[NAME-1] ดีขึ้น');
+  });
+  test('Latin hint respects word boundaries (John masks, Johnson does not)', () => {
+    expect(stripPii('John and Johnson', undefined, ['John'])).toBe('[NAME-1] and Johnson');
+  });
+  test('no hints → behaves exactly as before', () => {
+    expect(stripPii('BP 120/80 mmHg', undefined, [])).toBe('BP 120/80 mmHg');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Thai given-name gazetteer — best-effort backstop when NO intake was entered.
+// Conservative: fires only at a boundary + standalone/clinical-lead; otherwise
+// a clinical phrase must survive byte-for-byte.
+// ---------------------------------------------------------------------------
+describe('stripPii — Thai gazetteer backstop (no hints)', () => {
+  test('bare gazetteer name before a clinical lead is masked', () => {
+    expect(stripPii('สมชายมาด้วยไข้')).toBe('[NAME-1]มาด้วยไข้');
+  });
+  test('standalone gazetteer name (space-delimited) is masked', () => {
+    expect(stripPii('ผู้ป่วย สมหญิง มาตามนัด')).toBe('ผู้ป่วย [NAME-1] มาตามนัด');
+  });
+  test('a gazetteer name glued mid-word (no boundary) SURVIVES — no over-masking', () => {
+    // preceded by a Thai letter (no detectable boundary) → not sliced out
+    const glued = 'ผู้ป่วยสมชายมาด้วยไข้';
+    expect(stripPii(glued)).toBe(glued);
+  });
+  test('clinical vitals/labs still survive with the gazetteer enabled', () => {
+    for (const t of ['BP 120/80 mmHg', 'O2 sat 98%', 'Hb 13.5 WBC 8000', 'ปวดท้อง 2 วัน']) {
+      expect(stripPii(t)).toBe(t);
+    }
   });
 });

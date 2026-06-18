@@ -30,6 +30,8 @@
 // later bare given-name occurrence ("สมชายบอกว่า...") resolve to the token the
 // full name "นายสมชาย ใจดี" already got — preserving coreference across turns
 // even when the surface form differs.
+const { TH_GIVEN_NAMES } = require('./pii-names.th');
+
 function makeRegistry() {
   const counters = Object.create(null); // category -> next index
   const seen = Object.create(null);     // category -> { surfaceForm -> token }
@@ -87,6 +89,32 @@ function makeRegistry() {
 const TH_TITLES = ['นพ\\.', 'พญ\\.', 'ด\\.ช\\.', 'ด\\.ญ\\.', 'เด็กชาย', 'เด็กหญิง', 'เด็กทารก', 'นางสาว', 'นาง', 'นาย', 'คุณ'];
 // English honorifics. Order matters only for the alternation; \. is optional.
 const EN_TITLES = ['Mr', 'Mrs', 'Ms', 'Miss', 'Dr', 'Prof'];
+
+// Strip a leading honorific from a patient_ref token (e.g. "นายสมชาย" -> "สมชาย", "Mr Smith" tokens).
+// Reuses the SAME title lists as the masking rules so the two never drift.
+const HONORIFIC_STRIP_RE = new RegExp(`^(?:${TH_TITLES.join('|')}|(?:${EN_TITLES.join('|')})\\.?)`, 'i');
+
+// Derive deterministic scrub hints from the physician's structured patient identifier
+// (cle_patient_refs.patient_ref), passed in by the backend on-prem. Split on whitespace, drop a
+// leading honorific, then keep only name-ish tokens: >= 3 Thai letters OR a Capitalised Latin word.
+// Pure digits / labels (HN, MRN) / punctuation / MED_SHIELD are dropped so we never scrub them as a
+// "name". The surviving strings are masked verbatim (even mid-sentence) by the intake-hint pass.
+function deriveHintTokens(patientRef) {
+  if (typeof patientRef !== 'string') return [];
+  const out = [];
+  const seen = new Set();
+  for (const raw of patientRef.split(/\s+/)) {
+    const stripped = raw.replace(HONORIFIC_STRIP_RE, '').trim();
+    if (!stripped || MED_SHIELD.has(stripped)) continue;
+    const thaiLen = (stripped.match(/[ก-ฮะ-๎]/g) || []).length;
+    const isLatinName = /^[A-Z][a-z]+(?:-[A-Z][a-z]+)?$/.test(stripped);
+    if ((thaiLen >= 3 || isLatinName) && !seen.has(stripped)) {
+      seen.add(stripped);
+      out.push(stripped);
+    }
+  }
+  return out;
+}
 
 // A Thai name token: a run of Thai letters (no spaces — Thai names are written
 // without internal spaces; a surname is a separate token after a space).
@@ -290,6 +318,11 @@ const PASSES = [
     },
   },
 
+  // --- Intake hints: the KNOWN patient identifier from cle_patient_refs (on-prem), masked verbatim
+  // BEFORE the name regexes so it becomes the authoritative [NAME-n] referent. Closes the bare,
+  // unlabelled-name leak for any name the physician recorded at intake. ---
+  { cat: 'NAME', kind: 'intake-hint' },
+
   // --- Nicknames (run BEFORE the ชื่อ labelled rule; ชื่อ is its prefix) ---
   { re: TH_NICKNAME_RE, cat: 'NAME', kind: 'th-nickname' },
   { re: EN_NICKNAME_RE, cat: 'NAME', kind: 'en-nickname' },
@@ -305,6 +338,9 @@ const PASSES = [
   // that introduces "นพ.สมชาย" then later writes just "สมชาย". Built dynamically
   // from the registry; only fires for names already masked in THIS call.
   { cat: 'NAME', kind: 'bare-name' },
+  // Thai given-name gazetteer — best-effort backstop for a bare name with NO intake/title/label,
+  // guarded by boundary + clinical-lead so clinical phrases survive. Runs LAST among name passes.
+  { cat: 'NAME', kind: 'th-gazetteer' },
 
   // --- Age (AFTER ids/phones so it never eats their digits) ---
   // Thai: "อายุ 45 ปี", "45 ปี", "อายุ 45". No trailing \b after ปี — \b is
@@ -350,11 +386,61 @@ function applyBareNamePass(text, token) {
   return out;
 }
 
+// The intake-hint pass: deterministically scrub the patient identifier(s) the physician recorded in
+// cle_patient_refs (passed in by the backend, on-prem — never forwarded to the cloud). These are
+// KNOWN PII strings, so they are masked even unanchored mid-sentence — this is what closes the bare,
+// unlabelled-name leak. Each hint pre-registers as the authoritative [NAME-n] referent so a later
+// title-led/bare occurrence of the same name folds into one token.
+function applyHintPass(text, token, hints) {
+  if (!hints || hints.length === 0) return text;
+  const ordered = [...new Set(hints)].sort((a, b) => b.length - a.length); // full name before a part
+  let out = text;
+  for (const hint of ordered) {
+    const h = typeof hint === 'string' ? hint.trim() : '';
+    if (!h || MED_SHIELD.has(h)) continue;
+    const isThai = /[ก-ฮะ-๎]/.test(h);
+    if (isThai ? h.length < 3 : h.length < 2) continue; // conservative for space-less Thai
+    const tok = token('NAME', h);
+    registerNameAliases(token, h, tok);
+    const escaped = h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = isThai ? new RegExp(escaped, 'g') : new RegExp(`\\b${escaped}\\b`, 'g');
+    out = out.replace(re, tok);
+  }
+  return out;
+}
+
+// The Thai given-name gazetteer pass (best-effort backstop; runs LAST among name passes): mask a
+// curated common given name ONLY at a detectable boundary (not glued after another Thai letter) AND
+// when it is standalone or immediately followed by a clinical-lead word (the "สมชายมาด้วยไข้" form).
+// The double guard keeps clinical phrases intact (over-masking is the worse error).
+const TH_LETTER_RE = /[ก-ฮะ-๎]/;
+function applyGazetteerPass(text, token) {
+  const names = [...TH_GIVEN_NAMES].filter((n) => n.length >= 3).sort((a, b) => b.length - a.length);
+  if (names.length === 0) return text;
+  const alt = names.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  const re = new RegExp(`(?:${alt})`, 'g');
+  return text.replace(re, (match, offset, full) => {
+    if (MED_SHIELD.has(match)) return match;
+    const prev = offset > 0 ? full[offset - 1] : '';
+    if (TH_LETTER_RE.test(prev)) return match; // glued into a preceding Thai word — skip (conservative)
+    const after = full.slice(offset + match.length);
+    const standalone = !after || !TH_LETTER_RE.test(after[0]); // space / punct / non-Thai / end follows
+    if (standalone || startsWithClinicalLead(after)) {
+      const tok = token('NAME', match);
+      registerNameAliases(token, match, tok);
+      return tok;
+    }
+    return match;
+  });
+}
+
 // Apply one pass, threading the shared registry so tokens are stable per call.
-function applyPass(text, pass, token) {
+function applyPass(text, pass, token, hints) {
   const { re, cat, guard, kind } = pass;
 
   if (kind === 'bare-name') return applyBareNamePass(text, token);
+  if (kind === 'intake-hint') return applyHintPass(text, token, hints);
+  if (kind === 'th-gazetteer') return applyGazetteerPass(text, token);
 
   re.lastIndex = 0;
   return text.replace(re, (match, g1, g2, g3) => {
@@ -427,17 +513,19 @@ function applyPass(text, pass, token) {
 // Mask one string. If a registry is provided, tokens stay stable across all
 // strings sharing it (used by stripHistoryPii so coreference survives a whole
 // outbound call). Without one, each call gets a fresh, internally-stable map.
-function stripPii(text, registry) {
+// `hints` are KNOWN PII strings (from the structured patient intake) to scrub deterministically — see
+// deriveHintTokens. They default to [] so every existing caller is unaffected.
+function stripPii(text, registry, hints = []) {
   if (typeof text !== 'string' || text.length === 0) return text;
   const token = registry || makeRegistry();
-  return PASSES.reduce((t, pass) => applyPass(t, pass, token), text);
+  return PASSES.reduce((t, pass) => applyPass(t, pass, token, hints), text);
 }
 
 // Mask every message in a history/transcript array under ONE shared registry,
 // so the same person/phone/etc. gets the same token across turns.
-function stripHistoryPii(history) {
+function stripHistoryPii(history, hints = []) {
   const registry = makeRegistry();
-  return history.map(msg => ({ ...msg, content: stripPii(msg.content, registry) }));
+  return history.map(msg => ({ ...msg, content: stripPii(msg.content, registry, hints) }));
 }
 
-module.exports = { stripPii, stripHistoryPii };
+module.exports = { stripPii, stripHistoryPii, deriveHintTokens };

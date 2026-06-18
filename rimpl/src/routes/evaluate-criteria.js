@@ -4,19 +4,22 @@ const { callClaude } = require('../services/claude');
 const { CRITERIA_CLASSIFIER_PROMPT } = require('../lib/prompts');
 const { parseJsonObject } = require('../lib/parse');
 const { flattenForPrompt } = require('../lib/transcript');
+const { deriveHintTokens } = require('../services/pii-filter');
 
 const router = Router();
 
 const Schema = z.object({
   transcript: z.array(z.object({ role: z.string(), content: z.string() })),
+  // On-prem patient identifier, scrubbed from the transcript before the cloud call; never forwarded.
+  patient_ref: z.string().optional(),
 });
 
 router.post('/', async (req, res) => {
   const parsed = Schema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  // PII-strip + defang injected role markers before the transcript reaches the cloud model.
-  const transcriptText = flattenForPrompt(parsed.data.transcript);
+  // PII-strip (incl. the known patient identifier) + defang injected role markers before the cloud model.
+  const transcriptText = flattenForPrompt(parsed.data.transcript, deriveHintTokens(parsed.data.patient_ref));
 
   try {
     const { text, inputTokens, outputTokens } = await callClaude({
