@@ -16,7 +16,8 @@ const ChatSchema = z.object({
   chief_complaint: z.string().optional(),
   // The physician's structured patient identifier (cle_patient_refs), passed on-prem SOLELY so RIMPL
   // can deterministically scrub it from the narrative before any cloud call — it is never forwarded.
-  patient_ref: z.string().optional(),
+  // nullish (not optional): the backend sends `?? null` when there is no patient_ref — null must pass.
+  patient_ref: z.string().nullish(),
   // CLICS §6.4: true → Socratic clinical-examiner mode (CLE2 / Tier-1 remediation); false → natural.
   socratic: z.boolean().default(false),
 });

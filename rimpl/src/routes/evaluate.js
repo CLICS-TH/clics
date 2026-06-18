@@ -13,7 +13,8 @@ const EvalSchema = z.object({
   cle_id: z.string(),
   transcript: z.array(z.object({ role: z.string(), content: z.string() })),
   // On-prem patient identifier, scrubbed from the transcript before the cloud eval; never forwarded.
-  patient_ref: z.string().optional(),
+  // nullish: the backend sends `?? null` when none was recorded — null must pass schema validation.
+  patient_ref: z.string().nullish(),
 });
 
 // The evaluator's d1..d7 drive CME credit and are persisted into smallint CHECK(0..5) columns

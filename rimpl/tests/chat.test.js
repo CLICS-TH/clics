@@ -62,6 +62,13 @@ describe('POST /chat', () => {
     expect(sent).toContain('[NAME-1]');
   });
 
+  test('patient_ref: null is accepted (regression — backend sends `?? null` when none recorded)', async () => {
+    const res = await request(app).post('/chat').send({
+      cle_id: 'x', history: [], message: 'q', language: 'en', patient_ref: null, socratic: false,
+    });
+    expect(res.status).toBe(200); // z.string().nullish() — not .optional(), which 400s on null
+  });
+
   // The retry gate is the experiment's behavioral hinge: Socratic mode MUST end on ❓ (retry if not);
   // natural mode must NOT be forced to (the ❓ is the manipulation, not a quality bar).
   const reply = (text) => ({ text, tokenCount: 100, inputTokens: 50, outputTokens: 50 });

@@ -11,7 +11,8 @@ const router = Router();
 const Schema = z.object({
   transcript: z.array(z.object({ role: z.string(), content: z.string() })),
   // On-prem patient identifier, scrubbed from the transcript before the cloud call; never forwarded.
-  patient_ref: z.string().optional(),
+  // nullish: the backend sends `?? null` when none was recorded — null must pass schema validation.
+  patient_ref: z.string().nullish(),
 });
 
 router.post('/', async (req, res) => {

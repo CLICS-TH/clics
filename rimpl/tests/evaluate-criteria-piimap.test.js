@@ -34,4 +34,11 @@ describe('POST /evaluate-criteria — pii_map + boundary', () => {
     expect(res.status).toBe(200);
     expect(res.body.pii_map).toEqual([]);
   });
+
+  test('patient_ref: null is accepted (regression — backend sends `?? null`)', async () => {
+    const res = await request(app).post('/evaluate-criteria').send({
+      transcript: [{ role: 'physician', content: 'x' }], patient_ref: null,
+    });
+    expect(res.status).toBe(200); // .nullish() schema; .optional() would 400 on null
+  });
 });
