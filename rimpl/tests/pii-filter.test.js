@@ -1,4 +1,4 @@
-const { stripPii, stripHistoryPii, deriveHintTokens } = require('../src/services/pii-filter');
+const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = require('../src/services/pii-filter');
 
 // ---------------------------------------------------------------------------
 // PII de-identification tests.
@@ -378,5 +378,38 @@ describe('stripPii — Thai gazetteer backstop (no hints)', () => {
     for (const t of ['BP 120/80 mmHg', 'O2 sat 98%', 'Hb 13.5 WBC 8000', 'ปวดท้อง 2 วัน']) {
       expect(stripPii(t)).toBe(t);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// makeRegistry().entries() — the token→raw reverse map that the backend
+// encrypts into the on-prem reversible PII store (Tier-1 audit).
+// ---------------------------------------------------------------------------
+describe('makeRegistry().entries() — reverse map', () => {
+  test('dumps token→raw entries for each masked value', () => {
+    const reg = makeRegistry();
+    stripPii('นพ.สมชาย โทร 081-234-5678', reg);
+    const entries = reg.entries();
+    expect(entries).toContainEqual({ token: '[NAME-1]', category: 'NAME', value: 'สมชาย' });
+    expect(entries.find((e) => e.category === 'PHONE')?.value).toContain('081-234-5678');
+  });
+
+  test('coreference + intake hint collapse to ONE name entry across turns', () => {
+    const reg = makeRegistry();
+    stripHistoryPii(
+      [{ role: 'physician', content: 'สมชายปวดท้อง' }, { role: 'physician', content: 'นายสมชาย ดีขึ้น' }],
+      ['สมชาย'], reg,
+    );
+    expect(reg.entries().filter((e) => e.category === 'NAME'))
+      .toEqual([{ token: '[NAME-1]', category: 'NAME', value: 'สมชาย' }]);
+  });
+
+  test('supplying a registry does not change the masked text', () => {
+    const out = stripHistoryPii([{ role: 'physician', content: 'นพ.สมชาย' }], [], makeRegistry());
+    expect(out[0].content).toBe('นพ.[NAME-1]');
+  });
+
+  test('a fresh registry with nothing masked yields no entries', () => {
+    expect(makeRegistry().entries()).toEqual([]);
   });
 });

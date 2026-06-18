@@ -77,8 +77,22 @@ function makeRegistry() {
     return aliases[category];
   }
 
+  // Dump the reverse map (token -> the raw surface form that produced it) for the on-prem reversible
+  // PII store (Tier-1 audit). `seen` holds exactly the distinct values that were masked. The `value`s
+  // ARE raw PII, so the caller MUST keep this on-prem and encrypted at rest — it never goes to cloud.
+  function entries() {
+    const out = [];
+    for (const category of Object.keys(seen)) {
+      for (const value of Object.keys(seen[category])) {
+        out.push({ token: seen[category][value], category, value });
+      }
+    }
+    return out;
+  }
+
   token.alias = alias;
   token.knownAliases = knownAliases;
+  token.entries = entries;
   return token;
 }
 
@@ -522,10 +536,10 @@ function stripPii(text, registry, hints = []) {
 }
 
 // Mask every message in a history/transcript array under ONE shared registry,
-// so the same person/phone/etc. gets the same token across turns.
-function stripHistoryPii(history, hints = []) {
-  const registry = makeRegistry();
+// so the same person/phone/etc. gets the same token across turns. A caller that wants the reverse
+// map can pass its own `registry` (via makeRegistry()) and read `registry.entries()` afterward.
+function stripHistoryPii(history, hints = [], registry = makeRegistry()) {
   return history.map(msg => ({ ...msg, content: stripPii(msg.content, registry, hints) }));
 }
 
-module.exports = { stripPii, stripHistoryPii, deriveHintTokens };
+module.exports = { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry };

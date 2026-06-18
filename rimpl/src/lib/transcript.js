@@ -15,8 +15,10 @@ function defang(content) {
 
 // `hints` = KNOWN patient identifiers (deriveHintTokens of the cle's patient_ref) scrubbed
 // deterministically, so a bare unlabelled name in the stored transcript is masked before the eval.
-function flattenForPrompt(transcript, hints = []) {
-  return stripHistoryPii(transcript, hints)
+// An optional `registry` lets the caller recover the token→raw reverse map via registry.entries()
+// (used to persist the on-prem reversible PII map at finalization).
+function flattenForPrompt(transcript, hints = [], registry) {
+  return stripHistoryPii(transcript, hints, registry)
     .map((m) => `[${String(m.role).toUpperCase()}]: ${defang(m.content)}`)
     .join('\n\n');
 }

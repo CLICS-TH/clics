@@ -4,7 +4,7 @@ const { callClaude } = require('../services/claude');
 const { CRITERIA_CLASSIFIER_PROMPT } = require('../lib/prompts');
 const { parseJsonObject } = require('../lib/parse');
 const { flattenForPrompt } = require('../lib/transcript');
-const { deriveHintTokens } = require('../services/pii-filter');
+const { deriveHintTokens, makeRegistry } = require('../services/pii-filter');
 
 const router = Router();
 
@@ -19,7 +19,10 @@ router.post('/', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   // PII-strip (incl. the known patient identifier) + defang injected role markers before the cloud model.
-  const transcriptText = flattenForPrompt(parsed.data.transcript, deriveHintTokens(parsed.data.patient_ref));
+  // The shared registry also yields the token→raw reverse map (pii_map) for the on-prem reversible
+  // store — built on-prem from the de-id input, so it carries no info the cloud model ever saw.
+  const registry = makeRegistry();
+  const transcriptText = flattenForPrompt(parsed.data.transcript, deriveHintTokens(parsed.data.patient_ref), registry);
 
   try {
     const { text, inputTokens, outputTokens } = await callClaude({
@@ -35,7 +38,9 @@ router.post('/', async (req, res) => {
       return res.status(502).json({ error: 'Classifier returned invalid JSON' });
     }
 
-    res.json({ c4: !!result.c4, c5: !!result.c5, c6: !!result.c6, input_tokens: inputTokens, output_tokens: outputTokens });
+    // pii_map: the on-prem reversible token→raw map. Backend encrypts + persists it; NEVER stored
+    // plaintext, never returned to a client, never sent to the cloud.
+    res.json({ c4: !!result.c4, c5: !!result.c5, c6: !!result.c6, pii_map: registry.entries(), input_tokens: inputTokens, output_tokens: outputTokens });
   } catch (err) {
     console.error('[RIMPL evaluate-criteria] error:', err);
     res.status(500).json({ error: 'Criteria evaluation service temporarily unavailable.' });

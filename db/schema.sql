@@ -242,6 +242,18 @@ drop policy if exists ple_patient_refs_owner on public.cle_patient_refs;
 create policy ple_patient_refs_owner on public.cle_patient_refs
   for all using (physician_id = auth.uid()) with check (physician_id = auth.uid());
 
+-- Reversible on-prem PII map (Tier-1 audit): one AES-256-GCM-encrypted token->raw map per CLE so the
+-- PI/data custodian can re-identify a [NAME-n]/[HN-n] token. Mirrors oauth_identities: encrypted with
+-- IDENTITY_ENC_KEY (backend-only) + RLS DENY-ALL (no policy → service-role only; superadmin reads via
+-- the gated, audit-logged endpoint). RIMPL never touches it. See db/migration-pii-map.sql.
+create table public.cle_pii_map (
+  cle_id        uuid primary key references public.cles(id) on delete cascade,
+  map_encrypted text not null,           -- AES-256-GCM(JSON [{token,category,value}]) — never plaintext
+  entry_count   int not null default 0,  -- non-PII metadata (number of distinct tokens)
+  updated_at    timestamptz not null default now()
+);
+alter table public.cle_pii_map enable row level security;  -- DENY-ALL (no policy below)
+
 -- One row per chat turn
 create table public.messages (
   id                uuid primary key default gen_random_uuid(),

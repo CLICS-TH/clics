@@ -7,6 +7,7 @@ const { supabase } = require('../lib/supabase');
 const { rimplEvaluateCriteria, isDeterministicRimplError } = require('./rimpl-client');
 const { accrueUsage } = require('../lib/usage');
 const { triggerEvaluation } = require('./cle-evaluation');
+const { persistPiiMap } = require('../lib/pii-map');
 
 // CLE-gate booleans live in the c1_pass..c6_pass columns; map {c1..} -> {c1_pass..}.
 const toPassCols = (crit) => Object.fromEntries(Object.entries(crit).map(([k, v]) => [`${k}_pass`, v]));
@@ -33,6 +34,8 @@ async function evaluateCriteriaWithRetry(payload, attempts = 3) {
 // flagging a qualifying session to manual QA. Returns { status, criteria }.
 async function finalizeScreening({ cleId, physicianId, transcript, tier1, patient_ref }) {
   const crit = await evaluateCriteriaWithRetry({ transcript, patient_ref });
+  // Persist the reversible on-prem PII map RIMPL returned (encrypted, fail-soft) — Tier-1 audit.
+  await persistPiiMap(cleId, crit.pii_map);
   const tier2 = { c4: crit.c4, c5: crit.c5, c6: crit.c6 };
   await accrueUsage(physicianId, crit.input_tokens, crit.output_tokens);
 

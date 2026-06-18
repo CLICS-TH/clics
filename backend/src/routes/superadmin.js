@@ -7,6 +7,7 @@ const { sendDbError, pageParams } = require('../lib/db-helpers');
 const { assertSlotAvailable, nextPseudonym, allSlotUsage, allCouncilSlotUsage, ROLES } = require('../lib/accounts');
 const { normalizeCanAudit } = require('../lib/dual-role');
 const { logEvent } = require('../lib/audit');
+const { decryptJson } = require('../lib/crypto');
 
 const router = Router();
 router.use(verifyJwt, requireRole('superadmin'));
@@ -434,6 +435,39 @@ router.get('/audit-log', async (req, res) => {
   if (sendDbError(res, error)) return;
   res.setHeader('X-Total-Count', count ?? 0);
   res.json({ total: count ?? 0, limit, offset, events: data ?? [] });
+});
+
+// Tier-1 (PI / data custodian) re-identification: decrypt a CLE's reversible PII map so a [NAME-n] /
+// [HN-n] token in the de-identified transcript can be traced back to its raw value for audit or
+// regulatory inquiry. superadmin-only (the router gate) + EVERY access is audit-logged. The raw
+// values live only in cle_pii_map (RLS deny-all, AES-256-GCM); they never enter the export or any
+// other surface. This is the "crown jewel" — keep it gated and logged.
+router.get('/cles/:id/pii-map', async (req, res) => {
+  const { data: cle } = await supabase.from('cles')
+    .select('id, cle_code, council_id').eq('id', req.params.id).maybeSingle();
+  if (!cle) return res.status(404).json({ error: 'CLE not found' });
+
+  const { data: row, error } = await supabase.from('cle_pii_map')
+    .select('map_encrypted, entry_count').eq('cle_id', req.params.id).maybeSingle();
+  if (sendDbError(res, error)) return;
+  if (!row) return res.status(404).json({ error: 'No PII map for this CLE' });
+
+  let entries;
+  try {
+    entries = decryptJson(row.map_encrypted);
+  } catch (e) {
+    console.error('[pii-map] decrypt failed:', e.message);
+    return res.status(500).json({ error: 'Could not decrypt the PII map (key mismatch?)' });
+  }
+
+  // Audit the re-identification (the audit row itself carries only the CLE pseudonym + count, no PII).
+  logEvent({
+    actorId: req.user.id, actorRole: req.user.role, action: 'pii.reidentify',
+    targetType: 'cle', targetId: cle.cle_code ?? req.params.id, councilId: cle.council_id ?? null,
+    metadata: { entry_count: row.entry_count, reason: req.query.reason || null },
+  });
+
+  res.json({ cle_code: cle.cle_code ?? null, entry_count: row.entry_count, entries });
 });
 
 module.exports = router;
