@@ -36,7 +36,7 @@ The smallest set that makes the prototype safe and credible for real physicians 
 
 From [MIDDLEWARE-KNOWN-GAPS.md](MIDDLEWARE-KNOWN-GAPS.md) — narrower-than-flowchart items to revisit before production:
 
-- **Full PII pseudonymization.** *(participant/session/auditor codes `P-`/`CLE-`/`EXP-` now exist — Phase 2; this item is the PII **content** mapping inside the filter.)* Replace the literal regex masks (`[HN]`, `[DATE]`, `[WARD]`) in `rimpl/src/services/pii-filter.js` with a stable, reversible per-entity lookup table, and broaden coverage (names, ages, phone, MRN variants, bare Thai-name patterns). Keeps the on-premise boundary while preserving longitudinal identity.
+- **Full PII pseudonymization.** *(participant/session/auditor codes `P-`/`CLE-`/`EXP-` exist — Phase 2. The **bare-unlabelled-Thai-name leak is CLOSED 2026-06-18** — intake-hint scrub of `patient_ref` + a Thai given-name gazetteer; see [MIDDLEWARE-KNOWN-GAPS.md](MIDDLEWARE-KNOWN-GAPS.md).)* What remains of this item is **reversibility**: replace the per-call in-text masks in `rimpl/src/services/pii-filter.js` with a **stable, reversible on-prem token→value lookup table** (encrypted, Tier-1-only, like the `oauth_identities` vault) so a token can be re-identified for audit while the cloud boundary holds and longitudinal identity is preserved.
 - **The "4 pre-filter signals" (L3).** Define and compute the four signals the flowchart specifies (currently only a single citation/Socratic retry loop exists).
 - **ELM.** Define-or-formally-drop the "ELM" injection referenced in the spec but never implemented.
 
