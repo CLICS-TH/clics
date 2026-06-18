@@ -52,6 +52,7 @@ app.use('/guest/start', limit(60_000, 6, 'Too many guest sessions — slow down.
 app.use('/guest', limit(60_000, 15, 'Guest limit reached — slow down.'));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+app.use('/health', require('./routes/health')); // /health/deep — unauthenticated readiness probe
 app.use('/auth', require('./routes/auth'));
 app.use('/guest', require('./routes/guest')); // ephemeral guest mode (no auth, no persistence)
 app.use('/cles/folders', require('./routes/folders')); // before /cles so "folders" isn't read as :id

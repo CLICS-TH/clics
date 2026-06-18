@@ -5,6 +5,8 @@ const app = express();
 app.use(express.json());
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+// Deep readiness (mounted before the token gate so monitors reach /health/deep unauthenticated).
+app.use('/health', require('./routes/health'));
 
 // In production the shared-secret MUST be configured — otherwise the middleware
 // would be callable unauthenticated. Fail closed at boot rather than silently open.

@@ -109,4 +109,18 @@ async function callClaude({ systemPrompt, messages, maxTokens = 1500 }) {
   }
 }
 
-module.exports = { callClaude, MODEL };
+// Readiness probe for /health/deep: confirm the API key is present and the SDK client is
+// constructible — WITHOUT making a completion call (zero token spend). Never throws.
+function isAnthropicClientReady() {
+  const keyPresent = !!process.env.ANTHROPIC_API_KEY;
+  let constructible = false;
+  try {
+    new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }); // constructor only — no network
+    constructible = true;
+  } catch {
+    constructible = false;
+  }
+  return { keyPresent, constructible };
+}
+
+module.exports = { callClaude, MODEL, isAnthropicClientReady };

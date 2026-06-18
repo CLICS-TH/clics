@@ -228,7 +228,8 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     });
   } catch (err) {
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
-    return res.status(502).json({ error: `RIMPL unavailable: ${err.message}` });
+    // Stable machine code (matches the /health/deep readiness signal + the repo's code: convention).
+    return res.status(502).json({ error: `RIMPL unavailable: ${err.message}`, code: 'rimpl_unavailable' });
   }
 
   const physicianTokens = Math.ceil(message.length / 4);

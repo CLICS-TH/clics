@@ -58,4 +58,20 @@ async function rimplEvaluateCriteria({ transcript }) {
   return res.json();
 }
 
-module.exports = { rimplChat, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError };
+// Readiness probe for the backend's GET /health/deep: fetch RIMPL's own deep check and return its
+// HTTP status + parsed body WITHOUT throwing on a non-200 (unlike the chat/eval calls — here a 503
+// is a meaningful "RIMPL degraded" answer, not a transport failure). Network/timeout still throws,
+// which the health route maps to a `down` rimpl status. Short timeout — this is an ops probe.
+const HEALTH_PROBE_TIMEOUT_MS = parseInt(process.env.HEALTH_RIMPL_TIMEOUT_MS || '2500', 10);
+async function probeRimplDeep({ timeoutMs = HEALTH_PROBE_TIMEOUT_MS } = {}) {
+  const res = await fetch(`${RIMPL_URL}/health/deep`, {
+    method: 'GET',
+    headers: { 'x-internal-token': process.env.INTERNAL_TOKEN || '' }, // harmless; /health/deep is open
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  let body = null;
+  try { body = await res.json(); } catch { body = null; }
+  return { httpStatus: res.status, body };
+}
+
+module.exports = { rimplChat, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep };
