@@ -61,4 +61,31 @@ describe('POST /chat', () => {
     expect(sent).not.toContain('สมชาย'); // the known patient name never reaches the cloud
     expect(sent).toContain('[NAME-1]');
   });
+
+  // The retry gate is the experiment's behavioral hinge: Socratic mode MUST end on ❓ (retry if not);
+  // natural mode must NOT be forced to (the ❓ is the manipulation, not a quality bar).
+  const reply = (text) => ({ text, tokenCount: 100, inputTokens: 50, outputTokens: 50 });
+
+  test('examiner mode retries when the ❓ is missing, using the smaller retry budget', async () => {
+    callClaude
+      .mockResolvedValueOnce(reply('Metformin is first-line (ADA, 2024).'))          // citation, NO ❓
+      .mockResolvedValueOnce(reply('Metformin (ADA, 2024).\n❓ Why renal-adjust?'));  // corrected
+    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en', socratic: true });
+    expect(callClaude).toHaveBeenCalledTimes(2);
+    expect(callClaude.mock.calls[1][0].maxTokens).toBe(1500);
+  });
+
+  test('natural mode does NOT retry on a missing ❓ (only a missing citation matters)', async () => {
+    callClaude.mockResolvedValueOnce(reply('Metformin is first-line (ADA, 2024).')); // citation, NO ❓
+    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en', socratic: false });
+    expect(callClaude).toHaveBeenCalledTimes(1); // accepted as-is — no forced ❓
+  });
+
+  test('a missing citation retries in BOTH modes', async () => {
+    callClaude
+      .mockResolvedValueOnce(reply('Metformin is first-line.\n❓ Why?'))             // ❓ but NO citation
+      .mockResolvedValueOnce(reply('Metformin (ADA, 2024).\n❓ Why?'));
+    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en', socratic: false });
+    expect(callClaude).toHaveBeenCalledTimes(2);
+  });
 });

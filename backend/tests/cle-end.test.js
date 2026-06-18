@@ -60,7 +60,7 @@ const qualifyingMsgs = () => ([
 ]);
 
 beforeEach(() => {
-  mockPle = { id: 'ple1', status: 'active', physician_id: 'doc1', started_at: longAgo() };
+  mockPle = { id: 'ple1', status: 'active', physician_id: 'doc1', started_at: longAgo(), socratic_reason: null, is_test: false };
   mockMsgs = qualifyingMsgs();
   mockClaimed = [{ id: 'ple1' }];
   mockUpdates = [];
@@ -112,4 +112,23 @@ test('a lost claim race (0 rows) returns 409 without evaluating', async () => {
   const res = await end('ple1', { active_seconds: 999999 });
   expect(res.status).toBe(409);
   expect(mockFinalize).not.toHaveBeenCalled();
+});
+
+// CLICS §6.4: only a NATURAL, real session feeds the remediation counter. A Socratic session
+// (CLE2 / remediation) is not part of the "natural fails" signal, and a Pilot Test Mode session
+// must never pollute the real counter.
+test('a Socratic session (CLE2/remediation) does NOT feed the remediation counter', async () => {
+  mockPle.socratic_reason = 'cle2_examiner';
+  mockPle.started_at = new Date().toISOString(); // wall-clock ~0 → fails Tier-1
+  const res = await end('ple1', { active_seconds: 999999 });
+  expect(res.body.status).toBe('cle_fail_t1');
+  expect(mockT1Outcome).toBeUndefined(); // record_t1_outcome NOT called
+});
+
+test('a Pilot Test Mode session (is_test) does NOT pollute the real counter', async () => {
+  mockPle.is_test = true;
+  mockPle.started_at = new Date().toISOString(); // fails Tier-1
+  const res = await end('ple1', { active_seconds: 999999 });
+  expect(res.body.status).toBe('cle_fail_t1');
+  expect(mockT1Outcome).toBeUndefined();
 });

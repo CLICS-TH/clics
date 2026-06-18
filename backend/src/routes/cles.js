@@ -315,9 +315,13 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   if (!claimed || claimed.length === 0) return res.status(409).json({ error: 'CLE not active' });
 
   // CLICS §6.4 remediation counter: 3 consecutive Tier-1 fails open Socratic remediation on the
-  // physician's NEXT natural session; any pass resets it. Best-effort — never block /end on it.
-  const { error: rtErr } = await supabase.rpc('record_t1_outcome', { p_id: cle.physician_id, p_pass: tier1Pass });
-  if (rtErr) console.error('[cles] record_t1_outcome failed:', rtErr.message);
+  // physician's NEXT natural session; any pass resets it. ONLY a natural, real (non-test) session
+  // feeds it — a Socratic session (CLE2 / remediation) is not part of the "natural fails" signal, and
+  // a Pilot Test Mode session must never pollute the real counter. Best-effort — never block /end.
+  if (cle.socratic_reason === null && !cle.is_test) {
+    const { error: rtErr } = await supabase.rpc('record_t1_outcome', { p_id: cle.physician_id, p_pass: tier1Pass });
+    if (rtErr) console.error('[cles] record_t1_outcome failed:', rtErr.message);
+  }
 
   logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.end', targetType: 'cle',
     targetId: cle.cle_code ?? req.params.id, councilId: cle.council_id ?? null, metadata: { tier1_pass: tier1Pass } });

@@ -73,6 +73,15 @@ test('create CLE2 (1 prior pass) → episode 2, Socratic examiner from start', a
   });
 });
 
+test('create CLE3 (2 prior passes) → episode 3, natural again', async () => {
+  passedCount = 2;
+  const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
+  expect(r.status).toBe(201);
+  expect(m.find('cles', 'insert').payload).toMatchObject({
+    episode_number: 3, socratic_active: false, socratic_reason: null,
+  });
+});
+
 test('create a natural CLE after 3 consecutive Tier-1 fails → Socratic remediation', async () => {
   m.state.caller = { ...PHYSICIAN, consecutive_t1_fails: 3 };
   passedCount = 0; // episode 1, but remediation kicks in
