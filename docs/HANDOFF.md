@@ -1,6 +1,6 @@
 # CLICS — Handoff Snapshot
 
-*State of the app as of **2026-06-15**, for the developer continuing this project. Pairs with
+*State of the app as of **2026-06-18**, for the developer continuing this project. Pairs with
 [../README.md](../README.md) (orientation), [../CONTRIBUTING.md](../CONTRIBUTING.md) (how to work in it),
 and [ROADMAP.md](ROADMAP.md) (what to build next).*
 
@@ -13,9 +13,11 @@ Supabase Postgres). Working end-to-end today:
   email/password + invites. Four roles (Physician / Auditor / Admin / Superadmin) across **multiple
   councils** with council isolation. The CLICS token is the Supabase session token (see the never-`signOut`
   rule). License-No./TMC verification was retired. See [roles.md](roles.md), [AUTH-SETUP.md](AUTH-SETUP.md).
-- **Physician flow** — create a CLE (with chief complaint), chat with the AI (citations + a Socratic
-  follow-up per turn), pause/resume, end → CLE gate → PIS-7 evaluation → result + LPDP trend. Guest mode
-  (anonymous, 2 prompts, no persistence). Per-user **$0.50 AI cap** with an allowance meter.
+- **Physician flow** — create a CLE (with chief complaint), chat with the AI (citations every turn;
+  the Socratic follow-up is now **mode-dependent** — see the experiment below: CLE1/3 are natural,
+  CLE2 + 3×-T1-fail remediation are Socratic), pause/resume, end → CLE gate → PIS-7 evaluation →
+  result + LPDP trend. Guest mode (anonymous, 2 prompts, no persistence). Per-user **$0.50 AI cap**
+  with an allowance meter.
 - **Auditor flow** — blind PIS-7 scoring of *evaluated* sessions assigned via `cles.auditor_id`; the
   rubric-anchored **DomainScorer** (tappable 0–5 chips, no silent-0 default, submit blocked until all 7
   domains are set); AI score revealed only after submit; ICC(2,1) of AI-vs-auditor.
@@ -25,7 +27,39 @@ Supabase Postgres). Working end-to-end today:
   Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
   0 errors (the AI path's ceiling is Anthropic **OTPM** — see [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)).
 
-## What just shipped (2026-06-15)
+## What just shipped (2026-06-17 / 18) — protocol alignment + readiness
+
+The **CREC/NRCT protocol-alignment** cycle (8 phases) plus a readiness-checks add — merged to `master`
+(`d84595a`…`b49c370`) and live in prod (migrations applied to the shared Supabase; Railway + Vercel
+redeployed). This is the cycle that built the **research experiment** the protocol hinges on:
+
+- **CLE episode sequencing + Socratic toggle (the experiment).** `cles.episode_number` (1–3, 4th
+  blocked), `socratic_active`/`socratic_reason`, `professionals.consecutive_t1_fails`. CLE1/3 run
+  **natural** (no forced ❓); CLE2 runs **Socratic-from-start**; a natural session flips to Socratic
+  `t1_remediation` after **3 consecutive Tier-1 fails** (resets on a pass). The rimpl prompt split into
+  NATURAL / EXAMINER variants threaded by a `socratic` flag. Physician sees "CLE n/3" but not the mode.
+- **Pilot Test Mode.** Superadmin toggle (`app_settings.pilot_test_mode`, on the dashboard Overview)
+  that lets the team pick Natural/Socratic directly + bypass the 3-CLE cap; such CLEs are `is_test`
+  (out of real export/ICC). Exercises Socratic without completing CLE1→CLE2.
+- **PLE → CLE rename** across DB + all 4 layers + tests + docs (table `ples`→`cles`, `ple_id`→`cle_id`).
+- **Study compliance scaffolding.** `cle_code` (CLE-NNN) + `exp_code` (EXP-NNN) pseudonyms; append-only
+  `audit_log` + `logEvent()`; evaluator **version provenance** (`prompt_version`/`rubric_version` hashes);
+  structured `consents` table with a physician consent modal + an **auditor confidentiality/COI gate**;
+  **Tier-3 analyst** + **Tier-4 ethics** read-only oversight roles (`/oversight`); **compensation report**
+  (`/admin/compensation`, ฿500/CLE capped ฿1500). Final consent *wording* still comes from the PI.
+- **`/health/deep` readiness checks (P1).** Both RIMPL and the backend now expose `GET /health/deep`
+  (the shallow `/health` stays a liveness ping). RIMPL probes Anthropic-key/SDK-constructibility (zero
+  token spend) + Supabase; the backend aggregates its own Supabase + RIMPL's deep check, bubbling a
+  per-dependency map (200 all-up / 503 degraded). The chat-route 502 gained a stable
+  `code: 'rimpl_unavailable'`. See `{backend,rimpl}/src/routes/health.js`.
+- **Return-to-Physician** NavBar button for dual-role (`can_audit`) users; **mobile container-query** fix
+  (layout grids collapse via `@min-[…px]:` so the forced-mobile preview + real phones go 1-col).
+
+> Reconciliation note: `db/schema.sql` is kept in sync for fresh installs; the 8 migrations
+> (`migration-cle-rename.sql` first → … → `migration-oversight-roles.sql`) were applied in order to the
+> shared prod Supabase, preserving data.
+
+## What shipped 2026-06-15
 
 A test-hardening + mobile-polish cycle, pushed to master (`1d9a6db`…`e433d41`, CI green) with the
 **audit-dashboard redeployed to Vercel**:
@@ -77,14 +111,14 @@ live by reassigning an evaluated CLE to `auditor1`. The original Claude Design a
 
 ## Where to start (improvement on-ramp)
 
-[ROADMAP.md](ROADMAP.md) is the prioritized backlog. The **P1 (pilot-readiness)** items are the natural
-first contributions:
+[ROADMAP.md](ROADMAP.md) is the prioritized backlog. The **P1 (pilot-readiness)** *engineering* items
+are now done — verified 2026-06-18: `db/reset-demo.js` (protocol-aware), cross-pause `active_seconds`
+(client accumulates incrementally → server clamps to wall-clock → C1 gate reads it), automated CI, and
+`/health/deep`. What remains under P1 is **org-only**: rotate `ANTHROPIC_API_KEY` + demo passwords, and
+verify a Resend sending domain (see [GO-LIVE-CHECKLIST.md](GO-LIVE-CHECKLIST.md)).
 
-- `db/reset-demo.js` — one-command reproducible demo (incl. an assigned auditor queue item, so the scorer
-  is always demoable). *(Backend route tests, CI, and coverage gates shipped 2026-06-15 — see
-  [TESTING.md](TESTING.md); what's left there is dashboard component coverage + a staging smoke job.)*
-- `/health/deep` on RIMPL + a backend pre-routing check, so an outage surfaces cleanly instead of per-message 502s.
-- Cross-pause active-time persistence; Resend sending-domain verification.
+So the natural next contributions are **P2 spec gaps** — top of the list is full reversible PII
+pseudonymization (`P-`/`CLE-` lookup table + broader Thai-name coverage in `rimpl/src/services/pii-filter.js`).
 
 ## Known gaps & deferred work
 
