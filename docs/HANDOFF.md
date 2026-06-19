@@ -1,6 +1,6 @@
 # CLICS — Handoff Snapshot
 
-*State of the app as of **2026-06-18**, for the developer continuing this project. Pairs with
+*State of the app as of **2026-06-19**, for the developer continuing this project. Pairs with
 [../README.md](../README.md) (orientation), [../CONTRIBUTING.md](../CONTRIBUTING.md) (how to work in it),
 and [ROADMAP.md](ROADMAP.md) (what to build next).*
 
@@ -26,6 +26,32 @@ Supabase Postgres). Working end-to-end today:
 - **Integrity** — consent gate, PII stripping in RIMPL before any cloud call, pseudonyms (`P-NNN`),
   Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
   0 errors (the AI path's ceiling is Anthropic **OTPM** — see [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)).
+
+## What just shipped (2026-06-19) — daily-summary email → GitHub Actions
+
+Ops/tooling fix (not an app-runtime path — the $0.50 cap, blind scoring, and PII boundary are untouched).
+The daily Thai progress-summary email (a claude.ai `/schedule` cloud routine, 08:00 Asia/Bangkok) had
+started silently landing as a **Gmail draft** instead of sending: the Anthropic cloud sandbox's network
+**egress allowlist began blocking `api.resend.com`** (`HOST not in allowlist`). (An earlier f-string crash
+was a separate, already-fixed issue.) Confirmed environment-specific — the sibling `jjnnaappaatt/lidar-hpe`
+bot still sent fine because it delivers via GitHub Actions, not from the sandbox.
+
+Fix (merged to `master`, `89eae84`; PR #4): keep summary **generation** in the routine (its LLM is free,
+no API key) but move the **send** to GitHub Actions (open egress).
+
+- **`.github/workflows/daily-summary.yml`** — `workflow_dispatch`; writes the dispatched `data.json`
+  payload (or a raw git fallback via `scripts/daily-summary/gen_fallback.py`) → `scripts/daily-summary/send.py`
+  renders the HTML dashboard + plain-text fallback and POSTs to Resend. `RESEND_API_KEY` is now a GitHub
+  **encrypted secret** (rotated) — the previously **hardcoded** key was removed.
+- **Routine repointed** (`trig_013if2V1ttgvCmpEhxDq2Pma`): generate `data.json` → `gh workflow run
+  "CLICS Daily Summary" … -f payload="$(cat data.json)"`; the embedded sender + key are gone. It still
+  falls back to a Gmail draft (with a note) if `gh` is unavailable, so a day is never lost.
+- **Gotcha:** `gh` is only present in the cloud sandbox when the repo's GitHub is **connected** (Claude
+  GitHub App / `/web-setup`) — clics wasn't, so the first cutover test drafted with `gh: command not found`;
+  connecting it fixed it. Native GitHub `schedule:` cron is intentionally unused (Actions throttles/skips
+  cron) — the routine is the reliable clock.
+- **Verified end-to-end live:** routine → dispatch → run `success` → Resend `SENT` → inbox. Runbook +
+  secret/rotation steps in `scripts/daily-summary/README.md`.
 
 ## What just shipped (2026-06-17 / 18) — protocol alignment + readiness
 
