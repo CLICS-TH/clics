@@ -1,0 +1,73 @@
+name: CLICS Daily Summary
+
+# Sends the daily CLICS progress email from GitHub's cloud (open egress), so the
+# Resend call is never blocked by the Anthropic cloud-sandbox network egress
+# allowlist that broke the in-sandbox send on 2026-06-19 ("HOST not in allowlist"
+# → the run fell back to a Gmail draft). Mirrors jjnnaappaatt/lidar-hpe.
+#
+# TRIGGER: the "CLICS Daily Summary Email" claude.ai /schedule routine
+# (trig_013if2V1ttgvCmpEhxDq2Pma) runs daily at 08:00 Asia/Bangkok, builds the
+# plain-Thai data.json (git metrics + LLM summary), then dispatches THIS workflow
+# with `gh workflow run "CLICS Daily Summary" -R jjnnaappaatt/clics
+#   --ref master -f payload="$(cat data.json)"`.
+# The routine is the reliable clock; this workflow renders + sends (it holds
+# RESEND_API_KEY). A no-payload run (manual smoke test) generates a raw fallback.
+#
+# Native GitHub `schedule:` cron is intentionally NOT used — Actions throttles
+# cron heavily and can skip runs; workflow_dispatch is not throttled. See the
+# lidar-hpe daily-update.yml note (its 02:00 UTC cron run was skipped).
+on:
+  workflow_dispatch:
+    inputs:
+      payload:
+        description: "data.json contents (CLICS daily summary). Empty → raw git fallback."
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: clics-daily-summary
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Bangkok                              # Bangkok-local date in the fallback path
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      DAILY_TO: ${{ vars.DAILY_TO || 'napat72235@gmail.com' }}
+    steps:
+      - name: Checkout (full history for the 24h git-log fallback)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0                            # default shallow clone hides commit history
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build data.json (from payload, or a raw git fallback)
+        env:
+          PAYLOAD: ${{ inputs.payload }}
+        run: |
+          if [ -n "$PAYLOAD" ]; then
+            printf '%s' "$PAYLOAD" > data.json
+            echo "Using dispatched payload ($(wc -c < data.json) bytes)."
+          else
+            echo "No payload — generating a raw git fallback."
+            python3 scripts/daily-summary/gen_fallback.py > data.json
+          fi
+          python3 -c "import json; json.load(open('data.json', encoding='utf-8')); print('data.json is valid JSON')"
+
+      - name: Guard — RESEND_API_KEY must be set
+        run: |
+          if [ -z "$RESEND_API_KEY" ]; then
+            echo "::error::RESEND_API_KEY secret is missing. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      - name: Render + send via Resend
+        run: python3 scripts/daily-summary/send.py
