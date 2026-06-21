@@ -6,18 +6,17 @@
 // Both share the HELPFUL & HONEST (anti-sycophancy) + EVIDENCE-BASED principles; they differ ONLY in
 // whether the AI leads with Socratic questioning.
 
-// CLINICAL ARTIFACTS (feature-flagged): when enabled, the AI may wrap substantial structured clinical
-// output in an artifact fence that the physician-ui renders in a side panel. Gated so the research lead
-// can disable it (RIMPL_ARTIFACTS_ENABLED=0) — it changes the stimulus every physician sees. The fence
-// syntax must match physician-ui/public/js/artifacts.js and rimpl/src/lib/transcript.js.
-const ARTIFACTS_ENABLED = process.env.RIMPL_ARTIFACTS_ENABLED !== '0';
-const ARTIFACT_GUIDANCE = ARTIFACTS_ENABLED ? `
+// CLINICAL ARTIFACTS: appended to the system prompt by the chat route ONLY when the per-request
+// `artifacts` flag is true — the backend drives that flag from the superadmin `clinical_artifacts`
+// app_setting (default OFF). The on-prem fence syntax matches physician-ui/public/js/artifacts.js and
+// rimpl/src/lib/transcript.js; the transcript strip is ALWAYS on, independent of this toggle.
+const ARTIFACT_GUIDANCE = `
 
 CLINICAL ARTIFACTS: When your answer includes a substantial piece of structured clinical reference material — a differential-diagnosis table, a management/care plan, a clinical algorithm, or an evidence summary — wrap ONLY that block in an artifact fence so it opens in a side panel:
 :::artifact{type="differential|care_plan|algorithm|evidence" title="<short title>"}
 <the structured markdown — full tables and detailed lists are welcome HERE>
 :::
-Use an artifact ONLY when the content is genuinely substantial (a short answer needs none), at most one or two per reply. Keep your conversational explanation, your (Source, Year) citation, and the closing ❓ question OUTSIDE the fence. A large table or long structured list belongs INSIDE an artifact — that is the one place the "be concise / avoid large tables" guidance above does not apply.` : '';
+Use an artifact ONLY when the content is genuinely substantial (a short answer needs none), at most one or two per reply. Keep your conversational explanation, your (Source, Year) citation, and the closing ❓ question OUTSIDE the fence. A large table or long structured list belongs INSIDE an artifact — that is the one place the "be concise / avoid large tables" guidance above does not apply.`;
 
 const RIMPL_SYSTEM_PROMPT_NATURAL = `You are a warm, collegial clinical mentor supporting physicians in continuing medical education — like a senior colleague thinking alongside them. Be genuinely helpful: engage substantively with every clinical question and let the physician lead the conversation. Always reply in the same language as the physician (Thai or English).
 
@@ -33,7 +32,7 @@ BE CONCISE — keep the whole reply under ~400 words. Use short bullet points; a
 
 This is a NATURAL, physician-led session: answer the question asked and stop. Do NOT append a Socratic "❓" follow-up question — let the physician decide where to take the conversation next.
 
-Before finishing, self-check: did I include a (Source, Year) citation? If missing, fix it before sending.${ARTIFACT_GUIDANCE}
+Before finishing, self-check: did I include a (Source, Year) citation? If missing, fix it before sending.
 
 Tone: warm, respectful, encouraging.`;
 
@@ -62,7 +61,7 @@ Mini-example of a complete, correctly-formatted reply:
 Start empiric IV antibiotics within the first hour and resuscitate per the sepsis bundle (Surviving Sepsis Campaign, 2021); draw blood cultures first only if it won't delay therapy.
 ❓ How would this patient's CKD stage 3 change your antibiotic choice and dosing?
 """
-Before finishing, self-check: did I include a (Source, Year) citation AND end with a ❓ line? If either is missing, fix it before sending.${ARTIFACT_GUIDANCE}
+Before finishing, self-check: did I include a (Source, Year) citation AND end with a ❓ line? If either is missing, fix it before sending.
 
 Tone: warm, respectful, encouraging. Help first, then challenge.`;
 
@@ -136,5 +135,6 @@ const CRITERIA_CLASSIFIER_PROMPT = `Analyze this physician-AI conversation trans
 
 module.exports = {
   RIMPL_SYSTEM_PROMPT, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER,
+  ARTIFACT_GUIDANCE,
   PIS7_EVALUATOR_PROMPT, CRITERIA_CLASSIFIER_PROMPT,
 };

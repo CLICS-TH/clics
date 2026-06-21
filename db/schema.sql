@@ -118,6 +118,11 @@ on conflict (key) do nothing;
 -- the physician may pick Natural/Socratic directly. See db/migration-pilot-test-mode.sql.
 insert into public.app_settings (key, value) values ('pilot_test_mode', 0)
 on conflict (key) do nothing;
+-- Clinical Artifacts toggle (0/1): when 1, the chat call tells RIMPL it may emit `:::artifact{...}`
+-- side-panel blocks (DDx tables, care plans, …). Default 0 — a research-stimulus change, enabled by a
+-- superadmin. The transcript strip runs regardless of this flag.
+insert into public.app_settings (key, value) values ('clinical_artifacts', 0)
+on conflict (key) do nothing;
 -- Exactly one superadmin, ever (DB-level guarantee; the API also blocks every 2nd-superadmin path).
 create unique index if not exists professionals_single_superadmin
   on public.professionals ((role)) where role = 'superadmin';

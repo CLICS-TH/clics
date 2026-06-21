@@ -24,7 +24,7 @@ type IccData = {
 };
 type Council = { id: string; code: string; name_th: string; name_en: string; active?: boolean };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
-type UsageSettings = { standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number; pilot_test_mode?: boolean };
+type UsageSettings = { standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number; pilot_test_mode?: boolean; clinical_artifacts_enabled?: boolean };
 type CountRow = { council_id: string; role: string; n: number };
 type Invite = { id: string; email: string; status: string };
 
@@ -77,6 +77,21 @@ export default function OverviewPage() {
       setUsage(u => (u ? { ...u, pilot_test_mode: next.pilot_test_mode } : u));
     } catch { /* leave state unchanged on failure */ }
     setPilotSaving(false);
+  }
+
+  // ---- Clinical Artifacts toggle ----
+  const [artifactsSaving, setArtifactsSaving] = useState(false);
+  const artifactsOn = usage?.clinical_artifacts_enabled === true;
+  async function toggleArtifacts() {
+    if (!usage) return;
+    setArtifactsSaving(true);
+    try {
+      const next = await apiFetch<UsageSettings>('/admin/usage-settings', {
+        method: 'PATCH', body: JSON.stringify({ clinical_artifacts_enabled: !artifactsOn }),
+      });
+      setUsage(u => (u ? { ...u, clinical_artifacts_enabled: next.clinical_artifacts_enabled } : u));
+    } catch { /* leave state unchanged on failure */ }
+    setArtifactsSaving(false);
   }
 
   // ---- ④ Budget ----
@@ -263,6 +278,31 @@ export default function OverviewPage() {
             title={pilotOn ? 'Pilot test mode is ON' : 'Pilot test mode is OFF'}
           >
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${pilotOn ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
+        </div>
+      </section>
+
+      {/* Clinical Artifacts — when on, the AI may emit `:::artifact{…}` side-panel blocks (DDx tables,
+          care plans, algorithms). A research-stimulus change, so it's off by default. */}
+      <section className="space-y-3">
+        <h2 className="font-heading text-xl text-foreground">Clinical Artifacts</h2>
+        <div className="flex items-center justify-between rounded-xl border p-5">
+          <div className="pr-4">
+            <p className="text-sm font-medium">📋 Clinical Artifacts / รายงานคลินิกแบบ artifact</p>
+            <p className="text-xs text-muted-foreground">
+              เปิดให้ AI สร้าง artifact (ตาราง DDx, แผนการรักษา, อัลกอริทึม) แสดงใน side panel •
+              When on: the AI wraps substantial structured output (differential tables, care plans, algorithms,
+              evidence summaries) in side-panel artifacts. This changes the stimulus every physician sees — enable deliberately.
+            </p>
+          </div>
+          <button
+            onClick={toggleArtifacts}
+            disabled={!usage || artifactsSaving}
+            aria-pressed={artifactsOn}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${artifactsOn ? 'bg-primary' : 'bg-muted'}`}
+            title={artifactsOn ? 'Clinical artifacts are ON' : 'Clinical artifacts are OFF'}
+          >
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${artifactsOn ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
         </div>
       </section>

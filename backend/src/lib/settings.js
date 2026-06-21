@@ -14,4 +14,10 @@ async function pilotTestMode() {
   return (await getSetting('pilot_test_mode', 0)) === 1;
 }
 
-module.exports = { getSetting, pilotTestMode };
+// Clinical Artifacts (superadmin toggle): when ON, the chat call tells RIMPL it may emit
+// `:::artifact{...}` side-panel blocks. Default OFF — a research-stimulus change, enabled deliberately.
+async function clinicalArtifactsEnabled() {
+  return (await getSetting('clinical_artifacts', 0)) === 1;
+}
+
+module.exports = { getSetting, pilotTestMode, clinicalArtifactsEnabled };
