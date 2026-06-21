@@ -13,14 +13,30 @@ function defang(content) {
   return String(content).replace(ROLE_MARKER_RE, (m) => `［${m.slice(1, -1)}］`);
 }
 
+// CLINICAL ARTIFACTS — canonical on-prem delimiter (keep in sync with physician-ui/public/js/artifacts.js
+// and audit-dashboard/components/TranscriptView.tsx). The AI wraps substantial structured clinical output
+// (DDx tables, care plans) in:
+//   :::artifact{type="..." title="..."}\n<markdown body>\n:::
+// The body is clinically meaningful and MUST survive to the evaluator / auditor; only the control syntax
+// (the opening `:::artifact{...}` line and the closing `:::` line) is removed. Idempotent + truncation-safe
+// (a max-tokens-truncated reply leaves an unclosed fence — we still drop the opening line and keep the body).
+const ARTIFACT_OPEN_RE = /^:::artifact\{[^}\n]*\}[ \t]*\n?/gm;
+const ARTIFACT_CLOSE_RE = /^:::[ \t]*$/gm;
+
+function stripArtifactDelimiters(text) {
+  return String(text).replace(ARTIFACT_OPEN_RE, '').replace(ARTIFACT_CLOSE_RE, '');
+}
+
 // `hints` = KNOWN patient identifiers (deriveHintTokens of the cle's patient_ref) scrubbed
 // deterministically, so a bare unlabelled name in the stored transcript is masked before the eval.
 // An optional `registry` lets the caller recover the token→raw reverse map via registry.entries()
 // (used to persist the on-prem reversible PII map at finalization).
 function flattenForPrompt(transcript, hints = [], registry) {
   return stripHistoryPii(transcript, hints, registry)
-    .map((m) => `[${String(m.role).toUpperCase()}]: ${defang(m.content)}`)
+    // Strip artifact control syntax BEFORE defang so the evaluator/classifier never sees `:::artifact{...}`
+    // tags, and a forged `[SYSTEM]` hidden inside an artifact body is still defanged afterwards.
+    .map((m) => `[${String(m.role).toUpperCase()}]: ${defang(stripArtifactDelimiters(m.content))}`)
     .join('\n\n');
 }
 
-module.exports = { flattenForPrompt, defang };
+module.exports = { flattenForPrompt, defang, stripArtifactDelimiters };

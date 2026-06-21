@@ -9,6 +9,11 @@ const Anthropic = require('@anthropic-ai/sdk');
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 55000, maxRetries: 0 });
 const MODEL = 'claude-sonnet-4-6';
 
+// Prompt caching (default OFF). The ~2k-token system prompt is re-sent every turn at full input price;
+// caching it cuts that to ~10% after the first call. DEFAULT OFF because zero-data-retention (ZDR)
+// accounts may not permit prompt caching — confirm the org DPA allows it, then set RIMPL_PROMPT_CACHE=1.
+const PROMPT_CACHE = process.env.RIMPL_PROMPT_CACHE === '1';
+
 // --- Concurrency limiter (the "queue") --------------------------------------------------------
 // A burst of simultaneous chats used to fail (~33% success at 40 concurrent) because they all hit
 // the Anthropic API at once and tripped its rate limit. Cap the number of IN-FLIGHT Claude calls;
@@ -81,7 +86,11 @@ async function callClaude({ systemPrompt, messages, maxTokens = 1500 }) {
       try {
         // .withResponse() yields the same Message as `data` PLUS the HTTP response, so we can read
         // the anthropic-ratelimit-* headers to learn the binding dimension.
-        const { data, response: httpResp } = await client.messages.create({ model: MODEL, max_tokens: maxTokens, system: systemPrompt, messages }).withResponse();
+        // When caching is on, the system prompt is sent as a cacheable text block (array form).
+        const system = PROMPT_CACHE
+          ? [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }]
+          : systemPrompt;
+        const { data, response: httpResp } = await client.messages.create({ model: MODEL, max_tokens: maxTokens, system, messages }).withResponse();
         logRateLimit(httpResp?.headers, 'ok');
         // Join ALL text blocks, not just content[0]: a reply led by a non-text block (thinking/tool)
         // would otherwise silently become '' and degrade the chat (blank reply) or the eval (composite 0).

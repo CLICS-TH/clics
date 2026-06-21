@@ -49,6 +49,22 @@ describe('TranscriptView', () => {
     expect(container.textContent).toContain('qSOFA score?');
   });
 
+  it('strips the :::artifact fence but keeps the inner body for the auditor', () => {
+    render(
+      <TranscriptView
+        messages={[{
+          role: 'assistant',
+          content: 'Here is the differential:\n:::artifact{type="differential" title="DDx"}\n| ACS | high |\n:::\nWatch troponin (AHA, 2021).',
+        }]}
+      />
+    );
+    const md = screen.getByTestId('md');
+    expect(md.textContent).not.toContain(':::artifact'); // raw control syntax never shown
+    expect(md.textContent).not.toContain(':::');
+    expect(md).toHaveTextContent('| ACS | high |');       // artifact body survives
+    expect(md).toHaveTextContent('Watch troponin (AHA, 2021).');
+  });
+
   it('joins reference sources with " · "', () => {
     const { container } = render(
       <TranscriptView
