@@ -42,8 +42,9 @@ const EDIT_ROLE_OPTIONS: { key: string; label: string }[] = [
   { key: 'special', label: 'พิเศษ Special (User+Auditor)' },
 ];
 
-// Role filter chips (superadmin only; server-side ?role= on /admin/users; '' = all). Reuses the
-// EDIT_ROLE_OPTIONS labels (incl. 'special' = physician + can_audit) and adds Superadmin.
+// Role filter chips (admin + superadmin; server-side ?role= on /admin/users, council-scoped for
+// admins; '' = all). Reuses the EDIT_ROLE_OPTIONS labels (incl. 'special' = physician + can_audit)
+// and adds Superadmin (the Superadmin chip is shown only to superadmin — see render).
 const ROLE_FILTERS: { key: string; label: string }[] = [
   { key: '', label: 'ทุกบทบาท / All roles' },
   ...EDIT_ROLE_OPTIONS,
@@ -655,28 +656,30 @@ export default function UsersPage() {
         ))}
       </div>
 
-      {/* Role + Council filters — superadmin only (admins are already pinned to one council; all
-          three filter rows compose server-side, so "Showing X of Y" stays correct). */}
+      {/* Role filter — admin + superadmin. Backend ?role= is council-scoped for admins (admin.js),
+          so an admin filters within their own council; superadmin filters across all. The Superadmin
+          chip is hidden for admins (a council-scoped query never returns the global superadmin). All
+          filter rows compose server-side, so "Showing X of Y" stays correct. */}
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <span className="mr-1 text-xs text-muted-foreground">Role</span>
+        {(isSuper ? ROLE_FILTERS : ROLE_FILTERS.filter(f => f.key !== 'superadmin')).map(f => (
+          <Button key={f.key || 'all'} variant={roleFilter === f.key ? 'default' : 'outline'} size="sm" onClick={() => setRoleFilter(f.key)}>
+            {f.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Council filter — superadmin only (admins are already pinned to one council). */}
       {isSuper && (
-        <>
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className="mr-1 text-xs text-muted-foreground">Role</span>
-            {ROLE_FILTERS.map(f => (
-              <Button key={f.key || 'all'} variant={roleFilter === f.key ? 'default' : 'outline'} size="sm" onClick={() => setRoleFilter(f.key)}>
-                {f.label}
-              </Button>
-            ))}
-          </div>
-          <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <span className="mr-1 text-xs text-muted-foreground">สภา / Council</span>
-            <Button variant={councilFilter === '' ? 'default' : 'outline'} size="sm" onClick={() => setCouncilFilter('')}>ทุกสภา / All</Button>
-            {councils.map(c => (
-              <Button key={c.id} variant={councilFilter === c.id ? 'default' : 'outline'} size="sm" onClick={() => setCouncilFilter(c.id)}>
-                {c.name_th}
-              </Button>
-            ))}
-          </div>
-        </>
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className="mr-1 text-xs text-muted-foreground">สภา / Council</span>
+          <Button variant={councilFilter === '' ? 'default' : 'outline'} size="sm" onClick={() => setCouncilFilter('')}>ทุกสภา / All</Button>
+          {councils.map(c => (
+            <Button key={c.id} variant={councilFilter === c.id ? 'default' : 'outline'} size="sm" onClick={() => setCouncilFilter(c.id)}>
+              {c.name_th}
+            </Button>
+          ))}
+        </div>
       )}
 
       {/* Loaded-vs-total count for the user list (respects the active status filter). */}
