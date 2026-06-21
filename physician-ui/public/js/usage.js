@@ -18,15 +18,13 @@
     var textColor = over ? 'var(--error-text,#7a1c1c)' : pct >= 80 ? 'var(--warning-text,#7a5900)' : 'var(--success-text,#1a6630)';
 
     if (opts.mini) {
-      // Minimal battery-style bar: the fill is the REMAINING allowance (depletes as it's used),
-      // colour-coded green → amber → red. Exact figure in the tooltip.
-      var remain = Math.max(0, 100 - pct);
-      var fillColor = (over || remain <= 5) ? 'var(--error,#c64545)' : remain <= 20 ? 'var(--warning,#d4a017)' : 'var(--success,#5db872)';
+      // Minimal bar showing CURRENT usage — the fill is how much of the allowance is used,
+      // climbing green → amber → red. Exact figure shown as text and in the tooltip.
       host.className = 'usage-mini';
-      host.title = over ? 'ใช้โควตา AI ครบแล้ว — ติดต่อผู้ดูแลระบบ / AI allowance used up' : ('โควตา AI คงเหลือ ' + remain + '% / ' + remain + '% of AI allowance left');
-      host.innerHTML = '<span class="um-label">AI</span>' +
-        '<span class="um-track"><span class="um-fill" style="width:' + remain + '%;background:' + fillColor + ';"></span></span>' +
-        '<span class="um-pct" style="color:' + textColor + ';">' + (over ? 'เต็ม' : 'เหลือ ' + remain + '%') + '</span>';
+      host.title = over ? 'ใช้โควตา AI ครบแล้ว — ติดต่อผู้ดูแลระบบ / AI allowance used up' : ('ใช้โควตา AI ไปแล้ว ' + pct + '% / ' + pct + '% of AI allowance used');
+      host.innerHTML = '<span class="um-label">Token Usage</span>' +
+        '<span class="um-track"><span class="um-fill" style="width:' + pct + '%;background:' + barColor + ';"></span></span>' +
+        '<span class="um-pct" style="color:' + textColor + ';">' + (over ? 'เต็ม' : 'ใช้ไป ' + pct + '%') + '</span>';
       return;
     }
 
