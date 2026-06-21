@@ -1,6 +1,6 @@
 # CLICS — Handoff Snapshot
 
-*State of the app as of **2026-06-19**, for the developer continuing this project. Pairs with
+*State of the app as of **2026-06-21**, for the developer continuing this project. Pairs with
 [../README.md](../README.md) (orientation), [../CONTRIBUTING.md](../CONTRIBUTING.md) (how to work in it),
 and [ROADMAP.md](ROADMAP.md) (what to build next).*
 
@@ -27,31 +27,33 @@ Supabase Postgres). Working end-to-end today:
   Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
   0 errors (the AI path's ceiling is Anthropic **OTPM** — see [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)).
 
-## What just shipped (2026-06-19) — daily-summary email → GitHub Actions
+## What just shipped (2026-06-21) — daily-summary email: removed the cloud sandbox entirely
 
 Ops/tooling fix (not an app-runtime path — the $0.50 cap, blind scoring, and PII boundary are untouched).
-The daily Thai progress-summary email (a claude.ai `/schedule` cloud routine, 08:00 Asia/Bangkok) had
-started silently landing as a **Gmail draft** instead of sending: the Anthropic cloud sandbox's network
-**egress allowlist began blocking `api.resend.com`** (`HOST not in allowlist`). (An earlier f-string crash
-was a separate, already-fixed issue.) Confirmed environment-specific — the sibling `jjnnaappaatt/lidar-hpe`
-bot still sent fine because it delivers via GitHub Actions, not from the sandbox.
+The daily Thai progress-summary email kept silently landing as a **Gmail draft** instead of sending. The
+2026-06-19 fix (move the *send* to GitHub Actions, keep *generation* in the routine) wasn't enough: on
+**2026-06-21** the routine drafted again because `gh` was **not present in the cloud sandbox**, so its
+`gh workflow run` dispatch never fired. Root cause, with decisive evidence: the sibling `lidar-hpe`
+routine succeeded **4 minutes later in the same cloud environment** — so `gh` availability is **per-repo
+GitHub-connection**, and clics's connection is intermittently absent where lidar's is solid. Every failure
+this email ever had (jq missing → urllib UA → Python <3.12 f-string → Resend egress block → now `gh`
+missing) was a **cloud-sandbox quirk**. So the fix removes the sandbox from the path.
 
-Fix (merged to `master`, `89eae84`; PR #4): keep summary **generation** in the routine (its LLM is free,
-no API key) but move the **send** to GitHub Actions (open egress).
+Fix (mirrors lidar-hpe's self-contained `daily_update.py`): generate the report **deterministically inside
+GitHub Actions** — no LLM, no sandbox — and trigger it with **native cron**.
 
-- **`.github/workflows/daily-summary.yml`** — `workflow_dispatch`; writes the dispatched `data.json`
-  payload (or a raw git fallback via `scripts/daily-summary/gen_fallback.py`) → `scripts/daily-summary/send.py`
-  renders the HTML dashboard + plain-text fallback and POSTs to Resend. `RESEND_API_KEY` is now a GitHub
-  **encrypted secret** (rotated) — the previously **hardcoded** key was removed.
-- **Routine repointed** (`trig_013if2V1ttgvCmpEhxDq2Pma`): generate `data.json` → `gh workflow run
-  "CLICS Daily Summary" … -f payload="$(cat data.json)"`; the embedded sender + key are gone. It still
-  falls back to a Gmail draft (with a note) if `gh` is unavailable, so a day is never lost.
-- **Gotcha:** `gh` is only present in the cloud sandbox when the repo's GitHub is **connected** (Claude
-  GitHub App / `/web-setup`) — clics wasn't, so the first cutover test drafted with `gh: command not found`;
-  connecting it fixed it. Native GitHub `schedule:` cron is intentionally unused (Actions throttles/skips
-  cron) — the routine is the reliable clock.
-- **Verified end-to-end live:** routine → dispatch → run `success` → Resend `SENT` → inbox. Runbook +
-  secret/rotation steps in `scripts/daily-summary/README.md`.
+- **`scripts/daily-summary/gen_summary.py`** (new, replaces `gen_fallback.py`) — builds the whole `data.json`
+  from the runner's git checkout: 24h metrics + a rule-based plain-Thai humanization of the commits
+  (conventional-commit prefix → Thai outcome verb, light de-jargon) + the pending **P1** backlog mapped to
+  curated Thai sentences (un-mapped bullets are dropped, never leaked as English). Stdlib only, no network.
+- **`.github/workflows/daily-summary.yml`** — now triggered by native `schedule:` cron run **twice**
+  (08:11 + 08:41 Asia/Bangkok); the 08:41 run is a self-heal **backstop** gated by a dedup guard
+  (`gh run list`) so it sends only if the 08:11 run didn't already succeed today → exactly one email on a
+  normal day, still covered if GitHub drops the first cron. `workflow_dispatch` stays for manual sends.
+  `send.py` (unchanged) renders + POSTs to Resend with the `RESEND_API_KEY` secret.
+- **Old LLM routine disabled** (`trig_013if2V1ttgvCmpEhxDq2Pma`, set `enabled:false`) so it can't draft or
+  double-send. Trade-off: deterministic Thai is a little less polished than the routine's LLM, but it never
+  silently degrades to a draft. Runbook in `scripts/daily-summary/README.md`.
 
 ## What just shipped (2026-06-17 / 18) — protocol alignment + readiness
 

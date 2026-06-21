@@ -1,31 +1,29 @@
 name: CLICS Daily Summary
 
-# Sends the daily CLICS progress email from GitHub's cloud (open egress), so the
-# Resend call is never blocked by the Anthropic cloud-sandbox network egress
-# allowlist that broke the in-sandbox send on 2026-06-19 ("HOST not in allowlist"
-# → the run fell back to a Gmail draft). Mirrors jjnnaappaatt/lidar-hpe.
+# Sends the daily CLICS progress email entirely from GitHub's cloud — no Anthropic
+# cloud /schedule sandbox in the path. Every failure this email ever had was a
+# sandbox quirk (jq missing, urllib UA, Python <3.12 f-string, the Resend egress
+# block, and finally 2026-06-21 — `gh` not present in the sandbox, so the routine's
+# dispatch silently fell back to a Gmail draft). This workflow removes the sandbox:
+# it generates the report deterministically from the checkout (gen_summary.py, no
+# LLM) and sends via Resend (open egress). Mirrors jjnnaappaatt/lidar-hpe's
+# self-contained daily_update.py.
 #
-# TRIGGER: the "CLICS Daily Summary Email" claude.ai /schedule routine
-# (trig_013if2V1ttgvCmpEhxDq2Pma) runs daily at 08:00 Asia/Bangkok, builds the
-# plain-Thai data.json (git metrics + LLM summary), then dispatches THIS workflow
-# with `gh workflow run "CLICS Daily Summary" -R jjnnaappaatt/clics
-#   --ref master -f payload="$(cat data.json)"`.
-# The routine is the reliable clock; this workflow renders + sends (it holds
-# RESEND_API_KEY). A no-payload run (manual smoke test) generates a raw fallback.
-#
-# Native GitHub `schedule:` cron is intentionally NOT used — Actions throttles
-# cron heavily and can skip runs; workflow_dispatch is not throttled. See the
-# lidar-hpe daily-update.yml note (its 02:00 UTC cron run was skipped).
+# TRIGGER: native GitHub `schedule:` cron, run TWICE (08:11 + 08:41 Asia/Bangkok).
+# GitHub occasionally delays or drops a single scheduled run under load, so the
+# 08:41 run is a self-heal backstop: a dedup guard makes it send ONLY if the 08:11
+# run did not already succeed today (so a normal day sends exactly one email). This
+# is lidar-hpe's "self-heal verify" idea, done natively in Actions instead of from
+# the flaky sandbox. workflow_dispatch stays for manual sends (always sends).
 on:
-  workflow_dispatch:
-    inputs:
-      payload:
-        description: "data.json contents (CLICS daily summary). Empty → raw git fallback."
-        required: false
-        default: ""
+  schedule:
+    - cron: "11 1 * * *"        # 01:11 UTC = 08:11 Asia/Bangkok (primary; off-peak minute)
+    - cron: "41 1 * * *"        # 01:41 UTC = 08:41 Asia/Bangkok (self-heal backstop)
+  workflow_dispatch: {}         # manual send / smoke test
 
 permissions:
   contents: read
+  actions: read                 # `gh run list` (the dedup guard) needs Actions read
 
 concurrency:
   group: clics-daily-summary
@@ -35,34 +33,55 @@ jobs:
   send:
     runs-on: ubuntu-latest
     env:
-      TZ: Asia/Bangkok                              # Bangkok-local date in the fallback path
+      TZ: Asia/Bangkok                              # Bangkok-local date in gen_summary
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       DAILY_TO: ${{ vars.DAILY_TO || 'napat72235@gmail.com' }}
     steps:
-      - name: Checkout (full history for the 24h git-log fallback)
+      - name: Checkout (full history for the 24h git-log)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0                            # default shallow clone hides commit history
 
+      - name: Dedup guard — skip a scheduled run if today already sent
+        id: dedup
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Manual (workflow_dispatch) runs always send. For scheduled runs, skip if
+          # an earlier run of THIS workflow already completed successfully today (UTC)
+          # — so the 08:41 backstop only fires when the 08:11 primary was dropped.
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "Manual run — sending."
+            echo "skip=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          TODAY="$(date -u +%Y-%m-%d)"
+          # Tolerant on error: a gh/API hiccup -> treat as "nothing sent yet" and send,
+          # since for a self-heal backstop a rare duplicate beats a silent miss.
+          PRIOR="$(gh run list -R "${{ github.repository }}" --workflow=daily-summary.yml \
+            --json databaseId,conclusion,createdAt --limit 30 \
+            --jq "[.[] | select(.conclusion==\"success\" and (.createdAt|startswith(\"$TODAY\")) and (.databaseId != ${{ github.run_id }}))] | length" 2>/dev/null || echo 0)"
+          if [ "${PRIOR:-0}" -gt 0 ]; then
+            echo "A run already succeeded today ($PRIOR) — skipping to avoid a duplicate email."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No successful run yet today — sending."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up Python
+        if: steps.dedup.outputs.skip != 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Build data.json (from payload, or a raw git fallback)
-        env:
-          PAYLOAD: ${{ inputs.payload }}
+      - name: Build data.json (deterministic — no LLM, no sandbox)
+        if: steps.dedup.outputs.skip != 'true'
         run: |
-          if [ -n "$PAYLOAD" ]; then
-            printf '%s' "$PAYLOAD" > data.json
-            echo "Using dispatched payload ($(wc -c < data.json) bytes)."
-          else
-            echo "No payload — generating a raw git fallback."
-            python3 scripts/daily-summary/gen_fallback.py > data.json
-          fi
+          python3 scripts/daily-summary/gen_summary.py > data.json
           python3 -c "import json; json.load(open('data.json', encoding='utf-8')); print('data.json is valid JSON')"
 
       - name: Guard — RESEND_API_KEY must be set
+        if: steps.dedup.outputs.skip != 'true'
         run: |
           if [ -z "$RESEND_API_KEY" ]; then
             echo "::error::RESEND_API_KEY secret is missing. Add it under Settings → Secrets and variables → Actions."
@@ -70,4 +89,5 @@ jobs:
           fi
 
       - name: Render + send via Resend
+        if: steps.dedup.outputs.skip != 'true'
         run: python3 scripts/daily-summary/send.py
