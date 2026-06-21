@@ -29,11 +29,6 @@
         <label>อาการสำคัญ / Chief Complaint <span style="color:var(--error)">*</span></label>
         <textarea id="complaint" rows="3" placeholder="เช่น ผู้ป่วยมาด้วยเจ็บหน้าอก / e.g. Patient presents with chest pain"></textarea>
       </div>
-      <div class="form-group">
-        <label>ตัวระบุผู้ป่วย / Patient identifier <span style="font-weight:400;opacity:.65">(ส่วนตัว / private)</span></label>
-        <input id="patientRef" type="text" maxlength="200" placeholder="เช่น HN หรือชื่อย่อ / e.g. HN or initials" />
-        <p style="font-size:.8rem;opacity:.7;margin:.4rem 0 0">เก็บเป็นความลับฝั่งคุณเท่านั้น — ไม่ส่งให้ AI ผู้ตรวจ หรือรายงาน • อย่าใส่ชื่อผู้ป่วยในช่องอาการสำคัญด้านบน<br/>Kept private to you — never sent to the AI, auditors, or reports. Keep patient names out of the Chief Complaint above.</p>
-      </div>
       <div class="form-group" id="pilotBlock" style="display:none">
         <label>🧪 Pilot Test Mode — โหมดสนทนา / Conversation mode</label>
         <select id="pilotMode">
@@ -70,7 +65,6 @@
     document.getElementById('startBtn').addEventListener('click', async () => {
       const complaint = document.getElementById('complaint').value.trim();
       const folder_id = document.getElementById('folder').value || undefined;
-      const patient_ref = document.getElementById('patientRef').value.trim() || undefined;
       const errEl = document.getElementById('error');
       if (!complaint) { errEl.textContent = 'กรุณากรอกอาการสำคัญ'; errEl.style.display = 'block'; return; }
       errEl.style.display = 'none';
@@ -82,7 +76,7 @@
       const socratic = pilotBlock.style.display !== 'none'
         ? document.getElementById('pilotMode').value === 'socratic'
         : undefined;
-      const cle = await api.createPle({ chief_complaint: complaint, folder_id, patient_ref, socratic });
+      const cle = await api.createPle({ chief_complaint: complaint, folder_id, socratic });
       if (cle?.id) window.location.href = `/cle-chat?id=${cle.id}`;
       else {
         errEl.textContent = cle?.code === 'budget_exceeded'
