@@ -16,6 +16,8 @@ const ROLES = [
 export default function HomePage() {
   const user = useAuthUser();
   const role = user?.role;
+  // Only admin & auditor reach /home (see app/login redirectByRole); show just their own card.
+  const mine = ROLES.find(r => r.key === role);
 
   return (
     <>
@@ -24,31 +26,23 @@ export default function HomePage() {
         <PageIntro
           eyebrow="CLICS · Clinical Learning & Intelligence Credit System"
           title={`ยินดีต้อนรับ${user ? `, ${user.full_name_th || user.full_name_en}` : ''}`}
-          subtitle="ระบบ 4 บทบาทตามผังสถาปัตยกรรม / The four roles in the CLICS architecture"
+          subtitle="บทบาทของคุณในระบบ CLICS / Your role in CLICS"
         />
 
-        <div className="grid grid-cols-1 gap-6 @min-[640px]:grid-cols-2">
-          {ROLES.map(r => {
-            const active = r.key === role;
-            return (
-              <div
-                key={r.key}
-                className={`rounded-xl border p-8 transition-all hover:-translate-y-0.5 hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none ${active ? 'border-primary bg-primary/5 shadow-sm' : 'border-border bg-card'}`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${active ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'}`}>{r.code}</span>
-                  <h2 className="font-heading text-xl text-foreground">{r.title}</h2>
-                  {active && <span className="ml-auto rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">บทบาทของคุณ</span>}
-                </div>
-                <p className="mt-4 text-sm text-foreground">{r.th}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{r.en}</p>
-                {active && r.href && (
-                  <Link href={r.href}><Button className="mt-6">{r.cta} →</Button></Link>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        {mine && (
+          <div className="max-w-xl rounded-xl border border-primary bg-primary/5 p-8 shadow-sm">
+            <div className="flex items-center gap-3">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">{mine.code}</span>
+              <h2 className="font-heading text-xl text-foreground">{mine.title}</h2>
+              <span className="ml-auto rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">บทบาทของคุณ</span>
+            </div>
+            <p className="mt-4 text-sm text-foreground">{mine.th}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{mine.en}</p>
+            {mine.href && (
+              <Link href={mine.href}><Button className="mt-6">{mine.cta} →</Button></Link>
+            )}
+          </div>
+        )}
       </div>
     </>
   );
