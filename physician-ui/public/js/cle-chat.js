@@ -151,7 +151,7 @@ function addActions(div, rawText, isError) {
 }
 
 function refreshUsage() {
-  if (typeof renderUsageBar === 'function') renderUsageBar(document.getElementById('usageBar'), { compact: true });
+  if (typeof renderUsageBar === 'function') renderUsageBar(document.getElementById('usageBar'), { chip: true });
 }
 
 api.getPle(cleId).then(cle => {
@@ -168,7 +168,7 @@ api.getPle(cleId).then(cle => {
   // Show which episode of the 3-CLE study sequence this is (CLICS §6.4). We show only the number,
   // never the mode (natural vs Socratic), so the experimental manipulation stays blind to the physician.
   const ebEl = document.getElementById('cleEyebrow');
-  if (ebEl && cle.episode_number) ebEl.textContent = `CLE ${cle.episode_number}/3 · Clinical Dialogue`;
+  if (ebEl && cle.episode_number) ebEl.textContent = `CLE ${cle.episode_number}/3`;
   turns = cle.turn_count ?? 0;
   tokenCount = cle.token_count ?? 0;
   document.getElementById('turns').textContent = turns;
@@ -232,6 +232,7 @@ function autoGrow() {
   inputEl.style.height = Math.min(inputEl.scrollHeight, 168) + 'px';
 }
 inputEl.addEventListener('input', autoGrow);
+autoGrow(); // size the rows=1 composer correctly on load
 
 document.getElementById('sendBtn').addEventListener('click', sendMessage);
 inputEl.addEventListener('keydown', e => {

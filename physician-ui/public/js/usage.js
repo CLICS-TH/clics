@@ -17,6 +17,16 @@
     var barColor  = over ? 'var(--error,#c64545)'    : pct >= 80 ? 'var(--warning,#d4a017)'    : 'var(--success,#5db872)';
     var textColor = over ? 'var(--error-text,#7a1c1c)' : pct >= 80 ? 'var(--warning-text,#7a5900)' : 'var(--success-text,#1a6630)';
 
+    if (opts.chip) {
+      // Tiny pill for the slim chat header — "AI 7%", colour-coded; full text in the tooltip.
+      host.className = 'usage-chip';
+      host.style.color = textColor;
+      host.style.borderColor = barColor;
+      host.title = over ? 'ใช้โควตา AI ครบแล้ว — ติดต่อผู้ดูแลระบบ / AI allowance used up' : ('โควตา AI ของคุณ — ใช้ไปแล้ว ' + pct + '% / Your AI allowance — ' + pct + '% used');
+      host.innerHTML = over ? 'AI · เต็ม' : ('AI ' + pct + '%');
+      return;
+    }
+
     if (opts.compact) {
       // Slim inline bar for the chat session — no boxed card, less vertical weight.
       host.className = 'usage-compact';
