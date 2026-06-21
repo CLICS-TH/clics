@@ -51,33 +51,8 @@ document.getElementById('greeting').textContent = `สวัสดี, ${user.fu
 
 // ---- AI usage meter (pilot budget) ----
 // Pull fresh figures from the server (cached login user predates any spend).
-(async function usageMeter() {
-  const host = document.getElementById('usageBar');
-  if (!host) return;
-  let me;
-  try { me = await api.me(); } catch { return; }
-  const u = me?.user;
-  const limit = Number(u?.usage_limit_effective_usd);
-  if (!u || !Number.isFinite(limit) || limit <= 0) return; // nothing meaningful to show
-  const used = Number(u.usage_cost_usd ?? 0);
-  const pct = Math.min(100, Math.round((used / limit) * 100));
-  const over = used >= limit;
-  // Express the cap in HUMAN terms — raw $ and token counts are operator metrics that read as
-  // "spending" to a physician practising reasoning. Show only how much of the AI allowance is used.
-  const barColor  = over ? 'var(--error,#c64545)'    : pct >= 80 ? 'var(--warning,#d4a017)'    : 'var(--success,#5db872)';
-  const textColor = over ? 'var(--error-text,#7a1c1c)' : pct >= 80 ? 'var(--warning-text,#7a5900)' : 'var(--success-text,#1a6630)';
-  host.innerHTML = `
-    <div style="background:var(--surface-card,#fff);border:1px solid var(--hairline,#e2e2e2);color:var(--body-color,#1a1a1a);border-radius:12px;padding:10px 14px;margin:0 0 14px;font-size:13px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;">
-        <span>โควตา AI ของคุณ<span class="bi-en">Your AI allowance</span></span>
-        <span style="font-variant-numeric:tabular-nums;color:${textColor};font-weight:600;">ใช้ไปแล้ว ${pct}%<span class="bi-en">${pct}% used</span></span>
-      </div>
-      <div style="height:8px;background:rgba(127,127,127,.22);border-radius:99px;overflow:hidden;margin-top:6px;">
-        <div style="height:100%;width:${pct}%;background:${barColor};transition:width .3s;"></div>
-      </div>
-      ${over ? '<div style="color:var(--error-text,#7a1c1c);font-weight:600;margin-top:5px;">ใช้โควตาครบแล้ว — ติดต่อผู้ดูแลระบบ / Allowance used up — contact an administrator.</div>' : ''}
-    </div>`;
-})();
+// Rendering lives in the shared helper (js/usage.js) so the dashboard and chat page match.
+renderUsageBar(document.getElementById('usageBar'));
 
 // ---- Dual-role: auditor-console shortcut / request-auditor button (header slot) ----
 // can_audit physicians get a direct link to the auditor console; plain physicians can
