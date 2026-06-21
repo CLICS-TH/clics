@@ -27,6 +27,30 @@ Supabase Postgres). Working end-to-end today:
   Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
   0 errors (the AI path's ceiling is Anthropic **OTPM** — see [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)).
 
+## What just shipped (2026-06-21) — fix: admin CLE list / auditor assignment (prod 500)
+
+Production regression fix. `GET /admin/cles` (the admin CLE-management list + the assignment surface),
+`/admin/cles/flagged` (QA queue), and `/admin/cles/:id/transcript` were **all failing in prod** — the
+list/queue returned **500**, the transcript a misleading **404** ("outside your council") — so an admin
+saw **0 CLEs**, the QA queue was empty, and **no session could be assigned to an auditor** (the auditor's
+queue is assignment-driven, so it stayed empty). Reported via the auditor-flow test.
+
+Root cause: the **PLE→CLE rename** renamed the table + indexes but **not the FK constraints** — Postgres
+keeps constraint names across a table rename, so prod's `cles` still had `ples_physician_id_fkey` /
+`ples_auditor_id_fkey`. `cles` has **two** FKs to `professionals` (physician + auditor), so the PostgREST
+embed of `professionals` is ambiguous and needs a constraint-name hint; those three endpoints embed
+`professionals!cles_physician_id_fkey` (correct for fresh installs — `schema.sql` auto-names it `cles_*`),
+which **did not resolve** against the renamed prod DB → PostgREST error. The transcript handler
+destructures only `{ data: cle }` (ignoring the error) → null `cle` → its `if (!cle)` 404, which the
+dashboard renders as "outside your council" (a red herring — councils were fine). Regressed when the
+rename deployed (~06-18); the per-physician profile page kept working because it doesn't use the embed.
+
+Fix: **`db/migration-fk-rename.sql`** — renames the 4 `cles` FK constraints `ples_*` → `cles_*` to match
+the code + `schema.sql` (metadata-only, instantly reversible; idempotent). Applied to the prod CLICS
+Supabase via MCP. Verified: `GET /admin/cles` + `/flagged` now 200; the TMC admin sees all 16 sessions.
+*Optional hardening (not done): the embed relies on a named-constraint hint, which is fragile across
+renames; the transcript handler should surface the embed error instead of masking it as a 404.*
+
 ## What just shipped (2026-06-21) — daily-summary email: removed the cloud sandbox entirely
 
 Ops/tooling fix (not an app-runtime path — the $0.50 cap, blind scoring, and PII boundary are untouched).
