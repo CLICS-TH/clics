@@ -15,6 +15,9 @@ import {
   budgetToneHex,
   computeComposite,
   caseCategory,
+  POSITION_OPTIONS,
+  POSITION_TH,
+  positionLabel,
 } from '@/lib/labels';
 import { CHART } from '@/lib/chart-colors';
 
@@ -97,6 +100,23 @@ describe('label maps', () => {
     );
     expect(Object.keys(ACCOUNT_STATUS_MAP)).toEqual(['active', 'deactivated']);
     expect(Object.keys(INVITE_STATUS_MAP)).toEqual(['pending', 'accepted', 'revoked', 'expired']);
+  });
+});
+
+describe('position ladder (ตำแหน่ง)', () => {
+  it('POSITION_OPTIONS + POSITION_TH cover the same six rungs (gp = General Practitioner)', () => {
+    const keys = POSITION_OPTIONS.map((p) => p.key);
+    expect(keys).toEqual(['extern', 'intern', 'resident', 'fellowship', 'staff', 'gp']);
+    expect(Object.keys(POSITION_TH).sort()).toEqual([...keys].sort());
+    expect(POSITION_OPTIONS.find((p) => p.key === 'gp')?.label).toMatch(/General Practitioner/);
+  });
+  it('positionLabel resolves a known key and falls back to null', () => {
+    expect(positionLabel('resident')).toBe(
+      POSITION_OPTIONS.find((p) => p.key === 'resident')?.label
+    );
+    expect(positionLabel('nope')).toBeNull();
+    expect(positionLabel(null)).toBeNull();
+    expect(positionLabel(undefined)).toBeNull();
   });
 });
 
