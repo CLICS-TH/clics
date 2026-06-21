@@ -2,9 +2,10 @@
 """
 CLICS daily-summary email: render + send via the Resend HTTPS API.
 
-Reads a ``data.json`` (the 24h git metrics + plain-Thai summary produced by the
-"CLICS Daily Summary Email" claude.ai routine), renders an email-safe HTML
-dashboard + a plain-text fallback, and POSTs it to Resend.
+Reads a ``data.json`` (the 24h git metrics + plain-Thai summary produced
+deterministically by ``scripts/daily-summary/gen_summary.py`` in GitHub Actions —
+no LLM), renders an email-safe HTML dashboard + a plain-text fallback, and POSTs
+it to Resend.
 
 WHY THIS LIVES IN GITHUB ACTIONS, NOT THE CLAUDE CLOUD SANDBOX
     The original sender POSTed to api.resend.com from inside the Anthropic cloud
