@@ -28,6 +28,22 @@ export function roleToUi(role: string, can_audit?: boolean | null): string {
   return role === 'physician' && can_audit ? 'special' : role;
 }
 
+// Position ladder (ตำแหน่ง) — mirrors backend lib/specialties POSITIONS ('gp' = General Practitioner).
+export const POSITION_OPTIONS: { key: string; label: string }[] = [
+  { key: 'extern', label: 'เอกซ์เทิร์น / Extern' },
+  { key: 'intern', label: 'อินเทิร์น / Intern' },
+  { key: 'resident', label: 'แพทย์ประจำบ้าน / Resident' },
+  { key: 'fellowship', label: 'ต่อยอด / Fellowship' },
+  { key: 'staff', label: 'อาจารย์แพทย์ / Staff' },
+  { key: 'gp', label: 'แพทย์ทั่วไป / General Practitioner' },
+];
+export const positionLabel = (key?: string | null) => POSITION_OPTIONS.find(p => p.key === key)?.label ?? null;
+// Thai-only label for compact spots (nav-bar identity line).
+export const POSITION_TH: Record<string, string> = {
+  extern: 'เอกซ์เทิร์น', intern: 'อินเทิร์น', resident: 'แพทย์ประจำบ้าน',
+  fellowship: 'แพทย์ประจำบ้านต่อยอด', staff: 'อาจารย์แพทย์', gp: 'แพทย์ทั่วไป',
+};
+
 // Account lifecycle (NOT the same as CLE status above).
 export const ACCOUNT_STATUS_MAP: Record<string, string> = {
   active: 'ใช้งาน / Active',

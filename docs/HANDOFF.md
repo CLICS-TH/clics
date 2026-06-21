@@ -27,7 +27,40 @@ Supabase Postgres). Working end-to-end today:
   Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
   0 errors (the AI path's ceiling is Anthropic **OTPM** — see [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)).
 
-## What just shipped (2026-06-21) — fix: admin CLE list / auditor assignment (prod 500)
+## What just shipped (2026-06-21) — Specialty layer, position ladder, Google-linking, submit guard
+
+A batch of pilot features (all four layers). Branch work; **prod migration + deploys are gated on the
+operator** — see the ordering below.
+
+- **Specialty (the layer under council)** — a new per-council `specialties` table (`db/migration-specialty.sql`),
+  seeded with the **15 Royal Colleges** under the Medical Council (TMC). `professionals.specialty_id` +
+  `cles.specialty_id` (denormalised from the physician at creation, exactly like `council_id`).
+- **Position ladder (ตำแหน่ง)** — `professionals.position` ∈ extern/intern/resident/fellowship/staff/**gp**
+  (gp = General Practitioner). Constants in `backend/src/lib/specialties.js` + `audit-dashboard/lib/labels.ts`.
+- **Pipeline scoped by council × specialty** — `scopeBySpecialty` (admin.js) pins an admin to their own
+  specialty too; auditor assignment now requires **same council AND same specialty** (409 otherwise).
+  Specialty is required (API-enforced) for council-scoped roles when the council has specialties.
+- **Create/edit/invite** — superadmin create+edit user and the invites form gained **specialty (cascading
+  off council) + position** dropdowns; the create-user password field gained an **eye/reveal** toggle.
+- **Identity label** — specialty · position shown under the name in both nav bars (audit-dashboard `NavBar`,
+  physician-ui dashboard header).
+- **Google account linking** — `POST /auth/link-google` records the on-prem `oauth_identities` row for a
+  password/invited user who signs in with their **same-email** Google account; physician-ui dashboard shows
+  a "Link Google" button when `/auth/me`'s `linked_providers` lacks `google`. **Depends on Supabase
+  same-email identity auto-linking being enabled** for the project (verify in the Supabase dashboard).
+- **Tier-1 submit guard** — the physician "End & submit" now opens a readiness checklist (the client-checkable
+  C1–C3: duration/turns/depth) + a note that AI-judged C4–C6 run on submit + an irreversibility warning.
+- **Onboarding** — Google self-signup now collects council **→ specialty** (cascade); public
+  `GET /auth/specialties?council_id=`.
+- **Rename** — the acronym "CLE" is spelled out as **"Clinical Learning Episode"** in physician-portal copy
+  (status codes / `CLE-NNN` pseudonyms / `CLE1·2·3` episode codes untouched).
+
+**Deploy ordering (REQUIRED):** apply `db/migration-specialty.sql` (+ backfill existing TMC users' specialty)
+**before** deploying the backend — the new PostgREST embeds (`specialties(...)`) and `specialty_id` columns
+must exist first, or `/admin/users` and `/admin/cles` will 500. Order: migration → backend (Railway) →
+both front-ends (Vercel). Re-run `db/seed-users.js` so demo TMC accounts get Internal Medicine + a position.
+
+## What shipped earlier (2026-06-21) — fix: admin CLE list / auditor assignment (prod 500)
 
 Production regression fix. `GET /admin/cles` (the admin CLE-management list + the assignment surface),
 `/admin/cles/flagged` (QA queue), and `/admin/cles/:id/transcript` were **all failing in prod** — the

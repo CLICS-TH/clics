@@ -6,6 +6,7 @@ const { computeICC21 } = require('../services/icc');
 const { sendDbError, pageParams } = require('../lib/db-helpers');
 const { assertSlotAvailable, nextPseudonym, allSlotUsage, allCouncilSlotUsage, ROLES } = require('../lib/accounts');
 const { normalizeCanAudit } = require('../lib/dual-role');
+const { POSITIONS, checkSpecialty } = require('../lib/specialties');
 const { logEvent } = require('../lib/audit');
 const { decryptJson } = require('../lib/crypto');
 
@@ -30,7 +31,9 @@ const CreateUserSchema = z.object({
   council_id: z.string().uuid().optional(),
   full_name_th: z.string().min(1),
   full_name_en: z.string().min(1),
-  specialty: z.string().optional(),
+  specialty: z.string().optional(),            // legacy free-text (dormant)
+  specialty_id: z.string().uuid().optional(),  // structured specialty (under council)
+  position: z.enum(POSITIONS).optional(),      // ตำแหน่ง ladder
   license_number: z.string().optional(),
 }).refine((b) => GLOBAL_ROLES.includes(b.role) || !!b.council_id, {
   message: 'council_id is required for this role', path: ['council_id'],
@@ -39,7 +42,9 @@ const CreateUserSchema = z.object({
 const UpdateUserSchema = z.object({
   full_name_th: z.string().min(1).optional(),
   full_name_en: z.string().min(1).optional(),
-  specialty: z.string().optional(),
+  specialty: z.string().optional(),            // legacy free-text (dormant)
+  specialty_id: z.string().uuid().optional(),  // structured specialty (under council)
+  position: z.enum(POSITIONS).optional(),      // ตำแหน่ง ladder
   license_number: z.string().optional(),
   role: z.enum(GRANTABLE_ROLES).optional(),
   can_audit: z.boolean().optional(),          // "special" dual role: physician + auditor rights
@@ -79,6 +84,11 @@ router.post('/users', async (req, res) => {
   // Enforce the slot pool: physician uncapped, admin/auditor per-council.
   const slot = await assertSlotAvailable(profile.role, profile.council_id);
   if (!slot.ok) return res.status(409).json({ error: slot.error });
+
+  // Specialty (the layer under council) is required for council-scoped roles when the council has
+  // any; a provided specialty must belong to that council.
+  const spec = await checkSpecialty(profile.role, profile.council_id, profile.specialty_id);
+  if (!spec.ok) return res.status(400).json({ error: spec.error });
 
   const { data: authUser, error: authErr } = await supabase.auth.admin.createUser({
     email, password, email_confirm: true,
@@ -142,6 +152,18 @@ router.patch('/users/:id', async (req, res) => {
   if ((roleChanged || councilChanged) && current.status === 'active') {
     const slot = await assertSlotAvailable(effectiveRole, targetCouncil);
     if (!slot.ok) return res.status(409).json({ error: slot.error });
+  }
+  // Validate specialty whenever it (or the role/council it depends on) changes. A move to a global
+  // oversight role clears specialty/position (they no longer apply); a council-scoped role needs a
+  // specialty belonging to its council.
+  if (patch.specialty_id !== undefined || patch.position !== undefined || roleChanged || councilChanged) {
+    if (roleChanged && !['admin', 'physician', 'auditor'].includes(effectiveRole)) {
+      patch.specialty_id = null; patch.position = null;
+    } else {
+      const effectiveSpecialty = patch.specialty_id ?? current.specialty_id;
+      const spec = await checkSpecialty(effectiveRole, targetCouncil, effectiveSpecialty);
+      if (!spec.ok) return res.status(400).json({ error: spec.error });
+    }
   }
   if (roleChanged && patch.role === 'physician' && !current.pseudonym) patch.pseudonym = await nextPseudonym();
 

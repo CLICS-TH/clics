@@ -13,6 +13,8 @@ const { logEvent } = require('./audit');
 async function provisionProfessional({
   authUserId, role, councilId,
   full_name_th, full_name_en, specialty = null, status = 'active',
+  specialtyId = null,   // structured specialty (under council) — the source of truth
+  position = null,      // ตำแหน่ง ladder (extern…gp); null for global roles
   can_audit = false, // "Special" dual role: physician + auditor rights (Special invites)
   // License No. + TMC verification were retired (2026-06-09): onboarding is Google + invite.
   // These columns are kept DORMANT — written ONLY if a caller still passes them (reversible).
@@ -31,6 +33,8 @@ async function provisionProfessional({
     specialty,
     status,
   };
+  if (specialtyId != null) insert.specialty_id = specialtyId;
+  if (position != null) insert.position = position;
   // "Special" (can_audit) is valid ONLY on a physician — normalize through the single source of
   // truth so OAuth signup / invite-accept can never set it on an admin/auditor (the DB CHECK
   // can_audit_physician_only is the backstop). Only write when true (pre-migration tolerant).

@@ -16,7 +16,7 @@
   <nav><span class="brand">CLICS</span><div><a href="/dashboard">← Dashboard</a></div></nav>
   <div class="container" style="max-width:640px">
     <header class="page-intro">
-      <p class="eyebrow">CLE · Evaluation</p>
+      <p class="eyebrow">Clinical Learning Episode · Evaluation</p>
       <h1>ผลการประเมิน PIS-7</h1>
       <p class="sub">PIS-7 Evaluation — สรุปผลการให้เหตุผลทางคลินิกและเครดิต CPD ของ Episode นี้</p>
     </header>
@@ -82,7 +82,7 @@
           <div class="card">
             <div class="status-band ${isFail ? 'is-fail' : 'is-review'}" style="margin-bottom:16px">
               ${icon(isFail ? 'xCircle' : 'hourglass', 28)}
-              <span>${isFail ? 'ไม่ผ่านเกณฑ์ CLE / Failed CLE (Tier 1)' : 'รอตรวจสอบ / Under Review (Tier 2)'}</span>
+              <span>${isFail ? 'ไม่ผ่านเกณฑ์ / Failed Clinical Learning Episode (Tier 1)' : 'รอตรวจสอบ / Under Review (Tier 2)'}</span>
             </div>
             <p style="color:var(--muted);margin-bottom:16px">ผลเกณฑ์ทั้ง 6 ข้อ / 6 Criteria:</p>
             ${criteria.map(c => `
@@ -98,7 +98,7 @@
       if (cle.status === 'cle_pass') {
         container.innerHTML = `
           <div class="card" style="text-align:center">
-            <div class="status-band is-pass" style="justify-content:center;margin-bottom:14px">${icon('checkCircle', 28)}<span>ผ่านเกณฑ์ CLE แล้ว / CLE Passed</span></div>
+            <div class="status-band is-pass" style="justify-content:center;margin-bottom:14px">${icon('checkCircle', 28)}<span>ผ่านเกณฑ์แล้ว / Clinical Learning Episode Passed</span></div>
             <p style="color:var(--muted);margin-top:8px">กำลังประเมินผล PIS-7 อยู่… / Evaluating PIS-7…</p>
           </div>`;
         schedulePoll();

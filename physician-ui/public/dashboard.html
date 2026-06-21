@@ -28,14 +28,21 @@
         <span class="role-badge">แพทย์อาสา<span class="bi-en">Physician</span></span>
         <span id="auditorSlot"></span>
       </div>
+      <!-- Specialty · position label under the name (filled by dashboard.js from the cached user). -->
+      <p class="sub" id="identityLine" style="display:none;margin-top:-.35rem"></p>
       <p class="sub">Clinical Learning Episodes ของคุณ — จัดระเบียบด้วยโฟลเดอร์ / Organize your episodes in folders</p>
+      <!-- Shown only when the account hasn't linked Google yet (dashboard.js toggles it). -->
+      <div id="linkGoogleWrap" style="display:none;margin-top:.5rem">
+        <button class="btn btn-ghost btn-sm" id="linkGoogleBtn" type="button" data-icon="google">เชื่อมบัญชี Google<span class="bi-en">Link Google account</span></button>
+        <span id="linkGoogleMsg" style="font-size:.8rem;color:var(--muted);margin-left:.5rem"></span>
+      </div>
     </header>
 
     <div id="usageBar"></div>
 
     <div class="dash-toolbar">
       <button class="btn btn-ghost" id="newFolderBtn" type="button">+ โฟลเดอร์ใหม่<span class="bi-en">New folder</span></button>
-      <a href="/cle-new" class="btn btn-primary">+ เริ่ม CLE ใหม่<span class="bi-en">New CLE</span></a>
+      <a href="/cle-new" class="btn btn-primary">+ เริ่ม Clinical Learning Episode ใหม่<span class="bi-en">New Clinical Learning Episode</span></a>
     </div>
     <form class="folder-form" id="newFolderForm" hidden>
       <input id="newFolderName" type="text" maxlength="80" placeholder="ชื่อโฟลเดอร์ / Folder name…" autocomplete="off" />
@@ -48,6 +55,8 @@
   <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
+  <!-- Browser Supabase client (window.sbClient) for the "Link Google" affordance. -->
+  <script type="module" src="/js/supabase-client.js"></script>
   <script src="/js/labels.js"></script>
   <script src="/js/icons.js"></script>
   <script src="/js/ui.js"></script>

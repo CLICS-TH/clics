@@ -38,7 +38,7 @@ export default function AdminTranscriptPage() {
       <PageIntro
         eyebrow="Admin · Investigate session"
         title={cle.title || cle.chief_complaint || 'เซสชัน / Session'}
-        subtitle={`${physician?.full_name_th || physician?.full_name_en || ''}${physician?.pseudonym ? ` · ${physician.pseudonym}` : ''} — ${STATUS_MAP[cle.status] ?? cle.status} · ${cle.turn_count ?? 0} รอบ`}
+        subtitle={`${physician?.full_name_th || physician?.full_name_en || ''}${physician?.pseudonym ? ` · ${physician.pseudonym}` : ''}${cle.specialties?.name_th ? ` · ${cle.specialties.name_th}` : ''} — ${STATUS_MAP[cle.status] ?? cle.status} · ${cle.turn_count ?? 0} รอบ`}
       />
       <div className="mb-4">
         <Button variant="outline" size="sm" onClick={() => history.back()}>← กลับ / Back</Button>
