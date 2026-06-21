@@ -16,7 +16,7 @@
 </head>
 <body>
   <nav><span class="brand">CLICS</span><div><a href="/dashboard">← Dashboard</a></div></nav>
-  <div class="container">
+  <div class="container chat-page">
     <header class="page-intro chat-intro">
       <p class="eyebrow" id="cleEyebrow">CLE · Clinical Dialogue</p>
       <h1 id="chatTitle">บทสนทนาคลินิก</h1>
@@ -28,11 +28,23 @@
       <!-- Pause (secondary) and End (primary forward action) are separated by a gap so the
            irreversible End isn't a thumb-neighbour of Pause; End also confirms intent. -->
       <a href="/dashboard" class="btn btn-ghost sb-pause" data-icon="pause" id="pauseBtn" title="กลับหน้าหลักโดยไม่จบ session — กลับมาทำต่อได้">พักไว้<span class="bi-en">Pause</span></a>
-      <button class="btn btn-primary sb-end" data-icon="check" id="endBtn">จบและส่งประเมิน<span class="bi-en">End &amp; submit</span></button>
+      <button class="btn btn-finish sb-end" data-icon="check" id="endBtn">จบและส่งประเมิน<span class="bi-en">End &amp; submit</span></button>
     </div>
     <p class="session-hint">พักไว้ = บันทึกอัตโนมัติ กลับมาทำต่อภายหลังได้ · จบและส่งประเมิน = ส่งให้ประเมินคะแนน (ทำต่อไม่ได้)<span class="bi-en">Pause autosaves; End submits for scoring and can't be resumed.</span></p>
+    <!-- AI allowance (compact) — rendered by js/usage.js, refreshed after each turn -->
+    <div id="usageBar"></div>
+    <!-- Session progress toward the minimums for a substantive CLE. Socratic mode stays hidden. -->
+    <details class="session-progress" id="sessionProgress" hidden>
+      <summary><span class="sp-caret" data-icon="arrowRight" data-icon-size="14"></span>ความคืบหน้าของเซสชัน<span class="bi-en">Session progress</span></summary>
+      <div class="sp-grid">
+        <div class="sp-meter" id="spTime"><div class="sp-head"><span>เวลา<span class="bi-en">Time</span></span><b><span id="spTimeNow">0</span>/15 น.</b></div><div class="sp-track"><div class="sp-fill" id="spTimeFill"></div></div></div>
+        <div class="sp-meter" id="spTurns"><div class="sp-head"><span>รอบสนทนา<span class="bi-en">Turns</span></span><b><span id="spTurnsNow">0</span>/4</b></div><div class="sp-track"><div class="sp-fill" id="spTurnsFill"></div></div></div>
+        <div class="sp-meter" id="spDepth"><div class="sp-head"><span>เนื้อหา<span class="bi-en">Depth</span></span><b id="spDepthState">—</b></div><div class="sp-track"><div class="sp-fill" id="spDepthFill"></div></div></div>
+      </div>
+    </details>
     <div class="chat-window card" style="padding:0">
       <div class="chat-messages" id="messages" style="padding:16px"></div>
+      <button class="scroll-bottom" id="scrollBottomBtn" data-icon="arrowDown" aria-label="เลื่อนไปข้อความล่าสุด / Scroll to latest"></button>
       <div style="padding:12px 16px;border-top:1px solid var(--hairline)">
         <div class="chat-input-row">
           <textarea id="input" rows="2" placeholder="พิมพ์คำถามเกี่ยวกับเคส... / Type your clinical question..."></textarea>
@@ -47,6 +59,7 @@
   <script src="/js/auth.js"></script>
   <script src="/js/icons.js"></script>
   <script src="/js/ui.js"></script>
+  <script src="/js/usage.js"></script>
   <script src="/js/cle-chat.js"></script>
   <script src="/js/boot.js" defer></script>
 </body>

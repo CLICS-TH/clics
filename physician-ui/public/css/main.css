@@ -25,6 +25,11 @@
   --coral-disabled:  #e6dfd8;
   --coral-ring:      rgba(204,120,92,0.15);
 
+  /* Finish / submit — a deep teal distinct from coral so the irreversible "End & submit"
+     never looks like the everyday coral "Send". --finish-active (#1f6d5e ≈ 6.2:1 on white). */
+  --finish:          #2f8f7d;
+  --finish-active:   #1f6d5e;
+
   /* Semantic */
   --success:         #5db872;
   --success-bg:      #d1f5dc;
@@ -82,6 +87,10 @@
   --coral-active:    #e0a48d;
   --coral-disabled:  #3a352f;
   --coral-ring:      rgba(217,141,114,0.22);
+
+  /* Finish — lighter teal in dark mode (dark text via --on-primary, like coral-active here) */
+  --finish:          #4a9d8c;
+  --finish-active:   #5fb3a2;
 
   --success:         #5db872;
   --success-bg:      #16331f;
@@ -156,6 +165,13 @@ h1, h2, h3 {
 .btn-primary:disabled { background:var(--coral-disabled); color:var(--muted); cursor:not-allowed; box-shadow:none; }
 .btn-danger { background:var(--error); color:var(--on-primary); }
 .btn-danger:hover { opacity:0.88; }
+/* Finish/submit — deep teal, semantically distinct from the coral primary. Used for terminal
+   forward actions (End & submit) so they read differently from the everyday Send. */
+.btn-finish { background:var(--finish-active); color:var(--on-primary); }
+.btn-finish:hover { opacity:0.92; }
+.btn-finish:active { opacity:0.85; }
+.btn-finish.disabled,
+.btn-finish:disabled { background:var(--coral-disabled); color:var(--muted); cursor:not-allowed; box-shadow:none; }
 .btn-lg { padding:13px 24px; font-size:15px; }
 .btn-ghost { background:var(--surface-card); color:var(--ink); border:1px solid var(--hairline); }
 .btn-ghost:hover { background:var(--surface-soft); }
@@ -188,10 +204,20 @@ nav a:hover { color:var(--ink); }
 .error-msg { color:var(--error); font-size:13px; margin-top:8px; }
 
 /* Chat */
-.chat-window { display:flex; flex-direction:column; height:calc(100dvh - 300px); min-height:380px; }
-.chat-messages { flex:1; overflow-y:auto; padding:20px 6px; display:flex; flex-direction:column; gap:18px; }
-.msg-physician { align-self:flex-end; background:var(--coral-active); color:var(--on-primary); padding:13px 17px; border-radius:18px 18px 5px 18px; max-width:78%; overflow-wrap:anywhere; line-height:1.6; box-shadow:0 1px 2px rgba(20,20,19,0.08); }
-.msg-assistant { align-self:flex-start; background:var(--surface-card); border:1px solid var(--hairline); padding:18px 20px; border-radius:18px 18px 18px 5px; max-width:90%; color:var(--body-color); overflow-wrap:anywhere; line-height:1.72; box-shadow:0 1px 3px rgba(20,20,19,0.05); }
+/* The chat page is viewport-bounded so the MESSAGE LIST scrolls internally (chat-app style) instead
+   of the whole page — robust to a wrapping nav/session-bar, unlike a magic-number height. The body
+   becomes a flex column (scoped via :has so other pages are untouched); the chat window flexes to
+   fill whatever the header / session-bar / progress panel leave. `position:relative` anchors the FAB.
+   Fallback without :has → page simply scrolls, which is acceptable. */
+body:has(.chat-page) { display:flex; flex-direction:column; height:100dvh; overflow:hidden; }
+body:has(.chat-page) nav { flex:none; }
+/* width:100% — auto cross-axis margins (.container's margin:0 auto) otherwise suppress flex stretch,
+   letting the container size to intrinsic content and overflow narrow screens. max-width still caps it. */
+.chat-page { flex:1 1 auto; min-height:0; min-width:0; width:100%; display:flex; flex-direction:column; }
+.chat-window { position:relative; display:flex; flex-direction:column; flex:1 1 auto; min-height:0; }
+.chat-messages { flex:1; min-height:0; overflow-y:auto; padding:20px 6px; display:flex; flex-direction:column; gap:18px; }
+.msg-physician { align-self:flex-end; background:var(--coral-active); color:var(--on-primary); padding:13px 17px; border-radius:18px 18px 5px 18px; max-width:78%; min-width:0; overflow-wrap:anywhere; line-height:1.6; box-shadow:0 1px 2px rgba(20,20,19,0.08); }
+.msg-assistant { align-self:flex-start; background:var(--surface-card); border:1px solid var(--hairline); padding:18px 20px; border-radius:18px 18px 18px 5px; max-width:90%; min-width:0; color:var(--body-color); overflow-wrap:anywhere; line-height:1.72; box-shadow:0 1px 3px rgba(20,20,19,0.05); }
 
 /* Readable rendered-markdown inside AI answers */
 .msg-assistant > :first-child { margin-top:0; }
@@ -206,13 +232,71 @@ nav a:hover { color:var(--ink); }
 .msg-assistant li::marker { color:var(--coral); }
 .msg-assistant strong { font-weight:700; color:var(--ink); }
 .msg-assistant hr { border:none; border-top:1px solid var(--hairline); margin:16px 0; }
-.msg-assistant code { background:var(--canvas); border:1px solid var(--hairline); padding:1px 6px; border-radius:5px; font-family:var(--font-mono); font-size:0.88em; }
-.msg-assistant table { width:100%; border-collapse:collapse; margin:12px 0; font-size:13px; }
+.msg-assistant code { background:var(--canvas); border:1px solid var(--hairline); padding:1px 6px; border-radius:5px; font-family:var(--font-mono); font-size:0.88em; overflow-wrap:anywhere; }
+.msg-assistant pre { overflow-x:auto; margin:12px 0; }
+.msg-assistant pre code { display:block; padding:12px 14px; white-space:pre; overflow-wrap:normal; }
+/* A wide table must scroll inside the bubble, never stretch the message past the viewport on a phone. */
+.msg-assistant table { display:block; width:100%; max-width:100%; overflow-x:auto; border-collapse:collapse; margin:12px 0; font-size:13px; }
 .msg-assistant th, .msg-assistant td { border:1px solid var(--hairline); padding:8px 11px; text-align:left; vertical-align:top; }
 .msg-assistant th { background:var(--canvas); font-weight:700; color:var(--ink); }
 
-.msg-refs { margin-top:16px; padding-top:11px; border-top:1px dashed var(--hairline); font-size:13px; color:var(--muted); }
-.msg-socratic { margin-top:16px; padding:12px 15px; background:var(--coral-ring); border-left:3px solid var(--coral); border-radius:0 var(--r-md) var(--r-md) 0; font-style:italic; color:var(--coral-active); font-weight:600; line-height:1.55; }
+/* Sources — a labelled card with chip-style citations (clearer than a thin inline line) */
+.msg-refs { margin-top:16px; padding-top:12px; border-top:1px dashed var(--hairline); font-size:12.5px; color:var(--muted); }
+.msg-refs .refs-label { display:inline-flex; align-items:center; gap:6px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; font-size:11px; margin-bottom:8px; }
+.msg-refs .refs-label svg { width:13px; height:13px; }
+.msg-refs .refs-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.msg-refs .ref-chip { background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--r-pill); padding:3px 11px; font-style:normal; color:var(--body-color); font-size:12px; max-width:100%; overflow-wrap:anywhere; }
+/* Examiner callout (Socratic question) — clearer block; never names the experimental mode. */
+.msg-socratic { display:flex; gap:10px; margin-top:16px; padding:13px 16px; background:var(--coral-ring); border-left:3px solid var(--coral); border-radius:0 var(--r-md) var(--r-md) 0; color:var(--coral-active); line-height:1.6; }
+.msg-socratic svg { width:17px; height:17px; flex:none; margin-top:2px; }
+.msg-socratic .soc-label { display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; opacity:.85; margin-bottom:3px; }
+.msg-socratic .soc-text { font-style:italic; font-weight:600; }
+
+/* Per-message actions (Copy / Retry) — quiet until hover/focus on pointer devices, always shown on touch */
+.msg-actions { display:flex; gap:4px; margin-top:10px; opacity:0; transition:opacity .15s; }
+.msg-assistant:hover .msg-actions, .msg-assistant:focus-within .msg-actions { opacity:1; }
+@media (hover:none) { .msg-actions { opacity:1; } }
+.msg-act-btn { display:inline-flex; align-items:center; gap:5px; background:none; border:1px solid transparent; border-radius:var(--r-sm); padding:4px 8px; font-family:var(--font-body); font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; transition:background .15s, color .15s, border-color .15s; }
+.msg-act-btn:hover { background:var(--canvas); color:var(--ink); border-color:var(--hairline); }
+.msg-act-btn svg { width:14px; height:14px; }
+
+/* Typing indicator — three pulsing dots replace the plain "Thinking…" text */
+.typing-dots { display:inline-flex; gap:5px; align-items:center; padding:4px 2px; }
+.typing-dots span { width:7px; height:7px; border-radius:50%; background:var(--muted-soft); animation:typing-bounce 1.2s infinite ease-in-out; }
+.typing-dots span:nth-child(2) { animation-delay:.18s; }
+.typing-dots span:nth-child(3) { animation-delay:.36s; }
+@keyframes typing-bounce { 0%,60%,100% { transform:translateY(0); opacity:.45; } 30% { transform:translateY(-4px); opacity:1; } }
+@media (prefers-reduced-motion: reduce) { .typing-dots span { animation:none; } }
+
+/* Scroll-to-bottom FAB — only present (via .show) when the user has scrolled up */
+.scroll-bottom { position:absolute; right:14px; bottom:84px; width:38px; height:38px; border-radius:50%; background:var(--surface-card); border:1px solid var(--hairline); color:var(--ink); display:none; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 10px rgba(20,20,19,0.12); z-index:5; }
+.scroll-bottom.show { display:inline-flex; }
+.scroll-bottom svg { width:18px; height:18px; }
+
+.msg-time { font-size:11px; color:var(--muted-soft); margin-top:6px; }
+.msg-physician .msg-time { text-align:right; color:rgba(255,255,255,.75); }
+
+/* Session-progress panel — explicit progress toward the session minimums (Socratic mode stays hidden) */
+.session-progress { background:var(--surface-soft); border:1px solid var(--hairline); border-radius:var(--r-lg); padding:10px 14px; margin-bottom:10px; font-size:12.5px; }
+.session-progress summary { cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px; color:var(--muted); font-weight:600; }
+.session-progress summary::-webkit-details-marker { display:none; }
+.session-progress summary .sp-caret { width:14px; height:14px; transition:transform .2s; }
+.session-progress[open] summary .sp-caret { transform:rotate(90deg); }
+.session-progress .sp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:12px; }
+.sp-meter .sp-head { display:flex; justify-content:space-between; align-items:baseline; gap:6px; margin-bottom:5px; color:var(--muted); }
+.sp-meter .sp-head b { color:var(--ink); font-variant-numeric:tabular-nums; }
+.sp-meter .sp-track { height:6px; background:rgba(127,127,127,.22); border-radius:99px; overflow:hidden; }
+.sp-meter .sp-fill { height:100%; width:0; background:var(--coral); border-radius:99px; transition:width .35s, background .2s; }
+.sp-meter.met .sp-fill { background:var(--success); }
+.sp-meter.met .sp-head b { color:var(--success-text); }
+@media (max-width:480px) { .session-progress .sp-grid { grid-template-columns:1fr; gap:9px; } }
+
+/* Compact usage bar (chat) — slimmer than the dashboard card */
+.usage-compact { margin-bottom:10px; }
+.usage-compact .uc-row { display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-size:12.5px; color:var(--muted); }
+.usage-compact .uc-pct { font-variant-numeric:tabular-nums; font-weight:600; }
+.usage-compact .uc-track { height:6px; background:rgba(127,127,127,.22); border-radius:99px; overflow:hidden; margin-top:5px; }
+.usage-compact .uc-fill { height:100%; border-radius:99px; transition:width .3s; }
 
 /* Input row */
 .chat-input-row { display:flex; gap:10px; align-items:flex-end; padding-top:14px; border-top:1px solid var(--hairline); }
@@ -297,7 +381,10 @@ nav a:hover { color:var(--ink); }
   html:not([data-view="desktop"]) .chat-intro { margin-bottom: 14px; padding-bottom: 12px; }
   html:not([data-view="desktop"]) .chat-intro .sub { display: none; }
   html:not([data-view="desktop"]) .chat-intro h1 { font-size: 23px; }
-  html:not([data-view="desktop"]) .chat-window { height: calc(100dvh - 296px); }
+  /* Pause + End share a full-width row on phones; metrics sit on their own line above. */
+  html:not([data-view="desktop"]) .sb-pause { margin-left: 0; }
+  html:not([data-view="desktop"]) .sb-pause,
+  html:not([data-view="desktop"]) .sb-end { flex: 1 1 auto; justify-content: center; min-height: 44px; }
   html:not([data-view="desktop"]) .msg-physician,
   html:not([data-view="desktop"]) .msg-assistant { max-width: 90%; }
   html:not([data-view="desktop"]) .page-intro h1 { font-size: 27px; }
@@ -323,7 +410,9 @@ html[data-view="mobile"] .chat-messages { gap: 16px; }
 html[data-view="mobile"] .chat-intro { margin-bottom: 14px; padding-bottom: 12px; }
 html[data-view="mobile"] .chat-intro .sub { display: none; }
 html[data-view="mobile"] .chat-intro h1 { font-size: 23px; }
-html[data-view="mobile"] .chat-window { height: calc(100dvh - 316px); }
+html[data-view="mobile"] .sb-pause { margin-left: 0; }
+html[data-view="mobile"] .sb-pause,
+html[data-view="mobile"] .sb-end { flex: 1 1 auto; justify-content: center; min-height: 44px; }
 html[data-view="mobile"] .msg-physician,
 html[data-view="mobile"] .msg-assistant { max-width: 90%; }
 html[data-view="mobile"] .page-intro h1 { font-size: 27px; }
