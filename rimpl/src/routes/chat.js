@@ -4,7 +4,7 @@ const { stripPii, stripHistoryPii, deriveHintTokens } = require('../services/pii
 const { ragLookup } = require('../services/rag');
 const { callClaude } = require('../services/claude');
 const { hasCitation, extractSocraticQuestion, extractReferences } = require('../services/post-filter');
-const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER } = require('../lib/prompts');
+const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, ARTIFACT_GUIDANCE } = require('../lib/prompts');
 const { stripArtifactDelimiters } = require('../lib/transcript');
 
 const router = Router();
@@ -26,6 +26,9 @@ const ChatSchema = z.object({
   patient_ref: z.string().nullish(),
   // CLICS §6.4: true → Socratic clinical-examiner mode (CLE2 / Tier-1 remediation); false → natural.
   socratic: z.boolean().default(false),
+  // Superadmin `clinical_artifacts` setting (the backend forwards it): true → allow the AI to emit
+  // `:::artifact{...}` side-panel blocks. Default false; the transcript strip runs regardless.
+  artifacts: z.boolean().default(false),
 });
 
 // `cleanMessage` MUST already be PII-stripped by the caller (see the route): the RAG embedding
@@ -53,12 +56,14 @@ router.post('/', async (req, res) => {
   const parsed = ChatSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { history, message, language, chief_complaint, patient_ref, socratic } = parsed.data;
+  const { history, message, language, chief_complaint, patient_ref, socratic, artifacts } = parsed.data;
   // KNOWN patient identifiers to scrub deterministically (closes the bare-unlabelled-name leak).
   const hints = deriveHintTokens(patient_ref);
   // Examiner mode (CLE2 / remediation) leads with Socratic questioning and MUST end on ❓; natural
   // mode (CLE1/CLE3) answers directly and must NOT force a ❓ — that's the experimental contrast.
-  const systemPrompt = socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL;
+  // Append the artifact guidance only when the superadmin toggle (forwarded as `artifacts`) is on.
+  const systemPrompt = (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)
+    + (artifacts ? ARTIFACT_GUIDANCE : '');
 
   try {
     // De-identify ONCE, up front: PII must never leave the on-prem boundary — not to Claude and

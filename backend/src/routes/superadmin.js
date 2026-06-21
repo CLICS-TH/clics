@@ -63,6 +63,9 @@ const UsageSettingsSchema = z.object({
   // Pilot Test Mode: when ON, new CLEs are TEST sessions (is_test), the 3-CLE study cap is bypassed,
   // and the physician may pick Natural/Socratic directly — so the team can exercise the experiment.
   pilot_test_mode: z.boolean().optional(),
+  // Clinical Artifacts: when ON, the AI may emit `:::artifact{...}` side-panel blocks (DDx tables, care
+  // plans, …). A research-stimulus change — default OFF, enabled deliberately by a superadmin.
+  clinical_artifacts_enabled: z.boolean().optional(),
 }).refine((b) => Object.keys(b).length > 0, { message: 'No settings to update' });
 
 // GET /users moved to routes/admin.js (mounted first on the same /admin prefix): it is now
@@ -352,7 +355,8 @@ router.get('/usage-settings', async (_req, res) => {
     total_used_usd = (rows ?? []).reduce((acc, r) => acc + Number(r.usage_cost_usd ?? 0), 0);
   }
   const pilot_test_mode = (await readSetting('pilot_test_mode', 0)) === 1;
-  res.json({ standard_limit_usd, api_budget_pool_usd, total_used_usd, pilot_test_mode });
+  const clinical_artifacts_enabled = (await readSetting('clinical_artifacts', 0)) === 1;
+  res.json({ standard_limit_usd, api_budget_pool_usd, total_used_usd, pilot_test_mode, clinical_artifacts_enabled });
 });
 
 router.patch('/usage-settings', async (req, res) => {
@@ -363,18 +367,24 @@ router.patch('/usage-settings', async (req, res) => {
   if (parsed.data.standard_limit_usd != null) upserts.push({ key: 'standard_usage_limit_usd', value: parsed.data.standard_limit_usd, updated_at: now });
   if (parsed.data.api_budget_pool_usd != null) upserts.push({ key: 'api_budget_pool_usd', value: parsed.data.api_budget_pool_usd, updated_at: now });
   if (parsed.data.pilot_test_mode != null) upserts.push({ key: 'pilot_test_mode', value: parsed.data.pilot_test_mode ? 1 : 0, updated_at: now });
+  if (parsed.data.clinical_artifacts_enabled != null) upserts.push({ key: 'clinical_artifacts', value: parsed.data.clinical_artifacts_enabled ? 1 : 0, updated_at: now });
   const { error } = await supabase.from('app_settings').upsert(upserts);
   if (sendDbError(res, error)) return;
   if (parsed.data.pilot_test_mode != null) {
     logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'pilot_test_mode',
       metadata: { enabled: parsed.data.pilot_test_mode } });
   }
+  if (parsed.data.clinical_artifacts_enabled != null) {
+    logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'clinical_artifacts',
+      metadata: { enabled: parsed.data.clinical_artifacts_enabled } });
+  }
   const [standard_limit_usd, api_budget_pool_usd] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
     readSetting('api_budget_pool_usd', 0),
   ]);
   const pilot_test_mode = (await readSetting('pilot_test_mode', 0)) === 1;
-  res.json({ standard_limit_usd, api_budget_pool_usd, pilot_test_mode });
+  const clinical_artifacts_enabled = (await readSetting('clinical_artifacts', 0)) === 1;
+  res.json({ standard_limit_usd, api_budget_pool_usd, pilot_test_mode, clinical_artifacts_enabled });
 });
 
 // Reset a member's running AI usage meter back to zero (manual-reset escape hatch).

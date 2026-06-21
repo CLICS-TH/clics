@@ -8,7 +8,7 @@ const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
 const { finalizeScreening, toPassCols } = require('../services/cle-finalize');
 const { effectiveLimit, reserveUsage, settleUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
 const { logEvent } = require('../lib/audit');
-const { pilotTestMode } = require('../lib/settings');
+const { pilotTestMode, clinicalArtifactsEnabled } = require('../lib/settings');
 
 const router = Router();
 router.use(verifyJwt, requireRole('physician'));
@@ -232,6 +232,7 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
       chief_complaint: cle.chief_complaint, // give the AI the case context
       patient_ref: pref?.patient_ref ?? null, // scrubbed on-prem; never reaches the cloud
       socratic: cle.socratic_active === true, // CLE2 / remediation → Socratic clinical-examiner mode
+      artifacts: await clinicalArtifactsEnabled(), // superadmin toggle → allow side-panel artifacts
     });
   } catch (err) {
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation

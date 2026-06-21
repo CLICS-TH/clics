@@ -33,6 +33,14 @@ describe('POST /chat', () => {
     expect(sys).toMatch(/SOCRATIC LEARNING/);
   });
 
+  test('artifacts flag drives the system prompt: guidance appended only when true', async () => {
+    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en' });
+    expect(callClaude.mock.calls[0][0].systemPrompt).not.toMatch(/:::artifact/); // default off
+    callClaude.mockClear();
+    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en', artifacts: true });
+    expect(callClaude.mock.calls[0][0].systemPrompt).toMatch(/:::artifact/);     // on → guidance present
+  });
+
   test('returns content, references, and socratic_question', async () => {
     const res = await request(app).post('/chat').send({
       cle_id: 'test-123',
