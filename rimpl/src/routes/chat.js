@@ -5,8 +5,14 @@ const { ragLookup } = require('../services/rag');
 const { callClaude } = require('../services/claude');
 const { hasCitation, extractSocraticQuestion, extractReferences } = require('../services/post-filter');
 const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER } = require('../lib/prompts');
+const { stripArtifactDelimiters } = require('../lib/transcript');
 
 const router = Router();
+
+// Per-reply output ceiling. Raised from the historical 1500/2500 so a substantial clinical artifact
+// (DDx table / care plan) plus the prose + citation + closing ❓ fit without truncation. Cost is the
+// ACTUAL tokens used, not the ceiling; the per-user $0.50 cap still bounds total spend.
+const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));
 
 const ChatSchema = z.object({
   cle_id: z.string(),
@@ -33,9 +39,12 @@ async function buildMessages(history, cleanMessage, ragDocs, chiefComplaint, hin
   const context = ragDocs.length
     ? `\n\nRelevant guidelines:\n${ragDocs.map(d => `[${d.source}] ${d.content}`).join('\n')}`
     : '';
+  // Strip any clinical-artifact control syntax from prior turns before replaying them to the cloud:
+  // the artifact body stays (clinical context the AI may need), but the `:::artifact{...}` fence never
+  // re-enters the chat context — otherwise the model would see, and start mimicking, the literal delimiter.
   const cleanHistory = stripHistoryPii(history, hints).map(m => ({
     role: m.role === 'physician' ? 'user' : 'assistant',
-    content: m.content,
+    content: stripArtifactDelimiters(m.content),
   }));
   return [...cleanHistory, { role: 'user', content: cc + cleanMessage + context }];
 }
@@ -58,7 +67,7 @@ router.post('/', async (req, res) => {
     const ragDocs = await ragLookup(cleanMessage);
     const messages = await buildMessages(history, cleanMessage, ragDocs, chief_complaint, hints);
 
-    let { text, tokenCount, inputTokens, outputTokens } = await callClaude({ systemPrompt, messages, maxTokens: 2500 });
+    let { text, tokenCount, inputTokens, outputTokens } = await callClaude({ systemPrompt, messages, maxTokens: CHAT_MAX_TOKENS });
 
     // Retry once if a citation is missing (both modes), or — examiner mode only — the ❓ is missing.
     if (!hasCitation(text) || (socratic && !extractSocraticQuestion(text))) {
@@ -70,12 +79,14 @@ router.post('/', async (req, res) => {
           ? 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม และไม่ต้องปิดท้ายด้วยคำถามชวนคิด'
           : 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation. Engage with the question — do not decline, and do not append a follow-up question.');
       const retryMessages = [...messages,
-        { role: 'assistant', content: text },
+        // Strip the artifact fence from the just-produced reply before feeding it back as context, so
+        // the corrected reply doesn't echo the literal delimiter.
+        { role: 'assistant', content: stripArtifactDelimiters(text) },
         { role: 'user', content: retryPrompt },
       ];
-      // Cheaper than the first call: the answer target is "<400 words", so a 1500-token cap is ample
-      // for a corrected reply and roughly halves the retry's load on the Anthropic rate limit.
-      const retry = await callClaude({ systemPrompt, messages: retryMessages, maxTokens: 1500 });
+      // Same ceiling as the first call — a corrected reply may itself carry an artifact, so a LOWER retry
+      // cap would truncate it worse than the original (the old 1500 cap assumed a "<400 words" reply).
+      const retry = await callClaude({ systemPrompt, messages: retryMessages, maxTokens: CHAT_MAX_TOKENS });
       text = retry.text;
       tokenCount += retry.tokenCount;
       inputTokens += retry.inputTokens;

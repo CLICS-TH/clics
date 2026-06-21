@@ -10,6 +10,12 @@ interface Message {
   socratic_question?: string;
 }
 
+// Strip clinical-artifact fences but KEEP the inner markdown, so the auditor reads the artifact body
+// (DDx table / care plan) the physician saw — never the raw `:::artifact{...}` control syntax.
+// Keep this regex in sync with rimpl/src/lib/transcript.js and physician-ui/public/js/artifacts.js.
+const stripArtifactFences = (s: string) =>
+  s.replace(/^:::artifact\{[^}\n]*\}[ \t]*\n?/gm, "").replace(/^:::[ \t]*$/gm, "");
+
 // Physician-grade transcript (#8): the auditor scores the high-stakes read, so render the AI's
 // markdown the same way the physician saw it — not a stripped plain-text bubble.
 // memo: `messages` is stable after load, so the rater's chip taps / notes keystrokes (which re-render
@@ -19,8 +25,11 @@ export const TranscriptView = memo(function TranscriptView({ messages }: { messa
     <div className="max-h-[72vh] space-y-3 overflow-y-auto rounded-lg bg-secondary p-4">
       {messages.map((m, i) => {
         const isPhysician = m.role === "physician";
-        // Assistant content carries a trailing "❓ …" Socratic line — strip it; it's shown separately.
-        const body = isPhysician ? m.content : m.content.replace(/\n❓[^\n]*$/, "").trim();
+        // Strip artifact fences (keep the body); assistant content also carries a trailing "❓ …"
+        // Socratic line — strip that too, it's shown separately.
+        const body = isPhysician
+          ? stripArtifactFences(m.content)
+          : stripArtifactFences(m.content).replace(/\n❓[^\n]*$/, "").trim();
         return (
           <div
             key={i}

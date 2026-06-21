@@ -73,13 +73,15 @@ describe('POST /chat', () => {
   // natural mode must NOT be forced to (the ❓ is the manipulation, not a quality bar).
   const reply = (text) => ({ text, tokenCount: 100, inputTokens: 50, outputTokens: 50 });
 
-  test('examiner mode retries when the ❓ is missing, using the smaller retry budget', async () => {
+  test('examiner mode retries when the ❓ is missing; the retry budget is NOT lower than the first call', async () => {
     callClaude
       .mockResolvedValueOnce(reply('Metformin is first-line (ADA, 2024).'))          // citation, NO ❓
       .mockResolvedValueOnce(reply('Metformin (ADA, 2024).\n❓ Why renal-adjust?'));  // corrected
     await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en', socratic: true });
     expect(callClaude).toHaveBeenCalledTimes(2);
-    expect(callClaude.mock.calls[1][0].maxTokens).toBe(1500);
+    // A corrected reply may itself carry an artifact, so the retry must not truncate worse than the original.
+    expect(callClaude.mock.calls[1][0].maxTokens).toBe(callClaude.mock.calls[0][0].maxTokens);
+    expect(callClaude.mock.calls[0][0].maxTokens).toBeGreaterThanOrEqual(4000);
   });
 
   test('natural mode does NOT retry on a missing ❓ (only a missing citation matters)', async () => {
@@ -94,5 +96,21 @@ describe('POST /chat', () => {
       .mockResolvedValueOnce(reply('Metformin (ADA, 2024).\n❓ Why?'));
     await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en', socratic: false });
     expect(callClaude).toHaveBeenCalledTimes(2);
+  });
+
+  // CLINICAL ARTIFACTS — a prior assistant turn's artifact fence must NOT replay into the cloud chat
+  // context; the body stays as clinical context, but `:::artifact{...}` control syntax is stripped.
+  test('a persisted artifact fence in history is stripped before reaching the model (body kept)', async () => {
+    await request(app).post('/chat').send({
+      cle_id: 'x', language: 'en', message: 'and the management?',
+      history: [
+        { role: 'physician', content: 'differential for chest pain?' },
+        { role: 'assistant', content: 'Top causes:\n:::artifact{type="differential" title="DDx"}\n| ACS | high |\n:::\n(AHA, 2021)' },
+      ],
+    });
+    const sent = JSON.stringify(callClaude.mock.calls[0][0].messages);
+    expect(sent).not.toContain(':::artifact');   // control syntax never re-enters the cloud context
+    expect(sent).toContain('| ACS | high |');     // artifact body survives as context
+    expect(sent).toContain('(AHA, 2021)');         // citation outside the fence survives
   });
 });

@@ -43,6 +43,7 @@
         <button class="btn btn-finish btn-sm" data-icon="check" id="endBtn" title="ส่งให้ประเมินคะแนน — ทำต่อไม่ได้ / Submit for scoring (can't resume)">จบและส่ง<span class="bi-en">End</span></button>
       </div>
     </div>
+    <div class="chat-container">
     <div class="chat-window card" style="padding:0">
       <div class="chat-messages" id="messages" style="padding:16px"></div>
       <button class="scroll-bottom" id="scrollBottomBtn" data-icon="arrowDown" aria-label="เลื่อนไปข้อความล่าสุด / Scroll to latest"></button>
@@ -54,6 +55,22 @@
         <p class="composer-hint">Enter ส่ง · Shift+Enter ขึ้นบรรทัด<span class="bi-en">Enter to send · Shift+Enter for new line</span></p>
       </div>
     </div>
+    <!-- Clinical artifact side panel — populated by js/artifacts.js -->
+    <aside class="artifact-panel" id="artifactPanel" hidden aria-label="Clinical artifact">
+      <div class="artifact-head">
+        <div class="artifact-head-meta">
+          <span class="artifact-kind" id="artifactKind">Clinical artifact</span>
+          <h2 class="artifact-title" id="artifactTitle">Artifact</h2>
+        </div>
+        <div class="artifact-head-actions">
+          <button class="artifact-icon-btn" id="artifactCopy" title="คัดลอก / Copy" aria-label="Copy" data-icon="copy" data-icon-size="18"></button>
+          <button class="artifact-icon-btn" id="artifactClose" title="ปิด / Close" aria-label="Close" data-icon="x" data-icon-size="18"></button>
+        </div>
+      </div>
+      <div class="artifact-body" id="artifactBody"></div>
+      <div class="artifact-foot" id="artifactTrunc" hidden><span data-icon="warn" data-icon-size="14"></span> คำตอบถูกตัดกลางคัน — กด "ลองใหม่" เพื่อให้สร้างใหม่ / Answer was cut off — use Retry.</div>
+    </aside>
+    </div>
   </div>
   <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>
@@ -61,6 +78,7 @@
   <script src="/js/icons.js"></script>
   <script src="/js/ui.js"></script>
   <script src="/js/usage.js"></script>
+  <script src="/js/artifacts.js"></script>
   <script src="/js/cle-chat.js"></script>
   <script src="/js/boot.js" defer></script>
 </body>

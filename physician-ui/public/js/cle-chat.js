@@ -4,6 +4,7 @@ if (!cleId) window.location.href = '/dashboard';
 let turns = 0;
 let tokenCount = 0;          // running depth signal, seeded from the server on load
 let lastUserMessage = null;  // for Retry after a failed turn
+let nextMsgIndex = 0;        // stable per-message index for deterministic artifact IDs
 
 // Session minimums (mirror backend/src/services/cle-gate.js Tier-1). We surface PROGRESS toward
 // these so the physician knows when a session is substantive — Socratic mode itself stays hidden.
@@ -67,7 +68,14 @@ function renderMessage(role, content, refs, socratic, opts) {
   if (role === 'physician') {
     div.textContent = content;
   } else {
-    const mainContent = content.replace(/\n❓[^\n]*$/, '').trim();
+    // Lift any clinical artifacts out of the bubble BEFORE the ❓-strip and markdown render — they become
+    // a chip here and open in the side panel. Parsing the raw content means they re-appear on reload too.
+    let work = content, artifacts = [];
+    if (window.CLICSArtifacts) {
+      const ex = CLICSArtifacts.extract(content, opts.msgIndex);
+      work = ex.cleanContent; artifacts = ex.artifacts;
+    }
+    const mainContent = work.replace(/\n❓[^\n]*$/, '').trim();
     // AI output is untrusted HTML once marked.parse runs it — sanitize before injecting, and
     // fail SAFE to plain text if either lib is unavailable (never inject unsanitized markup).
     if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
@@ -75,6 +83,9 @@ function renderMessage(role, content, refs, socratic, opts) {
     } else {
       div.textContent = mainContent;
     }
+    artifacts.forEach(a => { CLICSArtifacts.register(a); div.appendChild(CLICSArtifacts.chip(a)); });
+    // Auto-open the panel for a freshly-generated artifact (live turn), like Claude does; never on reload.
+    if (opts.live && artifacts.length) CLICSArtifacts.open(artifacts[artifacts.length - 1].id);
     if (refs?.length) {
       const r = document.createElement('div');
       r.className = 'msg-refs';
@@ -172,7 +183,8 @@ api.getPle(cleId).then(cle => {
   turns = cle.turn_count ?? 0;
   tokenCount = cle.token_count ?? 0;
   document.getElementById('turns').textContent = turns;
-  (cle.messages ?? []).forEach(m => renderMessage(m.role, m.content, m.refs, m.socratic_question, { at: m.created_at }));
+  (cle.messages ?? []).forEach((m, i) => renderMessage(m.role, m.content, m.refs, m.socratic_question, { at: m.created_at, msgIndex: i }));
+  nextMsgIndex = (cle.messages ?? []).length;   // live turns continue the index for stable artifact IDs
   document.getElementById('sessionProgress').hidden = false;
   updateProgress();
   refreshUsage();
@@ -193,7 +205,7 @@ async function deliver(message) {
   aiInFlight = false; markActivity();
   loading.remove();
   if (res?.content) {
-    renderMessage('assistant', res.content, res.refs, res.socratic_question);
+    renderMessage('assistant', res.content, res.refs, res.socratic_question, { msgIndex: nextMsgIndex++, live: true });
     turns += 1;
     tokenCount += (res.input_tokens || 0) + (res.output_tokens || 0);
     document.getElementById('turns').textContent = turns;
@@ -221,7 +233,7 @@ async function sendMessage() {
   input.value = '';
   autoGrow();
   lastUserMessage = message;
-  renderMessage('physician', message);
+  renderMessage('physician', message, null, null, { msgIndex: nextMsgIndex++ });
   deliver(message);
 }
 
