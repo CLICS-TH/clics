@@ -151,7 +151,7 @@ function addActions(div, rawText, isError) {
 }
 
 function refreshUsage() {
-  if (typeof renderUsageBar === 'function') renderUsageBar(document.getElementById('usageBar'), { chip: true });
+  if (typeof renderUsageBar === 'function') renderUsageBar(document.getElementById('usageBar'), { mini: true });
 }
 
 api.getPle(cleId).then(cle => {

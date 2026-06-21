@@ -17,6 +17,19 @@
     var barColor  = over ? 'var(--error,#c64545)'    : pct >= 80 ? 'var(--warning,#d4a017)'    : 'var(--success,#5db872)';
     var textColor = over ? 'var(--error-text,#7a1c1c)' : pct >= 80 ? 'var(--warning-text,#7a5900)' : 'var(--success-text,#1a6630)';
 
+    if (opts.mini) {
+      // Minimal battery-style bar: the fill is the REMAINING allowance (depletes as it's used),
+      // colour-coded green → amber → red. Exact figure in the tooltip.
+      var remain = Math.max(0, 100 - pct);
+      var fillColor = (over || remain <= 5) ? 'var(--error,#c64545)' : remain <= 20 ? 'var(--warning,#d4a017)' : 'var(--success,#5db872)';
+      host.className = 'usage-mini';
+      host.title = over ? 'ใช้โควตา AI ครบแล้ว — ติดต่อผู้ดูแลระบบ / AI allowance used up' : ('โควตา AI คงเหลือ ' + remain + '% / ' + remain + '% of AI allowance left');
+      host.innerHTML = '<span class="um-label">AI</span>' +
+        '<span class="um-track"><span class="um-fill" style="width:' + remain + '%;background:' + fillColor + ';"></span></span>' +
+        '<span class="um-pct" style="color:' + textColor + ';">' + (over ? 'เต็ม' : 'เหลือ ' + remain + '%') + '</span>';
+      return;
+    }
+
     if (opts.chip) {
       // Tiny pill for the slim chat header — "AI 7%", colour-coded; full text in the tooltip.
       host.className = 'usage-chip';
