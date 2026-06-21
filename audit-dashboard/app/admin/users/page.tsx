@@ -6,22 +6,28 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
-import { ROLE_LABELS, ACCOUNT_STATUS_MAP, budgetToneHex, roleToUi, roleToWire } from '@/lib/labels';
+import { ROLE_LABELS, ACCOUNT_STATUS_MAP, budgetToneHex, roleToUi, roleToWire, POSITION_OPTIONS, positionLabel } from '@/lib/labels';
 import { type ApiResult, formatApiError } from '@/lib/types';
 import { confirmDialog } from '@/components/Overlays';
-import { BarChart3, RotateCcw, Pencil, Power, Trash2, Building2 } from 'lucide-react';
+import { BarChart3, RotateCcw, Pencil, Power, Trash2, Building2, Eye, EyeOff, Stethoscope } from 'lucide-react';
 
 const PAGE_SIZE = 50;
 
 type User = {
   id: string; role: string; full_name_th: string; full_name_en: string;
   specialty?: string | null; license_number?: string | null;
+  specialty_id?: string | null; position?: string | null;
+  specialties?: { name_th: string; name_en: string; code?: string } | null;  // embedded for display
   status?: string; pseudonym?: string | null; council_id?: string | null;
   usage_cost_usd?: number | null; usage_limit_usd?: number | null;
   can_audit?: boolean | null;          // "Special" dual role: physician + auditor rights
 };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
 type Council = { id: string; code: string; name_th: string; name_en: string };
+type Specialty = { id: string; council_id: string; code: string; name_th: string; name_en: string };
+
+// Council-scoped roles carry a specialty (after roleToWire, 'special' → physician); global roles don't.
+const roleNeedsSpecialty = (role: string) => ['admin', 'physician', 'auditor', 'special'].includes(role);
 type AuditorRequest = {
   id: string; email?: string | null; created_at: string;
   full_name_th?: string | null; full_name_en?: string | null;
@@ -61,8 +67,10 @@ export default function UsersPage() {
   const [councilSlots, setCouncilSlots] = useState<Slot[]>([]);
   const [ccap, setCcap] = useState<Record<string, string>>({});
   const [showForm, setShowForm] = useState(false);
+  const [showPw, setShowPw] = useState(false);                 // create-form password reveal (eye icon)
   const [councils, setCouncils] = useState<Council[]>([]);
-  const [form, setForm] = useState({ email:'', password:'', role:'physician', council_id:'', full_name_th:'', full_name_en:'', specialty:'', license_number:'' });
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);  // all specialties; filtered per council in the dropdowns
+  const [form, setForm] = useState({ email:'', password:'', role:'physician', council_id:'', full_name_th:'', full_name_en:'', specialty_id:'', position:'', license_number:'' });
   const [err, setErr] = useState('');
   const [msg, setMsg] = useState('');
   const [editing, setEditing] = useState<User | null>(null);
@@ -77,6 +85,7 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState('active'); // default hides deactivated; '' = all
   const [roleFilter, setRoleFilter] = useState('');           // server-side ?role= (superadmin only); '' = all
   const [councilFilter, setCouncilFilter] = useState('');     // server-side ?council= (superadmin only); '' = all
+  const [specialtyFilter, setSpecialtyFilter] = useState(''); // server-side ?specialty= (superadmin only); '' = all
   const [q, setQ] = useState('');             // search box (live value)
   const [searchQ, setSearchQ] = useState(''); // debounced value sent as ?q= (server-side filter)
   const [requests, setRequests] = useState<AuditorRequest[]>([]); // pending auditor-role requests
@@ -94,6 +103,7 @@ export default function UsersPage() {
     if (searchQ) qs.set('q', searchQ);
     if (roleFilter) qs.set('role', roleFilter);
     if (councilFilter) qs.set('council', councilFilter);
+    if (specialtyFilter) qs.set('specialty', specialtyFilter);
     return qs.toString();
   };
 
@@ -147,10 +157,12 @@ export default function UsersPage() {
       setTotalUsed(Number(d?.total_used_usd ?? 0));
     });
   const loadCouncils = () => apiFetch<Council[]>('/admin/councils').then(d => setCouncils(Array.isArray(d) ? d : []));
+  // All specialties (every council) — filtered per-council in each dropdown; small set, fetched once.
+  const loadSpecialties = () => apiFetch<Specialty[]>('/admin/specialties').then(d => setSpecialties(Array.isArray(d) ? d : []));
   // Pending auditor-role requests (admin: own council; superadmin: all) — section hides when empty.
   const loadRequests = () => apiFetch<AuditorRequest[]>('/admin/auditor-requests').then(d => setRequests(Array.isArray(d) ? d : []));
   useEffect(() => {
-    loadCouncils(); loadRequests();
+    loadCouncils(); loadSpecialties(); loadRequests();
     // Slot pools and usage settings are superadmin-only endpoints — skip for admins.
     if (isSuper) { loadSlots(); loadUsageSettings(); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -164,7 +176,7 @@ export default function UsersPage() {
 
   // (Re)load page 0 whenever the status filter or the (debounced) search changes (incl. on
   // mount) — resets pagination to offset 0.
-  useEffect(() => { loadUsersPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [statusFilter, searchQ, roleFilter, councilFilter]);
+  useEffect(() => { loadUsersPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [statusFilter, searchQ, roleFilter, councilFilter, specialtyFilter]);
 
   // Edit modal a11y: Escape closes it (the overlay is role=dialog/aria-modal; backdrop click already
   // closes). Keyboard users could otherwise only reach Cancel by tabbing the whole form.
@@ -176,6 +188,8 @@ export default function UsersPage() {
   }, [editing]);
 
   const councilName = (id?: string | null) => councils.find(c => c.id === id)?.name_th ?? '—';
+  // Active specialties belonging to a council (drives the cascading dropdowns).
+  const specialtiesFor = (cid?: string | null) => specialties.filter(s => s.council_id === cid);
 
   function openEdit(u: User) {
     setEditing(u);
@@ -188,15 +202,23 @@ export default function UsersPage() {
   async function createUser() {
     setErr('');
     if (!form.council_id) { setErr('เลือกสภาวิชาชีพ / Select a council.'); return; }
+    // Specialty is required for council-scoped roles when the council has any (matches the backend).
+    if (roleNeedsSpecialty(form.role) && specialtiesFor(form.council_id).length > 0 && !form.specialty_id) {
+      setErr('เลือกความเชี่ยวชาญ / Select a specialty.'); return;
+    }
     setCreating(true);
     try {
       // 'special' is a UI-only role value; roleToWire turns it into {role:'physician', can_audit:true}.
-      const res = await apiFetch<ApiResult<User>>('/admin/users', { method:'POST', body: JSON.stringify({ ...form, ...roleToWire(form.role) }) });
+      // Empty specialty_id/position would fail the uuid/enum schema — omit them.
+      const body: Record<string, unknown> = { ...form, ...roleToWire(form.role) };
+      if (!body.specialty_id) delete body.specialty_id;
+      if (!body.position) delete body.position;
+      const res = await apiFetch<ApiResult<User>>('/admin/users', { method:'POST', body: JSON.stringify(body) });
       if (res?.id) {
-        setShowForm(false);
+        setShowForm(false); setShowPw(false);
         // Reset the WHOLE form — leaving email/password/names behind pre-filled the next "+ Add User"
         // with the previous person's credentials (incl. their password).
-        setForm({ email:'', password:'', role:'physician', council_id:'', full_name_th:'', full_name_en:'', specialty:'', license_number:'' });
+        setForm({ email:'', password:'', role:'physician', council_id:'', full_name_th:'', full_name_en:'', specialty_id:'', position:'', license_number:'' });
         loadUsers(); loadSlots();
       }
       else setErr(formatApiError(res?.error, 'Error'));
@@ -211,13 +233,25 @@ export default function UsersPage() {
     const body: {
       full_name_th: string; full_name_en: string; specialty: string; license_number: string;
       role?: string; council_id?: string | null; can_audit?: boolean; usage_limit_usd?: number | null;
+      specialty_id?: string; position?: string;
     } = {
       full_name_th: editing.full_name_th, full_name_en: editing.full_name_en,
       specialty: editing.specialty ?? '', license_number: editing.license_number ?? '',
     };
     // The superadmin role is immutable — never send a role change for it (backend rejects it too).
     // can_audit travels with the role: 'Special' = {role:'physician', can_audit:true}; any other role clears it.
-    if (editing.role !== 'superadmin') { body.role = editing.role; body.council_id = editing.council_id; body.can_audit = editing.can_audit === true; }
+    if (editing.role !== 'superadmin') {
+      body.role = editing.role; body.council_id = editing.council_id; body.can_audit = editing.can_audit === true;
+      // Specialty/position only apply to council-scoped roles. Empty → omitted (JSON.stringify drops
+      // undefined), so an unrelated edit never clears them; the backend clears them on a move to a global role.
+      if (['admin', 'physician', 'auditor'].includes(editing.role)) {
+        if (specialtiesFor(editing.council_id).length > 0 && !editing.specialty_id) {
+          setMsg('เลือกความเชี่ยวชาญ / Select a specialty.'); return;
+        }
+        body.specialty_id = editing.specialty_id || undefined;
+        body.position = editing.position || undefined;
+      }
+    }
     // Usage limit override: a number sets a per-user cap; empty clears it (null => standard default).
     const trimmed = editLimit.trim();
     body.usage_limit_usd = trimmed === '' ? null : Number(trimmed);
@@ -533,21 +567,49 @@ export default function UsersPage() {
 
       {isSuper && showForm && (
         <div ref={addFormRef} className="border rounded-xl p-5 mb-6 space-y-4">
-          {(['full_name_th','full_name_en','email','password','specialty','license_number'] as const).map(f => (
+          {(['full_name_th','full_name_en','email'] as const).map(f => (
             <input key={f} className="w-full border rounded-lg px-3 py-2 text-sm"
               placeholder={FIELD_PLACEHOLDERS[f]} value={form[f]}
-              type={f==='password'?'password':'text'}
+              type="text"
               onChange={e => setForm(s => ({ ...s, [f]: e.target.value }))} />
           ))}
+          {/* Password with an eye toggle so the superadmin can verify what they typed before creating. */}
+          <div className="relative">
+            <input className="w-full border rounded-lg px-3 py-2 pr-10 text-sm"
+              placeholder={FIELD_PLACEHOLDERS.password} value={form.password}
+              type={showPw ? 'text' : 'password'}
+              onChange={e => setForm(s => ({ ...s, password: e.target.value }))} />
+            <button type="button" onClick={() => setShowPw(v => !v)}
+              title={showPw ? 'ซ่อนรหัสผ่าน / Hide password' : 'แสดงรหัสผ่าน / Show password'}
+              aria-label={showPw ? 'Hide password' : 'Show password'}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground [&_svg]:size-4">
+              {showPw ? <EyeOff /> : <Eye />}
+            </button>
+          </div>
+          <input className="w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder={FIELD_PLACEHOLDERS.license_number} value={form.license_number} type="text"
+            onChange={e => setForm(s => ({ ...s, license_number: e.target.value }))} />
           {/* Same options as the edit panel — 'special' (User+Auditor) maps to physician+can_audit via roleToWire. */}
           <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
             value={form.role} onChange={e => setForm(s => ({ ...s, role: e.target.value }))}>
             {EDIT_ROLE_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
           </select>
+          {/* Council → specialty cascade: changing council clears the (now-foreign) specialty. */}
           <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
-            value={form.council_id} onChange={e => setForm(s => ({ ...s, council_id: e.target.value }))}>
+            value={form.council_id} onChange={e => setForm(s => ({ ...s, council_id: e.target.value, specialty_id: '' }))}>
             <option value="">— เลือกสภาวิชาชีพ / Select council —</option>
             {councils.map(c => <option key={c.id} value={c.id}>{c.name_th} / {c.name_en}</option>)}
+          </select>
+          <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background disabled:opacity-50"
+            value={form.specialty_id} disabled={!form.council_id || specialtiesFor(form.council_id).length === 0}
+            onChange={e => setForm(s => ({ ...s, specialty_id: e.target.value }))}>
+            <option value="">— เลือกความเชี่ยวชาญ / Select specialty —</option>
+            {specialtiesFor(form.council_id).map(s => <option key={s.id} value={s.id}>{s.name_th} / {s.name_en}</option>)}
+          </select>
+          <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
+            value={form.position} onChange={e => setForm(s => ({ ...s, position: e.target.value }))}>
+            <option value="">— ตำแหน่ง / Position —</option>
+            {POSITION_OPTIONS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
           </select>
           {err && <p className="text-destructive text-sm">{err}</p>}
           <Button className="w-full" onClick={createUser} disabled={creating}>
@@ -570,8 +632,6 @@ export default function UsersPage() {
             placeholder="ชื่อภาษาไทย" onChange={e => setEditing(u => u && ({ ...u, full_name_th: e.target.value }))} />
           <input className="w-full border rounded-lg px-3 py-2 text-sm" value={editing.full_name_en}
             placeholder="Full Name (English)" onChange={e => setEditing(u => u && ({ ...u, full_name_en: e.target.value }))} />
-          <input className="w-full border rounded-lg px-3 py-2 text-sm" value={editing.specialty ?? ''}
-            placeholder="สาขาวิชา / Specialty" onChange={e => setEditing(u => u && ({ ...u, specialty: e.target.value }))} />
           <input className="w-full border rounded-lg px-3 py-2 text-sm" value={editing.license_number ?? ''}
             placeholder="เลขใบอนุญาต / License No." onChange={e => setEditing(u => u && ({ ...u, license_number: e.target.value }))} />
           {editing.role === 'physician' && (
@@ -595,10 +655,24 @@ export default function UsersPage() {
                 {EDIT_ROLE_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
               </select>
               <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
-                value={editing.council_id ?? ''} onChange={e => setEditing(u => u && ({ ...u, council_id: e.target.value }))}>
+                value={editing.council_id ?? ''} onChange={e => setEditing(u => u && ({ ...u, council_id: e.target.value, specialty_id: '' }))}>
                 <option value="">— เลือกสภาวิชาชีพ / Select council —</option>
                 {councils.map(c => <option key={c.id} value={c.id}>{c.name_th} / {c.name_en}</option>)}
               </select>
+              {/* Specialty + position apply only to council-scoped roles (not analyst/ethics). */}
+              {['admin', 'physician', 'auditor'].includes(editing.role) && (<>
+                <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background disabled:opacity-50"
+                  value={editing.specialty_id ?? ''} disabled={!editing.council_id || specialtiesFor(editing.council_id).length === 0}
+                  onChange={e => setEditing(u => u && ({ ...u, specialty_id: e.target.value }))}>
+                  <option value="">— เลือกความเชี่ยวชาญ / Select specialty —</option>
+                  {specialtiesFor(editing.council_id).map(s => <option key={s.id} value={s.id}>{s.name_th} / {s.name_en}</option>)}
+                </select>
+                <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
+                  value={editing.position ?? ''} onChange={e => setEditing(u => u && ({ ...u, position: e.target.value }))}>
+                  <option value="">— ตำแหน่ง / Position —</option>
+                  {POSITION_OPTIONS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
+                </select>
+              </>)}
             </>
           )}
           <div className="flex gap-2">
@@ -669,14 +743,29 @@ export default function UsersPage() {
         ))}
       </div>
 
-      {/* Council filter — superadmin only (admins are already pinned to one council). */}
+      {/* Council filter — superadmin only (admins are already pinned to one council). Changing council
+          clears the specialty filter (its options are council-scoped). */}
       {isSuper && (
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className="mr-1 text-xs text-muted-foreground">สภา / Council</span>
-          <Button variant={councilFilter === '' ? 'default' : 'outline'} size="sm" onClick={() => setCouncilFilter('')}>ทุกสภา / All</Button>
+          <Button variant={councilFilter === '' ? 'default' : 'outline'} size="sm" onClick={() => { setCouncilFilter(''); setSpecialtyFilter(''); }}>ทุกสภา / All</Button>
           {councils.map(c => (
-            <Button key={c.id} variant={councilFilter === c.id ? 'default' : 'outline'} size="sm" onClick={() => setCouncilFilter(c.id)}>
+            <Button key={c.id} variant={councilFilter === c.id ? 'default' : 'outline'} size="sm" onClick={() => { setCouncilFilter(c.id); setSpecialtyFilter(''); }}>
               {c.name_th}
+            </Button>
+          ))}
+        </div>
+      )}
+
+      {/* Specialty filter — superadmin only (the layer under council). Lists the selected council's
+          specialties, or all when no council is chosen. */}
+      {isSuper && (councilFilter ? specialtiesFor(councilFilter) : specialties).length > 0 && (
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className="mr-1 text-xs text-muted-foreground">ความเชี่ยวชาญ / Specialty</span>
+          <Button variant={specialtyFilter === '' ? 'default' : 'outline'} size="sm" onClick={() => setSpecialtyFilter('')}>ทั้งหมด / All</Button>
+          {(councilFilter ? specialtiesFor(councilFilter) : specialties).map(s => (
+            <Button key={s.id} variant={specialtyFilter === s.id ? 'default' : 'outline'} size="sm" onClick={() => setSpecialtyFilter(s.id)}>
+              {s.name_th}
             </Button>
           ))}
         </div>
@@ -700,6 +789,7 @@ export default function UsersPage() {
               </div>
               <p className="text-sm text-muted-foreground">{u.full_name_en}</p>
               {u.role !== 'superadmin' && <p className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Building2 className="size-3.5" /> {councilName(u.council_id)}</p>}
+              {u.specialties?.name_th && <p className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Stethoscope className="size-3.5" /> {u.specialties.name_th}{u.position ? ` · ${positionLabel(u.position)}` : ''}</p>}
               {u.role === 'physician' && <div className="pt-1"><UsageCell u={u} /></div>}
               <div className="flex items-center justify-between pt-1">
                 <StatusBadge s={u.status} />
@@ -716,6 +806,7 @@ export default function UsersPage() {
               <th className="px-3 py-3 text-left whitespace-nowrap">ชื่อ (EN)</th>
               <th className="px-3 py-3 text-left whitespace-nowrap">Role</th>
               <th className="px-3 py-3 text-left whitespace-nowrap">สภา / Council</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">ความเชี่ยวชาญ / Specialty</th>
               <th className="px-3 py-3 text-left whitespace-nowrap">การใช้งาน AI / Usage</th>
               <th className="px-3 py-3 text-left whitespace-nowrap">สถานะ / Status</th>
               <th className="px-3 py-3 text-right whitespace-nowrap">การจัดการ / Actions</th>
@@ -731,6 +822,9 @@ export default function UsersPage() {
                   </span>
                 </td>
                 <td className="px-3 py-3 whitespace-nowrap text-muted-foreground">{u.role === 'superadmin' ? '— ทุกสภา / All' : councilName(u.council_id)}</td>
+                <td className="px-3 py-3 whitespace-nowrap text-muted-foreground">
+                  {u.specialties?.name_th ?? '—'}{u.position ? <span className="text-xs"> · {positionLabel(u.position)}</span> : ''}
+                </td>
                 <td className="px-3 py-3"><UsageCell u={u} /></td>
                 <td className="px-3 py-3 whitespace-nowrap"><StatusBadge s={u.status} /></td>
                 <td className="px-3 py-3 text-right"><RowActions u={u} /></td>

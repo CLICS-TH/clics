@@ -8,6 +8,7 @@ import { ThemeToggle, ViewportToggle } from './Toggles';
 import { useIsMobile } from './ViewportProvider';
 import { useAuthUser } from '@/lib/client-store';
 import { BiLabel } from './BiLabel';
+import { POSITION_TH } from '@/lib/labels';
 import { Menu } from 'lucide-react';
 
 // Role-keyed nav. Users is council-scoped for admins (read-only view); Overview + ICC stay
@@ -87,6 +88,10 @@ export function NavBar() {
     // The auditor's only tab is the queue; its scoring detail lives under /auditor/cles/...
     (href === '/auditor/queue' && pathname.startsWith('/auditor/'));
 
+  // Identity line under the name: specialty · position (the layer under council). Empty for global roles.
+  const specialtyLine = [user.specialty_name_th, user.position ? POSITION_TH[user.position] : null]
+    .filter(Boolean).join(' · ');
+
   const linkClass = (href: string) =>
     isActive(href)
       ? 'text-primary border-b-2 border-primary pb-0.5 text-sm font-medium'
@@ -105,6 +110,13 @@ export function NavBar() {
         )}
 
         <div className="ml-auto flex items-center gap-2">
+          {/* Identity: name + specialty · position (the layer under council). Hidden on phones to save width. */}
+          {!mobile && (
+            <div className="mr-1 text-right leading-tight">
+              <p className="text-xs font-medium text-foreground">{user.full_name_th || user.full_name_en}</p>
+              {specialtyLine && <p className="text-[11px] text-muted-foreground">{specialtyLine}</p>}
+            </div>
+          )}
           <RoleBadge />
           <ViewportToggle />
           <ThemeToggle />
@@ -132,6 +144,11 @@ export function NavBar() {
       {/* Mobile dropdown */}
       {mobile && open && (
         <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          {/* Identity header (the desktop identity block is hidden on phones, so surface it here). */}
+          <div className="px-2 pb-1">
+            <p className="text-sm font-medium text-foreground">{user.full_name_th || user.full_name_en}</p>
+            {specialtyLine && <p className="text-xs text-muted-foreground">{specialtyLine}</p>}
+          </div>
           {links.map(l => (
             <Link key={l.href} href={l.href} onClick={() => setOpen(false)}
               className={`rounded-md px-2 py-2 text-sm ${isActive(l.href) ? 'bg-secondary text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>

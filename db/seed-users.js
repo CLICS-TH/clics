@@ -19,16 +19,19 @@ const supabase = createClient(
 // prof_council_required check rejects any non-superadmin without a council. council_id
 // is resolved at runtime (see resolveMedicalCouncil) and merged in before upsert.
 const MEDICAL_COUNCIL_CODE = 'TMC';
+// Demo TMC accounts all sit in Internal Medicine (specialty code 'IM' from db/migration-specialty.sql)
+// so the council × specialty pipeline is exercisable on seeded data: admin/auditor1 see doctor1's CLEs.
 const USERS = [
   { email: 'superadmin@clics.th', password: process.env.SEED_SUPERADMIN_PW || 'ClicsSuper#2026r2', role: 'superadmin', status: 'active', full_name_th: 'ผู้ดูแลระบบสูงสุด', full_name_en: 'Super Admin' },
-  { email: 'admin@clics.th',      password: process.env.SEED_ADMIN_PW      || 'ClicsAdmin#2026r2', role: 'admin',      status: 'active', council: MEDICAL_COUNCIL_CODE, full_name_th: 'ผู้จัดการโครงการ',  full_name_en: 'Pilot Admin' },
-  { email: 'doctor1@clics.th',    password: process.env.SEED_DOCTOR_PW     || 'ClicsDoc#2026r2',   role: 'physician',  status: 'active', council: MEDICAL_COUNCIL_CODE, pseudonym: 'P-001', full_name_th: 'นพ. อาสา ทดสอบ',     full_name_en: 'Dr Asa Test', specialty: 'Internal Medicine', license_number: 'TH-DEMO-001' },
+  { email: 'admin@clics.th',      password: process.env.SEED_ADMIN_PW      || 'ClicsAdmin#2026r2', role: 'admin',      status: 'active', council: MEDICAL_COUNCIL_CODE, specialty_code: 'IM', position: 'staff', full_name_th: 'ผู้จัดการโครงการ',  full_name_en: 'Pilot Admin' },
+  { email: 'doctor1@clics.th',    password: process.env.SEED_DOCTOR_PW     || 'ClicsDoc#2026r2',   role: 'physician',  status: 'active', council: MEDICAL_COUNCIL_CODE, specialty_code: 'IM', position: 'resident', pseudonym: 'P-001', full_name_th: 'นพ. อาสา ทดสอบ',     full_name_en: 'Dr Asa Test', specialty: 'Internal Medicine', license_number: 'TH-DEMO-001' },
   // Auditor demo account is manual_verified: the enforce_auditor_license trigger forbids an
   // ACTIVE auditor whose license is still 'unverified' (db/migration-license-invites.sql).
-  { email: 'auditor1@clics.th',   password: process.env.SEED_AUDITOR_PW    || 'ClicsAudit#2026r2', role: 'auditor',    status: 'active', council: MEDICAL_COUNCIL_CODE, license_status: 'manual_verified', full_name_th: 'ผู้ตรวจประเมิน',     full_name_en: 'Expert Auditor' },
+  { email: 'auditor1@clics.th',   password: process.env.SEED_AUDITOR_PW    || 'ClicsAudit#2026r2', role: 'auditor',    status: 'active', council: MEDICAL_COUNCIL_CODE, specialty_code: 'IM', position: 'staff', license_status: 'manual_verified', full_name_th: 'ผู้ตรวจประเมิน',     full_name_en: 'Expert Auditor' },
   // A second-council (Pharmacy) active auditor so cross-council guards are exercisable on real data
   // (e.g. scripts/smoke/role-chain-smoke.js asserts a TMC session can't be assigned to this auditor).
-  { email: 'auditor2@clics.th',   password: process.env.SEED_AUDITOR2_PW   || 'ClicsAudit2#2026r2', role: 'auditor',    status: 'active', council: 'PHARM',           license_status: 'manual_verified', full_name_th: 'ผู้ตรวจประเมิน (สภาเภสัชกรรม)', full_name_en: 'Pharmacy Council Auditor' },
+  // PHARM has no seeded specialties, so no specialty_code (specialty is optional when the council has none).
+  { email: 'auditor2@clics.th',   password: process.env.SEED_AUDITOR2_PW   || 'ClicsAudit2#2026r2', role: 'auditor',    status: 'active', council: 'PHARM', position: 'staff', license_status: 'manual_verified', full_name_th: 'ผู้ตรวจประเมิน (สภาเภสัชกรรม)', full_name_en: 'Pharmacy Council Auditor' },
 ];
 
 // Default role slot-pool capacities (superadmin locked at 1).
@@ -57,9 +60,17 @@ async function resolveCouncilId(code) {
   return data.id;
 }
 
+// Resolve a (council, specialty code) -> specialty id (the layer under council).
+async function resolveSpecialtyId(councilId, code) {
+  const { data, error } = await supabase.from('specialties').select('id').eq('council_id', councilId).eq('code', code).single();
+  if (error || !data) throw new Error(`specialty "${code}" not found for that council — run db/migration-specialty.sql first`);
+  return data.id;
+}
+
 async function seedOne(u) {
-  const { email, password, council, ...profile } = u;
+  const { email, password, council, specialty_code, ...profile } = u;
   if (council) profile.council_id = await resolveCouncilId(council);
+  if (specialty_code && profile.council_id) profile.specialty_id = await resolveSpecialtyId(profile.council_id, specialty_code);
   let authUser = await findByEmail(email);
   let action;
   if (authUser) {

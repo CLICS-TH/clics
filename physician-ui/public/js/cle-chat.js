@@ -239,11 +239,37 @@ inputEl.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 
+// Pre-submit "declare guard": surface the Tier-1 checks we can verify on the client (duration /
+// turns / depth) as met-or-not, note the AI-judged content criteria run on submit, and warn that
+// submitting is irreversible. The deterministic thresholds mirror the backend Tier-1 gate.
+function tierOneGuardBody() {
+  const rows = [
+    { met: activeSeconds >= T_TIME, label: 'ระยะเวลา ≥ 15 นาที / Duration ≥ 15 min' },
+    { met: turns >= T_TURNS,        label: 'จำนวนรอบสนทนา ≥ 4 / Turns ≥ 4' },
+    { met: tokenCount >= T_TOKENS,  label: 'ความลึกของบทสนทนา / Conversation depth' },
+  ];
+  const list = rows.map(r =>
+    `<div style="display:flex;align-items:center;gap:8px;margin:5px 0">` +
+      icon(r.met ? 'checkCircle' : 'xCircle', 18) +
+      `<span style="${r.met ? '' : 'color:var(--muted)'}">${r.label}</span></div>`).join('');
+  const metCount = rows.filter(r => r.met).length;
+  return (
+    `<p style="margin:0 0 8px">เกณฑ์ Tier-1 ที่ตรวจได้ตอนนี้ (${metCount}/3) / Tier-1 checks we can verify now:</p>` +
+    list +
+    `<p style="margin:12px 0 0;font-size:.85rem;color:var(--muted)">เกณฑ์ด้านเนื้อหา (คำถามเชิงคลินิก, follow-up เชิงลึก, สรุปการเรียนรู้) จะถูกประเมินโดย AI ตอนส่ง / Content criteria (clinical question, deep follow-ups, learning summary) are judged by AI on submit.</p>` +
+    `<p style="margin:10px 0 0"><b>ส่งแล้วทำต่อไม่ได้อีก</b> <span style="color:var(--muted)">— This session can't be resumed once submitted.</span></p>`
+  );
+}
+
 document.getElementById('endBtn').addEventListener('click', async () => {
+  const allClientMet = activeSeconds >= T_TIME && turns >= T_TURNS && tokenCount >= T_TOKENS;
   const ok = await confirmModal({
     title: 'จบและส่งประเมิน? / End & submit?',
-    body: 'เซสชันจะถูกส่งให้ประเมินคะแนนและ<b>ทำต่อไม่ได้อีก</b><br><span style="color:var(--muted)">This session will be submitted for scoring and can\'t be resumed.</span>',
-    confirmLabel: 'จบและส่ง / End & submit', cancelLabel: 'ยังไม่จบ / Keep going',
+    body: tierOneGuardBody(),
+    // When the client-checkable criteria aren't all met, make the action read as a deliberate override.
+    confirmLabel: allClientMet ? 'จบและส่ง / End & submit' : 'ส่งทั้งที่ยังไม่ครบ / Submit anyway',
+    cancelLabel: 'ยังไม่จบ / Keep going',
+    danger: !allClientMet,
   });
   if (!ok) return;
   const endBtn = document.getElementById('endBtn');

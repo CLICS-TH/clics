@@ -11,6 +11,7 @@ const { assertSlotAvailable } = require('../lib/accounts');
 const { newInviteToken } = require('../lib/invite-token');
 const { isMailerEnabled, sendInviteEmail } = require('../lib/mailer');
 const { normalizeCanAudit } = require('../lib/dual-role');
+const { POSITIONS, checkSpecialty } = require('../lib/specialties');
 const { logEvent } = require('../lib/audit');
 
 const router = Router();
@@ -26,6 +27,9 @@ const InviteSchema = z.object({
   // "Special" invite = physician + can_audit (dual role). Meaningless with role 'auditor'.
   can_audit: z.boolean().optional(),
   council_id: z.string().uuid(),
+  // The invited member's specialty (under council) + position; inherited on accept.
+  specialty_id: z.string().uuid().optional(),
+  position: z.enum(POSITIONS).optional(),
 });
 
 // Admins are "directors" of exactly one council and see only that council's data; the
@@ -37,13 +41,23 @@ const scopeToCouncil = (req, query) =>
 const sameCouncil = (req, councilId) =>
   req.user.role !== 'admin' || councilId === req.user.council_id;
 
+// Specialty is the layer UNDER council: an admin is also pinned to their own specialty (the
+// pipeline is council × specialty). Applied ONLY to queries on tables carrying a specialty_id
+// (cles, professionals) — NOT access_requests, which has none. Skipped when the admin has no
+// specialty (e.g. a non-medical council), so it never narrows to the broken `specialty_id is null`.
+const scopeBySpecialty = (req, query) =>
+  req.user.role === 'admin' && req.user.specialty_id
+    ? query.eq('specialty_id', req.user.specialty_id) : query;
+const sameSpecialty = (req, specialtyId) =>
+  req.user.role !== 'admin' || !req.user.specialty_id || specialtyId === req.user.specialty_id;
+
 // (The access-request approval schemas were retired with the request-access flow — see below.)
 
 router.get('/cles', async (req, res) => {
   const { status } = req.query;
   const { limit, offset } = pageParams(req);   // paginated — never pull the whole 400K-row table
   let query = supabase.from('cles')
-    .select('*, professionals!cles_physician_id_fkey(full_name_th, full_name_en, specialty)', { count: 'exact' });
+    .select('*, professionals!cles_physician_id_fkey(full_name_th, full_name_en, specialty), specialties(name_th, name_en, code)', { count: 'exact' });
   // 'in_progress' is a UI bucket spanning three live statuses; others map 1:1. Filtered server-side
   // so pagination + the Stats drill-down stay correct (not just over already-loaded rows).
   const STATUS_BUCKETS = { in_progress: ['active', 'ended', 'cle_pass'] };
@@ -55,7 +69,10 @@ router.get('/cles', async (req, res) => {
   // assigned/scored (feeding the audit system). They carry is_test so the UI can badge them;
   // pass ?only_real=true to hide them. Headline counts live in /stats + /icc (real-only there).
   if (req.query.only_real === 'true') query = query.eq('is_test', false);
-  query = scopeToCouncil(req, query);
+  // Optional ?specialty= filter — narrows a superadmin's view to one specialty (harmless for an
+  // admin: scopeBySpecialty already pins them, so a foreign id just yields 0 rows).
+  if (typeof req.query.specialty === 'string' && req.query.specialty) query = query.eq('specialty_id', req.query.specialty);
+  query = scopeBySpecialty(req, scopeToCouncil(req, query));
   const { data, error, count } = await query.order('created_at', { ascending: false }).range(offset, offset + limit - 1);
   if (sendDbError(res, error)) return;
   res.setHeader('X-Total-Count', count ?? 0);   // body stays an array (backward-compatible); total in header
@@ -65,9 +82,9 @@ router.get('/cles', async (req, res) => {
 router.get('/cles/flagged', async (req, res) => {
   let query = supabase
     .from('cles')
-    .select('*, professionals!cles_physician_id_fkey(full_name_th, full_name_en)')
+    .select('*, professionals!cles_physician_id_fkey(full_name_th, full_name_en), specialties(name_th, name_en, code)')
     .eq('status', 'cle_flag_t2');
-  query = scopeToCouncil(req, query);
+  query = scopeBySpecialty(req, scopeToCouncil(req, query));
   const { data, error } = await query.order('ended_at');
   if (sendDbError(res, error)) return;
   res.json(data);
@@ -76,10 +93,11 @@ router.get('/cles/flagged', async (req, res) => {
 // Investigate a session transcript (admin scoped to own council; superadmin any council).
 router.get('/cles/:id/transcript', async (req, res) => {
   const { data: cle } = await supabase.from('cles')
-    .select('id, council_id, status, chief_complaint, title, started_at, ended_at, turn_count, token_count, professionals!cles_physician_id_fkey(full_name_th, full_name_en, pseudonym)')
+    .select('id, council_id, specialty_id, status, chief_complaint, title, started_at, ended_at, turn_count, token_count, professionals!cles_physician_id_fkey(full_name_th, full_name_en, pseudonym), specialties(name_th, name_en, code)')
     .eq('id', req.params.id).single();
   if (!cle) return res.status(404).json({ error: 'Not found' });
-  if (!sameCouncil(req, cle.council_id)) return res.status(404).json({ error: 'Not found' });
+  // Admin is scoped to own council AND own specialty; superadmin (no council) sees all.
+  if (!sameCouncil(req, cle.council_id) || !sameSpecialty(req, cle.specialty_id)) return res.status(404).json({ error: 'Not found' });
 
   const { data: messages } = await supabase.from('messages')
     .select('role, content, refs, socratic_question, created_at')
@@ -91,6 +109,17 @@ router.get('/cles/:id/transcript', async (req, res) => {
 router.get('/councils', async (_req, res) => {
   const { data, error } = await supabase
     .from('councils').select('id, code, name_th, name_en, active').order('sort');
+  if (sendDbError(res, error)) return;
+  res.json(data ?? []);
+});
+
+// Specialty list for the user create/edit dropdowns + onboarding picker (the layer under council).
+// ?council_id= scopes to one council; omitted returns all (superadmin overview).
+router.get('/specialties', async (req, res) => {
+  let query = supabase.from('specialties')
+    .select('id, council_id, code, name_th, name_en, active').eq('active', true).order('sort');
+  if (typeof req.query.council_id === 'string' && req.query.council_id) query = query.eq('council_id', req.query.council_id);
+  const { data, error } = await query;
   if (sendDbError(res, error)) return;
   res.json(data ?? []);
 });
@@ -184,15 +213,15 @@ router.post('/cles/:id/assign', async (req, res) => {
   const auditorId = parsed.data.auditor_id;
 
   const { data: cle } = await supabase.from('cles')
-    .select('id, status, council_id, physician_id').eq('id', req.params.id).single();
+    .select('id, status, council_id, specialty_id, physician_id').eq('id', req.params.id).single();
   if (!cle) return res.status(404).json({ error: 'Not found' });
-  if (!sameCouncil(req, cle.council_id)) return res.status(404).json({ error: 'Not found' });
+  if (!sameCouncil(req, cle.council_id) || !sameSpecialty(req, cle.specialty_id)) return res.status(404).json({ error: 'Not found' });
   if (cle.status !== 'evaluated') return res.status(400).json({ error: 'CLE is not ready for assignment' });
 
   // The assignee must be an active auditor (or a "special" can_audit physician) in the SAME
-  // council, and never the physician who ran the session.
+  // council AND specialty, and never the physician who ran the session.
   const { data: auditor } = await supabase.from('professionals')
-    .select('id, role, status, council_id, can_audit').eq('id', auditorId).single();
+    .select('id, role, status, council_id, specialty_id, can_audit').eq('id', auditorId).single();
   const canAudit = auditor && (auditor.role === 'auditor' || auditor.can_audit === true);
   if (!auditor || !canAudit || auditor.status !== 'active') {
     return res.status(400).json({ error: 'Not an active auditor' });
@@ -202,6 +231,11 @@ router.post('/cles/:id/assign', async (req, res) => {
   }
   if (auditor.council_id !== cle.council_id) {
     return res.status(409).json({ error: 'Cross-council assignment is not allowed.' });
+  }
+  // Specialty pipeline: an auditor only scores sessions in their own specialty (enforced only when
+  // the session carries one, so pre-migration CLEs without a specialty still assign).
+  if (cle.specialty_id && auditor.specialty_id !== cle.specialty_id) {
+    return res.status(409).json({ error: 'Cross-specialty assignment is not allowed.' });
   }
 
   const { error } = await supabase.from('cles')
@@ -222,7 +256,7 @@ router.get('/users', async (req, res) => {
   const { limit, offset } = pageParams(req);   // paginated — never pull all 80K professionals at once
   let query = supabase.from('professionals')
     // Newest first: a just-created user must be visible on the reloaded first page.
-    .select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+    .select('*, specialties(name_th, name_en, code)', { count: 'exact' }).order('created_at', { ascending: false }).range(offset, offset + limit - 1);
   // Server-side status filter (the UI hides deactivated members by default) — applied before
   // pagination so X-Total-Count stays correct.
   if (req.query.status === 'active' || req.query.status === 'deactivated') {
@@ -249,7 +283,11 @@ router.get('/users', async (req, res) => {
   if (typeof req.query.council === 'string' && req.query.council) {
     query = query.eq('council_id', req.query.council);
   }
-  query = scopeToCouncil(req, query);
+  // Optional ?specialty= filter (superadmin convenience; admins are pinned by scopeBySpecialty).
+  if (typeof req.query.specialty === 'string' && req.query.specialty) {
+    query = query.eq('specialty_id', req.query.specialty);
+  }
+  query = scopeBySpecialty(req, scopeToCouncil(req, query));
   const { data, error, count } = await query;
   if (sendDbError(res, error)) return;
   res.setHeader('X-Total-Count', count ?? 0);
@@ -261,13 +299,15 @@ router.get('/users', async (req, res) => {
 router.get('/auditors', async (req, res) => {
   let query = supabase
     .from('professionals')
-    .select('id, full_name_th, full_name_en, role, can_audit, council_id')
+    .select('id, full_name_th, full_name_en, role, can_audit, council_id, specialty_id, specialties(name_th, name_en, code)')
     .or('role.eq.auditor,can_audit.eq.true')
     .eq('status', 'active');
-  // Optional ?council= so a superadmin can pre-filter the assignment dropdown to the CLE's council
-  // (assignment requires same-council, so a mixed list otherwise offers auditors that 409 on assign).
+  // Optional ?council= / ?specialty= so a superadmin can pre-filter the dropdown to the CLE's
+  // council+specialty (assignment requires same-council AND same-specialty, so a mixed list would
+  // otherwise offer auditors that 409 on assign).
   if (typeof req.query.council === 'string' && req.query.council) query = query.eq('council_id', req.query.council);
-  query = scopeToCouncil(req, query);   // admins only assign auditors from their own council
+  if (typeof req.query.specialty === 'string' && req.query.specialty) query = query.eq('specialty_id', req.query.specialty);
+  query = scopeBySpecialty(req, scopeToCouncil(req, query));   // admins only assign auditors in their own council+specialty
   const { data, error } = await query.order('full_name_th');
   if (sendDbError(res, error)) return;
   res.json(data);
@@ -506,7 +546,7 @@ router.get('/compensation', async (req, res) => {
 router.post('/invites', async (req, res) => {
   const parsed = InviteSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  const { email, role, council_id } = parsed.data;
+  const { email, role, council_id, specialty_id, position } = parsed.data;
   const can_audit = normalizeCanAudit(role, parsed.data.can_audit); // Special = physician+auditor
   // Creating a council ADMIN is a role-power grant — superadmin only (an admin must never be
   // able to mint another admin). Mirrors the auditor-request approve/reject guard.
@@ -515,14 +555,19 @@ router.post('/invites', async (req, res) => {
   }
   if (!sameCouncil(req, council_id)) return res.status(403).json({ error: 'You can only invite into your own council.' });
 
+  // Specialty (under council) is required for the invited role when the council has any.
+  const spec = await checkSpecialty(role, council_id, specialty_id);
+  if (!spec.ok) return res.status(400).json({ error: spec.error });
+
   const slot = await assertSlotAvailable(role, council_id);
   if (!slot.ok) return res.status(409).json({ error: slot.error });
 
   const { raw, hash } = newInviteToken();
   const expires_at = new Date(Date.now() + INVITE_EXPIRY_DAYS * 86_400_000).toISOString();
   const { data, error } = await supabase.from('invites').insert({
-    token_hash: hash, email, role, can_audit, council_id, created_by: req.user.id, status: 'pending', expires_at,
-  }).select('id, email, role, can_audit, council_id, status, expires_at, created_at').single();
+    token_hash: hash, email, role, can_audit, council_id, specialty_id: specialty_id ?? null,
+    position: position ?? null, created_by: req.user.id, status: 'pending', expires_at,
+  }).select('id, email, role, can_audit, council_id, specialty_id, position, status, expires_at, created_at').single();
   if (error) {
     if (error.code === '23505') return res.status(409).json({ error: 'A pending invite for this email and role already exists.' });
     return res.status(500).json({ error: error.message });

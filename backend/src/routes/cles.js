@@ -91,6 +91,7 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
   const { data, error } = await supabase.from('cles').insert({
     physician_id: req.user.id,
     council_id: req.user.council_id,   // denormalized from the physician; scopes admin/auditor access
+    specialty_id: req.user.specialty_id ?? null,   // denormalized too; scopes the council × specialty pipeline
     status: 'active',
     is_test: pilotMode || undefined,   // Pilot Test Mode sessions never pollute the real study data
     started_at: new Date().toISOString(),

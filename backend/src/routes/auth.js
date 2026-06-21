@@ -5,6 +5,8 @@ const { verifyJwt } = require('../middleware/auth');
 const { sendDbError } = require('../lib/db-helpers');
 const { effectiveLimit } = require('../lib/usage');
 const { provisionProfessional } = require('../lib/provisioning');
+const { attachSpecialty, linkedProviders, specialtyInCouncil, councilHasSpecialties, specialtyName } = require('../lib/specialties');
+const { encryptJson } = require('../lib/crypto');
 const { hashToken } = require('../lib/invite-token');
 const { logEvent } = require('../lib/audit');
 const { pilotTestMode } = require('../lib/settings');
@@ -41,6 +43,7 @@ const InviteAcceptSchema = z.object({
 const GoogleCompleteSchema = z.object({
   access_token: z.string().min(10),
   council_id: z.string().uuid().optional(),
+  specialty_id: z.string().uuid().optional(),   // picked alongside council on first sign-up
 });
 
 // A council a new member may join must exist AND be active.
@@ -80,6 +83,16 @@ router.get('/councils', async (_req, res) => {
   res.json(data ?? []);
 });
 
+// Public specialty list for the sign-up picker (the layer under council). ?council_id= scopes it.
+router.get('/specialties', async (req, res) => {
+  let query = supabase.from('specialties')
+    .select('id, council_id, code, name_th, name_en').eq('active', true).order('sort');
+  if (typeof req.query.council_id === 'string' && req.query.council_id) query = query.eq('council_id', req.query.council_id);
+  const { data, error } = await query;
+  if (sendDbError(res, error)) return;
+  res.json(data ?? []);
+});
+
 // Google sign-in is gated by OAUTH_ENABLED — keep it off until the Supabase Google provider is
 // configured (docs/AUTH-SETUP.md). The /oauth/google/complete route 404s while disabled.
 const OAUTH_ENABLED = process.env.OAUTH_ENABLED === 'true';
@@ -112,7 +125,7 @@ router.post('/login', async (req, res) => {
 
   res.json({
     access_token: data.session.access_token,
-    user: { id: data.user.id, email: data.user.email, ...prof },
+    user: await attachSpecialty({ id: data.user.id, email: data.user.email, ...prof }),
   });
 });
 
@@ -135,7 +148,10 @@ router.get('/me', verifyJwt, async (req, res) => {
   // Attach the effective AI-usage limit so the client can render the usage bar without
   // needing to know the org standard default (usage_cost_usd already flows via req.user).
   const usage_limit_effective_usd = await effectiveLimit(req.user);
-  res.json({ user: { ...req.user, usage_limit_effective_usd } });
+  // specialty_name_* powers the nav-bar label; linked_providers drives the "Link Google" affordance.
+  const enriched = await attachSpecialty(req.user);
+  const linked_providers = await linkedProviders(req.user.id);
+  res.json({ user: { ...enriched, usage_limit_effective_usd, linked_providers } });
 });
 
 // A physician asks to ALSO become an auditor (the "special" dual role). Creates a pending
@@ -245,7 +261,7 @@ function isGoogleSession(user) {
 router.post('/oauth/google/complete', oauthGate, async (req, res) => {
   const parsed = GoogleCompleteSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  const { access_token, council_id } = parsed.data;
+  const { access_token, council_id, specialty_id } = parsed.data;
 
   const { data: uData, error: uErr } = await authSupabase.auth.getUser(access_token);
   if (uErr || !uData?.user) return res.status(401).json({ error: 'Invalid Google session.' });
@@ -257,7 +273,7 @@ router.post('/oauth/google/complete', oauthGate, async (req, res) => {
     if (prof.status === 'deactivated') {
       return res.status(403).json({ error: 'Account deactivated. Contact an administrator.', code: 'deactivated' });
     }
-    return res.json({ access_token, user: { id: user.id, email: user.email, ...prof } });
+    return res.json({ access_token, user: await attachSpecialty({ id: user.id, email: user.email, ...prof }) });
   }
 
   // Defense-in-depth: this endpoint AUTO-PROVISIONS an active physician with no invite, so the
@@ -270,18 +286,24 @@ router.post('/oauth/google/complete', oauthGate, async (req, res) => {
   // A NEW user needs a council — tell the client to prompt for one (the only time the picker shows).
   if (!council_id) return res.status(400).json({ error: 'เลือกสภาวิชาชีพ / Pick your professional council.', code: 'council_required' });
   if (!(await activeCouncil(council_id))) return res.status(400).json({ error: 'Unknown or inactive council.' });
+  // …and a specialty (the layer under council) when that council has any. The client's picker
+  // cascades council → specialty; this drives it via the same one-time prompt.
+  if (await councilHasSpecialties(council_id)) {
+    if (!specialty_id) return res.status(400).json({ error: 'เลือกความเชี่ยวชาญ / Pick your specialty.', code: 'specialty_required' });
+    if (!(await specialtyInCouncil(specialty_id, council_id))) return res.status(400).json({ error: 'Specialty does not belong to the selected council.' });
+  }
 
   // Identity is read from the VALIDATED token, never from the request body.
   const md = user.user_metadata || {};
   const name = md.full_name || md.name || user.email;
   const prov = await provisionProfessional({
-    authUserId: user.id, role: 'physician', councilId: council_id,
+    authUserId: user.id, role: 'physician', councilId: council_id, specialtyId: specialty_id ?? null,
     full_name_th: name, full_name_en: name, status: 'active',
     identity: { provider: 'google', provider_subject: user.id, payload: { name, email: user.email } },
   });
   if (!prov.ok) return res.status(prov.code === 'slot_full' ? 409 : 500).json({ error: prov.error });
 
-  res.status(201).json({ access_token, user: { id: user.id, email: user.email, ...prov.professional } });
+  res.status(201).json({ access_token, user: await attachSpecialty({ id: user.id, email: user.email, ...prov.professional }) });
 });
 
 // ---------------------------------------------------------------------------
@@ -305,7 +327,8 @@ router.get('/invite/:token', async (req, res) => {
   const inv = await loadPendingInvite(req.params.token, res);
   if (!inv) return;
   const { data: council } = await supabase.from('councils').select('name_th, name_en').eq('id', inv.council_id).maybeSingle();
-  res.json({ email: inv.email, role: inv.role, council: council ?? null });
+  const specialty = inv.specialty_id ? await specialtyName(inv.specialty_id) : null;
+  res.json({ email: inv.email, role: inv.role, council: council ?? null, specialty, position: inv.position ?? null });
 });
 
 // POST /auth/invite/:token/accept — finalize in the invited role.
@@ -321,6 +344,7 @@ router.post('/invite/:token/accept', async (req, res) => {
   async function finalize({ authUserId, full_name_th, full_name_en, identity, session_token }) {
     const prov = await provisionProfessional({
       authUserId, role: inv.role, councilId: inv.council_id,
+      specialtyId: inv.specialty_id ?? null, position: inv.position ?? null,
       full_name_th, full_name_en, status: 'active', identity,
       can_audit: inv.can_audit === true,
     });
@@ -334,7 +358,7 @@ router.post('/invite/:token/accept', async (req, res) => {
     }
     return {
       http: 201,
-      json: { status: 'active', access_token: session_token, user: { id: authUserId, ...prov.professional } },
+      json: { status: 'active', access_token: session_token, user: await attachSpecialty({ id: authUserId, ...prov.professional }) },
     };
   }
 
@@ -407,6 +431,44 @@ router.post('/invite/:token/accept', async (req, res) => {
     session_token: vData.session?.access_token,
   });
   return res.status(out.http).json(out.json);
+});
+
+// POST /auth/link-google — a password/invited user links their Google account. The browser runs the
+// Supabase Google handshake, then posts that session token here WITH the user's existing CLICS bearer
+// token. We record the identity in the on-prem vault ONLY when Supabase resolved the Google sign-in to
+// the SAME auth user (same confirmed email → Supabase auto-links), proving a real link rather than a
+// second account. Idempotent: re-linking an already-linked account is a no-op success.
+router.post('/link-google', verifyJwt, async (req, res) => {
+  if (!OAUTH_ENABLED) return res.status(404).json({ error: 'Google sign-in is not available.' });
+  const token = (req.body?.access_token || '').toString();
+  if (token.length < 10) return res.status(400).json({ error: 'access_token is required.' });
+
+  const { data: uData, error } = await authSupabase.auth.getUser(token);
+  if (error || !uData?.user) return res.status(401).json({ error: 'Invalid Google session.' });
+  const guser = uData.user;
+  if (!isGoogleSession(guser)) return res.status(403).json({ error: 'Google sign-in is required.' });
+
+  // Must resolve to the SAME auth user. A different id means Google created a SEPARATE account
+  // (no same-email auto-link) — refuse to link rather than silently fork the identity.
+  if (guser.id !== req.user.id || (guser.email || '').toLowerCase() !== (req.user.email || '').toLowerCase()) {
+    return res.status(409).json({ error: 'This Google account is registered separately and cannot be linked. Sign in with Google directly, or contact an administrator.' });
+  }
+
+  const existing = await linkedProviders(req.user.id);
+  if (existing.includes('google')) return res.json({ ok: true, linked_providers: existing });
+
+  const md = guser.user_metadata || {};
+  const { error: insErr } = await supabase.from('oauth_identities').insert({
+    auth_user_id: req.user.id, professional_id: req.user.id,
+    provider: 'google', provider_subject: guser.id,
+    identity_encrypted: encryptJson({ name: md.full_name || md.name || guser.email, email: guser.email }),
+  });
+  if (insErr) return res.status(500).json({ error: insErr.message });
+
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'identity.link', targetType: 'professional',
+    targetId: req.user.pseudonym ?? req.user.exp_code ?? req.user.id, councilId: req.user.council_id,
+    metadata: { provider: 'google' } });
+  res.json({ ok: true, linked_providers: [...new Set([...existing, 'google'])] });
 });
 
 module.exports = router;

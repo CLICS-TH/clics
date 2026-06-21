@@ -82,6 +82,9 @@ window.api = {
   login: (email, password) => apiFetch('/auth/login', { method: 'POST', body: { email, password } }),
   logout: () => apiFetch('/auth/logout', { method: 'POST' }),
   me: () => apiFetch('/auth/me'),
+  // Link a Google account to the signed-in (password/invited) user — posts the Google session token
+  // with the user's existing CLICS bearer token. Returns { ok, linked_providers } or { error }.
+  linkGoogle: (access_token) => apiFetch('/auth/link-google', { method: 'POST', body: { access_token } }),
   consent: (body) => apiFetch('/auth/consent', { method: 'POST', body }),
   pilotMode: () => apiFetch('/auth/pilot-mode'),
   createPle: (body) => apiFetch('/cles', { method: 'POST', body }),
@@ -100,6 +103,8 @@ window.api = {
 
   // Active professional councils for the sign-up picker (public).
   councils: () => publicFetch('/auth/councils'),
+  // Specialties (the layer under council) for the sign-up picker (public); ?council_id= scopes it.
+  specialties: (council_id) => publicFetch('/auth/specialties' + (council_id ? `?council_id=${encodeURIComponent(council_id)}` : '')),
 
   // ---- Public auth flows (all return { ok, status, body }) ----
   // Public email-OTP self-signup was retired — physicians self-serve via Google
@@ -113,9 +118,11 @@ window.api = {
   // Finish Google sign-in: post the Supabase session token (+ a chosen council for NEW users).
   // council_id is OMITTED when undefined — the backend zod schema rejects an explicit null,
   // and existing users must be able to complete without any council (404 if OAUTH disabled).
-  oauthGoogleComplete: (access_token, council_id) => publicFetch('/auth/oauth/google/complete', {
+  oauthGoogleComplete: (access_token, council_id, specialty_id) => publicFetch('/auth/oauth/google/complete', {
     method: 'POST',
-    body: council_id === undefined ? { access_token } : { access_token, council_id },
+    body: council_id === undefined
+      ? { access_token }
+      : { access_token, council_id, ...(specialty_id ? { specialty_id } : {}) },
   }),
 
   // ---- Dual-role: physician requests auditor rights (both return { ok, status, body }) ----

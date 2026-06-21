@@ -49,11 +49,9 @@ withClient(async () => {
     showError('Google ยังไม่ถูกตั้งค่าในระบบนี้ / Google sign-in is not configured for this deployment.');
     return;
   }
-  // A fresh sign-in supersedes any stored CLICS session — and a stale token here is actively
-  // harmful (the login page auto-forwards on it, ping-ponging against the role guard).
-  try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); } catch {}
-  // Prefer localStorage (survives the OAuth round-trip even in a fresh browsing context);
-  // sessionStorage is the legacy fallback for markers written by older pages.
+  // Read the flow marker FIRST. The LINK flow must KEEP the existing clics_token (the link endpoint
+  // authenticates with it); only a fresh sign-in/invite supersedes the stored session. Prefer
+  // localStorage (survives the OAuth round-trip); sessionStorage is the legacy fallback.
   try {
     const raw = localStorage.getItem('clics_oauth_flow') || sessionStorage.getItem('clics_oauth_flow');
     flow = JSON.parse(raw || '{}');
@@ -61,6 +59,11 @@ withClient(async () => {
   try { localStorage.removeItem('clics_oauth_flow'); } catch {}
   try { sessionStorage.removeItem('clics_oauth_flow'); } catch {}
   if (!flow.kind) flow.kind = 'signup';
+  if (flow.kind !== 'link') {
+    // A fresh sign-in supersedes any stored CLICS session — and a stale token here is actively
+    // harmful (the login page auto-forwards on it, ping-ponging against the role guard).
+    try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); } catch {}
+  }
 
   const { data } = await window.sbClient.auth.getSession();
   if (!data?.session?.access_token) {
@@ -70,8 +73,23 @@ withClient(async () => {
   accessToken = data.session.access_token;
 
   if (flow.kind === 'invite') { await completeInvite(); }
+  else if (flow.kind === 'link') { await completeLink(); }
   else { await completeSignup(); }
 });
+
+// ---- Link-Google flow (a signed-in password/invited user adds Google) ----
+async function completeLink() {
+  const res = await api.linkGoogle(accessToken);
+  // Drop the Supabase local copy (sb-*) WITHOUT signOut — same rule as routeActive (gotrue /logout
+  // would revoke the session and 401 every later call).
+  try { for (const k of Object.keys(localStorage)) if (k.indexOf('sb-') === 0) localStorage.removeItem(k); } catch {}
+  if (res && res.ok) {
+    try { sessionStorage.setItem('clics_link_msg', 'เชื่อมบัญชี Google สำเร็จ / Google account linked.'); } catch {}
+    window.location.href = '/dashboard';
+  } else {
+    showError(errText(res));
+  }
+}
 
 // ---- Invite-Google flow ----
 async function completeInvite() {
@@ -122,6 +140,27 @@ async function populateCouncils() {
   }
 }
 
+// Council → specialty cascade: load the chosen council's specialties and reveal the picker
+// (hidden when the council has none, e.g. a non-medical council).
+async function populateSpecialties(councilId) {
+  const group = document.getElementById('specialtyGroup');
+  const sel = document.getElementById('specialty');
+  sel.innerHTML = '<option value="">— เลือกความเชี่ยวชาญ / Select a specialty —</option>';
+  if (!councilId) { group.style.display = 'none'; return; }
+  const res = await api.specialties(councilId);
+  const list = (res.ok && Array.isArray(res.body)) ? res.body : [];
+  for (const s of list) {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = `${s.name_th} / ${s.name_en}`;
+    sel.appendChild(opt);
+  }
+  group.style.display = list.length ? 'block' : 'none';
+}
+
+const councilSelEl = document.getElementById('council');
+if (councilSelEl) councilSelEl.addEventListener('change', e => populateSpecialties(e.target.value));
+
 const councilBtn = document.getElementById('councilBtn');
 if (councilBtn) {
   councilBtn.addEventListener('click', async () => {
@@ -129,9 +168,14 @@ if (councilBtn) {
     councilErr.style.display = 'none';
     const councilId = document.getElementById('council').value;
     if (!councilId) { councilErr.textContent = 'กรุณาเลือกสภาวิชาชีพ / Please select a council.'; councilErr.style.display = 'block'; return; }
+    // When the council has specialties, one must be chosen (the backend enforces it too).
+    const specialtyId = document.getElementById('specialty').value || undefined;
+    if (document.getElementById('specialtyGroup').style.display !== 'none' && !specialtyId) {
+      councilErr.textContent = 'กรุณาเลือกความเชี่ยวชาญ / Please select a specialty.'; councilErr.style.display = 'block'; return;
+    }
     councilBtn.disabled = true; councilBtn.textContent = 'กำลังสร้างบัญชี... / Creating account...';
     show(loadingCard);
-    const res = await api.oauthGoogleComplete(accessToken, councilId);
+    const res = await api.oauthGoogleComplete(accessToken, councilId, specialtyId);
     councilBtn.disabled = false; councilBtn.textContent = 'ดำเนินการต่อ / Continue';
     handleSignupResult(res, /* fromPicker */ true);
   });
@@ -148,6 +192,11 @@ function handleSignupResult(res, fromPicker) {
   }
   if (fromPicker) {
     const councilErr = document.getElementById('councilErr');
+    // If the backend asks for a specialty (council has some, none chosen), reveal the picker.
+    const code = res.body?.error?.code || res.body?.code;
+    if (res.status === 400 && code === 'specialty_required') {
+      populateSpecialties(document.getElementById('council').value);
+    }
     councilErr.textContent = errText(res.body); councilErr.style.display = 'block';
     show(councilCard);
     return;

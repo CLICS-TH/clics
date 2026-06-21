@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
-import { ROLE_LABELS, INVITE_STATUS_MAP, roleToWire } from '@/lib/labels';
+import { ROLE_LABELS, INVITE_STATUS_MAP, roleToWire, POSITION_OPTIONS } from '@/lib/labels';
 import { type ApiResult, formatApiError } from '@/lib/types';
 import { confirmDialog } from '@/components/Overlays';
 import { Check, Copy, Mail, Building2 } from 'lucide-react';
 
 type Council = { id: string; code: string; name_th: string; name_en: string; active?: boolean };
+type Specialty = { id: string; council_id: string; code: string; name_th: string; name_en: string };
 type Invite = {
   id: string; email: string; role: string; council_id: string | null;
   status: string; expires_at: string | null; accepted_at: string | null; created_at: string;
@@ -29,7 +30,8 @@ export default function InvitesPage() {
   const [invites, setInvites] = useState<Invite[] | null>(null); // null = loading
   const [loadErr, setLoadErr] = useState(false);
   const [councils, setCouncils] = useState<Council[]>([]);
-  const [form, setForm] = useState({ email: '', role: 'physician', council_id: '' });
+  const [specialties, setSpecialties] = useState<Specialty[]>([]);
+  const [form, setForm] = useState({ email: '', role: 'physician', council_id: '', specialty_id: '', position: '' });
   const [created, setCreated] = useState<CreatedInvite | null>(null);
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -51,6 +53,7 @@ export default function InvitesPage() {
 
   useEffect(() => {
     fetchInvites();
+    apiFetch<Specialty[]>('/admin/specialties').then(d => setSpecialties(Array.isArray(d) ? d : []));
     apiFetch<Council[]>('/admin/councils').then(d => {
       const list = d ?? [];
       setCouncils(list);
@@ -67,16 +70,24 @@ export default function InvitesPage() {
   }, []);
 
   const councilName = (id?: string | null) => councils.find(c => c.id === id)?.name_th ?? '—';
+  const specialtiesFor = (cid?: string | null) => specialties.filter(s => s.council_id === cid);
 
   async function createInvite() {
     setErr(''); setMsg(''); setCreated(null); setCopied(false);
     if (!form.email.trim()) { setErr('กรอกอีเมล / Enter an email.'); return; }
     if (!form.council_id) { setErr('เลือกสภาวิชาชีพ / Select a council.'); return; }
+    // All invited roles are council-scoped — specialty is required when the council has any.
+    if (specialtiesFor(form.council_id).length > 0 && !form.specialty_id) {
+      setErr('เลือกความเชี่ยวชาญ / Select a specialty.'); return;
+    }
     setBusy(true);
+    // Empty specialty_id/position would fail the uuid/enum schema — omit them.
+    const body: Record<string, unknown> = { email: form.email.trim(), council_id: form.council_id, ...roleToWire(form.role) };
+    if (form.specialty_id) body.specialty_id = form.specialty_id;
+    if (form.position) body.position = form.position;
     const res = await apiFetch<ApiResult<CreatedInvite>>('/admin/invites', {
       method: 'POST',
-      // roleToWire turns the UI's 'special' into {role:'physician', can_audit:true}.
-      body: JSON.stringify({ email: form.email.trim(), council_id: form.council_id, ...roleToWire(form.role) }),
+      body: JSON.stringify(body),
     });
     setBusy(false);
     if (res?.id) {
@@ -151,9 +162,25 @@ export default function InvitesPage() {
   const CouncilSelect = (
     <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background disabled:opacity-60"
       disabled={!isSuper}
-      value={form.council_id} onChange={e => setForm(s => ({ ...s, council_id: e.target.value }))}>
+      value={form.council_id} onChange={e => setForm(s => ({ ...s, council_id: e.target.value, specialty_id: '' }))}>
       <option value="">— เลือกสภาวิชาชีพ / Select council —</option>
       {councils.map(c => <option key={c.id} value={c.id}>{c.name_th} / {c.name_en}</option>)}
+    </select>
+  );
+  // Specialty (under council) + position — the invitee inherits these on accept.
+  const SpecialtySelect = (
+    <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background disabled:opacity-50"
+      value={form.specialty_id} disabled={!form.council_id || specialtiesFor(form.council_id).length === 0}
+      onChange={e => setForm(s => ({ ...s, specialty_id: e.target.value }))}>
+      <option value="">— เลือกความเชี่ยวชาญ / Select specialty —</option>
+      {specialtiesFor(form.council_id).map(s => <option key={s.id} value={s.id}>{s.name_th} / {s.name_en}</option>)}
+    </select>
+  );
+  const PositionSelect = (
+    <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
+      value={form.position} onChange={e => setForm(s => ({ ...s, position: e.target.value }))}>
+      <option value="">— ตำแหน่ง / Position —</option>
+      {POSITION_OPTIONS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
     </select>
   );
 
@@ -184,6 +211,8 @@ export default function InvitesPage() {
             <Building2 className="size-3.5" /> ล็อกไว้ที่สภาของคุณ / Locked to your council: {councilName(form.council_id)}
           </p>
         )}
+        {SpecialtySelect}
+        {PositionSelect}
         {err && <p className="text-destructive text-sm">{err}</p>}
         <Button onClick={createInvite} disabled={busy}>
           {busy ? 'กำลังสร้าง…' : '+ สร้างคำเชิญ / Create invite'}

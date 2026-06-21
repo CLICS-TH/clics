@@ -23,11 +23,21 @@ export function formatApiError(error: ApiError | undefined, fallback: string): s
   return fallback;
 }
 
+// A specialty reference, embedded (PostgREST) on CLE rows / users via specialty_id.
+export interface SpecialtyRef {
+  id?: string;
+  council_id?: string | null;
+  code?: string;
+  name_th: string;
+  name_en: string;
+}
+
 // A physician/professional, as embedded in CLE rows and transcript headers.
 export interface Professional {
   full_name_th?: string | null;
   full_name_en?: string | null;
   pseudonym?: string | null;
+  specialty?: string | null;
 }
 
 // CLE row from /admin/cles and /admin/cles/flagged. C-screen pass flags (c1_pass…c6_pass) are read
@@ -41,6 +51,8 @@ export interface CleRow {
   council_id?: string | null;
   auditor_id?: string | null;
   is_test?: boolean;
+  specialty_id?: string | null;
+  specialties?: SpecialtyRef | null;   // embedded specialty (name) for display
   professionals?: Professional | null;
   // C-screen pass flags (c1_pass … c6_pass) are read by computed key (`p[c + '_pass']`), so the row
   // carries a string index signature for them. `unknown` (used only in truthiness checks) keeps the
@@ -52,6 +64,8 @@ export interface CleRow {
 export interface Auditor {
   id: string;
   full_name_th?: string | null;
+  specialty_id?: string | null;
+  specialties?: SpecialtyRef | null;
 }
 
 // Council row from /admin/councils.
@@ -77,6 +91,7 @@ export interface CleTranscript {
     status: string;
     turn_count?: number | null;
     professionals?: Professional | null;
+    specialties?: SpecialtyRef | null;
   };
   messages?: TranscriptMessage[];
   error?: unknown;

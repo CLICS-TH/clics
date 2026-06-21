@@ -5,6 +5,14 @@ export interface ClicsUser {
   full_name_th: string;
   full_name_en: string;
   council_id?: string | null;
+  /** Structured specialty (the layer under council) + its display names (from /auth/me + login). */
+  specialty_id?: string | null;
+  specialty_name_th?: string | null;
+  specialty_name_en?: string | null;
+  /** Position ladder (ตำแหน่ง): extern…staff…gp (General Practitioner). */
+  position?: string | null;
+  /** External identity providers linked to this account (e.g. ['google']) — from /auth/me. */
+  linked_providers?: string[];
   /** Dual-role: a physician with can_audit=true also passes auditor gates. */
   can_audit?: boolean;
 }

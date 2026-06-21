@@ -21,6 +21,45 @@ insert into public.councils (code, name_th, name_en, sort) values
   ('ENG',   'สภาวิศวกรรม',     'Engineering Council', 4)
 on conflict (code) do nothing;
 
+-- Specialty (under council): the 15 Royal Colleges under แพทยสภา, etc. Superadmin-seeded
+-- CONFIGURATION (like councils — never wiped). One specialty per council-scoped user;
+-- the global roles (superadmin/analyst/ethics) span all (specialty_id = NULL). See
+-- db/migration-specialty.sql for the incremental/prod version + the full 15-row seed.
+create table public.specialties (
+  id         uuid primary key default gen_random_uuid(),
+  council_id uuid not null references public.councils(id) on delete cascade,
+  code       text not null,                  -- stable machine key, unique within a council
+  name_th    text not null,
+  name_en    text not null,
+  active     boolean not null default true,
+  sort       integer not null default 0,
+  created_at timestamptz default now(),
+  unique (council_id, code)
+);
+create index specialties_council_idx on public.specialties(council_id);
+insert into public.specialties (council_id, code, name_th, name_en, sort)
+select c.id, v.code, v.name_th, v.name_en, v.sort
+from public.councils c
+cross join (values
+  ('IM',        'อายุรแพทย์',            'Internal Medicine',        1),
+  ('SURG',      'ศัลยแพทย์',             'Surgery',                  2),
+  ('OBGYN',     'สูตินรีแพทย์',          'Obstetrics & Gynaecology', 3),
+  ('PED',       'กุมารแพทย์',            'Pediatrics',               4),
+  ('ORTHO',     'ออร์โธปิดิกส์',          'Orthopaedics',             5),
+  ('PSYCH',     'จิตแพทย์',              'Psychiatry',               6),
+  ('RADIO',     'รังสีแพทย์',            'Radiology',                7),
+  ('ANES',      'วิสัญญีแพทย์',          'Anesthesiology',           8),
+  ('PATH',      'พยาธิแพทย์',            'Pathology',                9),
+  ('ENT',       'โสต ศอ นาสิกแพทย์',     'Otolaryngology',          10),
+  ('OPHTH',     'จักษุแพทย์',            'Ophthalmology',           11),
+  ('FAMMED',    'เวชศาสตร์ครอบครัว',     'Family Medicine',         12),
+  ('REHAB',     'เวชศาสตร์ฟื้นฟู',       'Rehabilitation Medicine', 13),
+  ('NEUROSURG', 'ประสาทศัลยแพทย์',       'Neurological Surgery',    14),
+  ('EMERG',     'เวชศาสตร์ฉุกเฉิน',      'Emergency Medicine',      15)
+) as v(code, name_th, name_en, sort)
+where c.code = 'TMC'
+on conflict (council_id, code) do nothing;
+
 -- All users (all 4 roles)
 create table public.professionals (
   id             uuid primary key references auth.users(id) on delete cascade,
@@ -30,7 +69,10 @@ create table public.professionals (
   council_id     uuid references public.councils(id),
   full_name_th   text not null,
   full_name_en   text not null,
-  specialty      text,
+  specialty      text,                              -- legacy free-text (dormant); specialty_id is the source of truth
+  specialty_id   uuid references public.specialties(id),  -- structured specialty (under council)
+  -- Position ladder (ตำแหน่ง): extern → intern → resident → fellowship → staff → gp (General Practitioner).
+  position       text check (position is null or position in ('extern','intern','resident','fellowship','staff','gp')),
   license_number text,
   -- License-verification state (see db/migration-license-invites.sql). Auditors require
   -- 'verified'/'manual_verified' to activate; physicians may be active while 'unverified'.
@@ -60,6 +102,7 @@ create table public.professionals (
   constraint can_audit_physician_only check (can_audit = false or role = 'physician')
 );
 create index professionals_council_idx on public.professionals(council_id);
+create index professionals_specialty_idx on public.professionals(specialty_id);
 
 -- Reusable keyed app settings (e.g. standard_usage_limit_usd). Superadmin-managed.
 create table public.app_settings (
@@ -172,6 +215,8 @@ create table public.invites (
   status          text not null default 'pending' check (status in ('pending','accepted','revoked','expired')),
   expires_at      timestamptz not null,
   can_audit       boolean not null default false,   -- "Special" invite: physician + auditor rights
+  specialty_id    uuid references public.specialties(id),  -- invited member's specialty (council-scoped roles)
+  position        text check (position is null or position in ('extern','intern','resident','fellowship','staff','gp')),
   accepted_at     timestamptz,
   email_sent_at   timestamptz,   -- stamped when the accept-link email was delivered (mailer is fail-soft)
   professional_id uuid references public.professionals(id),
@@ -199,6 +244,8 @@ create table public.cles (
   auditor_id       uuid references public.professionals(id),
   -- Denormalized from the physician's council at creation time (never re-synced on council change).
   council_id       uuid references public.councils(id),
+  -- Denormalized from the physician's specialty at creation (mirrors council_id) — scopes admin/auditor access.
+  specialty_id     uuid references public.specialties(id),
   is_test          boolean not null default false,   -- demo/test rows; preserved by reset-demo.js
   folder_id        uuid references public.cle_folders(id) on delete set null,  -- null = Uncategorized
   title            text,                                                       -- physician-editable label
@@ -226,6 +273,7 @@ create table public.cles (
 );
 create index cles_folder_idx on public.cles(folder_id);
 create index cles_council_idx on public.cles(council_id);
+create index cles_council_specialty_idx on public.cles(council_id, specialty_id);
 
 -- Structured patient identifier, PHYSICALLY ISOLATED from `cles` so it never leaks into the
 -- cloud-AI payload / auditor blind queue / de-identified export (which all read `cles`). Only the
@@ -332,6 +380,7 @@ create index audit_scores_council_idx on public.audit_scores(council_id);
 
 -- RLS
 alter table public.councils         enable row level security;
+alter table public.specialties      enable row level security;
 alter table public.council_slots    enable row level security;
 alter table public.professionals    enable row level security;
 alter table public.cle_folders      enable row level security;
@@ -501,6 +550,14 @@ create policy "councils: authenticated read"
   on public.councils for select using (auth.role() = 'authenticated');
 create policy "councils: superadmin write"
   on public.councils for all using (
+    exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
+  );
+
+-- specialties policies (authenticated read for the onboarding picker; only superadmin writes)
+create policy "specialties: authenticated read"
+  on public.specialties for select using (auth.role() = 'authenticated');
+create policy "specialties: superadmin write"
+  on public.specialties for all using (
     exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
   );
 

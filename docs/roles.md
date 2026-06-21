@@ -17,6 +17,14 @@ CLICS is organized by **professional council** (`councils` table — Medical/แ
 - **Superadmin (A) sees every council** and a **per-council ICC breakdown** (`GET /admin/icc` returns `per_council`).
 - Sessions denormalize `council_id` at creation (`cles.council_id`, `audit_scores.council_id`) so filtering/ICC never join `professionals` at 80K scale; this is set at write time and never re-synced on a council change.
 
+### Specialty (the layer **under** council)
+
+A council has **specialties** (`specialties` table, `council_id` FK; the 15 Royal Colleges seeded under the Medical Council — `db/migration-specialty.sql`). Every council-scoped user carries `professionals.specialty_id` plus a **position (ตำแหน่ง)** ladder `professionals.position` ∈ `extern/intern/resident/fellowship/staff/gp` (gp = General Practitioner). Sessions denormalize it as `cles.specialty_id` (same write-time pattern as `council_id`).
+
+- **The admin/auditor pipeline is scoped by council × specialty.** `scopeBySpecialty` (`admin.js`) adds `.eq('specialty_id', …)` for an admin (skipped when the admin has none), so an admin sees only their own specialty's CLEs/members/auditors; **auditor assignment requires the same council AND the same specialty** (409 otherwise). Superadmin (no specialty) still spans all.
+- **Required where it applies:** API-enforced (`checkSpecialty` in `lib/specialties.js`) for council-scoped roles **when the council has specialties** — non-medical test councils (PHARM/DENT/ENG) have none, so their users stay valid without one. A chosen specialty must belong to the chosen council.
+- **Picked at onboarding/provisioning:** Google self-signup cascades council → specialty (public `GET /auth/specialties`); invites + superadmin create/edit carry `specialty_id` + `position`; the invitee inherits them on accept. Shown under the name in both nav bars.
+
 ## Account lifecycle, requests & slot pools
 
 - **Google auto-verify (physicians):** a Google sign-in **auto-provisions an active physician** with the self-selected council and **no admin approval** (the load reducer for ~80K users). OAuth is gated by `OAUTH_ENABLED` and uses **Supabase's native Google provider** (real handshake — no stub). Email **Request access** still creates a Supabase auth user with **no** `professionals` row → **pending** (`code:pending`) until approved. Both paths require a `council_id`. Public email-OTP self-signup was **removed (2026-06-09)**; email+password **login** remains for superadmin/admin, admin-provisioned, and password-invite accounts.

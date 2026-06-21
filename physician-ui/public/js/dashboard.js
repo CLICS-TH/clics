@@ -1,6 +1,57 @@
 const user = auth.guardRole('physician'); // throws (and heals storage) when the session is unusable
 document.getElementById('greeting').textContent = `สวัสดี, ${user.full_name_th || user.full_name_en}`;
 
+// ---- Identity line (specialty · position, under the name) + Google-account linking ----
+(function identityAndLinking() {
+  const POSITION_TH = { extern: 'เอกซ์เทิร์น', intern: 'อินเทิร์น', resident: 'แพทย์ประจำบ้าน',
+    fellowship: 'แพทย์ประจำบ้านต่อยอด', staff: 'อาจารย์แพทย์', gp: 'แพทย์ทั่วไป' };
+  function renderIdentity(u) {
+    const el = document.getElementById('identityLine');
+    if (!el) return;
+    const parts = [u.specialty_name_th, u.position ? POSITION_TH[u.position] : null].filter(Boolean);
+    if (parts.length) { el.textContent = parts.join(' · '); el.style.display = ''; } else { el.style.display = 'none'; }
+  }
+  renderIdentity(user); // from the cached login user (carries specialty_name_th + position)
+
+  // Success message set by the OAuth callback before bouncing back here after a link.
+  try { const m = sessionStorage.getItem('clics_link_msg'); if (m) { sessionStorage.removeItem('clics_link_msg'); toast(m, 'success'); } } catch {}
+
+  const wrap = document.getElementById('linkGoogleWrap');
+  const btn = document.getElementById('linkGoogleBtn');
+  const msg = document.getElementById('linkGoogleMsg');
+  if (!wrap || !btn) return;
+
+  // Wait for the Supabase module (window.sbClient) before revealing the button — it needs it to start
+  // the OAuth handshake. Mirrors the readiness guard used by the login/callback pages.
+  function whenSbReady(cb) {
+    if (typeof window.CLICS_SUPABASE_CONFIGURED === 'boolean') { cb(); return; }
+    window.addEventListener('clics:sbready', () => cb(), { once: true });
+    setTimeout(cb, 8000);
+  }
+
+  // /me carries linked_providers (+ the freshest specialty/position). Show "Link Google" only when
+  // Google is configured AND not already linked.
+  (async () => {
+    const me = await api.me().catch(() => null);
+    const u = me && me.user;
+    if (!u) return;
+    renderIdentity(u);
+    try { localStorage.setItem('clics_user', JSON.stringify({ ...user, ...u })); } catch {}
+    const linked = Array.isArray(u.linked_providers) && u.linked_providers.includes('google');
+    if (linked) return;
+    whenSbReady(() => { if (window.CLICS_SUPABASE_CONFIGURED && window.sbClient) wrap.style.display = ''; });
+  })();
+
+  btn.addEventListener('click', async () => {
+    if (!window.sbClient) { if (msg) msg.textContent = 'Google ไม่พร้อมใช้งาน / Google not available.'; return; }
+    btn.disabled = true;
+    try { localStorage.setItem('clics_oauth_flow', JSON.stringify({ kind: 'link' })); } catch {}
+    const redirectTo = location.origin + '/auth/callback';
+    const { error } = await window.sbClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
+    if (error) { btn.disabled = false; if (msg) msg.textContent = error.message || 'เชื่อมบัญชีไม่สำเร็จ / Link failed.'; }
+  });
+})();
+
 // ---- Pilot: informed-consent gate (human-subjects study). The banner was removed by request;
 // the de-identified-cases + provisional-scores expectations live in the consent dialog text. ----
 (function pilotGate() {
@@ -158,7 +209,7 @@ function persistCollapsed(set) {
 }
 
 function convTitle(p) {
-  return p.title || p.chief_complaint || `CLE ${new Date(p.started_at).toLocaleDateString('th-TH')}`;
+  return p.title || p.chief_complaint || `Clinical Learning Episode ${new Date(p.started_at).toLocaleDateString('th-TH')}`;
 }
 
 function folderOptions(currentId) {
@@ -224,9 +275,9 @@ function render() {
     // The call-to-action lives IN the void, where the eye lands — not only up in the toolbar.
     listEl.innerHTML = `
       <div class="empty-state">
-        <h3>ยังไม่มี CLE</h3>
+        <h3>ยังไม่มี Clinical Learning Episode</h3>
         <p>เริ่มบทเรียนทางคลินิกแรกของคุณได้เลย / Start your first clinical learning episode.</p>
-        <a href="/cle-new" class="btn btn-primary btn-lg">+ เริ่ม CLE ใหม่<span class="bi-en">New CLE</span></a>
+        <a href="/cle-new" class="btn btn-primary btn-lg">+ เริ่ม Clinical Learning Episode ใหม่<span class="bi-en">New Clinical Learning Episode</span></a>
       </div>`;
     return;
   }
