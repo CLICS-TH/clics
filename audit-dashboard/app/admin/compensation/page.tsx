@@ -6,6 +6,7 @@ import { getUser } from '@/lib/auth';
 import { PageIntro } from '@/components/PageIntro';
 import { Skeleton } from '@/components/Skeleton';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/components/ViewportProvider';
 
 // Compensation report (CLICS §12): ฿500 per completed CLE, capped at 3 (฿1500). Reporting only.
 type Recipient = { physician: string | null; completed_cles: number; amount_thb: number };
@@ -13,6 +14,7 @@ type Report = { rate_thb_per_cle: number; cap_cles: number; n: number; total_thb
 
 export default function CompensationPage() {
   const router = useRouter();
+  const mobile = useIsMobile();
   const [data, setData] = useState<Report | null>(null);
   useEffect(() => {
     const role = getUser()?.role;
@@ -48,6 +50,19 @@ export default function CompensationPage() {
           </div>
           {data.recipients.length === 0 ? (
             <div className="text-muted-foreground">ยังไม่มีผู้ทำ CLE ครบเกณฑ์ / No physician has a passed CLE yet.</div>
+          ) : mobile ? (
+            /* Phone: stacked cards instead of a side-scrolling table. */
+            <div className="space-y-3">
+              {data.recipients.map((r, i) => (
+                <div key={r.physician ?? i} className="flex items-center justify-between gap-3 rounded-xl border border-border p-4">
+                  <div className="min-w-0">
+                    <p className="truncate font-mono text-sm">{r.physician ?? '—'}</p>
+                    <p className="text-xs tabular-nums text-muted-foreground">{r.completed_cles}/{data.cap_cles} CLE</p>
+                  </div>
+                  <p className="shrink-0 font-semibold tabular-nums">฿{r.amount_thb.toLocaleString()}</p>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="border rounded-xl overflow-x-auto">
               <table className="w-full text-sm">
