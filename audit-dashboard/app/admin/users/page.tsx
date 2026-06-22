@@ -445,7 +445,7 @@ export default function UsersPage() {
   const poolToneColor = budgetToneHex(poolPct / 100); // shared thresholds/colors (lib/labels.ts)
 
   return (
-    <div className="max-w-[96rem] mx-auto p-6 md:p-10">
+    <div className="p-6 md:p-10">
       <PageIntro
         eyebrow="Admin · Users"
         title="จัดการผู้ใช้งาน"
@@ -815,50 +815,39 @@ export default function UsersPage() {
           ))}
         </div>
       ) : (
+        // Natural auto-layout table: every header and cell is whitespace-nowrap (one line, full text, no
+        // truncation), so each column sizes to its content. The page is full-width (no max-w cap) so wide
+        // monitors show the whole table without scrolling; the overflow-x-auto wrapper lets laptops too
+        // narrow to fit all 8 columns scroll horizontally instead of wrapping. (≤767px uses the cards above.)
         <div className="border rounded-xl overflow-x-auto">
-          {/* table-fixed: the table is always exactly the container width, so it never overflows at any
-              resolution — the per-column widths below distribute it and the text cells truncate. The four
-              text columns (name×2, council, specialty) are left auto so they share the remaining width. */}
-          <table className="w-full text-sm table-fixed">
+          <table className="w-full text-sm">
             <thead className="bg-secondary"><tr>
-              <th className="px-3 py-3 text-left">ชื่อ (TH)</th>
-              <th className="px-3 py-3 text-left">ชื่อ (EN)</th>
-              <th className="px-3 py-3 text-left w-[165px]">Role</th>
-              <th className="px-3 py-3 text-left">สภา / Council</th>
-              <th className="px-3 py-3 text-left">ความเชี่ยวชาญ / Specialty</th>
-              <th className="px-3 py-3 text-left w-[160px]">การใช้งาน AI / Usage</th>
-              <th className="px-3 py-3 text-left w-[140px]">สถานะ / Status</th>
-              <th className="px-3 py-3 text-right w-[215px]">การจัดการ / Actions</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">ชื่อ (TH)</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">ชื่อ (EN)</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">Role</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">สภา / Council</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">ความเชี่ยวชาญ / Specialty</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">การใช้งาน AI / Usage</th>
+              <th className="px-3 py-3 text-left whitespace-nowrap">สถานะ / Status</th>
+              <th className="px-3 py-3 text-right whitespace-nowrap">การจัดการ / Actions</th>
             </tr></thead>
             <tbody>{users.map(u => (
               <tr key={u.id} className="border-t hover:bg-secondary/60">
-                <td className="px-3 py-3">
-                  <div className="truncate" title={`${u.full_name_th}${u.pseudonym ? ` · ${u.pseudonym}` : ''}`}>
-                    {u.full_name_th}{u.pseudonym ? <span className="text-muted-foreground text-xs"> · {u.pseudonym}</span> : ''}
-                  </div>
-                </td>
-                <td className="px-3 py-3 text-muted-foreground"><div className="truncate" title={u.full_name_en}>{u.full_name_en}</div></td>
-                <td className="px-3 py-3">
-                  {/* flex-wrap so a rare admin-with-Special chip drops to a 2nd line instead of
-                      overflowing into Council; the column (w-[165px]) fits the widest role badge. */}
-                  <span className="inline-flex flex-wrap items-center gap-1.5">
+                <td className="px-3 py-3 whitespace-nowrap">{u.full_name_th}{u.pseudonym ? <span className="text-muted-foreground text-xs"> · {u.pseudonym}</span> : ''}</td>
+                <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">{u.full_name_en}</td>
+                <td className="px-3 py-3 whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5">
                     <Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge>
                     {u.can_audit && <SpecialChip />}
                   </span>
                 </td>
-                <td className="px-3 py-3 text-muted-foreground">
-                  {(() => { const c = u.role === 'superadmin' ? '— ทุกสภา / All' : councilName(u.council_id); return <div className="truncate" title={c}>{c}</div>; })()}
+                <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">{u.role === 'superadmin' ? '— ทุกสภา / All' : councilName(u.council_id)}</td>
+                <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
+                  {u.specialties?.name_th ?? '—'}{u.position ? <span className="text-xs"> · {positionLabel(u.position)}</span> : ''}
                 </td>
-                <td className="px-3 py-3 text-muted-foreground">
-                  <div className="truncate" title={`${u.specialties?.name_th ?? '—'}${u.position ? ` · ${positionLabel(u.position)}` : ''}`}>
-                    {u.specialties?.name_th ?? '—'}{u.position ? <span className="text-xs"> · {positionLabel(u.position)}</span> : ''}
-                  </div>
-                </td>
-                <td className="px-3 py-3"><UsageCell u={u} /></td>
-                {/* no whitespace-nowrap: "Active" (108px) fits the w-[140px] column on one line; the rare,
-                    longer "Deactivated" (163px) wraps to two lines rather than overflowing into Actions. */}
-                <td className="px-3 py-3"><StatusBadge s={u.status} /></td>
-                <td className="px-3 py-3 text-right"><RowActions u={u} /></td>
+                <td className="px-3 py-3 whitespace-nowrap"><UsageCell u={u} /></td>
+                <td className="px-3 py-3 whitespace-nowrap"><StatusBadge s={u.status} /></td>
+                <td className="px-3 py-3 text-right whitespace-nowrap"><RowActions u={u} /></td>
               </tr>
             ))}</tbody>
           </table>
