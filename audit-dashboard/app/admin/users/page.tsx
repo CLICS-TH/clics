@@ -24,6 +24,8 @@ type User = {
 };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
 type Council = { id: string; code: string; name_th: string; name_en: string };
+// Per-council admin/auditor usage (the "active per council" breakdown from /admin/council-slots).
+type CouncilSlots = { council_id: string; code: string; name_th: string; name_en: string; slots: Slot[] };
 type Specialty = { id: string; council_id: string; code: string; name_th: string; name_en: string };
 
 // Council-scoped roles carry a specialty (after roleToWire, 'special' → physician); global roles don't.
@@ -66,6 +68,8 @@ export default function UsersPage() {
   const [slotCouncil, setSlotCouncil] = useState('');
   const [councilSlots, setCouncilSlots] = useState<Slot[]>([]);
   const [ccap, setCcap] = useState<Record<string, string>>({});
+  // Admin/auditor usage for EVERY council at once — the read-only "active per council" breakdown.
+  const [councilSlotsAll, setCouncilSlotsAll] = useState<CouncilSlots[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [showPw, setShowPw] = useState(false);                 // create-form password reveal (eye icon)
   const [councils, setCouncils] = useState<Council[]>([]);
@@ -85,8 +89,8 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState('active'); // default hides deactivated; '' = all
   const [roleFilter, setRoleFilter] = useState('');           // server-side ?role= (superadmin only); '' = all
   const [councilFilter, setCouncilFilter] = useState('');     // server-side ?council= (superadmin only); '' = all
-  const [specialtyFilter, setSpecialtyFilter] = useState(''); // server-side ?specialty= (superadmin only); '' = all
-  const [positionFilter, setPositionFilter] = useState('');   // server-side ?position= medical-training-level (superadmin only); '' = all
+  const [specialtyFilter, setSpecialtyFilter] = useState<string[]>([]); // server-side ?specialty= (superadmin only), multi-select; [] = all
+  const [positionFilter, setPositionFilter] = useState<string[]>([]);   // server-side ?position= medical-training-level (superadmin only), multi-select; [] = all
   const [q, setQ] = useState('');             // search box (live value)
   const [searchQ, setSearchQ] = useState(''); // debounced value sent as ?q= (server-side filter)
   const [requests, setRequests] = useState<AuditorRequest[]>([]); // pending auditor-role requests
@@ -104,8 +108,8 @@ export default function UsersPage() {
     if (searchQ) qs.set('q', searchQ);
     if (roleFilter) qs.set('role', roleFilter);
     if (councilFilter) qs.set('council', councilFilter);
-    if (specialtyFilter) qs.set('specialty', specialtyFilter);
-    if (positionFilter) qs.set('position', positionFilter);
+    if (specialtyFilter.length) qs.set('specialty', specialtyFilter.join(','));
+    if (positionFilter.length) qs.set('position', positionFilter.join(','));
     return qs.toString();
   };
 
@@ -148,9 +152,13 @@ export default function UsersPage() {
     try { await loadUsersPage(users.length); }
     finally { setLoadingMore(false); }
   };
-  const loadSlots = () => apiFetch<Slot[]>('/admin/slots').then(d => {
-    setSlots(d ?? []);
-    setCap(Object.fromEntries((d ?? []).map(s => [s.role, String(s.capacity)])));
+  const loadSlots = () => Promise.all([
+    apiFetch<Slot[]>('/admin/slots'),
+    apiFetch<CouncilSlots[]>('/admin/council-slots'),  // per-council breakdown, refreshed with the pools
+  ]).then(([s, cs]) => {
+    setSlots(s ?? []);
+    setCap(Object.fromEntries((s ?? []).map(x => [x.role, String(x.capacity)])));
+    setCouncilSlotsAll(Array.isArray(cs) ? cs : []);
   });
   const loadUsageSettings = () => apiFetch<{ standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number }>('/admin/usage-settings')
     .then(d => {
@@ -178,7 +186,9 @@ export default function UsersPage() {
 
   // (Re)load page 0 whenever the status filter or the (debounced) search changes (incl. on
   // mount) — resets pagination to offset 0.
-  useEffect(() => { loadUsersPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [statusFilter, searchQ, roleFilter, councilFilter, specialtyFilter, positionFilter]);
+  // (Changing the council filter clears the specialty selection at the chip onClick — see the Council
+  // filter row — so selected specialties can never outlive their council.)
+  useEffect(() => { loadUsersPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [statusFilter, searchQ, roleFilter, councilFilter, specialtyFilter.join(','), positionFilter.join(',')]);
 
   // Edit modal a11y: Escape closes it (the overlay is role=dialog/aria-modal; backdrop click already
   // closes). Keyboard users could otherwise only reach Cancel by tabbing the whole form.
@@ -460,27 +470,34 @@ export default function UsersPage() {
       {isSuper && (<>
       <div className="grid grid-cols-2 gap-3 mb-6 @min-[768px]:grid-cols-4">
         {slots.map(s => {
-          // admin/auditor capacity is enforced PER-COUNCIL (council_slots), so the global pool is
-          // display-only for them — lock the edit here (the backend rejects it too) and point at the
-          // per-council panel below. Only superadmin (global singleton) stays locked for being fixed.
+          // admin/auditor capacity is enforced PER-COUNCIL (council_slots). The card now shows the
+          // truthful aggregate: used = cross-council count, capacity = SUM of every council's pool
+          // (backend slotUsage), e.g. 16/36 instead of the old 16/5. There's nothing to edit globally
+          // for them (the backend rejects it) — so we drop the input and point at the per-council panel.
           const perCouncil = s.role === 'admin' || s.role === 'auditor';
-          const locked = s.role === 'superadmin' || perCouncil;
-          const full = !perCouncil && s.remaining <= 0; // the cross-council aggregate isn't a real 'full'
+          const locked = s.role === 'superadmin';              // physician editable; superadmin = fixed singleton
+          const full = !perCouncil && s.remaining <= 0;
           return (
             <div key={s.role} className="rounded-xl border border-border p-4">
               <p className="text-sm font-medium">{ROLE_LABELS[s.role] ?? s.role}</p>
               <p className={`text-2xl font-semibold tabular-nums mt-1 ${full ? 'text-destructive' : ''}`}>{s.used}<span className="text-muted-foreground text-base">/{s.capacity}</span></p>
               <p className="text-xs text-muted-foreground">
-                {perCouncil ? 'ตั้งค่าต่อสภาด้านล่าง / set per-council below' : `เหลือ ${s.remaining} ช่อง / ${s.remaining} left`}
+                {perCouncil
+                  ? `เหลือ ${s.remaining} ช่อง · รวมทุกสภา / ${s.remaining} left · across all councils`
+                  : `เหลือ ${s.remaining} ช่อง / ${s.remaining} left`}
               </p>
-              <div className="flex items-center gap-1.5 mt-2">
-                <input type="number" min={0} disabled={locked}
-                  className="flex-1 min-w-0 border rounded-md px-2 py-1 text-sm bg-background disabled:opacity-50"
-                  value={cap[s.role] ?? ''} onChange={e => setCap(c => ({ ...c, [s.role]: e.target.value }))} />
-                <Button variant="outline" className="text-xs px-2 py-1 h-auto shrink-0" disabled={locked} onClick={() => saveCap(s.role)}>
-                  {locked ? '🔒' : 'ตั้งค่า'}
-                </Button>
-              </div>
+              {perCouncil ? (
+                <p className="text-xs text-muted-foreground mt-2">ตั้งค่าต่อสภาด้านล่าง / set per-council below</p>
+              ) : (
+                <div className="flex items-center gap-1.5 mt-2">
+                  <input type="number" min={0} disabled={locked}
+                    className="flex-1 min-w-0 border rounded-md px-2 py-1 text-sm bg-background disabled:opacity-50"
+                    value={cap[s.role] ?? ''} onChange={e => setCap(c => ({ ...c, [s.role]: e.target.value }))} />
+                  <Button variant="outline" className="text-xs px-2 py-1 h-auto shrink-0" disabled={locked} onClick={() => saveCap(s.role)}>
+                    {locked ? '🔒' : 'ตั้งค่า'}
+                  </Button>
+                </div>
+              )}
             </div>
           );
         })}
@@ -497,6 +514,37 @@ export default function UsersPage() {
             {councils.map(c => <option key={c.id} value={c.id}>{c.name_th} / {c.name_en}</option>)}
           </select>
         </div>
+
+        {/* Read-only breakdown: how many admins/auditors are ACTIVE in each council (used/capacity). */}
+        {councilSlotsAll.length > 0 && (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-muted-foreground text-left">
+                  <th className="font-medium py-1 pr-3">สภา / Council</th>
+                  <th className="font-medium py-1 px-2 text-right">ผู้ดูแล / Admin</th>
+                  <th className="font-medium py-1 px-2 text-right">ผู้ตรวจ / Auditor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {councilSlotsAll.map(c => {
+                  const cell = (role: string) => {
+                    const s = c.slots.find(x => x.role === role);
+                    if (!s) return <span className="text-muted-foreground">—</span>;
+                    return <span className={s.remaining <= 0 ? 'text-destructive' : ''}>{s.used}<span className="text-muted-foreground">/{s.capacity}</span></span>;
+                  };
+                  return (
+                    <tr key={c.council_id} className="border-t border-border">
+                      <td className="py-1.5 pr-3"><span className="font-medium">{c.code}</span> <span className="text-xs text-muted-foreground">{c.name_th}</span></td>
+                      <td className="py-1.5 px-2 text-right tabular-nums">{cell('admin')}</td>
+                      <td className="py-1.5 px-2 text-right tabular-nums">{cell('auditor')}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
         {slotCouncil && (
           <div className="grid grid-cols-1 gap-3 mt-3 @min-[520px]:grid-cols-2">
             {councilSlots.map(s => {
@@ -751,9 +799,9 @@ export default function UsersPage() {
       {isSuper && (
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className="mr-1 text-xs text-muted-foreground">สภา / Council</span>
-          <Button variant={councilFilter === '' ? 'default' : 'outline'} size="sm" onClick={() => { setCouncilFilter(''); setSpecialtyFilter(''); }}>ทุกสภา / All</Button>
+          <Button variant={councilFilter === '' ? 'default' : 'outline'} size="sm" onClick={() => { setCouncilFilter(''); setSpecialtyFilter([]); }}>ทุกสภา / All</Button>
           {councils.map(c => (
-            <Button key={c.id} variant={councilFilter === c.id ? 'default' : 'outline'} size="sm" onClick={() => { setCouncilFilter(c.id); setSpecialtyFilter(''); }}>
+            <Button key={c.id} variant={councilFilter === c.id ? 'default' : 'outline'} size="sm" onClick={() => { setCouncilFilter(c.id); setSpecialtyFilter([]); }}>
               {c.name_th}
             </Button>
           ))}
@@ -765,9 +813,10 @@ export default function UsersPage() {
       {isSuper && (councilFilter ? specialtiesFor(councilFilter) : specialties).length > 0 && (
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className="mr-1 text-xs text-muted-foreground">ความเชี่ยวชาญ / Specialty</span>
-          <Button variant={specialtyFilter === '' ? 'default' : 'outline'} size="sm" onClick={() => setSpecialtyFilter('')}>ทั้งหมด / All</Button>
+          <Button variant={specialtyFilter.length === 0 ? 'default' : 'outline'} size="sm" onClick={() => setSpecialtyFilter([])}>ทั้งหมด / All</Button>
           {(councilFilter ? specialtiesFor(councilFilter) : specialties).map(s => (
-            <Button key={s.id} variant={specialtyFilter === s.id ? 'default' : 'outline'} size="sm" onClick={() => setSpecialtyFilter(s.id)}>
+            <Button key={s.id} variant={specialtyFilter.includes(s.id) ? 'default' : 'outline'} size="sm"
+              onClick={() => setSpecialtyFilter(f => f.includes(s.id) ? f.filter(x => x !== s.id) : [...f, s.id])}>
               {s.name_th}
             </Button>
           ))}
@@ -778,9 +827,10 @@ export default function UsersPage() {
       {isSuper && (
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className="mr-1 text-xs text-muted-foreground">ระดับการฝึกอบรม / Medical Training Level</span>
-          <Button variant={positionFilter === '' ? 'default' : 'outline'} size="sm" onClick={() => setPositionFilter('')}>ทั้งหมด / All</Button>
+          <Button variant={positionFilter.length === 0 ? 'default' : 'outline'} size="sm" onClick={() => setPositionFilter([])}>ทั้งหมด / All</Button>
           {POSITION_OPTIONS.map(p => (
-            <Button key={p.key} variant={positionFilter === p.key ? 'default' : 'outline'} size="sm" onClick={() => setPositionFilter(p.key)}>
+            <Button key={p.key} variant={positionFilter.includes(p.key) ? 'default' : 'outline'} size="sm"
+              onClick={() => setPositionFilter(f => f.includes(p.key) ? f.filter(x => x !== p.key) : [...f, p.key])}>
               {p.label}
             </Button>
           ))}

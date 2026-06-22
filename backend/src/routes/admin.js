@@ -290,13 +290,13 @@ router.get('/users', async (req, res) => {
     query = query.eq('council_id', req.query.council);
   }
   // Optional ?specialty= filter (superadmin convenience; admins are pinned by scopeBySpecialty).
-  if (typeof req.query.specialty === 'string' && req.query.specialty) {
-    query = query.eq('specialty_id', req.query.specialty);
-  }
-  // Optional ?position= filter — medical training level (the superadmin user-page filter).
-  if (typeof req.query.position === 'string' && req.query.position) {
-    query = query.eq('position', req.query.position);
-  }
+  // Comma-separated → multi-select (OR within the dimension); a single value is just .in([one]).
+  const specialtyIds = String(req.query.specialty || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (specialtyIds.length) query = query.in('specialty_id', specialtyIds);
+  // Optional ?position= filter — medical training level (the superadmin user-page filter). Same
+  // comma-separated multi-select shape.
+  const positions = String(req.query.position || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (positions.length) query = query.in('position', positions);
   query = scopeBySpecialty(req, scopeToCouncil(req, query));
   const { data, error, count } = await query;
   if (sendDbError(res, error)) return;
