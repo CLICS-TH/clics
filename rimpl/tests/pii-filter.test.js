@@ -382,6 +382,33 @@ describe('stripPii — Thai gazetteer backstop (no hints)', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Chinese-Thai clan surnames (แซ่X) — masked VERBATIM in any position, because
+// the แซ่ prefix is an unambiguous surname marker (never clinical text). Closes
+// the bare-surname leak after a title-led given name, incl. the glued form.
+// Native-surname recall is the intake-hint pass's job (see SCOPE in pii-names.th.js).
+// ---------------------------------------------------------------------------
+describe('stripPii — Chinese-Thai clan surnames (แซ่)', () => {
+  test('a bare surname after a title-led given name is masked (the documented leak)', () => {
+    const out = stripPii('ผู้ป่วยนายสมชาย แซ่ลี้ มาด้วยไข้');
+    expect(out).not.toContain('แซ่ลี้');   // surname no longer leaks to the cloud
+    expect(out).toContain('ไข้');          // the symptom survives
+  });
+  test('a surname GLUED to a following non-lead word is still masked; the clinical phrase survives', () => {
+    // "เข้ารับการรักษา" is neither standalone nor a clinical-lead — the old conservative guard leaked it.
+    const out = stripPii('นายสมชาย แซ่ลี้เข้ารับการรักษา');
+    expect(out).not.toContain('แซ่ลี้');
+    expect(out).toContain('เข้ารับการรักษา'); // verbatim match does not over-extend into the verb
+  });
+  test('a surname glued to a PRECEDING word is masked', () => {
+    expect(stripPii('ผู้ป่วยแซ่ตั้งมาตามนัด')).not.toContain('แซ่ตั้ง');
+  });
+  test('a clinical phrase after a name is NOT masked as a surname', () => {
+    expect(stripPii('นายสมชาย มาด้วยอาการปวดท้อง'))
+      .toBe('นาย[NAME-1] มาด้วยอาการปวดท้อง'); // only the given name is masked; symptom phrase intact
+  });
+});
+
+// ---------------------------------------------------------------------------
 // makeRegistry().entries() — the token→raw reverse map that the backend
 // encrypts into the on-prem reversible PII store (Tier-1 audit).
 // ---------------------------------------------------------------------------

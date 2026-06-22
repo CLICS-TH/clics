@@ -92,16 +92,22 @@ router.get('/cles/flagged', async (req, res) => {
 
 // Investigate a session transcript (admin scoped to own council; superadmin any council).
 router.get('/cles/:id/transcript', async (req, res) => {
-  const { data: cle } = await supabase.from('cles')
+  const { data: cle, error } = await supabase.from('cles')
     .select('id, council_id, specialty_id, status, chief_complaint, title, started_at, ended_at, turn_count, token_count, professionals!cles_physician_id_fkey(full_name_th, full_name_en, pseudonym), specialties(name_th, name_en, code)')
-    .eq('id', req.params.id).single();
+    .eq('id', req.params.id).maybeSingle();
+  // A query/embed failure (e.g. an ambiguous-FK embed after a table rename — the PLE→CLE incident)
+  // must surface as a 500. maybeSingle() makes "no rows" a clean { data: null, error: null }, so a
+  // genuine not-found still 404s below; we must NOT let a query error fall through to that 404, which
+  // the dashboard misreads as "outside your council".
+  if (sendDbError(res, error)) return;
   if (!cle) return res.status(404).json({ error: 'Not found' });
   // Admin is scoped to own council AND own specialty; superadmin (no council) sees all.
   if (!sameCouncil(req, cle.council_id) || !sameSpecialty(req, cle.specialty_id)) return res.status(404).json({ error: 'Not found' });
 
-  const { data: messages } = await supabase.from('messages')
+  const { data: messages, error: msgErr } = await supabase.from('messages')
     .select('role, content, refs, socratic_question, created_at')
     .eq('cle_id', req.params.id).order('created_at');
+  if (sendDbError(res, msgErr)) return;   // a messages-fetch error must not silently render an empty transcript
   res.json({ cle, messages: messages ?? [] });
 });
 

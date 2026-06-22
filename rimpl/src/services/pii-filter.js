@@ -30,7 +30,7 @@
 // later bare given-name occurrence ("สมชายบอกว่า...") resolve to the token the
 // full name "นายสมชาย ใจดี" already got — preserving coreference across turns
 // even when the surface form differs.
-const { TH_GIVEN_NAMES } = require('./pii-names.th');
+const { TH_GIVEN_NAMES, TH_SURNAMES } = require('./pii-names.th');
 
 function makeRegistry() {
   const counters = Object.create(null); // category -> next index
@@ -352,6 +352,9 @@ const PASSES = [
   // that introduces "นพ.สมชาย" then later writes just "สมชาย". Built dynamically
   // from the registry; only fires for names already masked in THIS call.
   { cat: 'NAME', kind: 'bare-name' },
+  // Chinese-Thai clan surnames (แซ่X) — masked VERBATIM in any position (the แซ่ prefix is an
+  // unambiguous surname marker), closing the bare-surname leak after a title-led given name.
+  { cat: 'NAME', kind: 'th-clan-surname' },
   // Thai given-name gazetteer — best-effort backstop for a bare name with NO intake/title/label,
   // guarded by boundary + clinical-lead so clinical phrases survive. Runs LAST among name passes.
   { cat: 'NAME', kind: 'th-gazetteer' },
@@ -426,7 +429,9 @@ function applyHintPass(text, token, hints) {
 // The Thai given-name gazetteer pass (best-effort backstop; runs LAST among name passes): mask a
 // curated common given name ONLY at a detectable boundary (not glued after another Thai letter) AND
 // when it is standalone or immediately followed by a clinical-lead word (the "สมชายมาด้วยไข้" form).
-// The double guard keeps clinical phrases intact (over-masking is the worse error).
+// The double guard keeps clinical phrases intact (over-masking is the worse error). Given names are
+// ambiguous with clinical compounds, so this stays conservative — unlike the unambiguous แซ่ clan
+// surnames (applyClanSurnamePass), which are masked verbatim.
 const TH_LETTER_RE = /[ก-ฮะ-๎]/;
 function applyGazetteerPass(text, token) {
   const names = [...TH_GIVEN_NAMES].filter((n) => n.length >= 3).sort((a, b) => b.length - a.length);
@@ -448,12 +453,30 @@ function applyGazetteerPass(text, token) {
   });
 }
 
+// The Chinese-Thai clan-surname pass: mask any curated "แซ่X" surname VERBATIM, anywhere it appears.
+// The แซ่ prefix is an unambiguous surname marker (it never occurs in clinical text), so — unlike the
+// ambiguous given-name gazetteer — NO boundary/clinical-lead guard is needed. That also closes the
+// glued-surname residual the conservative guard leaves (e.g. "...แซ่ลี้เข้ารับการรักษา"). Exact-string
+// matching keeps delimitation clean (a generic แซ่+run regex can't tell where a glued surname ends).
+function applyClanSurnamePass(text, token) {
+  const names = [...TH_SURNAMES].sort((a, b) => b.length - a.length);
+  if (names.length === 0) return text;
+  const alt = names.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  const re = new RegExp(`(?:${alt})`, 'g');
+  return text.replace(re, (match) => {
+    const tok = token('NAME', match);
+    registerNameAliases(token, match, tok);
+    return tok;
+  });
+}
+
 // Apply one pass, threading the shared registry so tokens are stable per call.
 function applyPass(text, pass, token, hints) {
   const { re, cat, guard, kind } = pass;
 
   if (kind === 'bare-name') return applyBareNamePass(text, token);
   if (kind === 'intake-hint') return applyHintPass(text, token, hints);
+  if (kind === 'th-clan-surname') return applyClanSurnamePass(text, token);
   if (kind === 'th-gazetteer') return applyGazetteerPass(text, token);
 
   re.lastIndex = 0;
