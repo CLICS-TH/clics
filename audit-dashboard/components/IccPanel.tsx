@@ -6,7 +6,7 @@ export function IccPanel({ icc, lower, upper, n, interpretation }: Props) {
     return (
       <div className="border rounded-xl p-5">
         <h2 className="font-semibold mb-3">ICC(2,1) — AI vs Expert Auditor</h2>
-        <p className="text-4xl font-bold text-muted-foreground">—</p>
+        <p className="text-3xl sm:text-4xl font-bold text-muted-foreground">—</p>
         <p className="text-sm text-muted-foreground mt-1">{interpretation} · n = {n}</p>
         <p className="text-xs text-muted-foreground mt-2">เป้าหมาย: ICC ≥ 0.75 (lower bound)</p>
       </div>
@@ -16,7 +16,7 @@ export function IccPanel({ icc, lower, upper, n, interpretation }: Props) {
   return (
     <div className="border rounded-xl p-5">
       <h2 className="font-semibold mb-3">ICC(2,1) — AI vs Expert Auditor</h2>
-      <p className={`text-4xl font-bold ${color}`}>{icc.toFixed(3)}</p>
+      <p className={`text-3xl sm:text-4xl font-bold ${color}`}>{icc.toFixed(3)}</p>
       <p className="text-sm text-muted-foreground mt-1">95% CI: [{lower?.toFixed(3) ?? '—'}, {upper?.toFixed(3) ?? '—'}] · n = {n}</p>
       <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold ${
         icc >= 0.95 ? 'bg-[var(--chart-pass-bg)] text-[var(--chart-pass-text)]' :

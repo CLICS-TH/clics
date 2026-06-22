@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "concurrently -k -n backend,rimpl,portal,dash -c blue,magenta,green,cyan \"npm --prefix backend run dev\" \"npm --prefix rimpl run dev\" \"npm --prefix physician-ui run dev\" \"npm --prefix audit-dashboard run dev -- -p 3002\"",
     "install:all": "npm install && npm --prefix backend install && npm --prefix rimpl install && npm --prefix physician-ui install && npm --prefix audit-dashboard install",
-    "test:all": "npm --prefix backend test && npm --prefix rimpl run test:ci && npm --prefix license-verifier test && npm --prefix audit-dashboard test"
+    "test:all": "npm --prefix backend test && npm --prefix rimpl run test:ci && npm --prefix license-verifier test && npm --prefix audit-dashboard test",
+    "test:responsive": "node scripts/responsive/responsive-smoke.mjs"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.1.0",
+    "playwright": "^1.49.0"
   },
   "overrides": {
     "shell-quote": "^1.8.4"

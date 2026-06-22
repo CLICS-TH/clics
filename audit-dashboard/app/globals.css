@@ -51,6 +51,14 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Fluid type — one clamp() ladder mirrored from physician-ui/public/css/main.css (keep in sync).
+     Exposes `text-fluid-lg/xl/2xl` + `text-display` utilities so headings & key numbers scale
+     smoothly 320→1920px instead of stepping. Bind display numbers/headings to these. */
+  --text-fluid-lg:  clamp(1.0625rem, 1rem + 0.4vw, 1.25rem);
+  --text-fluid-xl:  clamp(1.25rem, 1.1rem + 0.7vw, 1.6rem);
+  --text-fluid-2xl: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --text-display:   clamp(2rem, 1.4rem + 3vw, 3.5rem);
 }
 
 :root {
@@ -98,6 +106,14 @@
   --sidebar-accent-foreground: #141413;
   --sidebar-border: #e6dfd8;
   --sidebar-ring: #cc785c;
+
+  /* Responsive primitives (mirrored with physician-ui main.css). viewport-fit=cover (set in
+     app/layout.tsx) is required for the safe-area insets to be non-zero on notched phones. */
+  --tap-min: 44px;
+  --safe-t: env(safe-area-inset-top);
+  --safe-r: env(safe-area-inset-right);
+  --safe-b: env(safe-area-inset-bottom);
+  --safe-l: env(safe-area-inset-left);
 }
 
 .dark {
@@ -166,3 +182,26 @@
 
 /* Serif (--font-heading) is the brand voice: section headers + key numbers. Minimum legible serif
    size is 1.5rem (24px) / weight 600 — a thin serif below that on cream is low-contrast. */
+
+/* ===== Shared responsive primitives (mirrored with physician-ui main.css) ===== */
+@layer base {
+  /* iOS/iPadOS Safari auto-zooms the viewport when a focused field is < 16px. Floor every
+     text-entry field to 16px on touch (covers all `text-sm` inputs/selects without per-field edits);
+     fine-pointer devices keep the denser 14px the components author. */
+  @media (pointer: coarse) {
+    /* !important so this a11y floor beats Tailwind's `text-sm` (a utility-layer rule that otherwise
+       wins the cascade over this @layer base rule) — every focused field stays ≥16px on touch. */
+    input:not([type='checkbox']):not([type='radio']):not([type='range']),
+    textarea, select { font-size: 16px !important; }
+    /* WCAG 2.5.5 — every interactive control clears the 44px target on touch. Components keep their
+       tighter desktop size on fine pointers; add new controls to this floor, not bespoke sizes.
+       (Native checkbox/radio inputs are excluded: their wrapping <label> is the real hit target, and
+       a 44px min-height would break baseline alignment in `flex gap-2` rows.) */
+    button, [role='button'], [role='radio'], a[role='button'], summary, select {
+      min-height: var(--tap-min);
+    }
+  }
+}
+
+/* Horizontal-scroll wrapper for wide tables/content with touch momentum (parallels physician-ui .scroll-x). */
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }

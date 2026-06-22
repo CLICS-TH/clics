@@ -2,9 +2,9 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>CLICS — ผลการประเมิน</title>
-  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
+  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
@@ -51,7 +51,7 @@
           labels: DOMAIN_LABELS.map(l => l.split(' ').slice(0,2).join(' ')),
           datasets: [{ label: 'PIS-7 Score', data: lastScores, backgroundColor: coral + '26', borderColor: coral, pointBackgroundColor: coral }],
         },
-        options: { scales: { r: { min: 0, max: 5, ticks: { stepSize: 1, color: text, backdropColor: 'transparent' }, grid: { color: grid }, angleLines: { color: grid }, pointLabels: { color: text } } }, plugins: { legend: { display: false } } },
+        options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 5, ticks: { stepSize: 1, color: text, backdropColor: 'transparent' }, grid: { color: grid }, angleLines: { color: grid }, pointLabels: { color: text } } }, plugins: { legend: { display: false } } },
       });
     }
     window.addEventListener('clics:themechange', buildRadar);
@@ -118,11 +118,11 @@
       const scores = [eval_.d1,eval_.d2,eval_.d3,eval_.d4,eval_.d5,eval_.d6,eval_.d7];
       container.innerHTML = `
         <div class="card" style="text-align:center;margin-bottom:16px">
-          <p style="font-family:var(--font-display);font-size:64px;font-weight:600;line-height:1;color:var(--coral)">${Math.round(eval_.composite_score)}</p>
+          <p class="score-display">${Math.round(eval_.composite_score)}</p>
           <p style="color:var(--muted)">คะแนน PIS-7 / 100</p>
           <div class="badge badge-evaluated" style="margin-top:10px;display:inline-flex;align-items:center;gap:5px">${icon('checkCircle', 14)} ได้รับ CPD Credit</div>
         </div>
-        <div class="card"><canvas id="radarChart" height="260"></canvas></div>
+        <div class="card"><div class="chart-box"><canvas id="radarChart"></canvas></div></div>
         <div class="card">
           <h3 style="margin-bottom:12px">ผลรายโดเมน / Domain Scores</h3>
           ${DOMAIN_LABELS.map((label, i) => `

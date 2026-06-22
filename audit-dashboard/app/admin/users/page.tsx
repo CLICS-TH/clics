@@ -451,11 +451,12 @@ export default function UsersPage() {
         action={isSuper ? <Button onClick={() => setShowForm(v => !v)}>+ เพิ่มผู้ใช้ / Add User</Button> : undefined}
       />
 
-      {/* Role slot pools — superadmin-only (admins can't read /admin/slots).
-          Drive columns off the mobile flag (the view toggle shrinks the
-          container but not the viewport, so Tailwind md: would wrongly stay 4-up). */}
+      {/* Role slot pools — superadmin-only (admins can't read /admin/slots). Columns track the CONTAINER
+          (@container on AppShell), not the viewport — so this is correct in real-phone, auto, AND the
+          forced-mobile 460px frame without needing the JS mobile flag (a container query, unlike md:,
+          shrinks with the frame). */}
       {isSuper && (<>
-      <div className={`grid gap-3 mb-6 ${mobile ? 'grid-cols-2' : 'grid-cols-2 @min-[768px]:grid-cols-4'}`}>
+      <div className="grid grid-cols-2 gap-3 mb-6 @min-[768px]:grid-cols-4">
         {slots.map(s => {
           // admin/auditor capacity is enforced PER-COUNCIL (council_slots), so the global pool is
           // display-only for them — lock the edit here (the backend rejects it too) and point at the
@@ -495,7 +496,7 @@ export default function UsersPage() {
           </select>
         </div>
         {slotCouncil && (
-          <div className={`grid gap-3 mt-3 ${mobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+          <div className="grid grid-cols-1 gap-3 mt-3 @min-[520px]:grid-cols-2">
             {councilSlots.map(s => {
               const full = s.remaining <= 0;
               return (

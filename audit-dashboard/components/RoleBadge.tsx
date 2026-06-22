@@ -15,7 +15,7 @@ export function RoleBadge() {
   if (!user) return null;
   const m = ROLE[user.role] ?? ROLE.physician;
   return (
-    <span className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${m.cls}`}>
+    <span className={`min-w-0 shrink truncate rounded-full px-3 py-1 text-xs font-medium ${m.cls}`}>
       {m.label}<span className="hidden sm:inline"> · {m.sub}</span>
     </span>
   );
