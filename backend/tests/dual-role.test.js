@@ -44,14 +44,15 @@ jest.mock('../src/lib/supabase', () => {
   const ok = (data) => Promise.resolve({ data, error: null });
 
   function builder(table) {
-    const rec = { table, op: 'select', selectArgs: null, eqs: [], payload: undefined };
+    const rec = { table, op: 'select', selectArgs: null, eqs: [], ins: [], payload: undefined };
     state.queries.push(rec);
     const self = {};
     self.select = (...args) => { rec.selectArgs = args; return self; };
     self.eq = (col, val) => { rec.eqs.push([col, val]); return self; };
+    self.in = (col, vals) => { rec.ins.push([col, vals]); return self; };  // multi-value filters
     self.insert = (payload) => { rec.op = 'insert'; rec.payload = payload; return self; };
     self.update = (payload) => { rec.op = 'update'; rec.payload = payload; return self; };
-    for (const fn of ['order', 'range', 'limit', 'in', 'neq', 'not', 'is', 'gte', 'lte', 'or']) self[fn] = () => self;
+    for (const fn of ['order', 'range', 'limit', 'neq', 'not', 'is', 'gte', 'lte', 'or']) self[fn] = () => self;
     self.single = () => (table === 'professionals' ? ok(state.caller) : ok(null));
     self.maybeSingle = () => {
       if (table === 'professionals') return ok(state.profByToken);
@@ -297,11 +298,41 @@ test('google/complete: training level accepted, specialty still required (order:
   expect(r.body.code).toBe('specialty_required'); // position passed; specialty is the next required step
 });
 
-test('GET /admin/users?position=resident applies .eq(position, resident)', async () => {
+test('GET /admin/users?position=resident applies .in(position, [resident])', async () => {
   m.state.caller = SUPERADMIN;
   const r = await auth(request(app).get('/admin/users?position=resident'));
   expect(r.status).toBe(200);
-  expect(listQuery().eqs).toContainEqual(['position', 'resident']);
+  expect(listQuery().ins).toContainEqual(['position', ['resident']]);
+});
+
+// Multi-select (2026-06-22): the Specialty + Medical Training Level filters send comma-separated
+// values; the route splits them and uses .in() so the table shows the UNION within each dimension.
+test('GET /admin/users?position=resident,staff → .in(position, [resident, staff])', async () => {
+  m.state.caller = SUPERADMIN;
+  const r = await auth(request(app).get('/admin/users?position=resident,staff'));
+  expect(r.status).toBe(200);
+  expect(listQuery().ins).toContainEqual(['position', ['resident', 'staff']]);
+});
+
+test('GET /admin/users?specialty=a,b → .in(specialty_id, [a, b])', async () => {
+  m.state.caller = SUPERADMIN;
+  const r = await auth(request(app).get('/admin/users?specialty=spec-a,spec-b'));
+  expect(r.status).toBe(200);
+  expect(listQuery().ins).toContainEqual(['specialty_id', ['spec-a', 'spec-b']]);
+});
+
+test('GET /admin/users?specialty=x (single) still applies .in(specialty_id, [x])', async () => {
+  m.state.caller = SUPERADMIN;
+  const r = await auth(request(app).get('/admin/users?specialty=spec-x'));
+  expect(r.status).toBe(200);
+  expect(listQuery().ins).toContainEqual(['specialty_id', ['spec-x']]);
+});
+
+test('GET /admin/users?position=,, (blank/comma-only) applies NO position filter', async () => {
+  m.state.caller = SUPERADMIN;
+  const r = await auth(request(app).get('/admin/users?position=,,'));
+  expect(r.status).toBe(200);
+  expect((listQuery().ins || []).map(([col]) => col)).not.toContain('position');
 });
 
 // ---------------------------------------------------------------------------

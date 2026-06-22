@@ -8,6 +8,8 @@ const { supabase } = require('./supabase');
 
 const ROLES = ['superadmin', 'admin', 'physician', 'auditor'];
 const DEFAULT_CAPACITY = { superadmin: 1, admin: 5, physician: 100, auditor: 20 };
+// Roles whose pools are governed PER COUNCIL (council_slots), not by the global role_slots row.
+const PER_COUNCIL_ROLES = new Set(['admin', 'auditor']);
 
 // Count ACTIVE members in a role (deactivated members don't consume a slot).
 async function usedCount(role) {
@@ -24,9 +26,15 @@ async function capacityOf(role) {
   return data?.capacity ?? DEFAULT_CAPACITY[role] ?? 0;
 }
 
-// { role, capacity, used, remaining } for one role (global).
+// { role, capacity, used, remaining } for one role (global). For admin/auditor, capacity is the SUM of
+// every council's pool (councilCapacitySum) — the global role_slots row is display-only for them, so using
+// it as the denominator made the card read e.g. 16/5 (a global count over a per-council default). `used`
+// is always the cross-council active count.
 async function slotUsage(role) {
-  const [capacity, used] = await Promise.all([capacityOf(role), usedCount(role)]);
+  const [capacity, used] = await Promise.all([
+    PER_COUNCIL_ROLES.has(role) ? councilCapacitySum(role) : capacityOf(role),
+    usedCount(role),
+  ]);
   return { role, capacity, used, remaining: Math.max(0, capacity - used) };
 }
 
@@ -41,6 +49,14 @@ async function councilCapacityOf(councilId, role) {
     .from('council_slots').select('capacity')
     .eq('council_id', councilId).eq('role', role).maybeSingle();
   return data?.capacity ?? DEFAULT_CAPACITY[role] ?? 0;
+}
+
+// Sum of effective per-council caps across every council — the truthful global denominator for
+// admin/auditor (each council either has a council_slots override or falls back to DEFAULT_CAPACITY).
+async function councilCapacitySum(role) {
+  const { data: councils } = await supabase.from('councils').select('id');
+  const caps = await Promise.all((councils ?? []).map(c => councilCapacityOf(c.id, role)));
+  return caps.reduce((sum, c) => sum + c, 0);
 }
 
 async function councilUsedCount(councilId, role) {
@@ -65,6 +81,17 @@ async function councilSlotUsage(councilId, role) {
 // Both governed pools for one council (for the per-council slot panel).
 async function allCouncilSlotUsage(councilId) {
   return Promise.all(['admin', 'auditor'].map(r => councilSlotUsage(councilId, r)));
+}
+
+// Per-council admin/auditor usage for EVERY council — drives the superadmin "active per council"
+// breakdown. Each entry: { council_id, code, name_th, name_en, slots: [admin, auditor] usage }.
+async function allCouncilsSlotUsage() {
+  const { data: councils } = await supabase
+    .from('councils').select('id, code, name_th, name_en').order('code');
+  return Promise.all((councils ?? []).map(async (c) => ({
+    council_id: c.id, code: c.code, name_th: c.name_th, name_en: c.name_en,
+    slots: await allCouncilSlotUsage(c.id),
+  })));
 }
 
 // Returns { ok: true } or { ok: false, error, usage } if the relevant pool is full.
@@ -135,5 +162,5 @@ async function nextExpCode() {
 module.exports = {
   ROLES, DEFAULT_CAPACITY,
   slotUsage, allSlotUsage, assertSlotAvailable, nextPseudonym, nextExpCode,
-  councilSlotUsage, allCouncilSlotUsage,
+  councilSlotUsage, allCouncilSlotUsage, allCouncilsSlotUsage,
 };

@@ -4,7 +4,7 @@ const { supabase, authSupabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { computeICC21 } = require('../services/icc');
 const { sendDbError, pageParams } = require('../lib/db-helpers');
-const { assertSlotAvailable, nextPseudonym, allSlotUsage, allCouncilSlotUsage, ROLES } = require('../lib/accounts');
+const { assertSlotAvailable, nextPseudonym, allSlotUsage, allCouncilSlotUsage, allCouncilsSlotUsage, ROLES } = require('../lib/accounts');
 const { normalizeCanAudit } = require('../lib/dual-role');
 const { POSITIONS, checkSpecialty } = require('../lib/specialties');
 const { logEvent } = require('../lib/audit');
@@ -313,6 +313,12 @@ const COUNCIL_SLOT_ROLES = ['admin', 'auditor'];
 
 router.get('/councils/:id/slots', async (req, res) => {
   res.json(await allCouncilSlotUsage(req.params.id)); // [{ role, council_id, capacity, used, remaining }]
+});
+
+// Admin/auditor usage across EVERY council at once — the "active per council" breakdown table.
+// [{ council_id, code, name_th, name_en, slots: [{ role, capacity, used, remaining }, ...] }]
+router.get('/council-slots', async (_req, res) => {
+  res.json(await allCouncilsSlotUsage());
 });
 
 router.patch('/councils/:id/slots/:role', async (req, res) => {
