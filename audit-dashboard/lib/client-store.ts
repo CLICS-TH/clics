@@ -42,3 +42,20 @@ function narrowSnapshot(): boolean {
 export function useIsNarrow(): boolean {
   return useSyncExternalStore(narrowSubscribe, narrowSnapshot, () => false);
 }
+
+// The desktop nav's full row (8 bilingual links + identity + role badge + 2 toggles + logout) needs
+// ~1536px to fit on ONE line; below that the NavBar collapses to the hamburger (see useIsNavCompact)
+// so the labels never wrap. Deliberately separate from the 767px table↔card breakpoint above.
+const NAV_COMPACT_MQ = '(max-width: 1535px)';
+function navCompactSubscribe(cb: () => void) {
+  const mq = window.matchMedia(NAV_COMPACT_MQ);
+  mq.addEventListener('change', cb);
+  return () => mq.removeEventListener('change', cb);
+}
+function navCompactSnapshot(): boolean {
+  return window.matchMedia(NAV_COMPACT_MQ).matches;
+}
+/** True when the viewport is ≤1535px (too narrow for the full bilingual nav row). false on the server. */
+export function useIsNavNarrow(): boolean {
+  return useSyncExternalStore(navCompactSubscribe, navCompactSnapshot, () => false);
+}
