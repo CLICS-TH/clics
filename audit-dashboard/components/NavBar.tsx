@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { canAudit } from '@/lib/auth';
 import { RoleBadge } from './RoleBadge';
 import { ThemeToggle, ViewportToggle } from './Toggles';
-import { useIsMobile } from './ViewportProvider';
+import { useIsNavCompact } from './ViewportProvider';
 import { useAuthUser } from '@/lib/client-store';
 import { BiLabel } from './BiLabel';
 import { POSITION_TH } from '@/lib/labels';
@@ -45,7 +45,9 @@ export function NavBar() {
   // client render in agreement, then swaps to the live value — so we render null until the user is
   // known, and the menu closes on selection via each link's onClick (below) rather than an effect.
   const user = useAuthUser();
-  const mobile = useIsMobile();
+  // The full bilingual nav row needs ~1536px; below that (or forced-mobile) we show the hamburger so
+  // the Thai+English labels never wrap. Uses the nav-specific threshold, NOT the 767px table one.
+  const compact = useIsNavCompact();
   if (!user) return null;
 
   const links =
@@ -94,45 +96,45 @@ export function NavBar() {
 
   const linkClass = (href: string) =>
     isActive(href)
-      ? 'text-primary border-b-2 border-primary pb-0.5 text-sm font-medium'
-      : 'text-muted-foreground hover:text-foreground text-sm';
+      ? 'whitespace-nowrap text-primary border-b-2 border-primary pb-0.5 text-sm font-medium'
+      : 'whitespace-nowrap text-muted-foreground hover:text-foreground text-sm';
 
   return (
     <nav className="sticky top-0 z-40 border-b border-border bg-background px-6 py-4 md:px-8">
-      <div className="mx-auto flex w-full max-w-7xl items-center gap-4">
+      <div className="flex items-center gap-4">
         <Link href="/home" className="font-heading font-semibold text-primary text-lg tracking-tight">CLICS</Link>
 
         {/* Desktop links */}
-        {!mobile && (
-          <div className="flex flex-1 items-center gap-5">
+        {!compact && (
+          <div className="flex flex-1 items-center gap-4">
             {links.map(l => <Link key={l.href} href={l.href} className={linkClass(l.href)}><BiLabel th={l.th} en={l.en} /></Link>)}
           </div>
         )}
 
         <div className="ml-auto flex items-center gap-2">
           {/* Identity: name + specialty · position (the layer under council). Hidden on phones to save width. */}
-          {!mobile && (
-            <div className="mr-1 text-right leading-tight">
-              <p className="text-xs font-medium text-foreground">{user.full_name_th || user.full_name_en}</p>
-              {specialtyLine && <p className="text-[11px] text-muted-foreground">{specialtyLine}</p>}
+          {!compact && (
+            <div className="mr-1 max-w-36 text-right leading-tight">
+              <p className="truncate text-xs font-medium text-foreground">{user.full_name_th || user.full_name_en}</p>
+              {specialtyLine && <p className="truncate text-[11px] text-muted-foreground">{specialtyLine}</p>}
             </div>
           )}
           <RoleBadge />
           <ViewportToggle />
           <ThemeToggle />
-          {!mobile && isSpecial && (
+          {!compact && isSpecial && (
             <button onClick={returnToPhysician}
               className="rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-primary">
               <BiLabel th="กลับสู่หน้าแพทย์" en="Return to Physician" />
             </button>
           )}
-          {!mobile && (
+          {!compact && (
             <button onClick={logout}
               className="rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-destructive">
               <BiLabel th="ออกจากระบบ" en="Logout" />
             </button>
           )}
-          {mobile && (
+          {compact && (
             <button onClick={() => setOpen(o => !o)} aria-label="เมนู / Menu" aria-expanded={open}
               className="rounded-md border border-border p-1.5 text-muted-foreground hover:text-foreground">
               <Menu className="size-5" />
@@ -142,7 +144,7 @@ export function NavBar() {
       </div>
 
       {/* Mobile dropdown */}
-      {mobile && open && (
+      {compact && open && (
         <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Identity header (the desktop identity block is hidden on phones, so surface it here). */}
           <div className="px-2 pb-1">

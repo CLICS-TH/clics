@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useSyncExternalStore } from 'react';
-import { useIsNarrow } from '@/lib/client-store';
+import { useIsNarrow, useIsNavNarrow } from '@/lib/client-store';
 
 type View = 'auto' | 'mobile' | 'desktop';
 const ViewportCtx = createContext<{
@@ -53,4 +53,13 @@ export function useIsMobile() {
   const { forcedMobile, forcedDesktop } = useViewport();
   const isNarrow = useIsNarrow();
   return forcedMobile || (!forcedDesktop && isNarrow);
+}
+
+// Like useIsMobile, but with the wider ~1535px nav threshold: the NavBar collapses its full bilingual
+// row to the hamburger below this width (and in forced-mobile) so the labels can never wrap. Respects
+// the forced desktop/mobile toggle exactly like useIsMobile.
+export function useIsNavCompact() {
+  const { forcedMobile, forcedDesktop } = useViewport();
+  const navNarrow = useIsNavNarrow();
+  return forcedMobile || (!forcedDesktop && navNarrow);
 }
