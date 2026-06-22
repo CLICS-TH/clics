@@ -5,7 +5,7 @@ const { verifyJwt } = require('../middleware/auth');
 const { sendDbError } = require('../lib/db-helpers');
 const { effectiveLimit } = require('../lib/usage');
 const { provisionProfessional } = require('../lib/provisioning');
-const { attachSpecialty, linkedProviders, specialtyInCouncil, councilHasSpecialties, specialtyName } = require('../lib/specialties');
+const { attachSpecialty, linkedProviders, specialtyInCouncil, councilHasSpecialties, specialtyName, TRAINING_LEVELS } = require('../lib/specialties');
 const { encryptJson } = require('../lib/crypto');
 const { hashToken } = require('../lib/invite-token');
 const { logEvent } = require('../lib/audit');
@@ -44,6 +44,9 @@ const GoogleCompleteSchema = z.object({
   access_token: z.string().min(10),
   council_id: z.string().uuid().optional(),
   specialty_id: z.string().uuid().optional(),   // picked alongside council on first sign-up
+  // Highest medical training level — the self-signup step collects only the 5 TRAINING_LEVELS
+  // (gp is admin-only), so onboarding can never set 'gp'.
+  position: z.enum(TRAINING_LEVELS).optional(),
 });
 
 // A council a new member may join must exist AND be active.
@@ -261,7 +264,7 @@ function isGoogleSession(user) {
 router.post('/oauth/google/complete', oauthGate, async (req, res) => {
   const parsed = GoogleCompleteSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  const { access_token, council_id, specialty_id } = parsed.data;
+  const { access_token, council_id, specialty_id, position } = parsed.data;
 
   const { data: uData, error: uErr } = await authSupabase.auth.getUser(access_token);
   if (uErr || !uData?.user) return res.status(401).json({ error: 'Invalid Google session.' });
@@ -288,7 +291,10 @@ router.post('/oauth/google/complete', oauthGate, async (req, res) => {
   if (!(await activeCouncil(council_id))) return res.status(400).json({ error: 'Unknown or inactive council.' });
   // …and a specialty (the layer under council) when that council has any. The client's picker
   // cascades council → specialty; this drives it via the same one-time prompt.
+  // Onboarding order: council → training level → specialty. A medical council requires both; check
+  // the training level first so the client prompts in that order.
   if (await councilHasSpecialties(council_id)) {
+    if (!position) return res.status(400).json({ error: 'เลือกระดับการฝึกอบรม / Pick your medical training level.', code: 'position_required' });
     if (!specialty_id) return res.status(400).json({ error: 'เลือกความเชี่ยวชาญ / Pick your specialty.', code: 'specialty_required' });
     if (!(await specialtyInCouncil(specialty_id, council_id))) return res.status(400).json({ error: 'Specialty does not belong to the selected council.' });
   }
@@ -298,6 +304,7 @@ router.post('/oauth/google/complete', oauthGate, async (req, res) => {
   const name = md.full_name || md.name || user.email;
   const prov = await provisionProfessional({
     authUserId: user.id, role: 'physician', councilId: council_id, specialtyId: specialty_id ?? null,
+    position: position ?? null,
     full_name_th: name, full_name_en: name, status: 'active',
     identity: { provider: 'google', provider_subject: user.id, payload: { name, email: user.email } },
   });

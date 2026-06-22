@@ -179,7 +179,7 @@ export default function InvitesPage() {
   const PositionSelect = (
     <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
       value={form.position} onChange={e => setForm(s => ({ ...s, position: e.target.value }))}>
-      <option value="">— ตำแหน่ง / Position —</option>
+      <option value="">— ระดับการฝึกอบรม / Medical Training Level —</option>
       {POSITION_OPTIONS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
     </select>
   );

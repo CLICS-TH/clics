@@ -27,6 +27,8 @@ jest.mock('../src/lib/supabase', () => {
     profByToken: null,  // professionals .maybeSingle() → google/complete existing-account lookup
     listRows: [],       // rows the awaited list query resolves with
     listCount: 0,       // count:'exact' total the list query resolves with
+    councilRow: null,   // councils .maybeSingle() → activeCouncil() result (set {id, active:true} to pass)
+    specialtyCount: 0,  // specialties count:'exact' → councilHasSpecialties() result
     queries: [],        // every builder created: { table, op, selectArgs, eqs: [[col, val], ...] }
   };
   const auth = {
@@ -51,12 +53,18 @@ jest.mock('../src/lib/supabase', () => {
     self.update = (payload) => { rec.op = 'update'; rec.payload = payload; return self; };
     for (const fn of ['order', 'range', 'limit', 'in', 'neq', 'not', 'is', 'gte', 'lte', 'or']) self[fn] = () => self;
     self.single = () => (table === 'professionals' ? ok(state.caller) : ok(null));
-    self.maybeSingle = () => (table === 'professionals' ? ok(state.profByToken) : ok(null));
+    self.maybeSingle = () => {
+      if (table === 'professionals') return ok(state.profByToken);
+      if (table === 'councils') return ok(state.councilRow);   // activeCouncil() lookup
+      return ok(null);
+    };
     // Thenable terminal: list queries are awaited directly and destructure { data, error, count }.
     self.then = (resolve, reject) => {
       const value = table === 'professionals'
         ? { data: state.listRows, error: null, count: state.listCount }
-        : { data: [], error: null, count: 0 };
+        : table === 'specialties'
+          ? { data: [], error: null, count: state.specialtyCount }   // councilHasSpecialties() count
+          : { data: [], error: null, count: 0 };
       return Promise.resolve(value).then(resolve, reject);
     };
     return self;
@@ -79,6 +87,8 @@ jest.mock('../src/lib/supabase', () => {
       state.profByToken = null;
       state.listRows = [];
       state.listCount = 0;
+      state.councilRow = null;
+      state.specialtyCount = 0;
       state.queries.length = 0;
       auth.getUser = defaultGetUser;
     },
@@ -250,6 +260,48 @@ test('google/complete: NEW user whose session is NOT Google-issued → 403 (no a
   const r = await request(app).post('/auth/oauth/google/complete').send({ access_token: GOOGLE_TOKEN });
 
   expect(r.status).toBe(403);
+});
+
+// ---------------------------------------------------------------------------
+// (c2) google/complete — Medical Training Level (position) in self-signup onboarding (2026-06-22):
+//   council → training level → specialty. Only the 5 TRAINING_LEVELS (gp is admin-only); position is
+//   required BEFORE specialty when the council has specialties.
+// ---------------------------------------------------------------------------
+
+test('google/complete: onboarding rejects position=gp (5-level training only) → 400 schema error', async () => {
+  m.auth.getUser = googleUser('g-gp', 'gp@example.com');
+  const r = await request(app).post('/auth/oauth/google/complete')
+    .send({ access_token: GOOGLE_TOKEN, council_id: '22222222-2222-2222-2222-222222222222', position: 'gp' });
+  expect(r.status).toBe(400); // z.enum(TRAINING_LEVELS) rejects 'gp' at schema parse (gp is admin-only)
+});
+
+test('google/complete: NEW user, medical council, NO training level → 400 position_required', async () => {
+  m.auth.getUser = googleUser('g-pos', 'pos@example.com');
+  m.state.profByToken = null;
+  m.state.councilRow = { id: 'C-med', active: true };   // activeCouncil → ok
+  m.state.specialtyCount = 15;                           // councilHasSpecialties → true
+  const r = await request(app).post('/auth/oauth/google/complete')
+    .send({ access_token: GOOGLE_TOKEN, council_id: '22222222-2222-2222-2222-222222222222' });
+  expect(r.status).toBe(400);
+  expect(r.body.code).toBe('position_required');
+});
+
+test('google/complete: training level accepted, specialty still required (order: level → specialty)', async () => {
+  m.auth.getUser = googleUser('g-spec', 'spec@example.com');
+  m.state.profByToken = null;
+  m.state.councilRow = { id: 'C-med', active: true };
+  m.state.specialtyCount = 15;
+  const r = await request(app).post('/auth/oauth/google/complete')
+    .send({ access_token: GOOGLE_TOKEN, council_id: '22222222-2222-2222-2222-222222222222', position: 'resident' });
+  expect(r.status).toBe(400);
+  expect(r.body.code).toBe('specialty_required'); // position passed; specialty is the next required step
+});
+
+test('GET /admin/users?position=resident applies .eq(position, resident)', async () => {
+  m.state.caller = SUPERADMIN;
+  const r = await auth(request(app).get('/admin/users?position=resident'));
+  expect(r.status).toBe(200);
+  expect(listQuery().eqs).toContainEqual(['position', 'resident']);
 });
 
 // ---------------------------------------------------------------------------

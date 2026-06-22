@@ -118,11 +118,11 @@ window.api = {
   // Finish Google sign-in: post the Supabase session token (+ a chosen council for NEW users).
   // council_id is OMITTED when undefined — the backend zod schema rejects an explicit null,
   // and existing users must be able to complete without any council (404 if OAUTH disabled).
-  oauthGoogleComplete: (access_token, council_id, specialty_id) => publicFetch('/auth/oauth/google/complete', {
+  oauthGoogleComplete: (access_token, council_id, specialty_id, position) => publicFetch('/auth/oauth/google/complete', {
     method: 'POST',
     body: council_id === undefined
       ? { access_token }
-      : { access_token, council_id, ...(specialty_id ? { specialty_id } : {}) },
+      : { access_token, council_id, ...(specialty_id ? { specialty_id } : {}), ...(position ? { position } : {}) },
   }),
 
   // ---- Dual-role: physician requests auditor rights (both return { ok, status, body }) ----

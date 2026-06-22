@@ -293,6 +293,10 @@ router.get('/users', async (req, res) => {
   if (typeof req.query.specialty === 'string' && req.query.specialty) {
     query = query.eq('specialty_id', req.query.specialty);
   }
+  // Optional ?position= filter — medical training level (the superadmin user-page filter).
+  if (typeof req.query.position === 'string' && req.query.position) {
+    query = query.eq('position', req.query.position);
+  }
   query = scopeBySpecialty(req, scopeToCouncil(req, query));
   const { data, error, count } = await query;
   if (sendDbError(res, error)) return;
