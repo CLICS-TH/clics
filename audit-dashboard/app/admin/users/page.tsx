@@ -823,11 +823,11 @@ export default function UsersPage() {
             <thead className="bg-secondary"><tr>
               <th className="px-3 py-3 text-left">ชื่อ (TH)</th>
               <th className="px-3 py-3 text-left">ชื่อ (EN)</th>
-              <th className="px-3 py-3 text-left w-[120px]">Role</th>
+              <th className="px-3 py-3 text-left w-[165px]">Role</th>
               <th className="px-3 py-3 text-left">สภา / Council</th>
               <th className="px-3 py-3 text-left">ความเชี่ยวชาญ / Specialty</th>
               <th className="px-3 py-3 text-left w-[160px]">การใช้งาน AI / Usage</th>
-              <th className="px-3 py-3 text-left w-[125px]">สถานะ / Status</th>
+              <th className="px-3 py-3 text-left w-[140px]">สถานะ / Status</th>
               <th className="px-3 py-3 text-right w-[215px]">การจัดการ / Actions</th>
             </tr></thead>
             <tbody>{users.map(u => (
@@ -838,8 +838,10 @@ export default function UsersPage() {
                   </div>
                 </td>
                 <td className="px-3 py-3 text-muted-foreground"><div className="truncate" title={u.full_name_en}>{u.full_name_en}</div></td>
-                <td className="px-3 py-3 whitespace-nowrap">
-                  <span className="inline-flex items-center gap-1.5">
+                <td className="px-3 py-3">
+                  {/* flex-wrap so a rare admin-with-Special chip drops to a 2nd line instead of
+                      overflowing into Council; the column (w-[165px]) fits the widest role badge. */}
+                  <span className="inline-flex flex-wrap items-center gap-1.5">
                     <Badge variant="outline">{ROLE_LABELS[u.role] ?? u.role}</Badge>
                     {u.can_audit && <SpecialChip />}
                   </span>
@@ -853,7 +855,9 @@ export default function UsersPage() {
                   </div>
                 </td>
                 <td className="px-3 py-3"><UsageCell u={u} /></td>
-                <td className="px-3 py-3 whitespace-nowrap"><StatusBadge s={u.status} /></td>
+                {/* no whitespace-nowrap: "Active" (108px) fits the w-[140px] column on one line; the rare,
+                    longer "Deactivated" (163px) wraps to two lines rather than overflowing into Actions. */}
+                <td className="px-3 py-3"><StatusBadge s={u.status} /></td>
                 <td className="px-3 py-3 text-right"><RowActions u={u} /></td>
               </tr>
             ))}</tbody>
