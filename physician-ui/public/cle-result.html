@@ -67,6 +67,25 @@
         </div>`;
     }
 
+    // Read-only conversation history. The physician can no longer open /cle-chat once a session ends
+    // (it redirects here), so surface the transcript on the result page. Plain-text (escaped) — no
+    // marked/DOMPurify on this page — with line breaks preserved; artifact fences collapse to a chip.
+    function escapeHtml(s) { return (s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+    function transcriptSection(cle) {
+      const msgs = (cle.messages || []).filter(m => m.role === 'physician' || m.role === 'assistant');
+      if (!msgs.length) return '';
+      const bubbles = msgs.map(m => {
+        const cls = m.role === 'physician' ? 'msg-physician' : 'msg-assistant';
+        const text = (m.content || '').replace(/:::artifact\{[^}]*\}[\s\S]*?:::/g, '📄 [ตาราง / artifact]').trim();
+        return `<div class="${cls}" style="white-space:pre-wrap;max-width:90%">${escapeHtml(text)}</div>`;
+      }).join('');
+      return `<details class="card" style="margin-top:16px">
+        <summary style="cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;gap:8px;list-style:none">
+          ${icon('message', 16)} ดูบทสนทนา / View conversation (${msgs.length})</summary>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:14px">${bubbles}</div>
+      </details>`;
+    }
+
     async function load() {
       const cle = await api.getPle(cleId);
       const container = document.getElementById('content');
@@ -91,7 +110,7 @@
                 <span style="color:var(--body-color)">${CRITERIA_LABELS[c]}</span>
               </div>`).join('')}
             <a href="/dashboard" class="btn btn-ghost" style="display:inline-block;margin-top:16px">← กลับ</a>
-          </div>`;
+          </div>` + transcriptSection(cle);
         return;
       }
 
@@ -100,7 +119,7 @@
           <div class="card" style="text-align:center">
             <div class="status-band is-pass" style="justify-content:center;margin-bottom:14px">${icon('checkCircle', 28)}<span>ผ่านเกณฑ์แล้ว / Clinical Learning Episode Passed</span></div>
             <p style="color:var(--muted);margin-top:8px">กำลังประเมินผล PIS-7 อยู่… / Evaluating PIS-7…</p>
-          </div>`;
+          </div>` + transcriptSection(cle);
         schedulePoll();
         return;
       }
@@ -136,7 +155,7 @@
               </div>
               <p style="font-size:13px;color:var(--muted);margin-top:4px">${eval_.domain_rationale?.['d'+(i+1)] ?? ''}</p>
             </div>`).join('')}
-        </div>`;
+        </div>` + transcriptSection(cle);
 
       lastScores = scores;
       buildRadar();

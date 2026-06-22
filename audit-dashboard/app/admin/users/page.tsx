@@ -516,7 +516,27 @@ export default function UsersPage() {
         </div>
 
         {/* Read-only breakdown: how many admins/auditors are ACTIVE in each council (used/capacity). */}
-        {councilSlotsAll.length > 0 && (
+        {councilSlotsAll.length > 0 && mobile && (
+          <div className="mt-3 space-y-2">
+            {councilSlotsAll.map(c => {
+              const cell = (role: string) => {
+                const s = c.slots.find(x => x.role === role);
+                if (!s) return '—';
+                return <span className={s.remaining <= 0 ? 'text-destructive' : ''}>{s.used}<span className="text-muted-foreground">/{s.capacity}</span></span>;
+              };
+              return (
+                <div key={c.council_id} className="rounded-lg border border-border p-3 text-sm">
+                  <p><span className="font-medium">{c.code}</span> <span className="text-xs text-muted-foreground">{c.name_th}</span></p>
+                  <div className="mt-1 flex gap-5 text-xs tabular-nums">
+                    <span className="text-muted-foreground">ผู้ดูแล / Admin: <span className="text-foreground">{cell('admin')}</span></span>
+                    <span className="text-muted-foreground">ผู้ตรวจ / Auditor: <span className="text-foreground">{cell('auditor')}</span></span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {councilSlotsAll.length > 0 && !mobile && (
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-sm">
               <thead>

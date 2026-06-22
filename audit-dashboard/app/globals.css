@@ -199,6 +199,7 @@
        a 44px min-height would break baseline alignment in `flex gap-2` rows.) */
     button, [role='button'], [role='radio'], a[role='button'], summary, select {
       min-height: var(--tap-min);
+      min-width: var(--tap-min); /* icon-only controls (nav toggles, hamburger) were 34–36px wide */
     }
   }
 }

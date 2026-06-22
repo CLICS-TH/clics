@@ -5,6 +5,7 @@ import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { PageIntro } from '@/components/PageIntro';
 import { Skeleton } from '@/components/Skeleton';
+import { useIsMobile } from '@/components/ViewportProvider';
 
 // Tier-4 ethics committee: read-only audit trail (access/scoring/provisioning events). No transcripts.
 type Ev = {
@@ -15,6 +16,7 @@ type LogResp = { events: Ev[]; total: number };
 
 export default function EthicsPage() {
   const router = useRouter();
+  const mobile = useIsMobile();
   const [log, setLog] = useState<LogResp | null>(null);
   useEffect(() => {
     const role = getUser()?.role;
@@ -31,6 +33,20 @@ export default function EthicsPage() {
       />
       {!log ? <Skeleton className="h-64 w-full" /> : log.events.length === 0 ? (
         <div className="text-muted-foreground">ยังไม่มีเหตุการณ์ / No events recorded yet.</div>
+      ) : mobile ? (
+        /* Phone: stacked cards (the 4-col table would force horizontal scroll). */
+        <div className="space-y-3">
+          {log.events.map((e) => (
+            <div key={e.id} className="rounded-xl border border-border p-4 space-y-1">
+              <p className="font-mono text-sm break-all">{e.action}</p>
+              <p className="text-xs tabular-nums text-muted-foreground">{new Date(e.created_at).toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">
+                {e.actor_role ?? '—'}{e.target_type ? ` · ${e.target_type}:${e.target_id ?? ''}` : ''}
+              </p>
+            </div>
+          ))}
+          <p className="text-xs text-muted-foreground">{log.events.length} / {log.total} เหตุการณ์</p>
+        </div>
       ) : (
         <div className="border rounded-xl overflow-x-auto">
           <table className="w-full text-sm">
