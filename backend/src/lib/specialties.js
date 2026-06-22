@@ -2,14 +2,18 @@
 // validation/enrichment rules live in one place (mirrors lib/accounts + lib/dual-role).
 const { supabase } = require('./supabase');
 
-// Position ladder (ตำแหน่ง). 'gp' = General Practitioner — the user renamed the final rung from
-// "Physician" to GP so it doesn't clash with the 'physician' ROLE.
+// Medical training level (the seniority ladder, formerly labelled "position/ตำแหน่ง"). The DB column
+// is still `position` (no migration). 'gp' = General Practitioner is kept for admin-created accounts
+// but is NOT offered in self-signup onboarding (which collects only the 5 training levels below).
 const POSITIONS = ['extern', 'intern', 'resident', 'fellowship', 'staff', 'gp'];
+// The 5 training levels a new-comer chooses during self-signup (gp excluded — it's a practice status,
+// not a training level, so it stays admin-only).
+const TRAINING_LEVELS = ['extern', 'intern', 'resident', 'fellowship', 'staff'];
 const POSITION_LABELS = {
   extern:     { th: 'เอกซ์เทิร์น',           en: 'Extern' },
   intern:     { th: 'แพทย์อินเทิร์น',        en: 'Intern' },
   resident:   { th: 'แพทย์ประจำบ้าน',        en: 'Resident' },
-  fellowship: { th: 'แพทย์ประจำบ้านต่อยอด',  en: 'Fellowship' },
+  fellowship: { th: 'แพทย์ประจำบ้านต่อยอด',  en: 'Fellow' },
   staff:      { th: 'อาจารย์แพทย์',          en: 'Staff' },
   gp:         { th: 'แพทย์ทั่วไป',            en: 'General Practitioner' },
 };
@@ -75,7 +79,7 @@ async function linkedProviders(professionalId) {
 }
 
 module.exports = {
-  POSITIONS, POSITION_LABELS, COUNCIL_SCOPED_ROLES,
+  POSITIONS, TRAINING_LEVELS, POSITION_LABELS, COUNCIL_SCOPED_ROLES,
   councilHasSpecialties, specialtyInCouncil, checkSpecialty,
   specialtyName, attachSpecialty, linkedProviders,
 };

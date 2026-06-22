@@ -140,26 +140,55 @@ async function populateCouncils() {
   }
 }
 
-// Council → specialty cascade: load the chosen council's specialties and reveal the picker
-// (hidden when the council has none, e.g. a non-medical council).
-async function populateSpecialties(councilId) {
-  const group = document.getElementById('specialtyGroup');
+// Full specialty list for the chosen council, kept so the search box can re-filter without refetching.
+let allSpecialties = [];
+
+// Render the specialty <select> from allSpecialties, filtered by a search query (matches name_th/en).
+function renderSpecialtyOptions(query) {
   const sel = document.getElementById('specialty');
+  const q = (query || '').trim().toLowerCase();
+  const prev = sel.value;
   sel.innerHTML = '<option value="">— เลือกความเชี่ยวชาญ / Select a specialty —</option>';
-  if (!councilId) { group.style.display = 'none'; return; }
-  const res = await api.specialties(councilId);
-  const list = (res.ok && Array.isArray(res.body)) ? res.body : [];
-  for (const s of list) {
+  for (const s of allSpecialties) {
+    if (q && !(`${s.name_th} ${s.name_en}`.toLowerCase().includes(q))) continue;
     const opt = document.createElement('option');
     opt.value = s.id;
     opt.textContent = `${s.name_th} / ${s.name_en}`;
     sel.appendChild(opt);
   }
-  group.style.display = list.length ? 'block' : 'none';
+  if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev; // keep selection if still visible
+}
+
+// Council → (training level + specialty) cascade: a medical council (one WITH specialties) reveals BOTH
+// the training-level select and the searchable specialty picker; a non-medical council hides them.
+async function populateSpecialties(councilId) {
+  const group = document.getElementById('specialtyGroup');
+  const tlGroup = document.getElementById('trainingLevelGroup');
+  allSpecialties = [];
+  renderSpecialtyOptions('');
+  if (!councilId) { group.style.display = 'none'; if (tlGroup) tlGroup.style.display = 'none'; return; }
+  const res = await api.specialties(councilId);
+  allSpecialties = (res.ok && Array.isArray(res.body)) ? res.body : [];
+  renderSpecialtyOptions('');
+  const disp = allSpecialties.length ? 'block' : 'none';
+  group.style.display = disp;
+  if (tlGroup) tlGroup.style.display = disp;
 }
 
 const councilSelEl = document.getElementById('council');
-if (councilSelEl) councilSelEl.addEventListener('change', e => populateSpecialties(e.target.value));
+if (councilSelEl) councilSelEl.addEventListener('change', e => {
+  // A new council resets the dependent picks: the training level (so a level chosen for the previous
+  // council can't silently carry over) and the specialty search box. The specialty <select> itself is
+  // rebuilt by populateSpecialties. (Only on council CHANGE — NOT on a position/specialty_required
+  // re-reveal, which calls populateSpecialties directly so a valid level survives the re-prompt.)
+  const tl = document.getElementById('trainingLevel');
+  if (tl) tl.value = '';
+  const ss = document.getElementById('specialtySearch');
+  if (ss) ss.value = '';
+  populateSpecialties(e.target.value);
+});
+const specialtySearchEl = document.getElementById('specialtySearch');
+if (specialtySearchEl) specialtySearchEl.addEventListener('input', e => renderSpecialtyOptions(e.target.value));
 
 const councilBtn = document.getElementById('councilBtn');
 if (councilBtn) {
@@ -168,14 +197,19 @@ if (councilBtn) {
     councilErr.style.display = 'none';
     const councilId = document.getElementById('council').value;
     if (!councilId) { councilErr.textContent = 'กรุณาเลือกสภาวิชาชีพ / Please select a council.'; councilErr.style.display = 'block'; return; }
-    // When the council has specialties, one must be chosen (the backend enforces it too).
+    // A medical council requires training level THEN specialty (the backend enforces both too).
+    const medical = document.getElementById('specialtyGroup').style.display !== 'none';
+    const position = document.getElementById('trainingLevel').value || undefined;
+    if (medical && !position) {
+      councilErr.textContent = 'กรุณาเลือกระดับการฝึกอบรม / Please select your medical training level.'; councilErr.style.display = 'block'; return;
+    }
     const specialtyId = document.getElementById('specialty').value || undefined;
-    if (document.getElementById('specialtyGroup').style.display !== 'none' && !specialtyId) {
+    if (medical && !specialtyId) {
       councilErr.textContent = 'กรุณาเลือกความเชี่ยวชาญ / Please select a specialty.'; councilErr.style.display = 'block'; return;
     }
     councilBtn.disabled = true; councilBtn.textContent = 'กำลังสร้างบัญชี... / Creating account...';
     show(loadingCard);
-    const res = await api.oauthGoogleComplete(accessToken, councilId, specialtyId);
+    const res = await api.oauthGoogleComplete(accessToken, councilId, specialtyId, position);
     councilBtn.disabled = false; councilBtn.textContent = 'ดำเนินการต่อ / Continue';
     handleSignupResult(res, /* fromPicker */ true);
   });
@@ -192,9 +226,10 @@ function handleSignupResult(res, fromPicker) {
   }
   if (fromPicker) {
     const councilErr = document.getElementById('councilErr');
-    // If the backend asks for a specialty (council has some, none chosen), reveal the picker.
+    // If the backend asks for a training level or specialty (council has some, none chosen), re-reveal
+    // the medical-council steps (training level + specialty).
     const code = res.body?.error?.code || res.body?.code;
-    if (res.status === 400 && code === 'specialty_required') {
+    if (res.status === 400 && (code === 'specialty_required' || code === 'position_required')) {
       populateSpecialties(document.getElementById('council').value);
     }
     councilErr.textContent = errText(res.body); councilErr.style.display = 'block';

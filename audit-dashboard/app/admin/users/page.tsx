@@ -86,6 +86,7 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState('');           // server-side ?role= (superadmin only); '' = all
   const [councilFilter, setCouncilFilter] = useState('');     // server-side ?council= (superadmin only); '' = all
   const [specialtyFilter, setSpecialtyFilter] = useState(''); // server-side ?specialty= (superadmin only); '' = all
+  const [positionFilter, setPositionFilter] = useState('');   // server-side ?position= medical-training-level (superadmin only); '' = all
   const [q, setQ] = useState('');             // search box (live value)
   const [searchQ, setSearchQ] = useState(''); // debounced value sent as ?q= (server-side filter)
   const [requests, setRequests] = useState<AuditorRequest[]>([]); // pending auditor-role requests
@@ -104,6 +105,7 @@ export default function UsersPage() {
     if (roleFilter) qs.set('role', roleFilter);
     if (councilFilter) qs.set('council', councilFilter);
     if (specialtyFilter) qs.set('specialty', specialtyFilter);
+    if (positionFilter) qs.set('position', positionFilter);
     return qs.toString();
   };
 
@@ -176,7 +178,7 @@ export default function UsersPage() {
 
   // (Re)load page 0 whenever the status filter or the (debounced) search changes (incl. on
   // mount) — resets pagination to offset 0.
-  useEffect(() => { loadUsersPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [statusFilter, searchQ, roleFilter, councilFilter, specialtyFilter]);
+  useEffect(() => { loadUsersPage(0); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [statusFilter, searchQ, roleFilter, councilFilter, specialtyFilter, positionFilter]);
 
   // Edit modal a11y: Escape closes it (the overlay is role=dialog/aria-modal; backdrop click already
   // closes). Keyboard users could otherwise only reach Cancel by tabbing the whole form.
@@ -609,7 +611,7 @@ export default function UsersPage() {
           </select>
           <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
             value={form.position} onChange={e => setForm(s => ({ ...s, position: e.target.value }))}>
-            <option value="">— ตำแหน่ง / Position —</option>
+            <option value="">— ระดับการฝึกอบรม / Medical Training Level —</option>
             {POSITION_OPTIONS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
           </select>
           {err && <p className="text-destructive text-sm">{err}</p>}
@@ -670,7 +672,7 @@ export default function UsersPage() {
                 </select>
                 <select className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
                   value={editing.position ?? ''} onChange={e => setEditing(u => u && ({ ...u, position: e.target.value }))}>
-                  <option value="">— ตำแหน่ง / Position —</option>
+                  <option value="">— ระดับการฝึกอบรม / Medical Training Level —</option>
                   {POSITION_OPTIONS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
                 </select>
               </>)}
@@ -767,6 +769,19 @@ export default function UsersPage() {
           {(councilFilter ? specialtiesFor(councilFilter) : specialties).map(s => (
             <Button key={s.id} variant={specialtyFilter === s.id ? 'default' : 'outline'} size="sm" onClick={() => setSpecialtyFilter(s.id)}>
               {s.name_th}
+            </Button>
+          ))}
+        </div>
+      )}
+
+      {/* Medical Training Level filter — superadmin only. Includes gp (admin-set accounts can be GPs). */}
+      {isSuper && (
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className="mr-1 text-xs text-muted-foreground">ระดับการฝึกอบรม / Medical Training Level</span>
+          <Button variant={positionFilter === '' ? 'default' : 'outline'} size="sm" onClick={() => setPositionFilter('')}>ทั้งหมด / All</Button>
+          {POSITION_OPTIONS.map(p => (
+            <Button key={p.key} variant={positionFilter === p.key ? 'default' : 'outline'} size="sm" onClick={() => setPositionFilter(p.key)}>
+              {p.label}
             </Button>
           ))}
         </div>

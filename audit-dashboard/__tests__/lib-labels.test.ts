@@ -109,6 +109,8 @@ describe('position ladder (ตำแหน่ง)', () => {
     expect(keys).toEqual(['extern', 'intern', 'resident', 'fellowship', 'staff', 'gp']);
     expect(Object.keys(POSITION_TH).sort()).toEqual([...keys].sort());
     expect(POSITION_OPTIONS.find((p) => p.key === 'gp')?.label).toMatch(/General Practitioner/);
+    // "Fellowship" was relabeled to "Fellow" (the DB value stays 'fellowship').
+    expect(POSITION_OPTIONS.find((p) => p.key === 'fellowship')?.label).toMatch(/Fellow(?!ship)/);
   });
   it('positionLabel resolves a known key and falls back to null', () => {
     expect(positionLabel('resident')).toBe(

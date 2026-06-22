@@ -39,9 +39,21 @@
         <label for="council">สภาวิชาชีพ / Professional council</label>
         <select id="council"><option value="">— เลือกสภา / Select a council —</option></select>
       </div>
+      <div class="form-group" id="trainingLevelGroup" style="display:none">
+        <label for="trainingLevel">ระดับการฝึกอบรมสูงสุด / Highest medical training level</label>
+        <select id="trainingLevel">
+          <option value="">— เลือกระดับ / Select a level —</option>
+          <option value="extern">เอกซ์เทิร์น / Extern</option>
+          <option value="intern">แพทย์อินเทิร์น / Intern</option>
+          <option value="resident">แพทย์ประจำบ้าน / Resident</option>
+          <option value="fellowship">แพทย์ประจำบ้านต่อยอด / Fellow</option>
+          <option value="staff">อาจารย์แพทย์ / Staff</option>
+        </select>
+      </div>
       <div class="form-group" id="specialtyGroup" style="display:none">
         <label for="specialty">ความเชี่ยวชาญ / Specialty</label>
-        <select id="specialty"><option value="">— เลือกความเชี่ยวชาญ / Select a specialty —</option></select>
+        <input type="text" id="specialtySearch" placeholder="ค้นหาความเชี่ยวชาญ / Search specialty…" autocomplete="off" style="margin-bottom:6px" />
+        <select id="specialty" size="6"><option value="">— เลือกความเชี่ยวชาญ / Select a specialty —</option></select>
       </div>
       <div id="councilErr" class="error-msg" style="display:none"></div>
       <button class="btn btn-primary" style="width:100%" id="councilBtn">ดำเนินการต่อ / Continue</button>
