@@ -290,7 +290,11 @@ body:has(.chat-page) nav { flex:none; }
 .msg-refs .refs-label { display:inline-flex; align-items:center; gap:6px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; font-size:11px; margin-bottom:8px; }
 .msg-refs .refs-label svg { width:13px; height:13px; }
 .msg-refs .refs-chips { display:flex; flex-wrap:wrap; gap:6px; }
-.msg-refs .ref-chip { background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--r-pill); padding:3px 11px; font-style:normal; color:var(--body-color); font-size:12px; max-width:100%; overflow-wrap:anywhere; }
+.msg-refs .ref-chip { display:inline-flex; align-items:center; gap:5px; background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--r-pill); padding:3px 11px; font-style:normal; color:var(--body-color); font-size:12px; max-width:100%; overflow-wrap:anywhere; }
+/* Citations are clickable: each chip opens a web search for the source (the AI gives (Source, Year) text, not URLs). */
+.msg-refs a.ref-chip { text-decoration:none; cursor:pointer; transition:border-color .15s, color .15s, background .15s; }
+.msg-refs a.ref-chip:hover { border-color:var(--coral); color:var(--coral); background:var(--coral-ring); }
+.msg-refs a.ref-chip svg { width:11px; height:11px; opacity:.6; flex:none; }
 /* Examiner callout (Socratic question) — clearer block; never names the experimental mode. */
 .msg-socratic { display:flex; gap:10px; margin-top:16px; padding:13px 16px; background:var(--coral-ring); border-left:3px solid var(--coral); border-radius:0 var(--r-md) var(--r-md) 0; color:var(--coral-active); line-height:1.6; }
 .msg-socratic svg { width:17px; height:17px; flex:none; margin-top:2px; }
@@ -333,8 +337,8 @@ body:has(.chat-page) nav { flex:none; }
 .session-progress[open] .ch-prog { color:var(--coral); border-color:var(--coral); }
 .session-progress .ch-prog svg { width:16px; height:16px; }
 .sp-pop { position:absolute; right:max(0px, var(--safe-r)); top:calc(100% + 8px); width:min(340px, 84vw); background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--r-lg); box-shadow:0 14px 34px rgba(20,20,19,0.16); padding:14px; z-index:30; }
-.sp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-.sp-meter .sp-head { display:flex; justify-content:space-between; align-items:baseline; gap:6px; margin-bottom:5px; color:var(--muted); }
+.sp-grid { display:grid; grid-template-columns:1fr; gap:10px; }
+.sp-meter .sp-head { display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:5px; color:var(--muted); white-space:nowrap; }
 .sp-meter .sp-head b { color:var(--ink); font-variant-numeric:tabular-nums; }
 .sp-meter .sp-track { height:6px; background:rgba(127,127,127,.22); border-radius:99px; overflow:hidden; }
 .sp-meter .sp-fill { height:100%; width:0; background:var(--coral); border-radius:99px; transition:width .35s, background .2s; }
