@@ -31,7 +31,7 @@ export function DomainScorer({ scores, onChange, disabled }: Props) {
                 {picked ? <> · <strong className="text-foreground tabular-nums">{val}/5</strong></> : <> · <span className="text-coral-active">ยังไม่ให้คะแนน</span></>}
               </span>
             </div>
-            <div className="grid grid-cols-6 gap-1.5" role="radiogroup" aria-label={`${d.en} (0–5)`}>
+            <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6" role="radiogroup" aria-label={`${d.en} (0–5)`}>
               {PIS7_SCALE.map((s) => (
                 <button
                   key={s.level}

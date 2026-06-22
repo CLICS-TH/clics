@@ -2,9 +2,9 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>CLICS — ความก้าวหน้า</title>
-  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
+  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
@@ -21,7 +21,7 @@
       <p class="sub">Longitudinal Personal Development Profile — เส้นทางคะแนน PIS-7 ของคุณตลอดการเรียนรู้</p>
     </header>
     <div id="lpdpSummary" class="lpdp-summary" style="display:none"></div>
-    <div class="card"><canvas id="lpdpChart" height="220"></canvas></div>
+    <div class="card"><div class="chart-box"><canvas id="lpdpChart"></canvas></div></div>
     <p id="noData" style="display:none;color:var(--muted);text-align:center;padding:20px">ยังไม่มีข้อมูล — กรุณาทำ Clinical Learning Episode ให้ผ่านก่อน / No progress yet — pass a Clinical Learning Episode first.</p>
   </div>
   <script src="/js/config.js"></script>
@@ -46,6 +46,7 @@
           datasets: [{ label: 'คะแนน PIS-7', data: lpdpData.map(d => d.composite_score), borderColor: coral, backgroundColor: coral + '1a', tension: 0.3, pointRadius: 5, pointBackgroundColor: coral }],
         },
         options: {
+          responsive: true, maintainAspectRatio: false,
           scales: {
             y: { min: 0, max: 100, title: { display: true, text: 'คะแนน / 100', color: text }, ticks: { color: text }, grid: { color: grid } },
             x: { ticks: { color: text }, grid: { color: grid } },

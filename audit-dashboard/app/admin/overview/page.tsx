@@ -111,7 +111,7 @@ export default function OverviewPage() {
       {/* ① Headline CLE cards — each drills into /admin/cles filtered by its bucket. */}
       <section>
         {stats ? (
-          <div className="grid grid-cols-2 gap-4 @min-[768px]:grid-cols-5">
+          <div className="grid grid-cols-2 gap-4 @min-[480px]:grid-cols-3 @min-[768px]:grid-cols-5">
             {headline.map(c => (
               <a key={c.label} href={`/admin/cles${c.key ? `?status=${c.key}` : ''}`}
                 className="block rounded-xl border p-5 text-center transition-colors hover:bg-secondary hover:border-primary/40 cursor-pointer"

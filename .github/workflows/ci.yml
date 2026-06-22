@@ -88,3 +88,22 @@ jobs:
       - name: Syntax-check JS
         run: for f in public/js/*.js; do node --check "$f"; done
         working-directory: physician-ui
+
+  # Responsive regression guard — renders the static physician-ui portal at 320/375/768/1280 under
+  # coarse-pointer emulation and asserts 0 horizontal overflow, ≥44px touch targets, and ≥16px form
+  # fields (iOS no-zoom). Hermetic: a built-in static server serves the pages and all external
+  # requests (fonts / Chart.js CDN / backend) are aborted, so it needs no secrets or live infra.
+  responsive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Responsive smoke (320/375/768/1280)
+        run: npm run test:responsive

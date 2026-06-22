@@ -68,7 +68,7 @@ export default function ResetPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-6">
+    <div className="flex items-center justify-center min-h-dvh bg-background p-6">
       <div className="w-full max-w-sm space-y-5 p-8 bg-card rounded-xl shadow border border-border animate-in fade-in slide-in-from-bottom-2 duration-500 motion-reduce:animate-none">
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">Audit Dashboard</p>

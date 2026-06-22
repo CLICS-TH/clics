@@ -293,6 +293,14 @@ describe('adversarial — bare unlabelled names', () => {
   test('gazetteer catches a known bare given name before a clinical lead (no intake)', () => {
     expect(stripPii('สมชายมาด้วยไข้')).not.toContain('สมชาย');
   });
+  test('clan-surname pass catches a bare แซ่ surname after a title-led name (no intake)', () => {
+    // The title rule masks the given name; the verbatim แซ่ pass closes the bare-surname residual.
+    expect(stripPii('ผู้ป่วยนายสมชาย แซ่ลี้ มาด้วยไข้ 3 วัน')).not.toContain('แซ่ลี้');
+  });
+  test('clan-surname pass catches a แซ่ surname GLUED to a following non-lead word', () => {
+    // The conservative gazetteer guard would have leaked this; the verbatim แซ่ pass does not.
+    expect(stripPii('นายสมชาย แซ่ตั้งเข้ารับการรักษา')).not.toContain('แซ่ตั้ง');
+  });
   test('a clinical phrase that is NOT a gazetteer name survives byte-for-byte', () => {
     assertSurvives('ผู้ป่วยมาด้วยอาการปวดท้องและไข้ 3 วัน');
   });

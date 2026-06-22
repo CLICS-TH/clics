@@ -81,8 +81,13 @@ rename deployed (~06-18); the per-physician profile page kept working because it
 Fix: **`db/migration-fk-rename.sql`** — renames the 4 `cles` FK constraints `ples_*` → `cles_*` to match
 the code + `schema.sql` (metadata-only, instantly reversible; idempotent). Applied to the prod CLICS
 Supabase via MCP. Verified: `GET /admin/cles` + `/flagged` now 200; the TMC admin sees all 16 sessions.
-*Optional hardening (not done): the embed relies on a named-constraint hint, which is fragile across
-renames; the transcript handler should surface the embed error instead of masking it as a 404.*
+*Hardening DONE (2026-06-22, branch `fix/admin-transcript-embed-robustness`): the transcript handler
+now uses `maybeSingle()` + `sendDbError`, so a query/embed failure surfaces as a logged **500** instead
+of falling through to the misleading 404 (and a messages-fetch error no longer renders a silently-empty
+transcript). A static guard test (`backend/tests/admin-transcript-robustness.test.js`) asserts every
+`professionals!cles_*_fkey` embed hint in `admin.js` maps to an inline professionals FK on the `cles`
+table in `schema.sql`, so the next table rename fails CI, not prod. (`/admin/cles` + `/flagged` already
+surfaced the error via `sendDbError`.)*
 
 ## What just shipped (2026-06-21) — daily-summary email: removed the cloud sandbox entirely
 
@@ -210,7 +215,8 @@ pseudonymization (`P-`/`CLE-` lookup table + broader Thai-name coverage in `rimp
 - **Full middleware spec** — [MIDDLEWARE-KNOWN-GAPS.md](MIDDLEWARE-KNOWN-GAPS.md): L4 multi-provider
   rotation not built (Claude-only, `claude-sonnet-4-6`); the "4 pre-filter signals" and "ELM" are
   spec'd but not implemented; PII is regex-mask + pseudonym, not yet a fully reversible lookup table
-  (residual risk: bare unlabelled Thai names — see `rimpl/src/services/pii-filter.js`).
+  (residual risk: bare unlabelled **native** Thai surnames not recorded at intake; the `แซ่` Chinese-Thai
+  clan-surname class is masked verbatim as of 2026-06-22 — see `rimpl/src/services/pii-filter.js`).
 - **#12b full i18n** — only the *label hierarchy* exists (`BiLabel`/`.bi`); there is **no i18n system**
   (a ไทย/EN toggle showing one language at a time, hundreds of strings). Deferred; needs a real i18n layer.
 - **LINE OAuth** absent (Supabase has no native LINE provider — needs custom OIDC). Google is live.

@@ -9,6 +9,19 @@
 
   function store(key, val) { try { val == null ? localStorage.removeItem(key) : localStorage.setItem(key, val); } catch (e) {} }
 
+  // `data-mobile` is the SINGLE source of truth for the mobile LAYOUT (main.css keys all mobile rules
+  // off it). The pre-paint <head> snippet set it before first paint; here we keep it live so a real
+  // viewport resize / device rotation — or flipping the desktop/mobile toggle — re-evaluates it.
+  // Set when: forced mobile, OR (not forced desktop AND the real viewport is ≤767px).
+  var mq = window.matchMedia('(max-width:767px)');
+  function applyMobile() {
+    var v = currentView();
+    if (v === 'mobile' || (v !== 'desktop' && mq.matches)) d.setAttribute('data-mobile', '');
+    else d.removeAttribute('data-mobile');
+  }
+  if (mq.addEventListener) mq.addEventListener('change', applyMobile);
+  else if (mq.addListener) mq.addListener(applyMobile); // Safari < 14
+
   function toggleTheme() {
     if (currentTheme() === 'dark') { d.removeAttribute('data-theme'); store('clics_theme', 'light'); }
     else { d.setAttribute('data-theme', 'dark'); store('clics_theme', 'dark'); }
@@ -22,6 +35,7 @@
     var next = order[(order.indexOf(currentView()) + 1) % order.length];
     if (next === 'auto') { d.removeAttribute('data-view'); store('clics_view', null); }
     else { d.setAttribute('data-view', next); store('clics_view', next); }
+    applyMobile(); // forced view changed → re-evaluate the mobile-layout attribute
     updateLabels();
   }
 

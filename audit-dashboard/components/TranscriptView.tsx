@@ -22,7 +22,7 @@ const stripArtifactFences = (s: string) =>
 // the parent) don't re-run the react-markdown pipeline over the whole transcript each time.
 export const TranscriptView = memo(function TranscriptView({ messages }: { messages: Message[] }) {
   return (
-    <div className="max-h-[72vh] space-y-3 overflow-y-auto rounded-lg bg-secondary p-4">
+    <div className="max-h-[72dvh] space-y-3 overflow-y-auto rounded-lg bg-secondary p-4">
       {messages.map((m, i) => {
         const isPhysician = m.role === "physician";
         // Strip artifact fences (keep the body); assistant content also carries a trailing "❓ …"

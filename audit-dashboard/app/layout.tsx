@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ViewportProvider } from "@/components/ViewportProvider";
@@ -45,6 +45,14 @@ const notoSerifThai = Noto_Serif_Thai({
 export const metadata: Metadata = {
   title: "CLICS Audit Dashboard",
   description: "CLICS — Clinical Learning & Intelligence Credit System",
+};
+
+// viewportFit:'cover' is required for the env(safe-area-inset-*) used by the responsive primitives
+// (globals.css) to be non-zero on notched / home-indicator devices (tablets auditors may use).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

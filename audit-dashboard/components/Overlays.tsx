@@ -72,7 +72,7 @@ export function Overlays() {
 
   return (
     <>
-      <div className="pointer-events-none fixed bottom-6 left-1/2 z-[100] flex -translate-x-1/2 flex-col items-center gap-2">
+      <div className="pointer-events-none fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] left-1/2 z-[100] flex -translate-x-1/2 flex-col items-center gap-2">
         {s.toasts.map((t) => (
           <div
             key={t.id}
@@ -95,8 +95,8 @@ export function Overlays() {
           aria-modal="true"
           onClick={(e) => { if (e.target === e.currentTarget) closeConfirm(top, false); }}
         >
-          <div className="w-full max-w-md rounded-xl border border-border bg-card p-7 shadow-2xl">
-            {top.title && <h2 className="font-heading mb-2 text-2xl text-foreground">{top.title}</h2>}
+          <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl border border-border bg-card p-7 shadow-2xl">
+            {top.title && <h2 className="font-heading mb-2 text-xl sm:text-2xl text-foreground">{top.title}</h2>}
             {top.body && <div className="mb-6 text-sm leading-relaxed text-muted-foreground">{top.body}</div>}
             <div className="flex justify-end gap-2.5">
               <Button variant="ghost" onClick={() => closeConfirm(top, false)}>

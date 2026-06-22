@@ -159,7 +159,7 @@ export default function AuditorScorePage() {
 
       {needsConsent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
-          <div className="w-full max-w-lg rounded-xl border bg-background p-6 space-y-4">
+          <div className="max-h-[90dvh] w-full max-w-lg space-y-4 overflow-y-auto rounded-xl border bg-background p-6">
             <h2 className="font-heading text-xl">ความยินยอมผู้เชี่ยวชาญประเมิน / Expert Auditor Consent</h2>
             <p className="text-sm text-muted-foreground">ก่อนให้คะแนน กรุณายืนยันข้อตกลงด้านความลับและผลประโยชน์ทับซ้อน (Appendix 04/15) / Before scoring, confirm the confidentiality + COI terms.</p>
             <label className="flex gap-2 text-sm"><input type="checkbox" checked={conf} onChange={e => setConf(e.target.checked)} /> รักษาความลับของ transcript คะแนน และข้อมูลวิจัย ไม่บันทึก/ดาวน์โหลด/ส่งต่อ / I will keep transcripts, scores, and research data confidential — no screenshots, downloads, or sharing.</label>

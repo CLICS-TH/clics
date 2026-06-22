@@ -68,9 +68,9 @@ export default function FlaggedPage() {
         ? <p className="text-muted-foreground text-center py-10">ไม่มี session รอตรวจสอบ / No sessions awaiting review.</p>
         : cles.map(p => (
           <div key={p.id} className="border rounded-xl p-5 mb-3">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="font-semibold">{p.professionals?.full_name_th ?? 'Unknown'}</p>
+            <div className="flex flex-col gap-3 @min-[520px]:flex-row @min-[520px]:items-start @min-[520px]:justify-between">
+              <div className="min-w-0">
+                <p className="font-semibold break-words">{p.professionals?.full_name_th ?? 'Unknown'}</p>
                 <p className="text-xs text-muted-foreground">{p.turn_count} รอบ · {p.token_count} tokens</p>
                 <div className="flex gap-3 mt-2 text-xs">
                   {['c4','c5','c6'].map(c => (
@@ -80,7 +80,7 @@ export default function FlaggedPage() {
                   ))}
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex shrink-0 flex-wrap gap-2">
                 <Button size="sm" disabled={actingId !== null} onClick={() => approve(p.id)}>
                   {actingId === p.id ? 'กำลังบันทึก…' : <><Check className="size-4" /> อนุมัติ / Approve</>}
                 </Button>
