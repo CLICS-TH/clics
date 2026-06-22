@@ -285,13 +285,13 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   const endedAt = new Date();
   const wallClockSeconds = Math.max(0, Math.floor((endedAt - new Date(cle.started_at)) / 1000));
   // Clamp the client-reported active-engagement time to wall-clock (see clampDuration): an unclamped
-  // client value lets a physician POST active_seconds:99999 and pass C1's 15-min engagement gate on a
+  // client value lets a physician POST active_seconds:99999 and pass C1's 10-min engagement gate on a
   // seconds-long session.
   const durationSeconds = clampDuration(req.body?.active_seconds, wallClockSeconds);
 
   // Derive turn/token counts from the SOURCE OF TRUTH (the messages rows), not the cached counters on
   // the cle row — a concurrent /message does a non-atomic read-modify-write on those, so a lost
-  // increment could wrongly fail C2 (turns>=4) / C3 (tokens>=800) on a qualifying session. Read here
+  // increment could wrongly fail C2 (turns>=4) / C3 (tokens>=10000) on a qualifying session. Read here
   // (before the claim) so two racing /end requests both compute correctly; the claim is the sole gate.
   const { data: messages } = await supabase
     .from('messages').select('role, content, token_count').eq('cle_id', req.params.id).order('created_at');

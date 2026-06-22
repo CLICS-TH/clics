@@ -53,10 +53,10 @@ const end = (id, body) => request(app).post(`/cles/${id}/end`).set('Authorizatio
 
 const longAgo = () => new Date(Date.now() - 1200_000).toISOString(); // 20 min → wall-clock passes C1
 const qualifyingMsgs = () => ([
-  { role: 'physician', content: 'a', token_count: 250 }, { role: 'assistant', content: 'b', token_count: 0 },
-  { role: 'physician', content: 'c', token_count: 250 }, { role: 'assistant', content: 'd', token_count: 0 },
-  { role: 'physician', content: 'e', token_count: 250 }, { role: 'assistant', content: 'f', token_count: 0 },
-  { role: 'physician', content: 'g', token_count: 250 }, { role: 'assistant', content: 'h', token_count: 0 },
+  { role: 'physician', content: 'a', token_count: 2500 }, { role: 'assistant', content: 'b', token_count: 0 },
+  { role: 'physician', content: 'c', token_count: 2500 }, { role: 'assistant', content: 'd', token_count: 0 },
+  { role: 'physician', content: 'e', token_count: 2500 }, { role: 'assistant', content: 'f', token_count: 0 },
+  { role: 'physician', content: 'g', token_count: 2500 }, { role: 'assistant', content: 'h', token_count: 0 },
 ]);
 
 beforeEach(() => {
@@ -76,7 +76,7 @@ test('a qualifying session claims to ended (tier-1 persisted) then finalizes to 
   const claim = mockUpdates[0];
   expect(claim.status).toBe('ended');
   expect(claim.turn_count).toBe(4);          // derived from messages, not the cached counter
-  expect(claim.token_count).toBe(1000);
+  expect(claim.token_count).toBe(10000);
   expect(claim.c1_pass && claim.c2_pass && claim.c3_pass).toBe(true);
   expect(claim.duration_seconds).toBeLessThanOrEqual(1300); // clamped to wall-clock, not 999999
   expect(mockFinalize).toHaveBeenCalledWith(expect.objectContaining({
@@ -97,7 +97,7 @@ test("a persistent tier-2 RIMPL failure leaves the session at recoverable 'ended
 });
 
 test('a too-short session fails tier-1 (claim writes cle_fail_t1, no tier-2 call)', async () => {
-  mockPle.started_at = new Date().toISOString(); // wall-clock ~0 → C1 (>=900s) fails
+  mockPle.started_at = new Date().toISOString(); // wall-clock ~0 → C1 (>=600s) fails
   const res = await end('ple1', { active_seconds: 999999 }); // inflated value cannot beat wall-clock
   expect(res.status).toBe(200);
   expect(res.body.status).toBe('cle_fail_t1');

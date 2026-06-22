@@ -15,9 +15,9 @@ window.DOMAIN_LABELS = [
 ];
 
 window.CRITERIA_LABELS = {
-  c1: 'ระยะเวลา ≥ 15 นาที / Duration ≥ 15 min',
+  c1: 'ระยะเวลา ≥ 10 นาที / Duration ≥ 10 min',
   c2: 'จำนวนรอบ ≥ 4 / Turns ≥ 4',
-  c3: 'Tokens ≥ 800',
+  c3: 'Tokens ≥ 10,000',
   c4: 'คำถามเชิงคลินิก / Clinical Question',
   c5: 'Follow-up เชิงลึก ≥ 2 / Deep Follow-ups ≥ 2',
   c6: 'สรุปการเรียนรู้ / Learning Summary',

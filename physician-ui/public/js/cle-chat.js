@@ -8,7 +8,7 @@ let nextMsgIndex = 0;        // stable per-message index for deterministic artif
 
 // Session minimums (mirror backend/src/services/cle-gate.js Tier-1). We surface PROGRESS toward
 // these so the physician knows when a session is substantive — Socratic mode itself stays hidden.
-const T_TIME = 900, T_TURNS = 4, T_TOKENS = 800;
+const T_TIME = 600, T_TURNS = 4, T_TOKENS = 10000;
 
 // Active-engagement timer: count a second only while the tab is VISIBLE and the
 // physician is actually working — typed/sent within the grace window, or the AI is
@@ -96,10 +96,17 @@ function renderMessage(role, content, refs, socratic, opts) {
       r.appendChild(lab);
       const chips = document.createElement('div');
       chips.className = 'refs-chips';
+      // Citations are inline (Source, Year) text from the AI — no stored URL — so each chip is a link
+      // that opens a web search for that source in a new tab (lets the physician look it up).
       refs.forEach(ref => {
-        const c = document.createElement('span');
+        const label = ref.source ?? ref.title ?? ref;
+        const c = document.createElement('a');
         c.className = 'ref-chip';
-        c.textContent = ref.source ?? ref.title ?? ref;
+        c.textContent = label;
+        c.href = 'https://www.google.com/search?q=' + encodeURIComponent(String(label));
+        c.target = '_blank';
+        c.rel = 'noopener noreferrer';
+        c.title = 'ค้นหาแหล่งอ้างอิงนี้ / Look up this source';
         chips.appendChild(c);
       });
       r.appendChild(chips);
@@ -256,7 +263,7 @@ inputEl.addEventListener('keydown', e => {
 // submitting is irreversible. The deterministic thresholds mirror the backend Tier-1 gate.
 function tierOneGuardBody() {
   const rows = [
-    { met: activeSeconds >= T_TIME, label: 'ระยะเวลา ≥ 15 นาที / Duration ≥ 15 min' },
+    { met: activeSeconds >= T_TIME, label: 'ระยะเวลา ≥ 10 นาที / Duration ≥ 10 min' },
     { met: turns >= T_TURNS,        label: 'จำนวนรอบสนทนา ≥ 4 / Turns ≥ 4' },
     { met: tokenCount >= T_TOKENS,  label: 'ความลึกของบทสนทนา / Conversation depth' },
   ];

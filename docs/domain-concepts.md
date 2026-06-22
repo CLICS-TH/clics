@@ -25,7 +25,7 @@ Composite = Σ(domain × weight) × 20 → 0–100 (`backend/src/services/cle-ga
 
 ## CLE screening criteria (C1–C6)
 
-- **Tier 1 (structural, auto-reject):** C1 duration ≥ 15 min · C2 turns ≥ 4 · C3 tokens ≥ 800 (`computeTier1`).
+- **Tier 1 (structural, auto-reject):** C1 duration ≥ 10 min · C2 turns ≥ 4 · C3 tokens ≥ 10,000 (`computeTier1`).
 - **Tier 2 (content, manual QA on fail):** C4 clinical question present · C5 ≥ 2 deep follow-ups · C6 explicit learning summary (delegated to RIMPL `/evaluate-criteria`).
 
 > Note: **SBMA** and the **Credit Engine** are domain concepts in the spec but are **not yet implemented** in code. ICC and PIS-7 composite scoring **are** implemented.

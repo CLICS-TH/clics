@@ -2,20 +2,20 @@ const { computeTier1, compositeScore, clampDuration } = require('../src/services
 
 describe('computeTier1', () => {
   test('passes when all criteria met', () => {
-    const result = computeTier1({ duration_seconds: 960, turn_count: 5, token_count: 900 });
+    const result = computeTier1({ duration_seconds: 700, turn_count: 5, token_count: 12000 });
     expect(result).toEqual({ c1: true, c2: true, c3: true });
   });
 
-  test('fails c1 when duration < 900s', () => {
-    expect(computeTier1({ duration_seconds: 800, turn_count: 5, token_count: 900 }).c1).toBe(false);
+  test('fails c1 when duration < 600s', () => {
+    expect(computeTier1({ duration_seconds: 500, turn_count: 5, token_count: 12000 }).c1).toBe(false);
   });
 
   test('fails c2 when turn_count < 4', () => {
-    expect(computeTier1({ duration_seconds: 960, turn_count: 3, token_count: 900 }).c2).toBe(false);
+    expect(computeTier1({ duration_seconds: 700, turn_count: 3, token_count: 12000 }).c2).toBe(false);
   });
 
-  test('fails c3 when token_count < 800', () => {
-    expect(computeTier1({ duration_seconds: 960, turn_count: 5, token_count: 700 }).c3).toBe(false);
+  test('fails c3 when token_count < 10000', () => {
+    expect(computeTier1({ duration_seconds: 700, turn_count: 5, token_count: 9000 }).c3).toBe(false);
   });
 
   test('handles missing fields as 0', () => {
@@ -48,7 +48,7 @@ describe('compositeScore', () => {
 
 describe('clampDuration (C1 anti-gaming)', () => {
   test('clamps an inflated client active_seconds to wall-clock', () => {
-    expect(clampDuration(99999, 120)).toBe(120); // a seconds-long session can't claim 15+ min
+    expect(clampDuration(99999, 120)).toBe(120); // a seconds-long session can't claim 10+ min
   });
   test('keeps a legitimate active time below wall-clock', () => {
     expect(clampDuration(840, 1000)).toBe(840); // idle time excluded, under elapsed
@@ -58,8 +58,8 @@ describe('clampDuration (C1 anti-gaming)', () => {
     expect(clampDuration('abc', 950)).toBe(950);
     expect(clampDuration(-5, 950)).toBe(950);
   });
-  test('a clamped fake CANNOT pass C1 while wall-clock is under 900s', () => {
+  test('a clamped fake CANNOT pass C1 while wall-clock is under 600s', () => {
     const duration = clampDuration(100000, 300); // claimed 27h, actually 5 min
-    expect(computeTier1({ duration_seconds: duration, turn_count: 9, token_count: 9000 }).c1).toBe(false);
+    expect(computeTier1({ duration_seconds: duration, turn_count: 9, token_count: 12000 }).c1).toBe(false);
   });
 });
