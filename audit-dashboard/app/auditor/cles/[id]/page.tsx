@@ -132,7 +132,7 @@ export default function AuditorScorePage() {
         </div>
         <div className="space-y-6">
           <div className="border rounded-xl p-5">
-            <h2 className="font-heading text-xl mb-1">การให้คะแนน PIS-7</h2>
+            <h2 className="font-sans text-xl font-semibold mb-1">การให้คะแนน PIS-7</h2>
             <p className="text-xs text-muted-foreground mb-4">แตะระดับ 0–5 ของแต่ละหมวด — ใช้คำอธิบายระดับเป็นเกณฑ์ร่วม / Tap a 0–5 level per domain; the descriptors are the shared scale.</p>
             <DomainScorer scores={scores} onChange={(k,v) => setScores(s => ({...s,[k]:v}))} disabled={submitted} />
             <div className="mt-4 flex items-baseline justify-end gap-2">
