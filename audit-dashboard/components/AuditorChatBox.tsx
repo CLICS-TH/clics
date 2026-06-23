@@ -60,7 +60,7 @@ export function AuditorChatBox({ cleId }: { cleId: string }) {
     <div className="space-y-3 border-t pt-4">
       <h3 className="text-sm font-medium">พูดคุยกับ AI เกี่ยวกับผลการประเมิน / Discuss this evaluation with AI</h3>
       <AuditorUsageBar version={usageVersion} />
-      <div className="max-h-80 overflow-y-auto space-y-3 rounded-lg border bg-background p-3">
+      <div className="h-[32rem] max-h-[70vh] overflow-y-auto space-y-3 rounded-lg border bg-background p-3">
         {msgs.length === 0 && (
           <p className="text-xs text-muted-foreground">
             ถามได้ เช่น “ทำไม AI ให้คะแนนหมวด Critical Appraisal สูงกว่าฉัน?” / Ask e.g. &ldquo;Why did the AI score Critical Appraisal higher than I did?&rdquo;
@@ -78,7 +78,7 @@ export function AuditorChatBox({ cleId }: { cleId: string }) {
       </div>
       {err && <p className="text-xs text-destructive">{err}</p>}
       <div className="flex gap-2">
-        <textarea className="flex-1 border rounded-lg p-2 text-sm" rows={2}
+        <textarea className="flex-1 border rounded-lg p-2 text-sm" rows={3}
           placeholder="พิมพ์คำถาม… / Type your question…" value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
