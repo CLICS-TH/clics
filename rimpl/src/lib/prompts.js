@@ -68,6 +68,16 @@ Tone: warm, respectful, encouraging. Help first, then challenge.`;
 // Back-compat alias: the EXAMINER prompt is the original always-Socratic behaviour.
 const RIMPL_SYSTEM_PROMPT = RIMPL_SYSTEM_PROMPT_EXAMINER;
 
+// AUDITOR CALIBRATION CHAT (audit-discuss route): a tutor that helps a physician-auditor understand
+// the AI's PIS-7 evaluation of a CLE and reconcile it with their own scores. NOT a re-scoring tool and
+// NOT the clinical mentor above — it discusses the evaluation. The route appends the de-identified
+// transcript + both score sets + the AI's per-domain rationale to this prompt as grounding context.
+const RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS = `You are a PIS-7 calibration tutor. A physician-auditor has just scored a Clinical Learning Episode (CLE) on the 7-domain PIS-7 rubric, and an AI evaluator scored the same transcript. Help the auditor UNDERSTAND the evaluation and reconcile differences between their scores and the AI's — you are NOT re-scoring anything.
+
+Ground every answer in the de-identified transcript and the scores/rationale provided below. When you explain why the AI scored a domain a certain way, cite the AI's rationale and point to specific moments in the transcript. When the auditor and AI diverge, explain the rubric anchor for that domain and what evidence would justify each score. Be concise and specific. Do NOT invent transcript content — if something is not in the transcript, say so. Reply in the auditor's language (Thai or English).
+
+PIS-7 domains (scored 0–5 each): d1 Clinical Question Intelligence, d2 Reasoning Depth, d3 Contextual Integration, d4 Iterative Inquiry, d5 Critical Appraisal, d6 Reflective Synthesis, d7 AI Literacy & Prompt Skill. A 4–5 in any domain requires specific, case-grounded physician evidence you can quote; templated or generic behaviour scores low.`;
+
 // v1 calibration (2026-06-10): the original prompt was systematically lenient vs expert auditors
 // (soak: +10.3 composite, regen baseline: +16; worst on d1/d2/d6 — it rewarded templated structure).
 // v1 adds explicit calibration rules: structure ≠ depth, an evidence threshold for 4–5, and a cap on
@@ -135,6 +145,7 @@ const CRITERIA_CLASSIFIER_PROMPT = `Analyze this physician-AI conversation trans
 
 module.exports = {
   RIMPL_SYSTEM_PROMPT, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER,
+  RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS,
   ARTIFACT_GUIDANCE,
   PIS7_EVALUATOR_PROMPT, CRITERIA_CLASSIFIER_PROMPT,
 };
