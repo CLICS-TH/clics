@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useSyncExternalStore } from 'react';
-import { useIsNarrow, useIsNavNarrow } from '@/lib/client-store';
+import { useIsNarrow, useIsNavNarrow, useIsTableNarrow } from '@/lib/client-store';
 
 type View = 'auto' | 'mobile' | 'desktop';
 const ViewportCtx = createContext<{
@@ -62,4 +62,13 @@ export function useIsNavCompact() {
   const { forcedMobile, forcedDesktop } = useViewport();
   const navNarrow = useIsNavNarrow();
   return forcedMobile || (!forcedDesktop && navNarrow);
+}
+
+// Like useIsMobile but with the wider ≤1024px breakpoint, for the densest tables (the admin users
+// list — 8 bilingual columns) whose card fallback must extend through iPad portrait/landscape, not
+// just phones. Respects the forced desktop/mobile toggle exactly like useIsMobile.
+export function useIsTableCompact() {
+  const { forcedMobile, forcedDesktop } = useViewport();
+  const tableNarrow = useIsTableNarrow();
+  return forcedMobile || (!forcedDesktop && tableNarrow);
 }
