@@ -529,9 +529,12 @@ html[data-mobile] .msg-physician,
 html[data-mobile] .msg-assistant { max-width: 90%; }
 html[data-mobile] .conv-row { flex-direction: column; align-items: stretch; gap: 10px; }
 html[data-mobile] .conv-side { justify-content: space-between; }
-html[data-mobile] .conv-move { max-width: none; flex: 1; min-width: 0; }
-/* Let the new-folder input shrink instead of holding a 200px min next to its button on tiny screens. */
-html[data-mobile] .folder-form input { min-width: 0; }
+/* The folder move-select takes its OWN full-width line above the rename/delete icons (order:-1), so the
+   long "— ไม่จัดหมวด / Uncategorized" shows in full instead of truncating next to the buttons. */
+html[data-mobile] .conv-move { max-width: none; flex: 1 1 100%; order: -1; min-width: 0; }
+/* New-folder input takes a full-width line (flex-basis 100%); Create/Cancel wrap to the row below, so the
+   "ชื่อโฟลเดอร์ / Folder name…" placeholder isn't crushed to ~30px next to the buttons. */
+html[data-mobile] .folder-form input { flex: 1 1 100%; min-width: 0; }
 
 /* Slim pre-attribute fallback: a real narrow viewport still gets the overflow-critical rules even
    before `data-mobile` lands (the head snippet sets it pre-paint, so this is belt-and-suspenders). */
@@ -616,7 +619,7 @@ html[data-view="desktop"] body { min-width: 1040px; }
 .icon-btn:hover { color: var(--ink); border-color: var(--muted-soft); }
 .icon-btn svg { width: 18px; height: 18px; display: block; }
 .icon-btn-danger:hover { color: var(--error); border-color: var(--error); }
-.inline-edit { width: 100%; max-width: 420px; font: inherit; font-weight: 600; padding: 5px 9px; border: 1px solid var(--coral); border-radius: var(--r-sm); background: var(--canvas); color: var(--ink); outline: none; box-shadow: 0 0 0 3px var(--coral-ring); }
+.inline-edit { width: 100%; max-width: 420px; min-width: 0; font: inherit; font-weight: 600; padding: 5px 9px; border: 1px solid var(--coral); border-radius: var(--r-sm); background: var(--canvas); color: var(--ink); outline: none; box-shadow: 0 0 0 3px var(--coral-ring); }
 .list-empty { color: var(--muted); text-align: center; padding: 18px; font-size: 14px; }
 
 /* Empty-state: the call-to-action lives IN the void, not only up in the toolbar */
