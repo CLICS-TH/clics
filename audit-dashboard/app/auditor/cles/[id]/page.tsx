@@ -159,7 +159,7 @@ export default function AuditorScorePage() {
               </div>
               {/* Per-domain comparison: where you scored above/below the AI across the 7 PIS-7 axes. */}
               <div>
-                <h3 className="text-sm font-medium mb-1">เทียบรายหมวด PIS-7 / PIS-7 by domain</h3>
+                <h3 className="font-sans text-sm font-medium mb-1">เทียบรายหมวด PIS-7 / PIS-7 by domain</h3>
                 <Pis7Radar ai={data.ai_evaluation} human={scores} />
                 <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(data.ai_evaluation, scores)}</p>
               </div>

@@ -39,10 +39,10 @@ export function Pis7Radar({ ai, human }: { ai: ScoreMap; human: ScoreMap }) {
   return (
     // text-muted-foreground drives currentColor for the grid/axes so they track light/dark mode.
     <div className="text-muted-foreground">
-      <ResponsiveContainer width="100%" height={300}>
-        <RadarChart data={data} outerRadius="68%">
+      <ResponsiveContainer width="100%" height={400}>
+        <RadarChart data={data} outerRadius="78%" margin={{ top: 24, right: 36, bottom: 16, left: 36 }}>
           <PolarGrid stroke="currentColor" strokeOpacity={0.2} />
-          <PolarAngleAxis dataKey="domain" tick={{ fill: 'currentColor', fontSize: 11 }} />
+          <PolarAngleAxis dataKey="domain" tick={{ fill: 'currentColor', fontSize: 12 }} />
           <PolarRadiusAxis domain={[0, 5]} tickCount={6} angle={90} tick={{ fill: 'currentColor', fontSize: 10 }} />
           <Radar name="AI" dataKey="ai" stroke={CHART.ai} fill={CHART.ai} fillOpacity={0.25} strokeWidth={2} />
           <Radar name="คุณ / You" dataKey="you" stroke={CHART.human} fill={CHART.human} fillOpacity={0.25} strokeWidth={2} />

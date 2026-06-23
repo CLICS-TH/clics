@@ -121,7 +121,7 @@ export default function HomePage() {
               Only meaningful once at least one scored CLE has an AI evaluation to pair with (n>0). */}
           {calib && calib.n > 0 && calib.auditor && calib.ai && (
             <div className="rounded-xl border p-5">
-              <h2 className="font-heading text-lg mb-1">การปรับเทียบของคุณ vs AI <span className="text-sm font-normal text-muted-foreground">/ Your calibration vs AI · n={calib.n}</span></h2>
+              <h2 className="font-sans text-lg font-semibold mb-1">การปรับเทียบของคุณ vs AI <span className="text-sm font-normal text-muted-foreground">/ Your calibration vs AI · n={calib.n}</span></h2>
               <p className="text-xs text-muted-foreground mb-3">ค่าเฉลี่ยรายหมวด PIS-7 จาก CLE ที่คุณประเมินแล้ว / Mean PIS-7 by domain across the CLEs you have scored.</p>
               <Pis7Radar ai={calib.ai} human={calib.auditor} />
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(calib.ai, calib.auditor)}</p>
