@@ -460,12 +460,16 @@ html[data-mobile] .artifact-panel.open { transform:translateX(0); }
 .toggle-cluster { display:inline-flex; align-items:center; gap:6px; margin-left:16px; }
 .toggle-cluster-float { position:fixed; top:max(14px, var(--safe-t)); right:max(14px, var(--safe-r)); margin:0; z-index:50; }
 .toggle-btn {
+  display:inline-flex; align-items:center; gap:5px;
   font-family:var(--font-body); font-size:12px; font-weight:600; line-height:1;
   padding:7px 11px; border-radius:var(--r-pill);
   border:1px solid var(--hairline); background:var(--surface-soft); color:var(--muted);
   cursor:pointer; transition:background .15s, color .15s, border-color .15s;
 }
 .toggle-btn:hover { color:var(--ink); border-color:var(--muted-soft); }
+.toggle-btn svg { width:15px; height:15px; flex-shrink:0; }
+/* Icon-only on phones (label would crowd the nav), text shows ≥640px — mirrors the auditor toggle. */
+@media (max-width:639px) { .toggle-btn .toggle-label { display:none; } }
 
 /* ===== Shared responsive primitives (utilities + coarse-pointer floors) ===== */
 /* ONE coarse-pointer rule replaces the scattered per-class `@media (hover:none)` bumps: every
