@@ -5,7 +5,7 @@ import { getUser } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
-import { useIsMobile } from '@/components/ViewportProvider';
+import { useIsMobile, useIsTableCompact } from '@/components/ViewportProvider';
 import { ROLE_LABELS, ACCOUNT_STATUS_MAP, budgetToneHex, roleToUi, roleToWire, POSITION_OPTIONS, positionLabel } from '@/lib/labels';
 import { type ApiResult, formatApiError } from '@/lib/types';
 import { confirmDialog } from '@/components/Overlays';
@@ -95,6 +95,9 @@ export default function UsersPage() {
   const [searchQ, setSearchQ] = useState(''); // debounced value sent as ?q= (server-side filter)
   const [requests, setRequests] = useState<AuditorRequest[]>([]); // pending auditor-role requests
   const mobile = useIsMobile();
+  // The dense 8-column users list needs the card fallback through tablet/iPad (≤1024px), not just
+  // phones — otherwise 768/812px side-scroll it. Other table↔card switches stay on `mobile` (≤767px).
+  const tableAsCards = useIsTableCompact();
 
   // Admins get a read-only view (the dual-role GET /admin/users is council-scoped for them);
   // all mutations + /admin/slots + /admin/usage-settings remain superadmin-only.
@@ -862,7 +865,7 @@ export default function UsersPage() {
         แสดง {users.length} จาก {total} / Showing {users.length} of {total}
       </p>
 
-      {mobile ? (
+      {tableAsCards ? (
         <div className="space-y-3">
           {users.map(u => (
             <div key={u.id} className="rounded-xl border border-border p-4 space-y-2">

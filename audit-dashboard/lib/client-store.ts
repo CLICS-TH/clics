@@ -43,6 +43,23 @@ export function useIsNarrow(): boolean {
   return useSyncExternalStore(narrowSubscribe, narrowSnapshot, () => false);
 }
 
+// The admin users list is the densest table (8 bilingual columns); its card fallback must extend up
+// through iPad portrait/landscape (768/812/1024), not just phones — otherwise tablets side-scroll it.
+// Deliberately separate from the 767px breakpoint above (which still governs every other table↔card).
+const TABLE_NARROW_MQ = '(max-width: 1024px)';
+function tableNarrowSubscribe(cb: () => void) {
+  const mq = window.matchMedia(TABLE_NARROW_MQ);
+  mq.addEventListener('change', cb);
+  return () => mq.removeEventListener('change', cb);
+}
+function tableNarrowSnapshot(): boolean {
+  return window.matchMedia(TABLE_NARROW_MQ).matches;
+}
+/** True when the viewport is ≤1024px (the densest tables should use the card fallback). false on the server. */
+export function useIsTableNarrow(): boolean {
+  return useSyncExternalStore(tableNarrowSubscribe, tableNarrowSnapshot, () => false);
+}
+
 // The desktop nav's full row (8 bilingual links + identity + role badge + 2 toggles + logout) needs
 // ~1536px to fit on ONE line; below that the NavBar collapses to the hamburger (see useIsNavCompact)
 // so the labels never wrap. Deliberately separate from the 767px table↔card breakpoint above.
