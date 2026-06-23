@@ -114,7 +114,7 @@ function AdminClesContent() {
       <PageIntro
         eyebrow="Admin · CLE Management"
         title="จัดการ CLEs ทั้งหมด"
-        subtitle="Manage all Clinical Learning Episodes — มอบหมายให้ผู้ตรวจประเมินเมื่อประเมินผลแล้ว"
+        subtitle="Manage all Continuous Learning Episodes — มอบหมายให้ผู้ตรวจประเมินเมื่อประเมินผลแล้ว"
       />
       <div className="flex gap-2 mb-3 flex-wrap">
         {FILTERS.map(f => (

@@ -95,6 +95,9 @@ window.api = {
   sendMessage: (id, body) => apiFetch(`/cles/${id}/message`, { method: 'POST', body }),
   endPle: (id, body) => apiFetch(`/cles/${id}/end`, { method: 'POST', body }),
   getEvaluation: (id) => apiFetch(`/cles/${id}/evaluation`),
+  // Longitudinal profile snapshots (ascending; last = most recent composite_score). Used by the
+  // LPDP page and the dashboard hero's "latest score" stat.
+  getLpdp: () => apiFetch('/cles/lpdp/me'),
   // Conversation folders
   getFolders: () => apiFetch('/cles/folders'),
   createFolder: (name) => apiFetch('/cles/folders', { method: 'POST', body: { name } }),

@@ -52,7 +52,7 @@ operator** — see the ordering below.
   C1–C3: duration/turns/depth) + a note that AI-judged C4–C6 run on submit + an irreversibility warning.
 - **Onboarding** — Google self-signup now collects council **→ specialty** (cascade); public
   `GET /auth/specialties?council_id=`.
-- **Rename** — the acronym "CLE" is spelled out as **"Clinical Learning Episode"** in physician-portal copy
+- **Rename** — the acronym "CLE" is spelled out as **"Continuous Learning Episode"** in physician-portal copy
   (status codes / `CLE-NNN` pseudonyms / `CLE1·2·3` episode codes untouched).
 
 **Deploy ordering (REQUIRED):** apply `db/migration-specialty.sql` (+ backfill existing TMC users' specialty)
