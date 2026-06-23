@@ -192,11 +192,15 @@ router.post('/cles/:id/discuss', async (req, res) => {
     return res.status(502).json({ error: `RIMPL unavailable: ${err.message}`, code: 'rimpl_unavailable' });
   }
 
+  // Both rows MUST carry the token columns: a heterogeneous array insert unifies the column set, and
+  // PostgREST sends NULL (not DEFAULT) for keys missing on a row — which would violate the not-null
+  // default-0 token columns. So set 0 explicitly on the auditor turn.
   const { error: insErr } = await supabase.from('audit_discussions').insert([
-    { cle_id: req.params.id, auditor_id: req.user.id, role: 'auditor', content: message },
+    { cle_id: req.params.id, auditor_id: req.user.id, role: 'auditor', content: message, input_tokens: 0, output_tokens: 0 },
     { cle_id: req.params.id, auditor_id: req.user.id, role: 'assistant', content: rimplResponse.content,
       input_tokens: rimplResponse.input_tokens ?? 0, output_tokens: rimplResponse.output_tokens ?? 0 },
   ]);
+  if (insErr) console.error('[auditor] audit_discussions insert failed:', insErr.message);
   if (insErr) {
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied, 'auditor'); // not saved — release
     return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
