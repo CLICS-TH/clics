@@ -53,12 +53,16 @@ const UpdateUserSchema = z.object({
   // Bounded: the standard cap is $0.50 (~$0.012/turn), so a fat-fingered 500 (instead of 0.50) would
   // silently un-cap a user — reject it.
   usage_limit_usd: z.number().nonnegative().max(50).nullable().optional(),
+  // Per-user AUDITOR-pool limit override ($) — same bounds/semantics as usage_limit_usd, but on the
+  // separate auditor budget (so a dual-role user's two pools are configured independently).
+  auditor_usage_limit_usd: z.number().nonnegative().max(50).nullable().optional(),
 }).refine((b) => Object.keys(b).length > 0, { message: 'No fields to update' });
 
 const StatusSchema = z.object({ status: z.enum(['active', 'deactivated']) });
 const SlotSchema = z.object({ capacity: z.number().int().min(0).max(100000) });
 const UsageSettingsSchema = z.object({
-  standard_limit_usd: z.number().nonnegative().max(50).optional(),       // per-user default; sanity ceiling
+  standard_limit_usd: z.number().nonnegative().max(50).optional(),       // physician per-user default; sanity ceiling
+  auditor_standard_limit_usd: z.number().nonnegative().max(50).optional(), // auditor-pool per-user default
   api_budget_pool_usd: z.number().nonnegative().max(1_000_000).optional(), // org-wide pool; sanity ceiling
   // Pilot Test Mode: when ON, new CLEs are TEST sessions (is_test), the 3-CLE study cap is bypassed,
   // and the physician may pick Natural/Socratic directly — so the team can exercise the experiment.
@@ -346,23 +350,27 @@ async function readSetting(key, fallback) {
   return Number.isFinite(v) ? v : fallback;
 }
 
+// Total spent so far for a pool = SQL SUM (no whole-table load). Fall back to a JS reduce pre-migration.
+async function poolTotal(sumRpc, col) {
+  const { data: sum, error } = await supabase.rpc(sumRpc);
+  if (!error && sum != null) return Number(sum);
+  const { data: rows } = await supabase.from('professionals').select(col);
+  return (rows ?? []).reduce((acc, r) => acc + Number(r[col] ?? 0), 0);
+}
+
 router.get('/usage-settings', async (_req, res) => {
-  const [standard_limit_usd, api_budget_pool_usd] = await Promise.all([
+  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
+    readSetting('auditor_standard_usage_limit_usd', 0.5),
     readSetting('api_budget_pool_usd', 0),
   ]);
-  // Total spent so far = SQL SUM (no whole-table load). Fall back to the JS reduce pre-migration.
-  let total_used_usd;
-  const { data: sum, error: sumErr } = await supabase.rpc('total_usage_sum');
-  if (!sumErr && sum != null) {
-    total_used_usd = Number(sum);
-  } else {
-    const { data: rows } = await supabase.from('professionals').select('usage_cost_usd');
-    total_used_usd = (rows ?? []).reduce((acc, r) => acc + Number(r.usage_cost_usd ?? 0), 0);
-  }
+  const [total_used_usd, auditor_total_used_usd] = await Promise.all([
+    poolTotal('total_usage_sum', 'usage_cost_usd'),
+    poolTotal('total_auditor_usage_sum', 'auditor_usage_cost_usd'),
+  ]);
   const pilot_test_mode = (await readSetting('pilot_test_mode', 0)) === 1;
   const clinical_artifacts_enabled = (await readSetting('clinical_artifacts', 0)) === 1;
-  res.json({ standard_limit_usd, api_budget_pool_usd, total_used_usd, pilot_test_mode, clinical_artifacts_enabled });
+  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, total_used_usd, auditor_total_used_usd, pilot_test_mode, clinical_artifacts_enabled });
 });
 
 router.patch('/usage-settings', async (req, res) => {
@@ -371,6 +379,7 @@ router.patch('/usage-settings', async (req, res) => {
   const now = new Date().toISOString();
   const upserts = [];
   if (parsed.data.standard_limit_usd != null) upserts.push({ key: 'standard_usage_limit_usd', value: parsed.data.standard_limit_usd, updated_at: now });
+  if (parsed.data.auditor_standard_limit_usd != null) upserts.push({ key: 'auditor_standard_usage_limit_usd', value: parsed.data.auditor_standard_limit_usd, updated_at: now });
   if (parsed.data.api_budget_pool_usd != null) upserts.push({ key: 'api_budget_pool_usd', value: parsed.data.api_budget_pool_usd, updated_at: now });
   if (parsed.data.pilot_test_mode != null) upserts.push({ key: 'pilot_test_mode', value: parsed.data.pilot_test_mode ? 1 : 0, updated_at: now });
   if (parsed.data.clinical_artifacts_enabled != null) upserts.push({ key: 'clinical_artifacts', value: parsed.data.clinical_artifacts_enabled ? 1 : 0, updated_at: now });
@@ -384,13 +393,14 @@ router.patch('/usage-settings', async (req, res) => {
     logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'clinical_artifacts',
       metadata: { enabled: parsed.data.clinical_artifacts_enabled } });
   }
-  const [standard_limit_usd, api_budget_pool_usd] = await Promise.all([
+  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
+    readSetting('auditor_standard_usage_limit_usd', 0.5),
     readSetting('api_budget_pool_usd', 0),
   ]);
   const pilot_test_mode = (await readSetting('pilot_test_mode', 0)) === 1;
   const clinical_artifacts_enabled = (await readSetting('clinical_artifacts', 0)) === 1;
-  res.json({ standard_limit_usd, api_budget_pool_usd, pilot_test_mode, clinical_artifacts_enabled });
+  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot_test_mode, clinical_artifacts_enabled });
 });
 
 // Reset a member's running AI usage meter back to zero (manual-reset escape hatch).
@@ -399,6 +409,16 @@ router.post('/users/:id/reset-usage', async (req, res) => {
     .update({ usage_cost_usd: 0, usage_input_tokens: 0, usage_output_tokens: 0 })
     .eq('id', req.params.id).select('id, usage_cost_usd').maybeSingle();
   if (sendDbError(res, error)) return;              // a real DB/connectivity error is not "not found"
+  if (!data) return res.status(404).json({ error: 'User not found' });
+  res.json(data);
+});
+
+// Reset a member's AUDITOR-pool meter to zero (separate escape hatch for the auditor budget).
+router.post('/users/:id/reset-auditor-usage', async (req, res) => {
+  const { data, error } = await supabase.from('professionals')
+    .update({ auditor_usage_cost_usd: 0, auditor_usage_input_tokens: 0, auditor_usage_output_tokens: 0 })
+    .eq('id', req.params.id).select('id, auditor_usage_cost_usd').maybeSingle();
+  if (sendDbError(res, error)) return;
   if (!data) return res.status(404).json({ error: 'User not found' });
   res.json(data);
 });

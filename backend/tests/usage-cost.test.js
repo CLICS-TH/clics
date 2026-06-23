@@ -42,5 +42,14 @@ test('effectiveLimit: with no override, falls back to the standard default', asy
 
 test('standardLimit: falls back to the constant when app_settings is missing', async () => {
   mockSetting = { data: null, error: null };
-  await expect(standardLimit()).resolves.toBe(0.5);
+  await expect(standardLimit('auditor')).resolves.toBe(0.5); // 'auditor' has no cached value yet
+});
+
+test('effectiveLimit: the auditor pool reads its OWN override column, separate from physician', async () => {
+  // A dual-role user with both columns set — each pool resolves independently.
+  const dual = { usage_limit_usd: 0.25, auditor_usage_limit_usd: 1.5 };
+  await expect(effectiveLimit(dual, 'physician')).resolves.toBe(0.25);
+  await expect(effectiveLimit(dual, 'auditor')).resolves.toBe(1.5);
+  // No auditor override → the auditor standard default (mocked 0.5), NOT the physician override.
+  await expect(effectiveLimit({ usage_limit_usd: 0.25 }, 'auditor')).resolves.toBe(0.5);
 });
