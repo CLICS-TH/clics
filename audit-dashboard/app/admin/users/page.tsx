@@ -20,6 +20,8 @@ type User = {
   specialties?: { name_th: string; name_en: string; code?: string } | null;  // embedded for display
   status?: string; pseudonym?: string | null; council_id?: string | null;
   usage_cost_usd?: number | null; usage_limit_usd?: number | null;
+  // Separate AUDITOR budget pool (auditors + dual-role "Special"); independent of the physician meter.
+  auditor_usage_cost_usd?: number | null; auditor_usage_limit_usd?: number | null;
   can_audit?: boolean | null;          // "Special" dual role: physician + auditor rights
 };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
@@ -79,9 +81,12 @@ export default function UsersPage() {
   const [msg, setMsg] = useState('');
   const [editing, setEditing] = useState<User | null>(null);
   const [editLimit, setEditLimit] = useState('');           // per-user usage limit override ($), '' = standard
+  const [editAuditorLimit, setEditAuditorLimit] = useState(''); // per-user AUDITOR-pool override ($), '' = standard
   const [stdLimit, setStdLimit] = useState('');             // org standard usage limit ($)
+  const [auditorStdLimit, setAuditorStdLimit] = useState(''); // org standard AUDITOR usage limit ($)
   const [poolLimit, setPoolLimit] = useState('');           // total API budget pool ($)
   const [totalUsed, setTotalUsed] = useState(0);            // total spent across all members ($)
+  const [auditorTotalUsed, setAuditorTotalUsed] = useState(0); // total auditor-pool spend across members ($)
   const [total, setTotal] = useState(0);                    // total user count (X-Total-Count)
   const [loadingMore, setLoadingMore] = useState(false);
   const [creating, setCreating] = useState(false);          // create-user request in flight
@@ -163,11 +168,13 @@ export default function UsersPage() {
     setCap(Object.fromEntries((s ?? []).map(x => [x.role, String(x.capacity)])));
     setCouncilSlotsAll(Array.isArray(cs) ? cs : []);
   });
-  const loadUsageSettings = () => apiFetch<{ standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number }>('/admin/usage-settings')
+  const loadUsageSettings = () => apiFetch<{ standard_limit_usd: number; auditor_standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number; auditor_total_used_usd: number }>('/admin/usage-settings')
     .then(d => {
       setStdLimit(d?.standard_limit_usd != null ? String(d.standard_limit_usd) : '');
+      setAuditorStdLimit(d?.auditor_standard_limit_usd != null ? String(d.auditor_standard_limit_usd) : '');
       setPoolLimit(d?.api_budget_pool_usd ? String(d.api_budget_pool_usd) : '');
       setTotalUsed(Number(d?.total_used_usd ?? 0));
+      setAuditorTotalUsed(Number(d?.auditor_total_used_usd ?? 0));
     });
   const loadCouncils = () => apiFetch<Council[]>('/admin/councils').then(d => setCouncils(Array.isArray(d) ? d : []));
   // All specialties (every council) — filtered per-council in each dropdown; small set, fetched once.
@@ -209,10 +216,12 @@ export default function UsersPage() {
   function openEdit(u: User) {
     setEditing(u);
     setEditLimit(u.usage_limit_usd != null ? String(u.usage_limit_usd) : '');
+    setEditAuditorLimit(u.auditor_usage_limit_usd != null ? String(u.auditor_usage_limit_usd) : '');
   }
 
-  // Effective limit shown in the list: per-user override if set, else the org standard.
+  // Effective limit shown in the list: per-user override if set, else the org standard (per pool).
   const effLimit = (u: User) => u.usage_limit_usd != null ? u.usage_limit_usd : (parseFloat(stdLimit) || 0);
+  const effAuditorLimit = (u: User) => u.auditor_usage_limit_usd != null ? u.auditor_usage_limit_usd : (parseFloat(auditorStdLimit) || 0);
 
   async function createUser() {
     setErr('');
@@ -248,7 +257,7 @@ export default function UsersPage() {
     const body: {
       full_name_th: string; full_name_en: string; specialty: string; license_number: string;
       role?: string; council_id?: string | null; can_audit?: boolean; usage_limit_usd?: number | null;
-      specialty_id?: string; position?: string;
+      auditor_usage_limit_usd?: number | null; specialty_id?: string; position?: string;
     } = {
       full_name_th: editing.full_name_th, full_name_en: editing.full_name_en,
       specialty: editing.specialty ?? '', license_number: editing.license_number ?? '',
@@ -273,6 +282,14 @@ export default function UsersPage() {
     if (body.usage_limit_usd != null && (!Number.isFinite(body.usage_limit_usd) || body.usage_limit_usd < 0)) {
       setMsg('ขีดจำกัดไม่ถูกต้อง / Invalid usage limit.'); return;
     }
+    // Auditor-pool override — only meaningful for auditors / dual-role "Special"; same number-or-clear rule.
+    if (editing.role === 'auditor' || editing.can_audit === true) {
+      const at = editAuditorLimit.trim();
+      body.auditor_usage_limit_usd = at === '' ? null : Number(at);
+      if (body.auditor_usage_limit_usd != null && (!Number.isFinite(body.auditor_usage_limit_usd) || body.auditor_usage_limit_usd < 0)) {
+        setMsg('ขีดจำกัดผู้ตรวจไม่ถูกต้อง / Invalid auditor usage limit.'); return;
+      }
+    }
     setSaving(true);
     try {
       const res = await apiFetch<ApiResult<User>>(`/admin/users/${editing.id}`, { method:'PATCH', body: JSON.stringify(body) });
@@ -291,6 +308,15 @@ export default function UsersPage() {
     else setMsg(formatApiError(res?.error, 'บันทึกไม่สำเร็จ / Failed.'));
   }
 
+  async function saveAuditorStdLimit() {
+    setMsg('');
+    const v = parseFloat(auditorStdLimit);
+    if (!Number.isFinite(v) || v < 0) { setMsg('ขีดจำกัดผู้ตรวจมาตรฐานไม่ถูกต้อง / Invalid auditor standard limit.'); return; }
+    const res = await apiFetch<ApiResult<{ auditor_standard_limit_usd: number }>>('/admin/usage-settings', { method:'PATCH', body: JSON.stringify({ auditor_standard_limit_usd: v }) });
+    if (res?.auditor_standard_limit_usd != null) { setMsg('บันทึกขีดจำกัดผู้ตรวจแล้ว / Auditor standard limit saved.'); loadUsageSettings(); loadUsers(); }
+    else setMsg(formatApiError(res?.error, 'บันทึกไม่สำเร็จ / Failed.'));
+  }
+
   async function savePool() {
     setMsg('');
     const v = parseFloat(poolLimit);
@@ -301,6 +327,9 @@ export default function UsersPage() {
   }
 
   async function resetUsage(u: User) {
+    // An auditor row meters the auditor pool, so its reset hits the auditor meter; everyone else
+    // (physician / dual-role "Special") resets the physician meter.
+    const auditorPool = u.role === 'auditor';
     const ok = await confirmDialog({
       title: 'รีเซ็ตการใช้งาน? / Reset usage?',
       body: `รีเซ็ตการใช้งาน AI ของ ${u.full_name_en} เป็น $0? / Reset this member's AI usage to $0?`,
@@ -308,7 +337,8 @@ export default function UsersPage() {
     });
     if (!ok) return;
     setMsg('');
-    const res = await apiFetch<ApiResult<User>>(`/admin/users/${u.id}/reset-usage`, { method:'POST', body: JSON.stringify({}) });
+    const endpoint = auditorPool ? `/admin/users/${u.id}/reset-auditor-usage` : `/admin/users/${u.id}/reset-usage`;
+    const res = await apiFetch<ApiResult<User>>(endpoint, { method:'POST', body: JSON.stringify({}) });
     if (res?.id) { setMsg('รีเซ็ตการใช้งานแล้ว / Usage reset.'); loadUsers(); }
     else setMsg(formatApiError(res?.error, 'รีเซ็ตไม่สำเร็จ / Reset failed.'));
   }
@@ -404,20 +434,24 @@ export default function UsersPage() {
     </span>
   );
 
-  // AI usage meter for a physician: $used / $effective-limit + a thin bar.
+  // AI usage meter: $used / $effective-limit + a thin bar. Physician rows read the physician pool;
+  // auditor rows read the SEPARATE auditor pool. (Dual-role "Special" is role=physician, so the list
+  // shows their physician pool; their auditor override is set in the Edit panel.)
   const UsageCell = ({ u }: { u: User }) => {
-    if (u.role !== 'physician') return <span className="text-xs text-muted-foreground">—</span>;
-    const used = Number(u.usage_cost_usd ?? 0);
+    const pool: 'physician' | 'auditor' | null = u.role === 'physician' ? 'physician' : u.role === 'auditor' ? 'auditor' : null;
+    if (!pool) return <span className="text-xs text-muted-foreground">—</span>;
+    const used = Number((pool === 'auditor' ? u.auditor_usage_cost_usd : u.usage_cost_usd) ?? 0);
     // Admins can't read /admin/usage-settings, so there is no effective limit — show spend only.
     if (!isSuper) return <p className="text-xs tabular-nums text-muted-foreground">${used.toFixed(4)}</p>;
-    const limit = effLimit(u);
+    const limit = pool === 'auditor' ? effAuditorLimit(u) : effLimit(u);
+    const hasOverride = (pool === 'auditor' ? u.auditor_usage_limit_usd : u.usage_limit_usd) != null;
     const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
     const over = limit > 0 && used >= limit;
     const tone = over ? 'bg-destructive' : pct >= 80 ? 'bg-[var(--chart-warn)]' : 'bg-[var(--chart-pass)]';
     return (
       <div className="min-w-[120px]">
         <p className={`text-xs tabular-nums ${over ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
-          ${used.toFixed(4)} / ${limit.toFixed(2)}{u.usage_limit_usd != null ? ' *' : ''}
+          ${used.toFixed(4)} / ${limit.toFixed(2)}{hasOverride ? ' *' : ''}
         </p>
         <div className="h-1.5 mt-1 rounded-full bg-muted overflow-hidden"><div className={`h-full ${tone}`} style={{ width: `${pct}%` }} /></div>
       </div>
@@ -436,7 +470,7 @@ export default function UsersPage() {
   const RowActions = ({ u }: { u: User }) => (
     <div className="inline-flex items-center gap-1.5">
       {u.role === 'physician' && <IconBtn icon={<BarChart3 />} title="คะแนน / Scores" href={`/admin/lpdp/${u.id}`} />}
-      {isSuper && u.role === 'physician' && <IconBtn icon={<RotateCcw />} title="รีเซ็ตการใช้งาน / Reset usage" onClick={() => resetUsage(u)} />}
+      {isSuper && (u.role === 'physician' || u.role === 'auditor') && <IconBtn icon={<RotateCcw />} title="รีเซ็ตการใช้งาน / Reset usage" onClick={() => resetUsage(u)} />}
       {isSuper && <IconBtn icon={<Pencil />} title="แก้ไข / Edit" onClick={() => openEdit(u)} />}
       {isSuper && <IconBtn icon={<Power />} title={u.status === 'deactivated' ? 'เปิดใช้ / Activate' : 'ปิดใช้ / Deactivate'}
         disabled={u.role === 'superadmin'} onClick={() => toggleStatus(u)} />}
@@ -624,7 +658,7 @@ export default function UsersPage() {
       </div>
 
       {/* Standard AI usage limit — default budget per physician (per-user overrides set in Edit). */}
-      <div className="rounded-xl border border-border p-4 mb-6">
+      <div className="rounded-xl border border-border p-4 mb-4">
         <p className="text-sm font-medium">ขีดจำกัดการใช้งาน AI มาตรฐาน / Standard AI usage limit</p>
         <p className="text-xs text-muted-foreground mt-0.5">ใช้กับแพทย์ทุกคนที่ไม่ได้ตั้งค่าเฉพาะราย / Applies to every physician without a per-user override.</p>
         <div className="flex items-center gap-2 mt-2">
@@ -633,6 +667,22 @@ export default function UsersPage() {
             className="w-24 border rounded-md px-2 py-1 text-sm bg-background"
             value={stdLimit} onChange={e => setStdLimit(e.target.value)} />
           <Button variant="outline" className="text-xs px-3 py-1 h-auto" onClick={saveStdLimit}>บันทึก / Save</Button>
+        </div>
+      </div>
+
+      {/* Standard AUDITOR AI usage limit — the separate auditor pool's default (per-user overrides in Edit).
+          Auditors get their own $0.50 credit for the AI discussion chat, independent of physician spend. */}
+      <div className="rounded-xl border border-border p-4 mb-6">
+        <p className="text-sm font-medium">ขีดจำกัด AI ของผู้ตรวจ (มาตรฐาน) / Standard Auditor AI limit</p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          พูลแยกสำหรับผู้ตรวจ — ใช้กับผู้ตรวจทุกคนที่ไม่ได้ตั้งค่าเฉพาะราย (ยอดรวมปัจจุบัน ${auditorTotalUsed.toFixed(4)}) / Separate auditor pool; applies to every auditor without an override (total spent so far ${auditorTotalUsed.toFixed(4)}).
+        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-sm text-muted-foreground">$</span>
+          <input type="number" min={0} step="0.05"
+            className="w-24 border rounded-md px-2 py-1 text-sm bg-background"
+            value={auditorStdLimit} onChange={e => setAuditorStdLimit(e.target.value)} />
+          <Button variant="outline" className="text-xs px-3 py-1 h-auto" onClick={saveAuditorStdLimit}>บันทึก / Save</Button>
         </div>
       </div>
       </>)}
@@ -715,6 +765,15 @@ export default function UsersPage() {
                 placeholder="ขีดจำกัดการใช้งาน AI ($) — เว้นว่าง = ใช้ค่ามาตรฐาน / AI usage limit ($) — blank = standard"
                 onChange={e => setEditLimit(e.target.value)} />
               <p className="text-xs text-muted-foreground mt-1">เว้นว่างเพื่อใช้ค่ามาตรฐาน (${parseFloat(stdLimit) || 0}) / Leave blank to use the standard limit.</p>
+            </div>
+          )}
+          {(editing.role === 'auditor' || editing.can_audit === true) && (
+            <div>
+              <input className="w-full border rounded-lg px-3 py-2 text-sm" type="number" min={0} step="0.05"
+                value={editAuditorLimit}
+                placeholder="ขีดจำกัด AI ผู้ตรวจ ($) — เว้นว่าง = ใช้ค่ามาตรฐาน / Auditor AI limit ($) — blank = standard"
+                onChange={e => setEditAuditorLimit(e.target.value)} />
+              <p className="text-xs text-muted-foreground mt-1">พูลผู้ตรวจแยกต่างหาก — เว้นว่างเพื่อใช้ค่ามาตรฐาน (${parseFloat(auditorStdLimit) || 0}) / Separate auditor pool; blank = standard.</p>
             </div>
           )}
           {editing.role === 'superadmin' ? (

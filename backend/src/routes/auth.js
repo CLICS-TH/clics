@@ -151,10 +151,13 @@ router.get('/me', verifyJwt, async (req, res) => {
   // Attach the effective AI-usage limit so the client can render the usage bar without
   // needing to know the org standard default (usage_cost_usd already flows via req.user).
   const usage_limit_effective_usd = await effectiveLimit(req.user);
+  // The auditor budget is a SEPARATE pool — surface its effective limit too so the dashboard can show
+  // an auditor usage bar (auditor_usage_cost_usd already flows via req.user from select('*')).
+  const auditor_usage_limit_effective_usd = await effectiveLimit(req.user, 'auditor');
   // specialty_name_* powers the nav-bar label; linked_providers drives the "Link Google" affordance.
   const enriched = await attachSpecialty(req.user);
   const linked_providers = await linkedProviders(req.user.id);
-  res.json({ user: { ...enriched, usage_limit_effective_usd, linked_providers } });
+  res.json({ user: { ...enriched, usage_limit_effective_usd, auditor_usage_limit_effective_usd, linked_providers } });
 });
 
 // A physician asks to ALSO become an auditor (the "special" dual role). Creates a pending
