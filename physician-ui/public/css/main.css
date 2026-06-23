@@ -278,7 +278,7 @@ body:has(.chat-page) nav { flex:none; }
 .msg-assistant strong { font-weight:700; color:var(--ink); }
 .msg-assistant hr { border:none; border-top:1px solid var(--hairline); margin:16px 0; }
 .msg-assistant code { background:var(--canvas); border:1px solid var(--hairline); padding:1px 6px; border-radius:5px; font-family:var(--font-mono); font-size:0.88em; overflow-wrap:anywhere; }
-.msg-assistant pre { overflow-x:auto; margin:12px 0; }
+.msg-assistant pre { overflow-x:auto; max-width:100%; margin:12px 0; }
 .msg-assistant pre code { display:block; padding:12px 14px; white-space:pre; overflow-wrap:normal; }
 /* A wide table must scroll inside the bubble, never stretch the message past the viewport on a phone. */
 .msg-assistant table { display:block; width:100%; max-width:100%; overflow-x:auto; border-collapse:collapse; margin:12px 0; font-size:13px; }
@@ -400,7 +400,7 @@ body:has(.chat-page) nav { flex:none; }
 .artifact-body li { margin:6px 0; }
 .artifact-body li::marker { color:var(--coral); }
 .artifact-body code { background:var(--canvas); border:1px solid var(--hairline); padding:1px 6px; border-radius:5px; font-family:var(--font-mono); font-size:0.88em; }
-.artifact-body pre { overflow-x:auto; margin:12px 0; }
+.artifact-body pre { overflow-x:auto; max-width:100%; margin:12px 0; }
 /* Reuse the message table look; tables scroll inside the panel, never stretch it. */
 .artifact-body table { display:block; width:100%; max-width:100%; overflow-x:auto; border-collapse:collapse; margin:12px 0; font-size:13px; }
 .artifact-body th, .artifact-body td { border:1px solid var(--hairline); padding:8px 11px; text-align:left; vertical-align:top; }
@@ -529,7 +529,7 @@ html[data-mobile] .msg-physician,
 html[data-mobile] .msg-assistant { max-width: 90%; }
 html[data-mobile] .conv-row { flex-direction: column; align-items: stretch; gap: 10px; }
 html[data-mobile] .conv-side { justify-content: space-between; }
-html[data-mobile] .conv-move { max-width: none; flex: 1; }
+html[data-mobile] .conv-move { max-width: none; flex: 1; min-width: 0; }
 /* Let the new-folder input shrink instead of holding a 200px min next to its button on tiny screens. */
 html[data-mobile] .folder-form input { min-width: 0; }
 
@@ -607,12 +607,12 @@ html[data-view="desktop"] body { min-width: 1040px; }
 .conv-title { font-weight: 600; margin-bottom: 4px; overflow-wrap: anywhere; }
 .conv-meta { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
 .conv-side { display: flex; align-items: center; gap: 10px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
-.conv-actions { display: flex; align-items: center; gap: 6px; }
-.conv-move { max-width: 170px; min-height: 44px; padding: 6px 10px; border: 1px solid var(--hairline); border-radius: var(--r-sm); font-size: 13px; font-family: var(--font-body); background: var(--canvas); color: var(--ink); outline: none; }
+.conv-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.conv-move { max-width: 170px; min-width: 0; min-height: 44px; padding: 6px 10px; border: 1px solid var(--hairline); border-radius: var(--r-sm); font-size: 13px; font-family: var(--font-body); background: var(--canvas); color: var(--ink); outline: none; }
 .conv-move:focus { border-color: var(--coral); box-shadow: 0 0 0 3px var(--coral-ring); }
 
 /* ≥44px touch targets (WCAG 2.5.5) — was 30px, easy to mis-tap delete on a phone */
-.icon-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 8px; background: var(--surface-soft); border: 1px solid var(--hairline); border-radius: var(--r-sm); cursor: pointer; line-height: 1; color: var(--muted); transition: background .15s, color .15s, border-color .15s; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; min-width: 44px; min-height: 44px; padding: 8px; background: var(--surface-soft); border: 1px solid var(--hairline); border-radius: var(--r-sm); cursor: pointer; line-height: 1; color: var(--muted); transition: background .15s, color .15s, border-color .15s; }
 .icon-btn:hover { color: var(--ink); border-color: var(--muted-soft); }
 .icon-btn svg { width: 18px; height: 18px; display: block; }
 .icon-btn-danger:hover { color: var(--error); border-color: var(--error); }
