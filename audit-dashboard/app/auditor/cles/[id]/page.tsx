@@ -10,6 +10,7 @@ import { computeComposite } from '@/lib/labels';
 import { PIS7_RUBRIC } from '@/lib/pis7-rubric';
 import { Pis7Radar } from '@/components/Pis7Radar';
 import { pis7Conclusion } from '@/lib/pis7-delta';
+import { AuditorChatBox } from '@/components/AuditorChatBox';
 import { confirmDialog, toast } from '@/components/Overlays';
 import type { AuditorPle, ApiResult } from '@/lib/types';
 import { Check } from 'lucide-react';
@@ -162,6 +163,8 @@ export default function AuditorScorePage() {
                 <Pis7Radar ai={data.ai_evaluation} human={scores} />
                 <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(data.ai_evaluation, scores)}</p>
               </div>
+              {/* Discuss the evaluation with an AI tutor — metered against the auditor's own pool. */}
+              <AuditorChatBox cleId={id} />
             </div>
           )}
         </div>

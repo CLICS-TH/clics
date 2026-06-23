@@ -29,6 +29,7 @@ app.use((req, res, next) => {
 app.use('/chat', require('./routes/chat'));
 app.use('/evaluate', require('./routes/evaluate'));
 app.use('/evaluate-criteria', require('./routes/evaluate-criteria'));
+app.use('/audit-discuss', require('./routes/audit-discuss'));
 
 if (require.main === module) {
   const PORT = process.env.PORT || 3003;

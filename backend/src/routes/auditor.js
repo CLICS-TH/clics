@@ -1,10 +1,13 @@
 const { Router } = require('express');
+const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { ScoreSchema } = require('../lib/schemas');
 const { compositeScore } = require('../services/cle-gate');
 const { computeICC21 } = require('../services/icc');
 const { logEvent } = require('../lib/audit');
+const { effectiveLimit, reserveUsage, settleUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
+const { rimplAuditDiscuss } = require('../services/rimpl-client');
 
 // Auditors must record their confidentiality + COI consent (Appendix 04/15) before scoring — the
 // same consented_at signal physicians use, set via POST /auth/consent {context:'auditor'}.
@@ -120,6 +123,96 @@ router.get('/icc', async (req, res) => {
 
   const iccResult = computeICC21(pairs);
   res.json(iccResult ?? { icc: null, n: pairs.length });
+});
+
+// ── Auditor AI discussion chat ───────────────────────────────────────────────────────────────────
+// After scoring, an auditor may chat with an AI calibration tutor about the evaluation. Metered
+// against the SEPARATE auditor budget pool (so a dual-role user's physician budget is untouched).
+const DiscussMsgSchema = z.object({
+  message: z.string().min(1).max(4000),
+  language: z.enum(['th', 'en']).default('th'),
+});
+
+router.post('/cles/:id/discuss', requireAuditorConsent, async (req, res) => {
+  const parsed = DiscussMsgSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  const { data: cle } = await supabase
+    .from('cles').select('id, auditor_id, council_id, physician_id').eq('id', req.params.id).single();
+  if (!cle) return res.status(404).json({ error: 'Not found' });
+  if (cle.auditor_id !== req.user.id) return res.status(403).json({ error: 'Not assigned to you' });
+
+  // Blind-audit gate: discussion only AFTER the auditor has submitted their score AND an AI eval exists
+  // (the discussion reveals AI per-domain scores + rationale, so it must never precede scoring).
+  const { data: auditScore } = await supabase.from('audit_scores')
+    .select('d1, d2, d3, d4, d5, d6, d7, composite_score')
+    .eq('cle_id', req.params.id).eq('auditor_id', req.user.id).single();
+  if (!auditScore) return res.status(403).json({ error: 'Score this session before discussing it.', code: 'score_required' });
+  const { data: aiEval } = await supabase.from('ai_evaluations')
+    .select('d1, d2, d3, d4, d5, d6, d7, composite_score, domain_rationale')
+    .eq('cle_id', req.params.id).order('evaluated_at', { ascending: true }).limit(1).maybeSingle();
+  if (!aiEval) return res.status(409).json({ error: 'No AI evaluation available to discuss yet.' });
+
+  const { message, language } = parsed.data;
+
+  // Reserve against the AUDITOR pool before the paid call; reconcile on success, refund on failure.
+  const limit = await effectiveLimit(req.user, 'auditor');
+  const reservation = await reserveUsage(req.user.id, limit, RESERVE_ESTIMATE_USD, 'auditor');
+  if (!reservation.ok) {
+    return res.status(403).json({
+      error: `Auditor AI usage limit reached ($${limit.toFixed(2)}). Contact an administrator.`,
+      code: 'budget_exceeded',
+    });
+  }
+
+  // Transcript (de-identified on-prem by RIMPL), patient_ref (scrub hints only), prior discussion turns.
+  const { data: transcript } = await supabase.from('messages')
+    .select('role, content').eq('cle_id', req.params.id).order('created_at');
+  const { data: pref } = await supabase.from('cle_patient_refs')
+    .select('patient_ref').eq('cle_id', req.params.id).maybeSingle();
+  const { data: prior } = await supabase.from('audit_discussions')
+    .select('role, content').eq('cle_id', req.params.id).eq('auditor_id', req.user.id).order('created_at');
+
+  let rimplResponse;
+  try {
+    rimplResponse = await rimplAuditDiscuss({
+      history: (prior ?? []).map(p => ({ role: p.role, content: p.content })),
+      message, language,
+      transcript: transcript ?? [],
+      ai_scores: { d1: aiEval.d1, d2: aiEval.d2, d3: aiEval.d3, d4: aiEval.d4, d5: aiEval.d5, d6: aiEval.d6, d7: aiEval.d7, composite_score: aiEval.composite_score },
+      ai_rationale: aiEval.domain_rationale ?? null,
+      auditor_scores: auditScore,
+      patient_ref: pref?.patient_ref ?? null, // scrubbed on-prem; never reaches the cloud
+    });
+  } catch (err) {
+    await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied, 'auditor');
+    return res.status(502).json({ error: `RIMPL unavailable: ${err.message}`, code: 'rimpl_unavailable' });
+  }
+
+  const { error: insErr } = await supabase.from('audit_discussions').insert([
+    { cle_id: req.params.id, auditor_id: req.user.id, role: 'auditor', content: message },
+    { cle_id: req.params.id, auditor_id: req.user.id, role: 'assistant', content: rimplResponse.content,
+      input_tokens: rimplResponse.input_tokens ?? 0, output_tokens: rimplResponse.output_tokens ?? 0 },
+  ]);
+  if (insErr) {
+    await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied, 'auditor'); // not saved — release
+    return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
+  }
+
+  await settleUsage(req.user.id, RESERVE_ESTIMATE_USD, rimplResponse.input_tokens ?? 0, rimplResponse.output_tokens ?? 0, reservation.applied, 'auditor');
+  logEvent({ actorId: req.user.id, actorRole: 'auditor', action: 'audit.discuss', targetType: 'cle',
+    targetId: req.params.id, councilId: cle.council_id });
+
+  res.json({ content: rimplResponse.content });
+});
+
+router.get('/cles/:id/discussion', async (req, res) => {
+  // Only the assigned auditor may read their own discussion thread.
+  const { data: cle } = await supabase.from('cles').select('id, auditor_id').eq('id', req.params.id).single();
+  if (!cle || cle.auditor_id !== req.user.id) return res.status(404).json({ error: 'Not found or not assigned' });
+  const { data } = await supabase.from('audit_discussions')
+    .select('role, content, created_at').eq('cle_id', req.params.id).eq('auditor_id', req.user.id).order('created_at');
+  res.json(data ?? []);
 });
 
 // Per-dimension calibration: this auditor's MEAN PIS-7 (d1–d7) vs the AI's MEAN, across the CLEs

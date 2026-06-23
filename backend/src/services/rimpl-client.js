@@ -39,6 +39,20 @@ async function rimplChat({ cle_id, history, message, language, chief_complaint, 
   return res.json();
 }
 
+// Auditor calibration chat: discuss a CLE's AI evaluation vs the auditor's own scores. The transcript
+// is sent so RIMPL can de-identify it on-prem before the cloud call (stored raw); patient_ref gives
+// the scrub hints. Metered against the auditor's SEPARATE budget pool by the caller.
+async function rimplAuditDiscuss({ history, message, language, transcript, ai_scores, ai_rationale, auditor_scores, patient_ref }) {
+  const res = await fetch(`${RIMPL_URL}/audit-discuss`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
+    body: JSON.stringify({ history, message, language, transcript, ai_scores, ai_rationale, auditor_scores, patient_ref }),
+    signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
+  });
+  if (!res.ok) throw rimplError('/audit-discuss', res.status);
+  return res.json();
+}
+
 async function rimplEvaluate({ cle_id, transcript, patient_ref }) {
   const res = await fetch(`${RIMPL_URL}/evaluate`, {
     method: 'POST',
@@ -77,4 +91,4 @@ async function probeRimplDeep({ timeoutMs = HEALTH_PROBE_TIMEOUT_MS } = {}) {
   return { httpStatus: res.status, body };
 }
 
-module.exports = { rimplChat, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep };
+module.exports = { rimplChat, rimplAuditDiscuss, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep };
