@@ -1,6 +1,6 @@
 # START HERE
 
-New to CLICS? This is the on-ramp. **CLICS** (Clinical Learning & Intelligence Credit System) scores a
+New to CLICS? This is the on-ramp. **CLICS** (Continuous Learning & Intelligence Credit System) scores a
 physician's clinical reasoning from a physician–AI dialogue session (a **CLE**) to replace
 attendance-based CME/CPD credit — an on-premise pilot for a Thai medical licensing body (Aug–Sep 2026).
 

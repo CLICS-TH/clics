@@ -2,7 +2,7 @@
 
 | Term | Meaning |
 |------|---------|
-| **CLE** | Clinical Learning Episode — a single physician–AI dialogue session (the protocol's unit of analysis) |
+| **CLE** | Continuous Learning Episode — a single physician–AI dialogue session (the protocol's unit of analysis) |
 | **PIS-7** | 7-domain scoring rubric (0–5 per domain) used to evaluate physician reasoning quality in a CLE |
 | **RIMPL** | On-premise middleware: pre-filters prompts, strips PII, injects anti-sycophancy + ELM signals |
 | **SBMA** | Score Behavior Matching Algorithm — matches CLE patterns to scoring profiles |

@@ -10,8 +10,11 @@ import { getUser } from '@/lib/auth';
 import { DOMAIN_KEYS, DOMAIN_LABELS, ROLE_LABELS, cleStatusCards, budgetToneHex } from '@/lib/labels';
 import { CHART } from '@/lib/chart-colors';
 import { PageIntro } from '@/components/PageIntro';
+import { RoleBadge } from '@/components/RoleBadge';
+import { StatStrip, type Stat } from '@/components/StatStrip';
 import { IccPanel } from '@/components/IccPanel';
 import { Skeleton, CardGridSkeleton } from '@/components/Skeleton';
+import { useAuthUser } from '@/lib/client-store';
 import type { CleStats } from '@/lib/types';
 
 // ---- API shapes (verified against backend/src/routes/admin.js + superadmin.js) ----
@@ -31,6 +34,7 @@ type Invite = { id: string; email: string; status: string };
 
 export default function OverviewPage() {
   const router = useRouter();
+  const me = useAuthUser();
   const [stats, setStats] = useState<CleStats | null>(null);
   const [icc, setIcc] = useState<IccData | null>(null);
   const [slots, setSlots] = useState<Slot[] | null>(null);
@@ -52,7 +56,12 @@ export default function OverviewPage() {
   }, [router]);
 
   // ---- ① Headline cards — the shared /admin/stats card set (reconciles to the total) ----
-  const headline = cleStatusCards(stats);
+  const greeting = `สวัสดี, ${me ? (me.full_name_th || me.full_name_en) : ''}`;
+  const headlineStats: Stat[] = cleStatusCards(stats).map(c => ({
+    value: c.value,
+    label: c.label,
+    href: `/admin/cles${c.key ? `?status=${c.key}` : ''}`,
+  }));
 
   // ---- ② Per-domain chart data ----
   const domainData = icc
@@ -104,24 +113,16 @@ export default function OverviewPage() {
     <div className="mx-auto w-full max-w-5xl p-6 md:p-10 space-y-8">
       <PageIntro
         eyebrow="Superadmin · Executive Overview"
-        title="ภาพรวมผู้บริหาร"
-        subtitle="Executive overview — สถานะ pilot ทั้งระบบในหน้าเดียว: CLEs · calibration · สภาวิชาชีพ · capacity · budget"
+        title={greeting}
+        subtitle="ภาพรวมผู้บริหาร — สถานะ pilot ทั้งระบบในหน้าเดียว: CLEs · calibration · สภาวิชาชีพ · capacity · budget / Executive overview — the whole pilot on one page."
+        action={<RoleBadge />}
       />
 
       {/* ① Headline CLE cards — each drills into /admin/cles filtered by its bucket. */}
       <section>
-        {stats ? (
-          <div className="grid grid-cols-2 gap-4 @min-[480px]:grid-cols-3 @min-[768px]:grid-cols-5">
-            {headline.map(c => (
-              <a key={c.label} href={`/admin/cles${c.key ? `?status=${c.key}` : ''}`}
-                className="block rounded-xl border p-5 text-center transition-colors hover:bg-secondary hover:border-primary/40 cursor-pointer"
-                title="คลิกเพื่อดูรายชื่อในหมวดนี้ / Click to explore this category">
-                <p className="text-4xl font-bold text-primary tabular-nums">{c.value}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{c.label}</p>
-              </a>
-            ))}
-          </div>
-        ) : <CardGridSkeleton cards={5} />}
+        {stats
+          ? <StatStrip stats={headlineStats} className="grid grid-cols-2 gap-4 @min-[480px]:grid-cols-3 @min-[768px]:grid-cols-5" />
+          : <CardGridSkeleton cards={5} />}
       </section>
 
       {/* ② Calibration hero — overall ICC + gate badge beside the per-domain bar chart. */}

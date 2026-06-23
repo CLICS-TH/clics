@@ -1,6 +1,6 @@
 # CLICS — Feature & Status Report for Management
 
-**CLICS** (Clinical Learning & Intelligence Credit System) scores a physician's **clinical reasoning** from a real conversation with an AI tutor, to replace attendance-based CME/CPD credit. This report summarises what the platform does today, what was built this cycle, and what remains before live participant testing.
+**CLICS** (Continuous Learning & Intelligence Credit System) scores a physician's **clinical reasoning** from a real conversation with an AI tutor, to replace attendance-based CME/CPD credit. This report summarises what the platform does today, what was built this cycle, and what remains before live participant testing.
 
 > **สรุปผู้บริหาร / Executive summary:** ระบบพร้อมใช้งานในระดับวิศวกรรมแล้ว — แพทย์สนทนากับ AI, ระบบให้คะแนนการให้เหตุผลทางคลินิก (PIS-7), และผู้ตรวจประเมินอิสระให้คะแนนคู่ขนานเพื่อตรวจสอบความน่าเชื่อถือ. รอบนี้เพิ่มระบบสมัคร/เข้าสู่ระบบที่ปลอดภัย (Google + คำเชิญ), หน้าเข้าสู่ระบบเดียว, บทบาทพิเศษ (แพทย์และผู้ตรวจ), และผ่านการทดสอบ end-to-end และโหลด. **สิ่งที่เหลือเป็นเรื่ององค์กร** (จริยธรรมการวิจัย IRB, การปรับเทียบคะแนนกับผู้เชี่ยวชาญในเดือนกรกฎาคม) ไม่ใช่งานวิศวกรรม. **คะแนนยังเป็นเบื้องต้น ยังไม่นับเป็นหน่วยกิต** จนกว่าจะปรับเทียบเสร็จ.
 

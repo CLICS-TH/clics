@@ -580,6 +580,14 @@ html[data-view="desktop"] body { min-width: 1040px; }
 .page-intro h1 { font-family: var(--font-display); font-size: clamp(1.6875rem, 1.3rem + 2.1vw, 2.3125rem); line-height: 1.06; font-weight: 600; letter-spacing: -0.022em; color: var(--ink); }
 .page-intro .sub { color: var(--muted); font-size: 14px; margin-top: 9px; max-width: 62ch; overflow-wrap: anywhere; }
 
+/* ===== Hero stat strip (dashboard "at a glance") — mirrors the auditor StatStrip ===== */
+.hero-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 18px 0 22px; }
+html[data-mobile] .hero-stats { grid-template-columns: repeat(2, 1fr); }
+.stat-card { border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface-card); padding: 16px 14px 14px; text-align: center; min-width: 0; }
+:root[data-theme="dark"] .stat-card { background: var(--surface-soft); }
+.stat-card .stat-value { font-family: var(--font-display); font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.1rem); font-weight: 600; line-height: 1.05; color: var(--coral); font-variant-numeric: tabular-nums; }
+.stat-card .stat-label { margin-top: 4px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+
 /* ===== Dashboard toolbar + new-folder form ===== */
 .dash-toolbar { display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; margin-bottom: 18px; }
 .folder-form { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }

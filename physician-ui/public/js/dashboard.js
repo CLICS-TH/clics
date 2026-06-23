@@ -105,6 +105,44 @@ document.getElementById('greeting').textContent = `สวัสดี, ${user.fu
 // Rendering lives in the shared helper (js/usage.js) so the dashboard and chat page match.
 renderUsageBar(document.getElementById('usageBar'));
 
+// ---- At-a-glance hero stats (mirrors the auditor StatStrip: a row of key numbers) ----
+// Total + Passed come from the loaded CLE list; Latest score from the LPDP timeline; AI used %
+// from the same /auth/me figures the usage bar uses. All derive from existing endpoints.
+async function renderHeroStats() {
+  const host = document.getElementById('heroStats');
+  if (!host) return;
+  const total = cles.length;
+  const passed = cles.filter(p => p.status === 'cle_pass').length;
+
+  let latest = '—'; // most recent composite (0–100), '—' until a CLE passes
+  try {
+    const lpdp = await api.getLpdp();
+    if (Array.isArray(lpdp) && lpdp.length) latest = Math.round(lpdp[lpdp.length - 1].composite_score);
+  } catch { /* leave '—' */ }
+
+  let aiPct = '—';
+  try {
+    const me = await api.me();
+    const u = me && me.user;
+    const limit = Number(u && u.usage_limit_effective_usd);
+    if (u && Number.isFinite(limit) && limit > 0) {
+      const used = Number(u.usage_cost_usd != null ? u.usage_cost_usd : 0);
+      aiPct = Math.min(100, Math.round((used / limit) * 100)) + '%';
+    }
+  } catch { /* leave '—' */ }
+
+  const cards = [
+    { value: total, label: 'บทเรียนทั้งหมด / Total' },
+    { value: passed, label: 'ผ่านแล้ว / Passed' },
+    { value: latest, label: 'คะแนนล่าสุด / Latest score' },
+    { value: aiPct, label: 'ใช้ AI / AI used' },
+  ];
+  host.innerHTML = cards.map(c =>
+    `<div class="stat-card"><p class="stat-value">${esc(String(c.value))}</p><p class="stat-label">${c.label}</p></div>`
+  ).join('');
+  host.hidden = false;
+}
+
 // ---- Dual-role: auditor-console shortcut / request-auditor button (header slot) ----
 // can_audit physicians get a direct link to the auditor console; plain physicians can
 // request the role (POST /auth/request-auditor → admin approval). GET drives initial state.
@@ -209,7 +247,7 @@ function persistCollapsed(set) {
 }
 
 function convTitle(p) {
-  return p.title || p.chief_complaint || `Clinical Learning Episode ${new Date(p.started_at).toLocaleDateString('th-TH')}`;
+  return p.title || p.chief_complaint || `Continuous Learning Episode ${new Date(p.started_at).toLocaleDateString('th-TH')}`;
 }
 
 function folderOptions(currentId) {
@@ -275,9 +313,9 @@ function render() {
     // The call-to-action lives IN the void, where the eye lands — not only up in the toolbar.
     listEl.innerHTML = `
       <div class="empty-state">
-        <h3>ยังไม่มี Clinical Learning Episode</h3>
-        <p>เริ่มบทเรียนทางคลินิกแรกของคุณได้เลย / Start your first clinical learning episode.</p>
-        <a href="/cle-new" class="btn btn-primary btn-lg">+ เริ่ม Clinical Learning Episode ใหม่<span class="bi-en">New Clinical Learning Episode</span></a>
+        <h3>ยังไม่มี Continuous Learning Episode</h3>
+        <p>เริ่มบทเรียนต่อเนื่องแรกของคุณได้เลย / Start your first Continuous Learning Episode.</p>
+        <a href="/cle-new" class="btn btn-primary btn-lg">+ เริ่ม Continuous Learning Episode ใหม่<span class="bi-en">New Continuous Learning Episode</span></a>
       </div>`;
     return;
   }
@@ -456,6 +494,7 @@ async function load() {
   folders = f;
   cles = p;
   render();
+  renderHeroStats(); // fire-and-forget; computes from the freshly loaded list + LPDP/usage
 }
 
 load().catch(() => {

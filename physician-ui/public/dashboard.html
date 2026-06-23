@@ -30,7 +30,7 @@
       </div>
       <!-- Specialty · position label under the name (filled by dashboard.js from the cached user). -->
       <p class="sub" id="identityLine" style="display:none;margin-top:-.35rem"></p>
-      <p class="sub">Clinical Learning Episodes ของคุณ — จัดระเบียบด้วยโฟลเดอร์ / Organize your episodes in folders</p>
+      <p class="sub">Continuous Learning Episodes ของคุณ — จัดระเบียบด้วยโฟลเดอร์ / Organize your episodes in folders</p>
       <!-- Shown only when the account hasn't linked Google yet (dashboard.js toggles it). -->
       <div id="linkGoogleWrap" style="display:none;margin-top:.5rem">
         <button class="btn btn-ghost btn-sm" id="linkGoogleBtn" type="button" data-icon="google">เชื่อมบัญชี Google<span class="bi-en">Link Google account</span></button>
@@ -38,11 +38,14 @@
       </div>
     </header>
 
+    <!-- At-a-glance hero stats (filled by dashboard.js; hidden until populated). -->
+    <div id="heroStats" class="hero-stats" hidden></div>
+
     <div id="usageBar"></div>
 
     <div class="dash-toolbar">
       <button class="btn btn-ghost" id="newFolderBtn" type="button">+ โฟลเดอร์ใหม่<span class="bi-en">New folder</span></button>
-      <a href="/cle-new" class="btn btn-primary">+ เริ่ม Clinical Learning Episode ใหม่<span class="bi-en">New Clinical Learning Episode</span></a>
+      <a href="/cle-new" class="btn btn-primary">+ เริ่ม Continuous Learning Episode ใหม่<span class="bi-en">New Continuous Learning Episode</span></a>
     </div>
     <form class="folder-form" id="newFolderForm" hidden>
       <input id="newFolderName" type="text" maxlength="80" placeholder="ชื่อโฟลเดอร์ / Folder name…" autocomplete="off" />
