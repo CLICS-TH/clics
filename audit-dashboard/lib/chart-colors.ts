@@ -7,4 +7,8 @@ export const CHART = {
   fail: "#c64545",
   threshold: "#e8a55a",
   warn: "#e08a1e", // saturated amber for budget/usage-meter fills (also lib/labels.ts budgetToneHex)
+  // Two-series comparison (PIS-7 auditor-vs-AI radar): coral = the human auditor ("you", matches
+  // --primary), slate-blue = the AI — distinct from the pass/fail/warn semantics above.
+  human: "#cc785c",
+  ai: "#5b7fb9",
 } as const;

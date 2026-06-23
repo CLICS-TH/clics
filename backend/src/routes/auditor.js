@@ -122,4 +122,34 @@ router.get('/icc', async (req, res) => {
   res.json(iccResult ?? { icc: null, n: pairs.length });
 });
 
+// Per-dimension calibration: this auditor's MEAN PIS-7 (d1–d7) vs the AI's MEAN, across the CLEs
+// they've scored that also have an AI evaluation (same pairing as /icc, but per-domain means instead
+// of a composite ICC). Powers the aggregate radar on the auditor home hero. n=0 → nothing to plot.
+const CALIB_DIMS = ['d1','d2','d3','d4','d5','d6','d7'];
+router.get('/calibration', async (req, res) => {
+  const { data: audits } = await supabase
+    .from('audit_scores').select('cle_id, d1, d2, d3, d4, d5, d6, d7').eq('auditor_id', req.user.id);
+  if (!audits?.length) return res.json({ n: 0, auditor: null, ai: null });
+
+  const cleIds = audits.map(a => a.cle_id);
+  const { data: aiRows } = await supabase
+    .from('ai_evaluations').select('cle_id, d1, d2, d3, d4, d5, d6, d7').in('cle_id', cleIds);
+  const aiById = new Map((aiRows ?? []).map(r => [r.cle_id, r]));
+
+  const sumA = Object.fromEntries(CALIB_DIMS.map(d => [d, 0]));
+  const sumAi = Object.fromEntries(CALIB_DIMS.map(d => [d, 0]));
+  let n = 0;
+  for (const a of audits) {
+    const ai = aiById.get(a.cle_id);
+    if (!ai) continue; // only pairs with a matching AI evaluation count (mirrors /icc)
+    n++;
+    for (const d of CALIB_DIMS) { sumA[d] += Number(a[d] || 0); sumAi[d] += Number(ai[d] || 0); }
+  }
+  if (!n) return res.json({ n: 0, auditor: null, ai: null });
+
+  const auditor = Object.fromEntries(CALIB_DIMS.map(d => [d, sumA[d] / n]));
+  const ai = Object.fromEntries(CALIB_DIMS.map(d => [d, sumAi[d] / n]));
+  res.json({ n, auditor, ai });
+});
+
 module.exports = router;
