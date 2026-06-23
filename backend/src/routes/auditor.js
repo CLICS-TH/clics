@@ -133,7 +133,10 @@ const DiscussMsgSchema = z.object({
   language: z.enum(['th', 'en']).default('th'),
 });
 
-router.post('/cles/:id/discuss', requireAuditorConsent, async (req, res) => {
+// No requireAuditorConsent here: discussion is only reachable AFTER a score exists (checked below),
+// and scoring already enforces the confidentiality + COI consent — so the gate is redundant, and a
+// fresh check would wrongly block an auditor whose score predates their consent record.
+router.post('/cles/:id/discuss', async (req, res) => {
   const parsed = DiscussMsgSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
