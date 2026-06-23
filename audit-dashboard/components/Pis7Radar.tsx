@@ -40,7 +40,10 @@ export function Pis7Radar({ ai, human }: { ai: ScoreMap; human: ScoreMap }) {
     // text-muted-foreground drives currentColor for the grid/axes so they track light/dark mode.
     <div className="text-muted-foreground">
       <ResponsiveContainer width="100%" height={400}>
-        <RadarChart data={data} outerRadius="78%" margin={{ top: 24, right: 36, bottom: 16, left: 36 }}>
+        {/* Generous horizontal margin + a pulled-back outerRadius so the side labels (ALPS/RS/CI/RD)
+            never clip on a narrow, width-constrained mobile column (real-device fonts run wider than
+            headless Chromium). PolarAngleAxis labels render just outside outerRadius. */}
+        <RadarChart data={data} outerRadius="70%" margin={{ top: 28, right: 52, bottom: 24, left: 52 }}>
           <PolarGrid stroke="currentColor" strokeOpacity={0.2} />
           <PolarAngleAxis dataKey="domain" tick={{ fill: 'currentColor', fontSize: 12 }} />
           <PolarRadiusAxis domain={[0, 5]} tickCount={6} angle={90} tick={{ fill: 'currentColor', fontSize: 10 }} />
