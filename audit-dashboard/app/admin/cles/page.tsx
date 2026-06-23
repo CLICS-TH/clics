@@ -87,7 +87,7 @@ function AdminClesContent() {
   // Shared assign control (used by both the desktop table and the mobile card list).
   const assignControl = (p: CleRow) =>
     p.status === 'evaluated' && !p.auditor_id
-      ? <select className="rounded-md border border-border bg-background px-2 py-1.5 text-xs"
+      ? <select className="min-w-0 max-w-[200px] rounded-md border border-border bg-background px-2 py-1.5 text-xs"
           onChange={e => e.target.value && assign(p.id, e.target.value)}>
           <option value="">เลือก Auditor...</option>
           {auditors.map((a: Auditor) => <option key={a.id} value={a.id}>{a.full_name_th}</option>)}

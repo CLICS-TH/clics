@@ -125,7 +125,34 @@ const AUDIT_FN = `() => {
     if (tableScroll.length >= 6) break;
   }
 
-  return { overflow, badTargets, badInputs, offscreen, cellSpill, tableScroll };
+  // 7. form controls + ICONS that spill out of their box. OFFSCREEN (#4) only inspects leaf TEXT nodes,
+  //    so an overflowing <input>/<select>/<svg>/<img> (no textContent) is invisible to it — and a parent
+  //    with overflow:hidden clips it so the page never scrolls. Catches "text box / icon out of layout":
+  //    'vp' = past the viewport edge (clipped at the screen); 'box' = poking out of its parent container.
+  const ctrlSpill = [];
+  for (const el of document.querySelectorAll('input:not([type=hidden]), textarea, select, button, [role=button], svg, img')) {
+    if (ctrlSpill.length >= 10) break;
+    if (!visible(el)) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width <= 0) continue;
+    if ((r.right > vw + 1 || r.left < -1) && !hasScrollableAncestor(el)) {
+      ctrlSpill.push('vp ' + sel(el) + ' x=[' + Math.round(r.left) + ',' + Math.round(r.right) + '] vw=' + vw);
+      continue;
+    }
+    // box-spill: text boxes + icons only (buttons legitimately size to content); skip scrollable parents.
+    if (!el.matches('input, textarea, select, svg, img')) continue;
+    const p = el.parentElement;
+    if (!p) continue;
+    const cs = getComputedStyle(p);
+    if (cs.overflowX === 'auto' || cs.overflowX === 'scroll') continue;
+    const pr = p.getBoundingClientRect();
+    const padL = parseFloat(cs.paddingLeft) || 0, padR = parseFloat(cs.paddingRight) || 0;
+    if (r.right > pr.right - padR + 4 || r.left < pr.left + padL - 4) {
+      ctrlSpill.push('box ' + sel(el) + ' r=' + Math.round(r.right) + ' p.r=' + Math.round(pr.right - padR));
+    }
+  }
+
+  return { overflow, badTargets, badInputs, offscreen, cellSpill, tableScroll, ctrlSpill };
 }`;
 
 // ---- tiny static server for physician-ui (mirrors the Vercel extensionless rewrite) ----
@@ -171,6 +198,7 @@ function record(app, label, role, w, tag, r) {
   if (r.offscreen?.length) findings.push(`OFFSCREEN ${where}: ${r.offscreen.slice(0,5).join(' | ')}`);
   if (r.cellSpill?.length) findings.push(`CELLSPILL ${where}: ${r.cellSpill.slice(0,5).join(' | ')}`);
   if (r.coarse && r.tableScroll?.length) findings.push(`TABLESCROLL ${where}: ${r.tableScroll.slice(0,5).join(' | ')} (no mobile card fallback)`);
+  if (r.ctrlSpill?.length) findings.push(`CTRLSPILL ${where}: ${r.ctrlSpill.slice(0,6).join(' | ')}`);
 }
 
 async function auditAt(ctx, page, app, label, role, width) {
