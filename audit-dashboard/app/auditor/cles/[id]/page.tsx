@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { PageIntro } from '@/components/PageIntro';
 import { computeComposite } from '@/lib/labels';
 import { PIS7_RUBRIC } from '@/lib/pis7-rubric';
+import { Pis7Radar } from '@/components/Pis7Radar';
+import { pis7Conclusion } from '@/lib/pis7-delta';
 import { confirmDialog, toast } from '@/components/Overlays';
 import type { AuditorPle, ApiResult } from '@/lib/types';
 import { Check } from 'lucide-react';
@@ -134,7 +136,7 @@ export default function AuditorScorePage() {
             <DomainScorer scores={scores} onChange={(k,v) => setScores(s => ({...s,[k]:v}))} disabled={submitted} />
             <div className="mt-4 flex items-baseline justify-end gap-2">
               <span className="text-sm text-muted-foreground">คะแนนรวม / Total</span>
-              <span className="font-heading text-3xl font-semibold text-primary tabular-nums">{composite != null ? composite.toFixed(1) : '—'}</span>
+              <span className="text-3xl font-semibold text-primary tabular-nums">{composite != null ? composite.toFixed(1) : '—'}</span>
               <span className="text-sm text-muted-foreground">/ 100</span>
             </div>
             <textarea className="w-full border rounded-lg p-3 text-sm mt-3" rows={3}
@@ -148,10 +150,18 @@ export default function AuditorScorePage() {
             }
           </div>
           {submitted && data.ai_evaluation && (
-            <div className="border rounded-xl p-5 bg-secondary">
-              <h2 className="font-heading text-xl mb-2">AI Score <span className="text-sm font-normal text-muted-foreground">(เปิดเผยหลังส่งคะแนน)</span></h2>
-              <p className="font-heading text-3xl font-semibold text-primary tabular-nums">{Number(data.ai_evaluation.composite_score).toFixed(1)} <span className="text-base text-muted-foreground">/ 100</span></p>
-              <p className="text-sm text-muted-foreground mt-1">คะแนนของคุณ / Yours: {composite != null ? composite.toFixed(1) : '—'}</p>
+            <div className="border rounded-xl p-5 bg-secondary space-y-4">
+              <div>
+                <h2 className="font-heading text-xl mb-2">AI Score <span className="text-sm font-normal text-muted-foreground">(เปิดเผยหลังส่งคะแนน)</span></h2>
+                <p className="text-3xl font-semibold text-primary tabular-nums">{Number(data.ai_evaluation.composite_score).toFixed(1)} <span className="text-base text-muted-foreground">/ 100</span></p>
+                <p className="text-sm text-muted-foreground mt-1">คะแนนของคุณ / Yours: {composite != null ? composite.toFixed(1) : '—'}</p>
+              </div>
+              {/* Per-domain comparison: where you scored above/below the AI across the 7 PIS-7 axes. */}
+              <div>
+                <h3 className="text-sm font-medium mb-1">เทียบรายหมวด PIS-7 / PIS-7 by domain</h3>
+                <Pis7Radar ai={data.ai_evaluation} human={scores} />
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(data.ai_evaluation, scores)}</p>
+              </div>
             </div>
           )}
         </div>

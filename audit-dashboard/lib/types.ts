@@ -151,6 +151,18 @@ export interface AuditorPle {
     d5: number; d6: number; d7: number;
     notes?: string | null;
   } | null;
-  ai_evaluation?: { composite_score: number | string } | null;
+  ai_evaluation?: {
+    composite_score: number | string;
+    d1?: number; d2?: number; d3?: number; d4?: number;
+    d5?: number; d6?: number; d7?: number;
+    domain_rationale?: Record<string, string> | null;
+  } | null;
   error?: unknown;
+}
+
+// GET /auditor/calibration — this auditor's mean PIS-7 (d1–d7) vs the AI's, across scored CLEs.
+export interface AuditorCalibration {
+  n: number;
+  auditor: Record<string, number> | null;
+  ai: Record<string, number> | null;
 }

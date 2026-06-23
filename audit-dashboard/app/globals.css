@@ -95,6 +95,8 @@
   --chart-fail: #c64545;
   --chart-threshold: #e8a55a;
   --chart-warn: #e08a1e;   /* saturated amber for solid fills (usage/budget meters) — same in both modes */
+  --chart-human: #cc785c;  /* PIS-7 radar: human auditor series (mirror of CHART.human) */
+  --chart-ai: #5b7fb9;     /* PIS-7 radar: AI series (mirror of CHART.ai) */
   --chart-pass-bg: #d1f5dc;
   --chart-pass-text: #1a6630;
   --radius: 0.75rem;

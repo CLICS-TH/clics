@@ -10,8 +10,10 @@ import { apiFetch } from '@/lib/api';
 import { canAudit } from '@/lib/auth';
 import { useAuthUser } from '@/lib/client-store';
 import { cleStatusCards } from '@/lib/labels';
+import { Pis7Radar } from '@/components/Pis7Radar';
+import { pis7Conclusion } from '@/lib/pis7-delta';
 import type { Stat } from '@/components/StatStrip';
-import type { CleStats } from '@/lib/types';
+import type { CleStats, AuditorCalibration } from '@/lib/types';
 
 type IccResp = { icc: number | null; n: number };
 type QueueItem = { id: string; scored?: boolean };
@@ -25,6 +27,7 @@ export default function HomePage() {
   const [adminStats, setAdminStats] = useState<CleStats | null>(null);
   const [queue, setQueue] = useState<QueueItem[] | null>(null);
   const [icc, setIcc] = useState<IccResp | null>(null);
+  const [calib, setCalib] = useState<AuditorCalibration | null>(null);
 
   const role = user?.role;
   const isAdmin = role === 'admin';
@@ -39,6 +42,7 @@ export default function HomePage() {
     if (isAuditor) {
       apiFetch<QueueItem[]>('/auditor/queue').then(d => setQueue(Array.isArray(d) ? d : [])).catch(() => setQueue([]));
       apiFetch<IccResp>('/auditor/icc').then(d => setIcc(d ?? { icc: null, n: 0 })).catch(() => setIcc({ icc: null, n: 0 }));
+      apiFetch<AuditorCalibration>('/auditor/calibration').then(d => setCalib(d ?? { n: 0, auditor: null, ai: null })).catch(() => setCalib({ n: 0, auditor: null, ai: null }));
     }
   }, [isAdmin, isAuditor]);
 
@@ -104,14 +108,26 @@ export default function HomePage() {
       ];
       const actions: HeroAction[] = [{ label: 'เริ่มประเมิน / Start scoring', href: '/auditor/queue' }];
       return (
-        <RoleHero
-          eyebrow="Auditor · คิวการประเมิน / Scoring queue"
-          greeting={greeting}
-          subtitle="Blind PIS-7 scoring — เลือก CLE เพื่อให้คะแนน (คะแนน AI ถูกซ่อนไว้) / Score assigned CLEs blind."
-          badge={<RoleBadge />}
-          stats={stats}
-          actions={actions}
-        />
+        <div className="space-y-8">
+          <RoleHero
+            eyebrow="Auditor · คิวการประเมิน / Scoring queue"
+            greeting={greeting}
+            subtitle="Blind PIS-7 scoring — เลือก CLE เพื่อให้คะแนน (คะแนน AI ถูกซ่อนไว้) / Score assigned CLEs blind."
+            badge={<RoleBadge />}
+            stats={stats}
+            actions={actions}
+          />
+          {/* Aggregate calibration radar: your mean PIS-7 vs the AI's across everything you've scored.
+              Only meaningful once at least one scored CLE has an AI evaluation to pair with (n>0). */}
+          {calib && calib.n > 0 && calib.auditor && calib.ai && (
+            <div className="rounded-xl border p-5">
+              <h2 className="font-heading text-lg mb-1">การปรับเทียบของคุณ vs AI <span className="text-sm font-normal text-muted-foreground">/ Your calibration vs AI · n={calib.n}</span></h2>
+              <p className="text-xs text-muted-foreground mb-3">ค่าเฉลี่ยรายหมวด PIS-7 จาก CLE ที่คุณประเมินแล้ว / Mean PIS-7 by domain across the CLEs you have scored.</p>
+              <Pis7Radar ai={calib.ai} human={calib.auditor} />
+              <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(calib.ai, calib.auditor)}</p>
+            </div>
+          )}
+        </div>
       );
     }
 
