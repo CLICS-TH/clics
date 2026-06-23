@@ -22,7 +22,7 @@ export function BiLabel({
   return (
     <span className={className}>
       {th}
-      <span className="ml-1 text-[0.8em] font-normal opacity-60">{en}</span>
+      <span className="ml-1 text-[0.8em] font-normal opacity-[0.85]">{en}</span>
     </span>
   );
 }
