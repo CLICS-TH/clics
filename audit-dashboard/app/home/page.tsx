@@ -97,9 +97,9 @@ export default function HomePage() {
       const toScore = queue.filter(q => !q.scored).length;
       const scored = queue.filter(q => q.scored).length;
       const stats: Stat[] = [
-        { value: toScore, label: 'รอประเมิน / To score', tone: toScore > 0 ? 'warn' : 'default' },
-        { value: scored, label: 'ประเมินแล้ว / Scored', tone: 'pass' },
-        { value: queue.length, label: 'ได้รับมอบหมาย / Assigned' },
+        { value: toScore, label: 'รอประเมิน / To score', tone: toScore > 0 ? 'warn' : 'default', href: '/auditor/queue' },
+        { value: scored, label: 'ประเมินแล้ว / Scored', tone: 'pass', href: '/auditor/queue' },
+        { value: queue.length, label: 'ได้รับมอบหมาย / Assigned', href: '/auditor/queue' },
         { value: icc.icc != null ? icc.icc.toFixed(2) : '—', label: `ICC ของฉัน / My ICC${icc.n ? ` · n=${icc.n}` : ''}` },
       ];
       const actions: HeroAction[] = [{ label: 'เริ่มประเมิน / Start scoring', href: '/auditor/queue' }];

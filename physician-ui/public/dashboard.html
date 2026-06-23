@@ -29,7 +29,7 @@
         <span id="auditorSlot"></span>
       </div>
       <!-- Specialty · position label under the name (filled by dashboard.js from the cached user). -->
-      <p class="sub" id="identityLine" style="display:none;margin-top:-.35rem"></p>
+      <p class="sub" id="identityLine" style="display:none;margin-top:.45rem"></p>
       <p class="sub">Continuous Learning Episodes ของคุณ — จัดระเบียบด้วยโฟลเดอร์ / Organize your episodes in folders</p>
       <!-- Shown only when the account hasn't linked Google yet (dashboard.js toggles it). -->
       <div id="linkGoogleWrap" style="display:none;margin-top:.5rem">
@@ -38,7 +38,8 @@
       </div>
     </header>
 
-    <!-- At-a-glance hero stats (filled by dashboard.js; hidden until populated). -->
+    <!-- At-a-glance hero stats: hidden by default; the toggle reveals them (choice remembered). -->
+    <button class="btn btn-ghost btn-sm" id="toggleStatsBtn" type="button" style="margin-bottom:14px">แสดงสถิติ<span class="bi-en">Show stats</span></button>
     <div id="heroStats" class="hero-stats" hidden></div>
 
     <div id="usageBar"></div>

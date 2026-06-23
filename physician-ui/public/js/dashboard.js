@@ -105,9 +105,20 @@ document.getElementById('greeting').textContent = `สวัสดี, ${user.fu
 // Rendering lives in the shared helper (js/usage.js) so the dashboard and chat page match.
 renderUsageBar(document.getElementById('usageBar'));
 
-// ---- At-a-glance hero stats (mirrors the auditor StatStrip: a row of key numbers) ----
-// Total + Passed come from the loaded CLE list; Latest score from the LPDP timeline; AI used %
-// from the same /auth/me figures the usage bar uses. All derive from existing endpoints.
+// ---- At-a-glance hero stats (a row of key numbers) ----
+// Total + Passed come from the loaded CLE list; Latest score from the LPDP timeline. AI usage is
+// NOT duplicated here — it has its own bar below. All derive from existing endpoints.
+// Hidden by DEFAULT; the toggle button reveals them and the choice is remembered (clics_hero_stats).
+function heroStatsShown() { try { return localStorage.getItem('clics_hero_stats') === '1'; } catch { return false; } }
+function applyHeroStatsVisibility() {
+  const host = document.getElementById('heroStats');
+  const btn = document.getElementById('toggleStatsBtn');
+  const shown = heroStatsShown();
+  if (host && host.dataset.ready === '1') host.hidden = !shown; // reveal only once the cards are built
+  if (btn) btn.innerHTML = (shown ? 'ซ่อนสถิติ' : 'แสดงสถิติ') +
+    '<span class="bi-en">' + (shown ? 'Hide stats' : 'Show stats') + '</span>';
+}
+
 async function renderHeroStats() {
   const host = document.getElementById('heroStats');
   if (!host) return;
@@ -120,28 +131,29 @@ async function renderHeroStats() {
     if (Array.isArray(lpdp) && lpdp.length) latest = Math.round(lpdp[lpdp.length - 1].composite_score);
   } catch { /* leave '—' */ }
 
-  let aiPct = '—';
-  try {
-    const me = await api.me();
-    const u = me && me.user;
-    const limit = Number(u && u.usage_limit_effective_usd);
-    if (u && Number.isFinite(limit) && limit > 0) {
-      const used = Number(u.usage_cost_usd != null ? u.usage_cost_usd : 0);
-      aiPct = Math.min(100, Math.round((used / limit) * 100)) + '%';
-    }
-  } catch { /* leave '—' */ }
-
+  // Each KPI is a link to the progress page, which details these numbers over time.
   const cards = [
     { value: total, label: 'บทเรียนทั้งหมด / Total' },
     { value: passed, label: 'ผ่านแล้ว / Passed' },
     { value: latest, label: 'คะแนนล่าสุด / Latest score' },
-    { value: aiPct, label: 'ใช้ AI / AI used' },
   ];
   host.innerHTML = cards.map(c =>
-    `<div class="stat-card"><p class="stat-value">${esc(String(c.value))}</p><p class="stat-label">${c.label}</p></div>`
+    `<a class="stat-card" href="/lpdp"><p class="stat-value">${esc(String(c.value))}</p><p class="stat-label">${c.label}</p></a>`
   ).join('');
-  host.hidden = false;
+  host.dataset.ready = '1';
+  applyHeroStatsVisibility(); // respect the remembered show/hide choice (default hidden)
 }
+
+// Wire the show/hide stats toggle (default hidden; choice remembered across visits).
+(function wireStatsToggle() {
+  const btn = document.getElementById('toggleStatsBtn');
+  if (!btn) return;
+  applyHeroStatsVisibility(); // set the initial label (before the cards finish building)
+  btn.addEventListener('click', () => {
+    try { localStorage.setItem('clics_hero_stats', heroStatsShown() ? '0' : '1'); } catch {}
+    applyHeroStatsVisibility();
+  });
+})();
 
 // ---- Dual-role: auditor-console shortcut / request-auditor button (header slot) ----
 // can_audit physicians get a direct link to the auditor console; plain physicians can
