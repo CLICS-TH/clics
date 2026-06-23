@@ -582,6 +582,9 @@ html[data-view="desktop"] body { min-width: 1040px; }
 
 /* ===== Hero stat strip (dashboard "at a glance") ===== */
 .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 18px 0 22px; }
+/* Re-assert [hidden]: the author `.hero-stats{display:grid}` above otherwise overrides the UA
+   `[hidden]{display:none}` (author beats UA), so the show/hide toggle had no visual effect. */
+.hero-stats[hidden] { display: none; }
 html[data-mobile] .hero-stats { grid-template-columns: repeat(2, 1fr); }
 .stat-card { display: block; border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface-card); padding: 16px 14px 14px; text-align: center; min-width: 0; text-decoration: none; color: inherit; transition: border-color .15s, box-shadow .15s; }
 .stat-card:hover { border-color: var(--coral); box-shadow: 0 1px 3px rgba(20,20,19,0.06); }
@@ -657,9 +660,11 @@ html[data-mobile] .hero-stats { grid-template-columns: repeat(2, 1fr); }
    Replaces the equal-weight "ไทย / English" slash that doubled density and flattened hierarchy.
    English uses currentColor@opacity so it adapts on cream, on coral buttons, anywhere. */
 .bi { display:inline; }
-.bi-en { font-size:0.8em; font-weight:400; opacity:0.62; margin-left:0.4em; }
+/* opacity:0.85 (was 0.62) — keeps English visually secondary but lifts it to AA contrast on filled
+   boxes/buttons (the 0.62 fade dropped it to ~2.7–3.0:1 on the usage box, coral buttons, badges). */
+.bi-en { font-size:0.8em; font-weight:400; opacity:0.85; margin-left:0.4em; }
 .bi-stack { display:inline-flex; flex-direction:column; align-items:flex-start; line-height:1.15; }
-.bi-stack .bi-en { margin-left:0; opacity:0.6; }
+.bi-stack .bi-en { margin-left:0; opacity:0.8; }
 
 /* ===== Themed confirm modal + toast (replaces native confirm()/alert()) ===== */
 .modal-overlay { position:fixed; inset:0; background:rgba(20,20,19,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; }
