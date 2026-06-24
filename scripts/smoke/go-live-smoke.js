@@ -55,21 +55,28 @@ const TURNS = [
     console.log('   cannot continue without a physician token'); return finish();
   }
   const pToken = login.json.access_token;
-  console.log(`   consented_at at login: ${login.json.user?.consented_at ?? 'null'}`);
+  const consentedAtLogin = login.json.user?.consented_at ?? null;
+  console.log(`   consented_at at login: ${consentedAtLogin ?? 'null'}`);
 
-  // 2. Consent gate BEFORE consent — must 403 consent_required on create AND the
-  //    session-writing routes (downstream defense-in-depth), no AI spend.
-  console.log('2) Consent gate (before consent)');
-  const blocked = await req('POST', '/cles', { token: pToken, body: { chief_complaint: 'exertional chest pain (hypothetical)' } });
-  ok(blocked.status === 403 && blocked.json?.code === 'consent_required',
-     'POST /cles blocked 403 consent_required', `status=${blocked.status} code=${blocked.json?.code}`);
-  const dummy = '00000000-0000-0000-0000-000000000000';
-  const blockedMsg = await req('POST', `/cles/${dummy}/message`, { token: pToken, body: { message: 'x', language: 'en' } });
-  ok(blockedMsg.status === 403 && blockedMsg.json?.code === 'consent_required',
-     'POST /cles/:id/message blocked before consent', `status=${blockedMsg.status} code=${blockedMsg.json?.code}`);
-  const blockedEnd = await req('POST', `/cles/${dummy}/end`, { token: pToken, body: { active_seconds: 1000 } });
-  ok(blockedEnd.status === 403 && blockedEnd.json?.code === 'consent_required',
-     'POST /cles/:id/end blocked before consent', `status=${blockedEnd.status} code=${blockedEnd.json?.code}`);
+  // 2. Consent gate BEFORE consent — must 403 consent_required on create AND the session-writing
+  //    routes (downstream defense-in-depth), no AI spend. This is only meaningful for a NOT-yet-
+  //    consented physician; the shared soak account is usually already consented from prior runs, so
+  //    skip (and note) when it is — otherwise the gate-before checks falsely "fail" on a consented user.
+  if (!consentedAtLogin) {
+    console.log('2) Consent gate (before consent)');
+    const blocked = await req('POST', '/cles', { token: pToken, body: { chief_complaint: 'exertional chest pain (hypothetical)' } });
+    ok(blocked.status === 403 && blocked.json?.code === 'consent_required',
+       'POST /cles blocked 403 consent_required', `status=${blocked.status} code=${blocked.json?.code}`);
+    const dummy = '00000000-0000-0000-0000-000000000000';
+    const blockedMsg = await req('POST', `/cles/${dummy}/message`, { token: pToken, body: { message: 'x', language: 'en' } });
+    ok(blockedMsg.status === 403 && blockedMsg.json?.code === 'consent_required',
+       'POST /cles/:id/message blocked before consent', `status=${blockedMsg.status} code=${blockedMsg.json?.code}`);
+    const blockedEnd = await req('POST', `/cles/${dummy}/end`, { token: pToken, body: { active_seconds: 1000 } });
+    ok(blockedEnd.status === 403 && blockedEnd.json?.code === 'consent_required',
+       'POST /cles/:id/end blocked before consent', `status=${blockedEnd.status} code=${blockedEnd.json?.code}`);
+  } else {
+    console.log(`2) Consent gate (before consent) — SKIPPED: physician already consented at ${consentedAtLogin}`);
+  }
 
   // 3. Record consent
   console.log('3) Record informed consent');
@@ -85,15 +92,21 @@ const TURNS = [
   const cleId = create.json.id;
   console.log(`   cle_id=${cleId}`);
 
-  // 5. Chat turns — each must return content + refs + socratic_question
+  // 5. Chat turns — each must return content + refs. socratic_question is emitted ONLY in Socratic
+  //    mode (CLE2 examiner / t1-remediation); a natural episode legitimately omits it, so it is
+  //    optional here — we count how many turns carried one rather than requiring it on every turn.
   console.log('5) Chat turns (live AI path)');
+  let sawSocratic = 0;
   for (let i = 0; i < TURNS.length; i++) {
     const r = await req('POST', `/cles/${cleId}/message`, { token: pToken, body: { message: TURNS[i], language: 'en' } });
     const j = r.json || {};
-    ok(r.status === 200 && typeof j.content === 'string' && j.content.length > 0 && Array.isArray(j.refs) && typeof j.socratic_question === 'string',
-       `turn ${i + 1}: content + refs[${Array.isArray(j.refs) ? j.refs.length : '?'}] + socratic_question`,
+    const hasSocratic = typeof j.socratic_question === 'string' && j.socratic_question.length > 0;
+    if (hasSocratic) sawSocratic++;
+    ok(r.status === 200 && typeof j.content === 'string' && j.content.length > 0 && Array.isArray(j.refs),
+       `turn ${i + 1}: content + refs[${Array.isArray(j.refs) ? j.refs.length : '?'}]${hasSocratic ? ' + socratic_question' : ''}`,
        `status=${r.status} tokens=${j.token_count ?? '?'}`);
   }
+  console.log(`   socratic_question present on ${sawSocratic}/${TURNS.length} turns (expected >0 only in Socratic mode)`);
 
   // 6. End session → CLE gate
   console.log('6) End session → CLE gate');
@@ -128,16 +141,19 @@ const TURNS = [
   const stats = await req('GET', '/admin/stats', { token: sToken });
   ok(stats.status === 200 && typeof stats.json?.total === 'number', 'GET /admin/stats', JSON.stringify(stats.json));
 
-  const exp = await req('GET', '/admin/export', { token: sToken });
+  // include_test=true so OUR smoke session is present even when pilot_test_mode marks new CLEs is_test
+  // (the default export correctly excludes test sessions). The export is pseudonymized either way.
+  const exp = await req('GET', '/admin/export?include_test=true', { token: sToken });
   const sessions = exp.json?.sessions ?? [];
   ok(exp.status === 200 && Array.isArray(sessions) && sessions.length >= 1, 'GET /admin/export returns sessions', `n=${exp.json?.n}`);
   // de-identification check: no name/email/raw-id keys leak; physician keyed by pseudonym only
   const leak = sessions.some(s => 'email' in s || 'full_name_th' in s || 'full_name_en' in s || 'physician_id' in s);
   ok(!leak, 'export is de-identified (no email/name/raw-id keys)', leak ? 'LEAK DETECTED' : 'pseudonym-keyed only');
-  // auditor scores must be pseudonymized too (A-<hash>, never the raw UUID)
+  // auditors are pseudonymized as the protocol EXP-NNN code (CLICS §9.2) or the A-<hash> fallback —
+  // never the raw UUID, and no auditor_id key leaks.
   const auditorEntries = sessions.flatMap(s => s.auditor_scores ?? []);
-  const audLeak = auditorEntries.some(a => 'auditor_id' in a || !/^A-[0-9a-f]{8}$/.test(a.auditor ?? ''));
-  ok(!audLeak, 'auditor scores pseudonymized (A-<hash>, no raw auditor_id)',
+  const audLeak = auditorEntries.some(a => 'auditor_id' in a || !/^(EXP-\d+|A-[0-9a-f]{8})$/.test(a.auditor ?? ''));
+  ok(!audLeak, 'auditor scores pseudonymized (EXP-NNN or A-<hash>, no raw auditor_id)',
      auditorEntries.length ? `${auditorEntries.length} entries checked` : 'no auditor scores present to check');
   const mine = sessions.find(s => s.cle_id === cleId);
   ok(!!mine, 'our smoke session present in export', mine ? `physician=${mine.physician} status=${mine.status} ai_composite=${mine.ai_composite}` : 'not found');
