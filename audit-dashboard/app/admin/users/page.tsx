@@ -327,9 +327,11 @@ export default function UsersPage() {
   }
 
   async function resetUsage(u: User) {
-    // An auditor row meters the auditor pool, so its reset hits the auditor meter; everyone else
-    // (physician / dual-role "Special") resets the physician meter.
-    const auditorPool = u.role === 'auditor';
+    // Reset every AI pool the member holds — same split as the usage meters: a physician/"Special"
+    // owns the physician pool, an auditor/"Special" owns the auditor pool. A dual-role "Special"
+    // (role=physician + can_audit) carries BOTH, so both meters reset together.
+    const resetPhysician = u.role === 'physician';                 // includes "Special" (role=physician)
+    const resetAuditor = u.role === 'auditor' || u.can_audit === true;
     const ok = await confirmDialog({
       title: 'รีเซ็ตการใช้งาน? / Reset usage?',
       body: `รีเซ็ตการใช้งาน AI ของ ${u.full_name_en} เป็น $0? / Reset this member's AI usage to $0?`,
@@ -337,10 +339,13 @@ export default function UsersPage() {
     });
     if (!ok) return;
     setMsg('');
-    const endpoint = auditorPool ? `/admin/users/${u.id}/reset-auditor-usage` : `/admin/users/${u.id}/reset-usage`;
-    const res = await apiFetch<ApiResult<User>>(endpoint, { method:'POST', body: JSON.stringify({}) });
-    if (res?.id) { setMsg('รีเซ็ตการใช้งานแล้ว / Usage reset.'); loadUsers(); }
-    else setMsg(formatApiError(res?.error, 'รีเซ็ตไม่สำเร็จ / Reset failed.'));
+    const endpoints: string[] = [];
+    if (resetPhysician) endpoints.push(`/admin/users/${u.id}/reset-usage`);
+    if (resetAuditor) endpoints.push(`/admin/users/${u.id}/reset-auditor-usage`);
+    const results = await Promise.all(endpoints.map(e => apiFetch<ApiResult<User>>(e, { method:'POST', body: JSON.stringify({}) })));
+    loadUsers();                                                   // refresh from the server either way
+    if (results.length > 0 && results.every(r => r?.id)) setMsg('รีเซ็ตการใช้งานแล้ว / Usage reset.');
+    else setMsg(formatApiError(results.find(r => !r?.id)?.error, 'รีเซ็ตไม่สำเร็จ / Reset failed.'));
   }
 
   async function toggleStatus(u: User) {
