@@ -434,26 +434,34 @@ export default function UsersPage() {
     </span>
   );
 
-  // AI usage meter: $used / $effective-limit + a thin bar. Physician rows read the physician pool;
-  // auditor rows read the SEPARATE auditor pool. (Dual-role "Special" is role=physician, so the list
-  // shows their physician pool; their auditor override is set in the Edit panel.)
-  const UsageCell = ({ u }: { u: User }) => {
-    const pool: 'physician' | 'auditor' | null = u.role === 'physician' ? 'physician' : u.role === 'auditor' ? 'auditor' : null;
-    if (!pool) return <span className="text-xs text-muted-foreground">—</span>;
-    const used = Number((pool === 'auditor' ? u.auditor_usage_cost_usd : u.usage_cost_usd) ?? 0);
-    // Admins can't read /admin/usage-settings, so there is no effective limit — show spend only.
-    if (!isSuper) return <p className="text-xs tabular-nums text-muted-foreground">${used.toFixed(4)}</p>;
-    const limit = pool === 'auditor' ? effAuditorLimit(u) : effLimit(u);
-    const hasOverride = (pool === 'auditor' ? u.auditor_usage_limit_usd : u.usage_limit_usd) != null;
+  // One AI usage meter: $used / $effective-limit + a thin bar (admins can't read /admin/usage-settings,
+  // so they get spend-only). `label` distinguishes the two pools when both are shown for a "Special".
+  const Meter = ({ used, limit, hasOverride, label }: { used: number; limit: number; hasOverride: boolean; label?: string }) => {
+    const tag = label ? <span className="text-[10px] uppercase tracking-wide text-muted-foreground mr-1">{label}</span> : null;
+    if (!isSuper) return <p className="text-xs tabular-nums text-muted-foreground">{tag}${used.toFixed(4)}</p>;
     const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
     const over = limit > 0 && used >= limit;
     const tone = over ? 'bg-destructive' : pct >= 80 ? 'bg-[var(--chart-warn)]' : 'bg-[var(--chart-pass)]';
     return (
-      <div className="min-w-[120px]">
+      <div>
         <p className={`text-xs tabular-nums ${over ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
-          ${used.toFixed(4)} / ${limit.toFixed(2)}{hasOverride ? ' *' : ''}
+          {tag}${used.toFixed(4)} / ${limit.toFixed(2)}{hasOverride ? ' *' : ''}
         </p>
         <div className="h-1.5 mt-1 rounded-full bg-muted overflow-hidden"><div className={`h-full ${tone}`} style={{ width: `${pct}%` }} /></div>
+      </div>
+    );
+  };
+  // AI usage: physician rows show the physician pool; auditor rows show the SEPARATE auditor pool; a
+  // dual-role "Special" (role=physician + can_audit) holds BOTH budgets, so show both stacked + labelled.
+  const UsageCell = ({ u }: { u: User }) => {
+    const showPhysician = u.role === 'physician';            // includes "Special" (role=physician)
+    const showAuditor = u.role === 'auditor' || u.can_audit === true;
+    if (!showPhysician && !showAuditor) return <span className="text-xs text-muted-foreground">—</span>;
+    const both = showPhysician && showAuditor;               // label each pool only when both are present
+    return (
+      <div className="min-w-[120px] space-y-1.5">
+        {showPhysician && <Meter used={Number(u.usage_cost_usd ?? 0)} limit={effLimit(u)} hasOverride={u.usage_limit_usd != null} label={both ? 'ผู้ใช้/User' : undefined} />}
+        {showAuditor && <Meter used={Number(u.auditor_usage_cost_usd ?? 0)} limit={effAuditorLimit(u)} hasOverride={u.auditor_usage_limit_usd != null} label={both ? 'ผู้ตรวจ/Auditor' : undefined} />}
       </div>
     );
   };
@@ -938,7 +946,7 @@ export default function UsersPage() {
               <p className="text-sm text-muted-foreground">{u.full_name_en}</p>
               {u.role !== 'superadmin' && <p className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Building2 className="size-3.5" /> {councilName(u.council_id)}</p>}
               {u.specialties?.name_th && <p className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Stethoscope className="size-3.5" /> {u.specialties.name_th}{u.position ? ` · ${positionLabel(u.position)}` : ''}</p>}
-              {u.role === 'physician' && <div className="pt-1"><UsageCell u={u} /></div>}
+              {(u.role === 'physician' || u.role === 'auditor' || u.can_audit) && <div className="pt-1"><UsageCell u={u} /></div>}
               <div className="flex items-center justify-between pt-1">
                 <StatusBadge s={u.status} />
                 <RowActions u={u} />
