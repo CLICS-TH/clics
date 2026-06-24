@@ -13,6 +13,8 @@ const { isMailerEnabled, sendInviteEmail } = require('../lib/mailer');
 const { normalizeCanAudit } = require('../lib/dual-role');
 const { POSITIONS, checkSpecialty } = require('../lib/specialties');
 const { logEvent } = require('../lib/audit');
+const { compRateCap, cappedCles, PIS7_DIMS } = require('../lib/compensation');
+const ExcelJS = require('exceljs');
 
 const router = Router();
 router.use(verifyJwt, requireRole('admin', 'superadmin'));
@@ -75,8 +77,16 @@ router.get('/cles', async (req, res) => {
   query = scopeBySpecialty(req, scopeToCouncil(req, query));
   const { data, error, count } = await query.order('created_at', { ascending: false }).range(offset, offset + limit - 1);
   if (sendDbError(res, error)) return;
+  // How many auditors are assigned to each row (multi-auditor pilot) — one extra query for the page so
+  // the assign UI can show "Assigned (N)" and keep offering the dropdown until enough raters are added.
+  const ids = (data ?? []).map(r => r.id);
+  const assignCounts = {};
+  if (ids.length) {
+    const { data: aRows } = await supabase.from('audit_assignments').select('cle_id').in('cle_id', ids);
+    for (const a of aRows ?? []) assignCounts[a.cle_id] = (assignCounts[a.cle_id] ?? 0) + 1;
+  }
   res.setHeader('X-Total-Count', count ?? 0);   // body stays an array (backward-compatible); total in header
-  res.json(data);
+  res.json((data ?? []).map(r => ({ ...r, assignment_count: assignCounts[r.id] ?? 0 })));
 });
 
 router.get('/cles/flagged', async (req, res) => {
@@ -244,6 +254,12 @@ router.post('/cles/:id/assign', async (req, res) => {
     return res.status(409).json({ error: 'Cross-specialty assignment is not allowed.' });
   }
 
+  // Record the assignment in the join table (multi-auditor pilot — idempotent on (cle_id, auditor_id)),
+  // then keep the legacy single-assignee pointer in sync (latest assignee = primary, back-compat with
+  // the single-auditor queue/UI). The peer radar reads every auditor's score regardless of who's primary.
+  const { error: aErr } = await supabase.from('audit_assignments')
+    .upsert({ cle_id: req.params.id, auditor_id: auditorId, assigned_by: req.user.id }, { onConflict: 'cle_id,auditor_id' });
+  if (sendDbError(res, aErr)) return;
   const { error } = await supabase.from('cles')
     .update({ auditor_id: auditorId })
     .eq('id', req.params.id)
@@ -523,12 +539,95 @@ router.get('/export', async (req, res) => {
   res.json({ exported_at: new Date().toISOString(), n: sessions.length, total: count ?? 0, limit, offset, sessions });
 });
 
-// Compensation report (admin + superadmin): per-physician payout = min(passed CLEs, 3) × ฿500,
-// capped at ฿1500 (CLICS_Proposal §12 / Appendix 03). REPORTING ONLY — no payment is processed.
-// Derived from cles (no schema change). Pilot-scale: passed non-test CLEs are ≤ ~225, well under the
-// PostgREST 1000-row cap; revisit with an RPC if the cohort ever grows past that.
-const COMP_RATE_THB = 500, COMP_CAP_CLES = 3;
+// Multi-sheet XLSX export (superadmin): the study data, one sheet per category (CLEs / AI evaluations /
+// Auditor scores / Compensation / Participants). PSEUDONYMIZED (P-NNN physicians, EXP-NNN auditors) —
+// honors the PII boundary, so no real names/emails/patient refs leave here. Pilot-scale (capped at CAP
+// rows/sheet; truncation is logged + flagged on a Notes sheet, never silent). Audit-logged.
+const EXPORT_CAP = 5000;
+router.get('/export.xlsx', async (req, res) => {
+  if (req.user.role !== 'superadmin') return res.status(403).json({ error: 'Superadmin only.' });
+  const includeTest = req.query.include_test === 'true';
+
+  let cq = supabase.from('cles').select('id, cle_code, physician_id, council_id, specialty_id, episode_number, socratic_active, socratic_reason, status, turn_count, token_count, duration_seconds, started_at, is_test', { count: 'exact' });
+  if (!includeTest) cq = cq.eq('is_test', false);
+  const { data: cles, count, error: clesErr } = await cq.order('started_at').range(0, EXPORT_CAP - 1);
+  if (sendDbError(res, clesErr)) return;
+  const truncated = (count ?? 0) > EXPORT_CAP;
+  const cleIds = (cles ?? []).map(c => c.id);
+  const physIds = [...new Set((cles ?? []).map(c => c.physician_id))];
+  const empty = Promise.resolve({ data: [] });
+
+  const [{ data: pros }, { data: councils }, { data: specs }, { data: ai }, { data: audits }, { data: allPros }] = await Promise.all([
+    physIds.length ? supabase.from('professionals').select('id, pseudonym').in('id', physIds) : empty,
+    supabase.from('councils').select('id, code'),
+    supabase.from('specialties').select('id, code'),
+    cleIds.length ? supabase.from('ai_evaluations').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7, model_version, prompt_version, rubric_version').in('cle_id', cleIds) : empty,
+    cleIds.length ? supabase.from('audit_scores').select('cle_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7, scored_at').in('cle_id', cleIds) : empty,
+    supabase.from('professionals').select('pseudonym, exp_code, role, can_audit, council_id, specialty_id, position').limit(EXPORT_CAP),
+  ]);
+  const pseudo = Object.fromEntries((pros ?? []).map(p => [p.id, p.pseudonym]));
+  const councilCode = Object.fromEntries((councils ?? []).map(c => [c.id, c.code]));
+  const specCode = Object.fromEntries((specs ?? []).map(s => [s.id, s.code]));
+  const cleCode = Object.fromEntries((cles ?? []).map(c => [c.id, c.cle_code ?? c.id]));
+
+  const audIds = [...new Set((audits ?? []).map(s => s.auditor_id))];
+  const { data: auditors } = audIds.length ? await supabase.from('professionals').select('id, exp_code').in('id', audIds) : { data: [] };
+  const expCode = Object.fromEntries((auditors ?? []).map(a => [a.id, a.exp_code]));
+  const auditorTag = (id) => expCode[id] || ('A-' + createHash('sha256').update(String(id)).digest('hex').slice(0, 8));
+
+  // Compensation (computed from THIS page's CLEs — consistent with the export window).
+  const { rate, cap } = await compRateCap();
+  const passByPhys = {};
+  for (const c of cles ?? []) if (c.status === 'cle_pass' && !c.is_test) passByPhys[c.physician_id] = (passByPhys[c.physician_id] ?? 0) + 1;
+
+  const wb = new ExcelJS.Workbook();
+  const addSheet = (name, columns, rows) => {
+    const ws = wb.addWorksheet(name);
+    ws.columns = columns.map(c => ({ header: c.h, key: c.k, width: c.w ?? 16 }));
+    ws.getRow(1).font = { bold: true };
+    for (const r of rows) ws.addRow(r);
+  };
+
+  addSheet('CLEs',
+    [{ h: 'CLE', k: 'cle', w: 16 }, { h: 'Physician', k: 'phys', w: 10 }, { h: 'Council', k: 'council', w: 10 }, { h: 'Specialty', k: 'spec', w: 12 }, { h: 'Episode', k: 'ep', w: 8 }, { h: 'Socratic', k: 'soc', w: 9 }, { h: 'Status', k: 'status', w: 12 }, { h: 'Turns', k: 'turns', w: 7 }, { h: 'Tokens', k: 'tokens', w: 9 }, { h: 'Duration (s)', k: 'dur', w: 11 }, { h: 'Started', k: 'started', w: 20 }, { h: 'Test', k: 'test', w: 6 }],
+    (cles ?? []).map(c => ({ cle: c.cle_code ?? c.id, phys: pseudo[c.physician_id] ?? '', council: councilCode[c.council_id] ?? '', spec: specCode[c.specialty_id] ?? '', ep: c.episode_number ?? '', soc: c.socratic_active ? 'yes' : 'no', status: c.status, turns: c.turn_count ?? '', tokens: c.token_count ?? '', dur: c.duration_seconds ?? '', started: c.started_at ?? '', test: c.is_test ? 'yes' : 'no' })));
+
+  addSheet('AI evaluations',
+    [{ h: 'CLE', k: 'cle', w: 16 }, { h: 'Composite', k: 'comp', w: 10 }, ...PIS7_DIMS.map(d => ({ h: d.toUpperCase(), k: d, w: 6 })), { h: 'Model', k: 'model', w: 18 }, { h: 'Prompt', k: 'prompt', w: 12 }, { h: 'Rubric', k: 'rubric', w: 12 }],
+    (ai ?? []).map(e => ({ cle: cleCode[e.cle_id] ?? e.cle_id, comp: Number(e.composite_score), d1: e.d1, d2: e.d2, d3: e.d3, d4: e.d4, d5: e.d5, d6: e.d6, d7: e.d7, model: e.model_version ?? '', prompt: e.prompt_version ?? '', rubric: e.rubric_version ?? '' })));
+
+  addSheet('Auditor scores',
+    [{ h: 'CLE', k: 'cle', w: 16 }, { h: 'Auditor', k: 'aud', w: 12 }, { h: 'Composite', k: 'comp', w: 10 }, ...PIS7_DIMS.map(d => ({ h: d.toUpperCase(), k: d, w: 6 })), { h: 'Scored', k: 'scored', w: 20 }],
+    (audits ?? []).map(s => ({ cle: cleCode[s.cle_id] ?? s.cle_id, aud: auditorTag(s.auditor_id), comp: Number(s.composite_score), d1: s.d1, d2: s.d2, d3: s.d3, d4: s.d4, d5: s.d5, d6: s.d6, d7: s.d7, scored: s.scored_at ?? '' })));
+
+  addSheet('Compensation',
+    [{ h: 'Physician', k: 'phys', w: 10 }, { h: 'Completed CLEs', k: 'done', w: 14 }, { h: 'Amount (THB)', k: 'amt', w: 14 }],
+    Object.keys(passByPhys).map(id => { const done = cappedCles(passByPhys[id], cap); return { phys: pseudo[id] ?? '', done, amt: done * rate }; }));
+
+  addSheet('Participants',
+    [{ h: 'Code', k: 'code', w: 12 }, { h: 'Role', k: 'role', w: 12 }, { h: 'Can audit', k: 'audit', w: 9 }, { h: 'Council', k: 'council', w: 10 }, { h: 'Specialty', k: 'spec', w: 12 }, { h: 'Position', k: 'pos', w: 14 }],
+    (allPros ?? []).map(p => ({ code: p.pseudonym || p.exp_code || '', role: p.role, audit: p.can_audit ? 'yes' : 'no', council: councilCode[p.council_id] ?? '', spec: specCode[p.specialty_id] ?? '', pos: p.position ?? '' })));
+
+  if (truncated) {
+    addSheet('Notes', [{ h: 'Note', k: 'note', w: 80 }],
+      [{ note: `Truncated: ${count} CLEs match but only the first ${EXPORT_CAP} are included. Narrow the window or raise EXPORT_CAP.` }]);
+  }
+
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'export.xlsx', targetType: 'export',
+    metadata: { cles: cleIds.length, truncated, include_test: includeTest } });
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', 'attachment; filename="clics-export.xlsx"');
+  await wb.xlsx.write(res);
+  res.end();
+});
+
+// Compensation report (admin + superadmin): per-physician payout = min(passed CLEs, cap) × rate, where
+// rate + cap are superadmin-configurable (app_settings comp_rate_thb / comp_cap_cles; cap 0 = no cap).
+// Defaults ฿500/CLE, cap 3 (CLICS_Proposal §12 / Appendix 03). PSEUDONYMIZED report — the actual payout
+// (real names + decrypted payment details) lives in the superadmin-only /admin/payouts. Derived from
+// cles (no schema change). Pilot-scale: passed non-test CLEs are well under the PostgREST 1000-row cap.
 router.get('/compensation', async (req, res) => {
+  const { rate, cap } = await compRateCap();
   let q = supabase.from('cles').select('physician_id').eq('status', 'cle_pass').eq('is_test', false);
   q = scopeToCouncil(req, q);
   const { data: rows, error } = await q;
@@ -540,11 +639,11 @@ router.get('/compensation', async (req, res) => {
   const { data: pros } = await (physIds.length ? supabase.from('professionals').select('id, pseudonym').in('id', physIds) : empty);
   const pseudo = Object.fromEntries((pros ?? []).map(p => [p.id, p.pseudonym]));
   const recipients = physIds.map((id) => {
-    const completed = Math.min(countByPhys[id], COMP_CAP_CLES);
-    return { physician: pseudo[id] ?? null, completed_cles: completed, amount_thb: completed * COMP_RATE_THB };
+    const completed = cappedCles(countByPhys[id], cap);
+    return { physician: pseudo[id] ?? null, completed_cles: completed, amount_thb: completed * rate };
   }).sort((a, b) => String(a.physician).localeCompare(String(b.physician)));
   const total_thb = recipients.reduce((a, r) => a + r.amount_thb, 0);
-  res.json({ rate_thb_per_cle: COMP_RATE_THB, cap_cles: COMP_CAP_CLES, n: recipients.length, total_thb, recipients });
+  res.json({ rate_thb_per_cle: rate, cap_cles: cap, n: recipients.length, total_thb, recipients });
 });
 
 // ---- Invite links (A/B create a physician or auditor bound to an email; A may also ----------

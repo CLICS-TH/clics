@@ -43,6 +43,9 @@ test('happy path: same-council active auditor → 200, auditor_id written, statu
   expect(upd.payload).toEqual({ auditor_id: AUD_UUID });
   expect(upd.eqs).toContainEqual(['id', 'p1']);
   expect(upd.eqs).toContainEqual(['status', 'evaluated']); // atomic — only assigns while still evaluated
+  // Multi-auditor: the assignment is also recorded in the join table (idempotent on cle_id+auditor_id).
+  const ins = m.find('audit_assignments', 'upsert');
+  expect(ins.payload).toMatchObject({ cle_id: 'p1', auditor_id: AUD_UUID });
 });
 
 test('CLE not yet evaluated → 400, no assignment', async () => {

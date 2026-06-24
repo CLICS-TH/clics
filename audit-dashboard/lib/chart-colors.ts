@@ -11,4 +11,7 @@ export const CHART = {
   // --primary), slate-blue = the AI — distinct from the pass/fail/warn semantics above.
   human: "#cc785c",
   ai: "#5b7fb9",
+  // Peer-calibration radar (you vs the auditor-cohort average): violet — distinct from coral/blue
+  // above and from the pass-green/warn-amber semantics.
+  peer: "#8d6fc9",
 } as const;

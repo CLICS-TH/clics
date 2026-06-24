@@ -30,7 +30,7 @@ beforeEach(() => {
     if (table === 'cles') return cle;                                  // score / detail lookup = single
     if (table === 'messages') return [];
     if (table === 'audit_scores' && kind === 'list') return scoredRows; // queue scored-flag / icc
-    if (table === 'audit_scores' && kind === 'single') return existingScore;
+    if (table === 'audit_scores' && (kind === 'single' || kind === 'maybeSingle')) return existingScore;
     if (table === 'audit_scores' && kind === 'insert') return { error: insertError };
     if (table === 'ai_evaluations') return aiEval;
     return undefined;
@@ -70,6 +70,28 @@ test('REVEAL: once a score exists, the AI evaluation is returned', async () => {
   expect(r.status).toBe(200);
   expect(r.body.audit_score).toMatchObject({ id: 's1' });
   expect(r.body.ai_evaluation).toMatchObject({ cle_id: 'p1', composite_score: 70 });
+});
+
+test('peer_calibration OFF (default): no peer_avg even after submit', async () => {
+  existingScore = { id: 's1', cle_id: 'p1', composite_score: 60 };
+  const r = await auth(request(app).get('/auditor/cles/p1'));
+  expect(r.status).toBe(200);
+  expect(r.body.peer_avg).toBeNull();
+  expect(r.body.peer_n).toBe(0);
+});
+
+test('peer_calibration ON: peer_avg from the OTHER auditors once they have scored', async () => {
+  existingScore = { id: 's1', cle_id: 'p1', composite_score: 60 };
+  const prev = m.state.resolve;
+  m.state.resolve = (table, kind) => {
+    if (table === 'app_settings') return { value: 1 };                                   // peer_calibration ON
+    if (table === 'audit_scores' && kind === 'list') return [{ d1:5,d2:5,d3:5,d4:5,d5:5,d6:5,d7:5 }]; // one OTHER auditor (self is excluded by .neq in the route)
+    return prev(table, kind);
+  };
+  const r = await auth(request(app).get('/auditor/cles/p1'));
+  expect(r.status).toBe(200);
+  expect(r.body.peer_n).toBe(1);
+  expect(r.body.peer_avg).toMatchObject({ d1: 5, d7: 5 });
 });
 
 test('GET /auditor/cles/:id not assigned to me → 404', async () => {

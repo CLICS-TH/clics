@@ -61,6 +61,7 @@ const PAGES = [
   { path: '/dashboard', token: true, label: 'dashboard' },
   { path: '/cle-new', token: true, label: 'cle-new' },
   { path: '/lpdp', token: true, label: 'lpdp' },
+  { path: '/payment', token: true, label: 'payment' },
 ];
 
 // The DOM assertions run in the page. Returns { overflow, badTargets[], badInputs[] }.

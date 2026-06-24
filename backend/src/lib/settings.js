@@ -20,4 +20,10 @@ async function clinicalArtifactsEnabled() {
   return (await getSetting('clinical_artifacts', 0)) === 1;
 }
 
-module.exports = { getSetting, pilotTestMode, clinicalArtifactsEnabled };
+// Peer Calibration (superadmin toggle): when ON, a CLE may be assigned to several auditors and the
+// auditor reveal pane shows a you-vs-auditor-average PIS-7 radar. Default OFF (single-auditor blind audit).
+async function peerCalibrationEnabled() {
+  return (await getSetting('peer_calibration', 0)) === 1;
+}
+
+module.exports = { getSetting, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled };

@@ -6,10 +6,10 @@ const { sendDbError } = require('../lib/db-helpers');
 const { effectiveLimit } = require('../lib/usage');
 const { provisionProfessional } = require('../lib/provisioning');
 const { attachSpecialty, linkedProviders, specialtyInCouncil, councilHasSpecialties, specialtyName, TRAINING_LEVELS } = require('../lib/specialties');
-const { encryptJson } = require('../lib/crypto');
+const { encryptJson, decryptJson } = require('../lib/crypto');
 const { hashToken } = require('../lib/invite-token');
 const { logEvent } = require('../lib/audit');
-const { pilotTestMode } = require('../lib/settings');
+const { pilotTestMode, peerCalibrationEnabled } = require('../lib/settings');
 
 const router = Router();
 
@@ -160,6 +160,44 @@ router.get('/me', verifyJwt, async (req, res) => {
   res.json({ user: { ...enriched, usage_limit_effective_usd, auditor_usage_limit_effective_usd, linked_providers } });
 });
 
+// ---- Payment details (compensation payout, CLICS §12) ----------------------------------------
+// A physician provides their own bank / PromptPay details so the team can pay ฿500 per completed CLE.
+// Highly sensitive PII → encrypted on-prem with IDENTITY_ENC_KEY (lib/crypto), exactly like the OAuth
+// identity vault. Self-service only: a physician reads/writes their OWN row; the superadmin reads it
+// (audit-logged) at payout time. Never sent to cloud AI.
+const PaymentInfoSchema = z.object({
+  account_name: z.string().trim().min(1).max(120),
+  bank:         z.string().trim().max(80).optional().default(''),
+  account_no:   z.string().trim().max(40).optional().default(''),
+  promptpay:    z.string().trim().max(40).optional().default(''),
+}).refine((d) => (d.account_no && d.account_no.length > 0) || (d.promptpay && d.promptpay.length > 0), {
+  message: 'Provide a bank account number or a PromptPay ID.',
+});
+
+router.post('/payment-info', verifyJwt, async (req, res) => {
+  // Physician-only: compensation is paid per completed CLE, which only physicians run (a "special"
+  // dual-role physician keeps role='physician'). Auditors/admins/oversight have no payout.
+  if (req.user.role !== 'physician') return res.status(403).json({ error: 'Payment details are for physicians only.' });
+  const parsed = PaymentInfoSchema.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const enc = encryptJson(parsed.data);
+  const { error } = await supabase.from('payment_info')
+    .upsert({ physician_id: req.user.id, enc, updated_at: new Date().toISOString() }, { onConflict: 'physician_id' });
+  if (sendDbError(res, error)) return;
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'payment_info.update', targetType: 'professional', targetId: req.user.id });
+  res.json({ ok: true });
+});
+
+// The caller's own payment details (decrypted) so they can review/edit. Returns null if none saved.
+router.get('/payment-info', verifyJwt, async (req, res) => {
+  if (req.user.role !== 'physician') return res.status(403).json({ error: 'Payment details are for physicians only.' });
+  const { data } = await supabase.from('payment_info').select('enc, updated_at').eq('physician_id', req.user.id).maybeSingle();
+  if (!data) return res.json({ payment_info: null });
+  let info = null;
+  try { info = decryptJson(data.enc); } catch { info = null; } // unreadable blob (e.g. key rotated) → treat as none
+  res.json({ payment_info: info, updated_at: data.updated_at });
+});
+
 // A physician asks to ALSO become an auditor (the "special" dual role). Creates a pending
 // role request that ONLY a superadmin approves via /admin/auditor-requests (admins see their
 // council's queue read-only). Reuses the access_requests table (requested_role='auditor').
@@ -221,8 +259,11 @@ router.post('/consent', verifyJwt, async (req, res) => {
 });
 
 // Whether Pilot Test Mode is on — lets the new-CLE page reveal the Natural/Socratic picker.
+// Feature flags any authed user may read (the superadmin /admin/usage-settings is superadmin-only).
+// peer_calibration drives the admin's multi-auditor assign UI + the auditor's peer radar.
 router.get('/pilot-mode', verifyJwt, async (_req, res) => {
-  res.json({ pilot_test_mode: await pilotTestMode() });
+  const [pilot_test_mode, peer_calibration] = await Promise.all([pilotTestMode(), peerCalibrationEnabled()]);
+  res.json({ pilot_test_mode, peer_calibration });
 });
 
 // ---------------------------------------------------------------------------

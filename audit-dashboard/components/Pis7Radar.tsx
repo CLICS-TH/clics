@@ -14,27 +14,34 @@ import { DOMAIN_LABELS } from '@/lib/labels';
 type ScoreMap = Record<string, unknown> | null | undefined;
 const v = (m: ScoreMap, k: string) => Number(m?.[k] ?? 0);
 
-type Row = { domain: string; full: string; th: string; you: number; ai: number };
+type Row = { domain: string; full: string; th: string; you: number; cmp: number };
 
-function ChartTooltip({ active, payload }: { active?: boolean; payload?: { payload: Row }[] }) {
+function ChartTooltip({ active, payload, cmpName }: { active?: boolean; payload?: { payload: Row }[]; cmpName: string }) {
   if (!active || !payload?.length) return null;
   const r = payload[0].payload;
   return (
     <div className="rounded-md border bg-background px-3 py-2 text-xs shadow-sm">
       <p className="font-medium">{r.th}</p>
       <p className="text-muted-foreground">{r.full}</p>
-      <p className="mt-1 tabular-nums">คุณ / You: {r.you.toFixed(1)} · AI: {r.ai.toFixed(1)}</p>
+      <p className="mt-1 tabular-nums">คุณ / You: {r.you.toFixed(1)} · {cmpName}: {r.cmp.toFixed(1)}</p>
     </div>
   );
 }
 
-export function Pis7Radar({ ai, human }: { ai: ScoreMap; human: ScoreMap }) {
+// Two-series PIS-7 radar: the auditor's own scores ("You", coral) overlaid on a comparison series —
+// either the AI (slate-blue, pass `ai`) or the auditor-cohort average (violet, pass `peer`). The same
+// component powers both the vs-AI and vs-peer cards so they read identically.
+export function Pis7Radar({ ai, peer, human }: { ai?: ScoreMap; peer?: ScoreMap; human: ScoreMap }) {
+  const isPeer = ai == null && peer != null;
+  const cmpMap = isPeer ? peer : ai;
+  const cmpName = isPeer ? 'ค่าเฉลี่ย / Avg' : 'AI';
+  const cmpColor = isPeer ? CHART.peer : CHART.ai;
   const data: Row[] = PIS7_RUBRIC.map((d, i) => ({
     domain: DOMAIN_LABELS[i],
     full: d.en,
     th: d.th,
     you: v(human, d.key),
-    ai: v(ai, d.key),
+    cmp: v(cmpMap, d.key),
   }));
   return (
     // text-muted-foreground drives currentColor for the grid/axes so they track light/dark mode.
@@ -47,9 +54,9 @@ export function Pis7Radar({ ai, human }: { ai: ScoreMap; human: ScoreMap }) {
           <PolarGrid stroke="currentColor" strokeOpacity={0.2} />
           <PolarAngleAxis dataKey="domain" tick={{ fill: 'currentColor', fontSize: 12 }} />
           <PolarRadiusAxis domain={[0, 5]} tickCount={6} angle={90} tick={{ fill: 'currentColor', fontSize: 10 }} />
-          <Radar name="AI" dataKey="ai" stroke={CHART.ai} fill={CHART.ai} fillOpacity={0.25} strokeWidth={2} />
+          <Radar name={cmpName} dataKey="cmp" stroke={cmpColor} fill={cmpColor} fillOpacity={0.25} strokeWidth={2} />
           <Radar name="คุณ / You" dataKey="you" stroke={CHART.human} fill={CHART.human} fillOpacity={0.25} strokeWidth={2} />
-          <Tooltip content={<ChartTooltip />} />
+          <Tooltip content={<ChartTooltip cmpName={cmpName} />} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
         </RadarChart>
       </ResponsiveContainer>

@@ -5,7 +5,7 @@ import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine,
 } from 'recharts';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, apiDownload } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { DOMAIN_KEYS, DOMAIN_LABELS, ROLE_LABELS, cleStatusCards, budgetToneHex } from '@/lib/labels';
 import { CHART } from '@/lib/chart-colors';
@@ -27,7 +27,7 @@ type IccData = {
 };
 type Council = { id: string; code: string; name_th: string; name_en: string; active?: boolean };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
-type UsageSettings = { standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number; pilot_test_mode?: boolean; clinical_artifacts_enabled?: boolean };
+type UsageSettings = { standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number; pilot_test_mode?: boolean; clinical_artifacts_enabled?: boolean; peer_calibration_enabled?: boolean };
 type CountRow = { council_id: string; role: string; n: number };
 type Invite = { id: string; email: string; status: string };
 
@@ -101,6 +101,29 @@ export default function OverviewPage() {
       setUsage(u => (u ? { ...u, clinical_artifacts_enabled: next.clinical_artifacts_enabled } : u));
     } catch { /* leave state unchanged on failure */ }
     setArtifactsSaving(false);
+  }
+
+  const [peerSaving, setPeerSaving] = useState(false);
+  const peerOn = usage?.peer_calibration_enabled === true;
+  async function togglePeer() {
+    if (!usage) return;
+    setPeerSaving(true);
+    try {
+      const next = await apiFetch<UsageSettings>('/admin/usage-settings', {
+        method: 'PATCH', body: JSON.stringify({ peer_calibration_enabled: !peerOn }),
+      });
+      setUsage(u => (u ? { ...u, peer_calibration_enabled: next.peer_calibration_enabled } : u));
+    } catch { /* leave state unchanged on failure */ }
+    setPeerSaving(false);
+  }
+
+  const [exporting, setExporting] = useState(false);
+  const [exportErr, setExportErr] = useState('');
+  async function exportXlsx() {
+    setExporting(true); setExportErr('');
+    const res = await apiDownload('/admin/export.xlsx', 'clics-export.xlsx');
+    if (res.error) setExportErr(res.error);
+    setExporting(false);
   }
 
   // ---- ④ Budget ----
@@ -304,6 +327,54 @@ export default function OverviewPage() {
             title={artifactsOn ? 'Clinical artifacts are ON' : 'Clinical artifacts are OFF'}
           >
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${artifactsOn ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
+        </div>
+      </section>
+
+      {/* Peer Calibration — when on, a CLE may be assigned to several auditors and each auditor sees a
+          you-vs-auditor-average PIS-7 radar (alongside vs-AI). A pilot calibration aid, off by default. */}
+      <section className="space-y-3">
+        <h2 className="font-heading text-xl text-foreground">Peer Calibration</h2>
+        <div className="flex items-center justify-between rounded-xl border p-5">
+          <div className="pr-4">
+            <p className="text-sm font-medium">👥 Peer Calibration / การปรับเทียบระหว่างผู้ประเมิน</p>
+            <p className="text-xs text-muted-foreground">
+              เปิดให้มอบหมาย CLE เดียวกันแก่ผู้ประเมินหลายคน และแสดงเรดาร์เทียบคะแนนของผู้ประเมินกับค่าเฉลี่ยของผู้ประเมินทั้งหมด •
+              When on: a CLE can be assigned to multiple auditors, and after submitting each auditor sees a radar
+              comparing their PIS-7 scores to the average of all auditors (the vs-AI radar is kept).
+            </p>
+          </div>
+          <button
+            onClick={togglePeer}
+            disabled={!usage || peerSaving}
+            aria-pressed={peerOn}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${peerOn ? 'bg-primary' : 'bg-muted'}`}
+            title={peerOn ? 'Peer calibration is ON' : 'Peer calibration is OFF'}
+          >
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${peerOn ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
+        </div>
+      </section>
+
+      {/* Data export — one XLSX workbook, a sheet per category (CLEs / AI evaluations / Auditor scores /
+          Compensation / Participants). Pseudonymized (no names) so it honors the PII boundary. */}
+      <section className="space-y-3">
+        <h2 className="font-heading text-xl text-foreground">Export data</h2>
+        <div className="flex items-center justify-between gap-4 rounded-xl border p-5">
+          <div className="pr-4">
+            <p className="text-sm font-medium">📊 ส่งออกข้อมูล (XLSX) / Export data (XLSX)</p>
+            <p className="text-xs text-muted-foreground">
+              ดาวน์โหลดสมุดงาน Excel หนึ่งไฟล์ แยกชีตตามหมวด (CLEs · AI evaluations · Auditor scores · Compensation · Participants) •
+              One workbook, a sheet per category. Pseudonymized (P-NNN / EXP-NNN) — no names leave the system.
+            </p>
+            {exportErr && <p className="mt-1 text-xs text-destructive">{exportErr}</p>}
+          </div>
+          <button
+            onClick={exportXlsx}
+            disabled={exporting}
+            className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity disabled:opacity-50"
+          >
+            {exporting ? 'กำลังสร้าง… / Building…' : 'ดาวน์โหลด / Download'}
           </button>
         </div>
       </section>

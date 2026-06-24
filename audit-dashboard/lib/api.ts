@@ -46,6 +46,26 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
   return body as T;
 }
 
+// Authed file download: fetch a binary/text endpoint with the bearer token and trigger a browser
+// "Save as". Used for the payout CSV + the multi-sheet XLSX export (both behind superadmin auth).
+export async function apiDownload(path: string, filename: string): Promise<{ error?: string }> {
+  const token = getToken();
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
+  } catch {
+    return { error: 'เครือข่ายขัดข้อง กรุณาลองใหม่ / Network error. Please try again.' };
+  }
+  if (res.status === 401 && typeof window !== 'undefined') { redirectToLogin(); return {}; }
+  if (!res.ok) return { error: `ดาวน์โหลดไม่สำเร็จ / Download failed (status ${res.status}).` };
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+  return {};
+}
+
 // Paged fetch: returns the JSON array body plus the total row count from the
 // 'X-Total-Count' response header (see backend pagination contract). Falls back
 // to the page length when the header is missing/unparseable so callers can
@@ -55,14 +75,21 @@ export async function apiFetchPaged<T>(
   options: RequestInit = {},
 ): Promise<{ items: T[]; total: number }> {
   const token = getToken();
-  const res = await fetch(`${BASE}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers ?? {}),
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers ?? {}),
+      },
+    });
+  } catch {
+    // Non-throwing contract (matches apiFetch): a network failure yields an empty page, not a reject
+    // that strands the awaiting effect as an unhandled rejection.
+    return { items: [], total: 0 };
+  }
   if (res.status === 401 && typeof window !== 'undefined') {
     redirectToLogin();
     return { items: [], total: 0 };
