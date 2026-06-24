@@ -43,6 +43,7 @@ function makeSupabaseMock() {
     self.select = (...a) => { rec.selectArgs = a.length ? a : ['*']; return self; };
     self.insert = (p) => { rec.op = 'insert'; rec.payload = p; return self; };
     self.update = (p) => { rec.op = 'update'; rec.payload = p; return self; };
+    self.upsert = (p) => { rec.op = 'upsert'; rec.payload = p; return self; };
     self.delete = () => { rec.op = 'delete'; return self; };
     self.eq = (c, v) => { rec.eqs.push([c, v]); return self; };
     // ADDITIVE: record .or() expressions (rec.ors) so search-filter suites can assert them; still

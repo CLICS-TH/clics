@@ -12,17 +12,22 @@ function fmt(n: number): string {
   return r > 0 ? `+${s}` : s;
 }
 
-export function pis7Conclusion(ai: ScoreMap, human: ScoreMap): string {
+// Reference defaults to the AI; pass {th, en} to compare against something else (e.g. the auditor
+// cohort average) so the same narrator serves both the vs-AI and vs-peer cards.
+type RefLabel = { th: string; en: string };
+const AI_REF: RefLabel = { th: 'AI', en: 'the AI' };
+
+export function pis7Conclusion(ref: ScoreMap, human: ScoreMap, refLabel: RefLabel = AI_REF): string {
   const deltas = PIS7_RUBRIC.map(d => ({
     th: d.th,
     en: d.en,
-    diff: Number(human?.[d.key] ?? 0) - Number(ai?.[d.key] ?? 0),
+    diff: Number(human?.[d.key] ?? 0) - Number(ref?.[d.key] ?? 0),
   }));
 
   // "Agree" = within a quarter point (handles fractional means; exact for integer single-CLE).
   const diverging = deltas.filter(x => Math.abs(x.diff) >= 0.25);
   if (diverging.length === 0) {
-    return 'คะแนนของคุณสอดคล้องกับ AI ในทุกหมวด PIS-7 / Your scores align with the AI across every PIS-7 domain.';
+    return `คะแนนของคุณสอดคล้องกับ${refLabel.th}ในทุกหมวด PIS-7 / Your scores align with ${refLabel.en} across every PIS-7 domain.`;
   }
 
   const above = [...deltas].filter(x => x.diff > 0).sort((a, b) => b.diff - a.diff)[0];
@@ -31,7 +36,7 @@ export function pis7Conclusion(ai: ScoreMap, human: ScoreMap): string {
 
   const th: string[] = [];
   const en: string[] = [];
-  if (above) { th.push(`สูงกว่า AI มากสุดที่ "${above.th}" (${fmt(above.diff)})`); en.push(`highest above the AI on ${above.en} (${fmt(above.diff)})`); }
+  if (above) { th.push(`สูงกว่า${refLabel.th}มากสุดที่ "${above.th}" (${fmt(above.diff)})`); en.push(`highest above ${refLabel.en} on ${above.en} (${fmt(above.diff)})`); }
   if (below) { th.push(`ต่ำกว่าที่ "${below.th}" (${fmt(below.diff)})`); en.push(`lowest on ${below.en} (${fmt(below.diff)})`); }
   th.push(`ใกล้เคียงที่สุดที่ "${closest.th}"`);
   en.push(`closest agreement on ${closest.en}`);

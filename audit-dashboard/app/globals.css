@@ -52,6 +52,12 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
+  /* Small-text floor: bump Tailwind's `text-xs` from 0.75rem (12px) to 0.8125rem (13px) so the many
+     bilingual/Thai captions, table meta and badges read comfortably (Thai glyphs render visually
+     smaller than Latin). Cascades to every `text-xs` utility app-wide. Keep the paired line-height. */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.45;
+
   /* Fluid type — one clamp() ladder mirrored from physician-ui/public/css/main.css (keep in sync).
      Exposes `text-fluid-lg/xl/2xl` + `text-display` utilities so headings & key numbers scale
      smoothly 320→1920px instead of stepping. Bind display numbers/headings to these. */
@@ -97,6 +103,7 @@
   --chart-warn: #e08a1e;   /* saturated amber for solid fills (usage/budget meters) — same in both modes */
   --chart-human: #cc785c;  /* PIS-7 radar: human auditor series (mirror of CHART.human) */
   --chart-ai: #5b7fb9;     /* PIS-7 radar: AI series (mirror of CHART.ai) */
+  --chart-peer: #8d6fc9;   /* PIS-7 radar: auditor-cohort-average series (mirror of CHART.peer) */
   --chart-pass-bg: #d1f5dc;
   --chart-pass-text: #1a6630;
   --radius: 0.75rem;

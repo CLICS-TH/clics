@@ -3,7 +3,8 @@ const { z } = require('zod');
 const { supabase, authSupabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { computeICC21 } = require('../services/icc');
-const { sendDbError, pageParams } = require('../lib/db-helpers');
+const { sendDbError, pageParams, toCsv } = require('../lib/db-helpers');
+const { compRateCap, cappedCles } = require('../lib/compensation');
 const { assertSlotAvailable, nextPseudonym, allSlotUsage, allCouncilSlotUsage, allCouncilsSlotUsage, ROLES } = require('../lib/accounts');
 const { normalizeCanAudit } = require('../lib/dual-role');
 const { POSITIONS, checkSpecialty } = require('../lib/specialties');
@@ -70,6 +71,12 @@ const UsageSettingsSchema = z.object({
   // Clinical Artifacts: when ON, the AI may emit `:::artifact{...}` side-panel blocks (DDx tables, care
   // plans, …). A research-stimulus change — default OFF, enabled deliberately by a superadmin.
   clinical_artifacts_enabled: z.boolean().optional(),
+  // Peer Calibration: when ON, a CLE may be assigned to several auditors and the reveal pane shows a
+  // you-vs-auditor-average radar (alongside vs-AI). Default OFF (single-auditor blind audit).
+  peer_calibration_enabled: z.boolean().optional(),
+  // Compensation (CLICS §12): ฿/completed-CLE rate and the per-physician cap in CLEs (0 = no cap).
+  comp_rate_thb: z.number().nonnegative().max(1_000_000).optional(),
+  comp_cap_cles: z.number().int().nonnegative().max(10_000).optional(),
 }).refine((b) => Object.keys(b).length > 0, { message: 'No settings to update' });
 
 // GET /users moved to routes/admin.js (mounted first on the same /admin prefix): it is now
@@ -359,18 +366,20 @@ async function poolTotal(sumRpc, col) {
 }
 
 router.get('/usage-settings', async (_req, res) => {
-  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd] = await Promise.all([
+  // All independent reads in one batch (was several sequential awaits on the same table).
+  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, comp_rate_thb, comp_cap_cles, total_used_usd, auditor_total_used_usd] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
     readSetting('auditor_standard_usage_limit_usd', 0.5),
     readSetting('api_budget_pool_usd', 0),
-  ]);
-  const [total_used_usd, auditor_total_used_usd] = await Promise.all([
+    readSetting('pilot_test_mode', 0),
+    readSetting('clinical_artifacts', 0),
+    readSetting('peer_calibration', 0),
+    readSetting('comp_rate_thb', 500),
+    readSetting('comp_cap_cles', 3),
     poolTotal('total_usage_sum', 'usage_cost_usd'),
     poolTotal('total_auditor_usage_sum', 'auditor_usage_cost_usd'),
   ]);
-  const pilot_test_mode = (await readSetting('pilot_test_mode', 0)) === 1;
-  const clinical_artifacts_enabled = (await readSetting('clinical_artifacts', 0)) === 1;
-  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, total_used_usd, auditor_total_used_usd, pilot_test_mode, clinical_artifacts_enabled });
+  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, total_used_usd, auditor_total_used_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, comp_rate_thb, comp_cap_cles });
 });
 
 router.patch('/usage-settings', async (req, res) => {
@@ -383,6 +392,9 @@ router.patch('/usage-settings', async (req, res) => {
   if (parsed.data.api_budget_pool_usd != null) upserts.push({ key: 'api_budget_pool_usd', value: parsed.data.api_budget_pool_usd, updated_at: now });
   if (parsed.data.pilot_test_mode != null) upserts.push({ key: 'pilot_test_mode', value: parsed.data.pilot_test_mode ? 1 : 0, updated_at: now });
   if (parsed.data.clinical_artifacts_enabled != null) upserts.push({ key: 'clinical_artifacts', value: parsed.data.clinical_artifacts_enabled ? 1 : 0, updated_at: now });
+  if (parsed.data.peer_calibration_enabled != null) upserts.push({ key: 'peer_calibration', value: parsed.data.peer_calibration_enabled ? 1 : 0, updated_at: now });
+  if (parsed.data.comp_rate_thb != null) upserts.push({ key: 'comp_rate_thb', value: parsed.data.comp_rate_thb, updated_at: now });
+  if (parsed.data.comp_cap_cles != null) upserts.push({ key: 'comp_cap_cles', value: parsed.data.comp_cap_cles, updated_at: now });
   const { error } = await supabase.from('app_settings').upsert(upserts);
   if (sendDbError(res, error)) return;
   if (parsed.data.pilot_test_mode != null) {
@@ -393,14 +405,21 @@ router.patch('/usage-settings', async (req, res) => {
     logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'clinical_artifacts',
       metadata: { enabled: parsed.data.clinical_artifacts_enabled } });
   }
-  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd] = await Promise.all([
+  if (parsed.data.peer_calibration_enabled != null) {
+    logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'peer_calibration',
+      metadata: { enabled: parsed.data.peer_calibration_enabled } });
+  }
+  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, comp_rate_thb, comp_cap_cles] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
     readSetting('auditor_standard_usage_limit_usd', 0.5),
     readSetting('api_budget_pool_usd', 0),
+    readSetting('pilot_test_mode', 0),
+    readSetting('clinical_artifacts', 0),
+    readSetting('peer_calibration', 0),
+    readSetting('comp_rate_thb', 500),
+    readSetting('comp_cap_cles', 3),
   ]);
-  const pilot_test_mode = (await readSetting('pilot_test_mode', 0)) === 1;
-  const clinical_artifacts_enabled = (await readSetting('clinical_artifacts', 0)) === 1;
-  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot_test_mode, clinical_artifacts_enabled });
+  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, comp_rate_thb, comp_cap_cles });
 });
 
 // Reset a member's running AI usage meter back to zero (manual-reset escape hatch).
@@ -451,12 +470,23 @@ router.get('/icc', async (req, res) => {
   const testOf = Object.fromEntries((cles ?? []).map(p => [p.id, p.is_test]));
 
   const aiBy = Object.fromEntries((aiScores ?? []).map(s => [s.cle_id, s]));
-  const allPairs = [];
+  // Aggregate to ONE human value per CLE (mean across auditors) before pairing: ICC(2,1) assumes a
+  // single human rating per subject, so a multi-auditor CLE must not emit N pairs that reuse the same
+  // AI value (which would inflate n + distort the statistic). With one auditor the mean is that score.
+  const byCle = new Map();
   for (const a of auditScores) {
-    const ai = aiBy[a.cle_id];
+    if (!byCle.has(a.cle_id)) byCle.set(a.cle_id, []);
+    byCle.get(a.cle_id).push(a);
+  }
+  const allPairs = [];
+  for (const [cleId, rows] of byCle) {
+    const ai = aiBy[cleId];
     if (!ai) continue;
-    if (!includeTest && testOf[a.cle_id]) continue;
-    allPairs.push({ council_id: a.council_id, ai, audit: a });
+    if (!includeTest && testOf[cleId]) continue;
+    const mean = (k) => rows.reduce((s, r) => s + Number(r[k] || 0), 0) / rows.length;
+    const audit = { composite_score: mean('composite_score') };
+    for (const d of ICC_DOMAINS) audit[d] = mean(d);
+    allPairs.push({ council_id: rows[0].council_id, ai, audit });
   }
 
   const global = iccBundle(allPairs);
@@ -526,6 +556,123 @@ router.get('/cles/:id/pii-map', async (req, res) => {
   });
 
   res.json({ cle_code: cle.cle_code ?? null, entry_count: row.entry_count, entries });
+});
+
+// ---- Compensation payouts (superadmin only) ------------------------------------------------------
+// Owed = completed (cle_pass, non-test) CLEs × rate, capped (configurable). Paid = Σ payouts ledger.
+// Unlike the pseudonymized /admin/compensation report, this view carries REAL names + (decrypted)
+// payment details so the team can actually pay — so it is superadmin-only and every read is audit-
+// logged. The actual transfer happens externally; POST .../pay records it.
+async function loadPayoutBase() {
+  // Settings + the (larger) CLE scan are independent — overlap them.
+  const [{ rate, cap }, clesRes] = await Promise.all([
+    compRateCap(),
+    supabase.from('cles').select('physician_id').eq('status', 'cle_pass').eq('is_test', false),
+  ]);
+  if (clesRes.error) throw clesRes.error;
+  const countByPhys = {};
+  for (const r of clesRes.data ?? []) countByPhys[r.physician_id] = (countByPhys[r.physician_id] ?? 0) + 1;
+  const physIds = Object.keys(countByPhys);
+  const empty = Promise.resolve({ data: [] });
+  const [{ data: pros }, { data: pay }, { data: ledger }] = await Promise.all([
+    physIds.length ? supabase.from('professionals').select('id, full_name_th, full_name_en, pseudonym').in('id', physIds) : empty,
+    physIds.length ? supabase.from('payment_info').select('physician_id, enc').in('physician_id', physIds) : empty,
+    physIds.length ? supabase.from('payouts').select('physician_id, amount_thb').in('physician_id', physIds) : empty,
+  ]);
+  const proById = new Map((pros ?? []).map(p => [p.id, p]));
+  const payById = new Map((pay ?? []).map(p => [p.physician_id, p.enc]));
+  const paidByPhys = {};
+  for (const l of ledger ?? []) paidByPhys[l.physician_id] = (paidByPhys[l.physician_id] ?? 0) + Number(l.amount_thb);
+  const safeDecrypt = (id) => { const enc = payById.get(id); if (!enc) return null; try { return decryptJson(enc); } catch { return null; } };
+  // One owed/paid/outstanding line per physician — single source for the JSON view + the CSV export.
+  const lineFor = (id) => {
+    const completed = cappedCles(countByPhys[id], cap);
+    const owed = completed * rate;
+    const paid = paidByPhys[id] ?? 0;
+    return { completed, owed, paid, outstanding: Math.max(0, owed - paid) };
+  };
+  return { rate, cap, physIds, proById, safeDecrypt, lineFor };
+}
+function maskAccount(info) {
+  if (!info) return null;
+  const src = info.account_no || info.promptpay || '';
+  if (!src) return null;
+  const label = info.account_no ? (info.bank ? `${info.bank} ` : '') : 'PromptPay ';
+  return `${label}••••${String(src).slice(-4)}`;
+}
+
+router.get('/payouts', async (req, res) => {
+  let base;
+  try { base = await loadPayoutBase(); } catch (e) { return res.status(500).json({ error: e.message }); }
+  const { rate, cap, physIds, proById, safeDecrypt, lineFor } = base;
+  const recipients = physIds.map((id) => {
+    const p = proById.get(id);
+    const { completed, owed, paid, outstanding } = lineFor(id);
+    const info = safeDecrypt(id);
+    return {
+      physician_id: id,
+      name: p ? (p.full_name_th || p.full_name_en) : null,
+      pseudonym: p?.pseudonym ?? null,
+      completed_cles: completed, owed_thb: owed, paid_thb: paid, outstanding_thb: outstanding,
+      has_payment_info: info != null, account_masked: maskAccount(info),
+    };
+  }).sort((a, b) => (b.outstanding_thb - a.outstanding_thb) || String(a.name).localeCompare(String(b.name)));
+  logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'payout.view', metadata: { n: recipients.length } });
+  res.json({ rate_thb_per_cle: rate, cap_cles: cap, n: recipients.length, recipients });
+});
+
+const PaySchema = z.object({
+  amount_thb: z.number().positive().max(1_000_000),
+  paid_ref: z.string().trim().max(120).optional().default(''),
+});
+router.post('/payouts/:physicianId/pay', async (req, res) => {
+  const parsed = PaySchema.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  // The target must be a real professional — a clear 404 instead of an opaque FK-violation 500.
+  const { data: prof } = await supabase.from('professionals').select('id').eq('id', req.params.physicianId).maybeSingle();
+  if (!prof) return res.status(404).json({ error: 'Physician not found' });
+  // Recompute owed/outstanding server-side and refuse an overpayment (the UI also disables the button,
+  // but a direct API call or a concurrent double-click must not push paid past owed).
+  const { rate, cap } = await compRateCap();
+  const [{ data: passRows }, { data: ledger }] = await Promise.all([
+    supabase.from('cles').select('id').eq('physician_id', req.params.physicianId).eq('status', 'cle_pass').eq('is_test', false),
+    supabase.from('payouts').select('amount_thb').eq('physician_id', req.params.physicianId),
+  ]);
+  const completed = cappedCles((passRows ?? []).length, cap);
+  const owed = completed * rate;
+  const paid = (ledger ?? []).reduce((s, l) => s + Number(l.amount_thb), 0);
+  const outstanding = Math.max(0, owed - paid);
+  if (parsed.data.amount_thb > outstanding + 0.001) {
+    return res.status(400).json({ error: `จำนวนเกินยอดค้างจ่าย (฿${outstanding}) / Amount exceeds outstanding (฿${outstanding}).`, code: 'over_outstanding', outstanding_thb: outstanding });
+  }
+  const { data, error } = await supabase.from('payouts').insert({
+    physician_id: req.params.physicianId, cle_count: completed, amount_thb: parsed.data.amount_thb,
+    paid_ref: parsed.data.paid_ref || null, paid_by: req.user.id,
+  }).select('id').single();
+  if (sendDbError(res, error)) return;
+  logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'payout.pay', targetType: 'professional',
+    targetId: req.params.physicianId, metadata: { amount_thb: parsed.data.amount_thb, paid_ref: parsed.data.paid_ref || null } });
+  res.json({ ok: true, id: data.id });
+});
+
+// Payout file for the actual transfer — REAL names + decrypted account details. Superadmin-only +
+// audit-logged (this CSV carries payment PII; the research export at /admin/export.xlsx stays pseudonymized).
+router.get('/payouts/export', async (req, res) => {
+  let base;
+  try { base = await loadPayoutBase(); } catch (e) { return res.status(500).json({ error: e.message }); }
+  const { physIds, proById, safeDecrypt, lineFor } = base;
+  const header = ['pseudonym', 'name', 'completed_cles', 'owed_thb', 'paid_thb', 'outstanding_thb', 'account_name', 'bank', 'account_no', 'promptpay'];
+  const rows = physIds.map((id) => {
+    const p = proById.get(id);
+    const { completed, owed, paid, outstanding } = lineFor(id);
+    const info = safeDecrypt(id) || {};
+    return [p?.pseudonym ?? '', p ? (p.full_name_th || p.full_name_en) : '', completed, owed, paid, outstanding,
+      info.account_name ?? '', info.bank ?? '', info.account_no ?? '', info.promptpay ?? ''];
+  });
+  logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'payout.export', metadata: { n: physIds.length } });
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="clics-payouts.csv"');
+  res.send(toCsv(header, rows));
 });
 
 module.exports = router;

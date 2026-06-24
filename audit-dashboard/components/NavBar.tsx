@@ -114,9 +114,9 @@ export function NavBar() {
         <div className="ml-auto flex items-center gap-2">
           {/* Identity: name + specialty · position (the layer under council). Hidden on phones to save width. */}
           {!compact && (
-            <div className="mr-1 max-w-36 text-right leading-tight">
-              <p className="truncate text-xs font-medium text-foreground">{user.full_name_th || user.full_name_en}</p>
-              {specialtyLine && <p className="truncate text-[11px] text-muted-foreground">{specialtyLine}</p>}
+            <div className="mr-1 max-w-44 text-right leading-tight">
+              <p className="truncate text-sm font-medium text-foreground" title={user.full_name_th || user.full_name_en || ''}>{user.full_name_th || user.full_name_en}</p>
+              {specialtyLine && <p className="truncate text-xs text-muted-foreground" title={specialtyLine}>{specialtyLine}</p>}
             </div>
           )}
           <RoleBadge />

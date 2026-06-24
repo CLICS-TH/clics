@@ -87,6 +87,10 @@ window.api = {
   linkGoogle: (access_token) => apiFetch('/auth/link-google', { method: 'POST', body: { access_token } }),
   consent: (body) => apiFetch('/auth/consent', { method: 'POST', body }),
   pilotMode: () => apiFetch('/auth/pilot-mode'),
+  // Compensation payment details (self-service): the physician's own bank/PromptPay info, stored
+  // encrypted on-prem. getPaymentInfo → { payment_info, updated_at } | { payment_info: null }.
+  getPaymentInfo: () => apiFetch('/auth/payment-info'),
+  savePaymentInfo: (body) => apiFetch('/auth/payment-info', { method: 'POST', body }),
   createPle: (body) => apiFetch('/cles', { method: 'POST', body }),
   getPlEs: () => apiFetch('/cles'),
   getPle: (id) => apiFetch(`/cles/${id}`),

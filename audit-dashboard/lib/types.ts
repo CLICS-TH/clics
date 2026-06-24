@@ -50,6 +50,7 @@ export interface CleRow {
   started_at: string;
   council_id?: string | null;
   auditor_id?: string | null;
+  assignment_count?: number;   // how many auditors are assigned (multi-auditor pilot)
   is_test?: boolean;
   specialty_id?: string | null;
   specialties?: SpecialtyRef | null;   // embedded specialty (name) for display
@@ -157,12 +158,45 @@ export interface AuditorPle {
     d5?: number; d6?: number; d7?: number;
     domain_rationale?: Record<string, string> | null;
   } | null;
+  // Peer calibration (toggle): mean PIS-7 across ALL auditors who scored this CLE, returned only
+  // post-submit and when peer_n >= 2 (else the "average" is just this auditor).
+  peer_avg?: Record<string, number> | null;
+  peer_n?: number;
   error?: unknown;
 }
 
 // GET /auditor/calibration — this auditor's mean PIS-7 (d1–d7) vs the AI's, across scored CLEs.
+// `peer` (the auditor-cohort average) is present only when the peer_calibration toggle is on.
 export interface AuditorCalibration {
   n: number;
   auditor: Record<string, number> | null;
   ai: Record<string, number> | null;
+  peer?: Record<string, number> | null;
+}
+
+// GET /admin/payouts (superadmin) — the real-name compensation payout pipeline (owed/paid/outstanding).
+export interface PayoutRecipient {
+  physician_id: string;
+  name: string | null;
+  pseudonym: string | null;
+  completed_cles: number;
+  owed_thb: number;
+  paid_thb: number;
+  outstanding_thb: number;
+  has_payment_info: boolean;
+  account_masked: string | null;
+}
+export interface PayoutReport {
+  rate_thb_per_cle: number;
+  cap_cles: number;
+  n: number;
+  recipients: PayoutRecipient[];
+}
+
+// The physician's own saved payment details (GET /auth/payment-info), for read-back/edit.
+export interface PaymentInfo {
+  account_name: string;
+  bank?: string;
+  account_no?: string;
+  promptpay?: string;
 }

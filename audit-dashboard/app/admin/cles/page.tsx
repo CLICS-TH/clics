@@ -39,6 +39,7 @@ function AdminClesContent() {
   const [filter, setFilter] = useState(searchParams.get('status') || '');
   const [auditors, setAuditors] = useState<Auditor[]>([]);
   const [councils, setCouncils] = useState<Record<string, string>>({});
+  const [peerOn, setPeerOn] = useState(false);   // peer_calibration toggle → allow multi-auditor assign
   const mobile = useIsMobile();
 
   // Fetch one page (newest-first), filtered SERVER-side by the active status, then append (offset>0)
@@ -68,6 +69,8 @@ function AdminClesContent() {
     apiFetch<Auditor[]>('/admin/auditors').then(d => setAuditors(Array.isArray(d) ? d : []));
     apiFetch<Council[]>('/admin/councils').then(d =>
       setCouncils(Object.fromEntries((Array.isArray(d) ? d : []).map((c: Council) => [c.id, c.name_th]))));
+    // peer_calibration flag (readable by any authed user): when on, a CLE may take several auditors.
+    apiFetch<{ peer_calibration?: boolean }>('/auth/pilot-mode').then(d => setPeerOn(d?.peer_calibration === true)).catch(() => {});
   }, []);
 
   // (Re)load page 0 whenever the status filter changes (incl. on mount).
@@ -84,15 +87,31 @@ function AdminClesContent() {
     { key: 'cle_fail_t1', label: STATUS_MAP.cle_fail_t1 },
   ];
 
-  // Shared assign control (used by both the desktop table and the mobile card list).
-  const assignControl = (p: CleRow) =>
-    p.status === 'evaluated' && !p.auditor_id
-      ? <select className="min-w-0 max-w-[200px] rounded-md border border-border bg-background px-2 py-1.5 text-xs"
-          onChange={e => e.target.value && assign(p.id, e.target.value)}>
-          <option value="">เลือก Auditor...</option>
-          {auditors.map((a: Auditor) => <option key={a.id} value={a.id}>{a.full_name_th}</option>)}
-        </select>
-      : p.auditor_id ? <span className="inline-flex items-center gap-1 text-xs text-[var(--ok)]"><Check className="size-3.5" /> Assigned</span> : <span className="text-xs text-muted-foreground">—</span>;
+  // Shared assign control (used by both the desktop table and the mobile card list). When peer
+  // calibration is ON, a CLE can take several auditors — keep offering the dropdown after the first
+  // assignment and show the running count. When OFF, the original single-assignee behavior holds.
+  const assignControl = (p: CleRow) => {
+    if (p.status !== 'evaluated') return <span className="text-xs text-muted-foreground">—</span>;
+    const assigned = p.assignment_count ?? (p.auditor_id ? 1 : 0);
+    const showPicker = peerOn || !p.auditor_id;
+    return (
+      <div className="flex flex-col items-start gap-1">
+        {assigned > 0 && (
+          <span className="inline-flex items-center gap-1 text-xs text-[var(--ok)]">
+            <Check className="size-3.5" /> {peerOn ? `Assigned (${assigned})` : 'Assigned'}
+          </span>
+        )}
+        {showPicker && (
+          <select className="min-w-0 max-w-[200px] rounded-md border border-border bg-background px-2 py-1.5 text-xs"
+            value=""
+            onChange={e => e.target.value && assign(p.id, e.target.value)}>
+            <option value="">{assigned > 0 ? 'เพิ่มผู้ประเมิน / Add auditor…' : 'เลือก Auditor...'}</option>
+            {auditors.map((a: Auditor) => <option key={a.id} value={a.id}>{a.full_name_th}</option>)}
+          </select>
+        )}
+      </div>
+    );
+  };
 
   async function assign(cleId: string, auditorId: string) {
     try {

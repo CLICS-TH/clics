@@ -32,11 +32,22 @@ router.get('/icc', async (req, res) => {
   const { data: cles } = await supabase.from('cles').select('id, is_test').in('id', scoredIds);
   const testOf = Object.fromEntries((cles ?? []).map(p => [p.id, p.is_test]));
   const aiBy = Object.fromEntries((aiScores ?? []).map(s => [s.cle_id, s]));
-  const pairs = [];
+  // One human value per CLE (mean across auditors) before pairing — ICC(2,1) assumes one human rating
+  // per subject, so a multi-auditor CLE must not contribute N pairs reusing the same AI value. With a
+  // single auditor the mean equals that score (correct in both modes).
+  const byCle = new Map();
   for (const a of auditScores) {
-    const ai = aiBy[a.cle_id];
-    if (!ai || (!includeTest && testOf[a.cle_id])) continue;
-    pairs.push({ ai, audit: a });
+    if (!byCle.has(a.cle_id)) byCle.set(a.cle_id, []);
+    byCle.get(a.cle_id).push(a);
+  }
+  const pairs = [];
+  for (const [cleId, rows] of byCle) {
+    const ai = aiBy[cleId];
+    if (!ai || (!includeTest && testOf[cleId])) continue;
+    const mean = (k) => rows.reduce((s, r) => s + Number(r[k] || 0), 0) / rows.length;
+    const audit = { composite_score: mean('composite_score') };
+    for (const d of ICC_DOMAINS) audit[d] = mean(d);
+    pairs.push({ ai, audit });
   }
   const overall = computeICC21(pairs.map(p => ({ ai: Number(p.ai.composite_score), human: Number(p.audit.composite_score) })));
   const per_domain = {};

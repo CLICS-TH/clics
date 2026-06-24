@@ -8,6 +8,18 @@ const { computeICC21 } = require('../services/icc');
 const { logEvent } = require('../lib/audit');
 const { effectiveLimit, reserveUsage, settleUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
 const { rimplAuditDiscuss } = require('../services/rimpl-client');
+const { peerCalibrationEnabled } = require('../lib/settings');
+const { PIS7_DIMS: CALIB_DIMS, meanByDim } = require('../lib/compensation');
+
+// Access gate (multi-auditor pilot): an auditor may act on a CLE if they're explicitly assigned via
+// audit_assignments OR they're the legacy single assignee (cles.auditor_id). One source of truth so
+// the queue / view / score / discuss gates can't drift apart.
+async function isAssignedAuditor(cleId, auditorId, legacyAuditorId) {
+  if (legacyAuditorId && legacyAuditorId === auditorId) return true;
+  const { data } = await supabase.from('audit_assignments')
+    .select('cle_id').eq('cle_id', cleId).eq('auditor_id', auditorId).maybeSingle();
+  return !!data;
+}
 
 // Auditors must record their confidentiality + COI consent (Appendix 04/15) before scoring — the
 // same consented_at signal physicians use, set via POST /auth/consent {context:'auditor'}.
@@ -22,40 +34,50 @@ const router = Router();
 router.use(verifyJwt, requireRole('auditor'));
 
 router.get('/queue', async (req, res) => {
-  const { data, error } = await supabase
-    .from('cles')
-    .select('id, status, ended_at, turn_count, token_count')
-    .eq('auditor_id', req.user.id)
-    .eq('status', 'evaluated')
-    .order('ended_at');
-  if (error) return res.status(500).json({ error: error.message });
+  // CLEs assigned to me: the multi-auditor join table UNION the legacy single-assignee pointer. Merged
+  // in JS (two small queries) to avoid PostgREST .or()/.in() quoting pitfalls; pilot-scale row counts.
+  const { data: assigns } = await supabase.from('audit_assignments').select('cle_id').eq('auditor_id', req.user.id);
+  const assignedIds = [...new Set((assigns ?? []).map(a => a.cle_id))];
+  const base = () => supabase.from('cles')
+    .select('id, status, ended_at, turn_count, token_count').eq('status', 'evaluated');
+  const [legacy, viaAssign] = await Promise.all([
+    base().eq('auditor_id', req.user.id),
+    assignedIds.length ? base().in('id', assignedIds) : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (legacy.error) return res.status(500).json({ error: legacy.error.message });
+  if (viaAssign.error) return res.status(500).json({ error: viaAssign.error.message });
+  const byId = new Map();
+  for (const p of [...(legacy.data ?? []), ...(viaAssign.data ?? [])]) byId.set(p.id, p);
+  const cles = [...byId.values()].sort((a, b) => String(a.ended_at).localeCompare(String(b.ended_at)));
 
   // Flag which assigned CLEs this auditor has ALREADY scored, so the queue can mark them and
   // surface the ones still to score (rather than locking the whole list as "already evaluated").
-  const ids = (data ?? []).map(p => p.id);
+  const ids = cles.map(p => p.id);
   let scored = new Set();
   if (ids.length) {
     const { data: rows } = await supabase
       .from('audit_scores').select('cle_id').eq('auditor_id', req.user.id).in('cle_id', ids);
     scored = new Set((rows ?? []).map(r => r.cle_id));
   }
-  res.json((data ?? []).map(p => ({ ...p, scored: scored.has(p.id) })));
+  res.json(cles.map(p => ({ ...p, scored: scored.has(p.id) })));
 });
 
 router.get('/cles/:id', async (req, res) => {
   const { data: cle } = await supabase
-    .from('cles').select('id, status, turn_count, token_count, ended_at')
-    .eq('id', req.params.id).eq('auditor_id', req.user.id).single();
-  if (!cle) return res.status(404).json({ error: 'Not found or not assigned' });
+    .from('cles').select('id, status, turn_count, token_count, ended_at, auditor_id')
+    .eq('id', req.params.id).single();
+  if (!cle || !(await isAssignedAuditor(cle.id, req.user.id, cle.auditor_id))) {
+    return res.status(404).json({ error: 'Not found or not assigned' });
+  }
 
-  const { data: messages } = await supabase
-    .from('messages').select('role, content, refs, socratic_question, created_at')
-    .eq('cle_id', req.params.id).order('created_at');
+  // Transcript + this auditor's own score are independent — fetch together.
+  const [{ data: messages }, { data: existing }] = await Promise.all([
+    supabase.from('messages').select('role, content, refs, socratic_question, created_at')
+      .eq('cle_id', req.params.id).order('created_at'),
+    supabase.from('audit_scores').select('*').eq('cle_id', req.params.id).eq('auditor_id', req.user.id).maybeSingle(),
+  ]);
 
-  const { data: existing } = await supabase
-    .from('audit_scores').select('*').eq('cle_id', req.params.id).eq('auditor_id', req.user.id).single();
-
-  let aiEval = null;
+  let aiEval = null, peerAvg = null, peerN = 0;
   if (existing) {
     // .order+limit(1)+maybeSingle, NOT .single(): a dup-eval race (possible until migration-eval-unique
     // is applied) leaves two rows, on which .single() errors and returns null — the auditor's post-score
@@ -64,9 +86,19 @@ router.get('/cles/:id', async (req, res) => {
       .from('ai_evaluations').select('*').eq('cle_id', req.params.id)
       .order('evaluated_at', { ascending: true }).limit(1).maybeSingle();
     aiEval = data;
+
+    // Peer-calibration (toggle): mean PIS-7 across the OTHER auditors who scored this CLE — self is
+    // excluded so "vs auditor average" is a true peer comparison (not diluted by the viewer's own
+    // numbers). Shown once ≥1 other auditor has scored. Post-submit only — `existing` gates this
+    // exactly like the AI reveal, so the blind audit holds.
+    if (await peerCalibrationEnabled()) {
+      const { data: peers } = await supabase
+        .from('audit_scores').select('d1,d2,d3,d4,d5,d6,d7').eq('cle_id', req.params.id).neq('auditor_id', req.user.id);
+      if (peers && peers.length >= 1) { peerN = peers.length; peerAvg = meanByDim(peers); }
+    }
   }
 
-  res.json({ cle, messages: messages ?? [], audit_score: existing ?? null, ai_evaluation: aiEval });
+  res.json({ cle, messages: messages ?? [], audit_score: existing ?? null, ai_evaluation: aiEval, peer_avg: peerAvg, peer_n: peerN });
 });
 
 router.post('/cles/:id/score', requireAuditorConsent, async (req, res) => {
@@ -78,12 +110,12 @@ router.post('/cles/:id/score', requireAuditorConsent, async (req, res) => {
   const { data: cle } = await supabase
     .from('cles').select('id, auditor_id, council_id, physician_id').eq('id', req.params.id).single();
   if (!cle) return res.status(404).json({ error: 'Not found' });
-  if (cle.auditor_id !== req.user.id) return res.status(403).json({ error: 'Not assigned to you' });
+  if (!(await isAssignedAuditor(cle.id, req.user.id, cle.auditor_id))) return res.status(403).json({ error: 'Not assigned to you' });
   if (cle.physician_id === req.user.id) return res.status(403).json({ error: 'You cannot score your own session.' });
   if (cle.council_id !== req.user.council_id) return res.status(403).json({ error: 'Cross-council scoring is not allowed.' });
 
   const { data: existing } = await supabase
-    .from('audit_scores').select('id').eq('cle_id', req.params.id).eq('auditor_id', req.user.id).single();
+    .from('audit_scores').select('id').eq('cle_id', req.params.id).eq('auditor_id', req.user.id).maybeSingle();
   if (existing) return res.status(409).json({ error: 'Already scored' });
 
   const { notes, ...scores } = parsed.data;
@@ -93,8 +125,9 @@ router.post('/cles/:id/score', requireAuditorConsent, async (req, res) => {
     cle_id: req.params.id, auditor_id: req.user.id,
     ...scores, composite_score: composite, notes,
   });
-  // The SELECT above is a friendly pre-check; the audit_scores_ple_auditor_uniq constraint is the
-  // backstop for a true concurrent double-submit — the loser surfaces as 23505, not a duplicate row.
+  // The SELECT above is a friendly pre-check; the UNIQUE(cle_id, auditor_id) constraint on audit_scores
+  // is the backstop for a true concurrent double-submit — the loser surfaces as 23505, not a dup row.
+  // (Multi-auditor relies on this being per-(cle,auditor): N auditors = N rows, never 2 for one auditor.)
   if (error) {
     if (error.code === '23505') return res.status(409).json({ error: 'Already scored' });
     return res.status(500).json({ error: error.message });
@@ -143,7 +176,7 @@ router.post('/cles/:id/discuss', async (req, res) => {
   const { data: cle } = await supabase
     .from('cles').select('id, auditor_id, council_id, physician_id').eq('id', req.params.id).single();
   if (!cle) return res.status(404).json({ error: 'Not found' });
-  if (cle.auditor_id !== req.user.id) return res.status(403).json({ error: 'Not assigned to you' });
+  if (!(await isAssignedAuditor(cle.id, req.user.id, cle.auditor_id))) return res.status(403).json({ error: 'Not assigned to you' });
 
   // Blind-audit gate: discussion only AFTER the auditor has submitted their score AND an AI eval exists
   // (the discussion reveals AI per-domain scores + rationale, so it must never precede scoring).
@@ -214,9 +247,9 @@ router.post('/cles/:id/discuss', async (req, res) => {
 });
 
 router.get('/cles/:id/discussion', async (req, res) => {
-  // Only the assigned auditor may read their own discussion thread.
+  // Only an assigned auditor may read their own discussion thread.
   const { data: cle } = await supabase.from('cles').select('id, auditor_id').eq('id', req.params.id).single();
-  if (!cle || cle.auditor_id !== req.user.id) return res.status(404).json({ error: 'Not found or not assigned' });
+  if (!cle || !(await isAssignedAuditor(cle.id, req.user.id, cle.auditor_id))) return res.status(404).json({ error: 'Not found or not assigned' });
   const { data } = await supabase.from('audit_discussions')
     .select('role, content, created_at').eq('cle_id', req.params.id).eq('auditor_id', req.user.id).order('created_at');
   res.json(data ?? []);
@@ -225,11 +258,10 @@ router.get('/cles/:id/discussion', async (req, res) => {
 // Per-dimension calibration: this auditor's MEAN PIS-7 (d1–d7) vs the AI's MEAN, across the CLEs
 // they've scored that also have an AI evaluation (same pairing as /icc, but per-domain means instead
 // of a composite ICC). Powers the aggregate radar on the auditor home hero. n=0 → nothing to plot.
-const CALIB_DIMS = ['d1','d2','d3','d4','d5','d6','d7'];
 router.get('/calibration', async (req, res) => {
   const { data: audits } = await supabase
     .from('audit_scores').select('cle_id, d1, d2, d3, d4, d5, d6, d7').eq('auditor_id', req.user.id);
-  if (!audits?.length) return res.json({ n: 0, auditor: null, ai: null });
+  if (!audits?.length) return res.json({ n: 0, auditor: null, ai: null, peer: null });
 
   const cleIds = audits.map(a => a.cle_id);
   const { data: aiRows } = await supabase
@@ -245,11 +277,36 @@ router.get('/calibration', async (req, res) => {
     n++;
     for (const d of CALIB_DIMS) { sumA[d] += Number(a[d] || 0); sumAi[d] += Number(ai[d] || 0); }
   }
-  if (!n) return res.json({ n: 0, auditor: null, ai: null });
+  if (!n) return res.json({ n: 0, auditor: null, ai: null, peer: null });
 
   const auditor = Object.fromEntries(CALIB_DIMS.map(d => [d, sumA[d] / n]));
   const ai = Object.fromEntries(CALIB_DIMS.map(d => [d, sumAi[d] / n]));
-  res.json({ n, auditor, ai });
+
+  // Peer-calibration (toggle): the OTHER auditors' MEAN across the same paired CLEs — each CLE's
+  // mean-across-other-auditors, then averaged across CLEs (so a CLE with many raters isn't overweighted).
+  // Self is excluded so this mirrors the per-CLE "vs other auditors" comparison.
+  let peer = null;
+  if (await peerCalibrationEnabled()) {
+    const pairedIds = audits.filter(a => aiById.has(a.cle_id)).map(a => a.cle_id);
+    const { data: peerRows } = pairedIds.length
+      ? await supabase.from('audit_scores').select('cle_id, d1,d2,d3,d4,d5,d6,d7').in('cle_id', pairedIds).neq('auditor_id', req.user.id)
+      : { data: [] };
+    const byCle = new Map();
+    for (const s of peerRows ?? []) {
+      if (!byCle.has(s.cle_id)) byCle.set(s.cle_id, []);
+      byCle.get(s.cle_id).push(s);
+    }
+    const sumPeer = Object.fromEntries(CALIB_DIMS.map(d => [d, 0]));
+    let np = 0;
+    for (const rows of byCle.values()) {
+      const m = meanByDim(rows);
+      if (!m) continue;
+      np++;
+      for (const d of CALIB_DIMS) sumPeer[d] += m[d];
+    }
+    if (np) peer = Object.fromEntries(CALIB_DIMS.map(d => [d, sumPeer[d] / np]));
+  }
+  res.json({ n, auditor, ai, peer });
 });
 
 module.exports = router;

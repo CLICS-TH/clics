@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>CLICS — การรับเงิน / Payments</title>
+  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+  <nav>
+    <span class="brand">CLICS</span>
+    <div>
+      <a href="/dashboard">หน้าหลัก<span class="bi-en">Home</span></a>
+      <a href="/lpdp">ความก้าวหน้า<span class="bi-en">Progress</span></a>
+      <a href="/payment">การรับเงิน<span class="bi-en">Payments</span></a>
+      <a href="#" id="logoutBtn">ออกจากระบบ<span class="bi-en">Logout</span></a>
+    </div>
+  </nav>
+  <div class="container" style="max-width:560px">
+    <header class="page-intro">
+      <p class="eyebrow">ค่าตอบแทน · Compensation</p>
+      <h1>ข้อมูลการรับเงิน <span style="font-family:var(--font-body)">/ Payment details</span></h1>
+      <p class="sub">กรอกบัญชีธนาคารหรือพร้อมเพย์ เพื่อรับค่าตอบแทนสำหรับแต่ละ Continuous Learning Episode ที่ทำสำเร็จ / Provide a bank account or PromptPay to receive compensation for each completed episode.</p>
+    </header>
+
+    <div class="card">
+      <p id="rateNote" class="sub" style="margin-top:0">กำลังโหลด… / Loading…</p>
+      <form id="payForm" novalidate>
+        <label for="account_name">ชื่อบัญชี<span class="bi-en">Account name</span></label>
+        <input type="text" id="account_name" autocomplete="name" required />
+
+        <label for="bank">ธนาคาร<span class="bi-en">Bank</span></label>
+        <input type="text" id="bank" placeholder="เช่น ธนาคารกสิกรไทย / e.g. Kasikornbank" />
+
+        <label for="account_no">เลขที่บัญชี<span class="bi-en">Account number</span></label>
+        <input type="text" id="account_no" inputmode="numeric" autocomplete="off" />
+
+        <label for="promptpay">พร้อมเพย์<span class="bi-en">PromptPay (phone / ID)</span></label>
+        <input type="text" id="promptpay" inputmode="tel" autocomplete="off" />
+
+        <p class="sub" style="margin-top:.75rem">ต้องกรอกเลขที่บัญชี หรือ พร้อมเพย์ อย่างน้อยหนึ่งอย่าง / Provide an account number or a PromptPay ID.</p>
+        <p id="formMsg" class="error-msg" style="display:none"></p>
+        <button type="submit" class="btn" id="saveBtn" style="margin-top:.5rem">บันทึก<span class="bi-en">Save</span></button>
+        <span id="savedNote" style="display:none;margin-left:.6rem;color:var(--ok,#3c8c4f);font-size:.85rem"></span>
+      </form>
+      <p class="sub" style="margin-top:1rem;font-size:.8rem">🔒 ข้อมูลถูกเข้ารหัสและเก็บภายในระบบเท่านั้น ไม่ถูกส่งไปยัง AI / Encrypted and stored on-premise only — never sent to AI.</p>
+    </div>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/boot.js" defer></script>
+  <script>
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await api.logout();
+      const t = localStorage.getItem('clics_theme'), v = localStorage.getItem('clics_view');
+      localStorage.clear();
+      if (t) localStorage.setItem('clics_theme', t);
+      if (v) localStorage.setItem('clics_view', v);
+      window.location.href = '/';
+    });
+
+    const $ = (id) => document.getElementById(id);
+    const msg = $('formMsg'), saved = $('savedNote');
+
+    // Compensation is physician-only — bounce other roles (the backend also enforces this).
+    api.me().then(r => { const role = r && r.user && r.user.role; if (role && role !== 'physician') location.replace('/dashboard'); }).catch(() => {});
+
+    // Show the current ฿/CLE rate (any authed user may read the flag endpoint).
+    api.pilotMode().catch(() => null); // warm; rate shown from settings is superadmin-only, so keep a generic note
+    $('rateNote').textContent = 'ค่าตอบแทนจ่ายตามจำนวน Continuous Learning Episode ที่ทำสำเร็จ / Paid per completed episode by the study team.';
+
+    // Prefill from any saved details.
+    (async () => {
+      const res = await api.getPaymentInfo();
+      const info = res && res.payment_info;
+      if (info) {
+        $('account_name').value = info.account_name || '';
+        $('bank').value = info.bank || '';
+        $('account_no').value = info.account_no || '';
+        $('promptpay').value = info.promptpay || '';
+      }
+    })();
+
+    $('payForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.style.display = 'none'; saved.style.display = 'none';
+      const body = {
+        account_name: $('account_name').value.trim(),
+        bank: $('bank').value.trim(),
+        account_no: $('account_no').value.trim(),
+        promptpay: $('promptpay').value.trim(),
+      };
+      if (!body.account_name) { msg.textContent = 'กรุณากรอกชื่อบัญชี / Enter the account name.'; msg.style.display = 'block'; return; }
+      if (!body.account_no && !body.promptpay) { msg.textContent = 'กรุณากรอกเลขที่บัญชีหรือพร้อมเพย์ / Enter an account number or PromptPay.'; msg.style.display = 'block'; return; }
+      const btn = $('saveBtn'); btn.disabled = true;
+      const res = await api.savePaymentInfo(body);
+      btn.disabled = false;
+      if (res && res.ok) { saved.textContent = '✓ บันทึกแล้ว / Saved'; saved.style.display = 'inline'; }
+      else { msg.textContent = (res && res.error && typeof res.error === 'string') ? res.error : 'บันทึกไม่สำเร็จ กรุณาลองใหม่ / Could not save. Please try again.'; msg.style.display = 'block'; }
+    });
+  </script>
+</body>
+</html>

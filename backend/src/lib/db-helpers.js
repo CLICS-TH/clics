@@ -37,4 +37,11 @@ function pageParams(req, { def = 50, max = 200 } = {}) {
   return { limit, offset };
 }
 
-module.exports = { fetchOwnedPle, ownsFolder, sendDbError, pageParams };
+// CSV serializer with RFC-4180 quoting + a UTF-8 BOM (so Excel renders Thai correctly). `header` is a
+// string[]; `rows` is an array of arrays. Single source for server-built CSV downloads.
+function toCsv(header, rows) {
+  const esc = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  return '﻿' + [header, ...rows].map((r) => r.map(esc).join(',')).join('\n');
+}
+
+module.exports = { fetchOwnedPle, ownsFolder, sendDbError, pageParams, toCsv };
