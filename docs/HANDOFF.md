@@ -1,6 +1,6 @@
 # CLICS — Handoff Snapshot
 
-*State of the app as of **2026-06-21**, for the developer continuing this project. Pairs with
+*State of the app as of **2026-06-24**, for the developer continuing this project. Pairs with
 [../README.md](../README.md) (orientation), [../CONTRIBUTING.md](../CONTRIBUTING.md) (how to work in it),
 and [ROADMAP.md](ROADMAP.md) (what to build next).*
 
@@ -26,6 +26,30 @@ Supabase Postgres). Working end-to-end today:
 - **Integrity** — consent gate, PII stripping in RIMPL before any cloud call, pseudonyms (`P-NNN`),
   Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
   0 errors (the AI path's ceiling is Anthropic **OTPM** — see [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)).
+
+## What just shipped (2026-06-24) — multi-auditor calibration, compensation payout, XLSX export, UX/Thai pass
+
+Three PRs merged to `master` (`680dd3e` → `19de2f0`) and **live in prod** (2 migrations applied; backend on Railway, both front-ends on Vercel).
+
+- **PR #44 — pilot round.**
+  - **(a) Multi-auditor calibration** behind a superadmin **`peer_calibration`** toggle (**OFF by default**): `db/migration-audit-assignments.sql` (a `audit_assignments` join table + backfill from `cles.auditor_id`), a unified `isAssignedAuditor` gate across queue/view/score/discuss, and a *you-vs-other-auditors* PIS-7 radar (per-CLE reveal + home aggregate, **self excluded** so it's a true peer comparison). ICC now **aggregates one human value per CLE** before pairing (a multi-auditor CLE no longer feeds N duplicate-AI pairs into ICC(2,1)) — `oversight.js` + superadmin `/icc`.
+  - **(b) Compensation payout pipeline** — `db/migration-compensation-payout.sql`: an **encrypted** `payment_info` vault (AES-256-GCM via `IDENTITY_ENC_KEY`, like `oauth_identities`) + a `payouts` ledger; a physician `/payment` form (physician-only); superadmin owed/paid/outstanding on `/admin/compensation` with **mark-paid** (server-side overpayment guard) + an audit-logged **payout CSV**; rate/cap superadmin-configurable (`comp_rate_thb`=500 / `comp_cap_cles`=3, cap 0 = uncapped).
+  - **(c) Superadmin XLSX export** (`exceljs`) — one workbook, a sheet per category (CLEs / AI evals / Auditor scores / Compensation / Participants), **pseudonymized**; button on `/admin/overview`.
+  - **(d) UX/Thai-font pass** — physician-ui base 15→16px, 11px micro-labels→12px, `--muted-soft` lifted to AA contrast, wrap/truncation fixes; dashboard `text-xs` 12→13px + navbar specialty. Shared `backend/src/lib/compensation.js` (`compRateCap`/`cappedCles`/`PIS7_DIMS`/`meanByDim`) + `db-helpers.toCsv`.
+- **PR #45 — go-live-smoke fix.** Updated stale assertions (already-consented user, Socratic-optional, `EXP-NNN` pseudonyms, `include_test`) → re-ran prod **15/0**.
+- **PR #46 — auditor usage bar.** `/admin/users` now shows the **auditor** usage meter for auditor/`can_audit` rows and **both** meters (labelled ผู้ใช้/User · ผู้ตรวจ/Auditor) for a dual-role **Special** user; auditor rows now show usage in the mobile cards too.
+
+**Verification:** 293 backend + 226 RIMPL + 35 dashboard hermetic tests; build/lint/tsc; responsive smoke (0 overflow @ 320/375/768/1280); **live-DB E2E** on a disposable Supabase DB (branching needs the Pro plan — blocked) — migrations apply clean, owed/cap, peer-excludes-self, ICC one-human-per-CLE, guard + `23505` + RLS DENY-ALL all confirmed; prod migration verified (8 assignments backfilled, RLS DENY-ALL on `payment_info`/`payouts`, `audit_scores` unique on `(cle_id, auditor_id)` — old name `audit_scores_ple_auditor_uniq`, so the dup-score backstop is live).
+
+**Prod state to mind:** `peer_calibration` is **OFF** (zero behavior change until a superadmin flips it on `/admin/overview`). A few throwaway soak/smoke test CLEs (`is_test=true`) exist from the go-live runs — excluded from the research export; cleared by `db/reset-demo.js`.
+
+### Plan for next session (2026-06-25)
+1. **Exercise multi-auditor end-to-end** — flip Peer Calibration on `/admin/overview`; assign **2+ auditors** to an `evaluated` CLE; have them score; confirm the you-vs-other-auditors radar (per-CLE + home aggregate) + `/admin/icc` (per-CLE aggregation) on real data.
+2. **Exercise compensation end-to-end** — physician saves payout details at `/payment`; superadmin reviews owed/paid/outstanding, marks a payout, exports the payout CSV; download the multi-sheet XLSX from `/admin/overview`.
+3. **Full authenticated browser E2E** of the new dashboard surfaces (deferred 06-24) — superadmin login → users (two usage bars), compensation, overview toggles + export.
+4. **Pre-pilot cleanup** — run `db/reset-demo.js` to clear soak/smoke test data; rotate demo credentials (see [GO-LIVE-CHECKLIST.md](GO-LIVE-CHECKLIST.md)).
+5. **CI hardening** — wire the now-passing `go-live-smoke` into the `staging-smoke` workflow (needs `SMOKE_*` secrets) so deploys gate on it.
+6. **Small follow-ups** — auditor-pool reset for a Special user from the `/admin/users` list (out-of-scope 06-24; the list reset currently targets the physician pool); revisit any tight Thai-font spots; reconsider the peer-average label wording when n=1.
 
 ## What just shipped (2026-06-21) — Specialty layer, position ladder, Google-linking, submit guard
 
