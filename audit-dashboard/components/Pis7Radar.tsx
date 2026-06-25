@@ -31,10 +31,12 @@ function ChartTooltip({ active, payload, cmpName }: { active?: boolean; payload?
 // Two-series PIS-7 radar: the auditor's own scores ("You", coral) overlaid on a comparison series —
 // either the AI (slate-blue, pass `ai`) or the auditor-cohort average (violet, pass `peer`). The same
 // component powers both the vs-AI and vs-peer cards so they read identically.
-export function Pis7Radar({ ai, peer, human }: { ai?: ScoreMap; peer?: ScoreMap; human: ScoreMap }) {
+export function Pis7Radar({ ai, peer, human, peerLabel }: { ai?: ScoreMap; peer?: ScoreMap; human: ScoreMap; peerLabel?: string }) {
   const isPeer = ai == null && peer != null;
   const cmpMap = isPeer ? peer : ai;
-  const cmpName = isPeer ? 'ค่าเฉลี่ย / Avg' : 'AI';
+  // The peer series defaults to "average" but a caller can override it (e.g. a single other auditor,
+  // where "average" would mislead) — see the per-CLE peer card.
+  const cmpName = isPeer ? (peerLabel ?? 'ค่าเฉลี่ย / Avg') : 'AI';
   const cmpColor = isPeer ? CHART.peer : CHART.ai;
   const data: Row[] = PIS7_RUBRIC.map((d, i) => ({
     domain: DOMAIN_LABELS[i],
