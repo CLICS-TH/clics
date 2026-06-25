@@ -114,6 +114,9 @@ export default function AuditorScorePage() {
   );
 
   const composite = allSet ? computeComposite(scores as Record<string, number>) : null;
+  // Peer card wording: peer_avg excludes self, so peer_n === 1 means a SINGLE other auditor — call it
+  // "the other auditor", not an "average" (which only reads true once ≥2 peers have scored).
+  const onePeer = (data.peer_n ?? 0) === 1;
 
   return (
     <div className="max-w-6xl mx-auto p-6 md:p-10 space-y-6">
@@ -167,9 +170,11 @@ export default function AuditorScorePage() {
                   this CLE. Shown once ≥1 other auditor has submitted (backend gates peer_avg/peer_n). */}
               {data.peer_avg && (data.peer_n ?? 0) >= 1 && (
                 <div>
-                  <h3 className="font-sans text-sm font-medium mb-1">เทียบกับค่าเฉลี่ยผู้ประเมินคนอื่น / vs Other auditors <span className="font-normal text-muted-foreground">· n={data.peer_n}</span></h3>
-                  <Pis7Radar peer={data.peer_avg} human={scores} />
-                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(data.peer_avg, scores, { th: 'ค่าเฉลี่ยผู้ประเมิน', en: 'the auditor average' })}</p>
+                  <h3 className="font-sans text-sm font-medium mb-1">{onePeer
+                    ? 'เทียบกับผู้ประเมินอีกคน / vs the other auditor'
+                    : <>เทียบกับค่าเฉลี่ยผู้ประเมินคนอื่น / vs Other auditors <span className="font-normal text-muted-foreground">· n={data.peer_n}</span></>}</h3>
+                  <Pis7Radar peer={data.peer_avg} human={scores} peerLabel={onePeer ? 'อีกคน / Other' : undefined} />
+                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(data.peer_avg, scores, onePeer ? { th: 'ผู้ประเมินอีกคน', en: 'the other auditor' } : { th: 'ค่าเฉลี่ยผู้ประเมิน', en: 'the auditor average' })}</p>
                 </div>
               )}
               {/* Discuss the evaluation with an AI tutor — metered against the auditor's own pool. */}

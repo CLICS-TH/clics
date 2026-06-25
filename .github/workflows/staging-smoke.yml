@@ -1,21 +1,33 @@
-name: Staging smoke (role-chain)
+name: Staging smoke (role-chain + opt-in go-live)
 
-# Live cross-role smoke against a RUNNING stack — the browser-less counterpart of
-# backend/tests/role-chain.integration.test.js. Unlike the hermetic CI (ci.yml), this hits a real
-# backend + Supabase, so it is MANUAL-ONLY (workflow_dispatch) and requires secrets.
+# Live smokes against a RUNNING stack — the browser-less counterparts of the hermetic CI (ci.yml),
+# so they hit a real backend + Supabase and are MANUAL-ONLY (workflow_dispatch) + require secrets.
+# Point SMOKE_BASE at a NON-PROD staging stack, never production.
 #
-# It WRITES a demo audit_score to whatever Supabase the target backend uses — point SMOKE_BASE at a
-# NON-PROD staging stack, never production. Enable it by adding these repo secrets
-# (Settings → Secrets and variables → Actions), then run it from the Actions tab:
-#   SMOKE_BASE       e.g. https://clics-backend-staging.up.railway.app
-#   SMOKE_SUPER_PW   superadmin demo password
-#   SMOKE_ADMIN_PW   admin demo password
-#   SMOKE_AUD_EMAIL  auditor demo email
-#   SMOKE_AUD_PW     auditor demo password
+#   role-chain  — always runs. Pure CRUD (cross-role assign + blind score); NO AI spend. WRITES a demo
+#                 audit_score to the target Supabase. Needs:
+#                   SMOKE_BASE       e.g. https://clics-backend-staging.up.railway.app
+#                   SMOKE_SUPER_PW   superadmin demo password
+#                   SMOKE_ADMIN_PW   admin demo password
+#                   SMOKE_AUD_EMAIL  auditor demo email
+#                   SMOKE_AUD_PW     auditor demo password
+#
+#   go-live     — OPT-IN only (set the `include_ai_smoke` input to true when dispatching). Runs the full
+#                 physician→superadmin path INCLUDING 4 live AI chat turns, so it spends REAL Anthropic
+#                 budget (~$0.02–0.05 per run). Two extra secrets (add under Settings → Secrets):
+#                   SMOKE_PHYS_EMAIL physician demo email   (script default: soakdoc01@example.com)
+#                   SMOKE_PHYS_PW    physician demo password
+#                 (also reuses SMOKE_BASE + SMOKE_SUPER_PW from above).
+#
 # See docs/TESTING.md → Live gates.
 
 on:
   workflow_dispatch:
+    inputs:
+      include_ai_smoke:
+        description: 'Also run go-live-smoke (spends REAL Anthropic budget ~$0.02–0.05; needs SMOKE_PHYS_* secrets)'
+        type: boolean
+        default: false
 
 jobs:
   role-chain:
@@ -39,3 +51,26 @@ jobs:
           fi
       - name: Role-chain smoke (writes a demo audit_score)
         run: node scripts/smoke/role-chain-smoke.js
+
+  go-live:
+    runs-on: ubuntu-latest
+    # Opt-in only — this path fires live AI chat turns and spends real Anthropic budget.
+    if: ${{ inputs.include_ai_smoke }}
+    env:
+      SMOKE_BASE: ${{ secrets.SMOKE_BASE }}
+      SMOKE_PHYS_EMAIL: ${{ secrets.SMOKE_PHYS_EMAIL }}
+      SMOKE_PHYS_PW: ${{ secrets.SMOKE_PHYS_PW }}
+      SMOKE_SUPER_PW: ${{ secrets.SMOKE_SUPER_PW }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Require SMOKE_* secrets (non-prod staging stack)
+        run: |
+          if [ -z "$SMOKE_BASE" ]; then
+            echo "::error::SMOKE_* secrets are not configured. Add SMOKE_BASE + SMOKE_PHYS_EMAIL / SMOKE_PHYS_PW / SMOKE_SUPER_PW (repo Settings → Secrets) pointing at a NON-PROD staging stack, then re-run. See docs/TESTING.md."
+            exit 1
+          fi
+      - name: Go-live smoke (spends REAL Anthropic budget — 4 live AI chat turns)
+        run: node scripts/smoke/go-live-smoke.js

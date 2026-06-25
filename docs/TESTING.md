@@ -93,7 +93,11 @@ which backend they target. Run them against demo accounts, ideally right after `
   `role-chain.integration.test.js`. Env: `SMOKE_BASE`,
   `SMOKE_SUPER_PW`, `SMOKE_ADMIN_PW`, `SMOKE_AUD_EMAIL`, `SMOKE_AUD_PW`. Also runnable in CI via the manual
   `staging-smoke` workflow (Actions tab) once those are added as repo secrets, pointing at a non-prod stack.
-- `scripts/smoke/go-live-smoke.js` — consent gate → chat turn → CLE eval → de-identified export.
+- `scripts/smoke/go-live-smoke.js` — consent gate → **live AI chat turns** → CLE eval → de-identified
+  export + reconcile. Env: `SMOKE_BASE`, `SMOKE_PHYS_EMAIL`, `SMOKE_PHYS_PW`, `SMOKE_SUPER_PW`. ⚠ Spends
+  **real Anthropic budget** (~$0.02–0.05/run, 4 chat turns), so in CI it is **opt-in**: the `staging-smoke`
+  workflow runs it only when dispatched with the `include_ai_smoke` input set to true (needs the two
+  `SMOKE_PHYS_*` repo secrets); the free role-chain job always runs.
 - `scripts/e2e/new-auth-e2e.js` — auth/invite lifecycle (dry-run unless `--confirm`).
 
 ## Roadmap
@@ -112,7 +116,9 @@ which backend they target. Run them against demo accounts, ideally right after `
 
 **Phase 2/3 — done (2026-06-15):**
 - **Staging smoke CI job** — `.github/workflows/staging-smoke.yml` (manual `workflow_dispatch`) runs the
-  live role-chain smoke against a non-prod stack; enable by adding the `SMOKE_*` repo secrets.
+  live role-chain smoke against a non-prod stack; enable by adding the `SMOKE_*` repo secrets. A second,
+  **opt-in** `go-live` job (the `include_ai_smoke` dispatch input, default off) runs the AI-path go-live
+  smoke — gated off so it never auto-spends Anthropic budget; needs `SMOKE_PHYS_EMAIL` + `SMOKE_PHYS_PW`.
 - **Coverage thresholds** — `coverageThreshold` floors in each `jest.config.js`, enforced in CI via
   `--coverage` (backend src/**, rimpl src/**, audit-dashboard tested units).
 - **DRY older backend suites** — the four cleanly-fitting suites (`consent-gate`, `usage-budget`,

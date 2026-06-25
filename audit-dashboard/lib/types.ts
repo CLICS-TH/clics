@@ -158,8 +158,10 @@ export interface AuditorPle {
     d5?: number; d6?: number; d7?: number;
     domain_rationale?: Record<string, string> | null;
   } | null;
-  // Peer calibration (toggle): mean PIS-7 across ALL auditors who scored this CLE, returned only
-  // post-submit and when peer_n >= 2 (else the "average" is just this auditor).
+  // Peer calibration (toggle): mean PIS-7 across the OTHER auditors who scored this CLE (self
+  // excluded), returned only post-submit and when peer_n >= 1. peer_n = number of other auditors;
+  // when peer_n === 1 the "average" is that single other auditor's scores, so the UI relabels it
+  // ("the other auditor" rather than "the auditor average").
   peer_avg?: Record<string, number> | null;
   peer_n?: number;
   error?: unknown;
