@@ -1,6 +1,6 @@
 # CLICS — Handoff Snapshot
 
-*State of the app as of **2026-06-24**, for the developer continuing this project. Pairs with
+*State of the app as of **2026-06-25**, for the developer continuing this project. Pairs with
 [../README.md](../README.md) (orientation), [../CONTRIBUTING.md](../CONTRIBUTING.md) (how to work in it),
 and [ROADMAP.md](ROADMAP.md) (what to build next).*
 
@@ -27,6 +27,26 @@ Supabase Postgres). Working end-to-end today:
   Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
   0 errors (the AI path's ceiling is Anthropic **OTPM** — see [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)).
 
+## What just shipped (2026-06-25) — reset-usage dual-pool · peer n=1 label · opt-in go-live CI
+
+Two small follow-up PRs merged to `master` and live (audit-dashboard on Vercel; no migration, no backend change).
+
+- **PR #48 — Reset-usage resets BOTH pools for a "Special" user.** The `/admin/users` Reset-usage action previously
+  reset only the physician AI pool for a dual-role **Special** (physician + `can_audit`); it now also resets the
+  **auditor** pool (physician-only and auditor-only rows unchanged). Frontend-only — both backend reset endpoints
+  (`/reset-usage`, `/reset-auditor-usage`) already existed and fire in parallel.
+- **PR #49 — pilot polish.** (a) The per-CLE **peer-calibration** card now reads *"เทียบกับผู้ประเมินอีกคน / vs the
+  other auditor"* (legend *Other*, conclusion *"the other auditor"*) when exactly **one** other auditor scored
+  (`peer_n === 1`) — "average" only shows at n≥2; the home aggregate (a true cross-CLE mean) is untouched. (b)
+  **`go-live-smoke` wired into CI** as an **opt-in** second job in `staging-smoke.yml`, gated on a new
+  `include_ai_smoke` dispatch input (**default OFF** → never auto-spends Anthropic budget; the free role-chain job
+  is unchanged). **Pending human step:** a repo admin adds `SMOKE_PHYS_EMAIL` + `SMOKE_PHYS_PW` secrets for that
+  path to run (see `docs/TESTING.md` → Live gates).
+
+**Verification:** audit-dashboard `tsc`/`eslint`/`jest` (35) + `build`; workflow YAML validated; prod alias serves 200.
+**Context:** P1-engineering + TODO/FIXME were both confirmed empty of code work this session (3-agent sweep) — P1-eng
+done, remaining P1 is operational-only (rotate key / demo passwords / Resend domain), zero actionable TODO/FIXME.
+
 ## What just shipped (2026-06-24) — multi-auditor calibration, compensation payout, XLSX export, UX/Thai pass
 
 Three PRs merged to `master` (`680dd3e` → `19de2f0`) and **live in prod** (2 migrations applied; backend on Railway, both front-ends on Vercel).
@@ -43,13 +63,14 @@ Three PRs merged to `master` (`680dd3e` → `19de2f0`) and **live in prod** (2 m
 
 **Prod state to mind:** `peer_calibration` is **OFF** (zero behavior change until a superadmin flips it on `/admin/overview`). A few throwaway soak/smoke test CLEs (`is_test=true`) exist from the go-live runs — excluded from the research export; cleared by `db/reset-demo.js`.
 
-### Plan for next session (2026-06-25)
+### Plan for next session (2026-06-26)
+*06-25 update: item 5 (CI wiring) + the reset-usage and peer-n=1-label parts of the old item 6 are **DONE** (PRs #48, #49) — see "What just shipped (2026-06-25)". Remaining:*
 1. **Exercise multi-auditor end-to-end** — flip Peer Calibration on `/admin/overview`; assign **2+ auditors** to an `evaluated` CLE; have them score; confirm the you-vs-other-auditors radar (per-CLE + home aggregate) + `/admin/icc` (per-CLE aggregation) on real data.
 2. **Exercise compensation end-to-end** — physician saves payout details at `/payment`; superadmin reviews owed/paid/outstanding, marks a payout, exports the payout CSV; download the multi-sheet XLSX from `/admin/overview`.
 3. **Full authenticated browser E2E** of the new dashboard surfaces (deferred 06-24) — superadmin login → users (two usage bars), compensation, overview toggles + export.
 4. **Pre-pilot cleanup** — run `db/reset-demo.js` to clear soak/smoke test data; rotate demo credentials (see [GO-LIVE-CHECKLIST.md](GO-LIVE-CHECKLIST.md)).
-5. **CI hardening** — wire the now-passing `go-live-smoke` into the `staging-smoke` workflow (needs `SMOKE_*` secrets) so deploys gate on it.
-6. **Small follow-ups** — auditor-pool reset for a Special user from the `/admin/users` list (out-of-scope 06-24; the list reset currently targets the physician pool); revisit any tight Thai-font spots; reconsider the peer-average label wording when n=1.
+5. **Enable the opt-in go-live CI** — add the `SMOKE_PHYS_EMAIL` + `SMOKE_PHYS_PW` repo secrets (admin-only) so the `include_ai_smoke` path in `staging-smoke.yml` can run against a non-prod stack.
+6. **Remaining Thai-font polish** — revisit any tight Thai-font spots flagged during the 06-24 UX pass.
 
 ## What just shipped (2026-06-21) — Specialty layer, position ladder, Google-linking, submit guard
 
