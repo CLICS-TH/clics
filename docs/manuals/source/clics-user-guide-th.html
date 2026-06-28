@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>คู่มือการใช้งาน CLICS — สำหรับแพทย์ผู้ใช้งาน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Noto+Serif+Thai:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<div class="cover">
+  <div class="eyebrow">CLICS · Continuous Learning &amp; Intelligence Credit System</div>
+  <h1>คู่มือการใช้งาน<br/>สำหรับแพทย์ผู้ใช้งาน</h1>
+  <div class="sub">User Guide — ฉบับเริ่มต้นใช้งานสำหรับแพทย์ (ตั้งแต่เข้าสู่ระบบจนรับผล)</div>
+  <div class="role-chip">บทบาท: แพทย์ผู้ใช้งาน / Physician (User)</div>
+  <div class="meta">
+    <p><b>โครงการนำร่อง:</b> การให้คะแนนการให้เหตุผลทางคลินิกด้วย AI เพื่อทดแทนหน่วยกิต CME/CPD แบบเดิม</p>
+    <p><b>เว็บพอร์ทัลแพทย์:</b> https://physician-ui.vercel.app</p>
+    <p><b>เอกสาร:</b> ภาษาไทย · สำหรับผู้ใช้ทั่วไปที่ไม่ต้องมีพื้นฐานเทคนิค</p>
+  </div>
+</div>
+
+<!-- ============ TOC ============ -->
+<section>
+  <h2>สารบัญ <span class="en">Contents</span></h2>
+  <ol class="toc">
+    <li>CLICS คืออะไร — และคุณจะได้อะไร</li>
+    <li>ภาพรวมการใช้งาน 8 ขั้นตอน</li>
+    <li>การเข้าสู่ระบบ (Login)</li>
+    <li>การลงทะเบียนครั้งแรก (เลือกสภาวิชาชีพ · สาขา · ระดับ)</li>
+    <li>การให้ความยินยอม (Consent)</li>
+    <li>หน้าหลัก / แดชบอร์ด</li>
+    <li>การเริ่มบทเรียน Continuous Learning Episode (CLE) ใหม่</li>
+    <li>การสนทนากับผู้ช่วย AI</li>
+    <li>การจบและส่งประเมิน</li>
+    <li>ผลการประเมิน PIS-7 และเครดิต</li>
+    <li>เกณฑ์ PIS-7 อธิบายแบบเข้าใจง่าย</li>
+    <li>ติดตามความก้าวหน้า (LPDP)</li>
+    <li>การรับค่าตอบแทน</li>
+    <li>ทดลองก่อนสมัคร (โหมดผู้เยี่ยมชม)</li>
+    <li>คำถามที่พบบ่อยและเคล็ดลับ</li>
+    <li>ความเป็นส่วนตัว ความปลอดภัย และการติดต่อ</li>
+  </ol>
+</section>
+
+<!-- 1 -->
+<section class="pagebreak">
+  <h2>1 · CLICS คืออะไร — และคุณจะได้อะไร <span class="en">What is CLICS</span></h2>
+  <p class="lead">CLICS คือระบบที่ให้คุณ “ฝึกการให้เหตุผลทางคลินิก” ผ่านการสนทนากับผู้ช่วย AI แล้วระบบจะประเมินคุณภาพการให้เหตุผลของคุณด้วยเกณฑ์มาตรฐาน <b>PIS-7</b> (7 ด้าน) เพื่อใช้แทนการเก็บหน่วยกิตการศึกษาต่อเนื่อง (CME/CPD) แบบเข้าฟังบรรยายเดิม</p>
+  <p>การสนทนาแต่ละครั้งเรียกว่า <b>Continuous Learning Episode (CLE)</b> หรือ “บทเรียนการเรียนรู้ต่อเนื่อง” — คุณตั้งคำถามจากเคสสมมติ (ไม่ระบุตัวผู้ป่วย) แล้วถาม–ตอบกับ AI เพื่อคิดวิเคราะห์ ทดสอบสมมติฐาน และสรุปบทเรียน</p>
+  <div class="callout"><span class="h">สิ่งที่คุณจะได้รับ</span>
+    คะแนน PIS-7 (0–100) ในแต่ละบทเรียน · กราฟพัฒนาการของคุณ (LPDP) · เครดิต CPD เมื่อผ่านเกณฑ์ · และค่าตอบแทนตามจำนวนบทเรียนที่ทำสำเร็จในช่วงนำร่อง</div>
+  <div class="warn"><span class="h">ข้อสำคัญที่สุด: ใช้เฉพาะเคสที่ไม่ระบุตัวตน</span>
+    ห้ามพิมพ์ชื่อ–สกุล เลขประจำตัว เลข HN หรือข้อมูลที่ระบุตัวผู้ป่วยได้ ระบบเก็บเฉพาะ “การให้เหตุผล” ของคุณเท่านั้น</div>
+</section>
+
+<!-- 2 -->
+<section>
+  <h2>2 · ภาพรวมการใช้งาน 8 ขั้นตอน <span class="en">The journey at a glance</span></h2>
+  <div class="flow">
+    <div class="node"><span class="n">1</span>เข้าสู่ระบบ</div><div class="arrow">›</div>
+    <div class="node"><span class="n">2</span>ให้ความยินยอม</div><div class="arrow">›</div>
+    <div class="node"><span class="n">3</span>เริ่ม CLE ใหม่</div><div class="arrow">›</div>
+    <div class="node"><span class="n">4</span>สนทนากับ AI</div>
+  </div>
+  <div class="flow">
+    <div class="node"><span class="n">5</span>จบและส่ง</div><div class="arrow">›</div>
+    <div class="node"><span class="n">6</span>ดูผล PIS-7</div><div class="arrow">›</div>
+    <div class="node"><span class="n">7</span>ดูความก้าวหน้า</div><div class="arrow">›</div>
+    <div class="node"><span class="n">8</span>รับค่าตอบแทน</div>
+  </div>
+  <p class="small">แต่ละขั้นตอนอธิบายโดยละเอียดในหัวข้อถัดไป พร้อมข้อความปุ่มจริงบนหน้าจอ</p>
+</section>
+
+<!-- 3 -->
+<section class="pagebreak">
+  <h2>3 · การเข้าสู่ระบบ <span class="en">Login — physician-ui.vercel.app</span></h2>
+  <p>เปิดเว็บ <b>https://physician-ui.vercel.app</b> คุณจะพบหน้าเข้าสู่ระบบ เลือกได้ 2 วิธี:</p>
+  <ol class="steps">
+    <li><span class="st-title">เข้าด้วยอีเมลและรหัสผ่าน</span> — กรอกช่อง <span class="chip">อีเมล / Email</span> และ <span class="chip">รหัสผ่าน / Password</span> แล้วกดปุ่ม <span class="chip">เข้าสู่ระบบ / Login</span> (กดรูปดวงตาเพื่อดูรหัสผ่านที่พิมพ์)</li>
+    <li><span class="st-title">เข้าด้วยบัญชี Google</span> — กดปุ่ม <span class="chip">เข้าสู่ระบบด้วย Google / Sign in with Google</span> (สำหรับผู้ที่สมัครเองด้วย Google ครั้งแรก จะมีขั้นตอนลงทะเบียนในหัวข้อ 4)</li>
+    <li><span class="st-title">ลืมรหัสผ่าน</span> — กด <span class="chip neutral">ลืมรหัสผ่าน? / Forgot password?</span> กรอกอีเมล ระบบจะส่งลิงก์ตั้งรหัสผ่านใหม่ไปให้</li>
+    <li><span class="st-title">ได้รับคำเชิญ (Invite)</span> — หากผู้ดูแลส่งลิงก์คำเชิญมา ให้เปิดลิงก์นั้น ตั้งชื่อ–สกุลและรหัสผ่าน แล้วยืนยันรหัส 6 หลักที่ส่งไปยังอีเมล</li>
+  </ol>
+  <figure>
+    <img class="shot" src="img/login.png" alt="หน้าเข้าสู่ระบบ CLICS" />
+    <figcaption>หน้าจอเข้าสู่ระบบจริงของพอร์ทัลแพทย์ (ถ่ายจากระบบจริง)</figcaption>
+  </figure>
+  <div class="tip"><span class="h">เคล็ดลับ</span> ผู้ดูแลระบบและผู้ตรวจประเมินก็เข้าสู่ระบบที่หน้านี้เหมือนกัน — มีเพียงประตูเข้าเดียว</div>
+</section>
+
+<!-- 4 -->
+<section>
+  <h2>4 · การลงทะเบียนครั้งแรก <span class="en">First-time onboarding</span></h2>
+  <p>หากคุณสมัครด้วย Google เป็นครั้งแรก ระบบจะให้เลือกข้อมูลวิชาชีพเพื่อสร้างบัญชี:</p>
+  <ol class="steps">
+    <li>เลือก <span class="chip">สภาวิชาชีพ / Professional council</span> ของคุณ</li>
+    <li>เฉพาะแพทยสภา: เลือก <span class="chip">ระดับการฝึกอบรมสูงสุด / Highest medical training level</span> เช่น เอกซ์เทิร์น · แพทย์อินเทิร์น · แพทย์ประจำบ้าน · แพทย์ประจำบ้านต่อยอด · อาจารย์แพทย์</li>
+    <li>เลือก <span class="chip">ความเชี่ยวชาญ / Specialty</span> (พิมพ์ค้นหาได้ในช่อง “ค้นหาความเชี่ยวชาญ…”)</li>
+    <li>กด <span class="chip">ดำเนินการต่อ / Continue</span> — ระบบพาเข้าสู่หน้าหลักโดยอัตโนมัติ</li>
+  </ol>
+</section>
+
+<!-- 5 -->
+<section>
+  <h2>5 · การให้ความยินยอม <span class="en">Informed consent</span></h2>
+  <p>เมื่อเข้าใช้งานครั้งแรก จะมีกล่องข้อความ <b>“ก่อนเริ่ม มีสามเรื่องที่อยากให้มั่นใจ”</b> ขึ้นมา ให้อ่านและติ๊กยืนยันให้ครบทั้ง 4 ข้อ จึงจะเริ่มใช้งานได้:</p>
+  <ul class="check">
+    <li>เข้าร่วมโดยสมัครใจ ถอนตัวได้ทุกเมื่อ</li>
+    <li>จะไม่กรอกข้อมูลที่ระบุตัวผู้ป่วย</li>
+    <li>เข้าใจว่าคะแนนเป็นข้อมูลวิจัย ไม่ใช้ตัดสินใบอนุญาต</li>
+    <li>ยินยอมให้ AI และผู้เชี่ยวชาญประเมินแบบไม่ระบุตัวตน</li>
+  </ul>
+  <p>เมื่อติ๊กครบทั้ง 4 ข้อ ปุ่ม <span class="chip">ยอมรับและเริ่มใช้งาน / I consent — let's begin</span> จะกดได้</p>
+  <div class="callout"><span class="h">ทำไมต้องมีข้อนี้</span> เพื่อความโปร่งใส: ในระยะนำร่องคะแนนเป็น “ข้อมูลวิจัย” เพื่อปรับเทียบเครื่องมือ ยังไม่นับเป็นหน่วยกิตอย่างเป็นทางการ</div>
+</section>
+
+<!-- 6 -->
+<section class="pagebreak">
+  <h2>6 · หน้าหลัก / แดชบอร์ด <span class="en">Dashboard</span></h2>
+  <p>หลังเข้าสู่ระบบ คุณจะอยู่ที่หน้า <b>แดชบอร์ด</b> ซึ่งรวมทุกอย่างไว้ที่เดียว:</p>
+  <div class="mock">
+    <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span> CLICS · แดชบอร์ด</div>
+    <div class="body">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <div><h4 style="margin:0">สวัสดี, นพ. สมชาย</h4><span class="small">แพทย์อาสา / Physician · อายุรศาสตร์ · แพทย์ประจำบ้าน</span></div>
+        <span class="chip neutral">เชื่อมบัญชี Google / Link Google</span>
+      </div>
+      <div class="small" style="margin:8px 0 4px">การใช้งาน AI / AI allowance</div>
+      <div class="meter"><i style="width:30%"></i></div>
+      <div style="margin-top:10px"><span class="btn">+ เริ่ม Continuous Learning Episode ใหม่</span> &nbsp; <span class="btn ghost">+ โฟลเดอร์ใหม่</span></div>
+    </div>
+  </div>
+  <p>เมนูด้านบน: <span class="chip neutral">หน้าหลัก / Home</span> <span class="chip neutral">ความก้าวหน้า / Progress</span> <span class="chip neutral">การรับเงิน / Payments</span> <span class="chip neutral">ออกจากระบบ / Logout</span></p>
+  <ul class="bullets">
+    <li><b>แถบการใช้งาน AI</b> — แสดงโควตาการใช้ AI ที่เหลือ (ระบบจำกัดงบ AI ต่อคน)</li>
+    <li><b>แสดงสถิติ</b> — กด <span class="chip neutral">แสดงสถิติ / Show stats</span> เพื่อดูจำนวน CLE ทั้งหมด · ที่ผ่าน · คะแนนล่าสุด</li>
+    <li><b>โฟลเดอร์</b> — จัดกลุ่มบทเรียนของคุณเป็นหมวดได้</li>
+    <li><b>รายการ CLE</b> — บทเรียนทั้งหมดพร้อมสถานะ (กำลังทำ / ผ่าน / ไม่ผ่าน / รอตรวจ)</li>
+  </ul>
+</section>
+
+<!-- 7 -->
+<section>
+  <h2>7 · การเริ่มบทเรียน CLE ใหม่ <span class="en">New Continuous Learning Episode</span></h2>
+  <ol class="steps">
+    <li>กดปุ่ม <span class="chip">+ เริ่ม Continuous Learning Episode ใหม่</span> ที่หน้าหลัก</li>
+    <li>เลือก <span class="chip neutral">โฟลเดอร์ / Folder</span> (หรือปล่อยเป็น “— ไม่จัดหมวด”)</li>
+    <li>กรอก <span class="chip">อาการสำคัญ / Chief Complaint *</span> เช่น “ผู้ป่วยมาด้วยเจ็บหน้าอก” <b>(ใช้เคสสมมติ ไม่ใส่ชื่อผู้ป่วย)</b></li>
+    <li>กดปุ่ม <span class="chip">เริ่มการสนทนา / Start Session</span> ระบบจะพาเข้าสู่ห้องสนทนา</li>
+  </ol>
+  <div class="warn"><span class="h">เตือนเรื่องความเป็นส่วนตัว</span> ช่องอาการสำคัญและทุกข้อความในห้องสนทนา ต้องเป็นเคสที่ไม่ระบุตัวผู้ป่วยเท่านั้น</div>
+</section>
+
+<!-- 8 -->
+<section class="pagebreak">
+  <h2>8 · การสนทนากับผู้ช่วย AI <span class="en">The chat session</span></h2>
+  <p>ในห้องสนทนา คุณจะถาม–ตอบกับผู้ช่วย AI เพื่อคิดวิเคราะห์เคส แถบด้านบนแสดง <b>CLE 1/3</b> (ลำดับบทเรียน), เวลาสนทนา, และจำนวนรอบ</p>
+  <figure>
+    <img class="shot" src="img/guest-composer.png" alt="ช่องพิมพ์คำถามในห้องสนทนา" />
+    <figcaption>ช่องพิมพ์คำถาม (composer) — ถ่ายจากโหมดทดลองจริง</figcaption>
+  </figure>
+  <p>ตัวอย่างบทสนทนาและสิ่งที่ AI ตอบกลับ:</p>
+  <div class="mock"><div class="body">
+    <div class="bubble you">ผู้ป่วยเจ็บหน้าอกเวลาออกแรง บรรเทาเมื่อพัก ควรวางแนวทาง differential อย่างไร และอะไรคือ red flags</div>
+    <div class="bubble ai">
+      แนวทางคือเริ่มจากความน่าจะเป็นก่อนการทดสอบ (pre-test probability) ของกลุ่มอาการหลอดเลือดหัวใจ…
+      <div class="src"><span class="tag">Source, 2023</span><span class="tag">Guideline, 2021</span></div>
+      <div class="socratic"><b>คำถามชวนคิด / A question for you:</b> อะไรในประวัติที่จะ “เพิ่ม” หรือ “ลด” ความน่าจะเป็นของ ACS ในผู้ป่วยรายนี้</div>
+    </div>
+  </div></div>
+  <ul class="bullets">
+    <li><b>การอ้างอิง (Sources)</b> — ทุกคำตอบของ AI จะมีแหล่งอ้างอิงอย่างน้อย 1 รายการ กดเพื่อค้นหาเพิ่มเติมได้</li>
+    <li><b>คำถามชวนคิด</b> — บางครั้ง AI จะถามกลับเพื่อกระตุ้นให้คุณคิดต่อ (โหมด Socratic)</li>
+    <li><b>พิมพ์ส่งข้อความ</b> — พิมพ์ในช่อง “พิมพ์คำถามเกี่ยวกับเคส...” แล้วกด Enter (Shift+Enter ขึ้นบรรทัดใหม่)</li>
+    <li><b>พักไว้</b> — กด <span class="chip neutral">พักไว้ / Pause</span> เพื่อกลับมาทำต่อภายหลัง</li>
+    <li><b>ความคืบหน้า</b> — ดูมาตรวัด เวลา / รอบสนทนา / เนื้อหา เพื่อรู้ว่าใกล้ครบเกณฑ์หรือยัง</li>
+  </ul>
+  <div class="tip"><span class="h">บทสนทนาที่ดีเป็นอย่างไร</span> ถามเจาะจงกับเคส · จัดลำดับสมมติฐานพร้อมเหตุผล · ตั้งคำถามต่อยอด · ตรวจสอบคำตอบ AI · และสรุปบทเรียนด้วยคำพูดของคุณเอง (ดูเกณฑ์ PIS-7 หัวข้อ 11)</div>
+</section>
+
+<!-- 9 -->
+<section>
+  <h2>9 · การจบและส่งประเมิน <span class="en">End &amp; submit</span></h2>
+  <p>เมื่อพร้อม กดปุ่ม <span class="chip">จบและส่ง / End</span> ด้านบนขวา ระบบจะแสดงรายการตรวจสอบความพร้อม <b>“จบและส่งประเมิน?”</b> :</p>
+  <ul class="check">
+    <li>ระยะเวลา ≥ 10 นาที</li>
+    <li>จำนวนรอบสนทนา ≥ 4</li>
+    <li>ความลึกของบทสนทนา</li>
+  </ul>
+  <p class="small">เกณฑ์ด้านเนื้อหา (คำถามเชิงคลินิก, follow-up เชิงลึก, สรุปการเรียนรู้) จะถูกประเมินโดย AI ตอนส่ง</p>
+  <p>กดยืนยัน <span class="chip">จบและส่ง / End &amp; submit</span> (หากยังไม่ครบเกณฑ์ จะเป็นปุ่ม <span class="chip danger">ส่งทั้งที่ยังไม่ครบ / Submit anyway</span>) หรือกด <span class="chip neutral">ยังไม่จบ / Keep going</span> เพื่อทำต่อ</p>
+  <div class="warn"><span class="h">ส่งแล้วทำต่อไม่ได้อีก</span> เมื่อกดส่ง บทเรียนนี้จะปิดและเข้าสู่การประเมินทันที — กลับมาแก้ไขหรือคุยต่อไม่ได้</div>
+</section>
+
+<!-- 10 -->
+<section class="pagebreak">
+  <h2>10 · ผลการประเมิน PIS-7 และเครดิต <span class="en">Your PIS-7 result</span></h2>
+  <p>หลังส่ง ระบบจะประมวลผลสักครู่ แล้วแสดงหน้า <b>ผลการประเมิน PIS-7</b>: คะแนนรวม (เต็ม 100), กราฟเรดาร์ 7 ด้าน, คะแนนรายด้านพร้อมคำอธิบาย และตรา <span class="chip">✓ ได้รับ CPD Credit</span> เมื่อผ่านเกณฑ์</p>
+  <div class="mock"><div class="body" style="text-align:center">
+    <div style="font-family:'Noto Serif Thai',serif;font-size:30pt;color:var(--brand);line-height:1">87</div>
+    <div class="small">คะแนน PIS-7 / 100 &nbsp; · &nbsp; <span class="chip">✓ ได้รับ CPD Credit</span></div>
+    <div class="radar">
+      <svg viewBox="0 0 320 300" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="160,40 244,81 265,172 207,245 113,245 55,172 76,81" fill="none" stroke="#d8d5cf" stroke-width="1"/>
+        <polygon points="160,94 215,112 232,160 200,205 138,210 96,168 110,118" fill="rgba(47,93,138,.18)" stroke="#2f5d8a" stroke-width="2"/>
+        <polygon points="160,62 227,94 244,167 197,226 122,226 76,167 92,94" fill="rgba(169,88,62,.20)" stroke="#a9583e" stroke-width="2"/>
+        <circle cx="160" cy="148" r="2" fill="#9ca3af"/>
+      </svg>
+      <div class="legend"><span class="you">▬ คะแนนของคุณ / You</span> &nbsp; <span class="ai">▬ AI</span></div>
+    </div>
+  </div></div>
+  <p class="small">กราฟเรดาร์เปรียบเทียบคะแนนของคุณกับ AI ในแต่ละด้าน · ด้านล่างมีคำอธิบายเหตุผลรายด้าน และสามารถกางดูบทสนทนาทั้งหมดได้</p>
+  <p>หากไม่ผ่านเกณฑ์ขั้นต้น จะแสดงสถานะ <span class="chip neutral">ไม่ผ่านเกณฑ์ / Failed (Tier 1)</span> หรือ <span class="chip neutral">รอตรวจสอบ / Under Review (Tier 2)</span> พร้อมผลเกณฑ์ทั้ง 6 ข้อ (C1–C6)</p>
+</section>
+
+<!-- 11 -->
+<section>
+  <h2>11 · เกณฑ์ PIS-7 อธิบายแบบเข้าใจง่าย <span class="en">The PIS-7 rubric, in plain Thai</span></h2>
+  <p>คะแนนของคุณมาจาก 7 ด้าน แต่ละด้านให้ 0–5 แล้วถ่วงน้ำหนักรวมเป็น 0–100 ด้านที่มีน้ำหนักมากที่สุดคือ “ความลึกของการให้เหตุผล”</p>
+  <table>
+    <thead><tr><th>ด้าน</th><th>หมายถึง</th><th class="wt">น้ำหนัก</th></tr></thead>
+    <tbody>
+      <tr><td>ปัญญาในการตั้งคำถามคลินิก <span class="en">Clinical Question Intelligence</span></td><td>ตั้งคำถามที่เจาะจงกับเคสและชี้จุดตัดสินใจจริง</td><td class="wt">15%</td></tr>
+      <tr><td>ความลึกของการให้เหตุผล <span class="en">Reasoning Depth</span></td><td>จัดลำดับสมมติฐานพร้อมเหตุผล ชั่งน้ำหนักความเสี่ยง–ประโยชน์ ปรับเมื่อมีข้อมูลค้าน</td><td class="wt">20%</td></tr>
+      <tr><td>การบูรณาการบริบท <span class="en">Contextual Integration</span></td><td>อายุ โรคร่วม และบริบทของผู้ป่วยมีผลต่อการตัดสินใจจริง</td><td class="wt">15%</td></tr>
+      <tr><td>การสืบค้นแบบต่อยอด <span class="en">Iterative Inquiry</span></td><td>แต่ละรอบต่อยอดจากคำตอบก่อนหน้า เจาะลึกและทดสอบ</td><td class="wt">15%</td></tr>
+      <tr><td>การประเมินอย่างมีวิจารณญาณ <span class="en">Critical Appraisal</span></td><td>ตั้งคำถามกับคำตอบ AI ขอหลักฐาน ระบุความไม่แน่นอน</td><td class="wt">15%</td></tr>
+      <tr><td>การสังเคราะห์เชิงสะท้อนคิด <span class="en">Reflective Synthesis</span></td><td>สรุปบทเรียนที่นำไปใช้ได้จริงด้วยคำพูดของคุณเอง</td><td class="wt">10%</td></tr>
+      <tr><td>ความรู้เท่าทัน AI และทักษะการพรอมต์ <span class="en">AI Literacy &amp; Prompt Skill</span></td><td>พรอมต์ชัดเจน ตรวจสอบคำตอบ และรับผิดชอบแผนสุดท้ายในฐานะแพทย์</td><td class="wt">10%</td></tr>
+    </tbody>
+  </table>
+  <p class="small">ระดับคะแนน: 0 ไม่พบ · 1 น้อยมาก · 2 น้อย · 3 ปานกลาง · 4 สูง · 5 สูงมาก</p>
+</section>
+
+<!-- 12 -->
+<section class="pagebreak">
+  <h2>12 · ติดตามความก้าวหน้า (LPDP) <span class="en">Your progress</span></h2>
+  <p>กดเมนู <span class="chip neutral">ความก้าวหน้า / Progress</span> เพื่อดูเส้นทางคะแนน PIS-7 ของคุณตลอดการเรียนรู้ พร้อมตัวเลขคะแนนล่าสุดและแนวโน้มเทียบครั้งก่อน (▲/▼)</p>
+  <div class="mock"><div class="body">
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <div><span style="font-family:'Noto Serif Thai',serif;font-size:24pt">78</span> <span class="small">คะแนนล่าสุด / Latest · 5 CLE</span></div>
+      <div style="color:var(--green);font-weight:700">▲ +5 <span class="small">จากครั้งก่อน</span></div>
+    </div>
+    <svg viewBox="0 0 480 150" xmlns="http://www.w3.org/2000/svg" style="width:100%">
+      <line x1="30" y1="120" x2="465" y2="120" stroke="#e5e7eb"/>
+      <polyline points="40,95 140,82 240,88 340,60 440,48" fill="none" stroke="#a9583e" stroke-width="3"/>
+      <g fill="#a9583e"><circle cx="40" cy="95" r="4"/><circle cx="140" cy="82" r="4"/><circle cx="240" cy="88" r="4"/><circle cx="340" cy="60" r="4"/><circle cx="440" cy="48" r="4"/></g>
+    </svg>
+    <div class="small" style="text-align:center">คะแนน PIS-7 ตามช่วงเวลา</div>
+  </div></div>
+</section>
+
+<!-- 13 -->
+<section>
+  <h2>13 · การรับค่าตอบแทน <span class="en">Payment details</span></h2>
+  <p>กดเมนู <span class="chip neutral">การรับเงิน / Payments</span> เพื่อกรอกบัญชีรับเงิน — คุณจะได้รับค่าตอบแทนตามจำนวนบทเรียนที่ทำสำเร็จในช่วงนำร่อง</p>
+  <div class="mock"><div class="body">
+    <div class="field"><span class="lab">ชื่อบัญชี / Account name</span> นพ. สมชาย ใจดี</div>
+    <div class="field"><span class="lab">ธนาคาร / Bank</span> เช่น ธนาคารกสิกรไทย</div>
+    <div class="field"><span class="lab">เลขที่บัญชี / Account number</span> หรือ…</div>
+    <div class="field"><span class="lab">พร้อมเพย์ / PromptPay (phone / ID)</span> 08x-xxx-xxxx</div>
+    <span class="btn">บันทึก / Save</span>
+  </div></div>
+  <p class="small">ต้องกรอก “เลขที่บัญชี” หรือ “พร้อมเพย์” อย่างน้อยหนึ่งอย่าง</p>
+  <div class="callout"><span class="h">🔒 ปลอดภัย</span> ข้อมูลการรับเงินถูกเข้ารหัสและเก็บไว้ภายในระบบเท่านั้น ไม่ถูกส่งไปยัง AI</div>
+</section>
+
+<!-- 14 -->
+<section>
+  <h2>14 · ทดลองก่อนสมัคร (โหมดผู้เยี่ยมชม) <span class="en">Guest mode</span></h2>
+  <p>หากยังไม่มีบัญชี กด <span class="chip neutral">ลองใช้แบบผู้เยี่ยมชม / Try as guest</span> ที่หน้าเข้าสู่ระบบ — คุยกับ AI ได้สูงสุด 2 คำถามแบบไม่ระบุตัวตน (ไม่บันทึกประวัติ) เพื่อสัมผัสประสบการณ์ก่อนสมัครจริง</p>
+</section>
+
+<!-- 15 -->
+<section class="pagebreak">
+  <h2>15 · คำถามที่พบบ่อยและเคล็ดลับ <span class="en">FAQ &amp; tips</span></h2>
+  <h3>ทำไมขึ้นว่า “ถึงขีดจำกัดการใช้งาน AI แล้ว”?</h3>
+  <p>ระบบจำกัดงบ AI ต่อผู้ใช้เพื่อความเป็นธรรม หากใช้ครบ ให้ติดต่อผู้ดูแลระบบเพื่อขอรีเซ็ตหรือเพิ่มโควตา</p>
+  <h3>บทเรียนต้องยาวแค่ไหนจึงจะผ่าน?</h3>
+  <p>เกณฑ์ขั้นต้นคือ ≥ 10 นาที, ≥ 4 รอบสนทนา และมีเนื้อหาเพียงพอ จากนั้น AI จะดูคุณภาพเนื้อหา (คำถามคลินิก, follow-up, สรุปบทเรียน)</p>
+  <h3>“CLE 1/3” หมายความว่าอะไร?</h3>
+  <p>เป็นลำดับบทเรียนในชุดการทดลอง — บางบทจะเป็นการสนทนาแบบธรรมชาติ บางบทผู้ช่วย AI จะถามนำมากขึ้น (Socratic) เพื่อฝึกการให้เหตุผล</p>
+  <div class="tip"><span class="h">ทำคะแนนให้ดีขึ้น</span> ระบุว่าอายุ/โรคร่วมของผู้ป่วยเปลี่ยนการตัดสินใจอย่างไร · อย่ารับคำตอบ AI โดยไม่ตรวจสอบ · ปิดท้ายด้วยบทเรียนที่นำไปใช้จริงด้วยคำพูดของคุณเอง (การให้ 4–5 ในด้านใด ต้องมีประโยคจากบทสนทนาที่ยกมาอ้างได้จริง)</div>
+</section>
+
+<!-- 16 -->
+<section>
+  <h2>16 · ความเป็นส่วนตัว ความปลอดภัย และการติดต่อ <span class="en">Privacy &amp; support</span></h2>
+  <ul class="bullets">
+    <li><b>ข้อมูลผู้ป่วยไม่เคยออกนอกระบบภายใน</b> — มีเพียงข้อมูลที่ไม่ระบุตัวตนเท่านั้นที่ส่งให้ AI บนคลาวด์</li>
+    <li><b>คะแนนคือข้อมูลวิจัย</b> — ในระยะนำร่องยังไม่ใช้ตัดสินใบอนุญาตหรือการประเมินใด ๆ</li>
+    <li><b>ถอนตัวได้ทุกเมื่อ</b> — การเข้าร่วมเป็นไปโดยสมัครใจ</li>
+  </ul>
+  <p class="small">หากพบปัญหาการใช้งานหรือต้องการความช่วยเหลือ กรุณาติดต่อทีมผู้ดูแลโครงการนำร่อง CLICS</p>
+  <hr class="soft" />
+  <p class="small">เอกสารนี้จัดทำสำหรับโครงการนำร่อง CLICS · เนื้อหาและข้อความปุ่มอ้างอิงจากระบบจริง ณ เวลาที่จัดทำ</p>
+</section>
+
+</body>
+</html>

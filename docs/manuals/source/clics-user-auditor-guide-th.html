@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<title>คู่มือการใช้งาน CLICS — สำหรับผู้ใช้ที่เป็นผู้ตรวจประเมินด้วย (Special)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Noto+Serif+Thai:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<div class="cover">
+  <div class="eyebrow">CLICS · Continuous Learning &amp; Intelligence Credit System</div>
+  <h1>คู่มือการใช้งาน<br/>สำหรับผู้ใช้ที่เป็นผู้ตรวจประเมินด้วย</h1>
+  <div class="sub">User + Auditor Guide — ใช้งานในฐานะแพทย์ผู้ใช้ และทำหน้าที่ผู้ตรวจประเมิน (Special role)</div>
+  <div class="role-chip">บทบาทพิเศษ: ผู้ใช้ + ผู้ตรวจประเมิน / User + Auditor</div>
+  <div class="meta">
+    <p><b>พอร์ทัลแพทย์ (สำหรับใช้งาน):</b> https://physician-ui.vercel.app</p>
+    <p><b>แดชบอร์ดผู้ตรวจ (สำหรับให้คะแนน):</b> https://audit-dashboard-rouge.vercel.app</p>
+    <p><b>เอกสาร:</b> ภาษาไทย · สำหรับผู้ใช้ทั่วไปที่ไม่ต้องมีพื้นฐานเทคนิค</p>
+  </div>
+</div>
+
+<!-- TOC -->
+<section>
+  <h2>สารบัญ <span class="en">Contents</span></h2>
+  <ol class="toc">
+    <li>บทบาทพิเศษคืออะไร — ทำสองอย่างด้วยบัญชีเดียว</li>
+    <li>ระบบทำงานประสานกันอย่างไร (ภาพรวม)</li>
+    <li>ส่วนที่ 1 — ใช้งานในฐานะแพทย์ผู้ใช้ (สรุป)</li>
+    <li>การสลับโหมด: ผู้ใช้ ↔ ผู้ตรวจประเมิน</li>
+    <li>ส่วนที่ 2 — หน้าที่ผู้ตรวจประเมิน
+      <ol style="margin-top:4px">
+        <li>การให้ความยินยอมของผู้ตรวจ</li>
+        <li>คิวการประเมิน</li>
+        <li>การให้คะแนน PIS-7 (แบบไม่เห็นคะแนน AI)</li>
+        <li>หลังส่งคะแนน: เปิดเผยคะแนน AI และการเทียบ</li>
+        <li>พูดคุยกับ AI เกี่ยวกับผล</li>
+        <li>หน้าหลักผู้ตรวจ</li>
+      </ol>
+    </li>
+    <li>เกณฑ์ PIS-7 สำหรับผู้ตรวจ (ใช้ให้คะแนนสม่ำเสมอ)</li>
+    <li>หลักการสำคัญและจรรยาบรรณ</li>
+    <li>คำถามที่พบบ่อยและการติดต่อ</li>
+  </ol>
+</section>
+
+<!-- 1 -->
+<section class="pagebreak">
+  <h2>1 · บทบาทพิเศษคืออะไร <span class="en">The Special role: User + Auditor</span></h2>
+  <p class="lead">คุณคือผู้ใช้ที่ได้รับสิทธิ์ “ผู้ตรวจประเมิน” เพิ่มเข้ามา ด้วยบัญชีเดียวกัน คุณทำได้ทั้งสองอย่าง:</p>
+  <ul class="bullets">
+    <li><b>ในฐานะแพทย์ผู้ใช้</b> — สร้างบทเรียน (CLE) สนทนากับ AI และรับคะแนน PIS-7 ของตนเอง (เหมือนผู้ใช้ทั่วไป)</li>
+    <li><b>ในฐานะผู้ตรวจประเมิน</b> — ให้คะแนนบทเรียนของแพทย์ “คนอื่น” แบบไม่เห็นคะแนน AI ก่อน เพื่อปรับเทียบมาตรฐาน (calibration)</li>
+  </ul>
+  <div class="callout"><span class="h">ทำไมต้องมีผู้ตรวจที่เป็นแพทย์</span> เพื่อพิสูจน์ว่า AI ให้คะแนนได้ “เที่ยงตรงและเป็นธรรม” เทียบเท่าผู้เชี่ยวชาญ โดยวัดด้วยค่าความสอดคล้อง ICC (เป้าหมาย ≥ 0.75)</div>
+  <div class="warn"><span class="h">คุณจะไม่ได้ตรวจบทเรียนของตัวเอง</span> ระบบป้องกันไว้โดยอัตโนมัติ — ผู้ตรวจจะได้รับมอบหมายเฉพาะบทเรียนของแพทย์คนอื่นเท่านั้น</div>
+</section>
+
+<!-- 2 -->
+<section>
+  <h2>2 · ระบบทำงานประสานกันอย่างไร <span class="en">How it fits together</span></h2>
+  <p>เพื่อให้เห็นภาพรวมก่อนเริ่ม นี่คือเส้นทางของข้อมูลตั้งแต่แพทย์ทำบทเรียน จนถึงการเทียบคะแนน:</p>
+  <div class="flow">
+    <div class="node"><span class="n">แพทย์</span>ทำ CLE + สนทนา AI</div><div class="arrow">›</div>
+    <div class="node"><span class="n">AI</span>ให้คะแนน PIS-7</div><div class="arrow">›</div>
+    <div class="node"><span class="n">ผู้ดูแล</span>มอบหมายให้ผู้ตรวจ</div>
+  </div>
+  <div class="flow">
+    <div class="node"><span class="n">ผู้ตรวจ</span>ให้คะแนนแบบไม่เห็น AI</div><div class="arrow">›</div>
+    <div class="node"><span class="n">ส่งคะแนน</span>เปิดเผยคะแนน AI</div><div class="arrow">›</div>
+    <div class="node"><span class="n">ICC</span>เทียบ AI ↔ ผู้ตรวจ</div>
+  </div>
+  <p class="small">บทเรียนหนึ่งอาจถูกมอบหมายให้ผู้ตรวจหลายคน เพื่อเทียบความสอดคล้องระหว่างผู้ตรวจด้วยกัน (peer calibration)</p>
+</section>
+
+<!-- 3 -->
+<section class="pagebreak">
+  <h2>3 · ส่วนที่ 1 — ใช้งานในฐานะแพทย์ผู้ใช้ (สรุป) <span class="en">Part A — using it as a physician</span></h2>
+  <p>ส่วนนี้สรุปการใช้งานในฐานะผู้ใช้ (รายละเอียดเต็มอยู่ในคู่มือผู้ใช้งาน):</p>
+  <ol class="steps">
+    <li><span class="st-title">เข้าสู่ระบบ</span> ที่ https://physician-ui.vercel.app ด้วย <span class="chip">เข้าสู่ระบบ / Login</span> หรือ <span class="chip">Sign in with Google</span></li>
+    <li><span class="st-title">ให้ความยินยอม</span> ติ๊กครบ 4 ข้อ แล้วกด <span class="chip">ยอมรับและเริ่มใช้งาน</span></li>
+    <li><span class="st-title">เริ่ม CLE ใหม่</span> กรอก <span class="chip">อาการสำคัญ / Chief Complaint</span> (เคสไม่ระบุตัวตน) แล้ว <span class="chip">เริ่มการสนทนา / Start Session</span></li>
+    <li><span class="st-title">สนทนากับ AI</span> ถาม–ตอบ ดูการอ้างอิงและคำถามชวนคิด ใช้ปุ่ม <span class="chip neutral">พักไว้ / Pause</span> ได้</li>
+    <li><span class="st-title">จบและส่ง</span> กด <span class="chip">จบและส่ง / End</span> ตรวจความพร้อม แล้วยืนยัน <span class="warn" style="display:inline;padding:1px 6px">ส่งแล้วทำต่อไม่ได้อีก</span></li>
+    <li><span class="st-title">ดูผล PIS-7</span> คะแนนเต็ม 100 + กราฟเรดาร์ 7 ด้าน + เครดิต CPD เมื่อผ่าน</li>
+  </ol>
+  <div class="warn"><span class="h">ความเป็นส่วนตัว</span> ใช้เฉพาะเคสที่ไม่ระบุตัวผู้ป่วย — ห้ามใส่ชื่อ/HN/เลขประจำตัว ทั้งในบทเรียนของคุณและขณะตรวจของผู้อื่น</div>
+</section>
+
+<!-- 4 -->
+<section>
+  <h2>4 · การสลับโหมด: ผู้ใช้ ↔ ผู้ตรวจประเมิน <span class="en">Switching between the two consoles</span></h2>
+  <p>คุณใช้บัญชีเดียวเข้าได้ทั้งสองหน้าจอ โดยไม่ต้องออกจากระบบ:</p>
+  <ol class="steps">
+    <li><span class="st-title">ไปหน้าผู้ตรวจ</span> — ที่แดชบอร์ดแพทย์ กดปุ่ม <span class="chip">ตรวจประเมิน / Auditor console →</span> ระบบจะพาไปยังแดชบอร์ดผู้ตรวจ และเข้าสู่ <span class="chip neutral">คิวการประเมิน / Scoring Queue</span> โดยอัตโนมัติ</li>
+    <li><span class="st-title">กลับหน้าแพทย์</span> — ที่แถบเมนูของแดชบอร์ดผู้ตรวจ กดปุ่ม <span class="chip">กลับสู่หน้าแพทย์ / Return to Physician</span> เพื่อกลับมาใช้งานในฐานะผู้ใช้</li>
+  </ol>
+  <div class="mock"><div class="body">
+    <div class="small">ที่แดชบอร์ดแพทย์ (physician-ui):</div>
+    <div style="margin:6px 0"><span class="btn">ตรวจประเมิน / Auditor console →</span></div>
+    <hr class="soft" />
+    <div class="small">ที่แดชบอร์ดผู้ตรวจ (audit-dashboard):</div>
+    <div style="margin:6px 0"><span class="btn ghost">กลับสู่หน้าแพทย์ / Return to Physician</span></div>
+  </div></div>
+  <p class="small">แดชบอร์ดผู้ตรวจอยู่ที่ https://audit-dashboard-rouge.vercel.app</p>
+</section>
+
+<!-- 5 header -->
+<section class="pagebreak">
+  <h2>5 · ส่วนที่ 2 — หน้าที่ผู้ตรวจประเมิน <span class="en">Part B — your auditor duties</span></h2>
+
+  <h3>5.1 การให้ความยินยอมของผู้ตรวจ <span class="en">Confidentiality &amp; COI consent</span></h3>
+  <p>ครั้งแรกที่จะส่งคะแนน ระบบจะแสดงกล่อง <b>“ความยินยอมผู้เชี่ยวชาญประเมิน”</b> ให้ติ๊กยืนยันครบ 3 ข้อ:</p>
+  <ul class="check">
+    <li>รักษาความลับของ transcript คะแนน และข้อมูลวิจัย ไม่บันทึก/ดาวน์โหลด/ส่งต่อ</li>
+    <li>เข้าใจ rubric/behavioral anchors และจะประเมินตามเกณฑ์มาตรฐานเดียวกัน</li>
+    <li>ไม่มีผลประโยชน์ทับซ้อนกับผู้เข้าร่วมวิจัยรายนี้ และจะแจ้งทันทีหากพบภายหลัง</li>
+  </ul>
+  <p>เมื่อครบแล้วกด <span class="chip">ยินยอมและส่งคะแนน / Consent &amp; submit</span></p>
+
+  <h3>5.2 คิวการประเมิน <span class="en">Scoring queue</span></h3>
+  <p>หน้า <span class="chip neutral">คิวการประเมิน / Scoring Queue</span> แสดงบทเรียนที่ได้รับมอบหมายให้คุณตรวจ แต่ละรายการบอกวันที่ จำนวนรอบ และสถานะ <span class="chip neutral">รอประเมิน / To score</span> หรือ <span class="chip">ให้คะแนนแล้ว / Scored</span> — กดที่รายการเพื่อเปิดตรวจ</p>
+</section>
+
+<!-- 5.3 scoring -->
+<section>
+  <h3>5.3 การให้คะแนน PIS-7 (แบบไม่เห็นคะแนน AI) <span class="en">Blind PIS-7 scoring</span></h3>
+  <p>หน้าตรวจแบ่งเป็นสองฝั่ง: ฝั่งซ้ายคือ <b>บทสนทนา</b> (อ่านประกอบ) ฝั่งขวาคือ <b>การให้คะแนน PIS-7</b> — “แตะระดับ 0–5 ของแต่ละหมวด”</p>
+  <div class="mock"><div class="body">
+    <div class="scorerow">
+      <div class="top"><span>ความลึกของการให้เหตุผล <span class="en">Reasoning Depth</span></span><span class="w">20% · 4/5</span></div>
+      <div class="chips"><span>0</span><span>1</span><span>2</span><span>3</span><span class="on">4</span><span>5</span></div>
+    </div>
+    <div class="scorerow">
+      <div class="top"><span>การประเมินอย่างมีวิจารณญาณ <span class="en">Critical Appraisal</span></span><span class="w">15% · ยังไม่ให้คะแนน</span></div>
+      <div class="chips"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+    </div>
+    <div style="margin-top:8px"><span class="btn block">ส่งคะแนน / Submit score</span></div>
+  </div></div>
+  <ul class="bullets">
+    <li>ต้องให้คะแนน <b>ครบทั้ง 7 หมวด</b> ปุ่มจึงเปลี่ยนจาก <span class="chip neutral">ให้คะแนนให้ครบทุกหมวด / Score all 7 domains</span> เป็น <span class="chip">ส่งคะแนน / Submit score</span></li>
+    <li>ไม่มีการตั้งค่าเริ่มต้นเป็น 0 — หมวดที่ยังไม่แตะจะขึ้น <b>“ยังไม่ให้คะแนน”</b></li>
+    <li>คะแนนรวม (เต็ม 100) คำนวณสดขณะคุณแตะแต่ละหมวด · มีช่อง <span class="chip neutral">หมายเหตุ / Notes (optional)</span> ให้บันทึกได้</li>
+  </ul>
+  <div class="warn"><span class="h">กฎหลักฐานสำหรับคะแนน 4–5</span> การให้ 4 หรือ 5 ในด้านใด ต้องมี “ประโยคจากบทสนทนาของแพทย์” ที่ยกมาอ้างได้จริง หากยกไม่ได้ ให้คะแนนสูงสุดได้แค่ 3 · เมื่อส่งแล้วแก้ไขไม่ได้</div>
+</section>
+
+<!-- 5.4 reveal -->
+<section class="pagebreak">
+  <h3>5.4 หลังส่งคะแนน: เปิดเผยคะแนน AI และการเทียบ <span class="en">After submit — the reveal</span></h3>
+  <p>ทันทีที่ส่ง ระบบจะ <b>เปิดเผยคะแนน AI</b> (ซึ่งถูกซ่อนไว้ก่อนหน้า) พร้อมกราฟเรดาร์เทียบ “คะแนนของคุณ” กับ “AI” และประโยคสรุปว่าคุณสูง/ต่ำกว่า AI ที่ด้านใด</p>
+  <div class="mock"><div class="body">
+    <div class="small">AI Score (เปิดเผยหลังส่งคะแนน) — <b>คะแนนของคุณ / Yours: 84</b></div>
+    <div class="radar">
+      <svg viewBox="0 0 320 300" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="160,40 244,81 265,172 207,245 113,245 55,172 76,81" fill="none" stroke="#d8d5cf" stroke-width="1"/>
+        <polygon points="160,94 215,112 232,160 200,205 138,210 96,168 110,118" fill="rgba(47,93,138,.18)" stroke="#2f5d8a" stroke-width="2"/>
+        <polygon points="160,62 227,94 244,167 197,226 122,226 76,167 92,94" fill="rgba(169,88,62,.20)" stroke="#a9583e" stroke-width="2"/>
+      </svg>
+      <div class="legend"><span class="you">▬ คะแนนของคุณ / You</span> &nbsp; <span class="ai">▬ AI</span></div>
+    </div>
+  </div></div>
+  <p>หากบทเรียนนี้มีผู้ตรวจคนอื่นด้วย จะมีกราฟ <b>เทียบกับผู้ตรวจคนอื่น</b> เพิ่มอีกอันหนึ่ง:</p>
+  <ul class="bullets">
+    <li>ถ้ามีผู้ตรวจอื่น <b>1 คน</b> หัวข้อจะเป็น <span class="chip neutral">เทียบกับผู้ประเมินอีกคน / vs the other auditor</span></li>
+    <li>ถ้ามีผู้ตรวจอื่น <b>ตั้งแต่ 2 คน</b> หัวข้อจะเป็น <span class="chip neutral">เทียบกับค่าเฉลี่ยผู้ประเมินคนอื่น / vs Other auditors</span> (ไม่รวมตัวคุณเอง)</li>
+  </ul>
+</section>
+
+<!-- 5.5 discuss + 5.6 home -->
+<section>
+  <h3>5.5 พูดคุยกับ AI เกี่ยวกับผล <span class="en">Discuss with AI</span></h3>
+  <p>ใต้ส่วนเปิดเผยคะแนน มีกล่อง <b>“พูดคุยกับ AI เกี่ยวกับผลการประเมิน”</b> ให้ถามได้ เช่น “ทำไม AI ให้คะแนนหมวด Critical Appraisal สูงกว่าฉัน?”</p>
+  <div class="callout"><span class="h">โควตา AI แยกของผู้ตรวจ</span> การพูดคุยนี้ใช้งบ AI “คนละก้อน” กับตอนคุณเป็นผู้ใช้ (โควตาผู้ตรวจแยกต่างหาก) หากใช้ครบจะขึ้น “ใช้โควตา AI ครบแล้ว — ติดต่อผู้ดูแลระบบ”</div>
+
+  <h3>5.6 หน้าหลักผู้ตรวจ <span class="en">Auditor home</span></h3>
+  <p>หน้าหลักของผู้ตรวจสรุปภาพรวมการทำงานของคุณ:</p>
+  <div class="kpis">
+    <div class="kpi"><b>3</b><span>รอประเมิน / To score</span></div>
+    <div class="kpi"><b>8</b><span>ประเมินแล้ว / Scored</span></div>
+    <div class="kpi"><b>11</b><span>ได้รับมอบหมาย / Assigned</span></div>
+    <div class="kpi"><b>0.85</b><span>ICC ของฉัน / My ICC</span></div>
+  </div>
+  <p class="small">พร้อมกราฟเทียบค่าเฉลี่ยคะแนนของคุณกับ AI (และกับค่าเฉลี่ยผู้ตรวจคนอื่น เมื่อเปิดใช้งาน) จากทุกบทเรียนที่คุณประเมินแล้ว</p>
+</section>
+
+<!-- 6 rubric -->
+<section class="pagebreak">
+  <h2>6 · เกณฑ์ PIS-7 สำหรับผู้ตรวจ <span class="en">PIS-7 reference for auditors</span></h2>
+  <p>ใช้เกณฑ์นี้ให้คะแนนสม่ำเสมอ (เกณฑ์เดียวกับที่ AI ใช้) ระดับ: 0 ไม่พบ · 1 น้อยมาก · 2 น้อย · 3 ปานกลาง · 4 สูง · 5 สูงมาก</p>
+  <table>
+    <thead><tr><th>ด้าน (น้ำหนัก)</th><th>คุณภาพสูงดูจาก</th><th>สิ่งที่ทำให้คะแนนต่ำ</th></tr></thead>
+    <tbody>
+      <tr><td>ปัญญาในการตั้งคำถามคลินิก (15%)</td><td>คำถามเจาะจงเคสและชี้จุดตัดสินใจจริง</td><td>คำถามกว้าง ๆ เช่น “differential คืออะไร” ≤2</td></tr>
+      <tr><td>ความลึกของการให้เหตุผล (20%)</td><td>จัดลำดับสมมติฐานพร้อมเหตุผล ชั่งความเสี่ยง ปรับเมื่อถูกค้าน</td><td>แค่ลิสต์โรคโดยไม่จัดลำดับ/ไม่มีเหตุผล ≤2</td></tr>
+      <tr><td>การบูรณาการบริบท (15%)</td><td>อายุ/โรคร่วม/บริบทเปลี่ยนการให้เหตุผลจริง</td><td>เอ่ยถึงบริบทแต่ไม่เปลี่ยนการตัดสินใจ ≤2</td></tr>
+      <tr><td>การสืบค้นแบบต่อยอด (15%)</td><td>แต่ละรอบต่อยอด เจาะลึก ทดสอบสมมติฐาน</td><td>เริ่มใหม่หรือกระโดดหัวข้อ ≤2</td></tr>
+      <tr><td>การประเมินอย่างมีวิจารณญาณ (15%)</td><td>ตั้งคำถามกับ AI ขอหลักฐาน ระบุความไม่แน่นอน</td><td>รับทุกอย่างโดยไม่ตรวจสอบ ≤1</td></tr>
+      <tr><td>การสังเคราะห์เชิงสะท้อนคิด (10%)</td><td>สรุปบทเรียนที่ใช้ได้จริงด้วยคำพูดของแพทย์เอง</td><td>สรุปลอย ๆ เช่น “มีประโยชน์มาก” ≤1</td></tr>
+      <tr><td>ความรู้เท่าทัน AI และทักษะพรอมต์ (10%)</td><td>พรอมต์ชัด ตรวจสอบคำตอบ รับผิดชอบแผนสุดท้าย</td><td>พรอมต์คลุมเครือ คัดลอกคำตอบโดยไม่กลั่นกรอง</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 7 -->
+<section>
+  <h2>7 · หลักการสำคัญและจรรยาบรรณ <span class="en">Key principles</span></h2>
+  <ul class="bullets">
+    <li><b>ตรวจแบบไม่เห็นคะแนน AI ก่อน (Blind)</b> — เพื่อให้การเทียบ ICC น่าเชื่อถือ คะแนน AI จะเปิดหลังคุณส่งเท่านั้น</li>
+    <li><b>ไม่ตรวจบทเรียนของตัวเอง</b> — ระบบบังคับไว้โดยอัตโนมัติ</li>
+    <li><b>รักษาความลับ</b> — ไม่บันทึกภาพหน้าจอ ไม่ดาวน์โหลด ไม่ส่งต่อ transcript หรือคะแนน</li>
+    <li><b>เป้าหมายการปรับเทียบ</b> — ค่าความสอดคล้อง ICC ระหว่าง AI กับผู้ตรวจ ตั้งเป้า ≥ 0.75</li>
+  </ul>
+</section>
+
+<!-- 8 -->
+<section>
+  <h2>8 · คำถามที่พบบ่อยและการติดต่อ <span class="en">FAQ &amp; support</span></h2>
+  <h3>ทำไมคิวประเมินของฉันว่าง?</h3>
+  <p>คุณจะเห็นเฉพาะบทเรียนที่ผู้ดูแล “มอบหมาย” ให้คุณ และต้องเป็นบทเรียนที่ AI ประเมินแล้ว หากว่างให้รอการมอบหมายหรือสอบถามผู้ดูแล</p>
+  <h3>ส่งคะแนนผิดทำอย่างไร?</h3>
+  <p>คะแนนที่ส่งแล้วแก้ไม่ได้ (กันการลำเอียง) หากมีข้อผิดพลาดร้ายแรงให้แจ้งผู้ดูแลระบบ</p>
+  <h3>โควตา AI ตอนเป็นผู้ใช้กับตอนเป็นผู้ตรวจ ใช่ก้อนเดียวกันไหม?</h3>
+  <p>คนละก้อน — งบ AI ของการพูดคุยในบทบาทผู้ตรวจแยกจากงบของการสนทนาในบทบาทผู้ใช้</p>
+  <hr class="soft" />
+  <p class="small">หากพบปัญหา กรุณาติดต่อทีมผู้ดูแลโครงการนำร่อง CLICS · เนื้อหาและข้อความปุ่มอ้างอิงจากระบบจริง ณ เวลาที่จัดทำ</p>
+</section>
+
+</body>
+</html>
