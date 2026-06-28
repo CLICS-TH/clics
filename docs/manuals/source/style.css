@@ -56,18 +56,45 @@ a { color: var(--blue); text-decoration: none; }
 .cover .meta b { color: var(--ink-soft); }
 
 /* ---------- Sections ---------- */
-.pagebreak { page-break-before: always; }
+/* .pagebreak retired — content now flows to fill pages instead of forcing a fresh page per section
+   (the break-inside rules below prevent any mid-block cut-off; break-after:avoid keeps headings with
+   their content). Kept as a no-op so the class can stay in the HTML. */
+.pagebreak { }
+/* Glue a lead-in line to the illustration/table it introduces so they never split across a page. */
+.keep { break-inside: avoid; page-break-inside: avoid; }
 section { margin: 0 0 14px; }
 h2 {
-  font-size: 17pt; color: var(--ink); margin: 22px 0 8px;
-  padding-left: 12px; border-left: 5px solid var(--brand); line-height: 1.3;
+  font-size: 17pt; color: var(--ink); margin: 14px 0 8px;
+  /* padding-top gives the page-break a whitespace zone to land in, so Chromium's break-inside top
+     bleed clips empty padding (not the Thai glyph-tops) when the heading moves to the next page. */
+  padding: 8px 0 0 12px; border-left: 5px solid var(--brand); line-height: 1.3;
 }
 h2 .en { display:block; font-size: 10.5pt; color: var(--muted); font-weight: 500; font-family: 'Noto Sans Thai', sans-serif; }
-h3 { font-size: 13pt; color: var(--brand); margin: 16px 0 6px; }
+h3 { font-size: 13pt; color: var(--brand); margin: 11px 0 6px; padding-top: 6px; }
 .lead { font-size: 11.8pt; color: var(--ink-soft); }
 
-/* keep blocks from splitting awkwardly across pages */
-.step, .callout, .warn, .tip, .mock, table, .kpis, .flow { page-break-inside: avoid; }
+/* Keep every atomic block whole across page breaks — no content cut in half at a page boundary. */
+h2, h3, h4,
+.callout, .warn, .tip, .mock, .scorerow, .kpis, .kpi, .flow,
+figure, .radar, table, tr, .bubble, .field, li, ul.check, ol.steps > li {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+/* Never strand a heading (or a mock card title) at the very bottom of a page — keep it with the
+   block that follows it. */
+h2, h3, h4 { break-after: avoid; page-break-after: avoid; }
+/* Keep a lead-in line with the illustration / table it introduces: any paragraph IMMEDIATELY
+   followed by a mock / table / flow / radar / figure stays WHOLE and stays on the same page as that
+   block — so the intro sentence never strands at a page bottom or splits mid-phrase. */
+p:has(+ .mock), p:has(+ table), p:has(+ .flow), p:has(+ .radar), p:has(+ figure),
+p:has(+ ol.steps), p:has(+ .kpis), p:has(+ ul.check), p:has(+ ul.bullets) {
+  break-inside: avoid; page-break-inside: avoid;
+  break-after: avoid; page-break-after: avoid;
+}
+/* Don't leave a single dangling line of a paragraph alone at a page top/bottom. */
+p, li { orphans: 2; widows: 2; }
+/* A split table repeats its header row on the continuation page. */
+thead { display: table-header-group; }
 
 /* ---------- Numbered steps ---------- */
 ol.steps { counter-reset: step; list-style: none; padding: 0; margin: 10px 0; }
