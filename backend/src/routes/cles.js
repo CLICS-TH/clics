@@ -8,7 +8,7 @@ const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
 const { finalizeScreening, toPassCols } = require('../services/cle-finalize');
 const { effectiveLimit, reserveUsage, settleUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
 const { logEvent } = require('../lib/audit');
-const { pilotTestMode, clinicalArtifactsEnabled } = require('../lib/settings');
+const { pilotTestMode, clinicalArtifactsEnabled, holdResultUntilAudited } = require('../lib/settings');
 
 const router = Router();
 router.use(verifyJwt, requireRole('physician'));
@@ -177,7 +177,16 @@ router.get('/lpdp/me', async (req, res) => {
     .eq('physician_id', req.user.id)
     .order('snapshot_at');
   if (sendDbError(res, error)) return;
-  res.json(data);
+  // Hold-until-audited: drop snapshots for CLEs no auditor has scored yet, so the trend (and the
+  // dashboard "latest score", which reads the last snapshot) can't leak a held score. See /evaluation.
+  let rows = data ?? [];
+  if (rows.length && await holdResultUntilAudited()) {
+    const cleIds = [...new Set(rows.map(r => r.cle_id))];
+    const { data: scored } = await supabase.from('audit_scores').select('cle_id').in('cle_id', cleIds);
+    const scoredSet = new Set((scored ?? []).map(s => s.cle_id));
+    rows = rows.filter(r => scoredSet.has(r.cle_id));
+  }
+  res.json(rows);
 });
 
 // Get single CLE with messages
@@ -354,6 +363,15 @@ router.get('/:id/evaluation', async (req, res) => {
   const { data: cle } = await fetchOwnedPle(req.params.id, req.user.id, 'status');
   if (!cle) return res.status(404).json({ error: 'Not found' });
   if (cle.status !== 'evaluated') return res.status(202).json({ status: cle.status });
+
+  // Blinded test round: when the superadmin "hold result until audited" toggle is ON, withhold the
+  // physician's score until an expert auditor has submitted one for this CLE (so physicians can't see/
+  // compare scores before review). The result page polls this endpoint and reveals once an auditor scores.
+  if (await holdResultUntilAudited()) {
+    const { data: audited } = await supabase
+      .from('audit_scores').select('id').eq('cle_id', req.params.id).limit(1).maybeSingle();
+    if (!audited) return res.status(202).json({ status: 'pending_review' });
+  }
 
   // .order+limit(1)+maybeSingle, NOT .single(): if a dup-eval race left two ai_evaluations rows
   // (possible until migration-eval-unique is applied), .single() errors on >1 row and returns null —

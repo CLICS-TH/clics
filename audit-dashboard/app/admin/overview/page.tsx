@@ -27,7 +27,7 @@ type IccData = {
 };
 type Council = { id: string; code: string; name_th: string; name_en: string; active?: boolean };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
-type UsageSettings = { standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number; pilot_test_mode?: boolean; clinical_artifacts_enabled?: boolean; peer_calibration_enabled?: boolean };
+type UsageSettings = { standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number; pilot_test_mode?: boolean; clinical_artifacts_enabled?: boolean; peer_calibration_enabled?: boolean; hold_result_until_audited?: boolean };
 type CountRow = { council_id: string; role: string; n: number };
 type Invite = { id: string; email: string; status: string };
 
@@ -115,6 +115,20 @@ export default function OverviewPage() {
       setUsage(u => (u ? { ...u, peer_calibration_enabled: next.peer_calibration_enabled } : u));
     } catch { /* leave state unchanged on failure */ }
     setPeerSaving(false);
+  }
+
+  const [holdSaving, setHoldSaving] = useState(false);
+  const holdOn = usage?.hold_result_until_audited === true;
+  async function toggleHold() {
+    if (!usage) return;
+    setHoldSaving(true);
+    try {
+      const next = await apiFetch<UsageSettings>('/admin/usage-settings', {
+        method: 'PATCH', body: JSON.stringify({ hold_result_until_audited: !holdOn }),
+      });
+      setUsage(u => (u ? { ...u, hold_result_until_audited: next.hold_result_until_audited } : u));
+    } catch { /* leave state unchanged on failure */ }
+    setHoldSaving(false);
   }
 
   const [exporting, setExporting] = useState(false);
@@ -352,6 +366,31 @@ export default function OverviewPage() {
             title={peerOn ? 'Peer calibration is ON' : 'Peer calibration is OFF'}
           >
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${peerOn ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
+        </div>
+      </section>
+
+      {/* Hold Result Until Audited — for a blinded test round: physicians can't see their PIS-7 score
+          (result page + LPDP trend) until an expert auditor has submitted one for that CLE. Off by default. */}
+      <section className="space-y-3">
+        <h2 className="font-heading text-xl text-foreground">Hold Result Until Audited</h2>
+        <div className="flex items-center justify-between rounded-xl border p-5">
+          <div className="pr-4">
+            <p className="text-sm font-medium">🔒 ระงับผลจนกว่าผู้ตรวจจะให้คะแนน / Hold result until audited</p>
+            <p className="text-xs text-muted-foreground">
+              สำหรับรอบทดสอบแบบปิดบัง: แพทย์จะไม่เห็นคะแนน PIS-7 (ทั้งหน้าผลและกราฟความก้าวหน้า) จนกว่าผู้ตรวจประเมินจะส่งคะแนนของ CLE นั้นแล้ว •
+              For a blinded test round: physicians can&apos;t see their PIS-7 score (result page + LPDP trend) until an
+              expert auditor has submitted a score for that CLE. Keep it ON only during the test.
+            </p>
+          </div>
+          <button
+            onClick={toggleHold}
+            disabled={!usage || holdSaving}
+            aria-pressed={holdOn}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${holdOn ? 'bg-primary' : 'bg-muted'}`}
+            title={holdOn ? 'Hold result until audited is ON' : 'Hold result until audited is OFF'}
+          >
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${holdOn ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
         </div>
       </section>
