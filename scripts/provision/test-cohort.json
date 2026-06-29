@@ -1,0 +1,16 @@
+[
+  { "label": "A1",  "role": "admin",     "email": "a1@clics.test",  "council": "SANDBOX", "specialty": "SBX-1", "full_name_th": "ผู้ดูแล ทดสอบ A1",  "full_name_en": "Test Admin A1"  },
+  { "label": "D1",  "role": "auditor",   "email": "d1@clics.test",  "council": "SANDBOX", "specialty": "SBX-1", "full_name_th": "ผู้ตรวจ ทดสอบ D1",  "full_name_en": "Test Auditor D1" },
+  { "label": "C11", "role": "physician", "email": "c11@clics.test", "council": "SANDBOX", "specialty": "SBX-1", "full_name_th": "แพทย์ ทดสอบ C11",   "full_name_en": "Test Physician C11" },
+  { "label": "C12", "role": "physician", "email": "c12@clics.test", "council": "SANDBOX", "specialty": "SBX-1", "full_name_th": "แพทย์ ทดสอบ C12",   "full_name_en": "Test Physician C12" },
+
+  { "label": "A2",  "role": "admin",     "email": "a2@clics.test",  "council": "SANDBOX", "specialty": "SBX-2", "full_name_th": "ผู้ดูแล ทดสอบ A2",  "full_name_en": "Test Admin A2"  },
+  { "label": "D2",  "role": "auditor",   "email": "d2@clics.test",  "council": "SANDBOX", "specialty": "SBX-2", "full_name_th": "ผู้ตรวจ ทดสอบ D2",  "full_name_en": "Test Auditor D2" },
+  { "label": "C21", "role": "physician", "email": "c21@clics.test", "council": "SANDBOX", "specialty": "SBX-2", "full_name_th": "แพทย์ ทดสอบ C21",   "full_name_en": "Test Physician C21" },
+  { "label": "C22", "role": "physician", "email": "c22@clics.test", "council": "SANDBOX", "specialty": "SBX-2", "full_name_th": "แพทย์ ทดสอบ C22",   "full_name_en": "Test Physician C22" },
+
+  { "label": "A3",  "role": "admin",     "email": "a3@clics.test",  "council": "SANDBOX", "specialty": "SBX-3", "full_name_th": "ผู้ดูแล ทดสอบ A3",  "full_name_en": "Test Admin A3"  },
+  { "label": "D3",  "role": "auditor",   "email": "d3@clics.test",  "council": "SANDBOX", "specialty": "SBX-3", "full_name_th": "ผู้ตรวจ ทดสอบ D3",  "full_name_en": "Test Auditor D3" },
+  { "label": "C31", "role": "physician", "email": "c31@clics.test", "council": "SANDBOX", "specialty": "SBX-3", "full_name_th": "แพทย์ ทดสอบ C31",   "full_name_en": "Test Physician C31" },
+  { "label": "C32", "role": "physician", "email": "c32@clics.test", "council": "SANDBOX", "specialty": "SBX-3", "full_name_th": "แพทย์ ทดสอบ C32",   "full_name_en": "Test Physician C32" }
+]
