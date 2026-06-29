@@ -99,6 +99,11 @@ async function renderPdf(browser, base, name) {
       await renderPdf(browser, base, 'clics-user-guide-th');
       await renderPdf(browser, base, 'clics-auditor-guide-th');
       await renderPdf(browser, base, 'clics-user-auditor-guide-th');
+      // Gitignored sandbox test-cohort login handout (contains credentials) — rendered only when present.
+      if (await stat(join(SRC, 'test-login-guide-th.html')).then(() => true).catch(() => false)) {
+        await renderPdf(browser, base, 'test-login-guide-th');
+        console.log('  ✓ test-login-guide-th.pdf (gitignored)');
+      }
     } finally { server.close(); }
   } finally {
     await browser.close();
