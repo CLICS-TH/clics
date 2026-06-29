@@ -97,6 +97,7 @@ async function renderPdf(browser, base, name) {
     const base = `http://127.0.0.1:${server.address().port}`;
     try {
       await renderPdf(browser, base, 'clics-user-guide-th');
+      await renderPdf(browser, base, 'clics-auditor-guide-th');
       await renderPdf(browser, base, 'clics-user-auditor-guide-th');
     } finally { server.close(); }
   } finally {
