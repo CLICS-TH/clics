@@ -125,6 +125,18 @@
       }
 
       const eval_ = await api.getEvaluation(cleId);
+      // Blinded test round: the score is withheld until an expert auditor submits theirs. Show an
+      // "under review" state and keep polling — it reveals automatically once the auditor scores.
+      if (eval_ && eval_.status === 'pending_review') {
+        container.innerHTML = `
+          <div class="card" style="text-align:center">
+            <div class="status-band is-review" style="justify-content:center;margin-bottom:14px">${icon('hourglass', 28)}<span>อยู่ระหว่างการตรวจประเมิน / Under expert review</span></div>
+            <h2 style="margin-top:6px">ผลคะแนนจะแสดงหลังการตรวจประเมิน</h2>
+            <p style="color:var(--muted);margin-top:8px">ผู้เชี่ยวชาญกำลังตรวจประเมิน Episode นี้ — ระบบจะแสดงคะแนน PIS-7 เมื่อผู้ตรวจส่งคะแนนแล้ว / Your PIS-7 score will appear once an expert auditor has submitted their assessment.</p>
+          </div>` + transcriptSection(cle);
+        schedulePoll();
+        return;
+      }
       if (!eval_ || eval_.status) {
         container.innerHTML = `<div class="card" style="text-align:center"><p style="color:var(--muted)">กำลังประเมิน… / Evaluating…</p></div>`;
         schedulePoll();

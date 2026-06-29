@@ -26,4 +26,11 @@ async function peerCalibrationEnabled() {
   return (await getSetting('peer_calibration', 0)) === 1;
 }
 
-module.exports = { getSetting, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled };
+// Hold Result Until Audited (superadmin toggle, for a blinded test round): when ON, a physician's
+// PIS-7 score is withheld (shown as "under expert review") until an expert auditor has submitted a
+// score for that CLE — so physicians can't see/compare scores before review. Default OFF.
+async function holdResultUntilAudited() {
+  return (await getSetting('hold_result_until_audited', 0)) === 1;
+}
+
+module.exports = { getSetting, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };

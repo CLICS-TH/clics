@@ -123,6 +123,11 @@ on conflict (key) do nothing;
 -- superadmin. The transcript strip runs regardless of this flag.
 insert into public.app_settings (key, value) values ('clinical_artifacts', 0)
 on conflict (key) do nothing;
+-- Hold Result Until Audited toggle (0/1): when 1, a physician's PIS-7 score is withheld ("under expert
+-- review") until an auditor has scored that CLE — for a blinded test round. Default 0. See
+-- db/migration-hold-result-toggle.sql.
+insert into public.app_settings (key, value) values ('hold_result_until_audited', 0)
+on conflict (key) do nothing;
 -- Exactly one superadmin, ever (DB-level guarantee; the API also blocks every 2nd-superadmin path).
 create unique index if not exists professionals_single_superadmin
   on public.professionals ((role)) where role = 'superadmin';

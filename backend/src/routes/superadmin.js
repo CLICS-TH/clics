@@ -74,6 +74,9 @@ const UsageSettingsSchema = z.object({
   // Peer Calibration: when ON, a CLE may be assigned to several auditors and the reveal pane shows a
   // you-vs-auditor-average radar (alongside vs-AI). Default OFF (single-auditor blind audit).
   peer_calibration_enabled: z.boolean().optional(),
+  // Hold Result Until Audited: when ON, a physician's PIS-7 score is withheld ("under expert review")
+  // until an auditor has scored that CLE — for a blinded test round. Default OFF.
+  hold_result_until_audited: z.boolean().optional(),
   // Compensation (CLICS §12): ฿/completed-CLE rate and the per-physician cap in CLEs (0 = no cap).
   comp_rate_thb: z.number().nonnegative().max(1_000_000).optional(),
   comp_cap_cles: z.number().int().nonnegative().max(10_000).optional(),
@@ -367,19 +370,20 @@ async function poolTotal(sumRpc, col) {
 
 router.get('/usage-settings', async (_req, res) => {
   // All independent reads in one batch (was several sequential awaits on the same table).
-  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, comp_rate_thb, comp_cap_cles, total_used_usd, auditor_total_used_usd] = await Promise.all([
+  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles, total_used_usd, auditor_total_used_usd] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
     readSetting('auditor_standard_usage_limit_usd', 0.5),
     readSetting('api_budget_pool_usd', 0),
     readSetting('pilot_test_mode', 0),
     readSetting('clinical_artifacts', 0),
     readSetting('peer_calibration', 0),
+    readSetting('hold_result_until_audited', 0),
     readSetting('comp_rate_thb', 500),
     readSetting('comp_cap_cles', 3),
     poolTotal('total_usage_sum', 'usage_cost_usd'),
     poolTotal('total_auditor_usage_sum', 'auditor_usage_cost_usd'),
   ]);
-  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, total_used_usd, auditor_total_used_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, comp_rate_thb, comp_cap_cles });
+  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, total_used_usd, auditor_total_used_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles });
 });
 
 router.patch('/usage-settings', async (req, res) => {
@@ -393,6 +397,7 @@ router.patch('/usage-settings', async (req, res) => {
   if (parsed.data.pilot_test_mode != null) upserts.push({ key: 'pilot_test_mode', value: parsed.data.pilot_test_mode ? 1 : 0, updated_at: now });
   if (parsed.data.clinical_artifacts_enabled != null) upserts.push({ key: 'clinical_artifacts', value: parsed.data.clinical_artifacts_enabled ? 1 : 0, updated_at: now });
   if (parsed.data.peer_calibration_enabled != null) upserts.push({ key: 'peer_calibration', value: parsed.data.peer_calibration_enabled ? 1 : 0, updated_at: now });
+  if (parsed.data.hold_result_until_audited != null) upserts.push({ key: 'hold_result_until_audited', value: parsed.data.hold_result_until_audited ? 1 : 0, updated_at: now });
   if (parsed.data.comp_rate_thb != null) upserts.push({ key: 'comp_rate_thb', value: parsed.data.comp_rate_thb, updated_at: now });
   if (parsed.data.comp_cap_cles != null) upserts.push({ key: 'comp_cap_cles', value: parsed.data.comp_cap_cles, updated_at: now });
   const { error } = await supabase.from('app_settings').upsert(upserts);
@@ -409,17 +414,22 @@ router.patch('/usage-settings', async (req, res) => {
     logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'peer_calibration',
       metadata: { enabled: parsed.data.peer_calibration_enabled } });
   }
-  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, comp_rate_thb, comp_cap_cles] = await Promise.all([
+  if (parsed.data.hold_result_until_audited != null) {
+    logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'hold_result_until_audited',
+      metadata: { enabled: parsed.data.hold_result_until_audited } });
+  }
+  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
     readSetting('auditor_standard_usage_limit_usd', 0.5),
     readSetting('api_budget_pool_usd', 0),
     readSetting('pilot_test_mode', 0),
     readSetting('clinical_artifacts', 0),
     readSetting('peer_calibration', 0),
+    readSetting('hold_result_until_audited', 0),
     readSetting('comp_rate_thb', 500),
     readSetting('comp_cap_cles', 3),
   ]);
-  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, comp_rate_thb, comp_cap_cles });
+  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles });
 });
 
 // Reset a member's running AI usage meter back to zero (manual-reset escape hatch).
