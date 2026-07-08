@@ -60,13 +60,13 @@
         <input type="text" id="specialtySearch" placeholder="ค้นหาความเชี่ยวชาญ / Search specialty…" autocomplete="off" style="margin-bottom:6px" />
         <select id="specialty" size="6"><option value="">— เลือกความเชี่ยวชาญ / Select a specialty —</option></select>
       </div>
-      <div id="councilErr" class="error-msg" style="display:none"></div>
+      <div id="councilErr" class="error-msg" role="alert" aria-live="assertive" style="display:none"></div>
       <button class="btn btn-primary" style="width:100%" id="councilBtn">ดำเนินการต่อ / Continue</button>
     </div>
 
     <!-- Error -->
     <div class="card" id="errorCard" style="display:none">
-      <div class="error-msg" id="errorMsg" style="display:block; font-size:14px; line-height:1.55"></div>
+      <div class="error-msg" id="errorMsg" role="alert" aria-live="assertive" style="display:block; font-size:14px; line-height:1.55"></div>
       <a href="/" class="btn btn-primary" style="width:100%;margin-top:16px">ไปหน้าเข้าสู่ระบบ / Go to login →</a>
     </div>
 

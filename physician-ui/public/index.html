@@ -44,6 +44,8 @@
     .trust-chip svg { width: 13px; height: 13px; }
     /* Routing detail for staff — demoted to a quiet footnote, off the physician's first impression. */
     .login-foot { text-align: center; font-size: 12px; color: var(--muted-soft); margin-top: 14px; line-height: 1.5; }
+    /* --muted-soft on the dark canvas is 4.36:1 at 12px (below AA); lift the footnote to --muted (6.6:1) in dark only. */
+    :root[data-theme="dark"] .login-foot { color: var(--muted); }
     @media (min-width: 1024px) {
       html:not([data-mobile]) .login-hero {
         max-width: 1060px; column-gap: clamp(48px, 6vw, 96px); align-items: center;
@@ -72,7 +74,7 @@
         <path class="ecg-beat" pathLength="100" stroke="var(--coral)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
               d="M84 28 L89 34 L96 6 L102 33 L106 28"/>
       </svg>
-      <p class="logo-sub">Continuous Learning Intelligence Credit System</p>
+      <p class="logo-sub">Continuous Learning &amp; Intelligence Credit System</p>
       <div class="hero-badge"><span class="role-badge">แพทย์อาสา · Physician Portal</span></div>
     </div>
 
@@ -90,7 +92,7 @@
               <button type="button" class="pw-toggle" aria-label="แสดงรหัสผ่าน / Show password" onclick="var i=document.getElementById('password');var s=i.type==='password';i.type=s?'text':'password';this.classList.toggle('pw-on',s)"><svg class="pw-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="pw-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg></button>
             </div>
           </div>
-          <div id="error" class="error-msg" style="display:none"></div>
+          <div id="error" class="error-msg" role="alert" aria-live="assertive" style="display:none"></div>
           <button type="submit" class="btn btn-primary" style="width:100%" id="loginBtn">เข้าสู่ระบบ<span class="bi-en">Login</span></button>
         </form>
 
@@ -234,7 +236,7 @@
       const errEl = document.getElementById('error');
       errEl.style.display = 'none';
       if (!email || !password) {
-        errEl.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน';
+        errEl.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน / Please enter your email and password.';
         errEl.style.display = 'block';
         return;
       }
