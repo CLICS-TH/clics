@@ -15,6 +15,26 @@ Guidance for Claude Code working in this repository. This file is an **index** �
 5. **One login portal:** everyone signs in at **physician-ui** (Google or email+password); admins/auditors/superadmins are handed to the audit-dashboard via `/login?token=`. The dashboard's `/login` only consumes that token — a bare visit redirects back to the portal. The **CLICS token IS the Supabase session access token** (`verifyJwt` validates it via `auth.getUser`) — NEVER call `sbClient.auth.signOut()` after storing it (gotrue `/logout` revokes the session → every API call 401s). Onboarding = Google self-signup + invites; License No./TMC verification was retired. See [docs/roles.md](docs/roles.md).
 6. **Invite email goes via the Resend HTTPS API** (`RESEND_API_KEY`), not SMTP — Railway egress blocks outbound SMTP. Sandbox delivers only to the account owner's address until a sending domain is verified; everyone else gets the copy-link fallback.
 
+## Team Orchestration Rules (subagents)
+
+Five CLICS-tuned subagents live in `.claude/agents/`. Prefer them over generic agents (`Explore`, `general-purpose`, `code-reviewer`) — each has the 4 layers, the critical rules, and the exact test/deploy commands baked in. Claude auto-delegates on match, or invoke by name. **They don't nest** (a subagent can't spawn subagents); for an exhaustive multi-agent fan-out use `/code-review ultra` or a top-level Workflow instead.
+
+| Agent | Use for | Access |
+|-------|---------|--------|
+| **clics-explorer** | Understand/trace how something works; "where does X live / how does Y flow" | read-only |
+| **clics-reviewer** | Review a diff / PR / file — bugs, security, a11y + contrast, PII-leak, token drift | read-only |
+| **clics-verifier** | Run the hermetic suites + `tsc` + `lint` + responsive gates → green/red matrix | read-only |
+| **clics-rimpl** | Any change to the rimpl PII/AI boundary, PII filter, Claude relay, or PIS-7 prompts/rubric | edits + tests |
+| **clics-frontend** | Feature / UI work in physician-ui (no-build portal) or audit-dashboard (Next 16) | edits + tests |
+
+**Routing:** understand-first → `clics-explorer`. rimpl / PII / rubric change → `clics-rimpl`. Front-end change → `clics-frontend`. Backend-only change → edit directly (no layer specialist). After any change lands → `clics-reviewer`, then `clics-verifier`.
+
+**Default feature pipeline:** `clics-explorer` (scope it) → implement (`clics-rimpl` / `clics-frontend` / direct) → `clics-reviewer` (audit the diff) → `clics-verifier` (prove green). Don't skip the review→verify tail before declaring done.
+
+**Guardrails:** the three read-only agents never edit. `clics-verifier` never runs the money-spending / prod-mutating live smokes (`scripts/smoke/go-live-smoke.js`, role-chain, e2e) unless explicitly told. `clics-rimpl` must run `cd rimpl && npm test` (adversarial PII-leak suite) after any change and keep the dual-source PIS-7 rubric in sync (`rimpl/src/lib/prompts.js` ↔ `audit-dashboard/lib/pis7-rubric.ts`).
+
+> These subagents are **local** Claude Code tooling in the gitignored `.claude/agents/` — not committed to the repo. If your checkout lacks them, ask Claude to recreate them from this section.
+
 ## Documentation index
 
 | Doc | Contents |
