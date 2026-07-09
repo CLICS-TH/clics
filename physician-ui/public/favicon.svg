@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- CLICS pulse-C favicon. Colors hard-coded (favicons can't read page CSS vars):
+       coral tile #cc785c + cream #faf9f5 mark, legible on light AND dark tab bars. -->
+  <rect width="64" height="64" rx="14" fill="#cc785c"/>
+  <!-- The C: an open ring, mouth facing right -->
+  <path d="M41.75 45.93 A17 17 0 1 1 41.75 18.07" fill="none" stroke="#faf9f5" stroke-width="7" stroke-linecap="round"/>
+  <!-- The pulse: a QRS spark escaping through the C's mouth -->
+  <path d="M42 32 H47 L50 25 L54 39 L57 32 H60" fill="none" stroke="#faf9f5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

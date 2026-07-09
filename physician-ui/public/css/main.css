@@ -656,6 +656,26 @@ html[data-mobile] .hero-stats { grid-template-columns: repeat(2, 1fr); }
   .folder-group:nth-of-type(n+5) { animation-delay: .20s; }
 }
 
+/* ===== ECG-pulse brand mark (the "lively" CLICS logo) =====
+   Geometry-only inline SVG under the serif wordmark — no <text> in SVG, so the lockup survives
+   the fonts-blocked CI render. Both paths carry pathLength="100" (dash math is length-independent).
+   currentColor inherits --coral-active, so the dark theme re-colors it with zero extra rules.
+   Reduced-motion default = fully drawn, static (animation is opt-in under no-preference). */
+.logo-ecg { display: block; margin: 10px auto 0; color: var(--coral-active); max-width: 100%; height: auto; }
+.logo-ecg .ecg-beat { opacity: 0; transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .logo-ecg .ecg-line { stroke-dasharray: 100; stroke-dashoffset: 100; animation: ecg-draw 1.2s cubic-bezier(.4,0,.2,1) .15s forwards; }
+  .logo-ecg .ecg-beat { animation: ecg-beat 4s ease-in-out 1.6s infinite; }
+}
+@keyframes ecg-draw { to { stroke-dashoffset: 0; } }
+/* Idle lub-dub: the QRS overlay flashes twice in the first ~14% of each 4s cycle, then rests. */
+@keyframes ecg-beat {
+  0%, 14%, 100% { opacity: 0; transform: scale(1); }
+  4%  { opacity: .9;  transform: scale(1.06); }
+  8%  { opacity: .15; transform: scale(1); }
+  11% { opacity: .6;  transform: scale(1.04); }
+}
+
 /* ===== Bilingual label hierarchy (#12a) — Thai primary, English smaller + dimmed =====
    Replaces the equal-weight "ไทย / English" slash that doubled density and flattened hierarchy.
    English uses currentColor@opacity so it adapts on cream, on coral buttons, anywhere. */
