@@ -12,5 +12,10 @@
   { "label": "A3",  "role": "admin",     "email": "a3@clics.test",  "council": "SANDBOX", "specialty": "SBX-3", "full_name_th": "ผู้ดูแล ทดสอบ A3",  "full_name_en": "Test Admin A3"  },
   { "label": "D3",  "role": "auditor",   "email": "d3@clics.test",  "council": "SANDBOX", "specialty": "SBX-3", "full_name_th": "ผู้ตรวจ ทดสอบ D3",  "full_name_en": "Test Auditor D3" },
   { "label": "C31", "role": "physician", "email": "c31@clics.test", "council": "SANDBOX", "specialty": "SBX-3", "full_name_th": "แพทย์ ทดสอบ C31",   "full_name_en": "Test Physician C31" },
-  { "label": "C32", "role": "physician", "email": "c32@clics.test", "council": "SANDBOX", "specialty": "SBX-3", "full_name_th": "แพทย์ ทดสอบ C32",   "full_name_en": "Test Physician C32" }
+  { "label": "C32", "role": "physician", "email": "c32@clics.test", "council": "SANDBOX", "specialty": "SBX-3", "full_name_th": "แพทย์ ทดสอบ C32",   "full_name_en": "Test Physician C32" },
+
+  { "label": "A4",  "role": "admin",     "email": "a4@clics.test",  "council": "SANDBOX", "specialty": "SBX-4", "full_name_th": "ผู้ดูแล ทดสอบ A4",  "full_name_en": "Test Admin A4"  },
+  { "label": "D4",  "role": "auditor",   "email": "d4@clics.test",  "council": "SANDBOX", "specialty": "SBX-4", "full_name_th": "ผู้ตรวจ ทดสอบ D4",  "full_name_en": "Test Auditor D4" },
+  { "label": "C41", "role": "physician", "email": "c41@clics.test", "council": "SANDBOX", "specialty": "SBX-4", "full_name_th": "แพทย์ ทดสอบ C41",   "full_name_en": "Test Physician C41" },
+  { "label": "C42", "role": "physician", "email": "c42@clics.test", "council": "SANDBOX", "specialty": "SBX-4", "full_name_th": "แพทย์ ทดสอบ C42",   "full_name_en": "Test Physician C42" }
 ]
