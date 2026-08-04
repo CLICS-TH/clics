@@ -14,12 +14,25 @@ name: CLICS Daily Summary
 # 08:41 run is a self-heal backstop: a dedup guard makes it send ONLY if the 08:11
 # run did not already succeed today (so a normal day sends exactly one email). This
 # is lidar-hpe's "self-heal verify" idea, done natively in Actions instead of from
-# the flaky sandbox. workflow_dispatch stays for manual sends (always sends).
+# the flaky sandbox. workflow_dispatch stays for manual sends.
+#
+# QUIET DAYS (2026-08-04): the email is now sent ONLY when there was activity — at
+# least one non-merge commit in the last 24h. On a zero-commit day the run still
+# goes green but sends nothing, so the inbox is not spammed with "nothing changed"
+# notes. A manual `workflow_dispatch` with force=true bypasses this (so a smoke
+# test still delivers on a quiet day). The dedup guard is unchanged and composes:
+# a quiet-day run "succeeds" without sending, and the standing ROADMAP backlog does
+# NOT count as activity — only real commits do.
 on:
   schedule:
     - cron: "11 1 * * *"        # 01:11 UTC = 08:11 Asia/Bangkok (primary; off-peak minute)
     - cron: "41 1 * * *"        # 01:41 UTC = 08:41 Asia/Bangkok (self-heal backstop)
-  workflow_dispatch: {}         # manual send / smoke test
+  workflow_dispatch:            # manual send / smoke test
+    inputs:
+      force:
+        description: "Send even if there were no commits in the last 24h (smoke test)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -80,8 +93,31 @@ jobs:
           python3 scripts/daily-summary/gen_summary.py > data.json
           python3 -c "import json; json.load(open('data.json', encoding='utf-8')); print('data.json is valid JSON')"
 
-      - name: Guard — RESEND_API_KEY must be set
+      - name: Decide whether to send (only if there was activity)
+        id: activity
         if: steps.dedup.outputs.skip != 'true'
+        env:
+          FORCE: ${{ github.event.inputs.force }}   # 'true'/'false' on manual dispatch; '' on schedule
+        run: |
+          # "Send only when I've updated": suppress the email on days with zero
+          # non-merge commits in the last 24h. metrics.commits is the single source
+          # of truth (gen_summary.py already computed it into data.json). A manual
+          # run with force=true always sends, so a smoke test still lands on a quiet
+          # day. The standing ROADMAP backlog is NOT activity — only commits are.
+          COMMITS="$(python3 -c "import json;print(json.load(open('data.json',encoding='utf-8'))['metrics']['commits'])")"
+          if [ "$FORCE" = "true" ]; then
+            echo "force=true — sending regardless of activity."
+            echo "send=true" >> "$GITHUB_OUTPUT"
+          elif [ "${COMMITS:-0}" -gt 0 ]; then
+            echo "$COMMITS commit(s) in the last 24h — sending."
+            echo "send=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No commits in the last 24h — quiet day, skipping the email (run stays green)."
+            echo "send=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Guard — RESEND_API_KEY must be set
+        if: steps.dedup.outputs.skip != 'true' && steps.activity.outputs.send == 'true'
         run: |
           if [ -z "$RESEND_API_KEY" ]; then
             echo "::error::RESEND_API_KEY secret is missing. Add it under Settings → Secrets and variables → Actions."
@@ -89,5 +125,5 @@ jobs:
           fi
 
       - name: Render + send via Resend
-        if: steps.dedup.outputs.skip != 'true'
+        if: steps.dedup.outputs.skip != 'true' && steps.activity.outputs.send == 'true'
         run: python3 scripts/daily-summary/send.py
