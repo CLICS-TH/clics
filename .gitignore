@@ -23,3 +23,16 @@ data.json
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Test-coverage output (jest --coverage) — regenerated per run, ~2MB
+backend/coverage/
+rimpl/coverage/
+audit-dashboard/coverage/
+
+# Physician-identifiable evaluation reports. These are built from REAL CLE transcripts and carry a
+# named physician + CLE codes + CLE UUIDs, so they stay on-prem per the data boundary (CLAUDE.md #1).
+# The generic PIS-7 report (pis7-ple-eval.*) uses illustrative transcripts only and IS tracked.
+scripts/report/rujdanai-*
+rujdanai-eval-th.pdf
+# Builder for the above: hardcodes real CLE UUIDs and reads backend/.env for the service key.
+scripts/report/build-eval-with-transcripts.mjs
