@@ -1,6 +1,6 @@
 # CLICS — Handoff Snapshot
 
-*State of the app as of **2026-06-25**, for the developer continuing this project. Pairs with
+*State of the app as of **2026-08-22**, for the developer continuing this project. Pairs with
 [../README.md](../README.md) (orientation), [../CONTRIBUTING.md](../CONTRIBUTING.md) (how to work in it),
 and [ROADMAP.md](ROADMAP.md) (what to build next).*
 
@@ -26,6 +26,45 @@ Supabase Postgres). Working end-to-end today:
 - **Integrity** — consent gate, PII stripping in RIMPL before any cloud call, pseudonyms (`P-NNN`),
   Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
   0 errors (the AI path's ceiling is Anthropic **OTPM** — see [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)).
+
+## What just shipped (2026-06-28 → 2026-08-04) — Thai manuals · sandbox test round · landing/login redesign
+
+Seven PRs merged since the 2026-06-25 snapshot below; `master` is current with all of them. Sections
+further down are kept in reverse-chronological order as history — **read this one first.**
+
+- **#51–#53 · Thai end-user manuals (PDF).** Two plain-Thai, step-by-step guides in `docs/manuals/`
+  for non-technical physicians: `clics-user-guide-th.pdf` (Role C — the full physician journey) and
+  `clics-user-auditor-guide-th.pdf` (Special — user + auditor). #52 audited every page boundary so no
+  block or heading splits across a page break; #53 fixed §10, which had drawn the *auditor's*
+  two-series "You vs AI" radar — a physician's result page is **single-series** (their own 7 domain
+  scores) — the radar is inline in `physician-ui/public/cle-result.html:53`, a single
+  `'PIS-7 Score'` dataset.
+- **#54–#55 · Sandbox test round.** Superadmin **"hold result until audited"** toggle — physicians
+  can't see their PIS-7 score until an auditor submits one. Mirrors `peer_calibration` end-to-end:
+  `GET /cles/:id/evaluation` returns **`202 pending_review`** until an `audit_scores` row exists, and
+  `/cles/lpdp/me` drops un-audited CLEs. Ships **default OFF**. Plus an isolated SANDBOX council +
+  cohort and the D/C manuals. #55 renders the per-group login handout only when present and gitignores
+  its source + PDF — **the sandbox credentials never enter git.**
+- **#56 · Landing/login redesign + ECG logo.** Rebuilt the physician-portal landing (which *is* the
+  login), added an animated ECG-pulse CLICS logo to both front-ends, and folded in the highest-value
+  a11y findings from a full UX/UI audit. Note: this was deployed to prod on 2026-07-08 **from the
+  local tree**, and the PR brought `master` back in sync afterwards.
+- **#57 · Daily digest only on active days.** The daily-summary email sends only when ≥1 non-merge
+  commit landed in the last 24h; a zero-commit day still goes green but sends nothing.
+
+**Also now on `master` (not in the older sections):** the **mobile-audit harness**
+(`scripts/responsive/mobile-audit.mjs`, `npm run test:mobile-audit`) is wired into the CI `responsive`
+job — physician-ui runs hermetically on every push, and the audit-dashboard live-smoke activates only
+when `DASH_URL` / `BACKEND_URL` / `AUDITOR_EMAIL` / `AUDITOR_PW` repo secrets are set (absent on fork
+PRs → hermetic-only). `SUPER_*` is deliberately **not** wired, to keep real admin creds out of CI.
+
+### In flight (open PRs, not merged)
+
+| PR | What |
+|----|------|
+| **#58** | Sandbox test-cohort **group 4 (SBX-4)** roster. The accounts are *already provisioned in prod*; this only brings `test-cohort.json` in git into line with reality. |
+| **#59** | PIS-7 evaluation report for two illustrative CLEs (`scripts/report/pis7-ple-eval.html` → `pis7-ple-evaluation.pdf`), plus `.gitignore` guards for coverage output and physician-identifiable report artifacts. |
+| **`feat/council-billing-thai-caching`** | Pushed 2026-08-22, **no PR yet**. Deterministic Thai reply-language per turn, prompt caching (`RIMPL_PROMPT_CACHE`, ships OFF), and per-council usage attribution — the billing foundation. **Its migration has NOT been applied.** See the billing note under *Known gaps*. |
 
 ## What just shipped (2026-06-25) — reset-usage dual-pool · peer n=1 label · opt-in go-live CI
 
@@ -255,6 +294,24 @@ verify a Resend sending domain (see [GO-LIVE-CHECKLIST.md](GO-LIVE-CHECKLIST.md)
 So the natural next contributions are **P2 spec gaps** — top of the list is full reversible PII
 pseudonymization (`P-`/`CLE-` lookup table + broader Thai-name coverage in `rimpl/src/services/pii-filter.js`).
 
+### Open threads as of 2026-08-22
+
+Loose ends a successor inherits, smallest first:
+
+1. **Uncommitted rimpl evaluator fix** — `rimpl/src/routes/evaluate.js` + `src/services/claude.js` are
+   modified in the working tree and **not in git at all**. They fix a real prod failure: a 130k-token
+   transcript (CLE-052, 2026-08-17) truncated the evaluator's JSON at `maxTokens` 2000 *and* 3000, and
+   the SDK's 55s timeout fired mid-generation. The change raises `maxTokens` to 4096 and the timeout to
+   85s, and surfaces `stopReason` so truncation (`max_tokens`) is distinguishable from a model that
+   simply never emitted JSON (`end_turn`). **Commit or discard it — don't leave it uncommitted.**
+2. **Land the two open PRs** (#58, #59) and decide on `feat/council-billing-thai-caching`.
+3. **Two mobile-audit findings remain**: the dense 8-column `/admin/users` table side-scrolls at
+   **768px (iPad portrait) and 812px landscape** because its card fallback is `useIsMobile()` ≤767px.
+   Low severity — admin surface, tablet only, contained scroll; phones are clean. Fix is to extend that
+   table's card breakpoint to ~1024px.
+4. **Dashboard live-smoke in CI is inert** until a repo admin sets `DASH_URL` / `BACKEND_URL` /
+   `AUDITOR_EMAIL` / `AUDITOR_PW`. Same for the opt-in go-live smoke's `SMOKE_*` secrets.
+
 ## Known gaps & deferred work
 
 - **Full middleware spec** — [MIDDLEWARE-KNOWN-GAPS.md](MIDDLEWARE-KNOWN-GAPS.md): L4 multi-provider
@@ -264,6 +321,12 @@ pseudonymization (`P-`/`CLE-` lookup table + broader Thai-name coverage in `rimp
   clan-surname class is masked verbatim as of 2026-06-22 — see `rimpl/src/services/pii-filter.js`).
 - **#12b full i18n** — only the *label hierarchy* exists (`BiLabel`/`.bi`); there is **no i18n system**
   (a ไทย/EN toggle showing one language at a time, hundreds of strings). Deferred; needs a real i18n layer.
+- **Per-council usage billing is a branch, not a feature.** `feat/council-billing-thai-caching`
+  carries the `council_usage` table + `increment_council_usage`, `council_id` threaded through the
+  spend paths, and `GET /admin/council-usage` — but **the migration has never been applied** and the
+  billing model itself is undecided. Treat it as a design decision pending, not as work in progress.
+  Hard constraint recorded with it: a **scored CLE must never run through claude.ai** — that path
+  bypasses PII de-identification, the C1–C6 gate, provenance and transcript integrity.
 - **LINE OAuth** absent (Supabase has no native LINE provider — needs custom OIDC). Google is live.
 - The `2026-06-04` plan/spec under `docs/superpowers/` is **historical** and superseded by the design
   audit (it still describes slider-based scoring) — kept for reference, banner-flagged.
