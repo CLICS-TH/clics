@@ -3,7 +3,40 @@
 Plan for moving CLICS's AI calls from the Anthropic cloud API to a self-hosted model on the
 `cme8.org.github` Tailscale network (`cme-dgx`, `100.119.96.52`).
 
-**Status:** proposed, not started. **Author date:** 2026-08-24.
+**Author date:** 2026-08-24.
+
+## Status
+
+| Phase | State |
+|---|---|
+| 0 — Probe | **blocked** on tailnet access. Harness is written and ready: [`scripts/probe/`](../scripts/probe/README.md) |
+| 1 — Provider adapter | **done**, shipped dark (PR #61) |
+| 2 — Network bridge | **not started** — waiting on the rimpl hosting decision |
+| 3 — Cost accounting | **done**, folded into Phase 1 |
+| 4 — Track A cutover | **blocked** on Gate 0 |
+| 5 — Shadow evaluator | **done** — code + migration. ⚠️ `db/migration-shadow-evaluations.sql` is **NOT YET APPLIED** to any database; shadow silently no-ops until it is |
+| 6 — Gate 4 | November, after the pilot |
+
+Nothing is live: with `AI_PROVIDER` unset every call still goes to Anthropic, and with
+`SHADOW_EVAL_PROVIDER` unset no shadow evaluation runs.
+
+## Configuration reference
+
+All default to the pre-existing behaviour; setting none of these changes nothing.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `AI_PROVIDER` | `anthropic` | provider for every purpose |
+| `AI_PROVIDER_CHAT` / `_EVALUATE` / `_CRITERIA` / `_DISCUSS` | *(unset)* | per-purpose override — this is how a hybrid is expressed |
+| `LOCAL_AI_BASE_URL` | *(unset)* | e.g. `http://<dgx>:8000/v1`. Required when any purpose is `local` |
+| `LOCAL_AI_MODEL` | *(unset)* | model id the server serves. Required when any purpose is `local` |
+| `LOCAL_AI_API_KEY` | *(unset)* | optional bearer token |
+| `LOCAL_AI_TIMEOUT_MS` | `85000` | must stay under backend's `RIMPL_EVAL_TIMEOUT_MS` (100s) |
+| `LOCAL_MAX_CONCURRENCY` | `24` | in-flight cap. Set from a Phase 0 measurement, not a guess |
+| `LOCAL_MAX_RETRIES` / `LOCAL_RETRY_BASE_MS` | `3` / `500` | our own request timeout is never retried |
+| `LOCAL_INPUT_PER_M` / `LOCAL_OUTPUT_PER_M` | `0` / `0` | set only to put hardware amortisation on the meter |
+| `SHADOW_EVAL_PROVIDER` | *(unset — off)* | provider to shadow-score with; ignored if it equals the serving provider |
+| `SHADOW_EVAL_MAX_TOKENS` | `4096` | matches the served ceiling, so a truncation is the model's fault, not ours |
 
 ---
 

@@ -67,11 +67,14 @@ async function rimplAuditDiscuss({ history, message, language, transcript, ai_sc
   return parseWithProvider(res);
 }
 
-async function rimplEvaluate({ cle_id, transcript, patient_ref }) {
+// `shadow: false` opts out of RIMPL's shadow evaluation. Only the calibration harness sets it: a
+// --mode rescore run re-scores the real cohort through this route and would otherwise overwrite the
+// pilot's accumulated shadow rows with calibration-run rows.
+async function rimplEvaluate({ cle_id, transcript, patient_ref, shadow }) {
   const res = await fetch(`${RIMPL_URL}/evaluate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
-    body: JSON.stringify({ cle_id, transcript, patient_ref }),
+    body: JSON.stringify({ cle_id, transcript, patient_ref, shadow }),
     signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
   });
   if (!res.ok) throw rimplError('/evaluate', res.status);
