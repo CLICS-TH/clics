@@ -52,3 +52,4 @@ Five CLICS-tuned subagents live in `.claude/agents/`. Prefer them over generic a
 | [docs/MIDDLEWARE-KNOWN-GAPS.md](docs/MIDDLEWARE-KNOWN-GAPS.md) | As-built RIMPL gaps vs. the flowchart (L4, PII, ELM, etc.) |
 | [docs/TESTING.md](docs/TESTING.md) | Test coverage map, seam→test matrix, CI pipeline, test roadmap |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Prioritized next steps (pilot-readiness → spec gaps → flagship) |
+| [docs/LOCAL-MODEL-ROADMAP.md](docs/LOCAL-MODEL-ROADMAP.md) | Plan for moving AI calls to the on-prem DGX model (phases, gates, the mid-pilot timing constraint) |
