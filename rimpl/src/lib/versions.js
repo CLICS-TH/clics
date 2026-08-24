@@ -3,7 +3,6 @@
 // so a reliability/stability check can detect drift. PROMPT_VERSION/RUBRIC_VERSION are derived from a
 // hash of the actual prompt/weights TEXT, so any silent edit bumps the recorded version automatically.
 const crypto = require('crypto');
-const { MODEL } = require('../services/claude');
 const { PIS7_EVALUATOR_PROMPT } = require('./prompts');
 
 // Single source of truth for the PIS-7 weights (mirrors backend/src/services/cle-gate.js WEIGHTS).
@@ -11,8 +10,15 @@ const WEIGHTS = { d1: 0.15, d2: 0.20, d3: 0.15, d4: 0.15, d5: 0.15, d6: 0.10, d7
 
 const sha8 = (s) => crypto.createHash('sha256').update(s).digest('hex').slice(0, 8);
 
-const MODEL_VERSION = `CCME_LLM_v8.0+${MODEL || 'claude'}`;
+// A FUNCTION, not a constant: the model is now a per-call property (services/ai.js resolves the
+// provider per request), so provenance must be stamped from the model that ACTUALLY produced the
+// score. A module-level constant was correct only while exactly one model could ever run; under a
+// hybrid or a shadow evaluation it would silently mislabel every row.
+function modelVersion(model) {
+  return `CCME_LLM_v8.0+${model || 'claude'}`;
+}
+
 const PROMPT_VERSION = `pis7-prompt-${sha8(PIS7_EVALUATOR_PROMPT)}`;
 const RUBRIC_VERSION = `pis7-weights-${sha8(JSON.stringify(WEIGHTS))}`;
 
-module.exports = { WEIGHTS, MODEL_VERSION, PROMPT_VERSION, RUBRIC_VERSION };
+module.exports = { WEIGHTS, modelVersion, PROMPT_VERSION, RUBRIC_VERSION };

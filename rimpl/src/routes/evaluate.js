@@ -1,11 +1,11 @@
 const { Router } = require('express');
 const { z } = require('zod');
-const { callClaude } = require('../services/claude');
+const { callAI } = require('../services/ai');
 const { PIS7_EVALUATOR_PROMPT } = require('../lib/prompts');
 const { parseJsonObject } = require('../lib/parse');
 const { flattenForPrompt } = require('../lib/transcript');
 const { deriveHintTokens } = require('../services/pii-filter');
-const { WEIGHTS, MODEL_VERSION, PROMPT_VERSION, RUBRIC_VERSION } = require('../lib/versions');
+const { WEIGHTS, modelVersion, PROMPT_VERSION, RUBRIC_VERSION } = require('../lib/versions');
 
 const router = Router();
 
@@ -35,7 +35,8 @@ router.post('/', async (req, res) => {
   const transcriptText = flattenForPrompt(transcript, deriveHintTokens(patient_ref));
 
   try {
-    const { text, inputTokens, outputTokens, stopReason } = await callClaude({
+    const { text, inputTokens, outputTokens, stopReason, provider, model } = await callAI({
+      purpose: 'evaluate',
       systemPrompt: PIS7_EVALUATOR_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
       // 4096, not 2000/3000: a 130k-token transcript (CLE-052, 2026-08-17) truncated the model's
@@ -86,11 +87,14 @@ router.post('/', async (req, res) => {
       composite_score: Math.round(composite * 100) / 100,
       domain_rationale: scores.rationale ?? {},
       // Locked-version provenance (§10.2): recorded per evaluation for the reliability/stability check.
-      model_version: MODEL_VERSION,
+      // Stamped from the model that ACTUALLY produced this score, not a module constant — under a
+      // hybrid or a shadow run the two diverge, and §10.2 requires the row to name the real system.
+      model_version: modelVersion(model),
       prompt_version: PROMPT_VERSION,
       rubric_version: RUBRIC_VERSION,
       input_tokens: inputTokens,
       output_tokens: outputTokens,
+      provider,
     });
   } catch (err) {
     console.error('[RIMPL evaluate] error:', err);

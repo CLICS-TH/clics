@@ -2,7 +2,7 @@ const { Router } = require('express');
 const { z } = require('zod');
 const { stripPii, stripHistoryPii, deriveHintTokens } = require('../services/pii-filter');
 const { ragLookup } = require('../services/rag');
-const { callClaude } = require('../services/claude');
+const { callAI } = require('../services/ai');
 const { hasCitation, extractSocraticQuestion, extractReferences } = require('../services/post-filter');
 const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, ARTIFACT_GUIDANCE } = require('../lib/prompts');
 const { stripArtifactDelimiters } = require('../lib/transcript');
@@ -72,7 +72,8 @@ router.post('/', async (req, res) => {
     const ragDocs = await ragLookup(cleanMessage);
     const messages = await buildMessages(history, cleanMessage, ragDocs, chief_complaint, hints);
 
-    let { text, tokenCount, inputTokens, outputTokens } = await callClaude({ systemPrompt, messages, maxTokens: CHAT_MAX_TOKENS });
+    let { text, tokenCount, inputTokens, outputTokens, provider, model } =
+      await callAI({ purpose: 'chat', systemPrompt, messages, maxTokens: CHAT_MAX_TOKENS });
 
     // Retry once if a citation is missing (both modes), or — examiner mode only — the ❓ is missing.
     if (!hasCitation(text) || (socratic && !extractSocraticQuestion(text))) {
@@ -91,7 +92,7 @@ router.post('/', async (req, res) => {
       ];
       // Same ceiling as the first call — a corrected reply may itself carry an artifact, so a LOWER retry
       // cap would truncate it worse than the original (the old 1500 cap assumed a "<400 words" reply).
-      const retry = await callClaude({ systemPrompt, messages: retryMessages, maxTokens: CHAT_MAX_TOKENS });
+      const retry = await callAI({ purpose: 'chat', systemPrompt, messages: retryMessages, maxTokens: CHAT_MAX_TOKENS });
       text = retry.text;
       tokenCount += retry.tokenCount;
       inputTokens += retry.inputTokens;
@@ -105,6 +106,10 @@ router.post('/', async (req, res) => {
       token_count: tokenCount,
       input_tokens: inputTokens,
       output_tokens: outputTokens,
+      // Which vendor actually served this turn — the backend prices per provider (local = $0), so
+      // omitting it under a hybrid would bill on-prem tokens at cloud rates.
+      provider,
+      model,
     });
   } catch (err) {
     console.error('[RIMPL chat] error:', err);

@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { z } = require('zod');
 const { stripPii, stripHistoryPii, deriveHintTokens } = require('../services/pii-filter');
-const { callClaude } = require('../services/claude');
+const { callAI } = require('../services/ai');
 const { RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS } = require('../lib/prompts');
 
 const router = Router();
@@ -64,10 +64,10 @@ router.post('/', async (req, res) => {
     }));
     const messages = [...cleanHistory, { role: 'user', content: cleanMessage }];
 
-    const { text, tokenCount, inputTokens, outputTokens } =
-      await callClaude({ systemPrompt, messages, maxTokens: DISCUSS_MAX_TOKENS });
+    const { text, tokenCount, inputTokens, outputTokens, provider, model } =
+      await callAI({ purpose: 'discuss', systemPrompt, messages, maxTokens: DISCUSS_MAX_TOKENS });
 
-    res.json({ content: text, token_count: tokenCount, input_tokens: inputTokens, output_tokens: outputTokens });
+    res.json({ content: text, token_count: tokenCount, input_tokens: inputTokens, output_tokens: outputTokens, provider, model });
   } catch (err) {
     console.error('[RIMPL audit-discuss] error:', err);
     res.status(500).json({ error: 'AI service temporarily unavailable. Please try again.' });

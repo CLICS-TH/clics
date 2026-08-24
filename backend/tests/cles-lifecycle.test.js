@@ -4,6 +4,7 @@ jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSu
 jest.mock('../src/lib/usage', () => ({
   effectiveLimit: jest.fn(async () => 0.5),
   reserveUsage: jest.fn(async () => ({ ok: true, applied: true })),
+  accrueUsage: jest.fn(async () => ({ cost: 0, error: null })), // the message route settles via accrueUsage(costOverride)
   settleUsage: jest.fn(async () => {}),
   refundUsage: jest.fn(async () => {}),
   RESERVE_ESTIMATE_USD: 0.01,

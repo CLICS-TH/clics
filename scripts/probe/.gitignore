@@ -1,0 +1,11 @@
+# Gate 0 fixtures are DE-IDENTIFIED CLE transcripts. They must never enter git — a
+# de-identification slip that reaches a commit is unrecoverable (history is forever, and this repo
+# is mirrored to GitHub). Ignore everything in fixtures/ except the placeholder that keeps the
+# directory present in a fresh clone.
+fixtures/*
+!fixtures/.gitkeep
+
+# Probe run output (JSON reports written by --out) — measurements of a specific box on a specific
+# day, not source. Keep them out of the repo; paste the summary into the roadmap doc instead.
+out/
+*.probe.json

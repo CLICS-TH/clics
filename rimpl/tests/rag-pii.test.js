@@ -3,9 +3,10 @@
 // SECOND cloud vendor outside the documented Claude-only pipeline, so raw PII reaching it is a
 // direct breach of "PII never leaves the on-premise RIMPL layer". (Previously chat.js embedded the
 // raw message.)
-jest.mock('../src/services/claude', () => ({
-  callClaude: jest.fn().mockResolvedValue({
+jest.mock('../src/services/ai', () => ({
+  callAI: jest.fn().mockResolvedValue({
     text: 'First-line therapy (ADA, 2024).\n❓ Why?', tokenCount: 80, inputTokens: 40, outputTokens: 40,
+    provider: 'anthropic', model: 'claude-sonnet-4-6',
   }),
 }));
 jest.mock('../src/services/rag', () => ({ ragLookup: jest.fn().mockResolvedValue([]) }));

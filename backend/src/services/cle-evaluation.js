@@ -3,6 +3,7 @@ const { supabase } = require('../lib/supabase');
 const { compositeScore } = require('./cle-gate');
 const { rimplEvaluate, isDeterministicRimplError } = require('./rimpl-client');
 const { accrueUsage } = require('../lib/usage');
+const { costUsd } = require('../lib/pricing');
 
 // Persist an AI evaluation + LPDP snapshot and mark the CLE evaluated.
 // Ordered + error-checked: the scored row must land before we write the LPDP snapshot or flip the
@@ -64,9 +65,15 @@ async function evaluateWithRetry(payload, attempts = 3) {
 async function triggerEvaluation(cleId, transcript, physicianId, patientRef) {
   const result = await evaluateWithRetry({ cle_id: cleId, transcript, patient_ref: patientRef });
   const { fresh } = await persistEvaluation(cleId, physicianId, result);
-  // Accrue the PIS-7 evaluation's Claude cost to the physician's meter ONLY when this call actually
-  // wrote the row — a dup-eval race (reconcile vs /end) must not double-charge the physician.
-  if (fresh) await accrueUsage(physicianId, result.input_tokens, result.output_tokens);
+  // Accrue the PIS-7 evaluation's cost to the physician's meter ONLY when this call actually wrote
+  // the row — a dup-eval race (reconcile vs /end) must not double-charge the physician. There is no
+  // reservation on this path (it runs after /end, which is deliberately not budget-gated), so the
+  // provider-priced actual is passed straight through as accrueUsage's `costOverride`: an evaluation
+  // served by the on-prem model costs $0 while its token counts are still recorded.
+  if (fresh) {
+    await accrueUsage(physicianId, result.input_tokens, result.output_tokens,
+      costUsd(result.input_tokens, result.output_tokens, result.provider));
+  }
 }
 
 module.exports = { persistEvaluation, triggerEvaluation };
