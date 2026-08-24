@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { IccPanel } from '@/components/IccPanel';
+import { ThreeWayIcc } from '@/components/ThreeWayIcc';
 import { PageIntro } from '@/components/PageIntro';
 import { Skeleton } from '@/components/Skeleton';
 import { DOMAIN_LABELS } from '@/lib/labels';
@@ -73,6 +74,11 @@ export default function AnalystPage() {
             )}
           </>
         )}
+
+      {/* Shadow-evaluator three-way agreement. Rendered outside the /oversight/icc branch above
+          because it has its OWN endpoint and its own empty state (the candidate model may not be
+          collecting yet). Analyst/ethics/superadmin only — never an auditor-reachable page. */}
+      <ThreeWayIcc />
     </div>
   );
 }

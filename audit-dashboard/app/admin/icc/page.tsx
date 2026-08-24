@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { IccPanel } from '@/components/IccPanel';
+import { ThreeWayIcc } from '@/components/ThreeWayIcc';
 import { PageIntro } from '@/components/PageIntro';
 import { Skeleton } from '@/components/Skeleton';
 import { DOMAIN_LABELS } from '@/lib/labels';
@@ -35,10 +36,13 @@ export default function IccPage() {
       </div>
     </>
   );
+  // No AI-vs-auditor ICC yet — but the shadow comparison has its own endpoint and its own empty
+  // state, so it still renders here rather than disappearing with the primary panel.
   if (!data.overall) return (
-    <>
-      <div className="mx-auto max-w-4xl p-6 md:p-8 text-muted-foreground">ยังไม่มีข้อมูล ICC — รอให้ Auditors ส่งคะแนน</div>
-    </>
+    <div className="mx-auto max-w-4xl space-y-6 p-6 md:p-8">
+      <p className="text-muted-foreground">ยังไม่มีข้อมูล ICC — รอให้ Auditors ส่งคะแนน</p>
+      <ThreeWayIcc />
+    </div>
   );
 
   const { overall, per_domain, per_council } = data;
@@ -93,6 +97,10 @@ export default function IccPage() {
           </div>
         </div>
       )}
+
+      {/* Shadow-evaluator three-way agreement (superadmin sees it here; analysts on /analyst).
+          Blinding: this panel must never appear on an auditor-reachable route. */}
+      <ThreeWayIcc />
     </div>
     </>
   );
