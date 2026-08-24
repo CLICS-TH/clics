@@ -6,7 +6,8 @@ const { computeTier1, clampDuration } = require('../services/cle-gate');
 const { rimplChat } = require('../services/rimpl-client');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
 const { finalizeScreening, toPassCols } = require('../services/cle-finalize');
-const { effectiveLimit, reserveUsage, settleUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
+const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
+const { settlementDelta } = require('../lib/pricing');
 const { logEvent } = require('../lib/audit');
 const { pilotTestMode, clinicalArtifactsEnabled, holdResultUntilAudited } = require('../lib/settings');
 
@@ -279,9 +280,20 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   }).eq('id', req.params.id);
   if (counterErr) console.error('[cles] failed to update counters:', counterErr.message);
 
-  // Settle the reservation to the turn's REAL Claude cost (adds actual − estimate + the real tokens
-  // when the estimate was applied; the full actual when reserve failed open — never runs negative).
-  await settleUsage(req.user.id, RESERVE_ESTIMATE_USD, turnIn, turnOut, reservation.applied);
+  // Settle the reservation to the turn's REAL cost, priced against the provider that ACTUALLY served
+  // it (rimpl reports it; the on-prem model is $0). We compute the delta here and pass it as
+  // accrueUsage's existing signed `costOverride` rather than teaching usage.js about providers: the
+  // meter module already accepts a signed cost, so this needs zero change to the shared pool/RPC
+  // mechanics — the least invasive of the two options, and it keeps vendor rates in one file.
+  // The tokens are still reported (p_in/p_out) even at $0, so usage reporting stays truthful.
+  // A local turn settles to −estimate, which RELEASES the reservation: skipping the settle "because
+  // it's free" would strand $0.02 on the meter every turn and throttle the physician for free tokens.
+  await accrueUsage(req.user.id, turnIn, turnOut, settlementDelta({
+    estimate: RESERVE_ESTIMATE_USD,
+    inputTokens: turnIn, outputTokens: turnOut,
+    applied: reservation.applied,
+    provider: rimplResponse.provider,
+  }));
 
   res.json(rimplResponse);
 });

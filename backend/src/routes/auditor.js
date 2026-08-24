@@ -6,7 +6,8 @@ const { ScoreSchema } = require('../lib/schemas');
 const { compositeScore } = require('../services/cle-gate');
 const { computeICC21 } = require('../services/icc');
 const { logEvent } = require('../lib/audit');
-const { effectiveLimit, reserveUsage, settleUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
+const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
+const { settlementDelta } = require('../lib/pricing');
 const { rimplAuditDiscuss } = require('../services/rimpl-client');
 const { peerCalibrationEnabled } = require('../lib/settings');
 const { PIS7_DIMS: CALIB_DIMS, meanByDim } = require('../lib/compensation');
@@ -239,7 +240,16 @@ router.post('/cles/:id/discuss', async (req, res) => {
     return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
   }
 
-  await settleUsage(req.user.id, RESERVE_ESTIMATE_USD, rimplResponse.input_tokens ?? 0, rimplResponse.output_tokens ?? 0, reservation.applied, 'auditor');
+  // Settle against the AUDITOR pool at the rate of the provider that actually served the turn (local
+  // = $0, so the delta is −estimate and the reservation is released rather than stranded). Same
+  // costOverride route as the physician chat turn — see routes/cles.js for why usage.js stays
+  // provider-agnostic.
+  await accrueUsage(req.user.id, rimplResponse.input_tokens ?? 0, rimplResponse.output_tokens ?? 0, settlementDelta({
+    estimate: RESERVE_ESTIMATE_USD,
+    inputTokens: rimplResponse.input_tokens ?? 0, outputTokens: rimplResponse.output_tokens ?? 0,
+    applied: reservation.applied,
+    provider: rimplResponse.provider,
+  }), 'auditor');
   logEvent({ actorId: req.user.id, actorRole: 'auditor', action: 'audit.discuss', targetType: 'cle',
     targetId: req.params.id, councilId: cle.council_id });
 

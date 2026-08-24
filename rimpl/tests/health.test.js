@@ -25,6 +25,17 @@ jest.mock('../src/lib/supabase', () => ({
 // reads it at module load).
 process.env.HEALTH_PROBE_TIMEOUT_MS = '50';
 process.env.ANTHROPIC_API_KEY = 'sk-test-key';
+// src/index.js runs dotenv.config(), so a developer rimpl/.env that sets AI_PROVIDER=local would
+// make this suite resolve the local provider and issue a REAL outbound fetch to the DGX — failing
+// the run and breaking the hermetic-test rule. Pin the anthropic default regardless of .env.
+const AI_ENV_KEYS = ['AI_PROVIDER', 'AI_PROVIDER_CHAT', 'AI_PROVIDER_EVALUATE', 'AI_PROVIDER_CRITERIA', 'AI_PROVIDER_DISCUSS'];
+const savedAiEnv = {};
+for (const k of AI_ENV_KEYS) { savedAiEnv[k] = process.env[k]; delete process.env[k]; }
+afterAll(() => {
+  for (const k of AI_ENV_KEYS) {
+    if (savedAiEnv[k] === undefined) delete process.env[k]; else process.env[k] = savedAiEnv[k];
+  }
+});
 
 const request = require('supertest');
 const app = require('../src/index');
@@ -33,6 +44,7 @@ describe('GET /health/deep (rimpl)', () => {
   beforeEach(() => {
     mockConstructorShouldThrow = false;
     mockSupabaseHang = false;
+    for (const k of AI_ENV_KEYS) delete process.env[k]; // no test may leak a provider override
     mockSupabaseResult = { count: 1, error: null };
     process.env.ANTHROPIC_API_KEY = 'sk-test-key';
     mockMessagesCreate.mockClear();

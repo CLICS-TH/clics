@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { z } = require('zod');
-const { callClaude } = require('../services/claude');
+const { callAI } = require('../services/ai');
 const { CRITERIA_CLASSIFIER_PROMPT } = require('../lib/prompts');
 const { parseJsonObject } = require('../lib/parse');
 const { flattenForPrompt } = require('../lib/transcript');
@@ -26,7 +26,8 @@ router.post('/', async (req, res) => {
   const transcriptText = flattenForPrompt(parsed.data.transcript, deriveHintTokens(parsed.data.patient_ref), registry);
 
   try {
-    const { text, inputTokens, outputTokens } = await callClaude({
+    const { text, inputTokens, outputTokens, provider, model } = await callAI({
+      purpose: 'criteria',
       systemPrompt: CRITERIA_CLASSIFIER_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
       maxTokens: 200,
@@ -41,7 +42,7 @@ router.post('/', async (req, res) => {
 
     // pii_map: the on-prem reversible token→raw map. Backend encrypts + persists it; NEVER stored
     // plaintext, never returned to a client, never sent to the cloud.
-    res.json({ c4: !!result.c4, c5: !!result.c5, c6: !!result.c6, pii_map: registry.entries(), input_tokens: inputTokens, output_tokens: outputTokens });
+    res.json({ c4: !!result.c4, c5: !!result.c5, c6: !!result.c6, pii_map: registry.entries(), input_tokens: inputTokens, output_tokens: outputTokens, provider, model });
   } catch (err) {
     console.error('[RIMPL evaluate-criteria] error:', err);
     res.status(500).json({ error: 'Criteria evaluation service temporarily unavailable.' });

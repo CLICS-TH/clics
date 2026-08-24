@@ -25,6 +25,20 @@ function isDeterministicRimplError(err) {
   return err && typeof err.status === 'number' && DETERMINISTIC_STATUSES.has(err.status);
 }
 
+// rimpl now routes each AI call to a provider — the Anthropic cloud, or the on-prem local model —
+// and reports which one ACTUALLY served the call on every response. Stamp it on the parsed body so
+// no caller downstream has to guess when it prices the call.
+//
+// The fallback is 'anthropic' on purpose, i.e. the PAID rate: an older rimpl that predates the
+// provider field (or a partial rollout) must make the backend over-bill, never silently meter real
+// cloud spend at $0 — that would defeat the per-user budget cap and under-invoice the council.
+const DEFAULT_PROVIDER = 'anthropic';
+async function parseWithProvider(res) {
+  const body = await res.json();
+  if (body && typeof body === 'object' && !body.provider) body.provider = DEFAULT_PROVIDER;
+  return body;
+}
+
 // `patient_ref` (the physician's structured patient identifier) is forwarded to RIMPL on-prem SOLELY
 // so RIMPL can scrub it from the narrative/transcript before any cloud call — it is never forwarded
 // to the cloud AI. See docs/constraints.md (data boundary).
@@ -36,7 +50,7 @@ async function rimplChat({ cle_id, history, message, language, chief_complaint, 
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });
   if (!res.ok) throw rimplError('/chat', res.status);
-  return res.json();
+  return parseWithProvider(res);
 }
 
 // Auditor calibration chat: discuss a CLE's AI evaluation vs the auditor's own scores. The transcript
@@ -50,7 +64,7 @@ async function rimplAuditDiscuss({ history, message, language, transcript, ai_sc
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });
   if (!res.ok) throw rimplError('/audit-discuss', res.status);
-  return res.json();
+  return parseWithProvider(res);
 }
 
 async function rimplEvaluate({ cle_id, transcript, patient_ref }) {
@@ -61,7 +75,7 @@ async function rimplEvaluate({ cle_id, transcript, patient_ref }) {
     signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
   });
   if (!res.ok) throw rimplError('/evaluate', res.status);
-  return res.json();
+  return parseWithProvider(res);
 }
 
 async function rimplEvaluateCriteria({ transcript, patient_ref }) {
@@ -72,7 +86,7 @@ async function rimplEvaluateCriteria({ transcript, patient_ref }) {
     signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
   });
   if (!res.ok) throw rimplError('/evaluate-criteria', res.status);
-  return res.json();
+  return parseWithProvider(res);
 }
 
 // Readiness probe for the backend's GET /health/deep: fetch RIMPL's own deep check and return its
@@ -91,4 +105,4 @@ async function probeRimplDeep({ timeoutMs = HEALTH_PROBE_TIMEOUT_MS } = {}) {
   return { httpStatus: res.status, body };
 }
 
-module.exports = { rimplChat, rimplAuditDiscuss, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep };
+module.exports = { rimplChat, rimplAuditDiscuss, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep, DEFAULT_PROVIDER };

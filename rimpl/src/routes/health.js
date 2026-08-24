@@ -4,7 +4,7 @@
 // Mounted BEFORE the x-internal-token gate so monitors can reach it unauthenticated, like /health.
 const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
-const { MODEL, isAnthropicClientReady } = require('../services/claude');
+const { readiness, activeProviders, modelsByPurpose } = require('../services/ai');
 
 const router = Router();
 
@@ -27,6 +27,19 @@ function withTimeout(promise, ms) {
   ]);
 }
 
+// The single model this deployment runs, or null when purposes are split across providers — in which
+// case `models` below is the authoritative answer. Reporting one provider's model under a hybrid
+// would tell an operator that PIS-7 scoring runs on a model it does not run on.
+// Never throws: an unknown AI_PROVIDER surfaces as a `down` check above, not a crashed health route.
+function summaryModel() {
+  try {
+    const active = activeProviders();
+    if (active.length !== 1) return null;
+    const purposes = Object.values(modelsByPurpose());
+    return purposes[0]?.model ?? null;
+  } catch { return null; }
+}
+
 async function checkSupabase() {
   try {
     // Cheapest possible round-trip: a HEAD-style exact count, no row payload (mirrors lib/accounts.js).
@@ -42,16 +55,18 @@ async function checkSupabase() {
 }
 
 router.get('/deep', async (_req, res) => {
-  let ready = { keyPresent: false, constructible: false };
-  try { ready = isAnthropicClientReady(); } catch { /* treated as not-ready below */ }
+  // Probe only the providers this deployment actually uses (services/ai.js resolves them from
+  // AI_PROVIDER*), so an all-local deployment is not reported degraded for a missing cloud key —
+  // and a hybrid is reported degraded if EITHER side is down.
+  let providerChecks;
+  try {
+    providerChecks = await readiness();
+  } catch (e) {
+    providerChecks = { ai_provider: { status: 'down', error: e?.message || String(e) } };
+  }
 
   const checks = {
-    anthropic_key: ready.keyPresent
-      ? { status: 'up' }
-      : { status: 'down', error: 'ANTHROPIC_API_KEY not set' },
-    anthropic_client: ready.constructible
-      ? { status: 'up' }
-      : { status: 'down', error: ready.keyPresent ? 'Anthropic client not constructible' : 'ANTHROPIC_API_KEY not set' },
+    ...providerChecks,
     supabase: await checkSupabase(),
   };
 
@@ -59,7 +74,10 @@ router.get('/deep', async (_req, res) => {
   res.status(allUp ? 200 : 503).json({
     status: allUp ? 'ok' : 'degraded',
     service: 'rimpl',
-    model: MODEL,
+    model: summaryModel(),
+    providers: activeProviders(),
+    // Per-purpose truth — the only field that stays correct under a hybrid.
+    models: (() => { try { return modelsByPurpose(); } catch { return null; } })(),
     checks,
   });
 });

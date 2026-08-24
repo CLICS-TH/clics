@@ -6,6 +6,7 @@
 const { supabase } = require('../lib/supabase');
 const { rimplEvaluateCriteria, isDeterministicRimplError } = require('./rimpl-client');
 const { accrueUsage } = require('../lib/usage');
+const { costUsd } = require('../lib/pricing');
 const { triggerEvaluation } = require('./cle-evaluation');
 const { persistPiiMap } = require('../lib/pii-map');
 
@@ -37,7 +38,13 @@ async function finalizeScreening({ cleId, physicianId, transcript, tier1, patien
   // Persist the reversible on-prem PII map RIMPL returned (encrypted, fail-soft) — Tier-1 audit.
   await persistPiiMap(cleId, crit.pii_map);
   const tier2 = { c4: crit.c4, c5: crit.c5, c6: crit.c6 };
-  await accrueUsage(physicianId, crit.input_tokens, crit.output_tokens);
+  // Price against the provider that ACTUALLY served the classifier. Without the costOverride this
+  // falls through to usage.js's 2-arg costUsd(), which bills at Anthropic rates — so an all-local
+  // deployment would charge ~$0.39 of a physician's $0.50 cap for a 130k-token transcript that cost
+  // $0 of marginal spend, locking them out after a handful of free CLEs. There is no reservation on
+  // this path, so the provider-priced actual passes straight through (mirrors cle-evaluation.js).
+  await accrueUsage(physicianId, crit.input_tokens, crit.output_tokens,
+    costUsd(crit.input_tokens, crit.output_tokens, crit.provider));
 
   const allCriteria = { ...tier1, ...tier2 };
   if (!(tier2.c4 && tier2.c5 && tier2.c6)) {
