@@ -150,10 +150,15 @@ function writeRun(mode, report, sha) {
     for (const c of cohort) {
       const messages = await fetchMessages(c.cle_id);
       try {
-        let e = await rimplEvaluate({ cle_id: c.cle_id, transcript: messages });
+        // shadow:false — this harness re-scores the REAL cohort through RIMPL's /evaluate. Without
+        // the opt-out every rescore would fire a shadow evaluation and overwrite that CLE's
+        // accumulated pilot shadow row with a calibration-run row, destroying the paired corpus this
+        // harness exists to measure. (Also: it re-scores without patient_ref, so the replacement
+        // would not even be de-identified on the same terms.)
+        let e = await rimplEvaluate({ cle_id: c.cle_id, transcript: messages, shadow: false });
         if (!validEval(e)) {
           console.log(`  ↻ ${String(c.pseudonym).padEnd(8)} invalid eval (missing domains) — retrying once`);
-          e = await rimplEvaluate({ cle_id: c.cle_id, transcript: messages });
+          e = await rimplEvaluate({ cle_id: c.cle_id, transcript: messages, shadow: false });
         }
         if (!validEval(e)) { console.error(`  ✗ ${String(c.pseudonym).padEnd(8)} invalid eval twice — dropped from this run`); continue; }
         newMap.set(c.cle_id, e);

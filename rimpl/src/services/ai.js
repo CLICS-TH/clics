@@ -46,6 +46,25 @@ async function callAI({ purpose, systemPrompt, messages, maxTokens, temperature 
     throw new Error(`Unknown AI purpose "${purpose}". Valid: ${PURPOSES.join(', ')}`);
   }
   const provider = providerFor(purpose);
+  return callWith(provider, { systemPrompt, messages, maxTokens, temperature });
+}
+
+/**
+ * Call a provider BY NAME, bypassing purpose routing.
+ *
+ * For infrastructure that is inherently about a specific vendor — today only the shadow evaluator,
+ * whose entire job is to run the model that ISN'T serving. Routes must keep using callAI(purpose):
+ * naming a vendor in a route is what this design exists to prevent.
+ */
+async function callProvider({ provider: name, systemPrompt, messages, maxTokens, temperature }) {
+  const provider = PROVIDERS[String(name || '').trim().toLowerCase()];
+  if (!provider) {
+    throw new Error(`Unknown AI provider "${name}". Valid: ${Object.keys(PROVIDERS).join(', ')}`);
+  }
+  return callWith(provider, { systemPrompt, messages, maxTokens, temperature });
+}
+
+async function callWith(provider, { systemPrompt, messages, maxTokens, temperature }) {
   const result = await provider.call({ systemPrompt, messages, maxTokens, temperature });
   // `provider` + `model` travel WITH the result, deliberately. A module-level MODEL constant is only
   // correct while exactly one model exists; under a hybrid it silently mislabels which system
@@ -95,4 +114,4 @@ async function readiness() {
   return checks;
 }
 
-module.exports = { callAI, activeProviders, defaultProvider, modelsByPurpose, providerNameFor, readiness, PURPOSES, PROVIDERS };
+module.exports = { callAI, callProvider, activeProviders, defaultProvider, modelsByPurpose, providerNameFor, readiness, PURPOSES, PROVIDERS };
