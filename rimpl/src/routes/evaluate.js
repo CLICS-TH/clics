@@ -2,10 +2,11 @@ const { Router } = require('express');
 const { z } = require('zod');
 const { callAI } = require('../services/ai');
 const { PIS7_EVALUATOR_PROMPT } = require('../lib/prompts');
-const { parseJsonObject } = require('../lib/parse');
+const { scoreFromText } = require('../lib/pis7');
 const { flattenForPrompt } = require('../lib/transcript');
 const { deriveHintTokens } = require('../services/pii-filter');
-const { WEIGHTS, modelVersion, PROMPT_VERSION, RUBRIC_VERSION } = require('../lib/versions');
+const { modelVersion, PROMPT_VERSION, RUBRIC_VERSION } = require('../lib/versions');
+const { fireShadowEvaluation } = require('../services/shadow');
 
 const router = Router();
 
@@ -15,22 +16,18 @@ const EvalSchema = z.object({
   // On-prem patient identifier, scrubbed from the transcript before the cloud eval; never forwarded.
   // nullish: the backend sends `?? null` when none was recorded — null must pass schema validation.
   patient_ref: z.string().nullish(),
+  // Opt OUT of the shadow evaluation. Default true (shadow runs when SHADOW_EVAL_PROVIDER is set).
+  // scripts/calibration/calibrate.js sets this false: --mode rescore re-scores the REAL cohort
+  // through this route, which would otherwise overwrite the pilot's accumulated shadow rows with
+  // rows from a calibration run — destroying the very corpus the harness exists to measure.
+  shadow: z.boolean().default(true),
 });
-
-// The evaluator's d1..d7 drive CME credit and are persisted into smallint CHECK(0..5) columns
-// downstream. Validate the model's parsed output HERE so a malformed/out-of-range/NaN score fails
-// fast (502) instead of poisoning the composite or throwing a CHECK violation in persistEvaluation
-// that the 6h reconcile sweep then retries forever (a paid call each time).
-const DOMAIN_KEYS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
-const DomainScoresSchema = z.object(
-  Object.fromEntries(DOMAIN_KEYS.map(k => [k, z.number().int().min(0).max(5)]))
-).passthrough();
 
 router.post('/', async (req, res) => {
   const parsed = EvalSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { cle_id, transcript, patient_ref } = parsed.data;
+  const { cle_id, transcript, patient_ref, shadow } = parsed.data;
   // PII-strip (incl. the known patient identifier) + defang injected role markers before the cloud model.
   const transcriptText = flattenForPrompt(transcript, deriveHintTokens(patient_ref));
 
@@ -57,35 +54,33 @@ router.post('/', async (req, res) => {
     const diag = () => `stopReason=${stopReason} outputTokens=${outputTokens} textLen=${text.length} ` +
       `text=${JSON.stringify(text.length > 1500 ? text.slice(0, 800) + ' …[snip]… ' + text.slice(-700) : text)}`;
 
-    let parsedScores;
+    // Shared with the shadow evaluator (lib/pis7.js) so both apply the SAME contract — a divergence
+    // would make the November head-to-head compare two models under two different validators.
+    let scored;
     try {
-      parsedScores = parseJsonObject(text);
-    } catch {
-      console.error(`[RIMPL evaluate] invalid JSON — ${diag()}`);
-      return res.status(502).json({ error: 'Evaluator returned invalid JSON' });
+      scored = scoreFromText(text);
+    } catch (e) {
+      if (e.kind === 'invalid_json') {
+        console.error(`[RIMPL evaluate] invalid JSON — ${diag()}`);
+      } else {
+        console.error(`[RIMPL evaluate] out-of-range/missing domain scores: ${JSON.stringify(e.parsed).slice(0, 300)} — ${diag()}`);
+      }
+      // Shadow the FAILURES too. These are the long/hard transcripts (CLE-052 truncated the served
+      // model's JSON at 2000 AND 3000 max_tokens), and they are exactly where a candidate with a
+      // smaller context window is most likely to fail. Firing only on success would measure the
+      // candidate's contract-compliance on a denominator that excludes them — a sample restricted
+      // to what a stronger model already handled, biased in the candidate's favour.
+      if (shadow) fireShadowEvaluation({ cleId: cle_id, transcriptText, servedProvider: provider });
+      return res.status(502).json({ error: e.message });
     }
-
-    const checked = DomainScoresSchema.safeParse(parsedScores);
-    if (!checked.success) {
-      // {} here means the regex found no {...} at all in `text` (parseJsonObject's no-match
-      // fallback) — could be truncation (stopReason=max_tokens) or the model never attempting
-      // JSON at all (stopReason=end_turn) — diag() tells them apart.
-      console.error(`[RIMPL evaluate] out-of-range/missing domain scores: ${JSON.stringify(parsedScores).slice(0, 300)} — ${diag()}`);
-      return res.status(502).json({ error: 'Evaluator returned out-of-range or missing domain scores' });
-    }
-    const scores = checked.data;
-
-    // ×20 gives 0-100 range: max = 5 × 1.0 × 20 = 100
-    const composite = Object.entries(WEIGHTS).reduce(
-      (acc, [key, w]) => acc + scores[key] * w, 0
-    ) * 20;
+    const { scores, composite, rationale } = scored;
 
     res.json({
       cle_id,
       d1: scores.d1, d2: scores.d2, d3: scores.d3, d4: scores.d4,
       d5: scores.d5, d6: scores.d6, d7: scores.d7,
-      composite_score: Math.round(composite * 100) / 100,
-      domain_rationale: scores.rationale ?? {},
+      composite_score: composite,
+      domain_rationale: rationale,
       // Locked-version provenance (§10.2): recorded per evaluation for the reliability/stability check.
       // Stamped from the model that ACTUALLY produced this score, not a module constant — under a
       // hybrid or a shadow run the two diverge, and §10.2 requires the row to name the real system.
@@ -96,8 +91,17 @@ router.post('/', async (req, res) => {
       output_tokens: outputTokens,
       provider,
     });
+
+    // AFTER the response: score the same transcript again with the candidate model and record it
+    // where nobody can see it. Default OFF (SHADOW_EVAL_PROVIDER unset). Deliberately not awaited —
+    // it must never delay, fail, or bill the served evaluation. Reuses the already de-identified
+    // transcriptText, so it opens no new PII surface. See docs/LOCAL-MODEL-ROADMAP.md Phase 5.
+    if (shadow) fireShadowEvaluation({ cleId: cle_id, transcriptText, servedProvider: provider });
   } catch (err) {
     console.error('[RIMPL evaluate] error:', err);
+    // Same reasoning as the 502 path: a transcript the served provider could not complete at all is
+    // a data point about the candidate too. transcriptText is de-identified and in scope here.
+    if (parsed.data.shadow) fireShadowEvaluation({ cleId: parsed.data.cle_id, transcriptText });
     res.status(500).json({ error: 'Evaluation service temporarily unavailable.' });
   }
 });
