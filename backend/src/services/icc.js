@@ -1,21 +1,30 @@
-function computeICC21(pairs) {
+// ICC(2,1) — two-way random-effects, absolute-agreement, single-measurement intraclass correlation.
+//
+// The statistic is RATER-SYMMETRIC: nothing in the math below distinguishes column A from column B,
+// so the same routine measures AI↔human, candidate(shadow)↔human, or AI↔candidate agreement.
+// Pairs may be supplied generically as { a, b }, or in the original { ai, human } shape used by the
+// three existing call sites (routes/oversight.js, routes/superadmin.js, routes/auditor.js).
+// Only the input shape is generalized here — the partitioning, the degenerate-variance guard, the
+// Fisher-z CI and the interpretation bands are untouched.
+function iccTwoRater(input) {
+  const pairs = input.map(p => ({ a: p.a ?? p.ai, b: p.b ?? p.human }));
   const n = pairs.length;
   if (n < 2) return null;
 
   const k = 2;
-  const grandMean = pairs.reduce((a, p) => a + p.ai + p.human, 0) / (n * k);
-  const rowMeans = pairs.map(p => (p.ai + p.human) / 2);
+  const grandMean = pairs.reduce((a, p) => a + p.a + p.b, 0) / (n * k);
+  const rowMeans = pairs.map(p => (p.a + p.b) / 2);
   const colMeans = [
-    pairs.reduce((a, p) => a + p.ai, 0) / n,
-    pairs.reduce((a, p) => a + p.human, 0) / n,
+    pairs.reduce((a, p) => a + p.a, 0) / n,
+    pairs.reduce((a, p) => a + p.b, 0) / n,
   ];
 
   const SSr = k * rowMeans.reduce((a, m) => a + (m - grandMean) ** 2, 0);
   const SSc = n * colMeans.reduce((a, m) => a + (m - grandMean) ** 2, 0);
-  const SStotal = pairs.reduce((a, p) => a + (p.ai - grandMean) ** 2 + (p.human - grandMean) ** 2, 0);
+  const SStotal = pairs.reduce((a, p) => a + (p.a - grandMean) ** 2 + (p.b - grandMean) ** 2, 0);
   const SSe = SStotal - SSr - SSc;
 
-  // Degenerate: every score is identical (AI == human, same value on every pair) — common per-domain
+  // Degenerate: every score is identical (both raters, same value on every pair) — common per-domain
   // when a 0-5 domain is scored the same across sessions. There is no variance to partition, so ICC
   // is undefined. Return a clear 'insufficient variance' result instead of the spurious -0.999
   // 'Below target' the MSe floor produced (perfect agreement was being reported as the worst case).
@@ -51,4 +60,10 @@ function computeICC21(pairs) {
   };
 }
 
-module.exports = { computeICC21 };
+// Back-compatible name for the AI-vs-human call sites. Same function, same numbers — { ai, human }
+// is just the { a, b } pair spelled with the served evaluator in column A.
+function computeICC21(pairs) {
+  return iccTwoRater(pairs);
+}
+
+module.exports = { computeICC21, iccTwoRater };

@@ -202,3 +202,43 @@ export interface PaymentInfo {
   account_no?: string;
   promptpay?: string;
 }
+
+// GET /oversight/icc/three-way — the shadow-evaluator three-way agreement report (analyst / ethics /
+// superadmin ONLY; see components/ThreeWayIcc.tsx for the blinding rule). One arm = one two-rater
+// ICC(2,1) comparison; every arm is computed by the backend on the SAME set of CLEs (those carrying
+// all three scores) so the arms are actually comparable, and each still reports its own n.
+export interface ThreeWayArm {
+  overall: IccStat;
+  per_domain?: Record<string, IccStat>;
+  n: number;
+}
+// Honest denominators. `shadow_failed` counts shadow_evaluations rows that carry an `error` and no
+// scores — excluded from every ICC, but a first-class result in their own right; a candidate model
+// that cannot emit a valid score set some of the time is disqualified regardless of its ICC.
+export interface ThreeWayCoverage {
+  cles_with_human: number;
+  cles_with_ai: number;
+  cles_with_shadow: number;
+  cles_all_three: number;
+  // Cohort-scoped: the candidate's runs on the audited, is_test-filtered CLEs the arms are computed on.
+  shadow_failed: number;
+  shadow_contract_rate: number | null;
+  // Corpus-wide: EVERY run recorded for this candidate. This is the model's real contract rate — the
+  // cohort figures above are a subset and can look flattering when few CLEs have been audited yet.
+  // Null when the backend could not count them (it falls back to the cohort figures rather than fail).
+  shadow_scored_corpus?: number | null;
+  shadow_failed_corpus?: number | null;
+  shadow_contract_rate_corpus?: number | null;
+}
+export interface ThreeWayIccData {
+  arms?: {
+    ai_vs_human: ThreeWayArm | null;
+    shadow_vs_human: ThreeWayArm | null;
+    ai_vs_shadow: ThreeWayArm | null;
+  };
+  coverage?: ThreeWayCoverage;
+  // available=false when the shadow table is absent (migration deliberately unapplied) or empty.
+  shadow?: { available: boolean; provider: string | null; model_version: string | null };
+  // apiFetch resolves an {error} envelope instead of rejecting — see lib/api.ts.
+  error?: ApiError;
+}
