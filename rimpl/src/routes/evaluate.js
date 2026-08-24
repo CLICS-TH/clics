@@ -35,23 +35,41 @@ router.post('/', async (req, res) => {
   const transcriptText = flattenForPrompt(transcript, deriveHintTokens(patient_ref));
 
   try {
-    const { text, inputTokens, outputTokens } = await callClaude({
+    const { text, inputTokens, outputTokens, stopReason } = await callClaude({
       systemPrompt: PIS7_EVALUATOR_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
-      // 2000, not 1000: calibration showed 1000 truncates rationales on ~46k-token transcripts → malformed evals.
-      maxTokens: 2000,
+      // 4096, not 2000/3000: a 130k-token transcript (CLE-052, 2026-08-17) truncated the model's
+      // JSON mid-rationale at BOTH 2000 and 3000 — the response never reached the closing `}`, so
+      // parseJsonObject's "no match" fallback silently returned {} instead of surfacing a parse
+      // error, and Zod flagged it as out-of-range/missing domain scores. Same failure mode as the
+      // earlier 1000→2000 bump (calibration: 1000 truncates on ~46k-token transcripts), recurring
+      // twice at larger sizes — the evidence-threshold rule (quote a physician utterance for any
+      // 4-5) makes rationale length scale with how much of the transcript is genuinely quotable,
+      // not just token count, and two undersized guesses in a row means give real headroom instead
+      // of incrementing again. max_tokens is a ceiling, not a spend — an unused allowance costs $0.
+      maxTokens: 4096,
     });
+
+    // stopReason 'max_tokens' = genuinely truncated (needs a bigger ceiling); 'end_turn' = the model
+    // finished on its own without ever producing the expected JSON (a compliance/content problem,
+    // not a length problem — raising maxTokens further would not fix this one).
+    const diag = () => `stopReason=${stopReason} outputTokens=${outputTokens} textLen=${text.length} ` +
+      `text=${JSON.stringify(text.length > 1500 ? text.slice(0, 800) + ' …[snip]… ' + text.slice(-700) : text)}`;
 
     let parsedScores;
     try {
       parsedScores = parseJsonObject(text);
     } catch {
+      console.error(`[RIMPL evaluate] invalid JSON — ${diag()}`);
       return res.status(502).json({ error: 'Evaluator returned invalid JSON' });
     }
 
     const checked = DomainScoresSchema.safeParse(parsedScores);
     if (!checked.success) {
-      console.error('[RIMPL evaluate] out-of-range/missing domain scores:', JSON.stringify(parsedScores).slice(0, 300));
+      // {} here means the regex found no {...} at all in `text` (parseJsonObject's no-match
+      // fallback) — could be truncation (stopReason=max_tokens) or the model never attempting
+      // JSON at all (stopReason=end_turn) — diag() tells them apart.
+      console.error(`[RIMPL evaluate] out-of-range/missing domain scores: ${JSON.stringify(parsedScores).slice(0, 300)} — ${diag()}`);
       return res.status(502).json({ error: 'Evaluator returned out-of-range or missing domain scores' });
     }
     const scores = checked.data;
