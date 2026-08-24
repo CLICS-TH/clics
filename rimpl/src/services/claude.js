@@ -6,7 +6,12 @@ const Anthropic = require('@anthropic-ai/sdk');
 // inputs/outputs by default — there is no per-request "no-training" header to set here. The
 // protocol's no-training + retention guarantee is satisfied by the ORG-LEVEL DPA / zero-data-
 // retention (ZDR) arrangement on the Anthropic account, not by code. Track that in GO-LIVE-CHECKLIST.
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 55000, maxRetries: 0 });
+// 85000, not 55000: a 130k-token eval transcript (CLE-052, 2026-08-17) needed >55s just to generate
+// the JSON scoring response (7 domains + quote-grounded rationale, after the maxTokens 2000→3000
+// bump above), so the SDK's own 55s ceiling fired mid-generation (APIConnectionTimeoutError) before
+// the model ever finished. 85s leaves headroom under backend's outer RIMPL_EVAL_TIMEOUT_MS (100s,
+// unset in prod → default) for RIMPL's own processing + network, without eating the whole budget.
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 85000, maxRetries: 0 });
 const MODEL = 'claude-sonnet-4-6';
 
 // Prompt caching (default OFF). The ~2k-token system prompt is re-sent every turn at full input price;
@@ -99,7 +104,10 @@ async function callClaude({ systemPrompt, messages, maxTokens = 1500 }) {
         const inputTokens = data.usage?.input_tokens ?? 0;
         const outputTokens = data.usage?.output_tokens ?? 0;
         // tokenCount (summed) is kept for the C3 CLE gate; input/output are split out for cost.
-        return { text, inputTokens, outputTokens, tokenCount: inputTokens + outputTokens };
+        // stopReason distinguishes "hit max_tokens" (a real length/truncation problem) from
+        // "end_turn" (the model finished on its own without ever producing the expected JSON) —
+        // callers that fail to parse `text` need this to tell those two very different causes apart.
+        return { text, inputTokens, outputTokens, tokenCount: inputTokens + outputTokens, stopReason: data.stop_reason };
       } catch (err) {
         lastErr = err;
         if (attempt < MAX_RETRIES && isRetryable(err)) {
