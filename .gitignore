@@ -23,3 +23,19 @@ data.json
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Understand-Anything analysis artifacts (regenerable via /understand; ~1 MB graph + scratch)
+.ua/
+.understand-anything/
+
+# Test-coverage output (regenerable; 50+ files that otherwise swamp `git status`)
+coverage/
+
+# Unpublished manuscript + proposal materials, and generated evaluation reports.
+# `*.docx` above already covered the Word files, but NOT the PDF/HTML siblings —
+# these carry the unpublished JMIR submission and a real physician's name.
+Manuscript/
+_materials/
+scripts/report/*.html
+scripts/report/*.pdf
+rujdanai-*

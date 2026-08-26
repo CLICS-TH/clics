@@ -3,10 +3,16 @@ const RIMPL_URL = process.env.RIMPL_URL || 'http://localhost:3003';
 // queue under load, so the wrapper timeout must cover queue-wait + generation. Env-tunable; raised
 // from 75s -> 100s to recover burst-tail calls that previously aborted while queued.
 const CHAT_TIMEOUT_MS = parseInt(process.env.RIMPL_CHAT_TIMEOUT_MS || '100000', 10);
-// Evaluation timeout must cover RIMPL's concurrency-queue wait + one Claude attempt (55s SDK
-// timeout) + retries — the old hard-coded 30s aborted burst-tail evals (end-of-cohort) while they
-// were still queued, mis-routing sessions to manual QA / stranding credit. Default to the chat value.
-const EVAL_TIMEOUT_MS = parseInt(process.env.RIMPL_EVAL_TIMEOUT_MS || `${CHAT_TIMEOUT_MS}`, 10);
+// Evaluation timeout must cover RIMPL's concurrency-queue wait + one provider attempt + retries —
+// the old hard-coded 30s aborted burst-tail evals (end-of-cohort) while they were still queued,
+// mis-routing sessions to manual QA / stranding credit.
+//
+// 180s, no longer defaulting to the chat value: both providers now use a 150s client ceiling (the
+// on-prem model measured 82.5s and 87.8s on real transcripts, so the previous 85s sat mid-
+// distribution). This outer bound MUST stay above that inner one — invert them and the backend hangs
+// up on an evaluation the provider was about to return, which reads as a provider failure in the
+// logs and costs the physician their credit for a call that actually succeeded.
+const EVAL_TIMEOUT_MS = parseInt(process.env.RIMPL_EVAL_TIMEOUT_MS || '180000', 10);
 
 // A RIMPL HTTP error with the status attached, so callers can tell a DETERMINISTIC bad-output
 // failure (400 bad request / 422 / 502 "evaluator returned out-of-range/invalid output") — which a

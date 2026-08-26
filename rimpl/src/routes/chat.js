@@ -92,7 +92,13 @@ router.post('/', async (req, res) => {
       ];
       // Same ceiling as the first call — a corrected reply may itself carry an artifact, so a LOWER retry
       // cap would truncate it worse than the original (the old 1500 cap assumed a "<400 words" reply).
-      const retry = await callAI({ purpose: 'chat', systemPrompt, messages: retryMessages, maxTokens: CHAT_MAX_TOKENS });
+      //
+      // PINNED to whichever provider served the first call. Now that the provider is a live setting
+      // rather than an env var, a superadmin flipping `chat` between these two calls would otherwise
+      // have ONE physician turn written half by Claude and half by the DGX — and `messages` has no
+      // model column, so nothing would record that it happened. `provider` is undefined only when a
+      // caller mocked callAI without it, in which case this falls back to normal resolution.
+      const retry = await callAI({ purpose: 'chat', provider, systemPrompt, messages: retryMessages, maxTokens: CHAT_MAX_TOKENS });
       text = retry.text;
       tokenCount += retry.tokenCount;
       inputTokens += retry.inputTokens;

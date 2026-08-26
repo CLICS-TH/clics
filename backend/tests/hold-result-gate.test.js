@@ -18,9 +18,16 @@ const EVAL = { cle_id: 'cle1', composite_score: 82, d1: 4, d2: 4, d3: 3, d4: 4, 
 function wire({ hold, audited }) {
   m.reset();
   m.state.caller = physician;
-  m.state.resolve = (table) => {
+  m.state.resolve = (table, kind) => {
     if (table === 'cles') return { id: 'cle1', status: 'evaluated', physician_id: 'doc1' };
-    if (table === 'app_settings') return { value: hold };          // getSetting('hold_result_until_audited')
+    // Two different shapes are read from this table: getSetting() takes ONE row via .maybeSingle(),
+    // while creditSettings() batches a .in([...]) list. Answering both with a single row made the
+    // credit block throw inside the async handler, which returns no response at all.
+    if (table === 'app_settings') {
+      return kind === 'list'
+        ? { data: [{ key: 'credit_conversion_enabled', value: 0 }] }   // credit OFF, the shipped default
+        : { value: hold };                                            // hold_result_until_audited
+    }
     if (table === 'audit_scores') return audited ? { id: 'as1' } : null;
     if (table === 'ai_evaluations') return EVAL;
     return undefined;

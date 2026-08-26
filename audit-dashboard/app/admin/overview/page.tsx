@@ -13,6 +13,7 @@ import { PageIntro } from '@/components/PageIntro';
 import { RoleBadge } from '@/components/RoleBadge';
 import { StatStrip, type Stat } from '@/components/StatStrip';
 import { IccPanel } from '@/components/IccPanel';
+import { AiProviderPanel } from '@/components/AiProviderPanel';
 import { Skeleton, CardGridSkeleton } from '@/components/Skeleton';
 import { useAuthUser } from '@/lib/client-store';
 import type { CleStats } from '@/lib/types';
@@ -27,7 +28,7 @@ type IccData = {
 };
 type Council = { id: string; code: string; name_th: string; name_en: string; active?: boolean };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
-type UsageSettings = { standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number; pilot_test_mode?: boolean; clinical_artifacts_enabled?: boolean; peer_calibration_enabled?: boolean; hold_result_until_audited?: boolean };
+type UsageSettings = { standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number; pilot_test_mode?: boolean; clinical_artifacts_enabled?: boolean; peer_calibration_enabled?: boolean; hold_result_until_audited?: boolean; min_auditors_per_cle?: number };
 type CountRow = { council_id: string; role: string; n: number };
 type Invite = { id: string; email: string; status: string };
 
@@ -129,6 +130,25 @@ export default function OverviewPage() {
       setUsage(u => (u ? { ...u, hold_result_until_audited: next.hold_result_until_audited } : u));
     } catch { /* leave state unchanged on failure */ }
     setHoldSaving(false);
+  }
+
+  // ---- Minimum auditors per CLE ----
+  // A TARGET, not a gate. The manuscript describes >= 3 blinded auditors per CLE; 3 auditors
+  // currently cover 3 of 19 physician specialties, so a blocking rule would strand credit for the
+  // other 16. Raising this badges CLEs below target in the queue and states the rater distribution
+  // in the ICC report — it never withholds a score.
+  const [minAudSaving, setMinAudSaving] = useState(false);
+  const minAuditors = usage?.min_auditors_per_cle ?? 1;
+  async function setMinAuditors(n: number) {
+    if (!usage || n === minAuditors || n < 1 || n > 10) return;
+    setMinAudSaving(true);
+    try {
+      const next = await apiFetch<UsageSettings>('/admin/usage-settings', {
+        method: 'PATCH', body: JSON.stringify({ min_auditors_per_cle: n }),
+      });
+      setUsage(u => (u ? { ...u, min_auditors_per_cle: next.min_auditors_per_cle } : u));
+    } catch { /* leave state unchanged on failure */ }
+    setMinAudSaving(false);
   }
 
   const [exporting, setExporting] = useState(false);
@@ -294,6 +314,45 @@ export default function OverviewPage() {
           </div>
         </div>
       </section>
+
+      {/* Minimum auditors per CLE — a target the queue badges against, never a gate. */}
+      <section className="space-y-3">
+        <h2 className="font-heading text-xl text-foreground">ผู้ตรวจขั้นต่ำต่อ CLE / Minimum auditors per CLE</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-5">
+          <div className="min-w-0 flex-1 pr-4">
+            <p className="text-sm font-medium">👥 จำนวนผู้ตรวจเป้าหมาย / Target auditor count</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              CLE ที่มีผู้ตรวจน้อยกว่าเป้าหมายจะถูกทำเครื่องหมายในคิว แต่ <strong>ยังปล่อยผลตามปกติ</strong> —
+              ไม่บล็อก เพราะบางสาขายังไม่มีผู้ตรวจเลย • CLEs below target are badged in the admin queue and
+              counted separately in the ICC report, but their score still releases. Blocking would strand
+              credit for the specialties that have no eligible auditor at all.
+            </p>
+          </div>
+          <div role="radiogroup" aria-label="Minimum auditors per CLE" className="inline-flex shrink-0 overflow-hidden rounded-lg border">
+            {[1, 2, 3].map(n => {
+              const on = n === minAuditors;
+              return (
+                <button
+                  key={n}
+                  role="radio"
+                  aria-checked={on}
+                  disabled={!usage || minAudSaving}
+                  onClick={() => setMinAuditors(n)}
+                  className={`px-4 py-2 text-sm tabular-nums transition-colors disabled:opacity-50
+                    ${on ? 'bg-primary/15 font-semibold text-foreground ring-2 ring-inset ring-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                >
+                  {n}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Which model serves each AI purpose (Claude cloud ↔ the on-prem DGX). Its own component:
+          the evaluator half carries a typed confirmation and a pilot lock, which does not belong
+          inline beside the plain on/off toggles below. */}
+      <AiProviderPanel />
 
       {/* Pilot Test Mode — when on, new CLEs are TEST sessions, the 3-CLE cap is bypassed, and the
           physician can pick Natural/Socratic directly to exercise the experiment. */}

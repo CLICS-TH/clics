@@ -72,6 +72,33 @@
     // (it redirects here), so surface the transcript on the result page. Plain-text (escaped) — no
     // marked/DOMPurify on this page — with line breaks preserved; artifact fences collapse to a chip.
     function escapeHtml(s) { return (s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+    // Credit band.
+    //
+    // This replaced a badge that read "ได้รับ CPD Credit" (credit RECEIVED) and was shown on every
+    // evaluated CLE unconditionally — while the dashboard's own consent panel said
+    // "ยังไม่นับเป็นหน่วยกิต CME" (not yet CME credit). Both cannot be true, and the badge was the
+    // wrong one: no credit is awarded during the calibration phase. The wording now follows the
+    // server's `enabled` flag, so the two screens cannot disagree again.
+    function creditBlock(credit) {
+      if (!credit) return '';
+      const band = escapeHtml(credit.band_label?.th ?? "");
+      const bandEn = escapeHtml(credit.band_label?.en ?? "");
+      if (credit.enabled) {
+        return `<div class="badge badge-evaluated" style="margin-top:10px;display:inline-flex;align-items:center;gap:5px">`
+          + `${icon('checkCircle', 14)} ${escapeHtml(String(credit.awarded_credits))} หน่วยกิต CME · ${band}</div>`;
+      }
+      // OFF: a PREVIEW. The band is shown because it is informative — it tells a physician where they
+      // landed and what the next band needs — but it is labelled as not-yet-credit, in both languages.
+      return `<div style="margin-top:10px">
+          <div class="badge" style="display:inline-flex;align-items:center;gap:5px">${icon('hourglass', 14)} ระดับ: ${band} <span class="bi-en">${bandEn}</span></div>
+          <p style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5">
+            ยังไม่นับเป็นหน่วยกิต CME — ระยะนี้คือการปรับเทียบเครื่องมือ<br>
+            <span class="bi-en">Not yet CME credit — this phase calibrates the instrument.</span>
+          </p>
+        </div>`;
+    }
+
     function transcriptSection(cle) {
       const msgs = (cle.messages || []).filter(m => m.role === 'physician' || m.role === 'assistant');
       if (!msgs.length) return '';
@@ -152,7 +179,7 @@
         <div class="card" style="text-align:center;margin-bottom:16px">
           <p class="score-display">${Math.round(eval_.composite_score)}</p>
           <p style="color:var(--muted)">คะแนน PIS-7 / 100</p>
-          <div class="badge badge-evaluated" style="margin-top:10px;display:inline-flex;align-items:center;gap:5px">${icon('checkCircle', 14)} ได้รับ CPD Credit</div>
+          ${creditBlock(eval_.credit)}
         </div>
         <div class="card"><div class="chart-box"><canvas id="radarChart"></canvas></div></div>
         <div class="card">

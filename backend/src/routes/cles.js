@@ -10,8 +10,27 @@ const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE
 const { settlementDelta } = require('../lib/pricing');
 const { logEvent } = require('../lib/audit');
 const { pilotTestMode, clinicalArtifactsEnabled, holdResultUntilAudited } = require('../lib/settings');
+const { createHash } = require('crypto');
+const { creditSettings } = require('../lib/settings');
+const { creditFor, creditTable } = require('../services/credit');
 
 const router = Router();
+
+// Which of a physician's 3 episodes runs in Socratic examiner mode. Allocated by hashing the
+// physician's id rather than by Math.random(), for three reasons:
+//   1. REPRODUCIBLE — anyone (a reviewer, an auditor, us in November) can recompute any
+//      physician's assigned condition from their id alone. A Math.random() draw is unauditable
+//      once made; this is allocation-by-hash, standard practice for trial arm assignment.
+//   2. STABLE — the same physician always resolves to the same episode, so a retry, a replay, or a
+//      lost write can never hand them the condition twice.
+//   3. TESTABLE — a random draw inside a request handler makes every test that creates a CLE
+//      non-deterministic (observed: the same suite reported 1 failure on one run and 4 on the next).
+// Physician ids are UUIDs, so the assignment is uniform across a cohort and unpredictable in
+// practice. The result is still PERSISTED, so the cohort stays intact if this function ever changes.
+function drawSocraticEpisode(physicianId) {
+  const h = createHash('sha256').update(String(physicianId)).digest();
+  return 1 + (h.readUInt32BE(0) % 3);
+}
 router.use(verifyJwt, requireRole('physician'));
 
 // Human-subjects pilot: any route that creates OR extends study data (start a session,
@@ -72,11 +91,41 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
   }
   const episodeNumber = Math.min(passed + 1, 3);
 
-  // Socratic mode: CLE2 runs as a Socratic clinical-examiner from the first turn. CLE1/CLE3 are
-  // natural, UNLESS the physician has failed Tier-1 three times in a row — then this natural session
-  // opens in Socratic remediation to help it develop into a qualifying CLE.
+  // Socratic mode: exactly ONE of the physician's 3 episodes runs as a Socratic clinical-examiner
+  // from the first turn; the other two are natural. WHICH episode is drawn uniformly at random per
+  // physician, once, and persisted.
+  //
+  // It used to be hard-coded to episode 2, which made the condition perfectly confounded with order:
+  // a difference at episode 2 could be the mode, or familiarity, or warm-up, with no way to separate
+  // them. Randomising averages the order effect across the cohort so the difference is attributable
+  // to the mode. Drawing lazily (rather than at registration) means physicians already mid-study
+  // keep the episode they were actually given — see db/migration-socratic-randomisation.sql.
+  let socraticEpisode = req.user.socratic_episode ?? null;
+  if (socraticEpisode == null) {
+    const draw = drawSocraticEpisode(req.user.id);
+    const { error: seErr } = await supabase.from('professionals')
+      .update({ socratic_episode: draw }).eq('id', req.user.id).is('socratic_episode', null);
+    if (!seErr) {
+      socraticEpisode = draw;
+    } else if (/socratic_episode/.test(seErr.message ?? '') || seErr.code === '42703' || seErr.code === 'PGRST204') {
+      // Column not there yet: the backend was deployed ahead of the migration. Fall back to the
+      // pre-randomisation behaviour (episode 2) rather than blocking sessions — a known, uniform
+      // state we can identify in the data later, unlike a half-randomised cohort.
+      console.error('[socratic] socratic_episode column missing — falling back to fixed episode 2');
+      socraticEpisode = 2;
+    } else {
+      // The column exists but the write failed. Fail LOUDLY: an unpersisted draw re-randomises on
+      // every session, so a physician could receive Socratic mode two or three times, destroying the
+      // within-physician contrast the randomisation exists to create. Refusing the session is
+      // strictly better than silently corrupting the study design.
+      return res.status(500).json({ error: 'Could not assign study condition. Please try again.', code: 'socratic_assign_failed' });
+    }
+  }
+
+  // A physician who has failed Tier-1 three times in a row opens in Socratic remediation regardless
+  // of the draw — a support path, not an experimental condition, and recorded with its own reason.
   let socraticActive = false, socraticReason = null;
-  if (episodeNumber === 2) { socraticActive = true; socraticReason = 'cle2_examiner'; }
+  if (episodeNumber === socraticEpisode) { socraticActive = true; socraticReason = 'randomised_examiner'; }
   else if ((req.user.consecutive_t1_fails ?? 0) >= 3) { socraticActive = true; socraticReason = 't1_remediation'; }
   // Pilot Test Mode override: a tester directly chooses the mode so they can exercise Socratic
   // (or natural) on demand, regardless of episode. These sessions are flagged is_test below.
@@ -391,7 +440,19 @@ router.get('/:id/evaluation', async (req, res) => {
   const { data: eval_ } = await supabase
     .from('ai_evaluations').select('*').eq('cle_id', req.params.id)
     .order('evaluated_at', { ascending: true }).limit(1).maybeSingle();
-  res.json(eval_);
+  if (!eval_) return res.json(eval_);
+
+  // Credit band. Attached HERE rather than on GET /cles/:id because this is where the score is —
+  // composite_score lives on ai_evaluations, not on cles — and because this endpoint already sits
+  // behind the hold-until-audited gate above. Hanging it off the CLE row instead would both read an
+  // undefined score and hand the physician a band while their result was supposed to be withheld.
+  //
+  // While credit_conversion_enabled = 0 this is a PREVIEW: `credits` is what the band WOULD be worth
+  // and `awarded_credits` is null. The UI keys its "ยังไม่นับเป็นหน่วยกิต CME" wording off `enabled`,
+  // not off the presence of this object.
+  const settings = await creditSettings();
+  const credit = { ...creditFor(eval_.composite_score, settings), table: creditTable(settings) };
+  res.json({ ...eval_, credit });
 });
 
 module.exports = router;

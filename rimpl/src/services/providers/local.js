@@ -27,8 +27,24 @@ const cfg = () => ({
   baseUrl: String(process.env.LOCAL_AI_BASE_URL || '').replace(/\/+$/, ''),
   model: String(process.env.LOCAL_AI_MODEL || ''),
   apiKey: process.env.LOCAL_AI_API_KEY || '',
-  // Match the Anthropic ceiling (85s) so backend's RIMPL_EVAL_TIMEOUT_MS (100s) still bounds us.
-  timeoutMs: intEnv('LOCAL_AI_TIMEOUT_MS', 85000, 1000),
+  // 150s, not the original 85s. 85s was chosen to match the Anthropic SDK ceiling, but two measured
+  // evaluations on the DGX took 82.5s and 87.8s — one of them already over. A ceiling that sits at
+  // the middle of the observed distribution turns a slow-but-correct evaluation into a failed one.
+  // Must stay UNDER backend's RIMPL_EVAL_TIMEOUT_MS (now 180s) or the outer caller hangs up first
+  // and every retry is dead work; see services/rimpl-client.js.
+  timeoutMs: intEnv('LOCAL_AI_TIMEOUT_MS', 150000, 1000),
+  // The model that serves /embeddings. Usually NOT the chat model — embedding models are separate
+  // checkpoints (nomic-embed-text, bge-m3, …) even on the same box.
+  embedModel: String(process.env.LOCAL_AI_EMBED_MODEL || ''),
+  // A creditable CLE needs C3 ≥ 10,000 tokens, and the evaluator sends the whole transcript. Anything
+  // near Ollama's 4096 default cannot score one. Reported by ready() so the mismatch is visible in
+  // /health/deep rather than discovered by a physician losing an evaluation.
+  minContext: intEnv('LOCAL_AI_MIN_CONTEXT', 16384, 1024),
+  // OPT-IN passthrough. The authoritative fix for context length is server-side (the Modelfile /
+  // launch flag); servers that accept an `options` bag will honour this, and those that ignore
+  // unknown body fields are unaffected. Left unset by default so we never send a field a stricter
+  // server would reject.
+  numCtx: intEnv('LOCAL_AI_NUM_CTX', 0, 0),
 });
 
 const RETRYABLE_STATUS = new Set([408, 409, 429, 500, 502, 503, 529]);
@@ -116,7 +132,7 @@ async function httpJson(url, { method = 'GET', body, timeoutMs, apiKey }) {
 const FINISH_REASON = { length: 'max_tokens', stop: 'end_turn', tool_calls: 'tool_use', function_call: 'tool_use', content_filter: 'content_filter' };
 
 async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
-  const { baseUrl, model, apiKey, timeoutMs } = cfg();
+  const { baseUrl, model, apiKey, timeoutMs, numCtx } = cfg();
   if (!baseUrl) throw new Error('LOCAL_AI_BASE_URL is not set (AI_PROVIDER=local requires it)');
   if (!model) throw new Error('LOCAL_AI_MODEL is not set (AI_PROVIDER=local requires it)');
 
@@ -130,8 +146,26 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
       stream: false,
     };
     if (temperature != null) body.temperature = temperature;
+    if (numCtx > 0) body.options = { ...(body.options || {}), num_ctx: numCtx };
 
-    const data = await httpJson(`${baseUrl}/chat/completions`, { method: 'POST', body, timeoutMs, apiKey });
+    let data;
+    try {
+      data = await httpJson(`${baseUrl}/chat/completions`, { method: 'POST', body, timeoutMs, apiKey });
+    } catch (e) {
+      // Measured on the DGX (Ollama 0.32.15): a 9,144-token evaluation returns
+      // 400 "... exceeds the available context size (4096)". That is the single most likely reason a
+      // local model fails in production, and the raw message does not say what to do about it — so
+      // say it here, once, at the point of failure. It stays a 400 (non-retryable): re-sending the
+      // same oversized transcript four times cannot make it fit.
+      if (/context (size|length)|exceeds the available context/i.test(e?.message || '')) {
+        const hint = `The server is serving "${model}" with too small a context window for a CLE transcript. Raise it server-side (Ollama: OLLAMA_CONTEXT_LENGTH or a Modelfile \`PARAMETER num_ctx\`; vLLM: --max-model-len), or set LOCAL_AI_NUM_CTX if this server honours a per-request override.`;
+        const err = new Error(`${e.message} — ${hint}`);
+        err.status = e.status;
+        err.contextTooSmall = true;
+        throw err;
+      }
+      throw e;
+    }
 
     const choice = data.choices?.[0];
     // Accept ONLY a string content. A server that returns structured/reasoning content (content:null
@@ -155,6 +189,57 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
   });
 }
 
+/**
+ * Embed one string on the local box, via the same OpenAI-compatible surface (`POST /embeddings`).
+ *
+ * Kept in THIS module rather than a third provider file because it is the same host, the same key
+ * and the same transport as chat — only the endpoint and the model differ. It deliberately does NOT
+ * go through getRunner(): embedding is a sub-second call on every physician turn, and putting it in
+ * the same FIFO as 150-second evaluations would let one scoring call stall every chat lookup behind it.
+ */
+async function embed(text) {
+  const { baseUrl, embedModel, apiKey } = cfg();
+  if (!baseUrl) throw new Error('LOCAL_AI_BASE_URL is not set (embed provider "local" requires it)');
+  if (!embedModel) throw new Error('LOCAL_AI_EMBED_MODEL is not set (embed provider "local" requires it — the chat model is usually not an embedding model)');
+  const timeoutMs = Math.max(2000, parseInt(process.env.LOCAL_AI_EMBED_TIMEOUT_MS || '15000', 10));
+  const data = await httpJson(`${baseUrl}/embeddings`, {
+    method: 'POST', body: { model: embedModel, input: text }, timeoutMs, apiKey,
+  });
+  const vector = data?.data?.[0]?.embedding;
+  if (!Array.isArray(vector)) throw new Error('local embeddings response carried no vector');
+  return vector;
+}
+
+/**
+ * How much context the box will actually accept.
+ *
+ * This is the difference between a failure a physician discovers and one /health/deep reports. A
+ * creditable CLE is >= 10,000 tokens (C3) and the evaluator sends the whole transcript, so a server
+ * on Ollama's 4096 default fails EVERY evaluation — loudly, but only at the moment it matters.
+ *
+ * Ollama exposes the number on its native API, which sits beside the OpenAI-compatible one
+ * (…/v1 → …/api). Other stacks (vLLM, SGLang) do not, and that is not a fault: an unknown context is
+ * reported as unknown, never as unhealthy. Only a context we actually READ and found too small
+ * degrades the check.
+ */
+async function servedContext() {
+  const { baseUrl, model, apiKey } = cfg();
+  const root = baseUrl.replace(/\/v1$/, '');
+  if (root === baseUrl) return null;                       // not the …/v1 shape — no native API to ask
+  const probeMs = Math.max(200, parseInt(process.env.HEALTH_PROBE_TIMEOUT_MS || '2000', 10));
+  try {
+    const data = await httpJson(`${root}/api/show`, { method: 'POST', body: { model }, timeoutMs: probeMs, apiKey });
+    // The key is namespaced by architecture (`llama.context_length`, `qwen3.context_length`, …), so
+    // match on the suffix rather than guessing the family.
+    const info = data?.model_info || {};
+    const key = Object.keys(info).find((k) => k.endsWith('.context_length'));
+    const n = Number(key ? info[key] : NaN);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  } catch {
+    return null;                                           // not Ollama, or the endpoint moved
+  }
+}
+
 // Readiness for /health/deep: GET /models. Cheap, no generation, zero cost. Never throws.
 async function ready() {
   const { baseUrl, model, apiKey } = cfg();
@@ -176,10 +261,26 @@ async function ready() {
     if (!served.includes(model)) {
       return { checks: { local_ai: { status: 'down', error: `model "${model}" not served (available: ${served.slice(0, 5).join(', ')})` } } };
     }
-    return { checks: { local_ai: { status: 'up', model } } };
+    // Serving the right model but unable to hold a transcript is still not ready — it is the
+    // failure this probe was added for. Report the number when we can read it, and say so plainly
+    // when we cannot, rather than implying a check that never ran.
+    const ctx = await servedContext();
+    const { minContext } = cfg();
+    if (ctx != null && ctx < minContext) {
+      return { checks: { local_ai: { status: 'down', model, context_length: ctx,
+        error: `served context ${ctx} is below LOCAL_AI_MIN_CONTEXT ${minContext} — a creditable CLE transcript (C3 >= 10,000 tokens) cannot be evaluated at this size` } } };
+    }
+    return { checks: { local_ai: { status: 'up', model, context_length: ctx ?? 'unknown' } } };
   } catch (e) {
     return { checks: { local_ai: { status: 'down', error: e.message } } };
   }
 }
 
-module.exports = { name: 'local', call, model: () => cfg().model, ready, stats: () => getRunner().stats() };
+module.exports = {
+  name: 'local',
+  call, embed,
+  model: () => cfg().model,
+  embedModel: () => cfg().embedModel,
+  ready, servedContext,
+  stats: () => getRunner().stats(),
+};
