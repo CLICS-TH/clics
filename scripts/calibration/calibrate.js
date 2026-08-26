@@ -1,16 +1,23 @@
 #!/usr/bin/env node
 /*
- * ICC calibration harness (G1 credit gate). Measures AI↔human inter-rater ICC on the FIXED soak
+ * ICC calibration harness (G1 credit gate). Measures AI↔counterpart-rater ICC on the FIXED soak
  * cohort and reports per-domain divergence so the PIS-7 evaluator prompt can be tuned toward ≥0.75.
  *
+ * !! The soak's three "auditors" were CLAUDE AGENTS with assigned rater stances, not humans —
+ * !! see scripts/soak/gen-auditor-wf.js:30-32. Every ICC this script has ever produced is
+ * !! therefore AI-vs-AI. No CLICS ICC has been measured against real human auditors yet, and
+ * !! none of these numbers may be cited as human-validated agreement. The `human` identifiers
+ * !! below are KEY NAMES ONLY, kept because runs/*.json, three-way.js and
+ * !! GET /oversight/icc/three-way all consume that shape; renaming them would break those.
+ *
  * Cohort = every CLE that has BOTH an ai_evaluations row AND ≥1 audit_scores row (the 2026-06-07
- * soak's 10 CLEs / 30 human scores). Read-only on the DB in backend/.env.
+ * soak's 10 CLEs / 30 counterpart-rater scores). Read-only on the DB in backend/.env.
  *
  * Modes:
  *   --mode baseline   ICC from the STORED ai_evaluations (no Claude calls). Must reproduce ≈0.66 —
  *                     this is the harness's correctness check against the known soak result.
  *   --mode rescore    (default) re-score each transcript via RIMPL /evaluate (LIVE Claude), then
- *                     compute ICC of the NEW AI scores vs the same human scores.
+ *                     compute ICC of the NEW AI scores vs the same counterpart-rater scores.
  *
  * Run from backend/ (so dotenv loads backend/.env and NODE_PATH resolves @supabase/supabase-js):
  *   cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/calibration/calibrate.js --mode baseline
@@ -38,7 +45,7 @@ const flagVal = (name) => {
 };
 const MODE = flagVal('mode') || 'rescore';
 const GATE = 0.75;
-const BASELINE_ICC = 0.662; // the 2026-06-07 soak pooled AI↔human result
+const BASELINE_ICC = 0.662; // the 2026-06-07 soak pooled AI↔counterpart-rater result (agents, not humans)
 const DOMS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 const DOM_NAMES = { d1: 'ClinQ', d2: 'Reason', d3: 'Context', d4: 'Iterative', d5: 'Appraisal', d6: 'Reflect', d7: 'AILit' };
 
@@ -106,14 +113,14 @@ function buildReport(cohort, aiScoreOf) {
 function printReport(mode, report, sha) {
   const { icc, domain, perPle, pairCount } = report;
   console.log(`\n──────────────────────────────────────────────`);
-  console.log(`ICC (AI↔human, pooled): ${icc.icc}  [95% CI ${icc.lower}–${icc.upper}]  n=${pairCount}  → ${icc.interpretation}`);
+  console.log(`ICC (AI↔rater, pooled): ${icc.icc}  [95% CI ${icc.lower}–${icc.upper}]  n=${pairCount}  → ${icc.interpretation}`);
   console.log(`Gate ≥ ${GATE}: ${icc.icc >= GATE ? 'MET on this set (NOT a passed gate — see caveats)' : `below by ${r2(GATE - icc.icc)}`}`);
   console.log(`vs 2026-06-07 baseline ${BASELINE_ICC}: ${icc.icc >= BASELINE_ICC ? '+' : ''}${r2(icc.icc - BASELINE_ICC)}`);
-  console.log(`\nPer-domain mean (AI vs human; +Δ = AI inflates):`);
-  console.log(`  dom  name        w     AI    human   Δ`);
+  console.log(`\nPer-domain mean (AI vs rater; +Δ = AI inflates):`);
+  console.log(`  dom  name        w     AI    rater   Δ`);
   for (const d of DOMS) { const x = domain[d]; console.log(`  ${d}   ${x.name.padEnd(10)} ${x.weight.toFixed(2)}  ${String(x.ai).padStart(4)}  ${String(x.human).padStart(5)}  ${x.delta >= 0 ? '+' : ''}${x.delta}`); }
-  console.log(`\nPer-CLE composite (AI vs mean-human):`);
-  for (const p of perPle) console.log(`  ${String(p.pseudonym).padEnd(8)} AI ${String(p.ai).padStart(5)}  human ${String(p.human).padStart(5)}  Δ ${p.delta >= 0 ? '+' : ''}${p.delta}`);
+  console.log(`\nPer-CLE composite (AI vs mean rater score):`);
+  for (const p of perPle) console.log(`  ${String(p.pseudonym).padEnd(8)} AI ${String(p.ai).padStart(5)}  rater ${String(p.human).padStart(5)}  Δ ${p.delta >= 0 ? '+' : ''}${p.delta}`);
   if (sha) console.log(`\nPIS-7 prompt sha256: ${sha.slice(0, 16)}`);
   console.log(`──────────────────────────────────────────────\n`);
 }
@@ -131,7 +138,8 @@ function writeRun(mode, report, sha) {
   console.log(`\n=== CLICS ICC calibration — mode=${MODE} ===`);
   let cohort = await loadCohort();
   const totalHumans = cohort.reduce((a, c) => a + c.humans.length, 0);
-  console.log(`Cohort: ${cohort.length} CLEs (AI eval + ≥1 human score), ${totalHumans} human scores.`);
+  console.log(`Cohort: ${cohort.length} CLEs (AI eval + ≥1 rater score), ${totalHumans} rater scores.`);
+  console.log('NOTE: the soak cohort\'s raters were Claude agents, not humans — this ICC is AI-vs-AI.');
   if (cohort.length < 2) {
     console.error('Not enough doubly-scored CLEs to compute ICC — is backend/.env pointing at the DB that holds the soak cohort?');
     process.exit(1);

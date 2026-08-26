@@ -1,9 +1,26 @@
 # ICC Calibration Harness (G1 credit gate)
 
-CME credit is gated on AI↔human agreement at **ICC ≥ 0.75**. The 2026-06-07 soak measured pooled
-AI↔human **ICC = 0.662** (n≈30 pairs, 95% CI ~0.40–0.83) while inter-rater ICC = 0.97 — the human
-auditors agree; the **PIS-7 AI evaluator is systematically lenient (+10.3 pts)**, over-crediting
-templated/structured reasoning (worst on **d2 Reasoning Depth** and **d3 Contextual Integration**).
+> ### ⚠️ These numbers are AI-vs-AI, not AI-vs-human — read this before quoting any of them
+>
+> The three "auditors" in the 2026-06-07 soak cohort were **Claude agents with assigned rater
+> stances** (`scripts/soak/gen-auditor-wf.js:30-32` — balanced / strict / lenient), driven through
+> the `Workflow` tool by `scripts/soak/README.md` step 5. They were not human physicians.
+>
+> So every value in `runs/` (**0.377 – 0.811**) and the 0.662 baseline below measures the evaluator
+> against *simulated* raters. **No CLICS ICC has ever been measured against real human auditors.**
+> Do not cite these as human-validated agreement — not in a paper, not to an IRB, not to a reviewer.
+>
+> The words `human` / `n_human` survive in the code and JSON output **as key names only**: the
+> archived `runs/*.json`, `three-way.js`, and `GET /oversight/icc/three-way` all consume that shape,
+> so renaming them would be a breaking change rather than a wording fix. Read them as
+> "the counterpart rater arm", whoever that turns out to be.
+
+CME credit is gated on evaluator↔**human**-auditor agreement at **ICC ≥ 0.75** — a threshold nothing
+recorded here has yet been tested against. The 2026-06-07 soak measured pooled
+evaluator↔*simulated*-auditor **ICC = 0.662** (n≈30 pairs, 95% CI ~0.40–0.83) while inter-rater
+ICC = 0.97 — the simulated auditors agree with *each other*; the **PIS-7 AI evaluator is
+systematically lenient (+10.3 pts)**, over-crediting templated/structured reasoning (worst on
+**d2 Reasoning Depth** and **d3 Contextual Integration**).
 
 `calibrate.js` measures ICC on the fixed soak cohort and reports per-domain divergence so the
 `PIS7_EVALUATOR_PROMPT` (`rimpl/src/lib/prompts.js`) can be tuned and re-measured.
@@ -14,12 +31,14 @@ templated/structured reasoning (worst on **d2 Reasoning Depth** and **d3 Context
 # baseline — ICC from STORED ai_evaluations (no Claude); must reproduce ≈0.66 (harness sanity check)
 cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/calibration/calibrate.js --mode baseline
 
-# rescore — re-score the transcripts via LIVE RIMPL/Claude, then ICC of the new AI scores vs humans
+# rescore — re-score the transcripts via LIVE RIMPL/Claude, then ICC of the new AI scores vs the
+#   same stored counterpart-rater scores (simulated, see the banner above)
 #   needs RIMPL running:  (cd rimpl && npm start)   with ANTHROPIC_API_KEY in rimpl/.env
 cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/calibration/calibrate.js --mode rescore
 ```
 
-Each run prints ICC + 95% CI + per-domain (AI vs human, +Δ = AI inflates) + per-CLE deltas, and
+Each run prints ICC + 95% CI + per-domain (AI vs counterpart rater, +Δ = AI inflates) + per-CLE
+deltas, and
 archives a JSON to `runs/<stamp>-<mode>.json` (incl. the PIS-7 prompt sha, so runs are diffable).
 
 ## Iterate
@@ -35,14 +54,21 @@ archives a JSON to `runs/<stamp>-<mode>.json` (incl. the PIS-7 prompt sha, so ru
 - **Overfitting:** tuning the prompt on the *same* 10 CLEs you measure on inflates the apparent ICC.
   ≥0.75 here is **necessary, not sufficient**.
 - **Wide CI:** at n≈30 pairs the 95% CI is ~0.40–0.83 — the point estimate is statistically fragile.
+- **Selection effect in the headline number:** the best run (**0.811**) was computed on a *smaller*
+  cohort than the runs before it — `n` falls 33 → 30 and `perPle` 11 → 10 between the `05-50-42`
+  and `05-56-29` runs. The pair that dropped out was a **failed** evaluation, not a disagreement:
+  `05-50-42` records `P-014` as `ai: 0` against `human: 59.3`, with all seven domain values `null`.
+  Removing a broken row is defensible; quoting the resulting 0.811 as if it were measured on the
+  same cohort as 0.487 is not.
 - So a passing run here is a **directional signal**, not a passed gate. Real sign-off needs a larger
-  / held-out cohort (the July calibration workshop).
+  / held-out cohort **scored by human auditors** (the calibration workshop).
 
 ---
 
 # Three-way comparison — `three-way.js`
 
-`calibrate.js` above measures ONE relationship: the served Claude evaluator vs the human auditors.
+`calibrate.js` above measures ONE relationship: the served Claude evaluator vs whatever scores sit
+in `audit_scores` — which to date means the soak's **simulated** auditors, not human ones.
 `three-way.js` adds the third rater — the candidate **on-prem** evaluator that now scores every CLE a
 second time into `shadow_evaluations` (never served, never shown) — and reports all three pairwise
 comparisons **on the same CLEs**, so they can honestly be read against one another.

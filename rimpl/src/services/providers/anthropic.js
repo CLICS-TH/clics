@@ -10,12 +10,15 @@ const { createRunner } = require('./runtime');
 
 // We do our own retry (via the shared runner), so disable the SDK's internal retry to avoid
 // double-retrying.
-// 85000, not 55000: a 130k-token eval transcript (CLE-052, 2026-08-17) needed >55s just to generate
-// the JSON scoring response (7 domains + quote-grounded rationale, after the maxTokens bump in
-// routes/evaluate.js), so the SDK's own 55s ceiling fired mid-generation (APIConnectionTimeoutError)
-// before the model ever finished. 85s leaves headroom under backend's outer RIMPL_EVAL_TIMEOUT_MS
-// (100s, unset in prod → default) for RIMPL's own processing + network.
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 85000, maxRetries: 0 });
+// 150000, not 85000 (and originally 55000): a 130k-token eval transcript (CLE-052, 2026-08-17)
+// needed >55s just to generate the JSON scoring response (7 domains + quote-grounded rationale,
+// after the maxTokens bump in routes/evaluate.js), so the SDK's own 55s ceiling fired mid-generation
+// (APIConnectionTimeoutError) before the model ever finished. 85s then fixed that but left no room
+// for the on-prem provider, whose measured evaluations ran 82.5s and 87.8s — one already over. Both
+// providers now share a 150s ceiling under backend's outer RIMPL_EVAL_TIMEOUT_MS (180s), so a slow
+// evaluation is slow rather than lost. Tunable for the same reason the local one is.
+const CLIENT_TIMEOUT_MS = Math.max(1000, parseInt(process.env.CLAUDE_TIMEOUT_MS || '150000', 10));
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: CLIENT_TIMEOUT_MS, maxRetries: 0 });
 const MODEL = 'claude-sonnet-4-6';
 
 // Prompt caching (default OFF). The ~2k-token system prompt is re-sent every turn at full input price;

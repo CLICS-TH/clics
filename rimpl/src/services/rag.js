@@ -1,29 +1,29 @@
 // rimpl/src/services/rag.js
-// Requires OPENAI_API_KEY in .env for embeddings. RAG gracefully skips if key is absent.
+// Retrieval-augmented lookup over the `documents` corpus.
+//
+// Embeddings go through services/ai.embedText, NOT a direct fetch to api.openai.com. That direct
+// call used to be the one AI path no configuration could move: chat and scoring could both be
+// pointed at the on-prem DGX while retrieval still shipped every physician query to a third cloud
+// vendor, which quietly made "all AI calls can run on-premise" untrue. Behind the seam, retrieval
+// moves with everything else (app_settings.ai_provider_embed).
+//
+// PII: the caller de-identifies BEFORE calling. routes/chat.js strips once, up front, and passes the
+// clean string here — see the comment at its stripPii call. Never add stripping here instead; two
+// strip sites is how one of them ends up skipped.
 const { supabase } = require('../lib/supabase');
-
-async function embedText(text) {
-  if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not set');
-  const res = await fetch('https://api.openai.com/v1/embeddings', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({ model: 'text-embedding-3-small', input: text }),
-    signal: AbortSignal.timeout(15000),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error?.message ?? 'Embedding failed');
-  return json.data[0].embedding; // float[] of length 1536
-}
+const { embedText } = require('./ai');
 
 async function ragLookup(query) {
   let embedding;
   try {
     embedding = await embedText(query);
-  } catch {
-    return []; // fall back gracefully — no RAG, use prompt-cited sources
+  } catch (e) {
+    // Retrieval is an ENHANCEMENT: the system prompt already requires cited sources, so a chat turn
+    // without RAG is degraded, not broken, and failing the turn would be worse than answering
+    // without it. But log the reason — a silently disabled corpus looks identical to an empty one,
+    // and "RAG stopped working in August" is not a thing anyone would otherwise notice.
+    console.warn(`[rag] retrieval skipped — embedding failed: ${e?.message || e}`);
+    return [];
   }
 
   const { data, error } = await supabase.rpc('match_documents', {
@@ -32,8 +32,11 @@ async function ragLookup(query) {
     match_count: 3,
   });
 
-  if (error || !data) return [];
-  return data; // [{id, title, source, content, similarity}]
+  if (error) {
+    console.warn(`[rag] retrieval skipped — match_documents failed: ${error.message}`);
+    return [];
+  }
+  return data || []; // [{id, title, source, content, similarity}]
 }
 
 module.exports = { ragLookup };

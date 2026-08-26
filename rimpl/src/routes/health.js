@@ -4,7 +4,7 @@
 // Mounted BEFORE the x-internal-token gate so monitors can reach it unauthenticated, like /health.
 const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
-const { readiness, activeProviders, modelsByPurpose } = require('../services/ai');
+const { readiness, activeProviders, modelsByPurpose, providerSettingsStatus } = require('../services/ai');
 
 const router = Router();
 
@@ -78,6 +78,11 @@ router.get('/deep', async (_req, res) => {
     providers: activeProviders(),
     // Per-purpose truth — the only field that stays correct under a hybrid.
     models: (() => { try { return modelsByPurpose(); } catch { return null; } })(),
+    // WHERE that routing came from. The provider is now a superadmin toggle layered over env, and a
+    // box that believes it is database-controlled while silently running on env (bad credentials,
+    // unreachable Supabase) looks identical from the outside — `models` would report the env answer
+    // with no hint that the toggle is being ignored. This makes that difference visible.
+    routing: (() => { try { return providerSettingsStatus(); } catch { return null; } })(),
     checks,
   });
 });

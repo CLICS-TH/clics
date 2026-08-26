@@ -17,8 +17,15 @@ Plan for moving CLICS's AI calls from the Anthropic cloud API to a self-hosted m
 | 5 — Shadow evaluator | **done** — code + migration. ⚠️ `db/migration-shadow-evaluations.sql` is **NOT YET APPLIED** to any database; shadow silently no-ops until it is |
 | 6 — Gate 4 | November, after the pilot |
 
-Nothing is live: with `AI_PROVIDER` unset every call still goes to Anthropic, and with
-`SHADOW_EVAL_PROVIDER` unset no shadow evaluation runs.
+Nothing is live: every purpose seeds to `anthropic` (`openai` for embeddings), so with the toggles
+untouched, `AI_PROVIDER` unset and `SHADOW_EVAL_PROVIDER` unset, every call still goes to the cloud
+and no shadow evaluation runs.
+
+**Cutover is now a toggle, not a deploy.** As of 2026-08-26 the provider for each purpose is a
+superadmin setting (`app_settings.ai_provider_<purpose>`, *Admin → Overview*), layered over the env
+chain below and audit-logged on every change. `evaluate` is guarded separately: it takes a typed
+confirmation, and once `evaluator_locked_at` is set the backend **refuses** the change outright
+rather than warning about it — see §10.2's locked-configuration requirement.
 
 ## Configuration reference
 
@@ -26,12 +33,20 @@ All default to the pre-existing behaviour; setting none of these changes nothing
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `AI_PROVIDER` | `anthropic` | provider for every purpose |
-| `AI_PROVIDER_CHAT` / `_EVALUATE` / `_CRITERIA` / `_DISCUSS` | *(unset)* | per-purpose override — this is how a hybrid is expressed |
+| **`app_settings.ai_provider_<purpose>`** | `anthropic` (`openai` for `embed`) | **the superadmin toggle — outranks every variable below.** Set from *Admin → Overview → ผู้ให้บริการ AI*, audit-logged, effective on the next request |
+| `AI_PROVIDER` | `anthropic` | provider for every purpose, when no DB override is stored |
+| `AI_PROVIDER_CHAT` / `_EVALUATE` / `_CRITERIA` / `_DISCUSS` / `_EMBED` | *(unset)* | per-purpose override — this is how a hybrid is expressed in env |
+| `EMBED_PROVIDER` | `openai` | global fallback for RAG embeddings (`openai` \| `local`) |
+| `PROVIDER_SETTINGS_TTL_MS` | `15000` | how long the DB override is cached. The database is never read per call |
 | `LOCAL_AI_BASE_URL` | *(unset)* | e.g. `http://<dgx>:8000/v1`. Required when any purpose is `local` |
 | `LOCAL_AI_MODEL` | *(unset)* | model id the server serves. Required when any purpose is `local` |
+| `LOCAL_AI_EMBED_MODEL` | *(unset)* | embedding model id. Required to serve `embed` locally — usually **not** the chat model |
 | `LOCAL_AI_API_KEY` | *(unset)* | optional bearer token |
-| `LOCAL_AI_TIMEOUT_MS` | `85000` | must stay under backend's `RIMPL_EVAL_TIMEOUT_MS` (100s) |
+| `LOCAL_AI_TIMEOUT_MS` | `150000` | must stay under backend's `RIMPL_EVAL_TIMEOUT_MS` (180s) |
+| `LOCAL_AI_MIN_CONTEXT` | `16384` | `/health/deep` reports the box **down** below this — a CLE transcript cannot be scored at 4096 |
+| `LOCAL_AI_NUM_CTX` | *(unset)* | opt-in per-request `num_ctx`. The authoritative fix is server-side |
+| `CLAUDE_TIMEOUT_MS` | `150000` | Anthropic SDK ceiling, matched to the local one |
+| `RAG_EMBED_DIM` | `1536` | the corpus's embedding width. A provider returning a different width fails loudly |
 | `LOCAL_MAX_CONCURRENCY` | `24` | in-flight cap. Set from a Phase 0 measurement, not a guess |
 | `LOCAL_MAX_RETRIES` / `LOCAL_RETRY_BASE_MS` | `3` / `500` | our own request timeout is never retried |
 | `LOCAL_INPUT_PER_M` / `LOCAL_OUTPUT_PER_M` | `0` / `0` | set only to put hardware amortisation on the meter |
@@ -155,11 +170,24 @@ that tailnet and won't be by default.
 
 Also in this phase:
 
-- **Readiness.** `isAnthropicClientReady()` (`claude.js:129`) becomes provider-aware — for local,
-  ping `/v1/models` instead of checking for an API key. Feeds `/health/deep`.
-- **Timeouts.** The 85s SDK timeout and backend's `RIMPL_EVAL_TIMEOUT_MS` (100s) were tuned to
-  Claude's generation speed on a 130k-token transcript. Local time-to-first-token and tokens/sec
-  will differ — re-measure, don't assume.
+- **Readiness.** ~~`isAnthropicClientReady()` becomes provider-aware~~ — **done**. Each provider owns
+  its own `ready()`; `/health/deep` probes only the providers a deployment actually resolves to, and
+  now also reports `routing` (database vs env) so a box silently ignoring the toggle is visible.
+- **Context length.** **Done, and it was the real blocker.** Measured 2026-08-24 against the DGX: a
+  9,144-token evaluation returned `400 … exceeds the available context size (4096)`. A creditable CLE
+  is ≥ 10,000 tokens (C3), so at Ollama's default *every* evaluation would fail. `ready()` now reads
+  the served context (Ollama's native `/api/show`; unknown on vLLM/SGLang, which is reported as
+  unknown rather than as unhealthy) and reports the box **down** below `LOCAL_AI_MIN_CONTEXT`. A
+  context-overflow 400 now also names the server-side fix instead of only restating the number.
+  **The fix itself is still owed on the box** — raise `OLLAMA_CONTEXT_LENGTH` / `num_ctx`.
+- **Timeouts.** **Done.** The 85s SDK ceiling and backend's 100s `RIMPL_EVAL_TIMEOUT_MS` were tuned to
+  Claude on a 130k-token transcript; the DGX measured **82.5s and 87.8s**, i.e. already at or over the
+  old ceiling. Both providers now use 150s, under a 180s outer bound.
+- **Embeddings.** **Done.** `services/rag.js` called `api.openai.com` directly and no configuration
+  could move it, which made "all AI can run on-premise" untrue for retrieval. It now goes through the
+  same seam (`embed` purpose). Switching it requires **re-embedding the corpus**: `match_documents`
+  compares against `vector(1536)`, and a provider returning a different width now throws rather than
+  returning confident nonsense.
 
 ---
 
@@ -171,9 +199,10 @@ Order matters. Cheapest and most reversible first.
 2. `audit-discuss` — auditor-facing, not scored, separate budget pool.
 3. `chat` — the volume. Do it only once 1 and 2 have been stable for a week.
 
-**Per-route provider selection must be a first-class feature, not a hack:** `RIMPL_CHAT_PROVIDER`,
-`RIMPL_EVAL_PROVIDER`, etc. A permanent hybrid (chat local, scoring on Claude) is a legitimate and
-possibly final end state.
+**Per-route provider selection must be a first-class feature, not a hack.** Built: routes name a
+*purpose*, never a vendor, and the mapping lives in `services/ai.js` behind a superadmin toggle. A
+permanent hybrid (chat local, scoring on Claude) is a legitimate and possibly final end state, and is
+expressible entirely from the Admin → Overview screen.
 
 **⚠️ Cost-accounting design point.** `pricing.js` is global — one input/output rate for the whole
 system. Under a hybrid, per-user spend and per-council billing would silently misreport. Fix by
@@ -187,7 +216,14 @@ passing a per-call rate (or a provider tag) through `usage.js:65`, which already
 This is the phase that decides whether PIS-7 scoring ever moves.
 
 The instrument already exists: `scripts/calibration/calibrate.js --mode rescore` re-scores a fixed
-cohort through live rimpl and computes ICC against the human auditors.
+cohort through live rimpl and computes ICC against whatever scores sit in `audit_scores`.
+
+> ⚠️ **Today that means the 2026-06-07 soak's *simulated* auditors — Claude agents with assigned
+> stances (`scripts/soak/gen-auditor-wf.js:30-32`), not humans.** So the ≈0.662 baseline and every
+> archived run are AI-vs-AI. Recruiting human auditors and getting a first human-scored cohort is
+> therefore a **prerequisite of this phase, not an output of it** — without it, "compare the local
+> model against the ≥0.75 gate" compares it to a number that has never been measured against the
+> thing the gate is about.
 
 1. Point rimpl at the DGX, run `--mode baseline` first to confirm the harness reproduces ≈0.662.
 2. Run `--mode rescore` on the local model. Compare against the Claude figure **and** the ≥0.75 gate.

@@ -17,6 +17,7 @@
 const LOCAL_ENV = [
   'LOCAL_AI_BASE_URL', 'LOCAL_AI_MODEL', 'LOCAL_AI_API_KEY', 'LOCAL_AI_TIMEOUT_MS',
   'LOCAL_MAX_CONCURRENCY', 'LOCAL_MAX_RETRIES', 'LOCAL_RETRY_BASE_MS', 'HEALTH_PROBE_TIMEOUT_MS',
+  'LOCAL_AI_MIN_CONTEXT', 'LOCAL_AI_NUM_CTX', 'LOCAL_AI_EMBED_MODEL', 'LOCAL_AI_EMBED_TIMEOUT_MS',
 ];
 
 let savedEnv;
@@ -68,6 +69,13 @@ function res(body, { status = 200, statusText = 'OK', headers = {} } = {}) {
     text: async () => text,
   };
 }
+
+// ready() probes twice — GET /models, then Ollama's native /api/show for the served context — so
+// tests must name the call they mean rather than assuming which one landed last.
+const callTo = (fragment) => {
+  const hit = fetchMock.mock.calls.filter((c) => String(c[0]).includes(fragment)).pop();
+  return hit ? { url: String(hit[0]), opts: hit[1] || {} } : null;
+};
 
 const completion = (over = {}) => ({
   id: 'chatcmpl-1',
@@ -482,17 +490,20 @@ describe('ready() — /health/deep probe', () => {
     fetchMock.mockResolvedValue(res({ data: [{ id: 'qwen3-32b-medical' }, { id: 'other' }] }));
     const r = await load().ready();
 
-    expect(r.checks.local_ai).toEqual({ status: 'up', model: 'qwen3-32b-medical' });
-    expect(lastUrl()).toBe('http://dgx.tailnet:8000/v1/models');
-    expect(lastOpts().method).toBe('GET');
-    expect(lastOpts().body).toBeUndefined(); // zero token spend
+    // context_length 'unknown' — the mocked /api/show reply carries no model_info, which is exactly
+    // what a non-Ollama server (vLLM, SGLang) looks like. Unknown must not read as unhealthy.
+    expect(r.checks.local_ai).toEqual({ status: 'up', model: 'qwen3-32b-medical', context_length: 'unknown' });
+    const models = callTo('/v1/models');
+    expect(models.url).toBe('http://dgx.tailnet:8000/v1/models');
+    expect(models.opts.method).toBe('GET');
+    expect(models.opts.body).toBeUndefined(); // zero token spend
   });
 
   test('sends the Bearer key on the probe too when one is configured', async () => {
     process.env.LOCAL_AI_API_KEY = 'dgx-token';
     fetchMock.mockResolvedValue(res({ data: [{ id: 'qwen3-32b-medical' }] }));
     await load().ready();
-    expect(lastOpts().headers.authorization).toBe('Bearer dgx-token');
+    expect(callTo('/v1/models').opts.headers.authorization).toBe('Bearer dgx-token');
   });
 
   test('DOWN when reachable but the configured model is NOT served', async () => {
@@ -562,5 +573,118 @@ describe('ready() — /health/deep probe', () => {
     const r = await load().ready();
     expect(r.checks.local_ai.status).toBe('down');
     expect(r.checks.local_ai.error).toMatch(/enumerated no models/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Context length — the measured blocker for running a real CLE on the DGX.
+//
+// On 2026-08-24 a 9,144-token evaluation against the box returned
+// 400 "... exceeds the available context size (4096)". A creditable CLE is >= 10,000 tokens (C3), so
+// at Ollama's default EVERY evaluation fails. These tests pin the two things that make that
+// survivable: it is visible in /health/deep beforehand, and when it does happen the error says how
+// to fix it instead of just restating the number.
+describe('served context length', () => {
+  const probeRoutes = (showBody, showStatus = 200) => {
+    fetchMock.mockImplementation(async (url) => {
+      const u = String(url);
+      if (u.endsWith('/v1/models')) return res({ data: [{ id: 'qwen3-32b-medical' }] });
+      if (u.endsWith('/api/show')) return res(showBody, { status: showStatus, statusText: 'x' });
+      return res({}, { status: 404, statusText: 'Not Found' });
+    });
+  };
+
+  test('DOWN when the box serves less context than a CLE transcript needs', async () => {
+    probeRoutes({ model_info: { 'qwen3.context_length': 4096 } });
+    const r = await load().ready();
+
+    expect(r.checks.local_ai.status).toBe('down');
+    expect(r.checks.local_ai.context_length).toBe(4096);
+    expect(r.checks.local_ai.error).toMatch(/4096/);
+    expect(r.checks.local_ai.error).toMatch(/LOCAL_AI_MIN_CONTEXT/);
+  });
+
+  test('UP, and reports the number, when the context is adequate', async () => {
+    probeRoutes({ model_info: { 'llama.context_length': 32768 } });
+    const r = await load().ready();
+    expect(r.checks.local_ai).toEqual({ status: 'up', model: 'qwen3-32b-medical', context_length: 32768 });
+  });
+
+  test('the probe reads the architecture-namespaced key, whatever the family is called', async () => {
+    probeRoutes({ model_info: { 'general.parameter_count': 32e9, 'deepseek2.context_length': 65536 } });
+    const r = await load().ready();
+    expect(r.checks.local_ai.context_length).toBe(65536);
+  });
+
+  test('a server with no native /api/show is UNKNOWN, not unhealthy (vLLM, SGLang)', async () => {
+    probeRoutes({ error: 'not found' }, 404);
+    const r = await load().ready();
+    expect(r.checks.local_ai.status).toBe('up');
+    expect(r.checks.local_ai.context_length).toBe('unknown');
+  });
+
+  test('LOCAL_AI_MIN_CONTEXT is what the probe compares against', async () => {
+    process.env.LOCAL_AI_MIN_CONTEXT = '65536';
+    probeRoutes({ model_info: { 'qwen3.context_length': 32768 } });
+    const r = await load().ready();
+    expect(r.checks.local_ai.status).toBe('down'); // adequate for a CLE, below THIS deployment's bar
+  });
+
+  test('a context-overflow 400 explains the fix, and is NOT retried', async () => {
+    fetchMock.mockResolvedValue(res(
+      { error: 'input length 9144 tokens exceeds the available context size (4096)' },
+      { status: 400, statusText: 'Bad Request' },
+    ));
+
+    const err = await load().call(args()).then(() => null, (e) => e);
+
+    expect(err).toBeTruthy();
+    expect(err.contextTooSmall).toBe(true);
+    expect(err.status).toBe(400);
+    expect(err.message).toMatch(/OLLAMA_CONTEXT_LENGTH|num_ctx/);   // names the server-side fix
+    expect(err.message).toMatch(/max-model-len/);                    // …for vLLM too
+    // Re-sending the same oversized transcript cannot make it fit. One attempt, not four.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('LOCAL_AI_NUM_CTX is sent only when explicitly set', async () => {
+    fetchMock.mockResolvedValue(res(completion()));
+    await load().call(args());
+    expect(JSON.parse(lastOpts().body).options).toBeUndefined();
+
+    process.env.LOCAL_AI_NUM_CTX = '32768';
+    fetchMock.mockResolvedValue(res(completion()));
+    await load().call(args());
+    expect(JSON.parse(lastOpts().body).options).toEqual({ num_ctx: 32768 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Embeddings. RAG retrieval used to call api.openai.com directly, which no configuration could
+// move; behind the provider seam it can run on the same box as everything else.
+describe('embed()', () => {
+  test('POSTs to /embeddings with the EMBEDDING model, not the chat model', async () => {
+    process.env.LOCAL_AI_EMBED_MODEL = 'bge-m3';
+    fetchMock.mockResolvedValue(res({ data: [{ embedding: [0.1, 0.2, 0.3] }] }));
+
+    const v = await load().embed('chest pain in a 58yo');
+
+    expect(v).toEqual([0.1, 0.2, 0.3]);
+    expect(lastUrl()).toBe('http://dgx.tailnet:8000/v1/embeddings');
+    const body = JSON.parse(lastOpts().body);
+    expect(body.model).toBe('bge-m3');            // NOT qwen3-32b-medical
+    expect(body.input).toBe('chest pain in a 58yo');
+  });
+
+  test('refuses without LOCAL_AI_EMBED_MODEL rather than silently embedding with the chat model', async () => {
+    fetchMock.mockResolvedValue(res({ data: [{ embedding: [1] }] }));
+    await expect(load().embed('x')).rejects.toThrow(/LOCAL_AI_EMBED_MODEL/);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  test('a response carrying no vector is an error, not an empty embedding', async () => {
+    process.env.LOCAL_AI_EMBED_MODEL = 'bge-m3';
+    fetchMock.mockResolvedValue(res({ data: [] }));
+    await expect(load().embed('x')).rejects.toThrow(/no vector/);
   });
 });

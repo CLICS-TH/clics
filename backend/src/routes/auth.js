@@ -240,22 +240,48 @@ router.post('/consent', verifyJwt, async (req, res) => {
   const version = body.version ?? (ctx === 'auditor' ? 'auditor-v1' : 'physician-v1');
   const now = new Date().toISOString();
 
-  const { error } = await supabase.from('professionals').update({ consented_at: now }).eq('id', req.user.id);
-  if (error) return res.status(500).json({ error: error.message });
-
-  // Structured auditable record. Fail-soft: a pre-migration environment (no `consents` table) or a
-  // test mock without .upsert must never block the consent itself — the gate signal already landed.
+  // Write the AUDITABLE RECORD FIRST, then the gate flag. The old order did the reverse, so a failed
+  // record left a physician marked as consented with no evidence behind it — invisible to us and
+  // exactly the gap an ethics committee asks about. In this order a failure leaves no consent at all
+  // and the physician simply retries; the upsert is idempotent on (professional_id, role_context,
+  // consent_version), so a retry is safe.
+  //
+  // Note the old code also could not see most failures: supabase .upsert() RETURNS { error } rather
+  // than throwing, so the try/catch around it caught almost nothing and a real DB error (RLS,
+  // constraint) was silently discarded. Inspect the returned error.
+  let consentRecordDegraded = null;
   try {
-    await supabase.from('consents').upsert({
+    const { error: cErr } = await supabase.from('consents').upsert({
       professional_id: req.user.id, role_context: ctx, consent_version: version,
       checkboxes: body.checkboxes ?? {}, coi: body.coi ?? null, agreed_at: now,
     }, { onConflict: 'professional_id,role_context,consent_version' });
-  } catch (e) { console.error('[consent] structured record failed:', e.message); }
+    if (cErr) {
+      // Missing table = a pre-migration environment. Known, uniform, and recoverable by running the
+      // migration — degrade rather than lock everyone out. Anything else is a real failure to record
+      // evidence, so refuse before the gate flag is set.
+      if (cErr.code === '42P01' || /consents/.test(cErr.message ?? '')) {
+        consentRecordDegraded = cErr.message;
+        console.error('[consent] consents table unavailable — gate set without structured record:', cErr.message);
+      } else {
+        console.error('[consent] structured record failed:', cErr.message);
+        return res.status(500).json({ error: 'Could not record consent. Please try again.', code: 'consent_record_failed' });
+      }
+    }
+  } catch (e) {
+    // A test mock without .upsert throws rather than returning — keep that path fail-soft.
+    consentRecordDegraded = e.message;
+    console.error('[consent] structured record unavailable:', e.message);
+  }
 
+  const { error } = await supabase.from('professionals').update({ consented_at: now }).eq('id', req.user.id);
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Record the degradation in the audit log too: "consent gated but not evidenced" must be findable
+  // later, not just a line in a container log nobody reads.
   logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'consent', targetType: 'professional',
     targetId: req.user.pseudonym ?? req.user.exp_code ?? req.user.id, councilId: req.user.council_id,
-    metadata: { context: ctx, version } });
-  res.json({ ok: true, consented_at: now, context: ctx });
+    metadata: { context: ctx, version, ...(consentRecordDegraded ? { record_degraded: consentRecordDegraded } : {}) } });
+  res.json({ ok: true, consented_at: now, context: ctx, ...(consentRecordDegraded ? { record_degraded: true } : {}) });
 });
 
 // Whether Pilot Test Mode is on — lets the new-CLE page reveal the Natural/Socratic picker.

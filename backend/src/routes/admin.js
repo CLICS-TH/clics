@@ -6,6 +6,9 @@ const { verifyJwt, requireRole } = require('../middleware/auth');
 const { AssignSchema } = require('../lib/schemas');
 const { triggerEvaluation } = require('../services/cle-evaluation');
 const { reconcileEvaluations } = require('../services/reconcile');
+const { minAuditorsPerCle } = require('../lib/settings');
+const { stratifiedSample, assignRoundRobin } = require('../services/audit-sampling');
+const { detectIntegritySignals } = require('../services/integrity');
 const { sendDbError, pageParams } = require('../lib/db-helpers');
 const { assertSlotAvailable } = require('../lib/accounts');
 const { newInviteToken } = require('../lib/invite-token');
@@ -81,12 +84,32 @@ router.get('/cles', async (req, res) => {
   // the assign UI can show "Assigned (N)" and keep offering the dropdown until enough raters are added.
   const ids = (data ?? []).map(r => r.id);
   const assignCounts = {};
+  // SUBMITTED scores, which is a different number from assignments. An auditor can be assigned and
+  // never score; the manuscript's ">= 3 blinded auditors" is a claim about scores that exist, not
+  // invitations that were sent, so the target has to be measured against audit_scores.
+  const scoreCounts = {};
   if (ids.length) {
-    const { data: aRows } = await supabase.from('audit_assignments').select('cle_id').in('cle_id', ids);
+    const [{ data: aRows }, { data: sRows }] = await Promise.all([
+      supabase.from('audit_assignments').select('cle_id').in('cle_id', ids),
+      supabase.from('audit_scores').select('cle_id').in('cle_id', ids),
+    ]);
     for (const a of aRows ?? []) assignCounts[a.cle_id] = (assignCounts[a.cle_id] ?? 0) + 1;
+    for (const s of sRows ?? []) scoreCounts[s.cle_id] = (scoreCounts[s.cle_id] ?? 0) + 1;
   }
+  const minAuditors = await minAuditorsPerCle();
   res.setHeader('X-Total-Count', count ?? 0);   // body stays an array (backward-compatible); total in header
-  res.json((data ?? []).map(r => ({ ...r, assignment_count: assignCounts[r.id] ?? 0 })));
+  res.setHeader('X-Min-Auditors', minAuditors); // the target the flags below were computed against
+  res.json((data ?? []).map(r => {
+    const scored = scoreCounts[r.id] ?? 0;
+    return {
+      ...r,
+      assignment_count: assignCounts[r.id] ?? 0,
+      scored_count: scored,
+      min_auditors: minAuditors,
+      // A BADGE, not a gate. Nothing downstream reads this to withhold a result.
+      meets_auditor_target: scored >= minAuditors,
+    };
+  }));
 });
 
 router.get('/cles/flagged', async (req, res) => {
@@ -268,6 +291,205 @@ router.post('/cles/:id/assign', async (req, res) => {
   logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.assign', targetType: 'cle',
     targetId: req.params.id, councilId: cle.council_id, metadata: { auditor_id: auditorId } });
   res.json({ ok: true });
+});
+
+// ---------------------------------------------------------------------------------------------
+// Integrity flags — deterministic gaming/delegation signals for one CLE.
+//
+// NEVER exposed to the physician. A flag routes a session to human review; showing it would both tip
+// off anyone actually gaming the system and brand an honest physician on a false positive. The
+// table's RLS has no physician read policy and these routes sit behind the admin guard.
+//
+// PII: the scan reads RAW message content, including the physician's OTHER sessions for the
+// cross-session signal. That is deliberate and is why the detector is arithmetic rather than a model
+// — see the constraint block at the top of services/integrity.js. Nothing here may ever call an AI.
+router.post('/cles/:id/integrity-scan', async (req, res) => {
+  const { data: cle } = await supabase.from('cles')
+    .select('id, council_id, specialty_id, physician_id, is_test').eq('id', req.params.id).maybeSingle();
+  if (!cle || !sameCouncil(req, cle.council_id) || !sameSpecialty(req, cle.specialty_id)) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  const { data: messages, error: mErr } = await supabase.from('messages')
+    .select('role, content, created_at, token_count').eq('cle_id', req.params.id).order('created_at');
+  if (sendDbError(res, mErr)) return;
+
+  // The comparison corpus for F2: this physician's turns in their OTHER sessions.
+  // Test sessions are EXCLUDED — the pilot's own test rounds pasted the same scripted prompt into
+  // several CLEs, and every cross-session duplicate observed in prod came from exactly that. Leaving
+  // them in would flag the team's own rehearsal as physician misconduct.
+  const { data: otherCles } = await supabase.from('cles')
+    .select('id').eq('physician_id', cle.physician_id).eq('is_test', false).neq('id', req.params.id);
+  const otherIds = (otherCles ?? []).map(c => c.id);
+  let priorTurns = [];
+  if (otherIds.length) {
+    const { data: prior } = await supabase.from('messages')
+      .select('cle_id, content').in('cle_id', otherIds).in('role', ['user', 'physician']);
+    priorTurns = prior ?? [];
+  }
+
+  const flags = detectIntegritySignals(messages ?? [], priorTurns);
+
+  // Replace this CLE's findings wholesale. A re-scan after the transcript grew must not leave a
+  // stale flag from an earlier sweep sitting beside the current ones — an auditor cannot tell which
+  // run produced which row, and a cleared signal that never disappears is worse than no signal.
+  const { error: delErr } = await supabase.from('cle_integrity_flags').delete().eq('cle_id', req.params.id);
+  if (sendDbError(res, delErr)) return;
+  if (flags.length) {
+    const { error: insErr } = await supabase.from('cle_integrity_flags')
+      .upsert(flags.map(f => ({ cle_id: req.params.id, ...f })), { onConflict: 'cle_id,signal' });
+    if (sendDbError(res, insErr)) return;
+  }
+
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.integrity_scan', targetType: 'cle',
+    targetId: req.params.id, councilId: cle.council_id,
+    metadata: { signals: flags.map(f => f.signal), turns: (messages ?? []).length, corpus_cles: otherIds.length } });
+
+  res.json({ ok: true, cle_id: req.params.id, flags, scanned_turns: (messages ?? []).length });
+});
+
+router.get('/cles/:id/integrity', async (req, res) => {
+  const { data: cle } = await supabase.from('cles')
+    .select('id, council_id, specialty_id').eq('id', req.params.id).maybeSingle();
+  if (!cle || !sameCouncil(req, cle.council_id) || !sameSpecialty(req, cle.specialty_id)) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  const { data, error } = await supabase.from('cle_integrity_flags')
+    .select('signal, severity, evidence, created_at').eq('cle_id', req.params.id).order('created_at');
+  if (sendDbError(res, error)) return;
+  res.json(data ?? []);
+});
+
+// ---------------------------------------------------------------------------------------------
+// Stratified audit sampling — pick WHICH evaluated CLEs go to human review, by score band.
+//
+// Replaces convenience sampling (whoever an admin clicked) with a seeded, reproducible, proportional
+// draw. The ICC is estimated on the audited subset, so a subset drawn from the middle of the score
+// distribution understates disagreement at the extremes — where a credit decision is most contested.
+//
+// Writes nothing unless asked: dry_run defaults TRUE. Assignment is the irreversible half (it makes
+// CLEs visible in auditors' queues), so the default is the half you can look at first.
+const SampleSchema = z.object({
+  target: z.number().int().min(1).max(500),
+  // Any string or number. Recorded in audit_log so the draw can be re-run and checked; a run label
+  // ('2026-10-round-1') is more use to a reviewer than an opaque integer.
+  seed: z.union([z.string().min(1).max(120), z.number()]).optional(),
+  band_count: z.number().int().min(2).max(10).default(5),
+  // 'equal' (default) gives every band the same quota, deliberately over-sampling sparse extremes —
+  // see services/audit-sampling.allocate. 'proportional' mirrors the cohort distribution instead.
+  allocation: z.enum(['equal', 'proportional']).default('equal'),
+  auditors_per_cle: z.number().int().min(1).max(10).optional(),
+  council_id: z.string().uuid().optional(),
+  specialty_id: z.string().uuid().optional(),
+  // Default false: a CLE that already has an auditor is already in the audited set, and re-drawing
+  // it would spend the sample on coverage that exists.
+  include_assigned: z.boolean().default(false),
+  include_test: z.boolean().default(false),
+  dry_run: z.boolean().default(true),
+});
+
+router.post('/cles/sample', async (req, res) => {
+  const parsed = SampleSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const o = parsed.data;
+  const perCle = o.auditors_per_cle ?? await minAuditorsPerCle();
+
+  // --- the pool: evaluated CLEs in scope ------------------------------------------------------
+  let q = supabase.from('cles').select('id, cle_code, council_id, specialty_id, physician_id, auditor_id, is_test')
+    .eq('status', 'evaluated');
+  if (o.council_id) q = q.eq('council_id', o.council_id);
+  if (o.specialty_id) q = q.eq('specialty_id', o.specialty_id);
+  if (!o.include_test) q = q.eq('is_test', false);
+  q = scopeBySpecialty(req, scopeToCouncil(req, q));   // an admin can never reach another council
+  const { data: cles, error: cErr } = await q;
+  if (sendDbError(res, cErr)) return;
+  if (!cles?.length) return res.json({ ok: true, dry_run: o.dry_run, pool_size: 0, selected: [], note: 'No evaluated CLEs match this scope.' });
+
+  const ids = cles.map(c => c.id);
+  const [{ data: evals }, { data: assigned }, flagged] = await Promise.all([
+    supabase.from('ai_evaluations').select('cle_id, composite_score').in('cle_id', ids),
+    supabase.from('audit_assignments').select('cle_id').in('cle_id', ids),
+    // Integrity flags force a CLE into the sample. The table arrives with the fraud detector; before
+    // that migration it does not exist, and a missing table must not take the sampler down with it.
+    supabase.from('cle_integrity_flags').select('cle_id').in('cle_id', ids)
+      .then(r => r, () => ({ data: [] })),
+  ]);
+  const scoreOf = Object.fromEntries((evals ?? []).map(e => [e.cle_id, Number(e.composite_score)]));
+  const hasAssignment = new Set((assigned ?? []).map(a => a.cle_id));
+  const isFlagged = new Set((flagged?.data ?? []).map(f => f.cle_id));
+
+  const pool = cles
+    // No AI score means no band to place it in. Reported rather than dropped in silence.
+    .filter(c => Number.isFinite(scoreOf[c.id]))
+    .filter(c => o.include_assigned || !hasAssignment.has(c.id))
+    .map(c => ({ id: c.id, score: scoreOf[c.id], forced: isFlagged.has(c.id), cle: c }));
+  const unscored = cles.length - cles.filter(c => Number.isFinite(scoreOf[c.id])).length;
+
+  const draw = stratifiedSample(pool, {
+    target: o.target, seed: o.seed ?? `${req.user.id}:${o.target}`,
+    bandCount: o.band_count, allocation: o.allocation,
+  });
+
+  // --- the auditors ---------------------------------------------------------------------------
+  let aq = supabase.from('professionals').select('id, role, status, council_id, specialty_id, can_audit')
+    .eq('status', 'active').or('role.eq.auditor,can_audit.eq.true');
+  aq = scopeToCouncil(req, aq);
+  const { data: auditors, error: aErr } = await aq;
+  if (sendDbError(res, aErr)) return;
+
+  const plan = assignRoundRobin(draw.selected.map(x => x.cle), auditors ?? [], { perCle, seed: draw.seed });
+
+  const summary = {
+    ok: true,
+    dry_run: o.dry_run,
+    seed: draw.seed,
+    seed_input: draw.seed_input,
+    band_boundaries: draw.per_band,
+    allocation: draw.allocation,
+    pool_size: draw.pool_size,
+    requested: draw.requested,
+    selected_count: draw.selected.length,
+    forced_included: draw.forced_included,
+    shortfall: draw.shortfall,
+    unscored_excluded: unscored,
+    auditors_per_cle: perCle,
+    assignments_planned: plan.assignments.length,
+    // Never a silent success: a run that could assign 4 of 40 says so, per CLE and with a reason.
+    unassignable: plan.unassignable,
+    auditor_load: plan.load,
+    selected: draw.selected.map(x => ({ id: x.id, cle_code: x.cle.cle_code, score: x.score, forced: !!x.forced })),
+  };
+
+  if (o.dry_run) return res.json(summary);
+
+  if (plan.assignments.length) {
+    const { error: insErr } = await supabase.from('audit_assignments')
+      .upsert(plan.assignments.map(a => ({ ...a, assigned_by: req.user.id })), { onConflict: 'cle_id,auditor_id' });
+    if (sendDbError(res, insErr)) return;
+
+    // Keep the legacy single-assignee pointer in sync, exactly as /cles/:id/assign does — the
+    // queue/UI still reads cles.auditor_id as "primary".
+    const primary = new Map();
+    for (const a of plan.assignments) if (!primary.has(a.cle_id)) primary.set(a.cle_id, a.auditor_id);
+    for (const [cleId, auditorId] of primary) {
+      await supabase.from('cles').update({ auditor_id: auditorId }).eq('id', cleId).eq('status', 'evaluated');
+    }
+  }
+
+  // The seed and the band boundaries are the sample's provenance. Without them in the log, "these 40
+  // were drawn at random" is an assertion; with them it is a claim anyone can re-run.
+  logEvent({
+    actorId: req.user.id, actorRole: req.user.role, action: 'cle.sample', targetType: 'cle',
+    councilId: o.council_id ?? req.user.council_id ?? null,
+    metadata: {
+      seed: draw.seed, seed_input: draw.seed_input, band_count: o.band_count, allocation: o.allocation,
+      band_boundaries: draw.per_band, target: o.target, selected: draw.selected.map(x => x.id),
+      forced_included: draw.forced_included, auditors_per_cle: perCle,
+      assignments: plan.assignments.length, unassignable: plan.unassignable.length,
+    },
+  });
+
+  res.json(summary);
 });
 
 // Members list — dual-role: an admin sees ONLY their own council's members (read-only in the

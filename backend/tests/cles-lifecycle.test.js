@@ -25,7 +25,11 @@ const FOLDER_UUID = '33333333-3333-3333-3333-333333333333';
 let cleRow, folderOwned, passedCount, pilotFlag;
 beforeEach(() => {
   m.reset();
-  m.state.caller = PHYSICIAN; // consented, usage_cost_usd 0
+  // Pin the Socratic allocation so these tests assert the RULE ("the drawn episode runs Socratic")
+  // rather than the allocation itself. Unpinned, the episode is derived from the physician's id —
+  // 'phys-1' hashes to episode 1 — which would silently change what several of these tests mean.
+  // The allocation itself is covered by its own test below.
+  m.state.caller = { ...PHYSICIAN, socratic_episode: 2 }; // consented, usage_cost_usd 0
   cleRow = undefined;
   folderOwned = true;
   passedCount = 0;            // # of the physician's prior PASSED CLEs (drives episode_number)
@@ -65,12 +69,12 @@ test('create CLE1 (no prior passes) → episode 1, natural (no Socratic)', async
   });
 });
 
-test('create CLE2 (1 prior pass) → episode 2, Socratic examiner from start', async () => {
-  passedCount = 1;
+test('create the physician\'s ALLOCATED episode → Socratic examiner from start', async () => {
+  passedCount = 1; // caller is pinned to socratic_episode 2, so episode 2 is the Socratic one
   const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
   expect(r.status).toBe(201);
   expect(m.find('cles', 'insert').payload).toMatchObject({
-    episode_number: 2, socratic_active: true, socratic_reason: 'cle2_examiner',
+    episode_number: 2, socratic_active: true, socratic_reason: 'randomised_examiner',
   });
 });
 
@@ -84,13 +88,32 @@ test('create CLE3 (2 prior passes) → episode 3, natural again', async () => {
 });
 
 test('create a natural CLE after 3 consecutive Tier-1 fails → Socratic remediation', async () => {
-  m.state.caller = { ...PHYSICIAN, consecutive_t1_fails: 3 };
+  // socratic_episode 2 so episode 1 is NOT the allocated one — otherwise this would assert the
+  // allocation rather than the remediation path it is named for.
+  m.state.caller = { ...PHYSICIAN, consecutive_t1_fails: 3, socratic_episode: 2 };
   passedCount = 0; // episode 1, but remediation kicks in
   const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
   expect(r.status).toBe(201);
   expect(m.find('cles', 'insert').payload).toMatchObject({
     episode_number: 1, socratic_active: true, socratic_reason: 't1_remediation',
   });
+});
+
+test('unallocated physician: episode is derived from their id, persisted, and stable', async () => {
+  m.state.caller = { ...PHYSICIAN, socratic_episode: null }; // never allocated
+  const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
+  expect(r.status).toBe(201);
+
+  // 'phys-1' hashes to episode 1, so their FIRST episode is the Socratic one.
+  expect(m.find('cles', 'insert').payload).toMatchObject({
+    episode_number: 1, socratic_active: true, socratic_reason: 'randomised_examiner',
+  });
+
+  // ...and the allocation is written back, so it survives a hash change or a replay.
+  const upd = m.find('professionals', 'update');
+  expect(upd.payload).toMatchObject({ socratic_episode: 1 });
+  // Guarded by .is(socratic_episode, null) so a concurrent request cannot reallocate.
+  expect(upd.iss).toContainEqual(['socratic_episode', null]);
 });
 
 test('create a 4th CLE after the 3 study CLEs have passed → 403 cle_limit_reached, no insert', async () => {

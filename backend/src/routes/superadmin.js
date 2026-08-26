@@ -2,7 +2,7 @@ const { Router } = require('express');
 const { z } = require('zod');
 const { supabase, authSupabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
-const { computeICC21 } = require('../services/icc');
+const { computeICC21, iccOneWay } = require('../services/icc');
 const { sendDbError, pageParams, toCsv } = require('../lib/db-helpers');
 const { compRateCap, cappedCles } = require('../lib/compensation');
 const { assertSlotAvailable, nextPseudonym, allSlotUsage, allCouncilSlotUsage, allCouncilsSlotUsage, ROLES } = require('../lib/accounts');
@@ -10,6 +10,7 @@ const { normalizeCanAudit } = require('../lib/dual-role');
 const { POSITIONS, checkSpecialty } = require('../lib/specialties');
 const { logEvent } = require('../lib/audit');
 const { decryptJson } = require('../lib/crypto');
+const { getTextSetting, minAuditorsPerCle } = require('../lib/settings');
 
 const router = Router();
 router.use(verifyJwt, requireRole('superadmin'));
@@ -78,6 +79,9 @@ const UsageSettingsSchema = z.object({
   // until an auditor has scored that CLE — for a blinded test round. Default OFF.
   hold_result_until_audited: z.boolean().optional(),
   // Compensation (CLICS §12): ฿/completed-CLE rate and the per-physician cap in CLEs (0 = no cap).
+  // Minimum auditors per CLE. WARNS, never blocks — see lib/settings.minAuditorsPerCle. Capped at
+  // 10 so a typo cannot badge the entire queue red.
+  min_auditors_per_cle: z.number().int().min(1).max(10).optional(),
   comp_rate_thb: z.number().nonnegative().max(1_000_000).optional(),
   comp_cap_cles: z.number().int().nonnegative().max(10_000).optional(),
 }).refine((b) => Object.keys(b).length > 0, { message: 'No settings to update' });
@@ -370,7 +374,7 @@ async function poolTotal(sumRpc, col) {
 
 router.get('/usage-settings', async (_req, res) => {
   // All independent reads in one batch (was several sequential awaits on the same table).
-  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles, total_used_usd, auditor_total_used_usd] = await Promise.all([
+  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles, min_auditors_per_cle, total_used_usd, auditor_total_used_usd] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
     readSetting('auditor_standard_usage_limit_usd', 0.5),
     readSetting('api_budget_pool_usd', 0),
@@ -380,10 +384,11 @@ router.get('/usage-settings', async (_req, res) => {
     readSetting('hold_result_until_audited', 0),
     readSetting('comp_rate_thb', 500),
     readSetting('comp_cap_cles', 3),
+    readSetting('min_auditors_per_cle', 1),
     poolTotal('total_usage_sum', 'usage_cost_usd'),
     poolTotal('total_auditor_usage_sum', 'auditor_usage_cost_usd'),
   ]);
-  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, total_used_usd, auditor_total_used_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles });
+  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, total_used_usd, auditor_total_used_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles, min_auditors_per_cle });
 });
 
 router.patch('/usage-settings', async (req, res) => {
@@ -400,6 +405,7 @@ router.patch('/usage-settings', async (req, res) => {
   if (parsed.data.hold_result_until_audited != null) upserts.push({ key: 'hold_result_until_audited', value: parsed.data.hold_result_until_audited ? 1 : 0, updated_at: now });
   if (parsed.data.comp_rate_thb != null) upserts.push({ key: 'comp_rate_thb', value: parsed.data.comp_rate_thb, updated_at: now });
   if (parsed.data.comp_cap_cles != null) upserts.push({ key: 'comp_cap_cles', value: parsed.data.comp_cap_cles, updated_at: now });
+  if (parsed.data.min_auditors_per_cle != null) upserts.push({ key: 'min_auditors_per_cle', value: parsed.data.min_auditors_per_cle, updated_at: now });
   const { error } = await supabase.from('app_settings').upsert(upserts);
   if (sendDbError(res, error)) return;
   if (parsed.data.pilot_test_mode != null) {
@@ -418,7 +424,12 @@ router.patch('/usage-settings', async (req, res) => {
     logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'hold_result_until_audited',
       metadata: { enabled: parsed.data.hold_result_until_audited } });
   }
-  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles] = await Promise.all([
+  if (parsed.data.min_auditors_per_cle != null) {
+    // Logged because it changes what every subsequent ICC cohort report calls "at target".
+    logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'min_auditors_per_cle',
+      metadata: { value: parsed.data.min_auditors_per_cle } });
+  }
+  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles, min_auditors_per_cle] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
     readSetting('auditor_standard_usage_limit_usd', 0.5),
     readSetting('api_budget_pool_usd', 0),
@@ -428,8 +439,129 @@ router.patch('/usage-settings', async (req, res) => {
     readSetting('hold_result_until_audited', 0),
     readSetting('comp_rate_thb', 500),
     readSetting('comp_cap_cles', 3),
+    readSetting('min_auditors_per_cle', 1),
   ]);
-  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles });
+  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles, min_auditors_per_cle });
+});
+
+// ---------------------------------------------------------------------------------------------
+// AI provider switch — which model serves each purpose (Claude cloud ↔ the on-prem DGX).
+//
+// Deliberately its OWN endpoint rather than more keys on /usage-settings. That handler upserts nine
+// settings in one array; a change this one must be able to REFUSE (the evaluator lock) cannot share
+// a bulk write with settings that should still apply. Separating them also keeps the typed
+// confirmation and the audit entry attached to the thing they are actually about.
+//
+// The values are read by RIMPL (services/provider-settings.js), which layers them OVER its env:
+//   app_settings.ai_provider_<purpose> → AI_PROVIDER_<PURPOSE> → AI_PROVIDER → 'anthropic'
+const AI_PURPOSES = ['chat', 'evaluate', 'criteria', 'discuss', 'embed'];
+// Embeddings are a different market from chat: Anthropic has no embeddings API and Claude cannot
+// serve `embed`, so the valid answers differ per purpose. Offering a provider that would throw on
+// first use is not a switch, it is a trap.
+const AI_PROVIDER_CHOICES = {
+  chat: ['anthropic', 'local'],
+  evaluate: ['anthropic', 'local'],
+  criteria: ['anthropic', 'local'],
+  discuss: ['anthropic', 'local'],
+  embed: ['openai', 'local'],
+};
+const AI_PROVIDER_DEFAULT = { chat: 'anthropic', evaluate: 'anthropic', criteria: 'anthropic', discuss: 'anthropic', embed: 'openai' };
+
+// Typed confirmations. Not theatre: `evaluate` is the measuring instrument the whole credit gate
+// (ICC >= 0.75) is defined against, and unlocking it mid-pilot breaks the §10.2 locked-configuration
+// guarantee. A checkbox is too easy to hit on the way to something else.
+const CONFIRM_EVALUATOR = 'CHANGE EVALUATOR';
+const CONFIRM_UNLOCK = 'UNLOCK EVALUATOR';
+
+const AiProviderSchema = z.object({
+  purpose: z.enum(AI_PURPOSES).optional(),
+  provider: z.string().min(1).optional(),
+  evaluator_locked: z.boolean().optional(),
+  confirm: z.string().optional(),
+}).refine(
+  (b) => (b.purpose != null && b.provider != null) || b.evaluator_locked != null,
+  { message: 'send either {purpose, provider} or {evaluator_locked}' },
+);
+
+async function readAiProviders() {
+  const [providers, locked] = await Promise.all([
+    Promise.all(AI_PURPOSES.map(async (p) => [p, await getTextSetting(`ai_provider_${p}`, AI_PROVIDER_DEFAULT[p])])),
+    getTextSetting('evaluator_locked_at', null),
+  ]);
+  return {
+    providers: Object.fromEntries(providers),
+    choices: AI_PROVIDER_CHOICES,
+    evaluator_locked_at: locked,
+    // Echoed so the UI never has to hardcode the phrases — one source of truth for both sides.
+    confirm_phrases: { change_evaluator: CONFIRM_EVALUATOR, unlock_evaluator: CONFIRM_UNLOCK },
+  };
+}
+
+router.get('/ai-providers', async (_req, res) => {
+  res.json(await readAiProviders());
+});
+
+router.patch('/ai-providers', async (req, res) => {
+  const parsed = AiProviderSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const { purpose, provider, evaluator_locked, confirm } = parsed.data;
+  const now = new Date().toISOString();
+  const lockedAt = await getTextSetting('evaluator_locked_at', null);
+
+  // --- lock / unlock ---------------------------------------------------------------------------
+  if (evaluator_locked != null) {
+    // Unlocking is the dangerous direction, so it is the one that has to be typed out. Locking is
+    // always allowed: making the safe action harder than the unsafe one gets it skipped.
+    if (!evaluator_locked && lockedAt && confirm !== CONFIRM_UNLOCK) {
+      return res.status(409).json({
+        error: `The evaluator is locked (since ${lockedAt}). Unlocking changes the instrument the ICC credit gate is defined against.`,
+        code: 'confirmation_required', confirm_phrase: CONFIRM_UNLOCK,
+      });
+    }
+    const value_text = evaluator_locked ? (lockedAt || now) : null;
+    const { error } = await supabase.from('app_settings')
+      .upsert({ key: 'evaluator_locked_at', value: 0, value_text, updated_at: now });
+    if (sendDbError(res, error)) return;
+    logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'evaluator_lock',
+      metadata: { locked: evaluator_locked, locked_at: value_text, previous_locked_at: lockedAt } });
+    return res.json(await readAiProviders());
+  }
+
+  // --- provider change -------------------------------------------------------------------------
+  const name = String(provider).trim().toLowerCase();
+  const allowed = AI_PROVIDER_CHOICES[purpose];
+  if (!allowed.includes(name)) {
+    return res.status(400).json({ error: `"${name}" cannot serve ${purpose}. Valid: ${allowed.join(', ')}`, code: 'invalid_provider' });
+  }
+
+  if (purpose === 'evaluate') {
+    // Refuse OUTRIGHT once locked — not a warning. During the pilot the scoring model is frozen by
+    // §10.2, and a mid-cohort swap would confound the primary outcome with the instrument.
+    if (lockedAt) {
+      return res.status(409).json({
+        error: `The PIS-7 evaluator was locked on ${lockedAt} and cannot be changed while the pilot is running. Unlock it first if this is deliberate.`,
+        code: 'evaluator_locked', evaluator_locked_at: lockedAt,
+      });
+    }
+    if (confirm !== CONFIRM_EVALUATOR) {
+      return res.status(409).json({
+        error: 'Changing the PIS-7 evaluator changes the instrument every score and the ICC credit gate are measured against.',
+        code: 'confirmation_required', confirm_phrase: CONFIRM_EVALUATOR,
+      });
+    }
+  }
+
+  const previous = await getTextSetting(`ai_provider_${purpose}`, AI_PROVIDER_DEFAULT[purpose]);
+  const { error } = await supabase.from('app_settings')
+    .upsert({ key: `ai_provider_${purpose}`, value: 0, value_text: name, updated_at: now });
+  if (sendDbError(res, error)) return;
+
+  // Audit EVERY flip, not just the evaluator. Under a hybrid, "which system produced this score"
+  // (§10.2 provenance) is only answerable if the switch history is on the record beside the scores.
+  logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'ai_provider_change',
+    metadata: { purpose, from: previous, to: name } });
+
+  res.json(await readAiProviders());
 });
 
 // Reset a member's running AI usage meter back to zero (manual-reset escape hatch).
@@ -455,13 +587,52 @@ router.post('/users/:id/reset-auditor-usage', async (req, res) => {
 // ICC(2,1) calibration — overall + per-domain, AND a per-council breakdown so the superadmin
 // can see each profession separately. Test sessions are excluded unless ?include_test=true.
 const ICC_DOMAINS = ['d1','d2','d3','d4','d5','d6','d7'];
-function iccBundle(pairs) {
+function iccBundle(pairs, minAuditors = 1) {
   const overall = computeICC21(pairs.map(p => ({ ai: Number(p.ai.composite_score), human: Number(p.audit.composite_score) })));
   const per_domain = {};
   for (const d of ICC_DOMAINS) {
     per_domain[d] = computeICC21(pairs.map(p => ({ ai: Number(p.ai[d]), human: Number(p.audit[d]) })));
   }
-  return { overall, per_domain, n: pairs.length };
+
+  // COHORT TRANSPARENCY, not a filter. Every CLE with a human score is in the figure above,
+  // including the ones scored by a single auditor. What changes is that the caller can now SEE the
+  // rater distribution behind the number instead of having to assume it.
+  //
+  // This project has been burnt once by the alternative: the headline ICC of 0.811 was partly an
+  // artifact of a failed evaluation dropping out (n 33 -> 30). Restricting a cohort to tidy a number
+  // is the same mistake in a different costume, so the restricted view is offered ALONGSIDE the full
+  // one and is never substituted for it.
+  const dist = {};
+  for (const p of pairs) dist[p.n_auditors] = (dist[p.n_auditors] ?? 0) + 1;
+  const atTarget = pairs.filter(p => p.n_auditors >= minAuditors);
+
+  // Inter-auditor agreement — the figure the manuscript's ">= 3 blinded auditors" claim is actually
+  // about, and the one AI-vs-human ICC cannot answer. ICC(1,1), not ICC(2,1): auditors are drawn per
+  // CLE from a roster rather than all scoring every CLE, so rater is nested in subject and a two-way
+  // model would claim to remove a rater effect this design cannot identify. See services/icc.js.
+  const multi = pairs.filter(p => p.rater_scores && p.rater_scores.length >= 2);
+  const inter_auditor = multi.length >= 2
+    ? iccOneWay(multi.map(p => p.rater_scores))
+    : { icc: null, n: multi.length, interpretation: multi.length
+        ? 'Only 1 CLE has more than one auditor — inter-auditor agreement is not estimable yet'
+        : 'No CLE has more than one auditor yet' };
+
+  return {
+    overall,
+    per_domain,
+    n: pairs.length,
+    // The cohort, stated.
+    min_auditors: minAuditors,
+    auditors_per_cle: dist,
+    n_at_target: atTarget.length,
+    n_below_target: pairs.length - atTarget.length,
+    // The SAME statistic restricted to CLEs meeting the target — shown next to the full figure so
+    // the two can be compared, never in place of it.
+    overall_at_target: atTarget.length >= 2
+      ? computeICC21(atTarget.map(p => ({ ai: Number(p.ai.composite_score), human: Number(p.audit.composite_score) })))
+      : null,
+    inter_auditor,
+  };
 }
 
 router.get('/icc', async (req, res) => {
@@ -496,10 +667,20 @@ router.get('/icc', async (req, res) => {
     const mean = (k) => rows.reduce((s, r) => s + Number(r[k] || 0), 0) / rows.length;
     const audit = { composite_score: mean('composite_score') };
     for (const d of ICC_DOMAINS) audit[d] = mean(d);
-    allPairs.push({ council_id: rows[0].council_id, ai, audit });
+    allPairs.push({
+      council_id: rows[0].council_id,
+      ai,
+      audit,
+      n_auditors: rows.length,
+      // Kept UNAGGREGATED alongside the mean: the mean is what pairs against the AI score, but
+      // inter-auditor agreement needs the individual auditors, and averaging them away first is
+      // exactly what makes that figure impossible to compute later.
+      rater_scores: rows.map(r => Number(r.composite_score)),
+    });
   }
 
-  const global = iccBundle(allPairs);
+  const minAuditors = await minAuditorsPerCle();
+  const global = iccBundle(allPairs, minAuditors);
 
   // Bucket by council and label each with its names.
   const byCouncil = {};
@@ -508,10 +689,13 @@ router.get('/icc', async (req, res) => {
   const councilName = Object.fromEntries((councils ?? []).map(c => [c.id, c]));
   const per_council = {};
   for (const [cid, pairs] of Object.entries(byCouncil)) {
-    per_council[cid] = { council: councilName[cid] ?? null, ...iccBundle(pairs) };
+    per_council[cid] = { council: councilName[cid] ?? null, ...iccBundle(pairs, minAuditors) };
   }
 
-  res.json({ overall: global.overall, per_domain: global.per_domain, per_council, n: global.n });
+  // Spread `global` rather than cherry-picking four fields: the cohort description
+  // (auditors_per_cle, n_below_target, overall_at_target, inter_auditor) is the point of this
+  // change, and re-listing fields by hand is how it silently stops being reported.
+  res.json({ ...global, per_council });
 });
 
 router.get('/lpdp/:physicianId', async (req, res) => {

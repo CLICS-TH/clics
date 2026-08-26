@@ -9,6 +9,11 @@ jest.mock('../src/lib/supabase', () => {
   const chain = (table, getVal) => ({
     select() { return this; },
     eq() { return this; },
+    // PostgREST filters the route chains onto an update (e.g. the Socratic allocation's
+    // .is('socratic_episode', null) guard). Missing here they throw inside the async handler,
+    // which never answers the request — the suite times out instead of failing readably.
+    is() { return this; },
+    not() { return this; },
     order: () => Promise.resolve({ data: [], error: null }),
     insert(payload) { mockInserts[table] = payload; return this; },
     update() { return this; },
