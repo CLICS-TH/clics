@@ -1,6 +1,6 @@
 # CLICS — Handoff Snapshot
 
-*State of the app as of **2026-08-22**, for the developer continuing this project. Pairs with
+*State of the app as of **2026-08-27**, for the developer continuing this project. Pairs with
 [../README.md](../README.md) (orientation), [../CONTRIBUTING.md](../CONTRIBUTING.md) (how to work in it),
 and [ROADMAP.md](ROADMAP.md) (what to build next).*
 
@@ -14,18 +14,174 @@ Supabase Postgres). Working end-to-end today:
   councils** with council isolation. The CLICS token is the Supabase session token (see the never-`signOut`
   rule). License-No./TMC verification was retired. See [roles.md](roles.md), [AUTH-SETUP.md](AUTH-SETUP.md).
 - **Physician flow** — create a CLE (with chief complaint), chat with the AI (citations every turn;
-  the Socratic follow-up is now **mode-dependent** — see the experiment below: CLE1/3 are natural,
-  CLE2 + 3×-T1-fail remediation are Socratic), pause/resume, end → CLE gate → PIS-7 evaluation →
-  result + LPDP trend. Guest mode (anonymous, 2 prompts, no persistence). Per-user **$0.50 AI cap**
-  with an allowance meter.
-- **Auditor flow** — blind PIS-7 scoring of *evaluated* sessions assigned via `cles.auditor_id`; the
+  the Socratic follow-up is a **protocol rescue**, not an experimental arm — it opens only after 4
+  exchanges that are off-topic or not yet qualifying, asks 1–2 non-leading questions, and gives no
+  diagnosis), pause/resume, end → **reflection** → qualifying gate → PIS-7 evaluation → result + LPDP
+  trend. A session qualifies on CREC082 §1's four elements (c4/c5/c7/c6); **c1–c3 are recorded
+  metadata and no longer terminal**. Guest mode (anonymous, 2 prompts, no persistence). Per-user
+  **$0.50 AI cap** with an allowance meter.
+- **Auditor flow** — blind PIS-7 scoring of *evaluated* sessions that have **passed human privacy
+  review** (see the gate below), assigned via `cles.auditor_id` or `audit_assignments`; the
   rubric-anchored **DomainScorer** (tappable 0–5 chips, no silent-0 default, submit blocked until all 7
-  domains are set); AI score revealed only after submit; ICC(2,1) of AI-vs-auditor.
+  domains are set); AI score revealed only after submit; ICC(A,1) *and* ICC(A,3) average-measures plus
+  quadratic-weighted kappa of AI-vs-auditor.
 - **Admin/Superadmin** — CLE list + assignment, flagged-QA queue, invites, users + usage management,
-  executive overview, ICC dashboard. De-identified `/admin/export`.
-- **Integrity** — consent gate, PII stripping in RIMPL before any cloud call, pseudonyms (`P-NNN`),
-  Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
+  executive overview, ICC dashboard, **`/admin/privacy`** (human privacy review), **`/admin/identity`**
+  (identity verification decisions), **`/admin/governance`** (retention + monthly security review,
+  superadmin only). De-identified `/admin/export`.
+- **Integrity** — consent gate, PII stripping in RIMPL before any cloud call, **100% human privacy
+  review before any transcript reaches a rater**, layered identity verification (national ID + licence,
+  stored encrypted + blind-indexed, separate from the research dataset), per-score Model Lock
+  provenance, pseudonyms (`P-NNN`), Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
   0 errors (the AI path's ceiling is Anthropic **OTPM** — see [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)).
+
+## What just shipped (2026-08-27) — CREC082 protocol conformance
+
+**The governing document changed.** CLICS was built against the JMIR #99520 manuscript and internal
+design decisions; as of the **CREC082 submission set (26 Aug 2026)** the **IRB protocol is what the
+system must match**, and it differed in specific, checkable ways. PR **#68** (`4db4057`, 74 files,
++5284/−243) closes that gap. Six migrations applied to prod, all four services deployed and verified.
+
+*Also on `master` since the 2026-08-22 snapshot, not detailed below:* **#64** evaluator headroom for
+large transcripts, **#61** provider adapter (on-prem DGX, ships dark), **#65** shadow evaluator,
+**#66** three-way ICC, **#67** manuscript↔platform gap (sampling, ICC(k), credit, integrity).
+
+### Three live defects found while mapping (not CREC items)
+
+- **`cle_pass` was transient and five counters treated it as terminal.** `cle-finalize.js` sets
+  `cle_pass`; `cle-evaluation.js` immediately flips it to `evaluated`. Prod had **`cle_pass=0`**, so
+  every "completed CLE" count returned zero — the ≤3 PLE cap never fired and **฿3,000 in owed
+  compensation displayed as ฿0** across 5 physicians. Fixed with one shared predicate,
+  `backend/src/lib/cle-status.js` (`COMPLETED_STATUSES = ['cle_pass','evaluated']`), applied at all
+  five sites. **Deliberately not** applied to `admin.js` `STATUS_BUCKETS` — treating `cle_pass` as
+  in-progress in the queue view is correct there ("score pending").
+- **`randomised_examiner` violated `cles_socratic_reason_chk`.** Every randomised insert would have
+  failed 23514; masked in prod only because `pilot_test_mode=1` overwrote the reason first — proof the
+  deployed path was never exercised. A1 removed randomisation; the constraint was rewritten, not left.
+- **Pre-approval data is not labelled as development data.** 6 evaluated CLEs in the real TMC council
+  carry `is_test=false`, contradicting the submission's *"ไม่มี participant data … ก่อน CREC approval"*.
+  Almost certainly the team's own E2E runs (the n=6 ICC from the June audit matches exactly), but
+  nothing in the system of record says so. **Untouched — this is evidentiary data and the research
+  team's call.**
+
+### A — direct contradictions with the protocol
+
+- **Socratic randomisation → protocol rescue.** The randomisation that shipped the day before was a
+  full experimental arm; *PLE Instruction Sheet §4* and *ICF §3* call Socratic **"a standardized
+  rescue … not an experimental arm."** Removed `drawSocraticEpisode`, the `socratic_episode`
+  allocation + write-back, the `randomised_examiner` reason, and the 6 tests asserting the allocation.
+  Built `rimpl/src/services/rescue.js` to §4 semantics: after **4 physician turns**, if off-topic or
+  not yet qualifying → 1–2 **non-leading** questions, **no diagnosis**, then back to normal. A
+  deterministic pre-filter runs first so the model call is skipped in the common case. `off_topic`
+  outranks `not_qualifying`. Persists four columns, not a boolean — `rescue_activated_at`,
+  `rescue_reason`, `rescue_exchanges_before`, `qualified_at` — because the SAP reports trigger rate,
+  activation point, and exchanges **before and after**.
+  `consecutive_t1_fails >= 3` → Socratic is a cross-session rule the protocol does not have; it is
+  kept behind `t1_remediation_enabled` (**default 0**) as a documented deviation rather than deleted.
+- **PLE gate: c1–c3 demoted to metadata.** `cle-gate.js` hard-failed on duration ≥600s, turns ≥4,
+  tokens ≥10000 — effort proxies the protocol never names. They terminated sessions at `cle_fail_t1`
+  (6 rows in prod), rejecting a concise but genuinely reflective episode while passing a rambling
+  lookup. CREC082 §1 defines a PLE by four qualities; three already mapped (c4 meaningful problem,
+  c5 developing reasoning, c6 reflective synthesis) and **the third element — context/evidence
+  integration — had no check at all**. Added as **c7**. c2's `turns ≥ 4` kept its correct protocol job
+  as the rescue trigger. The only remaining hard stop is a session with **zero physician turns**
+  (nothing to classify, so a paid classifier call would buy nothing).
+- **Layered identity.** ICF §4 requires ThaID *or* national ID + licence, with the identity layer
+  **separate from the research dataset**; the system knew only an email. New `identity_verifications`
+  table (deny-all RLS, service-role only, deliberately not in `professionals`). The national ID is
+  stored three ways: AES-256-GCM encrypted (reversible — the team may have to re-check a number
+  against a register), a **keyed HMAC blind index** (deterministic so uniqueness is enforceable; a
+  plain SHA-256 would be useless, the whole space is ~10¹² and a leaked column falls to exhaustive
+  search on a laptop), and last-4 for confirming the right record on screen. Checksum validated
+  (mod-11, weights 13..2) before any write; fuzz-verified client vs server over 4005 cases, 0
+  disagreements. The licence lookup is **evidence, not a verdict** — it can confirm a licence exists,
+  never that the person typing it is that person; an administrator decides.
+- **Local AI (A2)** — no new code; closes when the DGX unblocks. All five purposes still read
+  `anthropic`/`openai`. **GDCC hosting (A3)** — out of scope, named so it is not lost.
+
+### C — committed to CREC, never built
+
+- **100% human privacy review.** The protocol promises automated PII/PHI screening **plus** a human
+  reading every transcript before it reaches a rater. Only the automated half existed — RIMPL scrubs
+  the *outbound* cloud call, but the stored transcript is deliberately kept **raw** as the evidentiary
+  record, and it reached a third party with nobody having looked. Modelled as a **clearance, not a
+  lifecycle status** — scored-or-not and cleared-or-not are different axes, and one column would have
+  meant rewriting a dozen status filters. `backend/src/lib/privacy-review.js` gates four exposure
+  points (manual-assign guard, assign write filter, sampler pool, auditor queue) and `isCleared()`
+  **fails closed**. New `/admin/privacy` screen: pass / redact / quarantine / exclude, note required
+  for anything but a clean pass.
+- **Reflection after every PLE.** The word `reflection` appeared nowhere in the backend or the portal.
+  The subtle part: PIS-7 is assessed on *"transcript **และ** reflection"* and the D6 anchor starts at
+  *"0: ไม่มี reflection"* — so a reflection collected **after** scoring would leave D6, and c6 (one of
+  the four qualifying elements), judged on evidence the protocol calls incomplete. It is captured
+  **before** screening and fed into the transcript the evaluator sees, tagged `role: 'reflection'` so
+  it reads as evidence rather than more chat. Three columns matching the protocol's three prompts. A
+  skipped reflection returns `null`, not a note saying it was skipped — the D6 zero anchor is *no*
+  reflection.
+- **Acceptability questionnaire**, one per physician after their last PLE. Unique on `physician_id`,
+  not `(physician_id, cle_id)` — the questionnaire is about the **system**, not a session.
+- **Retention + monthly security review.** New `/admin/governance` (superadmin only) and a
+  `security_reviews` table with three separate columns, because a reviewer who covered access but not
+  incidents should produce a record that says so; `incidents_found` is explicit rather than inferred
+  from empty text. **Deviation from plan: there is deliberately no scheduler.** The deadline is five
+  years after a project that has not started (~2031); an unattended five-year cron running irreversible
+  deletes against a schema that will have changed repeatedly is a larger risk than the one it manages.
+  Execution is a guarded manual action (superadmin + deadline passed + a 31-character typed phrase),
+  audit-logged. A test asserts `src/index.js` never reaches the retention service.
+
+### B — measurement conformance
+
+- **ICC(A,3)** average-measures absolute agreement added alongside the existing ICC(A,1); verified
+  against an independently-written Python reference to 4dp, and the Spearman-Brown identity cancels
+  exactly.
+- **Quadratic-weighted kappa** (`backend/src/services/kappa.js`). Matrix sized by **scale**, not
+  sample; out-of-range values dropped rather than clamped. Cross-checks against ICC(A,1) as theory
+  predicts (converging 0.002 → 0.000 by n=800).
+- **Model Lock provenance** — `ai_evaluations.provenance` jsonb + a `config_fingerprint` index. The
+  weights checksum is not readable over an inference API, so it is **declared** once at lock time
+  (`evaluator_weights_sha256`) and stamped on every score: a pre-lock score says "not locked" on its
+  face, and a mid-pilot re-declaration shows up as two fingerprints either side of the change.
+- **≥3 raters (B1)** and **≥150 evaluable PLEs (B6)** are recruitment gates, not code — the dial
+  exists. **Model identity (B4)** needs Aj. Chanvit: the Model Lock Record names a DeepSeek-based
+  model, `cme-dev` serves only Qwen builds. That is a document change, not a code change.
+
+### Rubric, naming, and the settings gates
+
+Rubric anchors replaced with the CREC-approved **behavioural 0–5 scale** plus per-domain 0→3→5
+anchors, synced across both sources (`rimpl/src/lib/prompts.js` ↔ `audit-dashboard/lib/pis7-rubric.ts`)
+with a drift test. **Weights (15/20/15/15/15/10/10), the 7 domain names, and the 0–5 scale are
+untouched** — already verified identical. `PROMPT_VERSION` auto-bumps on rubric edits.
+
+**PLE (protocol) ≡ CLE (code).** Do **not** re-rename the code — a past PLE→CLE rename already left FK
+constraints named `ples_*`. Glossary added to [domain-concepts.md](domain-concepts.md); use PLE in
+CREC-facing artefacts only.
+
+Four gates are settings rather than hardcoded behaviour, and the defaults are deliberate:
+
+| Setting | Default | Why that default |
+|---|---|---|
+| `privacy_review_required` | **1** | Fails closed by **withholding** data from third parties — the safe direction. The protocol's promise is 100% |
+| `reflection_required` | **1** | Blocks nobody (a physician may always skip), and the reflection is scored evidence |
+| `identity_verification_required` | **0** | Fails closed by **blocking every physician from working**, and guards nothing while there are no real participants. **Must be 1 before the first participant** — a release step, not a default |
+| `t1_remediation_enabled` | **0** | Opens Socratic from turn 1, which §4 reserves for the rescue |
+
+### Migrations (all applied to prod 2026-08-27)
+
+`db/migration-crec-{phase0,rescue,privacy-gate,identity,reflection,retention-security}.sql`, recorded
+as `crec_*` in `supabase_migrations.schema_migrations`. **phase0 must run before rescue** (it opens the
+CHECK constraint the rescue writes to); the rest are independent. `migration-socratic-randomisation.sql`
+is **superseded, not reverted** — the `socratic_episode` drop lives in phase0 so the history stays readable.
+
+**Existing rows were not backfilled, on purpose.** All 34 CLEs default to
+`privacy_review_status='pending'`, which drops the already-evaluated sessions out of the auditor queue
+until a human reviews them. Backfilling to `passed` would assert a review that never happened — exactly
+the claim this gate exists to make true. If a round must keep running, lower the **setting** (a
+recorded, reversible decision); never mass-update the column.
+
+### Gates green after this work
+
+backend **593/593** · rimpl **379/379** (incl. the adversarial PII-leak suite) · audit-dashboard
+`tsc` 0 / `lint` 0 / **48/48** · responsive smoke **40 checks across 10 pages**, 0 overflow.
 
 ## What just shipped (2026-06-28 → 2026-08-04) — Thai manuals · sandbox test round · landing/login redesign
 
@@ -294,22 +450,27 @@ verify a Resend sending domain (see [GO-LIVE-CHECKLIST.md](GO-LIVE-CHECKLIST.md)
 So the natural next contributions are **P2 spec gaps** — top of the list is full reversible PII
 pseudonymization (`P-`/`CLE-` lookup table + broader Thai-name coverage in `rimpl/src/services/pii-filter.js`).
 
-### Open threads as of 2026-08-22
+### Open threads as of 2026-08-27
 
-Loose ends a successor inherits, smallest first:
+Loose ends a successor inherits, most urgent first:
 
-1. **Uncommitted rimpl evaluator fix** — `rimpl/src/routes/evaluate.js` + `src/services/claude.js` are
-   modified in the working tree and **not in git at all**. They fix a real prod failure: a 130k-token
-   transcript (CLE-052, 2026-08-17) truncated the evaluator's JSON at `maxTokens` 2000 *and* 3000, and
-   the SDK's 55s timeout fired mid-generation. The change raises `maxTokens` to 4096 and the timeout to
-   85s, and surfaces `stopReason` so truncation (`max_tokens`) is distinguishable from a model that
-   simply never emitted JSON (`end_turn`). **Commit or discard it — don't leave it uncommitted.**
-2. **Land the two open PRs** (#58, #59) and decide on `feat/council-billing-thai-caching`.
-3. **Two mobile-audit findings remain**: the dense 8-column `/admin/users` table side-scrolls at
+1. **Clear the privacy queue.** All **34 CLEs sit at `privacy_review_status='pending'`** after the
+   CREC deploy, which correctly holds **5 unscored assignments** out of the auditor queue. Nothing
+   else unblocks those auditors: go to `/admin/privacy` and pass/redact them. (Correct behaviour, not
+   a bug — see the backfill note in the CREC section.)
+2. **`identity_verification_required` is 0 and must become 1 before the first participant.** Flipping
+   it before the submission form has actually been used blocks every physician from starting a CLE, so
+   it is staged deliberately — but shipping without it breaks ICF §4.
+3. **Three CREC items are blocked on people, not code** — see *Known gaps* below: D3 pre-approval data
+   provenance (research team), the acceptability instrument wording (IRB), and the evaluator model
+   identity (Aj. Chanvit).
+4. **Land the two open PRs** (#58, #59) and decide on `feat/council-billing-thai-caching`.
+   *(The uncommitted rimpl evaluator fix listed here on 2026-08-22 landed as **#64**.)*
+5. **Two mobile-audit findings remain**: the dense 8-column `/admin/users` table side-scrolls at
    **768px (iPad portrait) and 812px landscape** because its card fallback is `useIsMobile()` ≤767px.
    Low severity — admin surface, tablet only, contained scroll; phones are clean. Fix is to extend that
    table's card breakpoint to ~1024px.
-4. **Dashboard live-smoke in CI is inert** until a repo admin sets `DASH_URL` / `BACKEND_URL` /
+6. **Dashboard live-smoke in CI is inert** until a repo admin sets `DASH_URL` / `BACKEND_URL` /
    `AUDITOR_EMAIL` / `AUDITOR_PW`. Same for the opt-in go-live smoke's `SMOKE_*` secrets.
 
 ## Known gaps & deferred work
@@ -327,6 +488,21 @@ Loose ends a successor inherits, smallest first:
   billing model itself is undecided. Treat it as a design decision pending, not as work in progress.
   Hard constraint recorded with it: a **scored CLE must never run through claude.ai** — that path
   bypasses PII de-identification, the C1–C6 gate, provenance and transcript integrity.
+- **Three CREC082 items are blocked on people, not engineering.**
+  - **D3 — pre-approval data provenance.** 6 evaluated CLEs in the real TMC council carry
+    `is_test=false` while the submission states no participant data exists before CREC approval. The
+    fix (flag them, record the reconciliation in `audit_log`) is trivial; **deciding what they are is
+    not**, and it is the research team's call, not a code one.
+  - **Acceptability instrument wording.** `backend/src/lib/acceptability.js` carries
+    `INSTRUMENT_VERSION = 'provisional-v1'`. The four **domains** are the protocol's (objective 5:
+    acceptability, time burden, data/privacy, suggestions); the seven **sentences** are in no approved
+    document. Replace with the IRB-approved wording and **bump the version** — every stored response
+    carries it, so responses collected under different wordings can never be pooled by accident.
+    Do not edit IRB-approved consent wording directly.
+  - **Evaluator model identity (B4).** The Model Lock Record names a **DeepSeek**-based model;
+    `cme-dev` serves 8 models, **all Qwen**, 5 of them abliterated community builds. Ask Aj. Chanvit
+    which is the real evaluator. If it is `qwen3.6-custom`, the **document** changes, not the code.
+- **`pilot_test_mode` is still 1** and stays that way until Napat says otherwise.
 - **LINE OAuth** absent (Supabase has no native LINE provider — needs custom OIDC). Google is live.
 - The `2026-06-04` plan/spec under `docs/superpowers/` is **historical** and superseded by the design
   audit (it still describes slider-based scoring) — kept for reference, banner-flagged.
@@ -337,9 +513,27 @@ From [GO-LIVE-CHECKLIST.md](GO-LIVE-CHECKLIST.md): IRB sign-off; **rotate `ANTHR
 demo passwords (`db/seed-users.js`); run `db/reset-demo.js` for a clean slate; verify the
 migration-applied gate ([deployment.md](deployment.md)); optionally verify a Resend sending domain.
 
+**Settings that must be flipped before the first participant** (all live in `app_settings`; none of
+them is a deploy):
+
+| Setting | Now | Must be | Why it is not already set |
+|---|---|---|---|
+| `identity_verification_required` | 0 | **1** | Fails closed by blocking every physician; guards nothing until there are real participants |
+| `evaluator_weights_sha256` | null | **the digest** | Declared at Model Lock time; needs B4 resolved first |
+| `min_auditors_per_cle` | 1 | **3** | CREC wants ≥3 raters/PLE. Raising it before recruiting stalls the queue — prod has 3 auditors across 3 of 19 specialties |
+| `pilot_test_mode` | 1 | **0** | Held until Napat says so |
+
+Also gating: no participant may start while any AI purpose still reads `anthropic` — see
+[LOCAL-MODEL-ROADMAP.md](LOCAL-MODEL-ROADMAP.md). And **A3 (GDCC hosting)** is unresolved: no part of
+the stack is in Thailand, against three CREC documents. Either migrate or file a protocol amendment —
+do not leave the gap silent.
+
 ## Verify the app works
 
 Sign in at the portal with a demo account (creds in [deployment.md](deployment.md)):
-`doctor1@clics.th` → create a CLE → chat → expect content + ≥1 `(Source, Year)` ref + a Socratic
-question → end → result. As `auditor1@clics.th` → QA Queue → an assigned evaluated CLE → DomainScorer.
-As `superadmin@clics.th` → overview / ICC / users.
+`doctor1@clics.th` → create a CLE → chat → expect content + ≥1 `(Source, Year)` ref → end →
+**reflection form** → result. A Socratic question is **no longer expected on a normal run** — it fires
+only as the rescue, after 4 exchanges that are off-topic or not yet qualifying. As
+`auditor1@clics.th` → QA Queue → an assigned evaluated CLE → DomainScorer; **if the queue is empty,
+check `/admin/privacy` first** — an evaluated CLE is not assignable until a human clears it. As
+`superadmin@clics.th` → overview / ICC / users / governance.
