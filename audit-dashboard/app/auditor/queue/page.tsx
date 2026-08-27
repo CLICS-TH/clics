@@ -87,7 +87,7 @@ export default function AuditorQueue() {
           // portal (physician-ui/public/js/dashboard.js:308 and its keydown handler).
           <div key={p.id} role="button" tabIndex={0}
             aria-label={`เปิด CLE วันที่ ${new Date(p.ended_at).toLocaleDateString('th-TH')} / Open CLE`}
-            className={`border rounded-xl p-5 mb-3 cursor-pointer transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none ${p.scored ? 'opacity-60' : ''}`}
+            className={`border rounded-xl p-5 mb-3 cursor-pointer transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none ${p.scored ? 'bg-muted/50' : ''}`}
             onClick={() => router.push(`/auditor/cles/${p.id}`)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/auditor/cles/${p.id}`); }

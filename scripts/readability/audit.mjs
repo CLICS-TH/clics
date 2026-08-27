@@ -25,6 +25,10 @@
  *
  * Run:  node scripts/readability/audit.mjs
  *       DASH_URL=http://localhost:3002 node scripts/readability/audit.mjs   (adds the dashboard)
+ *
+ * Backend calls are answered from scripts/readability/fixtures.mjs — deliberately long Thai
+ * content, never real data. Without it the dashboard renders its empty state and the audit
+ * measures nothing: that is exactly how a dark-mode badge regression got past the first run.
  *       node scripts/readability/audit.mjs --json out.json
  */
 import { createServer } from 'node:http';
@@ -32,6 +36,7 @@ import { readFile, stat, writeFile } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { fixtureFor } from './fixtures.mjs';
 
 const ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
@@ -135,7 +140,10 @@ function collect(thaiMinPx) {
     if (!box.width || !box.height) continue;
 
     // ---- clipping: is the text wider than the box that clips it?
-    const clipped = (cs.overflowX === 'hidden' || cs.overflowX === 'clip') && el.scrollWidth > el.clientWidth + 1;
+    // text-overflow:ellipsis is deliberate truncation, not a clip — flagging it reports a design
+    // decision as a defect. A hard overflow:hidden with no ellipsis still counts.
+    const ellipsis = cs.textOverflow === 'ellipsis';
+    const clipped = !ellipsis && (cs.overflowX === 'hidden' || cs.overflowX === 'clip') && el.scrollWidth > el.clientWidth + 1;
     if (clipped) clips.push({ sel: sel(el), text: el.textContent.trim().slice(0, 60), over: el.scrollWidth - el.clientWidth });
 
     if (!owns(el)) continue;
@@ -154,6 +162,8 @@ function collect(thaiMinPx) {
     // "secondary" fade quietly costs contrast, so it must be part of the measurement.
     let eff = 1;
     for (let n = el; n; n = n.parentElement) eff *= parseFloat(getComputedStyle(n).opacity);
+    // Hidden by an ANCESTOR's opacity (hover-revealed actions, for one). Not visible, not a finding.
+    if (eff === 0) continue;
     if (eff < 1) fg = over({ ...fg, a: fg.a * eff }, bg);
     else if (fg.a < 1) fg = over(fg, bg);
 
@@ -170,6 +180,7 @@ function collect(thaiMinPx) {
 
 // ---- runner ----------------------------------------------------------------------------------
 const dashUrl = process.env.DASH_URL || '';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 const jsonAt = process.argv.includes('--json') ? process.argv[process.argv.indexOf('--json') + 1] : null;
 
 const server = await startServer();
@@ -186,6 +197,15 @@ async function run(url, label, token) {
       // responsive-smoke.mjs and the whole reason the numbers here can be trusted for Thai.
       await ctx.route('**/*', (route) => {
         const u = route.request().url();
+        // Backend calls are FULFILLED, not forwarded: populated rows are the whole point, and a
+        // real backend would put real transcripts in the audit.
+        if (u.startsWith(API_BASE)) {
+          return route.fulfill({
+            status: 200, contentType: 'application/json',
+            headers: { 'access-control-allow-origin': '*' },
+            body: JSON.stringify(fixtureFor(u)),
+          });
+        }
         if (u.startsWith(base) || u.startsWith('http://localhost') || u.startsWith('http://127.0.0.1')) return route.continue();
         if (/fonts\.(googleapis|gstatic)\.com/.test(u)) return route.continue();
         return route.abort();
