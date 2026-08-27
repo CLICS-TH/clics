@@ -45,7 +45,7 @@ export default function IccPage() {
     </div>
   );
 
-  const { overall, per_domain, per_council } = data;
+  const { overall, per_domain, per_council, inter_auditor, inter_auditor_average, inter_auditor_note, weighted_kappa, auditors_per_cle, n_at_target, n_below_target, min_auditors } = data;
   const councils: CouncilIcc[] = per_council
     ? Object.values(per_council).filter((c): c is CouncilIcc => !!c?.overall)
     : [];
@@ -95,6 +95,79 @@ export default function IccPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Human interrater reliability — the SAP's ICC(A,3), shown next to ICC(1,1) rather than
+          instead of it. Which one is legitimate depends on how assignment actually ran, and
+          publishing whichever is larger without saying so is the failure this pairing prevents. */}
+      {(inter_auditor || inter_auditor_average) && (
+        <div className="border rounded-xl p-5">
+          <h2 className="font-semibold mb-1">ความสอดคล้องระหว่างผู้ตรวจ / Human interrater agreement</h2>
+          <p className="text-xs text-muted-foreground mb-4">
+            เป้าหมายตามโปรโตคอล: ผู้ตรวจ ≥ {min_auditors ?? 3} คนต่อ PLE / Protocol target: ≥ {min_auditors ?? 3} raters per PLE
+          </p>
+          <div className="grid gap-3 @min-[640px]:grid-cols-2">
+            {[
+              { r: inter_auditor, sub: 'ผู้ตรวจหนึ่งคน / one rater — conservative; assumes raters drawn per CLE' },
+              { r: inter_auditor_average, sub: 'ค่าเฉลี่ยของผู้ตรวจ / the raters\u2019 mean — assumes a fixed panel' },
+            ].filter(x => x.r).map(({ r, sub }) => (
+              <div key={r!.model ?? 'icc'} className="rounded-xl border p-4">
+                <p className="text-sm font-medium">{r!.model ?? 'ICC'}{r!.model_alt ? <span className="text-muted-foreground font-normal"> · {r!.model_alt}</span> : null}</p>
+                <p className="text-xs text-muted-foreground">{sub}</p>
+                <p className={`mt-1 text-2xl font-bold ${r!.icc == null ? 'text-muted-foreground' : r!.icc >= 0.75 ? 'text-[var(--ok)]' : 'text-destructive'}`}>
+                  {r!.icc?.toFixed(3) ?? '—'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {r!.icc != null ? <>95% CI [{r!.lower?.toFixed(2)}, {r!.upper?.toFixed(2)}] · </> : null}n = {r!.n}
+                </p>
+                {r!.icc == null && <p className="mt-1 text-xs text-muted-foreground">{r!.interpretation}</p>}
+              </div>
+            ))}
+          </div>
+          {inter_auditor_note && <p className="mt-3 text-xs text-muted-foreground">{inter_auditor_note}</p>}
+          {auditors_per_cle && (
+            // Cohort transparency, not a filter. This project has been burnt once by a headline ICC
+            // that was partly an artifact of cases dropping out (n 33 → 30).
+            <p className="mt-2 text-xs text-muted-foreground">
+              ผู้ตรวจต่อ CLE / raters per CLE: {Object.entries(auditors_per_cle).map(([k, v]) => `${k}→${v}`).join(' · ')}
+              {n_at_target != null && <> · ถึงเป้าหมาย / at target: {n_at_target}, ต่ำกว่า / below: {n_below_target}</>}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Weighted kappa — SAP "Additional agreement". Ordinal-aware where ICC is not: it asks how
+          often two raters land on the SAME 0–5 category, corrected for chance. */}
+      {weighted_kappa?.pooled && (
+        <div className="border rounded-xl p-5">
+          <h2 className="font-semibold mb-1">Weighted kappa (quadratic)</h2>
+          <p className="text-xs text-muted-foreground mb-4">
+            แก้ค่าความบังเอิญ — ต่างกัน 1 ระดับถูกหักน้อยกว่าต่างกัน 2 ระดับสี่เท่า / Chance-corrected; an adjacent miss costs a quarter of a two-band miss.
+          </p>
+          <div className="mb-4 rounded-xl border p-4">
+            <p className="text-sm font-medium">รวมทุกโดเมน / Pooled</p>
+            <p className="mt-1 text-2xl font-bold">{weighted_kappa.pooled.kappa?.toFixed(3) ?? '—'}</p>
+            <p className="text-xs text-muted-foreground">
+              {weighted_kappa.pooled.interpretation} · n = {weighted_kappa.pooled.n}
+              {weighted_kappa.pooled.exact_agreement != null && <> · ตรงกันพอดี / exact: {(weighted_kappa.pooled.exact_agreement * 100).toFixed(0)}%</>}
+            </p>
+          </div>
+          <div className="space-y-3">
+            {Object.entries(weighted_kappa.domains).map(([key, d], i) => (
+              <div key={key} className="flex items-center gap-3">
+                <span className="w-12 text-xs text-muted-foreground">{DOMAIN_LABELS[i]}</span>
+                <div className="relative h-4 flex-1 overflow-hidden rounded-full bg-muted">
+                  <div className={`h-full rounded-full ${(d?.kappa ?? 0) >= 0.61 ? 'bg-[var(--chart-pass)]' : 'bg-destructive'}`}
+                    style={{ width: `${Math.max(0, (d?.kappa ?? 0)) * 100}%` }} />
+                </div>
+                <span className="w-14 font-mono text-sm">{d?.kappa?.toFixed(3) ?? '—'}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            โดเมนที่ต่ำผิดปกติคือโดเมนที่ควรทบทวนคำอธิบายเกณฑ์ / A domain that stands out low is the one whose anchors need rewriting.
+          </p>
         </div>
       )}
 

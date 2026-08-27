@@ -4,8 +4,9 @@ const { stripPii, stripHistoryPii, deriveHintTokens } = require('../services/pii
 const { ragLookup } = require('../services/rag');
 const { callAI } = require('../services/ai');
 const { hasCitation, extractSocraticQuestion, extractReferences } = require('../services/post-filter');
-const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, ARTIFACT_GUIDANCE } = require('../lib/prompts');
-const { stripArtifactDelimiters } = require('../lib/transcript');
+const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE } = require('../lib/prompts');
+const { shouldAssess, assessQualifying, rescueDecision, checkRescueReply } = require('../services/rescue');
+const { flattenForPrompt, stripArtifactDelimiters } = require('../lib/transcript');
 
 const router = Router();
 
@@ -29,6 +30,12 @@ const ChatSchema = z.object({
   // Superadmin `clinical_artifacts` setting (the backend forwards it): true → allow the AI to emit
   // `:::artifact{...}` side-panel blocks. Default false; the transcript strip runs regardless.
   artifacts: z.boolean().default(false),
+  // Socratic rescue state, forwarded by the backend from the `cles` row. RIMPL is stateless, so it
+  // cannot know whether this session has already been rescued or has already qualified — and both
+  // are latches (a session does not un-qualify). Without them the classifier would re-run on every
+  // turn past the fourth, roughly doubling the AI cost of a long, good session.
+  rescue_active: z.boolean().default(false),
+  already_qualified: z.boolean().default(false),
 });
 
 // `cleanMessage` MUST already be PII-stripped by the caller (see the route): the RAG embedding
@@ -56,13 +63,14 @@ router.post('/', async (req, res) => {
   const parsed = ChatSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { history, message, language, chief_complaint, patient_ref, socratic, artifacts } = parsed.data;
+  const { history, message, language, chief_complaint, patient_ref, socratic, artifacts,
+          rescue_active, already_qualified } = parsed.data;
   // KNOWN patient identifiers to scrub deterministically (closes the bare-unlabelled-name leak).
   const hints = deriveHintTokens(patient_ref);
   // Examiner mode (CLE2 / remediation) leads with Socratic questioning and MUST end on ❓; natural
   // mode (CLE1/CLE3) answers directly and must NOT force a ❓ — that's the experimental contrast.
   // Append the artifact guidance only when the superadmin toggle (forwarded as `artifacts`) is on.
-  const systemPrompt = (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)
+  let systemPrompt = (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)
     + (artifacts ? ARTIFACT_GUIDANCE : '');
 
   try {
@@ -72,11 +80,44 @@ router.post('/', async (req, res) => {
     const ragDocs = await ragLookup(cleanMessage);
     const messages = await buildMessages(history, cleanMessage, ragDocs, chief_complaint, hints);
 
+    // Socratic rescue (CREC082 PLE Instruction Sheet §4). Decided HERE, from the conversation, on
+    // the turn it applies to — never from which episode this is or who the physician is.
+    //
+    // Failure is silent by design. If the classifier errors or returns malformed JSON, the turn
+    // proceeds as a normal reply: a missed rescue costs one scaffolding nudge, whereas failing the
+    // request would cost the physician their turn over an advisory signal. It is logged, not raised.
+    let rescue = null;
+    if (shouldAssess({ history, socraticActive: socratic, rescueActive: rescue_active, alreadyQualified: already_qualified })) {
+      try {
+        // Include the turn just sent — the physician may have qualified the session WITH this
+        // message, and rescuing them for a gap they have already closed would be plainly wrong.
+        const assessed = await assessQualifying(
+          flattenForPrompt([...history, { role: 'physician', content: cleanMessage }], hints));
+        const decision = rescueDecision(assessed);
+        rescue = {
+          activated: decision.rescue,
+          reason: decision.reason,
+          elements: assessed.elements,
+          on_topic: assessed.onTopic,
+          qualifying: assessed.qualifying,
+          exchanges_before: history.filter(m => m.role === 'physician' || m.role === 'user').length,
+        };
+        if (decision.rescue) systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE;
+      } catch (e) {
+        console.error('[RIMPL chat] rescue assessment failed, continuing as a normal turn:', e.message);
+      }
+    }
+
     let { text, tokenCount, inputTokens, outputTokens, provider, model } =
       await callAI({ purpose: 'chat', systemPrompt, messages, maxTokens: CHAT_MAX_TOKENS });
 
+    // A rescue turn asks questions and deliberately gives no answer, so it has nothing to cite and
+    // the citation retry does not apply — running it would prompt the model to answer, which is the
+    // one thing the rescue must not do.
+    const rescuing = !!rescue?.activated;
+
     // Retry once if a citation is missing (both modes), or — examiner mode only — the ❓ is missing.
-    if (!hasCitation(text) || (socratic && !extractSocraticQuestion(text))) {
+    if (!rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)))) {
       const retryPrompt = socratic
         ? (language === 'th'
           ? 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) และปิดท้ายด้วยคำถามชวนคิดขึ้นบรรทัดใหม่นำหน้าด้วย ❓ — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม'
@@ -116,6 +157,10 @@ router.post('/', async (req, res) => {
       // omitting it under a hybrid would bill on-prem tokens at cloud rates.
       provider,
       model,
+      // Advisory, for the backend to persist: which turn the rescue fired on, why, and whether the
+      // reply actually honoured the protocol's constraints. The SAP analyses trigger rate and
+      // activation point, so an unrecorded rescue is a lost data point.
+      rescue: rescue && { ...rescue, reply_check: rescue.activated ? checkRescueReply(text) : null },
     });
   } catch (err) {
     console.error('[RIMPL chat] error:', err);

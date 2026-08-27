@@ -2,10 +2,14 @@
 // can scrub it from the transcript on-prem before the cloud call. This pins the threading through
 // finalizeScreening → criteria classifier (C4/C5/C6) AND → the PIS-7 evaluation.
 jest.mock('../src/lib/supabase', () => ({
-  supabase: { from: () => ({ update: () => ({ eq: () => Promise.resolve({ error: null }) }) }) },
+  supabase: {
+    from: () => ({ update: () => ({ eq: () => Promise.resolve({ error: null }) }) }),
+    // record_t1_outcome: cle-finalize.js records the consecutive-failure outcome via RPC.
+    rpc: async () => ({ data: null, error: null }),
+  },
 }));
 jest.mock('../src/services/rimpl-client', () => ({
-  rimplEvaluateCriteria: jest.fn(async () => ({ c4: true, c5: true, c6: true, input_tokens: 1, output_tokens: 1 })),
+  rimplEvaluateCriteria: jest.fn(async () => ({ c4: true, c5: true, c6: true, c7: true, input_tokens: 1, output_tokens: 1 })),
   isDeterministicRimplError: () => false,
 }));
 jest.mock('../src/lib/usage', () => ({ accrueUsage: jest.fn(async () => {}) }));

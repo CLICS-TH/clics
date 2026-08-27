@@ -51,6 +51,49 @@ async function holdResultUntilAudited() {
 // specialties). So this WARNS, it does not BLOCK: a CLE below target is badged in the admin queue
 // and reported in the ICC cohort, but its score still releases. Blocking would strand credit for
 // specialties that have no eligible auditor at all — a worse failure than a thin rater count.
+// Socratic remediation after 3 consecutive Tier-1 failures. OFF by default and deliberately so:
+// the CREC082 protocol describes exactly one route into Socratic mode — the mid-session rescue after
+// 4 exchanges (PLE Instruction Sheet §4) — and says nothing about a cross-session remediation rule.
+// The rule is a reasonable support path, but switching it on is a protocol deviation that someone
+// has to choose and be able to point at afterwards, which a default-off setting records and a
+// hardcoded `if` does not.
+async function t1RemediationEnabled() {
+  return (await getSetting('t1_remediation_enabled', 0)) === 1;
+}
+
+// The 100% human privacy review gate (CREC082 ICF §5-6). ON by default: the protocol promises a
+// human reads every transcript before it reaches an expert rater, so the safe default is the one
+// that keeps that promise. A superadmin can lower it, which is a recorded deviation rather than a
+// silent omission.
+async function privacyReviewRequired() {
+  return (await getSetting('privacy_review_required', 1)) === 1;
+}
+
+// Professional identity verification before a physician's first PLE (CREC082 ICF §4).
+//
+// OFF by default, and unlike privacyReviewRequired that is deliberate rather than cautious. The
+// privacy gate fails closed by WITHHOLDING data from third parties; this one fails closed by
+// blocking every physician from working, and it guards nothing that is not already guarded while
+// there are no real participants. It must be switched ON before the first participant — a release
+// step, not a default. See db/migration-crec-identity.sql.
+async function identityVerificationRequired() {
+  return (await getSetting('identity_verification_required', 0)) === 1;
+}
+
+// Post-PLE reflection (CREC082 ICF §3 step 3). ON by default: the protocol promises it after every
+// PLE and it is scored evidence for D6/c6. Unlike the identity gate this blocks nobody — a physician
+// may always skip — so defaulting to the protocol's answer costs nothing.
+async function reflectionRequired() {
+  return (await getSetting('reflection_required', 1)) === 1;
+}
+
+// The DECLARED weights checksum from the CREC082 Model Lock Record (§10.2). Text, because it is a
+// hex digest. NULL until the evaluator is locked — and a score produced before that says so on its
+// face rather than implying a lock that had not happened.
+async function evaluatorWeightsSha256() {
+  return getTextSetting('evaluator_weights_sha256', null);
+}
+
 async function minAuditorsPerCle() {
   const n = await getSetting('min_auditors_per_cle', 1);
   return Math.max(1, Math.min(10, Math.round(n)));
@@ -81,4 +124,4 @@ async function creditSettings() {
   };
 }
 
-module.exports = { getSetting, getTextSetting, minAuditorsPerCle, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };
+module.exports = { getSetting, getTextSetting, minAuditorsPerCle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };

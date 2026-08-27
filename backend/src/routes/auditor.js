@@ -9,7 +9,8 @@ const { logEvent } = require('../lib/audit');
 const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
 const { settlementDelta } = require('../lib/pricing');
 const { rimplAuditDiscuss } = require('../services/rimpl-client');
-const { peerCalibrationEnabled } = require('../lib/settings');
+const { peerCalibrationEnabled, privacyReviewRequired } = require('../lib/settings');
+const { whereCleared } = require('../lib/privacy-review');
 const { PIS7_DIMS: CALIB_DIMS, meanByDim } = require('../lib/compensation');
 
 // Access gate (multi-auditor pilot): an auditor may act on a CLE if they're explicitly assigned via
@@ -39,8 +40,12 @@ router.get('/queue', async (req, res) => {
   // in JS (two small queries) to avoid PostgREST .or()/.in() quoting pitfalls; pilot-scale row counts.
   const { data: assigns } = await supabase.from('audit_assignments').select('cle_id').eq('auditor_id', req.user.id);
   const assignedIds = [...new Set((assigns ?? []).map(a => a.cle_id))];
-  const base = () => supabase.from('cles')
-    .select('id, status, ended_at, turn_count, token_count').eq('status', 'evaluated');
+  // EXPOSURE 4 of 4 (see backend/lib/privacy-review.js). Belt and braces: assignment is already
+  // gated, but a session assigned BEFORE the gate existed — or quarantined after being assigned —
+  // must drop out of the queue rather than sit there waiting to be opened.
+  const privacyRequired = await privacyReviewRequired();
+  const base = () => whereCleared(supabase.from('cles')
+    .select('id, status, ended_at, turn_count, token_count').eq('status', 'evaluated'), privacyRequired);
   const [legacy, viaAssign] = await Promise.all([
     base().eq('auditor_id', req.user.id),
     assignedIds.length ? base().in('id', assignedIds) : Promise.resolve({ data: [], error: null }),

@@ -6,7 +6,9 @@ const { verifyJwt, requireRole } = require('../middleware/auth');
 const { AssignSchema } = require('../lib/schemas');
 const { triggerEvaluation } = require('../services/cle-evaluation');
 const { reconcileEvaluations } = require('../services/reconcile');
-const { minAuditorsPerCle } = require('../lib/settings');
+const { minAuditorsPerCle, privacyReviewRequired } = require('../lib/settings');
+const identity = require('../services/identity');
+const { whereCleared, isCleared, CLEARED, DECISIONS } = require('../lib/privacy-review');
 const { stratifiedSample, assignRoundRobin } = require('../services/audit-sampling');
 const { detectIntegritySignals } = require('../services/integrity');
 const { sendDbError, pageParams } = require('../lib/db-helpers');
@@ -17,6 +19,7 @@ const { normalizeCanAudit } = require('../lib/dual-role');
 const { POSITIONS, checkSpecialty } = require('../lib/specialties');
 const { logEvent } = require('../lib/audit');
 const { compRateCap, cappedCles, PIS7_DIMS } = require('../lib/compensation');
+const { COMPLETED_STATUSES } = require('../lib/cle-status');
 const ExcelJS = require('exceljs');
 
 const router = Router();
@@ -144,6 +147,131 @@ router.get('/cles/:id/transcript', async (req, res) => {
   res.json({ cle, messages: messages ?? [] });
 });
 
+// ---- Identity verification (CREC082 ICF §4) --------------------------------------------------
+// The administrator's side. The licence lookup attached to a submission is EVIDENCE — it can show
+// that a licence exists and the name on it matches, not that the person who typed it is that
+// person — so a human makes the call. ThaID, when it lands, is the route that proves possession and
+// will not need this queue.
+//
+// NOTE what is absent: no endpoint here returns a national ID, encrypted or otherwise. The reviewer
+// sees the last four digits, which is enough to confirm they are looking at the right record and
+// not enough to be the identifier.
+
+router.get('/identity-queue', async (req, res) => {
+  const { limit, offset } = pageParams(req);
+  const status = ['pending', 'verified', 'rejected'].includes(req.query.status) ? req.query.status : 'pending';
+  let q = supabase.from('identity_verifications')
+    .select('id, professional_id, method, status, national_id_last4, license_number, license_check_status, license_check_source, submitted_at, decided_at, reject_reason, professionals!identity_verifications_professional_id_fkey(full_name_th, full_name_en, pseudonym, council_id, specialty_id)', { count: 'exact' })
+    .eq('status', status);
+  const { data, count, error } = await q.order('submitted_at', { ascending: true }).range(offset, offset + limit - 1);
+  if (sendDbError(res, error)) return;
+  // Council scoping is applied in JS: the council lives on the embedded professional, not on
+  // identity_verifications, and denormalising it onto this table would put another copy of a
+  // physician's affiliation next to their national ID for no gain.
+  const rows = (data ?? []).filter(r => sameCouncil(req, r.professionals?.council_id ?? null));
+  res.json({ verifications: rows, limit, offset, total: count ?? 0 });
+});
+
+const IdentityDecisionSchema = z.object({
+  decision: z.enum(['verified', 'rejected']),
+  reason: z.string().trim().max(500).optional(),
+});
+
+router.post('/identity/:id/decide', async (req, res) => {
+  const parsed = IdentityDecisionSchema.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const { decision, reason } = parsed.data;
+  // A rejection the physician cannot act on is a dead end — they resubmit the same thing and are
+  // refused again. Say what was wrong.
+  if (decision === 'rejected' && !reason) {
+    return res.status(400).json({ error: 'A reason is required when rejecting.', code: 'reason_required' });
+  }
+
+  const { data: row, error: rErr } = await supabase.from('identity_verifications')
+    .select('id, professional_id, status, professionals!identity_verifications_professional_id_fkey(council_id)')
+    .eq('id', req.params.id).maybeSingle();
+  if (sendDbError(res, rErr)) return;
+  if (!row) return res.status(404).json({ error: 'Not found' });
+  if (!sameCouncil(req, row.professionals?.council_id ?? null)) return res.status(404).json({ error: 'Not found' });
+
+  const out = await identity.decide({ verificationId: req.params.id, decidedBy: req.user.id, decision, reason });
+  if (!out.ok) return res.status(500).json({ error: 'Could not record the decision.', code: out.code });
+
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'identity.decide',
+    targetType: 'professional', targetId: row.professional_id,
+    councilId: row.professionals?.council_id ?? null,
+    metadata: { decision, from: row.status, has_reason: !!reason } });
+  res.json({ ok: true, status: out.status });
+});
+
+// ---- Privacy review (CREC082 ICF §5-6) -----------------------------------------------------
+// The human half of the privacy gate. rimpl's pii-filter screens the OUTBOUND cloud call; this is a
+// person reading the stored transcript before any expert rater sees it. The protocol commits to
+// doing this for 100% of sessions, and to quarantining / de-identifying / excluding anything that
+// carries patient data — so the queue is "everything scored but not yet cleared", not a sample.
+
+// The queue. Council- and specialty-scoped like every other admin read, so a reviewer only ever
+// sees sessions they are already entitled to investigate.
+router.get('/privacy-queue', async (req, res) => {
+  const { limit, offset } = pageParams(req);
+  let q = supabase.from('cles')
+    .select('id, cle_code, council_id, specialty_id, status, privacy_review_status, ended_at, turn_count, token_count, is_test', { count: 'exact' })
+    .eq('status', 'evaluated');
+  // Default view is the work: sessions nobody has looked at yet. `?status=quarantined` etc. lets a
+  // reviewer revisit their own earlier decisions, which they must be able to do — a quarantine that
+  // cannot be reversed after redaction would silently destroy usable data.
+  //
+  // Whitelisted, and unrecognised values fall back to 'pending' rather than through. An arbitrary
+  // status matched no rows and rendered as "every session has been reviewed", which is the most
+  // misleading answer a privacy queue can give.
+  const pStatus = DECISIONS.includes(req.query.status) ? req.query.status : 'pending';
+  q = q.eq('privacy_review_status', pStatus);
+  q = scopeBySpecialty(req, scopeToCouncil(req, q));
+  // Oldest first: the queue is work to clear, and a session waiting longest is the one holding up
+  // its physician's result and its auditors' assignment.
+  const { data, count, error } = await q.order('ended_at', { ascending: true }).range(offset, offset + limit - 1);
+  if (sendDbError(res, error)) return;
+  res.json({ cles: data ?? [], limit, offset, total: count ?? 0 });
+});
+
+const PrivacyDecisionSchema = z.object({
+  decision: z.enum(['passed', 'redacted', 'quarantined', 'excluded']),
+  // Free text, and required for anything that is not a clean pass. A quarantine with no stated
+  // reason is unreviewable later, and "why was this session excluded?" is a question the ethics
+  // committee is entitled to ask about any row.
+  note: z.string().trim().max(2000).optional(),
+});
+
+router.post('/cles/:id/privacy-review', async (req, res) => {
+  const parsed = PrivacyDecisionSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const { decision, note } = parsed.data;
+  if (decision !== 'passed' && !note) {
+    return res.status(400).json({ error: 'A note is required for anything other than a clean pass.', code: 'note_required' });
+  }
+
+  const { data: cle, error: cErr } = await supabase.from('cles')
+    .select('id, cle_code, council_id, specialty_id, privacy_review_status').eq('id', req.params.id).maybeSingle();
+  if (sendDbError(res, cErr)) return;
+  if (!cle) return res.status(404).json({ error: 'Not found' });
+  if (!sameCouncil(req, cle.council_id) || !sameSpecialty(req, cle.specialty_id)) return res.status(404).json({ error: 'Not found' });
+
+  const { error } = await supabase.from('cles').update({
+    privacy_review_status: decision,
+    privacy_reviewed_at: new Date().toISOString(),
+    privacy_reviewed_by: req.user.id,
+    privacy_review_note: note ?? null,
+  }).eq('id', req.params.id);
+  if (sendDbError(res, error)) return;
+
+  // Every decision is logged, including a pass. "Who cleared this transcript, and when?" has to be
+  // answerable for all 100% of sessions, not only the ones where something was found.
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.privacy_review',
+    targetType: 'cle', targetId: cle.cle_code ?? req.params.id, councilId: cle.council_id,
+    metadata: { decision, from: cle.privacy_review_status ?? 'pending', has_note: !!note } });
+  res.json({ ok: true, privacy_review_status: decision });
+});
+
 // Council list for dashboard labels/selectors (admin + superadmin).
 router.get('/councils', async (_req, res) => {
   const { data, error } = await supabase
@@ -252,10 +380,18 @@ router.post('/cles/:id/assign', async (req, res) => {
   const auditorId = parsed.data.auditor_id;
 
   const { data: cle } = await supabase.from('cles')
-    .select('id, status, council_id, specialty_id, physician_id').eq('id', req.params.id).single();
+    .select('id, status, council_id, specialty_id, physician_id, privacy_review_status').eq('id', req.params.id).single();
   if (!cle) return res.status(404).json({ error: 'Not found' });
   if (!sameCouncil(req, cle.council_id) || !sameSpecialty(req, cle.specialty_id)) return res.status(404).json({ error: 'Not found' });
   if (cle.status !== 'evaluated') return res.status(400).json({ error: 'CLE is not ready for assignment' });
+  // EXPOSURE 1 of 4 (see lib/privacy-review.js). CREC082 promises a human reads every transcript
+  // before it reaches an expert rater; handing this one over now would break that promise directly.
+  if (!isCleared(cle, await privacyReviewRequired())) {
+    return res.status(409).json({
+      error: 'This session has not passed privacy review yet.', code: 'privacy_review_pending',
+      privacy_review_status: cle.privacy_review_status ?? 'pending',
+    });
+  }
 
   // The assignee must be an active auditor (or a "special" can_audit physician) in the SAME
   // council AND specialty, and never the physician who ran the session.
@@ -286,7 +422,8 @@ router.post('/cles/:id/assign', async (req, res) => {
   const { error } = await supabase.from('cles')
     .update({ auditor_id: auditorId })
     .eq('id', req.params.id)
-    .eq('status', 'evaluated');
+    .eq('status', 'evaluated')
+    .in('privacy_review_status', CLEARED); // EXPOSURE 2 of 4 — re-checked at write time
   if (sendDbError(res, error)) return;
   logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.assign', targetType: 'cle',
     targetId: req.params.id, councilId: cle.council_id, metadata: { auditor_id: auditorId } });
@@ -395,8 +532,12 @@ router.post('/cles/sample', async (req, res) => {
   const perCle = o.auditors_per_cle ?? await minAuditorsPerCle();
 
   // --- the pool: evaluated CLEs in scope ------------------------------------------------------
-  let q = supabase.from('cles').select('id, cle_code, council_id, specialty_id, physician_id, auditor_id, is_test')
-    .eq('status', 'evaluated');
+  // EXPOSURE 3 of 4: the sampler draws the audit set. An uncleared session must never enter the
+  // pool — being sampled IS being handed to a rater.
+  let q = whereCleared(
+    supabase.from('cles').select('id, cle_code, council_id, specialty_id, physician_id, auditor_id, is_test')
+      .eq('status', 'evaluated'),
+    await privacyReviewRequired());
   if (o.council_id) q = q.eq('council_id', o.council_id);
   if (o.specialty_id) q = q.eq('specialty_id', o.specialty_id);
   if (!o.include_test) q = q.eq('is_test', false);
@@ -800,7 +941,7 @@ router.get('/export.xlsx', async (req, res) => {
   // Compensation (computed from THIS page's CLEs — consistent with the export window).
   const { rate, cap } = await compRateCap();
   const passByPhys = {};
-  for (const c of cles ?? []) if (c.status === 'cle_pass' && !c.is_test) passByPhys[c.physician_id] = (passByPhys[c.physician_id] ?? 0) + 1;
+  for (const c of cles ?? []) if (COMPLETED_STATUSES.includes(c.status) && !c.is_test) passByPhys[c.physician_id] = (passByPhys[c.physician_id] ?? 0) + 1;
 
   const wb = new ExcelJS.Workbook();
   const addSheet = (name, columns, rows) => {
@@ -847,10 +988,10 @@ router.get('/export.xlsx', async (req, res) => {
 // rate + cap are superadmin-configurable (app_settings comp_rate_thb / comp_cap_cles; cap 0 = no cap).
 // Defaults ฿500/CLE, cap 3 (CLICS_Proposal §12 / Appendix 03). PSEUDONYMIZED report — the actual payout
 // (real names + decrypted payment details) lives in the superadmin-only /admin/payouts. Derived from
-// cles (no schema change). Pilot-scale: passed non-test CLEs are well under the PostgREST 1000-row cap.
+// cles (no schema change). Pilot-scale: completed non-test CLEs are well under the PostgREST 1000-row cap.
 router.get('/compensation', async (req, res) => {
   const { rate, cap } = await compRateCap();
-  let q = supabase.from('cles').select('physician_id').eq('status', 'cle_pass').eq('is_test', false);
+  let q = supabase.from('cles').select('physician_id').in('status', COMPLETED_STATUSES).eq('is_test', false);
   q = scopeToCouncil(req, q);
   const { data: rows, error } = await q;
   if (sendDbError(res, error)) return;

@@ -126,3 +126,72 @@ describe('degenerate inputs return null rather than a number nobody should quote
     expect(iccTwoWay(withJunk).icc).toBe(0.852);   // unchanged by the junk row
   });
 });
+
+// ---------------------------------------------------------------------------------------------
+// ICC(A,k) average measures — the SAP's interrater statistic (CREC082 SAP "Human interrater").
+//
+// The SAP names two ICCs and they are NOT interchangeable: ICC(A,1) for AI-vs-humans (how reliable
+// is one rater?) and ICC(A,3) for the human panel (how reliable is their MEAN?). Reporting the
+// average-measures figure where a single-measure one belongs overstates reliability, which is the
+// specific error these tests exist to prevent.
+const { iccTwoWayAverage } = require('../src/services/icc');
+
+describe('ICC(A,k) average measures', () => {
+  const noisy = () => {
+    let s = 3;
+    const rnd = () => (s = (s * 1103515245 + 12345) % 2147483648) / 2147483648;
+    return Array.from({ length: 20 }, () => {
+      const t = rnd() * 5;
+      return [0, 1, 2].map(() => Math.round((t + (rnd() - 0.5) * 1.5) * 100) / 100);
+    });
+  };
+
+  test('averaging k raters is always at least as reliable as one of them', () => {
+    const rows = noisy();
+    const single = iccTwoWay(rows).icc;
+    const average = iccTwoWayAverage(rows).icc;
+    expect(average).toBeGreaterThan(single);
+  });
+
+  test('Spearman-Brown reproduces it exactly — it cancels for absolute agreement', () => {
+    // k·r / (1 + (k-1)·r). Computing from the mean squares directly keeps one derivation rather
+    // than two that could drift, but the identity is the check that the derivation is right.
+    const rows = noisy();
+    const r = iccTwoWay(rows).icc, k = 3;
+    const sb = (k * r) / (1 + (k - 1) * r);
+    expect(Math.abs(iccTwoWayAverage(rows).icc - sb)).toBeLessThan(0.002); // both rounded to 3dp
+  });
+
+  test('the result labels itself in BOTH notations, because the SAP uses the A-form', () => {
+    const r = iccTwoWayAverage(noisy());
+    expect(r.model).toBe('ICC(A,3)');       // McGraw & Wong — what the SAP says
+    expect(r.model_alt).toBe('ICC(2,3)');   // Shrout & Fleiss — the same quantity
+    expect(r.measure).toBe('average');      // never mistakable for the single-measure figure
+    expect(r.k).toBe(3);
+  });
+
+  test('the single-measure result stays labelled single — the two cannot be confused', () => {
+    expect(iccTwoWay(noisy()).model).toBe('ICC(2,1)');
+    expect(iccTwoWay(noisy()).measure).toBeUndefined();
+  });
+
+  test('ragged rows are excluded and COUNTED, never silently dropped', () => {
+    // The pilot has already been burnt once by a headline ICC that was partly an artifact of cases
+    // dropping out (n 33 → 30). A cohort you cannot see is a cohort you cannot check.
+    const rows = [...noisy(), [1, 2], [3, 4, 5, 2]];
+    const r = iccTwoWayAverage(rows);
+    expect(r.n).toBe(20);
+    expect(r.n_excluded).toBe(2);
+    expect(r.rater_counts).toMatchObject({ 2: 1, 3: 20, 4: 1 });
+  });
+
+  test('identical scores → insufficient variance, not a spurious extreme', () => {
+    const r = iccTwoWayAverage(Array.from({ length: 10 }, () => [3, 3, 3]));
+    expect(r.icc).toBeNull();
+    expect(r.interpretation).toMatch(/Insufficient variance/);
+  });
+
+  test.each([[[]], [[[1, 2, 3]]]])('%j → null', (rows) => {
+    expect(iccTwoWayAverage(rows)).toBeNull();
+  });
+});

@@ -9,11 +9,16 @@ jest.mock('../src/lib/supabase', () => {
   const chain = (table, getVal) => ({
     select() { return this; },
     eq() { return this; },
-    // PostgREST filters the route chains onto an update (e.g. the Socratic allocation's
-    // .is('socratic_episode', null) guard). Missing here they throw inside the async handler,
-    // which never answers the request — the suite times out instead of failing readably.
+    // Every PostgREST filter the route chains on must exist here, even when this suite does not
+    // care what it filters. A missing one throws inside the async handler, which then never answers
+    // the request, so the suite times out instead of failing readably — three separate times now
+    // (.is() for the old Socratic guard, .in() for the completed-status probe). Add, don't audit.
     is() { return this; },
     not() { return this; },
+    in() { return this; },
+    neq() { return this; },
+    gte() { return this; },
+    lte() { return this; },
     order: () => Promise.resolve({ data: [], error: null }),
     insert(payload) { mockInserts[table] = payload; return this; },
     update() { return this; },

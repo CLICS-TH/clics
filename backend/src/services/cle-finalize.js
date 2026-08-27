@@ -28,16 +28,19 @@ async function evaluateCriteriaWithRetry(payload, attempts = 3) {
   throw lastErr;
 }
 
-// Given a session whose tier-1 already passed (status 'ended', deterministic fields persisted), run
-// tier-2 criteria and finalize: 'cle_flag_t2' on a genuine c4/c5/c6 miss, or 'cle_pass' + fire the
+// Given a session that reached 'ended' with its deterministic fields persisted, run the qualifying
+// classifier and finalize: 'cle_flag_t2' on a genuine c4-c7 miss, or 'cle_pass' + fire the
 // PIS-7 evaluation. THROWS on a persistent RIMPL error WITHOUT writing a terminal status — the session
 // stays 'ended' so the next reconcile sweep retries it, instead of a transient blip permanently
 // flagging a qualifying session to manual QA. Returns { status, criteria }.
-async function finalizeScreening({ cleId, physicianId, transcript, tier1, patient_ref }) {
+async function finalizeScreening({ cleId, physicianId, transcript, tier1, patient_ref, cle = {} }) {
   const crit = await evaluateCriteriaWithRetry({ transcript, patient_ref });
   // Persist the reversible on-prem PII map RIMPL returned (encrypted, fail-soft) — Tier-1 audit.
   await persistPiiMap(cleId, crit.pii_map);
-  const tier2 = { c4: crit.c4, c5: crit.c5, c6: crit.c6 };
+  // The CREC082 §1 qualifying test, all four elements. c7 (context/evidence integration) is the one
+  // that had no check before: a physician could reason and reflect at length without anchoring any
+  // of it to guidance, evidence, or the specifics of the case, and the session still passed.
+  const tier2 = { c4: crit.c4, c5: crit.c5, c6: crit.c6, c7: crit.c7 };
   // Price against the provider that ACTUALLY served the classifier. Without the costOverride this
   // falls through to usage.js's 2-arg costUsd(), which bills at Anthropic rates — so an all-local
   // deployment would charge ~$0.39 of a physician's $0.50 cap for a 130k-token transcript that cost
@@ -47,7 +50,20 @@ async function finalizeScreening({ cleId, physicianId, transcript, tier1, patien
     costUsd(crit.input_tokens, crit.output_tokens, crit.provider));
 
   const allCriteria = { ...tier1, ...tier2 };
-  if (!(tier2.c4 && tier2.c5 && tier2.c6)) {
+  const qualifies = tier2.c4 && tier2.c5 && tier2.c6 && tier2.c7;
+
+  // The consecutive-failure counter, moved here from the /end route. It used to be fed by the
+  // tier-1 verdict; tier-1 is metadata now, so fed from there it would record a pass for every
+  // session and reset itself forever. "Failure" means the session did not qualify as a PLE, which
+  // is what the counter was always describing. Only a natural, real session feeds it — a Socratic
+  // session is not part of the "natural fails" signal and a test session must not pollute it.
+  // Best-effort: never let bookkeeping block a finalize.
+  if (cle.socratic_reason == null && !cle.is_test) {
+    const { error: rtErr } = await supabase.rpc('record_t1_outcome', { p_id: physicianId, p_pass: qualifies });
+    if (rtErr) console.error('[cle-finalize] record_t1_outcome failed:', rtErr.message);
+  }
+
+  if (!qualifies) {
     const { error } = await supabase.from('cles')
       .update({ status: 'cle_flag_t2', ...toPassCols(allCriteria) }).eq('id', cleId);
     if (error) throw new Error(`finalizeScreening cle_flag_t2 update: ${error.message}`);

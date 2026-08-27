@@ -82,6 +82,10 @@ PIS-7 domains (scored 0–5 each): d1 Clinical Question Intelligence, d2 Reasoni
 // (soak: +10.3 composite, regen baseline: +16; worst on d1/d2/d6 — it rewarded templated structure).
 // v1 adds explicit calibration rules: structure ≠ depth, an evidence threshold for 4–5, and a cap on
 // templated/verbatim behaviour. Versions + measured ICC: scripts/calibration/prompt-versions.md.
+// Mirrored with audit-dashboard/lib/pis7-rubric.ts, and BOTH are subordinate to the CREC082
+// attachment PIS7_Rubric_Behavioral_Anchors_V2.0 — the version the ethics committee approved. Where
+// they differ the CREC text wins: an AI and a human scoring against two different rubrics produce
+// an ICC that measures the gap between the rubrics, not between the raters.
 const PIS7_EVALUATOR_PROMPT = `You are PIS-7 Evaluator. Assess the PHYSICIAN'S reasoning behaviour (NOT the AI's responses) across 7 domains. Ignore AI turns.
 
 CALIBRATION RULES (apply BEFORE scoring):
@@ -119,7 +123,26 @@ DOMAINS AND WEIGHTS:
 7. AI Literacy & Prompt Skill (10%) — precise prompts, verification of outputs, clinical ownership
    of the final plan.
 
-SCALE: 0=Not observed, 1=Very Low, 2=Low, 3=Moderate, 4=High, 5=Very High
+SCALE (CREC082-approved behavioural anchors — score the EVIDENCE, not the physician):
+0 = No evidence, or not assessable from the transcript
+1 = Very little evidence — scattered, or with significant errors
+2 = Some elements present, but shallow and unsystematic
+3 = Moderate — reasonably structured
+4 = Clear and systematic; links reasoning and limitations well
+5 = Deep and sustained; notably critical and synthesising
+
+PER-DOMAIN ANCHORS (0 → 3 → 5):
+d1: no assessable question → clear, relevant question → deep and specific; leads somewhere
+d2: no reasoning → reasonable reasoning → deep; links mechanism, evidence and limits
+d3: no use of context → partial integration → thorough, and aware of the limits
+d4: no follow-up → relevant follow-up → strategically adapts the questions
+d5: no critique of the AI → reasonable appraisal of limits → separates fact, uncertainty and limitation well
+d6: no reflection → reasonable summary/reflection → deep synthesis; names the next learning or action
+d7: inappropriate use of AI → reasonable prompting and steering → critical use, aware of the limits
+
+PRINCIPLE: score only the evidence in THIS episode's transcript and reflection. A turn marked
+[REFLECTION] is the physician's own post-session reflection and IS scorable evidence — d6 in
+particular. Do not read any score as the physician's overall competence.
 
 Return ONLY valid JSON — no explanation outside the JSON:
 {
@@ -136,15 +159,50 @@ Return ONLY valid JSON — no explanation outside the JSON:
   }
 }`;
 
+// The qualifying test for a Professional Learning Episode, as CREC082 defines one.
+//
+// PLE Instruction Sheet §1: a PLE is a learning dialogue that shows (1) a meaningful problem,
+// (2) developing reasoning, (3) integration of context/evidence, and (4) reflective synthesis —
+// and is NOT a short factual lookup, repeated questioning, or passive copying of AI answers.
+//
+// c4/c5/c6 already covered elements 1, 2 and 4. c7 is element 3, which had no check at all: a
+// physician could reason and reflect at length without ever anchoring any of it to guidance,
+// evidence or the specifics of the case, and the session still qualified.
+//
+// `on_topic` is separate from qualifying. A conversation can be squarely on a clinical topic and
+// still not yet qualify (it is early, or shallow); it can also have wandered off clinical learning
+// altogether. The mid-session rescue (PLE Instruction Sheet §4) needs to tell those apart, because
+// only the second calls for redirection rather than depth.
 const CRITERIA_CLASSIFIER_PROMPT = `Analyze this physician-AI conversation transcript. Return ONLY valid JSON:
 {
   "c4": <true if ≥1 clinical question from physician that is NOT a simple factual lookup>,
   "c5": <true if ≥2 physician follow-ups that explicitly reference or build on prior AI response content>,
-  "c6": <true if ≥1 explicit learning summary from the physician, e.g. "So I've learned...", "ดังนั้นสรุปได้ว่า...", "I'll apply this by...">
+  "c6": <true if ≥1 explicit learning summary from the physician, e.g. "So I've learned...", "ดังนั้นสรุปได้ว่า...", "I'll apply this by...">,
+  "c7": <true if the physician connects the discussion to context or evidence — guidelines, studies, local practice, patient-specific factors, or the limits of the evidence — rather than reasoning in the abstract>,
+  "on_topic": <true if the conversation is about clinical learning at all; false if it has drifted to unrelated matters, small talk, or system/tooling questions>
 }`;
+
+// Socratic RESCUE (CREC082 PLE Instruction Sheet §4). NOT the examiner mode above: the examiner runs
+// a whole session and is free to lead; the rescue is a brief, mid-session nudge for a conversation
+// that has run four exchanges without becoming a learning episode.
+//
+// The constraints are the protocol's, not stylistic preferences. It "helps structure thinking, does
+// not answer for the physician, is not an examination, and is not an experimental arm" — so: ask,
+// do not diagnose; one or two questions, not an interrogation; non-leading, so the physician's
+// reasoning stays their own and the PIS-7 score still measures them rather than the scaffold.
+const RIMPL_SYSTEM_PROMPT_RESCUE = `You are a warm, collegial clinical mentor. This conversation has run several exchanges without yet becoming a learning discussion. Your job in THIS reply is to help the physician structure their own thinking — not to answer for them. Always reply in the same language as the physician (Thai or English).
+
+Rules for this reply, all of them mandatory:
+- Ask ONE or TWO open questions. Never more than two.
+- Do NOT give a diagnosis, a differential, a management plan, or a recommendation.
+- Do NOT hint at the answer you have in mind. The questions must be genuinely open — a physician reading them should not be able to tell what you think the answer is.
+- Ask about THEIR reasoning: what they are weighing, what would change their mind, what they are uncertain about, what evidence would settle it.
+- Be brief and warm. Two or three sentences of framing at most, then the question(s).
+- Do not mention that a mode changed, that this is a rescue, or that the conversation was judged insufficient. Simply engage.`;
 
 module.exports = {
   RIMPL_SYSTEM_PROMPT, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER,
+  RIMPL_SYSTEM_PROMPT_RESCUE,
   RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS,
   ARTIFACT_GUIDANCE,
   PIS7_EVALUATOR_PROMPT, CRITERIA_CLASSIFIER_PROMPT,

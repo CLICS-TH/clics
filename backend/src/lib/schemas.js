@@ -49,7 +49,17 @@ const UpdateCleSchema = z.object({
   message: 'Provide at least one of: title, folder_id',
 });
 
+// Post-PLE reflection (CREC082 ICF §3 step 3). The three prompts are the protocol's own, from PLE
+// Instruction Sheet §3. The ceiling is generous on purpose: this is scored evidence for D6, and
+// truncating a physician's own words would corrupt what the rubric is reading.
+const ReflectionSchema = z.object({
+  learned: z.string().trim().max(5000).optional(),
+  uncertainty: z.string().trim().max(5000).optional(),
+  application: z.string().trim().max(5000).optional(),
+  skipped: z.boolean().optional(),
+});
+
 module.exports = {
-  MessageSchema, ScoreSchema, CreateCleSchema, AssignSchema,
+  MessageSchema, ScoreSchema, CreateCleSchema, AssignSchema, ReflectionSchema,
   CreateFolderSchema, UpdateFolderSchema, UpdateCleSchema,
 };

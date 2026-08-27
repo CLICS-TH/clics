@@ -153,6 +153,68 @@ function iccTwoWay(rows, { k } = {}) {
 }
 
 /**
+ * ICC(A,k) — two-way, absolute agreement, AVERAGE measures. The SAP's interrater statistic.
+ *
+ * The distinction from iccTwoWay is what is being called reliable. ICC(A,1) answers "how reliable is
+ * ONE rater?"; ICC(A,k) answers "how reliable is the MEAN of the k raters?" — and since averaging
+ * cancels independent error, the second is always the larger number. Reporting an average-measures
+ * figure as if it were single-measure overstates reliability, which is why the SAP names them
+ * separately: ICC(A,1) for AI-vs-humans, ICC(A,3) for the human panel whose MEAN is what the AI is
+ * compared against.
+ *
+ *   ICC(A,1) = (MSR - MSE) / (MSR + (k-1)MSE + k(MSC - MSE)/n)
+ *   ICC(A,k) = (MSR - MSE) / (MSR +          (MSC - MSE)/n)
+ *
+ * Same mean squares, one term dropped. (Spearman-Brown, k·r/(1+(k-1)r), gives the identical value
+ * here — it cancels exactly for absolute agreement — but computing from the MS terms directly keeps
+ * one derivation rather than two that could drift.)
+ *
+ * NAMING: McGraw & Wong's ICC(A,1)/ICC(A,k) and Shrout & Fleiss's ICC(2,1)/ICC(2,k) are the same
+ * quantities. The SAP uses the A-form, so results carry both labels.
+ *
+ * "Two-way mixed" (the SAP's primary) and "two-way random" (its interrater) share this formula; the
+ * models differ in how the rater effect is INTERPRETED, not in how absolute agreement is computed.
+ *
+ * Balanced design required, exactly as iccTwoWay — ragged rows are excluded and counted.
+ */
+function iccTwoWayAverage(rows, { k } = {}) {
+  const clean = (rows || []).filter(r => Array.isArray(r) && r.every(v => Number.isFinite(Number(v))));
+  const counts = raterCounts(clean);
+  const width = k ?? Number(Object.keys(counts).sort((a, b) => counts[b] - counts[a] || b - a)[0]);
+  if (!Number.isFinite(width) || width < 2) return null;
+
+  const mat = clean.filter(r => r.length === width).map(r => r.map(Number));
+  const n = mat.length;
+  const excluded = clean.length - n;
+  if (n < 2) return null;
+
+  const grand = mat.reduce((a, r) => a + r.reduce((x, v) => x + v, 0), 0) / (n * width);
+  const rowMeans = mat.map(r => r.reduce((x, v) => x + v, 0) / width);
+  const colMeans = Array.from({ length: width }, (_, j) => mat.reduce((a, r) => a + r[j], 0) / n);
+
+  const SSr = width * rowMeans.reduce((a, m) => a + (m - grand) ** 2, 0);
+  const SSc = n * colMeans.reduce((a, m) => a + (m - grand) ** 2, 0);
+  const SStotal = mat.reduce((a, r) => a + r.reduce((x, v) => x + (v - grand) ** 2, 0), 0);
+  const SSe = SStotal - SSr - SSc;
+
+  const labels = { model: `ICC(A,${width})`, model_alt: `ICC(2,${width})`, measure: 'average' };
+  if (SStotal < 1e-9) {
+    return { icc: null, lower: null, upper: null, n, k: width, n_excluded: excluded,
+      rater_counts: counts, ...labels, interpretation: 'Insufficient variance (identical scores)' };
+  }
+
+  const MSr = SSr / (n - 1);
+  const MSc = SSc / (width - 1);
+  const MSe = Math.max(SSe / ((n - 1) * (width - 1)), 0.0001);
+  const icc = (MSr - MSe) / (MSr + (MSc - MSe) / n);
+
+  // Fisher-z, matching the single-measure path. An exact average-measures interval is F-based; the
+  // approximation is kept so the two statistics are never presented with intervals built different
+  // ways, which would make them look more comparable or less comparable than they are.
+  return finish(icc, n, { k: width, n_excluded: excluded, rater_counts: counts, ...labels });
+}
+
+/**
  * ICC(1,1) — one-way random, single measurement. Handles a RAGGED matrix natively.
  *
  * This is the model for a rotating auditor pool: each CLE is scored by whichever auditors were
@@ -198,4 +260,4 @@ function iccOneWay(rows) {
   });
 }
 
-module.exports = { computeICC21, iccTwoRater, iccTwoWay, iccOneWay, raterCounts };
+module.exports = { computeICC21, iccTwoRater, iccTwoWay, iccTwoWayAverage, iccOneWay, raterCounts };

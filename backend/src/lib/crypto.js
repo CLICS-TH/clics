@@ -45,4 +45,25 @@ function decryptJson(b64) {
   return JSON.parse(plaintext.toString('utf8'));
 }
 
-module.exports = { encryptJson, decryptJson };
+// Keyed one-way digest, for a column that must be UNIQUE and SEARCHABLE but never readable.
+//
+// The motivating case is the Thai national ID. It has to be unique — one person must not be able to
+// register twice — which needs an index, and an index needs a deterministic value. Encryption is
+// randomised per row (a fresh IV each time), so encryptJson cannot provide one.
+//
+// A plain SHA-256 would be useless here: a national ID is 13 digits with a mod-11 check digit, so
+// the entire space is about 10^12 candidates and a leaked digest column could be reversed by
+// exhaustive search on a laptop in minutes. Keying the digest with the same secret that protects the
+// vault means the search is impossible without the key, at which point the attacker already has the
+// plaintext anyway.
+//
+// `domain` separates one use from another, so the same value hashed for two different purposes does
+// not produce a matching digest across columns.
+function blindIndex(value, domain) {
+  if (!domain) throw new Error('blindIndex requires a domain (e.g. "national_id")');
+  return crypto.createHmac('sha256', key())
+    .update(`${domain}:${String(value)}`, 'utf8')
+    .digest('hex');
+}
+
+module.exports = { encryptJson, decryptJson, blindIndex };

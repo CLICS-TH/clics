@@ -1,36 +1,24 @@
 const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
-const { MessageSchema, CreateCleSchema, UpdateCleSchema } = require('../lib/schemas');
-const { computeTier1, clampDuration } = require('../services/cle-gate');
+const { MessageSchema, CreateCleSchema, UpdateCleSchema, ReflectionSchema } = require('../lib/schemas');
+const { computeTier1, hasScorableContent, clampDuration } = require('../services/cle-gate');
 const { rimplChat } = require('../services/rimpl-client');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
 const { finalizeScreening, toPassCols } = require('../services/cle-finalize');
 const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
 const { settlementDelta } = require('../lib/pricing');
 const { logEvent } = require('../lib/audit');
-const { pilotTestMode, clinicalArtifactsEnabled, holdResultUntilAudited } = require('../lib/settings');
-const { createHash } = require('crypto');
+const { pilotTestMode, clinicalArtifactsEnabled, holdResultUntilAudited, t1RemediationEnabled, identityVerificationRequired, reflectionRequired } = require('../lib/settings');
+const identity = require('../services/identity');
+const reflection = require('../services/reflection');
+const acceptability = require('../lib/acceptability');
 const { creditSettings } = require('../lib/settings');
 const { creditFor, creditTable } = require('../services/credit');
+const { COMPLETED_STATUSES } = require('../lib/cle-status');
 
 const router = Router();
 
-// Which of a physician's 3 episodes runs in Socratic examiner mode. Allocated by hashing the
-// physician's id rather than by Math.random(), for three reasons:
-//   1. REPRODUCIBLE — anyone (a reviewer, an auditor, us in November) can recompute any
-//      physician's assigned condition from their id alone. A Math.random() draw is unauditable
-//      once made; this is allocation-by-hash, standard practice for trial arm assignment.
-//   2. STABLE — the same physician always resolves to the same episode, so a retry, a replay, or a
-//      lost write can never hand them the condition twice.
-//   3. TESTABLE — a random draw inside a request handler makes every test that creates a CLE
-//      non-deterministic (observed: the same suite reported 1 failure on one run and 4 on the next).
-// Physician ids are UUIDs, so the assignment is uniform across a cohort and unpredictable in
-// practice. The result is still PERSISTED, so the cohort stays intact if this function ever changes.
-function drawSocraticEpisode(physicianId) {
-  const h = createHash('sha256').update(String(physicianId)).digest();
-  return 1 + (h.readUInt32BE(0) % 3);
-}
 router.use(verifyJwt, requireRole('physician'));
 
 // Human-subjects pilot: any route that creates OR extends study data (start a session,
@@ -64,7 +52,28 @@ async function requireBudget(req, res, next) {
 // (toPassCols lives in services/cle-finalize — shared with the reconcile sweep.)
 
 // Create new CLE session
-router.post('/', requireConsent, requireBudget, async (req, res) => {
+// CREC082 ICF §4: identity is verified BEFORE the first PLE, by ThaID or by national ID together
+// with the medical licence number. Sits beside requireConsent because the two are the protocol's
+// two preconditions for starting a session, and they should be read together.
+//
+// Off by default (see settings.identityVerificationRequired) — it must be switched on before the
+// first participant. When on it fails CLOSED, including on a database error: an identity gate that
+// opens when the read fails is not a gate.
+async function requireVerifiedIdentity(req, res, next) {
+  try {
+    if (!(await identityVerificationRequired())) return next();
+    if (await identity.isVerified(req.user.id)) return next();
+    return res.status(403).json({
+      error: 'Identity verification is required before starting a session.',
+      code: 'identity_verification_required',
+    });
+  } catch (e) {
+    console.error('[cles] identity gate check failed:', e.message);
+    return res.status(503).json({ error: 'Could not verify your identity right now. Please try again.', code: 'identity_check_unavailable' });
+  }
+}
+
+router.post('/', requireConsent, requireVerifiedIdentity, requireBudget, async (req, res) => {
   const parsed = CreateCleSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
@@ -79,11 +88,13 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
   const pilotMode = await pilotTestMode();
 
   // Episode sequencing (CLICS protocol §6.4): a physician produces exactly 3 valid CLEs.
-  // episode_number = (# of their PASSED CLEs) + 1, so a retried attempt keeps the same episode
-  // until it passes. Block a 4th once 3 have passed — UNLESS Pilot Test Mode is on (testers loop).
+  // episode_number = (# of their COMPLETED CLEs) + 1, so a retried attempt keeps the same episode
+  // until it passes. Block a 4th once 3 have completed — UNLESS Pilot Test Mode is on (testers loop).
+  // COMPLETED_STATUSES, not 'cle_pass' alone: a scored CLE moves straight on to 'evaluated', so
+  // filtering on 'cle_pass' counted zero and left every physician stuck at episode 1 forever.
   const { count: passedCount, error: countErr } = await supabase.from('cles')
     .select('id', { count: 'exact', head: true })
-    .eq('physician_id', req.user.id).eq('status', 'cle_pass').eq('is_test', false);
+    .eq('physician_id', req.user.id).in('status', COMPLETED_STATUSES).eq('is_test', false);
   if (sendDbError(res, countErr)) return;
   const passed = passedCount ?? 0;
   if (passed >= 3 && !pilotMode) {
@@ -91,44 +102,28 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
   }
   const episodeNumber = Math.min(passed + 1, 3);
 
-  // Socratic mode: exactly ONE of the physician's 3 episodes runs as a Socratic clinical-examiner
-  // from the first turn; the other two are natural. WHICH episode is drawn uniformly at random per
-  // physician, once, and persisted.
+  // Socratic mode is NOT an experimental condition. The CREC082 protocol is explicit — PLE
+  // Instruction Sheet §4 and ICF §3 — that it is "a standardized rescue ... not an experimental
+  // arm": a learning scaffold the system may open MID-SESSION, after 4 physician-AI exchanges, when
+  // the conversation still is not qualifying or has drifted off topic.
   //
-  // It used to be hard-coded to episode 2, which made the condition perfectly confounded with order:
-  // a difference at episode 2 could be the mode, or familiarity, or warm-up, with no way to separate
-  // them. Randomising averages the order effect across the cohort so the difference is attributable
-  // to the mode. Drawing lazily (rather than at registration) means physicians already mid-study
-  // keep the episode they were actually given — see db/migration-socratic-randomisation.sql.
-  let socraticEpisode = req.user.socratic_episode ?? null;
-  if (socraticEpisode == null) {
-    const draw = drawSocraticEpisode(req.user.id);
-    const { error: seErr } = await supabase.from('professionals')
-      .update({ socratic_episode: draw }).eq('id', req.user.id).is('socratic_episode', null);
-    if (!seErr) {
-      socraticEpisode = draw;
-    } else if (/socratic_episode/.test(seErr.message ?? '') || seErr.code === '42703' || seErr.code === 'PGRST204') {
-      // Column not there yet: the backend was deployed ahead of the migration. Fall back to the
-      // pre-randomisation behaviour (episode 2) rather than blocking sessions — a known, uniform
-      // state we can identify in the data later, unlike a half-randomised cohort.
-      console.error('[socratic] socratic_episode column missing — falling back to fixed episode 2');
-      socraticEpisode = 2;
-    } else {
-      // The column exists but the write failed. Fail LOUDLY: an unpersisted draw re-randomises on
-      // every session, so a physician could receive Socratic mode two or three times, destroying the
-      // within-physician contrast the randomisation exists to create. Refusing the session is
-      // strictly better than silently corrupting the study design.
-      return res.status(500).json({ error: 'Could not assign study condition. Please try again.', code: 'socratic_assign_failed' });
-    }
-  }
-
-  // A physician who has failed Tier-1 three times in a row opens in Socratic remediation regardless
-  // of the draw — a support path, not an experimental condition, and recorded with its own reason.
+  // An earlier build allocated one of the physician's 3 episodes to Socratic by hashing their id and
+  // opened that session in examiner mode from the first turn. That is a randomised trial arm, i.e.
+  // the precise thing the protocol tells the ethics committee the study does not do, so it is gone:
+  // no session now starts in Socratic mode on account of which episode it is. The rescue is decided
+  // during the conversation and lives in the rimpl chat path, not here.
   let socraticActive = false, socraticReason = null;
-  if (episodeNumber === socraticEpisode) { socraticActive = true; socraticReason = 'randomised_examiner'; }
-  else if ((req.user.consecutive_t1_fails ?? 0) >= 3) { socraticActive = true; socraticReason = 't1_remediation'; }
+
+  // A physician who has failed Tier-1 three times running may open in Socratic remediation. This is
+  // a support path rather than a study condition, but it is ALSO not in the approved protocol, so it
+  // is off by default and must be switched on deliberately and recorded as a deviation.
+  // Cheap local check first so the common path costs no settings read.
+  if ((req.user.consecutive_t1_fails ?? 0) >= 3 && await t1RemediationEnabled()) {
+    socraticActive = true;
+    socraticReason = 't1_remediation';
+  }
   // Pilot Test Mode override: a tester directly chooses the mode so they can exercise Socratic
-  // (or natural) on demand, regardless of episode. These sessions are flagged is_test below.
+  // (or natural) on demand. These sessions are flagged is_test below.
   if (pilotMode && typeof socratic === 'boolean') {
     socraticActive = socratic;
     socraticReason = socratic ? 'pilot_test' : null;
@@ -176,7 +171,7 @@ router.post('/', requireConsent, requireBudget, async (req, res) => {
 router.get('/', async (req, res) => {
   const { data, error } = await supabase
     .from('cles')
-    .select('id, title, chief_complaint, folder_id, status, started_at, ended_at, turn_count, token_count, c1_pass, c2_pass, c3_pass, c4_pass, c5_pass, c6_pass')
+    .select('id, title, chief_complaint, folder_id, status, episode_number, started_at, ended_at, turn_count, token_count, c1_pass, c2_pass, c3_pass, c4_pass, c5_pass, c6_pass')
     .eq('physician_id', req.user.id)
     .order('started_at', { ascending: false });
   if (sendDbError(res, error)) return;
@@ -240,6 +235,72 @@ router.get('/lpdp/me', async (req, res) => {
 });
 
 // Get single CLE with messages
+// ---- Acceptability questionnaire (CREC082 ICF §3 step 4, Protocol objective 5) ----------------
+// ONE per physician, at the end of participation. A named secondary outcome in the SAP, so without
+// it there is simply nothing to report on acceptability, burden, or the privacy experience.
+//
+// "brief acceptability questionnaire หนึ่งครั้งเมื่อสิ้นสุดการเข้าร่วม โดยปกติหลัง PLE ครั้งสุดท้าย
+//  (ไม่เกิน 3 ครั้ง). กรณีถอนตัวก่อนครบ 3 PLE participant มีสิทธิไม่ตอบแบบสอบถามโดยไม่มีผลใด."
+//
+// That last sentence is why eligibility is "has completed at least one PLE" rather than "has
+// completed three": a physician who withdraws early is still entitled to answer, and still entitled
+// not to.
+
+router.get('/acceptability', requireConsent, async (req, res) => {
+  const [{ count }, { data: existing }] = await Promise.all([
+    supabase.from('cles').select('id', { count: 'exact', head: true })
+      .eq('physician_id', req.user.id).in('status', COMPLETED_STATUSES).eq('is_test', false),
+    supabase.from('acceptability_responses')
+      .select('answers, comments, skipped, submitted_at').eq('physician_id', req.user.id).maybeSingle(),
+  ]);
+  const completed = count ?? 0;
+  res.json({
+    // The item set travels with the request so the portal never carries a second copy of the wording
+    // that could drift from the approved instrument.
+    items: acceptability.ITEMS,
+    instrument_version: acceptability.INSTRUMENT_VERSION,
+    scale: { min: acceptability.SCALE_MIN, max: acceptability.SCALE_MAX },
+    completed_ples: completed,
+    eligible: completed >= 1,
+    response: existing ?? null,
+  });
+});
+
+router.post('/acceptability', requireConsent, async (req, res) => {
+  const skipped = req.body?.skipped === true;
+  const comments = typeof req.body?.comments === 'string' ? req.body.comments.trim().slice(0, 5000) : null;
+
+  const check = skipped ? { ok: true, answers: {} } : acceptability.validateAnswers(req.body?.answers ?? {});
+  if (!check.ok) return res.status(400).json({ error: 'Invalid answers.', code: check.code, item: check.item });
+
+  const { count } = await supabase.from('cles').select('id', { count: 'exact', head: true })
+    .eq('physician_id', req.user.id).in('status', COMPLETED_STATUSES).eq('is_test', false);
+  if ((count ?? 0) < 1) {
+    return res.status(409).json({ error: 'Complete a learning episode first.', code: 'no_completed_ple' });
+  }
+
+  // Unique on physician_id — the questionnaire is about the SYSTEM, not a session, so a resubmission
+  // corrects the one response rather than adding a second.
+  const { error } = await supabase.from('acceptability_responses').upsert({
+    physician_id: req.user.id,
+    answers: { ...check.answers, _instrument_version: acceptability.INSTRUMENT_VERSION },
+    comments: skipped ? null : (comments || null),
+    skipped,
+    submitted_at: new Date().toISOString(),
+  }, { onConflict: 'physician_id' });
+  if (error) {
+    console.error('[cles] acceptability save failed:', error.message);
+    return res.status(500).json({ error: 'Could not save your answers. Please try again.' });
+  }
+
+  // No answer content in the log — only that a response landed. The responses are research data and
+  // belong in one place, not scattered through an audit trail.
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.acceptability',
+    targetType: 'professional', targetId: req.user.id, councilId: req.user.council_id ?? null,
+    metadata: { skipped, answered: Object.keys(check.answers).length, instrument: acceptability.INSTRUMENT_VERSION } });
+  res.json({ ok: true, skipped });
+});
+
 router.get('/:id', async (req, res) => {
   const { data: cle, error } = await fetchOwnedPle(req.params.id, req.user.id);
   if (error || !cle) return res.status(404).json({ error: 'Not found' });
@@ -292,6 +353,10 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
       patient_ref: pref?.patient_ref ?? null, // scrubbed on-prem; never reaches the cloud
       socratic: cle.socratic_active === true, // CLE2 / remediation → Socratic clinical-examiner mode
       artifacts: await clinicalArtifactsEnabled(), // superadmin toggle → allow side-panel artifacts
+      // CREC082 PLE Instruction Sheet §4 rescue. Both are latches: a rescued session stays rescued,
+      // and a session that has qualified does not un-qualify — so RIMPL can skip the classifier.
+      rescue_active: cle.rescue_activated_at != null,
+      already_qualified: cle.qualified_at != null,
     });
   } catch (err) {
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
@@ -321,11 +386,39 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
 
   const turnIn = rimplResponse.input_tokens ?? 0;
   const turnOut = rimplResponse.output_tokens ?? 0;
+
+  // Socratic rescue bookkeeping (CREC082 §4). RIMPL decides; the backend is where it becomes a fact.
+  // The SAP analyses trigger rate, activation point, and exchanges before/after, so an unrecorded
+  // rescue is a lost data point — but it is still only bookkeeping, so it rides along with the turn
+  // counters rather than getting its own write that could fail on its own.
+  const rescue = rimplResponse.rescue ?? null;
+  const rescueCols = {};
+  if (rescue?.activated && cle.rescue_activated_at == null) {
+    rescueCols.rescue_activated_at = new Date().toISOString();
+    rescueCols.rescue_reason = rescue.reason;                       // 'off_topic' | 'not_qualifying'
+    rescueCols.rescue_exchanges_before = rescue.exchanges_before ?? null;
+    rescueCols.socratic_active = true;
+    rescueCols.socratic_reason = 'protocol_rescue';
+  }
+  // Latch the moment the session first met the CREC §1 qualifying test, so later turns skip the
+  // classifier. Also the honest answer to "when did this become a PLE?", which the rescue analysis
+  // needs in order to count exchanges AFTER an activation.
+  if (rescue && rescue.qualifying && cle.qualified_at == null) {
+    rescueCols.qualified_at = new Date().toISOString();
+  }
+  if (rescue?.reply_check && rescue.reply_check.ok === false) {
+    // The rescue prompt forbids diagnosing and caps the questions at two; this reply broke one of
+    // those. Log rather than block — the physician already has the reply, and suppressing it would
+    // cost them the turn. Surfaced so a violation is countable rather than invisible.
+    console.error('[cles] rescue reply failed its post-check:', req.params.id, JSON.stringify(rescue.reply_check));
+  }
+
   const { error: counterErr } = await supabase.from('cles').update({
     turn_count: (cle.turn_count ?? 0) + 1,
     token_count: (cle.token_count ?? 0) + (rimplResponse.token_count ?? 0) + physicianTokens,
     input_tokens: (cle.input_tokens ?? 0) + turnIn,
     output_tokens: (cle.output_tokens ?? 0) + turnOut,
+    ...rescueCols,
   }).eq('id', req.params.id);
   if (counterErr) console.error('[cles] failed to update counters:', counterErr.message);
 
@@ -369,15 +462,21 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   const turnCount = msgs.filter(m => m.role === 'physician').length;
   const tokenCount = msgs.reduce((a, m) => a + (m.token_count ?? 0), 0);
 
-  const tier1 = computeTier1({ duration_seconds: durationSeconds, turn_count: turnCount, token_count: tokenCount });
-  const tier1Pass = tier1.c1 && tier1.c2 && tier1.c3;
+  const counts = { duration_seconds: durationSeconds, turn_count: turnCount, token_count: tokenCount };
+  // c1-c3 are recorded, not enforced — see services/cle-gate.js. CREC082 §1 defines a qualifying PLE
+  // by four QUALITIES (c4-c7, assessed in cle-finalize.js), not by minutes or tokens, so a concise
+  // but genuinely reflective session must reach the classifier rather than being rejected unscored.
+  const tier1 = computeTier1(counts);
+  // The only remaining hard stop, and it is not a quality bar: an empty conversation has nothing to
+  // classify, so spending a paid classifier call on it would buy nothing.
+  const scorable = hasScorableContent(counts);
 
   // Claim the session AND persist the full deterministic result in ONE atomic update. A double-submit
   // (double-click, two tabs, a retry after a slow response) must never run two evaluations — only the
   // request that flips active->{cle_fail_t1|ended} proceeds; racers see 0 rows and 409. Writing
   // duration/counts/c1-c3/ended_at HERE (no network) means a process death during the tier-2 call
   // below leaves a fully-recoverable 'ended' row: reconcile re-runs only the missing tier-2 step.
-  const claimStatus = tier1Pass ? 'ended' : 'cle_fail_t1';
+  const claimStatus = scorable ? 'ended' : 'cle_fail_t1';
   const { data: claimed, error: claimErr } = await supabase.from('cles').update({
     status: claimStatus, ended_at: endedAt.toISOString(),
     duration_seconds: durationSeconds, turn_count: turnCount, token_count: tokenCount,
@@ -386,24 +485,35 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   if (sendDbError(res, claimErr)) return;
   if (!claimed || claimed.length === 0) return res.status(409).json({ error: 'CLE not active' });
 
-  // CLICS §6.4 remediation counter: 3 consecutive Tier-1 fails open Socratic remediation on the
-  // physician's NEXT natural session; any pass resets it. ONLY a natural, real (non-test) session
-  // feeds it — a Socratic session (CLE2 / remediation) is not part of the "natural fails" signal, and
-  // a Pilot Test Mode session must never pollute the real counter. Best-effort — never block /end.
-  if (cle.socratic_reason === null && !cle.is_test) {
-    const { error: rtErr } = await supabase.rpc('record_t1_outcome', { p_id: cle.physician_id, p_pass: tier1Pass });
-    if (rtErr) console.error('[cles] record_t1_outcome failed:', rtErr.message);
-  }
+  // The consecutive-failure counter used to be fed from the tier-1 verdict here. Tier-1 no longer
+  // IS a verdict, so feeding it from here would record a pass for every session that reached /end
+  // and silently reset the counter forever. It now runs in cle-finalize.js off the qualifying
+  // result, which is the outcome the counter was always trying to describe.
 
   logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.end', targetType: 'cle',
-    targetId: cle.cle_code ?? req.params.id, councilId: cle.council_id ?? null, metadata: { tier1_pass: tier1Pass } });
+    targetId: cle.cle_code ?? req.params.id, councilId: cle.council_id ?? null,
+    metadata: { scorable, tier1_metadata: tier1 } });
 
-  if (!tier1Pass) return res.json({ status: 'cle_fail_t1', criteria: tier1 });
+  // Nothing to classify. Recorded, not judged — the physician simply never had a conversation.
+  if (!scorable) return res.json({ status: 'cle_fail_t1', criteria: tier1 });
+
+  // The reflection is SCORED EVIDENCE, not a follow-up survey: PIS-7 is assessed on "transcript และ
+  // reflection", and the D6 anchor starts at "0: ไม่มี reflection". Screening the session now would
+  // judge c6 — one of the four qualifying elements — on a transcript the protocol says is
+  // incomplete, and would do it silently.
+  //
+  // So stop here and let the physician write it. The session rests at 'ended', which is ALREADY the
+  // system's recoverable "tier-1 done, tier-2 pending" state: POST /cles/:id/reflection finalises it,
+  // and a session abandoned here is picked up by reconcile's existing sweep. Nothing new is needed
+  // for the failure case.
+  if (await reflectionRequired() && !(await reflection.getFor(req.params.id))) {
+    return res.json({ status: 'ended', pending: 'reflection', criteria: tier1 });
+  }
 
   // Tier-1 passed: run tier-2 criteria (retried) and finalize. On a PERSISTENT RIMPL failure the
   // session stays 'ended' (recoverable) and reconcile retries it — a transient blip must NOT
   // permanently demote a qualifying session to manual QA.
-  const transcript = msgs.map(m => ({ role: m.role, content: m.content }));
+  const transcript = await reflection.withReflection(req.params.id, msgs.map(m => ({ role: m.role, content: m.content })));
   // Patient identifier → scrubbed from the transcript on-prem before the cloud eval (never forwarded).
   const { data: endRef } = await supabase.from('cle_patient_refs')
     .select('patient_ref').eq('cle_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
@@ -411,6 +521,7 @@ router.post('/:id/end', requireConsent, async (req, res) => {
     const out = await finalizeScreening({
       cleId: req.params.id, physicianId: cle.physician_id, transcript, tier1,
       patient_ref: endRef?.patient_ref ?? null,
+      cle, // socratic_reason + is_test, so the consecutive-failure counter can skip the sessions it must
     });
     res.json(out);
   } catch (err) {
@@ -454,5 +565,63 @@ router.get('/:id/evaluation', async (req, res) => {
   const credit = { ...creditFor(eval_.composite_score, settings), table: creditTable(settings) };
   res.json({ ...eval_, credit });
 });
+
+
+// ---- Post-PLE reflection (CREC082 ICF §3 step 3) ---------------------------------------------
+// Submitting one is what releases a session from 'ended' into screening, because the reflection is
+// part of what gets screened. Skipping is allowed and recorded — a physician may decline any part of
+// participation (ICF §7), and a skipped reflection is itself the reason D6 scores low.
+
+router.get('/:id/reflection', requireConsent, async (req, res) => {
+  const { data: cle } = await fetchOwnedPle(req.params.id, req.user.id);
+  if (!cle) return res.status(404).json({ error: 'Not found' });
+  res.json({ cle_id: cle.id, status: cle.status, reflection: await reflection.getFor(cle.id) });
+});
+
+router.post('/:id/reflection', requireConsent, async (req, res) => {
+  const parsed = ReflectionSchema.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const { learned, uncertainty, application, skipped } = parsed.data;
+
+  const { data: cle } = await fetchOwnedPle(req.params.id, req.user.id);
+  if (!cle) return res.status(404).json({ error: 'Not found' });
+  // A session still running has no reflection to write; one already screened has been scored, and
+  // accepting a reflection afterwards would mean the score was computed without evidence that is now
+  // on file — worse than not accepting it.
+  if (cle.status !== 'ended') {
+    return res.status(409).json({ error: 'This session is not awaiting a reflection.', code: 'not_awaiting_reflection', status: cle.status });
+  }
+
+  const wrote = await reflection.save({
+    cleId: cle.id, physicianId: req.user.id, learned, uncertainty, application, skipped,
+  });
+  if (!wrote.ok) {
+    console.error('[cles] reflection save failed:', wrote.message);
+    return res.status(500).json({ error: 'Could not save your reflection. Please try again.' });
+  }
+
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.reflection', targetType: 'cle',
+    targetId: cle.cle_code ?? cle.id, councilId: cle.council_id ?? null, metadata: { skipped: !!skipped } });
+
+  // Now screen it, with the reflection in the transcript. Same shape as /end: a persistent RIMPL
+  // failure leaves the session at 'ended' for reconcile rather than flagging a qualifying session.
+  const { data: messages } = await supabase.from('messages')
+    .select('role, content').eq('cle_id', cle.id).order('created_at');
+  const transcript = await reflection.withReflection(cle.id, (messages ?? []).map(m => ({ role: m.role, content: m.content })));
+  const { data: pref } = await supabase.from('cle_patient_refs')
+    .select('patient_ref').eq('cle_id', cle.id).eq('physician_id', req.user.id).maybeSingle();
+  try {
+    const out = await finalizeScreening({
+      cleId: cle.id, physicianId: req.user.id, transcript,
+      tier1: { c1: cle.c1_pass, c2: cle.c2_pass, c3: cle.c3_pass },
+      patient_ref: pref?.patient_ref ?? null, cle,
+    });
+    res.json(out);
+  } catch (err) {
+    console.error(`[cles] screening after reflection failed for ${cle.id} — left 'ended' for reconcile:`, err.message);
+    res.status(202).json({ status: 'ended', pending: 'tier2' });
+  }
+});
+
 
 module.exports = router;

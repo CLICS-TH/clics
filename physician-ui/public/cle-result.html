@@ -123,20 +123,33 @@
       if (cle.status === 'active') { container.innerHTML = '<p>กรุณาจบ session ก่อน</p>'; return; }
 
       if (cle.status === 'cle_fail_t1' || cle.status === 'cle_flag_t2') {
-        const criteria = ['c1','c2','c3','c4','c5','c6'];
+        // Two different outcomes, shown differently. 'cle_flag_t2' means the session did not yet meet
+        // the four qualities that define a learning episode; 'cle_fail_t1' now means only that there
+        // was no conversation to assess at all.
         const isFail = cle.status === 'cle_fail_t1';
+        // Engagement measures are RECORDED, not a verdict — never coloured as failures. Rendering
+        // them in red told a physician they had failed three things that decided nothing.
+        const engagement = Object.keys(ENGAGEMENT_LABELS).map(c => `
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;color:var(--muted);font-size:.9rem">
+                ${icon(cle[c + '_pass'] ? 'checkCircle' : 'x', 16)}
+                <span>${ENGAGEMENT_LABELS[c]}</span>
+              </div>`).join('');
+        const qualifying = Object.keys(QUALIFYING_LABELS).map(c => `
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;color:${cle[c+'_pass'] ? 'var(--success-text)' : 'var(--error-text)'}">
+                ${icon(cle[c + '_pass'] ? 'checkCircle' : 'xCircle', 18)}
+                <span style="color:var(--body-color)">${QUALIFYING_LABELS[c]}</span>
+              </div>`).join('');
         container.innerHTML = `
           <div class="card">
             <div class="status-band ${isFail ? 'is-fail' : 'is-review'}" style="margin-bottom:16px">
               ${icon(isFail ? 'xCircle' : 'hourglass', 28)}
-              <span>${isFail ? 'ไม่ผ่านเกณฑ์ / Failed Continuous Learning Episode (Tier 1)' : 'รอตรวจสอบ / Under Review (Tier 2)'}</span>
+              <span>${isFail ? 'ไม่มีบทสนทนาให้ประเมิน / No conversation to assess' : 'รอตรวจสอบ / Under Review'}</span>
             </div>
-            <p style="color:var(--muted);margin-bottom:16px">ผลเกณฑ์ทั้ง 6 ข้อ / 6 Criteria:</p>
-            ${criteria.map(c => `
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;color:${cle[c+'_pass'] ? 'var(--success-text)' : 'var(--error-text)'}">
-                ${icon(cle[c + '_pass'] ? 'checkCircle' : 'xCircle', 18)}
-                <span style="color:var(--body-color)">${CRITERIA_LABELS[c]}</span>
-              </div>`).join('')}
+            ${isFail ? '' : `
+            <p style="color:var(--muted);margin-bottom:12px">คุณสมบัติของ Learning Episode / Qualities of a learning episode:</p>
+            ${qualifying}
+            <p style="color:var(--muted);margin:20px 0 10px;font-size:.9rem">ข้อมูลการมีส่วนร่วม (บันทึกไว้ ไม่ใช่เกณฑ์ตัดสิน) / Engagement, recorded but not a criterion:</p>
+            ${engagement}`}
             <a href="/dashboard" class="btn btn-ghost" style="display:inline-block;margin-top:16px">← กลับ</a>
           </div>` + transcriptSection(cle);
         return;
