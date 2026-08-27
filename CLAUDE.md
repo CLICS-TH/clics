@@ -35,6 +35,27 @@ Five CLICS-tuned subagents live in `.claude/agents/`. Prefer them over generic a
 
 > These subagents are **local** Claude Code tooling in the gitignored `.claude/agents/` — not committed to the repo. If your checkout lacks them, ask Claude to recreate them from this section.
 
+## Agent skills
+
+Configuration the `mattpocock-skills` engineering skills read. Distinct from the CLICS subagents
+above: those are project-local reviewers/verifiers, these are workflow skills (`to-tickets`,
+`triage`, `to-spec`, `wayfinder`) that need to know where issues live.
+
+### Issue tracker
+
+GitHub Issues on `jjnnaappaatt/clics`, via the `gh` CLI. **Never put PII, IRB content, or manuscript
+text in an issue.** See [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md).
+
+### Triage labels
+
+The five canonical labels, unchanged. `wontfix` already exists in the repo and is reused.
+See [docs/agents/triage-labels.md](docs/agents/triage-labels.md).
+
+### Domain docs
+
+Single-context: `CONTEXT.md` + `docs/adr/` at the repo root (neither exists yet — `/domain-modeling`
+creates them lazily). See [docs/agents/domain.md](docs/agents/domain.md).
+
 ## Documentation index
 
 | Doc | Contents |

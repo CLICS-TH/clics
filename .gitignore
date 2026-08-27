@@ -39,3 +39,8 @@ _materials/
 scripts/report/*.html
 scripts/report/*.pdf
 rujdanai-*
+
+# CREC/IRB submission set. These are the ethics committee's own documents — the approved protocol,
+# the ICFs, the SAP, the Model Lock Record — and they carry the principal investigator's real name
+# alongside the study design. They govern what the code must do; they are not part of the code.
+CREC082_*/
