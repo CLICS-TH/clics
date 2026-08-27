@@ -9,7 +9,8 @@ const { attachSpecialty, linkedProviders, specialtyInCouncil, councilHasSpecialt
 const { encryptJson, decryptJson } = require('../lib/crypto');
 const { hashToken } = require('../lib/invite-token');
 const { logEvent } = require('../lib/audit');
-const { pilotTestMode, peerCalibrationEnabled } = require('../lib/settings');
+const { pilotTestMode, peerCalibrationEnabled, identityVerificationRequired } = require('../lib/settings');
+const identity = require('../services/identity');
 
 const router = Router();
 
@@ -233,6 +234,60 @@ const ConsentSchema = z.object({
   checkboxes: z.record(z.boolean()).optional(),
   coi: z.record(z.any()).optional(),
 });
+// ---- Identity verification (CREC082 ICF §4) --------------------------------------------------
+// The physician's side: submit a national ID + licence pair, and see where the submission stands.
+// The administrator's side lives in routes/admin.js. Nothing here ever returns a national ID.
+
+const IdentitySchema = z.object({
+  // Accepted with spaces/hyphens because that is how the number is printed on the card; normalised
+  // and checksum-validated in services/identity. Never logged, never echoed back.
+  national_id: z.string().min(13).max(20),
+  license_number: z.string().trim().min(1).max(40),
+});
+
+router.post('/identity/national-id', verifyJwt, async (req, res) => {
+  const parsed = IdentitySchema.safeParse(req.body ?? {});
+  // The generic 400 is deliberate: a validation error naming the field is fine, but the submitted
+  // value must not appear in a response body or a log line.
+  if (!parsed.success) return res.status(400).json({ error: 'National ID and licence number are required.', code: 'invalid_input' });
+
+  const out = await identity.submitNationalIdLicense({
+    physicianId: req.user.id,
+    national_id: parsed.data.national_id,
+    license_number: parsed.data.license_number,
+    full_name_th: req.user.full_name_th, full_name_en: req.user.full_name_en,
+  });
+  if (!out.ok) {
+    const status = out.code === 'submit_failed' ? 500 : 400;
+    return res.status(status).json({ error: IDENTITY_ERRORS[out.code] ?? 'Could not submit.', code: out.code });
+  }
+  // The licence number is not sensitive in the way the national ID is (it is a public register), so
+  // it may be logged; the national ID must not be, not even its last four digits.
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'identity.submit',
+    targetType: 'professional', targetId: req.user.id, councilId: req.user.council_id ?? null,
+    metadata: { method: 'national_id_license', license_check_status: out.license_check_status } });
+  res.status(201).json({ ok: true, status: out.status, license_check_status: out.license_check_status });
+});
+
+const IDENTITY_ERRORS = {
+  invalid_national_id: 'เลขประจำตัวประชาชนไม่ถูกต้อง / That national ID number is not valid.',
+  license_required: 'กรุณากรอกเลขที่ใบอนุญาต / A licence number is required.',
+  national_id_already_used: 'เลขนี้ถูกใช้กับบัญชีอื่นแล้ว กรุณาติดต่อผู้ดูแล / That number is already registered to another account. Please contact an administrator.',
+};
+
+router.get('/identity/status', verifyJwt, async (req, res) => {
+  try {
+    const [state, required] = await Promise.all([
+      identity.statusFor(req.user.id),
+      identityVerificationRequired(),
+    ]);
+    res.json({ ...state, required });
+  } catch (e) {
+    console.error('[auth] identity status failed:', e.message);
+    res.status(500).json({ error: 'Could not load verification status.' });
+  }
+});
+
 router.post('/consent', verifyJwt, async (req, res) => {
   const parsed = ConsentSchema.safeParse(req.body ?? {});
   const body = parsed.success ? parsed.data : {};

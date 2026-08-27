@@ -119,11 +119,37 @@ function applyHeroStatsVisibility() {
     '<span class="bi-en">' + (shown ? 'Hide stats' : 'Show stats') + '</span>';
 }
 
+// CREC082 ICF §3 step 4: one brief questionnaire at the end of participation. A named SECONDARY
+// OUTCOME in the SAP, so an unanswered one is a missing result — but it is also entirely voluntary,
+// which is why this is a prompt on the dashboard rather than a gate in front of anything.
+//
+// Rendered only when it is genuinely due: at least one completed PLE, and no response on file. The
+// server decides both; asking it here keeps one definition of "due" rather than two.
+async function renderAcceptabilityPrompt() {
+  const host = document.getElementById('acceptabilityPrompt');
+  if (!host) return;
+  let d;
+  try { d = await api.getAcceptability(); } catch { return; }
+  if (!d || d.error || !d.eligible || d.response) return;
+  // Stronger nudge once they have finished all three, since that is the protocol's expected moment.
+  const done = d.completed_ples >= 3;
+  host.innerHTML =
+    `<div class="card" style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;justify-content:space-between">
+       <div style="min-width:0">
+         <p style="margin:0;font-weight:500">${done ? 'ท่านทำครบแล้ว — ขอความเห็นสักเล็กน้อย' : 'ขอความเห็นเกี่ยวกับระบบ'}<span class="bi-en">${done ? "You've completed the study — a few questions before you go" : 'Tell us how the system is working for you'}</span></p>
+         <p class="sub" style="margin:.25rem 0 0;font-size:.85rem">แบบสอบถามสั้น ๆ ครั้งเดียว ประมาณ 10 นาที · ตอบหรือไม่ตอบก็ได้ / One short questionnaire, about 10 minutes. Entirely voluntary.</p>
+       </div>
+       <a href="/acceptability" class="btn ${done ? 'btn-primary' : 'btn-ghost'}" style="flex-shrink:0">ตอบแบบสอบถาม<span class="bi-en">Answer</span></a>
+     </div>`;
+}
+
 async function renderHeroStats() {
   const host = document.getElementById('heroStats');
   if (!host) return;
   const total = cles.length;
-  const passed = cles.filter(p => p.status === 'cle_pass').length;
+  // 'cle_pass' is transient — a scored CLE moves straight to 'evaluated'. Counting only 'cle_pass'
+  // showed 0 completed to physicians who had in fact finished. Mirrors backend lib/cle-status.js.
+  const passed = cles.filter(p => p.status === 'cle_pass' || p.status === 'evaluated').length;
 
   let latest = '—'; // most recent composite (0–100), '—' until a CLE passes
   try {
@@ -507,6 +533,7 @@ async function load() {
   cles = p;
   render();
   renderHeroStats(); // fire-and-forget; computes from the freshly loaded list + LPDP/usage
+  renderAcceptabilityPrompt(); // fire-and-forget; shows nothing unless the questionnaire is due
 }
 
 load().catch(() => {

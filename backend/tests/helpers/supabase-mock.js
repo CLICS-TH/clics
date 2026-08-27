@@ -33,10 +33,10 @@ function makeSupabaseMock() {
   };
 
   function builder(table) {
-    const rec = { table, op: 'select', selectArgs: null, eqs: [], ors: [], iss: [], nots: [], payload: undefined };
+    const rec = { table, op: 'select', selectArgs: null, eqs: [], ors: [], iss: [], nots: [], ins: [], payload: undefined };
     state.queries.push(rec);
     const ctx = () => ({
-      op: rec.op, eqs: rec.eqs, ors: rec.ors, iss: rec.iss, nots: rec.nots, payload: rec.payload, selectArgs: rec.selectArgs,
+      op: rec.op, eqs: rec.eqs, ors: rec.ors, iss: rec.iss, nots: rec.nots, ins: rec.ins, payload: rec.payload, selectArgs: rec.selectArgs,
       id: (col = 'id') => (rec.eqs.find((e) => e[0] === col) || [])[1],
     });
     const self = {};
@@ -54,7 +54,13 @@ function makeSupabaseMock() {
     // suites that never read them are unaffected.
     self.is = (c, v) => { rec.iss.push([c, v]); return self; };
     self.not = (c, op, v) => { rec.nots.push([c, op, v]); return self; };
-    for (const fn of ['order', 'range', 'limit', 'in', 'neq', 'gte', 'lte', 'contains']) self[fn] = () => self;
+    // ADDITIVE: record .in() (rec.ins). It used to be a silent no-op in the chainable list below,
+    // which is how a real bug stayed invisible: a suite could only recognise a query by its .eq()s,
+    // so switching a filter from .eq('status','cle_pass') to .in('status', [...]) made the query
+    // unrecognisable to the double rather than making a test fail. Recording it lets a suite match
+    // on set membership the same way it matches on equality.
+    self.in = (c, vals) => { rec.ins.push([c, vals]); return self; };
+    for (const fn of ['order', 'range', 'limit', 'neq', 'gte', 'lte', 'contains']) self[fn] = () => self;
 
     const read = (kind) => {
       const c = ctx();

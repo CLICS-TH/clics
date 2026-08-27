@@ -6,8 +6,10 @@ let tokenCount = 0;          // running depth signal, seeded from the server on 
 let lastUserMessage = null;  // for Retry after a failed turn
 let nextMsgIndex = 0;        // stable per-message index for deterministic artifact IDs
 
-// Session minimums (mirror backend/src/services/cle-gate.js Tier-1). We surface PROGRESS toward
-// these so the physician knows when a session is substantive — Socratic mode itself stays hidden.
+// Engagement reference points (mirror backend/src/services/cle-gate.js c1-c3). They are NOT the
+// pass criteria — CREC082 §1 judges a learning episode on four qualities, not on minutes or tokens —
+// so the progress meters read as "is this session substantive yet?", never as a bar to clear. T_TURNS
+// doubles as the point at which the Socratic rescue may open (§4), which stays hidden from the UI.
 const T_TIME = 600, T_TURNS = 4, T_TOKENS = 10000;
 
 // Active-engagement timer: count a second only while the tab is VISIBLE and the
@@ -258,9 +260,13 @@ inputEl.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 
-// Pre-submit "declare guard": surface the Tier-1 checks we can verify on the client (duration /
-// turns / depth) as met-or-not, note the AI-judged content criteria run on submit, and warn that
-// submitting is irreversible. The deterministic thresholds mirror the backend Tier-1 gate.
+// Pre-submit guard. It used to present duration / turns / depth as the Tier-1 criteria, with a red
+// cross against each unmet one and a danger-styled "Submit anyway" button. Those measures no longer
+// decide anything (CREC082 §1 defines a learning episode by four qualities, not by minutes), so
+// framing them that way told a physician their good, concise session was about to fail — and pushed
+// them into padding it, which is precisely the behaviour the protocol's definition exists to avoid.
+//
+// Now: say what actually decides, show engagement as context, and keep the one warning that is real.
 function tierOneGuardBody() {
   const rows = [
     { met: activeSeconds >= T_TIME, label: 'ระยะเวลา ≥ 10 นาที / Duration ≥ 10 min' },
@@ -268,27 +274,28 @@ function tierOneGuardBody() {
     { met: tokenCount >= T_TOKENS,  label: 'ความลึกของบทสนทนา / Conversation depth' },
   ];
   const list = rows.map(r =>
-    `<div style="display:flex;align-items:center;gap:8px;margin:5px 0">` +
-      icon(r.met ? 'checkCircle' : 'xCircle', 18) +
-      `<span style="${r.met ? '' : 'color:var(--muted)'}">${r.label}</span></div>`).join('');
-  const metCount = rows.filter(r => r.met).length;
+    `<div style="display:flex;align-items:center;gap:8px;margin:5px 0;color:var(--muted);font-size:.9rem">` +
+      icon(r.met ? 'checkCircle' : 'x', 16) +
+      `<span>${r.label}</span></div>`).join('');
   return (
-    `<p style="margin:0 0 8px">เกณฑ์ Tier-1 ที่ตรวจได้ตอนนี้ (${metCount}/3) / Tier-1 checks we can verify now:</p>` +
+    `<p style="margin:0 0 8px">การประเมินจะดูว่าบทสนทนานี้แสดง <b>คำถามที่มีความหมาย · การพัฒนาเหตุผล · การเชื่อมโยงหลักฐาน · การสรุปการเรียนรู้</b> หรือไม่` +
+    `<br><span style="color:var(--muted);font-size:.9rem">Your session is assessed on whether it shows a meaningful question, developing reasoning, evidence integration, and reflective synthesis.</span></p>` +
+    `<p style="margin:14px 0 4px;font-size:.85rem;color:var(--muted)">ข้อมูลการมีส่วนร่วม (บันทึกไว้ ไม่ใช่เกณฑ์ตัดสิน) / Engagement, recorded but not a criterion:</p>` +
     list +
-    `<p style="margin:12px 0 0;font-size:.85rem;color:var(--muted)">เกณฑ์ด้านเนื้อหา (คำถามเชิงคลินิก, follow-up เชิงลึก, สรุปการเรียนรู้) จะถูกประเมินโดย AI ตอนส่ง / Content criteria (clinical question, deep follow-ups, learning summary) are judged by AI on submit.</p>` +
-    `<p style="margin:10px 0 0"><b>ส่งแล้วทำต่อไม่ได้อีก</b> <span style="color:var(--muted)">— This session can't be resumed once submitted.</span></p>`
+    `<p style="margin:12px 0 0"><b>ส่งแล้วทำต่อไม่ได้อีก</b> <span style="color:var(--muted)">— This session can't be resumed once submitted.</span></p>`
   );
 }
 
 document.getElementById('endBtn').addEventListener('click', async () => {
-  const allClientMet = activeSeconds >= T_TIME && turns >= T_TURNS && tokenCount >= T_TOKENS;
+  // No engagement-based override framing. The only genuinely irreversible thing here is submitting,
+  // and the only session that cannot be assessed is an empty one.
+  const hasConversation = turns >= 1;
   const ok = await confirmModal({
     title: 'จบและส่งประเมิน? / End & submit?',
     body: tierOneGuardBody(),
-    // When the client-checkable criteria aren't all met, make the action read as a deliberate override.
-    confirmLabel: allClientMet ? 'จบและส่ง / End & submit' : 'ส่งทั้งที่ยังไม่ครบ / Submit anyway',
+    confirmLabel: hasConversation ? 'จบและส่ง / End & submit' : 'ส่งทั้งที่ยังไม่ได้คุย / Submit anyway',
     cancelLabel: 'ยังไม่จบ / Keep going',
-    danger: !allClientMet,
+    danger: !hasConversation,
   });
   if (!ok) return;
   const endBtn = document.getElementById('endBtn');
@@ -302,7 +309,15 @@ document.getElementById('endBtn').addEventListener('click', async () => {
   const TERMINAL = ['cle_pass', 'cle_fail_t1', 'cle_flag_t2', 'ended', 'evaluated'];
   if (res && TERMINAL.includes(res.status)) {
     clearInterval(timerInterval);
-    window.location.href = `/cle-result?id=${cleId}`;
+    // CREC082 ICF §3 step 3: the reflection comes after the conversation and BEFORE screening,
+    // because PIS-7 is assessed on "transcript และ reflection". The server says so by answering
+    // pending:'reflection' and leaving the session at 'ended' rather than scoring it.
+    //
+    // It is a separate page rather than a panel on the result screen because that screen polls and
+    // re-renders its whole body every 4s, which would wipe a half-written reflection mid-sentence.
+    window.location.href = res.pending === 'reflection'
+      ? `/cle-reflect?id=${cleId}`
+      : `/cle-result?id=${cleId}`;
     return;
   }
   // The response may have been LOST after the server already finished (a network drop on the way back).

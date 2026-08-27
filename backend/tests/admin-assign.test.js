@@ -19,7 +19,10 @@ let cle, auditor, auditorsList;
 beforeEach(() => {
   m.reset();
   m.state.caller = ADMIN; // council A
-  cle = { id: 'p1', status: 'evaluated', council_id: COUNCIL_A, physician_id: 'phys-1' };
+  // privacy_review_status: CREC082's human privacy gate blocks assignment until a person has
+  // cleared the transcript (lib/privacy-review.js). It fails CLOSED, so a fixture without this
+  // field is correctly refused — these suites are about assignment rules, not the gate.
+  cle = { id: 'p1', status: 'evaluated', council_id: COUNCIL_A, physician_id: 'phys-1', privacy_review_status: 'passed' };
   auditor = { id: AUD_UUID, role: 'auditor', status: 'active', council_id: COUNCIL_A, can_audit: false };
   auditorsList = [{ id: AUD_UUID, full_name_th: 'ผ', full_name_en: 'Aud', role: 'auditor', can_audit: false, council_id: COUNCIL_A }];
   m.state.resolve = (table, kind) => {

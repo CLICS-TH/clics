@@ -52,6 +52,13 @@ export interface CleRow {
   auditor_id?: string | null;
   assignment_count?: number;   // how many auditors are assigned (multi-auditor pilot)
   is_test?: boolean;
+  cle_code?: string | null;
+  ended_at?: string | null;
+  // CREC082 ICF §5-6 human privacy clearance. Only 'passed' and 'redacted' release a session to a
+  // rater; see backend/src/lib/privacy-review.js.
+  privacy_review_status?: 'pending' | 'passed' | 'redacted' | 'quarantined' | 'excluded';
+  privacy_reviewed_at?: string | null;
+  privacy_review_note?: string | null;
   specialty_id?: string | null;
   specialties?: SpecialtyRef | null;   // embedded specialty (name) for display
   professionals?: Professional | null;
@@ -106,6 +113,18 @@ export type IccStat = {
   n: number;
   interpretation: string;
 } | null;
+// A kappa result. `kappa` is null when every rating fell in one category — perfect agreement AND
+// perfect chance agreement, i.e. 0/0 — which is undefined rather than 1.0.
+export interface KappaStat {
+  kappa: number | null;
+  n: number;
+  n_excluded?: number;
+  weights?: string;
+  scale?: [number, number];
+  exact_agreement?: number;
+  interpretation: string;
+}
+
 export interface IccData {
   overall: IccStat;
   per_domain?: Record<string, IccStat>;
@@ -114,6 +133,21 @@ export interface IccData {
     { council: Council | null; overall: IccStat } | null | undefined
   >;
   n?: number;
+  // Cohort transparency: the rater distribution behind the headline figure, never a filter on it.
+  min_auditors?: number;
+  auditors_per_cle?: Record<string, number>;
+  n_at_target?: number;
+  n_below_target?: number;
+  overall_at_target?: IccStat;
+  // Human interrater. ICC(1,1) assumes auditors are drawn per CLE; ICC(A,k) assumes a fixed panel.
+  // Both are reported because which is legitimate depends on how assignment actually ran.
+  // model_alt is optional on both: only the average-measures result carries a second notation
+  // (McGraw & Wong's ICC(A,k) and Shrout & Fleiss's ICC(2,k) name the same quantity).
+  inter_auditor?: IccStat & { model?: string; model_alt?: string; n_ratings?: number; k0?: number };
+  inter_auditor_average?: (IccStat & { model?: string; model_alt?: string; k?: number }) | null;
+  inter_auditor_note?: string;
+  // SAP "Additional agreement" — ordinal-aware, chance-corrected.
+  weighted_kappa?: { domains: Record<string, KappaStat | null>; pooled: KappaStat | null };
 }
 
 // /admin/stats — per-status CLE counts (every key optional; cleStatusCards tolerates gaps).

@@ -25,17 +25,28 @@ jest.mock('../src/services/cle-finalize', () => ({
   toPassCols: (crit) => Object.fromEntries(Object.entries(crit).map(([k, v]) => [`${k}_pass`, v])),
 }));
 
-let mockT1Outcome;  // captured record_t1_outcome rpc args
+let mockT1Outcome;       // captured record_t1_outcome rpc args
+let mockReflectRequired; // app_settings.reflection_required
+let mockReflection;      // the ple_reflections row, or null
 jest.mock('../src/lib/supabase', () => ({
   supabase: {
-    from: () => {
+    // Table-aware: /end now reads app_settings (reflection_required) and ple_reflections before it
+    // decides whether to finalise, and a double that answered `null` to everything made every
+    // session look like it was still awaiting a reflection.
+    from: (table) => {
       let op = 'select';
+      const single = () => {
+        if (table === 'app_settings') return Promise.resolve({ data: { value: mockReflectRequired }, error: null });
+        if (table === 'ple_reflections') return Promise.resolve({ data: mockReflection, error: null });
+        return Promise.resolve({ data: null, error: null }); // cle_patient_refs → no ref in these tests
+      };
       const c = {
         select: () => (op === 'update' ? Promise.resolve({ data: mockClaimed, error: null }) : c),
         update: (p) => { op = 'update'; mockUpdates.push(p); return c; },
         eq: () => c,
         order: () => Promise.resolve({ data: mockMsgs, error: null }),
-        maybeSingle: () => Promise.resolve({ data: null, error: null }), // cle_patient_refs read → no ref in these tests
+        maybeSingle: single,
+        single,
       };
       return c;
     },
@@ -65,6 +76,10 @@ beforeEach(() => {
   mockClaimed = [{ id: 'ple1' }];
   mockUpdates = [];
   mockT1Outcome = undefined;
+  // Most cases here are about the /end mechanics, so default the reflection OFF; the two cases that
+  // are about the reflection turn it on explicitly.
+  mockReflectRequired = 0;
+  mockReflection = null;
   mockFinalize = jest.fn(async () => ({ status: 'cle_pass', criteria: { c1: true, c2: true, c3: true, c4: true, c5: true, c6: true } }));
 });
 
@@ -82,8 +97,11 @@ test('a qualifying session claims to ended (tier-1 persisted) then finalizes to 
   expect(mockFinalize).toHaveBeenCalledWith(expect.objectContaining({
     cleId: 'ple1', physicianId: 'doc1', tier1: { c1: true, c2: true, c3: true },
   }));
-  // Tier-1 passed → the remediation counter is reset (CLICS §6.4).
-  expect(mockT1Outcome).toEqual({ p_id: 'doc1', p_pass: true });
+  // The consecutive-failure counter is NOT written here any more. Tier-1 stopped being a verdict,
+  // so feeding it from /end would record a pass for every session that reached this point and reset
+  // the counter forever. It now runs in cle-finalize.js off the qualifying result — see
+  // tests/cle-finalize-counter.test.js.
+  expect(mockT1Outcome).toBeUndefined();
 });
 
 test("a persistent tier-2 RIMPL failure leaves the session at recoverable 'ended' (202), not cle_flag_t2", async () => {
@@ -96,15 +114,53 @@ test("a persistent tier-2 RIMPL failure leaves the session at recoverable 'ended
   expect(mockUpdates.every(u => u.status !== 'cle_flag_t2')).toBe(true);
 });
 
-test('a too-short session fails tier-1 (claim writes cle_fail_t1, no tier-2 call)', async () => {
-  mockPle.started_at = new Date().toISOString(); // wall-clock ~0 → C1 (>=600s) fails
+test('a SHORT session is no longer rejected — it reaches the qualifying classifier', async () => {
+  // CREC082 §1 defines a qualifying PLE by four qualities, not by minutes or tokens. c1-c3 used to
+  // terminate a session here at cle_fail_t1, which rejected a concise but genuinely reflective
+  // episode unscored while passing a rambling factual lookup. They are recorded now, not enforced.
+  mockPle.started_at = new Date().toISOString(); // wall-clock ~0 → c1 (>=600s) is false
   const res = await end('ple1', { active_seconds: 999999 }); // inflated value cannot beat wall-clock
   expect(res.status).toBe(200);
+  expect(res.body.status).toBe('cle_pass');
+  expect(mockUpdates[0].status).toBe('ended');
+  expect(mockUpdates[0].c1_pass).toBe(false);   // recorded...
+  expect(mockFinalize).toHaveBeenCalled();      // ...but it did not decide the outcome
+});
+
+test('a session with NO physician turn is the one remaining hard stop', async () => {
+  // Not a quality bar: there is nothing to classify, so a paid classifier call would buy nothing.
+  mockMsgs = [{ role: 'assistant', content: 'hello', token_count: 5 }];
+  const res = await end('ple1', { active_seconds: 60 });
   expect(res.body.status).toBe('cle_fail_t1');
   expect(mockUpdates[0].status).toBe('cle_fail_t1');
   expect(mockFinalize).not.toHaveBeenCalled();
-  // Tier-1 failed → the remediation counter is incremented (CLICS §6.4).
-  expect(mockT1Outcome).toEqual({ p_id: 'doc1', p_pass: false });
+});
+
+test('with a reflection pending, /end stops at ended and does NOT screen', async () => {
+  // The reflection is scored evidence (PIS-7 is assessed on "transcript และ reflection", and the D6
+  // anchor starts at "0: ไม่มี reflection"). Screening now would judge c6 — one of the four
+  // qualifying elements — on a transcript the protocol says is incomplete.
+  mockReflectRequired = 1;
+  const res = await end('ple1', { active_seconds: 999999 });
+  expect(res.status).toBe(200);
+  expect(res.body).toMatchObject({ status: 'ended', pending: 'reflection' });
+  expect(mockFinalize).not.toHaveBeenCalled();
+  // The claim still happened, so nothing is lost if the physician never comes back — 'ended' is
+  // already the recoverable state reconcile sweeps.
+  expect(mockUpdates[0].status).toBe('ended');
+});
+
+test('a reflection already on file lets /end screen straight through', async () => {
+  mockReflectRequired = 1;
+  mockReflection = { cle_id: 'ple1', learned: 'x', skipped: false };
+  const res = await end('ple1', { active_seconds: 999999 });
+  expect(res.body.status).toBe('cle_pass');
+  expect(mockFinalize).toHaveBeenCalled();
+  // ...and the reflection is IN the transcript that gets screened, tagged so the evaluator can tell
+  // it from a chat turn rather than reading it as more conversation.
+  const sent = mockFinalize.mock.calls[0][0].transcript;
+  expect(sent.at(-1)).toMatchObject({ role: 'reflection' });
+  expect(sent.at(-1).content).toContain('x');
 });
 
 test('a lost claim race (0 rows) returns 409 without evaluating', async () => {
@@ -114,21 +170,6 @@ test('a lost claim race (0 rows) returns 409 without evaluating', async () => {
   expect(mockFinalize).not.toHaveBeenCalled();
 });
 
-// CLICS §6.4: only a NATURAL, real session feeds the remediation counter. A Socratic session
-// (CLE2 / remediation) is not part of the "natural fails" signal, and a Pilot Test Mode session
-// must never pollute the real counter.
-test('a Socratic session (CLE2/remediation) does NOT feed the remediation counter', async () => {
-  mockPle.socratic_reason = 'cle2_examiner';
-  mockPle.started_at = new Date().toISOString(); // wall-clock ~0 → fails Tier-1
-  const res = await end('ple1', { active_seconds: 999999 });
-  expect(res.body.status).toBe('cle_fail_t1');
-  expect(mockT1Outcome).toBeUndefined(); // record_t1_outcome NOT called
-});
-
-test('a Pilot Test Mode session (is_test) does NOT pollute the real counter', async () => {
-  mockPle.is_test = true;
-  mockPle.started_at = new Date().toISOString(); // fails Tier-1
-  const res = await end('ple1', { active_seconds: 999999 });
-  expect(res.body.status).toBe('cle_fail_t1');
-  expect(mockT1Outcome).toBeUndefined();
-});
+// The "only a natural, real session feeds the counter" rule moved to cle-finalize.js along with the
+// counter itself; see tests/cle-finalize-counter.test.js. finalizeScreening is mocked in this suite,
+// so there is nothing left to assert about it here.

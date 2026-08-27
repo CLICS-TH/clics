@@ -22,23 +22,31 @@ app.use('/cles', clesRouter);
 const auth = (r) => r.set('Authorization', 'Bearer test');
 const FOLDER_UUID = '33333333-3333-3333-3333-333333333333';
 
-let cleRow, folderOwned, passedCount, pilotFlag;
+let cleRow, folderOwned, passedCount, pilotFlag, t1RemedFlag;
 beforeEach(() => {
   m.reset();
-  // Pin the Socratic allocation so these tests assert the RULE ("the drawn episode runs Socratic")
-  // rather than the allocation itself. Unpinned, the episode is derived from the physician's id —
-  // 'phys-1' hashes to episode 1 — which would silently change what several of these tests mean.
-  // The allocation itself is covered by its own test below.
-  m.state.caller = { ...PHYSICIAN, socratic_episode: 2 }; // consented, usage_cost_usd 0
+  m.state.caller = { ...PHYSICIAN }; // consented, usage_cost_usd 0
   cleRow = undefined;
   folderOwned = true;
-  passedCount = 0;            // # of the physician's prior PASSED CLEs (drives episode_number)
+  passedCount = 0;            // # of the physician's prior COMPLETED CLEs (drives episode_number)
   pilotFlag = 0;             // app_settings.pilot_test_mode (0 = off)
+  t1RemedFlag = 0;           // app_settings.t1_remediation_enabled (0 = off, the protocol default)
   m.state.resolve = (table, kind, ctx) => {
-    if (table === 'app_settings') return { value: pilotFlag }; // pilotTestMode()
+    if (table === 'app_settings') {
+      // Keyed by name, with an explicit default of 0 for anything unlisted. A catch-all that
+      // returned pilotFlag for every key silently switched ON whatever setting was added next —
+      // observed: turning on pilot mode also turned on the identity gate, and the failure surfaced
+      // as an unrelated 403.
+      const key = (ctx.eqs.find(e => e[0] === 'key') || [])[1];
+      if (key === 'pilot_test_mode') return { value: pilotFlag };
+      if (key === 't1_remediation_enabled') return { value: t1RemedFlag };
+      return { value: 0 };
+    }
     if (table === 'cles') {
-      // The episode-count probe: select(head) filtered by status='cle_pass' → return the count.
-      if (ctx.op === 'select' && kind === 'list' && ctx.eqs.some(e => e[0] === 'status' && e[1] === 'cle_pass')) {
+      // The episode-count probe: select(head) filtered to the COMPLETED statuses → return the count.
+      // It matches on .in('status', [...]) because 'cle_pass' alone is a transient state that a
+      // scored CLE leaves immediately — see backend/src/lib/cle-status.js.
+      if (ctx.op === 'select' && kind === 'list' && ctx.ins.some(i => i[0] === 'status')) {
         return { data: [], count: passedCount };
       }
       if (ctx.op === 'insert') return { id: 'p-new', ...ctx.payload };
@@ -69,15 +77,6 @@ test('create CLE1 (no prior passes) → episode 1, natural (no Socratic)', async
   });
 });
 
-test('create the physician\'s ALLOCATED episode → Socratic examiner from start', async () => {
-  passedCount = 1; // caller is pinned to socratic_episode 2, so episode 2 is the Socratic one
-  const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
-  expect(r.status).toBe(201);
-  expect(m.find('cles', 'insert').payload).toMatchObject({
-    episode_number: 2, socratic_active: true, socratic_reason: 'randomised_examiner',
-  });
-});
-
 test('create CLE3 (2 prior passes) → episode 3, natural again', async () => {
   passedCount = 2;
   const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
@@ -87,10 +86,9 @@ test('create CLE3 (2 prior passes) → episode 3, natural again', async () => {
   });
 });
 
-test('create a natural CLE after 3 consecutive Tier-1 fails → Socratic remediation', async () => {
-  // socratic_episode 2 so episode 1 is NOT the allocated one — otherwise this would assert the
-  // allocation rather than the remediation path it is named for.
-  m.state.caller = { ...PHYSICIAN, consecutive_t1_fails: 3, socratic_episode: 2 };
+test('3 consecutive Tier-1 fails + remediation ENABLED → Socratic remediation', async () => {
+  t1RemedFlag = 1; // off by default; a superadmin has deliberately switched it on
+  m.state.caller = { ...PHYSICIAN, consecutive_t1_fails: 3 };
   passedCount = 0; // episode 1, but remediation kicks in
   const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
   expect(r.status).toBe(201);
@@ -99,21 +97,43 @@ test('create a natural CLE after 3 consecutive Tier-1 fails → Socratic remedia
   });
 });
 
-test('unallocated physician: episode is derived from their id, persisted, and stable', async () => {
-  m.state.caller = { ...PHYSICIAN, socratic_episode: null }; // never allocated
+test('the episode probe spans BOTH completed statuses, not just the transient cle_pass', async () => {
+  // Regression: this counted with .eq('status','cle_pass'). A scored CLE is flipped to 'evaluated'
+  // within seconds of screening, so production never had a row resting at 'cle_pass' — the probe
+  // counted 0 for everyone, episode_number stuck at 1, and the protocol's <=3 cap never fired.
+  // The same filter drove the compensation pipeline, which therefore reported 0 THB owed.
+  await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
+  const probe = m.find('cles', 'select');
+  expect(probe.ins).toContainEqual(['status', ['cle_pass', 'evaluated']]);
+  expect(probe.eqs).not.toContainEqual(['status', 'cle_pass']);
+});
+
+test('no episode opens in Socratic mode — the protocol has no randomised arm', async () => {
+  // CREC082 (PLE Instruction Sheet §4, ICF §3): Socratic is a mid-session rescue, "not an
+  // experimental arm". An earlier build allocated one of the 3 episodes by hashing the physician id
+  // and opened it in examiner mode from turn 1. Every episode must now start natural.
+  // No m.reset() in here — it also clears state.resolve, which would strand the next request.
+  // The mock accumulates queries, so m.all() gives one insert per episode, in order.
+  for (const prior of [0, 1, 2]) {
+    passedCount = prior;
+    const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
+    expect(r.status).toBe(201);
+  }
+  const inserts = m.all('cles', 'insert');
+  expect(inserts).toHaveLength(3);
+  inserts.forEach((ins, i) => expect(ins.payload).toMatchObject({
+    episode_number: i + 1, socratic_active: false, socratic_reason: null,
+  }));
+  // ...and nothing is written back to the physician to remember an allocation.
+  expect(m.find('professionals', 'update')).toBeUndefined();
+});
+
+test('3 consecutive Tier-1 fails with remediation OFF (the default) → still natural', async () => {
+  // Not in the approved protocol, so it must not fire unless someone switched it on.
+  m.state.caller = { ...PHYSICIAN, consecutive_t1_fails: 5 };
   const r = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
   expect(r.status).toBe(201);
-
-  // 'phys-1' hashes to episode 1, so their FIRST episode is the Socratic one.
-  expect(m.find('cles', 'insert').payload).toMatchObject({
-    episode_number: 1, socratic_active: true, socratic_reason: 'randomised_examiner',
-  });
-
-  // ...and the allocation is written back, so it survives a hash change or a replay.
-  const upd = m.find('professionals', 'update');
-  expect(upd.payload).toMatchObject({ socratic_episode: 1 });
-  // Guarded by .is(socratic_episode, null) so a concurrent request cannot reallocate.
-  expect(upd.iss).toContainEqual(['socratic_episode', null]);
+  expect(m.find('cles', 'insert').payload).toMatchObject({ socratic_active: false, socratic_reason: null });
 });
 
 test('create a 4th CLE after the 3 study CLEs have passed → 403 cle_limit_reached, no insert', async () => {

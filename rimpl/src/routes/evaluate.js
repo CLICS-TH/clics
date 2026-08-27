@@ -4,11 +4,17 @@ const { callAI } = require('../services/ai');
 const { PIS7_EVALUATOR_PROMPT } = require('../lib/prompts');
 const { scoreFromText } = require('../lib/pis7');
 const { flattenForPrompt } = require('../lib/transcript');
+const { buildProvenance } = require('../lib/provenance');
 const { deriveHintTokens } = require('../services/pii-filter');
 const { modelVersion, PROMPT_VERSION, RUBRIC_VERSION } = require('../lib/versions');
 const { fireShadowEvaluation } = require('../services/shadow');
 
 const router = Router();
+
+// The evaluator's decoding parameters, in ONE place. §10.2 requires them frozen and recorded, and
+// the only way the recorded value cannot drift from the value sent is for both to read this.
+// temperature 0: the scoring instrument must be reproducible, and a sampled score is not.
+const EVAL_DECODING = { temperature: 0, maxTokens: 4096 };
 
 const EvalSchema = z.object({
   cle_id: z.string(),
@@ -16,6 +22,9 @@ const EvalSchema = z.object({
   // On-prem patient identifier, scrubbed from the transcript before the cloud eval; never forwarded.
   // nullish: the backend sends `?? null` when none was recorded — null must pass schema validation.
   patient_ref: z.string().nullish(),
+  // The DECLARED weights checksum from the Model Lock Record, forwarded by the backend from
+  // app_settings. Absent = the evaluator is not locked yet, which the score then says on its face.
+  weights_sha256: z.string().trim().max(128).nullish(),
   // Opt OUT of the shadow evaluation. Default true (shadow runs when SHADOW_EVAL_PROVIDER is set).
   // scripts/calibration/calibrate.js sets this false: --mode rescore re-scores the REAL cohort
   // through this route, which would otherwise overwrite the pilot's accumulated shadow rows with
@@ -27,7 +36,7 @@ router.post('/', async (req, res) => {
   const parsed = EvalSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { cle_id, transcript, patient_ref, shadow } = parsed.data;
+  const { cle_id, transcript, patient_ref, shadow, weights_sha256 } = parsed.data;
   // PII-strip (incl. the known patient identifier) + defang injected role markers before the cloud model.
   const transcriptText = flattenForPrompt(transcript, deriveHintTokens(patient_ref));
 
@@ -45,7 +54,8 @@ router.post('/', async (req, res) => {
       // 4-5) makes rationale length scale with how much of the transcript is genuinely quotable,
       // not just token count, and two undersized guesses in a row means give real headroom instead
       // of incrementing again. max_tokens is a ceiling, not a spend — an unused allowance costs $0.
-      maxTokens: 4096,
+      maxTokens: EVAL_DECODING.maxTokens,
+      temperature: EVAL_DECODING.temperature,
     });
 
     // stopReason 'max_tokens' = genuinely truncated (needs a bigger ceiling); 'end_turn' = the model
@@ -87,6 +97,16 @@ router.post('/', async (req, res) => {
       model_version: modelVersion(model),
       prompt_version: PROMPT_VERSION,
       rubric_version: RUBRIC_VERSION,
+      // §10.2 / Model Lock Record: the full configuration that produced THIS score, including the
+      // decoding parameters actually sent and a fingerprint over the whole set. Two scores with
+      // different fingerprints did not come from the same locked configuration — which is the
+      // question the lock exists to make answerable from the data rather than from memory.
+      provenance: buildProvenance({
+        provider, model,
+        promptVersion: PROMPT_VERSION, rubricVersion: RUBRIC_VERSION,
+        temperature: EVAL_DECODING.temperature, maxTokens: EVAL_DECODING.maxTokens,
+        weightsSha256: weights_sha256 ?? null,
+      }),
       input_tokens: inputTokens,
       output_tokens: outputTokens,
       provider,

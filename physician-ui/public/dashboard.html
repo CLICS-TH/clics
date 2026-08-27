@@ -18,6 +18,7 @@
     <div>
       <a href="/dashboard">หน้าหลัก<span class="bi-en">Home</span></a>
       <a href="/lpdp">ความก้าวหน้า<span class="bi-en">Progress</span></a>
+      <a href="/identity">ยืนยันตัวตน<span class="bi-en">Identity</span></a>
       <a href="/payment">การรับเงิน<span class="bi-en">Payments</span></a>
       <a href="#" id="logoutBtn">ออกจากระบบ<span class="bi-en">Logout</span></a>
     </div>
@@ -43,6 +44,10 @@
     <!-- At-a-glance hero stats: hidden by default; the toggle reveals them (choice remembered). -->
     <button class="btn btn-ghost btn-sm" id="toggleStatsBtn" type="button" style="margin-bottom:14px">แสดงสถิติ<span class="bi-en">Show stats</span></button>
     <div id="heroStats" class="hero-stats" hidden></div>
+
+    <!-- Filled by renderAcceptabilityPrompt() only when the questionnaire is actually due; stays
+         empty otherwise so the dashboard is not carrying a permanent nag. -->
+    <div id="acceptabilityPrompt"></div>
 
     <div id="usageBar"></div>
 

@@ -2,13 +2,16 @@ const { Router } = require('express');
 const { z } = require('zod');
 const { supabase, authSupabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
-const { computeICC21, iccOneWay } = require('../services/icc');
+const { computeICC21, iccOneWay, iccTwoWayAverage } = require('../services/icc');
+const { weightedKappaByDomain } = require('../services/kappa');
 const { sendDbError, pageParams, toCsv } = require('../lib/db-helpers');
 const { compRateCap, cappedCles } = require('../lib/compensation');
+const { COMPLETED_STATUSES } = require('../lib/cle-status');
 const { assertSlotAvailable, nextPseudonym, allSlotUsage, allCouncilSlotUsage, allCouncilsSlotUsage, ROLES } = require('../lib/accounts');
 const { normalizeCanAudit } = require('../lib/dual-role');
 const { POSITIONS, checkSpecialty } = require('../lib/specialties');
 const { logEvent } = require('../lib/audit');
+const retention = require('../services/retention');
 const { decryptJson } = require('../lib/crypto');
 const { getTextSetting, minAuditorsPerCle } = require('../lib/settings');
 
@@ -632,6 +635,30 @@ function iccBundle(pairs, minAuditors = 1) {
       ? computeICC21(atTarget.map(p => ({ ai: Number(p.ai.composite_score), human: Number(p.audit.composite_score) })))
       : null,
     inter_auditor,
+
+    // The SAP names ICC(A,3) — "two-way random absolute-agreement, AVERAGE measures" — for human
+    // interrater reliability. It is computed here, and it is reported NEXT TO ICC(1,1) rather than
+    // instead of it, because which one is legitimate depends on how assignment actually ran:
+    //
+    //   * If a FIXED panel scores every PLE, raters are crossed with subjects, ICC(A,3) is
+    //     identifiable, and it is the right figure — it describes the reliability of the panel MEAN,
+    //     which is what the AI is compared against.
+    //   * If auditors are drawn per PLE from the 20-25 pool (which is how the sampler assigns
+    //     today), rater is nested in subject, the rater main effect ICC(A,3) estimates is not
+    //     identifiable, and the number would claim to have removed an effect the design cannot see.
+    //
+    // Publishing whichever is larger without saying which design produced it is the failure mode
+    // this pairing exists to prevent. It is null whenever the matrix is too ragged to support it.
+    inter_auditor_average: multi.length >= 2 ? iccTwoWayAverage(multi.map(p => p.rater_scores)) : null,
+    inter_auditor_note: 'ICC(1,1) assumes auditors are drawn per CLE (rater nested in subject) and is the conservative reading. ICC(A,k) assumes a fixed panel scoring every CLE. Report the one matching how assignment actually ran, and say which.',
+
+    // Weighted kappa — SAP "Additional agreement". Ordinal-aware in a way ICC is not: it asks how
+    // often the two land on the SAME 0-5 category, corrected for the agreement their marginal
+    // habits would produce by chance. Per-domain because a composite that agrees can still hide one
+    // domain where raters systematically diverge — and that domain is the one whose anchors need
+    // rewriting.
+    weighted_kappa: weightedKappaByDomain(
+      pairs.map(p => ({ a: p.ai, b: p.audit })), { min: 0, max: 5 }),
   };
 }
 
@@ -753,7 +780,8 @@ router.get('/cles/:id/pii-map', async (req, res) => {
 });
 
 // ---- Compensation payouts (superadmin only) ------------------------------------------------------
-// Owed = completed (cle_pass, non-test) CLEs × rate, capped (configurable). Paid = Σ payouts ledger.
+// Owed = completed (non-test) CLEs × rate, capped (configurable). Paid = Σ payouts ledger.
+// "Completed" spans cle_pass AND evaluated — see lib/cle-status.js; cle_pass alone counts zero.
 // Unlike the pseudonymized /admin/compensation report, this view carries REAL names + (decrypted)
 // payment details so the team can actually pay — so it is superadmin-only and every read is audit-
 // logged. The actual transfer happens externally; POST .../pay records it.
@@ -761,7 +789,7 @@ async function loadPayoutBase() {
   // Settings + the (larger) CLE scan are independent — overlap them.
   const [{ rate, cap }, clesRes] = await Promise.all([
     compRateCap(),
-    supabase.from('cles').select('physician_id').eq('status', 'cle_pass').eq('is_test', false),
+    supabase.from('cles').select('physician_id').in('status', COMPLETED_STATUSES).eq('is_test', false),
   ]);
   if (clesRes.error) throw clesRes.error;
   const countByPhys = {};
@@ -829,7 +857,7 @@ router.post('/payouts/:physicianId/pay', async (req, res) => {
   // but a direct API call or a concurrent double-click must not push paid past owed).
   const { rate, cap } = await compRateCap();
   const [{ data: passRows }, { data: ledger }] = await Promise.all([
-    supabase.from('cles').select('id').eq('physician_id', req.params.physicianId).eq('status', 'cle_pass').eq('is_test', false),
+    supabase.from('cles').select('id').eq('physician_id', req.params.physicianId).in('status', COMPLETED_STATUSES).eq('is_test', false),
     supabase.from('payouts').select('amount_thb').eq('physician_id', req.params.physicianId),
   ]);
   const completed = cappedCles((passRows ?? []).length, cap);
@@ -867,6 +895,113 @@ router.get('/payouts/export', async (req, res) => {
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', 'attachment; filename="clics-payouts.csv"');
   res.send(toCsv(header, rows));
+});
+
+// ---- Retention / de-identification (CREC082 DMP §8, ICF §11) ---------------------------------
+// Superadmin only, and everything below is read-only except the one guarded execute.
+//
+// There is no scheduler. The deadline is five years after a project that has not started; a cron
+// written now and left unattended until ~2031, running irreversible deletes against a schema that
+// will have changed many times, would be a bigger risk than the one it manages. A human runs this.
+
+router.get('/retention', async (_req, res) => {
+  try {
+    res.json({ ...(await retention.plan()), confirm_phrase: retention.CONFIRM_PHRASE });
+  } catch (e) {
+    console.error('[superadmin] retention plan failed:', e.message);
+    res.status(500).json({ error: 'Could not compute the retention plan.' });
+  }
+});
+
+const RetentionPolicySchema = z.object({
+  // ISO date, or null to clear it and stop the clock. Nothing is due while this is unset.
+  project_end_date: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  retention_years: z.number().int().min(1).max(50).optional(),
+});
+
+router.patch('/retention', async (req, res) => {
+  const parsed = RetentionPolicySchema.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const rows = [];
+  if ('project_end_date' in parsed.data) rows.push({ key: 'project_end_date', value: 0, value_text: parsed.data.project_end_date ?? null });
+  if (parsed.data.retention_years != null) rows.push({ key: 'retention_years', value: parsed.data.retention_years, value_text: null });
+  if (!rows.length) return res.status(400).json({ error: 'Nothing to update.' });
+
+  const { error } = await supabase.from('app_settings').upsert(rows, { onConflict: 'key' });
+  if (sendDbError(res, error)) return;
+  // Setting the project end date starts a five-year clock toward an irreversible operation, so the
+  // change is audited in its own right.
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'retention.policy',
+    targetType: 'app_settings', targetId: 'retention', councilId: null, metadata: parsed.data });
+  res.json({ ok: true, ...(await retention.retentionPolicy()) });
+});
+
+router.post('/retention/deidentify', async (req, res) => {
+  const confirm = typeof req.body?.confirm === 'string' ? req.body.confirm : '';
+  const out = await retention.execute({ confirm, actorId: req.user.id });
+  if (!out.ok && out.code) {
+    // Refusals are the normal case and each says exactly what is missing, so a superadmin is never
+    // guessing why an irreversible operation declined to run.
+    const msg = {
+      no_project_end_date: 'Set the project end date first — nothing is due until the study has ended.',
+      not_yet_due: `Not due until ${out.due_at}.`,
+      confirmation_mismatch: `Type the confirmation phrase exactly: "${retention.CONFIRM_PHRASE}".`,
+    }[out.code] ?? 'Refused.';
+    return res.status(409).json({ error: msg, code: out.code, due_at: out.due_at });
+  }
+  // Logged whether or not every target succeeded — a partial pass is the case where a record matters
+  // most, and audit_log is excluded from the sweep precisely so this entry survives it.
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'retention.deidentify',
+    targetType: 'dataset', targetId: 'research', councilId: null,
+    metadata: { ok: out.ok, results: out.results } });
+  res.status(out.ok ? 200 : 207).json(out);
+});
+
+// ---- Monthly security review (Infrastructure Statement "Security review", ICF §11) -----------
+// "ทบทวนด้าน security รายเดือน ... รวมถึง access/audit review และ incident review" — three named
+// parts, recorded separately so "was access reviewed in March?" has an answer.
+
+router.get('/security-reviews', async (req, res) => {
+  const { limit, offset } = pageParams(req);
+  const { data, count, error } = await supabase.from('security_reviews')
+    .select('*', { count: 'exact' })
+    .order('period_month', { ascending: false }).range(offset, offset + limit - 1);
+  if (sendDbError(res, error)) return;
+  res.json({ reviews: data ?? [], limit, offset, total: count ?? 0 });
+});
+
+const SecurityReviewSchema = z.object({
+  // The month under review, normalised to its first day — the unique index is what enforces
+  // "monthly" rather than "whenever someone remembers".
+  period_month: z.string().trim().regex(/^\d{4}-\d{2}$/),
+  access_review: z.string().trim().max(4000).optional(),
+  audit_review: z.string().trim().max(4000).optional(),
+  incident_review: z.string().trim().max(4000).optional(),
+  incidents_found: z.boolean().optional(),
+  notes: z.string().trim().max(4000).optional(),
+});
+
+router.post('/security-reviews', async (req, res) => {
+  const parsed = SecurityReviewSchema.safeParse(req.body ?? {});
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const d = parsed.data;
+  // Each of the three parts must actually say something. A record with all three blank asserts a
+  // review happened while carrying no evidence that one did — worse than no record at all.
+  if (!(d.access_review || d.audit_review || d.incident_review)) {
+    return res.status(400).json({ error: 'Record what was reviewed — access, audit, or incidents.', code: 'empty_review' });
+  }
+  const { error } = await supabase.from('security_reviews').upsert({
+    period_month: `${d.period_month}-01`,
+    reviewed_by: req.user.id, reviewed_at: new Date().toISOString(),
+    access_review: d.access_review ?? null, audit_review: d.audit_review ?? null,
+    incident_review: d.incident_review ?? null,
+    incidents_found: d.incidents_found ?? false, notes: d.notes ?? null,
+  }, { onConflict: 'period_month' });
+  if (sendDbError(res, error)) return;
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'security.review',
+    targetType: 'security_review', targetId: d.period_month, councilId: null,
+    metadata: { incidents_found: d.incidents_found ?? false } });
+  res.json({ ok: true, period_month: d.period_month });
 });
 
 module.exports = router;

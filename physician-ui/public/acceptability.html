@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>CLICS — แบบสอบถามความยอมรับ / Acceptability questionnaire</title>
+  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+  <nav>
+    <span class="brand">CLICS</span>
+    <div>
+      <a href="/dashboard">หน้าหลัก<span class="bi-en">Home</span></a>
+      <a href="/lpdp">ความก้าวหน้า<span class="bi-en">Progress</span></a>
+      <a href="/identity">ยืนยันตัวตน<span class="bi-en">Identity</span></a>
+      <a href="/payment">การรับเงิน<span class="bi-en">Payments</span></a>
+      <a href="#" id="logoutBtn">ออกจากระบบ<span class="bi-en">Logout</span></a>
+    </div>
+  </nav>
+  <div class="container" style="max-width:680px">
+    <header class="page-intro">
+      <p class="eyebrow">แบบสอบถาม · Questionnaire</p>
+      <h1>ความคิดเห็นต่อระบบ <span style="font-family:var(--font-body)">/ How was this for you?</span></h1>
+      <p class="sub">แบบสอบถามสั้น ๆ ครั้งเดียว ประมาณ 10 นาที เกี่ยวกับความยอมรับของระบบ ภาระเวลา และความเป็นส่วนตัว / A short one-time questionnaire, about 10 minutes, on how acceptable the system was, the time it took, and how your data was handled.</p>
+    </header>
+
+    <div class="card" id="content">
+      <p class="sub" style="margin:0">กำลังโหลด… / Loading…</p>
+    </div>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/boot.js" defer></script>
+  <script>
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await api.logout();
+      const t = localStorage.getItem('clics_theme'), v = localStorage.getItem('clics_view');
+      localStorage.clear();
+      if (t) localStorage.setItem('clics_theme', t);
+      if (v) localStorage.setItem('clics_view', v);
+      window.location.href = '/';
+    });
+
+    const $ = (id) => document.getElementById(id);
+    const content = $('content');
+    const esc = (s) => String(s ?? '').replace(/[&<>"\']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+    // 1-5 anchors. Bilingual and spelled out rather than bare numbers: an unlabelled Likert scale
+    // measures how people read the numbers as much as what they think.
+    const ANCHORS = [
+      { v: 1, th: 'ไม่เห็นด้วยอย่างยิ่ง', en: 'Strongly disagree' },
+      { v: 2, th: 'ไม่เห็นด้วย',          en: 'Disagree' },
+      { v: 3, th: 'เฉย ๆ',                en: 'Neutral' },
+      { v: 4, th: 'เห็นด้วย',             en: 'Agree' },
+      { v: 5, th: 'เห็นด้วยอย่างยิ่ง',    en: 'Strongly agree' },
+    ];
+
+    function render(d) {
+      // The item wording comes from the server so the portal never holds a second copy that could
+      // drift from the approved instrument.
+      content.innerHTML =
+        d.items.map((it, i) => `
+          <fieldset style="border:0;padding:0;margin:0 0 1.4rem">
+            <legend style="padding:0;font-weight:500">${i + 1}. ${esc(it.th)}<span class="bi-en">${esc(it.en)}</span></legend>
+            <div role="radiogroup" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem">
+              ${ANCHORS.map(a => `
+                <label style="display:inline-flex;align-items:center;gap:.35rem;min-height:44px;padding:.35rem .6rem;border:1px solid var(--border);border-radius:999px;cursor:pointer;font-size:.85rem">
+                  <input type="radio" name="${esc(it.key)}" value="${a.v}" />
+                  <span>${a.th}<span class="bi-en">${a.en}</span></span>
+                </label>`).join('')}
+            </div>
+          </fieldset>`).join('') +
+        `<label for="comments">ข้อเสนอแนะเพิ่มเติม<span class="bi-en">Anything else you would like to tell us</span></label>
+         <textarea id="comments" rows="4" maxlength="5000" style="width:100%"></textarea>
+         <p id="formMsg" class="error-msg" style="display:none"></p>
+         <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:.9rem">
+           <button type="button" class="btn" id="saveBtn">ส่งแบบสอบถาม<span class="bi-en">Submit</span></button>
+           <button type="button" class="btn btn-ghost" id="skipBtn">ไม่ตอบแบบสอบถาม<span class="bi-en">Decline</span></button>
+         </div>
+         <p class="sub" style="margin-top:.9rem;font-size:.85rem">การตอบเป็นไปโดยสมัครใจทั้งหมด ท่านข้ามข้อใดก็ได้ หรือไม่ตอบเลยก็ได้ โดยไม่มีผลต่อสิทธิ์ใด ๆ / Answering is entirely voluntary — skip any item, or decline altogether, with no effect on anything.</p>`;
+
+      $('saveBtn').addEventListener('click', () => submit(false));
+      $('skipBtn').addEventListener('click', () => submit(true));
+    }
+
+    async function submit(skipped) {
+      const msg = $('formMsg');
+      msg.style.display = 'none';
+      $('saveBtn').disabled = $('skipBtn').disabled = true;
+      const answers = {};
+      if (!skipped) {
+        for (const el of content.querySelectorAll('input[type=radio]:checked')) answers[el.name] = Number(el.value);
+      }
+      const body = { skipped, answers, comments: skipped ? '' : $('comments').value };
+      try {
+        const res = await api.submitAcceptability(body);
+        if (res && res.error) {
+          msg.textContent = res.error; msg.style.display = '';
+          $('saveBtn').disabled = $('skipBtn').disabled = false;
+          return;
+        }
+        content.innerHTML =
+          `<div class="status-band is-pass" style="margin-bottom:12px">${icon('checkCircle', 24)}<span>ขอบคุณครับ/ค่ะ<span class="bi-en">Thank you</span></span></div>` +
+          `<p class="sub" style="margin:0">${skipped ? 'บันทึกไว้แล้วว่าท่านไม่ประสงค์ตอบ / Recorded that you would rather not answer.' : 'บันทึกคำตอบของท่านแล้ว / Your answers have been recorded.'}</p>` +
+          `<a href="/dashboard" class="btn btn-ghost" style="display:inline-block;margin-top:1rem">← กลับหน้าหลัก / Back</a>`;
+      } catch {
+        msg.textContent = 'ส่งไม่สำเร็จ กรุณาลองใหม่ / Could not submit. Please try again.';
+        msg.style.display = '';
+        $('saveBtn').disabled = $('skipBtn').disabled = false;
+      }
+    }
+
+    (async () => {
+      let d;
+      try { d = await api.getAcceptability(); } catch { d = null; }
+      if (!d || d.error) { content.innerHTML = '<p class="sub" style="margin:0">โหลดไม่สำเร็จ / Could not load.</p>'; return; }
+      if (d.response) {
+        content.innerHTML =
+          `<div class="status-band is-pass" style="margin-bottom:12px">${icon('checkCircle', 24)}<span>ตอบแบบสอบถามแล้ว<span class="bi-en">Already answered</span></span></div>` +
+          `<a href="/dashboard" class="btn btn-ghost" style="display:inline-block">← กลับหน้าหลัก / Back</a>`;
+        return;
+      }
+      if (!d.eligible) {
+        content.innerHTML =
+          `<p class="sub" style="margin:0">แบบสอบถามนี้จะเปิดให้ตอบหลังจากท่านทำ Learning Episode เสร็จอย่างน้อยหนึ่งครั้ง / This opens once you have completed at least one learning episode.</p>` +
+          `<a href="/dashboard" class="btn btn-ghost" style="display:inline-block;margin-top:1rem">← กลับหน้าหลัก / Back</a>`;
+        return;
+      }
+      render(d);
+    })();
+  </script>
+</body>
+</html>

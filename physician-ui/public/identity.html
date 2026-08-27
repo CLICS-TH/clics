@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>CLICS — ยืนยันตัวตน / Identity verification</title>
+  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+  <nav>
+    <span class="brand">CLICS</span>
+    <div>
+      <a href="/dashboard">หน้าหลัก<span class="bi-en">Home</span></a>
+      <a href="/lpdp">ความก้าวหน้า<span class="bi-en">Progress</span></a>
+      <a href="/identity">ยืนยันตัวตน<span class="bi-en">Identity</span></a>
+      <a href="/payment">การรับเงิน<span class="bi-en">Payments</span></a>
+      <a href="#" id="logoutBtn">ออกจากระบบ<span class="bi-en">Logout</span></a>
+    </div>
+  </nav>
+  <div class="container" style="max-width:560px">
+    <header class="page-intro">
+      <p class="eyebrow">ยืนยันตัวตน · Identity</p>
+      <h1>ยืนยันตัวตนวิชาชีพ <span style="font-family:var(--font-body)">/ Verify your identity</span></h1>
+      <p class="sub">ตามโปรโตคอลการวิจัย ต้องยืนยันตัวตนก่อนเริ่ม Learning Episode แรก โดยใช้เลขประจำตัวประชาชนร่วมกับเลขที่ใบอนุญาตประกอบวิชาชีพเวชกรรม / The research protocol requires identity verification before your first learning episode, using your national ID together with your medical licence number.</p>
+    </header>
+
+    <div class="card" id="statusCard" style="display:none"></div>
+
+    <div class="card" id="formCard">
+      <form id="idForm" novalidate>
+        <label for="national_id">เลขประจำตัวประชาชน<span class="bi-en">National ID (13 digits)</span></label>
+        <input type="text" id="national_id" inputmode="numeric" autocomplete="off" maxlength="20"
+               placeholder="1-2345-67890-12-3" required />
+
+        <label for="license_number">เลขที่ใบอนุญาตประกอบวิชาชีพเวชกรรม<span class="bi-en">Medical licence number</span></label>
+        <input type="text" id="license_number" autocomplete="off" maxlength="40" placeholder="ว.12345" required />
+
+        <p id="formMsg" class="error-msg" style="display:none"></p>
+        <button type="submit" class="btn" id="saveBtn" style="margin-top:.5rem">ส่งเพื่อตรวจสอบ<span class="bi-en">Submit for review</span></button>
+      </form>
+      <p class="sub" style="margin-top:1rem;font-size:.85rem">🔒 เลขประจำตัวประชาชนถูกเข้ารหัสและเก็บแยกจากข้อมูลวิจัย ไม่ถูกส่งไปยัง AI และไม่แสดงกลับมาอีก / Your national ID is encrypted, stored separately from the research data, never sent to AI, and never shown again.</p>
+    </div>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/boot.js" defer></script>
+  <script>
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await api.logout();
+      const t = localStorage.getItem('clics_theme'), v = localStorage.getItem('clics_view');
+      localStorage.clear();
+      if (t) localStorage.setItem('clics_theme', t);
+      if (v) localStorage.setItem('clics_view', v);
+      window.location.href = '/';
+    });
+
+    const $ = (id) => document.getElementById(id);
+    const msg = $('formMsg');
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+    // Identity verification is physician-only; the backend enforces it too.
+    api.me().then(r => { const role = r && r.user && r.user.role; if (role && role !== 'physician') location.replace('/dashboard'); }).catch(() => {});
+
+    // Client-side mod-11 check, mirroring backend/src/lib/national-id.js. Not a security control —
+    // the server revalidates — but it catches a mistyped digit before it becomes an administrator's
+    // problem, and tells the physician which field is wrong while they are still looking at it.
+    function validNationalId(raw) {
+      const id = String(raw || '').replace(/[\s-]/g, '');
+      if (!/^\d{13}$/.test(id) || id[0] === '0' || /^(\d)\1{12}$/.test(id)) return false;
+      let sum = 0;
+      for (let i = 0; i < 12; i++) sum += Number(id[i]) * (13 - i);
+      return ((11 - (sum % 11)) % 10) === Number(id[12]);
+    }
+
+    const STATUS_VIEW = {
+      pending: { cls: 'is-review', icon: 'hourglass',
+        th: 'ส่งแล้ว รอผู้ดูแลตรวจสอบ', en: 'Submitted — awaiting review by an administrator.' },
+      verified: { cls: 'is-pass', icon: 'checkCircle',
+        th: 'ยืนยันตัวตนเรียบร้อยแล้ว', en: 'Your identity has been verified.' },
+      rejected: { cls: 'is-fail', icon: 'xCircle',
+        th: 'ไม่ผ่านการตรวจสอบ กรุณาส่งใหม่', en: 'Not accepted. Please check the details and submit again.' },
+    };
+
+    async function render() {
+      let s;
+      try { s = await api.identityStatus(); } catch { return; }
+      if (!s || s.error || s.status === 'none') return;   // never submitted → show the form only
+      const v = STATUS_VIEW[s.status];
+      if (!v) return;
+      $('statusCard').style.display = '';
+      $('statusCard').innerHTML =
+        `<div class="status-band ${v.cls}" style="margin-bottom:12px">${icon(v.icon, 24)}<span>${v.th}<span class="bi-en">${v.en}</span></span></div>` +
+        (s.reject_reason ? `<p class="sub" style="margin:0">เหตุผล / Reason: ${esc(s.reject_reason)}</p>` : '') +
+        (s.license_number ? `<p class="sub" style="margin:.4rem 0 0;font-size:.85rem">ใบอนุญาต / Licence: ${esc(s.license_number)}</p>` : '');
+      // A verified physician has nothing left to do here; a rejected one resubmits, so the form stays.
+      if (s.status === 'verified' || s.status === 'pending') $('formCard').style.display = 'none';
+    }
+    render();
+
+    $('idForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.style.display = 'none';
+      const national_id = $('national_id').value.trim();
+      const license_number = $('license_number').value.trim();
+      if (!validNationalId(national_id)) {
+        msg.textContent = 'เลขประจำตัวประชาชนไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง / That national ID number is not valid — please check it.';
+        msg.style.display = ''; $('national_id').focus(); return;
+      }
+      if (!license_number) {
+        msg.textContent = 'กรุณากรอกเลขที่ใบอนุญาต / A licence number is required.';
+        msg.style.display = ''; $('license_number').focus(); return;
+      }
+      $('saveBtn').disabled = true;
+      try {
+        const res = await api.submitIdentity({ national_id, license_number });
+        if (res && res.error) {
+          msg.textContent = res.error; msg.style.display = '';
+          return;
+        }
+        // Clear the field the moment it has been accepted — there is no reason for a national ID to
+        // sit in a form control on a shared or unattended screen.
+        $('national_id').value = '';
+        await render();
+      } catch {
+        msg.textContent = 'ส่งไม่สำเร็จ กรุณาลองใหม่ / Could not submit. Please try again.';
+        msg.style.display = '';
+      } finally { $('saveBtn').disabled = false; }
+    });
+  </script>
+</body>
+</html>

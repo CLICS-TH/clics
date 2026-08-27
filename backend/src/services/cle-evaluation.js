@@ -1,5 +1,6 @@
 // PIS-7 evaluation persistence, shared by the physician /end flow and the admin approve flow.
 const { supabase } = require('../lib/supabase');
+const { evaluatorWeightsSha256 } = require('../lib/settings');
 const { compositeScore } = require('./cle-gate');
 const { rimplEvaluate, isDeterministicRimplError } = require('./rimpl-client');
 const { accrueUsage } = require('../lib/usage');
@@ -22,6 +23,11 @@ async function persistEvaluation(cleId, physicianId, result) {
     model_version: result.model_version ?? 'CCME_LLM_v8.0',
     prompt_version: result.prompt_version ?? null,
     rubric_version: result.rubric_version ?? null,
+    // §10.2 / Model Lock Record: the full configuration behind THIS score — decoding parameters as
+    // sent, the declared weights checksum, and a fingerprint over the set. Two scores with different
+    // fingerprints did not come from the same locked configuration, which makes the lock checkable
+    // from the data instead of from memory.
+    provenance: result.provenance ?? null,
   });
   // UNIQUE(cle_id): a 23505 means a row already exists — a concurrent evaluation (the dup-eval race),
   // or a previous PARTIAL persist where the ai row landed but the snapshot/status writes failed. In
@@ -63,7 +69,11 @@ async function evaluateWithRetry(payload, attempts = 3) {
 
 // Run the PIS-7 evaluation for a passed CLE and persist it. Throws on failure (caller logs).
 async function triggerEvaluation(cleId, transcript, physicianId, patientRef) {
-  const result = await evaluateWithRetry({ cle_id: cleId, transcript, patient_ref: patientRef });
+  // The declared Model Lock checksum travels WITH the evaluation so it is stamped on the score at
+  // the moment it is produced. Read per call rather than cached: if it is declared (or re-declared)
+  // mid-pilot, the scores either side carry different values and the break is visible in the data.
+  const weights_sha256 = await evaluatorWeightsSha256().catch(() => null);
+  const result = await evaluateWithRetry({ cle_id: cleId, transcript, patient_ref: patientRef, weights_sha256 });
   const { fresh } = await persistEvaluation(cleId, physicianId, result);
   // Accrue the PIS-7 evaluation's cost to the physician's meter ONLY when this call actually wrote
   // the row — a dup-eval race (reconcile vs /end) must not double-charge the physician. There is no

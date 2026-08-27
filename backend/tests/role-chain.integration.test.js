@@ -23,7 +23,10 @@ const SCORES = { d1: 3, d2: 3, d3: 3, d4: 3, d5: 3, d6: 3, d7: 3 }; // composite
 
 test('physician→admin→auditor handoff chain connects end-to-end', async () => {
   // Shared, evolving state across the role switches.
-  const cle = { id: 'p1', status: 'evaluated', council_id: COUNCIL_A, physician_id: 'phys-1', auditor_id: null, turn_count: 5, token_count: 900, ended_at: 't' };
+  // privacy_review_status: CREC082's human privacy gate blocks assignment until a person has
+  // cleared the transcript (lib/privacy-review.js). It fails CLOSED, so a fixture without this
+  // field is correctly refused — these suites are about assignment rules, not the gate.
+  const cle = { id: 'p1', status: 'evaluated', council_id: COUNCIL_A, physician_id: 'phys-1', auditor_id: null, turn_count: 5, token_count: 900, ended_at: 't', privacy_review_status: 'passed' };
   let scored = false;
   const aiEvalSingle = { cle_id: 'p1', d1: 4, composite_score: 70 };
 

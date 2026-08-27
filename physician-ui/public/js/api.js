@@ -86,6 +86,10 @@ window.api = {
   // with the user's existing CLICS bearer token. Returns { ok, linked_providers } or { error }.
   linkGoogle: (access_token) => apiFetch('/auth/link-google', { method: 'POST', body: { access_token } }),
   consent: (body) => apiFetch('/auth/consent', { method: 'POST', body }),
+  // CREC082 ICF §4 identity verification. The national ID is sent once and never returned by any
+  // endpoint — identityStatus() reports where a submission stands, not what was submitted.
+  submitIdentity: (body) => apiFetch('/auth/identity/national-id', { method: 'POST', body }),
+  identityStatus: () => apiFetch('/auth/identity/status'),
   pilotMode: () => apiFetch('/auth/pilot-mode'),
   // Compensation payment details (self-service): the physician's own bank/PromptPay info, stored
   // encrypted on-prem. getPaymentInfo → { payment_info, updated_at } | { payment_info: null }.
@@ -98,6 +102,14 @@ window.api = {
   deletePle: (id) => apiFetch(`/cles/${id}`, { method: 'DELETE' }),
   sendMessage: (id, body) => apiFetch(`/cles/${id}/message`, { method: 'POST', body }),
   endPle: (id, body) => apiFetch(`/cles/${id}/end`, { method: 'POST', body }),
+  // CREC082 ICF §3 step 3. Submitting (or skipping) the reflection is what releases a session from
+  // 'ended' into screening — the reflection is part of what gets screened.
+  getReflection: (id) => apiFetch(`/cles/${id}/reflection`),
+  submitReflection: (id, body) => apiFetch(`/cles/${id}/reflection`, { method: 'POST', body }),
+  // ICF §3 step 4 — one per physician at the end of participation. The item wording comes from the
+  // server so the portal never holds a second copy that could drift from the approved instrument.
+  getAcceptability: () => apiFetch('/cles/acceptability'),
+  submitAcceptability: (body) => apiFetch('/cles/acceptability', { method: 'POST', body }),
   getEvaluation: (id) => apiFetch(`/cles/${id}/evaluation`),
   // Longitudinal profile snapshots (ascending; last = most recent composite_score). Used by the
   // LPDP page and the dashboard hero's "latest score" stat.

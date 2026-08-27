@@ -10,7 +10,11 @@
 // marginal cost is $0 — locking them out after a couple of free CLEs and invoicing the council for
 // compute it already owns.
 jest.mock('../src/lib/supabase', () => ({
-  supabase: { from: () => ({ update: () => ({ eq: () => Promise.resolve({ error: null }) }) }) },
+  supabase: {
+    from: () => ({ update: () => ({ eq: () => Promise.resolve({ error: null }) }) }),
+    // record_t1_outcome: cle-finalize.js records the consecutive-failure outcome via RPC.
+    rpc: async () => ({ data: null, error: null }),
+  },
 }));
 
 let mockCrit;
@@ -35,7 +39,7 @@ const costArg = () => mockAccrue.mock.calls[0][3];
 beforeEach(() => { mockAccrue.mockClear(); });
 
 test('a LOCAL criteria call is metered at $0, not at Anthropic rates', async () => {
-  mockCrit = { c4: true, c5: true, c6: true, input_tokens: 130000, output_tokens: 50, provider: 'local', pii_map: [] };
+  mockCrit = { c4: true, c5: true, c6: true, c7: true, input_tokens: 130000, output_tokens: 50, provider: 'local', pii_map: [] };
   await run();
   expect(mockAccrue).toHaveBeenCalledTimes(1);
   // Token counts are still recorded — only the DOLLARS are zero.
@@ -44,14 +48,14 @@ test('a LOCAL criteria call is metered at $0, not at Anthropic rates', async () 
 });
 
 test('an ANTHROPIC criteria call still bills the full real cost (no behaviour change on the paid path)', async () => {
-  mockCrit = { c4: true, c5: true, c6: true, input_tokens: 130000, output_tokens: 50, provider: 'anthropic', pii_map: [] };
+  mockCrit = { c4: true, c5: true, c6: true, c7: true, input_tokens: 130000, output_tokens: 50, provider: 'anthropic', pii_map: [] };
   await run();
   // 130000/1e6*3 + 50/1e6*15
   expect(costArg()).toBeCloseTo(0.39075, 6);
 });
 
 test('a criteria response with NO provider is billed as anthropic (fail toward over-billing)', async () => {
-  mockCrit = { c4: true, c5: true, c6: true, input_tokens: 130000, output_tokens: 50, pii_map: [] };
+  mockCrit = { c4: true, c5: true, c6: true, c7: true, input_tokens: 130000, output_tokens: 50, pii_map: [] };
   await run();
   expect(costArg()).toBeCloseTo(0.39075, 6);
 });

@@ -10,6 +10,7 @@ const { supabase } = require('../lib/supabase');
 const { triggerEvaluation } = require('./cle-evaluation');
 const { finalizeScreening } = require('./cle-finalize');
 const { isDeterministicRimplError } = require('./rimpl-client');
+const reflection = require('./reflection');
 
 // Don't touch a session that just ended — its /end handler is likely still finalizing tier-2 / firing
 // the PIS-7 eval. Reconciling inside that window would race it and double-pay Anthropic (F9).
@@ -20,7 +21,9 @@ async function reconcileEvaluations(now = Date.now()) {
   // Batch-bounded: recover up to 200 stranded sessions per call (re-run to drain more). OLDEST first
   // (order by ended_at) so a backlog past 200 can't perpetually starve the earliest stranded session.
   const { data: stuck, error: stuckErr } = await supabase
-    .from('cles').select('id, physician_id, status, c1_pass, c2_pass, c3_pass')
+    // socratic_reason + is_test: finalizeScreening needs them to decide whether this session feeds
+    // the consecutive-failure counter. Omitted, every swept session would look natural and real.
+    .from('cles').select('id, physician_id, status, c1_pass, c2_pass, c3_pass, socratic_reason, is_test')
     .in('status', ['ended', 'cle_pass']).lt('ended_at', cutoff)
     .order('ended_at').limit(200);
   if (stuckErr) throw new Error(`reconcile: stuck-session query failed: ${stuckErr.message}`);
@@ -37,7 +40,7 @@ async function reconcileEvaluations(now = Date.now()) {
         failed++;
         continue;
       }
-      const transcript = msgs.map(m => ({ role: m.role, content: m.content }));
+      let transcript = msgs.map(m => ({ role: m.role, content: m.content }));
       // Patient identifier → scrubbed from the transcript on-prem before the cloud eval. This sweep runs
       // server-side (NOT as the owner), so read by cle_id only — the service-role key bypasses RLS.
       const { data: pref } = await supabase.from('cle_patient_refs')
@@ -45,12 +48,19 @@ async function reconcileEvaluations(now = Date.now()) {
       const patientRef = pref?.patient_ref ?? null;
 
       if (p.status === 'ended') {
+        // A session can rest at 'ended' for a second reason now: the physician was asked for a
+        // reflection and has not written one. Sweeping it here IS the intended backstop — after the
+        // 6-hourly window they have plainly abandoned it — but the reflection has to be included if
+        // one did arrive, or the sweep would score a session on a transcript missing evidence the
+        // database already holds.
+        transcript = await reflection.withReflection(p.id, transcript);
         // Tier-2 pending: finish screening from the persisted tier-1 (cle_flag_t2, or cle_pass + fire
         // the PIS-7 eval). This is what makes 'ended' recoverable after a death/blip during /end.
         await finalizeScreening({
           cleId: p.id, physicianId: p.physician_id, transcript,
           tier1: { c1: p.c1_pass, c2: p.c2_pass, c3: p.c3_pass },
           patient_ref: patientRef,
+          cle: p, // socratic_reason + is_test for the consecutive-failure counter
         });
         recovered++;
         continue;
