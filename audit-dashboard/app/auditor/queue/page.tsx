@@ -82,8 +82,16 @@ export default function AuditorQueue() {
         : visible.length === 0
         ? <p className="text-muted-foreground text-center py-10">ไม่พบรายการที่ตรงกับคำค้น / No items match the filter.</p>
         : visible.map(p => (
-          <div key={p.id} className={`border rounded-xl p-5 mb-3 cursor-pointer transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md motion-reduce:transform-none motion-reduce:transition-none ${p.scored ? 'opacity-60' : ''}`}
-            onClick={() => router.push(`/auditor/cles/${p.id}`)}>
+          // role + tabIndex + keydown: a bare <div onClick> is not in the tab order, so an auditor
+          // could not open a queued CLE without a pointer. Mirrors the fix already in the physician
+          // portal (physician-ui/public/js/dashboard.js:308 and its keydown handler).
+          <div key={p.id} role="button" tabIndex={0}
+            aria-label={`เปิด CLE วันที่ ${new Date(p.ended_at).toLocaleDateString('th-TH')} / Open CLE`}
+            className={`border rounded-xl p-5 mb-3 cursor-pointer transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none ${p.scored ? 'opacity-60' : ''}`}
+            onClick={() => router.push(`/auditor/cles/${p.id}`)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/auditor/cles/${p.id}`); }
+            }}>
             <div className="flex justify-between items-center">
               <div>
                 <p className="font-semibold">CLE — {new Date(p.ended_at).toLocaleDateString('th-TH')}</p>

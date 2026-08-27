@@ -207,7 +207,7 @@ export default function CompensationPage() {
 function Stat({ value, label, tone }: { value: string; label: string; tone?: 'warn' }) {
   return (
     <div className="rounded-xl border p-4">
-      <p className={`text-2xl font-bold tabular-nums ${tone === 'warn' ? 'text-[var(--warn,#e08a1e)]' : ''}`}>{value}</p>
+      <p className={`text-2xl font-bold tabular-nums ${tone === 'warn' ? 'text-warn' : ''}`}>{value}</p>
       <p className="text-sm text-muted-foreground">{label}</p>
     </div>
   );
@@ -235,7 +235,7 @@ function PayoutRow({ r, expanded, onToggle, onPay }: {
           <p className="text-sm mt-0.5">
             {r.has_payment_info
               ? <span className="text-muted-foreground">{r.account_masked ?? 'มีข้อมูลการรับเงิน / payment info on file'}</span>
-              : <span className="text-[var(--warn,#e08a1e)]">ยังไม่ได้ให้ข้อมูลการรับเงิน / no payment info yet</span>}
+              : <span className="text-warn">ยังไม่ได้ให้ข้อมูลการรับเงิน / no payment info yet</span>}
           </p>
         </div>
         <Button variant={expanded ? 'outline' : 'default'} size="sm" onClick={onToggle} disabled={r.outstanding_thb <= 0}>

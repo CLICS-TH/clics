@@ -41,13 +41,13 @@ export const TranscriptView = memo(function TranscriptView({ messages }: { messa
           >
             {isPhysician ? <p className="whitespace-pre-wrap text-sm">{body}</p> : <Markdown>{body}</Markdown>}
             {m.refs?.length ? (
-              <p className="mt-2 flex items-center gap-1.5 text-xs opacity-70">
+              <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Paperclip className="size-3.5 shrink-0" />
                 {m.refs.map((r) => r.source ?? r.title).join(" · ")}
               </p>
             ) : null}
             {m.socratic_question && (
-              <p className="mt-2 flex items-start gap-1.5 text-xs italic text-primary">
+              <p className="mt-2 flex items-start gap-1.5 text-xs italic text-link">
                 <HelpCircle className="mt-0.5 size-3.5 shrink-0" />
                 {m.socratic_question}
               </p>

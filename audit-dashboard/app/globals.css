@@ -27,6 +27,13 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  /* TEXT-safe siblings. --destructive / --primary are FILL and accent tokens: measured as text
+     they fail AA (--destructive 3.70:1 on the dark canvas, --primary 3.11:1 on the light one).
+     Same split as --coral-active vs --primary, and same idea as --ok. Use these for text. */
+  --color-danger: var(--danger);
+  --color-link: var(--link);
+  --color-warn: var(--warn);
+  --color-ok: var(--ok);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -87,6 +94,17 @@
   --accent-foreground: #141413;
   --destructive: #c64545;
   --ok: #1a6630;            /* success text — dark enough to read on the light canvas (~6.5:1) */
+  /* Text-safe red. --destructive (#c64545) stays the FILL/border token — it measures 4.84:1
+     under white on the toast, so it must not move. As TEXT it fails on the dark canvas (3.70:1)
+     and on its own /10 tint (4.02:1). --danger clears 4.5:1 on canvas, tint AND card. */
+  --danger: #b13134;
+  /* Text-safe coral. Bright --primary reads 3.11:1 on this canvas, so it fails for LINKS too —
+     not only for the white-on-coral case the --coral-active note below already covers. */
+  --link: #ae5c41;
+  /* Amber TEXT. Previously UNDEFINED: admin/compensation and StatStrip both wrote
+     var(--warn, #e08a1e) and always got the fallback — #e08a1e is --chart-warn, a SOLID-FILL
+     colour, and measures 2.55:1 as text here. Defining it fixes those sites with no edit. */
+  --warn: #a06624;
   --border: #e6dfd8;
   --input: #e6dfd8;
   --ring: #cc785c;
@@ -143,6 +161,9 @@
   --accent-foreground: #faf9f5;
   --destructive: #c64545;
   --ok: #5db872;            /* success text — bright green reads well on the dark canvas (~7:1) */
+  --danger: #f26e69;        /* tuned to the HOVER tint (4.52:1 on /30); 6.15:1 canvas, 5.38:1 card */
+  --link: #cc785c;          /* bright coral is already 5.47:1 on the dark canvas — no change needed */
+  --warn: #e08a1e;          /* 6.67:1 on the dark canvas — the fill colour happens to work here */
   --border: rgba(250,249,245,0.10);
   --input: rgba(250,249,245,0.15);
   --ring: #cc785c;

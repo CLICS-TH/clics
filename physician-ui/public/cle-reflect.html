@@ -70,10 +70,10 @@
           <textarea id="${p.key}" rows="4" maxlength="5000" style="width:100%"></textarea>`).join('') +
         `<p id="formMsg" class="error-msg" style="display:none"></p>
          <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:.75rem">
-           <button type="button" class="btn" id="saveBtn">บันทึกและส่ง<span class="bi-en">Save &amp; submit</span></button>
+           <button type="button" class="btn btn-primary" id="saveBtn">บันทึกและส่ง<span class="bi-en">Save &amp; submit</span></button>
            <button type="button" class="btn btn-ghost" id="skipBtn">ข้ามขั้นตอนนี้<span class="bi-en">Skip</span></button>
          </div>
-         <p class="sub" style="margin-top:.9rem;font-size:.85rem">การตอบเป็นไปโดยสมัครใจ ท่านข้ามได้โดยไม่มีผลใด ๆ แต่การสะท้อนคิดเป็นหนึ่งในเจ็ดด้านที่ถูกประเมิน / Answering is voluntary and skipping has no consequence — though reflective synthesis is one of the seven assessed domains.</p>`;
+         <p class="note" style="margin-top:.9rem">การตอบเป็นไปโดยสมัครใจ ท่านข้ามได้โดยไม่มีผลใด ๆ แต่การสะท้อนคิดเป็นหนึ่งในเจ็ดด้านที่ถูกประเมิน / Answering is voluntary and skipping has no consequence — though reflective synthesis is one of the seven assessed domains.</p>`;
 
       if (existing) for (const p of PROMPTS) $(p.key).value = existing[p.key] || '';
 

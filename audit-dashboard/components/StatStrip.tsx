@@ -15,7 +15,8 @@ export type Stat = {
 const TONE: Record<NonNullable<Stat['tone']>, string> = {
   default: 'text-primary',
   pass: 'text-[var(--chart-pass-text)]',
-  warn: 'text-[var(--chart-warn)]',
+  // text-warn, not --chart-warn: that token is for solid fills and measures 2.55:1 as text here.
+  warn: 'text-warn',
   fail: 'text-destructive',
 };
 

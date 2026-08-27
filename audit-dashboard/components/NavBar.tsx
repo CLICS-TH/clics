@@ -107,7 +107,7 @@ export function NavBar() {
   return (
     <nav className="sticky top-0 z-40 border-b border-border bg-background px-6 py-4 md:px-8">
       <div className="flex items-center gap-4">
-        <Link href="/home" className="font-heading font-semibold text-primary text-lg tracking-tight">CLICS</Link>
+        <Link href="/home" className="font-heading font-semibold text-link text-lg tracking-tight">CLICS</Link>
 
         {/* Desktop links */}
         {!compact && (

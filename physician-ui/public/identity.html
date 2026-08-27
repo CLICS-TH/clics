@@ -41,9 +41,9 @@
         <input type="text" id="license_number" autocomplete="off" maxlength="40" placeholder="ว.12345" required />
 
         <p id="formMsg" class="error-msg" style="display:none"></p>
-        <button type="submit" class="btn" id="saveBtn" style="margin-top:.5rem">ส่งเพื่อตรวจสอบ<span class="bi-en">Submit for review</span></button>
+        <button type="submit" class="btn btn-primary" id="saveBtn" style="margin-top:.5rem">ส่งเพื่อตรวจสอบ<span class="bi-en">Submit for review</span></button>
       </form>
-      <p class="sub" style="margin-top:1rem;font-size:.85rem">🔒 เลขประจำตัวประชาชนถูกเข้ารหัสและเก็บแยกจากข้อมูลวิจัย ไม่ถูกส่งไปยัง AI และไม่แสดงกลับมาอีก / Your national ID is encrypted, stored separately from the research data, never sent to AI, and never shown again.</p>
+      <p class="note" style="margin-top:1rem">🔒 เลขประจำตัวประชาชนถูกเข้ารหัสและเก็บแยกจากข้อมูลวิจัย ไม่ถูกส่งไปยัง AI และไม่แสดงกลับมาอีก / Your national ID is encrypted, stored separately from the research data, never sent to AI, and never shown again.</p>
     </div>
   </div>
 
@@ -98,8 +98,8 @@
       $('statusCard').style.display = '';
       $('statusCard').innerHTML =
         `<div class="status-band ${v.cls}" style="margin-bottom:12px">${icon(v.icon, 24)}<span>${v.th}<span class="bi-en">${v.en}</span></span></div>` +
-        (s.reject_reason ? `<p class="sub" style="margin:0">เหตุผล / Reason: ${esc(s.reject_reason)}</p>` : '') +
-        (s.license_number ? `<p class="sub" style="margin:.4rem 0 0;font-size:.85rem">ใบอนุญาต / Licence: ${esc(s.license_number)}</p>` : '');
+        (s.reject_reason ? `<p style="margin:.5rem 0 0">เหตุผล / Reason: ${esc(s.reject_reason)}</p>` : '') +
+        (s.license_number ? `<p class="note" style="margin:.4rem 0 0">ใบอนุญาต / Licence: ${esc(s.license_number)}</p>` : '');
       // A verified physician has nothing left to do here; a rejected one resubmits, so the form stays.
       if (s.status === 'verified' || s.status === 'pending') $('formCard').style.display = 'none';
     }

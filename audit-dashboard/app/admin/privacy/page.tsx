@@ -94,9 +94,9 @@ export default function PrivacyReviewPage() {
             onClick={() => { setFilter(f.key); setOpenId(null); }}
             aria-pressed={filter === f.key}
             className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
-              filter === f.key ? 'bg-primary text-primary-foreground border-primary' : 'text-muted-foreground hover:bg-secondary'}`}
+              filter === f.key ? 'bg-coral-active text-primary-foreground border-coral-active' : 'text-muted-foreground hover:bg-secondary'}`}
           >
-            {f.th} <span className="opacity-70">/ {f.en}</span>
+            {f.th} <span className="text-[0.84em] font-normal">/ {f.en}</span>
           </button>
         ))}
       </div>
@@ -104,7 +104,7 @@ export default function PrivacyReviewPage() {
       {err ? (
         <div className="text-center py-10">
           <p className="text-muted-foreground mb-3">โหลดคิวไม่สำเร็จ / Could not load the queue.</p>
-          <button className="text-sm text-primary underline" onClick={load}>ลองใหม่ / Retry</button>
+          <button className="text-sm text-link underline" onClick={load}>ลองใหม่ / Retry</button>
         </div>
       ) : cles === null ? (
         <p className="text-muted-foreground text-center py-10">กำลังโหลด… / Loading…</p>
@@ -158,7 +158,7 @@ export default function PrivacyReviewPage() {
                 {DECISIONS.map(d => (
                   <Button key={d.key} size="sm" variant={d.variant} disabled={acting || transcript === null}
                           onClick={() => decide(p.id, d.key)}>
-                    <d.icon className="size-4" /> {d.th} <span className="opacity-70">/ {d.en}</span>
+                    <d.icon className="size-4" /> {d.th} <span className="text-[0.84em] font-normal">/ {d.en}</span>
                   </Button>
                 ))}
               </div>

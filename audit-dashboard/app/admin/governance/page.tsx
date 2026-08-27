@@ -114,7 +114,7 @@ export default function GovernancePage() {
               {plan.targets.map(t => (
                 <li key={t.table} className="text-xs">
                   <span className="font-mono">{t.table}</span>{' '}
-                  <span className={t.action === 'delete' ? 'text-destructive' : 'text-muted-foreground'}>
+                  <span className={t.action === 'delete' ? 'text-danger' : 'text-muted-foreground'}>
                     {t.action === 'delete' ? 'ลบทั้งแถว / delete' : `ล้างค่า / clear: ${t.columns?.join(', ')}`}
                   </span>{' '}
                   <span className="text-muted-foreground tabular-nums">({t.rows ?? '?'} rows)</span>
@@ -134,7 +134,7 @@ export default function GovernancePage() {
             </ul>
 
             <div className="mt-5 rounded-lg border border-destructive/40 p-4">
-              <p className="flex items-center gap-2 text-sm font-medium text-destructive">
+              <p className="flex items-center gap-2 text-sm font-medium text-danger">
                 <ShieldAlert className="size-4 shrink-0" /> ย้อนกลับไม่ได้ / This cannot be undone
               </p>
               <label className="mt-3 block text-xs text-muted-foreground" htmlFor="confirmPhrase">
@@ -191,7 +191,7 @@ export default function GovernancePage() {
                 <li key={r.id} className="rounded-lg border p-3 text-xs">
                   <span className="font-medium tabular-nums">{r.period_month.slice(0, 7)}</span>
                   {r.incidents_found
-                    ? <span className="ml-2 rounded-full bg-destructive/10 px-2 py-0.5 text-destructive">พบเหตุการณ์ / incidents</span>
+                    ? <span className="ml-2 rounded-full bg-destructive/10 px-2 py-0.5 text-danger">พบเหตุการณ์ / incidents</span>
                     : <span className="ml-2 text-muted-foreground">ไม่พบเหตุการณ์ / none found</span>}
                   {r.access_review && <p className="mt-1 text-muted-foreground">Access: {r.access_review}</p>}
                   {r.audit_review && <p className="text-muted-foreground">Audit: {r.audit_review}</p>}
