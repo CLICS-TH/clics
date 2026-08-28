@@ -92,9 +92,11 @@ describe('TranscriptView — confidentiality guard', () => {
 
   it('blocks copy and cut of transcript content', () => {
     const el = transcript();
-    const copy = new Event('copy', { bubbles: true, cancelable: true });
-    el.dispatchEvent(copy);
-    expect(copy.defaultPrevented).toBe(true);
+    for (const type of ['copy', 'cut']) {
+      const ev = new Event(type, { bubbles: true, cancelable: true });
+      el.dispatchEvent(ev);
+      expect(ev.defaultPrevented).toBe(true);
+    }
   });
 
   it('blocks the right-click and drag-out routes as well', () => {

@@ -4,7 +4,7 @@
 // exact (domain, level) the rater tapped.
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { DomainScorer } from '@/components/DomainScorer';
+import { DomainScorer, ANCHOR_CLARITY } from '@/components/DomainScorer';
 import { PIS7_RUBRIC, PIS7_EVIDENCE_NOTE } from '@/lib/pis7-rubric';
 import { WEIGHTS } from '@/lib/labels';
 
@@ -120,11 +120,25 @@ describe('DomainScorer — keyboard', () => {
     expect(onChange).toHaveBeenCalledWith('d1', 4);
   });
 
-  it('wraps at the ends rather than dead-ending', () => {
+  it('moves backwards too', () => {
     const onChange = jest.fn();
-    render(<DomainScorer scores={{ ...NONE, d1: 5 }} onChange={onChange} />);
+    render(<DomainScorer scores={{ ...NONE, d1: 3 }} onChange={onChange} />);
+    fireEvent.keyDown(scoreGroups()[0], { key: 'ArrowLeft' });
+    expect(onChange).toHaveBeenCalledWith('d1', 2);
+    fireEvent.keyDown(scoreGroups()[0], { key: 'ArrowUp' });
+    expect(onChange).toHaveBeenLastCalledWith('d1', 2);
+  });
+
+  it('wraps at BOTH ends rather than dead-ending', () => {
+    const onChange = jest.fn();
+    const { unmount } = render(<DomainScorer scores={{ ...NONE, d1: 5 }} onChange={onChange} />);
     fireEvent.keyDown(scoreGroups()[0], { key: 'ArrowRight' });
     expect(onChange).toHaveBeenCalledWith('d1', 0);
+    unmount();
+
+    render(<DomainScorer scores={{ ...NONE, d1: 0 }} onChange={onChange} />);
+    fireEvent.keyDown(scoreGroups()[0], { key: 'ArrowLeft' });
+    expect(onChange).toHaveBeenLastCalledWith('d1', 5);
   });
 
   it('an arrow enters an unanswered group at the first option instead of doing nothing', () => {
@@ -150,10 +164,37 @@ describe('DomainScorer — keyboard', () => {
     expect(onAnchorChange).toHaveBeenCalledWith('d1_anchor', 'moderate');
   });
 
+  it('leaves every other key alone', () => {
+    // The handler sits on the group, so swallowing Tab or Enter here would break the rest of the
+    // page's keyboard behaviour to fix this group's.
+    const onChange = jest.fn();
+    render(<DomainScorer scores={{ ...NONE, d1: 3 }} onChange={onChange} />);
+    for (const key of ['Tab', 'Enter', ' ', 'a', 'Home']) {
+      fireEvent.keyDown(scoreGroups()[0], { key });
+    }
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it('a disabled scorer ignores arrow keys', () => {
     const onChange = jest.fn();
     render(<DomainScorer scores={{ ...NONE, d1: 3 }} onChange={onChange} disabled />);
     fireEvent.keyDown(scoreGroups()[0], { key: 'ArrowRight' });
     expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+
+describe('ANCHOR_CLARITY', () => {
+  it('offers exactly the three values the API and the CHECK constraint accept', () => {
+    // audit_scores_d*_anchor_chk allows clear | moderate | ambiguous, and the request schema enums
+    // the same three. A fourth option here would render a button whose click the server rejects.
+    expect(ANCHOR_CLARITY.map((a) => a.value)).toEqual(['clear', 'moderate', 'ambiguous']);
+  });
+
+  it('labels every option in both languages', () => {
+    for (const a of ANCHOR_CLARITY) {
+      expect(a.th.trim().length).toBeGreaterThan(0);
+      expect(a.en.trim().length).toBeGreaterThan(0);
+    }
   });
 });
