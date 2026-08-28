@@ -138,7 +138,8 @@ router.post('/cles/:id/score', requireAuditorConsent, async (req, res) => {
   }
 
   const { notes, attestations: _a, ...scores } = parsed.data;
-  // compositeScore reads d1..d7; the anchor fields ride alongside and must not reach it.
+  // compositeScore iterates the seven fixed weight keys, so the anchor fields travelling in `scores`
+  // cannot reach the arithmetic. Named here because the object it receives is wider than its inputs.
   const composite = compositeScore(scores);
 
   const { error } = await supabase.from('audit_scores').insert({
@@ -174,10 +175,19 @@ router.post('/cles/:id/privacy-concern', requireAuditorConsent, async (req, res)
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { data: cle } = await supabase
-    .from('cles').select('id, auditor_id, council_id, physician_id').eq('id', req.params.id).single();
+    .from('cles').select('id, auditor_id, council_id, physician_id, privacy_review_status').eq('id', req.params.id).single();
   if (!cle) return res.status(404).json({ error: 'Not found' });
   if (!(await isAssignedAuditor(cle.id, req.user.id, cle.auditor_id))) return res.status(403).json({ error: 'Not assigned to you' });
   if (cle.council_id !== req.user.council_id) return res.status(403).json({ error: 'Cross-council access is not allowed.' });
+  // Same self-scoring guard the score route carries. A stale or hand-made self-assignment must not
+  // let a physician quarantine their own session — that is a way to withdraw a session from the
+  // study without withdrawing from the study.
+  if (cle.physician_id === req.user.id) return res.status(403).json({ error: 'You cannot act on your own session.' });
+  // Already quarantined: nothing to do, and re-reporting would overwrite the first reviewer's note
+  // and reset the clock on a session someone is already looking at.
+  if (cle.privacy_review_status === 'quarantined') {
+    return res.status(409).json({ error: 'This session is already quarantined for review.', code: 'already_quarantined' });
+  }
 
   const { error } = await supabase.from('cles').update({
     privacy_review_status: 'quarantined',

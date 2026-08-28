@@ -185,6 +185,12 @@ export interface AuditorPle {
     d1: number; d2: number; d3: number; d4: number;
     d5: number; d6: number; d7: number;
     notes?: string | null;
+    // Per-domain anchor clarity, as stored. Present so a submitted assessment reopens showing what
+    // the rater actually answered rather than a row of blanks.
+    d1_anchor?: string | null; d2_anchor?: string | null; d3_anchor?: string | null;
+    d4_anchor?: string | null; d5_anchor?: string | null; d6_anchor?: string | null;
+    d7_anchor?: string | null;
+    attestations?: Record<string, boolean> | null;
   } | null;
   ai_evaluation?: {
     composite_score: number | string;

@@ -249,3 +249,48 @@ describe('reporting a suspected identifier instead of scoring', () => {
     expect((await report({ note: '' })).status).toBe(400);
   });
 });
+
+// Hardening found by adversarial review of the first cut.
+describe('reporting a concern cannot be misused', () => {
+  const report = (body) => auth(request(app).post('/auditor/cles/p1/privacy-concern')).send(body);
+
+  test('a dual-role rater cannot quarantine their OWN session', async () => {
+    // The score route has always refused this. The report route did not, which made it a way to
+    // withdraw a session from the study without withdrawing from the study.
+    const prev = m.state.resolve;
+    m.state.resolve = (table, kind, ctx) => {
+      const r = prev(table, kind, ctx);
+      return table === 'cles' && r && !Array.isArray(r) ? { ...r, physician_id: AUDITOR.id } : r;
+    };
+    expect((await report({ note: 'mine' })).status).toBe(403);
+    expect(m.find('cles', 'update')).toBeUndefined();
+  });
+
+  test('a session already quarantined is not re-reported over the top', async () => {
+    // Re-reporting would overwrite the first reviewer's note and reset the clock on something
+    // somebody is already looking at.
+    const prev = m.state.resolve;
+    m.state.resolve = (table, kind, ctx) => {
+      const r = prev(table, kind, ctx);
+      return table === 'cles' && r && !Array.isArray(r) ? { ...r, privacy_review_status: 'quarantined' } : r;
+    };
+    const res = await report({ note: 'again' });
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('already_quarantined');
+  });
+
+  test('a whitespace-only reason is refused, not stored', async () => {
+    // min(1) accepted "   " and quarantined a session with a reason nobody could act on.
+    expect((await report({ note: '   ' })).status).toBe(400);
+    expect(m.find('cles', 'update')).toBeUndefined();
+  });
+});
+
+test('an attestation the form never asked for cannot be smuggled into the record', async () => {
+  // z.record() accepted any boolean key and the route stored the whole object, so a caller could
+  // persist `approved_by_admin: true` beside the real confirmations.
+  const r = await auth(request(app).post('/auditor/cles/p1/score'))
+    .send({ ...SCORES, attestations: { ...ATTEST, approved_by_admin: true } });
+  expect(r.status).toBe(400);
+  expect(m.find('audit_scores', 'insert')).toBeUndefined();
+});

@@ -35,6 +35,8 @@ const ChatSchema = z.object({
   // are latches (a session does not un-qualify). Without them the classifier would re-run on every
   // turn past the fourth, roughly doubling the AI cost of a long, good session.
   rescue_active: z.boolean().default(false),
+  // Rounds this rescue has already run. RIMPL is stateless, so the spend cap cannot live here alone.
+  rescue_rounds: z.number().int().min(0).default(0),
   already_qualified: z.boolean().default(false),
 });
 
@@ -64,7 +66,7 @@ router.post('/', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { history, message, language, chief_complaint, patient_ref, socratic, artifacts,
-          rescue_active, already_qualified } = parsed.data;
+          rescue_active, already_qualified, rescue_rounds } = parsed.data;
   // KNOWN patient identifiers to scrub deterministically (closes the bare-unlabelled-name leak).
   const hints = deriveHintTokens(patient_ref);
   // Examiner mode (CLE2 / remediation) leads with Socratic questioning and MUST end on ❓; natural
@@ -87,7 +89,7 @@ router.post('/', async (req, res) => {
     // proceeds as a normal reply: a missed rescue costs one scaffolding nudge, whereas failing the
     // request would cost the physician their turn over an advisory signal. It is logged, not raised.
     let rescue = null;
-    if (shouldAssess({ history, socraticActive: socratic, rescueActive: rescue_active, alreadyQualified: already_qualified })) {
+    if (shouldAssess({ history, socraticActive: socratic, rescueActive: rescue_active, alreadyQualified: already_qualified, rescueRounds: rescue_rounds })) {
       try {
         // Include the turn just sent — the physician may have qualified the session WITH this
         // message, and rescuing them for a gap they have already closed would be plainly wrong.
@@ -121,6 +123,21 @@ router.post('/', async (req, res) => {
         if (decision.rescue) systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE;
       } catch (e) {
         console.error('[RIMPL chat] rescue assessment failed, continuing as a normal turn:', e.message);
+        // A malformed classifier reply was still BILLED. Report the usage even though the assessment
+        // is unusable, or the study's cost record drifts below what was actually spent — and under
+        // an active rescue the next turn buys another one.
+        if (e.usage) {
+          rescue = {
+            activated: false, rescuing: false, recovered: false, reason: null,
+            elements: null, on_topic: null, qualifying: null,
+            exchanges_before: history.filter(m => m.role === 'physician' || m.role === 'user').length,
+            assessment: {
+              input_tokens: e.usage.inputTokens ?? 0,
+              output_tokens: e.usage.outputTokens ?? 0,
+              provider: e.usage.provider ?? null,
+            },
+          };
+        }
       }
     }
 

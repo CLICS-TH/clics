@@ -358,6 +358,10 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
       // and a session that has qualified does not un-qualify — so RIMPL can skip the classifier.
       rescue_active: cle.rescue_activated_at != null,
       already_qualified: cle.qualified_at != null,
+      // Rounds this rescue has already run, so RIMPL can stop paying to re-ask a question whose
+      // answer has not changed. Derived, not stored: rescue_exchanges_before is the turn count at
+      // activation, so the difference IS the number of rounds spent in rescue.
+      rescue_rounds: Math.max(0, (cle.turn_count ?? 0) - (cle.rescue_exchanges_before ?? 0)),
     });
   } catch (err) {
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
@@ -406,6 +410,11 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   // needs in order to count exchanges AFTER an activation.
   if (rescue && rescue.qualifying && cle.qualified_at == null) {
     rescueCols.qualified_at = new Date().toISOString();
+    // Qualifying ENDS a protocol rescue, whichever flag arrives first. Without this, two turns in
+    // flight could set qualified_at and rescue_activated_at from the same pre-rescue snapshot; the
+    // qualified latch would then suppress every later assessment, no `recovered` could ever fire,
+    // and the session would stay in examiner mode until it ended.
+    if (cle.socratic_reason === 'protocol_rescue') rescueCols.socratic_active = false;
   }
   // The session came back. The rescue is a loop that ends when the conversation qualifies again, so
   // this is where it ends — and it is the "return to PLE eligibility" the analysis plan asks for.

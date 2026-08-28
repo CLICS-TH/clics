@@ -42,12 +42,18 @@ const ScoreSchema = z.object({
   d6_anchor: z.enum(ANCHOR_CLARITY).optional(),
   d7_anchor: z.enum(ANCHOR_CLARITY).optional(),
   // NOT optional, and re-checked in the route. A disabled button is a courtesy, not a gate.
-  attestations: z.record(z.string(), z.boolean()).optional(),
+  // Keys are restricted to the approved set: an open record would let a caller store
+  // `approved_by_admin: true` beside the real confirmations, and the row would then assert an
+  // attestation the form never asked anyone to make.
+  attestations: z.object(Object.fromEntries(SCORE_ATTESTATIONS.map((k) => [k, z.boolean()])))
+    .partial().strict().optional(),
 });
 
 // An auditor reporting a suspected identifier instead of submitting a score.
 const PrivacyConcernSchema = z.object({
-  note: z.string().min(1).max(4000),
+  // Trimmed before the length check: "   " passed min(1) and quarantined a session with a reason
+  // nobody can act on, which is worse than refusing the report.
+  note: z.string().trim().min(1).max(4000),
 });
 
 const CreateCleSchema = z.object({

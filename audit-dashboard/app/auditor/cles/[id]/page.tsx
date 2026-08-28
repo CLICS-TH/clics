@@ -44,6 +44,12 @@ export default function AuditorScorePage() {
     if (d?.audit_score) {
       const { d1,d2,d3,d4,d5,d6,d7, notes: n } = d.audit_score;
       setScores({ d1,d2,d3,d4,d5,d6,d7 }); setNotes(n ?? ''); setSubmitted(true);
+      // Restore the anchor choices too. Without this a submitted assessment reopens with every
+      // anchor radio blank, which reads as "the rater never answered" rather than "here is what
+      // they answered" — and the answers are the input to the rubric-refinement analysis.
+      setAnchors(Object.fromEntries(
+        PIS7_RUBRIC.map((dd) => [`${dd.key}_anchor`, d.audit_score?.[`${dd.key}_anchor` as 'd1_anchor'] ?? undefined])
+      ));
     }
   }).catch(() => setData({ error: 'โหลดข้อมูลไม่สำเร็จ / Could not load this session.' })), [id]);
 

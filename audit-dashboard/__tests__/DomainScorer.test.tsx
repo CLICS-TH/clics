@@ -105,3 +105,55 @@ describe('DomainScorer — anchor clarity', () => {
     expect(anchorGroups()).toHaveLength(0);
   });
 });
+
+// A group announced as a radiogroup is operated with ARROWS — that is what the role promises. Both
+// groups here were Tab-and-Space only, so a screen-reader user who heard "radio group" pressed an
+// arrow key and nothing happened.
+describe('DomainScorer — keyboard', () => {
+  const scoreGroups = () =>
+    screen.getAllByRole('radiogroup').filter((g) => /\(0–5\)/.test(g.getAttribute('aria-label') ?? ''));
+
+  it('an arrow key moves the score selection', () => {
+    const onChange = jest.fn();
+    render(<DomainScorer scores={{ ...NONE, d1: 3 }} onChange={onChange} />);
+    fireEvent.keyDown(scoreGroups()[0], { key: 'ArrowRight' });
+    expect(onChange).toHaveBeenCalledWith('d1', 4);
+  });
+
+  it('wraps at the ends rather than dead-ending', () => {
+    const onChange = jest.fn();
+    render(<DomainScorer scores={{ ...NONE, d1: 5 }} onChange={onChange} />);
+    fireEvent.keyDown(scoreGroups()[0], { key: 'ArrowRight' });
+    expect(onChange).toHaveBeenCalledWith('d1', 0);
+  });
+
+  it('an arrow enters an unanswered group at the first option instead of doing nothing', () => {
+    const onChange = jest.fn();
+    render(<DomainScorer scores={NONE} onChange={onChange} />);
+    fireEvent.keyDown(scoreGroups()[0], { key: 'ArrowDown' });
+    expect(onChange).toHaveBeenCalledWith('d1', 0);
+  });
+
+  it('exposes ONE tab stop per group, not one per option', () => {
+    // Six stops per domain is 42 on this page, which is what made keyboard use impractical.
+    render(<DomainScorer scores={{ ...NONE, d1: 2 }} onChange={() => {}} />);
+    const stops = within(scoreGroups()[0]).getAllByRole('radio').filter((b) => b.tabIndex === 0);
+    expect(stops).toHaveLength(1);
+    expect(stops[0]).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('the anchor group is operable the same way', () => {
+    const onAnchorChange = jest.fn();
+    render(<DomainScorer scores={NONE} onChange={() => {}} anchors={{ d1_anchor: 'clear' }} onAnchorChange={onAnchorChange} />);
+    const g = screen.getAllByRole('radiogroup').filter((x) => /anchor clarity/i.test(x.getAttribute('aria-label') ?? ''))[0];
+    fireEvent.keyDown(g, { key: 'ArrowRight' });
+    expect(onAnchorChange).toHaveBeenCalledWith('d1_anchor', 'moderate');
+  });
+
+  it('a disabled scorer ignores arrow keys', () => {
+    const onChange = jest.fn();
+    render(<DomainScorer scores={{ ...NONE, d1: 3 }} onChange={onChange} disabled />);
+    fireEvent.keyDown(scoreGroups()[0], { key: 'ArrowRight' });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});

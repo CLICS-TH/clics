@@ -215,7 +215,10 @@ router.post('/identity/:id/decide', async (req, res) => {
 router.get('/privacy-queue', async (req, res) => {
   const { limit, offset } = pageParams(req);
   let q = supabase.from('cles')
-    .select('id, cle_code, council_id, specialty_id, status, privacy_review_status, ended_at, turn_count, token_count, is_test', { count: 'exact' })
+    // privacy_review_note is SELECTED, not decorative: the dashboard renders it, and an auditor who
+    // stops an assessment to report a suspected identifier puts their reason here. Without it the
+    // reviewer sees a quarantined session and no statement of why — which is the whole report.
+    .select('id, cle_code, council_id, specialty_id, status, privacy_review_status, privacy_review_note, privacy_reviewed_at, ended_at, turn_count, token_count, is_test', { count: 'exact' })
     .eq('status', 'evaluated');
   // Default view is the work: sessions nobody has looked at yet. `?status=quarantined` etc. lets a
   // reviewer revisit their own earlier decisions, which they must be able to do — a quarantine that

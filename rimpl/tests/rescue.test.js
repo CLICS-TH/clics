@@ -214,3 +214,57 @@ describe('a rescue that has already fired keeps applying, and can end', () => {
     expect(res.body.rescue.assessment).toMatchObject({ input_tokens: 900, output_tokens: 40, provider: 'anthropic' });
   });
 });
+
+// Bounding the cost of re-assessing every round, and not losing spend that was already billed.
+describe('the rescue loop is bounded', () => {
+  test('after enough fruitless rounds it stops paying to re-ask', () => {
+    // Per-round re-assessment is what makes recovery observable, but on its own it is unbounded: a
+    // session that never qualifies buys an ever-larger classifier call on every turn, and under a
+    // paid-classifier / free-local-chat deployment nothing else is spending, so no budget stops it.
+    const h = fourExchanges();
+    expect(shouldAssess({ history: h, rescueActive: true, rescueRounds: 0 })).toBe(true);
+    expect(shouldAssess({ history: h, rescueActive: true, rescueRounds: 7 })).toBe(true);
+    expect(shouldAssess({ history: h, rescueActive: true, rescueRounds: 8 })).toBe(false);
+    expect(shouldAssess({ history: h, rescueActive: true, rescueRounds: 99 })).toBe(false);
+  });
+
+  test('hitting the cap does not un-rescue the session', async () => {
+    // The rescue prompt and its constraint stay in force. What stops is re-asking a question whose
+    // answer has not changed in eight consecutive turns.
+    mockTurn({ reply: 'Metformin is first-line (ADA, 2024).' });
+    const res = await post({ history: fourExchanges(), message: 'q', rescue_active: true, rescue_rounds: 20 });
+    expect(res.status).toBe(200);
+    expect(callAI).toHaveBeenCalledTimes(1);        // no classifier call
+    expect(res.body.rescue).toBeNull();             // nothing new to report this round
+  });
+
+  test('a classifier reply that was BILLED but unparseable still reports its cost', async () => {
+    // The call is paid for before the parse fails. Dropping it loses the spend from the study's
+    // accounting, and under an active rescue the next turn buys another one — so real cost can
+    // drift arbitrarily above what was recorded.
+    callAI.mockReset();
+    callAI.mockResolvedValueOnce({ text: 'not json at all', tokenCount: 10, inputTokens: 700, outputTokens: 30, provider: 'anthropic', model: 'm' });
+    callAI.mockResolvedValue({ text: 'Metformin is first-line (ADA, 2024).', tokenCount: 100, provider: 'anthropic', model: 'm' });
+    const res = await post({ history: fourExchanges(), message: 'q', rescue_active: true });
+
+    expect(res.status).toBe(200);                    // the physician still gets their turn
+    expect(res.body.rescue.assessment).toMatchObject({ input_tokens: 700, output_tokens: 30 });
+    // The assessment itself is unusable, so it must not look like a decision was made.
+    expect(res.body.rescue).toMatchObject({ rescuing: false, activated: false, qualifying: null });
+  });
+});
+
+test('a classifier that answers in prose does NOT rescue the physician', async () => {
+  // parseJsonObject returns {} when it finds no JSON — by design, and harmless for callers that read
+  // {} as "no answer". Here {} read as all four elements ABSENT, which is indistinguishable from a
+  // genuine "not yet a learning episode", so a chatty classifier reply rescued a session that may
+  // have been perfectly fine. Per-round assessment turned that from a one-off into every turn.
+  callAI.mockReset();
+  callAI.mockResolvedValueOnce({ text: 'I think this conversation is going quite well so far.', tokenCount: 10, inputTokens: 500, outputTokens: 20, provider: 'anthropic', model: 'm' });
+  callAI.mockResolvedValue({ text: 'Metformin is first-line (ADA, 2024).', tokenCount: 100, provider: 'anthropic', model: 'm' });
+  const res = await post({ history: fourExchanges(), message: 'q' });
+
+  expect(res.status).toBe(200);
+  expect(res.body.rescue?.rescuing ?? false).toBe(false);
+  expect(callAI.mock.calls[1][0].systemPrompt).not.toMatch(/Ask ONE or TWO open questions/);
+});
