@@ -9,13 +9,26 @@ import { WEIGHTS } from "@/lib/labels";
 import { BiLabel } from "@/components/BiLabel";
 import { cn } from "@/lib/utils";
 
+// How clear this domain's behavioural anchor was for THIS transcript. The approved assessment form
+// asks it per domain, and the calibration workshop's stated output is a map of exactly this — where
+// raters disagree and which anchors are ambiguous. The rubric may only be refined after the primary
+// analysis, so if the judgement is not captured while it is being made it cannot be recovered later.
+export const ANCHOR_CLARITY = [
+  { value: "clear", th: "ชัด", en: "Clear" },
+  { value: "moderate", th: "ปานกลาง", en: "Moderate" },
+  { value: "ambiguous", th: "ยาก/ก้ำกึ่ง", en: "Ambiguous" },
+] as const;
+
 interface Props {
   scores: Record<string, number | null>;
   onChange: (key: string, value: number) => void;
+  /** Per-domain anchor clarity, keyed `d1_anchor`…`d7_anchor`. */
+  anchors?: Record<string, string | undefined>;
+  onAnchorChange?: (key: string, value: string) => void;
   disabled?: boolean;
 }
 
-export function DomainScorer({ scores, onChange, disabled }: Props) {
+export function DomainScorer({ scores, onChange, anchors, onAnchorChange, disabled }: Props) {
   return (
     <div className="space-y-5">
       {/* The governing principle, stated once where it cannot be missed. It is the difference
@@ -89,6 +102,35 @@ export function DomainScorer({ scores, onChange, disabled }: Props) {
                 </p>
               )}
             </div>
+            {/* Never required. A missing judgement here is a missing judgement; making it mandatory
+                would let a field that only informs later rubric work block an assessment entirely. */}
+            {onAnchorChange && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="text-xs text-muted-foreground">ความชัดเจนของ anchor / Anchor clarity</span>
+                <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={`Anchor clarity for ${d.en}`}>
+                  {ANCHOR_CLARITY.map((a) => {
+                    const on = anchors?.[`${d.key}_anchor`] === a.value;
+                    return (
+                      <button
+                        key={a.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        aria-label={`${d.en} anchor ${a.en}`}
+                        disabled={disabled}
+                        onClick={() => onAnchorChange(`${d.key}_anchor`, a.value)}
+                        className={cn(
+                          "rounded-md border px-2.5 py-1 text-xs transition-colors disabled:opacity-60",
+                          on ? "border-coral-active bg-coral-active text-white" : "border-border bg-background hover:bg-muted"
+                        )}
+                      >
+                        {a.th} · {a.en}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         );
       })}

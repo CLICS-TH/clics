@@ -70,3 +70,38 @@ describe('DomainScorer', () => {
     for (const r of screen.getAllByRole('radio')) expect(r).toBeDisabled();
   });
 });
+
+// Anchor clarity: how clear this domain's behavioural anchor was for THIS transcript. The approved
+// assessment form asks it per domain, and the calibration workshop's stated output is a map of
+// exactly this — where raters disagree and which anchors are ambiguous. The rubric may only be
+// refined AFTER the primary analysis, so a judgement not captured while it is being made is gone.
+describe('DomainScorer — anchor clarity', () => {
+  const anchorGroups = () =>
+    screen.getAllByRole('radiogroup').filter((g) => /anchor clarity/i.test(g.getAttribute('aria-label') ?? ''));
+
+  it('offers the three choices per domain when the handler is supplied', () => {
+    render(<DomainScorer scores={NONE} onChange={() => {}} anchors={{}} onAnchorChange={() => {}} />);
+    const groups = anchorGroups();
+    expect(groups).toHaveLength(PIS7_RUBRIC.length);
+    for (const g of groups) expect(within(g).getAllByRole('radio')).toHaveLength(3);
+  });
+
+  it('reports the exact domain key and value the rater picked', () => {
+    const onAnchorChange = jest.fn();
+    render(<DomainScorer scores={NONE} onChange={() => {}} anchors={{}} onAnchorChange={onAnchorChange} />);
+    fireEvent.click(within(anchorGroups()[0]).getAllByRole('radio')[2]);
+    // Keyed to match the column the API persists, so a rename cannot silently drop the field.
+    expect(onAnchorChange).toHaveBeenCalledWith('d1_anchor', 'ambiguous');
+  });
+
+  it('marks the current choice, so a rater can see what they already answered', () => {
+    render(<DomainScorer scores={NONE} onChange={() => {}} anchors={{ d1_anchor: 'clear' }} onAnchorChange={() => {}} />);
+    expect(within(anchorGroups()[0]).getAllByRole('radio')[0]).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('is absent entirely without a handler — scoring never depends on it', () => {
+    // A missing judgement here is a missing judgement. It must never be able to block an assessment.
+    render(<DomainScorer scores={NONE} onChange={() => {}} />);
+    expect(anchorGroups()).toHaveLength(0);
+  });
+});

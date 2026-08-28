@@ -2,7 +2,7 @@ const { Router } = require('express');
 const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
-const { ScoreSchema } = require('../lib/schemas');
+const { ScoreSchema, PrivacyConcernSchema, SCORE_ATTESTATIONS } = require('../lib/schemas');
 const { compositeScore } = require('../services/cle-gate');
 const { computeICC21 } = require('../services/icc');
 const { logEvent } = require('../lib/audit');
@@ -124,12 +124,26 @@ router.post('/cles/:id/score', requireAuditorConsent, async (req, res) => {
     .from('audit_scores').select('id').eq('cle_id', req.params.id).eq('auditor_id', req.user.id).maybeSingle();
   if (existing) return res.status(409).json({ error: 'Already scored' });
 
-  const { notes, ...scores } = parsed.data;
+  // Re-checked here, not only in the browser. The submit control is disabled until every box is
+  // ticked, but a disabled button is a courtesy to the rater — it is not the gate. An assessment that
+  // reached the database without these confirmations is one the approved form says was never
+  // completed, and no later analysis can tell the difference.
+  const attestations = parsed.data.attestations ?? {};
+  const missing = SCORE_ATTESTATIONS.filter((k) => attestations[k] !== true);
+  if (missing.length) {
+    return res.status(400).json({
+      error: 'กรุณายืนยันให้ครบก่อนส่ง / Every pre-submit confirmation is required.',
+      code: 'attestations_required', missing,
+    });
+  }
+
+  const { notes, attestations: _a, ...scores } = parsed.data;
+  // compositeScore reads d1..d7; the anchor fields ride alongside and must not reach it.
   const composite = compositeScore(scores);
 
   const { error } = await supabase.from('audit_scores').insert({
     cle_id: req.params.id, auditor_id: req.user.id,
-    ...scores, composite_score: composite, notes,
+    ...scores, composite_score: composite, notes, attestations,
   });
   // The SELECT above is a friendly pre-check; the UNIQUE(cle_id, auditor_id) constraint on audit_scores
   // is the backstop for a true concurrent double-submit — the loser surfaces as 23505, not a dup row.
@@ -143,6 +157,40 @@ router.post('/cles/:id/score', requireAuditorConsent, async (req, res) => {
     targetId: req.params.id, councilId: cle.council_id, metadata: { composite_score: composite } });
 
   res.json({ composite_score: composite });
+});
+
+// Stop the assessment and report a suspected identifier, INSTEAD of submitting a score.
+//
+// The approved form tells a rater who sees possible patient data to stop and notify the research team
+// immediately. Until now their only options were to score it anyway or to say nothing, because there
+// was nowhere to put the report.
+//
+// Routed into the EXISTING privacy review rather than a parallel queue: quarantine is already the
+// protocol's outcome for a transcript that may carry identifiers, it already has a reviewer workflow,
+// and — because whereCleared() withholds anything not passed/redacted — quarantining also takes the
+// session out of this auditor's queue without needing a second mechanism to do it.
+router.post('/cles/:id/privacy-concern', requireAuditorConsent, async (req, res) => {
+  const parsed = PrivacyConcernSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  const { data: cle } = await supabase
+    .from('cles').select('id, auditor_id, council_id, physician_id').eq('id', req.params.id).single();
+  if (!cle) return res.status(404).json({ error: 'Not found' });
+  if (!(await isAssignedAuditor(cle.id, req.user.id, cle.auditor_id))) return res.status(403).json({ error: 'Not assigned to you' });
+  if (cle.council_id !== req.user.council_id) return res.status(403).json({ error: 'Cross-council access is not allowed.' });
+
+  const { error } = await supabase.from('cles').update({
+    privacy_review_status: 'quarantined',
+    privacy_reviewed_at: new Date().toISOString(),
+    privacy_reviewed_by: req.user.id,
+    privacy_review_note: parsed.data.note,
+  }).eq('id', req.params.id);
+  if (error) return res.status(500).json({ error: error.message });
+
+  logEvent({ actorId: req.user.id, actorRole: 'auditor', action: 'privacy.concern_reported', targetType: 'cle',
+    targetId: req.params.id, councilId: cle.council_id });
+
+  res.json({ ok: true, privacy_review_status: 'quarantined' });
 });
 
 router.get('/icc', async (req, res) => {

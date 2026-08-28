@@ -80,3 +80,35 @@ describe('TranscriptView', () => {
     expect(container.textContent).toContain('UpToDate · NEJM');
   });
 });
+
+// Both the approved assessment form and the calibration plan state that raters may not screenshot,
+// download, copy or forward transcript content, and every rater acknowledges that in writing before
+// scoring. Nothing enforced it.
+describe('TranscriptView — confidentiality guard', () => {
+  const transcript = () => {
+    const { container } = render(<TranscriptView messages={[{ role: 'physician', content: 'a patient with chest pain' }]} />);
+    return container.querySelector('[data-no-copy="transcript"]') as HTMLElement;
+  };
+
+  it('blocks copy and cut of transcript content', () => {
+    const el = transcript();
+    const copy = new Event('copy', { bubbles: true, cancelable: true });
+    el.dispatchEvent(copy);
+    expect(copy.defaultPrevented).toBe(true);
+  });
+
+  it('blocks the right-click and drag-out routes as well', () => {
+    const el = transcript();
+    for (const type of ['contextmenu', 'dragstart']) {
+      const ev = new Event(type, { bubbles: true, cancelable: true });
+      el.dispatchEvent(ev);
+      expect(ev.defaultPrevented).toBe(true);
+    }
+  });
+
+  it('is scoped to the transcript, not the page — the rater still owns their own comment text', () => {
+    // A page-wide guard would take the notes field with it, which is the rater's own writing.
+    expect(transcript().className).toContain('select-none');
+    expect(document.body.className).not.toContain('select-none');
+  });
+});
