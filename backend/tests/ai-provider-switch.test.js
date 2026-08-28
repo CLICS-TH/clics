@@ -16,6 +16,16 @@ const mockUser = { data: { user: { id: 'sa-1', email: 'superadmin@clics.th' } },
 
 jest.mock('../src/lib/audit', () => ({ logEvent: (e) => { mockEvents.push(e); } }));
 
+// The switch now asks RIMPL whether the target can actually serve before pointing traffic at it.
+// Default FIT, so every pre-existing case here still exercises what it was written to exercise.
+let mockVerdict = { fit: true, code: null, reason: null };
+let mockProbeThrows = null;
+const mockProbe = jest.fn(async (args) => {
+  if (mockProbeThrows) throw new Error(mockProbeThrows);
+  return { provider: args.name, purpose: args.purpose, ...mockVerdict };
+});
+jest.mock('../src/services/rimpl-client', () => ({ probeRimplProvider: (...a) => mockProbe(...a) }));
+
 jest.mock('../src/lib/supabase', () => {
   const settingChain = () => {
     let key = null;
@@ -51,6 +61,9 @@ beforeEach(() => {
   for (const k of Object.keys(mockSettings)) delete mockSettings[k];
   mockUpserts.length = 0;
   mockEvents.length = 0;
+  mockProbe.mockClear();
+  mockProbeThrows = null;
+  mockVerdict = { fit: true, code: null, reason: null };
 });
 
 const patch = (body) => auth(request(app).patch('/admin/ai-providers')).send(body);
@@ -168,4 +181,81 @@ describe('the evaluator is guarded', () => {
 test('a body that names neither a provider change nor a lock change is a 400', async () => {
   const r = await patch({ confirm: 'CHANGE EVALUATOR' });
   expect(r.status).toBe(400);
+});
+
+
+// A server left on a small context window accepts the switch happily and then fails EVERY
+// evaluation, because a creditable transcript runs to 10,000+ tokens. That failure was measured on
+// the real box before this gate existed, and its whole cost is that the first person to notice is a
+// physician losing a session. These cases pin the gate that makes it a refusal instead.
+describe('a provider must be READY before traffic is pointed at it', () => {
+  const unfit = (over) => { mockVerdict = { fit: false, ...over }; };
+
+  test('a context window too small to hold a transcript refuses the switch, and says by how much', async () => {
+    unfit({ code: 'context_too_small', reason: 'served context 4096 is below LOCAL_AI_MIN_CONTEXT 16384', measured: 4096, required: 16384 });
+    const r = await patch({ purpose: 'evaluate', provider: 'local', confirm: 'CHANGE EVALUATOR' });
+
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('provider_not_ready');
+    expect(r.body.provider_code).toBe('context_too_small');
+    // Both numbers, so the operator can forward ONE value to whoever administers the server.
+    expect(r.body.measured).toBe(4096);
+    expect(r.body.required).toBe(16384);
+    expect(mockSettings.ai_provider_evaluate).toBeUndefined();
+  });
+
+  test('an unreachable provider refuses the switch', async () => {
+    unfit({ code: 'provider_down', reason: 'model "x" not served' });
+    const r = await patch({ purpose: 'chat', provider: 'local' });
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('provider_not_ready');
+    expect(mockSettings.ai_provider_chat).toBeUndefined();
+  });
+
+  test('a probe we could not run counts as UNFIT, not as fit', async () => {
+    // The tempting default is to let the switch through when the check itself fails. That is exactly
+    // backwards: we cannot verify, so we must not assert.
+    mockProbeThrows = 'connect ECONNREFUSED';
+    const r = await patch({ purpose: 'chat', provider: 'local' });
+    expect(r.status).toBe(409);
+    expect(r.body.provider_code).toBe('probe_unreachable');
+    expect(mockSettings.ai_provider_chat).toBeUndefined();
+  });
+
+  test('the typed phrase overrides the refusal, and the override is on the record', async () => {
+    unfit({ code: 'context_too_small', reason: 'too small', measured: 4096, required: 16384 });
+    const r = await patch({ purpose: 'chat', provider: 'local', confirm_unfit: 'SWITCH ANYWAY' });
+
+    expect(r.status).toBe(200);
+    expect(mockSettings.ai_provider_chat).toBe('local');
+    // Overridden, not absent — this is the entry someone needs when explaining why scoring broke.
+    expect(mockEvents.map(e => e.action)).toContain('ai_provider_unfit_override');
+  });
+
+  test('the wrong phrase does not override', async () => {
+    unfit({ code: 'provider_down', reason: 'down' });
+    const r = await patch({ purpose: 'chat', provider: 'local', confirm_unfit: 'yes' });
+    expect(r.status).toBe(409);
+  });
+
+  test('the evaluator needs BOTH phrases — that is why the override has its own field', async () => {
+    unfit({ code: 'provider_down', reason: 'down' });
+    // Sharing one `confirm` field would make this switch impossible to express at all.
+    const r = await patch({ purpose: 'evaluate', provider: 'local', confirm: 'CHANGE EVALUATOR', confirm_unfit: 'SWITCH ANYWAY' });
+    expect(r.status).toBe(200);
+    expect(mockSettings.ai_provider_evaluate).toBe('local');
+  });
+
+  test('a fit provider switches with no extra ceremony', async () => {
+    const r = await patch({ purpose: 'chat', provider: 'local' });
+    expect(r.status).toBe(200);
+    expect(mockProbe).toHaveBeenCalledWith(expect.objectContaining({ name: 'local', purpose: 'chat' }));
+  });
+
+  test('a no-op switch does not make a vendor call', async () => {
+    // Probing `embed` costs a real embedding request; re-selecting what is already selected must not.
+    const r = await patch({ purpose: 'embed', provider: 'openai' });
+    expect(r.status).toBe(200);
+    expect(mockProbe).not.toHaveBeenCalled();
+  });
 });

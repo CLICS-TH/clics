@@ -7,7 +7,7 @@ import { TranscriptView } from '@/components/TranscriptView';
 import { Button } from '@/components/ui/button';
 import { PageIntro } from '@/components/PageIntro';
 import { computeComposite } from '@/lib/labels';
-import { PIS7_RUBRIC } from '@/lib/pis7-rubric';
+import { PIS7_RUBRIC, ATTESTATIONS } from '@/lib/pis7-rubric';
 import { Pis7Radar } from '@/components/Pis7Radar';
 import { pis7Conclusion } from '@/lib/pis7-delta';
 import { AuditorChatBox } from '@/components/AuditorChatBox';
@@ -31,6 +31,12 @@ export default function AuditorScorePage() {
   const [coiNone, setCoiNone] = useState(false);
   const [conf, setConf] = useState(false);
   const [calib, setCalib] = useState(false);
+  // Per-assessment confirmations from the approved form — distinct from the one-time
+  // confidentiality/COI consent above, which is recorded once per account.
+  const [attest, setAttest] = useState<Record<string, boolean>>({});
+  const [anchors, setAnchors] = useState<Record<string, string | undefined>>({});
+  const [reporting, setReporting] = useState(false);
+  const [concern, setConcern] = useState('');
   const consentReady = coiNone && conf && calib;
 
   const loadData = useCallback(() => apiFetch<AuditorPle>(`/auditor/cles/${id}`).then(d => {
@@ -38,12 +44,19 @@ export default function AuditorScorePage() {
     if (d?.audit_score) {
       const { d1,d2,d3,d4,d5,d6,d7, notes: n } = d.audit_score;
       setScores({ d1,d2,d3,d4,d5,d6,d7 }); setNotes(n ?? ''); setSubmitted(true);
+      // Restore the anchor choices too. Without this a submitted assessment reopens with every
+      // anchor radio blank, which reads as "the rater never answered" rather than "here is what
+      // they answered" — and the answers are the input to the rubric-refinement analysis.
+      setAnchors(Object.fromEntries(
+        PIS7_RUBRIC.map((dd) => [`${dd.key}_anchor`, d.audit_score?.[`${dd.key}_anchor` as 'd1_anchor'] ?? undefined])
+      ));
     }
   }).catch(() => setData({ error: 'โหลดข้อมูลไม่สำเร็จ / Could not load this session.' })), [id]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
   const allSet = PIS7_RUBRIC.every((d) => typeof scores[d.key] === 'number');
+  const attestAll = ATTESTATIONS.every((a) => attest[a.key]);
 
   async function submit() {
     // Every domain must be explicitly picked (no silent 0 default) — this is what protects ICC.
@@ -61,7 +74,7 @@ export default function AuditorScorePage() {
     setSubmitting(true);
     try {
       const res = await apiFetch<ApiResult<unknown>>(`/auditor/cles/${id}/score`, {
-        method: 'POST', body: JSON.stringify({ ...scores, notes }),
+        method: 'POST', body: JSON.stringify({ ...scores, ...anchors, notes, attestations: attest }),
       });
       if (res?.error) {
         // Confidentiality + COI consent not yet recorded — open the one-time consent gate.
@@ -77,6 +90,22 @@ export default function AuditorScorePage() {
       }
       setSubmitted(true);
       loadData();
+    } catch {
+      toast('เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong. Please try again.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function reportConcern() {
+    setSubmitting(true);
+    try {
+      const res = await apiFetch<ApiResult<unknown>>(`/auditor/cles/${id}/privacy-concern`, {
+        method: 'POST', body: JSON.stringify({ note: concern.trim() }),
+      });
+      if (res?.error) { toast(`ส่งรายงานไม่สำเร็จ / Report failed: ${String(res.error)}`, 'error'); return; }
+      toast('ส่งรายงานแล้ว เซสชันถูกกักไว้เพื่อตรวจสอบ / Reported. The session is quarantined for review.', 'success');
+      router.push('/auditor/queue');
     } catch {
       toast('เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong. Please try again.', 'error');
     } finally {
@@ -137,7 +166,10 @@ export default function AuditorScorePage() {
           <div className="border rounded-xl p-5">
             <h2 className="font-sans text-xl font-semibold mb-1">การให้คะแนน PIS-7</h2>
             <p className="text-xs text-muted-foreground mb-4">แตะระดับ 0–5 ของแต่ละหมวด — ใช้คำอธิบายระดับเป็นเกณฑ์ร่วม / Tap a 0–5 level per domain; the descriptors are the shared scale.</p>
-            <DomainScorer scores={scores} onChange={(k,v) => setScores(s => ({...s,[k]:v}))} disabled={submitted} />
+            <DomainScorer
+              scores={scores} onChange={(k,v) => setScores(s => ({...s,[k]:v}))}
+              anchors={anchors} onAnchorChange={(k,v) => setAnchors(a => ({...a,[k]:v}))}
+              disabled={submitted} />
             <div className="mt-4 flex items-baseline justify-end gap-2">
               <span className="text-sm text-muted-foreground">คะแนนรวม / Total</span>
               <span className="text-3xl font-semibold text-primary tabular-nums">{composite != null ? composite.toFixed(1) : '—'}</span>
@@ -146,12 +178,62 @@ export default function AuditorScorePage() {
             <textarea className="w-full border rounded-lg p-3 text-sm mt-3" rows={3}
               placeholder="หมายเหตุ / Notes (optional)" value={notes}
               onChange={e => setNotes(e.target.value)} disabled={submitted} />
+            {!submitted && (
+              <fieldset className="mt-4 rounded-lg border p-3">
+                <legend className="px-1 text-xs font-medium">ยืนยันก่อนส่ง / Confirm before submitting</legend>
+                <div className="space-y-2">
+                  {ATTESTATIONS.map((a) => (
+                    <label key={a.key} className="flex gap-2 text-sm">
+                      <input type="checkbox" className="mt-0.5 shrink-0" checked={!!attest[a.key]}
+                        onChange={e => setAttest(s => ({ ...s, [a.key]: e.target.checked }))} />
+                      <span>{a.th} / {a.en}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
             {!submitted
-              ? <Button className="w-full mt-3" onClick={submit} disabled={submitting || !allSet}>
-                  {submitting ? 'กำลังบันทึก…' : !allSet ? 'ให้คะแนนให้ครบทุกหมวด / Score all 7 domains' : 'ส่งคะแนน / Submit score'}
+              ? <Button className="w-full mt-3" onClick={submit} disabled={submitting || !allSet || !attestAll}>
+                  {submitting ? 'กำลังบันทึก…'
+                    : !allSet ? 'ให้คะแนนให้ครบทุกหมวด / Score all 7 domains'
+                    : !attestAll ? 'ยืนยันให้ครบทุกข้อ / Confirm every item above'
+                    : 'ส่งคะแนน / Submit score'}
                 </Button>
               : <p className="text-[var(--ok)] font-medium mt-3 flex items-center justify-center gap-1.5"><Check className="size-4" /> บันทึกแล้ว / Submitted</p>
             }
+            {/* The approved form tells a rater who sees possible patient data to stop and notify the
+                research team. Without this the only options were to score it anyway or say nothing. */}
+            {!submitted && (
+              <div className="mt-4 border-t pt-3">
+                {!reporting ? (
+                  <button type="button" onClick={() => setReporting(true)}
+                    className="text-sm text-danger underline underline-offset-2">
+                    พบข้อมูลที่อาจระบุตัวบุคคล — หยุดและแจ้งผู้วิจัย / Report a suspected identifier instead of scoring
+                  </button>
+                ) : (
+                  <div className="space-y-2">
+                    <label htmlFor="concern" className="block text-sm font-medium">
+                      ระบุตำแหน่งและลักษณะของข้อมูล / Where in the transcript, and what kind
+                    </label>
+                    <textarea id="concern" rows={3} value={concern} onChange={e => setConcern(e.target.value)}
+                      className="w-full rounded-lg border p-3 text-sm"
+                      placeholder="เช่น เทิร์นที่ 3 ระบุชื่อโรงพยาบาลและวันที่ / e.g. turn 3 names a hospital and a date" />
+                    <p className="text-xs text-muted-foreground">
+                      เซสชันนี้จะถูกกักไว้เพื่อตรวจสอบและออกจากคิวของคุณ ไม่มีการบันทึกคะแนน /
+                      The session is quarantined for review and leaves your queue. No score is recorded.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button variant="destructive" disabled={!concern.trim() || submitting} onClick={reportConcern}>
+                        ส่งรายงาน / Send report
+                      </Button>
+                      <Button variant="outline" onClick={() => { setReporting(false); setConcern(''); }}>
+                        ยกเลิก / Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           {submitted && data.ai_evaluation && (
             <div className="border rounded-xl p-5 bg-secondary space-y-4">

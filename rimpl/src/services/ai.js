@@ -193,6 +193,74 @@ async function readiness() {
   return checks;
 }
 
+/**
+ * Probe ONE named provider, whether or not it currently serves anything.
+ *
+ * readiness() above deliberately probes only the ACTIVE providers, which is right for /health/deep —
+ * a cloud-only box should not be reported degraded for an on-prem server it never calls. But it is
+ * exactly wrong for the question asked immediately BEFORE a switch: "is the thing I am about to
+ * switch to able to serve?" By definition that provider is not active yet.
+ *
+ * Returns a VERDICT, not just checks. The caller is a gate, and pushing the fit/unfit judgement out
+ * to every caller is how two callers end up disagreeing about what `context_length: 'unknown'` means.
+ *
+ * UNKNOWN IS UNFIT. A server that cannot be enumerated proves nothing, and the whole reason this
+ * exists is that an unfit server currently switches successfully and then fails one physician at a
+ * time. Optimism here has a known cost and no benefit.
+ */
+async function probeProvider(name, purpose = 'chat') {
+  const registry = purpose === EMBED_PURPOSE ? EMBED_PROVIDERS : PROVIDERS;
+  const provider = registry[name];
+  if (!provider) {
+    return { provider: name, purpose, fit: false, code: 'unknown_provider',
+      reason: `"${name}" is not a known ${purpose === EMBED_PURPOSE ? 'embedding ' : ''}provider`, checks: {} };
+  }
+
+  let checks = {};
+  try {
+    checks = (await Promise.resolve(provider.ready?.() ?? {}))?.checks || {};
+  } catch (e) {
+    return { provider: name, purpose, fit: false, code: 'probe_failed', reason: e?.message || String(e), checks: {} };
+  }
+
+  const down = Object.entries(checks).find(([, c]) => c?.status !== 'up');
+  if (down) {
+    // ready() already distinguishes "too small a context" from "unreachable" and puts the measured
+    // number in its own error, so pass that through rather than re-deriving it here.
+    const [, c] = down;
+    return { provider: name, purpose, fit: false,
+      code: c?.context_length != null ? 'context_too_small' : 'provider_down',
+      reason: c?.error || 'provider reported not ready', checks };
+  }
+
+  // Embedding dimension is not discoverable any other way — no endpoint reports it, so the only
+  // honest probe is to embed something and measure what comes back. Kept to one short string: this
+  // runs on a deliberate switch, not on a request path.
+  if (purpose === EMBED_PURPOSE) {
+    if (typeof provider.embed !== 'function') {
+      return { provider: name, purpose, fit: false, code: 'cannot_embed',
+        reason: `provider "${name}" cannot embed`, checks };
+    }
+    const want = parseInt(process.env.RAG_EMBED_DIM || '1536', 10);
+    let got;
+    try {
+      got = (await provider.embed('probe'))?.length ?? null;
+    } catch (e) {
+      return { provider: name, purpose, fit: false, code: 'probe_failed', reason: e?.message || String(e), checks };
+    }
+    if (got !== want) {
+      return { provider: name, purpose, fit: false, code: 'embed_dim_mismatch',
+        reason: `provider "${name}" returns ${got} dimensions; the document corpus is ${want}. Re-embed the corpus before switching, or set RAG_EMBED_DIM.`,
+        measured: got, required: want, checks };
+    }
+    return { provider: name, purpose, fit: true, code: null, reason: null, measured: got, required: want, checks };
+  }
+
+  const ctx = Object.values(checks).map((c) => c?.context_length).find((v) => v != null);
+  return { provider: name, purpose, fit: true, code: null, reason: null,
+    measured: typeof ctx === 'number' ? ctx : null, required: null, checks };
+}
+
 // Where the current routing came from (database vs env) and how stale it is. A box that BELIEVES it
 // is superadmin-controlled but is silently running on env should be visible, not inferred.
 function providerSettingsStatus() {
@@ -202,6 +270,6 @@ function providerSettingsStatus() {
 module.exports = {
   callAI, callProvider, embedText,
   activeProviders, defaultProvider, modelsByPurpose, providerNameFor, embedProviderName,
-  providerSettingsStatus, readiness,
+  providerSettingsStatus, readiness, probeProvider,
   PURPOSES, PROVIDERS, EMBED_PROVIDERS, EMBED_PURPOSE, SETTING_PURPOSES,
 };

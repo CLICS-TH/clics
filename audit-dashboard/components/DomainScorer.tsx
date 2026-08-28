@@ -9,13 +9,50 @@ import { WEIGHTS } from "@/lib/labels";
 import { BiLabel } from "@/components/BiLabel";
 import { cn } from "@/lib/utils";
 
+// How clear this domain's behavioural anchor was for THIS transcript. The approved assessment form
+// asks it per domain, and the calibration workshop's stated output is a map of exactly this — where
+// raters disagree and which anchors are ambiguous. The rubric may only be refined after the primary
+// analysis, so if the judgement is not captured while it is being made it cannot be recovered later.
+export const ANCHOR_CLARITY = [
+  { value: "clear", th: "ชัด", en: "Clear" },
+  { value: "moderate", th: "ปานกลาง", en: "Moderate" },
+  { value: "ambiguous", th: "ยาก/ก้ำกึ่ง", en: "Ambiguous" },
+] as const;
+
+const ANCHOR_VALUES = ANCHOR_CLARITY.map((a) => a.value);
+const LEVELS = PIS7_SCALE.map((s) => s.level);
+
+// Arrow-key navigation for a radiogroup, plus the roving tab stop that goes with it.
+//
+// A group announced as a radiogroup is operated with arrows, not Tab — that is what the role
+// promises. Both groups below were Tab-and-Space only, so a screen-reader user who heard "radio
+// group" pressed an arrow key and nothing happened. Applied to the score chips as well as the new
+// anchor chips: the older group had the same gap, and fixing only the new one would be arbitrary.
+function radioKeys<T>(values: readonly T[], current: T | null | undefined, pick: (v: T) => void) {
+  return (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1
+      : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    const at = values.findIndex((v) => v === current);
+    // No selection yet: an arrow enters the group at the first option rather than doing nothing.
+    const next = at < 0 ? 0 : (at + step + values.length) % values.length;
+    pick(values[next]);
+    // Focus follows the selection, or the visible ring stays on the option just left behind.
+    e.currentTarget.querySelectorAll<HTMLElement>('[role="radio"]')[next]?.focus();
+  };
+}
+
 interface Props {
   scores: Record<string, number | null>;
   onChange: (key: string, value: number) => void;
+  /** Per-domain anchor clarity, keyed `d1_anchor`…`d7_anchor`. */
+  anchors?: Record<string, string | undefined>;
+  onAnchorChange?: (key: string, value: string) => void;
   disabled?: boolean;
 }
 
-export function DomainScorer({ scores, onChange, disabled }: Props) {
+export function DomainScorer({ scores, onChange, anchors, onAnchorChange, disabled }: Props) {
   return (
     <div className="space-y-5">
       {/* The governing principle, stated once where it cannot be missed. It is the difference
@@ -37,7 +74,12 @@ export function DomainScorer({ scores, onChange, disabled }: Props) {
                 {picked ? <> · <strong className="text-foreground tabular-nums">{val}/5</strong></> : <> · <span className="text-coral-active">ยังไม่ให้คะแนน</span></>}
               </span>
             </div>
-            <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6" role="radiogroup" aria-label={`${d.en} (0–5)`}>
+            <div
+              className="grid grid-cols-3 gap-1.5 sm:grid-cols-6"
+              role="radiogroup"
+              aria-label={`${d.en} (0–5)`}
+              onKeyDown={radioKeys(LEVELS, picked ? val : null, (lv) => { if (!disabled) onChange(d.key, lv); })}
+            >
               {PIS7_SCALE.map((s) => (
                 <button
                   key={s.level}
@@ -45,6 +87,10 @@ export function DomainScorer({ scores, onChange, disabled }: Props) {
                   role="radio"
                   aria-checked={val === s.level}
                   aria-label={`${s.level} — ${s.en}`}
+                  // Roving tab stop: ONE stop for the whole group, on the selection (or the first
+                  // option when nothing is chosen). Six stops per domain — 42 on this page — is what
+                  // made keyboard use impractical.
+                  tabIndex={val === s.level || (!picked && s.level === 0) ? 0 : -1}
                   disabled={disabled}
                   onClick={() => onChange(d.key, s.level)}
                   className={cn(
@@ -89,6 +135,45 @@ export function DomainScorer({ scores, onChange, disabled }: Props) {
                 </p>
               )}
             </div>
+            {/* Never required. A missing judgement here is a missing judgement; making it mandatory
+                would let a field that only informs later rubric work block an assessment entirely. */}
+            {onAnchorChange && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="text-xs text-muted-foreground">ความชัดเจนของ anchor / Anchor clarity</span>
+                <div
+                  className="flex flex-wrap gap-1.5"
+                  role="radiogroup"
+                  aria-label={`Anchor clarity for ${d.en}`}
+                  onKeyDown={radioKeys(
+                    ANCHOR_VALUES,
+                    anchors?.[`${d.key}_anchor`] ?? null,
+                    (v) => { if (!disabled) onAnchorChange(`${d.key}_anchor`, v); },
+                  )}
+                >
+                  {ANCHOR_CLARITY.map((a) => {
+                    const on = anchors?.[`${d.key}_anchor`] === a.value;
+                    return (
+                      <button
+                        key={a.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        aria-label={`${d.en} anchor ${a.en}`}
+                        tabIndex={on || (!anchors?.[`${d.key}_anchor`] && a.value === ANCHOR_VALUES[0]) ? 0 : -1}
+                        disabled={disabled}
+                        onClick={() => onAnchorChange(`${d.key}_anchor`, a.value)}
+                        className={cn(
+                          "rounded-md border px-2.5 py-1 text-xs transition-colors disabled:opacity-60",
+                          on ? "border-coral-active bg-coral-active text-white" : "border-border bg-background hover:bg-muted"
+                        )}
+                      >
+                        {a.th} · {a.en}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         );
       })}

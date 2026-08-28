@@ -29,7 +29,10 @@
   --color-destructive: var(--destructive);
   /* TEXT-safe siblings. --destructive / --primary are FILL and accent tokens: measured as text
      they fail AA (--destructive 3.70:1 on the dark canvas, --primary 3.11:1 on the light one).
-     Same split as --coral-active vs --primary, and same idea as --ok. Use these for text. */
+     Same split as --coral-active vs --primary, and same idea as --ok. Use these for text.
+     The mapping is what makes them exist: Tailwind v4 generates text-danger / text-ok ONLY from a
+     --color-* entry in this block, so a raw variable with no line here silently renders as
+     inherited body text. */
   --color-danger: var(--danger);
   --color-link: var(--link);
   --color-warn: var(--warn);
@@ -93,7 +96,7 @@
   --accent: #efe9de;
   --accent-foreground: #141413;
   --destructive: #c64545;
-  --ok: #1a6630;            /* success text — dark enough to read on the light canvas (~6.5:1) */
+  --ok: #1a6630;            /* success text — dark enough to read on the light canvas (6.67:1) */
   /* Text-safe red. --destructive (#c64545) stays the FILL/border token — it measures 4.84:1
      under white on the toast, so it must not move. As TEXT it fails on the dark canvas (3.70:1)
      and on its own /10 tint (4.02:1). --danger clears 4.5:1 on canvas, tint AND card. */
@@ -160,7 +163,7 @@
   --accent: #1f1e1b;
   --accent-foreground: #faf9f5;
   --destructive: #c64545;
-  --ok: #5db872;            /* success text — bright green reads well on the dark canvas (~7:1) */
+  --ok: #5db872;            /* success text — bright green reads well on the dark canvas (7.31:1) */
   --danger: #f26e69;        /* tuned to the HOVER tint (4.52:1 on /30); 6.15:1 canvas, 5.38:1 card */
   --link: #cc785c;          /* bright coral is already 5.47:1 on the dark canvas — no change needed */
   --warn: #e08a1e;          /* 6.67:1 on the dark canvas — the fill colour happens to work here */

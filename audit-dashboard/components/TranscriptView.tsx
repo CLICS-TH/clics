@@ -22,7 +22,23 @@ const stripArtifactFences = (s: string) =>
 // the parent) don't re-run the react-markdown pipeline over the whole transcript each time.
 export const TranscriptView = memo(function TranscriptView({ messages }: { messages: Message[] }) {
   return (
-    <div className="max-h-[72dvh] space-y-3 overflow-y-auto rounded-lg bg-secondary p-4">
+    // CONFIDENTIALITY GUARD. Both the approved assessment form and the calibration plan state that
+    // raters may not screenshot, download, copy or forward transcript content, and every rater
+    // acknowledges that in writing before scoring. Nothing enforced it.
+    //
+    // Scoped to the transcript, deliberately not to the page: the rater must still be able to select
+    // and copy their own comment text, and a page-wide guard would take that with it. This stops the
+    // casual route — select-and-copy, right-click-save, drag-out. It cannot stop a determined person
+    // with a phone camera, and is not meant to; it is the difference between an accidental breach of
+    // an undertaking someone signed and a deliberate one.
+    <div
+      className="max-h-[72dvh] space-y-3 overflow-y-auto rounded-lg bg-secondary p-4 select-none"
+      onCopy={(e) => e.preventDefault()}
+      onCut={(e) => e.preventDefault()}
+      onContextMenu={(e) => e.preventDefault()}
+      onDragStart={(e) => e.preventDefault()}
+      data-no-copy="transcript"
+    >
       {messages.map((m, i) => {
         const isPhysician = m.role === "physician";
         // Strip artifact fences (keep the body); assistant content also carries a trailing "❓ …"

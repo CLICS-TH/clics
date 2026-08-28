@@ -13,7 +13,12 @@ const auth = (r) => r.set('Authorization', 'Bearer t');
 
 const AUDITOR = { id: 'aud1', role: 'auditor', council_id: 'cA', status: 'active', email: 'a@t', consented_at: '2026-01-01T00:00:00Z' };
 const SUPER = { id: 'sa', role: 'superadmin', council_id: null, status: 'active', email: 's@t' };
-const FULL = { d1: 4, d2: 4, d3: 4, d4: 4, d5: 4, d6: 4, d7: 4 };
+// The route requires the approved form's pre-submit confirmations. Derived from the schema rather
+// than duplicated, so a change to the checklist does not incidentally break a suite that is not
+// about the checklist at all.
+const { SCORE_ATTESTATIONS } = require('../src/lib/schemas');
+const ATTEST = Object.fromEntries(SCORE_ATTESTATIONS.map((k) => [k, true]));
+const FULL = { ...{ d1: 4, d2: 4, d3: 4, d4: 4, d5: 4, d6: 4, d7: 4 }, attestations: ATTEST };
 
 beforeEach(() => m.reset());
 

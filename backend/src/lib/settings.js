@@ -94,6 +94,26 @@ async function evaluatorWeightsSha256() {
   return getTextSetting('evaluator_weights_sha256', null);
 }
 
+// The two agreement gates a candidate evaluator must clear, as configuration.
+//
+// SCREENING is candidate-vs-incumbent: runnable today, before a single human rater exists, and its
+// only job is to reject a candidate cheaply before anyone spends effort on it. It is NOT evidence of
+// correctness — two models can agree closely and both be wrong the same way — which is why it cannot
+// be the last gate.
+//
+// DECISIVE is candidate-vs-human, and the human raters are the reference standard. Nothing is frozen
+// against a number that never touched a human judgement.
+async function iccGates() {
+  const { data } = await supabase.from('app_settings').select('key, value')
+    .in('key', ['icc_gate_screening', 'icc_gate_decisive']);
+  const by = Object.fromEntries((Array.isArray(data) ? data : []).map(r => [r.key, Number(r.value)]));
+  const clamp = (v, d) => (Number.isFinite(v) && v > 0 && v <= 1 ? v : d);
+  return {
+    screening: clamp(by.icc_gate_screening, 0.75),
+    decisive: clamp(by.icc_gate_decisive, 0.75),
+  };
+}
+
 async function minAuditorsPerCle() {
   const n = await getSetting('min_auditors_per_cle', 1);
   return Math.max(1, Math.min(10, Math.round(n)));
@@ -124,4 +144,4 @@ async function creditSettings() {
   };
 }
 
-module.exports = { getSetting, getTextSetting, minAuditorsPerCle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };
+module.exports = { getSetting, getTextSetting, iccGates, minAuditorsPerCle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };

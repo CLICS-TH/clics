@@ -13,6 +13,8 @@ const { POSITIONS, checkSpecialty } = require('../lib/specialties');
 const { logEvent } = require('../lib/audit');
 const retention = require('../services/retention');
 const { decryptJson } = require('../lib/crypto');
+const { probeRimplProvider, probeRimplDeep } = require('../services/rimpl-client');
+const { decisiveVerdict } = require('../services/agreement');
 const { getTextSetting, minAuditorsPerCle } = require('../lib/settings');
 
 const router = Router();
@@ -475,12 +477,22 @@ const AI_PROVIDER_DEFAULT = { chat: 'anthropic', evaluate: 'anthropic', criteria
 // guarantee. A checkbox is too easy to hit on the way to something else.
 const CONFIRM_EVALUATOR = 'CHANGE EVALUATOR';
 const CONFIRM_UNLOCK = 'UNLOCK EVALUATOR';
+// Overrides the readiness gate below. Its OWN field rather than another value for `confirm`, because
+// the two refusals can fire on the same request: switching `evaluate` to an unfit provider needs
+// CHANGE EVALUATOR *and* this. Sharing one field would make that switch impossible to express.
+const CONFIRM_UNFIT = 'SWITCH ANYWAY';
+// Re-declaring after a lock is already in force. The change-control rule permits it only for a
+// critical safety or security reason, and only if scoring stops and the data either side is
+// separated — so it must not be reachable by pressing the same button twice.
+const CONFIRM_RELOCK = 'REPLACE THE LOCK';
 
 const AiProviderSchema = z.object({
   purpose: z.enum(AI_PURPOSES).optional(),
   provider: z.string().min(1).optional(),
   evaluator_locked: z.boolean().optional(),
   confirm: z.string().optional(),
+  confirm_unfit: z.string().optional(),
+  confirm_relock: z.string().optional(),
 }).refine(
   (b) => (b.purpose != null && b.provider != null) || b.evaluator_locked != null,
   { message: 'send either {purpose, provider} or {evaluator_locked}' },
@@ -496,7 +508,7 @@ async function readAiProviders() {
     choices: AI_PROVIDER_CHOICES,
     evaluator_locked_at: locked,
     // Echoed so the UI never has to hardcode the phrases — one source of truth for both sides.
-    confirm_phrases: { change_evaluator: CONFIRM_EVALUATOR, unlock_evaluator: CONFIRM_UNLOCK },
+    confirm_phrases: { change_evaluator: CONFIRM_EVALUATOR, unlock_evaluator: CONFIRM_UNLOCK, switch_unfit: CONFIRM_UNFIT, replace_lock: CONFIRM_RELOCK },
   };
 }
 
@@ -504,10 +516,144 @@ router.get('/ai-providers', async (_req, res) => {
   res.json(await readAiProviders());
 });
 
+// What each provider is actually able to do right now — model served, context window, reachability.
+//
+// The numbers already existed on RIMPL's deep health route, and that is precisely why they were
+// useless: nobody opens a JSON endpoint before flipping a switch. Surfacing them beside the switch
+// turns "is the box ready" from something you have to know to curl into something you can see.
+// The Primary Evaluator Model Lock.
+//
+// Scores already carry a configuration fingerprint. What was missing is the DECLARATION of the parts
+// a running system cannot read for itself — the weights checksum above all, which is not obtainable
+// over an inference API and must be stated by someone with filesystem access. Until it is, the lock
+// is an assertion rather than a checkable fact.
+const ModelLockSchema = z.object({
+  // 64 hex characters. Loose validation here would defeat the point: a checksum nobody can verify
+  // the shape of is a string, not evidence.
+  weights_sha256: z.string().regex(/^[0-9a-fA-F]{64}$/, 'expected a 64-character SHA-256 hex digest'),
+  inference_engine: z.string().min(1).max(200),
+  quantization: z.string().max(200).optional(),
+  system_prompt_version: z.string().min(1).max(200),
+  evaluator_prompt_version: z.string().min(1).max(200),
+  rubric_version: z.string().min(1).max(200),
+  decoding: z.object({
+    temperature: z.number().optional(),
+    top_p: z.number().optional(),
+    max_tokens: z.number().int().optional(),
+    seed: z.number().int().nullable().optional(),
+  }).optional(),
+  environment: z.record(z.string(), z.string()).optional(),
+  note: z.string().max(4000).optional(),
+  confirm_relock: z.string().optional(),
+});
+
+// Current lock, plus whether a new declaration is permitted and why not.
+router.get('/evaluator-lock', async (_req, res) => {
+  // Express 4 hangs the client on an async rejection rather than reaching the error middleware, and
+  // Promise.all rejects as a unit — one failing read would take the whole screen down silently.
+  let current = null, lockedAt = null, gate = { ok: false };
+  try {
+    [{ data: current }, lockedAt, gate] = await Promise.all([
+      supabase.from('evaluator_model_lock').select('*').order('locked_at', { ascending: false }).limit(1).maybeSingle(),
+      getTextSetting('evaluator_locked_at', null),
+      decisiveVerdict({}),
+    ]);
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+  const verdict = gate.ok ? gate.verdict : null;
+  res.json({
+    locked_at: lockedAt,
+    current: current ?? null,
+    candidate: gate.ok ? gate.candidate : null,
+    // The form is unavailable until the candidate has cleared the DECISIVE bar. Not the screening
+    // bar: two models agreeing closely can be similarly wrong, and freezing the study's measuring
+    // instrument against a number that never touched a human judgement is the thing this prevents.
+    can_declare: verdict?.state === 'pass',
+    gate: verdict,
+  });
+});
+
+router.post('/evaluator-lock', async (req, res) => {
+  const parsed = ModelLockSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  // Already locked? Re-declaring is not a repeat of the same action — the change-control rule allows
+  // it only for a critical safety or security reason, with scoring stopped and the data either side
+  // separated. Pressing the button twice must not be able to do that quietly.
+  const existingLock = await getTextSetting('evaluator_locked_at', null);
+  if (existingLock && parsed.data.confirm_relock !== CONFIRM_RELOCK) {
+    return res.status(409).json({
+      error: `The evaluator was locked on ${existingLock}. Replacing that lock means stopping scoring and separating the data either side of the change.`,
+      code: 'confirmation_required', confirm_phrase: CONFIRM_RELOCK, locked_at: existingLock,
+    });
+  }
+
+  let gate;
+  try { gate = await decisiveVerdict({}); } catch (e) { return res.status(500).json({ error: e.message }); }
+  if (!gate.ok) return sendDbError(res, gate.error);
+  if (gate.verdict.state !== 'pass') {
+    return res.status(409).json({
+      error: `The candidate has not cleared the decisive threshold (${gate.verdict.state}): ${gate.verdict.why}`,
+      code: 'gate_not_passed', gate: gate.verdict,
+    });
+  }
+
+  const now = new Date().toISOString();
+  const { confirm_relock: _c, ...declaration } = parsed.data;
+  const { data: row, error } = await supabase.from('evaluator_model_lock').insert({
+    locked_at: now, locked_by: req.user.id,
+    provider: gate.candidate?.provider ?? null,
+    model_version: gate.candidate?.model_version ?? null,
+    ...declaration,
+    // The proof that the freeze was permitted, kept beside the thing it permitted. Reconstructing
+    // the corpus as it stood on the day is not something anyone will actually do later.
+    gate: gate.verdict,
+  }).select('*').maybeSingle();
+  if (sendDbError(res, error)) return;
+
+  // Two settings, deliberately written AFTER the record exists: evaluator_locked_at is what the
+  // provider-switch endpoint refuses on, and evaluator_weights_sha256 is what every subsequent score
+  // is stamped with. A flag set without a record behind it is the state this whole change removes.
+  const { error: setErr } = await supabase.from('app_settings').upsert([
+    { key: 'evaluator_locked_at', value: 0, value_text: now, updated_at: now },
+    { key: 'evaluator_weights_sha256', value: 0, value_text: declaration.weights_sha256, updated_at: now },
+  ]);
+  if (setErr) {
+    // The record landed and the flag did not. Left alone, that is the worst of both: a signed record
+    // asserting a freeze the provider-switch endpoint would still happily override. Roll the record
+    // back so the failure is total and legible, rather than a lock that only looks real.
+    await supabase.from('evaluator_model_lock').delete().eq('locked_at', now).eq('locked_by', req.user.id);
+    return res.status(500).json({ error: `Lock not applied (${setErr.message}); the draft record was rolled back.` });
+  }
+
+  logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'evaluator_model_lock',
+    metadata: { locked_at: now, weights_sha256: declaration.weights_sha256, replaced_lock: existingLock ?? null,
+      provider: gate.candidate?.provider ?? null, model_version: gate.candidate?.model_version ?? null,
+      gate: gate.verdict } });
+
+  res.json({ ok: true, locked_at: now, record: row ?? null });
+});
+
+router.get('/ai-readiness', async (_req, res) => {
+  try {
+    const { body } = await probeRimplDeep({ timeoutMs: 8000 });
+    res.json({
+      reachable: true,
+      checks: body?.checks ?? {},
+      models: body?.models ?? null,
+      routing: body?.routing ?? null,
+    });
+  } catch (e) {
+    // A degraded RIMPL is an ANSWER here, not a server error — the screen exists to show exactly this.
+    res.json({ reachable: false, error: e.message, checks: {}, models: null, routing: null });
+  }
+});
+
 router.patch('/ai-providers', async (req, res) => {
   const parsed = AiProviderSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  const { purpose, provider, evaluator_locked, confirm } = parsed.data;
+  const { purpose, provider, evaluator_locked, confirm, confirm_unfit } = parsed.data;
   const now = new Date().toISOString();
   const lockedAt = await getTextSetting('evaluator_locked_at', null);
 
@@ -555,6 +701,42 @@ router.patch('/ai-providers', async (req, res) => {
   }
 
   const previous = await getTextSetting(`ai_provider_${purpose}`, AI_PROVIDER_DEFAULT[purpose]);
+
+  // READINESS GATE. Ask whether the target can actually serve before pointing traffic at it.
+  //
+  // The failure this prevents is specific and was already measured: an inference server left on a
+  // 4,096-token context accepts the switch happily and then fails EVERY evaluation, because a
+  // creditable transcript is 10,000+ tokens. Without this, the switch succeeds, nothing looks wrong,
+  // and the first person to find out is a physician who loses a session.
+  //
+  // UNKNOWN COUNTS AS UNFIT — including "RIMPL did not answer". We cannot verify, so we do not
+  // assert; the typed override exists for the operator who knows better than the probe.
+  //
+  // Skipped when the provider is not actually changing: a no-op write should not make a vendor call.
+  if (name !== previous) {
+    let verdict;
+    try {
+      verdict = await probeRimplProvider({ name, purpose });
+    } catch (e) {
+      verdict = { fit: false, code: 'probe_unreachable', reason: `could not reach RIMPL to probe "${name}": ${e.message}` };
+    }
+    if (!verdict.fit && confirm_unfit !== CONFIRM_UNFIT) {
+      return res.status(409).json({
+        error: `"${name}" is not ready to serve ${purpose}: ${verdict.reason}`,
+        code: 'provider_not_ready',
+        provider_code: verdict.code ?? null,
+        measured: verdict.measured ?? null,
+        required: verdict.required ?? null,
+        confirm_phrase: CONFIRM_UNFIT,
+      });
+    }
+    if (!verdict.fit) {
+      // Overridden, not absent. A switch made over a failed readiness check is exactly the entry
+      // someone will want when explaining why scoring broke on a given date.
+      logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'ai_provider_unfit_override', metadata: { purpose, provider: name, verdict } });
+    }
+  }
+
   const { error } = await supabase.from('app_settings')
     .upsert({ key: `ai_provider_${purpose}`, value: 0, value_text: name, updated_at: now });
   if (sendDbError(res, error)) return;

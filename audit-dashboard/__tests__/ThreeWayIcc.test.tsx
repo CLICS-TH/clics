@@ -77,7 +77,11 @@ describe('ThreeWayIcc', () => {
     const { container } = render(<ThreeWayIcc />);
     await screen.findByText('0.910');
     expect(container.textContent).toContain('possibly similarly wrong');
-    expect(container.textContent).toContain('the 0.75 gate does not apply to it');
+    // Same invariant, sharper wording: this arm can REJECT a candidate cheaply and can never accept
+    // one. It used to read "the 0.75 gate does not apply to it", which became untrue once the arm
+    // got a screening threshold of its own — the thing that must stay true is that it cannot accept.
+    expect(container.textContent).toContain('it can never accept one');
+    expect(container.textContent).toContain('SCREENING');
   });
 
   it('makes the 0.75 gate explicit', async () => {
@@ -191,5 +195,61 @@ describe('ThreeWayIcc', () => {
     apiFetch.mockResolvedValue({ error: 'boom' });
     render(<ThreeWayIcc />);
     expect(await screen.findByText(/Could not load the comparison/)).toBeInTheDocument();
+  });
+});
+
+// The server now sends a verdict per arm. The point of rendering it is the THIRD state: `fail` and
+// `insufficient` must not look alike. One says the candidate missed the bar; the other says nobody
+// knows yet, and early in a study that is the honest answer almost every time. Colouring them the
+// same way would present the absence of evidence as evidence against.
+describe('ThreeWayIcc — verdicts', () => {
+  const withVerdicts = (v: Record<string, { state: string; why: string; threshold?: number }>) => ({
+    ...FULL,
+    arms: Object.fromEntries(
+      Object.entries(FULL.arms ?? {}).map(([k, arm]) => [
+        k,
+        arm && v[k] ? { ...arm, verdict: { threshold: 0.75, icc: 0.8, lower: 0.7, upper: 0.9, n: 24, ...v[k] } } : arm,
+      ])
+    ) as ThreeWayIccData['arms'],
+  });
+
+  it('states the threshold rather than leaving the reader to assume it', async () => {
+    apiFetch.mockResolvedValue(withVerdicts({ shadow_vs_human: { state: 'pass', why: 'the whole interval is at or above 0.75' } }));
+    render(<ThreeWayIcc />);
+    await waitFor(() => expect(screen.getByText(/Meets ≥ 0\.75/)).toBeInTheDocument());
+  });
+
+  it('says "not yet decidable" for insufficient — never "below"', async () => {
+    apiFetch.mockResolvedValue(withVerdicts({
+      shadow_vs_human: { state: 'insufficient', why: '3 pairs cannot support a confidence interval' },
+    }));
+    render(<ThreeWayIcc />);
+    await waitFor(() => expect(screen.getByText(/Not yet decidable/)).toBeInTheDocument());
+    expect(screen.queryByText(/Below ≥/)).not.toBeInTheDocument();
+    // The reason travels with the verdict, so "why can't we tell?" is answered in place.
+    expect(screen.getByText(/3 pairs cannot support/)).toBeInTheDocument();
+  });
+
+  it('gives fail and insufficient visibly different treatments', async () => {
+    apiFetch.mockResolvedValue(withVerdicts({
+      shadow_vs_human: { state: 'fail', why: 'the whole interval is below 0.75' },
+      ai_vs_shadow: { state: 'insufficient', why: 'the interval spans 0.75' },
+    }));
+    render(<ThreeWayIcc />);
+    const failed = await screen.findByText(/Below ≥ 0\.75/);
+    const undecided = await screen.findByText(/Not yet decidable/);
+    // Different wording AND a different colour class. The class check is only worth anything because
+    // __tests__/theme-tokens.test.ts separately proves `text-danger` is MAPPED in @theme inline —
+    // on its own it passed while the token generated no CSS at all and both states rendered
+    // identically in body text. jsdom applies no Tailwind, so neither test can see the real colour;
+    // together they cover it, and it is worth naming why rather than trusting the pair by accident.
+    expect(failed.closest('p')?.className).toContain('text-danger');
+    expect(undecided.closest('p')?.className).not.toContain('text-danger');
+  });
+
+  it('renders nothing extra when an arm carries no verdict', async () => {
+    apiFetch.mockResolvedValue(FULL);
+    render(<ThreeWayIcc />);
+    await waitFor(() => expect(screen.queryByText(/Not yet decidable/)).not.toBeInTheDocument());
   });
 });

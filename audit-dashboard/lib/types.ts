@@ -185,6 +185,12 @@ export interface AuditorPle {
     d1: number; d2: number; d3: number; d4: number;
     d5: number; d6: number; d7: number;
     notes?: string | null;
+    // Per-domain anchor clarity, as stored. Present so a submitted assessment reopens showing what
+    // the rater actually answered rather than a row of blanks.
+    d1_anchor?: string | null; d2_anchor?: string | null; d3_anchor?: string | null;
+    d4_anchor?: string | null; d5_anchor?: string | null; d6_anchor?: string | null;
+    d7_anchor?: string | null;
+    attestations?: Record<string, boolean> | null;
   } | null;
   ai_evaluation?: {
     composite_score: number | string;
@@ -241,10 +247,25 @@ export interface PaymentInfo {
 // superadmin ONLY; see components/ThreeWayIcc.tsx for the blinding rule). One arm = one two-rater
 // ICC(2,1) comparison; every arm is computed by the backend on the SAME set of CLEs (those carrying
 // all three scores) so the arms are actually comparable, and each still reports its own n.
+// The server's judgement of one arm against its configured threshold. `insufficient` is NOT a
+// variant of `fail`: it means the interval spans the threshold (or could not be formed at all), so
+// the data cannot answer the question yet. Reading it as a failure would present the absence of
+// evidence as evidence against.
+export type IccVerdictState = 'pass' | 'fail' | 'insufficient';
+export interface IccVerdict {
+  state: IccVerdictState;
+  threshold: number;
+  icc: number | null;
+  lower: number | null;
+  upper: number | null;
+  n: number;
+  why: string;
+}
 export interface ThreeWayArm {
   overall: IccStat;
   per_domain?: Record<string, IccStat>;
   n: number;
+  verdict?: IccVerdict | null;
 }
 // Honest denominators. `shadow_failed` counts shadow_evaluations rows that carry an `error` and no
 // scores — excluded from every ICC, but a first-class result in their own right; a candidate model

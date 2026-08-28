@@ -121,4 +121,20 @@ async function probeRimplDeep({ timeoutMs = HEALTH_PROBE_TIMEOUT_MS } = {}) {
   return { httpStatus: res.status, body };
 }
 
-module.exports = { rimplChat, rimplAuditDiscuss, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep, DEFAULT_PROVIDER };
+// Ask RIMPL whether a provider is fit to serve a purpose, BEFORE switching to it. Separate from
+// probeRimplDeep because that reports what is already running; this asks about something that is
+// not running yet, which is the only question a switch gate cares about.
+//
+// Longer timeout than the deep probe: an embedding probe makes a real vendor round-trip, and this
+// runs on a deliberate admin action rather than a monitor's schedule.
+const PROVIDER_PROBE_TIMEOUT_MS = parseInt(process.env.HEALTH_PROVIDER_PROBE_TIMEOUT_MS || '20000', 10);
+async function probeRimplProvider({ name, purpose = 'chat', timeoutMs = PROVIDER_PROBE_TIMEOUT_MS } = {}) {
+  const res = await fetch(`${RIMPL_URL}/health/provider/${encodeURIComponent(name)}?purpose=${encodeURIComponent(purpose)}`, {
+    headers: { 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!res.ok) throw new Error(`RIMPL provider probe returned ${res.status}`);
+  return res.json();
+}
+
+module.exports = { rimplChat, rimplAuditDiscuss, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep, probeRimplProvider, DEFAULT_PROVIDER };
