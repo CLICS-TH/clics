@@ -309,3 +309,42 @@ export interface ThreeWayIccData {
   // apiFetch resolves an {error} envelope instead of rejecting — see lib/api.ts.
   error?: ApiError;
 }
+
+// GET /oversight/rater-spread. Descriptive only — every figure carries its n, because at pilot scale
+// none of them support inference. `gate` answers "how much further apart must the episodes be for a
+// 0.75 ICC to be reachable at the current level of rater disagreement", in score points.
+export interface RaterSpread {
+  ok: true;
+  empty?: boolean;
+  n_scores: number;
+  n_episodes: number;
+  n_auditors: number;
+  n_multi_rated_episodes: number;
+  between_episodes: { sd: number | null; min: number | null; max: number | null; range: number | null };
+  comparison_on_shared: {
+    n: number;
+    human_sd: number | null; ai_sd: number | null;
+    human_range: number | null; ai_range: number | null;
+  };
+  // `measurable: false` when no episode has two raters — rater error is then unknowable from this
+  // corpus, and reporting it as 0 would make the requirement look satisfied.
+  gate: {
+    measurable: boolean;
+    why: string | null;
+    sd_error?: number | null;
+    sd_between_observed?: number | null;
+    sd_between_required?: number | null;
+    meets?: boolean;
+  };
+  scale_use: { min: number | null; max: number | null; span_pct_of_scale: number | null };
+  per_domain: Record<string, {
+    n: number; sd: number | null; modal_value: number | null; modal_share: number | null; distinct: number;
+  }>;
+  anchor_clarity?: Record<string, {
+    answered: number; unanswered: number;
+    clear: number; moderate: number; ambiguous: number;
+    ambiguous_share: number | null;
+  }>;
+  scored_between: { first: string; last: string } | null;
+  per_auditor: { auditor_id: string; n: number; mean: number | null; sd: number | null; min: number | null; max: number | null }[];
+}

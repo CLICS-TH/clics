@@ -203,6 +203,37 @@ export const MUTATIONS = [
     suite: 'tests/evaluator-model-lock.test.js',
   },
 
+  // ---- the schema contract -------------------------------------------------------------------
+  {
+    id: 'schema/selected-columns-exist',
+    why: 'The mocked suite returns whatever a test hands it, so a column that does not exist ships green and 500s on the first real request.',
+    file: 'backend/src/services/rater-spread.js',
+    find: 'scored_at, ',
+    replace: 'created_at, ',
+    dir: 'backend',
+    suite: 'tests/select-columns.test.js',
+  },
+
+  // ---- the rater-spread reading ----------------------------------------------------------------
+  {
+    id: 'rater-spread/the-diagnosis',
+    why: 'The one sentence an ICC cannot say: the episodes differ from each other by less than the raters differ on the same episode.',
+    file: 'audit-dashboard/components/RaterSpread.tsx',
+    find: '&& gate.sd_between_observed < gate.sd_error && (',
+    replace: '&& false && (',
+    dir: 'audit-dashboard',
+    suite: '__tests__/RaterSpread.test.tsx',
+  },
+  {
+    id: 'rater-spread/error-not-reported-as-zero',
+    why: 'With no multi-rated episode, rater error is unknowable; reporting it as 0 makes the spread requirement look satisfied.',
+    file: 'backend/src/services/rater-spread.js',
+    find: '  return { varError: spreads.length ? mean(spreads) : null, multiRated };',
+    replace: '  return { varError: spreads.length ? mean(spreads) : 0, multiRated };',
+    dir: 'backend',
+    suite: 'tests/rater-spread.test.js',
+  },
+
   // ---- the front-end token layer -------------------------------------------------------------
   {
     id: 'theme/token-has-a-utility-mapping',
