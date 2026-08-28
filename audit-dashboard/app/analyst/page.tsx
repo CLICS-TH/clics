@@ -5,10 +5,11 @@ import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { IccPanel } from '@/components/IccPanel';
 import { ThreeWayIcc } from '@/components/ThreeWayIcc';
+import { RaterSpreadPanel } from '@/components/RaterSpread';
 import { PageIntro } from '@/components/PageIntro';
 import { Skeleton } from '@/components/Skeleton';
 import { DOMAIN_LABELS } from '@/lib/labels';
-import type { IccData } from '@/lib/types';
+import type { IccData, RaterSpread } from '@/lib/types';
 
 // Tier-3 analyst: aggregated de-identified data only — status counts + ICC. No transcripts.
 type Stats = { counts: Record<string, number>; total: number };
@@ -21,11 +22,14 @@ export default function AnalystPage() {
   const router = useRouter();
   const [icc, setIcc] = useState<IccData | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [spread, setSpread] = useState<RaterSpread | null>(null);
   useEffect(() => {
     const role = getUser()?.role;
     if (role !== 'analyst' && role !== 'superadmin') { router.push('/home'); return; }
     apiFetch<IccData>('/oversight/icc').then(setIcc).catch(() => setIcc({ overall: null }));
     apiFetch<Stats>('/oversight/stats').then(setStats).catch(() => setStats({ counts: {}, total: 0 }));
+    // Beside the ICC deliberately: the ICC says something is wrong, this says what.
+    apiFetch<RaterSpread>('/oversight/rater-spread').then(setSpread).catch(() => setSpread(null));
   }, [router]);
 
   return (
@@ -74,6 +78,12 @@ export default function AnalystPage() {
             )}
           </>
         )}
+
+      {/* Rendered ABOVE the three-way comparison and immediately after the ICC, because it is the
+          explanation of the number just shown. An ICC of -0.315 read alone says the AI is wrong
+          about the episodes; this says the episodes barely differ from one another, which is a
+          different problem with a different fix. */}
+      <RaterSpreadPanel data={spread} />
 
       {/* Shadow-evaluator three-way agreement. Rendered outside the /oversight/icc branch above
           because it has its OWN endpoint and its own empty state (the candidate model may not be

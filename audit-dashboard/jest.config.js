@@ -21,6 +21,7 @@ const config = {
     'components/DomainScorer.tsx',
     'components/TranscriptView.tsx',
     'components/BiLabel.tsx',
+    'components/RaterSpread.tsx',
   ],
   coverageThreshold: {
     global: { statements: 100, branches: 90, functions: 100, lines: 100 },
