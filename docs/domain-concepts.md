@@ -24,6 +24,12 @@ ethics committee) and CLE in the code. `cles.cle_code` renders as `CLE-001`; if 
 | **LPDP** | Longitudinal Professional Development Profile — per-physician score trajectory chart |
 | **C1–C7** | Screening criteria. C1–C3 are recorded metadata; **C4–C7 decide** whether the session qualifies — see below |
 | **Credit Engine** | Converts validated CLE scores into CPD credit units |
+| **Pilot Study** | The CREC082 study: 75 physicians × 3 PLEs = 225 evaluable PLEs. **Not yet started** — see below |
+| **sandbox round** | The internal blinded test cohort (SBX-*). Test data, never participant data — see below |
+| **`cme-dev`** | The on-prem inference box, `100.68.210.69`, running Ollama. **The** local-model target |
+| **`cme-dgx`** | A name used throughout the early planning for a box that **does not exist** — see below |
+| **purpose** | What an AI call is *for* — `chat` / `evaluate` / `criteria` / `discuss` / `embed`. Routes name a purpose, never a vendor |
+| **shadow evaluation** | A second PIS-7 score on the same transcript from a non-serving provider. Recorded, never shown, never credit-bearing |
 
 ## PIS-7 Domains (weights)
 
@@ -70,4 +76,75 @@ on "transcript และ reflection", and D6's zero anchor is literally `0 ไ�
 therefore captured *before* screening — `/end` leaves the session at `ended` until it arrives or is
 skipped — and reaches the evaluator as a `[REFLECTION]` turn.
 
+## Pilot Study vs sandbox round — do not conflate these
+
+The **Pilot Study** is the CREC082 study: 75 physicians × 3 PLEs = **225 evaluable PLEs**, gated on
+CREC approval, with data collection at month 3–4 *after* that approval. **It has not started.**
+
+The **sandbox round** is the internal blinded test cohort — isolated SANDBOX council, `SBX-*` codes,
+`is_test = true`. It ran through Aug–Sep 2026 and produced real transcripts and real scores, but they
+are **test data and count toward nothing**.
+
+Both have been called "the pilot" in conversation, and the conflation has already cost something
+concrete: `LOCAL-MODEL-ROADMAP.md` opened with *"we are inside the pilot study window"*, concluded
+that swapping the model would split the study cohort, and deferred the entire local-AI migration to
+"after the pilot". There was no study cohort to split. The roadmap's phase order was inverted on
+2026-08-27 once the two were told apart.
+
+When it matters which one you mean, say **Pilot Study** or **sandbox round**. "The pilot" on its own
+is ambiguous and has been wrong at least once.
+
+A related trap: the 6 evaluated CLEs in the real TMC council with `is_test = false` are **neither** —
+they are pre-approval development runs that were never labelled. See D3 in `docs/HANDOFF.md`.
+
+## Local model — the boxes, and what "on-prem AI" does and does not claim
+
+**`cme-dev` (`100.68.210.69`, Ollama) is the target** — and is the only box on the tailnet that can
+be one. `cme-dgx` was named as the target throughout the early planning and does not exist; see
+*`cme-dgx` does not exist* below. Say the hostname, not "the DGX".
+
+Moving inference on-prem closes the **inference** leg: de-identification stops being the *sole*
+barrier for AI processing and becomes defence-in-depth. It does **not** close the **storage** leg —
+Supabase Postgres is in `ap-northeast-1` (Tokyo), and the backend reads raw transcripts from it.
+
+> **"PII never leaves Thailand" is false** and must not appear in any CREC-facing document while
+> storage is offshore. That is A3 (GDCC hosting), a separate and unresolved migration.
+
+## Purpose
+
+An AI call names a **purpose** — `chat`, `evaluate`, `criteria`, `discuss`, `embed` — never a vendor.
+Each purpose resolves to a provider independently (`app_settings.ai_provider_<purpose>`), so a split
+configuration is a legitimate end state rather than a half-finished migration. `evaluate` is guarded
+separately: changing it takes a typed confirmation, and once `evaluator_locked_at` is set the change
+is refused outright, because it is the instrument the ≥0.75 credit gate is defined against.
+
+## Shadow evaluation
+
+A second PIS-7 score produced on the **same** transcript by a provider that is *not* serving the
+result. It is recorded in `shadow_evaluations` (RLS deny-all), never displayed, never credit-bearing,
+and sheds rather than queues when the provider is busy — a shadow bug or backlog must never cost a
+physician their credit.
+
+Its purpose is paired comparison: local-vs-Claude on identical inputs, out of normal operation. It
+survives the evaluator lock by design, so calibration evidence keeps accumulating after the
+configuration is frozen. **It must be disclosed in the Model Lock Record** — an undisclosed second
+scoring system is exactly what §10.2 exists to rule out.
+
 > Note: **SBMA** and the **Credit Engine** are domain concepts in the spec but are **not yet implemented** in code. ICC and PIS-7 composite scoring **are** implemented.
+
+## `cme-dgx` does not exist
+
+Every early planning document named **`cme-dgx`** (`100.119.96.52`) as the on-prem inference box, and
+several still do. A tailnet inventory on 2026-08-26 found **three machines and no `cme-dgx`**. The box
+that is actually reachable, actually runs Ollama, and actually served every model benchmark is
+**`cme-dev`** at `100.68.210.69`.
+
+Nothing was wrong with the work built against the name — the adapter, the health probe and the
+readiness gate all address a box by configuration, not by hostname. What was wrong is that a
+measurement-bearing figure ("the DGX returned 400 … exceeds the available context size (4096)") was
+attributed to a machine nobody has ever connected to. Any statement of the form "measured on the DGX"
+should be read as "measured on `cme-dev`".
+
+The name is kept in this glossary rather than deleted, because it appears in commit messages, code
+comments and at least one document that has left the building, and a reader who meets it needs to
+know it points at nothing.
