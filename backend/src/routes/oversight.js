@@ -7,6 +7,7 @@ const { verifyJwt, requireRole } = require('../middleware/auth');
 const { sendDbError, pageParams } = require('../lib/db-helpers');
 const { computeICC21, iccTwoRater, verdictFor } = require('../services/icc');
 const { pairedSets } = require('../services/agreement');
+const { raterSpread } = require('../services/rater-spread');
 const { iccGates } = require('../lib/settings');
 
 const router = Router();
@@ -186,6 +187,26 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
 });
 
 // Audit trail — Tier-4 ethics committee (+ superadmin); analysts are excluded.
+// Can the raters discriminate at all? Aggregate only — no transcripts, no names.
+//
+// This exists because the 2026-08-28 baseline read ICC = -0.315 and the cause was invisible in the
+// product: five episodes scored 74-80 by humans and 71-91 by the AI. ICC asks whether two raters RANK
+// subjects the same way, and six points of human range leaves nothing to rank. Without this screen
+// that reads as "the AI disagrees with our experts" rather than as "the measurement cannot yet
+// measure", and the two call for opposite work.
+router.get('/rater-spread', async (req, res) => {
+  // Express 4 does not route an async rejection to the error middleware — an unguarded throw here
+  // leaves the client hanging rather than returning a 500.
+  let result;
+  try {
+    result = await raterSpread({ includeTest: req.query.include_test === 'true' });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+  if (!result.ok) return sendDbError(res, result.error) ? undefined : res.status(500).json({ error: 'unknown' });
+  res.json(result);
+});
+
 router.get('/audit-log', requireRole('ethics', 'superadmin'), async (req, res) => {
   const { limit, offset } = pageParams(req, { def: 100, max: 500 });
   const { data, count, error } = await supabase
