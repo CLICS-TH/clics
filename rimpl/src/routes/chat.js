@@ -95,12 +95,28 @@ router.post('/', async (req, res) => {
           flattenForPrompt([...history, { role: 'physician', content: cleanMessage }], hints));
         const decision = rescueDecision(assessed);
         rescue = {
-          activated: decision.rescue,
+          // First activation, distinct from a later round of an ongoing rescue. The backend stamps
+          // the activation POINT from this and must never move it, so the two cannot share a flag.
+          activated: decision.rescue && !rescue_active,
+          // This round actually ran under the rescue prompt — the condition the post-check and the
+          // citation skip both key off, and true on continuing rounds as well as the first.
+          rescuing: decision.rescue,
+          // The session came back. This is the "return to PLE eligibility" the analysis plan asks
+          // for, and it was unobservable while a rescued session was assessed only once.
+          recovered: rescue_active && !decision.rescue,
           reason: decision.reason,
           elements: assessed.elements,
           on_topic: assessed.onTopic,
           qualifying: assessed.qualifying,
           exchanges_before: history.filter(m => m.role === 'physician' || m.role === 'user').length,
+          // Reported so the backend can charge it to the STUDY rather than the physician. These
+          // tokens were returned by the classifier all along and simply thrown away, which made the
+          // spend invisible — fine at one call per session, not fine at one per round.
+          assessment: {
+            input_tokens: assessed.inputTokens ?? 0,
+            output_tokens: assessed.outputTokens ?? 0,
+            provider: assessed.provider ?? null,
+          },
         };
         if (decision.rescue) systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE;
       } catch (e) {
@@ -114,7 +130,7 @@ router.post('/', async (req, res) => {
     // A rescue turn asks questions and deliberately gives no answer, so it has nothing to cite and
     // the citation retry does not apply — running it would prompt the model to answer, which is the
     // one thing the rescue must not do.
-    const rescuing = !!rescue?.activated;
+    const rescuing = !!rescue?.rescuing;   // EVERY rescue round, not only the first
 
     // Retry once if a citation is missing (both modes), or — examiner mode only — the ❓ is missing.
     if (!rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)))) {
@@ -160,7 +176,9 @@ router.post('/', async (req, res) => {
       // Advisory, for the backend to persist: which turn the rescue fired on, why, and whether the
       // reply actually honoured the protocol's constraints. The SAP analyses trigger rate and
       // activation point, so an unrecorded rescue is a lost data point.
-      rescue: rescue && { ...rescue, reply_check: rescue.activated ? checkRescueReply(text) : null },
+      // Post-checked on every round that ran under the rescue prompt. Checking only the first round
+      // left rounds two onward of a rescued session governed by no constraint at all.
+      rescue: rescue && { ...rescue, reply_check: rescue.rescuing ? checkRescueReply(text) : null },
     });
   } catch (err) {
     console.error('[RIMPL chat] error:', err);

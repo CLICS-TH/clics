@@ -7,7 +7,7 @@ const { rimplChat } = require('../services/rimpl-client');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
 const { finalizeScreening, toPassCols } = require('../services/cle-finalize');
 const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
-const { settlementDelta } = require('../lib/pricing');
+const { settlementDelta, costUsd } = require('../lib/pricing');
 const { logEvent } = require('../lib/audit');
 const { pilotTestMode, clinicalArtifactsEnabled, holdResultUntilAudited, t1RemediationEnabled, identityVerificationRequired, reflectionRequired } = require('../lib/settings');
 const identity = require('../services/identity');
@@ -406,6 +406,32 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   // needs in order to count exchanges AFTER an activation.
   if (rescue && rescue.qualifying && cle.qualified_at == null) {
     rescueCols.qualified_at = new Date().toISOString();
+  }
+  // The session came back. The rescue is a loop that ends when the conversation qualifies again, so
+  // this is where it ends — and it is the "return to PLE eligibility" the analysis plan asks for.
+  // Unobservable before, because a rescued session was assessed exactly once and so could never be
+  // seen recovering; the rescue simply ran until the session ended.
+  if (rescue?.recovered) {
+    rescueCols.socratic_active = false;
+    // socratic_reason deliberately stays 'protocol_rescue'. Clearing it would erase the fact that
+    // this session was ever rescued, which is the thing the analysis is about.
+    //
+    // Turn counts, not timestamps: rescue_activated_at and qualified_at already bracket the rescue
+    // in time, but the plan reports EXCHANGES, and no arithmetic on two timestamps yields a turn
+    // count. cle.turn_count is the count before this turn, so +1 includes the one being served.
+    if (cle.rescue_exchanges_before != null && cle.rescue_exchanges_after == null) {
+      rescueCols.rescue_exchanges_after = Math.max(0, (cle.turn_count ?? 0) + 1 - cle.rescue_exchanges_before);
+    }
+  }
+  // Re-assessing every round costs a classifier call per round, and that spend belongs to the study,
+  // not to the physician: the system chose the intervention. Charging their budget for it would
+  // penalise exactly the people whose conversation had not yet qualified. Accumulated per episode
+  // rather than in a per-user pool, because it is not attributable to anyone's quota.
+  if (rescue?.assessment && (rescue.assessment.input_tokens || rescue.assessment.output_tokens)) {
+    const { input_tokens: aIn = 0, output_tokens: aOut = 0, provider: aProv } = rescue.assessment;
+    rescueCols.rescue_assessment_tokens = (cle.rescue_assessment_tokens ?? 0) + aIn + aOut;
+    rescueCols.rescue_assessment_cost_usd =
+      Number(cle.rescue_assessment_cost_usd ?? 0) + costUsd(aIn, aOut, aProv ?? undefined);
   }
   if (rescue?.reply_check && rescue.reply_check.ok === false) {
     // The rescue prompt forbids diagnosing and caps the questions at two; this reply broke one of

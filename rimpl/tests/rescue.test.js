@@ -76,13 +76,25 @@ describe('the trigger is the conversation, not the physician', () => {
     expect(sentToClassifier).toMatch(/eGFR drives the choice/);
   });
 
-  test('latches: an already-rescued or already-qualified session pays no classifier call', () => {
+  test('a session already in rescue is re-assessed EVERY round, so it can be seen recovering', () => {
     const h = fourExchanges();
     expect(shouldAssess({ history: h })).toBe(true);
-    expect(shouldAssess({ history: h, rescueActive: true })).toBe(false);
+    // This used to be false, and that was the bug: a rescued session was assessed exactly once, so
+    // nothing could observe it returning to a qualifying conversation. The rescue then never ended
+    // and "did it recover?" had no answer in the data. The protocol applies the rescue each round.
+    expect(shouldAssess({ history: h, rescueActive: true })).toBe(true);
+  });
+
+  test('qualifying is the one latch that stays — it is the only one that is monotonic', () => {
+    const h = fourExchanges();
+    // A session that has shown reflective synthesis does not stop having shown it, so there is
+    // nothing left to re-ask and a long good session never pays for another classifier call.
     expect(shouldAssess({ history: h, alreadyQualified: true })).toBe(false);
-    // A session already running as examiner has nothing to rescue.
-    expect(shouldAssess({ history: h, socraticActive: true })).toBe(false);
+    expect(shouldAssess({ history: h, rescueActive: true, alreadyQualified: true })).toBe(false);
+  });
+
+  test('examiner mode entered for some other reason is not a rescue', () => {
+    expect(shouldAssess({ history: fourExchanges(), socraticActive: true })).toBe(false);
   });
 
   test('a classifier failure degrades to a normal turn rather than costing the physician their turn', async () => {
@@ -135,5 +147,70 @@ describe('rescueDecision', () => {
     expect(rescueDecision({ onTopic: false, qualifying: false })).toEqual({ rescue: true, reason: 'off_topic' });
     expect(rescueDecision({ onTopic: true, qualifying: false })).toEqual({ rescue: true, reason: 'not_qualifying' });
     expect(rescueDecision({ onTopic: true, qualifying: true })).toEqual({ rescue: false, reason: null });
+  });
+});
+
+// The rescue is a LOOP, not a one-shot. The instruction sheet describes a bounded, non-leading
+// intervention applied each round until the conversation returns to being a learning episode.
+//
+// It used to run exactly once. On the round it fired the session got the rescue prompt; every round
+// after that fell through to the general examiner prompt, which cites and answers — a different
+// instrument entirely. Nothing post-checked those rounds, and because the session was never
+// re-assessed, nothing could observe it recovering: the rescue simply ran until the session ended.
+describe('a rescue that has already fired keeps applying, and can end', () => {
+  const RESCUE_MARKER = /Ask ONE or TWO open questions/;
+  const rescued = (over) => ({ history: fourExchanges(), message: 'q', rescue_active: true, ...over });
+
+  test('a later round is assessed at all — which is what makes recovery observable', async () => {
+    mockTurn({ criteria: SHALLOW, reply: 'What would change your mind?' });
+    await post(rescued());
+    expect(callAI).toHaveBeenCalledTimes(2);                 // classifier THEN reply
+    expect(callAI.mock.calls[0][0].purpose).toBe('criteria');
+  });
+
+  test('a later round still not qualifying is generated from the RESCUE prompt', async () => {
+    mockTurn({ criteria: SHALLOW, reply: 'What would change your mind?' });
+    const res = await post(rescued());
+    expect(callAI.mock.calls[1][0].systemPrompt).toMatch(RESCUE_MARKER);
+    expect(res.body.rescue).toMatchObject({ rescuing: true, recovered: false });
+  });
+
+  test('a later round is POST-CHECKED, so a breach on any round is countable', async () => {
+    // A reply that diagnoses and asks three questions. On the old code this round was invisible.
+    mockTurn({ criteria: SHALLOW, reply: 'This is an MI. What next? Why? And then?' });
+    const res = await post(rescued());
+    expect(res.body.rescue.reply_check).toMatchObject({ ok: false });
+  });
+
+  test('the activation POINT does not move — a later round is not a new activation', async () => {
+    mockTurn({ criteria: SHALLOW, reply: 'What would change your mind?' });
+    const res = await post(rescued());
+    expect(res.body.rescue.activated).toBe(false);
+    expect(res.body.rescue.rescuing).toBe(true);
+  });
+
+  test('when the conversation qualifies again the rescue ENDS, and says so', async () => {
+    mockTurn({ criteria: QUALIFYING, reply: 'Metformin is first-line (ADA, 2024).' });
+    const res = await post(rescued());
+    expect(res.body.rescue).toMatchObject({ recovered: true, rescuing: false, qualifying: true });
+    // Back to a normal answering turn — the scaffold is not supposed to outlive the problem.
+    expect(callAI.mock.calls[1][0].systemPrompt).not.toMatch(RESCUE_MARKER);
+  });
+
+  test('a session that has already qualified is never re-assessed, however long it runs', async () => {
+    mockTurn({ reply: 'Metformin is first-line (ADA, 2024).' });
+    await post({ history: fourExchanges(), message: 'q', rescue_active: true, already_qualified: true });
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(callAI.mock.calls[0][0].purpose).toBe('chat');
+  });
+
+  test('the classifier cost is reported, so it can be charged to the study and not the physician', async () => {
+    callAI.mockReset();
+    callAI.mockResolvedValueOnce({ text: JSON.stringify(SHALLOW), tokenCount: 10, inputTokens: 900, outputTokens: 40, provider: 'anthropic', model: 'm' });
+    callAI.mockResolvedValue({ text: 'What would change your mind?', tokenCount: 100, provider: 'anthropic', model: 'm' });
+    const res = await post(rescued());
+    // These tokens were always returned and always thrown away. Invisible was tolerable at one call
+    // per session; at one per round it is spend nobody can account for.
+    expect(res.body.rescue.assessment).toMatchObject({ input_tokens: 900, output_tokens: 40, provider: 'anthropic' });
   });
 });

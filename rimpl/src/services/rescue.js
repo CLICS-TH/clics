@@ -35,12 +35,23 @@ function countExchanges(history = []) {
 
 // Should we spend a model call deciding whether to rescue? Deterministic, no I/O.
 //
-// The `alreadyQualified` latch matters: qualifying is monotonic in practice (a session that showed
-// reflective synthesis does not stop having shown it), so once the answer is yes there is nothing
-// left to re-ask. Without the latch, a long good session would pay for a classifier call on every
-// turn after the fourth.
+// ONE latch remains, and it is the one that is actually monotonic: a session that has shown
+// reflective synthesis does not stop having shown it, so once `alreadyQualified` is true there is
+// nothing left to re-ask and a long good session never pays for another classifier call.
+//
+// `rescueActive` used to be a latch too, and that was the bug. It meant a rescued session was
+// assessed exactly once, on the round the rescue fired — after which nothing could observe it
+// recovering, so the rescue never ended and "did this conversation return to being a learning
+// episode?" had no answer in the data. The protocol describes the rescue as applying EACH ROUND
+// until the session qualifies, which is a loop, not a one-shot. So a session in rescue and not yet
+// qualified is re-assessed every round; that is the cost of being able to see it recover.
+//
+// `socraticActive` without `rescueActive` is examiner mode entered for some other reason. It is not
+// a rescue and must not be assessed as one.
 function shouldAssess({ history, socraticActive = false, rescueActive = false, alreadyQualified = false } = {}) {
-  if (socraticActive || rescueActive || alreadyQualified) return false;
+  if (alreadyQualified) return false;
+  if (rescueActive) return true;
+  if (socraticActive) return false;
   return countExchanges(history) >= RESCUE_AFTER_EXCHANGES;
 }
 
