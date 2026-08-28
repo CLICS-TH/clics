@@ -14,6 +14,7 @@ const { logEvent } = require('../lib/audit');
 const retention = require('../services/retention');
 const { decryptJson } = require('../lib/crypto');
 const { probeRimplProvider, probeRimplDeep } = require('../services/rimpl-client');
+const { decisiveVerdict } = require('../services/agreement');
 const { getTextSetting, minAuditorsPerCle } = require('../lib/settings');
 
 const router = Router();
@@ -515,6 +516,93 @@ router.get('/ai-providers', async (_req, res) => {
 // The numbers already existed on RIMPL's deep health route, and that is precisely why they were
 // useless: nobody opens a JSON endpoint before flipping a switch. Surfacing them beside the switch
 // turns "is the box ready" from something you have to know to curl into something you can see.
+// The Primary Evaluator Model Lock.
+//
+// Scores already carry a configuration fingerprint. What was missing is the DECLARATION of the parts
+// a running system cannot read for itself — the weights checksum above all, which is not obtainable
+// over an inference API and must be stated by someone with filesystem access. Until it is, the lock
+// is an assertion rather than a checkable fact.
+const ModelLockSchema = z.object({
+  // 64 hex characters. Loose validation here would defeat the point: a checksum nobody can verify
+  // the shape of is a string, not evidence.
+  weights_sha256: z.string().regex(/^[0-9a-fA-F]{64}$/, 'expected a 64-character SHA-256 hex digest'),
+  inference_engine: z.string().min(1).max(200),
+  quantization: z.string().max(200).optional(),
+  system_prompt_version: z.string().min(1).max(200),
+  evaluator_prompt_version: z.string().min(1).max(200),
+  rubric_version: z.string().min(1).max(200),
+  decoding: z.object({
+    temperature: z.number().optional(),
+    top_p: z.number().optional(),
+    max_tokens: z.number().int().optional(),
+    seed: z.number().int().nullable().optional(),
+  }).optional(),
+  environment: z.record(z.string(), z.string()).optional(),
+  note: z.string().max(4000).optional(),
+});
+
+// Current lock, plus whether a new declaration is permitted and why not.
+router.get('/evaluator-lock', async (_req, res) => {
+  const [{ data: current }, lockedAt, gate] = await Promise.all([
+    supabase.from('evaluator_model_lock').select('*').order('locked_at', { ascending: false }).limit(1).maybeSingle(),
+    getTextSetting('evaluator_locked_at', null),
+    decisiveVerdict({}),
+  ]);
+  const verdict = gate.ok ? gate.verdict : null;
+  res.json({
+    locked_at: lockedAt,
+    current: current ?? null,
+    candidate: gate.ok ? gate.candidate : null,
+    // The form is unavailable until the candidate has cleared the DECISIVE bar. Not the screening
+    // bar: two models agreeing closely can be similarly wrong, and freezing the study's measuring
+    // instrument against a number that never touched a human judgement is the thing this prevents.
+    can_declare: verdict?.state === 'pass',
+    gate: verdict,
+  });
+});
+
+router.post('/evaluator-lock', async (req, res) => {
+  const parsed = ModelLockSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  const gate = await decisiveVerdict({});
+  if (!gate.ok) return sendDbError(res, gate.error);
+  if (gate.verdict.state !== 'pass') {
+    return res.status(409).json({
+      error: `The candidate has not cleared the decisive threshold (${gate.verdict.state}): ${gate.verdict.why}`,
+      code: 'gate_not_passed', gate: gate.verdict,
+    });
+  }
+
+  const now = new Date().toISOString();
+  const { data: row, error } = await supabase.from('evaluator_model_lock').insert({
+    locked_at: now, locked_by: req.user.id,
+    provider: gate.candidate?.provider ?? null,
+    model_version: gate.candidate?.model_version ?? null,
+    ...parsed.data,
+    // The proof that the freeze was permitted, kept beside the thing it permitted. Reconstructing
+    // the corpus as it stood on the day is not something anyone will actually do later.
+    gate: gate.verdict,
+  }).select('*').maybeSingle();
+  if (sendDbError(res, error)) return;
+
+  // Two settings, deliberately written AFTER the record exists: evaluator_locked_at is what the
+  // provider-switch endpoint refuses on, and evaluator_weights_sha256 is what every subsequent score
+  // is stamped with. A flag set without a record behind it is the state this whole change removes.
+  const { error: setErr } = await supabase.from('app_settings').upsert([
+    { key: 'evaluator_locked_at', value: 0, value_text: now, updated_at: now },
+    { key: 'evaluator_weights_sha256', value: 0, value_text: parsed.data.weights_sha256, updated_at: now },
+  ]);
+  if (sendDbError(res, setErr)) return;
+
+  logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'evaluator_model_lock',
+    metadata: { locked_at: now, weights_sha256: parsed.data.weights_sha256,
+      provider: gate.candidate?.provider ?? null, model_version: gate.candidate?.model_version ?? null,
+      gate: gate.verdict } });
+
+  res.json({ ok: true, locked_at: now, record: row ?? null });
+});
+
 router.get('/ai-readiness', async (_req, res) => {
   try {
     const { body } = await probeRimplDeep({ timeoutMs: 8000 });

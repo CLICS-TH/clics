@@ -1,0 +1,141 @@
+// Building the paired score sets the three-arm agreement comparison runs on.
+//
+// Extracted from routes/oversight.js so the Model Lock route can ask the SAME question — "does the
+// candidate clear the decisive threshold?" — without a second implementation of it. A duplicate
+// would drift, and the two places it drifts between are the screen a human reads and the gate that
+// freezes the study's measuring instrument. Those disagreeing is the worst possible outcome.
+//
+// Everything here is data assembly plus arithmetic. It performs no authorization: both callers are
+// already behind role guards, and putting a second, weaker check here would invite someone to rely
+// on it.
+
+const { supabase } = require('../lib/supabase');
+const { iccTwoRater, verdictFor } = require('./icc');
+const { iccGates } = require('../lib/settings');
+
+const ICC_DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
+const SHADOW_COLS = 'cle_id, provider, model_version, composite_score, d1,d2,d3,d4,d5,d6,d7, error, evaluated_at';
+
+// PostgREST reports an unapplied migration as a missing relation. That is a KNOWN state, not a
+// fault: db/migration-shadow-evaluations.sql is deliberately unapplied in some environments, and it
+// is indistinguishable from "no candidate corpus yet".
+function isMissingRelation(error) {
+  const code = error?.code ?? '';
+  const msg = `${error?.message ?? ''} ${error?.details ?? ''}`;
+  return code === '42P01' || code === 'PGRST205' || /does not exist|schema cache/i.test(msg);
+}
+
+/**
+ * Assemble the human / incumbent / candidate score sets over the audited universe.
+ *
+ * @returns {Promise<{ok: true, ...}|{ok: false, error: object}>} `ok:false` carries the db error for
+ *   the caller to surface — this returns rather than throws so an express handler cannot die
+ *   silently mid-response (this router has no error middleware; a throw hangs the client).
+ */
+async function pairedSets({ includeTest = false } = {}) {
+  const { data: auditScores, error: auditErr } = await supabase
+    .from('audit_scores').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+  if (auditErr) return { ok: false, error: auditErr };
+  if (!auditScores?.length) {
+    return { ok: true, empty: true, humanBy: new Map(), aiBy: new Map(), shadowBy: new Map(),
+      withAi: [], allThree: [], compareIds: [], candidate: null, shadowAvailable: false, shadowFailed: 0 };
+  }
+
+  const scoredIds = [...new Set(auditScores.map(a => a.cle_id))];
+  const { data: aiScores, error: aiErr } = await supabase
+    .from('ai_evaluations').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('cle_id', scoredIds);
+  if (aiErr) return { ok: false, error: aiErr };
+  const { data: cles, error: clesErr } = await supabase.from('cles').select('id, is_test').in('id', scoredIds);
+  if (clesErr) return { ok: false, error: clesErr };
+
+  const testOf = Object.fromEntries((cles ?? []).map(p => [p.id, p.is_test]));
+  const inScope = (cleId) => includeTest || !testOf[cleId];
+
+  const shadowRes = await supabase.from('shadow_evaluations').select(SHADOW_COLS).in('cle_id', scoredIds);
+  if (shadowRes.error && !isMissingRelation(shadowRes.error)) return { ok: false, error: shadowRes.error };
+
+  // One human value per CLE (mean across auditors) BEFORE pairing — ICC(2,1) assumes one rating per
+  // subject per rater, so a multi-auditor CLE must contribute ONE pair, not N pairs reusing the same
+  // AI value. With a single auditor the mean equals that score (correct in both modes).
+  const byCle = new Map();
+  for (const a of auditScores) {
+    if (!inScope(a.cle_id)) continue;
+    if (!byCle.has(a.cle_id)) byCle.set(a.cle_id, []);
+    byCle.get(a.cle_id).push(a);
+  }
+  const humanBy = new Map();
+  for (const [cleId, rows] of byCle) {
+    const mean = (k) => rows.reduce((s, r) => s + Number(r[k] || 0), 0) / rows.length;
+    const human = { composite_score: mean('composite_score') };
+    for (const d of ICC_DOMAINS) human[d] = mean(d);
+    humanBy.set(cleId, human);
+  }
+  const aiBy = new Map((aiScores ?? []).filter(s => inScope(s.cle_id)).map(s => [s.cle_id, s]));
+
+  // ONE candidate per arm. `provider` is the TRANSPORT ('local'), not the candidate — a second
+  // candidate model on the same transport is a SEPARATE paired set. Pooling two models into one arm
+  // would report a number that describes neither, so pick the most recent (provider, model_version).
+  const groups = new Map();
+  for (const r of (shadowRes.data ?? [])) {
+    if (!inScope(r.cle_id)) continue;
+    const key = `${r.provider} ${r.model_version}`;
+    const g = groups.get(key) ?? { provider: r.provider, model_version: r.model_version, rows: [], latest: 0 };
+    g.rows.push(r);
+    g.latest = Math.max(g.latest, Date.parse(r.evaluated_at ?? '') || 0);
+    groups.set(key, g);
+  }
+  const candidate = [...groups.values()].sort((x, y) =>
+    (y.latest - x.latest) || String(y.model_version ?? '').localeCompare(String(x.model_version ?? '')))[0] ?? null;
+
+  // A row with `error` set carries no scores, so it cannot enter an ICC — but it IS counted, because
+  // "the candidate could not produce a valid score set 8% of the time" is a first-class, potentially
+  // disqualifying result. Averaging it away would hide the thing a swap decision hinges on.
+  const shadowBy = new Map();
+  let shadowFailed = 0;
+  for (const r of candidate?.rows ?? []) {
+    if (r.error != null || r.d1 == null) { shadowFailed++; continue; }
+    shadowBy.set(r.cle_id, r);
+  }
+  const shadowAvailable = shadowBy.size > 0;
+
+  // COMPARABILITY. All arms are computed on the SAME CLEs — the intersection of human + ai + a
+  // SCORED candidate row — so the three numbers can honestly be read against each other.
+  const withAi = [...humanBy.keys()].filter(id => aiBy.has(id));
+  const allThree = withAi.filter(id => shadowBy.has(id));
+
+  return {
+    ok: true, empty: false,
+    humanBy, aiBy, shadowBy, withAi, allThree,
+    compareIds: shadowAvailable ? allThree : withAi,
+    candidate, shadowAvailable, shadowFailed,
+  };
+}
+
+// The candidate-vs-human ICC over the shared set — the arm the Model Lock gates on.
+function decisiveOverall(sets) {
+  if (!sets?.shadowAvailable) return null;
+  const pairs = sets.compareIds
+    .map(id => ({ a: sets.shadowBy.get(id), b: sets.humanBy.get(id) }))
+    .filter(p => p.a && p.b);
+  return iccTwoRater(pairs.map(p => ({ a: Number(p.a.composite_score), b: Number(p.b.composite_score) })));
+}
+
+/**
+ * Has the candidate cleared the DECISIVE bar? The one question the Model Lock is allowed to ask.
+ *
+ * Deliberately not the screening bar. Screening is candidate-vs-incumbent and can only reject —
+ * two models agreeing closely can be similarly wrong, and freezing the study's measuring instrument
+ * against a number that never touched a human judgement is exactly what this must prevent.
+ */
+async function decisiveVerdict({ includeTest = false } = {}) {
+  const sets = await pairedSets({ includeTest });
+  if (!sets.ok) return { ok: false, error: sets.error };
+  const gates = await iccGates();
+  return {
+    ok: true,
+    verdict: verdictFor(decisiveOverall(sets), gates.decisive),
+    candidate: sets.candidate ? { provider: sets.candidate.provider, model_version: sets.candidate.model_version } : null,
+  };
+}
+
+module.exports = { pairedSets, decisiveOverall, decisiveVerdict, isMissingRelation, ICC_DOMAINS, SHADOW_COLS };
