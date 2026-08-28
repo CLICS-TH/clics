@@ -27,7 +27,28 @@ step can be compressed by working harder; the ones owned by other people cannot.
 | 7 | **P4 — accumulate the paired shadow corpus** | **time + raters** | **see below** | ← the long pole |
 | 8 | **P4 — decisive verdict clears 0.75** | statistics | — | Falls out of 7. Not compressible by effort |
 | 9 | **P5 — Model Lock + amend the Lock Record** | us | ½ day | Needs the step-2 checksum. Must disclose the shadow evaluator (D11) |
+| 9b | **Identity gate: wire the client, verify people, then flip** | us + admins | 1 day + clearing time | **Deliberately sequenced after the local-AI work** (decision, 2026-08-28). See below |
 | 10 | **First participant** | — | — | |
+
+### 9b — why the identity gate is not flipped yet
+
+`identity_verification_required` is `0`. CREC082 ICF §4 requires it on before the first participant,
+so it *must* be flipped — but flipping it today is a gate with nothing behind it:
+
+- **28 active physicians, 0 rows in `identity_verifications`.** Every one of them would get a 403 on
+  their next "start a session". 18 have consented; none has submitted an identity verification.
+- **No client handles the refusal.** Nothing in physician-ui or audit-dashboard reads
+  `identity_verification_required` or `identity_check_unavailable`, so a blocked physician sees a
+  generic failure rather than a route to `/identity`. The `/auth/identity/status` endpoint and the
+  `/identity` form both exist; nothing points anyone at them.
+
+The gate itself is one middleware on `POST /cles` (`requireVerifiedIdentity`) and it **fails closed**,
+including on a database read error — correct for a gate, and another reason not to switch it on
+before the people it gates are already cleared.
+
+So the order is: wire the client → get participants verified through `/admin/identity` → flip. Doing
+that *after* the local-AI cutover was a deliberate call, to keep one programme in flight at a time.
+It is on the critical path to participant 1 and must not be skipped.
 
 Steps 4–6 and 9 total **≈ 3 working days**. The box-side work in 1–3 is short once it starts. So
 **the schedule is not made of engineering** — it is made of step 1 (someone else's calendar) and step
