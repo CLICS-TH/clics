@@ -76,7 +76,11 @@ const emptyArm = () => ({ overall: null, per_domain: Object.fromEntries(ICC_DOMA
 
 router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), async (req, res) => {
   const includeTest = req.query.include_test === 'true';
-  const gates = await iccGates();
+  // Express 4 does not route an async rejection to the error middleware — an unguarded throw here
+  // leaves the client hanging rather than returning a 500. The thresholds have code defaults, so a
+  // settings read that fails should degrade to them, not take the whole panel down.
+  let gates;
+  try { gates = await iccGates(); } catch { gates = { screening: 0.75, decisive: 0.75 }; }
 
   // SCOPE. Every number below is computed over the AUDITED universe — CLEs carrying at least one
   // auditor score, after the same is_test filter GET /icc uses. That bounds the queries identically

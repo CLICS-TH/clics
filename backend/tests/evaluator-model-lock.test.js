@@ -13,6 +13,8 @@ const mockUpserts = [];
 const mockEvents = [];
 const mockInserts = [];
 let mockGate;
+let mockUpsertError = null;
+const mockDeletes = [];
 
 const SA = { id: 'sa-1', role: 'superadmin', status: 'active' };
 
@@ -30,9 +32,11 @@ jest.mock('../src/lib/supabase', () => {
       eq: (_col, v) => { key = v; return c; },
       insert: (p) => { mockInserts.push({ table, payload: p }); return c; },
       upsert: (p) => {
+        if (mockUpsertError) return { ...c, then: (r) => r({ data: null, error: { message: mockUpsertError } }) };
         for (const row of [].concat(p)) { mockUpserts.push(row); mockSettings[row.key] = row.value_text; }
         return c;
       },
+      delete: () => { mockDeletes.push(table); return c; },
       maybeSingle: () => Promise.resolve({
         data: table === 'app_settings'
           ? (key in mockSettings ? { value_text: mockSettings[key] } : null)
@@ -76,7 +80,8 @@ const verdict = (state, over = {}) => ({
 
 beforeEach(() => {
   for (const k of Object.keys(mockSettings)) delete mockSettings[k];
-  mockUpserts.length = 0; mockEvents.length = 0; mockInserts.length = 0;
+  mockUpserts.length = 0; mockEvents.length = 0; mockInserts.length = 0; mockDeletes.length = 0;
+  mockUpsertError = null;
   mockGate = verdict('pass');
 });
 
@@ -185,4 +190,49 @@ test('once declared, the evaluator provider is refused outright', async () => {
     .send({ purpose: 'evaluate', provider: 'anthropic', confirm: 'CHANGE EVALUATOR' });
   expect(r.status).toBe(409);
   expect(r.body.code).toBe('evaluator_locked');
+});
+
+
+// Two ways the lock could end up meaning less than it says.
+describe('the lock cannot half-happen, or be replaced by accident', () => {
+  test('a second declaration is REFUSED without its own typed phrase', async () => {
+    await declare();
+    expect(mockSettings.evaluator_locked_at).toEqual(expect.any(String));
+
+    const again = await declare();
+    // Replacing a lock is not a repeat of the same action: the change-control rule allows it only
+    // for a critical safety or security reason, with scoring stopped and the data either side
+    // separated. Pressing the button twice must not be able to do that quietly.
+    expect(again.status).toBe(409);
+    expect(again.body.confirm_phrase).toBe('REPLACE THE LOCK');
+    expect(lockRows()).toHaveLength(1);
+  });
+
+  test('with the phrase it goes through, and the audit entry names what it replaced', async () => {
+    await declare();
+    const first = mockSettings.evaluator_locked_at;
+    const r = await declare({ ...DECLARATION, confirm_relock: 'REPLACE THE LOCK' });
+
+    expect(r.status).toBe(200);
+    expect(lockRows()).toHaveLength(2);          // append-only: the first freeze stays on the record
+    expect(mockEvents.filter((e) => e.action === 'evaluator_model_lock').at(-1).metadata.replaced_lock).toBe(first);
+  });
+
+  test('the phrase is not stored as if it were part of the declaration', async () => {
+    await declare();
+    await declare({ ...DECLARATION, confirm_relock: 'REPLACE THE LOCK' });
+    expect(lockRows().at(-1).payload).not.toHaveProperty('confirm_relock');
+  });
+
+  test('a record whose lock did not apply is rolled back, not left standing', async () => {
+    // Otherwise it is the worst of both: a signed record asserting a freeze that the provider-switch
+    // endpoint would still happily override, because the flag it reads was never set.
+    mockUpsertError = 'app_settings write failed';
+    const r = await declare();
+
+    expect(r.status).toBe(500);
+    expect(r.body.error).toMatch(/rolled back/);
+    expect(mockDeletes).toContain('evaluator_model_lock');
+    expect(mockSettings.evaluator_locked_at).toBeUndefined();
+  });
 });

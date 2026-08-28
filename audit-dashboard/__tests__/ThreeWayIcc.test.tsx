@@ -238,7 +238,11 @@ describe('ThreeWayIcc — verdicts', () => {
     render(<ThreeWayIcc />);
     const failed = await screen.findByText(/Below ≥ 0\.75/);
     const undecided = await screen.findByText(/Not yet decidable/);
-    // Different wording AND different colour class — either alone is too easy to lose.
+    // Different wording AND a different colour class. The class check is only worth anything because
+    // __tests__/theme-tokens.test.ts separately proves `text-danger` is MAPPED in @theme inline —
+    // on its own it passed while the token generated no CSS at all and both states rendered
+    // identically in body text. jsdom applies no Tailwind, so neither test can see the real colour;
+    // together they cover it, and it is worth naming why rather than trusting the pair by accident.
     expect(failed.closest('p')?.className).toContain('text-danger');
     expect(undecided.closest('p')?.className).not.toContain('text-danger');
   });

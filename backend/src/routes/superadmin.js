@@ -481,6 +481,10 @@ const CONFIRM_UNLOCK = 'UNLOCK EVALUATOR';
 // the two refusals can fire on the same request: switching `evaluate` to an unfit provider needs
 // CHANGE EVALUATOR *and* this. Sharing one field would make that switch impossible to express.
 const CONFIRM_UNFIT = 'SWITCH ANYWAY';
+// Re-declaring after a lock is already in force. The change-control rule permits it only for a
+// critical safety or security reason, and only if scoring stops and the data either side is
+// separated — so it must not be reachable by pressing the same button twice.
+const CONFIRM_RELOCK = 'REPLACE THE LOCK';
 
 const AiProviderSchema = z.object({
   purpose: z.enum(AI_PURPOSES).optional(),
@@ -488,6 +492,7 @@ const AiProviderSchema = z.object({
   evaluator_locked: z.boolean().optional(),
   confirm: z.string().optional(),
   confirm_unfit: z.string().optional(),
+  confirm_relock: z.string().optional(),
 }).refine(
   (b) => (b.purpose != null && b.provider != null) || b.evaluator_locked != null,
   { message: 'send either {purpose, provider} or {evaluator_locked}' },
@@ -503,7 +508,7 @@ async function readAiProviders() {
     choices: AI_PROVIDER_CHOICES,
     evaluator_locked_at: locked,
     // Echoed so the UI never has to hardcode the phrases — one source of truth for both sides.
-    confirm_phrases: { change_evaluator: CONFIRM_EVALUATOR, unlock_evaluator: CONFIRM_UNLOCK, switch_unfit: CONFIRM_UNFIT },
+    confirm_phrases: { change_evaluator: CONFIRM_EVALUATOR, unlock_evaluator: CONFIRM_UNLOCK, switch_unfit: CONFIRM_UNFIT, replace_lock: CONFIRM_RELOCK },
   };
 }
 
@@ -539,15 +544,23 @@ const ModelLockSchema = z.object({
   }).optional(),
   environment: z.record(z.string(), z.string()).optional(),
   note: z.string().max(4000).optional(),
+  confirm_relock: z.string().optional(),
 });
 
 // Current lock, plus whether a new declaration is permitted and why not.
 router.get('/evaluator-lock', async (_req, res) => {
-  const [{ data: current }, lockedAt, gate] = await Promise.all([
-    supabase.from('evaluator_model_lock').select('*').order('locked_at', { ascending: false }).limit(1).maybeSingle(),
-    getTextSetting('evaluator_locked_at', null),
-    decisiveVerdict({}),
-  ]);
+  // Express 4 hangs the client on an async rejection rather than reaching the error middleware, and
+  // Promise.all rejects as a unit — one failing read would take the whole screen down silently.
+  let current = null, lockedAt = null, gate = { ok: false };
+  try {
+    [{ data: current }, lockedAt, gate] = await Promise.all([
+      supabase.from('evaluator_model_lock').select('*').order('locked_at', { ascending: false }).limit(1).maybeSingle(),
+      getTextSetting('evaluator_locked_at', null),
+      decisiveVerdict({}),
+    ]);
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
   const verdict = gate.ok ? gate.verdict : null;
   res.json({
     locked_at: lockedAt,
@@ -565,7 +578,19 @@ router.post('/evaluator-lock', async (req, res) => {
   const parsed = ModelLockSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const gate = await decisiveVerdict({});
+  // Already locked? Re-declaring is not a repeat of the same action — the change-control rule allows
+  // it only for a critical safety or security reason, with scoring stopped and the data either side
+  // separated. Pressing the button twice must not be able to do that quietly.
+  const existingLock = await getTextSetting('evaluator_locked_at', null);
+  if (existingLock && parsed.data.confirm_relock !== CONFIRM_RELOCK) {
+    return res.status(409).json({
+      error: `The evaluator was locked on ${existingLock}. Replacing that lock means stopping scoring and separating the data either side of the change.`,
+      code: 'confirmation_required', confirm_phrase: CONFIRM_RELOCK, locked_at: existingLock,
+    });
+  }
+
+  let gate;
+  try { gate = await decisiveVerdict({}); } catch (e) { return res.status(500).json({ error: e.message }); }
   if (!gate.ok) return sendDbError(res, gate.error);
   if (gate.verdict.state !== 'pass') {
     return res.status(409).json({
@@ -575,11 +600,12 @@ router.post('/evaluator-lock', async (req, res) => {
   }
 
   const now = new Date().toISOString();
+  const { confirm_relock: _c, ...declaration } = parsed.data;
   const { data: row, error } = await supabase.from('evaluator_model_lock').insert({
     locked_at: now, locked_by: req.user.id,
     provider: gate.candidate?.provider ?? null,
     model_version: gate.candidate?.model_version ?? null,
-    ...parsed.data,
+    ...declaration,
     // The proof that the freeze was permitted, kept beside the thing it permitted. Reconstructing
     // the corpus as it stood on the day is not something anyone will actually do later.
     gate: gate.verdict,
@@ -591,12 +617,18 @@ router.post('/evaluator-lock', async (req, res) => {
   // is stamped with. A flag set without a record behind it is the state this whole change removes.
   const { error: setErr } = await supabase.from('app_settings').upsert([
     { key: 'evaluator_locked_at', value: 0, value_text: now, updated_at: now },
-    { key: 'evaluator_weights_sha256', value: 0, value_text: parsed.data.weights_sha256, updated_at: now },
+    { key: 'evaluator_weights_sha256', value: 0, value_text: declaration.weights_sha256, updated_at: now },
   ]);
-  if (sendDbError(res, setErr)) return;
+  if (setErr) {
+    // The record landed and the flag did not. Left alone, that is the worst of both: a signed record
+    // asserting a freeze the provider-switch endpoint would still happily override. Roll the record
+    // back so the failure is total and legible, rather than a lock that only looks real.
+    await supabase.from('evaluator_model_lock').delete().eq('locked_at', now).eq('locked_by', req.user.id);
+    return res.status(500).json({ error: `Lock not applied (${setErr.message}); the draft record was rolled back.` });
+  }
 
   logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'evaluator_model_lock',
-    metadata: { locked_at: now, weights_sha256: parsed.data.weights_sha256,
+    metadata: { locked_at: now, weights_sha256: declaration.weights_sha256, replaced_lock: existingLock ?? null,
       provider: gate.candidate?.provider ?? null, model_version: gate.candidate?.model_version ?? null,
       gate: gate.verdict } });
 

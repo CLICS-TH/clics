@@ -280,8 +280,15 @@ function iccOneWay(rows) {
  */
 function verdictFor(result, threshold) {
   const icc = result?.icc, lower = result?.lower, upper = result?.upper, n = result?.n ?? 0;
-  const base = { threshold, icc: icc ?? null, lower: lower ?? null, upper: upper ?? null, n };
-  if (icc == null || lower == null || upper == null) {
+  const finite = (v) => (Number.isFinite(v) ? v : null);
+  const base = { threshold, icc: finite(icc), lower: finite(lower), upper: finite(upper), n };
+  // Number.isFinite, not a null check. NaN is not null, so `icc == null` let it through to the
+  // comparisons below — both of which are false against NaN, so it landed on `insufficient` with
+  // the reason "the interval spans 0.75, more pairs are needed", which is untrue twice over: there
+  // is no interval, and more pairs will not produce one. JSON.stringify also renders NaN as null,
+  // so the wire format looked identical to a genuine no-estimate while the code had taken a
+  // different path to get there.
+  if (base.icc == null || base.lower == null || base.upper == null) {
     return { ...base, state: 'insufficient', why: 'no estimate — too few pairs, or no variance between them' };
   }
   // The Fisher-z interval is built on 1/sqrt(n-3) and simply does not exist below four pairs; the
@@ -295,8 +302,8 @@ function verdictFor(result, threshold) {
   if (n < 4) {
     return { ...base, state: 'insufficient', why: `${n} pairs cannot support a confidence interval` };
   }
-  if (lower >= threshold) return { ...base, state: 'pass', why: `the whole interval is at or above ${threshold}` };
-  if (upper < threshold) return { ...base, state: 'fail', why: `the whole interval is below ${threshold}` };
+  if (base.lower >= threshold) return { ...base, state: 'pass', why: `the whole interval is at or above ${threshold}` };
+  if (base.upper < threshold) return { ...base, state: 'fail', why: `the whole interval is below ${threshold}` };
   return { ...base, state: 'insufficient', why: `the interval spans ${threshold} — more pairs are needed to decide` };
 }
 
