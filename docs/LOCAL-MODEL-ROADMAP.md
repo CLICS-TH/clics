@@ -34,6 +34,10 @@ Claude means the local model cannot be the study's evaluator at all: A2 would be
 
 ---
 
+See [`LOCAL-MODEL-CUTOVER.md`](LOCAL-MODEL-CUTOVER.md) for the critical path, the paired-CLE
+arithmetic behind the decisive gate, and how to compute the slip once an access date exists.
+Live position: `npm run local-model:status`.
+
 ## Status
 
 | Phase | State |
@@ -196,8 +200,8 @@ All default to the pre-existing behaviour; setting none of these changes anythin
 
 Facts, not decisions. Everything downstream waits on these.
 
-1. **Tailnet access** to `cme8.org.github`.
-2. **What `cme-dgx` actually serves** — confirmed Ollama, but: which models, at what context length,
+1. **Tailnet access** to **`cme-dev`** (`100.68.210.69`) — the inference port, not just the UI port.
+2. **What `cme-dev` actually serves** — confirmed Ollama, but: which models, at what context length,
    and is the inference server reachable directly (`:11434` / `:8000/v1`) rather than through Open
    WebUI? Server-to-server wants the inference server: fewer hops, no per-user API-key semantics, no
    UI-layer throttling.
@@ -211,7 +215,7 @@ Facts, not decisions. Everything downstream waits on these.
 6. **Who operates the box**, and will they commit to **no evaluator changes between lock and study
    end**, with notice? (D15.)
 
-**Owed on the box regardless:** raise `OLLAMA_CONTEXT_LENGTH`. Measured 2026-08-24 against the DGX, a
+**Owed on the box regardless:** raise `OLLAMA_CONTEXT_LENGTH`. Measured 2026-08-24 against `cme-dev`, a
 9,144-token evaluation returned `400 … exceeds the available context size (4096)`. `options.num_ctx`
 over the OpenAI-compatible endpoint is proven inert, so the fix is server-side. A creditable PLE
 transcript runs to 10,000+ tokens and one hit 130k on 2026-08-17.
@@ -372,7 +376,7 @@ the split that passes.
 
 Runs immediately before the first participant.
 
-- **Amend the Model Lock Record (D5)** to name the model `cme-dgx` actually serves. The Record
+- **Amend the Model Lock Record (D5)** to name the model `cme-dev` actually serves. The Record
   currently names a **DeepSeek**-based model; resolve against the G0 inventory. This is a protocol
   amendment note, not a code change.
 - **Set `evaluator_weights_sha256`** from the G0 digest, then **set `evaluator_locked_at`**. After
@@ -419,7 +423,7 @@ Runs immediately before the first participant.
 
 Consolidated from G0 — these are the only things blocking the whole plan.
 
-1. What does `cme-dgx` serve — which models, what context length? Can we hit the inference server
+1. What does `cme-dev` serve — which models, what context length? Can we hit the inference server
    directly rather than through Open WebUI?
 2. Can you run `sha256sum` on the evaluator model's weights, and share the digest?
 3. **Can rimpl be hosted on a tailnet node?** (Determines P2's shape.)

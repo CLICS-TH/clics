@@ -7,6 +7,7 @@
     "dev": "concurrently -k -n backend,rimpl,portal,dash -c blue,magenta,green,cyan \"npm --prefix backend run dev\" \"npm --prefix rimpl run dev\" \"npm --prefix physician-ui run dev\" \"npm --prefix audit-dashboard run dev -- -p 3002\"",
     "install:all": "npm install && npm --prefix backend install && npm --prefix rimpl install && npm --prefix physician-ui install && npm --prefix audit-dashboard install",
     "test:all": "npm --prefix backend test && npm --prefix rimpl run test:ci && npm --prefix license-verifier test && npm --prefix audit-dashboard test",
+    "local-model:status": "cd backend && NODE_PATH=\"$PWD/node_modules\" node ../scripts/local-model/status.mjs",
     "test:audit-sandbox": "node scripts/audit-sandbox/run.mjs",
     "test:responsive": "node scripts/responsive/responsive-smoke.mjs",
     "test:mobile-audit": "node scripts/responsive/mobile-audit.mjs",
