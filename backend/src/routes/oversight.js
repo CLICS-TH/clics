@@ -71,6 +71,7 @@ router.get('/icc', async (req, res) => {
 //
 // Human auditors are the REFERENCE STANDARD; Claude is not. ai_vs_shadow is a cheap early signal and
 // a correlated-error check only — two models agreeing proves they are similar, possibly similarly
+// wrong. Only the two *_vs_human arms are acceptance evidence, and only candidate_vs_human decides.
 
 const emptyArm = () => ({ overall: null, per_domain: Object.fromEntries(ICC_DOMAINS.map(d => [d, null])), n: 0, verdict: null });
 

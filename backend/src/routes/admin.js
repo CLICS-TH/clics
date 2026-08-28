@@ -218,7 +218,7 @@ router.get('/privacy-queue', async (req, res) => {
     // privacy_review_note is SELECTED, not decorative: the dashboard renders it, and an auditor who
     // stops an assessment to report a suspected identifier puts their reason here. Without it the
     // reviewer sees a quarantined session and no statement of why — which is the whole report.
-    .select('id, cle_code, council_id, specialty_id, status, privacy_review_status, privacy_review_note, privacy_reviewed_at, ended_at, turn_count, token_count, is_test', { count: 'exact' })
+    .select('id, cle_code, council_id, specialty_id, status, privacy_review_status, privacy_review_note, privacy_reviewed_at, privacy_concern_open, privacy_concern_by, privacy_concern_at, privacy_concern_note, ended_at, turn_count, token_count, is_test', { count: 'exact' })
     .eq('status', 'evaluated');
   // Default view is the work: sessions nobody has looked at yet. `?status=quarantined` etc. lets a
   // reviewer revisit their own earlier decisions, which they must be able to do — a quarantine that
@@ -259,11 +259,15 @@ router.post('/cles/:id/privacy-review', async (req, res) => {
   if (!cle) return res.status(404).json({ error: 'Not found' });
   if (!sameCouncil(req, cle.council_id) || !sameSpecialty(req, cle.specialty_id)) return res.status(404).json({ error: 'Not found' });
 
+  // A decision RESOLVES any open rater report — that is what "until it is resolved" means for the
+  // auditor queue. The reporter's own columns are left intact: who raised it and what they said stay
+  // on the record after the reviewer has answered.
   const { error } = await supabase.from('cles').update({
     privacy_review_status: decision,
     privacy_reviewed_at: new Date().toISOString(),
     privacy_reviewed_by: req.user.id,
     privacy_review_note: note ?? null,
+    privacy_concern_open: false,
   }).eq('id', req.params.id);
   if (sendDbError(res, error)) return;
 

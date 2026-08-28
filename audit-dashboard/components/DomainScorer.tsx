@@ -13,6 +13,11 @@ import { cn } from "@/lib/utils";
 // asks it per domain, and the calibration workshop's stated output is a map of exactly this — where
 // raters disagree and which anchors are ambiguous. The rubric may only be refined after the primary
 // analysis, so if the judgement is not captured while it is being made it cannot be recovered later.
+//
+// MIRRORS backend/src/lib/schemas.js ANCHOR_CLARITY, which is also mirrored a THIRD time as the
+// CHECK constraints in db/migration-auditor-assessment-form.sql. All three are checked against each
+// other by __tests__/backend-mirrors.test.ts — a value that drifts here is accepted by the form and
+// refused by the API, or accepted by the API and refused by the column.
 export const ANCHOR_CLARITY = [
   { value: "clear", th: "ชัด", en: "Clear" },
   { value: "moderate", th: "ปานกลาง", en: "Moderate" },

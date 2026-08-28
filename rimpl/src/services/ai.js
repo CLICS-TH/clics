@@ -225,12 +225,18 @@ async function probeProvider(name, purpose = 'chat') {
 
   const down = Object.entries(checks).find(([, c]) => c?.status !== 'up');
   if (down) {
-    // ready() already distinguishes "too small a context" from "unreachable" and puts the measured
-    // number in its own error, so pass that through rather than re-deriving it here.
+    // ready() already distinguishes "too small a context" from "unreachable", so pass its judgement
+    // through rather than re-deriving it here — but pass the NUMBERS through as fields too. The
+    // caller renders "measured X, needs Y" from `measured`/`required`; leaving them null while the
+    // prose carried both numbers made the refusal unreadable to everything except a human.
     const [, c] = down;
+    const tooSmall = typeof c?.context_length === 'number';
     return { provider: name, purpose, fit: false,
-      code: c?.context_length != null ? 'context_too_small' : 'provider_down',
-      reason: c?.error || 'provider reported not ready', checks };
+      code: tooSmall ? 'context_too_small' : 'provider_down',
+      reason: c?.error || 'provider reported not ready',
+      measured: tooSmall ? c.context_length : null,
+      required: typeof c?.min_context === 'number' ? c.min_context : null,
+      checks };
   }
 
   // Embedding dimension is not discoverable any other way — no endpoint reports it, so the only
@@ -257,8 +263,10 @@ async function probeProvider(name, purpose = 'chat') {
   }
 
   const ctx = Object.values(checks).map((c) => c?.context_length).find((v) => v != null);
+  const min = Object.values(checks).map((c) => c?.min_context).find((v) => v != null);
   return { provider: name, purpose, fit: true, code: null, reason: null,
-    measured: typeof ctx === 'number' ? ctx : null, required: null, checks };
+    measured: typeof ctx === 'number' ? ctx : null,
+    required: typeof min === 'number' ? min : null, checks };
 }
 
 // Where the current routing came from (database vs env) and how stale it is. A box that BELIEVES it

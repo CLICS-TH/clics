@@ -139,7 +139,7 @@ describe('a rescue reply that breaks CREC082 §4 becomes a row, not a log line',
     expect((await msg()).status).toBe(200);   // the physician keeps the turn — the fault is ours
     expect(written()).toEqual([expect.objectContaining({
       cle_id: 'ple1', signal: 'R1_RESCUE_REPLY_BREACH', severity: 'medium',
-      evidence: expect.objectContaining({ questions: 3, too_many_questions: true, diagnostic: true }),
+      evidence: expect.objectContaining({ question_count: 3, too_many_questions: true, diagnostic: true }),
     })]);
   });
 

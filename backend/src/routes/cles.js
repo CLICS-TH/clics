@@ -422,12 +422,24 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   // seen recovering; the rescue simply ran until the session ended.
   if (rescue?.recovered) {
     rescueCols.socratic_active = false;
+    rescueCols.rescue_outcome = 'recovered';
     // socratic_reason deliberately stays 'protocol_rescue'. Clearing it would erase the fact that
     // this session was ever rescued, which is the thing the analysis is about.
     //
     // Turn counts, not timestamps: rescue_activated_at and qualified_at already bracket the rescue
     // in time, but the plan reports EXCHANGES, and no arithmetic on two timestamps yields a turn
     // count. cle.turn_count is the count before this turn, so +1 includes the one being served.
+    if (cle.rescue_exchanges_before != null && cle.rescue_exchanges_after == null) {
+      rescueCols.rescue_exchanges_after = Math.max(0, (cle.turn_count ?? 0) + 1 - cle.rescue_exchanges_before);
+    }
+  }
+  // The rescue gave up. A bounded intervention has to end somewhere, and ending it silently is what
+  // the round cap originally did: the session stopped being re-assessed, kept `socratic_active`, and
+  // so ran to the end on the general examiner prompt with nothing in the row to say the rescue had
+  // stopped working. Closed out here on the same terms as a recovery, differing only in the outcome.
+  if (rescue?.exhausted) {
+    rescueCols.socratic_active = false;
+    rescueCols.rescue_outcome = 'exhausted';
     if (cle.rescue_exchanges_before != null && cle.rescue_exchanges_after == null) {
       rescueCols.rescue_exchanges_after = Math.max(0, (cle.turn_count ?? 0) + 1 - cle.rescue_exchanges_before);
     }

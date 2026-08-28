@@ -59,6 +59,12 @@ export interface CleRow {
   privacy_review_status?: 'pending' | 'passed' | 'redacted' | 'quarantined' | 'excluded';
   privacy_reviewed_at?: string | null;
   privacy_review_note?: string | null;
+  // A RATER's stop-and-report, kept apart from the reviewer's decision above: `privacy_concern_by` is
+  // who raised it, never who cleared it. Open until any privacy decision resolves it.
+  privacy_concern_open?: boolean;
+  privacy_concern_by?: string | null;
+  privacy_concern_at?: string | null;
+  privacy_concern_note?: string | null;
   specialty_id?: string | null;
   specialties?: SpecialtyRef | null;   // embedded specialty (name) for display
   professionals?: Professional | null;
@@ -179,6 +185,12 @@ export interface PhysicianProfile {
 }
 
 // /auditor/cles/:id — transcript + (post-submit) the auditor's own score and the AI evaluation.
+// The three values the assessment form offers and the API accepts. `string` here would let a typo
+// through on a fixed three-value concept — the sibling concept in this file (IccVerdictState) is
+// already a union, and this one had no reason not to be.
+// SOURCE OF TRUTH: backend/src/lib/schemas.js ANCHOR_CLARITY (see components/DomainScorer.tsx).
+export type AnchorClarity = 'clear' | 'moderate' | 'ambiguous';
+
 export interface AuditorPle {
   messages?: TranscriptMessage[];
   audit_score?: {
@@ -187,9 +199,9 @@ export interface AuditorPle {
     notes?: string | null;
     // Per-domain anchor clarity, as stored. Present so a submitted assessment reopens showing what
     // the rater actually answered rather than a row of blanks.
-    d1_anchor?: string | null; d2_anchor?: string | null; d3_anchor?: string | null;
-    d4_anchor?: string | null; d5_anchor?: string | null; d6_anchor?: string | null;
-    d7_anchor?: string | null;
+    d1_anchor?: AnchorClarity | null; d2_anchor?: AnchorClarity | null; d3_anchor?: AnchorClarity | null;
+    d4_anchor?: AnchorClarity | null; d5_anchor?: AnchorClarity | null; d6_anchor?: AnchorClarity | null;
+    d7_anchor?: AnchorClarity | null;
     attestations?: Record<string, boolean> | null;
   } | null;
   ai_evaluation?: {

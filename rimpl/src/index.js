@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const { internalAuth } = require('./lib/internal-auth');
 
 const app = express();
 app.use(express.json());
@@ -16,15 +17,9 @@ if (IS_PROD && !INTERNAL_TOKEN) {
   throw new Error('INTERNAL_TOKEN is required in production (RIMPL refuses to start unauthenticated)');
 }
 
-// Guard all routes except /health with shared-secret check.
-// Only local dev (no token set, not prod) is allowed to skip the check.
-app.use((req, res, next) => {
-  if (!INTERNAL_TOKEN) return next();
-  if (req.headers['x-internal-token'] !== INTERNAL_TOKEN) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  next();
-});
+// Guard all routes except /health with the shared-secret check.
+// Only local dev (no token set, not prod) is allowed to skip it — see lib/internal-auth.js.
+app.use(internalAuth);
 
 app.use('/chat', require('./routes/chat'));
 app.use('/evaluate', require('./routes/evaluate'));

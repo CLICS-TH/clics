@@ -128,6 +128,19 @@ export default function PrivacyReviewPage() {
                 {p.is_test ? ' · TEST' : ''}
                 {p.ended_at ? ` · ${new Date(p.ended_at).toLocaleDateString('th-TH')}` : ''}
               </p>
+              {/* A rater's report is shown FIRST and marked as one. It is why this session is back in
+                  the queue, and it is not the reviewer's note. */}
+              {p.privacy_concern_open ? (
+                <p className="mt-1 flex flex-wrap items-baseline gap-x-2 text-xs">
+                  <span className="font-medium text-danger">ผู้ตรวจแจ้งข้อกังวล / Reported by a rater</span>
+                  {p.privacy_concern_at ? (
+                    <span className="text-muted-foreground">{new Date(p.privacy_concern_at).toLocaleDateString('th-TH')}</span>
+                  ) : null}
+                </p>
+              ) : null}
+              {p.privacy_concern_note ? (
+                <p className="mt-1 text-xs text-muted-foreground italic break-words">“{p.privacy_concern_note}”</p>
+              ) : null}
               {p.privacy_review_note ? (
                 <p className="mt-1 text-xs text-muted-foreground italic break-words">“{p.privacy_review_note}”</p>
               ) : null}

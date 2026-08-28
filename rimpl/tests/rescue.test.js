@@ -15,7 +15,7 @@ const request = require('supertest');
 const app = require('../src/index');
 const { callAI } = require('../src/services/ai');
 const {
-  countExchanges, shouldAssess, rescueDecision, checkRescueReply, RESCUE_AFTER_EXCHANGES,
+  countExchanges, shouldAssess, rescueExhausted, rescueDecision, checkRescueReply, RESCUE_AFTER_EXCHANGES,
 } = require('../src/services/rescue');
 
 // 4 physician turns + the AI turns between them = the protocol's "4 exchanges".
@@ -157,8 +157,10 @@ describe('rescueDecision', () => {
 // after that fell through to the general examiner prompt, which cites and answers — a different
 // instrument entirely. Nothing post-checked those rounds, and because the session was never
 // re-assessed, nothing could observe it recovering: the rescue simply ran until the session ended.
+// Module-scope: the bounded-rescue block below asserts the same prompt is still in force at the cap.
+const RESCUE_MARKER = /Ask ONE or TWO open questions/;
+
 describe('a rescue that has already fired keeps applying, and can end', () => {
-  const RESCUE_MARKER = /Ask ONE or TWO open questions/;
   const rescued = (over) => ({ history: fourExchanges(), message: 'q', rescue_active: true, ...over });
 
   test('a later round is assessed at all — which is what makes recovery observable', async () => {
@@ -228,14 +230,35 @@ describe('the rescue loop is bounded', () => {
     expect(shouldAssess({ history: h, rescueActive: true, rescueRounds: 99 })).toBe(false);
   });
 
-  test('hitting the cap does not un-rescue the session', async () => {
-    // The rescue prompt and its constraint stay in force. What stops is re-asking a question whose
-    // answer has not changed in eight consecutive turns.
+  test('hitting the cap ends the rescue on the RESCUE prompt, and says why', async () => {
+    // The version of this test that shipped asserted only `rescue === null` while its comment
+    // claimed the rescue prompt stayed in force. It did not: the prompt is only set inside the
+    // assess block, so at the cap the turn fell through to the general examiner prompt — the exact
+    // instrument swap the per-round rescue exists to prevent, reappearing silently at round nine.
     mockTurn({ reply: 'Metformin is first-line (ADA, 2024).' });
     const res = await post({ history: fourExchanges(), message: 'q', rescue_active: true, rescue_rounds: 20 });
     expect(res.status).toBe(200);
-    expect(callAI).toHaveBeenCalledTimes(1);        // no classifier call
-    expect(res.body.rescue).toBeNull();             // nothing new to report this round
+    expect(callAI).toHaveBeenCalledTimes(1);                       // no classifier call: nothing to pay for
+    expect(callAI.mock.calls[0][0].systemPrompt).toMatch(RESCUE_MARKER);
+    expect(res.body.rescue).toMatchObject({
+      rescuing: true,          // this turn still ran under the rescue constraint
+      exhausted: true,         // and it is the last one that will
+      recovered: false,
+      assessment: { input_tokens: 0, output_tokens: 0 },
+    });
+  });
+
+  test('an exhausted round is still post-checked — the constraint applies to the last turn too', async () => {
+    mockTurn({ reply: 'This is diabetic ketoacidosis. Start insulin.' });
+    const res = await post({ history: fourExchanges(), message: 'q', rescue_active: true, rescue_rounds: 20 });
+    expect(res.body.rescue.reply_check).not.toBeNull();
+    expect(res.body.rescue.reply_check.ok).toBe(false);
+  });
+
+  test('the cap does not fire on a session that was never in rescue', () => {
+    expect(rescueExhausted({ rescueActive: false, rescueRounds: 99 })).toBe(false);
+    expect(rescueExhausted({ rescueActive: true, rescueRounds: 7 })).toBe(false);
+    expect(rescueExhausted({ rescueActive: true, rescueRounds: 8 })).toBe(true);
   });
 
   test('a classifier reply that was BILLED but unparseable still reports its cost', async () => {

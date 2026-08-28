@@ -8,7 +8,10 @@ const { __mock: m } = require('../src/lib/supabase');
 const app = express();
 app.use(express.json());
 app.use('/auditor', require('../src/routes/auditor'));
-app.use('/superadmin', require('../src/routes/superadmin'));
+// Mounted at '/admin' because that is where src/index.js mounts it. A test app free to pick its
+// own prefix is how three screens shipped calling a path production does not serve — see
+// tests/api-contract.test.js.
+app.use('/admin', require('../src/routes/superadmin'));
 const auth = (r) => r.set('Authorization', 'Bearer t');
 
 const AUDITOR = { id: 'aud1', role: 'auditor', council_id: 'cA', status: 'active', email: 'a@t', consented_at: '2026-01-01T00:00:00Z' };
@@ -42,7 +45,7 @@ test('GET /superadmin/audit-log returns the events newest-first', async () => {
     if (table === 'audit_log' && kind === 'list') return { data: [{ id: 'e1', action: 'export' }], count: 1 };
     return undefined;
   };
-  const r = await auth(request(app).get('/superadmin/audit-log'));
+  const r = await auth(request(app).get('/admin/audit-log'));
   expect(r.status).toBe(200);
   expect(r.body.events[0].action).toBe('export');
   expect(r.body.total).toBe(1);

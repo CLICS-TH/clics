@@ -251,6 +251,11 @@ describe('missing shadow_evaluations table', () => {
     ['PGRST205 schema cache', { code: 'PGRST205', message: "Could not find the table 'public.shadow_evaluations' in the schema cache" }],
     ['42P01 relation', { code: '42P01', message: 'relation "public.shadow_evaluations" does not exist' }],
     ['no code, message only', { message: 'relation "public.shadow_evaluations" does not exist' }],
+    // These two were NOT covered, which is why extracting the predicate into services/agreement.js
+    // could quietly drop them without a test noticing. PostgREST returns PGRST106 for a schema that
+    // is not exposed, and puts "could not find the table" in `hint` rather than `message`.
+    ['PGRST106 schema not exposed', { code: 'PGRST106', message: 'The schema must be one of the following: public' }],
+    ['hint carries the reason', { message: 'unknown', hint: "Perhaps you meant the table 'public.cles'. Could not find the table 'public.shadow_evaluations'" }],
   ])('%s -> 200 with shadow.available=false, never a 500', async (_label, error) => {
     m.state.caller = ANALYST;
     tables({ ...base, shadow: { data: null, error } });

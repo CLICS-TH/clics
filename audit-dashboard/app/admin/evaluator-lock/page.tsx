@@ -50,7 +50,7 @@ export default function EvaluatorLockPage() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(() => (
-    apiFetch<LockState>('/superadmin/evaluator-lock').then(setState).catch(() => setState(null))
+    apiFetch<LockState>('/admin/evaluator-lock').then(setState).catch(() => setState(null))
   ), []);
   useEffect(() => { load(); }, [load]);
 
@@ -61,7 +61,7 @@ export default function EvaluatorLockPage() {
     try {
       const body: Record<string, unknown> = {};
       for (const f of FIELDS) if (form[f.key]?.trim()) body[f.key] = form[f.key].trim();
-      const res = await apiFetch<ApiResult<unknown>>('/superadmin/evaluator-lock', {
+      const res = await apiFetch<ApiResult<unknown>>('/admin/evaluator-lock', {
         method: 'POST', body: JSON.stringify(body),
       });
       if (res?.error) { toast(`ล็อกไม่สำเร็จ / Lock failed: ${String(res.error)}`, 'error'); return; }

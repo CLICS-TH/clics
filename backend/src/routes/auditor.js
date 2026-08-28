@@ -44,8 +44,12 @@ router.get('/queue', async (req, res) => {
   // gated, but a session assigned BEFORE the gate existed — or quarantined after being assigned —
   // must drop out of the queue rather than sit there waiting to be opened.
   const privacyRequired = await privacyReviewRequired();
+  // `privacy_concern_open` is filtered UNCONDITIONALLY, outside whereCleared. whereCleared is a no-op
+  // when the privacy gate is off, and "a rater reported a suspected identifier" must take the session
+  // out of the queue either way — that report is not a function of a setting.
   const base = () => whereCleared(supabase.from('cles')
-    .select('id, status, ended_at, turn_count, token_count').eq('status', 'evaluated'), privacyRequired);
+    .select('id, status, ended_at, turn_count, token_count')
+    .eq('status', 'evaluated').eq('privacy_concern_open', false), privacyRequired);
   const [legacy, viaAssign] = await Promise.all([
     base().eq('auditor_id', req.user.id),
     assignedIds.length ? base().in('id', assignedIds) : Promise.resolve({ data: [], error: null }),
@@ -166,16 +170,16 @@ router.post('/cles/:id/score', requireAuditorConsent, async (req, res) => {
 // immediately. Until now their only options were to score it anyway or to say nothing, because there
 // was nowhere to put the report.
 //
-// Routed into the EXISTING privacy review rather than a parallel queue: quarantine is already the
-// protocol's outcome for a transcript that may carry identifiers, it already has a reviewer workflow,
-// and — because whereCleared() withholds anything not passed/redacted — quarantining also takes the
-// session out of this auditor's queue without needing a second mechanism to do it.
+// Routed into the EXISTING privacy review rather than a parallel queue: the reviewer workflow is
+// already there, and returning the session to 'pending' puts the report at the top of the work list
+// the reviewer actually opens. `privacy_concern_open` is what takes it out of this auditor's queue,
+// and it does so whether or not the privacy gate is switched on.
 router.post('/cles/:id/privacy-concern', requireAuditorConsent, async (req, res) => {
   const parsed = PrivacyConcernSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { data: cle } = await supabase
-    .from('cles').select('id, auditor_id, council_id, physician_id, privacy_review_status').eq('id', req.params.id).single();
+    .from('cles').select('id, auditor_id, council_id, physician_id, privacy_review_status, privacy_concern_open').eq('id', req.params.id).single();
   if (!cle) return res.status(404).json({ error: 'Not found' });
   if (!(await isAssignedAuditor(cle.id, req.user.id, cle.auditor_id))) return res.status(403).json({ error: 'Not assigned to you' });
   if (cle.council_id !== req.user.council_id) return res.status(403).json({ error: 'Cross-council access is not allowed.' });
@@ -183,24 +187,29 @@ router.post('/cles/:id/privacy-concern', requireAuditorConsent, async (req, res)
   // let a physician quarantine their own session — that is a way to withdraw a session from the
   // study without withdrawing from the study.
   if (cle.physician_id === req.user.id) return res.status(403).json({ error: 'You cannot act on your own session.' });
-  // Already quarantined: nothing to do, and re-reporting would overwrite the first reviewer's note
-  // and reset the clock on a session someone is already looking at.
-  if (cle.privacy_review_status === 'quarantined') {
-    return res.status(409).json({ error: 'This session is already quarantined for review.', code: 'already_quarantined' });
+  // A concern is already open: nothing to add, and re-reporting would overwrite the first reporter's
+  // statement and reset the clock on a session someone is already looking at.
+  if (cle.privacy_concern_open) {
+    return res.status(409).json({ error: 'A privacy concern is already open on this session.', code: 'concern_already_open' });
   }
 
+  // WRITES NO privacy_review_* FIELD. Reporting is not reviewing: stamping privacy_reviewed_by with
+  // the reporter's own id recorded them as the person who had cleared it, and writing 'quarantined'
+  // filed the report into the reviewer's already-decided bucket instead of their work queue.
+  // 'pending' is the truth — a human decision is genuinely owed on this session again.
   const { error } = await supabase.from('cles').update({
-    privacy_review_status: 'quarantined',
-    privacy_reviewed_at: new Date().toISOString(),
-    privacy_reviewed_by: req.user.id,
-    privacy_review_note: parsed.data.note,
+    privacy_review_status: 'pending',
+    privacy_concern_open: true,
+    privacy_concern_by: req.user.id,
+    privacy_concern_at: new Date().toISOString(),
+    privacy_concern_note: parsed.data.note,
   }).eq('id', req.params.id);
   if (error) return res.status(500).json({ error: error.message });
 
   logEvent({ actorId: req.user.id, actorRole: 'auditor', action: 'privacy.concern_reported', targetType: 'cle',
     targetId: req.params.id, councilId: cle.council_id });
 
-  res.json({ ok: true, privacy_review_status: 'quarantined' });
+  res.json({ ok: true, privacy_review_status: 'pending', privacy_concern_open: true });
 });
 
 router.get('/icc', async (req, res) => {

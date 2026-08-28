@@ -24,7 +24,12 @@ const TTL_DEFAULT_MS = 15000;
 // passes it in — this module must not own a second, drifting copy of it.
 const keyFor = (purpose) => `ai_provider_${String(purpose).toLowerCase()}`;
 
-let cache = { values: {}, lockedAt: null, fetchedAt: 0, loaded: false };
+// Operational settings that are NOT per-purpose provider names but must still be changeable without
+// a redeploy. Read in the same round trip as the overrides — a second query on the same TTL would be
+// pure waste, and a second cache would be a second thing that can go stale differently.
+const NUMBER_KEYS = ['local_ai_min_context'];
+
+let cache = { values: {}, numbers: {}, lockedAt: null, fetchedAt: 0, loaded: false };
 let inflight = null;
 let warnedAt = 0;
 
@@ -52,11 +57,12 @@ async function refresh(purposes) {
   const sb = client();
   if (!sb) return false;
   try {
-    const keys = [...purposes.map(keyFor), 'evaluator_locked_at'];
+    const keys = [...purposes.map(keyFor), 'evaluator_locked_at', ...NUMBER_KEYS];
     const { data, error } = await sb.from('app_settings').select('key, value_text').in('key', keys);
     if (error) throw new Error(error.message);
 
     const values = {};
+    const numbers = {};
     let lockedAt = null;
     for (const row of data || []) {
       const text = typeof row.value_text === 'string' ? row.value_text.trim().toLowerCase() : '';
@@ -65,11 +71,19 @@ async function refresh(purposes) {
         lockedAt = typeof row.value_text === 'string' && row.value_text.trim() ? row.value_text.trim() : null;
         continue;
       }
+      if (NUMBER_KEYS.includes(row.key)) {
+        // A non-numeric or blank value_text is NOT an override — it falls through to env, the same
+        // fail-soft rule the provider names follow. Coercing it to 0 would silently disable a floor
+        // whose whole job is to refuse an undersized server.
+        const n = parseInt(text, 10);
+        if (Number.isFinite(n) && n > 0) numbers[row.key] = n;
+        continue;
+      }
       // An empty/NULL value_text means "no override" — fall through to env. This is what lets a
       // superadmin hand a purpose BACK to env control without deleting the row.
       if (text) values[row.key] = text;
     }
-    cache = { values, lockedAt, fetchedAt: Date.now(), loaded: true };
+    cache = { values, numbers, lockedAt, fetchedAt: Date.now(), loaded: true };
     return true;
   } catch (e) {
     // Rate-limit the log: this runs on a TTL, and a sustained outage would otherwise write a line
@@ -109,6 +123,12 @@ function overrideFor(purpose) {
   return purpose ? cache.values[keyFor(purpose)] : undefined;
 }
 
+// SYNC. A numeric operational override, or undefined to mean "env decides". Same contract as
+// overrideFor: the caller supplies the fallback, this layer never invents a default of its own.
+function numberFor(key) {
+  return cache.numbers[key];
+}
+
 // The pilot's evaluator lock, as stored (ISO string) or null. Enforced backend-side, where the write
 // happens; exposed here so /health/deep can report whether the instrument is frozen.
 function evaluatorLockedAt() {
@@ -121,14 +141,16 @@ function status() {
   if (!client()) return { source: 'env', reason: 'no database credentials' };
   return {
     source: cache.loaded ? 'database' : 'env',
-    ...(cache.loaded ? { age_ms: Date.now() - cache.fetchedAt, overrides: { ...cache.values } } : { reason: 'not yet read' }),
+    ...(cache.loaded
+      ? { age_ms: Date.now() - cache.fetchedAt, overrides: { ...cache.values, ...cache.numbers } }
+      : { reason: 'not yet read' }),
   };
 }
 
 function __resetForTests() {
-  cache = { values: {}, lockedAt: null, fetchedAt: 0, loaded: false };
+  cache = { values: {}, numbers: {}, lockedAt: null, fetchedAt: 0, loaded: false };
   inflight = null;
   warnedAt = 0;
 }
 
-module.exports = { ensureFresh, overrideFor, evaluatorLockedAt, refresh, status, keyFor, __resetForTests };
+module.exports = { ensureFresh, overrideFor, numberFor, evaluatorLockedAt, refresh, status, keyFor, NUMBER_KEYS, __resetForTests };

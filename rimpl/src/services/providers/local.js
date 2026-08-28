@@ -11,6 +11,7 @@
 // TRANSPORT SECURITY: plain http:// is acceptable ONLY across the tailnet, which is WireGuard-
 // encrypted end to end. Never point LOCAL_AI_BASE_URL at a plaintext public address.
 const { createRunner } = require('./runtime');
+const settings = require('../provider-settings');
 
 // Config is read LAZILY (first call), not at module load: this module is required unconditionally by
 // services/ai.js, and must not throw or capture stale env when the local provider is not in use.
@@ -39,7 +40,11 @@ const cfg = () => ({
   // A creditable CLE needs C3 ≥ 10,000 tokens, and the evaluator sends the whole transcript. Anything
   // near Ollama's 4096 default cannot score one. Reported by ready() so the mismatch is visible in
   // /health/deep rather than discovered by a physician losing an evaluation.
-  minContext: intEnv('LOCAL_AI_MIN_CONTEXT', 16384, 1024),
+  //
+  // app_settings.local_ai_min_context -> LOCAL_AI_MIN_CONTEXT -> 16384, the same order and the same
+  // fail-soft rule the provider names follow. The floor is what the readiness gate refuses against,
+  // so raising it after measuring a real transcript must not need a redeploy of the RIMPL layer.
+  minContext: settings.numberFor('local_ai_min_context') ?? intEnv('LOCAL_AI_MIN_CONTEXT', 16384, 1024),
   // OPT-IN passthrough. The authoritative fix for context length is server-side (the Modelfile /
   // launch flag); servers that accept an `options` bag will honour this, and those that ignore
   // unknown body fields are unaffected. Left unset by default so we never send a field a stricter
@@ -266,11 +271,14 @@ async function ready() {
     // when we cannot, rather than implying a check that never ran.
     const ctx = await servedContext();
     const { minContext } = cfg();
+    // `min_context` travels with BOTH outcomes, not only the failing one. The caller is a gate that
+    // reports "measured X, needs Y" as structured fields, and digging those numbers back out of the
+    // prose is what left the production 409 carrying measured: null while the sentence said 4096.
     if (ctx != null && ctx < minContext) {
-      return { checks: { local_ai: { status: 'down', model, context_length: ctx,
-        error: `served context ${ctx} is below LOCAL_AI_MIN_CONTEXT ${minContext} — a creditable CLE transcript (C3 >= 10,000 tokens) cannot be evaluated at this size` } } };
+      return { checks: { local_ai: { status: 'down', model, context_length: ctx, min_context: minContext,
+        error: `served context ${ctx} is below the required minimum ${minContext} — a creditable CLE transcript (C3 >= 10,000 tokens) cannot be evaluated at this size` } } };
     }
-    return { checks: { local_ai: { status: 'up', model, context_length: ctx ?? 'unknown' } } };
+    return { checks: { local_ai: { status: 'up', model, context_length: ctx ?? 'unknown', min_context: minContext } } };
   } catch (e) {
     return { checks: { local_ai: { status: 'down', error: e.message } } };
   }
