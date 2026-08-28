@@ -36,6 +36,7 @@ const SUPERADMIN_LINKS = [
   { href: '/admin/icc', th: 'ICC' },
   { href: '/admin/compensation', th: 'ค่าตอบแทน', en: 'Payouts' },
   { href: '/admin/governance', th: 'ธรรมาภิบาล', en: 'Governance' },
+  { href: '/admin/ai-readiness', th: 'ความพร้อม AI', en: 'AI readiness' },
   { href: '/admin/stats', th: 'สถิติ', en: 'Stats' },
 ];
 const AUDITOR_LINKS = [{ href: '/auditor/queue', th: 'คิวประเมิน', en: 'Queue' }];

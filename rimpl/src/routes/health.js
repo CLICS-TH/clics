@@ -4,7 +4,7 @@
 // Mounted BEFORE the x-internal-token gate so monitors can reach it unauthenticated, like /health.
 const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
-const { readiness, activeProviders, modelsByPurpose, providerSettingsStatus } = require('../services/ai');
+const { readiness, activeProviders, modelsByPurpose, providerSettingsStatus, probeProvider } = require('../services/ai');
 
 const router = Router();
 
@@ -85,6 +85,29 @@ router.get('/deep', async (_req, res) => {
     routing: (() => { try { return providerSettingsStatus(); } catch { return null; } })(),
     checks,
   });
+});
+
+// Is a provider fit to serve, asked BEFORE switching to it — so it is asked about a provider that is
+// not active and therefore is not covered by /deep above.
+//
+// GATED, unlike every other route in this router. This router is mounted ahead of the shared-secret
+// check so monitors can reach /health and /health/deep unauthenticated, and those are safe because
+// they are read-only probes of what is already running. This one is not: probing an embedding
+// provider has to actually embed a string, which costs money at a vendor. One route inside an open
+// router needing its own guard is worth the oddity; moving it elsewhere would separate it from the
+// readiness code it belongs beside.
+router.get('/provider/:name', async (req, res) => {
+  if (req.headers['x-internal-token'] !== process.env.INTERNAL_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const purpose = String(req.query.purpose || 'chat');
+  try {
+    // Never 503 on unfit. Unfit IS the answer, and the caller is a gate that needs to read the
+    // verdict — a non-200 would make "the probe failed" and "the provider failed" look alike.
+    res.json(await probeProvider(String(req.params.name), purpose));
+  } catch (e) {
+    res.status(500).json({ error: e?.message || String(e) });
+  }
 });
 
 module.exports = router;

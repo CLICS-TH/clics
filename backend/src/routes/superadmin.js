@@ -13,6 +13,7 @@ const { POSITIONS, checkSpecialty } = require('../lib/specialties');
 const { logEvent } = require('../lib/audit');
 const retention = require('../services/retention');
 const { decryptJson } = require('../lib/crypto');
+const { probeRimplProvider, probeRimplDeep } = require('../services/rimpl-client');
 const { getTextSetting, minAuditorsPerCle } = require('../lib/settings');
 
 const router = Router();
@@ -475,12 +476,17 @@ const AI_PROVIDER_DEFAULT = { chat: 'anthropic', evaluate: 'anthropic', criteria
 // guarantee. A checkbox is too easy to hit on the way to something else.
 const CONFIRM_EVALUATOR = 'CHANGE EVALUATOR';
 const CONFIRM_UNLOCK = 'UNLOCK EVALUATOR';
+// Overrides the readiness gate below. Its OWN field rather than another value for `confirm`, because
+// the two refusals can fire on the same request: switching `evaluate` to an unfit provider needs
+// CHANGE EVALUATOR *and* this. Sharing one field would make that switch impossible to express.
+const CONFIRM_UNFIT = 'SWITCH ANYWAY';
 
 const AiProviderSchema = z.object({
   purpose: z.enum(AI_PURPOSES).optional(),
   provider: z.string().min(1).optional(),
   evaluator_locked: z.boolean().optional(),
   confirm: z.string().optional(),
+  confirm_unfit: z.string().optional(),
 }).refine(
   (b) => (b.purpose != null && b.provider != null) || b.evaluator_locked != null,
   { message: 'send either {purpose, provider} or {evaluator_locked}' },
@@ -496,7 +502,7 @@ async function readAiProviders() {
     choices: AI_PROVIDER_CHOICES,
     evaluator_locked_at: locked,
     // Echoed so the UI never has to hardcode the phrases — one source of truth for both sides.
-    confirm_phrases: { change_evaluator: CONFIRM_EVALUATOR, unlock_evaluator: CONFIRM_UNLOCK },
+    confirm_phrases: { change_evaluator: CONFIRM_EVALUATOR, unlock_evaluator: CONFIRM_UNLOCK, switch_unfit: CONFIRM_UNFIT },
   };
 }
 
@@ -504,10 +510,30 @@ router.get('/ai-providers', async (_req, res) => {
   res.json(await readAiProviders());
 });
 
+// What each provider is actually able to do right now — model served, context window, reachability.
+//
+// The numbers already existed on RIMPL's deep health route, and that is precisely why they were
+// useless: nobody opens a JSON endpoint before flipping a switch. Surfacing them beside the switch
+// turns "is the box ready" from something you have to know to curl into something you can see.
+router.get('/ai-readiness', async (_req, res) => {
+  try {
+    const { body } = await probeRimplDeep({ timeoutMs: 8000 });
+    res.json({
+      reachable: true,
+      checks: body?.checks ?? {},
+      models: body?.models ?? null,
+      routing: body?.routing ?? null,
+    });
+  } catch (e) {
+    // A degraded RIMPL is an ANSWER here, not a server error — the screen exists to show exactly this.
+    res.json({ reachable: false, error: e.message, checks: {}, models: null, routing: null });
+  }
+});
+
 router.patch('/ai-providers', async (req, res) => {
   const parsed = AiProviderSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  const { purpose, provider, evaluator_locked, confirm } = parsed.data;
+  const { purpose, provider, evaluator_locked, confirm, confirm_unfit } = parsed.data;
   const now = new Date().toISOString();
   const lockedAt = await getTextSetting('evaluator_locked_at', null);
 
@@ -555,6 +581,42 @@ router.patch('/ai-providers', async (req, res) => {
   }
 
   const previous = await getTextSetting(`ai_provider_${purpose}`, AI_PROVIDER_DEFAULT[purpose]);
+
+  // READINESS GATE. Ask whether the target can actually serve before pointing traffic at it.
+  //
+  // The failure this prevents is specific and was already measured: an inference server left on a
+  // 4,096-token context accepts the switch happily and then fails EVERY evaluation, because a
+  // creditable transcript is 10,000+ tokens. Without this, the switch succeeds, nothing looks wrong,
+  // and the first person to find out is a physician who loses a session.
+  //
+  // UNKNOWN COUNTS AS UNFIT — including "RIMPL did not answer". We cannot verify, so we do not
+  // assert; the typed override exists for the operator who knows better than the probe.
+  //
+  // Skipped when the provider is not actually changing: a no-op write should not make a vendor call.
+  if (name !== previous) {
+    let verdict;
+    try {
+      verdict = await probeRimplProvider({ name, purpose });
+    } catch (e) {
+      verdict = { fit: false, code: 'probe_unreachable', reason: `could not reach RIMPL to probe "${name}": ${e.message}` };
+    }
+    if (!verdict.fit && confirm_unfit !== CONFIRM_UNFIT) {
+      return res.status(409).json({
+        error: `"${name}" is not ready to serve ${purpose}: ${verdict.reason}`,
+        code: 'provider_not_ready',
+        provider_code: verdict.code ?? null,
+        measured: verdict.measured ?? null,
+        required: verdict.required ?? null,
+        confirm_phrase: CONFIRM_UNFIT,
+      });
+    }
+    if (!verdict.fit) {
+      // Overridden, not absent. A switch made over a failed readiness check is exactly the entry
+      // someone will want when explaining why scoring broke on a given date.
+      logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'ai_provider_unfit_override', metadata: { purpose, provider: name, verdict } });
+    }
+  }
+
   const { error } = await supabase.from('app_settings')
     .upsert({ key: `ai_provider_${purpose}`, value: 0, value_text: name, updated_at: now });
   if (sendDbError(res, error)) return;
