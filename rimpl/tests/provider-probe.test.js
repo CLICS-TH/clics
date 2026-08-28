@@ -212,4 +212,14 @@ describe('GET /health/provider/:name', () => {
     serve({ context: 32768 });
     expect((await request(app()).get('/health/provider/local')).status).toBe(200);
   });
+
+  test('with no token configured the header is ignored entirely, not compared against undefined', async () => {
+    // Sending NO header passes either way — `undefined !== undefined` is false — so the version of
+    // this test that only omitted the header stayed green with the carve-out deleted. The adversarial
+    // sandbox caught that: the carve-out is only observable when a header IS present.
+    delete process.env.INTERNAL_TOKEN;
+    serve({ context: 32768 });
+    const r = await request(app()).get('/health/provider/local').set('x-internal-token', 'anything-at-all');
+    expect(r.status).toBe(200);
+  });
 });

@@ -136,6 +136,34 @@ describe('a rescue that ends, and who pays for it', () => {
     expect(u).not.toHaveProperty('socratic_reason');
   });
 
+  test('recovery is recorded as recovery, not merely as "the rescue stopped"', async () => {
+    cleRow = { ...cleRow, rescue_activated_at: '2026-08-01T00:00:00Z', rescue_exchanges_before: 4, turn_count: 6 };
+    mockChat.mockResolvedValue(round({ rescuing: false, recovered: true, qualifying: true, reason: null }));
+    await send();
+    expect(cleUpdate().rescue_outcome).toBe('recovered');
+  });
+
+  test('the round cap closes the rescue too, and says it gave up', async () => {
+    // Before this, hitting the cap recorded NOTHING: the session simply stopped being re-assessed,
+    // kept socratic_active, and ran to the end on the general examiner prompt. "Did this rescue
+    // work?" then had the same answer — silence — as "is this rescue still running?".
+    cleRow = { ...cleRow, rescue_activated_at: '2026-08-01T00:00:00Z', rescue_exchanges_before: 4, turn_count: 12 };
+    mockChat.mockResolvedValue(round({ exhausted: true }));
+    expect((await send()).status).toBe(200);
+
+    const u = cleUpdate();
+    expect(u.socratic_active).toBe(false);
+    expect(u.rescue_outcome).toBe('exhausted');
+    expect(u.rescue_exchanges_after).toBe(9);
+  });
+
+  test('an exhausted rescue is not mistaken for a recovery', async () => {
+    cleRow = { ...cleRow, rescue_activated_at: '2026-08-01T00:00:00Z', rescue_exchanges_before: 4, turn_count: 12 };
+    mockChat.mockResolvedValue(round({ exhausted: true }));
+    await send();
+    expect(cleUpdate().rescue_outcome).not.toBe('recovered');
+  });
+
   test('a session still in rescue records no recovery', async () => {
     cleRow = { ...cleRow, rescue_activated_at: '2026-08-01T00:00:00Z', rescue_exchanges_before: 4 };
     mockChat.mockResolvedValue(round());
