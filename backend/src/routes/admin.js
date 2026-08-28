@@ -10,7 +10,7 @@ const { minAuditorsPerCle, privacyReviewRequired } = require('../lib/settings');
 const identity = require('../services/identity');
 const { whereCleared, isCleared, CLEARED, DECISIONS } = require('../lib/privacy-review');
 const { stratifiedSample, assignRoundRobin } = require('../services/audit-sampling');
-const { detectIntegritySignals } = require('../services/integrity');
+const { scanCle } = require('../services/integrity-scan');
 const { sendDbError, pageParams } = require('../lib/db-helpers');
 const { assertSlotAvailable } = require('../lib/accounts');
 const { newInviteToken } = require('../lib/invite-token');
@@ -447,42 +447,21 @@ router.post('/cles/:id/integrity-scan', async (req, res) => {
     return res.status(404).json({ error: 'Not found' });
   }
 
-  const { data: messages, error: mErr } = await supabase.from('messages')
-    .select('role, content, created_at, token_count').eq('cle_id', req.params.id).order('created_at');
-  if (sendDbError(res, mErr)) return;
-
-  // The comparison corpus for F2: this physician's turns in their OTHER sessions.
-  // Test sessions are EXCLUDED — the pilot's own test rounds pasted the same scripted prompt into
-  // several CLEs, and every cross-session duplicate observed in prod came from exactly that. Leaving
-  // them in would flag the team's own rehearsal as physician misconduct.
-  const { data: otherCles } = await supabase.from('cles')
-    .select('id').eq('physician_id', cle.physician_id).eq('is_test', false).neq('id', req.params.id);
-  const otherIds = (otherCles ?? []).map(c => c.id);
-  let priorTurns = [];
-  if (otherIds.length) {
-    const { data: prior } = await supabase.from('messages')
-      .select('cle_id, content').in('cle_id', otherIds).in('role', ['user', 'physician']);
-    priorTurns = prior ?? [];
-  }
-
-  const flags = detectIntegritySignals(messages ?? [], priorTurns);
-
-  // Replace this CLE's findings wholesale. A re-scan after the transcript grew must not leave a
-  // stale flag from an earlier sweep sitting beside the current ones — an auditor cannot tell which
-  // run produced which row, and a cleared signal that never disappears is worse than no signal.
-  const { error: delErr } = await supabase.from('cle_integrity_flags').delete().eq('cle_id', req.params.id);
-  if (sendDbError(res, delErr)) return;
-  if (flags.length) {
-    const { error: insErr } = await supabase.from('cle_integrity_flags')
-      .upsert(flags.map(f => ({ cle_id: req.params.id, ...f })), { onConflict: 'cle_id,signal' });
-    if (sendDbError(res, insErr)) return;
+  // Same scan the session runs automatically at /end (services/integrity-scan.js). Kept as a manual
+  // trigger too: a re-scan after a transcript grows, or after a threshold is recalibrated, has to be
+  // possible without waiting for the physician to end another session.
+  let result;
+  try {
+    result = await scanCle({ cleId: req.params.id, physicianId: cle.physician_id });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
   }
 
   logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.integrity_scan', targetType: 'cle',
     targetId: req.params.id, councilId: cle.council_id,
-    metadata: { signals: flags.map(f => f.signal), turns: (messages ?? []).length, corpus_cles: otherIds.length } });
+    metadata: { signals: result.flags.map(f => f.signal), turns: result.scanned_turns, corpus_cles: result.corpus_cles, trigger: 'manual' } });
 
-  res.json({ ok: true, cle_id: req.params.id, flags, scanned_turns: (messages ?? []).length });
+  res.json({ ok: true, cle_id: req.params.id, flags: result.flags, scanned_turns: result.scanned_turns });
 });
 
 router.get('/cles/:id/integrity', async (req, res) => {

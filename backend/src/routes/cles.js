@@ -16,6 +16,7 @@ const acceptability = require('../lib/acceptability');
 const { creditSettings } = require('../lib/settings');
 const { creditFor, creditTable } = require('../services/credit');
 const { COMPLETED_STATUSES } = require('../lib/cle-status');
+const { scanCle, flagRescueReplyBreach } = require('../services/integrity-scan');
 
 const router = Router();
 
@@ -408,9 +409,15 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   }
   if (rescue?.reply_check && rescue.reply_check.ok === false) {
     // The rescue prompt forbids diagnosing and caps the questions at two; this reply broke one of
-    // those. Log rather than block — the physician already has the reply, and suppressing it would
-    // cost them the turn. Surfaced so a violation is countable rather than invisible.
-    console.error('[cles] rescue reply failed its post-check:', req.params.id, JSON.stringify(rescue.reply_check));
+    // those. Don't block — the physician already has the reply, and suppressing it would cost them
+    // the turn for OUR error. Record it instead: console.error alone put the violation in the
+    // hosting provider's log retention, where "did any rescue turn give a diagnosis?" — a question
+    // CREC082 §4 invites the ethics committee to ask — could not be answered from the dataset.
+    try {
+      await flagRescueReplyBreach({ cleId: req.params.id, check: rescue.reply_check, turn: (cle.turn_count ?? 0) + 1 });
+    } catch (e) {
+      console.error('[cles] failed to record a rescue post-check breach:', req.params.id, e.message);
+    }
   }
 
   const { error: counterErr } = await supabase.from('cles').update({
@@ -493,6 +500,31 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.end', targetType: 'cle',
     targetId: cle.cle_code ?? req.params.id, councilId: cle.council_id ?? null,
     metadata: { scorable, tier1_metadata: tier1 } });
+
+  // Integrity scan (CREC082 §1 excludes "passive copying of AI answers" from what counts as a PLE).
+  // HERE, right after the claim, because this is the first moment the transcript is final: the
+  // session is no longer 'active', so no further turn can be appended, and the reflection is a row
+  // in its own table rather than a message. Running it on EVERY ended session — including the
+  // unscorable ones — keeps the claim simple: every session that ended was scanned.
+  //
+  // Awaited inside try/catch rather than fired and forgotten: it makes the scan deterministic for
+  // tests and for reconcile, and three indexed queries are nothing beside the classifier call this
+  // same handler is about to make. What it must never do is cost the physician the session they
+  // just finished — a detector fault is OUR problem, so it is logged and the response continues.
+  //
+  // F2 (cross-session reuse) is inherently late-binding: this scan compares against the sessions
+  // that exist NOW. If a LATER session copies this one, the flag lands on the later session — the
+  // one that did the reusing — which is the right place for it, so nothing needs backfilling.
+  try {
+    const scan = await scanCle({ cleId: req.params.id, physicianId: cle.physician_id });
+    if (scan.flags.length) {
+      logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.integrity_scan', targetType: 'cle',
+        targetId: cle.cle_code ?? req.params.id, councilId: cle.council_id ?? null,
+        metadata: { signals: scan.flags.map(f => f.signal), turns: scan.scanned_turns, trigger: 'end' } });
+    }
+  } catch (e) {
+    console.error('[cles] integrity scan failed at /end (session unaffected):', req.params.id, e.message);
+  }
 
   // Nothing to classify. Recorded, not judged — the physician simply never had a conversation.
   if (!scorable) return res.json({ status: 'cle_fail_t1', criteria: tier1 });

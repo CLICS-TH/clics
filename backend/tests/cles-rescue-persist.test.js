@@ -98,14 +98,15 @@ test('a turn with no rescue block writes no rescue columns', async () => {
   }
 });
 
-test('a rescue reply that broke its constraints is logged, but the physician still gets the turn', async () => {
-  const err = jest.spyOn(console, 'error').mockImplementation(() => {});
+test('a rescue reply that broke its constraints is RECORDED, but the physician still gets the turn', async () => {
+  // This used to assert a console.error. That put a CREC082 §4 violation in the host's log retention
+  // instead of the dataset, so "did any rescue turn give a diagnosis?" was unanswerable from the
+  // study data. It is a flag row now; tests/integrity-autoscan.test.js owns the row's shape.
   mockChat.mockResolvedValue(reply({
     activated: true, reason: 'not_qualifying', exchanges_before: 4, qualifying: false,
     reply_check: { ok: false, diagnostic: true, noQuestion: true, questions: 0 },
   }));
   const res = await send();
   expect(res.status).toBe(200);                       // never cost the physician their turn
-  expect(err).toHaveBeenCalledWith(expect.stringMatching(/rescue reply failed its post-check/), 'ple1', expect.any(String));
-  err.mockRestore();
+  expect(m.all('cle_integrity_flags', 'upsert').map(q => q.payload.signal)).toEqual(['R1_RESCUE_REPLY_BREACH']);
 });
