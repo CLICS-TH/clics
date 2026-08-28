@@ -35,9 +35,9 @@ interface Verification {
 // How much weight the lookup deserves, said plainly. 'verified' is the only encouraging one, and
 // even that is not a decision — hence the neutral wording rather than a green tick.
 const CHECK_VIEW: Record<string, { label: string; tone: string }> = {
-  verified:      { label: 'ใบอนุญาตตรงกับชื่อ / Licence found, name matches', tone: 'text-[var(--ok)]' },
-  name_mismatch: { label: 'ชื่อไม่ตรงกับใบอนุญาต / Licence found, name does NOT match', tone: 'text-destructive' },
-  not_found:     { label: 'ไม่พบใบอนุญาตนี้ / Licence not found', tone: 'text-destructive' },
+  verified:      { label: 'ใบอนุญาตตรงกับชื่อ / Licence found, name matches', tone: 'text-ok' },
+  name_mismatch: { label: 'ชื่อไม่ตรงกับใบอนุญาต / Licence found, name does NOT match', tone: 'text-danger' },
+  not_found:     { label: 'ไม่พบใบอนุญาตนี้ / Licence not found', tone: 'text-danger' },
   unavailable:   { label: 'ตรวจสอบอัตโนมัติไม่สำเร็จ — ต้องตรวจด้วยตนเอง / Automatic check unavailable — verify manually', tone: 'text-muted-foreground' },
 };
 
@@ -95,8 +95,8 @@ export default function IdentityQueuePage() {
         {FILTERS.map(f => (
           <button key={f.key} onClick={() => setFilter(f.key)} aria-pressed={filter === f.key}
             className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
-              filter === f.key ? 'bg-primary text-primary-foreground border-primary' : 'text-muted-foreground hover:bg-secondary'}`}>
-            {f.th} <span className="opacity-70">/ {f.en}</span>
+              filter === f.key ? 'bg-coral-active text-primary-foreground border-coral-active' : 'text-muted-foreground hover:bg-secondary'}`}>
+            {f.th} <span className="text-[0.84em] font-normal">/ {f.en}</span>
           </button>
         ))}
       </div>
@@ -104,7 +104,7 @@ export default function IdentityQueuePage() {
       {err ? (
         <div className="text-center py-10">
           <p className="text-muted-foreground mb-3">โหลดคิวไม่สำเร็จ / Could not load the queue.</p>
-          <button className="text-sm text-primary underline" onClick={load}>ลองใหม่ / Retry</button>
+          <button className="text-sm text-link underline" onClick={load}>ลองใหม่ / Retry</button>
         </div>
       ) : rows === null ? (
         <p className="text-muted-foreground text-center py-10">กำลังโหลด… / Loading…</p>
@@ -148,10 +148,10 @@ export default function IdentityQueuePage() {
                   className="mt-1.5 w-full rounded-lg border bg-background p-2.5 text-sm" />
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button size="sm" disabled={acting !== null} onClick={() => decide(v.id, 'verified')}>
-                    <BadgeCheck className="size-4" /> ยืนยัน <span className="opacity-70">/ Verify</span>
+                    <BadgeCheck className="size-4" /> ยืนยัน <span className="text-[0.84em] font-normal">/ Verify</span>
                   </Button>
                   <Button size="sm" variant="destructive" disabled={acting !== null} onClick={() => decide(v.id, 'rejected')}>
-                    <XCircle className="size-4" /> ไม่ผ่าน <span className="opacity-70">/ Reject</span>
+                    <XCircle className="size-4" /> ไม่ผ่าน <span className="text-[0.84em] font-normal">/ Reject</span>
                   </Button>
                 </div>
               </>

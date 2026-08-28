@@ -22,7 +22,7 @@ export function ClicsLogo({
       style={{ color: 'var(--coral-active)' }}
     >
       <span
-        className="font-heading font-semibold text-primary tracking-tight leading-none"
+        className="font-heading font-semibold text-link tracking-tight leading-none"
         style={{ fontSize: size }}
       >
         CLICS

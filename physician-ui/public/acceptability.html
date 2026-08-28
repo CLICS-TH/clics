@@ -72,7 +72,7 @@
             <legend style="padding:0;font-weight:500">${i + 1}. ${esc(it.th)}<span class="bi-en">${esc(it.en)}</span></legend>
             <div role="radiogroup" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem">
               ${ANCHORS.map(a => `
-                <label style="display:inline-flex;align-items:center;gap:.35rem;min-height:44px;padding:.35rem .6rem;border:1px solid var(--border);border-radius:999px;cursor:pointer;font-size:.85rem">
+                <label style="display:inline-flex;align-items:center;gap:.35rem;min-height:44px;padding:.35rem .6rem;border:1px solid var(--hairline);border-radius:999px;cursor:pointer;font-size:.85rem">
                   <input type="radio" name="${esc(it.key)}" value="${a.v}" />
                   <span>${a.th}<span class="bi-en">${a.en}</span></span>
                 </label>`).join('')}
@@ -82,10 +82,10 @@
          <textarea id="comments" rows="4" maxlength="5000" style="width:100%"></textarea>
          <p id="formMsg" class="error-msg" style="display:none"></p>
          <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:.9rem">
-           <button type="button" class="btn" id="saveBtn">ส่งแบบสอบถาม<span class="bi-en">Submit</span></button>
+           <button type="button" class="btn btn-primary" id="saveBtn">ส่งแบบสอบถาม<span class="bi-en">Submit</span></button>
            <button type="button" class="btn btn-ghost" id="skipBtn">ไม่ตอบแบบสอบถาม<span class="bi-en">Decline</span></button>
          </div>
-         <p class="sub" style="margin-top:.9rem;font-size:.85rem">การตอบเป็นไปโดยสมัครใจทั้งหมด ท่านข้ามข้อใดก็ได้ หรือไม่ตอบเลยก็ได้ โดยไม่มีผลต่อสิทธิ์ใด ๆ / Answering is entirely voluntary — skip any item, or decline altogether, with no effect on anything.</p>`;
+         <p class="note" style="margin-top:.9rem">การตอบเป็นไปโดยสมัครใจทั้งหมด ท่านข้ามข้อใดก็ได้ หรือไม่ตอบเลยก็ได้ โดยไม่มีผลต่อสิทธิ์ใด ๆ / Answering is entirely voluntary — skip any item, or decline altogether, with no effect on anything.</p>`;
 
       $('saveBtn').addEventListener('click', () => submit(false));
       $('skipBtn').addEventListener('click', () => submit(true));
