@@ -5,6 +5,7 @@
 const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
 const { readiness, activeProviders, modelsByPurpose, providerSettingsStatus, probeProvider } = require('../services/ai');
+const { internalAuth } = require('../lib/internal-auth');
 
 const router = Router();
 
@@ -96,10 +97,11 @@ router.get('/deep', async (_req, res) => {
 // provider has to actually embed a string, which costs money at a vendor. One route inside an open
 // router needing its own guard is worth the oddity; moving it elsewhere would separate it from the
 // readiness code it belongs beside.
-router.get('/provider/:name', async (req, res) => {
-  if (req.headers['x-internal-token'] !== process.env.INTERNAL_TOKEN) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+//
+// It reuses the SAME middleware src/index.js mounts, not a copy of it. The copy this replaced had
+// dropped the no-token dev carve-out, so a local stack got a 401 from this one route and a 200 from
+// every other.
+router.get('/provider/:name', internalAuth, async (req, res) => {
   const purpose = String(req.query.purpose || 'chat');
   try {
     // Never 503 on unfit. Unfit IS the answer, and the caller is a gate that needs to read the

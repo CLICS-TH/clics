@@ -13,13 +13,25 @@ import { PageIntro } from '@/components/PageIntro';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, XCircle, HelpCircle, RefreshCw } from 'lucide-react';
 
-interface Check { status: string; model?: string | null; context_length?: number | string | null; error?: string | null }
+interface Check { status: string; model?: string | null; context_length?: number | string | null; min_context?: number | null; error?: string | null }
+// Measured by embedding a probe string, because no endpoint reports a vector width. `dimension` is
+// null when the probe could not run — which is a distinct answer from a mismatch, and is rendered
+// as one.
+interface Embedding {
+  provider: string;
+  model: string | null;
+  fit: boolean;
+  dimension: number | null;
+  required: number | null;
+  reason: string | null;
+}
 interface Readiness {
   reachable: boolean;
   error?: string;
   checks: Record<string, Check>;
   models: Record<string, { provider: string; model: string | null }> | null;
   routing: { source?: string; evaluator_locked_at?: string | null } | null;
+  embedding: Embedding | null;
 }
 
 // 'unknown' is its own state, never folded into either of the other two. A context we could not read
@@ -37,9 +49,9 @@ export default function AiReadinessPage() {
   // the effect below clean under the react-hooks/set-state-in-effect gate; the button's own handler
   // is where the pending state is raised.
   const load = useCallback(() => (
-    apiFetch<Readiness>('/superadmin/ai-readiness')
+    apiFetch<Readiness>('/admin/ai-readiness')
       .then(setData)
-      .catch(() => setData({ reachable: false, error: 'ไม่สามารถตรวจสอบได้ / Probe failed', checks: {}, models: null, routing: null }))
+      .catch(() => setData({ reachable: false, error: 'ไม่สามารถตรวจสอบได้ / Probe failed', checks: {}, models: null, routing: null, embedding: null }))
       .finally(() => setBusy(false))
   ), []);
   useEffect(() => { load(); }, [load]);
@@ -52,7 +64,7 @@ export default function AiReadinessPage() {
       <PageIntro
         eyebrow="AI readiness"
         title="ความพร้อมของเครื่องประมวลผล"
-        subtitle="What each provider can serve right now — reachability, model, and the context window it is actually configured with."
+        subtitle="What each provider can serve right now — reachability, model, the context window it is actually configured with, and the embedding dimension it returns."
       />
 
       <div className="flex justify-end">
@@ -101,7 +113,18 @@ export default function AiReadinessPage() {
                     </td>
                     <td className="py-3 pr-4 font-mono text-xs">{c.model ?? '—'}</td>
                     <td className="py-3 tabular-nums">
-                      {state === 'ok' && <span className="text-ok">{Number(c.context_length).toLocaleString()}</span>}
+                      {state === 'ok' && (
+                        <>
+                          <span className="text-ok">{Number(c.context_length).toLocaleString()}</span>
+                          {/* The floor the switch refuses against. Without it the number above is
+                              only readable by someone who already knows what it has to beat. */}
+                          {typeof c.min_context === 'number' && (
+                            <span className="ml-1 text-xs text-muted-foreground">
+                              / ต้องการ {c.min_context.toLocaleString()}
+                            </span>
+                          )}
+                        </>
+                      )}
                       {state === 'unknown' && (
                         <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                           <HelpCircle className="size-4" aria-hidden="true" />
@@ -116,6 +139,41 @@ export default function AiReadinessPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {data?.embedding && (
+        <section className="space-y-2">
+          <h2 className="text-sm font-medium">มิติเวกเตอร์ของการฝัง / Embedding dimension</h2>
+          <div className="rounded-lg border border-border bg-card p-4 text-sm">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="font-medium">{data.embedding.provider}</span>
+              <span className="font-mono text-xs text-muted-foreground">{data.embedding.model ?? '—'}</span>
+              {data.embedding.dimension == null ? (
+                <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                  <HelpCircle className="size-4" aria-hidden="true" />
+                  วัดไม่ได้ / Not measurable
+                </span>
+              ) : (
+                <span className={`inline-flex items-center gap-1.5 tabular-nums ${data.embedding.fit ? 'text-ok' : 'text-danger'}`}>
+                  {data.embedding.fit
+                    ? <CheckCircle2 className="size-4" aria-hidden="true" />
+                    : <XCircle className="size-4" aria-hidden="true" />}
+                  {data.embedding.dimension.toLocaleString()}
+                  {data.embedding.required != null && (
+                    <span className="text-muted-foreground">/ คลังเอกสาร {data.embedding.required.toLocaleString()}</span>
+                  )}
+                </span>
+              )}
+            </div>
+            {data.embedding.reason && (
+              <p className="mt-2 text-sm text-muted-foreground">{data.embedding.reason}</p>
+            )}
+            <p className="mt-2 text-xs text-muted-foreground">
+              วัดโดยการฝังข้อความทดสอบจริง / Measured by embedding a probe string — no endpoint reports a vector
+              width, so this is the only honest way to know it before switching.
+            </p>
+          </div>
+        </section>
       )}
 
       {data?.models && (

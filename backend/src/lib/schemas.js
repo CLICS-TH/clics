@@ -7,6 +7,10 @@ const MessageSchema = z.object({
 
 // How clear a domain's behavioural anchor was for this transcript. The approved assessment form asks
 // it per domain, and the calibration workshop's stated output is a map of exactly this.
+// MIRRORED by audit-dashboard/components/DomainScorer.tsx ANCHOR_CLARITY (the buttons) and by the
+// CHECK constraints in db/migration-auditor-assessment-form.sql (the column). This enum is the
+// middle of the three and the only one that returns a 400; the dashboard's jest mirror test keeps
+// all three in step.
 const ANCHOR_CLARITY = ['clear', 'moderate', 'ambiguous'];
 
 // The per-assessment confirmations the form ends with. Distinct from the one-time confidentiality /

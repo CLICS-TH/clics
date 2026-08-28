@@ -377,9 +377,27 @@ async function poolTotal(sumRpc, col) {
   return (rows ?? []).reduce((acc, r) => acc + Number(r[col] ?? 0), 0);
 }
 
+// What the Socratic rescue's per-round classifier has cost, across every episode.
+//
+// It is deliberately NOT a per-user pool like the two above, and that is a considered departure from
+// the ticket, which asked for one "following the precedent already set for auditor AI usage". Those
+// pools are CAPS: they block when exhausted. The rescue is initiated by the system, to make a
+// session conform to the protocol — a budget that could switch that off would silently stop the
+// conformance behaviour, and it would charge the intervention to the person it was performed on.
+// So the spend is accrued per episode (cles.rescue_assessment_cost_usd) and reported here, which is
+// the half of the requirement that actually protects anyone.
+//
+// Summed in JS rather than by an RPC: pilot scale is a few hundred rows, and adding a database
+// function for a number shown on one screen is not worth the migration.
+async function rescueSpendTotal() {
+  const { data: rows, error } = await supabase.from('cles').select('rescue_assessment_cost_usd');
+  if (error) return null;                                  // a read failure is not a total of zero
+  return (rows ?? []).reduce((acc, r) => acc + Number(r.rescue_assessment_cost_usd ?? 0), 0);
+}
+
 router.get('/usage-settings', async (_req, res) => {
   // All independent reads in one batch (was several sequential awaits on the same table).
-  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles, min_auditors_per_cle, total_used_usd, auditor_total_used_usd] = await Promise.all([
+  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles, min_auditors_per_cle, total_used_usd, auditor_total_used_usd, rescue_total_used_usd] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
     readSetting('auditor_standard_usage_limit_usd', 0.5),
     readSetting('api_budget_pool_usd', 0),
@@ -392,8 +410,9 @@ router.get('/usage-settings', async (_req, res) => {
     readSetting('min_auditors_per_cle', 1),
     poolTotal('total_usage_sum', 'usage_cost_usd'),
     poolTotal('total_auditor_usage_sum', 'auditor_usage_cost_usd'),
+    rescueSpendTotal(),
   ]);
-  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, total_used_usd, auditor_total_used_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles, min_auditors_per_cle });
+  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, total_used_usd, auditor_total_used_usd, rescue_total_used_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles, min_auditors_per_cle });
 });
 
 router.patch('/usage-settings', async (req, res) => {
@@ -492,7 +511,6 @@ const AiProviderSchema = z.object({
   evaluator_locked: z.boolean().optional(),
   confirm: z.string().optional(),
   confirm_unfit: z.string().optional(),
-  confirm_relock: z.string().optional(),
 }).refine(
   (b) => (b.purpose != null && b.provider != null) || b.evaluator_locked != null,
   { message: 'send either {purpose, provider} or {evaluator_locked}' },
@@ -516,11 +534,6 @@ router.get('/ai-providers', async (_req, res) => {
   res.json(await readAiProviders());
 });
 
-// What each provider is actually able to do right now — model served, context window, reachability.
-//
-// The numbers already existed on RIMPL's deep health route, and that is precisely why they were
-// useless: nobody opens a JSON endpoint before flipping a switch. Surfacing them beside the switch
-// turns "is the box ready" from something you have to know to curl into something you can see.
 // The Primary Evaluator Model Lock.
 //
 // Scores already carry a configuration fingerprint. What was missing is the DECLARATION of the parts
@@ -635,18 +648,53 @@ router.post('/evaluator-lock', async (req, res) => {
   res.json({ ok: true, locked_at: now, record: row ?? null });
 });
 
+// What each provider is actually able to do right now — model served, context window, reachability,
+// and the embedding dimension.
+//
+// The numbers already existed on RIMPL's deep health route, and that is precisely why they were
+// useless: nobody opens a JSON endpoint before flipping a switch. Surfacing them beside the switch
+// turns "is the box ready" from something you have to know to curl into something you can see.
 router.get('/ai-readiness', async (_req, res) => {
   try {
     const { body } = await probeRimplDeep({ timeoutMs: 8000 });
+
+    // The embedding dimension is the one readiness fact /health/deep CANNOT report. readiness()
+    // probes only the chat providers, and no endpoint anywhere states a vector width — the only
+    // honest way to learn it is to embed a string and measure the result. So it is asked for here,
+    // separately and deliberately, rather than left as a criterion nobody can see.
+    //
+    // Cost is one short embedding per load of a superadmin-only screen (fractions of a cent at a
+    // vendor, nothing on-prem). A failure is reported, never fatal: the rest of the screen is still
+    // the answer to "can this box serve".
+    let embedding = null;
+    const embedProvider = body?.models?.embed?.provider ?? null;
+    if (embedProvider) {
+      try {
+        const v = await probeRimplProvider({ name: embedProvider, purpose: 'embed' });
+        embedding = {
+          provider: embedProvider,
+          model: body?.models?.embed?.model ?? null,
+          fit: !!v.fit,
+          dimension: v.measured ?? null,
+          required: v.required ?? null,
+          reason: v.reason ?? null,
+        };
+      } catch (e) {
+        embedding = { provider: embedProvider, model: body?.models?.embed?.model ?? null,
+          fit: false, dimension: null, required: null, reason: e.message };
+      }
+    }
+
     res.json({
       reachable: true,
       checks: body?.checks ?? {},
       models: body?.models ?? null,
       routing: body?.routing ?? null,
+      embedding,
     });
   } catch (e) {
     // A degraded RIMPL is an ANSWER here, not a server error — the screen exists to show exactly this.
-    res.json({ reachable: false, error: e.message, checks: {}, models: null, routing: null });
+    res.json({ reachable: false, error: e.message, checks: {}, models: null, routing: null, embedding: null });
   }
 });
 

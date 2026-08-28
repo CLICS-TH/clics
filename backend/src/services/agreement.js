@@ -19,10 +19,16 @@ const SHADOW_COLS = 'cle_id, provider, model_version, composite_score, d1,d2,d3,
 // PostgREST reports an unapplied migration as a missing relation. That is a KNOWN state, not a
 // fault: db/migration-shadow-evaluations.sql is deliberately unapplied in some environments, and it
 // is indistinguishable from "no candidate corpus yet".
+// Widened back to what routes/oversight.js checked before this function was extracted from it. The
+// extraction quietly dropped PGRST106, the `hint` field, and "could not find the table" — and
+// db/migration-shadow-evaluations.sql is still unapplied in production, so this predicate is the
+// only thing standing between a genuinely absent table and a 500 on a live screen.
 function isMissingRelation(error) {
-  const code = error?.code ?? '';
-  const msg = `${error?.message ?? ''} ${error?.details ?? ''}`;
-  return code === '42P01' || code === 'PGRST205' || /does not exist|schema cache/i.test(msg);
+  if (!error) return false;
+  const code = String(error.code ?? '');
+  if (code === 'PGRST205' || code === 'PGRST106' || code === '42P01') return true;
+  const msg = `${error.message ?? ''} ${error.details ?? ''} ${error.hint ?? ''}`.toLowerCase();
+  return msg.includes('does not exist') || msg.includes('could not find the table') || msg.includes('schema cache');
 }
 
 /**

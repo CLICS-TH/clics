@@ -13,7 +13,10 @@ const retention = require('../src/services/retention');
 
 const app = express();
 app.use(express.json());
-app.use('/superadmin', require('../src/routes/superadmin'));
+// Mounted at '/admin' because that is where src/index.js mounts it. A test app free to pick its
+// own prefix is how three screens shipped calling a path production does not serve — see
+// tests/api-contract.test.js.
+app.use('/admin', require('../src/routes/superadmin'));
 const auth = r => r.set('Authorization', 'Bearer test');
 
 const PHRASE = retention.CONFIRM_PHRASE;
@@ -39,11 +42,11 @@ const setPolicy = (endDate, years = 5) => {
   settings.project_end_date = { value: 0, value_text: endDate };
   settings.retention_years = { value: years, value_text: null };
 };
-const deidentify = (confirm) => auth(request(app).post('/superadmin/retention/deidentify')).send({ confirm });
+const deidentify = (confirm) => auth(request(app).post('/admin/retention/deidentify')).send({ confirm });
 
 describe('the clock cannot start on its own', () => {
   test('with no project end date, nothing is due and nothing can run', async () => {
-    const res = await auth(request(app).get('/superadmin/retention'));
+    const res = await auth(request(app).get('/admin/retention'));
     expect(res.body).toMatchObject({ project_end_date: null, due_at: null, due: false });
 
     const run = await deidentify(PHRASE);
@@ -53,7 +56,7 @@ describe('the clock cannot start on its own', () => {
 
   test('the due date is project end + retention years', async () => {
     setPolicy('2026-12-31', 5);
-    const res = await auth(request(app).get('/superadmin/retention'));
+    const res = await auth(request(app).get('/admin/retention'));
     expect(res.body).toMatchObject({ project_end_date: '2026-12-31', retention_years: 5, due_at: '2031-12-31', due: false });
   });
 });
@@ -154,7 +157,7 @@ describe('there is no scheduler, deliberately', () => {
 });
 
 describe('the monthly security review', () => {
-  const post = (body) => auth(request(app).post('/superadmin/security-reviews')).send(body);
+  const post = (body) => auth(request(app).post('/admin/security-reviews')).send(body);
 
   test('records the three parts the Infrastructure Statement names', async () => {
     const res = await post({

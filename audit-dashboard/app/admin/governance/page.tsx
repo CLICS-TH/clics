@@ -37,8 +37,8 @@ export default function GovernancePage() {
   const [form, setForm] = useState({ period_month: thisMonth(), access_review: '', audit_review: '', incident_review: '', incidents_found: false, notes: '' });
 
   const load = useCallback(() => {
-    apiFetch<Plan>('/superadmin/retention').then(d => { setPlan(d); setEndDate(d?.project_end_date ?? ''); }).catch(() => {});
-    apiFetch<{ reviews: Review[] }>('/superadmin/security-reviews?limit=24')
+    apiFetch<Plan>('/admin/retention').then(d => { setPlan(d); setEndDate(d?.project_end_date ?? ''); }).catch(() => {});
+    apiFetch<{ reviews: Review[] }>('/admin/security-reviews?limit=24')
       .then(d => setReviews(Array.isArray(d?.reviews) ? d.reviews : [])).catch(() => setReviews([]));
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -46,7 +46,7 @@ export default function GovernancePage() {
   async function savePolicy() {
     setBusy(true);
     try {
-      const res = await apiFetch<ApiResult<unknown>>('/superadmin/retention', {
+      const res = await apiFetch<ApiResult<unknown>>('/admin/retention', {
         method: 'PATCH', body: JSON.stringify({ project_end_date: endDate || null }),
       });
       if (res?.error) { toast(String(res.error), 'error'); return; }
@@ -57,7 +57,7 @@ export default function GovernancePage() {
   async function runDeidentify() {
     setBusy(true);
     try {
-      const res = await apiFetch<ApiResult<unknown>>('/superadmin/retention/deidentify', {
+      const res = await apiFetch<ApiResult<unknown>>('/admin/retention/deidentify', {
         method: 'POST', body: JSON.stringify({ confirm }),
       });
       if (res?.error) { toast(String(res.error), 'error'); return; }
@@ -72,7 +72,7 @@ export default function GovernancePage() {
     }
     setBusy(true);
     try {
-      const res = await apiFetch<ApiResult<unknown>>('/superadmin/security-reviews', { method: 'POST', body: JSON.stringify(form) });
+      const res = await apiFetch<ApiResult<unknown>>('/admin/security-reviews', { method: 'POST', body: JSON.stringify(form) });
       if (res?.error) { toast(String(res.error), 'error'); return; }
       toast('บันทึกแล้ว / Recorded', 'success');
       setForm({ period_month: thisMonth(), access_review: '', audit_review: '', incident_review: '', incidents_found: false, notes: '' });

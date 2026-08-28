@@ -5,7 +5,7 @@ const { ragLookup } = require('../services/rag');
 const { callAI } = require('../services/ai');
 const { hasCitation, extractSocraticQuestion, extractReferences } = require('../services/post-filter');
 const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE } = require('../lib/prompts');
-const { shouldAssess, assessQualifying, rescueDecision, checkRescueReply } = require('../services/rescue');
+const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply } = require('../services/rescue');
 const { flattenForPrompt, stripArtifactDelimiters } = require('../lib/transcript');
 
 const router = Router();
@@ -89,7 +89,25 @@ router.post('/', async (req, res) => {
     // proceeds as a normal reply: a missed rescue costs one scaffolding nudge, whereas failing the
     // request would cost the physician their turn over an advisory signal. It is logged, not raised.
     let rescue = null;
-    if (shouldAssess({ history, socraticActive: socratic, rescueActive: rescue_active, alreadyQualified: already_qualified, rescueRounds: rescue_rounds })) {
+    const exchangesSoFar = history.filter(m => m.role === 'physician' || m.role === 'user').length;
+
+    // The rescue has run its round cap. It ends HERE, under the rescue prompt one last time — the
+    // constraint holds for the turn the physician is already mid-way through — and the backend is
+    // told so it can close the rescue out and record why it ended. Falling through to the block
+    // below instead would have produced a turn on the general examiner prompt, which is the
+    // instrument swap the per-round rescue exists to prevent.
+    if (rescueExhausted({ rescueActive: rescue_active, rescueRounds: rescue_rounds })) {
+      systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE;
+      rescue = {
+        activated: false, rescuing: true, recovered: false, exhausted: true,
+        reason: 'rescue round cap reached without the session qualifying',
+        elements: null, on_topic: null, qualifying: null,
+        exchanges_before: exchangesSoFar,
+        // No classifier ran, so there is nothing to bill. Reported as zero rather than omitted, so
+        // the backend's spend path sees the same shape on every round.
+        assessment: { input_tokens: 0, output_tokens: 0, provider: null },
+      };
+    } else if (shouldAssess({ history, socraticActive: socratic, rescueActive: rescue_active, alreadyQualified: already_qualified, rescueRounds: rescue_rounds })) {
       try {
         // Include the turn just sent — the physician may have qualified the session WITH this
         // message, and rescuing them for a gap they have already closed would be plainly wrong.
@@ -106,11 +124,13 @@ router.post('/', async (req, res) => {
           // The session came back. This is the "return to PLE eligibility" the analysis plan asks
           // for, and it was unobservable while a rescued session was assessed only once.
           recovered: rescue_active && !decision.rescue,
+          // Only the cap-reached branch above sets this.
+          exhausted: false,
           reason: decision.reason,
           elements: assessed.elements,
           on_topic: assessed.onTopic,
           qualifying: assessed.qualifying,
-          exchanges_before: history.filter(m => m.role === 'physician' || m.role === 'user').length,
+          exchanges_before: exchangesSoFar,
           // Reported so the backend can charge it to the STUDY rather than the physician. These
           // tokens were returned by the classifier all along and simply thrown away, which made the
           // spend invisible — fine at one call per session, not fine at one per round.
@@ -128,9 +148,9 @@ router.post('/', async (req, res) => {
         // an active rescue the next turn buys another one.
         if (e.usage) {
           rescue = {
-            activated: false, rescuing: false, recovered: false, reason: null,
+            activated: false, rescuing: false, recovered: false, exhausted: false, reason: null,
             elements: null, on_topic: null, qualifying: null,
-            exchanges_before: history.filter(m => m.role === 'physician' || m.role === 'user').length,
+            exchanges_before: exchangesSoFar,
             assessment: {
               input_tokens: e.usage.inputTokens ?? 0,
               output_tokens: e.usage.outputTokens ?? 0,

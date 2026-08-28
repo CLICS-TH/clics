@@ -221,16 +221,29 @@ describe('the assessment form is recorded in full', () => {
 describe('reporting a suspected identifier instead of scoring', () => {
   const report = (body) => auth(request(app).post('/auditor/cles/p1/privacy-concern')).send(body);
 
-  test('the session is quarantined, with the reason and the reporter recorded', async () => {
+  test('the report goes to the reviewer\'s WORK queue, with the reporter recorded as the reporter', async () => {
     const r = await report({ note: 'turn 3 names a hospital and a date' });
     expect(r.status).toBe(200);
 
     const upd = m.find('cles', 'update');
     expect(upd.payload).toMatchObject({
-      privacy_review_status: 'quarantined',
-      privacy_reviewed_by: AUDITOR.id,
-      privacy_review_note: 'turn 3 names a hospital and a date',
+      // 'pending' is the reviewer's default tab — the work list. Writing 'quarantined' filed the
+      // report into the already-decided bucket, where the default view reads "every session has
+      // been reviewed".
+      privacy_review_status: 'pending',
+      privacy_concern_open: true,
+      privacy_concern_by: AUDITOR.id,
+      privacy_concern_note: 'turn 3 names a hospital and a date',
     });
+  });
+
+  test('reporting writes NO reviewer field — the reporter is not the reviewer', async () => {
+    await report({ note: 'turn 3 names a hospital and a date' });
+    const { payload } = m.find('cles', 'update');
+    expect(payload).not.toHaveProperty('privacy_reviewed_by');
+    expect(payload).not.toHaveProperty('privacy_reviewed_at');
+    // And the reviewer's own note is never overwritten by a rater's statement.
+    expect(payload).not.toHaveProperty('privacy_review_note');
   });
 
   test('no score is created — reporting is instead of scoring, not as well as', async () => {
@@ -238,11 +251,24 @@ describe('reporting a suspected identifier instead of scoring', () => {
     expect(m.find('audit_scores', 'insert')).toBeUndefined();
   });
 
-  test('quarantine is what removes it from the queue — no second mechanism needed', async () => {
-    // whereCleared() withholds anything not passed/redacted, so the session leaves this auditor's
-    // queue as a consequence of the clearance change rather than a parallel "hidden" flag.
-    const { CLEARED } = require('../src/lib/privacy-review');
-    expect(CLEARED).not.toContain('quarantined');
+  test('the session leaves the queue whether or not the privacy gate is on', async () => {
+    // whereCleared() is a NO-OP when privacy_review_required is off, so relying on the clearance
+    // alone left a reported session sitting in the queue on exactly the deployments where nobody
+    // was reviewing transcripts. The queue therefore filters privacy_concern_open unconditionally.
+    m.reset();
+    m.state.caller = AUDITOR;
+    m.state.resolve = (table, kind) => {
+      if (table === 'app_settings') return { value: 0, value_text: 'false' };   // gate OFF
+      if (table === 'audit_assignments') return [];
+      if (table === 'cles' && kind === 'list') return [];
+      return undefined;
+    };
+    await auth(request(app).get('/auditor/queue'));
+    const reads = m.state.queries.filter((q) => q.table === 'cles');
+    expect(reads.length).toBeGreaterThan(0);
+    for (const q of reads) {
+      expect(q.eqs).toContainEqual(['privacy_concern_open', false]);
+    }
   });
 
   test('an empty report is refused — a concern with no reason cannot be actioned', async () => {
@@ -266,17 +292,17 @@ describe('reporting a concern cannot be misused', () => {
     expect(m.find('cles', 'update')).toBeUndefined();
   });
 
-  test('a session already quarantined is not re-reported over the top', async () => {
-    // Re-reporting would overwrite the first reviewer's note and reset the clock on something
+  test('a session with a concern already open is not re-reported over the top', async () => {
+    // Re-reporting would overwrite the first reporter's statement and reset the clock on something
     // somebody is already looking at.
     const prev = m.state.resolve;
     m.state.resolve = (table, kind, ctx) => {
       const r = prev(table, kind, ctx);
-      return table === 'cles' && r && !Array.isArray(r) ? { ...r, privacy_review_status: 'quarantined' } : r;
+      return table === 'cles' && r && !Array.isArray(r) ? { ...r, privacy_concern_open: true } : r;
     };
     const res = await report({ note: 'again' });
     expect(res.status).toBe(409);
-    expect(res.body.code).toBe('already_quarantined');
+    expect(res.body.code).toBe('concern_already_open');
   });
 
   test('a whitespace-only reason is refused, not stored', async () => {

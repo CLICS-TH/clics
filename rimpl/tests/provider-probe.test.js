@@ -10,10 +10,20 @@
 // The verdict lives HERE rather than in the calling gate on purpose. Two callers deciding for
 // themselves what `context_length: 'unknown'` means is how they end up disagreeing.
 
+const request = require('supertest');
+const express = require('express');
+
+// routes/health.js requires lib/supabase, which constructs its client at module load and throws
+// without credentials. The probe route touches none of it — stub it so the suite stays hermetic.
+jest.mock('../src/lib/supabase', () => ({
+  supabase: { from: () => ({ select: () => ({ limit: () => Promise.resolve({ count: 1, error: null }) }) }) },
+}));
+
 const LOCAL_ENV = [
   'LOCAL_AI_BASE_URL', 'LOCAL_AI_MODEL', 'LOCAL_AI_API_KEY', 'HEALTH_PROBE_TIMEOUT_MS',
   'LOCAL_AI_MIN_CONTEXT', 'LOCAL_AI_EMBED_MODEL', 'RAG_EMBED_DIM',
   'AI_PROVIDER', 'AI_PROVIDER_CHAT', 'AI_PROVIDER_EVALUATE', 'EMBED_PROVIDER',
+  'INTERNAL_TOKEN',
 ];
 
 let savedEnv, realFetch, fetchMock;
@@ -76,6 +86,18 @@ describe('a chat-capable provider', () => {
     // The measured number has to survive into the reason — one value the operator forwards to
     // whoever administers the box is the whole point of refusing here rather than at call time.
     expect(v.reason).toMatch(/4096/);
+    // And as FIELDS. The gate that consumes this renders "measured X, needs Y" from `measured` and
+    // `required`; both were null in production while the sentence carried both numbers, so the 409
+    // the superadmin saw could only be read by a human.
+    expect(v.measured).toBe(4096);
+    expect(v.required).toBe(16384);
+  });
+
+  test('a fit provider reports the floor it cleared, not just the number it measured', async () => {
+    process.env.LOCAL_AI_MIN_CONTEXT = '16384';
+    serve({ context: 32768 });
+    const v = await load().probeProvider('local', 'chat');
+    expect(v).toMatchObject({ fit: true, measured: 32768, required: 16384 });
   });
 
   test('reachable but not serving the pinned model is unfit', async () => {
@@ -127,5 +149,67 @@ describe('an embedding provider', () => {
   test('a chat-only provider cannot serve embeddings', async () => {
     const v = await load().probeProvider('anthropic', 'embed');
     expect(v).toMatchObject({ fit: false, code: 'unknown_provider' });
+  });
+});
+
+
+// The HTTP surface, which nothing exercised: every test above calls probeProvider() directly, so the
+// route that actually carries it to the backend — and the token gate that stops the open health
+// router from exposing a paid embedding call — were both untested.
+describe('GET /health/provider/:name', () => {
+  const app = () => {
+    jest.resetModules();
+    const a = express();
+    a.use(express.json());
+    a.use('/health', require('../src/routes/health'));
+    return a;
+  };
+
+  test('serves the verdict as JSON', async () => {
+    serve({ context: 32768 });
+    const r = await request(app()).get('/health/provider/local?purpose=chat');
+    expect(r.status).toBe(200);
+    expect(r.body).toMatchObject({ provider: 'local', fit: true, measured: 32768 });
+  });
+
+  test('UNFIT is a 200, not an error status', async () => {
+    // The caller is a gate reading a verdict. A non-200 would make "the probe failed" and "the
+    // provider failed" indistinguishable, and the gate would treat one as the other.
+    process.env.LOCAL_AI_MIN_CONTEXT = '16384';
+    serve({ context: 4096 });
+    const r = await request(app()).get('/health/provider/local?purpose=chat');
+    expect(r.status).toBe(200);
+    expect(r.body).toMatchObject({ fit: false, code: 'context_too_small', measured: 4096, required: 16384 });
+  });
+
+  test('with a token configured, an unauthenticated call is refused', async () => {
+    // This route sits inside a router mounted AHEAD of the layer-wide gate, so /health and
+    // /health/deep stay open to monitors. It must carry its own guard: probing an embedding
+    // provider costs money at a vendor.
+    process.env.INTERNAL_TOKEN = 'secret';
+    serve({ context: 32768 });
+    const r = await request(app()).get('/health/provider/local');
+    expect(r.status).toBe(401);
+  });
+
+  test('with a token configured, the right token is admitted', async () => {
+    process.env.INTERNAL_TOKEN = 'secret';
+    serve({ context: 32768 });
+    const r = await request(app()).get('/health/provider/local').set('x-internal-token', 'secret');
+    expect(r.status).toBe(200);
+  });
+
+  test('the sibling health routes stay open — the guard is on this route only', async () => {
+    process.env.INTERNAL_TOKEN = 'secret';
+    serve({ context: 32768 });
+    expect((await request(app()).get('/health/deep')).status).not.toBe(401);
+  });
+
+  test('no token configured is local dev, and is allowed through', async () => {
+    // The hand-rolled copy of this check that this route used to carry compared against an unset
+    // env var, so a local stack with no token got 401 here and 200 everywhere else.
+    delete process.env.INTERNAL_TOKEN;
+    serve({ context: 32768 });
+    expect((await request(app()).get('/health/provider/local')).status).toBe(200);
   });
 });

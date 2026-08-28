@@ -86,7 +86,7 @@ async function flagRescueReplyBreach({ cleId, check, turn }) {
     severity: 'medium',
     evidence: {
       turn: turn ?? null,
-      questions: check.questions,
+      question_count: check.questions,
       too_many_questions: !!check.tooManyQuestions,
       no_question: !!check.noQuestion,
       diagnostic: !!check.diagnostic,

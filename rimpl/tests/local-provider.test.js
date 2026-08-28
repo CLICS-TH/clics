@@ -492,7 +492,7 @@ describe('ready() — /health/deep probe', () => {
 
     // context_length 'unknown' — the mocked /api/show reply carries no model_info, which is exactly
     // what a non-Ollama server (vLLM, SGLang) looks like. Unknown must not read as unhealthy.
-    expect(r.checks.local_ai).toEqual({ status: 'up', model: 'qwen3-32b-medical', context_length: 'unknown' });
+    expect(r.checks.local_ai).toEqual({ status: 'up', model: 'qwen3-32b-medical', context_length: 'unknown', min_context: 16384 });
     const models = callTo('/v1/models');
     expect(models.url).toBe('http://dgx.tailnet:8000/v1/models');
     expect(models.opts.method).toBe('GET');
@@ -601,13 +601,17 @@ describe('served context length', () => {
     expect(r.checks.local_ai.status).toBe('down');
     expect(r.checks.local_ai.context_length).toBe(4096);
     expect(r.checks.local_ai.error).toMatch(/4096/);
-    expect(r.checks.local_ai.error).toMatch(/LOCAL_AI_MIN_CONTEXT/);
+    expect(r.checks.local_ai.error).toMatch(/16384/);
+    // Both numbers as FIELDS, not only in the prose. The gate that consumes this renders
+    // "measured X, needs Y" from them; parsing the sentence is what left the production refusal
+    // reporting measured: null while the message said 4096.
+    expect(r.checks.local_ai.min_context).toBe(16384);
   });
 
   test('UP, and reports the number, when the context is adequate', async () => {
     probeRoutes({ model_info: { 'llama.context_length': 32768 } });
     const r = await load().ready();
-    expect(r.checks.local_ai).toEqual({ status: 'up', model: 'qwen3-32b-medical', context_length: 32768 });
+    expect(r.checks.local_ai).toEqual({ status: 'up', model: 'qwen3-32b-medical', context_length: 32768, min_context: 16384 });
   });
 
   test('the probe reads the architecture-namespaced key, whatever the family is called', async () => {

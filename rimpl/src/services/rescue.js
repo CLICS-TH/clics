@@ -33,8 +33,12 @@ const RESCUE_AFTER_EXCHANGES = 4;
 // a hybrid deployment (paid classifier, free on-prem chat) nothing else in the system is spending,
 // so no budget ever stops it. A rescue that has not worked after this many rounds is not going to.
 //
-// Hitting the cap does NOT end the rescue — the session keeps the rescue prompt and its constraint.
-// It only stops re-asking a question the answer to which has not changed in eight consecutive turns.
+// Hitting the cap ENDS the rescue, and says so. Two weaker options were both wrong: leaving the
+// session in rescue without re-assessing makes recovery permanently unobservable (nothing can ever
+// set exchanges-after), and simply not assessing dropped the session back to the general examiner
+// prompt — the exact hand-off to a different instrument that the per-round rescue exists to stop,
+// reappearing silently at round nine. A bounded intervention has to end somewhere; it ends here,
+// recorded as `exhausted` rather than as nothing.
 const MAX_RESCUE_ROUNDS = Math.max(1, parseInt(process.env.MAX_RESCUE_ROUNDS || '8', 10));
 
 // A physician turn is one exchange. The backend labels its own side 'physician' and the model's
@@ -64,6 +68,14 @@ function shouldAssess({ history, socraticActive = false, rescueActive = false, a
   if (rescueActive) return rescueRounds < MAX_RESCUE_ROUNDS;
   if (socraticActive) return false;
   return countExchanges(history) >= RESCUE_AFTER_EXCHANGES;
+}
+
+// Has this rescue run its course? Separate from shouldAssess deliberately: shouldAssess answers
+// "spend a model call?", and at the cap the answer is no for two OPPOSITE reasons — the session
+// already qualified, or the rescue is giving up. Collapsing them into one false is what let the
+// second case look like nothing having happened.
+function rescueExhausted({ rescueActive = false, rescueRounds = 0 } = {}) {
+  return !!rescueActive && rescueRounds >= MAX_RESCUE_ROUNDS;
 }
 
 // Run the CREC §1 qualifying test over the conversation so far.
@@ -145,7 +157,7 @@ function checkRescueReply(text = '') {
 }
 
 module.exports = {
-  RESCUE_AFTER_EXCHANGES, MAX_RESCUE_QUESTIONS,
-  countExchanges, shouldAssess, assessQualifying, rescueDecision, checkRescueReply,
+  RESCUE_AFTER_EXCHANGES, MAX_RESCUE_QUESTIONS, MAX_RESCUE_ROUNDS,
+  countExchanges, shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply,
   flattenForPrompt, // re-exported so the chat route builds its transcript the same way
 };

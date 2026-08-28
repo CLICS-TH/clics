@@ -192,7 +192,7 @@ describe('a provider must be READY before traffic is pointed at it', () => {
   const unfit = (over) => { mockVerdict = { fit: false, ...over }; };
 
   test('a context window too small to hold a transcript refuses the switch, and says by how much', async () => {
-    unfit({ code: 'context_too_small', reason: 'served context 4096 is below LOCAL_AI_MIN_CONTEXT 16384', measured: 4096, required: 16384 });
+    unfit({ code: 'context_too_small', reason: 'served context 4096 is below the required minimum 16384', measured: 4096, required: 16384 });
     const r = await patch({ purpose: 'evaluate', provider: 'local', confirm: 'CHANGE EVALUATOR' });
 
     expect(r.status).toBe(409);
