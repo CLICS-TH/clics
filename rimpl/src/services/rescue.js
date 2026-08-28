@@ -26,6 +26,17 @@ const { flattenForPrompt } = require('../lib/transcript');
 // is simply still warming up.
 const RESCUE_AFTER_EXCHANGES = 4;
 
+// How many rounds a rescue may keep re-assessing before it stops paying to ask.
+//
+// Re-assessing every round is what makes recovery observable, but on its own it is unbounded: a
+// session that never qualifies keeps buying an ever-larger classifier call on every turn, and under
+// a hybrid deployment (paid classifier, free on-prem chat) nothing else in the system is spending,
+// so no budget ever stops it. A rescue that has not worked after this many rounds is not going to.
+//
+// Hitting the cap does NOT end the rescue — the session keeps the rescue prompt and its constraint.
+// It only stops re-asking a question the answer to which has not changed in eight consecutive turns.
+const MAX_RESCUE_ROUNDS = Math.max(1, parseInt(process.env.MAX_RESCUE_ROUNDS || '8', 10));
+
 // A physician turn is one exchange. The backend labels its own side 'physician' and the model's
 // 'assistant'; some callers use the OpenAI-style 'user'. Accept both rather than silently counting
 // zero, which would mean the rescue never fires and nothing in the logs would say why.
@@ -35,12 +46,23 @@ function countExchanges(history = []) {
 
 // Should we spend a model call deciding whether to rescue? Deterministic, no I/O.
 //
-// The `alreadyQualified` latch matters: qualifying is monotonic in practice (a session that showed
-// reflective synthesis does not stop having shown it), so once the answer is yes there is nothing
-// left to re-ask. Without the latch, a long good session would pay for a classifier call on every
-// turn after the fourth.
-function shouldAssess({ history, socraticActive = false, rescueActive = false, alreadyQualified = false } = {}) {
-  if (socraticActive || rescueActive || alreadyQualified) return false;
+// ONE latch remains, and it is the one that is actually monotonic: a session that has shown
+// reflective synthesis does not stop having shown it, so once `alreadyQualified` is true there is
+// nothing left to re-ask and a long good session never pays for another classifier call.
+//
+// `rescueActive` used to be a latch too, and that was the bug. It meant a rescued session was
+// assessed exactly once, on the round the rescue fired — after which nothing could observe it
+// recovering, so the rescue never ended and "did this conversation return to being a learning
+// episode?" had no answer in the data. The protocol describes the rescue as applying EACH ROUND
+// until the session qualifies, which is a loop, not a one-shot. So a session in rescue and not yet
+// qualified is re-assessed every round; that is the cost of being able to see it recover.
+//
+// `socraticActive` without `rescueActive` is examiner mode entered for some other reason. It is not
+// a rescue and must not be assessed as one.
+function shouldAssess({ history, socraticActive = false, rescueActive = false, alreadyQualified = false, rescueRounds = 0 } = {}) {
+  if (alreadyQualified) return false;
+  if (rescueActive) return rescueRounds < MAX_RESCUE_ROUNDS;
+  if (socraticActive) return false;
   return countExchanges(history) >= RESCUE_AFTER_EXCHANGES;
 }
 
@@ -60,7 +82,25 @@ async function assessQualifying(transcriptText) {
     messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
     maxTokens: 200,
   });
-  const r = parseJsonObject(text); // throws on malformed output; the caller decides what that means
+  const ELEMENTS = ['c4', 'c5', 'c6', 'c7'];
+  let r;
+  try {
+    r = parseJsonObject(text);
+    // parseJsonObject returns {} when it finds no JSON at all — by design, and harmless for callers
+    // that treat an empty object as "no answer". It is NOT harmless here: {} reads as all four
+    // elements absent, which is indistinguishable from a genuine "this is not yet a learning
+    // episode", so a classifier that replied in prose would RESCUE the physician for no reason.
+    // Per-round assessment turns that from a one-off into every single turn.
+    if (!ELEMENTS.some((k) => typeof r[k] === 'boolean')) {
+      throw new Error('classifier returned no qualifying elements');
+    }
+  } catch (e) {
+    // The call was BILLED before the parse failed. Dropping it loses that spend from the study's
+    // accounting, and under an active rescue the next turn buys another one — so actual cost can
+    // drift arbitrarily far above what is recorded. Carry the usage out on the error.
+    e.usage = { inputTokens, outputTokens, provider, model };
+    throw e;
+  }
   const elements = { c4: !!r.c4, c5: !!r.c5, c6: !!r.c6, c7: !!r.c7 };
   return {
     elements,

@@ -7,7 +7,7 @@ const { rimplChat } = require('../services/rimpl-client');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
 const { finalizeScreening, toPassCols } = require('../services/cle-finalize');
 const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
-const { settlementDelta } = require('../lib/pricing');
+const { settlementDelta, costUsd } = require('../lib/pricing');
 const { logEvent } = require('../lib/audit');
 const { pilotTestMode, clinicalArtifactsEnabled, holdResultUntilAudited, t1RemediationEnabled, identityVerificationRequired, reflectionRequired } = require('../lib/settings');
 const identity = require('../services/identity');
@@ -16,6 +16,7 @@ const acceptability = require('../lib/acceptability');
 const { creditSettings } = require('../lib/settings');
 const { creditFor, creditTable } = require('../services/credit');
 const { COMPLETED_STATUSES } = require('../lib/cle-status');
+const { scanCle, flagRescueReplyBreach } = require('../services/integrity-scan');
 
 const router = Router();
 
@@ -357,6 +358,10 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
       // and a session that has qualified does not un-qualify — so RIMPL can skip the classifier.
       rescue_active: cle.rescue_activated_at != null,
       already_qualified: cle.qualified_at != null,
+      // Rounds this rescue has already run, so RIMPL can stop paying to re-ask a question whose
+      // answer has not changed. Derived, not stored: rescue_exchanges_before is the turn count at
+      // activation, so the difference IS the number of rounds spent in rescue.
+      rescue_rounds: Math.max(0, (cle.turn_count ?? 0) - (cle.rescue_exchanges_before ?? 0)),
     });
   } catch (err) {
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
@@ -405,12 +410,49 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   // needs in order to count exchanges AFTER an activation.
   if (rescue && rescue.qualifying && cle.qualified_at == null) {
     rescueCols.qualified_at = new Date().toISOString();
+    // Qualifying ENDS a protocol rescue, whichever flag arrives first. Without this, two turns in
+    // flight could set qualified_at and rescue_activated_at from the same pre-rescue snapshot; the
+    // qualified latch would then suppress every later assessment, no `recovered` could ever fire,
+    // and the session would stay in examiner mode until it ended.
+    if (cle.socratic_reason === 'protocol_rescue') rescueCols.socratic_active = false;
+  }
+  // The session came back. The rescue is a loop that ends when the conversation qualifies again, so
+  // this is where it ends — and it is the "return to PLE eligibility" the analysis plan asks for.
+  // Unobservable before, because a rescued session was assessed exactly once and so could never be
+  // seen recovering; the rescue simply ran until the session ended.
+  if (rescue?.recovered) {
+    rescueCols.socratic_active = false;
+    // socratic_reason deliberately stays 'protocol_rescue'. Clearing it would erase the fact that
+    // this session was ever rescued, which is the thing the analysis is about.
+    //
+    // Turn counts, not timestamps: rescue_activated_at and qualified_at already bracket the rescue
+    // in time, but the plan reports EXCHANGES, and no arithmetic on two timestamps yields a turn
+    // count. cle.turn_count is the count before this turn, so +1 includes the one being served.
+    if (cle.rescue_exchanges_before != null && cle.rescue_exchanges_after == null) {
+      rescueCols.rescue_exchanges_after = Math.max(0, (cle.turn_count ?? 0) + 1 - cle.rescue_exchanges_before);
+    }
+  }
+  // Re-assessing every round costs a classifier call per round, and that spend belongs to the study,
+  // not to the physician: the system chose the intervention. Charging their budget for it would
+  // penalise exactly the people whose conversation had not yet qualified. Accumulated per episode
+  // rather than in a per-user pool, because it is not attributable to anyone's quota.
+  if (rescue?.assessment && (rescue.assessment.input_tokens || rescue.assessment.output_tokens)) {
+    const { input_tokens: aIn = 0, output_tokens: aOut = 0, provider: aProv } = rescue.assessment;
+    rescueCols.rescue_assessment_tokens = (cle.rescue_assessment_tokens ?? 0) + aIn + aOut;
+    rescueCols.rescue_assessment_cost_usd =
+      Number(cle.rescue_assessment_cost_usd ?? 0) + costUsd(aIn, aOut, aProv ?? undefined);
   }
   if (rescue?.reply_check && rescue.reply_check.ok === false) {
     // The rescue prompt forbids diagnosing and caps the questions at two; this reply broke one of
-    // those. Log rather than block — the physician already has the reply, and suppressing it would
-    // cost them the turn. Surfaced so a violation is countable rather than invisible.
-    console.error('[cles] rescue reply failed its post-check:', req.params.id, JSON.stringify(rescue.reply_check));
+    // those. Don't block — the physician already has the reply, and suppressing it would cost them
+    // the turn for OUR error. Record it instead: console.error alone put the violation in the
+    // hosting provider's log retention, where "did any rescue turn give a diagnosis?" — a question
+    // CREC082 §4 invites the ethics committee to ask — could not be answered from the dataset.
+    try {
+      await flagRescueReplyBreach({ cleId: req.params.id, check: rescue.reply_check, turn: (cle.turn_count ?? 0) + 1 });
+    } catch (e) {
+      console.error('[cles] failed to record a rescue post-check breach:', req.params.id, e.message);
+    }
   }
 
   const { error: counterErr } = await supabase.from('cles').update({
@@ -493,6 +535,31 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.end', targetType: 'cle',
     targetId: cle.cle_code ?? req.params.id, councilId: cle.council_id ?? null,
     metadata: { scorable, tier1_metadata: tier1 } });
+
+  // Integrity scan (CREC082 §1 excludes "passive copying of AI answers" from what counts as a PLE).
+  // HERE, right after the claim, because this is the first moment the transcript is final: the
+  // session is no longer 'active', so no further turn can be appended, and the reflection is a row
+  // in its own table rather than a message. Running it on EVERY ended session — including the
+  // unscorable ones — keeps the claim simple: every session that ended was scanned.
+  //
+  // Awaited inside try/catch rather than fired and forgotten: it makes the scan deterministic for
+  // tests and for reconcile, and three indexed queries are nothing beside the classifier call this
+  // same handler is about to make. What it must never do is cost the physician the session they
+  // just finished — a detector fault is OUR problem, so it is logged and the response continues.
+  //
+  // F2 (cross-session reuse) is inherently late-binding: this scan compares against the sessions
+  // that exist NOW. If a LATER session copies this one, the flag lands on the later session — the
+  // one that did the reusing — which is the right place for it, so nothing needs backfilling.
+  try {
+    const scan = await scanCle({ cleId: req.params.id, physicianId: cle.physician_id });
+    if (scan.flags.length) {
+      logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.integrity_scan', targetType: 'cle',
+        targetId: cle.cle_code ?? req.params.id, councilId: cle.council_id ?? null,
+        metadata: { signals: scan.flags.map(f => f.signal), turns: scan.scanned_turns, trigger: 'end' } });
+    }
+  } catch (e) {
+    console.error('[cles] integrity scan failed at /end (session unaffected):', req.params.id, e.message);
+  }
 
   // Nothing to classify. Recorded, not judged — the physician simply never had a conversation.
   if (!scorable) return res.json({ status: 'cle_fail_t1', criteria: tier1 });

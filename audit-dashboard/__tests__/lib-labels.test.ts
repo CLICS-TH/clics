@@ -159,3 +159,29 @@ describe('caseCategory', () => {
     expect(caseCategory(null)).toMatch(/Other/);
   });
 });
+
+// The per-assessment confirmations the auditor form requires before it will submit.
+//
+// These keys are a MIRROR of backend/src/lib/schemas.js SCORE_ATTESTATIONS, and the route rejects a
+// submission missing any of them. A key that drifts here produces a form the rater can complete and
+// the server will refuse — with no clue on either side about which one is wrong.
+import { ATTESTATIONS } from '@/lib/pis7-rubric';
+
+describe('ATTESTATIONS', () => {
+  it('matches the set the API enforces, exactly and in order', () => {
+    expect(ATTESTATIONS.map((a) => a.key)).toEqual([
+      'all_domains_scored',
+      'comments_recorded',
+      'scored_independently',
+      'no_identifiers_found',
+      'weights_provisional',
+    ]);
+  });
+
+  it('gives every item both languages — a rater who reads only Thai must not get a blank', () => {
+    for (const a of ATTESTATIONS) {
+      expect(a.th.trim().length).toBeGreaterThan(0);
+      expect(a.en.trim().length).toBeGreaterThan(0);
+    }
+  });
+});

@@ -19,7 +19,7 @@ import { getUser } from '@/lib/auth';
 import { DOMAIN_KEYS, DOMAIN_LABELS } from '@/lib/labels';
 import { PIS7_RUBRIC } from '@/lib/pis7-rubric';
 import { Skeleton } from '@/components/Skeleton';
-import type { IccStat, ThreeWayArm, ThreeWayIccData } from '@/lib/types';
+import type { IccStat, IccVerdict, ThreeWayArm, ThreeWayIccData } from '@/lib/types';
 
 // Mirrors the backend route guard. Anything else (auditor, admin, physician) gets nothing.
 const OVERSIGHT_ROLES = ['analyst', 'ethics', 'superadmin'];
@@ -113,6 +113,30 @@ function GateBar({ stat }: { stat: IccStat }) {
 
 // One primary (vs-auditor) arm. `commonN` = coverage.cles_all_three, the shared denominator; when an
 // arm's own n falls short of it the shortfall is stated rather than quietly averaged away.
+// The server's verdict, rendered so the third state cannot be mistaken for the second.
+//
+// `fail` and `insufficient` must not look alike. One says the candidate missed the bar; the other
+// says nobody knows yet. Colouring them the same way would present the absence of evidence as
+// evidence against — and early in a study, `insufficient` is the honest answer almost every time.
+function VerdictBadge({ verdict }: { verdict: IccVerdict | null | undefined }) {
+  if (!verdict) return null;
+  const { state, threshold, why } = verdict;
+  const look =
+    state === 'pass' ? 'border-ok/40 text-ok'
+    : state === 'fail' ? 'border-danger/40 text-danger'
+    : 'border-border text-muted-foreground';   // deliberately neutral: no verdict has been reached
+  const label =
+    state === 'pass' ? `ผ่านเกณฑ์ ≥ ${threshold} / Meets ≥ ${threshold}`
+    : state === 'fail' ? `ไม่ผ่านเกณฑ์ ≥ ${threshold} / Below ≥ ${threshold}`
+    : `ยังตัดสินไม่ได้ / Not yet decidable`;
+  return (
+    <p className={`mt-2 rounded-lg border px-3 py-2 text-xs ${look}`}>
+      <span className="font-semibold">{label}</span>
+      <span className="mt-0.5 block text-muted-foreground">{why}</span>
+    </p>
+  );
+}
+
 function ArmCard({
   arm,
   th,
@@ -144,6 +168,7 @@ function ArmCard({
         {s?.interpretation ?? 'ยังไม่มีข้อมูล / No data yet'}
       </span>
       <GateBar stat={s} />
+      <VerdictBadge verdict={arm?.verdict} />
       {commonN != null && commonN > 0 && n !== commonN && (
         <p className="mt-2 text-sm text-muted-foreground">
           คำนวณจาก {n} CLE จากชุดร่วม {commonN} CLE / computed on {n} of the {commonN} shared CLEs.
@@ -432,10 +457,15 @@ export function ThreeWayIcc({ includeTest = false }: { includeTest?: boolean }) 
             Claude เทียบ<NoBreak>โมเดลภายในองค์กร</NoBreak> / Claude vs on-prem candidate
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            ค่านี้บอกได้แค่ว่าสองโมเดลให้คะแนนคล้ายกัน อาจผิดเหมือน ๆ กันก็ได้ ไม่ใช่หลักฐานความถูกต้อง และไม่ใช้เกณฑ์ {GATE} /
-            agreement here proves only that the two models are similar — possibly similarly wrong. It is not evidence of
-            accuracy, and the {GATE} gate does not apply to it.
+            ค่านี้บอกได้แค่ว่าสองโมเดลให้คะแนนคล้ายกัน อาจผิดเหมือน ๆ กันก็ได้ ไม่ใช่หลักฐานความถูกต้อง ใช้ได้เพียงเพื่อ
+            คัดโมเดลที่ไม่ผ่านออกก่อน ไม่ใช่เพื่อรับรอง /
+            agreement here proves only that the two models are similar — possibly similarly wrong. It is a SCREENING
+            signal: it can reject a candidate before any human effort is spent, and it can never accept one. Only the
+            vs-auditor arm above can do that.
           </p>
+          {/* Its own threshold, and deliberately a different one. Showing it beside the vs-auditor
+              verdicts is what stops a reader treating a strong model-vs-model number as acceptance. */}
+          <VerdictBadge verdict={secondary?.verdict} />
         </div>
       </div>
 

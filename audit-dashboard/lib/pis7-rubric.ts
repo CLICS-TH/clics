@@ -124,3 +124,18 @@ export const PIS7_RUBRIC: RubricDomain[] = [
 // Shared evidence threshold (applies to every domain).
 export const PIS7_EVIDENCE_NOTE =
   "A 4–5 in any domain requires a specific, case-grounded physician utterance you could quote. If you can't quote one, the score is at most 3.";
+
+// The per-assessment confirmations the approved form ends with — distinct from the one-time
+// confidentiality/COI consent recorded once per account, because these are claims about THIS
+// assessment.
+//
+// MIRRORS backend/src/lib/schemas.js SCORE_ATTESTATIONS. The keys must match exactly: the route
+// re-checks the full set and rejects the submission if any is missing, so a key that drifts here
+// produces a form the rater can complete and the server will refuse.
+export const ATTESTATIONS = [
+  { key: 'all_domains_scored',  th: 'ให้คะแนน D1–D7 ครบ', en: 'Scored all seven domains' },
+  { key: 'comments_recorded',   th: 'บันทึกความเห็นที่จำเป็นแล้ว', en: 'Recorded the comments the form expects' },
+  { key: 'scored_independently', th: 'ให้คะแนนโดยอิสระ และไม่ได้เห็นคะแนน AI', en: 'Scored independently, without seeing the AI score' },
+  { key: 'no_identifiers_found', th: 'ไม่พบข้อมูลระบุตัวบุคคล หรือแจ้งแล้ว', en: 'Found no identifying information, or reported it' },
+  { key: 'weights_provisional', th: 'เข้าใจว่าน้ำหนักแต่ละหมวดยังเป็นค่าชั่วคราว', en: 'Understand the domain weights are provisional' },
+] as const;

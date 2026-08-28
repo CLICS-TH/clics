@@ -260,4 +260,52 @@ function iccOneWay(rows) {
   });
 }
 
-module.exports = { computeICC21, iccTwoRater, iccTwoWay, iccTwoWayAverage, iccOneWay, raterCounts };
+/**
+ * Does this arm clear its threshold? Decided by the CONFIDENCE INTERVAL, never by the point estimate
+ * alone and never by a minimum pair count.
+ *
+ *   pass          the whole interval sits at or above the threshold — we can conclude it is met
+ *   fail          the whole interval sits below it — we can conclude it is not
+ *   insufficient  the interval straddles it — the data cannot answer the question yet
+ *
+ * The third state is the reason this function exists. A point estimate of 0.78 on nine pairs looks
+ * like a pass and is not one: the calibration notes already record that at around thirty pairs the
+ * 95% interval spans roughly 0.40 to 0.83, which is most of the usable range. Reporting that as
+ * `fail` would be equally wrong — it would read as evidence against a candidate when there is no
+ * evidence either way — so `insufficient` is a first-class answer, not a variant of failure.
+ *
+ * Using the interval rather than an arbitrary "at least N pairs" rule means the bar tightens exactly
+ * as the data demands: a noisy corpus needs more pairs than a clean one to say anything, and no
+ * hand-picked N knows that.
+ */
+function verdictFor(result, threshold) {
+  const icc = result?.icc, lower = result?.lower, upper = result?.upper, n = result?.n ?? 0;
+  const finite = (v) => (Number.isFinite(v) ? v : null);
+  const base = { threshold, icc: finite(icc), lower: finite(lower), upper: finite(upper), n };
+  // Number.isFinite, not a null check. NaN is not null, so `icc == null` let it through to the
+  // comparisons below — both of which are false against NaN, so it landed on `insufficient` with
+  // the reason "the interval spans 0.75, more pairs are needed", which is untrue twice over: there
+  // is no interval, and more pairs will not produce one. JSON.stringify also renders NaN as null,
+  // so the wire format looked identical to a genuine no-estimate while the code had taken a
+  // different path to get there.
+  if (base.icc == null || base.lower == null || base.upper == null) {
+    return { ...base, state: 'insufficient', why: 'no estimate — too few pairs, or no variance between them' };
+  }
+  // The Fisher-z interval is built on 1/sqrt(n-3) and simply does not exist below four pairs; the
+  // helpers above clamp that denominator to keep from dividing by zero, which means they return an
+  // interval at n=2 or n=3 that was invented rather than estimated.
+  //
+  // That invented interval is convincing in exactly the wrong direction. Two pairs that happen to
+  // agree closely clamp toward an ICC of 0.999, and the clamped interval then sits entirely above
+  // 0.75 — so the gate would read `pass` off two data points. Refusing to decide is the only honest
+  // answer here, and it is the whole reason this third state exists.
+  if (n < 4) {
+    return { ...base, state: 'insufficient', why: `${n} pairs cannot support a confidence interval` };
+  }
+  if (base.lower >= threshold) return { ...base, state: 'pass', why: `the whole interval is at or above ${threshold}` };
+  if (base.upper < threshold) return { ...base, state: 'fail', why: `the whole interval is below ${threshold}` };
+  return { ...base, state: 'insufficient', why: `the interval spans ${threshold} — more pairs are needed to decide` };
+}
+
+module.exports = {
+  verdictFor, computeICC21, iccTwoRater, iccTwoWay, iccTwoWayAverage, iccOneWay, raterCounts };

@@ -35,6 +35,8 @@ const ChatSchema = z.object({
   // are latches (a session does not un-qualify). Without them the classifier would re-run on every
   // turn past the fourth, roughly doubling the AI cost of a long, good session.
   rescue_active: z.boolean().default(false),
+  // Rounds this rescue has already run. RIMPL is stateless, so the spend cap cannot live here alone.
+  rescue_rounds: z.number().int().min(0).default(0),
   already_qualified: z.boolean().default(false),
 });
 
@@ -64,7 +66,7 @@ router.post('/', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { history, message, language, chief_complaint, patient_ref, socratic, artifacts,
-          rescue_active, already_qualified } = parsed.data;
+          rescue_active, already_qualified, rescue_rounds } = parsed.data;
   // KNOWN patient identifiers to scrub deterministically (closes the bare-unlabelled-name leak).
   const hints = deriveHintTokens(patient_ref);
   // Examiner mode (CLE2 / remediation) leads with Socratic questioning and MUST end on ❓; natural
@@ -87,7 +89,7 @@ router.post('/', async (req, res) => {
     // proceeds as a normal reply: a missed rescue costs one scaffolding nudge, whereas failing the
     // request would cost the physician their turn over an advisory signal. It is logged, not raised.
     let rescue = null;
-    if (shouldAssess({ history, socraticActive: socratic, rescueActive: rescue_active, alreadyQualified: already_qualified })) {
+    if (shouldAssess({ history, socraticActive: socratic, rescueActive: rescue_active, alreadyQualified: already_qualified, rescueRounds: rescue_rounds })) {
       try {
         // Include the turn just sent — the physician may have qualified the session WITH this
         // message, and rescuing them for a gap they have already closed would be plainly wrong.
@@ -95,16 +97,47 @@ router.post('/', async (req, res) => {
           flattenForPrompt([...history, { role: 'physician', content: cleanMessage }], hints));
         const decision = rescueDecision(assessed);
         rescue = {
-          activated: decision.rescue,
+          // First activation, distinct from a later round of an ongoing rescue. The backend stamps
+          // the activation POINT from this and must never move it, so the two cannot share a flag.
+          activated: decision.rescue && !rescue_active,
+          // This round actually ran under the rescue prompt — the condition the post-check and the
+          // citation skip both key off, and true on continuing rounds as well as the first.
+          rescuing: decision.rescue,
+          // The session came back. This is the "return to PLE eligibility" the analysis plan asks
+          // for, and it was unobservable while a rescued session was assessed only once.
+          recovered: rescue_active && !decision.rescue,
           reason: decision.reason,
           elements: assessed.elements,
           on_topic: assessed.onTopic,
           qualifying: assessed.qualifying,
           exchanges_before: history.filter(m => m.role === 'physician' || m.role === 'user').length,
+          // Reported so the backend can charge it to the STUDY rather than the physician. These
+          // tokens were returned by the classifier all along and simply thrown away, which made the
+          // spend invisible — fine at one call per session, not fine at one per round.
+          assessment: {
+            input_tokens: assessed.inputTokens ?? 0,
+            output_tokens: assessed.outputTokens ?? 0,
+            provider: assessed.provider ?? null,
+          },
         };
         if (decision.rescue) systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE;
       } catch (e) {
         console.error('[RIMPL chat] rescue assessment failed, continuing as a normal turn:', e.message);
+        // A malformed classifier reply was still BILLED. Report the usage even though the assessment
+        // is unusable, or the study's cost record drifts below what was actually spent — and under
+        // an active rescue the next turn buys another one.
+        if (e.usage) {
+          rescue = {
+            activated: false, rescuing: false, recovered: false, reason: null,
+            elements: null, on_topic: null, qualifying: null,
+            exchanges_before: history.filter(m => m.role === 'physician' || m.role === 'user').length,
+            assessment: {
+              input_tokens: e.usage.inputTokens ?? 0,
+              output_tokens: e.usage.outputTokens ?? 0,
+              provider: e.usage.provider ?? null,
+            },
+          };
+        }
       }
     }
 
@@ -114,7 +147,7 @@ router.post('/', async (req, res) => {
     // A rescue turn asks questions and deliberately gives no answer, so it has nothing to cite and
     // the citation retry does not apply — running it would prompt the model to answer, which is the
     // one thing the rescue must not do.
-    const rescuing = !!rescue?.activated;
+    const rescuing = !!rescue?.rescuing;   // EVERY rescue round, not only the first
 
     // Retry once if a citation is missing (both modes), or — examiner mode only — the ❓ is missing.
     if (!rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)))) {
@@ -160,7 +193,9 @@ router.post('/', async (req, res) => {
       // Advisory, for the backend to persist: which turn the rescue fired on, why, and whether the
       // reply actually honoured the protocol's constraints. The SAP analyses trigger rate and
       // activation point, so an unrecorded rescue is a lost data point.
-      rescue: rescue && { ...rescue, reply_check: rescue.activated ? checkRescueReply(text) : null },
+      // Post-checked on every round that ran under the rescue prompt. Checking only the first round
+      // left rounds two onward of a rescued session governed by no constraint at all.
+      rescue: rescue && { ...rescue, reply_check: rescue.rescuing ? checkRescueReply(text) : null },
     });
   } catch (err) {
     console.error('[RIMPL chat] error:', err);
