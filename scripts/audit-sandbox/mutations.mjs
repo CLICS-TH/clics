@@ -214,6 +214,15 @@ export const MUTATIONS = [
     suite: '__tests__/theme-tokens.test.ts',
   },
   {
+    id: 'theme/contrast-holds-on-a-card',
+    why: 'A muted token that clears AA on the canvas can still fail on a card — 4.48:1, live on the reflection form.',
+    file: 'physician-ui/public/css/main.css',
+    find: '  --muted:           #6b6964;',
+    replace: '  --muted:           #6c6a64;',
+    dir: 'audit-dashboard',
+    suite: '__tests__/contrast.test.ts',
+  },
+  {
     id: 'mirror/anchor-vocabulary',
     why: 'Three copies of one triple: the buttons, the zod enum, and a SQL CHECK. Drift is invisible until a rater submits.',
     file: 'audit-dashboard/components/DomainScorer.tsx',

@@ -9,7 +9,7 @@
   /* Text */
   --ink:             #141413;
   --body-color:      #3d3d3a;
-  --muted:           #6c6a64;
+  --muted:           #6b6964;
   --muted-soft:      #6b6964;   /* 4.6:1 on the canvas was not enough — it also lands on
                                    --surface-card, where #74716a read 4.03:1. 4.54:1 there now,
                                    4.83:1 on --surface-soft, 5.20:1 on the canvas. */
@@ -33,7 +33,6 @@
   --coral-press:     #8a462f;   /* white 7.01:1 */
   --error-hover:     #a83636;   /* white 6.47:1 */
   --finish-hover:    #175a4d;   /* white 8.06:1 */
-  --muted-strong:    #6b6964;   /* --muted is 4.48:1 on --surface-card; this is 4.54:1 */
   --coral-disabled:  #e6dfd8;
   --coral-ring:      rgba(204,120,92,0.15);
 
@@ -124,7 +123,6 @@
   --coral-press:     #f3d3c6;   /* dark ink 12.70:1 */
   --error-hover:     #e98080;   /* dark ink 6.68:1 */
   --finish-hover:    #7cc4b6;   /* dark ink 8.86:1 */
-  --muted-strong:    #a09d96;   /* 5.79:1 on --surface-card */
   --coral-disabled:  #3a352f;
   --coral-ring:      rgba(217,141,114,0.22);
 
@@ -192,7 +190,7 @@ h1, h2, h3 {
 .badge-cle_pass   { background:var(--success-bg); color:var(--success-text); }
 .badge-cle_fail_t1{ background:var(--error-bg);   color:var(--error-text); }
 .badge-cle_flag_t2{ background:var(--warning-bg); color:var(--warning-text); }
-.badge-ended      { background:var(--surface-card); color:var(--muted-strong); }  /* --muted is 4.48:1 on this surface */
+.badge-ended      { background:var(--surface-card); color:var(--muted); }  /* --muted is 4.48:1 on this surface */
 
 /* Buttons */
 .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; text-align:center; padding:10px 20px; border:none; border-radius:var(--r-md); font-size:14px; font-weight:600; cursor:pointer; text-decoration:none; transition:background .15s, opacity .15s, transform .15s, box-shadow .15s; }
@@ -307,7 +305,7 @@ body:has(.chat-page) nav { flex:none; }
 
 /* Sources — a labelled card with chip-style citations (clearer than a thin inline line) */
 .msg-refs { margin-top:16px; padding-top:12px; border-top:1px dashed var(--hairline); font-size:12.5px; color:var(--muted); }
-.msg-refs .refs-label { display:inline-flex; align-items:center; gap:6px; font-weight:600; color:var(--muted-strong); text-transform:uppercase; letter-spacing:.6px; font-size:12px; margin-bottom:8px; }
+.msg-refs .refs-label { display:inline-flex; align-items:center; gap:6px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; font-size:12px; margin-bottom:8px; }
 .msg-refs .refs-label svg { width:13px; height:13px; }
 .msg-refs .refs-chips { display:flex; flex-wrap:wrap; gap:6px; }
 .msg-refs .ref-chip { display:inline-flex; align-items:center; gap:5px; background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--r-pill); padding:3px 11px; font-style:normal; color:var(--body-color); font-size:12px; max-width:100%; overflow-wrap:anywhere; }
