@@ -40,9 +40,10 @@ const shadowRow = (cle_id, composite, domain, extra = {}) => row(cle_id, composi
 // `corpus: {scored, failed}` answers the CORPUS-WIDE contract-rate counts — the head/count queries
 // the route issues for the chosen candidate, unscoped by audit status. Defaults mirror `shadow`, so
 // suites that don't care about the distinction behave as before.
-function tables({ audit = [], ai = [], cles = [], shadow = [], corpus = null }) {
+function tables({ audit = [], ai = [], cles = [], shadow = [], corpus = null, settings = [] }) {
   m.state.resolve = (table, kind, ctx) => {
     if (kind !== 'list') return undefined;
+    if (table === 'app_settings') return settings;   // the configured ICC gates; [] = code defaults
     if (table === 'audit_scores') return audit;
     if (table === 'ai_evaluations') return ai;
     if (table === 'cles') return cles;
@@ -287,7 +288,7 @@ describe('missing shadow_evaluations table', () => {
     tables({ audit: [], ai: [], cles: [] });
     const r = await auth(request(app).get('/oversight/icc/three-way'));
     expect(r.status).toBe(200);
-    expect(r.body.arms.ai_vs_human).toEqual({ overall: null, per_domain: Object.fromEntries(D.map((d) => [d, null])), n: 0 });
+    expect(r.body.arms.ai_vs_human).toEqual({ overall: null, per_domain: Object.fromEntries(D.map((d) => [d, null])), n: 0, verdict: null });
     expect(r.body.arms.shadow_vs_human).toBeNull();
     expect(r.body.shadow.available).toBe(false);
   });
@@ -394,5 +395,81 @@ describe('iccTwoRater', () => {
   test('degenerate + too-few-pairs behaviour is unchanged', () => {
     expect(iccTwoRater([{ a: 1, b: 1 }])).toBeNull();
     expect(iccTwoRater([{ a: 3, b: 3 }, { a: 3, b: 3 }]).interpretation).toMatch(/insufficient variance/i);
+  });
+});
+
+
+// A number without a verdict is a judgement the reader has to make, and different readers make it
+// differently. These pin the verdict onto the response — most of all the third state, which is what
+// stops a threshold being declared met on a sample too small to support it. The boundary arithmetic
+// itself lives in tests/icc-verdict.test.js.
+describe('agreement verdicts', () => {
+  const scored = {
+    audit: [row('c1', 80, 4), row('c2', 60, 3)],
+    ai: [row('c1', 82, 4), row('c2', 58, 3)],
+    cles: [{ id: 'c1', is_test: false }, { id: 'c2', is_test: false }],
+    shadow: [shadowRow('c1', 79, 4), shadowRow('c2', 61, 3)],
+  };
+
+  test('the two stages are named, so a reader need not know which arm answers which question', async () => {
+    m.state.caller = ANALYST;
+    tables(scored);
+    const r = await auth(request(app).get('/oversight/icc/three-way'));
+
+    // Screening can reject a candidate before a single human rater exists; only the decisive stage
+    // can accept one, because the human raters are the reference standard and the incumbent is not.
+    expect(r.body.gates.screening.arm).toBe('ai_vs_shadow');
+    expect(r.body.gates.decisive.arm).toBe('shadow_vs_human');
+  });
+
+  test('every arm carries its own verdict, against the threshold it is judged by', async () => {
+    m.state.caller = ANALYST;
+    tables(scored);
+    const r = await auth(request(app).get('/oversight/icc/three-way'));
+    for (const k of ['ai_vs_human', 'shadow_vs_human', 'ai_vs_shadow']) {
+      expect(r.body.arms[k].verdict).toMatchObject({ threshold: 0.75, state: expect.any(String) });
+    }
+  });
+
+  test('two pairs cannot decide anything — insufficient, and NOT a fail', async () => {
+    // Reporting this as `fail` would read as evidence against the candidate. There is none yet.
+    m.state.caller = ANALYST;
+    tables(scored);
+    const r = await auth(request(app).get('/oversight/icc/three-way'));
+    expect(r.body.gates.decisive.state).toBe('insufficient');
+  });
+
+  test('with no candidate corpus the gates still answer, rather than vanishing', async () => {
+    m.state.caller = ANALYST;
+    tables({ ...scored, shadow: [] });
+    const r = await auth(request(app).get('/oversight/icc/three-way'));
+    expect(r.body.arms.shadow_vs_human).toBeNull();
+    // The arm degrades to null; the QUESTION does not. "We have not measured this" is an answer.
+    expect(r.body.gates.decisive.state).toBe('insufficient');
+    expect(r.body.gates.screening.state).toBe('insufficient');
+  });
+
+  test('the thresholds are configuration, not literals', async () => {
+    m.state.caller = ANALYST;
+    tables({ ...scored, settings: [{ key: 'icc_gate_screening', value: 0.6 }, { key: 'icc_gate_decisive', value: 0.85 }] });
+    const r = await auth(request(app).get('/oversight/icc/three-way'));
+    expect(r.body.gates.screening.threshold).toBe(0.6);
+    expect(r.body.gates.decisive.threshold).toBe(0.85);
+  });
+
+  test('a nonsense configured threshold falls back to the code default', async () => {
+    m.state.caller = ANALYST;
+    tables({ ...scored, settings: [{ key: 'icc_gate_decisive', value: 42 }] });
+    const r = await auth(request(app).get('/oversight/icc/three-way'));
+    expect(r.body.gates.decisive.threshold).toBe(0.75);
+  });
+
+  test('no audit scores at all still answers both gates', async () => {
+    m.state.caller = ANALYST;
+    tables({});
+    const r = await auth(request(app).get('/oversight/icc/three-way'));
+    expect(r.status).toBe(200);
+    expect(r.body.gates.screening.state).toBe('insufficient');
+    expect(r.body.gates.decisive.state).toBe('insufficient');
   });
 });

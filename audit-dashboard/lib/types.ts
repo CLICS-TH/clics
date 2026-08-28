@@ -241,10 +241,25 @@ export interface PaymentInfo {
 // superadmin ONLY; see components/ThreeWayIcc.tsx for the blinding rule). One arm = one two-rater
 // ICC(2,1) comparison; every arm is computed by the backend on the SAME set of CLEs (those carrying
 // all three scores) so the arms are actually comparable, and each still reports its own n.
+// The server's judgement of one arm against its configured threshold. `insufficient` is NOT a
+// variant of `fail`: it means the interval spans the threshold (or could not be formed at all), so
+// the data cannot answer the question yet. Reading it as a failure would present the absence of
+// evidence as evidence against.
+export type IccVerdictState = 'pass' | 'fail' | 'insufficient';
+export interface IccVerdict {
+  state: IccVerdictState;
+  threshold: number;
+  icc: number | null;
+  lower: number | null;
+  upper: number | null;
+  n: number;
+  why: string;
+}
 export interface ThreeWayArm {
   overall: IccStat;
   per_domain?: Record<string, IccStat>;
   n: number;
+  verdict?: IccVerdict | null;
 }
 // Honest denominators. `shadow_failed` counts shadow_evaluations rows that carry an `error` and no
 // scores — excluded from every ICC, but a first-class result in their own right; a candidate model

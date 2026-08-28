@@ -5,7 +5,8 @@ const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { sendDbError, pageParams } = require('../lib/db-helpers');
-const { computeICC21, iccTwoRater } = require('../services/icc');
+const { computeICC21, iccTwoRater, verdictFor } = require('../services/icc');
+const { iccGates } = require('../lib/settings');
 
 const router = Router();
 router.use(verifyJwt, requireRole('analyst', 'ethics', 'superadmin'));
@@ -84,10 +85,11 @@ function isMissingRelation(error) {
   return msg.includes('does not exist') || msg.includes('could not find the table') || msg.includes('schema cache');
 }
 
-const emptyArm = () => ({ overall: null, per_domain: Object.fromEntries(ICC_DOMAINS.map(d => [d, null])), n: 0 });
+const emptyArm = () => ({ overall: null, per_domain: Object.fromEntries(ICC_DOMAINS.map(d => [d, null])), n: 0, verdict: null });
 
 router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), async (req, res) => {
   const includeTest = req.query.include_test === 'true';
+  const gates = await iccGates();
 
   // SCOPE. Every number below is computed over the AUDITED universe — CLEs carrying at least one
   // auditor score, after the same is_test filter GET /icc uses. That bounds the queries identically
@@ -105,6 +107,10 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
       arms: { ai_vs_human: emptyArm(), shadow_vs_human: null, ai_vs_shadow: null },
       coverage: { cles_with_human: 0, cles_with_ai: 0, cles_with_shadow: 0, cles_all_three: 0, shadow_failed: 0, shadow_contract_rate: null },
       shadow: { available: false, provider: null, model_version: null },
+      gates: {
+        screening: { arm: 'ai_vs_shadow', ...verdictFor(null, gates.screening) },
+        decisive: { arm: 'shadow_vs_human', ...verdictFor(null, gates.decisive) },
+      },
     });
   }
   const scoredIds = [...new Set(auditScores.map(a => a.cle_id))];
@@ -192,7 +198,7 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
   const allThree = withAi.filter(id => shadowBy.has(id));
   const compareIds = shadowAvailable ? allThree : withAi;
 
-  const arm = (ids, pick) => {
+  const arm = (ids, pick, threshold) => {
     // Defensive: compareIds is already the intersection, so nothing is dropped here today. But an
     // async handler that throws never sends a response at all (no error middleware on this router) —
     // the client just hangs. A future edit that widens the id set should cost an honest, smaller n,
@@ -200,18 +206,33 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
     const pairs = ids.map(pick).filter(p => p.a && p.b);
     const per_domain = {};
     for (const d of ICC_DOMAINS) per_domain[d] = iccTwoRater(pairs.map(p => ({ a: Number(p.a[d]), b: Number(p.b[d]) })));
+    const overall = iccTwoRater(pairs.map(p => ({ a: Number(p.a.composite_score), b: Number(p.b.composite_score) })));
     return {
-      overall: iccTwoRater(pairs.map(p => ({ a: Number(p.a.composite_score), b: Number(p.b.composite_score) }))),
+      overall,
       per_domain,
       n: pairs.length,
+      // The composite is what the gate is defined against, so the verdict reads `overall` and not the
+      // per-domain figures — a domain clearing the bar while the composite does not is a finding to
+      // report, never a pass.
+      verdict: verdictFor(overall, threshold),
     };
   };
 
+  // Both human-referenced arms are judged against the DECISIVE bar, because that is the comparison
+  // that matters: the human raters are the reference standard, and it is the same question asked of
+  // the incumbent and the candidate. Only candidate-vs-incumbent uses the screening bar.
+  const aiVsHuman = arm(compareIds, id => ({ a: aiBy.get(id), b: humanBy.get(id) }), gates.decisive);
+  const shadowVsHuman = shadowAvailable ? arm(compareIds, id => ({ a: shadowBy.get(id), b: humanBy.get(id) }), gates.decisive) : null;
+  const aiVsShadow = shadowAvailable ? arm(compareIds, id => ({ a: aiBy.get(id), b: shadowBy.get(id) }), gates.screening) : null;
+
   res.json({
-    arms: {
-      ai_vs_human: arm(compareIds, id => ({ a: aiBy.get(id), b: humanBy.get(id) })),
-      shadow_vs_human: shadowAvailable ? arm(compareIds, id => ({ a: shadowBy.get(id), b: humanBy.get(id) })) : null,
-      ai_vs_shadow: shadowAvailable ? arm(compareIds, id => ({ a: aiBy.get(id), b: shadowBy.get(id) })) : null,
+    arms: { ai_vs_human: aiVsHuman, shadow_vs_human: shadowVsHuman, ai_vs_shadow: aiVsShadow },
+    // The two stages of the candidate decision, lifted out of the arms so a reader does not have to
+    // know which arm answers which question. Screening can reject a candidate before a single human
+    // rater exists; only the decisive stage can accept one.
+    gates: {
+      screening: { arm: 'ai_vs_shadow', ...verdictFor(aiVsShadow?.overall ?? null, gates.screening) },
+      decisive: { arm: 'shadow_vs_human', ...verdictFor(shadowVsHuman?.overall ?? null, gates.decisive) },
     },
     coverage: {
       cles_with_human: humanBy.size,
