@@ -24,6 +24,10 @@ const { detectIntegritySignals } = require('./integrity');
 const DETECTOR_SIGNALS = [
   'F1_NEAR_DUPLICATE', 'F2_CROSS_SESSION_REUSE', 'F3_PASTE_BURST',
   'F4_COMPOSITION_RATE', 'F5_LATENCY_UNIFORMITY',
+  // Listed even though it ships disabled. A signal that is enabled, writes flags, and is then
+  // switched off must have its old rows cleared by the next sweep; omitting it here would strand
+  // them permanently, and a stale accusation is worse than none.
+  'F6_REGISTER_DISCONTINUITY',
 ];
 
 /**

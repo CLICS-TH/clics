@@ -55,12 +55,13 @@ export function useIsMobile() {
   return forcedMobile || (!forcedDesktop && isNarrow);
 }
 
-// Like useIsMobile, but with the wider ~1535px nav threshold: the NavBar collapses its full bilingual
-// row to the hamburger below this width (and in forced-mobile) so the labels can never wrap. Respects
-// the forced desktop/mobile toggle exactly like useIsMobile.
-export function useIsNavCompact() {
+// Like useIsMobile, but with the nav threshold: the NavBar collapses its full bilingual row to the
+// hamburger below the width that row actually needs (and in forced-mobile) so the labels can never
+// wrap. The threshold is DERIVED from `linkCount` rather than fixed — see navRowWidthPx in
+// lib/client-store.ts for why a constant here was the bug. Respects the forced toggle like useIsMobile.
+export function useIsNavCompact(linkCount: number) {
   const { forcedMobile, forcedDesktop } = useViewport();
-  const navNarrow = useIsNavNarrow();
+  const navNarrow = useIsNavNarrow(linkCount);
   return forcedMobile || (!forcedDesktop && navNarrow);
 }
 

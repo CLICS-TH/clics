@@ -3,7 +3,7 @@
 // a mount effect" (which the react-hooks/set-state-in-effect lint rightly flags as a cascading
 // render). getServerSnapshot makes SSR + first-client render agree, so no manual `mounted` gate and
 // no hydration mismatch — React swaps to the live value after hydration.
-import { useSyncExternalStore } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import { getUser, type ClicsUser } from '@/lib/auth';
 
 // --- auth (clics_user in localStorage) ---------------------------------------
@@ -60,19 +60,57 @@ export function useIsTableNarrow(): boolean {
   return useSyncExternalStore(tableNarrowSubscribe, tableNarrowSnapshot, () => false);
 }
 
-// The desktop nav's full row (8 bilingual links + identity + role badge + 2 toggles + logout) needs
-// ~1536px to fit on ONE line; below that the NavBar collapses to the hamburger (see useIsNavCompact)
-// so the labels never wrap. Deliberately separate from the 767px table↔card breakpoint above.
-const NAV_COMPACT_MQ = '(max-width: 1535px)';
-function navCompactSubscribe(cb: () => void) {
-  const mq = window.matchMedia(NAV_COMPACT_MQ);
-  mq.addEventListener('change', cb);
-  return () => mq.removeEventListener('change', cb);
+/*
+ * How wide the desktop nav row must be before it may render inline.
+ *
+ * THIS USED TO BE A CONSTANT AND THAT IS EXACTLY HOW IT BROKE. The old value was
+ * `(max-width: 1535px)`, with a comment reading "8 bilingual links + identity + role badge + 2
+ * toggles + logout needs ~1536px". That was true when it was written. The roster then grew to 9
+ * links for admin and 14 for superadmin, and nothing re-derived the number — so above 1535px both
+ * roles rendered a row far wider than the viewport, pushing the identity cluster off-screen and
+ * scrolling the whole page sideways on every monitor anybody actually owns. A fixed threshold
+ * cannot survive a roster that grows, so the threshold is now DERIVED from the link count.
+ *
+ * The two constants below were measured against the built app (Playwright, both label languages
+ * rendered, the widest identity block), by binary-searching the narrowest viewport at which
+ * `nav > div` reports no overflow:
+ *
+ *     2 links → fits at ≤1536px      8 links → 2060px      13 links → 2976px
+ *
+ * which is 183px per link over 594px of fixed chrome (the CLICS wordmark, the identity block, the
+ * role badge, both toggles and logout). Rounded UP in both terms, because Thai label widths vary
+ * per item and the two errors are not symmetric: too cautious costs a hamburger, too eager costs a
+ * sideways-scrolling page.
+ *
+ * Counting matters here and got it wrong once already — the first fit of these constants counted
+ * `nav a[href^="/"]`, which includes the wordmark's link to /home, so every count was one too high
+ * and the model came out ~100px under. `linkCount` is the ROSTER length; the wordmark is chrome.
+ */
+export const NAV_CHROME_PX = 620;
+export const NAV_PER_LINK_PX = 190;
+/** The narrowest viewport that fits `n` bilingual links on one line. */
+export const navRowWidthPx = (n: number) => NAV_CHROME_PX + n * NAV_PER_LINK_PX;
+
+// One matchMedia list per required width, cached so useSyncExternalStore sees a stable subscribe
+// for a stable link count and does not resubscribe on every render.
+const navMqCache = new Map<number, MediaQueryList>();
+function navMq(requiredPx: number): MediaQueryList {
+  let mq = navMqCache.get(requiredPx);
+  if (!mq) { mq = window.matchMedia(`(max-width: ${requiredPx - 1}px)`); navMqCache.set(requiredPx, mq); }
+  return mq;
 }
-function navCompactSnapshot(): boolean {
-  return window.matchMedia(NAV_COMPACT_MQ).matches;
-}
-/** True when the viewport is ≤1535px (too narrow for the full bilingual nav row). false on the server. */
-export function useIsNavNarrow(): boolean {
-  return useSyncExternalStore(navCompactSubscribe, navCompactSnapshot, () => false);
+
+/**
+ * True when the viewport is too narrow for a nav row of `linkCount` bilingual links — i.e. the
+ * NavBar must collapse to the hamburger so the labels never wrap. false on the server.
+ */
+export function useIsNavNarrow(linkCount: number): boolean {
+  const requiredPx = navRowWidthPx(linkCount);
+  const subscribe = useCallback((cb: () => void) => {
+    const mq = navMq(requiredPx);
+    mq.addEventListener('change', cb);
+    return () => mq.removeEventListener('change', cb);
+  }, [requiredPx]);
+  const snapshot = useCallback(() => navMq(requiredPx).matches, [requiredPx]);
+  return useSyncExternalStore(subscribe, snapshot, () => false);
 }

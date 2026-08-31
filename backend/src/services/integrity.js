@@ -85,7 +85,153 @@ const SIGNALS = {
   // variation over 4 samples is noise, not rhythm. At min_turns 7 (>= 6 gaps) it fires on ZERO of
   // the 27 real sessions, which is the calibration target.
   F5_LATENCY_UNIFORMITY: { min_turns: 7, max_cv: 0.08, enabled: true },
+
+  // One turn that does not write like the rest of this physician's own turns.
+  //
+  // WHY WITHIN-SUBJECT. Every "does this read like a machine" test applied to a POPULATION punishes
+  // whoever writes most formally, and there is no way to argue with it. Comparing a physician only
+  // against themselves removes that: the claim is not "you write like a machine", it is "this turn
+  // does not write like your other forty". A physician who always writes in polished paragraphs has
+  // a baseline of polished paragraphs and never fires.
+  //
+  // DEFAULT OFF, and it must stay off until it is measured the way F1 and F5 were — against real
+  // non-test sessions, with the false-positive rate written down here. scripts/integrity/
+  // calibrate-f6.mjs produces exactly that table. A threshold nobody has checked against data is a
+  // threshold that will eventually accuse a physician of something they did not do.
+  F6_REGISTER_DISCONTINUITY: {
+    min_chars: 400,        // only substantial turns; a one-liner has no style to measure
+    min_baseline: 8,       // fewer of the physician's own turns than this and there is no baseline
+    z: 3.5,                // robust (MAD-based) deviations before a feature counts as shifted
+    min_features: 2,       // one shifted feature is noise; two independent ones is a pattern
+    enabled: false,
+  },
 };
+
+/* ==============================================================================================
+ * GENRE COUNTERS — what a pasted turn LOOKS LIKE, reported as evidence and never as a verdict.
+ *
+ * THE PROBLEM THEY ADDRESS. F3 fires on "a large turn arrived too fast to have been typed" and
+ * stops there, so the reader of a flag cannot tell the two very different things that produce it:
+ * a physician pasting clinical DATA, and a physician pasting REASONING they did not do. PIS-7
+ * scores reasoning, so only the second is misconduct — and F3 currently describes them identically.
+ *
+ * WHY THIS IS TRACTABLE AT ALL. The two genres do not resemble each other. A case note is dense in
+ * numbers, units and lab tokens and carries almost no discourse structure. Generated prose is the
+ * reverse: enumerators, balancing connectives, summary markers, and — the highest-precision tell of
+ * all — Markdown, which a person typing into a plain <textarea> essentially never produces.
+ *
+ * A NOTE ON THE SCHEMA, because it changes how F3 should be read. The case presentation is NOT a
+ * message: it is `cles.chief_complaint`, written once at creation (routes/cles.js), and no message
+ * row is inserted then. So the single most common legitimate paste never passes through the stream
+ * F3 watches. What remains in-stream is supplementary data (a lab that just returned) or reasoning.
+ *
+ * WHY COUNTERS AND NOT A CLASSIFIER. A threshold here would be a threshold nobody has calibrated,
+ * which this file's own rules forbid. These numbers are printed beside the flag so a human can see
+ * which genre they are looking at. Nothing branches on them, no severity moves, no new flag is
+ * raised. If they are ever promoted to a signal, they go through the same measurement F1 and F5
+ * went through, and default to off until they pass it.
+ * ============================================================================================== */
+
+// Units and lab tokens that appear in charted data and almost nowhere else. Case-insensitive.
+const CLINICAL_TOKENS = new RegExp(
+  '\\b(?:mg|mcg|ug|ml|l|kg|g|mmhg|mmol|mEq|meq|iu|bpm|dl|mg/dl|g/dl|mmol/l|meq/l)\\b'
+  + '|\\b(?:hb|hct|wbc|plt|cr|bun|na|k|cl|hco3|egfr|ldl|hdl|tg|hba1c|ef|bp|hr|rr|spo2|o2sat'
+  + '|cbc|lft|ast|alt|inr|ptt|trop|bnp|cxr|ekg|ecg|ua|abg)\\b'
+  + '|\\b\\d+\\s*(?:%|°c|celsius)', 'gi');
+
+/*
+ * Discourse markers chosen for SKEW, not frequency. Ordinary Thai clinical writing uses ดังนั้น and
+ * เนื่องจาก freely, so those are deliberately absent: including them would count normal prose.
+ * What is here is the scaffolding of an essay — enumeration, explicit balancing, summing up, and
+ * meta-commentary about the answer being given.
+ */
+const DISCOURSE_MARKERS = new RegExp(
+  'ประการแรก|ประการที่สอง|ประการที่สาม|ประการสุดท้าย'
+  + '|อย่างไรก็ตาม|ในทางกลับกัน|ในทางตรงกันข้าม'
+  + '|โดยสรุป|สรุปได้ว่า|กล่าวโดยสรุป'
+  + '|สิ่งสำคัญคือ|ข้อควรระวังคือ|ควรพิจารณา(?:ว่า|ถึง)|จำเป็นต้องคำนึงถึง'
+  + '|นอกจากนี้|อีกทั้ง|ยิ่งไปกว่านั้น'
+  + '|\\b(?:first|second|third|finally|however|additionally|moreover|furthermore'
+  + '|in summary|in conclusion|overall|on the other hand|that said)\\b'
+  + "|\\bit(?:'s| is) important to\\b|\\bkeep in mind\\b|\\bit(?:'s| is) worth noting\\b", 'gi');
+
+/**
+ * Counters over one turn. Densities are per 100 characters so long and short turns compare.
+ * Reported verbatim in F3's evidence; nothing in this file branches on them.
+ */
+function genreProfile(text) {
+  const t = String(text ?? '');
+  const chars = t.length;
+  if (!chars) return { chars: 0, clinical_density: 0, discourse_density: 0, markdown_marks: 0, digit_density: 0 };
+  const per100 = (n) => Math.round((n / chars) * 100 * 100) / 100;
+
+  // Markdown is the highest-precision tell here: a plain textarea produces none of it by accident.
+  const md = (t.match(/\*\*[^*]+\*\*/g) || []).length
+    + (t.match(/^\s*[-*]\s+\S/gm) || []).length
+    + (t.match(/^\s*\d+\.\s+\S/gm) || []).length
+    + (t.match(/^\s*#{2,}\s+\S/gm) || []).length;
+
+  return {
+    chars,
+    digit_density: per100((t.match(/\d/g) || []).length),
+    clinical_density: per100((t.match(CLINICAL_TOKENS) || []).length),
+    discourse_density: per100((t.match(DISCOURSE_MARKERS) || []).length),
+    markdown_marks: md,
+  };
+}
+
+/*
+ * A style vector, deliberately CHARACTER-level.
+ *
+ * Sentence-length statistics are the obvious choice and they are wrong here: Thai does not delimit
+ * sentences with periods, so any sentence splitter degrades to "one sentence" on Thai text and the
+ * feature silently becomes a constant. Every feature below is a density over characters, which
+ * behaves identically in Thai and Latin script.
+ *
+ * `punct` and `latin` are included because they move for reasons unrelated to the others — pasted
+ * generated text tends to carry heavier punctuation and, in this pilot, more English.
+ */
+function styleVector(text) {
+  const t = String(text ?? '');
+  const chars = t.length || 1;
+  const g = genreProfile(t);
+  const per100 = (n) => Math.round((n / chars) * 100 * 100) / 100;
+  return {
+    discourse: g.discourse_density,
+    markdown: per100(g.markdown_marks),
+    digits: g.digit_density,
+    clinical: g.clinical_density,
+    punct: per100((t.match(/[,;:()"'—–]/g) || []).length),
+    latin: per100((t.match(/[A-Za-z]/g) || []).length),
+  };
+}
+const STYLE_KEYS = ['discourse', 'markdown', 'digits', 'clinical', 'punct', 'latin'];
+
+const median = (xs) => {
+  if (!xs.length) return 0;
+  const a = [...xs].sort((p, q) => p - q); const m = a.length >> 1;
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+};
+
+/*
+ * Robust z: median and MAD, not mean and SD. The whole point is to detect ONE outlier, and an
+ * outlier inflates the SD it is being measured against — a mean/SD version hides exactly the turn
+ * this signal exists to find.
+ *
+ * The denominator floor matters as much as the statistic. When a physician has never used Markdown,
+ * the MAD of that feature is 0 and any non-zero value divides to Infinity. That is the RIGHT
+ * conclusion (twelve Markdown marks from someone who has produced none in forty turns is the
+ * signal) but it must not also fire on a rounding artifact, so the floor is a real, per-feature
+ * amount rather than an epsilon.
+ */
+const MAD_FLOOR = { discourse: 0.15, markdown: 0.15, digits: 0.5, clinical: 0.3, punct: 0.5, latin: 1.0 };
+
+function robustZ(value, baseline, key) {
+  const med = median(baseline);
+  const mad = median(baseline.map((x) => Math.abs(x - med)));
+  const scale = Math.max(1.4826 * mad, MAD_FLOOR[key]);
+  return Math.abs(value - med) / scale;
+}
 
 const seconds = (a, b) => Math.abs(new Date(a) - new Date(b)) / 1000;
 
@@ -160,7 +306,11 @@ function detectIntegritySignals(messages, priorTurns = [], cfg = {}) {
         // Pasting a real (de-identified) case note looks exactly like this, so it is never 'high'
         // on its own. It is a reason to read the transcript, not a conclusion about the physician.
         severity: 'low',
-        evidence: { turn_index: i + 1, token_count: tokens, gap_seconds: Math.round(gap * 10) / 10 },
+        // The genre counters do not change this verdict — there is none. They let whoever reads
+        // the flag see whether they are looking at pasted DATA or pasted REASONING, which is the
+        // distinction that decides whether anything is wrong at all.
+        evidence: { turn_index: i + 1, token_count: tokens, gap_seconds: Math.round(gap * 10) / 10,
+          genre: genreProfile(m.content) },
       });
     }
 
@@ -199,6 +349,52 @@ function detectIntegritySignals(messages, priorTurns = [], cfg = {}) {
     }
   }
 
+  // --- F6: one turn that does not write like this physician's other turns ----------------------
+  // The baseline is the physician's OWN turns — their other sessions plus the rest of this one.
+  // Reads raw PII by design, exactly as F2 does; the constraint at the top of this file applies.
+  const F6 = C.F6_REGISTER_DISCONTINUITY;
+  if (F6 && F6.enabled !== false) {
+    const baselineTexts = [
+      ...(priorTurns ?? []).map((p) => p.content),
+      ...turns.map((t) => t.content),
+    ].filter((x) => String(x ?? '').length >= 40);
+
+    if (baselineTexts.length >= F6.min_baseline) {
+      const baseVecs = baselineTexts.map(styleVector);
+      for (let i = 0; i < turns.length; i++) {
+        const text = String(turns[i].content ?? '');
+        if (text.length < F6.min_chars) continue;
+        const v = styleVector(text);
+        // This turn is IN the baseline; leaving it there lets a long enough outlier drag its own
+        // median and hide itself. Compare against the others only.
+        const others = baseVecs.filter((_, k) => baselineTexts[k] !== text);
+        if (others.length < F6.min_baseline) continue;
+
+        const shifted = STYLE_KEYS
+          .map((k) => ({ feature: k, z: robustZ(v[k], others.map((o) => o[k]), k), value: v[k] }))
+          .filter((f) => f.z >= F6.z);
+
+        if (shifted.length >= F6.min_features) {
+          flags.push({
+            signal: 'F6_REGISTER_DISCONTINUITY',
+            // Never 'high'. A style shift has innocent causes — quoting a guideline, switching to
+            // English, pasting a table — and this signal cannot tell those from the one that
+            // matters. It buys a human read, nothing more.
+            severity: shifted.length >= 4 ? 'medium' : 'low',
+            evidence: {
+              turn: i + 1,
+              baseline_turns: others.length,
+              shifted_features: shifted.map((f) => ({
+                feature: f.feature, value: f.value, z: Math.round(f.z * 10) / 10,
+              })),
+              excerpt: text.slice(0, 120),
+            },
+          });
+        }
+      }
+    }
+  }
+
   // ONE row per signal per CLE. Six identical turns produce fifteen duplicate PAIRS; writing fifteen
   // rows would make the admin queue unreadable and make "how many CLEs are flagged" uncountable
   // without a DISTINCT. Collapse to a finding per signal, carrying the count and the worst instance —
@@ -227,4 +423,7 @@ function collapse(flags) {
   return [...bySignal.values()].sort((a, b) => SEVERITY_RANK[b.severity] - SEVERITY_RANK[a.severity]);
 }
 
-module.exports = { detectIntegritySignals, trigrams, jaccard, collapse, SIGNALS };
+module.exports = {
+  detectIntegritySignals, trigrams, jaccard, collapse, genreProfile, styleVector, robustZ,
+  STYLE_KEYS, SIGNALS,
+};

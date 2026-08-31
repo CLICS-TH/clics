@@ -471,6 +471,59 @@ router.post('/cles/:id/integrity-scan', async (req, res) => {
   res.json({ ok: true, cle_id: req.params.id, flags: result.flags, scanned_turns: result.scanned_turns });
 });
 
+/*
+ * The integrity queue.
+ *
+ * WHY IT EXISTS. Until this endpoint the detector was write-only: services/integrity-scan.js has run
+ * on every /end since it shipped, flags have accumulated in cle_integrity_flags, and the ONLY way to
+ * read one was to already know a CLE id and call /cles/:id/integrity. The flags did have one
+ * indirect effect — a flagged CLE is forced into the audit sample — but nobody could see the
+ * evidence that forced it. A detector nobody can read is a detector nobody can act on or correct.
+ *
+ * SEVERITY ORDERS THE WORK, IT DOES NOT RANK PHYSICIANS. Every comment in services/integrity.js
+ * applies at this surface too: a flag routes a session to a human and never penalises anyone. The
+ * response deliberately carries `evidence` so the reader sees WHY, including the genre counters that
+ * separate a pasted case note from pasted reasoning — the distinction that decides whether there is
+ * anything wrong at all.
+ */
+const SEVERITIES = ['low', 'medium', 'high'];
+
+router.get('/integrity-queue', async (req, res) => {
+  const { limit, offset } = pageParams(req);
+
+  let fq = supabase.from('cle_integrity_flags').select('cle_id, signal, severity, evidence, created_at');
+  // Unrecognised values fall back to "everything" rather than through: a typo'd severity matching no
+  // rows would render as "no session has ever been flagged", the most misleading answer here.
+  if (SEVERITIES.includes(req.query.severity)) fq = fq.eq('severity', req.query.severity);
+  const { data: flags, error: fErr } = await fq.order('created_at', { ascending: false });
+  if (sendDbError(res, fErr)) return;
+
+  const byCle = new Map();
+  for (const f of flags ?? []) {
+    if (!byCle.has(f.cle_id)) byCle.set(f.cle_id, []);
+    byCle.get(f.cle_id).push({ signal: f.signal, severity: f.severity, evidence: f.evidence, created_at: f.created_at });
+  }
+  if (!byCle.size) return res.json({ cles: [], limit, offset, total: 0 });
+
+  // Council/specialty scoping happens HERE, on the CLE rows — the flag table carries no council, so
+  // filtering it directly would leak the existence of another council's flagged sessions.
+  const { data: cles, error: cErr } = await scopeBySpecialty(req, scopeToCouncil(req,
+    supabase.from('cles')
+      .select('id, cle_code, council_id, specialty_id, status, physician_id, ended_at, turn_count, token_count, is_test')
+      .in('id', [...byCle.keys()])));
+  if (sendDbError(res, cErr)) return;
+
+  const rank = { high: 3, medium: 2, low: 1 };
+  const worst = (fs) => Math.max(...fs.map((f) => rank[f.severity] ?? 0));
+  const rows = (cles ?? [])
+    .map((c) => ({ ...c, flags: byCle.get(c.id) ?? [] }))
+    // Worst severity first, then most recent — the queue is work, and a 'high' waiting is the
+    // session most likely to be holding up a decision.
+    .sort((a, b) => worst(b.flags) - worst(a.flags) || String(b.ended_at ?? '').localeCompare(String(a.ended_at ?? '')));
+
+  res.json({ cles: rows.slice(offset, offset + limit), limit, offset, total: rows.length });
+});
+
 router.get('/cles/:id/integrity', async (req, res) => {
   const { data: cle } = await supabase.from('cles')
     .select('id, council_id, specialty_id').eq('id', req.params.id).maybeSingle();
