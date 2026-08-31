@@ -98,12 +98,39 @@ const SIGNALS = {
   // non-test sessions, with the false-positive rate written down here. scripts/integrity/
   // calibrate-f6.mjs produces exactly that table. A threshold nobody has checked against data is a
   // threshold that will eventually accuse a physician of something they did not do.
+  //
+  // CALIBRATION RUN 2026-08-31, against production. RESULT: NOT CALIBRATED — and the reason matters
+  // more than the number, because the number looks like good news and is not.
+  //
+  // The grid came back ZERO flagged at every cell, z 2.5 through 5.0, 1+ through 3+ features. That
+  // reads as "the corpus is clean". It is not what happened. F6 compares a turn against the
+  // physician's OWN OTHER sessions and needs `min_baseline` of them to have anything to compare
+  // against, and the corpus cannot supply it:
+  //
+  //     PLEs per physician   physicians   their turns >=40 chars
+  //     1                    4            28   <- no other session at all; F6 can never fire
+  //     2                    1             8
+  //     3                    1             6
+  //     4                    1            12
+  //
+  // Four of seven physicians have a single session, so they have no baseline by construction, and no
+  // physician clears min_baseline: 8 across their remaining sessions. Every cell in that grid is
+  // "never evaluated", not "evaluated and clean". Reading the zero as a pass would enable a signal
+  // that has never once run — which is precisely how F4 got switched on and then off again.
+  //
+  // Re-run scripts/integrity/calibrate-f6.mjs once collection gives physicians 2+ completed PLEs
+  // with substantial turns. Until a cell is measured on real baselines AND a human has read what it
+  // flags, this stays false.
+  //
+  // One observation worth keeping from the run: `latin` density sits at p50 80.4 across physician
+  // turns, so the corpus is overwhelmingly Latin-script. If that holds, `latin` carries almost no
+  // discriminating signal here and the feature set may need revisiting before F6 is worth enabling.
   F6_REGISTER_DISCONTINUITY: {
     min_chars: 400,        // only substantial turns; a one-liner has no style to measure
     min_baseline: 8,       // fewer of the physician's own turns than this and there is no baseline
     z: 3.5,                // robust (MAD-based) deviations before a feature counts as shifted
     min_features: 2,       // one shifted feature is noise; two independent ones is a pattern
-    enabled: false,
+    enabled: false,        // NOT calibrated — see the run above. Never once evaluated on real data.
   },
 };
 
