@@ -2,7 +2,7 @@
   "name": "clics",
   "version": "1.0.0",
   "private": true,
-  "description": "CLICS monorepo root \u2014 one-command local dev runner for the 4 layers. Each layer keeps its own package.json/deps; this is NOT an npm workspace (deploys still target each layer dir).",
+  "description": "CLICS monorepo root — one-command local dev runner for the 4 layers. Each layer keeps its own package.json/deps; this is NOT an npm workspace (deploys still target each layer dir).",
   "scripts": {
     "dev": "concurrently -k -n backend,rimpl,portal,dash -c blue,magenta,green,cyan \"npm --prefix backend run dev\" \"npm --prefix rimpl run dev\" \"npm --prefix physician-ui run dev\" \"npm --prefix audit-dashboard run dev -- -p 3002\"",
     "install:all": "npm install && npm --prefix backend install && npm --prefix rimpl install && npm --prefix physician-ui install && npm --prefix audit-dashboard install",
@@ -11,7 +11,12 @@
     "test:audit-sandbox": "node scripts/audit-sandbox/run.mjs",
     "test:responsive": "node scripts/responsive/responsive-smoke.mjs",
     "test:mobile-audit": "node scripts/responsive/mobile-audit.mjs",
-    "test:readability": "node scripts/readability/audit.mjs"
+    "test:readability": "node scripts/readability/audit.mjs",
+    "manuals": "node scripts/manuals/build.mjs",
+    "test:manuals": "node --test scripts/manuals/lib/parse.test.mjs scripts/manuals/lib/pii-gate.test.mjs && node scripts/manuals/build.mjs --check && node scripts/manuals/verify-labels.mjs && node scripts/manuals/prose-audit.mjs",
+    "test:manuals-embed": "node scripts/manuals/embed-smoke.mjs",
+    "test:manuals-scale": "node scripts/manuals/scale-audit.mjs",
+    "manuals:capture": "node scripts/manuals/capture.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

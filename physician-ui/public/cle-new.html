@@ -38,7 +38,7 @@
         </select>
         <p style="font-size:.8rem;opacity:.7;margin:.4rem 0 0">เซสชันนี้เป็น <b>test session</b> (ไม่นับรวมในข้อมูลวิจัยจริง) • เลือกโหมดเพื่อทดสอบ Socratic ได้โดยตรง<br/>This is a <b>test session</b> (excluded from real study data). Pick a mode to exercise Socratic directly.</p>
       </div>
-      <div id="error" class="error-msg" style="display:none"></div>
+      <div id="error" class="error-msg" role="alert" aria-live="assertive" style="display:none"></div>
       <button class="btn btn-primary" id="startBtn" style="width:100%">เริ่มการสนทนา / Start Session</button>
     </div>
   </div>
@@ -80,9 +80,41 @@
       const cle = await api.createPle({ chief_complaint: complaint, folder_id, socratic });
       if (cle?.id) window.location.href = `/cle-chat?id=${cle.id}`;
       else {
-        errEl.textContent = cle?.code === 'budget_exceeded'
-          ? 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ / AI usage limit reached — contact an administrator.'
-          : (cle?.error ?? 'เกิดข้อผิดพลาด');
+        // WHY THIS IS A MAP AND NOT A STRING. Every guard on POST /cles returns an English
+        // sentence written for an API client — "Identity verification is required before starting a
+        // session." Rendering `cle.error` printed that verbatim to a Thai physician: untranslated,
+        // and with no hint that the fix is one page away. Two of these are actionable, so they
+        // carry the link to the page that resolves them.
+        const FAIL = {
+          budget_exceeded: {
+            msg: 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ / AI usage limit reached — contact an administrator.',
+          },
+          // Not a fault — this physician has FINISHED. Worth saying so plainly.
+          cle_limit_reached: {
+            msg: 'คุณทำครบทุกบทเรียนของโครงการแล้ว ขอบคุณที่เข้าร่วม / You have completed every episode for this study. Thank you for taking part.',
+            href: '/lpdp', cta: 'ดูความก้าวหน้าของคุณ / See your progress',
+          },
+          identity_verification_required: {
+            msg: 'ต้องได้รับการยืนยันตัวตนวิชาชีพก่อนจึงจะเริ่มบทเรียนได้ / Your professional identity must be verified before you can start an episode.',
+            href: '/identity', cta: 'ตรวจสอบสถานะการยืนยันตัวตน / Check your verification status',
+          },
+          identity_check_unavailable: {
+            msg: 'ตรวจสอบตัวตนไม่สำเร็จชั่วคราว กรุณาลองใหม่อีกครั้ง / Could not verify your identity right now. Please try again.',
+          },
+          consent_required: {
+            msg: 'ต้องให้ความยินยอมเข้าร่วมโครงการก่อนเริ่มบทเรียน / You must give informed consent before starting an episode.',
+            href: '/dashboard', cta: 'ไปหน้าหลักเพื่อให้ความยินยอม / Go to your dashboard to consent',
+          },
+        };
+        const f = FAIL[cle?.code];
+        if (f) {
+          // Static copy only — nothing from the server is interpolated into this markup.
+          errEl.innerHTML = f.href
+            ? `${f.msg} <a href="${f.href}" style="color:var(--coral-text);font-weight:600">${f.cta} →</a>`
+            : f.msg;
+        } else {
+          errEl.textContent = cle?.error ?? 'เกิดข้อผิดพลาด';
+        }
         errEl.style.display = 'block';
         btn.disabled = false; btn.textContent = 'เริ่มการสนทนา / Start Session';
       }

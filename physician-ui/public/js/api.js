@@ -113,7 +113,9 @@ window.api = {
   getEvaluation: (id) => apiFetch(`/cles/${id}/evaluation`),
   // Longitudinal profile snapshots (ascending; last = most recent composite_score). Used by the
   // LPDP page and the dashboard hero's "latest score" stat.
-  getLpdp: () => apiFetch('/cles/lpdp/me'),
+  // ?held=1 asks for the { snapshots, held } shape. Without it the endpoint returns the bare
+  // array it always has, so a cached copy of this file cannot be broken by a backend deploy.
+  getLpdp: () => apiFetch('/cles/lpdp/me?held=1'),
   // Conversation folders
   getFolders: () => apiFetch('/cles/folders'),
   createFolder: (name) => apiFetch('/cles/folders', { method: 'POST', body: { name } }),

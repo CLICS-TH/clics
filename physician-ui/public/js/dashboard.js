@@ -152,16 +152,25 @@ async function renderHeroStats() {
   const passed = cles.filter(p => p.status === 'cle_pass' || p.status === 'evaluated').length;
 
   let latest = '—'; // most recent composite (0–100), '—' until a CLE passes
+  let latestLabel = 'คะแนนล่าสุด / Latest score';
   try {
     const lpdp = await api.getLpdp();
-    if (Array.isArray(lpdp) && lpdp.length) latest = Math.round(lpdp[lpdp.length - 1].composite_score);
+    // Accepts both the bare array and the { snapshots, held } shape — the portal and the backend
+    // deploy independently, so one is routinely ahead of the other.
+    const snaps = Array.isArray(lpdp) ? lpdp : (lpdp?.snapshots ?? []);
+    const held = Array.isArray(lpdp) ? 0 : (lpdp?.held ?? 0);
+    // '—' is honest for "none yet" but misleading for "withheld pending audit". The distinction
+    // goes in the label rather than the value: this slot is numeric everywhere else, and the strip
+    // is bilingual everywhere else. Wording matches cle-result.html and /lpdp.
+    if (snaps.length) latest = Math.round(snaps[snaps.length - 1].composite_score);
+    else if (held > 0) latestLabel = 'อยู่ระหว่างการตรวจประเมิน / Under expert review';
   } catch { /* leave '—' */ }
 
   // Each KPI is a link to the progress page, which details these numbers over time.
   const cards = [
     { value: total, label: 'บทเรียนทั้งหมด / Total' },
     { value: passed, label: 'ผ่านแล้ว / Passed' },
-    { value: latest, label: 'คะแนนล่าสุด / Latest score' },
+    { value: latest, label: latestLabel },
   ];
   host.innerHTML = cards.map(c =>
     `<a class="stat-card" href="/lpdp"><p class="stat-value">${esc(String(c.value))}</p><p class="stat-label">${c.label}</p></a>`

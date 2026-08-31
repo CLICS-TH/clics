@@ -1,0 +1,241 @@
+/* ===== CLICS manual — the reading surface ==========================================
+ *
+ * Loaded only by /manual, AFTER main.css. Every selector is scoped under `.guide` on purpose:
+ * main.css has no base rules for table/figure/ol/ul, so an unscoped `table {}` here would silently
+ * restyle any page that later grows one, and audit-dashboard/__tests__/contrast.test.ts pins colour
+ * pairs against main.css that must not move.
+ *
+ * NO NEW COLOURS. Every value is a main.css token, which is what makes dark mode free — and what
+ * keeps the manual recognisably the same product as the console around it.
+ *
+ * THE POSITION. The manual keeps the console's chrome (nav, footer, tokens) but reads as a distinct
+ * editorial surface: a wider measure, serif numbered section heads, and a stepped rhythm the product
+ * itself never uses. A manual that mimics the console gets mistaken for the console; one in a foreign
+ * palette gets mistaken for a different product.
+ *
+ * TWO FLOORS THIS FILE MUST NOT BREACH, both enforced by npm run test:readability:
+ *   - Thai text never below 12px. The loop (หัว) that distinguishes many Thai letters closes up
+ *     before Latin becomes unreadable, and Thai stacks up to four levels vertically.
+ *   - Serif never below 24px / 600. main.css:62-63 states it: a thin serif under that, on cream,
+ *     is low-contrast. So section heads are serif and sub-heads are NOT.
+ */
+
+/* ===== Language ===================================================================
+ * Both languages are in the document and one is hidden. The alternative — fetching the other
+ * language — needs an endpoint the no-build portal does not have. Hiding with `display:none`
+ * (not visibility/opacity) also takes the hidden copy out of the accessibility tree and out of
+ * in-page find, which is what a reader expects from a language switch. */
+/* NB the switch's own buttons carry `data-set-lang`, not `data-lang` — a button labelled English
+ * marked data-lang="en" is matched by the rule below and hides itself, leaving a one-language
+ * language switch. */
+.guide [data-lang="en"] { display: none; }
+html[data-manual-lang="en"] .guide [data-lang="th"] { display: none; }
+html[data-manual-lang="en"] .guide [data-lang="en"] { display: revert; }
+
+.lang-switch { display: inline-flex; gap: 6px; margin-top: 16px; }
+.lang-switch .toggle-btn.is-on {
+  background: var(--coral-ring); border-color: var(--coral); color: var(--coral-text);
+}
+
+/* ===== Shell ====================================================================== */
+/* Wider than the app's 860px: running prose with a section index beside it needs the room, and the
+   62ch cap below keeps the line length honest regardless of container width. */
+.container.guide { max-width: 940px; }
+
+.guide-cover { text-align: center; padding-bottom: 26px; }
+.guide-cover .eyebrow { margin-bottom: 14px; font-size: 0.75em; }  /* = main.css's 12px at base */
+.guide-cover h1 { margin: 0; font-size: clamp(1.8em, 1.55em + 1.2vw, 2.4em); }
+.guide-cover .sub { margin-left: auto; margin-right: auto; font-size: 0.9375em; }
+
+/* ===== Section index ===============================================================
+ * A jump list, not a sidebar: at every width it sits above the content. A sticky rail would fight
+ * the 940px measure on a laptop and collapse on a phone, and the manual is nine sections — short
+ * enough that a list at the top is genuinely faster than a rail. */
+/* It is a <nav> for the right reason — it is a jump list — but main.css:155 gives every <nav>
+ * `view-transition-name: clics-nav`, and that name may be claimed by only ONE rendered element.
+ * With the portal's top nav also on the page the name is duplicated, which aborts the
+ * cross-document view transition for the whole navigation and logs an error on every load of
+ * /manual. main.css also indents nav children by a hard 16px, which does not belong in this
+ * file's em system. Both are reset here rather than in main.css, whose nav rules and pinned
+ * contrast pairs other tests assert against. */
+.guide-toc {
+  view-transition-name: none;
+  background: var(--surface-soft); border: 1px solid var(--hairline);
+  border-radius: var(--r-lg); padding: var(--space-3); margin-bottom: 34px;
+}
+.guide-toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+@media (min-width: 768px) { html:not([data-mobile]) .guide-toc ol { grid-template-columns: 1fr 1fr; column-gap: 18px; } }
+.guide-toc a {
+  display: flex; align-items: baseline; gap: 0.667em;   /* = 10px at base */
+  margin-left: 0;   /* main.css indents nav children; this list is not the top nav */
+  /* 0.8em, not the 0.6em that matches the old 9px: at 0.6em these rows measured 39px tall on a
+     touch viewport, under the repo's 44px minimum. scripts/responsive asserts that rule but does
+     not reach these links, so it passed. 0.9375em text x 1.4 leading + 2 x 0.8em = 45px. */
+  padding: 0.8em 0.53em; border-radius: var(--r-sm);
+  color: var(--body-color); text-decoration: none; font-size: 0.9375em; line-height: 1.4;
+}
+.guide-toc a:hover { background: var(--surface-card); color: var(--ink); }
+.guide-toc a:focus-visible { outline: 2px solid var(--coral); outline-offset: 1px; }
+.guide-toc .n {
+  flex: none; min-width: 1.5em; font-family: var(--font-body);
+  font-size: 0.8667em; font-weight: 700; color: var(--coral-text); font-variant-numeric: tabular-nums;
+}
+
+/* ===== UNIT RULE — every font-size and text-adjacent inset in this file is `em`, never px ======
+ * The two consoles scale desktop type in incompatible ways, and this document renders in both:
+ *
+ *   physician-ui    `body { font-size: 22px }` at >=1280px   -- scales BODY, so `rem` does NOT follow
+ *   audit-dashboard `html { font-size: 118/132/145% }`        -- scales ROOT, so `rem` DOES follow
+ *
+ * `em` is the only unit that tracks the reader's actual base size in both. A px size is frozen, and
+ * a frozen size inside a base that grows is how a sub-heading ends up SMALLER than its own
+ * paragraph — measured here at 1280px before this was fixed: h3 17px inside 22px body. The
+ * rem-based `--text-lg` / `--text-2xl` tokens are frozen the same way in the portal (rem tracks
+ * <html>, which never moves), so this file spells its clamps out in em rather than using them.
+ *
+ * Ratios below are the exact ones this file shipped with at a 16px base, so nothing changes at or
+ * below 1024px; the whole document simply scales as one system above it.
+ * `npm run test:manuals-scale` measures every role against body at 11 widths and fails on inversion.
+ */
+
+/* ===== Section ==================================================================== */
+.guide-section { padding-top: 8px; margin-bottom: 44px; scroll-margin-top: 18px; }
+.guide-section > h2 {
+  display: flex; align-items: baseline; gap: 0.5em;
+  font-family: var(--font-display); font-size: clamp(1.5em, 1.3em + 1vw, 2em); font-weight: 600; /* 1.5→2× body */
+  line-height: 1.18; letter-spacing: -0.02em; color: var(--ink);
+  margin: 0 0 6px; padding-bottom: 0.5em; border-bottom: 2px solid var(--coral);
+}
+/* The section number: body font, because a serif at this size would breach the 24px serif floor. */
+.guide-section > h2 .n {
+  flex: none; font-family: var(--font-body); font-size: 0.625em; font-weight: 700;
+  color: var(--coral-text); font-variant-numeric: tabular-nums;
+  transform: translateY(-0.15em);
+}
+/* Sub-heads are sans DELIBERATELY — 17px serif on cream is exactly the low-contrast case
+   main.css warns about. Weight and colour carry the hierarchy instead. */
+.guide-section h3 {
+  font-family: var(--font-body); font-size: 1.0625em; font-weight: 600; line-height: 1.4;
+  color: var(--ink); margin: 30px 0 8px;
+}
+.guide-section p { max-width: 62ch; margin: 0 0 14px; overflow-wrap: break-word; }
+.guide-section p.lead { font-size: clamp(1.0625em, 1em + 0.4vw, 1.25em); line-height: 1.55; color: var(--ink); margin-bottom: 18px; }
+
+/* ===== Steps ======================================================================
+ * Numbered because the order is instruction. The coral rail is what separates a sequence you must
+ * follow from a list you may skim — the two are different information and must not look alike. */
+.guide ol.steps { list-style: none; counter-reset: step; margin: 0 0 18px; padding: 0; }
+.guide ol.steps > li {
+  counter-increment: step; position: relative;
+  background: var(--surface-card); border-radius: var(--r-md);
+  border-left: 3px solid var(--coral);
+  padding: 0.8125em 1em 0.8125em 2.875em; margin-bottom: 8px;
+  max-width: 62ch; overflow-wrap: break-word;
+}
+.guide ol.steps > li::before {
+  content: counter(step);
+  position: absolute; left: 1.077em; top: 1em;
+  font-family: var(--font-body); font-size: 0.8125em; font-weight: 700; line-height: 1.5;
+  color: var(--coral-on-card);  /* 4.94:1 on --surface-card; --coral would be 2.68:1 */
+  font-variant-numeric: tabular-nums;
+}
+.guide ul.bullets { margin: 0 0 18px; padding-left: 1.25em; max-width: 62ch; }
+.guide ul.bullets > li { margin-bottom: 7px; padding-left: 3px; overflow-wrap: break-word; }
+.guide ul.bullets > li::marker { color: var(--coral); }
+
+/* ===== Quoted UI label ============================================================
+ * The one thing a reader matches against the screen, so it must read as a quotation, not as a
+ * button they can press. Tinted background, no shadow, no hover. 13px is above the Thai floor. */
+.guide .chip {
+  display: inline-block; font-size: 0.8125em; font-weight: 600; line-height: 1.45;
+  padding: 0.08em 0.54em; margin: 0 1px; border-radius: var(--r-sm);
+  background: var(--coral-ring); color: var(--coral-on-card);
+  border: 1px solid var(--hairline); white-space: normal; overflow-wrap: anywhere;
+}
+/* A secondary control. Same shape, neutral tint — tinting it as the primary action would teach the
+   wrong button. */
+.guide .chip.chip-neutral { background: var(--surface-soft); color: var(--body-color); }
+
+/* ===== Callouts ===================================================================
+ * Three kinds, and the kind is carried by a visible word as well as a colour: the difference
+ * between "tip" and "this is irreversible" must survive greyscale printing and colour blindness. */
+.guide .callout {
+  border-radius: var(--r-md); padding: 0.875em 1em; margin: 0 0 18px;
+  border-left: 3px solid var(--muted-soft); background: var(--surface-soft);
+  max-width: 66ch; overflow-wrap: break-word;
+}
+/* 12.5px, not the 11.5px an eyebrow would normally take: this label is Thai in the Thai copy, and
+ * Thai has a 12px floor (npm run test:readability enforces it — it caught this at 11.5px).
+ * And NO letter-spacing or uppercase on the Thai: Thai has no case, so uppercase is a no-op, while
+ * letter-spacing can push a combining vowel or tone mark off its base consonant. Both are applied
+ * to the English copy only, where they do what they are meant to do. */
+.guide .callout .kind {
+  display: block; font-size: 0.78125em; font-weight: 700; line-height: 1.4;
+  margin-bottom: 4px; color: var(--muted);
+}
+.guide [data-lang="en"] .callout .kind,
+.guide-section[data-lang="en"] .callout .kind {
+  text-transform: uppercase; letter-spacing: 0.096em;
+}
+.guide .callout .h { display: block; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+/* Each tint uses its family's own `-text`, which is the AA-safe member — the base token is a fill
+   and border colour and fails as text on its own tint. */
+.guide .callout.is-tip { border-left-color: var(--teal); background: var(--teal-bg); color: var(--teal-text); }
+.guide .callout.is-tip .kind, .guide .callout.is-tip .h { color: var(--teal-text); }
+.guide .callout.is-warn { border-left-color: var(--error); background: var(--error-bg); color: var(--error-text); }
+.guide .callout.is-warn .kind, .guide .callout.is-warn .h { color: var(--error-text); }
+.guide .callout.is-warn .chip { background: var(--canvas); color: var(--coral-on-card); }
+.guide .callout.is-tip .chip { background: var(--canvas); color: var(--coral-on-card); }
+
+/* ===== Figures ==================================================================== */
+.guide figure { margin: 0 0 20px; }
+.guide figure .shot {
+  display: block; width: 100%; height: auto;
+  border: 1px solid var(--hairline); border-radius: var(--r-lg); background: var(--surface-soft);
+}
+.guide figcaption { margin-top: 0.5185em; font-size: 0.84375em; line-height: 1.5; color: var(--muted); }
+
+/* ===== Tables ===================================================================== */
+/* Wrapped in .scroll-x by the renderer: a three-column Thai table does not fit 320px, and the page
+   body must never scroll sideways (scripts/responsive/mobile-audit.mjs asserts that). */
+.guide .scroll-x { margin: 0 0 20px; border: 1px solid var(--hairline); border-radius: var(--r-lg); }
+.guide table { border-collapse: collapse; width: 100%; min-width: 33em; font-size: 0.90625em; }
+.guide th, .guide td { text-align: left; padding: 0.69em 0.9em; border-bottom: 1px solid var(--hairline-soft); vertical-align: top; }
+.guide thead th { background: var(--surface-soft); font-weight: 600; color: var(--ink); white-space: nowrap; }
+.guide tbody tr:last-child td { border-bottom: 0; }
+
+/* ===== Mobile =====================================================================
+ * One block, keyed on `data-mobile`. That attribute is the portal's single source of truth for
+ * mobile layout — authored once here rather than duplicated between a media query and a
+ * forced-view block, which is the bug main.css:527-533 records. */
+html[data-mobile] .container.guide { max-width: 100%; }
+html[data-mobile] .guide-section { margin-bottom: 34px; }
+html[data-mobile] .guide-section > h2 { gap: 0.375em; }   /* = 9px against the 24px mobile h2 */
+html[data-mobile] .guide ol.steps > li { padding: 0.75em 0.8125em 0.75em 2.5em; }
+html[data-mobile] .guide ol.steps > li::before { left: 0.923em; }
+html[data-mobile] .guide-toc { padding: var(--space-2); }
+html[data-mobile] .guide .callout { padding: 0.75em 0.8125em; }
+
+/* ===== Print ======================================================================
+ * The A4 handout renders this same page. Everything that only makes sense on screen goes away, and
+ * a step or a callout is never allowed to break across a page — a warning split in half is a
+ * warning half-read. */
+@media print {
+  /* `nav` alone also matched nav.guide-toc, so every generated PDF shipped with no contents
+     page — an 11-page handout with no section index. Only the site chrome goes. */
+  nav:not(.guide-toc), .lang-switch, .toggle-btn, footer { display: none !important; }
+  .container.guide { max-width: 100%; padding: 0; }
+  .guide-section { page-break-inside: auto; margin-bottom: 26px; }
+  .guide-section > h2 { page-break-after: avoid; }
+  .guide ol.steps > li, .guide .callout, .guide figure, .guide table { page-break-inside: avoid; }
+  .guide-toc { page-break-after: always; }
+  .guide .chip { border-color: var(--muted-soft); }
+  a[href^="/"]::after { content: ""; }
+}
+
+/* ===== Nav, current page ===========================================================
+ * The portal nav marks the current page nowhere — every page renders the same five links. That is
+ * a small a11y gap (`aria-current` is the fix, and it is free), so the manual sets it and styles
+ * off the attribute rather than a parallel class. This file only loads on /manual, so the rule
+ * cannot reach the other pages. Weight + colour, never colour alone. */
+nav a[aria-current="page"] { color: var(--coral-text); font-weight: 600; }

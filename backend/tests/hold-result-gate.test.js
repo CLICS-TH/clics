@@ -55,3 +55,78 @@ test('hold OFF → 200 with the score, regardless of audit state', async () => {
   expect(res.status).toBe(200);
   expect(res.body.composite_score).toBe(82);
 });
+
+// ---- LPDP: the hold must be distinguishable from having done nothing --------------------------
+// GET /cles/lpdp/me drops snapshots for episodes no auditor has scored. It used to return a bare
+// array, so the portal could not tell "you have no episodes" from "your episodes are withheld" —
+// and told a physician whose work was in the audit queue to go "pass an episode first". With
+// ?held=1 the response carries `held`, the count of that physician's own episodes being withheld.
+//
+// The bare path must KEEP returning the array: the portal and this API deploy separately, and an
+// older cached lpdp.html tests `!data.length`, which on an object is true — so changing the
+// default shape would show every physician the empty state during the deploy window.
+const SNAPS = [
+  { cle_id: 'cleA', composite_score: 70, snapshot_at: '2026-08-01T00:00:00Z' },
+  { cle_id: 'cleB', composite_score: 80, snapshot_at: '2026-08-02T00:00:00Z' },
+];
+
+function wireLpdp({ hold, scored = [], snaps = SNAPS }) {
+  m.reset();
+  m.state.caller = physician;
+  m.state.resolve = (table, kind) => {
+    if (table === 'lpdp_snapshots') return { data: snaps };
+    if (table === 'app_settings') return kind === 'list' ? { data: [] } : { value: hold };
+    if (table === 'audit_scores') return { data: scored.map(cle_id => ({ cle_id })) };
+    return undefined;
+  };
+}
+
+test('LPDP hold ON + nothing scored → no snapshots, but held reports both episodes', async () => {
+  wireLpdp({ hold: 1, scored: [] });
+  const res = await auth(request(app).get('/cles/lpdp/me?held=1'));
+  expect(res.status).toBe(200);
+  expect(res.body.snapshots).toEqual([]);
+  expect(res.body.held).toBe(2);
+});
+
+test('LPDP hold ON + one scored → that one is released, the other still counted as held', async () => {
+  wireLpdp({ hold: 1, scored: ['cleA'] });
+  const res = await auth(request(app).get('/cles/lpdp/me?held=1'));
+  expect(res.body.snapshots).toHaveLength(1);
+  expect(res.body.snapshots[0].cle_id).toBe('cleA');
+  expect(res.body.held).toBe(1);
+});
+
+test('LPDP hold OFF → everything released and held is 0', async () => {
+  wireLpdp({ hold: 0, scored: [] });
+  const res = await auth(request(app).get('/cles/lpdp/me?held=1'));
+  expect(res.body.snapshots).toHaveLength(2);
+  expect(res.body.held).toBe(0);
+});
+
+// The distinction the whole change exists for: a genuinely empty profile must NOT look held, or
+// the portal swaps one wrong message for the other.
+test('LPDP with no episodes at all → empty and held 0, even with the hold ON', async () => {
+  wireLpdp({ hold: 1, scored: [], snaps: [] });
+  const res = await auth(request(app).get('/cles/lpdp/me?held=1'));
+  expect(res.body.snapshots).toEqual([]);
+  expect(res.body.held).toBe(0);
+});
+
+// The deploy-skew contract, stated as a test because it is the thing that breaks silently and for
+// everyone at once: a client that does not ask for the new shape gets exactly what it always got.
+test('LPDP without ?held=1 → the bare array, unchanged, so a cached portal keeps working', async () => {
+  wireLpdp({ hold: 1, scored: ['cleA'] });
+  const res = await auth(request(app).get('/cles/lpdp/me'));
+  expect(res.status).toBe(200);
+  expect(Array.isArray(res.body)).toBe(true);
+  expect(res.body).toHaveLength(1);
+  expect(res.body[0].cle_id).toBe('cleA');
+});
+
+test('LPDP without ?held=1 and hold OFF → the bare array of everything', async () => {
+  wireLpdp({ hold: 0, scored: [] });
+  const res = await auth(request(app).get('/cles/lpdp/me'));
+  expect(Array.isArray(res.body)).toBe(true);
+  expect(res.body).toHaveLength(2);
+});

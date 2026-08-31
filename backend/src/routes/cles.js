@@ -226,12 +226,24 @@ router.get('/lpdp/me', async (req, res) => {
   // Hold-until-audited: drop snapshots for CLEs no auditor has scored yet, so the trend (and the
   // dashboard "latest score", which reads the last snapshot) can't leak a held score. See /evaluation.
   let rows = data ?? [];
+  let held = 0;
   if (rows.length && await holdResultUntilAudited()) {
     const cleIds = [...new Set(rows.map(r => r.cle_id))];
     const { data: scored } = await supabase.from('audit_scores').select('cle_id').in('cle_id', cleIds);
     const scoredSet = new Set((scored ?? []).map(s => s.cle_id));
+    held = cleIds.filter(id => !scoredSet.has(id)).length;
     rows = rows.filter(r => scoredSet.has(r.cle_id));
   }
+  // `held` is the COUNT of the physician's own episodes still awaiting an auditor — never a score,
+  // never a domain, nothing the hold exists to withhold. It is here because without it the filter
+  // above is indistinguishable from having done nothing at all: the portal received a bare [] and
+  // told a physician whose work was sitting in the audit queue to "pass an episode first".
+  //
+  // Opt-in on the query string, because the portal (Vercel) and this API (Railway) deploy
+  // separately and browsers cache the portal. A client that has not asked for the new shape — an
+  // older lpdp.html, which tests `!data.length` — must keep receiving the bare array, or the
+  // deploy window shows every physician the very empty state this change exists to prevent.
+  if (req.query.held === '1') return res.json({ snapshots: rows, held });
   res.json(rows);
 });
 

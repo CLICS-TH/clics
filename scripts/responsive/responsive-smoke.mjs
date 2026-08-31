@@ -65,6 +65,8 @@ const PAGES = [
   { path: '/identity', token: true, label: 'identity' },
   { path: '/cle-reflect', token: true, label: 'cle-reflect' },
   { path: '/acceptability', token: true, label: 'acceptability' },
+  // Public: /manual carries data-public so a reader stuck at sign-in can still read how to sign in.
+  { path: '/manual', token: false, label: 'manual' },
 ];
 
 // The DOM assertions run in the page. Returns { overflow, badTargets[], badInputs[] }.

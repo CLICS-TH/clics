@@ -70,7 +70,11 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){try{var t=localStorage.getItem('clics_theme');var d=t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();",
+              "(function(){try{var e=document.documentElement;var t=localStorage.getItem('clics_theme');var d=t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches;if(d)e.classList.add('dark');" +
+              // Same no-FOUC reason as the theme: without this a reader who chose English watches
+              // the Thai copy of /manual paint first and then swap.
+              "if(localStorage.getItem('clics_manual_lang')==='en'){e.setAttribute('data-manual-lang','en');e.setAttribute('lang','en');}" +
+              "}catch(e){}})();",
           }}
         />
         <ThemeProvider>
