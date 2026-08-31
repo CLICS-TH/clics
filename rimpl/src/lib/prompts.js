@@ -69,10 +69,10 @@ Tone: warm, respectful, encouraging. Help first, then challenge.`;
 const RIMPL_SYSTEM_PROMPT = RIMPL_SYSTEM_PROMPT_EXAMINER;
 
 // AUDITOR CALIBRATION CHAT (audit-discuss route): a tutor that helps a physician-auditor understand
-// the AI's PIS-7 evaluation of a CLE and reconcile it with their own scores. NOT a re-scoring tool and
+// the AI's PIS-7 evaluation of a PLE and reconcile it with their own scores. NOT a re-scoring tool and
 // NOT the clinical mentor above — it discusses the evaluation. The route appends the de-identified
 // transcript + both score sets + the AI's per-domain rationale to this prompt as grounding context.
-const RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS = `You are a PIS-7 calibration tutor. A physician-auditor has just scored a Clinical Learning Episode (CLE) on the 7-domain PIS-7 rubric, and an AI evaluator scored the same transcript. Help the auditor UNDERSTAND the evaluation and reconcile differences between their scores and the AI's — you are NOT re-scoring anything.
+const RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS = `You are a PIS-7 calibration tutor. A physician-auditor has just scored a Professional Learning Episode (PLE) on the 7-domain PIS-7 rubric, and an AI evaluator scored the same transcript. Help the auditor UNDERSTAND the evaluation and reconcile differences between their scores and the AI's — you are NOT re-scoring anything.
 
 Ground every answer in the de-identified transcript and the scores/rationale provided below. When you explain why the AI scored a domain a certain way, cite the AI's rationale and point to specific moments in the transcript. When the auditor and AI diverge, explain the rubric anchor for that domain and what evidence would justify each score. Be concise and specific. Do NOT invent transcript content — if something is not in the transcript, say so. Reply in the auditor's language (Thai or English).
 

@@ -2,15 +2,15 @@
 const fs = require('fs');
 const t = JSON.parse(fs.readFileSync('/tmp/soak-transcripts.json', 'utf8'));
 const blind = t.map((p, i) => ({
-  cle_id: p.cle_id,
-  ref: `CLE-${String(i + 1).padStart(2, '0')}`,
+  ple_id: p.ple_id,
+  ref: `PLE-${String(i + 1).padStart(2, '0')}`,
   chief_complaint: p.chief_complaint,
   transcript: p.messages.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n\n'),
 })); // NOTE: no _ai — auditors score blind
 
 const script = `export const meta = {
   name: 'clics-auditor-soak',
-  description: 'Three expert auditors independently blind-score the evaluated CLEs (PIS-7) for ICC',
+  description: 'Three expert auditors independently blind-score the evaluated PLEs (PIS-7) for ICC',
   phases: [{ title: 'Blind scoring' }],
 };
 
@@ -43,7 +43,7 @@ const SCHEMA = {
         additionalProperties: false,
         properties: {
           ref: { type: 'string' },
-          cle_id: { type: 'string' },
+          ple_id: { type: 'string' },
           d1: { type: 'integer', minimum: 0, maximum: 5 },
           d2: { type: 'integer', minimum: 0, maximum: 5 },
           d3: { type: 'integer', minimum: 0, maximum: 5 },
@@ -53,7 +53,7 @@ const SCHEMA = {
           d7: { type: 'integer', minimum: 0, maximum: 5 },
           notes: { type: 'string' },
         },
-        required: ['cle_id', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'notes'],
+        required: ['ple_id', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'notes'],
       },
     },
   },
@@ -62,15 +62,15 @@ const SCHEMA = {
 
 function buildPrompt(stance) {
   const cases = TRANSCRIPTS.map(p =>
-    \`### \${p.ref}  (cle_id: \${p.cle_id})\\nChief complaint: \${p.chief_complaint}\\n\\nTRANSCRIPT:\\n\${p.transcript}\`
+    \`### \${p.ref}  (ple_id: \${p.ple_id})\\nChief complaint: \${p.chief_complaint}\\n\\nTRANSCRIPT:\\n\${p.transcript}\`
   ).join('\\n\\n---\\n\\n');
-  return \`You are an expert physician serving as a blind CLICS auditor. You are scoring physician–AI clinical-reasoning sessions (CLEs) on the PIS-7 rubric. You do NOT see any AI-generated score — your judgement is independent.
+  return \`You are an expert physician serving as a blind CLICS auditor. You are scoring physician–AI clinical-reasoning sessions (PLEs) on the PIS-7 rubric. You do NOT see any AI-generated score — your judgement is independent.
 
 YOUR RATER STANCE: \${stance}
 
 \${RUBRIC}
 
-Score ALL \${TRANSCRIPTS.length} CLEs below. For each, return its exact cle_id and integer d1–d7 plus a one-sentence justification in notes. Be discriminating: the set spans weak-to-excellent reasoning, so your scores should vary across CLEs. Return ONLY the structured object.
+Score ALL \${TRANSCRIPTS.length} PLEs below. For each, return its exact ple_id and integer d1–d7 plus a one-sentence justification in notes. Be discriminating: the set spans weak-to-excellent reasoning, so your scores should vary across PLEs. Return ONLY the structured object.
 
 \${cases}\`;
 }
@@ -85,4 +85,4 @@ return results.filter(Boolean);
 `;
 
 fs.writeFileSync('/tmp/soak-auditor-wf.js', script);
-console.log(`Wrote /tmp/soak-auditor-wf.js (${blind.length} blind CLEs embedded, ${(script.length/1024).toFixed(1)}KB)`);
+console.log(`Wrote /tmp/soak-auditor-wf.js (${blind.length} blind PLEs embedded, ${(script.length/1024).toFixed(1)}KB)`);

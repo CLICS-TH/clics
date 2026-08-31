@@ -12,7 +12,7 @@ Grab from the scaletest dashboard → Settings → API: the **project URL**, **a
 ## 1. Run the 2 new migrations (SQL editor; both single-run, idempotent)
 1. `db/migration-drop-license-gate.sql` — **required before testing auditor invites** (the old
    `enforce_auditor_license` trigger would 500 an auditor accept under the new no-license model).
-2. `db/migration-patient-intake.sql` — creates `cle_patient_refs`.
+2. `db/migration-patient-intake.sql` — creates `ple_patient_refs`.
 
 ## 2. Supabase dashboard
 - **Auth → Providers → Google**: create a NEW Google Cloud OAuth client; redirect URI
@@ -57,18 +57,18 @@ P-NNN · invite lifecycle (create/view/duplicate-409/revoke-404) · **invite phy
 # physician-ui/public/js/config.js → CLICS_SUPABASE_URL + CLICS_SUPABASE_ANON_KEY = scaletest,
 #                                    CLICS_API_URL = http://localhost:3001
 cd physician-ui && npm run dev          # :3000
-cd rimpl && PORT=3003 npm start         # only needed for CLE chat turns
+cd rimpl && PORT=3003 npm start         # only needed for PLE chat turns
 ```
 Verify at `localhost:3000`: **Google sign-in** (first-time → council prompt → active) · **invite
-accept** via password+OTP and via Google · **no License No. field anywhere** · `cle-new` shows the
+accept** via password+OTP and via Google · **no License No. field anywhere** · `ple-new` shows the
 **"ตัวระบุผู้ป่วย / Patient identifier (private)"** field · a chat turn streams (RIMPL up).
 
 ## 6. Verify the structured-intake isolation
-Create a CLE with a name in the patient-identifier field and a name-free chief complaint, then:
+Create a PLE with a name in the patient-identifier field and a name-free chief complaint, then:
 ```sql
-select cle_id, physician_id, patient_ref from cle_patient_refs order by created_at desc limit 3;
+select ple_id, physician_id, patient_ref from ple_patient_refs order by created_at desc limit 3;
 ```
-The identifier must be ONLY here — never a column on `cles`, never inside `messages`
+The identifier must be ONLY here — never a column on `ples`, never inside `messages`
 (`backend/tests/patient-intake.test.js` pins this structurally).
 
 **Green on 4–6 = the Stage-2 onboarding + real-PII model is validated on a real DB.** Prod deploy is

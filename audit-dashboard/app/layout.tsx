@@ -44,7 +44,7 @@ const notoSerifThai = Noto_Serif_Thai({
 
 export const metadata: Metadata = {
   title: "CLICS Audit Dashboard",
-  description: "CLICS — Continuous Learning & Intelligence Credit System",
+  description: "CLICS — Case-based Learning Intelligence Credit System",
 };
 
 // viewportFit:'cover' is required for the env(safe-area-inset-*) used by the responsive primitives

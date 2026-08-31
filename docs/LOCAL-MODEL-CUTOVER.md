@@ -42,7 +42,7 @@ so it *must* be flipped — but flipping it today is a gate with nothing behind 
   generic failure rather than a route to `/identity`. The `/auth/identity/status` endpoint and the
   `/identity` form both exist; nothing points anyone at them.
 
-The gate itself is one middleware on `POST /cles` (`requireVerifiedIdentity`) and it **fails closed**,
+The gate itself is one middleware on `POST /ples` (`requireVerifiedIdentity`) and it **fails closed**,
 including on a database read error — correct for a gate, and another reason not to switch it on
 before the people it gates are already cleared.
 
@@ -60,10 +60,10 @@ Steps 4–6 and 9 total **≈ 3 working days**. The box-side work in 1–3 is sh
 
 The decisive gate is `candidate-vs-human ICC ≥ 0.75`, decided by the **lower bound** of the
 confidence interval, not the point estimate (D19). `backend/src/services/icc.js` builds that interval
-with Fisher-z and `se = 1/√(n−3)`. Inverting it gives the number of paired CLEs required — and it is
+with Fisher-z and `se = 1/√(n−3)`. Inverting it gives the number of paired PLEs required — and it is
 brutally sensitive to how good the agreement actually is:
 
-| If true agreement is… | paired CLEs needed for the lower bound to clear 0.75 |
+| If true agreement is… | paired PLEs needed for the lower bound to clear 0.75 |
 |---|---|
 | 0.95 | **9** |
 | 0.92 | 14 |
@@ -76,12 +76,12 @@ brutally sensitive to how good the agreement actually is:
 Each figure verified against the implementation, not just the algebra: at *n* the lower bound clears
 0.75 and at *n−1* it does not.
 
-Read the bottom row carefully. **At a true agreement of 0.80, the gate needs more paired CLEs than
+Read the bottom row carefully. **At a true agreement of 0.80, the gate needs more paired PLEs than
 the entire study contains** (225). The gate is not "get to 0.80" — a model that agrees at 0.80 can
 never pass it at pilot scale. The candidate has to be *comfortably* above the threshold, or no amount
 of waiting will help.
 
-A paired CLE needs three things: a completed episode, an incumbent score, **and a human auditor
+A paired PLE needs three things: a completed episode, an incumbent score, **and a human auditor
 score**. The third is the scarce one — which is why D26 puts expert invitations first, and why the
 roster of 3 against a target of 20–25 is the longest lead time in the programme.
 
@@ -98,12 +98,12 @@ first participant  ≥  access_date
 ```
 
 `T7` is the only unknown, and it is not an engineering estimate — it is
-`required_n / (paired CLEs produced per week)`, where the denominator is governed by rater
+`required_n / (paired PLEs produced per week)`, where the denominator is governed by rater
 availability. **Measure the denominator before promising a date.** With one rater and no recruitment
 it is currently well under one per week.
 
 Worked: if access lands on 5 Sep and the candidate turns out to agree at 0.90 (19 pairs needed) with
-raters producing 5 paired CLEs per week, `T7 ≈ 4 weeks` and the earliest first participant is around
+raters producing 5 paired PLEs per week, `T7 ≈ 4 weeks` and the earliest first participant is around
 **8 Oct** — not 15 Sep. If agreement is 0.85, `T7 ≈ 10 weeks` and it is December.
 
 D25 retired the fallback deliberately: the honest response to a slip is to move the start date, not
@@ -128,15 +128,15 @@ the model.
 ### The −0.315 deserves its own paragraph
 
 This is **G0.5, the programme go/no-go gate** (D14), and it has nothing to do with the local model.
-The five non-test CLEs carrying both an AI evaluation and a human score:
+The five non-test PLEs carrying both an AI evaluation and a human score:
 
-| CLE | human | AI | Δ |
+| PLE | human | AI | Δ |
 |---|---|---|---|
-| CLE-002 | 75.0 | 71.0 | −4.0 |
-| CLE-005 | 75.0 | 91.0 | +16.0 |
-| CLE-006 | 74.0 | 91.0 | +17.0 |
-| CLE-011 | 80.0 | 73.0 | −7.0 |
-| CLE-012 | 77.5 | 76.0 | −1.5 |
+| PLE-002 | 75.0 | 71.0 | −4.0 |
+| PLE-005 | 75.0 | 91.0 | +16.0 |
+| PLE-006 | 74.0 | 91.0 | +17.0 |
+| PLE-011 | 80.0 | 73.0 | −7.0 |
+| PLE-012 | 77.5 | 76.0 | −1.5 |
 
 The verdict is correctly `insufficient`, not `fail` — at n=5 the interval spans almost everything and
 the estimate is worth very little. But the estimate that exists points the wrong way, and the reason
@@ -154,7 +154,7 @@ Two consequences worth stating before more effort is spent downstream:
    and every episode scored in a six-point band. It is a signal that the *measurement* is not yet
    able to measure, which is a different and more urgent problem.
 
-The four `is_test` CLEs excluded from the gate lean the other way (AI scores 11–27 points *below* the
+The four `is_test` PLEs excluded from the gate lean the other way (AI scores 11–27 points *below* the
 human), which is a second, separate divergence and also unexplained.
 
 ---

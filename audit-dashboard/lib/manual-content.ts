@@ -15,7 +15,7 @@ export const AUDITOR_MANUAL: ManualContent = {
           "spans": [
             {
               "t": "text",
-              "v": "คุณคือผู้เชี่ยวชาญที่ทำหน้าที่ตรวจประเมินบทเรียน (CLE) ของแพทย์ด้วยเกณฑ์ "
+              "v": "คุณคือผู้เชี่ยวชาญที่ทำหน้าที่ตรวจประเมินหน่วยการเรียนรู้เชิงวิชาชีพ (Professional Learning Episode, PLE) ของแพทย์ด้วยเกณฑ์ "
             },
             {
               "t": "b",
@@ -40,7 +40,7 @@ export const AUDITOR_MANUAL: ManualContent = {
           "spans": [
             {
               "t": "text",
-              "v": "ลำดับการทำงานคือ: แพทย์ทำ CLE และสนทนากับ AI → AI ให้คะแนน PIS-7 → ผู้ดูแลมอบหมายบทเรียนให้คุณ → "
+              "v": "ลำดับการทำงานคือ: แพทย์ทำ PLE และสนทนากับ AI → AI ให้คะแนน PIS-7 → ผู้ดูแลมอบหมายบทเรียนให้คุณ → "
             },
             {
               "t": "b",
@@ -918,7 +918,7 @@ export const AUDITOR_MANUAL: ManualContent = {
           "spans": [
             {
               "t": "text",
-              "v": "You are the expert who scores physicians' Continuous Learning Episodes against the "
+              "v": "You are the expert who scores physicians' Professional Learning Episodes against the "
             },
             {
               "t": "b",

@@ -17,7 +17,7 @@
   <nav><span class="brand">CLICS</span><div><a href="/dashboard">← Dashboard</a></div></nav>
   <div class="container" style="max-width:640px">
     <header class="page-intro">
-      <p class="eyebrow">Continuous Learning Episode · Evaluation</p>
+      <p class="eyebrow">Professional Learning Episode · Evaluation</p>
       <h1>ผลการประเมิน <span style="font-family:var(--font-body)">PIS-7</span></h1>
       <p class="sub">PIS-7 Evaluation — สรุปผลการให้เหตุผลทางคลินิกและเครดิต CPD ของ Episode นี้</p>
     </header>
@@ -30,7 +30,7 @@
   <script src="/js/icons.js"></script>
   <script src="/js/boot.js" defer></script>
   <script>
-    const cleId = new URLSearchParams(location.search).get('id');
+    const pleId = new URLSearchParams(location.search).get('id');
     let radarChart = null, lastScores = null;
     // Auto-poll while the evaluation is still running, instead of asking the user to hit "Refresh"
     // (the system should do its own polling). Bounded so it can't spin forever.
@@ -68,7 +68,7 @@
         </div>`;
     }
 
-    // Read-only conversation history. The physician can no longer open /cle-chat once a session ends
+    // Read-only conversation history. The physician can no longer open /ple-chat once a session ends
     // (it redirects here), so surface the transcript on the result page. Plain-text (escaped) — no
     // marked/DOMPurify on this page — with line breaks preserved; artifact fences collapse to a chip.
     function escapeHtml(s) { return (s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
@@ -76,7 +76,7 @@
     // Credit band.
     //
     // This replaced a badge that read "ได้รับ CPD Credit" (credit RECEIVED) and was shown on every
-    // evaluated CLE unconditionally — while the dashboard's own consent panel said
+    // evaluated PLE unconditionally — while the dashboard's own consent panel said
     // "ยังไม่นับเป็นหน่วยกิต CME" (not yet CME credit). Both cannot be true, and the badge was the
     // wrong one: no credit is awarded during the calibration phase. The wording now follows the
     // server's `enabled` flag, so the two screens cannot disagree again.
@@ -99,8 +99,8 @@
         </div>`;
     }
 
-    function transcriptSection(cle) {
-      const msgs = (cle.messages || []).filter(m => m.role === 'physician' || m.role === 'assistant');
+    function transcriptSection(ple) {
+      const msgs = (ple.messages || []).filter(m => m.role === 'physician' || m.role === 'assistant');
       if (!msgs.length) return '';
       const bubbles = msgs.map(m => {
         const cls = m.role === 'physician' ? 'msg-physician' : 'msg-assistant';
@@ -115,28 +115,28 @@
     }
 
     async function load() {
-      const cle = await api.getPle(cleId);
+      const ple = await api.getPle(pleId);
       const container = document.getElementById('content');
       // Unknown/deleted id (or network failure) → { error } with no status; don't fall
       // through to the scorecard, which would render NaN everywhere.
-      if (!cle || cle.error || !cle.status) { showMissing(container); return; }
-      if (cle.status === 'active') { container.innerHTML = '<p>กรุณาจบ session ก่อน</p>'; return; }
+      if (!ple || ple.error || !ple.status) { showMissing(container); return; }
+      if (ple.status === 'active') { container.innerHTML = '<p>กรุณาจบ session ก่อน</p>'; return; }
 
-      if (cle.status === 'cle_fail_t1' || cle.status === 'cle_flag_t2') {
-        // Two different outcomes, shown differently. 'cle_flag_t2' means the session did not yet meet
-        // the four qualities that define a learning episode; 'cle_fail_t1' now means only that there
+      if (ple.status === 'ple_fail_t1' || ple.status === 'ple_flag_t2') {
+        // Two different outcomes, shown differently. 'ple_flag_t2' means the session did not yet meet
+        // the four qualities that define a learning episode; 'ple_fail_t1' now means only that there
         // was no conversation to assess at all.
-        const isFail = cle.status === 'cle_fail_t1';
+        const isFail = ple.status === 'ple_fail_t1';
         // Engagement measures are RECORDED, not a verdict — never coloured as failures. Rendering
         // them in red told a physician they had failed three things that decided nothing.
         const engagement = Object.keys(ENGAGEMENT_LABELS).map(c => `
               <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;color:var(--muted);font-size:.9rem">
-                ${icon(cle[c + '_pass'] ? 'checkCircle' : 'x', 16)}
+                ${icon(ple[c + '_pass'] ? 'checkCircle' : 'x', 16)}
                 <span>${ENGAGEMENT_LABELS[c]}</span>
               </div>`).join('');
         const qualifying = Object.keys(QUALIFYING_LABELS).map(c => `
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;color:${cle[c+'_pass'] ? 'var(--success-text)' : 'var(--error-text)'}">
-                ${icon(cle[c + '_pass'] ? 'checkCircle' : 'xCircle', 18)}
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;color:${ple[c+'_pass'] ? 'var(--success-text)' : 'var(--error-text)'}">
+                ${icon(ple[c + '_pass'] ? 'checkCircle' : 'xCircle', 18)}
                 <span style="color:var(--body-color)">${QUALIFYING_LABELS[c]}</span>
               </div>`).join('');
         container.innerHTML = `
@@ -151,21 +151,21 @@
             <p style="color:var(--muted);margin:20px 0 10px;font-size:.9rem">ข้อมูลการมีส่วนร่วม (บันทึกไว้ ไม่ใช่เกณฑ์ตัดสิน) / Engagement, recorded but not a criterion:</p>
             ${engagement}`}
             <a href="/dashboard" class="btn btn-ghost" style="display:inline-block;margin-top:16px">← กลับ</a>
-          </div>` + transcriptSection(cle);
+          </div>` + transcriptSection(ple);
         return;
       }
 
-      if (cle.status === 'cle_pass') {
+      if (ple.status === 'ple_pass') {
         container.innerHTML = `
           <div class="card" style="text-align:center">
-            <div class="status-band is-pass" style="justify-content:center;margin-bottom:14px">${icon('checkCircle', 28)}<span>ผ่านเกณฑ์แล้ว / Continuous Learning Episode Passed</span></div>
+            <div class="status-band is-pass" style="justify-content:center;margin-bottom:14px">${icon('checkCircle', 28)}<span>ผ่านเกณฑ์แล้ว / Professional Learning Episode Passed</span></div>
             <p style="color:var(--muted);margin-top:8px">กำลังประเมินผล PIS-7 อยู่… / Evaluating PIS-7…</p>
-          </div>` + transcriptSection(cle);
+          </div>` + transcriptSection(ple);
         schedulePoll();
         return;
       }
 
-      const eval_ = await api.getEvaluation(cleId);
+      const eval_ = await api.getEvaluation(pleId);
       // Blinded test round: the score is withheld until an expert auditor submits theirs. Show an
       // "under review" state and keep polling — it reveals automatically once the auditor scores.
       if (eval_ && eval_.status === 'pending_review') {
@@ -174,7 +174,7 @@
             <div class="status-band is-review" style="justify-content:center;margin-bottom:14px">${icon('hourglass', 28)}<span>อยู่ระหว่างการตรวจประเมิน / Under expert review</span></div>
             <h2 style="margin-top:6px">ผลคะแนนจะแสดงหลังการตรวจประเมิน</h2>
             <p style="color:var(--muted);margin-top:8px">ผู้เชี่ยวชาญกำลังตรวจประเมิน Episode นี้ — ระบบจะแสดงคะแนน PIS-7 เมื่อผู้ตรวจส่งคะแนนแล้ว / Your PIS-7 score will appear once an expert auditor has submitted their assessment.</p>
-          </div>` + transcriptSection(cle);
+          </div>` + transcriptSection(ple);
         schedulePoll();
         return;
       }
@@ -208,7 +208,7 @@
               </div>
               <p style="font-size:13px;color:var(--muted);margin-top:4px">${eval_.domain_rationale?.['d'+(i+1)] ?? ''}</p>
             </div>`).join('')}
-        </div>` + transcriptSection(cle);
+        </div>` + transcriptSection(ple);
 
       lastScores = scores;
       buildRadar();

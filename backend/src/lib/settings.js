@@ -21,7 +21,7 @@ async function getTextSetting(key, def = null) {
   return v || def;
 }
 
-// Pilot Test Mode (CLICS pilot): when ON, CLE creation produces TEST sessions, bypasses the 3-CLE
+// Pilot Test Mode (CLICS pilot): when ON, PLE creation produces TEST sessions, bypasses the 3-PLE
 // study cap, and honours a physician-chosen Socratic mode — so the team can exercise the experiment.
 async function pilotTestMode() {
   return (await getSetting('pilot_test_mode', 0)) === 1;
@@ -33,7 +33,7 @@ async function clinicalArtifactsEnabled() {
   return (await getSetting('clinical_artifacts', 0)) === 1;
 }
 
-// Peer Calibration (superadmin toggle): when ON, a CLE may be assigned to several auditors and the
+// Peer Calibration (superadmin toggle): when ON, a PLE may be assigned to several auditors and the
 // auditor reveal pane shows a you-vs-auditor-average PIS-7 radar. Default OFF (single-auditor blind audit).
 async function peerCalibrationEnabled() {
   return (await getSetting('peer_calibration', 0)) === 1;
@@ -41,14 +41,14 @@ async function peerCalibrationEnabled() {
 
 // Hold Result Until Audited (superadmin toggle, for a blinded test round): when ON, a physician's
 // PIS-7 score is withheld (shown as "under expert review") until an expert auditor has submitted a
-// score for that CLE — so physicians can't see/compare scores before review. Default OFF.
+// score for that PLE — so physicians can't see/compare scores before review. Default OFF.
 async function holdResultUntilAudited() {
   return (await getSetting('hold_result_until_audited', 0)) === 1;
 }
 
-// Minimum auditors per CLE (superadmin dial, default 1). The manuscript describes >= 3 blinded
-// auditors per CLE; staffing does not support that yet (3 auditors cover 3 of 19 physician
-// specialties). So this WARNS, it does not BLOCK: a CLE below target is badged in the admin queue
+// Minimum auditors per PLE (superadmin dial, default 1). The manuscript describes >= 3 blinded
+// auditors per PLE; staffing does not support that yet (3 auditors cover 3 of 19 physician
+// specialties). So this WARNS, it does not BLOCK: a PLE below target is badged in the admin queue
 // and reported in the ICC cohort, but its score still releases. Blocking would strand credit for
 // specialties that have no eligible auditor at all — a worse failure than a thin rater count.
 // Socratic remediation after 3 consecutive Tier-1 failures. OFF by default and deliberately so:
@@ -114,14 +114,14 @@ async function iccGates() {
   };
 }
 
-async function minAuditorsPerCle() {
+async function minAuditorsPerPle() {
   const n = await getSetting('min_auditors_per_cle', 1);
   return Math.max(1, Math.min(10, Math.round(n)));
 }
 
 // The credit-conversion policy, as data. Ships with credit_conversion_enabled = 0, so the physician
 // UI shows the band as a PREVIEW and the existing "ยังไม่นับเป็นหน่วยกิต CME" wording is unchanged.
-// One batched read: this sits on the CLE-result path, and eleven sequential awaits would not.
+// One batched read: this sits on the PLE-result path, and eleven sequential awaits would not.
 async function creditSettings() {
   const { data } = await supabase.from('app_settings').select('key, value')
     .in('key', ['credit_conversion_enabled', 'credit_base_unit',
@@ -144,4 +144,4 @@ async function creditSettings() {
   };
 }
 
-module.exports = { getSetting, getTextSetting, iccGates, minAuditorsPerCle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };
+module.exports = { getSetting, getTextSetting, iccGates, minAuditorsPerPle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };

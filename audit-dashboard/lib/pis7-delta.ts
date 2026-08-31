@@ -1,6 +1,6 @@
 // Deterministic, free conclusion under the PIS-7 radar — narrates where the auditor's scores sit
 // relative to the AI's, per domain. No AI call (the chat box handles open-ended discussion). Works
-// for whole numbers (a single CLE) and means (the home aggregate). Bilingual TH / EN, one line.
+// for whole numbers (a single PLE) and means (the home aggregate). Bilingual TH / EN, one line.
 import { PIS7_RUBRIC } from './pis7-rubric';
 
 type ScoreMap = Record<string, unknown> | null | undefined;
@@ -24,7 +24,7 @@ export function pis7Conclusion(ref: ScoreMap, human: ScoreMap, refLabel: RefLabe
     diff: Number(human?.[d.key] ?? 0) - Number(ref?.[d.key] ?? 0),
   }));
 
-  // "Agree" = within a quarter point (handles fractional means; exact for integer single-CLE).
+  // "Agree" = within a quarter point (handles fractional means; exact for integer single-PLE).
   const diverging = deltas.filter(x => Math.abs(x.diff) >= 0.25);
   if (diverging.length === 0) {
     return `คะแนนของคุณสอดคล้องกับ${refLabel.th}ในทุกหมวด PIS-7 / Your scores align with ${refLabel.en} across every PIS-7 domain.`;

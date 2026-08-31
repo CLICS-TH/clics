@@ -21,7 +21,7 @@ app.use('/admin', require('../src/routes/admin'));
 app.use('/auditor', require('../src/routes/auditor'));
 const auth = r => r.set('Authorization', 'Bearer test');
 
-let cle, gateOn;
+let ple, gateOn;
 // AssignSchema requires a uuid, so the fixture auditor needs a real one.
 const AUD_UUID = '44444444-4444-4444-4444-444444444444';
 const AUDITOR_ROW = { id: AUD_UUID, role: 'auditor', status: 'active', council_id: COUNCIL_A, specialty_id: null };
@@ -30,17 +30,17 @@ beforeEach(() => {
   m.reset();
   gateOn = 1;
   m.state.caller = { ...ADMIN };
-  cle = { id: 'p1', cle_code: 'CLE-001', status: 'evaluated', council_id: COUNCIL_A, specialty_id: null,
+  ple = { id: 'p1', ple_code: 'PLE-001', status: 'evaluated', council_id: COUNCIL_A, specialty_id: null,
           physician_id: 'phys-1', privacy_review_status: 'pending' };
   m.state.resolve = (table, kind, ctx) => {
     if (table === 'app_settings') return { value: gateOn };
-    if (table === 'cles') return kind === 'list' ? { data: [cle], count: 1 } : cle;
+    if (table === 'ples') return kind === 'list' ? { data: [ple], count: 1 } : ple;
     if (table === 'professionals') return AUDITOR_ROW;
     return undefined;
   };
 });
 
-const assign = () => auth(request(app).post('/admin/cles/p1/assign')).send({ auditor_id: AUD_UUID });
+const assign = () => auth(request(app).post('/admin/ples/p1/assign')).send({ auditor_id: AUD_UUID });
 
 describe('EXPOSURE 1+2 — assignment', () => {
   test('an unreviewed session cannot be assigned to an auditor', async () => {
@@ -51,19 +51,19 @@ describe('EXPOSURE 1+2 — assignment', () => {
   });
 
   test.each(['quarantined', 'excluded'])('a %s session cannot be assigned', async (st) => {
-    cle.privacy_review_status = st;
+    ple.privacy_review_status = st;
     expect((await assign()).status).toBe(409);
   });
 
   test.each(['passed', 'redacted'])('a %s session assigns normally — redaction IS a clearance', async (st) => {
-    cle.privacy_review_status = st;
+    ple.privacy_review_status = st;
     expect((await assign()).status).toBe(200);
   });
 
   test('the write is re-gated, so a clearance revoked mid-request cannot slip through', async () => {
-    cle.privacy_review_status = 'passed';
+    ple.privacy_review_status = 'passed';
     await assign();
-    expect(m.find('cles', 'update').ins).toContainEqual(['privacy_review_status', ['passed', 'redacted']]);
+    expect(m.find('ples', 'update').ins).toContainEqual(['privacy_review_status', ['passed', 'redacted']]);
   });
 
   test('with the gate switched off, an unreviewed session assigns — a recorded deviation, not a bypass', async () => {
@@ -76,15 +76,15 @@ describe('EXPOSURE 3 — the stratified sampler', () => {
   test('the pool is filtered to cleared sessions: being sampled IS being handed to a rater', async () => {
     // An EMPTY pool on purpose. The sampler returns early on no rows, which is enough to observe the
     // filters it built — and avoids standing up doubles for ai_evaluations / audit_assignments /
-    // cle_integrity_flags / professionals, none of which this test is about.
+    // ple_integrity_flags / professionals, none of which this test is about.
     m.state.resolve = (table, kind) => {
       if (table === 'app_settings') return { value: gateOn };
-      if (table === 'cles') return kind === 'list' ? { data: [], count: 0 } : cle;
+      if (table === 'ples') return kind === 'list' ? { data: [], count: 0 } : ple;
       return undefined;
     };
-    const res = await auth(request(app).post('/admin/cles/sample')).send({ target: 1 });
+    const res = await auth(request(app).post('/admin/ples/sample')).send({ target: 1 });
     expect(res.status).toBe(200);
-    const pool = m.all('cles', 'select').find(q => q.eqs.some(e => e[0] === 'status' && e[1] === 'evaluated'));
+    const pool = m.all('ples', 'select').find(q => q.eqs.some(e => e[0] === 'status' && e[1] === 'evaluated'));
     expect(pool.ins).toContainEqual(['privacy_review_status', ['passed', 'redacted']]);
   });
 });
@@ -93,42 +93,42 @@ describe('EXPOSURE 4 — the auditor queue', () => {
   test('a session quarantined AFTER assignment drops out of the queue', async () => {
     m.state.caller = { ...AUDITOR };
     await auth(request(app).get('/auditor/queue'));
-    const q = m.all('cles', 'select').find(x => x.eqs.some(e => e[0] === 'status' && e[1] === 'evaluated'));
+    const q = m.all('ples', 'select').find(x => x.eqs.some(e => e[0] === 'status' && e[1] === 'evaluated'));
     expect(q.ins).toContainEqual(['privacy_review_status', ['passed', 'redacted']]);
   });
 });
 
 describe('recording the decision', () => {
   test('a decision stamps who, when, and what — for 100% of sessions, passes included', async () => {
-    const res = await auth(request(app).post('/admin/cles/p1/privacy-review')).send({ decision: 'passed' });
+    const res = await auth(request(app).post('/admin/ples/p1/privacy-review')).send({ decision: 'passed' });
     expect(res.status).toBe(200);
-    expect(m.find('cles', 'update').payload).toMatchObject({
+    expect(m.find('ples', 'update').payload).toMatchObject({
       privacy_review_status: 'passed', privacy_reviewed_by: ADMIN.id,
     });
-    expect(m.find('cles', 'update').payload.privacy_reviewed_at).toEqual(expect.any(String));
+    expect(m.find('ples', 'update').payload.privacy_reviewed_at).toEqual(expect.any(String));
   });
 
   test('anything other than a clean pass requires a note', async () => {
-    const res = await auth(request(app).post('/admin/cles/p1/privacy-review')).send({ decision: 'quarantined' });
+    const res = await auth(request(app).post('/admin/ples/p1/privacy-review')).send({ decision: 'quarantined' });
     expect(res.status).toBe(400);
     expect(res.body.code).toBe('note_required');
-    expect(m.find('cles', 'update')).toBeUndefined();
+    expect(m.find('ples', 'update')).toBeUndefined();
   });
 
   test('a quarantine WITH a note is accepted and the note is stored', async () => {
-    const res = await auth(request(app).post('/admin/cles/p1/privacy-review'))
+    const res = await auth(request(app).post('/admin/ples/p1/privacy-review'))
       .send({ decision: 'quarantined', note: 'HN visible in turn 3' });
     expect(res.status).toBe(200);
-    expect(m.find('cles', 'update').payload).toMatchObject({ privacy_review_note: 'HN visible in turn 3' });
+    expect(m.find('ples', 'update').payload).toMatchObject({ privacy_review_note: 'HN visible in turn 3' });
   });
 
   test('an invalid decision is rejected — the set is closed', async () => {
-    expect((await auth(request(app).post('/admin/cles/p1/privacy-review')).send({ decision: 'approved' })).status).toBe(400);
+    expect((await auth(request(app).post('/admin/ples/p1/privacy-review')).send({ decision: 'approved' })).status).toBe(400);
   });
 
   test('a quarantine can be revisited — an irreversible one would destroy usable data', async () => {
-    cle.privacy_review_status = 'quarantined';
-    const res = await auth(request(app).post('/admin/cles/p1/privacy-review'))
+    ple.privacy_review_status = 'quarantined';
+    const res = await auth(request(app).post('/admin/ples/p1/privacy-review'))
       .send({ decision: 'redacted', note: 'HN removed' });
     expect(res.status).toBe(200);
     expect(res.body.privacy_review_status).toBe('redacted');
@@ -138,12 +138,12 @@ describe('recording the decision', () => {
 describe('the queue', () => {
   test('defaults to pending — the queue is work, not a browsable archive', async () => {
     await auth(request(app).get('/admin/privacy-queue'));
-    expect(m.find('cles', 'select').eqs).toContainEqual(['privacy_review_status', 'pending']);
+    expect(m.find('ples', 'select').eqs).toContainEqual(['privacy_review_status', 'pending']);
   });
 
   test('a reviewer can revisit their own earlier decisions', async () => {
     await auth(request(app).get('/admin/privacy-queue?status=quarantined'));
-    expect(m.find('cles', 'select').eqs).toContainEqual(['privacy_review_status', 'quarantined']);
+    expect(m.find('ples', 'select').eqs).toContainEqual(['privacy_review_status', 'quarantined']);
   });
 });
 
@@ -151,5 +151,5 @@ test('an unrecognised ?status falls back to pending, not to an empty list', asyn
   // An arbitrary value used to pass straight into .eq(), match no rows, and render as "every session
   // has been reviewed" — the most misleading answer a privacy queue can give.
   await auth(request(app).get('/admin/privacy-queue?status=all-clear'));
-  expect(m.find('cles', 'select').eqs).toContainEqual(['privacy_review_status', 'pending']);
+  expect(m.find('ples', 'select').eqs).toContainEqual(['privacy_review_status', 'pending']);
 });

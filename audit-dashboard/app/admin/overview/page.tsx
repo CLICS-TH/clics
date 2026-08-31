@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import { apiFetch, apiDownload } from '@/lib/api';
 import { getUser } from '@/lib/auth';
-import { DOMAIN_KEYS, DOMAIN_LABELS, ROLE_LABELS, cleStatusCards, budgetToneHex } from '@/lib/labels';
+import { DOMAIN_KEYS, DOMAIN_LABELS, ROLE_LABELS, pleStatusCards, budgetToneHex } from '@/lib/labels';
 import { CHART } from '@/lib/chart-colors';
 import { PageIntro } from '@/components/PageIntro';
 import { RoleBadge } from '@/components/RoleBadge';
@@ -58,10 +58,10 @@ export default function OverviewPage() {
 
   // ---- ① Headline cards — the shared /admin/stats card set (reconciles to the total) ----
   const greeting = `สวัสดี, ${me ? (me.full_name_th || me.full_name_en) : ''}`;
-  const headlineStats: Stat[] = cleStatusCards(stats).map(c => ({
+  const headlineStats: Stat[] = pleStatusCards(stats).map(c => ({
     value: c.value,
     label: c.label,
-    href: `/admin/cles${c.key ? `?status=${c.key}` : ''}`,
+    href: `/admin/ples${c.key ? `?status=${c.key}` : ''}`,
   }));
 
   // ---- ② Per-domain chart data ----
@@ -132,10 +132,10 @@ export default function OverviewPage() {
     setHoldSaving(false);
   }
 
-  // ---- Minimum auditors per CLE ----
-  // A TARGET, not a gate. The manuscript describes >= 3 blinded auditors per CLE; 3 auditors
+  // ---- Minimum auditors per PLE ----
+  // A TARGET, not a gate. The manuscript describes >= 3 blinded auditors per PLE; 3 auditors
   // currently cover 3 of 19 physician specialties, so a blocking rule would strand credit for the
-  // other 16. Raising this badges CLEs below target in the queue and states the rater distribution
+  // other 16. Raising this badges PLEs below target in the queue and states the rater distribution
   // in the ICC report — it never withholds a score.
   const [minAudSaving, setMinAudSaving] = useState(false);
   const minAuditors = usage?.min_auditors_per_cle ?? 1;
@@ -171,11 +171,11 @@ export default function OverviewPage() {
       <PageIntro
         eyebrow="Superadmin · Executive Overview"
         title={greeting}
-        subtitle="ภาพรวมผู้บริหาร — สถานะ pilot ทั้งระบบในหน้าเดียว: CLEs · calibration · สภาวิชาชีพ · capacity · budget / Executive overview — the whole pilot on one page."
+        subtitle="ภาพรวมผู้บริหาร — สถานะ pilot ทั้งระบบในหน้าเดียว: PLEs · calibration · สภาวิชาชีพ · capacity · budget / Executive overview — the whole pilot on one page."
         action={<RoleBadge />}
       />
 
-      {/* ① Headline CLE cards — each drills into /admin/cles filtered by its bucket. */}
+      {/* ① Headline PLE cards — each drills into /admin/ples filtered by its bucket. */}
       <section>
         {stats
           ? <StatStrip stats={headlineStats} className="grid grid-cols-2 gap-4 @min-[480px]:grid-cols-3 @min-[768px]:grid-cols-5" />
@@ -315,20 +315,20 @@ export default function OverviewPage() {
         </div>
       </section>
 
-      {/* Minimum auditors per CLE — a target the queue badges against, never a gate. */}
+      {/* Minimum auditors per PLE — a target the queue badges against, never a gate. */}
       <section className="space-y-3">
-        <h2 className="font-heading text-xl text-foreground">ผู้ตรวจขั้นต่ำต่อ CLE / Minimum auditors per CLE</h2>
+        <h2 className="font-heading text-xl text-foreground">ผู้ตรวจขั้นต่ำต่อ PLE / Minimum auditors per PLE</h2>
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-5">
           <div className="min-w-0 flex-1 pr-4">
             <p className="text-sm font-medium">👥 จำนวนผู้ตรวจเป้าหมาย / Target auditor count</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              CLE ที่มีผู้ตรวจน้อยกว่าเป้าหมายจะถูกทำเครื่องหมายในคิว แต่ <strong>ยังปล่อยผลตามปกติ</strong> —
-              ไม่บล็อก เพราะบางสาขายังไม่มีผู้ตรวจเลย • CLEs below target are badged in the admin queue and
+              PLE ที่มีผู้ตรวจน้อยกว่าเป้าหมายจะถูกทำเครื่องหมายในคิว แต่ <strong>ยังปล่อยผลตามปกติ</strong> —
+              ไม่บล็อก เพราะบางสาขายังไม่มีผู้ตรวจเลย • PLEs below target are badged in the admin queue and
               counted separately in the ICC report, but their score still releases. Blocking would strand
               credit for the specialties that have no eligible auditor at all.
             </p>
           </div>
-          <div role="radiogroup" aria-label="Minimum auditors per CLE" className="inline-flex shrink-0 overflow-hidden rounded-lg border">
+          <div role="radiogroup" aria-label="Minimum auditors per PLE" className="inline-flex shrink-0 overflow-hidden rounded-lg border">
             {[1, 2, 3].map(n => {
               const on = n === minAuditors;
               return (
@@ -354,7 +354,7 @@ export default function OverviewPage() {
           inline beside the plain on/off toggles below. */}
       <AiProviderPanel />
 
-      {/* Pilot Test Mode — when on, new CLEs are TEST sessions, the 3-CLE cap is bypassed, and the
+      {/* Pilot Test Mode — when on, new PLEs are TEST sessions, the 3-PLE cap is bypassed, and the
           physician can pick Natural/Socratic directly to exercise the experiment. */}
       <section className="space-y-3">
         <h2 className="font-heading text-xl text-foreground">Pilot Test Mode</h2>
@@ -362,8 +362,8 @@ export default function OverviewPage() {
           <div className="pr-4">
             <p className="text-sm font-medium">🧪 โหมดทดสอบ Pilot / Pilot test mode</p>
             <p className="text-xs text-muted-foreground">
-              เปิดเพื่อทดสอบ Socratic mode: CLE ที่สร้างจะเป็น test session (ไม่นับในข้อมูลจริง), ข้ามลิมิต 3 CLE,
-              และแพทย์เลือก Natural/Socratic ได้เอง • When on: new CLEs are test sessions, the 3-CLE cap is bypassed,
+              เปิดเพื่อทดสอบ Socratic mode: PLE ที่สร้างจะเป็น test session (ไม่นับในข้อมูลจริง), ข้ามลิมิต 3 PLE,
+              และแพทย์เลือก Natural/Socratic ได้เอง • When on: new PLEs are test sessions, the 3-PLE cap is bypassed,
               and the physician picks Natural/Socratic directly.
             </p>
           </div>
@@ -404,7 +404,7 @@ export default function OverviewPage() {
         </div>
       </section>
 
-      {/* Peer Calibration — when on, a CLE may be assigned to several auditors and each auditor sees a
+      {/* Peer Calibration — when on, a PLE may be assigned to several auditors and each auditor sees a
           you-vs-auditor-average PIS-7 radar (alongside vs-AI). A pilot calibration aid, off by default. */}
       <section className="space-y-3">
         <h2 className="font-heading text-xl text-foreground">Peer Calibration</h2>
@@ -412,8 +412,8 @@ export default function OverviewPage() {
           <div className="pr-4">
             <p className="text-sm font-medium">👥 Peer Calibration / การปรับเทียบระหว่างผู้ประเมิน</p>
             <p className="text-xs text-muted-foreground">
-              เปิดให้มอบหมาย CLE เดียวกันแก่ผู้ประเมินหลายคน และแสดงเรดาร์เทียบคะแนนของผู้ประเมินกับค่าเฉลี่ยของผู้ประเมินทั้งหมด •
-              When on: a CLE can be assigned to multiple auditors, and after submitting each auditor sees a radar
+              เปิดให้มอบหมาย PLE เดียวกันแก่ผู้ประเมินหลายคน และแสดงเรดาร์เทียบคะแนนของผู้ประเมินกับค่าเฉลี่ยของผู้ประเมินทั้งหมด •
+              When on: a PLE can be assigned to multiple auditors, and after submitting each auditor sees a radar
               comparing their PIS-7 scores to the average of all auditors (the vs-AI radar is kept).
             </p>
           </div>
@@ -430,16 +430,16 @@ export default function OverviewPage() {
       </section>
 
       {/* Hold Result Until Audited — for a blinded test round: physicians can't see their PIS-7 score
-          (result page + LPDP trend) until an expert auditor has submitted one for that CLE. Off by default. */}
+          (result page + LPDP trend) until an expert auditor has submitted one for that PLE. Off by default. */}
       <section className="space-y-3">
         <h2 className="font-heading text-xl text-foreground">Hold Result Until Audited</h2>
         <div className="flex items-center justify-between rounded-xl border p-5">
           <div className="pr-4">
             <p className="text-sm font-medium">🔒 ระงับผลจนกว่าผู้ตรวจจะให้คะแนน / Hold result until audited</p>
             <p className="text-xs text-muted-foreground">
-              สำหรับรอบทดสอบแบบปิดบัง: แพทย์จะไม่เห็นคะแนน PIS-7 (ทั้งหน้าผลและกราฟความก้าวหน้า) จนกว่าผู้ตรวจประเมินจะส่งคะแนนของ CLE นั้นแล้ว •
+              สำหรับรอบทดสอบแบบปิดบัง: แพทย์จะไม่เห็นคะแนน PIS-7 (ทั้งหน้าผลและกราฟความก้าวหน้า) จนกว่าผู้ตรวจประเมินจะส่งคะแนนของ PLE นั้นแล้ว •
               For a blinded test round: physicians can&apos;t see their PIS-7 score (result page + LPDP trend) until an
-              expert auditor has submitted a score for that CLE. Keep it ON only during the test.
+              expert auditor has submitted a score for that PLE. Keep it ON only during the test.
             </p>
           </div>
           <button
@@ -454,7 +454,7 @@ export default function OverviewPage() {
         </div>
       </section>
 
-      {/* Data export — one XLSX workbook, a sheet per category (CLEs / AI evaluations / Auditor scores /
+      {/* Data export — one XLSX workbook, a sheet per category (PLEs / AI evaluations / Auditor scores /
           Compensation / Participants). Pseudonymized (no names) so it honors the PII boundary. */}
       <section className="space-y-3">
         <h2 className="font-heading text-xl text-foreground">Export data</h2>
@@ -462,7 +462,7 @@ export default function OverviewPage() {
           <div className="pr-4">
             <p className="text-sm font-medium">📊 ส่งออกข้อมูล (XLSX) / Export data (XLSX)</p>
             <p className="text-xs text-muted-foreground">
-              ดาวน์โหลดสมุดงาน Excel หนึ่งไฟล์ แยกชีตตามหมวด (CLEs · AI evaluations · Auditor scores · Compensation · Participants) •
+              ดาวน์โหลดสมุดงาน Excel หนึ่งไฟล์ แยกชีตตามหมวด (PLEs · AI evaluations · Auditor scores · Compensation · Participants) •
               One workbook, a sheet per category. Pseudonymized (P-NNN / EXP-NNN) — no names leave the system.
             </p>
             {exportErr && <p className="mt-1 text-xs text-destructive">{exportErr}</p>}

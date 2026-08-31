@@ -55,8 +55,8 @@ app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/health', require('./routes/health')); // /health/deep — unauthenticated readiness probe
 app.use('/auth', require('./routes/auth'));
 app.use('/guest', require('./routes/guest')); // ephemeral guest mode (no auth, no persistence)
-app.use('/cles/folders', require('./routes/folders')); // before /cles so "folders" isn't read as :id
-app.use('/cles', require('./routes/cles'));
+app.use('/ples/folders', require('./routes/folders')); // before /ples so "folders" isn't read as :id
+app.use('/ples', require('./routes/ples'));
 // ORDER LOAD-BEARING: admin.js must mount before superadmin.js — superadmin.js opens with a
 // router-level requireRole('superadmin') that 403s and ENDS every admin-role request, and
 // admin.js's GET /users intentionally shadows the same path (dual-role, council-scoped).
@@ -75,7 +75,7 @@ app.use((err, req, res, _next) => {
   res.status(status).json({ error: status === 400 ? 'Invalid request body' : (IS_PROD ? 'Internal server error' : err.message) });
 });
 
-// Scheduled reconcile sweep (soak finding F1): sessions stranded at cle_pass with no AI evaluation
+// Scheduled reconcile sweep (soak finding F1): sessions stranded at ple_pass with no AI evaluation
 // silently lose credit, and recovery was manual-only. Re-run the sweep every RECONCILE_INTERVAL_MS
 // (default 6h; 0/negative disables). First run lands one interval after boot, and a sweep still in
 // flight makes the next tick skip rather than overlap.
@@ -88,7 +88,7 @@ if (process.env.NODE_ENV !== 'test' && RECONCILE_INTERVAL_MS > 0) {
     sweeping = true;
     try {
       const { stuck, recovered, repaired, failed } = await reconcileEvaluations();
-      console.log(`[reconcile] swept ${stuck} cle_pass session(s): recovered=${recovered} repaired=${repaired} failed=${failed}`);
+      console.log(`[reconcile] swept ${stuck} ple_pass session(s): recovered=${recovered} repaired=${repaired} failed=${failed}`);
     } catch (err) {
       console.error(`[reconcile] sweep failed: ${err.message}`);
     } finally {

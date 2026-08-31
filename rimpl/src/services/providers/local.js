@@ -37,7 +37,7 @@ const cfg = () => ({
   // The model that serves /embeddings. Usually NOT the chat model — embedding models are separate
   // checkpoints (nomic-embed-text, bge-m3, …) even on the same box.
   embedModel: String(process.env.LOCAL_AI_EMBED_MODEL || ''),
-  // A creditable CLE needs C3 ≥ 10,000 tokens, and the evaluator sends the whole transcript. Anything
+  // A creditable PLE needs C3 ≥ 10,000 tokens, and the evaluator sends the whole transcript. Anything
   // near Ollama's 4096 default cannot score one. Reported by ready() so the mismatch is visible in
   // /health/deep rather than discovered by a physician losing an evaluation.
   //
@@ -163,7 +163,7 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
       // say it here, once, at the point of failure. It stays a 400 (non-retryable): re-sending the
       // same oversized transcript four times cannot make it fit.
       if (/context (size|length)|exceeds the available context/i.test(e?.message || '')) {
-        const hint = `The server is serving "${model}" with too small a context window for a CLE transcript. Raise it server-side (Ollama: OLLAMA_CONTEXT_LENGTH or a Modelfile \`PARAMETER num_ctx\`; vLLM: --max-model-len), or set LOCAL_AI_NUM_CTX if this server honours a per-request override.`;
+        const hint = `The server is serving "${model}" with too small a context window for a PLE transcript. Raise it server-side (Ollama: OLLAMA_CONTEXT_LENGTH or a Modelfile \`PARAMETER num_ctx\`; vLLM: --max-model-len), or set LOCAL_AI_NUM_CTX if this server honours a per-request override.`;
         const err = new Error(`${e.message} — ${hint}`);
         err.status = e.status;
         err.contextTooSmall = true;
@@ -219,7 +219,7 @@ async function embed(text) {
  * How much context the box will actually accept.
  *
  * This is the difference between a failure a physician discovers and one /health/deep reports. A
- * creditable CLE is >= 10,000 tokens (C3) and the evaluator sends the whole transcript, so a server
+ * creditable PLE is >= 10,000 tokens (C3) and the evaluator sends the whole transcript, so a server
  * on Ollama's 4096 default fails EVERY evaluation — loudly, but only at the moment it matters.
  *
  * Ollama exposes the number on its native API, which sits beside the OpenAI-compatible one
@@ -276,7 +276,7 @@ async function ready() {
     // prose is what left the production 409 carrying measured: null while the sentence said 4096.
     if (ctx != null && ctx < minContext) {
       return { checks: { local_ai: { status: 'down', model, context_length: ctx, min_context: minContext,
-        error: `served context ${ctx} is below the required minimum ${minContext} — a creditable CLE transcript (C3 >= 10,000 tokens) cannot be evaluated at this size` } } };
+        error: `served context ${ctx} is below the required minimum ${minContext} — a creditable PLE transcript (C3 >= 10,000 tokens) cannot be evaluated at this size` } } };
     }
     return { checks: { local_ai: { status: 'up', model, context_length: ctx ?? 'unknown', min_context: minContext } } };
   } catch (e) {

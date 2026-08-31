@@ -53,7 +53,50 @@ function schemaFromSql() {
       for (const a of m[2].matchAll(/add column (?:if not exists )?([a-z_][a-z0-9_]*)/g)) add(m[1], a[1]);
     }
   }
+  applyRenames(cols);
   return cols;
+}
+
+/*
+ * RENAMEs, applied after the CREATE/ADD COLUMN pass.
+ *
+ * WHY THIS IS NEEDED. The reader above accumulates every declaration in db/*.sql, which is right for
+ * CREATE TABLE and ADD COLUMN but blind to ALTER ... RENAME. After the CLE->PLE rename that blindness
+ * reconstructed the schema as it stood BEFORE the rename, so twelve columns the code selects
+ * perfectly correctly (ples.privacy_review_status, ple_integrity_flags.evidence, …) were reported as
+ * not existing.
+ *
+ * WHY ONLY THE ONE FILE. There are two rename migrations in db/ and they are opposites:
+ * migration-cle-rename.sql (2026-06, PLE->CLE) and migration-ple-rename.sql (CLE->PLE, current).
+ * Applying "every rename found in db/" would apply both and land wherever file order happened to
+ * leave it. The second undoes the first, so the current state is the second one alone — and naming
+ * the file explicitly means the next rename has to be added here deliberately rather than picked up
+ * by an ordering accident.
+ *
+ * The historical migrations are deliberately NOT rewritten to the new names: they are a record of
+ * what was applied on a given day, and editing them to say something else falsifies it.
+ */
+const CURRENT_RENAME_MIGRATION = 'migration-ple-rename.sql';
+
+function applyRenames(cols) {
+  const file = path.join(DB, CURRENT_RENAME_MIGRATION);
+  if (!fs.existsSync(file)) return;
+  const sql = fs.readFileSync(file, 'utf8').toLowerCase().replace(/--[^\n]*/g, '');
+
+  // Columns first: the statements name the table by its NEW name where it was already renamed
+  // above them, so doing tables first would leave these looking for a table that no longer exists.
+  for (const m of sql.matchAll(/alter table (?:public\.)?([a-z_]+)\s+rename column ([a-z_]+)\s+to ([a-z_]+)/g)) {
+    const [, t, from, to] = m;
+    for (const key of [t, t.replace(/^ple/, 'cle'), t.replace(/^ples$/, 'cles')]) {
+      if (cols[key] && cols[key].has(from)) { cols[key].delete(from); cols[key].add(to); }
+    }
+  }
+  for (const m of sql.matchAll(/alter table (?:public\.)?([a-z_]+)\s+rename to ([a-z_]+)/g)) {
+    const [, from, to] = m;
+    if (!cols[from]) continue;
+    cols[to] = new Set([...(cols[to] ?? []), ...cols[from]]);
+    delete cols[from];
+  }
 }
 
 function jsFiles(dir) {
@@ -84,7 +127,7 @@ function selectedColumns() {
         // splitting around it invents a column called `')}`. What it expands to is unknowable here;
         // the literal columns beside it are still worth checking.
         .replace(/\$\{[^}]*\}/g, '')
-        // Then PostgREST embeds — `professionals!cles_physician_id_fkey(id, name)` selects columns of
+        // Then PostgREST embeds — `professionals!ples_physician_id_fkey(id, name)` selects columns of
         // the EMBEDDED table, not this one, so its inner names must not be checked against this one.
         .replace(/[a-z_]+(?:![a-z_]+)?\([^)]*\)/g, '');
       for (const raw of flat.split(',')) {
@@ -106,8 +149,8 @@ describe('every selected column exists in the declared schema', () => {
     // failure mode this file exists to prevent, one level up.
     expect(Object.keys(schema).length).toBeGreaterThan(20);
     expect([...(schema.audit_scores ?? [])]).toContain('scored_at');
-    expect([...(schema.cles ?? [])]).toContain('c3_pass');       // three columns on one source line
-    expect([...(schema.cles ?? [])]).toContain('privacy_concern_open');   // added by ALTER, not CREATE
+    expect([...(schema.ples ?? [])]).toContain('c3_pass');       // three columns on one source line
+    expect([...(schema.ples ?? [])]).toContain('privacy_concern_open');   // added by ALTER, not CREATE
   });
 
   test('the source was actually scanned', () => {
@@ -130,6 +173,6 @@ describe('every selected column exists in the declared schema', () => {
     // Mutation check on the checker itself: `created_at` is real on other tables and absent here, so
     // a validator that merely looked for "a column of that name somewhere" would miss it.
     expect(schema.audit_scores.has('created_at')).toBe(false);
-    expect(schema.cles.has('created_at')).toBe(true);
+    expect(schema.ples.has('created_at')).toBe(true);
   });
 });

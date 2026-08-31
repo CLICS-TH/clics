@@ -1,5 +1,5 @@
 // Tier-3 (analyst) + Tier-4 (ethics) READ-ONLY oversight (CLICS_Proposal §9.4 access tiers).
-// These roles NEVER see transcripts — RLS grants them no cles/messages policy, and these endpoints
+// These roles NEVER see transcripts — RLS grants them no ples/messages policy, and these endpoints
 // expose only aggregates + the audit log. analyst: aggregate de-identified data. ethics: + audit log.
 const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
@@ -13,10 +13,10 @@ const { iccGates } = require('../lib/settings');
 const router = Router();
 router.use(verifyJwt, requireRole('analyst', 'ethics', 'superadmin'));
 
-// Aggregate CLE status counts (de-identified). Both roles.
+// Aggregate PLE status counts (de-identified). Both roles.
 router.get('/stats', async (req, res) => {
   const includeTest = req.query.include_test === 'true';
-  const { data, error } = await supabase.rpc('cle_status_counts', { p_council: null, p_include_test: includeTest });
+  const { data, error } = await supabase.rpc('ple_status_counts', { p_council: null, p_include_test: includeTest });
   if (sendDbError(res, error)) return;
   const counts = Object.fromEntries((data ?? []).map(r => [r.status, Number(r.n)]));
   res.json({ counts, total: Object.values(counts).reduce((a, n) => a + n, 0) });
@@ -27,29 +27,29 @@ const ICC_DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 router.get('/icc', async (req, res) => {
   const includeTest = req.query.include_test === 'true';
   const { data: auditScores } = await supabase
-    .from('audit_scores').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+    .from('audit_scores').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
   if (!auditScores?.length) return res.json({ overall: null, per_domain: {}, n: 0 });
-  const scoredIds = [...new Set(auditScores.map(a => a.cle_id))];
+  const scoredIds = [...new Set(auditScores.map(a => a.ple_id))];
   const { data: aiScores, error: aiErr } = await supabase
-    .from('ai_evaluations').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('cle_id', scoredIds);
+    .from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('ple_id', scoredIds);
   if (sendDbError(res, aiErr)) return;
   // A dropped error here would empty testOf and silently invert the include_test=false default.
-  const { data: cles, error: clesErr } = await supabase.from('cles').select('id, is_test').in('id', scoredIds);
-  if (sendDbError(res, clesErr)) return;
-  const testOf = Object.fromEntries((cles ?? []).map(p => [p.id, p.is_test]));
-  const aiBy = Object.fromEntries((aiScores ?? []).map(s => [s.cle_id, s]));
-  // One human value per CLE (mean across auditors) before pairing — ICC(2,1) assumes one human rating
-  // per subject, so a multi-auditor CLE must not contribute N pairs reusing the same AI value. With a
+  const { data: ples, error: plesErr } = await supabase.from('ples').select('id, is_test').in('id', scoredIds);
+  if (sendDbError(res, plesErr)) return;
+  const testOf = Object.fromEntries((ples ?? []).map(p => [p.id, p.is_test]));
+  const aiBy = Object.fromEntries((aiScores ?? []).map(s => [s.ple_id, s]));
+  // One human value per PLE (mean across auditors) before pairing — ICC(2,1) assumes one human rating
+  // per subject, so a multi-auditor PLE must not contribute N pairs reusing the same AI value. With a
   // single auditor the mean equals that score (correct in both modes).
-  const byCle = new Map();
+  const byPle = new Map();
   for (const a of auditScores) {
-    if (!byCle.has(a.cle_id)) byCle.set(a.cle_id, []);
-    byCle.get(a.cle_id).push(a);
+    if (!byPle.has(a.ple_id)) byPle.set(a.ple_id, []);
+    byPle.get(a.ple_id).push(a);
   }
   const pairs = [];
-  for (const [cleId, rows] of byCle) {
-    const ai = aiBy[cleId];
-    if (!ai || (!includeTest && testOf[cleId])) continue;
+  for (const [pleId, rows] of byPle) {
+    const ai = aiBy[pleId];
+    if (!ai || (!includeTest && testOf[pleId])) continue;
     const mean = (k) => rows.reduce((s, r) => s + Number(r[k] || 0), 0) / rows.length;
     const audit = { composite_score: mean('composite_score') };
     for (const d of ICC_DOMAINS) audit[d] = mean(d);
@@ -63,7 +63,7 @@ router.get('/icc', async (req, res) => {
 
 // Three-way ICC: Claude vs auditor, candidate (shadow) vs auditor, Claude vs candidate.
 //
-// BLINDING CONTROL. shadow_evaluations holds a SECOND, never-served AI score of the same CLE. If it
+// BLINDING CONTROL. shadow_evaluations holds a SECOND, never-served AI score of the same PLE. If it
 // ever reached an auditor it would anchor them and destroy the very ICC it exists to measure. The
 // table is RLS deny-all, but the backend runs as the SERVICE ROLE and therefore BYPASSES RLS — so
 // this role gate is the only protection. The guard is restated on the route (the router-level one
@@ -84,13 +84,13 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
   let gates;
   try { gates = await iccGates(); } catch { gates = { screening: 0.75, decisive: 0.75 }; }
 
-  // SCOPE. Every number below is computed over the AUDITED universe — CLEs carrying at least one
+  // SCOPE. Every number below is computed over the AUDITED universe — PLEs carrying at least one
   // auditor score, after the same is_test filter GET /icc uses. That bounds the queries identically
-  // (audit_scores is small; cles is not) and makes `coverage` a readable funnel:
+  // (audit_scores is small; ples is not) and makes `coverage` a readable funnel:
   // human -> +ai -> +shadow -> all three.
   // Every select below MUST check `error`. Dropping it turns a transient fault into a 200 carrying
-  // confident wrong numbers: a failed `cles` read empties testOf, which silently inverts the
-  // include_test=false default and folds sandbox CLEs into the headline acceptance figure with no
+  // confident wrong numbers: a failed `ples` read empties testOf, which silently inverts the
+  // include_test=false default and folds sandbox PLEs into the headline acceptance figure with no
   // signal anywhere. Only the shadow select has a legitimate degrade path (unapplied migration).
   // Assembly lives in services/agreement.js so the Model Lock route asks this same question through
   // the same code. A second implementation would drift, and the two places it would drift between
@@ -100,7 +100,7 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
   if (sets.empty) {
     return res.json({
       arms: { ai_vs_human: emptyArm(), shadow_vs_human: null, ai_vs_shadow: null },
-      coverage: { cles_with_human: 0, cles_with_ai: 0, cles_with_shadow: 0, cles_all_three: 0, shadow_failed: 0, shadow_contract_rate: null },
+      coverage: { ples_with_human: 0, ples_with_ai: 0, ples_with_shadow: 0, ples_all_three: 0, shadow_failed: 0, shadow_contract_rate: null },
       shadow: { available: false, provider: null, model_version: null },
       gates: {
         screening: { arm: 'ai_vs_shadow', ...verdictFor(null, gates.screening) },
@@ -112,7 +112,7 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
   const shadowAttempts = shadowBy.size + shadowFailed;
 
   // CONTRACT RATE — corpus-wide, not cohort-scoped. The figures above count only this candidate's
-  // runs on CLEs that happen to have been audited, which early in a pilot is a handful. But "can this
+  // runs on PLEs that happen to have been audited, which early in a pilot is a handful. But "can this
   // model hold the PIS-7 JSON contract" is a property of the MODEL, not of the audit backlog, and it
   // is the most disqualifying number here — so it must be measured over every run recorded for this
   // candidate. Deliberately NOT is_test-filtered: a sandbox transcript exercises the contract exactly
@@ -120,7 +120,7 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
   let corpusScored = null, corpusFailed = null;
   if (candidate) {
     const forCandidate = () => supabase.from('shadow_evaluations')
-      .select('cle_id', { count: 'exact', head: true })
+      .select('ple_id', { count: 'exact', head: true })
       .eq('provider', candidate.provider).eq('model_version', candidate.model_version);
     const [okRes, errRes] = await Promise.all([forCandidate().is('error', null), forCandidate().not('error', 'is', null)]);
     // Best-effort: a failure here must not break the arms — fall back to the cohort figures.
@@ -165,11 +165,11 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
       decisive: { arm: 'shadow_vs_human', ...verdictFor(shadowVsHuman?.overall ?? null, gates.decisive) },
     },
     coverage: {
-      cles_with_human: humanBy.size,
-      cles_with_ai: withAi.length,
-      cles_with_shadow: shadowBy.size,
-      cles_all_three: allThree.length,
-      // Cohort-scoped: this candidate's runs on the audited, is_test-filtered CLEs the arms use.
+      ples_with_human: humanBy.size,
+      ples_with_ai: withAi.length,
+      ples_with_shadow: shadowBy.size,
+      ples_all_three: allThree.length,
+      // Cohort-scoped: this candidate's runs on the audited, is_test-filtered PLEs the arms use.
       shadow_failed: shadowFailed,
       shadow_contract_rate: shadowAttempts ? Math.round((shadowBy.size / shadowAttempts) * 1000) / 1000 : null,
       // Corpus-wide: EVERY run recorded for this candidate. This is the model's real contract rate and

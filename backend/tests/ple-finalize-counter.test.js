@@ -20,35 +20,35 @@ jest.mock('../src/services/rimpl-client', () => ({
   rimplEvaluateCriteria: jest.fn(async () => mockCrit),
   isDeterministicRimplError: () => false,
 }));
-jest.mock('../src/services/cle-evaluation', () => ({ triggerEvaluation: jest.fn(async () => {}) }));
+jest.mock('../src/services/ple-evaluation', () => ({ triggerEvaluation: jest.fn(async () => {}) }));
 jest.mock('../src/lib/usage', () => ({ accrueUsage: jest.fn(async () => ({ cost: 0, error: null })) }));
 jest.mock('../src/lib/pii-map', () => ({ persistPiiMap: jest.fn(async () => {}) }));
 
-const { finalizeScreening } = require('../src/services/cle-finalize');
+const { finalizeScreening } = require('../src/services/ple-finalize');
 
 const ALL_FOUR = { c4: true, c5: true, c6: true, c7: true, input_tokens: 1, output_tokens: 1, pii_map: [] };
-const run = (crit, cle = {}) => {
+const run = (crit, ple = {}) => {
   mockCrit = { ...ALL_FOUR, ...crit };
   return finalizeScreening({
-    cleId: 'c1', physicianId: 'p1', transcript: [{ role: 'physician', content: 'x' }],
+    pleId: 'c1', physicianId: 'p1', transcript: [{ role: 'physician', content: 'x' }],
     tier1: { c1: false, c2: false, c3: false }, // deliberately all false: they must not matter
-    patient_ref: null, cle,
+    patient_ref: null, ple,
   });
 };
 
 beforeEach(() => { mockUpdates = []; mockRpc = []; });
 
 describe('the gate is the four CREC082 §1 elements', () => {
-  test('all four present → cle_pass, even with every effort measure failing', async () => {
+  test('all four present → ple_pass, even with every effort measure failing', async () => {
     const out = await run({});
-    expect(out.status).toBe('cle_pass');
+    expect(out.status).toBe('ple_pass');
     // The point of the change: c1-c3 are written, and they did not decide anything.
     expect(mockUpdates.at(-1)).toMatchObject({ c1_pass: false, c2_pass: false, c3_pass: false });
   });
 
-  test.each(['c4', 'c5', 'c6', 'c7'])('missing %s → cle_flag_t2', async (missing) => {
+  test.each(['c4', 'c5', 'c6', 'c7'])('missing %s → ple_flag_t2', async (missing) => {
     const out = await run({ [missing]: false });
-    expect(out.status).toBe('cle_flag_t2');
+    expect(out.status).toBe('ple_flag_t2');
   });
 
   test('c7 is persisted, so "was this session tested for evidence integration?" is answerable', async () => {
@@ -82,7 +82,7 @@ describe('the consecutive-failure counter', () => {
     const orig = supabase.rpc;
     supabase.rpc = async () => ({ data: null, error: { message: 'boom' } });
     const out = await run({});
-    expect(out.status).toBe('cle_pass');
+    expect(out.status).toBe('ple_pass');
     expect(err).toHaveBeenCalledWith(expect.stringMatching(/record_t1_outcome failed/), 'boom');
     supabase.rpc = orig; err.mockRestore();
   });

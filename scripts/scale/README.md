@@ -10,7 +10,7 @@ resolves via `NODE_PATH`, and read the Supabase creds from the environment.
 ## Prerequisites
 
 1. A **test** Supabase project (not prod). Apply the schema + the scale migration to it:
-   - `db/schema.sql` (or at minimum the `councils`, `professionals`, `cles` tables), then
+   - `db/schema.sql` (or at minimum the `councils`, `professionals`, `ples` tables), then
    - `db/migration-scale.sql` — indexes, the `next_pseudonym()` sequence, and aggregate RPCs.
 2. Export the test creds (service-role key — admin API + bypasses RLS):
 
@@ -59,7 +59,7 @@ unique `pseudonym=P-<i>`, synthetic `full_name_th/en`, emails `scale-p<i>@scale.
 | 1b | legacy full-scan (select all pseudonyms → JS max) | pre-migration `nextPseudonym()` fallback |
 | 2 | `count(role=physician, status=active)` | slot `usedCount` check |
 | 3 | `professionals` page, `limit 50` | admin roster list |
-| 4 | `cles` page, `limit 50` order by `started_at` | admin sessions list |
+| 4 | `ples` page, `limit 50` order by `started_at` | admin sessions list |
 
 Each is wall-clock timed `RUNS` times (default 10, one warm-up discarded); the table reports
 min / median / max ms and flags `OK <100ms`. The headline line shows the legacy-vs-RPC speedup.
@@ -81,10 +81,10 @@ select id, pseudonym, full_name_en, role, status, council_id
 from public.professionals where role = 'physician'
 order by created_at desc limit 50;
 
--- cles page
+-- ples page
 explain analyze
 select id, physician_id, status, started_at, turn_count, token_count
-from public.cles order by started_at desc limit 50;
+from public.ples order by started_at desc limit 50;
 
 -- pseudonym allocation: O(1) sequence (no table scan at all)
 explain analyze select public.next_pseudonym();

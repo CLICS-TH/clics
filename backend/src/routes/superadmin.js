@@ -5,8 +5,8 @@ const { verifyJwt, requireRole } = require('../middleware/auth');
 const { computeICC21, iccOneWay, iccTwoWayAverage } = require('../services/icc');
 const { weightedKappaByDomain } = require('../services/kappa');
 const { sendDbError, pageParams, toCsv } = require('../lib/db-helpers');
-const { compRateCap, cappedCles } = require('../lib/compensation');
-const { COMPLETED_STATUSES } = require('../lib/cle-status');
+const { compRateCap, cappedPles } = require('../lib/compensation');
+const { COMPLETED_STATUSES } = require('../lib/ple-status');
 const { assertSlotAvailable, nextPseudonym, allSlotUsage, allCouncilSlotUsage, allCouncilsSlotUsage, ROLES } = require('../lib/accounts');
 const { normalizeCanAudit } = require('../lib/dual-role');
 const { POSITIONS, checkSpecialty } = require('../lib/specialties');
@@ -15,7 +15,7 @@ const retention = require('../services/retention');
 const { decryptJson } = require('../lib/crypto');
 const { probeRimplProvider, probeRimplDeep } = require('../services/rimpl-client');
 const { decisiveVerdict } = require('../services/agreement');
-const { getTextSetting, minAuditorsPerCle } = require('../lib/settings');
+const { getTextSetting, minAuditorsPerPle } = require('../lib/settings');
 
 const router = Router();
 router.use(verifyJwt, requireRole('superadmin'));
@@ -71,20 +71,20 @@ const UsageSettingsSchema = z.object({
   standard_limit_usd: z.number().nonnegative().max(50).optional(),       // physician per-user default; sanity ceiling
   auditor_standard_limit_usd: z.number().nonnegative().max(50).optional(), // auditor-pool per-user default
   api_budget_pool_usd: z.number().nonnegative().max(1_000_000).optional(), // org-wide pool; sanity ceiling
-  // Pilot Test Mode: when ON, new CLEs are TEST sessions (is_test), the 3-CLE study cap is bypassed,
+  // Pilot Test Mode: when ON, new PLEs are TEST sessions (is_test), the 3-PLE study cap is bypassed,
   // and the physician may pick Natural/Socratic directly — so the team can exercise the experiment.
   pilot_test_mode: z.boolean().optional(),
   // Clinical Artifacts: when ON, the AI may emit `:::artifact{...}` side-panel blocks (DDx tables, care
   // plans, …). A research-stimulus change — default OFF, enabled deliberately by a superadmin.
   clinical_artifacts_enabled: z.boolean().optional(),
-  // Peer Calibration: when ON, a CLE may be assigned to several auditors and the reveal pane shows a
+  // Peer Calibration: when ON, a PLE may be assigned to several auditors and the reveal pane shows a
   // you-vs-auditor-average radar (alongside vs-AI). Default OFF (single-auditor blind audit).
   peer_calibration_enabled: z.boolean().optional(),
   // Hold Result Until Audited: when ON, a physician's PIS-7 score is withheld ("under expert review")
-  // until an auditor has scored that CLE — for a blinded test round. Default OFF.
+  // until an auditor has scored that PLE — for a blinded test round. Default OFF.
   hold_result_until_audited: z.boolean().optional(),
-  // Compensation (CLICS §12): ฿/completed-CLE rate and the per-physician cap in CLEs (0 = no cap).
-  // Minimum auditors per CLE. WARNS, never blocks — see lib/settings.minAuditorsPerCle. Capped at
+  // Compensation (CLICS §12): ฿/completed-PLE rate and the per-physician cap in PLEs (0 = no cap).
+  // Minimum auditors per PLE. WARNS, never blocks — see lib/settings.minAuditorsPerPle. Capped at
   // 10 so a typo cannot badge the entire queue red.
   min_auditors_per_cle: z.number().int().min(1).max(10).optional(),
   comp_rate_thb: z.number().nonnegative().max(1_000_000).optional(),
@@ -261,18 +261,18 @@ router.delete('/users/:id/purge', async (req, res) => {
     return res.status(500).json({ error: 'Could not resolve the account email for full erasure — purge halted. Retry.' });
   }
 
-  // The user's OWN sessions: lpdp_snapshots has no cascade (clear first), then deleting the cles
-  // cascades messages / ai_evaluations / audit_scores / cle_patient_refs by cle_id.
-  const { data: ownCles } = await supabase.from('cles').select('id').eq('physician_id', id);
-  const deletedCles = ownCles?.length ?? 0;
+  // The user's OWN sessions: lpdp_snapshots has no cascade (clear first), then deleting the ples
+  // cascades messages / ai_evaluations / audit_scores / ple_patient_refs by ple_id.
+  const { data: ownPles } = await supabase.from('ples').select('id').eq('physician_id', id);
+  const deletedPles = ownPles?.length ?? 0;
 
   // EVERY step is error-checked in dependency order: an unchecked failure makes a LATER step trip an
   // FK (misleading error) or — worse — leaves a partial purge that reports purged:true.
   const steps = [
     supabase.from('lpdp_snapshots').delete().eq('physician_id', id),
-    supabase.from('cles').delete().eq('physician_id', id),
+    supabase.from('ples').delete().eq('physician_id', id),
     // This user as an AUDITOR of OTHERS' sessions: un-assign + delete their authored scores.
-    supabase.from('cles').update({ auditor_id: null }).eq('auditor_id', id),
+    supabase.from('ples').update({ auditor_id: null }).eq('auditor_id', id),
     supabase.from('audit_scores').delete().eq('auditor_id', id),
     // Their access requests + reviews of others.
     supabase.from('access_requests').delete().eq('auth_user_id', id),
@@ -290,7 +290,7 @@ router.delete('/users/:id/purge', async (req, res) => {
 
   // Delete the Supabase auth user FIRST — it holds the email PII, and professionals.id references
   // auth.users ON DELETE CASCADE, so this removes the professionals row (and its cascade children:
-  // oauth_identities, cle_folders, cle_patient_refs) too. If it fails, STOP and report retryably —
+  // oauth_identities, ple_folders, ple_patient_refs) too. If it fails, STOP and report retryably —
   // never claim purged:true while the credential + email are still live.
   const { error: authErr } = await authSupabase.auth.admin.deleteUser(id);
   if (authErr) {
@@ -301,7 +301,7 @@ router.delete('/users/:id/purge', async (req, res) => {
   const delProf = await supabase.from('professionals').delete().eq('id', id);
   if (sendDbError(res, delProf.error)) return;
 
-  res.json({ purged: true, deleted_ples: deletedCles, auth_deleted: true });
+  res.json({ purged: true, deleted_ples: deletedPles, auth_deleted: true });
 });
 
 // Role slot pools — used/capacity/remaining per role, and capacity editing.
@@ -384,13 +384,13 @@ async function poolTotal(sumRpc, col) {
 // pools are CAPS: they block when exhausted. The rescue is initiated by the system, to make a
 // session conform to the protocol — a budget that could switch that off would silently stop the
 // conformance behaviour, and it would charge the intervention to the person it was performed on.
-// So the spend is accrued per episode (cles.rescue_assessment_cost_usd) and reported here, which is
+// So the spend is accrued per episode (ples.rescue_assessment_cost_usd) and reported here, which is
 // the half of the requirement that actually protects anyone.
 //
 // Summed in JS rather than by an RPC: pilot scale is a few hundred rows, and adding a database
 // function for a number shown on one screen is not worth the migration.
 async function rescueSpendTotal() {
-  const { data: rows, error } = await supabase.from('cles').select('rescue_assessment_cost_usd');
+  const { data: rows, error } = await supabase.from('ples').select('rescue_assessment_cost_usd');
   if (error) return null;                                  // a read failure is not a total of zero
   return (rows ?? []).reduce((acc, r) => acc + Number(r.rescue_assessment_cost_usd ?? 0), 0);
 }
@@ -827,7 +827,7 @@ function iccBundle(pairs, minAuditors = 1) {
     per_domain[d] = computeICC21(pairs.map(p => ({ ai: Number(p.ai[d]), human: Number(p.audit[d]) })));
   }
 
-  // COHORT TRANSPARENCY, not a filter. Every CLE with a human score is in the figure above,
+  // COHORT TRANSPARENCY, not a filter. Every PLE with a human score is in the figure above,
   // including the ones scored by a single auditor. What changes is that the caller can now SEE the
   // rater distribution behind the number instead of having to assume it.
   //
@@ -841,14 +841,14 @@ function iccBundle(pairs, minAuditors = 1) {
 
   // Inter-auditor agreement — the figure the manuscript's ">= 3 blinded auditors" claim is actually
   // about, and the one AI-vs-human ICC cannot answer. ICC(1,1), not ICC(2,1): auditors are drawn per
-  // CLE from a roster rather than all scoring every CLE, so rater is nested in subject and a two-way
+  // PLE from a roster rather than all scoring every PLE, so rater is nested in subject and a two-way
   // model would claim to remove a rater effect this design cannot identify. See services/icc.js.
   const multi = pairs.filter(p => p.rater_scores && p.rater_scores.length >= 2);
   const inter_auditor = multi.length >= 2
     ? iccOneWay(multi.map(p => p.rater_scores))
     : { icc: null, n: multi.length, interpretation: multi.length
-        ? 'Only 1 CLE has more than one auditor — inter-auditor agreement is not estimable yet'
-        : 'No CLE has more than one auditor yet' };
+        ? 'Only 1 PLE has more than one auditor — inter-auditor agreement is not estimable yet'
+        : 'No PLE has more than one auditor yet' };
 
   return {
     overall,
@@ -859,7 +859,7 @@ function iccBundle(pairs, minAuditors = 1) {
     auditors_per_cle: dist,
     n_at_target: atTarget.length,
     n_below_target: pairs.length - atTarget.length,
-    // The SAME statistic restricted to CLEs meeting the target — shown next to the full figure so
+    // The SAME statistic restricted to PLEs meeting the target — shown next to the full figure so
     // the two can be compared, never in place of it.
     overall_at_target: atTarget.length >= 2
       ? computeICC21(atTarget.map(p => ({ ai: Number(p.ai.composite_score), human: Number(p.audit.composite_score) })))
@@ -880,7 +880,7 @@ function iccBundle(pairs, minAuditors = 1) {
     // Publishing whichever is larger without saying which design produced it is the failure mode
     // this pairing exists to prevent. It is null whenever the matrix is too ragged to support it.
     inter_auditor_average: multi.length >= 2 ? iccTwoWayAverage(multi.map(p => p.rater_scores)) : null,
-    inter_auditor_note: 'ICC(1,1) assumes auditors are drawn per CLE (rater nested in subject) and is the conservative reading. ICC(A,k) assumes a fixed panel scoring every CLE. Report the one matching how assignment actually ran, and say which.',
+    inter_auditor_note: 'ICC(1,1) assumes auditors are drawn per PLE (rater nested in subject) and is the conservative reading. ICC(A,k) assumes a fixed panel scoring every PLE. Report the one matching how assignment actually ran, and say which.',
 
     // Weighted kappa — SAP "Additional agreement". Ordinal-aware in a way ICC is not: it asks how
     // often the two land on the SAME 0-5 category, corrected for the agreement their marginal
@@ -895,32 +895,32 @@ function iccBundle(pairs, minAuditors = 1) {
 router.get('/icc', async (req, res) => {
   const includeTest = req.query.include_test === 'true';
 
-  // Bounded by SCORED sessions (audit_scores is small — few auditors), not all 400K cles.
-  // audit_scores carries a denormalized council_id, so we only need is_test from the scored cles.
+  // Bounded by SCORED sessions (audit_scores is small — few auditors), not all 400K ples.
+  // audit_scores carries a denormalized council_id, so we only need is_test from the scored ples.
   const { data: auditScores } = await supabase
-    .from('audit_scores').select('cle_id, council_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+    .from('audit_scores').select('ple_id, council_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
   if (!auditScores?.length) return res.json({ overall: null, per_domain: {}, per_council: {}, n: 0 });
 
-  const scoredIds = [...new Set(auditScores.map(a => a.cle_id))];
+  const scoredIds = [...new Set(auditScores.map(a => a.ple_id))];
   const { data: aiScores } = await supabase
-    .from('ai_evaluations').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('cle_id', scoredIds);
-  const { data: cles } = await supabase.from('cles').select('id, is_test').in('id', scoredIds);
-  const testOf = Object.fromEntries((cles ?? []).map(p => [p.id, p.is_test]));
+    .from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('ple_id', scoredIds);
+  const { data: ples } = await supabase.from('ples').select('id, is_test').in('id', scoredIds);
+  const testOf = Object.fromEntries((ples ?? []).map(p => [p.id, p.is_test]));
 
-  const aiBy = Object.fromEntries((aiScores ?? []).map(s => [s.cle_id, s]));
-  // Aggregate to ONE human value per CLE (mean across auditors) before pairing: ICC(2,1) assumes a
-  // single human rating per subject, so a multi-auditor CLE must not emit N pairs that reuse the same
+  const aiBy = Object.fromEntries((aiScores ?? []).map(s => [s.ple_id, s]));
+  // Aggregate to ONE human value per PLE (mean across auditors) before pairing: ICC(2,1) assumes a
+  // single human rating per subject, so a multi-auditor PLE must not emit N pairs that reuse the same
   // AI value (which would inflate n + distort the statistic). With one auditor the mean is that score.
-  const byCle = new Map();
+  const byPle = new Map();
   for (const a of auditScores) {
-    if (!byCle.has(a.cle_id)) byCle.set(a.cle_id, []);
-    byCle.get(a.cle_id).push(a);
+    if (!byPle.has(a.ple_id)) byPle.set(a.ple_id, []);
+    byPle.get(a.ple_id).push(a);
   }
   const allPairs = [];
-  for (const [cleId, rows] of byCle) {
-    const ai = aiBy[cleId];
+  for (const [pleId, rows] of byPle) {
+    const ai = aiBy[pleId];
     if (!ai) continue;
-    if (!includeTest && testOf[cleId]) continue;
+    if (!includeTest && testOf[pleId]) continue;
     const mean = (k) => rows.reduce((s, r) => s + Number(r[k] || 0), 0) / rows.length;
     const audit = { composite_score: mean('composite_score') };
     for (const d of ICC_DOMAINS) audit[d] = mean(d);
@@ -936,7 +936,7 @@ router.get('/icc', async (req, res) => {
     });
   }
 
-  const minAuditors = await minAuditorsPerCle();
+  const minAuditors = await minAuditorsPerPle();
   const global = iccBundle(allPairs, minAuditors);
 
   // Bucket by council and label each with its names.
@@ -976,20 +976,20 @@ router.get('/audit-log', async (req, res) => {
   res.json({ total: count ?? 0, limit, offset, events: data ?? [] });
 });
 
-// Tier-1 (PI / data custodian) re-identification: decrypt a CLE's reversible PII map so a [NAME-n] /
+// Tier-1 (PI / data custodian) re-identification: decrypt a PLE's reversible PII map so a [NAME-n] /
 // [HN-n] token in the de-identified transcript can be traced back to its raw value for audit or
 // regulatory inquiry. superadmin-only (the router gate) + EVERY access is audit-logged. The raw
-// values live only in cle_pii_map (RLS deny-all, AES-256-GCM); they never enter the export or any
+// values live only in ple_pii_map (RLS deny-all, AES-256-GCM); they never enter the export or any
 // other surface. This is the "crown jewel" — keep it gated and logged.
-router.get('/cles/:id/pii-map', async (req, res) => {
-  const { data: cle } = await supabase.from('cles')
-    .select('id, cle_code, council_id').eq('id', req.params.id).maybeSingle();
-  if (!cle) return res.status(404).json({ error: 'CLE not found' });
+router.get('/ples/:id/pii-map', async (req, res) => {
+  const { data: ple } = await supabase.from('ples')
+    .select('id, ple_code, council_id').eq('id', req.params.id).maybeSingle();
+  if (!ple) return res.status(404).json({ error: 'PLE not found' });
 
-  const { data: row, error } = await supabase.from('cle_pii_map')
-    .select('map_encrypted, entry_count').eq('cle_id', req.params.id).maybeSingle();
+  const { data: row, error } = await supabase.from('ple_pii_map')
+    .select('map_encrypted, entry_count').eq('ple_id', req.params.id).maybeSingle();
   if (sendDbError(res, error)) return;
-  if (!row) return res.status(404).json({ error: 'No PII map for this CLE' });
+  if (!row) return res.status(404).json({ error: 'No PII map for this PLE' });
 
   let entries;
   try {
@@ -999,31 +999,31 @@ router.get('/cles/:id/pii-map', async (req, res) => {
     return res.status(500).json({ error: 'Could not decrypt the PII map (key mismatch?)' });
   }
 
-  // Audit the re-identification (the audit row itself carries only the CLE pseudonym + count, no PII).
+  // Audit the re-identification (the audit row itself carries only the PLE pseudonym + count, no PII).
   logEvent({
     actorId: req.user.id, actorRole: req.user.role, action: 'pii.reidentify',
-    targetType: 'cle', targetId: cle.cle_code ?? req.params.id, councilId: cle.council_id ?? null,
+    targetType: 'ple', targetId: ple.ple_code ?? req.params.id, councilId: ple.council_id ?? null,
     metadata: { entry_count: row.entry_count, reason: req.query.reason || null },
   });
 
-  res.json({ cle_code: cle.cle_code ?? null, entry_count: row.entry_count, entries });
+  res.json({ ple_code: ple.ple_code ?? null, entry_count: row.entry_count, entries });
 });
 
 // ---- Compensation payouts (superadmin only) ------------------------------------------------------
-// Owed = completed (non-test) CLEs × rate, capped (configurable). Paid = Σ payouts ledger.
-// "Completed" spans cle_pass AND evaluated — see lib/cle-status.js; cle_pass alone counts zero.
+// Owed = completed (non-test) PLEs × rate, capped (configurable). Paid = Σ payouts ledger.
+// "Completed" spans ple_pass AND evaluated — see lib/ple-status.js; ple_pass alone counts zero.
 // Unlike the pseudonymized /admin/compensation report, this view carries REAL names + (decrypted)
 // payment details so the team can actually pay — so it is superadmin-only and every read is audit-
 // logged. The actual transfer happens externally; POST .../pay records it.
 async function loadPayoutBase() {
-  // Settings + the (larger) CLE scan are independent — overlap them.
-  const [{ rate, cap }, clesRes] = await Promise.all([
+  // Settings + the (larger) PLE scan are independent — overlap them.
+  const [{ rate, cap }, plesRes] = await Promise.all([
     compRateCap(),
-    supabase.from('cles').select('physician_id').in('status', COMPLETED_STATUSES).eq('is_test', false),
+    supabase.from('ples').select('physician_id').in('status', COMPLETED_STATUSES).eq('is_test', false),
   ]);
-  if (clesRes.error) throw clesRes.error;
+  if (plesRes.error) throw plesRes.error;
   const countByPhys = {};
-  for (const r of clesRes.data ?? []) countByPhys[r.physician_id] = (countByPhys[r.physician_id] ?? 0) + 1;
+  for (const r of plesRes.data ?? []) countByPhys[r.physician_id] = (countByPhys[r.physician_id] ?? 0) + 1;
   const physIds = Object.keys(countByPhys);
   const empty = Promise.resolve({ data: [] });
   const [{ data: pros }, { data: pay }, { data: ledger }] = await Promise.all([
@@ -1038,7 +1038,7 @@ async function loadPayoutBase() {
   const safeDecrypt = (id) => { const enc = payById.get(id); if (!enc) return null; try { return decryptJson(enc); } catch { return null; } };
   // One owed/paid/outstanding line per physician — single source for the JSON view + the CSV export.
   const lineFor = (id) => {
-    const completed = cappedCles(countByPhys[id], cap);
+    const completed = cappedPles(countByPhys[id], cap);
     const owed = completed * rate;
     const paid = paidByPhys[id] ?? 0;
     return { completed, owed, paid, outstanding: Math.max(0, owed - paid) };
@@ -1087,10 +1087,10 @@ router.post('/payouts/:physicianId/pay', async (req, res) => {
   // but a direct API call or a concurrent double-click must not push paid past owed).
   const { rate, cap } = await compRateCap();
   const [{ data: passRows }, { data: ledger }] = await Promise.all([
-    supabase.from('cles').select('id').eq('physician_id', req.params.physicianId).in('status', COMPLETED_STATUSES).eq('is_test', false),
+    supabase.from('ples').select('id').eq('physician_id', req.params.physicianId).in('status', COMPLETED_STATUSES).eq('is_test', false),
     supabase.from('payouts').select('amount_thb').eq('physician_id', req.params.physicianId),
   ]);
-  const completed = cappedCles((passRows ?? []).length, cap);
+  const completed = cappedPles((passRows ?? []).length, cap);
   const owed = completed * rate;
   const paid = (ledger ?? []).reduce((s, l) => s + Number(l.amount_thb), 0);
   const outstanding = Math.max(0, owed - paid);
@@ -1098,7 +1098,7 @@ router.post('/payouts/:physicianId/pay', async (req, res) => {
     return res.status(400).json({ error: `จำนวนเกินยอดค้างจ่าย (฿${outstanding}) / Amount exceeds outstanding (฿${outstanding}).`, code: 'over_outstanding', outstanding_thb: outstanding });
   }
   const { data, error } = await supabase.from('payouts').insert({
-    physician_id: req.params.physicianId, cle_count: completed, amount_thb: parsed.data.amount_thb,
+    physician_id: req.params.physicianId, ple_count: completed, amount_thb: parsed.data.amount_thb,
     paid_ref: parsed.data.paid_ref || null, paid_by: req.user.id,
   }).select('id').single();
   if (sendDbError(res, error)) return;

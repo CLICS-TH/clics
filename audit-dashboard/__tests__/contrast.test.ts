@@ -79,7 +79,7 @@ const DASH_PAIRS: [string, string, string][] = [
 
 const PORTAL_PAIRS: [string, string, string][] = [
   ['muted', 'canvas', '.sub / .note in a page-intro'],
-  ['muted', 'surface-card', '.sub / .note inside a card — cle-reflect, acceptability'],
+  ['muted', 'surface-card', '.sub / .note inside a card — ple-reflect, acceptability'],
   ['muted', 'surface-soft', '.sub on the soft surface'],
   ['muted-soft', 'surface-card', 'the sibling token, same surfaces'],
   ['body-color', 'canvas', 'body text'],

@@ -20,7 +20,7 @@
 //   [[~ ยกเลิก / Cancel]] the same, marked neutral (a secondary control) so the chip is not tinted
 //                        as though it were the primary action.
 //
-// DIRECTIVES mirror the `:::artifact{}` fences the CLE chat already uses (rimpl emits them,
+// DIRECTIVES mirror the `:::artifact{}` fences the PLE chat already uses (rimpl emits them,
 // physician-ui/public/js/artifacts.js parses them), so the syntax is not new to this codebase.
 
 const CALLOUT_KINDS = new Set(['note', 'tip', 'warn']);

@@ -82,14 +82,14 @@ Run with nothing set and each script exits with a clear message telling you what
 ## Fixtures — and why they are gitignored
 
 `json-contract.mjs` reads `scripts/probe/fixtures/*.json`. **`scripts/probe/.gitignore` ignores
-everything in that directory** (except a `.gitkeep`), because fixtures are CLE transcripts and a
+everything in that directory** (except a `.gitkeep`), because fixtures are PLE transcripts and a
 de-identification slip that reaches a commit is unrecoverable — git history is forever and this repo
 is mirrored to GitHub. The same file also ignores `out/` and `*.probe.json` run reports.
 
 **Only put already-de-identified transcripts there.** As a second line of defence every fixture is
 pushed through rimpl's own `flattenForPrompt` + `deriveHintTokens` before a byte leaves the machine —
 the identical strip the production route performs — but that is a safety net, not permission to drop
-a raw CLE export in the directory.
+a raw PLE export in the directory.
 
 One `.json` file per transcript, in either shape:
 
@@ -102,7 +102,7 @@ One `.json` file per transcript, in either shape:
 
 ```json
 {
-  "cle_id": "CLE-001",
+  "ple_id": "PLE-001",
   "patient_ref": null,
   "transcript": [ { "role": "physician", "content": "…" } ]
 }

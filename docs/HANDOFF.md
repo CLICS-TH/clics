@@ -13,7 +13,7 @@ Supabase Postgres). Working end-to-end today:
   email/password + invites. Four roles (Physician / Auditor / Admin / Superadmin) across **multiple
   councils** with council isolation. The CLICS token is the Supabase session token (see the never-`signOut`
   rule). License-No./TMC verification was retired. See [roles.md](roles.md), [AUTH-SETUP.md](AUTH-SETUP.md).
-- **Physician flow** — create a CLE (with chief complaint), chat with the AI (citations every turn;
+- **Physician flow** — create a PLE (with chief complaint), chat with the AI (citations every turn;
   the Socratic follow-up is a **protocol rescue**, not an experimental arm — it opens only after 4
   exchanges that are off-topic or not yet qualifying, asks 1–2 non-leading questions, and gives no
   diagnosis), pause/resume, end → **reflection** → qualifying gate → PIS-7 evaluation → result + LPDP
@@ -21,11 +21,11 @@ Supabase Postgres). Working end-to-end today:
   metadata and no longer terminal**. Guest mode (anonymous, 2 prompts, no persistence). Per-user
   **$0.50 AI cap** with an allowance meter.
 - **Auditor flow** — blind PIS-7 scoring of *evaluated* sessions that have **passed human privacy
-  review** (see the gate below), assigned via `cles.auditor_id` or `audit_assignments`; the
+  review** (see the gate below), assigned via `ples.auditor_id` or `audit_assignments`; the
   rubric-anchored **DomainScorer** (tappable 0–5 chips, no silent-0 default, submit blocked until all 7
   domains are set); AI score revealed only after submit; ICC(A,1) *and* ICC(A,3) average-measures plus
   quadratic-weighted kappa of AI-vs-auditor.
-- **Admin/Superadmin** — CLE list + assignment, flagged-QA queue, invites, users + usage management,
+- **Admin/Superadmin** — PLE list + assignment, flagged-QA queue, invites, users + usage management,
   executive overview, ICC dashboard, **`/admin/privacy`** (human privacy review), **`/admin/identity`**
   (identity verification decisions), **`/admin/governance`** (retention + monthly security review,
   superadmin only). De-identified `/admin/export`.
@@ -48,17 +48,17 @@ large transcripts, **#61** provider adapter (on-prem DGX, ships dark), **#65** s
 
 ### Three live defects found while mapping (not CREC items)
 
-- **`cle_pass` was transient and five counters treated it as terminal.** `cle-finalize.js` sets
-  `cle_pass`; `cle-evaluation.js` immediately flips it to `evaluated`. Prod had **`cle_pass=0`**, so
-  every "completed CLE" count returned zero — the ≤3 PLE cap never fired and **฿3,000 in owed
+- **`ple_pass` was transient and five counters treated it as terminal.** `ple-finalize.js` sets
+  `ple_pass`; `ple-evaluation.js` immediately flips it to `evaluated`. Prod had **`ple_pass=0`**, so
+  every "completed PLE" count returned zero — the ≤3 PLE cap never fired and **฿3,000 in owed
   compensation displayed as ฿0** across 5 physicians. Fixed with one shared predicate,
-  `backend/src/lib/cle-status.js` (`COMPLETED_STATUSES = ['cle_pass','evaluated']`), applied at all
-  five sites. **Deliberately not** applied to `admin.js` `STATUS_BUCKETS` — treating `cle_pass` as
+  `backend/src/lib/ple-status.js` (`COMPLETED_STATUSES = ['ple_pass','evaluated']`), applied at all
+  five sites. **Deliberately not** applied to `admin.js` `STATUS_BUCKETS` — treating `ple_pass` as
   in-progress in the queue view is correct there ("score pending").
-- **`randomised_examiner` violated `cles_socratic_reason_chk`.** Every randomised insert would have
+- **`randomised_examiner` violated `ples_socratic_reason_chk`.** Every randomised insert would have
   failed 23514; masked in prod only because `pilot_test_mode=1` overwrote the reason first — proof the
   deployed path was never exercised. A1 removed randomisation; the constraint was rewritten, not left.
-- **Pre-approval data is not labelled as development data.** 6 evaluated CLEs in the real TMC council
+- **Pre-approval data is not labelled as development data.** 6 evaluated PLEs in the real TMC council
   carry `is_test=false`, contradicting the submission's *"ไม่มี participant data … ก่อน CREC approval"*.
   Almost certainly the team's own E2E runs (the n=6 ICC from the June audit matches exactly), but
   nothing in the system of record says so. **Untouched — this is evidentiary data and the research
@@ -78,8 +78,8 @@ large transcripts, **#61** provider adapter (on-prem DGX, ships dark), **#65** s
   activation point, and exchanges **before and after**.
   `consecutive_t1_fails >= 3` → Socratic is a cross-session rule the protocol does not have; it is
   kept behind `t1_remediation_enabled` (**default 0**) as a documented deviation rather than deleted.
-- **PLE gate: c1–c3 demoted to metadata.** `cle-gate.js` hard-failed on duration ≥600s, turns ≥4,
-  tokens ≥10000 — effort proxies the protocol never names. They terminated sessions at `cle_fail_t1`
+- **PLE gate: c1–c3 demoted to metadata.** `ple-gate.js` hard-failed on duration ≥600s, turns ≥4,
+  tokens ≥10000 — effort proxies the protocol never names. They terminated sessions at `ple_fail_t1`
   (6 rows in prod), rejecting a concise but genuinely reflective episode while passing a rambling
   lookup. CREC082 §1 defines a PLE by four qualities; three already mapped (c4 meaningful problem,
   c5 developing reasoning, c6 reflective synthesis) and **the third element — context/evidence
@@ -119,7 +119,7 @@ large transcripts, **#61** provider adapter (on-prem DGX, ships dark), **#65** s
   skipped reflection returns `null`, not a note saying it was skipped — the D6 zero anchor is *no*
   reflection.
 - **Acceptability questionnaire**, one per physician after their last PLE. Unique on `physician_id`,
-  not `(physician_id, cle_id)` — the questionnaire is about the **system**, not a session.
+  not `(physician_id, ple_id)` — the questionnaire is about the **system**, not a session.
 - **Retention + monthly security review.** New `/admin/governance` (superadmin only) and a
   `security_reviews` table with three separate columns, because a reviewer who covered access but not
   incidents should produce a record that says so; `incidents_found` is explicit rather than inferred
@@ -152,7 +152,7 @@ anchors, synced across both sources (`rimpl/src/lib/prompts.js` ↔ `audit-dashb
 with a drift test. **Weights (15/20/15/15/15/10/10), the 7 domain names, and the 0–5 scale are
 untouched** — already verified identical. `PROMPT_VERSION` auto-bumps on rubric edits.
 
-**PLE (protocol) ≡ CLE (code).** Do **not** re-rename the code — a past PLE→CLE rename already left FK
+**PLE (protocol) ≡ PLE (code).** Do **not** re-rename the code — a past PLE→PLE rename already left FK
 constraints named `ples_*`. Glossary added to [domain-concepts.md](domain-concepts.md); use PLE in
 CREC-facing artefacts only.
 
@@ -172,7 +172,7 @@ as `crec_*` in `supabase_migrations.schema_migrations`. **phase0 must run before
 CHECK constraint the rescue writes to); the rest are independent. `migration-socratic-randomisation.sql`
 is **superseded, not reverted** — the `socratic_episode` drop lives in phase0 so the history stays readable.
 
-**Existing rows were not backfilled, on purpose.** All 34 CLEs default to
+**Existing rows were not backfilled, on purpose.** All 34 PLEs default to
 `privacy_review_status='pending'`, which drops the already-evaluated sessions out of the auditor queue
 until a human reviews them. Backfilling to `passed` would assert a review that never happened — exactly
 the claim this gate exists to make true. If a round must keep running, lower the **setting** (a
@@ -193,12 +193,12 @@ further down are kept in reverse-chronological order as history — **read this 
   `clics-user-auditor-guide-th.pdf` (Special — user + auditor). #52 audited every page boundary so no
   block or heading splits across a page break; #53 fixed §10, which had drawn the *auditor's*
   two-series "You vs AI" radar — a physician's result page is **single-series** (their own 7 domain
-  scores) — the radar is inline in `physician-ui/public/cle-result.html:53`, a single
+  scores) — the radar is inline in `physician-ui/public/ple-result.html:53`, a single
   `'PIS-7 Score'` dataset.
 - **#54–#55 · Sandbox test round.** Superadmin **"hold result until audited"** toggle — physicians
   can't see their PIS-7 score until an auditor submits one. Mirrors `peer_calibration` end-to-end:
-  `GET /cles/:id/evaluation` returns **`202 pending_review`** until an `audit_scores` row exists, and
-  `/cles/lpdp/me` drops un-audited CLEs. Ships **default OFF**. Plus an isolated SANDBOX council +
+  `GET /ples/:id/evaluation` returns **`202 pending_review`** until an `audit_scores` row exists, and
+  `/ples/lpdp/me` drops un-audited PLEs. Ships **default OFF**. Plus an isolated SANDBOX council +
   cohort and the D/C manuals. #55 renders the per-group login handout only when present and gitignores
   its source + PDF — **the sandbox credentials never enter git.**
 - **#56 · Landing/login redesign + ECG logo.** Rebuilt the physician-portal landing (which *is* the
@@ -219,7 +219,7 @@ PRs → hermetic-only). `SUPER_*` is deliberately **not** wired, to keep real ad
 | PR | What |
 |----|------|
 | **#58** | Sandbox test-cohort **group 4 (SBX-4)** roster. The accounts are *already provisioned in prod*; this only brings `test-cohort.json` in git into line with reality. |
-| **#59** | PIS-7 evaluation report for two illustrative CLEs (`scripts/report/pis7-ple-eval.html` → `pis7-ple-evaluation.pdf`), plus `.gitignore` guards for coverage output and physician-identifiable report artifacts. |
+| **#59** | PIS-7 evaluation report for two illustrative PLEs (`scripts/report/pis7-ple-eval.html` → `pis7-ple-evaluation.pdf`), plus `.gitignore` guards for coverage output and physician-identifiable report artifacts. |
 | **`feat/council-billing-thai-caching`** | Pushed 2026-08-22, **no PR yet**. Deterministic Thai reply-language per turn, prompt caching (`RIMPL_PROMPT_CACHE`, ships OFF), and per-council usage attribution — the billing foundation. **Its migration has NOT been applied.** See the billing note under *Known gaps*. |
 
 ## What just shipped (2026-06-25) — reset-usage dual-pool · peer n=1 label · opt-in go-live CI
@@ -230,9 +230,9 @@ Two small follow-up PRs merged to `master` and live (audit-dashboard on Vercel; 
   reset only the physician AI pool for a dual-role **Special** (physician + `can_audit`); it now also resets the
   **auditor** pool (physician-only and auditor-only rows unchanged). Frontend-only — both backend reset endpoints
   (`/reset-usage`, `/reset-auditor-usage`) already existed and fire in parallel.
-- **PR #49 — pilot polish.** (a) The per-CLE **peer-calibration** card now reads *"เทียบกับผู้ประเมินอีกคน / vs the
+- **PR #49 — pilot polish.** (a) The per-PLE **peer-calibration** card now reads *"เทียบกับผู้ประเมินอีกคน / vs the
   other auditor"* (legend *Other*, conclusion *"the other auditor"*) when exactly **one** other auditor scored
-  (`peer_n === 1`) — "average" only shows at n≥2; the home aggregate (a true cross-CLE mean) is untouched. (b)
+  (`peer_n === 1`) — "average" only shows at n≥2; the home aggregate (a true cross-PLE mean) is untouched. (b)
   **`go-live-smoke` wired into CI** as an **opt-in** second job in `staging-smoke.yml`, gated on a new
   `include_ai_smoke` dispatch input (**default OFF** → never auto-spends Anthropic budget; the free role-chain job
   is unchanged). **Pending human step:** a repo admin adds `SMOKE_PHYS_EMAIL` + `SMOKE_PHYS_PW` secrets for that
@@ -247,20 +247,20 @@ done, remaining P1 is operational-only (rotate key / demo passwords / Resend dom
 Three PRs merged to `master` (`680dd3e` → `19de2f0`) and **live in prod** (2 migrations applied; backend on Railway, both front-ends on Vercel).
 
 - **PR #44 — pilot round.**
-  - **(a) Multi-auditor calibration** behind a superadmin **`peer_calibration`** toggle (**OFF by default**): `db/migration-audit-assignments.sql` (a `audit_assignments` join table + backfill from `cles.auditor_id`), a unified `isAssignedAuditor` gate across queue/view/score/discuss, and a *you-vs-other-auditors* PIS-7 radar (per-CLE reveal + home aggregate, **self excluded** so it's a true peer comparison). ICC now **aggregates one human value per CLE** before pairing (a multi-auditor CLE no longer feeds N duplicate-AI pairs into ICC(2,1)) — `oversight.js` + superadmin `/icc`.
+  - **(a) Multi-auditor calibration** behind a superadmin **`peer_calibration`** toggle (**OFF by default**): `db/migration-audit-assignments.sql` (a `audit_assignments` join table + backfill from `ples.auditor_id`), a unified `isAssignedAuditor` gate across queue/view/score/discuss, and a *you-vs-other-auditors* PIS-7 radar (per-PLE reveal + home aggregate, **self excluded** so it's a true peer comparison). ICC now **aggregates one human value per PLE** before pairing (a multi-auditor PLE no longer feeds N duplicate-AI pairs into ICC(2,1)) — `oversight.js` + superadmin `/icc`.
   - **(b) Compensation payout pipeline** — `db/migration-compensation-payout.sql`: an **encrypted** `payment_info` vault (AES-256-GCM via `IDENTITY_ENC_KEY`, like `oauth_identities`) + a `payouts` ledger; a physician `/payment` form (physician-only); superadmin owed/paid/outstanding on `/admin/compensation` with **mark-paid** (server-side overpayment guard) + an audit-logged **payout CSV**; rate/cap superadmin-configurable (`comp_rate_thb`=500 / `comp_cap_cles`=3, cap 0 = uncapped).
-  - **(c) Superadmin XLSX export** (`exceljs`) — one workbook, a sheet per category (CLEs / AI evals / Auditor scores / Compensation / Participants), **pseudonymized**; button on `/admin/overview`.
-  - **(d) UX/Thai-font pass** — physician-ui base 15→16px, 11px micro-labels→12px, `--muted-soft` lifted to AA contrast, wrap/truncation fixes; dashboard `text-xs` 12→13px + navbar specialty. Shared `backend/src/lib/compensation.js` (`compRateCap`/`cappedCles`/`PIS7_DIMS`/`meanByDim`) + `db-helpers.toCsv`.
+  - **(c) Superadmin XLSX export** (`exceljs`) — one workbook, a sheet per category (PLEs / AI evals / Auditor scores / Compensation / Participants), **pseudonymized**; button on `/admin/overview`.
+  - **(d) UX/Thai-font pass** — physician-ui base 15→16px, 11px micro-labels→12px, `--muted-soft` lifted to AA contrast, wrap/truncation fixes; dashboard `text-xs` 12→13px + navbar specialty. Shared `backend/src/lib/compensation.js` (`compRateCap`/`cappedPles`/`PIS7_DIMS`/`meanByDim`) + `db-helpers.toCsv`.
 - **PR #45 — go-live-smoke fix.** Updated stale assertions (already-consented user, Socratic-optional, `EXP-NNN` pseudonyms, `include_test`) → re-ran prod **15/0**.
 - **PR #46 — auditor usage bar.** `/admin/users` now shows the **auditor** usage meter for auditor/`can_audit` rows and **both** meters (labelled ผู้ใช้/User · ผู้ตรวจ/Auditor) for a dual-role **Special** user; auditor rows now show usage in the mobile cards too.
 
-**Verification:** 293 backend + 226 RIMPL + 35 dashboard hermetic tests; build/lint/tsc; responsive smoke (0 overflow @ 320/375/768/1280); **live-DB E2E** on a disposable Supabase DB (branching needs the Pro plan — blocked) — migrations apply clean, owed/cap, peer-excludes-self, ICC one-human-per-CLE, guard + `23505` + RLS DENY-ALL all confirmed; prod migration verified (8 assignments backfilled, RLS DENY-ALL on `payment_info`/`payouts`, `audit_scores` unique on `(cle_id, auditor_id)` — old name `audit_scores_ple_auditor_uniq`, so the dup-score backstop is live).
+**Verification:** 293 backend + 226 RIMPL + 35 dashboard hermetic tests; build/lint/tsc; responsive smoke (0 overflow @ 320/375/768/1280); **live-DB E2E** on a disposable Supabase DB (branching needs the Pro plan — blocked) — migrations apply clean, owed/cap, peer-excludes-self, ICC one-human-per-PLE, guard + `23505` + RLS DENY-ALL all confirmed; prod migration verified (8 assignments backfilled, RLS DENY-ALL on `payment_info`/`payouts`, `audit_scores` unique on `(ple_id, auditor_id)` — old name `audit_scores_ple_auditor_uniq`, so the dup-score backstop is live).
 
-**Prod state to mind:** `peer_calibration` is **OFF** (zero behavior change until a superadmin flips it on `/admin/overview`). A few throwaway soak/smoke test CLEs (`is_test=true`) exist from the go-live runs — excluded from the research export; cleared by `db/reset-demo.js`.
+**Prod state to mind:** `peer_calibration` is **OFF** (zero behavior change until a superadmin flips it on `/admin/overview`). A few throwaway soak/smoke test PLEs (`is_test=true`) exist from the go-live runs — excluded from the research export; cleared by `db/reset-demo.js`.
 
 ### Plan for next session (2026-06-26)
 *06-25 update: item 5 (CI wiring) + the reset-usage and peer-n=1-label parts of the old item 6 are **DONE** (PRs #48, #49) — see "What just shipped (2026-06-25)". Remaining:*
-1. **Exercise multi-auditor end-to-end** — flip Peer Calibration on `/admin/overview`; assign **2+ auditors** to an `evaluated` CLE; have them score; confirm the you-vs-other-auditors radar (per-CLE + home aggregate) + `/admin/icc` (per-CLE aggregation) on real data.
+1. **Exercise multi-auditor end-to-end** — flip Peer Calibration on `/admin/overview`; assign **2+ auditors** to an `evaluated` PLE; have them score; confirm the you-vs-other-auditors radar (per-PLE + home aggregate) + `/admin/icc` (per-PLE aggregation) on real data.
 2. **Exercise compensation end-to-end** — physician saves payout details at `/payment`; superadmin reviews owed/paid/outstanding, marks a payout, exports the payout CSV; download the multi-sheet XLSX from `/admin/overview`.
 3. **Full authenticated browser E2E** of the new dashboard surfaces (deferred 06-24) — superadmin login → users (two usage bars), compensation, overview toggles + export.
 4. **Pre-pilot cleanup** — run `db/reset-demo.js` to clear soak/smoke test data; rotate demo credentials (see [GO-LIVE-CHECKLIST.md](GO-LIVE-CHECKLIST.md)).
@@ -274,7 +274,7 @@ operator** — see the ordering below.
 
 - **Specialty (the layer under council)** — a new per-council `specialties` table (`db/migration-specialty.sql`),
   seeded with the **15 Royal Colleges** under the Medical Council (TMC). `professionals.specialty_id` +
-  `cles.specialty_id` (denormalised from the physician at creation, exactly like `council_id`).
+  `ples.specialty_id` (denormalised from the physician at creation, exactly like `council_id`).
 - **Position ladder (ตำแหน่ง)** — `professionals.position` ∈ extern/intern/resident/fellowship/staff/**gp**
   (gp = General Practitioner). Constants in `backend/src/lib/specialties.js` + `audit-dashboard/lib/labels.ts`.
 - **Pipeline scoped by council × specialty** — `scopeBySpecialty` (admin.js) pins an admin to their own
@@ -292,41 +292,41 @@ operator** — see the ordering below.
   C1–C3: duration/turns/depth) + a note that AI-judged C4–C6 run on submit + an irreversibility warning.
 - **Onboarding** — Google self-signup now collects council **→ specialty** (cascade); public
   `GET /auth/specialties?council_id=`.
-- **Rename** — the acronym "CLE" is spelled out as **"Continuous Learning Episode"** in physician-portal copy
-  (status codes / `CLE-NNN` pseudonyms / `CLE1·2·3` episode codes untouched).
+- **Rename** — the acronym "PLE" is spelled out as **"Professional Learning Episode"** in physician-portal copy
+  (status codes / `PLE-NNN` pseudonyms / `CLE1·2·3` episode codes untouched).
 
 **Deploy ordering (REQUIRED):** apply `db/migration-specialty.sql` (+ backfill existing TMC users' specialty)
 **before** deploying the backend — the new PostgREST embeds (`specialties(...)`) and `specialty_id` columns
-must exist first, or `/admin/users` and `/admin/cles` will 500. Order: migration → backend (Railway) →
+must exist first, or `/admin/users` and `/admin/ples` will 500. Order: migration → backend (Railway) →
 both front-ends (Vercel). Re-run `db/seed-users.js` so demo TMC accounts get Internal Medicine + a position.
 
-## What shipped earlier (2026-06-21) — fix: admin CLE list / auditor assignment (prod 500)
+## What shipped earlier (2026-06-21) — fix: admin PLE list / auditor assignment (prod 500)
 
-Production regression fix. `GET /admin/cles` (the admin CLE-management list + the assignment surface),
-`/admin/cles/flagged` (QA queue), and `/admin/cles/:id/transcript` were **all failing in prod** — the
+Production regression fix. `GET /admin/ples` (the admin PLE-management list + the assignment surface),
+`/admin/ples/flagged` (QA queue), and `/admin/ples/:id/transcript` were **all failing in prod** — the
 list/queue returned **500**, the transcript a misleading **404** ("outside your council") — so an admin
-saw **0 CLEs**, the QA queue was empty, and **no session could be assigned to an auditor** (the auditor's
+saw **0 PLEs**, the QA queue was empty, and **no session could be assigned to an auditor** (the auditor's
 queue is assignment-driven, so it stayed empty). Reported via the auditor-flow test.
 
-Root cause: the **PLE→CLE rename** renamed the table + indexes but **not the FK constraints** — Postgres
-keeps constraint names across a table rename, so prod's `cles` still had `ples_physician_id_fkey` /
-`ples_auditor_id_fkey`. `cles` has **two** FKs to `professionals` (physician + auditor), so the PostgREST
+Root cause: the **PLE→PLE rename** renamed the table + indexes but **not the FK constraints** — Postgres
+keeps constraint names across a table rename, so prod's `ples` still had `ples_physician_id_fkey` /
+`ples_auditor_id_fkey`. `ples` has **two** FKs to `professionals` (physician + auditor), so the PostgREST
 embed of `professionals` is ambiguous and needs a constraint-name hint; those three endpoints embed
-`professionals!cles_physician_id_fkey` (correct for fresh installs — `schema.sql` auto-names it `cles_*`),
+`professionals!ples_physician_id_fkey` (correct for fresh installs — `schema.sql` auto-names it `ples_*`),
 which **did not resolve** against the renamed prod DB → PostgREST error. The transcript handler
-destructures only `{ data: cle }` (ignoring the error) → null `cle` → its `if (!cle)` 404, which the
+destructures only `{ data: ple }` (ignoring the error) → null `ple` → its `if (!ple)` 404, which the
 dashboard renders as "outside your council" (a red herring — councils were fine). Regressed when the
 rename deployed (~06-18); the per-physician profile page kept working because it doesn't use the embed.
 
-Fix: **`db/migration-fk-rename.sql`** — renames the 4 `cles` FK constraints `ples_*` → `cles_*` to match
+Fix: **`db/migration-fk-rename.sql`** — renames the 4 `ples` FK constraints `ples_*` → `ples_*` to match
 the code + `schema.sql` (metadata-only, instantly reversible; idempotent). Applied to the prod CLICS
-Supabase via MCP. Verified: `GET /admin/cles` + `/flagged` now 200; the TMC admin sees all 16 sessions.
+Supabase via MCP. Verified: `GET /admin/ples` + `/flagged` now 200; the TMC admin sees all 16 sessions.
 *Hardening DONE (2026-06-22, branch `fix/admin-transcript-embed-robustness`): the transcript handler
 now uses `maybeSingle()` + `sendDbError`, so a query/embed failure surfaces as a logged **500** instead
 of falling through to the misleading 404 (and a messages-fetch error no longer renders a silently-empty
 transcript). A static guard test (`backend/tests/admin-transcript-robustness.test.js`) asserts every
-`professionals!cles_*_fkey` embed hint in `admin.js` maps to an inline professionals FK on the `cles`
-table in `schema.sql`, so the next table rename fails CI, not prod. (`/admin/cles` + `/flagged` already
+`professionals!ples_*_fkey` embed hint in `admin.js` maps to an inline professionals FK on the `ples`
+table in `schema.sql`, so the next table rename fails CI, not prod. (`/admin/ples` + `/flagged` already
 surfaced the error via `sendDbError`.)*
 
 ## What just shipped (2026-06-21) — daily-summary email: removed the cloud sandbox entirely
@@ -363,20 +363,20 @@ The **CREC/NRCT protocol-alignment** cycle (8 phases) plus a readiness-checks ad
 (`d84595a`…`b49c370`) and live in prod (migrations applied to the shared Supabase; Railway + Vercel
 redeployed). This is the cycle that built the **research experiment** the protocol hinges on:
 
-- **CLE episode sequencing + Socratic toggle (the experiment).** `cles.episode_number` (1–3, 4th
+- **PLE episode sequencing + Socratic toggle (the experiment).** `ples.episode_number` (1–3, 4th
   blocked), `socratic_active`/`socratic_reason`, `professionals.consecutive_t1_fails`. CLE1/3 run
   **natural** (no forced ❓); CLE2 runs **Socratic-from-start**; a natural session flips to Socratic
   `t1_remediation` after **3 consecutive Tier-1 fails** (resets on a pass). The rimpl prompt split into
-  NATURAL / EXAMINER variants threaded by a `socratic` flag. Physician sees "CLE n/3" but not the mode.
+  NATURAL / EXAMINER variants threaded by a `socratic` flag. Physician sees "PLE n/3" but not the mode.
 - **Pilot Test Mode.** Superadmin toggle (`app_settings.pilot_test_mode`, on the dashboard Overview)
-  that lets the team pick Natural/Socratic directly + bypass the 3-CLE cap; such CLEs are `is_test`
+  that lets the team pick Natural/Socratic directly + bypass the 3-PLE cap; such PLEs are `is_test`
   (out of real export/ICC). Exercises Socratic without completing CLE1→CLE2.
-- **PLE → CLE rename** across DB + all 4 layers + tests + docs (table `ples`→`cles`, `ple_id`→`cle_id`).
-- **Study compliance scaffolding.** `cle_code` (CLE-NNN) + `exp_code` (EXP-NNN) pseudonyms; append-only
+- **PLE → PLE rename** across DB + all 4 layers + tests + docs (table `ples`→`ples`, `ple_id`→`ple_id`).
+- **Study compliance scaffolding.** `ple_code` (PLE-NNN) + `exp_code` (EXP-NNN) pseudonyms; append-only
   `audit_log` + `logEvent()`; evaluator **version provenance** (`prompt_version`/`rubric_version` hashes);
   structured `consents` table with a physician consent modal + an **auditor confidentiality/COI gate**;
   **Tier-3 analyst** + **Tier-4 ethics** read-only oversight roles (`/oversight`); **compensation report**
-  (`/admin/compensation`, ฿500/CLE capped ฿1500). Final consent *wording* still comes from the PI.
+  (`/admin/compensation`, ฿500/PLE capped ฿1500). Final consent *wording* still comes from the PI.
 - **`/health/deep` readiness checks (P1).** Both RIMPL and the backend now expose `GET /health/deep`
   (the shallow `/health` stays a liveness ping). RIMPL probes Anthropic-key/SDK-constructibility (zero
   token spend) + Supabase; the backend aggregates its own Supabase + RIMPL's deep check, bubbling a
@@ -386,7 +386,7 @@ redeployed). This is the cycle that built the **research experiment** the protoc
   (layout grids collapse via `@min-[…px]:` so the forced-mobile preview + real phones go 1-col).
 
 > Reconciliation note: `db/schema.sql` is kept in sync for fresh installs; the 8 migrations
-> (`migration-cle-rename.sql` first → … → `migration-oversight-roles.sql`) were applied in order to the
+> (`migration-ple-rename.sql` first → … → `migration-oversight-roles.sql`) were applied in order to the
 > shared prod Supabase, preserving data.
 
 ## What shipped 2026-06-15
@@ -400,7 +400,7 @@ A test-hardening + mobile-polish cycle, pushed to master (`1d9a6db`…`e433d41`,
   (jest **component tests** + tsc + **blocking ESLint**), each with **coverage-threshold gates**
   (`--coverage`). Six cross-role suites prove the role handoffs. See [TESTING.md](TESTING.md).
 - **Dashboard refactor (deployed).** The `react-hooks/set-state-in-effect` debt fixed by migrating
-  theme/viewport/auth to `useSyncExternalStore` (`lib/client-store.ts`); `/admin/cles` reads its
+  theme/viewport/auth to `useSyncExternalStore` (`lib/client-store.ts`); `/admin/ples` reads its
   `?status=` drill-down via `useSearchParams` + a Suspense boundary; all 54 `no-explicit-any` typed
   (`lib/types.ts`). `next.config.ts` pins the Turbopack / output-tracing root (the new root
   `package.json` for the dev stack otherwise confused Next's multi-lockfile detection).
@@ -431,11 +431,11 @@ then **deployed to Vercel**. Highlights:
   **`lib/pis7-rubric.ts` mirrors `rimpl/src/lib/prompts.js` — keep the two in sync.**
 
 Prod auth'd smoke (superadmin + auditor) passed with **0 console errors**; the DomainScorer was verified
-live by reassigning an evaluated CLE to `auditor1`. The original Claude Design audit PDF is in
+live by reassigning an evaluated PLE to `auditor1`. The original Claude Design audit PDF is in
 [design/](design/).
 
 > ⚠️ **Demo-data note:** live verification (the design-audit smoke + the 2026-06-15 role-chain / browser
-> E2E / cross-council smokes) mutated demo data on the shared Supabase — several evaluated CLEs were
+> E2E / cross-council smokes) mutated demo data on the shared Supabase — several evaluated PLEs were
 > (re)assigned to auditor1 and one (`e2ba5470`) scored, and a 2nd-council demo auditor `auditor2@clics.th`
 > (Pharmacy) was seeded. All of it is throwaway pre-pilot data that `db/reset-demo.js` clears before real participants.
 
@@ -448,18 +448,18 @@ are now done — verified 2026-06-18: `db/reset-demo.js` (protocol-aware), cross
 verify a Resend sending domain (see [GO-LIVE-CHECKLIST.md](GO-LIVE-CHECKLIST.md)).
 
 So the natural next contributions are **P2 spec gaps** — top of the list is full reversible PII
-pseudonymization (`P-`/`CLE-` lookup table + broader Thai-name coverage in `rimpl/src/services/pii-filter.js`).
+pseudonymization (`P-`/`PLE-` lookup table + broader Thai-name coverage in `rimpl/src/services/pii-filter.js`).
 
 ### Open threads as of 2026-08-27
 
 Loose ends a successor inherits, most urgent first:
 
-1. **Clear the privacy queue.** All **34 CLEs sit at `privacy_review_status='pending'`** after the
+1. **Clear the privacy queue.** All **34 PLEs sit at `privacy_review_status='pending'`** after the
    CREC deploy, which correctly holds **5 unscored assignments** out of the auditor queue. Nothing
    else unblocks those auditors: go to `/admin/privacy` and pass/redact them. (Correct behaviour, not
    a bug — see the backfill note in the CREC section.)
 2. **`identity_verification_required` is 0 and must become 1 before the first participant.** Flipping
-   it before the submission form has actually been used blocks every physician from starting a CLE, so
+   it before the submission form has actually been used blocks every physician from starting a PLE, so
    it is staged deliberately — but shipping without it breaks ICF §4.
 3. **Three CREC items are blocked on people, not code** — see *Known gaps* below: D3 pre-approval data
    provenance (research team), the acceptability instrument wording (IRB), and the evaluator model
@@ -486,10 +486,10 @@ Loose ends a successor inherits, most urgent first:
   carries the `council_usage` table + `increment_council_usage`, `council_id` threaded through the
   spend paths, and `GET /admin/council-usage` — but **the migration has never been applied** and the
   billing model itself is undecided. Treat it as a design decision pending, not as work in progress.
-  Hard constraint recorded with it: a **scored CLE must never run through claude.ai** — that path
+  Hard constraint recorded with it: a **scored PLE must never run through claude.ai** — that path
   bypasses PII de-identification, the C1–C6 gate, provenance and transcript integrity.
 - **Three CREC082 items are blocked on people, not engineering.**
-  - **D3 — pre-approval data provenance.** 6 evaluated CLEs in the real TMC council carry
+  - **D3 — pre-approval data provenance.** 6 evaluated PLEs in the real TMC council carry
     `is_test=false` while the submission states no participant data exists before CREC approval. The
     fix (flag them, record the reconciliation in `audit_log`) is trivial; **deciding what they are is
     not**, and it is the research team's call, not a code one.
@@ -531,9 +531,9 @@ do not leave the gap silent.
 ## Verify the app works
 
 Sign in at the portal with a demo account (creds in [deployment.md](deployment.md)):
-`doctor1@clics.th` → create a CLE → chat → expect content + ≥1 `(Source, Year)` ref → end →
+`doctor1@clics.th` → create a PLE → chat → expect content + ≥1 `(Source, Year)` ref → end →
 **reflection form** → result. A Socratic question is **no longer expected on a normal run** — it fires
 only as the rescue, after 4 exchanges that are off-topic or not yet qualifying. As
-`auditor1@clics.th` → QA Queue → an assigned evaluated CLE → DomainScorer; **if the queue is empty,
-check `/admin/privacy` first** — an evaluated CLE is not assignable until a human clears it. As
+`auditor1@clics.th` → QA Queue → an assigned evaluated PLE → DomainScorer; **if the queue is empty,
+check `/admin/privacy` first** — an evaluated PLE is not assignable until a human clears it. As
 `superadmin@clics.th` → overview / ICC / users / governance.

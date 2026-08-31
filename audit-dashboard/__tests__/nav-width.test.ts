@@ -86,8 +86,8 @@ describe('the desktop nav collapses before its row can overflow', () => {
 
   it('every roster entry has an absolute href and a label', () => {
     // `en` is deliberately OPTIONAL: BiLabel renders `th` alone when it is absent, which is right for
-    // the entries whose label is already English or an acronym (CLEs, QA Queue, ICC). Asserting a
-    // second language on those would force a redundant "CLEs CLEs".
+    // the entries whose label is already English or an acronym (PLEs, QA Queue, ICC). Asserting a
+    // second language on those would force a redundant "PLEs PLEs".
     for (const roster of [AUDITOR_LINKS, ANALYST_LINKS, ETHICS_LINKS, ADMIN_LINKS, SUPERADMIN_LINKS]) {
       for (const l of roster) {
         expect(l.href.startsWith('/')).toBe(true);

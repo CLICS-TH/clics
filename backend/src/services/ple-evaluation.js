@@ -1,23 +1,23 @@
 // PIS-7 evaluation persistence, shared by the physician /end flow and the admin approve flow.
 const { supabase } = require('../lib/supabase');
 const { evaluatorWeightsSha256 } = require('../lib/settings');
-const { compositeScore } = require('./cle-gate');
+const { compositeScore } = require('./ple-gate');
 const { rimplEvaluate, isDeterministicRimplError } = require('./rimpl-client');
 const { accrueUsage } = require('../lib/usage');
 const { costUsd } = require('../lib/pricing');
 
-// Persist an AI evaluation + LPDP snapshot and mark the CLE evaluated.
+// Persist an AI evaluation + LPDP snapshot and mark the PLE evaluated.
 // Ordered + error-checked: the scored row must land before we write the LPDP snapshot or flip the
-// CLE to 'evaluated'. Otherwise a malformed result (e.g. an out-of-range domain score) used to leave
-// a composite=0 LPDP snapshot + missing ai_evaluation while the CLE still showed 'evaluated'.
-async function persistEvaluation(cleId, physicianId, result) {
+// PLE to 'evaluated'. Otherwise a malformed result (e.g. an out-of-range domain score) used to leave
+// a composite=0 LPDP snapshot + missing ai_evaluation while the PLE still showed 'evaluated'.
+async function persistEvaluation(pleId, physicianId, result) {
   const composite = compositeScore(result);
   const domain = {
     d1: result.d1, d2: result.d2, d3: result.d3, d4: result.d4,
     d5: result.d5, d6: result.d6, d7: result.d7,
   };
   const { error: aiErr } = await supabase.from('ai_evaluations').insert({
-    cle_id: cleId, ...domain,
+    ple_id: pleId, ...domain,
     composite_score: composite,
     domain_rationale: result.domain_rationale,
     model_version: result.model_version ?? 'CCME_LLM_v8.0',
@@ -29,7 +29,7 @@ async function persistEvaluation(cleId, physicianId, result) {
     // from the data instead of from memory.
     provenance: result.provenance ?? null,
   });
-  // UNIQUE(cle_id): a 23505 means a row already exists — a concurrent evaluation (the dup-eval race),
+  // UNIQUE(ple_id): a 23505 means a row already exists — a concurrent evaluation (the dup-eval race),
   // or a previous PARTIAL persist where the ai row landed but the snapshot/status writes failed. In
   // both cases DON'T throw (that would loop in reconcile); fall through to ensure the LPDP snapshot
   // and 'evaluated' status are also written. The existing row's scores are kept (no double-write).
@@ -39,18 +39,18 @@ async function persistEvaluation(cleId, physicianId, result) {
   const fresh = !aiErr;
 
   const { error: lpdpErr } = await supabase.from('lpdp_snapshots').insert({
-    physician_id: physicianId, cle_id: cleId,
+    physician_id: physicianId, ple_id: pleId,
     composite_score: composite, domain_scores: domain,
   });
   if (lpdpErr && lpdpErr.code !== '23505') throw new Error(`lpdp_snapshots insert failed: ${lpdpErr.message}`);
 
-  const { error: cleErr } = await supabase.from('cles').update({ status: 'evaluated' }).eq('id', cleId);
-  if (cleErr) throw new Error(`cles status update failed: ${cleErr.message}`);
+  const { error: pleErr } = await supabase.from('ples').update({ status: 'evaluated' }).eq('id', pleId);
+  if (pleErr) throw new Error(`ples status update failed: ${pleErr.message}`);
   return { fresh };
 }
 
 // The RIMPL evaluation is a network call to a Claude-backed service; a transient 5xx/timeout would
-// otherwise silently strand a credit-eligible CLE at cle_pass with no score. Retry with backoff —
+// otherwise silently strand a credit-eligible PLE at ple_pass with no score. Retry with backoff —
 // EXCEPT on a deterministic failure (bad/out-of-range model output → 502, or a token misconfig →
 // 401), where retrying just re-pays Anthropic for the same guaranteed failure. Re-throw immediately
 // so reconcile can route the session to manual QA instead of looping every sweep forever.
@@ -67,14 +67,14 @@ async function evaluateWithRetry(payload, attempts = 3) {
   throw lastErr;
 }
 
-// Run the PIS-7 evaluation for a passed CLE and persist it. Throws on failure (caller logs).
-async function triggerEvaluation(cleId, transcript, physicianId, patientRef) {
+// Run the PIS-7 evaluation for a passed PLE and persist it. Throws on failure (caller logs).
+async function triggerEvaluation(pleId, transcript, physicianId, patientRef) {
   // The declared Model Lock checksum travels WITH the evaluation so it is stamped on the score at
   // the moment it is produced. Read per call rather than cached: if it is declared (or re-declared)
   // mid-pilot, the scores either side carry different values and the break is visible in the data.
   const weights_sha256 = await evaluatorWeightsSha256().catch(() => null);
-  const result = await evaluateWithRetry({ cle_id: cleId, transcript, patient_ref: patientRef, weights_sha256 });
-  const { fresh } = await persistEvaluation(cleId, physicianId, result);
+  const result = await evaluateWithRetry({ ple_id: pleId, transcript, patient_ref: patientRef, weights_sha256 });
+  const { fresh } = await persistEvaluation(pleId, physicianId, result);
   // Accrue the PIS-7 evaluation's cost to the physician's meter ONLY when this call actually wrote
   // the row — a dup-eval race (reconcile vs /end) must not double-charge the physician. There is no
   // reservation on this path (it runs after /end, which is deliberately not budget-gated), so the

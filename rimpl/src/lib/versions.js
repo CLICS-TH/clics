@@ -5,7 +5,7 @@
 const crypto = require('crypto');
 const { PIS7_EVALUATOR_PROMPT } = require('./prompts');
 
-// Single source of truth for the PIS-7 weights (mirrors backend/src/services/cle-gate.js WEIGHTS).
+// Single source of truth for the PIS-7 weights (mirrors backend/src/services/ple-gate.js WEIGHTS).
 const WEIGHTS = { d1: 0.15, d2: 0.20, d3: 0.15, d4: 0.15, d5: 0.15, d6: 0.10, d7: 0.10 };
 
 const sha8 = (s) => crypto.createHash('sha256').update(s).digest('hex').slice(0, 8);

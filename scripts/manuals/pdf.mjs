@@ -71,7 +71,7 @@ function printPage(name, lang, sections) {
 <body>
   <div class="container guide">
     <header class="page-intro guide-cover">
-      <p class="eyebrow">CLICS · Continuous Learning &amp; Intelligence Credit System</p>
+      <p class="eyebrow">CLICS · Case-based Learning Intelligence Credit System</p>
       <h1>${esc(TITLES[name][lang])}</h1>
       <p class="sub">${esc(SUBS[name][lang])}</p>
     </header>

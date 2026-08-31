@@ -61,11 +61,11 @@ const PrivacyConcernSchema = z.object({
 });
 
 const CreateCleSchema = z.object({
-  // (per-CLE specialty was collected but never persisted — cles has no such column; the select
-  // was removed from cle-new. Unknown keys from older cached clients are stripped by zod.)
+  // (per-PLE specialty was collected but never persisted — ples has no such column; the select
+  // was removed from ple-new. Unknown keys from older cached clients are stripped by zod.)
   chief_complaint: z.string().min(1).max(500),
   folder_id: z.string().uuid().optional(),
-  // Structured patient identifier — stored in the isolated cle_patient_refs table ONLY, NEVER sent
+  // Structured patient identifier — stored in the isolated ple_patient_refs table ONLY, NEVER sent
   // to the cloud AI / auditors / export. Lets the case narrative stay name-free (real-PII de-id).
   patient_ref: z.string().max(200).optional(),
   // Pilot Test Mode only: directly choose the conversation mode so a tester can exercise Socratic

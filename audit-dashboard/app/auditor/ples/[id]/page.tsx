@@ -39,7 +39,7 @@ export default function AuditorScorePage() {
   const [concern, setConcern] = useState('');
   const consentReady = coiNone && conf && calib;
 
-  const loadData = useCallback(() => apiFetch<AuditorPle>(`/auditor/cles/${id}`).then(d => {
+  const loadData = useCallback(() => apiFetch<AuditorPle>(`/auditor/ples/${id}`).then(d => {
     setData(d);
     if (d?.audit_score) {
       const { d1,d2,d3,d4,d5,d6,d7, notes: n } = d.audit_score;
@@ -73,7 +73,7 @@ export default function AuditorScorePage() {
     }
     setSubmitting(true);
     try {
-      const res = await apiFetch<ApiResult<unknown>>(`/auditor/cles/${id}/score`, {
+      const res = await apiFetch<ApiResult<unknown>>(`/auditor/ples/${id}/score`, {
         method: 'POST', body: JSON.stringify({ ...scores, ...anchors, notes, attestations: attest }),
       });
       if (res?.error) {
@@ -100,7 +100,7 @@ export default function AuditorScorePage() {
   async function reportConcern() {
     setSubmitting(true);
     try {
-      const res = await apiFetch<ApiResult<unknown>>(`/auditor/cles/${id}/privacy-concern`, {
+      const res = await apiFetch<ApiResult<unknown>>(`/auditor/ples/${id}/privacy-concern`, {
         method: 'POST', body: JSON.stringify({ note: concern.trim() }),
       });
       if (res?.error) { toast(`ส่งรายงานไม่สำเร็จ / Report failed: ${String(res.error)}`, 'error'); return; }
@@ -151,7 +151,7 @@ export default function AuditorScorePage() {
     <div className="max-w-6xl mx-auto p-6 md:p-10 space-y-6">
       <PageIntro
         eyebrow="Auditor · Blind Scoring"
-        title="ประเมิน CLE"
+        title="ประเมิน PLE"
         subtitle="Score the transcript on PIS-7 — the AI's score stays hidden until you submit"
         action={<Button variant="outline" onClick={() => router.push('/auditor/queue')}>← กลับ</Button>}
       />
@@ -249,7 +249,7 @@ export default function AuditorScorePage() {
                 <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(data.ai_evaluation, scores)}</p>
               </div>
               {/* Peer calibration (toggle): your scores vs the average of the OTHER auditors who scored
-                  this CLE. Shown once ≥1 other auditor has submitted (backend gates peer_avg/peer_n). */}
+                  this PLE. Shown once ≥1 other auditor has submitted (backend gates peer_avg/peer_n). */}
               {data.peer_avg && (data.peer_n ?? 0) >= 1 && (
                 <div>
                   <h3 className="font-sans text-sm font-medium mb-1">{onePeer
@@ -260,7 +260,7 @@ export default function AuditorScorePage() {
                 </div>
               )}
               {/* Discuss the evaluation with an AI tutor — metered against the auditor's own pool. */}
-              <AuditorChatBox cleId={id} />
+              <AuditorChatBox pleId={id} />
             </div>
           )}
         </div>

@@ -1,7 +1,7 @@
 'use client';
 // PIS-7 comparison radar: the auditor's 7 domain scores (0–5) overlaid on the AI's, so a rater can
-// see at a glance where they diverge. Used per-CLE (this session's scores) and on the auditor home
-// (means across all scored CLEs). Data already arrives from GET /auditor/cles/:id and /calibration —
+// see at a glance where they diverge. Used per-PLE (this session's scores) and on the auditor home
+// (means across all scored PLEs). Data already arrives from GET /auditor/ples/:id and /calibration —
 // this is pure presentation. recharts sets SVG fill/stroke ATTRIBUTES (CSS var() doesn't resolve
 // there), so the series colours come from the hex CHART palette; the grid/ticks ride `currentColor`.
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend, Tooltip, ResponsiveContainer } from 'recharts';
@@ -35,7 +35,7 @@ export function Pis7Radar({ ai, peer, human, peerLabel }: { ai?: ScoreMap; peer?
   const isPeer = ai == null && peer != null;
   const cmpMap = isPeer ? peer : ai;
   // The peer series defaults to "average" but a caller can override it (e.g. a single other auditor,
-  // where "average" would mislead) — see the per-CLE peer card.
+  // where "average" would mislead) — see the per-PLE peer card.
   const cmpName = isPeer ? (peerLabel ?? 'ค่าเฉลี่ย / Avg') : 'AI';
   const cmpColor = isPeer ? CHART.peer : CHART.ai;
   const data: Row[] = PIS7_RUBRIC.map((d, i) => ({

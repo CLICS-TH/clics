@@ -26,35 +26,35 @@ describe('POST /chat', () => {
   // Provider routing is keyed off `purpose` (AI_PROVIDER_CHAT → AI_PROVIDER → anthropic).
   // A wrong/absent purpose silently routes the turn to the wrong model, so pin it.
   test('declares purpose "chat" so provider routing can key off it', async () => {
-    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en' });
+    await request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'q', language: 'en' });
     expect(callAI.mock.calls[0][0].purpose).toBe('chat');
   });
 
   test('natural mode (CLE1/3, socratic:false default) uses the non-Socratic prompt', async () => {
-    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en' });
+    await request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'q', language: 'en' });
     const sys = callAI.mock.calls[0][0].systemPrompt;
     expect(sys).toMatch(/NATURAL, physician-led/);
     expect(sys).not.toMatch(/SOCRATIC LEARNING/);
   });
 
   test('examiner mode (CLE2, socratic:true) uses the Socratic clinical-examiner prompt', async () => {
-    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en', socratic: true });
+    await request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'q', language: 'en', socratic: true });
     const sys = callAI.mock.calls[0][0].systemPrompt;
     expect(sys).toMatch(/Socratic clinical examiner/);
     expect(sys).toMatch(/SOCRATIC LEARNING/);
   });
 
   test('artifacts flag drives the system prompt: guidance appended only when true', async () => {
-    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en' });
+    await request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'q', language: 'en' });
     expect(callAI.mock.calls[0][0].systemPrompt).not.toMatch(/:::artifact/); // default off
     callAI.mockClear();
-    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en', artifacts: true });
+    await request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'q', language: 'en', artifacts: true });
     expect(callAI.mock.calls[0][0].systemPrompt).toMatch(/:::artifact/);     // on → guidance present
   });
 
   test('returns content, references, and socratic_question', async () => {
     const res = await request(app).post('/chat').send({
-      cle_id: 'test-123',
+      ple_id: 'test-123',
       history: [],
       message: 'What is first-line for T2DM?',
       language: 'en',
@@ -67,13 +67,13 @@ describe('POST /chat', () => {
   });
 
   test('returns 400 when message is missing', async () => {
-    const res = await request(app).post('/chat').send({ cle_id: 'x', history: [] });
+    const res = await request(app).post('/chat').send({ ple_id: 'x', history: [] });
     expect(res.status).toBe(400);
   });
 
   test('patient_ref scrubs an unlabelled name from what reaches the model', async () => {
     await request(app).post('/chat').send({
-      cle_id: 'x', history: [], message: 'สมชายปวดท้องมา 2 วัน', language: 'th',
+      ple_id: 'x', history: [], message: 'สมชายปวดท้องมา 2 วัน', language: 'th',
       patient_ref: 'นายสมชาย ใจดี',
     });
     const sent = JSON.stringify(callAI.mock.calls[0][0].messages);
@@ -83,7 +83,7 @@ describe('POST /chat', () => {
 
   test('patient_ref: null is accepted (regression — backend sends `?? null` when none recorded)', async () => {
     const res = await request(app).post('/chat').send({
-      cle_id: 'x', history: [], message: 'q', language: 'en', patient_ref: null, socratic: false,
+      ple_id: 'x', history: [], message: 'q', language: 'en', patient_ref: null, socratic: false,
     });
     expect(res.status).toBe(200); // z.string().nullish() — not .optional(), which 400s on null
   });
@@ -96,7 +96,7 @@ describe('POST /chat', () => {
     callAI
       .mockResolvedValueOnce(reply('Metformin is first-line (ADA, 2024).'))          // citation, NO ❓
       .mockResolvedValueOnce(reply('Metformin (ADA, 2024).\n❓ Why renal-adjust?'));  // corrected
-    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en', socratic: true });
+    await request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'q', language: 'en', socratic: true });
     expect(callAI).toHaveBeenCalledTimes(2);
     // A corrected reply may itself carry an artifact, so the retry must not truncate worse than the original.
     expect(callAI.mock.calls[1][0].maxTokens).toBe(callAI.mock.calls[0][0].maxTokens);
@@ -105,7 +105,7 @@ describe('POST /chat', () => {
 
   test('natural mode does NOT retry on a missing ❓ (only a missing citation matters)', async () => {
     callAI.mockResolvedValueOnce(reply('Metformin is first-line (ADA, 2024).')); // citation, NO ❓
-    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en', socratic: false });
+    await request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'q', language: 'en', socratic: false });
     expect(callAI).toHaveBeenCalledTimes(1); // accepted as-is — no forced ❓
   });
 
@@ -113,7 +113,7 @@ describe('POST /chat', () => {
     callAI
       .mockResolvedValueOnce(reply('Metformin is first-line.\n❓ Why?'))             // ❓ but NO citation
       .mockResolvedValueOnce(reply('Metformin (ADA, 2024).\n❓ Why?'));
-    await request(app).post('/chat').send({ cle_id: 'x', history: [], message: 'q', language: 'en', socratic: false });
+    await request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'q', language: 'en', socratic: false });
     expect(callAI).toHaveBeenCalledTimes(2);
   });
 
@@ -121,7 +121,7 @@ describe('POST /chat', () => {
   // context; the body stays as clinical context, but `:::artifact{...}` control syntax is stripped.
   test('a persisted artifact fence in history is stripped before reaching the model (body kept)', async () => {
     await request(app).post('/chat').send({
-      cle_id: 'x', language: 'en', message: 'and the management?',
+      ple_id: 'x', language: 'en', message: 'and the management?',
       history: [
         { role: 'physician', content: 'differential for chest pain?' },
         { role: 'assistant', content: 'Top causes:\n:::artifact{type="differential" title="DDx"}\n| ACS | high |\n:::\n(AHA, 2021)' },

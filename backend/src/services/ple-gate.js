@@ -1,7 +1,7 @@
 const WEIGHTS = { d1: 0.15, d2: 0.20, d3: 0.15, d4: 0.15, d5: 0.15, d6: 0.10, d7: 0.10 };
 
 // C1-C3 are effort measures: engagement time, turns, and transcript size. They used to be a HARD
-// GATE — a session missing any of them was terminated at 'cle_fail_t1' and never scored.
+// GATE — a session missing any of them was terminated at 'ple_fail_t1' and never scored.
 //
 // CREC082 does not define a PLE that way. PLE Instruction Sheet §1 defines it by four qualities —
 // a meaningful problem, developing reasoning, integration of context/evidence, and reflective
@@ -11,15 +11,15 @@ const WEIGHTS = { d1: 0.15, d2: 0.20, d3: 0.15, d4: 0.15, d5: 0.15, d6: 0.10, d7
 // the wrong way round.
 //
 // So these are now METADATA: computed on every session, persisted to c1_pass..c3_pass, reported,
-// and analysable — but not a verdict. The qualifying decision is c4..c7 in cle-finalize.js.
+// and analysable — but not a verdict. The qualifying decision is c4..c7 in ple-finalize.js.
 //
 // C2 keeps one real job: >=4 physician turns is the threshold at which the Socratic rescue may open
 // mid-session (§4). That is its correct protocol role — a trigger, not a bar.
-function computeTier1(cle) {
+function computeTier1(ple) {
   return {
-    c1: (cle.duration_seconds ?? 0) >= 600,
-    c2: (cle.turn_count ?? 0) >= 4,
-    c3: (cle.token_count ?? 0) >= 10000,
+    c1: (ple.duration_seconds ?? 0) >= 600,
+    c2: (ple.turn_count ?? 0) >= 4,
+    c3: (ple.token_count ?? 0) >= 10000,
   };
 }
 
@@ -27,8 +27,8 @@ function computeTier1(cle) {
 // turn in it has nothing to classify. Sending it to the qualifying classifier would spend a paid
 // call to be told what is already obvious from the row. Anything with content goes forward and is
 // judged on the four elements, however brief.
-function hasScorableContent(cle) {
-  return (cle.turn_count ?? 0) >= 1;
+function hasScorableContent(ple) {
+  return (ple.turn_count ?? 0) >= 1;
 }
 
 // Active-engagement time is client-reported (idle/backgrounded time excluded) but can never exceed

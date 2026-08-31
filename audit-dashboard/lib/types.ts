@@ -23,7 +23,7 @@ export function formatApiError(error: ApiError | undefined, fallback: string): s
   return fallback;
 }
 
-// A specialty reference, embedded (PostgREST) on CLE rows / users via specialty_id.
+// A specialty reference, embedded (PostgREST) on PLE rows / users via specialty_id.
 export interface SpecialtyRef {
   id?: string;
   council_id?: string | null;
@@ -32,7 +32,7 @@ export interface SpecialtyRef {
   name_en: string;
 }
 
-// A physician/professional, as embedded in CLE rows and transcript headers.
+// A physician/professional, as embedded in PLE rows and transcript headers.
 export interface Professional {
   full_name_th?: string | null;
   full_name_en?: string | null;
@@ -40,7 +40,7 @@ export interface Professional {
   specialty?: string | null;
 }
 
-// CLE row from /admin/cles and /admin/cles/flagged. C-screen pass flags (c1_pass…c6_pass) are read
+// PLE row from /admin/ples and /admin/ples/flagged. C-screen pass flags (c1_pass…c6_pass) are read
 // dynamically by key, so they live in an index signature alongside the named fields.
 export interface CleRow {
   id: string;
@@ -52,7 +52,7 @@ export interface CleRow {
   auditor_id?: string | null;
   assignment_count?: number;   // how many auditors are assigned (multi-auditor pilot)
   is_test?: boolean;
-  cle_code?: string | null;
+  ple_code?: string | null;
   ended_at?: string | null;
   // CREC082 ICF §5-6 human privacy clearance. Only 'passed' and 'redacted' release a session to a
   // rater; see backend/src/lib/privacy-review.js.
@@ -91,7 +91,7 @@ export interface Council {
   active?: boolean;
 }
 
-// /admin/cles/:id/transcript — the CLE plus its messages.
+// /admin/ples/:id/transcript — the PLE plus its messages.
 export interface TranscriptMessage {
   role: string;
   content: string;
@@ -99,7 +99,7 @@ export interface TranscriptMessage {
   socratic_question?: string;
 }
 export interface CleTranscript {
-  cle: {
+  ple: {
     title?: string | null;
     chief_complaint?: string | null;
     status: string;
@@ -145,7 +145,7 @@ export interface IccData {
   n_at_target?: number;
   n_below_target?: number;
   overall_at_target?: IccStat;
-  // Human interrater. ICC(1,1) assumes auditors are drawn per CLE; ICC(A,k) assumes a fixed panel.
+  // Human interrater. ICC(1,1) assumes auditors are drawn per PLE; ICC(A,k) assumes a fixed panel.
   // Both are reported because which is legitimate depends on how assignment actually ran.
   // model_alt is optional on both: only the average-measures result carries a second notation
   // (McGraw & Wong's ICC(A,k) and Shrout & Fleiss's ICC(2,k) name the same quantity).
@@ -156,7 +156,7 @@ export interface IccData {
   weighted_kappa?: { domains: Record<string, KappaStat | null>; pooled: KappaStat | null };
 }
 
-// /admin/stats — per-status CLE counts (every key optional; cleStatusCards tolerates gaps).
+// /admin/stats — per-status PLE counts (every key optional; pleStatusCards tolerates gaps).
 export type CleStats = Record<string, number>;
 
 // /admin/physicians/:id/profile — the physician header, their sessions, and the LPDP series.
@@ -184,7 +184,7 @@ export interface PhysicianProfile {
   lpdp?: ProfileScore[];
 }
 
-// /auditor/cles/:id — transcript + (post-submit) the auditor's own score and the AI evaluation.
+// /auditor/ples/:id — transcript + (post-submit) the auditor's own score and the AI evaluation.
 // The three values the assessment form offers and the API accepts. `string` here would let a typo
 // through on a fixed three-value concept — the sibling concept in this file (IccVerdictState) is
 // already a union, and this one had no reason not to be.
@@ -210,7 +210,7 @@ export interface AuditorPle {
     d5?: number; d6?: number; d7?: number;
     domain_rationale?: Record<string, string> | null;
   } | null;
-  // Peer calibration (toggle): mean PIS-7 across the OTHER auditors who scored this CLE (self
+  // Peer calibration (toggle): mean PIS-7 across the OTHER auditors who scored this PLE (self
   // excluded), returned only post-submit and when peer_n >= 1. peer_n = number of other auditors;
   // when peer_n === 1 the "average" is that single other auditor's scores, so the UI relabels it
   // ("the other auditor" rather than "the auditor average").
@@ -219,7 +219,7 @@ export interface AuditorPle {
   error?: unknown;
 }
 
-// GET /auditor/calibration — this auditor's mean PIS-7 (d1–d7) vs the AI's, across scored CLEs.
+// GET /auditor/calibration — this auditor's mean PIS-7 (d1–d7) vs the AI's, across scored PLEs.
 // `peer` (the auditor-cohort average) is present only when the peer_calibration toggle is on.
 export interface AuditorCalibration {
   n: number;
@@ -257,7 +257,7 @@ export interface PaymentInfo {
 
 // GET /oversight/icc/three-way — the shadow-evaluator three-way agreement report (analyst / ethics /
 // superadmin ONLY; see components/ThreeWayIcc.tsx for the blinding rule). One arm = one two-rater
-// ICC(2,1) comparison; every arm is computed by the backend on the SAME set of CLEs (those carrying
+// ICC(2,1) comparison; every arm is computed by the backend on the SAME set of PLEs (those carrying
 // all three scores) so the arms are actually comparable, and each still reports its own n.
 // The server's judgement of one arm against its configured threshold. `insufficient` is NOT a
 // variant of `fail`: it means the interval spans the threshold (or could not be formed at all), so
@@ -283,15 +283,15 @@ export interface ThreeWayArm {
 // scores — excluded from every ICC, but a first-class result in their own right; a candidate model
 // that cannot emit a valid score set some of the time is disqualified regardless of its ICC.
 export interface ThreeWayCoverage {
-  cles_with_human: number;
-  cles_with_ai: number;
-  cles_with_shadow: number;
-  cles_all_three: number;
-  // Cohort-scoped: the candidate's runs on the audited, is_test-filtered CLEs the arms are computed on.
+  ples_with_human: number;
+  ples_with_ai: number;
+  ples_with_shadow: number;
+  ples_all_three: number;
+  // Cohort-scoped: the candidate's runs on the audited, is_test-filtered PLEs the arms are computed on.
   shadow_failed: number;
   shadow_contract_rate: number | null;
   // Corpus-wide: EVERY run recorded for this candidate. This is the model's real contract rate — the
-  // cohort figures above are a subset and can look flattering when few CLEs have been audited yet.
+  // cohort figures above are a subset and can look flattering when few PLEs have been audited yet.
   // Null when the backend could not count them (it falls back to the cohort figures rather than fail).
   shadow_scored_corpus?: number | null;
   shadow_failed_corpus?: number | null;

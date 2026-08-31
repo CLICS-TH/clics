@@ -1,4 +1,4 @@
-// Post the 3 auditors' independent blind PIS-7 scores via the real auditor API, distribute CLE
+// Post the 3 auditors' independent blind PIS-7 scores via the real auditor API, distribute PLE
 // assignments round-robin (for the dashboard/queue), then compute ICC (per-auditor via the API +
 // pooled AI-human and inter-rater via the formulae).
 //   cd backend && NODE_PATH="$PWD/node_modules" node /tmp/soak-audit-post.js
@@ -46,31 +46,31 @@ function pairwiseInterRater(byPle) {
     auditorIds[a.auditor] = me.body.user.id;
   }
 
-  // collect all evaluated cle ids (union across auditors)
-  const allCles = [...new Set(audits.flatMap(a => a.scores.map(s => s.cle_id)))];
+  // collect all evaluated ple ids (union across auditors)
+  const allPles = [...new Set(audits.flatMap(a => a.scores.map(s => s.ple_id)))];
   const auditorEmails = audits.map(a => a.auditor);
   let posted = 0, assigned = 0;
 
-  // post every auditor's blind scores. cles.auditor_id holds a SINGLE assignee and the score route
+  // post every auditor's blind scores. ples.auditor_id holds a SINGLE assignee and the score route
   // enforces it, so rotate the assignment to each rater just-in-time — that lets all three score
-  // the same CLE through the real API (409 'Already scored' makes re-runs idempotent).
+  // the same PLE through the real API (409 'Already scored' makes re-runs idempotent).
   for (const a of audits) {
     for (const s of a.scores) {
-      const { cle_id, notes, ref, d1, d2, d3, d4, d5, d6, d7 } = s;
-      await api('POST', `/admin/cles/${cle_id}/assign`, { token: sa, body: { auditor_id: auditorIds[a.auditor] } });
-      const r = await api('POST', `/auditor/cles/${cle_id}/score`, { token: auditorTokens[a.auditor], body: { d1, d2, d3, d4, d5, d6, d7, notes } });
+      const { ple_id, notes, ref, d1, d2, d3, d4, d5, d6, d7 } = s;
+      await api('POST', `/admin/ples/${ple_id}/assign`, { token: sa, body: { auditor_id: auditorIds[a.auditor] } });
+      const r = await api('POST', `/auditor/ples/${ple_id}/score`, { token: auditorTokens[a.auditor], body: { d1, d2, d3, d4, d5, d6, d7, notes } });
       if (r.status === 200) posted++;
-      else if (r.status !== 409) console.log(`  score ${a.auditor} ${cle_id.slice(0,8)}: ${r.status} ${JSON.stringify(r.body).slice(0,120)}`);
+      else if (r.status !== 409) console.log(`  score ${a.auditor} ${ple_id.slice(0,8)}: ${r.status} ${JSON.stringify(r.body).slice(0,120)}`);
     }
   }
 
   // final round-robin pass = the lasting "primary" assignee shown in the dashboard/queue
-  for (let i = 0; i < allCles.length; i++) {
+  for (let i = 0; i < allPles.length; i++) {
     const primary = auditorEmails[i % auditorEmails.length];
-    const r = await api('POST', `/admin/cles/${allCles[i]}/assign`, { token: sa, body: { auditor_id: auditorIds[primary] } });
+    const r = await api('POST', `/admin/ples/${allPles[i]}/assign`, { token: sa, body: { auditor_id: auditorIds[primary] } });
     if (r.status === 200) assigned++;
   }
-  console.log(`Posted ${posted} new auditor scores. Final round-robin assignment: ${assigned}/${allCles.length}.`);
+  console.log(`Posted ${posted} new auditor scores. Final round-robin assignment: ${assigned}/${allPles.length}.`);
 
   // --- ICC ---
   console.log('\n=== ICC (AI vs human, per auditor — via API) ===');
@@ -80,19 +80,19 @@ function pairwiseInterRater(byPle) {
   }
 
   // pooled AI-human + inter-rater from DB
-  const { data: aiEvals } = await supabase.from('ai_evaluations').select('cle_id, composite_score');
-  const aiBy = Object.fromEntries(aiEvals.map(e => [e.cle_id, Number(e.composite_score)]));
-  const { data: scores } = await supabase.from('audit_scores').select('cle_id, auditor_id, composite_score');
+  const { data: aiEvals } = await supabase.from('ai_evaluations').select('ple_id, composite_score');
+  const aiBy = Object.fromEntries(aiEvals.map(e => [e.ple_id, Number(e.composite_score)]));
+  const { data: scores } = await supabase.from('audit_scores').select('ple_id, auditor_id, composite_score');
 
-  const aiHumanPairs = scores.filter(s => aiBy[s.cle_id] != null)
-    .map(s => ({ ai: aiBy[s.cle_id], human: Number(s.composite_score) }));
+  const aiHumanPairs = scores.filter(s => aiBy[s.ple_id] != null)
+    .map(s => ({ ai: aiBy[s.ple_id], human: Number(s.composite_score) }));
   const pooled = computeICC21(aiHumanPairs);
   console.log(`\n=== Pooled AI-human ICC (n=${aiHumanPairs.length} ratings) ===\n  ${JSON.stringify(pooled)}`);
 
   const byPle = {};
-  for (const s of scores) (byPle[s.cle_id] ??= []).push(Number(s.composite_score));
+  for (const s of scores) (byPle[s.ple_id] ??= []).push(Number(s.composite_score));
   const inter = pairwiseInterRater(byPle);
-  console.log(`\n=== Inter-rater ICC (avg pairwise across 3 auditors, ${Object.keys(byPle).length} CLEs) ===\n  ${JSON.stringify(inter)}`);
+  console.log(`\n=== Inter-rater ICC (avg pairwise across 3 auditors, ${Object.keys(byPle).length} PLEs) ===\n  ${JSON.stringify(inter)}`);
 
   fs.writeFileSync('/tmp/soak-icc.json', JSON.stringify({ pooled, inter, aiHumanPairs, byPle, aiBy }, null, 2));
   console.log('\nWrote /tmp/soak-icc.json');

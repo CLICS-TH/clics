@@ -8,7 +8,7 @@
 
 ## role | What an expert auditor does
 
-> You are the expert who scores physicians' Continuous Learning Episodes against the **PIS-7** rubric, **without seeing the score the AI gave first** — so that we can establish whether the AI scores as accurately and as fairly as an expert does.
+> You are the expert who scores physicians' Professional Learning Episodes against the **PIS-7** rubric, **without seeing the score the AI gave first** — so that we can establish whether the AI scores as accurately and as fairly as an expert does.
 
 The sequence is: a physician works through an episode with the AI → the AI scores it against PIS-7 → an administrator assigns the episode to you → **you score it blind** → on submission the AI's score is revealed and the agreement (ICC) between you and the AI is calculated.
 

@@ -56,7 +56,7 @@ describe('the matrix is sized by the SCALE, not the sample', () => {
   test('the same disagreement scores the same whether or not the extremes appear', () => {
     // Sizing the matrix to observed values would make the weights depend on the cohort, so the same
     // disagreement would be penalised differently in two samples and the numbers would stop being
-    // comparable across CLEs.
+    // comparable across PLEs.
     const narrow = weightedKappa(pairs([[2, 2], [2, 3], [3, 3], [3, 2], [2, 2], [3, 3]]));
     expect(narrow.scale).toEqual([0, 5]);
     expect(narrow.kappa).not.toBeNull();

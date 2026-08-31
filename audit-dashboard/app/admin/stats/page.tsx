@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
-import { cleStatusCards } from '@/lib/labels';
+import { pleStatusCards } from '@/lib/labels';
 import { PageIntro } from '@/components/PageIntro';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import type { CleStats, IccData } from '@/lib/types';
@@ -33,8 +33,8 @@ export default function StatsPage() {
     </>
   );
   // Shared card set (lib/labels.ts) — every status covered so the cards reconcile to the total.
-  // Each card drills into /admin/cles filtered by that category (key '' = all).
-  const cards = cleStatusCards(stats);
+  // Each card drills into /admin/ples filtered by that category (key '' = all).
+  const cards = pleStatusCards(stats);
   return (
     <>
       <div className="max-w-4xl mx-auto p-6 md:p-10">
@@ -45,7 +45,7 @@ export default function StatsPage() {
       />
       <div className="grid grid-cols-2 @min-[768px]:grid-cols-5 gap-4 mb-2">
         {cards.map(c => (
-          <a key={c.label} href={`/admin/cles${c.key ? `?status=${c.key}` : ''}`}
+          <a key={c.label} href={`/admin/ples${c.key ? `?status=${c.key}` : ''}`}
             className="border rounded-xl p-4 text-center block hover:bg-secondary hover:border-primary/40 transition-colors cursor-pointer"
             title="คลิกเพื่อดูรายชื่อในหมวดนี้ / Click to explore this category">
             <p className="text-3xl font-bold text-primary">{c.value}</p>

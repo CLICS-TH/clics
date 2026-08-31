@@ -44,10 +44,10 @@ the persistence layer mocked). The guard logic verified here is also enforced by
 
 | Handoff / seam | Endpoint(s) | Test |
 |---|---|---|
-| Physician CLE lifecycle (create · rename/move · delete) | `POST/PATCH/DELETE /cles` | `backend/tests/cles-lifecycle.test.js` |
-| `/end` CLE-gate transitions (T1/T2 → fail/flag/pass) | `POST /cles/:id/end` | `backend/tests/cle-end.test.js` |
-| Folder CRUD + ownership | `/cles/folders` | `backend/tests/folders.test.js` |
-| Admin → Auditor assignment (council, active, not-own, evaluated) | `POST /admin/cles/:id/assign` | `backend/tests/admin-assign.test.js` |
+| Physician PLE lifecycle (create · rename/move · delete) | `POST/PATCH/DELETE /ples` | `backend/tests/ples-lifecycle.test.js` |
+| `/end` PLE-gate transitions (T1/T2 → fail/flag/pass) | `POST /ples/:id/end` | `backend/tests/ple-end.test.js` |
+| Folder CRUD + ownership | `/ples/folders` | `backend/tests/folders.test.js` |
+| Admin → Auditor assignment (council, active, not-own, evaluated) | `POST /admin/ples/:id/assign` | `backend/tests/admin-assign.test.js` |
 | Auditor blind-score · double-submit 409 · self/cross-council guards · ICC | `/auditor/*` | `backend/tests/auditor-scoring.test.js` |
 | Role-access matrix · `can_audit` dual role · council scoping · deactivation | `requireRole`, `scopeToCouncil` | `backend/tests/council-isolation.test.js` |
 | **End-to-end chain:** admin assign → auditor blind → score → AI reveal → ICC | admin + auditor routers | `backend/tests/role-chain.integration.test.js` |
@@ -93,7 +93,7 @@ which backend they target. Run them against demo accounts, ideally right after `
   `role-chain.integration.test.js`. Env: `SMOKE_BASE`,
   `SMOKE_SUPER_PW`, `SMOKE_ADMIN_PW`, `SMOKE_AUD_EMAIL`, `SMOKE_AUD_PW`. Also runnable in CI via the manual
   `staging-smoke` workflow (Actions tab) once those are added as repo secrets, pointing at a non-prod stack.
-- `scripts/smoke/go-live-smoke.js` — consent gate → **live AI chat turns** → CLE eval → de-identified
+- `scripts/smoke/go-live-smoke.js` — consent gate → **live AI chat turns** → PLE eval → de-identified
   export + reconcile. Env: `SMOKE_BASE`, `SMOKE_PHYS_EMAIL`, `SMOKE_PHYS_PW`, `SMOKE_SUPER_PW`. ⚠ Spends
   **real Anthropic budget** (~$0.02–0.05/run, 4 chat turns), so in CI it is **opt-in**: the `staging-smoke`
   workflow runs it only when dispatched with the `include_ai_smoke` input set to true (needs the two
@@ -133,5 +133,5 @@ which backend they target. Run them against demo accounts, ideally right after `
 ## Known limitations
 - Hermetic suites cover **route-level** guard logic; the **DB triggers** (`audit_scores_guard`) and **RLS**
   are only exercised by the live smoke — don't read green CI as proof those backstops fire.
-- Evaluated CLEs need a **manual admin assignment** to reach an auditor (no auto-assign); `db/reset-demo.js`
-  should seed one assigned CLE so the auditor queue is always demoable.
+- Evaluated PLEs need a **manual admin assignment** to reach an auditor (no auto-assign); `db/reset-demo.js`
+  should seed one assigned PLE so the auditor queue is always demoable.

@@ -10,7 +10,7 @@
 
 ## 1. Purpose
 
-CLICS is an on-premise web platform where Thai physicians consult an AI assistant about real patient cases to earn CPD credit. Each conversation is evaluated against 6 quality criteria to determine if it qualifies as a Clinical Learning Episode (CLE). Valid CLEs are scored by an AI evaluator using the PIS-7 rubric (0–100). A sample is independently scored by a human Expert Auditor. The system measures AI-vs-human agreement (ICC) to validate the scoring instrument.
+CLICS is an on-premise web platform where Thai physicians consult an AI assistant about real patient cases to earn CPD credit. Each conversation is evaluated against 6 quality criteria to determine if it qualifies as a Professional Learning Episode (PLE). Valid PLEs are scored by an AI evaluator using the PIS-7 rubric (0–100). A sample is independently scored by a human Expert Auditor. The system measures AI-vs-human agreement (ICC) to validate the scoring instrument.
 
 **Language:** Bilingual Thai + English. UI labels in Thai; AI responds in whichever language the physician writes.
 
@@ -27,7 +27,7 @@ Browser (Thai/EN bilingual)
                 │  HTTPS · JWT (Supabase Auth)
                 ▼
         port 3001  Backend   Node.js / Express
-                │  Auth · CLE gating · PIS-7 trigger · Data layer
+                │  Auth · PLE gating · PIS-7 trigger · Data layer
                 │
                 │  HTTP (internal — no PII passes this point to cloud)
                 ▼
@@ -65,8 +65,8 @@ Browser (Thai/EN bilingual)
 |------|-------------|-------------|
 | A — Superadmin | Full system oversight, user management, ICC dashboard | Audit Dashboard |
 | B — Admin | Manage pilot cohort, QA flagged sessions, stats | Audit Dashboard |
-| C — Physician | CLE sessions, view PIS-7 feedback and CPD credit | Physician Interface |
-| D — Expert Auditor | Blind-score assigned CLEs via slider UI | Audit Dashboard |
+| C — Physician | PLE sessions, view PIS-7 feedback and CPD credit | Physician Interface |
+| D — Expert Auditor | Blind-score assigned PLEs via slider UI | Audit Dashboard |
 
 ---
 
@@ -83,23 +83,23 @@ professionals
   license_number text
 
 -- One row per physician session
-cles
+ples
   id             uuid
   physician_id   uuid  FK → professionals
-  status         'active' | 'ended' | 'cle_pass' | 'cle_fail_t1'
-                 | 'cle_flag_t2' | 'evaluated'
+  status         'active' | 'ended' | 'ple_pass' | 'ple_fail_t1'
+                 | 'ple_flag_t2' | 'evaluated'
   started_at     timestamptz
   ended_at       timestamptz
   duration_seconds integer
   turn_count     integer
   token_count    integer
-  c1_pass … c6_pass  boolean   -- 6 CLE criteria results
+  c1_pass … c6_pass  boolean   -- 6 PLE criteria results
   provider_used  text          -- 'claude' (phase 1)
 
 -- One row per chat turn
 messages
   id               uuid
-  cle_id           uuid  FK → cles
+  ple_id           uuid  FK → ples
   role             'physician' | 'assistant'
   content          text
   references       jsonb   -- [{title, source, url?}]
@@ -110,7 +110,7 @@ messages
 -- PIS-7 scored by AI
 ai_evaluations
   id               uuid
-  cle_id           uuid  FK → cles
+  ple_id           uuid  FK → ples
   d1 … d7          smallint (0–5)
   composite_score  numeric   -- weighted sum × 4, range 0–100
   domain_rationale jsonb     -- per-domain explanation text
@@ -120,7 +120,7 @@ ai_evaluations
 -- PIS-7 scored by Expert Auditor
 audit_scores
   id          uuid
-  cle_id      uuid  FK → cles
+  ple_id      uuid  FK → ples
   auditor_id  uuid  FK → professionals
   d1 … d7     smallint (0–5)
   composite_score numeric
@@ -136,19 +136,19 @@ documents
   embedding vector(1536)   -- pgvector
   language  'th' | 'en'
 
--- Per-CLE score history for LPDP chart
+-- Per-PLE score history for LPDP chart
 lpdp_snapshots
   id              uuid  PK
   physician_id    uuid  FK → professionals
-  cle_id          uuid  FK → cles
+  ple_id          uuid  FK → ples
   composite_score numeric
   domain_scores   jsonb
   snapshot_at     timestamptz
 ```
 
 **Row-level security:**
-- Physicians: own `cles` and `messages` only
-- Auditors: assigned `cles` only — `physician_id` not exposed (blinded)
+- Physicians: own `ples` and `messages` only
+- Auditors: assigned `ples` only — `physician_id` not exposed (blinded)
 - Admins: their cohort
 - Superadmin: all rows
 
@@ -161,7 +161,7 @@ Stateless. Owns all AI interaction. Three endpoints plus health check.
 ### `POST /chat`
 
 ```
-Request:  { cle_id, history: [{role, content}], message: string, language: 'th'|'en' }
+Request:  { ple_id, history: [{role, content}], message: string, language: 'th'|'en' }
 
 Pipeline:
   1. PII strip      mask [ชื่อผู้ป่วย] [HN] [DATE] before any outbound call
@@ -188,7 +188,7 @@ Response: { content, references: [{title, source}], socratic_question, token_cou
 ### `POST /evaluate`
 
 ```
-Request:  { cle_id, transcript: [{role, content}] }
+Request:  { ple_id, transcript: [{role, content}] }
 
 Pipeline:
   — Send full transcript with PIS-7 evaluator system prompt
@@ -229,26 +229,26 @@ POST /auth/logout
 GET  /auth/me          current user profile + role
 ```
 
-### CLE Sessions (Role C)
+### PLE Sessions (Role C)
 ```
-POST /cles                  create session → cle_id
-GET  /cles                  physician's own sessions + status
-GET  /cles/:id              session detail + messages
-POST /cles/:id/message      send physician turn → RIMPL → save pair → return
-POST /cles/:id/end          end session → trigger CLE quality gate
-GET  /cles/:id/evaluation   fetch AI PIS-7 result
+POST /ples                  create session → ple_id
+GET  /ples                  physician's own sessions + status
+GET  /ples/:id              session detail + messages
+POST /ples/:id/message      send physician turn → RIMPL → save pair → return
+POST /ples/:id/end          end session → trigger PLE quality gate
+GET  /ples/:id/evaluation   fetch AI PIS-7 result
 ```
 
-### CLE Quality Gate (internal, triggered by `POST /cles/:id/end`)
+### PLE Quality Gate (internal, triggered by `POST /ples/:id/end`)
 ```
 C1  duration_seconds ≥ 900 (15 min)         computed from DB
 C2  turn_count ≥ 4                           computed from DB
 C3  token_count ≥ 800                        computed from DB
 C4–C6                                        RIMPL /evaluate-criteria
 
-Tier 1 fail  → status: cle_fail_t1   physician sees which criteria failed
-Tier 2 flag  → status: cle_flag_t2   enters Admin QA queue
-All pass     → status: cle_pass      fire-and-forget HTTP POST to RIMPL /evaluate
+Tier 1 fail  → status: ple_fail_t1   physician sees which criteria failed
+Tier 2 flag  → status: ple_flag_t2   enters Admin QA queue
+All pass     → status: ple_pass      fire-and-forget HTTP POST to RIMPL /evaluate
                                         (no await; backend returns 200 to client immediately)
                on complete → backend callback saves ai_evaluations row,
                              sets status: evaluated, writes lpdp_snapshot
@@ -256,21 +256,21 @@ All pass     → status: cle_pass      fire-and-forget HTTP POST to RIMPL /evalu
 
 ### Admin (Role B)
 ```
-GET  /admin/cles                   all CLEs in cohort + filters
-GET  /admin/cles/flagged           Tier 2 QA queue
-POST /admin/cles/:id/approve       pass flagged session → trigger evaluation
-POST /admin/cles/:id/reject        reject flagged session
-POST /admin/cles/:id/assign        assign evaluated CLE to an auditor
+GET  /admin/ples                   all PLEs in cohort + filters
+GET  /admin/ples/flagged           Tier 2 QA queue
+POST /admin/ples/:id/approve       pass flagged session → trigger evaluation
+POST /admin/ples/:id/reject        reject flagged session
+POST /admin/ples/:id/assign        assign evaluated PLE to an auditor
                                    body: { auditor_id }
 GET  /admin/stats                  pilot overview stats
 ```
 
 ### Auditor (Role D)
 ```
-GET  /auditor/queue           assigned CLEs (blinded)
-GET  /auditor/cles/:id        transcript; AI score hidden until submission
-POST /auditor/cles/:id/score  submit d1–d7 + notes
-GET  /auditor/icc             ICC stats for dual-scored CLEs
+GET  /auditor/queue           assigned PLEs (blinded)
+GET  /auditor/ples/:id        transcript; AI score hidden until submission
+POST /auditor/ples/:id/score  submit d1–d7 + notes
+GET  /auditor/icc             ICC stats for dual-scored PLEs
 ```
 
 ### Superadmin (Role A)
@@ -290,19 +290,19 @@ GET  /admin/lpdp/:id          physician LPDP trajectory
 | Route | Description |
 |-------|-------------|
 | `/login` | Bilingual login form |
-| `/dashboard` | CLE cards with status badges + "เริ่ม CLE ใหม่" button |
-| `/cles/new` | Case setup: specialty + chief complaint |
-| `/cles/:id` | Chat view: session bar (timer · turns · tokens), message thread, AI refs (📎), Socratic question (❓ italic), End button |
-| `/cles/:id/result` | CLE gate result + PIS-7 radar chart + composite score + CPD credit badge |
-| `/profile/lpdp` | Line chart of composite scores across CLEs |
+| `/dashboard` | PLE cards with status badges + "เริ่ม PLE ใหม่" button |
+| `/ples/new` | Case setup: specialty + chief complaint |
+| `/ples/:id` | Chat view: session bar (timer · turns · tokens), message thread, AI refs (📎), Socratic question (❓ italic), End button |
+| `/ples/:id/result` | PLE gate result + PIS-7 radar chart + composite score + CPD credit badge |
+| `/profile/lpdp` | Line chart of composite scores across PLEs |
 
 ### App 2 — Audit Dashboard (port 3002, Next.js 14)
 
 | Route | Role | Description |
 |-------|------|-------------|
-| `/auditor/queue` | D | Assigned CLEs list (pseudonymised) |
-| `/auditor/cles/:id` | D | Transcript + 7 domain sliders + notes + submit; AI score revealed after submission |
-| `/admin/cles` | B | All CLEs with status filters |
+| `/auditor/queue` | D | Assigned PLEs list (pseudonymised) |
+| `/auditor/ples/:id` | D | Transcript + 7 domain sliders + notes + submit; AI score revealed after submission |
+| `/admin/ples` | B | All PLEs with status filters |
 | `/admin/flagged` | B | Tier 2 QA queue — approve / reject |
 | `/admin/stats` | B | Pass rate, avg score, ICC current value |
 | `/admin/users` | A | User table + create/edit/role-assign |
@@ -315,38 +315,38 @@ GET  /admin/lpdp/:id          physician LPDP trajectory
 
 ```
 1. Physician starts session
-   POST /cles → cle (status: active)
+   POST /ples → ple (status: active)
 
 2. Conversation loop (per turn)
-   Physician types → POST /cles/:id/message
+   Physician types → POST /ples/:id/message
    Backend → RIMPL /chat
      PII strip → RAG lookup → Claude → post-filter
      → { content, references, socratic_question }
    Both messages saved; frontend renders refs + Socratic question
 
 3. Physician ends session
-   POST /cles/:id/end
+   POST /ples/:id/end
 
-4. CLE quality gate (auto)
+4. PLE quality gate (auto)
    C1–C3 computed from DB
    C4–C6 via RIMPL /evaluate-criteria
-   → fail T1: cle_fail_t1
-   → flag T2: cle_flag_t2 (Admin QA)
-   → all pass: cle_pass → trigger evaluation
+   → fail T1: ple_fail_t1
+   → flag T2: ple_flag_t2 (Admin QA)
+   → all pass: ple_pass → trigger evaluation
 
 5. AI evaluation (async)
    RIMPL /evaluate → d1–d7 + composite 0–100
    Saved to ai_evaluations (CCME_LLM_v8.0)
-   cle status → 'evaluated'; lpdp_snapshot created
+   ple status → 'evaluated'; lpdp_snapshot created
    Physician sees PIS-7 result + CPD credit
 
 6. Auditor scoring (Role D, blinded)
-   Admin assigns CLE to auditor queue
+   Admin assigns PLE to auditor queue
    Auditor reads transcript → submits d1–d7 via sliders
    audit_scores row created
 
 7. ICC calculation (dashboard)
-   AI score vs Auditor score per dual-scored CLE
+   AI score vs Auditor score per dual-scored PLE
    ICC(2,1) + 95% CI displayed
    Bland-Altman + per-domain breakdown
    Target: ICC ≥ 0.75

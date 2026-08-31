@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>CLICS — Continuous Learning Episode</title>
+  <title>CLICS — Professional Learning Episode</title>
   <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="stylesheet" href="/css/main.css" />
-  <link rel="prefetch" href="/cle-result" />
+  <link rel="prefetch" href="/ple-result" />
   <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <!-- Sanitizer for AI markdown→HTML (marked has no built-in sanitizer) — prevents DOM-XSS via AI output. -->
   <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
@@ -21,7 +21,7 @@
     <!-- Slim Claude-style header: one strip so the conversation below is the hero. -->
     <div class="chat-head">
       <div class="ch-left">
-        <span class="ch-cle" id="cleEyebrow">Continuous Learning Episode</span>
+        <span class="ch-ple" id="pleEyebrow">Professional Learning Episode</span>
         <span class="ch-title" id="chatTitle">บทสนทนาคลินิก</span>
         <span class="ch-metric" data-icon="clock" title="เวลาใช้งานจริง — นับเฉพาะตอนพิมพ์และ AI ตอบ ไม่นับตอนพักหน้าจอ / Active time only"><span id="timer">00:00</span></span>
         <span class="ch-metric" data-icon="message"><span id="turns">0</span> รอบ</span>
@@ -80,7 +80,7 @@
   <script src="/js/ui.js"></script>
   <script src="/js/usage.js"></script>
   <script src="/js/artifacts.js"></script>
-  <script src="/js/cle-chat.js"></script>
+  <script src="/js/ple-chat.js"></script>
   <script src="/js/boot.js" defer></script>
 </body>
 </html>

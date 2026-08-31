@@ -12,7 +12,7 @@
  * IT PRINTS NO TRANSCRIPT TEXT. NOT ONE CHARACTER. READ THIS BEFORE CHANGING THE OUTPUT.
  * Physician turns are raw PII by design — services/integrity.js processes them, and that is
  * acceptable only while they stay inside the backend. This script runs on YOUR machine against
- * YOUR database, and its output is counts, CLE ids and percentiles, so the result can be pasted
+ * YOUR database, and its output is counts, PLE ids and percentiles, so the result can be pasted
  * into a review, an issue, or a conversation with an assistant without moving PII anywhere. Adding
  * an `excerpt` here to "make the output easier to read" would quietly undo that. Do not.
  * ============================================================================================
@@ -23,7 +23,7 @@
  * Reads SUPABASE_URL / SUPABASE_SERVICE_KEY from backend/.env (gitignored, never committed).
  *
  * WHAT TO DO WITH THE OUTPUT. Pick the (z, min_features) cell where the flagged count over
- * non-test sessions is ZERO, or where every flagged CLE has been read by a human and agreed to be
+ * non-test sessions is ZERO, or where every flagged PLE has been read by a human and agreed to be
  * a genuine register break. Write that number, and the count it was measured against, into the
  * F6_REGISTER_DISCONTINUITY comment in services/integrity.js — then set enabled: true.
  */
@@ -62,33 +62,33 @@ const db = createClient(URL_, KEY, { auth: { persistSession: false } });
 // TEST sessions are excluded for the same reason F2's comment gives: the pilot's own rehearsal
 // pasted scripted prompts repeatedly, and counting that as physician behaviour would calibrate the
 // threshold against the team rather than against clinicians.
-const { data: cles, error: cErr } = await db.from('cles')
+const { data: ples, error: cErr } = await db.from('ples')
   .select('id, physician_id').eq('is_test', false);
-if (cErr) { console.error('cles:', cErr.message); process.exit(1); }
+if (cErr) { console.error('ples:', cErr.message); process.exit(1); }
 
 const byPhysician = new Map();
-for (const c of cles ?? []) {
+for (const c of ples ?? []) {
   if (!c.physician_id) continue;
   if (!byPhysician.has(c.physician_id)) byPhysician.set(c.physician_id, []);
   byPhysician.get(c.physician_id).push(c.id);
 }
 
-const ids = (cles ?? []).map((c) => c.id);
+const ids = (ples ?? []).map((c) => c.id);
 const messages = [];
 for (let i = 0; i < ids.length; i += 100) {
   const { data, error } = await db.from('messages')
-    .select('cle_id, role, content, created_at, token_count')
-    .in('cle_id', ids.slice(i, i + 100)).order('created_at');
+    .select('ple_id, role, content, created_at, token_count')
+    .in('ple_id', ids.slice(i, i + 100)).order('created_at');
   if (error) { console.error('messages:', error.message); process.exit(1); }
   messages.push(...(data ?? []));
 }
-const byCle = new Map();
+const byPle = new Map();
 for (const m of messages) {
-  if (!byCle.has(m.cle_id)) byCle.set(m.cle_id, []);
-  byCle.get(m.cle_id).push(m);
+  if (!byPle.has(m.ple_id)) byPle.set(m.ple_id, []);
+  byPle.get(m.ple_id).push(m);
 }
 
-console.log(`corpus: ${cles.length} non-test CLEs · ${byPhysician.size} physicians · ${messages.length} messages\n`);
+console.log(`corpus: ${ples.length} non-test PLEs · ${byPhysician.size} physicians · ${messages.length} messages\n`);
 
 // --- feature spread, so the MAD floors can be sanity-checked ---------------------------------
 const physTexts = messages.filter((m) => m.role === 'physician' || m.role === 'user')
@@ -110,23 +110,23 @@ const MIN_BASELINE = arg('min-baseline', SIGNALS.F6_REGISTER_DISCONTINUITY.min_b
 const Z_GRID = [2.5, 3.0, 3.5, 4.0, 5.0];
 const FEAT_GRID = [1, 2, 3];
 
-console.log(`\nflagged NON-TEST CLEs by threshold  (min_baseline ${MIN_BASELINE}, of ${cles.length} CLEs)`);
+console.log(`\nflagged NON-TEST PLEs by threshold  (min_baseline ${MIN_BASELINE}, of ${ples.length} PLEs)`);
 console.log('z'.padEnd(6) + FEAT_GRID.map((f) => `${f}+ feat`.padStart(10)).join(''));
 
-const hits = new Map();   // "z|feat" -> Set(cle_id)
+const hits = new Map();   // "z|feat" -> Set(ple_id)
 for (const z of Z_GRID) {
   const row = [];
   for (const mf of FEAT_GRID) {
     const cfg = { F6_REGISTER_DISCONTINUITY: { ...SIGNALS.F6_REGISTER_DISCONTINUITY, enabled: true, z, min_features: mf, min_baseline: MIN_BASELINE } };
     const flagged = new Set();
-    for (const [physId, cleIds] of byPhysician) {
-      for (const cleId of cleIds) {
-        const own = (byCle.get(cleId) ?? []);
-        const prior = cleIds.filter((x) => x !== cleId)
-          .flatMap((x) => (byCle.get(x) ?? []).filter((m) => m.role === 'physician' || m.role === 'user'))
-          .map((m) => ({ cle_id: cleId, content: m.content }));
+    for (const [physId, pleIds] of byPhysician) {
+      for (const pleId of pleIds) {
+        const own = (byPle.get(pleId) ?? []);
+        const prior = pleIds.filter((x) => x !== pleId)
+          .flatMap((x) => (byPle.get(x) ?? []).filter((m) => m.role === 'physician' || m.role === 'user'))
+          .map((m) => ({ ple_id: pleId, content: m.content }));
         const flags = detectIntegritySignals(own, prior, cfg);
-        if (flags.some((f) => f.signal === 'F6_REGISTER_DISCONTINUITY')) flagged.add(cleId);
+        if (flags.some((f) => f.signal === 'F6_REGISTER_DISCONTINUITY')) flagged.add(pleId);
       }
     }
     hits.set(`${z}|${mf}`, flagged);
@@ -138,9 +138,9 @@ for (const z of Z_GRID) {
 // --- what to read next ------------------------------------------------------------------------
 const shipped = hits.get(`${SIGNALS.F6_REGISTER_DISCONTINUITY.z}|${SIGNALS.F6_REGISTER_DISCONTINUITY.min_features}`);
 console.log(`\nat the values currently in the source (z=${SIGNALS.F6_REGISTER_DISCONTINUITY.z}, `
-  + `min_features=${SIGNALS.F6_REGISTER_DISCONTINUITY.min_features}): ${shipped?.size ?? 0} CLE(s) flagged`);
+  + `min_features=${SIGNALS.F6_REGISTER_DISCONTINUITY.min_features}): ${shipped?.size ?? 0} PLE(s) flagged`);
 if (shipped?.size) {
-  console.log('CLE ids to read by hand before enabling (ids only — no transcript text is printed):');
+  console.log('PLE ids to read by hand before enabling (ids only — no transcript text is printed):');
   for (const id of shipped) console.log(`  ${id}`);
 }
 console.log('\nF6 stays disabled until a human has read the flagged sessions and agreed.\n');

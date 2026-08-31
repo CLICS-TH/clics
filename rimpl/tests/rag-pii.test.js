@@ -27,7 +27,7 @@ describe('RAG never receives raw PII', () => {
   test('the message is PII-stripped before the embedding lookup', async () => {
     const raw = 'ผู้ป่วยเบอร์ 081-234-5678 มาด้วยอาการเจ็บหน้าอก';
     const res = await request(app).post('/chat').send({
-      cle_id: 'pii-1', history: [], message: raw, language: 'th',
+      ple_id: 'pii-1', history: [], message: raw, language: 'th',
     });
     expect(res.status).toBe(200);
     expect(ragLookup).toHaveBeenCalledTimes(1);

@@ -9,7 +9,7 @@ process.env.IDENTITY_ENC_KEY = 'test-identity-key';
 jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSupabaseMock());
 const mockVerify = jest.fn(async () => ({ status: 'verified', source: 'stub', checked_at: 't', evidence: { adapter: 'stub' } }));
 jest.mock('../src/services/license-verifier', () => ({ getVerifier: () => ({ verify: mockVerify }) }));
-// POST /cles also runs requireBudget; unmocked, lib/usage reads through the double and refuses on a
+// POST /ples also runs requireBudget; unmocked, lib/usage reads through the double and refuses on a
 // budget it cannot compute, which surfaces as a 403 indistinguishable from the identity gate's.
 jest.mock('../src/lib/usage', () => ({
   effectiveLimit: async () => 0.5,
@@ -30,7 +30,7 @@ const app = express();
 app.use(express.json());
 app.use('/auth', require('../src/routes/auth'));
 app.use('/admin', require('../src/routes/admin'));
-app.use('/cles', require('../src/routes/cles'));
+app.use('/ples', require('../src/routes/ples'));
 const auth = r => r.set('Authorization', 'Bearer test');
 
 // A checksum-valid ID, computed rather than hardcoded so it is obvious this is not a real number.
@@ -149,8 +149,8 @@ describe('a licence lookup is evidence, not a verdict', () => {
   });
 });
 
-describe('the gate on POST /cles', () => {
-  // POST /cles needs more of the world than the submission path does: the episode probe, the folder
+describe('the gate on POST /ples', () => {
+  // POST /ples needs more of the world than the submission path does: the episode probe, the folder
   // check, and the insert itself.
   beforeEach(() => {
     m.state.resolve = (table, kind, ctx) => {
@@ -159,7 +159,7 @@ describe('the gate on POST /cles', () => {
         return { value: key === 'identity_verification_required' ? gateOn : 0 };
       }
       if (table === 'identity_verifications') return { data: verifiedRows };
-      if (table === 'cles') {
+      if (table === 'ples') {
         if (ctx.op === 'insert') return { id: 'new', ...ctx.payload };
         return { data: [], count: 0 };  // the completed-episode probe
       }
@@ -169,13 +169,13 @@ describe('the gate on POST /cles', () => {
 
   test('off (the default): an unverified physician can start a session', async () => {
     gateOn = 0;
-    expect((await auth(request(app).post('/cles')).send({ chief_complaint: 'x' })).status).toBe(201);
+    expect((await auth(request(app).post('/ples')).send({ chief_complaint: 'x' })).status).toBe(201);
   });
 
   test('on: an unverified physician is refused with an actionable code', async () => {
     gateOn = 1;
     verifiedRows = [];
-    const res = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
+    const res = await auth(request(app).post('/ples')).send({ chief_complaint: 'x' });
     expect(res.status).toBe(403);
     expect(res.body.code).toBe('identity_verification_required');
   });
@@ -183,14 +183,14 @@ describe('the gate on POST /cles', () => {
   test('on: a verified physician proceeds', async () => {
     gateOn = 1;
     verifiedRows = [{ id: 'iv-1' }];
-    const res = await auth(request(app).post('/cles')).send({ chief_complaint: 'x' });
+    const res = await auth(request(app).post('/ples')).send({ chief_complaint: 'x' });
     expect(res.status).toBe(201);
   });
 
   test('a pending submission is NOT a verification', async () => {
     gateOn = 1;
     verifiedRows = []; // the isVerified probe filters to status 'verified'; pending never matches
-    expect((await auth(request(app).post('/cles')).send({ chief_complaint: 'x' })).status).toBe(403);
+    expect((await auth(request(app).post('/ples')).send({ chief_complaint: 'x' })).status).toBe(403);
   });
 });
 

@@ -111,7 +111,7 @@ function GateBar({ stat }: { stat: IccStat }) {
   );
 }
 
-// One primary (vs-auditor) arm. `commonN` = coverage.cles_all_three, the shared denominator; when an
+// One primary (vs-auditor) arm. `commonN` = coverage.ples_all_three, the shared denominator; when an
 // arm's own n falls short of it the shortfall is stated rather than quietly averaged away.
 // The server's verdict, rendered so the third state cannot be mistaken for the second.
 //
@@ -171,7 +171,7 @@ function ArmCard({
       <VerdictBadge verdict={arm?.verdict} />
       {commonN != null && commonN > 0 && n !== commonN && (
         <p className="mt-2 text-sm text-muted-foreground">
-          คำนวณจาก {n} CLE จากชุดร่วม {commonN} CLE / computed on {n} of the {commonN} shared CLEs.
+          คำนวณจาก {n} PLE จากชุดร่วม {commonN} PLE / computed on {n} of the {commonN} shared PLEs.
         </p>
       )}
     </div>
@@ -318,8 +318,8 @@ export function ThreeWayIcc({ includeTest = false }: { includeTest?: boolean }) 
           </p>
           {cov && (
             <p className="mt-3 text-sm tabular-nums text-muted-foreground">
-              CLE ที่มีคะแนน<NoBreak>ผู้ตรวจสอบ</NoBreak> {cov.cles_with_human} · Claude {cov.cles_with_ai} ·{' '}
-              <NoBreak>โมเดลภายในองค์กร</NoBreak> {cov.cles_with_shadow}
+              PLE ที่มีคะแนน<NoBreak>ผู้ตรวจสอบ</NoBreak> {cov.ples_with_human} · Claude {cov.ples_with_ai} ·{' '}
+              <NoBreak>โมเดลภายในองค์กร</NoBreak> {cov.ples_with_shadow}
             </p>
           )}
         </div>
@@ -327,7 +327,7 @@ export function ThreeWayIcc({ includeTest = false }: { includeTest?: boolean }) 
     );
 
   const arms = data.arms ?? { ai_vs_human: null, shadow_vs_human: null, ai_vs_shadow: null };
-  const commonN = cov?.cles_all_three ?? null;
+  const commonN = cov?.ples_all_three ?? null;
   const rate = cov?.shadow_contract_rate ?? null;
   const rateTone =
     rate == null
@@ -367,14 +367,14 @@ export function ThreeWayIcc({ includeTest = false }: { includeTest?: boolean }) 
           <div className="grid grid-cols-1 gap-3 @min-[420px]:grid-cols-2 @min-[720px]:grid-cols-4">
             <CoverageTile
               emphasis
-              value={cov.cles_all_three}
+              value={cov.ples_all_three}
               th="ครบทั้งสามคะแนน"
               en="Scored by all three — the shared set every arm below uses"
             />
-            <CoverageTile value={cov.cles_with_human} th={<NoBreak>มีคะแนนผู้ตรวจสอบ</NoBreak>} en="With auditor scores" />
-            <CoverageTile value={cov.cles_with_ai} th="มีคะแนน Claude" en="With Claude scores" />
+            <CoverageTile value={cov.ples_with_human} th={<NoBreak>มีคะแนนผู้ตรวจสอบ</NoBreak>} en="With auditor scores" />
+            <CoverageTile value={cov.ples_with_ai} th="มีคะแนน Claude" en="With Claude scores" />
             <CoverageTile
-              value={cov.cles_with_shadow}
+              value={cov.ples_with_shadow}
               th="มีคะแนนโมเดลภายใน"
               en="With on-prem candidate scores"
             />
@@ -399,13 +399,13 @@ export function ThreeWayIcc({ includeTest = false }: { includeTest?: boolean }) 
           </div>
           {commonN != null && commonN > 0 && commonN < SMALL_SAMPLE && (
             <p className="mt-3 rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-              ชุดข้อมูลร่วมยังเล็ก ({commonN} CLE) ค่า ICC และช่วงความเชื่อมั่นยังไม่เสถียร / Small shared sample — these ICCs
+              ชุดข้อมูลร่วมยังเล็ก ({commonN} PLE) ค่า ICC และช่วงความเชื่อมั่นยังไม่เสถียร / Small shared sample — these ICCs
               and their intervals are unstable.
             </p>
           )}
           {commonN === 0 && (
             <p className="mt-3 text-sm text-muted-foreground">
-              ยังไม่มี CLE ที่มีคะแนนครบทั้งสามแหล่ง จึงยังเปรียบเทียบไม่ได้ / No CLE yet carries all three scores, so no arm
+              ยังไม่มี PLE ที่มีคะแนนครบทั้งสามแหล่ง จึงยังเปรียบเทียบไม่ได้ / No PLE yet carries all three scores, so no arm
               is comparable.
             </p>
           )}

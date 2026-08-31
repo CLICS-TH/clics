@@ -53,7 +53,7 @@ async function measure(browser, role, width) {
   await ctx.route('**/*', (r) => {
     const u = r.request().url();
     if (API.some((b) => u.startsWith(b))) {
-      const body = /integrity-queue/.test(u) ? { cles: [] }
+      const body = /integrity-queue/.test(u) ? { ples: [] }
         : { id: 'a1', role, council_id: 'c1', full_name_th: 'ผู้ดูแลระบบทดสอบ', full_name_en: 'Test Admin' };
       return r.fulfill({ status: 200, contentType: 'application/json',
         headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });

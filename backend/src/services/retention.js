@@ -40,9 +40,9 @@ const IDENTITY_TARGETS = [
     why: 'The on-prem identity vault: encrypted real name, email, and provider id. Nothing in the research dataset needs it once the study is closed.' },
   { table: 'identity_verifications', action: 'delete',
     why: 'National ID (encrypted + blind index) and licence number. The strongest link that exists; CREC082 ICF §4 keeps it separate from the research data precisely so it can be removed on its own.' },
-  { table: 'cle_pii_map',            action: 'delete',
+  { table: 'ple_pii_map',            action: 'delete',
     why: 'The reversible token→raw map RIMPL builds during de-identification. Its entire purpose is re-linkage, so it cannot survive a de-identification pass.' },
-  { table: 'cle_patient_refs',       action: 'delete',
+  { table: 'ple_patient_refs',       action: 'delete',
     why: 'Patient identifiers the physician supplied on-prem. Third-party PII — the most sensitive class here and the least defensible to keep.' },
   { table: 'license_verifications',  action: 'delete',
     why: 'Licence-lookup evidence from the retired TMC gate: licence number, the name queried, and the encrypted scrape.' },
@@ -52,7 +52,7 @@ const IDENTITY_TARGETS = [
     why: 'Invite rows carrying the invitee email address.' },
   { table: 'professionals',          action: 'nullify',
     columns: ['full_name_th', 'full_name_en', 'email', 'license_number'],
-    why: 'The row itself STAYS: pseudonym, council, specialty and position are research variables, and deleting it would cascade the CLEs it owns. Only the name/email/licence columns are cleared, which is exactly "ทำให้ไม่สามารถเชื่อมโยงกลับได้" — the pseudonym remains, and there is no longer anything it maps to.' },
+    why: 'The row itself STAYS: pseudonym, council, specialty and position are research variables, and deleting it would cascade the PLEs it owns. Only the name/email/licence columns are cleared, which is exactly "ทำให้ไม่สามารถเชื่อมโยงกลับได้" — the pseudonym remains, and there is no longer anything it maps to.' },
 ];
 
 // Named so a reader can see the exclusion was a decision, not an oversight.

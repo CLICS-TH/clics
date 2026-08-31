@@ -11,7 +11,7 @@
 //   iccOneWay  — ICC(1,1). One-way random effects, single measurement.
 //                Assumes each subject was scored by a DIFFERENT, randomly drawn set of raters, so
 //                rater identity is nested in subject and cannot be estimated separately. This is the
-//                right model for a rotating auditor pool: with 3 auditors drawn per CLE from a
+//                right model for a rotating auditor pool: with 3 auditors drawn per PLE from a
 //                roster, the raters are not crossed, and reporting ICC(2,1) over them would claim to
 //                have removed a rater effect the design cannot even identify.
 //
@@ -217,7 +217,7 @@ function iccTwoWayAverage(rows, { k } = {}) {
 /**
  * ICC(1,1) — one-way random, single measurement. Handles a RAGGED matrix natively.
  *
- * This is the model for a rotating auditor pool: each CLE is scored by whichever auditors were
+ * This is the model for a rotating auditor pool: each PLE is scored by whichever auditors were
  * assigned to it, so rater is nested in subject. Because the design cannot identify a rater main
  * effect, there is no MSc term — disagreement and rater bias are pooled into MSw, which makes this
  * the CONSERVATIVE choice. It is never inflated by a rater effect the design cannot see.

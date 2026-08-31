@@ -21,7 +21,7 @@ const DiscussSchema = z.object({
   history: z.array(z.object({ role: z.string(), content: z.string() })).default([]),
   message: z.string().min(1),
   language: z.enum(['th', 'en']).default('th'),
-  // The CLE transcript, sent on-prem so RIMPL can de-identify it before any cloud call (it is stored
+  // The PLE transcript, sent on-prem so RIMPL can de-identify it before any cloud call (it is stored
   // RAW in the backend DB). Never forwarded to the cloud un-stripped.
   transcript: z.array(z.object({ role: z.string(), content: z.string() })).default([]),
   ai_scores: Scores.nullish(),       // { d1..d7, composite_score }
@@ -54,7 +54,7 @@ router.post('/', async (req, res) => {
     const cleanTranscript = stripHistoryPii(transcript, hints)
       .map(m => `${m.role === 'assistant' ? 'AI' : 'Physician'}: ${m.content}`).join('\n');
     const context =
-      `\n\n=== CLE TRANSCRIPT (de-identified) ===\n${cleanTranscript || '(empty)'}\n\n` +
+      `\n\n=== PLE TRANSCRIPT (de-identified) ===\n${cleanTranscript || '(empty)'}\n\n` +
       `=== ${scoresBlock(ai_scores, auditor_scores, ai_rationale)} ===`;
     // Grounding lives in the system prompt; the conversation stays a clean Q&A so history isn't bloated.
     const systemPrompt = RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS + context;

@@ -48,13 +48,13 @@ async function parseWithProvider(res) {
 // `patient_ref` (the physician's structured patient identifier) is forwarded to RIMPL on-prem SOLELY
 // so RIMPL can scrub it from the narrative/transcript before any cloud call — it is never forwarded
 // to the cloud AI. See docs/constraints.md (data boundary).
-async function rimplChat({ cle_id, history, message, language, chief_complaint, patient_ref, socratic, artifacts, rescue_active, already_qualified }) {
+async function rimplChat({ ple_id, history, message, language, chief_complaint, patient_ref, socratic, artifacts, rescue_active, already_qualified }) {
   const res = await fetch(`${RIMPL_URL}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
-    // rescue_active / already_qualified are latches from the `cles` row. RIMPL is stateless, so
+    // rescue_active / already_qualified are latches from the `ples` row. RIMPL is stateless, so
     // without them it would re-run the qualifying classifier on every turn past the fourth.
-    body: JSON.stringify({ cle_id, history, message, language, chief_complaint, patient_ref,
+    body: JSON.stringify({ ple_id, history, message, language, chief_complaint, patient_ref,
       socratic: !!socratic, artifacts: !!artifacts,
       rescue_active: !!rescue_active, already_qualified: !!already_qualified }),
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
@@ -63,7 +63,7 @@ async function rimplChat({ cle_id, history, message, language, chief_complaint, 
   return parseWithProvider(res);
 }
 
-// Auditor calibration chat: discuss a CLE's AI evaluation vs the auditor's own scores. The transcript
+// Auditor calibration chat: discuss a PLE's AI evaluation vs the auditor's own scores. The transcript
 // is sent so RIMPL can de-identify it on-prem before the cloud call (stored raw); patient_ref gives
 // the scrub hints. Metered against the auditor's SEPARATE budget pool by the caller.
 async function rimplAuditDiscuss({ history, message, language, transcript, ai_scores, ai_rationale, auditor_scores, patient_ref }) {
@@ -80,14 +80,14 @@ async function rimplAuditDiscuss({ history, message, language, transcript, ai_sc
 // `shadow: false` opts out of RIMPL's shadow evaluation. Only the calibration harness sets it: a
 // --mode rescore run re-scores the real cohort through this route and would otherwise overwrite the
 // pilot's accumulated shadow rows with calibration-run rows.
-async function rimplEvaluate({ cle_id, transcript, patient_ref, shadow, weights_sha256 }) {
+async function rimplEvaluate({ ple_id, transcript, patient_ref, shadow, weights_sha256 }) {
   const res = await fetch(`${RIMPL_URL}/evaluate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
     // weights_sha256: the DECLARED Model Lock checksum (§10.2). RIMPL cannot read it — the weights
     // file sits on the DGX, not behind the inference API — so it is stamped onto the score from the
     // declaration instead, and its absence is recorded as "not locked" rather than hidden.
-    body: JSON.stringify({ cle_id, transcript, patient_ref, shadow, weights_sha256: weights_sha256 ?? null }),
+    body: JSON.stringify({ ple_id, transcript, patient_ref, shadow, weights_sha256: weights_sha256 ?? null }),
     signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
   });
   if (!res.ok) throw rimplError('/evaluate', res.status);

@@ -14,7 +14,7 @@ const { iccTwoRater, verdictFor } = require('./icc');
 const { iccGates } = require('../lib/settings');
 
 const ICC_DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
-const SHADOW_COLS = 'cle_id, provider, model_version, composite_score, d1,d2,d3,d4,d5,d6,d7, error, evaluated_at';
+const SHADOW_COLS = 'ple_id, provider, model_version, composite_score, d1,d2,d3,d4,d5,d6,d7, error, evaluated_at';
 
 // PostgREST reports an unapplied migration as a missing relation. That is a KNOWN state, not a
 // fault: db/migration-shadow-evaluations.sql is deliberately unapplied in some environments, and it
@@ -40,50 +40,50 @@ function isMissingRelation(error) {
  */
 async function pairedSets({ includeTest = false } = {}) {
   const { data: auditScores, error: auditErr } = await supabase
-    .from('audit_scores').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+    .from('audit_scores').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
   if (auditErr) return { ok: false, error: auditErr };
   if (!auditScores?.length) {
     return { ok: true, empty: true, humanBy: new Map(), aiBy: new Map(), shadowBy: new Map(),
       withAi: [], allThree: [], compareIds: [], candidate: null, shadowAvailable: false, shadowFailed: 0 };
   }
 
-  const scoredIds = [...new Set(auditScores.map(a => a.cle_id))];
+  const scoredIds = [...new Set(auditScores.map(a => a.ple_id))];
   const { data: aiScores, error: aiErr } = await supabase
-    .from('ai_evaluations').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('cle_id', scoredIds);
+    .from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('ple_id', scoredIds);
   if (aiErr) return { ok: false, error: aiErr };
-  const { data: cles, error: clesErr } = await supabase.from('cles').select('id, is_test').in('id', scoredIds);
-  if (clesErr) return { ok: false, error: clesErr };
+  const { data: ples, error: plesErr } = await supabase.from('ples').select('id, is_test').in('id', scoredIds);
+  if (plesErr) return { ok: false, error: plesErr };
 
-  const testOf = Object.fromEntries((cles ?? []).map(p => [p.id, p.is_test]));
-  const inScope = (cleId) => includeTest || !testOf[cleId];
+  const testOf = Object.fromEntries((ples ?? []).map(p => [p.id, p.is_test]));
+  const inScope = (pleId) => includeTest || !testOf[pleId];
 
-  const shadowRes = await supabase.from('shadow_evaluations').select(SHADOW_COLS).in('cle_id', scoredIds);
+  const shadowRes = await supabase.from('shadow_evaluations').select(SHADOW_COLS).in('ple_id', scoredIds);
   if (shadowRes.error && !isMissingRelation(shadowRes.error)) return { ok: false, error: shadowRes.error };
 
-  // One human value per CLE (mean across auditors) BEFORE pairing — ICC(2,1) assumes one rating per
-  // subject per rater, so a multi-auditor CLE must contribute ONE pair, not N pairs reusing the same
+  // One human value per PLE (mean across auditors) BEFORE pairing — ICC(2,1) assumes one rating per
+  // subject per rater, so a multi-auditor PLE must contribute ONE pair, not N pairs reusing the same
   // AI value. With a single auditor the mean equals that score (correct in both modes).
-  const byCle = new Map();
+  const byPle = new Map();
   for (const a of auditScores) {
-    if (!inScope(a.cle_id)) continue;
-    if (!byCle.has(a.cle_id)) byCle.set(a.cle_id, []);
-    byCle.get(a.cle_id).push(a);
+    if (!inScope(a.ple_id)) continue;
+    if (!byPle.has(a.ple_id)) byPle.set(a.ple_id, []);
+    byPle.get(a.ple_id).push(a);
   }
   const humanBy = new Map();
-  for (const [cleId, rows] of byCle) {
+  for (const [pleId, rows] of byPle) {
     const mean = (k) => rows.reduce((s, r) => s + Number(r[k] || 0), 0) / rows.length;
     const human = { composite_score: mean('composite_score') };
     for (const d of ICC_DOMAINS) human[d] = mean(d);
-    humanBy.set(cleId, human);
+    humanBy.set(pleId, human);
   }
-  const aiBy = new Map((aiScores ?? []).filter(s => inScope(s.cle_id)).map(s => [s.cle_id, s]));
+  const aiBy = new Map((aiScores ?? []).filter(s => inScope(s.ple_id)).map(s => [s.ple_id, s]));
 
   // ONE candidate per arm. `provider` is the TRANSPORT ('local'), not the candidate — a second
   // candidate model on the same transport is a SEPARATE paired set. Pooling two models into one arm
   // would report a number that describes neither, so pick the most recent (provider, model_version).
   const groups = new Map();
   for (const r of (shadowRes.data ?? [])) {
-    if (!inScope(r.cle_id)) continue;
+    if (!inScope(r.ple_id)) continue;
     const key = `${r.provider} ${r.model_version}`;
     const g = groups.get(key) ?? { provider: r.provider, model_version: r.model_version, rows: [], latest: 0 };
     g.rows.push(r);
@@ -100,11 +100,11 @@ async function pairedSets({ includeTest = false } = {}) {
   let shadowFailed = 0;
   for (const r of candidate?.rows ?? []) {
     if (r.error != null || r.d1 == null) { shadowFailed++; continue; }
-    shadowBy.set(r.cle_id, r);
+    shadowBy.set(r.ple_id, r);
   }
   const shadowAvailable = shadowBy.size > 0;
 
-  // COMPARABILITY. All arms are computed on the SAME CLEs — the intersection of human + ai + a
+  // COMPARABILITY. All arms are computed on the SAME PLEs — the intersection of human + ai + a
   // SCORED candidate row — so the three numbers can honestly be read against each other.
   const withAi = [...humanBy.keys()].filter(id => aiBy.has(id));
   const allThree = withAi.filter(id => shadowBy.has(id));

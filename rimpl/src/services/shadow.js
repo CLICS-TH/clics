@@ -1,9 +1,9 @@
-// Shadow evaluation — score a CLE a SECOND time with a candidate model, record it, never serve it.
+// Shadow evaluation — score a PLE a SECOND time with a candidate model, record it, never serve it.
 //
 // The problem it solves: the PIS-7 evaluator cannot be repointed at the on-prem model to "see how it
 // does". CME credit is gated on ICC ≥ 0.75 and §10.2 requires a locked model+prompt+rubric for the
 // pilot, so swapping mid-cohort would confound the primary outcome. And it cannot be settled in
-// advance either — only nine CLEs currently carry both an AI and a human score, far too thin to
+// advance either — only nine PLEs currently carry both an AI and a human score, far too thin to
 // certify a scoring instrument. Shadow mode makes the pilot generate its own calibration corpus:
 // same transcript, same rubric, two models, one served.
 //
@@ -65,9 +65,9 @@ function shadowTarget(servedProvider) {
 // success would leave a stale error on a validly scored row (a harness filtering `error is null`
 // drops it AND counts it as a failure). That silently launders the failure rate in the flattering
 // direction, on the one dataset a decision to swap the scoring instrument would rest on.
-function blankRow(cleId, provider, model) {
+function blankRow(pleId, provider, model) {
   return {
-    cle_id: cleId,
+    ple_id: pleId,
     provider,
     // Provenance is stamped BEFORE the call, from the configured model, so a transport failure is
     // still attributable. Overwritten with the server-reported model on success.
@@ -90,19 +90,19 @@ function blankRow(cleId, provider, model) {
 
 // Fire-and-forget. NEVER throws, NEVER rejects — callers do not await this and an unhandled
 // rejection here would take down the process for a purely optional measurement.
-async function runShadowEvaluation({ cleId, transcriptText, servedProvider }) {
+async function runShadowEvaluation({ pleId, transcriptText, servedProvider }) {
   const provider = shadowTarget(servedProvider);
   if (!provider) return { skipped: true };
 
   const impl = PROVIDERS[provider];
   const queued = (() => { try { return impl.stats().queued; } catch { return 0; } })();
   if (queued > shadowMaxQueue()) {
-    console.warn(`[shadow] shed for CLE ${cleId} — ${provider} has ${queued} call(s) queued; served traffic wins`);
+    console.warn(`[shadow] shed for PLE ${pleId} — ${provider} has ${queued} call(s) queued; served traffic wins`);
     return { skipped: true, shed: true };
   }
 
   const startedAt = Date.now();
-  let row = blankRow(cleId, provider, (() => { try { return impl.model(); } catch { return null; } })());
+  let row = blankRow(pleId, provider, (() => { try { return impl.model(); } catch { return null; } })());
   try {
     const { text, inputTokens, outputTokens, stopReason, model } = await callProvider({
       provider,
@@ -130,18 +130,18 @@ async function runShadowEvaluation({ cleId, transcriptText, servedProvider }) {
   row.latency_ms = Date.now() - startedAt;
 
   try {
-    // Conflict target matches the table's unique(cle_id, provider, model_version): a re-run of the
+    // Conflict target matches the table's unique(ple_id, provider, model_version): a re-run of the
     // SAME candidate replaces its earlier attempt (no double-counting in the paired corpus), while a
     // DIFFERENT candidate accumulates its own row instead of destroying the first one's data.
     const { error } = await supabase
       .from('shadow_evaluations')
-      .upsert(row, { onConflict: 'cle_id,provider,model_version' });
+      .upsert(row, { onConflict: 'ple_id,provider,model_version' });
     if (error) {
-      console.error(`[shadow] persist failed for CLE ${cleId} (${provider}): ${error.message}`);
+      console.error(`[shadow] persist failed for PLE ${pleId} (${provider}): ${error.message}`);
       return { persisted: false };
     }
   } catch (e) {
-    console.error(`[shadow] persist threw for CLE ${cleId} (${provider}): ${e?.message || e}`);
+    console.error(`[shadow] persist threw for PLE ${pleId} (${provider}): ${e?.message || e}`);
     return { persisted: false };
   }
   return { persisted: true, provider, failed: !!row.error };
@@ -158,7 +158,7 @@ function pickDomains(scores) {
 function fireShadowEvaluation(args) {
   Promise.resolve()
     .then(() => runShadowEvaluation(args))
-    .catch((e) => console.error(`[shadow] unexpected failure for CLE ${args?.cleId}: ${e?.message || e}`));
+    .catch((e) => console.error(`[shadow] unexpected failure for PLE ${args?.pleId}: ${e?.message || e}`));
 }
 
 module.exports = { runShadowEvaluation, fireShadowEvaluation, shadowTarget, blankRow };

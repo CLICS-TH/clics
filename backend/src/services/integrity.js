@@ -1,6 +1,6 @@
-// Deterministic integrity signals — detecting agent-delegated or gamed CLE sessions.
+// Deterministic integrity signals — detecting agent-delegated or gamed PLE sessions.
 //
-// Runs beside services/cle-gate.js (the C1–C3 tier-1 gate) on the same principle: cheap, server-side,
+// Runs beside services/ple-gate.js (the C1–C3 tier-1 gate) on the same principle: cheap, server-side,
 // explainable, and impossible to talk out of via a prompt.
 //
 // ============================================================================================
@@ -12,16 +12,16 @@
 //
 // ============================================================================================
 // PII CONSTRAINT — READ BEFORE ADDING ANYTHING HERE.
-// backend/src/routes/cles.js stores `content: message`, the RAW physician text. rimpl strips PII only
+// backend/src/routes/ples.js stores `content: message`, the RAW physician text. rimpl strips PII only
 // for the outbound cloud call; the database deliberately keeps the original as the evidentiary
-// transcript. So this detector — especially F2, which compares a physician's OTHER CLEs — processes
+// transcript. So this detector — especially F2, which compares a physician's OTHER PLEs — processes
 // PII BY DESIGN. That is acceptable only while it stays inside the backend and never reaches a model.
 // Do not "improve" this file with an LLM pass. Doing so would breach the one boundary the
 // architecture's strongest claim rests on, and it would do it quietly.
 //
 // ============================================================================================
 // SEVERITY IS A ROUTING DECISION, NOT A VERDICT.
-// A flag sends a CLE to a human. It never penalises, never reaches the physician, and never changes
+// A flag sends a PLE to a human. It never penalises, never reaches the physician, and never changes
 // a score. Several of these fire on legitimate behaviour — pasting a real de-identified case note
 // looks like F3; a cardiologist who always asks about troponin looks like F2 — which is exactly why
 // the output is "a person should look at this", not "this person cheated".
@@ -47,7 +47,7 @@ function jaccard(a, b) {
 
 // ============================================================================================
 // THRESHOLDS ARE CALIBRATED AGAINST REAL SESSIONS, NOT GUESSED.
-// Measured 2026-08-26 over prod: 398 messages across 33 CLEs, 27 of them with usable inter-turn
+// Measured 2026-08-26 over prod: 398 messages across 33 PLEs, 27 of them with usable inter-turn
 // timing. The numbers each rule cites below are from that run. Re-run the calibration before
 // changing any of them — a threshold nobody has checked against data is a threshold that will
 // eventually accuse a physician of something they did not do.
@@ -57,11 +57,11 @@ const SIGNALS = {
   // MEASURED: 2 real sessions contain an exact within-session repeat. Low enough to act on.
   F1_NEAR_DUPLICATE: { threshold: 0.92, min_chars: 40, enabled: true },
 
-  // The same physician's turns reappearing across their OWN other CLEs.
+  // The same physician's turns reappearing across their OWN other PLEs.
   // Reads raw PII by design — see the constraint at the top of this file.
   // MEASURED: 8 exact-duplicate groups across sessions, and every one of them sits in the pilot's
   // TEST sessions, where the team pasted the same scripted prompt repeatedly. That makes the real
-  // false-positive rate unknown rather than low, so the caller must exclude test CLEs from the
+  // false-positive rate unknown rather than low, so the caller must exclude test PLEs from the
   // comparison corpus, and this signal never exceeds 'medium'.
   F2_CROSS_SESSION_REUSE: { threshold: 0.90, min_chars: 60, enabled: true },
 
@@ -81,7 +81,7 @@ const SIGNALS = {
   F4_COMPOSITION_RATE: { max_chars_per_second: 25, min_chars: 200, enabled: false },
 
   // Inter-turn gaps that barely vary. A person's rhythm is irregular; a loop's is not.
-  // MEASURED: at min_turns 5 this fired on 1 real CLE that had only 4 gaps — a coefficient of
+  // MEASURED: at min_turns 5 this fired on 1 real PLE that had only 4 gaps — a coefficient of
   // variation over 4 samples is noise, not rhythm. At min_turns 7 (>= 6 gaps) it fires on ZERO of
   // the 27 real sessions, which is the calibration target.
   F5_LATENCY_UNIFORMITY: { min_turns: 7, max_cv: 0.08, enabled: true },
@@ -121,7 +121,7 @@ const SIGNALS = {
  * all — Markdown, which a person typing into a plain <textarea> essentially never produces.
  *
  * A NOTE ON THE SCHEMA, because it changes how F3 should be read. The case presentation is NOT a
- * message: it is `cles.chief_complaint`, written once at creation (routes/cles.js), and no message
+ * message: it is `ples.chief_complaint`, written once at creation (routes/ples.js), and no message
  * row is inserted then. So the single most common legitimate paste never passes through the stream
  * F3 watches. What remains in-stream is supplementary data (a lab that just returned) or reasoning.
  *
@@ -236,8 +236,8 @@ function robustZ(value, baseline, key) {
 const seconds = (a, b) => Math.abs(new Date(a) - new Date(b)) / 1000;
 
 /**
- * @param {Array} messages  [{ role, content, created_at, token_count }] for ONE CLE, chronological
- * @param {Array} priorTurns  the physician's turns from their OTHER CLEs: [{ cle_id, content }]
+ * @param {Array} messages  [{ role, content, created_at, token_count }] for ONE PLE, chronological
+ * @param {Array} priorTurns  the physician's turns from their OTHER PLEs: [{ ple_id, content }]
  * @param {object} [cfg]  per-signal overrides (for tuning against real data)
  * @returns {Array<{signal, severity, evidence}>}
  *
@@ -269,7 +269,7 @@ function detectIntegritySignals(messages, priorTurns = [], cfg = {}) {
   }
 
   // --- F2: reuse across the physician's own other sessions -------------------------------------
-  const priorGrams = (priorTurns ?? []).map(p => ({ cle_id: p.cle_id, g: trigrams(p.content), text: p.content }));
+  const priorGrams = (priorTurns ?? []).map(p => ({ ple_id: p.ple_id, g: trigrams(p.content), text: p.content }));
   for (let i = 0; i < turns.length; i++) {
     if (String(turns[i].content ?? '').length < C.F2_CROSS_SESSION_REUSE.min_chars) continue;
     for (const prior of priorGrams) {
@@ -281,7 +281,7 @@ function detectIntegritySignals(messages, priorTurns = [], cfg = {}) {
           // Never 'high': see the calibration note on F2 — every observed cross-session
           // duplicate came from the pilot's own test sessions, so the real rate is unknown.
           severity: 'medium',
-          evidence: { turn: i + 1, other_cle_id: prior.cle_id, similarity: Math.round(sim * 1000) / 1000,
+          evidence: { turn: i + 1, other_ple_id: prior.ple_id, similarity: Math.round(sim * 1000) / 1000,
             excerpt: String(turns[i].content).slice(0, 120) },
         });
         break; // one flag per turn — N near-identical priors is one finding, not N
@@ -395,8 +395,8 @@ function detectIntegritySignals(messages, priorTurns = [], cfg = {}) {
     }
   }
 
-  // ONE row per signal per CLE. Six identical turns produce fifteen duplicate PAIRS; writing fifteen
-  // rows would make the admin queue unreadable and make "how many CLEs are flagged" uncountable
+  // ONE row per signal per PLE. Six identical turns produce fifteen duplicate PAIRS; writing fifteen
+  // rows would make the admin queue unreadable and make "how many PLEs are flagged" uncountable
   // without a DISTINCT. Collapse to a finding per signal, carrying the count and the worst instance —
   // an auditor needs to know "this session repeats itself, badly", not every pairing that proves it.
   return collapse(flags);

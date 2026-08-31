@@ -14,7 +14,7 @@
 
 > CLICS lets you practise clinical reasoning by talking through a case with an AI assistant. It then assesses the quality of that reasoning against a standard rubric, **PIS-7** (seven domains), The pilot is testing whether this can replace collecting CME/CPD credit by attending lectures.
 
-Each conversation is a **Continuous Learning Episode (CLE)**. You bring a hypothetical case — never a real, identifiable patient — and work through it with the AI: forming questions, testing hypotheses, and drawing conclusions.
+Each conversation is a **Professional Learning Episode (PLE)**. You bring a hypothetical case — never a real, identifiable patient — and work through it with the AI: forming questions, testing hypotheses, and drawing conclusions.
 
 ::: note What you get
 A PIS-7 score (0–100) for each episode · a chart of your progress · a learning band (not yet CME credit at this stage) · and compensation for each completed episode during the pilot.
@@ -28,7 +28,7 @@ Never type a name, an ID number, an HN, or anything else that could identify a p
 
 1. Sign in and give consent
 2. Verify your professional identity
-3. Start a new CLE
+3. Start a new PLE
 4. Talk it through with the AI
 5. End and submit
 6. Record your reflection
@@ -118,11 +118,11 @@ The system does not flag these in advance, and each of them is easy to mistake f
 - **When your AI budget runs out** you cannot start a new episode or send a message — but you can always **finish an episode already open**
 - **The conversation timer only runs while the window is in front of you** — switch away for a while and it stops. That is not a fault
 
-## run-a-cle | Working through one CLE
+## run-a-ple | Working through one PLE
 
 ### Starting a new episode
 
-1. Press [[+ เริ่ม Continuous Learning Episode ใหม่]] on your home page
+1. Press [[+ เริ่ม Professional Learning Episode ใหม่]] on your home page
 2. Choose a [[~ โฟลเดอร์ / Folder]] (or leave it uncategorised)
 3. Enter the [[อาการสำคัญ / Chief Complaint]] — for example "a patient presenting with chest pain". **Use a hypothetical case; never a patient's name.**
 4. Press [[เริ่มการสนทนา / Start Session]] and the conversation opens
@@ -187,7 +187,7 @@ For impartiality, your score may **not appear immediately**. The result page wil
 It refreshes itself for roughly three minutes and then stops. **If you have left it open longer than that and nothing has changed, reload the page** — it is not stuck. While a score is held, that episode also stays off your progress chart and out of "latest score" on your home page.
 :::
 
-If an episode does not meet the entry criteria it will show [[~ ไม่ผ่าน CLE / Failed]] or [[~ รอตรวจสอบ / Under Review]], together with the results of all six screening criteria.
+If an episode does not meet the entry criteria it will show [[~ ไม่ผ่าน PLE / Failed]] or [[~ รอตรวจสอบ / Under Review]], together with the results of all six screening criteria.
 
 ::: note About CPD credit
 During the pilot the result page shows a **band** rather than a number of credits, alongside a note that it does not yet count towards CME. That is not an error — this phase is about calibrating the instrument.

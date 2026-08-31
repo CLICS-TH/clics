@@ -101,7 +101,7 @@ async function refresh(purposes) {
  * Make sure the cache is usable, without putting a DB read on every call.
  *
  * Cold cache  → AWAIT one read. The first request after a restart must not ignore a DB override;
- *               for `evaluate` that would mean scoring one CLE on the wrong model.
+ *               for `evaluate` that would mean scoring one PLE on the wrong model.
  * Warm+stale  → refresh in the BACKGROUND and answer from cache. Bounded staleness (TTL) is the
  *               price of keeping the hot path off the database.
  * Warm+fresh  → nothing.

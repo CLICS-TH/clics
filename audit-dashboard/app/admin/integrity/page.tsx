@@ -3,7 +3,7 @@
  * The integrity queue — the read surface for backend/src/services/integrity.js.
  *
  * WHY IT EXISTS. The detector has run on every /end since it shipped, writing flags into
- * cle_integrity_flags and forcing flagged sessions into the audit sample. Nothing could read them
+ * ple_integrity_flags and forcing flagged sessions into the audit sample. Nothing could read them
  * back. A detector nobody can read is one nobody can act on, correct, or argue with — and this one
  * was designed specifically to be arguable: every rule is arithmetic, and every flag carries the
  * evidence that produced it. That evidence had nowhere to be shown until this page.
@@ -36,7 +36,7 @@ import { AlertTriangle, ClipboardPaste, Repeat, Timer, Fingerprint, ShieldQuesti
 type Severity = 'low' | 'medium' | 'high';
 type Flag = { signal: string; severity: Severity; evidence: Record<string, unknown>; created_at: string };
 type Row = {
-  id: string; cle_code?: string | null; status?: string; ended_at?: string | null;
+  id: string; ple_code?: string | null; status?: string; ended_at?: string | null;
   turn_count?: number; token_count?: number; is_test?: boolean; flags: Flag[];
 };
 
@@ -117,7 +117,7 @@ function GenreCounters({ g }: { g: Record<string, number> }) {
  * TWO THINGS HERE ARE NOT COSMETIC.
  *
  * `min-w-0` + `break-all` on the value. A flex item's default `min-width: auto` refuses to shrink
- * below its content, and two of these values have no break opportunity at all: `other_cle_id` is a
+ * below its content, and two of these values have no break opportunity at all: `other_ple_id` is a
  * 36-character UUID, and F6's `shifted_features` stringifies to ~250 unbroken characters. The Card
  * clips its overflow, so without this the page does not scroll — it silently CUTS the evidence off,
  * which on an evidence panel is the worse of the two failures.
@@ -159,7 +159,7 @@ function ShiftList({ v }: { v: Shift[] }) {
 /*
  * Everything in the evidence object that is not the genre profile, printed plainly.
  *
- * `min-w-0` + `break-all` on the scalar values is also load-bearing: `other_cle_id` is a
+ * `min-w-0` + `break-all` on the scalar values is also load-bearing: `other_ple_id` is a
  * 36-character UUID with no break opportunity, and a flex item's default `min-width: auto` refuses
  * to shrink below its content.
  *
@@ -196,10 +196,10 @@ export default function IntegrityQueuePage() {
     // interpolation read as a PATH segment, and backend/tests/api-contract.js then reports the
     // endpoint as an orphan (it did). An empty severity is the "All" filter: the route treats any
     // unrecognised value, empty included, as no filter.
-    apiFetch<{ cles: Row[] }>(`/admin/integrity-queue?severity=${severity}`)
+    apiFetch<{ ples: Row[] }>(`/admin/integrity-queue?severity=${severity}`)
       // An error envelope is not an empty queue: coercing it to [] would render "nothing has ever
       // been flagged", which is the most misleading thing this page could say.
-      .then((d) => (Array.isArray(d?.cles) ? setRows(d.cles) : setErr(true)))
+      .then((d) => (Array.isArray(d?.ples) ? setRows(d.ples) : setErr(true)))
       .catch(() => setErr(true));
   }, [severity]);
 
@@ -246,7 +246,7 @@ export default function IntegrityQueuePage() {
           return (
             <Card key={r.id} className="overflow-hidden p-4">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-sm text-foreground">{r.cle_code ?? r.id.slice(0, 8)}</span>
+                <span className="font-mono text-sm text-foreground">{r.ple_code ?? r.id.slice(0, 8)}</span>
                 <Badge className={SEV[worst].cls}><BiLabel th={SEV[worst].th} en={SEV[worst].en} /></Badge>
                 {r.is_test && <Badge variant="outline">test</Badge>}
                 <span className="ml-auto text-xs text-muted-foreground tabular-nums">
@@ -283,7 +283,7 @@ export default function IntegrityQueuePage() {
               {/* Reading the transcript is the action. There is deliberately no decision button:
                   this queue routes work to a person, and the person's job is to read. */}
               <div className="mt-3 border-t border-border pt-3">
-                <a href={`/admin/cles?id=${r.id}`} className="text-sm text-link underline underline-offset-2">
+                <a href={`/admin/ples?id=${r.id}`} className="text-sm text-link underline underline-offset-2">
                   <BiLabel th="อ่านบทสนทนา" en="Read the transcript" /> →
                 </a>
               </div>

@@ -21,9 +21,9 @@ beforeEach(() => { m.reset(); });
 describe('GET /admin/payouts (superadmin owed math)', () => {
   test('owed = min(completed, cap) × rate; outstanding = owed − paid', async () => {
     m.state.caller = SUPERADMIN;
-    // 4 cle_pass for phys-1; default cap 3, rate 500 → owed 1500. One ฿500 payout already → outstanding 1000.
+    // 4 ple_pass for phys-1; default cap 3, rate 500 → owed 1500. One ฿500 payout already → outstanding 1000.
     m.state.resolve = (table, kind) => {
-      if (table === 'cles' && kind === 'list') return [{ physician_id: 'phys-1' }, { physician_id: 'phys-1' }, { physician_id: 'phys-1' }, { physician_id: 'phys-1' }];
+      if (table === 'ples' && kind === 'list') return [{ physician_id: 'phys-1' }, { physician_id: 'phys-1' }, { physician_id: 'phys-1' }, { physician_id: 'phys-1' }];
       if (table === 'professionals' && kind === 'list') return [{ id: 'phys-1', full_name_th: 'หมอ', pseudonym: 'P-001' }];
       if (table === 'payment_info' && kind === 'list') return [];
       if (table === 'payouts' && kind === 'list') return [{ physician_id: 'phys-1', amount_thb: 500 }];
@@ -45,7 +45,7 @@ describe('GET /admin/payouts (superadmin owed math)', () => {
 
 describe('POST /admin/payouts/:id/pay', () => {
   const baseResolve = (table, kind) => {
-    if (table === 'cles' && kind === 'list') return [{ id: 'c1' }, { id: 'c2' }]; // 2 completed → owed 1000
+    if (table === 'ples' && kind === 'list') return [{ id: 'c1' }, { id: 'c2' }]; // 2 completed → owed 1000
     if (table === 'payouts' && kind === 'list') return []; // nothing paid yet
     if (table === 'payouts' && kind === 'single') return { id: 'po-1' }; // the insert().select('id').single() return
     if (table === 'professionals' && kind === 'maybeSingle') return { id: 'phys-1' }; // exists

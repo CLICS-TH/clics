@@ -187,9 +187,9 @@ h1, h2, h3 {
 .badge { display:inline-block; padding:2px 10px; border-radius:var(--r-pill); font-size:12px; font-weight:600; }
 .badge-active     { background:var(--teal-bg);    color:var(--teal-text); }
 .badge-evaluated  { background:var(--success-bg); color:var(--success-text); }
-.badge-cle_pass   { background:var(--success-bg); color:var(--success-text); }
-.badge-cle_fail_t1{ background:var(--error-bg);   color:var(--error-text); }
-.badge-cle_flag_t2{ background:var(--warning-bg); color:var(--warning-text); }
+.badge-ple_pass   { background:var(--success-bg); color:var(--success-text); }
+.badge-ple_fail_t1{ background:var(--error-bg);   color:var(--error-text); }
+.badge-ple_flag_t2{ background:var(--warning-bg); color:var(--warning-text); }
 .badge-ended      { background:var(--surface-card); color:var(--muted); }  /* --muted is 4.48:1 on this surface */
 
 /* Buttons */
@@ -257,7 +257,7 @@ body:has(.chat-page) nav { flex:none; }
 .chat-head { display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding:14px 0 12px; border-bottom:1px solid var(--hairline); }
 .ch-left { display:flex; align-items:center; gap:8px 12px; min-width:0; flex:1 1 auto; flex-wrap:nowrap; overflow:hidden; }
 .ch-right { position:relative; display:flex; align-items:center; gap:8px; flex:none; flex-wrap:wrap; justify-content:flex-end; min-width:0; }
-.ch-cle { font-size:12px; font-weight:700; letter-spacing:.4px; color:var(--coral-text); background:var(--coral-ring);  /* not --coral: 2.68:1 on the composited tint */ padding:3px 9px; border-radius:var(--r-pill); white-space:nowrap; flex:none; }
+.ch-ple { font-size:12px; font-weight:700; letter-spacing:.4px; color:var(--coral-text); background:var(--coral-ring);  /* not --coral: 2.68:1 on the composited tint */ padding:3px 9px; border-radius:var(--r-pill); white-space:nowrap; flex:none; }
 .ch-title { font-family:var(--font-body); font-size:14px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; max-width:28ch; }
 .ch-metric { display:inline-flex; align-items:center; gap:5px; font-size:13px; color:var(--muted); white-space:nowrap; flex:none; }
 .ch-metric svg { width:15px; height:15px; color:var(--muted); }
@@ -311,7 +311,7 @@ body:has(.chat-page) nav { flex:none; }
 .msg-refs .ref-chip { display:inline-flex; align-items:center; gap:5px; background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--r-pill); padding:3px 11px; font-style:normal; color:var(--body-color); font-size:12px; max-width:100%; overflow-wrap:anywhere; }
 /* Citations are clickable: each chip opens a web search for the source (the AI gives (Source, Year) text, not URLs). */
 .msg-refs a.ref-chip { text-decoration:none; cursor:pointer; transition:border-color .15s, color .15s, background .15s; }
-.msg-refs a.ref-chip:hover { border-color:var(--coral); color:var(--coral-text); background:var(--coral-ring); }  /* same 2.68:1 as .ch-cle */
+.msg-refs a.ref-chip:hover { border-color:var(--coral); color:var(--coral-text); background:var(--coral-ring); }  /* same 2.68:1 as .ch-ple */
 .msg-refs a.ref-chip svg { width:11px; height:11px; opacity:.6; flex:none; }
 /* Examiner callout (Socratic question) — clearer block; never names the experimental mode. */
 .msg-socratic { display:flex; gap:10px; margin-top:16px; padding:13px 16px; background:var(--coral-ring); border-left:3px solid var(--coral); border-radius:0 var(--r-md) var(--r-md) 0; color:var(--coral-on-card); line-height:1.6; }  /* nested in the assistant bubble, so the tint sits on --surface-card */

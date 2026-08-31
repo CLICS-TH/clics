@@ -24,9 +24,9 @@ const LONG_NAME_TH = 'ศาสตราจารย์เกียรติค�
 
 const iso = (daysAgo) => new Date(Date.UTC(2026, 7, 27 - daysAgo)).toISOString();
 
-const cleRow = (i, status, extra = {}) => ({
+const pleRow = (i, status, extra = {}) => ({
   id: `00000000-0000-4000-8000-00000000000${i}`,
-  cle_code: `CLE-${String(100 + i).padStart(3, '0')}`,
+  ple_code: `PLE-${String(100 + i).padStart(3, '0')}`,
   status: 'evaluated', turn_count: 12 + i, token_count: 24000 + i * 900,
   started_at: iso(i + 2), ended_at: iso(i + 1),
   is_test: i % 3 === 0, privacy_review_status: status,
@@ -37,15 +37,15 @@ export const FIXTURES = [
   // ---- physician portal ----------------------------------------------------------------------
   // The reflection page bails to the result screen unless the session is 'ended' with no reflection
   // written, so without this the FORM — one of the three screens this audit exists for — never renders.
-  [/\/cles\/[^/]+\/reflection/, { status: 'ended', reflection: null }],
-  [/\/cles\/acceptability/, { eligible: true, response: null, completed_ples: 3, items: [
+  [/\/ples\/[^/]+\/reflection/, { status: 'ended', reflection: null }],
+  [/\/ples\/acceptability/, { eligible: true, response: null, completed_ples: 3, items: [
     { key: 'q1', th: 'โดยรวมแล้ว ระบบนี้เป็นวิธีที่ยอมรับได้สำหรับการเก็บหน่วยกิตการศึกษาต่อเนื่อง', en: 'Overall, this is an acceptable way to earn continuing-education credit.' },
     { key: 'q2', th: 'การประเมินสะท้อนการคิดเชิงคลินิกของข้าพเจ้าได้อย่างเป็นธรรม', en: 'The assessment reflected my clinical reasoning fairly.' },
   ] }],
-  // cle-chat redirects to the result page unless the session is 'active', so without this the chat
+  // ple-chat redirects to the result page unless the session is 'active', so without this the chat
   // shell — which carries .msg-socratic, .msg-refs and .artifact-kind — is never measured.
-  [/\/cles\/[0-9a-f-]{8,}$/, {
-    id: '00000000-0000-4000-8000-000000000000', status: 'active', cle_code: 'CLE-101',
+  [/\/ples\/[0-9a-f-]{8,}$/, {
+    id: '00000000-0000-4000-8000-000000000000', status: 'active', ple_code: 'PLE-101',
     chief_complaint: LONG_TH, started_at: iso(0), turn_count: 4, token_count: 9200,
     messages: [
       { role: 'physician', content: LONG_TH, created_at: iso(0) },
@@ -59,15 +59,15 @@ export const FIXTURES = [
 
   // ---- privacy review ------------------------------------------------------------------------
   [/\/admin\/privacy-queue/, {
-    cles: [
-      cleRow(1, 'pending'),
-      cleRow(2, 'pending', { privacy_review_note: LONG_NOTE }),
-      cleRow(3, 'quarantined', { privacy_review_note: LONG_NOTE }),
-      cleRow(4, 'passed', { privacy_review_note: null }),
-      cleRow(5, 'excluded', { privacy_review_note: 'ตัดออกตามคำร้องขอของผู้เข้าร่วมวิจัย' }),
+    ples: [
+      pleRow(1, 'pending'),
+      pleRow(2, 'pending', { privacy_review_note: LONG_NOTE }),
+      pleRow(3, 'quarantined', { privacy_review_note: LONG_NOTE }),
+      pleRow(4, 'passed', { privacy_review_note: null }),
+      pleRow(5, 'excluded', { privacy_review_note: 'ตัดออกตามคำร้องขอของผู้เข้าร่วมวิจัย' }),
     ],
   }],
-  [/\/admin\/cles\/[^/]+\/transcript/, {
+  [/\/admin\/ples\/[^/]+\/transcript/, {
     messages: [
       { role: 'physician', content: LONG_TH },
       { role: 'assistant', content: `การประเมินเบื้องต้นควรครอบคลุมภาวะน้ำเกิน ระดับอิเล็กโทรไลต์ และการทำงานของหัวใจ **โดยเฉพาะ** ในผู้สูงอายุ\n\n| ประเด็น | ข้อพิจารณา |\n|---|---|\n| ภาวะน้ำเกิน | ชั่งน้ำหนักทุกวัน |\n| อิเล็กโทรไลต์ | ติดตามโพแทสเซียม |`,
@@ -108,7 +108,7 @@ export const FIXTURES = [
       { table: 'identity_verifications', action: 'delete', why: 'encrypted national IDs and licence evidence', rows: 76 },
       { table: 'professionals', action: 'nullify', columns: ['full_name_th', 'full_name_en', 'email', 'license_number'],
         why: 'the row must survive so scores stay linkable to a pseudonym, but nothing on it may name a person', rows: 91 },
-      { table: 'cle_pii_map', action: 'delete', why: 'the reversible pseudonymisation lookup', rows: 1240 },
+      { table: 'ple_pii_map', action: 'delete', why: 'the reversible pseudonymisation lookup', rows: 1240 },
     ],
     excluded: [
       { table: 'payment_info', why: 'financial records are kept under accounting rules and sit outside the research dataset' },
@@ -161,13 +161,13 @@ export const FIXTURES = [
     { id: 'p2', pseudonym: 'P-002', full_name_th: 'แพทย์หญิงกนกวรรณ ศรีสุวรรณโชติ', role: 'auditor', status: 'active',
       specialty_name_th: 'สูติศาสตร์-นรีเวชวิทยา', usage_usd: 0.49, usage_limit_usd: 0.5, can_audit: true },
   ], total: 2 }],
-  [/\/admin\/overview/, { councils: 1, physicians: 28, auditors: 14, cles: 34, evaluated: 14, icc: 0.811 }],
-  [/\/admin\/stats/, { by_status: { evaluated: 14, cle_flag_t2: 9, cle_fail_t1: 6, active: 5 } }],
+  [/\/admin\/overview/, { councils: 1, physicians: 28, auditors: 14, ples: 34, evaluated: 14, icc: 0.811 }],
+  [/\/admin\/stats/, { by_status: { evaluated: 14, ple_flag_t2: 9, ple_fail_t1: 6, active: 5 } }],
 ];
 
 // Anything under the API base that has no fixture returns an empty-but-valid envelope rather than
 // hanging or 404ing, so one unmocked call cannot blank a whole page.
-export const FALLBACK = { cles: [], verifications: [], reviews: [], users: [], items: [], data: [], rows: [] };
+export const FALLBACK = { ples: [], verifications: [], reviews: [], users: [], items: [], data: [], rows: [] };
 
 export function fixtureFor(url) {
   for (const [re, body] of FIXTURES) if (re.test(url)) return body;

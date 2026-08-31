@@ -17,7 +17,7 @@ const router = Router();
 const EVAL_DECODING = { temperature: 0, maxTokens: 4096 };
 
 const EvalSchema = z.object({
-  cle_id: z.string(),
+  ple_id: z.string(),
   transcript: z.array(z.object({ role: z.string(), content: z.string() })),
   // On-prem patient identifier, scrubbed from the transcript before the cloud eval; never forwarded.
   // nullish: the backend sends `?? null` when none was recorded — null must pass schema validation.
@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
   const parsed = EvalSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { cle_id, transcript, patient_ref, shadow, weights_sha256 } = parsed.data;
+  const { ple_id, transcript, patient_ref, shadow, weights_sha256 } = parsed.data;
   // PII-strip (incl. the known patient identifier) + defang injected role markers before the cloud model.
   const transcriptText = flattenForPrompt(transcript, deriveHintTokens(patient_ref));
 
@@ -45,7 +45,7 @@ router.post('/', async (req, res) => {
       purpose: 'evaluate',
       systemPrompt: PIS7_EVALUATOR_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
-      // 4096, not 2000/3000: a 130k-token transcript (CLE-052, 2026-08-17) truncated the model's
+      // 4096, not 2000/3000: a 130k-token transcript (PLE-052, 2026-08-17) truncated the model's
       // JSON mid-rationale at BOTH 2000 and 3000 — the response never reached the closing `}`, so
       // parseJsonObject's "no match" fallback silently returned {} instead of surfacing a parse
       // error, and Zod flagged it as out-of-range/missing domain scores. Same failure mode as the
@@ -75,18 +75,18 @@ router.post('/', async (req, res) => {
       } else {
         console.error(`[RIMPL evaluate] out-of-range/missing domain scores: ${JSON.stringify(e.parsed).slice(0, 300)} — ${diag()}`);
       }
-      // Shadow the FAILURES too. These are the long/hard transcripts (CLE-052 truncated the served
+      // Shadow the FAILURES too. These are the long/hard transcripts (PLE-052 truncated the served
       // model's JSON at 2000 AND 3000 max_tokens), and they are exactly where a candidate with a
       // smaller context window is most likely to fail. Firing only on success would measure the
       // candidate's contract-compliance on a denominator that excludes them — a sample restricted
       // to what a stronger model already handled, biased in the candidate's favour.
-      if (shadow) fireShadowEvaluation({ cleId: cle_id, transcriptText, servedProvider: provider });
+      if (shadow) fireShadowEvaluation({ pleId: ple_id, transcriptText, servedProvider: provider });
       return res.status(502).json({ error: e.message });
     }
     const { scores, composite, rationale } = scored;
 
     res.json({
-      cle_id,
+      ple_id,
       d1: scores.d1, d2: scores.d2, d3: scores.d3, d4: scores.d4,
       d5: scores.d5, d6: scores.d6, d7: scores.d7,
       composite_score: composite,
@@ -116,12 +116,12 @@ router.post('/', async (req, res) => {
     // where nobody can see it. Default OFF (SHADOW_EVAL_PROVIDER unset). Deliberately not awaited —
     // it must never delay, fail, or bill the served evaluation. Reuses the already de-identified
     // transcriptText, so it opens no new PII surface. See docs/LOCAL-MODEL-ROADMAP.md Phase 5.
-    if (shadow) fireShadowEvaluation({ cleId: cle_id, transcriptText, servedProvider: provider });
+    if (shadow) fireShadowEvaluation({ pleId: ple_id, transcriptText, servedProvider: provider });
   } catch (err) {
     console.error('[RIMPL evaluate] error:', err);
     // Same reasoning as the 502 path: a transcript the served provider could not complete at all is
     // a data point about the candidate too. transcriptText is de-identified and in scope here.
-    if (parsed.data.shadow) fireShadowEvaluation({ cleId: parsed.data.cle_id, transcriptText });
+    if (parsed.data.shadow) fireShadowEvaluation({ pleId: parsed.data.ple_id, transcriptText });
     res.status(500).json({ error: 'Evaluation service temporarily unavailable.' });
   }
 });

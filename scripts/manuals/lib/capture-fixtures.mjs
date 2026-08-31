@@ -27,16 +27,16 @@ const VIGNETTE = 'ผู้ป่วยชายอายุ 62 ปี เบา
 const ASSISTANT = 'การประเมินควรเริ่มจากแยกสาเหตุของอาการเหนื่อยระหว่างภาวะหัวใจล้มเหลว ภาวะซีด และโรคปอด '
   + 'จากนั้นจึงพิจารณาการทำงานของไตก่อนปรับยา เพราะยาเบาหวานบางกลุ่มต้องลดขนาดเมื่อการกรองของไตลดลง';
 
-const cle = (i, extra = {}) => ({
+const ple = (i, extra = {}) => ({
   id: `00000000-0000-4000-8000-00000000000${i}`,
-  cle_code: `CLE-${100 + i}`, status: 'evaluated',
+  ple_code: `PLE-${100 + i}`, status: 'evaluated',
   chief_complaint: VIGNETTE, turn_count: 9 + i, token_count: 12000 + i * 800, folder_id: 'f1',
   started_at: iso(i + 1), ended_at: iso(i), is_test: false, privacy_review_status: 'passed',
   ...extra,
 });
 
 const EVALUATION = {
-  cle_id: '00000000-0000-4000-8000-000000000001', status: 'evaluated', composite_score: 78,
+  ple_id: '00000000-0000-4000-8000-000000000001', status: 'evaluated', composite_score: 78,
   d1: 4, d2: 4, d3: 4, d4: 3, d5: 4, d6: 3, d7: 4,
   domain_rationale: {
     d1: 'ตั้งคำถามเจาะจงกับจุดตัดสินใจจริงของเคส ไม่ใช่คำถามกว้าง',
@@ -47,19 +47,19 @@ const EVALUATION = {
 
 export const CAPTURE_FIXTURES = [
   // ---- physician portal ------------------------------------------------------------------------
-  [/\/cles\/lpdp\/me/, { snapshots: [1, 2, 3].map((i) => ({
-    cle_id: `00000000-0000-4000-8000-00000000000${i}`,
+  [/\/ples\/lpdp\/me/, { snapshots: [1, 2, 3].map((i) => ({
+    ple_id: `00000000-0000-4000-8000-00000000000${i}`,
     composite_score: [64, 71, 78][i - 1], snapshot_at: iso(20 - i * 7),
   })), held: 0 }],
-  [/\/cles\/[^/]+\/evaluation/, EVALUATION],
-  [/\/cles\/[0-9a-f-]{8,}$/, { ...cle(1), messages: [
+  [/\/ples\/[^/]+\/evaluation/, EVALUATION],
+  [/\/ples\/[0-9a-f-]{8,}$/, { ...ple(1), messages: [
     { role: 'physician', content: VIGNETTE, created_at: iso(1) },
     { role: 'assistant', content: ASSISTANT, created_at: iso(1) },
   ] }],
   // Bare arrays, both of them. js/dashboard.js:536 treats a non-array as an ERROR envelope and
   // renders "could not load" — so an object here produces a screenshot of a failure state.
-  [/\/cles$/, [cle(1), cle(2), cle(3)]],
-  [/\/folders/, [{ id: 'f1', name: 'อายุรศาสตร์ทั่วไป', cle_count: 3 }]],
+  [/\/ples$/, [ple(1), ple(2), ple(3)]],
+  [/\/folders/, [{ id: 'f1', name: 'อายุรศาสตร์ทั่วไป', ple_count: 3 }]],
   // The identity page shows its status card only for a submitted verification. `verified` is the
   // state the manual describes as the goal, and it carries no name and no licence value.
   [/\/auth\/identity\/status/, { status: 'verified', method: 'thaid', submitted_at: iso(6), decided_at: iso(5) }],
@@ -81,7 +81,7 @@ export const CAPTURE_FIXTURES = [
     { id: '00000000-0000-4000-8000-000000000003', pseudonym: 'P-007', chief_complaint: VIGNETTE,
       turn_count: 14, token_count: 16800, ended_at: iso(7), scored: true },
   ]],
-  [/\/audit\/cles\/[^/]+/, { ...cle(1), physician_pseudonym: 'P-014', messages: [
+  [/\/audit\/ples\/[^/]+/, { ...ple(1), physician_pseudonym: 'P-014', messages: [
     { role: 'physician', content: VIGNETTE },
     { role: 'assistant', content: ASSISTANT },
   ] }],

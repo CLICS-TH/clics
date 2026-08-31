@@ -2,10 +2,10 @@ const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { MessageSchema, CreateCleSchema, UpdateCleSchema, ReflectionSchema } = require('../lib/schemas');
-const { computeTier1, hasScorableContent, clampDuration } = require('../services/cle-gate');
+const { computeTier1, hasScorableContent, clampDuration } = require('../services/ple-gate');
 const { rimplChat } = require('../services/rimpl-client');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
-const { finalizeScreening, toPassCols } = require('../services/cle-finalize');
+const { finalizeScreening, toPassCols } = require('../services/ple-finalize');
 const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
 const { settlementDelta, costUsd } = require('../lib/pricing');
 const { logEvent } = require('../lib/audit');
@@ -15,8 +15,8 @@ const reflection = require('../services/reflection');
 const acceptability = require('../lib/acceptability');
 const { creditSettings } = require('../lib/settings');
 const { creditFor, creditTable } = require('../services/credit');
-const { COMPLETED_STATUSES } = require('../lib/cle-status');
-const { scanCle, flagRescueReplyBreach } = require('../services/integrity-scan');
+const { COMPLETED_STATUSES } = require('../lib/ple-status');
+const { scanPle, flagRescueReplyBreach } = require('../services/integrity-scan');
 
 const router = Router();
 
@@ -45,14 +45,14 @@ async function requireBudget(req, res, next) {
       });
     }
   } catch (e) {
-    console.error('[cles] budget check failed:', e.message); // fail-open: never block on a meter error
+    console.error('[ples] budget check failed:', e.message); // fail-open: never block on a meter error
   }
   next();
 }
 
-// (toPassCols lives in services/cle-finalize — shared with the reconcile sweep.)
+// (toPassCols lives in services/ple-finalize — shared with the reconcile sweep.)
 
-// Create new CLE session
+// Create new PLE session
 // CREC082 ICF §4: identity is verified BEFORE the first PLE, by ThaID or by national ID together
 // with the medical licence number. Sits beside requireConsent because the two are the protocol's
 // two preconditions for starting a session, and they should be read together.
@@ -69,7 +69,7 @@ async function requireVerifiedIdentity(req, res, next) {
       code: 'identity_verification_required',
     });
   } catch (e) {
-    console.error('[cles] identity gate check failed:', e.message);
+    console.error('[ples] identity gate check failed:', e.message);
     return res.status(503).json({ error: 'Could not verify your identity right now. Please try again.', code: 'identity_check_unavailable' });
   }
 }
@@ -88,18 +88,18 @@ router.post('/', requireConsent, requireVerifiedIdentity, requireBudget, async (
 
   const pilotMode = await pilotTestMode();
 
-  // Episode sequencing (CLICS protocol §6.4): a physician produces exactly 3 valid CLEs.
-  // episode_number = (# of their COMPLETED CLEs) + 1, so a retried attempt keeps the same episode
+  // Episode sequencing (CLICS protocol §6.4): a physician produces exactly 3 valid PLEs.
+  // episode_number = (# of their COMPLETED PLEs) + 1, so a retried attempt keeps the same episode
   // until it passes. Block a 4th once 3 have completed — UNLESS Pilot Test Mode is on (testers loop).
-  // COMPLETED_STATUSES, not 'cle_pass' alone: a scored CLE moves straight on to 'evaluated', so
-  // filtering on 'cle_pass' counted zero and left every physician stuck at episode 1 forever.
-  const { count: passedCount, error: countErr } = await supabase.from('cles')
+  // COMPLETED_STATUSES, not 'ple_pass' alone: a scored PLE moves straight on to 'evaluated', so
+  // filtering on 'ple_pass' counted zero and left every physician stuck at episode 1 forever.
+  const { count: passedCount, error: countErr } = await supabase.from('ples')
     .select('id', { count: 'exact', head: true })
     .eq('physician_id', req.user.id).in('status', COMPLETED_STATUSES).eq('is_test', false);
   if (sendDbError(res, countErr)) return;
   const passed = passedCount ?? 0;
   if (passed >= 3 && !pilotMode) {
-    return res.status(403).json({ error: 'You have completed all 3 CLEs for this study.', code: 'cle_limit_reached' });
+    return res.status(403).json({ error: 'You have completed all 3 PLEs for this study.', code: 'ple_limit_reached' });
   }
   const episodeNumber = Math.min(passed + 1, 3);
 
@@ -130,11 +130,11 @@ router.post('/', requireConsent, requireVerifiedIdentity, requireBudget, async (
     socraticReason = socratic ? 'pilot_test' : null;
   }
 
-  // CLE-NNN study pseudonym — the only session identifier that appears in the research export.
-  const { data: ccData } = await supabase.rpc('next_cle_code');
-  const cleCode = typeof ccData === 'string' ? ccData : null;
+  // PLE-NNN study pseudonym — the only session identifier that appears in the research export.
+  const { data: ccData } = await supabase.rpc('next_ple_code');
+  const pleCode = typeof ccData === 'string' ? ccData : null;
 
-  const { data, error } = await supabase.from('cles').insert({
+  const { data, error } = await supabase.from('ples').insert({
     physician_id: req.user.id,
     council_id: req.user.council_id,   // denormalized from the physician; scopes admin/auditor access
     specialty_id: req.user.specialty_id ?? null,   // denormalized too; scopes the council × specialty pipeline
@@ -147,7 +147,7 @@ router.post('/', requireConsent, requireVerifiedIdentity, requireBudget, async (
     episode_number: episodeNumber,
     socratic_active: socraticActive,
     socratic_reason: socraticReason,
-    cle_code: cleCode,
+    ple_code: pleCode,
   }).select().single();
 
   if (sendDbError(res, error)) return;
@@ -158,20 +158,20 @@ router.post('/', requireConsent, requireVerifiedIdentity, requireBudget, async (
   // a failure here must not strand the session that was just created.
   const ref = patient_ref?.trim();
   if (ref) {
-    const { error: refErr } = await supabase.from('cle_patient_refs')
-      .insert({ cle_id: data.id, physician_id: req.user.id, patient_ref: ref });
-    if (refErr) console.error('[cles] failed to store patient_ref:', refErr.message);
+    const { error: refErr } = await supabase.from('ple_patient_refs')
+      .insert({ ple_id: data.id, physician_id: req.user.id, patient_ref: ref });
+    if (refErr) console.error('[ples] failed to store patient_ref:', refErr.message);
   }
-  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.create', targetType: 'cle',
-    targetId: data.cle_code ?? data.id, councilId: req.user.council_id,
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'ple.create', targetType: 'ple',
+    targetId: data.ple_code ?? data.id, councilId: req.user.council_id,
     metadata: { episode_number: episodeNumber, socratic_reason: socraticReason } });
   res.status(201).json({ ...data, patient_ref: ref || null });
 });
 
-// List physician's own CLEs
+// List physician's own PLEs
 router.get('/', async (req, res) => {
   const { data, error } = await supabase
-    .from('cles')
+    .from('ples')
     .select('id, title, chief_complaint, folder_id, status, episode_number, started_at, ended_at, turn_count, token_count, c1_pass, c2_pass, c3_pass, c4_pass, c5_pass, c6_pass')
     .eq('physician_id', req.user.id)
     .order('started_at', { ascending: false });
@@ -194,7 +194,7 @@ router.patch('/:id', async (req, res) => {
   if (folder_id !== undefined) patch.folder_id = folder_id;
 
   const { data, error } = await supabase
-    .from('cles').update(patch)
+    .from('ples').update(patch)
     .eq('id', req.params.id).eq('physician_id', req.user.id)
     .select('id, title, chief_complaint, folder_id, status, started_at, turn_count, token_count').single();
   if (error || !data) return res.status(404).json({ error: 'Not found' });
@@ -203,15 +203,15 @@ router.patch('/:id', async (req, res) => {
 
 // Delete a conversation (and its data).
 router.delete('/:id', async (req, res) => {
-  const { data: cle } = await fetchOwnedPle(req.params.id, req.user.id, 'id');
-  if (!cle) return res.status(404).json({ error: 'Not found' });
+  const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id, 'id');
+  if (!ple) return res.status(404).json({ error: 'Not found' });
 
   // messages / ai_evaluations / audit_scores cascade on delete; lpdp_snapshots FK has no
   // ON DELETE CASCADE, so remove those rows first to avoid a foreign-key violation.
-  await supabase.from('lpdp_snapshots').delete().eq('cle_id', req.params.id);
+  await supabase.from('lpdp_snapshots').delete().eq('ple_id', req.params.id);
 
   const { error } = await supabase
-    .from('cles').delete().eq('id', req.params.id).eq('physician_id', req.user.id);
+    .from('ples').delete().eq('id', req.params.id).eq('physician_id', req.user.id);
   if (sendDbError(res, error)) return;
   res.json({ ok: true });
 });
@@ -223,16 +223,16 @@ router.get('/lpdp/me', async (req, res) => {
     .eq('physician_id', req.user.id)
     .order('snapshot_at');
   if (sendDbError(res, error)) return;
-  // Hold-until-audited: drop snapshots for CLEs no auditor has scored yet, so the trend (and the
+  // Hold-until-audited: drop snapshots for PLEs no auditor has scored yet, so the trend (and the
   // dashboard "latest score", which reads the last snapshot) can't leak a held score. See /evaluation.
   let rows = data ?? [];
   let held = 0;
   if (rows.length && await holdResultUntilAudited()) {
-    const cleIds = [...new Set(rows.map(r => r.cle_id))];
-    const { data: scored } = await supabase.from('audit_scores').select('cle_id').in('cle_id', cleIds);
-    const scoredSet = new Set((scored ?? []).map(s => s.cle_id));
-    held = cleIds.filter(id => !scoredSet.has(id)).length;
-    rows = rows.filter(r => scoredSet.has(r.cle_id));
+    const pleIds = [...new Set(rows.map(r => r.ple_id))];
+    const { data: scored } = await supabase.from('audit_scores').select('ple_id').in('ple_id', pleIds);
+    const scoredSet = new Set((scored ?? []).map(s => s.ple_id));
+    held = pleIds.filter(id => !scoredSet.has(id)).length;
+    rows = rows.filter(r => scoredSet.has(r.ple_id));
   }
   // `held` is the COUNT of the physician's own episodes still awaiting an auditor — never a score,
   // never a domain, nothing the hold exists to withhold. It is here because without it the filter
@@ -247,7 +247,7 @@ router.get('/lpdp/me', async (req, res) => {
   res.json(rows);
 });
 
-// Get single CLE with messages
+// Get single PLE with messages
 // ---- Acceptability questionnaire (CREC082 ICF §3 step 4, Protocol objective 5) ----------------
 // ONE per physician, at the end of participation. A named secondary outcome in the SAP, so without
 // it there is simply nothing to report on acceptability, burden, or the privacy experience.
@@ -261,7 +261,7 @@ router.get('/lpdp/me', async (req, res) => {
 
 router.get('/acceptability', requireConsent, async (req, res) => {
   const [{ count }, { data: existing }] = await Promise.all([
-    supabase.from('cles').select('id', { count: 'exact', head: true })
+    supabase.from('ples').select('id', { count: 'exact', head: true })
       .eq('physician_id', req.user.id).in('status', COMPLETED_STATUSES).eq('is_test', false),
     supabase.from('acceptability_responses')
       .select('answers, comments, skipped, submitted_at').eq('physician_id', req.user.id).maybeSingle(),
@@ -286,7 +286,7 @@ router.post('/acceptability', requireConsent, async (req, res) => {
   const check = skipped ? { ok: true, answers: {} } : acceptability.validateAnswers(req.body?.answers ?? {});
   if (!check.ok) return res.status(400).json({ error: 'Invalid answers.', code: check.code, item: check.item });
 
-  const { count } = await supabase.from('cles').select('id', { count: 'exact', head: true })
+  const { count } = await supabase.from('ples').select('id', { count: 'exact', head: true })
     .eq('physician_id', req.user.id).in('status', COMPLETED_STATUSES).eq('is_test', false);
   if ((count ?? 0) < 1) {
     return res.status(409).json({ error: 'Complete a learning episode first.', code: 'no_completed_ple' });
@@ -302,30 +302,30 @@ router.post('/acceptability', requireConsent, async (req, res) => {
     submitted_at: new Date().toISOString(),
   }, { onConflict: 'physician_id' });
   if (error) {
-    console.error('[cles] acceptability save failed:', error.message);
+    console.error('[ples] acceptability save failed:', error.message);
     return res.status(500).json({ error: 'Could not save your answers. Please try again.' });
   }
 
   // No answer content in the log — only that a response landed. The responses are research data and
   // belong in one place, not scattered through an audit trail.
-  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.acceptability',
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'ple.acceptability',
     targetType: 'professional', targetId: req.user.id, councilId: req.user.council_id ?? null,
     metadata: { skipped, answered: Object.keys(check.answers).length, instrument: acceptability.INSTRUMENT_VERSION } });
   res.json({ ok: true, skipped });
 });
 
 router.get('/:id', async (req, res) => {
-  const { data: cle, error } = await fetchOwnedPle(req.params.id, req.user.id);
-  if (error || !cle) return res.status(404).json({ error: 'Not found' });
+  const { data: ple, error } = await fetchOwnedPle(req.params.id, req.user.id);
+  if (error || !ple) return res.status(404).json({ error: 'Not found' });
 
   const { data: messages } = await supabase
-    .from('messages').select('*').eq('cle_id', req.params.id).order('created_at');
+    .from('messages').select('*').eq('ple_id', req.params.id).order('created_at');
 
   // The private patient identifier is read ONLY here, scoped to the owning physician.
-  const { data: ref } = await supabase.from('cle_patient_refs')
-    .select('patient_ref').eq('cle_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
+  const { data: ref } = await supabase.from('ple_patient_refs')
+    .select('patient_ref').eq('ple_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
 
-  res.json({ ...cle, patient_ref: ref?.patient_ref ?? null, messages: messages ?? [] });
+  res.json({ ...ple, patient_ref: ref?.patient_ref ?? null, messages: messages ?? [] });
 });
 
 // Send a message turn
@@ -333,16 +333,16 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   const parsed = MessageSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { data: cle } = await fetchOwnedPle(req.params.id, req.user.id);
-  if (!cle || cle.status !== 'active') return res.status(400).json({ error: 'CLE not active' });
+  const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id);
+  if (!ple || ple.status !== 'active') return res.status(400).json({ error: 'PLE not active' });
 
   const { data: history } = await supabase
-    .from('messages').select('role, content').eq('cle_id', req.params.id).order('created_at');
+    .from('messages').select('role, content').eq('ple_id', req.params.id).order('created_at');
 
   // The physician's structured patient identifier — sent to RIMPL (on-prem) ONLY so it can scrub the
   // name from the narrative before the cloud call (never forwarded to the cloud). Owner-scoped read.
-  const { data: pref } = await supabase.from('cle_patient_refs')
-    .select('patient_ref').eq('cle_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
+  const { data: pref } = await supabase.from('ple_patient_refs')
+    .select('patient_ref').eq('ple_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
 
   const { message, language } = parsed.data;
 
@@ -361,19 +361,19 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   let rimplResponse;
   try {
     rimplResponse = await rimplChat({
-      cle_id: req.params.id, history: history ?? [], message, language,
-      chief_complaint: cle.chief_complaint, // give the AI the case context
+      ple_id: req.params.id, history: history ?? [], message, language,
+      chief_complaint: ple.chief_complaint, // give the AI the case context
       patient_ref: pref?.patient_ref ?? null, // scrubbed on-prem; never reaches the cloud
-      socratic: cle.socratic_active === true, // CLE2 / remediation → Socratic clinical-examiner mode
+      socratic: ple.socratic_active === true, // CLE2 / remediation → Socratic clinical-examiner mode
       artifacts: await clinicalArtifactsEnabled(), // superadmin toggle → allow side-panel artifacts
       // CREC082 PLE Instruction Sheet §4 rescue. Both are latches: a rescued session stays rescued,
       // and a session that has qualified does not un-qualify — so RIMPL can skip the classifier.
-      rescue_active: cle.rescue_activated_at != null,
-      already_qualified: cle.qualified_at != null,
+      rescue_active: ple.rescue_activated_at != null,
+      already_qualified: ple.qualified_at != null,
       // Rounds this rescue has already run, so RIMPL can stop paying to re-ask a question whose
       // answer has not changed. Derived, not stored: rescue_exchanges_before is the turn count at
       // activation, so the difference IS the number of rounds spent in rescue.
-      rescue_rounds: Math.max(0, (cle.turn_count ?? 0) - (cle.rescue_exchanges_before ?? 0)),
+      rescue_rounds: Math.max(0, (ple.turn_count ?? 0) - (ple.rescue_exchanges_before ?? 0)),
     });
   } catch (err) {
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
@@ -384,11 +384,11 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   const physicianTokens = Math.ceil(message.length / 4);
 
   const { error: msgErr1 } = await supabase.from('messages').insert({
-    cle_id: req.params.id, role: 'physician',
+    ple_id: req.params.id, role: 'physician',
     content: message, token_count: physicianTokens,
   });
   const { error: msgErr2 } = await supabase.from('messages').insert({
-    cle_id: req.params.id, role: 'assistant',
+    ple_id: req.params.id, role: 'assistant',
     content: rimplResponse.content,
     refs: rimplResponse.refs,
     socratic_question: rimplResponse.socratic_question,
@@ -396,7 +396,7 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   });
   // Don't pretend success if the turn wasn't saved — let the client retry.
   if (msgErr1 || msgErr2) {
-    console.error('[cles] failed to persist message:', (msgErr1 || msgErr2).message);
+    console.error('[ples] failed to persist message:', (msgErr1 || msgErr2).message);
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // turn not saved — release the reservation
     return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
   }
@@ -410,7 +410,7 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   // counters rather than getting its own write that could fail on its own.
   const rescue = rimplResponse.rescue ?? null;
   const rescueCols = {};
-  if (rescue?.activated && cle.rescue_activated_at == null) {
+  if (rescue?.activated && ple.rescue_activated_at == null) {
     rescueCols.rescue_activated_at = new Date().toISOString();
     rescueCols.rescue_reason = rescue.reason;                       // 'off_topic' | 'not_qualifying'
     rescueCols.rescue_exchanges_before = rescue.exchanges_before ?? null;
@@ -420,13 +420,13 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   // Latch the moment the session first met the CREC §1 qualifying test, so later turns skip the
   // classifier. Also the honest answer to "when did this become a PLE?", which the rescue analysis
   // needs in order to count exchanges AFTER an activation.
-  if (rescue && rescue.qualifying && cle.qualified_at == null) {
+  if (rescue && rescue.qualifying && ple.qualified_at == null) {
     rescueCols.qualified_at = new Date().toISOString();
     // Qualifying ENDS a protocol rescue, whichever flag arrives first. Without this, two turns in
     // flight could set qualified_at and rescue_activated_at from the same pre-rescue snapshot; the
     // qualified latch would then suppress every later assessment, no `recovered` could ever fire,
     // and the session would stay in examiner mode until it ended.
-    if (cle.socratic_reason === 'protocol_rescue') rescueCols.socratic_active = false;
+    if (ple.socratic_reason === 'protocol_rescue') rescueCols.socratic_active = false;
   }
   // The session came back. The rescue is a loop that ends when the conversation qualifies again, so
   // this is where it ends — and it is the "return to PLE eligibility" the analysis plan asks for.
@@ -440,9 +440,9 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     //
     // Turn counts, not timestamps: rescue_activated_at and qualified_at already bracket the rescue
     // in time, but the plan reports EXCHANGES, and no arithmetic on two timestamps yields a turn
-    // count. cle.turn_count is the count before this turn, so +1 includes the one being served.
-    if (cle.rescue_exchanges_before != null && cle.rescue_exchanges_after == null) {
-      rescueCols.rescue_exchanges_after = Math.max(0, (cle.turn_count ?? 0) + 1 - cle.rescue_exchanges_before);
+    // count. ple.turn_count is the count before this turn, so +1 includes the one being served.
+    if (ple.rescue_exchanges_before != null && ple.rescue_exchanges_after == null) {
+      rescueCols.rescue_exchanges_after = Math.max(0, (ple.turn_count ?? 0) + 1 - ple.rescue_exchanges_before);
     }
   }
   // The rescue gave up. A bounded intervention has to end somewhere, and ending it silently is what
@@ -452,8 +452,8 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   if (rescue?.exhausted) {
     rescueCols.socratic_active = false;
     rescueCols.rescue_outcome = 'exhausted';
-    if (cle.rescue_exchanges_before != null && cle.rescue_exchanges_after == null) {
-      rescueCols.rescue_exchanges_after = Math.max(0, (cle.turn_count ?? 0) + 1 - cle.rescue_exchanges_before);
+    if (ple.rescue_exchanges_before != null && ple.rescue_exchanges_after == null) {
+      rescueCols.rescue_exchanges_after = Math.max(0, (ple.turn_count ?? 0) + 1 - ple.rescue_exchanges_before);
     }
   }
   // Re-assessing every round costs a classifier call per round, and that spend belongs to the study,
@@ -462,9 +462,9 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   // rather than in a per-user pool, because it is not attributable to anyone's quota.
   if (rescue?.assessment && (rescue.assessment.input_tokens || rescue.assessment.output_tokens)) {
     const { input_tokens: aIn = 0, output_tokens: aOut = 0, provider: aProv } = rescue.assessment;
-    rescueCols.rescue_assessment_tokens = (cle.rescue_assessment_tokens ?? 0) + aIn + aOut;
+    rescueCols.rescue_assessment_tokens = (ple.rescue_assessment_tokens ?? 0) + aIn + aOut;
     rescueCols.rescue_assessment_cost_usd =
-      Number(cle.rescue_assessment_cost_usd ?? 0) + costUsd(aIn, aOut, aProv ?? undefined);
+      Number(ple.rescue_assessment_cost_usd ?? 0) + costUsd(aIn, aOut, aProv ?? undefined);
   }
   if (rescue?.reply_check && rescue.reply_check.ok === false) {
     // The rescue prompt forbids diagnosing and caps the questions at two; this reply broke one of
@@ -473,20 +473,20 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     // hosting provider's log retention, where "did any rescue turn give a diagnosis?" — a question
     // CREC082 §4 invites the ethics committee to ask — could not be answered from the dataset.
     try {
-      await flagRescueReplyBreach({ cleId: req.params.id, check: rescue.reply_check, turn: (cle.turn_count ?? 0) + 1 });
+      await flagRescueReplyBreach({ pleId: req.params.id, check: rescue.reply_check, turn: (ple.turn_count ?? 0) + 1 });
     } catch (e) {
-      console.error('[cles] failed to record a rescue post-check breach:', req.params.id, e.message);
+      console.error('[ples] failed to record a rescue post-check breach:', req.params.id, e.message);
     }
   }
 
-  const { error: counterErr } = await supabase.from('cles').update({
-    turn_count: (cle.turn_count ?? 0) + 1,
-    token_count: (cle.token_count ?? 0) + (rimplResponse.token_count ?? 0) + physicianTokens,
-    input_tokens: (cle.input_tokens ?? 0) + turnIn,
-    output_tokens: (cle.output_tokens ?? 0) + turnOut,
+  const { error: counterErr } = await supabase.from('ples').update({
+    turn_count: (ple.turn_count ?? 0) + 1,
+    token_count: (ple.token_count ?? 0) + (rimplResponse.token_count ?? 0) + physicianTokens,
+    input_tokens: (ple.input_tokens ?? 0) + turnIn,
+    output_tokens: (ple.output_tokens ?? 0) + turnOut,
     ...rescueCols,
   }).eq('id', req.params.id);
-  if (counterErr) console.error('[cles] failed to update counters:', counterErr.message);
+  if (counterErr) console.error('[ples] failed to update counters:', counterErr.message);
 
   // Settle the reservation to the turn's REAL cost, priced against the provider that ACTUALLY served
   // it (rimpl reports it; the on-prem model is $0). We compute the delta here and pass it as
@@ -506,31 +506,31 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   res.json(rimplResponse);
 });
 
-// End session and run CLE quality gate
+// End session and run PLE quality gate
 router.post('/:id/end', requireConsent, async (req, res) => {
-  const { data: cle } = await fetchOwnedPle(req.params.id, req.user.id);
-  if (!cle || cle.status !== 'active') return res.status(400).json({ error: 'CLE not active' });
+  const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id);
+  if (!ple || ple.status !== 'active') return res.status(400).json({ error: 'PLE not active' });
 
   const endedAt = new Date();
-  const wallClockSeconds = Math.max(0, Math.floor((endedAt - new Date(cle.started_at)) / 1000));
+  const wallClockSeconds = Math.max(0, Math.floor((endedAt - new Date(ple.started_at)) / 1000));
   // Clamp the client-reported active-engagement time to wall-clock (see clampDuration): an unclamped
   // client value lets a physician POST active_seconds:99999 and pass C1's 10-min engagement gate on a
   // seconds-long session.
   const durationSeconds = clampDuration(req.body?.active_seconds, wallClockSeconds);
 
   // Derive turn/token counts from the SOURCE OF TRUTH (the messages rows), not the cached counters on
-  // the cle row — a concurrent /message does a non-atomic read-modify-write on those, so a lost
+  // the ple row — a concurrent /message does a non-atomic read-modify-write on those, so a lost
   // increment could wrongly fail C2 (turns>=4) / C3 (tokens>=10000) on a qualifying session. Read here
   // (before the claim) so two racing /end requests both compute correctly; the claim is the sole gate.
   const { data: messages } = await supabase
-    .from('messages').select('role, content, token_count').eq('cle_id', req.params.id).order('created_at');
+    .from('messages').select('role, content, token_count').eq('ple_id', req.params.id).order('created_at');
   const msgs = messages ?? [];
   const turnCount = msgs.filter(m => m.role === 'physician').length;
   const tokenCount = msgs.reduce((a, m) => a + (m.token_count ?? 0), 0);
 
   const counts = { duration_seconds: durationSeconds, turn_count: turnCount, token_count: tokenCount };
-  // c1-c3 are recorded, not enforced — see services/cle-gate.js. CREC082 §1 defines a qualifying PLE
-  // by four QUALITIES (c4-c7, assessed in cle-finalize.js), not by minutes or tokens, so a concise
+  // c1-c3 are recorded, not enforced — see services/ple-gate.js. CREC082 §1 defines a qualifying PLE
+  // by four QUALITIES (c4-c7, assessed in ple-finalize.js), not by minutes or tokens, so a concise
   // but genuinely reflective session must reach the classifier rather than being rejected unscored.
   const tier1 = computeTier1(counts);
   // The only remaining hard stop, and it is not a quality bar: an empty conversation has nothing to
@@ -539,25 +539,25 @@ router.post('/:id/end', requireConsent, async (req, res) => {
 
   // Claim the session AND persist the full deterministic result in ONE atomic update. A double-submit
   // (double-click, two tabs, a retry after a slow response) must never run two evaluations — only the
-  // request that flips active->{cle_fail_t1|ended} proceeds; racers see 0 rows and 409. Writing
+  // request that flips active->{ple_fail_t1|ended} proceeds; racers see 0 rows and 409. Writing
   // duration/counts/c1-c3/ended_at HERE (no network) means a process death during the tier-2 call
   // below leaves a fully-recoverable 'ended' row: reconcile re-runs only the missing tier-2 step.
-  const claimStatus = scorable ? 'ended' : 'cle_fail_t1';
-  const { data: claimed, error: claimErr } = await supabase.from('cles').update({
+  const claimStatus = scorable ? 'ended' : 'ple_fail_t1';
+  const { data: claimed, error: claimErr } = await supabase.from('ples').update({
     status: claimStatus, ended_at: endedAt.toISOString(),
     duration_seconds: durationSeconds, turn_count: turnCount, token_count: tokenCount,
     ...toPassCols(tier1),
   }).eq('id', req.params.id).eq('status', 'active').select('id');
   if (sendDbError(res, claimErr)) return;
-  if (!claimed || claimed.length === 0) return res.status(409).json({ error: 'CLE not active' });
+  if (!claimed || claimed.length === 0) return res.status(409).json({ error: 'PLE not active' });
 
   // The consecutive-failure counter used to be fed from the tier-1 verdict here. Tier-1 no longer
   // IS a verdict, so feeding it from here would record a pass for every session that reached /end
-  // and silently reset the counter forever. It now runs in cle-finalize.js off the qualifying
+  // and silently reset the counter forever. It now runs in ple-finalize.js off the qualifying
   // result, which is the outcome the counter was always trying to describe.
 
-  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.end', targetType: 'cle',
-    targetId: cle.cle_code ?? req.params.id, councilId: cle.council_id ?? null,
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'ple.end', targetType: 'ple',
+    targetId: ple.ple_code ?? req.params.id, councilId: ple.council_id ?? null,
     metadata: { scorable, tier1_metadata: tier1 } });
 
   // Integrity scan (CREC082 §1 excludes "passive copying of AI answers" from what counts as a PLE).
@@ -575,18 +575,18 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   // that exist NOW. If a LATER session copies this one, the flag lands on the later session — the
   // one that did the reusing — which is the right place for it, so nothing needs backfilling.
   try {
-    const scan = await scanCle({ cleId: req.params.id, physicianId: cle.physician_id });
+    const scan = await scanPle({ pleId: req.params.id, physicianId: ple.physician_id });
     if (scan.flags.length) {
-      logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.integrity_scan', targetType: 'cle',
-        targetId: cle.cle_code ?? req.params.id, councilId: cle.council_id ?? null,
+      logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'ple.integrity_scan', targetType: 'ple',
+        targetId: ple.ple_code ?? req.params.id, councilId: ple.council_id ?? null,
         metadata: { signals: scan.flags.map(f => f.signal), turns: scan.scanned_turns, trigger: 'end' } });
     }
   } catch (e) {
-    console.error('[cles] integrity scan failed at /end (session unaffected):', req.params.id, e.message);
+    console.error('[ples] integrity scan failed at /end (session unaffected):', req.params.id, e.message);
   }
 
   // Nothing to classify. Recorded, not judged — the physician simply never had a conversation.
-  if (!scorable) return res.json({ status: 'cle_fail_t1', criteria: tier1 });
+  if (!scorable) return res.json({ status: 'ple_fail_t1', criteria: tier1 });
 
   // The reflection is SCORED EVIDENCE, not a follow-up survey: PIS-7 is assessed on "transcript และ
   // reflection", and the D6 anchor starts at "0: ไม่มี reflection". Screening the session now would
@@ -594,7 +594,7 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   // incomplete, and would do it silently.
   //
   // So stop here and let the physician write it. The session rests at 'ended', which is ALREADY the
-  // system's recoverable "tier-1 done, tier-2 pending" state: POST /cles/:id/reflection finalises it,
+  // system's recoverable "tier-1 done, tier-2 pending" state: POST /ples/:id/reflection finalises it,
   // and a session abandoned here is picked up by reconcile's existing sweep. Nothing new is needed
   // for the failure case.
   if (await reflectionRequired() && !(await reflection.getFor(req.params.id))) {
@@ -606,33 +606,33 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   // permanently demote a qualifying session to manual QA.
   const transcript = await reflection.withReflection(req.params.id, msgs.map(m => ({ role: m.role, content: m.content })));
   // Patient identifier → scrubbed from the transcript on-prem before the cloud eval (never forwarded).
-  const { data: endRef } = await supabase.from('cle_patient_refs')
-    .select('patient_ref').eq('cle_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
+  const { data: endRef } = await supabase.from('ple_patient_refs')
+    .select('patient_ref').eq('ple_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
   try {
     const out = await finalizeScreening({
-      cleId: req.params.id, physicianId: cle.physician_id, transcript, tier1,
+      pleId: req.params.id, physicianId: ple.physician_id, transcript, tier1,
       patient_ref: endRef?.patient_ref ?? null,
-      cle, // socratic_reason + is_test, so the consecutive-failure counter can skip the sessions it must
+      ple, // socratic_reason + is_test, so the consecutive-failure counter can skip the sessions it must
     });
     res.json(out);
   } catch (err) {
-    console.error(`[cles] /end tier-2 finalize failed for ${req.params.id} — left 'ended' for reconcile:`, err.message);
+    console.error(`[ples] /end tier-2 finalize failed for ${req.params.id} — left 'ended' for reconcile:`, err.message);
     res.status(202).json({ status: 'ended', criteria: tier1, pending: 'tier2' });
   }
 });
 
 // Get AI evaluation result
 router.get('/:id/evaluation', async (req, res) => {
-  const { data: cle } = await fetchOwnedPle(req.params.id, req.user.id, 'status');
-  if (!cle) return res.status(404).json({ error: 'Not found' });
-  if (cle.status !== 'evaluated') return res.status(202).json({ status: cle.status });
+  const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id, 'status');
+  if (!ple) return res.status(404).json({ error: 'Not found' });
+  if (ple.status !== 'evaluated') return res.status(202).json({ status: ple.status });
 
   // Blinded test round: when the superadmin "hold result until audited" toggle is ON, withhold the
-  // physician's score until an expert auditor has submitted one for this CLE (so physicians can't see/
+  // physician's score until an expert auditor has submitted one for this PLE (so physicians can't see/
   // compare scores before review). The result page polls this endpoint and reveals once an auditor scores.
   if (await holdResultUntilAudited()) {
     const { data: audited } = await supabase
-      .from('audit_scores').select('id').eq('cle_id', req.params.id).limit(1).maybeSingle();
+      .from('audit_scores').select('id').eq('ple_id', req.params.id).limit(1).maybeSingle();
     if (!audited) return res.status(202).json({ status: 'pending_review' });
   }
 
@@ -640,13 +640,13 @@ router.get('/:id/evaluation', async (req, res) => {
   // (possible until migration-eval-unique is applied), .single() errors on >1 row and returns null —
   // the physician's earned score reads as "missing." Degrade to the FIRST (earliest) evaluation instead.
   const { data: eval_ } = await supabase
-    .from('ai_evaluations').select('*').eq('cle_id', req.params.id)
+    .from('ai_evaluations').select('*').eq('ple_id', req.params.id)
     .order('evaluated_at', { ascending: true }).limit(1).maybeSingle();
   if (!eval_) return res.json(eval_);
 
-  // Credit band. Attached HERE rather than on GET /cles/:id because this is where the score is —
-  // composite_score lives on ai_evaluations, not on cles — and because this endpoint already sits
-  // behind the hold-until-audited gate above. Hanging it off the CLE row instead would both read an
+  // Credit band. Attached HERE rather than on GET /ples/:id because this is where the score is —
+  // composite_score lives on ai_evaluations, not on ples — and because this endpoint already sits
+  // behind the hold-until-audited gate above. Hanging it off the PLE row instead would both read an
   // undefined score and hand the physician a band while their result was supposed to be withheld.
   //
   // While credit_conversion_enabled = 0 this is a PREVIEW: `credits` is what the band WOULD be worth
@@ -664,9 +664,9 @@ router.get('/:id/evaluation', async (req, res) => {
 // participation (ICF §7), and a skipped reflection is itself the reason D6 scores low.
 
 router.get('/:id/reflection', requireConsent, async (req, res) => {
-  const { data: cle } = await fetchOwnedPle(req.params.id, req.user.id);
-  if (!cle) return res.status(404).json({ error: 'Not found' });
-  res.json({ cle_id: cle.id, status: cle.status, reflection: await reflection.getFor(cle.id) });
+  const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id);
+  if (!ple) return res.status(404).json({ error: 'Not found' });
+  res.json({ ple_id: ple.id, status: ple.status, reflection: await reflection.getFor(ple.id) });
 });
 
 router.post('/:id/reflection', requireConsent, async (req, res) => {
@@ -674,42 +674,42 @@ router.post('/:id/reflection', requireConsent, async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   const { learned, uncertainty, application, skipped } = parsed.data;
 
-  const { data: cle } = await fetchOwnedPle(req.params.id, req.user.id);
-  if (!cle) return res.status(404).json({ error: 'Not found' });
+  const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id);
+  if (!ple) return res.status(404).json({ error: 'Not found' });
   // A session still running has no reflection to write; one already screened has been scored, and
   // accepting a reflection afterwards would mean the score was computed without evidence that is now
   // on file — worse than not accepting it.
-  if (cle.status !== 'ended') {
-    return res.status(409).json({ error: 'This session is not awaiting a reflection.', code: 'not_awaiting_reflection', status: cle.status });
+  if (ple.status !== 'ended') {
+    return res.status(409).json({ error: 'This session is not awaiting a reflection.', code: 'not_awaiting_reflection', status: ple.status });
   }
 
   const wrote = await reflection.save({
-    cleId: cle.id, physicianId: req.user.id, learned, uncertainty, application, skipped,
+    pleId: ple.id, physicianId: req.user.id, learned, uncertainty, application, skipped,
   });
   if (!wrote.ok) {
-    console.error('[cles] reflection save failed:', wrote.message);
+    console.error('[ples] reflection save failed:', wrote.message);
     return res.status(500).json({ error: 'Could not save your reflection. Please try again.' });
   }
 
-  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'cle.reflection', targetType: 'cle',
-    targetId: cle.cle_code ?? cle.id, councilId: cle.council_id ?? null, metadata: { skipped: !!skipped } });
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'ple.reflection', targetType: 'ple',
+    targetId: ple.ple_code ?? ple.id, councilId: ple.council_id ?? null, metadata: { skipped: !!skipped } });
 
   // Now screen it, with the reflection in the transcript. Same shape as /end: a persistent RIMPL
   // failure leaves the session at 'ended' for reconcile rather than flagging a qualifying session.
   const { data: messages } = await supabase.from('messages')
-    .select('role, content').eq('cle_id', cle.id).order('created_at');
-  const transcript = await reflection.withReflection(cle.id, (messages ?? []).map(m => ({ role: m.role, content: m.content })));
-  const { data: pref } = await supabase.from('cle_patient_refs')
-    .select('patient_ref').eq('cle_id', cle.id).eq('physician_id', req.user.id).maybeSingle();
+    .select('role, content').eq('ple_id', ple.id).order('created_at');
+  const transcript = await reflection.withReflection(ple.id, (messages ?? []).map(m => ({ role: m.role, content: m.content })));
+  const { data: pref } = await supabase.from('ple_patient_refs')
+    .select('patient_ref').eq('ple_id', ple.id).eq('physician_id', req.user.id).maybeSingle();
   try {
     const out = await finalizeScreening({
-      cleId: cle.id, physicianId: req.user.id, transcript,
-      tier1: { c1: cle.c1_pass, c2: cle.c2_pass, c3: cle.c3_pass },
-      patient_ref: pref?.patient_ref ?? null, cle,
+      pleId: ple.id, physicianId: req.user.id, transcript,
+      tier1: { c1: ple.c1_pass, c2: ple.c2_pass, c3: ple.c3_pass },
+      patient_ref: pref?.patient_ref ?? null, ple,
     });
     res.json(out);
   } catch (err) {
-    console.error(`[cles] screening after reflection failed for ${cle.id} — left 'ended' for reconcile:`, err.message);
+    console.error(`[ples] screening after reflection failed for ${ple.id} — left 'ended' for reconcile:`, err.message);
     res.status(202).json({ status: 'ended', pending: 'tier2' });
   }
 });

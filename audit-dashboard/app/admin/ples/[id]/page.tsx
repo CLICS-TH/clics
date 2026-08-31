@@ -15,7 +15,7 @@ export default function AdminTranscriptPage() {
 
   useEffect(() => {
     // .catch a network/non-JSON failure too — without it the page hangs on "Loading…" forever.
-    apiFetch<CleTranscript>(`/admin/cles/${id}/transcript`).then(d => {
+    apiFetch<CleTranscript>(`/admin/ples/${id}/transcript`).then(d => {
       if (d?.error) setNotFound(true); else setData(d);
     }).catch(() => setNotFound(true));
   }, [id]);
@@ -30,15 +30,15 @@ export default function AdminTranscriptPage() {
     <div className="max-w-3xl mx-auto p-6 md:p-10"><p className="text-muted-foreground">กำลังโหลด… / Loading…</p></div>
   );
 
-  const { cle, messages = [] } = data;
-  const physician = cle.professionals;
+  const { ple, messages = [] } = data;
+  const physician = ple.professionals;
 
   return (
     <div className="max-w-3xl mx-auto p-6 md:p-10">
       <PageIntro
         eyebrow="Admin · Investigate session"
-        title={cle.title || cle.chief_complaint || 'เซสชัน / Session'}
-        subtitle={`${physician?.full_name_th || physician?.full_name_en || ''}${physician?.pseudonym ? ` · ${physician.pseudonym}` : ''}${cle.specialties?.name_th ? ` · ${cle.specialties.name_th}` : ''} — ${STATUS_MAP[cle.status] ?? cle.status} · ${cle.turn_count ?? 0} รอบ`}
+        title={ple.title || ple.chief_complaint || 'เซสชัน / Session'}
+        subtitle={`${physician?.full_name_th || physician?.full_name_en || ''}${physician?.pseudonym ? ` · ${physician.pseudonym}` : ''}${ple.specialties?.name_th ? ` · ${ple.specialties.name_th}` : ''} — ${STATUS_MAP[ple.status] ?? ple.status} · ${ple.turn_count ?? 0} รอบ`}
       />
       <div className="mb-4">
         <Button variant="outline" size="sm" onClick={() => history.back()}>← กลับ / Back</Button>

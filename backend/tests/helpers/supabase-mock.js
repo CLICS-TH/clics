@@ -56,7 +56,7 @@ function makeSupabaseMock() {
     self.not = (c, op, v) => { rec.nots.push([c, op, v]); return self; };
     // ADDITIVE: record .in() (rec.ins). It used to be a silent no-op in the chainable list below,
     // which is how a real bug stayed invisible: a suite could only recognise a query by its .eq()s,
-    // so switching a filter from .eq('status','cle_pass') to .in('status', [...]) made the query
+    // so switching a filter from .eq('status','ple_pass') to .in('status', [...]) made the query
     // unrecognisable to the double rather than making a test fail. Recording it lets a suite match
     // on set membership the same way it matches on equality.
     self.in = (c, vals) => { rec.ins.push([c, vals]); return self; };

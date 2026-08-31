@@ -137,7 +137,7 @@ Three properties, each of which replaces a way the old pipeline failed:
   `lib/pii-gate.mjs`, and only a clean frame reaches the disk. A PNG is the one artifact here that
   code review cannot read, and `physician-ui/public/img/` is served to the open internet.
 - **`expect`, so an empty state cannot be published.** Every frame names a string the populated page
-  must contain. This exists because the first auditor-queue capture photographed *"No CLEs assigned
+  must contain. This exists because the first auditor-queue capture photographed *"No PLEs assigned
   yet"* — the fixture shape was wrong, the page rendered its empty state, and a plain "has text"
   check passed it. A screenshot of an empty feature is worse than no screenshot.
 - **Fail closed.** Any frame that errors, renders empty or trips the gate exits non-zero. The old

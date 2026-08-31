@@ -9,7 +9,7 @@ import { CardGridSkeleton } from '@/components/Skeleton';
 import { apiFetch } from '@/lib/api';
 import { canAudit } from '@/lib/auth';
 import { useAuthUser } from '@/lib/client-store';
-import { cleStatusCards } from '@/lib/labels';
+import { pleStatusCards } from '@/lib/labels';
 import { Pis7Radar } from '@/components/Pis7Radar';
 import { pis7Conclusion } from '@/lib/pis7-delta';
 import type { Stat } from '@/components/StatStrip';
@@ -66,13 +66,13 @@ export default function HomePage() {
           </>
         );
       }
-      const stats: Stat[] = cleStatusCards(adminStats).map(c => ({
+      const stats: Stat[] = pleStatusCards(adminStats).map(c => ({
         value: c.value,
         label: c.label,
-        href: `/admin/cles${c.key ? `?status=${c.key}` : ''}`,
+        href: `/admin/ples${c.key ? `?status=${c.key}` : ''}`,
       }));
       const actions: HeroAction[] = [
-        { label: 'จัดการ CLEs / Manage CLEs', href: '/admin/cles' },
+        { label: 'จัดการ PLEs / Manage PLEs', href: '/admin/ples' },
         { label: 'QA Queue', href: '/admin/flagged', variant: 'outline' },
         { label: 'คำเชิญ / Invites', href: '/admin/invites', variant: 'outline' },
       ];
@@ -80,7 +80,7 @@ export default function HomePage() {
         <RoleHero
           eyebrow="Admin · ภาพรวมของสภา / Council overview"
           greeting={greeting}
-          subtitle="จัดการ pilot cohort — CLEs · QA · คำเชิญ / Manage your council's CLEs, QA queue and invites."
+          subtitle="จัดการ pilot cohort — PLEs · QA · คำเชิญ / Manage your council's PLEs, QA queue and invites."
           badge={<RoleBadge />}
           stats={stats}
           statsClassName="grid grid-cols-2 gap-4 @min-[480px]:grid-cols-3 @min-[768px]:grid-cols-5"
@@ -112,26 +112,26 @@ export default function HomePage() {
           <RoleHero
             eyebrow="Auditor · คิวการประเมิน / Scoring queue"
             greeting={greeting}
-            subtitle="Blind PIS-7 scoring — เลือก CLE เพื่อให้คะแนน (คะแนน AI ถูกซ่อนไว้) / Score assigned CLEs blind."
+            subtitle="Blind PIS-7 scoring — เลือก PLE เพื่อให้คะแนน (คะแนน AI ถูกซ่อนไว้) / Score assigned PLEs blind."
             badge={<RoleBadge />}
             stats={stats}
             actions={actions}
           />
           {/* Aggregate calibration radar: your mean PIS-7 vs the AI's across everything you've scored.
-              Only meaningful once at least one scored CLE has an AI evaluation to pair with (n>0). */}
+              Only meaningful once at least one scored PLE has an AI evaluation to pair with (n>0). */}
           {calib && calib.n > 0 && calib.auditor && calib.ai && (
             <div className="rounded-xl border p-5">
               <h2 className="font-sans text-lg font-semibold mb-1">การปรับเทียบของคุณ vs AI <span className="text-sm font-normal text-muted-foreground">/ Your calibration vs AI · n={calib.n}</span></h2>
-              <p className="text-xs text-muted-foreground mb-3">ค่าเฉลี่ยรายหมวด PIS-7 จาก CLE ที่คุณประเมินแล้ว / Mean PIS-7 by domain across the CLEs you have scored.</p>
+              <p className="text-xs text-muted-foreground mb-3">ค่าเฉลี่ยรายหมวด PIS-7 จาก PLE ที่คุณประเมินแล้ว / Mean PIS-7 by domain across the PLEs you have scored.</p>
               <Pis7Radar ai={calib.ai} human={calib.auditor} />
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(calib.ai, calib.auditor)}</p>
             </div>
           )}
-          {/* Peer calibration (toggle): your mean vs the auditor-cohort mean across the same CLEs. */}
+          {/* Peer calibration (toggle): your mean vs the auditor-cohort mean across the same PLEs. */}
           {calib && calib.n > 0 && calib.auditor && calib.peer && (
             <div className="rounded-xl border p-5">
               <h2 className="font-sans text-lg font-semibold mb-1">การปรับเทียบของคุณ vs ค่าเฉลี่ยผู้ประเมิน <span className="text-sm font-normal text-muted-foreground">/ Your calibration vs auditor average · n={calib.n}</span></h2>
-              <p className="text-xs text-muted-foreground mb-3">ค่าเฉลี่ยรายหมวด PIS-7 ของคุณเทียบกับค่าเฉลี่ยของผู้ประเมินทั้งหมด / Your mean PIS-7 vs the auditor-cohort mean across the CLEs you have scored.</p>
+              <p className="text-xs text-muted-foreground mb-3">ค่าเฉลี่ยรายหมวด PIS-7 ของคุณเทียบกับค่าเฉลี่ยของผู้ประเมินทั้งหมด / Your mean PIS-7 vs the auditor-cohort mean across the PLEs you have scored.</p>
               <Pis7Radar peer={calib.peer} human={calib.auditor} />
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(calib.peer, calib.auditor, { th: 'ค่าเฉลี่ยผู้ประเมิน', en: 'the auditor average' })}</p>
             </div>
@@ -143,7 +143,7 @@ export default function HomePage() {
     // Defensive fallback (a physician without can_audit shouldn't reach /home — they use the portal).
     return (
       <PageIntro
-        eyebrow="CLICS · Continuous Learning & Intelligence Credit System"
+        eyebrow="CLICS · Case-based Learning Intelligence Credit System"
         title={greeting}
         subtitle="บทบาทของคุณในระบบ CLICS / Your role in CLICS"
       />

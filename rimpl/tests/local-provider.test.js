@@ -577,10 +577,10 @@ describe('ready() — /health/deep probe', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Context length — the measured blocker for running a real CLE on the DGX.
+// Context length — the measured blocker for running a real PLE on the DGX.
 //
 // On 2026-08-24 a 9,144-token evaluation against the box returned
-// 400 "... exceeds the available context size (4096)". A creditable CLE is >= 10,000 tokens (C3), so
+// 400 "... exceeds the available context size (4096)". A creditable PLE is >= 10,000 tokens (C3), so
 // at Ollama's default EVERY evaluation fails. These tests pin the two things that make that
 // survivable: it is visible in /health/deep beforehand, and when it does happen the error says how
 // to fix it instead of just restating the number.
@@ -594,7 +594,7 @@ describe('served context length', () => {
     });
   };
 
-  test('DOWN when the box serves less context than a CLE transcript needs', async () => {
+  test('DOWN when the box serves less context than a PLE transcript needs', async () => {
     probeRoutes({ model_info: { 'qwen3.context_length': 4096 } });
     const r = await load().ready();
 
@@ -631,7 +631,7 @@ describe('served context length', () => {
     process.env.LOCAL_AI_MIN_CONTEXT = '65536';
     probeRoutes({ model_info: { 'qwen3.context_length': 32768 } });
     const r = await load().ready();
-    expect(r.checks.local_ai.status).toBe('down'); // adequate for a CLE, below THIS deployment's bar
+    expect(r.checks.local_ai.status).toBe('down'); // adequate for a PLE, below THIS deployment's bar
   });
 
   test('a context-overflow 400 explains the fix, and is NOT retried', async () => {

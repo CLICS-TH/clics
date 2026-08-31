@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="stylesheet" href="/css/main.css" />
-  <link rel="prefetch" href="/cle-new" />
+  <link rel="prefetch" href="/ple-new" />
 </head>
 <body>
   <nav>
@@ -34,7 +34,7 @@
       </div>
       <!-- Specialty · position label under the name (filled by dashboard.js from the cached user). -->
       <p class="sub" id="identityLine" style="display:none;margin-top:.45rem"></p>
-      <p class="sub">Continuous Learning Episodes ของคุณ — จัดระเบียบด้วยโฟลเดอร์ / Organize your episodes in folders</p>
+      <p class="sub">Professional Learning Episodes ของคุณ — จัดระเบียบด้วยโฟลเดอร์ / Organize your episodes in folders</p>
       <!-- Shown only when the account hasn't linked Google yet (dashboard.js toggles it). -->
       <div id="linkGoogleWrap" style="display:none;margin-top:.5rem">
         <button class="btn btn-ghost btn-sm" id="linkGoogleBtn" type="button" data-icon="google">เชื่อมบัญชี Google<span class="bi-en">Link Google account</span></button>
@@ -54,7 +54,7 @@
 
     <div class="dash-toolbar">
       <button class="btn btn-ghost" id="newFolderBtn" type="button">+ โฟลเดอร์ใหม่<span class="bi-en">New folder</span></button>
-      <a href="/cle-new" class="btn btn-primary">+ เริ่ม Continuous Learning Episode ใหม่<span class="bi-en">New Continuous Learning Episode</span></a>
+      <a href="/ple-new" class="btn btn-primary">+ เริ่ม Professional Learning Episode ใหม่<span class="bi-en">New Professional Learning Episode</span></a>
     </div>
     <form class="folder-form" id="newFolderForm" hidden>
       <input id="newFolderName" type="text" maxlength="80" placeholder="ชื่อโฟลเดอร์ / Folder name…" autocomplete="off" />
@@ -62,7 +62,7 @@
       <button class="btn btn-ghost" id="cancelFolderBtn" type="button">ยกเลิก<span class="bi-en">Cancel</span></button>
     </form>
 
-    <div id="cleList"><p class="list-empty">กำลังโหลด...</p></div>
+    <div id="pleList"><p class="list-empty">กำลังโหลด...</p></div>
   </div>
   <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>

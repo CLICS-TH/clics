@@ -71,16 +71,16 @@ const THEMES = ['light', 'dark'];
 // The three CREC pages first — they are the reason this script exists — then the rest of the portal,
 // since the token changes this audit drives are app-wide and can regress any of them.
 const PORTAL_PAGES = [
-  { path: '/cle-reflect?id=00000000-0000-4000-8000-000000000000', token: true },
+  { path: '/ple-reflect?id=00000000-0000-4000-8000-000000000000', token: true },
   { path: '/identity', token: true },
   { path: '/acceptability', token: true }, { path: '/dashboard', token: true },
-  { path: '/cle-new', token: true }, { path: '/lpdp', token: true },
+  { path: '/ple-new', token: true }, { path: '/lpdp', token: true },
   { path: '/payment', token: true }, { path: '/', token: false },
   // Also carry class="sub" and were missed in the first pass — .sub is now a global rule,
   // so every page that uses it is in this audit's blast radius.
-  { path: '/cle-result', token: true }, { path: '/guest-chat', token: false },
+  { path: '/ple-result', token: true }, { path: '/guest-chat', token: false },
   { path: '/forgot', token: false },
-  { path: '/cle-chat?id=00000000-0000-4000-8000-000000000000', token: true },
+  { path: '/ple-chat?id=00000000-0000-4000-8000-000000000000', token: true },
   // The manual: long-form Thai prose, the densest text on the portal, and the one page whose whole
   // job is to be read. Public, so no token.
   { path: '/manual', token: false },

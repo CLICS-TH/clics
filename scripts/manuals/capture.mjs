@@ -59,7 +59,7 @@ const VIEW = { width: 1120, height: 840 };
  * `clip`  the element to photograph. Without it a frame is mostly empty canvas, and printed at A4
  *         the actual UI ends up too small to read — which is the only reason the frame exists.
  * `expect` a string the rendered page MUST contain. This exists because the first auditor-queue
- *         capture photographed "No CLEs assigned yet" — a fixture whose shape did not match, so the
+ *         capture photographed "No PLEs assigned yet" — a fixture whose shape did not match, so the
  *         page rendered its EMPTY state. The frame had plenty of text, so a length check passed it.
  *         An empty state is the one screenshot worse than no screenshot: it teaches the reader that
  *         the feature has nothing in it.
@@ -72,7 +72,7 @@ const FRAMES = [
     why: 'physician §2 first-login' },
   { name: 'guest-composer', app: 'portal', url: '/guest-chat', wait: 'textarea',
     fill: ['textarea', 'ผู้ป่วยชายอายุ 62 ปี เบาหวานชนิดที่ 2 มาด้วยอาการเหนื่อยง่ายขณะออกแรง 3 สัปดาห์'],
-    why: 'physician §5 run-a-cle — pre-filled and NEVER SENT, so no AI spend' },
+    why: 'physician §5 run-a-ple — pre-filled and NEVER SENT, so no AI spend' },
   { name: 'dashboard', app: 'portal', url: '/dashboard', token: true, wait: '.page-intro',
     clip: '.container', expect: 'ประเมินแล้ว',
     why: 'physician §4 dashboard' },

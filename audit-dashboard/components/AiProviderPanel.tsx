@@ -29,9 +29,9 @@ type ApiShape = {
 // route is called.
 const PURPOSE_COPY: Record<Purpose, { th: string; en: string; note: string; icon: string }> = {
   chat: { th: 'บทสนทนากับแพทย์', en: 'Physician chat', icon: '💬',
-    note: 'ตอบแพทย์ระหว่างทำ CLE — ผู้ใช้รู้สึกถึงความเร็วโดยตรง / Answers the physician during a CLE. Latency here is felt directly.' },
+    note: 'ตอบแพทย์ระหว่างทำ PLE — ผู้ใช้รู้สึกถึงความเร็วโดยตรง / Answers the physician during a PLE. Latency here is felt directly.' },
   criteria: { th: 'ตัวคัดกรอง C1–C6', en: 'C1–C6 screening', icon: '🔍',
-    note: 'ตัดสินว่า CLE ผ่านเกณฑ์ขั้นต้นหรือไม่ / Decides whether a CLE clears the entry criteria.' },
+    note: 'ตัดสินว่า PLE ผ่านเกณฑ์ขั้นต้นหรือไม่ / Decides whether a PLE clears the entry criteria.' },
   discuss: { th: 'ผู้ช่วยสอบเทียบผู้ตรวจ', en: 'Auditor calibration tutor', icon: '🎓',
     note: 'คุยกับผู้ตรวจหลังให้คะแนนแล้วเท่านั้น — ไม่แตะคะแนน / Talks to the auditor only after they have scored. Never touches a score.' },
   embed: { th: 'ค้นคืนเอกสารอ้างอิง (RAG)', en: 'Reference retrieval (RAG)', icon: '📚',

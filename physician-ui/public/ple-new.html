@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>CLICS — เริ่ม Continuous Learning Episode ใหม่</title>
+  <title>CLICS — เริ่ม Professional Learning Episode ใหม่</title>
   <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,9 +15,9 @@
   <nav><span class="brand">CLICS</span><div><a href="/dashboard">← กลับ</a></div></nav>
   <div class="container" style="max-width:560px">
     <header class="page-intro">
-      <p class="eyebrow">Continuous Learning Episode · New Session</p>
-      <h1>เริ่ม Continuous Learning Episode ใหม่</h1>
-      <p class="sub">New Continuous Learning Episode — เริ่มบทสนทนากับผู้ช่วย AI เพื่อฝึกการให้เหตุผลทางคลินิก</p>
+      <p class="eyebrow">Professional Learning Episode · New Session</p>
+      <h1>เริ่ม Professional Learning Episode ใหม่</h1>
+      <p class="sub">New Professional Learning Episode — เริ่มบทสนทนากับผู้ช่วย AI เพื่อฝึกการให้เหตุผลทางคลินิก</p>
     </header>
     <div class="card">
       <div class="form-group">
@@ -77,12 +77,12 @@
       const socratic = pilotBlock.style.display !== 'none'
         ? document.getElementById('pilotMode').value === 'socratic'
         : undefined;
-      const cle = await api.createPle({ chief_complaint: complaint, folder_id, socratic });
-      if (cle?.id) window.location.href = `/cle-chat?id=${cle.id}`;
+      const ple = await api.createPle({ chief_complaint: complaint, folder_id, socratic });
+      if (ple?.id) window.location.href = `/ple-chat?id=${ple.id}`;
       else {
-        // WHY THIS IS A MAP AND NOT A STRING. Every guard on POST /cles returns an English
+        // WHY THIS IS A MAP AND NOT A STRING. Every guard on POST /ples returns an English
         // sentence written for an API client — "Identity verification is required before starting a
-        // session." Rendering `cle.error` printed that verbatim to a Thai physician: untranslated,
+        // session." Rendering `ple.error` printed that verbatim to a Thai physician: untranslated,
         // and with no hint that the fix is one page away. Two of these are actionable, so they
         // carry the link to the page that resolves them.
         const FAIL = {
@@ -90,7 +90,7 @@
             msg: 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ / AI usage limit reached — contact an administrator.',
           },
           // Not a fault — this physician has FINISHED. Worth saying so plainly.
-          cle_limit_reached: {
+          ple_limit_reached: {
             msg: 'คุณทำครบทุกบทเรียนของโครงการแล้ว ขอบคุณที่เข้าร่วม / You have completed every episode for this study. Thank you for taking part.',
             href: '/lpdp', cta: 'ดูความก้าวหน้าของคุณ / See your progress',
           },
@@ -106,14 +106,14 @@
             href: '/dashboard', cta: 'ไปหน้าหลักเพื่อให้ความยินยอม / Go to your dashboard to consent',
           },
         };
-        const f = FAIL[cle?.code];
+        const f = FAIL[ple?.code];
         if (f) {
           // Static copy only — nothing from the server is interpolated into this markup.
           errEl.innerHTML = f.href
             ? `${f.msg} <a href="${f.href}" style="color:var(--coral-text);font-weight:600">${f.cta} →</a>`
             : f.msg;
         } else {
-          errEl.textContent = cle?.error ?? 'เกิดข้อผิดพลาด';
+          errEl.textContent = ple?.error ?? 'เกิดข้อผิดพลาด';
         }
         errEl.style.display = 'block';
         btn.disabled = false; btn.textContent = 'เริ่มการสนทนา / Start Session';

@@ -27,7 +27,7 @@
     <header class="page-intro">
       <p class="eyebrow">ค่าตอบแทน · Compensation</p>
       <h1>ข้อมูลการรับเงิน <span style="font-family:var(--font-body)">/ Payment details</span></h1>
-      <p class="sub">กรอกบัญชีธนาคารหรือพร้อมเพย์ เพื่อรับค่าตอบแทนสำหรับแต่ละ Continuous Learning Episode ที่ทำสำเร็จ / Provide a bank account or PromptPay to receive compensation for each completed episode.</p>
+      <p class="sub">กรอกบัญชีธนาคารหรือพร้อมเพย์ เพื่อรับค่าตอบแทนสำหรับแต่ละ Professional Learning Episode ที่ทำสำเร็จ / Provide a bank account or PromptPay to receive compensation for each completed episode.</p>
     </header>
 
     <div class="card">
@@ -75,9 +75,9 @@
     // Compensation is physician-only — bounce other roles (the backend also enforces this).
     api.me().then(r => { const role = r && r.user && r.user.role; if (role && role !== 'physician') location.replace('/dashboard'); }).catch(() => {});
 
-    // Show the current ฿/CLE rate (any authed user may read the flag endpoint).
+    // Show the current ฿/PLE rate (any authed user may read the flag endpoint).
     api.pilotMode().catch(() => null); // warm; rate shown from settings is superadmin-only, so keep a generic note
-    $('rateNote').textContent = 'ค่าตอบแทนจ่ายตามจำนวน Continuous Learning Episode ที่ทำสำเร็จ / Paid per completed episode by the study team.';
+    $('rateNote').textContent = 'ค่าตอบแทนจ่ายตามจำนวน Professional Learning Episode ที่ทำสำเร็จ / Paid per completed episode by the study team.';
 
     // Prefill from any saved details.
     (async () => {

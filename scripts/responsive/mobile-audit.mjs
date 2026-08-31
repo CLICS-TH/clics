@@ -174,7 +174,7 @@ function startServer() {
 }
 
 // physician-ui pages. token:true injects a fake clics_token so the auth-gated shell renders (content
-// stays empty/loading — the layout is what we overflow-check). /cle-chat needs a real ?id + backend so
+// stays empty/loading — the layout is what we overflow-check). /ple-chat needs a real ?id + backend so
 // it can't render hermetically (it redirects to /dashboard); it's audited live separately.
 const PUI_PAGES = [
   { path: '/', label: 'login' },
@@ -184,9 +184,9 @@ const PUI_PAGES = [
   { path: '/guest-chat', label: 'guest-chat' },
   { path: '/auth/callback', label: 'oauth-callback' },
   { path: '/dashboard', token: true, label: 'dashboard' },
-  { path: '/cle-new', token: true, label: 'cle-new' },
+  { path: '/ple-new', token: true, label: 'ple-new' },
   { path: '/lpdp', token: true, label: 'lpdp' },
-  { path: '/cle-result', token: true, label: 'cle-result' },
+  { path: '/ple-result', token: true, label: 'ple-result' },
 ];
 
 const findings = [];
@@ -236,7 +236,7 @@ async function run() {
   const DASH = process.env.DASH_URL, BACKEND = process.env.BACKEND_URL;
   const roleCfg = [
     { role: 'superadmin', email: process.env.SUPER_EMAIL, pw: process.env.SUPER_PW,
-      paths: ['/home','/admin/overview','/admin/cles','/admin/users','/admin/invites','/admin/flagged','/admin/compensation','/admin/stats','/admin/icc','/ethics','/analyst'] },
+      paths: ['/home','/admin/overview','/admin/ples','/admin/users','/admin/invites','/admin/flagged','/admin/compensation','/admin/stats','/admin/icc','/ethics','/analyst'] },
     { role: 'auditor', email: process.env.AUDITOR_EMAIL, pw: process.env.AUDITOR_PW,
       paths: ['/home','/auditor/queue'] },
   ].filter(r => r.email && r.pw);

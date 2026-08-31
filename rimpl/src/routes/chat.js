@@ -16,12 +16,12 @@ const router = Router();
 const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));
 
 const ChatSchema = z.object({
-  cle_id: z.string(),
+  ple_id: z.string(),
   history: z.array(z.object({ role: z.string(), content: z.string() })),
   message: z.string().min(1),
   language: z.enum(['th', 'en']).default('th'),
   chief_complaint: z.string().optional(),
-  // The physician's structured patient identifier (cle_patient_refs), passed on-prem SOLELY so RIMPL
+  // The physician's structured patient identifier (ple_patient_refs), passed on-prem SOLELY so RIMPL
   // can deterministically scrub it from the narrative before any cloud call — it is never forwarded.
   // nullish (not optional): the backend sends `?? null` when there is no patient_ref — null must pass.
   patient_ref: z.string().nullish(),
@@ -30,7 +30,7 @@ const ChatSchema = z.object({
   // Superadmin `clinical_artifacts` setting (the backend forwards it): true → allow the AI to emit
   // `:::artifact{...}` side-panel blocks. Default false; the transcript strip runs regardless.
   artifacts: z.boolean().default(false),
-  // Socratic rescue state, forwarded by the backend from the `cles` row. RIMPL is stateless, so it
+  // Socratic rescue state, forwarded by the backend from the `ples` row. RIMPL is stateless, so it
   // cannot know whether this session has already been rescued or has already qualified — and both
   // are latches (a session does not un-qualify). Without them the classifier would re-run on every
   // turn past the fourth, roughly doubling the AI cost of a long, good session.

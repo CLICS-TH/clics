@@ -1,7 +1,7 @@
 // ICC generalised past two raters.
 //
 // Why this exists: services/icc.js was hardcoded to k = 2 (`const k = 2`). With three blinded
-// auditors per CLE — the design the manuscript describes — it could not express the statistic it
+// auditors per PLE — the design the manuscript describes — it could not express the statistic it
 // names, and the 2026-06 soak worked around it by pooling all rater PAIRS, which is an
 // approximation, not ICC(2,1).
 //
@@ -82,7 +82,7 @@ describe('ICC(1,1) — the model that actually fits a rotating auditor pool', ()
   test('handles the ragged matrix natively, using every rating', () => {
     const r = iccOneWay(RAGGED);
     expect(r.icc).toBe(0.831);          // python reference: 0.831
-    expect(r.n).toBe(8);                // all 8 CLEs, none dropped
+    expect(r.n).toBe(8);                // all 8 PLEs, none dropped
     expect(r.n_ratings).toBe(22);   // 3+2+3+2+3+4+3+2
     expect(r.model).toBe('ICC(1,1)');
   });

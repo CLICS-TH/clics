@@ -10,7 +10,7 @@ const rules = (t) => [...new Set(scanText(t).map((f) => f.rule))].sort();
 
 // ---- clean: the manual's actual subject matter must not trip it ------------------------------
 test('pilot pseudonyms and ordinary UI chrome pass', () => {
-  assert.deepEqual(rules('P-014 · CLE-102 · คะแนน PIS-7 82/100 · 12 รอบสนทนา'), []);
+  assert.deepEqual(rules('P-014 · PLE-102 · คะแนน PIS-7 82/100 · 12 รอบสนทนา'), []);
   assert.deepEqual(rules('เข้าสู่ระบบ / Login · อีเมล / Email · รหัสผ่าน / Password'), []);
   assert.deepEqual(rules('ชื่อ-นามสกุล: P-014'), [], 'a pseudonym in a name field is what SHOULD be there');
 });

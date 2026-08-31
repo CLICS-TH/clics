@@ -28,15 +28,15 @@ beforeEach(() => m.reset());
 test('submitting an auditor score writes an audit_log row (action audit.score)', async () => {
   m.state.caller = AUDITOR;
   m.state.resolve = (table, kind, ctx) => {
-    if (table === 'cles') return { id: 'u1', auditor_id: 'aud1', council_id: 'cA', physician_id: 'phys9' };
+    if (table === 'ples') return { id: 'u1', auditor_id: 'aud1', council_id: 'cA', physician_id: 'phys9' };
     if (table === 'audit_scores' && kind === 'single') return null; // no existing score
     return undefined; // audit_scores insert / audit_log insert → ok
   };
-  const r = await auth(request(app).post('/auditor/cles/u1/score')).send(FULL);
+  const r = await auth(request(app).post('/auditor/ples/u1/score')).send(FULL);
   expect(r.status).toBe(200);
   const logged = m.find('audit_log', 'insert');
   expect(logged).toBeDefined();
-  expect(logged.payload).toMatchObject({ action: 'audit.score', target_type: 'cle', target_id: 'u1' });
+  expect(logged.payload).toMatchObject({ action: 'audit.score', target_type: 'ple', target_id: 'u1' });
 });
 
 test('GET /superadmin/audit-log returns the events newest-first', async () => {

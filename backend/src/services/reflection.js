@@ -18,24 +18,24 @@ const { supabase } = require('../lib/supabase');
 // "จบด้วย reflection ว่าเรียนรู้อะไร ความไม่แน่นอนอะไร และจะตรวจสอบ/นำไปใช้อย่างไร"
 const PROMPTS = ['learned', 'uncertainty', 'application'];
 
-async function getFor(cleId) {
+async function getFor(pleId) {
   const { data } = await supabase.from('ple_reflections')
     .select('id, learned, uncertainty, application, skipped, submitted_at')
-    .eq('cle_id', cleId).maybeSingle();
+    .eq('ple_id', pleId).maybeSingle();
   return data ?? null;
 }
 
-// Record a reflection (or a deliberate skip). Idempotent on cle_id: a double-submit from two tabs
+// Record a reflection (or a deliberate skip). Idempotent on ple_id: a double-submit from two tabs
 // updates rather than erroring, because the physician's second click should not look like a failure.
-async function save({ cleId, physicianId, learned, uncertainty, application, skipped = false }) {
+async function save({ pleId, physicianId, learned, uncertainty, application, skipped = false }) {
   const row = {
-    cle_id: cleId, physician_id: physicianId, skipped: !!skipped,
+    ple_id: pleId, physician_id: physicianId, skipped: !!skipped,
     learned: skipped ? null : (learned ?? null),
     uncertainty: skipped ? null : (uncertainty ?? null),
     application: skipped ? null : (application ?? null),
     submitted_at: new Date().toISOString(),
   };
-  const { error } = await supabase.from('ple_reflections').upsert(row, { onConflict: 'cle_id' });
+  const { error } = await supabase.from('ple_reflections').upsert(row, { onConflict: 'ple_id' });
   if (error) return { ok: false, message: error.message };
   return { ok: true };
 }
@@ -61,8 +61,8 @@ function asTranscriptTurn(reflection) {
 }
 
 // The transcript a screening or evaluation call should see: the conversation, then the reflection.
-async function withReflection(cleId, transcript) {
-  const turn = asTranscriptTurn(await getFor(cleId));
+async function withReflection(pleId, transcript) {
+  const turn = asTranscriptTurn(await getFor(pleId));
   return turn ? [...transcript, turn] : transcript;
 }
 

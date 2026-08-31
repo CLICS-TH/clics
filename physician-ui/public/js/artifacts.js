@@ -49,7 +49,7 @@
   function register(a) { if (!registry.has(a.id)) registry.set(a.id, a); return a.id; }
 
   // Sanitized markdown → HTML for the panel body; fail SAFE to plain text if either lib is unavailable
-  // (mirrors cle-chat.js renderMessage — AI output is untrusted once marked.parse runs it).
+  // (mirrors ple-chat.js renderMessage — AI output is untrusted once marked.parse runs it).
   function renderBody(body) {
     if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') return DOMPurify.sanitize(marked.parse(body));
     var d = document.createElement('div'); d.textContent = body; return d.innerHTML;

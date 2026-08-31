@@ -1,4 +1,4 @@
-// Compensation report (CLICS §12): per-physician payout = min(passed CLEs, 3) × ฿500, capped ฿1500.
+// Compensation report (CLICS §12): per-physician payout = min(passed PLEs, 3) × ฿500, capped ฿1500.
 jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSupabaseMock());
 
 const request = require('supertest');
@@ -12,12 +12,12 @@ const auth = (r) => r.set('Authorization', 'Bearer t');
 
 const SUPER = { id: 'sa', role: 'superadmin', council_id: null, status: 'active', email: 's@t' };
 
-test('caps a physician at 3 CLEs (฿1500) and sums the cohort total', async () => {
+test('caps a physician at 3 PLEs (฿1500) and sums the cohort total', async () => {
   m.reset();
   m.state.caller = SUPER;
   m.state.resolve = (table, kind, ctx) => {
-    if (table === 'cles' && kind === 'list') {
-      // phys-1 passed 4 CLEs (should cap at 3), phys-2 passed 1.
+    if (table === 'ples' && kind === 'list') {
+      // phys-1 passed 4 PLEs (should cap at 3), phys-2 passed 1.
       return [{ physician_id: 'phys-1' }, { physician_id: 'phys-1' }, { physician_id: 'phys-1' }, { physician_id: 'phys-1' }, { physician_id: 'phys-2' }];
     }
     if (table === 'professionals' && kind === 'list') {

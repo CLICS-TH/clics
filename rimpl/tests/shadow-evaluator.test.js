@@ -25,7 +25,7 @@ const ok = (obj, extra = {}) => ({
   text: JSON.stringify(obj), inputTokens: 100, outputTokens: 50,
   stopReason: 'end_turn', model: 'deepseek-v4-flash', provider: 'local', ...extra,
 });
-const run = () => runShadowEvaluation({ cleId: 'cle-1', transcriptText: 'Physician: hi', servedProvider: 'anthropic' });
+const run = () => runShadowEvaluation({ pleId: 'ple-1', transcriptText: 'Physician: hi', servedProvider: 'anthropic' });
 const row = () => mockUpsert.mock.calls[0][0];
 
 let warnSpy;
@@ -73,7 +73,7 @@ describe('recording', () => {
 
     expect(mockCallProvider).toHaveBeenCalledWith(expect.objectContaining({ provider: 'local' }));
     const w = row();
-    expect(w).toMatchObject({ cle_id: 'cle-1', provider: 'local', d1: 3, d5: 5, d7: 4 });
+    expect(w).toMatchObject({ ple_id: 'ple-1', provider: 'local', d1: 3, d5: 5, d7: 4 });
     // .45+.80+.45+.30+.75+.10+.40 = 3.25 -> x20 = 65
     expect(w.composite_score).toBeCloseTo(65, 6);
     expect(w.model_version).toBe('CCME_LLM_v8.0+deepseek-v4-flash');
@@ -92,7 +92,7 @@ describe('recording', () => {
 
   test('re-uses the caller\'s already de-identified transcript — no new PII surface', async () => {
     mockCallProvider.mockResolvedValue(ok(VALID));
-    await runShadowEvaluation({ cleId: 'c', transcriptText: 'Physician: [NAME-1] has fever', servedProvider: 'anthropic' });
+    await runShadowEvaluation({ pleId: 'c', transcriptText: 'Physician: [NAME-1] has fever', servedProvider: 'anthropic' });
     const sent = JSON.stringify(mockCallProvider.mock.calls[0][0].messages);
     expect(sent).toContain('[NAME-1]');
   });
@@ -150,10 +150,13 @@ describe('every outcome writes the SAME column set (upsert must replace, never m
     expect(parseFail).toEqual(success);
     expect(transportFail).toEqual(success);
     // and the set is the full column list, not a coincidentally-matching subset
+    // Sorted, so the order is alphabetical rather than meaningful. `cle_id` used to sit first
+    // ('l' < 'o' in composite_score); after the CLE->PLE rename `ple_id` sorts between latency_ms
+    // and prompt_version. The set is what this test is about, not the order.
     expect(success).toEqual([
-      'cle_id', 'composite_score', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7',
+      'composite_score', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7',
       'domain_rationale', 'error', 'evaluated_at', 'input_tokens', 'latency_ms',
-      'model_version', 'output_tokens', 'prompt_version', 'provider', 'rubric_version', 'stop_reason',
+      'model_version', 'output_tokens', 'ple_id', 'prompt_version', 'provider', 'rubric_version', 'stop_reason',
     ]);
   });
 
@@ -172,10 +175,10 @@ describe('every outcome writes the SAME column set (upsert must replace, never m
     expect(row().rubric_version).toMatch(/^pis7-weights-/);
   });
 
-  test('the conflict target matches the table\'s unique(cle_id, provider, model_version)', async () => {
+  test('the conflict target matches the table\'s unique(ple_id, provider, model_version)', async () => {
     mockCallProvider.mockResolvedValue(ok(VALID));
     await run();
-    expect(mockUpsert.mock.calls[0][1]).toEqual({ onConflict: 'cle_id,provider,model_version' });
+    expect(mockUpsert.mock.calls[0][1]).toEqual({ onConflict: 'ple_id,provider,model_version' });
   });
 });
 
@@ -219,7 +222,7 @@ describe('it can never hurt the served evaluation', () => {
     mockUpsert.mockRejectedValue(new Error('boom too'));
     const unhandled = jest.fn();
     process.on('unhandledRejection', unhandled);
-    expect(() => fireShadowEvaluation({ cleId: 'c', transcriptText: 't', servedProvider: 'anthropic' })).not.toThrow();
+    expect(() => fireShadowEvaluation({ pleId: 'c', transcriptText: 't', servedProvider: 'anthropic' })).not.toThrow();
     await new Promise((r) => setTimeout(r, 20));
     process.off('unhandledRejection', unhandled);
     expect(unhandled).not.toHaveBeenCalled();

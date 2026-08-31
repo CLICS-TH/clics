@@ -24,7 +24,7 @@ const app = require('../src/index');
 const { callAI } = require('../src/services/ai');
 
 const VALID = { d1: 3, d2: 4, d3: 3, d4: 2, d5: 5, d6: 1, d7: 4, rationale: {} };
-const body = { cle_id: 'x', transcript: [{ role: 'physician', content: 'hello' }] };
+const body = { ple_id: 'x', transcript: [{ role: 'physician', content: 'hello' }] };
 // callAI stamps the real provider + model onto every result; /evaluate folds `model` into
 // model_version (§10.2 provenance), so the fixture must carry them.
 const reply = (obj) => ({

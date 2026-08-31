@@ -162,7 +162,7 @@ router.get('/me', verifyJwt, async (req, res) => {
 });
 
 // ---- Payment details (compensation payout, CLICS §12) ----------------------------------------
-// A physician provides their own bank / PromptPay details so the team can pay ฿500 per completed CLE.
+// A physician provides their own bank / PromptPay details so the team can pay ฿500 per completed PLE.
 // Highly sensitive PII → encrypted on-prem with IDENTITY_ENC_KEY (lib/crypto), exactly like the OAuth
 // identity vault. Self-service only: a physician reads/writes their OWN row; the superadmin reads it
 // (audit-logged) at payout time. Never sent to cloud AI.
@@ -176,7 +176,7 @@ const PaymentInfoSchema = z.object({
 });
 
 router.post('/payment-info', verifyJwt, async (req, res) => {
-  // Physician-only: compensation is paid per completed CLE, which only physicians run (a "special"
+  // Physician-only: compensation is paid per completed PLE, which only physicians run (a "special"
   // dual-role physician keeps role='physician'). Auditors/admins/oversight have no payout.
   if (req.user.role !== 'physician') return res.status(403).json({ error: 'Payment details are for physicians only.' });
   const parsed = PaymentInfoSchema.safeParse(req.body ?? {});
@@ -339,7 +339,7 @@ router.post('/consent', verifyJwt, async (req, res) => {
   res.json({ ok: true, consented_at: now, context: ctx, ...(consentRecordDegraded ? { record_degraded: true } : {}) });
 });
 
-// Whether Pilot Test Mode is on — lets the new-CLE page reveal the Natural/Socratic picker.
+// Whether Pilot Test Mode is on — lets the new-PLE page reveal the Natural/Socratic picker.
 // Feature flags any authed user may read (the superadmin /admin/usage-settings is superadmin-only).
 // peer_calibration drives the admin's multi-auditor assign UI + the auditor's peer radar.
 router.get('/pilot-mode', verifyJwt, async (_req, res) => {

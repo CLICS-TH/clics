@@ -1,12 +1,12 @@
-const cleId = new URLSearchParams(location.search).get('id');
-if (!cleId) window.location.href = '/dashboard';
+const pleId = new URLSearchParams(location.search).get('id');
+if (!pleId) window.location.href = '/dashboard';
 
 let turns = 0;
 let tokenCount = 0;          // running depth signal, seeded from the server on load
 let lastUserMessage = null;  // for Retry after a failed turn
 let nextMsgIndex = 0;        // stable per-message index for deterministic artifact IDs
 
-// Engagement reference points (mirror backend/src/services/cle-gate.js c1-c3). They are NOT the
+// Engagement reference points (mirror backend/src/services/ple-gate.js c1-c3). They are NOT the
 // pass criteria — CREC082 §1 judges a learning episode on four qualities, not on minutes or tokens —
 // so the progress meters read as "is this session substantive yet?", never as a bar to clear. T_TURNS
 // doubles as the point at which the Socratic rescue may open (§4), which stays hidden from the UI.
@@ -174,26 +174,26 @@ function refreshUsage() {
   if (typeof renderUsageBar === 'function') renderUsageBar(document.getElementById('usageBar'), { mini: true });
 }
 
-api.getPle(cleId).then(cle => {
-  // A transient failure returns an { error } envelope (no .status) — DON'T bounce to /cle-result
+api.getPle(pleId).then(ple => {
+  // A transient failure returns an { error } envelope (no .status) — DON'T bounce to /ple-result
   // (which would then falsely read "Episode not found"); show a recoverable message in place.
-  if (cle && cle.error) {
+  if (ple && ple.error) {
     msgEl.innerHTML =
       '<div class="msg-assistant">' + icon('warn', 16) + ' โหลดเซสชันไม่สำเร็จ กรุณารีเฟรชหน้านี้ / Could not load this session — please refresh.</div>';
     return;
   }
-  if (!cle || cle.status !== 'active') { window.location.href = `/cle-result?id=${cleId}`; return; }
+  if (!ple || ple.status !== 'active') { window.location.href = `/ple-result?id=${pleId}`; return; }
   const titleEl = document.getElementById('chatTitle');
-  if (titleEl && (cle.title || cle.chief_complaint)) titleEl.textContent = cle.title || cle.chief_complaint;
-  // Show which episode of the 3-CLE study sequence this is (CLICS §6.4). We show only the number,
+  if (titleEl && (ple.title || ple.chief_complaint)) titleEl.textContent = ple.title || ple.chief_complaint;
+  // Show which episode of the 3-PLE study sequence this is (CLICS §6.4). We show only the number,
   // never the mode (natural vs Socratic), so the experimental manipulation stays blind to the physician.
-  const ebEl = document.getElementById('cleEyebrow');
-  if (ebEl && cle.episode_number) ebEl.textContent = `CLE ${cle.episode_number}/3`;
-  turns = cle.turn_count ?? 0;
-  tokenCount = cle.token_count ?? 0;
+  const ebEl = document.getElementById('pleEyebrow');
+  if (ebEl && ple.episode_number) ebEl.textContent = `PLE ${ple.episode_number}/3`;
+  turns = ple.turn_count ?? 0;
+  tokenCount = ple.token_count ?? 0;
   document.getElementById('turns').textContent = turns;
-  (cle.messages ?? []).forEach((m, i) => renderMessage(m.role, m.content, m.refs, m.socratic_question, { at: m.created_at, msgIndex: i }));
-  nextMsgIndex = (cle.messages ?? []).length;   // live turns continue the index for stable artifact IDs
+  (ple.messages ?? []).forEach((m, i) => renderMessage(m.role, m.content, m.refs, m.socratic_question, { at: m.created_at, msgIndex: i }));
+  nextMsgIndex = (ple.messages ?? []).length;   // live turns continue the index for stable artifact IDs
   document.getElementById('sessionProgress').hidden = false;
   updateProgress();
   refreshUsage();
@@ -210,7 +210,7 @@ async function deliver(message) {
   if (nearBottom()) scrollToBottom();
   markActivity(); aiInFlight = true;          // keep the timer running while the AI answers
   const language = /[฀-๿]/.test(message) ? 'th' : 'en';
-  const res = await api.sendMessage(cleId, { message, language });
+  const res = await api.sendMessage(pleId, { message, language });
   aiInFlight = false; markActivity();
   loading.remove();
   if (res?.content) {
@@ -302,11 +302,11 @@ document.getElementById('endBtn').addEventListener('click', async () => {
   const origLabel = endBtn.innerHTML;
   endBtn.disabled = true;
   endBtn.textContent = 'กำลังประมวลผล... / Finishing…';
-  const res = await api.endPle(cleId, { active_seconds: activeSeconds });
+  const res = await api.endPle(pleId, { active_seconds: activeSeconds });
   // Navigate on any status that means the session is DONE from the physician's view ('ended' = tier-2
   // pending — reconcile finishes it; the result page shows "evaluating…"). On a genuine failure keep
   // the timer running and let them retry — don't strand them with the engagement time lost.
-  const TERMINAL = ['cle_pass', 'cle_fail_t1', 'cle_flag_t2', 'ended', 'evaluated'];
+  const TERMINAL = ['ple_pass', 'ple_fail_t1', 'ple_flag_t2', 'ended', 'evaluated'];
   if (res && TERMINAL.includes(res.status)) {
     clearInterval(timerInterval);
     // CREC082 ICF §3 step 3: the reflection comes after the conversation and BEFORE screening,
@@ -316,17 +316,17 @@ document.getElementById('endBtn').addEventListener('click', async () => {
     // It is a separate page rather than a panel on the result screen because that screen polls and
     // re-renders its whole body every 4s, which would wipe a half-written reflection mid-sentence.
     window.location.href = res.pending === 'reflection'
-      ? `/cle-reflect?id=${cleId}`
-      : `/cle-result?id=${cleId}`;
+      ? `/ple-reflect?id=${pleId}`
+      : `/ple-result?id=${pleId}`;
     return;
   }
   // The response may have been LOST after the server already finished (a network drop on the way back).
   // Re-query: if the session is no longer active, it WAS finished — route to the result instead of
-  // stranding the physician on a button that now 400s 'CLE not active' on every retry.
-  const check = await api.getPle(cleId).catch(() => null);
+  // stranding the physician on a button that now 400s 'PLE not active' on every retry.
+  const check = await api.getPle(pleId).catch(() => null);
   if (check && !check.error && check.status && check.status !== 'active') {
     clearInterval(timerInterval);
-    window.location.href = `/cle-result?id=${cleId}`;
+    window.location.href = `/ple-result?id=${pleId}`;
     return;
   }
   toast(res && res.error ? `จบไม่สำเร็จ / Could not finish: ${res.error}` : 'จบไม่สำเร็จ กรุณาลองใหม่ / Could not finish — please try again.', 'error');

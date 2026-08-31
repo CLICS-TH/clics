@@ -1,4 +1,4 @@
-const { computeTier1, compositeScore, clampDuration } = require('../src/services/cle-gate');
+const { computeTier1, compositeScore, clampDuration } = require('../src/services/ple-gate');
 
 describe('computeTier1', () => {
   test('passes when all criteria met', () => {

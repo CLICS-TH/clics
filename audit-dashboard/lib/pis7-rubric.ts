@@ -42,7 +42,7 @@ export const PIS7_PRINCIPLE = {
 export const COMMENT_EXPECTED_LEVELS = [0, 1, 4, 5];
 
 // Domain weights are NOT stored here — they live once in lib/labels.ts WEIGHTS (mirrored from
-// backend/src/services/cle-gate.js). The scorer derives the displayed % from WEIGHTS[key].
+// backend/src/services/ple-gate.js). The scorer derives the displayed % from WEIGHTS[key].
 export type RubricDomain = {
   key: string;
   th: string;

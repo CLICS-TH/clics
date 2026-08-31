@@ -50,7 +50,7 @@
       window.location.href = '/';
     });
 
-    const cleId = new URLSearchParams(location.search).get('id');
+    const pleId = new URLSearchParams(location.search).get('id');
     const $ = (id) => document.getElementById(id);
     const content = $('content');
 
@@ -62,7 +62,7 @@
       { key: 'application', th: 'ท่านจะตรวจสอบหรือนำไปใช้อย่างไร',                   en: 'How will you verify or apply it?' },
     ];
 
-    function goResult() { window.location.href = `/cle-result?id=${encodeURIComponent(cleId)}`; }
+    function goResult() { window.location.href = `/ple-result?id=${encodeURIComponent(pleId)}`; }
 
     function renderForm(existing) {
       content.innerHTML =
@@ -89,7 +89,7 @@
       const body = { skipped };
       if (!skipped) for (const p of PROMPTS) body[p.key] = $(p.key).value.trim();
       try {
-        const res = await api.submitReflection(cleId, body);
+        const res = await api.submitReflection(pleId, body);
         if (res && res.error) {
           msg.textContent = res.error; msg.style.display = '';
           $('saveBtn').disabled = $('skipBtn').disabled = false;
@@ -104,9 +104,9 @@
     }
 
     (async () => {
-      if (!cleId) { content.innerHTML = '<p class="sub" style="margin:0">ไม่พบ session / Session not found.</p>'; return; }
+      if (!pleId) { content.innerHTML = '<p class="sub" style="margin:0">ไม่พบ session / Session not found.</p>'; return; }
       let d;
-      try { d = await api.getReflection(cleId); } catch { d = null; }
+      try { d = await api.getReflection(pleId); } catch { d = null; }
       if (!d || d.error) { content.innerHTML = '<p class="sub" style="margin:0">ไม่พบ session / Session not found.</p>'; return; }
       // Already written, or the session has moved past 'ended' (scored, or swept by reconcile) —
       // either way there is nothing to write here, so don't present a form that would be refused.

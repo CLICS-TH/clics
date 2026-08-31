@@ -8,14 +8,14 @@ import type { CleRow, ApiResult } from '@/lib/types';
 import { Check, X } from 'lucide-react';
 
 export default function FlaggedPage() {
-  const [cles, setPlEs] = useState<CleRow[] | null>(null); // null = loading
+  const [ples, setPlEs] = useState<CleRow[] | null>(null); // null = loading
   const [err, setErr] = useState(false);
   const [actingId, setActingId] = useState<string | null>(null); // approve/reject in flight
   // Guard the spread/map: a non-401 error resolves with the error object (not an array); .catch a reject.
   // The fetch only sets state asynchronously (keeps the mount effect free of synchronous setState); the
   // `load` wrapper adds the error-reset for the Retry button + post-action refresh (both event handlers).
   const fetchFlagged = useCallback(() => {
-    apiFetch<CleRow[]>('/admin/cles/flagged').then(d => setPlEs(Array.isArray(d) ? d : [])).catch(() => setErr(true));
+    apiFetch<CleRow[]>('/admin/ples/flagged').then(d => setPlEs(Array.isArray(d) ? d : [])).catch(() => setErr(true));
   }, []);
   const load = () => { setErr(false); fetchFlagged(); };
   useEffect(() => { fetchFlagged(); }, [fetchFlagged]);
@@ -23,7 +23,7 @@ export default function FlaggedPage() {
   async function approve(id: string) {
     setActingId(id);
     try {
-      const res = await apiFetch<ApiResult<unknown>>(`/admin/cles/${id}/approve`, { method: 'POST' });
+      const res = await apiFetch<ApiResult<unknown>>(`/admin/ples/${id}/approve`, { method: 'POST' });
       // A second approve now 409s with { error: 'Already processed' } — surface it, then
       // refresh so the stale row leaves the queue.
       if (res?.error) { toast(`ไม่สำเร็จ / Failed: ${String(res.error)}`, 'error'); load(); return; }
@@ -42,7 +42,7 @@ export default function FlaggedPage() {
     if (!ok) return;
     setActingId(id);
     try {
-      const res = await apiFetch<ApiResult<unknown>>(`/admin/cles/${id}/reject`, { method: 'POST' });
+      const res = await apiFetch<ApiResult<unknown>>(`/admin/ples/${id}/reject`, { method: 'POST' });
       if (res?.error) { toast(`ไม่สำเร็จ / Failed: ${String(res.error)}`, 'error'); load(); return; }
       load();
     } catch { toast('เกิดข้อผิดพลาด / Error rejecting session', 'error'); }
@@ -62,11 +62,11 @@ export default function FlaggedPage() {
             <p className="text-muted-foreground mb-3">โหลดคิวไม่สำเร็จ / Could not load the queue.</p>
             <button className="text-sm text-primary underline" onClick={load}>ลองใหม่ / Retry</button>
           </div>
-        : cles === null
+        : ples === null
         ? <p className="text-muted-foreground text-center py-10">กำลังโหลด… / Loading…</p>
-        : cles.length === 0
+        : ples.length === 0
         ? <p className="text-muted-foreground text-center py-10">ไม่มี session รอตรวจสอบ / No sessions awaiting review.</p>
-        : cles.map(p => (
+        : ples.map(p => (
           <div key={p.id} className="border rounded-xl p-5 mb-3">
             <div className="flex flex-col gap-3 @min-[520px]:flex-row @min-[520px]:items-start @min-[520px]:justify-between">
               <div className="min-w-0">

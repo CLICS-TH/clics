@@ -1,6 +1,6 @@
 // Deterministic integrity signals — gaming/delegation detection.
 //
-// Thresholds here are CALIBRATED against 398 real messages across 33 prod CLEs (2026-08-26), not
+// Thresholds here are CALIBRATED against 398 real messages across 33 prod PLEs (2026-08-26), not
 // guessed. The tests that matter most are the negative ones: a signal that flags honest physicians
 // is worse than no signal, because it routes real clinicians to an accusation queue.
 const { detectIntegritySignals, trigrams, jaccard, genreProfile, SIGNALS } = require('../src/services/integrity');
@@ -27,7 +27,7 @@ describe('honest sessions produce NO flags — the property that matters most', 
   test('a physician who reuses one clinical phrase is not flagged for it', () => {
     // A cardiologist asks about troponin every time. That is expertise, not gaming — the signal has
     // to be near-identical whole TURNS, not shared vocabulary.
-    const prior = [{ cle_id: 'other-1', content: 'ขอ high-sensitivity troponin และ ECG 12 lead ครับ เพื่อประเมิน ACS' }];
+    const prior = [{ ple_id: 'other-1', content: 'ขอ high-sensitivity troponin และ ECG 12 lead ครับ เพื่อประเมิน ACS' }];
     expect(detectIntegritySignals(HUMAN, prior)).toEqual([]);
   });
 
@@ -49,7 +49,7 @@ describe('F1 — near-duplicate turns within one session', () => {
 
   test('ONE row per signal, with the occurrence count — not one row per pair', () => {
     // 6 identical turns make 15 pairs. Fifteen rows would make the admin queue unreadable and make
-    // "how many CLEs are flagged" uncountable without a DISTINCT.
+    // "how many PLEs are flagged" uncountable without a DISTINCT.
     const flags = detectIntegritySignals([0, 30, 60, 90, 120, 150].map(s => turn(s, dup)));
     const f1 = flags.filter(f => f.signal === 'F1_NEAR_DUPLICATE');
     expect(f1).toHaveLength(1);
@@ -69,20 +69,20 @@ describe('F1 — near-duplicate turns within one session', () => {
 describe('F2 — reuse across the physician\'s own other sessions', () => {
   const reused = 'ผู้ป่วยหญิงอายุ 45 ปี มาด้วยอาการปวดศีรษะรุนแรงเฉียบพลัน worst headache of my life ร่วมกับคอแข็ง';
 
-  test('a turn copied from another CLE is flagged', () => {
-    const flags = detectIntegritySignals([turn(0, reused)], [{ cle_id: 'cle-earlier', content: reused }]);
+  test('a turn copied from another PLE is flagged', () => {
+    const flags = detectIntegritySignals([turn(0, reused)], [{ ple_id: 'ple-earlier', content: reused }]);
     const f2 = flags.find(f => f.signal === 'F2_CROSS_SESSION_REUSE');
     expect(f2).toBeTruthy();
-    expect(f2.evidence.other_cle_id).toBe('cle-earlier');
+    expect(f2.evidence.other_ple_id).toBe('ple-earlier');
   });
 
   test('it never reaches "high" — every observed instance came from the pilot\'s own test sessions', () => {
-    const flags = detectIntegritySignals([turn(0, reused)], [{ cle_id: 'x', content: reused }]);
+    const flags = detectIntegritySignals([turn(0, reused)], [{ ple_id: 'x', content: reused }]);
     expect(flags.find(f => f.signal === 'F2_CROSS_SESSION_REUSE').severity).toBe('medium');
   });
 
   test('one flag per turn, not one per matching prior', () => {
-    const priors = ['a', 'b', 'c'].map(id => ({ cle_id: id, content: reused }));
+    const priors = ['a', 'b', 'c'].map(id => ({ ple_id: id, content: reused }));
     const f2 = detectIntegritySignals([turn(0, reused)], priors).filter(f => f.signal === 'F2_CROSS_SESSION_REUSE');
     expect(f2).toHaveLength(1);
     expect(f2[0].evidence.occurrences).toBe(1);
@@ -131,7 +131,7 @@ describe('F5 — machine-regular rhythm', () => {
   });
 
   test('too few turns to judge rhythm does NOT fire — this was a real false positive', () => {
-    // At the original min_turns of 5 this fired on a genuine prod CLE that had only 4 gaps. A
+    // At the original min_turns of 5 this fired on a genuine prod PLE that had only 4 gaps. A
     // coefficient of variation over 4 samples is noise. At 7 it fires on 0 of 27 real sessions.
     const short = [0, 30, 60, 90, 120].map((s, i) => turn(s, dup(i)));
     expect(detectIntegritySignals(short).find(f => f.signal === 'F5_LATENCY_UNIFORMITY')).toBeUndefined();
@@ -230,7 +230,7 @@ describe('F6 register discontinuity', () => {
   // Terse Thai clinical notes — one physician's habitual register.
   const terse = (n) => `ผู้ป่วยรายนี้ Cr ${n}.1 mg/dL ไตแย่ลง คิดว่าควรลดยา metformin ลงครับ ` +
     'ขอความเห็นเพิ่มเติมด้วยครับ ผมยังไม่แน่ใจเรื่องขนาดยาที่เหมาะสม';
-  const baseline = Array.from({ length: 10 }, (_, i) => ({ cle_id: `c${i}`, content: terse(i + 1) }));
+  const baseline = Array.from({ length: 10 }, (_, i) => ({ ple_id: `c${i}`, content: terse(i + 1) }));
   // The same physician suddenly emitting structured, marked-up, English-heavy essay prose.
   const PASTED = ('ประการแรก ควรพิจารณาว่า **chronic kidney disease** progression requires careful review. '
     + '- Assess volume status\n- Review nephrotoxic agents\n1. Metformin accumulation risk\n'
@@ -249,7 +249,7 @@ describe('F6 register discontinuity', () => {
 
   // The property that decides whether this is shippable at all.
   test('a physician who ALWAYS writes that way never fires', () => {
-    const formalBaseline = Array.from({ length: 10 }, (_, i) => ({ cle_id: `c${i}`, content: PASTED }));
+    const formalBaseline = Array.from({ length: 10 }, (_, i) => ({ ple_id: `c${i}`, content: PASTED }));
     const flags = detectIntegritySignals([turn(0, PASTED, 900)], formalBaseline, ON);
     expect(flags.find(f => f.signal === 'F6_REGISTER_DISCONTINUITY')).toBeUndefined();
   });

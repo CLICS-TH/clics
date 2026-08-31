@@ -2,7 +2,7 @@
 
 The **acceptance baseline** every future load test measures against, plus the **levers** to scale beyond the pilot. Detailed test narratives live in [LOADTEST-2026-06.md](LOADTEST-2026-06.md); this file is the durable benchmark.
 
-**Pilot target:** 75 physicians × 3 CLEs over Aug–Sep 2026 — true simultaneity is far below the headcount (physicians read/think between turns).
+**Pilot target:** 75 physicians × 3 PLEs over Aug–Sep 2026 — true simultaneity is far below the headcount (physicians read/think between turns).
 
 ---
 
@@ -45,7 +45,7 @@ Harnesses (`scripts/loadtest/`): `loadtest-distinct-long.js` (distinct users, **
 
 **Implication:** from one machine, test **≤ 100 concurrent**. To measure raw ceilings higher, use **distributed / multi-IP load** (k6 Cloud, Artillery, multiple egress IPs) or a **temporary limiter exemption**. Real users come from distinct IPs and never bunch against a per-IP cap.
 
-**Capacity *design* assumptions (NOT concurrency, NOT tested):** the `professionals` table is paginated to hold **~80K** records, `cles` **~400K** rows. Storage targets — never claim "80K concurrent users."
+**Capacity *design* assumptions (NOT concurrency, NOT tested):** the `professionals` table is paginated to hold **~80K** records, `ples` **~400K** rows. Storage targets — never claim "80K concurrent users."
 
 ## 4. Scale-up playbook (beyond pilot)
 

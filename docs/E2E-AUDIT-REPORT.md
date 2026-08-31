@@ -20,13 +20,13 @@ Nothing was deployed; the prod DB was untouched. Live phases run against a throw
 | Role | Covered | How |
 |---|---|---|
 | **A — Superadmin** | users/slots/stats/ICC/export, per-council ICC, manual license-verify | `role-chain-smoke.js`, `superadmin-guard`, `auth-flows`, unit |
-| **B — Admin** | council-scoped CLEs/requests/assign, invites (own council), license badge/verify | `role-chain-smoke.js`, `auth-flows`, unit |
-| **C — Physician** | consent gate, chat→CLE→eval, signup (email-OTP + Google logic), invite-accept (soft license) | `go-live-smoke.js`, `consent-gate`, `usage-budget`, `auth-flows` |
+| **B — Admin** | council-scoped PLEs/requests/assign, invites (own council), license badge/verify | `role-chain-smoke.js`, `auth-flows`, unit |
+| **C — Physician** | consent gate, chat→PLE→eval, signup (email-OTP + Google logic), invite-accept (soft license) | `go-live-smoke.js`, `consent-gate`, `usage-budget`, `auth-flows` |
 | **D — Auditor** | blind queue/scoring, ICC, invite-only creation, **hard license gate**, self-eval block | `role-chain-smoke.js`, `auth-flows`, `auditor` route + trigger |
 
 **New auth-flow tests (`backend/tests/auth-flows.test.js`, hermetic):** signup-OTP→physician active w/ correct `license_status`; invalid OTP → no provisioning; invite physician active even on `name_mismatch`; invite auditor non-verified → `202 pending_license_review` + `deactivated`; auditor verified → active; idempotent re-accept → 409; manual-verify activates a pending auditor.
 
-**Live validation (2026-06-09, test Supabase, Postgres 17 + 80K seeded rows) — 16/16 passed:** all 4 role logins; `/admin/users` paginated (page of 50, `X-Total-Count=80005`); `/admin/stats` via SQL RPC; create-physician → `next_pseudonym()` returned `P-002`; invite create → public `GET /auth/invite/:token` (email-bound) → revoke → 404; admin council-scoping on `/admin/cles` + `/admin/auditors`. **DB invariants fired correctly live:** active auditor + unverified license → rejected by `enforce_auditor_license`; + verified → allowed; non-superadmin without council → rejected by `prof_council_required`. _(Caught + fixed a real bug: `db/seed-users.js` seeded the demo auditor active+unverified, which the trigger now rejects — set to `manual_verified`.)_
+**Live validation (2026-06-09, test Supabase, Postgres 17 + 80K seeded rows) — 16/16 passed:** all 4 role logins; `/admin/users` paginated (page of 50, `X-Total-Count=80005`); `/admin/stats` via SQL RPC; create-physician → `next_pseudonym()` returned `P-002`; invite create → public `GET /auth/invite/:token` (email-bound) → revoke → 404; admin council-scoping on `/admin/ples` + `/admin/auditors`. **DB invariants fired correctly live:** active auditor + unverified license → rejected by `enforce_auditor_license`; + verified → allowed; non-superadmin without council → rejected by `prof_council_required`. _(Caught + fixed a real bug: `db/seed-users.js` seeded the demo auditor active+unverified, which the trigger now rejects — set to `manual_verified`.)_
 
 ## 3. 80K-user scale — bottlenecks → fixes
 
@@ -34,11 +34,11 @@ Nothing was deployed; the prod DB was untouched. Live phases run against a throw
 |---|---|
 | `nextPseudonym()` scanned **all 80K rows per signup** | `pseudonym_seq` + `next_pseudonym()` RPC — **O(1)** (`db/migration-scale.sql`); code falls back pre-migration |
 | Missing composite index → every slot-check scanned `professionals` | `professionals(role,status)` + `(council_id,role,status)` indexes |
-| `/admin/cles`, `/admin/users` **unpaginated** (PostgREST silently truncates at 1000) | `?limit&offset` (default 50) + `X-Total-Count` header + dashboard **"load more"** |
-| `/admin/export` loaded all physicians + all cles | page-bounded: one page of sessions + only that page's physicians/scores |
-| `/admin/stats`, `/usage-settings` aggregated in JS over all rows | SQL `cle_status_counts()` / `total_usage_sum()` RPCs |
-| `/superadmin/icc` loaded all 400K cles | bounded to **scored sessions** via `audit_scores.council_id` |
-| Missing `cles(physician_id)`, `messages(cle_id)`, `ai_evaluations(cle_id)`, `audit_scores(cle_id,auditor_id)`, `lpdp_snapshots(physician_id)` | all added |
+| `/admin/ples`, `/admin/users` **unpaginated** (PostgREST silently truncates at 1000) | `?limit&offset` (default 50) + `X-Total-Count` header + dashboard **"load more"** |
+| `/admin/export` loaded all physicians + all ples | page-bounded: one page of sessions + only that page's physicians/scores |
+| `/admin/stats`, `/usage-settings` aggregated in JS over all rows | SQL `ple_status_counts()` / `total_usage_sum()` RPCs |
+| `/superadmin/icc` loaded all 400K ples | bounded to **scored sessions** via `audit_scores.council_id` |
+| Missing `ples(physician_id)`, `messages(ple_id)`, `ai_evaluations(ple_id)`, `audit_scores(ple_id,auditor_id)`, `lpdp_snapshots(physician_id)` | all added |
 
 **Cross-origin fix:** added `Access-Control-Expose-Headers: X-Total-Count` (else the prod dashboard couldn't read the total and "load more" would never appear).
 
@@ -50,7 +50,7 @@ Nothing was deployed; the prod DB was untouched. Live phases run against a throw
 | `next_pseudonym()` (per signup) | ~15ms + **ships 80K rows to JS** | **0.16ms** (O(1) sequence) |
 | paginated `/admin/users` `order by created_at limit 50` | 24ms top-N sort over 80K | **0.077ms** Index Scan |
 
-The `/users` result is what surfaced the missing `created_at` index — added `professionals(created_at)` + `cles(created_at)` (the ~300× win above). 80K rows seeded in 4s.
+The `/users` result is what surfaced the missing `created_at` index — added `professionals(created_at)` + `ples(created_at)` (the ~300× win above). 80K rows seeded in 4s.
 
 ## 4. TMC scraper — LIVE test verdict
 

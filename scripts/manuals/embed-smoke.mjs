@@ -91,7 +91,7 @@ const b = await chromium.launch();
   const ctx = await b.newContext();
   await ctx.addInitScript(() => { localStorage.setItem('clics_token', 'x'); localStorage.setItem('clics_user', '{"role":"physician"}'); });
   const pg = await ctx.newPage();
-  for (const page of ['dashboard', 'identity', 'payment', 'acceptability', 'cle-reflect']) {
+  for (const page of ['dashboard', 'identity', 'payment', 'acceptability', 'ple-reflect']) {
     await pg.goto(`${base}/${page}`, { waitUntil: 'domcontentloaded' });
     const href = await pg.locator('nav a[href="/manual"]').count();
     ok(`nav link on /${page}`, href === 1, `${href} link(s)`);

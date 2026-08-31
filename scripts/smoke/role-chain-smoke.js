@@ -85,9 +85,9 @@ const leaksIdentity = (obj) => {
   if (ad.status === 200 && ad.json?.access_token) { adminT = ad.json.access_token; adminAs = ADMIN.email; }
   info(`acting as admin: ${adminAs}`);
 
-  const evald = await req('GET', '/admin/cles?status=evaluated&limit=200', { token: adminT });
+  const evald = await req('GET', '/admin/ples?status=evaluated&limit=200', { token: adminT });
   const evList = evald.json ?? [];
-  ok(evald.status === 200 && Array.isArray(evList), 'GET /admin/cles?status=evaluated', `n=${evList.length}`);
+  ok(evald.status === 200 && Array.isArray(evList), 'GET /admin/ples?status=evaluated', `n=${evList.length}`);
 
   const auditors = await req('GET', '/admin/auditors', { token: adminT });
   ok(auditors.status === 200 && Array.isArray(auditors.json) && auditors.json.length >= 1, 'GET /admin/auditors (assign dropdown)', `n=${auditors.json?.length}`);
@@ -99,21 +99,21 @@ const leaksIdentity = (obj) => {
   if (!evList.length) { info('no evaluated sessions to assign — cannot exercise the assign→score chain'); return finish(); }
 
   // ---- COUNCIL MAPPING: a cross-council assignment is rejected (409) ----
-  // The assignee must belong to the CLE's council; assigning across councils is blocked. Pure CRUD —
+  // The assignee must belong to the PLE's council; assigning across councils is blocked. Pure CRUD —
   // the request is refused BEFORE any write, so this exercises the guard with zero data change.
   // (Matches backend/tests/admin-assign.test.js "cross-council auditor → 409".)
   console.log('C2) Council mapping — cross-council assignment is rejected');
   {
-    const cle = evList[0]; // an evaluated CLE in the admin's own council
+    const ple = evList[0]; // an evaluated PLE in the admin's own council
     const audRes = await req('GET', '/admin/users?role=auditor&status=active&limit=200', { token: saT }); // superadmin: all councils
     const auditorsAll = Array.isArray(audRes.json) ? audRes.json : [];
-    const foreign = auditorsAll.find(u => u.council_id && cle?.council_id && u.council_id !== cle.council_id);
-    if (!cle?.council_id) {
-      info('cross-council — skipped (the evaluated CLE carries no council_id in this data)');
+    const foreign = auditorsAll.find(u => u.council_id && ple?.council_id && u.council_id !== ple.council_id);
+    if (!ple?.council_id) {
+      info('cross-council — skipped (the evaluated PLE carries no council_id in this data)');
     } else if (!foreign) {
-      info('cross-council — skipped (no active auditor in a council other than the evaluated CLEs’)');
+      info('cross-council — skipped (no active auditor in a council other than the evaluated PLEs’)');
     } else {
-      const xc = await req('POST', `/admin/cles/${cle.id}/assign`, { token: adminT, body: { auditor_id: foreign.id } });
+      const xc = await req('POST', `/admin/ples/${ple.id}/assign`, { token: adminT, body: { auditor_id: foreign.id } });
       ok(xc.status === 409 && /cross-council/i.test(xc.json?.error || ''),
          'cross-council assign rejected (409 Cross-council)',
          `status=${xc.status} · ${xc.json?.error ?? ''}`);
@@ -123,15 +123,15 @@ const leaksIdentity = (obj) => {
   // Assign evaluated sessions to our auditor until we find one they have NOT scored yet.
   console.log('D) Admin assigns → Auditor blind queue → score');
   let scorablePle = null, queueChecked = false;
-  for (const cle of evList) {
-    const asg = await req('POST', `/admin/cles/${cle.id}/assign`, { token: adminT, body: { auditor_id: auditorId } });
-    if (asg.status !== 200) { info(`assign ${cle.id.slice(0,8)} → ${asg.status}`); continue; }
+  for (const ple of evList) {
+    const asg = await req('POST', `/admin/ples/${ple.id}/assign`, { token: adminT, body: { auditor_id: auditorId } });
+    if (asg.status !== 200) { info(`assign ${ple.id.slice(0,8)} → ${asg.status}`); continue; }
     const q = await req('GET', '/auditor/queue', { token: auT });
     queueChecked = true;
-    const mine = (q.json ?? []).find(x => x.id === cle.id);
-    if (mine && mine.scored === false) { scorablePle = cle.id; break; }
+    const mine = (q.json ?? []).find(x => x.id === ple.id);
+    if (mine && mine.scored === false) { scorablePle = ple.id; break; }
   }
-  ok(queueChecked, 'POST /admin/cles/:id/assign accepted (status=evaluated gate)');
+  ok(queueChecked, 'POST /admin/ples/:id/assign accepted (status=evaluated gate)');
 
   // Re-fetch the queue for the blind-property assertion.
   const queue = await req('GET', '/auditor/queue', { token: auT });
@@ -140,18 +140,18 @@ const leaksIdentity = (obj) => {
   ok(qLeak.length === 0, 'auditor queue is BLIND (no physician identity)', qLeak.length ? `LEAK: ${qLeak}` : 'session fields only');
 
   if (scorablePle) {
-    const detail = await req('GET', `/auditor/cles/${scorablePle}`, { token: auT });
-    const dLeak = leaksIdentity(detail.json?.cle);
-    ok(detail.status === 200 && !!detail.json?.messages, 'GET /auditor/cles/:id (blind transcript)', `turns=${detail.json?.messages?.length}`);
+    const detail = await req('GET', `/auditor/ples/${scorablePle}`, { token: auT });
+    const dLeak = leaksIdentity(detail.json?.ple);
+    ok(detail.status === 200 && !!detail.json?.messages, 'GET /auditor/ples/:id (blind transcript)', `turns=${detail.json?.messages?.length}`);
     ok(dLeak.length === 0, 'auditor session detail is BLIND', dLeak.length ? `LEAK: ${dLeak}` : 'no identity fields');
 
-    const score = await req('POST', `/auditor/cles/${scorablePle}/score`, { token: auT, body: { d1:4,d2:4,d3:3,d4:4,d5:4,d6:3,d7:4, notes: 'role-chain smoke (de-identified)' } });
-    ok(score.status === 200 && typeof score.json?.composite_score === 'number', 'POST /auditor/cles/:id/score', `composite=${score.json?.composite_score}`);
+    const score = await req('POST', `/auditor/ples/${scorablePle}/score`, { token: auT, body: { d1:4,d2:4,d3:3,d4:4,d5:4,d6:3,d7:4, notes: 'role-chain smoke (de-identified)' } });
+    ok(score.status === 200 && typeof score.json?.composite_score === 'number', 'POST /auditor/ples/:id/score', `composite=${score.json?.composite_score}`);
   } else {
     info('all assigned evaluated sessions already scored by this auditor — verifying the double-submit guard instead');
     const firstAssigned = (queue.json ?? [])[0];
     if (firstAssigned) {
-      const dup = await req('POST', `/auditor/cles/${firstAssigned.id}/score`, { token: auT, body: { d1:4,d2:4,d3:3,d4:4,d5:4,d6:3,d7:4 } });
+      const dup = await req('POST', `/auditor/ples/${firstAssigned.id}/score`, { token: auT, body: { d1:4,d2:4,d3:3,d4:4,d5:4,d6:3,d7:4 } });
       ok(dup.status === 409, 'double-submit guard (409 Already scored)', `status=${dup.status}`);
     }
   }

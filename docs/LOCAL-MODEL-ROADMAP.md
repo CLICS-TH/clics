@@ -34,7 +34,7 @@ Claude means the local model cannot be the study's evaluator at all: A2 would be
 
 ---
 
-See [`LOCAL-MODEL-CUTOVER.md`](LOCAL-MODEL-CUTOVER.md) for the critical path, the paired-CLE
+See [`LOCAL-MODEL-CUTOVER.md`](LOCAL-MODEL-CUTOVER.md) for the critical path, the paired-PLE
 arithmetic behind the decisive gate, and how to compute the slip once an access date exists.
 Live position: `npm run local-model:status`.
 
@@ -121,7 +121,7 @@ so nobody has to rediscover it.
 
 ## The PII hop — state this precisely, do not overclaim
 
-Under **D3**, `rimplEvaluate({ cle_id, transcript, patient_ref, … })` carries the **raw** transcript
+Under **D3**, `rimplEvaluate({ ple_id, transcript, patient_ref, … })` carries the **raw** transcript
 and `patient_ref` from Railway to the on-prem node; rimpl is what strips them
 (`rimpl/src/routes/chat.js:79`, `rimpl/src/routes/evaluate.js:22`). Today that hop is private Railway
 networking inside one datacenter. Afterwards it is Virginia → Thailand.
