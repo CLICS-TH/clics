@@ -5,6 +5,9 @@ node_modules/
 .claude/
 .playwright-mcp/
 *.docx
+# ...except generated reports, which are deliverables built by scripts/probe/report/ and contain
+# no manuscript or participant text. The bare *.docx rule above guards the manuscript set.
+!docs/reports/*.docx
 *.jpg
 *.rtf
 

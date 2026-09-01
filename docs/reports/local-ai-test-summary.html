@@ -1,0 +1,44 @@
+<meta charset="utf-8"><title>สรุปผลการทดสอบ Local AI</title><style>
+@page{size:A4;margin:20mm 18mm;}
+body{font-family:"TH Sarabun New","Sarabun",sans-serif;color:#1c1c1a;line-height:1.55;}
+h1{font-size:23pt;margin:0 0 2pt;}
+h1 small{display:block;font-size:14pt;color:#666;font-weight:600;margin-top:2pt;}
+.sub{font-size:10.5pt;color:#888;margin:0 0 16pt;}
+h2{font-size:16pt;margin:16pt 0 1pt;page-break-after:avoid;}
+h2 small{display:block;font-size:11.5pt;color:#888;font-weight:600;}
+.pair{break-inside:avoid;page-break-inside:avoid;}
+.th{font-size:13.5pt;margin:0 0 1pt;}
+.en{font-size:11.5pt;color:#555;margin:0 0 9pt;}
+.step{font-size:13.5pt;font-weight:700;margin:8pt 0 1pt;}
+.close{font-size:13.5pt;margin-top:14pt;padding-top:10pt;border-top:1px solid #ddd;}
+.close-en{font-size:11.5pt;color:#555;font-style:italic;}
+</style>
+<h1>สรุปผลการทดสอบ AI ภายในองค์กร (Local AI) สำหรับระบบ CLICS<small>Summary — Testing the In-House AI for CLICS</small></h1>
+<p class="sub">ทดสอบวันที่ 31 สิงหาคม – 1 กันยายน 2569 · Tested 31 Aug – 1 Sep 2026</p>
+<h2>1. เราทดสอบอะไร<small>1. What we tested</small></h2>
+<div class="pair"><p class="th">เรานำบทสนทนาการเรียนรู้ของแพทย์ 26 ชุด ที่ลบข้อมูลส่วนบุคคลออกแล้ว มาให้ AI สองตัวให้คะแนนด้วยเกณฑ์เดียวกัน คือ AI ภายในองค์กรที่ติดตั้งบนเครื่อง DGX และ AI ภายนอกที่ระบบใช้อยู่ในปัจจุบัน</p><p class="en">We took 26 real physician learning episodes, with all personal information removed, and asked two AI systems to grade them using exactly the same criteria: the in-house AI on the DGX machine, and the external AI the system uses today.</p></div>
+<div class="pair"><p class="th">คำถามคือ ถ้าเปลี่ยนไปใช้ AI ภายใน คะแนนที่แพทย์ได้รับจะเปลี่ยนไปหรือไม่</p><p class="en">The question: if we switched to the in-house AI, would the scores physicians receive change?</p></div>
+<h2>2. ข่าวดี<small>2. The good news</small></h2>
+<div class="pair"><p class="th">AI ภายในทำงานได้จริง ให้คำตอบในรูปแบบที่ระบบอ่านได้ 25 จาก 26 ครั้ง (96%) ผ่านเกณฑ์ที่ตั้งไว้ และ AI ภายนอกก็ได้ 25 จาก 26 เท่ากันพอดี ไม่ได้ดีกว่ากัน</p><p class="en">The in-house AI works. It returned a usable answer 25 times out of 26 (96%), which passes our threshold — and the external AI scored exactly the same, 25 out of 26. Neither is better on this.</p></div>
+<div class="pair"><p class="th">ตอบภาษาไทยได้ครบถ้วนทั้ง 6 ข้อที่ทดสอบ</p><p class="en">It answered in Thai correctly on all 6 Thai test cases.</p></div>
+<div class="pair"><p class="th">ความเร็ว: AI ภายในใช้เวลาราว 68 วินาทีต่อครั้ง AI ภายนอกราว 22 วินาที ช้ากว่าประมาณ 3 เท่า แต่ยังอยู่ในระดับที่ระบบรองรับได้ และเพียงพอสำหรับจำนวนผู้ใช้ในโครงการนำร่อง</p><p class="en">Speed: the in-house AI takes about 68 seconds per episode; the external one about 22 seconds. About 3× slower, but still within what the system allows, and fast enough for the pilot's size.</p></div>
+<div class="pair"><p class="th">ค่าใช้จ่าย: AI ภายนอกมีค่าใช้จ่ายประมาณ 0.014 ดอลลาร์ต่อครั้ง ส่วน AI ภายในไม่มีค่าใช้จ่ายเพิ่ม เพราะใช้เครื่องที่มีอยู่แล้ว</p><p class="en">Cost: the external AI costs about USD 0.014 per episode. The in-house AI costs nothing extra, because the hardware is already owned.</p></div>
+<h2>3. ปัญหาสำคัญที่สุดที่พบ<small>3. The most important problem we found</small></h2>
+<div class="pair"><p class="th">เมื่อเราให้ AI ตรวจบทสนทนา “ชุดเดิม” ซ้ำหลายครั้ง คะแนนที่ได้ไม่เท่ากัน</p><p class="en">When we asked the AI to grade the same episode several times over, it did not give the same score.</p></div>
+<div class="pair"><p class="th">ตัวอย่าง บทสนทนาชุดหนึ่ง คะแนนเต็ม 35 คะแนน — AI ภายนอกให้ 12, 16, 21 และ 13 ต่างกันถึง 9 คะแนน ขณะที่ AI ภายในให้ 16, 16, 16, 16 และ 17 ซึ่งนิ่งมาก</p><p class="en">On one episode, out of 35 marks, the external AI gave 12, 16, 21 and 13 — a 9-mark spread. The in-house AI gave 16, 16, 16, 16 and 17 — very steady.</p></div>
+<div class="pair"><p class="th">แต่ในบทสนทนาอีกชุดหนึ่ง ผลกลับตรงกันข้าม AI ภายในเป็นฝ่ายไม่นิ่ง</p><p class="en">But on a different episode the result reversed: the in-house AI was the unsteady one.</p></div>
+<div class="pair"><p class="th">สรุปคือ AI ทั้งสองตัวให้คะแนนไม่สม่ำเสมอทั้งคู่ เพียงแต่ไม่สม่ำเสมอกับคนละบทสนทนา จึงไม่ใช่เรื่องที่แก้ได้ด้วยการเลือก AI ตัวใดตัวหนึ่ง</p><p class="en">So both AIs are inconsistent — just on different episodes. This is therefore not a problem you can solve by picking one AI over the other.</p></div>
+<div class="pair"><p class="th">เปรียบเทียบให้เห็นภาพ: เหมือนอาจารย์ท่านเดิมตรวจข้อสอบใบเดิม แล้วให้คะแนนไม่เท่ากันในแต่ละวัน โดยที่ข้อสอบไม่ได้เปลี่ยนเลย</p><p class="en">An analogy: the same examiner marking the same exam paper on different days, and giving it a different grade each time — when nothing about the paper has changed.</p></div>
+<div class="pair"><p class="th">ที่น่ากังวลกว่านั้นคือ ความคลาดเคลื่อนไม่ได้กระจายตัวแบบสุ่ม แต่ขยับขึ้นลงพร้อมกันทั้ง 7 ด้าน (ประมาณ 59% ของความคลาดเคลื่อนทั้งหมด) ผลคือ “คะแนนรวม” ยิ่งคลาดเคลื่อนมากขึ้น ไม่ใช่น้อยลง</p><p class="en">More worrying: the errors are not random and independent. About 59% of the wobble moves all seven domains up or down together. That means the total score is more unreliable than any single domain, not less.</p></div>
+<h2>4. ปัญหาเรื่องเครื่องที่ใช้<small>4. A problem with the machine itself</small></h2>
+<div class="pair"><p class="th">เครื่อง DGX ที่ใช้ทดสอบไม่ได้อยู่ในความดูแลของโครงการ และมีผู้ใช้รายอื่นใช้งานร่วมอยู่</p><p class="en">The DGX machine we tested on is not under the project's control, and other people share it.</p></div>
+<div class="pair"><p class="th">การทดสอบแบบเดียวกัน ครั้งหนึ่งใช้เวลา 57 วินาที อีกครั้งใช้เวลา 16 นาที ห่างกันเพียงสองชั่วโมง โดยที่เราไม่ได้เปลี่ยนอะไรเลย</p><p class="en">The identical test took 57 seconds on one run and 16 minutes on another, two hours apart, with nothing changed on our side.</p></div>
+<div class="pair"><p class="th">นอกจากนี้ ระบบไม่แสดงหมายเลขรุ่นหรือลายนิ้วมือของโมเดล เราจึงไม่สามารถพิสูจน์ได้ว่าเป็นโมเดลเดิมทุกครั้ง ซึ่งขัดกับข้อกำหนดการล็อกโมเดล (Model Lock) ในโครงร่างวิจัย CREC082 ข้อ 10.2</p><p class="en">The system also does not expose a version number or fingerprint for the model, so we cannot prove it is the same model each time. That conflicts with the Model Lock requirement in the CREC082 protocol, section 10.2.</p></div>
+<h2>5. สรุปและข้อเสนอ<small>5. Conclusion and recommendation</small></h2>
+<div class="pair"><p class="th">ในแง่คุณภาพการให้คะแนน AI ภายในทำได้ และไม่ใช่อุปสรรค</p><p class="en">On grading quality, the in-house AI is capable. That is not the obstacle.</p></div>
+<div class="pair"><p class="th">อุปสรรคจริงคือความสม่ำเสมอของการให้คะแนน ซึ่งเป็นปัญหาของวิธีการให้คะแนน ไม่ใช่ของ AI ตัวใดตัวหนึ่ง ดังนั้นการใช้ AI ภายนอกต่อไปก็ไม่ได้แก้ปัญหานี้</p><p class="en">The real obstacle is consistency of grading. This is a problem with the grading method itself, not with either AI — so continuing to use the external AI does not solve it.</p></div>
+<div class="pair"><p class="th">ข้อเสนอ: ยังไม่ควรเปลี่ยนไปใช้ AI ภายในในขณะนี้ และควรจัดการสามเรื่องต่อไปนี้ก่อน</p><p class="en">Recommendation: do not switch to the in-house AI yet, and settle these three things first.</p></div>
+<div class="pair"><p class="step">1) ปรับวิธีให้คะแนนให้ผลนิ่งขึ้น แล้ววัดซ้ำ</p><p class="en">1) Make the grading method more stable, then re-measure.</p></div>
+<div class="pair"><p class="step">2) จัดหาเครื่องที่โครงการควบคุมได้เอง เพื่อให้รับประกันความเร็วและล็อกรุ่นโมเดลได้</p><p class="en">2) Obtain a machine the project controls, so speed can be guaranteed and the model version locked.</p></div>
+<div class="pair"><p class="step">3) เก็บคะแนนจากผู้ตรวจที่เป็นมนุษย์ อย่างน้อย 3 ท่านต่อ 1 บทสนทนา</p><p class="en">3) Collect human grades from at least 3 reviewers per episode.</p></div>
+<p class="close">ข้อ 3 สำคัญที่สุด ปัจจุบันยังไม่มีบทสนทนาใดที่มีผู้ตรวจครบ 3 ท่าน จึงยังไม่มีเกณฑ์อ้างอิงว่า “คะแนนที่ถูกต้อง” คืออะไร และหากไม่มีตัวเทียบจากมนุษย์ เราจะไม่สามารถสรุปได้เลยว่า AI ตัวใดให้คะแนนได้ถูกต้อง</p><p class="close-en">Item 3 matters most. At present no episode has been graded by three reviewers, so we have no reference for what a correct score even is. Without a human benchmark, we cannot say which AI grades correctly — only that the two disagree with each other, and with themselves.</p>
