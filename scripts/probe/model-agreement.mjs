@@ -40,6 +40,8 @@ import { PROBE_DIR, REPO_ROOT, RIMPL_DIR, bold, dim, red, green, yellow, cyan, h
 
 // Single-source from rimpl — never copied. Same imports json-contract.mjs uses.
 import { PIS7_EVALUATOR_PROMPT } from '../../rimpl/src/lib/prompts.js';
+import { PROMPT_VERSION } from '../../rimpl/src/lib/versions.js';
+import { applySplit } from './split.mjs';
 import { parseJsonObject } from '../../rimpl/src/lib/parse.js';
 import { flattenForPrompt } from '../../rimpl/src/lib/transcript.js';
 import { deriveHintTokens } from '../../rimpl/src/services/pii-filter.js';
@@ -80,7 +82,10 @@ const cfg = readConfig();
 
 // --- fixtures ---------------------------------------------------------------------------------
 const FIX = path.join(PROBE_DIR, 'fixtures');
-const files = (await readdir(FIX).catch(() => [])).filter((f) => f.endsWith('.json')).sort().slice(0, LIMIT);
+const SPLIT_NAME = argStr('split');
+let files = (await readdir(FIX).catch(() => [])).filter((f) => f.endsWith('.json')).sort();
+const { files: splitFiles, split } = await applySplit(files, SPLIT_NAME, { fixturesDir: FIX });
+files = splitFiles.slice(0, LIMIT);
 if (!files.length) fail(`no .json fixtures in ${FIX} — run scripts/probe/build-fixtures.mjs first`);
 
 const fixtures = [];
@@ -155,7 +160,8 @@ hr('paired PIS-7 agreement');
 console.log(`  local   ${cfg.model}  @ ${cfg.baseUrl}`);
 console.log(`  cloud   ${CLOUD_MODEL}  @ api.anthropic.com`);
 console.log(`  prompt  PIS7_EVALUATOR_PROMPT (${PIS7_EVALUATOR_PROMPT.length} chars, imported from rimpl)`);
-console.log(`  n       ${fixtures.length} fixture(s), temperature 0 both arms\n`);
+console.log(`  n       ${fixtures.length} fixture(s), temperature 0 both arms`);
+console.log(`  split   ${split ? `${split.name} (reserved ${split.reserved_at})` : '(none reserved)'}  ·  prompt ${PROMPT_VERSION}\n`);
 console.log(`  ${dim('NOT Gate 4 — no human baseline exists yet. See the header of this file.')}\n`);
 
 const rows = [];
@@ -217,6 +223,7 @@ console.log(`  ${dim('needs 3 blinded raters per PLE — production currently ha
 const outFile = argStr('out');
 if (outFile) {
   await (await import('node:fs/promises')).writeFile(outFile, JSON.stringify({
+    split, prompt_version: PROMPT_VERSION,
     localModel: cfg.model, cloudModel: CLOUD_MODEL, n: paired.length, rows,
   }, null, 2));
   console.log(`  report → ${outFile}\n`);

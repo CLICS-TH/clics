@@ -33,6 +33,8 @@ import { readFileSync } from 'node:fs';
 import { PROBE_DIR, RIMPL_DIR, bold, dim, red, green, yellow, hr, fail, readConfig, chatCompletion } from './lib.mjs';
 
 import { PIS7_EVALUATOR_PROMPT } from '../../rimpl/src/lib/prompts.js';
+import { PROMPT_VERSION } from '../../rimpl/src/lib/versions.js';
+import { applySplit } from './split.mjs';
 import { parseJsonObject } from '../../rimpl/src/lib/parse.js';
 import { flattenForPrompt } from '../../rimpl/src/lib/transcript.js';
 import { deriveHintTokens } from '../../rimpl/src/services/pii-filter.js';
@@ -76,6 +78,10 @@ const FIX = path.join(PROBE_DIR, 'fixtures');
 // --only PLE-002,PLE-051 selects specific fixtures; otherwise take the first --fixtures N.
 const ONLY = (argStr('only') || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 let files = (await readdir(FIX).catch(() => [])).filter((f) => f.endsWith('.json')).sort();
+// The split is applied FIRST: --only and --fixtures then choose within it, so a held-out id cannot be
+// pulled into a tuning-time noise measurement by naming it.
+const { files: splitFiles, split } = await applySplit(files, argStr('split'), { fixturesDir: FIX });
+files = splitFiles;
 if (ONLY.length) {
   // Preserve the ORDER the caller gave, not readdir's sort — request order is a variable under test
   // (a server holding cross-request state would make position in the sequence matter).
@@ -146,6 +152,7 @@ if (ARM !== 'cloud') console.log(`  local   ${cfg.model}  @ ${cfg.baseUrl}`);
 if (ARM !== 'local') console.log(`  cloud   ${CLOUD_MODEL}  @ api.anthropic.com`);
 console.log(`  arms    ${ARM}`);
 console.log(`  design  ${fixtures.length} fixture(s) × ${REPEATS} repeats, temperature 0, IDENTICAL prompt each time`);
+console.log(`  split   ${split ? `${split.name} (reserved ${split.reserved_at})` : '(none reserved)'}  ·  prompt ${PROMPT_VERSION}`);
 console.log(`\n  ${dim('Any spread below is the model disagreeing with ITSELF. An agreement Σ|Δ| at or')}`);
 console.log(`  ${dim('below this level carries no signal.')}\n`);
 
@@ -198,6 +205,6 @@ console.log(`  ${dim('This measures repeatability, not correctness. A model can 
 console.log(`  ${dim('and consistently wrong; that is Gate 0.5, which needs human raters.')}\n`);
 
 if (OUT) {
-  await writeFile(OUT, JSON.stringify({ cloudModel: CLOUD_MODEL, localModel: cfg?.model ?? null, repeats: REPEATS, results }, null, 2));
+  await writeFile(OUT, JSON.stringify({ split, prompt_version: PROMPT_VERSION, cloudModel: CLOUD_MODEL, localModel: cfg?.model ?? null, repeats: REPEATS, results }, null, 2));
   console.log(`  wrote ${OUT}\n`);
 }
