@@ -200,10 +200,24 @@ Rules for this reply, all of them mandatory:
 - Be brief and warm. Two or three sentences of framing at most, then the question(s).
 - Do not mention that a mode changed, that this is a rescue, or that the conversation was judged insufficient. Simply engage.`;
 
+// Local-model addendum to the evaluator prompt — EMPTY until the E2 tuning round. It is appended
+// AFTER the rubric, and only for provider 'local', so the rubric text itself never moves: that text
+// is mirrored in audit-dashboard/lib/pis7-rubric.ts and pinned by backend/tests/rubric-sync.test.js,
+// and an AI and a human scoring against two different rubrics produce an ICC that measures the gap
+// between the rubrics. When non-empty it is visible in provenance: lib/versions.js promptVersionFor
+// suffixes PROMPT_VERSION with `+local-<sha>` for the local provider.
+const PIS7_LOCAL_ADDENDUM = '';
+
+// The evaluator prompt a given provider actually receives. `addendum` defaults to the module's; the
+// parameter exists so the non-empty branch can be tested before E2 turns it on.
+function pis7PromptFor(provider, addendum = PIS7_LOCAL_ADDENDUM) {
+  return PIS7_EVALUATOR_PROMPT + (provider === 'local' && addendum ? `\n\n${addendum}` : '');
+}
+
 module.exports = {
   RIMPL_SYSTEM_PROMPT, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER,
   RIMPL_SYSTEM_PROMPT_RESCUE,
   RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS,
   ARTIFACT_GUIDANCE,
-  PIS7_EVALUATOR_PROMPT, CRITERIA_CLASSIFIER_PROMPT,
+  PIS7_EVALUATOR_PROMPT, PIS7_LOCAL_ADDENDUM, pis7PromptFor, CRITERIA_CLASSIFIER_PROMPT,
 };

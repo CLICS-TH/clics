@@ -35,6 +35,7 @@ beforeEach(() => {
   warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
   jest.spyOn(console, 'error').mockImplementation(() => {});
   delete process.env.SHADOW_EVAL_PROVIDER;
+  delete process.env.SHADOW_EVAL_CONSISTENCY;
 });
 afterEach(() => jest.restoreAllMocks());
 
@@ -84,10 +85,13 @@ describe('recording', () => {
   });
 
   test('the SAME prompt and rubric as the served evaluation (a fair comparison, not a different exam)', async () => {
-    const { PIS7_EVALUATOR_PROMPT } = require('../src/lib/prompts');
+    const { pis7PromptFor } = require('../src/lib/prompts');
+    const { promptVersionFor } = require('../src/lib/versions');
     mockCallProvider.mockResolvedValue(ok(VALID));
     await run();
-    expect(mockCallProvider.mock.calls[0][0].systemPrompt).toBe(PIS7_EVALUATOR_PROMPT);
+    // What the served evaluation would give THIS provider — base + local addendum — and its version.
+    expect(mockCallProvider.mock.calls[0][0].systemPrompt).toBe(pis7PromptFor('local'));
+    expect(row().prompt_version).toBe(promptVersionFor('local'));
   });
 
   test('re-uses the caller\'s already de-identified transcript — no new PII surface', async () => {
@@ -231,5 +235,86 @@ describe('it can never hurt the served evaluation', () => {
   test('it never meters usage — the whole point is that it is free', () => {
     const src = require('fs').readFileSync(require.resolve('../src/services/shadow'), 'utf8');
     expect(src).not.toMatch(/accrueUsage|reserveUsage|usage_cost/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Self-consistency for the shadow arm (services/consistency.js). OFF by default: three shadow calls
+// per PLE is exactly the load the shed rule exists to prevent.
+describe('SHADOW_EVAL_CONSISTENCY', () => {
+  beforeEach(() => { process.env.SHADOW_EVAL_PROVIDER = 'local'; });
+
+  test('unset → one call, as before', async () => {
+    mockCallProvider.mockResolvedValue(ok(VALID));
+    await run();
+    expect(mockCallProvider).toHaveBeenCalledTimes(1);
+  });
+
+  test('adaptive, agreeing replies → two calls; the row carries CALL 1\'s tokens and c1\'s scores', async () => {
+    process.env.SHADOW_EVAL_CONSISTENCY = 'adaptive';
+    mockCallProvider
+      .mockResolvedValueOnce(ok(VALID, { inputTokens: 100, outputTokens: 50 }))
+      .mockResolvedValueOnce(ok({ ...VALID, d7: 3 }, { inputTokens: 999, outputTokens: 999 }));
+    const r = await run();
+    expect(r).toMatchObject({ persisted: true, failed: false });
+    expect(mockCallProvider).toHaveBeenCalledTimes(2);
+    const w = row();
+    expect(w).toMatchObject({ d7: 4, input_tokens: 100, output_tokens: 50, error: null });   // comparable with a single-call row
+  });
+
+  test('adaptive, one domain apart by 2 → three calls; per-domain median', async () => {
+    process.env.SHADOW_EVAL_CONSISTENCY = 'adaptive';
+    mockCallProvider
+      .mockResolvedValueOnce(ok(VALID))                       // d7 4
+      .mockResolvedValueOnce(ok({ ...VALID, d7: 2 }))
+      .mockResolvedValueOnce(ok({ ...VALID, d7: 3 }));
+    await run();
+    expect(mockCallProvider).toHaveBeenCalledTimes(3);
+    expect(row().d7).toBe(3);
+  });
+
+  test('adaptive: an unparseable FIRST reply is recorded as an error row with NO re-ask — the contract rate must stay honest', async () => {
+    // shadow_evaluations has no json_retries / calls column; the candidate's contract-compliance is
+    // computed from `error`. A re-ask here would launder a 10% garbage rate into ~99.6% "contract".
+    process.env.SHADOW_EVAL_CONSISTENCY = 'adaptive';
+    process.env.EVAL_JSON_RETRIES = '2';                       // the served path's budget must not leak in
+    try {
+      mockCallProvider
+        .mockResolvedValueOnce({ ...ok(VALID), text: 'I cannot score this.' })
+        .mockResolvedValueOnce(ok(VALID));                     // would have "rescued" the row, had a re-ask happened
+      const r = await run();
+      expect(mockCallProvider).toHaveBeenCalledTimes(1);       // no re-ask, no consistency call either
+      expect(r).toMatchObject({ persisted: true, failed: true });
+      expect(row()).toMatchObject({ d1: null, composite_score: null, stop_reason: 'end_turn' });
+      expect(row().error).toMatch(/invalid_(json|scores)/);
+    } finally {
+      delete process.env.EVAL_JSON_RETRIES;
+    }
+  });
+
+  test('adaptive: an unparseable SECOND reply is a failure row too — the pair is not reconciled around it', async () => {
+    process.env.SHADOW_EVAL_CONSISTENCY = 'adaptive';
+    mockCallProvider
+      .mockResolvedValueOnce(ok(VALID))
+      .mockResolvedValueOnce({ ...ok(VALID), text: 'I cannot score this.' });
+    const r = await run();
+    expect(mockCallProvider).toHaveBeenCalledTimes(2);
+    expect(r).toMatchObject({ persisted: true, failed: true });
+    expect(row().error).toMatch(/invalid_(json|scores)/);
+  });
+
+  test('off: an unparseable reply is recorded at once, with no re-ask (unchanged)', async () => {
+    mockCallProvider.mockResolvedValue({ ...ok(VALID), text: 'I cannot score this.' });
+    await run();
+    expect(mockCallProvider).toHaveBeenCalledTimes(1);
+    expect(row().error).toMatch(/invalid_(json|scores)/);
+  });
+
+  test('a transport failure under adaptive is still call_failed, not a score failure', async () => {
+    process.env.SHADOW_EVAL_CONSISTENCY = 'adaptive';
+    mockCallProvider.mockResolvedValueOnce(ok(VALID)).mockRejectedValueOnce(new Error('socket hang up'));
+    const r = await run();
+    expect(r).toMatchObject({ persisted: true, failed: true });
+    expect(row().error).toMatch(/^call_failed: socket hang up/);
   });
 });

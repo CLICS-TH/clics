@@ -67,6 +67,16 @@ function providerFor(purpose) {
   return lookup(PROVIDERS, name, whence);
 }
 
+// Resolve the provider NAME for a purpose — database layer included, validated, nothing called. For a
+// route that has to know the provider BEFORE its first call: routes/evaluate.js chooses the prompt and
+// the scoring rule from it, then PINS every call to it (`callAI({ provider })`), so a toggle flipped
+// mid-evaluation cannot have one provider's prompt scored by another, or a second consistency call
+// answered by a different model than the first.
+async function resolveProviderName(purpose) {
+  await settings.ensureFresh(SETTING_PURPOSES);
+  return providerFor(purpose).name;
+}
+
 // ---------------------------------------------------------------------------------------------
 // Chat fail-over — DORMANT. Ships with CHAT_FAILOVER_PROVIDER unset, which changes nothing anywhere.
 //
@@ -377,7 +387,7 @@ function providerSettingsStatus() {
 }
 
 module.exports = {
-  callAI, callProvider, embedText,
+  callAI, callProvider, embedText, resolveProviderName,
   activeProviders, defaultProvider, modelsByPurpose, providerNameFor, embedProviderName,
   providerSettingsStatus, readiness, probeProvider, isProviderDown,
   PURPOSES, PROVIDERS, EMBED_PROVIDERS, EMBED_PURPOSE, SETTING_PURPOSES,

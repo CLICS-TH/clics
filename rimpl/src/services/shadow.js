@@ -18,9 +18,10 @@
 //      an auditor would anchor their blind scoring and corrupt the ICC it exists to measure.
 const { callProvider, providerNameFor, PROVIDERS } = require('./ai');
 const { supabase } = require('../lib/supabase');
-const { PIS7_EVALUATOR_PROMPT } = require('../lib/prompts');
-const { scoreFromText } = require('../lib/pis7');
-const { modelVersion, PROMPT_VERSION, RUBRIC_VERSION } = require('../lib/versions');
+const { pis7PromptFor } = require('../lib/prompts');
+const { Pis7ScoreError } = require('../lib/pis7');
+const { scoreWithConsistency } = require('./consistency');
+const { modelVersion, promptVersionFor, RUBRIC_VERSION } = require('../lib/versions');
 
 // Math.max(x, parseInt('auto',10)) is NaN, not x — Math.max PROPAGATES NaN, and a NaN maxTokens
 // serialises to `"max_tokens": null` on the wire (Anthropic 400s; an OpenAI-compatible server
@@ -42,6 +43,21 @@ const shadowMaxTokens = () => intEnv('SHADOW_EVAL_MAX_TOKENS', 4096, 1000);
 // a physician's next chat turn. Served traffic wins, always; a shed shadow is a missing data point,
 // which is strictly better than a delayed physician. Raise SHADOW_MAX_QUEUE only if the box is idle.
 const shadowMaxQueue = () => intEnv('SHADOW_MAX_QUEUE', 0, 0);
+
+// Self-consistency for the SHADOW arm (services/consistency.js): off (default) | adaptive. Default
+// off on purpose — three shadow calls per PLE is exactly the load the shed rule above exists to
+// prevent. Enable only on an idle box, when the shadow corpus should be produced under the same rule
+// the served local arm uses (EVAL_CONSISTENCY). The row records call 1's tokens and stop reason, so it
+// stays comparable with a single-call row; shadow_evaluations has no column for the extra calls.
+//
+// THE SHADOW NEVER RE-ASKS, in either mode. The candidate's contract-compliance rate is computed from
+// this table's `error` column (backend/src/services/agreement.js shadowFailed, scripts/local-model/
+// status.mjs), and the table has no json_retries / calls column to say a re-ask happened. With the
+// served path's budget of 2, a model with a 10% per-call garbage rate would read ~99.6% contract
+// instead of 90% — a laundered failure rate, in the flattering direction, on the one dataset a
+// decision to swap the scoring instrument rests on. A `consistency` column on shadow_evaluations
+// would be needed before the extra calls could be kept honestly.
+const shadowConsistencyMode = () => (String(process.env.SHADOW_EVAL_CONSISTENCY || '').trim().toLowerCase() === 'adaptive' ? 'adaptive' : 'off');
 
 // Decide whether to shadow, and with what. Exported so the route can skip the work entirely.
 function shadowTarget(servedProvider) {
@@ -72,7 +88,7 @@ function blankRow(pleId, provider, model) {
     // Provenance is stamped BEFORE the call, from the configured model, so a transport failure is
     // still attributable. Overwritten with the server-reported model on success.
     model_version: modelVersion(model),
-    prompt_version: PROMPT_VERSION,
+    prompt_version: promptVersionFor(provider),
     rubric_version: RUBRIC_VERSION,
     d1: null, d2: null, d3: null, d4: null, d5: null, d6: null, d7: null,
     composite_score: null,
@@ -104,23 +120,39 @@ async function runShadowEvaluation({ pleId, transcriptText, servedProvider }) {
   const startedAt = Date.now();
   let row = blankRow(pleId, provider, (() => { try { return impl.model(); } catch { return null; } })());
   try {
-    const { text, inputTokens, outputTokens, stopReason, model } = await callProvider({
-      provider,
-      // Rides the BACKGROUND lane on the local box (providers/local.js LANE_FOR), behind every chat
-      // turn and criteria call — the queue-level form of "served traffic wins".
-      purpose: 'shadow',
-      systemPrompt: PIS7_EVALUATOR_PROMPT,
-      messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
-      maxTokens: shadowMaxTokens(),
-    });
-    row.model_version = modelVersion(model);
-    row.stop_reason = stopReason ?? null;
-    row.input_tokens = inputTokens ?? null;
-    row.output_tokens = outputTokens ?? null;
+    const mode = shadowConsistencyMode();
+    let first = null;
+    const callOnce = async () => {
+      const reply = await callProvider({
+        provider,
+        // Rides the BACKGROUND lane on the local box (providers/local.js LANE_FOR), behind every chat
+        // turn and criteria call — the queue-level form of "served traffic wins".
+        purpose: 'shadow',
+        // The SAME prompt the served evaluation would give this provider — a fair comparison, not a
+        // different exam.
+        systemPrompt: pis7PromptFor(provider),
+        messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
+        maxTokens: shadowMaxTokens(),
+      });
+      // Call 1 stamps the row — the same attribution the served evaluation uses — so a row stays
+      // comparable with a single-call row whatever the mode.
+      if (!first) {
+        first = reply;
+        row.model_version = modelVersion(reply.model);
+        row.stop_reason = reply.stopReason ?? null;
+        row.input_tokens = reply.inputTokens ?? null;
+        row.output_tokens = reply.outputTokens ?? null;
+      }
+      return reply;
+    };
     try {
-      const { scores, composite, rationale } = scoreFromText(text);
+      // Same validator and, when enabled, the same reconciliation rule as the served evaluation
+      // (services/consistency.js) — but NEVER a re-ask (jsonRetries 0, see shadowConsistencyMode):
+      // a garbage reply is recorded below as the failure it is, so the contract rate stays honest.
+      const { scores, composite, rationale } = await scoreWithConsistency({ callOnce, mode, jsonRetries: 0 });
       Object.assign(row, pickDomains(scores), { composite_score: composite, domain_rationale: rationale });
     } catch (scoreErr) {
+      if (!(scoreErr instanceof Pis7ScoreError || scoreErr?.name === 'Pis7ScoreError')) throw scoreErr;   // transport → below
       // A candidate model that cannot hold the JSON contract is the single most valuable thing this
       // table can record, so persist the FAILURE rather than dropping the row. Gate 4 needs the
       // denominator: "produced a valid score set 92% of the time" is a disqualifying result, and it

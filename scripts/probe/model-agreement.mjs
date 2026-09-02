@@ -39,8 +39,11 @@ import { PROBE_DIR, REPO_ROOT, RIMPL_DIR, bold, dim, red, green, yellow, cyan, h
   readConfig, chatCompletion, percentile } from './lib.mjs';
 
 // Single-source from rimpl — never copied. Same imports json-contract.mjs uses.
-import { PIS7_EVALUATOR_PROMPT } from '../../rimpl/src/lib/prompts.js';
-import { PROMPT_VERSION } from '../../rimpl/src/lib/versions.js';
+import { pis7PromptFor, PIS7_LOCAL_ADDENDUM } from '../../rimpl/src/lib/prompts.js';
+import { PROMPT_VERSION, promptVersionFor } from '../../rimpl/src/lib/versions.js';
+// The production self-consistency rule, injected with this script's own model call — so a tuning run
+// measures exactly what rimpl's /evaluate would do, not a re-implementation of it.
+import { scoreWithConsistency } from '../../rimpl/src/services/consistency.js';
 import { applySplit } from './split.mjs';
 import { parseJsonObject } from '../../rimpl/src/lib/parse.js';
 import { flattenForPrompt } from '../../rimpl/src/lib/transcript.js';
@@ -52,6 +55,13 @@ const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 const argNum = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i > -1 ? Number(process.argv[i + 1]) : d; };
 const argStr = (n) => { const i = process.argv.indexOf(`--${n}`); return i > -1 ? process.argv[i + 1] : null; };
 const LIMIT = argNum('limit', Infinity);
+// --consistency off|adaptive: 'adaptive' runs the local arm through rimpl's scoreWithConsistency (2 calls,
+// a 3rd + per-domain median when any domain differs by >1). The cloud arm is always a single call — it
+// is the incumbent as production runs it.
+const CONSISTENCY = argStr('consistency') ?? 'off';
+if (!['off', 'adaptive'].includes(CONSISTENCY)) fail(`--consistency must be off or adaptive, got ${CONSISTENCY}`);
+const LOCAL_PROMPT = pis7PromptFor('local');   // base prompt + the local addendum once E2 fills it in
+const CLOUD_PROMPT = pis7PromptFor('anthropic');
 
 // --- cloud arm config -------------------------------------------------------------------------
 const env = Object.fromEntries(
@@ -112,12 +122,27 @@ function extractScores(text) {
 }
 
 async function localArm(fx) {
-  const r = await chatCompletion(cfg, {
-    systemPrompt: PIS7_EVALUATOR_PROMPT,
-    messages: [{ role: 'user', content: `TRANSCRIPT:\n${fx.flattened}` }],
-    maxTokens: 4096, temperature: 0,
-  });
-  return { scores: extractScores(r.text ?? ''), ms: r.ms };
+  const t0 = Date.now();
+  const callOnce = async () => {
+    const r = await chatCompletion(cfg, {
+      systemPrompt: LOCAL_PROMPT,
+      messages: [{ role: 'user', content: `TRANSCRIPT:\n${fx.flattened}` }],
+      maxTokens: 4096, temperature: 0,
+    });
+    return { text: r.text ?? '', inputTokens: r.promptTokens ?? 0, outputTokens: r.completionTokens ?? 0 };
+  };
+  if (CONSISTENCY === 'off') {
+    const r = await callOnce();
+    return { scores: extractScores(r.text), ms: Date.now() - t0, consistency: null };
+  }
+  try {
+    const res = await scoreWithConsistency({ callOnce, mode: 'adaptive', jsonRetries: 2 });
+    const scores = Object.fromEntries(DOMAINS.map((d) => [d, res.scores[d]]));
+    return { scores, ms: Date.now() - t0, consistency: res.consistency };
+  } catch (e) {
+    // Never echo a model reply here — only the error class.
+    return { scores: null, ms: Date.now() - t0, error: e.code ?? e.name ?? 'error', consistency: null };
+  }
 }
 
 async function cloudArm(fx) {
@@ -127,7 +152,7 @@ async function cloudArm(fx) {
     headers: { 'content-type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
       model: CLOUD_MODEL, max_tokens: 4096, temperature: 0,
-      system: PIS7_EVALUATOR_PROMPT,
+      system: CLOUD_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${fx.flattened}` }],
     }),
   });
@@ -159,9 +184,10 @@ function iccA1(pairs) {
 hr('paired PIS-7 agreement');
 console.log(`  local   ${cfg.model}  @ ${cfg.baseUrl}`);
 console.log(`  cloud   ${CLOUD_MODEL}  @ api.anthropic.com`);
-console.log(`  prompt  PIS7_EVALUATOR_PROMPT (${PIS7_EVALUATOR_PROMPT.length} chars, imported from rimpl)`);
+console.log(`  prompt  pis7PromptFor: local ${LOCAL_PROMPT.length} chars (addendum ${PIS7_LOCAL_ADDENDUM ? 'ON' : 'empty'}) · cloud ${CLOUD_PROMPT.length} chars — imported from rimpl`);
+console.log(`  rule    local arm consistency = ${CONSISTENCY}${CONSISTENCY === 'adaptive' ? ' (2 calls; 3rd + per-domain median when any domain differs by >1)' : ''}; cloud arm single call`);
 console.log(`  n       ${fixtures.length} fixture(s), temperature 0 both arms`);
-console.log(`  split   ${split ? `${split.name} (reserved ${split.reserved_at})` : '(none reserved)'}  ·  prompt ${PROMPT_VERSION}\n`);
+console.log(`  split   ${split ? `${split.name} (reserved ${split.reserved_at})` : '(none reserved)'}  ·  prompt ${PROMPT_VERSION} (local ${promptVersionFor('local')})\n`);
 console.log(`  ${dim('NOT Gate 4 — no human baseline exists yet. See the header of this file.')}\n`);
 
 const rows = [];
@@ -170,13 +196,14 @@ for (const fx of fixtures) {
   const cloud = await cloudArm(fx);
   const local = await localArm(fx);
   const ok = cloud.scores && local.scores;
-  rows.push({ id: fx.id, local: local.scores, cloud: cloud.scores, localMs: local.ms, cloudMs: cloud.ms });
+  rows.push({ id: fx.id, local: local.scores, cloud: cloud.scores, localMs: local.ms, cloudMs: cloud.ms, consistency: local.consistency });
   const delta = ok
     ? DOMAINS.reduce((a, d) => a + Math.abs(local.scores[d] - cloud.scores[d]), 0)
     : null;
   console.log(`  ${ok ? green('✔') : red('✘')} ${fx.id.padEnd(10)}`
     + `  local ${(local.ms / 1000).toFixed(1)}s  cloud ${(cloud.ms / 1000).toFixed(1)}s`
-    + (ok ? `  Σ|Δ| ${delta}` : `  ${red(cloud.scores ? 'local unparseable' : (cloud.error || 'cloud unparseable'))}`));
+    + (ok ? `  Σ|Δ| ${delta}` : `  ${red(cloud.scores ? `local ${local.error || 'unparseable'}` : (cloud.error || 'cloud unparseable'))}`)
+    + (local.consistency ? dim(`  calls ${local.consistency.calls}${local.consistency.json_retries ? `+${local.consistency.json_retries} re-ask` : ''} (${local.consistency.rule}, maxΔ ${local.consistency.max_delta ?? '—'})`) : ''));
 }
 
 const paired = rows.filter((r) => r.local && r.cloud);
@@ -223,7 +250,7 @@ console.log(`  ${dim('needs 3 blinded raters per PLE — production currently ha
 const outFile = argStr('out');
 if (outFile) {
   await (await import('node:fs/promises')).writeFile(outFile, JSON.stringify({
-    split, prompt_version: PROMPT_VERSION,
+    split, prompt_version: PROMPT_VERSION, local_prompt_version: promptVersionFor('local'), consistency: CONSISTENCY,
     localModel: cfg.model, cloudModel: CLOUD_MODEL, n: paired.length, rows,
   }, null, 2));
   console.log(`  report → ${outFile}\n`);

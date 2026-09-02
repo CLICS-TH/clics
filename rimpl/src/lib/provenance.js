@@ -20,6 +20,15 @@
 // §10.2 lock has a question to answer.
 const { createHash } = require('crypto');
 
+// The CONFIGURATION half of a consistency block (services/consistency.js): which reconciliation
+// method and mode produced the score. The per-run outcome fields (rule, calls, max_delta, the score
+// vectors, latency, token counts) stay in the provenance object but OUT of the fingerprint — two
+// evaluations under the same configuration must fingerprint the same whether or not one of them
+// happened to need a third call.
+function canonicalConsistency(c) {
+  return { method: c.method ?? null, mode: c.mode ?? null };
+}
+
 // A stable fingerprint over the configuration that produced a score. Sorted keys and a fixed shape,
 // so the same configuration always hashes the same regardless of property order.
 function configFingerprint(p) {
@@ -36,6 +45,10 @@ function configFingerprint(p) {
       seed: p.decoding?.seed ?? null,
       num_ctx: p.decoding?.num_ctx ?? null,
     },
+    // ONLY when present. An evaluation without a consistency block must hash byte-identically to one
+    // produced before the field existed, or every stored fingerprint in the pilot stops being
+    // comparable with the ones written after this change.
+    ...(p.consistency ? { consistency: canonicalConsistency(p.consistency) } : {}),
   });
   return createHash('sha256').update(canonical).digest('hex').slice(0, 16);
 }
@@ -52,6 +65,7 @@ function buildProvenance({
   provider, model, promptVersion, rubricVersion,
   temperature, maxTokens, topP, seed, numCtx,
   weightsSha256 = null, engine = null, quantization = null, runtime = null,
+  consistency = null,
 }) {
   const p = {
     provider: provider ?? null,
@@ -72,8 +86,11 @@ function buildProvenance({
     quantization: quantization || null,
     runtime: runtime || null,
     locked: !!weightsSha256,
+    // How several calls were reconciled into this score (services/consistency.js) — present only when
+    // the evaluation ran that way. Numbers and fixed-vocabulary strings; never model text.
+    ...(consistency ? { consistency } : {}),
   };
   return { ...p, config_fingerprint: configFingerprint(p) };
 }
 
-module.exports = { buildProvenance, configFingerprint };
+module.exports = { buildProvenance, configFingerprint, canonicalConsistency };
