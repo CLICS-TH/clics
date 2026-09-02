@@ -110,7 +110,10 @@ for (const f of files) {
 
 // --- the two arms -----------------------------------------------------------------------------
 function extractScores(text) {
-  const parsed = parseJsonObject(text);
+  // parseJsonObject THROWS on malformed JSON (an unescaped quote inside a rationale did it once, from the
+  // cloud arm). Unparseable is a measurement — it counts against that arm's contract rate — never a crash.
+  let parsed;
+  try { parsed = parseJsonObject(text); } catch { return null; }
   if (!parsed || typeof parsed !== 'object') return null;
   const out = {};
   for (const d of DOMAINS) {
@@ -193,8 +196,9 @@ console.log(`  ${dim('NOT Gate 4 — no human baseline exists yet. See the heade
 const rows = [];
 for (const fx of fixtures) {
   // Cloud first: it is fast and cheap, so a schema/auth problem surfaces before a 70s local call.
-  const cloud = await cloudArm(fx);
-  const local = await localArm(fx);
+  // One bad fixture (transport error, malformed reply) must never end a one-hour run: it is a row, not a crash.
+  const cloud = await cloudArm(fx).catch((e) => ({ scores: null, ms: 0, error: `cloud ${e.code ?? e.name ?? 'error'}` }));
+  const local = await localArm(fx).catch((e) => ({ scores: null, ms: 0, error: e.code ?? e.name ?? 'error', consistency: null }));
   const ok = cloud.scores && local.scores;
   rows.push({ id: fx.id, local: local.scores, cloud: cloud.scores, localMs: local.ms, cloudMs: cloud.ms, consistency: local.consistency });
   const delta = ok
