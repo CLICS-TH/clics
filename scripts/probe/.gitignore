@@ -9,3 +9,5 @@ fixtures/*
 # day, not source. Keep them out of the repo; paste the summary into the roadmap doc instead.
 out/
 *.probe.json
+# probe --out reports: numbers and ids only, but session-specific and regenerated on every run
+report/*.json

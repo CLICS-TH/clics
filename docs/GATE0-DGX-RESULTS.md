@@ -439,3 +439,38 @@ and a physician-visible *queued → scoring* state; the $0 price → token-denom
 input ceiling → a 64k transcript-cap **trial** plus `context-limit.mjs --synthetic` to measure the real
 one; and the non-reproducibility (§7.3) → adaptive self-consistency gated by D18 on a held-out split
 reserved before any prompt was touched (`scripts/probe/SPLIT.json`).
+
+### 8.1 Capacity ramp, 2026-09-02 — the input ceiling is not the constraint; chat decode is
+
+`context-limit.mjs --synthetic --sizes 8k…96k --shape both --repeats 2` (synthetic clinical filler with a
+sentinel token, `PROBE_TIMEOUT_MS=600000`, shared box, early afternoon). "served" = the server's own
+`usage.prompt_tokens` — the unit every setting below is expressed in; the probe's size labels are chars/4.
+
+| probe size | eval served | eval p50 / p95 | chat served | chat p50 / p95 | sentinel |
+|---|---|---|---|---|---|
+| 8k | 6,593 | 59 s / 181 s | 6,153 | 60 s / 78 s | 2/2 · 2/2 |
+| 16k | 12,001 | 76 s / 204 s | 11,561 | 54 s / 74 s | 2/2 · 2/2 |
+| 24k | 17,396 | 48 s / 78 s | 16,956 | 79 s / 83 s | 2/2 · 2/2 |
+| 32k | 22,804 | 48 s / 52 s | 22,364 | 76 s / 97 s | 2/2 · 2/2 |
+| 48k | 33,607 | 44 s / 78 s | 33,167 | 67 s / 94 s | 2/2 · 2/2 |
+| 64k | 44,410 | 38 s / 102 s | 43,970 | **107 s / 107 s** | 2/2 · 2/2 |
+| 96k | 66,029 | 48 s / 124 s | 65,589 | 91 s / 92 s | 2/2 · 2/2 |
+
+Three readings, in order of importance:
+
+1. **No input ceiling was found.** The sentinel was recalled in every repeat of every size, up to 66,029
+   served tokens — three times the 22,804 verified in §7. The "silent truncation" failure mode this
+   probe exists to catch did not occur.
+2. **Chat latency does not scale with the transcript; it is decode-bound and noisy.** A chat-shaped turn
+   took 54–107 s whether the prompt was 6k or 66k tokens, and the 8k *eval* call had a 181 s p95 while
+   the 96k one had 124 s. That is the shared box (§7.6), not the prompt. The plan's rule "cap = largest
+   size with chat p95 < 0.6 × `RIMPL_CHAT_TIMEOUT_MS` (60 s)" therefore verifies **nothing** — it fails at
+   8k. What the numbers do say: with the 100 s chat timeout inherited from Claude, a turn at ~44k
+   served tokens (the 64k row) times out at p50, and turns at every size sit within a few seconds of it.
+3. **Working recommendation** (superadmin settings + laptop `.env`, all in server tokens):
+   `ple_max_transcript_tokens = 64000` — keep the agreed trial; the box holds it and evaluation at that
+   size is 48 s p50. `RIMPL_CHAT_TIMEOUT_MS = 150000` on the local stack (matching `LOCAL_AI_TIMEOUT_MS`):
+   a 100 s deadline throws away turns the box finishes at 107 s and the physician still waited.
+   `LOCAL_AI_MAX_PROMPT_TOKENS = 66000` — the largest served size verified, as the backstop. The
+   physician-facing cost is unchanged by any of this: **a chat turn on `cme-dev` takes a minute or more
+   today at any transcript length**, which is a box/custody problem (§5.3), not a setting.

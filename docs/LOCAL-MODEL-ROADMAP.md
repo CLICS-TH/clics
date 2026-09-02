@@ -49,7 +49,7 @@ Live position: `npm run local-model:status`.
 | **P2 — rimpl relocation + bridge** | **not started** — needs G0 item 4 |
 | **G0.5 — Human-auditor ICC baseline** | **not started. This is still the programme go/no-go** |
 | **P3 — Migrate purposes** | shadow evaluator code **done** (PR #65). **Capacity layer built 2026-09-02** on `feat/local-ai-capacity` (commits `ddbba2a` backend/db/portal, `afb83d5` rimpl, `1fe625c` dashboard, `6050e53` smoke, `aecb861` mutations): durable evaluation queue, rimpl two-lane bounded runner, token-denominated budgets, transcript cap, council partition, dev-only provider override, sandbox smoke. **Not deployed; `db/migration-local-ai-capacity.sql` NOT applied** (and `migration-shadow-evaluations.sql` still not applied) |
-| **P4 — Calibrate + Gate 4** | **instrument done** (#74). **Held-out split reserved first** (D13; `scripts/probe/SPLIT.json`, 8 held-out / 18 tuning, commit `551df47`) and `scripts/probe/screening-verdict.mjs` applies D18 + repeatability + parseability from the production ICC code (`c4bd08d`). Adaptive self-consistency + local prompt addendum (WP-E) **not yet built**. The decisive gate is still blocked on G0.5 |
+| **P4 — Calibrate + Gate 4** | **instrument done** (#74). **Held-out split reserved first** (D13; `scripts/probe/SPLIT.json`, 8 held-out / 18 tuning, commit `551df47`) and `scripts/probe/screening-verdict.mjs` applies D18 + repeatability + parseability from the production ICC code (`c4bd08d`). Adaptive self-consistency **built** (rimpl `services/consistency.js`; `EVAL_CONSISTENCY=adaptive`, local arm only, billed = call 1, `provenance.consistency`); the local prompt addendum is an empty seam until the E2 tuning loop runs on the tuning split. The decisive gate is still blocked on G0.5 |
 | **P5 — Model Lock** | **mechanism done** (#75): the declaration form is closed until the decisive verdict passes, and the freeze is enforced. Blocked on P4 for the verdict that opens it |
 
 Nothing is live in production. Every purpose still resolves to `anthropic` (`openai` for embeddings), so
@@ -76,8 +76,12 @@ including chat; smoke from a laptop stack on the tailnet against prod Supabase's
 | Physician-visible states | portal `ple-result.html`, `ple-chat.js` | screening → queued (position, eta) → scoring, poll backoff to 30 s, a non-silent give-up card; `ai_busy` bubble that keeps the typed question |
 | Sandbox smoke | `npm run smoke:local-ai` (`scripts/smoke/local-ai-sandbox-smoke.mjs`) | single / burst / cap / down / capacity scenarios; aborts unless the override, the partition and `pilot_test_mode` are visible; never targets a prod host, never flips a global setting, never prints transcript text or credentials |
 
-Still to build in this layer: **WP-E** (adaptive self-consistency in rimpl `services/consistency.js`, a
-provider-conditional PIS-7 addendum via `pis7PromptFor()`, `provenance.consistency`). Still to *run*: the capacity probe on the box (`context-limit.mjs
+Everything in the layer is built; **WP-E's prompt addendum** (`PIS7_LOCAL_ADDENDUM`, via `pis7PromptFor('local')`) is an
+empty seam until the E2 tuning loop runs on the tuning split. **Coupling to respect before `EVAL_CONSISTENCY=adaptive`
+goes live:** adaptive issues 2–3 serial calls (plus up to 2 re-asks) through the background lane, so the backend's
+`RIMPL_EVAL_TIMEOUT_MS` 480 s and `EVAL_LEASE_S` 600 s are sized for `eval_drain_concurrency = 1`; at N the calls of N
+evaluations interleave and the last finishes at ≈3·N·T (T ≈ 70–115 s measured) — keep the drain at 1, or size the
+timeouts at ≥ 3 × N × p95 first. Still to *run*: the capacity probe on the box (`context-limit.mjs
 --synthetic --shape both`, `pis7-concurrency.mjs --levels 1,2,3`) that sets `ple_max_transcript_tokens`,
 `LOCAL_AI_MAX_PROMPT_TOKENS`, `LOCAL_MAX_CONCURRENCY` and the token ceiling; then the smoke.
 
@@ -227,7 +231,8 @@ All default to the pre-existing behaviour; setting none of these changes anythin
 | **backend** `EVAL_DRAIN_ONLY_COUNCILS` | *(unset)* | dev-only include scope (council codes) for a laptop stack sharing the prod database — **refused in production**; prod uses the setting `eval_drain_exclude_councils` |
 | **setting** `standard_usage_limit_tokens` / `auditor_standard_usage_limit_tokens` | `0` (no cap) | token ceilings per pool; per-user overrides on `professionals`. Set from the capacity report as `3 × p95(tokens per PLE) × 1.25` |
 | **setting** `ple_max_transcript_tokens` / `ple_transcript_warn_pct` | `64000` (trial) / `80` | transcript cap on `ples.context_tokens` and the warn band |
-| **setting** `eval_drain_concurrency` / `eval_p50_seconds` / `eval_drain_exclude_councils` | `1` / `90` / *(empty)* | live drain width, the eta multiplier shown to physicians, and the prod side of the council partition |
+| **setting** `eval_drain_concurrency` / `eval_p50_seconds` / `eval_drain_exclude_councils` | `1` / `90` / *(empty)* | live drain width, the eta multiplier shown to physicians, and the prod side of the council partition. Keep the width at 1 while `EVAL_CONSISTENCY=adaptive` unless the eval timeouts are re-sized (see above) |
+| `EVAL_CONSISTENCY` / `EVAL_JSON_RETRIES` / `SHADOW_EVAL_CONSISTENCY` | `off` / `2` / `off` | rimpl: adaptive self-consistency for the **local** evaluator only (2 calls; a 3rd + per-domain median when any domain differs by >1; billed = call 1, extras in `provenance.consistency`); the served path may re-ask an unparseable reply up to 2×; the shadow path never re-asks, so its contract rate stays honest |
 
 ---
 

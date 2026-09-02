@@ -93,3 +93,9 @@ claims work through `claim_ple_evaluations()`. Against a database without that R
 `reserve_usage` / `reserve_auditor_usage` with a fourth, defaulted argument (the old 3-arg overload is
 dropped first so PostgREST resolution stays unambiguous). Token ceilings seed **0 = no cap** — set them
 deliberately from the capacity report.
+
+**Before switching rimpl to `EVAL_CONSISTENCY=adaptive`:** it issues 2–3 serial local calls (plus up to 2 re-asks) per
+evaluation. The backend's `RIMPL_EVAL_TIMEOUT_MS=480000` and `EVAL_LEASE_S=600` assume the superadmin setting
+`eval_drain_concurrency` is **1**; with N in flight the calls interleave in rimpl's background lane and the last
+evaluation finishes at ≈3·N·T (T ≈ 70–115 s measured), past the deadline — the drain then defers and retries the same
+work. Keep the drain at 1, or size both timeouts at ≥ 3 × N × p95 first.
