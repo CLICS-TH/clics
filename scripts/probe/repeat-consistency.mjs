@@ -32,8 +32,11 @@ import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { PROBE_DIR, RIMPL_DIR, bold, dim, red, green, yellow, hr, fail, readConfig, chatCompletion } from './lib.mjs';
 
-import { PIS7_EVALUATOR_PROMPT } from '../../rimpl/src/lib/prompts.js';
-import { PROMPT_VERSION } from '../../rimpl/src/lib/versions.js';
+import { pis7PromptFor, PIS7_LOCAL_ADDENDUM } from '../../rimpl/src/lib/prompts.js';
+import { PROMPT_VERSION, promptVersionFor } from '../../rimpl/src/lib/versions.js';
+// The production self-consistency rule, injected with this script's own model call, so repeatability can
+// be measured UNDER each rule (off / adaptive / median3) rather than only for single calls.
+import { scoreWithConsistency } from '../../rimpl/src/services/consistency.js';
 import { applySplit } from './split.mjs';
 import { parseJsonObject } from '../../rimpl/src/lib/parse.js';
 import { flattenForPrompt } from '../../rimpl/src/lib/transcript.js';
@@ -47,6 +50,13 @@ const ARM = argStr('arm', 'both');
 const REPEATS = argNum('repeats', 5);
 const NFIX = argNum('fixtures', 1);
 const OUT = argStr('out');
+// --consistency off|adaptive|median3: each "repeat" is then one full rule evaluation (2–3 model calls), so the
+// spread measures what production would actually emit. --agree-sum N adds Σ|Δ| ≤ N to the pair rule (0 = off).
+const CONSISTENCY = argStr('consistency', 'off');
+if (!['off', 'adaptive', 'median3'].includes(CONSISTENCY)) fail(`--consistency must be off, adaptive or median3, got ${CONSISTENCY}`);
+const AGREE_SUM = argNum('agree-sum', 0);
+const LOCAL_PROMPT = pis7PromptFor('local');
+const CLOUD_PROMPT = pis7PromptFor('anthropic');
 if (!['local', 'cloud', 'both'].includes(ARM)) fail(`--arm must be local | cloud | both (got ${ARM})`);
 if (REPEATS < 2) fail('--repeats must be at least 2 — one run measures no spread.');
 
@@ -104,7 +114,8 @@ for (const f of files) {
 }
 
 function extractScores(text) {
-  const parsed = parseJsonObject(text);
+  let parsed;
+  try { parsed = parseJsonObject(text); } catch { return null; } // malformed JSON is a measurement, not a crash
   if (!parsed || typeof parsed !== 'object') return null;
   const out = {};
   for (const d of DOMAINS) {
@@ -116,12 +127,26 @@ function extractScores(text) {
 }
 
 async function localArm(fx) {
-  const r = await chatCompletion(cfg, {
-    systemPrompt: PIS7_EVALUATOR_PROMPT,
-    messages: [{ role: 'user', content: `TRANSCRIPT:\n${fx.flattened}` }],
-    maxTokens: 4096, temperature: 0,
-  });
-  return { scores: extractScores(r.text ?? ''), ms: r.ms };
+  const t0 = Date.now();
+  const callOnce = async () => {
+    const r = await chatCompletion(cfg, {
+      systemPrompt: LOCAL_PROMPT,
+      messages: [{ role: 'user', content: `TRANSCRIPT:\n${fx.flattened}` }],
+      maxTokens: 4096, temperature: 0,
+    });
+    return { text: r.text ?? '', inputTokens: r.promptTokens ?? 0, outputTokens: r.completionTokens ?? 0 };
+  };
+  if (CONSISTENCY === 'off') {
+    const r = await callOnce();
+    return { scores: extractScores(r.text), ms: Date.now() - t0, calls: 1 };
+  }
+  try {
+    const res = await scoreWithConsistency({ callOnce, mode: CONSISTENCY, jsonRetries: 2, agree: { maxDomainDelta: 1, maxSumDelta: AGREE_SUM } });
+    const scores = Object.fromEntries(DOMAINS.map((d) => [d, res.scores[d]]));
+    return { scores, ms: Date.now() - t0, calls: res.consistency?.calls ?? null, rule: res.consistency?.rule ?? null };
+  } catch (e) {
+    return { scores: null, ms: Date.now() - t0, calls: null, error: e.code ?? e.name ?? 'error' }; // never a model reply
+  }
 }
 
 async function cloudArm(fx) {
@@ -131,7 +156,7 @@ async function cloudArm(fx) {
     headers: { 'content-type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
       model: CLOUD_MODEL, max_tokens: 4096, temperature: 0,
-      system: PIS7_EVALUATOR_PROMPT,
+      system: CLOUD_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${fx.flattened}` }],
     }),
   });
@@ -152,7 +177,8 @@ if (ARM !== 'cloud') console.log(`  local   ${cfg.model}  @ ${cfg.baseUrl}`);
 if (ARM !== 'local') console.log(`  cloud   ${CLOUD_MODEL}  @ api.anthropic.com`);
 console.log(`  arms    ${ARM}`);
 console.log(`  design  ${fixtures.length} fixture(s) × ${REPEATS} repeats, temperature 0, IDENTICAL prompt each time`);
-console.log(`  split   ${split ? `${split.name} (reserved ${split.reserved_at})` : '(none reserved)'}  ·  prompt ${PROMPT_VERSION}`);
+console.log(`  rule    local arm consistency = ${CONSISTENCY}${CONSISTENCY !== 'off' ? ` (agree: maxΔ ≤ 1${AGREE_SUM ? `, Σ|Δ| ≤ ${AGREE_SUM}` : ''}) — each repeat is one full rule evaluation` : ' (single calls)'}`);
+console.log(`  split   ${split ? `${split.name} (reserved ${split.reserved_at})` : '(none reserved)'}  ·  prompt ${PROMPT_VERSION} (local ${promptVersionFor('local')}${PIS7_LOCAL_ADDENDUM ? ', addendum ON' : ''})`);
 console.log(`\n  ${dim('Any spread below is the model disagreeing with ITSELF. An agreement Σ|Δ| at or')}`);
 console.log(`  ${dim('below this level carries no signal.')}\n`);
 
@@ -167,8 +193,9 @@ for (const fx of fixtures) {
       process.stdout.write(r.scores ? green('•') : red('×'));
     }
     const good = runs.filter((r) => r.scores);
-    console.log(`  ${good.length}/${REPEATS} parsed`);
-    results.push({ fixture: fx.id, arm, runs: good.map((r) => r.scores), ms: runs.map((r) => r.ms) });
+    const callsUsed = runs.map((r) => r.calls ?? '×');
+    console.log(`  ${good.length}/${REPEATS} parsed${CONSISTENCY !== 'off' && arm === 'local' ? `   calls ${callsUsed.join(',')}` : ''}`);
+    results.push({ fixture: fx.id, arm, runs: good.map((r) => r.scores), ms: runs.map((r) => r.ms), calls: runs.map((r) => r.calls ?? null) });
   }
 }
 
@@ -205,6 +232,6 @@ console.log(`  ${dim('This measures repeatability, not correctness. A model can 
 console.log(`  ${dim('and consistently wrong; that is Gate 0.5, which needs human raters.')}\n`);
 
 if (OUT) {
-  await writeFile(OUT, JSON.stringify({ split, prompt_version: PROMPT_VERSION, cloudModel: CLOUD_MODEL, localModel: cfg?.model ?? null, repeats: REPEATS, results }, null, 2));
+  await writeFile(OUT, JSON.stringify({ split, prompt_version: PROMPT_VERSION, local_prompt_version: promptVersionFor('local'), consistency: CONSISTENCY, agree_sum: AGREE_SUM, cloudModel: CLOUD_MODEL, localModel: cfg?.model ?? null, repeats: REPEATS, results }, null, 2));
   console.log(`  wrote ${OUT}\n`);
 }

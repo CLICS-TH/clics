@@ -36,6 +36,7 @@ beforeEach(() => {
   jest.spyOn(console, 'error').mockImplementation(() => {});
   delete process.env.SHADOW_EVAL_PROVIDER;
   delete process.env.SHADOW_EVAL_CONSISTENCY;
+  delete process.env.EVAL_CONSISTENCY_MAX_SUM_DELTA;
 });
 afterEach(() => jest.restoreAllMocks());
 
@@ -316,5 +317,38 @@ describe('SHADOW_EVAL_CONSISTENCY', () => {
     const r = await run();
     expect(r).toMatchObject({ persisted: true, failed: true });
     expect(row().error).toMatch(/^call_failed: socket hang up/);
+  });
+});
+
+describe('SHADOW_EVAL_CONSISTENCY — the E2 knobs, same rule as the served arm', () => {
+  beforeEach(() => { process.env.SHADOW_EVAL_PROVIDER = 'local'; });
+
+  test('median3: three calls even when every reply is identical; the row still carries call 1', async () => {
+    process.env.SHADOW_EVAL_CONSISTENCY = 'median3';
+    mockCallProvider
+      .mockResolvedValueOnce(ok(VALID, { inputTokens: 100 }))
+      .mockResolvedValueOnce(ok(VALID, { inputTokens: 200 }))
+      .mockResolvedValueOnce(ok(VALID, { inputTokens: 300 }));
+    const r = await run();
+    expect(mockCallProvider).toHaveBeenCalledTimes(3);
+    expect(r).toMatchObject({ persisted: true, failed: false });
+    expect(row()).toMatchObject({ d7: 4, input_tokens: 100 });
+  });
+
+  test('adaptive reads EVAL_CONSISTENCY_MAX_SUM_DELTA like the served arm: a uniform +1 shift needs the third call at 2', async () => {
+    process.env.SHADOW_EVAL_CONSISTENCY = 'adaptive';
+    process.env.EVAL_CONSISTENCY_MAX_SUM_DELTA = '2';
+    const shifted = { ...VALID, d1: 4, d2: 5, d3: 4, d4: 3, d5: 5 };   // +1 on d1..d4 (d5 already 5): Σ|Δ| 4, max |Δ| 1
+    mockCallProvider.mockResolvedValueOnce(ok(VALID)).mockResolvedValueOnce(ok(shifted)).mockResolvedValueOnce(ok(VALID));
+    await run();
+    expect(mockCallProvider).toHaveBeenCalledTimes(3);
+    expect(row()).toMatchObject({ d1: 3, d2: 4 });                       // per-domain median
+  });
+
+  test('an unknown SHADOW_EVAL_CONSISTENCY value is off', async () => {
+    process.env.SHADOW_EVAL_CONSISTENCY = 'always';
+    mockCallProvider.mockResolvedValue(ok(VALID));
+    await run();
+    expect(mockCallProvider).toHaveBeenCalledTimes(1);
   });
 });

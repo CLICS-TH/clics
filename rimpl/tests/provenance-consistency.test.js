@@ -12,7 +12,8 @@ const base = {
   temperature: 0, maxTokens: 4096, weightsSha256: 'abc',
 };
 const block = (over = {}) => ({
-  method: 'self-consistency', mode: 'adaptive', rule: 'first-of-agreeing-pair', calls: 2, max_delta: 1,
+  method: 'self-consistency', mode: 'adaptive', rule: 'first-of-agreeing-pair', calls: 2, max_delta: 1, sum_delta: 1,
+  agree: { max_domain_delta: 1, max_sum_delta: 0 },
   per_call_scores: [[3, 4, 3, 2, 5, 1, 4], [3, 4, 3, 2, 5, 1, 3]], json_retries: 0,
   extra_input_tokens: 1001, extra_output_tokens: 101, latency_ms: 140000, ...over,
 });
@@ -57,7 +58,14 @@ describe('with a consistency block', () => {
   test('a different mode or method IS a different configuration', () => {
     const a = buildProvenance({ ...base, consistency: block() });
     expect(buildProvenance({ ...base, consistency: block({ mode: 'off' }) }).config_fingerprint).not.toBe(a.config_fingerprint);
+    expect(buildProvenance({ ...base, consistency: block({ mode: 'median3' }) }).config_fingerprint).not.toBe(a.config_fingerprint);
     expect(buildProvenance({ ...base, consistency: block({ method: 'majority-vote' }) }).config_fingerprint).not.toBe(a.config_fingerprint);
+  });
+
+  test('the agreement thresholds are configuration: a different sum bound moves the fingerprint, a different sum_delta OUTCOME does not', () => {
+    const a = buildProvenance({ ...base, consistency: block() });
+    expect(buildProvenance({ ...base, consistency: block({ agree: { max_domain_delta: 1, max_sum_delta: 2 } }) }).config_fingerprint).not.toBe(a.config_fingerprint);
+    expect(buildProvenance({ ...base, consistency: block({ sum_delta: 5, max_delta: 1 }) }).config_fingerprint).toBe(a.config_fingerprint);
   });
 
   test('property order of the block does not matter', () => {
@@ -67,8 +75,8 @@ describe('with a consistency block', () => {
       .toBe(buildProvenance({ ...base, consistency: b }).config_fingerprint);
   });
 
-  test('canonicalConsistency keeps method and mode only', () => {
-    expect(canonicalConsistency(block())).toEqual({ method: 'self-consistency', mode: 'adaptive' });
-    expect(canonicalConsistency({})).toEqual({ method: null, mode: null });
+  test('canonicalConsistency keeps method, mode and the agreement thresholds only', () => {
+    expect(canonicalConsistency(block())).toEqual({ method: 'self-consistency', mode: 'adaptive', agree: { max_domain_delta: 1, max_sum_delta: 0 } });
+    expect(canonicalConsistency({})).toEqual({ method: null, mode: null, agree: { max_domain_delta: null, max_sum_delta: null } });
   });
 });

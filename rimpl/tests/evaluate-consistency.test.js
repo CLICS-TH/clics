@@ -16,7 +16,7 @@ const { PROMPT_VERSION, promptVersionFor } = require('../src/lib/versions');
 const { PIS7_EVALUATOR_PROMPT, pis7PromptFor } = require('../src/lib/prompts');
 const { QueueFullError } = require('../src/services/providers/runtime');
 
-const ENV = ['EVAL_CONSISTENCY', 'EVAL_JSON_RETRIES', 'SHADOW_EVAL_PROVIDER'];
+const ENV = ['EVAL_CONSISTENCY', 'EVAL_JSON_RETRIES', 'EVAL_CONSISTENCY_MAX_SUM_DELTA', 'SHADOW_EVAL_PROVIDER'];
 let savedEnv;
 let errSpy;
 
@@ -52,8 +52,9 @@ afterEach(() => {
 
 // ---------------------------------------------------------------------------
 describe('the incumbent (anthropic) path is unchanged', () => {
-  test('one call, pinned to anthropic with the base prompt; no consistency key; prompt_version = PROMPT_VERSION', async () => {
-    process.env.EVAL_CONSISTENCY = 'adaptive';                 // must make no difference here
+  test.each(['adaptive', 'median3'])('EVAL_CONSISTENCY=%s: one call, pinned to anthropic with the base prompt; no consistency key; prompt_version = PROMPT_VERSION', async (mode) => {
+    process.env.EVAL_CONSISTENCY = mode;                       // must make no difference here
+    process.env.EVAL_CONSISTENCY_MAX_SUM_DELTA = '2';
     resolveProviderName.mockResolvedValue('anthropic');
     callAI.mockResolvedValueOnce(anthropic());
 
@@ -197,5 +198,69 @@ describe('local without the env, and resolution failures', () => {
     const res = await post();
     expect(res.status).toBe(500);
     expect(callAI).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+describe('local + the E2 knobs: EVAL_CONSISTENCY=median3 and EVAL_CONSISTENCY_MAX_SUM_DELTA', () => {
+  beforeEach(() => { resolveProviderName.mockResolvedValue('local'); });
+  // A uniform +1 level shift across d1..d5: max |Δ| 1 (the per-domain check passes), Σ|Δ| 5.
+  const SHIFTED = { d1: 4, d2: 5, d3: 4, d4: 3, d5: 6 - 2, d6: 1, d7: 4 };   // d5: 4
+  const shifted = (input = 1001, output = 101) => ({ ...local(4, input, output), text: JSON.stringify({ ...SHIFTED, rationale: { d1: 'because' } }) });
+
+  test('median3: three calls even when every reply is identical; the block says so; tokens = call 1', async () => {
+    process.env.EVAL_CONSISTENCY = 'median3';
+    callAI.mockResolvedValueOnce(local(4, 1000, 100)).mockResolvedValueOnce(local(4, 1001, 101)).mockResolvedValueOnce(local(4, 1002, 102));
+    const res = await post();
+    expect(res.status).toBe(200);
+    expect(callAI).toHaveBeenCalledTimes(3);
+    for (const [call] of callAI.mock.calls) expect(call.provider).toBe('local');
+    expect(res.body.input_tokens).toBe(1000);
+    expect(res.body.consistency).toMatchObject({
+      mode: 'median3', rule: 'median-of-3', calls: 3, max_delta: 0, sum_delta: 0,
+      agree: { max_domain_delta: 1, max_sum_delta: 0 }, extra_input_tokens: 2003,
+    });
+    expect(res.body.provenance.consistency).toEqual(res.body.consistency);
+  });
+
+  test('adaptive, default sum bound: the uniformly shifted pair agrees — two calls, final = c1, sum_delta 5 recorded', async () => {
+    process.env.EVAL_CONSISTENCY = 'adaptive';
+    callAI.mockResolvedValueOnce(local(4)).mockResolvedValueOnce(shifted());
+    const res = await post();
+    expect(res.status).toBe(200);
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(res.body.d1).toBe(3);
+    expect(res.body.consistency).toMatchObject({ rule: 'first-of-agreeing-pair', max_delta: 1, sum_delta: 5, agree: { max_domain_delta: 1, max_sum_delta: 0 } });
+  });
+
+  test('adaptive + EVAL_CONSISTENCY_MAX_SUM_DELTA=2: the same pair disagrees — a third call and the per-domain median', async () => {
+    process.env.EVAL_CONSISTENCY = 'adaptive';
+    process.env.EVAL_CONSISTENCY_MAX_SUM_DELTA = '2';
+    callAI.mockResolvedValueOnce(local(4)).mockResolvedValueOnce(shifted()).mockResolvedValueOnce(local(4));
+    const res = await post();
+    expect(res.status).toBe(200);
+    expect(callAI).toHaveBeenCalledTimes(3);
+    expect(res.body.d1).toBe(3);                                            // median(3, 4, 3)
+    expect(res.body.consistency).toMatchObject({ rule: 'median-of-3', calls: 3, max_delta: 1, sum_delta: 5, agree: { max_domain_delta: 1, max_sum_delta: 2 } });
+    expect(res.body.provenance.consistency.agree).toEqual({ max_domain_delta: 1, max_sum_delta: 2 });
+  });
+
+  test('the sum bound is part of the fingerprinted configuration', async () => {
+    process.env.EVAL_CONSISTENCY = 'adaptive';
+    callAI.mockResolvedValueOnce(local(4)).mockResolvedValueOnce(local(4));
+    const off = (await post()).body.provenance.config_fingerprint;
+    process.env.EVAL_CONSISTENCY_MAX_SUM_DELTA = '2';
+    callAI.mockResolvedValueOnce(local(4)).mockResolvedValueOnce(local(4));
+    const two = (await post()).body.provenance.config_fingerprint;
+    expect(two).not.toBe(off);
+  });
+
+  test.each(['-1', 'x', '2.5'])('EVAL_CONSISTENCY_MAX_SUM_DELTA=%s falls back to 0 (never NaN, never a disabled rule by accident)', async (v) => {
+    process.env.EVAL_CONSISTENCY = 'adaptive';
+    process.env.EVAL_CONSISTENCY_MAX_SUM_DELTA = v;
+    callAI.mockResolvedValueOnce(local(4)).mockResolvedValueOnce(local(4));
+    const res = await post();
+    expect(res.status).toBe(200);
+    expect(res.body.consistency.agree.max_sum_delta).toBe(v === '2.5' ? 2 : 0);   // parseInt('2.5') is 2 — an integer, accepted
   });
 });

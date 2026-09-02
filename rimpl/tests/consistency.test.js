@@ -9,7 +9,7 @@
 //   * the physician is billed CALL 1 only; every other call is summed into extra_*;
 //   * 'off' is one call and nothing extra;
 //   * the consistency block carries integers and fixed-vocabulary strings — never model text.
-const { scoreWithConsistency, RULES, METHOD, AGREE_WITHIN } = require('../src/services/consistency');
+const { scoreWithConsistency, RULES, METHOD, MODES, AGREE_WITHIN, DEFAULT_AGREE } = require('../src/services/consistency');
 const { Pis7ScoreError, compositeOf } = require('../src/lib/pis7');
 
 const V = (d1, d2, d3, d4, d5, d6, d7) => ({ d1, d2, d3, d4, d5, d6, d7 });
@@ -36,7 +36,7 @@ function scripted(replies) {
   return { callOnce, seen };
 }
 
-const VOCAB = new Set([METHOD, 'off', 'adaptive', RULES.single, RULES.pair, RULES.median]);
+const VOCAB = new Set([METHOD, ...MODES, RULES.single, RULES.pair, RULES.median]);
 function leaves(v, out = []) {
   if (Array.isArray(v)) v.forEach((x) => leaves(x, out));
   else if (v && typeof v === 'object') Object.values(v).forEach((x) => leaves(x, out));
@@ -195,9 +195,10 @@ describe('the consistency block carries no model text', () => {
     expect(wire).not.toContain('RATIONALE');                                     // …never inside it
     expect(wire).not.toContain('assessment');
     expect(Object.keys(consistency).sort()).toEqual([
-      'calls', 'extra_input_tokens', 'extra_output_tokens', 'json_retries', 'latency_ms',
-      'max_delta', 'method', 'mode', 'per_call_scores', 'rule',
+      'agree', 'calls', 'extra_input_tokens', 'extra_output_tokens', 'json_retries', 'latency_ms',
+      'max_delta', 'method', 'mode', 'per_call_scores', 'rule', 'sum_delta',
     ]);
+    expect(Object.keys(consistency.agree).sort()).toEqual(['max_domain_delta', 'max_sum_delta']);
     for (const leaf of leaves(consistency)) {
       if (typeof leaf === 'string') expect(VOCAB.has(leaf)).toBe(true);
       else expect(leaf === null || Number.isInteger(leaf)).toBe(true);
@@ -209,5 +210,120 @@ describe('the consistency block carries no model text', () => {
     await expect(scoreWithConsistency({ callOnce, mode: 'always' })).rejects.toThrow(/Unknown consistency mode "always"/);
     expect(callOnce).not.toHaveBeenCalled();
     await expect(scoreWithConsistency({ mode: 'off' })).rejects.toThrow(TypeError);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The Σ|Δ| knob. On the tuning split 16/16 first pairs "agreed" under max |Δ| ≤ 1, yet repeats of one
+// fixture drifted as a near-uniform ±1 level shift across 5–6 domains: max |Δ| = 1, Σ|Δ| = 5–6. The
+// D18 repeatability bar is Σ|Δ| median ≤ 2.
+describe('agree.maxSumDelta — a uniform level shift', () => {
+  const SHIFTED = V(4, 5, 4, 3, 4, 1, 4);   // +1 on d1..d5 vs BASE: max |Δ| 1, Σ|Δ| 5
+
+  test('the defaults are the historical rule: max |Δ| ≤ 1 alone, sum check off', () => {
+    expect(DEFAULT_AGREE).toEqual({ maxDomainDelta: 1, maxSumDelta: 0 });
+    expect(AGREE_WITHIN).toBe(1);
+    expect(MODES).toEqual(['off', 'adaptive', 'median3']);
+  });
+
+  test('under the default the shifted pair AGREES: two calls, final = c1, and the block records sum_delta 5 with the thresholds', async () => {
+    const { callOnce } = scripted([reply(BASE, 1), reply(SHIFTED, 2)]);
+    const r = await scoreWithConsistency({ callOnce, mode: 'adaptive' });
+    expect(callOnce).toHaveBeenCalledTimes(2);
+    expect(r.scores).toEqual(BASE);
+    expect(r.consistency).toMatchObject({
+      rule: RULES.pair, calls: 2, max_delta: 1, sum_delta: 5, agree: { max_domain_delta: 1, max_sum_delta: 0 },
+    });
+  });
+
+  test('with maxSumDelta 2 the same pair DISAGREES: a third call and the per-domain median', async () => {
+    const c3 = V(4, 4, 3, 3, 5, 1, 4);
+    const { callOnce } = scripted([reply(BASE, 1), reply(SHIFTED, 2), reply(c3, 3)]);
+    const r = await scoreWithConsistency({ callOnce, mode: 'adaptive', agree: { maxSumDelta: 2 } });
+    expect(callOnce).toHaveBeenCalledTimes(3);
+    expect(r.scores).toEqual(V(4, 4, 3, 3, 5, 1, 4));        // per-domain median of BASE / SHIFTED / c3
+    expect(r.rationale.d1).toContain('#3');                   // c3 is the median itself
+    expect(r.consistency).toMatchObject({
+      rule: RULES.median, calls: 3, max_delta: 1, sum_delta: 5, agree: { max_domain_delta: 1, max_sum_delta: 2 },
+    });
+  });
+
+  test('the sum bound is inclusive: Σ|Δ| 5 agrees at maxSumDelta 5 and not at 4', async () => {
+    const a = scripted([reply(BASE, 1), reply(SHIFTED, 2), reply(BASE, 3)]);
+    expect((await scoreWithConsistency({ callOnce: a.callOnce, mode: 'adaptive', agree: { maxSumDelta: 5 } })).consistency.rule).toBe(RULES.pair);
+    const b = scripted([reply(BASE, 1), reply(SHIFTED, 2), reply(BASE, 3)]);
+    expect((await scoreWithConsistency({ callOnce: b.callOnce, mode: 'adaptive', agree: { maxSumDelta: 4 } })).consistency.rule).toBe(RULES.median);
+  });
+
+  test('both checks must hold: a pair under the sum bound but over the domain bound still disagrees', async () => {
+    const { callOnce } = scripted([reply(BASE, 1), reply(V(3, 4, 3, 2, 5, 1, 2), 2), reply(BASE, 3)]);   // d7 -2: Σ|Δ| 2
+    const r = await scoreWithConsistency({ callOnce, mode: 'adaptive', agree: { maxSumDelta: 6 } });
+    expect(r.consistency).toMatchObject({ rule: RULES.median, max_delta: 2, sum_delta: 2 });
+  });
+
+  test('maxDomainDelta 0 makes only an identical pair agree', async () => {
+    const a = scripted([reply(BASE, 1), reply(BASE, 2)]);
+    expect((await scoreWithConsistency({ callOnce: a.callOnce, mode: 'adaptive', agree: { maxDomainDelta: 0 } })).consistency.rule).toBe(RULES.pair);
+    const b = scripted([reply(BASE, 1), reply(V(3, 4, 3, 2, 5, 1, 3), 2), reply(BASE, 3)]);
+    expect((await scoreWithConsistency({ callOnce: b.callOnce, mode: 'adaptive', agree: { maxDomainDelta: 0 } })).consistency.rule).toBe(RULES.median);
+  });
+
+  test('a partial agree keeps the other default; an undefined key keeps the default too', async () => {
+    const { callOnce } = scripted([reply(BASE, 1), reply(BASE, 2)]);
+    const r = await scoreWithConsistency({ callOnce, mode: 'adaptive', agree: { maxSumDelta: 2, maxDomainDelta: undefined } });
+    expect(r.consistency.agree).toEqual({ max_domain_delta: 1, max_sum_delta: 2 });
+  });
+
+  test.each([
+    ['a negative sum bound', { maxSumDelta: -1 }],
+    ['a fractional domain bound', { maxDomainDelta: 0.5 }],
+    ['a NaN (an unparsed env value)', { maxSumDelta: NaN }],
+    ['a string', { maxSumDelta: '2' }],
+  ])('%s is refused before any call', async (_label, agree) => {
+    const { callOnce } = scripted([reply(BASE, 1)]);
+    await expect(scoreWithConsistency({ callOnce, mode: 'adaptive', agree })).rejects.toThrow(/agree\.max(Domain|Sum)Delta must be an integer >= 0/);
+    expect(callOnce).not.toHaveBeenCalled();
+  });
+
+  test('the thresholds are recorded in every mode; off carries null deltas', async () => {
+    const { callOnce } = scripted([reply(BASE, 1)]);
+    const r = await scoreWithConsistency({ callOnce, mode: 'off', agree: { maxSumDelta: 2 } });
+    expect(r.consistency).toMatchObject({ rule: RULES.single, max_delta: null, sum_delta: null, agree: { max_domain_delta: 1, max_sum_delta: 2 } });
+  });
+});
+
+// ---------------------------------------------------------------------------
+describe('mode median3 — always three calls', () => {
+  test('c1 = c2 = c3 still makes three calls: rule median-of-3, deltas 0, same block shape', async () => {
+    const { callOnce, seen } = scripted([reply(BASE, 1), reply(BASE, 2), reply(BASE, 3)]);
+    const r = await scoreWithConsistency({ callOnce, mode: 'median3' });
+    expect(callOnce).toHaveBeenCalledTimes(3);
+    expect(seen).toEqual([0, 1, 2]);
+    expect(r.scores).toEqual(BASE);
+    expect(r.rationale.d1).toContain('#1');                                  // all at distance 0 → earliest
+    expect(r.billed).toEqual({ inputTokens: 1001, outputTokens: 101 });     // call 1 only, as in every mode
+    expect(r.consistency).toMatchObject({
+      mode: 'median3', rule: RULES.median, calls: 3, max_delta: 0, sum_delta: 0,
+      agree: { max_domain_delta: 1, max_sum_delta: 0 }, extra_input_tokens: 1002 + 1003, extra_output_tokens: 102 + 103,
+    });
+    expect(Object.keys(r.consistency).sort()).toEqual([
+      'agree', 'calls', 'extra_input_tokens', 'extra_output_tokens', 'json_retries', 'latency_ms',
+      'max_delta', 'method', 'mode', 'per_call_scores', 'rule', 'sum_delta',
+    ]);
+  });
+
+  test('a disagreeing triple takes the per-domain median exactly as adaptive would', async () => {
+    const { callOnce } = scripted([reply(BASE, 1), reply(V(3, 4, 3, 2, 5, 1, 2), 2), reply(V(3, 4, 3, 2, 5, 1, 3), 3)]);
+    const r = await scoreWithConsistency({ callOnce, mode: 'median3' });
+    expect(r.scores.d7).toBe(3);
+    expect(r.rationale.d1).toContain('#3');
+    expect(r.consistency).toMatchObject({ rule: RULES.median, max_delta: 2, sum_delta: 2 });
+  });
+
+  test('re-asks apply in median3 too, within the shared budget', async () => {
+    const { callOnce } = scripted([reply(BASE, 1), garbage(2), reply(BASE, 3), reply(BASE, 4)]);
+    const r = await scoreWithConsistency({ callOnce, mode: 'median3', jsonRetries: 2 });
+    expect(callOnce).toHaveBeenCalledTimes(4);
+    expect(r.consistency).toMatchObject({ calls: 3, json_retries: 1 });
   });
 });

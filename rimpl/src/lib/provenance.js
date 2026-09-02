@@ -26,7 +26,13 @@ const { createHash } = require('crypto');
 // evaluations under the same configuration must fingerprint the same whether or not one of them
 // happened to need a third call.
 function canonicalConsistency(c) {
-  return { method: c.method ?? null, mode: c.mode ?? null };
+  return {
+    method: c.method ?? null,
+    mode: c.mode ?? null,
+    // The agreement thresholds are configuration too: a score reconciled under Σ|Δ| ≤ 2 did not come
+    // from the same rule as one reconciled under the per-domain check alone.
+    agree: { max_domain_delta: c.agree?.max_domain_delta ?? null, max_sum_delta: c.agree?.max_sum_delta ?? null },
+  };
 }
 
 // A stable fingerprint over the configuration that produced a score. Sorted keys and a fixed shape,

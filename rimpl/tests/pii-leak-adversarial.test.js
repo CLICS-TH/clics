@@ -443,7 +443,7 @@ describe('adversarial — the consistency block on a 200 /evaluate carries numbe
   const RAW = { name: 'สมชาย ใจดี', hn: 'HN 12345678', phone: '081-234-5678', cid: '1234567890123', email: 'somchai.j@hospital.go.th' };
   const line = `ผู้ป่วยชื่อ ${RAW.name} ${RAW.hn} โทร ${RAW.phone} บัตร ${RAW.cid} email ${RAW.email} มาด้วยอาการเจ็บหน้าอก`;
   const LEAKS = ['สมชาย', 'ใจดี', '12345678', '081-234-5678', '5678', RAW.cid, RAW.email, 'somchai', 'เจ็บหน้าอก', 'RATIONALE-SENTINEL'];
-  const VOCAB = new Set(['self-consistency', 'adaptive', 'off', 'single', 'first-of-agreeing-pair', 'median-of-3']);
+  const VOCAB = new Set(['self-consistency', 'adaptive', 'median3', 'off', 'single', 'first-of-agreeing-pair', 'median-of-3']);
   // A model that echoes the raw identifiers in its rationale — the worst case for anything derived from replies.
   const scored = (d7, tag) => ({
     text: JSON.stringify({ d1: 3, d2: 4, d3: 3, d4: 2, d5: 5, d6: 1, d7, rationale: { d1: `RATIONALE-SENTINEL #${tag}: ${line}` } }),
@@ -481,9 +481,10 @@ describe('adversarial — the consistency block on a 200 /evaluate carries numbe
       const wire = JSON.stringify(block);
       for (const frag of LEAKS) expect(wire).not.toContain(frag);                // …but none of it is in the block
       expect(Object.keys(block).sort()).toEqual([
-        'calls', 'extra_input_tokens', 'extra_output_tokens', 'json_retries', 'latency_ms',
-        'max_delta', 'method', 'mode', 'per_call_scores', 'rule',
+        'agree', 'calls', 'extra_input_tokens', 'extra_output_tokens', 'json_retries', 'latency_ms',
+        'max_delta', 'method', 'mode', 'per_call_scores', 'rule', 'sum_delta',
       ]);
+      expect(Object.keys(block.agree).sort()).toEqual(['max_domain_delta', 'max_sum_delta']);
       for (const leaf of leaves(block)) {
         if (typeof leaf === 'string') expect(VOCAB.has(leaf)).toBe(true);
         else expect(leaf === null || Number.isInteger(leaf)).toBe(true);

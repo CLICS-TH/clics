@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { callAI, resolveProviderName } = require('../services/ai');
 const { pis7PromptFor } = require('../lib/prompts');
 const { Pis7ScoreError } = require('../lib/pis7');
-const { scoreWithConsistency } = require('../services/consistency');
+const { scoreWithConsistency, MODES: CONSISTENCY_MODES } = require('../services/consistency');
 const { flattenForPrompt } = require('../lib/transcript');
 const { buildProvenance } = require('../lib/provenance');
 const { deriveHintTokens } = require('../services/pii-filter');
@@ -20,14 +20,23 @@ const router = Router();
 const EVAL_DECODING = { temperature: 0, maxTokens: 4096 };
 
 // Self-consistency (services/consistency.js; docs/LOCAL-MODEL-ROADMAP.md D18 / D21) — for the LOCAL
-// arm only. EVAL_CONSISTENCY=adaptive scores twice, a third time when any domain differs by more than
-// 1, and reconciles; the incumbent (anthropic) path is unchanged whatever the env says, so its
-// response stays byte-identical to before this existed. Default off.
-const consistencyModeFor = (provider) =>
-  (provider === 'local' && String(process.env.EVAL_CONSISTENCY || '').trim().toLowerCase() === 'adaptive') ? 'adaptive' : 'off';
-// Re-asks allowed across one ADAPTIVE evaluation when the model returns unparseable / out-of-range
-// JSON. Not applied to the incumbent path: a re-ask there would be a new cloud-spend path on the
-// instrument the pilot is locked to, and it has had none.
+// arm only. EVAL_CONSISTENCY: off (default) | adaptive (two calls, a third when the pair disagrees) |
+// median3 (always three). The incumbent (anthropic) path is unchanged whatever the env says, so its
+// response stays byte-identical to before this existed. An unknown value is off.
+const consistencyModeFor = (provider) => {
+  const mode = String(process.env.EVAL_CONSISTENCY || '').trim().toLowerCase();
+  return provider === 'local' && CONSISTENCY_MODES.includes(mode) ? mode : 'off';
+};
+// Σ|Δ| ceiling for the adaptive pair to count as agreeing (0 = the per-domain check alone). A uniform
+// ±1 level shift across 5–6 domains passes the per-domain check with Σ|Δ| = 5–6, and the D18
+// repeatability bar is Σ|Δ| median ≤ 2 — see services/consistency.js DEFAULT_AGREE.
+function maxSumDelta() {
+  const n = parseInt(process.env.EVAL_CONSISTENCY_MAX_SUM_DELTA, 10);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+// Re-asks allowed across one adaptive / median3 evaluation when the model returns unparseable /
+// out-of-range JSON. Not applied to the incumbent path: a re-ask there would be a new cloud-spend
+// path on the instrument the pilot is locked to, and it has had none.
 function jsonRetries() {
   const n = parseInt(process.env.EVAL_JSON_RETRIES, 10);
   return Number.isFinite(n) && n >= 0 ? n : 2;
@@ -114,7 +123,9 @@ router.post('/', async (req, res) => {
     // unparseable reply is a 502 with no re-ask.
     let scored;
     try {
-      scored = await scoreWithConsistency({ callOnce, mode, jsonRetries: mode === 'adaptive' ? jsonRetries() : 0 });
+      scored = await scoreWithConsistency({
+        callOnce, mode, jsonRetries: mode === 'off' ? 0 : jsonRetries(), agree: { maxSumDelta: maxSumDelta() },
+      });
     } catch (e) {
       if (!(e instanceof Pis7ScoreError || e?.name === 'Pis7ScoreError')) throw e;   // transport / queue / abort → below
       if (e.kind === 'invalid_json') {
@@ -133,7 +144,7 @@ router.post('/', async (req, res) => {
     const { scores, composite, rationale, billed } = scored;
     // Present in the response and in provenance ONLY when the evaluation actually reconciled several
     // calls. Omitted for 'off', so the incumbent path's response and fingerprint are unchanged.
-    const consistency = mode === 'adaptive' ? scored.consistency : null;
+    const consistency = mode === 'off' ? null : scored.consistency;
     // §10.2: the model that ACTUALLY produced this score — from the billed call, which every further
     // call was pinned to the same provider as.
     const model = first?.model;
