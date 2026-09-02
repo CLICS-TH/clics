@@ -223,7 +223,10 @@ const PIS7_LOCAL_ADDENDUM = `SCORING PROCESS (read before you score):
   unchanged — "what is the differential?" — is 2 or below.
 - Judge what the physician actually did with the case in front of them. Do not lower a score because
   a stronger version of the same behaviour is imaginable, because the session is short, or because
-  the writing is blunt or unpolished.`;
+  the writing is blunt or unpolished.
+
+OUTPUT FORMAT IS UNCHANGED BY THIS SECTION: reply with ONLY the JSON object specified above — the
+seven integer scores and the rationale object, nothing before it and nothing after it.`;
 
 // The evaluator prompt a given provider actually receives. `addendum` defaults to the module's; the
 // parameter exists so the non-empty branch can be tested before E2 turns it on.
