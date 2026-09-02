@@ -128,6 +128,11 @@ function extractScores(text) {
 
 async function localArm(fx) {
   const t0 = Date.now();
+  const rawCall = async () => chatCompletion(cfg, {
+    systemPrompt: LOCAL_PROMPT,
+    messages: [{ role: 'user', content: `TRANSCRIPT:\n${fx.flattened}` }],
+    maxTokens: 4096, temperature: 0,
+  });
   const callOnce = async () => {
     const r = await chatCompletion(cfg, {
       systemPrompt: LOCAL_PROMPT,
@@ -137,8 +142,13 @@ async function localArm(fx) {
     return { text: r.text ?? '', inputTokens: r.promptTokens ?? 0, outputTokens: r.completionTokens ?? 0 };
   };
   if (CONSISTENCY === 'off') {
-    const r = await callOnce();
-    return { scores: extractScores(r.text), ms: Date.now() - t0, calls: 1 };
+    // Keep the TRANSPORT result distinct from the PARSE result: a timeout or HTTP error must never be
+    // recorded as "the model returned something unparseable" — that would credit the box's slowness to
+    // the model's contract rate. (This cost an hour: three fixtures read 0/5 'unparseable' when they
+    // were 600 s timeouts caused by two probe runs sharing one box.)
+    const r = await rawCall();
+    if (!r.ok) return { scores: null, ms: Date.now() - t0, calls: 1, error: `transport ${r.status || ''}`.trim() };
+    return { scores: extractScores(r.text ?? ''), ms: Date.now() - t0, calls: 1, error: r.text ? null : 'empty reply' };
   }
   try {
     const res = await scoreWithConsistency({ callOnce, mode: CONSISTENCY, jsonRetries: 2, agree: { maxDomainDelta: 1, maxSumDelta: AGREE_SUM } });
@@ -194,7 +204,10 @@ for (const fx of fixtures) {
     }
     const good = runs.filter((r) => r.scores);
     const callsUsed = runs.map((r) => r.calls ?? '×');
-    console.log(`  ${good.length}/${REPEATS} parsed${CONSISTENCY !== 'off' && arm === 'local' ? `   calls ${callsUsed.join(',')}` : ''}`);
+    const errs = [...new Set(runs.map((r) => r.error).filter(Boolean))];
+    console.log(`  ${good.length}/${REPEATS} parsed${CONSISTENCY !== 'off' && arm === 'local' ? `   calls ${callsUsed.join(',')}` : ''}`
+      + (errs.length ? `   ${yellow(errs.join(', '))}` : '')
+      + (good.length < REPEATS ? dim(`   mean ${Math.round(runs.reduce((a, r) => a + r.ms, 0) / runs.length / 1000)}s`) : ''));
     results.push({ fixture: fx.id, arm, runs: good.map((r) => r.scores), ms: runs.map((r) => r.ms), calls: runs.map((r) => r.calls ?? null) });
   }
 }

@@ -92,3 +92,14 @@ and are marked "not a gate result" by the tool. Σ|Δ| = median over fixtures of
 
 | model (local vs cloud) | prompt version · sha | split (n pairs) | consistency | ICC(A,1) composite (95% CI) | Σ\|Δ\| median | JSON % | verdict |
 |---|---|---|---|---|---|---|---|
+| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29 | tuning (n=16) | adaptive | 0.578 (0.116–0.835) | n/m | 100.0% | insufficient |
+
+**v0 baseline, 2026-09-02.** The first row is the local model against the incumbent on the 18-fixture
+tuning split, with adaptive self-consistency ON. Read it with the earlier single-call measurement
+(ICC 0.594, 26 fixtures): **self-consistency did not move agreement** — 0.578 weighted / 0.591
+unweighted against 0.594. The gap is systematic rather than noisy: composite bias −2.50 (local
+harsher), Bland–Altman −10.27…5.27, and per-domain ICC 0.06 on d1, 0.42 on d4, 0.55 on d2 while
+d5/d6/d7 sit at 0.68/0.72/0.59 with no bias. Two cloud replies were unparseable (malformed JSON in a
+rationale); the local arm parsed 18/18. `screening-verdict.mjs` reports `insufficient`, and at a point
+estimate of 0.578 **no number of pairs would clear a 0.75 lower bound** — more data cannot rescue a
+model that ranks the episodes differently. That is what the addendum below is aimed at.

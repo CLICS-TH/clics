@@ -150,10 +150,19 @@ if (state === 'pass' && sigma?.pass === false) { state = 'fail'; reasons.push(`r
 if (state === 'pass' && jsonPass === false) { state = 'fail'; reasons.push(`valid JSON ${jsonPct.toFixed(1)}% < 98%`); }
 if (!isGate) reasons.unshift('TUNING split — NOT A GATE RESULT');
 
+// The prompt that produced THIS RUN, as the run recorded it — never the working tree's prompt today.
+// (Caught 2026-09-02: a baseline run made before the local addendum existed was stamped with the
+// addendum's sha, because the tool hashed prompts.js at report time. A calibration table whose rows
+// are labelled with whatever is checked out when you read them is worse than no table.)
+const recordedLocalVersion = agreement.local_prompt_version ?? null;
 const promptText = typeof prompts.pis7PromptFor === 'function' ? prompts.pis7PromptFor('local') : prompts.PIS7_EVALUATOR_PROMPT;
-const promptSha = createHash('sha256').update(promptText ?? '').digest('hex').slice(0, 12);
+const currentSha = createHash('sha256').update(promptText ?? '').digest('hex').slice(0, 12);
+// A run predating the recording (or one written by an older probe) has no version: say so, do not guess.
+const promptSha = recordedLocalVersion ?? `unrecorded (tree today: ${currentSha})`;
+const promptDrift = recordedLocalVersion && !recordedLocalVersion.includes(currentSha.slice(0, 8))
+  && recordedLocalVersion !== agreement.prompt_version;
 const ci = iccResult.icc == null ? '—' : `${iccResult.icc.toFixed(3)} (${iccResult.lower.toFixed(3)}–${iccResult.upper.toFixed(3)})`;
-const row = `| ${agreement.localModel ?? '?'} vs ${agreement.cloudModel ?? '?'} | ${agreement.prompt_version ?? '?'} · ${promptSha} | ${splitName ?? 'none'} (n=${iccResult.n}) | ${agreement.consistency ?? 'off'} | ${ci} | ${sigma?.median ?? 'n/m'} | ${jsonPct == null ? 'n/m' : jsonPct.toFixed(1) + '%'} | ${state} |`;
+const row = `| ${agreement.models?.local ?? agreement.localModel ?? '?'} vs ${agreement.cloudModel ?? '?'} | ${promptSha} | ${splitName ?? 'none'} (n=${iccResult.n}) | ${agreement.consistency ?? 'off'} | ${ci} | ${sigma?.median ?? 'n/m'} | ${jsonPct == null ? 'n/m' : jsonPct.toFixed(1) + '%'} | ${state} |`;
 
 const out = {
   state, reasons, gate: isGate, split: splitName, threshold, threshold_source: thresholdSource,
@@ -175,6 +184,7 @@ else {
   console.log(`\n  pairs needed for the lower bound to clear ${threshold}:`);
   console.log(`    at the observed ICC ${iccResult.icc ?? '—'}: ${atObserved ?? 'never (point estimate not above threshold)'}`);
   console.log(`    ladder  ${ladder.map((l) => `${l.rho}→${l.pairs ?? '∞'}`).join('   ')}`);
+  if (promptDrift) console.log(`\n  note · this run recorded prompt ${recordedLocalVersion}; the working tree now holds ${currentSha}. The row below reports the RUN's prompt.`);
   console.log(`\n  prompt-versions.md row (model axis):\n  ${row}\n`);
 }
 process.exit(state === 'pass' ? 0 : state === 'fail' ? 1 : 3);
