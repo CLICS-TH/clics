@@ -206,7 +206,24 @@ Rules for this reply, all of them mandatory:
 // and an AI and a human scoring against two different rubrics produce an ICC that measures the gap
 // between the rubrics. When non-empty it is visible in provenance: lib/versions.js promptVersionFor
 // suffixes PROMPT_VERSION with `+local-<sha>` for the local provider.
-const PIS7_LOCAL_ADDENDUM = '';
+const PIS7_LOCAL_ADDENDUM = `SCORING PROCESS (read before you score):
+
+- Score each domain on ITS OWN evidence. Do not let an overall impression of the session set a level
+  and then apply that level across the domains: a transcript can be 4 on one domain and 2 on another.
+  Read the transcript once per domain, looking only for that domain's evidence.
+- 3 is the anchor, not a compliment. "Moderate — reasonably structured" is the correct score for
+  competent, unremarkable work. Move DOWN from 3 only when you can name what is absent, and UP from 3
+  only when you can quote what is present.
+- The evidence rule is SYMMETRIC. You must already quote the transcript to award 4 or 5. Quote it to
+  award 0, 1 or 2 as well: name the turn you are scoring and say what is missing from it. If you
+  cannot point at the absence, the score is not below 3.
+- d1 asks whether the QUESTION exposes a real decision point in THIS case, not whether it is long or
+  technically sophisticated. A brief question that names this patient's specific decision ("statin or
+  not, given the transaminases?") is 3 or above. Only a question that would fit any patient
+  unchanged — "what is the differential?" — is 2 or below.
+- Judge what the physician actually did with the case in front of them. Do not lower a score because
+  a stronger version of the same behaviour is imaginable, because the session is short, or because
+  the writing is blunt or unpolished.`;
 
 // The evaluator prompt a given provider actually receives. `addendum` defaults to the module's; the
 // parameter exists so the non-empty branch can be tested before E2 turns it on.

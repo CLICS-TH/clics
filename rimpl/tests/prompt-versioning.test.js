@@ -9,17 +9,32 @@ const { PROMPT_VERSION, promptVersionFor } = require('../src/lib/versions');
 
 const sha12 = (s) => crypto.createHash('sha256').update(s).digest('hex').slice(0, 12);
 
-describe('today: the addendum is empty', () => {
-  test('PIS7_LOCAL_ADDENDUM is the empty string (E2 has not run)', () => {
-    expect(PIS7_LOCAL_ADDENDUM).toBe('');
+describe('the local addendum is ON (E2, 2026-09-02) and reaches ONLY the local arm', () => {
+  test('PIS7_LOCAL_ADDENDUM is non-empty and adds scoring PROCESS only — no rubric level text', () => {
+    expect(PIS7_LOCAL_ADDENDUM.length).toBeGreaterThan(0);
+    // The levels, weights and domain definitions live in the base prompt, are mirrored in
+    // audit-dashboard/lib/pis7-rubric.ts and are pinned by backend/tests/rubric-sync.test.js. An
+    // addendum that restated any of them would put an AI and a human on two different rubrics.
+    expect(PIS7_LOCAL_ADDENDUM).not.toMatch(/DOMAINS AND WEIGHTS|SCALE \(|\d+%\)/);
   });
 
-  test.each(['local', 'anthropic', undefined])('pis7PromptFor(%s) is the base prompt, byte for byte', (provider) => {
+  test.each(['anthropic', undefined])('pis7PromptFor(%s) is the base prompt, byte for byte', (provider) => {
     expect(pis7PromptFor(provider)).toBe(PIS7_EVALUATOR_PROMPT);
   });
 
-  test.each(['local', 'anthropic', undefined])('promptVersionFor(%s) is PROMPT_VERSION', (provider) => {
+  test('pis7PromptFor(local) is the base prompt plus the addendum, and starts with the base', () => {
+    expect(pis7PromptFor('local')).toBe(`${PIS7_EVALUATOR_PROMPT}\n\n${PIS7_LOCAL_ADDENDUM}`);
+    expect(pis7PromptFor('local').startsWith(PIS7_EVALUATOR_PROMPT)).toBe(true);
+  });
+
+  test.each(['anthropic', undefined])('promptVersionFor(%s) is PROMPT_VERSION', (provider) => {
     expect(promptVersionFor(provider)).toBe(PROMPT_VERSION);
+  });
+
+  test('promptVersionFor(local) suffixes the version with the addendum sha — a scored row says which text produced it', () => {
+    const sha = crypto.createHash('sha256').update(PIS7_LOCAL_ADDENDUM).digest('hex').slice(0, 12);
+    expect(promptVersionFor('local')).toBe(`${PROMPT_VERSION}+local-${sha}`);
+    expect(promptVersionFor('local')).not.toBe(PROMPT_VERSION);
   });
 
   test('PROMPT_VERSION is derived from the base prompt text (the rubric-sync pin)', () => {
