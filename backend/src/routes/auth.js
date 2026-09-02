@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { supabase, authSupabase, authAnon } = require('../lib/supabase');
 const { verifyJwt } = require('../middleware/auth');
 const { sendDbError } = require('../lib/db-helpers');
-const { effectiveLimit } = require('../lib/usage');
+const { effectiveLimit, effectiveTokenLimit } = require('../lib/usage');
 const { provisionProfessional } = require('../lib/provisioning');
 const { attachSpecialty, linkedProviders, specialtyInCouncil, councilHasSpecialties, specialtyName, TRAINING_LEVELS } = require('../lib/specialties');
 const { encryptJson, decryptJson } = require('../lib/crypto');
@@ -155,10 +155,15 @@ router.get('/me', verifyJwt, async (req, res) => {
   // The auditor budget is a SEPARATE pool — surface its effective limit too so the dashboard can show
   // an auditor usage bar (auditor_usage_cost_usd already flows via req.user from select('*')).
   const auditor_usage_limit_effective_usd = await effectiveLimit(req.user, 'auditor');
+  // The token ceilings (local AI is $0, so tokens are the unit that actually throttles). null = none.
+  const [usage_limit_effective_tokens, auditor_usage_limit_effective_tokens] = await Promise.all([
+    effectiveTokenLimit(req.user), effectiveTokenLimit(req.user, 'auditor'),
+  ]);
   // specialty_name_* powers the nav-bar label; linked_providers drives the "Link Google" affordance.
   const enriched = await attachSpecialty(req.user);
   const linked_providers = await linkedProviders(req.user.id);
-  res.json({ user: { ...enriched, usage_limit_effective_usd, auditor_usage_limit_effective_usd, linked_providers } });
+  res.json({ user: { ...enriched, usage_limit_effective_usd, auditor_usage_limit_effective_usd,
+    usage_limit_effective_tokens, auditor_usage_limit_effective_tokens, linked_providers } });
 });
 
 // ---- Payment details (compensation payout, CLICS §12) ----------------------------------------

@@ -33,12 +33,25 @@
     const pleId = new URLSearchParams(location.search).get('id');
     let radarChart = null, lastScores = null;
     // Auto-poll while the evaluation is still running, instead of asking the user to hit "Refresh"
-    // (the system should do its own polling). Bounded so it can't spin forever.
-    let pollTimer = null, pollCount = 0;
+    // (the system should do its own polling). Backs off so a queue that is minutes long does not
+    // hammer the API — 4s × 5, then 8s, 15s, then 30s — under a hard 15-minute ceiling. Reaching the
+    // ceiling is NOT silent: schedulePoll() returns false and the caller shows the "still scoring" card.
+    const POLL_CAP_MS = 15 * 60 * 1000;
+    let pollTimer = null, pollCount = 0, pollStartedAt = 0;
+    function pollDelayMs() {
+      if (pollCount < 5) return 4000;
+      if (pollCount === 5) return 8000;
+      if (pollCount === 6) return 15000;
+      return 30000;
+    }
     function schedulePoll() {
       clearTimeout(pollTimer);
-      if (pollCount++ >= 45) return; // ~3 min ceiling
-      pollTimer = setTimeout(load, 4000);
+      if (!pollStartedAt) pollStartedAt = Date.now();
+      const delay = pollDelayMs();
+      if (Date.now() - pollStartedAt + delay > POLL_CAP_MS) return false;
+      pollCount++;
+      pollTimer = setTimeout(load, delay);
+      return true;
     }
     function buildRadar() {
       if (!lastScores || typeof Chart === 'undefined') return;
@@ -114,6 +127,48 @@
       </details>`;
     }
 
+    // The three waiting states, keyed on the `phase` the 202 body of /evaluation carries
+    // (screening | queued | scoring). An older backend sends only { status }, so each branch falls
+    // back to the PLE status and, failing that, to the generic wording the page always had.
+    function pendingCard(ple, eval_) {
+      const phase = (eval_ && eval_.phase) || (ple.status === 'ended' ? 'screening' : '');
+      if (phase === 'screening') {
+        return `
+          <div class="card" style="text-align:center">
+            <div class="status-band is-review" style="justify-content:center;margin-bottom:14px">${icon('hourglass', 28)}<span style="min-width:0">กำลังตรวจสอบเกณฑ์ / Screening…</span></div>
+          </div>`;
+      }
+      const queue = eval_ && eval_.queue;
+      const position = queue ? Number(queue.position) : NaN;
+      let line;
+      if (phase === 'queued' && Number.isFinite(position)) {
+        const mins = Math.max(1, Math.ceil(Number(queue.eta_s || 0) / 60));
+        line = `${icon('clock', 16)}<span style="min-width:0">อยู่ในคิวประเมิน ลำดับที่ ${position} (ประมาณ ${mins} นาที) / Queued for scoring — position ${position} (~${mins} min)</span>`;
+      } else if (phase === 'scoring') {
+        line = `${icon('hourglass', 16)}<span style="min-width:0">กำลังให้คะแนน PIS-7 / Scoring…</span>`;
+      } else if (ple.status === 'ple_pass') {
+        line = `<span style="min-width:0">กำลังประเมินผล PIS-7 อยู่… / Evaluating PIS-7…</span>`;
+      } else {
+        // Neither a phase nor a recognisable status — the generic line, exactly as before.
+        return `<div class="card" style="text-align:center"><p style="color:var(--muted)">กำลังประเมิน… / Evaluating…</p></div>`;
+      }
+      return `
+          <div class="card" style="text-align:center">
+            <div class="status-band is-pass" style="justify-content:center;margin-bottom:14px">${icon('checkCircle', 28)}<span style="min-width:0">ผ่านเกณฑ์แล้ว / Professional Learning Episode Passed</span></div>
+            <p style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;color:var(--muted);margin-top:8px">${line}</p>
+          </div>`;
+    }
+
+    // Shown when the 15-minute polling ceiling is reached. The evaluation keeps running server-side
+    // (the queue is durable), so this is "come back later", never "it failed".
+    function giveUpCard() {
+      return `
+          <div class="card" style="text-align:center">
+            <div class="status-band is-review" style="justify-content:center;margin-bottom:14px">${icon('clock', 28)}<span style="min-width:0">ยังประเมินไม่เสร็จ — ระบบจะประเมินต่อให้ กลับมาดูภายหลัง / Still scoring — it continues in the background, come back later</span></div>
+            <button type="button" class="btn btn-ghost" id="pollRefresh" style="min-height:44px">${icon('refresh', 16)} รีเฟรช / Refresh</button>
+          </div>`;
+    }
+
     async function load() {
       const ple = await api.getPle(pleId);
       const container = document.getElementById('content');
@@ -155,32 +210,27 @@
         return;
       }
 
-      if (ple.status === 'ple_pass') {
-        container.innerHTML = `
-          <div class="card" style="text-align:center">
-            <div class="status-band is-pass" style="justify-content:center;margin-bottom:14px">${icon('checkCircle', 28)}<span>ผ่านเกณฑ์แล้ว / Professional Learning Episode Passed</span></div>
-            <p style="color:var(--muted);margin-top:8px">กำลังประเมินผล PIS-7 อยู่… / Evaluating PIS-7…</p>
-          </div>` + transcriptSection(ple);
-        schedulePoll();
-        return;
-      }
-
+      // Every not-yet-evaluated status (ended → screening, ple_pass → queued/scoring) asks /evaluation:
+      // its 202 body is where the phase and the queue position live.
       const eval_ = await api.getEvaluation(pleId);
       // Blinded test round: the score is withheld until an expert auditor submits theirs. Show an
       // "under review" state and keep polling — it reveals automatically once the auditor scores.
-      if (eval_ && eval_.status === 'pending_review') {
+      if (eval_ && (eval_.status === 'pending_review' || eval_.phase === 'pending_review')) {
         container.innerHTML = `
           <div class="card" style="text-align:center">
             <div class="status-band is-review" style="justify-content:center;margin-bottom:14px">${icon('hourglass', 28)}<span>อยู่ระหว่างการตรวจประเมิน / Under expert review</span></div>
             <h2 style="margin-top:6px">ผลคะแนนจะแสดงหลังการตรวจประเมิน</h2>
             <p style="color:var(--muted);margin-top:8px">ผู้เชี่ยวชาญกำลังตรวจประเมิน Episode นี้ — ระบบจะแสดงคะแนน PIS-7 เมื่อผู้ตรวจส่งคะแนนแล้ว / Your PIS-7 score will appear once an expert auditor has submitted their assessment.</p>
           </div>` + transcriptSection(ple);
-        schedulePoll();
+        schedulePoll(); // expert review can take days: at the ceiling polling simply stops; the card stays
         return;
       }
-      if (!eval_ || eval_.status) {
-        container.innerHTML = `<div class="card" style="text-align:center"><p style="color:var(--muted)">กำลังประเมิน… / Evaluating…</p></div>`;
-        schedulePoll();
+      // A 202 (`status` present) is "still running". So is a transient { error } while the PLE itself
+      // is not evaluated yet — a network blip mid-queue must not read as "Episode not found".
+      if (!eval_ || eval_.status || (eval_.error && ple.status !== 'evaluated')) {
+        container.innerHTML = (schedulePoll() ? pendingCard(ple, eval_) : giveUpCard()) + transcriptSection(ple);
+        const refresh = document.getElementById('pollRefresh');
+        if (refresh) refresh.addEventListener('click', () => location.reload());
         return;
       }
       // Error envelope or malformed evaluation — never render a NaN scorecard.

@@ -7,6 +7,9 @@ jest.mock('../src/services/rimpl-client', () => ({
 }));
 const mockRefund = jest.fn(async () => {});
 jest.mock('../src/lib/usage', () => ({
+  // The token ceiling (local AI) and the combined $/token verdict — see lib/usage.js budgetState.
+  effectiveTokenLimit: async () => null,
+  budgetState: async (user) => { const cost = Number(user?.usage_cost_usd ?? 0); return { over: cost >= 1, reason: cost >= 1 ? 'cost' : null, limit: 1, tokenLimit: null, cost, tokens: 0 }; },
   effectiveLimit: async () => 1,
   reserveUsage: async () => ({ ok: true, applied: true }),
   refundUsage: mockRefund,

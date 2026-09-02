@@ -31,6 +31,9 @@ describe('GET /health/deep (backend)', () => {
     expect(res.body.checks.supabase.status).toBe('up');
     expect(res.body.checks.rimpl.status).toBe('up');
     expect(res.body.checks.rimpl.deep.service).toBe('rimpl');
+    // The evaluation queue is reported for operators and the sandbox smoke — informational only.
+    expect(res.body.checks.eval_queue).toMatchObject({ queued: 0, scoring: 0, oldest_wait_s: 0 });
+    expect(res.body.checks.eval_queue.drain).toMatchObject({ running: false, in_flight: 0 });
   });
 
   test('backend Supabase down → 503', async () => {

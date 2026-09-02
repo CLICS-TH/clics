@@ -9,11 +9,20 @@
     var me;
     try { me = await api.me(); } catch (e) { return; }
     var u = me && me.user;
-    var limit = Number(u && u.usage_limit_effective_usd);
-    if (!u || !Number.isFinite(limit) || limit <= 0) return; // nothing meaningful to show
-    var used = Number(u.usage_cost_usd != null ? u.usage_cost_usd : 0);
-    var pct = Math.min(100, Math.round((used / limit) * 100));
-    var over = used >= limit;
+    if (!u) return;
+    // Two caps share one meter: the $ cap and (with the local model) a token cap. The bar shows
+    // whichever is closer to full, and "full" is either one reached — the labels are unit-neutral.
+    var costLimit = Number(u.usage_limit_effective_usd);
+    var hasCost = Number.isFinite(costLimit) && costLimit > 0;
+    var tokenLimit = Number(u.usage_limit_effective_tokens);
+    var hasTokens = Number.isFinite(tokenLimit) && tokenLimit > 0;
+    if (!hasCost && !hasTokens) return; // nothing meaningful to show
+    var costUsed = Number(u.usage_cost_usd != null ? u.usage_cost_usd : 0);
+    var tokensUsed = Number(u.usage_input_tokens || 0) + Number(u.usage_output_tokens || 0);
+    var costPct = hasCost ? costUsed / costLimit : 0;
+    var tokenPct = hasTokens ? tokensUsed / tokenLimit : 0;
+    var pct = Math.min(100, Math.round(Math.max(costPct, tokenPct) * 100));
+    var over = (hasCost && costUsed >= costLimit) || (hasTokens && tokensUsed >= tokenLimit);
     var barColor  = over ? 'var(--error,#c64545)'    : pct >= 80 ? 'var(--warning,#d4a017)'    : 'var(--success,#5db872)';
     var textColor = over ? 'var(--error-text,#7a1c1c)' : pct >= 80 ? 'var(--warning-text,#7a5900)' : 'var(--success-text,#1a6630)';
 

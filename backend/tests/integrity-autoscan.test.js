@@ -22,6 +22,7 @@ jest.mock('../src/lib/db-helpers', () => ({
   sendDbError: () => false,
 }));
 jest.mock('../src/lib/settings', () => ({
+  transcriptCap: async () => ({ limit: 64000, warnPct: 80 }),
   pilotTestMode: async () => false,
   clinicalArtifactsEnabled: async () => false,
   holdResultUntilAudited: async () => false,
@@ -37,6 +38,9 @@ jest.mock('../src/services/ple-finalize', () => ({
 const mockChat = jest.fn();
 jest.mock('../src/services/rimpl-client', () => ({ rimplChat: (...a) => mockChat(...a) }));
 jest.mock('../src/lib/usage', () => ({
+  // The token ceiling (local AI) and the combined $/token verdict — see lib/usage.js budgetState.
+  effectiveTokenLimit: async () => null,
+  budgetState: async (user) => { const cost = Number(user?.usage_cost_usd ?? 0); return { over: cost >= 1, reason: cost >= 1 ? 'cost' : null, limit: 1, tokenLimit: null, cost, tokens: 0 }; },
   effectiveLimit: async () => 1,
   reserveUsage: async () => ({ ok: true, applied: true }),
   refundUsage: async () => {}, accrueUsage: async () => ({ cost: 0, error: null }),

@@ -6,7 +6,7 @@ const { ScoreSchema, PrivacyConcernSchema, SCORE_ATTESTATIONS } = require('../li
 const { compositeScore } = require('../services/ple-gate');
 const { computeICC21 } = require('../services/icc');
 const { logEvent } = require('../lib/audit');
-const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
+const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD, effectiveTokenLimit, budgetState } = require('../lib/usage');
 const { settlementDelta } = require('../lib/pricing');
 const { rimplAuditDiscuss } = require('../services/rimpl-client');
 const { peerCalibrationEnabled, privacyReviewRequired } = require('../lib/settings');
@@ -265,12 +265,16 @@ router.post('/ples/:id/discuss', async (req, res) => {
   const { message, language } = parsed.data;
 
   // Reserve against the AUDITOR pool before the paid call; reconcile on success, refund on failure.
-  const limit = await effectiveLimit(req.user, 'auditor');
-  const reservation = await reserveUsage(req.user.id, limit, RESERVE_ESTIMATE_USD, 'auditor');
+  // Both ceilings ($ and tokens) close the door atomically in the RPC.
+  const [limit, tokenLimit] = await Promise.all([effectiveLimit(req.user, 'auditor'), effectiveTokenLimit(req.user, 'auditor')]);
+  const reservation = await reserveUsage(req.user.id, limit, RESERVE_ESTIMATE_USD, 'auditor', tokenLimit);
   if (!reservation.ok) {
+    const b = await budgetState(req.user, 'auditor');
     return res.status(403).json({
-      error: `Auditor AI usage limit reached ($${limit.toFixed(2)}). Contact an administrator.`,
-      code: 'budget_exceeded',
+      error: b.reason === 'tokens'
+        ? `Auditor AI usage limit reached (${(b.tokenLimit ?? tokenLimit).toLocaleString('en-US')} tokens). Contact an administrator.`
+        : `Auditor AI usage limit reached ($${limit.toFixed(2)}). Contact an administrator.`,
+      code: 'budget_exceeded', reason: b.reason ?? 'cost',
     });
   }
 

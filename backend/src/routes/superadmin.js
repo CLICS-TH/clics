@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const { z } = require('zod');
+const { invalidateScope } = require('../lib/eval-scope');
 const { supabase, authSupabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { computeICC21, iccOneWay, iccTwoWayAverage } = require('../services/icc');
@@ -63,6 +64,11 @@ const UpdateUserSchema = z.object({
   // Per-user AUDITOR-pool limit override ($) — same bounds/semantics as usage_limit_usd, but on the
   // separate auditor budget (so a dual-role user's two pools are configured independently).
   auditor_usage_limit_usd: z.number().nonnegative().max(50).nullable().optional(),
+  // Per-user TOKEN ceiling overrides (the local model is $0, so tokens are the unit that throttles).
+  // null clears the override → the org standard applies; 0 = no token cap for this user. Bounded at
+  // 50M so a mistyped value cannot silently un-cap someone.
+  usage_limit_tokens: z.number().int().nonnegative().max(50_000_000).nullable().optional(),
+  auditor_usage_limit_tokens: z.number().int().nonnegative().max(50_000_000).nullable().optional(),
 }).refine((b) => Object.keys(b).length > 0, { message: 'No fields to update' });
 
 const StatusSchema = z.object({ status: z.enum(['active', 'deactivated']) });
@@ -89,6 +95,20 @@ const UsageSettingsSchema = z.object({
   min_auditors_per_cle: z.number().int().min(1).max(10).optional(),
   comp_rate_thb: z.number().nonnegative().max(1_000_000).optional(),
   comp_cap_cles: z.number().int().nonnegative().max(10_000).optional(),
+  // ---- Local AI capacity (docs/GATE0-DGX-RESULTS.md §7) ----
+  // Token ceilings per user (0 = none). Placeholders until the capacity report sets them.
+  standard_limit_tokens: z.number().int().nonnegative().max(50_000_000).optional(),
+  auditor_standard_limit_tokens: z.number().int().nonnegative().max(50_000_000).optional(),
+  // Transcript cap in context tokens + the % at which the portal warns. Floor 8000 so a typo cannot
+  // make every session un-endable after two turns; ceiling 200k, above any served context.
+  ple_max_transcript_tokens: z.number().int().min(8000).max(200_000).optional(),
+  ple_transcript_warn_pct: z.number().int().min(50).max(95).optional(),
+  // Evaluation drain: in-flight evaluations from this backend, and the p50 used for the queue ETA.
+  eval_drain_concurrency: z.number().int().min(1).max(8).optional(),
+  eval_p50_seconds: z.number().int().min(10).max(1800).optional(),
+  // Council CODES (comma-separated) whose queued evaluations this backend must leave alone — set to
+  // SANDBOX while a laptop stack scores that council on the local model. Empty string clears.
+  eval_drain_exclude_councils: z.string().max(200).regex(/^[A-Za-z0-9_,\s-]*$/).optional(),
 }).refine((b) => Object.keys(b).length > 0, { message: 'No settings to update' });
 
 // GET /users moved to routes/admin.js (mounted first on the same /admin prefix): it is now
@@ -397,7 +417,8 @@ async function rescueSpendTotal() {
 
 router.get('/usage-settings', async (_req, res) => {
   // All independent reads in one batch (was several sequential awaits on the same table).
-  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles, min_auditors_per_cle, total_used_usd, auditor_total_used_usd, rescue_total_used_usd] = await Promise.all([
+  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles, min_auditors_per_cle, total_used_usd, auditor_total_used_usd, rescue_total_used_usd,
+    standard_limit_tokens, auditor_standard_limit_tokens, ple_max_transcript_tokens, ple_transcript_warn_pct, eval_drain_concurrency, eval_p50_seconds, eval_drain_exclude_councils] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
     readSetting('auditor_standard_usage_limit_usd', 0.5),
     readSetting('api_budget_pool_usd', 0),
@@ -411,8 +432,16 @@ router.get('/usage-settings', async (_req, res) => {
     poolTotal('total_usage_sum', 'usage_cost_usd'),
     poolTotal('total_auditor_usage_sum', 'auditor_usage_cost_usd'),
     rescueSpendTotal(),
+    readSetting('standard_usage_limit_tokens', 0),
+    readSetting('auditor_standard_usage_limit_tokens', 0),
+    readSetting('ple_max_transcript_tokens', 64000),
+    readSetting('ple_transcript_warn_pct', 80),
+    readSetting('eval_drain_concurrency', 1),
+    readSetting('eval_p50_seconds', 90),
+    getTextSetting('eval_drain_exclude_councils', ''),
   ]);
-  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, total_used_usd, auditor_total_used_usd, rescue_total_used_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles, min_auditors_per_cle });
+  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, total_used_usd, auditor_total_used_usd, rescue_total_used_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles, min_auditors_per_cle,
+    standard_limit_tokens, auditor_standard_limit_tokens, ple_max_transcript_tokens, ple_transcript_warn_pct, eval_drain_concurrency, eval_p50_seconds, eval_drain_exclude_councils });
 });
 
 router.patch('/usage-settings', async (req, res) => {
@@ -430,8 +459,32 @@ router.patch('/usage-settings', async (req, res) => {
   if (parsed.data.comp_rate_thb != null) upserts.push({ key: 'comp_rate_thb', value: parsed.data.comp_rate_thb, updated_at: now });
   if (parsed.data.comp_cap_cles != null) upserts.push({ key: 'comp_cap_cles', value: parsed.data.comp_cap_cles, updated_at: now });
   if (parsed.data.min_auditors_per_cle != null) upserts.push({ key: 'min_auditors_per_cle', value: parsed.data.min_auditors_per_cle, updated_at: now });
+  for (const [field, key] of [['standard_limit_tokens', 'standard_usage_limit_tokens'], ['auditor_standard_limit_tokens', 'auditor_standard_usage_limit_tokens'],
+    ['ple_max_transcript_tokens', 'ple_max_transcript_tokens'], ['ple_transcript_warn_pct', 'ple_transcript_warn_pct'],
+    ['eval_drain_concurrency', 'eval_drain_concurrency'], ['eval_p50_seconds', 'eval_p50_seconds']]) {
+    if (parsed.data[field] != null) upserts.push({ key, value: parsed.data[field], updated_at: now });
+  }
+  if (parsed.data.eval_drain_exclude_councils != null) {
+    // Text-valued (council codes). Normalised to upper-case codes; the numeric column is a placeholder.
+    // Every code must name a real council: lib/eval-scope.js fails CLOSED on an unknown code (the drain
+    // then claims nothing at all), so a typo saved here would silently stop every evaluation.
+    const list = [...new Set(parsed.data.eval_drain_exclude_councils.split(',').map((c) => c.trim().toUpperCase()).filter(Boolean))];
+    if (list.length) {
+      const { data: rows, error: cErr } = await supabase.from('councils').select('code').in('code', list);
+      if (cErr) return res.status(502).json({ error: 'Could not verify council codes — try again' });
+      const known = new Set((rows ?? []).map((r) => String(r.code).toUpperCase()));
+      const unknown = list.filter((c) => !known.has(c));
+      if (unknown.length) return res.status(400).json({ error: `Unknown council code(s): ${unknown.join(', ')}`, unknown });
+    }
+    upserts.push({ key: 'eval_drain_exclude_councils', value: 0, value_text: list.join(',') || null, updated_at: now });
+  }
   const { error } = await supabase.from('app_settings').upsert(upserts);
   if (sendDbError(res, error)) return;
+  if (parsed.data.eval_drain_exclude_councils != null) {
+    invalidateScope(); // the drain and the reconcile sweep re-read the partition on their next tick
+    logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'eval_drain_exclude_councils',
+      metadata: { codes: parsed.data.eval_drain_exclude_councils } });
+  }
   if (parsed.data.pilot_test_mode != null) {
     logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'pilot_test_mode',
       metadata: { enabled: parsed.data.pilot_test_mode } });

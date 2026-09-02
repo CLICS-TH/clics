@@ -12,21 +12,46 @@ const CHAT_TIMEOUT_MS = parseInt(process.env.RIMPL_CHAT_TIMEOUT_MS || '100000', 
 // distribution). This outer bound MUST stay above that inner one — invert them and the backend hangs
 // up on an evaluation the provider was about to return, which reads as a provider failure in the
 // logs and costs the physician their credit for a call that actually succeeded.
-const EVAL_TIMEOUT_MS = parseInt(process.env.RIMPL_EVAL_TIMEOUT_MS || '180000', 10);
+//
+// 480s since the evaluation drain: the PIS-7 call left the physician's HTTP path entirely (it is
+// claimed from the ple_pass queue in the background), and with the consistency layer a local
+// evaluation is 2–3 serial ~70s calls plus rimpl's own queue wait. The criteria call is different —
+// it still runs inside /end while the physician waits — so it keeps its own, shorter ceiling.
+const EVAL_TIMEOUT_MS = parseInt(process.env.RIMPL_EVAL_TIMEOUT_MS || '480000', 10);
+const CRITERIA_TIMEOUT_MS = parseInt(process.env.RIMPL_CRITERIA_TIMEOUT_MS || '180000', 10);
 
 // A RIMPL HTTP error with the status attached, so callers can tell a DETERMINISTIC bad-output
 // failure (400 bad request / 422 / 502 "evaluator returned out-of-range/invalid output") — which a
 // retry can never fix — from a TRANSIENT one (500 infra / timeout / network) worth retrying. Without
 // this, the reconcile sweep retries a deterministically-failing eval forever, re-paying Anthropic.
-function rimplError(path, status) {
+async function rimplError(path, res) {
+  const status = typeof res === 'number' ? res : res?.status;
   const err = new Error(`RIMPL ${path} error: ${status}`);
   err.status = status;
+  // rimpl's queue/size errors carry a machine-readable body ({ code, retry_after_s }) and, for a
+  // full queue, a Retry-After header. Surface both so the drain can back off by the server's own
+  // estimate rather than a guess, and so a 413 can be told apart from any other deterministic 4xx.
+  if (res && typeof res === 'object') {
+    let body = null;
+    try { body = typeof res.json === 'function' ? await res.json() : null; } catch { body = null; }
+    if (body && typeof body === 'object') {
+      if (typeof body.code === 'string') err.code = body.code;
+      if (typeof body.error === 'string') err.detail = body.error.slice(0, 200);
+      const ra = Number(body.retry_after_s);
+      if (Number.isFinite(ra) && ra > 0) err.retryAfterMs = ra * 1000;
+    }
+    const hdr = Number(res.headers?.get?.('retry-after'));
+    if (Number.isFinite(hdr) && hdr > 0) err.retryAfterMs = hdr * 1000;
+  }
   return err;
 }
 
 // 400/422/502 from RIMPL are deterministic (malformed request / validation / un-parseable or
 // out-of-range model output). A 401/403 is an INTERNAL_TOKEN misconfig — also not self-healing.
-const DETERMINISTIC_STATUSES = new Set([400, 401, 403, 422, 502]);
+// 413 is the transcript exceeding the evaluator's context (rimpl's proactive backstop or the body
+// limit): re-sending the same oversized transcript cannot make it fit, so it must route to a human,
+// not loop. 503 (queue full / provider down) and 429 stay transient — the drain backs off on them.
+const DETERMINISTIC_STATUSES = new Set([400, 401, 403, 413, 422, 502]);
 function isDeterministicRimplError(err) {
   return err && typeof err.status === 'number' && DETERMINISTIC_STATUSES.has(err.status);
 }
@@ -59,7 +84,7 @@ async function rimplChat({ ple_id, history, message, language, chief_complaint, 
       rescue_active: !!rescue_active, already_qualified: !!already_qualified }),
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });
-  if (!res.ok) throw rimplError('/chat', res.status);
+  if (!res.ok) throw await rimplError('/chat', res);
   return parseWithProvider(res);
 }
 
@@ -73,7 +98,7 @@ async function rimplAuditDiscuss({ history, message, language, transcript, ai_sc
     body: JSON.stringify({ history, message, language, transcript, ai_scores, ai_rationale, auditor_scores, patient_ref }),
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });
-  if (!res.ok) throw rimplError('/audit-discuss', res.status);
+  if (!res.ok) throw await rimplError('/audit-discuss', res);
   return parseWithProvider(res);
 }
 
@@ -90,7 +115,7 @@ async function rimplEvaluate({ ple_id, transcript, patient_ref, shadow, weights_
     body: JSON.stringify({ ple_id, transcript, patient_ref, shadow, weights_sha256: weights_sha256 ?? null }),
     signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
   });
-  if (!res.ok) throw rimplError('/evaluate', res.status);
+  if (!res.ok) throw await rimplError('/evaluate', res);
   return parseWithProvider(res);
 }
 
@@ -99,9 +124,9 @@ async function rimplEvaluateCriteria({ transcript, patient_ref }) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
     body: JSON.stringify({ transcript, patient_ref }),
-    signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
+    signal: AbortSignal.timeout(CRITERIA_TIMEOUT_MS),
   });
-  if (!res.ok) throw rimplError('/evaluate-criteria', res.status);
+  if (!res.ok) throw await rimplError('/evaluate-criteria', res);
   return parseWithProvider(res);
 }
 

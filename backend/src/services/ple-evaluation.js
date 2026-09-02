@@ -68,12 +68,15 @@ async function evaluateWithRetry(payload, attempts = 3) {
 }
 
 // Run the PIS-7 evaluation for a passed PLE and persist it. Throws on failure (caller logs).
-async function triggerEvaluation(pleId, transcript, physicianId, patientRef) {
+// `attempts`: the /end-era default was 3 in-process retries. The evaluation drain passes 1 — it owns
+// backoff via eval_next_at, and an in-process retry after a timeout would re-POST a duplicate into
+// rimpl's queue while the original may still be waiting there.
+async function triggerEvaluation(pleId, transcript, physicianId, patientRef, { attempts = 3 } = {}) {
   // The declared Model Lock checksum travels WITH the evaluation so it is stamped on the score at
   // the moment it is produced. Read per call rather than cached: if it is declared (or re-declared)
   // mid-pilot, the scores either side carry different values and the break is visible in the data.
   const weights_sha256 = await evaluatorWeightsSha256().catch(() => null);
-  const result = await evaluateWithRetry({ ple_id: pleId, transcript, patient_ref: patientRef, weights_sha256 });
+  const result = await evaluateWithRetry({ ple_id: pleId, transcript, patient_ref: patientRef, weights_sha256 }, attempts);
   const { fresh } = await persistEvaluation(pleId, physicianId, result);
   // Accrue the PIS-7 evaluation's cost to the physician's meter ONLY when this call actually wrote
   // the row — a dup-eval race (reconcile vs /end) must not double-charge the physician. There is no

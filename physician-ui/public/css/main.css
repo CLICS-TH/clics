@@ -737,6 +737,15 @@ html[data-mobile] .hero-stats { grid-template-columns: repeat(2, 1fr); }
 .status-band.is-fail { background:var(--error-bg); color:var(--error-text); }
 .status-band.is-review { background:var(--warning-bg); color:var(--warning-text); }
 
+/* ===== Inline notice band (chat composer: transcript-length warning) =====
+   Same warning pair as .status-band.is-review (pinned in audit-dashboard/__tests__/contrast.test.ts),
+   sized for a one-line advisory rather than a verdict. [hidden] re-asserted: the author display:flex
+   would otherwise beat the UA [hidden]{display:none} (same fix as .hero-stats). */
+.notice { display:flex; align-items:flex-start; gap:10px; margin:0 0 10px; padding:10px 14px; border-radius:var(--r-md); background:var(--warning-bg); color:var(--warning-text); font-size:13.5px; font-weight:500; line-height:1.5; overflow-wrap:anywhere; }
+.notice svg { width:18px; height:18px; flex:none; margin-top:1px; }
+.notice > span { min-width:0; }
+.notice[hidden] { display:none; }
+
 /* ===== LPDP progress summary ===== */
 .lpdp-summary { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
   background:var(--surface-soft); border:1px solid var(--hairline); border-radius:var(--r-lg); padding:18px 22px; margin-bottom:16px; }

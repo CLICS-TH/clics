@@ -2,6 +2,9 @@
 // rename/move, delete. (The /end PLE-gate transitions are covered by ple-end.test.js.)
 jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSupabaseMock());
 jest.mock('../src/lib/usage', () => ({
+  // The token ceiling (local AI) and the combined $/token verdict — see lib/usage.js budgetState.
+  effectiveTokenLimit: async () => null,
+  budgetState: async (user) => { const cost = Number(user?.usage_cost_usd ?? 0); return { over: cost >= 0.5, reason: cost >= 0.5 ? 'cost' : null, limit: 0.5, tokenLimit: null, cost, tokens: 0 }; },
   effectiveLimit: jest.fn(async () => 0.5),
   reserveUsage: jest.fn(async () => ({ ok: true, applied: true })),
   accrueUsage: jest.fn(async () => ({ cost: 0, error: null })), // the message route settles via accrueUsage(costOverride)

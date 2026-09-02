@@ -7,13 +7,17 @@
 // Both are recoverable here so a credit-eligible session is never permanently stuck. Safe + idempotent.
 // Shared by POST /admin/reconcile-evaluations and the scheduler in index.js.
 const { supabase } = require('../lib/supabase');
-const { triggerEvaluation } = require('./ple-evaluation');
 const { finalizeScreening } = require('./ple-finalize');
+const evalDrain = require('./eval-drain');
+const { resolveScope } = require('../lib/eval-scope');
 const { isDeterministicRimplError } = require('./rimpl-client');
 const reflection = require('./reflection');
 
-// Don't touch a session that just ended — its /end handler is likely still finalizing tier-2 / firing
-// the PIS-7 eval. Reconciling inside that window would race it and double-pay Anthropic (F9).
+// Don't touch a session that just ended — its /end handler is likely still finalizing tier-2.
+// Reconciling inside that window would race it (F9). Note this window says nothing about whether the
+// PIS-7 evaluation has run: since the durable queue, a ple_pass row can legitimately wait far longer
+// than this for the drain, which is why the ple_pass branch below only wakes the drain and never
+// resets a row's place in the queue.
 const RECENCY_SKIP_MS = 2 * 60 * 1000;
 
 async function reconcileEvaluations(now = Date.now()) {
@@ -23,31 +27,40 @@ async function reconcileEvaluations(now = Date.now()) {
   const { data: stuck, error: stuckErr } = await supabase
     // socratic_reason + is_test: finalizeScreening needs them to decide whether this session feeds
     // the consecutive-failure counter. Omitted, every swept session would look natural and real.
-    .from('ples').select('id, physician_id, status, c1_pass, c2_pass, c3_pass, socratic_reason, is_test')
+    .from('ples').select('id, physician_id, status, c1_pass, c2_pass, c3_pass, socratic_reason, is_test, council_id, eval_enqueued_at, ended_at')
     .in('status', ['ended', 'ple_pass']).lt('ended_at', cutoff)
     .order('ended_at').limit(200);
   if (stuckErr) throw new Error(`reconcile: stuck-session query failed: ${stuckErr.message}`);
 
-  let recovered = 0, failed = 0, repaired = 0, flagged = 0;
+  let recovered = 0, failed = 0, repaired = 0, flagged = 0, requeued = 0, queued = 0, skipped = 0;
+  // Council partition (lib/eval-scope.js): a council being scored by a laptop stack on the local model
+  // must not be touched by THIS process, or the same PLE is evaluated on two different models. If the
+  // partition cannot be resolved the sweep does NOT run unpartitioned — that is the confound itself.
+  let scope;
+  try { scope = await resolveScope(); }
+  catch (e) { throw new Error(`reconcile: council scope unavailable, sweep skipped (${e.message})`); }
+  if (scope.failedClosed) throw new Error(`reconcile: council scope failed closed (${scope.failedClosed}), sweep skipped`);
+  const inScope = (p) => !(scope.exclude && p.council_id && scope.exclude.includes(p.council_id))
+    && !(scope.include && !(p.council_id && scope.include.includes(p.council_id)));
   for (const p of stuck ?? []) {
+    if (!inScope(p)) { skipped++; continue; }
     try {
-      const { data: msgs, error: msgErr } = await supabase
-        .from('messages').select('role, content').eq('ple_id', p.id).order('created_at');
-      // Don't score an empty transcript into a bogus result on a transient query failure — skip and
-      // retry next sweep.
-      if (msgErr || !msgs?.length) {
-        console.error(`[reconcile] PLE ${p.id}: skipped (messages ${msgErr ? 'error: ' + msgErr.message : 'empty'})`);
-        failed++;
-        continue;
-      }
-      let transcript = msgs.map(m => ({ role: m.role, content: m.content }));
-      // Patient identifier → scrubbed from the transcript on-prem before the cloud eval. This sweep runs
-      // server-side (NOT as the owner), so read by ple_id only — the service-role key bypasses RLS.
-      const { data: pref } = await supabase.from('ple_patient_refs')
-        .select('patient_ref').eq('ple_id', p.id).maybeSingle();
-      const patientRef = pref?.patient_ref ?? null;
-
       if (p.status === 'ended') {
+        const { data: msgs, error: msgErr } = await supabase
+          .from('messages').select('role, content').eq('ple_id', p.id).order('created_at');
+        // Don't score an empty transcript into a bogus result on a transient query failure — skip and
+        // retry next sweep.
+        if (msgErr || !msgs?.length) {
+          console.error(`[reconcile] PLE ${p.id}: skipped (messages ${msgErr ? 'error: ' + msgErr.message : 'empty'})`);
+          failed++;
+          continue;
+        }
+        let transcript = msgs.map(m => ({ role: m.role, content: m.content }));
+        // Patient identifier → scrubbed from the transcript on-prem before any model call. This sweep
+        // runs server-side (NOT as the owner), so read by ple_id only — the service-role key bypasses RLS.
+        const { data: pref } = await supabase.from('ple_patient_refs')
+          .select('patient_ref').eq('ple_id', p.id).maybeSingle();
+        const patientRef = pref?.patient_ref ?? null;
         // A session can rest at 'ended' for a second reason now: the physician was asked for a
         // reflection and has not written one. Sweeping it here IS the intended backstop — after the
         // 6-hourly window they have plainly abandoned it — but the reflection has to be included if
@@ -81,8 +94,20 @@ async function reconcileEvaluations(now = Date.now()) {
         repaired++;
         continue;
       }
-      await triggerEvaluation(p.id, transcript, p.physician_id, patientRef);
-      recovered++;
+      // Stranded at ple_pass with no evaluation: the row IS already in the queue (services/eval-drain.js
+      // claims ple_pass rows directly), so the sweep must NOT re-enqueue it — that would reset its
+      // claim, attempts and backoff, and a row in flight would be claimed a second time (a duplicate
+      // evaluation). Only a legacy row with no position timestamp gets one — its ended_at, so it keeps
+      // its rightful place — and then the drain is woken. The sweep never evaluates directly.
+      if (!p.eval_enqueued_at) {
+        const { error: qErr } = await supabase.from('ples')
+          .update({ eval_enqueued_at: p.ended_at ?? new Date(now).toISOString() }).eq('id', p.id);
+        if (qErr) throw new Error(`queue stamp: ${qErr.message}`);
+        requeued++;
+      } else {
+        queued++;
+      }
+      evalDrain.kick();
     } catch (e) {
       // A DETERMINISTIC RIMPL failure (bad/out-of-range model output → 502, or token misconfig → 401)
       // will NEVER self-heal — route to manual QA (ple_flag_t2) so the sweep stops re-paying Anthropic
@@ -97,7 +122,7 @@ async function reconcileEvaluations(now = Date.now()) {
       }
     }
   }
-  return { stuck: (stuck ?? []).length, recovered, repaired, flagged, failed };
+  return { stuck: (stuck ?? []).length, recovered, repaired, flagged, failed, requeued, queued, skipped };
 }
 
 module.exports = { reconcileEvaluations };

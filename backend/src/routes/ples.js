@@ -6,14 +6,14 @@ const { computeTier1, hasScorableContent, clampDuration } = require('../services
 const { rimplChat } = require('../services/rimpl-client');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
 const { finalizeScreening, toPassCols } = require('../services/ple-finalize');
-const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
+const { effectiveLimit, effectiveTokenLimit, budgetState, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
 const { settlementDelta, costUsd } = require('../lib/pricing');
 const { logEvent } = require('../lib/audit');
 const { pilotTestMode, clinicalArtifactsEnabled, holdResultUntilAudited, t1RemediationEnabled, identityVerificationRequired, reflectionRequired } = require('../lib/settings');
 const identity = require('../services/identity');
 const reflection = require('../services/reflection');
 const acceptability = require('../lib/acceptability');
-const { creditSettings } = require('../lib/settings');
+const { creditSettings, getSetting, transcriptCap } = require('../lib/settings');
 const { creditFor, creditTable } = require('../services/credit');
 const { COMPLETED_STATUSES } = require('../lib/ple-status');
 const { scanPle, flagRescueReplyBreach } = require('../services/integrity-scan');
@@ -37,11 +37,13 @@ function requireConsent(req, res, next) {
 // (/end) is intentionally NOT gated, so a session is never stranded and its evaluation still runs.
 async function requireBudget(req, res, next) {
   try {
-    const limit = await effectiveLimit(req.user);
-    if (Number(req.user.usage_cost_usd ?? 0) >= limit) {
+    const b = await budgetState(req.user);
+    if (b.over) {
       return res.status(403).json({
-        error: `AI usage limit reached ($${limit.toFixed(2)}). Contact an administrator.`,
-        code: 'budget_exceeded',
+        error: b.reason === 'tokens'
+          ? `AI usage limit reached (${b.tokenLimit.toLocaleString('en-US')} tokens). Contact an administrator.`
+          : `AI usage limit reached ($${b.limit.toFixed(2)}). Contact an administrator.`,
+        code: 'budget_exceeded', reason: b.reason,
       });
     }
   } catch (e) {
@@ -51,6 +53,46 @@ async function requireBudget(req, res, next) {
 }
 
 // (toPassCols lives in services/ple-finalize — shared with the reconcile sweep.)
+
+// What the client shows about transcript size: { used, limit, pct, warn }. `warn` is the server's call
+// (warn_pct of the cap) so the portal never has to know the threshold.
+function transcriptBlock(used, cap) {
+  const pct = cap.limit > 0 ? Math.min(100, Math.round((used / cap.limit) * 100)) : 0;
+  return { used, limit: cap.limit, pct, warn: cap.limit > 0 && pct >= cap.warnPct, warn_pct: cap.warnPct };
+}
+
+// The 202 body while a score is still coming. `phase` tells the result page WHICH wait this is —
+// screening (tier-2 still running), queued (behind others for the evaluator), or scoring (claimed by
+// the drain) — and `queue` gives a position + ETA computed from eval_enqueued_at order, so a physician
+// under load sees "position 4, ~6 min" instead of a frozen "Evaluating…". Every lookup here is
+// fail-soft: the worst case is today's bare { status }.
+const EVAL_LEASE_S = Math.max(60, parseInt(process.env.EVAL_LEASE_S || '600', 10));
+async function pendingEvaluationBody(ple) {
+  const body = { status: ple.status };
+  if (ple.status === 'ended') return { ...body, phase: 'screening' };
+  if (ple.status !== 'ple_pass') return body;
+  const claimedAt = ple.eval_claimed_at ? Date.parse(ple.eval_claimed_at) : NaN;
+  const scoring = Number.isFinite(claimedAt) && Date.now() - claimedAt < EVAL_LEASE_S * 1000;
+  body.phase = scoring ? 'scoring' : 'queued';
+  try {
+    let ahead = 0;
+    if (ple.eval_enqueued_at) {
+      const { count } = await supabase.from('ples').select('id', { count: 'exact', head: true })
+        .eq('status', 'ple_pass').lt('eval_enqueued_at', ple.eval_enqueued_at);
+      ahead = Number(count) || 0;
+    }
+    const [conc, p50] = await Promise.all([getSetting('eval_drain_concurrency', 1), getSetting('eval_p50_seconds', 90)]);
+    const concurrency = Math.max(1, Math.round(Number(conc) || 1));
+    body.queue = {
+      position: ahead + 1, ahead,
+      eta_s: Math.ceil((ahead + 1) / concurrency) * Math.max(1, Math.round(Number(p50) || 90)),
+      attempts: Number(ple.eval_attempts) || 0,
+    };
+  } catch (e) {
+    console.error('[ples] queue position lookup failed (fail-soft):', e.message);
+  }
+  return body;
+}
 
 // Create new PLE session
 // CREC082 ICF §4: identity is verified BEFORE the first PLE, by ThaID or by national ID together
@@ -325,7 +367,9 @@ router.get('/:id', async (req, res) => {
   const { data: ref } = await supabase.from('ple_patient_refs')
     .select('patient_ref').eq('ple_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
 
-  res.json({ ...ple, patient_ref: ref?.patient_ref ?? null, messages: messages ?? [] });
+  const cap = await transcriptCap();
+  res.json({ ...ple, patient_ref: ref?.patient_ref ?? null, messages: messages ?? [],
+    transcript: transcriptBlock(Number(ple.context_tokens ?? 0), cap) });
 });
 
 // Send a message turn
@@ -346,15 +390,31 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
 
   const { message, language } = parsed.data;
 
+  // Transcript-size cap, BEFORE the reservation so there is nothing to refund. `context_tokens` is the
+  // last turn's prompt+completion — the size the model actually saw — projected forward by this
+  // message. Over the cap the only move left is to end the session, which /end never blocks.
+  const cap = await transcriptCap();
+  const contextUsed = Number(ple.context_tokens ?? 0);
+  if (cap.limit > 0 && contextUsed + Math.ceil(message.length / 4) >= cap.limit) {
+    return res.status(403).json({
+      error: 'This conversation has reached its length limit. Please end the session to submit it.',
+      code: 'transcript_limit_reached', used: contextUsed, limit: cap.limit,
+    });
+  }
+
   // ATOMICALLY reserve this turn's estimated cost before the paid call — closes the parallel-turn
   // TOCTOU where concurrent turns all passed requireBudget's stale read before any spend landed.
-  // Reconciled to the real cost on success; refunded on any failure below.
-  const limit = await effectiveLimit(req.user);
-  const reservation = await reserveUsage(req.user.id, limit);
+  // Reconciled to the real cost on success; refunded on any failure below. The token ceiling rides
+  // on the same RPC so the two caps close the door atomically together.
+  const [limit, tokenLimit] = await Promise.all([effectiveLimit(req.user), effectiveTokenLimit(req.user)]);
+  const reservation = await reserveUsage(req.user.id, limit, RESERVE_ESTIMATE_USD, 'physician', tokenLimit);
   if (!reservation.ok) {
+    const b = await budgetState(req.user);
     return res.status(403).json({
-      error: `AI usage limit reached ($${limit.toFixed(2)}). Contact an administrator.`,
-      code: 'budget_exceeded',
+      error: b.reason === 'tokens'
+        ? `AI usage limit reached (${(b.tokenLimit ?? tokenLimit).toLocaleString('en-US')} tokens). Contact an administrator.`
+        : `AI usage limit reached ($${limit.toFixed(2)}). Contact an administrator.`,
+      code: 'budget_exceeded', reason: b.reason ?? 'cost',
     });
   }
 
@@ -377,6 +437,21 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     });
   } catch (err) {
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
+    // rimpl's proactive size backstop (or its body limit): the transcript no longer fits the model —
+    // the same outcome as our own cap above, so the same code, and a human-readable "end the session".
+    if (err.status === 413 || err.code === 'transcript_too_large') {
+      return res.status(403).json({
+        error: 'This conversation has reached its length limit. Please end the session to submit it.',
+        code: 'transcript_limit_reached', used: contextUsed, limit: cap.limit,
+      });
+    }
+    // The local model's interactive lane is full: transient, retry after the server's estimate. Not a
+    // fail-over — CREC082 forbids sending a research transcript to a cloud API because the box is busy.
+    if (err.status === 503) {
+      const retry_after_s = Math.max(5, Math.round((err.retryAfterMs ?? 30_000) / 1000));
+      res.set('Retry-After', String(retry_after_s));
+      return res.status(503).json({ error: 'The AI is busy. Please try again shortly.', code: 'ai_busy', retry_after_s });
+    }
     // Stable machine code (matches the /health/deep readiness signal + the repo's code: convention).
     return res.status(502).json({ error: `RIMPL unavailable: ${err.message}`, code: 'rimpl_unavailable' });
   }
@@ -403,6 +478,10 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
 
   const turnIn = rimplResponse.input_tokens ?? 0;
   const turnOut = rimplResponse.output_tokens ?? 0;
+  // The size the model just saw, for the transcript cap. rimpl's input/output_tokens SUM every call in
+  // the turn (a citation retry makes two), which over-reads the context by ~2× on those turns; when
+  // rimpl reports the last call's own figure (context_tokens) that is the truthful measure.
+  const contextSeen = Number.isFinite(rimplResponse.context_tokens) ? rimplResponse.context_tokens : turnIn + turnOut;
 
   // Socratic rescue bookkeeping (CREC082 §4). RIMPL decides; the backend is where it becomes a fact.
   // The SAP analyses trigger rate, activation point, and exchanges before/after, so an unrecorded
@@ -484,6 +563,8 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     token_count: (ple.token_count ?? 0) + (rimplResponse.token_count ?? 0) + physicianTokens,
     input_tokens: (ple.input_tokens ?? 0) + turnIn,
     output_tokens: (ple.output_tokens ?? 0) + turnOut,
+    // The size the model just saw: what the transcript cap compares against next turn.
+    context_tokens: contextSeen,
     ...rescueCols,
   }).eq('id', req.params.id);
   if (counterErr) console.error('[ples] failed to update counters:', counterErr.message);
@@ -503,7 +584,7 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     provider: rimplResponse.provider,
   }));
 
-  res.json(rimplResponse);
+  res.json({ ...rimplResponse, transcript: transcriptBlock(contextSeen, cap) });
 });
 
 // End session and run PLE quality gate
@@ -623,9 +704,9 @@ router.post('/:id/end', requireConsent, async (req, res) => {
 
 // Get AI evaluation result
 router.get('/:id/evaluation', async (req, res) => {
-  const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id, 'status');
+  const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id, 'status, eval_enqueued_at, eval_claimed_at, eval_attempts');
   if (!ple) return res.status(404).json({ error: 'Not found' });
-  if (ple.status !== 'evaluated') return res.status(202).json({ status: ple.status });
+  if (ple.status !== 'evaluated') return res.status(202).json(await pendingEvaluationBody(ple));
 
   // Blinded test round: when the superadmin "hold result until audited" toggle is ON, withhold the
   // physician's score until an expert auditor has submitted one for this PLE (so physicians can't see/

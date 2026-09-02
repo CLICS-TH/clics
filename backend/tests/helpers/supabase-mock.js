@@ -60,7 +60,7 @@ function makeSupabaseMock() {
     // unrecognisable to the double rather than making a test fail. Recording it lets a suite match
     // on set membership the same way it matches on equality.
     self.in = (c, vals) => { rec.ins.push([c, vals]); return self; };
-    for (const fn of ['order', 'range', 'limit', 'neq', 'gte', 'lte', 'contains']) self[fn] = () => self;
+    for (const fn of ['order', 'range', 'limit', 'neq', 'gte', 'lte', 'lt', 'gt', 'contains']) self[fn] = () => self;
 
     const read = (kind) => {
       const c = ctx();

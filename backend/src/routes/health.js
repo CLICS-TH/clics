@@ -5,6 +5,7 @@
 const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
 const { probeRimplDeep } = require('../services/rimpl-client');
+const evalDrain = require('../services/eval-drain');
 
 const router = Router();
 
@@ -50,9 +51,29 @@ async function checkRimpl() {
   }
 }
 
+// The evaluation queue, for operators and the sandbox smoke: how many ple_pass rows wait, how many
+// are claimed, and how long the oldest unclaimed one has waited. Informational — never flips the verdict.
+async function checkEvalQueue() {
+  const out = { drain: evalDrain.status() };
+  try {
+    const [{ count: queued }, { data: oldest }] = await Promise.all([
+      withTimeout(supabase.from('ples').select('id', { count: 'exact', head: true }).eq('status', 'ple_pass'), SUPABASE_TIMEOUT_MS),
+      withTimeout(supabase.from('ples').select('eval_enqueued_at').eq('status', 'ple_pass').is('eval_claimed_at', null)
+        .order('eval_enqueued_at', { ascending: true }).limit(1).maybeSingle(), SUPABASE_TIMEOUT_MS),
+    ]);
+    out.queued = Number(queued) || 0;
+    out.scoring = out.drain.in_flight;
+    const t = oldest?.eval_enqueued_at ? Date.parse(oldest.eval_enqueued_at) : NaN;
+    out.oldest_wait_s = Number.isFinite(t) ? Math.max(0, Math.round((Date.now() - t) / 1000)) : 0;
+  } catch (e) {
+    out.error = e.message;
+  }
+  return out;
+}
+
 router.get('/deep', async (_req, res) => {
-  const [supabaseCheck, rimplCheck] = await Promise.all([checkSupabase(), checkRimpl()]);
-  const checks = { supabase: supabaseCheck, rimpl: rimplCheck };
+  const [supabaseCheck, rimplCheck, evalQueue] = await Promise.all([checkSupabase(), checkRimpl(), checkEvalQueue()]);
+  const checks = { supabase: supabaseCheck, rimpl: rimplCheck, eval_queue: evalQueue };
   const allUp = supabaseCheck.status === 'up' && rimplCheck.status === 'up';
   res.status(allUp ? 200 : 503).json({
     status: allUp ? 'ok' : 'degraded',

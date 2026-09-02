@@ -6,6 +6,43 @@ let tokenCount = 0;          // running depth signal, seeded from the server on 
 let lastUserMessage = null;  // for Retry after a failed turn
 let nextMsgIndex = 0;        // stable per-message index for deterministic artifact IDs
 
+// Transcript-length cap (server-enforced; the local model has a finite context). Seeded from
+// GET /ples/:id and refreshed from every turn's response as { used, limit, pct, warn }. `warn` is the
+// server's call; an older backend that sends only { used, limit, warn_pct } gets it derived here.
+// Once the cap is reached the composer locks — End stays live, because ending is the way forward.
+let transcript = null, composerLocked = false;
+function transcriptWarn(t) {
+  if (!t || typeof t !== 'object') return false;
+  if (typeof t.warn === 'boolean') return t.warn;
+  const used = Number(t.used), limit = Number(t.limit), warnPct = Number(t.warn_pct != null ? t.warn_pct : 80);
+  return limit > 0 && Number.isFinite(used) && (used / limit) * 100 >= warnPct;
+}
+function transcriptFull(t) {
+  return !!t && Number(t.limit) > 0 && Number(t.used) >= Number(t.limit);
+}
+function renderTranscriptNotice() {
+  const el = document.getElementById('transcriptNotice');
+  if (!el) return;
+  const show = !composerLocked && transcriptWarn(transcript);
+  el.hidden = !show;
+  el.innerHTML = show
+    ? icon('warn', 18) + '<span>บทสนทนาใกล้ถึงขีดจำกัดความยาว — ควรสรุปและจบเซสชันเร็ว ๆ นี้ / Near the length limit — consider wrapping up soon</span>'
+    : '';
+}
+function applyTranscript(t) {
+  if (!t || typeof t !== 'object') return;
+  transcript = t;
+  renderTranscriptNotice();
+}
+// No more turns: input + Send lock; the End button is deliberately left alone.
+function lockComposer() {
+  composerLocked = true;
+  document.getElementById('input').disabled = true;
+  document.getElementById('sendBtn').disabled = true;
+  renderTranscriptNotice();
+}
+const LIMIT_REACHED_MSG = 'บทสนทนานี้ยาวถึงขีดจำกัดแล้ว กรุณาจบเซสชันเพื่อส่งประเมิน / This conversation has reached its length limit — please end the session to submit it';
+
 // Engagement reference points (mirror backend/src/services/ple-gate.js c1-c3). They are NOT the
 // pass criteria — CREC082 §1 judges a learning episode on four qualities, not on minutes or tokens —
 // so the progress meters read as "is this session substantive yet?", never as a bar to clear. T_TURNS
@@ -197,7 +234,21 @@ api.getPle(pleId).then(ple => {
   document.getElementById('sessionProgress').hidden = false;
   updateProgress();
   refreshUsage();
+  applyTranscript(ple.transcript);
+  // Reloaded a session that already sits at the cap: the next turn would 403 anyway — say so now.
+  if (transcriptFull(transcript)) { renderMessage('assistant', LIMIT_REACHED_MSG, [], null); lockComposer(); }
 });
+
+// The turn never happened: take back the physician bubble sendMessage() drew, so re-sending the
+// restored text does not show the question twice. (Retry on an error bubble re-delivers without
+// redrawing it, which is why that path needs no retraction.)
+function retractPhysicianBubble() {
+  const bubbles = msgEl.querySelectorAll('.msg-physician');
+  const last = bubbles[bubbles.length - 1];
+  if (!last) return;
+  last.remove();
+  nextMsgIndex = Math.max(0, nextMsgIndex - 1);
+}
 
 // Core turn delivery — shared by Send and Retry so neither re-draws the physician bubble.
 async function deliver(message) {
@@ -220,15 +271,31 @@ async function deliver(message) {
     document.getElementById('turns').textContent = turns;
     updateProgress();
     refreshUsage();
+    applyTranscript(res.transcript);
   } else if (res?.code === 'budget_exceeded') {
-    renderMessage('assistant', 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ คุณยังสามารถจบเซสชันนี้ได้ / AI usage limit reached — contact an administrator. You can still end this session.', [], null);
+    // reason 'tokens' is the token-denominated cap (local AI); 'cost' the $ cap. Same outcome here.
+    const unit = res.reason === 'tokens' ? ' (โทเค็น / tokens)' : '';
+    renderMessage('assistant', 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ คุณยังสามารถจบเซสชันนี้ได้ / AI usage limit reached — contact an administrator. You can still end this session.' + unit, [], null);
     document.getElementById('input').value = message; // restore the typed question
     refreshUsage();
+  } else if (res?.code === 'transcript_limit_reached') {
+    // The transcript cap: nothing more can be sent to this session. End is the only move left.
+    if (res.used != null && res.limit != null) transcript = { used: res.used, limit: res.limit, warn: true };
+    retractPhysicianBubble(); // refused before it was saved — a bubble would claim it was said
+    renderMessage('assistant', LIMIT_REACHED_MSG, [], null);
+    lockComposer();
+  } else if (res?.code === 'ai_busy') {
+    // Local AI at capacity (503) — transient. Keep the question so one tap re-sends it after the wait.
+    const wait = Number(res.retry_after_s) > 0 ? Math.ceil(Number(res.retry_after_s)) : 30;
+    retractPhysicianBubble();
+    renderMessage('assistant', `ระบบ AI กำลังทำงานหนัก — ลองอีกครั้งใน ${wait} วินาที / AI is busy — try again in ${wait} s`, [], null);
+    document.getElementById('input').value = message; // restore the typed question
   } else {
     // The turn failed — restore the text and offer a Retry on the error bubble.
     renderMessage('assistant', 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong — please try again.', [], null, { error: true });
     document.getElementById('input').value = message;
   }
+  if (composerLocked) return; // stays locked — never re-enable Send past the cap
   sendBtn.disabled = false;
   document.getElementById('input').focus();
 }

@@ -12,6 +12,9 @@ jest.mock('../src/services/license-verifier', () => ({ getVerifier: () => ({ ver
 // POST /ples also runs requireBudget; unmocked, lib/usage reads through the double and refuses on a
 // budget it cannot compute, which surfaces as a 403 indistinguishable from the identity gate's.
 jest.mock('../src/lib/usage', () => ({
+  // The token ceiling (local AI) and the combined $/token verdict — see lib/usage.js budgetState.
+  effectiveTokenLimit: async () => null,
+  budgetState: async (user) => { const cost = Number(user?.usage_cost_usd ?? 0); return { over: cost >= 0.5, reason: cost >= 0.5 ? 'cost' : null, limit: 0.5, tokenLimit: null, cost, tokens: 0 }; },
   effectiveLimit: async () => 0.5,
   reserveUsage: async () => ({ ok: true, applied: true }),
   accrueUsage: async () => ({ cost: 0, error: null }),

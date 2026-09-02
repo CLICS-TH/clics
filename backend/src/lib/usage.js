@@ -14,13 +14,20 @@ const { costUsd } = require('./pricing');
 const DEFAULT_STANDARD_LIMIT_USD = 0.5;
 
 // Per-pool wiring. Add a pool here + its mirror RPCs/columns in a migration to introduce another budget.
+// Each pool has TWO ceilings: $ (cloud spend) and tokens. The token ceiling exists because the on-prem
+// model is priced at $0 (pricing.js) — with only a $ cap, local usage would be unbounded. Tokens have
+// always been accumulated (inCol/outCol); the ceiling is a second comparison, not a second meter.
 const POOLS = {
   physician: {
     cost: 'usage_cost_usd', limitCol: 'usage_limit_usd', stdKey: 'standard_usage_limit_usd',
+    inCol: 'usage_input_tokens', outCol: 'usage_output_tokens',
+    tokenLimitCol: 'usage_limit_tokens', tokenStdKey: 'standard_usage_limit_tokens',
     incRpc: 'increment_usage', resRpc: 'reserve_usage', sumRpc: 'total_usage_sum',
   },
   auditor: {
     cost: 'auditor_usage_cost_usd', limitCol: 'auditor_usage_limit_usd', stdKey: 'auditor_standard_usage_limit_usd',
+    inCol: 'auditor_usage_input_tokens', outCol: 'auditor_usage_output_tokens',
+    tokenLimitCol: 'auditor_usage_limit_tokens', tokenStdKey: 'auditor_standard_usage_limit_tokens',
     incRpc: 'increment_auditor_usage', resRpc: 'reserve_auditor_usage', sumRpc: 'total_auditor_usage_sum',
   },
 };
@@ -51,6 +58,47 @@ async function effectiveLimit(user, pool = 'physician') {
   const override = user?.[poolCfg(pool).limitCol];
   if (override != null) return Number(override);
   return standardLimit(pool);
+}
+
+// The org token ceiling for a pool, or null when none is configured. No code default on purpose: an
+// absent OR zero setting must mean "no token cap", not silently cap every cloud user at some number.
+// db/migration-local-ai-capacity.sql seeds 0; a superadmin sets the real ceiling from the capacity report.
+const _tokCache = {}; // { [pool]: { v, t } }
+async function standardTokenLimit(pool = 'physician', now = Date.now()) {
+  const cfg = poolCfg(pool);
+  const c = _tokCache[pool];
+  if (c && now - c.t < STD_TTL_MS) return c.v;
+  let limit = null;
+  try {
+    const { data } = await supabase.from('app_settings').select('value').eq('key', cfg.tokenStdKey).maybeSingle();
+    const v = Number(data?.value);
+    limit = Number.isFinite(v) && v > 0 ? Math.round(v) : null;
+  } catch { limit = null; }
+  _tokCache[pool] = { v: limit, t: now };
+  return limit;
+}
+
+// Per-user token override if set (0 = no cap for this user), else the org ceiling, else null.
+async function effectiveTokenLimit(user, pool = 'physician') {
+  const override = user?.[poolCfg(pool).tokenLimitCol];
+  if (override != null) { const n = Number(override); return n > 0 ? n : null; }
+  return standardTokenLimit(pool);
+}
+
+function tokensUsed(user, pool = 'physician') {
+  const cfg = poolCfg(pool);
+  return (Number(user?.[cfg.inCol]) || 0) + (Number(user?.[cfg.outCol]) || 0);
+}
+
+// One answer for "may this user make another paid call?" across both ceilings. `reason` names the
+// ceiling that closed the door so the client can say tokens vs $ — the outcome is the same.
+async function budgetState(user, pool = 'physician') {
+  const [limit, tokenLimit] = await Promise.all([effectiveLimit(user, pool), effectiveTokenLimit(user, pool)]);
+  const cost = Number(user?.[poolCfg(pool).cost] ?? 0);
+  const tokens = tokensUsed(user, pool);
+  const costOver = cost >= limit;
+  const tokenOver = tokenLimit != null && tokens >= tokenLimit;
+  return { over: costOver || tokenOver, reason: costOver ? 'cost' : (tokenOver ? 'tokens' : null), limit, tokenLimit, cost, tokens };
 }
 
 // A conservative per-turn cost reservation (override via env). ~$0.012/turn typical, ~$0.03 worst
@@ -86,12 +134,14 @@ async function accrueUsage(userId, inputTokens = 0, outputTokens = 0, costOverri
 //             RPC is absent (pre-migration) we fail OPEN but add nothing, so a later settle that
 //             subtracts the estimate would drive the meter NEGATIVE every turn (cap defeated, meter
 //             runs backwards). applied:false tells settle to add the full actual and refund to no-op.
-async function reserveUsage(userId, limit, estimate = RESERVE_ESTIMATE_USD, pool = 'physician') {
+async function reserveUsage(userId, limit, estimate = RESERVE_ESTIMATE_USD, pool = 'physician', tokenLimit = null) {
   const cfg = poolCfg(pool);
   try {
-    const { data, error } = await supabase.rpc(cfg.resRpc, {
-      p_id: userId, p_estimate: estimate, p_limit: limit,
-    });
+    // p_token_limit only when a token ceiling applies: the pre-migration 3-arg RPC would reject an
+    // unknown argument (→ fail-open), and the migrated 4-arg one defaults it to null.
+    const args = { p_id: userId, p_estimate: estimate, p_limit: limit };
+    if (tokenLimit != null) args.p_token_limit = Math.round(tokenLimit);
+    const { data, error } = await supabase.rpc(cfg.resRpc, args);
     // Fail-OPEN on an RPC fault: never block a turn on a metering fault — requireBudget already gave
     // a soft check — but report applied:false so settle/refund don't subtract an unreserved estimate.
     if (error) { console.error(`[usage:${pool}] ${cfg.resRpc} failed (fail-open, estimate NOT applied):`, error.message); return { ok: true, applied: false }; }
@@ -119,7 +169,12 @@ async function refundUsage(userId, estimate, applied = true, pool = 'physician')
   return accrueUsage(userId, 0, 0, -estimate, pool);
 }
 
+// Test hook: the two 60s memos above make a settings change invisible to a suite that flips a value
+// between cases. Production never calls this.
+function _resetCaches() { for (const k of Object.keys(_stdCache)) delete _stdCache[k]; for (const k of Object.keys(_tokCache)) delete _tokCache[k]; }
+
 module.exports = {
   POOLS, STANDARD_LIMIT_KEY, DEFAULT_STANDARD_LIMIT_USD, RESERVE_ESTIMATE_USD,
-  standardLimit, effectiveLimit, accrueUsage, reserveUsage, settleUsage, refundUsage,
+  standardLimit, effectiveLimit, standardTokenLimit, effectiveTokenLimit, tokensUsed, budgetState,
+  accrueUsage, reserveUsage, settleUsage, refundUsage, _resetCaches,
 };

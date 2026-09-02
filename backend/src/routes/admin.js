@@ -4,7 +4,7 @@ const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { AssignSchema } = require('../lib/schemas');
-const { triggerEvaluation } = require('../services/ple-evaluation');
+const { enqueueEvaluation } = require('../services/ple-finalize');
 const { reconcileEvaluations } = require('../services/reconcile');
 const { minAuditorsPerPle, privacyReviewRequired } = require('../lib/settings');
 const identity = require('../services/identity');
@@ -311,26 +311,10 @@ router.post('/ples/:id/approve', async (req, res) => {
   if (sendDbError(res, error)) return;
   if (!flipped?.length) return res.status(409).json({ error: 'Already processed' });
 
-  const { data: messages, error: msgErr } = await supabase
-    .from('messages').select('role, content').eq('ple_id', req.params.id).order('created_at');
-  // The flag was already consumed (status=ple_pass). On a transient messages-query failure DON'T feed
-  // an empty transcript to the evaluator (it would persist a bogus score) — leave it at ple_pass for
-  // the scheduled reconcile sweep to retry.
-  if (msgErr || !messages?.length) {
-    console.error('[admin approve] messages fetch failed/empty — deferring to reconcile:', msgErr?.message);
-    return res.json({ ok: true, evaluation: 'deferred' });
-  }
-  const transcript = messages.map(m => ({ role: m.role, content: m.content }));
-  // Patient identifier → scrubbed on-prem before the cloud eval. Admin is NOT the owner → read by
-  // ple_id only (service-role bypasses RLS).
-  const { data: apprRef } = await supabase.from('ple_patient_refs')
-    .select('patient_ref').eq('ple_id', req.params.id).maybeSingle();
-
-  // Fire-and-forget: evaluate + persist (same path as the physician /end flow).
-  triggerEvaluation(req.params.id, transcript, ple.physician_id, apprRef?.patient_ref ?? null)
-    .catch(e => console.error('[admin approve] evaluation failed:', e.message));
-
-  res.json({ ok: true });
+  // ENQUEUE, don't evaluate: the drain loads the transcript (incl. any reflection) and scores it FIFO
+  // under the bounded concurrency — the same path as the physician /end flow. See services/eval-drain.js.
+  await enqueueEvaluation(req.params.id);
+  res.json({ ok: true, evaluation: 'queued' });
 });
 
 // Re-run the PIS-7 evaluation for a PLE that passed the gate but whose evaluation never landed
@@ -348,22 +332,17 @@ router.post('/ples/:id/reevaluate', async (req, res) => {
     .from('ai_evaluations').select('id').eq('ple_id', ple.id).maybeSingle();
   if (existing) return res.status(409).json({ error: 'Already evaluated' });
 
-  const { data: messages, error: msgErr } = await supabase
-    .from('messages').select('role, content').eq('ple_id', ple.id).order('created_at');
+  const { count: msgCount, error: msgErr } = await supabase
+    .from('messages').select('id', { count: 'exact', head: true }).eq('ple_id', ple.id);
   if (sendDbError(res, msgErr)) return;
-  if (!messages?.length) return res.status(409).json({ error: 'No transcript to evaluate.' });
-  const transcript = messages.map(m => ({ role: m.role, content: m.content }));
-  // Patient identifier → scrubbed on-prem before the cloud eval (read by ple_id; service-role, non-owner).
-  const { data: reevalRef } = await supabase.from('ple_patient_refs')
-    .select('patient_ref').eq('ple_id', ple.id).maybeSingle();
-  try {
-    await triggerEvaluation(ple.id, transcript, ple.physician_id, reevalRef?.patient_ref ?? null);
-    logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'ple.reevaluate', targetType: 'ple',
-      targetId: ple.ple_code ?? ple.id, councilId: ple.council_id });
-    res.json({ ok: true, status: 'evaluated' });
-  } catch (e) {
-    res.status(502).json({ error: `Evaluation failed: ${e.message}` });
-  }
+  if (!msgCount) return res.status(409).json({ error: 'No transcript to evaluate.' });
+  // Since the evaluation drain, this no longer scores inline — a second writer would race the drain
+  // and could double-score. It puts the recovery at the FRONT of the queue and reports 'queued'; the
+  // admin list shows the row flip to 'evaluated' when the drain lands it.
+  await enqueueEvaluation(ple.id, { front: true });
+  logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'ple.reevaluate', targetType: 'ple',
+    targetId: ple.ple_code ?? ple.id, councilId: ple.council_id });
+  res.json({ ok: true, status: 'queued' });
 });
 
 router.post('/ples/:id/reject', async (req, res) => {

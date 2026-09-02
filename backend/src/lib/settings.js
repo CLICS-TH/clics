@@ -13,12 +13,14 @@ async function getSetting(key, def = null) {
 // An empty string reads as "unset" so a superadmin can hand a setting back to its env default
 // without deleting the row.
 async function getTextSetting(key, def = null) {
-  const { data, error } = await supabase.from('app_settings').select('value_text').eq('key', key).maybeSingle();
-  // Pre-migration (no value_text column) this errors rather than returning null. Fall back to the
-  // default instead of throwing: the same fail-soft contract getSetting() has always had.
-  if (error) return def;
-  const v = typeof data?.value_text === 'string' ? data.value_text.trim() : '';
-  return v || def;
+  try {
+    const { data, error } = await supabase.from('app_settings').select('value_text').eq('key', key).maybeSingle();
+    // Pre-migration (no value_text column) this errors rather than returning null. Fall back to the
+    // default instead of throwing: the same fail-soft contract getSetting() has always had.
+    if (error) return def;
+    const v = typeof data?.value_text === 'string' ? data.value_text.trim() : '';
+    return v || def;
+  } catch { return def; }
 }
 
 // Pilot Test Mode (CLICS pilot): when ON, PLE creation produces TEST sessions, bypasses the 3-PLE
@@ -114,6 +116,22 @@ async function iccGates() {
   };
 }
 
+// The transcript-size cap, in tokens of context (the LAST turn's prompt+completion — what the model
+// actually sees — not the quadratic Σ of per-call counts). Bounded because the evaluator's context is
+// finite and because every chat turn re-sends the whole transcript, so latency grows with it. 64k is
+// the user's trial value; the shipped default comes from the capacity probe (docs/GATE0-DGX-RESULTS.md).
+async function transcriptCap() {
+  let data = null;
+  try {
+    ({ data } = await supabase.from('app_settings').select('key, value')
+      .in('key', ['ple_max_transcript_tokens', 'ple_transcript_warn_pct']));
+  } catch { data = null; } // fail-soft to the documented defaults — this sits on every chat turn
+  const v = Object.fromEntries((Array.isArray(data) ? data : []).map(r => [r.key, Number(r.value)]));
+  const limit = Number.isFinite(v.ple_max_transcript_tokens) && v.ple_max_transcript_tokens > 0 ? Math.round(v.ple_max_transcript_tokens) : 64000;
+  const warnPct = Number.isFinite(v.ple_transcript_warn_pct) ? Math.min(95, Math.max(50, Math.round(v.ple_transcript_warn_pct))) : 80;
+  return { limit, warnPct };
+}
+
 async function minAuditorsPerPle() {
   const n = await getSetting('min_auditors_per_cle', 1);
   return Math.max(1, Math.min(10, Math.round(n)));
@@ -144,4 +162,4 @@ async function creditSettings() {
   };
 }
 
-module.exports = { getSetting, getTextSetting, iccGates, minAuditorsPerPle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };
+module.exports = { getSetting, getTextSetting, iccGates, transcriptCap, minAuditorsPerPle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };

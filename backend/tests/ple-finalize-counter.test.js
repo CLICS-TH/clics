@@ -43,7 +43,7 @@ describe('the gate is the four CREC082 §1 elements', () => {
     const out = await run({});
     expect(out.status).toBe('ple_pass');
     // The point of the change: c1-c3 are written, and they did not decide anything.
-    expect(mockUpdates.at(-1)).toMatchObject({ c1_pass: false, c2_pass: false, c3_pass: false });
+    expect(mockUpdates.find(u => 'status' in u)).toMatchObject({ c1_pass: false, c2_pass: false, c3_pass: false });
   });
 
   test.each(['c4', 'c5', 'c6', 'c7'])('missing %s → ple_flag_t2', async (missing) => {
@@ -53,7 +53,7 @@ describe('the gate is the four CREC082 §1 elements', () => {
 
   test('c7 is persisted, so "was this session tested for evidence integration?" is answerable', async () => {
     await run({});
-    expect(mockUpdates.at(-1)).toMatchObject({ c7_pass: true });
+    expect(mockUpdates.find(u => 'status' in u)).toMatchObject({ c7_pass: true });
   });
 });
 

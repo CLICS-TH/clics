@@ -49,6 +49,8 @@
       <div class="chat-messages" id="messages" style="padding:16px"></div>
       <button class="scroll-bottom" id="scrollBottomBtn" data-icon="arrowDown" aria-label="เลื่อนไปข้อความล่าสุด / Scroll to latest"></button>
       <div class="composer-wrap">
+        <!-- Transcript-length notice — js/ple-chat.js fills it once the server reports transcript.warn -->
+        <div class="notice" id="transcriptNotice" hidden role="status"></div>
         <div class="composer">
           <textarea id="input" rows="1" placeholder="พิมพ์คำถามเกี่ยวกับเคส... / Type your clinical question..."></textarea>
           <button class="composer-send" id="sendBtn" data-icon="arrowUp" data-icon-size="20" aria-label="ส่ง / Send"></button>

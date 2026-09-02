@@ -7,7 +7,7 @@ const { supabase } = require('../lib/supabase');
 const { rimplEvaluateCriteria, isDeterministicRimplError } = require('./rimpl-client');
 const { accrueUsage } = require('../lib/usage');
 const { costUsd } = require('../lib/pricing');
-const { triggerEvaluation } = require('./ple-evaluation');
+const evalDrain = require('./eval-drain');
 const { persistPiiMap } = require('../lib/pii-map');
 
 // PLE-gate booleans live in the c1_pass..c6_pass columns; map {c1..} -> {c1_pass..}.
@@ -73,10 +73,25 @@ async function finalizeScreening({ pleId, physicianId, transcript, tier1, patien
   const { error } = await supabase.from('ples')
     .update({ status: 'ple_pass', ...toPassCols(allCriteria) }).eq('id', pleId);
   if (error) throw new Error(`finalizeScreening ple_pass update: ${error.message}`);
-  // Fire-and-forget the PIS-7 evaluation (its own retry + idempotent persist + reconcile backstop).
-  triggerEvaluation(pleId, transcript, physicianId, patient_ref).catch(err =>
-    console.error(`[EVAL] triggerEvaluation failed for PLE ${pleId}:`, err.message));
+  // ENQUEUE, don't evaluate. The ple_pass row is the evaluation queue (services/eval-drain.js); the
+  // drain claims it FIFO under a bounded concurrency, so a burst of /end calls cannot fan out onto the
+  // evaluator. Separate best-effort write: a pre-migration column error must not strand a session
+  // that has already reached its terminal screening status.
+  await enqueueEvaluation(pleId);
   return { status: 'ple_pass', criteria: allCriteria };
 }
 
-module.exports = { finalizeScreening, evaluateCriteriaWithRetry, toPassCols };
+// Put a ple_pass row at the back of the evaluation queue and wake the drain. Shared by /end (via
+// finalizeScreening), admin approve/re-evaluate and the reconcile sweep. `front: true` puts an admin
+// recovery ahead of the backlog. Fail-soft on the write: the row is still ple_pass, and the drain's
+// claim orders by coalesce(eval_enqueued_at, ended_at, created_at), so it is found either way.
+async function enqueueEvaluation(pleId, { front = false } = {}) {
+  const { error } = await supabase.from('ples')
+    .update({ eval_enqueued_at: front ? new Date(0).toISOString() : new Date().toISOString(),
+      eval_attempts: 0, eval_next_at: null, eval_claimed_at: null, eval_last_error: null })
+    .eq('id', pleId);
+  if (error) console.error(`[ple-finalize] PLE ${pleId}: enqueue write failed (drain will still find it by ended_at): ${error.message}`);
+  evalDrain.kick();
+}
+
+module.exports = { finalizeScreening, evaluateCriteriaWithRetry, toPassCols, enqueueEvaluation };
