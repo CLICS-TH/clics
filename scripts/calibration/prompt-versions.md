@@ -80,3 +80,15 @@ Return ONLY valid JSON — no explanation outside the JSON:
 Design notes: the quote-to-score-4+ rule is the main leniency brake (it forces evidence, the exact
 thing auditors demanded); the verbatim-turn cap encodes the soak's concrete failure case; the d5
 carve-out protects the one domain where the AI is already slightly harsh.
+
+## Model axis (local-model screening, D18)
+
+One row per gate run of `scripts/probe/screening-verdict.mjs` (which prints the row ready to paste).
+The prompt column carries the version AND the sha of the exact text sent (base + any local addendum),
+because the local addendum changes the prompt without changing the rubric levels. `split` must read
+`heldout` for a row to count as a gate result; tuning-split rows are allowed here only for the record
+and are marked "not a gate result" by the tool. Σ|Δ| = median over fixtures of the per-domain
+(max − min) across repeats; JSON % = valid PIS-7 JSON over every local call in the run.
+
+| model (local vs cloud) | prompt version · sha | split (n pairs) | consistency | ICC(A,1) composite (95% CI) | Σ\|Δ\| median | JSON % | verdict |
+|---|---|---|---|---|---|---|---|

@@ -1,0 +1,161 @@
+#!/usr/bin/env node
+/*
+ * Turn a model-agreement run (and optionally a repeat-consistency run) into the D18 screening verdict.
+ *
+ * WHY THIS EXISTS. model-agreement.mjs prints an ICC and a Bland–Altman band, and a human then eyeballs
+ * "is that good enough?". The roadmap says the gate is decided by the LOWER bound of the confidence
+ * interval clearing the screening threshold (D18/D19), plus two instrument checks from the 2026-09-01
+ * plan: repeatability (Σ|Δ| median ≤ 2 across repeats) and parseability (valid JSON ≥ 98%). This
+ * script applies exactly those rules, using the SAME code production uses for its verdicts
+ * (backend/src/services/icc.js iccTwoRater + verdictFor, rimpl/src/lib/pis7.js compositeOf) so it
+ * cannot disagree with GET /oversight/icc or with the Model Lock gate. It also prints how many paired
+ * PLEs the observed agreement would need — the row from docs/LOCAL-MODEL-CUTOVER.md — so a
+ * `insufficient` reads as "n more pairs", not "try again".
+ *
+ * It reads ONLY score files (ids + d1..d7 + latencies). No transcript text is ever loaded or printed.
+ *
+ * Run from backend/ (NODE_PATH/dotenv resolve there, like scripts/local-model/status.mjs):
+ *   cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/probe/screening-verdict.mjs \
+ *     --agreement ../scripts/probe/report/heldout-agreement.json \
+ *     --repeat    ../scripts/probe/report/heldout-repeat.json
+ *
+ * Flags:
+ *   --agreement <file>   model-agreement.mjs --out file (required)
+ *   --repeat <file>      repeat-consistency.mjs --out file (optional; without it Σ|Δ| is "not measured")
+ *   --threshold <0-1>    override the screening threshold (skips the app_settings read; offline use)
+ *   --allow-tuning       accept a run made on the TUNING split (never a gate result — labelled as such)
+ *   --json               machine-readable
+ *
+ * Exit codes: 0 pass · 1 fail · 3 insufficient · 2 misconfigured / unreadable input.
+ */
+import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve } from 'node:path';
+
+const require = createRequire(`${process.cwd()}/`);
+const argv = process.argv.slice(2);
+const has = (f) => argv.includes(`--${f}`);
+const argStr = (f) => { const i = argv.indexOf(`--${f}`); return i >= 0 ? argv[i + 1] : undefined; };
+const AS_JSON = has('json');
+const die = (msg) => { console.error(`\n  ✘ ${msg}\n`); process.exit(2); };
+
+// ---- production code, not a re-implementation ------------------------------------------------------
+let icc, pis7, prompts;
+try {
+  icc = require('./src/services/icc.js');                 // iccTwoRater, verdictFor
+  pis7 = require('../rimpl/src/lib/pis7.js');             // compositeOf (weighted, 0–100)
+  prompts = require('../rimpl/src/lib/prompts.js');       // PIS7_EVALUATOR_PROMPT (+ pis7PromptFor once WP-E lands)
+} catch (e) {
+  die(`run this from backend/ — could not load production modules: ${e.message}`);
+}
+const { iccTwoRater, verdictFor } = icc;
+const { compositeOf } = pis7;
+const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
+
+// ---- inputs ----------------------------------------------------------------------------------------
+const agreementPath = argStr('agreement');
+if (!agreementPath) die('--agreement <model-agreement --out file> is required');
+const readJson = (p) => { try { return JSON.parse(readFileSync(resolve(p), 'utf8')); } catch (e) { die(`cannot read ${p}: ${e.message}`); } };
+const agreement = readJson(agreementPath);
+const repeat = argStr('repeat') ? readJson(argStr('repeat')) : null;
+if (!Array.isArray(agreement.rows)) die('agreement file has no rows[] — is this a model-agreement --out file?');
+
+const splitName = agreement.split?.name ?? null;
+if (splitName !== 'heldout' && !has('allow-tuning')) {
+  die(`this run is on split "${splitName ?? 'none'}", not the held-out split. A gate verdict is only valid on `
+    + `--split heldout (D13). Pass --allow-tuning to see the numbers anyway — they will be labelled NOT A GATE RESULT.`);
+}
+const isGate = splitName === 'heldout';
+if (repeat && repeat.split?.name && repeat.split.name !== splitName) {
+  die(`split mismatch: agreement is "${splitName}" but repeat file is "${repeat.split.name}"`);
+}
+
+// ---- threshold: app_settings (production truth) unless overridden ---------------------------------
+let threshold = argStr('threshold') != null ? Number(argStr('threshold')) : null;
+let thresholdSource = 'flag';
+if (threshold == null) {
+  try {
+    require('dotenv').config();
+    const { iccGates } = require('./src/lib/settings.js');
+    threshold = (await iccGates()).screening;
+    thresholdSource = 'app_settings.icc_gate_screening';
+  } catch (e) {
+    die(`could not read the screening threshold from app_settings (${e.message}). Pass --threshold 0.75 to run offline.`);
+  }
+}
+if (!(threshold > 0 && threshold < 1)) die(`threshold must be in (0,1), got ${threshold}`);
+
+// ---- ICC on the composite both models produced for the same PLE -----------------------------------
+const rows = agreement.rows;
+const paired = rows.filter((r) => r.local && r.cloud && DOMAINS.every((d) => Number.isFinite(r.local[d]) && Number.isFinite(r.cloud[d])));
+const comps = paired.map((r) => ({ id: r.id, a: compositeOf(r.local), b: compositeOf(r.cloud) }));
+const iccResult = iccTwoRater(comps) ?? { icc: null, lower: null, upper: null, n: comps.length };
+const verdict = verdictFor(iccResult, threshold);
+// Per-domain, informational (production's gate is on the composite).
+const perDomain = Object.fromEntries(DOMAINS.map((d) => [d, iccTwoRater(paired.map((r) => ({ a: r.local[d], b: r.cloud[d] })))?.icc ?? null]));
+
+// ---- repeatability: Σ over domains of (max − min) across repeats, per fixture; median ≤ 2 -----------
+let sigma = null;
+if (repeat) {
+  const local = (repeat.results ?? []).filter((r) => r.arm === 'local' && Array.isArray(r.runs) && r.runs.length >= 2);
+  const per = local.map((r) => DOMAINS.reduce((a, d) => { const v = r.runs.map((s) => s[d]); return a + (Math.max(...v) - Math.min(...v)); }, 0));
+  const sorted = [...per].sort((x, y) => x - y);
+  const median = sorted.length ? (sorted.length % 2 ? sorted[(sorted.length - 1) / 2] : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2) : null;
+  sigma = { fixtures: per.length, repeats: repeat.repeats ?? null, median, max: per.length ? Math.max(...per) : null, pass: median != null ? median <= 2 : null };
+}
+
+// ---- parseability: valid PIS-7 JSON on the local arm, across every local call we know about ---------
+let attempted = rows.length, parsed = rows.filter((r) => r.local).length;
+if (repeat) for (const r of (repeat.results ?? []).filter((r) => r.arm === 'local')) { attempted += (r.ms ?? []).length; parsed += (r.runs ?? []).length; }
+const jsonPct = attempted ? (100 * parsed) / attempted : null;
+const jsonPass = jsonPct != null ? jsonPct >= 98 : null;
+
+// ---- pairs needed for the lower bound to clear the threshold, at a given true agreement --------------
+// Same Fisher-z interval icc.js uses (se = 1/√(n−3)); found by search, so it matches the implementation
+// rather than the algebra — the table in LOCAL-MODEL-CUTOVER.md was verified the same way.
+function pairsNeeded(rho, thr) {
+  if (!(rho > thr)) return null;
+  const z = 0.5 * Math.log((1 + rho) / (1 - rho));
+  for (let n = 4; n <= 5000; n++) if (Math.tanh(z - 1.96 / Math.sqrt(n - 3)) >= thr) return n;
+  return null;
+}
+const ladder = [0.95, 0.92, 0.9, 0.88, 0.85, 0.82, 0.8].map((rho) => ({ rho, pairs: pairsNeeded(rho, threshold) }));
+const atObserved = iccResult.icc != null ? pairsNeeded(iccResult.icc, threshold) : null;
+
+// ---- overall -----------------------------------------------------------------------------------------
+// ICC decides pass/fail/insufficient; the two instrument checks can only pull a pass down to fail.
+let state = verdict.state;
+const reasons = [verdict.why];
+if (state === 'pass' && sigma?.pass === false) { state = 'fail'; reasons.push(`repeatability Σ|Δ| median ${sigma.median} > 2`); }
+if (state === 'pass' && jsonPass === false) { state = 'fail'; reasons.push(`valid JSON ${jsonPct.toFixed(1)}% < 98%`); }
+if (!isGate) reasons.unshift('TUNING split — NOT A GATE RESULT');
+
+const promptText = typeof prompts.pis7PromptFor === 'function' ? prompts.pis7PromptFor('local') : prompts.PIS7_EVALUATOR_PROMPT;
+const promptSha = createHash('sha256').update(promptText ?? '').digest('hex').slice(0, 12);
+const ci = iccResult.icc == null ? '—' : `${iccResult.icc.toFixed(3)} (${iccResult.lower.toFixed(3)}–${iccResult.upper.toFixed(3)})`;
+const row = `| ${agreement.localModel ?? '?'} vs ${agreement.cloudModel ?? '?'} | ${agreement.prompt_version ?? '?'} · ${promptSha} | ${splitName ?? 'none'} (n=${iccResult.n}) | ${agreement.consistency ?? 'off'} | ${ci} | ${sigma?.median ?? 'n/m'} | ${jsonPct == null ? 'n/m' : jsonPct.toFixed(1) + '%'} | ${state} |`;
+
+const out = {
+  state, reasons, gate: isGate, split: splitName, threshold, threshold_source: thresholdSource,
+  icc: { ...iccResult, verdict: verdict.state }, per_domain_icc: perDomain,
+  repeatability: sigma, json: { attempted, parsed, pct: jsonPct, pass: jsonPass },
+  pairs_needed: { at_observed_icc: atObserved, ladder }, prompt_sha: promptSha, prompt_version: agreement.prompt_version ?? null,
+  models: { local: agreement.localModel ?? null, cloud: agreement.cloudModel ?? null }, prompt_versions_row: row,
+};
+
+if (AS_JSON) { console.log(JSON.stringify(out, null, 2)); }
+else {
+  const tag = state === 'pass' ? '\x1b[32mPASS\x1b[0m' : state === 'fail' ? '\x1b[31mFAIL\x1b[0m' : '\x1b[33mINSUFFICIENT\x1b[0m';
+  console.log(`\n  D18 screening verdict  ${tag}${isGate ? '' : '   \x1b[33m(tuning split — not a gate result)\x1b[0m'}`);
+  for (const r of reasons) console.log(`    · ${r}`);
+  console.log(`\n  ICC(A,1) composite (weighted 0–100)  ${ci}   n=${iccResult.n} pairs   threshold ${threshold} (${thresholdSource})`);
+  console.log(`  per-domain ICC  ${DOMAINS.map((d) => `${d} ${perDomain[d] == null ? '—' : perDomain[d].toFixed(2)}`).join('  ')}`);
+  console.log(`  repeatability   ${sigma ? `Σ|Δ| median ${sigma.median} (max ${sigma.max}) over ${sigma.fixtures} fixtures × ${sigma.repeats ?? '?'} repeats → ${sigma.pass ? 'ok' : 'over 2'}` : 'not measured (pass --repeat)'}`);
+  console.log(`  parseability    ${jsonPct == null ? 'n/m' : `${parsed}/${attempted} valid JSON = ${jsonPct.toFixed(1)}% → ${jsonPass ? 'ok' : 'under 98%'}`}`);
+  console.log(`\n  pairs needed for the lower bound to clear ${threshold}:`);
+  console.log(`    at the observed ICC ${iccResult.icc ?? '—'}: ${atObserved ?? 'never (point estimate not above threshold)'}`);
+  console.log(`    ladder  ${ladder.map((l) => `${l.rho}→${l.pairs ?? '∞'}`).join('   ')}`);
+  console.log(`\n  prompt-versions.md row (model axis):\n  ${row}\n`);
+}
+process.exit(state === 'pass' ? 0 : state === 'fail' ? 1 : 3);
