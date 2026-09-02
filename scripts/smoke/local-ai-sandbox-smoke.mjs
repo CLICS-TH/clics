@@ -666,8 +666,10 @@ async function scenarioBurst() {
     .sort((a, b) => String(a.eval_enqueued_at).localeCompare(String(b.eval_enqueued_at))
       || issuedIndex.get(a.id) - issuedIndex.get(b.id))
     .map((row) => row.id);
-  assert(enqueueOrder.every((id, index) => id === issuedOrder[index].id),
-    'actual eval_enqueued_at order did not match the order /end calls were issued');
+  // Issue order vs enqueue order is INFORMATIONAL: five /end calls issued within milliseconds each run a
+  // ~20-60 s screening call through a bounded interactive lane, so the order they finish screening (=
+  // eval_enqueued_at) is scheduling, not a queue property. The queue property is the next assertion.
+  state.scenarioReports.burst.enqueue_matches_issue_order = enqueueOrder.every((id, index) => id === issuedOrder[index].id);
   const evaluatedOrder = [...evaluated].sort((a, b) => String(a.evaluatedAt).localeCompare(String(b.evaluatedAt))).map((item) => item.id);
   assert(evaluatedOrder.every((id, index) => id === enqueueOrder[index]), 'evaluated_at order did not match actual eval_enqueued_at order');
   await exportedExactlyOnce(issuedOrder.map((ple) => ple.id));
