@@ -5,6 +5,8 @@ const { CRITERIA_CLASSIFIER_PROMPT } = require('../lib/prompts');
 const { parseJsonObject } = require('../lib/parse');
 const { flattenForPrompt } = require('../lib/transcript');
 const { deriveHintTokens, makeRegistry } = require('../services/pii-filter');
+const { requestSignal } = require('../lib/request-signal');
+const { sendAiError, logAiError } = require('../lib/ai-errors');
 
 const router = Router();
 
@@ -24,6 +26,9 @@ router.post('/', async (req, res) => {
   // store — built on-prem from the de-id input, so it carries no info the cloud model ever saw.
   const registry = makeRegistry();
   const transcriptText = flattenForPrompt(parsed.data.transcript, deriveHintTokens(parsed.data.patient_ref), registry);
+  // This call is synchronous on the physician's /end: if the backend's deadline hangs up first, the
+  // queued or in-flight classifier call is released rather than left to finish for nobody.
+  const signal = requestSignal(req, res);
 
   try {
     const { text, inputTokens, outputTokens, provider, model } = await callAI({
@@ -31,6 +36,7 @@ router.post('/', async (req, res) => {
       systemPrompt: CRITERIA_CLASSIFIER_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
       maxTokens: 200,
+      signal,
     });
 
     let result;
@@ -49,8 +55,9 @@ router.post('/', async (req, res) => {
       on_topic: result.on_topic !== false,
       pii_map: registry.entries(), input_tokens: inputTokens, output_tokens: outputTokens, provider, model });
   } catch (err) {
-    console.error('[RIMPL evaluate-criteria] error:', err);
-    res.status(500).json({ error: 'Criteria evaluation service temporarily unavailable.' });
+    logAiError('[RIMPL evaluate-criteria]', err);
+    // 503 queue_full (+ Retry-After) / 499 client gone / 413 transcript_too_large / else this 500.
+    sendAiError(res, err, 'Criteria evaluation service temporarily unavailable.');
   }
 });
 

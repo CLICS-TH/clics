@@ -8,6 +8,8 @@ const { buildProvenance } = require('../lib/provenance');
 const { deriveHintTokens } = require('../services/pii-filter');
 const { modelVersion, PROMPT_VERSION, RUBRIC_VERSION } = require('../lib/versions');
 const { fireShadowEvaluation } = require('../services/shadow');
+const { requestSignal } = require('../lib/request-signal');
+const { sendAiError, logAiError, isQueueFull } = require('../lib/ai-errors');
 
 const router = Router();
 
@@ -39,12 +41,16 @@ router.post('/', async (req, res) => {
   const { ple_id, transcript, patient_ref, shadow, weights_sha256 } = parsed.data;
   // PII-strip (incl. the known patient identifier) + defang injected role markers before the cloud model.
   const transcriptText = flattenForPrompt(transcript, deriveHintTokens(patient_ref));
+  // Fires if the backend hangs up (its evaluation deadline): the queued or in-flight scoring call is
+  // released, so the backend's retry does not stack a duplicate behind a call nobody will read.
+  const signal = requestSignal(req, res);
 
   try {
     const { text, inputTokens, outputTokens, stopReason, provider, model } = await callAI({
       purpose: 'evaluate',
       systemPrompt: PIS7_EVALUATOR_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
+      signal,
       // 4096, not 2000/3000: a 130k-token transcript (PLE-052, 2026-08-17) truncated the model's
       // JSON mid-rationale at BOTH 2000 and 3000 — the response never reached the closing `}`, so
       // parseJsonObject's "no match" fallback silently returned {} instead of surfacing a parse
@@ -118,11 +124,14 @@ router.post('/', async (req, res) => {
     // transcriptText, so it opens no new PII surface. See docs/LOCAL-MODEL-ROADMAP.md Phase 5.
     if (shadow) fireShadowEvaluation({ pleId: ple_id, transcriptText, servedProvider: provider });
   } catch (err) {
-    console.error('[RIMPL evaluate] error:', err);
+    logAiError('[RIMPL evaluate]', err);
     // Same reasoning as the 502 path: a transcript the served provider could not complete at all is
     // a data point about the candidate too. transcriptText is de-identified and in scope here.
-    if (parsed.data.shadow) fireShadowEvaluation({ pleId: parsed.data.ple_id, transcriptText });
-    res.status(500).json({ error: 'Evaluation service temporarily unavailable.' });
+    // Except a full queue — that says nothing about the transcript, and would only offer a second
+    // call to a box that just refused the first.
+    if (parsed.data.shadow && !isQueueFull(err)) fireShadowEvaluation({ pleId: parsed.data.ple_id, transcriptText });
+    // 503 queue_full (+ Retry-After) / 499 client gone / 413 transcript_too_large / else this 500.
+    sendAiError(res, err, 'Evaluation service temporarily unavailable.');
   }
 });
 

@@ -20,6 +20,35 @@
 //      per-call round trip would put a database on the hot path of every message.
 const TTL_DEFAULT_MS = 15000;
 
+// ---------------------------------------------------------------------------------------------
+// PROVIDER_SETTINGS_SOURCE — where this process READS its routing from.
+//
+//   database (default / unset)  app_settings.ai_provider_* layered over env — everything below.
+//   env                         the database is never constructed, never consulted: routing falls
+//                               through to AI_PROVIDER_<PURPOSE> / AI_PROVIDER exactly as if no rows
+//                               existed, ensureFresh() is a no-op, and status() says so (`override`).
+//
+// `env` exists for ONE situation: a laptop `npm run dev` stack pointed at the SHARED (production)
+// database — the sandbox smoke — whose app_settings say `anthropic` and must be neither obeyed nor
+// written. It is a dev-only override, so it is REFUSED IN PRODUCTION at module load: a deployment
+// that quietly ignored the superadmin toggle would be exactly the silently-relocated routing this
+// module exists to prevent. Same production predicate as src/index.js, duplicated verbatim rather
+// than imported — requiring index.js here would boot the whole app — so there is ONE definition of
+// "production" to keep in step. Any value other than the two above throws too: a typo must not
+// quietly mean "database".
+const IS_PROD = !!process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production';
+const SOURCE = String(process.env.PROVIDER_SETTINGS_SOURCE ?? '').trim().toLowerCase() || 'database';
+if (SOURCE !== 'database' && SOURCE !== 'env') {
+  throw new Error(`PROVIDER_SETTINGS_SOURCE="${process.env.PROVIDER_SETTINGS_SOURCE}" is not valid — use "database" (default) or "env"`);
+}
+if (SOURCE === 'env' && IS_PROD) {
+  throw new Error('PROVIDER_SETTINGS_SOURCE=env is refused in production: routing must follow app_settings (the superadmin toggle) there — unset it');
+}
+const ENV_ONLY = SOURCE === 'env';
+if (ENV_ONLY) {
+  console.warn('[provider-settings] PROVIDER_SETTINGS_SOURCE=env — app_settings.ai_provider_* is IGNORED on this box; routing follows AI_PROVIDER_<PURPOSE> / AI_PROVIDER only (dev-only override, refused in production)');
+}
+
 // Keys are ai_provider_<purpose>; the purpose list itself lives in services/ai.js (PURPOSES), which
 // passes it in — this module must not own a second, drifting copy of it.
 const keyFor = (purpose) => `ai_provider_${String(purpose).toLowerCase()}`;
@@ -44,6 +73,8 @@ function ttlMs() {
 // simply having no override layer. No credentials → no override → env decides. That is the
 // documented fail-soft path, not a degraded one.
 function client() {
+  // The override: no client is ever constructed, so no read can happen — not one that is ignored.
+  if (ENV_ONLY) return null;
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
   try {
     return require('../lib/supabase').supabase;
@@ -138,9 +169,14 @@ function evaluatorLockedAt() {
 // For /health/deep: whether the override layer is live, and how stale it is. A deployment that
 // THINKS it is DB-controlled but is silently running on env should be visible, not inferred.
 function status() {
-  if (!client()) return { source: 'env', reason: 'no database credentials' };
+  // `override` is the field the sandbox smoke gates on: it refuses to run unless this box PROVES it
+  // is ignoring the shared database's settings. `source: 'env'` alone cannot say that — it is also
+  // what a box with no credentials, or one whose first read has not landed yet, reports.
+  if (ENV_ONLY) return { source: 'env', override: true, reason: 'PROVIDER_SETTINGS_SOURCE=env' };
+  if (!client()) return { source: 'env', override: false, reason: 'no database credentials' };
   return {
     source: cache.loaded ? 'database' : 'env',
+    override: false,
     ...(cache.loaded
       ? { age_ms: Date.now() - cache.fetchedAt, overrides: { ...cache.values, ...cache.numbers } }
       : { reason: 'not yet read' }),

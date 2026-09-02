@@ -3,6 +3,8 @@ const { z } = require('zod');
 const { stripPii, stripHistoryPii, deriveHintTokens } = require('../services/pii-filter');
 const { callAI } = require('../services/ai');
 const { RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS } = require('../lib/prompts');
+const { requestSignal } = require('../lib/request-signal');
+const { sendAiError, logAiError } = require('../lib/ai-errors');
 
 const router = Router();
 
@@ -46,6 +48,8 @@ router.post('/', async (req, res) => {
 
   const { history, message, language, transcript, ai_scores, ai_rationale, auditor_scores, patient_ref } = parsed.data;
   const hints = deriveHintTokens(patient_ref);
+  // Fires if the auditor's client hangs up: the queued or in-flight call is released.
+  const signal = requestSignal(req, res);
 
   try {
     const cleanMessage = stripPii(message, undefined, hints);
@@ -65,12 +69,13 @@ router.post('/', async (req, res) => {
     const messages = [...cleanHistory, { role: 'user', content: cleanMessage }];
 
     const { text, tokenCount, inputTokens, outputTokens, provider, model } =
-      await callAI({ purpose: 'discuss', systemPrompt, messages, maxTokens: DISCUSS_MAX_TOKENS });
+      await callAI({ purpose: 'discuss', systemPrompt, messages, maxTokens: DISCUSS_MAX_TOKENS, signal });
 
     res.json({ content: text, token_count: tokenCount, input_tokens: inputTokens, output_tokens: outputTokens, provider, model });
   } catch (err) {
-    console.error('[RIMPL audit-discuss] error:', err);
-    res.status(500).json({ error: 'AI service temporarily unavailable. Please try again.' });
+    logAiError('[RIMPL audit-discuss]', err);
+    // 503 queue_full (+ Retry-After) / 499 client gone / 413 transcript_too_large / else this 500.
+    sendAiError(res, err, 'AI service temporarily unavailable. Please try again.');
   }
 });
 

@@ -106,6 +106,9 @@ async function runShadowEvaluation({ pleId, transcriptText, servedProvider }) {
   try {
     const { text, inputTokens, outputTokens, stopReason, model } = await callProvider({
       provider,
+      // Rides the BACKGROUND lane on the local box (providers/local.js LANE_FOR), behind every chat
+      // turn and criteria call — the queue-level form of "served traffic wins".
+      purpose: 'shadow',
       systemPrompt: PIS7_EVALUATOR_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
       maxTokens: shadowMaxTokens(),
@@ -125,6 +128,13 @@ async function runShadowEvaluation({ pleId, transcriptText, servedProvider }) {
       row.error = `${scoreErr.kind}: ${scoreErr.message}`;
     }
   } catch (err) {
+    // A full background lane is load, not a verdict on the candidate: treat it exactly like the shed
+    // above (no row). A `call_failed` row here would count the box being busy as a model failure —
+    // in the pessimistic direction, but still a laundered failure rate.
+    if (err?.code === 'queue_full') {
+      console.warn(`[shadow] shed for PLE ${pleId} — ${provider} background queue is full; served traffic wins`);
+      return { skipped: true, shed: true };
+    }
     row.error = `call_failed: ${err?.message || String(err)}`;
   }
   row.latency_ms = Date.now() - startedAt;

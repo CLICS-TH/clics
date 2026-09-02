@@ -1,4 +1,16 @@
+// The error-body block at the bottom drives the real routes; the AI seam, RAG and Supabase are
+// mocked so the suite stays hermetic (no provider, no network, no key).
+jest.mock('../src/services/ai', () => ({ callAI: jest.fn() }));
+jest.mock('../src/services/rag', () => ({ ragLookup: jest.fn().mockResolvedValue([]) }));
+jest.mock('../src/lib/supabase', () => ({
+  supabase: { from: jest.fn(() => ({})), rpc: jest.fn().mockResolvedValue({ data: [], error: null }) },
+}));
+
 const { stripPii, stripHistoryPii, deriveHintTokens } = require('../src/services/pii-filter');
+const request = require('supertest');
+const app = require('../src/index');
+const { callAI } = require('../src/services/ai');
+const { QueueFullError } = require('../src/services/providers/runtime');
 
 // ---------------------------------------------------------------------------
 // ADVERSARIAL red-team corpus for the RIMPL PII de-identifier.
@@ -303,5 +315,118 @@ describe('adversarial — bare unlabelled names', () => {
   });
   test('a clinical phrase that is NOT a gazetteer name survives byte-for-byte', () => {
     assertSurvives('ผู้ป่วยมาด้วยอาการปวดท้องและไข้ 3 วัน');
+  });
+});
+
+// ===========================================================================
+// ERROR BODIES — a failing call must not echo the transcript back out. The
+// 413 / 503 / 500 paths (lib/ai-errors.js) are driven through the REAL routes
+// with a PII-laden transcript AND a provider error whose message quotes the
+// prompt — the adversarial worst case. Status and headers are the contract
+// the backend builds on; the body must carry no transcript, name or id.
+// ===========================================================================
+describe('adversarial — error bodies through /chat and /evaluate carry no transcript, names or ids', () => {
+  const RAW = {
+    name: 'สมชาย ใจดี', hn: 'HN 12345678', phone: '081-234-5678', cid: '1234567890123',
+    email: 'somchai.j@hospital.go.th', clinical: 'มาด้วยอาการเจ็บหน้าอก 2 ชั่วโมง troponin 0.04',
+  };
+  const line = `ผู้ป่วยชื่อ ${RAW.name} ${RAW.hn} โทร ${RAW.phone} บัตร ${RAW.cid} email ${RAW.email} ${RAW.clinical}`;
+  const history = [{ role: 'physician', content: line }, { role: 'assistant', content: 'ขอข้อมูลเพิ่มเติม' }];
+  // Identifiers AND clinical content: an error body has no business carrying either.
+  const LEAKS = ['สมชาย', 'ใจดี', '12345678', '081-234-5678', '5678', RAW.cid, RAW.email, 'somchai', 'เจ็บหน้าอก', 'troponin'];
+
+  // A provider error that quotes the prompt in its message.
+  const echoing = (props) => Object.assign(new Error(`provider failed on: ${line}`), props);
+
+  const FAILURES = [
+    ['413 transcript_too_large', () => echoing({ status: 413, code: 'transcript_too_large', contextTooSmall: true, est_tokens: 99999, limit: 32000 }), 413],
+    ['503 queue_full', () => new QueueFullError({ provider: 'local', lane: 'interactive', maxQueue: 4, retryAfterMs: 30000 }), 503],
+    ['500 generic provider failure', () => echoing({ status: 500 }), 500],
+  ];
+
+  let errSpy, warnSpy;
+  beforeEach(() => {
+    callAI.mockReset();
+    errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  afterEach(() => { errSpy.mockRestore(); warnSpy.mockRestore(); });
+
+  function assertNoLeak(res) {
+    const wire = JSON.stringify(res.body) + JSON.stringify(res.headers) + res.text;
+    for (const frag of LEAKS) expect(wire).not.toContain(frag);
+  }
+
+  describe.each(FAILURES)('%s', (_label, makeErr, status) => {
+    test('POST /chat', async () => {
+      callAI.mockRejectedValueOnce(makeErr());
+      const res = await request(app).post('/chat').send({
+        ple_id: 'x', history, message: line, language: 'th', patient_ref: RAW.name,
+      });
+      expect(res.status).toBe(status);
+      assertNoLeak(res);
+      // The model saw only the de-identified text even on the failing call.
+      const sent = JSON.stringify(callAI.mock.calls[0][0].messages);
+      for (const frag of ['สมชาย', 'ใจดี', '12345678', '081-234-5678', RAW.cid, RAW.email]) expect(sent).not.toContain(frag);
+    });
+
+    test('POST /evaluate', async () => {
+      callAI.mockRejectedValueOnce(makeErr());
+      const res = await request(app).post('/evaluate').send({
+        ple_id: 'x', transcript: history, patient_ref: RAW.name, shadow: false,
+      });
+      expect(res.status).toBe(status);
+      assertNoLeak(res);
+    });
+
+    test('POST /evaluate-criteria and /audit-discuss', async () => {
+      callAI.mockRejectedValueOnce(makeErr());
+      const criteria = await request(app).post('/evaluate-criteria').send({ transcript: history, patient_ref: RAW.name });
+      expect(criteria.status).toBe(status);
+      assertNoLeak(criteria);
+      callAI.mockRejectedValueOnce(makeErr());
+      const discuss = await request(app).post('/audit-discuss').send({ message: line, transcript: history, patient_ref: RAW.name });
+      expect(discuss.status).toBe(status);
+      assertNoLeak(discuss);
+    });
+  });
+
+  test('413 body: numbers only (est_tokens, limit) and a generic message — the server hint stays in the logs', async () => {
+    callAI.mockRejectedValueOnce(FAILURES[0][1]());
+    const res = await request(app).post('/evaluate').send({ ple_id: 'x', transcript: history, patient_ref: RAW.name, shadow: false });
+    expect(res.body).toEqual({ error: expect.any(String), code: 'transcript_too_large', est_tokens: 99999, limit: 32000 });
+    expect(res.body.error).not.toMatch(/num_ctx|Modelfile|OLLAMA|max-model-len|serving/);
+  });
+
+  test('413 body: `calibration` passes through as two NUMBERS only — anything else the provider hung on it is dropped', async () => {
+    // The self-calibrating backstop (providers/local.js) attaches { ratio, n }. An adversarial provider
+    // object that also carries text — the transcript, a model name — must not get those into the body.
+    callAI.mockRejectedValueOnce(echoing({ status: 413, code: 'transcript_too_large', contextTooSmall: true, est_tokens: 61000, limit: 60000,
+      calibration: { ratio: 3.371, n: 5, note: line, model: 'qwen3-32b-medical' } }));
+    const res = await request(app).post('/evaluate').send({ ple_id: 'x', transcript: history, patient_ref: RAW.name, shadow: false });
+    expect(res.status).toBe(413);
+    expect(res.body).toEqual({ error: expect.any(String), code: 'transcript_too_large', est_tokens: 61000, limit: 60000, calibration: { ratio: 3.371, n: 5 } });
+    assertNoLeak(res);
+
+    // A non-numeric ratio (a string that happens to look like a number) is null, never text.
+    callAI.mockRejectedValueOnce(echoing({ status: 413, code: 'transcript_too_large', contextTooSmall: true, est_tokens: 61000, limit: 60000,
+      calibration: { ratio: `3.371 ${line}`, n: 5 } }));
+    const res2 = await request(app).post('/chat').send({ ple_id: 'x', history, message: line, language: 'th', patient_ref: RAW.name });
+    expect(res2.status).toBe(413);
+    expect(res2.body.calibration).toEqual({ ratio: null, n: 5 });
+    assertNoLeak(res2);
+  });
+
+  test('503 body: code + retry_after_s, and the Retry-After header', async () => {
+    callAI.mockRejectedValueOnce(FAILURES[1][1]());
+    const res = await request(app).post('/evaluate').send({ ple_id: 'x', transcript: history, patient_ref: RAW.name, shadow: false });
+    expect(res.headers['retry-after']).toBe('30');
+    expect(res.body).toEqual({ error: expect.any(String), code: 'queue_full', retry_after_s: 30 });
+  });
+
+  test('500 body: the route\'s fixed message only — never the provider\'s message', async () => {
+    callAI.mockRejectedValueOnce(FAILURES[2][1]());
+    const res = await request(app).post('/chat').send({ ple_id: 'x', history, message: line, language: 'th', patient_ref: RAW.name });
+    expect(res.body).toEqual({ error: 'AI service temporarily unavailable. Please try again.' });
   });
 });

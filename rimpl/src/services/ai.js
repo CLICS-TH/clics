@@ -18,6 +18,7 @@ const anthropic = require('./providers/anthropic');
 const local = require('./providers/local');
 const openaiEmbed = require('./providers/openai-embed');
 const settings = require('./provider-settings');
+const { isQueueFull, isAborted, isTooLarge } = require('../lib/ai-errors');
 
 const PROVIDERS = { anthropic, local };
 
@@ -66,6 +67,71 @@ function providerFor(purpose) {
   return lookup(PROVIDERS, name, whence);
 }
 
+// ---------------------------------------------------------------------------------------------
+// Chat fail-over — DORMANT. Ships with CHAT_FAILOVER_PROVIDER unset, which changes nothing anywhere.
+//
+// CREC decision pending: research transcripts must not fall back to a cloud model without an ethics
+// amendment. The hook exists so that decision, once taken, is an env change rather than a code change.
+//
+// When set, a `chat` turn whose PRIMARY provider is DOWN is retried ONCE on the named provider, with
+// the SAME de-identified request, and the result is marked — `provider` is the one that answered,
+// `failed_over_from` the one that did not — so the backend can record which model wrote the turn.
+//
+// Only `chat`, only the resolved (not pinned) path, only DOWN-class errors:
+//   * evaluate / criteria / discuss / shadow NEVER fail over. They queue and retry, and PIS-7 scoring
+//     relocating to another model mid-cohort is the one outcome this file exists to prevent.
+//   * a pinned call (routes/chat.js's citation retry) never fails over: the pin exists so that one
+//     physician turn is never written half by each model.
+//   * queue_full is OUR lane bound, not a dead provider; aborted means nobody is waiting for the
+//     answer; 413 / transcript_too_large cannot shrink by changing vendor; any other 4xx is a request
+//     the provider rejected, which a second provider would reject too.
+//   * a configuration error (LOCAL_AI_BASE_URL unset) is not DOWN either. A misconfigured box must
+//     fail loudly, not quietly serve the cloud while an operator believes traffic is on-prem.
+const FAILOVER_PURPOSES = new Set(['chat']);
+
+// Transport-level "nobody is answering", wherever the code sits in the cause chain: Node's fetch
+// rejects with TypeError('fetch failed') and puts the real code on .cause.
+const DOWN_CODES = new Set([
+  'ECONNREFUSED', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT', 'EPIPE', 'ENETUNREACH', 'EHOSTUNREACH', 'EAI_AGAIN',
+  'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_SOCKET',
+]);
+
+function errorCode(err) {
+  for (let e = err, depth = 0; e && depth < 4; e = e.cause, depth++) {
+    if (typeof e.code === 'string' && e.code) return e.code;
+  }
+  return null;
+}
+
+// The DOWN class: connection refused / reset / unresolvable, our own client deadline
+// (AbortSignal.timeout → DOMException 'TimeoutError', tagged `localTimeout` by providers/local.js), or
+// an HTTP 5xx from the provider itself. Everything else propagates to the route unchanged.
+function isProviderDown(err) {
+  if (!err || isQueueFull(err) || isAborted(err) || isTooLarge(err)) return false;
+  if (err.localTimeout === true || err.name === 'TimeoutError') return true;
+  if (typeof err.status === 'number') return err.status >= 500;
+  const code = errorCode(err);
+  return code != null && DOWN_CODES.has(code);
+}
+
+// For the ONE log line a fail-over writes. Never the message: a provider error may quote the
+// server's response body, and a transcript fragment must not end up in a log line.
+function downReason(err) {
+  if (err.localTimeout === true || err.name === 'TimeoutError') return 'timeout';
+  if (typeof err.status === 'number') return `HTTP ${err.status}`;
+  return errorCode(err) || err.name || 'error';
+}
+
+// The fail-over target for a primary, or null when the hook is dormant (env unset) or would point
+// back at the same provider. An UNKNOWN name throws on the first chat turn, with the primary healthy,
+// rather than surfacing for the first time during the outage it was meant to cover.
+function failoverProviderFor(primary) {
+  const name = String(process.env.CHAT_FAILOVER_PROVIDER || '').trim().toLowerCase();
+  if (!name) return null;
+  const provider = lookup(PROVIDERS, name, 'CHAT_FAILOVER_PROVIDER');
+  return provider.name === primary.name ? null : provider;
+}
+
 /**
  * @param {object}   opts
  * @param {string}   opts.purpose  one of PURPOSES — selects the provider
@@ -78,9 +144,16 @@ function providerFor(purpose) {
  * @param {Array}    opts.messages  [{role, content}] — MUST already be de-identified by the caller
  * @param {number}   [opts.maxTokens]
  * @param {number}   [opts.temperature]
+ * @param {AbortSignal} [opts.signal]  fires when the caller has gone away (lib/request-signal.js).
+ *                   A queued call leaves the queue; an in-flight one is cancelled at the transport.
+ *                   Rejections carry `aborted: true` and are never retried.
  * @returns {Promise<{text, inputTokens, outputTokens, tokenCount, stopReason, provider, model}>}
+ *                   plus `failed_over_from` (the primary's name) ONLY when the dormant chat fail-over
+ *                   hook answered from CHAT_FAILOVER_PROVIDER — absent on every ordinary call.
+ * @throws QueueFullError `{code:'queue_full', status:503, lane, retryAfterMs}` when the provider's
+ *                   lane for this purpose is full — nothing was queued (providers/runtime.js).
  */
-async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTokens, temperature }) {
+async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTokens, temperature, signal }) {
   if (purpose && !PURPOSES.includes(purpose)) {
     throw new Error(`Unknown AI purpose "${purpose}". Valid: ${PURPOSES.join(', ')}`);
   }
@@ -93,7 +166,21 @@ async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTo
     await settings.ensureFresh(SETTING_PURPOSES);
     provider = providerFor(purpose);
   }
-  return callWith(provider, { systemPrompt, messages, maxTokens, temperature });
+  const request = { systemPrompt, messages, maxTokens, temperature, purpose, signal };
+  const failover = !pinned && FAILOVER_PURPOSES.has(purpose) ? failoverProviderFor(provider) : null;
+  if (!failover) return callWith(provider, request);
+
+  try {
+    return await callWith(provider, request);
+  } catch (err) {
+    if (!isProviderDown(err)) throw err;
+    console.warn(`[ai] chat fail-over: primary "${provider.name}" is down (${downReason(err)}) — retrying once on "${failover.name}"`);
+    // The SAME request object the primary received: nothing is rebuilt here, so nothing can reach the
+    // second provider that did not already reach the first — the de-identification upstream in the
+    // route is the only thing that ever produced `messages`.
+    const result = await callWith(failover, request);
+    return { ...result, failed_over_from: provider.name };
+  }
 }
 
 /**
@@ -103,13 +190,16 @@ async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTo
  * whose entire job is to run the model that ISN'T serving. Routes must keep using callAI(purpose):
  * naming a vendor in a route is what this design exists to prevent.
  */
-async function callProvider({ provider: name, systemPrompt, messages, maxTokens, temperature }) {
+async function callProvider({ provider: name, purpose, systemPrompt, messages, maxTokens, temperature, signal }) {
   const provider = lookup(PROVIDERS, String(name || '').trim().toLowerCase(), 'an explicit provider name');
-  return callWith(provider, { systemPrompt, messages, maxTokens, temperature });
+  return callWith(provider, { systemPrompt, messages, maxTokens, temperature, purpose, signal });
 }
 
-async function callWith(provider, { systemPrompt, messages, maxTokens, temperature }) {
-  const result = await provider.call({ systemPrompt, messages, maxTokens, temperature });
+// `purpose` and `signal` travel to the provider deliberately: the local provider picks its queue lane
+// from the purpose (a chat turn must never wait behind an evaluation) and cancels at the transport
+// from the signal. A provider that has neither concept (Anthropic) simply ignores both keys.
+async function callWith(provider, { systemPrompt, messages, maxTokens, temperature, purpose, signal }) {
+  const result = await provider.call({ systemPrompt, messages, maxTokens, temperature, purpose, signal });
   // `provider` + `model` travel WITH the result, deliberately. A module-level MODEL constant is only
   // correct while exactly one model exists; under a hybrid it silently mislabels which system
   // produced a score (§10.2 provenance) and which rate to bill it at.
@@ -173,14 +263,25 @@ function modelsByPurpose() {
   return out;
 }
 
-// Aggregated readiness across every active provider. Never throws — a probe failure is a `down`
-// check, not a 500.
+// The providers /health/deep must probe: every ACTIVE one, plus the chat fail-over target when one is
+// configured. anthropic.ready() is a key-presence check, so a missing ANTHROPIC_API_KEY on a box that
+// would fail over to it shows up here — before the outage it was meant to cover, not during it. The
+// target is probed, not made active: routing, the `providers` report and the queue report ignore it.
+function providersToProbe() {
+  const names = new Set(activeProviders());
+  const failover = String(process.env.CHAT_FAILOVER_PROVIDER || '').trim().toLowerCase();
+  if (failover) names.add(failover);
+  return [...names];
+}
+
+// Aggregated readiness across every provider that must be probed (see providersToProbe). Never
+// throws — a probe failure is a `down` check, not a 500.
 async function readiness() {
   const checks = {};
   // Resolve from the database first so /health/deep probes what traffic will ACTUALLY hit. Probing
   // the env-resolved provider on a DB-switched box reports the wrong vendor as healthy.
   await settings.ensureFresh(SETTING_PURPOSES).catch(() => {});
-  for (const name of activeProviders()) {
+  for (const name of providersToProbe()) {
     const provider = PROVIDERS[name];
     if (!provider) { checks[`${name}_provider`] = { status: 'down', error: `unknown provider "${name}"` }; continue; }
     try {
@@ -278,6 +379,6 @@ function providerSettingsStatus() {
 module.exports = {
   callAI, callProvider, embedText,
   activeProviders, defaultProvider, modelsByPurpose, providerNameFor, embedProviderName,
-  providerSettingsStatus, readiness, probeProvider,
+  providerSettingsStatus, readiness, probeProvider, isProviderDown,
   PURPOSES, PROVIDERS, EMBED_PROVIDERS, EMBED_PURPOSE, SETTING_PURPOSES,
 };
