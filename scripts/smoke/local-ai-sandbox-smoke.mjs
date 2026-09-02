@@ -21,7 +21,6 @@ const PROD_HOSTS = new Set([
 const REQUIRED_ENV = [
   'SMOKE_BASE',
   'SMOKE_PHYSICIANS',
-  'SMOKE_PHYSICIAN_PW',
   'SMOKE_SUPER_EMAIL',
   'SMOKE_SUPER_PW',
   'LOCAL_AI_BASE_URL',
@@ -51,6 +50,7 @@ Options:
   --wait-min <mins>  Maximum evaluation wait (default: 25)
   --out <path>       Write a sanitized JSON report
   --no-prompt        Skip the operator-driven down scenario
+  --accept-consent   Record informed consent (POST /auth/consent) for a sandbox physician who has none — test accounts only
   --help             Print this help and exit without reading env or making network calls
 
 Required environment variable names:
@@ -73,7 +73,7 @@ class SmokeError extends Error {
 }
 
 function parseArgs(argv) {
-  const out = { scenario: 'single', n: 5, turns: 4, waitMin: 25, out: null, noPrompt: false, help: false };
+  const out = { scenario: 'single', n: 5, turns: 4, waitMin: 25, out: null, noPrompt: false, acceptConsent: false, help: false };
   if (argv.includes('--help')) return { ...out, help: true };
   const valueFlags = new Map([
     ['--scenario', 'scenario'], ['--n', 'n'], ['--turns', 'turns'], ['--wait-min', 'waitMin'], ['--out', 'out'],
@@ -81,6 +81,7 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--no-prompt') { out.noPrompt = true; continue; }
+    if (arg === '--accept-consent') { out.acceptConsent = true; continue; }
     const [flag, inline] = arg.includes('=') ? arg.split(/=(.*)/s, 2) : [arg, null];
     const key = valueFlags.get(flag);
     if (!key) throw new SmokeError(`unknown option ${flag}; run with --help`);
@@ -319,13 +320,26 @@ async function hardPreconditions() {
     }
     const councilCode = new Map(councils.json.map((council) => [council.id, String(council.code || '').toUpperCase()]));
     for (const email of emails) {
-      const token = await login(email, process.env.SMOKE_PHYSICIAN_PW);
+      // One shared password (SMOKE_PHYSICIAN_PW) or one per account, aligned with SMOKE_PHYSICIANS
+      // (SMOKE_PHYSICIAN_PWS, comma-separated) — the sandbox cohorts were provisioned with distinct passwords.
+      const perAccount = String(process.env.SMOKE_PHYSICIAN_PWS || '').split(',').map((v) => v.trim());
+      const idx = emails.indexOf(email);
+      const password = perAccount[idx] || process.env.SMOKE_PHYSICIAN_PW;
+      if (!password) throw new PreconditionError(2, 'set SMOKE_PHYSICIAN_PW (shared) or SMOKE_PHYSICIAN_PWS (one per SMOKE_PHYSICIANS entry, same order)');
+      const token = await login(email, password);
       const physician = { token, id: null };
-      const user = await authMe(physician);
+      let user = await authMe(physician);
       if (user.role !== 'physician' || councilCode.get(user.council_id) !== 'SANDBOX') {
         throw new PreconditionError(6, 'place every SMOKE_PHYSICIANS account in the SANDBOX council with the physician role');
       }
-      if (!user.consented_at) throw new PreconditionError(6, 'record informed consent for every sandbox physician before running the smoke');
+      if (!user.consented_at && options.acceptConsent) {
+        // The same call the portal's consent screen makes; only reached for a SANDBOX-council physician
+        // (checked just above), so a real participant can never be consented by a script.
+        const consent = await backend('/auth/consent', { method: 'POST', token });
+        if (consent.status !== 200 || !consent.json?.consented_at) throw new PreconditionError(6, 'POST /auth/consent did not record consent for a sandbox physician');
+        user = await authMe(physician);
+      }
+      if (!user.consented_at) throw new PreconditionError(6, 'record informed consent for every sandbox physician before running the smoke (or pass --accept-consent for sandbox test accounts)');
       const identity = await backend('/auth/identity/status', { token });
       if (identity.status !== 200 || (identity.json?.required === true && identity.json?.status !== 'verified')) {
         throw new PreconditionError(6, 'complete identity verification for every sandbox physician when the identity gate is enabled');
@@ -940,7 +954,8 @@ async function main() {
       return;
     }
   }
-  process.exitCode = state.summary.every((row) => row.status === 'PASS') ? 0 : 1;
+  // A precondition abort sets exitCode 2 with an EMPTY summary — `every` on [] is true, so never let that read as 0.
+  if (process.exitCode == null) process.exitCode = state.summary.length && state.summary.every((row) => row.status === 'PASS') ? 0 : 1;
 }
 
 await main();

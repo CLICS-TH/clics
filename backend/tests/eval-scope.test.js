@@ -69,6 +69,17 @@ test('a failed councils read fails CLOSED too (a partial exclude list is the con
   expect(scope.failedClosed).toMatch(/councils read failed/);
 });
 
+test('an include scope makes the shared exclude setting irrelevant on that box (the two halves must not cancel)', async () => {
+  mockSettings = { eval_drain_exclude_councils: { value_text: 'SANDBOX' } }; // prod's half, read from the shared DB
+  mockCouncils = [{ id: 'c-sbx', code: 'SANDBOX' }];
+  const m = load({ EVAL_DRAIN_ONLY_COUNCILS: 'SANDBOX', NODE_ENV: 'test', RAILWAY_ENVIRONMENT: '' });
+  const scope = await m.resolveScope();
+  expect(scope.include).toEqual(['c-sbx']);
+  expect(scope.exclude).toBeNull();
+  expect(scope.excludeCodes).toEqual([]);
+  expect(scope.failedClosed).toBeNull();
+});
+
 test('the include env is REFUSED in production at module load', () => {
   expect(() => load({ EVAL_DRAIN_ONLY_COUNCILS: 'SANDBOX', NODE_ENV: 'production', RAILWAY_ENVIRONMENT: '' })).toThrow(/refused in production/);
   expect(() => load({ EVAL_DRAIN_ONLY_COUNCILS: 'SANDBOX', NODE_ENV: 'test', RAILWAY_ENVIRONMENT: 'production' })).toThrow(/refused in production/);

@@ -10,6 +10,8 @@
 //             "leave these councils alone" — set to SANDBOX in prod for the smoke window.
 //   include ← env EVAL_DRAIN_ONLY_COUNCILS (comma-separated codes; DEVELOPMENT ONLY)
 //             "touch nothing but these" — set to SANDBOX on the laptop. Refused in production.
+//   When an include scope is set, the exclude setting is ignored on that box (it is the prod side's
+//   half of the same partition and would otherwise cancel the include).
 //
 // ANY code that resolves to no council — include or exclude — or a councils read that fails, makes the
 // drain match NOTHING (include = [NIL_UUID]) until it is fixed, never everything: a typo in the exclude
@@ -32,7 +34,12 @@ let cache = { at: 0, value: null };
 
 async function resolveScope({ now = Date.now() } = {}) {
   if (cache.value && now - cache.at < TTL_MS) return cache.value;
-  const excludeCodes = parseCodes(await getTextSetting('eval_drain_exclude_councils', ''));
+  // The exclude setting lives in the SHARED database, so a laptop stack reads it too — and during the
+  // smoke it names the very council the laptop is there to score. An include scope is the stricter
+  // partition and is only ever set on a dev box, so it makes the exclude setting irrelevant here: the
+  // prod drain (no include) honours the exclusion, the laptop drain (include) claims exactly its own
+  // council. Without this rule both drains would leave SANDBOX to nobody.
+  const excludeCodes = INCLUDE_CODES.length ? [] : parseCodes(await getTextSetting('eval_drain_exclude_councils', ''));
   const codes = [...new Set([...excludeCodes, ...INCLUDE_CODES])];
   let byCode = {};
   let failedClosed = null;

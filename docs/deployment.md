@@ -75,6 +75,7 @@ select indexname from pg_indexes
 ```
 
 ```sql
+select pg_get_constraintdef(oid) from pg_constraint where conname = 'ples_status_check'; -- ple-status-values (must list ple_*)
 select proname from pg_proc where proname = 'claim_ple_evaluations';                   -- local-ai-capacity (RPC)
 select column_name from information_schema.columns
   where table_name = 'ples' and column_name in ('eval_enqueued_at','context_tokens');   -- local-ai-capacity (columns)
@@ -84,6 +85,13 @@ select key, value from app_settings where key in ('standard_usage_limit_tokens',
 **Deploy ordering:** apply `migration-usage-reserve.sql` + `migration-eval-unique.sql` BEFORE (or with)
 a backend deploy — never a new backend against a DB missing them. (`migration-eval-unique.sql` was
 historically orphaned from the runbooks — it is required, not optional.)
+
+**Applied to prod 2026-09-02 (Supabase MCP): `migration-ple-status-values.sql` (`ple_status_values`) and
+`migration-local-ai-capacity.sql` (as `local_ai_capacity_queue_and_settings` + `local_ai_capacity_reservation_rpcs`).**
+`migration-ple-rename.sql` had been applied 2026-08-31 but left `ples.status` values as `cle_*`; the
+status-values migration finishes it. **Consequence: the deployed backend (master, `.from('cles')`) has
+been inconsistent with the database since 2026-08-31 — every PLE route fails until a backend from this
+branch is deployed.** Rollback files exist for both rename halves.
 
 **⚠ `db/migration-local-ai-capacity.sql` MUST be applied BEFORE deploying any backend from `ddbba2a`
 onward.** From that commit the evaluation drain is the *only* thing that calls rimpl `/evaluate`, and it
