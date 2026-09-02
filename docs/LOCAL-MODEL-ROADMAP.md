@@ -42,19 +42,44 @@ Live position: `npm run local-model:status`.
 
 | Phase | State |
 |---|---|
-| **G0 — Access + inventory** | **partly done.** Tailnet reachable, inventory taken 2026-08-26: three machines, and no `cme-dgx`. Still owed from the box: context length, the declared model + its checksum, the embeddings service, concurrency, an operator |
-| **P0 — Probe** | **partly run, outside this harness.** Eight models were benchmarked on `cme-dev` 25–26 Aug on one clinical prompt. [`scripts/probe/`](../scripts/probe/README.md) is still unrun, so the JSON-contract and Thai-citation checks that `evaluate.js` actually enforces remain untested |
+| **G0 — Access + inventory** | **done 2026-08-31.** `cme-dev` reachable over the tailnet; Open WebUI's OpenAI-compatible endpoint serves `deepseek-v4-flash-dspark`. Still owed from the box owner: weights checksum / engine / quantisation for the Model Lock, and custody (§5 of [GATE0-DGX-RESULTS](GATE0-DGX-RESULTS.md)) |
+| **P0 — Probe** | **run 2026-08-31 → 09-01, Gate 0 PASSED.** JSON contract 25/26, Thai 6/6, ≥22,804 input tokens verified; eval p50 68 s; safe concurrency 2. Head-to-head vs Sonnet on 26 PLEs: ICC(A,1) 0.594, and **the evaluator is not reproducible on either model** (same fixture, Σ\|Δ\| 0–8 across sessions). Full numbers: [GATE0-DGX-RESULTS §7](GATE0-DGX-RESULTS.md) |
 | **P1 — Provider adapter** | **done**, shipped dark (PR #61) |
 | **P1.5 — Readiness gate** | **done** (#71). A switch to a provider that cannot serve is refused with the measured value; unknown counts as unfit |
 | **P2 — rimpl relocation + bridge** | **not started** — needs G0 item 4 |
 | **G0.5 — Human-auditor ICC baseline** | **not started. This is still the programme go/no-go** |
-| **P3 — Migrate purposes** | shadow evaluator code **done** (PR #65); `db/migration-shadow-evaluations.sql` **NOT applied** — shadow silently no-ops until it is |
-| **P4 — Calibrate + Gate 4** | **instrument done** (#74): every arm carries a verdict, and `insufficient` is distinct from `fail`. The gate itself is blocked on G0.5 |
+| **P3 — Migrate purposes** | shadow evaluator code **done** (PR #65). **Capacity layer built 2026-09-02** on `feat/local-ai-capacity` (commits `ddbba2a` backend/db/portal, `afb83d5` rimpl, `1fe625c` dashboard, `6050e53` smoke, `aecb861` mutations): durable evaluation queue, rimpl two-lane bounded runner, token-denominated budgets, transcript cap, council partition, dev-only provider override, sandbox smoke. **Not deployed; `db/migration-local-ai-capacity.sql` NOT applied** (and `migration-shadow-evaluations.sql` still not applied) |
+| **P4 — Calibrate + Gate 4** | **instrument done** (#74). **Held-out split reserved first** (D13; `scripts/probe/SPLIT.json`, 8 held-out / 18 tuning, commit `551df47`) and `scripts/probe/screening-verdict.mjs` applies D18 + repeatability + parseability from the production ICC code (`c4bd08d`). Adaptive self-consistency + local prompt addendum (WP-E) **not yet built**. The decisive gate is still blocked on G0.5 |
 | **P5 — Model Lock** | **mechanism done** (#75): the declaration form is closed until the decisive verdict passes, and the freeze is enforced. Blocked on P4 for the verdict that opens it |
 
-Nothing is live. Every purpose resolves to `anthropic` (`openai` for embeddings), so with the toggles
-untouched, `AI_PROVIDER` unset and `SHADOW_EVAL_PROVIDER` unset, every call still goes to the cloud
-and no shadow evaluation runs.
+Nothing is live in production. Every purpose still resolves to `anthropic` (`openai` for embeddings), so
+with the toggles untouched every call goes to the cloud and no shadow evaluation runs. What changed on
+2026-09-02 is the *shape*: the code now assumes a slow, shared, bounded model, whichever provider serves.
+
+### The capacity layer (2026-09-02) — what "all purposes local" needs to survive many physicians at once
+
+Measured on the box: eval p50 68 s; p95 114 s at 2 concurrent, 154 s at 4 (over the 150 s timeout);
+identical work took 57 s and 956 s two hours apart (the box is shared). Decisions taken 2026-09-01
+(plan `synthetic-strolling-kettle`): async submit with a real *queued → scoring* state; usage ceiling in
+**tokens** (local is priced $0, so the $0.50 cap never throttled); transcript cap **64k to trial**, ship
+the measured value; **adaptive self-consistency + prompt retune, gate = D18**; all purposes local
+including chat; smoke from a laptop stack on the tailnet against prod Supabase's SANDBOX council.
+
+| Piece | Where | What it guarantees |
+|---|---|---|
+| Durable evaluation queue | backend `services/eval-drain.js`, `lib/eval-scope.js`, `db/migration-local-ai-capacity.sql` | the `ple_pass` row **is** the queue; `claim_ple_evaluations()` claims oldest-first under `FOR UPDATE SKIP LOCKED` with a lease; the drain is the **only** caller of rimpl `/evaluate` (finalize, approve, re-evaluate and the reconcile sweep only enqueue + kick). Deterministic errors flag for a human; transient ones back off (honouring `Retry-After`, ≤15 min); exhausted attempts flag with an audit event; nothing is dropped |
+| Two-lane bounded runner | rimpl `providers/runtime.js`, `providers/local.js` | interactive lane (chat, criteria, discuss) with a reserved slot vs background lane (evaluate, shadow); bounded depth → `503 queue_full` + `Retry-After` instead of an unbounded wait; a closed client cancels its queued call; a proactive `413 transcript_too_large` backstop |
+| Token budgets | backend `lib/usage.js`, reservation RPCs, superadmin settings | `budgetState()` compares $ **and** tokens; per-user overrides; org ceilings seed **0 = no cap** and are set from the capacity report, never by default |
+| Transcript cap | backend `routes/ples.js` (`ples.context_tokens`), portal chat | the last context the model saw (rimpl's per-call figure), checked before any reservation → `403 transcript_limit_reached`; the portal warns at 80 % and locks the composer at the cap with **End still enabled** |
+| Council partition | setting `eval_drain_exclude_councils` (prod), env `EVAL_DRAIN_ONLY_COUNCILS` (dev only, refused in prod) | a laptop drain scoring SANDBOX on the local model and the prod drain scoring everything else on Claude never touch the same row. Unknown codes fail **closed** (claim nothing) |
+| Dev provider override | rimpl `PROVIDER_SETTINGS_SOURCE=env` (refused in prod) | the laptop routes every purpose to `local` without writing prod settings; `/health/deep` shows `routing.override: true` and the smoke refuses to run unless it does |
+| Physician-visible states | portal `ple-result.html`, `ple-chat.js` | screening → queued (position, eta) → scoring, poll backoff to 30 s, a non-silent give-up card; `ai_busy` bubble that keeps the typed question |
+| Sandbox smoke | `npm run smoke:local-ai` (`scripts/smoke/local-ai-sandbox-smoke.mjs`) | single / burst / cap / down / capacity scenarios; aborts unless the override, the partition and `pilot_test_mode` are visible; never targets a prod host, never flips a global setting, never prints transcript text or credentials |
+
+Still to build in this layer: **WP-E** (adaptive self-consistency in rimpl `services/consistency.js`, a
+provider-conditional PIS-7 addendum via `pis7PromptFor()`, `provenance.consistency`). Still to *run*: the capacity probe on the box (`context-limit.mjs
+--synthetic --shape both`, `pis7-concurrency.mjs --levels 1,2,3`) that sets `ple_max_transcript_tokens`,
+`LOCAL_AI_MAX_PROMPT_TOKENS`, `LOCAL_MAX_CONCURRENCY` and the token ceiling; then the smoke.
 
 **Cutover is a toggle, not a deploy.** Since 2026-08-26 the provider for each purpose is a superadmin
 setting (`app_settings.ai_provider_<purpose>`, *Admin → Overview*), layered over the env chain below
@@ -183,16 +208,26 @@ All default to the pre-existing behaviour; setting none of these changes anythin
 | `LOCAL_AI_MODEL` | *(unset)* | model id the server serves. Required when any purpose is `local` |
 | `LOCAL_AI_EMBED_MODEL` | *(unset)* | embedding model id. Usually **not** the chat model |
 | `LOCAL_AI_API_KEY` | *(unset)* | optional bearer token |
-| `LOCAL_AI_TIMEOUT_MS` | `150000` | must stay under backend's `RIMPL_EVAL_TIMEOUT_MS` (180s) |
+| `LOCAL_AI_TIMEOUT_MS` | `150000` | per model call. Backend's `RIMPL_EVAL_TIMEOUT_MS` is now `480000` (2–3 serial calls + rimpl's queue wait); `RIMPL_CRITERIA_TIMEOUT_MS` stays `180000` because criteria runs inside the physician's `/end` request |
 | `LOCAL_AI_MIN_CONTEXT` | `16384` | `/health/deep` reports the box **down** below this — a PLE transcript cannot be scored at 4096 |
 | `LOCAL_AI_NUM_CTX` | *(unset)* | opt-in per-request `num_ctx`. **The authoritative fix is server-side** |
 | `CLAUDE_TIMEOUT_MS` | `150000` | Anthropic SDK ceiling, matched to the local one |
 | `RAG_EMBED_DIM` | `1536` | the corpus's embedding width. A provider returning a different width fails loudly |
-| `LOCAL_MAX_CONCURRENCY` | `24` | in-flight cap. Set from a P0 measurement, not a guess |
+| `LOCAL_MAX_CONCURRENCY` | `2` | in-flight cap across both lanes — the measured knee (p95 114 s at 2, 154 s at 4). Set from the capacity probe, not a guess |
+| `LOCAL_INTERACTIVE_RESERVE` / `LOCAL_MAX_QUEUE_INTERACTIVE` / `LOCAL_MAX_QUEUE_BACKGROUND` / `LOCAL_QUEUE_RETRY_AFTER_S` | `1` / `4` / `2` / `30` | two-lane runner: one slot is kept for chat/criteria/discuss so a burst of evaluations cannot block a physician's turn; queue depth beyond the caps returns `503 queue_full` with `Retry-After` |
+| `LOCAL_AI_MAX_PROMPT_TOKENS` | `0` (off) | proactive `413 transcript_too_large` before any call, **in the server's `usage.prompt_tokens` unit** — set it to the served count the capacity probe prints for the last size with sentinel recall. rimpl converts its byte estimate through a ratio learnt from 3+ served responses and never pre-rejects before that (`/health/deep` → `queues.local.prompt_calibration`) |
+| `RIMPL_BODY_LIMIT` | `2mb` | `/chat` resends the whole history each turn; Express's 100 KB default could not carry a 64k-token transcript |
 | `LOCAL_MAX_RETRIES` / `LOCAL_RETRY_BASE_MS` | `3` / `500` | our own request timeout is never retried |
 | `LOCAL_INPUT_PER_M` / `LOCAL_OUTPUT_PER_M` | `0` / `0` | set only to put hardware amortisation on the meter |
 | `SHADOW_EVAL_PROVIDER` | *(unset — off)* | provider to shadow-score with; ignored if it equals the serving provider |
 | `SHADOW_EVAL_MAX_TOKENS` | `4096` | matches the served ceiling, so a truncation is the model's fault, not ours |
+| `PROVIDER_SETTINGS_SOURCE` | `database` | `env` = ignore `app_settings` and route from the env chain only. **Development only — rimpl refuses to boot with it in production.** Used by the laptop smoke stack; `/health/deep` shows `routing.override: true` |
+| `CHAT_FAILOVER_PROVIDER` | *(unset — dormant)* | if set, a **chat** turn whose primary provider is DOWN (connection refused/reset, timeout, 5xx) is retried once on this provider and the turn is marked `failed_over_from`. Never for evaluate/criteria/discuss, never on `queue_full`/abort/413. **CREC decision pending — research transcripts must not fall back to a cloud model without an ethics amendment; leave unset** |
+| **backend** `EVAL_DRAIN_INTERVAL_MS` / `EVAL_DRAIN_CONCURRENCY` / `EVAL_LEASE_S` / `EVAL_MAX_ATTEMPTS` | `60000` / `1` / `600` / `20` | the evaluation drain (always running outside tests; the interval is only the fallback tick). The setting `eval_drain_concurrency` wins over the env when set. Lease must exceed `RIMPL_EVAL_TIMEOUT_MS` |
+| **backend** `EVAL_DRAIN_ONLY_COUNCILS` | *(unset)* | dev-only include scope (council codes) for a laptop stack sharing the prod database — **refused in production**; prod uses the setting `eval_drain_exclude_councils` |
+| **setting** `standard_usage_limit_tokens` / `auditor_standard_usage_limit_tokens` | `0` (no cap) | token ceilings per pool; per-user overrides on `professionals`. Set from the capacity report as `3 × p95(tokens per PLE) × 1.25` |
+| **setting** `ple_max_transcript_tokens` / `ple_transcript_warn_pct` | `64000` (trial) / `80` | transcript cap on `ples.context_tokens` and the warn band |
+| **setting** `eval_drain_concurrency` / `eval_p50_seconds` / `eval_drain_exclude_councils` | `1` / `90` / *(empty)* | live drain width, the eta multiplier shown to physicians, and the prod side of the council partition |
 
 ---
 

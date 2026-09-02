@@ -35,6 +35,38 @@ Supabase Postgres). Working end-to-end today:
   provenance, pseudonyms (`P-NNN`), Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
   0 errors (the AI path's ceiling is Anthropic **OTPM** — see [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)).
 
+## Built 2026-09-02 — local-AI capacity layer (branch `feat/local-ai-capacity` (off `refactor/cle-to-ple`), NOT deployed, migration NOT applied)
+
+Context: the on-prem model became reachable 2026-08-31 and passed Gate 0; measured head-to-head it agrees
+with Sonnet at ICC 0.594 and **neither model's PIS-7 output is reproducible** (same fixture, Σ|Δ| 0–8
+across sessions). Decisions and measurements: [LOCAL-MODEL-ROADMAP → The capacity layer](LOCAL-MODEL-ROADMAP.md),
+[LOCAL-MODEL-CUTOVER → Measured position 2026-09-02](LOCAL-MODEL-CUTOVER.md), [GATE0-DGX-RESULTS §7](GATE0-DGX-RESULTS.md).
+
+- **`ddbba2a` backend + db + portal:** the `ple_pass` row is the evaluation queue (`claim_ple_evaluations` RPC,
+  lease, `services/eval-drain.js` as the single writer); finalize / approve / re-evaluate / reconcile only
+  enqueue + kick; token budgets beside the $ cap (org ceilings seed 0 = off); transcript cap on
+  `ples.context_tokens`; council partition (`eval_drain_exclude_councils` prod setting, `EVAL_DRAIN_ONLY_COUNCILS`
+  dev-only, both fail closed); `GET /ples/:id/evaluation` reports queued/scoring + position/eta; portal shows
+  the states, the warn band, the limit bubble and `ai_busy`. Reviewed by `clics-reviewer` (6 findings, all
+  fixed before commit — the worst was the sweep re-enqueueing live rows). Backend 757/757, responsive
+  44/44, readability 112 renders clean.
+- **`c4bd08d` + `551df47` probe tooling:** held-out split reserved (D13), `context-limit.mjs --synthetic`
+  capacity ramp, `screening-verdict.mjs` (D18 through the production `icc.js`), model-axis table in
+  `scripts/calibration/prompt-versions.md`.
+- **`afb83d5` rimpl:** two-lane bounded runner with cancellation and a self-calibrating 413 backstop (WP-A),
+  `PROVIDER_SETTINGS_SOURCE=env` dev override + dormant `CHAT_FAILOVER_PROVIDER` hook (WP-G), per-call
+  `context_tokens` on `/chat`. Reviewed; rimpl 579/579 incl. two new adversarial PII suites.
+- **`1fe625c` dashboard:** capacity card, per-user token override + token meter, consistency chip (+ the settings
+  PATCH now echoes every key). **`6050e53`** the sandbox smoke. **`aecb861`** four guard mutations (all KILLED).
+- **`npm run smoke:local-ai`** (Codex): five scenarios against a laptop stack + prod SANDBOX council; hard
+  preconditions, never a prod host, never flips `pilot_test_mode`.
+
+**Not done:** WP-E (adaptive self-consistency + provider-conditional PIS-7 addendum + `provenance.consistency`);
+the capacity probe run on the box that sets the real cap
+/ concurrency / token ceiling; the smoke itself; the held-out verdict run. **Deploy hazard:** apply
+`db/migration-local-ai-capacity.sql` *before* any backend from `ddbba2a` — see [deployment.md](deployment.md).
+Hygiene still open: regenerate the Open WebUI token in `~/.clics-dgx.env` (exposed in a screenshot 2026-08-31).
+
 ## What just shipped (2026-08-27) — CREC082 protocol conformance
 
 **The governing document changed.** CLICS was built against the JMIR #99520 manuscript and internal

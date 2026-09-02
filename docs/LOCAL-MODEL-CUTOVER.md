@@ -159,6 +159,35 @@ human), which is a second, separate divergence and also unexplained.
 
 ---
 
+## Measured position, 2026-09-02 — and the honest D23 statement
+
+Access landed 2026-08-31. Gate 0 passed. The layer that lets the on-prem model serve many physicians at
+once is built (see [LOCAL-MODEL-ROADMAP → The capacity layer](LOCAL-MODEL-ROADMAP.md#the-capacity-layer-2026-09-02--what-all-purposes-local-needs-to-survive-many-physicians-at-once)).
+None of it is deployed, and none of it moves step 7's denominator.
+
+| Gate | State | Reading |
+|---|---|---|
+| G0 access | **done** | `cme-dev` over the tailnet; `deepseek-v4-flash-dspark` via an OpenAI-compatible endpoint |
+| G0 probe | **passed** | JSON 25/26 · Thai 6/6 · ≥22,804 input tokens · eval p50 68 s · safe concurrency 2 |
+| **G0.5 human baseline** | **unchanged** | still −0.315 on n=5; nothing scored by a human since June |
+| candidate vs incumbent | **measured, not a gate** | ICC(A,1) 0.594 on 26 PLEs, bias −2.2 (local harsher). ~59 % of the disagreement is common-mode |
+| evaluator reproducibility | **the finding** | same fixture, same prompt, temperature 0: Σ\|Δ\| 0–8 across sessions **on either model**. The instrument is the weak link, not the box |
+| P4 screening verdict | **tooling ready, not run** | `scripts/probe/screening-verdict.mjs` on the reserved 8-pair held-out split, after WP-E lands |
+
+**What 15 September (D23) can honestly mean.** On an 8-pair held-out split the D18 verdict will read
+`insufficient` unless true agreement is ≈0.95 (9 pairs at 0.95, 19 at 0.90, 51 at 0.85 — the table
+above). Real screening data is the production shadow corpus, which cannot accumulate until rimpl runs
+where it can reach the box. So D23 = *"queue, limits, consistency layer shipped and measured on the
+sandbox; screening verdict reported with its pairs-needed row"* — not *"gate passed"*. Anyone reading a
+pass off eight pairs should be shown `verdictFor()` and its n<4 / interval rules.
+
+Two more things the numbers force into the open: at 64k tokens a chat turn prefills the whole transcript
+on this box and may take minutes (the capacity probe, not the plan, decides the shipped cap); and
+`LOCAL_MAX_CONCURRENCY=2` bounds *our* load only — a shared box that swings 57 s → 956 s under a
+neighbour is a custody problem no setting fixes (§5.3 of the Gate 0 pack).
+
+---
+
 ## Blocked-on-access does not mean blocked
 
 The whole of step 7's denominator — recruitment, the anchor set, rater calibration, and whatever is

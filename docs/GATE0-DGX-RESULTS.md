@@ -426,3 +426,16 @@ fallback face.
 ignored via the NESTED `scripts/probe/.gitignore` (`fixtures/*`), not the root one — `git check-ignore`
 on the directory reports "not ignored", which is misleading; check a file inside it. Only `.gitkeep` is
 tracked, and no fixture has ever been committed. No script here prints transcript text.*
+
+
+## 8. What was built from these numbers (2026-09-02)
+
+The measurements above became design constraints the next day; the record of what each number forced is
+in [LOCAL-MODEL-ROADMAP → The capacity layer](LOCAL-MODEL-ROADMAP.md) and the honest reading of the
+15 September milestone in [LOCAL-MODEL-CUTOVER → Measured position 2026-09-02](LOCAL-MODEL-CUTOVER.md).
+In one line each: the concurrency knee (§7.4) → `LOCAL_MAX_CONCURRENCY=2` and a two-lane bounded runner;
+the 68 s p50 and the 57 s → 956 s swing (§7.6) → a durable FIFO evaluation queue with a lease and backoff,
+and a physician-visible *queued → scoring* state; the $0 price → token-denominated budgets; the unknown
+input ceiling → a 64k transcript-cap **trial** plus `context-limit.mjs --synthetic` to measure the real
+one; and the non-reproducibility (§7.3) → adaptive self-consistency gated by D18 on a held-out split
+reserved before any prompt was touched (`scripts/probe/SPLIT.json`).

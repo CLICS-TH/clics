@@ -28,7 +28,8 @@ Deploys run from the **local working tree** (not GitHub). Backend + RIMPL on **R
 ## Required env vars
 
 - **backend** (Railway): `INTERNAL_TOKEN`, `RIMPL_URL=http://rimpl.railway.internal:3003`, `SITE_URL` (portal origin for invite-accept links + the password-reset redirect — `https://physician-ui.vercel.app`), `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY`, `ALLOWED_ORIGINS` (both Vercel origins), `IDENTITY_ENC_KEY` (AES-256-GCM key for the OAuth identity vault — long random string), `GUEST_TOKEN_SECRET` (HMAC secret for ephemeral guest tokens). **The prod boot check now refuses to start if `RIMPL_URL`, `SITE_URL`, `SUPABASE_ANON_KEY`, or any of the above are missing** (they otherwise fall back to localhost/insecure-dev silently). The last two MUST be set in prod (the backend uses an insecure dev fallback only when `NODE_ENV` ≠ `production`); generate each with e.g. `openssl rand -base64 48`.
-- **rimpl** (Railway): `INTERNAL_TOKEN` (must match backend byte-for-byte), `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `PORT=3003`.
+- **backend, evaluation queue (2026-09-02, optional — defaults shown):** `EVAL_DRAIN_INTERVAL_MS=60000`, `EVAL_DRAIN_CONCURRENCY=1`, `EVAL_LEASE_S=600`, `EVAL_MAX_ATTEMPTS=20`, `RIMPL_EVAL_TIMEOUT_MS=480000`, `RIMPL_CRITERIA_TIMEOUT_MS=180000`. **Never set `EVAL_DRAIN_ONLY_COUNCILS` in prod — the backend refuses to start.**
+- **rimpl** (Railway): `INTERNAL_TOKEN` (must match backend byte-for-byte), `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `PORT=3003`. Local-model lanes (optional, defaults): `LOCAL_MAX_CONCURRENCY=2`, `LOCAL_INTERACTIVE_RESERVE=1`, `LOCAL_MAX_QUEUE_INTERACTIVE=4`, `LOCAL_MAX_QUEUE_BACKGROUND=2`, `RIMPL_BODY_LIMIT=2mb`. **Never set `PROVIDER_SETTINGS_SOURCE=env` in prod (rimpl refuses to boot); leave `CHAT_FAILOVER_PROVIDER` unset (CREC decision pending).**
 - **audit-dashboard** (Vercel): `NEXT_PUBLIC_API_URL`.
 
 ## Seed the 4 role accounts (idempotent)
@@ -73,6 +74,22 @@ select indexname from pg_indexes
   where indexname in ('ples_auditor_idx','ples_status_idx','lpdp_snapshots_ple_idx');  -- perf-indexes
 ```
 
+```sql
+select proname from pg_proc where proname = 'claim_ple_evaluations';                   -- local-ai-capacity (RPC)
+select column_name from information_schema.columns
+  where table_name = 'ples' and column_name in ('eval_enqueued_at','context_tokens');   -- local-ai-capacity (columns)
+select key, value from app_settings where key in ('standard_usage_limit_tokens','ple_max_transcript_tokens','eval_drain_concurrency');
+```
+
 **Deploy ordering:** apply `migration-usage-reserve.sql` + `migration-eval-unique.sql` BEFORE (or with)
 a backend deploy — never a new backend against a DB missing them. (`migration-eval-unique.sql` was
 historically orphaned from the runbooks — it is required, not optional.)
+
+**⚠ `db/migration-local-ai-capacity.sql` MUST be applied BEFORE deploying any backend from `ddbba2a`
+onward.** From that commit the evaluation drain is the *only* thing that calls rimpl `/evaluate`, and it
+claims work through `claim_ple_evaluations()`. Against a database without that RPC every tick fails,
+**no PLE is ever evaluated**, and the only symptom is `checks.eval_queue.drain.last_error` on
+`/health/deep` plus a growing `queued` count. The migration is re-runnable; it also redefines
+`reserve_usage` / `reserve_auditor_usage` with a fourth, defaulted argument (the old 3-arg overload is
+dropped first so PostgREST resolution stays unambiguous). Token ceilings seed **0 = no cap** — set them
+deliberately from the capacity report.
