@@ -40,6 +40,25 @@ const argStr = (f) => { const i = argv.indexOf(`--${f}`); return i >= 0 ? argv[i
 const AS_JSON = has('json');
 const die = (msg) => { console.error(`\n  ✘ ${msg}\n`); process.exit(2); };
 
+if (has('help') || argv.includes('-h')) {
+  console.log(`Usage (from backend/): NODE_PATH="$PWD/node_modules" node ../scripts/probe/screening-verdict.mjs --agreement <file> [--repeat <file>] [--threshold 0.75] [--allow-tuning] [--json]
+
+Turns a model-agreement --out file (and optionally a repeat-consistency --out file) into the D18 screening
+verdict — pass | fail | insufficient — using the production ICC code (backend/src/services/icc.js) and the
+weighted PIS-7 composite (rimpl/src/lib/pis7.js). Adds the repeatability (Σ|Δ| median ≤ 2) and parseability
+(valid JSON ≥ 98%) checks, refuses a tuning-split run without --allow-tuning (D13), and prints the
+pairs-needed ladder plus a ready-to-paste prompt-versions.md row. Reads score files only; never transcript text.
+
+  --agreement <file>   required; model-agreement.mjs --out
+  --repeat <file>      optional; repeat-consistency.mjs --out (without it Σ|Δ| is "not measured")
+  --threshold <0-1>    override app_settings.icc_gate_screening (offline use; otherwise read from the DB)
+  --allow-tuning       show numbers for a TUNING-split file, labelled NOT A GATE RESULT
+  --json               machine-readable output
+
+Exit codes: 0 pass · 1 fail · 3 insufficient · 2 misconfigured / unreadable input.`);
+  process.exit(0);
+}
+
 // ---- production code, not a re-implementation ------------------------------------------------------
 let icc, pis7, prompts;
 try {
