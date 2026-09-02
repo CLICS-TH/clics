@@ -430,6 +430,19 @@ async function finalizePle(ple, endResponse = null) {
   return response;
 }
 
+// The pending phases a physician can observe: screening -> queued -> scoring, but an idle queue lets the
+// drain claim the row the instant /end enqueues it (so the first poll already reads 'scoring'), and
+// /end screens synchronously (so 'screening' is never observable from outside). Require that at least
+// one pending phase was seen and that the sequence never regressed; 'queued' is asserted by the burst.
+const PHASE_RANK = { screening: 0, queued: 1, scoring: 2 };
+function assertPhaseOrder(phases) {
+  const pending = phases.filter((p) => p in PHASE_RANK);
+  assert(pending.length > 0, 'evaluation exposed no pending phase before completing');
+  for (let i = 1; i < pending.length; i++) {
+    assert(PHASE_RANK[pending[i]] >= PHASE_RANK[pending[i - 1]], `evaluation phase regressed: ${pending[i - 1]} -> ${pending[i]}`);
+  }
+}
+
 async function pollEvaluation(ple, { requireSequence = true, deadlineMs = options.waitMin * 60_000 } = {}) {
   const started = performance.now();
   const phases = [];
@@ -443,10 +456,7 @@ async function pollEvaluation(ple, { requireSequence = true, deadlineMs = option
       const calls = response.json.provenance?.consistency?.calls;
       if (calls != null) assert(calls === 2 || calls === 3, 'evaluation provenance.consistency.calls must be 2 or 3', response);
       if (requireSequence) {
-        const waitingIndex = phases.findIndex((phase) => phase === 'screening' || phase === 'queued');
-        const scoringIndex = phases.findIndex((phase, index) => index > waitingIndex && phase === 'scoring');
-        assert(waitingIndex !== -1, 'evaluation never exposed a screening or queued phase');
-        assert(scoringIndex !== -1, 'evaluation did not progress from screening/queued to scoring');
+        assertPhaseOrder(phases);
       }
       const latency = performance.now() - started;
       state.evalLatenciesMs.push(latency);
@@ -456,7 +466,23 @@ async function pollEvaluation(ple, { requireSequence = true, deadlineMs = option
     const phase = response.json?.phase ?? (response.json?.status === 'pending_review' ? 'pending_review' : null);
     assert(['screening', 'queued', 'scoring', 'pending_review'].includes(phase), 'evaluation returned an unknown pending phase', response);
     phases.push(phase);
-    if (phase === 'pending_review') throw new SmokeError('evaluation is held at pending_review; provenance cannot be asserted');
+    if (phase === 'pending_review') {
+      // hold_result_until_audited is ON in the shared settings, so the physician-facing read hides the
+      // result until an auditor scores it. The evaluation itself is done: assert its provenance through
+      // the de-identified admin export instead (superadmin), which carries evaluator_version.provenance.
+      const row = await exportRow(ple.id);
+      const prov = row?.evaluator_version?.provenance;
+      assert(prov?.provider === 'local', 'evaluation provenance.provider (via export) must be local', prov);
+      const calls = prov?.consistency?.calls;
+      if (calls != null) assert(calls === 2 || calls === 3, 'evaluation provenance.consistency.calls (via export) must be 2 or 3', prov);
+      if (requireSequence) {
+        assertPhaseOrder(phases);
+      }
+      const latency = performance.now() - started;
+      state.evalLatenciesMs.push(latency);
+      // Same shape the 200 path returns, so callers never see the hold.
+      return { result: { provenance: prov, evaluated_at: row?.ai_evaluated_at ?? null, held_for_audit: true }, phases, latency };
+    }
     delay = delay === 0 ? 4_000 : Math.min(30_000, delay * 2);
   }
   throw new SmokeError(`evaluation did not complete within ${options.waitMin} minute(s)`);
@@ -524,6 +550,21 @@ async function loadAdminPleRows(pleIds) {
   assert(rows.every((row) => Number.isFinite(Date.parse(row.eval_enqueued_at))), 'a burst PLE lacks a valid eval_enqueued_at timestamp');
   return rows;
 }
+
+// One PLE's row from the de-identified export (superadmin). Pages until found. Used when the
+// physician-facing result is held for audit (hold_result_until_audited) and provenance/evaluated_at
+// must be asserted another way.
+async function exportRow(pleId) {
+  for (let offset = 0; offset < 20000; offset += 1000) {
+    const page = await backend(`/admin/export?include_test=true&limit=1000&offset=${offset}`, { token: state.superToken });
+    assertStatus(page, [200], 'GET /admin/export failed while reading a held evaluation');
+    const row = (page.json?.sessions ?? []).find((s) => s.ple_id === pleId);
+    if (row) return row;
+    if ((page.json?.sessions ?? []).length < 1000) break;
+  }
+  return null;
+}
+async function provenanceViaExport(pleId) { return (await exportRow(pleId))?.evaluator_version?.provenance ?? null; }
 
 async function exportedExactlyOnce(pleIds) {
   const first = await backend('/admin/export?include_test=true&limit=1000&offset=0', { token: state.superToken });
@@ -598,7 +639,21 @@ async function scenarioBurst() {
       } else {
         assertStatus(response, [202], 'burst evaluation poll failed');
         const phase = response.json?.phase ?? (response.json?.status === 'pending_review' ? 'pending_review' : null);
-        assert(['screening', 'queued', 'scoring'].includes(phase), 'burst evaluation returned an unknown or held phase', response);
+        if (phase === 'pending_review') {
+          // Held for audit (hold_result_until_audited): the evaluation is done; read it via the export.
+          const row = await exportRow(id);
+          const prov = row?.evaluator_version?.provenance;
+          assert(prov?.provider === 'local', 'burst evaluation provenance.provider (via export) must be local', prov);
+          assert(Number.isFinite(Date.parse(row?.ai_evaluated_at)), 'burst evaluation must expose ai_evaluated_at via the export', row?.ai_evaluated_at);
+          const latency = performance.now() - pollStarted;
+          state.evalLatenciesMs.push(latency);
+          state.scenarioReports.burst.latencies_ms.push(Math.round(latency));
+          item.phases.push(phase);
+          evaluated.push({ id, evaluatedAt: row.ai_evaluated_at, phases: item.phases });
+          pending.delete(id);
+          continue;
+        }
+        assert(['screening', 'queued', 'scoring'].includes(phase), 'burst evaluation returned an unknown phase', response);
         item.phases.push(phase);
       }
     }
@@ -892,6 +947,10 @@ async function runScenario(name, fn) {
     const detail = errorDetail(scenarioError);
     const assertion = `${message}${detail && !message.includes(detail) ? ` (${detail})` : ''}`;
     console.log(`${name} FAIL — ${assertion}`);
+    if (!(scenarioError instanceof SmokeError) && scenarioError?.stack) {
+      // Internal (non-assertion) errors: the first stack frames are code locations, never payloads.
+      console.error(String(scenarioError.stack).split('\n').slice(0, 4).join('\n'));
+    }
     state.summary.push({ scenario: name, status: 'FAIL', assertion, ms: Math.round(performance.now() - started) });
     return;
   }
