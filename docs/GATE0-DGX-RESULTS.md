@@ -494,3 +494,40 @@ the sweep ran at one time of day on a box whose latency swung 57 s → 956 s las
 `EVAL_CONSISTENCY=adaptive` is on the drain should stay at width 1 (one evaluation = 2–3 serial calls
 against a 480 s deadline; see deployment.md), so the extra slots mostly buy chat headroom. Re-run the
 sweep from the smoke's `capacity` scenario on the day the settings are actually set.
+
+### 8.3 The evaluator's noise floor, measured — and what it does to the D18 gate (2026-09-02 evening)
+
+`repeat-consistency.mjs --arm local --split tuning --fixtures 18 --repeats 5`, single calls,
+temperature 0, the identical prompt every time. Per fixture, Σ over d1..d7 of (max − min) across its
+five runs — the most that arm alone can move:
+
+| fixtures with ≥2 parsed runs | Σ\|Δ\| per fixture | median | max | at or below the D18 bar of 2 |
+|---|---|---|---|---|
+| 10 of 18 (the box degraded mid-run) | 1, 1, 1, 3, 5, 7, 8, 8, 9, 10 | **6** | 10 | **3 / 10** |
+
+Beside it, the same day, the local-vs-Sonnet agreement on the tuning split (n=16 pairs):
+Σ\|Δ\| median **4**, composite ICC(A,1) **0.578** weighted / 0.591 unweighted, bias −2.50.
+
+**Read those two lines together.** Over five runs of the same transcript the local model moves by a
+median of five to six rubric points; between one local run and one Sonnet run the gap is four. **The
+model disagrees with itself about as much as it disagrees with the incumbent**, so the agreement
+number is largely measuring noise, and the D18 screening gate cannot be reached by collecting more
+pairs: `screening-verdict.mjs` reports `insufficient` and, at a point estimate of 0.578, no number of
+pairs clears a 0.75 lower bound.
+
+Two things this rules out and one it does not:
+- **Adaptive self-consistency as configured does not fix it.** ICC with the rule ON (0.578) matches
+  the single-call measurement (0.594), because the pair test asks only that no single domain differ
+  by more than one — and the drift is a near-uniform ±1 shift across five or six domains at once,
+  which passes. Σ\|Δ\| between the two calls is 5–6 while max \|Δ\| is 1.
+- **More data does not fix it.** The point estimate, not the interval, is the obstacle.
+- **Not yet ruled out:** the two levers built today and still unmeasured — `median3` (always three
+  calls) or `adaptive` with `EVAL_CONSISTENCY_MAX_SUM_DELTA=2`, which sends exactly the uniform-shift
+  pair to a third call, and the local prompt addendum aimed at d1 (ICC 0.06) and the −2.5 bias.
+
+**Custody, again.** Ten of eighteen fixtures produced usable runs: from about 16:50 the box began
+failing large-context calls, and by 23:20 a 30-token prompt answered in **1 second** while the
+smallest tuning transcript exceeded **10 minutes**. Nothing in CLICS changed in between; two probe
+runs sharing the box started it, and it did not recover when they stopped. A measurement programme
+cannot be scheduled against a machine whose large-context latency moves by two orders of magnitude
+without notice (§5.3, §7.6).
