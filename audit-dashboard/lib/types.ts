@@ -209,6 +209,9 @@ export interface AuditorPle {
     d1?: number; d2?: number; d3?: number; d4?: number;
     d5?: number; d6?: number; d7?: number;
     domain_rationale?: Record<string, string> | null;
+    // The configuration behind this score (ai_evaluations.provenance). Read for DISPLAY only — see
+    // components/ConsistencyChip.tsx; nothing in here may feed the radar or any ICC arithmetic.
+    provenance?: EvaluationProvenance | null;
   } | null;
   // Peer calibration (toggle): mean PIS-7 across the OTHER auditors who scored this PLE (self
   // excluded), returned only post-submit and when peer_n >= 1. peer_n = number of other auditors;
@@ -347,4 +350,78 @@ export interface RaterSpread {
   }>;
   scored_between: { first: string; last: string } | null;
   per_auditor: { auditor_id: string; n: number; mean: number | null; sd: number | null; min: number | null; max: number | null }[];
+}
+
+// GET / PATCH /admin/usage-settings (superadmin). ONE definition, shared by the overview page, the users
+// page and the Local AI capacity card, so a setting cannot be typed three different ways. The $ budget
+// keys were always here; the token / transcript / evaluation-drain keys arrived with
+// db/migration-local-ai-capacity.sql. On a token ceiling, 0 or a missing key means NO cap
+// (backend/src/lib/usage.js standardTokenLimit) — never "capped at zero".
+export interface UsageSettings {
+  standard_limit_usd: number;
+  auditor_standard_limit_usd?: number;
+  api_budget_pool_usd: number;
+  total_used_usd: number;
+  auditor_total_used_usd?: number;
+  rescue_total_used_usd?: number;
+  pilot_test_mode?: boolean;
+  clinical_artifacts_enabled?: boolean;
+  peer_calibration_enabled?: boolean;
+  hold_result_until_audited?: boolean;
+  comp_rate_thb?: number;
+  comp_cap_cles?: number;
+  min_auditors_per_cle?: number;
+  // ---- Local AI capacity (bounds mirror UsageSettingsSchema in backend/src/routes/superadmin.js) ----
+  standard_limit_tokens?: number | null;          // org token ceiling per physician; 0/null = no cap
+  auditor_standard_limit_tokens?: number | null;  // org token ceiling per auditor;   0/null = no cap
+  ple_max_transcript_tokens?: number;             // 8000..200000 context tokens
+  ple_transcript_warn_pct?: number;               // 50..95 (% of the cap at which the portal warns)
+  eval_drain_concurrency?: number;                // 1..8 evaluations in flight from this backend
+  eval_p50_seconds?: number;                      // 10..1800, the p50 behind the queue ETA
+  eval_drain_exclude_councils?: string;           // comma-separated council CODES; '' = none excluded
+}
+
+// GET /health/deep → checks.eval_queue (backend/src/routes/health.js checkEvalQueue). A public readiness
+// probe: it answers 503 with the same JSON when degraded, and `error` appears INSIDE eval_queue when the
+// queue count itself timed out — then only `drain` is present. Every field is therefore optional and a
+// reader renders "—" for whatever is missing rather than assuming the shape.
+export interface EvalQueueStatus {
+  queued?: number;
+  scoring?: number;
+  oldest_wait_s?: number;
+  error?: string;
+  drain?: {
+    running?: boolean;
+    in_flight?: number;
+    last_tick_at?: string | null;
+    last_error?: string | null;
+  };
+}
+export interface HealthDeep {
+  status?: string;
+  service?: string;
+  checks?: { eval_queue?: EvalQueueStatus };
+  // apiFetch resolves an {error} envelope on a network failure — see lib/api.ts.
+  error?: ApiError;
+}
+
+// ai_evaluations.provenance — the locked configuration behind one score (persisted by
+// backend/src/services/ple-evaluation.js). `consistency` is the repeat-scoring record RIMPL MAY attach
+// in future (absent today): how many evaluator calls were made and which rule chose the score, e.g.
+// rule 'first-of-agreeing-pair' with calls 2, or 'median-of-3' with calls 3. DISPLAY ONLY — it must
+// never enter ICC arithmetic or chart data. Everything else in the object is opaque here.
+export interface EvaluationConsistency {
+  method?: string;
+  rule?: string;
+  calls?: number;
+  max_delta?: number;
+  per_call_scores?: number[];
+  json_retries?: number;
+  extra_input_tokens?: number;
+  extra_output_tokens?: number;
+  latency_ms?: number;
+}
+export interface EvaluationProvenance {
+  consistency?: EvaluationConsistency | null;
+  [key: string]: unknown;
 }

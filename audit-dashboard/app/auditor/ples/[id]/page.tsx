@@ -11,6 +11,7 @@ import { PIS7_RUBRIC, ATTESTATIONS } from '@/lib/pis7-rubric';
 import { Pis7Radar } from '@/components/Pis7Radar';
 import { pis7Conclusion } from '@/lib/pis7-delta';
 import { AuditorChatBox } from '@/components/AuditorChatBox';
+import { ConsistencyChip } from '@/components/ConsistencyChip';
 import { confirmDialog, toast } from '@/components/Overlays';
 import type { AuditorPle, ApiResult } from '@/lib/types';
 import { Check } from 'lucide-react';
@@ -238,7 +239,11 @@ export default function AuditorScorePage() {
           {submitted && data.ai_evaluation && (
             <div className="border rounded-xl p-5 bg-secondary space-y-4">
               <div>
-                <h2 className="font-heading text-xl mb-2">AI Score <span className="text-sm font-normal text-muted-foreground">(เปิดเผยหลังส่งคะแนน)</span></h2>
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <h2 className="font-heading text-xl">AI Score <span className="text-sm font-normal text-muted-foreground">(เปิดเผยหลังส่งคะแนน)</span></h2>
+                  {/* Repeat-scoring metadata, when RIMPL recorded it. Renders nothing otherwise; display only. */}
+                  <ConsistencyChip provenance={data.ai_evaluation.provenance} />
+                </div>
                 <p className="text-3xl font-semibold text-primary tabular-nums">{Number(data.ai_evaluation.composite_score).toFixed(1)} <span className="text-base text-muted-foreground">/ 100</span></p>
                 <p className="text-sm text-muted-foreground mt-1">คะแนนของคุณ / Yours: {composite != null ? composite.toFixed(1) : '—'}</p>
               </div>

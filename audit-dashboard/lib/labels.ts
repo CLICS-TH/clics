@@ -90,6 +90,21 @@ export function budgetToneHex(fraction: number): string {
   return fraction >= 0.9 ? CHART.fail : fraction >= 0.75 ? CHART.warn : CHART.pass;
 }
 
+// Token counts, two ways. `fmtTokens` is the SETTINGS figure (300,000 — a number an operator types and
+// checks digit by digit); `fmtTokensK` is the METER figure (184k / 300k — two numbers in one narrow
+// cell, so a single unit with no decimals keeps them comparable at a glance). null/undefined → "—":
+// the callers decide what an absent ceiling MEANS (no cap) before they format it.
+export function fmtTokens(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(Number(n))) return '—';
+  return Math.round(Number(n)).toLocaleString('en-US');
+}
+export function fmtTokensK(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(Number(n))) return '—';
+  const v = Number(n);
+  if (Math.abs(v) < 1000) return String(Math.round(v));
+  return `${Math.round(v / 1000).toLocaleString('en-US')}k`;
+}
+
 // 0–5 domain scores → 0–100 composite (max = 5 × 1.0 × 20).
 export function computeComposite(scores: Record<string, number>): number {
   return Object.entries(WEIGHTS).reduce((a, [k, w]) => a + (scores[k] ?? 0) * w, 0) * 20;

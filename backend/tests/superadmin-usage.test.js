@@ -101,3 +101,10 @@ test('PATCH /admin/usage-settings accepts known council codes (normalised upper-
   expect((await auth(request(app).patch('/admin/usage-settings')).send({ eval_drain_exclude_councils: 'sandbox,tmc' })).status).toBe(200);
   expect((await auth(request(app).patch('/admin/usage-settings')).send({ eval_drain_exclude_councils: '' })).status).toBe(200);
 });
+
+test('PATCH /admin/usage-settings echoes the capacity keys too (a client may setState(response) after saving)', async () => {
+  const res = await auth(request(app).patch('/admin/usage-settings')).send({ ple_transcript_warn_pct: 85 });
+  expect(res.status).toBe(200);
+  for (const k of ['standard_limit_tokens', 'auditor_standard_limit_tokens', 'ple_max_transcript_tokens', 'ple_transcript_warn_pct',
+    'eval_drain_concurrency', 'eval_p50_seconds', 'eval_drain_exclude_councils']) expect(res.body).toHaveProperty(k);
+});

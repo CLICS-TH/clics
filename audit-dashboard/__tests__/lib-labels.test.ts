@@ -18,6 +18,8 @@ import {
   POSITION_OPTIONS,
   POSITION_TH,
   positionLabel,
+  fmtTokens,
+  fmtTokensK,
 } from '@/lib/labels';
 import { CHART } from '@/lib/chart-colors';
 
@@ -63,6 +65,29 @@ describe('budgetToneHex thresholds (amber ≥75%, red ≥90%)', () => {
   it('fail at the 90% boundary and above', () => {
     expect(budgetToneHex(0.9)).toBe(CHART.fail);
     expect(budgetToneHex(1.5)).toBe(CHART.fail);
+  });
+});
+
+describe('fmtTokens / fmtTokensK (token ceilings and meters)', () => {
+  it('fmtTokens writes the settings figure with thousands separators', () => {
+    expect(fmtTokens(300000)).toBe('300,000');
+    expect(fmtTokens(0)).toBe('0');
+    expect(fmtTokens(50_000_000)).toBe('50,000,000');
+    expect(fmtTokens(1234.6)).toBe('1,235');
+  });
+  it('fmtTokensK writes the meter figure in whole k, keeping sub-1000 counts plain', () => {
+    expect(fmtTokensK(184_321)).toBe('184k');
+    expect(fmtTokensK(300_000)).toBe('300k');
+    expect(fmtTokensK(1_500)).toBe('2k');
+    expect(fmtTokensK(999)).toBe('999');
+    expect(fmtTokensK(0)).toBe('0');
+    expect(fmtTokensK(50_000_000)).toBe('50,000k');
+  });
+  it('both render an absent or non-numeric value as "—" — the caller decides what absence means', () => {
+    for (const v of [null, undefined, NaN, Infinity]) {
+      expect(fmtTokens(v)).toBe('—');
+      expect(fmtTokensK(v)).toBe('—');
+    }
   });
 });
 

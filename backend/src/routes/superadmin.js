@@ -506,7 +506,8 @@ router.patch('/usage-settings', async (req, res) => {
     logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'min_auditors_per_cle',
       metadata: { value: parsed.data.min_auditors_per_cle } });
   }
-  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles, min_auditors_per_cle] = await Promise.all([
+  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles, min_auditors_per_cle,
+    standard_limit_tokens, auditor_standard_limit_tokens, ple_max_transcript_tokens, ple_transcript_warn_pct, eval_drain_concurrency, eval_p50_seconds, eval_drain_exclude_councils] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
     readSetting('auditor_standard_usage_limit_usd', 0.5),
     readSetting('api_budget_pool_usd', 0),
@@ -517,8 +518,17 @@ router.patch('/usage-settings', async (req, res) => {
     readSetting('comp_rate_thb', 500),
     readSetting('comp_cap_cles', 3),
     readSetting('min_auditors_per_cle', 1),
+    readSetting('standard_usage_limit_tokens', 0),
+    readSetting('auditor_standard_usage_limit_tokens', 0),
+    readSetting('ple_max_transcript_tokens', 64000),
+    readSetting('ple_transcript_warn_pct', 80),
+    readSetting('eval_drain_concurrency', 1),
+    readSetting('eval_p50_seconds', 90),
+    getTextSetting('eval_drain_exclude_councils', ''),
   ]);
-  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles, min_auditors_per_cle });
+  // Echo EVERY key the GET returns, so a client can `setState(res)` after a PATCH without losing fields.
+  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles, min_auditors_per_cle,
+    standard_limit_tokens, auditor_standard_limit_tokens, ple_max_transcript_tokens, ple_transcript_warn_pct, eval_drain_concurrency, eval_p50_seconds, eval_drain_exclude_councils });
 });
 
 // ---------------------------------------------------------------------------------------------

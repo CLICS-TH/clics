@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile, useIsTableCompact } from '@/components/ViewportProvider';
-import { ROLE_LABELS, ACCOUNT_STATUS_MAP, budgetToneHex, roleToUi, roleToWire, POSITION_OPTIONS, positionLabel } from '@/lib/labels';
-import { type ApiResult, formatApiError } from '@/lib/types';
+import { ROLE_LABELS, ACCOUNT_STATUS_MAP, budgetToneHex, roleToUi, roleToWire, POSITION_OPTIONS, positionLabel, fmtTokens } from '@/lib/labels';
+import { type ApiResult, type UsageSettings, formatApiError } from '@/lib/types';
+import { UsageMeter } from '@/components/UsageMeter';
 import { confirmDialog } from '@/components/Overlays';
 import { BarChart3, RotateCcw, Pencil, Power, Trash2, Building2, Eye, EyeOff, Stethoscope } from 'lucide-react';
 
@@ -22,7 +23,23 @@ type User = {
   usage_cost_usd?: number | null; usage_limit_usd?: number | null;
   // Separate AUDITOR budget pool (auditors + dual-role "Special"); independent of the physician meter.
   auditor_usage_cost_usd?: number | null; auditor_usage_limit_usd?: number | null;
+  // Token meters (input + output accumulate per pool) and the per-user TOKEN ceiling override:
+  // null = the org ceiling applies, 0 = no cap for this user (backend/src/lib/usage.js effectiveTokenLimit).
+  usage_input_tokens?: number | null; usage_output_tokens?: number | null; usage_limit_tokens?: number | null;
+  auditor_usage_input_tokens?: number | null; auditor_usage_output_tokens?: number | null; auditor_usage_limit_tokens?: number | null;
   can_audit?: boolean | null;          // "Special" dual role: physician + auditor rights
+};
+
+// Per-user token override as typed → what PATCH /admin/users/:id receives. '' clears (null → the org
+// ceiling), 0 = no cap for this user; anything else must be a whole number the backend will accept
+// (≤ 50,000,000 — the same bound that keeps a mistyped value from silently un-capping someone).
+// `false` = invalid. Exported for nothing; module-level so it is not re-created per render.
+const MAX_TOKEN_OVERRIDE = 50_000_000;
+const parseTokenOverride = (raw: string): number | null | false => {
+  const t = raw.trim();
+  if (t === '') return null;
+  const n = Number(t);
+  return Number.isInteger(n) && n >= 0 && n <= MAX_TOKEN_OVERRIDE ? n : false;
 };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
 type Council = { id: string; code: string; name_th: string; name_en: string };
@@ -82,8 +99,12 @@ export default function UsersPage() {
   const [editing, setEditing] = useState<User | null>(null);
   const [editLimit, setEditLimit] = useState('');           // per-user usage limit override ($), '' = standard
   const [editAuditorLimit, setEditAuditorLimit] = useState(''); // per-user AUDITOR-pool override ($), '' = standard
+  const [editTokens, setEditTokens] = useState('');            // per-user TOKEN ceiling override, '' = org ceiling, '0' = no cap
+  const [editAuditorTokens, setEditAuditorTokens] = useState(''); // same, for the auditor pool
   const [stdLimit, setStdLimit] = useState('');             // org standard usage limit ($)
   const [auditorStdLimit, setAuditorStdLimit] = useState(''); // org standard AUDITOR usage limit ($)
+  const [stdTokens, setStdTokens] = useState(0);              // org token ceiling per physician (0 = no cap); set on /admin/overview
+  const [auditorStdTokens, setAuditorStdTokens] = useState(0); // org token ceiling per auditor (0 = no cap)
   const [poolLimit, setPoolLimit] = useState('');           // total API budget pool ($)
   const [totalUsed, setTotalUsed] = useState(0);            // total spent across all members ($)
   const [auditorTotalUsed, setAuditorTotalUsed] = useState(0); // total auditor-pool spend across members ($)
@@ -168,13 +189,16 @@ export default function UsersPage() {
     setCap(Object.fromEntries((s ?? []).map(x => [x.role, String(x.capacity)])));
     setCouncilSlotsAll(Array.isArray(cs) ? cs : []);
   });
-  const loadUsageSettings = () => apiFetch<{ standard_limit_usd: number; auditor_standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number; auditor_total_used_usd: number }>('/admin/usage-settings')
+  const loadUsageSettings = () => apiFetch<UsageSettings>('/admin/usage-settings')
     .then(d => {
       setStdLimit(d?.standard_limit_usd != null ? String(d.standard_limit_usd) : '');
       setAuditorStdLimit(d?.auditor_standard_limit_usd != null ? String(d.auditor_standard_limit_usd) : '');
       setPoolLimit(d?.api_budget_pool_usd ? String(d.api_budget_pool_usd) : '');
       setTotalUsed(Number(d?.total_used_usd ?? 0));
       setAuditorTotalUsed(Number(d?.auditor_total_used_usd ?? 0));
+      // Token ceilings: absent/0 = no cap. Edited on /admin/overview (Local AI capacity), read here for the meters.
+      setStdTokens(Math.max(0, Number(d?.standard_limit_tokens ?? 0) || 0));
+      setAuditorStdTokens(Math.max(0, Number(d?.auditor_standard_limit_tokens ?? 0) || 0));
     });
   const loadCouncils = () => apiFetch<Council[]>('/admin/councils').then(d => setCouncils(Array.isArray(d) ? d : []));
   // All specialties (every council) — filtered per-council in each dropdown; small set, fetched once.
@@ -217,11 +241,20 @@ export default function UsersPage() {
     setEditing(u);
     setEditLimit(u.usage_limit_usd != null ? String(u.usage_limit_usd) : '');
     setEditAuditorLimit(u.auditor_usage_limit_usd != null ? String(u.auditor_usage_limit_usd) : '');
+    setEditTokens(u.usage_limit_tokens != null ? String(u.usage_limit_tokens) : '');
+    setEditAuditorTokens(u.auditor_usage_limit_tokens != null ? String(u.auditor_usage_limit_tokens) : '');
   }
 
   // Effective limit shown in the list: per-user override if set, else the org standard (per pool).
   const effLimit = (u: User) => u.usage_limit_usd != null ? u.usage_limit_usd : (parseFloat(stdLimit) || 0);
   const effAuditorLimit = (u: User) => u.auditor_usage_limit_usd != null ? u.auditor_usage_limit_usd : (parseFloat(auditorStdLimit) || 0);
+  // Effective TOKEN ceiling per pool: the per-user override if set (0 = no cap), else the org ceiling
+  // (0 = no cap). Mirrors backend/src/lib/usage.js effectiveTokenLimit — 0 here means "uncapped",
+  // and the meter draws no bar for it. Not in the list payload, so computed client-side.
+  const effTokens = (u: User) => u.usage_limit_tokens != null ? Math.max(0, Number(u.usage_limit_tokens) || 0) : stdTokens;
+  const effAuditorTokens = (u: User) => u.auditor_usage_limit_tokens != null ? Math.max(0, Number(u.auditor_usage_limit_tokens) || 0) : auditorStdTokens;
+  const tokensUsed = (u: User) => (Number(u.usage_input_tokens) || 0) + (Number(u.usage_output_tokens) || 0);
+  const auditorTokensUsed = (u: User) => (Number(u.auditor_usage_input_tokens) || 0) + (Number(u.auditor_usage_output_tokens) || 0);
 
   async function createUser() {
     setErr('');
@@ -258,6 +291,7 @@ export default function UsersPage() {
       full_name_th: string; full_name_en: string; specialty: string; license_number: string;
       role?: string; council_id?: string | null; can_audit?: boolean; usage_limit_usd?: number | null;
       auditor_usage_limit_usd?: number | null; specialty_id?: string; position?: string;
+      usage_limit_tokens?: number | null; auditor_usage_limit_tokens?: number | null;
     } = {
       full_name_th: editing.full_name_th, full_name_en: editing.full_name_en,
       specialty: editing.specialty ?? '', license_number: editing.license_number ?? '',
@@ -282,6 +316,10 @@ export default function UsersPage() {
     if (body.usage_limit_usd != null && (!Number.isFinite(body.usage_limit_usd) || body.usage_limit_usd < 0)) {
       setMsg('ขีดจำกัดไม่ถูกต้อง / Invalid usage limit.'); return;
     }
+    // Token ceiling override — same nullable shape: blank clears (null → org ceiling), 0 = no cap.
+    const tok = parseTokenOverride(editTokens);
+    if (tok === false) { setMsg('เพดานโทเคนไม่ถูกต้อง (จำนวนเต็ม 0–50,000,000) / Invalid token limit (whole number 0–50,000,000).'); return; }
+    body.usage_limit_tokens = tok;
     // Auditor-pool override — only meaningful for auditors / dual-role "Special"; same number-or-clear rule.
     if (editing.role === 'auditor' || editing.can_audit === true) {
       const at = editAuditorLimit.trim();
@@ -289,6 +327,9 @@ export default function UsersPage() {
       if (body.auditor_usage_limit_usd != null && (!Number.isFinite(body.auditor_usage_limit_usd) || body.auditor_usage_limit_usd < 0)) {
         setMsg('ขีดจำกัดผู้ตรวจไม่ถูกต้อง / Invalid auditor usage limit.'); return;
       }
+      const atok = parseTokenOverride(editAuditorTokens);
+      if (atok === false) { setMsg('เพดานโทเคนผู้ตรวจไม่ถูกต้อง (จำนวนเต็ม 0–50,000,000) / Invalid auditor token limit (whole number 0–50,000,000).'); return; }
+      body.auditor_usage_limit_tokens = atok;
     }
     setSaving(true);
     try {
@@ -439,25 +480,10 @@ export default function UsersPage() {
     </span>
   );
 
-  // One AI usage meter: $used / $effective-limit + a thin bar (admins can't read /admin/usage-settings,
-  // so they get spend-only). `label` distinguishes the two pools when both are shown for a "Special".
-  const Meter = ({ used, limit, hasOverride, label }: { used: number; limit: number; hasOverride: boolean; label?: string }) => {
-    const tag = label ? <span className="text-[10px] uppercase tracking-wide text-muted-foreground mr-1">{label}</span> : null;
-    if (!isSuper) return <p className="text-xs tabular-nums text-muted-foreground">{tag}${used.toFixed(4)}</p>;
-    const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
-    const over = limit > 0 && used >= limit;
-    const tone = over ? 'bg-destructive' : pct >= 80 ? 'bg-[var(--chart-warn)]' : 'bg-[var(--chart-pass)]';
-    return (
-      <div>
-        <p className={`text-xs tabular-nums ${over ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
-          {tag}${used.toFixed(4)} / ${limit.toFixed(2)}{hasOverride ? ' *' : ''}
-        </p>
-        <div className="h-1.5 mt-1 rounded-full bg-muted overflow-hidden"><div className={`h-full ${tone}`} style={{ width: `${pct}%` }} /></div>
-      </div>
-    );
-  };
   // AI usage: physician rows show the physician pool; auditor rows show the SEPARATE auditor pool; a
   // dual-role "Special" (role=physician + can_audit) holds BOTH budgets, so show both stacked + labelled.
+  // Each pool has a $ meter (cloud spend) and a token meter (the ceiling that throttles the $0-priced
+  // local model) — components/UsageMeter.tsx; admins (no /admin/usage-settings) get used-only figures.
   const UsageCell = ({ u }: { u: User }) => {
     const showPhysician = u.role === 'physician';            // includes "Special" (role=physician)
     const showAuditor = u.role === 'auditor' || u.can_audit === true;
@@ -465,8 +491,14 @@ export default function UsersPage() {
     const both = showPhysician && showAuditor;               // label each pool only when both are present
     return (
       <div className="min-w-[120px] space-y-1.5">
-        {showPhysician && <Meter used={Number(u.usage_cost_usd ?? 0)} limit={effLimit(u)} hasOverride={u.usage_limit_usd != null} label={both ? 'ผู้ใช้/User' : undefined} />}
-        {showAuditor && <Meter used={Number(u.auditor_usage_cost_usd ?? 0)} limit={effAuditorLimit(u)} hasOverride={u.auditor_usage_limit_usd != null} label={both ? 'ผู้ตรวจ/Auditor' : undefined} />}
+        {showPhysician && <>
+          <UsageMeter used={Number(u.usage_cost_usd ?? 0)} limit={effLimit(u)} hasOverride={u.usage_limit_usd != null} label={both ? 'ผู้ใช้/User' : undefined} showLimit={isSuper} />
+          <UsageMeter unit="tokens" used={tokensUsed(u)} limit={effTokens(u)} hasOverride={u.usage_limit_tokens != null} label="โทเคน/Tokens" showLimit={isSuper} />
+        </>}
+        {showAuditor && <>
+          <UsageMeter used={Number(u.auditor_usage_cost_usd ?? 0)} limit={effAuditorLimit(u)} hasOverride={u.auditor_usage_limit_usd != null} label={both ? 'ผู้ตรวจ/Auditor' : undefined} showLimit={isSuper} />
+          <UsageMeter unit="tokens" used={auditorTokensUsed(u)} limit={effAuditorTokens(u)} hasOverride={u.auditor_usage_limit_tokens != null} label="โทเคน/Tokens" showLimit={isSuper} />
+        </>}
       </div>
     );
   };
@@ -771,22 +803,51 @@ export default function UsersPage() {
             placeholder="Full Name (English)" onChange={e => setEditing(u => u && ({ ...u, full_name_en: e.target.value }))} />
           <input className="w-full border rounded-lg px-3 py-2 text-sm" value={editing.license_number ?? ''}
             placeholder="เลขใบอนุญาต / License No." onChange={e => setEditing(u => u && ({ ...u, license_number: e.target.value }))} />
+          {/* Per-user ceilings, $ beside tokens. grid-cols-1 first: a bare `grid` overflows a phone. */}
           {editing.role === 'physician' && (
-            <div>
-              <input className="w-full border rounded-lg px-3 py-2 text-sm" type="number" min={0} step="0.05"
-                value={editLimit}
-                placeholder="ขีดจำกัดการใช้งาน AI ($) — เว้นว่าง = ใช้ค่ามาตรฐาน / AI usage limit ($) — blank = standard"
-                onChange={e => setEditLimit(e.target.value)} />
-              <p className="text-xs text-muted-foreground mt-1">เว้นว่างเพื่อใช้ค่ามาตรฐาน (${parseFloat(stdLimit) || 0}) / Leave blank to use the standard limit.</p>
+            <div className="grid grid-cols-1 gap-3 @min-[520px]:grid-cols-2">
+              <div>
+                <label htmlFor="edit-limit-usd" className="block text-xs text-muted-foreground mb-1">ขีดจำกัด AI ($) / AI usage limit ($)</label>
+                <input id="edit-limit-usd" className="w-full border rounded-lg px-3 py-2 text-sm" type="number" min={0} step="0.05"
+                  value={editLimit}
+                  placeholder="ขีดจำกัดการใช้งาน AI ($) — เว้นว่าง = ใช้ค่ามาตรฐาน / AI usage limit ($) — blank = standard"
+                  onChange={e => setEditLimit(e.target.value)} />
+                <p className="text-xs text-muted-foreground mt-1">เว้นว่างเพื่อใช้ค่ามาตรฐาน (${parseFloat(stdLimit) || 0}) / Leave blank to use the standard limit.</p>
+              </div>
+              <div>
+                <label htmlFor="edit-limit-tokens" className="block text-xs text-muted-foreground mb-1">เพดานโทเคน / Token ceiling</label>
+                <input id="edit-limit-tokens" className="w-full border rounded-lg px-3 py-2 text-sm tabular-nums" type="number" inputMode="numeric" min={0} max={MAX_TOKEN_OVERRIDE} step={1}
+                  value={editTokens}
+                  placeholder="เช่น 300000 / e.g. 300000"
+                  onChange={e => setEditTokens(e.target.value)} />
+                <p className="text-xs text-muted-foreground mt-1">
+                  0 = ไม่จำกัด · เว้นว่าง = ใช้เพดานองค์กร ({stdTokens > 0 ? fmtTokens(stdTokens) : 'ไม่จำกัด'}) /
+                  0 = no cap, blank = org ceiling ({stdTokens > 0 ? fmtTokens(stdTokens) : 'no cap'}).
+                </p>
+              </div>
             </div>
           )}
           {(editing.role === 'auditor' || editing.can_audit === true) && (
-            <div>
-              <input className="w-full border rounded-lg px-3 py-2 text-sm" type="number" min={0} step="0.05"
-                value={editAuditorLimit}
-                placeholder="ขีดจำกัด AI ผู้ตรวจ ($) — เว้นว่าง = ใช้ค่ามาตรฐาน / Auditor AI limit ($) — blank = standard"
-                onChange={e => setEditAuditorLimit(e.target.value)} />
-              <p className="text-xs text-muted-foreground mt-1">พูลผู้ตรวจแยกต่างหาก — เว้นว่างเพื่อใช้ค่ามาตรฐาน (${parseFloat(auditorStdLimit) || 0}) / Separate auditor pool; blank = standard.</p>
+            <div className="grid grid-cols-1 gap-3 @min-[520px]:grid-cols-2">
+              <div>
+                <label htmlFor="edit-auditor-limit-usd" className="block text-xs text-muted-foreground mb-1">ขีดจำกัด AI ผู้ตรวจ ($) / Auditor AI limit ($)</label>
+                <input id="edit-auditor-limit-usd" className="w-full border rounded-lg px-3 py-2 text-sm" type="number" min={0} step="0.05"
+                  value={editAuditorLimit}
+                  placeholder="ขีดจำกัด AI ผู้ตรวจ ($) — เว้นว่าง = ใช้ค่ามาตรฐาน / Auditor AI limit ($) — blank = standard"
+                  onChange={e => setEditAuditorLimit(e.target.value)} />
+                <p className="text-xs text-muted-foreground mt-1">พูลผู้ตรวจแยกต่างหาก — เว้นว่างเพื่อใช้ค่ามาตรฐาน (${parseFloat(auditorStdLimit) || 0}) / Separate auditor pool; blank = standard.</p>
+              </div>
+              <div>
+                <label htmlFor="edit-auditor-limit-tokens" className="block text-xs text-muted-foreground mb-1">เพดานโทเคนผู้ตรวจ / Auditor token ceiling</label>
+                <input id="edit-auditor-limit-tokens" className="w-full border rounded-lg px-3 py-2 text-sm tabular-nums" type="number" inputMode="numeric" min={0} max={MAX_TOKEN_OVERRIDE} step={1}
+                  value={editAuditorTokens}
+                  placeholder="เช่น 300000 / e.g. 300000"
+                  onChange={e => setEditAuditorTokens(e.target.value)} />
+                <p className="text-xs text-muted-foreground mt-1">
+                  0 = ไม่จำกัด · เว้นว่าง = ใช้เพดานองค์กร ({auditorStdTokens > 0 ? fmtTokens(auditorStdTokens) : 'ไม่จำกัด'}) /
+                  0 = no cap, blank = org ceiling ({auditorStdTokens > 0 ? fmtTokens(auditorStdTokens) : 'no cap'}).
+                </p>
+              </div>
             </div>
           )}
           {editing.role === 'superadmin' ? (

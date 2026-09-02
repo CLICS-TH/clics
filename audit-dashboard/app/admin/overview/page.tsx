@@ -14,9 +14,10 @@ import { RoleBadge } from '@/components/RoleBadge';
 import { StatStrip, type Stat } from '@/components/StatStrip';
 import { IccPanel } from '@/components/IccPanel';
 import { AiProviderPanel } from '@/components/AiProviderPanel';
+import { LocalAiCapacityCard } from '@/components/LocalAiCapacityCard';
 import { Skeleton, CardGridSkeleton } from '@/components/Skeleton';
 import { useAuthUser } from '@/lib/client-store';
-import type { CleStats } from '@/lib/types';
+import type { CleStats, UsageSettings } from '@/lib/types';
 
 // ---- API shapes (verified against backend/src/routes/admin.js + superadmin.js) ----
 type IccStat = { icc: number; lower: number; upper: number; n: number; interpretation: string } | null;
@@ -28,7 +29,7 @@ type IccData = {
 };
 type Council = { id: string; code: string; name_th: string; name_en: string; active?: boolean };
 type Slot = { role: string; capacity: number; used: number; remaining: number };
-type UsageSettings = { standard_limit_usd: number; api_budget_pool_usd: number; total_used_usd: number; pilot_test_mode?: boolean; clinical_artifacts_enabled?: boolean; peer_calibration_enabled?: boolean; hold_result_until_audited?: boolean; min_auditors_per_cle?: number };
+// UsageSettings lives in lib/types.ts — one definition shared with the users page + the capacity card.
 type CountRow = { council_id: string; role: string; n: number };
 type Invite = { id: string; email: string; status: string };
 
@@ -314,6 +315,12 @@ export default function OverviewPage() {
           </div>
         </div>
       </section>
+
+      {/* Local AI capacity — token ceilings, transcript cap, evaluation drain + a glance at the queue.
+          Its own component: seven bounded fields and a health probe do not belong inline beside the
+          plain toggles below. It saves through the same PATCH /admin/usage-settings and hands the
+          re-read settings back here, so the $ budget card above stays in step. */}
+      <LocalAiCapacityCard usage={usage} onChange={setUsage} />
 
       {/* Minimum auditors per PLE — a target the queue badges against, never a gate. */}
       <section className="space-y-3">

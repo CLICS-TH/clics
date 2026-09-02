@@ -75,6 +75,7 @@ const DASH_PAIRS: [string, string, string][] = [
   ['coral-on-tint', 'secondary', 'manual: quoted UI-label chip inside a callout'],
   ['coral-on-tint', 'background', 'manual: step counter badge'],
   ['muted-foreground', 'muted', 'manual: figure captions and the section-index numbers'],
+  ['foreground', 'muted', 'auditor reveal: ConsistencyChip (repeat-scoring metadata) on its bg-muted pill'],
 ];
 
 const PORTAL_PAIRS: [string, string, string][] = [
