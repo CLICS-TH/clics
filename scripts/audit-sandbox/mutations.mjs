@@ -271,4 +271,42 @@ export const MUTATIONS = [
     dir: 'audit-dashboard',
     suite: '__tests__/backend-mirrors.test.ts',
   },
+
+  // ---- the local-AI capacity layer (2026-09-02) ----------------------------------------------
+  {
+    id: 'queue/sweep-never-reenqueues-live-rows',
+    why: 'The reconcile sweep re-enqueueing a row that is already queued resets its claim, attempts and backoff — a row in flight gets claimed twice and the box scores it twice.',
+    file: 'backend/src/services/reconcile.js',
+    find: '      if (!p.eval_enqueued_at) {',
+    replace: '      if (true) {',
+    dir: 'backend',
+    suite: 'tests/reconcile.test.js',
+  },
+  {
+    id: 'scope/unknown-council-fails-closed',
+    why: 'A typo in eval_drain_exclude_councils must make the drain claim NOTHING. Failing open lets the prod drain score the sandbox on the cloud model — the evaluator confound the partition exists to prevent.',
+    file: 'backend/src/lib/eval-scope.js',
+    find: '    include: failedClosed ? [NIL_UUID] : (INCLUDE_CODES.length ? ids(INCLUDE_CODES) : null),',
+    replace: '    include: INCLUDE_CODES.length ? ids(INCLUDE_CODES) : null,',
+    dir: 'backend',
+    suite: 'tests/eval-scope.test.js',
+  },
+  {
+    id: 'budget/token-ceiling-enforced',
+    why: 'The local model is priced $0, so the $ cap never throttles it. If the token comparison goes, a physician\'s load on the shared box is unbounded and nothing in the UI says so.',
+    file: 'backend/src/lib/usage.js',
+    find: '  const tokenOver = tokenLimit != null && tokens >= tokenLimit;',
+    replace: '  const tokenOver = false;',
+    dir: 'backend',
+    suite: 'tests/token-budget.test.js',
+  },
+  {
+    id: 'lanes/background-respects-reserve',
+    why: 'Without the reserve rule a burst of evaluations fills every slot and the next physician\'s chat turn — and the End click — waits behind 70-second scoring calls.',
+    file: 'rimpl/src/services/providers/runtime.js',
+    find: '    return total() < maxConcurrency && active.background < backgroundMax;',
+    replace: '    return total() < maxConcurrency;',
+    dir: 'rimpl',
+    suite: 'tests/runtime-lanes.test.js',
+  },
 ];

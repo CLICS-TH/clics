@@ -342,9 +342,25 @@ function makeDecision(rows) {
   const chatAtCap = capRows.find((row) => row.shape === 'chat') ?? null;
   const evalAtCap = capRows.find((row) => row.shape === 'eval') ?? null;
 
+  // UNITS. Three different "tokens" meet here and they are not interchangeable: this probe's size labels
+  // are chars/4 of the synthetic text; rimpl's 413 backstop estimates UTF-8 bytes/3 (≈1.3× the label for
+  // English, ≈3.4× for Thai, which is 3 bytes/char); the server reports its own count in
+  // usage.prompt_tokens. Every SETTING recommended below is in the SERVER's unit — that is what
+  // ples.context_tokens stores and what LOCAL_AI_MAX_PROMPT_TOKENS is defined in (rimpl converts its byte
+  // estimate through a ratio it learns from served responses). The probe-size labels are kept alongside
+  // only so a row can be found again in the table.
+  const served = (rows) => {
+    const vals = rows.map((row) => row.reported_prompt_tokens_mean).filter((v) => Number.isFinite(v) && v > 0);
+    return vals.length ? Math.round(Math.max(...vals)) : null;
+  };
+  const floor1k = (v) => (v == null ? null : Math.floor(v / 1000) * 1000);
   return {
-    transcript_cap_tokens: capEntry?.[0] ?? null,
-    LOCAL_AI_MAX_PROMPT_TOKENS: lastRecallEntry?.[0] ?? null,
+    unit_note: 'settings below are in the SERVER prompt-token unit (usage.prompt_tokens); *_probe_size is this script\'s chars/4 label',
+    transcript_cap_probe_size: capEntry?.[0] ?? null,
+    transcript_cap_served_prompt_tokens: served(capRows),
+    ple_max_transcript_tokens: floor1k(served(capRows)),
+    LOCAL_AI_MAX_PROMPT_TOKENS_probe_size: lastRecallEntry?.[0] ?? null,
+    LOCAL_AI_MAX_PROMPT_TOKENS: served(lastRecallEntry?.[1] ?? []),
     chat_p95_at_cap_ms: chatAtCap?.latency_p95_ms ?? null,
     eval_p95_at_cap_ms: evalAtCap?.latency_p95_ms ?? null,
     chat_timeout_ms: chatTimeoutMs,
@@ -360,8 +376,11 @@ function printDecision(decision) {
     ? ` and chat p95 < 0.6 × RIMPL_CHAT_TIMEOUT_MS (${Math.round(chatLatencyLimitMs)} ms)`
     : ' (chat shape was not run, so no chat-latency condition applies)'}`);
   console.log(`  recall · LOCAL_AI_MAX_PROMPT_TOKENS uses the last size with at least one sentinel recall`);
-  console.log(`  transcript cap = ${decision.transcript_cap_tokens ?? 'none verified'}`);
-  console.log(`  LOCAL_AI_MAX_PROMPT_TOKENS = ${decision.LOCAL_AI_MAX_PROMPT_TOKENS ?? 'none verified'}`);
+  console.log(`  units · settings are in the SERVER's prompt_tokens; probe-size labels (chars/4) are shown in brackets only to find the row`);
+  console.log(`  setting ple_max_transcript_tokens = ${decision.ple_max_transcript_tokens ?? 'none verified'}`
+    + `   (served ${decision.transcript_cap_served_prompt_tokens ?? '—'} at probe size [${decision.transcript_cap_probe_size ?? '—'}])`);
+  console.log(`  env LOCAL_AI_MAX_PROMPT_TOKENS = ${decision.LOCAL_AI_MAX_PROMPT_TOKENS ?? 'none verified'}`
+    + `   (served at the last recall, probe size [${decision.LOCAL_AI_MAX_PROMPT_TOKENS_probe_size ?? '—'}])`);
   console.log(`  chat p95 at the cap = ${shapes.includes('chat') ? msDisplay(decision.chat_p95_at_cap_ms) : 'not run'}`);
   console.log(`  eval p95 at the cap = ${shapes.includes('eval') ? msDisplay(decision.eval_p95_at_cap_ms) : 'not run'}`);
 }
