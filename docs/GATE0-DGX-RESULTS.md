@@ -474,3 +474,23 @@ Three readings, in order of importance:
    `LOCAL_AI_MAX_PROMPT_TOKENS = 66000` — the largest served size verified, as the backstop. The
    physician-facing cost is unchanged by any of this: **a chat turn on `cme-dev` takes a minute or more
    today at any transcript length**, which is a box/custody problem (§5.3), not a setting.
+
+### 8.2 Concurrency on the real PIS-7 workload, 2026-09-02 — the box scales to 3
+
+`pis7-concurrency.mjs --levels 1,2,3` (26 real de-identified fixtures cycled, warm-up discarded, right after
+the ramp above, same shared box):
+
+| concurrent | n | ok | p50 | p95 | aggregate | vs previous level |
+|---|---|---|---|---|---|---|
+| 1 | 4 | 4/4 | 62 s | 84 s | 8.9 tok/s | — |
+| 2 | 4 | 4/4 | 82 s | 104 s | 13.1 tok/s | +47 % throughput, p95 +25 % |
+| 3 | 6 | 6/6 | 94 s | 109 s | 17.2 tok/s | +31 % throughput, p95 +4 % |
+
+Unlike §7.4 (p95 154 s at 4, over the timeout), every level here finished inside `LOCAL_AI_TIMEOUT_MS`
+(150 s) with zero failures, and throughput kept scaling. The rule in the plan — the largest level with
+p95 < 0.8 × 150 s = 120 s — gives **`LOCAL_MAX_CONCURRENCY = 3`**, with `LOCAL_INTERACTIVE_RESERVE = 1`
+(two background evaluations + one chat slot always reachable). Two caveats before treating 3 as settled:
+the sweep ran at one time of day on a box whose latency swung 57 s → 956 s last week (§7.6), and while
+`EVAL_CONSISTENCY=adaptive` is on the drain should stay at width 1 (one evaluation = 2–3 serial calls
+against a 480 s deadline; see deployment.md), so the extra slots mostly buy chat headroom. Re-run the
+sweep from the smoke's `capacity` scenario on the day the settings are actually set.

@@ -14,7 +14,7 @@
  * server-dependent (a scheduler that reserves worst-case KV benefits; one that pages on demand does
  * not), so it is measured rather than assumed.
  *
- * TIMEOUT IS THE REAL LIMIT, NOT THE KNEE. rimpl gives up at LOCAL_AI_TIMEOUT_MS (85s) and the
+ * TIMEOUT IS THE REAL LIMIT, NOT THE KNEE. rimpl gives up at LOCAL_AI_TIMEOUT_MS (read from the source; 150s at the time of writing) and the
  * backend at RIMPL_EVAL_TIMEOUT_MS (100s). A concurrency level whose p95 exceeds those is useless in
  * production however good its aggregate throughput looks, so both lines are drawn on the output.
  *
@@ -133,12 +133,12 @@ for (let i = 1; i < results.length; i++) {
 const usableLevels = results.filter((r) => r.p95 <= LOCAL_AI_TIMEOUT_MS && r.fail === 0);
 hr('what to put in rimpl');
 if (!usableLevels.length) {
-  console.log(`  ${red('NO tested concurrency keeps p95 inside rimpl\'s 85s timeout.')}`);
+  console.log(`  ${red(`NO tested concurrency keeps p95 inside rimpl's ${LOCAL_AI_TIMEOUT_MS/1000}s timeout.`)}`);
   console.log('  Even serial PIS-7 calls are slower than the configured budget. LOCAL_AI_TIMEOUT_MS and');
   console.log('  RIMPL_EVAL_TIMEOUT_MS must both rise before any local evaluation can complete — raising');
   console.log('  only one makes the outer timeout fire first and hides the cause.\n');
 } else {
   const best = usableLevels[usableLevels.length - 1];
-  console.log(`  LOCAL_MAX_CONCURRENCY=${best.conc}   ${dim(`(highest level with p95 ${Math.round(best.p95/1000)}s inside the 85s budget and 0 failures)`)}`);
+  console.log(`  LOCAL_MAX_CONCURRENCY=${best.conc}   ${dim(`(highest level with p95 ${Math.round(best.p95/1000)}s inside the ${LOCAL_AI_TIMEOUT_MS/1000}s timeout and 0 failures)`)}`);
   console.log(`  ${dim('providers/local.js defaults to 24 — a placeholder, not a measurement.')}\n`);
 }
