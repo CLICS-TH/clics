@@ -81,9 +81,9 @@ empty seam until the E2 tuning loop runs on the tuning split. **Coupling to resp
 goes live:** adaptive issues 2–3 serial calls (plus up to 2 re-asks) through the background lane, so the backend's
 `RIMPL_EVAL_TIMEOUT_MS` 480 s and `EVAL_LEASE_S` 600 s are sized for `eval_drain_concurrency = 1`; at N the calls of N
 evaluations interleave and the last finishes at ≈3·N·T (T ≈ 70–115 s measured) — keep the drain at 1, or size the
-timeouts at ≥ 3 × N × p95 first. Still to *run*: the capacity probe on the box (`context-limit.mjs
---synthetic --shape both`, `pis7-concurrency.mjs --levels 1,2,3`) that sets `ple_max_transcript_tokens`,
-`LOCAL_AI_MAX_PROMPT_TOKENS`, `LOCAL_MAX_CONCURRENCY` and the token ceiling; then the smoke.
+timeouts at ≥ 3 × N × p95 first. Run 2026-09-02: the capacity probe ([GATE0 §8.1–8.2](GATE0-DGX-RESULTS.md)) and the sandbox smoke on a laptop stack
+against prod's SANDBOX council — `single` PASS, `burst` n=5 FIFO + exactly-once verified from the database
+(see [HANDOFF](HANDOFF.md)). Migrations applied to prod the same day.
 
 **Cutover is a toggle, not a deploy.** Since 2026-08-26 the provider for each purpose is a superadmin
 setting (`app_settings.ai_provider_<purpose>`, *Admin → Overview*), layered over the env chain below

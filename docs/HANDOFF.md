@@ -61,8 +61,21 @@ across sessions). Decisions and measurements: [LOCAL-MODEL-ROADMAP → The capac
 - **`npm run smoke:local-ai`** (Codex): five scenarios against a laptop stack + prod SANDBOX council; hard
   preconditions, never a prod host, never flips `pilot_test_mode`.
 
-**Not done:** WP-E (adaptive self-consistency + provider-conditional PIS-7 addendum + `provenance.consistency`);
-the capacity probe run on the box that sets the real cap
+**Live on 2026-09-02 afternoon.** Migrations applied to prod (`ple_status_values`, both halves of
+`local_ai_capacity`); `eval_drain_exclude_councils=SANDBOX` set. The laptop stack (`PROVIDER_SETTINGS_SOURCE=env`,
+`EVAL_DRAIN_ONLY_COUNCILS=SANDBOX`, chat timeout 150 s, concurrency 3 / reserve 1, `EVAL_CONSISTENCY=adaptive`)
+ran the sandbox smoke against prod Supabase: **single PASS** — 4 local chat turns, screening, drain claim, adaptive
+PIS-7 (2 calls agreeing within 1), provider `local`, physician billed call 1 at $0, `/end` → verdict in 131–163 s;
+**burst n=5** — screening 15–29 s, evaluations strictly FIFO by enqueue time, exactly one per PLE, serial waits
+143 → 673 s at drain width 1, an extra physician's chat turn during the burst answered in 95 s. Live runs forced
+seven smoke/scope fixes, one of them a real bug (a laptop include scope was cancelled by the shared exclude
+setting → empty scope). Prompt calibration on the box read ratio ≈1.9; a 4-turn PLE costs ≈13.4k tokens.
+
+**Prod is inconsistent and needs a decision:** the deployed master backend queries `cles`, which the 2026-08-31
+rename removed — every PLE route has failed since, unnoticed. Deploying this branch (backend + rimpl + both
+front-ends, migration already applied) is the fix; rolling the two rename halves back is the alternative.
+
+**Not done:** the capacity probe run on the box that sets the real cap
 / concurrency / token ceiling; the smoke itself; the held-out verdict run. **Deploy hazard:** apply
 `db/migration-local-ai-capacity.sql` *before* any backend from `ddbba2a` — see [deployment.md](deployment.md).
 Hygiene still open: regenerate the Open WebUI token in `~/.clics-dgx.env` (exposed in a screenshot 2026-08-31).
