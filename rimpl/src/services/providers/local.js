@@ -142,6 +142,26 @@ function getRunner() {
 // `signal` (optional) is the caller's own AbortSignal — combined with our deadline so either one
 // cancels the request at the socket. An abort from the caller's signal is tagged `aborted`, our
 // deadline `localTimeout`; both are terminal for isRetryable, for different reasons.
+// The on-prem box lives on a Tailscale network the Railway container cannot route to. When rimpl
+// runs OUTSIDE that network, `LOCAL_AI_HTTP_PROXY` points at a local Tailscale HTTP proxy and only
+// THIS provider's requests go through it — never the Anthropic or Supabase calls, which must keep
+// taking the normal path. A global dispatcher would send all of them down the tunnel.
+//
+// Unset (the on-prem deployment, and every test) → undefined → fetch behaves exactly as before.
+let _dispatcher;
+function proxyDispatcher() {
+  const url = process.env.LOCAL_AI_HTTP_PROXY;
+  if (!url) return undefined;
+  if (!_dispatcher) {
+    const { ProxyAgent } = require('undici');
+    _dispatcher = new ProxyAgent(url);
+  }
+  return _dispatcher;
+}
+
+// Test seam: the agent is memoised, so a suite changing the env needs a way to drop it.
+function _resetDispatcher() { _dispatcher = undefined; }
+
 async function httpJson(url, { method = 'GET', body, timeoutMs, apiKey, signal }) {
   const headers = { accept: 'application/json' };
   if (body) headers['content-type'] = 'application/json';
@@ -159,6 +179,7 @@ async function httpJson(url, { method = 'GET', body, timeoutMs, apiKey, signal }
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
+      dispatcher: proxyDispatcher(),   // undefined unless LOCAL_AI_HTTP_PROXY is set
       signal: AbortSignal.any([AbortSignal.timeout(timeoutMs), signal].filter(Boolean)),
     });
   } catch (e) {
@@ -413,6 +434,7 @@ async function ready() {
 }
 
 module.exports = {
+  _resetDispatcher,
   name: 'local',
   call, embed,
   model: () => cfg().model,
