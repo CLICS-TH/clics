@@ -1,7 +1,7 @@
-// Stratified audit sampling — choosing WHICH evaluated CLEs go to human review.
+// Stratified audit sampling — choosing WHICH evaluated PLEs go to human review.
 //
 // The manuscript describes stratified random sampling by score band. What existed was manual
-// assignment one CLE at a time, which produces a convenience sample: whoever an admin happened to
+// assignment one PLE at a time, which produces a convenience sample: whoever an admin happened to
 // click. That matters because the ICC is estimated on the audited subset, and a subset drawn from
 // the middle of the score distribution understates disagreement at the extremes — precisely where a
 // credit decision is most contested.
@@ -10,8 +10,8 @@
 //
 //   1. REPRODUCIBLE. The draw is seeded, never Math.random(). A reviewer asking "how were these 40
 //      chosen" gets an answer that can be re-run and checked, and a re-run with the same seed and
-//      the same pool returns the same CLEs. This is the same reasoning as the Socratic allocation in
-//      routes/cles.js — an unreproducible randomisation is indistinguishable from a hand-picked one.
+//      the same pool returns the same PLEs. This is the same reasoning as the Socratic allocation in
+//      routes/ples.js — an unreproducible randomisation is indistinguishable from a hand-picked one.
 //   2. PROPORTIONAL AND EXACT. Band quotas use largest-remainder, so the parts sum to the requested
 //      total instead of drifting by a few under naive rounding, and a band that cannot fill its
 //      quota gives the remainder back to the others rather than silently shrinking the sample.
@@ -63,9 +63,9 @@ function shuffle(items, rng) {
  * Equal-width bands (0-20, 20-40, …) look tidier and are wrong here: PIS-7 composites cluster hard
  * in the middle, so fixed widths leave the tail bands nearly empty and the sample degenerates back
  * toward the middle — the exact bias stratification exists to remove. Quantiles put a comparable
- * number of CLEs in each band whatever the distribution turns out to be.
+ * number of PLEs in each band whatever the distribution turns out to be.
  *
- * Ties are kept together: a CLE cannot land in two bands, so an identical score always falls in the
+ * Ties are kept together: a PLE cannot land in two bands, so an identical score always falls in the
  * same band, even when that leaves bands uneven.
  */
 function bandPool(pool, bandCount = 5) {
@@ -109,9 +109,9 @@ function bandPool(pool, bandCount = 5) {
  *      when the audited set must mirror the cohort rather than cover the range.
  *
  * Equal is the default because proportional silently defeats the purpose on a realistic
- * distribution: PIS-7 composites cluster hard in the middle, so with 44 CLEs of which 2 sit in the
+ * distribution: PIS-7 composites cluster hard in the middle, so with 44 PLEs of which 2 sit in the
  * bottom band, proportional allocation of 10 gives that band 10 x 2/44 = 0.45, which floors to ZERO.
- * The sample then contains no low-scoring CLE at all, while still being described as stratified.
+ * The sample then contains no low-scoring PLE at all, while still being described as stratified.
  *
  * Naive `Math.round(target * w_i)` both misses the total and can hand a band more rows than it has.
  * This floors, distributes the remainder to the largest fractional parts, then re-runs whenever a cap
@@ -154,9 +154,9 @@ function allocate(sizes, target, mode = 'equal') {
 /**
  * The draw.
  *
- * @param {Array<{id, score, forced?: boolean}>} pool  evaluated CLEs eligible for audit
+ * @param {Array<{id, score, forced?: boolean}>} pool  evaluated PLEs eligible for audit
  * @param {object} opts
- * @param {number} opts.target      how many CLEs to sample
+ * @param {number} opts.target      how many PLEs to sample
  * @param {number|string} opts.seed reproducibility key
  * @param {number} [opts.bandCount] default 5 (quintiles)
  * @param {'equal'|'proportional'} [opts.allocation] default 'equal' — see allocate()
@@ -166,7 +166,7 @@ function stratifiedSample(pool, { target, seed, bandCount = 5, allocation = 'equ
   const seedInt = seedFrom(seed);
   const rng = mulberry32(seedInt);
 
-  // Force-included CLEs (integrity-flagged) bypass the draw entirely and do NOT consume a band
+  // Force-included PLEs (integrity-flagged) bypass the draw entirely and do NOT consume a band
   // quota. A flagged session must reach a human regardless of where its score landed, and letting it
   // eat a random slot would quietly shrink the random part of the sample — the part the ICC rests on.
   const forced = pool.filter(c => c.forced);
@@ -202,53 +202,53 @@ function stratifiedSample(pool, { target, seed, bandCount = 5, allocation = 'equ
 
 // ---------------------------------------------------------------------------------------------
 /**
- * Is this auditor allowed to score this CLE? Extracted from routes/admin.js's /assign handler so the
+ * Is this auditor allowed to score this PLE? Extracted from routes/admin.js's /assign handler so the
  * sampler and the manual path cannot drift — a rule enforced in one of two places is a rule that
  * eventually is not enforced at all.
  *
  * Returns { ok: true } or { ok: false, reason } — reason is surfaced, never swallowed.
  */
-function auditorEligibility(auditor, cle) {
+function auditorEligibility(auditor, ple) {
   const canAudit = auditor && (auditor.role === 'auditor' || auditor.can_audit === true);
   if (!auditor || !canAudit || auditor.status !== 'active') return { ok: false, reason: 'not_an_active_auditor' };
-  if (auditor.id === cle.physician_id) return { ok: false, reason: 'own_session' };
-  if (auditor.council_id !== cle.council_id) return { ok: false, reason: 'cross_council' };
-  // Enforced only when the session carries a specialty, so pre-migration CLEs still assign.
-  if (cle.specialty_id && auditor.specialty_id !== cle.specialty_id) return { ok: false, reason: 'cross_specialty' };
+  if (auditor.id === ple.physician_id) return { ok: false, reason: 'own_session' };
+  if (auditor.council_id !== ple.council_id) return { ok: false, reason: 'cross_council' };
+  // Enforced only when the session carries a specialty, so pre-migration PLEs still assign.
+  if (ple.specialty_id && auditor.specialty_id !== ple.specialty_id) return { ok: false, reason: 'cross_specialty' };
   return { ok: true };
 }
 
 /**
- * Spread CLEs across auditors, `perCle` auditors each, as evenly as the eligibility rules allow.
+ * Spread PLEs across auditors, `perPle` auditors each, as evenly as the eligibility rules allow.
  *
  * Round-robin from a seeded starting offset rather than always from index 0: a fixed start would
  * load the first auditor in the roster on every run.
  */
-function assignRoundRobin(cles, auditors, { perCle = 1, seed = 0 } = {}) {
+function assignRoundRobin(ples, auditors, { perPle = 1, seed = 0 } = {}) {
   const rng = mulberry32(seedFrom(seed) ^ 0x9E3779B9);
   const roster = shuffle(auditors, rng);
   const load = Object.fromEntries(roster.map(a => [a.id, 0]));
   const assignments = [];
   const unassignable = [];
 
-  for (const cle of cles) {
-    const eligible = roster.filter(a => auditorEligibility(a, cle).ok);
+  for (const ple of ples) {
+    const eligible = roster.filter(a => auditorEligibility(a, ple).ok);
     if (!eligible.length) {
       // The known live gap: 3 auditors cover 3 of 19 physician specialties, so most specialties have
-      // no eligible auditor at all. Report it per CLE — a sample that silently assigned 4 of 40 would
+      // no eligible auditor at all. Report it per PLE — a sample that silently assigned 4 of 40 would
       // otherwise look like a successful run.
-      unassignable.push({ cle_id: cle.id, reason: 'no_eligible_auditor' });
+      unassignable.push({ ple_id: ple.id, reason: 'no_eligible_auditor' });
       continue;
     }
     // Least-loaded first, ties broken by roster order (already seed-shuffled) — keeps the spread even
     // without another random draw.
-    const picks = eligible.sort((a, b) => load[a.id] - load[b.id]).slice(0, perCle);
+    const picks = eligible.sort((a, b) => load[a.id] - load[b.id]).slice(0, perPle);
     for (const a of picks) {
       load[a.id]++;
-      assignments.push({ cle_id: cle.id, auditor_id: a.id });
+      assignments.push({ ple_id: ple.id, auditor_id: a.id });
     }
-    if (picks.length < perCle) {
-      unassignable.push({ cle_id: cle.id, reason: 'fewer_eligible_auditors_than_target', got: picks.length, wanted: perCle });
+    if (picks.length < perPle) {
+      unassignable.push({ ple_id: ple.id, reason: 'fewer_eligible_auditors_than_target', got: picks.length, wanted: perPle });
     }
   }
   return { assignments, unassignable, load };

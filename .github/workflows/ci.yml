@@ -89,6 +89,103 @@ jobs:
         run: for f in public/js/*.js; do node --check "$f"; done
         working-directory: physician-ui
 
+  # Manuals — the physician + auditor guides are GENERATED from docs/manuals/content/*.md into
+  # physician-ui/public/manual.html and audit-dashboard/lib/manual-content.ts, both committed. This
+  # job is the reason that can be trusted:
+  #   * --check fails if a generated file (or a copied screenshot) is behind its source, so the
+  #     committed copy can never drift from the markdown;
+  #   * verify-labels greps every UI label the manual quotes VERBATIM against the real front-end
+  #     source, so a renamed button turns the manual red instead of quietly lying to a physician;
+  #   * prose-audit compares the Thai and English halves — block shape, callout SEVERITY and
+  #     terminology. A `warn` translated as a `note` is a severity change no reader can see and no
+  #     rendering gate can catch, and it is the likeliest defect in a bilingual document.
+  # That second check is the one that matters: the three print guides this replaces went two months
+  # stale with no signal at all, because prose drift breaks nothing that anyone was measuring.
+  # Needs no secrets and no live infra, but it is NOT browserless: the type-scale gate installs
+  # Chromium, BUILDS AND SERVES the dashboard, and renders BOTH manuals at 11 widths.
+  manuals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          # Two `npm ci` runs (root for playwright, audit-dashboard for the build the scale gate
+          # serves), so cache ~/.npm against both lockfiles.
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            audit-dashboard/package-lock.json
+      - name: Parser tests, freshness, label drift, and TH/EN prose parity
+        run: npm run test:manuals
+      # `npx playwright install` downloads the BROWSER; it does not create node_modules, and the
+      # scale gate does `import { chromium } from 'playwright'`. Without this the step dies with
+      # ERR_MODULE_NOT_FOUND before measuring anything. The sibling `responsive` job does the same.
+      - run: npm ci
+      - name: Install Chromium for the type-scale gate
+        run: npx playwright install --with-deps chromium
+
+      # ---- the dashboard half of the gate needs the manual SERVED ------------------------------
+      # /manual builds as `○ (Static)`: a prerender of the committed lib/manual-content.ts, with no
+      # auth guard (deliberate — see app/manual/page.tsx), no backend call and no request-time
+      # fetch. NavBar returns null signed-out and the page carries its own back link, so it renders
+      # in full with zero secrets. `next build`, not `next dev`: dev CSS is not what ships, and the
+      # gate navigates with waitUntil:'networkidle', which a dev server's HMR socket never settles.
+      - name: Install dashboard deps
+        run: npm ci
+        working-directory: audit-dashboard
+      - name: Build the dashboard (no secrets)
+        run: npm run build
+        working-directory: audit-dashboard
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          # Baked into the client bundle at build time. /manual never calls it; pin it to dead
+          # loopback so no CI build can ever point a rendered page at prod.
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:3001
+      - name: Serve the dashboard on :3002
+        working-directory: audit-dashboard
+        run: |
+          # The real binary, not `npx` — the readiness check below liveness-tests this PID, and npx
+          # would hand it the wrapper's. Both streams go to a file so the step cannot hang on the
+          # child holding the runner's stdout open.
+          ./node_modules/.bin/next start -p 3002 > "$RUNNER_TEMP/dash.log" 2>&1 &
+          echo "DASH_PID=$!" >> "$GITHUB_ENV"
+      # Readiness, not a sleep: poll the exact URL the gate will open and require the manual's own
+      # markup in the body, so a 200 error shell cannot satisfy it. Bails the moment the server
+      # dies instead of burning the whole budget, and prints the server log either way.
+      - name: Wait for /manual to serve
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS --max-time 5 http://127.0.0.1:3002/manual | grep -q 'data-role="body"'; then
+              echo "dashboard ready after ${i}s"
+              exit 0
+            fi
+            if ! kill -0 "$DASH_PID" 2>/dev/null; then
+              echo "::error::next start exited before serving /manual"
+              cat "$RUNNER_TEMP/dash.log"
+              exit 1
+            fi
+            sleep 1
+          done
+          echo "::error::/manual did not become ready within 60s"
+          cat "$RUNNER_TEMP/dash.log"
+          exit 1
+      # The manual renders in two consoles that scale desktop type incompatibly (physician-ui
+      # scales `body`, audit-dashboard scales `html`), so any px size is frozen while the base
+      # grows. This measures every text role against the role whose scale governs it, at 11 widths,
+      # in both languages, in BOTH consoles, and fails on inversion — the defect it was written for
+      # was h3 rendering 17px inside 22px body at 1280px, which every other gate passed.
+      # REQUIRE_DASH makes a missing DASH_URL a failure: without it a typo'd variable name silently
+      # re-runs the portal-only half and reports green, which is the exact hole this closes.
+      - name: Type-scale hierarchy across viewports (portal + dashboard)
+        env:
+          DASH_URL: http://127.0.0.1:3002
+          REQUIRE_DASH: '1'
+        run: npm run test:manuals-scale
+      - name: Stop the dashboard server
+        if: always()
+        run: kill "$DASH_PID" 2>/dev/null || true
+
   # Responsive regression guard — renders the static physician-ui portal at 320/375/768/1280 under
   # coarse-pointer emulation and asserts 0 horizontal overflow, ≥44px touch targets, and ≥16px form
   # fields (iOS no-zoom). Hermetic: a built-in static server serves the pages and all external

@@ -86,8 +86,8 @@ create table public.professionals (
   pseudonym      text unique,   -- P-NNN; the only physician identifier allowed in exports/audit
   exp_code       text unique,   -- EXP-NNN expert-auditor pseudonym (auditors only); see migration-pseudonym-codes.sql
   consented_at   timestamptz,   -- informed consent for the pilot; session creation is gated on this
-  -- CLICS §6.4: consecutive Tier-1 fails on natural CLEs; 3 in a row opens Socratic remediation on
-  -- the next natural session. Reset to 0 on any Tier-1 pass. See db/migration-cle-episodes.sql.
+  -- CLICS §6.4: consecutive Tier-1 fails on natural PLEs; 3 in a row opens Socratic remediation on
+  -- the next natural session. Reset to 0 on any Tier-1 pass. See db/migration-ple-episodes.sql.
   consecutive_t1_fails int not null default 0,
   -- Per-physician AI usage meter + per-user limit override (see db/migration-usage-limits.sql).
   usage_cost_usd      numeric not null default 0,
@@ -114,7 +114,7 @@ create table public.app_settings (
 -- — otherwise standardLimit() silently falls back to the code default and the superadmin settings read 0.
 insert into public.app_settings (key, value) values ('standard_usage_limit_usd', 0.50)
 on conflict (key) do nothing;
--- Pilot Test Mode toggle (0/1): when 1, new CLEs are test sessions, the 3-CLE cap is bypassed, and
+-- Pilot Test Mode toggle (0/1): when 1, new PLEs are test sessions, the 3-PLE cap is bypassed, and
 -- the physician may pick Natural/Socratic directly. See db/migration-pilot-test-mode.sql.
 insert into public.app_settings (key, value) values ('pilot_test_mode', 0)
 on conflict (key) do nothing;
@@ -124,7 +124,7 @@ on conflict (key) do nothing;
 insert into public.app_settings (key, value) values ('clinical_artifacts', 0)
 on conflict (key) do nothing;
 -- Hold Result Until Audited toggle (0/1): when 1, a physician's PIS-7 score is withheld ("under expert
--- review") until an auditor has scored that CLE — for a blinded test round. Default 0. See
+-- review") until an auditor has scored that PLE — for a blinded test round. Default 0. See
 -- db/migration-hold-result-toggle.sql.
 insert into public.app_settings (key, value) values ('hold_result_until_audited', 0)
 on conflict (key) do nothing;
@@ -237,7 +237,7 @@ create index invites_status_idx on public.invites(status);
 create unique index invites_one_pending on public.invites(email, role, council_id) where status = 'pending';
 
 -- Physician-created folders for organizing conversations (see db/migration-folders.sql)
-create table public.cle_folders (
+create table public.ple_folders (
   id           uuid primary key default gen_random_uuid(),
   physician_id uuid not null references public.professionals(id) on delete cascade,
   name         text not null,
@@ -245,10 +245,10 @@ create table public.cle_folders (
   created_at   timestamptz default now(),
   updated_at   timestamptz default now()
 );
-create index ple_folders_physician_idx on public.cle_folders(physician_id);
+create index ple_folders_physician_idx on public.ple_folders(physician_id);
 
 -- One row per physician session
-create table public.cles (
+create table public.ples (
   id               uuid primary key default gen_random_uuid(),
   physician_id     uuid not null references public.professionals(id),
   auditor_id       uuid references public.professionals(id),
@@ -257,65 +257,65 @@ create table public.cles (
   -- Denormalized from the physician's specialty at creation (mirrors council_id) — scopes admin/auditor access.
   specialty_id     uuid references public.specialties(id),
   is_test          boolean not null default false,   -- demo/test rows; preserved by reset-demo.js
-  folder_id        uuid references public.cle_folders(id) on delete set null,  -- null = Uncategorized
+  folder_id        uuid references public.ple_folders(id) on delete set null,  -- null = Uncategorized
   title            text,                                                       -- physician-editable label
   chief_complaint  text,
   status           text not null default 'active'
-                   check (status in ('active','ended','cle_pass','cle_fail_t1','cle_flag_t2','evaluated')),
+                   check (status in ('active','ended','ple_pass','ple_fail_t1','ple_flag_t2','evaluated')),
   started_at       timestamptz not null default now(),
   ended_at         timestamptz,
   duration_seconds integer,
   turn_count       integer default 0,
-  token_count      integer default 0,   -- input+output summed; the C3 CLE gate reads this
+  token_count      integer default 0,   -- input+output summed; the C3 PLE gate reads this
   input_tokens     bigint  not null default 0,   -- billed input tokens (cost auditability)
   output_tokens    bigint  not null default 0,   -- billed output tokens (cost auditability)
   c1_pass boolean, c2_pass boolean, c3_pass boolean,
   c4_pass boolean, c5_pass boolean, c6_pass boolean,
   -- CLICS protocol §6.4 experimental sequence: episode 1|2|3 (assigned at creation) + Socratic toggle.
   -- CLE2 runs Socratic-from-start ('cle2_examiner'); CLE1/3 are natural unless 3× Tier-1 fails opens
-  -- remediation ('t1_remediation'). See db/migration-cle-episodes.sql.
+  -- remediation ('t1_remediation'). See db/migration-ple-episodes.sql.
   episode_number   smallint,
   socratic_active  boolean not null default false,
   socratic_reason  text check (socratic_reason is null or socratic_reason in ('cle2_examiner','t1_remediation','pilot_test')),
-  cle_code         text unique,   -- CLE-NNN study pseudonym (the only session id in exports); see migration-pseudonym-codes.sql
+  ple_code         text unique,   -- PLE-NNN study pseudonym (the only session id in exports); see migration-pseudonym-codes.sql
   provider_used    text default 'claude',   -- reserved for L4 multi-provider rotation (roadmap); currently always 'claude'
   created_at       timestamptz default now()
 );
-create index cles_folder_idx on public.cles(folder_id);
-create index cles_council_idx on public.cles(council_id);
-create index cles_council_specialty_idx on public.cles(council_id, specialty_id);
+create index ples_folder_idx on public.ples(folder_id);
+create index ples_council_idx on public.ples(council_id);
+create index ples_council_specialty_idx on public.ples(council_id, specialty_id);
 
--- Structured patient identifier, PHYSICALLY ISOLATED from `cles` so it never leaks into the
--- cloud-AI payload / auditor blind queue / de-identified export (which all read `cles`). Only the
+-- Structured patient identifier, PHYSICALLY ISOLATED from `ples` so it never leaks into the
+-- cloud-AI payload / auditor blind queue / de-identified export (which all read `ples`). Only the
 -- owning physician reads it. See db/migration-patient-intake.sql.
-create table public.cle_patient_refs (
-  cle_id        uuid primary key references public.cles(id) on delete cascade,
+create table public.ple_patient_refs (
+  ple_id        uuid primary key references public.ples(id) on delete cascade,
   physician_id  uuid not null references public.professionals(id) on delete cascade,
   patient_ref   text,
   created_at    timestamptz not null default now()
 );
-create index ple_patient_refs_physician_idx on public.cle_patient_refs(physician_id);
-alter table public.cle_patient_refs enable row level security;
-drop policy if exists ple_patient_refs_owner on public.cle_patient_refs;
-create policy ple_patient_refs_owner on public.cle_patient_refs
+create index ple_patient_refs_physician_idx on public.ple_patient_refs(physician_id);
+alter table public.ple_patient_refs enable row level security;
+drop policy if exists ple_patient_refs_owner on public.ple_patient_refs;
+create policy ple_patient_refs_owner on public.ple_patient_refs
   for all using (physician_id = auth.uid()) with check (physician_id = auth.uid());
 
--- Reversible on-prem PII map (Tier-1 audit): one AES-256-GCM-encrypted token->raw map per CLE so the
+-- Reversible on-prem PII map (Tier-1 audit): one AES-256-GCM-encrypted token->raw map per PLE so the
 -- PI/data custodian can re-identify a [NAME-n]/[HN-n] token. Mirrors oauth_identities: encrypted with
 -- IDENTITY_ENC_KEY (backend-only) + RLS DENY-ALL (no policy → service-role only; superadmin reads via
 -- the gated, audit-logged endpoint). RIMPL never touches it. See db/migration-pii-map.sql.
-create table public.cle_pii_map (
-  cle_id        uuid primary key references public.cles(id) on delete cascade,
+create table public.ple_pii_map (
+  ple_id        uuid primary key references public.ples(id) on delete cascade,
   map_encrypted text not null,           -- AES-256-GCM(JSON [{token,category,value}]) — never plaintext
   entry_count   int not null default 0,  -- non-PII metadata (number of distinct tokens)
   updated_at    timestamptz not null default now()
 );
-alter table public.cle_pii_map enable row level security;  -- DENY-ALL (no policy below)
+alter table public.ple_pii_map enable row level security;  -- DENY-ALL (no policy below)
 
 -- One row per chat turn
 create table public.messages (
   id                uuid primary key default gen_random_uuid(),
-  cle_id            uuid not null references public.cles(id) on delete cascade,
+  ple_id            uuid not null references public.ples(id) on delete cascade,
   role              text not null check (role in ('physician','assistant')),
   content           text not null,
   refs              jsonb default '[]'::jsonb,
@@ -327,7 +327,7 @@ create table public.messages (
 -- PIS-7 scored by AI
 create table public.ai_evaluations (
   id               uuid primary key default gen_random_uuid(),
-  cle_id           uuid not null references public.cles(id) on delete cascade,
+  ple_id           uuid not null references public.ples(id) on delete cascade,
   d1 smallint not null check (d1 between 0 and 5),
   d2 smallint not null check (d2 between 0 and 5),
   d3 smallint not null check (d3 between 0 and 5),
@@ -341,13 +341,13 @@ create table public.ai_evaluations (
   prompt_version   text,   -- §10.2 evaluator provenance: hash of the PIS-7 prompt at scoring time
   rubric_version   text,   -- §10.2 evaluator provenance: hash of the PIS-7 weights at scoring time
   evaluated_at     timestamptz default now(),
-  unique (cle_id)   -- one AI evaluation per session; backstops the duplicate-evaluation race
+  unique (ple_id)   -- one AI evaluation per session; backstops the duplicate-evaluation race
 );
 
 -- PIS-7 scored by Expert Auditor
 create table public.audit_scores (
   id              uuid primary key default gen_random_uuid(),
-  cle_id          uuid not null references public.cles(id) on delete cascade,
+  ple_id          uuid not null references public.ples(id) on delete cascade,
   auditor_id      uuid not null references public.professionals(id),
   council_id      uuid references public.councils(id),  -- denormalized from the session; kept in sync by audit_scores_guard
 
@@ -361,7 +361,7 @@ create table public.audit_scores (
   composite_score numeric not null,
   notes           text,
   scored_at       timestamptz default now(),
-  unique (cle_id, auditor_id)   -- one score per (session, auditor); backstops the SELECT-then-INSERT race
+  unique (ple_id, auditor_id)   -- one score per (session, auditor); backstops the SELECT-then-INSERT race
 );
 
 -- RAG knowledge base (seeded via seed-documents.js)
@@ -375,15 +375,15 @@ create table public.documents (
   created_at timestamptz default now()
 );
 
--- Per-CLE score history for LPDP chart
+-- Per-PLE score history for LPDP chart
 create table public.lpdp_snapshots (
   id              uuid primary key default gen_random_uuid(),
   physician_id    uuid not null references public.professionals(id),
-  cle_id          uuid not null references public.cles(id),
+  ple_id          uuid not null references public.ples(id),
   composite_score numeric not null,
   domain_scores   jsonb not null,
   snapshot_at     timestamptz default now(),
-  unique (cle_id)   -- one snapshot per session; backstops the duplicate-evaluation race
+  unique (ple_id)   -- one snapshot per session; backstops the duplicate-evaluation race
 );
 
 create index audit_scores_council_idx on public.audit_scores(council_id);
@@ -393,8 +393,8 @@ alter table public.councils         enable row level security;
 alter table public.specialties      enable row level security;
 alter table public.council_slots    enable row level security;
 alter table public.professionals    enable row level security;
-alter table public.cle_folders      enable row level security;
-alter table public.cles             enable row level security;
+alter table public.ple_folders      enable row level security;
+alter table public.ples             enable row level security;
 alter table public.messages         enable row level security;
 alter table public.ai_evaluations   enable row level security;
 alter table public.audit_scores     enable row level security;
@@ -424,49 +424,49 @@ create policy "prof: superadmin write"
     exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
   );
 
--- cle_folders policies
-drop policy if exists "folders: physician own" on public.cle_folders;
+-- ple_folders policies
+drop policy if exists "folders: physician own" on public.ple_folders;
 create policy "folders: physician own"
-  on public.cle_folders for all using (physician_id = auth.uid());
-drop policy if exists "folders: admin read" on public.cle_folders;
+  on public.ple_folders for all using (physician_id = auth.uid());
+drop policy if exists "folders: admin read" on public.ple_folders;
 create policy "folders: superadmin read"
-  on public.cle_folders for select using (
+  on public.ple_folders for select using (
     exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
   );
 create policy "folders: admin read own council"
-  on public.cle_folders for select using (
+  on public.ple_folders for select using (
     exists (select 1 from public.professionals me
-            join public.professionals owner on owner.id = cle_folders.physician_id
+            join public.professionals owner on owner.id = ple_folders.physician_id
             where me.id = auth.uid() and me.role = 'admin' and me.council_id = owner.council_id)
   );
 
--- cles policies
-create policy "cles: physician own"
-  on public.cles for select using (physician_id = auth.uid());
-create policy "cles: auditor assigned"
-  on public.cles for select using (auditor_id = auth.uid());
-create policy "cles: superadmin all"
-  on public.cles for all using (
+-- ples policies
+create policy "ples: physician own"
+  on public.ples for select using (physician_id = auth.uid());
+create policy "ples: auditor assigned"
+  on public.ples for select using (auditor_id = auth.uid());
+create policy "ples: superadmin all"
+  on public.ples for all using (
     exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
   );
-create policy "cles: admin own council"
-  on public.cles for all using (
+create policy "ples: admin own council"
+  on public.ples for all using (
     exists (select 1 from public.professionals p
-            where p.id = auth.uid() and p.role = 'admin' and p.council_id = cles.council_id)
+            where p.id = auth.uid() and p.role = 'admin' and p.council_id = ples.council_id)
   );
-create policy "cles: physician insert"
-  on public.cles for insert with check (physician_id = auth.uid());
-create policy "cles: physician update own"
-  on public.cles for update using (physician_id = auth.uid());
+create policy "ples: physician insert"
+  on public.ples for insert with check (physician_id = auth.uid());
+create policy "ples: physician update own"
+  on public.ples for update using (physician_id = auth.uid());
 
 -- messages policies
-create policy "msg: physician own cle"
+create policy "msg: physician own ple"
   on public.messages for select using (
-    exists (select 1 from public.cles pl where pl.id = cle_id and pl.physician_id = auth.uid())
+    exists (select 1 from public.ples pl where pl.id = ple_id and pl.physician_id = auth.uid())
   );
-create policy "msg: auditor assigned cle"
+create policy "msg: auditor assigned ple"
   on public.messages for select using (
-    exists (select 1 from public.cles pl where pl.id = cle_id and pl.auditor_id = auth.uid())
+    exists (select 1 from public.ples pl where pl.id = ple_id and pl.auditor_id = auth.uid())
   );
 create policy "msg: superadmin all"
   on public.messages for all using (
@@ -475,18 +475,18 @@ create policy "msg: superadmin all"
 create policy "msg: admin own council"
   on public.messages for all using (
     exists (select 1 from public.professionals p
-            join public.cles pl on pl.id = messages.cle_id
+            join public.ples pl on pl.id = messages.ple_id
             where p.id = auth.uid() and p.role = 'admin' and p.council_id = pl.council_id)
   );
 create policy "msg: physician insert"
   on public.messages for insert with check (
-    exists (select 1 from public.cles pl where pl.id = cle_id and pl.physician_id = auth.uid())
+    exists (select 1 from public.ples pl where pl.id = ple_id and pl.physician_id = auth.uid())
   );
 
 -- ai_evaluations policies
 create policy "ai_eval: physician own"
   on public.ai_evaluations for select using (
-    exists (select 1 from public.cles pl where pl.id = cle_id and pl.physician_id = auth.uid())
+    exists (select 1 from public.ples pl where pl.id = ple_id and pl.physician_id = auth.uid())
   );
 create policy "ai_eval: superadmin all"
   on public.ai_evaluations for all using (
@@ -495,7 +495,7 @@ create policy "ai_eval: superadmin all"
 create policy "ai_eval: admin own council"
   on public.ai_evaluations for all using (
     exists (select 1 from public.professionals p
-            join public.cles pl on pl.id = ai_evaluations.cle_id
+            join public.ples pl on pl.id = ai_evaluations.ple_id
             where p.id = auth.uid() and p.role = 'admin' and p.council_id = pl.council_id)
   );
 
@@ -605,7 +605,7 @@ declare
   v_aud_council uuid;
 begin
   select council_id, physician_id into v_ple_council, v_physician
-    from public.cles where id = new.cle_id;
+    from public.ples where id = new.ple_id;
   select council_id into v_aud_council
     from public.professionals where id = new.auditor_id;
 
@@ -663,19 +663,19 @@ $$;
 create index if not exists professionals_role_status_idx          on public.professionals(role, status);
 create index if not exists professionals_council_role_status_idx  on public.professionals(council_id, role, status);
 create index if not exists professionals_pseudonym_idx            on public.professionals(pseudonym);
-create index if not exists cles_physician_idx                     on public.cles(physician_id);
-create index if not exists messages_ple_idx                       on public.messages(cle_id);
-create index if not exists ai_evaluations_ple_idx                 on public.ai_evaluations(cle_id);
-create index if not exists audit_scores_ple_idx                   on public.audit_scores(cle_id);
+create index if not exists ples_physician_idx                     on public.ples(physician_id);
+create index if not exists messages_ple_idx                       on public.messages(ple_id);
+create index if not exists ai_evaluations_ple_idx                 on public.ai_evaluations(ple_id);
+create index if not exists audit_scores_ple_idx                   on public.audit_scores(ple_id);
 create index if not exists audit_scores_auditor_idx               on public.audit_scores(auditor_id);
 create index if not exists lpdp_snapshots_physician_idx           on public.lpdp_snapshots(physician_id);
 create index if not exists professionals_created_idx              on public.professionals(created_at);
-create index if not exists cles_created_idx                       on public.cles(created_at);
+create index if not exists ples_created_idx                       on public.ples(created_at);
 -- Hot filters that previously had no index: the auditor queue (auditor_id + status='evaluated'),
--- the reconcile sweep + stats (status), and the LPDP/purge lookups by cle_id.
-create index if not exists cles_auditor_idx                       on public.cles(auditor_id);
-create index if not exists cles_status_idx                        on public.cles(status);
-create index if not exists lpdp_snapshots_ple_idx                 on public.lpdp_snapshots(cle_id);
+-- the reconcile sweep + stats (status), and the LPDP/purge lookups by ple_id.
+create index if not exists ples_auditor_idx                       on public.ples(auditor_id);
+create index if not exists ples_status_idx                        on public.ples(status);
+create index if not exists lpdp_snapshots_ple_idx                 on public.lpdp_snapshots(ple_id);
 
 create sequence if not exists public.pseudonym_seq;
 select setval('public.pseudonym_seq',
@@ -694,19 +694,19 @@ language sql as $$
    where id = p_id;
 $$;
 
--- CLICS §7.1/§9.2 study pseudonym series: CLE-NNN (sessions) + EXP-NNN (expert auditors).
-create sequence if not exists public.cle_code_seq;
-create or replace function public.next_cle_code() returns text language sql as $$
-  select 'CLE-' || lpad(nextval('public.cle_code_seq')::text, 3, '0');
+-- CLICS §7.1/§9.2 study pseudonym series: PLE-NNN (sessions) + EXP-NNN (expert auditors).
+create sequence if not exists public.ple_code_seq;
+create or replace function public.next_ple_code() returns text language sql as $$
+  select 'PLE-' || lpad(nextval('public.ple_code_seq')::text, 3, '0');
 $$;
 create sequence if not exists public.exp_code_seq;
 create or replace function public.next_exp_code() returns text language sql as $$
   select 'EXP-' || lpad(nextval('public.exp_code_seq')::text, 3, '0');
 $$;
 
-create or replace function public.cle_status_counts(p_council uuid default null, p_include_test boolean default false)
+create or replace function public.ple_status_counts(p_council uuid default null, p_include_test boolean default false)
 returns table(status text, n bigint) language sql stable as $$
-  select status, count(*)::bigint from public.cles
+  select status, count(*)::bigint from public.ples
   where (p_council is null or council_id = p_council) and (p_include_test or is_test = false)
   group by status;
 $$;

@@ -25,7 +25,7 @@ const CLEARED = ['passed', 'redacted'];
 // default and the honest state for any session predating the gate.
 const DECISIONS = ['pending', 'passed', 'redacted', 'quarantined', 'excluded'];
 
-// Applies the clearance filter to a PostgREST query over `cles`.
+// Applies the clearance filter to a PostgREST query over `ples`.
 //
 // Takes `required` rather than reading the setting itself, so a caller that already resolved it
 // does not pay a second settings read, and so the filter is a pure function of its inputs.
@@ -38,9 +38,9 @@ function whereCleared(q, required) {
 // A row with no privacy_review_status at all (pre-migration, or a select that did not ask for the
 // column) is treated as NOT cleared when the gate is on. Failing closed is the only safe default
 // for a gate whose whole purpose is to stop unreviewed patient data reaching a third party.
-function isCleared(cle, required) {
+function isCleared(ple, required) {
   if (!required) return true;
-  return CLEARED.includes(cle?.privacy_review_status);
+  return CLEARED.includes(ple?.privacy_review_status);
 }
 
 module.exports = { CLEARED, DECISIONS, whereCleared, isCleared };

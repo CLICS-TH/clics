@@ -7,6 +7,8 @@ const { hasCitation, extractSocraticQuestion, extractReferences } = require('../
 const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE } = require('../lib/prompts');
 const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply } = require('../services/rescue');
 const { flattenForPrompt, stripArtifactDelimiters } = require('../lib/transcript');
+const { requestSignal } = require('../lib/request-signal');
+const { sendAiError, logAiError, isAborted } = require('../lib/ai-errors');
 
 const router = Router();
 
@@ -16,12 +18,12 @@ const router = Router();
 const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));
 
 const ChatSchema = z.object({
-  cle_id: z.string(),
+  ple_id: z.string(),
   history: z.array(z.object({ role: z.string(), content: z.string() })),
   message: z.string().min(1),
   language: z.enum(['th', 'en']).default('th'),
   chief_complaint: z.string().optional(),
-  // The physician's structured patient identifier (cle_patient_refs), passed on-prem SOLELY so RIMPL
+  // The physician's structured patient identifier (ple_patient_refs), passed on-prem SOLELY so RIMPL
   // can deterministically scrub it from the narrative before any cloud call — it is never forwarded.
   // nullish (not optional): the backend sends `?? null` when there is no patient_ref — null must pass.
   patient_ref: z.string().nullish(),
@@ -30,7 +32,7 @@ const ChatSchema = z.object({
   // Superadmin `clinical_artifacts` setting (the backend forwards it): true → allow the AI to emit
   // `:::artifact{...}` side-panel blocks. Default false; the transcript strip runs regardless.
   artifacts: z.boolean().default(false),
-  // Socratic rescue state, forwarded by the backend from the `cles` row. RIMPL is stateless, so it
+  // Socratic rescue state, forwarded by the backend from the `ples` row. RIMPL is stateless, so it
   // cannot know whether this session has already been rescued or has already qualified — and both
   // are latches (a session does not un-qualify). Without them the classifier would re-run on every
   // turn past the fourth, roughly doubling the AI cost of a long, good session.
@@ -61,6 +63,18 @@ async function buildMessages(history, cleanMessage, ragDocs, chiefComplaint, hin
   return [...cleanHistory, { role: 'user', content: cc + cleanMessage + context }];
 }
 
+// What the model LAST saw plus what it said, for the ONE call whose answer is returned — as a plain
+// integer, or null. The backend stores this as ples.context_tokens for its transcript cap; the
+// input_tokens / output_tokens it also receives are BILLING figures and are summed over every call in
+// the turn, so on a citation-retry turn they run ~2x the real context and the 64k cap fired at ~32k.
+// null, never 0, when the provider reported no usage at all: the backend then falls back to its own
+// sum instead of storing a zero that would let the cap never fire.
+function contextTokens(inputTokens, outputTokens) {
+  if (inputTokens == null && outputTokens == null) return null;
+  const n = Number(inputTokens ?? 0) + Number(outputTokens ?? 0);
+  return Number.isInteger(n) ? n : null;
+}
+
 router.post('/', async (req, res) => {
   const parsed = ChatSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
@@ -74,6 +88,9 @@ router.post('/', async (req, res) => {
   // Append the artifact guidance only when the superadmin toggle (forwarded as `artifacts`) is on.
   let systemPrompt = (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)
     + (artifacts ? ARTIFACT_GUIDANCE : '');
+  // Fires if the physician's client (or the backend's deadline) hangs up: a queued call leaves the
+  // queue and an in-flight one is cancelled, so a turn nobody is waiting for stops holding the model.
+  const signal = requestSignal(req, res);
 
   try {
     // De-identify ONCE, up front: PII must never leave the on-prem boundary — not to Claude and
@@ -112,7 +129,7 @@ router.post('/', async (req, res) => {
         // Include the turn just sent — the physician may have qualified the session WITH this
         // message, and rescuing them for a gap they have already closed would be plainly wrong.
         const assessed = await assessQualifying(
-          flattenForPrompt([...history, { role: 'physician', content: cleanMessage }], hints));
+          flattenForPrompt([...history, { role: 'physician', content: cleanMessage }], hints), { signal });
         const decision = rescueDecision(assessed);
         rescue = {
           // First activation, distinct from a later round of an ongoing rescue. The backend stamps
@@ -142,6 +159,8 @@ router.post('/', async (req, res) => {
         };
         if (decision.rescue) systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE;
       } catch (e) {
+        // The client has hung up: there is no turn to deliver, so do not buy the reply either.
+        if (isAborted(e)) throw e;
         console.error('[RIMPL chat] rescue assessment failed, continuing as a normal turn:', e.message);
         // A malformed classifier reply was still BILLED. Report the usage even though the assessment
         // is unusable, or the study's cost record drifts below what was actually spent — and under
@@ -161,8 +180,12 @@ router.post('/', async (req, res) => {
       }
     }
 
-    let { text, tokenCount, inputTokens, outputTokens, provider, model } =
-      await callAI({ purpose: 'chat', systemPrompt, messages, maxTokens: CHAT_MAX_TOKENS });
+    let { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from } =
+      await callAI({ purpose: 'chat', systemPrompt, messages, maxTokens: CHAT_MAX_TOKENS, signal });
+    // The call whose answer goes back: the retry below REPLACES these while the billing sums accumulate.
+    // On a fail-over turn this result already is the fail-over call's, so these are its figures.
+    let lastInputTokens = inputTokens;
+    let lastOutputTokens = outputTokens;
 
     // A rescue turn asks questions and deliberately gives no answer, so it has nothing to cite and
     // the citation retry does not apply — running it would prompt the model to answer, which is the
@@ -192,11 +215,13 @@ router.post('/', async (req, res) => {
       // have ONE physician turn written half by Claude and half by the DGX — and `messages` has no
       // model column, so nothing would record that it happened. `provider` is undefined only when a
       // caller mocked callAI without it, in which case this falls back to normal resolution.
-      const retry = await callAI({ purpose: 'chat', provider, systemPrompt, messages: retryMessages, maxTokens: CHAT_MAX_TOKENS });
+      const retry = await callAI({ purpose: 'chat', provider, systemPrompt, messages: retryMessages, maxTokens: CHAT_MAX_TOKENS, signal });
       text = retry.text;
       tokenCount += retry.tokenCount;
       inputTokens += retry.inputTokens;
       outputTokens += retry.outputTokens;
+      lastInputTokens = retry.inputTokens;
+      lastOutputTokens = retry.outputTokens;
     }
 
     res.json({
@@ -206,10 +231,16 @@ router.post('/', async (req, res) => {
       token_count: tokenCount,
       input_tokens: inputTokens,
       output_tokens: outputTokens,
+      // The returned call's own in+out (see contextTokens above) — NOT the two-call sums above it.
+      context_tokens: contextTokens(lastInputTokens, lastOutputTokens),
       // Which vendor actually served this turn — the backend prices per provider (local = $0), so
       // omitting it under a hybrid would bill on-prem tokens at cloud rates.
       provider,
       model,
+      // Set only when the primary provider was down and CHAT_FAILOVER_PROVIDER answered instead
+      // (services/ai.js; dormant — unset — by default). Null on every ordinary turn. The citation
+      // retry above is pinned to `provider`, so the whole turn came from the provider named above.
+      failed_over_from: failed_over_from ?? null,
       // Advisory, for the backend to persist: which turn the rescue fired on, why, and whether the
       // reply actually honoured the protocol's constraints. The SAP analyses trigger rate and
       // activation point, so an unrecorded rescue is a lost data point.
@@ -218,8 +249,9 @@ router.post('/', async (req, res) => {
       rescue: rescue && { ...rescue, reply_check: rescue.rescuing ? checkRescueReply(text) : null },
     });
   } catch (err) {
-    console.error('[RIMPL chat] error:', err);
-    res.status(500).json({ error: 'AI service temporarily unavailable. Please try again.' });
+    logAiError('[RIMPL chat]', err);
+    // 503 queue_full (+ Retry-After) / 499 client gone / 413 transcript_too_large / else this 500.
+    sendAiError(res, err, 'AI service temporarily unavailable. Please try again.');
   }
 });
 

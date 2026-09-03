@@ -3,7 +3,7 @@
  * Three-way PIS-7 evaluator comparison (offline decision harness).
  *
  * WHAT. CME credit is gated on AI-human agreement (ICC(2,1) >= 0.75). A candidate on-prem evaluator
- * now scores every CLE a SECOND time into `shadow_evaluations` -- never served, never shown. This
+ * now scores every PLE a SECOND time into `shadow_evaluations` -- never served, never shown. This
  * harness reads the three score sets off the DB and prints the three comparisons a model-swap
  * decision actually rests on:
  *
@@ -17,7 +17,7 @@
  *
  * USABLE TODAY. `shadow_evaluations` may not exist yet (db/migration-shadow-evaluations.sql is
  * deliberately unapplied) and will be empty for a while after it does. Neither is an error: the
- * shadow arms report as unavailable and the claude-vs-auditor arm still runs, on the CLEs that
+ * shadow arms report as unavailable and the claude-vs-auditor arm still runs, on the PLEs that
  * already carry both an AI and a human score. Running it now makes November a re-run, not a build.
  *
  * READ-ONLY. Like calibrate.js, this performs NO inserts/updates/upserts -- every DB call is a
@@ -27,18 +27,18 @@
  *   cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/calibration/three-way.js
  *
  * Flags:
- *   --include-test        include is_test CLEs (default: excluded, matching GET /oversight/icc)
+ *   --include-test        include is_test PLEs (default: excluded, matching GET /oversight/icc)
  *   --provider <name>     pick the shadow candidate explicitly (default: most recent evaluated_at)
  *   --model <version>     ditto by model_version -- a provider is a TRANSPORT, not a candidate
  *   --margin <0.10>       pre-registered non-inferiority margin, local vs Claude (see README)
- *   --top <25|all>        how many per-CLE deltas to print (the archived JSON always holds all)
+ *   --top <25|all>        how many per-PLE deltas to print (the archived JSON always holds all)
  *
  * MATCHES THE DASHBOARD. The estimator is backend/src/services/icc.js -- the same function
  * GET /oversight/icc/three-way calls -- and the cohort rules are the endpoint's: auditors averaged
- * to ONE human value per CLE before pairing, is_test excluded, all arms on the same CLEs, one
+ * to ONE human value per PLE before pairing, is_test excluded, all arms on the same PLEs, one
  * candidate per run. So `coverage` and the `arms` ICCs here should reproduce the endpoint's JSON.
  *
- * DIFFERS FROM calibrate.js ON PURPOSE. calibrate.js POOLS one pair per auditor (a 3-auditor CLE
+ * DIFFERS FROM calibrate.js ON PURPOSE. calibrate.js POOLS one pair per auditor (a 3-auditor PLE
  * contributes 3 pairs reusing one AI value), which inflates n; its 0.662 baseline is NOT comparable
  * to the numbers below. This averages first, as ICC(2,1) requires.
  *
@@ -52,7 +52,7 @@ try { require('dotenv').config(); } catch { /* ignore */ }
 const fs = require('fs');
 const path = require('path');
 const iccLib = require('../../backend/src/services/icc');
-const { WEIGHTS, compositeScore } = require('../../backend/src/services/cle-gate');
+const { WEIGHTS, compositeScore } = require('../../backend/src/services/ple-gate');
 
 // The estimator is rater-symmetric, so one routine measures all three arms. Prefer the generic
 // { a, b } entry point; fall back to the original { ai, human } spelling so this harness keeps
@@ -168,7 +168,7 @@ async function selectIn(table, cols, ids, key = 'id') {
 }
 
 // -- arm computation ---------------------------------------------------------
-// Returns null when the pair shares no CLEs. icc2 itself returns null below n=2 and an
+// Returns null when the pair shares no PLEs. icc2 itself returns null below n=2 and an
 // 'Insufficient variance' result when every score is identical -- both are surfaced, not hidden.
 function buildArm(ids, A, B, labelOf, auditorCount) {
   const rows = ids.filter(id => A.has(id) && B.has(id)).map(id => ({ id, a: A.get(id), b: B.get(id) }));
@@ -193,7 +193,7 @@ function buildArm(ids, A, B, labelOf, auditorCount) {
 
   const per_cle = rows
     .map((r, i) => ({
-      cle_id: r.id,
+      ple_id: r.id,
       label: labelOf(r.id),
       a: r1(r.a.composite),
       b: r1(r.b.composite),
@@ -210,7 +210,7 @@ function buildArm(ids, A, B, labelOf, auditorCount) {
 const RULE = '-'.repeat(78);
 
 function fmtIcc(res) {
-  if (!res) return 'n/a (needs >= 2 paired CLEs)';
+  if (!res) return 'n/a (needs >= 2 paired PLEs)';
   if (res.icc === null) return `n/a  n=${res.n}  ${res.interpretation}`;
   return `${f3(res.icc)}  95% CI ${ci(res)}  n=${res.n}  -> ${res.interpretation}`;
 }
@@ -222,14 +222,14 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   console.log(`ARM  ${spec.title}   (${spec.note})`);
   console.log(RULE);
   if (!armCommon && !armOwn) {
-    console.log(`  unavailable - no CLE carries both scores (${A} and ${B}).`);
+    console.log(`  unavailable - no PLE carries both scores (${A} and ${B}).`);
     return;
   }
   const arm = armCommon || armOwn;
   console.log(`  cohort: ${cohortNote}`);
   console.log(`  ICC(2,1) ${A}-${B}: ${fmtIcc(arm.overall)}`);
   if (armOwn && armCommon && armOwn.n !== armCommon.n) {
-    console.log(`  this arm alone, on all ${plural(armOwn.n, 'CLE')} it can pair: ${fmtIcc(armOwn.overall)}`);
+    console.log(`  this arm alone, on all ${plural(armOwn.n, 'PLE')} it can pair: ${fmtIcc(armOwn.overall)}`);
     console.log(`    (not comparable across arms - shown so no data is silently dropped)`);
   }
 
@@ -249,8 +249,8 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   }
 
   const shown = arm.per_cle.slice(0, TOP);
-  console.log(`\n  per-CLE composite deltas, sorted by |delta|  (** = beyond 2 SD from this arm's bias):`);
-  console.log(`    ${'CLE'.padEnd(15)} ${A.padStart(7)}  ${B.padStart(7)}  ${'delta'.padStart(7)}`);
+  console.log(`\n  per-PLE composite deltas, sorted by |delta|  (** = beyond 2 SD from this arm's bias):`);
+  console.log(`    ${'PLE'.padEnd(15)} ${A.padStart(7)}  ${B.padStart(7)}  ${'delta'.padStart(7)}`);
   for (const p of shown) {
     const aud = (spec.a === 'human' || spec.b === 'human') && p.n_auditors
       ? `  (${p.n_auditors} auditor${p.n_auditors === 1 ? '' : 's'})` : '';
@@ -268,32 +268,32 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   console.log(`db=${host}  include_test=${INCLUDE_TEST}  non-inferiority margin=${MARGIN.toFixed(2)}`);
 
   const [aiRows, auditRows] = await Promise.all([
-    selectAll('ai_evaluations', 'id, cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7'),
-    selectAll('audit_scores', 'id, cle_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7'),
+    selectAll('ai_evaluations', 'id, ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7'),
+    selectAll('audit_scores', 'id, ple_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7'),
   ]);
   const shadowRows = await selectAll(
     'shadow_evaluations',
-    'id, cle_id, provider, model_version, composite_score, d1,d2,d3,d4,d5,d6,d7, error, stop_reason, evaluated_at',
+    'id, ple_id, provider, model_version, composite_score, d1,d2,d3,d4,d5,d6,d7, error, stop_reason, evaluated_at',
     { optional: true },
   );
   const shadowTableMissing = shadowRows === null;
 
-  // is_test CLEs are excluded by default, matching GET /oversight/icc.
+  // is_test PLEs are excluded by default, matching GET /oversight/icc.
   const unionIds = [...new Set([
-    ...aiRows.map(r => r.cle_id),
-    ...auditRows.map(r => r.cle_id),
-    ...(shadowRows || []).map(r => r.cle_id),
+    ...aiRows.map(r => r.ple_id),
+    ...auditRows.map(r => r.ple_id),
+    ...(shadowRows || []).map(r => r.ple_id),
   ])];
-  const cleRows = unionIds.length ? await selectIn('cles', 'id, is_test, physician_id', unionIds) : [];
-  const cleById = new Map(cleRows.map(c => [c.id, c]));
-  const allowed = new Set(cleRows.filter(c => INCLUDE_TEST || !c.is_test).map(c => c.id));
+  const pleRows = unionIds.length ? await selectIn('ples', 'id, is_test, physician_id', unionIds) : [];
+  const pleById = new Map(pleRows.map(c => [c.id, c]));
+  const allowed = new Set(pleRows.filter(c => INCLUDE_TEST || !c.is_test).map(c => c.id));
 
-  const physIds = [...new Set(cleRows.map(c => c.physician_id).filter(Boolean))];
+  const physIds = [...new Set(pleRows.map(c => c.physician_id).filter(Boolean))];
   const pros = physIds.length ? await selectIn('professionals', 'id, pseudonym', physIds) : [];
   const pseudoOf = new Map(pros.map(p => [p.id, p.pseudonym]));
-  // A physician owns several CLEs, so the pseudonym alone is not a unique row label -- suffix the CLE
+  // A physician owns several PLEs, so the pseudonym alone is not a unique row label -- suffix the PLE
   // id so an outlier printed here can actually be looked up afterwards.
-  const labelOf = (id) => `${pseudoOf.get(cleById.get(id)?.physician_id) || 'P-???'}/${id.slice(0, 6)}`;
+  const labelOf = (id) => `${pseudoOf.get(pleById.get(id)?.physician_id) || 'P-???'}/${id.slice(0, 6)}`;
 
   const finiteDoms = (o) => DOMS.every(d => Number.isFinite(num(o[d])));
   const toScore = (o) => {
@@ -304,18 +304,18 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
     return { ...doms, composite: Number.isFinite(stored) ? stored : compositeScore(doms) };
   };
 
-  // Claude (served) -- unique(cle_id), so one row per CLE.
+  // Claude (served) -- unique(ple_id), so one row per PLE.
   const ai = new Map();
-  for (const r of aiRows) if (allowed.has(r.cle_id) && finiteDoms(r)) ai.set(r.cle_id, toScore(r));
+  for (const r of aiRows) if (allowed.has(r.ple_id) && finiteDoms(r)) ai.set(r.ple_id, toScore(r));
 
-  // Auditors -- averaged to ONE human value per CLE BEFORE pairing. ICC(2,1) assumes one rating per
-  // subject per rater; a 3-auditor CLE contributing 3 pairs that reuse the same AI value inflates n
+  // Auditors -- averaged to ONE human value per PLE BEFORE pairing. ICC(2,1) assumes one rating per
+  // subject per rater; a 3-auditor PLE contributing 3 pairs that reuse the same AI value inflates n
   // and distorts the estimate. With a single auditor the mean is that score, so both cases are right.
   const byCleAudit = new Map();
   for (const r of auditRows) {
-    if (!allowed.has(r.cle_id)) continue;
-    if (!byCleAudit.has(r.cle_id)) byCleAudit.set(r.cle_id, []);
-    byCleAudit.get(r.cle_id).push(r);
+    if (!allowed.has(r.ple_id)) continue;
+    if (!byCleAudit.has(r.ple_id)) byCleAudit.set(r.ple_id, []);
+    byCleAudit.get(r.ple_id).push(r);
   }
   const human = new Map();
   const auditorCount = new Map();
@@ -325,7 +325,7 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
     auditorCount.set(id, rows.length);
   }
 
-  // The AUDITED universe: CLEs carrying at least one auditor score. Same scope the endpoint reports
+  // The AUDITED universe: PLEs carrying at least one auditor score. Same scope the endpoint reports
   // its coverage funnel over (human -> +ai -> +shadow -> all three), so the two agree.
   const auditedIds = [...human.keys()];
   const auditedSet = new Set(auditedIds);
@@ -333,14 +333,14 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   // Local (shadow candidate). `provider` is the TRANSPORT ('local'); the candidate is the PAIR
   // (provider, model_version). Pooling two candidates into one arm reports a number describing
   // neither, so group on the pair and measure exactly one -- the most recent, as the endpoint does.
-  const shadowScoped = (shadowRows || []).filter(r => allowed.has(r.cle_id));
+  const shadowScoped = (shadowRows || []).filter(r => allowed.has(r.ple_id));
   const groups = new Map();
   for (const r of shadowScoped) {
     const key = `${r.provider} ${r.model_version}`;
     const g = groups.get(key) ?? { provider: r.provider, model_version: r.model_version, rows: [], latest: 0, audited: 0 };
     g.rows.push(r);
     g.latest = Math.max(g.latest, Date.parse(r.evaluated_at ?? '') || 0);
-    if (auditedSet.has(r.cle_id)) g.audited += 1;
+    if (auditedSet.has(r.ple_id)) g.audited += 1;
     groups.set(key, g);
   }
   const byRecency = (x, y) => (y.latest - x.latest)
@@ -357,14 +357,14 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
     }
   } else {
     // Prefer the most recent candidate that actually overlaps the audited universe -- a newer
-    // candidate seen only on unaudited CLEs cannot produce a human-anchored arm. Fall back to the
+    // candidate seen only on unaudited PLEs cannot produce a human-anchored arm. Fall back to the
     // most recent overall so the coverage lines still name something.
     candidate = allGroups.find(g => g.audited > 0) || allGroups[0] || null;
   }
   if (allGroups.length > 1) {
     console.log(`\nShadow candidates present (${allGroups.length}) - measuring the marked one; --provider/--model to switch:`);
     for (const g of allGroups) {
-      console.log(`  ${g === candidate ? '->' : '  '} ${g.provider}/${g.model_version}  ${plural(g.rows.length, 'row')}, ${g.audited} on audited CLEs`);
+      console.log(`  ${g === candidate ? '->' : '  '} ${g.provider}/${g.model_version}  ${plural(g.rows.length, 'row')}, ${g.audited} on audited PLEs`);
     }
   }
 
@@ -380,17 +380,17 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
     const failed = r.error != null || !finiteDoms(r);
     if (failed) {
       corpusFailed += 1;
-      if (auditedSet.has(r.cle_id)) auditedFailed += 1;
+      if (auditedSet.has(r.ple_id)) auditedFailed += 1;
       continue;
     }
     corpusScored += 1;
-    shadow.set(r.cle_id, toScore(r));
+    shadow.set(r.ple_id, toScore(r));
   }
 
   const withAi = auditedIds.filter(id => ai.has(id));
   const allThree = withAi.filter(id => shadow.has(id));
   const shadowAvailable = !shadowTableMissing && allThree.length > 0;
-  // Arms are all computed on the SAME CLEs so they can honestly be read against one another. With no
+  // Arms are all computed on the SAME PLEs so they can honestly be read against one another. With no
   // shadow corpus that set degrades to human-and-ai and ai_vs_human matches GET /oversight/icc.
   const compareIds = shadowAvailable ? allThree : withAi;
   const ownIds = [...new Set([...auditedIds, ...ai.keys(), ...shadow.keys()])];
@@ -399,15 +399,15 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   const auditedAttempts = auditedShadowScored + auditedFailed;
   const corpusAttempts = corpusScored + corpusFailed;
   // Cohort-scoped rate (comparable to the endpoint's) and corpus-wide rate (the better estimate:
-  // contract compliance is a property of the MODEL, not of whichever CLEs happened to be audited).
+  // contract compliance is a property of the MODEL, not of whichever PLEs happened to be audited).
   const cohortRate = auditedAttempts ? auditedShadowScored / auditedAttempts : null;
   const corpusRate = corpusAttempts ? corpusScored / corpusAttempts : null;
 
   const coverage = {
-    cles_with_human: human.size,
-    cles_with_ai: withAi.length,
-    cles_with_shadow: auditedShadowScored,
-    cles_all_three: allThree.length,
+    ples_with_human: human.size,
+    ples_with_ai: withAi.length,
+    ples_with_shadow: auditedShadowScored,
+    ples_all_three: allThree.length,
     shadow_failed: auditedFailed,
     shadow_contract_rate: cohortRate === null ? null : r3(cohortRate),
   };
@@ -424,26 +424,26 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
 
   // -- report --
   console.log(`\n${RULE}`);
-  console.log('COVERAGE  (audited universe = CLEs with at least one auditor score)');
+  console.log('COVERAGE  (audited universe = PLEs with at least one auditor score)');
   console.log(RULE);
-  console.log(`  CLEs with >=1 auditor score (human) : ${coverage.cles_with_human}`);
-  console.log(`  ... of those, with a Claude score   : ${coverage.cles_with_ai}`);
-  console.log(`  ... of those, with a Local score    : ${coverage.cles_with_shadow}`
+  console.log(`  PLEs with >=1 auditor score (human) : ${coverage.ples_with_human}`);
+  console.log(`  ... of those, with a Claude score   : ${coverage.ples_with_ai}`);
+  console.log(`  ... of those, with a Local score    : ${coverage.ples_with_shadow}`
     + (shadowTableMissing ? '   [shadow_evaluations does not exist - migration not applied]'
       : !shadowScoped.length ? '   [table exists, no rows yet]' : ''));
-  console.log(`  CLEs with all three                 : ${coverage.cles_all_three}`);
-  console.log(`  shadow contract failures (audited)  : ${auditedAttempts ? `${coverage.shadow_failed} of ${auditedAttempts} attempt(s)` : 'none - no shadow attempts on audited CLEs'}`);
+  console.log(`  PLEs with all three                 : ${coverage.ples_all_three}`);
+  console.log(`  shadow contract failures (audited)  : ${auditedAttempts ? `${coverage.shadow_failed} of ${auditedAttempts} attempt(s)` : 'none - no shadow attempts on audited PLEs'}`);
   console.log(`  shadow contract rate (audited)      : ${cohortRate === null ? 'n/a - no shadow attempts' : pct(cohortRate)}`);
   console.log(`  shadow contract rate (whole corpus) : ${corpusRate === null ? 'n/a - no shadow attempts' : `${pct(corpusRate)}  (${corpusScored}/${corpusAttempts})   need >= ${pct(CONTRACT_MIN)}`}`);
   if (corpusRate !== null && corpusAttempts !== auditedAttempts) {
     console.log(`    (the corpus rate is the better estimate of contract compliance - it is a property`);
-    console.log(`     of the MODEL, not of whichever CLEs happened to be picked for audit)`);
+    console.log(`     of the MODEL, not of whichever PLEs happened to be picked for audit)`);
   }
   console.log(`\n  Reference standard = the HUMAN AUDITORS. Claude is a comparator, not ground truth.`);
 
   const cohortNote = shadowAvailable
-    ? `${plural(compareIds.length, 'CLE')} scored by all three - the arms below are directly comparable`
-    : `${plural(compareIds.length, 'CLE')} with both a Claude and a human score (no shadow corpus yet)`;
+    ? `${plural(compareIds.length, 'PLE')} scored by all three - the arms below are directly comparable`
+    : `${plural(compareIds.length, 'PLE')} with both a Claude and a human score (no shadow corpus yet)`;
   for (const spec of ARMS) printArm(spec, arms[spec.key], armsOwn[spec.key], cohortNote);
 
   // -- acceptance --
@@ -466,7 +466,7 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
     localHuman ? fmtIcc(localHuman) : 'no shadow data yet');
   crit(nonInfOk, `local within ${MARGIN.toFixed(2)} ICC of Claude`,
     gap === null ? 'not evaluable yet'
-      : `delta ${signed(gap, 3)}  (local ${f3(localHuman.icc)} vs Claude ${f3(claudeHuman.icc)} on the same ${plural(compareIds.length, 'CLE')})`);
+      : `delta ${signed(gap, 3)}  (local ${f3(localHuman.icc)} vs Claude ${f3(claudeHuman.icc)} on the same ${plural(compareIds.length, 'PLE')})`);
   console.log('');
   console.log(`  All three must hold. The first two are human-anchored; Claude-vs-Local is NOT`);
   console.log(`  acceptance evidence - two models can agree closely and both be lenient.`);
@@ -477,7 +477,7 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
 
   // -- archive --
   // Same shape as GET /oversight/icc/three-way (arms / coverage / shadow) so an offline run and the
-  // dashboard can be diffed directly, plus the bias and per-CLE detail the endpoint does not carry.
+  // dashboard can be diffed directly, plus the bias and per-PLE detail the endpoint does not carry.
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const dir = path.join(__dirname, 'runs');
   fs.mkdirSync(dir, { recursive: true });

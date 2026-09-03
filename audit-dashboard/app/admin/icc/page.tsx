@@ -109,7 +109,7 @@ export default function IccPage() {
           </p>
           <div className="grid gap-3 @min-[640px]:grid-cols-2">
             {[
-              { r: inter_auditor, sub: 'ผู้ตรวจหนึ่งคน / one rater — conservative; assumes raters drawn per CLE' },
+              { r: inter_auditor, sub: 'ผู้ตรวจหนึ่งคน / one rater — conservative; assumes raters drawn per PLE' },
               { r: inter_auditor_average, sub: 'ค่าเฉลี่ยของผู้ตรวจ / the raters\u2019 mean — assumes a fixed panel' },
             ].filter(x => x.r).map(({ r, sub }) => (
               <div key={r!.model ?? 'icc'} className="rounded-xl border p-4">
@@ -130,7 +130,7 @@ export default function IccPage() {
             // Cohort transparency, not a filter. This project has been burnt once by a headline ICC
             // that was partly an artifact of cases dropping out (n 33 → 30).
             <p className="mt-2 text-xs text-muted-foreground">
-              ผู้ตรวจต่อ CLE / raters per CLE: {Object.entries(auditors_per_cle).map(([k, v]) => `${k}→${v}`).join(' · ')}
+              ผู้ตรวจต่อ PLE / raters per PLE: {Object.entries(auditors_per_cle).map(([k, v]) => `${k}→${v}`).join(' · ')}
               {n_at_target != null && <> · ถึงเป้าหมาย / at target: {n_at_target}, ต่ำกว่า / below: {n_below_target}</>}
             </p>
           )}

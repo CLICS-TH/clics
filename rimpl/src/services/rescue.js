@@ -87,12 +87,16 @@ function rescueExhausted({ rescueActive = false, rescueRounds = 0 } = {}) {
 //
 // `transcriptText` must already be PII-stripped by the caller — this function makes a cloud-capable
 // call and performs no de-identification of its own.
-async function assessQualifying(transcriptText) {
+//
+// `signal` is the request's client-gone signal (lib/request-signal.js): a physician who closes the
+// tab mid-assessment frees the classifier's queue slot for the next physician.
+async function assessQualifying(transcriptText, { signal } = {}) {
   const { text, inputTokens, outputTokens, provider, model } = await callAI({
     purpose: 'criteria',
     systemPrompt: CRITERIA_CLASSIFIER_PROMPT,
     messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
     maxTokens: 200,
+    signal,
   });
   const ELEMENTS = ['c4', 'c5', 'c6', 'c7'];
   let r;

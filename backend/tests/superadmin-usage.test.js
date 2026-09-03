@@ -3,6 +3,7 @@ let mockSetting = { data: { value: 0.5 }, error: null };
 // One row satisfies both verifyJwt (role=superadmin) and reset-usage (returns usage_cost_usd:0).
 const mockProf = { data: { id: 'sa-1', role: 'superadmin', status: 'active', usage_cost_usd: 0 }, error: null };
 const mockUser = { data: { user: { id: 'sa-1', email: 'superadmin@clics.th' } }, error: null };
+let mockKnownCouncils = ['SANDBOX', 'TMC'];
 
 jest.mock('../src/lib/supabase', () => {
   const settingChain = {
@@ -13,9 +14,13 @@ jest.mock('../src/lib/supabase', () => {
     const c = { select: () => c, eq: () => c, update: () => c, order: () => Promise.resolve({ data: [], error: null }), single: () => Promise.resolve(val), maybeSingle: () => Promise.resolve(val) };
     return c;
   };
+  const councilsChain = {
+    select: () => councilsChain,
+    in: (_col, vals) => Promise.resolve({ data: vals.filter((v) => mockKnownCouncils.includes(v)).map((code) => ({ code })), error: null }),
+  };
   return {
     supabase: {
-      from: (table) => table === 'app_settings' ? settingChain : profChain(mockProf),
+      from: (table) => table === 'app_settings' ? settingChain : table === 'councils' ? councilsChain : profChain(mockProf),
       rpc: () => Promise.resolve({ error: null }),
     },
     authSupabase: { auth: { getUser: () => Promise.resolve(mockUser) } },
@@ -82,4 +87,24 @@ test('POST /admin/users/:id/reset-usage zeroes the meter', async () => {
   const res = await auth(request(app).post('/admin/users/doc9/reset-usage')).send({});
   expect(res.status).toBe(200);
   expect(res.body.usage_cost_usd).toBe(0);
+});
+
+// eval_drain_exclude_councils is the prod↔laptop evaluation partition. lib/eval-scope.js fails CLOSED on a
+// code that names no council, so the PATCH must refuse a typo instead of saving something that silently
+// stops every evaluation.
+test('PATCH /admin/usage-settings refuses an unknown council code in eval_drain_exclude_councils (400, names it)', async () => {
+  const res = await auth(request(app).patch('/admin/usage-settings')).send({ eval_drain_exclude_councils: 'sandbox, SANDBX' });
+  expect(res.status).toBe(400);
+  expect(res.body.unknown).toEqual(['SANDBX']);
+});
+test('PATCH /admin/usage-settings accepts known council codes (normalised upper-case) and an empty string (clears)', async () => {
+  expect((await auth(request(app).patch('/admin/usage-settings')).send({ eval_drain_exclude_councils: 'sandbox,tmc' })).status).toBe(200);
+  expect((await auth(request(app).patch('/admin/usage-settings')).send({ eval_drain_exclude_councils: '' })).status).toBe(200);
+});
+
+test('PATCH /admin/usage-settings echoes the capacity keys too (a client may setState(response) after saving)', async () => {
+  const res = await auth(request(app).patch('/admin/usage-settings')).send({ ple_transcript_warn_pct: 85 });
+  expect(res.status).toBe(200);
+  for (const k of ['standard_limit_tokens', 'auditor_standard_limit_tokens', 'ple_max_transcript_tokens', 'ple_transcript_warn_pct',
+    'eval_drain_concurrency', 'eval_p50_seconds', 'eval_drain_exclude_councils']) expect(res.body).toHaveProperty(k);
 });

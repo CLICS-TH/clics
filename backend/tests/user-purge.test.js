@@ -27,7 +27,7 @@ const mockThenable = (data = null) => {
 jest.mock('../src/lib/supabase', () => ({
   supabase: {
     from: (table) => ({
-      select: () => mockThenable(table === 'cles' ? [{ id: 'cle-1' }, { id: 'cle-2' }] : null),
+      select: () => mockThenable(table === 'ples' ? [{ id: 'ple-1' }, { id: 'ple-2' }] : null),
       delete: () => mockThenable(null),
       update: () => mockThenable(null),
     }),

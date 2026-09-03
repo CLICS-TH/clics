@@ -10,7 +10,7 @@ const { createRunner } = require('./runtime');
 
 // We do our own retry (via the shared runner), so disable the SDK's internal retry to avoid
 // double-retrying.
-// 150000, not 85000 (and originally 55000): a 130k-token eval transcript (CLE-052, 2026-08-17)
+// 150000, not 85000 (and originally 55000): a 130k-token eval transcript (PLE-052, 2026-08-17)
 // needed >55s just to generate the JSON scoring response (7 domains + quote-grounded rationale,
 // after the maxTokens bump in routes/evaluate.js), so the SDK's own 55s ceiling fired mid-generation
 // (APIConnectionTimeoutError) before the model ever finished. 85s then fixed that but left no room
@@ -98,7 +98,7 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
     const text = (data.content || []).filter((b) => typeof b.text === 'string').map((b) => b.text).join('');
     const inputTokens = data.usage?.input_tokens ?? 0;
     const outputTokens = data.usage?.output_tokens ?? 0;
-    // tokenCount (summed) is kept for the C3 CLE gate; input/output are split out for cost.
+    // tokenCount (summed) is kept for the C3 PLE gate; input/output are split out for cost.
     // stopReason distinguishes "hit max_tokens" (a real length/truncation problem) from
     // "end_turn" (the model finished on its own without ever producing the expected JSON) —
     // callers that fail to parse `text` need this to tell those two very different causes apart.

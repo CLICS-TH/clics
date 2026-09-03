@@ -35,6 +35,7 @@
      inherited body text. */
   --color-danger: var(--danger);
   --color-link: var(--link);
+  --color-coral-on-tint: var(--coral-on-tint);
   --color-warn: var(--warn);
   --color-ok: var(--ok);
   --color-accent-foreground: var(--accent-foreground);
@@ -86,8 +87,11 @@
   --popover-foreground: #141413;
   --primary: #cc785c;
   --primary-foreground: #ffffff;
-  /* Button FILL: #a9583e gives white text ~4.6:1 (WCAG AA); bright --primary stays for links,
-     focus rings, active nav, accents & charts — just never small white text on it. */
+  /* Button FILL: #a9583e gives white text ~4.6:1 (WCAG AA). Bright --primary is a NON-TEXT token:
+     focus rings, borders, accents & charts. It is not for links or active nav — it measures 3.11:1
+     on this canvas and 2.71:1 on --secondary, which is what --link and --coral-on-tint below are
+     for. (This note used to say "links, active nav"; the 2026-08 readability sweep found the nav's
+     active link failing at exactly that 3.11:1 because of it.) */
   --coral-active: #a9583e;
   --secondary: #efe9de;
   --secondary-foreground: #141413;
@@ -104,6 +108,12 @@
   /* Text-safe coral. Bright --primary reads 3.11:1 on this canvas, so it fails for LINKS too —
      not only for the white-on-coral case the --coral-active note below already covers. */
   --link: #ae5c41;
+  /* Coral text on a TINTED surface. --link clears 4.5:1 on the plain canvas (4.52:1) and nowhere
+     else: measured 4.20:1 on --muted and 3.94:1 on --secondary, so a coral label inside any tinted
+     box fails. Mirrors physician-ui's --coral-on-card, same hex, and clears every dashboard surface
+     (6.02:1 on --muted, 5.65:1 on --secondary, 6.48:1 on the canvas). Used by the manual's quoted
+     UI-label chips, which sit on a tint by design. */
+  --coral-on-tint: #8f4629;
   /* Amber TEXT. Previously UNDEFINED: admin/compensation and StatStrip both wrote
      var(--warn, #e08a1e) and always got the fallback — #e08a1e is --chart-warn, a SOLID-FILL
      colour, and measures 2.55:1 as text here. Defining it fixes those sites with no edit. */
@@ -166,6 +176,7 @@
   --ok: #5db872;            /* success text — bright green reads well on the dark canvas (7.31:1) */
   --danger: #f26e69;        /* tuned to the HOVER tint (4.52:1 on /30); 6.15:1 canvas, 5.38:1 card */
   --link: #cc785c;          /* bright coral is already 5.47:1 on the dark canvas — no change needed */
+  --coral-on-tint: #f0bda8; /* 9.96:1 on --muted, 9.37:1 on --card, 10.71:1 on the canvas */
   --warn: #e08a1e;          /* 6.67:1 on the dark canvas — the fill colour happens to work here */
   --border: rgba(250,249,245,0.10);
   --input: rgba(250,249,245,0.15);

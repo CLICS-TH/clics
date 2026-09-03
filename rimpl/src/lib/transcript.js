@@ -27,7 +27,7 @@ function stripArtifactDelimiters(text) {
   return String(text).replace(ARTIFACT_OPEN_RE, '').replace(ARTIFACT_CLOSE_RE, '');
 }
 
-// `hints` = KNOWN patient identifiers (deriveHintTokens of the cle's patient_ref) scrubbed
+// `hints` = KNOWN patient identifiers (deriveHintTokens of the ple's patient_ref) scrubbed
 // deterministically, so a bare unlabelled name in the stored transcript is masked before the eval.
 // An optional `registry` lets the caller recover the token→raw reverse map via registry.entries()
 // (used to persist the on-prem reversible PII map at finalization).

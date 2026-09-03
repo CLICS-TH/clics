@@ -37,7 +37,7 @@ const cfg = () => ({
   // The model that serves /embeddings. Usually NOT the chat model — embedding models are separate
   // checkpoints (nomic-embed-text, bge-m3, …) even on the same box.
   embedModel: String(process.env.LOCAL_AI_EMBED_MODEL || ''),
-  // A creditable CLE needs C3 ≥ 10,000 tokens, and the evaluator sends the whole transcript. Anything
+  // A creditable PLE needs C3 ≥ 10,000 tokens, and the evaluator sends the whole transcript. Anything
   // near Ollama's 4096 default cannot score one. Reported by ready() so the mismatch is visible in
   // /health/deep rather than discovered by a physician losing an evaluation.
   //
@@ -50,6 +50,11 @@ const cfg = () => ({
   // unknown body fields are unaffected. Left unset by default so we never send a field a stricter
   // server would reject.
   numCtx: intEnv('LOCAL_AI_NUM_CTX', 0, 0),
+  // Proactive size backstop (0 = off). A prompt estimated above this is refused BEFORE it takes a
+  // queue slot or a network round-trip, with 413 transcript_too_large — the server's own 400 for
+  // an over-long prompt only arrives after the box has already spent time on it. Set from the WP0
+  // capacity probe (the largest size at which the served model still recalled the sentinel).
+  maxPromptTokens: intEnv('LOCAL_AI_MAX_PROMPT_TOKENS', 0, 0),
 });
 
 const RETRYABLE_STATUS = new Set([408, 409, 429, 500, 502, 503, 529]);
@@ -63,6 +68,10 @@ function isRetryable(err) {
   // aborts the request at RIMPL_EVAL_TIMEOUT_MS = 100s. Every retry would be dead work on a caller
   // that has already hung up, while still occupying a queue slot other requests are waiting for.
   if (err && err.localTimeout) return false;
+  // Same terminal rule for a caller that hung up (tab closed, backend deadline): the reply would be
+  // dead on arrival, and the slot a retry would hold is what the next caller is waiting for. Tagged
+  // by httpJson from the caller's own signal, so it cannot be confused with our deadline above.
+  if (err && err.aborted) return false;
   if (err && typeof err.status === 'number' && RETRYABLE_STATUS.has(err.status)) return true;
   const code = err?.code || err?.cause?.code;
   if (code && RETRYABLE_CODES.has(code)) return true;
@@ -74,15 +83,37 @@ function retryAfterMs(err) {
   return Number.isFinite(n) && n > 0 ? Math.min(n * 1000, 30000) : null;
 }
 
+// Which queue lane a purpose rides in (providers/runtime.js). Interactive = a human is waiting on
+// the reply right now: a chat turn, the synchronous criteria call on /end, an auditor's discussion
+// turn. Background = nobody is watching: a PIS-7 evaluation the backend drains from its queue, a
+// shadow score. An unknown purpose goes to background — the safe default for a new purpose is to
+// never cut ahead of a physician.
+const LANE_FOR = { chat: 'interactive', criteria: 'interactive', discuss: 'interactive', evaluate: 'background', shadow: 'background' };
+const laneFor = (purpose) => LANE_FOR[purpose] || 'background';
+
 // A dedicated GPU box has no per-account quota, but it is NOT unbounded — throughput is capped by
 // VRAM and the server's batch scheduler. Keep a limiter; size it from a measured burst, not from an
 // assurance that "concurrency is not a problem".
+//
+// Default 2, down from 24, from the DGX measurement: one PIS-7 evaluation is p50 68s; at two
+// concurrent p95 is 114s, at four 154s — over LOCAL_AI_TIMEOUT_MS, i.e. a slow evaluation becomes a
+// failed one. And ONE shared FIFO meant a burst of evaluations parked the next physician's chat
+// turn behind them, while nothing cancelled a queued call whose caller had already timed out, so a
+// backend retry stacked a duplicate behind the original. Hence two lanes with an interactive
+// reserve, a bounded depth (503 now beats a timeout later), and cancellation from the caller's signal.
 let runner = null;
 function getRunner() {
   if (!runner) {
-    const maxConcurrency = intEnv('LOCAL_MAX_CONCURRENCY', 24, 1);
+    const maxConcurrency = intEnv('LOCAL_MAX_CONCURRENCY', 2, 1);
     const maxRetries = intEnv('LOCAL_MAX_RETRIES', 3, 0);
     const retryBaseMs = intEnv('LOCAL_RETRY_BASE_MS', 500, 1);
+    let reserve = intEnv('LOCAL_INTERACTIVE_RESERVE', 1, 0);
+    if (reserve >= maxConcurrency) {
+      // A reserve that swallows every slot would leave evaluations queued forever (then 503'd). Clamp
+      // rather than throw: on a one-slot box the lanes still order interactive first.
+      console.warn(`[local-ai] LOCAL_INTERACTIVE_RESERVE=${reserve} is not below LOCAL_MAX_CONCURRENCY=${maxConcurrency}; clamping to ${maxConcurrency - 1} so background work can still run`);
+      reserve = maxConcurrency - 1;
+    }
     runner = createRunner({
       name: 'local',
       maxConcurrency,
@@ -90,33 +121,48 @@ function getRunner() {
       retryBaseMs,
       isRetryable,
       retryAfterMs,
+      lanes: {
+        reserve,
+        maxQueue: {
+          interactive: intEnv('LOCAL_MAX_QUEUE_INTERACTIVE', 4, 0),
+          background: intEnv('LOCAL_MAX_QUEUE_BACKGROUND', 2, 0),
+        },
+        retryAfterMs: intEnv('LOCAL_QUEUE_RETRY_AFTER_S', 30, 1) * 1000,
+      },
       onRetry: (err, attempt) => {
-        const { active, queued } = runner.stats();
+        const { active, queued, lanes } = runner.stats();
         // No anthropic-ratelimit-* headers exist here, so queue depth is the only saturation signal.
-        console.warn(`[local-ai] retryable error (status ${err?.status ?? '?'}: ${err?.message ?? ''}), attempt ${attempt + 1}/${maxRetries} — in-flight:${active} queued:${queued}`);
+        console.warn(`[local-ai] retryable error (status ${err?.status ?? '?'}: ${err?.message ?? ''}), attempt ${attempt + 1}/${maxRetries} — in-flight:${active} queued:${queued} (interactive ${lanes.interactive.active} running/${lanes.interactive.queued} waiting, background ${lanes.background.active} running/${lanes.background.queued} waiting)`);
       },
     });
   }
   return runner;
 }
 
-async function httpJson(url, { method = 'GET', body, timeoutMs, apiKey }) {
+// `signal` (optional) is the caller's own AbortSignal — combined with our deadline so either one
+// cancels the request at the socket. An abort from the caller's signal is tagged `aborted`, our
+// deadline `localTimeout`; both are terminal for isRetryable, for different reasons.
+async function httpJson(url, { method = 'GET', body, timeoutMs, apiKey, signal }) {
   const headers = { accept: 'application/json' };
   if (body) headers['content-type'] = 'application/json';
   if (apiKey) headers.authorization = `Bearer ${apiKey}`;
+  const tag = (e) => {
+    if (signal?.aborted) e.aborted = true;
+    // Tag OUR deadline so isRetryable can tell it apart from a transient network blip (which IS
+    // worth retrying). A server-side timeout arrives as an HTTP status instead and stays retryable.
+    else if (e?.name === 'TimeoutError') e.localTimeout = true;
+    return e;
+  };
   let res;
   try {
     res = await fetch(url, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
-      signal: AbortSignal.timeout(timeoutMs),
+      signal: AbortSignal.any([AbortSignal.timeout(timeoutMs), signal].filter(Boolean)),
     });
   } catch (e) {
-    // Tag OUR deadline so isRetryable can tell it apart from a transient network blip (which IS
-    // worth retrying). A server-side timeout arrives as an HTTP status instead and stays retryable.
-    if (e?.name === 'TimeoutError') e.localTimeout = true;
-    throw e;
+    throw tag(e);
   }
   if (!res.ok) {
     // Attach .status (and the headers) so isRetryable/retryAfterMs behave exactly as they do for the
@@ -127,7 +173,62 @@ async function httpJson(url, { method = 'GET', body, timeoutMs, apiKey }) {
     err.headers = res.headers;
     throw err;
   }
-  return res.json();
+  try {
+    return await res.json();   // the body read is under the same signal as the request
+  } catch (e) {
+    throw tag(e);
+  }
+}
+
+// Raw prompt size without a tokenizer: UTF-8 bytes / 3. An INPUT to the calibration below, not a token
+// count: Thai is three bytes a character, and the served tokenizer's ratio to this number is nothing
+// like English's (measured on identical text, bytes/3 ran 1.34x the capacity probe's chars/4 for
+// English and 3.37x for Thai). The backend's transcript cap, counted from the server's reported
+// prompt_tokens, is the real budget; this only feeds the pre-send backstop.
+function estimatePromptTokens(messages) {
+  return Math.ceil(Buffer.byteLength(JSON.stringify(messages), 'utf8') / 3);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Self-calibrating size backstop. LOCAL_AI_MAX_PROMPT_TOKENS is in the SERVER's own unit —
+// usage.prompt_tokens, the number the capacity probe reports and the transcript cap counts. The raw
+// byte estimate is converted into that unit through a ratio learnt from served responses:
+// ratio = est / prompt_tokens, an EWMA (alpha 0.2) over every successful call, plus a sample count.
+//
+// PRE-CALIBRATION WINDOW (fewer than CALIBRATION_MIN_SAMPLES served calls): the backstop does NOT
+// pre-reject, deliberately. A wrong ratio rejects work the box can do — with the uncalibrated bytes/3
+// compared straight against the limit, a Thai PLE the box had just proved it can hold was refused
+// at ~30% of real capacity, which the backend turned into 403 transcript_limit_reached (chat) or
+// ple_flag_t2 (evaluate). A genuinely too-large prompt is still caught inside that window by the
+// server's own 400, rewritten to 413 in call(). Module-level, per process: a restart learns afresh
+// from the first served call.
+const CALIBRATION_ALPHA = 0.2;
+const CALIBRATION_MIN_SAMPLES = 3;
+let calibration = { ratio: null, n: 0 };
+
+// Fold one served response into the ratio. Numbers only — never the prompt.
+function observePromptTokens(est, promptTokens) {
+  if (!(est > 0) || typeof promptTokens !== 'number' || !Number.isFinite(promptTokens) || promptTokens <= 0) return;
+  const sample = est / promptTokens;
+  const ratio = calibration.n === 0 ? sample : calibration.ratio + CALIBRATION_ALPHA * (sample - calibration.ratio);
+  calibration = { ratio, n: calibration.n + 1 };
+  // How the ratio is observed on a box BEFORE anyone sets the limit. Off unless LOCAL_LOG_PROMPT_RATIO=1,
+  // so a busy box does not write a line per call; /health/deep queues.local.prompt_calibration carries
+  // the same two numbers without it.
+  if (process.env.LOCAL_LOG_PROMPT_RATIO === '1') {
+    console.debug(`[local] prompt est=${est} served=${promptTokens} ratio=${ratio.toFixed(3)} n=${calibration.n}`);
+  }
+}
+
+// The raw estimate in SERVER prompt tokens, or null while uncalibrated.
+function predictPromptTokens(est) {
+  if (calibration.n < CALIBRATION_MIN_SAMPLES || !(calibration.ratio > 0)) return null;
+  return est / calibration.ratio;
+}
+
+// For stats() / /health/deep and the 413 body: { ratio (3dp) | null, n }. Two numbers, nothing else.
+function promptCalibration() {
+  return { ratio: calibration.ratio == null ? null : Number(calibration.ratio.toFixed(3)), n: calibration.n };
 }
 
 // OpenAI `finish_reason` → Anthropic `stop_reason` vocabulary. This mapping is load-bearing:
@@ -136,26 +237,45 @@ async function httpJson(url, { method = 'GET', body, timeoutMs, apiKey }) {
 // fix). Translating here keeps that diagnosis provider-agnostic.
 const FINISH_REASON = { length: 'max_tokens', stop: 'end_turn', tool_calls: 'tool_use', function_call: 'tool_use', content_filter: 'content_filter' };
 
-async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
-  const { baseUrl, model, apiKey, timeoutMs, numCtx } = cfg();
+// `purpose` picks the queue lane (LANE_FOR); `signal` is the caller's client-gone signal — while
+// queued it drops the waiter, in flight it cancels the request at the socket. Both optional.
+async function call({ systemPrompt, messages, maxTokens = 1500, temperature, purpose, signal }) {
+  const { baseUrl, model, apiKey, timeoutMs, numCtx, maxPromptTokens } = cfg();
   if (!baseUrl) throw new Error('LOCAL_AI_BASE_URL is not set (AI_PROVIDER=local requires it)');
   if (!model) throw new Error('LOCAL_AI_MODEL is not set (AI_PROVIDER=local requires it)');
 
-  return getRunner().run(async () => {
-    // Anthropic takes `system` as a top-level parameter; OpenAI-compatible servers take it as the
-    // first message of the conversation.
-    const body = {
-      model,
-      messages: systemPrompt ? [{ role: 'system', content: systemPrompt }, ...messages] : messages,
-      max_tokens: maxTokens,
-      stream: false,
-    };
-    if (temperature != null) body.temperature = temperature;
-    if (numCtx > 0) body.options = { ...(body.options || {}), num_ctx: numCtx };
+  // Anthropic takes `system` as a top-level parameter; OpenAI-compatible servers take it as the
+  // first message of the conversation.
+  const body = {
+    model,
+    messages: systemPrompt ? [{ role: 'system', content: systemPrompt }, ...messages] : messages,
+    max_tokens: maxTokens,
+    stream: false,
+  };
+  if (temperature != null) body.temperature = temperature;
+  if (numCtx > 0) body.options = { ...(body.options || {}), num_ctx: numCtx };
 
+  // Size backstop BEFORE the queue: a prompt that cannot fit must not take a slot from one that can,
+  // and must not be retried (it cannot shrink). The error carries numbers only — never the text.
+  // Compared in the SERVER's unit through the learnt ratio; while uncalibrated (null) it never
+  // pre-rejects — see the calibration notes above.
+  const est = estimatePromptTokens(body.messages);
+  const predicted = predictPromptTokens(est);
+  if (maxPromptTokens > 0 && predicted != null && predicted > maxPromptTokens) {
+    const err = new Error(`local AI request refused before send: the prompt is a predicted ${Math.round(predicted)} server tokens (bytes/3 estimate ${est} through a learnt ratio of ${calibration.ratio.toFixed(3)} over ${calibration.n} served calls), above LOCAL_AI_MAX_PROMPT_TOKENS=${maxPromptTokens}; the transcript has to be shortened — re-sending cannot make it fit`);
+    err.status = 413;
+    err.contextTooSmall = true;
+    err.code = 'transcript_too_large';
+    err.est_tokens = Math.round(predicted);
+    err.limit = maxPromptTokens;
+    err.calibration = promptCalibration();
+    throw err;
+  }
+
+  return getRunner().run(async (_attempt, sig) => {
     let data;
     try {
-      data = await httpJson(`${baseUrl}/chat/completions`, { method: 'POST', body, timeoutMs, apiKey });
+      data = await httpJson(`${baseUrl}/chat/completions`, { method: 'POST', body, timeoutMs, apiKey, signal: sig });
     } catch (e) {
       // Measured on the DGX (Ollama 0.32.15): a 9,144-token evaluation returns
       // 400 "... exceeds the available context size (4096)". That is the single most likely reason a
@@ -163,10 +283,17 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
       // say it here, once, at the point of failure. It stays a 400 (non-retryable): re-sending the
       // same oversized transcript four times cannot make it fit.
       if (/context (size|length)|exceeds the available context/i.test(e?.message || '')) {
-        const hint = `The server is serving "${model}" with too small a context window for a CLE transcript. Raise it server-side (Ollama: OLLAMA_CONTEXT_LENGTH or a Modelfile \`PARAMETER num_ctx\`; vLLM: --max-model-len), or set LOCAL_AI_NUM_CTX if this server honours a per-request override.`;
+        const hint = `The server is serving "${model}" with too small a context window for a PLE transcript. Raise it server-side (Ollama: OLLAMA_CONTEXT_LENGTH or a Modelfile \`PARAMETER num_ctx\`; vLLM: --max-model-len), or set LOCAL_AI_NUM_CTX if this server honours a per-request override.`;
         const err = new Error(`${e.message} — ${hint}`);
         err.status = e.status;
         err.contextTooSmall = true;
+        // Same vocabulary as the proactive backstop above, so the route answers 413
+        // transcript_too_large either way and the backend has one case to handle, not two.
+        err.code = 'transcript_too_large';
+        // Same unit as `limit` once calibrated (server tokens); the raw bytes/3 estimate before that.
+        err.est_tokens = predicted != null ? Math.round(predicted) : est;
+        err.limit = maxPromptTokens > 0 ? maxPromptTokens : null;
+        err.calibration = promptCalibration();
         throw err;
       }
       throw e;
@@ -178,6 +305,7 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
     // transcript — the caller surfaces the failure via stopReason instead.
     const text = typeof choice?.message?.content === 'string' ? choice.message.content : '';
     const inputTokens = data.usage?.prompt_tokens ?? 0;
+    observePromptTokens(est, data.usage?.prompt_tokens);
     const outputTokens = data.usage?.completion_tokens ?? 0;
     const rawFinish = choice?.finish_reason ?? null;
 
@@ -191,7 +319,7 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
       // for §10.2 provenance — a box whose model changed underneath us must show up in the data.
       model: data.model || model,
     };
-  });
+  }, { lane: laneFor(purpose), signal });
 }
 
 /**
@@ -200,7 +328,7 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
  * Kept in THIS module rather than a third provider file because it is the same host, the same key
  * and the same transport as chat — only the endpoint and the model differ. It deliberately does NOT
  * go through getRunner(): embedding is a sub-second call on every physician turn, and putting it in
- * the same FIFO as 150-second evaluations would let one scoring call stall every chat lookup behind it.
+ * the same queue as 150-second evaluations would let one scoring call stall every chat lookup behind it.
  */
 async function embed(text) {
   const { baseUrl, embedModel, apiKey } = cfg();
@@ -219,7 +347,7 @@ async function embed(text) {
  * How much context the box will actually accept.
  *
  * This is the difference between a failure a physician discovers and one /health/deep reports. A
- * creditable CLE is >= 10,000 tokens (C3) and the evaluator sends the whole transcript, so a server
+ * creditable PLE is >= 10,000 tokens (C3) and the evaluator sends the whole transcript, so a server
  * on Ollama's 4096 default fails EVERY evaluation — loudly, but only at the moment it matters.
  *
  * Ollama exposes the number on its native API, which sits beside the OpenAI-compatible one
@@ -276,7 +404,7 @@ async function ready() {
     // prose is what left the production 409 carrying measured: null while the sentence said 4096.
     if (ctx != null && ctx < minContext) {
       return { checks: { local_ai: { status: 'down', model, context_length: ctx, min_context: minContext,
-        error: `served context ${ctx} is below the required minimum ${minContext} — a creditable CLE transcript (C3 >= 10,000 tokens) cannot be evaluated at this size` } } };
+        error: `served context ${ctx} is below the required minimum ${minContext} — a creditable PLE transcript (C3 >= 10,000 tokens) cannot be evaluated at this size` } } };
     }
     return { checks: { local_ai: { status: 'up', model, context_length: ctx ?? 'unknown', min_context: minContext } } };
   } catch (e) {
@@ -290,5 +418,8 @@ module.exports = {
   model: () => cfg().model,
   embedModel: () => cfg().embedModel,
   ready, servedContext,
-  stats: () => getRunner().stats(),
+  // Queue depth plus the learnt prompt-size calibration, so /health/deep shows the ratio the backstop
+  // would use before anyone sets LOCAL_AI_MAX_PROMPT_TOKENS.
+  stats: () => ({ ...getRunner().stats(), prompt_calibration: promptCalibration() }),
+  LANE_FOR, laneFor, estimatePromptTokens, promptCalibration,
 };

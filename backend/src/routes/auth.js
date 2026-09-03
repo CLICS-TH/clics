@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { supabase, authSupabase, authAnon } = require('../lib/supabase');
 const { verifyJwt } = require('../middleware/auth');
 const { sendDbError } = require('../lib/db-helpers');
-const { effectiveLimit } = require('../lib/usage');
+const { effectiveLimit, effectiveTokenLimit } = require('../lib/usage');
 const { provisionProfessional } = require('../lib/provisioning');
 const { attachSpecialty, linkedProviders, specialtyInCouncil, councilHasSpecialties, specialtyName, TRAINING_LEVELS } = require('../lib/specialties');
 const { encryptJson, decryptJson } = require('../lib/crypto');
@@ -155,14 +155,19 @@ router.get('/me', verifyJwt, async (req, res) => {
   // The auditor budget is a SEPARATE pool — surface its effective limit too so the dashboard can show
   // an auditor usage bar (auditor_usage_cost_usd already flows via req.user from select('*')).
   const auditor_usage_limit_effective_usd = await effectiveLimit(req.user, 'auditor');
+  // The token ceilings (local AI is $0, so tokens are the unit that actually throttles). null = none.
+  const [usage_limit_effective_tokens, auditor_usage_limit_effective_tokens] = await Promise.all([
+    effectiveTokenLimit(req.user), effectiveTokenLimit(req.user, 'auditor'),
+  ]);
   // specialty_name_* powers the nav-bar label; linked_providers drives the "Link Google" affordance.
   const enriched = await attachSpecialty(req.user);
   const linked_providers = await linkedProviders(req.user.id);
-  res.json({ user: { ...enriched, usage_limit_effective_usd, auditor_usage_limit_effective_usd, linked_providers } });
+  res.json({ user: { ...enriched, usage_limit_effective_usd, auditor_usage_limit_effective_usd,
+    usage_limit_effective_tokens, auditor_usage_limit_effective_tokens, linked_providers } });
 });
 
 // ---- Payment details (compensation payout, CLICS §12) ----------------------------------------
-// A physician provides their own bank / PromptPay details so the team can pay ฿500 per completed CLE.
+// A physician provides their own bank / PromptPay details so the team can pay ฿500 per completed PLE.
 // Highly sensitive PII → encrypted on-prem with IDENTITY_ENC_KEY (lib/crypto), exactly like the OAuth
 // identity vault. Self-service only: a physician reads/writes their OWN row; the superadmin reads it
 // (audit-logged) at payout time. Never sent to cloud AI.
@@ -176,7 +181,7 @@ const PaymentInfoSchema = z.object({
 });
 
 router.post('/payment-info', verifyJwt, async (req, res) => {
-  // Physician-only: compensation is paid per completed CLE, which only physicians run (a "special"
+  // Physician-only: compensation is paid per completed PLE, which only physicians run (a "special"
   // dual-role physician keeps role='physician'). Auditors/admins/oversight have no payout.
   if (req.user.role !== 'physician') return res.status(403).json({ error: 'Payment details are for physicians only.' });
   const parsed = PaymentInfoSchema.safeParse(req.body ?? {});
@@ -339,7 +344,7 @@ router.post('/consent', verifyJwt, async (req, res) => {
   res.json({ ok: true, consented_at: now, context: ctx, ...(consentRecordDegraded ? { record_degraded: true } : {}) });
 });
 
-// Whether Pilot Test Mode is on — lets the new-CLE page reveal the Natural/Socratic picker.
+// Whether Pilot Test Mode is on — lets the new-PLE page reveal the Natural/Socratic picker.
 // Feature flags any authed user may read (the superadmin /admin/usage-settings is superadmin-only).
 // peer_calibration drives the admin's multi-auditor assign UI + the auditor's peer radar.
 router.get('/pilot-mode', verifyJwt, async (_req, res) => {

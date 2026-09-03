@@ -1,6 +1,6 @@
-// Recover stranded CLEs through the LEGITIMATE deployed paths (no DB mutation):
+// Recover stranded PLEs through the LEGITIMATE deployed paths (no DB mutation):
 //   - misjudged flagged (full session, tier-2 false negative) -> admin approve (manual QA)
-//   - stuck cle_pass (eval dropped) -> new POST /admin/cles/:id/reevaluate (awaits, retries, 409 if already done)
+//   - stuck ple_pass (eval dropped) -> new POST /admin/ples/:id/reevaluate (awaits, retries, 409 if already done)
 //   cd backend && NODE_PATH="$PWD/node_modules" node /tmp/soak-recover2.js
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
@@ -21,13 +21,13 @@ const pseudoFor = async () => {
   const ps = await pseudoFor();
 
   // read-only: identify targets
-  const { data: stuck } = await s.from('cles').select('id, physician_id').eq('status', 'cle_pass');
-  const { data: misjudged } = await s.from('cles').select('id, physician_id, turn_count').eq('status', 'cle_flag_t2').gte('turn_count', 6);
-  console.log(`stuck cle_pass: ${stuck.length}  | misjudged-flagged (>=6 turns): ${misjudged.length}`);
+  const { data: stuck } = await s.from('ples').select('id, physician_id').eq('status', 'ple_pass');
+  const { data: misjudged } = await s.from('ples').select('id, physician_id, turn_count').eq('status', 'ple_flag_t2').gte('turn_count', 6);
+  console.log(`stuck ple_pass: ${stuck.length}  | misjudged-flagged (>=6 turns): ${misjudged.length}`);
 
-  // 1) manual-QA approve the misjudged full-session flagged CLEs (legit cle_flag_t2 -> cle_pass + eval)
+  // 1) manual-QA approve the misjudged full-session flagged PLEs (legit ple_flag_t2 -> ple_pass + eval)
   for (const p of misjudged) {
-    const r = await api('POST', `/admin/cles/${p.id}/approve`, { token: sa });
+    const r = await api('POST', `/admin/ples/${p.id}/approve`, { token: sa });
     console.log(`  approve ${ps[p.physician_id]} ${p.id.slice(0,8)} (turns=${p.turn_count}): ${r.status} ${JSON.stringify(r.body)}`);
   }
   await sleep(4000);
@@ -35,12 +35,12 @@ const pseudoFor = async () => {
   // 2) reevaluate everything that passed the gate but isn't evaluated yet (awaits + retries internally)
   const targets = [...stuck, ...misjudged];
   for (const p of targets) {
-    const r = await api('POST', `/admin/cles/${p.id}/reevaluate`, { token: sa });
+    const r = await api('POST', `/admin/ples/${p.id}/reevaluate`, { token: sa });
     console.log(`  reevaluate ${ps[p.physician_id]} ${p.id.slice(0,8)}: ${r.status} ${JSON.stringify(r.body)}`);
     if (r.status === 404) { console.log('  !! 404 — new build not promoted yet; rerun shortly.'); }
   }
 
-  const { data: final } = await s.from('cles').select('status');
+  const { data: final } = await s.from('ples').select('status');
   const h = final.reduce((a, p) => { a[p.status] = (a[p.status] || 0) + 1; return a; }, {});
   console.log('Final histogram:', JSON.stringify(h));
   process.exit(0);

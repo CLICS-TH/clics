@@ -100,14 +100,14 @@ describe('what it does when it does run', () => {
   test('the identity vault, national IDs, PII maps and patient refs are deleted', async () => {
     const res = await deidentify(PHRASE);
     expect(res.status).toBe(200);
-    for (const t of ['oauth_identities', 'identity_verifications', 'cle_pii_map', 'cle_patient_refs']) {
+    for (const t of ['oauth_identities', 'identity_verifications', 'ple_pii_map', 'ple_patient_refs']) {
       expect(m.find(t, 'delete')).toBeDefined();
     }
   });
 
   test('professionals is NULLIFIED, not deleted — the row is a research variable', async () => {
     await deidentify(PHRASE);
-    // Deleting it would cascade the CLEs it owns and destroy the study; clearing the name/email/
+    // Deleting it would cascade the PLEs it owns and destroy the study; clearing the name/email/
     // licence columns while keeping the pseudonym IS "ทำให้ไม่สามารถเชื่อมโยงกลับได้".
     expect(m.find('professionals', 'delete')).toBeUndefined();
     const upd = m.find('professionals', 'update');

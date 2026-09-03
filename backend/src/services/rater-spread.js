@@ -50,10 +50,10 @@ const round = (x, p = 2) => (x == null || !Number.isFinite(x) ? null : Math.roun
  * no within-episode comparison to make, and the corpus cannot say how noisy a single rating is.
  * Returned as null in that case rather than as zero — the honest answer is "unmeasurable here".
  */
-function withinEpisode(byCle) {
+function withinEpisode(byPle) {
   const spreads = [];
   let multiRated = 0;
-  for (const scores of byCle.values()) {
+  for (const scores of byPle.values()) {
     if (scores.length < 2) continue;
     multiRated++;
     // Half the pairwise mean absolute difference approximates the single-rating error SD's scale;
@@ -117,38 +117,38 @@ function domainCollapse(rows) {
  *   the caller to surface — returned rather than thrown so an express handler cannot die on it.
  */
 async function raterSpread({ includeTest = false } = {}) {
-  const [scoresRes, clesRes, aiRes] = await Promise.all([
+  const [scoresRes, plesRes, aiRes] = await Promise.all([
     supabase.from('audit_scores').select(
-      `cle_id, auditor_id, composite_score, ${ICC_DOMAINS.join(',')}, scored_at, ` +
+      `ple_id, auditor_id, composite_score, ${ICC_DOMAINS.join(',')}, scored_at, ` +
       ICC_DOMAINS.map((d) => `${d}_anchor`).join(', ')),
-    supabase.from('cles').select('id, is_test'),
-    supabase.from('ai_evaluations').select('cle_id, composite_score'),
+    supabase.from('ples').select('id, is_test'),
+    supabase.from('ai_evaluations').select('ple_id, composite_score'),
   ]);
-  for (const r of [scoresRes, clesRes, aiRes]) if (r.error) return { ok: false, error: r.error };
+  for (const r of [scoresRes, plesRes, aiRes]) if (r.error) return { ok: false, error: r.error };
 
-  const testIds = new Set((clesRes.data ?? []).filter((c) => c.is_test).map((c) => c.id));
-  const known = new Set((clesRes.data ?? []).map((c) => c.id));
+  const testIds = new Set((plesRes.data ?? []).filter((c) => c.is_test).map((c) => c.id));
+  const known = new Set((plesRes.data ?? []).map((c) => c.id));
   const inScope = (id) => known.has(id) && (includeTest || !testIds.has(id));
 
-  const rows = (scoresRes.data ?? []).filter((r) => inScope(r.cle_id) && num(r.composite_score) != null);
+  const rows = (scoresRes.data ?? []).filter((r) => inScope(r.ple_id) && num(r.composite_score) != null);
   if (!rows.length) return { ok: true, empty: true, n_scores: 0 };
 
   // --- per episode, and per auditor -------------------------------------------------------------
-  const byCle = new Map();
+  const byPle = new Map();
   const byAuditor = new Map();
   for (const r of rows) {
     const s = { composite: num(r.composite_score), auditor: r.auditor_id, at: r.scored_at };
-    if (!byCle.has(r.cle_id)) byCle.set(r.cle_id, []);
-    byCle.get(r.cle_id).push(s);
+    if (!byPle.has(r.ple_id)) byPle.set(r.ple_id, []);
+    byPle.get(r.ple_id).push(s);
     if (!byAuditor.has(r.auditor_id)) byAuditor.set(r.auditor_id, []);
     byAuditor.get(r.auditor_id).push(s);
   }
 
   // One human value per episode, exactly as the ICC arms pair them — so the variance reported here
   // is the variance the gate actually sees, not a different number computed a different way.
-  const episodeMeans = [...byCle.values()].map((ss) => mean(ss.map((s) => s.composite)));
+  const episodeMeans = [...byPle.values()].map((ss) => mean(ss.map((s) => s.composite)));
   const varBetween = variance(episodeMeans);
-  const { varError, multiRated } = withinEpisode(byCle);
+  const { varError, multiRated } = withinEpisode(byPle);
 
   // --- the gate arithmetic ----------------------------------------------------------------------
   // ICC = var_between / (var_between + var_error)  =>  0.75 needs var_between >= 3 x var_error.
@@ -175,16 +175,16 @@ async function raterSpread({ includeTest = false } = {}) {
 
   // --- how much of the scale is being used ------------------------------------------------------
   const humanAll = rows.map((r) => num(r.composite_score));
-  const aiByCle = new Map((aiRes.data ?? []).filter((a) => inScope(a.cle_id)).map((a) => [a.cle_id, num(a.composite_score)]));
-  const sharedIds = [...byCle.keys()].filter((id) => aiByCle.has(id));
-  const aiShared = sharedIds.map((id) => aiByCle.get(id)).filter((v) => v != null);
-  const humanShared = sharedIds.map((id) => mean(byCle.get(id).map((s) => s.composite)));
+  const aiByPle = new Map((aiRes.data ?? []).filter((a) => inScope(a.ple_id)).map((a) => [a.ple_id, num(a.composite_score)]));
+  const sharedIds = [...byPle.keys()].filter((id) => aiByPle.has(id));
+  const aiShared = sharedIds.map((id) => aiByPle.get(id)).filter((v) => v != null);
+  const humanShared = sharedIds.map((id) => mean(byPle.get(id).map((s) => s.composite)));
 
   return {
     ok: true,
     empty: false,
     n_scores: rows.length,
-    n_episodes: byCle.size,
+    n_episodes: byPle.size,
     n_auditors: byAuditor.size,
     n_multi_rated_episodes: multiRated,
     // The headline: how far apart the EPISODES are, which is what an ICC has to work with.

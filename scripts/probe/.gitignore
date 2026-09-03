@@ -1,4 +1,4 @@
-# Gate 0 fixtures are DE-IDENTIFIED CLE transcripts. They must never enter git — a
+# Gate 0 fixtures are DE-IDENTIFIED PLE transcripts. They must never enter git — a
 # de-identification slip that reaches a commit is unrecoverable (history is forever, and this repo
 # is mirrored to GitHub). Ignore everything in fixtures/ except the placeholder that keeps the
 # directory present in a fresh clone.
@@ -9,3 +9,5 @@ fixtures/*
 # day, not source. Keep them out of the repo; paste the summary into the roadmap doc instead.
 out/
 *.probe.json
+# probe --out reports: numbers and ids only, but session-specific and regenerated on every run
+report/*.json

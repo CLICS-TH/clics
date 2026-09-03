@@ -1,7 +1,7 @@
 -- Migration: indexes for hot filter/lookup columns that had none.
 --
 --  * ples(auditor_id)  — GET /auditor/queue filters auditor_id + status='evaluated' every load.
---  * ples(status)      — the reconcile sweep (status='cle_pass'), /stats, and the status filter.
+--  * ples(status)      — the reconcile sweep (status='ple_pass'), /stats, and the status filter.
 --  * lpdp_snapshots(ple_id) — the per-PLE snapshot lookups (LPDP, purge, reconcile repair).
 --
 -- Pilot tables are small, so a plain CREATE INDEX is fine; at large scale prefer CREATE INDEX

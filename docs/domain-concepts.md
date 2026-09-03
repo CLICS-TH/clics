@@ -1,29 +1,29 @@
 # Domain Concepts
 
-## PLE vs CLE — the same thing, two names
+## PLE vs PLE — the same thing, two names
 
-The CREC082 protocol says **PLE** (Professional Learning Episode). The code says **CLE** (Continuous
-Learning Episode) everywhere: tables, routes, components, `cle_id`. They are the same unit of
+The CREC082 protocol says **PLE** (Professional Learning Episode). The code says **PLE** (Continuous
+Learning Episode) everywhere: tables, routes, components, `ple_id`. They are the same unit of
 analysis.
 
-**Do not rename the code.** A PLE→CLE rename has already been done once in this repo and it left FK
-constraints named `ples_*`, which broke a PostgREST embed hint and took `/admin/cles` down in
-production with admins seeing zero CLEs. The gain would be cosmetic; the risk is not.
+**Do not rename the code.** A PLE→PLE rename has already been done once in this repo and it left FK
+constraints named `ples_*`, which broke a PostgREST embed hint and took `/admin/ples` down in
+production with admins seeing zero PLEs. The gain would be cosmetic; the risk is not.
 
 Instead: **use PLE in every CREC-facing artefact** (documents, exports, correspondence with the
-ethics committee) and CLE in the code. `cles.cle_code` renders as `CLE-001`; if the committee wants
+ethics committee) and PLE in the code. `ples.ple_code` renders as `PLE-001`; if the committee wants
 `PLE-001` in an export, map it at the export boundary, not in the schema.
 
 | Term | Meaning |
 |------|---------|
-| **CLE** / **PLE** | One physician–AI dialogue session, the unit of analysis. `CLE` in code, `PLE` in the protocol — see above |
-| **PIS-7** | 7-domain scoring rubric (0–5 per domain) used to evaluate physician reasoning quality in a CLE |
+| **PLE** / **PLE** | One physician–AI dialogue session, the unit of analysis. `PLE` in code, `PLE` in the protocol — see above |
+| **PIS-7** | 7-domain scoring rubric (0–5 per domain) used to evaluate physician reasoning quality in a PLE |
 | **RIMPL** | On-premise middleware: pre-filters prompts, strips PII, injects anti-sycophancy + ELM signals |
-| **SBMA** | Score Behavior Matching Algorithm — matches CLE patterns to scoring profiles |
+| **SBMA** | Score Behavior Matching Algorithm — matches PLE patterns to scoring profiles |
 | **ICC** | Intraclass Correlation Coefficient — primary metric for AI vs. expert-auditor agreement (target ≥ 0.75) |
 | **LPDP** | Longitudinal Professional Development Profile — per-physician score trajectory chart |
 | **C1–C7** | Screening criteria. C1–C3 are recorded metadata; **C4–C7 decide** whether the session qualifies — see below |
-| **Credit Engine** | Converts validated CLE scores into CPD credit units |
+| **Credit Engine** | Converts validated PLE scores into CPD credit units |
 | **Pilot Study** | The CREC082 study: 75 physicians × 3 PLEs = 225 evaluable PLEs. **Not yet started** — see below |
 | **sandbox round** | The internal blinded test cohort (SBX-*). Test data, never participant data — see below |
 | **`cme-dev`** | The on-prem inference box, `100.68.210.69`, running Ollama. **The** local-model target |
@@ -41,7 +41,7 @@ ethics committee) and CLE in the code. `cles.cle_code` renders as `CLE-001`; if 
 6. Reflective Synthesis (10%)
 7. AI Literacy & Prompt Skill (10%)
 
-Composite = Σ(domain × weight) × 20 → 0–100 (`backend/src/services/cle-gate.js`).
+Composite = Σ(domain × weight) × 20 → 0–100 (`backend/src/services/ple-gate.js`).
 
 ## Screening criteria (C1–C7)
 
@@ -55,7 +55,7 @@ synthesis — and explicitly *not* a short factual lookup, repeated questioning,
 - **C1–C3 are METADATA, not a gate** (`computeTier1`): C1 duration ≥ 10 min · C2 turns ≥ 4 ·
   C3 tokens ≥ 10,000. They are computed and recorded on every session and decide nothing.
 
-  Until 2026-08 they hard-failed a session at `cle_fail_t1` before it was ever scored, which
+  Until 2026-08 they hard-failed a session at `ple_fail_t1` before it was ever scored, which
   rejected a concise but genuinely reflective episode while passing a rambling factual lookup — the
   wrong way round. **C2 keeps one job**: ≥ 4 physician turns is the threshold at which the Socratic
   rescue may open mid-session (§4). The only remaining hard stop is a session with no physician turn
@@ -94,7 +94,7 @@ that swapping the model would split the study cohort, and deferred the entire lo
 When it matters which one you mean, say **Pilot Study** or **sandbox round**. "The pilot" on its own
 is ambiguous and has been wrong at least once.
 
-A related trap: the 6 evaluated CLEs in the real TMC council with `is_test = false` are **neither** —
+A related trap: the 6 evaluated PLEs in the real TMC council with `is_test = false` are **neither** —
 they are pre-approval development runs that were never labelled. See D3 in `docs/HANDOFF.md`.
 
 ## Local model — the boxes, and what "on-prem AI" does and does not claim

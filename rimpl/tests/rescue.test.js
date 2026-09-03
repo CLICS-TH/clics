@@ -33,7 +33,7 @@ const mockTurn = ({ criteria, reply }) => {
 const QUALIFYING = { c4: true, c5: true, c6: true, c7: true, on_topic: true };
 const SHALLOW    = { c4: true, c5: false, c6: false, c7: false, on_topic: true };
 const OFF_TOPIC  = { c4: false, c5: false, c6: false, c7: false, on_topic: false };
-const post = (body) => request(app).post('/chat').send({ cle_id: 'x', language: 'en', ...body });
+const post = (body) => request(app).post('/chat').send({ ple_id: 'x', language: 'en', ...body });
 
 describe('the trigger is the conversation, not the physician', () => {
   test('counts a physician turn as an exchange, under either role label', () => {

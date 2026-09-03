@@ -1,7 +1,7 @@
 'use client';
 // Auditor AI discussion chat — appears on the post-submit reveal pane. The auditor asks an AI
 // calibration tutor about the evaluation (why the AI scored a domain a certain way, where they
-// diverge). Metered against the auditor's SEPARATE budget pool (POST /auditor/cles/:id/discuss).
+// diverge). Metered against the auditor's SEPARATE budget pool (POST /auditor/ples/:id/discuss).
 import { useEffect, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Markdown } from './Markdown';
@@ -11,7 +11,7 @@ import type { ApiResult } from '@/lib/types';
 
 type Msg = { role: string; content: string };
 
-export function AuditorChatBox({ cleId }: { cleId: string }) {
+export function AuditorChatBox({ pleId }: { pleId: string }) {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -20,8 +20,8 @@ export function AuditorChatBox({ cleId }: { cleId: string }) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    apiFetch<Msg[]>(`/auditor/cles/${cleId}/discussion`).then(d => setMsgs(Array.isArray(d) ? d : [])).catch(() => {});
-  }, [cleId]);
+    apiFetch<Msg[]>(`/auditor/ples/${pleId}/discussion`).then(d => setMsgs(Array.isArray(d) ? d : [])).catch(() => {});
+  }, [pleId]);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs.length, sending]);
 
   async function send() {
@@ -31,7 +31,7 @@ export function AuditorChatBox({ cleId }: { cleId: string }) {
     setMsgs(m => [...m, { role: 'auditor', content: text }]); // optimistic
     setInput('');
     try {
-      const res = await apiFetch<ApiResult<{ content: string }>>(`/auditor/cles/${cleId}/discuss`, {
+      const res = await apiFetch<ApiResult<{ content: string }>>(`/auditor/ples/${pleId}/discuss`, {
         method: 'POST', body: JSON.stringify({ message: text }),
       });
       const content = (res as { content?: string })?.content;

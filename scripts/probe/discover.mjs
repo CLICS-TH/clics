@@ -5,7 +5,7 @@
 // proxies it, and a chat UI is the wrong thing for rimpl to talk to server-to-server:
 //   * extra hop (UI process → inference server) on every clinical turn;
 //   * per-USER API-key semantics — Open WebUI keys are scoped to a human account, get revoked when
-//     that person leaves, and make every CLE look like it came from one operator;
+//     that person leaves, and make every PLE look like it came from one operator;
 //   * a UI layer applies its own throttling/queueing, so any throughput number measured through it
 //     describes the UI, not the GPU;
 //   * OpenAI-compatible surface parity is partial — usage accounting in particular is often dropped,

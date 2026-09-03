@@ -78,7 +78,7 @@ describe('honest about what it can and cannot measure', () => {
 
 describe('the backend stamps it onto the score', () => {
   test('persistEvaluation writes provenance through to ai_evaluations', () => {
-    const src = require('fs').readFileSync(require('path').join(__dirname, '../src/services/cle-evaluation.js'), 'utf8');
+    const src = require('fs').readFileSync(require('path').join(__dirname, '../src/services/ple-evaluation.js'), 'utf8');
     expect(src).toMatch(/provenance: result\.provenance/);
     // ...and the declared checksum is read per call, so a mid-pilot re-declaration is visible as a
     // fingerprint change in the data rather than being hidden by a cached value.

@@ -1,7 +1,9 @@
 // The PIS-7 evaluator's d1..d7 drive CME credit and are persisted into smallint CHECK(0..5) columns.
 // /evaluate must reject malformed/out-of-range model output (502) rather than pass it through to
 // poison the composite (NaN) or trip a CHECK violation downstream that reconcile then retries forever.
-jest.mock('../src/services/ai', () => ({ callAI: jest.fn() }));
+// The route resolves and pins the provider BEFORE its first call (services/ai.resolveProviderName);
+// the incumbent here, so every case below runs the historical single-call path.
+jest.mock('../src/services/ai', () => ({ callAI: jest.fn(), resolveProviderName: jest.fn().mockResolvedValue('anthropic') }));
 // Hermetic: src/index mounts every route, and the chat route's require chain pulls in
 // src/lib/supabase, whose createClient() throws "supabaseUrl is required" with no env.
 // Stub it so the suite needs no real Supabase URL/key and makes no network round-trip.
@@ -24,7 +26,7 @@ const app = require('../src/index');
 const { callAI } = require('../src/services/ai');
 
 const VALID = { d1: 3, d2: 4, d3: 3, d4: 2, d5: 5, d6: 1, d7: 4, rationale: {} };
-const body = { cle_id: 'x', transcript: [{ role: 'physician', content: 'hello' }] };
+const body = { ple_id: 'x', transcript: [{ role: 'physician', content: 'hello' }] };
 // callAI stamps the real provider + model onto every result; /evaluate folds `model` into
 // model_version (§10.2 provenance), so the fixture must carry them.
 const reply = (obj) => ({

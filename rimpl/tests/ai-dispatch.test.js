@@ -218,18 +218,34 @@ describe('resolution is PER CALL (a rollback is an env change + the next request
 
 // ---------------------------------------------------------------------------
 describe('callAI passes the request through and tags the result', () => {
-  test('forwards systemPrompt/messages/maxTokens/temperature verbatim, and NOT the purpose', async () => {
+  test('forwards systemPrompt/messages/maxTokens/temperature verbatim, plus purpose and signal', async () => {
     process.env.AI_PROVIDER = 'local';
-    await ai.callAI(args('chat'));
+    const ac = new AbortController();
+    await ai.callAI({ ...args('chat'), signal: ac.signal });
 
     expect(mockLocal.call).toHaveBeenCalledWith({
       systemPrompt: 'sys',
       messages: [{ role: 'user', content: 'de-identified text' }],
       maxTokens: 900,
       temperature: 0.3,
+      // The provider is still a dumb transport — it never branches on what a purpose MEANS — but it
+      // needs the purpose to pick its queue lane (a chat turn must not wait behind an evaluation)
+      // and the signal to cancel at the socket when the caller hangs up. Anthropic ignores both.
+      purpose: 'chat',
+      signal: ac.signal,
     });
-    // The provider is a dumb transport: it must not learn the purpose (nothing to branch on).
-    expect(Object.keys(mockLocal.call.mock.calls[0][0])).not.toContain('purpose');
+  });
+
+  test('callProvider forwards purpose + signal too (the shadow evaluator names itself "shadow")', async () => {
+    const ac = new AbortController();
+    await ai.callProvider({ provider: 'local', purpose: 'shadow', systemPrompt: 'sys', messages: [], maxTokens: 10, signal: ac.signal });
+    expect(mockLocal.call).toHaveBeenCalledWith(expect.objectContaining({ purpose: 'shadow', signal: ac.signal }));
+  });
+
+  test('a callAI without a signal forwards signal: undefined (no synthetic controller)', async () => {
+    process.env.AI_PROVIDER = 'local';
+    await ai.callAI(args('chat'));
+    expect(mockLocal.call.mock.calls[0][0].signal).toBeUndefined();
   });
 
   test('returns provider + model alongside the text and token counts', async () => {

@@ -41,10 +41,10 @@ const { __mock: m } = require('../src/lib/supabase');
 const { costUsd, settlementDelta, INPUT_PER_M, OUTPUT_PER_M } = require('../src/lib/pricing');
 const { RESERVE_ESTIMATE_USD } = require('../src/lib/usage');
 
-const clesRouter = require('../src/routes/cles');
+const plesRouter = require('../src/routes/ples');
 const app = express();
 app.use(express.json());
-app.use('/cles', clesRouter);
+app.use('/ples', plesRouter);
 const auth = (r) => r.set('Authorization', 'Bearer test');
 
 const IN = 20_000, OUT = 4_000;          // one realistic turn
@@ -63,7 +63,7 @@ beforeEach(() => {
   };
   m.state.resolve = (table, kind) => {
     if (table === 'app_settings') return { value: 0 };                       // clinical-artifacts toggle off
-    if (table === 'cles' && kind === 'single') {
+    if (table === 'ples' && kind === 'single') {
       return { id: 'ple1', status: 'active', physician_id: 'doc1', turn_count: 0, token_count: 0, input_tokens: 0, output_tokens: 0, chief_complaint: 'chest pain' };
     }
     if (table === 'messages' && kind === 'list') return [];
@@ -71,7 +71,7 @@ beforeEach(() => {
   };
 });
 
-const sendTurn = () => auth(request(app).post('/cles/ple1/message')).send({ message: 'hello', language: 'en' });
+const sendTurn = () => auth(request(app).post('/ples/ple1/message')).send({ message: 'hello', language: 'en' });
 
 // ── 1. Pure rate table ────────────────────────────────────────────────────────────────────────────
 

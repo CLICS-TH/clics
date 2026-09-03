@@ -12,7 +12,7 @@ const acceptability = require('../src/lib/acceptability');
 
 const app = express();
 app.use(express.json());
-app.use('/cles', require('../src/routes/cles'));
+app.use('/ples', require('../src/routes/ples'));
 const auth = r => r.set('Authorization', 'Bearer test');
 
 let completed, existing;
@@ -23,20 +23,20 @@ beforeEach(() => {
   existing = null;
   m.state.resolve = (table, kind, ctx) => {
     if (table === 'app_settings') return { value: 0 };
-    if (table === 'cles') return { data: [], count: completed };
+    if (table === 'ples') return { data: [], count: completed };
     if (table === 'acceptability_responses') return ctx.op === 'upsert' ? {} : existing;
     return undefined;
   };
 });
 
-const post = (body) => auth(request(app).post('/cles/acceptability')).send(body);
+const post = (body) => auth(request(app).post('/ples/acceptability')).send(body);
 
 describe('routing', () => {
-  test('GET /cles/acceptability is not swallowed by GET /cles/:id', async () => {
+  test('GET /ples/acceptability is not swallowed by GET /ples/:id', async () => {
     // Express matches in definition order. Registered after the /:id route, this resolves as
     // id='acceptability' and the questionnaire is simply unreachable — a failure that looks like a
     // missing feature rather than a routing bug.
-    const res = await auth(request(app).get('/cles/acceptability'));
+    const res = await auth(request(app).get('/ples/acceptability'));
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body.items)).toBe(true);
   });
@@ -44,7 +44,7 @@ describe('routing', () => {
 
 describe('the instrument travels with the request', () => {
   test('items, scale, and version come from the server — the portal keeps no second copy', async () => {
-    const res = await auth(request(app).get('/cles/acceptability'));
+    const res = await auth(request(app).get('/ples/acceptability'));
     expect(res.body.items).toHaveLength(acceptability.ITEMS.length);
     expect(res.body.scale).toEqual({ min: 1, max: 5 });
     expect(res.body.instrument_version).toBe(acceptability.INSTRUMENT_VERSION);
@@ -64,22 +64,22 @@ describe('the instrument travels with the request', () => {
 describe('eligibility follows the protocol, not the 3-PLE cap', () => {
   test('one completed PLE is enough — an early withdrawal may still answer', async () => {
     completed = 1;
-    const res = await auth(request(app).get('/cles/acceptability'));
+    const res = await auth(request(app).get('/ples/acceptability'));
     expect(res.body.eligible).toBe(true);
     expect((await post({ answers: { acceptable: 4 } })).status).toBe(200);
   });
 
   test('no completed PLE → not eligible, and the post is refused', async () => {
     completed = 0;
-    expect((await auth(request(app).get('/cles/acceptability'))).body.eligible).toBe(false);
+    expect((await auth(request(app).get('/ples/acceptability'))).body.eligible).toBe(false);
     const res = await post({ answers: { acceptable: 4 } });
     expect(res.status).toBe(409);
     expect(res.body.code).toBe('no_completed_ple');
   });
 
-  test('completed counts BOTH terminal statuses, not the transient cle_pass alone', async () => {
-    await auth(request(app).get('/cles/acceptability'));
-    expect(m.find('cles', 'select').ins).toContainEqual(['status', ['cle_pass', 'evaluated']]);
+  test('completed counts BOTH terminal statuses, not the transient ple_pass alone', async () => {
+    await auth(request(app).get('/ples/acceptability'));
+    expect(m.find('ples', 'select').ins).toContainEqual(['status', ['ple_pass', 'evaluated']]);
   });
 });
 

@@ -1,8 +1,8 @@
 # Project Overview
 
-**CLICS** (Continuous Learning & Intelligence Credit System) is an AI-mediated platform for assessing physician clinical reasoning in Continuing Medical Education (CME/CPD). It replaces attendance-based credits with evidence of cognitive engagement captured from physician–AI dialogue sessions called **CLEs** (Continuous Learning Episodes).
+**CLICS** (Case-based Learning Intelligence Credit System) is an AI-mediated platform for assessing physician clinical reasoning in Continuing Medical Education (CME/CPD). It replaces attendance-based credits with evidence of cognitive engagement captured from physician–AI dialogue sessions called **PLEs** (Professional Learning Episodes).
 
-This is an on-premise pilot system for a Thai medical licensing body. The pilot runs **July–September 2026** with ~75 physicians completing 3 CLEs each.
+This is an on-premise pilot system for a Thai medical licensing body. The pilot runs **July–September 2026** with ~75 physicians completing 3 PLEs each.
 
 ## Repository layout
 

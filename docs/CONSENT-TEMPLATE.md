@@ -19,7 +19,7 @@
 **หน่วยงานผู้รับผิดชอบ / ผู้วิจัยหลัก:** [[ชื่อ + หน่วยงาน + ข้อมูลติดต่อ]]
 **เลขที่รับรองจริยธรรม (IRB):** [[เลขที่]]
 
-**1. วัตถุประสงค์** โครงการนี้ทดสอบระบบ CLICS ซึ่งให้ท่านสนทนาทางคลินิกกับผู้ช่วย AI (Physician Learning Episode — CLE) เพื่อประเมินการให้เหตุผลทางคลินิก โดยมีเป้าหมายเพื่อ**ตรวจสอบความตรงของระบบ** ระยะนี้**ยังไม่ให้หน่วยกิต CME/CPD**
+**1. วัตถุประสงค์** โครงการนี้ทดสอบระบบ CLICS ซึ่งให้ท่านสนทนาทางคลินิกกับผู้ช่วย AI (Physician Learning Episode — PLE) เพื่อประเมินการให้เหตุผลทางคลินิก โดยมีเป้าหมายเพื่อ**ตรวจสอบความตรงของระบบ** ระยะนี้**ยังไม่ให้หน่วยกิต CME/CPD**
 
 **2. สิ่งที่ท่านต้องทำ** ท่านจะสร้างและสนทนาในกรณีศึกษา **โดยใช้ข้อมูลสมมติ/ไม่ระบุตัวตนผู้ป่วยเท่านั้น** — ห้ามใส่ชื่อ เลขประจำตัวผู้ป่วย (HN) วันที่ หรือข้อมูลที่ระบุตัวบุคคลจริง บทสนทนาจะถูกบันทึกและให้คะแนนโดย AI และผู้ตรวจประเมินผู้เชี่ยวชาญ
 
@@ -43,7 +43,7 @@
 **Sponsor / Principal investigator:** [[name + institution + contact]]
 **Ethics approval (IRB) no.:** [[number]]
 
-**1. Purpose.** This study evaluates the CLICS system, in which you hold a clinical dialogue with an AI assistant (a Physician Learning Episode — CLE) that scores clinical reasoning. The aim is **to validate the system**. **No CME/CPD credit is issued in this phase.**
+**1. Purpose.** This study evaluates the CLICS system, in which you hold a clinical dialogue with an AI assistant (a Physician Learning Episode — PLE) that scores clinical reasoning. The aim is **to validate the system**. **No CME/CPD credit is issued in this phase.**
 
 **2. What you will do.** You will create and discuss cases **using de-identified / hypothetical patient information only** — do **not** enter real names, hospital numbers (HN), dates, or any identifying detail. Your dialogues are recorded and scored by AI **and** by expert auditors.
 
@@ -60,6 +60,6 @@
 ---
 
 ### Mapping to the app
-- The **"I consent" button** records `professionals.consented_at`; no CLE session can be created, continued, or ended until it is set (enforced server-side).
+- The **"I consent" button** records `professionals.consented_at`; no PLE session can be created, continued, or ended until it is set (enforced server-side).
 - The always-on banner already states *"Use de-identified cases only · scores are provisional (not yet CME credit)."* Keep the consent text consistent with it.
 - Place the final approved TH + EN text in the `pilotGate()` consent modal in `physician-ui/public/js/dashboard.js`.

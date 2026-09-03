@@ -69,11 +69,18 @@ const DASH_PAIRS: [string, string, string][] = [
   ['ok', 'card', 'ai-readiness embedding + context readings'],
   ['primary-foreground', 'coral-active', 'Button default + Badge default (white on coral)'],
   ['link', 'background', 'link variant'],
+  // The manual (/manual). Its quoted UI-label chips sit on a TINT by design, where --link fails
+  // (4.20:1 on --muted, 3.94:1 on --secondary) — which is why --coral-on-tint exists.
+  ['coral-on-tint', 'muted', 'manual: quoted UI-label chip'],
+  ['coral-on-tint', 'secondary', 'manual: quoted UI-label chip inside a callout'],
+  ['coral-on-tint', 'background', 'manual: step counter badge'],
+  ['muted-foreground', 'muted', 'manual: figure captions and the section-index numbers'],
+  ['foreground', 'muted', 'auditor reveal: ConsistencyChip (repeat-scoring metadata) on its bg-muted pill'],
 ];
 
 const PORTAL_PAIRS: [string, string, string][] = [
   ['muted', 'canvas', '.sub / .note in a page-intro'],
-  ['muted', 'surface-card', '.sub / .note inside a card — cle-reflect, acceptability'],
+  ['muted', 'surface-card', '.sub / .note inside a card — ple-reflect, acceptability'],
   ['muted', 'surface-soft', '.sub on the soft surface'],
   ['muted-soft', 'surface-card', 'the sibling token, same surfaces'],
   ['body-color', 'canvas', 'body text'],
@@ -87,6 +94,51 @@ const PORTAL_PAIRS: [string, string, string][] = [
   ['success-text', 'success-bg', 'success banners'],
   ['warning-text', 'warning-bg', 'warning banners'],
 ];
+
+/*
+ * TINT pairs: a foreground token over `--tint` composited at ALPHA onto `--surface`.
+ *
+ * The palette reader above deliberately skips rgba/alpha values, with the right reasoning — a pair
+ * that cannot be computed honestly must not be asserted as if it could. But Tailwind's `/NN` opacity
+ * utilities make those pairs REAL and rendered, and until now the guard could not see any of them.
+ * `bg-primary/12 text-coral-on-tint` is painted on /manual and on the integrity queue's medium
+ * severity badge, and no entry above covers it: `--coral-on-tint` is pinned against `--muted`,
+ * `--secondary` and `--background`, none of which is this surface.
+ *
+ * So compositing is done here explicitly rather than skipped: src-over at ALPHA, which is exactly
+ * what the browser paints for a solid tint on an opaque surface.
+ */
+type TintPair = [fg: string, tint: string, alpha: number, surface: string, where: string];
+
+function over(tint: string, alpha: number, surface: string): string {
+  const [t, s] = [hexToRgb(tint), hexToRgb(surface)];
+  return '#' + t.map((c, i) => Math.round(c * alpha + s[i] * (1 - alpha))
+    .toString(16).padStart(2, '0')).join('');
+}
+
+const DASH_TINTS: TintPair[] = [
+  ['coral-on-tint', 'primary', 0.12, 'card',
+    'manual: language toggle (active); integrity queue: MEDIUM severity badge'],
+  ['danger', 'destructive', 0.10, 'card', 'integrity queue: HIGH severity badge'],
+];
+
+function checkTints(name: string, css: string, sel: string, pairs: TintPair[]) {
+  const p = palette(css, sel);
+  const failures: string[] = [];
+  for (const [fg, tint, alpha, surface, where] of pairs) {
+    if (!p[fg] || !p[tint] || !p[surface]) {
+      failures.push(`${name}: --${fg}/--${tint}/--${surface} is not a hex token in ${sel} (${where})`);
+      continue;
+    }
+    const bg = over(p[tint], alpha, p[surface]);
+    const r = ratio(p[fg], bg);
+    if (r < AA) {
+      failures.push(`${name}: --${fg} ${p[fg]} on --${tint}/${Math.round(alpha * 100)} over --${surface} `
+        + `(= ${bg}) = ${r.toFixed(2)}:1 (needs ${AA}) — ${where}`);
+    }
+  }
+  return failures;
+}
 
 function check(name: string, css: string, sel: string, pairs: [string, string, string][]) {
   const p = palette(css, sel);
@@ -124,8 +176,24 @@ describe('WCAG AA on the token pairs both apps render', () => {
     expect(ratio('#6c6a64', '#efe9de')).toBeCloseTo(4.48, 2);   // the miss this file was written for
   });
 
+  it('the compositor agrees with the endpoints', () => {
+    // alpha 1 is the tint itself, alpha 0 is the surface. Without this a broken `over` would
+    // silently measure the wrong colour and report a pass.
+    expect(over('#cc785c', 1, '#faf9f5')).toBe('#cc785c');
+    expect(over('#cc785c', 0, '#faf9f5')).toBe('#faf9f5');
+    expect(over('#cc785c', 0.12, '#faf9f5')).toBe('#f4eae3');   // measured against the render
+  });
+
   it('audit-dashboard — light', () => {
     expect(check('dash light', dash, ':root', DASH_PAIRS)).toEqual([]);
+  });
+
+  it('audit-dashboard tints — light', () => {
+    expect(checkTints('dash light', dash, ':root', DASH_TINTS)).toEqual([]);
+  });
+
+  it('audit-dashboard tints — dark', () => {
+    expect(checkTints('dash dark', dash, '.dark', DASH_TINTS)).toEqual([]);
   });
 
   it('audit-dashboard — dark', () => {

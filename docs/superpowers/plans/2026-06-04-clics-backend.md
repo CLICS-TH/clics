@@ -4,7 +4,7 @@
 
 **Goal:** Build the complete CLICS backend — database schema, RIMPL AI gateway service (port 3003), and Express API (port 3001) — producing a fully testable system before any frontend work begins.
 
-**Architecture:** Supabase Cloud holds all data (PostgreSQL + pgvector). RIMPL (port 3003) is a stateless Node.js service that owns all Claude interactions: PII strip → RAG lookup → Claude call → post-filter → response. The Backend (port 3001) handles auth, business logic, CLE gating, and data writes; it never calls Claude directly.
+**Architecture:** Supabase Cloud holds all data (PostgreSQL + pgvector). RIMPL (port 3003) is a stateless Node.js service that owns all Claude interactions: PII strip → RAG lookup → Claude call → post-filter → response. The Backend (port 3001) handles auth, business logic, PLE gating, and data writes; it never calls Claude directly.
 
 **Tech Stack:** Node.js 20, Express 4, Supabase JS SDK v2, Anthropic SDK, Jest + Supertest, Zod
 
@@ -47,19 +47,19 @@ clics/
 │   │   ├── middleware/
 │   │   │   └── auth.js                # verifyJwt(), requireRole()
 │   │   ├── services/
-│   │   │   ├── cle-gate.js            # computeTier1(), compositeScore()
+│   │   │   ├── ple-gate.js            # computeTier1(), compositeScore()
 │   │   │   ├── rimpl-client.js        # HTTP client for RIMPL endpoints
 │   │   │   └── icc.js                 # computeICC21()
 │   │   └── routes/
 │   │       ├── auth.js                # POST /auth/login, /logout, GET /auth/me
-│   │       ├── cles.js                # CLE CRUD + message + end
+│   │       ├── ples.js                # PLE CRUD + message + end
 │   │       ├── admin.js               # Admin routes (Role B)
 │   │       ├── auditor.js             # Auditor routes (Role D)
 │   │       └── superadmin.js          # Superadmin routes (Role A)
 │   ├── tests/
-│   │   ├── cle-gate.test.js
+│   │   ├── ple-gate.test.js
 │   │   ├── icc.test.js
-│   │   └── cles.test.js
+│   │   └── ples.test.js
 │   ├── package.json
 │   └── .env.example
 ```
@@ -90,12 +90,12 @@ create table public.professionals (
 );
 
 -- One row per physician session
-create table public.cles (
+create table public.ples (
   id               uuid primary key default gen_random_uuid(),
   physician_id     uuid not null references public.professionals(id),
   auditor_id       uuid references public.professionals(id),
   status           text not null default 'active'
-                   check (status in ('active','ended','cle_pass','cle_fail_t1','cle_flag_t2','evaluated')),
+                   check (status in ('active','ended','ple_pass','ple_fail_t1','ple_flag_t2','evaluated')),
   started_at       timestamptz not null default now(),
   ended_at         timestamptz,
   duration_seconds integer,
@@ -110,7 +110,7 @@ create table public.cles (
 -- One row per chat turn
 create table public.messages (
   id                uuid primary key default gen_random_uuid(),
-  cle_id            uuid not null references public.cles(id) on delete cascade,
+  ple_id            uuid not null references public.ples(id) on delete cascade,
   role              text not null check (role in ('physician','assistant')),
   content           text not null,
   references        jsonb default '[]'::jsonb,
@@ -122,7 +122,7 @@ create table public.messages (
 -- PIS-7 scored by AI
 create table public.ai_evaluations (
   id               uuid primary key default gen_random_uuid(),
-  cle_id           uuid not null references public.cles(id) on delete cascade,
+  ple_id           uuid not null references public.ples(id) on delete cascade,
   d1 smallint not null check (d1 between 0 and 5),
   d2 smallint not null check (d2 between 0 and 5),
   d3 smallint not null check (d3 between 0 and 5),
@@ -139,7 +139,7 @@ create table public.ai_evaluations (
 -- PIS-7 scored by Expert Auditor
 create table public.audit_scores (
   id              uuid primary key default gen_random_uuid(),
-  cle_id          uuid not null references public.cles(id) on delete cascade,
+  ple_id          uuid not null references public.ples(id) on delete cascade,
   auditor_id      uuid not null references public.professionals(id),
   d1 smallint not null check (d1 between 0 and 5),
   d2 smallint not null check (d2 between 0 and 5),
@@ -164,11 +164,11 @@ create table public.documents (
   created_at timestamptz default now()
 );
 
--- Per-CLE score history for LPDP chart
+-- Per-PLE score history for LPDP chart
 create table public.lpdp_snapshots (
   id              uuid primary key default gen_random_uuid(),
   physician_id    uuid not null references public.professionals(id),
-  cle_id          uuid not null references public.cles(id),
+  ple_id          uuid not null references public.ples(id),
   composite_score numeric not null,
   domain_scores   jsonb not null,
   snapshot_at     timestamptz default now()
@@ -176,7 +176,7 @@ create table public.lpdp_snapshots (
 
 -- RLS
 alter table public.professionals    enable row level security;
-alter table public.cles             enable row level security;
+alter table public.ples             enable row level security;
 alter table public.messages         enable row level security;
 alter table public.ai_evaluations   enable row level security;
 alter table public.audit_scores     enable row level security;
@@ -195,28 +195,28 @@ create policy "prof: superadmin write"
     exists (select 1 from public.professionals p where p.id = auth.uid() and p.role = 'superadmin')
   );
 
--- cles policies
-create policy "cles: physician own"
-  on public.cles for select using (physician_id = auth.uid());
-create policy "cles: auditor assigned"
-  on public.cles for select using (auditor_id = auth.uid());
-create policy "cles: admin all"
-  on public.cles for all using (
+-- ples policies
+create policy "ples: physician own"
+  on public.ples for select using (physician_id = auth.uid());
+create policy "ples: auditor assigned"
+  on public.ples for select using (auditor_id = auth.uid());
+create policy "ples: admin all"
+  on public.ples for all using (
     exists (select 1 from public.professionals p where p.id = auth.uid() and p.role in ('admin','superadmin'))
   );
-create policy "cles: physician insert"
-  on public.cles for insert with check (physician_id = auth.uid());
-create policy "cles: physician update own"
-  on public.cles for update using (physician_id = auth.uid());
+create policy "ples: physician insert"
+  on public.ples for insert with check (physician_id = auth.uid());
+create policy "ples: physician update own"
+  on public.ples for update using (physician_id = auth.uid());
 
 -- messages policies
-create policy "msg: physician own cle"
+create policy "msg: physician own ple"
   on public.messages for select using (
-    exists (select 1 from public.cles pl where pl.id = cle_id and pl.physician_id = auth.uid())
+    exists (select 1 from public.ples pl where pl.id = ple_id and pl.physician_id = auth.uid())
   );
-create policy "msg: auditor assigned cle"
+create policy "msg: auditor assigned ple"
   on public.messages for select using (
-    exists (select 1 from public.cles pl where pl.id = cle_id and pl.auditor_id = auth.uid())
+    exists (select 1 from public.ples pl where pl.id = ple_id and pl.auditor_id = auth.uid())
   );
 create policy "msg: admin all"
   on public.messages for all using (
@@ -224,13 +224,13 @@ create policy "msg: admin all"
   );
 create policy "msg: physician insert"
   on public.messages for insert with check (
-    exists (select 1 from public.cles pl where pl.id = cle_id and pl.physician_id = auth.uid())
+    exists (select 1 from public.ples pl where pl.id = ple_id and pl.physician_id = auth.uid())
   );
 
 -- ai_evaluations policies
 create policy "ai_eval: physician own"
   on public.ai_evaluations for select using (
-    exists (select 1 from public.cles pl where pl.id = cle_id and pl.physician_id = auth.uid())
+    exists (select 1 from public.ples pl where pl.id = ple_id and pl.physician_id = auth.uid())
   );
 create policy "ai_eval: admin all"
   on public.ai_evaluations for all using (
@@ -292,7 +292,7 @@ select table_name from information_schema.tables
 where table_schema = 'public'
 order by table_name;
 ```
-Expected output includes: `ai_evaluations`, `audit_scores`, `documents`, `lpdp_snapshots`, `messages`, `cles`, `professionals`.
+Expected output includes: `ai_evaluations`, `audit_scores`, `documents`, `lpdp_snapshots`, `messages`, `ples`, `professionals`.
 
 - [ ] **Step 4: Commit**
 
@@ -770,7 +770,7 @@ const app = require('../src/index');
 describe('POST /chat', () => {
   test('returns content, references, and socratic_question', async () => {
     const res = await request(app).post('/chat').send({
-      cle_id: 'test-123',
+      ple_id: 'test-123',
       history: [],
       message: 'What is first-line for T2DM?',
       language: 'en',
@@ -783,7 +783,7 @@ describe('POST /chat', () => {
   });
 
   test('returns 400 when message is missing', async () => {
-    const res = await request(app).post('/chat').send({ cle_id: 'x', history: [] });
+    const res = await request(app).post('/chat').send({ ple_id: 'x', history: [] });
     expect(res.status).toBe(400);
   });
 });
@@ -811,7 +811,7 @@ const { RIMPL_SYSTEM_PROMPT } = require('../lib/prompts');
 const router = Router();
 
 const ChatSchema = z.object({
-  cle_id: z.string(),
+  ple_id: z.string(),
   history: z.array(z.object({ role: z.string(), content: z.string() })),
   message: z.string().min(1),
   language: z.enum(['th', 'en']).default('th'),
@@ -923,7 +923,7 @@ const router = Router();
 const WEIGHTS = { d1: 0.15, d2: 0.20, d3: 0.15, d4: 0.15, d5: 0.15, d6: 0.10, d7: 0.10 };
 
 const EvalSchema = z.object({
-  cle_id: z.string(),
+  ple_id: z.string(),
   transcript: z.array(z.object({ role: z.string(), content: z.string() })),
 });
 
@@ -931,7 +931,7 @@ router.post('/', async (req, res) => {
   const parsed = EvalSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { cle_id, transcript } = parsed.data;
+  const { ple_id, transcript } = parsed.data;
   const transcriptText = transcript
     .map(m => `[${m.role.toUpperCase()}]: ${m.content}`)
     .join('\n\n');
@@ -956,7 +956,7 @@ router.post('/', async (req, res) => {
     ) * 20;
 
     res.json({
-      cle_id,
+      ple_id,
       d1: scores.d1, d2: scores.d2, d3: scores.d3, d4: scores.d4,
       d5: scores.d5, d6: scores.d6, d7: scores.d7,
       composite_score: Math.round(composite * 100) / 100,
@@ -1201,17 +1201,17 @@ git commit -m "feat: add auth middleware"
 
 ---
 
-## Task 12: Backend — CLE Gate Logic
+## Task 12: Backend — PLE Gate Logic
 
 **Files:**
-- Create: `backend/src/services/cle-gate.js`
-- Create: `backend/tests/cle-gate.test.js`
+- Create: `backend/src/services/ple-gate.js`
+- Create: `backend/tests/ple-gate.test.js`
 
 - [ ] **Step 1: Write the failing test**
 
 ```javascript
-// backend/tests/cle-gate.test.js
-const { computeTier1, compositeScore } = require('../src/services/cle-gate');
+// backend/tests/ple-gate.test.js
+const { computeTier1, compositeScore } = require('../src/services/ple-gate');
 
 describe('computeTier1', () => {
   test('passes when all criteria met', () => {
@@ -1274,21 +1274,21 @@ describe('compositeScore', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd backend && npx jest tests/cle-gate.test.js --no-coverage
+cd backend && npx jest tests/ple-gate.test.js --no-coverage
 ```
 Expected: FAIL
 
-- [ ] **Step 3: Write cle-gate.js**
+- [ ] **Step 3: Write ple-gate.js**
 
 ```javascript
-// backend/src/services/cle-gate.js
+// backend/src/services/ple-gate.js
 const WEIGHTS = { d1: 0.15, d2: 0.20, d3: 0.15, d4: 0.15, d5: 0.15, d6: 0.10, d7: 0.10 };
 
-function computeTier1(cle) {
+function computeTier1(ple) {
   return {
-    c1: (cle.duration_seconds ?? 0) >= 900,
-    c2: (cle.turn_count ?? 0) >= 4,
-    c3: (cle.token_count ?? 0) >= 800,
+    c1: (ple.duration_seconds ?? 0) >= 900,
+    c2: (ple.turn_count ?? 0) >= 4,
+    c3: (ple.token_count ?? 0) >= 800,
   };
 }
 
@@ -1307,15 +1307,15 @@ module.exports = { computeTier1, compositeScore, WEIGHTS };
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-cd backend && npx jest tests/cle-gate.test.js --no-coverage
+cd backend && npx jest tests/ple-gate.test.js --no-coverage
 ```
 Expected: PASS — 8 tests passed.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add backend/src/services/cle-gate.js backend/tests/cle-gate.test.js
-git commit -m "feat: add cle gate logic with tests"
+git add backend/src/services/ple-gate.js backend/tests/ple-gate.test.js
+git commit -m "feat: add ple gate logic with tests"
 ```
 
 ---
@@ -1451,21 +1451,21 @@ git commit -m "feat: add icc(2,1) calculation with tests"
 // backend/src/services/rimpl-client.js
 const RIMPL_URL = process.env.RIMPL_URL || 'http://localhost:3003';
 
-async function remplChat({ cle_id, history, message, language }) {
+async function remplChat({ ple_id, history, message, language }) {
   const res = await fetch(`${RIMPL_URL}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ cle_id, history, message, language }),
+    body: JSON.stringify({ ple_id, history, message, language }),
   });
   if (!res.ok) throw new Error(`RIMPL /chat error: ${res.status}`);
   return res.json(); // { content, references, socratic_question, token_count }
 }
 
-async function rimplEvaluate({ cle_id, transcript }) {
+async function rimplEvaluate({ ple_id, transcript }) {
   const res = await fetch(`${RIMPL_URL}/evaluate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ cle_id, transcript }),
+    body: JSON.stringify({ ple_id, transcript }),
   });
   if (!res.ok) throw new Error(`RIMPL /evaluate error: ${res.status}`);
   return res.json();
@@ -1554,31 +1554,31 @@ git commit -m "feat: add auth routes"
 
 ---
 
-## Task 16: Backend — CLE Routes
+## Task 16: Backend — PLE Routes
 
 **Files:**
-- Create: `backend/src/routes/cles.js`
+- Create: `backend/src/routes/ples.js`
 
-- [ ] **Step 1: Write cles.js**
+- [ ] **Step 1: Write ples.js**
 
 ```javascript
-// backend/src/routes/cles.js
+// backend/src/routes/ples.js
 const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { MessageSchema, CreateCleSchema } = require('../lib/schemas');
-const { computeTier1, compositeScore } = require('../services/cle-gate');
+const { computeTier1, compositeScore } = require('../services/ple-gate');
 const { remplChat, rimplEvaluate, rimplEvaluateCriteria } = require('../services/rimpl-client');
 
 const router = Router();
 router.use(verifyJwt, requireRole('physician'));
 
-// Create new CLE session
+// Create new PLE session
 router.post('/', async (req, res) => {
   const parsed = CreateCleSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { data, error } = await supabase.from('cles').insert({
+  const { data, error } = await supabase.from('ples').insert({
     physician_id: req.user.id,
     status: 'active',
     started_at: new Date().toISOString(),
@@ -1588,10 +1588,10 @@ router.post('/', async (req, res) => {
   res.status(201).json(data);
 });
 
-// List physician's own CLEs
+// List physician's own PLEs
 router.get('/', async (req, res) => {
   const { data, error } = await supabase
-    .from('cles')
+    .from('ples')
     .select('id, status, started_at, ended_at, turn_count, token_count, c1_pass, c2_pass, c3_pass, c4_pass, c5_pass, c6_pass')
     .eq('physician_id', req.user.id)
     .order('started_at', { ascending: false });
@@ -1599,16 +1599,16 @@ router.get('/', async (req, res) => {
   res.json(data);
 });
 
-// Get single CLE with messages
+// Get single PLE with messages
 router.get('/:id', async (req, res) => {
-  const { data: cle, error } = await supabase
-    .from('cles').select('*').eq('id', req.params.id).eq('physician_id', req.user.id).single();
-  if (error || !cle) return res.status(404).json({ error: 'Not found' });
+  const { data: ple, error } = await supabase
+    .from('ples').select('*').eq('id', req.params.id).eq('physician_id', req.user.id).single();
+  if (error || !ple) return res.status(404).json({ error: 'Not found' });
 
   const { data: messages } = await supabase
-    .from('messages').select('*').eq('cle_id', req.params.id).order('created_at');
+    .from('messages').select('*').eq('ple_id', req.params.id).order('created_at');
 
-  res.json({ ...cle, messages: messages ?? [] });
+  res.json({ ...ple, messages: messages ?? [] });
 });
 
 // Send a message turn
@@ -1616,18 +1616,18 @@ router.post('/:id/message', async (req, res) => {
   const parsed = MessageSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { data: cle } = await supabase
-    .from('cles').select('*').eq('id', req.params.id).eq('physician_id', req.user.id).single();
-  if (!cle || cle.status !== 'active') return res.status(400).json({ error: 'CLE not active' });
+  const { data: ple } = await supabase
+    .from('ples').select('*').eq('id', req.params.id).eq('physician_id', req.user.id).single();
+  if (!ple || ple.status !== 'active') return res.status(400).json({ error: 'PLE not active' });
 
   const { data: history } = await supabase
-    .from('messages').select('role, content').eq('cle_id', req.params.id).order('created_at');
+    .from('messages').select('role, content').eq('ple_id', req.params.id).order('created_at');
 
   const { message, language } = parsed.data;
 
   let rimplResponse;
   try {
-    rimplResponse = await remplChat({ cle_id: req.params.id, history: history ?? [], message, language });
+    rimplResponse = await remplChat({ ple_id: req.params.id, history: history ?? [], message, language });
   } catch (err) {
     return res.status(502).json({ error: `RIMPL unavailable: ${err.message}` });
   }
@@ -1635,53 +1635,53 @@ router.post('/:id/message', async (req, res) => {
   // Save physician message
   const physicianTokens = Math.ceil(message.length / 4);
   await supabase.from('messages').insert({
-    cle_id: req.params.id, role: 'physician',
+    ple_id: req.params.id, role: 'physician',
     content: message, token_count: physicianTokens,
   });
 
   // Save assistant message
   await supabase.from('messages').insert({
-    cle_id: req.params.id, role: 'assistant',
+    ple_id: req.params.id, role: 'assistant',
     content: rimplResponse.content,
     references: rimplResponse.references,
     socratic_question: rimplResponse.socratic_question,
     token_count: rimplResponse.token_count,
   });
 
-  // Update CLE counters
-  await supabase.from('cles').update({
-    turn_count: (cle.turn_count ?? 0) + 1,
-    token_count: (cle.token_count ?? 0) + rimplResponse.token_count + physicianTokens,
+  // Update PLE counters
+  await supabase.from('ples').update({
+    turn_count: (ple.turn_count ?? 0) + 1,
+    token_count: (ple.token_count ?? 0) + rimplResponse.token_count + physicianTokens,
   }).eq('id', req.params.id);
 
   res.json(rimplResponse);
 });
 
-// End session and run CLE quality gate
+// End session and run PLE quality gate
 router.post('/:id/end', async (req, res) => {
-  const { data: cle } = await supabase
-    .from('cles').select('*').eq('id', req.params.id).eq('physician_id', req.user.id).single();
-  if (!cle || cle.status !== 'active') return res.status(400).json({ error: 'CLE not active' });
+  const { data: ple } = await supabase
+    .from('ples').select('*').eq('id', req.params.id).eq('physician_id', req.user.id).single();
+  if (!ple || ple.status !== 'active') return res.status(400).json({ error: 'PLE not active' });
 
   const endedAt = new Date();
-  const durationSeconds = Math.floor((endedAt - new Date(cle.started_at)) / 1000);
+  const durationSeconds = Math.floor((endedAt - new Date(ple.started_at)) / 1000);
 
-  const updatedPle = { ...cle, duration_seconds: durationSeconds, ended_at: endedAt.toISOString() };
+  const updatedPle = { ...ple, duration_seconds: durationSeconds, ended_at: endedAt.toISOString() };
 
   // Tier 1: structural checks
   const tier1 = computeTier1(updatedPle);
 
   if (!tier1.c1 || !tier1.c2 || !tier1.c3) {
-    await supabase.from('cles').update({
-      status: 'cle_fail_t1', ended_at: updatedPle.ended_at,
+    await supabase.from('ples').update({
+      status: 'ple_fail_t1', ended_at: updatedPle.ended_at,
       duration_seconds: durationSeconds, ...tier1,
     }).eq('id', req.params.id);
-    return res.json({ status: 'cle_fail_t1', criteria: { ...tier1 } });
+    return res.json({ status: 'ple_fail_t1', criteria: { ...tier1 } });
   }
 
   // Tier 2: content checks via RIMPL
   const { data: messages } = await supabase
-    .from('messages').select('role, content').eq('cle_id', req.params.id).order('created_at');
+    .from('messages').select('role, content').eq('ple_id', req.params.id).order('created_at');
   const transcript = (messages ?? []).map(m => ({ role: m.role, content: m.content }));
 
   let tier2 = { c4: false, c5: false, c6: false };
@@ -1695,31 +1695,31 @@ router.post('/:id/end', async (req, res) => {
   const tier2Pass = tier2.c4 && tier2.c5 && tier2.c6;
 
   if (!tier2Pass) {
-    await supabase.from('cles').update({
-      status: 'cle_flag_t2', ended_at: updatedPle.ended_at,
+    await supabase.from('ples').update({
+      status: 'ple_flag_t2', ended_at: updatedPle.ended_at,
       duration_seconds: durationSeconds, ...allCriteria,
     }).eq('id', req.params.id);
-    return res.json({ status: 'cle_flag_t2', criteria: allCriteria });
+    return res.json({ status: 'ple_flag_t2', criteria: allCriteria });
   }
 
   // All pass — update status and trigger async evaluation
-  await supabase.from('cles').update({
-    status: 'cle_pass', ended_at: updatedPle.ended_at,
+  await supabase.from('ples').update({
+    status: 'ple_pass', ended_at: updatedPle.ended_at,
     duration_seconds: durationSeconds, ...allCriteria,
   }).eq('id', req.params.id);
 
   // Fire-and-forget evaluation
   triggerEvaluation(req.params.id, transcript).catch(console.error);
 
-  res.json({ status: 'cle_pass', criteria: allCriteria });
+  res.json({ status: 'ple_pass', criteria: allCriteria });
 });
 
-async function triggerEvaluation(cleId, transcript) {
-  const result = await rimplEvaluate({ cle_id: cleId, transcript });
+async function triggerEvaluation(pleId, transcript) {
+  const result = await rimplEvaluate({ ple_id: pleId, transcript });
   const composite = compositeScore(result);
 
   await supabase.from('ai_evaluations').insert({
-    cle_id: cleId,
+    ple_id: pleId,
     d1: result.d1, d2: result.d2, d3: result.d3, d4: result.d4,
     d5: result.d5, d6: result.d6, d7: result.d7,
     composite_score: composite,
@@ -1728,26 +1728,26 @@ async function triggerEvaluation(cleId, transcript) {
   });
 
   // Get physician_id for lpdp snapshot
-  const { data: cle } = await supabase.from('cles').select('physician_id').eq('id', cleId).single();
+  const { data: ple } = await supabase.from('ples').select('physician_id').eq('id', pleId).single();
 
   await supabase.from('lpdp_snapshots').insert({
-    physician_id: cle.physician_id, cle_id: cleId,
+    physician_id: ple.physician_id, ple_id: pleId,
     composite_score: composite,
     domain_scores: { d1: result.d1, d2: result.d2, d3: result.d3, d4: result.d4, d5: result.d5, d6: result.d6, d7: result.d7 },
   });
 
-  await supabase.from('cles').update({ status: 'evaluated' }).eq('id', cleId);
+  await supabase.from('ples').update({ status: 'evaluated' }).eq('id', pleId);
 }
 
 // Get AI evaluation result
 router.get('/:id/evaluation', async (req, res) => {
-  const { data: cle } = await supabase
-    .from('cles').select('status').eq('id', req.params.id).eq('physician_id', req.user.id).single();
-  if (!cle) return res.status(404).json({ error: 'Not found' });
-  if (cle.status !== 'evaluated') return res.status(202).json({ status: cle.status });
+  const { data: ple } = await supabase
+    .from('ples').select('status').eq('id', req.params.id).eq('physician_id', req.user.id).single();
+  if (!ple) return res.status(404).json({ error: 'Not found' });
+  if (ple.status !== 'evaluated') return res.status(202).json({ status: ple.status });
 
   const { data: eval_ } = await supabase
-    .from('ai_evaluations').select('*').eq('cle_id', req.params.id).single();
+    .from('ai_evaluations').select('*').eq('ple_id', req.params.id).single();
   res.json(eval_);
 });
 
@@ -1757,8 +1757,8 @@ module.exports = router;
 - [ ] **Step 2: Commit**
 
 ```bash
-git add backend/src/routes/cles.js
-git commit -m "feat: add cle routes with cle gate and evaluation trigger"
+git add backend/src/routes/ples.js
+git commit -m "feat: add ple routes with ple gate and evaluation trigger"
 ```
 
 ---
@@ -1779,83 +1779,83 @@ const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { AssignSchema } = require('../lib/schemas');
 const { rimplEvaluate, rimplEvaluateCriteria } = require('../services/rimpl-client');
-const { compositeScore } = require('../services/cle-gate');
+const { compositeScore } = require('../services/ple-gate');
 
 const router = Router();
 router.use(verifyJwt, requireRole('admin', 'superadmin'));
 
-router.get('/cles', async (req, res) => {
+router.get('/ples', async (req, res) => {
   const { status } = req.query;
-  let query = supabase.from('cles').select('*, professionals(full_name_th, full_name_en, specialty)');
+  let query = supabase.from('ples').select('*, professionals(full_name_th, full_name_en, specialty)');
   if (status) query = query.eq('status', status);
   const { data, error } = await query.order('created_at', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
 
-router.get('/cles/flagged', async (req, res) => {
+router.get('/ples/flagged', async (req, res) => {
   const { data, error } = await supabase
-    .from('cles').select('*, professionals(full_name_th, full_name_en)')
-    .eq('status', 'cle_flag_t2').order('ended_at');
+    .from('ples').select('*, professionals(full_name_th, full_name_en)')
+    .eq('status', 'ple_flag_t2').order('ended_at');
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
 
-router.post('/cles/:id/approve', async (req, res) => {
-  const { data: cle } = await supabase.from('cles').select('*').eq('id', req.params.id).single();
-  if (!cle || cle.status !== 'cle_flag_t2') return res.status(400).json({ error: 'Not a flagged CLE' });
+router.post('/ples/:id/approve', async (req, res) => {
+  const { data: ple } = await supabase.from('ples').select('*').eq('id', req.params.id).single();
+  if (!ple || ple.status !== 'ple_flag_t2') return res.status(400).json({ error: 'Not a flagged PLE' });
 
-  await supabase.from('cles').update({ status: 'cle_pass' }).eq('id', req.params.id);
+  await supabase.from('ples').update({ status: 'ple_pass' }).eq('id', req.params.id);
 
   const { data: messages } = await supabase
-    .from('messages').select('role, content').eq('cle_id', req.params.id).order('created_at');
+    .from('messages').select('role, content').eq('ple_id', req.params.id).order('created_at');
   const transcript = (messages ?? []).map(m => ({ role: m.role, content: m.content }));
 
   // Trigger async evaluation
   (async () => {
     try {
-      const result = await rimplEvaluate({ cle_id: req.params.id, transcript });
+      const result = await rimplEvaluate({ ple_id: req.params.id, transcript });
       const composite = compositeScore(result);
       await supabase.from('ai_evaluations').insert({
-        cle_id: req.params.id,
+        ple_id: req.params.id,
         d1: result.d1, d2: result.d2, d3: result.d3, d4: result.d4,
         d5: result.d5, d6: result.d6, d7: result.d7,
         composite_score: composite, domain_rationale: result.domain_rationale,
         model_version: result.model_version,
       });
       await supabase.from('lpdp_snapshots').insert({
-        physician_id: cle.physician_id, cle_id: req.params.id,
+        physician_id: ple.physician_id, ple_id: req.params.id,
         composite_score: composite,
         domain_scores: { d1: result.d1, d2: result.d2, d3: result.d3, d4: result.d4, d5: result.d5, d6: result.d6, d7: result.d7 },
       });
-      await supabase.from('cles').update({ status: 'evaluated' }).eq('id', req.params.id);
+      await supabase.from('ples').update({ status: 'evaluated' }).eq('id', req.params.id);
     } catch (e) { console.error('Evaluation failed:', e.message); }
   })();
 
   res.json({ ok: true });
 });
 
-router.post('/cles/:id/reject', async (req, res) => {
-  const { error } = await supabase.from('cles')
-    .update({ status: 'cle_fail_t1' }).eq('id', req.params.id).eq('status', 'cle_flag_t2');
+router.post('/ples/:id/reject', async (req, res) => {
+  const { error } = await supabase.from('ples')
+    .update({ status: 'ple_fail_t1' }).eq('id', req.params.id).eq('status', 'ple_flag_t2');
   if (error) return res.status(500).json({ error: error.message });
   res.json({ ok: true });
 });
 
-router.post('/cles/:id/assign', async (req, res) => {
+router.post('/ples/:id/assign', async (req, res) => {
   const parsed = AssignSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { error } = await supabase.from('cles')
+  const { error } = await supabase.from('ples')
     .update({ auditor_id: parsed.data.auditor_id }).eq('id', req.params.id).eq('status', 'evaluated');
   if (error) return res.status(500).json({ error: error.message });
   res.json({ ok: true });
 });
 
 router.get('/stats', async (req, res) => {
-  const { data: cles } = await supabase.from('cles').select('status');
-  const total = cles?.length ?? 0;
-  const counts = (cles ?? []).reduce((acc, p) => {
+  const { data: ples } = await supabase.from('ples').select('status');
+  const total = ples?.length ?? 0;
+  const counts = (ples ?? []).reduce((acc, p) => {
     acc[p.status] = (acc[p.status] ?? 0) + 1;
     return acc;
   }, {});
@@ -1873,7 +1873,7 @@ const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { ScoreSchema } = require('../lib/schemas');
-const { compositeScore } = require('../services/cle-gate');
+const { compositeScore } = require('../services/ple-gate');
 const { computeICC21 } = require('../services/icc');
 
 const router = Router();
@@ -1881,7 +1881,7 @@ router.use(verifyJwt, requireRole('auditor'));
 
 router.get('/queue', async (req, res) => {
   const { data, error } = await supabase
-    .from('cles')
+    .from('ples')
     .select('id, status, ended_at, turn_count, token_count')
     .eq('auditor_id', req.user.id)
     .eq('status', 'evaluated')
@@ -1890,45 +1890,45 @@ router.get('/queue', async (req, res) => {
   res.json(data);
 });
 
-router.get('/cles/:id', async (req, res) => {
-  const { data: cle } = await supabase
-    .from('cles').select('id, status, turn_count, token_count, ended_at')
+router.get('/ples/:id', async (req, res) => {
+  const { data: ple } = await supabase
+    .from('ples').select('id, status, turn_count, token_count, ended_at')
     .eq('id', req.params.id).eq('auditor_id', req.user.id).single();
-  if (!cle) return res.status(404).json({ error: 'Not found or not assigned' });
+  if (!ple) return res.status(404).json({ error: 'Not found or not assigned' });
 
   const { data: messages } = await supabase
     .from('messages').select('role, content, references, socratic_question, created_at')
-    .eq('cle_id', req.params.id).order('created_at');
+    .eq('ple_id', req.params.id).order('created_at');
 
   // Check if auditor already submitted score
   const { data: existing } = await supabase
-    .from('audit_scores').select('*').eq('cle_id', req.params.id).eq('auditor_id', req.user.id).single();
+    .from('audit_scores').select('*').eq('ple_id', req.params.id).eq('auditor_id', req.user.id).single();
 
   // Only reveal AI score after auditor has submitted
   let aiEval = null;
   if (existing) {
     const { data } = await supabase
-      .from('ai_evaluations').select('*').eq('cle_id', req.params.id).single();
+      .from('ai_evaluations').select('*').eq('ple_id', req.params.id).single();
     aiEval = data;
   }
 
-  res.json({ cle, messages: messages ?? [], audit_score: existing ?? null, ai_evaluation: aiEval });
+  res.json({ ple, messages: messages ?? [], audit_score: existing ?? null, ai_evaluation: aiEval });
 });
 
-router.post('/cles/:id/score', async (req, res) => {
+router.post('/ples/:id/score', async (req, res) => {
   const parsed = ScoreSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   // Prevent double-scoring
   const { data: existing } = await supabase
-    .from('audit_scores').select('id').eq('cle_id', req.params.id).eq('auditor_id', req.user.id).single();
+    .from('audit_scores').select('id').eq('ple_id', req.params.id).eq('auditor_id', req.user.id).single();
   if (existing) return res.status(409).json({ error: 'Already scored' });
 
   const { notes, ...scores } = parsed.data;
   const composite = compositeScore(scores);
 
   const { error } = await supabase.from('audit_scores').insert({
-    cle_id: req.params.id, auditor_id: req.user.id,
+    ple_id: req.params.id, auditor_id: req.user.id,
     ...scores, composite_score: composite, notes,
   });
   if (error) return res.status(500).json({ error: error.message });
@@ -1938,17 +1938,17 @@ router.post('/cles/:id/score', async (req, res) => {
 
 router.get('/icc', async (req, res) => {
   const { data } = await supabase
-    .from('audit_scores').select('cle_id, composite_score')
+    .from('audit_scores').select('ple_id, composite_score')
     .eq('auditor_id', req.user.id);
 
   if (!data?.length) return res.json({ icc: null, n: 0 });
 
-  const cleIds = data.map(s => s.cle_id);
+  const pleIds = data.map(s => s.ple_id);
   const { data: aiScores } = await supabase
-    .from('ai_evaluations').select('cle_id, composite_score').in('cle_id', cleIds);
+    .from('ai_evaluations').select('ple_id, composite_score').in('ple_id', pleIds);
 
   const pairs = data.flatMap(audit => {
-    const ai = aiScores?.find(a => a.cle_id === audit.cle_id);
+    const ai = aiScores?.find(a => a.ple_id === audit.ple_id);
     return ai ? [{ ai: ai.composite_score, human: audit.composite_score }] : [];
   });
 
@@ -2005,13 +2005,13 @@ router.post('/users', async (req, res) => {
 });
 
 router.get('/icc', async (req, res) => {
-  const { data: auditScores } = await supabase.from('audit_scores').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
-  const { data: aiScores } = await supabase.from('ai_evaluations').select('cle_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+  const { data: auditScores } = await supabase.from('audit_scores').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
+  const { data: aiScores } = await supabase.from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
 
   if (!auditScores?.length) return res.json({ overall: null, per_domain: {} });
 
   const pairs = auditScores.flatMap(a => {
-    const ai = aiScores?.find(s => s.cle_id === a.cle_id);
+    const ai = aiScores?.find(s => s.ple_id === a.ple_id);
     return ai ? [{ ai: ai.composite_score, human: a.composite_score, auditDomains: a, aiDomains: ai }] : [];
   });
 
@@ -2030,7 +2030,7 @@ router.get('/icc', async (req, res) => {
 
 router.get('/lpdp/:physicianId', async (req, res) => {
   const { data, error } = await supabase
-    .from('lpdp_snapshots').select('*, cles(ended_at)')
+    .from('lpdp_snapshots').select('*, ples(ended_at)')
     .eq('physician_id', req.params.physicianId)
     .order('snapshot_at');
   if (error) return res.status(500).json({ error: error.message });
@@ -2053,7 +2053,7 @@ git commit -m "feat: add admin, auditor, and superadmin routes"
 
 **Files:**
 - Create: `backend/src/index.js`
-- Create: `backend/tests/cles.test.js`
+- Create: `backend/tests/ples.test.js`
 
 - [ ] **Step 1: Write src/index.js**
 
@@ -2074,7 +2074,7 @@ app.use((req, res, next) => {
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/auth', require('./routes/auth'));
-app.use('/cles', require('./routes/cles'));
+app.use('/ples', require('./routes/ples'));
 app.use('/admin', require('./routes/admin'));
 app.use('/auditor', require('./routes/auditor'));
 app.use('/admin', require('./routes/superadmin'));
@@ -2087,16 +2087,16 @@ if (require.main === module) {
 module.exports = app;
 ```
 
-- [ ] **Step 2: Write smoke test for CLE gate integration**
+- [ ] **Step 2: Write smoke test for PLE gate integration**
 
 ```javascript
-// backend/tests/cles.test.js
-const { computeTier1, compositeScore } = require('../src/services/cle-gate');
+// backend/tests/ples.test.js
+const { computeTier1, compositeScore } = require('../src/services/ple-gate');
 
-describe('CLE gate integration', () => {
+describe('PLE gate integration', () => {
   test('15-min session with 4 turns and 800 tokens passes Tier 1', () => {
-    const cle = { duration_seconds: 900, turn_count: 4, token_count: 800 };
-    const t1 = computeTier1(cle);
+    const ple = { duration_seconds: 900, turn_count: 4, token_count: 800 };
+    const t1 = computeTier1(ple);
     expect(t1.c1 && t1.c2 && t1.c3).toBe(true);
   });
 
@@ -2179,7 +2179,7 @@ seed().catch(console.error);
 - [ ] **Step 6: Commit**
 
 ```bash
-git add backend/src/index.js backend/tests/cles.test.js db/seed-documents.js
+git add backend/src/index.js backend/tests/ples.test.js db/seed-documents.js
 git commit -m "feat: wire up backend server and add seed script"
 ```
 

@@ -22,6 +22,11 @@ const config = {
     'components/TranscriptView.tsx',
     'components/BiLabel.tsx',
     'components/RaterSpread.tsx',
+    'app/manual/page.tsx',
+    'lib/manual-lang.ts',
+    'components/UsageMeter.tsx',
+    'components/ConsistencyChip.tsx',
+    'components/LocalAiCapacityCard.tsx',
   ],
   coverageThreshold: {
     global: { statements: 100, branches: 90, functions: 100, lines: 100 },

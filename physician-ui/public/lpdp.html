@@ -23,7 +23,7 @@
     </header>
     <div id="lpdpSummary" class="lpdp-summary" style="display:none"></div>
     <div class="card"><div class="chart-box"><canvas id="lpdpChart"></canvas></div></div>
-    <p id="noData" style="display:none;color:var(--muted);text-align:center;padding:20px">ยังไม่มีข้อมูล — กรุณาทำ Continuous Learning Episode ให้ผ่านก่อน / No progress yet — pass a Continuous Learning Episode first.</p>
+    <p id="noData" style="display:none;color:var(--muted);text-align:center;padding:20px"></p>
   </div>
   <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>
@@ -42,7 +42,7 @@
       lpdpChart = new Chart(el, {
         type: 'line',
         data: {
-          // Date the timeline so it's meaningful — not anonymous "CLE 1, CLE 2…".
+          // Date the timeline so it's meaningful — not anonymous "PLE 1, PLE 2…".
           labels: lpdpData.map(d => d.snapshot_at ? new Date(d.snapshot_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) : ''),
           datasets: [{ label: 'คะแนน PIS-7', data: lpdpData.map(d => d.composite_score), borderColor: coral, backgroundColor: coral + '1a', tension: 0.3, pointRadius: 5, pointBackgroundColor: coral }],
         },
@@ -64,22 +64,37 @@
       const prev = data.length > 1 ? data[data.length - 2].composite_score : null;
       const delta = prev != null ? Math.round(latest - prev) : null;
       let trend;
-      if (delta == null) trend = '<span class="lpdp-trend">Continuous Learning Episode แรกของคุณ<span class="bi-en">Your first episode</span></span>';
+      if (delta == null) trend = '<span class="lpdp-trend">Professional Learning Episode แรกของคุณ<span class="bi-en">Your first episode</span></span>';
       else if (delta >= 0) trend = `<span class="lpdp-trend is-up">▲ +${delta} <span style="opacity:.75">จากครั้งก่อน / vs last</span></span>`;
       else trend = `<span class="lpdp-trend is-down">▼ ${delta} <span style="opacity:.75">จากครั้งก่อน / vs last</span></span>`;
       host.innerHTML = `
-        <div><p class="lpdp-latest">${latest}</p><p class="lpdp-latest-cap">คะแนนล่าสุด / Latest · ${data.length} Continuous Learning Episodes</p></div>
+        <div><p class="lpdp-latest">${latest}</p><p class="lpdp-latest-cap">คะแนนล่าสุด / Latest · ${data.length} Professional Learning Episodes</p></div>
         <div>${trend}</div>`;
       host.style.display = 'flex';
     }
     // Empty state: hide the (otherwise blank, broken-looking) chart card and show only the notice.
-    function showEmpty() {
+    //
+    // TWO different empty states, and telling them apart is the whole point. With
+    // hold_result_until_audited on, /ples/lpdp/me withholds every episode an auditor has not scored
+    // yet — so a physician who has done the work sees the SAME bare list as one who has done none,
+    // and used to be told to go "pass an episode first". `held` is the server's count of that
+    // physician's own episodes still in the queue.
+    function showEmpty(held) {
       const card = document.querySelector('.card');
       if (card) card.style.display = 'none';
-      document.getElementById('noData').style.display = 'block';
+      const nd = document.getElementById('noData');
+      // Wording mirrors ple-result.html's pending_review band verbatim, so the same episode is not
+      // described in two ways across two pages. Thai has no plural, so only the English branches.
+      nd.textContent = held > 0
+        ? `อยู่ระหว่างการตรวจประเมิน — กราฟความก้าวหน้าจะแสดงเมื่อผู้ตรวจส่งคะแนนแล้ว (รออยู่ ${held} บทเรียน) / `
+          + `Under expert review — your progress chart appears once an expert auditor has submitted `
+          + `their assessment. (${held} episode${held > 1 ? 's' : ''} waiting.)`
+        : 'ยังไม่มีข้อมูล — กรุณาทำ Professional Learning Episode ให้ผ่านก่อน / '
+          + 'No progress yet — pass a Professional Learning Episode first.';
+      nd.style.display = 'block';
     }
-    // A FETCH FAILURE is not "no data yet" — don't tell a physician with evaluated CLEs to "go pass a
-    // CLE." Show a distinct, retryable error instead.
+    // A FETCH FAILURE is not "no data yet" — don't tell a physician with evaluated PLEs to "go pass a
+    // PLE." Show a distinct, retryable error instead.
     function showError() {
       const card = document.querySelector('.card');
       if (card) card.style.display = 'none';
@@ -88,7 +103,7 @@
       nd.style.display = 'block';
     }
     function loadLpdp() {
-      fetch(`${window.CLICS_API_URL || 'http://localhost:3001'}/cles/lpdp/me`, {
+      fetch(`${window.CLICS_API_URL || 'http://localhost:3001'}/ples/lpdp/me?held=1`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('clics_token')}` }
       })
       .then(r => {
@@ -104,10 +119,14 @@
         if (!r.ok) throw new Error('http ' + r.status);
         return r.json();
       })
-      .then(data => {
-        if (!data?.length) { showEmpty(); return; }
-        lpdpData = data;
-        renderSummary(data);
+      .then(payload => {
+        // The portal and the backend deploy independently (Vercel / Railway), so a skew where one
+        // is ahead of the other is normal and must not blank this page. Accept the old bare array.
+        const rows = Array.isArray(payload) ? payload : (payload?.snapshots ?? []);
+        const held = Array.isArray(payload) ? 0 : (payload?.held ?? 0);
+        if (!rows.length) { showEmpty(held); return; }
+        lpdpData = rows;
+        renderSummary(rows);
         buildLine();
       })
       .catch((e) => { if (e && e.message === 'auth') return; showError(); });

@@ -95,30 +95,32 @@ window.api = {
   // encrypted on-prem. getPaymentInfo → { payment_info, updated_at } | { payment_info: null }.
   getPaymentInfo: () => apiFetch('/auth/payment-info'),
   savePaymentInfo: (body) => apiFetch('/auth/payment-info', { method: 'POST', body }),
-  createPle: (body) => apiFetch('/cles', { method: 'POST', body }),
-  getPlEs: () => apiFetch('/cles'),
-  getPle: (id) => apiFetch(`/cles/${id}`),
-  updatePle: (id, body) => apiFetch(`/cles/${id}`, { method: 'PATCH', body }),
-  deletePle: (id) => apiFetch(`/cles/${id}`, { method: 'DELETE' }),
-  sendMessage: (id, body) => apiFetch(`/cles/${id}/message`, { method: 'POST', body }),
-  endPle: (id, body) => apiFetch(`/cles/${id}/end`, { method: 'POST', body }),
+  createPle: (body) => apiFetch('/ples', { method: 'POST', body }),
+  getPlEs: () => apiFetch('/ples'),
+  getPle: (id) => apiFetch(`/ples/${id}`),
+  updatePle: (id, body) => apiFetch(`/ples/${id}`, { method: 'PATCH', body }),
+  deletePle: (id) => apiFetch(`/ples/${id}`, { method: 'DELETE' }),
+  sendMessage: (id, body) => apiFetch(`/ples/${id}/message`, { method: 'POST', body }),
+  endPle: (id, body) => apiFetch(`/ples/${id}/end`, { method: 'POST', body }),
   // CREC082 ICF §3 step 3. Submitting (or skipping) the reflection is what releases a session from
   // 'ended' into screening — the reflection is part of what gets screened.
-  getReflection: (id) => apiFetch(`/cles/${id}/reflection`),
-  submitReflection: (id, body) => apiFetch(`/cles/${id}/reflection`, { method: 'POST', body }),
+  getReflection: (id) => apiFetch(`/ples/${id}/reflection`),
+  submitReflection: (id, body) => apiFetch(`/ples/${id}/reflection`, { method: 'POST', body }),
   // ICF §3 step 4 — one per physician at the end of participation. The item wording comes from the
   // server so the portal never holds a second copy that could drift from the approved instrument.
-  getAcceptability: () => apiFetch('/cles/acceptability'),
-  submitAcceptability: (body) => apiFetch('/cles/acceptability', { method: 'POST', body }),
-  getEvaluation: (id) => apiFetch(`/cles/${id}/evaluation`),
+  getAcceptability: () => apiFetch('/ples/acceptability'),
+  submitAcceptability: (body) => apiFetch('/ples/acceptability', { method: 'POST', body }),
+  getEvaluation: (id) => apiFetch(`/ples/${id}/evaluation`),
   // Longitudinal profile snapshots (ascending; last = most recent composite_score). Used by the
   // LPDP page and the dashboard hero's "latest score" stat.
-  getLpdp: () => apiFetch('/cles/lpdp/me'),
+  // ?held=1 asks for the { snapshots, held } shape. Without it the endpoint returns the bare
+  // array it always has, so a cached copy of this file cannot be broken by a backend deploy.
+  getLpdp: () => apiFetch('/ples/lpdp/me?held=1'),
   // Conversation folders
-  getFolders: () => apiFetch('/cles/folders'),
-  createFolder: (name) => apiFetch('/cles/folders', { method: 'POST', body: { name } }),
-  renameFolder: (id, name) => apiFetch(`/cles/folders/${id}`, { method: 'PATCH', body: { name } }),
-  deleteFolder: (id) => apiFetch(`/cles/folders/${id}`, { method: 'DELETE' }),
+  getFolders: () => apiFetch('/ples/folders'),
+  createFolder: (name) => apiFetch('/ples/folders', { method: 'POST', body: { name } }),
+  renameFolder: (id, name) => apiFetch(`/ples/folders/${id}`, { method: 'PATCH', body: { name } }),
+  deleteFolder: (id) => apiFetch(`/ples/folders/${id}`, { method: 'DELETE' }),
 
   // Active professional councils for the sign-up picker (public).
   councils: () => publicFetch('/auth/councils'),

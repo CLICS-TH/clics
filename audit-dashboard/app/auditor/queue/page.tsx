@@ -14,7 +14,7 @@ interface CleItem {
 }
 
 export default function AuditorQueue() {
-  const [cles, setPlEs] = useState<CleItem[] | null>(null); // null = still loading
+  const [ples, setPlEs] = useState<CleItem[] | null>(null); // null = still loading
   const [err, setErr] = useState(false);
   const [filter, setFilter] = useState(''); // client-side only — the queue is small
   const router = useRouter();
@@ -37,7 +37,7 @@ export default function AuditorQueue() {
     fetchQueue();
   }, [fetchQueue, router]);
 
-  const list = cles ?? [];
+  const list = ples ?? [];
   const toScore = list.filter(p => !p.scored).length;
 
   // Narrow the visible rows by pseudonym / case text (plus the row's visible date/counts).
@@ -56,7 +56,7 @@ export default function AuditorQueue() {
       <PageIntro
         eyebrow="Auditor · Scoring Queue"
         title="คิวการประเมิน"
-        subtitle="Blind PIS-7 scoring — เลือก CLE เพื่อให้คะแนน (คะแนน AI ถูกซ่อนไว้)"
+        subtitle="Blind PIS-7 scoring — เลือก PLE เพื่อให้คะแนน (คะแนน AI ถูกซ่อนไว้)"
       />
       {list.length > 0 && (
         <>
@@ -75,26 +75,26 @@ export default function AuditorQueue() {
             <p className="text-muted-foreground mb-3">โหลดคิวไม่สำเร็จ / Could not load the queue.</p>
             <button className="text-sm text-primary underline" onClick={retry}>ลองใหม่ / Retry</button>
           </div>
-        : cles === null
+        : ples === null
         ? <p className="text-muted-foreground text-center py-10">กำลังโหลด… / Loading…</p>
         : list.length === 0
-        ? <p className="text-muted-foreground text-center py-10">ยังไม่มี CLE ที่ได้รับมอบหมาย / No CLEs assigned yet.</p>
+        ? <p className="text-muted-foreground text-center py-10">ยังไม่มี PLE ที่ได้รับมอบหมาย / No PLEs assigned yet.</p>
         : visible.length === 0
         ? <p className="text-muted-foreground text-center py-10">ไม่พบรายการที่ตรงกับคำค้น / No items match the filter.</p>
         : visible.map(p => (
           // role + tabIndex + keydown: a bare <div onClick> is not in the tab order, so an auditor
-          // could not open a queued CLE without a pointer. Mirrors the fix already in the physician
+          // could not open a queued PLE without a pointer. Mirrors the fix already in the physician
           // portal (physician-ui/public/js/dashboard.js:308 and its keydown handler).
           <div key={p.id} role="button" tabIndex={0}
-            aria-label={`เปิด CLE วันที่ ${new Date(p.ended_at).toLocaleDateString('th-TH')} / Open CLE`}
+            aria-label={`เปิด PLE วันที่ ${new Date(p.ended_at).toLocaleDateString('th-TH')} / Open PLE`}
             className={`border rounded-xl p-5 mb-3 cursor-pointer transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transform-none motion-reduce:transition-none ${p.scored ? 'bg-muted/50' : ''}`}
-            onClick={() => router.push(`/auditor/cles/${p.id}`)}
+            onClick={() => router.push(`/auditor/ples/${p.id}`)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/auditor/cles/${p.id}`); }
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/auditor/ples/${p.id}`); }
             }}>
             <div className="flex justify-between items-center">
               <div>
-                <p className="font-semibold">CLE — {new Date(p.ended_at).toLocaleDateString('th-TH')}</p>
+                <p className="font-semibold">PLE — {new Date(p.ended_at).toLocaleDateString('th-TH')}</p>
                 <p className="text-xs text-muted-foreground">{p.turn_count} รอบ · {p.token_count} tokens</p>
               </div>
               {p.scored

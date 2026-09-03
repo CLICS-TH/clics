@@ -21,7 +21,7 @@ type Invite = {
 };
 type CreatedInvite = Invite & { accept_url?: string; email_sent?: boolean };
 
-// th-TH to match every other dashboard page (admin/cles, users, lpdp, auditor/queue all use th-TH /
+// th-TH to match every other dashboard page (admin/ples, users, lpdp, auditor/queue all use th-TH /
 // Buddhist-era). en-GB here showed Gregorian 2026 next to 2569 elsewhere — confusing + off-by-543.
 const fmt = (d: string | null) =>
   d ? new Date(d).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : '—';

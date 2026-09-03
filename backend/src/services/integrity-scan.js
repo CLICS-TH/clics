@@ -1,9 +1,9 @@
-// Runs the integrity detector against a stored CLE and persists what it finds.
+// Runs the integrity detector against a stored PLE and persists what it finds.
 //
 // services/integrity.js is PURE — arithmetic over data handed to it, no database, no clock — so that
 // it can be tested against fixtures and reasoned about. This module is the half that touches the
 // database, and it exists so the SAME scan can be triggered two ways: automatically when a session
-// ends, and manually by an admin from the CLE detail screen.
+// ends, and manually by an admin from the PLE detail screen.
 //
 // WHY AUTOMATIC MATTERS. CREC082 §1 excludes "passive copying of AI answers" from what counts as a
 // PLE. The detector for that shipped in August and was reachable only from an admin button, so
@@ -20,51 +20,55 @@ const { detectIntegritySignals } = require('./integrity');
 // The signals the detector itself produces. The scan replaces these wholesale on every run so a
 // stale flag from an earlier sweep cannot sit beside current ones — but it must NOT delete signals
 // raised elsewhere (the rescue post-check writes its own), which is why the delete is scoped by name
-// rather than by cle_id alone.
+// rather than by ple_id alone.
 const DETECTOR_SIGNALS = [
   'F1_NEAR_DUPLICATE', 'F2_CROSS_SESSION_REUSE', 'F3_PASTE_BURST',
   'F4_COMPOSITION_RATE', 'F5_LATENCY_UNIFORMITY',
+  // Listed even though it ships disabled. A signal that is enabled, writes flags, and is then
+  // switched off must have its old rows cleared by the next sweep; omitting it here would strand
+  // them permanently, and a stale accusation is worse than none.
+  'F6_REGISTER_DISCONTINUITY',
 ];
 
 /**
- * Scan one CLE and persist its flags.
+ * Scan one PLE and persist its flags.
  *
  * @param {object}  args
- * @param {string}  args.cleId
+ * @param {string}  args.pleId
  * @param {string}  args.physicianId    owner, for the cross-session comparison corpus
  * @returns {Promise<{flags: Array, scanned_turns: number, corpus_cles: number}>}
  * @throws on a database error — callers decide whether that is fatal. It is not, at /end.
  */
-async function scanCle({ cleId, physicianId }) {
+async function scanPle({ pleId, physicianId }) {
   const { data: messages, error: mErr } = await supabase.from('messages')
-    .select('role, content, created_at, token_count').eq('cle_id', cleId).order('created_at');
+    .select('role, content, created_at, token_count').eq('ple_id', pleId).order('created_at');
   if (mErr) throw new Error(mErr.message);
 
   // Comparison corpus for F2: this physician's turns in their OTHER sessions.
   // Test sessions are EXCLUDED. The pilot's own rehearsal pasted the same scripted prompt into
-  // several CLEs, and every cross-session duplicate observed in production came from exactly that;
+  // several PLEs, and every cross-session duplicate observed in production came from exactly that;
   // leaving them in would flag the team's own testing as physician misconduct.
   let priorTurns = [], otherIds = [];
   if (physicianId) {
-    const { data: otherCles } = await supabase.from('cles')
-      .select('id').eq('physician_id', physicianId).eq('is_test', false).neq('id', cleId);
-    otherIds = (otherCles ?? []).map(c => c.id);
+    const { data: otherPles } = await supabase.from('ples')
+      .select('id').eq('physician_id', physicianId).eq('is_test', false).neq('id', pleId);
+    otherIds = (otherPles ?? []).map(c => c.id);
     if (otherIds.length) {
       const { data: prior } = await supabase.from('messages')
-        .select('cle_id, content').in('cle_id', otherIds).in('role', ['user', 'physician']);
+        .select('ple_id, content').in('ple_id', otherIds).in('role', ['user', 'physician']);
       priorTurns = prior ?? [];
     }
   }
 
   const flags = detectIntegritySignals(messages ?? [], priorTurns);
 
-  const { error: delErr } = await supabase.from('cle_integrity_flags')
-    .delete().eq('cle_id', cleId).in('signal', DETECTOR_SIGNALS);
+  const { error: delErr } = await supabase.from('ple_integrity_flags')
+    .delete().eq('ple_id', pleId).in('signal', DETECTOR_SIGNALS);
   if (delErr) throw new Error(delErr.message);
 
   if (flags.length) {
-    const { error: insErr } = await supabase.from('cle_integrity_flags')
-      .upsert(flags.map(f => ({ cle_id: cleId, ...f })), { onConflict: 'cle_id,signal' });
+    const { error: insErr } = await supabase.from('ple_integrity_flags')
+      .upsert(flags.map(f => ({ ple_id: pleId, ...f })), { onConflict: 'ple_id,signal' });
     if (insErr) throw new Error(insErr.message);
   }
 
@@ -79,9 +83,9 @@ async function scanCle({ cleId, physicianId }) {
 //
 // 'medium', not 'high': the physician did nothing wrong here. This flags OUR output, and it routes
 // the session to a human rather than accusing anyone.
-async function flagRescueReplyBreach({ cleId, check, turn }) {
-  const { error } = await supabase.from('cle_integrity_flags').upsert({
-    cle_id: cleId,
+async function flagRescueReplyBreach({ pleId, check, turn }) {
+  const { error } = await supabase.from('ple_integrity_flags').upsert({
+    ple_id: pleId,
     signal: 'R1_RESCUE_REPLY_BREACH',
     severity: 'medium',
     evidence: {
@@ -94,8 +98,8 @@ async function flagRescueReplyBreach({ cleId, check, turn }) {
       // into a flag row would duplicate raw physician-adjacent content for no added evidence.
       note: 'CREC082 §4: a rescue turn must ask 1-2 non-leading questions and give no diagnosis.',
     },
-  }, { onConflict: 'cle_id,signal' });
+  }, { onConflict: 'ple_id,signal' });
   if (error) throw new Error(error.message);
 }
 
-module.exports = { scanCle, flagRescueReplyBreach, DETECTOR_SIGNALS };
+module.exports = { scanPle, flagRescueReplyBreach, DETECTOR_SIGNALS };

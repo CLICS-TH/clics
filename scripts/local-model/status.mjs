@@ -70,12 +70,12 @@ async function probeBox() {
 }
 
 // --- G0.5: the human-auditor baseline the whole programme is go/no-go on ------------------------
-// Deliberately computed the SAME way the decisive arm is (auditors averaged to one value per CLE
+// Deliberately computed the SAME way the decisive arm is (auditors averaged to one value per PLE
 // before pairing), so a number here is comparable with the number that will gate the lock.
 async function humanBaseline(gates) {
   const sets = await pairedSets({ includeTest: false });
   if (!sets.ok) return { state: 'block', detail: `could not read the corpus: ${sets.error?.message ?? sets.error}` };
-  if (sets.empty) return { state: 'block', detail: 'no CLE carries both an AI evaluation and a human score' };
+  if (sets.empty) return { state: 'block', detail: 'no PLE carries both an AI evaluation and a human score' };
   const pairs = sets.withAi
     .map((id) => ({ a: sets.aiBy.get(id), b: sets.humanBy.get(id) }))
     .filter((p) => p.a && p.b)
@@ -135,13 +135,13 @@ async function main() {
       detail: box.state === 'pass' ? 'box reachable — run the probe harness' : 'cannot run until the box is reachable',
       next: 'node scripts/probe/discover.mjs, then json-contract.mjs (>=95%) and thai-probe.mjs.' },
     { id: 'G0.5 human baseline', ...baseline,
-      next: 'More auditor scores on CLEs that already carry an AI evaluation. This is programme go/no-go (D14).' },
+      next: 'More auditor scores on PLEs that already carry an AI evaluation. This is programme go/no-go (D14).' },
     { id: 'P3  a purpose is local', state: anyLocal ? 'pass' : 'wait',
       detail: anyLocal ? `local serves: ${Object.entries(byPurpose).filter(([, v]) => v === 'local').map(([k]) => k).join(', ')}`
         : `every purpose on ${[...new Set(Object.values(byPurpose))].join(', ')} — nothing to shadow against`,
       next: 'PATCH /admin/ai-providers for a non-evaluate purpose first; the readiness gate refuses an unfit box.' },
     { id: 'P4  shadow corpus', ...shadow,
-      next: 'Point `evaluate` shadowing at the candidate and let CLEs accumulate paired scores.' },
+      next: 'Point `evaluate` shadowing at the candidate and let PLEs accumulate paired scores.' },
     { id: 'P4  decisive verdict', state: decisiveState,
       detail: !decisive.ok ? `could not compute: ${decisive.error?.message ?? decisive.error}`
         : `candidate vs human ${decisive.verdict.icc == null ? '(no estimate)' : decisive.verdict.icc.toFixed(3)} vs gate ${gates.decisive} — ${decisive.verdict.why}`,

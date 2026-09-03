@@ -52,7 +52,7 @@
   <h2>1 · บทบาทพิเศษคืออะไร <span class="en">The Special role: User + Auditor</span></h2>
   <p class="lead">คุณคือผู้ใช้ที่ได้รับสิทธิ์ “ผู้ตรวจประเมิน” เพิ่มเข้ามา ด้วยบัญชีเดียวกัน คุณทำได้ทั้งสองอย่าง:</p>
   <ul class="bullets">
-    <li><b>ในฐานะแพทย์ผู้ใช้</b> — สร้างบทเรียน (CLE) สนทนากับ AI และรับคะแนน PIS-7 ของตนเอง (เหมือนผู้ใช้ทั่วไป)</li>
+    <li><b>ในฐานะแพทย์ผู้ใช้</b> — สร้างบทเรียน (PLE) สนทนากับ AI และรับคะแนน PIS-7 ของตนเอง (เหมือนผู้ใช้ทั่วไป)</li>
     <li><b>ในฐานะผู้ตรวจประเมิน</b> — ให้คะแนนบทเรียนของแพทย์ “คนอื่น” แบบไม่เห็นคะแนน AI ก่อน เพื่อปรับเทียบมาตรฐาน (calibration)</li>
   </ul>
   <div class="callout"><span class="h">ทำไมต้องมีผู้ตรวจที่เป็นแพทย์</span> เพื่อพิสูจน์ว่า AI ให้คะแนนได้ “เที่ยงตรงและเป็นธรรม” เทียบเท่าผู้เชี่ยวชาญ โดยวัดด้วยค่าความสอดคล้อง ICC (เป้าหมาย ≥ 0.75)</div>
@@ -64,7 +64,7 @@
   <h2>2 · ระบบทำงานประสานกันอย่างไร <span class="en">How it fits together</span></h2>
   <p>เพื่อให้เห็นภาพรวมก่อนเริ่ม นี่คือเส้นทางของข้อมูลตั้งแต่แพทย์ทำบทเรียน จนถึงการเทียบคะแนน:</p>
   <div class="flow">
-    <div class="node"><span class="n">แพทย์</span>ทำ CLE + สนทนา AI</div><div class="arrow">›</div>
+    <div class="node"><span class="n">แพทย์</span>ทำ PLE + สนทนา AI</div><div class="arrow">›</div>
     <div class="node"><span class="n">AI</span>ให้คะแนน PIS-7</div><div class="arrow">›</div>
     <div class="node"><span class="n">ผู้ดูแล</span>มอบหมายให้ผู้ตรวจ</div>
   </div>
@@ -83,7 +83,7 @@
   <ol class="steps">
     <li><span class="st-title">เข้าสู่ระบบ</span> ที่ https://physician-ui.vercel.app ด้วย <span class="chip">เข้าสู่ระบบ / Login</span> หรือ <span class="chip">Sign in with Google</span></li>
     <li><span class="st-title">ให้ความยินยอม</span> ติ๊กครบ 4 ข้อ แล้วกด <span class="chip">ยอมรับและเริ่มใช้งาน</span></li>
-    <li><span class="st-title">เริ่ม CLE ใหม่</span> กรอก <span class="chip">อาการสำคัญ / Chief Complaint</span> (เคสไม่ระบุตัวตน) แล้ว <span class="chip">เริ่มการสนทนา / Start Session</span></li>
+    <li><span class="st-title">เริ่ม PLE ใหม่</span> กรอก <span class="chip">อาการสำคัญ / Chief Complaint</span> (เคสไม่ระบุตัวตน) แล้ว <span class="chip">เริ่มการสนทนา / Start Session</span></li>
     <li><span class="st-title">สนทนากับ AI</span> ถาม–ตอบ ดูการอ้างอิงและคำถามชวนคิด ใช้ปุ่ม <span class="chip neutral">พักไว้ / Pause</span> ได้</li>
     <li><span class="st-title">จบและส่ง</span> กด <span class="chip">จบและส่ง / End</span> ตรวจความพร้อม แล้วยืนยัน <span class="warn" style="display:inline;padding:1px 6px">ส่งแล้วทำต่อไม่ได้อีก</span></li>
     <li><span class="st-title">ดูผล PIS-7</span> คะแนนเต็ม 100 + กราฟเรดาร์ 7 ด้าน + เครดิต CPD เมื่อผ่าน</li>

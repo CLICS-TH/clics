@@ -15,23 +15,25 @@ import { Menu } from 'lucide-react';
 // superadmin-only (those endpoints 403 for admins). Requests was retired with the
 // request-access flow (onboarding = Google self-service + invites).
 // Labels are {th, en} for the hierarchy renderer (#12a) — Thai primary, English smaller + dimmed.
-const ADMIN_LINKS = [
-  { href: '/admin/cles', th: 'CLEs' },
+export const ADMIN_LINKS = [
+  { href: '/admin/ples', th: 'PLEs' },
   { href: '/admin/invites', th: 'คำเชิญ', en: 'Invites' },
   { href: '/admin/users', th: 'ผู้ใช้งาน', en: 'Users' },
   { href: '/admin/flagged', th: 'QA Queue' },
   { href: '/admin/privacy', th: 'ความเป็นส่วนตัว', en: 'Privacy' },
+  { href: '/admin/integrity', th: 'ความสุจริต', en: 'Integrity' },
   { href: '/admin/identity', th: 'ยืนยันตัวตน', en: 'Identity' },
   { href: '/admin/compensation', th: 'ค่าตอบแทน', en: 'Payouts' },
   { href: '/admin/stats', th: 'สถิติ', en: 'Stats' },
 ];
-const SUPERADMIN_LINKS = [
+export const SUPERADMIN_LINKS = [
   { href: '/admin/overview', th: 'ภาพรวม', en: 'Overview' },
-  { href: '/admin/cles', th: 'CLEs' },
+  { href: '/admin/ples', th: 'PLEs' },
   { href: '/admin/invites', th: 'คำเชิญ', en: 'Invites' },
   { href: '/admin/users', th: 'ผู้ใช้งาน', en: 'Users' },
   { href: '/admin/flagged', th: 'QA Queue' },
   { href: '/admin/privacy', th: 'ความเป็นส่วนตัว', en: 'Privacy' },
+  { href: '/admin/integrity', th: 'ความสุจริต', en: 'Integrity' },
   { href: '/admin/identity', th: 'ยืนยันตัวตน', en: 'Identity' },
   { href: '/admin/icc', th: 'ICC' },
   { href: '/admin/compensation', th: 'ค่าตอบแทน', en: 'Payouts' },
@@ -40,10 +42,15 @@ const SUPERADMIN_LINKS = [
   { href: '/admin/evaluator-lock', th: 'ล็อกโมเดล', en: 'Model Lock' },
   { href: '/admin/stats', th: 'สถิติ', en: 'Stats' },
 ];
-const AUDITOR_LINKS = [{ href: '/auditor/queue', th: 'คิวประเมิน', en: 'Queue' }];
+export const AUDITOR_LINKS = [
+  { href: '/auditor/queue', th: 'คิวประเมิน', en: 'Queue' },
+  // /manual, NOT /auditor/manual: isActive below treats any /auditor/* path as the queue, so a
+  // manual under that prefix would keep Queue lit while the reader is in the manual.
+  { href: '/manual', th: 'คู่มือ', en: 'Manual' },
+];
 // Tier-3 analyst (aggregates only) + Tier-4 ethics (aggregates + audit log). Read-only, no transcripts.
-const ANALYST_LINKS = [{ href: '/analyst', th: 'ภาพรวม', en: 'Analytics' }];
-const ETHICS_LINKS = [{ href: '/ethics', th: 'บันทึกตรวจสอบ', en: 'Audit log' }];
+export const ANALYST_LINKS = [{ href: '/analyst', th: 'ภาพรวม', en: 'Analytics' }];
+export const ETHICS_LINKS = [{ href: '/ethics', th: 'บันทึกตรวจสอบ', en: 'Audit log' }];
 
 export function NavBar() {
   const pathname = usePathname();
@@ -52,18 +59,20 @@ export function NavBar() {
   // client render in agreement, then swaps to the live value — so we render null until the user is
   // known, and the menu closes on selection via each link's onClick (below) rather than an effect.
   const user = useAuthUser();
-  // The full bilingual nav row needs ~1536px; below that (or forced-mobile) we show the hamburger so
-  // the Thai+English labels never wrap. Uses the nav-specific threshold, NOT the 767px table one.
-  const compact = useIsNavCompact();
-  if (!user) return null;
-
-  const links =
+  // Resolved BEFORE the early return, because the width at which the row may render inline depends
+  // on how many links this role has — and a hook cannot be called after a conditional return.
+  const links = !user ? [] :
     user.role === 'superadmin' ? SUPERADMIN_LINKS :
     user.role === 'admin' ? ADMIN_LINKS :
     user.role === 'analyst' ? ANALYST_LINKS :
     user.role === 'ethics' ? ETHICS_LINKS :
     // Auditors and dual-role physicians (can_audit) get the auditor workspace.
     canAudit(user) ? AUDITOR_LINKS : [];
+  // Below the width this row needs (or in forced-mobile) we show the hamburger so the Thai+English
+  // labels never wrap and the identity cluster is never pushed off-screen. The threshold scales with
+  // links.length; a FIXED one is what let admin (9) and superadmin (14) overflow every real monitor.
+  const compact = useIsNavCompact(links.length);
+  if (!user) return null;
 
   function logout() {
     // Clearing only our (dashboard-origin) token isn't enough — the PORTAL origin still holds a valid
@@ -89,12 +98,12 @@ export function NavBar() {
     window.location.href = `${portal}/dashboard`;
   }
 
-  // Active when the path matches OR is a child (detail page) of the link, so /admin/cles/[id] keeps
-  // 'CLEs' lit and /auditor/cles/[id] keeps 'Queue' lit. /home (exact) never false-matches a section.
+  // Active when the path matches OR is a child (detail page) of the link, so /admin/ples/[id] keeps
+  // 'PLEs' lit and /auditor/ples/[id] keeps 'Queue' lit. /home (exact) never false-matches a section.
   const isActive = (href: string) =>
     pathname === href ||
     pathname.startsWith(href + '/') ||
-    // The auditor's only tab is the queue; its scoring detail lives under /auditor/cles/...
+    // The auditor's only tab is the queue; its scoring detail lives under /auditor/ples/...
     (href === '/auditor/queue' && pathname.startsWith('/auditor/'));
 
   // Identity line under the name: specialty · position (the layer under council). Empty for global roles.
@@ -103,7 +112,10 @@ export function NavBar() {
 
   const linkClass = (href: string) =>
     isActive(href)
-      ? 'whitespace-nowrap text-primary border-b-2 border-primary pb-0.5 text-sm font-medium'
+      // text-LINK, not text-primary: bright --primary measures 3.11:1 on the canvas, which is the
+      // exact failure the --link token exists for (globals.css:107). The border-b stays --primary —
+      // a 2px rule is not text and only needs the 3:1 non-text floor.
+      ? 'whitespace-nowrap text-link border-b-2 border-primary pb-0.5 text-sm font-medium'
       : 'whitespace-nowrap text-muted-foreground hover:text-foreground text-sm';
 
   return (
@@ -131,7 +143,7 @@ export function NavBar() {
           <ThemeToggle />
           {!compact && isSpecial && (
             <button onClick={returnToPhysician}
-              className="rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-primary">
+              className="rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-link">
               <BiLabel th="กลับสู่หน้าแพทย์" en="Return to Physician" />
             </button>
           )}
@@ -160,13 +172,13 @@ export function NavBar() {
           </div>
           {links.map(l => (
             <Link key={l.href} href={l.href} onClick={() => setOpen(false)}
-              className={`rounded-md px-2 py-2 text-sm ${isActive(l.href) ? 'bg-secondary text-primary font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
+              className={`rounded-md px-2 py-2 text-sm ${isActive(l.href) ? 'bg-secondary text-coral-on-tint font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
               <BiLabel th={l.th} en={l.en} />
             </Link>
           ))}
           {isSpecial && (
             <button onClick={returnToPhysician}
-              className="rounded-md px-2 py-2 text-left text-sm text-muted-foreground hover:text-primary">
+              className="rounded-md px-2 py-2 text-left text-sm text-muted-foreground hover:text-link">
               <BiLabel th="กลับสู่หน้าแพทย์" en="Return to Physician" />
             </button>
           )}

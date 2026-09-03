@@ -4,7 +4,7 @@
 // Mounted BEFORE the x-internal-token gate so monitors can reach it unauthenticated, like /health.
 const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
-const { readiness, activeProviders, modelsByPurpose, providerSettingsStatus, probeProvider } = require('../services/ai');
+const { readiness, activeProviders, modelsByPurpose, providerSettingsStatus, probeProvider, PROVIDERS } = require('../services/ai');
 const { internalAuth } = require('../lib/internal-auth');
 
 const router = Router();
@@ -39,6 +39,21 @@ function summaryModel() {
     const purposes = Object.values(modelsByPurpose());
     return purposes[0]?.model ?? null;
   } catch { return null; }
+}
+
+// Live queue depth per ACTIVE provider only — a cloud-only box has no reason to report a local
+// queue it never uses. The local box has no rate-limit headers, so waiters piling up in a lane is the
+// only saturation signal an operator gets. Reads counters; never probes, never throws.
+function queueStats() {
+  const out = {};
+  let names;
+  try { names = activeProviders(); } catch { return out; }
+  for (const name of names) {
+    const provider = PROVIDERS[name];
+    if (!provider || typeof provider.stats !== 'function') continue;
+    try { out[name] = provider.stats(); } catch (e) { out[name] = { error: e?.message || String(e) }; }
+  }
+  return out;
 }
 
 async function checkSupabase() {
@@ -84,6 +99,9 @@ router.get('/deep', async (_req, res) => {
     // unreachable Supabase) looks identical from the outside — `models` would report the env answer
     // with no hint that the toggle is being ignored. This makes that difference visible.
     routing: (() => { try { return providerSettingsStatus(); } catch { return null; } })(),
+    // Per-provider `{active, queued, maxConcurrency, lanes?}` — how close each active provider is to
+    // refusing work (503 queue_full). Backend's /health/deep bubbles this up as checks.rimpl.deep.
+    queues: queueStats(),
     checks,
   });
 });

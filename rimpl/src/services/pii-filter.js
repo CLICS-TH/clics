@@ -109,7 +109,7 @@ const EN_TITLES = ['Mr', 'Mrs', 'Ms', 'Miss', 'Dr', 'Prof'];
 const HONORIFIC_STRIP_RE = new RegExp(`^(?:${TH_TITLES.join('|')}|(?:${EN_TITLES.join('|')})\\.?)`, 'i');
 
 // Derive deterministic scrub hints from the physician's structured patient identifier
-// (cle_patient_refs.patient_ref), passed in by the backend on-prem. Split on whitespace, drop a
+// (ple_patient_refs.patient_ref), passed in by the backend on-prem. Split on whitespace, drop a
 // leading honorific, then keep only name-ish tokens: >= 3 Thai letters OR a Capitalised Latin word.
 // Pure digits / labels (HN, MRN) / punctuation / MED_SHIELD are dropped so we never scrub them as a
 // "name". The surviving strings are masked verbatim (even mid-sentence) by the intake-hint pass.
@@ -332,7 +332,7 @@ const PASSES = [
     },
   },
 
-  // --- Intake hints: the KNOWN patient identifier from cle_patient_refs (on-prem), masked verbatim
+  // --- Intake hints: the KNOWN patient identifier from ple_patient_refs (on-prem), masked verbatim
   // BEFORE the name regexes so it becomes the authoritative [NAME-n] referent. Closes the bare,
   // unlabelled-name leak for any name the physician recorded at intake. ---
   { cat: 'NAME', kind: 'intake-hint' },
@@ -404,7 +404,7 @@ function applyBareNamePass(text, token) {
 }
 
 // The intake-hint pass: deterministically scrub the patient identifier(s) the physician recorded in
-// cle_patient_refs (passed in by the backend, on-prem — never forwarded to the cloud). These are
+// ple_patient_refs (passed in by the backend, on-prem — never forwarded to the cloud). These are
 // KNOWN PII strings, so they are masked even unanchored mid-sentence — this is what closes the bare,
 // unlabelled-name leak. Each hint pre-registers as the authoritative [NAME-n] referent so a later
 // title-led/bare occurrence of the same name folds into one token.

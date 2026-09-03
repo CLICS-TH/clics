@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>CLICS — เริ่ม Professional Learning Episode ใหม่</title>
+  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+  <nav><span class="brand">CLICS</span><div><a href="/dashboard">← กลับ</a></div></nav>
+  <div class="container" style="max-width:560px">
+    <header class="page-intro">
+      <p class="eyebrow">Professional Learning Episode · New Session</p>
+      <h1>เริ่ม Professional Learning Episode ใหม่</h1>
+      <p class="sub">New Professional Learning Episode — เริ่มบทสนทนากับผู้ช่วย AI เพื่อฝึกการให้เหตุผลทางคลินิก</p>
+    </header>
+    <div class="card">
+      <div class="form-group">
+        <label>โฟลเดอร์ / Folder</label>
+        <select id="folder">
+          <option value="">— ไม่จัดหมวด / Uncategorized</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>อาการสำคัญ / Chief Complaint <span style="color:var(--error)">*</span></label>
+        <textarea id="complaint" rows="3" placeholder="เช่น ผู้ป่วยมาด้วยเจ็บหน้าอก / e.g. Patient presents with chest pain"></textarea>
+      </div>
+      <div class="form-group" id="pilotBlock" style="display:none">
+        <label>🧪 Pilot Test Mode — โหมดสนทนา / Conversation mode</label>
+        <select id="pilotMode">
+          <option value="natural">Natural (CLE1/CLE3) — ปล่อยตามธรรมชาติ</option>
+          <option value="socratic">Socratic examiner (CLE2) — ถามนำตั้งแต่ต้น</option>
+        </select>
+        <p style="font-size:.8rem;opacity:.7;margin:.4rem 0 0">เซสชันนี้เป็น <b>test session</b> (ไม่นับรวมในข้อมูลวิจัยจริง) • เลือกโหมดเพื่อทดสอบ Socratic ได้โดยตรง<br/>This is a <b>test session</b> (excluded from real study data). Pick a mode to exercise Socratic directly.</p>
+      </div>
+      <div id="error" class="error-msg" role="alert" aria-live="assertive" style="display:none"></div>
+      <button class="btn btn-primary" id="startBtn" style="width:100%">เริ่มการสนทนา / Start Session</button>
+    </div>
+  </div>
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/boot.js" defer></script>
+  <script>
+    // Pre-fill the folder picker (and honor ?folder=<id> deep links from the dashboard).
+    (async () => {
+      const sel = document.getElementById('folder');
+      const folders = await api.getFolders().catch(() => []);
+      const preset = new URLSearchParams(location.search).get('folder');
+      for (const f of (folders || [])) {
+        const o = document.createElement('option');
+        o.value = f.id; o.textContent = f.name;
+        if (preset && preset === f.id) o.selected = true;
+        sel.appendChild(o);
+      }
+      // Reveal the Natural/Socratic picker only when Pilot Test Mode is on.
+      const pm = await api.pilotMode().catch(() => null);
+      if (pm && pm.pilot_test_mode) document.getElementById('pilotBlock').style.display = '';
+    })();
+
+    document.getElementById('startBtn').addEventListener('click', async () => {
+      const complaint = document.getElementById('complaint').value.trim();
+      const folder_id = document.getElementById('folder').value || undefined;
+      const errEl = document.getElementById('error');
+      if (!complaint) { errEl.textContent = 'กรุณากรอกอาการสำคัญ'; errEl.style.display = 'block'; return; }
+      errEl.style.display = 'none';
+      const btn = document.getElementById('startBtn');
+      btn.disabled = true; btn.textContent = 'กำลังสร้าง...';
+      // In Pilot Test Mode, forward the chosen mode so the backend can create a Socratic/natural
+      // test session directly (ignored by the backend when pilot mode is off).
+      const pilotBlock = document.getElementById('pilotBlock');
+      const socratic = pilotBlock.style.display !== 'none'
+        ? document.getElementById('pilotMode').value === 'socratic'
+        : undefined;
+      const ple = await api.createPle({ chief_complaint: complaint, folder_id, socratic });
+      if (ple?.id) window.location.href = `/ple-chat?id=${ple.id}`;
+      else {
+        // WHY THIS IS A MAP AND NOT A STRING. Every guard on POST /ples returns an English
+        // sentence written for an API client — "Identity verification is required before starting a
+        // session." Rendering `ple.error` printed that verbatim to a Thai physician: untranslated,
+        // and with no hint that the fix is one page away. Two of these are actionable, so they
+        // carry the link to the page that resolves them.
+        const FAIL = {
+          budget_exceeded: {
+            msg: 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ / AI usage limit reached — contact an administrator.',
+          },
+          // Not a fault — this physician has FINISHED. Worth saying so plainly.
+          ple_limit_reached: {
+            msg: 'คุณทำครบทุกบทเรียนของโครงการแล้ว ขอบคุณที่เข้าร่วม / You have completed every episode for this study. Thank you for taking part.',
+            href: '/lpdp', cta: 'ดูความก้าวหน้าของคุณ / See your progress',
+          },
+          identity_verification_required: {
+            msg: 'ต้องได้รับการยืนยันตัวตนวิชาชีพก่อนจึงจะเริ่มบทเรียนได้ / Your professional identity must be verified before you can start an episode.',
+            href: '/identity', cta: 'ตรวจสอบสถานะการยืนยันตัวตน / Check your verification status',
+          },
+          identity_check_unavailable: {
+            msg: 'ตรวจสอบตัวตนไม่สำเร็จชั่วคราว กรุณาลองใหม่อีกครั้ง / Could not verify your identity right now. Please try again.',
+          },
+          consent_required: {
+            msg: 'ต้องให้ความยินยอมเข้าร่วมโครงการก่อนเริ่มบทเรียน / You must give informed consent before starting an episode.',
+            href: '/dashboard', cta: 'ไปหน้าหลักเพื่อให้ความยินยอม / Go to your dashboard to consent',
+          },
+        };
+        const f = FAIL[ple?.code];
+        if (f) {
+          // Static copy only — nothing from the server is interpolated into this markup.
+          errEl.innerHTML = f.href
+            ? `${f.msg} <a href="${f.href}" style="color:var(--coral-text);font-weight:600">${f.cta} →</a>`
+            : f.msg;
+        } else {
+          errEl.textContent = ple?.error ?? 'เกิดข้อผิดพลาด';
+        }
+        errEl.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'เริ่มการสนทนา / Start Session';
+      }
+    });
+  </script>
+</body>
+</html>

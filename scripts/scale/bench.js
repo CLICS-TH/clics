@@ -11,7 +11,7 @@
 //      legacy full-scan                — select all pseudonyms + JS max (pre-migration behaviour)
 //   2. slot-count                      — count(role=physician, status=active)  (usedCount)
 //   3. professionals page              — select ... limit 50 offset 0   (admin roster)
-//   4. cles page                       — select ... limit 50 order by started_at desc
+//   4. ples page                       — select ... limit 50 order by started_at desc
 //
 // Timing model: we wall-clock the actual supabase client calls (the spec's "by timing the supabase
 // call" option), N=RUNS times each, and report min / median / max ms. True query-planner output
@@ -79,11 +79,11 @@ async function professionalsPage() {
   return data?.length ?? 0;
 }
 
-// 4. Paginated CLE list, 50/page (admin sessions list). Empty result is fine — still exercises
-//    the planner over the cles table; seed CLEs separately if you want non-empty timings.
-async function clesPage() {
+// 4. Paginated PLE list, 50/page (admin sessions list). Empty result is fine — still exercises
+//    the planner over the ples table; seed PLEs separately if you want non-empty timings.
+async function plesPage() {
   const { data, error } = await supabase
-    .from('cles')
+    .from('ples')
     .select('id, physician_id, status, started_at, turn_count, token_count')
     .order('started_at', { ascending: false })
     .range(0, 49);
@@ -137,7 +137,7 @@ function padL(s, n) { return String(s).padStart(n); }
   results.push(await bench('1b legacy full-scan      [O(N) scan]', nextPseudonymLegacyScan));
   results.push(await bench('2  slot count(role+status)', slotCount));
   results.push(await bench('3  professionals page (limit 50)', professionalsPage));
-  results.push(await bench('4  cles page (limit 50)', clesPage));
+  results.push(await bench('4  ples page (limit 50)', plesPage));
 
   // table
   const W = 40;
@@ -157,7 +157,7 @@ function padL(s, n) { return String(s).padStart(n); }
   console.log('');
   console.log('Note: medians are wall-clock round-trips (includes network). For query-planner');
   console.log('proof of index usage, run the EXPLAIN ANALYZE statements in scripts/scale/README.md');
-  console.log('in the Supabase SQL editor — confirm Index Scan (not Seq Scan) on professionals/cles.');
+  console.log('in the Supabase SQL editor — confirm Index Scan (not Seq Scan) on professionals/ples.');
 
   // The legacy-vs-RPC delta is the headline of the migration.
   const rpc = results.find((r) => r.name.startsWith('1a'));

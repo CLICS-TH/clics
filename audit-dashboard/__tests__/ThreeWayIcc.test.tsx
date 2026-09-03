@@ -39,10 +39,10 @@ const FULL: ThreeWayIccData = {
     ai_vs_shadow: { overall: stat(0.91), per_domain: domains(0.91), n: 24 },
   },
   coverage: {
-    cles_with_human: 30,
-    cles_with_ai: 40,
-    cles_with_shadow: 26,
-    cles_all_three: 24,
+    ples_with_human: 30,
+    ples_with_ai: 40,
+    ples_with_shadow: 26,
+    ples_all_three: 24,
     shadow_failed: 2,
     shadow_contract_rate: 0.92,
   },
@@ -93,7 +93,7 @@ describe('ThreeWayIcc', () => {
   it('shows coverage: the shared-set n and the contract-failure rate, not as a footnote', async () => {
     const { container } = render(<ThreeWayIcc />);
     await screen.findByText('0.820');
-    expect(screen.getByText('24')).toBeInTheDocument(); // cles_all_three tile
+    expect(screen.getByText('24')).toBeInTheDocument(); // ples_all_three tile
     expect(container.textContent).toContain('the shared set every arm below uses');
     expect(screen.getByText('92.0%')).toBeInTheDocument(); // shadow_contract_rate
     expect(container.textContent).toContain('ล้มเหลว 2 ครั้ง'); // shadow_failed
@@ -103,7 +103,7 @@ describe('ThreeWayIcc', () => {
   it('warns when the shared sample is small', async () => {
     apiFetch.mockResolvedValue({
       ...FULL,
-      coverage: { ...FULL.coverage!, cles_all_three: 4 },
+      coverage: { ...FULL.coverage!, ples_all_three: 4 },
     });
     const { container } = render(<ThreeWayIcc />);
     await screen.findByText('0.820');
@@ -117,7 +117,7 @@ describe('ThreeWayIcc', () => {
     apiFetch.mockResolvedValue({
       arms: { ai_vs_human: FULL.arms!.ai_vs_human, shadow_vs_human: null, ai_vs_shadow: null },
       coverage: {
-        ...FULL.coverage!, cles_with_shadow: 0,
+        ...FULL.coverage!, ples_with_shadow: 0,
         shadow_failed: 40, shadow_contract_rate: 0,
         shadow_scored_corpus: 0, shadow_failed_corpus: 40, shadow_contract_rate_corpus: 0,
       },
@@ -138,7 +138,7 @@ describe('ThreeWayIcc', () => {
   it('renders a calm empty state (no error wording, no shadow numbers) when the candidate is not collecting', async () => {
     apiFetch.mockResolvedValue({
       arms: { ai_vs_human: null, shadow_vs_human: null, ai_vs_shadow: null },
-      coverage: { ...FULL.coverage!, cles_with_shadow: 0, shadow_failed: 0, shadow_contract_rate: null },
+      coverage: { ...FULL.coverage!, ples_with_shadow: 0, shadow_failed: 0, shadow_contract_rate: null },
       shadow: { available: false, provider: null, model_version: null },
     } as ThreeWayIccData);
     const { container } = render(<ThreeWayIcc />);

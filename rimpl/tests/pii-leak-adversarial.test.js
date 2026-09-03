@@ -1,4 +1,16 @@
+// The error-body block at the bottom drives the real routes; the AI seam, RAG and Supabase are
+// mocked so the suite stays hermetic (no provider, no network, no key).
+jest.mock('../src/services/ai', () => ({ callAI: jest.fn(), resolveProviderName: jest.fn() }));
+jest.mock('../src/services/rag', () => ({ ragLookup: jest.fn().mockResolvedValue([]) }));
+jest.mock('../src/lib/supabase', () => ({
+  supabase: { from: jest.fn(() => ({})), rpc: jest.fn().mockResolvedValue({ data: [], error: null }) },
+}));
+
 const { stripPii, stripHistoryPii, deriveHintTokens } = require('../src/services/pii-filter');
+const request = require('supertest');
+const app = require('../src/index');
+const { callAI, resolveProviderName } = require('../src/services/ai');
+const { QueueFullError } = require('../src/services/providers/runtime');
 
 // ---------------------------------------------------------------------------
 // ADVERSARIAL red-team corpus for the RIMPL PII de-identifier.
@@ -303,5 +315,199 @@ describe('adversarial — bare unlabelled names', () => {
   });
   test('a clinical phrase that is NOT a gazetteer name survives byte-for-byte', () => {
     assertSurvives('ผู้ป่วยมาด้วยอาการปวดท้องและไข้ 3 วัน');
+  });
+});
+
+// ===========================================================================
+// ERROR BODIES — a failing call must not echo the transcript back out. The
+// 413 / 503 / 500 paths (lib/ai-errors.js) are driven through the REAL routes
+// with a PII-laden transcript AND a provider error whose message quotes the
+// prompt — the adversarial worst case. Status and headers are the contract
+// the backend builds on; the body must carry no transcript, name or id.
+// ===========================================================================
+describe('adversarial — error bodies through /chat and /evaluate carry no transcript, names or ids', () => {
+  const RAW = {
+    name: 'สมชาย ใจดี', hn: 'HN 12345678', phone: '081-234-5678', cid: '1234567890123',
+    email: 'somchai.j@hospital.go.th', clinical: 'มาด้วยอาการเจ็บหน้าอก 2 ชั่วโมง troponin 0.04',
+  };
+  const line = `ผู้ป่วยชื่อ ${RAW.name} ${RAW.hn} โทร ${RAW.phone} บัตร ${RAW.cid} email ${RAW.email} ${RAW.clinical}`;
+  const history = [{ role: 'physician', content: line }, { role: 'assistant', content: 'ขอข้อมูลเพิ่มเติม' }];
+  // Identifiers AND clinical content: an error body has no business carrying either.
+  const LEAKS = ['สมชาย', 'ใจดี', '12345678', '081-234-5678', '5678', RAW.cid, RAW.email, 'somchai', 'เจ็บหน้าอก', 'troponin'];
+
+  // A provider error that quotes the prompt in its message.
+  const echoing = (props) => Object.assign(new Error(`provider failed on: ${line}`), props);
+
+  const FAILURES = [
+    ['413 transcript_too_large', () => echoing({ status: 413, code: 'transcript_too_large', contextTooSmall: true, est_tokens: 99999, limit: 32000 }), 413],
+    ['503 queue_full', () => new QueueFullError({ provider: 'local', lane: 'interactive', maxQueue: 4, retryAfterMs: 30000 }), 503],
+    ['500 generic provider failure', () => echoing({ status: 500 }), 500],
+  ];
+
+  let errSpy, warnSpy;
+  beforeEach(() => {
+    callAI.mockReset();
+    resolveProviderName.mockReset().mockResolvedValue('anthropic');   // /evaluate pins the resolved provider before its first call
+    errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  afterEach(() => { errSpy.mockRestore(); warnSpy.mockRestore(); });
+
+  function assertNoLeak(res) {
+    const wire = JSON.stringify(res.body) + JSON.stringify(res.headers) + res.text;
+    for (const frag of LEAKS) expect(wire).not.toContain(frag);
+  }
+
+  describe.each(FAILURES)('%s', (_label, makeErr, status) => {
+    test('POST /chat', async () => {
+      callAI.mockRejectedValueOnce(makeErr());
+      const res = await request(app).post('/chat').send({
+        ple_id: 'x', history, message: line, language: 'th', patient_ref: RAW.name,
+      });
+      expect(res.status).toBe(status);
+      assertNoLeak(res);
+      // The model saw only the de-identified text even on the failing call.
+      const sent = JSON.stringify(callAI.mock.calls[0][0].messages);
+      for (const frag of ['สมชาย', 'ใจดี', '12345678', '081-234-5678', RAW.cid, RAW.email]) expect(sent).not.toContain(frag);
+    });
+
+    test('POST /evaluate', async () => {
+      callAI.mockRejectedValueOnce(makeErr());
+      const res = await request(app).post('/evaluate').send({
+        ple_id: 'x', transcript: history, patient_ref: RAW.name, shadow: false,
+      });
+      expect(res.status).toBe(status);
+      assertNoLeak(res);
+    });
+
+    test('POST /evaluate-criteria and /audit-discuss', async () => {
+      callAI.mockRejectedValueOnce(makeErr());
+      const criteria = await request(app).post('/evaluate-criteria').send({ transcript: history, patient_ref: RAW.name });
+      expect(criteria.status).toBe(status);
+      assertNoLeak(criteria);
+      callAI.mockRejectedValueOnce(makeErr());
+      const discuss = await request(app).post('/audit-discuss').send({ message: line, transcript: history, patient_ref: RAW.name });
+      expect(discuss.status).toBe(status);
+      assertNoLeak(discuss);
+    });
+  });
+
+  test('413 body: numbers only (est_tokens, limit) and a generic message — the server hint stays in the logs', async () => {
+    callAI.mockRejectedValueOnce(FAILURES[0][1]());
+    const res = await request(app).post('/evaluate').send({ ple_id: 'x', transcript: history, patient_ref: RAW.name, shadow: false });
+    expect(res.body).toEqual({ error: expect.any(String), code: 'transcript_too_large', est_tokens: 99999, limit: 32000 });
+    expect(res.body.error).not.toMatch(/num_ctx|Modelfile|OLLAMA|max-model-len|serving/);
+  });
+
+  test('413 body: `calibration` passes through as two NUMBERS only — anything else the provider hung on it is dropped', async () => {
+    // The self-calibrating backstop (providers/local.js) attaches { ratio, n }. An adversarial provider
+    // object that also carries text — the transcript, a model name — must not get those into the body.
+    callAI.mockRejectedValueOnce(echoing({ status: 413, code: 'transcript_too_large', contextTooSmall: true, est_tokens: 61000, limit: 60000,
+      calibration: { ratio: 3.371, n: 5, note: line, model: 'qwen3-32b-medical' } }));
+    const res = await request(app).post('/evaluate').send({ ple_id: 'x', transcript: history, patient_ref: RAW.name, shadow: false });
+    expect(res.status).toBe(413);
+    expect(res.body).toEqual({ error: expect.any(String), code: 'transcript_too_large', est_tokens: 61000, limit: 60000, calibration: { ratio: 3.371, n: 5 } });
+    assertNoLeak(res);
+
+    // A non-numeric ratio (a string that happens to look like a number) is null, never text.
+    callAI.mockRejectedValueOnce(echoing({ status: 413, code: 'transcript_too_large', contextTooSmall: true, est_tokens: 61000, limit: 60000,
+      calibration: { ratio: `3.371 ${line}`, n: 5 } }));
+    const res2 = await request(app).post('/chat').send({ ple_id: 'x', history, message: line, language: 'th', patient_ref: RAW.name });
+    expect(res2.status).toBe(413);
+    expect(res2.body.calibration).toEqual({ ratio: null, n: 5 });
+    assertNoLeak(res2);
+  });
+
+  test('503 body: code + retry_after_s, and the Retry-After header', async () => {
+    callAI.mockRejectedValueOnce(FAILURES[1][1]());
+    const res = await request(app).post('/evaluate').send({ ple_id: 'x', transcript: history, patient_ref: RAW.name, shadow: false });
+    expect(res.headers['retry-after']).toBe('30');
+    expect(res.body).toEqual({ error: expect.any(String), code: 'queue_full', retry_after_s: 30 });
+  });
+
+  test('500 body: the route\'s fixed message only — never the provider\'s message', async () => {
+    callAI.mockRejectedValueOnce(FAILURES[2][1]());
+    const res = await request(app).post('/chat').send({ ple_id: 'x', history, message: line, language: 'th', patient_ref: RAW.name });
+    expect(res.body).toEqual({ error: 'AI service temporarily unavailable. Please try again.' });
+  });
+});
+
+// ===========================================================================
+// SELF-CONSISTENCY — the local arm scores 2–3 times and reconciles (services/
+// consistency.js). The `consistency` block rides in the 200 body AND in
+// provenance, both of which the backend persists. It must carry integers,
+// nulls and strings from a fixed vocabulary — never a rationale, never the
+// transcript — even when the model's rationale quotes the raw identifiers.
+// ===========================================================================
+describe('adversarial — the consistency block on a 200 /evaluate carries numbers and fixed vocabulary only', () => {
+  const RAW = { name: 'สมชาย ใจดี', hn: 'HN 12345678', phone: '081-234-5678', cid: '1234567890123', email: 'somchai.j@hospital.go.th' };
+  const line = `ผู้ป่วยชื่อ ${RAW.name} ${RAW.hn} โทร ${RAW.phone} บัตร ${RAW.cid} email ${RAW.email} มาด้วยอาการเจ็บหน้าอก`;
+  const LEAKS = ['สมชาย', 'ใจดี', '12345678', '081-234-5678', '5678', RAW.cid, RAW.email, 'somchai', 'เจ็บหน้าอก', 'RATIONALE-SENTINEL'];
+  const VOCAB = new Set(['self-consistency', 'adaptive', 'median3', 'off', 'single', 'first-of-agreeing-pair', 'median-of-3']);
+  // A model that echoes the raw identifiers in its rationale — the worst case for anything derived from replies.
+  const scored = (d7, tag) => ({
+    text: JSON.stringify({ d1: 3, d2: 4, d3: 3, d4: 2, d5: 5, d6: 1, d7, rationale: { d1: `RATIONALE-SENTINEL #${tag}: ${line}` } }),
+    inputTokens: 1000 + tag, outputTokens: 100 + tag, provider: 'local', model: 'qwen-test', stopReason: 'end_turn',
+  });
+  const leaves = (v, out = []) => {
+    if (Array.isArray(v)) v.forEach((x) => leaves(x, out));
+    else if (v && typeof v === 'object') Object.values(v).forEach((x) => leaves(x, out));
+    else out.push(v);
+    return out;
+  };
+
+  let savedEnv;
+  beforeEach(() => {
+    savedEnv = process.env.EVAL_CONSISTENCY;
+    process.env.EVAL_CONSISTENCY = 'adaptive';
+    callAI.mockReset();
+    resolveProviderName.mockReset().mockResolvedValue('local');
+  });
+  afterEach(() => {
+    if (savedEnv === undefined) delete process.env.EVAL_CONSISTENCY; else process.env.EVAL_CONSISTENCY = savedEnv;
+  });
+
+  test('median-of-3 (the largest block): fixed keys, integer / null / vocabulary leaves, no identifier, no rationale text', async () => {
+    callAI.mockResolvedValueOnce(scored(4, 1)).mockResolvedValueOnce(scored(2, 2)).mockResolvedValueOnce(scored(3, 3));
+    const res = await request(app).post('/evaluate').send({
+      ple_id: 'x', transcript: [{ role: 'physician', content: line }], patient_ref: RAW.name, shadow: false,
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.consistency.rule).toBe('median-of-3');
+    expect(res.body.domain_rationale.d1).toContain('RATIONALE-SENTINEL');     // the rationale itself travels as before…
+
+    for (const block of [res.body.consistency, res.body.provenance.consistency]) {
+      expect(block).toEqual(res.body.consistency);
+      const wire = JSON.stringify(block);
+      for (const frag of LEAKS) expect(wire).not.toContain(frag);                // …but none of it is in the block
+      expect(Object.keys(block).sort()).toEqual([
+        'agree', 'calls', 'extra_input_tokens', 'extra_output_tokens', 'json_retries', 'latency_ms',
+        'max_delta', 'method', 'mode', 'per_call_scores', 'rule', 'sum_delta',
+      ]);
+      expect(Object.keys(block.agree).sort()).toEqual(['max_domain_delta', 'max_sum_delta']);
+      for (const leaf of leaves(block)) {
+        if (typeof leaf === 'string') expect(VOCAB.has(leaf)).toBe(true);
+        else expect(leaf === null || Number.isInteger(leaf)).toBe(true);
+      }
+    }
+    // Every call saw only the de-identified transcript.
+    for (const [call] of callAI.mock.calls) {
+      const sent = JSON.stringify(call.messages);
+      for (const frag of ['สมชาย', 'ใจดี', '12345678', '081-234-5678', RAW.cid, RAW.email]) expect(sent).not.toContain(frag);
+    }
+    // D21: the physician is billed call 1; the block accounts for the rest.
+    expect(res.body.input_tokens).toBe(1001);
+    expect(res.body.consistency.extra_input_tokens).toBe(1002 + 1003);
+  });
+
+  test('first-of-agreeing-pair: same guarantees on the two-call block', async () => {
+    callAI.mockResolvedValueOnce(scored(4, 1)).mockResolvedValueOnce(scored(4, 2));
+    const res = await request(app).post('/evaluate').send({
+      ple_id: 'x', transcript: [{ role: 'physician', content: line }], patient_ref: RAW.name, shadow: false,
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.consistency.rule).toBe('first-of-agreeing-pair');
+    const wire = JSON.stringify(res.body.consistency) + JSON.stringify(res.body.provenance.consistency);
+    for (const frag of LEAKS) expect(wire).not.toContain(frag);
   });
 });

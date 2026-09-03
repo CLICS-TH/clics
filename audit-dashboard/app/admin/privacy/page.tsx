@@ -35,7 +35,7 @@ const FILTERS: { key: string; th: string; en: string }[] = [
 
 export default function PrivacyReviewPage() {
   const [filter, setFilter] = useState('pending');
-  const [cles, setCles] = useState<CleRow[] | null>(null);
+  const [ples, setPles] = useState<CleRow[] | null>(null);
   const [err, setErr] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<Message[] | null>(null);
@@ -43,8 +43,8 @@ export default function PrivacyReviewPage() {
   const [acting, setActing] = useState(false);
 
   const fetchQueue = useCallback(() => {
-    apiFetch<{ cles: CleRow[] }>(`/admin/privacy-queue?status=${filter}&limit=100`)
-      .then(d => setCles(Array.isArray(d?.cles) ? d.cles : []))
+    apiFetch<{ ples: CleRow[] }>(`/admin/privacy-queue?status=${filter}&limit=100`)
+      .then(d => setPles(Array.isArray(d?.ples) ? d.ples : []))
       .catch(() => setErr(true));
   }, [filter]);
   const load = () => { setErr(false); fetchQueue(); };
@@ -54,7 +54,7 @@ export default function PrivacyReviewPage() {
     if (openId === id) { setOpenId(null); return; }
     setOpenId(id); setTranscript(null); setNote('');
     try {
-      const d = await apiFetch<{ messages: Message[] }>(`/admin/cles/${id}/transcript`);
+      const d = await apiFetch<{ messages: Message[] }>(`/admin/ples/${id}/transcript`);
       setTranscript(Array.isArray(d?.messages) ? d.messages : []);
     } catch { toast('โหลด transcript ไม่สำเร็จ / Could not load the transcript', 'error'); setTranscript([]); }
   }
@@ -69,7 +69,7 @@ export default function PrivacyReviewPage() {
     }
     setActing(true);
     try {
-      const res = await apiFetch<ApiResult<unknown>>(`/admin/cles/${id}/privacy-review`, {
+      const res = await apiFetch<ApiResult<unknown>>(`/admin/ples/${id}/privacy-review`, {
         method: 'POST', body: JSON.stringify({ decision, note: note.trim() || undefined }),
       });
       if (res?.error) { toast(`ไม่สำเร็จ / Failed: ${String(res.error)}`, 'error'); return; }
@@ -106,15 +106,15 @@ export default function PrivacyReviewPage() {
           <p className="text-muted-foreground mb-3">โหลดคิวไม่สำเร็จ / Could not load the queue.</p>
           <button className="text-sm text-link underline" onClick={load}>ลองใหม่ / Retry</button>
         </div>
-      ) : cles === null ? (
+      ) : ples === null ? (
         <p className="text-muted-foreground text-center py-10">กำลังโหลด… / Loading…</p>
-      ) : cles.length === 0 ? (
+      ) : ples.length === 0 ? (
         <p className="text-muted-foreground text-center py-10">
           {filter === 'pending'
             ? 'ตรวจครบทุก session แล้ว / Every session has been reviewed.'
             : 'ไม่มี session ในสถานะนี้ / No sessions in this state.'}
         </p>
-      ) : cles.map(p => (
+      ) : ples.map(p => (
         <div key={p.id} className="border rounded-xl p-5 mb-3">
           <button
             onClick={() => open(p.id)}
@@ -122,7 +122,7 @@ export default function PrivacyReviewPage() {
             className="flex w-full items-start justify-between gap-3 text-left"
           >
             <div className="min-w-0">
-              <p className="font-semibold break-words">{p.cle_code ?? p.id.slice(0, 8)}</p>
+              <p className="font-semibold break-words">{p.ple_code ?? p.id.slice(0, 8)}</p>
               <p className="text-xs text-muted-foreground">
                 {p.turn_count ?? 0} รอบ · {p.token_count ?? 0} tokens
                 {p.is_test ? ' · TEST' : ''}

@@ -6,7 +6,7 @@ Goal: lift AI↔human ICC toward ≥0.75 by removing the AI's leniency on templa
 
 **Cohort note (2026-06-10):** the original 2026-06-07 soak cohort (ICC 0.662) was wiped by its own
 clean-slate step and had no backups, so the cohort was REGENERATED on the scaletest project via
-`scripts/soak/` (11 evaluated CLEs, 3 agent-rater stances, 33 ratings; inter-rater ICC 0.742). All
+`scripts/soak/` (11 evaluated PLEs, 3 agent-rater stances, 33 ratings; inter-rater ICC 0.742). All
 runs below measure against the regenerated cohort; archived under `runs/`.
 
 | Version | Prompt sha (first 12) | ICC (95% CI, regen cohort) | Mean bias | What changed |
@@ -17,7 +17,7 @@ runs below measure against the regenerated cohort; archived under `runs/`.
 
 ⚠️ v2's first measurement read 0.487 — poisoned by ONE malformed eval (AI=0, missing domains). The
 harness now validates each eval (retry once, drop on second failure). The clean re-run (n=30; one
-CLE dropped — the 46k-token transcript truncates the evaluator's 1000-token output) gave 0.811.
+PLE dropped — the 46k-token transcript truncates the evaluator's 1000-token output) gave 0.811.
 (Follow-up done 2026-06-10: `maxTokens` raised to 2000 in `rimpl/src/routes/evaluate.js`.)
 
 ## Notes per version
@@ -80,3 +80,26 @@ Return ONLY valid JSON — no explanation outside the JSON:
 Design notes: the quote-to-score-4+ rule is the main leniency brake (it forces evidence, the exact
 thing auditors demanded); the verbatim-turn cap encodes the soak's concrete failure case; the d5
 carve-out protects the one domain where the AI is already slightly harsh.
+
+## Model axis (local-model screening, D18)
+
+One row per gate run of `scripts/probe/screening-verdict.mjs` (which prints the row ready to paste).
+The prompt column carries the version AND the sha of the exact text sent (base + any local addendum),
+because the local addendum changes the prompt without changing the rubric levels. `split` must read
+`heldout` for a row to count as a gate result; tuning-split rows are allowed here only for the record
+and are marked "not a gate result" by the tool. Σ|Δ| = median over fixtures of the per-domain
+(max − min) across repeats; JSON % = valid PIS-7 JSON over every local call in the run.
+
+| model (local vs cloud) | prompt version · sha | split (n pairs) | consistency | ICC(A,1) composite (95% CI) | Σ\|Δ\| median | JSON % | verdict |
+|---|---|---|---|---|---|---|---|
+| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29 | tuning (n=16) | adaptive | 0.578 (0.116–0.835) | n/m | 100.0% | insufficient |
+
+**v0 baseline, 2026-09-02.** The first row is the local model against the incumbent on the 18-fixture
+tuning split, with adaptive self-consistency ON. Read it with the earlier single-call measurement
+(ICC 0.594, 26 fixtures): **self-consistency did not move agreement** — 0.578 weighted / 0.591
+unweighted against 0.594. The gap is systematic rather than noisy: composite bias −2.50 (local
+harsher), Bland–Altman −10.27…5.27, and per-domain ICC 0.06 on d1, 0.42 on d4, 0.55 on d2 while
+d5/d6/d7 sit at 0.68/0.72/0.59 with no bias. Two cloud replies were unparseable (malformed JSON in a
+rationale); the local arm parsed 18/18. `screening-verdict.mjs` reports `insufficient`, and at a point
+estimate of 0.578 **no number of pairs would clear a 0.75 lower bound** — more data cannot rescue a
+model that ranks the episodes differently. That is what the addendum below is aimed at.

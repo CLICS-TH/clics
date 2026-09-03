@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>CLICS — ผลการประเมิน</title>
+  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="prefetch" href="/dashboard" />
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <nav><span class="brand">CLICS</span><div><a href="/dashboard">← Dashboard</a></div></nav>
+  <div class="container" style="max-width:640px">
+    <header class="page-intro">
+      <p class="eyebrow">Professional Learning Episode · Evaluation</p>
+      <h1>ผลการประเมิน <span style="font-family:var(--font-body)">PIS-7</span></h1>
+      <p class="sub">PIS-7 Evaluation — สรุปผลการให้เหตุผลทางคลินิกและเครดิต CPD ของ Episode นี้</p>
+    </header>
+    <div id="content"><p style="text-align:center;padding:40px;color:var(--muted-soft)">กำลังโหลด...</p></div>
+  </div>
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/labels.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/boot.js" defer></script>
+  <script>
+    const pleId = new URLSearchParams(location.search).get('id');
+    let radarChart = null, lastScores = null;
+    // Auto-poll while the evaluation is still running, instead of asking the user to hit "Refresh"
+    // (the system should do its own polling). Backs off so a queue that is minutes long does not
+    // hammer the API — 4s × 5, then 8s, 15s, then 30s — under a hard 15-minute ceiling. Reaching the
+    // ceiling is NOT silent: schedulePoll() returns false and the caller shows the "still scoring" card.
+    const POLL_CAP_MS = 15 * 60 * 1000;
+    let pollTimer = null, pollCount = 0, pollStartedAt = 0;
+    function pollDelayMs() {
+      if (pollCount < 5) return 4000;
+      if (pollCount === 5) return 8000;
+      if (pollCount === 6) return 15000;
+      return 30000;
+    }
+    function schedulePoll() {
+      clearTimeout(pollTimer);
+      if (!pollStartedAt) pollStartedAt = Date.now();
+      const delay = pollDelayMs();
+      if (Date.now() - pollStartedAt + delay > POLL_CAP_MS) return false;
+      pollCount++;
+      pollTimer = setTimeout(load, delay);
+      return true;
+    }
+    function buildRadar() {
+      if (!lastScores || typeof Chart === 'undefined') return;
+      const el = document.getElementById('radarChart');
+      if (!el) return;
+      if (radarChart) radarChart.destroy();
+      const coral = cssVar('--coral'), grid = cssVar('--hairline'), text = cssVar('--muted');
+      radarChart = new Chart(el, {
+        type: 'radar',
+        data: {
+          labels: DOMAIN_LABELS.map(l => l.split(' ').slice(0,2).join(' ')),
+          datasets: [{ label: 'PIS-7 Score', data: lastScores, backgroundColor: coral + '26', borderColor: coral, pointBackgroundColor: coral }],
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 5, ticks: { stepSize: 1, color: text, backdropColor: 'transparent' }, grid: { color: grid }, angleLines: { color: grid }, pointLabels: { color: text } } }, plugins: { legend: { display: false } } },
+      });
+    }
+    window.addEventListener('clics:themechange', buildRadar);
+    // DOMAIN_LABELS / CRITERIA_LABELS come from /js/labels.js
+
+    function showMissing(container) {
+      container.innerHTML = `
+        <div class="card" style="text-align:center">
+          <div class="status-band is-review" style="justify-content:center;margin-bottom:14px">${icon('warn', 28)}</div>
+          <h2>ไม่พบ Episode นี้ / Episode not found</h2>
+          <p style="color:var(--muted);margin-top:8px">อาจถูกลบไปแล้ว หรือลิงก์ไม่ถูกต้อง / It may have been deleted, or the link is invalid.</p>
+          <a href="/dashboard" class="btn btn-ghost" style="display:inline-block;margin-top:16px">← กลับแดชบอร์ด / Back to dashboard</a>
+        </div>`;
+    }
+
+    // Read-only conversation history. The physician can no longer open /ple-chat once a session ends
+    // (it redirects here), so surface the transcript on the result page. Plain-text (escaped) — no
+    // marked/DOMPurify on this page — with line breaks preserved; artifact fences collapse to a chip.
+    function escapeHtml(s) { return (s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+    // Credit band.
+    //
+    // This replaced a badge that read "ได้รับ CPD Credit" (credit RECEIVED) and was shown on every
+    // evaluated PLE unconditionally — while the dashboard's own consent panel said
+    // "ยังไม่นับเป็นหน่วยกิต CME" (not yet CME credit). Both cannot be true, and the badge was the
+    // wrong one: no credit is awarded during the calibration phase. The wording now follows the
+    // server's `enabled` flag, so the two screens cannot disagree again.
+    function creditBlock(credit) {
+      if (!credit) return '';
+      const band = escapeHtml(credit.band_label?.th ?? "");
+      const bandEn = escapeHtml(credit.band_label?.en ?? "");
+      if (credit.enabled) {
+        return `<div class="badge badge-evaluated" style="margin-top:10px;display:inline-flex;align-items:center;gap:5px">`
+          + `${icon('checkCircle', 14)} ${escapeHtml(String(credit.awarded_credits))} หน่วยกิต CME · ${band}</div>`;
+      }
+      // OFF: a PREVIEW. The band is shown because it is informative — it tells a physician where they
+      // landed and what the next band needs — but it is labelled as not-yet-credit, in both languages.
+      return `<div style="margin-top:10px">
+          <div class="badge" style="display:inline-flex;align-items:center;gap:5px">${icon('hourglass', 14)} ระดับ: ${band} <span class="bi-en">${bandEn}</span></div>
+          <p style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5">
+            ยังไม่นับเป็นหน่วยกิต CME — ระยะนี้คือการปรับเทียบเครื่องมือ<br>
+            <span class="bi-en">Not yet CME credit — this phase calibrates the instrument.</span>
+          </p>
+        </div>`;
+    }
+
+    function transcriptSection(ple) {
+      const msgs = (ple.messages || []).filter(m => m.role === 'physician' || m.role === 'assistant');
+      if (!msgs.length) return '';
+      const bubbles = msgs.map(m => {
+        const cls = m.role === 'physician' ? 'msg-physician' : 'msg-assistant';
+        const text = (m.content || '').replace(/:::artifact\{[^}]*\}[\s\S]*?:::/g, '📄 [ตาราง / artifact]').trim();
+        return `<div class="${cls}" style="white-space:pre-wrap;max-width:90%">${escapeHtml(text)}</div>`;
+      }).join('');
+      return `<details class="card" style="margin-top:16px">
+        <summary style="cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;gap:8px;list-style:none">
+          ${icon('message', 16)} ดูบทสนทนา / View conversation (${msgs.length})</summary>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:14px">${bubbles}</div>
+      </details>`;
+    }
+
+    // The three waiting states, keyed on the `phase` the 202 body of /evaluation carries
+    // (screening | queued | scoring). An older backend sends only { status }, so each branch falls
+    // back to the PLE status and, failing that, to the generic wording the page always had.
+    function pendingCard(ple, eval_) {
+      const phase = (eval_ && eval_.phase) || (ple.status === 'ended' ? 'screening' : '');
+      if (phase === 'screening') {
+        return `
+          <div class="card" style="text-align:center">
+            <div class="status-band is-review" style="justify-content:center;margin-bottom:14px">${icon('hourglass', 28)}<span style="min-width:0">กำลังตรวจสอบเกณฑ์ / Screening…</span></div>
+          </div>`;
+      }
+      const queue = eval_ && eval_.queue;
+      const position = queue ? Number(queue.position) : NaN;
+      let line;
+      if (phase === 'queued' && Number.isFinite(position)) {
+        const mins = Math.max(1, Math.ceil(Number(queue.eta_s || 0) / 60));
+        line = `${icon('clock', 16)}<span style="min-width:0">อยู่ในคิวประเมิน ลำดับที่ ${position} (ประมาณ ${mins} นาที) / Queued for scoring — position ${position} (~${mins} min)</span>`;
+      } else if (phase === 'scoring') {
+        line = `${icon('hourglass', 16)}<span style="min-width:0">กำลังให้คะแนน PIS-7 / Scoring…</span>`;
+      } else if (ple.status === 'ple_pass') {
+        line = `<span style="min-width:0">กำลังประเมินผล PIS-7 อยู่… / Evaluating PIS-7…</span>`;
+      } else {
+        // Neither a phase nor a recognisable status — the generic line, exactly as before.
+        return `<div class="card" style="text-align:center"><p style="color:var(--muted)">กำลังประเมิน… / Evaluating…</p></div>`;
+      }
+      return `
+          <div class="card" style="text-align:center">
+            <div class="status-band is-pass" style="justify-content:center;margin-bottom:14px">${icon('checkCircle', 28)}<span style="min-width:0">ผ่านเกณฑ์แล้ว / Professional Learning Episode Passed</span></div>
+            <p style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;color:var(--muted);margin-top:8px">${line}</p>
+          </div>`;
+    }
+
+    // Shown when the 15-minute polling ceiling is reached. The evaluation keeps running server-side
+    // (the queue is durable), so this is "come back later", never "it failed".
+    function giveUpCard() {
+      return `
+          <div class="card" style="text-align:center">
+            <div class="status-band is-review" style="justify-content:center;margin-bottom:14px">${icon('clock', 28)}<span style="min-width:0">ยังประเมินไม่เสร็จ — ระบบจะประเมินต่อให้ กลับมาดูภายหลัง / Still scoring — it continues in the background, come back later</span></div>
+            <button type="button" class="btn btn-ghost" id="pollRefresh" style="min-height:44px">${icon('refresh', 16)} รีเฟรช / Refresh</button>
+          </div>`;
+    }
+
+    async function load() {
+      const ple = await api.getPle(pleId);
+      const container = document.getElementById('content');
+      // Unknown/deleted id (or network failure) → { error } with no status; don't fall
+      // through to the scorecard, which would render NaN everywhere.
+      if (!ple || ple.error || !ple.status) { showMissing(container); return; }
+      if (ple.status === 'active') { container.innerHTML = '<p>กรุณาจบ session ก่อน</p>'; return; }
+
+      if (ple.status === 'ple_fail_t1' || ple.status === 'ple_flag_t2') {
+        // Two different outcomes, shown differently. 'ple_flag_t2' means the session did not yet meet
+        // the four qualities that define a learning episode; 'ple_fail_t1' now means only that there
+        // was no conversation to assess at all.
+        const isFail = ple.status === 'ple_fail_t1';
+        // Engagement measures are RECORDED, not a verdict — never coloured as failures. Rendering
+        // them in red told a physician they had failed three things that decided nothing.
+        const engagement = Object.keys(ENGAGEMENT_LABELS).map(c => `
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;color:var(--muted);font-size:.9rem">
+                ${icon(ple[c + '_pass'] ? 'checkCircle' : 'x', 16)}
+                <span>${ENGAGEMENT_LABELS[c]}</span>
+              </div>`).join('');
+        const qualifying = Object.keys(QUALIFYING_LABELS).map(c => `
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;color:${ple[c+'_pass'] ? 'var(--success-text)' : 'var(--error-text)'}">
+                ${icon(ple[c + '_pass'] ? 'checkCircle' : 'xCircle', 18)}
+                <span style="color:var(--body-color)">${QUALIFYING_LABELS[c]}</span>
+              </div>`).join('');
+        container.innerHTML = `
+          <div class="card">
+            <div class="status-band ${isFail ? 'is-fail' : 'is-review'}" style="margin-bottom:16px">
+              ${icon(isFail ? 'xCircle' : 'hourglass', 28)}
+              <span>${isFail ? 'ไม่มีบทสนทนาให้ประเมิน / No conversation to assess' : 'รอตรวจสอบ / Under Review'}</span>
+            </div>
+            ${isFail ? '' : `
+            <p style="color:var(--muted);margin-bottom:12px">คุณสมบัติของ Learning Episode / Qualities of a learning episode:</p>
+            ${qualifying}
+            <p style="color:var(--muted);margin:20px 0 10px;font-size:.9rem">ข้อมูลการมีส่วนร่วม (บันทึกไว้ ไม่ใช่เกณฑ์ตัดสิน) / Engagement, recorded but not a criterion:</p>
+            ${engagement}`}
+            <a href="/dashboard" class="btn btn-ghost" style="display:inline-block;margin-top:16px">← กลับ</a>
+          </div>` + transcriptSection(ple);
+        return;
+      }
+
+      // Every not-yet-evaluated status (ended → screening, ple_pass → queued/scoring) asks /evaluation:
+      // its 202 body is where the phase and the queue position live.
+      const eval_ = await api.getEvaluation(pleId);
+      // Blinded test round: the score is withheld until an expert auditor submits theirs. Show an
+      // "under review" state and keep polling — it reveals automatically once the auditor scores.
+      if (eval_ && (eval_.status === 'pending_review' || eval_.phase === 'pending_review')) {
+        container.innerHTML = `
+          <div class="card" style="text-align:center">
+            <div class="status-band is-review" style="justify-content:center;margin-bottom:14px">${icon('hourglass', 28)}<span>อยู่ระหว่างการตรวจประเมิน / Under expert review</span></div>
+            <h2 style="margin-top:6px">ผลคะแนนจะแสดงหลังการตรวจประเมิน</h2>
+            <p style="color:var(--muted);margin-top:8px">ผู้เชี่ยวชาญกำลังตรวจประเมิน Episode นี้ — ระบบจะแสดงคะแนน PIS-7 เมื่อผู้ตรวจส่งคะแนนแล้ว / Your PIS-7 score will appear once an expert auditor has submitted their assessment.</p>
+          </div>` + transcriptSection(ple);
+        schedulePoll(); // expert review can take days: at the ceiling polling simply stops; the card stays
+        return;
+      }
+      // A 202 (`status` present) is "still running". So is a transient { error } while the PLE itself
+      // is not evaluated yet — a network blip mid-queue must not read as "Episode not found".
+      if (!eval_ || eval_.status || (eval_.error && ple.status !== 'evaluated')) {
+        container.innerHTML = (schedulePoll() ? pendingCard(ple, eval_) : giveUpCard()) + transcriptSection(ple);
+        const refresh = document.getElementById('pollRefresh');
+        if (refresh) refresh.addEventListener('click', () => location.reload());
+        return;
+      }
+      // Error envelope or malformed evaluation — never render a NaN scorecard.
+      if (eval_.error || typeof eval_.composite_score !== 'number') { showMissing(container); return; }
+      clearTimeout(pollTimer);
+
+      const scores = [eval_.d1,eval_.d2,eval_.d3,eval_.d4,eval_.d5,eval_.d6,eval_.d7];
+      container.innerHTML = `
+        <div class="card" style="text-align:center;margin-bottom:16px">
+          <p class="score-display">${Math.round(eval_.composite_score)}</p>
+          <p style="color:var(--muted)">คะแนน PIS-7 / 100</p>
+          ${creditBlock(eval_.credit)}
+        </div>
+        <div class="card"><div class="chart-box"><canvas id="radarChart"></canvas></div></div>
+        <div class="card">
+          <h3 style="margin-bottom:12px">ผลรายโดเมน / Domain Scores</h3>
+          ${DOMAIN_LABELS.map((label, i) => `
+            <div style="margin-bottom:12px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span style="font-size:13px">${label}</span>
+                <strong>${scores[i]}/5</strong>
+              </div>
+              <div style="background:var(--surface-card);border-radius:4px;height:6px">
+                <div style="background:var(--coral);height:6px;border-radius:4px;width:${scores[i]/5*100}%"></div>
+              </div>
+              <p style="font-size:13px;color:var(--muted);margin-top:4px">${eval_.domain_rationale?.['d'+(i+1)] ?? ''}</p>
+            </div>`).join('')}
+        </div>` + transcriptSection(ple);
+
+      lastScores = scores;
+      buildRadar();
+    }
+    window.addEventListener('DOMContentLoaded', load);
+  </script>
+</body>
+</html>

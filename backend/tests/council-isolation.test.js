@@ -19,7 +19,7 @@ const auth = (r) => r.set('Authorization', 'Bearer test');
 beforeEach(() => {
   m.reset();
   m.state.resolve = (table, kind) => {
-    if (table === 'cles' && kind === 'list') return [];        // auditor queue
+    if (table === 'ples' && kind === 'list') return [];        // auditor queue
     if (table === 'audit_scores' && kind === 'list') return []; // queue scored-flag
     if (table === 'professionals' && kind === 'list') return []; // /admin/auditors
     return undefined;

@@ -23,7 +23,7 @@
 // (scripts/probe/.gitignore) so a slip cannot reach git history. As a second line of defence every
 // fixture is pushed through rimpl's own flattenForPrompt/deriveHintTokens before a single byte
 // leaves this machine — the same strip the production route performs. That is a safety net, not a
-// licence to drop raw CLE exports in the directory. Use `--dry-run` to inspect exactly what would
+// licence to drop raw PLE exports in the directory. Use `--dry-run` to inspect exactly what would
 // be sent, with no network call at all.
 //
 // Usage:
@@ -99,7 +99,7 @@ A fixture is one .json file per transcript, in either shape:
 
 or, matching the body routes/evaluate.js receives:
 
-  { "cle_id": "CLE-001",
+  { "ple_id": "PLE-001",
     "patient_ref": null,
     "transcript": [ { "role": "physician", "content": "…" }, … ] }
 
@@ -136,7 +136,7 @@ async function loadFixtures(dir) {
     if (bad) fail(`${name}: every transcript turn needs string "role" and string "content".\n${FORMAT_HELP}`);
     out.push({
       name,
-      cleId: Array.isArray(doc) ? null : (doc.cle_id ?? null),
+      pleId: Array.isArray(doc) ? null : (doc.ple_id ?? null),
       patientRef: Array.isArray(doc) ? null : (doc.patient_ref ?? null),
       transcript,
     });
@@ -158,8 +158,8 @@ if (dryRun) {
   hr('dry run — nothing will be sent');
   console.log(`  fixtures dir  ${fixturesDir}`);
   table(
-    ['fixture', 'turns', 'chars sent', 'cle_id', 'patient_ref'],
-    fixtures.map((f) => [f.name, f.transcript.length, f.userMessage.length, f.cleId ?? dim('—'), f.patientRef ? dim('set') : dim('—')]),
+    ['fixture', 'turns', 'chars sent', 'ple_id', 'patient_ref'],
+    fixtures.map((f) => [f.name, f.transcript.length, f.userMessage.length, f.pleId ?? dim('—'), f.patientRef ? dim('set') : dim('—')]),
     ['l', 'r', 'r', 'l', 'l'],
   );
   hr('what would be sent for ' + fixtures[0].name);

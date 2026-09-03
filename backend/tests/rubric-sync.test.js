@@ -13,7 +13,7 @@ const path = require('path');
 const read = (p) => fs.readFileSync(path.join(__dirname, p), 'utf8');
 const PROMPT = read('../../rimpl/src/lib/prompts.js');
 const RUBRIC = read('../../audit-dashboard/lib/pis7-rubric.ts');
-const { WEIGHTS } = require('../src/services/cle-gate');
+const { WEIGHTS } = require('../src/services/ple-gate');
 
 describe('weights match the approved document', () => {
   test('D1 15 · D2 20 · D3 15 · D4 15 · D5 15 · D6 10 · D7 10', () => {

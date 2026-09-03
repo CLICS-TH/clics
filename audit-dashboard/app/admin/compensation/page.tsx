@@ -10,7 +10,7 @@ import { useIsMobile } from '@/components/ViewportProvider';
 import { toast } from '@/components/Overlays';
 import type { PayoutReport, PayoutRecipient, ApiResult } from '@/lib/types';
 
-// Compensation payout pipeline (CLICS §12): ฿/CLE rate + cap are superadmin-configurable. The superadmin
+// Compensation payout pipeline (CLICS §12): ฿/PLE rate + cap are superadmin-configurable. The superadmin
 // sees real names + masked account, marks each physician paid (a reference), and exports a payout file.
 // Admins (council-scoped) see the pseudonymized report only.
 type Recipient = { physician: string | null; completed_cles: number; amount_thb: number };
@@ -106,7 +106,7 @@ export default function CompensationPage() {
             <div className="grid grid-cols-2 gap-3 @min-[640px]:grid-cols-3">
               <Stat value={String(report.n)} label="ผู้รับ / Recipients" />
               <Stat value={baht(report.total_thb)} label="รวม / Total" />
-              <Stat value={baht(report.rate_thb_per_cle)} label="ต่อ CLE / per CLE" />
+              <Stat value={baht(report.rate_thb_per_cle)} label="ต่อ PLE / per PLE" />
             </div>
             {report.recipients.length === 0 ? (
               <Empty />
@@ -116,7 +116,7 @@ export default function CompensationPage() {
                   <div key={r.physician ?? i} className="flex items-center justify-between gap-3 rounded-xl border border-border p-4">
                     <div className="min-w-0">
                       <p className="truncate font-mono text-sm">{r.physician ?? '—'}</p>
-                      <p className="text-sm tabular-nums text-muted-foreground">{r.completed_cles}/{report.cap_cles || '∞'} CLE</p>
+                      <p className="text-sm tabular-nums text-muted-foreground">{r.completed_cles}/{report.cap_cles || '∞'} PLE</p>
                     </div>
                     <p className="shrink-0 font-semibold tabular-nums">{baht(r.amount_thb)}</p>
                   </div>
@@ -126,7 +126,7 @@ export default function CompensationPage() {
               <div className="border rounded-xl overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-secondary text-left">
-                    <tr><th className="p-3 font-medium">แพทย์ / Physician</th><th className="p-3 font-medium">CLE</th><th className="p-3 font-medium text-right">฿</th></tr>
+                    <tr><th className="p-3 font-medium">แพทย์ / Physician</th><th className="p-3 font-medium">PLE</th><th className="p-3 font-medium text-right">฿</th></tr>
                   </thead>
                   <tbody>
                     {report.recipients.map((r, i) => (
@@ -156,7 +156,7 @@ export default function CompensationPage() {
       <PageIntro
         eyebrow="Compensation · Payout pipeline"
         title="ค่าตอบแทนผู้เข้าร่วม / Participant payouts"
-        subtitle="฿ ต่อ CLE ที่ทำสำเร็จ · จ่ายเงินตามข้อมูลที่แพทย์ให้ไว้ / Pay physicians per completed CLE using the details they provide."
+        subtitle="฿ ต่อ PLE ที่ทำสำเร็จ · จ่ายเงินตามข้อมูลที่แพทย์ให้ไว้ / Pay physicians per completed PLE using the details they provide."
         action={<Button variant="outline" onClick={exportPayouts} disabled={!payouts || payouts.n === 0}>ไฟล์จ่ายเงิน / Payout file</Button>}
       />
 
@@ -165,12 +165,12 @@ export default function CompensationPage() {
         <h2 className="font-sans text-base font-semibold">อัตราค่าตอบแทน / Compensation rate</h2>
         <div className="flex flex-wrap items-end gap-4">
           <label className="text-sm">
-            <span className="block text-muted-foreground mb-1">฿ ต่อ CLE / per CLE</span>
+            <span className="block text-muted-foreground mb-1">฿ ต่อ PLE / per PLE</span>
             <input type="number" min={0} className="w-32 rounded-md border border-border bg-background px-3 py-2 text-sm tabular-nums"
               value={rateInput} onChange={e => setRateInput(e.target.value)} />
           </label>
           <label className="text-sm">
-            <span className="block text-muted-foreground mb-1">เพดาน (CLE) / Cap — 0 = ไม่จำกัด</span>
+            <span className="block text-muted-foreground mb-1">เพดาน (PLE) / Cap — 0 = ไม่จำกัด</span>
             <input type="number" min={0} step={1} className="w-32 rounded-md border border-border bg-background px-3 py-2 text-sm tabular-nums"
               value={capInput} onChange={e => setCapInput(e.target.value)} />
           </label>
@@ -184,7 +184,7 @@ export default function CompensationPage() {
             <Stat value={String(payouts.n)} label="ผู้รับ / Recipients" />
             <Stat value={baht(totalOutstanding)} label="ค้างจ่าย / Outstanding" tone="warn" />
             <Stat value={baht(totalPaid)} label="จ่ายแล้ว / Paid" />
-            <Stat value={baht(payouts.rate_thb_per_cle)} label={`ต่อ CLE${payouts.cap_cles ? ` · cap ${payouts.cap_cles}` : ''}`} />
+            <Stat value={baht(payouts.rate_thb_per_cle)} label={`ต่อ PLE${payouts.cap_cles ? ` · cap ${payouts.cap_cles}` : ''}`} />
           </div>
 
           {recipients.length === 0 ? <Empty /> : (
@@ -214,7 +214,7 @@ function Stat({ value, label, tone }: { value: string; label: string; tone?: 'wa
 }
 
 function Empty() {
-  return <div className="text-muted-foreground">ยังไม่มีผู้ทำ CLE ครบเกณฑ์ / No physician has a completed CLE yet.</div>;
+  return <div className="text-muted-foreground">ยังไม่มีผู้ทำ PLE ครบเกณฑ์ / No physician has a completed PLE yet.</div>;
 }
 
 // One physician row with an inline "mark paid" editor (amount prefilled to outstanding + a reference).
@@ -230,7 +230,7 @@ function PayoutRow({ r, expanded, onToggle, onPay }: {
         <div className="min-w-0">
           <p className="font-medium">{r.name ?? r.pseudonym ?? '—'}</p>
           <p className="text-sm text-muted-foreground tabular-nums">
-            {r.completed_cles} CLE · ค้าง {baht(r.outstanding_thb)} · จ่ายแล้ว {baht(r.paid_thb)}
+            {r.completed_cles} PLE · ค้าง {baht(r.outstanding_thb)} · จ่ายแล้ว {baht(r.paid_thb)}
           </p>
           <p className="text-sm mt-0.5">
             {r.has_payment_info

@@ -18,7 +18,7 @@
 //
 // The prompts below are synthetic, textbook-level clinical questions written for this probe. They
 // contain no patient identifiers and no real case material — nothing here needs de-identification,
-// and nothing here should ever be replaced with a real CLE turn.
+// and nothing here should ever be replaced with a real PLE turn.
 //
 // Usage:
 //   LOCAL_AI_BASE_URL=… LOCAL_AI_MODEL=… node scripts/probe/thai-probe.mjs

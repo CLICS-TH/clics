@@ -73,6 +73,18 @@ test('exposes the provider interface ai.js dispatches on', () => {
   expect(typeof provider.ready).toBe('function');
 });
 
+// services/ai.js now forwards `purpose` and `signal` to EVERY provider (the local one picks a queue
+// lane from the purpose and cancels on the signal). The relay has neither concept and must simply
+// ignore both keys — same request, same result, no lane, no cancellation.
+test('ignores the purpose and signal keys callAI forwards (extra keys change nothing)', async () => {
+  mockCall.mockResolvedValueOnce(okResp);
+  const ac = new AbortController();
+  const r = await call({ ...args(), purpose: 'chat', signal: ac.signal });
+  expect(r).toEqual({ text: 'hi', inputTokens: 5, outputTokens: 7, tokenCount: 12, stopReason: 'end_turn', model: 'claude-sonnet-4-6' });
+  expect(mockCall).toHaveBeenCalledTimes(1);
+  expect(provider.stats()).toEqual({ provider: 'anthropic', active: 0, queued: 0, maxConcurrency: 3 }); // no `lanes`: still the FIFO
+});
+
 test('ready() reports up when ANTHROPIC_API_KEY is present (no completion call, no spend)', () => {
   const { checks } = provider.ready();
   expect(checks.anthropic_key.status).toBe('up');

@@ -3,7 +3,10 @@ const express = require('express');
 const { internalAuth } = require('./lib/internal-auth');
 
 const app = express();
-app.use(express.json());
+// 2mb, not express.json()'s 100kb default: /chat resends the WHOLE history every turn and /evaluate
+// sends the whole transcript, so a long PLE would be refused at the door with a bare 413 before any
+// route — or any de-identification — ran. Sized above the transcript cap with headroom.
+app.use(express.json({ limit: process.env.RIMPL_BODY_LIMIT || '2mb' }));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 // Deep readiness (mounted before the token gate so monitors reach /health/deep unauthenticated).

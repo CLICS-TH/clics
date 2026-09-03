@@ -14,7 +14,7 @@ import type { IccData, RaterSpread } from '@/lib/types';
 // Tier-3 analyst: aggregated de-identified data only — status counts + ICC. No transcripts.
 type Stats = { counts: Record<string, number>; total: number };
 const STATUS_LABEL: Record<string, string> = {
-  cle_pass: 'ผ่านเกณฑ์ / Passed', cle_fail_t1: 'ไม่ผ่าน Tier-1', cle_flag_t2: 'รอ QA (Tier-2)',
+  ple_pass: 'ผ่านเกณฑ์ / Passed', ple_fail_t1: 'ไม่ผ่าน Tier-1', ple_flag_t2: 'รอ QA (Tier-2)',
   evaluated: 'ประเมินแล้ว / Evaluated', ended: 'จบ (รอประเมิน)', active: 'กำลังทำ / Active',
 };
 
@@ -37,11 +37,11 @@ export default function AnalystPage() {
       <PageIntro
         eyebrow="Analyst · Aggregate (de-identified)"
         title="ภาพรวมเชิงวิเคราะห์"
-        subtitle="Aggregate study analytics — CLE status + AI/Expert reliability. No transcripts."
+        subtitle="Aggregate study analytics — PLE status + AI/Expert reliability. No transcripts."
       />
 
       <div className="border rounded-xl p-5">
-        <h2 className="font-semibold mb-3">สถานะ CLE / CLE status {stats ? <span className="text-muted-foreground text-sm">· n = {stats.total}</span> : null}</h2>
+        <h2 className="font-semibold mb-3">สถานะ PLE / PLE status {stats ? <span className="text-muted-foreground text-sm">· n = {stats.total}</span> : null}</h2>
         {!stats ? <Skeleton className="h-20 w-full" /> : (
           <div className="grid grid-cols-2 gap-3 @min-[640px]:grid-cols-3">
             {Object.entries(STATUS_LABEL).map(([k, label]) => (

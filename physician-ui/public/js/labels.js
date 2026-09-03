@@ -3,9 +3,9 @@
 window.STATUS_LABELS = {
   active: 'กำลังดำเนินการ / Active',
   ended: 'สิ้นสุดแล้ว / Ended',
-  cle_pass: 'ผ่าน CLE / Passed',
-  cle_fail_t1: 'ไม่ผ่าน CLE / Failed',
-  cle_flag_t2: 'รอตรวจสอบ / Under Review',
+  ple_pass: 'ผ่าน PLE / Passed',
+  ple_fail_t1: 'ไม่ผ่าน PLE / Failed',
+  ple_flag_t2: 'รอตรวจสอบ / Under Review',
   evaluated: 'ประเมินแล้ว / Evaluated',
 };
 

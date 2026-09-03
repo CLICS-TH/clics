@@ -1,6 +1,6 @@
 // Unit tests for lib/labels.ts — the single source of truth for status/role labels, the PIS-7
 // weighting, the composite math, the budget-meter thresholds and the case categoriser. These power
-// every status badge + the ICC dashboard, so a drift here silently mis-labels CLEs or mis-scores ICC.
+// every status badge + the ICC dashboard, so a drift here silently mis-labels PLEs or mis-scores ICC.
 import {
   STATUS_MAP,
   ROLE_LABELS,
@@ -11,13 +11,15 @@ import {
   DOMAIN_LABELS,
   roleToWire,
   roleToUi,
-  cleStatusCards,
+  pleStatusCards,
   budgetToneHex,
   computeComposite,
   caseCategory,
   POSITION_OPTIONS,
   POSITION_TH,
   positionLabel,
+  fmtTokens,
+  fmtTokensK,
 } from '@/lib/labels';
 import { CHART } from '@/lib/chart-colors';
 
@@ -66,6 +68,29 @@ describe('budgetToneHex thresholds (amber ≥75%, red ≥90%)', () => {
   });
 });
 
+describe('fmtTokens / fmtTokensK (token ceilings and meters)', () => {
+  it('fmtTokens writes the settings figure with thousands separators', () => {
+    expect(fmtTokens(300000)).toBe('300,000');
+    expect(fmtTokens(0)).toBe('0');
+    expect(fmtTokens(50_000_000)).toBe('50,000,000');
+    expect(fmtTokens(1234.6)).toBe('1,235');
+  });
+  it('fmtTokensK writes the meter figure in whole k, keeping sub-1000 counts plain', () => {
+    expect(fmtTokensK(184_321)).toBe('184k');
+    expect(fmtTokensK(300_000)).toBe('300k');
+    expect(fmtTokensK(1_500)).toBe('2k');
+    expect(fmtTokensK(999)).toBe('999');
+    expect(fmtTokensK(0)).toBe('0');
+    expect(fmtTokensK(50_000_000)).toBe('50,000k');
+  });
+  it('both render an absent or non-numeric value as "—" — the caller decides what absence means', () => {
+    for (const v of [null, undefined, NaN, Infinity]) {
+      expect(fmtTokens(v)).toBe('—');
+      expect(fmtTokensK(v)).toBe('—');
+    }
+  });
+});
+
 describe('roleToWire / roleToUi (the can_audit virtual-role encoding)', () => {
   it('special ⇒ physician + can_audit:true', () => {
     expect(roleToWire('special')).toEqual({ role: 'physician', can_audit: true });
@@ -89,8 +114,8 @@ describe('roleToWire / roleToUi (the can_audit virtual-role encoding)', () => {
 });
 
 describe('label maps', () => {
-  it('STATUS_MAP covers every CLE lifecycle status', () => {
-    for (const k of ['active', 'ended', 'cle_pass', 'cle_fail_t1', 'cle_flag_t2', 'evaluated']) {
+  it('STATUS_MAP covers every PLE lifecycle status', () => {
+    for (const k of ['active', 'ended', 'ple_pass', 'ple_fail_t1', 'ple_flag_t2', 'evaluated']) {
       expect(STATUS_MAP[k]).toBeTruthy();
     }
   });
@@ -122,27 +147,27 @@ describe('position ladder (ตำแหน่ง)', () => {
   });
 });
 
-describe('cleStatusCards', () => {
+describe('pleStatusCards', () => {
   it('returns 5 cards whose buckets reconcile to the total', () => {
     const stats = {
       total: 30,
       evaluated: 10,
-      cle_flag_t2: 4,
-      cle_fail_t1: 6,
+      ple_flag_t2: 4,
+      ple_fail_t1: 6,
       active: 5,
       ended: 3,
-      cle_pass: 2,
+      ple_pass: 2,
     };
-    const cards = cleStatusCards(stats);
+    const cards = pleStatusCards(stats);
     expect(cards).toHaveLength(5);
     const by = Object.fromEntries(cards.map((c) => [c.key, c.value]));
     // Evaluated + Awaiting QA + Did-not-pass + In-progress === Total
-    expect(by.evaluated + by.cle_flag_t2 + by.cle_fail_t1 + by.in_progress).toBe(by['']);
-    // in_progress folds active + ended + cle_pass
+    expect(by.evaluated + by.ple_flag_t2 + by.ple_fail_t1 + by.in_progress).toBe(by['']);
+    // in_progress folds active + ended + ple_pass
     expect(by.in_progress).toBe(5 + 3 + 2);
   });
   it('defaults everything to 0 for null/empty stats', () => {
-    for (const c of cleStatusCards(null)) expect(c.value).toBe(0);
+    for (const c of pleStatusCards(null)) expect(c.value).toBe(0);
   });
 });
 

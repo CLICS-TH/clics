@@ -69,10 +69,10 @@ Tone: warm, respectful, encouraging. Help first, then challenge.`;
 const RIMPL_SYSTEM_PROMPT = RIMPL_SYSTEM_PROMPT_EXAMINER;
 
 // AUDITOR CALIBRATION CHAT (audit-discuss route): a tutor that helps a physician-auditor understand
-// the AI's PIS-7 evaluation of a CLE and reconcile it with their own scores. NOT a re-scoring tool and
+// the AI's PIS-7 evaluation of a PLE and reconcile it with their own scores. NOT a re-scoring tool and
 // NOT the clinical mentor above — it discusses the evaluation. The route appends the de-identified
 // transcript + both score sets + the AI's per-domain rationale to this prompt as grounding context.
-const RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS = `You are a PIS-7 calibration tutor. A physician-auditor has just scored a Clinical Learning Episode (CLE) on the 7-domain PIS-7 rubric, and an AI evaluator scored the same transcript. Help the auditor UNDERSTAND the evaluation and reconcile differences between their scores and the AI's — you are NOT re-scoring anything.
+const RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS = `You are a PIS-7 calibration tutor. A physician-auditor has just scored a Professional Learning Episode (PLE) on the 7-domain PIS-7 rubric, and an AI evaluator scored the same transcript. Help the auditor UNDERSTAND the evaluation and reconcile differences between their scores and the AI's — you are NOT re-scoring anything.
 
 Ground every answer in the de-identified transcript and the scores/rationale provided below. When you explain why the AI scored a domain a certain way, cite the AI's rationale and point to specific moments in the transcript. When the auditor and AI diverge, explain the rubric anchor for that domain and what evidence would justify each score. Be concise and specific. Do NOT invent transcript content — if something is not in the transcript, say so. Reply in the auditor's language (Thai or English).
 
@@ -200,10 +200,44 @@ Rules for this reply, all of them mandatory:
 - Be brief and warm. Two or three sentences of framing at most, then the question(s).
 - Do not mention that a mode changed, that this is a rescue, or that the conversation was judged insufficient. Simply engage.`;
 
+// Local-model addendum to the evaluator prompt — EMPTY until the E2 tuning round. It is appended
+// AFTER the rubric, and only for provider 'local', so the rubric text itself never moves: that text
+// is mirrored in audit-dashboard/lib/pis7-rubric.ts and pinned by backend/tests/rubric-sync.test.js,
+// and an AI and a human scoring against two different rubrics produce an ICC that measures the gap
+// between the rubrics. When non-empty it is visible in provenance: lib/versions.js promptVersionFor
+// suffixes PROMPT_VERSION with `+local-<sha>` for the local provider.
+const PIS7_LOCAL_ADDENDUM = `SCORING PROCESS (read before you score):
+
+- Score each domain on ITS OWN evidence. Do not let an overall impression of the session set a level
+  and then apply that level across the domains: a transcript can be 4 on one domain and 2 on another.
+  Read the transcript once per domain, looking only for that domain's evidence.
+- 3 is the anchor, not a compliment. "Moderate — reasonably structured" is the correct score for
+  competent, unremarkable work. Move DOWN from 3 only when you can name what is absent, and UP from 3
+  only when you can quote what is present.
+- The evidence rule is SYMMETRIC. You must already quote the transcript to award 4 or 5. Quote it to
+  award 0, 1 or 2 as well: name the turn you are scoring and say what is missing from it. If you
+  cannot point at the absence, the score is not below 3.
+- d1 asks whether the QUESTION exposes a real decision point in THIS case, not whether it is long or
+  technically sophisticated. A brief question that names this patient's specific decision ("statin or
+  not, given the transaminases?") is 3 or above. Only a question that would fit any patient
+  unchanged — "what is the differential?" — is 2 or below.
+- Judge what the physician actually did with the case in front of them. Do not lower a score because
+  a stronger version of the same behaviour is imaginable, because the session is short, or because
+  the writing is blunt or unpolished.
+
+OUTPUT FORMAT IS UNCHANGED BY THIS SECTION: reply with ONLY the JSON object specified above — the
+seven integer scores and the rationale object, nothing before it and nothing after it.`;
+
+// The evaluator prompt a given provider actually receives. `addendum` defaults to the module's; the
+// parameter exists so the non-empty branch can be tested before E2 turns it on.
+function pis7PromptFor(provider, addendum = PIS7_LOCAL_ADDENDUM) {
+  return PIS7_EVALUATOR_PROMPT + (provider === 'local' && addendum ? `\n\n${addendum}` : '');
+}
+
 module.exports = {
   RIMPL_SYSTEM_PROMPT, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER,
   RIMPL_SYSTEM_PROMPT_RESCUE,
   RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS,
   ARTIFACT_GUIDANCE,
-  PIS7_EVALUATOR_PROMPT, CRITERIA_CLASSIFIER_PROMPT,
+  PIS7_EVALUATOR_PROMPT, PIS7_LOCAL_ADDENDUM, pis7PromptFor, CRITERIA_CLASSIFIER_PROMPT,
 };

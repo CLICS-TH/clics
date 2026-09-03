@@ -33,9 +33,9 @@ patient PII lives in the database, not the code.
 
 A skill turning findings into issues has none of that context. Before `gh issue create`:
 
-- **No PII.** No physician or patient names, national IDs, licence numbers, HNs, emails. Use a CLE
-  code (`CLE-001`) or a pseudonym (`P-003`).
-- **No transcript content.** CLE transcripts are stored raw as the evidentiary record and are the
+- **No PII.** No physician or patient names, national IDs, licence numbers, HNs, emails. Use a PLE
+  code (`PLE-001`) or a pseudonym (`P-003`).
+- **No transcript content.** PLE transcripts are stored raw as the evidentiary record and are the
   thing the whole PII boundary exists to protect. Describe the shape of a bug; never paste the
   conversation.
 - **No IRB or manuscript text.** Cite the document and section (`CREC082 ICF §4`), don't quote it.

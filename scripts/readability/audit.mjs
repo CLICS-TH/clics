@@ -71,19 +71,26 @@ const THEMES = ['light', 'dark'];
 // The three CREC pages first — they are the reason this script exists — then the rest of the portal,
 // since the token changes this audit drives are app-wide and can regress any of them.
 const PORTAL_PAGES = [
-  { path: '/cle-reflect?id=00000000-0000-4000-8000-000000000000', token: true },
+  { path: '/ple-reflect?id=00000000-0000-4000-8000-000000000000', token: true },
   { path: '/identity', token: true },
   { path: '/acceptability', token: true }, { path: '/dashboard', token: true },
-  { path: '/cle-new', token: true }, { path: '/lpdp', token: true },
+  { path: '/ple-new', token: true }, { path: '/lpdp', token: true },
   { path: '/payment', token: true }, { path: '/', token: false },
   // Also carry class="sub" and were missed in the first pass — .sub is now a global rule,
   // so every page that uses it is in this audit's blast radius.
-  { path: '/cle-result', token: true }, { path: '/guest-chat', token: false },
+  { path: '/ple-result', token: true }, { path: '/guest-chat', token: false },
   { path: '/forgot', token: false },
-  { path: '/cle-chat?id=00000000-0000-4000-8000-000000000000', token: true },
+  { path: '/ple-chat?id=00000000-0000-4000-8000-000000000000', token: true },
+  // The manual: long-form Thai prose, the densest text on the portal, and the one page whose whole
+  // job is to be read. Public, so no token.
+  { path: '/manual', token: false },
 ];
 const DASH_PAGES = ['/admin/privacy', '/admin/identity', '/admin/governance', '/auditor/queue',
-  '/home', '/admin/compensation', '/admin/invites', '/admin/users', '/admin/overview'];
+  '/home', '/admin/compensation', '/admin/invites', '/admin/users', '/admin/overview',
+  // The integrity queue. Its severity badges paint text on a TINT (`bg-primary/12`,
+  // `bg-destructive/10`), which is where --link and --destructive both fail as text and where
+  // --coral-on-tint / --danger exist — so it is exactly the kind of page this gate is for.
+  '/admin/integrity'];
 
 // ---- the in-page collector -------------------------------------------------------------------
 // Returns raw records; all colour maths happens here so the page never ships a library.
@@ -189,7 +196,7 @@ const browser = await chromium.launch();
 const findings = [];
 let checked = 0;
 
-async function run(url, label, token) {
+async function run(url, label, token, manualLang) {
   for (const { w, h } of WIDTHS) {
     for (const theme of THEMES) {
       const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2 });
@@ -210,10 +217,14 @@ async function run(url, label, token) {
         if (/fonts\.(googleapis|gstatic)\.com/.test(u)) return route.continue();
         return route.abort();
       });
-      await ctx.addInitScript(([t, tok]) => {
+      await ctx.addInitScript(([t, tok, ml]) => {
         try {
           localStorage.setItem('clics_theme', t);
           localStorage.setItem('theme', t);
+          // The manual holds both languages in the document and hides one. The hidden copy is
+          // display:none, so an audit that only ever renders the default measures half the page —
+          // and English runs longer than Thai, so it is the half more likely to overflow.
+          if (ml) localStorage.setItem('clics_manual_lang', ml);
           if (tok) {
             localStorage.setItem('clics_token', 'audit');
             const u = { role: 'physician', name: 'Audit', can_audit: true };
@@ -221,7 +232,7 @@ async function run(url, label, token) {
             localStorage.setItem('user', JSON.stringify({ ...u, role: 'auditor' }));
           }
         } catch { /* storage unavailable */ }
-      }, [theme, token]);
+      }, [theme, token, manualLang ?? null]);
 
       const page = await ctx.newPage();
       try {
@@ -256,6 +267,9 @@ async function run(url, label, token) {
 }
 
 for (const p of PORTAL_PAGES) await run(base + p.path, `portal${p.path}`, p.token);
+// The manual again, in English. Same widths, same themes — a second full pass, because a
+// translation is new text in the same boxes and the boxes are what fail.
+await run(base + '/manual', 'portal/manual[en]', false, 'en');
 if (dashUrl) for (const p of DASH_PAGES) await run(dashUrl.replace(/\/$/, '') + p, `dash${p}`, true);
 
 await browser.close();

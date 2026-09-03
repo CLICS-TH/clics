@@ -55,8 +55,8 @@ app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/health', require('./routes/health')); // /health/deep — unauthenticated readiness probe
 app.use('/auth', require('./routes/auth'));
 app.use('/guest', require('./routes/guest')); // ephemeral guest mode (no auth, no persistence)
-app.use('/cles/folders', require('./routes/folders')); // before /cles so "folders" isn't read as :id
-app.use('/cles', require('./routes/cles'));
+app.use('/ples/folders', require('./routes/folders')); // before /ples so "folders" isn't read as :id
+app.use('/ples', require('./routes/ples'));
 // ORDER LOAD-BEARING: admin.js must mount before superadmin.js — superadmin.js opens with a
 // router-level requireRole('superadmin') that 403s and ENDS every admin-role request, and
 // admin.js's GET /users intentionally shadows the same path (dual-role, council-scoped).
@@ -75,7 +75,7 @@ app.use((err, req, res, _next) => {
   res.status(status).json({ error: status === 400 ? 'Invalid request body' : (IS_PROD ? 'Internal server error' : err.message) });
 });
 
-// Scheduled reconcile sweep (soak finding F1): sessions stranded at cle_pass with no AI evaluation
+// Scheduled reconcile sweep (soak finding F1): sessions stranded at ple_pass with no AI evaluation
 // silently lose credit, and recovery was manual-only. Re-run the sweep every RECONCILE_INTERVAL_MS
 // (default 6h; 0/negative disables). First run lands one interval after boot, and a sweep still in
 // flight makes the next tick skip rather than overlap.
@@ -87,14 +87,27 @@ if (process.env.NODE_ENV !== 'test' && RECONCILE_INTERVAL_MS > 0) {
     if (sweeping) return console.log('[reconcile] previous sweep still in flight — skipping this run');
     sweeping = true;
     try {
-      const { stuck, recovered, repaired, failed } = await reconcileEvaluations();
-      console.log(`[reconcile] swept ${stuck} cle_pass session(s): recovered=${recovered} repaired=${repaired} failed=${failed}`);
+      const { stuck, recovered, repaired, failed, requeued, queued, skipped } = await reconcileEvaluations();
+      console.log(`[reconcile] swept ${stuck} stranded session(s): recovered=${recovered} repaired=${repaired} failed=${failed} queue-stamped=${requeued} already-queued=${queued} out-of-scope=${skipped}`);
     } catch (err) {
       console.error(`[reconcile] sweep failed: ${err.message}`);
     } finally {
       sweeping = false;
     }
   }, RECONCILE_INTERVAL_MS).unref(); // unref: the timer alone must not keep a script that imports `app` alive
+}
+
+// The evaluation drain (services/eval-drain.js): claims ple_pass rows FIFO under a bounded
+// concurrency and scores them. It ALWAYS runs outside tests — it is the only thing that evaluates.
+// EVAL_DRAIN_INTERVAL_MS is just the fallback tick (default 60s); 0 turns the tick off and leaves the
+// drain kick-only (enqueue sites wake it), which means a deferred retry waits for the next kick.
+const EVAL_DRAIN_INTERVAL_MS = parseInt(process.env.EVAL_DRAIN_INTERVAL_MS || '60000', 10);
+if (process.env.NODE_ENV !== 'test') {
+  require('./services/eval-drain').start({ intervalMs: EVAL_DRAIN_INTERVAL_MS });
+  console.log(`[eval-drain] running — fallback tick ${EVAL_DRAIN_INTERVAL_MS > 0 ? `${EVAL_DRAIN_INTERVAL_MS}ms` : 'OFF (kick-only)'},`
+    + ` concurrency ${process.env.EVAL_DRAIN_CONCURRENCY || '1'} (setting eval_drain_concurrency wins),`
+    + ` lease ${process.env.EVAL_LEASE_S || '600'}s, max attempts ${process.env.EVAL_MAX_ATTEMPTS || '20'}`
+    + (process.env.EVAL_DRAIN_ONLY_COUNCILS ? `, INCLUDE scope ${process.env.EVAL_DRAIN_ONLY_COUNCILS} (dev-only)` : ''));
 }
 
 if (require.main === module) {

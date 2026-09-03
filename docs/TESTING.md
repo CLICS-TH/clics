@@ -44,16 +44,35 @@ the persistence layer mocked). The guard logic verified here is also enforced by
 
 | Handoff / seam | Endpoint(s) | Test |
 |---|---|---|
-| Physician CLE lifecycle (create · rename/move · delete) | `POST/PATCH/DELETE /cles` | `backend/tests/cles-lifecycle.test.js` |
-| `/end` CLE-gate transitions (T1/T2 → fail/flag/pass) | `POST /cles/:id/end` | `backend/tests/cle-end.test.js` |
-| Folder CRUD + ownership | `/cles/folders` | `backend/tests/folders.test.js` |
-| Admin → Auditor assignment (council, active, not-own, evaluated) | `POST /admin/cles/:id/assign` | `backend/tests/admin-assign.test.js` |
+| Physician PLE lifecycle (create · rename/move · delete) | `POST/PATCH/DELETE /ples` | `backend/tests/ples-lifecycle.test.js` |
+| `/end` PLE-gate transitions (T1/T2 → fail/flag/pass) | `POST /ples/:id/end` | `backend/tests/ple-end.test.js` |
+| Folder CRUD + ownership | `/ples/folders` | `backend/tests/folders.test.js` |
+| Admin → Auditor assignment (council, active, not-own, evaluated) | `POST /admin/ples/:id/assign` | `backend/tests/admin-assign.test.js` |
 | Auditor blind-score · double-submit 409 · self/cross-council guards · ICC | `/auditor/*` | `backend/tests/auditor-scoring.test.js` |
 | Role-access matrix · `can_audit` dual role · council scoping · deactivation | `requireRole`, `scopeToCouncil` | `backend/tests/council-isolation.test.js` |
 | **End-to-end chain:** admin assign → auditor blind → score → AI reveal → ICC | admin + auditor routers | `backend/tests/role-chain.integration.test.js` |
 
 The **blind-scoring invariant** (the auditor cannot see the AI score until they submit) is asserted
 server-side in `auditor-scoring.test.js` and `role-chain.integration.test.js`.
+
+## Local-AI capacity suites (2026-09-02)
+
+All hermetic, all in the default `npm test` of their layer. They pin the guarantees of the queue / lanes /
+budget layer, so a change that "simplifies" one of them is usually removing a guard:
+
+| Guarantee | Suite |
+|---|---|
+| the drain is the only evaluator; deterministic → flag, transient → backoff with `Retry-After`, exhausted → flag + audit; an empty transcript is flagged, a failed read deferred; never over the free concurrency | `backend/tests/eval-drain.test.js` |
+| council partition: codes → ids, unknown code or failed councils read **fails closed**, include env refused in prod | `backend/tests/eval-scope.test.js` |
+| the sweep stamps only legacy rows and kicks — never re-enqueues a live/claimed row; refuses to run unpartitioned | `backend/tests/reconcile.test.js` |
+| 202 `phase` + queue position/eta contract | `backend/tests/evaluation-queue-status.test.js` |
+| rimpl error bodies → `err.code` / `retryAfterMs`; 413 deterministic | `backend/tests/rimpl-client-errors.test.js` |
+| token ceiling alongside $; 0 = no cap; per-user override wins | `backend/tests/token-budget.test.js` |
+| cap checked before reservation; 413 → 403 with refund; 503 → `ai_busy` + `Retry-After` | `backend/tests/transcript-cap.test.js` |
+| lanes: interactive first, reserved slot, bounded depth → sync `QueueFullError`, abort while queued/in flight | `rimpl/tests/runtime-lanes.test.js` |
+| `PROVIDER_SETTINGS_SOURCE=env`: zero DB reads, `override:true`, refused in prod, typo throws | `rimpl/tests/provider-settings-source.test.js` |
+| chat fail-over: DOWN-class only, never on queue_full/abort/413, never for evaluate/criteria/discuss | `rimpl/tests/chat-failover.test.js` |
+| the fail-over provider receives the de-identified payload, never the raw one | `rimpl/tests/pii-leak-failover.test.js` |
 
 ## Front-end component tests (audit-dashboard)
 
@@ -93,12 +112,24 @@ which backend they target. Run them against demo accounts, ideally right after `
   `role-chain.integration.test.js`. Env: `SMOKE_BASE`,
   `SMOKE_SUPER_PW`, `SMOKE_ADMIN_PW`, `SMOKE_AUD_EMAIL`, `SMOKE_AUD_PW`. Also runnable in CI via the manual
   `staging-smoke` workflow (Actions tab) once those are added as repo secrets, pointing at a non-prod stack.
-- `scripts/smoke/go-live-smoke.js` — consent gate → **live AI chat turns** → CLE eval → de-identified
+- `scripts/smoke/go-live-smoke.js` — consent gate → **live AI chat turns** → PLE eval → de-identified
   export + reconcile. Env: `SMOKE_BASE`, `SMOKE_PHYS_EMAIL`, `SMOKE_PHYS_PW`, `SMOKE_SUPER_PW`. ⚠ Spends
   **real Anthropic budget** (~$0.02–0.05/run, 4 chat turns), so in CI it is **opt-in**: the `staging-smoke`
   workflow runs it only when dispatched with the `include_ai_smoke` input set to true (needs the two
   `SMOKE_PHYS_*` repo secrets); the free role-chain job always runs.
 - `scripts/e2e/new-auth-e2e.js` — auth/invite lifecycle (dry-run unless `--confirm`).
+- `npm run smoke:local-ai` (`scripts/smoke/local-ai-sandbox-smoke.mjs`) — the on-prem model end to end
+  from a **laptop `npm run dev` stack on the tailnet** against prod Supabase's **SANDBOX council** only.
+  `--scenario single|burst|cap|down|capacity|all`. Refuses to start unless `SMOKE_BASE` is set and is
+  not a prod host, rimpl `/health/deep` shows `routing.override: true` with every purpose `local`, the
+  prod setting `eval_drain_exclude_councils` contains `SANDBOX`, and `pilot_test_mode` is on (it asserts,
+  never changes, that key). Env: `SMOKE_BASE`, `SMOKE_PHYSICIANS`, `SMOKE_PHYSICIAN_PW`, `SMOKE_SUPER_EMAIL`,
+  `SMOKE_SUPER_PW`, `LOCAL_AI_BASE_URL`, `LOCAL_AI_MODEL` (never echoed). Prints ids, phases, latencies and
+  token counts only. Runbook: [LOCAL-MODEL-ROADMAP](LOCAL-MODEL-ROADMAP.md).
+- `scripts/probe/screening-verdict.mjs` — **offline**, reads only score files (`model-agreement.mjs --out`
+  + `repeat-consistency.mjs --out`) and prints the D18 verdict through the production `icc.js` code, the
+  Σ\|Δ\| and JSON checks, the pairs-needed ladder and a `prompt-versions.md` row. Refuses a tuning-split
+  file without `--allow-tuning`.
 
 ## Roadmap
 
@@ -133,5 +164,5 @@ which backend they target. Run them against demo accounts, ideally right after `
 ## Known limitations
 - Hermetic suites cover **route-level** guard logic; the **DB triggers** (`audit_scores_guard`) and **RLS**
   are only exercised by the live smoke — don't read green CI as proof those backstops fire.
-- Evaluated CLEs need a **manual admin assignment** to reach an auditor (no auto-assign); `db/reset-demo.js`
-  should seed one assigned CLE so the auditor queue is always demoable.
+- Evaluated PLEs need a **manual admin assignment** to reach an auditor (no auto-assign); `db/reset-demo.js`
+  should seed one assigned PLE so the auditor queue is always demoable.
