@@ -55,7 +55,14 @@ const OUT = argStr('out');
 const CONSISTENCY = argStr('consistency', 'off');
 if (!['off', 'adaptive', 'median3'].includes(CONSISTENCY)) fail(`--consistency must be off, adaptive or median3, got ${CONSISTENCY}`);
 const AGREE_SUM = argNum('agree-sum', 0);
-const LOCAL_PROMPT = pis7PromptFor('local');
+// --addendum on|off. The local addendum is a module constant, so without this flag a run always
+// carries whatever the working tree happens to hold — and the v0 baseline (2026-09-02) was recorded
+// BEFORE the addendum existed. Comparing a fresh run against it while the addendum is on changes two
+// variables at once and answers neither question. Default stays `on` (what production would send).
+const ADDENDUM = argStr('addendum', 'on');
+if (!['on', 'off'].includes(ADDENDUM)) fail(`--addendum must be on or off, got ${ADDENDUM}`);
+const ADDENDUM_ON = ADDENDUM === 'on';
+const LOCAL_PROMPT = pis7PromptFor('local', ADDENDUM_ON ? PIS7_LOCAL_ADDENDUM : '');
 const CLOUD_PROMPT = pis7PromptFor('anthropic');
 if (!['local', 'cloud', 'both'].includes(ARM)) fail(`--arm must be local | cloud | both (got ${ARM})`);
 if (REPEATS < 2) fail('--repeats must be at least 2 — one run measures no spread.');
@@ -188,7 +195,7 @@ if (ARM !== 'local') console.log(`  cloud   ${CLOUD_MODEL}  @ api.anthropic.com`
 console.log(`  arms    ${ARM}`);
 console.log(`  design  ${fixtures.length} fixture(s) × ${REPEATS} repeats, temperature 0, IDENTICAL prompt each time`);
 console.log(`  rule    local arm consistency = ${CONSISTENCY}${CONSISTENCY !== 'off' ? ` (agree: maxΔ ≤ 1${AGREE_SUM ? `, Σ|Δ| ≤ ${AGREE_SUM}` : ''}) — each repeat is one full rule evaluation` : ' (single calls)'}`);
-console.log(`  split   ${split ? `${split.name} (reserved ${split.reserved_at})` : '(none reserved)'}  ·  prompt ${PROMPT_VERSION} (local ${promptVersionFor('local')}${PIS7_LOCAL_ADDENDUM ? ', addendum ON' : ''})`);
+console.log(`  split   ${split ? `${split.name} (reserved ${split.reserved_at})` : '(none reserved)'}  ·  prompt ${PROMPT_VERSION} (local ${promptVersionFor('local')}${ADDENDUM_ON && PIS7_LOCAL_ADDENDUM ? ', addendum ON' : ', addendum OFF'})`);
 console.log(`\n  ${dim('Any spread below is the model disagreeing with ITSELF. An agreement Σ|Δ| at or')}`);
 console.log(`  ${dim('below this level carries no signal.')}\n`);
 
@@ -245,6 +252,6 @@ console.log(`  ${dim('This measures repeatability, not correctness. A model can 
 console.log(`  ${dim('and consistently wrong; that is Gate 0.5, which needs human raters.')}\n`);
 
 if (OUT) {
-  await writeFile(OUT, JSON.stringify({ split, prompt_version: PROMPT_VERSION, local_prompt_version: promptVersionFor('local'), consistency: CONSISTENCY, agree_sum: AGREE_SUM, cloudModel: CLOUD_MODEL, localModel: cfg?.model ?? null, repeats: REPEATS, results }, null, 2));
+  await writeFile(OUT, JSON.stringify({ split, prompt_version: PROMPT_VERSION, local_prompt_version: promptVersionFor('local'), addendum: ADDENDUM, consistency: CONSISTENCY, agree_sum: AGREE_SUM, cloudModel: CLOUD_MODEL, localModel: cfg?.model ?? null, repeats: REPEATS, results }, null, 2));
   console.log(`  wrote ${OUT}\n`);
 }
