@@ -54,7 +54,9 @@ const leaksIdentity = (obj) => {
   if (!ok(sa.status === 200 && sa.json?.access_token, 'superadmin login', `status=${sa.status}`)) return finish();
   const saT = sa.json.access_token;
 
-  const users = await req('GET', '/admin/users', { token: saT });
+  // The list is paginated (default 50) and the roster is larger, so page 1 alone can miss a role
+  // entirely — the superadmin, of which there is exactly one. Ask for the whole roster.
+  const users = await req('GET', '/admin/users?limit=200', { token: saT });
   const roles = (users.json ?? []).reduce((a, u) => (a[u.role] = (a[u.role] ?? 0) + 1, a), {});
   ok(users.status === 200 && Array.isArray(users.json) && ['superadmin','admin','auditor','physician'].every(r => roles[r] > 0),
      'GET /admin/users sees all four roles', JSON.stringify(roles));
@@ -145,8 +147,22 @@ const leaksIdentity = (obj) => {
     ok(detail.status === 200 && !!detail.json?.messages, 'GET /auditor/ples/:id (blind transcript)', `turns=${detail.json?.messages?.length}`);
     ok(dLeak.length === 0, 'auditor session detail is BLIND', dLeak.length ? `LEAK: ${dLeak}` : 'no identity fields');
 
-    const score = await req('POST', `/auditor/ples/${scorablePle}/score`, { token: auT, body: { d1:4,d2:4,d3:3,d4:4,d5:4,d6:3,d7:4, notes: 'role-chain smoke (de-identified)' } });
-    ok(score.status === 200 && typeof score.json?.composite_score === 'number', 'POST /auditor/ples/:id/score', `composite=${score.json?.composite_score}`);
+    // Every pre-submit confirmation is required server-side, not only in the browser — an
+    // assessment that reached the database without them is one the approved form says was never
+    // completed. Omitting them here is a 400, which is the correct answer, not a passing score.
+    const ATTESTATIONS = { all_domains_scored: true, comments_recorded: true, scored_independently: true,
+      no_identifiers_found: true, weights_provisional: true };
+    const score = await req('POST', `/auditor/ples/${scorablePle}/score`, { token: auT, body: { d1:4,d2:4,d3:3,d4:4,d5:4,d6:3,d7:4, notes: 'role-chain smoke (de-identified)', attestations: ATTESTATIONS } });
+    // Scoring is gated on the auditor's confidentiality + COI consent. That consent is a CREC record
+    // a person gives in the console; a smoke script must not manufacture one on their behalf. So a
+    // 403 here is a PRECONDITION on the account, not a defect in the scoring path — say which.
+    if (score.status === 403 && score.json?.code === 'auditor_consent_required') {
+      info(`auditor ${AUDITOR.email} has not completed consent — scoring not exercised. `
+         + 'Sign in as that auditor once and accept the confidentiality + COI consent, then re-run.');
+    } else {
+      ok(score.status === 200 && typeof score.json?.composite_score === 'number', 'POST /auditor/ples/:id/score',
+         `status=${score.status} composite=${score.json?.composite_score}${score.json?.error ? ' err=' + JSON.stringify(score.json.error).slice(0,120) : ''}`);
+    }
   } else {
     info('all assigned evaluated sessions already scored by this auditor — verifying the double-submit guard instead');
     const firstAssigned = (queue.json ?? [])[0];
@@ -165,8 +181,10 @@ const leaksIdentity = (obj) => {
   const auditorEntries = (exp.json?.sessions ?? []).flatMap(s => s.auditor_scores ?? []);
   ok(exp.status === 200, 'GET /admin/export', `sessions=${exp.json?.n}`);
   ok(auditorEntries.length >= 1, 'export contains ≥1 auditor score', `entries=${auditorEntries.length}`);
-  const audOk = auditorEntries.every(a => !('auditor_id' in a) && /^A-[0-9a-f]{8}$/.test(a.auditor ?? ''));
-  ok(auditorEntries.length === 0 || audOk, 'exported auditor scores pseudonymized (A-<hash>)',
+  // Two valid pseudonyms: an enrolled auditor exports under their experiment code (EXP-NNN), anyone
+  // else under A-<hash>. The invariant is that the raw auditor_id never leaves, not which form it takes.
+  const audOk = auditorEntries.every(a => !('auditor_id' in a) && /^(A-[0-9a-f]{8}|EXP-\d+)$/.test(a.auditor ?? ''));
+  ok(auditorEntries.length === 0 || audOk, 'exported auditor scores pseudonymized (A-<hash> or EXP-NNN)',
      auditorEntries.length ? `sample=${auditorEntries[0]?.auditor}` : 'none');
 
   finish();
