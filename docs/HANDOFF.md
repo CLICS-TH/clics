@@ -1,8 +1,30 @@
 # CLICS — Handoff Snapshot
 
-*State of the app as of **2026-08-27**, for the developer continuing this project. Pairs with
+*State of the app as of **2026-09-03**, for the developer continuing this project. Pairs with
 [../README.md](../README.md) (orientation), [../CONTRIBUTING.md](../CONTRIBUTING.md) (how to work in it),
 and [ROADMAP.md](ROADMAP.md) (what to build next).*
+
+## Read this first — the 2026-08/09 outage
+
+**Production was broken from 2026-08-31 to 2026-09-03 and nothing said so.** The database was
+renamed forward (every CLE-named object became PLE-named, then the `ples.status` values followed on
+2026-09-02) while the deployed backend still queried `cles`. Every session query returned PGRST205.
+No participant is enrolled and nothing had been written since 2026-08-16, so no data was lost — but
+it went unnoticed for three days because the two screens an operator would check both reported
+success: `/admin/stats` answered `200 {total: 0}` and `/health/deep` answered `200 "ok"`.
+
+Fixed by merging PR #83 (branch `feat/local-ai-capacity`, 31 commits) to master and deploying all
+four layers on 2026-09-03. Both screens now report failure, and `/health/deep`'s verdict can be
+failed by the evaluation queue — so a green deep check finally means the drain is claiming work.
+
+Two lessons worth keeping:
+- **A fallback that drops its error is worse than no fallback.** Zero looked like an answer.
+- **Never rename the database ahead of the code.** If a rename must land first, deploy the code in
+  the same window; the gap is an outage, not a migration step.
+
+Verified restored on 2026-09-03: role-chain smoke 20/20, go-live smoke 15/15 (a full physician
+session with live AI, screening, de-identified export and reconcile), all portal and dashboard
+redirects answering, zero `cle`-named objects left in the database.
 
 ## What's live in production
 
@@ -35,7 +57,7 @@ Supabase Postgres). Working end-to-end today:
   provenance, pseudonyms (`P-NNN`), Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
   0 errors (the AI path's ceiling is Anthropic **OTPM** — see [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)).
 
-## Built 2026-09-02 — local-AI capacity layer (branch `feat/local-ai-capacity` (off `refactor/cle-to-ple`), migrations APPLIED to prod 2026-09-02, code NOT yet deployed)
+## Built 2026-09-02 — local-AI capacity layer (merged as PR #83 and DEPLOYED to prod 2026-09-03; migrations were applied 2026-09-02)
 
 Context: the on-prem model became reachable 2026-08-31 and passed Gate 0; measured head-to-head it agrees
 with Sonnet at ICC 0.594 and **neither model's PIS-7 output is reproducible** (same fixture, Σ|Δ| 0–8
