@@ -43,7 +43,7 @@ import { pis7PromptFor, PIS7_LOCAL_ADDENDUM } from '../../rimpl/src/lib/prompts.
 import { PROMPT_VERSION, promptVersionFor } from '../../rimpl/src/lib/versions.js';
 // The production self-consistency rule, injected with this script's own model call — so a tuning run
 // measures exactly what rimpl's /evaluate would do, not a re-implementation of it.
-import { scoreWithConsistency } from '../../rimpl/src/services/consistency.js';
+import { scoreWithConsistency, MODES } from '../../rimpl/src/services/consistency.js';
 import { applySplit } from './split.mjs';
 import { parseJsonObject } from '../../rimpl/src/lib/parse.js';
 import { flattenForPrompt } from '../../rimpl/src/lib/transcript.js';
@@ -59,7 +59,7 @@ const LIMIT = argNum('limit', Infinity);
 // a 3rd + per-domain median when any domain differs by >1). The cloud arm is always a single call — it
 // is the incumbent as production runs it.
 const CONSISTENCY = argStr('consistency') ?? 'off';
-if (!['off', 'adaptive'].includes(CONSISTENCY)) fail(`--consistency must be off or adaptive, got ${CONSISTENCY}`);
+if (!MODES.includes(CONSISTENCY)) fail(`--consistency must be one of ${MODES.join(', ')}, got ${CONSISTENCY}`);
 const LOCAL_PROMPT = pis7PromptFor('local');   // base prompt + the local addendum once E2 fills it in
 const CLOUD_PROMPT = pis7PromptFor('anthropic');
 
