@@ -31,17 +31,21 @@ comment on column public.professionals.socratic_episode is
 -- episode 1 and has never met the episode-2 condition — there is nothing to protect, and pinning
 -- them would freeze them into the non-randomised arm for no benefit.
 --
--- Checked against prod before writing this (2026-08-26): 0 CLEs had status 'cle_pass', every
--- episode_number present was 1, and no CLE carried socratic_reason 'randomised_examiner'. An
--- earlier draft matched on "has any CLE", which would have pinned 18 of 28 physicians on the
+-- Checked against prod before writing this (2026-08-26): 0 sessions had the passing status, every
+-- episode_number present was 1, and none carried socratic_reason 'randomised_examiner'. An
+-- earlier draft matched on "has any session", which would have pinned 18 of 28 physicians on the
 -- strength of test sessions. This clause matched 0 rows on the day it was applied, and stays
 -- correct if the migration is ever re-run once the pilot has real sequences in flight.
+--
+-- Names updated 2026-09-03 for the CLE -> PLE rename (`cles`/'cle_pass' -> `ples`/'ple_pass').
+-- Editing an applied migration is normally wrong, but this statement is idempotent and its own
+-- comment promises it is re-runnable — left unrenamed it would raise PGRST205/42P01 instead.
 update public.professionals p
    set socratic_episode = 2
  where p.socratic_episode is null
    and exists (
-     select 1 from public.cles c
+     select 1 from public.ples c
       where c.physician_id = p.id
-        and c.status = 'cle_pass'
+        and c.status = 'ple_pass'
         and c.is_test = false
    );

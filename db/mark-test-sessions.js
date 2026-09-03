@@ -39,7 +39,7 @@ async function listAllUsers() {
   if (!cohortIds.length) { console.log('No matching accounts found. Nothing to do.'); process.exit(0); }
 
   const { data, error } = await supabase
-    .from('cles').update({ is_test: true })
+    .from('ples').update({ is_test: true })
     .in('physician_id', cohortIds).eq('is_test', false).select('id');
   if (error) { console.error('FAILED:', error.message); process.exit(1); }
   console.log(`Marked ${data?.length ?? 0} session(s) as test across ${cohortIds.length} account(s).`);

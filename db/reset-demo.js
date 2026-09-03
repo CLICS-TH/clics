@@ -1,9 +1,16 @@
 // db/reset-demo.js — reset the CLICS app to a clean slate, PRESERVING test history.
 //
-// Wipes all REAL activity (CLEs + messages + AI evals + audit scores + LPDP where is_test=false)
+// Wipes all REAL activity (PLEs + messages + AI evals + audit scores + LPDP where is_test=false)
 // and every non-superadmin account EXCEPT the accounts that own or scored a TEST session
-// (cles.is_test = true). Test sessions are kept so they can keep feeding the audit system.
+// (ples.is_test = true). Test sessions are kept so they can keep feeding the audit system.
 // councils + council_slots are CONFIGURATION and are never wiped.
+//
+// EVERY read here is a PRECONDITION for a destructive write, so every read aborts on error. This
+// script previously ignored them, and after the CLE -> PLE rename that was nearly catastrophic: the
+// `cles` queries returned PGRST205, so the "accounts to keep" set came back EMPTY, no real session
+// was deleted, and the script then went on to wipe invites and delete every account it had failed
+// to learn it should preserve — printing "Reset complete" at the end. A destructive script that
+// cannot verify what it is protecting must stop, not continue.
 //
 //   cd backend && NODE_PATH="$PWD/node_modules" node ../db/reset-demo.js
 //
@@ -18,8 +25,14 @@ const supabase = createClient(
   { auth: { persistSession: false, autoRefreshToken: false } }
 );
 
-const KEEP_SUPERADMIN = 'superadmin@clics.th';
-const SUPERADMIN_PW = 'ClicsSuper#2026r2';
+const KEEP_SUPERADMIN = process.env.RESET_SUPERADMIN_EMAIL || 'superadmin@clics.th';
+// Was hard-coded. A password in the repository is known to everyone with read access the moment
+// this runs, so it is supplied at invocation instead: RESET_SUPERADMIN_PW=... node db/reset-demo.js
+const SUPERADMIN_PW = process.env.RESET_SUPERADMIN_PW;
+if (!SUPERADMIN_PW) {
+  console.error('RESET_SUPERADMIN_PW is required — this script sets the superadmin password and will not invent one.');
+  process.exit(1);
+}
 const NIL = '00000000-0000-0000-0000-000000000000'; // sentinel so "delete all" has a filter
 const SLOTS = [
   { role: 'superadmin', capacity: 1 }, { role: 'admin', capacity: 5 },
@@ -31,7 +44,7 @@ async function count(table) {
   return count ?? 0;
 }
 async function snapshot(label) {
-  const tables = ['councils', 'professionals', 'cles', 'messages', 'ai_evaluations', 'audit_scores', 'lpdp_snapshots', 'access_requests', 'oauth_identities'];
+  const tables = ['councils', 'professionals', 'ples', 'messages', 'ai_evaluations', 'audit_scores', 'lpdp_snapshots', 'access_requests', 'oauth_identities'];
   const out = {};
   for (const t of tables) out[t] = await count(t);
   console.log(`\n${label}:`);
@@ -53,18 +66,20 @@ async function listAllUsers() {
 }
 
 // IDs of every account that owns or scored a TEST session — these must survive the reset,
-// or the FK cles.physician_id → professionals would be orphaned.
+// or the FK ples.physician_id → professionals would be orphaned.
 async function testAccountIds() {
   const keep = new Set();
-  const { data: testCles } = await supabase.from('cles').select('id, physician_id, auditor_id').eq('is_test', true);
+  const { data: testPles, error: tErr } = await supabase.from('ples').select('id, physician_id, auditor_id').eq('is_test', true);
+  if (tErr) throw new Error(`could not read test sessions, so the accounts to preserve are unknown: ${tErr.message}`);
   const ids = [];
-  for (const p of testCles ?? []) {
+  for (const p of testPles ?? []) {
     if (p.physician_id) keep.add(p.physician_id);
     if (p.auditor_id) keep.add(p.auditor_id);
     ids.push(p.id);
   }
   if (ids.length) {
-    const { data: scores } = await supabase.from('audit_scores').select('auditor_id').in('cle_id', ids);
+    const { data: scores, error: sErr } = await supabase.from('audit_scores').select('auditor_id').in('ple_id', ids);
+    if (sErr) throw new Error(`could not read test-session scores, so the auditors to preserve are unknown: ${sErr.message}`);
     for (const s of scores ?? []) if (s.auditor_id) keep.add(s.auditor_id);
   }
   return keep;
@@ -75,12 +90,15 @@ async function testAccountIds() {
   await snapshot('BEFORE');
 
   // Delete only REAL sessions (is_test=false). Their messages/ai_evaluations/audit_scores cascade;
-  // lpdp_snapshots has no cascade, so remove those rows by cle_id first.
-  const { data: realCles } = await supabase.from('cles').select('id').eq('is_test', false);
-  const realIds = (realCles ?? []).map(p => p.id);
+  // lpdp_snapshots has no cascade, so remove those rows by ple_id first.
+  const { data: realPles, error: rErr } = await supabase.from('ples').select('id').eq('is_test', false);
+  if (rErr) throw new Error(`could not read real sessions: ${rErr.message}`);
+  const realIds = (realPles ?? []).map(p => p.id);
   if (realIds.length) {
-    await supabase.from('lpdp_snapshots').delete().in('cle_id', realIds);
-    await supabase.from('cles').delete().in('id', realIds);
+    const { error: lErr } = await supabase.from('lpdp_snapshots').delete().in('ple_id', realIds);
+    if (lErr) throw new Error(`lpdp_snapshots delete: ${lErr.message}`);
+    const { error: pErr } = await supabase.from('ples').delete().in('id', realIds);
+    if (pErr) throw new Error(`ples delete: ${pErr.message}`);
   }
   await wipe('access_requests');
   // invites.created_by / professional_id reference professionals with NO on-delete action (RESTRICT),
@@ -95,12 +113,21 @@ async function testAccountIds() {
   if (sa) keepIds.add(sa.id);
 
   let deleted = 0, kept = 0;
+  const failed = [];
   for (const u of all) {
     if (keepIds.has(u.id)) { kept++; continue; }
-    await supabase.auth.admin.deleteUser(u.id); // cascades the professionals row + oauth_identities
-    deleted++;
+    // deleteUser RETURNS an error rather than throwing; counting an attempt as a deletion is how a
+    // partial reset came to report itself as a complete one.
+    const { error } = await supabase.auth.admin.deleteUser(u.id); // cascades professionals + oauth_identities
+    if (error) failed.push(`${u.id}: ${error.message}`);
+    else deleted++;
   }
   console.log(`\nDeleted ${deleted} accounts; kept ${kept} (superadmin + test-session owners/scorers).`);
+  if (failed.length) {
+    console.error(`\n${failed.length} account deletion(s) FAILED — the reset is partial:`);
+    for (const f of failed) console.error(`  ${f}`);
+    throw new Error('account deletion incomplete; refusing to report a completed reset');
+  }
 
   // Ensure the superadmin bootstrap exists, active, with a known password and no council.
   let saId = sa?.id;
@@ -111,10 +138,11 @@ async function testAccountIds() {
     if (error) throw error;
     saId = data.user.id;
   }
-  await supabase.from('professionals').upsert({
+  const { error: saErr } = await supabase.from('professionals').upsert({
     id: saId, role: 'superadmin', status: 'active', council_id: null,
     full_name_th: 'ผู้ดูแลระบบสูงสุด', full_name_en: 'Super Admin',
   }, { onConflict: 'id' });
+  if (saErr) throw new Error(`superadmin profile upsert: ${saErr.message}`);
 
   // Restore global slot pools; restore per-council admin/auditor pools for every council.
   await supabase.from('role_slots').upsert(SLOTS, { onConflict: 'role' });
