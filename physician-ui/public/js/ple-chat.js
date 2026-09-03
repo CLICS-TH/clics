@@ -275,6 +275,7 @@ async function deliver(message) {
   } else if (res?.code === 'budget_exceeded') {
     // reason 'tokens' is the token-denominated cap (local AI); 'cost' the $ cap. Same outcome here.
     const unit = res.reason === 'tokens' ? ' (โทเค็น / tokens)' : '';
+    retractPhysicianBubble(); // refused before it was saved — a bubble would claim it was said
     renderMessage('assistant', 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ คุณยังสามารถจบเซสชันนี้ได้ / AI usage limit reached — contact an administrator. You can still end this session.' + unit, [], null);
     document.getElementById('input').value = message; // restore the typed question
     refreshUsage();
