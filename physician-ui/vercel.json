@@ -1,6 +1,16 @@
 {
   "outputDirectory": "public",
   "cleanUrls": true,
+  "redirects": [
+    { "source": "/cle-chat", "permanent": false, "destination": "/ple-chat" },
+    { "source": "/cle-chat.html", "permanent": false, "destination": "/ple-chat" },
+    { "source": "/cle-new", "permanent": false, "destination": "/ple-new" },
+    { "source": "/cle-new.html", "permanent": false, "destination": "/ple-new" },
+    { "source": "/cle-reflect", "permanent": false, "destination": "/ple-reflect" },
+    { "source": "/cle-reflect.html", "permanent": false, "destination": "/ple-reflect" },
+    { "source": "/cle-result", "permanent": false, "destination": "/ple-result" },
+    { "source": "/cle-result.html", "permanent": false, "destination": "/ple-result" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
