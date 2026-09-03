@@ -27,6 +27,7 @@ log "starting tailscaled (userspace, http proxy on 127.0.0.1:${TS_PROXY_PORT})"
   --tun=userspace-networking \
   --state=/var/lib/tailscale/tailscaled.state \
   --socket=/var/run/tailscale/tailscaled.sock \
+  --socks5-server="127.0.0.1:${TS_SOCKS_PORT:-1080}" \
   --outbound-http-proxy-listen="127.0.0.1:${TS_PROXY_PORT}" &
 TS_PID=$!
 
@@ -50,6 +51,30 @@ if /usr/local/bin/tailscale --socket=/var/run/tailscale/tailscaled.sock up \
 else
   log "WARNING: tailscale up failed — continuing without it; the local provider will report itself not ready."
   kill "$TS_PID" 2>/dev/null
+fi
+
+
+# One-shot reachability probe, logged shortly after boot.
+#
+# "fetch failed" from the app says nothing about WHICH hop broke. curl through the same proxies
+# separates the candidates: a tailnet or ACL problem fails every row, a proxy-protocol problem fails
+# one and not the other, and a wrong URL returns an HTTP status rather than a connect failure.
+#
+# It runs in the BACKGROUND on purpose. An earlier version ran it inline and three 15-second curls
+# delayed `exec node` past the point where the platform expects the port to be listening, so the
+# deploy was marked failed by a diagnostic. Nothing here may sit between boot and the listening port.
+if [ -n "$LOCAL_AI_BASE_URL" ]; then
+  (
+    probe() {
+      code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$@" \
+        ${LOCAL_AI_API_KEY:+-H "Authorization: Bearer ${LOCAL_AI_API_KEY}"} \
+        "${LOCAL_AI_BASE_URL}/models" 2>/dev/null)
+      echo "${code:-connect-failed}"
+    }
+    log "probe direct     -> $(probe)"
+    log "probe http-proxy -> $(probe --proxy http://127.0.0.1:${TS_PROXY_PORT})"
+    log "probe socks5     -> $(probe --socks5-hostname 127.0.0.1:${TS_SOCKS_PORT:-1080})"
+  ) &
 fi
 
 exec "$@"
