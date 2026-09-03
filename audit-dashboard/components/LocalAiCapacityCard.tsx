@@ -107,6 +107,11 @@ function QueueNow() {
 
   const running = queue?.drain?.running;
   const lastError = queue?.drain?.last_error || queue?.error || null;
+  // One unrecognised council code in the exclude field above resolves the drain's scope to nothing.
+  // Every evaluation then stops while the drain still reports itself as running and raises no error
+  // — the failure is invisible unless this row says so. It gets its own full-width line.
+  const failedClosed = queue?.drain?.scope?.failed_closed || null;
+  const stuck = queue?.stuck === true;
 
   return (
     <div
@@ -127,6 +132,21 @@ function QueueNow() {
       </span>
       {lastError && <span className="break-all text-danger">ข้อผิดพลาดล่าสุด / last error: {lastError}</span>}
       {queue === null && <span className="text-muted-foreground">อ่านสถานะคิวไม่ได้ / queue status unavailable</span>}
+      {failedClosed && (
+        <p role="alert" className="w-full text-sm font-medium text-danger">
+          ขอบเขตสภาไม่ตรงกับสภาใด — ไม่มีการให้คะแนนเลย ตรวจรหัสสภาในช่องด้านบน
+          {' · '}
+          Council scope matched nothing — no session is being scored. Check the codes above.
+          {' ('}<span className="break-all font-mono">{failedClosed}</span>{')'}
+        </p>
+      )}
+      {stuck && !failedClosed && (
+        <p role="alert" className="w-full text-sm font-medium text-danger">
+          มีงานจริงค้างคิวเกินเวลาที่กำหนด — ตรวจว่า drain ทำงานอยู่หรือไม่
+          {' · '}
+          Real work has waited past the grace period. Check that the drain is running.
+        </p>
+      )}
       <button
         type="button"
         onClick={() => void loadQueue()}

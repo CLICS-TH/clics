@@ -35,7 +35,7 @@ Supabase Postgres). Working end-to-end today:
   provenance, pseudonyms (`P-NNN`), Helmet + rate limits. Concurrency benchmarked: 200+ concurrent reads / 110 distinct simultaneous users,
   0 errors (the AI path's ceiling is Anthropic **OTPM** — see [PERFORMANCE-BENCHMARK.md](PERFORMANCE-BENCHMARK.md)).
 
-## Built 2026-09-02 — local-AI capacity layer (branch `feat/local-ai-capacity` (off `refactor/cle-to-ple`), NOT deployed, migration NOT applied)
+## Built 2026-09-02 — local-AI capacity layer (branch `feat/local-ai-capacity` (off `refactor/cle-to-ple`), migrations APPLIED to prod 2026-09-02, code NOT yet deployed)
 
 Context: the on-prem model became reachable 2026-08-31 and passed Gate 0; measured head-to-head it agrees
 with Sonnet at ICC 0.594 and **neither model's PIS-7 output is reproducible** (same fixture, Σ|Δ| 0–8

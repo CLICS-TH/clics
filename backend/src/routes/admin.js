@@ -798,9 +798,15 @@ router.get('/stats', async (req, res) => {
     for (const r of rows) { counts[r.status] = Number(r.n); total += Number(r.n); }
     return res.json({ total, ...counts });
   }
+  // The RPC failed, so fall back to the pre-migration JS count — but if THAT fails too, say so.
+  // Answering {total:0} on a read error renders an empty-but-plausible study: the console looks
+  // fine and reports nothing wrong. That is exactly how the Aug-31 schema outage stayed invisible
+  // for three days while every session query was 500ing. An error must read as an error.
+  if (error) console.warn('[admin/stats] ple_status_counts RPC failed, using JS count:', error.message);
   let q = supabase.from('ples').select('status');
   if (!includeTest) q = q.eq('is_test', false);
-  const { data: ples } = await scopeToCouncil(req, q);
+  const { data: ples, error: fallbackError } = await scopeToCouncil(req, q);
+  if (sendDbError(res, fallbackError)) return;
   const counts = (ples ?? []).reduce((acc, p) => { acc[p.status] = (acc[p.status] ?? 0) + 1; return acc; }, {});
   res.json({ total: ples?.length ?? 0, ...counts });
 });

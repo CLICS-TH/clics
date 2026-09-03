@@ -175,6 +175,46 @@ describe('LocalAiCapacityCard — queue now', () => {
     expect(within(queueRow()).getByText(/last error/)).toHaveTextContent('503:rimpl_down');
   });
 
+  // A drain whose council scope failed closed reports running:true and no error, while claiming
+  // nothing at all. Before this row existed the only symptom was a queue that quietly never moved.
+  it('warns loudly when the council scope failed closed — running + no error is NOT enough to look healthy', async () => {
+    wire({ health: { status: 'degraded', checks: { eval_queue: {
+      queued: 7, scoring: 0, oldest_wait_s: 3000, status: 'down', reasons: ['scope_failed_closed:unknown_council:SANDOX'],
+      drain: { running: true, in_flight: 0, last_error: null,
+        scope: { exclude_codes: [], include_codes: [], failed_closed: 'unknown_council:SANDOX' } } } } } });
+    await renderCard(USAGE);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Council scope matched nothing');
+    expect(alert).toHaveTextContent('unknown_council:SANDOX');
+    expect(alert).toHaveTextContent('ขอบเขตสภาไม่ตรงกับสภาใด');
+    // The misleading part stays visible rather than being papered over.
+    expect(within(queueRow()).getByText(/^drain/)).toHaveTextContent('ทำงาน / running');
+  });
+
+  it('warns when real work is stuck past the grace period', async () => {
+    wire({ health: { status: 'degraded', checks: { eval_queue: {
+      queued: 2, scoring: 0, oldest_wait_s: 4000, oldest_claimable_wait_s: 4000, stuck_after_s: 900, stuck: true,
+      status: 'down', reasons: ['queue_stuck'],
+      drain: { running: true, in_flight: 0, last_error: null, scope: null } } } } });
+    await renderCard(USAGE);
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Real work has waited past the grace period');
+  });
+
+  it('an excluded council backlog is NOT reported as stuck (those rows are not claimable)', async () => {
+    wire({ health: { status: 'ok', checks: { eval_queue: {
+      queued: 11, scoring: 0, oldest_wait_s: 9000, oldest_claimable_wait_s: 0, stuck_after_s: 900, stuck: false,
+      status: 'up', reasons: [],
+      drain: { running: true, in_flight: 0, last_error: null,
+        scope: { exclude_codes: ['SANDBOX'], include_codes: [], failed_closed: null } } } } } });
+    await renderCard(USAGE);
+
+    await waitFor(() => expect(within(queueRow()).getByText(/queued/)).toHaveTextContent('11'));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('degrades to "—" when the probe is unreachable, and the settings still render', async () => {
     wire({ health: { error: 'เครือข่ายขัดข้อง / Network error.' } });
     await renderCard(USAGE);

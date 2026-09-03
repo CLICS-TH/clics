@@ -389,12 +389,29 @@ export interface EvalQueueStatus {
   queued?: number;
   scoring?: number;
   oldest_wait_s?: number;
+  // Oldest wait among rows the drain is actually ELIGIBLE to claim — same status, eval_next_at and
+  // council partition as claim_ple_evaluations. A row backing off, or one in an excluded council,
+  // is not counted. The stuck signal reads this, never the unfiltered oldest_wait_s.
+  oldest_claimable_wait_s?: number;
+  // The grace this queue is judged against, scaled from its own predicted wait.
+  stuck_after_s?: number;
   error?: string;
+  // Verdict fields. 'down' means this check is FAILING /health/deep, and `reasons` says why.
+  status?: 'up' | 'down';
+  reasons?: string[];
+  stuck?: boolean;
   drain?: {
     running?: boolean;
     in_flight?: number;
     last_tick_at?: string | null;
     last_error?: string | null;
+    // The council partition the last tick claimed under. failed_closed set means it claimed
+    // NOTHING — one unrecognised code in the exclude setting stops every evaluation, silently.
+    scope?: {
+      exclude_codes?: string[];
+      include_codes?: string[];
+      failed_closed?: string | null;
+    } | null;
   };
 }
 export interface HealthDeep {
