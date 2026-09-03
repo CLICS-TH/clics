@@ -56,43 +56,32 @@ fi
 
 # One-shot reachability probe, logged shortly after boot.
 #
-# Asks WHICH layer refuses, because "fetch failed" names no hop. Per-port checks read curl's EXIT
-# CODE, not its HTTP status: 7/28 means the connection never opened, 0 or 52 (empty reply) mean TCP
-# completed. The final check is a real inference round-trip — the only thing that proves the whole
-# chain (tailnet -> proxy -> server -> JSON) without flipping a production provider setting to do it.
+# Reads curl's EXIT CODE, not its HTTP status: 7 means the host actively REFUSED (sent a RST), 28
+# means the packets were silently DROPPED, and 0/52/56 all mean TCP completed. That distinction is
+# the whole point — a status of 000 cannot tell a refused port from a firewalled one.
+#
+# Port 9999 is the control. Nothing listens there, so it shows what this host does with a port it
+# does not serve: a REFUSAL means there is no blanket deny and any DROP elsewhere is a deliberate
+# rule; a DROP means the host default-denies and the question becomes which ports are allowed for
+# THIS source rather than what is special about 3000.
 #
 # Background, always: nothing may sit between boot and the listening port.
-if [ -n "$LOCAL_AI_BASE_URL" ]; then
+# Opt-in: set LOCAL_AI_PROBE=1. It opens seven connections to a box we do not own, so it runs when
+# someone is diagnosing, not on every boot.
+if [ -n "$LOCAL_AI_BASE_URL" ] && [ "$LOCAL_AI_PROBE" = "1" ]; then
   (
     PX="--socks5-hostname 127.0.0.1:${TS_SOCKS_PORT:-1080}"
-    for port in 3000 11434; do
+    for port in 22 80 443 3000 8080 11434 9999; do
       curl -s -o /dev/null --max-time 8 $PX "http://100.68.210.69:${port}/" 2>/dev/null
       rc=$?
       case "$rc" in
-        0|52) verdict="TCP OPEN" ;;
-        7)    verdict="refused" ;;
-        28)   verdict="timed out (dropped)" ;;
-        *)    verdict="curl exit ${rc}" ;;
+        0|52|56) verdict="TCP OPEN" ;;
+        7)       verdict="REFUSED (rst)" ;;
+        28)      verdict="DROPPED (timeout)" ;;
+        *)       verdict="curl exit ${rc}" ;;
       esac
-      log "probe :${port} -> ${verdict}"
+      log "port ${port} -> ${verdict}"
     done
-
-    log "probe models     -> $(curl -s -o /dev/null -w '%{http_code}' --max-time 10 $PX \
-      ${LOCAL_AI_API_KEY:+-H "Authorization: Bearer ${LOCAL_AI_API_KEY}"} \
-      "${LOCAL_AI_BASE_URL}/models" 2>/dev/null)"
-
-    # A real completion, through the same path rimpl uses. Keep it tiny — this is a transport check,
-    # not a benchmark, and the box is shared.
-    body="{\"model\":\"${LOCAL_AI_MODEL}\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with the single word: ok\"}],\"max_tokens\":8,\"temperature\":0}"
-    out=$(curl -s --max-time 120 $PX -X POST \
-      -H "Content-Type: application/json" \
-      ${LOCAL_AI_API_KEY:+-H "Authorization: Bearer ${LOCAL_AI_API_KEY}"} \
-      -d "$body" "${LOCAL_AI_BASE_URL}/chat/completions" 2>/dev/null)
-    if [ -n "$out" ]; then
-      log "probe inference  -> $(echo "$out" | head -c 220 | tr -d '\n')"
-    else
-      log "probe inference  -> no response"
-    fi
   ) &
 fi
 
