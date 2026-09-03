@@ -56,24 +56,43 @@ fi
 
 # One-shot reachability probe, logged shortly after boot.
 #
-# "fetch failed" from the app says nothing about WHICH hop broke. curl through the same proxies
-# separates the candidates: a tailnet or ACL problem fails every row, a proxy-protocol problem fails
-# one and not the other, and a wrong URL returns an HTTP status rather than a connect failure.
+# Asks WHICH layer refuses, because "fetch failed" names no hop. Per-port checks read curl's EXIT
+# CODE, not its HTTP status: 7/28 means the connection never opened, 0 or 52 (empty reply) mean TCP
+# completed. The final check is a real inference round-trip — the only thing that proves the whole
+# chain (tailnet -> proxy -> server -> JSON) without flipping a production provider setting to do it.
 #
-# It runs in the BACKGROUND on purpose. An earlier version ran it inline and three 15-second curls
-# delayed `exec node` past the point where the platform expects the port to be listening, so the
-# deploy was marked failed by a diagnostic. Nothing here may sit between boot and the listening port.
+# Background, always: nothing may sit between boot and the listening port.
 if [ -n "$LOCAL_AI_BASE_URL" ]; then
   (
-    probe() {
-      code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$@" \
-        ${LOCAL_AI_API_KEY:+-H "Authorization: Bearer ${LOCAL_AI_API_KEY}"} \
-        "${LOCAL_AI_BASE_URL}/models" 2>/dev/null)
-      echo "${code:-connect-failed}"
-    }
-    log "probe direct     -> $(probe)"
-    log "probe http-proxy -> $(probe --proxy http://127.0.0.1:${TS_PROXY_PORT})"
-    log "probe socks5     -> $(probe --socks5-hostname 127.0.0.1:${TS_SOCKS_PORT:-1080})"
+    PX="--socks5-hostname 127.0.0.1:${TS_SOCKS_PORT:-1080}"
+    for port in 3000 11434; do
+      curl -s -o /dev/null --max-time 8 $PX "http://100.68.210.69:${port}/" 2>/dev/null
+      rc=$?
+      case "$rc" in
+        0|52) verdict="TCP OPEN" ;;
+        7)    verdict="refused" ;;
+        28)   verdict="timed out (dropped)" ;;
+        *)    verdict="curl exit ${rc}" ;;
+      esac
+      log "probe :${port} -> ${verdict}"
+    done
+
+    log "probe models     -> $(curl -s -o /dev/null -w '%{http_code}' --max-time 10 $PX \
+      ${LOCAL_AI_API_KEY:+-H "Authorization: Bearer ${LOCAL_AI_API_KEY}"} \
+      "${LOCAL_AI_BASE_URL}/models" 2>/dev/null)"
+
+    # A real completion, through the same path rimpl uses. Keep it tiny — this is a transport check,
+    # not a benchmark, and the box is shared.
+    body="{\"model\":\"${LOCAL_AI_MODEL}\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with the single word: ok\"}],\"max_tokens\":8,\"temperature\":0}"
+    out=$(curl -s --max-time 120 $PX -X POST \
+      -H "Content-Type: application/json" \
+      ${LOCAL_AI_API_KEY:+-H "Authorization: Bearer ${LOCAL_AI_API_KEY}"} \
+      -d "$body" "${LOCAL_AI_BASE_URL}/chat/completions" 2>/dev/null)
+    if [ -n "$out" ]; then
+      log "probe inference  -> $(echo "$out" | head -c 220 | tr -d '\n')"
+    else
+      log "probe inference  -> no response"
+    fi
   ) &
 fi
 
