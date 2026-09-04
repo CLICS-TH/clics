@@ -17,6 +17,7 @@ import { readFile, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dim, red, green, yellow, hr, table, percentile, fail } from './lib.mjs';
+import { isTransport } from './parseability.mjs';
 
 const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -175,10 +176,9 @@ function summarizeRepeat(report) {
   // must not sit in this denominator — see the same reasoning in repeat-consistency.mjs localArm() and
   // screening-verdict.mjs. Reports written before 2026-09-04 have no `errors` array; those fall back to
   // the old count and are flagged, rather than being silently rated on a different basis.
-  // ONLY a transport failure leaves the denominator. `Pis7ScoreError` stays in: pis7.js throws it for
-  // invalid_json/invalid_scores after the re-ask budget is spent, i.e. the model failing its contract —
-  // excluding it would switch this bar off. See the longer note in screening-verdict.mjs.
-  const nonModel = (e) => e != null && /^transport\b/i.test(String(e));
+  // isTransport is imported, not redeclared: two hand-written copies of this rule is exactly how the
+  // bug it encodes got reintroduced. parseability.mjs owns it and carries the tests.
+  const nonModel = isTransport;
   const legacyJson = local.some((result) => !Array.isArray(result.errors));
   const excludedNonModel = local.reduce(
     (sum, result) => sum + (Array.isArray(result.errors) ? result.errors.filter(nonModel).length : 0), 0);

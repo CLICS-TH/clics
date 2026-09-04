@@ -32,6 +32,7 @@ import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
+import { computeParseability } from './parseability.mjs';
 
 const require = createRequire(`${process.cwd()}/`);
 const argv = process.argv.slice(2);
@@ -125,45 +126,9 @@ if (repeat) {
 }
 
 // ---- parseability: valid PIS-7 JSON on the local arm, across every local CALL we know about ---------
-//
-// Two rules decide what lands in this denominator, and both were got wrong once (2026-09-04):
-//
-// 1. ONLY a transport failure is excluded — a socket error or a timeout, stamped `transport …` at the
-//    call site where `ok` was still visible. `Pis7ScoreError` is NOT excluded: rimpl/lib/pis7.js throws
-//    it for invalid_json and invalid_scores, and consistency.js re-raises it only after the re-ask budget
-//    is spent, so it is the model failing its contract N+1 times — the exact thing this bar exists to
-//    catch. Excluding it silently disabled the check. Reports written before the call sites were fixed
-//    cannot tell a timeout from garbage (an empty reply parses to {} and fails the schema the same way),
-//    so for those we COUNT it: over-reporting a model's failures is recoverable, under-reporting is not.
-//
-// 2. Count CALLS, not fixtures. One adaptive row is 2-3 model calls plus re-asks; `json_retries` already
-//    records replies that failed the schema. Counting a row as one attempt reported 17/17 = "100%" for a
-//    run that actually made 36 calls, 2 of which did not parse (94.4%).
-const isTransport = (e) => e != null && /^transport\b/i.test(String(e));
-
-let attempted = 0, parsed = 0, excluded = 0, legacy = false;
-for (const r of rows) {
-  const calls = r.localCalls, retries = r.localJsonRetries;
-  if (typeof calls !== 'number') {                       // report predates per-call accounting
-    legacy = true;
-    if (r.local) { attempted += 1; parsed += 1; }
-    else if (r.cloudError && !r.localError) { excluded += 1; }
-    else { attempted += 1; }
-    continue;
-  }
-  if (isTransport(r.localError)) { excluded += calls || 1; continue; }
-  if (!r.local && r.cloudError && !r.localError) { excluded += calls || 1; continue; }
-  attempted += calls + (retries ?? 0);
-  parsed += r.local ? calls : Math.max(0, calls - 1);     // the failing reply is the last call
-}
-if (repeat) for (const r of (repeat.results ?? []).filter((r) => r.arm === 'local')) {
-  const errs = r.errors;
-  if (!Array.isArray(errs)) { legacy = true; attempted += (r.ms ?? []).length; parsed += (r.runs ?? []).length; continue; }
-  const skipped = errs.filter(isTransport).length;
-  excluded += skipped;
-  attempted += (r.ms ?? []).length - skipped;
-  parsed += (r.runs ?? []).length;
-}
+// The rules and the reasons live in parseability.mjs, with a test per rule. They were inline here once;
+// that is how the same accounting error reached three different wrong answers about one run in a day.
+const { attempted, parsed, excluded, legacy } = computeParseability(rows, repeat);
 const jsonPct = attempted ? (100 * parsed) / attempted : null;
 const jsonPass = jsonPct != null ? jsonPct >= 98 : null;
 
