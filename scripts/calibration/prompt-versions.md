@@ -93,6 +93,8 @@ and are marked "not a gate result" by the tool. Σ|Δ| = median over fixtures of
 | model (local vs cloud) | prompt version · sha | split (n pairs) | consistency | ICC(A,1) composite (95% CI) | Σ\|Δ\| median | JSON % | verdict |
 |---|---|---|---|---|---|---|---|
 | deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29 | tuning (n=16) | adaptive | 0.578 (0.116–0.835) | n/m | 100.0% | insufficient |
+| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29+local-cae23b1a5f37 | tuning (n=14) | adaptive | 0.735 (0.335–0.910) | 1 | 95.4% | insufficient |
+| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29+local-cae23b1a5f37 | tuning (n=15) | median3 | 0.762 (0.410–0.917) | 1 | 95.4% | insufficient |
 
 **v0 baseline, 2026-09-02.** The first row is the local model against the incumbent on the 18-fixture
 tuning split, with adaptive self-consistency ON. Read it with the earlier single-call measurement
@@ -103,3 +105,21 @@ d5/d6/d7 sit at 0.68/0.72/0.59 with no bias. Two cloud replies were unparseable 
 rationale); the local arm parsed 18/18. `screening-verdict.mjs` reports `insufficient`, and at a point
 estimate of 0.578 **no number of pairs would clear a 0.75 lower bound** — more data cannot rescue a
 model that ranks the episodes differently. That is what the addendum below is aimed at.
+
+**Addendum + median3, 2026-09-04.** Rows 2 and 3 add the local prompt addendum
+(`PIS7_LOCAL_ADDENDUM`, sha `local-cae23b1a5f37`), which row 1 predates. Together they move three
+things at once: composite ICC 0.578 → 0.735 → **0.762**, bias −2.50 → +0.79 → **+0.00**, and the
+repeatability floor from Σ|Δ| median 6 to **1** — the last of which is what §8.3 called the real
+blocker, and it is now clear.
+
+**Still `insufficient`, for a new reason.** At 0.762 the interval is 0.410–0.917 and the tool
+computes **4,899 pairs** needed to lift the lower bound past 0.75 — not reachable. The point estimate
+has to rise (0.90 → 19 pairs, 0.92 → 14). A second, newly-binding constraint appeared: **JSON
+validity fell to 95.4%** (103/108) against the 98% bar; it was 100% before the addendum, so the
+longer prompt is the suspect.
+
+**Do not read the per-domain ICCs in these runs as findings.** d1 reads 0.055 → 0.663 → 0.294 across
+the three, which at n=14–15 is within what chance alone produces. The one stable signal is **d4
+(Iterative Inquiry), lowest in all three** (0.425 / 0.552 / 0.530) and of the hardest kind: the two
+models' means agree (Δ −0.07) while their per-case ranking does not, so calibration cannot fix it.
+That is where prompt work should go next.
