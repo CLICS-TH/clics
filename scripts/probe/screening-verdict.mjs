@@ -30,9 +30,9 @@
  */
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { computeParseability } from './parseability.mjs';
+import { promptDrift } from './prompt-drift.mjs';
 
 const require = createRequire(`${process.cwd()}/`);
 const argv = process.argv.slice(2);
@@ -61,11 +61,11 @@ Exit codes: 0 pass · 1 fail · 3 insufficient · 2 misconfigured / unreadable i
 }
 
 // ---- production code, not a re-implementation ------------------------------------------------------
-let icc, pis7, prompts;
+let icc, pis7, versions;
 try {
   icc = require('./src/services/icc.js');                 // iccTwoRater, verdictFor
   pis7 = require('../rimpl/src/lib/pis7.js');             // compositeOf (weighted, 0–100)
-  prompts = require('../rimpl/src/lib/prompts.js');       // PIS7_EVALUATOR_PROMPT (+ pis7PromptFor once WP-E lands)
+  versions = require('../rimpl/src/lib/versions.js');     // promptVersionFor — the exact labels reports are stamped with
 } catch (e) {
   die(`run this from backend/ — could not load production modules: ${e.message}`);
 }
@@ -156,13 +156,20 @@ if (!isGate) reasons.unshift('TUNING split — NOT A GATE RESULT');
 // (Caught 2026-09-02: a baseline run made before the local addendum existed was stamped with the
 // addendum's sha, because the tool hashed prompts.js at report time. A calibration table whose rows
 // are labelled with whatever is checked out when you read them is worse than no table.)
+// Whether it drifted is decided in prompt-drift.mjs, with a test per failure mode. Inline here it
+// hashed the ASSEMBLED prompt and hunted for that digest inside a label built from the ADDENDUM ALONE,
+// so it fired on all 7 addendum-ON reports (4 stale, 3 current) and could never fire on an
+// addendum-OFF one. It now compares whole labels straight from the module that stamps them.
 const recordedLocalVersion = agreement.local_prompt_version ?? null;
-const promptText = typeof prompts.pis7PromptFor === 'function' ? prompts.pis7PromptFor('local') : prompts.PIS7_EVALUATOR_PROMPT;
-const currentSha = createHash('sha256').update(promptText ?? '').digest('hex').slice(0, 12);
+const treeLocalVersion = versions.promptVersionFor('local');
+const drift = promptDrift({
+  recordedLocal: recordedLocalVersion,
+  recordedBase: agreement.prompt_version ?? null,
+  treeLocal: treeLocalVersion,
+  treeBase: versions.promptVersionFor(),
+});
 // A run predating the recording (or one written by an older probe) has no version: say so, do not guess.
-const promptSha = recordedLocalVersion ?? `unrecorded (tree today: ${currentSha})`;
-const promptDrift = recordedLocalVersion && !recordedLocalVersion.includes(currentSha.slice(0, 8))
-  && recordedLocalVersion !== agreement.prompt_version;
+const promptSha = recordedLocalVersion ?? `unrecorded (tree today: ${treeLocalVersion})`;
 const ci = iccResult.icc == null ? '—' : `${iccResult.icc.toFixed(3)} (${iccResult.lower.toFixed(3)}–${iccResult.upper.toFixed(3)})`;
 const row = `| ${agreement.models?.local ?? agreement.localModel ?? '?'} vs ${agreement.cloudModel ?? '?'} | ${promptSha} | ${splitName ?? 'none'} (n=${iccResult.n}) | ${agreement.consistency ?? 'off'} | ${ci} | ${sigma?.median ?? 'n/m'} | ${jsonPct == null ? 'n/m' : jsonPct.toFixed(1) + '%'} | ${state} |`;
 
@@ -188,7 +195,7 @@ else {
   console.log(`\n  pairs needed for the lower bound to clear ${threshold}:`);
   console.log(`    at the observed ICC ${iccResult.icc ?? '—'}: ${atObserved ?? 'never (point estimate not above threshold)'}`);
   console.log(`    ladder  ${ladder.map((l) => `${l.rho}→${l.pairs ?? '∞'}`).join('   ')}`);
-  if (promptDrift) console.log(`\n  note · this run recorded prompt ${recordedLocalVersion}; the working tree now holds ${currentSha}. The row below reports the RUN's prompt.`);
+  if (drift.drift) console.log(`\n  note · this run recorded prompt ${drift.recorded}\n         the working tree now builds ${drift.tree}\n         The row below reports the RUN's prompt.`);
   console.log(`\n  prompt-versions.md row (model axis):\n  ${row}\n`);
 }
 process.exit(state === 'pass' ? 0 : state === 'fail' ? 1 : 3);
