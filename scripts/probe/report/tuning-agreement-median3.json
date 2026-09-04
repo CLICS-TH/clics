@@ -1,0 +1,1018 @@
+{
+  "split": {
+    "name": "tuning",
+    "reserved_at": "2026-09-02T04:09:06.961Z",
+    "git_head": "496ad1d63a0c51d32f4704d7e8072f24247e7e28"
+  },
+  "prompt_version": "pis7-prompt-59561c29",
+  "local_prompt_version": "pis7-prompt-59561c29+local-cae23b1a5f37",
+  "consistency": "median3",
+  "localModel": "deepseek-v4-flash-dspark",
+  "cloudModel": "claude-sonnet-4-6",
+  "n": 15,
+  "rows": [
+    {
+      "id": "PLE-001",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 4,
+        "d4": 3,
+        "d5": 2,
+        "d6": 3,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 4,
+        "d2": 3,
+        "d3": 4,
+        "d4": 3,
+        "d5": 2,
+        "d6": 2,
+        "d7": 3
+      },
+      "localMs": 187695,
+      "cloudMs": 27539,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 6,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            4,
+            3,
+            2,
+            3,
+            3
+          ],
+          [
+            4,
+            4,
+            4,
+            4,
+            3,
+            4,
+            4
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 5756,
+        "extra_output_tokens": 634,
+        "latency_ms": 187695
+      }
+    },
+    {
+      "id": "PLE-002",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 3,
+        "d5": 2,
+        "d6": 3,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 2,
+        "d4": 2,
+        "d5": 1,
+        "d6": 2,
+        "d7": 3
+      },
+      "localMs": 211626,
+      "cloudMs": 28455,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 7,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            3,
+            3,
+            2,
+            3,
+            3
+          ],
+          [
+            4,
+            4,
+            4,
+            4,
+            3,
+            4,
+            4
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 5751,
+        "extra_output_tokens": 648,
+        "latency_ms": 211626
+      }
+    },
+    {
+      "id": "PLE-005",
+      "local": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 4,
+        "d4": 4,
+        "d5": 4,
+        "d6": 4,
+        "d7": 4
+      },
+      "cloud": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 3,
+        "d4": 4,
+        "d5": 4,
+        "d6": 4,
+        "d7": 3
+      },
+      "localMs": 287210,
+      "cloudMs": 25450,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 1,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4
+          ],
+          [
+            4,
+            4,
+            3,
+            4,
+            4,
+            4,
+            4
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 7831,
+        "extra_output_tokens": 696,
+        "latency_ms": 287210
+      }
+    },
+    {
+      "id": "PLE-006",
+      "local": {
+        "d1": 3,
+        "d2": 4,
+        "d3": 3,
+        "d4": 3,
+        "d5": 4,
+        "d6": 4,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 4,
+        "d2": 5,
+        "d3": 4,
+        "d4": 4,
+        "d5": 4,
+        "d6": 4,
+        "d7": 4
+      },
+      "localMs": 175485,
+      "cloudMs": 28984,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 2,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            4,
+            3,
+            3,
+            4,
+            4,
+            3
+          ],
+          [
+            4,
+            4,
+            3,
+            3,
+            4,
+            4,
+            4
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 6964,
+        "extra_output_tokens": 650,
+        "latency_ms": 175484
+      }
+    },
+    {
+      "id": "PLE-007",
+      "local": {
+        "d1": 2,
+        "d2": 2,
+        "d3": 2,
+        "d4": 2,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 2,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "localMs": 407651,
+      "cloudMs": 20679,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            2,
+            2,
+            2,
+            2,
+            1,
+            1,
+            2
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            1,
+            1,
+            2
+          ]
+        ],
+        "json_retries": 1,
+        "extra_input_tokens": 7884,
+        "extra_output_tokens": 1151,
+        "latency_ms": 407651
+      }
+    },
+    {
+      "id": "PLE-008",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 2,
+        "d4": 2,
+        "d5": 2,
+        "d6": 2,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 2,
+        "d4": 3,
+        "d5": 1,
+        "d6": 2,
+        "d7": 3
+      },
+      "localMs": 173368,
+      "cloudMs": 22646,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 2,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            2,
+            2,
+            2,
+            2,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            2,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 4093,
+        "extra_output_tokens": 517,
+        "latency_ms": 173368
+      }
+    },
+    {
+      "id": "PLE-011",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 3,
+        "d5": 3,
+        "d6": 2,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 4,
+        "d4": 3,
+        "d5": 4,
+        "d6": 3,
+        "d7": 3
+      },
+      "localMs": 253849,
+      "cloudMs": 22716,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 4461,
+        "extra_output_tokens": 815,
+        "latency_ms": 253849
+      }
+    },
+    {
+      "id": "PLE-012",
+      "local": null,
+      "cloud": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 4,
+        "d4": 4,
+        "d5": 4,
+        "d6": 2,
+        "d7": 4
+      },
+      "localMs": 686004,
+      "cloudMs": 24271,
+      "consistency": null
+    },
+    {
+      "id": "PLE-030",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 2,
+        "d4": 3,
+        "d5": 2,
+        "d6": 2,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 2,
+        "d4": 4,
+        "d5": 1,
+        "d6": 2,
+        "d7": 3
+      },
+      "localMs": 244475,
+      "cloudMs": 20563,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            2,
+            3,
+            2,
+            2,
+            3
+          ],
+          [
+            3,
+            3,
+            2,
+            3,
+            2,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 3955,
+        "extra_output_tokens": 673,
+        "latency_ms": 244475
+      }
+    },
+    {
+      "id": "PLE-032",
+      "local": {
+        "d1": 2,
+        "d2": 2,
+        "d3": 1,
+        "d4": 2,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 2,
+        "d3": 1,
+        "d4": 2,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "localMs": 219036,
+      "cloudMs": 19641,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            2,
+            2,
+            1,
+            2,
+            1,
+            1,
+            2
+          ],
+          [
+            2,
+            2,
+            1,
+            2,
+            1,
+            1,
+            2
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 7796,
+        "extra_output_tokens": 670,
+        "latency_ms": 219035
+      }
+    },
+    {
+      "id": "PLE-037",
+      "local": {
+        "d1": 2,
+        "d2": 2,
+        "d3": 2,
+        "d4": 2,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "cloud": {
+        "d1": 2,
+        "d2": 2,
+        "d3": 1,
+        "d4": 2,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "localMs": 148007,
+      "cloudMs": 20009,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            2,
+            2,
+            2,
+            2,
+            1,
+            1,
+            2
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            1,
+            1,
+            2
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 11754,
+        "extra_output_tokens": 581,
+        "latency_ms": 148007
+      }
+    },
+    {
+      "id": "PLE-041",
+      "local": {
+        "d1": 3,
+        "d2": 2,
+        "d3": 2,
+        "d4": 2,
+        "d5": 2,
+        "d6": 1,
+        "d7": 2
+      },
+      "cloud": {
+        "d1": 2,
+        "d2": 2,
+        "d3": 2,
+        "d4": 2,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "localMs": 138983,
+      "cloudMs": 17474,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            2,
+            2,
+            2,
+            2,
+            1,
+            2
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            2,
+            1,
+            2
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 4373,
+        "extra_output_tokens": 510,
+        "latency_ms": 138983
+      }
+    },
+    {
+      "id": "PLE-042",
+      "local": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 4,
+        "d4": 4,
+        "d5": 3,
+        "d6": 3,
+        "d7": 4
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "localMs": 136032,
+      "cloudMs": 19930,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 6,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            4,
+            4,
+            4,
+            4,
+            3,
+            3,
+            4
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 4168,
+        "extra_output_tokens": 565,
+        "latency_ms": 136032
+      }
+    },
+    {
+      "id": "PLE-045",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 2,
+        "d4": 3,
+        "d5": 2,
+        "d6": 1,
+        "d7": 2
+      },
+      "cloud": null,
+      "localMs": 144271,
+      "cloudMs": 67640,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 7,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            2,
+            3,
+            2,
+            1,
+            2
+          ],
+          [
+            4,
+            4,
+            3,
+            4,
+            3,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 3936,
+        "extra_output_tokens": 578,
+        "latency_ms": 144271
+      }
+    },
+    {
+      "id": "PLE-046",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 4,
+        "d4": 3,
+        "d5": 2,
+        "d6": 2,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 4,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 3
+      },
+      "localMs": 167281,
+      "cloudMs": 26975,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            4,
+            3,
+            2,
+            2,
+            3
+          ],
+          [
+            3,
+            3,
+            4,
+            3,
+            2,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 5477,
+        "extra_output_tokens": 633,
+        "latency_ms": 167281
+      }
+    },
+    {
+      "id": "PLE-047",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 4,
+        "d5": 3,
+        "d6": 2,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 4,
+        "d5": 3,
+        "d6": 1,
+        "d7": 3
+      },
+      "localMs": 492509,
+      "cloudMs": 23716,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            3,
+            4,
+            3,
+            2,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            4,
+            3,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 1,
+        "extra_input_tokens": 15518,
+        "extra_output_tokens": 1798,
+        "latency_ms": 492509
+      }
+    },
+    {
+      "id": "PLE-051",
+      "local": {
+        "d1": 3,
+        "d2": 4,
+        "d3": 4,
+        "d4": 3,
+        "d5": 4,
+        "d6": 3,
+        "d7": 4
+      },
+      "cloud": {
+        "d1": 5,
+        "d2": 5,
+        "d3": 5,
+        "d4": 5,
+        "d5": 4,
+        "d6": 3,
+        "d7": 4
+      },
+      "localMs": 234507,
+      "cloudMs": 25276,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 2,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            4,
+            4,
+            3,
+            4,
+            3,
+            4
+          ],
+          [
+            3,
+            4,
+            4,
+            3,
+            4,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 8119,
+        "extra_output_tokens": 556,
+        "latency_ms": 234507
+      }
+    },
+    {
+      "id": "PLE-052",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 4,
+        "d5": 4,
+        "d6": 3,
+        "d7": 3
+      },
+      "cloud": null,
+      "localMs": 192726,
+      "cloudMs": 27454,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            3,
+            4,
+            4,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            4,
+            4,
+            3,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 9127,
+        "extra_output_tokens": 864,
+        "latency_ms": 192726
+      }
+    }
+  ]
+}
