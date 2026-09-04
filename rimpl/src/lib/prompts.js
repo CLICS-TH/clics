@@ -200,30 +200,60 @@ Rules for this reply, all of them mandatory:
 - Be brief and warm. Two or three sentences of framing at most, then the question(s).
 - Do not mention that a mode changed, that this is a rescue, or that the conversation was judged insufficient. Simply engage.`;
 
-// Local-model addendum to the evaluator prompt — EMPTY until the E2 tuning round. It is appended
-// AFTER the rubric, and only for provider 'local', so the rubric text itself never moves: that text
-// is mirrored in audit-dashboard/lib/pis7-rubric.ts and pinned by backend/tests/rubric-sync.test.js,
+// Local-model addendum to the evaluator prompt (ON since E2, 2026-09-02). It is appended AFTER the
+// rubric, and only for provider 'local', so the rubric text itself never moves: that text is
+// mirrored in audit-dashboard/lib/pis7-rubric.ts and pinned by backend/tests/rubric-sync.test.js,
 // and an AI and a human scoring against two different rubrics produce an ICC that measures the gap
-// between the rubrics. When non-empty it is visible in provenance: lib/versions.js promptVersionFor
-// suffixes PROMPT_VERSION with `+local-<sha>` for the local provider.
+// between the rubrics. It is visible in provenance: lib/versions.js promptVersionFor suffixes
+// PROMPT_VERSION with `+local-<sha>` for the local provider.
+//
+// WHY EVERY QUOTATION IN HERE USES SINGLE QUOTES — and why the closing block says so out loud.
+// The addendum's symmetric-evidence rule multiplied how often the model must quote the transcript
+// INSIDE a rationale, and a rationale is a JSON string. Measured on the tuning split (scores from
+// scripts/probe/report/tuning-agreement-*.json): under the base prompt alone the "you must quote"
+// rule fired on 3.2% of domain scores (only a 4 or a 5 triggers it, and 4 of 126 scores were 4-5);
+// under the addendum it fires on ~55% (every score that is not exactly 3) — a ~17x increase in
+// embedded verbatim physician text. An unescaped double quote inside a rationale closes the JSON
+// string early and the whole reply is discarded: lib/parse.js takes the first `{` to the last `}`
+// and JSON.parse throws, which is `invalid_json` in lib/pis7.js and a re-ask in
+// services/consistency.js. That failure has been seen for real (scripts/probe/model-agreement.mjs:
+// "an unescaped quote inside a rationale did it once, from the cloud arm").
+//
+// So the addendum must not DEMONSTRATE the character it cannot afford in the output. Its own three
+// examples used straight double quotes and are now single-quoted, and the output-format block names
+// the rule. This constrains typography only — the per-domain-evidence and symmetric-evidence rules
+// are unchanged, and quoting the transcript is still mandatory in both directions.
+//
+// NOT a rubric change, so nothing here belongs in audit-dashboard/lib/pis7-rubric.ts: no level,
+// weight, domain definition or anchor is restated. (The mirror's PIS7_EVIDENCE_RULE is still the
+// base prompt's ASYMMETRIC one — quote for 4-5 only. That divergence is deliberate and predates
+// this edit; it is why every local row carries the `+local-<sha>` suffix.)
 const PIS7_LOCAL_ADDENDUM = `SCORING PROCESS (read before you score):
 
 - Score each domain on ITS OWN evidence. Do not let an overall impression of the session set a level
   and then apply that level across the domains: a transcript can be 4 on one domain and 2 on another.
   Read the transcript once per domain, looking only for that domain's evidence.
-- 3 is the anchor, not a compliment. "Moderate — reasonably structured" is the correct score for
+- 3 is the anchor, not a compliment. 'Moderate — reasonably structured' is the correct score for
   competent, unremarkable work. Move DOWN from 3 only when you can name what is absent, and UP from 3
   only when you can quote what is present.
 - The evidence rule is SYMMETRIC. You must already quote the transcript to award 4 or 5. Quote it to
   award 0, 1 or 2 as well: name the turn you are scoring and say what is missing from it. If you
   cannot point at the absence, the score is not below 3.
 - d1 asks whether the QUESTION exposes a real decision point in THIS case, not whether it is long or
-  technically sophisticated. A brief question that names this patient's specific decision ("statin or
-  not, given the transaminases?") is 3 or above. Only a question that would fit any patient
-  unchanged — "what is the differential?" — is 2 or below.
+  technically sophisticated. A brief question that names this patient's specific decision ('statin or
+  not, given the transaminases?') is 3 or above. Only a question that would fit any patient
+  unchanged — 'what is the differential?' — is 2 or below.
 - Judge what the physician actually did with the case in front of them. Do not lower a score because
   a stronger version of the same behaviour is imaginable, because the session is short, or because
   the writing is blunt or unpolished.
+
+HOW TO QUOTE INSIDE A RATIONALE: the rules above make you quote the transcript in nearly every
+rationale, and each rationale is one JSON string. Mark the physician's words with SINGLE quotes —
+the physician asked 'statin or not, given the transaminases?' — and keep each rationale on a single
+line. A double-quote character, or a line break, inside a rationale ends that string early and the
+whole evaluation is unreadable and has to be thrown away and re-asked. Single quotes read exactly
+the same to the auditor and cannot break the reply. Quote just as much as the rules above require:
+this changes the punctuation you quote with, never whether you must quote.
 
 OUTPUT FORMAT IS UNCHANGED BY THIS SECTION: reply with ONLY the JSON object specified above — the
 seven integer scores and the rationale object, nothing before it and nothing after it.`;

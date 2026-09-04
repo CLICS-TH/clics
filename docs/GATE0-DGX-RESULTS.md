@@ -683,9 +683,23 @@ at the call sites, where `ok` is still visible: transport is stamped there, both
 persist the error kind, and both consumers count calls rather than fixtures. Reports written earlier
 cannot be re-scored and are flagged as a floor rather than a rate.
 
-**So the addendum is implicated after all** — 97.4% → 94.4% is the only change alongside it, and
-04d2db7 already had to move the output contract to the end of the prompt once for this exact failure.
-Worth fixing before another agreement run: bad parses cost pairs, and pairs are what the interval needs.
+**And then the "regression" did not survive the arithmetic either.** Stated as 97.4% → 94.4% it reads
+like a finding; stated as counts it is **1 bad parse in 38 versus 2 in 36**. Fisher exact, two-sided:
+**p = 0.61**. Re-classifying one of them (below) makes it 1 in 38 versus 3 in 71: **p = 1.00**. Every
+interval here straddles the bar — v0 is 86.5–99.5%, the addendum run 81.9–98.5% — so **the pre-addendum
+baseline was already under 98% and indistinguishable from it**, and at n ≈ 70 a prompt whose true rate
+is exactly 98% would still report a lower bound near 92%. Clearing the bar with 95% confidence needs
+**189 consecutive clean calls**, about four hours of serial box time. *This bar cannot be adjudicated at
+the sample sizes we have been running, in either direction.*
+
+The re-classification is worth recording as method. Input tokens are deterministic, so a re-ask that
+billed **zero** input was never a reply: `tuning-agreement-addendum.json` PLE-001 shows `calls 2,
+json_retries 1` with `extra_input_tokens` equal to exactly one call's input, and a `localMs` of 353.6 s
+that decomposes as the 180 s probe timeout plus two ~87 s calls. It was a timeout counted as a bad
+parse — precisely the ambiguity §8.6 above was written about, in a report that predates the fix.
+
+So the honest position on JSON validity: **no measured regression, an unmeasurable bar, and a mechanism
+worth fixing on its own merits** (below) rather than because a number moved.
 
 **Do not report the per-domain ICCs from these runs as findings.** d1 reads 0.055 → 0.663 → 0.294
 across the three runs. At n = 14–15 the per-domain intervals are wide enough that a swing of that
@@ -711,3 +725,41 @@ still unknown.
 
 Data: `scripts/probe/report/tuning-agreement-{v0,addendum,median3}.json`; rows recorded in
 `scripts/calibration/prompt-versions.md`. Held-out split still untouched.
+
+### 8.7 The addendum's real JSON hazard — quoting, not forgetting (2026-09-04)
+
+Even with the regression unproven, one mechanism in the addendum is worth removing because it is a
+*known* way to break a reply, and it was introduced by the change that lifted ICC.
+
+The symmetric evidence rule is the ICC-bearing instruction, and it multiplied how often the model must
+place verbatim transcript text **inside a rationale** — which is a JSON string. Counted over the local
+scores in these reports: the base prompt's asymmetric rule ("quote for 4–5") fires on about **3%** of
+domain scores, because only 4 of 126 scores were 4–5. The symmetric rule fires on roughly **55%** —
+every score that is not exactly 3. That is a ~17× increase in embedded physician text in the one place
+a stray `"` is fatal: `rimpl/src/lib/parse.js` takes the first `{` to the last `}` and hands it to
+`JSON.parse`. `model-agreement.mjs` already records having seen exactly this failure once, from the
+cloud arm. Mean output rose 612 → 664 tokens, consistent with more quoting; truncation is ruled out
+against a 4096 ceiling.
+
+**This is a different failure from `04d2db7`.** That one was the model *forgetting to emit JSON* when
+the addendum displaced "Return ONLY valid JSON" from the end, and restating the contract fixed it. This
+one is the model emitting almost-JSON whose strings now routinely carry a quote character — restating
+the contract does nothing about it, which is why the contract is restated and the rate did not recover.
+The addendum's own worked examples were double-quoted: it was demonstrating the character it could not
+afford in the output.
+
+Fix (prompt only, no rule weakened): the worked examples re-punctuated to single quotes so the addendum
+contains **zero** `"` characters, plus a short block instructing single quotes inside rationales *with
+the reason given* — placed **before** the output-contract paragraph so the contract stays the literal
+last thing in the assembled prompt, the invariant `04d2db7` established and which now has a test.
+Provenance moved on its own: `+local-cae23b1a5f37` → **`+local-c5ffe572aa81`**; the base prompt and
+`pis7PromptFor('anthropic')` are byte-identical, so the cloud arm and the rubric pin are untouched.
+
+**This invalidates the 0.735 measurement**, which belongs to the old sha. ICC, bias, Σ|Δ| and JSON% all
+have to be re-measured together — a punctuation change inside a scoring prompt is not *guaranteed*
+score-neutral just because it was not meant to move scores. And when that run returns, a JSON% near 94%
+will not be evidence the edit failed, for the reason given in §8.6.
+
+Not done, deliberately: `parse.js`'s greedy `/\{[\s\S]*\}/` is a real amplifier — a balanced-brace
+extractor would survive prose the current one cannot — but it is shared with the cloud arm and with
+production, so changing it would invalidate the cloud measurements too. Separate decision.

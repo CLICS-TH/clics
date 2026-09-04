@@ -134,3 +134,45 @@ the three, which at n=14–15 is within what chance alone produces. The one stab
 (Iterative Inquiry), lowest in all three** (0.425 / 0.552 / 0.530) and of the hardest kind: the two
 models' means agree (Δ −0.07) while their per-case ranking does not, so calibration cannot fix it.
 That is where prompt work should go next.
+
+### 2026-09-04 — the addendum is edited, so rows 2 and 3 no longer describe the shipped prompt
+
+`PIS7_LOCAL_ADDENDUM` gained a JSON-string-integrity rule and its three worked examples were
+re-punctuated from double to single quotes. The text changed, so the derived sha changed:
+
+    pis7-prompt-59561c29+local-cae23b1a5f37   ->   pis7-prompt-59561c29+local-c5ffe572aa81
+
+**Every number in rows 2 and 3 belongs to `cae23b1a5f37`** — ICC 0.735 / 0.762, bias +0.79 / +0.00,
+Σ|Δ| median 1, JSON 94.4%, and the per-domain table. They stay in this file as the record of that
+prompt; none of them is a claim about the prompt now in `prompts.js`. Re-measuring means a fresh
+`model-agreement.mjs` run on the tuning split (the held-out split must stay unopened) — ICC, bias
+and Σ|Δ| as well as JSON%, because a punctuation change to worked examples inside a scoring prompt
+is not guaranteed to be score-neutral even though it was not intended to move scores.
+
+**Why the addendum was edited: the mechanism, and what the 3-point drop actually is.** The rule that
+lifted ICC is the symmetric evidence rule, and it multiplied how often the model must put verbatim
+transcript text inside a rationale — which is a JSON string. Counted over the local scores in these
+reports, the "you must quote" requirement fires on **3.2%** of domain scores under the base prompt
+alone (only 4–5 triggers it; 4 of 126 scores were 4–5) and on **~55%** under the addendum (every
+score that is not exactly 3). A straight double quote inside a rationale closes the string early,
+`lib/parse.js` throws, and the reply is re-asked. The addendum's own examples demonstrated exactly
+that character; they no longer do, and the output block now names the rule. Nothing about the
+evidence requirement was relaxed to buy this.
+
+**But the drop it was aimed at is not a measurable drop.** Re-scored per call: 97.4% (37/38) before
+vs 94.4% (68/72) after is **1 failure against 4**, Fisher exact two-sided **p = 0.66**. And one of
+those four is not a contract failure at all. In `tuning-agreement-addendum.json`, PLE-001's re-ask
+has the transport fingerprint: per-call input tokens are deterministic (8 fixtures confirm the
+addendum adds exactly 384), PLE-001's is 5,756, and the row's `extra_input_tokens` is 5,756 for
+**two** extra calls — one call billed nothing. Its `localMs` is 353,629 ≈ 180,000 (`PROBE_TIMEOUT_MS`)
++ 2 × 87s. The runs predate the `transport` stamp, so `scoreWithConsistency` saw `{ text: '' }` and
+counted a timeout as a re-ask, exactly as `scripts/probe/parseability.mjs` warns. Excluding it:
+95.8% (68/71), 3 failures against 1, **p = 1.00**. The other three re-asks billed full input on every
+extra call and are genuine contract failures.
+
+**The 98% bar cannot be adjudicated at this sample size, in either direction.** The baseline's own
+97.4% is already under the bar and its 95% CI is 86.5–99.5%. A 95% lower bound at 98% needs **189
+consecutive clean calls** (~4 h serial on the box at the observed ~78 s/call); at n=71 a run that
+scores a true 98% still reports a lower bound of 92.4%. Until the denominator grows, JSON% moves in
+this table are descriptive, not gate evidence — and a run that comes back at 94% after this edit is
+not evidence the edit failed.

@@ -27,6 +27,36 @@ describe('the local addendum is ON (E2, 2026-09-02) and reaches ONLY the local a
     expect(pis7PromptFor('local').startsWith(PIS7_EVALUATOR_PROMPT)).toBe(true);
   });
 
+  // ---- the JSON contract, twice regressed, now pinned -------------------------------------------
+  // 330dc9a appended the addendum and displaced "Return ONLY valid JSON" from the end of the prompt;
+  // the model stopped returning parseable output and one fixture burned 33 minutes in re-asks.
+  // 04d2db7 fixed it by restating the contract at the close of the addendum. Nothing tested that,
+  // so the next edit could undo it silently — as an edit in this same session briefly did.
+  test('the assembled local prompt still ENDS with the output contract', () => {
+    const tail = pis7PromptFor('local').trimEnd().split('\n\n').pop();
+    expect(tail).toMatch(/reply with ONLY the JSON object/);
+    expect(tail).toMatch(/nothing before it and nothing after it\.$/);
+  });
+
+  // The addendum's symmetric-evidence rule made in-rationale quoting the norm (measured on the
+  // tuning split: the "you must quote" rule fires on ~55% of domain scores, up from 3.2% under the
+  // base prompt alone), and a rationale is a JSON string. A straight double quote inside one closes
+  // the string early -> lib/parse.js throws -> Pis7ScoreError('invalid_json') -> a re-ask. The
+  // addendum therefore must not DEMONSTRATE the character its own output rule forbids: its three
+  // worked examples are single-quoted. This is typography, not rubric — see the comment in
+  // src/lib/prompts.js.
+  test('the addendum contains no straight double quote, and states the single-quote rule', () => {
+    expect(PIS7_LOCAL_ADDENDUM).not.toContain('"');
+    expect(PIS7_LOCAL_ADDENDUM).toMatch(/SINGLE quotes/);
+  });
+
+  test('the addendum still requires quoting in BOTH directions — the ICC-bearing rule is intact', () => {
+    // The quoting rule buys parse reliability with punctuation only. If a future edit ever buys it
+    // by relaxing the evidence requirement instead, that trades away the 0.578 -> 0.735 ICC lift.
+    expect(PIS7_LOCAL_ADDENDUM).toMatch(/evidence rule is SYMMETRIC/);
+    expect(PIS7_LOCAL_ADDENDUM).toMatch(/Score each domain on ITS OWN evidence/);
+  });
+
   test.each(['anthropic', undefined])('promptVersionFor(%s) is PROMPT_VERSION', (provider) => {
     expect(promptVersionFor(provider)).toBe(PROMPT_VERSION);
   });
