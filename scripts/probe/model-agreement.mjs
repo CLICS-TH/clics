@@ -59,6 +59,9 @@ const LIMIT = argNum('limit', Infinity);
 // a 3rd + per-domain median when any domain differs by >1). The cloud arm is always a single call — it
 // is the incumbent as production runs it.
 const CONSISTENCY = argStr('consistency') ?? 'off';
+// A transport failure costs a fixture, and fixtures are not lost at random (see withRetry).
+const ARM_ATTEMPTS = Math.max(1, argNum('attempts', 3));
+const RETRY_BASE_MS = Math.max(0, argNum('retry-base-ms', 15000));
 if (!MODES.includes(CONSISTENCY)) fail(`--consistency must be one of ${MODES.join(', ')}, got ${CONSISTENCY}`);
 const LOCAL_PROMPT = pis7PromptFor('local');   // base prompt + the local addendum once E2 fills it in
 const CLOUD_PROMPT = pis7PromptFor('anthropic');
@@ -163,17 +166,31 @@ async function localArm(fx) {
 
 async function cloudArm(fx) {
   const t0 = Date.now();
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({
-      model: CLOUD_MODEL, max_tokens: 4096, temperature: 0,
-      system: CLOUD_PROMPT,
-      messages: [{ role: 'user', content: `TRANSCRIPT:\n${fx.flattened}` }],
-    }),
-  });
+  let res;
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: CLOUD_MODEL, max_tokens: 4096, temperature: 0,
+        system: CLOUD_PROMPT,
+        messages: [{ role: 'user', content: `TRANSCRIPT:\n${fx.flattened}` }],
+      }),
+    });
+  } catch (e) {
+    // Node's fetch throws a bare `TypeError: fetch failed` and puts the real reason in e.cause. The
+    // previous handler dropped the cause AND reported ms:0, so six lost fixtures read "cloud TypeError
+    // at 0.0s" — un-diagnosable, and not obviously retryable. Keep both.
+    const why = e.cause?.code ?? e.cause?.message ?? e.code ?? e.name ?? 'error';
+    return { scores: null, ms: Date.now() - t0, error: `transport ${why}`, retryable: true };
+  }
   const ms = Date.now() - t0;
-  if (!res.ok) return { scores: null, ms, error: `${res.status} ${(await res.text()).slice(0, 120)}` };
+  if (!res.ok) {
+    const body = (await res.text()).slice(0, 120);
+    // 429 and 5xx are the API asking us to come back; 4xx otherwise is our request and will not improve.
+    const retryable = res.status === 429 || res.status >= 500;
+    return { scores: null, ms, error: `${retryable ? 'transport ' : ''}${res.status} ${body}`, retryable };
+  }
   const j = await res.json();
   return { scores: extractScores(j.content?.map((c) => c.text).join('') ?? ''), ms, usage: j.usage };
 }
@@ -203,6 +220,8 @@ console.log(`  cloud   ${CLOUD_MODEL}  @ api.anthropic.com`);
 console.log(`  prompt  pis7PromptFor: local ${LOCAL_PROMPT.length} chars (addendum ${PIS7_LOCAL_ADDENDUM ? 'ON' : 'empty'}) · cloud ${CLOUD_PROMPT.length} chars — imported from rimpl`);
 console.log(`  rule    local arm consistency = ${CONSISTENCY}${CONSISTENCY === 'adaptive' ? ' (2 calls; 3rd + per-domain median when any domain differs by >1)' : ''}; cloud arm single call`);
 console.log(`  n       ${fixtures.length} fixture(s), temperature 0 both arms`);
+console.log(`  retry   up to ${ARM_ATTEMPTS} attempts per arm on transport failures, ${RETRY_BASE_MS / 1000}s backoff doubling`
+  + `${ARM_ATTEMPTS === 1 ? red('  — OFF: lost fixtures bias ICC upward, see withRetry') : ''}`);
 console.log(`  split   ${split ? `${split.name} (reserved ${split.reserved_at})` : '(none reserved)'}  ·  prompt ${PROMPT_VERSION} (local ${promptVersionFor('local')})\n`);
 console.log(`  ${dim('NOT Gate 4 — no human baseline exists yet. See the header of this file.')}\n`);
 
@@ -210,8 +229,35 @@ const rows = [];
 for (const fx of fixtures) {
   // Cloud first: it is fast and cheap, so a schema/auth problem surfaces before a 70s local call.
   // One bad fixture (transport error, malformed reply) must never end a one-hour run: it is a row, not a crash.
-  const cloud = await cloudArm(fx).catch((e) => ({ scores: null, ms: 0, error: `cloud ${e.code ?? e.name ?? 'error'}` }));
-  const local = await localArm(fx).catch((e) => ({ scores: null, ms: 0, error: e.code ?? e.name ?? 'error', consistency: null }));
+  // WHY THIS RETRIES. Infrastructure failures are not random across fixtures: a harder transcript is a
+  // longer one, so it spends more time exposed to a flaky box and a rate-limited API, and it is also
+  // the transcript the two models are most likely to disagree about. Dropping failed fixtures therefore
+  // drops the DISAGREEING ones — measured 2026-09-04: the six fixtures lost in one run averaged
+  // Σ|Δ| 5.2 against 3.6 for those that survived, and losing them moved composite ICC from 0.619 to
+  // 0.803 on the same prompt and config. Without a retry the metric improves when the box gets worse.
+  //
+  // Only transport-class failures retry. A reply the model could not make valid must still count
+  // against it — see scripts/probe/parseability.mjs.
+  const withRetry = async (arm, label) => {
+    let last;
+    for (let attempt = 1; attempt <= ARM_ATTEMPTS; attempt++) {
+      const t0 = Date.now();
+      // Both arms catch internally now, so this is a backstop — but it must still report the elapsed
+      // time it actually took. A hardcoded 0 is what made six lost fixtures read "0.0s" and look like
+      // an instant code fault rather than a network one.
+      last = await arm(fx).catch((e) => ({ scores: null, ms: Date.now() - t0, error: `transport ${e.cause?.code ?? e.code ?? e.name ?? 'error'}`, retryable: true, consistency: null }));
+      last.attempts = attempt;
+      if (last.scores || !(last.retryable ?? /^transport\b/i.test(String(last.error ?? '')))) return last;
+      if (attempt < ARM_ATTEMPTS) {
+        const wait = RETRY_BASE_MS * 2 ** (attempt - 1);
+        console.log(`    ${yellow('retry')} ${fx.id} ${label} attempt ${attempt} failed (${last.error}) — waiting ${wait / 1000}s`);
+        await new Promise((r) => setTimeout(r, wait));
+      }
+    }
+    return last;
+  };
+  const cloud = await withRetry(cloudArm, 'cloud');
+  const local = await withRetry(localArm, 'local');
   const ok = cloud.scores && local.scores;
   // localError/cloudError name the arm that failed and how. A row without `local` is NOT evidence that
   // the local model broke its JSON contract — it may have timed out, or the CLOUD arm may be the one
@@ -222,6 +268,8 @@ for (const fx of fixtures) {
     localError: local.scores ? null : (local.error ?? 'unparseable'),
     // calls actually made and replies that failed the schema — parseability must be counted over CALLS,
     // not over fixtures: one adaptive row is 2-3 model calls plus re-asks, not one attempt.
+    localAttempts: local.attempts ?? 1,
+    cloudAttempts: cloud.attempts ?? 1,
     localCalls: local.consistency?.calls ?? (local.scores || local.error === 'unparseable' ? 1 : 0),
     localJsonRetries: local.consistency?.json_retries ?? 0,
     cloudError: cloud.scores ? null : (cloud.error ?? 'unparseable') });
@@ -279,6 +327,7 @@ const outFile = argStr('out');
 if (outFile) {
   await (await import('node:fs/promises')).writeFile(outFile, JSON.stringify({
     split, prompt_version: PROMPT_VERSION, local_prompt_version: promptVersionFor('local'), consistency: CONSISTENCY,
+    arm_attempts: ARM_ATTEMPTS,
     localModel: cfg.model, cloudModel: CLOUD_MODEL, n: paired.length, rows,
   }, null, 2));
   console.log(`  report → ${outFile}\n`);
