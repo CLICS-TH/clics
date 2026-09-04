@@ -531,3 +531,97 @@ smallest tuning transcript exceeded **10 minutes**. Nothing in CLICS changed in 
 runs sharing the box started it, and it did not recover when they stopped. A measurement programme
 cannot be scheduled against a machine whose large-context latency moves by two orders of magnitude
 without notice (§5.3, §7.6).
+
+### 8.4 The prompt addendum measured — the noise floor is reducible, and the prompt is the lever (2026-09-03/04)
+
+§8.3 left the addendum unmeasured. Measuring it needed one tooling change first: `repeat-consistency.mjs`
+gained `--addendum on|off`, because the v0 baseline in §8.3 predates `PIS7_LOCAL_ADDENDUM` and comparing
+against it with the addendum on would have moved two variables at once. `off` reproduces the pre-addendum
+prompt; `on` is what rimpl ships today.
+
+Three runs, same design throughout — same transcript ×5 repeats, temperature 0, identical prompt each time,
+tuning split, single calls:
+
+| run | box condition | addendum | n (≥2 parsed) | Σ\|Δ\| per fixture | median | max | ≤ D18 bar of 2 |
+|---|---|---|---|---|---|---|---|
+| v0 (§8.3) | contended | off | 10 of 18 | 1, 1, 1, 3, 5, 7, 8, 8, 9, 10 | 6.0 | 10 | 3 / 10 |
+| 2026-09-03 | quiet | **off** | 11 of 18 | 0, 0, 0, 1, 3, 5, 7, 7, 8, 11, 12 | 5 | 12 | 4 / 11 |
+| 2026-09-03/04 | overnight | **on** | **18 of 18** | 0,0,0,0,0,0,0,1,1,1,1,1,2,2,6,7,7,7 | **1.0** | 7 | **14 / 18** |
+
+**Row 1 → row 2 answers §8.3's open question about the box:** with the addendum still off and the box quiet
+(68–76 s per call across the first eleven fixtures), the distribution keeps its shape — median 6.0 → 5, max
+10 → 12. Contention was not what produced the noise floor.
+
+**Row 2 → row 3 is the result.** Paired over the eleven fixtures that completed in both of today's runs, so
+the fixture set is held constant:
+
+| direction | fixtures | detail |
+|---|---|---|
+| improved | 6 | PLE-005 12→0 · PLE-012 11→0 · PLE-011 8→1 · PLE-002 7→0 · PLE-001 5→0 · PLE-008 3→2 |
+| unchanged | 3 | PLE-007 7→7 · PLE-006 1→1 · PLE-032 0→0 |
+| **worse** | **2** | **PLE-030 0→7 · PLE-037 0→2** |
+
+Mean change **−3.09**. Net improvement is large and not attributable to sampling: the same fixtures, the
+same rule, one variable changed.
+
+**The box-quietness confound is separately excluded, because latency and noise are uncorrelated in row 3.**
+PLE-002 was the slowest fixture at 175 s and scored Σ\|Δ\| 0; PLE-030 was among the fastest at 65 s and
+scored 7 — the maximum. Were the variance driven by contention, the slow fixtures would be the noisy ones.
+They are the opposite (latency range 59.4–176.9 s, mean 88.9 s).
+
+What this does **not** establish:
+- **It is not uniform.** Two fixtures moved from perfectly stable to noisy. Nothing yet explains what they
+  share, and "the addendum is safe on every transcript" is not supported by this data.
+- **Self-consistency is not agreement.** A model can become perfectly repeatable and stay systematically
+  apart from the incumbent — these are different properties. The ICC(A,1) of 0.578 in §8.3 was measured
+  *before* the addendum existed (`tuning-agreement-v0.json` records `git_head 496ad1d`, which predates
+  `330dc9a`/`04d2db7`); re-measuring it with the addendum on is the run that decides whether D18 is reachable,
+  and an early in-run example already shows the distinction: on PLE-002 the two local calls agreed with each
+  other exactly (max Δ 0) while the local-vs-Sonnet gap was Σ\|Δ\| 10.
+- **The held-out split is still untouched.** No variant has been taken to `screening-verdict.mjs`.
+
+**Custody, for the third time — and one good sign.** Both daytime runs lost the box partway (10 and 11 of 18
+fixtures). The overnight run completed **18 of 18** with only three fixtures showing any transport failure.
+The box can sustain a full 90-call workload when nothing else is on it; it cannot when something is. That is
+a scheduling constraint, not a model property.
+
+Data: `scripts/probe/report/noise-2026-09-03-noaddendum.json`, `noise-2026-09-03-addendum.json`, against
+`tuning-repeat-v0.json`.
+
+### 8.5 Connecting to the box — the API path, and what is actually behind cme-dev (2026-09-04)
+
+Three wrong diagnoses in one morning are worth recording, because each failure mode reads like a broken box:
+
+| call | result | what it actually means |
+|---|---|---|
+| `POST /v1/chat/completions` | **405** | wrong path, not a blocked route. `discover.mjs` recommends `/v1`; that advice is wrong for this Open WebUI gateway, which serves only `/api/v1` |
+| `POST /api/v1/chat/completions`, no key | **401** | missing auth, not a dead endpoint |
+| any path, short `--max-time` | curl **000** / **28** | the model takes 60–180 s **even for a two-token reply** (measured 99 s). Anything under ~240 s times out on a healthy box |
+
+The working target is `LOCAL_AI_BASE_URL=http://100.68.210.69:3000/api/v1` **with `LOCAL_AI_API_KEY` set**.
+The gitignored `~/.clics-dgx.env` holds that credential under a *different* variable name (`OPENWEBUI_KEY`),
+so sourcing it alone sets nothing the probes read. A working browser chat at `:3000` proves the model is
+alive and proves nothing about the API path — the UI uses its own internal route.
+
+**`cme-dgx` exists.** §5.1 already had this right ("not a tailnet node at all — it exists only on `cme-dev`'s
+LAN"); `docs/domain-concepts.md` did not, and asserted the box "does not exist" / "points at nothing",
+reasoning from its absence on the tailnet. That inference was wrong and is now corrected there. Open WebUI's own
+Connections panel lists the real upstreams behind the gateway:
+
+| connection | kind | note |
+|---|---|---|
+| `http://cme-dgx:8888/v1` | OpenAI-compatible | resolves only inside the box's LAN |
+| `http://192.168.1.178:8000/v1` | OpenAI-compatible | `:8000` is the vLLM/SGLang default — the likely real inference server |
+| `http://192.168.1.111:11434` | Ollama | enabled |
+| `http://192.168.1.177:11434` | Ollama | disabled |
+
+The served backend is vLLM, confirmed by `system_fingerprint: vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2` in
+the response body. These hosts sit on a private `192.168.1.0/24` that cme-dev does **not** advertise as a
+subnet route (`tailscale status --json` → `PrimaryRoutes: None`, `AllowedIPs` only its own /32), so they are
+unreachable from the tailnet today — verified by timeout to the IP and DNS failure on the hostname.
+
+This adds a deploy option that did not exist while `cme-dgx` was believed fictional: `tailscale up
+--advertise-routes=192.168.1.0/24` on cme-dev plus route approval in the Tailscale console would let rimpl
+reach the inference server directly, dropping the Open WebUI hop — the hop that costs an extra network leg
+per clinical turn, applies its own queueing to any throughput measurement, ties access to one human's API
+key, and produced the path confusion above. It needs shell on cme-dev, which is the same ask as §5.1.
