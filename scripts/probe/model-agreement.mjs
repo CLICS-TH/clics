@@ -95,10 +95,24 @@ const cfg = readConfig();
 
 // --- fixtures ---------------------------------------------------------------------------------
 const FIX = path.join(PROBE_DIR, 'fixtures');
+// --only ple-001[,ple-002]: restrict to named fixtures WITHIN the chosen split. A held-out sample
+// cannot be replaced, so a canary proves the box on an already-spent tuning fixture first; the same
+// flag re-runs a single fixture that a transport failure cost. It can only narrow a split, never
+// cross one — the split filter still applies.
+const ONLY = (argStr('only') || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
 const SPLIT_NAME = argStr('split');
 let files = (await readdir(FIX).catch(() => [])).filter((f) => f.endsWith('.json')).sort();
 const { files: splitFiles, split } = await applySplit(files, SPLIT_NAME, { fixturesDir: FIX });
-files = splitFiles.slice(0, LIMIT);
+// --only narrows WITHIN the split; it can never widen it, so a canary cannot reach held-out fixtures
+// by accident. An id that is not in the chosen split is a hard error rather than a silent no-op.
+let selected = splitFiles;
+if (ONLY.length) {
+  const inSplit = new Set(splitFiles.map((f) => f.replace(/\.json$/i, '').toLowerCase()));
+  const missing = ONLY.filter((id) => !inSplit.has(id));
+  if (missing.length) fail(`--only: ${missing.join(', ')} not in the ${SPLIT_NAME ?? 'full'} split`);
+  selected = splitFiles.filter((f) => ONLY.includes(f.replace(/\.json$/i, '').toLowerCase()));
+}
+files = selected.slice(0, LIMIT);
 if (!files.length) fail(`no .json fixtures in ${FIX} — run scripts/probe/build-fixtures.mjs first`);
 
 const fixtures = [];
