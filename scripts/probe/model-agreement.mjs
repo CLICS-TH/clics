@@ -126,25 +126,38 @@ function extractScores(text) {
 
 async function localArm(fx) {
   const t0 = Date.now();
+  // chatCompletion NEVER throws: a timeout comes back as { ok:false, text:'' }. Pass that through and the
+  // empty string parses to {}, fails the schema, and surfaces as Pis7ScoreError — indistinguishable from
+  // the model emitting garbage. Mark it HERE, where ok is still visible, or the distinction is lost for good.
+  let transport = null;
   const callOnce = async () => {
     const r = await chatCompletion(cfg, {
       systemPrompt: LOCAL_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${fx.flattened}` }],
       maxTokens: 4096, temperature: 0,
     });
+    if (!r.ok) { transport = `transport ${r.status || ''}`.trim(); throw new Error(transport); }
     return { text: r.text ?? '', inputTokens: r.promptTokens ?? 0, outputTokens: r.completionTokens ?? 0 };
   };
   if (CONSISTENCY === 'off') {
-    const r = await callOnce();
-    return { scores: extractScores(r.text), ms: Date.now() - t0, consistency: null };
+    try {
+      const r = await callOnce();
+      const scores = extractScores(r.text);
+      return { scores, ms: Date.now() - t0, consistency: null, error: scores ? null : 'unparseable' };
+    } catch {
+      return { scores: null, ms: Date.now() - t0, consistency: null, error: transport ?? 'unparseable' };
+    }
   }
   try {
-    const res = await scoreWithConsistency({ callOnce, mode: 'adaptive', jsonRetries: 2 });
+    // mode: CONSISTENCY — NOT a hardcoded 'adaptive'. It was hardcoded from a79f4d3 until 2026-09-04, so
+    // every run before that stamped its --consistency flag into the report while actually running adaptive;
+    // the "median3" run of 2026-09-04 was adaptive, and its ICC delta is re-run variance, not a rule effect.
+    const res = await scoreWithConsistency({ callOnce, mode: CONSISTENCY, jsonRetries: 2 });
     const scores = Object.fromEntries(DOMAINS.map((d) => [d, res.scores[d]]));
     return { scores, ms: Date.now() - t0, consistency: res.consistency };
   } catch (e) {
     // Never echo a model reply here — only the error class.
-    return { scores: null, ms: Date.now() - t0, error: e.code ?? e.name ?? 'error', consistency: null };
+    return { scores: null, ms: Date.now() - t0, error: transport ?? (e.code ?? e.name ?? 'error'), consistency: null };
   }
 }
 
@@ -200,7 +213,18 @@ for (const fx of fixtures) {
   const cloud = await cloudArm(fx).catch((e) => ({ scores: null, ms: 0, error: `cloud ${e.code ?? e.name ?? 'error'}` }));
   const local = await localArm(fx).catch((e) => ({ scores: null, ms: 0, error: e.code ?? e.name ?? 'error', consistency: null }));
   const ok = cloud.scores && local.scores;
-  rows.push({ id: fx.id, local: local.scores, cloud: cloud.scores, localMs: local.ms, cloudMs: cloud.ms, consistency: local.consistency });
+  // localError/cloudError name the arm that failed and how. A row without `local` is NOT evidence that
+  // the local model broke its JSON contract — it may have timed out, or the CLOUD arm may be the one
+  // that failed while local scored fine. screening-verdict.mjs needs that difference to compute
+  // parseability honestly.
+  rows.push({ id: fx.id, local: local.scores, cloud: cloud.scores, localMs: local.ms, cloudMs: cloud.ms,
+    consistency: local.consistency,
+    localError: local.scores ? null : (local.error ?? 'unparseable'),
+    // calls actually made and replies that failed the schema — parseability must be counted over CALLS,
+    // not over fixtures: one adaptive row is 2-3 model calls plus re-asks, not one attempt.
+    localCalls: local.consistency?.calls ?? (local.scores || local.error === 'unparseable' ? 1 : 0),
+    localJsonRetries: local.consistency?.json_retries ?? 0,
+    cloudError: cloud.scores ? null : (cloud.error ?? 'unparseable') });
   const delta = ok
     ? DOMAINS.reduce((a, d) => a + Math.abs(local.scores[d] - cloud.scores[d]), 0)
     : null;

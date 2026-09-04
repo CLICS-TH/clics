@@ -124,9 +124,46 @@ if (repeat) {
   sigma = { fixtures: per.length, repeats: repeat.repeats ?? null, median, max: per.length ? Math.max(...per) : null, pass: median != null ? median <= 2 : null };
 }
 
-// ---- parseability: valid PIS-7 JSON on the local arm, across every local call we know about ---------
-let attempted = rows.length, parsed = rows.filter((r) => r.local).length;
-if (repeat) for (const r of (repeat.results ?? []).filter((r) => r.arm === 'local')) { attempted += (r.ms ?? []).length; parsed += (r.runs ?? []).length; }
+// ---- parseability: valid PIS-7 JSON on the local arm, across every local CALL we know about ---------
+//
+// Two rules decide what lands in this denominator, and both were got wrong once (2026-09-04):
+//
+// 1. ONLY a transport failure is excluded — a socket error or a timeout, stamped `transport …` at the
+//    call site where `ok` was still visible. `Pis7ScoreError` is NOT excluded: rimpl/lib/pis7.js throws
+//    it for invalid_json and invalid_scores, and consistency.js re-raises it only after the re-ask budget
+//    is spent, so it is the model failing its contract N+1 times — the exact thing this bar exists to
+//    catch. Excluding it silently disabled the check. Reports written before the call sites were fixed
+//    cannot tell a timeout from garbage (an empty reply parses to {} and fails the schema the same way),
+//    so for those we COUNT it: over-reporting a model's failures is recoverable, under-reporting is not.
+//
+// 2. Count CALLS, not fixtures. One adaptive row is 2-3 model calls plus re-asks; `json_retries` already
+//    records replies that failed the schema. Counting a row as one attempt reported 17/17 = "100%" for a
+//    run that actually made 36 calls, 2 of which did not parse (94.4%).
+const isTransport = (e) => e != null && /^transport\b/i.test(String(e));
+
+let attempted = 0, parsed = 0, excluded = 0, legacy = false;
+for (const r of rows) {
+  const calls = r.localCalls, retries = r.localJsonRetries;
+  if (typeof calls !== 'number') {                       // report predates per-call accounting
+    legacy = true;
+    if (r.local) { attempted += 1; parsed += 1; }
+    else if (r.cloudError && !r.localError) { excluded += 1; }
+    else { attempted += 1; }
+    continue;
+  }
+  if (isTransport(r.localError)) { excluded += calls || 1; continue; }
+  if (!r.local && r.cloudError && !r.localError) { excluded += calls || 1; continue; }
+  attempted += calls + (retries ?? 0);
+  parsed += r.local ? calls : Math.max(0, calls - 1);     // the failing reply is the last call
+}
+if (repeat) for (const r of (repeat.results ?? []).filter((r) => r.arm === 'local')) {
+  const errs = r.errors;
+  if (!Array.isArray(errs)) { legacy = true; attempted += (r.ms ?? []).length; parsed += (r.runs ?? []).length; continue; }
+  const skipped = errs.filter(isTransport).length;
+  excluded += skipped;
+  attempted += (r.ms ?? []).length - skipped;
+  parsed += (r.runs ?? []).length;
+}
 const jsonPct = attempted ? (100 * parsed) / attempted : null;
 const jsonPass = jsonPct != null ? jsonPct >= 98 : null;
 
@@ -167,7 +204,7 @@ const row = `| ${agreement.models?.local ?? agreement.localModel ?? '?'} vs ${ag
 const out = {
   state, reasons, gate: isGate, split: splitName, threshold, threshold_source: thresholdSource,
   icc: { ...iccResult, verdict: verdict.state }, per_domain_icc: perDomain,
-  repeatability: sigma, json: { attempted, parsed, pct: jsonPct, pass: jsonPass },
+  repeatability: sigma, json: { attempted, parsed, pct: jsonPct, pass: jsonPass, excluded, legacy },
   pairs_needed: { at_observed_icc: atObserved, ladder }, prompt_sha: promptSha, prompt_version: agreement.prompt_version ?? null,
   models: { local: agreement.localModel ?? null, cloud: agreement.cloudModel ?? null }, prompt_versions_row: row,
 };
@@ -180,7 +217,9 @@ else {
   console.log(`\n  ICC(A,1) composite (weighted 0–100)  ${ci}   n=${iccResult.n} pairs   threshold ${threshold} (${thresholdSource})`);
   console.log(`  per-domain ICC  ${DOMAINS.map((d) => `${d} ${perDomain[d] == null ? '—' : perDomain[d].toFixed(2)}`).join('  ')}`);
   console.log(`  repeatability   ${sigma ? `Σ|Δ| median ${sigma.median} (max ${sigma.max}) over ${sigma.fixtures} fixtures × ${sigma.repeats ?? '?'} repeats → ${sigma.pass ? 'ok' : 'over 2'}` : 'not measured (pass --repeat)'}`);
-  console.log(`  parseability    ${jsonPct == null ? 'n/m' : `${parsed}/${attempted} valid JSON = ${jsonPct.toFixed(1)}% → ${jsonPass ? 'ok' : 'under 98%'}`}`);
+  console.log(`  parseability    ${jsonPct == null ? 'n/m' : `${parsed}/${attempted} valid JSON = ${jsonPct.toFixed(1)}% → ${jsonPass ? 'ok' : 'under 98%'}`}`
+    + (excluded ? `\x1b[2m   (${excluded} call${excluded === 1 ? '' : 's'} excluded: transport only — a model that replied with unusable JSON is always counted)\x1b[0m` : '')
+    + (legacy ? '\x1b[33m   [report predates per-call accounting — counted per FIXTURE, and transport is indistinguishable from bad JSON: read as a floor, not a rate]\x1b[0m' : ''));
   console.log(`\n  pairs needed for the lower bound to clear ${threshold}:`);
   console.log(`    at the observed ICC ${iccResult.icc ?? '—'}: ${atObserved ?? 'never (point estimate not above threshold)'}`);
   console.log(`    ladder  ${ladder.map((l) => `${l.rho}→${l.pairs ?? '∞'}`).join('   ')}`);

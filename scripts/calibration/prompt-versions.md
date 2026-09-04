@@ -93,8 +93,8 @@ and are marked "not a gate result" by the tool. Σ|Δ| = median over fixtures of
 | model (local vs cloud) | prompt version · sha | split (n pairs) | consistency | ICC(A,1) composite (95% CI) | Σ\|Δ\| median | JSON % | verdict |
 |---|---|---|---|---|---|---|---|
 | deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29 | tuning (n=16) | adaptive | 0.578 (0.116–0.835) | n/m | 100.0% | insufficient |
-| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29+local-cae23b1a5f37 | tuning (n=14) | adaptive | 0.735 (0.335–0.910) | 1 | 95.4% | insufficient |
-| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29+local-cae23b1a5f37 | tuning (n=15) | median3 | 0.762 (0.410–0.917) | 1 | 95.4% | insufficient |
+| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29+local-cae23b1a5f37 | tuning (n=14) | adaptive | 0.735 (0.335–0.910) | 1 | 94.4% | insufficient |
+| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29+local-cae23b1a5f37 | tuning (n=15) | adaptive (stamped `median3`)* | 0.762 (0.410–0.917) | 1 | 94.4% | insufficient |
 
 **v0 baseline, 2026-09-02.** The first row is the local model against the incumbent on the 18-fixture
 tuning split, with adaptive self-consistency ON. Read it with the earlier single-call measurement
@@ -112,11 +112,22 @@ things at once: composite ICC 0.578 → 0.735 → **0.762**, bias −2.50 → +0
 repeatability floor from Σ|Δ| median 6 to **1** — the last of which is what §8.3 called the real
 blocker, and it is now clear.
 
-**Still `insufficient`, for a new reason.** At 0.762 the interval is 0.410–0.917 and the tool
-computes **4,899 pairs** needed to lift the lower bound past 0.75 — not reachable. The point estimate
-has to rise (0.90 → 19 pairs, 0.92 → 14). A second, newly-binding constraint appeared: **JSON
-validity fell to 95.4%** (103/108) against the 98% bar; it was 100% before the addendum, so the
-longer prompt is the suspect.
+**Still `insufficient`.** At 0.762 the interval is 0.410–0.917 and the tool computes **4,899 pairs**
+needed to lift the lower bound past 0.75 — not reachable. The point estimate has to rise (0.90 → 19
+pairs, 0.92 → 14).
+
+\* **Rows 2 and 3 are the same configuration.** `model-agreement.mjs` hardcoded `mode: 'adaptive'`
+from `a79f4d3` until 2026-09-04 while faithfully stamping the `--consistency` flag into the report, so
+the run labelled `median3` ran adaptive. The logs match call-for-call (15 rows `calls 2`, 2 rows
+`calls 2+1 re-ask`; a real median3 shows `calls 3` on every row). **`median3` is unmeasured**, and the
+0.735 → 0.762 gap is what two draws from one configuration look like at n=14/15.
+
+**JSON% was reported three ways in one day; 94.4% is the honest one.** 95.4% counted transport and
+cloud-arm failures against the model; a "100%" correction then excluded `Pis7ScoreError` — which
+`pis7.js` throws for invalid JSON and invalid scores after the re-ask budget is spent, i.e. the exact
+failure this bar exists to catch — and counted one adaptive row as one call when it is 2–3 plus
+re-asks. Counted per call, excluding only transport: **94.4% (34/36), down from 97.4% before the
+addendum**, and below the 98% bar. GATE0 §8.6 carries the full retraction.
 
 **Do not read the per-domain ICCs in these runs as findings.** d1 reads 0.055 → 0.663 → 0.294 across
 the three, which at n=14–15 is within what chance alone produces. The one stable signal is **d4

@@ -635,14 +635,22 @@ tuning split, same fixtures, same cloud arm:
 | run | prompt | rule | n pairs | ICC(A,1) weighted (95% CI) | bias | Σ\|Δ\| median | JSON % |
 |---|---|---|---|---|---|---|---|
 | v0 (§8.3) | base only | adaptive | 16 | 0.578 (0.116–0.835) | −2.50 | 4 | 100.0% |
-| 2026-09-04 | base + addendum | adaptive | 14 | 0.735 (0.335–0.910) | +0.79 | 2 | 95.4% |
-| 2026-09-04 | base + addendum | **median3** | 15 | **0.762 (0.410–0.917)** | **+0.00** | 2 | 95.4% |
+| 2026-09-04 | base + addendum | adaptive | 14 | 0.735 (0.335–0.910) | +0.79 | 2 | 94.4% |
+| 2026-09-04 | base + addendum | **stamped `median3`, ran adaptive** | 15 | 0.762 (0.410–0.917) | +0.00 | 2 | 94.4% |
 
-**What improved.** The addendum carries most of the gain (0.578 → 0.735) and removes nearly all of
-the −2.50 harshness; `median3` adds the rest (→ 0.762) and lands bias at exactly zero — both arms
-average 19.27 on the composite. Read alongside §8.4's repeatability result (Σ|Δ| median 6 → 1,
-`screening-verdict` now reports repeatability **ok**), the blocker §8.3 identified — a model that
-disagreed with itself as much as with the incumbent — is cleared.
+**Rows 2 and 3 are the same configuration.** `model-agreement.mjs` hardcoded `mode: 'adaptive'` from
+`a79f4d3` until 2026-09-04 while stamping the `--consistency` flag into the report, so the run labelled
+`median3` ran adaptive. Both logs agree call-for-call: 15 rows at `calls 2` and 2 at `calls 2+1 re-ask`,
+where a real `median3` cannot short-circuit and must show `calls 3` on every row. **The 0.735 → 0.762
+difference is re-run variance on n=14/15, not a rule effect, and `median3` remains unmeasured.**
+
+**What improved.** The addendum carries the gain: 0.578 → 0.735, and −2.50 of harshness down to +0.79.
+Read alongside §8.4's repeatability result (Σ|Δ| median 6 → 1, `screening-verdict` now reports
+repeatability **ok**), the blocker §8.3 identified — a model that disagreed with itself as much as with
+the incumbent — is cleared. **The second run adds nothing to that**: it was the same configuration, so
+0.762 and a bias of exactly zero are what a re-run of the same setup produced on a different 15 fixtures.
+Two draws from one configuration landing at 0.735/+0.79 and 0.762/+0.00 is itself the sharpest available
+evidence for how wide the sampling noise is at this n.
 
 **Why it is still `insufficient`, and why that is a different problem.** 0.762 clears the 0.75
 threshold as a point estimate for the first time, but the interval is 0.410–0.917 on 15 pairs. The
@@ -650,11 +658,34 @@ tool computes **4,899 pairs** to lift the lower bound past 0.75 at that point es
 data does not fix it" therefore still holds, for the same reason: the point estimate has to rise
 (0.90 → 19 pairs, 0.92 → 14). What changed is that it is now within sight rather than out of reach.
 
-**A new constraint appeared.** JSON validity fell from 100% to **95.4%** (103/108 local calls) and is
-now below the 98% bar independently of ICC. The addendum is the suspect — it is the only change, it
-lengthens the prompt by 1,599 characters, and 04d2db7 already had to move the output contract to the
-end of the prompt once for exactly this reason. Worth fixing before another agreement run: five bad
-parses out of 108 also cost pairs, and pairs are what the interval needs.
+**A second constraint, and three wrong answers about it in one day.** The honest number is **94.4%**
+valid JSON, below the 98% bar, down from **97.4%** before the addendum. Getting there took two
+retractions worth recording, because each error had a different shape:
+
+| reading | basis | verdict |
+|---|---|---|
+| 95.4% (103/108) | fixtures, charging transport failures and cloud-arm failures to the model | wrong — pessimistic |
+| 100% (86/86) | replies only, but excluding `Pis7ScoreError` and counting one fixture as one call | **wrong — optimistic, and worse** |
+| **94.4% (34/36)** | every local CALL, excluding only transport, counting re-asks | current |
+
+The second reading is the dangerous one and it was mine. It excluded `Pis7ScoreError` on the theory
+that it meant "timeout", when `rimpl/src/lib/pis7.js` throws it for `invalid_json` and
+`invalid_scores` and `consistency.js` re-raises it only after the re-ask budget is spent — the model
+failing its contract N+1 times, which is precisely what this bar exists to catch. It also counted an
+adaptive row as one attempt when the row is 2–3 calls plus re-asks. Both errors pushed the same way.
+**A measurement error that flatters the model is not symmetric with one that libels it:** the second
+gets caught by the next run, the first ships.
+
+The underlying ambiguity is real and cannot be fixed by inspecting error strings. `chatCompletion`
+never throws — a timeout returns `{ ok:false, text:'' }`, the empty string parses to `{}`, the schema
+fails, and the result is a `Pis7ScoreError` indistinguishable from genuine garbage. Fixed 2026-09-04
+at the call sites, where `ok` is still visible: transport is stamped there, both probe scripts now
+persist the error kind, and both consumers count calls rather than fixtures. Reports written earlier
+cannot be re-scored and are flagged as a floor rather than a rate.
+
+**So the addendum is implicated after all** — 97.4% → 94.4% is the only change alongside it, and
+04d2db7 already had to move the output contract to the end of the prompt once for this exact failure.
+Worth fixing before another agreement run: bad parses cost pairs, and pairs are what the interval needs.
 
 **Do not report the per-domain ICCs from these runs as findings.** d1 reads 0.055 → 0.663 → 0.294
 across the three runs. At n = 14–15 the per-domain intervals are wide enough that a swing of that
@@ -671,10 +702,12 @@ means agree (Δ −0.07) while their per-case ranking does not. There is no offs
 calibration cannot touch it — only the domain's criterion or its prompt text can. If the point
 estimate has to rise, d4 is where the headroom is.
 
-**Cost of `median3`.** Three local calls per fixture instead of two took p50 to 193 s per fixture
-(range 173–686 s) and lost 3 of 18 fixtures to timeouts and errors. Against the 480 s eval deadline
-and `eval_drain_concurrency=1`, this rule is affordable in a probe and not obviously affordable in
-production; that trade is unresolved.
+**`median3` is still unmeasured.** The run that carried its name did not use it. The latency figures
+first attributed to it (p50 193 s, range 173–686 s, 3 of 18 fixtures lost) are therefore the cost of a
+second *adaptive* run on a slow afternoon — a real datum about the box, and no datum at all about the
+rule. A true `median3` makes three calls on every fixture with no short-circuit, so its cost against the
+480 s eval deadline at `eval_drain_concurrency=1` is strictly worse than anything measured here, and
+still unknown.
 
 Data: `scripts/probe/report/tuning-agreement-{v0,addendum,median3}.json`; rows recorded in
 `scripts/calibration/prompt-versions.md`. Held-out split still untouched.
