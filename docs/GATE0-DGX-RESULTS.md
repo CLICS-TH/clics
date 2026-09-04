@@ -207,12 +207,30 @@ environment version.
 
 | field | status |
 |---|---|
-| evaluator prompt version | ✅ `pis7-prompt-a849c6b2` |
+| evaluator prompt version | ⚠️ `pis7-prompt-59561c29` — corrected 2026-09-04, see below |
 | PIS-7 rubric version | ✅ `pis7-weights-08b0cb1a` |
 | exact DeepSeek base release | ❌ not discoverable through the proxy |
 | weight checksum | ❌ |
 | inference engine + version | ❌ |
 | quantization | ❌ |
+
+> **Corrected 2026-09-04 — this row named a prompt that has not shipped since June.** It read
+> `pis7-prompt-a849c6b2` with a ✅. That string is the sha of the **v2** evaluator prompt
+> (`ef65ee7`, 3,357 chars), and it is also not a label any code emits — `versions.js` never
+> prefixed it. Hashing `PIS7_EVALUATOR_PROMPT` at every commit that touched
+> `rimpl/src/lib/prompts.js` gives exactly three versions:
+> `35f265977a8c` (`a1e7cc3`, 1,312 chars) → `a849c6b21b94` (`ef65ee7`, 3,357) →
+> **`59561c292df0`** (`cd29df5`, 4,639, current).
+>
+> `cd29df5` is the CREC082 conformance commit; it inserted the committee-approved 0–5 scale and the
+> per-domain 0/3/5 behavioural anchors. The change was right, but it replaced the instrument and
+> **no calibration run has ever been made against the result** — so the 0.811 quoted for this
+> evaluator elsewhere describes v2, not what runs today. `pis7-weights-08b0cb1a` in the row above is
+> unaffected and still correct.
+>
+> The ⚠️ stands rather than a ✅ because CREC082 §10.2 asks for a *version*, and a version whose
+> agreement with any rater is unmeasured is a weaker claim than the tick implied. Full lineage and
+> consequences: `scripts/calibration/prompt-versions.md`.
 
 `app_settings.evaluator_locked_at = 0` today. Enrolment has not started, so there is still time — but
 none of the four missing fields can be obtained from outside that machine.
@@ -763,3 +781,86 @@ will not be evidence the edit failed, for the reason given in §8.6.
 Not done, deliberately: `parse.js`'s greedy `/\{[\s\S]*\}/` is a real amplifier — a balanced-brace
 extractor would survive prose the current one cannot — but it is shared with the cloud arm and with
 production, so changing it would invalidate the cloud measurements too. Separate decision.
+
+### 8.8 The held-out gate run — and why 0.436 is a fact about the corpus, not the model (2026-09-04)
+
+The held-out split was reserved on 2026-09-02 (D13) and opened once, on 2026-09-04 at 21:52 local,
+after `scripts/probe/canary.sh` proved the box could complete a real evaluation. It is spent.
+
+```
+split heldout (reserved 2026-09-02T04:09:06Z · git_head 496ad1d · seed 20260901)
+local deepseek-v4-flash-dspark   cloud claude-sonnet-4-6
+prompt pis7-prompt-59561c29+local-c5ffe572aa81   consistency adaptive   arm_attempts 4
+n = 8 · 8/8 paired · zero losses · 16 local calls · 0 re-asks · JSON 16/16 = 100%
+ICC(A,1) weighted composite   0.436 (0.000–0.873)      threshold 0.75 on the LOWER bound
+per-domain  d1 0.13 · d2 0.26 · d3 0.52 · d4 0.00 · d5 0.53 · d6 −0.17 · d7 0.63
+Σ|Δ| agreement median 2   ·   local p50 162 s / cloud p50 20 s
+D18 screening verdict: INSUFFICIENT — the interval spans 0.75
+pairs needed at the observed 0.436: never (the point estimate is not above the threshold)
+```
+
+Archived verbatim as `scripts/probe/report/heldout-c5ffe-adaptive.verdict.json`; the report it was
+computed from is committed beside it.
+
+**Two tuning runs on the same prompt were never recorded, and they are the context for this one.**
+Both ran `+local-c5ffe572aa81` with `adaptive`, ninety minutes apart:
+
+| run | n | ICC(A,1) weighted | JSON |
+|---|---|---|---|
+| `tuning-agreement-c5ffe-adaptive` 16:48 | **18/18**, nothing lost | **0.611** (0.202–0.839) | 37/37 |
+| `tuning-agreement-c5ffe-adaptive-rep2` 18:40 | **12/18**, six lost | **0.795** (0.407–0.940) | 30/30 |
+
+Same model, same prompt, same rule, same box. The run that lost a third of its fixtures scored
+0.18 higher. That is the survivorship effect of §8.6 measured cleanly for the first time, and
+`methodology-figures.mjs` now quantifies it for every run that lost anything: the lost fixtures'
+mean agreement Σ|Δ| exceeded the survivors' in **4 of 4** runs (+1.12, +1.39, +2.11, +0.38). Harder
+transcripts are longer, so they are both the ones a flaky box drops and the ones the models disagree
+about. Between them, 0.611 and 0.795 are also the honest width of run-to-run noise at n≈15.
+
+#### Why the held-out number is lower — the denominator, not the numerator
+
+An ICC is a variance ratio, and on the held-out split the denominator collapses.
+
+| run | n | cloud SD | sd*between* | sd*error* | ratio | ICC |
+|---|---|---|---|---|---|---|
+| **heldout** | 8 | **11.11** | 5.98 | **7.02** | **0.85** | 0.436 |
+| tuning c5ffe | 18 | 17.22 | 11.94 | 9.73 | 1.23 | 0.611 |
+| tuning c5ffe rep2 | 12 | 18.36 | 14.56 | 7.72 | 1.89 | 0.795 |
+| tuning addendum | 14 | 16.45 | 13.00 | 8.01 | 1.62 | 0.735 |
+| tuning median3 | 15 | 17.93 | 14.33 | 8.26 | 1.73 | 0.762 |
+| tuning v0 | 16 | 16.72 | 11.38 | 8.23 | 1.38 | 0.578 |
+
+`sdBetween` is how far the *episodes* stand apart; `sdError` is how far the two *scorers* stand apart
+on one episode. **On held-out the local model's absolute disagreement was the smallest of the entire
+programme** — error SD 7.02 against 7.72–9.73 on every tuning run, agreement Σ|Δ| median 2, zero
+parse failures. The ICC still fell, because held-out is the only arm where the ratio drops below 1:
+the eight episodes differ from each other by *less* than the two scorers differ on the same episode.
+
+Pooling the cloud composite for all 26 fixtures across every run (the cloud prompt was byte-identical
+throughout): **held-out spans 32.0–62.0, mean 43.50, SD 11.11**; **tuning spans 33.8–88.8, mean 58.40,
+SD 17.28**. The held-out arm contains no high-scoring episode at all. Enumerating all
+C(26,8) = 1,562,275 subsets exactly, **6.47%** (101,028) are this narrow or narrower. The seeded draw
+was unlucky, not freakish — and it was drawn before any tuning, which is the control working as
+designed, not a flaw in it.
+
+This is the same failure mode already measured on human raters at G0.5: ICC −0.315 on n=5, with
+between-episode SD 2.44 against error SD 2.69. **Restriction of range is the recurring finding of
+this programme, and it belongs to the corpus, not to any model.**
+
+#### What may and may not be concluded
+
+- ✅ **The screening gate returns `insufficient`, and no further run on these 26 episodes can change
+  that.** At a point estimate of 0.436 the pairs-needed ladder has no rung. `evaluate` stays on
+  `claude-sonnet-4-6` and the Track A / Track B split of 2026-08-24 is unchanged.
+- ❌ **Not "the local model disagrees with the incumbent."** The interval 0.000–0.873 excludes neither
+  good nor poor agreement, and the absolute-disagreement figures point the other way.
+- ❌ **Not "the local model is fit."** n=8 cannot support that either, and D18 is explicit that a
+  screening gate *can never accept* a candidate — two models can agree closely and be wrong the same
+  way. Acceptance needs the decisive gate against human raters, which has never been runnable.
+- 🚩 **The binding constraint is the corpus.** A 26-episode set whose composites cluster cannot
+  certify any scorer. What is needed is episodes selected to span the scale, and a reference standard
+  with measured reproducibility — the incumbent's own self-agreement is ICC 0.594 (§7.3), and its
+  prompt has not been calibrated since `cd29df5` (see §5.2).
+
+Full method, every figure and its regeneration command: `docs/METHODOLOGY-local-vs-sonnet.en.md` /
+`.th.md`. Regenerate the numbers above with `node scripts/probe/report/methodology-figures.mjs`.

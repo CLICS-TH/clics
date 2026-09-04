@@ -1,0 +1,76 @@
+{
+  "state": "insufficient",
+  "reasons": [
+    "the interval spans 0.75 — more pairs are needed to decide"
+  ],
+  "gate": true,
+  "split": "heldout",
+  "threshold": 0.75,
+  "threshold_source": "app_settings.icc_gate_screening",
+  "icc": {
+    "icc": 0.436,
+    "lower": 0,
+    "upper": 0.873,
+    "n": 8,
+    "interpretation": "Below target (< 0.75)",
+    "verdict": "insufficient"
+  },
+  "per_domain_icc": {
+    "d1": 0.125,
+    "d2": 0.255,
+    "d3": 0.517,
+    "d4": 0,
+    "d5": 0.533,
+    "d6": -0.167,
+    "d7": 0.632
+  },
+  "repeatability": null,
+  "json": {
+    "attempted": 16,
+    "parsed": 16,
+    "pct": 100,
+    "pass": true,
+    "excluded": 0,
+    "legacy": false
+  },
+  "pairs_needed": {
+    "at_observed_icc": null,
+    "ladder": [
+      {
+        "rho": 0.95,
+        "pairs": 9
+      },
+      {
+        "rho": 0.92,
+        "pairs": 14
+      },
+      {
+        "rho": 0.9,
+        "pairs": 19
+      },
+      {
+        "rho": 0.88,
+        "pairs": 27
+      },
+      {
+        "rho": 0.85,
+        "pairs": 51
+      },
+      {
+        "rho": 0.82,
+        "pairs": 117
+      },
+      {
+        "rho": 0.8,
+        "pairs": 247
+      }
+    ]
+  },
+  "prompt_sha": "pis7-prompt-59561c29+local-c5ffe572aa81",
+  "prompt_version": "pis7-prompt-59561c29",
+  "models": {
+    "local": "deepseek-v4-flash-dspark",
+    "cloud": "claude-sonnet-4-6"
+  },
+  "prompt_versions_row": "| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29+local-c5ffe572aa81 | heldout (n=8) | adaptive | 0.436 (0.000–0.873) | n/m | 100.0% | insufficient |"
+}

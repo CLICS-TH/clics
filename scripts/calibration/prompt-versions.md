@@ -13,12 +13,45 @@ runs below measure against the regenerated cohort; archived under `runs/`.
 |---------|-----------------------|----------------------------|-----------|--------------|
 | v0 (original) | `--mode baseline` 2026-06-10 | **0.377** (0.04–0.64) n=33 | **+16.4** lenient | original prompt (2026-06-07); worst d2 +1.36, d6 +1.24, d1 +1.15 |
 | v1 | 4d23a997f403 | **0.700** (0.47–0.84) n=33 | ≈ −8 | calibration rules: structure ≠ depth, quote-evidence threshold for 4–5, template caps, "expect 2–3" — overcorrected the top tier (P-016/17 −12…−16) |
-| **v2 (CURRENT)** | a849c6b21b94 | **0.811** (0.64–0.91) n=30 | ≈ ±0 | kept v1's brakes; removed middle-compression ("use the FULL scale", award evidenced 4–5 confidently, linkage phrases count when they engage content) — all domain Δ ≤ \|0.43\| |
+| v2 | a849c6b21b94 | **0.811** (0.64–0.91) n=30 | ≈ ±0 | kept v1's brakes; removed middle-compression ("use the FULL scale", award evidenced 4–5 confidently, linkage phrases count when they engage content) — all domain Δ ≤ \|0.43\| |
+| **v3 (CURRENT)** | `59561c292df0` | **never measured** | — | `cd29df5` inserted the CREC082-approved behavioural anchors: an explicit 0–5 scale and per-domain 0/3/5 anchors, 3,357 → 4,639 chars. Correct on its own terms — the committee-approved rubric must win — but it changed the instrument and no calibration run has ever been made against it |
 
 ⚠️ v2's first measurement read 0.487 — poisoned by ONE malformed eval (AI=0, missing domains). The
 harness now validates each eval (retry once, drop on second failure). The clean re-run (n=30; one
 PLE dropped — the 46k-token transcript truncates the evaluator's 1000-token output) gave 0.811.
 (Follow-up done 2026-06-10: `maxTokens` raised to 2000 in `rimpl/src/routes/evaluate.js`.)
+
+> ### ⚠️ 2026-09-04 — the 0.811 does not describe the prompt that ships
+>
+> The evaluator prompt has had exactly three versions, verified by hashing
+> `PIS7_EVALUATOR_PROMPT` at every commit that touched `rimpl/src/lib/prompts.js`:
+>
+> | commit | sha | chars | |
+> |---|---|---|---|
+> | `a1e7cc3` | `35f265977a8c` | 1,312 | original scaffold |
+> | `ef65ee7` | `a849c6b21b94` | 3,357 | v2 — **the prompt that measured 0.811** |
+> | `cd29df5` | `59561c292df0` | 4,639 | v3 — CREC082 behavioural anchors; **shipping since, never calibrated** |
+>
+> `cd29df5` ("bring the platform into conformance with the CREC082 protocol") added the approved 0–5
+> scale and the per-domain 0/3/5 anchors. That is the right change — an AI and a human scoring against
+> two different rubrics produce an ICC that measures the gap between the rubrics, as the code comment
+> introduced by that very commit says. But it replaced the instrument, and **the calibration did not
+> follow it.** Every citation of 0.811 as the incumbent evaluator's agreement describes a prompt that
+> has not run since.
+>
+> Three consequences, all still open:
+> - **`docs/GATE0-DGX-RESULTS.md` §5.2 names `pis7-prompt-a849c6b2`** as the CREC082 §10.2 Model Lock
+>   "evaluator prompt version ✅". That value is two revisions stale and no code produces it — the
+>   ✅ is wrong. (`pis7-weights-08b0cb1a` in the same table is still correct.)
+> - The whole local-model screening programme below ran against **v3** (`59561c29`), so it compares a
+>   candidate to an incumbent whose own agreement with any rater is unmeasured.
+> - It compounds, rather than causes, the deeper problem: the 0.811 was against **three simulated
+>   Claude agent-raters**, not humans (`scripts/soak/gen-auditor-wf.js:30-32`). No ICC in this
+>   project has ever been measured against a real human auditor.
+>
+> Do not re-run the v2 calibration to "restore" the number. The cohort it used was itself a
+> regeneration after the original was wiped, and the raters were synthetic. The gap this exposes is
+> closed by Gate 0.5 (real human auditors), not by re-measuring against agents.
 
 ## Notes per version
 
@@ -87,14 +120,30 @@ One row per gate run of `scripts/probe/screening-verdict.mjs` (which prints the 
 The prompt column carries the version AND the sha of the exact text sent (base + any local addendum),
 because the local addendum changes the prompt without changing the rubric levels. `split` must read
 `heldout` for a row to count as a gate result; tuning-split rows are allowed here only for the record
-and are marked "not a gate result" by the tool. Σ|Δ| = median over fixtures of the per-domain
-(max − min) across repeats; JSON % = valid PIS-7 JSON over every local call in the run.
+and are marked "not a gate result" by the tool.
 
-| model (local vs cloud) | prompt version · sha | split (n pairs) | consistency | ICC(A,1) composite (95% CI) | Σ\|Δ\| median | JSON % | verdict |
-|---|---|---|---|---|---|---|---|
-| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29 | tuning (n=16) | adaptive | 0.578 (0.116–0.835) | n/m | 100.0% | insufficient |
-| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29+local-cae23b1a5f37 | tuning (n=14) | adaptive | 0.735 (0.335–0.910) | 1 | 94.4% | insufficient |
-| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29+local-cae23b1a5f37 | tuning (n=15) | adaptive (stamped `median3`)* | 0.762 (0.410–0.917) | 1 | 94.4% | insufficient |
+**Two Σ|Δ| columns, because they are two different quantities that shared one heading until
+2026-09-04 and were read as one number.** `Σ|Δ| agr` = median over fixtures of Σ over d1–d7 of
+|local − cloud| — disagreement BETWEEN the two models. `Σ|Δ| rep` = median over fixtures of Σ over
+d1–d7 of (max − min) across repeats of the LOCAL model on one fixture — the model disagreeing with
+ITSELF, i.e. the noise floor, and it is what bounds how small `Σ|Δ| agr` could ever get. The verdict
+tool prints `n/m` in the second column unless `--repeat` is passed; a number there comes from the
+matching `repeat-consistency` run and is stated as such. JSON % = valid PIS-7 JSON over every local
+CALL in the run (not per fixture).
+
+| model (local vs cloud) | prompt version · sha | split (n pairs) | consistency | ICC(A,1) composite (95% CI) | Σ\|Δ\| agr | Σ\|Δ\| rep | JSON % | verdict |
+|---|---|---|---|---|---|---|---|---|
+| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29 | tuning (n=16) | adaptive | 0.578 (0.116–0.835) | 4 | 6 † | 100.0% (18/18) | insufficient |
+| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29+local-cae23b1a5f37 | tuning (n=14) | adaptive | 0.735 (0.335–0.910) | 2 | 1 ‡ | 94.4% (17/18) § | insufficient |
+| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29+local-cae23b1a5f37 | tuning (n=15) | adaptive (stamped `median3`)* | 0.762 (0.410–0.917) | 2 | 1 ‡ | 94.4% (17/18) § | insufficient |
+| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29+local-c5ffe572aa81 | tuning (n=18) | adaptive | 0.611 (0.202–0.839) | 3.5 | n/m | 100.0% (37/37) | insufficient |
+| deepseek-v4-flash-dspark vs claude-sonnet-4-6 | pis7-prompt-59561c29+local-c5ffe572aa81 | tuning (n=12) | adaptive | 0.795 (0.407–0.940) | 3 | n/m | 100.0% (30/30) | insufficient ¶ |
+| **deepseek-v4-flash-dspark vs claude-sonnet-4-6** | **pis7-prompt-59561c29+local-c5ffe572aa81** | **heldout (n=8)** | **adaptive** | **0.436 (0.000–0.873)** | **2** | n/m | **100.0% (16/16)** | **insufficient** |
+
+† from `tuning-repeat-v0.json`, and it is a median over **10 of 18** fixtures — the box degraded
+mid-run, so it does not describe all 18.  ‡ from `noise-2026-09-03-addendum.json` (18/18 measurable).
+§ counted per FIXTURE in these two reports, which predate per-call accounting: read as a floor, not
+a rate.  ¶ same configuration as the row above it, ninety minutes later — see the survivorship note.
 
 **v0 baseline, 2026-09-02.** The first row is the local model against the incumbent on the 18-fixture
 tuning split, with adaptive self-consistency ON. Read it with the earlier single-call measurement
