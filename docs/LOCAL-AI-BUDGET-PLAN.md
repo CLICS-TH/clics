@@ -53,12 +53,20 @@ for the pilot's duration, with local running in shadow to build the calibration 
 
 ## Correction, 2026-09-05 — the $0 line cannot be taken
 
-**Railway cannot reach the on-premise box.** `rimpl` runs on Railway
-(`RIMPL_URL=http://rimpl.railway.internal:3003`); the model sits behind a tailnet advertising no
-subnet routes — `GATE0 §5.1`, re-verified 2026-09-04 in `§8.5` (`tailscale status --json` →
-`PrimaryRoutes: None`). Setting `ai_provider_chat = local` in production would point chat at an
-endpoint the deployment cannot resolve, and `CHAT_FAILOVER_PROVIDER` ships unset — a deliberate CREC
-ethics decision, not an oversight — so chat would **fail outright**, not degrade.
+**Railway cannot reach the model's port.** `rimpl` runs on Railway
+(`RIMPL_URL=http://rimpl.railway.internal:3003`) and joins the tailnet as an ephemeral node; from
+there `cme-dev:3000` — Open WebUI, and the only path to `deepseek-v4-flash-dspark` — is **silently
+dropped**. Setting `ai_provider_chat = local` in production would point chat at an endpoint the
+deployment cannot open, and `CHAT_FAILOVER_PROVIDER` ships unset — a deliberate CREC ethics decision,
+not an oversight — so chat would **fail outright**, not degrade.
+
+**Refined 2026-09-05 (GATE0 §8.9).** The mechanism named here first — "a tailnet advertising no subnet
+routes", `PrimaryRoutes: None` — was a true observation but not the operative one: `cme-dev` is a
+direct tailnet peer, so no subnet route is needed to address it. The nine-port sweep found the block is
+**source-scoped and port-specific**: `80`, `3000` and `3001` drop for the container while returning
+HTTP 200 to `napats-macbook-air` in the same minute, and `22`, `443`, `11434`, `3003`, `8080` and the
+unused control port are all reachable from both. The conclusion is unchanged and the line still cannot
+be taken; what changed is that the fix is an address on an allowlist, not a routing change.
 
 Checked against prod on 2026-09-05: all five purposes still resolve to `anthropic` (`embed` →
 `openai`), `routing.source = "database"`, `evaluator_locked_at` null.
@@ -66,9 +74,12 @@ Checked against prod on 2026-09-05: all five purposes still resolve to `anthropi
 The saving of $0.103 → $0.028 per PLE is real but **not available**, and it is gated on the same item
 as everything else in this programme — either
 
-- `tailscale up --advertise-routes=192.168.1.0/24` on `cme-dev` plus approval in the tailnet admin
-  console (one command, needs shell on a machine we do not have), or
-- **P2, rimpl relocation** onto a tailnet-joined host (`LOCAL-MODEL-ROADMAP.md:301`, not started).
+- an allowlist entry on `cme-dev` for a **stable** tailnet address of ours (needs shell on a machine
+  we do not have — and a non-ephemeral node on our side first, so the address stops changing every
+  deploy), or
+- **P2, rimpl relocation** onto a tailnet-joined host — which as of 2026-09-05 needs **no firewall
+  change at all**: `:3003` refuses rather than drops, so the backend can reach a rimpl running on the
+  box (GATE0 §8.9). Not started, but no longer gated on anyone else.
 
 Until one lands, the real spend is everything on Anthropic at $0.103 per PLE, so $5 covers roughly
 **48 PLEs**, not 175. None of the arithmetic that closes D18 changes; that was never a money question.

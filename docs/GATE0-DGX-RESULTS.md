@@ -921,3 +921,67 @@ this programme, and it belongs to the corpus, not to any model.**
 
 Full method, every figure and its regeneration command: `docs/METHODOLOGY-local-vs-sonnet.en.md` /
 `.th.md`. Regenerate the numbers above with `node scripts/probe/report/methodology-figures.mjs`.
+
+---
+
+### 8.9 The block is source-scoped, and `:3003` is not blocked — G0 item 4 answered (2026-09-05)
+
+`rimpl/docker-entrypoint.sh` sweeps nine ports on `cme-dev` (`100.68.210.69`) from inside the Railway
+container, over the userspace Tailscale SOCKS5 proxy, reading **curl's exit code** rather than an HTTP
+status: `0/52/56` = TCP completed, `7` = the host sent a RST, `28` = the packets were silently dropped.
+A status of `000` cannot tell a refused port from a firewalled one; an exit code can. Run once with
+`LOCAL_AI_PROBE=1`, then the flag was removed — the sweep opens connections to a machine we do not own.
+
+The same four ports were then curled from `napats-macbook-air` (`100.90.186.63`) within the same minute,
+so the two columns differ in **source only**: same tailnet, same peer, same instant.
+
+| port | from Railway (`100.111.175.38`) | from the laptop (`100.90.186.63`) | what is there |
+|---|---|---|---|
+| 22 | TCP open | — | sshd (banner reset curl) |
+| 80 | **dropped** | **HTTP 200** | — |
+| 443 | TCP open | — | **Gitea** behind openresty; Let's Encrypt cert for `cme-dev.tail803a1f.ts.net`, **expired** |
+| **3000** | **dropped** | **HTTP 200** | Open WebUI → vLLM → `deepseek-v4-flash-dspark` |
+| 3001 | **dropped** | **HTTP 200** | — |
+| **3003** | **refused (RST)** | **refused (RST)** | nothing listening |
+| 8080 | refused | — | nothing listening |
+| 11434 | TCP open | — | **Ollama 0.33.3**, 8 models, none of them DeepSeek |
+| 9999 *(control)* | refused | — | nothing listening |
+
+tailscaled logged the refusals itself, which is why they are not an inference:
+
+```
+socks5: client connection failed: connect tcp 100.68.210.69:3003: connection was refused
+```
+
+#### What this settles
+
+**G0 item 4 — "can rimpl be hosted on a tailnet node?" — is answered YES, and D3 needs no firewall
+change.** If rimpl runs on the box, the model becomes localhost to it and the block on `:3000` stops
+mattering; what then has to work is the *other* direction, Railway's backend reaching rimpl on `:3003`.
+That port RSTs rather than dropping — packets from the container reach cme-dev's TCP stack and it
+answers — so a listener there would be reachable. The remaining D3 blocker is a host to run on and its
+owner's permission, not the network.
+
+**The block is source-scoped, not port-scoped.** Every port that the laptop gets a 200 from is dropped
+for the container, while unused ports RST for both and `22`/`443`/`11434` are open for both. A blanket
+deny would have dropped the control port too; interface-binding would have produced a RST, not a
+timeout. What fits every cell is a packet filter on cme-dev covering exactly `80`, `3000` and `3001`
+with an address allowlist the laptop is on. This is an inference from nine ports and two sources, not
+a rule anyone has shown us — but the decision above rests only on the measured RST, not on the mechanism.
+
+**Our node can never be on such an allowlist as built.** `TS_AUTHKEY` is ephemeral, so each deploy
+joins as a fresh node with a fresh address — `clics-rimpl-6` at `100.115.149.2`, then `clics-rimpl` at
+`100.111.175.38`. That, not credentials, is why the same account and the same key work from the laptop
+and fail from production. A non-ephemeral node with a stable address would turn the request to the box
+owner into a single address to allow, once — the cheaper ask, if the ask is made at all.
+
+#### Two things found that are not ours to use
+
+- **`:11434` is a live, unauthenticated Ollama** reachable from production today, holding eight
+  abliterated/uncensored Qwen builds with `qwen2.5-coder:14b` resident and a TTL still running — a
+  colleague's working set on a shared box. It contains **no DeepSeek**. Pointing any CLICS purpose at
+  it would change model, engine and quantization at once, invalidating three of the four Model Lock
+  fields in §5.2 and every figure in §7–§8. It is evidence that the host does not default-deny; it is
+  not an option.
+- **The `:443` certificate has expired.** Harmless to us — we do not use it — but it lands beside the
+  node key expiring within a day (§5.1), and the two together say nobody is currently minding the box.

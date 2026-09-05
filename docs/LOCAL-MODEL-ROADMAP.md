@@ -46,7 +46,7 @@ Live position: `npm run local-model:status`.
 | **P0 — Probe** | **run 2026-08-31 → 09-01, Gate 0 PASSED.** JSON contract 25/26, Thai 6/6, ≥22,804 input tokens verified; eval p50 68 s; safe concurrency 2. Head-to-head vs Sonnet on 26 PLEs: ICC(A,1) 0.594, and **the evaluator is not reproducible on either model** (same fixture, Σ\|Δ\| 0–8 across sessions). Full numbers: [GATE0-DGX-RESULTS §7](GATE0-DGX-RESULTS.md) |
 | **P1 — Provider adapter** | **done**, shipped dark (PR #61) |
 | **P1.5 — Readiness gate** | **done** (#71). A switch to a provider that cannot serve is refused with the measured value; unknown counts as unfit |
-| **P2 — rimpl relocation + bridge** | **not started** — needs G0 item 4 |
+| **P2 — rimpl relocation + bridge** | **not started, but unblocked** — G0 item 4 answered yes 2026-09-05 |
 | **G0.5 — Human-auditor ICC baseline** | **not started. This is still the programme go/no-go** |
 | **P3 — Migrate purposes** | shadow evaluator code **done** (PR #65). **Capacity layer built 2026-09-02** on `feat/local-ai-capacity` (commits `ddbba2a` backend/db/portal, `afb83d5` rimpl, `1fe625c` dashboard, `6050e53` smoke, `aecb861` mutations): durable evaluation queue, rimpl two-lane bounded runner, token-denominated budgets, transcript cap, council partition, dev-only provider override, sandbox smoke. **Not deployed; `db/migration-local-ai-capacity.sql` NOT applied** (and `migration-shadow-evaluations.sql` still not applied) |
 | **P4 — Calibrate + Gate 4** | **instrument done** (#74). **Held-out split reserved first** (D13; `scripts/probe/SPLIT.json`, 8 held-out / 18 tuning, commit `551df47`) and `scripts/probe/screening-verdict.mjs` applies D18 + repeatability + parseability from the production ICC code (`c4bd08d`). Adaptive self-consistency **built** (rimpl `services/consistency.js`; `EVAL_CONSISTENCY=adaptive`, local arm only, billed = call 1, `provenance.consistency`); the local prompt addendum is an empty seam until the E2 tuning loop runs on the tuning split. The decisive gate is still blocked on G0.5 |
@@ -248,8 +248,13 @@ Facts, not decisions. Everything downstream waits on these.
 3. **`sha256sum` of the evaluator weights**, and who can run it. This fills
    `app_settings.evaluator_weights_sha256`, which is seeded and null. It is **not** readable over an
    inference API — it must be declared by someone with filesystem access.
-4. **Can rimpl be hosted on a tailnet node?** **D3 assumes yes.** If the answer is no, D3 and D7 both
-   need revisiting and P2 falls back to a Tailscale userspace sidecar inside the Railway container.
+4. ~~**Can rimpl be hosted on a tailnet node?**~~ **ANSWERED YES, 2026-09-05 — and it needs no
+   firewall change.** A nine-port sweep from inside the Railway container, read by curl exit code,
+   found `cme-dev:3003` **refused (RST)** rather than dropped: packets from production reach the box's
+   TCP stack and it answers, so a rimpl listening there would be reachable by the backend. The block on
+   `:3000` is source-scoped — the same ports return HTTP 200 from `napats-macbook-air` at the same
+   minute — and stops mattering under D3, because the model becomes localhost to rimpl. GATE0 §8.9.
+   What remains for D3 is a host and its owner's permission, not the network.
 5. **Concurrency** available during a clinic-hours burst — physicians log in after clinic, so the load
    is bursty, not flat. Sets `LOCAL_MAX_CONCURRENCY`.
 6. **Who operates the box**, and will they commit to **no evaluator changes between lock and study
@@ -311,8 +316,8 @@ it. Backend stays on Railway.
 
 | Option | Verdict |
 |---|---|
-| **Move rimpl on-prem** onto a tailnet node | **Chosen (D3).** Pending G0 item 4 |
-| **Tailscale userspace inside the Railway container** (`--tun=userspace-networking` + SOCKS5, or `tsnet`) | **Fallback** if G0 item 4 comes back no. Costs an auth key in Railway env and one more failure mode |
+| **Move rimpl on-prem** onto a tailnet node | **Chosen (D3). Unblocked 2026-09-05** — G0 item 4 answered yes; `:3003` is reachable from Railway with no firewall change (GATE0 §8.9) |
+| **Tailscale userspace inside the Railway container** (`--tun=userspace-networking` + SOCKS5, or `tsnet`) | **Built and live**, but it is not a route to the model: the node joins **ephemerally**, drawing a new tailnet address every deploy, so it can never sit on the address allowlist that `:3000` is behind. Useful as the transport for D3, not as a substitute |
 | **Expose the DGX publicly** (Funnel / reverse proxy) | **Reject.** Inverts the entire on-prem premise |
 
 Work in this phase:
@@ -453,7 +458,7 @@ Runs immediately before the first participant.
 | **Claude itself misses ≥0.75 against human auditors** | **Critical** | Gate 0.5, run *before* the study (D14). Retune against human divergence, re-baseline, then gate local against the retuned prompt |
 | Model swapped mid-study → confounded outcome | **Critical** | Lock before participant 1 (D11); `evaluate` never fails over |
 | Model silently updated on a box we do not operate | **Critical** | D15: written commitment **plus** weights-digest pin, `/health/deep` drift check, identity stamped into `provenance` |
-| rimpl cannot be hosted on the tailnet | High | G0 item 4. Fallback is the Railway userspace sidecar; D3 and D7 both revisited |
+| ~~rimpl cannot be hosted on the tailnet~~ **retired 2026-09-05** | — | G0 item 4 answered yes: `:3003` refuses rather than drops, so the backend can reach a rimpl on the box (GATE0 §8.9) |
 | Local model cannot hold the PIS-7 JSON contract | High | Gate 0 before any further work |
 | Thai output quality drops | High | Gate 0 Thai probe; physicians notice immediately |
 | Overfitting the prompt to a small cohort | High | D13: held-out split reserved before the first tuning run |
