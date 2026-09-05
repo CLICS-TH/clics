@@ -308,7 +308,13 @@ function modelsByPurpose() {
 //
 // Returns [name, provider] pairs because embed providers live in their own registry (EMBED_PROVIDERS):
 // 'openai' is not in PROVIDERS at all, so probing it by name alone reported `unknown provider`.
-function providersToProbe() {
+//
+// `includeEmbed` is the caller's answer to "is retrieval switched on?". When it is OFF, ragLookup
+// returns before ever reaching the embed provider, so an unset OPENAI_API_KEY degrades nothing and
+// reporting it `down` would take the whole endpoint to 503 over a vendor no request touches. A check
+// that cries wolf is worse than no check — it is the reason the prompt-provenance warning next door
+// went unread. Probe the embed lane exactly when it is part of the serving path.
+function providersToProbe({ includeEmbed } = {}) {
   const found = new Map();
   const add = (name, registry) => {
     const n = String(name || '').trim().toLowerCase();
@@ -319,7 +325,7 @@ function providersToProbe() {
   if (failover) add(failover, PROVIDERS);
   // Last, so a provider serving BOTH chat and embeddings keeps its chat registry entry — local is in
   // both maps, and its ready() there is the one that checks the served context.
-  add(embedProviderName(), EMBED_PROVIDERS);
+  if (includeEmbed) add(embedProviderName(), EMBED_PROVIDERS);
   return [...found.entries()];
 }
 
@@ -330,7 +336,9 @@ async function readiness() {
   // Resolve from the database first so /health/deep probes what traffic will ACTUALLY hit. Probing
   // the env-resolved provider on a DB-switched box reports the wrong vendor as healthy.
   await settings.ensureFresh(SETTING_PURPOSES).catch(() => {});
-  for (const [name, provider] of providersToProbe()) {
+  // Sync read: ensureFresh above has just warmed the cache, and ragEnabled() would refresh it twice.
+  const includeEmbed = (settings.numberFor('rag_enabled') ?? 0) === 1;
+  for (const [name, provider] of providersToProbe({ includeEmbed })) {
     if (!provider) { checks[`${name}_provider`] = { status: 'down', error: `unknown provider "${name}"` }; continue; }
     try {
       const r = await Promise.resolve(provider.ready());
