@@ -1051,8 +1051,27 @@ the first two in plain sight:
 system_fingerprint: vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0
 ```
 
-`lib/provenance.js:73` declares `engine = null, quantization = null, runtime = null` as defaults and
-**nothing passes them**, so all three record `null` on a served score. The `config_fingerprint`
-(`28434954e7d886de`) and `decoding` block are populated correctly; these three are not. §5.2's Model
-Lock table has been describing fields the code cannot fill — reading `system_fingerprint` in the local
-provider fills two of them at zero cost.
+`lib/provenance.js:73` declared `engine = null, quantization = null, runtime = null` as defaults and
+**nothing passed them**, so all three recorded `null` on a served score. The `config_fingerprint`
+(`28434954e7d886de`) and `decoding` block were populated correctly; these three were not.
+
+**Fixed the same day.** `local.js` now returns the fingerprint verbatim as `runtime` and its
+recognised leading token as `engine`, and `evaluate.js` threads both into the provenance block. The
+same fixture, re-scored through the same box:
+
+| field | before | after |
+|---|---|---|
+| `engine` | `null` | **`vllm`** |
+| `runtime` | `null` | **`vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0`** |
+| `quantization` | `null` | `null` — not in this response, and not inferred from a model name |
+| `config_fingerprint` | `28434954e7d886de` | `28434954e7d886de` — **unchanged** |
+
+The fingerprint holding still is the point of the design, not an accident: the runtime string carries
+a build hash that can change on a routine restart, so folding it in would churn on non-events and make
+every fingerprint stored before today incomparable with the ones after. Drift stays visible because
+the value is stamped on each score, which is where D15 says it is read from.
+
+**This is the general lesson of §8.10.** No unit test could have found it, because the mocks never
+carried the field; no probe could have, because the probes never ran this code. A fact recorded as
+"not discoverable" for months was arriving on every call. §5.2's row is now ✅ and three §10.2 fields
+remain, not four.
