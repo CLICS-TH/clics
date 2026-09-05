@@ -957,10 +957,17 @@ socks5: client connection failed: connect tcp 100.68.210.69:3003: connection was
 
 **G0 item 4 — "can rimpl be hosted on a tailnet node?" — is answered YES, and D3 needs no firewall
 change.** If rimpl runs on the box, the model becomes localhost to it and the block on `:3000` stops
-mattering; what then has to work is the *other* direction, Railway's backend reaching rimpl on `:3003`.
-That port RSTs rather than dropping — packets from the container reach cme-dev's TCP stack and it
-answers — so a listener there would be reachable. The remaining D3 blocker is a host to run on and its
-owner's permission, not the network.
+mattering; what then has to work is the *other* direction, Railway reaching rimpl on `:3003`. That port
+RSTs rather than dropping — packets from the container reach cme-dev's TCP stack and it answers — so a
+listener there would be reachable. **Nothing on the box has to change for the network to work.**
+
+**Read the source of the sweep before reading it as "the backend can reach the box".** These packets
+left the **rimpl** container, the only Railway service whose image carries a Tailscale client
+(`rimpl/Dockerfile`). The **backend** has none — nothing under `backend/` mentions tailscale, its
+service has no `TS_AUTHKEY`, and `RIMPL_URL` is still `rimpl.railway.internal`. So D3 also requires
+giving the backend the same userspace sidecar rimpl already has. That is work on our side rather than a
+request to the box owner, and it is close to a copy of an image that already exists — but it is a
+prerequisite, and leaving it implicit is how a "no blockers" note becomes a surprise mid-migration.
 
 **The block is source-scoped, not port-scoped.** Every port that the laptop gets a 200 from is dropped
 for the container, while unused ports RST for both and `22`/`443`/`11434` are open for both. A blanket
