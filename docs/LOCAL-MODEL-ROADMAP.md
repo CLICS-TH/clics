@@ -255,10 +255,15 @@ Facts, not decisions. Everything downstream waits on these.
 6. **Who operates the box**, and will they commit to **no evaluator changes between lock and study
    end**, with notice? (D15.)
 
-**Owed on the box regardless:** raise `OLLAMA_CONTEXT_LENGTH`. Measured 2026-08-24 against `cme-dev`, a
-9,144-token evaluation returned `400 … exceeds the available context size (4096)`. `options.num_ctx`
-over the OpenAI-compatible endpoint is proven inert, so the fix is server-side. A creditable PLE
-transcript runs to 10,000+ tokens and one hit 130k on 2026-08-17.
+**~~Owed on the box regardless: raise `OLLAMA_CONTEXT_LENGTH`.~~ RESOLVED 2026-09-02 — do not ask
+for this.** Measured 2026-08-24, a 9,144-token evaluation returned `400 … exceeds the available
+context size (4096)` and `options.num_ctx` was proven inert over the OpenAI-compatible endpoint. That
+measurement was against an **Ollama** upstream. The backend actually serving today is **vLLM**
+(`system_fingerprint: vllm-0.21.1rc1...-tp2`, GATE0 §8.5), and the capacity ramp found **no input
+ceiling at all** — a sentinel was still recalled at **66,029 served tokens** (GATE0 §8.1). Two Ollama
+hosts remain listed in Open WebUI's Connections panel, so the old finding was real for the upstream it
+tested; it is simply not the one in the path. Asking for it now would cost the box owner time on a
+setting that is not binding.
 
 ---
 
@@ -466,8 +471,15 @@ Consolidated from G0 — these are the only things blocking the whole plan.
 1. What does `cme-dev` serve — which models, what context length? Can we hit the inference server
    directly rather than through Open WebUI?
 2. Can you run `sha256sum` on the evaluator model's weights, and share the digest?
-3. **Can rimpl be hosted on a tailnet node?** (Determines P2's shape.)
+3. **Can rimpl be hosted on a tailnet node?** (Determines P2's shape.) **This is the only question
+   here that blocks production.** Railway is not a tailnet member, so it cannot reach the model no
+   matter what is configured on `cme-dev` — a subnet route helps existing members reach the LAN
+   behind it and does nothing for us. See GATE0 §5.1, corrected 2026-09-05. rimpl needs no GPU.
 4. Is the DGX dedicated to CLICS or shared? What concurrency during a clinic-hours burst?
 5. Who operates the box, and can you commit to **no evaluator model changes between lock and study
    end**, with notice?
-6. Has `OLLAMA_CONTEXT_LENGTH` been raised? At the default 4096 every evaluation fails.
+6. ~~Has `OLLAMA_CONTEXT_LENGTH` been raised?~~ **Withdrawn 2026-09-05** — the served backend is
+   vLLM, not Ollama, and no input ceiling was found up to 66,029 tokens (GATE0 §8.1). See G0 above.
+7. Can we have an API key that is **not tied to a personal Open WebUI account**? The current one
+   carries that account's lifecycle and the UI layer's throttling; a nine-month study wants a service
+   account, or the direct inference endpoint from question 1.
