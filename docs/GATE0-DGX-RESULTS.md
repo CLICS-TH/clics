@@ -191,36 +191,69 @@ raise both, in one change, or the outer one fires first and the logs blame the w
 CLICS runs on Railway. **Railway cannot reach `cme-dev`**, which is on a tailnet with no advertised
 subnet routes, and `cme-dgx` is not a tailnet node at all — it exists only on `cme-dev`'s LAN.
 
-> **Corrected 2026-09-05. This section conflated two different problems and asked for the wrong
-> thing.** What it said before: that everything went "through a personal browser session token on
-> someone else's machine", and that the smallest sufficient ask was
-> `tailscale up --advertise-routes=192.168.1.0/24` on `cme-dev`. Both were wrong by 2026-09-04.
+> **Corrected twice, 2026-09-05. Read the second correction — the first one was also wrong.**
+>
+> As originally written this section said everything went "through a personal browser session token
+> on someone else's machine" and that the smallest sufficient ask was
+> `tailscale up --advertise-routes=192.168.1.0/24`. My first correction replaced that with "the
+> blocker is tailnet membership; the fix is D3, move rimpl onto a tailnet node". **That was written
+> by auditing the documentation against itself.** Master's own history already answered the question,
+> on 2026-09-03, and none of those four commits updated this file.
 
-**Authentication is solved and is not the blocker.** Since 2026-09-04 every probe authenticates with
-an Open WebUI **API key** over `Authorization: Bearer` — `scripts/probe/lib.mjs:135` — and that is the
-*same mechanism the production provider uses*, `rimpl/src/services/providers/local.js:168`. The
-description of a scraped browser session belonged to the 2026-08-31/09-01 round and did not survive it.
+**Authentication is solved.** Since 2026-09-04 every probe authenticates with an Open WebUI **API
+key** over `Authorization: Bearer` (`scripts/probe/lib.mjs:135`), the same mechanism the production
+provider uses (`rimpl/src/services/providers/local.js:168`). The scraped-browser-session description
+belonged to the 2026-08-31/09-01 round and did not survive it.
 
-**The blocker is membership, not routing.** `cme-dev` (`100.68.210.69`) is itself a tailnet node and
-the laptop reaches it fine. Railway is *not* a tailnet member, and advertising a subnet route on
-`cme-dev` does nothing about that: a subnet route lets **existing tailnet members** reach the LAN
-*behind* `cme-dev`. It would let us skip the Open WebUI hop and address `cme-dgx:8888` /
-`192.168.1.178:8000` directly — better latency, honest usage tokens, no per-user key lifecycle — which
-is an optimisation, not the production path. Asking for it as "the smallest sufficient ask" would have
-cost the box owner a change that leaves prod exactly as unable to reach the model as before.
+**Reachability is solved too, and was already proven in production.** `rimpl/Dockerfile` carries an
+optional userspace Tailscale client (`e7441dd`, documented at `docs/deployment.md:32-40`). It is a
+**no-op without `TS_AUTHKEY`** — no key, no `tailscaled`, the image behaves exactly as the buildpack
+did — and every tailscale step is deliberately non-fatal, because rimpl serving Claude is worth more
+than rimpl reaching the tailnet. The proxy is applied **per request to the local provider alone**;
+a global dispatcher would send Anthropic and Supabase down the same tunnel and turn an outage of the
+on-prem box into an outage of everything. A test pins that.
 
-**The actual fix is already decided and is mostly ours.** D3 / P2: move rimpl onto a tailnet node,
-with a Tailscale userspace sidecar inside the Railway container as the documented fallback
-(`LOCAL-MODEL-ROADMAP.md:301`). The only thing that needs the box owner is **G0 item 4** — whether a
-tailnet-joined machine exists to host rimpl on. It needs no GPU.
+With it, a Railway container reached the box and got a real completion back (`531c80b`):
 
-`providers/local.js` already documents that plain `http://` is acceptable across the tailnet precisely
-because WireGuard encrypts it end to end, so nothing else about transport changes once rimpl is a
-member.
+```
+probe :11434    -> TCP OPEN
+probe models    -> 200
+probe inference -> {"id":"chatcmpl-601","model":"qwen3.6-custom:latest",...}
+```
+
+**What is actually blocked is one port, scoped by source.** Sweeping seven ports from the container
+and repeating from a laptop already on the tailnet (`d110a5f`):
+
+| port | from the Railway container | from the laptop | reading |
+|---|---|---|---|
+| 8080, 9999 | REFUSED | REFUSED | nothing listens — the host answers RST |
+| 443, 11434 | **OPEN** | OPEN | reachable by any tailnet node |
+| 80, **3000** | **DROPPED** | OPEN | a deliberate rule, scoped by source address |
+
+The closed-port control is what makes this readable: a host that default-denied would swallow 9999
+too. It refuses it, so the silence on 80 and 3000 is a rule, not a policy. Ruled out along the way:
+the tailnet ACL is **default allow-all**; the laptop is **not** on `cme-dev`'s LAN (different public
+networks, direct WireGuard, 9 ms), so its access is not a local path the container lacks; and 443 has
+a listener whose TLS handshake fails, so it is not an alternate way in.
+
+**So the ask is small and specific**, and it is neither a subnet route nor a machine:
+
+1. allow the Railway node's tailnet address (or its tag) to reach **port 3000** on `cme-dev`; **or**
+2. serve `deepseek-v4-flash-dspark` on **port 11434**, which is already open from the container.
+
+Either one is sufficient. **Port 11434 alone is not**, and this is the trap: it is open, but it
+serves `qwen3.6-custom:latest` through Ollama — a *different model* from the one every number in this
+document was measured on, and one whose replies arrive with `content` empty and the text under
+`reasoning`, which would fail the PIS-7 JSON contract outright. Reaching an open port is not the same
+as reaching the instrument.
+
+D3 (move rimpl on-prem) remains the architecture's answer and is unchanged by any of this; the
+Tailscale client is the roadmap's own named fallback, built for reachability testing, and it does not
+move where PII is processed.
 
 **One durability question remains on the key.** It belongs to an Open WebUI *user account*, so it
-carries that account's lifecycle and any UI-layer throttling. A service account, or the direct
-inference endpoint above, would be sturdier for a nine-month study — worth asking, not blocking.
+carries that account's lifecycle and any UI-layer throttling. A service account would be sturdier for
+a nine-month study — worth asking, not blocking.
 
 ### 5.2 Model Lock inputs — CREC082 §10.2
 

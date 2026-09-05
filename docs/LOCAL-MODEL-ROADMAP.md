@@ -471,10 +471,15 @@ Consolidated from G0 — these are the only things blocking the whole plan.
 1. What does `cme-dev` serve — which models, what context length? Can we hit the inference server
    directly rather than through Open WebUI?
 2. Can you run `sha256sum` on the evaluator model's weights, and share the digest?
-3. **Can rimpl be hosted on a tailnet node?** (Determines P2's shape.) **This is the only question
-   here that blocks production.** Railway is not a tailnet member, so it cannot reach the model no
-   matter what is configured on `cme-dev` — a subnet route helps existing members reach the LAN
-   behind it and does nothing for us. See GATE0 §5.1, corrected 2026-09-05. rimpl needs no GPU.
+3. ~~**Can rimpl be hosted on a tailnet node?**~~ **Reframed 2026-09-05 — this is no longer what
+   blocks production, and the version of this line written earlier today was wrong.** A Railway
+   container ALREADY reaches the box: `rimpl/Dockerfile` carries an optional userspace Tailscale
+   client (`e7441dd`), and `531c80b` got a real completion back through it. The tailnet ACL is
+   default allow-all. What is blocked is **port 3000 on `cme-dev`, dropped from the container while
+   open from a laptop** — a rule scoped by source address, proven against a closed-port control
+   (`d110a5f`). See GATE0 §5.1. The question to ask is now the one below, and it is much smaller.
+   D3 (move rimpl on-prem) is still the architecture's answer, but it is no longer the thing standing
+   between us and a reachable model.
 4. Is the DGX dedicated to CLICS or shared? What concurrency during a clinic-hours burst?
 5. Who operates the box, and can you commit to **no evaluator model changes between lock and study
    end**, with notice?
@@ -483,3 +488,9 @@ Consolidated from G0 — these are the only things blocking the whole plan.
 7. Can we have an API key that is **not tied to a personal Open WebUI account**? The current one
    carries that account's lifecycle and the UI layer's throttling; a nine-month study wants a service
    account, or the direct inference endpoint from question 1.
+8. **THE ONE THAT BLOCKS PRODUCTION.** Either (a) allow our Railway node's tailnet address, or its
+   tag, to reach **port 3000** on `cme-dev`, or (b) serve `deepseek-v4-flash-dspark` on **port
+   11434**, which is already open to us. Either is sufficient. **(b) is not satisfied by what is on
+   11434 today** — that port serves `qwen3.6-custom:latest` through Ollama, a different model from
+   the one every study number was measured on, whose replies put the text under `reasoning` with
+   `content` empty and would fail the PIS-7 JSON contract.
