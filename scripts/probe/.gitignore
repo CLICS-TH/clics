@@ -9,5 +9,12 @@ fixtures/*
 # day, not source. Keep them out of the repo; paste the summary into the roadmap doc instead.
 out/
 *.probe.json
-# probe --out reports: numbers and ids only, but session-specific and regenerated on every run
-report/*.json
+# probe --out reports: numbers and ids only — seven integers per arm, timings, token counts and
+# error stamps. Verified to contain NO free text: no rationale, no transcript, no patient_ref, not a
+# single string over 60 characters. So unlike fixtures/ these are safe to commit, and they are now
+# the versioned experimental record behind docs/METHODOLOGY-local-vs-sonnet.*.md and the model-axis
+# rows in scripts/calibration/prompt-versions.md. They were ignored until 2026-09-04, which left the
+# whole local-vs-Sonnet record one `git clean` from gone and none of its figures reproducible.
+# Logs stay out — they are verbose, session-specific, and add nothing the JSON does not carry.
+report/*.log
+!report/*.json

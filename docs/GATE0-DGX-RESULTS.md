@@ -191,12 +191,69 @@ raise both, in one change, or the outer one fires first and the logs blame the w
 CLICS runs on Railway. **Railway cannot reach `cme-dev`**, which is on a tailnet with no advertised
 subnet routes, and `cme-dgx` is not a tailnet node at all — it exists only on `cme-dev`'s LAN.
 
-Everything in this document went through a personal browser session token on someone else's machine.
-That is a valid way to *measure*; it is not a path CLICS can ship on.
+> **Corrected twice, 2026-09-05. Read the second correction — the first one was also wrong.**
+>
+> As originally written this section said everything went "through a personal browser session token
+> on someone else's machine" and that the smallest sufficient ask was
+> `tailscale up --advertise-routes=192.168.1.0/24`. My first correction replaced that with "the
+> blocker is tailnet membership; the fix is D3, move rimpl onto a tailnet node". **That was written
+> by auditing the documentation against itself.** Master's own history already answered the question,
+> on 2026-09-03, and none of those four commits updated this file.
 
-Smallest sufficient ask: `tailscale up --advertise-routes=192.168.1.0/24` on `cme-dev`, approved in
-the tailnet admin console. One command. `providers/local.js` already documents that plain `http://`
-is acceptable across the tailnet precisely because WireGuard encrypts it end to end.
+**Authentication is solved.** Since 2026-09-04 every probe authenticates with an Open WebUI **API
+key** over `Authorization: Bearer` (`scripts/probe/lib.mjs:135`), the same mechanism the production
+provider uses (`rimpl/src/services/providers/local.js:168`). The scraped-browser-session description
+belonged to the 2026-08-31/09-01 round and did not survive it.
+
+**Reachability is solved too, and was already proven in production.** `rimpl/Dockerfile` carries an
+optional userspace Tailscale client (`e7441dd`, documented at `docs/deployment.md:32-40`). It is a
+**no-op without `TS_AUTHKEY`** — no key, no `tailscaled`, the image behaves exactly as the buildpack
+did — and every tailscale step is deliberately non-fatal, because rimpl serving Claude is worth more
+than rimpl reaching the tailnet. The proxy is applied **per request to the local provider alone**;
+a global dispatcher would send Anthropic and Supabase down the same tunnel and turn an outage of the
+on-prem box into an outage of everything. A test pins that.
+
+With it, a Railway container reached the box and got a real completion back (`531c80b`):
+
+```
+probe :11434    -> TCP OPEN
+probe models    -> 200
+probe inference -> {"id":"chatcmpl-601","model":"qwen3.6-custom:latest",...}
+```
+
+**What is actually blocked is one port, scoped by source.** Sweeping seven ports from the container
+and repeating from a laptop already on the tailnet (`d110a5f`):
+
+| port | from the Railway container | from the laptop | reading |
+|---|---|---|---|
+| 8080, 9999 | REFUSED | REFUSED | nothing listens — the host answers RST |
+| 443, 11434 | **OPEN** | OPEN | reachable by any tailnet node |
+| 80, **3000** | **DROPPED** | OPEN | a deliberate rule, scoped by source address |
+
+The closed-port control is what makes this readable: a host that default-denied would swallow 9999
+too. It refuses it, so the silence on 80 and 3000 is a rule, not a policy. Ruled out along the way:
+the tailnet ACL is **default allow-all**; the laptop is **not** on `cme-dev`'s LAN (different public
+networks, direct WireGuard, 9 ms), so its access is not a local path the container lacks; and 443 has
+a listener whose TLS handshake fails, so it is not an alternate way in.
+
+**So the ask is small and specific**, and it is neither a subnet route nor a machine:
+
+1. allow the Railway node's tailnet address (or its tag) to reach **port 3000** on `cme-dev`; **or**
+2. serve `deepseek-v4-flash-dspark` on **port 11434**, which is already open from the container.
+
+Either one is sufficient. **Port 11434 alone is not**, and this is the trap: it is open, but it
+serves `qwen3.6-custom:latest` through Ollama — a *different model* from the one every number in this
+document was measured on, and one whose replies arrive with `content` empty and the text under
+`reasoning`, which would fail the PIS-7 JSON contract outright. Reaching an open port is not the same
+as reaching the instrument.
+
+D3 (move rimpl on-prem) remains the architecture's answer and is unchanged by any of this; the
+Tailscale client is the roadmap's own named fallback, built for reachability testing, and it does not
+move where PII is processed.
+
+**One durability question remains on the key.** It belongs to an Open WebUI *user account*, so it
+carries that account's lifecycle and any UI-layer throttling. A service account would be sturdier for
+a nine-month study — worth asking, not blocking.
 
 ### 5.2 Model Lock inputs — CREC082 §10.2
 
@@ -207,12 +264,30 @@ environment version.
 
 | field | status |
 |---|---|
-| evaluator prompt version | ✅ `pis7-prompt-a849c6b2` |
+| evaluator prompt version | ⚠️ `pis7-prompt-59561c29` — corrected 2026-09-04, see below |
 | PIS-7 rubric version | ✅ `pis7-weights-08b0cb1a` |
 | exact DeepSeek base release | ❌ not discoverable through the proxy |
 | weight checksum | ❌ |
 | inference engine + version | ❌ |
 | quantization | ❌ |
+
+> **Corrected 2026-09-04 — this row named a prompt that has not shipped since June.** It read
+> `pis7-prompt-a849c6b2` with a ✅. That string is the sha of the **v2** evaluator prompt
+> (`ef65ee7`, 3,357 chars), and it is also not a label any code emits — `versions.js` never
+> prefixed it. Hashing `PIS7_EVALUATOR_PROMPT` at every commit that touched
+> `rimpl/src/lib/prompts.js` gives exactly three versions:
+> `35f265977a8c` (`a1e7cc3`, 1,312 chars) → `a849c6b21b94` (`ef65ee7`, 3,357) →
+> **`59561c292df0`** (`cd29df5`, 4,639, current).
+>
+> `cd29df5` is the CREC082 conformance commit; it inserted the committee-approved 0–5 scale and the
+> per-domain 0/3/5 behavioural anchors. The change was right, but it replaced the instrument and
+> **no calibration run has ever been made against the result** — so the 0.811 quoted for this
+> evaluator elsewhere describes v2, not what runs today. `pis7-weights-08b0cb1a` in the row above is
+> unaffected and still correct.
+>
+> The ⚠️ stands rather than a ✅ because CREC082 §10.2 asks for a *version*, and a version whose
+> agreement with any rater is unmeasured is a weaker claim than the tick implied. Full lineage and
+> consequences: `scripts/calibration/prompt-versions.md`.
 
 `app_settings.evaluator_locked_at = 0` today. Enrolment has not started, so there is still time — but
 none of the four missing fields can be obtained from outside that machine.
@@ -531,3 +606,318 @@ smallest tuning transcript exceeded **10 minutes**. Nothing in CLICS changed in 
 runs sharing the box started it, and it did not recover when they stopped. A measurement programme
 cannot be scheduled against a machine whose large-context latency moves by two orders of magnitude
 without notice (§5.3, §7.6).
+
+### 8.4 The prompt addendum measured — the noise floor is reducible, and the prompt is the lever (2026-09-03/04)
+
+§8.3 left the addendum unmeasured. Measuring it needed one tooling change first: `repeat-consistency.mjs`
+gained `--addendum on|off`, because the v0 baseline in §8.3 predates `PIS7_LOCAL_ADDENDUM` and comparing
+against it with the addendum on would have moved two variables at once. `off` reproduces the pre-addendum
+prompt; `on` is what rimpl ships today.
+
+Three runs, same design throughout — same transcript ×5 repeats, temperature 0, identical prompt each time,
+tuning split, single calls:
+
+| run | box condition | addendum | n (≥2 parsed) | Σ\|Δ\| per fixture | median | max | ≤ D18 bar of 2 |
+|---|---|---|---|---|---|---|---|
+| v0 (§8.3) | contended | off | 10 of 18 | 1, 1, 1, 3, 5, 7, 8, 8, 9, 10 | 6.0 | 10 | 3 / 10 |
+| 2026-09-03 | quiet | **off** | 11 of 18 | 0, 0, 0, 1, 3, 5, 7, 7, 8, 11, 12 | 5 | 12 | 4 / 11 |
+| 2026-09-03/04 | overnight | **on** | **18 of 18** | 0,0,0,0,0,0,0,1,1,1,1,1,2,2,6,7,7,7 | **1.0** | 7 | **14 / 18** |
+
+**Row 1 → row 2 answers §8.3's open question about the box:** with the addendum still off and the box quiet
+(68–76 s per call across the first eleven fixtures), the distribution keeps its shape — median 6.0 → 5, max
+10 → 12. Contention was not what produced the noise floor.
+
+**Row 2 → row 3 is the result.** Paired over the eleven fixtures that completed in both of today's runs, so
+the fixture set is held constant:
+
+| direction | fixtures | detail |
+|---|---|---|
+| improved | 6 | PLE-005 12→0 · PLE-012 11→0 · PLE-011 8→1 · PLE-002 7→0 · PLE-001 5→0 · PLE-008 3→2 |
+| unchanged | 3 | PLE-007 7→7 · PLE-006 1→1 · PLE-032 0→0 |
+| **worse** | **2** | **PLE-030 0→7 · PLE-037 0→2** |
+
+Mean change **−3.09**. Net improvement is large and not attributable to sampling: the same fixtures, the
+same rule, one variable changed.
+
+**The box-quietness confound is separately excluded, because latency and noise are uncorrelated in row 3.**
+PLE-002 was the slowest fixture at 175 s and scored Σ\|Δ\| 0; PLE-030 was among the fastest at 65 s and
+scored 7 — the maximum. Were the variance driven by contention, the slow fixtures would be the noisy ones.
+They are the opposite (latency range 59.4–176.9 s, mean 88.9 s).
+
+What this does **not** establish:
+- **It is not uniform.** Two fixtures moved from perfectly stable to noisy. Nothing yet explains what they
+  share, and "the addendum is safe on every transcript" is not supported by this data.
+- **Self-consistency is not agreement.** A model can become perfectly repeatable and stay systematically
+  apart from the incumbent — these are different properties. The ICC(A,1) of 0.578 in §8.3 was measured
+  *before* the addendum existed (`tuning-agreement-v0.json` records `git_head 496ad1d`, which predates
+  `330dc9a`/`04d2db7`); re-measuring it with the addendum on is the run that decides whether D18 is reachable,
+  and an early in-run example already shows the distinction: on PLE-002 the two local calls agreed with each
+  other exactly (max Δ 0) while the local-vs-Sonnet gap was Σ\|Δ\| 10.
+- **The held-out split is still untouched.** No variant has been taken to `screening-verdict.mjs`.
+
+**Custody, for the third time — and one good sign.** Both daytime runs lost the box partway (10 and 11 of 18
+fixtures). The overnight run completed **18 of 18** with only three fixtures showing any transport failure.
+The box can sustain a full 90-call workload when nothing else is on it; it cannot when something is. That is
+a scheduling constraint, not a model property.
+
+Data: `scripts/probe/report/noise-2026-09-03-noaddendum.json`, `noise-2026-09-03-addendum.json`, against
+`tuning-repeat-v0.json`.
+
+### 8.5 Connecting to the box — the API path, and what is actually behind cme-dev (2026-09-04)
+
+Three wrong diagnoses in one morning are worth recording, because each failure mode reads like a broken box:
+
+| call | result | what it actually means |
+|---|---|---|
+| `POST /v1/chat/completions` | **405** | wrong path, not a blocked route. `discover.mjs` recommends `/v1`; that advice is wrong for this Open WebUI gateway, which serves only `/api/v1` |
+| `POST /api/v1/chat/completions`, no key | **401** | missing auth, not a dead endpoint |
+| any path, short `--max-time` | curl **000** / **28** | the model takes 60–180 s **even for a two-token reply** (measured 99 s). Anything under ~240 s times out on a healthy box |
+
+The working target is `LOCAL_AI_BASE_URL=http://100.68.210.69:3000/api/v1` **with `LOCAL_AI_API_KEY` set**.
+The gitignored `~/.clics-dgx.env` holds that credential under a *different* variable name (`OPENWEBUI_KEY`),
+so sourcing it alone sets nothing the probes read. A working browser chat at `:3000` proves the model is
+alive and proves nothing about the API path — the UI uses its own internal route.
+
+**`cme-dgx` exists.** §5.1 already had this right ("not a tailnet node at all — it exists only on `cme-dev`'s
+LAN"); `docs/domain-concepts.md` did not, and asserted the box "does not exist" / "points at nothing",
+reasoning from its absence on the tailnet. That inference was wrong and is now corrected there. Open WebUI's own
+Connections panel lists the real upstreams behind the gateway:
+
+| connection | kind | note |
+|---|---|---|
+| `http://cme-dgx:8888/v1` | OpenAI-compatible | resolves only inside the box's LAN |
+| `http://192.168.1.178:8000/v1` | OpenAI-compatible | `:8000` is the vLLM/SGLang default — the likely real inference server |
+| `http://192.168.1.111:11434` | Ollama | enabled |
+| `http://192.168.1.177:11434` | Ollama | disabled |
+
+The served backend is vLLM, confirmed by `system_fingerprint: vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2` in
+the response body. These hosts sit on a private `192.168.1.0/24` that cme-dev does **not** advertise as a
+subnet route (`tailscale status --json` → `PrimaryRoutes: None`, `AllowedIPs` only its own /32), so they are
+unreachable from the tailnet today — verified by timeout to the IP and DNS failure on the hostname.
+
+This adds a deploy option that did not exist while `cme-dgx` was believed fictional: `tailscale up
+--advertise-routes=192.168.1.0/24` on cme-dev plus route approval in the Tailscale console would let rimpl
+reach the inference server directly, dropping the Open WebUI hop — the hop that costs an extra network leg
+per clinical turn, applies its own queueing to any throughput measurement, ties access to one human's API
+key, and produced the path confusion above. It needs shell on cme-dev, which is the same ask as §5.1.
+
+### 8.6 Both levers measured against the incumbent — the blocker moved, twice (2026-09-04)
+
+§8.4 measured the addendum's effect on *repeatability*. This section measures what it, and the
+`median3` rule, do to *agreement with Sonnet* — the number D18 actually gates on. Three runs on the
+tuning split, same fixtures, same cloud arm:
+
+| run | prompt | rule | n pairs | ICC(A,1) weighted (95% CI) | bias | Σ\|Δ\| median | JSON % |
+|---|---|---|---|---|---|---|---|
+| v0 (§8.3) | base only | adaptive | 16 | 0.578 (0.116–0.835) | −2.50 | 4 | 100.0% |
+| 2026-09-04 | base + addendum | adaptive | 14 | 0.735 (0.335–0.910) | +0.79 | 2 | 94.4% |
+| 2026-09-04 | base + addendum | **stamped `median3`, ran adaptive** | 15 | 0.762 (0.410–0.917) | +0.00 | 2 | 94.4% |
+
+**Rows 2 and 3 are the same configuration.** `model-agreement.mjs` hardcoded `mode: 'adaptive'` from
+`a79f4d3` until 2026-09-04 while stamping the `--consistency` flag into the report, so the run labelled
+`median3` ran adaptive. Both logs agree call-for-call: 15 rows at `calls 2` and 2 at `calls 2+1 re-ask`,
+where a real `median3` cannot short-circuit and must show `calls 3` on every row. **The 0.735 → 0.762
+difference is re-run variance on n=14/15, not a rule effect, and `median3` remains unmeasured.**
+
+**What improved.** The addendum carries the gain: 0.578 → 0.735, and −2.50 of harshness down to +0.79.
+Read alongside §8.4's repeatability result (Σ|Δ| median 6 → 1, `screening-verdict` now reports
+repeatability **ok**), the blocker §8.3 identified — a model that disagreed with itself as much as with
+the incumbent — is cleared. **The second run adds nothing to that**: it was the same configuration, so
+0.762 and a bias of exactly zero are what a re-run of the same setup produced on a different 15 fixtures.
+Two draws from one configuration landing at 0.735/+0.79 and 0.762/+0.00 is itself the sharpest available
+evidence for how wide the sampling noise is at this n.
+
+**Why it is still `insufficient`, and why that is a different problem.** 0.762 clears the 0.75
+threshold as a point estimate for the first time, but the interval is 0.410–0.917 on 15 pairs. The
+tool computes **4,899 pairs** to lift the lower bound past 0.75 at that point estimate. §8.3's "more
+data does not fix it" therefore still holds, for the same reason: the point estimate has to rise
+(0.90 → 19 pairs, 0.92 → 14). What changed is that it is now within sight rather than out of reach.
+
+**A second constraint, and three wrong answers about it in one day.** The honest number is **94.4%**
+valid JSON, below the 98% bar, down from **97.4%** before the addendum. Getting there took two
+retractions worth recording, because each error had a different shape:
+
+| reading | basis | verdict |
+|---|---|---|
+| 95.4% (103/108) | fixtures, charging transport failures and cloud-arm failures to the model | wrong — pessimistic |
+| 100% (86/86) | replies only, but excluding `Pis7ScoreError` and counting one fixture as one call | **wrong — optimistic, and worse** |
+| **94.4% (34/36)** | every local CALL, excluding only transport, counting re-asks | current |
+
+The second reading is the dangerous one and it was mine. It excluded `Pis7ScoreError` on the theory
+that it meant "timeout", when `rimpl/src/lib/pis7.js` throws it for `invalid_json` and
+`invalid_scores` and `consistency.js` re-raises it only after the re-ask budget is spent — the model
+failing its contract N+1 times, which is precisely what this bar exists to catch. It also counted an
+adaptive row as one attempt when the row is 2–3 calls plus re-asks. Both errors pushed the same way.
+**A measurement error that flatters the model is not symmetric with one that libels it:** the second
+gets caught by the next run, the first ships.
+
+The underlying ambiguity is real and cannot be fixed by inspecting error strings. `chatCompletion`
+never throws — a timeout returns `{ ok:false, text:'' }`, the empty string parses to `{}`, the schema
+fails, and the result is a `Pis7ScoreError` indistinguishable from genuine garbage. Fixed 2026-09-04
+at the call sites, where `ok` is still visible: transport is stamped there, both probe scripts now
+persist the error kind, and both consumers count calls rather than fixtures. Reports written earlier
+cannot be re-scored and are flagged as a floor rather than a rate.
+
+**And then the "regression" did not survive the arithmetic either.** Stated as 97.4% → 94.4% it reads
+like a finding; stated as counts it is **1 bad parse in 38 versus 2 in 36**. Fisher exact, two-sided:
+**p = 0.61**. Re-classifying one of them (below) makes it 1 in 38 versus 3 in 71: **p = 1.00**. Every
+interval here straddles the bar — v0 is 86.5–99.5%, the addendum run 81.9–98.5% — so **the pre-addendum
+baseline was already under 98% and indistinguishable from it**, and at n ≈ 70 a prompt whose true rate
+is exactly 98% would still report a lower bound near 92%. Clearing the bar with 95% confidence needs
+**189 consecutive clean calls**, about four hours of serial box time. *This bar cannot be adjudicated at
+the sample sizes we have been running, in either direction.*
+
+The re-classification is worth recording as method. Input tokens are deterministic, so a re-ask that
+billed **zero** input was never a reply: `tuning-agreement-addendum.json` PLE-001 shows `calls 2,
+json_retries 1` with `extra_input_tokens` equal to exactly one call's input, and a `localMs` of 353.6 s
+that decomposes as the 180 s probe timeout plus two ~87 s calls. It was a timeout counted as a bad
+parse — precisely the ambiguity §8.6 above was written about, in a report that predates the fix.
+
+So the honest position on JSON validity: **no measured regression, an unmeasurable bar, and a mechanism
+worth fixing on its own merits** (below) rather than because a number moved.
+
+**Do not report the per-domain ICCs from these runs as findings.** d1 reads 0.055 → 0.663 → 0.294
+across the three runs. At n = 14–15 the per-domain intervals are wide enough that a swing of that
+size is what chance produces; the tempting story ("the addendum rescued d1, at d6's expense") does
+not survive the third measurement, in which d6 recovers to 0.745 and d1 collapses. One signal is
+stable enough to act on:
+
+| | v0 | addendum | median3 |
+|---|---|---|---|
+| **d4 Iterative Inquiry** (weight 0.15) | 0.425 | 0.552 | 0.530 |
+
+**d4 is the weakest domain in all three runs**, and it is the hardest kind of weak: the two models'
+means agree (Δ −0.07) while their per-case ranking does not. There is no offset to subtract, so
+calibration cannot touch it — only the domain's criterion or its prompt text can. If the point
+estimate has to rise, d4 is where the headroom is.
+
+**`median3` is still unmeasured.** The run that carried its name did not use it. The latency figures
+first attributed to it (p50 193 s, range 173–686 s, 3 of 18 fixtures lost) are therefore the cost of a
+second *adaptive* run on a slow afternoon — a real datum about the box, and no datum at all about the
+rule. A true `median3` makes three calls on every fixture with no short-circuit, so its cost against the
+480 s eval deadline at `eval_drain_concurrency=1` is strictly worse than anything measured here, and
+still unknown.
+
+Data: `scripts/probe/report/tuning-agreement-{v0,addendum,median3}.json`; rows recorded in
+`scripts/calibration/prompt-versions.md`. Held-out split still untouched.
+
+### 8.7 The addendum's real JSON hazard — quoting, not forgetting (2026-09-04)
+
+Even with the regression unproven, one mechanism in the addendum is worth removing because it is a
+*known* way to break a reply, and it was introduced by the change that lifted ICC.
+
+The symmetric evidence rule is the ICC-bearing instruction, and it multiplied how often the model must
+place verbatim transcript text **inside a rationale** — which is a JSON string. Counted over the local
+scores in these reports: the base prompt's asymmetric rule ("quote for 4–5") fires on about **3%** of
+domain scores, because only 4 of 126 scores were 4–5. The symmetric rule fires on roughly **55%** —
+every score that is not exactly 3. That is a ~17× increase in embedded physician text in the one place
+a stray `"` is fatal: `rimpl/src/lib/parse.js` takes the first `{` to the last `}` and hands it to
+`JSON.parse`. `model-agreement.mjs` already records having seen exactly this failure once, from the
+cloud arm. Mean output rose 612 → 664 tokens, consistent with more quoting; truncation is ruled out
+against a 4096 ceiling.
+
+**This is a different failure from `04d2db7`.** That one was the model *forgetting to emit JSON* when
+the addendum displaced "Return ONLY valid JSON" from the end, and restating the contract fixed it. This
+one is the model emitting almost-JSON whose strings now routinely carry a quote character — restating
+the contract does nothing about it, which is why the contract is restated and the rate did not recover.
+The addendum's own worked examples were double-quoted: it was demonstrating the character it could not
+afford in the output.
+
+Fix (prompt only, no rule weakened): the worked examples re-punctuated to single quotes so the addendum
+contains **zero** `"` characters, plus a short block instructing single quotes inside rationales *with
+the reason given* — placed **before** the output-contract paragraph so the contract stays the literal
+last thing in the assembled prompt, the invariant `04d2db7` established and which now has a test.
+Provenance moved on its own: `+local-cae23b1a5f37` → **`+local-c5ffe572aa81`**; the base prompt and
+`pis7PromptFor('anthropic')` are byte-identical, so the cloud arm and the rubric pin are untouched.
+
+**This invalidates the 0.735 measurement**, which belongs to the old sha. ICC, bias, Σ|Δ| and JSON% all
+have to be re-measured together — a punctuation change inside a scoring prompt is not *guaranteed*
+score-neutral just because it was not meant to move scores. And when that run returns, a JSON% near 94%
+will not be evidence the edit failed, for the reason given in §8.6.
+
+Not done, deliberately: `parse.js`'s greedy `/\{[\s\S]*\}/` is a real amplifier — a balanced-brace
+extractor would survive prose the current one cannot — but it is shared with the cloud arm and with
+production, so changing it would invalidate the cloud measurements too. Separate decision.
+
+### 8.8 The held-out gate run — and why 0.436 is a fact about the corpus, not the model (2026-09-04)
+
+The held-out split was reserved on 2026-09-02 (D13) and opened once, on 2026-09-04 at 21:52 local,
+after `scripts/probe/canary.sh` proved the box could complete a real evaluation. It is spent.
+
+```
+split heldout (reserved 2026-09-02T04:09:06Z · git_head 496ad1d · seed 20260901)
+local deepseek-v4-flash-dspark   cloud claude-sonnet-4-6
+prompt pis7-prompt-59561c29+local-c5ffe572aa81   consistency adaptive   arm_attempts 4
+n = 8 · 8/8 paired · zero losses · 16 local calls · 0 re-asks · JSON 16/16 = 100%
+ICC(A,1) weighted composite   0.436 (0.000–0.873)      threshold 0.75 on the LOWER bound
+per-domain  d1 0.13 · d2 0.26 · d3 0.52 · d4 0.00 · d5 0.53 · d6 −0.17 · d7 0.63
+Σ|Δ| agreement median 2   ·   local p50 162 s / cloud p50 20 s
+D18 screening verdict: INSUFFICIENT — the interval spans 0.75
+pairs needed at the observed 0.436: never (the point estimate is not above the threshold)
+```
+
+Archived verbatim as `scripts/probe/report/heldout-c5ffe-adaptive.verdict.json`; the report it was
+computed from is committed beside it.
+
+**Two tuning runs on the same prompt were never recorded, and they are the context for this one.**
+Both ran `+local-c5ffe572aa81` with `adaptive`, ninety minutes apart:
+
+| run | n | ICC(A,1) weighted | JSON |
+|---|---|---|---|
+| `tuning-agreement-c5ffe-adaptive` 16:48 | **18/18**, nothing lost | **0.611** (0.202–0.839) | 37/37 |
+| `tuning-agreement-c5ffe-adaptive-rep2` 18:40 | **12/18**, six lost | **0.795** (0.407–0.940) | 30/30 |
+
+Same model, same prompt, same rule, same box. The run that lost a third of its fixtures scored
+0.18 higher. That is the survivorship effect of §8.6 measured cleanly for the first time, and
+`methodology-figures.mjs` now quantifies it for every run that lost anything: the lost fixtures'
+mean agreement Σ|Δ| exceeded the survivors' in **4 of 4** runs (+1.12, +1.39, +2.11, +0.38). Harder
+transcripts are longer, so they are both the ones a flaky box drops and the ones the models disagree
+about. Between them, 0.611 and 0.795 are also the honest width of run-to-run noise at n≈15.
+
+#### Why the held-out number is lower — the denominator, not the numerator
+
+An ICC is a variance ratio, and on the held-out split the denominator collapses.
+
+| run | n | cloud SD | sd*between* | sd*error* | ratio | ICC |
+|---|---|---|---|---|---|---|
+| **heldout** | 8 | **11.11** | 5.98 | **7.02** | **0.85** | 0.436 |
+| tuning c5ffe | 18 | 17.22 | 11.94 | 9.73 | 1.23 | 0.611 |
+| tuning c5ffe rep2 | 12 | 18.36 | 14.56 | 7.72 | 1.89 | 0.795 |
+| tuning addendum | 14 | 16.45 | 13.00 | 8.01 | 1.62 | 0.735 |
+| tuning median3 | 15 | 17.93 | 14.33 | 8.26 | 1.73 | 0.762 |
+| tuning v0 | 16 | 16.72 | 11.38 | 8.23 | 1.38 | 0.578 |
+
+`sdBetween` is how far the *episodes* stand apart; `sdError` is how far the two *scorers* stand apart
+on one episode. **On held-out the local model's absolute disagreement was the smallest of the entire
+programme** — error SD 7.02 against 7.72–9.73 on every tuning run, agreement Σ|Δ| median 2, zero
+parse failures. The ICC still fell, because held-out is the only arm where the ratio drops below 1:
+the eight episodes differ from each other by *less* than the two scorers differ on the same episode.
+
+Pooling the cloud composite for all 26 fixtures across every run (the cloud prompt was byte-identical
+throughout): **held-out spans 32.0–62.0, mean 43.50, SD 11.11**; **tuning spans 33.8–88.8, mean 58.40,
+SD 17.28**. The held-out arm contains no high-scoring episode at all. Enumerating all
+C(26,8) = 1,562,275 subsets exactly, **6.47%** (101,028) are this narrow or narrower. The seeded draw
+was unlucky, not freakish — and it was drawn before any tuning, which is the control working as
+designed, not a flaw in it.
+
+This is the same failure mode already measured on human raters at G0.5: ICC −0.315 on n=5, with
+between-episode SD 2.44 against error SD 2.69. **Restriction of range is the recurring finding of
+this programme, and it belongs to the corpus, not to any model.**
+
+#### What may and may not be concluded
+
+- ✅ **The screening gate returns `insufficient`, and no further run on these 26 episodes can change
+  that.** At a point estimate of 0.436 the pairs-needed ladder has no rung. `evaluate` stays on
+  `claude-sonnet-4-6` and the Track A / Track B split of 2026-08-24 is unchanged.
+- ❌ **Not "the local model disagrees with the incumbent."** The interval 0.000–0.873 excludes neither
+  good nor poor agreement, and the absolute-disagreement figures point the other way.
+- ❌ **Not "the local model is fit."** n=8 cannot support that either, and D18 is explicit that a
+  screening gate *can never accept* a candidate — two models can agree closely and be wrong the same
+  way. Acceptance needs the decisive gate against human raters, which has never been runnable.
+- 🚩 **The binding constraint is the corpus.** A 26-episode set whose composites cluster cannot
+  certify any scorer. What is needed is episodes selected to span the scale, and a reference standard
+  with measured reproducibility — the incumbent's own self-agreement is ICC 0.594 (§7.3), and its
+  prompt has not been calibrated since `cd29df5` (see §5.2).
+
+Full method, every figure and its regeneration command: `docs/METHODOLOGY-local-vs-sonnet.en.md` /
+`.th.md`. Regenerate the numbers above with `node scripts/probe/report/methodology-figures.mjs`.

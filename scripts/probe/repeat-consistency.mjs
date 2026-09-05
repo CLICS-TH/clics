@@ -215,7 +215,13 @@ for (const fx of fixtures) {
     console.log(`  ${good.length}/${REPEATS} parsed${CONSISTENCY !== 'off' && arm === 'local' ? `   calls ${callsUsed.join(',')}` : ''}`
       + (errs.length ? `   ${yellow(errs.join(', '))}` : '')
       + (good.length < REPEATS ? dim(`   mean ${Math.round(runs.reduce((a, r) => a + r.ms, 0) / runs.length / 1000)}s`) : ''));
-    results.push({ fixture: fx.id, arm, runs: good.map((r) => r.scores), ms: runs.map((r) => r.ms), calls: runs.map((r) => r.calls ?? null) });
+    // `errors` carries the transport/parse distinction into the REPORT, not just the console. Without it
+    // a consumer can only compare runs.length against ms.length, which reads every box timeout as a
+    // model that broke its JSON contract — the exact mistake the comment in localArm() warns about, and
+    // the one screening-verdict.mjs was making (it charged 4 transport failures to parseability, turning
+    // a clean 86/86 into a reported 95.4% and inventing a gate blocker).
+    results.push({ fixture: fx.id, arm, runs: good.map((r) => r.scores), ms: runs.map((r) => r.ms),
+      calls: runs.map((r) => r.calls ?? null), errors: runs.map((r) => r.error ?? null) });
   }
 }
 

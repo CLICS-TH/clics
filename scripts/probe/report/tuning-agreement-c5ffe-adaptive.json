@@ -1,0 +1,1158 @@
+{
+  "split": {
+    "name": "tuning",
+    "reserved_at": "2026-09-02T04:09:06.961Z",
+    "git_head": "496ad1d63a0c51d32f4704d7e8072f24247e7e28"
+  },
+  "prompt_version": "pis7-prompt-59561c29",
+  "local_prompt_version": "pis7-prompt-59561c29+local-c5ffe572aa81",
+  "consistency": "adaptive",
+  "localModel": "deepseek-v4-flash-dspark",
+  "cloudModel": "claude-sonnet-4-6",
+  "n": 18,
+  "rows": [
+    {
+      "id": "PLE-001",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 4,
+        "d4": 3,
+        "d5": 2,
+        "d6": 3,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 4,
+        "d2": 3,
+        "d3": 4,
+        "d4": 3,
+        "d5": 2,
+        "d6": 2,
+        "d7": 3
+      },
+      "localMs": 226311,
+      "cloudMs": 25694,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            4,
+            3,
+            2,
+            3,
+            3
+          ],
+          [
+            3,
+            3,
+            4,
+            3,
+            2,
+            3,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 5904,
+        "extra_output_tokens": 535,
+        "latency_ms": 226311
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-002",
+      "local": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 4,
+        "d4": 4,
+        "d5": 3,
+        "d6": 4,
+        "d7": 4
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 2,
+        "d4": 2,
+        "d5": 2,
+        "d6": 2,
+        "d7": 3
+      },
+      "localMs": 293724,
+      "cloudMs": 23173,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 5,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            4,
+            4,
+            4,
+            4,
+            3,
+            4,
+            4
+          ],
+          [
+            3,
+            4,
+            3,
+            3,
+            3,
+            3,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 5899,
+        "extra_output_tokens": 819,
+        "latency_ms": 293724
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-005",
+      "local": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 3,
+        "d4": 4,
+        "d5": 4,
+        "d6": 4,
+        "d7": 4
+      },
+      "cloud": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 3,
+        "d4": 4,
+        "d5": 4,
+        "d6": 4,
+        "d7": 3
+      },
+      "localMs": 262039,
+      "cloudMs": 25346,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            4,
+            4,
+            3,
+            4,
+            4,
+            4,
+            4
+          ],
+          [
+            4,
+            4,
+            3,
+            4,
+            4,
+            4,
+            4
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 7979,
+        "extra_output_tokens": 659,
+        "latency_ms": 262039
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-006",
+      "local": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 3,
+        "d4": 3,
+        "d5": 4,
+        "d6": 4,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 4,
+        "d2": 5,
+        "d3": 4,
+        "d4": 4,
+        "d5": 4,
+        "d6": 4,
+        "d7": 3
+      },
+      "localMs": 195151,
+      "cloudMs": 30618,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            4,
+            4,
+            3,
+            3,
+            4,
+            4,
+            3
+          ],
+          [
+            4,
+            4,
+            3,
+            3,
+            4,
+            4,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 7112,
+        "extra_output_tokens": 668,
+        "latency_ms": 195151
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-007",
+      "local": {
+        "d1": 2,
+        "d2": 2,
+        "d3": 2,
+        "d4": 2,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 2,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "localMs": 180295,
+      "cloudMs": 24793,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 3,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            2,
+            2,
+            2,
+            2,
+            1,
+            1,
+            2
+          ],
+          [
+            3,
+            3,
+            2,
+            2,
+            2,
+            1,
+            2
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 4090,
+        "extra_output_tokens": 637,
+        "latency_ms": 180295
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-008",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 3,
+        "d5": 2,
+        "d6": 2,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 2,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 3
+      },
+      "localMs": 154303,
+      "cloudMs": 21642,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 4,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            3,
+            3,
+            2,
+            2,
+            3
+          ],
+          [
+            3,
+            3,
+            2,
+            2,
+            2,
+            1,
+            2
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 4241,
+        "extra_output_tokens": 576,
+        "latency_ms": 154303
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-011",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 3,
+        "d5": 3,
+        "d6": 2,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 4,
+        "d4": 3,
+        "d5": 4,
+        "d6": 3,
+        "d7": 3
+      },
+      "localMs": 189458,
+      "cloudMs": 24680,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 4609,
+        "extra_output_tokens": 891,
+        "latency_ms": 189458
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-012",
+      "local": {
+        "d1": 2,
+        "d2": 3,
+        "d3": 3,
+        "d4": 2,
+        "d5": 2,
+        "d6": 1,
+        "d7": 2
+      },
+      "cloud": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 4,
+        "d4": 4,
+        "d5": 4,
+        "d6": 2,
+        "d7": 3
+      },
+      "localMs": 176784,
+      "cloudMs": 27548,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 5,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            2,
+            3,
+            3,
+            2,
+            2,
+            1,
+            2
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            3,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 4635,
+        "extra_output_tokens": 711,
+        "latency_ms": 176784
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-030",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 2,
+        "d4": 3,
+        "d5": 2,
+        "d6": 2,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 2,
+        "d4": 4,
+        "d5": 1,
+        "d6": 2,
+        "d7": 3
+      },
+      "localMs": 173387,
+      "cloudMs": 22012,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            2,
+            3,
+            2,
+            2,
+            3
+          ],
+          [
+            3,
+            3,
+            2,
+            3,
+            2,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 4103,
+        "extra_output_tokens": 802,
+        "latency_ms": 173387
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-032",
+      "local": {
+        "d1": 3,
+        "d2": 2,
+        "d3": 2,
+        "d4": 2,
+        "d5": 2,
+        "d6": 1,
+        "d7": 2
+      },
+      "cloud": {
+        "d1": 2,
+        "d2": 2,
+        "d3": 1,
+        "d4": 2,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "localMs": 178928,
+      "cloudMs": 18886,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            2,
+            2,
+            2,
+            2,
+            1,
+            2
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            2,
+            1,
+            2
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 7944,
+        "extra_output_tokens": 797,
+        "latency_ms": 178928
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-037",
+      "local": {
+        "d1": 2,
+        "d2": 2,
+        "d3": 2,
+        "d4": 2,
+        "d5": 2,
+        "d6": 1,
+        "d7": 2
+      },
+      "cloud": {
+        "d1": 2,
+        "d2": 2,
+        "d3": 2,
+        "d4": 2,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "localMs": 184887,
+      "cloudMs": 19789,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 1,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            2,
+            2,
+            2,
+            2,
+            2,
+            1,
+            2
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            1,
+            1,
+            2
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 11902,
+        "extra_output_tokens": 812,
+        "latency_ms": 184886
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-041",
+      "local": {
+        "d1": 3,
+        "d2": 2,
+        "d3": 2,
+        "d4": 2,
+        "d5": 2,
+        "d6": 1,
+        "d7": 2
+      },
+      "cloud": {
+        "d1": 2,
+        "d2": 2,
+        "d3": 2,
+        "d4": 2,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "localMs": 138780,
+      "cloudMs": 18964,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            2,
+            2,
+            2,
+            2,
+            1,
+            2
+          ],
+          [
+            3,
+            2,
+            2,
+            2,
+            2,
+            1,
+            2
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 4521,
+        "extra_output_tokens": 573,
+        "latency_ms": 138780
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-042",
+      "local": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 4,
+        "d4": 4,
+        "d5": 3,
+        "d6": 2,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 3,
+        "d5": 2,
+        "d6": 1,
+        "d7": 3
+      },
+      "localMs": 141306,
+      "cloudMs": 27319,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 5,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            4,
+            4,
+            4,
+            4,
+            3,
+            2,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            3,
+            2,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 4316,
+        "extra_output_tokens": 682,
+        "latency_ms": 141306
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-045",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 2,
+        "d4": 3,
+        "d5": 2,
+        "d6": 2,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 2
+      },
+      "localMs": 127787,
+      "cloudMs": 64438,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 1,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            2,
+            3,
+            2,
+            2,
+            3
+          ],
+          [
+            3,
+            3,
+            2,
+            3,
+            2,
+            1,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 4084,
+        "extra_output_tokens": 612,
+        "latency_ms": 127787
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-046",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 2,
+        "d5": 2,
+        "d6": 2,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 4,
+        "d4": 3,
+        "d5": 1,
+        "d6": 1,
+        "d7": 3
+      },
+      "localMs": 183681,
+      "cloudMs": 22101,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 1,
+        "sum_delta": 2,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            3,
+            2,
+            2,
+            2,
+            3
+          ],
+          [
+            3,
+            3,
+            4,
+            3,
+            2,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 5625,
+        "extra_output_tokens": 890,
+        "latency_ms": 183681
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-047",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 4,
+        "d5": 3,
+        "d6": 2,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 4,
+        "d5": 3,
+        "d6": 1,
+        "d7": 3
+      },
+      "localMs": 166224,
+      "cloudMs": 21286,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            3,
+            4,
+            3,
+            2,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            4,
+            3,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 7907,
+        "extra_output_tokens": 737,
+        "latency_ms": 166224
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-051",
+      "local": {
+        "d1": 3,
+        "d2": 4,
+        "d3": 4,
+        "d4": 3,
+        "d5": 4,
+        "d6": 2,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 5,
+        "d2": 5,
+        "d3": 5,
+        "d4": 4,
+        "d5": 4,
+        "d6": 3,
+        "d7": 4
+      },
+      "localMs": 167899,
+      "cloudMs": 27914,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "first-of-agreeing-pair",
+        "calls": 2,
+        "max_delta": 0,
+        "sum_delta": 0,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            4,
+            4,
+            3,
+            4,
+            2,
+            3
+          ],
+          [
+            3,
+            4,
+            4,
+            3,
+            4,
+            2,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 8267,
+        "extra_output_tokens": 892,
+        "latency_ms": 167899
+      },
+      "localError": null,
+      "localCalls": 2,
+      "localJsonRetries": 0,
+      "cloudError": null
+    },
+    {
+      "id": "PLE-052",
+      "local": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 3,
+        "d4": 4,
+        "d5": 4,
+        "d6": 3,
+        "d7": 3
+      },
+      "cloud": {
+        "d1": 4,
+        "d2": 4,
+        "d3": 4,
+        "d4": 4,
+        "d5": 5,
+        "d6": 3,
+        "d7": 4
+      },
+      "localMs": 215534,
+      "cloudMs": 83486,
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "adaptive",
+        "rule": "median-of-3",
+        "calls": 3,
+        "max_delta": 2,
+        "sum_delta": 7,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            2,
+            3,
+            4,
+            4,
+            3,
+            3
+          ],
+          [
+            4,
+            4,
+            4,
+            4,
+            5,
+            4,
+            4
+          ],
+          [
+            3,
+            3,
+            3,
+            4,
+            4,
+            3,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 18550,
+        "extra_output_tokens": 1332,
+        "latency_ms": 215534
+      },
+      "localError": null,
+      "localCalls": 3,
+      "localJsonRetries": 0,
+      "cloudError": null
+    }
+  ]
+}

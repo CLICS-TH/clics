@@ -1,0 +1,597 @@
+{
+  "probe": "context-limit",
+  "at": "2026-09-02T06:06:51.584Z",
+  "target": {
+    "baseUrl": "http://100.68.210.69:3000/api",
+    "model": "deepseek-v4-flash-dspark"
+  },
+  "config": {
+    "synthetic": true,
+    "sizes": [
+      8000,
+      16000,
+      24000,
+      32000,
+      48000,
+      64000,
+      96000
+    ],
+    "shape": "both",
+    "repeats": 2,
+    "chat_timeout_ms": 100000,
+    "chat_latency_limit_ms": 60000
+  },
+  "rows": [
+    {
+      "label": "synthetic-8000",
+      "estimated_tokens": 8000,
+      "shape": "eval",
+      "repeats": 2,
+      "sent_chars": 36893,
+      "reported_prompt_tokens": [
+        6593,
+        6593
+      ],
+      "reported_prompt_tokens_mean": 6593,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 59185.03133299999,
+      "latency_p95_ms": 181456.82345800003,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 6593,
+          "sentinel_recalled": true,
+          "latency_ms": 181456.82345800003,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 6593,
+          "sentinel_recalled": true,
+          "latency_ms": 59185.03133299999,
+          "error": null
+        }
+      ]
+    },
+    {
+      "label": "synthetic-8000",
+      "estimated_tokens": 8000,
+      "shape": "chat",
+      "repeats": 2,
+      "sent_chars": 35177,
+      "reported_prompt_tokens": [
+        6153,
+        6153
+      ],
+      "reported_prompt_tokens_mean": 6153,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 59639.19420799997,
+      "latency_p95_ms": 78081.84479099998,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 6153,
+          "sentinel_recalled": true,
+          "latency_ms": 78081.84479099998,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 6153,
+          "sentinel_recalled": true,
+          "latency_ms": 59639.19420799997,
+          "error": null
+        }
+      ]
+    },
+    {
+      "label": "synthetic-16000",
+      "estimated_tokens": 16000,
+      "shape": "eval",
+      "repeats": 2,
+      "sent_chars": 68925,
+      "reported_prompt_tokens": [
+        12001,
+        12001
+      ],
+      "reported_prompt_tokens_mean": 12001,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 75572.39454200002,
+      "latency_p95_ms": 203500.75900000002,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 12001,
+          "sentinel_recalled": true,
+          "latency_ms": 75572.39454200002,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 12001,
+          "sentinel_recalled": true,
+          "latency_ms": 203500.75900000002,
+          "error": null
+        }
+      ]
+    },
+    {
+      "label": "synthetic-16000",
+      "estimated_tokens": 16000,
+      "shape": "chat",
+      "repeats": 2,
+      "sent_chars": 67209,
+      "reported_prompt_tokens": [
+        11561,
+        11561
+      ],
+      "reported_prompt_tokens_mean": 11561,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 54167.234916999936,
+      "latency_p95_ms": 74442.95541699999,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 11561,
+          "sentinel_recalled": true,
+          "latency_ms": 74442.95541699999,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 11561,
+          "sentinel_recalled": true,
+          "latency_ms": 54167.234916999936,
+          "error": null
+        }
+      ]
+    },
+    {
+      "label": "synthetic-24000",
+      "estimated_tokens": 24000,
+      "shape": "eval",
+      "repeats": 2,
+      "sent_chars": 100880,
+      "reported_prompt_tokens": [
+        17396,
+        17396
+      ],
+      "reported_prompt_tokens_mean": 17396,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 48046.73250000004,
+      "latency_p95_ms": 77801.44299999997,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 17396,
+          "sentinel_recalled": true,
+          "latency_ms": 48046.73250000004,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 17396,
+          "sentinel_recalled": true,
+          "latency_ms": 77801.44299999997,
+          "error": null
+        }
+      ]
+    },
+    {
+      "label": "synthetic-24000",
+      "estimated_tokens": 24000,
+      "shape": "chat",
+      "repeats": 2,
+      "sent_chars": 99164,
+      "reported_prompt_tokens": [
+        16956,
+        16956
+      ],
+      "reported_prompt_tokens_mean": 16956,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 78885.77774999989,
+      "latency_p95_ms": 83311.85074999998,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 16956,
+          "sentinel_recalled": true,
+          "latency_ms": 83311.85074999998,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 16956,
+          "sentinel_recalled": true,
+          "latency_ms": 78885.77774999989,
+          "error": null
+        }
+      ]
+    },
+    {
+      "label": "synthetic-32000",
+      "estimated_tokens": 32000,
+      "shape": "eval",
+      "repeats": 2,
+      "sent_chars": 132912,
+      "reported_prompt_tokens": [
+        22804,
+        22804
+      ],
+      "reported_prompt_tokens_mean": 22804,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 47932.57341700001,
+      "latency_p95_ms": 51988.2910829999,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 22804,
+          "sentinel_recalled": true,
+          "latency_ms": 51988.2910829999,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 22804,
+          "sentinel_recalled": true,
+          "latency_ms": 47932.57341700001,
+          "error": null
+        }
+      ]
+    },
+    {
+      "label": "synthetic-32000",
+      "estimated_tokens": 32000,
+      "shape": "chat",
+      "repeats": 2,
+      "sent_chars": 131196,
+      "reported_prompt_tokens": [
+        22364,
+        22364
+      ],
+      "reported_prompt_tokens_mean": 22364,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 75867.0162500001,
+      "latency_p95_ms": 96828.47550000018,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 22364,
+          "sentinel_recalled": true,
+          "latency_ms": 96828.47550000018,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 22364,
+          "sentinel_recalled": true,
+          "latency_ms": 75867.0162500001,
+          "error": null
+        }
+      ]
+    },
+    {
+      "label": "synthetic-48000",
+      "estimated_tokens": 48000,
+      "shape": "eval",
+      "repeats": 2,
+      "sent_chars": 196899,
+      "reported_prompt_tokens": [
+        33607,
+        33607
+      ],
+      "reported_prompt_tokens_mean": 33607,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 43522.93108300003,
+      "latency_p95_ms": 78042.53358299984,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 33607,
+          "sentinel_recalled": true,
+          "latency_ms": 78042.53358299984,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 33607,
+          "sentinel_recalled": true,
+          "latency_ms": 43522.93108300003,
+          "error": null
+        }
+      ]
+    },
+    {
+      "label": "synthetic-48000",
+      "estimated_tokens": 48000,
+      "shape": "chat",
+      "repeats": 2,
+      "sent_chars": 195183,
+      "reported_prompt_tokens": [
+        33167,
+        33167
+      ],
+      "reported_prompt_tokens_mean": 33167,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 66787.84179099998,
+      "latency_p95_ms": 94403.08183299983,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 33167,
+          "sentinel_recalled": true,
+          "latency_ms": 94403.08183299983,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 33167,
+          "sentinel_recalled": true,
+          "latency_ms": 66787.84179099998,
+          "error": null
+        }
+      ]
+    },
+    {
+      "label": "synthetic-64000",
+      "estimated_tokens": 64000,
+      "shape": "eval",
+      "repeats": 2,
+      "sent_chars": 260886,
+      "reported_prompt_tokens": [
+        44410,
+        44410
+      ],
+      "reported_prompt_tokens_mean": 44410,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 37636.34837500006,
+      "latency_p95_ms": 102010.70245800004,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 44410,
+          "sentinel_recalled": true,
+          "latency_ms": 102010.70245800004,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 44410,
+          "sentinel_recalled": true,
+          "latency_ms": 37636.34837500006,
+          "error": null
+        }
+      ]
+    },
+    {
+      "label": "synthetic-64000",
+      "estimated_tokens": 64000,
+      "shape": "chat",
+      "repeats": 2,
+      "sent_chars": 259170,
+      "reported_prompt_tokens": [
+        43970,
+        43970
+      ],
+      "reported_prompt_tokens_mean": 43970,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 106538.2401670001,
+      "latency_p95_ms": 107238.16837499989,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 43970,
+          "sentinel_recalled": true,
+          "latency_ms": 107238.16837499989,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 43970,
+          "sentinel_recalled": true,
+          "latency_ms": 106538.2401670001,
+          "error": null
+        }
+      ]
+    },
+    {
+      "label": "synthetic-96000",
+      "estimated_tokens": 96000,
+      "shape": "eval",
+      "repeats": 2,
+      "sent_chars": 388937,
+      "reported_prompt_tokens": [
+        66029,
+        66029
+      ],
+      "reported_prompt_tokens_mean": 66029,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 48219.4262079997,
+      "latency_p95_ms": 124436.47829200025,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 66029,
+          "sentinel_recalled": true,
+          "latency_ms": 124436.47829200025,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 66029,
+          "sentinel_recalled": true,
+          "latency_ms": 48219.4262079997,
+          "error": null
+        }
+      ]
+    },
+    {
+      "label": "synthetic-96000",
+      "estimated_tokens": 96000,
+      "shape": "chat",
+      "repeats": 2,
+      "sent_chars": 387221,
+      "reported_prompt_tokens": [
+        65589,
+        65589
+      ],
+      "reported_prompt_tokens_mean": 65589,
+      "reported_prompt_tokens_stable": true,
+      "sentinel_hits": 2,
+      "sentinel_all_repeats": true,
+      "ok_count": 2,
+      "fail_count": 0,
+      "latency_p50_ms": 91434.13362500025,
+      "latency_p95_ms": 92270.72683299985,
+      "failure_statuses": [],
+      "calls": [
+        {
+          "repeat": 1,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 65589,
+          "sentinel_recalled": true,
+          "latency_ms": 92270.72683299985,
+          "error": null
+        },
+        {
+          "repeat": 2,
+          "ok": true,
+          "status": 200,
+          "reported_prompt_tokens": 65589,
+          "sentinel_recalled": true,
+          "latency_ms": 91434.13362500025,
+          "error": null
+        }
+      ]
+    }
+  ],
+  "decision": {
+    "transcript_cap_tokens": null,
+    "LOCAL_AI_MAX_PROMPT_TOKENS": 96000,
+    "chat_p95_at_cap_ms": null,
+    "eval_p95_at_cap_ms": null,
+    "chat_timeout_ms": 100000,
+    "chat_latency_limit_ms": 60000,
+    "recall_rule": "all repeats in every requested shape",
+    "prompt_limit_recall_rule": "at least one sentinel recall at the last tested size"
+  },
+  "ramp_stopped": null
+}

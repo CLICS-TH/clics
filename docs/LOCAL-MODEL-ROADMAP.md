@@ -101,7 +101,7 @@ reopen them by accident.
 | # | Decision | Why |
 |---|---|---|
 | **D1** | **Local-ready before the Pilot Study** | The confound that justified waiting is gone (above) |
-| **D2** | ~~Target box is **`cme-dgx`** (100.119.96.52)~~ → **superseded 2026-08-28: the target is `cme-dev` (100.68.210.69)** | A tailnet inventory on 26 Aug found three machines and **no `cme-dgx`**. `cme-dev` is the only box that can be the target, and it is the one every model benchmark actually ran on. Read any earlier "measured on the DGX" as "measured on `cme-dev`" |
+| **D2** | ~~Target box is **`cme-dgx`** (100.119.96.52)~~ → **superseded 2026-08-28: the target is `cme-dev` (100.68.210.69)** | A tailnet inventory on 26 Aug found three machines and **no `cme-dgx`**. **Corrected 2026-09-04:** `cme-dgx` is real — it sits on `cme-dev`'s LAN (`cme-dgx:8888`), which is not advertised as a subnet route, so it is unreachable from the tailnet. The decision is unchanged (`cme-dev` is still the only reachable target and where every benchmark ran) but the reason is narrower: it is the reachable *gateway*, with vLLM serving from behind it. Read any earlier "measured on the DGX" as "measured through `cme-dev`" |
 | **D3** | **rimpl moves on-prem** onto a tailnet node; backend stays on Railway | rimpl *is* the on-premise layer by definition; this makes deployment match the architecture instead of contradicting it |
 | **D4** | The **human-auditor ICC baseline is in scope**, as Gate 0.5 | Without it, Gate 4 compares the local model against a number that has never measured the thing the gate is about |
 | **D5** | **Amend the Model Lock Record** to name what the box actually serves | A document naming a model that is not there proves nothing. Changing the box to satisfy the paper is the tail wagging the dog |
@@ -255,10 +255,15 @@ Facts, not decisions. Everything downstream waits on these.
 6. **Who operates the box**, and will they commit to **no evaluator changes between lock and study
    end**, with notice? (D15.)
 
-**Owed on the box regardless:** raise `OLLAMA_CONTEXT_LENGTH`. Measured 2026-08-24 against `cme-dev`, a
-9,144-token evaluation returned `400 … exceeds the available context size (4096)`. `options.num_ctx`
-over the OpenAI-compatible endpoint is proven inert, so the fix is server-side. A creditable PLE
-transcript runs to 10,000+ tokens and one hit 130k on 2026-08-17.
+**~~Owed on the box regardless: raise `OLLAMA_CONTEXT_LENGTH`.~~ RESOLVED 2026-09-02 — do not ask
+for this.** Measured 2026-08-24, a 9,144-token evaluation returned `400 … exceeds the available
+context size (4096)` and `options.num_ctx` was proven inert over the OpenAI-compatible endpoint. That
+measurement was against an **Ollama** upstream. The backend actually serving today is **vLLM**
+(`system_fingerprint: vllm-0.21.1rc1...-tp2`, GATE0 §8.5), and the capacity ramp found **no input
+ceiling at all** — a sentinel was still recalled at **66,029 served tokens** (GATE0 §8.1). Two Ollama
+hosts remain listed in Open WebUI's Connections panel, so the old finding was real for the upstream it
+tested; it is simply not the one in the path. Asking for it now would cost the box owner time on a
+setting that is not binding.
 
 ---
 
@@ -466,8 +471,26 @@ Consolidated from G0 — these are the only things blocking the whole plan.
 1. What does `cme-dev` serve — which models, what context length? Can we hit the inference server
    directly rather than through Open WebUI?
 2. Can you run `sha256sum` on the evaluator model's weights, and share the digest?
-3. **Can rimpl be hosted on a tailnet node?** (Determines P2's shape.)
+3. ~~**Can rimpl be hosted on a tailnet node?**~~ **Reframed 2026-09-05 — this is no longer what
+   blocks production, and the version of this line written earlier today was wrong.** A Railway
+   container ALREADY reaches the box: `rimpl/Dockerfile` carries an optional userspace Tailscale
+   client (`e7441dd`), and `531c80b` got a real completion back through it. The tailnet ACL is
+   default allow-all. What is blocked is **port 3000 on `cme-dev`, dropped from the container while
+   open from a laptop** — a rule scoped by source address, proven against a closed-port control
+   (`d110a5f`). See GATE0 §5.1. The question to ask is now the one below, and it is much smaller.
+   D3 (move rimpl on-prem) is still the architecture's answer, but it is no longer the thing standing
+   between us and a reachable model.
 4. Is the DGX dedicated to CLICS or shared? What concurrency during a clinic-hours burst?
 5. Who operates the box, and can you commit to **no evaluator model changes between lock and study
    end**, with notice?
-6. Has `OLLAMA_CONTEXT_LENGTH` been raised? At the default 4096 every evaluation fails.
+6. ~~Has `OLLAMA_CONTEXT_LENGTH` been raised?~~ **Withdrawn 2026-09-05** — the served backend is
+   vLLM, not Ollama, and no input ceiling was found up to 66,029 tokens (GATE0 §8.1). See G0 above.
+7. Can we have an API key that is **not tied to a personal Open WebUI account**? The current one
+   carries that account's lifecycle and the UI layer's throttling; a nine-month study wants a service
+   account, or the direct inference endpoint from question 1.
+8. **THE ONE THAT BLOCKS PRODUCTION.** Either (a) allow our Railway node's tailnet address, or its
+   tag, to reach **port 3000** on `cme-dev`, or (b) serve `deepseek-v4-flash-dspark` on **port
+   11434**, which is already open to us. Either is sufficient. **(b) is not satisfied by what is on
+   11434 today** — that port serves `qwen3.6-custom:latest` through Ollama, a different model from
+   the one every study number was measured on, whose replies put the text under `reasoning` with
+   `content` empty and would fail the PIS-7 JSON contract.

@@ -17,6 +17,7 @@ import { readFile, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dim, red, green, yellow, hr, table, percentile, fail } from './lib.mjs';
+import { isTransport } from './parseability.mjs';
 
 const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -171,8 +172,18 @@ function validateRepeat(report, reportName) {
 
 function summarizeRepeat(report) {
   const local = report.results.filter((result) => result.arm === 'local');
+  // A transport error or a timeout is the BOX failing, not the model breaking its JSON contract, so it
+  // must not sit in this denominator — see the same reasoning in repeat-consistency.mjs localArm() and
+  // screening-verdict.mjs. Reports written before 2026-09-04 have no `errors` array; those fall back to
+  // the old count and are flagged, rather than being silently rated on a different basis.
+  // isTransport is imported, not redeclared: two hand-written copies of this rule is exactly how the
+  // bug it encodes got reintroduced. parseability.mjs owns it and carries the tests.
+  const nonModel = isTransport;
+  const legacyJson = local.some((result) => !Array.isArray(result.errors));
+  const excludedNonModel = local.reduce(
+    (sum, result) => sum + (Array.isArray(result.errors) ? result.errors.filter(nonModel).length : 0), 0);
   const parsed = local.reduce((sum, result) => sum + result.runs.length, 0);
-  const attempted = local.reduce((sum, result) => sum + result.ms.length, 0);
+  const attempted = local.reduce((sum, result) => sum + result.ms.length, 0) - excludedNonModel;
   const calls = local.flatMap((result) => result.calls).filter((value) => value !== null);
   const milliseconds = local.flatMap((result) => result.ms);
   // A fixture with FEWER THAN TWO parsed runs has a range of 0 on every domain — by construction, not
@@ -212,6 +223,8 @@ function summarizeRepeat(report) {
     repeats: report.repeats,
     parsed_repeats: parsed,
     attempted_repeats: attempted,
+    excluded_non_model: excludedNonModel,
+    json_legacy: legacyJson,
     json_percent: jsonPercent,
     noise_sum_abs_delta: {
       median: noiseMedian,
@@ -323,7 +336,9 @@ function printHuman(report) {
   table(
     ['variant', 'fixtures', 'repeats', 'JSON%', 'noise Σ|Δ| med', 'noise Σ|Δ| max', 'noise ≤2', 'comp range med', 'calls/repeat', 'sec/repeat', 'bar'],
     report.repeats.map((item) => [
-      item.label,
+      // A legacy row's JSON% is computed on a different basis from a fresh one's; putting them in one
+      // table unmarked let a bad afternoon on the box read FAIL beside a PASS decided another way.
+      item.json_legacy ? `${item.label} ${yellow('[legacy]')}` : item.label,
       String(item.fixtures),
       String(item.repeats),
       fmt(item.json_percent, 1),
@@ -378,7 +393,9 @@ function printHuman(report) {
   }
 
   hr('how to read this');
-  console.log(`  ${dim('JSON% is parsed repeats ÷ attempted repeats for local-arm rows; the bar is ≥ 98%.')}`);
+  console.log(`  ${dim('JSON% is parsed ÷ attempted local-arm repeats, excluding ONLY transport failures')}`);
+  console.log(`  ${dim('(a reply the model could not make valid is always counted); the bar is ≥ 98%.')}`);
+  console.log(`  ${dim('Rows marked [legacy] predate error kinds — their JSON% still charges transport to the model.')}`);
   console.log(`  ${dim('Noise Σ|Δ| sums each fixture’s seven within-model score ranges; its median bar is ≤ 2.')}`);
   console.log(`  ${dim('PASS requires both bars. Composite range is the range of the unweighted d1..d7 sum.')}`);
   if (report.agreement) {

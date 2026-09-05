@@ -30,8 +30,9 @@
  */
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
+import { computeParseability } from './parseability.mjs';
+import { promptDrift } from './prompt-drift.mjs';
 
 const require = createRequire(`${process.cwd()}/`);
 const argv = process.argv.slice(2);
@@ -60,11 +61,11 @@ Exit codes: 0 pass · 1 fail · 3 insufficient · 2 misconfigured / unreadable i
 }
 
 // ---- production code, not a re-implementation ------------------------------------------------------
-let icc, pis7, prompts;
+let icc, pis7, versions;
 try {
   icc = require('./src/services/icc.js');                 // iccTwoRater, verdictFor
   pis7 = require('../rimpl/src/lib/pis7.js');             // compositeOf (weighted, 0–100)
-  prompts = require('../rimpl/src/lib/prompts.js');       // PIS7_EVALUATOR_PROMPT (+ pis7PromptFor once WP-E lands)
+  versions = require('../rimpl/src/lib/versions.js');     // promptVersionFor — the exact labels reports are stamped with
 } catch (e) {
   die(`run this from backend/ — could not load production modules: ${e.message}`);
 }
@@ -124,9 +125,10 @@ if (repeat) {
   sigma = { fixtures: per.length, repeats: repeat.repeats ?? null, median, max: per.length ? Math.max(...per) : null, pass: median != null ? median <= 2 : null };
 }
 
-// ---- parseability: valid PIS-7 JSON on the local arm, across every local call we know about ---------
-let attempted = rows.length, parsed = rows.filter((r) => r.local).length;
-if (repeat) for (const r of (repeat.results ?? []).filter((r) => r.arm === 'local')) { attempted += (r.ms ?? []).length; parsed += (r.runs ?? []).length; }
+// ---- parseability: valid PIS-7 JSON on the local arm, across every local CALL we know about ---------
+// The rules and the reasons live in parseability.mjs, with a test per rule. They were inline here once;
+// that is how the same accounting error reached three different wrong answers about one run in a day.
+const { attempted, parsed, excluded, legacy } = computeParseability(rows, repeat);
 const jsonPct = attempted ? (100 * parsed) / attempted : null;
 const jsonPass = jsonPct != null ? jsonPct >= 98 : null;
 
@@ -154,20 +156,27 @@ if (!isGate) reasons.unshift('TUNING split — NOT A GATE RESULT');
 // (Caught 2026-09-02: a baseline run made before the local addendum existed was stamped with the
 // addendum's sha, because the tool hashed prompts.js at report time. A calibration table whose rows
 // are labelled with whatever is checked out when you read them is worse than no table.)
+// Whether it drifted is decided in prompt-drift.mjs, with a test per failure mode. Inline here it
+// hashed the ASSEMBLED prompt and hunted for that digest inside a label built from the ADDENDUM ALONE,
+// so it fired on all 7 addendum-ON reports (4 stale, 3 current) and could never fire on an
+// addendum-OFF one. It now compares whole labels straight from the module that stamps them.
 const recordedLocalVersion = agreement.local_prompt_version ?? null;
-const promptText = typeof prompts.pis7PromptFor === 'function' ? prompts.pis7PromptFor('local') : prompts.PIS7_EVALUATOR_PROMPT;
-const currentSha = createHash('sha256').update(promptText ?? '').digest('hex').slice(0, 12);
+const treeLocalVersion = versions.promptVersionFor('local');
+const drift = promptDrift({
+  recordedLocal: recordedLocalVersion,
+  recordedBase: agreement.prompt_version ?? null,
+  treeLocal: treeLocalVersion,
+  treeBase: versions.promptVersionFor(),
+});
 // A run predating the recording (or one written by an older probe) has no version: say so, do not guess.
-const promptSha = recordedLocalVersion ?? `unrecorded (tree today: ${currentSha})`;
-const promptDrift = recordedLocalVersion && !recordedLocalVersion.includes(currentSha.slice(0, 8))
-  && recordedLocalVersion !== agreement.prompt_version;
+const promptSha = recordedLocalVersion ?? `unrecorded (tree today: ${treeLocalVersion})`;
 const ci = iccResult.icc == null ? '—' : `${iccResult.icc.toFixed(3)} (${iccResult.lower.toFixed(3)}–${iccResult.upper.toFixed(3)})`;
 const row = `| ${agreement.models?.local ?? agreement.localModel ?? '?'} vs ${agreement.cloudModel ?? '?'} | ${promptSha} | ${splitName ?? 'none'} (n=${iccResult.n}) | ${agreement.consistency ?? 'off'} | ${ci} | ${sigma?.median ?? 'n/m'} | ${jsonPct == null ? 'n/m' : jsonPct.toFixed(1) + '%'} | ${state} |`;
 
 const out = {
   state, reasons, gate: isGate, split: splitName, threshold, threshold_source: thresholdSource,
   icc: { ...iccResult, verdict: verdict.state }, per_domain_icc: perDomain,
-  repeatability: sigma, json: { attempted, parsed, pct: jsonPct, pass: jsonPass },
+  repeatability: sigma, json: { attempted, parsed, pct: jsonPct, pass: jsonPass, excluded, legacy },
   pairs_needed: { at_observed_icc: atObserved, ladder }, prompt_sha: promptSha, prompt_version: agreement.prompt_version ?? null,
   models: { local: agreement.localModel ?? null, cloud: agreement.cloudModel ?? null }, prompt_versions_row: row,
 };
@@ -180,11 +189,13 @@ else {
   console.log(`\n  ICC(A,1) composite (weighted 0–100)  ${ci}   n=${iccResult.n} pairs   threshold ${threshold} (${thresholdSource})`);
   console.log(`  per-domain ICC  ${DOMAINS.map((d) => `${d} ${perDomain[d] == null ? '—' : perDomain[d].toFixed(2)}`).join('  ')}`);
   console.log(`  repeatability   ${sigma ? `Σ|Δ| median ${sigma.median} (max ${sigma.max}) over ${sigma.fixtures} fixtures × ${sigma.repeats ?? '?'} repeats → ${sigma.pass ? 'ok' : 'over 2'}` : 'not measured (pass --repeat)'}`);
-  console.log(`  parseability    ${jsonPct == null ? 'n/m' : `${parsed}/${attempted} valid JSON = ${jsonPct.toFixed(1)}% → ${jsonPass ? 'ok' : 'under 98%'}`}`);
+  console.log(`  parseability    ${jsonPct == null ? 'n/m' : `${parsed}/${attempted} valid JSON = ${jsonPct.toFixed(1)}% → ${jsonPass ? 'ok' : 'under 98%'}`}`
+    + (excluded ? `\x1b[2m   (${excluded} call${excluded === 1 ? '' : 's'} excluded: transport only — a model that replied with unusable JSON is always counted)\x1b[0m` : '')
+    + (legacy ? '\x1b[33m   [report predates per-call accounting — counted per FIXTURE, and transport is indistinguishable from bad JSON: read as a floor, not a rate]\x1b[0m' : ''));
   console.log(`\n  pairs needed for the lower bound to clear ${threshold}:`);
   console.log(`    at the observed ICC ${iccResult.icc ?? '—'}: ${atObserved ?? 'never (point estimate not above threshold)'}`);
   console.log(`    ladder  ${ladder.map((l) => `${l.rho}→${l.pairs ?? '∞'}`).join('   ')}`);
-  if (promptDrift) console.log(`\n  note · this run recorded prompt ${recordedLocalVersion}; the working tree now holds ${currentSha}. The row below reports the RUN's prompt.`);
+  if (drift.drift) console.log(`\n  note · this run recorded prompt ${drift.recorded}\n         the working tree now builds ${drift.tree}\n         The row below reports the RUN's prompt.`);
   console.log(`\n  prompt-versions.md row (model axis):\n  ${row}\n`);
 }
 process.exit(state === 'pass' ? 0 : state === 'fail' ? 1 : 3);

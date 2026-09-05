@@ -1,5 +1,5 @@
-// Minimal Markdown -> styled HTML for the CLICS docs (headings, tables, lists, bold, code,
-// blockquote, hr, autolinked URLs). Thai renders via system fonts; lang="th" gives chromium
+// Minimal Markdown -> styled HTML for the CLICS docs (headings, tables, lists, bold, inline and
+// FENCED code, blockquote, hr, autolinked URLs). Thai renders via system fonts; lang="th" gives chromium
 // dictionary-based Thai line breaking (no mid-word breaks / combining-mark artifacts).
 //
 // Regenerate MANAGER-SUMMARY.pdf + USER-GUIDE.pdf (no extra installs — uses Playwright's chromium):
@@ -25,6 +25,20 @@ const out = [];
 let i = 0;
 while (i < lines.length) {
   const line = lines[i];
+  // Fenced code block. Must be tested BEFORE every other block rule: inside a fence, a line
+  // starting with # or | or - is code, not a heading, table or list. Without this the fence
+  // markers survive into the output and the whole block collapses into one run-on paragraph
+  // with its newlines eaten — which is what §9.2 of the methodology docs looked like.
+  const fence = line.match(/^\s*```+\s*([a-z0-9+-]*)\s*$/i);
+  if (fence) {
+    const buf = [];
+    i++;
+    while (i < lines.length && !/^\s*```+\s*$/.test(lines[i])) { buf.push(lines[i]); i++; }
+    i++;  // consume the closing fence (or run off the end on an unclosed one)
+    const cls = fence[1] ? ` class="lang-${fence[1].toLowerCase()}"` : '';
+    out.push(`<pre${cls}><code>${esc(buf.join('\n'))}</code></pre>`);
+    continue;
+  }
   if (/^\s*\|/.test(line) && i + 1 < lines.length && /^\s*\|[\s:|-]+\|?\s*$/.test(lines[i + 1])) {
     const cells = r => r.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
     const head = cells(line);
@@ -78,6 +92,8 @@ ul, ol { margin: 4pt 0; padding-left: 18pt; }
 li { margin: 1.5pt 0; }
 hr { border: none; border-top: 1px solid #e2e2e2; margin: 11pt 0; }
 code { background: #f1f4f8; padding: 1px 5px; border-radius: 4px; font-family: "SF Mono", Menlo, monospace; font-size: 9pt; color: #b03; }
+pre { background: #f5f7fa; border: 1px solid #dde4ec; border-left: 3px solid #4a86c9; border-radius: 4px; margin: 7pt 0; padding: 7pt 10pt; overflow-x: auto; break-inside: avoid; }
+pre code { background: none; padding: 0; color: #1c3a52; font-size: 8.5pt; line-height: 1.35; white-space: pre-wrap; overflow-wrap: anywhere; }
 a { color: #1763b3; text-decoration: none; }
 blockquote { margin: 8pt 0; padding: 8pt 12pt; background: #f5f8fc; border-left: 4px solid #4a86c9; border-radius: 4px; color: #234; }
 table { border-collapse: collapse; width: 100%; margin: 8pt 0; font-size: 9.5pt; }

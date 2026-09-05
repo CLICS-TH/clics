@@ -27,7 +27,7 @@ ethics committee) and PLE in the code. `ples.ple_code` renders as `PLE-001`; if 
 | **Pilot Study** | The CREC082 study: 75 physicians × 3 PLEs = 225 evaluable PLEs. **Not yet started** — see below |
 | **sandbox round** | The internal blinded test cohort (SBX-*). Test data, never participant data — see below |
 | **`cme-dev`** | The on-prem inference box, `100.68.210.69`, running Ollama. **The** local-model target |
-| **`cme-dgx`** | A name used throughout the early planning for a box that **does not exist** — see below |
+| **`cme-dgx`** | A real inference host on `cme-dev`'s private LAN, **not reachable from the tailnet** — see below |
 | **purpose** | What an AI call is *for* — `chat` / `evaluate` / `criteria` / `discuss` / `embed`. Routes name a purpose, never a vendor |
 | **shadow evaluation** | A second PIS-7 score on the same transcript from a non-serving provider. Recorded, never shown, never credit-bearing |
 
@@ -100,8 +100,8 @@ they are pre-approval development runs that were never labelled. See D3 in `docs
 ## Local model — the boxes, and what "on-prem AI" does and does not claim
 
 **`cme-dev` (`100.68.210.69`, Ollama) is the target** — and is the only box on the tailnet that can
-be one. `cme-dgx` was named as the target throughout the early planning and does not exist; see
-*`cme-dgx` does not exist* below. Say the hostname, not "the DGX".
+be one. `cme-dgx` was named as the target throughout the early planning; it is real but unreachable from
+the tailnet — see *`cme-dgx` is real, but not reachable* below. Say the hostname, not "the DGX".
 
 Moving inference on-prem closes the **inference** leg: de-identification stops being the *sole*
 barrier for AI processing and becomes defence-in-depth. It does **not** close the **storage** leg —
@@ -132,19 +132,24 @@ scoring system is exactly what §10.2 exists to rule out.
 
 > Note: **SBMA** and the **Credit Engine** are domain concepts in the spec but are **not yet implemented** in code. ICC and PIS-7 composite scoring **are** implemented.
 
-## `cme-dgx` does not exist
+## `cme-dgx` is real, but not reachable
 
-Every early planning document named **`cme-dgx`** (`100.119.96.52`) as the on-prem inference box, and
-several still do. A tailnet inventory on 2026-08-26 found **three machines and no `cme-dgx`**. The box
-that is actually reachable, actually runs Ollama, and actually served every model benchmark is
-**`cme-dev`** at `100.68.210.69`.
+**Corrected 2026-09-04.** This section previously said the box "does not exist". It does. Open WebUI's
+Connections panel on `cme-dev` lists `http://cme-dgx:8888/v1` as a configured upstream, alongside
+`http://192.168.1.178:8000/v1` (`:8000` is the vLLM/SGLang default) and two Ollama hosts on the same
+private `192.168.1.0/24`.
 
-Nothing was wrong with the work built against the name — the adapter, the health probe and the
-readiness gate all address a box by configuration, not by hostname. What was wrong is that a
-measurement-bearing figure ("the DGX returned 400 … exceeds the available context size (4096)") was
-attributed to a machine nobody has ever connected to. Any statement of the form "measured on the DGX"
-should be read as "measured on `cme-dev`".
+What the 2026-08-26 tailnet inventory actually established was narrower than the conclusion drawn from
+it: `cme-dgx` is not a **tailnet node**. It sits on `cme-dev`'s LAN, which `cme-dev` does not advertise
+as a subnet route (`PrimaryRoutes: None`), so nothing outside that LAN can address it — verified again
+on 2026-09-04 by timeout to the IP and DNS failure on the hostname. The `100.119.96.52` address the early
+planning documents attach to the name was never confirmed and should not be trusted.
 
-The name is kept in this glossary rather than deleted, because it appears in commit messages, code
-comments and at least one document that has left the building, and a reader who meets it needs to
-know it points at nothing.
+The operational conclusion is unchanged: **`cme-dev` at `100.68.210.69` is the only box CLICS can reach**,
+and it is where every model benchmark ran. What changes is the reason — it is the reachable *gateway*, not
+the machine doing inference. The model is served by vLLM behind it (`system_fingerprint:
+vllm-0.21.1rc1…-tp2`), proxied through Open WebUI.
+
+Still true, and the reason this section exists: a measurement-bearing figure ("the DGX returned 400 …
+exceeds the available context size (4096)") was attributed to a machine nobody had connected to. Any
+statement of the form "measured on the DGX" should still be read as "measured through `cme-dev`".
