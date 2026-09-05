@@ -82,7 +82,8 @@ test('ignores the purpose and signal keys callAI forwards (extra keys change not
   const r = await call({ ...args(), purpose: 'chat', signal: ac.signal });
   expect(r).toEqual({ text: 'hi', inputTokens: 5, outputTokens: 7, tokenCount: 12, stopReason: 'end_turn', model: 'claude-sonnet-4-6' });
   expect(mockCall).toHaveBeenCalledTimes(1);
-  expect(provider.stats()).toEqual({ provider: 'anthropic', active: 0, queued: 0, maxConcurrency: 3 }); // no `lanes`: still the FIFO
+  expect(provider.stats()).toEqual({ provider: 'anthropic', active: 0, queued: 0, maxConcurrency: 3,
+    lastOk: expect.any(Number), lastError: null }); // no `lanes`: still the FIFO
 });
 
 test('ready() reports up when ANTHROPIC_API_KEY is present (no completion call, no spend)', () => {

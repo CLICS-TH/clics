@@ -378,6 +378,9 @@ describe('stats() shape and configuration guards', () => {
     const r = mkRunner();
     expect(r.stats()).toEqual({
       provider: 'test', active: 0, queued: 0, maxConcurrency: 2,
+      // Added 2026-09-05: the last OUTCOME, so a readiness probe can tell "cannot serve" from
+      // "idle" without spending a token. Null here because nothing has run.
+      lastOk: null, lastError: null,
       lanes: {
         interactive: { active: 0, queued: 0, maxQueue: 4 },
         background: { active: 0, queued: 0, maxQueue: 2, maxActive: 1 },
@@ -434,7 +437,7 @@ describe('without `lanes` the runner is the original FIFO', () => {
     const runs = gates.map((g, i) => r.run(async (attempt) => { order.push(i); expect(attempt).toBe(0); return g.promise; }));
     await tick();
     expect(order).toEqual([0, 1]);
-    expect(r.stats()).toEqual({ provider: 'fifo', active: 2, queued: 1, maxConcurrency: 2 });
+    expect(r.stats()).toEqual({ provider: 'fifo', active: 2, queued: 1, maxConcurrency: 2, lastOk: null, lastError: null });
 
     gates[0].resolve();
     await runs[0];
@@ -442,7 +445,7 @@ describe('without `lanes` the runner is the original FIFO', () => {
     expect(order).toEqual([0, 1, 2]);   // the slot is handed straight to the next waiter
     gates[1].resolve(); gates[2].resolve();
     await Promise.all(runs);
-    expect(r.stats()).toEqual({ provider: 'fifo', active: 0, queued: 0, maxConcurrency: 2 });
+    expect(r.stats()).toEqual({ provider: 'fifo', active: 0, queued: 0, maxConcurrency: 2, lastOk: expect.any(Number), lastError: null });
   });
 
   test('a lane option is accepted and ignored — still FIFO, no reserve, no depth limit', async () => {

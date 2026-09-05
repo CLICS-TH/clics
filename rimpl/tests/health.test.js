@@ -103,7 +103,8 @@ describe('GET /health/deep (rimpl)', () => {
   test('queues: reports the active provider only (anthropic here), with the runner stats shape', async () => {
     const res = await request(app).get('/health/deep');
     expect(res.body.queues).toEqual({
-      anthropic: { provider: 'anthropic', active: 0, queued: 0, maxConcurrency: expect.any(Number) },
+      anthropic: { provider: 'anthropic', active: 0, queued: 0, maxConcurrency: expect.any(Number),
+        lastOk: null, lastError: null },
     });
     expect(res.body.queues.local).toBeUndefined();   // not active → not reported, not even probed
   });
@@ -125,6 +126,9 @@ describe('GET /health/deep (rimpl)', () => {
         },
         // The self-calibrating 413 backstop's learnt estimate/served ratio — null/0 until a call is served.
         prompt_calibration: { ratio: null, n: 0 },
+        // Added 2026-09-05: the last outcome the runner observed, so readiness can distinguish
+        // "cannot serve" from "idle" with no extra call. Null here — nothing has run.
+        lastOk: null, lastError: null,
       });
       expect(res.status).toBe(503);                          // unconfigured local is (correctly) down…
       expect(res.body.checks.local_ai.status).toBe('down');

@@ -106,8 +106,28 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
   });
 }
 
-// Readiness probe for /health/deep: confirm the API key is present and the SDK client is
-// constructible — WITHOUT making a completion call (zero token spend). Never throws.
+// A key that is present and constructible can still be unable to serve a single request: an
+// exhausted balance answers 400 forever, a revoked key answers 401. Both used to read `ok`.
+//
+// Deliberately NARROW. `isRetryable` is the wrong predicate here — it would also catch a 400 caused
+// by one malformed request (a prompt over the context limit, say), and one bad request must not
+// declare the provider dead. Only conditions that belong to the CREDENTIAL or the ACCOUNT count:
+// 401/403 outright, and 400 only when the body says the problem is money. A 429 is a rate limit,
+// is retryable, and never lands here.
+function cannotServe(err) {
+  if (!err) return null;
+  if (err.status === 401) return 'API key rejected (401)';
+  if (err.status === 403) return 'API key forbidden (403)';
+  if (err.status === 402) return 'payment required (402)';
+  if (err.status === 400 && /credit balance|billing|quota|insufficient funds/i.test(err.message || '')) {
+    return 'account cannot pay for requests (400)';
+  }
+  return null;
+}
+
+// Readiness probe for /health/deep: confirm the API key is present, the SDK client is constructible,
+// and — from what the runner last OBSERVED, so still without spending a token — that the account is
+// not in a state where every call fails. Never throws.
 function ready() {
   const keyPresent = !!process.env.ANTHROPIC_API_KEY;
   let constructible = false;
@@ -125,7 +145,22 @@ function ready() {
       anthropic_client: constructible
         ? { status: 'up' }
         : { status: 'down', error: keyPresent ? 'Anthropic client not constructible' : 'ANTHROPIC_API_KEY not set' },
+      anthropic_serving: servingCheck(),
     },
+  };
+}
+
+// A recorded failure only means the provider is down while it is still the LAST thing that happened;
+// the runner clears it on the next success, so an operator who fixes the key sees green on the next
+// call rather than having to restart the process.
+function servingCheck() {
+  const { lastError } = runner.stats();
+  const reason = cannotServe(lastError);
+  if (!reason) return { status: 'up' };
+  return {
+    status: 'down',
+    error: `${reason} — ${lastError.message}`,
+    observed_at: new Date(lastError.at).toISOString(),
   };
 }
 
