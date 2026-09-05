@@ -319,7 +319,10 @@ Work in this phase:
 
 - **Backend → rimpl reachability.** `RIMPL_URL` stops being `rimpl.railway.internal:3003`. Whatever
   replaces it carries raw PII (see *The PII hop*) and must be authenticated end-to-end, not merely
-  network-reachable — `INTERNAL_TOKEN` still applies.
+  network-reachable — `INTERNAL_TOKEN` still applies. **The backend needs a Tailscale client of its
+  own**, which it does not have today: the 2026-09-05 sweep that proved `:3003` reachable ran from the
+  *rimpl* container, the only service whose image carries one. Copying `rimpl/Dockerfile`'s userspace
+  sidecar into the backend is a prerequisite of this phase, and it is our work, not the box owner's.
 - **Deploy pipeline changes.** rimpl leaves the Railway CLI path. Document the replacement in
   [deployment.md](deployment.md); the `--service rimpl` gotcha becomes obsolete and should be struck
   rather than left to mislead.
