@@ -499,6 +499,32 @@ which is exactly what a held-out split exists to expose, and it worked. But it c
 separated from the range restriction of 7.1, because the same eight episodes carry both effects. A
 larger corpus, split so that both arms span the scale, would separate them; this one cannot.
 
+### 7.11 The path that was measured was not the path that would serve
+
+Every figure in this report was produced by `scripts/probe/*`, a harness that calls the model
+directly. It shares the *instrument* with the production service — the same rubric weights, the same
+assembled prompt, the same self-consistency module, all imported from `rimpl/src/lib` and
+`rimpl/src/services` — but not the *transport*: the provider adapter, the bounded queue, the
+de-identification filter and the provenance builder that a served score actually passes through were
+never exercised against the box while any of these numbers were taken. A study can measure an
+instrument perfectly and still not have measured the system that will use it.
+
+This was closed only partially, and only after the analysis was complete (2026-09-05,
+`docs/GATE0-DGX-RESULTS.md` §8.10). One tuning fixture was scored end to end through the production
+service against the same endpoint: it returned in 135 s under the same prompt label
+(`pis7-prompt-59561c29+local-c5ffe572aa81`), and its composite re-derived exactly — Σ(score × weight)
+= 3.00, × 20 = 60.0. So the two paths assemble the same instrument, which is the part that matters for
+these figures. What remains untested at scale is everything the harness does not have: queueing
+behaviour under concurrent load, retry accounting, and the de-identification filter on real traffic.
+
+**It also found a defect the harness could not have.** Provenance recorded `engine`, `quantization`
+and `runtime` as null on every served score, while the endpoint returned
+`system_fingerprint: vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0` on every call — two of the
+three fields CREC082 §10.2 requires, arriving in plain sight and being discarded. No unit test could
+have caught it, because the mocks never carried the field; no probe could have, because the probes
+never ran that code. **A methodology that validates only its measurement harness will report clean
+figures from a system that cannot record what its own protocol requires.**
+
 ---
 
 ## 8. Conclusions, and what a future study would need
