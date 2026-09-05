@@ -258,6 +258,23 @@ function promptCalibration() {
 // fix). Translating here keeps that diagnosis provider-agnostic.
 const FINISH_REASON = { length: 'max_tokens', stop: 'end_turn', tool_calls: 'tool_use', function_call: 'tool_use', content_filter: 'content_filter' };
 
+// The inference engine, from the server's own `system_fingerprint`. §10.2 of the Model Lock Record
+// asks for the engine and its version; vLLM answers with both on every completion —
+// `vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0` — and until 2026-09-05 rimpl never read the
+// field, so served scores recorded engine and runtime null while the answer arrived in plain sight
+// on every call (GATE0 §8.10).
+//
+// Only a RECOGNISED leading token becomes `engine`; anything else stays null rather than becoming a
+// guess. OpenAI's fingerprints look like `fp_44709d6fcb`, and writing that into a field an auditor
+// reads as "inference engine" is worse than leaving it empty. Nothing is lost by being strict: the
+// raw string is recorded verbatim as `runtime` either way, which is what an auditor can actually
+// check, and parsing a vendor string into parts is how the NEXT engine gets mis-recorded.
+const KNOWN_ENGINES = new Set(['vllm', 'ollama', 'llamacpp', 'tgi', 'sglang', 'mlx', 'trtllm', 'lmdeploy']);
+function engineOf(fingerprint) {
+  const head = String(fingerprint || '').split('-')[0].trim().toLowerCase();
+  return KNOWN_ENGINES.has(head) ? head : null;
+}
+
 // `purpose` picks the queue lane (LANE_FOR); `signal` is the caller's client-gone signal — while
 // queued it drops the waiter, in flight it cancels the request at the socket. Both optional.
 async function call({ systemPrompt, messages, maxTokens = 1500, temperature, purpose, signal }) {
@@ -339,6 +356,12 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature, pur
       // The model the SERVER reports, falling back to the one we asked for. Recorded per evaluation
       // for §10.2 provenance — a box whose model changed underneath us must show up in the data.
       model: data.model || model,
+      // Same purpose, same source of truth: what the server says it is running. `runtime` is the
+      // fingerprint verbatim (the version lives inside it); `engine` is the recognised name or null.
+      // QUANTIZATION IS NOT HERE and is not derivable from this response — §10.2's third field stays
+      // null on this transport, which is the honest answer rather than one inferred from a model name.
+      runtime: data.system_fingerprint || null,
+      engine: engineOf(data.system_fingerprint),
     };
   }, { lane: laneFor(purpose), signal });
 }

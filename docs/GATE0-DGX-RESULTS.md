@@ -268,7 +268,7 @@ environment version.
 | PIS-7 rubric version | ✅ `pis7-weights-08b0cb1a` |
 | exact DeepSeek base release | ❌ not discoverable through the proxy |
 | weight checksum | ❌ |
-| inference engine + version | ❌ |
+| inference engine + version | ✅ `vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0` — stamped on every local score since 2026-09-05 (§8.10) |
 | quantization | ❌ |
 
 > **Corrected 2026-09-04 — this row named a prompt that has not shipped since June.** It read
@@ -289,8 +289,16 @@ environment version.
 > agreement with any rater is unmeasured is a weaker claim than the tick implied. Full lineage and
 > consequences: `scripts/calibration/prompt-versions.md`.
 
-`app_settings.evaluator_locked_at = 0` today. Enrolment has not started, so there is still time — but
-none of the four missing fields can be obtained from outside that machine.
+`app_settings.evaluator_locked_at = 0` today. Enrolment has not started, so there is still time — and
+**three** fields remain, not four.
+
+> **Corrected 2026-09-05 — "none of these can be obtained from outside that machine" was wrong about
+> one of them.** The inference engine and its version were arriving on every single completion, in
+> `system_fingerprint`, for as long as this transport has been used; rimpl read the response and
+> dropped the field. The row above was not describing an inaccessible fact, it was describing an
+> unread one. Fixed in `services/providers/local.js`, verified against the box, and recorded per score
+> — see §8.10. The lesson generalises past this row: a field marked "not discoverable" deserves one
+> look at what the server actually returns before it is written down as a limit.
 
 **`deepseek-v4-flash-dspark` is a custom build name.** §10.2 requires the exact base release it
 derives from. Nobody outside the box can determine that.

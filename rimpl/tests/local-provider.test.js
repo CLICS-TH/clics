@@ -298,6 +298,35 @@ describe('model provenance (§10.2)', () => {
     expect((await load().call(args())).model).toBe('qwen3-32b-medical');
   });
 
+  test('records the engine and its version from the server system_fingerprint', async () => {
+    fetchMock.mockResolvedValue(res(completion({ system_fingerprint: 'vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0' })));
+    const r = await load().call(args());
+    // Verbatim: the version lives inside the string, and it is what an auditor can check.
+    expect(r.runtime).toBe('vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0');
+    expect(r.engine).toBe('vllm');
+  });
+
+  test('an UNRECOGNISED fingerprint records the raw runtime but no engine', async () => {
+    // OpenAI's shape. Writing `fp_44709d6fcb` into a field an auditor reads as "inference engine"
+    // would be worse than leaving it empty, so the guess is refused and the raw string still lands.
+    fetchMock.mockResolvedValue(res(completion({ system_fingerprint: 'fp_44709d6fcb' })));
+    const r = await load().call(args());
+    expect(r.runtime).toBe('fp_44709d6fcb');
+    expect(r.engine).toBeNull();
+  });
+
+  test('a server that reports no fingerprint records null, not a guess from the model name', async () => {
+    fetchMock.mockResolvedValue(res(completion({})));
+    const r = await load().call(args());
+    expect(r.runtime).toBeNull();
+    expect(r.engine).toBeNull();
+  });
+
+  test('engine matching is case-insensitive and tolerates surrounding space', async () => {
+    fetchMock.mockResolvedValue(res(completion({ system_fingerprint: '  Ollama-0.33.3  ' })));
+    expect((await load().call(args())).engine).toBe('ollama');
+  });
+
   test('model() reflects the CURRENT env (config is read lazily, not captured at load)', () => {
     const local = load();
     expect(local.model()).toBe('qwen3-32b-medical');
