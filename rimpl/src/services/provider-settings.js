@@ -56,7 +56,7 @@ const keyFor = (purpose) => `ai_provider_${String(purpose).toLowerCase()}`;
 // Operational settings that are NOT per-purpose provider names but must still be changeable without
 // a redeploy. Read in the same round trip as the overrides — a second query on the same TTL would be
 // pure waste, and a second cache would be a second thing that can go stale differently.
-const NUMBER_KEYS = ['local_ai_min_context'];
+const NUMBER_KEYS = ['local_ai_min_context', 'rag_enabled'];
 
 let cache = { values: {}, numbers: {}, lockedAt: null, fetchedAt: 0, loaded: false };
 let inflight = null;

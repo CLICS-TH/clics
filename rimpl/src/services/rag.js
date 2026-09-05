@@ -10,10 +10,27 @@
 // PII: the caller de-identifies BEFORE calling. routes/chat.js strips once, up front, and passes the
 // clean string here — see the comment at its stripPii call. Never add stripping here instead; two
 // strip sites is how one of them ends up skipped.
+//
+// Retrieval is OFF unless app_settings.rag_enabled = 1, and the check happens BEFORE the embedding
+// call so that nothing leaves the boundary when it is off. Until 2026-09-05 there was no switch:
+// ragLookup ran on every turn against a `documents` table holding 0 rows in production, so each
+// chat turn paid an api.openai.com round trip to search an empty corpus. See ai.ragEnabled().
 const { supabase } = require('../lib/supabase');
-const { embedText } = require('./ai');
+const { embedText, ragEnabled } = require('./ai');
+
+// Logged once per process, not per turn: a per-turn line would be noise nobody reads, and the
+// point is that a disabled corpus should not look identical to an empty one.
+let announced = false;
 
 async function ragLookup(query) {
+  if (!(await ragEnabled())) {
+    if (!announced) {
+      announced = true;
+      console.warn('[rag] retrieval is OFF (app_settings.rag_enabled != 1) — no embedding call is made');
+    }
+    return [];
+  }
+
   let embedding;
   try {
     embedding = await embedText(query);
