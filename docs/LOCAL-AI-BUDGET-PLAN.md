@@ -40,7 +40,7 @@ Two facts about that instability, both worth carrying forward:
 | spend | item | why |
 |---|---|---|
 | **$0.21** | one held-out run (8 fixtures) + `screening-verdict` | Produces the formal `insufficient` verdict with its arithmetic, for the CREC082 §10.2 record: it documents *why* `evaluate` stays on Sonnet, rather than leaving the question open. Run it ONCE — the split is spent after that. |
-| **$0** | move `chat`, `criteria`, `discuss` to the local provider | A superadmin toggle, no deploy. This is where the money actually goes: chat is nearly all the token volume, and none of it is ICC-exposed. |
+| **$0** | ~~move `chat`, `criteria`, `discuss` to the local provider~~ — **BLOCKED, see below** | Intended as a superadmin toggle with no deploy. Not executable: production cannot reach the box. |
 | **~$2** | smoke test after the switch | Do not switch a production provider blind. |
 | **~$2.8** | reserve | `evaluate` stays on Sonnet, plus headroom. |
 
@@ -50,6 +50,32 @@ covers roughly **175 PLEs** instead of ~48.
 This is not a retreat. It is exactly the Track A / Track B split decided on 2026-08-24: Track A (chat,
 criteria, discuss) goes local for the volume; Track B (`evaluate`) stays on `claude-sonnet-4-6`, locked
 for the pilot's duration, with local running in shadow to build the calibration corpus.
+
+## Correction, 2026-09-05 — the $0 line cannot be taken
+
+**Railway cannot reach the on-premise box.** `rimpl` runs on Railway
+(`RIMPL_URL=http://rimpl.railway.internal:3003`); the model sits behind a tailnet advertising no
+subnet routes — `GATE0 §5.1`, re-verified 2026-09-04 in `§8.5` (`tailscale status --json` →
+`PrimaryRoutes: None`). Setting `ai_provider_chat = local` in production would point chat at an
+endpoint the deployment cannot resolve, and `CHAT_FAILOVER_PROVIDER` ships unset — a deliberate CREC
+ethics decision, not an oversight — so chat would **fail outright**, not degrade.
+
+Checked against prod on 2026-09-05: all five purposes still resolve to `anthropic` (`embed` →
+`openai`), `routing.source = "database"`, `evaluator_locked_at` null.
+
+The saving of $0.103 → $0.028 per PLE is real but **not available**, and it is gated on the same item
+as everything else in this programme — either
+
+- `tailscale up --advertise-routes=192.168.1.0/24` on `cme-dev` plus approval in the tailnet admin
+  console (one command, needs shell on a machine we do not have), or
+- **P2, rimpl relocation** onto a tailnet-joined host (`LOCAL-MODEL-ROADMAP.md:301`, not started).
+
+Until one lands, the real spend is everything on Anthropic at $0.103 per PLE, so $5 covers roughly
+**48 PLEs**, not 175. None of the arithmetic that closes D18 changes; that was never a money question.
+
+**Writing this down because the omission was structural, not careless.** The plan reasoned about cost
+and about the ICC gate and never asked whether the cheaper path was reachable — the network constraint
+was already documented, in a different file, and no step in the plan crossed it.
 
 ## Deliberately not doing
 
@@ -81,6 +107,16 @@ SDK client constructs — explicitly "WITHOUT making a completion call (zero tok
 exhausted balance, a revoked key, and a hard rate limit all read as healthy. This is the same shape as
 the outage that left production broken for three days with both operator screens showing success.
 
-Not fixed here because it needs a design decision: a real probe costs tokens on every health check.
-The cheap alternative is to surface the provider's **last observed error** — the information already
-exists in the provider's runner stats and needs no extra call.
+**Fixed 2026-09-05 (PR #85).** The cheap alternative was described here as surfacing "the provider's
+last observed error — the information already exists in the provider's runner stats". **That was
+wrong.** `createRunner`'s `stats()` reported only `{provider, active, queued, maxConcurrency, lanes}`;
+nothing recorded outcomes at all, so the information had to be captured before it could be surfaced.
+
+The runner now records the last terminal outcome (`lastOk`, `lastError`) — no extra call, no token
+spend — and clears `lastError` on the next success, so an operator who fixes a key sees green without
+a restart. `ready()` adds an `anthropic_serving` check over it.
+
+The predicate is deliberately narrow, and "non-retryable" is **not** it: a 400 caused by one
+over-long prompt is non-retryable and must not take the deployment down. Only credential and account
+conditions count — 401, 403, 402, and 400 whose body names credit, billing or quota. A 429 is a rate
+limit, is retryable, and never reaches the verdict. Nine tests pin each of those distinctions.
