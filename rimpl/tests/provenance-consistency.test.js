@@ -40,6 +40,30 @@ describe('without a consistency block — byte-identical to the pre-change modul
   });
 });
 
+describe('engine / runtime (§10.2, added 2026-09-05)', () => {
+  test('are recorded on the object', () => {
+    const p = buildProvenance({ ...base, engine: 'vllm', runtime: 'vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0' });
+    expect(p.engine).toBe('vllm');
+    expect(p.runtime).toBe('vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0');
+  });
+
+  test('do NOT enter the fingerprint — every score already stored must stay comparable', () => {
+    // The runtime string carries a build hash that can change on a routine restart. Folding it into
+    // the fingerprint would churn on non-events AND make every pre-2026-09-05 fingerprint
+    // incomparable with the ones written after. Drift stays visible because the value is stamped on
+    // each score (D15), which is where the roadmap says it is read from.
+    expect(buildProvenance({ ...base, engine: 'vllm', runtime: 'vllm-0.21.1rc1-tp2' }).config_fingerprint)
+      .toBe(buildProvenance(base).config_fingerprint);
+  });
+
+  test('default to null, so the incumbent path is unchanged', () => {
+    const p = buildProvenance(base);
+    expect(p.engine).toBeNull();
+    expect(p.runtime).toBeNull();
+    expect(p.quantization).toBeNull(); // not derivable from an OpenAI-compatible completion
+  });
+});
+
 describe('with a consistency block', () => {
   test('the block travels in the object and the fingerprint differs from the same configuration without it', () => {
     const p = buildProvenance({ ...base, consistency: block() });

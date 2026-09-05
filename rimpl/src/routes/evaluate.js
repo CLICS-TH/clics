@@ -148,6 +148,11 @@ router.post('/', async (req, res) => {
     // §10.2: the model that ACTUALLY produced this score — from the billed call, which every further
     // call was pinned to the same provider as.
     const model = first?.model;
+    // Same call, same reason: the engine and its version as the SERVER reported them. Providers that
+    // report nothing (anthropic) leave both undefined, so the incumbent path's provenance — and its
+    // config_fingerprint, which does not cover these fields — is byte-identical to before.
+    const engine = first?.engine ?? null;
+    const runtime = first?.runtime ?? null;
 
     res.json({
       ple_id,
@@ -171,6 +176,7 @@ router.post('/', async (req, res) => {
         promptVersion, rubricVersion: RUBRIC_VERSION,
         temperature: EVAL_DECODING.temperature, maxTokens: EVAL_DECODING.maxTokens,
         weightsSha256: weights_sha256 ?? null,
+        engine, runtime,
         consistency,
       }),
       // D21: the physician is billed call 1 only. The system-initiated calls live in `consistency`.

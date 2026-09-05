@@ -268,7 +268,7 @@ environment version.
 | PIS-7 rubric version | ✅ `pis7-weights-08b0cb1a` |
 | exact DeepSeek base release | ❌ not discoverable through the proxy |
 | weight checksum | ❌ |
-| inference engine + version | ❌ |
+| inference engine + version | ✅ `vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0` — stamped on every local score since 2026-09-05 (§8.10) |
 | quantization | ❌ |
 
 > **Corrected 2026-09-04 — this row named a prompt that has not shipped since June.** It read
@@ -289,8 +289,16 @@ environment version.
 > agreement with any rater is unmeasured is a weaker claim than the tick implied. Full lineage and
 > consequences: `scripts/calibration/prompt-versions.md`.
 
-`app_settings.evaluator_locked_at = 0` today. Enrolment has not started, so there is still time — but
-none of the four missing fields can be obtained from outside that machine.
+`app_settings.evaluator_locked_at = 0` today. Enrolment has not started, so there is still time — and
+**three** fields remain, not four.
+
+> **Corrected 2026-09-05 — "none of these can be obtained from outside that machine" was wrong about
+> one of them.** The inference engine and its version were arriving on every single completion, in
+> `system_fingerprint`, for as long as this transport has been used; rimpl read the response and
+> dropped the field. The row above was not describing an inaccessible fact, it was describing an
+> unread one. Fixed in `services/providers/local.js`, verified against the box, and recorded per score
+> — see §8.10. The lesson generalises past this row: a field marked "not discoverable" deserves one
+> look at what the server actually returns before it is written down as a limit.
 
 **`deepseek-v4-flash-dspark` is a custom build name.** §10.2 requires the exact base release it
 derives from. Nobody outside the box can determine that.
@@ -921,3 +929,149 @@ this programme, and it belongs to the corpus, not to any model.**
 
 Full method, every figure and its regeneration command: `docs/METHODOLOGY-local-vs-sonnet.en.md` /
 `.th.md`. Regenerate the numbers above with `node scripts/probe/report/methodology-figures.mjs`.
+
+---
+
+### 8.9 The block is source-scoped, and `:3003` is not blocked — G0 item 4 answered (2026-09-05)
+
+`rimpl/docker-entrypoint.sh` sweeps nine ports on `cme-dev` (`100.68.210.69`) from inside the Railway
+container, over the userspace Tailscale SOCKS5 proxy, reading **curl's exit code** rather than an HTTP
+status: `0/52/56` = TCP completed, `7` = the host sent a RST, `28` = the packets were silently dropped.
+A status of `000` cannot tell a refused port from a firewalled one; an exit code can. Run once with
+`LOCAL_AI_PROBE=1`, then the flag was removed — the sweep opens connections to a machine we do not own.
+
+The same four ports were then curled from `napats-macbook-air` (`100.90.186.63`) within the same minute,
+so the two columns differ in **source only**: same tailnet, same peer, same instant.
+
+| port | from Railway (`100.111.175.38`) | from the laptop (`100.90.186.63`) | what is there |
+|---|---|---|---|
+| 22 | TCP open | — | sshd (banner reset curl) |
+| 80 | **dropped** | **HTTP 200** | — |
+| 443 | TCP open | — | **Gitea** behind openresty; Let's Encrypt cert for `cme-dev.tail803a1f.ts.net`, **expired** |
+| **3000** | **dropped** | **HTTP 200** | Open WebUI → vLLM → `deepseek-v4-flash-dspark` |
+| 3001 | **dropped** | **HTTP 200** | — |
+| **3003** | **refused (RST)** | **refused (RST)** | nothing listening |
+| 8080 | refused | — | nothing listening |
+| 11434 | TCP open | — | **Ollama 0.33.3**, 8 models, none of them DeepSeek |
+| 9999 *(control)* | refused | — | nothing listening |
+
+tailscaled logged the refusals itself, which is why they are not an inference:
+
+```
+socks5: client connection failed: connect tcp 100.68.210.69:3003: connection was refused
+```
+
+#### What this settles
+
+**G0 item 4 — "can rimpl be hosted on a tailnet node?" — is answered YES, and D3 needs no firewall
+change.** If rimpl runs on the box, the model becomes localhost to it and the block on `:3000` stops
+mattering; what then has to work is the *other* direction, Railway reaching rimpl on `:3003`. That port
+RSTs rather than dropping — packets from the container reach cme-dev's TCP stack and it answers — so a
+listener there would be reachable. **Nothing on the box has to change for the network to work.**
+
+**Read the source of the sweep before reading it as "the backend can reach the box".** These packets
+left the **rimpl** container, the only Railway service whose image carries a Tailscale client
+(`rimpl/Dockerfile`). The **backend** has none — nothing under `backend/` mentions tailscale, its
+service has no `TS_AUTHKEY`, and `RIMPL_URL` is still `rimpl.railway.internal`. So D3 also requires
+giving the backend the same userspace sidecar rimpl already has. That is work on our side rather than a
+request to the box owner, and it is close to a copy of an image that already exists — but it is a
+prerequisite, and leaving it implicit is how a "no blockers" note becomes a surprise mid-migration.
+
+**The block is source-scoped, not port-scoped.** Every port that the laptop gets a 200 from is dropped
+for the container, while unused ports RST for both and `22`/`443`/`11434` are open for both. A blanket
+deny would have dropped the control port too; interface-binding would have produced a RST, not a
+timeout. What fits every cell is a packet filter on cme-dev covering exactly `80`, `3000` and `3001`
+with an address allowlist the laptop is on. This is an inference from nine ports and two sources, not
+a rule anyone has shown us — but the decision above rests only on the measured RST, not on the mechanism.
+
+**Our node can never be on such an allowlist as built.** `TS_AUTHKEY` is ephemeral, so each deploy
+joins as a fresh node with a fresh address — `clics-rimpl-6` at `100.115.149.2`, then `clics-rimpl` at
+`100.111.175.38`. That, not credentials, is why the same account and the same key work from the laptop
+and fail from production. A non-ephemeral node with a stable address would turn the request to the box
+owner into a single address to allow, once — the cheaper ask, if the ask is made at all.
+
+#### Two things found that are not ours to use
+
+- **`:11434` is a live, unauthenticated Ollama** reachable from production today, holding eight
+  abliterated/uncensored Qwen builds with `qwen2.5-coder:14b` resident and a TTL still running — a
+  colleague's working set on a shared box. It contains **no DeepSeek**. Pointing any CLICS purpose at
+  it would change model, engine and quantization at once, invalidating three of the four Model Lock
+  fields in §5.2 and every figure in §7–§8. It is evidence that the host does not default-deny; it is
+  not an option.
+- **The `:443` certificate has expired.** Harmless to us — we do not use it — but it lands beside the
+  node key expiring within a day (§5.1), and the two together say nobody is currently minding the box.
+
+---
+
+### 8.10 rimpl's own local path, run against the box for the first time (2026-09-05)
+
+Every number in §7 and §8 above came from `scripts/probe/*`, which calls the model directly. **rimpl —
+the service that would actually serve a score — had never once talked to the box.** Its provider
+routing, its bounded queue, its PII filter and its provenance builder were all unexercised against a
+real endpoint, which meant the migration's entire server-side half was untested while its measurement
+half was over-measured.
+
+Run from `napats-macbook-air`, which reaches `cme-dev:3000` where Railway cannot (§8.9). Deliberately
+walled off: `PROVIDER_SETTINGS_SOURCE=env` so production's `app_settings` are neither read nor written,
+`SUPABASE_URL` pointed at an unroutable host, `ANTHROPIC_API_KEY` set to a non-key so no cloud call
+could spend, and `shadow: false` in the request body so no shadow row could be written. Fixture
+`ple-001`, a **tuning** fixture — the held-out split stays spent and untouched.
+
+```
+POST /evaluate  ->  HTTP 200 in 135 s
+d1 3 · d2 3 · d3 4 · d4 3 · d5 2 · d6 3 · d7 3     composite 60
+provider local · model deepseek-v4-flash-dspark
+prompt pis7-prompt-59561c29+local-c5ffe572aa81 · rubric pis7-weights-08b0cb1a
+7/7 domain rationales · 5,904 in / 621 out tokens · /health/deep local_ai = up
+```
+
+The composite re-derives exactly: Σ(score × weight) = 3.00, × 20 = **60.0**. The prompt label matches
+the one every run in §8.6–§8.8 used, so rimpl and the probe harness are demonstrably assembling the
+same instrument. **The seam works.**
+
+#### Two defects that only this path could surface
+
+**1. Production's local lane is wired to a different model, and it would report healthy.** The rimpl
+service on Railway carries `LOCAL_AI_BASE_URL=http://100.68.210.69:11434/v1` and
+`LOCAL_AI_MODEL=qwen3.6-custom:latest` — the **Ollama** on `:11434`, which §8.9 found is a colleague's
+working set and holds no DeepSeek. That port is reachable from Railway, and `GET /v1/models` there does
+list `qwen3.6-custom:latest`, so `ready()` passes. Flipping `ai_provider_chat = local` in production
+would therefore **succeed against a model this programme has never evaluated**, on a box we do not own,
+rather than fail.
+
+`docs/LOCAL-AI-BUDGET-PLAN.md` said the opposite — "chat would **fail outright**, not degrade" — and
+treated unreachability as the thing standing between the toggle and production. It is not a safety net;
+it never was one. A wrong endpoint that answers is worse than one that does not.
+
+**2. The engine and version are handed to us on every call, and thrown away.** CREC082 §10.2 requires
+the inference engine, its version and the quantization on the Model Lock Record. The response carries
+the first two in plain sight:
+
+```
+system_fingerprint: vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0
+```
+
+`lib/provenance.js:73` declared `engine = null, quantization = null, runtime = null` as defaults and
+**nothing passed them**, so all three recorded `null` on a served score. The `config_fingerprint`
+(`28434954e7d886de`) and `decoding` block were populated correctly; these three were not.
+
+**Fixed the same day.** `local.js` now returns the fingerprint verbatim as `runtime` and its
+recognised leading token as `engine`, and `evaluate.js` threads both into the provenance block. The
+same fixture, re-scored through the same box:
+
+| field | before | after |
+|---|---|---|
+| `engine` | `null` | **`vllm`** |
+| `runtime` | `null` | **`vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0`** |
+| `quantization` | `null` | `null` — not in this response, and not inferred from a model name |
+| `config_fingerprint` | `28434954e7d886de` | `28434954e7d886de` — **unchanged** |
+
+The fingerprint holding still is the point of the design, not an accident: the runtime string carries
+a build hash that can change on a routine restart, so folding it in would churn on non-events and make
+every fingerprint stored before today incomparable with the ones after. Drift stays visible because
+the value is stamped on each score, which is where D15 says it is read from.
+
+**This is the general lesson of §8.10.** No unit test could have found it, because the mocks never
+carried the field; no probe could have, because the probes never ran this code. A fact recorded as
+"not discoverable" for months was arriving on every call. §5.2's row is now ✅ and three §10.2 fields
+remain, not four.
