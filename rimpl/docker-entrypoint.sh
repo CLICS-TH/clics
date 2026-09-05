@@ -65,13 +65,21 @@ fi
 # rule; a DROP means the host default-denies and the question becomes which ports are allowed for
 # THIS source rather than what is special about 3000.
 #
+# 3003 and 3001 answer a DIFFERENT question, and it is the one that decides D3. If rimpl moves onto
+# the box, the model becomes localhost to it and the source-scoped rule on :3000 stops mattering —
+# but the BACKEND then has to reach rimpl on :3003 from Railway, which is the same direction that is
+# blocked today. Nothing listens on either port, so the verdict is about the firewall alone:
+#   3003 REFUSED -> D3 needs no firewall change at all, only a host to run on.
+#   3003 DROPPED -> the rule is broader than :3000 and D3 needs an opening too.
+#   3001 tells the two apart: REFUSED means :3000 is named specifically, DROPPED means a range.
+#
 # Background, always: nothing may sit between boot and the listening port.
-# Opt-in: set LOCAL_AI_PROBE=1. It opens seven connections to a box we do not own, so it runs when
+# Opt-in: set LOCAL_AI_PROBE=1. It opens nine connections to a box we do not own, so it runs when
 # someone is diagnosing, not on every boot.
 if [ -n "$LOCAL_AI_BASE_URL" ] && [ "$LOCAL_AI_PROBE" = "1" ]; then
   (
     PX="--socks5-hostname 127.0.0.1:${TS_SOCKS_PORT:-1080}"
-    for port in 22 80 443 3000 8080 11434 9999; do
+    for port in 22 80 443 3000 3001 3003 8080 11434 9999; do
       curl -s -o /dev/null --max-time 8 $PX "http://100.68.210.69:${port}/" 2>/dev/null
       rc=$?
       case "$rc" in
