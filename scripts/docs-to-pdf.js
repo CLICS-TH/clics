@@ -58,15 +58,29 @@ while (i < lines.length) {
     out.push(`<blockquote>${inline(buf.join(' '))}</blockquote>`);
     continue;
   }
+  // A list item wrapped over several lines. The continuation line must be ABSORBED into the item:
+  // left to fall through, it ends the list, becomes its own <p>, and the NEXT marker opens a fresh
+  // list — which restarts an <ol> at 1 and un-indents a <ul> item's tail. Requiring the
+  // continuation to be indented is deliberate: an un-indented line after a list is a new paragraph
+  // far more often than it is a lazy continuation, and guessing wrong there is the worse failure.
+  const listItems = (marker) => {
+    const items = [];
+    while (i < lines.length) {
+      if (marker.test(lines[i])) { items.push(lines[i].replace(marker, '')); i++; continue; }
+      const cont = items.length && /^\s+\S/.test(lines[i]) && !/^\s*(\||```|>|#{1,4}\s|---+\s*$)/.test(lines[i].trim());
+      if (!cont) break;
+      items[items.length - 1] += ' ' + lines[i].trim();
+      i++;
+    }
+    return items;
+  };
   if (/^\s*[-*]\s+/.test(line)) {
-    const buf = [];
-    while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) { buf.push(lines[i].replace(/^\s*[-*]\s+/, '')); i++; }
+    const buf = listItems(/^\s*[-*]\s+/);
     out.push('<ul>' + buf.map(b => `<li>${inline(b)}</li>`).join('') + '</ul>');
     continue;
   }
   if (/^\s*\d+\.\s+/.test(line)) {
-    const buf = [];
-    while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) { buf.push(lines[i].replace(/^\s*\d+\.\s+/, '')); i++; }
+    const buf = listItems(/^\s*\d+\.\s+/);
     out.push('<ol>' + buf.map(b => `<li>${inline(b)}</li>`).join('') + '</ol>');
     continue;
   }
