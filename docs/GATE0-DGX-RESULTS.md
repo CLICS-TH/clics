@@ -1040,8 +1040,23 @@ would therefore **succeed against a model this programme has never evaluated**, 
 rather than fail.
 
 `docs/LOCAL-AI-BUDGET-PLAN.md` said the opposite — "chat would **fail outright**, not degrade" — and
-treated unreachability as the thing standing between the toggle and production. It is not a safety net;
+treated unreachability as the thing standing between the toggle and production. It was not a safety net;
 it never was one. A wrong endpoint that answers is worse than one that does not.
+
+**Remediated the same day.** The rimpl service now carries
+`LOCAL_AI_BASE_URL=http://100.68.210.69:3000/api/v1` and `LOCAL_AI_MODEL=deepseek-v4-flash-dspark` —
+the endpoint and model this programme actually measured. Two things made this safe to change in place:
+`providersToProbe` only probes a provider some purpose routes to, and every purpose in production
+resolves to `anthropic`, so `/health/deep` is unaffected today; and `:3000` is the port Railway cannot
+open (§8.9), so the readiness gate (P1.5) now **refuses** a switch to local with a measured reason
+instead of admitting one. The failure mode moves from *silently wrong* to *declined, with the reason
+printed* — which is what the gate was built for.
+
+Note what this does and does not mean. The budget plan's sentence is true again, but only because the
+configuration was corrected; it was false for as long as the wrong endpoint was configured, and
+nothing in the system would have said so. The lesson is not about that sentence — it is that
+"production cannot reach it" is a claim about a specific configured endpoint, and stops holding the
+moment the endpoint changes without anyone re-checking.
 
 **2. The engine and version are handed to us on every call, and thrown away.** CREC082 §10.2 requires
 the inference engine, its version and the quantization on the Model Lock Record. The response carries
