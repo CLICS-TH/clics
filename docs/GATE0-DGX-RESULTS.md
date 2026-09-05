@@ -992,3 +992,59 @@ owner into a single address to allow, once — the cheaper ask, if the ask is ma
   not an option.
 - **The `:443` certificate has expired.** Harmless to us — we do not use it — but it lands beside the
   node key expiring within a day (§5.1), and the two together say nobody is currently minding the box.
+
+---
+
+### 8.10 rimpl's own local path, run against the box for the first time (2026-09-05)
+
+Every number in §7 and §8 above came from `scripts/probe/*`, which calls the model directly. **rimpl —
+the service that would actually serve a score — had never once talked to the box.** Its provider
+routing, its bounded queue, its PII filter and its provenance builder were all unexercised against a
+real endpoint, which meant the migration's entire server-side half was untested while its measurement
+half was over-measured.
+
+Run from `napats-macbook-air`, which reaches `cme-dev:3000` where Railway cannot (§8.9). Deliberately
+walled off: `PROVIDER_SETTINGS_SOURCE=env` so production's `app_settings` are neither read nor written,
+`SUPABASE_URL` pointed at an unroutable host, `ANTHROPIC_API_KEY` set to a non-key so no cloud call
+could spend, and `shadow: false` in the request body so no shadow row could be written. Fixture
+`ple-001`, a **tuning** fixture — the held-out split stays spent and untouched.
+
+```
+POST /evaluate  ->  HTTP 200 in 135 s
+d1 3 · d2 3 · d3 4 · d4 3 · d5 2 · d6 3 · d7 3     composite 60
+provider local · model deepseek-v4-flash-dspark
+prompt pis7-prompt-59561c29+local-c5ffe572aa81 · rubric pis7-weights-08b0cb1a
+7/7 domain rationales · 5,904 in / 621 out tokens · /health/deep local_ai = up
+```
+
+The composite re-derives exactly: Σ(score × weight) = 3.00, × 20 = **60.0**. The prompt label matches
+the one every run in §8.6–§8.8 used, so rimpl and the probe harness are demonstrably assembling the
+same instrument. **The seam works.**
+
+#### Two defects that only this path could surface
+
+**1. Production's local lane is wired to a different model, and it would report healthy.** The rimpl
+service on Railway carries `LOCAL_AI_BASE_URL=http://100.68.210.69:11434/v1` and
+`LOCAL_AI_MODEL=qwen3.6-custom:latest` — the **Ollama** on `:11434`, which §8.9 found is a colleague's
+working set and holds no DeepSeek. That port is reachable from Railway, and `GET /v1/models` there does
+list `qwen3.6-custom:latest`, so `ready()` passes. Flipping `ai_provider_chat = local` in production
+would therefore **succeed against a model this programme has never evaluated**, on a box we do not own,
+rather than fail.
+
+`docs/LOCAL-AI-BUDGET-PLAN.md` said the opposite — "chat would **fail outright**, not degrade" — and
+treated unreachability as the thing standing between the toggle and production. It is not a safety net;
+it never was one. A wrong endpoint that answers is worse than one that does not.
+
+**2. The engine and version are handed to us on every call, and thrown away.** CREC082 §10.2 requires
+the inference engine, its version and the quantization on the Model Lock Record. The response carries
+the first two in plain sight:
+
+```
+system_fingerprint: vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0
+```
+
+`lib/provenance.js:73` declares `engine = null, quantization = null, runtime = null` as defaults and
+**nothing passes them**, so all three record `null` on a served score. The `config_fingerprint`
+(`28434954e7d886de`) and `decoding` block are populated correctly; these three are not. §5.2's Model
+Lock table has been describing fields the code cannot fill — reading `system_fingerprint` in the local
+provider fills two of them at zero cost.
