@@ -241,10 +241,24 @@ All default to the pre-existing behaviour; setting none of these changes anythin
 Facts, not decisions. Everything downstream waits on these.
 
 1. **Tailnet access** to **`cme-dev`** (`100.68.210.69`) — the inference port, not just the UI port.
-2. **What `cme-dev` actually serves** — confirmed Ollama, but: which models, at what context length,
-   and is the inference server reachable directly (`:11434` / `:8000/v1`) rather than through Open
-   WebUI? Server-to-server wants the inference server: fewer hops, no per-user API-key semantics, no
-   UI-layer throttling.
+2. ~~**What `cme-dev` actually serves**~~ **ANSWERED 2026-09-05 — the inference servers exist, and
+   every one of them is LAN-only.** Open WebUI's Connections panel names its upstreams:
+   `http://cme-dgx:8888/v1` and `http://192.168.1.178:8000/v1` (OpenAI-compatible), plus
+   `http://192.168.1.111:11434` and `http://192.168.1.177:11434` (Ollama, the second disabled).
+   `cme-dev` is not itself the inference host — it is the gateway in front of them.
+
+   All four were probed from the laptop: three time out, `cme-dev-dgx:8888` does not resolve. The
+   reason is one line — `cme-dev` advertises `AllowedIPs: 100.68.210.69/32` and no subnet route, so
+   `192.168.1.0/24` does not exist from outside. **No API key changes this**, which is worth stating
+   plainly because "use the API key on that page" is the natural reading of the problem and it is the
+   wrong layer: the connection never completes, so no key is ever presented.
+
+   **This makes the D3 case stronger than the docs currently argue.** rimpl running *on* `cme-dev`
+   would reach `192.168.1.178:8000/v1` directly over the LAN and skip Open WebUI entirely — which is
+   exactly the "fewer hops, no per-user API-key semantics, no UI-layer throttling" this item asked
+   for. Which of `:8000` and `:8888` serves `deepseek-v4-flash-dspark` is **inferred, not measured**:
+   `:8000` is vLLM's default and the served `system_fingerprint` is `vllm-...-tp2` (§8.10), but the two
+   cannot be told apart from outside the LAN.
 3. **`sha256sum` of the evaluator weights**, and who can run it. This fills
    `app_settings.evaluator_weights_sha256`, which is seeded and null. It is **not** readable over an
    inference API — it must be declared by someone with filesystem access.

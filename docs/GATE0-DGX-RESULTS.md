@@ -1090,3 +1090,44 @@ the value is stamped on each score, which is where D15 says it is read from.
 carried the field; no probe could have, because the probes never ran this code. A fact recorded as
 "not discoverable" for months was arriving on every call. §5.2's row is now ✅ and three §10.2 fields
 remain, not four.
+
+---
+
+### 8.11 What is behind the gateway — G0 item 2, answered from the admin panel (2026-09-05)
+
+`cme-dev` is **not** the inference host. Open WebUI's Connections panel lists what it proxies to:
+
+| upstream | kind | state |
+|---|---|---|
+| `http://cme-dgx:8888/v1` | OpenAI-compatible | enabled |
+| `http://192.168.1.178:8000/v1` | OpenAI-compatible | enabled |
+| `http://192.168.1.111:11434` | Ollama | enabled |
+| `http://192.168.1.177:11434` | Ollama | disabled |
+
+Probed from the laptop, which reaches `cme-dev` itself without trouble:
+
+```
+192.168.1.178:8000   ->  timeout (no route)
+192.168.1.111:11434  ->  timeout (no route)
+192.168.1.177:11434  ->  timeout (no route)
+cme-dgx:8888         ->  DNS resolution failed
+```
+
+One line explains all four: `cme-dev` advertises `AllowedIPs: 100.68.210.69/32` and no subnet route,
+so `192.168.1.0/24` does not exist from outside. **An API key cannot help**, and that is worth writing
+down because "use the API key on the Connections page" is the natural reading of the problem and it
+addresses the wrong layer entirely — the TCP connection never completes, so no key is ever presented.
+Authentication was never the constraint; routing is.
+
+#### It strengthens D3 beyond what was claimed
+
+The install spec offered on-prem rimpl as reaching the model "through `localhost:3000`". It can do
+better: on `cme-dev`, rimpl reaches `192.168.1.178:8000/v1` over the LAN **directly**, skipping the
+Open WebUI hop, its per-user API-key semantics and its UI-layer throttling — precisely the
+server-to-server property G0 item 2 was written to ask about. `:11434` from §8.9 is now placed too:
+it is `cme-dev`'s own Ollama, distinct from the two LAN Ollama hosts behind it.
+
+**Inferred, not measured:** which of `:8000` and `:8888` serves `deepseek-v4-flash-dspark`. `:8000` is
+vLLM's default port and the served `system_fingerprint` reads `vllm-...-tp2` (§8.10), so `:8000` is
+the likely one — but from outside the LAN the two cannot be told apart, and the install should confirm
+it from the box rather than assume it.
