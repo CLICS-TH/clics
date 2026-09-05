@@ -223,6 +223,26 @@ async function callWith(provider, { systemPrompt, messages, maxTokens, temperatu
  * true — before this, services/rag.js called api.openai.com directly and no configuration could
  * move it. Throws on failure; ragLookup decides whether a miss is fatal (it is not).
  */
+/**
+ * Is retrieval switched on? (app_settings.rag_enabled, 0/1.)
+ *
+ * DEFAULTS OFF when the row is absent, and that default is load-bearing rather than cautious.
+ * Retrieval embeds every physician turn through the `embed` provider, which on this deployment is
+ * a DIFFERENT VENDOR from the one serving chat. The revised CREC082 submission set declares "local
+ * open-weight AI and no commercial external AI/API for research transcripts" in four attachments,
+ * so whether that call happens has to be a switch an auditor can read — not a side effect of
+ * whether a table happens to be empty.
+ *
+ * It was a side effect of exactly that until 2026-09-05: `documents` holds 0 rows in production, so
+ * every chat turn paid an api.openai.com round trip to search nothing. The text was de-identified
+ * first (routes/chat.js strips before calling), so this was a conformance gap rather than a leak —
+ * but it bought nothing at all.
+ */
+async function ragEnabled() {
+  await settings.ensureFresh(SETTING_PURPOSES).catch(() => {});
+  return (settings.numberFor('rag_enabled') ?? 0) === 1;
+}
+
 async function embedText(text) {
   await settings.ensureFresh(SETTING_PURPOSES);
   const name = embedProviderName();
@@ -277,11 +297,36 @@ function modelsByPurpose() {
 // configured. anthropic.ready() is a key-presence check, so a missing ANTHROPIC_API_KEY on a box that
 // would fail over to it shows up here — before the outage it was meant to cover, not during it. The
 // target is probed, not made active: routing, the `providers` report and the queue report ignore it.
-function providersToProbe() {
-  const names = new Set(activeProviders());
+// Which providers /health/deep must probe, and where to look each one up.
+//
+// The embed provider was missing here until 2026-09-05, and it is a DIFFERENT VENDOR: with
+// ai_provider_embed=openai the deployment talks to api.openai.com on every chat turn while
+// /health/deep reported only anthropic and supabase. Whether OPENAI_API_KEY was even set was not
+// answerable from outside — and that question decides whether retrieval is quietly shipping text to
+// a third party or quietly throwing. Neither state was visible. openai-embed has always exported a
+// ready(); nothing called it.
+//
+// Returns [name, provider] pairs because embed providers live in their own registry (EMBED_PROVIDERS):
+// 'openai' is not in PROVIDERS at all, so probing it by name alone reported `unknown provider`.
+//
+// `includeEmbed` is the caller's answer to "is retrieval switched on?". When it is OFF, ragLookup
+// returns before ever reaching the embed provider, so an unset OPENAI_API_KEY degrades nothing and
+// reporting it `down` would take the whole endpoint to 503 over a vendor no request touches. A check
+// that cries wolf is worse than no check — it is the reason the prompt-provenance warning next door
+// went unread. Probe the embed lane exactly when it is part of the serving path.
+function providersToProbe({ includeEmbed } = {}) {
+  const found = new Map();
+  const add = (name, registry) => {
+    const n = String(name || '').trim().toLowerCase();
+    if (n && !found.has(n)) found.set(n, registry[n] || null);
+  };
+  for (const n of activeProviders()) add(n, PROVIDERS);
   const failover = String(process.env.CHAT_FAILOVER_PROVIDER || '').trim().toLowerCase();
-  if (failover) names.add(failover);
-  return [...names];
+  if (failover) add(failover, PROVIDERS);
+  // Last, so a provider serving BOTH chat and embeddings keeps its chat registry entry — local is in
+  // both maps, and its ready() there is the one that checks the served context.
+  if (includeEmbed) add(embedProviderName(), EMBED_PROVIDERS);
+  return [...found.entries()];
 }
 
 // Aggregated readiness across every provider that must be probed (see providersToProbe). Never
@@ -291,8 +336,9 @@ async function readiness() {
   // Resolve from the database first so /health/deep probes what traffic will ACTUALLY hit. Probing
   // the env-resolved provider on a DB-switched box reports the wrong vendor as healthy.
   await settings.ensureFresh(SETTING_PURPOSES).catch(() => {});
-  for (const name of providersToProbe()) {
-    const provider = PROVIDERS[name];
+  // Sync read: ensureFresh above has just warmed the cache, and ragEnabled() would refresh it twice.
+  const includeEmbed = (settings.numberFor('rag_enabled') ?? 0) === 1;
+  for (const [name, provider] of providersToProbe({ includeEmbed })) {
     if (!provider) { checks[`${name}_provider`] = { status: 'down', error: `unknown provider "${name}"` }; continue; }
     try {
       const r = await Promise.resolve(provider.ready());
@@ -387,7 +433,7 @@ function providerSettingsStatus() {
 }
 
 module.exports = {
-  callAI, callProvider, embedText, resolveProviderName,
+  callAI, callProvider, embedText, ragEnabled, resolveProviderName,
   activeProviders, defaultProvider, modelsByPurpose, providerNameFor, embedProviderName,
   providerSettingsStatus, readiness, probeProvider, isProviderDown,
   PURPOSES, PROVIDERS, EMBED_PROVIDERS, EMBED_PURPOSE, SETTING_PURPOSES,

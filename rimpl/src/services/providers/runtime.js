@@ -178,6 +178,20 @@ function createRunner({
 }) {
   const sched = lanes ? laneScheduler({ name, maxConcurrency, lanes }) : fifoScheduler({ name, maxConcurrency });
 
+  // Last observed OUTCOME, so a readiness probe can answer "can this provider actually serve?"
+  // without spending a token on a synthetic call. Nothing recorded this before, and the gap was not
+  // theoretical: an exhausted Anthropic balance returns 400 on every request while /health/deep
+  // reported `ok`, because the probe only checked that the env var was set and the SDK constructed.
+  // That is the same shape as the outage that left production broken for three days with both
+  // operator screens green.
+  //
+  // Only TERMINAL outcomes are recorded. A retryable error that the loop then recovered from is not
+  // a health signal — it is the retry doing its job — so `lastError` is written where the error
+  // leaves run(), not where it is caught. Aborts and queue-full are caller and capacity conditions,
+  // never provider health, and are excluded.
+  let lastOk = null;      // epoch ms of the last successful call
+  let lastError = null;   // { at, status, code, message, retryable, attempts }
+
   function backoffMs(attempt, err) {
     const ra = retryAfterMs(err);
     if (ra != null) return ra;  // honor the server's Retry-After when present
@@ -196,7 +210,15 @@ function createRunner({
       let lastErr;
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-          return await fn(attempt, signal);
+          const out = await fn(attempt, signal);
+          // Clear on success rather than letting the reader compare timestamps: lastOk and
+          // lastError are both Date.now(), so a failure in the SAME millisecond as the previous
+          // success would be silently discarded by a `lastOk >= lastError.at` test. Under load
+          // that is not a rare race. "Any success clears the last failure" is also the rule we
+          // actually mean.
+          lastOk = Date.now();
+          lastError = null;
+          return out;
         } catch (err) {
           lastErr = err;
           // A caller that has hung up gets no retry: the work would be dead on arrival, and the slot
@@ -209,18 +231,35 @@ function createRunner({
             if (signal?.aborted) throw new AbortError(laneTag, err);
             continue;
           }
+          recordFailure(err, attempt);
           throw err;
         }
       }
+      recordFailure(lastErr, maxRetries);
       throw lastErr;
     } finally {
       sched.release(lane);
     }
   }
 
+  // Aborts and queue-full describe the CALLER or the queue, not the provider — recording them would
+  // mark a healthy provider unhealthy every time a user closed a tab.
+  function recordFailure(err, attempt) {
+    if (isAborted(err) || isQueueFull(err)) return;
+    lastError = {
+      at: Date.now(),
+      status: typeof err?.status === 'number' ? err.status : null,
+      code: err?.code || err?.cause?.code || null,
+      message: String(err?.message || err).slice(0, 300),
+      retryable: isRetryable(err),
+      attempts: attempt + 1,
+    };
+  }
+
   // Queue depth is the local-provider replacement for Anthropic's rate-limit headers: with no
-  // quota to read, saturation only shows up as waiters piling up.
-  return { run, stats: sched.stats };
+  // quota to read, saturation only shows up as waiters piling up. lastOk/lastError answer the
+  // question queue depth cannot: whether the last thing this provider did actually worked.
+  return { run, stats: () => ({ ...sched.stats(), lastOk, lastError }) };
 }
 
 module.exports = { createRunner, QueueFullError, AbortError, isQueueFull, isAborted };

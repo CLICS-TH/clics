@@ -31,11 +31,20 @@ const mockLocal = {
 jest.mock('../src/services/providers/anthropic', () => mockAnthropic);
 jest.mock('../src/services/providers/local', () => mockLocal);
 
-const AI_ENV = ['AI_PROVIDER', 'AI_PROVIDER_CHAT', 'AI_PROVIDER_EVALUATE', 'AI_PROVIDER_CRITERIA', 'AI_PROVIDER_DISCUSS'];
+const AI_ENV = ['AI_PROVIDER', 'AI_PROVIDER_CHAT', 'AI_PROVIDER_EVALUATE', 'AI_PROVIDER_CRITERIA', 'AI_PROVIDER_DISCUSS',
+  // The embed lane leaked between tests until 2026-09-05 — harmless while nothing probed it,
+  // and immediately confusing once readiness() did.
+  'AI_PROVIDER_EMBED', 'EMBED_PROVIDER'];
 let savedEnv;
 
 // ONE module instance for the whole file: resolution is per call, so nothing here needs a reload.
 const ai = require('../src/services/ai');
+const settings = require('../src/services/provider-settings');
+
+// app_settings.rag_enabled decides whether the embed vendor is part of the serving path at all, and
+// therefore whether readiness() probes it. There is no database here, so numberFor() would answer
+// undefined (= off) for every test; this states the answer where a test depends on it.
+const withRag = (n) => jest.spyOn(settings, 'numberFor').mockImplementation((k) => (k === 'rag_enabled' ? n : undefined));
 
 beforeEach(() => {
   savedEnv = Object.fromEntries(AI_ENV.map((k) => [k, process.env[k]]));
@@ -44,6 +53,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  // jest.clearAllMocks() in beforeEach resets call history but NOT a spyOn implementation, so a
+  // withRag() from one test would silently decide the next one.
+  settings.numberFor.mockRestore?.();
   for (const k of AI_ENV) {
     if (savedEnv[k] === undefined) delete process.env[k];
     else process.env[k] = savedEnv[k];
@@ -302,6 +314,33 @@ describe('readiness() aggregates and NEVER throws', () => {
     expect(Object.keys(checks)).toEqual(['local_ai']);
   });
 
+  test('retrieval OFF: the embed vendor is not probed, because no request touches it', async () => {
+    // rag_enabled=0 means ragLookup returns before reaching the embed provider. Reporting an unset
+    // OPENAI_API_KEY as `down` would then take /health/deep to 503 over a vendor nothing calls —
+    // a false alarm, and this codebase already has one warning nobody reads for exactly that reason.
+    process.env.AI_PROVIDER = 'local';
+    withRag(0);
+    expect((await ai.readiness()).openai_embeddings).toBeUndefined();
+  });
+
+  test('retrieval ON: AI_PROVIDER=local is NOT all-local — embeddings stay on OpenAI, and now say so', async () => {
+    // The reason the embed provider had to become visible at all. embedProviderName() falls back to
+    // 'openai', not to AI_PROVIDER (ai.js:50), so an operator who sets AI_PROVIDER=local believes the
+    // deployment is on-prem while every turn still reaches a commercial third party — which the
+    // revised CREC082 submission set says will not happen. The default is left alone deliberately:
+    // moving it needs LOCAL_AI_EMBED_MODEL and would hard-fail on a dimension mismatch against an
+    // existing corpus. It must not be INVISIBLE, which it was.
+    process.env.AI_PROVIDER = 'local';
+    withRag(1);
+    expect(Object.keys(await ai.readiness()).sort()).toEqual(['local_ai', 'openai_embeddings']);
+
+    process.env.AI_PROVIDER_EMBED = 'local';
+    mockLocal.ready.mockClear();
+    const checks = await ai.readiness();
+    expect(Object.keys(checks)).toEqual(['local_ai']);   // now it really is all-local
+    expect(mockLocal.ready).toHaveBeenCalledTimes(1);    // and local, serving both lanes, is probed ONCE
+  });
+
   test('each active provider is probed exactly once even though it serves 3 purposes', async () => {
     process.env.AI_PROVIDER = 'local';
     process.env.AI_PROVIDER_EVALUATE = 'anthropic';
@@ -329,6 +368,16 @@ describe('readiness() aggregates and NEVER throws', () => {
     await expect(ai.readiness()).resolves.toEqual({
       dgx_provider: { status: 'down', error: 'unknown provider "dgx"' },
     });
+  });
+
+  test('an unknown EMBED provider is a down check named after it, not `unknown provider` silence', async () => {
+    // Embed providers live in their OWN registry, so probing one by name against PROVIDERS reported
+    // `unknown provider "openai"` — which is why the embed lane had to be resolved separately.
+    process.env.AI_PROVIDER = 'local';
+    process.env.AI_PROVIDER_EMBED = 'cohere';
+    withRag(1);
+    const checks = await ai.readiness();
+    expect(checks.cohere_provider).toEqual({ status: 'down', error: 'unknown provider "cohere"' });
   });
 
   test('a hybrid is degraded when EITHER side is down', async () => {
