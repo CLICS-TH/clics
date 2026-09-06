@@ -340,8 +340,12 @@ Work in this phase:
   replaces it carries raw PII (see *The PII hop*) and must be authenticated end-to-end, not merely
   network-reachable — `INTERNAL_TOKEN` still applies. **The backend needs a Tailscale client of its
   own**, which it does not have today: the 2026-09-05 sweep that proved `:3003` reachable ran from the
-  *rimpl* container, the only service whose image carries one. Copying `rimpl/Dockerfile`'s userspace
-  sidecar into the backend is a prerequisite of this phase, and it is our work, not the box owner's.
+  *rimpl* container, the only service whose image carries one. **Prepared together in the 2026-09-06
+  PR, not deployed:** backend Dockerfile/entrypoint, scoped `RIMPL_HTTP_PROXY` dispatcher on all six
+  RIMPL calls, and the Undici dependency. Real loopback proxy tests cover Node 22; the fetch and
+  dispatcher must come from the same Undici package. [Cutover runbook](D3-CUTOVER-RUNBOOK.md)
+  records the image-build, access, authentication and rollback gates. Preparing the code does not
+  establish that the production backend can reach on-prem RIMPL.
 - **Deploy pipeline changes.** rimpl leaves the Railway CLI path. Document the replacement in
   [deployment.md](deployment.md); the `--service rimpl` gotcha becomes obsolete and should be struck
   rather than left to mislead.
@@ -364,14 +368,15 @@ Every ICC CLICS has ever recorded is **AI-vs-AI**. `scripts/calibration/prompt-v
 |---|---|---|---|
 | v0 (original) | 0.377 (0.04–0.64) | 33 | simulated |
 | v1 | 0.700 (0.47–0.84) | 33 | simulated |
-| **v2 (current)** | **0.811 (0.64–0.91)** | 30 | **simulated** |
+| v2 (superseded) | 0.811 (0.64–0.91) | 30 | simulated |
+| **v3 (current, `59561c292df0`)** | **not calibrated against human raters** | — | — |
 
 Those raters are Claude agents with assigned stances (`scripts/soak/gen-auditor-wf.js:30-32`), not
 humans. Two consequences:
 
 - **The CI straddles the gate.** 0.64–0.91 at n=30 does not confidently clear 0.75.
-- **Human auditors disagree with each other more** than agent-raters with assigned stances do, so the
-  honest expectation is that the human-scored figure comes in **lower**, not higher.
+- **These measurements do not establish human agreement.** Neither the magnitude nor direction of
+  any difference with human raters has been measured for the current instrument.
 
 So: measure Claude's ICC against **real human auditors** on the current prompt, before anything else.
 
@@ -385,9 +390,11 @@ So: measure Claude's ICC against **real human auditors** on the current prompt, 
 Because D1 puts this before the Pilot Study, you find this out while it is still fixable rather than
 at analysis time with 225 PLEs already scored and locked.
 
-**Cheapest path to a first human-scored cohort:** the 5 unscored assignments already in the auditor
-queue, plus recruiting toward `min_auditors_per_cle = 3` on **Internal Medicine only** — it has 7
-auditors; every other specialty currently has exactly 1.
+**Recorded starting point, to re-check before recruitment:** 5 unscored assignments and 7 Internal
+Medicine auditor accounts (other specialties had 1 each). Account counts do not establish how many
+human raters are available. Prepare the cohort and verify the roster using the
+[human-rater checklist](G0.5-HUMAN-RATER-PREP.th.md); target `min_auditors_per_cle = 3` and report the
+actual number of independent human ratings per PLE.
 
 ---
 

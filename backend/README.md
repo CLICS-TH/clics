@@ -2,7 +2,7 @@
 
 Node.js + Express REST API (port **3001**). The system's control plane: it owns Supabase auth + DB
 access, enforces roles and the per-user AI budget, runs the CLE gate, and is the **only** caller of
-RIMPL. Deployed to **Railway**. Node **≥ 22**.
+RIMPL. Deployed to **Railway**. Node **≥ 22.19.0** (Undici 8 runtime requirement).
 
 See [../README.md](../README.md) for the big picture, [../CONTRIBUTING.md](../CONTRIBUTING.md) for
 conventions, and [../docs/architecture.md](../docs/architecture.md) for the request flow.
@@ -45,3 +45,8 @@ npm test                  # jest --runInBand
 
 Env var names and the deploy command (`railway up . --path-as-root --service backend --ci`) are in
 [../docs/deployment.md](../docs/deployment.md).
+
+The D3 container + opt-in `RIMPL_HTTP_PROXY` transport is prepared for on-prem RIMPL. It is not a
+cutover: current production still uses Railway's private RIMPL URL. Read the prerequisites,
+validation and rollback in [D3 cutover runbook](../docs/D3-CUTOVER-RUNBOOK.md) before deploying this
+branch; adding `backend/Dockerfile` changes Railway's builder on its next backend deployment.

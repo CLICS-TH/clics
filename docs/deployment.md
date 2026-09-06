@@ -2,6 +2,13 @@
 
 Deploys run from the **local working tree** (not GitHub). Backend + RIMPL on **Railway** (project `CLICS-Pilot`), both front-ends on **Vercel**.
 
+**Prepared 2026-09-06, not deployed:** the backend D3 image, scoped `RIMPL_HTTP_PROXY` transport and
+Undici dependency must ship together. Follow [D3 cutover runbook](D3-CUTOVER-RUNBOOK.md) before any
+backend deployment from this branch. The presence of `backend/Dockerfile` changes the builder;
+merely leaving the proxy unset does not retain Nixpacks. Current Railway RIMPL commands below remain
+valid until an actual cutover. The independent [RAG rollout checklist](RAG-ROLLOUT-CHECKLIST.md)
+includes a required numeric-setting reader fix discovered before deployment.
+
 ## Live URLs
 
 | Service | URL |

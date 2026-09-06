@@ -1,0 +1,10 @@
+# Keep the build context small and keep secrets out of the image. The Dockerfile COPYs only
+# package*.json + src, so nothing below could reach the image anyway — this is the second lock on
+# .env, and the reason a stale host node_modules can never shadow `npm ci`'s tree.
+node_modules
+coverage
+tests
+.env
+.env.*
+npm-debug.log
+.DS_Store

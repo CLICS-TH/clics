@@ -20,6 +20,32 @@ const CHAT_TIMEOUT_MS = parseInt(process.env.RIMPL_CHAT_TIMEOUT_MS || '100000', 
 const EVAL_TIMEOUT_MS = parseInt(process.env.RIMPL_EVAL_TIMEOUT_MS || '480000', 10);
 const CRITERIA_TIMEOUT_MS = parseInt(process.env.RIMPL_CRITERIA_TIMEOUT_MS || '180000', 10);
 
+// Tailscale userspace networking supplies a proxy, not kernel routes. Only this client's
+// requests use it; a global dispatcher would also tunnel Supabase, email, and other services.
+// Configuration is read once, like RIMPL_URL: changing it requires a process restart.
+const RIMPL_HTTP_PROXY = process.env.RIMPL_HTTP_PROXY?.trim();
+let dispatcher;
+let proxyFetch;
+function rimplFetch(path, options) {
+  if (!RIMPL_HTTP_PROXY) return fetch(`${RIMPL_URL}${path}`, options);
+  if (!dispatcher) {
+    const undici = require('undici');
+    dispatcher = new undici.ProxyAgent({
+      uri: RIMPL_HTTP_PROXY,
+      proxyTunnel: true,
+      // Every caller supplies an AbortSignal deadline. Undici's default 300s header/body
+      // timers must not cut short a legitimate 480s background evaluation.
+      headersTimeout: 0,
+      bodyTimeout: 0,
+    });
+    // Node 22's bundled fetch uses an older dispatcher protocol than Undici 8.
+    // Keep the fetch implementation and its dispatcher from the same package.
+    proxyFetch = undici.fetch;
+  }
+  // A proxy/configuration failure propagates. Never retry a PII-bearing request directly.
+  return proxyFetch(`${RIMPL_URL}${path}`, { ...options, dispatcher });
+}
+
 // A RIMPL HTTP error with the status attached, so callers can tell a DETERMINISTIC bad-output
 // failure (400 bad request / 422 / 502 "evaluator returned out-of-range/invalid output") — which a
 // retry can never fix — from a TRANSIENT one (500 infra / timeout / network) worth retrying. Without
@@ -74,7 +100,7 @@ async function parseWithProvider(res) {
 // so RIMPL can scrub it from the narrative/transcript before any cloud call — it is never forwarded
 // to the cloud AI. See docs/constraints.md (data boundary).
 async function rimplChat({ ple_id, history, message, language, chief_complaint, patient_ref, socratic, artifacts, rescue_active, already_qualified, rescue_rounds }) {
-  const res = await fetch(`${RIMPL_URL}/chat`, {
+  const res = await rimplFetch('/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
     // rescue_active / already_qualified are latches from the `ples` row. RIMPL is stateless, so
@@ -95,7 +121,7 @@ async function rimplChat({ ple_id, history, message, language, chief_complaint, 
 // is sent so RIMPL can de-identify it on-prem before the cloud call (stored raw); patient_ref gives
 // the scrub hints. Metered against the auditor's SEPARATE budget pool by the caller.
 async function rimplAuditDiscuss({ history, message, language, transcript, ai_scores, ai_rationale, auditor_scores, patient_ref }) {
-  const res = await fetch(`${RIMPL_URL}/audit-discuss`, {
+  const res = await rimplFetch('/audit-discuss', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
     body: JSON.stringify({ history, message, language, transcript, ai_scores, ai_rationale, auditor_scores, patient_ref }),
@@ -109,7 +135,7 @@ async function rimplAuditDiscuss({ history, message, language, transcript, ai_sc
 // --mode rescore run re-scores the real cohort through this route and would otherwise overwrite the
 // pilot's accumulated shadow rows with calibration-run rows.
 async function rimplEvaluate({ ple_id, transcript, patient_ref, shadow, weights_sha256 }) {
-  const res = await fetch(`${RIMPL_URL}/evaluate`, {
+  const res = await rimplFetch('/evaluate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
     // weights_sha256: the DECLARED Model Lock checksum (§10.2). RIMPL cannot read it — the weights
@@ -123,7 +149,7 @@ async function rimplEvaluate({ ple_id, transcript, patient_ref, shadow, weights_
 }
 
 async function rimplEvaluateCriteria({ transcript, patient_ref }) {
-  const res = await fetch(`${RIMPL_URL}/evaluate-criteria`, {
+  const res = await rimplFetch('/evaluate-criteria', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
     body: JSON.stringify({ transcript, patient_ref }),
@@ -139,7 +165,7 @@ async function rimplEvaluateCriteria({ transcript, patient_ref }) {
 // which the health route maps to a `down` rimpl status. Short timeout — this is an ops probe.
 const HEALTH_PROBE_TIMEOUT_MS = parseInt(process.env.HEALTH_RIMPL_TIMEOUT_MS || '2500', 10);
 async function probeRimplDeep({ timeoutMs = HEALTH_PROBE_TIMEOUT_MS } = {}) {
-  const res = await fetch(`${RIMPL_URL}/health/deep`, {
+  const res = await rimplFetch('/health/deep', {
     method: 'GET',
     headers: { 'x-internal-token': process.env.INTERNAL_TOKEN || '' }, // harmless; /health/deep is open
     signal: AbortSignal.timeout(timeoutMs),
@@ -157,7 +183,7 @@ async function probeRimplDeep({ timeoutMs = HEALTH_PROBE_TIMEOUT_MS } = {}) {
 // runs on a deliberate admin action rather than a monitor's schedule.
 const PROVIDER_PROBE_TIMEOUT_MS = parseInt(process.env.HEALTH_PROVIDER_PROBE_TIMEOUT_MS || '20000', 10);
 async function probeRimplProvider({ name, purpose = 'chat', timeoutMs = PROVIDER_PROBE_TIMEOUT_MS } = {}) {
-  const res = await fetch(`${RIMPL_URL}/health/provider/${encodeURIComponent(name)}?purpose=${encodeURIComponent(purpose)}`, {
+  const res = await rimplFetch(`/health/provider/${encodeURIComponent(name)}?purpose=${encodeURIComponent(purpose)}`, {
     headers: { 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
     signal: AbortSignal.timeout(timeoutMs),
   });
