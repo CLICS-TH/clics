@@ -959,6 +959,18 @@ function iccBundle(pairs, minAuditors = 1) {
     inter_auditor_average: multi.length >= 2 ? iccTwoWayAverage(multi.map(p => p.rater_scores)) : null,
     inter_auditor_note: 'ICC(1,1) assumes auditors are drawn per PLE (rater nested in subject) and is the conservative reading. ICC(A,k) assumes a fixed panel scoring every PLE. Report the one matching how assignment actually ran, and say which.',
 
+    // The same ICC(1,1) per PIS-7 domain. ICC(1,1) and not the average-measures variant, so these
+    // sit on the same scale as `inter_auditor` above and can be read against it directly.
+    //
+    // Read it as a MAP, not as seven verdicts. Per-domain ICC at pilot n is unstable -- d1 has been
+    // observed at 0.055, 0.663 and 0.294 on the same instrument -- and a domain whose raters all
+    // chose the same value returns null with 'Insufficient variance', which is a finding about the
+    // cohort and not agreement. Every entry carries its own n and interpretation; report those.
+    inter_auditor_per_domain: Object.fromEntries(ICC_DOMAINS.map((d) => {
+      const rows = multi.map(p => p.rater_domains?.[d]).filter(v => Array.isArray(v) && v.length >= 2);
+      return [d, rows.length >= 2 ? iccOneWay(rows) : null];
+    })),
+
     // Weighted kappa — SAP "Additional agreement". Ordinal-aware in a way ICC is not: it asks how
     // often the two land on the SAME 0-5 category, corrected for the agreement their marginal
     // habits would produce by chance. Per-domain because a composite that agrees can still hide one
@@ -1010,6 +1022,11 @@ router.get('/icc', async (req, res) => {
       // inter-auditor agreement needs the individual auditors, and averaging them away first is
       // exactly what makes that figure impossible to compute later.
       rater_scores: rows.map(r => Number(r.composite_score)),
+      // Per-domain, kept in the SAME row order as rater_scores so the two describe one set of
+      // raters. Composite agreement can look acceptable while a single domain carries all the
+      // disagreement, and that domain is the one whose anchors need rewriting — which is the
+      // calibration workshop's actual output. Composite alone cannot name it.
+      rater_domains: Object.fromEntries(ICC_DOMAINS.map(d => [d, rows.map(r => Number(r[d]))])),
     });
   }
 

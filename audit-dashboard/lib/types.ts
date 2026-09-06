@@ -152,6 +152,10 @@ export interface IccData {
   inter_auditor?: IccStat & { model?: string; model_alt?: string; n_ratings?: number; k0?: number };
   inter_auditor_average?: (IccStat & { model?: string; model_alt?: string; k?: number }) | null;
   inter_auditor_note?: string;
+  // The same ICC(1,1) per PIS-7 domain, so it reads on one scale with inter_auditor above. A null
+  // entry means the domain had no multi-rated episode; an entry whose `icc` is null carries the
+  // reason in `interpretation` (usually every rater choosing the same value).
+  inter_auditor_per_domain?: Record<string, (IccStat & { model?: string; model_alt?: string }) | null>;
   // SAP "Additional agreement" — ordinal-aware, chance-corrected.
   weighted_kappa?: { domains: Record<string, KappaStat | null>; pooled: KappaStat | null };
 }
