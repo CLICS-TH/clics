@@ -209,8 +209,8 @@ jobs:
   # fields (iOS no-zoom). Hermetic: a built-in static server serves the pages and all external
   # requests (fonts / Chart.js CDN / backend) are aborted, so it needs no secrets or live infra.
   # Also runs the fuller mobile-audit harness: physician-ui hermetic (always, no secrets) PLUS a
-  # dashboard auditor-only live-smoke that activates ONLY when DASH_URL/BACKEND_URL/AUDITOR_* secrets
-  # are set (absent on fork PRs → hermetic-only). Superadmin live-smoke is intentionally omitted (no
+  # dashboard auditor-only live-smoke on pushes to master when its secrets are set. Pull requests
+  # always stay hermetic, including branches in this repository. Superadmin smoke is omitted (no
   # SUPER_* secrets) to keep real admin creds out of CI.
   responsive:
     runs-on: ubuntu-latest
@@ -226,13 +226,13 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Responsive smoke (320/375/768/1280)
         run: npm run test:responsive
-      # Mobile audit: physician-ui hermetic (always) + dashboard auditor live-smoke (only when the
-      # secrets below are present — empty on fork PRs, so it degrades to hermetic-only). The harness
+      # Mobile audit: physician-ui hermetic (always) + dashboard auditor live-smoke only on master
+      # pushes. Same-repository PRs otherwise inherit the production secrets too. The harness
       # exits non-zero on any finding. SUPER_* deliberately unset → no real admin creds in CI.
       - name: Mobile audit (physician-ui hermetic + dashboard auditor live-smoke)
         env:
-          DASH_URL: ${{ secrets.DASH_URL }}
-          BACKEND_URL: ${{ secrets.BACKEND_URL }}
-          AUDITOR_EMAIL: ${{ secrets.AUDITOR_EMAIL }}
-          AUDITOR_PW: ${{ secrets.AUDITOR_PW }}
+          DASH_URL: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && secrets.DASH_URL || '' }}
+          BACKEND_URL: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && secrets.BACKEND_URL || '' }}
+          AUDITOR_EMAIL: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && secrets.AUDITOR_EMAIL || '' }}
+          AUDITOR_PW: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && secrets.AUDITOR_PW || '' }}
         run: npm run test:mobile-audit
