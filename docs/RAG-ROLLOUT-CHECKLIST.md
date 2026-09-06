@@ -69,3 +69,23 @@ is auditable and avoids reseeding from corpus contents on a later migration run.
 If rollback is caused by a bad code deployment, restore the previous Railway RIMPL deployment and
 retain `value=0` until the reader and embedding configuration are verified together. Do not switch
 providers or move RIMPL on-prem as part of this rollback.
+
+## Rollout record — 2026-09-06
+
+Executed against production. Order was reader-fix-then-SQL, as the checklist requires.
+
+| step | evidence |
+|---|---|
+| Reader fix deployed | PR #89 merged as `2b2a6a0`; `railway up . --path-as-root --service rimpl --ci`; image digest `sha256:0496475a…5b61a`; container came back as tailnet node `100.121.115.41` |
+| Deployment is Railway RIMPL | yes, `--service rimpl`. The backend Dockerfile/D3 cutover was **not** combined — PR #90 stays unmerged |
+| Preflight | `documents_rows = 0`; **no `rag_enabled` row** — nothing malformed to resolve |
+| Migration applied | `db/migration-rag-enabled.sql` in the Supabase SQL editor → `{key: rag_enabled, value: 0, documents_rows: 0}` — matches preflight |
+| `/health/deep` after cache expiry | `status: ok` (200). `routing.source: database`, `routing.overrides.rag_enabled: 0` as a **number**, which is the reader fix working: the pre-fix `value_text`-only select could not see this row at all. `checks` = `anthropic_key`, `anthropic_client`, `anthropic_serving`, `supabase` — **no embedding dependency**, so the missing `OPENAI_API_KEY` degrades nothing. `models.embed` still reports the *configured* `openai / text-embedding-3-small`; configured is not probed |
+| Synthetic chat | one de-identified Thai turn (`ple_id: SMOKE-rag-rollout-20260906`, no `patient_ref`, invented 58-year-old exertional chest pain) → HTTP 200 in 23.0 s, `anthropic / claude-sonnet-4-6`, no failover, 501 in / 948 out, a cited reply. The citation came from the model, not from retrieval |
+| Logs | `[rag] retrieval is OFF (app_settings.rag_enabled != 1) — no embedding call is made`, once per process as designed. No embedding call, no `openai`, no error or warning line, and no transcript or document text in any log line |
+
+**What this rollout did not prove.** The corpus is empty and the flag is `0`, so embedding compatibility and
+retrieval quality are still untested — exactly the limit the last checklist item names. Before the flag is
+ever set to `1`, the "non-empty corpus" row of *Before applying SQL* has to be worked through for real:
+the embedding provider, key, model and vector dimension must match the stored documents, and
+`/health/deep` going green will not tell you whether they do.
