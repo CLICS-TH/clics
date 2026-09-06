@@ -215,6 +215,21 @@
       const eval_ = await api.getEvaluation(pleId);
       // Blinded test round: the score is withheld until an expert auditor submits theirs. Show an
       // "under review" state and keep polling — it reveals automatically once the auditor scores.
+      // Calibration round: this account also scores sessions (Special / can_audit), so its own AI
+      // result is withheld for the duration of the round — otherwise reading the AI's rationale here
+      // would contaminate the sessions this same person is scoring. Distinct wording from
+      // pending_review on purpose: nobody is reviewing this episode, and telling them so would send
+      // them chasing an auditor who has nothing to do.
+      if (eval_ && (eval_.status === 'reveal_locked' || eval_.phase === 'reveal_locked')) {
+        container.innerHTML = `
+          <div class="card" style="text-align:center">
+            <div class="status-band is-review" style="justify-content:center;margin-bottom:14px">${icon('hourglass', 28)}<span>ปิดผลชั่วคราวระหว่างรอบสอบเทียบ / Held during a calibration round</span></div>
+            <h2 style="margin-top:6px">ผลของคุณถูกบันทึกแล้ว และจะแสดงเมื่อรอบสอบเทียบสิ้นสุด</h2>
+            <p style="color:var(--muted);margin-top:8px">บัญชีของคุณเป็นผู้ประเมินด้วย ระหว่างรอบสอบเทียบระบบจึงยังไม่แสดงคะแนน AI ของ Episode ของคุณเอง เพื่อไม่ให้กระทบการให้คะแนนที่คุณกำลังทำอยู่ / Your account also scores sessions. During a calibration round your own AI score stays hidden so it cannot influence the sessions you are scoring. It appears when the round closes.</p>
+          </div>` + transcriptSection(ple);
+        schedulePoll(); // a round lasts days: at the polling ceiling the card simply stays
+        return;
+      }
       if (eval_ && (eval_.status === 'pending_review' || eval_.phase === 'pending_review')) {
         container.innerHTML = `
           <div class="card" style="text-align:center">

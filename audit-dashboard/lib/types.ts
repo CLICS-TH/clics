@@ -237,6 +237,9 @@ export interface AuditorCalibration {
   auditor: Record<string, number> | null;
   ai: Record<string, number> | null;
   peer?: Record<string, number> | null;
+  // Set when app_settings.calibration_reveal_locked is on. Without it a withheld radar is
+  // byte-identical to the empty state of a rater who has scored nothing.
+  locked?: boolean;
 }
 
 // GET /admin/payouts (superadmin) — the real-name compensation payout pipeline (owed/paid/outstanding).

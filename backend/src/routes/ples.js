@@ -9,7 +9,7 @@ const { finalizeScreening, toPassCols } = require('../services/ple-finalize');
 const { effectiveLimit, effectiveTokenLimit, budgetState, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
 const { settlementDelta, costUsd } = require('../lib/pricing');
 const { logEvent } = require('../lib/audit');
-const { pilotTestMode, clinicalArtifactsEnabled, holdResultUntilAudited, t1RemediationEnabled, identityVerificationRequired, reflectionRequired } = require('../lib/settings');
+const { pilotTestMode, clinicalArtifactsEnabled, holdResultUntilAudited, calibrationRevealLocked, t1RemediationEnabled, identityVerificationRequired, reflectionRequired } = require('../lib/settings');
 const identity = require('../services/identity');
 const reflection = require('../services/reflection');
 const acceptability = require('../lib/acceptability');
@@ -269,7 +269,12 @@ router.get('/lpdp/me', async (req, res) => {
   // dashboard "latest score", which reads the last snapshot) can't leak a held score. See /evaluation.
   let rows = data ?? [];
   let held = 0;
-  if (rows.length && await holdResultUntilAudited()) {
+  // Same fifth surface as /evaluation: the trend carries composite scores per episode, which is
+  // enough to calibrate against even without the per-domain breakdown.
+  if (rows.length && req.user.can_audit === true && await calibrationRevealLocked()) {
+    held = [...new Set(rows.map(r => r.ple_id))].length;
+    rows = [];
+  } else if (rows.length && await holdResultUntilAudited()) {
     const pleIds = [...new Set(rows.map(r => r.ple_id))];
     const { data: scored } = await supabase.from('audit_scores').select('ple_id').in('ple_id', pleIds);
     const scoredSet = new Set((scored ?? []).map(s => s.ple_id));
@@ -715,6 +720,20 @@ router.get('/:id/evaluation', async (req, res) => {
     const { data: audited } = await supabase
       .from('audit_scores').select('id').eq('ple_id', req.params.id).limit(1).maybeSingle();
     if (!audited) return res.status(202).json({ status: 'pending_review' });
+  }
+
+  // REVEAL SURFACE 5 of 5, and the one that is easy to miss: a "Special" rater is a PHYSICIAN with
+  // can_audit (lib/dual-role.js — the flag is valid on no other role), so during a calibration round
+  // they can read the AI's per-domain scores AND its domain_rationale off their OWN result page while
+  // the auditor console correctly refuses to show them anything. The rationale is the most
+  // contaminating artifact in the system: it explains how the model applies each anchor.
+  //
+  // Scoped to can_audit only. An ordinary physician is not scoring anything, so withholding their own
+  // feedback would cost them their result for the length of a round they are not part of.
+  // hold_result_until_audited is NOT a mitigation: it is a separate toggle and it releases as soon as
+  // ANY auditor scores that PLE.
+  if (req.user.can_audit === true && await calibrationRevealLocked()) {
+    return res.status(202).json({ status: 'reveal_locked' });
   }
 
   // .order+limit(1)+maybeSingle, NOT .single(): if a dup-eval race left two ai_evaluations rows

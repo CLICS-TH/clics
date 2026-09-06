@@ -14,19 +14,22 @@ const auth = r => r.set('Authorization', 'Bearer test');
 const physician = { id: 'doc1', role: 'physician', status: 'active', consented_at: '2026-06-07T00:00:00Z' };
 const EVAL = { ple_id: 'cle1', composite_score: 82, d1: 4, d2: 4, d3: 3, d4: 4, d5: 3, d6: 3, d7: 4, domain_rationale: {} };
 
-// hold: app_settings value for 'hold_result_until_audited'; audited: an audit_scores row or null.
-function wire({ hold, audited }) {
+// hold: app_settings value for 'hold_result_until_audited'; audited: an audit_scores row or null;
+// lock: 'calibration_reveal_locked'; caller: overrides who is asking (a Special rater, say).
+function wire({ hold, audited, lock = 0, caller = physician }) {
   m.reset();
-  m.state.caller = physician;
-  m.state.resolve = (table, kind) => {
+  m.state.caller = caller;
+  m.state.resolve = (table, kind, ctx) => {
     if (table === 'ples') return { id: 'cle1', status: 'evaluated', physician_id: 'doc1' };
     // Two different shapes are read from this table: getSetting() takes ONE row via .maybeSingle(),
     // while creditSettings() batches a .in([...]) list. Answering both with a single row made the
     // credit block throw inside the async handler, which returns no response at all.
     if (table === 'app_settings') {
-      return kind === 'list'
-        ? { data: [{ key: 'credit_conversion_enabled', value: 0 }] }   // credit OFF, the shipped default
-        : { value: hold };                                            // hold_result_until_audited
+      if (kind === 'list') return { data: [{ key: 'credit_conversion_enabled', value: 0 }] }; // credit OFF, the shipped default
+      // Key-aware: two different gates read this table now, and a stub answering one value to both
+      // would make each of them pass or fail for the other's reason.
+      const key = (ctx.eqs.find(([c]) => c === 'key') ?? [])[1];
+      return { value: key === 'calibration_reveal_locked' ? lock : hold };
     }
     if (table === 'audit_scores') return audited ? { id: 'as1' } : null;
     if (table === 'ai_evaluations') return EVAL;
@@ -129,4 +132,55 @@ test('LPDP without ?held=1 and hold OFF → the bare array of everything', async
   const res = await auth(request(app).get('/ples/lpdp/me'));
   expect(Array.isArray(res.body)).toBe(true);
   expect(res.body).toHaveLength(2);
+});
+
+// A "Special" rater is a PHYSICIAN carrying can_audit — the flag is valid on no other role
+// (lib/dual-role.js). So during a calibration round the auditor console can be correctly locked while
+// the very same person reads the AI's per-domain scores and domain_rationale off their own result
+// page. The rationale explains how the model applies each anchor, which is the most contaminating
+// thing a rater could read mid-round.
+describe('calibration_reveal_locked also covers a dual-role rater on the physician side', () => {
+  const special = { ...physician, can_audit: true };
+
+  test('lock ON + Special rater → 202 reveal_locked, no score and no rationale', async () => {
+    wire({ hold: 0, audited: true, lock: 1, caller: special });
+    const res = await auth(request(app).get('/ples/cle1/evaluation'));
+    expect(res.status).toBe(202);
+    expect(res.body.status).toBe('reveal_locked');
+    expect(res.body.composite_score).toBeUndefined();
+    expect(res.body.domain_rationale).toBeUndefined();
+    // Distinct from pending_review on purpose: nobody is reviewing this episode, and saying so would
+    // send the physician chasing an auditor who has nothing to do.
+    expect(res.body.status).not.toBe('pending_review');
+  });
+
+  test('lock ON + an ORDINARY physician → 200, their own result is not withheld', async () => {
+    wire({ hold: 0, audited: true, lock: 1 });
+    const res = await auth(request(app).get('/ples/cle1/evaluation'));
+    expect(res.status).toBe(200);
+    expect(res.body.composite_score).toBe(82);
+  });
+
+  test('lock OFF + Special rater → 200, so the lock is what withholds and not the dual role', async () => {
+    wire({ hold: 0, audited: true, lock: 0, caller: special });
+    const res = await auth(request(app).get('/ples/cle1/evaluation'));
+    expect(res.status).toBe(200);
+    expect(res.body.composite_score).toBe(82);
+  });
+
+  test('the LPDP trend is emptied for a Special rater, and says how many episodes it held', async () => {
+    wire({ hold: 0, audited: true, lock: 1, caller: special });
+    const prev = m.state.resolve;
+    m.state.resolve = (table, kind, ctx) => {
+      if (table === 'lpdp_snapshots') return [{ ple_id: 'cle1', composite_score: 82, snapshot_at: 't' }];
+      return prev(table, kind, ctx);
+    };
+    const res = await auth(request(app).get('/ples/lpdp/me?held=1'));
+    expect(res.status).toBe(200);
+    // Composite scores per episode are enough to calibrate against even without the domains.
+    expect(res.body.snapshots).toEqual([]);
+    // `held` is a count of the rater's OWN episodes — never a score — so the portal can explain the
+    // empty trend instead of telling them to go and pass an episode.
+    expect(res.body.held).toBe(1);
+  });
 });

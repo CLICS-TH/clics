@@ -150,7 +150,11 @@ export default function IccPage() {
                       </div>
                       <span className="text-sm font-mono w-14 tabular-nums">{d?.icc?.toFixed(3) ?? '—'}</span>
                       {/* n travels with every figure: an ICC without its count is not reportable. */}
-                      <span className="w-40 text-xs text-muted-foreground truncate" title={d?.interpretation ?? ''}>
+                      {/* Hidden below 480px. `flex-1` is `flex: 1 1 0%`, so at 320-390px this fixed
+                          160px sibling (plus w-12 + w-14 + gaps) exceeds the row and shrinks the bar
+                          to exactly 0px — the at-a-glance comparison disappears while the page still
+                          passes the overflow-based responsive audit. */}
+                      <span className="hidden @min-[480px]:inline w-40 text-xs text-muted-foreground truncate" title={d?.interpretation ?? ''}>
                         {d == null ? 'ไม่มีข้อมูล / no data' : d.icc == null ? d.interpretation : `n = ${d.n}`}
                       </span>
                     </div>
