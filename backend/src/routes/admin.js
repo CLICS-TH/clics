@@ -20,6 +20,7 @@ const { POSITIONS, checkSpecialty } = require('../lib/specialties');
 const { logEvent } = require('../lib/audit');
 const { compRateCap, cappedPles, PIS7_DIMS } = require('../lib/compensation');
 const { COMPLETED_STATUSES } = require('../lib/ple-status');
+const reflection = require('../services/reflection');
 const ExcelJS = require('exceljs');
 
 const router = Router();
@@ -144,7 +145,12 @@ router.get('/ples/:id/transcript', async (req, res) => {
     .select('role, content, refs, socratic_question, created_at')
     .eq('ple_id', req.params.id).order('created_at');
   if (sendDbError(res, msgErr)) return;   // a messages-fetch error must not silently render an empty transcript
-  res.json({ ple, messages: messages ?? [] });
+  try {
+    const complete = await reflection.withReflection(req.params.id, messages ?? [], { strict: true });
+    res.json({ ple, messages: complete });
+  } catch {
+    res.status(500).json({ error: 'Could not load the complete transcript' });
+  }
 });
 
 // ---- Identity verification (CREC082 ICF §4) --------------------------------------------------

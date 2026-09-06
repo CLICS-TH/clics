@@ -40,7 +40,8 @@ export const TranscriptView = memo(function TranscriptView({ messages }: { messa
       data-no-copy="transcript"
     >
       {messages.map((m, i) => {
-        const isPhysician = m.role === "physician";
+        const isReflection = m.role === "reflection";
+        const isPhysician = m.role === "physician" || isReflection;
         // Strip artifact fences (keep the body); assistant content also carries a trailing "❓ …"
         // Socratic line — strip that too, it's shown separately.
         const body = isPhysician
@@ -55,6 +56,11 @@ export const TranscriptView = memo(function TranscriptView({ messages }: { messa
                 : "max-w-[92%] rounded-xl border border-border bg-card p-4"
             }
           >
+            {isReflection ? (
+              <p className="mb-1 text-xs font-semibold text-white/90">
+                การสะท้อนคิดของแพทย์ / Physician reflection
+              </p>
+            ) : null}
             {isPhysician ? <p className="whitespace-pre-wrap text-sm">{body}</p> : <Markdown>{body}</Markdown>}
             {m.refs?.length ? (
               <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">

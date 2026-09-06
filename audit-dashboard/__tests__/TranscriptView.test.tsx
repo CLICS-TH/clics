@@ -16,6 +16,14 @@ jest.mock('lucide-react', () => ({
 import { TranscriptView } from '@/components/TranscriptView';
 
 describe('TranscriptView', () => {
+  it('labels reflection as physician-authored evidence and preserves a final question verbatim', () => {
+    const content = 'เรียนรู้อะไร / What I learned:\nI should verify this.\n❓ Is this applicable?';
+    const { container } = render(<TranscriptView messages={[{ role: 'reflection', content }]} />);
+    expect(screen.getByText('การสะท้อนคิดของแพทย์ / Physician reflection')).toBeInTheDocument();
+    expect(container.textContent).toContain(content);
+    expect(container.querySelector('[data-no-copy="transcript"]')?.textContent).toContain(content);
+  });
+
   it('renders a physician turn as plain text, not through Markdown', () => {
     render(<TranscriptView messages={[{ role: 'physician', content: 'My differential is PE.' }]} />);
     expect(screen.getByText('My differential is PE.')).toBeInTheDocument();

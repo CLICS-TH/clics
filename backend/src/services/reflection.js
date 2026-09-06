@@ -18,10 +18,15 @@ const { supabase } = require('../lib/supabase');
 // "จบด้วย reflection ว่าเรียนรู้อะไร ความไม่แน่นอนอะไร และจะตรวจสอบ/นำไปใช้อย่างไร"
 const PROMPTS = ['learned', 'uncertainty', 'application'];
 
-async function getFor(pleId) {
-  const { data } = await supabase.from('ple_reflections')
+async function getFor(pleId, { strict = false } = {}) {
+  const { data, error } = await supabase.from('ple_reflections')
     .select('id, learned, uncertainty, application, skipped, submitted_at')
     .eq('ple_id', pleId).maybeSingle();
+  if (error && strict) {
+    const err = new Error('Could not load the saved reflection');
+    err.cause = error;
+    throw err;
+  }
   return data ?? null;
 }
 
@@ -61,8 +66,8 @@ function asTranscriptTurn(reflection) {
 }
 
 // The transcript a screening or evaluation call should see: the conversation, then the reflection.
-async function withReflection(pleId, transcript) {
-  const turn = asTranscriptTurn(await getFor(pleId));
+async function withReflection(pleId, transcript, options) {
+  const turn = asTranscriptTurn(await getFor(pleId, options));
   return turn ? [...transcript, turn] : transcript;
 }
 
