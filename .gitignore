@@ -52,3 +52,10 @@ rujdanai-*
 # the ICFs, the SAP, the Model Lock Record — and they carry the principal investigator's real name
 # alongside the study design. They govern what the code must do; they are not part of the code.
 CREC082_*/
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
+audit-dashboard/.ds-styles.css
+audit-dashboard/dist/
