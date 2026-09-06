@@ -26,7 +26,11 @@ let ple, existingScore, aiEval, queue, scoredRows, insertError;
 beforeEach(() => {
   m.reset();
   m.state.caller = AUDITOR; // aud-1, council A
-  ple = { id: 'p1', status: 'evaluated', auditor_id: AUDITOR.id, council_id: COUNCIL_A, physician_id: 'phys-1', turn_count: 5, token_count: 900, ended_at: 't' };
+  ple = {
+    id: 'p1', status: 'evaluated', auditor_id: AUDITOR.id, council_id: COUNCIL_A,
+    physician_id: 'phys-1', turn_count: 5, token_count: 900, ended_at: 't',
+    privacy_review_status: 'passed', privacy_concern_open: false,
+  };
   existingScore = null;
   aiEval = { ple_id: 'p1', d1: 4, composite_score: 70 };
   queue = [{ id: 'p1', status: 'evaluated', ended_at: 't', turn_count: 5, token_count: 900 }];

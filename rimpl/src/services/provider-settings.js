@@ -89,7 +89,7 @@ async function refresh(purposes) {
   if (!sb) return false;
   try {
     const keys = [...purposes.map(keyFor), 'evaluator_locked_at', ...NUMBER_KEYS];
-    const { data, error } = await sb.from('app_settings').select('key, value_text').in('key', keys);
+    const { data, error } = await sb.from('app_settings').select('key, value, value_text').in('key', keys);
     if (error) throw new Error(error.message);
 
     const values = {};
@@ -100,6 +100,12 @@ async function refresh(purposes) {
       if (row.key === 'evaluator_locked_at') {
         // Kept as stored (not lowercased) — it is an ISO timestamp, reported not compared.
         lockedAt = typeof row.value_text === 'string' && row.value_text.trim() ? row.value_text.trim() : null;
+        continue;
+      }
+      if (row.key === 'rag_enabled') {
+        // The migration stores this boolean in numeric value, unlike local_ai_min_context below.
+        // Honor an explicit 0 even if value_text is stale, and never coerce malformed flags to ON.
+        if (row.value === 0 || row.value === 1) numbers[row.key] = row.value;
         continue;
       }
       if (NUMBER_KEYS.includes(row.key)) {

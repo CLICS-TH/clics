@@ -10,7 +10,8 @@ const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE
 const { settlementDelta } = require('../lib/pricing');
 const { rimplAuditDiscuss } = require('../services/rimpl-client');
 const { peerCalibrationEnabled, privacyReviewRequired } = require('../lib/settings');
-const { whereCleared } = require('../lib/privacy-review');
+const { whereCleared, isCleared } = require('../lib/privacy-review');
+const reflection = require('../services/reflection');
 const { PIS7_DIMS: CALIB_DIMS, meanByDim } = require('../lib/compensation');
 
 // Access gate (multi-auditor pilot): an auditor may act on a PLE if they're explicitly assigned via
@@ -73,19 +74,35 @@ router.get('/queue', async (req, res) => {
 });
 
 router.get('/ples/:id', async (req, res) => {
-  const { data: ple } = await supabase
-    .from('ples').select('id, status, turn_count, token_count, ended_at, auditor_id')
-    .eq('id', req.params.id).single();
+  const { data: ple, error: pleErr } = await supabase
+    .from('ples').select('id, status, turn_count, token_count, ended_at, auditor_id, privacy_review_status, privacy_concern_open')
+    .eq('id', req.params.id).maybeSingle();
+  if (pleErr) return res.status(500).json({ error: 'Could not load the assigned session' });
   if (!ple || !(await isAssignedAuditor(ple.id, req.user.id, ple.auditor_id))) {
+    return res.status(404).json({ error: 'Not found or not assigned' });
+  }
+  // Mirror the queue gate on the direct URL: an old bookmark must not expose a session whose
+  // clearance was revoked or whose rater reported a new privacy concern.
+  if (ple.privacy_concern_open || !isCleared(ple, await privacyReviewRequired())) {
     return res.status(404).json({ error: 'Not found or not assigned' });
   }
 
   // Transcript + this auditor's own score are independent — fetch together.
-  const [{ data: messages }, { data: existing }] = await Promise.all([
+  const [messageResult, scoreResult] = await Promise.all([
     supabase.from('messages').select('role, content, refs, socratic_question, created_at')
       .eq('ple_id', req.params.id).order('created_at'),
     supabase.from('audit_scores').select('*').eq('ple_id', req.params.id).eq('auditor_id', req.user.id).maybeSingle(),
   ]);
+  if (messageResult.error || scoreResult.error) {
+    return res.status(500).json({ error: 'Could not load the complete scoring evidence' });
+  }
+  let messages;
+  try {
+    messages = await reflection.withReflection(req.params.id, messageResult.data ?? [], { strict: true });
+  } catch {
+    return res.status(500).json({ error: 'Could not load the complete scoring evidence' });
+  }
+  const existing = scoreResult.data;
 
   let aiEval = null, peerAvg = null, peerN = 0;
   if (existing) {
@@ -108,7 +125,7 @@ router.get('/ples/:id', async (req, res) => {
     }
   }
 
-  res.json({ ple, messages: messages ?? [], audit_score: existing ?? null, ai_evaluation: aiEval, peer_avg: peerAvg, peer_n: peerN });
+  res.json({ ple, messages, audit_score: existing ?? null, ai_evaluation: aiEval, peer_avg: peerAvg, peer_n: peerN });
 });
 
 router.post('/ples/:id/score', requireAuditorConsent, async (req, res) => {

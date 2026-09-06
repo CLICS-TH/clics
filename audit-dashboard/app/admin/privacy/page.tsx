@@ -39,6 +39,7 @@ export default function PrivacyReviewPage() {
   const [err, setErr] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<Message[] | null>(null);
+  const [transcriptError, setTranscriptError] = useState(false);
   const [note, setNote] = useState('');
   const [acting, setActing] = useState(false);
 
@@ -52,11 +53,14 @@ export default function PrivacyReviewPage() {
 
   async function open(id: string) {
     if (openId === id) { setOpenId(null); return; }
-    setOpenId(id); setTranscript(null); setNote('');
+    setOpenId(id); setTranscript(null); setTranscriptError(false); setNote('');
     try {
       const d = await apiFetch<{ messages: Message[] }>(`/admin/ples/${id}/transcript`);
       setTranscript(Array.isArray(d?.messages) ? d.messages : []);
-    } catch { toast('โหลด transcript ไม่สำเร็จ / Could not load the transcript', 'error'); setTranscript([]); }
+    } catch {
+      toast('โหลด transcript ไม่สำเร็จ / Could not load the transcript', 'error');
+      setTranscriptError(true);
+    }
   }
 
   async function decide(id: string, decision: Decision) {
@@ -150,7 +154,9 @@ export default function PrivacyReviewPage() {
 
           {openId === p.id && (
             <div className="mt-4">
-              {transcript === null
+              {transcriptError
+                ? <p role="alert" className="text-danger text-sm py-6 text-center">โหลด transcript ไม่สำเร็จ กรุณาลองเปิดใหม่ / Could not load the transcript. Reopen to retry.</p>
+                : transcript === null
                 ? <p className="text-muted-foreground text-sm py-6 text-center">กำลังโหลด transcript… / Loading transcript…</p>
                 : <TranscriptView messages={transcript} />}
 
@@ -169,7 +175,7 @@ export default function PrivacyReviewPage() {
 
               <div className="mt-3 flex flex-wrap gap-2">
                 {DECISIONS.map(d => (
-                  <Button key={d.key} size="sm" variant={d.variant} disabled={acting || transcript === null}
+                  <Button key={d.key} size="sm" variant={d.variant} disabled={acting || transcript === null || transcriptError}
                           onClick={() => decide(p.id, d.key)}>
                     <d.icon className="size-4" /> {d.th} <span className="text-[0.84em] font-normal">/ {d.en}</span>
                   </Button>

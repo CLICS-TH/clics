@@ -149,18 +149,27 @@ function getRunner() {
 //
 // Unset (the on-prem deployment, and every test) → undefined → fetch behaves exactly as before.
 let _dispatcher;
-function proxyDispatcher() {
-  const url = process.env.LOCAL_AI_HTTP_PROXY;
-  if (!url) return undefined;
+let _proxyFetch;
+function proxyTransport() {
+  const url = process.env.LOCAL_AI_HTTP_PROXY?.trim();
+  if (!url) return { fetch: globalThis.fetch, dispatcher: undefined };
   if (!_dispatcher) {
-    const { ProxyAgent } = require('undici');
-    _dispatcher = new ProxyAgent(url);
+    const undici = require('undici');
+    _dispatcher = new undici.ProxyAgent({
+      uri: url,
+      proxyTunnel: true,
+      headersTimeout: 0,
+      bodyTimeout: 0,
+    });
+    // Node 22's bundled fetch and Undici 8 use different dispatcher protocols. Keep the
+    // proxied fetch and dispatcher from one package; the unproxied branch remains native fetch.
+    _proxyFetch = undici.fetch;
   }
-  return _dispatcher;
+  return { fetch: _proxyFetch, dispatcher: _dispatcher };
 }
 
 // Test seam: the agent is memoised, so a suite changing the env needs a way to drop it.
-function _resetDispatcher() { _dispatcher = undefined; }
+function _resetDispatcher() { _dispatcher = undefined; _proxyFetch = undefined; }
 
 async function httpJson(url, { method = 'GET', body, timeoutMs, apiKey, signal }) {
   const headers = { accept: 'application/json' };
@@ -175,11 +184,12 @@ async function httpJson(url, { method = 'GET', body, timeoutMs, apiKey, signal }
   };
   let res;
   try {
-    res = await fetch(url, {
+    const transport = proxyTransport();
+    res = await transport.fetch(url, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
-      dispatcher: proxyDispatcher(),   // undefined unless LOCAL_AI_HTTP_PROXY is set
+      dispatcher: transport.dispatcher, // undefined unless LOCAL_AI_HTTP_PROXY is set
       signal: AbortSignal.any([AbortSignal.timeout(timeoutMs), signal].filter(Boolean)),
     });
   } catch (e) {
