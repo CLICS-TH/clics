@@ -9,7 +9,7 @@ const { logEvent } = require('../lib/audit');
 const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD, effectiveTokenLimit, budgetState } = require('../lib/usage');
 const { settlementDelta } = require('../lib/pricing');
 const { rimplAuditDiscuss } = require('../services/rimpl-client');
-const { peerCalibrationEnabled, privacyReviewRequired } = require('../lib/settings');
+const { peerCalibrationEnabled, privacyReviewRequired, calibrationRevealLocked } = require('../lib/settings');
 const { whereCleared, isCleared } = require('../lib/privacy-review');
 const reflection = require('../services/reflection');
 const { PIS7_DIMS: CALIB_DIMS, meanByDim } = require('../lib/compensation');
@@ -104,8 +104,13 @@ router.get('/ples/:id', async (req, res) => {
   }
   const existing = scoreResult.data;
 
+  // REVEAL SURFACE 1 of 4. The other three are /discuss, /icc and /calibration below; a lock that
+  // covers only this one is theatre, because the same auditor can read the AI comparison off any of
+  // them. Keep all four in step.
+  const revealLocked = await calibrationRevealLocked();
+
   let aiEval = null, peerAvg = null, peerN = 0;
-  if (existing) {
+  if (existing && !revealLocked) {
     // .order+limit(1)+maybeSingle, NOT .single(): a dup-eval race (possible until migration-eval-unique
     // is applied) leaves two rows, on which .single() errors and returns null — the auditor's post-score
     // AI-reveal panel would silently never render. Degrade to the first (earliest) evaluation.
@@ -125,7 +130,10 @@ router.get('/ples/:id', async (req, res) => {
     }
   }
 
-  res.json({ ple, messages, audit_score: existing ?? null, ai_evaluation: aiEval, peer_avg: peerAvg, peer_n: peerN });
+  // `reveal_locked` travels with the response so the client can SAY why the pane is empty. A blank
+  // panel with no explanation reads as a bug and generates the support question the lock exists to
+  // avoid answering mid-round.
+  res.json({ ple, messages, audit_score: existing ?? null, ai_evaluation: aiEval, peer_avg: peerAvg, peer_n: peerN, reveal_locked: revealLocked });
 });
 
 router.post('/ples/:id/score', requireAuditorConsent, async (req, res) => {
@@ -230,6 +238,11 @@ router.post('/ples/:id/privacy-concern', requireAuditorConsent, async (req, res)
 });
 
 router.get('/icc', async (req, res) => {
+  // REVEAL SURFACE 3 of 4. One agreement number across every PLE this auditor has scored still tells
+  // them which way they sit relative to the AI, which is enough to drift on. `locked` rather than a
+  // bare n:0 — "no data yet" and "withheld for this round" must not look alike.
+  if (await calibrationRevealLocked()) return res.json({ icc: null, n: 0, locked: true });
+
   const { data } = await supabase
     .from('audit_scores').select('ple_id, composite_score').eq('auditor_id', req.user.id);
 
@@ -274,6 +287,12 @@ router.post('/ples/:id/discuss', async (req, res) => {
     .select('d1, d2, d3, d4, d5, d6, d7, composite_score')
     .eq('ple_id', req.params.id).eq('auditor_id', req.user.id).single();
   if (!auditScore) return res.status(403).json({ error: 'Score this session before discussing it.', code: 'score_required' });
+  // REVEAL SURFACE 2 of 4. The discussion hands over the AI's per-domain scores AND its rationale —
+  // the single most contaminating thing an auditor could read mid-round. Checked after the
+  // score-required gate so the more specific refusal still wins.
+  if (await calibrationRevealLocked()) {
+    return res.status(403).json({ error: 'AI discussion is closed for this calibration round.', code: 'reveal_locked' });
+  }
   const { data: aiEval } = await supabase.from('ai_evaluations')
     .select('d1, d2, d3, d4, d5, d6, d7, composite_score, domain_rationale')
     .eq('ple_id', req.params.id).order('evaluated_at', { ascending: true }).limit(1).maybeSingle();
@@ -362,6 +381,10 @@ router.get('/ples/:id/discussion', async (req, res) => {
 // they've scored that also have an AI evaluation (same pairing as /icc, but per-domain means instead
 // of a composite ICC). Powers the aggregate radar on the auditor home hero. n=0 → nothing to plot.
 router.get('/calibration', async (req, res) => {
+  // REVEAL SURFACE 4 of 4. The home-page radar plots this auditor against the AI and against their
+  // peers per domain — the most directly imitable view of all.
+  if (await calibrationRevealLocked()) return res.json({ n: 0, auditor: null, ai: null, peer: null, locked: true });
+
   const { data: audits } = await supabase
     .from('audit_scores').select('ple_id, d1, d2, d3, d4, d5, d6, d7').eq('auditor_id', req.user.id);
   if (!audits?.length) return res.json({ n: 0, auditor: null, ai: null, peer: null });

@@ -219,6 +219,10 @@ export interface AuditorPle {
   // ("the other auditor" rather than "the auditor average").
   peer_avg?: Record<string, number> | null;
   peer_n?: number;
+  // Set when app_settings.calibration_reveal_locked is on: the AI score, the peer average and the
+  // discussion are withheld for the whole round, not merely until this auditor submits. The flag
+  // exists so the UI can say so — an unexplained empty pane reads as a bug.
+  reveal_locked?: boolean;
   error?: unknown;
 }
 
@@ -368,6 +372,7 @@ export interface UsageSettings {
   clinical_artifacts_enabled?: boolean;
   peer_calibration_enabled?: boolean;
   hold_result_until_audited?: boolean;
+  calibration_reveal_locked?: boolean;
   comp_rate_thb?: number;
   comp_cap_cles?: number;
   min_auditors_per_cle?: number;

@@ -94,8 +94,10 @@ test('peer_calibration OFF (default): no peer_avg even after submit', async () =
 test('peer_calibration ON: peer_avg from the OTHER auditors once they have scored', async () => {
   existingScore = { id: 's1', ple_id: 'p1', composite_score: 60 };
   const prev = m.state.resolve;
-  m.state.resolve = (table, kind) => {
-    if (table === 'app_settings') return { value: 1 };                                   // peer_calibration ON
+  m.state.resolve = (table, kind, ctx) => {
+    // Key-aware, not blanket: a stub that answers 1 to EVERY setting also switches on any future
+    // gate this route learns to read, and the test then passes or fails for the wrong reason.
+    if (table === 'app_settings') return { value: ctx.eqs.some(([c, v]) => c === 'key' && v === 'peer_calibration') ? 1 : 0 };
     if (table === 'audit_scores' && kind === 'list') return [{ d1:5,d2:5,d3:5,d4:5,d5:5,d6:5,d7:5 }]; // one OTHER auditor (self is excluded by .neq in the route)
     return prev(table, kind);
   };
@@ -323,4 +325,73 @@ test('an attestation the form never asked for cannot be smuggled into the record
     .send({ ...SCORES, attestations: { ...ATTEST, approved_by_admin: true } });
   expect(r.status).toBe(400);
   expect(m.find('audit_scores', 'insert')).toBeUndefined();
+});
+
+// The per-PLE blind holds until THIS auditor submits THIS session. A calibration ROUND needs more
+// than that: a rater who scores one session, sees the AI three points below them, and then scores the
+// next is no longer scoring independently — and independence is the assumption the round's whole
+// output rests on. calibration_reveal_locked closes every reveal for the duration of the round.
+//
+// Four routes hand an auditor the AI comparison. A lock covering only the obvious one is theatre,
+// so each is asserted separately here.
+describe('calibration_reveal_locked closes every reveal for the round', () => {
+  const lockOn = (on) => {
+    const prev = m.state.resolve;
+    m.state.resolve = (table, kind, ctx) => {
+      if (table === 'app_settings') {
+        const key = (ctx.eqs.find(([c]) => c === 'key') ?? [])[1];
+        return { value: key === 'calibration_reveal_locked' && on ? 1 : 0 };
+      }
+      return prev(table, kind, ctx);
+    };
+  };
+
+  beforeEach(() => { existingScore = { id: 's1', ple_id: 'p1', composite_score: 60 }; });
+
+  test('1/4 the reveal pane returns no AI score and no peer average, and SAYS why', async () => {
+    lockOn(true);
+    const r = await auth(request(app).get('/auditor/ples/p1'));
+    expect(r.status).toBe(200);
+    expect(r.body.ai_evaluation).toBeNull();
+    expect(r.body.peer_avg).toBeNull();
+    expect(r.body.peer_n).toBe(0);
+    // The auditor still sees their own submitted score — the lock withholds the comparison, not their work.
+    expect(r.body.audit_score).toMatchObject({ id: 's1' });
+    // Without this flag an empty pane is indistinguishable from a bug.
+    expect(r.body.reveal_locked).toBe(true);
+  });
+
+  test('2/4 AI discussion is refused with reveal_locked, not score_required', async () => {
+    lockOn(true);
+    const r = await auth(request(app).post('/auditor/ples/p1/discuss').send({ message: 'why d3?' }));
+    expect(r.status).toBe(403);
+    expect(r.body.code).toBe('reveal_locked');
+  });
+
+  test('3/4 the auditor ICC is withheld as locked, not as an empty result', async () => {
+    lockOn(true);
+    scoredRows = [{ ple_id: 'p1', composite_score: 60 }];
+    const r = await auth(request(app).get('/auditor/icc'));
+    expect(r.status).toBe(200);
+    expect(r.body.icc).toBeNull();
+    // "withheld" must not look like "nothing scored yet".
+    expect(r.body.locked).toBe(true);
+  });
+
+  test('4/4 the calibration radar is withheld as locked', async () => {
+    lockOn(true);
+    scoredRows = [{ ple_id: 'p1', d1: 4, d2: 4, d3: 4, d4: 4, d5: 4, d6: 4, d7: 4 }];
+    const r = await auth(request(app).get('/auditor/calibration'));
+    expect(r.status).toBe(200);
+    expect(r.body.ai).toBeNull();
+    expect(r.body.locked).toBe(true);
+  });
+
+  test('lock OFF: the reveal returns as before, so the lock is what changed and not the route', async () => {
+    lockOn(false);
+    const r = await auth(request(app).get('/auditor/ples/p1'));
+    expect(r.status).toBe(200);
+    expect(r.body.ai_evaluation).toMatchObject({ ple_id: 'p1', composite_score: 70 });
+    expect(r.body.reveal_locked).toBe(false);
+  });
 });
