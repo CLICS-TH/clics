@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository. This file is an **index** — detailed docs live in [`docs/`](docs/). Read the relevant doc before changing that area.
 
-**CLICS** (Continuous Learning & Intelligence Credit System) is an AI-mediated platform that scores physician clinical reasoning from physician–AI dialogue sessions (**CLEs**), replacing attendance-based CME/CPD credit. On-premise pilot for a Thai medical licensing body, July–September 2026.
+**CLICS** (Case-based Learning Intelligence Credit System) is an AI-mediated platform that scores physician clinical reasoning from physician–AI dialogue sessions (**PLEs** — Professional Learning Episodes), replacing attendance-based CME/CPD credit. On-premise pilot for a Thai medical licensing body; **the pilot has not started** and the published July–September 2026 schedule is superseded — see [docs/pilot-timeline.md](docs/pilot-timeline.md).
 
 **New here (human dev)?** Start with [README.md](README.md), then [CONTRIBUTING.md](CONTRIBUTING.md) (local setup + conventions) and [docs/HANDOFF.md](docs/HANDOFF.md) (current state + what to work on next). Each layer also has its own README: [backend](backend/README.md) · [rimpl](rimpl/README.md) · [physician-ui](physician-ui/README.md) · [audit-dashboard](audit-dashboard/README.md). The 2026-06 design audit added shared front-end primitives — physician-ui `js/{icons,ui}.js`; audit-dashboard `components/{BiLabel,Overlays,Markdown,DomainScorer}.tsx` + `lib/{chart-colors,pis7-rubric}.ts` (`pis7-rubric.ts` mirrors `rimpl/src/lib/prompts.js`).
 
