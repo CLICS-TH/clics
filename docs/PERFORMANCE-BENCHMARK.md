@@ -2,7 +2,7 @@
 
 The **acceptance baseline** every future load test measures against, plus the **levers** to scale beyond the pilot. Detailed test narratives live in [LOADTEST-2026-06.md](LOADTEST-2026-06.md); this file is the durable benchmark.
 
-**Pilot target:** 75 physicians × 3 PLEs over Aug–Sep 2026 — true simultaneity is far below the headcount (physicians read/think between turns).
+**Pilot target:** 75 physicians × 3 PLEs — true simultaneity is far below the headcount (physicians read/think between turns). The **Aug–Sep 2026** window this was sized against is superseded and no replacement window has been set ([pilot-timeline.md](pilot-timeline.md)); the headcount and the shape of the load are what this benchmark rests on, not the dates.
 
 ---
 
