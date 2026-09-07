@@ -5,7 +5,7 @@
 //   * exhausted attempts route to manual QA with an audit event;
 //   * it never exceeds the concurrency, and never scores an empty transcript.
 process.env.EVAL_MAX_ATTEMPTS = '3';
-let mockRows, mockMsgs, mockMsgsError, mockRefs, mockClaims, mockWrites, mockRpcCalls, mockSettings, mockCouncils;
+let mockRows, mockMsgs, mockMsgsError, mockRefs, mockClaims, mockWrites, mockRpcCalls, mockSettings, mockCouncils, mockSpend;
 
 jest.mock('../src/lib/supabase', () => ({
   supabase: {
@@ -35,7 +35,14 @@ jest.mock('../src/lib/supabase', () => ({
       };
       return c;
     },
-    rpc: (fn, args) => { mockRpcCalls.push([fn, args]); return Promise.resolve({ data: mockClaims.map((id) => ({ id })), error: null }); },
+    rpc: (fn, args) => {
+      mockRpcCalls.push([fn, args]);
+      // total_usage_sum is the org-wide spend the budget pool reads. Answered distinctly, because
+      // returning the claim list for it would make Number([...]) NaN and pause the drain for a
+      // reason the test never asked for.
+      if (fn === 'total_usage_sum') return Promise.resolve({ data: mockSpend, error: mockSpend === undefined ? { message: 'rpc missing' } : null });
+      return Promise.resolve({ data: mockClaims.map((id) => ({ id })), error: null });
+    },
   },
 }));
 jest.mock('../src/services/reflection', () => ({ withReflection: async (_id, t) => t }));
@@ -59,9 +66,9 @@ const updates = (table) => mockWrites.filter((w) => w.table === table);
 
 beforeEach(() => {
   mockRows = {}; mockMsgs = {}; mockMsgsError = null; mockRefs = {}; mockClaims = []; mockWrites = []; mockRpcCalls = [];
-  mockSettings = {}; mockCouncils = [];
+  mockSettings = {}; mockCouncils = []; mockSpend = 0;
   invalidateScope();
-  Object.assign(drain._state, { running: false, inFlight: 0, ticking: false, kicked: false, claimed: 0, evaluated: 0, deferred: 0, flagged: 0, lastError: null });
+  Object.assign(drain._state, { running: false, inFlight: 0, ticking: false, kicked: false, claimed: 0, evaluated: 0, deferred: 0, flagged: 0, lastError: null, pool: null, poolWasExhausted: false });
   triggerEvaluation.mockReset().mockResolvedValue(undefined);
   logEvent.mockClear();
 });
@@ -171,4 +178,63 @@ test('backoff doubles per attempt and is capped at 15 minutes', () => {
   expect(drain.backoffMs(2)).toBeGreaterThanOrEqual(60_000);
   expect(drain.backoffMs(10)).toBeLessThan(15 * 60_000 + 6_000);
   expect(drain.backoffMs(10)).toBeGreaterThanOrEqual(15 * 60_000);
+});
+
+// app_settings.api_budget_pool_usd was rendered on two admin screens and consulted by nothing, while
+// evaluation — the largest single spend in the system — had no ceiling at all. An operator who set
+// it to 12 believed spend stopped at $12; the only real ceiling was the Anthropic account balance.
+describe('the org-wide budget pool actually stops evaluation', () => {
+  const ready = () => {
+    mockRows = { p1: { id: 'p1', physician_id: 'doc1', status: 'ple_pass', eval_attempts: 1 } };
+    mockMsgs = { p1: MSGS }; mockClaims = ['p1'];
+  };
+
+  test('unset (0) means no cap, so an untouched deployment behaves exactly as before', async () => {
+    ready();                       // mockSettings has no api_budget_pool_usd -> default 0
+    await drain.tick(); await settle();
+    expect(triggerEvaluation).toHaveBeenCalled();
+    expect(drain.status().pool).toMatchObject({ uncapped: true });
+    // With no cap the spend query is never even run.
+    expect(mockRpcCalls.map(c => c[0])).not.toContain('total_usage_sum');
+  });
+
+  test('under the cap: work proceeds and the reading is reported', async () => {
+    ready(); mockSettings.api_budget_pool_usd = { value: 12 }; mockSpend = 0.91;
+    await drain.tick(); await settle();
+    expect(triggerEvaluation).toHaveBeenCalled();
+    expect(drain.status().pool).toMatchObject({ cap: 12, spent: 0.91, exhausted: false });
+  });
+
+  test('at the cap: NOTHING is claimed — gated before the claim so no eval_attempt is burnt', async () => {
+    ready(); mockSettings.api_budget_pool_usd = { value: 12 }; mockSpend = 12;
+    await drain.tick(); await settle();
+    expect(triggerEvaluation).not.toHaveBeenCalled();
+    // The claim RPC must not run at all. Claiming and then deferring would march every queued PLE to
+    // MAX_ATTEMPTS and flag it for manual QA, when the only thing wrong was an unraised cap.
+    expect(mockRpcCalls.map(c => c[0])).not.toContain('claim_ple_evaluations');
+    expect(drain.status().counters.claimed).toBe(0);
+    // The queue is untouched: no defer, no flag, no write of any kind.
+    expect(mockWrites).toEqual([]);
+    expect(drain.status().pool).toMatchObject({ cap: 12, exhausted: true });
+  });
+
+  test('an unreadable spend is treated as exhausted, not as plenty left', async () => {
+    ready(); mockSettings.api_budget_pool_usd = { value: 12 }; mockSpend = undefined; // rpc errors
+    await drain.tick(); await settle();
+    // The fallback column read returns null through this mock, so spend is unknown. Spending real
+    // money on the strength of a failed query is the wrong way to fail.
+    expect(triggerEvaluation).not.toHaveBeenCalled();
+    expect(drain.status().pool.exhausted).toBe(true);
+  });
+
+  test('raising the cap resumes claiming without an operator touching the queue', async () => {
+    ready(); mockSettings.api_budget_pool_usd = { value: 12 }; mockSpend = 12;
+    await drain.tick(); await settle();
+    expect(triggerEvaluation).not.toHaveBeenCalled();
+
+    mockSettings.api_budget_pool_usd = { value: 50 };
+    mockRpcCalls = []; mockClaims = ['p1'];
+    await drain.tick(); await settle();
+    expect(triggerEvaluation).toHaveBeenCalledWith('p1', MSGS, 'doc1', null, { attempts: 1 });
+  });
 });

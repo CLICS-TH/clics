@@ -12,6 +12,22 @@ if (IS_PROD) {
   const required = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_ANON_KEY', 'INTERNAL_TOKEN', 'GUEST_TOKEN_SECRET', 'IDENTITY_ENC_KEY', 'ALLOWED_ORIGINS', 'RIMPL_URL', 'SITE_URL'];
   const missing = required.filter(k => !process.env[k]);
   if (missing.length) throw new Error(`Refusing to start in production — missing env: ${missing.join(', ')}`);
+
+  // The licence stub derives 'verified' from the last digit of the licence number, and the admin
+  // identity queue renders that as "Licence found, name matches". An administrator approving on it
+  // would be approving arithmetic. LICENSE_VERIFIER_ADAPTER is unset in production today; the
+  // submission endpoint is live and ungated by identity_verification_required, so this has simply
+  // not been reached yet.
+  //
+  // Refuses on an UNRECOGNISED value too, because services/license-verifier.js treats anything it
+  // does not know as stub — one typo would otherwise restore the fabricating path silently.
+  const { ADAPTER, adapterUnfitForProduction } = require('./services/license-verifier');
+  const unfit = adapterUnfitForProduction();
+  if (unfit) {
+    throw new Error(`Refusing to start in production — LICENSE_VERIFIER_ADAPTER is '${ADAPTER}': ${unfit}. `
+      + `Set LICENSE_VERIFIER_ADAPTER=manual (no automatic lookup — an administrator verifies each submission, `
+      + `which is what production does today), or tmc_scrape together with LICENSE_VERIFIER_URL.`);
+  }
 }
 
 const app = express();

@@ -117,6 +117,34 @@ describe('GET /health/deep (backend)', () => {
     expect(res.body.checks.rimpl.status).toBe('up');
   });
 
+  // A drain paused on an exhausted budget pool claims nothing, which is byte-identical to a healthy
+  // idle drain from outside. It surfaces immediately rather than eventually arriving as
+  // `queue_stuck`, because the two need opposite responses: raise the cap, versus find the fault.
+  test('budget pool exhausted → 503 with its own reason, not queue_stuck', async () => {
+    supabaseUp();
+    probeRimplDeep.mockResolvedValue({ httpStatus: 200, body: { status: 'ok' } });
+    evalDrain.status.mockReturnValue({ ...IDLE_DRAIN, running: true,
+      pool: { cap: 12, spent: 12.4, exhausted: true, uncapped: false } });
+
+    const res = await request(app).get('/health/deep');
+
+    expect(res.status).toBe(503);
+    expect(res.body.checks.eval_queue.status).toBe('down');
+    // The numbers travel with the reason, so an operator can act without opening another screen.
+    expect(res.body.checks.eval_queue.reasons).toContain('budget_pool_exhausted:12.4/12');
+    expect(res.body.checks.eval_queue.reasons).not.toContain('queue_stuck');
+    expect(res.body.checks.supabase.status).toBe('up');
+  });
+
+  test('an uncapped pool is not a degraded one — the shipped default must stay green', async () => {
+    supabaseUp();
+    probeRimplDeep.mockResolvedValue({ httpStatus: 200, body: { status: 'ok' } });
+    evalDrain.status.mockReturnValue({ ...IDLE_DRAIN, pool: { cap: 0, spent: null, exhausted: false, uncapped: true } });
+    const res = await request(app).get('/health/deep');
+    expect(res.status).toBe(200);
+    expect(res.body.checks.eval_queue.reasons).toEqual([]);
+  });
+
   test('council scope failed closed → 503 (a typo in the exclude setting stops ALL scoring)', async () => {
     supabaseUp();
     probeRimplDeep.mockResolvedValue({ httpStatus: 200, body: { status: 'ok' } });

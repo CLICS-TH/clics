@@ -131,6 +131,22 @@ export default function IdentityQueuePage() {
             <p className={`mt-3 inline-flex items-center gap-1.5 text-xs ${check.tone}`}>
               <ShieldQuestion className="size-3.5 shrink-0" /> {check.label}
             </p>
+            {/* WHERE the claim came from. The backend has always sent license_check_source and this
+                card has always dropped it, so "Licence found, name matches" appeared in green with
+                nothing to say whether a registry was actually consulted. A source of `stub` is a
+                deterministic answer derived from the licence number, and an administrator has to be
+                able to see that before deciding. Rendered for every source, not only the bad one:
+                a warning that appears only when something is wrong teaches people to read its
+                absence as a guarantee. */}
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              ที่มาของการตรวจ / Source: <span className="font-mono">{v.license_check_source || 'none'}</span>
+              {v.license_check_source === 'stub' && (
+                <span className="text-danger"> — ค่าจำลองสำหรับทดสอบ ไม่ได้ตรวจกับทะเบียนจริง / test stub, no registry was consulted</span>
+              )}
+              {v.license_check_source === 'manual' && (
+                <span> — ระบบไม่ได้ตั้งการตรวจอัตโนมัติไว้ ต้องตรวจด้วยตนเอง / no automatic lookup is configured; verify by hand</span>
+              )}
+            </p>
             {/* text-sm, not the text-xs used for metadata elsewhere: this line is the reason the
                 screen exists, and 12px Thai sits below the legibility floor where the loop detail closes. */}
             <p className="mt-1 text-sm text-muted-foreground">

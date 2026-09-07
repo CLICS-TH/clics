@@ -129,6 +129,14 @@ async function checkEvalQueue() {
   // Claimable work has waited past a grace derived from the queue's own predicted wait.
   out.stuck = (out.oldest_claimable_wait_s ?? 0) > (out.stuck_after_s ?? QUEUE_STUCK_AFTER_S);
   if (out.stuck) reasons.push('queue_stuck');
+  // The org-wide budget pool is spent, so the drain is claiming nothing on purpose. This has to be
+  // its own reason rather than arriving later as `queue_stuck`: the two need opposite responses —
+  // one is raise the cap, the other is find out what broke — and an operator reading "stuck" would
+  // go looking for a fault that does not exist. Reported the moment the drain pauses, not after the
+  // grace period, because the pause is deliberate and immediately knowable.
+  if (out.drain.pool?.exhausted) {
+    reasons.push(`budget_pool_exhausted:${out.drain.pool.spent ?? '?'}/${out.drain.pool.cap}`);
+  }
 
   out.status = reasons.length ? 'down' : 'up';
   out.reasons = reasons;

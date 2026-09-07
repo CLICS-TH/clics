@@ -173,7 +173,41 @@ async function refundUsage(userId, estimate, applied = true, pool = 'physician')
 // between cases. Production never calls this.
 function _resetCaches() { for (const k of Object.keys(_stdCache)) delete _stdCache[k]; for (const k of Object.keys(_tokCache)) delete _tokCache[k]; }
 
+// ---- Org-wide budget pool -----------------------------------------------------------------------
+// app_settings.api_budget_pool_usd was stored, rendered on two admin screens, and consulted by
+// nothing. An operator setting it to 12 believed spend stopped at $12; the only real ceiling was the
+// Anthropic account balance. This is the reader that makes it mean something.
+//
+// 0 = no cap, matching the convention the token ceilings already use — so an untouched deployment
+// behaves exactly as before rather than halting on a default.
+//
+// It measures the PHYSICIAN pool, which is where PIS-7 evaluation spend lands (services/
+// ple-evaluation.js accrues the evaluation's cost to the physician's meter). Chat, criteria and
+// discuss keep their own per-user ceilings; this is the org-wide backstop over the top of them.
+async function budgetPool() {
+  // Required lazily: lib/settings.js imports this module's siblings, and a top-level cycle here
+  // would leave one of the two half-initialised depending on which loaded first.
+  const { getSetting } = require('./settings');
+  const cap = Number(await getSetting('api_budget_pool_usd', 0)) || 0;
+  if (cap <= 0) return { cap: 0, spent: null, exhausted: false, uncapped: true };
+  let spent = null;
+  const { data, error } = await supabase.rpc('total_usage_sum');
+  if (!error && data != null) spent = Number(data);
+  else {
+    // Fallback sum. `rows ?? []` would reduce a FAILED read to 0, and 0 against a real cap reads as
+    // "plenty left" — the silent-success shape this whole function exists to remove. So an error or
+    // a missing array stays null and is handled below; only an actual (possibly empty) array sums.
+    const { data: rows, error: rowsErr } = await supabase.from('professionals').select('usage_cost_usd');
+    if (!rowsErr && Array.isArray(rows)) spent = rows.reduce((acc, r) => acc + Number(r.usage_cost_usd ?? 0), 0);
+  }
+  // A read failure must not read as "plenty left". Unknown spend against a real cap is treated as
+  // exhausted, because the alternative is spending real money on the strength of a failed query.
+  if (spent == null || !Number.isFinite(spent)) return { cap, spent: null, exhausted: true, uncapped: false, reason: 'spend unreadable' };
+  return { cap, spent, exhausted: spent >= cap, uncapped: false };
+}
+
 module.exports = {
+  budgetPool,
   POOLS, STANDARD_LIMIT_KEY, DEFAULT_STANDARD_LIMIT_USD, RESERVE_ESTIMATE_USD,
   standardLimit, effectiveLimit, standardTokenLimit, effectiveTokenLimit, tokensUsed, budgetState,
   accrueUsage, reserveUsage, settleUsage, refundUsage, _resetCaches,
