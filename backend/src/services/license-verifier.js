@@ -4,7 +4,22 @@
 //     -> { status, source, checked_at, evidence }
 //        status ∈ 'verified' | 'not_found' | 'name_mismatch' | 'unavailable'
 //
-// Adapter is chosen by LICENSE_VERIFIER_ADAPTER ('stub' | 'tmc_scrape', default 'stub').
+// Adapter is chosen by LICENSE_VERIFIER_ADAPTER ('stub' | 'manual' | 'tmc_scrape', default 'stub').
+//
+// THE STUB MUST NEVER SERVE PRODUCTION. It derives 'verified' from the last digit of the licence
+// number, and the admin queue renders that as "Licence found, name matches" in green — a positive,
+// name-matched assertion produced by arithmetic. src/index.js refuses to boot in production while
+// the adapter is stub or unrecognised; getVerifier() additionally degrades to 'unavailable' there,
+// because a boot guard only helps on a host that identifies itself as production.
+//
+// An unrecognised value is treated as stub, NOT as tmc_scrape: a typo like 'tmc-scrape' must not
+// quietly restore the fabricating path, which is exactly what an untyped fallback used to do.
+//
+// 'manual' exists because it is the only honest description of production today: there is no scraper
+// deployed (no LICENSE_VERIFIER_URL anywhere), so 'tmc_scrape' cannot be set, and without a third
+// value the boot check below would have no permitted value to offer and would simply make the
+// service unbootable. 'manual' says out loud what is already true — no automatic lookup, an
+// administrator decides — and makes that an auditable choice rather than an unset variable.
 // This service is L2-only: it is NEVER called from RIMPL/cloud. The 'tmc_scrape' adapter
 // talks ONLY to the dedicated scraper microservice (LICENSE_VERIFIER_URL), which in turn
 // queries The Medical Council of Thailand's own public site — a sanctioned, scoped egress.
@@ -14,7 +29,22 @@
 const { supabase } = require('../lib/supabase');
 const { encryptJson } = require('../lib/crypto');
 
+const ADAPTERS = ['stub', 'manual', 'tmc_scrape'];
 const ADAPTER = process.env.LICENSE_VERIFIER_ADAPTER || 'stub';
+// Read at call time, not at require time: NODE_ENV is set by the test runner after this module is
+// first loaded in some suites, and a snapshot taken at import would make the guard untestable.
+const isProd = () => !!process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production';
+// Exported for the boot check. Named for what it decides, so index.js does not re-derive the rule.
+// Returns null when fit, or the reason it is not.
+function adapterUnfitForProduction() {
+  if (!ADAPTERS.includes(ADAPTER)) return `'${ADAPTER}' is not a known adapter, and an unknown value falls back to the stub`;
+  if (ADAPTER === 'stub') return "the stub answers from the licence number's last digit and the admin queue shows that as a verified identity";
+  // A scraper adapter with nowhere to scrape degrades to 'unavailable' on every submission via the
+  // circuit breaker — the same outcome as 'manual', but reached by a timeout and reported as an
+  // outage. If that is the intent, say 'manual'.
+  if (ADAPTER === 'tmc_scrape' && !process.env.LICENSE_VERIFIER_URL) return "'tmc_scrape' is selected but LICENSE_VERIFIER_URL is unset, so every lookup would time out";
+  return null;
+}
 const STATUSES = ['verified', 'not_found', 'name_mismatch', 'unavailable'];
 const now = () => new Date().toISOString();
 
@@ -107,6 +137,26 @@ async function tmcScrapeVerify(input) {
 
 function getVerifier() {
   if (ADAPTER === 'tmc_scrape') return { verify: tmcScrapeVerify };
+  // Fail closed. 'unavailable' is already a first-class outcome the whole flow handles — it maps to
+  // license_status 'unverified' (toLicenseStatus below), the admin card says "verify manually", and
+  // an administrator can still decide the submission. So refusing to guess costs nothing except the
+  // fabricated evidence, while a stubbed 'verified' costs an identity check that was never made.
+  // No automatic lookup, by choice. Distinct source from the production refusal below so the admin
+  // card can tell a deliberate policy from a guard that fired.
+  if (ADAPTER === 'manual') {
+    return { verify: ({ license_number }) => Promise.resolve({
+      status: 'unavailable', source: 'manual', checked_at: now(),
+      evidence: { adapter: 'manual', note: 'no automatic lookup is configured; verified by an administrator', license: String(license_number || '').trim() },
+    }) };
+  }
+  if (isProd()) {
+    return { verify: ({ license_number }) => Promise.resolve({
+      status: 'unavailable',
+      source: 'none',
+      checked_at: now(),
+      evidence: { adapter: ADAPTER, refused: 'stub adapter is not permitted in production', license: String(license_number || '').trim() },
+    }) };
+  }
   return { verify: (input) => Promise.resolve(stubVerify(input)) };
 }
 
@@ -139,4 +189,4 @@ async function recordVerification({ professional_id = null, license_number, name
 // Test-only: reset the in-process cache/breaker between cases.
 function _resetState() { _cache.clear(); _inflight.clear(); _cb.failures = 0; _cb.openUntil = 0; }
 
-module.exports = { getVerifier, toLicenseStatus, recordVerification, ADAPTER, _resetState, stubVerify };
+module.exports = { getVerifier, toLicenseStatus, recordVerification, ADAPTER, ADAPTERS, adapterUnfitForProduction, _resetState, stubVerify };
