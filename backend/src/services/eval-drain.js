@@ -21,6 +21,7 @@ const { logEvent } = require('../lib/audit');
 const { resolveScope } = require('../lib/eval-scope');
 const { triggerEvaluation } = require('./ple-evaluation');
 const { isDeterministicRimplError } = require('./rimpl-client');
+const { budgetPool } = require('../lib/usage');
 const { loadTranscriptForEvaluation } = require('./eval-transcript');
 
 const INTERVAL_MS = parseInt(process.env.EVAL_DRAIN_INTERVAL_MS || '60000', 10);
@@ -33,6 +34,8 @@ const BASE_BACKOFF_MS = 30_000;
 const state = {
   running: false, inFlight: 0, ticking: false, kicked: false, timer: null,
   lastTickAt: null, lastError: null, claimed: 0, evaluated: 0, deferred: 0, flagged: 0,
+  // Last budget-pool reading, and whether the pause has already been announced.
+  pool: null, poolWasExhausted: false,
 };
 
 // Honour the provider's Retry-After when rimpl said "queue full"; otherwise exponential, capped,
@@ -117,6 +120,29 @@ async function tick() {
   try {
     const free = (await concurrency()) - state.inFlight;
     if (free <= 0) return;
+
+    // Org-wide budget pool, checked BEFORE the claim rather than before the evaluate call. A claimed
+    // row that cannot be evaluated has to be deferred, and deferring burns an eval_attempt — so
+    // gating later would march every queued PLE to MAX_ATTEMPTS and flag it for manual QA while the
+    // only thing wrong was an unraised cap. Not claiming leaves the queue exactly as it was.
+    //
+    // Silence is the danger here: a stalled drain looks like an empty queue. state.pool feeds
+    // /health/deep, which flips to degraded, and the log line prints on the TRANSITION only — one
+    // line an operator will see, not one per tick that nobody reads.
+    const pool = await budgetPool();
+    state.pool = pool;
+    if (pool.exhausted) {
+      if (!state.poolWasExhausted) {
+        state.poolWasExhausted = true;
+        console.error(`[eval-drain] PAUSED — api_budget_pool_usd is $${pool.cap} and $${pool.spent ?? '?'} is spent`
+          + `${pool.reason ? ` (${pool.reason})` : ''}. No PLE is claimed until the pool is raised. Queued work is untouched.`);
+      }
+      return;
+    }
+    if (state.poolWasExhausted) {
+      state.poolWasExhausted = false;
+      console.log(`[eval-drain] RESUMED — budget pool has room again ($${pool.spent ?? '?'} of $${pool.cap}).`);
+    }
     const scope = await resolveScope();
     state.scope = { exclude_codes: scope.excludeCodes ?? [], include_codes: scope.includeCodes ?? [], failed_closed: scope.failedClosed ?? null };
     const { data, error } = await supabase.rpc('claim_ple_evaluations', {
@@ -161,11 +187,13 @@ function stop() {
 }
 
 function status() {
-  const { running, inFlight, lastTickAt, lastError, claimed, evaluated, deferred, flagged } = state;
+  const { running, inFlight, lastTickAt, lastError, claimed, evaluated, deferred, flagged, pool } = state;
   return { running, in_flight: inFlight, last_tick_at: lastTickAt, last_error: lastError,
     counters: { claimed, evaluated, deferred, flagged }, lease_s: LEASE_S, max_attempts: MAX_ATTEMPTS,
     // The council partition the last tick claimed under; failed_closed set means it claimed NOTHING and why.
-    scope: state.scope ?? null };
+    scope: state.scope ?? null,
+    // The org-wide budget pool as of the last tick. `exhausted` means the drain claimed nothing.
+    pool: pool ?? null };
 }
 
 module.exports = { start, stop, kick, tick, status, backoffMs, _state: state };

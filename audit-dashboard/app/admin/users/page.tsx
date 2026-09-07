@@ -681,6 +681,17 @@ export default function UsersPage() {
         <p className="text-xs text-muted-foreground mt-0.5">
           ยอดใช้รวมทุกสมาชิกเทียบกับงบของคีย์ API / Total spent across all members vs the API key&apos;s budget.
         </p>
+        {/* Say what it DOES. Until 2026-09-07 this field was stored, rendered here, and enforced
+            nowhere — an operator who typed 12 believed spend stopped at $12 while the only real
+            ceiling was the Anthropic balance. It now pauses the evaluation drain, which is the
+            largest single spend; per-turn chat keeps its own per-user ceilings. Saying so matters
+            because pausing scoring is a consequence someone should choose deliberately. */}
+        <p className="text-xs text-muted-foreground mt-1">
+          เมื่อใช้ครบ ระบบจะ<strong>หยุดคิวให้คะแนน PIS-7</strong>ชั่วคราวจนกว่าจะเพิ่มงบ งานในคิวไม่หาย
+          และ <span className="font-mono">/health/deep</span> จะรายงานว่า degraded • ตั้ง <span className="font-mono">0</span> = ไม่จำกัด •
+          When the pool is spent the PIS-7 scoring queue <strong>pauses</strong> until it is raised — queued work is
+          untouched and <span className="font-mono">/health/deep</span> reports degraded. <span className="font-mono">0</span> means no cap.
+        </p>
         <div className="flex items-baseline justify-between gap-2 mt-2">
           <span className="text-sm text-muted-foreground">ใช้ไปแล้ว / Used</span>
           <span className={`text-lg font-semibold tabular-nums ${poolPct >= 90 ? 'text-destructive' : ''}`}>
