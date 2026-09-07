@@ -236,6 +236,21 @@ export default function AuditorScorePage() {
               </div>
             )}
           </div>
+          {/* Locked for a calibration round: say so where the reveal would have been. Placed before the
+              reveal block because when the lock is on the server sends no ai_evaluation at all, so
+              nothing below would render and the rater would be left guessing. */}
+          {submitted && data.reveal_locked && (
+            <div className="border rounded-xl p-5 bg-secondary">
+              <h2 className="font-heading text-xl">🙈 ปิดการเผยคะแนนไว้ระหว่างรอบสอบเทียบ / AI reveal locked for this round</h2>
+              <p className="text-sm text-muted-foreground mt-2">
+                คะแนนของคุณถูกบันทึกเรียบร้อยแล้ว ระหว่างรอบสอบเทียบระบบจะยังไม่แสดงคะแนน AI ค่าเฉลี่ยของผู้ตรวจท่านอื่น
+                และการสนทนากับ AI เพื่อให้การให้คะแนน PLE ถัดไปเป็นอิสระจากกัน ผู้ประสานงานจะเปิดให้ดูเมื่อทุกท่านให้คะแนนครบแล้ว •
+                Your score is saved. For the duration of this calibration round the AI score, the auditor
+                average and the AI discussion stay hidden so that each session is scored independently of
+                the last. The coordinator opens them once every rater has finished.
+              </p>
+            </div>
+          )}
           {submitted && data.ai_evaluation && (
             <div className="border rounded-xl p-5 bg-secondary space-y-4">
               <div>

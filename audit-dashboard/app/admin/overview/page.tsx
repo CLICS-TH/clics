@@ -133,6 +133,24 @@ export default function OverviewPage() {
     setHoldSaving(false);
   }
 
+  // ---- Calibration reveal lock ----
+  // Sibling of Hold Result, pointed the other way: Hold withholds the PHYSICIAN's score, this
+  // withholds the AUDITOR's view of the AI. Both exist because "blinded" means different things to
+  // the two roles, and a round needs the auditor half switched on for its whole duration.
+  const [lockSaving, setLockSaving] = useState(false);
+  const lockOn = usage?.calibration_reveal_locked === true;
+  async function toggleLock() {
+    if (!usage) return;
+    setLockSaving(true);
+    try {
+      const next = await apiFetch<UsageSettings>('/admin/usage-settings', {
+        method: 'PATCH', body: JSON.stringify({ calibration_reveal_locked: !lockOn }),
+      });
+      setUsage(u => (u ? { ...u, calibration_reveal_locked: next.calibration_reveal_locked } : u));
+    } catch { /* leave state unchanged on failure */ }
+    setLockSaving(false);
+  }
+
   // ---- Minimum auditors per PLE ----
   // A TARGET, not a gate. The manuscript describes >= 3 blinded auditors per PLE; 3 auditors
   // currently cover 3 of 19 physician specialties, so a blocking rule would strand credit for the
@@ -457,6 +475,35 @@ export default function OverviewPage() {
             title={holdOn ? 'Hold result until audited is ON' : 'Hold result until audited is OFF'}
           >
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${holdOn ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
+        </div>
+      </section>
+
+      {/* Calibration Reveal Lock — for a calibration ROUND. The per-PLE blind already holds until a
+          rater submits that PLE; this holds across the whole round, so seeing the AI on session #1
+          cannot shape session #2. Covers all four reveal surfaces (score pane, AI discussion,
+          personal ICC, calibration radar). Off by default. */}
+      <section className="space-y-3">
+        <h2 className="font-heading text-xl text-foreground">Calibration Reveal Lock</h2>
+        <div className="flex items-center justify-between rounded-xl border p-5">
+          <div className="pr-4">
+            <p className="text-sm font-medium">🙈 ปิดการเผยคะแนน AI ตลอดรอบสอบเทียบ / Lock AI reveal for the round</p>
+            <p className="text-xs text-muted-foreground">
+              ปกติผู้ตรวจจะเห็นคะแนน AI ทันทีที่ส่งคะแนนของ PLE นั้น ซึ่งทำให้ PLE ถัดไปไม่อิสระอีกต่อไป เปิดสวิตช์นี้ระหว่างรอบสอบเทียบ
+              เพื่อปิดทั้งคะแนน AI, การสนทนากับ AI, ค่าเฉลี่ยเพื่อน และค่าความสอดคล้องกับ AI จนกว่าทุกคนจะปิดคะแนนครบ •
+              Normally an auditor sees the AI score the moment they submit that PLE, which makes the next
+              one no longer independent. Turn this on for the duration of a calibration round; lift it once
+              every rater has closed their scores. Auditors still see their own submitted scores.
+            </p>
+          </div>
+          <button
+            onClick={toggleLock}
+            disabled={!usage || lockSaving}
+            aria-pressed={lockOn}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${lockOn ? 'bg-primary' : 'bg-muted'}`}
+            title={lockOn ? 'Calibration reveal lock is ON' : 'Calibration reveal lock is OFF'}
+          >
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${lockOn ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
         </div>
       </section>

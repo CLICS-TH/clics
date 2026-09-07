@@ -41,6 +41,22 @@ async function peerCalibrationEnabled() {
   return (await getSetting('peer_calibration', 0)) === 1;
 }
 
+// Calibration reveal lock (superadmin toggle, for a calibration ROUND): when ON, an auditor is shown
+// no AI score, no AI discussion, no peer average and no vs-AI agreement figure — for the whole round,
+// not just until they submit.
+//
+// The per-PLE blind is already enforced: nothing reveals before THIS auditor has scored THIS session.
+// That is not the same as a blinded round. A rater who scores PLE #1, sees the AI land three points
+// below them, and then scores PLE #2 is no longer scoring independently — and the number a
+// calibration round exists to produce is exactly the one that assumption underwrites. The lock is
+// lifted by the coordinator once every rater has closed their scores.
+//
+// Default OFF: outside a calibration round the reveal is the auditor's own feedback loop and there is
+// no reason to withhold it.
+async function calibrationRevealLocked() {
+  return (await getSetting('calibration_reveal_locked', 0)) === 1;
+}
+
 // Hold Result Until Audited (superadmin toggle, for a blinded test round): when ON, a physician's
 // PIS-7 score is withheld (shown as "under expert review") until an expert auditor has submitted a
 // score for that PLE — so physicians can't see/compare scores before review. Default OFF.
@@ -162,4 +178,5 @@ async function creditSettings() {
   };
 }
 
-module.exports = { getSetting, getTextSetting, iccGates, transcriptCap, minAuditorsPerPle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };
+module.exports = {
+  calibrationRevealLocked, getSetting, getTextSetting, iccGates, transcriptCap, minAuditorsPerPle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };

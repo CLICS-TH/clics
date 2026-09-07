@@ -45,7 +45,7 @@ export default function IccPage() {
     </div>
   );
 
-  const { overall, per_domain, per_council, inter_auditor, inter_auditor_average, inter_auditor_note, weighted_kappa, auditors_per_cle, n_at_target, n_below_target, min_auditors } = data;
+  const { overall, per_domain, per_council, inter_auditor, inter_auditor_average, inter_auditor_note, inter_auditor_per_domain, weighted_kappa, auditors_per_cle, n_at_target, n_below_target, min_auditors } = data;
   const councils: CouncilIcc[] = per_council
     ? Object.values(per_council).filter((c): c is CouncilIcc => !!c?.overall)
     : [];
@@ -125,6 +125,44 @@ export default function IccPage() {
               </div>
             ))}
           </div>
+          {/* Per domain. The composite above says whether raters rank episodes alike; only this says
+              WHICH anchor they read differently, which is the calibration workshop's output. Read as
+              a map, not seven verdicts: per-domain ICC at pilot n is unstable, and a flat bar means
+              the raters all chose the same value — a fact about the cohort, not agreement. */}
+          {inter_auditor_per_domain && Object.values(inter_auditor_per_domain).some(Boolean) && (
+            <div className="mt-4 border-t pt-4">
+              <h3 className="text-sm font-medium mb-1">รายโดเมน / by PIS-7 domain</h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                โดเมนที่ผู้ตรวจให้คะแนนเท่ากันทุกคนจะไม่มีค่า ICC เพราะไม่มีความแปรปรวนให้วัด ไม่ใช่เพราะไม่สอดคล้อง •
+                A domain every rater scored identically has no ICC because there is no variance to measure — that is not disagreement.
+              </p>
+              <div className="space-y-2">
+                {DOMAIN_LABELS.map((label, i) => {
+                  const d = inter_auditor_per_domain[`d${i + 1}`];
+                  return (
+                    <div key={label} className="flex items-center gap-3">
+                      <span className="w-12 text-xs text-muted-foreground">{label}</span>
+                      <div className="flex-1 bg-muted rounded-full h-3 relative overflow-hidden">
+                        {d?.icc != null && (
+                          <div className={`h-full rounded-full ${d.icc >= 0.75 ? 'bg-[var(--chart-pass)]' : 'bg-destructive'}`}
+                            style={{ width: `${Math.max(0, d.icc) * 100}%` }} />
+                        )}
+                      </div>
+                      <span className="text-sm font-mono w-14 tabular-nums">{d?.icc?.toFixed(3) ?? '—'}</span>
+                      {/* n travels with every figure: an ICC without its count is not reportable. */}
+                      {/* Hidden below 480px. `flex-1` is `flex: 1 1 0%`, so at 320-390px this fixed
+                          160px sibling (plus w-12 + w-14 + gaps) exceeds the row and shrinks the bar
+                          to exactly 0px — the at-a-glance comparison disappears while the page still
+                          passes the overflow-based responsive audit. */}
+                      <span className="hidden @min-[480px]:inline w-40 text-xs text-muted-foreground truncate" title={d?.interpretation ?? ''}>
+                        {d == null ? 'ไม่มีข้อมูล / no data' : d.icc == null ? d.interpretation : `n = ${d.n}`}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {inter_auditor_note && <p className="mt-3 text-xs text-muted-foreground">{inter_auditor_note}</p>}
           {auditors_per_cle && (
             // Cohort transparency, not a filter. This project has been burnt once by a headline ICC
