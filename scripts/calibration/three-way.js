@@ -365,7 +365,13 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   // per-arm would let the three comparisons run on three different cohorts and still print side by
   // side, which is the failure this whole harness exists to avoid.
   const scope = { manifest: MANIFEST ? { file: MANIFEST.file, sha256: MANIFEST.sha256, ids: MANIFEST.ids.length } : null,
-    prompt: WANT_PROMPT ?? null, raters: RATERS ? RATERS.length : null, dropped: {} };
+    prompt: WANT_PROMPT ?? null,
+    // A bare count is not reproducible: two runs both reading `"raters": 1` cannot be told apart,
+    // and nothing in an audit_scores row distinguishes a recruited physician from a simulated
+    // soak rater posting through the same API. `matched` (filled below) is the roster that actually
+    // contributed rows, which is the one worth archiving.
+    raters: RATERS ? { source: RATERS_RAW, ids: RATERS, n: RATERS.length, matched: [] } : null,
+    dropped: {} };
 
   if (MANIFEST) {
     // Hard-error rather than intersect-and-continue. A manifest id that the database cannot answer
@@ -449,6 +455,7 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
       console.error(`  A rater who scored nothing here is a recruitment fact, not a filter argument - resolve it before reporting.\n`);
       process.exit(1);
     }
+    scope.raters.matched = [...matched].sort();
     console.log(`  raters kept ${inCohort.length} of ${beforeInCohort} in-cohort audit rows across ${matched.size} rater(s)`);
   }
 
@@ -497,13 +504,22 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   // Local (shadow candidate). `provider` is the TRANSPORT ('local'); the candidate is the PAIR
   // (provider, model_version). Pooling two candidates into one arm reports a number describing
   // neither, so group on the pair and measure exactly one -- the most recent, as the endpoint does.
-  const shadowScoped = (shadowRows || []).filter(r => allowed.has(r.ple_id));
+  // Group over the CORPUS, never the manifest cohort. WHICH candidate is measured is a property of
+  // the model set, exactly like the contract rate above it -- and `--manifest` must not change it.
+  // Grouping over the cohort made `g.latest` mean "most recent INSIDE the manifest", so a stale
+  // candidate whose last rows happened to land on the manifest PLEs could displace the newest one
+  // and carry a passing contract rate with it: measured FAIL 50% -> PASS 100% on the same database
+  // with one flag added. The G0.5 manifest is the OLDEST PLEs and a backfill runs oldest-first, so
+  // that collision is the expected shape, not a corner case.
+  const shadowCorpus = (shadowRows || []).filter(r => corpusAllowed.has(r.ple_id));
+  const shadowScoped = shadowCorpus.filter(r => allowed.has(r.ple_id));
   const groups = new Map();
-  for (const r of shadowScoped) {
+  for (const r of shadowCorpus) {
     const key = `${r.provider} ${r.model_version}`;
-    const g = groups.get(key) ?? { provider: r.provider, model_version: r.model_version, rows: [], latest: 0, audited: 0 };
+    const g = groups.get(key) ?? { provider: r.provider, model_version: r.model_version, rows: [], inCohort: 0, latest: 0, audited: 0 };
     g.rows.push(r);
     g.latest = Math.max(g.latest, Date.parse(r.evaluated_at ?? '') || 0);
+    if (allowed.has(r.ple_id)) g.inCohort += 1;
     if (auditedSet.has(r.ple_id)) g.audited += 1;
     groups.set(key, g);
   }
@@ -528,7 +544,8 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   if (allGroups.length > 1) {
     console.log(`\nShadow candidates present (${allGroups.length}) - measuring the marked one; --provider/--model to switch:`);
     for (const g of allGroups) {
-      console.log(`  ${g === candidate ? '->' : '  '} ${g.provider}/${g.model_version}  ${plural(g.rows.length, 'row')}, ${g.audited} on audited PLEs`);
+      console.log(`  ${g === candidate ? '->' : '  '} ${g.provider}/${g.model_version}  ${plural(g.rows.length, 'row')} corpus`
+        + `${MANIFEST ? ` (${g.inCohort} in cohort)` : ''}, ${g.audited} on audited PLEs`);
     }
   }
 
@@ -543,15 +560,17 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   // Two passes on purpose. The COHORT pass builds the score map every arm reads; the CORPUS pass
   // counts the same candidate's rows over everything --manifest excluded, so `corpusRate` keeps
   // meaning what its label says.
-  for (const r of (candidate?.rows || [])) {
+  // `candidate.rows` is now CORPUS-wide, so this cohort pass must narrow it. Without the filter,
+  // out-of-cohort PLEs would leak into the `shadow` map and thence into ownIds / arms_own_cohort.
+  for (const r of (candidate?.rows || []).filter(r => allowed.has(r.ple_id))) {
     const failed = r.error != null || !finiteDoms(r);
     if (failed) { if (auditedSet.has(r.ple_id)) auditedFailed += 1; continue; }
     shadow.set(r.ple_id, toScore(r));
   }
-  const corpusRows = candidate
-    ? (shadowRows || []).filter(r => corpusAllowed.has(r.ple_id)
-        && r.provider === candidate.provider && r.model_version === candidate.model_version)
-    : [];
+  // The corpus pass is now just the candidate's own rows -- they are already corpus-scoped and
+  // already this provider/model. Re-filtering shadowRows here would be a second chance to get the
+  // scope wrong for no gain.
+  const corpusRows = candidate?.rows ?? [];
   for (const r of corpusRows) {
     if (r.error != null || !finiteDoms(r)) corpusFailed += 1; else corpusScored += 1;
   }
@@ -664,7 +683,8 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
       table_present: !shadowTableMissing,
       provider: candidate?.provider ?? null,
       model_version: candidate?.model_version ?? null,
-      candidates: allGroups.map(g => ({ provider: g.provider, model_version: g.model_version, rows: g.rows.length, on_audited_cles: g.audited })),
+      candidates: allGroups.map(g => ({ provider: g.provider, model_version: g.model_version,
+        rows: g.rows.length, rows_in_cohort: g.inCohort, on_audited_cles: g.audited })),
     },
     coverage,
     corpus: {
