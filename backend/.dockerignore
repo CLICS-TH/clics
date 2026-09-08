@@ -1,6 +1,8 @@
-# Keep the build context small and keep secrets out of the image. The Dockerfile COPYs only
-# package*.json + src, so nothing below could reach the image anyway — this is the second lock on
-# .env, and the reason a stale host node_modules can never shadow `npm ci`'s tree.
+# Keep the build context small and keep secrets out of the image. Dockerfile.tailnet COPYs only
+# package*.json, src and docker-entrypoint.sh, so nothing below could reach the image anyway — this
+# is the second lock on .env, and the reason a stale host node_modules can never shadow `npm ci`'s
+# tree. Still governs the renamed image: Docker falls back to the context's .dockerignore when no
+# <dockerfile>.dockerignore exists, and none does.
 node_modules
 coverage
 tests
