@@ -127,7 +127,8 @@ function loadManifest(file) {
 function loadRaters(raw) {
   let text = raw;
   if (fs.existsSync(raw)) {
-    text = fs.readFileSync(raw, 'utf8');
+    try { text = fs.readFileSync(raw, 'utf8'); }
+    catch (e) { console.error(`\n  FAIL: cannot read --raters ${raw} - ${e.message}\n`); process.exit(1); }
     try { const j = JSON.parse(text); if (Array.isArray(j)) text = j.join(','); } catch { /* plain text */ }
   }
   const list = [...new Set(text.split(/[\s,]+/).map(v => v.trim()).filter(Boolean))];
@@ -353,6 +354,11 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   const pleRows = unionIds.length ? await selectIn('ples', 'id, is_test, physician_id', unionIds) : [];
   const pleById = new Map(pleRows.map(c => [c.id, c]));
   let allowed = new Set(pleRows.filter(c => INCLUDE_TEST || !c.is_test).map(c => c.id));
+  // The cohort BEFORE --manifest narrows it. The shadow contract rate is printed as "whole corpus"
+  // and is an acceptance gate in its own right; it is a property of the MODEL, so it must not move
+  // when the reported cohort does. Without this, a manifest of 5 clean PLEs prints 100% (5/5) and
+  // PASSES a gate the candidate fails corpus-wide.
+  const corpusAllowed = new Set(allowed);
 
   // --- cohort scope -----------------------------------------------------------------------------
   // Applied HERE, once, before any arm is measured, so every arm sees the same PLEs. Filtering
@@ -365,12 +371,18 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
     // Hard-error rather than intersect-and-continue. A manifest id that the database cannot answer
     // for is a question about the cohort -- was it never scored, is it test data, is the id wrong --
     // and quietly dropping it produces a smaller cohort reported under the manifest's name.
+    // pleRows is the union of SCORED ids, so a miss here has two very different causes and they need
+    // different actions: a wrong/pasted id, versus a real PLE nobody has scored yet. Ask the ples
+    // table which it is rather than sending the reader off to re-score an id that is not a PLE.
     const known = new Set(pleRows.map(c => c.id));
     const missing = MANIFEST.ids.filter(id => !known.has(id));
     if (missing.length) {
-      console.error(`\n  FAIL: ${missing.length} of ${MANIFEST.ids.length} manifest id(s) have no AI, human or shadow score in this database:`);
-      missing.slice(0, 10).forEach(id => console.error(`    ${id}`));
-      if (missing.length > 10) console.error(`    ... and ${missing.length - 10} more`);
+      const real = new Set((await selectIn('ples', 'id', missing)).map(c => c.id));
+      const notAPle = missing.filter(id => !real.has(id));
+      const unscored = missing.filter(id => real.has(id));
+      if (notAPle.length) console.error(`\n  FAIL: ${notAPle.length} manifest id(s) are not PLEs in this database at all: ${notAPle.slice(0, 5).join(', ')}${notAPle.length > 5 ? ' ...' : ''}`);
+      if (unscored.length) console.error(`\n  FAIL: ${unscored.length} manifest id(s) are real PLEs with no AI, human or shadow score yet: ${unscored.slice(0, 5).join(', ')}${unscored.length > 5 ? ' ...' : ''}`);
+      console.error(`\n  (${missing.length} of ${MANIFEST.ids.length} manifest ids unusable)`);
       console.error(`  Resolve each one deliberately. Do not run a scoped report over a cohort the manifest does not describe.\n`);
       process.exit(1);
     }
@@ -389,9 +401,13 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   const promptsPresent = [...new Set(aiRows.filter(r => allowed.has(r.ple_id)).map(r => r.prompt_version ?? 'unrecorded'))].sort();
   scope.prompt_versions_present = promptsPresent;
   if (WANT_PROMPT) {
-    const before = aiRows.length;
-    aiRows = aiRows.filter(r => (r.prompt_version ?? null) === WANT_PROMPT);
-    scope.dropped.ai_rows_other_prompt = before - aiRows.length;
+    // 'unrecorded' is the sentinel promptsPresent renders for a null prompt_version, so it has to be
+    // selectable too -- the only human-anchored cohort in production is exactly the all-null one, and
+    // without this `--prompt unrecorded` denied and asserted the same fact in one line.
+    const wantNull = WANT_PROMPT === 'unrecorded';
+    const before = aiRows.filter(r => allowed.has(r.ple_id)).length;
+    aiRows = aiRows.filter(r => wantNull ? r.prompt_version == null : r.prompt_version === WANT_PROMPT);
+    scope.dropped.ai_rows_other_prompt_in_cohort = before - aiRows.filter(r => allowed.has(r.ple_id)).length;
     if (!aiRows.some(r => allowed.has(r.ple_id))) {
       console.error(`\n  FAIL: no ai_evaluations row in this cohort has prompt_version='${WANT_PROMPT}'. Present: ${promptsPresent.join(', ') || '(none)'}\n`);
       process.exit(1);
@@ -399,6 +415,13 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   } else if (promptsPresent.length > 1) {
     console.log(`\n  !! ${promptsPresent.length} evaluator prompt versions in this cohort: ${promptsPresent.join(', ')}`);
     console.log(`     ICC is a property of (model x prompt x rubric). Pass --prompt <version> or report this mixture explicitly.`);
+  }
+  // Warned on regardless of how many versions are present: a cohort whose AI scores record NO prompt
+  // is disqualifying on its own, and the single-version-all-null case is exactly the state production
+  // is in. Silence there is the worst possible answer.
+  if (promptsPresent.includes('unrecorded')) {
+    console.log(`\n  !! some ai_evaluations rows in this cohort have NO prompt_version recorded.`);
+    console.log(`     Those scores cannot be attributed to any prompt, so they cannot serve as a baseline for one.`);
   }
 
   // Human-source filter. Nothing in an audit_scores row says whether a person or a simulated
@@ -410,17 +433,23 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
     const pros = audIds.length ? await selectIn('professionals', 'id, exp_code', audIds) : [];
     pros.forEach(pr => expOf.set(pr.id, pr.exp_code));
     const keep = (r) => wanted.has(r.auditor_id) || (expOf.get(r.auditor_id) && wanted.has(expOf.get(r.auditor_id)));
-    const before = auditRows.length;
+    const beforeInCohort = auditRows.filter(r => allowed.has(r.ple_id)).length;
     auditRows = auditRows.filter(keep);
-    scope.dropped.audit_rows_other_raters = before - auditRows.length;
-    const matched = new Set(auditRows.map(r => expOf.get(r.auditor_id) || r.auditor_id));
-    const unmatched = RATERS.filter(v => !matched.has(v) && !auditRows.some(r => r.auditor_id === v));
+    // Everything below is measured on the COHORT, not the database. A roster check that passes
+    // because a named rater scored some unrelated sandbox PLE is not a check: it lets the one
+    // recruitment fact this exists to surface through in silence, and prints a rater count the arms
+    // never used. `matched` keeps the exp_code spelling, so the UUID clause below is what rescues a
+    // rater named by id.
+    const inCohort = auditRows.filter(r => allowed.has(r.ple_id));
+    scope.dropped.audit_rows_other_raters_in_cohort = beforeInCohort - inCohort.length;
+    const matched = new Set(inCohort.map(r => expOf.get(r.auditor_id) || r.auditor_id));
+    const unmatched = RATERS.filter(v => !matched.has(v) && !inCohort.some(r => r.auditor_id === v));
     if (unmatched.length) {
-      console.error(`\n  FAIL: ${unmatched.length} named rater(s) have no score in this cohort: ${unmatched.join(', ')}`);
-      console.error(`  A rater who scored nothing is a recruitment fact, not a filter argument - resolve it before reporting.\n`);
+      console.error(`\n  FAIL: ${unmatched.length} named rater(s) have no score on the PLEs in this cohort: ${unmatched.join(', ')}`);
+      console.error(`  A rater who scored nothing here is a recruitment fact, not a filter argument - resolve it before reporting.\n`);
       process.exit(1);
     }
-    console.log(`  raters kept ${auditRows.length} of ${before} audit rows across ${matched.size} rater(s)`);
+    console.log(`  raters kept ${inCohort.length} of ${beforeInCohort} in-cohort audit rows across ${matched.size} rater(s)`);
   }
 
   const physIds = [...new Set(pleRows.map(c => c.physician_id).filter(Boolean))];
@@ -511,15 +540,20 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   let corpusScored = 0;
   let corpusFailed = 0;
   let auditedFailed = 0;
+  // Two passes on purpose. The COHORT pass builds the score map every arm reads; the CORPUS pass
+  // counts the same candidate's rows over everything --manifest excluded, so `corpusRate` keeps
+  // meaning what its label says.
   for (const r of (candidate?.rows || [])) {
     const failed = r.error != null || !finiteDoms(r);
-    if (failed) {
-      corpusFailed += 1;
-      if (auditedSet.has(r.ple_id)) auditedFailed += 1;
-      continue;
-    }
-    corpusScored += 1;
+    if (failed) { if (auditedSet.has(r.ple_id)) auditedFailed += 1; continue; }
     shadow.set(r.ple_id, toScore(r));
+  }
+  const corpusRows = candidate
+    ? (shadowRows || []).filter(r => corpusAllowed.has(r.ple_id)
+        && r.provider === candidate.provider && r.model_version === candidate.model_version)
+    : [];
+  for (const r of corpusRows) {
+    if (r.error != null || !finiteDoms(r)) corpusFailed += 1; else corpusScored += 1;
   }
 
   const withAi = auditedIds.filter(id => ai.has(id));
@@ -559,7 +593,7 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
 
   // -- report --
   console.log(`\n${RULE}`);
-  console.log('COVERAGE  (audited universe = PLEs with at least one auditor score)');
+  console.log(`COVERAGE  (audited universe = PLEs with at least one auditor score${RATERS ? ' FROM A NAMED RATER' : ''})`);
   console.log(RULE);
   console.log(`  PLEs with >=1 auditor score (human) : ${coverage.ples_with_human}`);
   console.log(`  ... of those, with a Claude score   : ${coverage.ples_with_ai}`);
