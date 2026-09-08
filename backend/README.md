@@ -49,4 +49,6 @@ Env var names and the deploy command (`railway up . --path-as-root --service bac
 The D3 container + opt-in `RIMPL_HTTP_PROXY` transport is prepared for on-prem RIMPL. It is not a
 cutover: current production still uses Railway's private RIMPL URL. Read the prerequisites,
 validation and rollback in [D3 cutover runbook](../docs/D3-CUTOVER-RUNBOOK.md) before deploying this
-branch; adding `backend/Dockerfile` changes Railway's builder on its next backend deployment.
+branch. The image is `backend/Dockerfile.tailnet`, **not** `Dockerfile`: Railway auto-detects only
+the capital-D `Dockerfile` at the source root, so this file is inert until someone sets
+`RAILWAY_DOCKERFILE_PATH` on the backend service. That set is the cutover, and it is deliberate.

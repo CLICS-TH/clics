@@ -6,7 +6,9 @@ included with the previously missing dispatcher and dependency, rather than depl
 
 ## What this release contains
 
-- `backend/Dockerfile`, `docker-entrypoint.sh`, `.dockerignore`: optional userspace Tailscale.
+- `backend/Dockerfile.tailnet`, `docker-entrypoint.sh`, `.dockerignore`: optional userspace Tailscale.
+  The name is deliberate. Railway auto-detects only a capital-D `Dockerfile`, so merging this PR
+  cannot switch the production builder; setting `RAILWAY_DOCKERFILE_PATH` is what switches it.
   No `TS_AUTHKEY` means the application command starts directly. Login is bounded by
   `TS_UP_TIMEOUT` (default `20s`); an unavailable tailnet does not prevent the backend from starting.
 - `backend/src/services/rimpl-client.js`: `RIMPL_HTTP_PROXY` applies only to chat, discuss,
@@ -35,10 +37,13 @@ Node version when building a release. Tailscale remains fixed at the parked imag
   `192.168.1.178:8000/v1` and `cme-dgx:8888/v1` are candidates; neither is confirmed by this PR.
   Do not substitute the unrelated Ollama service on `:11434`.
 - [ ] The Docker build and hermetic tests pass for the exact candidate commit. On a machine with
-  Docker: `docker build --platform linux/amd64 -t clics-backend:d3 backend`.
+  Docker: `docker build --platform linux/amd64 -f backend/Dockerfile.tailnet -t clics-backend:d3 backend`.
 - [ ] Inspect Railway's current backend build/start settings and actual runtime. A service-level
   start override may replace the Docker CMD. Verify entrypoint behavior in an isolated Railway
-  environment before promoting it. Merely adding this Dockerfile changes the next backend build.
+  environment before promoting it. Set `RAILWAY_DOCKERFILE_PATH` to select this image — the deploy
+  command uploads `backend/` as the build context (`--path-as-root`), so the value is relative to
+  that root, most likely `Dockerfile.tailnet`. **Confirm which by building in a non-production
+  Railway environment first**; an unresolvable path is a build failure, not a silent fallback.
 - [ ] Record the previous backend and Railway RIMPL deployment IDs, current `RIMPL_URL`, and which
   proxy/Tailscale variables were absent. Store any secret values only in the approved secret store.
 
@@ -102,8 +107,9 @@ Verify the original Railway RIMPL is active and the backend's deep check/queue r
 `INTERNAL_TOKEN` consistent between whichever backend/RIMPL pair is active.
 
 Changing `RIMPL_URL` alone is insufficient: a remaining proxy would try to resolve Railway's private
-hostname through Tailscale. A source rollback that still includes `backend/Dockerfile` also does not
-restore Nixpacks. Use the recorded previous deployment/build configuration when reverting builders.
+hostname through Tailscale. A source rollback alone does not restore Nixpacks either: the builder
+follows `RAILWAY_DOCKERFILE_PATH`, which is a service variable and survives a source revert. Unset
+it, and use the recorded previous deployment/build configuration when reverting builders.
 Stop only the CLICS on-prem service after traffic has returned; do not alter the shared model stack.
 
 ## Evidence for the transport choices

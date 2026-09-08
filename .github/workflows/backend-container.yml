@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build the actual Railway image (no secrets)
-        run: docker build --platform linux/amd64 -t clics-backend:test backend
+        run: docker build --platform linux/amd64 -f backend/Dockerfile.tailnet -t clics-backend:test backend
       - name: Entrypoint starts Node without Tailscale
         run: |
           docker run --rm --network none clics-backend:test node -e '

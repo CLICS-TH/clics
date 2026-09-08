@@ -4,8 +4,9 @@ Deploys run from the **local working tree** (not GitHub). Backend + RIMPL on **R
 
 **Prepared 2026-09-06, not deployed:** the backend D3 image, scoped `RIMPL_HTTP_PROXY` transport and
 Undici dependency must ship together. Follow [D3 cutover runbook](D3-CUTOVER-RUNBOOK.md) before any
-backend deployment from this branch. The presence of `backend/Dockerfile` changes the builder;
-merely leaving the proxy unset does not retain Nixpacks. Current Railway RIMPL commands below remain
+backend deployment from this branch. The image is named `backend/Dockerfile.tailnet` so that it
+cannot change the builder by being present: Railway auto-detects only a capital-D `Dockerfile`.
+Nixpacks is retained until `RAILWAY_DOCKERFILE_PATH` is set on the backend service. Current Railway RIMPL commands below remain
 valid until an actual cutover. The independent [RAG rollout checklist](RAG-ROLLOUT-CHECKLIST.md)
 includes a required numeric-setting reader fix discovered before deployment.
 
