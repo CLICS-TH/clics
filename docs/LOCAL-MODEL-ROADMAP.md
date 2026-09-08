@@ -365,14 +365,18 @@ Every ICC CLICS has ever recorded is **AI-vs-AI**. `scripts/calibration/prompt-v
 |---|---|---|---|
 | v0 (original) | 0.377 (0.04–0.64) | 33 | simulated |
 | v1 | 0.700 (0.47–0.84) | 33 | simulated |
-| **v2 (current)** | **0.811 (0.64–0.91)** | 30 | **simulated** |
+| v2 (superseded) | 0.811 (0.64–0.91) | 30 | simulated |
+| **v3 (current, `59561c292df0`)** | **never measured** | — | — |
 
 Those raters are Claude agents with assigned stances (`scripts/soak/gen-auditor-wf.js:30-32`), not
 humans. Two consequences:
 
 - **The CI straddles the gate.** 0.64–0.91 at n=30 does not confidently clear 0.75.
-- **Human auditors disagree with each other more** than agent-raters with assigned stances do, so the
-  honest expectation is that the human-scored figure comes in **lower**, not higher.
+- **These figures do not describe the shipping instrument.** `cd29df5` replaced the evaluator prompt
+  with the CREC082 behavioural anchors and no calibration run has been made against it since, so
+  0.811 measures a prompt that no longer ships ([ledger](../scripts/calibration/prompt-versions.md)).
+- **Nothing here establishes human agreement.** Neither the size nor the direction of any difference
+  between human and agent raters has been measured for this instrument.
 
 So: measure Claude's ICC against **real human auditors** on the current prompt, before anything else.
 
@@ -386,9 +390,11 @@ So: measure Claude's ICC against **real human auditors** on the current prompt, 
 Because D1 puts this before the Pilot Study, you find this out while it is still fixable rather than
 at analysis time with 225 PLEs already scored and locked.
 
-**Cheapest path to a first human-scored cohort:** the 5 unscored assignments already in the auditor
-queue, plus recruiting toward `min_auditors_per_cle = 3` on **Internal Medicine only** — it has 7
-auditors; every other specialty currently has exactly 1.
+**Recorded starting point, to re-check before recruiting:** 5 unscored assignments in the auditor
+queue and 7 Internal Medicine auditor *accounts* (every other specialty had 1). Seven accounts is
+not seven available raters, and the cohort itself has to clear the range-restriction gate before
+any recruitment is worth doing — see the [human-rater checklist](G0.5-HUMAN-RATER-PREP.th.md).
+Target `min_auditors_per_cle = 3` and report the actual number of independent human ratings per PLE.
 
 ---
 
