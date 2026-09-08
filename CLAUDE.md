@@ -53,8 +53,9 @@ See [docs/agents/triage-labels.md](docs/agents/triage-labels.md).
 
 ### Domain docs
 
-Single-context: `CONTEXT.md` + `docs/adr/` at the repo root (neither exists yet — `/domain-modeling`
-creates them lazily). See [docs/agents/domain.md](docs/agents/domain.md).
+Single-context: `CONTEXT.md` + `docs/adr/`. `docs/adr/` now exists and holds
+[ADR 0001 — D3 transport topology](docs/adr/0001-d3-transport-topology.md); `CONTEXT.md` does not
+yet (`/domain-modeling` creates it lazily). See [docs/agents/domain.md](docs/agents/domain.md).
 
 ## Documentation index
 
@@ -75,3 +76,4 @@ creates them lazily). See [docs/agents/domain.md](docs/agents/domain.md).
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Prioritized next steps (pilot-readiness → spec gaps → flagship) |
 | [docs/ONPREM-INSTALL.th.md](docs/ONPREM-INSTALL.th.md) | Thai install spec handed to the box owner — footprint, ports, data path, install/verify/remove (render: `node scripts/docs/th-doc-pdf.mjs`) |
 | [docs/LOCAL-MODEL-ROADMAP.md](docs/LOCAL-MODEL-ROADMAP.md) | Plan for moving AI calls to the on-prem DGX model (phases, gates, the mid-pilot timing constraint) |
+| [docs/adr/](docs/adr/) | Architecture decision records. **0001 — build no more D3 transport until a GDCC VM exists** (read before designing any backend→RIMPL network path) |

@@ -343,6 +343,9 @@ Work in this phase:
   own**, which it does not have today: the 2026-09-05 sweep that proved `:3003` reachable ran from the
   *rimpl* container, the only service whose image carries one. Copying `rimpl/Dockerfile`'s userspace
   sidecar into the backend is a prerequisite of this phase, and it is our work, not the box owner's.
+  **🛑 Read [ADR 0001](adr/0001-d3-transport-topology.md) before building any of it.** That work is
+  done and parked in PR #90; a GDCC VM would make its central mechanism unnecessary, so the standing
+  decision is to build no further transport until the VM is provisioned or refused.
 - **Deploy pipeline changes.** rimpl leaves the Railway CLI path. Document the replacement in
   [deployment.md](deployment.md); the `--service rimpl` gotcha becomes obsolete and should be struck
   rather than left to mislead.
