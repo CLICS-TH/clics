@@ -8,7 +8,7 @@
 ## Why this exists
 
 Two different network topologies have now been designed for the same hop, and a third session would
-have designed a fourth. Each design is a week of work that only pays off in one of the futures.
+have designed a third. Each design is a week of work that only pays off in one of the futures.
 This record exists so the next session builds nothing until the future is known.
 
 ## Context
@@ -28,7 +28,11 @@ VM inside GDCC, expose it publicly behind nginx, and reach the tailnet from ther
 device and a static IP, so Topology A's entire mechanism becomes unnecessary — and a static IP is
 allowlistable, which a Railway container's rotating egress IP never was.
 
-Topology B is also the one CREC082 §10.1 describes (run in an environment the project controls).
+CREC082 §10.1 also points this way, though take care what it actually says: as recorded at
+`docs/GATE0-DGX-RESULTS.md` §5.3 it requires **inference** inside a project-controlled
+environment, and names CCME v8.0 on GDCC as that environment. That is a custody requirement on
+the model host, which both topologies could satisfy — it is not by itself a requirement about
+where the backend runs. What it does establish is that GDCC is already the named environment.
 
 ## Decision
 
@@ -75,4 +79,28 @@ Committing to a topology whose prerequisites are unconfirmed is how Topology A w
 | VM provisioned, answers to 1–3 favourable | Adopt Topology B. Close #90. Write ADR 0002 with the as-built network. |
 | VM provisioned but Tailscale forbidden | Re-open the question — neither topology is ready; the box is reached some third way or not at all. |
 | GDCC refused or stalls past the point of use | Revive Topology A: merge #90, set `RAILWAY_DOCKERFILE_PATH`, follow the D3 runbook. |
-| D3 dropped entirely | Close #90. `evaluate` stays on `claude-sonnet-4-6` regardless — D18's verdict is `insufficient`, so D3 only ever bought chat/criteria/discuss cost. |
+| D3 dropped entirely | **Not a free choice — see below.** Close #90; `evaluate` stays on `claude-sonnet-4-6` regardless, because the D18 *screening* verdict is `insufficient`. |
+
+## Dropping D3 is not a cost decision
+
+An earlier draft of this record said D3 "only ever bought chat/criteria/discuss cost". That is wrong,
+and it is the kind of wrong that gets acted on: `CLAUDE.md` now sends every session here before it
+designs a backend→RIMPL path, so a sentence reducing D3 to an optimisation would let a session
+deprioritise it and silently foreclose running the study as submitted.
+
+`docs/LOCAL-MODEL-ROADMAP.md` (the *Submission set* section) records that the submitted protocol
+declares **local open-weight AI and no commercial external AI/API for research transcripts**, in four
+attachments and in the sheet a physician reads before consenting — so moving on-prem is a
+**precondition for participant 1, not an optimisation**, and no fallback that runs the study on a
+cloud API exists. **D25** retires the fallback for the same reason: "the honest fallback is to move
+the start date, not the model." `chat` is what produces the research transcript, so moving it is the
+conformance item.
+
+Two things follow. Dropping D3 means moving the start date, not saving effort. And parking transport
+work, which is what this ADR decides, is **not** the same as parking D3 — the decision here is that a
+GDCC VM would change *how* the hop is built, not *whether* it has to exist.
+
+One further precision, since the table above cites D18: **D18 defines two gates.** Only the
+*screening* gate has returned `insufficient`. The *decisive* gate — the candidate against human
+raters on a held-out split — has never run and is blocked behind G0.5.
+`docs/G0.5-HUMAN-RATER-PREP.th.md` warns explicitly against collapsing the two.
