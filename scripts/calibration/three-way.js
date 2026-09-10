@@ -667,7 +667,9 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   // Same shape as GET /oversight/icc/three-way (arms / coverage / shadow) so an offline run and the
   // dashboard can be diffed directly, plus the bias and per-PLE detail the endpoint does not carry.
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const dir = path.join(__dirname, 'runs');
+  // THREE_WAY_RUNS_DIR exists so the regression suite can archive into a temp dir instead of
+  // polluting the committed runs/. Unset -- which is every real invocation -- is unchanged.
+  const dir = process.env.THREE_WAY_RUNS_DIR || path.join(__dirname, 'runs');
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, `${stamp}-three-way.json`);
   fs.writeFileSync(file, JSON.stringify({
