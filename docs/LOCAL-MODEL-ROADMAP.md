@@ -153,7 +153,7 @@ so nobody has to rediscover it.
 
 Under **D3**, `rimplEvaluate({ ple_id, transcript, patient_ref, … })` carries the **raw** transcript
 and `patient_ref` from Railway to the on-prem node; rimpl is what strips them
-(`rimpl/src/routes/chat.js:79`, `rimpl/src/routes/evaluate.js:22`). Today that hop is private Railway
+(`rimpl/src/routes/chat.js:98`, `rimpl/src/routes/evaluate.js:67` via `rimpl/src/lib/transcript.js:35`). Today that hop is private Railway
 networking inside one datacenter. Afterwards it is Virginia → Thailand.
 
 Three things are true at once, and CREC-facing documents must say all three:
@@ -383,18 +383,27 @@ So: measure Claude's ICC against **real human auditors** on the current prompt, 
 > ### 🚦 Gate 0.5 — Claude ICC ≥ 0.75 against real human auditors.
 > **If Claude misses, the credit gate fails for the incumbent and "local vs Claude" was never the
 > interesting question.** Surface it to the research team immediately (D14). The fix is to retune the
-> prompt against *human* divergence — the v1/v2 rules were fitted to simulated-rater divergence — and
-> re-baseline. The local model is then gated against the **retuned** prompt, never against
-> Claude-fitted v2.
+> prompt against *human* divergence and re-baseline. The local model is then gated against the
+> **retuned** prompt — never against one fitted to simulated raters, **which includes the prompt
+> shipping today.** `cd29df5` added the CREC082 anchors on top of v2; it did not remove v2's brakes,
+> which survive verbatim in v3 ("Penalize templated/scripted behaviour", the verbatim-turn cap on
+> d2/d4, "If you cannot quote one, the score is at most 3", "Use the FULL scale"). So v3 carries the
+> simulated-rater fitting *and* has no calibration of its own. Naming only v2 here would leave the
+> live hazard unnamed — every D18 screening row already gated the local candidate against v3
+> ([ledger](../scripts/calibration/prompt-versions.md)).
 
 Because D1 puts this before the Pilot Study, you find this out while it is still fixable rather than
 at analysis time with 225 PLEs already scored and locked.
 
-**Recorded starting point, to re-check before recruiting:** 5 unscored assignments in the auditor
-queue and 7 Internal Medicine auditor *accounts* (every other specialty had 1). Seven accounts is
-not seven available raters, and the cohort itself has to clear the range-restriction gate before
-any recruitment is worth doing — see the [human-rater checklist](G0.5-HUMAN-RATER-PREP.th.md).
-Target `min_auditors_per_cle = 3` and report the actual number of independent human ratings per PLE.
+**Measured starting point.** Re-checked against production and recorded in
+[the human-rater checklist](G0.5-HUMAN-RATER-PREP.th.md) §0: **3 unscored assignment rows across 2
+PLEs — one real, one sandbox — not the 5 this page used to record** — and 7 Internal Medicine
+auditor *accounts* (every other specialty had 1), which was correct as an account count.
+
+Seven accounts is not seven available raters; how many will actually take part is still unverified.
+And recruiting is premature either way: the cohort has to clear the range-restriction gate first, and
+§0 measured it failing (between-episode SD 2.44 against 4.66 required). Target
+`min_auditors_per_cle = 3` and report the actual number of independent human ratings per PLE.
 
 ---
 
@@ -415,7 +424,7 @@ without a second reachable provider, and applying it early just adds an unused t
 
 **⚠️ Cost accounting.** `pricing.js` is global — one input/output rate for the whole system. While
 purposes are split across providers, per-user spend and per-council billing silently misreport. Pass a
-per-call rate (or a provider tag) through `usage.js:65`, which already accepts `costOverride`. Do this
+per-call rate (or a provider tag) through `backend/src/lib/usage.js:111`, which already accepts `costOverride`. Do this
 **before** the first split ships, not after.
 
 ---
