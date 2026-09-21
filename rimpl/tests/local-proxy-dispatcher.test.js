@@ -87,7 +87,23 @@ async function run(methods, env = {}) {
       LOCAL_AI_BASE_URL: 'http://model.invalid:3000/v1', LOCAL_AI_HTTP_PROXY: proxy,
       LOCAL_AI_MODEL: 'synthetic-chat', LOCAL_AI_EMBED_MODEL: 'synthetic-embed', LOCAL_AI_API_KEY: 'synthetic-key',
       LOCAL_AI_MIN_CONTEXT: '16384', LOCAL_AI_MAX_PROMPT_TOKENS: '0', LOCAL_MAX_RETRIES: '0',
-      LOCAL_AI_TIMEOUT_MS: '1000', HEALTH_PROBE_TIMEOUT_MS: '300', METHODS: methods, ...env },
+      // These two deadlines are deliberately NOT the same, so do not "tidy" them together.
+      //
+      // LOCAL_AI_TIMEOUT_MS is LOAD-BEARING: 'the local deadline still aborts a proxy that never
+      // opens its tunnel' below needs it to fire well inside the 8s exec timeout. Keep it short.
+      //
+      // HEALTH_PROBE_TIMEOUT_MS bounds nothing any test asserts on -- the only `status: 'down'`
+      // expectation in this file comes from a 503 RESPONSE, not from a timeout. It was 300ms, and
+      // is raised here purely as defence in depth after the 2026-09-10 CI flake (one run asserting
+      // 'up' and getting 'down'; re-ran green, 8/8 locally, master 10/10). A deadline whose only
+      // job is to bound a hang should not sit near the cost of a healthy run, and a healthy probe
+      // returns as soon as the response lands, so the ceiling is free.
+      //
+      // Be clear about what this does NOT establish: the timeout is NOT a proven cause. local.js
+      // floors probeMs at Math.max(200, ...), and this file passes locally even with the env set
+      // to 1 -- so the effective floor of 200ms is already comfortable here. The flake's real
+      // cause is still unknown, which is why the assertion below was changed to print it.
+      LOCAL_AI_TIMEOUT_MS: '1000', HEALTH_PROBE_TIMEOUT_MS: '5000', METHODS: methods, ...env },
   });
   return JSON.parse(stdout);
 }
@@ -95,7 +111,15 @@ async function run(methods, env = {}) {
 test('readiness, context lookup, chat and embeddings cross the real proxy with auth and payload intact', async () => {
   const result = await run('ready,chat,embed');
   expect(result.filter((r) => r.error)).toEqual([]);
-  expect(result[0].result.checks.local_ai).toMatchObject({ status: 'up', model: 'synthetic-chat', context_length: 32768 });
+  // Assert on `error` as well as `status`, so a failure SAYS WHY. Every `down` path in
+  // local.js:429-449 carries a distinct error string ('LOCAL_AI_BASE_URL not set', '/models
+  // returned 200 but enumerated no models', 'model "x" not served (available: ...)', a fetch or
+  // TimeoutError message). Asserting only the up-shape hid all of it: the 2026-09-10 CI failure
+  // printed `status: 'down'` and nothing else, so the cause could not be read off the log and the
+  // flake could only be guessed at. This shape makes the next occurrence self-diagnosing.
+  const localAi = result[0].result.checks.local_ai;
+  expect({ status: localAi.status, error: localAi.error ?? null }).toEqual({ status: 'up', error: null });
+  expect(localAi).toMatchObject({ model: 'synthetic-chat', context_length: 32768 });
   expect(result[1].result).toMatchObject({ text: 'synthetic answer', inputTokens: 4, outputTokens: 2, stopReason: 'end_turn' });
   expect(result[2].result).toEqual([0.1, 0.2, 0.3]);
   expect(received.map((r) => r.path)).toEqual(['/v1/models', '/api/show', '/v1/chat/completions', '/v1/embeddings']);
