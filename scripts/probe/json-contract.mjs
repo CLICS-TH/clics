@@ -12,7 +12,7 @@
 //     lib/transcript.js     flattenForPrompt        (the "[ROLE]: content" envelope + injection defang)
 //     services/pii-filter   deriveHintTokens        (known patient identifiers → scrub tokens)
 //     lib/parse.js          parseJsonObject         (first {...} in the reply)
-//     zod (from rimpl)      d1..d7 int 0-5          (mirrors evaluate.js DomainScoresSchema)
+//     lib/pis7.js           DomainScoresSchema      (d1..d7 int 0-5 + rationale, strict)
 // with the same max_tokens (4096) and the same user-message envelope ("TRANSCRIPT:\n…").
 //
 //   🚦 GATE: parse-and-validate success rate ≥ 95%.
@@ -39,12 +39,11 @@
 
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { createRequire } from 'node:module';
 
 import {
   readConfig, printTarget, chatCompletion, hr, table, parseArgs, writeReport, fail,
   bold, dim, green, red, yellow, percentile, mean, distribution, ms, pct,
-  FINISH_REASON, PROBE_DIR, RIMPL_DIR,
+  FINISH_REASON, PROBE_DIR,
 } from './lib.mjs';
 
 // --- single-source imports from rimpl (never copy these) --------------------
@@ -52,24 +51,11 @@ import { PIS7_EVALUATOR_PROMPT } from '../../rimpl/src/lib/prompts.js';
 import { parseJsonObject } from '../../rimpl/src/lib/parse.js';
 import { flattenForPrompt } from '../../rimpl/src/lib/transcript.js';
 import { deriveHintTokens } from '../../rimpl/src/services/pii-filter.js';
+import { DomainScoresSchema } from '../../rimpl/src/lib/pis7.js';
 
-// zod lives in rimpl/node_modules, not the repo root (this is not an npm workspace). Resolve it from
-// rimpl so the probe validates with the SAME zod version evaluate.js runs.
-const rimplRequire = createRequire(path.join(RIMPL_DIR, 'package.json'));
-let z;
-try {
-  ({ z } = rimplRequire('zod'));
-} catch {
-  fail('zod is not installed in rimpl/. Run:  npm --prefix rimpl install');
-}
-
-// MIRRORS rimpl/src/routes/evaluate.js (DOMAIN_KEYS / DomainScoresSchema). Duplicated here only
-// because the route does not export it; keep the two in step. `.passthrough()` matters — the real
-// evaluator also returns a `rationale` object, and a strict schema would reject a valid reply.
-const DOMAIN_KEYS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
-const DomainScoresSchema = z.object(
-  Object.fromEntries(DOMAIN_KEYS.map((k) => [k, z.number().int().min(0).max(5)])),
-).passthrough();
+// The schema itself, not a copy: a mirrored copy drifted once already (it stayed .passthrough() when
+// rimpl went .strict()), and a gate that validates a different contract than prod measures nothing.
+// pis7.js resolves zod from rimpl/node_modules — if that fails, run  npm --prefix rimpl install
 
 // evaluate.js:38 — 4096, after two undersized guesses truncated long transcripts mid-rationale.
 // Probe with the production value: a parse rate measured at a different ceiling is not the number

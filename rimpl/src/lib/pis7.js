@@ -12,9 +12,14 @@ const { WEIGHTS } = require('./versions');
 // fast instead of poisoning the composite or throwing a CHECK violation in persistEvaluation that
 // the 6h reconcile sweep then retries forever (a paid call each time).
 const DOMAIN_KEYS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
-const DomainScoresSchema = z.object(
-  Object.fromEntries(DOMAIN_KEYS.map((k) => [k, z.number().int().min(0).max(5)]))
-).passthrough();
+//
+// .strict(): the prompt asks for exactly the seven scores and the rationale object, nothing else.
+// An extra top-level key is the other half of a score forgery (see parse.js): an injected quotation
+// can wrap the model's real keys inside an object it invents, leaving only forged d1..d7 at the top.
+const DomainScoresSchema = z.object({
+  ...Object.fromEntries(DOMAIN_KEYS.map((k) => [k, z.number().int().min(0).max(5)])),
+  rationale: z.record(z.string(), z.unknown()).optional(),
+}).strict();
 
 // `kind` lets callers distinguish the two failures without string-matching a message:
 //   'invalid_json'   — no parseable {...} in the reply at all
@@ -53,4 +58,4 @@ function scoreFromText(text) {
   return { scores, composite: compositeOf(scores), rationale: scores.rationale ?? {} };
 }
 
-module.exports = { DOMAIN_KEYS, scoreFromText, compositeOf, Pis7ScoreError };
+module.exports = { DOMAIN_KEYS, DomainScoresSchema, scoreFromText, compositeOf, Pis7ScoreError };
