@@ -47,6 +47,12 @@ const PROBES = [
   { path: '/info',           from: 'origin', stack: 'TGI',               note: 'HF text-generation-inference' },
   { path: '/props',          from: 'origin', stack: 'llama.cpp',         note: 'llama.cpp server' },
   { path: '/api/config',     from: 'origin', stack: 'Open WebUI',        note: 'UI PROXY — not the inference server' },
+  // Open WebUI mounts its real APIs under /api, NOT at the origin's /v1 (that path is the SPA
+  // catch-all and answers HTML). Probing these is what tells a key-less run WHERE the API lives:
+  // they answer 401 with a JSON body, which is positive evidence, whereas the /v1 200 is not.
+  { path: '/api/models',     from: 'origin', stack: 'Open WebUI',        note: 'UI PROXY model list — auth-walled' },
+  { path: '/api/v1/models',  from: 'origin', stack: 'Open WebUI',        note: 'UI PROXY model list (v1) — auth-walled' },
+  { path: '/ollama/v1/models', from: 'origin', stack: 'Open WebUI',      note: 'UI PROXY passthrough to an Ollama OpenAI surface' },
   { path: '/health',         from: 'origin', stack: '(generic)',         note: 'liveness; Open WebUI also answers here' },
   { path: '/metrics',        from: 'origin', stack: '(generic)',         note: 'Prometheus — vLLM exposes rich queue/batch metrics' },
 ];
@@ -63,6 +69,18 @@ const root = await http(cfg.origin + '/', { timeoutMs: PROBE_MS, apiKey: cfg.api
 
 /* ------------------------------------------------------------------ report */
 
+// A 2xx is NOT evidence that an API answered. A single-page app with a catch-all route — Open WebUI
+// is one — serves its HTML shell at 200 for EVERY unmatched path, so a status-only test "detects"
+// whatever it probes for. Measured against the GDCC gateway 2026-10-01: /get_model_info, /info,
+// /props and /api/tags all answered 200 text/html, and this script duly reported SGLang + TGI +
+// llama.cpp + Ollama on one box, then printed a LOCAL_AI_BASE_URL pointing at the HTML surface.
+// http() already yields json:null for a body it could not parse, so requiring a parsed JSON body is
+// the whole fix — and it is the honest test, since every endpoint here is defined as returning JSON.
+// (This also used to fail LOUDLY: the same gateway answered /v1 with 405 behind Tailscale. Going
+// public turned a 405 into a 200, which is why the status-only test was survivable before and is
+// not now.)
+const isApi = (r) => r.res.ok && r.res.json !== null;
+
 hr('endpoint probe');
 table(
   ['path', 'status', 'ms', 'suggests', 'body (truncated)'],
@@ -72,12 +90,16 @@ table(
       : (r.res.status === 401 || r.res.status === 403) ? yellow(`${r.res.status} auth`)
       : dim(String(r.res.status));
     const body = r.res.error ? '' : (r.res.text || '').replace(/\s+/g, ' ').slice(0, 60);
-    return [r.path, st, r.res.error ? '—' : Math.round(r.res.ms), r.res.ok ? r.stack : dim(r.stack), dim(body)];
+    return [r.path, st, r.res.error ? '—' : Math.round(r.res.ms), isApi(r) ? r.stack : dim(r.stack), dim(body)];
   }),
   ['l', 'l', 'r', 'l', 'l'],
 );
 
-const hit = (path) => results.find((r) => r.path === path && r.res.ok);
+const hit = (path) => results.find((r) => r.path === path && isApi(r));
+
+// Paths that answered 2xx with a non-JSON body: the catch-all signature. Reported in the verdict so
+// the operator sees WHY the detections went quiet, rather than an unexplained "nothing found".
+const htmlCatchAll = results.filter((r) => r.res.ok && r.res.json === null);
 const anyReachable = results.some((r) => r.res.status !== null) || root.status !== null;
 
 if (!anyReachable) {
@@ -136,6 +158,9 @@ const openWebUiSignals = [
   openWebUiConfig ? `/api/config answered (${JSON.stringify(openWebUiConfig.res.json?.name ?? '')})` : null,
   looksLikeHtml ? 'the document root serves HTML (a browser UI is bound to this port)' : null,
   /open\s*webui/i.test((root.text || '') + JSON.stringify(openWebUiConfig?.res.json ?? '')) ? 'the string "Open WebUI" appears in the response' : null,
+  htmlCatchAll.length >= 2
+    ? `${htmlCatchAll.length} paths answered 2xx with a non-JSON body (${htmlCatchAll.map((r) => r.path).join(', ')}) — a catch-all route serving the UI shell, not APIs`
+    : null,
 ].filter(Boolean);
 
 const inferenceSignals = [
@@ -220,10 +245,24 @@ if (flags['no-chat']) {
 /* ------------------------------------------------------------ next actions */
 
 hr('use this in rimpl');
+// Auth-walled model lists are the strongest evidence left when nothing answered openly: a 401 with a
+// JSON body proves a real API is mounted at that prefix, which an HTML 200 never does. Offer them as
+// candidates instead of printing a confident line — a wrong LOCAL_AI_BASE_URL fails at the first
+// clinical turn, and on a catch-all host it fails by parsing an HTML page rather than by 404.
+const authWalledApis = results.filter(
+  (r) => (r.res.status === 401 || r.res.status === 403) && r.res.json !== null && /models$/.test(r.path),
+);
 const suggestedBase = openai
   ? openai.url.replace(/\/models$/, '')
-  : (ollama ? `${cfg.origin}/v1` : cfg.baseUrl);
-console.log(`  LOCAL_AI_BASE_URL=${suggestedBase}`);
+  : (ollama ? `${cfg.origin}/v1` : (authWalledApis.length ? null : cfg.baseUrl));
+if (suggestedBase === null) {
+  console.log(`  ${yellow('cannot determine LOCAL_AI_BASE_URL without a key.')} ${dim('No model list answered openly,')}`);
+  console.log(`  ${dim('and every 2xx on this host was the UI shell. These prefixes DID answer with JSON (401/403),')}`);
+  console.log(`  ${dim('so a real API is mounted there — set LOCAL_AI_API_KEY and re-run to pick between them:')}`);
+  for (const r of authWalledApis) console.log(`    ${cyan(r.url.replace(/\/models$/, ''))}`);
+} else {
+  console.log(`  LOCAL_AI_BASE_URL=${suggestedBase}`);
+}
 console.log(`  LOCAL_AI_MODEL=${chatProbe?.model || chatModel || '<pick one from the list above>'}`);
 if (ollama && !openai) {
   console.log(`  ${dim('Ollama also serves an OpenAI-compatible surface at /v1 — that is the one rimpl')}`);
