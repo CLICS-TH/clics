@@ -16,6 +16,18 @@ fixtures that needs at a given point estimate:
 | 0.88 | **27** |
 | 0.85 | 51 |
 
+> **Correction, 2026-10-01 — this table was built on a Fisher-z interval that `icc.js` no longer
+> uses.** `icc.js` now uses the exact F-based McGraw & Wong interval (the one R's `irr` and
+> pingouin use). The two differ by only 1–2 pairs here (F-based: 0.95→7, 0.92→12, 0.90→17,
+> 0.88→26, 0.85→50, 0.82→116, 0.80→245). The larger correction is what the table *means*. Each
+> row is the n at which an interval centred on the true value just clears 0.75, which is roughly a
+> **coin-flip chance of `pass`**, not power. Simulated 80% power (no rater bias, 600 reps): 0.95 →
+> ~14, 0.92 → ~26, **0.90 → ~36, 0.88 → ~60**, 0.85 → ~110. Any rater bias raises these. Plan
+> cohorts on the 80% figures.
+
+> Against the 26 fixtures this conclusion still holds: 26 is a coin flip at 0.88, and the corpus's
+> narrow range (see `METHODOLOGY §6.4`) is the binding problem anyway.
+
 **26 fixtures exist in total** — 18 tuning + 8 held-out (`scripts/probe/SPLIT.json`). The best clean
 estimate measured so far is **~0.74**, on the fixtures common to two runs of the same configuration;
 the 0.803 that one run reported was inflated by survivorship (see below). At 0.74, the ladder does not

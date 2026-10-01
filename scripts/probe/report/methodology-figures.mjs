@@ -13,7 +13,7 @@
  * counters only — the same discipline screening-verdict.mjs keeps.
  *
  * WHAT IT REUSES, AND WHY THAT MATTERS.
- *   backend/src/services/icc.js  iccTwoRater  — the production ICC(A,1) + Fisher-z interval, the same
+ *   backend/src/services/icc.js  iccTwoRater  — the production ICC(A,1) + F-based interval, the same
  *                                              code behind GET /oversight/icc and the Model Lock gate.
  *   rimpl/src/lib/pis7.js        compositeOf  — the weighted ×20 composite (range 20–100).
  *   scripts/probe/parseability.mjs computeParseability — the valid-JSON bar, with its two hard-won
@@ -61,7 +61,7 @@ const require = createRequire(`${REPO_ROOT}/`);
 
 let iccMod, pis7Mod;
 try {
-  iccMod = require('./backend/src/services/icc.js');   // iccTwoRater — production ICC(A,1) + Fisher-z CI
+  iccMod = require('./backend/src/services/icc.js');   // iccTwoRater — production ICC(A,1) + F-based (McGraw & Wong) CI
   pis7Mod = require('./rimpl/src/lib/pis7.js');        // compositeOf — weighted ×20, range 20–100
 } catch (e) {
   console.error(`\n  ✘ could not load the production estimators: ${e.message}`);
@@ -584,7 +584,7 @@ function build({ dir, seed, iters, exact }) {
     generated_at: new Date().toISOString(),
     source_dir: dir.replace(`${REPO_ROOT}/`, ''),
     composite: 'PIS-7 weighted composite, rimpl/src/lib/pis7.js compositeOf (×20, range 20–100)',
-    icc_model: 'ICC(A,1) = ICC(2,1), two-way random, absolute agreement, single measure — backend/src/services/icc.js iccTwoRater; 95% CI by Fisher-z with se = 1/sqrt(n-3)',
+    icc_model: 'ICC(A,1) = ICC(2,1), two-way random, absolute agreement, single measure — backend/src/services/icc.js iccTwoRater; 95% CI by McGraw & Wong (1996) F-based interval (Fisher-z, se = 1/sqrt(n-3), before 2026-10-01)',
     sum_delta_definitions: {
       sum_delta_agreement: 'Σ over d1..d7 of |local − cloud| for one fixture — LOCAL vs SONNET disagreement',
       sum_delta_repeatability: 'Σ over d1..d7 of (max − min) across repeats of the LOCAL model on one fixture — the local noise floor',

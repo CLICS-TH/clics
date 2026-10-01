@@ -73,6 +73,15 @@ brutally sensitive to how good the agreement actually is:
 | 0.82 | 117 |
 | 0.80 | **247** |
 
+> **Correction, 2026-10-01 — this table was built on a Fisher-z interval that `icc.js` no longer
+> uses.** `icc.js` now uses the exact F-based McGraw & Wong interval (the one R's `irr` and
+> pingouin use). The two differ by only 1–2 pairs here (F-based: 0.95→7, 0.92→12, 0.90→17,
+> 0.88→26, 0.85→50, 0.82→116, 0.80→245). The larger correction is what the table *means*. Each
+> row is the n at which an interval centred on the true value just clears 0.75, which is roughly a
+> **coin-flip chance of `pass`**, not power. Simulated 80% power (no rater bias, 600 reps): 0.95 →
+> ~14, 0.92 → ~26, **0.90 → ~36, 0.88 → ~60**, 0.85 → ~110. Any rater bias raises these. Plan
+> cohorts on the 80% figures.
+
 Each figure verified against the implementation, not just the algebra: at *n* the lower bound clears
 0.75 and at *n−1* it does not.
 

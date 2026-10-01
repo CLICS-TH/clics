@@ -63,7 +63,7 @@ Exit codes: 0 pass · 1 fail · 3 insufficient · 2 misconfigured / unreadable i
 // ---- production code, not a re-implementation ------------------------------------------------------
 let icc, pis7, versions;
 try {
-  icc = require('./src/services/icc.js');                 // iccTwoRater, verdictFor
+  icc = require('./src/services/icc.js');                 // iccTwoRater, verdictFor, pairsNeededTwoRater
   pis7 = require('../rimpl/src/lib/pis7.js');             // compositeOf (weighted, 0–100)
   versions = require('../rimpl/src/lib/versions.js');     // promptVersionFor — the exact labels reports are stamped with
 } catch (e) {
@@ -133,14 +133,10 @@ const jsonPct = attempted ? (100 * parsed) / attempted : null;
 const jsonPass = jsonPct != null ? jsonPct >= 98 : null;
 
 // ---- pairs needed for the lower bound to clear the threshold, at a given true agreement --------------
-// Same Fisher-z interval icc.js uses (se = 1/√(n−3)); found by search, so it matches the implementation
-// rather than the algebra — the table in LOCAL-MODEL-CUTOVER.md was verified the same way.
-function pairsNeeded(rho, thr) {
-  if (!(rho > thr)) return null;
-  const z = 0.5 * Math.log((1 + rho) / (1 - rho));
-  for (let n = 4; n <= 5000; n++) if (Math.tanh(z - 1.96 / Math.sqrt(n - 3)) >= thr) return n;
-  return null;
-}
+// From icc.js itself (pairsNeededTwoRater), so the ladder is built on the same F-based interval the
+// verdict uses. It is the n at which an interval CENTRED ON THE TRUTH just clears the bar — about a
+// coin-flip chance of `pass`. 80% power needs far more (simulated 2026-10: 0.90 → ~36, 0.88 → ~60).
+const pairsNeeded = (rho, thr) => icc.pairsNeededTwoRater(rho, thr);
 const ladder = [0.95, 0.92, 0.9, 0.88, 0.85, 0.82, 0.8].map((rho) => ({ rho, pairs: pairsNeeded(rho, threshold) }));
 const atObserved = iccResult.icc != null ? pairsNeeded(iccResult.icc, threshold) : null;
 
@@ -170,7 +166,10 @@ const drift = promptDrift({
 });
 // A run predating the recording (or one written by an older probe) has no version: say so, do not guess.
 const promptSha = recordedLocalVersion ?? `unrecorded (tree today: ${treeLocalVersion})`;
-const ci = iccResult.icc == null ? '—' : `${iccResult.icc.toFixed(3)} (${iccResult.lower.toFixed(3)}–${iccResult.upper.toFixed(3)})`;
+// The F-based interval can be null while the point estimate is not (Satterthwaite v = 0), so each
+// bound is formatted on its own.
+const f3 = (v) => (v == null ? '—' : v.toFixed(3));
+const ci = iccResult.icc == null ? '—' : `${f3(iccResult.icc)} (${f3(iccResult.lower)}–${f3(iccResult.upper)})`;
 const row = `| ${agreement.models?.local ?? agreement.localModel ?? '?'} vs ${agreement.cloudModel ?? '?'} | ${promptSha} | ${splitName ?? 'none'} (n=${iccResult.n}) | ${agreement.consistency ?? 'off'} | ${ci} | ${sigma?.median ?? 'n/m'} | ${jsonPct == null ? 'n/m' : jsonPct.toFixed(1) + '%'} | ${state} |`;
 
 const out = {
@@ -192,7 +191,7 @@ else {
   console.log(`  parseability    ${jsonPct == null ? 'n/m' : `${parsed}/${attempted} valid JSON = ${jsonPct.toFixed(1)}% → ${jsonPass ? 'ok' : 'under 98%'}`}`
     + (excluded ? `\x1b[2m   (${excluded} call${excluded === 1 ? '' : 's'} excluded: transport only — a model that replied with unusable JSON is always counted)\x1b[0m` : '')
     + (legacy ? '\x1b[33m   [report predates per-call accounting — counted per FIXTURE, and transport is indistinguishable from bad JSON: read as a floor, not a rate]\x1b[0m' : ''));
-  console.log(`\n  pairs needed for the lower bound to clear ${threshold}:`);
+  console.log(`\n  pairs needed for the lower bound to clear ${threshold} (≈50% chance of pass — 80% power needs roughly 2×):`);
   console.log(`    at the observed ICC ${iccResult.icc ?? '—'}: ${atObserved ?? 'never (point estimate not above threshold)'}`);
   console.log(`    ladder  ${ladder.map((l) => `${l.rho}→${l.pairs ?? '∞'}`).join('   ')}`);
   if (drift.drift) console.log(`\n  note · this run recorded prompt ${drift.recorded}\n         the working tree now builds ${drift.tree}\n         The row below reports the RUN's prompt.`);
