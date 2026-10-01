@@ -48,6 +48,8 @@ import { applySplit } from './split.mjs';
 import { parseJsonObject } from '../../rimpl/src/lib/parse.js';
 import { flattenForPrompt } from '../../rimpl/src/lib/transcript.js';
 import { deriveHintTokens } from '../../rimpl/src/services/pii-filter.js';
+// Production's weighted composite and ICC(A,1) estimator — see agreement-stats.mjs for why they are shared.
+import { compositeAgreement, domainAgreement } from './agreement-stats.mjs';
 
 const rimplRequire = createRequire(path.join(RIMPL_DIR, 'package.json'));
 const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
@@ -209,23 +211,13 @@ async function cloudArm(fx) {
   return { scores: extractScores(j.content?.map((c) => c.text).join('') ?? ''), ms, usage: j.usage };
 }
 
-// --- ICC(A,1): two-way mixed, absolute agreement, single measure -------------------------------
-// The statistic CREC082 §8.2 names for AI-vs-reference. Two raters here (the two models), n targets.
-// Written out rather than pulled from a library so the formula is auditable next to the number.
-function iccA1(pairs) {
-  const n = pairs.length; if (n < 2) return null;
-  const k = 2;
-  const grand = pairs.flat().reduce((a, b) => a + b, 0) / (n * k);
-  const rowMeans = pairs.map((p) => (p[0] + p[1]) / 2);
-  const colMeans = [0, 1].map((j) => pairs.reduce((a, p) => a + p[j], 0) / n);
-  const MSR = (k * rowMeans.reduce((a, m) => a + (m - grand) ** 2, 0)) / (n - 1);
-  const MSC = (n * colMeans.reduce((a, m) => a + (m - grand) ** 2, 0)) / (k - 1);
-  let sse = 0;
-  pairs.forEach((p, i) => p.forEach((v, j) => { sse += (v - rowMeans[i] - colMeans[j] + grand) ** 2; }));
-  const MSE = sse / ((n - 1) * (k - 1));
-  const denom = MSR + (k - 1) * MSE + (k * (MSC - MSE)) / n;
-  return denom === 0 ? null : (MSR - MSE) / denom;
-}
+// --- ICC(A,1): two-way, absolute agreement, single measure -------------------------------------
+// The statistic CREC082 §8.2 names for AI-vs-reference. No private copy lives here any more. One was
+// written out at this spot (and again in e2-compare.mjs) over the UNWEIGHTED d1..d7 sum, while the
+// verdict tool used production's weighted composite and icc.js, so the same run read 0.726 here and
+// 0.735 there, and only one of them had an interval. The parseability accounting already taught this
+// lesson: re-implemented in three places, it gave three answers about one run. The probes now share
+// production's estimator, through agreement-stats.mjs.
 
 // --- run --------------------------------------------------------------------------------------
 hr('paired PIS-7 agreement');
@@ -249,6 +241,8 @@ for (const fx of fixtures) {
   // drops the DISAGREEING ones — measured 2026-09-04: the six fixtures lost in one run averaged
   // Σ|Δ| 5.2 against 3.6 for those that survived, and losing them moved composite ICC from 0.619 to
   // 0.803 on the same prompt and config. Without a retry the metric improves when the box gets worse.
+  // (Those two are this file's old unweighted-sum figures; on the weighted composite it prints now, the
+  // same two runs read 0.611 and 0.795 — the survivorship effect is the same size.)
   //
   // Only transport-class failures retry. A reply the model could not make valid must still count
   // against it — see scripts/probe/parseability.mjs.
@@ -297,34 +291,32 @@ for (const fx of fixtures) {
 }
 
 const paired = rows.filter((r) => r.local && r.cloud);
+// A run where every fixture failed has no pairs. Print dashes then, never the NaN a mean of nothing gives.
+const f2 = (v) => (v == null ? '—' : v.toFixed(2));
+const f3 = (v) => (v == null ? '—' : v.toFixed(3));
 hr('per-domain');
 console.log('  domain   local mean   cloud mean      Δ mean   |Δ| mean   exact   within 1   ICC(A,1)');
 console.log('  ──────   ──────────   ──────────   ─────────   ────────   ─────   ────────   ────────');
+const perDomain = domainAgreement(paired);
 for (const d of DOMAINS) {
-  const L = paired.map((r) => r.local[d]), C = paired.map((r) => r.cloud[d]);
-  const diffs = L.map((v, i) => v - C[i]);
-  const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
-  const icc = iccA1(paired.map((r) => [r.local[d], r.cloud[d]]));
-  console.log(`  ${d.padEnd(8)} ${mean(L).toFixed(2).padStart(10)} ${mean(C).toFixed(2).padStart(12)}`
-    + ` ${mean(diffs).toFixed(2).padStart(11)} ${mean(diffs.map(Math.abs)).toFixed(2).padStart(10)}`
-    + ` ${String(diffs.filter((x) => x === 0).length).padStart(5)}`
-    + ` ${String(diffs.filter((x) => Math.abs(x) <= 1).length).padStart(10)}`
-    + ` ${(icc === null ? '—' : icc.toFixed(3)).padStart(10)}`);
+  const s = perDomain[d];
+  console.log(`  ${d.padEnd(8)} ${f2(s.local_mean).padStart(10)} ${f2(s.cloud_mean).padStart(12)}`
+    + ` ${f2(s.mean_delta).padStart(11)} ${f2(s.mean_abs_delta).padStart(10)}`
+    + ` ${String(s.exact).padStart(5)}`
+    + ` ${String(s.within_1).padStart(10)}`
+    + ` ${f3(s.icc?.icc).padStart(10)}`);
 }
 
-const compL = paired.map((r) => DOMAINS.reduce((a, d) => a + r.local[d], 0));
-const compC = paired.map((r) => DOMAINS.reduce((a, d) => a + r.cloud[d], 0));
-const compDiff = compL.map((v, i) => v - compC[i]);
-const iccComp = iccA1(paired.map((_, i) => [compL[i], compC[i]]));
-const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
-const sd = (a) => Math.sqrt(a.reduce((s, v) => s + (v - mean(a)) ** 2, 0) / (a.length - 1));
-
-hr('composite (sum of d1..d7, unweighted)');
-console.log(`  local  mean ${mean(compL).toFixed(2)}   cloud mean ${mean(compC).toFixed(2)}`);
-console.log(`  bias   ${mean(compDiff) >= 0 ? '+' : ''}${mean(compDiff).toFixed(2)} (local − cloud)`);
-console.log(`  Bland–Altman limits of agreement  ${(mean(compDiff) - 1.96 * sd(compDiff)).toFixed(2)}`
-  + ` … ${(mean(compDiff) + 1.96 * sd(compDiff)).toFixed(2)}`);
-console.log(`  ICC(A,1) composite  ${iccComp === null ? '—' : iccComp.toFixed(3)}`);
+// The composite a physician is actually told: rimpl's weighted one, not the d1..d7 sum this section
+// printed until 2026-10. The Σ|Δ| per row above stays the unweighted per-domain count by design.
+const comp = compositeAgreement(paired);
+hr('weighted composite (×20, 0–100)');
+console.log(`  local  mean ${f2(comp.local_mean)}   cloud mean ${f2(comp.cloud_mean)}   ${dim('rimpl/src/lib/composite.js compositeOf')}`);
+console.log(`  bias   ${comp.bias != null && comp.bias >= 0 ? '+' : ''}${f2(comp.bias)} (local − cloud)`);
+console.log(`  Bland–Altman limits of agreement  ${comp.limits ? `${f2(comp.limits.lower)} … ${f2(comp.limits.upper)}` : '—'}`);
+// Each bound is formatted on its own: the F-based interval can be null while the estimate is not.
+console.log(`  ICC(A,1) composite  ${f3(comp.icc?.icc)}  95% CI ${comp.icc?.icc == null ? '—' : `${f3(comp.icc.lower)}–${f3(comp.icc.upper)}`}`
+  + `  n=${comp.n}${comp.icc?.interpretation ? dim(`  ${comp.icc.interpretation}`) : ''}`);
 
 hr('latency');
 console.log(`  local  p50 ${(percentile(rows.map((r) => r.localMs), 50) / 1000).toFixed(1)}s`
@@ -334,6 +326,8 @@ hr('how to read this');
 console.log(`  ${dim('ICC near 1  = the two models score the same PLEs the same way; a swap moves little.')}`);
 console.log(`  ${dim('ICC near 0  = they rank PLEs differently; the cutover changes what physicians are told.')}`);
 console.log(`  ${dim('bias        = a systematic offset. A constant offset is re-calibratable; scatter is not.')}`);
+console.log(`  ${dim('composite   = production\'s weighted PIS-7 composite; ICC and its 95% CI are backend icc.js,')}`);
+console.log(`  ${dim('              the same code as GET /oversight/icc. Σ|Δ| stays the unweighted per-domain count.')}`);
 console.log(`  ${dim('NEITHER tells you which model is closer to a human auditor. That is Gate 0.5, and it')}`);
 console.log(`  ${dim('needs 3 blinded raters per PLE — production currently has 0 PLEs at that bar.')}\n`);
 

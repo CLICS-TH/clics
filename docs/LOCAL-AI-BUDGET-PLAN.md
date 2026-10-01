@@ -38,6 +38,12 @@ refine a point estimate we already know is unstable — the same configuration p
 ninety minutes apart — and could not change the verdict. That is the whole reason this plan spends
 almost nothing on measurement.
 
+> **Note, 2026-10-01.** 0.619 and 0.803 are `model-agreement.mjs`'s own figures, which it computed on
+> the unweighted d1–d7 sum until that date. On the weighted composite production credits — the scale
+> of `prompt-versions.md` and `scripts/probe/report/README.md` — the same two runs read **0.611 and
+> 0.795**, still 0.184 apart. On their 12 common fixtures the first run reads 0.735 weighted (0.740 on
+> the sum), so "~0.74" holds. The argument is unchanged.
+
 Two facts about that instability, both worth carrying forward:
 
 - **Lost fixtures bias ICC upward.** Six fixtures lost in one run averaged Σ|Δ| 5.2 against 3.6 for

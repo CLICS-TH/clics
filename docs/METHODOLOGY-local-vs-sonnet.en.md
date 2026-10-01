@@ -115,6 +115,10 @@ rubric version (`pis7-weights-08b0cb1a`), which did not change during the study.
 > *unweighted* d1–d7 sum (range 0–35); the verdict tool uses the *weighted* 0–100 composite. This is
 > why the same two runs are reported as 0.726/0.765 in one place and 0.735/0.762 in another. Every
 > figure in this document is on the **weighted** composite unless it says otherwise.
+>
+> *Note, 2026-10-01:* the probes now print the weighted composite too, through production's
+> `compositeOf` and `icc.js` (`scripts/probe/agreement-stats.mjs`). `e2-compare.mjs` now reads
+> 0.735/0.762 off those two reports; 0.726/0.765 survive only in the logs written before that date.
 
 ### 2.4 Models
 
@@ -172,9 +176,10 @@ The disagreement threshold is `maxDomainDelta: 1` with `maxSumDelta` disabled by
 (`consistency.js:44`). A JSON re-ask budget of 2 is shared across the whole run.
 
 **3.2 Candidate prompt addendum.** A block appended only to the candidate's prompt, targeting the
-three weaknesses the first measurement found: a −2.2 composite compression, weak d1, and a level
-shift. Its second version re-punctuated its worked examples to single quotes for a reason given in
-Section 7.6.
+three weaknesses the first measurement found: a −2.2 composite compression (on the unweighted 0–35
+sum — note, 2026-10-01: that run's report was not archived, so it has no weighted figure), weak d1,
+and a level shift. Its second version re-punctuated its worked examples to single quotes for a
+reason given in Section 7.6.
 
 **One of these two levers never actually ran** — see Section 7.5. That is itself a result.
 

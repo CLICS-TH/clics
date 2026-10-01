@@ -15,7 +15,8 @@
  * WHAT IT REUSES, AND WHY THAT MATTERS.
  *   backend/src/services/icc.js  iccTwoRater  — the production ICC(A,1) + F-based interval, the same
  *                                              code behind GET /oversight/icc and the Model Lock gate.
- *   rimpl/src/lib/pis7.js        compositeOf  — the weighted ×20 composite (range 20–100).
+ *   rimpl/src/lib/composite.js   compositeOf  — the weighted ×20 composite (range 0–100). Re-exported
+ *                                              by pis7.js; this path needs no packages (pis7.js needs zod).
  *   scripts/probe/parseability.mjs computeParseability — the valid-JSON bar, with its two hard-won
  *                                              accounting rules and its `legacy` floor flag.
  *   scripts/probe/lib.mjs        table/percentile/… — the house output helpers.
@@ -59,17 +60,18 @@ import { table, hr, percentile, bold, dim, red, yellow, green, parseArgs, intArg
 const REPO_ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 const require = createRequire(`${REPO_ROOT}/`);
 
-let iccMod, pis7Mod;
+let iccMod, compositeMod;
 try {
-  iccMod = require('./backend/src/services/icc.js');   // iccTwoRater — production ICC(A,1) + F-based (McGraw & Wong) CI
-  pis7Mod = require('./rimpl/src/lib/pis7.js');        // compositeOf — weighted ×20, range 20–100
+  iccMod = require('./backend/src/services/icc.js');        // iccTwoRater — production ICC(A,1) + F-based (McGraw & Wong) CI
+  compositeMod = require('./rimpl/src/lib/composite.js');   // compositeOf — weighted ×20, range 0–100
 } catch (e) {
+  // Neither module needs a package, so a failure here is a moved or missing file, not a missing npm install.
   console.error(`\n  ✘ could not load the production estimators: ${e.message}`);
-  console.error('    Run from the repo root, and make sure rimpl/node_modules exists (npm --prefix rimpl install).\n');
+  console.error('    Check that this script still sits at scripts/probe/report/ in a full checkout.\n');
   process.exit(2);
 }
 const { iccTwoRater } = iccMod;
-const { compositeOf } = pis7Mod;
+const { compositeOf } = compositeMod;
 
 const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 const D18_REPEATABILITY_BAR = 2;   // Σ|Δ| repeatability median ≤ 2 (2026-09-01 plan)
@@ -214,8 +216,8 @@ export function agreementRow(file) {
   const biasMean = mean(diffs);
   const biasSd = sd(diffs);
 
-  // Unweighted sum-of-domains too: model-agreement.mjs prints its Bland–Altman band on THAT scale,
-  // and a reader holding both documents must be able to see why the two numbers differ.
+  // Unweighted sum-of-domains too: model-agreement.mjs printed its Bland–Altman band on THAT scale until
+  // 2026-10 (the .log beside each archived report), and a reader holding both must see why they differ.
   const unweighted = paired.map((r) => DOMAINS.reduce((a, d) => a + r.local[d] - r.cloud[d], 0));
 
   const deltas = paired.map((r) => sumDeltaAgreement(r.local, r.cloud));
@@ -583,6 +585,8 @@ function build({ dir, seed, iters, exact }) {
     generated_by: 'scripts/probe/report/methodology-figures.mjs',
     generated_at: new Date().toISOString(),
     source_dir: dir.replace(`${REPO_ROOT}/`, ''),
+    // Still names pis7.js: it re-exports this very function, and keeping the string keeps --json output
+    // byte-identical to the archived figures it was checked against when the import moved to composite.js.
     composite: 'PIS-7 weighted composite, rimpl/src/lib/pis7.js compositeOf (×20, range 20–100)',
     icc_model: 'ICC(A,1) = ICC(2,1), two-way random, absolute agreement, single measure — backend/src/services/icc.js iccTwoRater; 95% CI by McGraw & Wong (1996) F-based interval (Fisher-z, se = 1/sqrt(n-3), before 2026-10-01)',
     sum_delta_definitions: {
@@ -658,8 +662,9 @@ function print(R) {
     ['l', 'r', 'r', 'r', 'r', 'l', 'r', 'l', 'r', 'l', 'r', 'r'],
   );
   console.log(dim('\n  Σ|Δ|agr = Σ|local − cloud| over d1..d7 (BETWEEN models). Bias and B–A are on the WEIGHTED'));
-  console.log(dim('  composite (20–100); model-agreement.mjs prints its band on the unweighted 0–35 sum — both are'));
-  console.log(dim(`  in --json. ${yellow('*')} = counted per fixture, not per call: a floor, not a rate.`));
+  console.log(dim('  composite (0–100), as model-agreement.mjs prints them since 2026-10; its older logs used the'));
+  console.log(dim('  unweighted 0–35 sum — both are in --json.'));
+  console.log(dim(`  ${yellow('*')} = counted per fixture, not per call: a floor, not a rate.`));
 
   const withFailures = R.agreement_runs.filter((a) => a.failures.length);
   if (withFailures.length) {

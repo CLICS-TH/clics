@@ -380,6 +380,14 @@ Cost: cloud ≈ **$0.014 per PLE** (5.1k input + 1–3.2k output). Local is $0 m
 
 Per-domain ICC(A,1): d6 0.723 · d5 0.686 · d3 0.623 · d2 0.477 · d7 0.381 · d4 0.333 · **d1 0.252**.
 
+> **Note, 2026-10-01 — the composite ICC, bias and limits above are all on the unweighted d1–d7 sum
+> (0–35).** `model-agreement.mjs` computed its composite that way until 2026-10-01; production credits
+> the weighted ×20 composite (0–100), and the probes print that now. No report from this run survives
+> in `scripts/probe/report/`, so these three cannot be restated on the weighted scale. On the six
+> archived runs, switching scale moved an ICC by at most 0.013, but the limits of agreement came out
+> 2.8–3.0× wider on the 0–100 scale, and a bias converts by no fixed factor (v0: −2.50 on the sum,
+> −7.875 weighted). The per-domain ICCs are unaffected.
+
 **Do not read this as "Sonnet is better."** §7.3 shows the noise floor is the same size as the
 signal, so most of what this table measures is the instrument, not the difference between two models.
 
@@ -398,6 +406,11 @@ and was not representative.
 | composites over repeats | 16, 16, 16, 16, 17 | **12, 16, 21, 13** |
 | schema failures | 0/5 | **2/6** |
 | noise floor Σ\|Δ\| | **1** | **11** |
+
+> **Note, 2026-10-01.** These composites, PLE-051's SD of 3.1 below and the "12–21" in §7.7 are all
+> on the unweighted d1–d7 sum (0–35), from `repeat-consistency.mjs`. Since 2026-10-01 it prints
+> production's weighted ×20 composite (0–100) instead. Σ|Δ| is unaffected: it is the unweighted
+> per-domain count by design.
 
 PLE-045 is the transcript that broke the cloud arm in §7.2 — and it is the one the local model
 handles most consistently. **The two models' failure sets are largely disjoint**, which kills the
@@ -477,7 +490,7 @@ Recorded because each was stated confidently before being checked:
 | claim | status |
 |---|---|
 | "Anthropic returns in seconds" | ✗ measured 21.6s p50; gap is 3.2×, not ~20× |
-| "cloud arm is essentially deterministic" | ✗ tested only easy fixtures; PLE-045 ranges 12–21 |
+| "cloud arm is essentially deterministic" | ✗ tested only easy fixtures; PLE-045 ranges 12–21 (0–35 sum; §7.3 note, 2026-10-01) |
 | "local is stable within a session" | ✗ generalised from one quiet session; Σ\|Δ\| reaches 8 |
 | "uniform ±1 shift is not sampling noise" | ✗ over-fit to n=3; broke at n=5 |
 | first variance decomposition | ✗ vacuous — `composite = 7 × level` is an identity |
@@ -608,6 +621,12 @@ Two things this rules out and one it does not:
   calls) or `adaptive` with `EVAL_CONSISTENCY_MAX_SUM_DELTA=2`, which sends exactly the uniform-shift
   pair to a third call, and the local prompt addendum aimed at d1 (ICC 0.06) and the −2.5 bias.
 
+> **Note, 2026-10-01.** "bias −2.50" above and "the −2.5 bias" in the last bullet are on the unweighted
+> d1–d7 sum (0–35) that `model-agreement.mjs` printed until that date. On the weighted composite the
+> same run's bias is **−7.875**, with limits −30.70…14.95. The 0.594 in the first bullet is an
+> unweighted-sum figure too (§7.2 note), so the like-for-like comparison is 0.591 against 0.594. The
+> reading holds either way.
+
 **Custody, again.** Ten of eighteen fixtures produced usable runs: from about 16:50 the box began
 failing large-context calls, and by 23:20 a 30-token prompt answered in **1 second** while the
 smallest tuning transcript exceeded **10 minutes**. Nothing in CLICS changed in between; two probe
@@ -720,6 +739,15 @@ tuning split, same fixtures, same cloud arm:
 | v0 (§8.3) | base only | adaptive | 16 | 0.578 (0.116–0.835) | −2.50 | 4 | 100.0% |
 | 2026-09-04 | base + addendum | adaptive | 14 | 0.735 (0.335–0.910) | +0.79 | 2 | 94.4% |
 | 2026-09-04 | base + addendum | **stamped `median3`, ran adaptive** | 15 | 0.762 (0.410–0.917) | +0.00 | 2 | 94.4% |
+
+> **Note, 2026-10-01 — the bias column is on the unweighted d1–d7 sum (0–35), not on the weighted
+> composite the ICC column names.** It was read off `model-agreement.mjs`, which printed its bias on
+> that sum until 2026-10-01. On the weighted composite the three rows read **−7.875, +1.64 and
+> −0.73**. So "−2.50 of harshness down to +0.79", "a bias of exactly zero" and "0.735/+0.79 and
+> 0.762/+0.00" below describe the sum, not the credited number. The intervals here and below are the
+> Fisher-z ones `icc.js` used until the same date; the F-based interval gives 0.107–0.833,
+> 0.354–0.907 and 0.421–0.914, and the pairs-needed figures below become 4,898 at 0.762, 17 at 0.90
+> and 12 at 0.92. The figures are kept as recorded.
 
 **Rows 2 and 3 are the same configuration.** `model-agreement.mjs` hardcoded `mode: 'adaptive'` from
 `a79f4d3` until 2026-09-04 while stamping the `--consistency` flag into the report, so the run labelled
