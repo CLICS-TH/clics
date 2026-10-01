@@ -212,9 +212,12 @@ figure quoted in a paper is the same figure the platform's own credit gate compu
 agreement, not consistency, is the correct model here: a candidate scorer that ranks episodes
 identically but sits two points lower is not a substitute.
 
-**Confidence interval.** Fisher-z, with se = 1/√(n − 3), back-transformed and clamped to [0, 1]
-(`icc.js:53-56`). At n = 8 this is a wide interval by construction, and the study was designed
-knowing that — see the power calculation below. The estimator refuses to return a verdict below
+**Confidence interval.** The figures in this report were computed with Fisher-z, se = 1/√(n − 3),
+back-transformed and clamped to [0, 1] — the interval `icc.js` used at the time. From 2026-10-01
+`icc.js` uses the exact F-based McGraw & Wong (1996) interval instead (the one R's `irr` and
+pingouin use); a re-run of this analysis will report different bounds for the same point estimates,
+and must say which interval it used. At n = 8 either interval is wide by construction, and the study
+was designed knowing that — see the power calculation below. The estimator refuses to return a verdict below
 n = 4 (`icc.js:281-308`).
 
 **Verdict rule.** `pass` if the lower bound clears the threshold; `fail` if the upper bound is below
@@ -233,6 +236,15 @@ finds by linear search the smallest n whose lower bound clears the threshold:
 | 0.85 | 51 |
 | 0.82 | 117 |
 | 0.80 | 247 |
+
+> **Correction, 2026-10-01 — this table was built on a Fisher-z interval that `icc.js` no longer
+> uses.** `icc.js` now uses the exact F-based McGraw & Wong interval (the one R's `irr` and
+> pingouin use). The two differ by only 1–2 pairs here (F-based: 0.95→7, 0.92→12, 0.90→17,
+> 0.88→26, 0.85→50, 0.82→116, 0.80→245). The larger correction is what the table *means*. Each
+> row is the n at which an interval centred on the true value just clears 0.75, which is roughly a
+> **coin-flip chance of `pass`**, not power. Simulated 80% power (no rater bias, 600 reps): 0.95 →
+> ~14, 0.92 → ~26, **0.90 → ~36, 0.88 → ~60**, 0.85 → ~110. Any rater bias raises these. Plan
+> cohorts on the 80% figures.
 
 This ladder is the study's a-priori power calculation and it was published before the confirmatory
 run. With 26 fixtures in existence, only a true agreement of about 0.9 or better was ever

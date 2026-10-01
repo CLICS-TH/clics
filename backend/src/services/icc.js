@@ -17,6 +17,51 @@
 //
 // Both are RATER-SYMMETRIC — nothing distinguishes column A from column B — so the same routines
 // measure AI<->human, candidate(shadow)<->human, or AI<->candidate agreement.
+//
+// CONFIDENCE INTERVALS are the exact F-based ones (McGraw & Wong 1996; the same formulas as R's
+// irr::icc and Python's pingouin), checked against pingouin in tests/icc-ci.test.js. Until
+// 2026-10 every interval here was a Fisher-z transform with se = 1/sqrt(n-3) — the interval for a
+// Pearson correlation, which an ICC is not. It ignored k, the rater effect and the design, and the
+// pairs-needed ladder in docs/METHODOLOGY was derived from it.
+const { fQuantile } = require('./f-dist');
+
+const ALPHA = 0.05;
+const finiteOrNull = (v) => (Number.isFinite(v) ? v : null);
+
+// ICC(A,1) / ICC(2,1): two-way, absolute agreement, single measure. Satterthwaite df `v` for the
+// combined rater + error term, then the McGraw & Wong bounds. `icc` is the RAW estimate.
+function twoWayAgreementCI(icc, { MSr, MSc, MSe, n, k }) {
+  const fj = MSc / MSe;
+  const vn = (k - 1) * (n - 1) * (k * icc * fj + n * (1 + (k - 1) * icc) - k * icc) ** 2;
+  const vd = (n - 1) * k * k * icc * icc * fj * fj + (n * (1 + (k - 1) * icc) - k * icc) ** 2;
+  const v = vn / vd;
+  const fU = fQuantile(1 - ALPHA / 2, n - 1, v);
+  const fL = fQuantile(1 - ALPHA / 2, v, n - 1);
+  const lower = (n * (MSr - fU * MSe)) / (fU * (k * MSc + (k * n - k - n) * MSe) + n * MSr);
+  const upper = (n * (fL * MSr - MSe)) / (k * MSc + (k * n - k - n) * MSe + n * fL * MSr);
+  return { lower: finiteOrNull(lower), upper: finiteOrNull(upper) };
+}
+
+// ICC(1,1): one-way. With ragged rows, k0 stands in for k and the within df is N - n.
+function oneWayCI({ MSb, MSw, n, k0, dfWithin }) {
+  const F = MSb / MSw;
+  const fU = F / fQuantile(1 - ALPHA / 2, n - 1, dfWithin);
+  const fL = F * fQuantile(1 - ALPHA / 2, dfWithin, n - 1);
+  return { lower: finiteOrNull((fU - 1) / (fU + k0 - 1)), upper: finiteOrNull((fL - 1) / (fL + k0 - 1)) };
+}
+
+// Average-measures bounds are the single-measure bounds stepped up by Spearman-Brown — exactly how
+// irr and pingouin build them. k·r/(1+(k-1)r) has a pole at r = -1/(k-1): a single-measure bound at
+// or below it steps up to -∞, but the formula returns a LARGE POSITIVE number there, which finish()
+// then clamped to 1 — an upside-down interval [1.00, 0.80] that verdictFor read as `pass` for a
+// panel that did not agree at all (caught in review, 2026-10). The true limit is -∞, so return -1
+// and let finish() clamp it to 0.
+const spearmanBrown = (r, k) => {
+  if (r == null) return null;
+  if (r <= -1 / (k - 1)) return -1;
+  return finiteOrNull((k * r) / (1 + (k - 1) * r));
+};
+
 function iccTwoRater(input) {
   const pairs = input.map(p => ({ a: p.a ?? p.ai, b: p.b ?? p.human }));
   const n = pairs.length;
@@ -49,26 +94,7 @@ function iccTwoRater(input) {
 
   const icc = (MSr - MSe) / (MSr + (k - 1) * MSe + k * (MSc - MSe) / n);
 
-  const safeIcc = Math.min(Math.max(icc, -0.999), 0.999);
-  const z = 0.5 * Math.log((1 + safeIcc) / (1 - safeIcc));
-  const se = 1 / Math.sqrt(Math.max(n - 3, 1));
-  const lower = Math.tanh(z - 1.96 * se);
-  const upper = Math.tanh(z + 1.96 * se);
-
-  // Label off the clamped value so it matches the displayed icc (a wildly negative raw value still
-  // reads as 'Below target', never flips the bands).
-  const label = safeIcc >= 0.95 ? 'Excellent'
-    : safeIcc >= 0.85 ? 'Very Good'
-    : safeIcc >= 0.75 ? 'Good'
-    : 'Below target (< 0.75)';
-
-  return {
-    icc: Math.round(safeIcc * 1000) / 1000,
-    lower: Math.round(Math.max(lower, 0) * 1000) / 1000,
-    upper: Math.round(Math.min(upper, 1) * 1000) / 1000,
-    n,
-    interpretation: label,
-  };
+  return finish(icc, n, twoWayAgreementCI(icc, { MSr, MSc, MSe, n, k }));
 }
 
 // Back-compatible name for the AI-vs-human call sites. Same function, same numbers — { ai, human }
@@ -78,20 +104,21 @@ function computeICC21(pairs) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Shared tail: Fisher-z CI + interpretation bands. Factored out so the two models cannot drift
-// apart in how they present a result — only the point estimate differs, never the labelling.
-function finish(icc, n, extra = {}) {
+// Shared tail: rounding, the [0, 1] display clamp on the interval, and the interpretation bands.
+// Every model presents its result through here, so only the point estimate and the interval
+// formula differ between them, never the labelling. The label reads off the clamped estimate so a
+// wildly negative raw value still says 'Below target' and never flips the bands.
+const round3 = (v) => (v == null ? null : Math.round(v * 1000) / 1000);
+function finish(icc, n, { lower, upper }, extra = {}) {
   const safeIcc = Math.min(Math.max(icc, -0.999), 0.999);
-  const z = 0.5 * Math.log((1 + safeIcc) / (1 - safeIcc));
-  const se = 1 / Math.sqrt(Math.max(n - 3, 1));
   const label = safeIcc >= 0.95 ? 'Excellent'
     : safeIcc >= 0.85 ? 'Very Good'
     : safeIcc >= 0.75 ? 'Good'
     : 'Below target (< 0.75)';
   return {
-    icc: Math.round(safeIcc * 1000) / 1000,
-    lower: Math.round(Math.max(Math.tanh(z - 1.96 * se), 0) * 1000) / 1000,
-    upper: Math.round(Math.min(Math.tanh(z + 1.96 * se), 1) * 1000) / 1000,
+    icc: round3(safeIcc),
+    lower: lower == null ? null : round3(Math.min(Math.max(lower, 0), 1)),
+    upper: upper == null ? null : round3(Math.min(Math.max(upper, 0), 1)),
     n,
     interpretation: label,
     ...extra,
@@ -149,7 +176,8 @@ function iccTwoWay(rows, { k } = {}) {
   const MSe = Math.max(SSe / ((n - 1) * (width - 1)), 0.0001);
   const icc = (MSr - MSe) / (MSr + (width - 1) * MSe + width * (MSc - MSe) / n);
 
-  return finish(icc, n, { k: width, n_excluded: excluded, rater_counts: counts, model: 'ICC(2,1)' });
+  return finish(icc, n, twoWayAgreementCI(icc, { MSr, MSc, MSe, n, k: width }),
+    { k: width, n_excluded: excluded, rater_counts: counts, model: 'ICC(2,1)' });
 }
 
 /**
@@ -208,10 +236,12 @@ function iccTwoWayAverage(rows, { k } = {}) {
   const MSe = Math.max(SSe / ((n - 1) * (width - 1)), 0.0001);
   const icc = (MSr - MSe) / (MSr + (MSc - MSe) / n);
 
-  // Fisher-z, matching the single-measure path. An exact average-measures interval is F-based; the
-  // approximation is kept so the two statistics are never presented with intervals built different
-  // ways, which would make them look more comparable or less comparable than they are.
-  return finish(icc, n, { k: width, n_excluded: excluded, rater_counts: counts, ...labels });
+  // The interval is built on the SINGLE-measure estimate and then stepped up, so both statistics
+  // share one derivation of the bounds.
+  const single = (MSr - MSe) / (MSr + (width - 1) * MSe + width * (MSc - MSe) / n);
+  const ci = twoWayAgreementCI(single, { MSr, MSc, MSe, n, k: width });
+  return finish(icc, n, { lower: spearmanBrown(ci.lower, width), upper: spearmanBrown(ci.upper, width) },
+    { k: width, n_excluded: excluded, rater_counts: counts, ...labels });
 }
 
 /**
@@ -252,7 +282,7 @@ function iccOneWay(rows) {
   const MSw = Math.max(SSw / (N - n), 0.0001);
   const icc = (MSb - MSw) / (MSb + (k0 - 1) * MSw);
 
-  return finish(icc, n, {
+  return finish(icc, n, oneWayCI({ MSb, MSw, n, k0, dfWithin: N - n }), {
     n_ratings: N,
     k0: Math.round(k0 * 1000) / 1000,
     rater_counts: counts,
@@ -291,14 +321,10 @@ function verdictFor(result, threshold) {
   if (base.icc == null || base.lower == null || base.upper == null) {
     return { ...base, state: 'insufficient', why: 'no estimate — too few pairs, or no variance between them' };
   }
-  // The Fisher-z interval is built on 1/sqrt(n-3) and simply does not exist below four pairs; the
-  // helpers above clamp that denominator to keep from dividing by zero, which means they return an
-  // interval at n=2 or n=3 that was invented rather than estimated.
-  //
-  // That invented interval is convincing in exactly the wrong direction. Two pairs that happen to
-  // agree closely clamp toward an ICC of 0.999, and the clamped interval then sits entirely above
-  // 0.75 — so the gate would read `pass` off two data points. Refusing to decide is the only honest
-  // answer here, and it is the whole reason this third state exists.
+  // Below four pairs, refuse to decide. The F-based interval does exist at n=2 or 3 (unlike the
+  // Fisher-z one this replaced, which had to clamp 1/sqrt(n-3) and invented an interval), but an
+  // agreement gate passed on two or three data points is not one anybody should act on, and the
+  // estimate's own assumptions (normal subject effects) are untestable at that size.
   if (n < 4) {
     return { ...base, state: 'insufficient', why: `${n} pairs cannot support a confidence interval` };
   }
@@ -307,5 +333,23 @@ function verdictFor(result, threshold) {
   return { ...base, state: 'insufficient', why: `the interval spans ${threshold} — more pairs are needed to decide` };
 }
 
+/**
+ * How many subjects before the lower bound of a two-rater ICC(A,1) interval clears `threshold`, if
+ * the true agreement is `rho` and neither rater is biased. Plugs in the EXPECTED mean squares
+ * (σe² = 1, σs² = rho/(1-rho): MSr = 1 + 2σs², MSc = MSe = 1), so it answers "at what n does an
+ * interval centred on the truth just clear the bar" — roughly a coin-flip chance of a `pass`, not
+ * 80% power. A real rater bias raises MSc and needs more pairs than this says.
+ */
+function pairsNeededTwoRater(rho, threshold, { maxN = 5000 } = {}) {
+  if (!(rho > threshold) || !(rho < 1)) return null;
+  const vs = rho / (1 - rho);
+  for (let n = 4; n <= maxN; n++) {
+    const { lower } = twoWayAgreementCI(rho, { MSr: 1 + 2 * vs, MSc: 1, MSe: 1, n, k: 2 });
+    if (lower != null && lower >= threshold) return n;
+  }
+  return null;
+}
+
 module.exports = {
-  verdictFor, computeICC21, iccTwoRater, iccTwoWay, iccTwoWayAverage, iccOneWay, raterCounts };
+  verdictFor, computeICC21, iccTwoRater, iccTwoWay, iccTwoWayAverage, iccOneWay, raterCounts,
+  pairsNeededTwoRater };

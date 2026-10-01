@@ -157,7 +157,7 @@ export const MUTATIONS = [
   // ---- the agreement verdicts ----------------------------------------------------------------
   {
     id: 'icc/insufficient-is-not-pass',
-    why: 'The Fisher-z interval is fabricated below n=4; without this refusal two agreeing pairs clear a 0.75 gate.',
+    why: 'Below n=4 the interval is not one to gate on; without this refusal two agreeing pairs could clear a 0.75 gate.',
     file: 'backend/src/services/icc.js',
     find: '  if (n < 4) {',
     replace: '  if (n < 0) {',

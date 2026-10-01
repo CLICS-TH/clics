@@ -32,7 +32,9 @@ describe('no regression: the k=2 path is byte-identical to the old one', () => {
 
   test('the existing call sites keep the shape they read', () => {
     const r = computeICC21(PAIRS.map(([ai, human]) => ({ ai, human })));
-    expect(r).toMatchObject({ icc: 0.958, lower: 0.782, upper: 0.993, n: 8, interpretation: 'Excellent' });
+    // Interval re-pinned 2026-10 when Fisher-z (0.782-0.993) was replaced by the F-based interval;
+    // see tests/icc-ci.test.js for how the new bounds are checked.
+    expect(r).toMatchObject({ icc: 0.958, lower: 0.809, upper: 0.992, n: 8, interpretation: 'Excellent' });
   });
 });
 
