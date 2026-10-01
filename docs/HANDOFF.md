@@ -4,6 +4,22 @@
 [../README.md](../README.md) (orientation), [../CONTRIBUTING.md](../CONTRIBUTING.md) (how to work in it),
 and [ROADMAP.md](ROADMAP.md) (what to build next).*
 
+> **Four days behind, as of 2026-09-07.** Not rewritten wholesale — the newer work is written up where
+> it happened, and duplicating it here is how this file went stale in the first place. What landed
+> after 2026-09-03:
+>
+> | where | what |
+> |---|---|
+> | [GATE0-DGX-RESULTS.md](GATE0-DGX-RESULTS.md) §8.9–8.11, §5.2 | the nine-port sweep (the block is **source-scoped**, `:3003` refuses rather than drops), rimpl's first real run against the box, and `cme-dev` identified as a **gateway** whose inference hosts are LAN-only |
+> | [METHODOLOGY-local-vs-sonnet.{en,th}.md](METHODOLOGY-local-vs-sonnet.en.md) | the whole local-evaluator screening programme, including the held-out gate spent 2026-09-04: **ICC 0.436 (0.000–0.873), n=8, `insufficient`** |
+> | [ONPREM-INSTALL.th.md](ONPREM-INSTALL.th.md) | the Thai install spec handed to the box owner |
+> | [RAG-ROLLOUT-CHECKLIST.md](RAG-ROLLOUT-CHECKLIST.md) | `rag_enabled` migration applied and verified in production 2026-09-06 (`fa3fa89`) |
+> | [G0.5-HUMAN-RATER-PREP.th.md](G0.5-HUMAN-RATER-PREP.th.md) §0 | the production rater-spread measurement — `gate.meets: false` |
+> | [pilot-timeline.md](pilot-timeline.md) | the published schedule marked superseded |
+>
+> PRs #84–#89 and #91–#92. The "Open threads" list below has been re-checked against production; two
+> of its figures were wrong and are corrected in place.
+
 ## Read this first — the 2026-08/09 outage
 
 **Production was broken from 2026-08-31 to 2026-09-03 and nothing said so.** The database was
@@ -521,10 +537,13 @@ pseudonymization (`P-`/`PLE-` lookup table + broader Thai-name coverage in `rimp
 
 Loose ends a successor inherits, most urgent first:
 
-1. **Clear the privacy queue.** All **34 PLEs sit at `privacy_review_status='pending'`** after the
-   CREC deploy, which correctly holds **5 unscored assignments** out of the auditor queue. Nothing
-   else unblocks those auditors: go to `/admin/privacy` and pass/redact them. (Correct behaviour, not
-   a bug — see the backfill note in the CREC section.)
+1. ~~**Clear the privacy queue.**~~ **Measured against production 2026-09-07 and it blocks nothing.**
+   The queue holds **13** pending, not 34, and **all 13 are `is_test=true`** sandbox sessions. Every
+   one of the 14 `audit_assignments` rows sits on a PLE already at `privacy_review_status='passed'`,
+   and only **3** assignment rows across **2** PLEs (1 real, 1 sandbox) are unscored — not 5.
+   Kept and struck rather than deleted, because the stale figure is *why* this looked like the most
+   urgent item on the list for a fortnight. The gate itself is correct behaviour; there is simply
+   nothing waiting behind it.
 2. **`identity_verification_required` is 0 and must become 1 before the first participant.** Flipping
    it before the submission form has actually been used blocks every physician from starting a PLE, so
    it is staged deliberately — but shipping without it breaks ICF §4.

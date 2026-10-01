@@ -52,3 +52,15 @@ rujdanai-*
 # the ICFs, the SAP, the Model Lock Record — and they carry the principal investigator's real name
 # alongside the study design. They govern what the code must do; they are not part of the code.
 CREC082_*/
+.ds-sync/
+ds-bundle/
+# design-sync tool output. Three subpaths were already ignored and the rest were not, so a
+# `git add -A` would have committed a generated design system nothing in the app imports.
+.design-sync/
+audit-dashboard/.ds-styles.css
+audit-dashboard/dist/
+audit-dashboard/design-system.ts
+audit-dashboard/design-system.css
+audit-dashboard/design-system-shim.ts
+audit-dashboard/tsconfig.design-system.json
+audit-dashboard/docs/

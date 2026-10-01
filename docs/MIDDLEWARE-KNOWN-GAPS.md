@@ -1,6 +1,13 @@
 # RIMPL Middleware — Known Gaps vs. the Architecture Flowchart
 
-_Status as of the July–September 2026 pilot build. The middleware **works end-to-end as a Claude-only pipeline** (PII masking → anti-sycophancy / citation / Socratic system prompt → Claude → post-checks). The items below are places where the current implementation is **narrower than the printed 4-layer flowchart**. They are documented intentionally; the pilot decision is to run **Claude-only** and revisit before any production rollout._
+_The middleware **works end-to-end as a Claude-only pipeline** (PII masking → anti-sycophancy / citation / Socratic system prompt → Claude → post-checks). The items below are places where the current implementation is **narrower than the printed 4-layer flowchart**. They are documented intentionally._
+
+> **Two framings in that sentence are out of date.** The "July–September 2026 pilot build" schedule is
+> superseded — neither milestone started ([pilot-timeline.md](pilot-timeline.md)). And "the pilot
+> decision is to run Claude-only" is now contradicted by the local-model programme: D8 moves every
+> purpose on-premise and the CREC submission set forecloses a commercial external API for research
+> transcripts ([LOCAL-MODEL-ROADMAP.md](LOCAL-MODEL-ROADMAP.md) D8/D17). Claude-only is what runs
+> **today**, not the decision of record — which makes L4 below a gap to retire rather than to build._
 
 ## L4 — API Randomization Layer (multi-provider) — NOT IMPLEMENTED
 - The flowchart shows L4 randomizing the AI provider per session across **Claude / GPT-4o / Gemini / Mistral** via `hashSessionId()`, with failover and `provider_used` logging.

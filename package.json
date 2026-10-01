@@ -18,7 +18,8 @@
     "test:manuals-embed": "node scripts/manuals/embed-smoke.mjs",
     "test:manuals-scale": "node scripts/manuals/scale-audit.mjs",
     "manuals:capture": "node scripts/manuals/capture.mjs",
-    "test:nav-width": "node scripts/responsive/nav-width-audit.mjs"
+    "test:nav-width": "node scripts/responsive/nav-width-audit.mjs",
+    "test:calibration": "node --check scripts/calibration/three-way.js && node --test scripts/calibration/three-way.test.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

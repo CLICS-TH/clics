@@ -48,8 +48,8 @@ Live position: `npm run local-model:status`.
 | **P1.5 — Readiness gate** | **done** (#71). A switch to a provider that cannot serve is refused with the measured value; unknown counts as unfit |
 | **P2 — rimpl relocation + bridge** | **not started, but unblocked** — G0 item 4 answered yes 2026-09-05 |
 | **G0.5 — Human-auditor ICC baseline** | **not started. This is still the programme go/no-go** |
-| **P3 — Migrate purposes** | shadow evaluator code **done** (PR #65). **Capacity layer built 2026-09-02** on `feat/local-ai-capacity` (commits `ddbba2a` backend/db/portal, `afb83d5` rimpl, `1fe625c` dashboard, `6050e53` smoke, `aecb861` mutations): durable evaluation queue, rimpl two-lane bounded runner, token-denominated budgets, transcript cap, council partition, dev-only provider override, sandbox smoke. **Not deployed; `db/migration-local-ai-capacity.sql` NOT applied** (and `migration-shadow-evaluations.sql` still not applied) |
-| **P4 — Calibrate + Gate 4** | **instrument done** (#74). **Held-out split reserved first** (D13; `scripts/probe/SPLIT.json`, 8 held-out / 18 tuning, commit `551df47`) and `scripts/probe/screening-verdict.mjs` applies D18 + repeatability + parseability from the production ICC code (`c4bd08d`). Adaptive self-consistency **built** (rimpl `services/consistency.js`; `EVAL_CONSISTENCY=adaptive`, local arm only, billed = call 1, `provenance.consistency`); the local prompt addendum is an empty seam until the E2 tuning loop runs on the tuning split. The decisive gate is still blocked on G0.5 |
+| **P3 — Migrate purposes** | shadow evaluator code **done** (PR #65). **Capacity layer built 2026-09-02** on `feat/local-ai-capacity` (commits `ddbba2a` backend/db/portal, `afb83d5` rimpl, `1fe625c` dashboard, `6050e53` smoke, `aecb861` mutations): durable evaluation queue, rimpl two-lane bounded runner, token-denominated budgets, transcript cap, council partition, dev-only provider override, sandbox smoke. **Deployed** — PR #83, 2026-09-03; `db/migration-local-ai-capacity.sql` applied 2026-09-02 and `migration-shadow-evaluations.sql` on 2026-08-28. Re-verified against production 2026-09-07: `shadow_evaluations` exists, `ples.eval_enqueued_at` exists, `app_settings.eval_drain_concurrency` is seeded |
+| **P4 — Calibrate + Gate 4** | **instrument done** (#74). **Held-out split reserved first** (D13; `scripts/probe/SPLIT.json`, 8 held-out / 18 tuning, commit `551df47`) and `scripts/probe/screening-verdict.mjs` applies D18 + repeatability + parseability from the production ICC code (`c4bd08d`). Adaptive self-consistency **built** (rimpl `services/consistency.js`; `EVAL_CONSISTENCY=adaptive`, local arm only, billed = call 1, `provenance.consistency`). The local prompt addendum is **written and shipped** (`PIS7_LOCAL_ADDENDUM`, `rimpl/src/lib/prompts.js:231`), the E2 tuning loop **ran**, and the held-out gate was **spent 2026-09-04**: ICC 0.436 (0.000–0.873), n=8, verdict `insufficient` (`scripts/calibration/prompt-versions.md:141`). The decisive gate is still blocked on G0.5 |
 | **P5 — Model Lock** | **mechanism done** (#75): the declaration form is closed until the decisive verdict passes, and the freeze is enforced. Blocked on P4 for the verdict that opens it |
 
 Nothing is live in production. Every purpose still resolves to `anthropic` (`openai` for embeddings), so
@@ -76,8 +76,9 @@ including chat; smoke from a laptop stack on the tailnet against prod Supabase's
 | Physician-visible states | portal `ple-result.html`, `ple-chat.js` | screening → queued (position, eta) → scoring, poll backoff to 30 s, a non-silent give-up card; `ai_busy` bubble that keeps the typed question |
 | Sandbox smoke | `npm run smoke:local-ai` (`scripts/smoke/local-ai-sandbox-smoke.mjs`) | single / burst / cap / down / capacity scenarios; aborts unless the override, the partition and `pilot_test_mode` are visible; never targets a prod host, never flips a global setting, never prints transcript text or credentials |
 
-Everything in the layer is built; **WP-E's prompt addendum** (`PIS7_LOCAL_ADDENDUM`, via `pis7PromptFor('local')`) is an
-empty seam until the E2 tuning loop runs on the tuning split. **Coupling to respect before `EVAL_CONSISTENCY=adaptive`
+Everything in the layer is built, **WP-E's prompt addendum** (`PIS7_LOCAL_ADDENDUM`, via `pis7PromptFor('local')`)
+included: it was written, the E2 tuning loop ran against it, and the held-out gate has since been spent
+(`scripts/calibration/prompt-versions.md`). It is no longer an empty seam. **Coupling to respect before `EVAL_CONSISTENCY=adaptive`
 goes live:** adaptive issues 2–3 serial calls (plus up to 2 re-asks) through the background lane, so the backend's
 `RIMPL_EVAL_TIMEOUT_MS` 480 s and `EVAL_LEASE_S` 600 s are sized for `eval_drain_concurrency = 1`; at N the calls of N
 evaluations interleave and the last finishes at ≈3·N·T (T ≈ 70–115 s measured) — keep the drain at 1, or size the
@@ -152,7 +153,7 @@ so nobody has to rediscover it.
 
 Under **D3**, `rimplEvaluate({ ple_id, transcript, patient_ref, … })` carries the **raw** transcript
 and `patient_ref` from Railway to the on-prem node; rimpl is what strips them
-(`rimpl/src/routes/chat.js:79`, `rimpl/src/routes/evaluate.js:22`). Today that hop is private Railway
+(`rimpl/src/routes/chat.js:98`, `rimpl/src/routes/evaluate.js:67` via `rimpl/src/lib/transcript.js:35`). Today that hop is private Railway
 networking inside one datacenter. Afterwards it is Virginia → Thailand.
 
 Three things are true at once, and CREC-facing documents must say all three:
@@ -342,6 +343,9 @@ Work in this phase:
   own**, which it does not have today: the 2026-09-05 sweep that proved `:3003` reachable ran from the
   *rimpl* container, the only service whose image carries one. Copying `rimpl/Dockerfile`'s userspace
   sidecar into the backend is a prerequisite of this phase, and it is our work, not the box owner's.
+  **🛑 Read [ADR 0001](adr/0001-d3-transport-topology.md) before building any of it.** That work is
+  done and parked in PR #90; a GDCC VM would make its central mechanism unnecessary, so the standing
+  decision is to build no further transport until the VM is provisioned or refused.
 - **Deploy pipeline changes.** rimpl leaves the Railway CLI path. Document the replacement in
   [deployment.md](deployment.md); the `--service rimpl` gotcha becomes obsolete and should be struck
   rather than left to mislead.
@@ -364,30 +368,45 @@ Every ICC CLICS has ever recorded is **AI-vs-AI**. `scripts/calibration/prompt-v
 |---|---|---|---|
 | v0 (original) | 0.377 (0.04–0.64) | 33 | simulated |
 | v1 | 0.700 (0.47–0.84) | 33 | simulated |
-| **v2 (current)** | **0.811 (0.64–0.91)** | 30 | **simulated** |
+| v2 (superseded) | 0.811 (0.64–0.91) | 30 | simulated |
+| **v3 (current, `59561c292df0`)** | **never measured** | — | — |
 
 Those raters are Claude agents with assigned stances (`scripts/soak/gen-auditor-wf.js:30-32`), not
 humans. Two consequences:
 
 - **The CI straddles the gate.** 0.64–0.91 at n=30 does not confidently clear 0.75.
-- **Human auditors disagree with each other more** than agent-raters with assigned stances do, so the
-  honest expectation is that the human-scored figure comes in **lower**, not higher.
+- **These figures do not describe the shipping instrument.** `cd29df5` replaced the evaluator prompt
+  with the CREC082 behavioural anchors and no calibration run has been made against it since, so
+  0.811 measures a prompt that no longer ships ([ledger](../scripts/calibration/prompt-versions.md)).
+- **Nothing here establishes human agreement.** Neither the size nor the direction of any difference
+  between human and agent raters has been measured for this instrument.
 
 So: measure Claude's ICC against **real human auditors** on the current prompt, before anything else.
 
 > ### 🚦 Gate 0.5 — Claude ICC ≥ 0.75 against real human auditors.
 > **If Claude misses, the credit gate fails for the incumbent and "local vs Claude" was never the
 > interesting question.** Surface it to the research team immediately (D14). The fix is to retune the
-> prompt against *human* divergence — the v1/v2 rules were fitted to simulated-rater divergence — and
-> re-baseline. The local model is then gated against the **retuned** prompt, never against
-> Claude-fitted v2.
+> prompt against *human* divergence and re-baseline. The local model is then gated against the
+> **retuned** prompt — never against one fitted to simulated raters, **which includes the prompt
+> shipping today.** `cd29df5` added the CREC082 anchors on top of v2; it did not remove v2's brakes,
+> which survive verbatim in v3 ("Penalize templated/scripted behaviour", the verbatim-turn cap on
+> d2/d4, "If you cannot quote one, the score is at most 3", "Use the FULL scale"). So v3 carries the
+> simulated-rater fitting *and* has no calibration of its own. Naming only v2 here would leave the
+> live hazard unnamed — every D18 screening row already gated the local candidate against v3
+> ([ledger](../scripts/calibration/prompt-versions.md)).
 
 Because D1 puts this before the Pilot Study, you find this out while it is still fixable rather than
 at analysis time with 225 PLEs already scored and locked.
 
-**Cheapest path to a first human-scored cohort:** the 5 unscored assignments already in the auditor
-queue, plus recruiting toward `min_auditors_per_cle = 3` on **Internal Medicine only** — it has 7
-auditors; every other specialty currently has exactly 1.
+**Measured starting point.** Re-checked against production and recorded in
+[the human-rater checklist](G0.5-HUMAN-RATER-PREP.th.md) §0: **3 unscored assignment rows across 2
+PLEs — one real, one sandbox — not the 5 this page used to record** — and 7 Internal Medicine
+auditor *accounts* (every other specialty had 1), which was correct as an account count.
+
+Seven accounts is not seven available raters; how many will actually take part is still unverified.
+And recruiting is premature either way: the cohort has to clear the range-restriction gate first, and
+§0 measured it failing (between-episode SD 2.44 against 4.66 required). Target
+`min_auditors_per_cle = 3` and report the actual number of independent human ratings per PLE.
 
 ---
 
@@ -408,7 +427,7 @@ without a second reachable provider, and applying it early just adds an unused t
 
 **⚠️ Cost accounting.** `pricing.js` is global — one input/output rate for the whole system. While
 purposes are split across providers, per-user spend and per-council billing silently misreport. Pass a
-per-call rate (or a provider tag) through `usage.js:65`, which already accepts `costOverride`. Do this
+per-call rate (or a provider tag) through `backend/src/lib/usage.js:111`, which already accepts `costOverride`. Do this
 **before** the first split ships, not after.
 
 ---
@@ -429,8 +448,11 @@ the split that passes.
 3. Expect to retune. The v1 rules were written against *Claude's* failure mode (systematic leniency,
    +10.3, over-crediting templated structure). A different model will likely fail differently —
    possibly in the opposite direction.
-4. **`prompt-versions.md` needs a model axis.** It versions prompts only. ICC is a property of
-   (model × prompt × rubric), and the file must record which model produced each number.
+4. ~~**`prompt-versions.md` needs a model axis.**~~ **Done** — the axis is at
+   `scripts/calibration/prompt-versions.md:117` ("Model axis (local-model screening, D18)"), and every
+   row there names the model pair that produced it. Kept, struck rather than deleted, because the
+   reasoning stands: ICC is a property of (model × prompt × rubric), and a number recorded without its
+   model is not reproducible.
 
 > ### 🚦 Gate 4 — local ICC ≥ **0.75 absolute**, measured on the held-out cohort (D9, D13).
 > Claude's figure is informational, not the comparator.

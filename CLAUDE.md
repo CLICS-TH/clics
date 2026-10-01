@@ -2,7 +2,7 @@
 
 Guidance for Claude Code working in this repository. This file is an **index** — detailed docs live in [`docs/`](docs/). Read the relevant doc before changing that area.
 
-**CLICS** (Continuous Learning & Intelligence Credit System) is an AI-mediated platform that scores physician clinical reasoning from physician–AI dialogue sessions (**CLEs**), replacing attendance-based CME/CPD credit. On-premise pilot for a Thai medical licensing body, July–September 2026.
+**CLICS** (Case-based Learning Intelligence Credit System) is an AI-mediated platform that scores physician clinical reasoning from physician–AI dialogue sessions (**PLEs** — Professional Learning Episodes), replacing attendance-based CME/CPD credit. On-premise pilot for a Thai medical licensing body; **the pilot has not started** and the published July–September 2026 schedule is superseded — see [docs/pilot-timeline.md](docs/pilot-timeline.md).
 
 **New here (human dev)?** Start with [README.md](README.md), then [CONTRIBUTING.md](CONTRIBUTING.md) (local setup + conventions) and [docs/HANDOFF.md](docs/HANDOFF.md) (current state + what to work on next). Each layer also has its own README: [backend](backend/README.md) · [rimpl](rimpl/README.md) · [physician-ui](physician-ui/README.md) · [audit-dashboard](audit-dashboard/README.md). The 2026-06 design audit added shared front-end primitives — physician-ui `js/{icons,ui}.js`; audit-dashboard `components/{BiLabel,Overlays,Markdown,DomainScorer}.tsx` + `lib/{chart-colors,pis7-rubric}.ts` (`pis7-rubric.ts` mirrors `rimpl/src/lib/prompts.js`).
 
@@ -53,8 +53,9 @@ See [docs/agents/triage-labels.md](docs/agents/triage-labels.md).
 
 ### Domain docs
 
-Single-context: `CONTEXT.md` + `docs/adr/` at the repo root (neither exists yet — `/domain-modeling`
-creates them lazily). See [docs/agents/domain.md](docs/agents/domain.md).
+Single-context: `CONTEXT.md` + `docs/adr/`. `docs/adr/` now exists and holds
+[ADR 0001 — D3 transport topology](docs/adr/0001-d3-transport-topology.md); `CONTEXT.md` does not
+yet (`/domain-modeling` creates it lazily). See [docs/agents/domain.md](docs/agents/domain.md).
 
 ## Documentation index
 
@@ -75,3 +76,4 @@ creates them lazily). See [docs/agents/domain.md](docs/agents/domain.md).
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Prioritized next steps (pilot-readiness → spec gaps → flagship) |
 | [docs/ONPREM-INSTALL.th.md](docs/ONPREM-INSTALL.th.md) | Thai install spec handed to the box owner — footprint, ports, data path, install/verify/remove (render: `node scripts/docs/th-doc-pdf.mjs`) |
 | [docs/LOCAL-MODEL-ROADMAP.md](docs/LOCAL-MODEL-ROADMAP.md) | Plan for moving AI calls to the on-prem DGX model (phases, gates, the mid-pilot timing constraint) |
+| [docs/adr/](docs/adr/) | Architecture decision records. **0001 — build no more D3 transport until a GDCC VM exists** (read before designing any backend→RIMPL network path) |

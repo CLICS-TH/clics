@@ -15,7 +15,7 @@ import { pis7Conclusion } from '@/lib/pis7-delta';
 import type { Stat } from '@/components/StatStrip';
 import type { CleStats, AuditorCalibration } from '@/lib/types';
 
-type IccResp = { icc: number | null; n: number };
+type IccResp = { icc: number | null; n: number; locked?: boolean };
 type QueueItem = { id: string; scored?: boolean };
 
 // /home is the role-aware hero landing for Admin (B) and Auditor (D). Superadmin (A) lands on
@@ -104,7 +104,10 @@ export default function HomePage() {
         { value: toScore, label: 'รอประเมิน / To score', tone: toScore > 0 ? 'warn' : 'default', href: '/auditor/queue' },
         { value: scored, label: 'ประเมินแล้ว / Scored', tone: 'pass', href: '/auditor/queue' },
         { value: queue.length, label: 'ได้รับมอบหมาย / Assigned', href: '/auditor/queue' },
-        { value: icc.icc != null ? icc.icc.toFixed(2) : '—', label: `ICC ของฉัน / My ICC${icc.n ? ` · n=${icc.n}` : ''}` },
+        // During a calibration round this is withheld, not absent. A bare '—' is what a rater who has
+        // never scored anything sees, so without the label the console reads as having lost their work.
+        { value: icc.locked ? '🙈' : icc.icc != null ? icc.icc.toFixed(2) : '—',
+          label: icc.locked ? 'ICC ของฉัน / My ICC · ปิดระหว่างรอบสอบเทียบ' : `ICC ของฉัน / My ICC${icc.n ? ` · n=${icc.n}` : ''}` },
       ];
       const actions: HeroAction[] = [{ label: 'เริ่มประเมิน / Start scoring', href: '/auditor/queue' }];
       return (
@@ -117,6 +120,21 @@ export default function HomePage() {
             stats={stats}
             actions={actions}
           />
+          {/* Withheld for the round, and said so. Both radars below are gated on n > 0, so with the
+              lock on they simply vanish — indistinguishable from having scored nothing. Wording
+              mirrors the score page's locked banner so the same round explains itself the same way. */}
+          {calib?.locked && (
+            <div className="rounded-xl border p-5">
+              <h2 className="font-sans text-lg font-semibold mb-1">🙈 ปิดการเผยคะแนนไว้ระหว่างรอบสอบเทียบ <span className="text-sm font-normal text-muted-foreground">/ Comparisons locked for this round</span></h2>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                คะแนนที่คุณส่งไปแล้วถูกบันทึกครบ ระหว่างรอบสอบเทียบระบบจะยังไม่แสดงการเทียบกับ AI และกับผู้ตรวจท่านอื่น
+                เพื่อให้แต่ละ PLE ถูกให้คะแนนอย่างเป็นอิสระ ผู้ประสานงานจะเปิดให้ดูเมื่อทุกท่านให้คะแนนครบแล้ว •
+                Every score you have submitted is saved. Your comparisons against the AI and against other
+                auditors stay hidden for the duration of the round so each PLE is scored independently.
+                The coordinator opens them once every rater has finished.
+              </p>
+            </div>
+          )}
           {/* Aggregate calibration radar: your mean PIS-7 vs the AI's across everything you've scored.
               Only meaningful once at least one scored PLE has an AI evaluation to pair with (n>0). */}
           {calib && calib.n > 0 && calib.auditor && calib.ai && (

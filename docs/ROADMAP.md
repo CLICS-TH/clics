@@ -1,7 +1,11 @@
 # CLICS Roadmap
 
-Next steps, ordered by priority. Framed against the pilot timeline (see [pilot-timeline.md](pilot-timeline.md)):
-**July 2026** = calibration workshop, target inter-rater **ICC ≥ 0.75**; **Aug–Sep 2026** = pilot study, 75 physicians × 3 PLEs.
+Next steps, ordered by priority.
+
+> **The July/Aug–Sep schedule this file used to be framed against is superseded.** Neither milestone
+> started: the calibration workshop did not happen and CREC approval — which data collection is
+> defined relative to — has not been granted. See [pilot-timeline.md](pilot-timeline.md) for what
+> replaced it and why no month is named. Priorities below still hold; the dates around them do not.
 
 The prototype is feature-complete and live (4 roles, folders, chat, PLE gate, PIS-7 scoring, auditor blind-scoring, ICC). These items take it from prototype → pilot-grade → full spec.
 

@@ -3,7 +3,7 @@ const { createHash } = require('crypto');
 const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
-const { AssignSchema } = require('../lib/schemas');
+const { AssignSchema, SCORE_ATTESTATIONS } = require('../lib/schemas');
 const { enqueueEvaluation } = require('../services/ple-finalize');
 const { reconcileEvaluations } = require('../services/reconcile');
 const { minAuditorsPerPle, privacyReviewRequired } = require('../lib/settings');
@@ -901,7 +901,15 @@ router.get('/export', async (req, res) => {
   const pseudo = Object.fromEntries((pros ?? []).map(p => [p.id, p.pseudonym]));
   const { data: ai } = await (pleIds.length ? supabase.from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7, model_version, prompt_version, rubric_version, provenance, evaluated_at').in('ple_id', pleIds) : empty);
   const aiBy = Object.fromEntries((ai ?? []).map(e => [e.ple_id, e]));
-  const { data: audits } = await (pleIds.length ? supabase.from('audit_scores').select('ple_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7').in('ple_id', pleIds) : empty);
+  // Anchor clarity, the rater's free text and the five per-assessment attestations travel WITH the
+  // scores. They are the only record of WHY a rater landed where they did, and a calibration round
+  // that exports scores alone produces numbers nobody can interpret afterwards — which already
+  // happened to the one human cohort that exists (see docs/G0.5-HUMAN-RATER-PREP.th.md §0).
+  // `notes` is auditor-authored text about an already de-identified transcript, so it carries no
+  // patient identifier by construction; the auditor themself stays pseudonymous via auditorTag.
+  const AUDIT_COLS = 'ple_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7, notes, scored_at, '
+    + PIS7_DIMS.map(d => `${d}_anchor`).join(', ') + ', attestations';
+  const { data: audits } = await (pleIds.length ? supabase.from('audit_scores').select(AUDIT_COLS).in('ple_id', pleIds) : empty);
   // Auditors are study staff, not research subjects — pseudonymize their id to the protocol's
   // EXP-NNN code (CLICS §9.2). Fall back to a stable A-<hash> only if an auditor predates the code
   // backfill, so the export never carries a reversible identity.
@@ -910,7 +918,15 @@ router.get('/export', async (req, res) => {
   const expCode = Object.fromEntries((auditors ?? []).map(a => [a.id, a.exp_code]));
   const auditorTag = (id) => expCode[id] || ('A-' + createHash('sha256').update(String(id)).digest('hex').slice(0, 8));
   const audBy = {};
-  (audits ?? []).forEach(s => { (audBy[s.ple_id] ??= []).push({ auditor: auditorTag(s.auditor_id), composite: Number(s.composite_score), d1: s.d1, d2: s.d2, d3: s.d3, d4: s.d4, d5: s.d5, d6: s.d6, d7: s.d7 }); });
+  (audits ?? []).forEach(s => {
+    const row = { auditor: auditorTag(s.auditor_id), composite: Number(s.composite_score), scored_at: s.scored_at ?? null };
+    for (const d of PIS7_DIMS) { row[d] = s[d]; row[`${d}_anchor`] = s[`${d}_anchor`] ?? null; }
+    row.notes = s.notes ?? null;
+    // Absent attestations export as absent, not as false: a submission that predates the form is a
+    // MISSING confirmation, and flattening it to false would assert the rater declined to make it.
+    row.attestations = Object.fromEntries(SCORE_ATTESTATIONS.map(k => [k, s.attestations?.[k] ?? null]));
+    (audBy[s.ple_id] ??= []).push(row);
+  });
   const sessions = (ples ?? []).map(p => {
     const e = aiBy[p.id];
     return {
@@ -959,7 +975,8 @@ router.get('/export.xlsx', async (req, res) => {
     supabase.from('councils').select('id, code'),
     supabase.from('specialties').select('id, code'),
     pleIds.length ? supabase.from('ai_evaluations').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7, model_version, prompt_version, rubric_version').in('ple_id', pleIds) : empty,
-    pleIds.length ? supabase.from('audit_scores').select('ple_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7, scored_at').in('ple_id', pleIds) : empty,
+    pleIds.length ? supabase.from('audit_scores').select('ple_id, auditor_id, composite_score, d1,d2,d3,d4,d5,d6,d7, scored_at, notes, '
+      + PIS7_DIMS.map(d => `${d}_anchor`).join(', ') + ', attestations').in('ple_id', pleIds) : empty,
     supabase.from('professionals').select('pseudonym, exp_code, role, can_audit, council_id, specialty_id, position').limit(EXPORT_CAP),
   ]);
   const pseudo = Object.fromEntries((pros ?? []).map(p => [p.id, p.pseudonym]));
@@ -993,9 +1010,22 @@ router.get('/export.xlsx', async (req, res) => {
     [{ h: 'PLE', k: 'ple', w: 16 }, { h: 'Composite', k: 'comp', w: 10 }, ...PIS7_DIMS.map(d => ({ h: d.toUpperCase(), k: d, w: 6 })), { h: 'Model', k: 'model', w: 18 }, { h: 'Prompt', k: 'prompt', w: 12 }, { h: 'Rubric', k: 'rubric', w: 12 }],
     (ai ?? []).map(e => ({ ple: pleCode[e.ple_id] ?? e.ple_id, comp: Number(e.composite_score), d1: e.d1, d2: e.d2, d3: e.d3, d4: e.d4, d5: e.d5, d6: e.d6, d7: e.d7, model: e.model_version ?? '', prompt: e.prompt_version ?? '', rubric: e.rubric_version ?? '' })));
 
+  // Anchor clarity sits beside its own domain (D1, D1 anchor, D2, D2 anchor, ...) rather than in a
+  // block at the end, so a reader comparing a score to how clear its anchor felt does not have to
+  // count columns. Attestations get one column each — a single joined cell cannot be filtered on.
   addSheet('Auditor scores',
-    [{ h: 'PLE', k: 'ple', w: 16 }, { h: 'Auditor', k: 'aud', w: 12 }, { h: 'Composite', k: 'comp', w: 10 }, ...PIS7_DIMS.map(d => ({ h: d.toUpperCase(), k: d, w: 6 })), { h: 'Scored', k: 'scored', w: 20 }],
-    (audits ?? []).map(s => ({ ple: pleCode[s.ple_id] ?? s.ple_id, aud: auditorTag(s.auditor_id), comp: Number(s.composite_score), d1: s.d1, d2: s.d2, d3: s.d3, d4: s.d4, d5: s.d5, d6: s.d6, d7: s.d7, scored: s.scored_at ?? '' })));
+    [{ h: 'PLE', k: 'ple', w: 16 }, { h: 'Auditor', k: 'aud', w: 12 }, { h: 'Composite', k: 'comp', w: 10 },
+      ...PIS7_DIMS.flatMap(d => [{ h: d.toUpperCase(), k: d, w: 6 }, { h: `${d.toUpperCase()} anchor`, k: `${d}_anchor`, w: 11 }]),
+      { h: 'Scored', k: 'scored', w: 20 },
+      ...SCORE_ATTESTATIONS.map(k => ({ h: k.replace(/_/g, ' '), k, w: 14 })),
+      { h: 'Notes', k: 'notes', w: 60 }],
+    (audits ?? []).map(s => {
+      const row = { ple: pleCode[s.ple_id] ?? s.ple_id, aud: auditorTag(s.auditor_id), comp: Number(s.composite_score), scored: s.scored_at ?? '', notes: s.notes ?? '' };
+      for (const d of PIS7_DIMS) { row[d] = s[d]; row[`${d}_anchor`] = s[`${d}_anchor`] ?? ''; }
+      // '' for an attestation that was never recorded, 'yes'/'no' only when the rater actually answered.
+      for (const k of SCORE_ATTESTATIONS) { const v = s.attestations?.[k]; row[k] = v == null ? '' : (v ? 'yes' : 'no'); }
+      return row;
+    }));
 
   addSheet('Compensation',
     [{ h: 'Physician', k: 'phys', w: 10 }, { h: 'Completed PLEs', k: 'done', w: 14 }, { h: 'Amount (THB)', k: 'amt', w: 14 }],

@@ -152,6 +152,10 @@ export interface IccData {
   inter_auditor?: IccStat & { model?: string; model_alt?: string; n_ratings?: number; k0?: number };
   inter_auditor_average?: (IccStat & { model?: string; model_alt?: string; k?: number }) | null;
   inter_auditor_note?: string;
+  // The same ICC(1,1) per PIS-7 domain, so it reads on one scale with inter_auditor above. A null
+  // entry means the domain had no multi-rated episode; an entry whose `icc` is null carries the
+  // reason in `interpretation` (usually every rater choosing the same value).
+  inter_auditor_per_domain?: Record<string, (IccStat & { model?: string; model_alt?: string }) | null>;
   // SAP "Additional agreement" — ordinal-aware, chance-corrected.
   weighted_kappa?: { domains: Record<string, KappaStat | null>; pooled: KappaStat | null };
 }
@@ -219,6 +223,10 @@ export interface AuditorPle {
   // ("the other auditor" rather than "the auditor average").
   peer_avg?: Record<string, number> | null;
   peer_n?: number;
+  // Set when app_settings.calibration_reveal_locked is on: the AI score, the peer average and the
+  // discussion are withheld for the whole round, not merely until this auditor submits. The flag
+  // exists so the UI can say so — an unexplained empty pane reads as a bug.
+  reveal_locked?: boolean;
   error?: unknown;
 }
 
@@ -229,6 +237,9 @@ export interface AuditorCalibration {
   auditor: Record<string, number> | null;
   ai: Record<string, number> | null;
   peer?: Record<string, number> | null;
+  // Set when app_settings.calibration_reveal_locked is on. Without it a withheld radar is
+  // byte-identical to the empty state of a rater who has scored nothing.
+  locked?: boolean;
 }
 
 // GET /admin/payouts (superadmin) — the real-name compensation payout pipeline (owed/paid/outstanding).
@@ -368,6 +379,7 @@ export interface UsageSettings {
   clinical_artifacts_enabled?: boolean;
   peer_calibration_enabled?: boolean;
   hold_result_until_audited?: boolean;
+  calibration_reveal_locked?: boolean;
   comp_rate_thb?: number;
   comp_cap_cles?: number;
   min_auditors_per_cle?: number;

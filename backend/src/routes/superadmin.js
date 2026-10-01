@@ -89,6 +89,11 @@ const UsageSettingsSchema = z.object({
   // Hold Result Until Audited: when ON, a physician's PIS-7 score is withheld ("under expert review")
   // until an auditor has scored that PLE — for a blinded test round. Default OFF.
   hold_result_until_audited: z.boolean().optional(),
+  // Calibration Reveal Lock: when ON, auditors see no AI score, no AI discussion, no peer average and
+  // no vs-AI agreement for the WHOLE round — not merely until they submit. Default OFF.
+  // Distinct from hold_result_until_audited, which withholds the PHYSICIAN's score. See
+  // lib/settings.calibrationRevealLocked.
+  calibration_reveal_locked: z.boolean().optional(),
   // Compensation (CLICS §12): ฿/completed-PLE rate and the per-physician cap in PLEs (0 = no cap).
   // Minimum auditors per PLE. WARNS, never blocks — see lib/settings.minAuditorsPerPle. Capped at
   // 10 so a typo cannot badge the entire queue red.
@@ -417,7 +422,7 @@ async function rescueSpendTotal() {
 
 router.get('/usage-settings', async (_req, res) => {
   // All independent reads in one batch (was several sequential awaits on the same table).
-  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles, min_auditors_per_cle, total_used_usd, auditor_total_used_usd, rescue_total_used_usd,
+  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, revealLock, comp_rate_thb, comp_cap_cles, min_auditors_per_cle, total_used_usd, auditor_total_used_usd, rescue_total_used_usd,
     standard_limit_tokens, auditor_standard_limit_tokens, ple_max_transcript_tokens, ple_transcript_warn_pct, eval_drain_concurrency, eval_p50_seconds, eval_drain_exclude_councils] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
     readSetting('auditor_standard_usage_limit_usd', 0.5),
@@ -426,6 +431,7 @@ router.get('/usage-settings', async (_req, res) => {
     readSetting('clinical_artifacts', 0),
     readSetting('peer_calibration', 0),
     readSetting('hold_result_until_audited', 0),
+    readSetting('calibration_reveal_locked', 0),
     readSetting('comp_rate_thb', 500),
     readSetting('comp_cap_cles', 3),
     readSetting('min_auditors_per_cle', 1),
@@ -440,7 +446,7 @@ router.get('/usage-settings', async (_req, res) => {
     readSetting('eval_p50_seconds', 90),
     getTextSetting('eval_drain_exclude_councils', ''),
   ]);
-  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, total_used_usd, auditor_total_used_usd, rescue_total_used_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles, min_auditors_per_cle,
+  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, total_used_usd, auditor_total_used_usd, rescue_total_used_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, calibration_reveal_locked: revealLock === 1, comp_rate_thb, comp_cap_cles, min_auditors_per_cle,
     standard_limit_tokens, auditor_standard_limit_tokens, ple_max_transcript_tokens, ple_transcript_warn_pct, eval_drain_concurrency, eval_p50_seconds, eval_drain_exclude_councils });
 });
 
@@ -456,6 +462,7 @@ router.patch('/usage-settings', async (req, res) => {
   if (parsed.data.clinical_artifacts_enabled != null) upserts.push({ key: 'clinical_artifacts', value: parsed.data.clinical_artifacts_enabled ? 1 : 0, updated_at: now });
   if (parsed.data.peer_calibration_enabled != null) upserts.push({ key: 'peer_calibration', value: parsed.data.peer_calibration_enabled ? 1 : 0, updated_at: now });
   if (parsed.data.hold_result_until_audited != null) upserts.push({ key: 'hold_result_until_audited', value: parsed.data.hold_result_until_audited ? 1 : 0, updated_at: now });
+  if (parsed.data.calibration_reveal_locked != null) upserts.push({ key: 'calibration_reveal_locked', value: parsed.data.calibration_reveal_locked ? 1 : 0, updated_at: now });
   if (parsed.data.comp_rate_thb != null) upserts.push({ key: 'comp_rate_thb', value: parsed.data.comp_rate_thb, updated_at: now });
   if (parsed.data.comp_cap_cles != null) upserts.push({ key: 'comp_cap_cles', value: parsed.data.comp_cap_cles, updated_at: now });
   if (parsed.data.min_auditors_per_cle != null) upserts.push({ key: 'min_auditors_per_cle', value: parsed.data.min_auditors_per_cle, updated_at: now });
@@ -501,12 +508,18 @@ router.patch('/usage-settings', async (req, res) => {
     logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'hold_result_until_audited',
       metadata: { enabled: parsed.data.hold_result_until_audited } });
   }
+  if (parsed.data.calibration_reveal_locked != null) {
+    // Logged because it defines the window inside which scores can be called independent — a round
+    // whose lock dates cannot be produced afterwards is a round whose blinding cannot be evidenced.
+    logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'calibration_reveal_locked',
+      metadata: { enabled: parsed.data.calibration_reveal_locked } });
+  }
   if (parsed.data.min_auditors_per_cle != null) {
     // Logged because it changes what every subsequent ICC cohort report calls "at target".
     logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'min_auditors_per_cle',
       metadata: { value: parsed.data.min_auditors_per_cle } });
   }
-  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, comp_rate_thb, comp_cap_cles, min_auditors_per_cle,
+  const [standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot, artifacts, peer, hold, revealLock, comp_rate_thb, comp_cap_cles, min_auditors_per_cle,
     standard_limit_tokens, auditor_standard_limit_tokens, ple_max_transcript_tokens, ple_transcript_warn_pct, eval_drain_concurrency, eval_p50_seconds, eval_drain_exclude_councils] = await Promise.all([
     readSetting('standard_usage_limit_usd', 0.5),
     readSetting('auditor_standard_usage_limit_usd', 0.5),
@@ -515,6 +528,7 @@ router.patch('/usage-settings', async (req, res) => {
     readSetting('clinical_artifacts', 0),
     readSetting('peer_calibration', 0),
     readSetting('hold_result_until_audited', 0),
+    readSetting('calibration_reveal_locked', 0),
     readSetting('comp_rate_thb', 500),
     readSetting('comp_cap_cles', 3),
     readSetting('min_auditors_per_cle', 1),
@@ -527,7 +541,7 @@ router.patch('/usage-settings', async (req, res) => {
     getTextSetting('eval_drain_exclude_councils', ''),
   ]);
   // Echo EVERY key the GET returns, so a client can `setState(res)` after a PATCH without losing fields.
-  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, comp_rate_thb, comp_cap_cles, min_auditors_per_cle,
+  res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, calibration_reveal_locked: revealLock === 1, comp_rate_thb, comp_cap_cles, min_auditors_per_cle,
     standard_limit_tokens, auditor_standard_limit_tokens, ple_max_transcript_tokens, ple_transcript_warn_pct, eval_drain_concurrency, eval_p50_seconds, eval_drain_exclude_councils });
 });
 
@@ -945,6 +959,18 @@ function iccBundle(pairs, minAuditors = 1) {
     inter_auditor_average: multi.length >= 2 ? iccTwoWayAverage(multi.map(p => p.rater_scores)) : null,
     inter_auditor_note: 'ICC(1,1) assumes auditors are drawn per PLE (rater nested in subject) and is the conservative reading. ICC(A,k) assumes a fixed panel scoring every PLE. Report the one matching how assignment actually ran, and say which.',
 
+    // The same ICC(1,1) per PIS-7 domain. ICC(1,1) and not the average-measures variant, so these
+    // sit on the same scale as `inter_auditor` above and can be read against it directly.
+    //
+    // Read it as a MAP, not as seven verdicts. Per-domain ICC at pilot n is unstable -- d1 has been
+    // observed at 0.055, 0.663 and 0.294 on the same instrument -- and a domain whose raters all
+    // chose the same value returns null with 'Insufficient variance', which is a finding about the
+    // cohort and not agreement. Every entry carries its own n and interpretation; report those.
+    inter_auditor_per_domain: Object.fromEntries(ICC_DOMAINS.map((d) => {
+      const rows = multi.map(p => p.rater_domains?.[d]).filter(v => Array.isArray(v) && v.length >= 2);
+      return [d, rows.length >= 2 ? iccOneWay(rows) : null];
+    })),
+
     // Weighted kappa — SAP "Additional agreement". Ordinal-aware in a way ICC is not: it asks how
     // often the two land on the SAME 0-5 category, corrected for the agreement their marginal
     // habits would produce by chance. Per-domain because a composite that agrees can still hide one
@@ -996,6 +1022,11 @@ router.get('/icc', async (req, res) => {
       // inter-auditor agreement needs the individual auditors, and averaging them away first is
       // exactly what makes that figure impossible to compute later.
       rater_scores: rows.map(r => Number(r.composite_score)),
+      // Per-domain, kept in the SAME row order as rater_scores so the two describe one set of
+      // raters. Composite agreement can look acceptable while a single domain carries all the
+      // disagreement, and that domain is the one whose anchors need rewriting — which is the
+      // calibration workshop's actual output. Composite alone cannot name it.
+      rater_domains: Object.fromEntries(ICC_DOMAINS.map(d => [d, rows.map(r => Number(r[d]))])),
     });
   }
 
