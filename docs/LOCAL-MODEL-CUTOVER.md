@@ -179,7 +179,7 @@ None of it is deployed, and none of it moves step 7's denominator.
 | G0 access | **done** | `cme-dev` over the tailnet; `deepseek-v4-flash-dspark` via an OpenAI-compatible endpoint |
 | G0 probe | **passed** | JSON 25/26 · Thai 6/6 · ≥22,804 input tokens · eval p50 68 s · safe concurrency 2 |
 | **G0.5 human baseline** | **unchanged** | still −0.315 on n=5; nothing scored by a human since June |
-| candidate vs incumbent | **measured, not a gate** | ICC(A,1) 0.594 on 26 PLEs, bias −2.2 (local harsher). ~59 % of the disagreement is common-mode |
+| candidate vs incumbent | **measured, not a gate** | ICC(A,1) 0.594 on 26 PLEs, bias −2.2 (local harsher) — both on the unweighted d1–d7 sum, 0–35 (note, 2026-10-02: GATE0 §7.2). ~59 % of the disagreement is common-mode |
 | evaluator reproducibility | **the finding** | same fixture, same prompt, temperature 0: Σ\|Δ\| 0–8 across sessions **on either model**. The instrument is the weak link, not the box |
 | P4 screening verdict | **tooling ready, not run** | `scripts/probe/screening-verdict.mjs` on the reserved 8-pair held-out split, after WP-E lands |
 

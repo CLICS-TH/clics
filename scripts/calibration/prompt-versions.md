@@ -145,6 +145,14 @@ mid-run, so it does not describe all 18.  ‡ from `noise-2026-09-03-addendum.js
 § counted per FIXTURE in these two reports, which predate per-call accounting: read as a floor, not
 a rate.  ¶ same configuration as the row above it, ninety minutes later — see the survivorship note.
 
+> **Note, 2026-10-01 — every interval in this table is a Fisher-z interval.** That is what `icc.js`
+> computed when each row was recorded. From 2026-10-01 `icc.js` uses the exact F-based McGraw & Wong
+> interval, which gives, top to bottom on the same reports: 0.107–0.833 · 0.354–0.907 · 0.421–0.914 ·
+> 0.211–0.835 · 0.422–0.937 · **0.000–0.855** (`methodology-figures.mjs --json`). Every verdict is still
+> `insufficient`. The point estimates do not change, and all six are on the weighted composite. The
+> pairs-needed figures under "Still `insufficient`" below rest on the same retired interval; F-based,
+> they are 4,898 at 0.762, 17 at 0.90 and 12 at 0.92.
+
 **v0 baseline, 2026-09-02.** The first row is the local model against the incumbent on the 18-fixture
 tuning split, with adaptive self-consistency ON. Read it with the earlier single-call measurement
 (ICC 0.594, 26 fixtures): **self-consistency did not move agreement** — 0.578 weighted / 0.591
@@ -160,6 +168,16 @@ model that ranks the episodes differently. That is what the addendum below is ai
 things at once: composite ICC 0.578 → 0.735 → **0.762**, bias −2.50 → +0.79 → **+0.00**, and the
 repeatability floor from Σ|Δ| median 6 to **1** — the last of which is what §8.3 called the real
 blocker, and it is now clear.
+
+> **Note, 2026-10-02 (PR #105) — the biases and the Bland–Altman band in the two paragraphs above are on the
+> unweighted d1–d7 sum (0–35), not on the weighted composite of the ICCs beside them.** They were read
+> off `model-agreement.mjs`, which printed its bias and band on that sum until PR #105 (2026-10-02). It prints on
+> the weighted composite now, as `e2-compare.mjs` does, and `methodology-figures.mjs --json` reports
+> both (`bias_weighted`, `bias_unweighted_sum`). On the weighted composite the three runs read
+> **−7.875 → +1.64 → −0.73**, and v0's band is **−30.70…14.95**. Read as points on the 0–100 credit
+> scale, "−2.50" understates v0's harshness about threefold, and row 3's bias is not zero. The 0.594
+> the v0 paragraph compares against is an unweighted-sum figure too (GATE0 §7.2), so its like-for-like
+> partner is 0.591. The per-domain ICCs are unaffected. The figures above stay as recorded.
 
 **Still `insufficient`.** At 0.762 the interval is 0.410–0.917 and the tool computes **4,899 pairs**
 needed to lift the lower bound past 0.75 — not reachable. The point estimate has to rise (0.90 → 19
@@ -191,9 +209,10 @@ re-punctuated from double to single quotes. The text changed, so the derived sha
 
     pis7-prompt-59561c29+local-cae23b1a5f37   ->   pis7-prompt-59561c29+local-c5ffe572aa81
 
-**Every number in rows 2 and 3 belongs to `cae23b1a5f37`** — ICC 0.735 / 0.762, bias +0.79 / +0.00,
-Σ|Δ| median 1, JSON 94.4%, and the per-domain table. They stay in this file as the record of that
-prompt; none of them is a claim about the prompt now in `prompts.js`. Re-measuring means a fresh
+**Every number in rows 2 and 3 belongs to `cae23b1a5f37`** — ICC 0.735 / 0.762, bias +0.79 / +0.00
+(unweighted sum; +1.64 / −0.73 weighted — see the 2026-10-02 note above), Σ|Δ| median 1, JSON
+94.4%, and the per-domain table. They stay in this file as the record of that prompt; none of them
+is a claim about the prompt now in `prompts.js`. Re-measuring means a fresh
 `model-agreement.mjs` run on the tuning split (the held-out split must stay unopened) — ICC, bias
 and Σ|Δ| as well as JSON%, because a punctuation change to worked examples inside a scoring prompt
 is not guaranteed to be score-neutral even though it was not intended to move scores.

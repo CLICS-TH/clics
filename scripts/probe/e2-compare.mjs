@@ -18,6 +18,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dim, red, green, yellow, hr, table, percentile, fail } from './lib.mjs';
 import { isTransport } from './parseability.mjs';
+import { compositeAgreement, compositeSpread } from './agreement-stats.mjs';
 
 const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -195,19 +196,20 @@ function summarizeRepeat(report) {
       domain,
       range(result.runs.map((scores) => scores[domain])),
     ]));
-    const compositeRange = range(result.runs.map((scores) =>
-      DOMAINS.reduce((sum, domain) => sum + scores[domain], 0)));
+    // Production's weighted composite, as repeat-consistency.mjs prints it per fixture — until 2026-10
+    // this was the range of the unweighted d1..d7 sum, so the two tools disagreed about the same report.
+    const compositeRange = compositeSpread(result.runs).range;
     const domainValues = Object.values(domainRanges).filter((value) => value !== null);
     return {
       domain_ranges: domainRanges,
       noise_sum_abs_delta: domainValues.length === DOMAINS.length
         ? domainValues.reduce((sum, value) => sum + value, 0)
         : null,
-      composite_range: compositeRange,
+      weighted_composite_range: compositeRange,
     };
   });
   const noiseValues = fixtureStats.map((item) => item.noise_sum_abs_delta).filter((value) => value !== null);
-  const compositeRanges = fixtureStats.map((item) => item.composite_range).filter((value) => value !== null);
+  const compositeRanges = fixtureStats.map((item) => item.weighted_composite_range).filter((value) => value !== null);
   const noiseMedian = percentile(noiseValues, 50);
   const jsonPercent = attempted ? (parsed / attempted) * 100 : null;
   const noisePass = noiseMedian !== null && noiseMedian <= 2;
@@ -232,7 +234,9 @@ function summarizeRepeat(report) {
       fixtures_at_most_2: noiseValues.filter((value) => value <= 2).length,
       fixtures_measured: noiseValues.length,
     },
-    composite_range_median: percentile(compositeRanges, 50),
+    // Renamed from composite_range_median when it became weighted: a reader of the old key must get
+    // nothing, not a number on a different scale under a familiar name.
+    weighted_composite_range_median: percentile(compositeRanges, 50),
     mean_calls_per_repeat: mean(calls),
     mean_seconds_per_repeat: mean(milliseconds) === null ? null : mean(milliseconds) / 1000,
     domain_mean_ranges: Object.fromEntries(DOMAINS.map((domain) => [
@@ -270,23 +274,12 @@ function validateAgreement(report, reportName) {
   });
 }
 
-// --- ICC(A,1): two-way mixed, absolute agreement, single measure -------------------------------
-// The statistic CREC082 §8.2 names for AI-vs-reference. Two raters here (the two models), n targets.
-// Written out rather than pulled from a library so the formula is auditable next to the number.
-function iccA1(pairs) {
-  const n = pairs.length; if (n < 2) return null;
-  const k = 2;
-  const grand = pairs.flat().reduce((a, b) => a + b, 0) / (n * k);
-  const rowMeans = pairs.map((p) => (p[0] + p[1]) / 2);
-  const colMeans = [0, 1].map((j) => pairs.reduce((a, p) => a + p[j], 0) / n);
-  const MSR = (k * rowMeans.reduce((a, m) => a + (m - grand) ** 2, 0)) / (n - 1);
-  const MSC = (n * colMeans.reduce((a, m) => a + (m - grand) ** 2, 0)) / (k - 1);
-  let sse = 0;
-  pairs.forEach((p, i) => p.forEach((v, j) => { sse += (v - rowMeans[i] - colMeans[j] + grand) ** 2; }));
-  const MSE = sse / ((n - 1) * (k - 1));
-  const denom = MSR + (k - 1) * MSE + (k * (MSC - MSE)) / n;
-  return denom === 0 ? null : (MSR - MSE) / denom;
-}
+// --- ICC(A,1) ---------------------------------------------------------------------------------
+// No private copy lives here any more. This file carried its own ICC(A,1) over the unweighted d1..d7
+// sum, beside a second copy in model-agreement.mjs and production's weighted one in the verdict tool,
+// and they disagreed about the same run (0.726 here, 0.735 there). Logic re-implemented in three places
+// has given three answers before — the parseability accounting, 2026-09-04 — so the probes now share
+// production's estimator and composite through agreement-stats.mjs.
 
 function summarizeAgreement(report, bestRepeatNoiseMedian) {
   const paired = report.rows.filter((row) => row.local !== null && row.cloud !== null);
@@ -294,11 +287,7 @@ function summarizeAgreement(report, bestRepeatNoiseMedian) {
     const deltas = paired.map((row) => row.local[domain] - row.cloud[domain]);
     return [domain, { mean_delta: mean(deltas), mean_abs_delta: mean(deltas.map(Math.abs)) }];
   }));
-  const compositePairs = paired.map((row) => [
-    DOMAINS.reduce((sum, domain) => sum + row.local[domain], 0),
-    DOMAINS.reduce((sum, domain) => sum + row.cloud[domain], 0),
-  ]);
-  const compositeDeltas = compositePairs.map(([local, cloud]) => local - cloud);
+  const composite = compositeAgreement(paired);
   const sumAbsDeltas = paired.map((row) => DOMAINS.reduce(
     (sum, domain) => sum + Math.abs(row.local[domain] - row.cloud[domain]), 0));
   const calls = paired.map((row) => row.consistency?.calls ?? null);
@@ -308,9 +297,14 @@ function summarizeAgreement(report, bestRepeatNoiseMedian) {
     rows: report.rows.length,
     paired_rows: paired.length,
     domains,
-    composite: {
-      icc_a1: iccA1(compositePairs),
-      bias_local_minus_cloud: mean(compositeDeltas),
+    // `weighted_composite`, not `composite`: until 2026-10 `composite.icc_a1` held a private ICC on the
+    // unweighted sum. A consumer of the old key gets undefined, never a number whose meaning changed.
+    weighted_composite: {
+      scale: composite.scale,
+      n: composite.n,
+      icc: composite.icc,   // iccTwoRater verbatim: { icc, lower, upper, n, interpretation }, or null
+      bias_local_minus_cloud: composite.bias,
+      limits_of_agreement: composite.limits,
     },
     sum_abs_delta_median: agreementMedian,
     unparseable: {
@@ -334,7 +328,7 @@ function printHuman(report) {
   hr('E2 self-consistency variants');
   console.log(`  split  ${report.split === null ? dim('(none)') : report.split}\n`);
   table(
-    ['variant', 'fixtures', 'repeats', 'JSON%', 'noise Σ|Δ| med', 'noise Σ|Δ| max', 'noise ≤2', 'comp range med', 'calls/repeat', 'sec/repeat', 'bar'],
+    ['variant', 'fixtures', 'repeats', 'JSON%', 'noise Σ|Δ| med', 'noise Σ|Δ| max', 'noise ≤2', 'w-comp range med', 'calls/repeat', 'sec/repeat', 'bar'],
     report.repeats.map((item) => [
       // A legacy row's JSON% is computed on a different basis from a fresh one's; putting them in one
       // table unmarked let a bad afternoon on the box read FAIL beside a PASS decided another way.
@@ -345,7 +339,7 @@ function printHuman(report) {
       fmt(item.noise_sum_abs_delta.median, 0),
       fmt(item.noise_sum_abs_delta.max, 0),
       `${item.noise_sum_abs_delta.fixtures_at_most_2}/${item.noise_sum_abs_delta.fixtures_measured}`,
-      fmt(item.composite_range_median, 0),
+      fmt(item.weighted_composite_range_median, 1),
       fmt(item.mean_calls_per_repeat, 2),
       fmt(item.mean_seconds_per_repeat, 2),
       item.bars.pass ? green('PASS') : red('FAIL'),
@@ -372,12 +366,18 @@ function printHuman(report) {
       ['l', 'r', 'r'],
     );
     console.log('');
+    const weighted = report.agreement.weighted_composite;
+    // Each bound on its own: the F-based interval can be null while the point estimate is not.
+    const icc = weighted.icc?.icc == null ? '—'
+      : `${fmt(weighted.icc.icc, 3)} (${fmt(weighted.icc.lower, 3)}–${fmt(weighted.icc.upper, 3)})`;
     table(
       ['metric', 'value'],
       [
         ['paired rows', `${report.agreement.paired_rows}/${report.agreement.rows}`],
-        ['ICC(A,1), unweighted composite', fmt(report.agreement.composite.icc_a1, 3)],
-        ['composite bias (local − cloud)', fmt(report.agreement.composite.bias_local_minus_cloud, 2)],
+        ['ICC(A,1) weighted composite (95% CI)', icc],
+        ['weighted composite bias (local − cloud)', fmt(weighted.bias_local_minus_cloud, 2)],
+        ['weighted composite B–A limits', weighted.limits_of_agreement
+          ? `${fmt(weighted.limits_of_agreement.lower, 2)} … ${fmt(weighted.limits_of_agreement.upper, 2)}` : '—'],
         ['Σ|Δ| median, local vs cloud', fmt(report.agreement.sum_abs_delta_median, 0)],
         ['local-unparseable rows', String(report.agreement.unparseable.local)],
         ['cloud-unparseable rows', String(report.agreement.unparseable.cloud)],
@@ -397,9 +397,10 @@ function printHuman(report) {
   console.log(`  ${dim('(a reply the model could not make valid is always counted); the bar is ≥ 98%.')}`);
   console.log(`  ${dim('Rows marked [legacy] predate error kinds — their JSON% still charges transport to the model.')}`);
   console.log(`  ${dim('Noise Σ|Δ| sums each fixture’s seven within-model score ranges; its median bar is ≤ 2.')}`);
-  console.log(`  ${dim('PASS requires both bars. Composite range is the range of the unweighted d1..d7 sum.')}`);
+  console.log(`  ${dim('PASS requires both bars. Composite range is the range of the weighted composite (×20, 0–100).')}`);
   if (report.agreement) {
     console.log(`  ${dim('Agreement and call counts use paired parsed rows; unparseable counts use all rows.')}`);
+    console.log(`  ${dim('The agreement ICC and bias use production\'s weighted composite and backend icc.js.')}`);
   }
   console.log('');
 }

@@ -41,6 +41,7 @@ import { applySplit } from './split.mjs';
 import { parseJsonObject } from '../../rimpl/src/lib/parse.js';
 import { flattenForPrompt } from '../../rimpl/src/lib/transcript.js';
 import { deriveHintTokens } from '../../rimpl/src/services/pii-filter.js';
+import { compositeSpread } from './agreement-stats.mjs';
 
 const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 const argNum = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i > -1 ? Number(process.argv[i + 1]) : d; };
@@ -238,9 +239,11 @@ for (const r of results) {
     const mark = range === 0 ? green(' 0') : (range >= 2 ? red(String(range).padStart(2)) : yellow(String(range).padStart(2)));
     console.log(`  ${d}       ${vals.map((v) => String(v).padStart(2)).join('  ')}   ${mark}    ${sd(vals).toFixed(2)}`);
   }
-  const comps = r.runs.map((s) => DOMAINS.reduce((a, d) => a + s[d], 0));
-  const compRange = Math.max(...comps) - Math.min(...comps);
-  console.log(`  ${bold('composite')} ${comps.map((v) => String(v).padStart(2)).join('  ')}   ${String(compRange).padStart(2)}    ${sd(comps).toFixed(2)}`);
+  // Production's weighted composite (agreement-stats.mjs), not the d1..d7 sum this row showed until
+  // 2026-10. It is on the 0–100 scale, so its range is NOT comparable with the 0–5 domain ranges above.
+  const comp = compositeSpread(r.runs);
+  console.log(`  ${bold('composite')} ${comp.composites.map((v) => String(v).padStart(2)).join('  ')}   ${String(comp.range).padStart(2)}`
+    + `    ${comp.sd == null ? '—' : comp.sd.toFixed(2)}   ${dim('weighted ×20, 0–100')}`);
   // Worst-case Σ|Δ| attributable to this arm alone: sum of per-domain ranges.
   const sigma = DOMAINS.reduce((a, d) => { const v = r.runs.map((s) => s[d]); return a + (Math.max(...v) - Math.min(...v)); }, 0);
   console.log(`\n  ${identical ? green('identical across all repeats — this arm contributes no noise')

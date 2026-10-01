@@ -5,7 +5,9 @@
 // two models under two different validators — which is not a comparison at all.
 const { z } = require('zod');
 const { parseJsonObject } = require('./parse');
-const { WEIGHTS } = require('./versions');
+// The composite lives in ./composite so code that cannot load zod (the probe harness on CI's bare
+// checkout) computes the identical number. Re-exported below: every caller's import is unchanged.
+const { compositeOf } = require('./composite');
 
 // The evaluator's d1..d7 drive CME credit and are persisted into smallint CHECK(0..5) columns
 // downstream. Validate the model's parsed output HERE so a malformed/out-of-range/NaN score fails
@@ -31,12 +33,6 @@ class Pis7ScoreError extends Error {
     this.kind = kind;
     this.parsed = parsed;
   }
-}
-
-// ×20 gives a 0–100 range: max = 5 × 1.0 × 20 = 100.
-function compositeOf(scores) {
-  const raw = Object.entries(WEIGHTS).reduce((acc, [key, w]) => acc + scores[key] * w, 0) * 20;
-  return Math.round(raw * 100) / 100;
 }
 
 // Throws Pis7ScoreError on either failure; returns { scores, composite, rationale } on success.
