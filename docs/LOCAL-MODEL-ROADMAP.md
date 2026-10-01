@@ -43,7 +43,7 @@ Live position: `npm run local-model:status`.
 | Phase | State |
 |---|---|
 | **G0 — Access + inventory** | **done 2026-08-31.** `cme-dev` reachable over the tailnet; Open WebUI's OpenAI-compatible endpoint serves `deepseek-v4-flash-dspark`. Still owed from the box owner: weights checksum / engine / quantisation for the Model Lock, and custody (§5 of [GATE0-DGX-RESULTS](GATE0-DGX-RESULTS.md)) |
-| **P0 — Probe** | **run 2026-08-31 → 09-01, Gate 0 PASSED.** JSON contract 25/26, Thai 6/6, ≥22,804 input tokens verified; eval p50 68 s; safe concurrency 2. Head-to-head vs Sonnet on 26 PLEs: ICC(A,1) 0.594 (on the unweighted d1–d7 sum — note, 2026-10-01: GATE0 §7.2), and **the evaluator is not reproducible on either model** (same fixture, Σ\|Δ\| 0–8 across sessions). Full numbers: [GATE0-DGX-RESULTS §7](GATE0-DGX-RESULTS.md) |
+| **P0 — Probe** | **run 2026-08-31 → 09-01, Gate 0 PASSED.** JSON contract 25/26, Thai 6/6, ≥22,804 input tokens verified; eval p50 68 s; safe concurrency 2. Head-to-head vs Sonnet on 26 PLEs: ICC(A,1) 0.594 (on the unweighted d1–d7 sum — note, 2026-10-02: GATE0 §7.2), and **the evaluator is not reproducible on either model** (same fixture, Σ\|Δ\| 0–8 across sessions). Full numbers: [GATE0-DGX-RESULTS §7](GATE0-DGX-RESULTS.md) |
 | **P1 — Provider adapter** | **done**, shipped dark (PR #61) |
 | **P1.5 — Readiness gate** | **done** (#71). A switch to a provider that cannot serve is refused with the measured value; unknown counts as unfit |
 | **P2 — rimpl relocation + bridge** | **not started, but unblocked** — G0 item 4 answered yes 2026-09-05 |

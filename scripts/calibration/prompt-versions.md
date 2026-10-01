@@ -169,9 +169,9 @@ things at once: composite ICC 0.578 → 0.735 → **0.762**, bias −2.50 → +0
 repeatability floor from Σ|Δ| median 6 to **1** — the last of which is what §8.3 called the real
 blocker, and it is now clear.
 
-> **Note, 2026-10-01 — the biases and the Bland–Altman band in the two paragraphs above are on the
+> **Note, 2026-10-02 (PR #105) — the biases and the Bland–Altman band in the two paragraphs above are on the
 > unweighted d1–d7 sum (0–35), not on the weighted composite of the ICCs beside them.** They were read
-> off `model-agreement.mjs`, which printed its bias and band on that sum until 2026-10-01. It prints on
+> off `model-agreement.mjs`, which printed its bias and band on that sum until PR #105 (2026-10-02). It prints on
 > the weighted composite now, as `e2-compare.mjs` does, and `methodology-figures.mjs --json` reports
 > both (`bias_weighted`, `bias_unweighted_sum`). On the weighted composite the three runs read
 > **−7.875 → +1.64 → −0.73**, and v0's band is **−30.70…14.95**. Read as points on the 0–100 credit
@@ -210,7 +210,7 @@ re-punctuated from double to single quotes. The text changed, so the derived sha
     pis7-prompt-59561c29+local-cae23b1a5f37   ->   pis7-prompt-59561c29+local-c5ffe572aa81
 
 **Every number in rows 2 and 3 belongs to `cae23b1a5f37`** — ICC 0.735 / 0.762, bias +0.79 / +0.00
-(unweighted sum; +1.64 / −0.73 weighted — see the 2026-10-01 note above), Σ|Δ| median 1, JSON
+(unweighted sum; +1.64 / −0.73 weighted — see the 2026-10-02 note above), Σ|Δ| median 1, JSON
 94.4%, and the per-domain table. They stay in this file as the record of that prompt; none of them
 is a claim about the prompt now in `prompts.js`. Re-measuring means a fresh
 `model-agreement.mjs` run on the tuning split (the held-out split must stay unopened) — ICC, bias

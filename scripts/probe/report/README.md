@@ -34,7 +34,7 @@ node scripts/probe/report/methodology-figures.mjs --json    # machine-readable
 | — | *(no file)* | 09-04 19:25 | `model-agreement.mjs` | identical to #8, first run with retry | **aborted at PLE-012**: HTTP 400 `credit balance is too low` |
 | 10 | `heldout-c5ffe-adaptive.json` | 09-04 21:52 | `model-agreement.mjs` | **heldout** · adaptive · `arm_attempts 4` | n=**8/8**, zero losses · **0.436 (0.000–0.873)** · JSON 16/16 · `insufficient` |
 
-> **Note, 2026-10-01.** The biases in rows 2, 6 and 7 are on the unweighted d1–d7 sum (0–35) that
+> **Note, 2026-10-02 (PR #105).** The biases in rows 2, 6 and 7 are on the unweighted d1–d7 sum (0–35) that
 > `model-agreement.mjs` printed until that date, while every ICC in this table is on the weighted
 > composite. On the weighted composite they read **−7.875, +1.64 and −0.73**. That is
 > `bias_weighted` in `methodology-figures.mjs --json`, and the scale `model-agreement.mjs` and

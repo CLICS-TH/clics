@@ -76,7 +76,7 @@ Supabase Postgres). Working end-to-end today:
 ## Built 2026-09-02 — local-AI capacity layer (merged as PR #83 and DEPLOYED to prod 2026-09-03; migrations were applied 2026-09-02)
 
 Context: the on-prem model became reachable 2026-08-31 and passed Gate 0; measured head-to-head it agrees
-with Sonnet at ICC 0.594 (on the unweighted d1–d7 sum — note, 2026-10-01: GATE0 §7.2) and **neither
+with Sonnet at ICC 0.594 (on the unweighted d1–d7 sum — note, 2026-10-02: GATE0 §7.2) and **neither
 model's PIS-7 output is reproducible** (same fixture, Σ|Δ| 0–8 across sessions).
 Decisions and measurements: [LOCAL-MODEL-ROADMAP → The capacity layer](LOCAL-MODEL-ROADMAP.md),
 [LOCAL-MODEL-CUTOVER → Measured position 2026-09-02](LOCAL-MODEL-CUTOVER.md), [GATE0-DGX-RESULTS §7](GATE0-DGX-RESULTS.md).

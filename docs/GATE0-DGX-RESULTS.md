@@ -380,8 +380,8 @@ Cost: cloud ≈ **$0.014 per PLE** (5.1k input + 1–3.2k output). Local is $0 m
 
 Per-domain ICC(A,1): d6 0.723 · d5 0.686 · d3 0.623 · d2 0.477 · d7 0.381 · d4 0.333 · **d1 0.252**.
 
-> **Note, 2026-10-01 — the composite ICC, bias and limits above are all on the unweighted d1–d7 sum
-> (0–35).** `model-agreement.mjs` computed its composite that way until 2026-10-01; production credits
+> **Note, 2026-10-02 (PR #105) — the composite ICC, bias and limits above are all on the unweighted d1–d7 sum
+> (0–35).** `model-agreement.mjs` computed its composite that way until PR #105 (2026-10-02); production credits
 > the weighted ×20 composite (0–100), and the probes print that now. No report from this run survives
 > in `scripts/probe/report/`, so these three cannot be restated on the weighted scale. On the six
 > archived runs, switching scale moved an ICC by at most 0.013, but the limits of agreement came out
@@ -407,8 +407,8 @@ and was not representative.
 | schema failures | 0/5 | **2/6** |
 | noise floor Σ\|Δ\| | **1** | **11** |
 
-> **Note, 2026-10-01.** These composites, PLE-051's SD of 3.1 below and the "12–21" in §7.7 are all
-> on the unweighted d1–d7 sum (0–35), from `repeat-consistency.mjs`. Since 2026-10-01 it prints
+> **Note, 2026-10-02 (PR #105).** These composites, PLE-051's SD of 3.1 below and the "12–21" in §7.7 are all
+> on the unweighted d1–d7 sum (0–35), from `repeat-consistency.mjs`. Since PR #105 (2026-10-02) it prints
 > production's weighted ×20 composite (0–100) instead. Σ|Δ| is unaffected: it is the unweighted
 > per-domain count by design.
 
@@ -490,7 +490,7 @@ Recorded because each was stated confidently before being checked:
 | claim | status |
 |---|---|
 | "Anthropic returns in seconds" | ✗ measured 21.6s p50; gap is 3.2×, not ~20× |
-| "cloud arm is essentially deterministic" | ✗ tested only easy fixtures; PLE-045 ranges 12–21 (0–35 sum; §7.3 note, 2026-10-01) |
+| "cloud arm is essentially deterministic" | ✗ tested only easy fixtures; PLE-045 ranges 12–21 (0–35 sum; §7.3 note, 2026-10-02) |
 | "local is stable within a session" | ✗ generalised from one quiet session; Σ\|Δ\| reaches 8 |
 | "uniform ±1 shift is not sampling noise" | ✗ over-fit to n=3; broke at n=5 |
 | first variance decomposition | ✗ vacuous — `composite = 7 × level` is an identity |
@@ -621,7 +621,7 @@ Two things this rules out and one it does not:
   calls) or `adaptive` with `EVAL_CONSISTENCY_MAX_SUM_DELTA=2`, which sends exactly the uniform-shift
   pair to a third call, and the local prompt addendum aimed at d1 (ICC 0.06) and the −2.5 bias.
 
-> **Note, 2026-10-01.** "bias −2.50" above and "the −2.5 bias" in the last bullet are on the unweighted
+> **Note, 2026-10-02 (PR #105).** "bias −2.50" above and "the −2.5 bias" in the last bullet are on the unweighted
 > d1–d7 sum (0–35) that `model-agreement.mjs` printed until that date. On the weighted composite the
 > same run's bias is **−7.875**, with limits −30.70…14.95. The 0.594 in the first bullet is an
 > unweighted-sum figure too (§7.2 note), so the like-for-like comparison is 0.591 against 0.594. The
@@ -740,9 +740,9 @@ tuning split, same fixtures, same cloud arm:
 | 2026-09-04 | base + addendum | adaptive | 14 | 0.735 (0.335–0.910) | +0.79 | 2 | 94.4% |
 | 2026-09-04 | base + addendum | **stamped `median3`, ran adaptive** | 15 | 0.762 (0.410–0.917) | +0.00 | 2 | 94.4% |
 
-> **Note, 2026-10-01 — the bias column is on the unweighted d1–d7 sum (0–35), not on the weighted
+> **Note, 2026-10-02 (PR #105) — the bias column is on the unweighted d1–d7 sum (0–35), not on the weighted
 > composite the ICC column names.** It was read off `model-agreement.mjs`, which printed its bias on
-> that sum until 2026-10-01. On the weighted composite the three rows read **−7.875, +1.64 and
+> that sum until PR #105 (2026-10-02). On the weighted composite the three rows read **−7.875, +1.64 and
 > −0.73**. So "−2.50 of harshness down to +0.79", "a bias of exactly zero" and "0.735/+0.79 and
 > 0.762/+0.00" below describe the sum, not the credited number. The intervals here and below are the
 > Fisher-z ones `icc.js` used until the same date; the F-based interval gives 0.107–0.833,
@@ -895,6 +895,11 @@ pairs needed at the observed 0.436: never (the point estimate is not above the t
 Archived verbatim as `scripts/probe/report/heldout-c5ffe-adaptive.verdict.json`; the report it was
 computed from is committed beside it.
 
+> **Note, 2026-10-01 (PR #104).** The intervals in this section are Fisher-z intervals, which is what
+> `icc.js` computed when they were recorded. The F-based McGraw & Wong interval it has used since gives
+> **0.436 (0.000–0.855)** here, and 0.611 (0.211–0.835) and 0.795 (0.422–0.937) for the two tuning runs
+> below. The point estimates and the verdict (`insufficient`) are unchanged.
+
 **Two tuning runs on the same prompt were never recorded, and they are the context for this one.**
 Both ran `+local-c5ffe572aa81` with `adaptive`, ninety minutes apart:
 
@@ -952,7 +957,9 @@ this programme, and it belongs to the corpus, not to any model.**
   way. Acceptance needs the decisive gate against human raters, which has never been runnable.
 - 🚩 **The binding constraint is the corpus.** A 26-episode set whose composites cluster cannot
   certify any scorer. What is needed is episodes selected to span the scale, and a reference standard
-  with measured reproducibility — the incumbent's own self-agreement is ICC 0.594 (§7.3), and its
+  with measured reproducibility — the incumbent's own self-agreement is ICC 0.594 (§7.3; note,
+  2026-10-02: 0.594 is §7.2's local-vs-incumbent ICC on the unweighted d1–d7 sum, and §7.3 reports
+  no self-agreement ICC), and its
   prompt has not been calibrated since `cd29df5` (see §5.2).
 
 Full method, every figure and its regeneration command: `docs/METHODOLOGY-local-vs-sonnet.en.md` /
