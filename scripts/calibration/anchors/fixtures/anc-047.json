@@ -1,0 +1,66 @@
+{
+  "ple_id": "anc-047",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "pt ชายวัย 60 กว่า stable angina CCS II on ASA, atenolol, metformin นัด lap chole elective ที่ รพ.จังหวัดซึ่งไม่มี cath lab ผมเอนไปทางไม่ทำ stress test เพราะผลน่าจะไม่เปลี่ยนแผน แต่อยากถามว่าเดินขึ้นบันไดสองชั้นไหว พอเป็นหลักฐาน functional capacity ไหมครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ข้อมูลที่ให้มาสอดคล้องกับแนวทางครับ\n\n- ถ้า functional capacity ดีราว 4 METs ขึ้นไป (เดินขึ้นบันไดสองชั้นเป็นตัวอย่างที่ใช้กันทั่วไป) และอาการคงที่ ไม่จำเป็นต้องทำ stress test ก่อนผ่าตัด เพราะผลมักไม่เปลี่ยนการดูแล (ESC, 2022)\n- lap chole จัดอยู่กลุ่ม intermediate risk โดยทั่วไป ดังนั้นควรทบทวนยาเดิมและ ECG ก่อนผ่า\n- ยังไม่ควรสรุปจากคำบอกเล่าเรื่องบันไดเพียงอย่างเดียว ถ้ามีเรื่องเหนื่อยง่ายหรือเจ็บเวลาเดินช้า ๆ ให้ประเมินซ้ำ\n\n❓ ถ้า angina ของ pt เริ่มเป็นตอนเดินช้า ๆ บนทางราบ หมอจะยังเรียกว่า stable และคงแผนเดิมหรือไม่ครับ"
+    },
+    {
+      "role": "physician",
+      "content": "ที่ระบุว่า lap chole เป็น intermediate risk ทำให้ผมนับ RCRI ได้ 2 คือ IHD กับผ่าในช่องท้อง ส่วน DM ไม่ on insulin และ Cr ปกติจึงไม่นับ ผมจัดเป็นเสี่ยงปานกลางค่อนสูง และยังไม่ส่ง stress test เพราะ angina คงที่"
+    },
+    {
+      "role": "assistant",
+      "content": "การนับ RCRI ของหมอถูกต้องครับ และผ่าตัดในช่องท้องก็ถูกนับเป็นความเสี่ยงสูงในเกณฑ์เดิม\n\n- RCRI 2 ถือว่าความเสี่ยง cardiac event สูงกว่ากลุ่มต่ำ ผลคือแนวทางแนะนำ biomarker ก่อนและหลังผ่า (ESC, 2022)\n- ECG ก่อนผ่าเป็นพื้นฐานในผู้ป่วย IHD ที่ผ่าตัด intermediate risk ขึ้นไป (ESC, 2022)\n- ไม่ส่ง stress test ยังสมเหตุสมผลถ้าอาการคงที่และไม่เปลี่ยนแผน\n\n❓ ถ้า hs-cTn ไม่มีใช้ในโรงพยาบาลนี้ หมอจะใช้อะไรแทนเพื่อตรวจ myocardial injury ครับ"
+    },
+    {
+      "role": "physician",
+      "content": "ok ครับ แต่ lab ที่นี่มีแค่ conventional troponin ไม่มี hs-cTn หรือ BNP ผมจึงเจาะ baseline ก่อนผ่าและวันถัดไปแทน ถ้า baseline สูงเล็กน้อยคงที่อยู่แล้ว ควร postpone ไหมครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "เป็นการปรับที่ใช้ได้จริงในบริบทนี้ครับ\n\n- ค่า troponin ก่อนผ่าที่สูงคงที่ ให้ถือเป็นค่าอ้างอิง แล้วดูการเปลี่ยนแปลงหลังผ่า (ESC, 2022)\n- ถ้าสูงใหม่พร้อม ECG หรืออาการเปลี่ยน ควรปรึกษา cardiology ก่อนผ่า elective\n- conventional troponin ไวน้อยกว่า hs-cTn ผลลบจึงมั่นใจได้น้อยกว่า ยังไม่แน่ใจว่ามีเกณฑ์ delta ที่เหมาะกับ assay ของโรงพยาบาลนี้หรือไม่ ควรถามห้องปฏิบัติการ\n\n❓ ถ้าผลหลังผ่าวันถัดไปสูงขึ้นเล็กน้อย โดยที่ pt ไม่มีอาการ หมอจะส่งต่อทันทีหรือเฝ้าดูก่อนครับ"
+    },
+    {
+      "role": "physician",
+      "content": "ยาเช้าวันผ่าที่ผมร่างไว้\n- atenolol กินต่อ ASA กินต่อ\n- metformin งดเช้านั้น\n- ชุดยาใน formulary รพ. มีแต่ atenolol ไม่มี bisoprolol\nขอ source ของเรื่องห้ามหยุด beta-blocker หน่อยครับ จะได้อ้างใน preop note"
+    },
+    {
+      "role": "assistant",
+      "content": "แผนยาที่ร่างมาสมเหตุสมผลครับ\n\n- beta-blocker เดิมควรกินต่อต่อเนื่อง รวมเช้าวันผ่า แต่ไม่ควรเริ่มตัวใหม่ในวันผ่า (ESC, 2022)\n- ACC/AHA ก็จัดการกินต่อของ beta-blocker เดิมเป็นคำแนะนำหลักเช่นกัน (ACC/AHA, 2014)\n- metformin งดเช้าวันผ่าเป็นแนวปฏิบัติทั่วไป (ADA Standards of Care in Diabetes, 2024)\n- ASA ต้องชั่งระหว่างเลือดออกกับ cardiac event ของ pt แต่ละราย\n\n❓ ถ้าศัลยแพทย์ขอให้หยุด ASA หมอจะใช้ข้อมูลอะไรของ pt รายนี้คุยกับท่านครับ"
+    },
+    {
+      "role": "physician",
+      "content": "รับทราบ ผมย้ายมาที่ GA เลย plan คือ propofol titrate ช้า ๆ กับ fentanyl กัน tachycardia ตอน intubate และตอน insufflate pt on atenolol HR ก่อนนอน 58 ลองเถียงแผนนี้หน่อย แล้วบอกว่าจุดไหนอ่อนที่สุด"
+    },
+    {
+      "role": "assistant",
+      "content": "ลองดูจุดอ่อนของแผนตามที่ขอครับ\n\n- propofol กับ fentanyl บน atenolol ที่ HR 58 เสี่ยง bradycardia และ hypotension ได้ง่าย\n- insufflate เร็วอาจกระตุ้น vagal reflex จนหัวใจเต้นช้ามาก ควรเริ่มความดันต่ำและช้า ๆ\n- เป้าหมายคือคุม haemodynamic ให้ใกล้ baseline และเลี่ยงทั้ง tachycardia กับ hypotension เพราะ supply-demand mismatch (ESC, 2022)\n\n❓ ถ้า HR ตกต่ำกว่า 40 ตอน insufflate หมอจะทำอะไรเป็นอย่างแรกครับ"
+    },
+    {
+      "role": "physician",
+      "content": "ผมเคยกลัวแค่ tachycardia แต่ที่ชี้ถึง bradycardia ตอน insufflate เมื่อ HR เริ่มต้นต่ำอยู่แล้ว ผมเลยลด propofol เตรียม atropine และ insufflate ช้า ๆ ความดันต่ำ ถ้า ST เปลี่ยนกลางผ่า ผมควรหยุด insufflate ก่อน หรือคิดเรื่อง convert เป็น open ก่อนครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "การปรับของหมอสมเหตุสมผลครับ\n\n- ถ้า ST เปลี่ยนกลางผ่า ให้ปล่อยลมออกจากช่องท้องก่อน แล้วแก้ haemodynamics และ oxygenation เป็นลำดับแรก\n- convert เป็น open ตามหลังเมื่อ ST ไม่คืนหลังแก้แล้ว ไม่ใช่ขั้นแรก\n- ที่ไม่มี cath lab หลักคือคุม supply-demand และส่งต่อ (ESC, 2022) ยังไม่แน่ใจว่ามีงานวิจัยที่เทียบสองลำดับนี้โดยตรง\n\n❓ ผู้ช่วยวิสัญญีในทีมหมอรู้ลำดับนี้ทุกคนหรือยังครับ"
+    },
+    {
+      "role": "physician",
+      "content": "สรุปแผนที่ผมจะเขียน order เอง ECG กับ troponin baseline, atropine พร้อม, หยุด insufflate ถ้า ST เปลี่ยน, ส่งต่อถ้า troponin ขึ้น ผลจริงของ pt รายนี้ท่านไม่เห็น ผมจึงเช็กจาก chart เอง ช่วยดูว่าแผนนี้ขาด safety net ข้อไหนหรือไม่"
+    },
+    {
+      "role": "assistant",
+      "content": "แผนครบถ้วนดีครับ เติมได้อีกสองข้อ\n\n- ควบคุมความปวดหลังผ่าให้ดี เพราะ pain ทำให้ HR กับ BP สูง เพิ่มภาระหัวใจ (ESC, 2022)\n- กลับไปกิน beta-blocker เดิมหลังผ่าโดยเร็วเมื่อกินได้ ติดตาม ECG ก่อนจำหน่าย\n- เขียนเกณฑ์ส่งต่อให้ชัดใน order เช่น troponin ขึ้นร่วมกับอาการ\n\n❓ ถ้าหลังจำหน่ายยังไม่มีนัด cardiology หมอจะปิดช่องนี้อย่างไรครับ"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nlap chole ในผู้ป่วย angina คงที่ที่ RCRI 2 ไม่ต้อง stress test ถ้าเดินขึ้นบันไดสองชั้นได้ แต่ต้องคุม HR กับความดันช่วง insufflate และต้องรู้ว่า atenolol ทำให้ HR เริ่มต้นต่ำอยู่แล้ว\n\nความไม่แน่นอน / What remains uncertain:\nconventional troponin วันถัดไปเทียบกับ baseline จะไวพอไหม และจะส่งต่อเมื่อ delta เท่าไร ผมยังไม่มีเกณฑ์ที่ห้องปฏิบัติการของเรายืนยัน\n\nจะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:\nวันจันทร์จะถามห้องปฏิบัติการเรื่องเวลารอผลและค่า delta ของ assay ที่ใช้ เทียบกับตาราง biomarker ใน ESC 2022 ทำ preop checklist ใส่ใน chart และซ้อมลำดับหยุด insufflate กับทีมห้องผ่าตัดก่อนเคสนี้"
+    }
+  ]
+}

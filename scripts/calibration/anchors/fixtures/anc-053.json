@@ -1,0 +1,46 @@
+{
+  "ple_id": "anc-053",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "ขอรบกวนปรึกษาเคสหน่อยครับ pt หญิงวัย 60 กว่า มาที่ ER ด้วยปวดท้องใต้ชายโครงขวา 2 วัน คลื่นไส้ อาเจียน 2 ครั้ง ปวดร้าวไปไหล่ขวา มีไข้ ตรวจ Murphy's sign positive ท้องไม่แข็ง ไม่มี peritonitis มี HT และ AF ไม่เคยผ่าตัดช่องท้องมาก่อน ไม่มีประวัติแพ้ยา\n- T 38.4 HR 96 BP 128/76\n- WBC 13,800 ALT 42\n- U/S: gallstone, GB wall 5 mm, pericholecystic fluid\nยาที่กินประจำคือ warfarin กับ amlodipine ถ้าเป็น acute cholecystitis ควรผ่าตัดเลยหรือรอให้อักเสบสงบก่อนดีครับ รบกวนช่วยอธิบายให้ละเอียดหน่อยนะครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ถ้าเป็น acute calculous cholecystitis แนะนำ early lap chole ใน Grade I–II โดยเฉพาะตอนที่อาการยังไม่นาน (Tokyo Guidelines 2018, 2018)\n- Grade III หรือมี organ dysfunction: stabilize ก่อน และพิจารณา drain ถุงน้ำดี\n- Grade I–II ที่ผ่าตัดเร็วไม่ได้: ให้ abx แล้วผ่าตัดตามหลังได้\nข้อที่ต้องวางแผนด้วยคือ pt on warfarin เพราะ AF ต้องเช็ก INR และตัดสินใจเรื่องหยุดหรือ reverse ยาก่อนเข้า OR"
+    },
+    {
+      "role": "physician",
+      "content": "งั้นจะ lap chole พรุ่งนี้เช้าเลยครับ ผมว่าแผนนี้น่าจะใช้ได้ ตอนนี้ NPO และให้ NSS 80 ml/hr อยู่ครับ ส่วน abx ให้ ceftriaxone 2 g iv ได้ไหมครับ รบกวนช่วยบอกเรื่อง abx ให้ละเอียดหน่อยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ตามที่ตั้งใจจะผ่าตัดพรุ่งนี้เช้า ต้องเช็ก INR วันนี้ก่อน และถ้า INR ยังสูงต้อง reverse หรือรอให้ลดลงก่อนเริ่ม\n- bridging: BRIDGE trial ศึกษาใน elective procedure ใช้ตรงๆ กับ urgent surgery ไม่ได้ (BRIDGE trial, 2015)\n- abx: ceftriaxone ร่วมกับ metronidazole เป็นทางเลือกได้ใน community-acquired grade I–II (Tokyo Guidelines 2018, 2018)\nขนาด ceftriaxone 2 g ต่อวันเหมาะกับ grade ที่ไม่รุนแรง"
+    },
+    {
+      "role": "physician",
+      "content": "อีกเรื่องครับ ถ้า LFT ผิดปกติ (ตอนนี้ ALP 130 total bilirubin 1.1 ครับ) ต้องสงสัย CBD stone ไหมครับ ตรวจอะไรต่อ รบกวนอธิบายให้ละเอียดหน่อยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "LFT ผิดปกติอย่างเดียวยังไม่ยืนยัน CBD stone ต้องดู bilirubin, ductal dilatation บน U/S และอาการ cholangitis ร่วมด้วย (Tokyo Guidelines 2018, 2018)\n- ความเสี่ยงต่ำ: ไปผ่าตัดได้เลย\n- ความเสี่ยงปานกลาง: MRCP หรือ EUS ก่อน\n- มี cholangitis: ต้องทำ biliary drainage"
+    },
+    {
+      "role": "physician",
+      "content": "อธิบายเพิ่มเรื่อง MRCP หน่อยครับ ขอให้ละเอียดๆ เลยครับ แล้วมี reference ไหมครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "MRCP เป็นการตรวจภาพท่อน้ำดีโดยไม่ต้องฉีดสี ใช้ยืนยันหรือตัดนิ่วใน CBD ในกลุ่มความเสี่ยงปานกลาง ส่วนแหล่งอ้างอิงหลักของเรื่องนี้คือ Tokyo Guidelines 2018 (Tokyo Guidelines 2018, 2018)\nถ้า pt คนนี้เข้า OR ทันทีก็ไม่จำเป็นต้องทำ MRCP ก่อน ถ้าไม่มีข้อบ่งชี้ว่ามีนิ่วใน CBD"
+    },
+    {
+      "role": "physician",
+      "content": "แล้วหลังผ่าตัดต้องนัด f/u กี่วันครับ ผมอยากรู้ว่าต้องนัดกลับมาดูอาการหลังผ่าตัดอีกกี่วัน รบกวนอธิบายให้ละเอียดหน่อยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "หลัง lap chole ที่ไม่มีภาวะแทรกซ้อน มักนัด f/u ประมาณ 2 สัปดาห์เพื่อดูแผลและผลพยาธิ\n- เรื่อง warfarin: เริ่มยาใหม่ตามความเสี่ยงเลือดออกจากการผ่าตัดและ INR ติดตามต่อ (ESC guidelines non-cardiac surgery, 2022)\n- ให้กลับมาก่อนถ้ามีไข้ ปวดท้องมากขึ้น หรือตัวเหลือง"
+    }
+  ]
+}

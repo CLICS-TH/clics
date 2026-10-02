@@ -1,0 +1,8 @@
+{"rater":"opus","scores":{
+"Q01":{"d1":3,"d2":2,"d3":2,"d4":2,"d5":3,"d6":1,"d7":4,"note":"Strong opener ('urgent endoscopy within 24h or admit and watch on a PPI... hinge on GBS?') then unranked DDx list; verifies vs 'blood bank protocol'/formulary; reflection 'Very useful, thank you.'"},
+"Q02":{"d1":3,"d2":2,"d3":4,"d4":2,"d5":3,"d6":5,"d7":5,"note":"Setting drives plan ('ไม่มี procalcitonin', here vs refer); ownership 'หมอเป็นคนชี้หลังตรวจซ้ำ...ระบบนี้ไม่ได้อยู่ข้างเตียง'; reflection names change + teach night nurses + 3-mo audit; little own reasoning"},
+"Q03":{"d1":5,"d2":4,"d3":5,"d4":5,"d5":5,"d6":4,"d7":5,"note":"'Cipriani คือ NMA ของ RCT 6–8 สัปดาห์ ที่ตัดคนมี SI รุนแรงออก...ไม่ใช่หลักฐานตรง'; 'Posner 2011 ทำในคลินิก ไม่ใช่ nurse รพ.ชุมชน'; asks AI to find plan weaknesses; context drives every step"},
+"Q04":{"d1":2,"d2":1,"d3":2,"d4":2,"d5":1,"d6":1,"d7":2,"note":"Closed 'ควรให้ rtPA ไหม', then 'ขอให้ครบทุกข้อ'/'ขอทั้งหมด'; etiologies listed unranked; no critique; reflection restates AI facts + 'ได้ความรู้เยอะครับ'"},
+"Q05":{"d1":4,"d2":5,"d3":2,"d4":2,"d5":5,"d6":3,"d7":4,"note":"Committed time-to-benefit thresholds + mechanisms; corrects AI: 'USPSTF...ไม่ได้บอกให้หยุดยา', 'Beers เป็นฉันทามติ ไม่ใช่ RCT'; topic-hops ('อีกเรื่อง'); no specific patient; no action plan"},
+"Q06":{"d1":2,"d2":1,"d3":2,"d4":1,"d5":2,"d6":1,"d7":1,"note":"Generic 'GDM ต้องเริ่ม insulin เมื่อไหร่'; repeats it ('ถามซ้ำอีกที'); weak challenge 'แน่ใจนะครับ' dropped; wants script 'โดยไม่ต้องคิดเอง'; context dumped unused; reflection restates AI"}
+}}

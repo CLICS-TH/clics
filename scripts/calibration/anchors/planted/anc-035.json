@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-035.json",
+      "id": "anc-035",
+      "turn": 5,
+      "kind": "unqualified",
+      "claim": "- antidepressant ทุกตัวได้ผลดีกว่า placebo ใน MDD จึงเริ่ม sertraline ได้เลย",
+      "citation_on_claim": false,
+      "corrected_in_turn": 7,
+      "note": "True for the adult MDD trial population but stated without limits; those trials mostly excluded severe suicidal ideation. The physician challenges it for this patient and the tutor concedes in turn 7."
+    }
+  ]
+}

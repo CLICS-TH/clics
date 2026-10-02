@@ -805,9 +805,16 @@ describe('scaling to 100 — batch plan, author brief, intake', () => {
     const out = execFileSync(process.execPath, [path.join(HERE, 'validate.mjs'), '--only', 'anc-020'], { encoding: 'utf8' });
     assert.match(out, /anc-020\s+ok/);
     assert.equal(await readFile(MANIFEST_PATH, 'utf8'), before);
+    // A design row with no fixture yet (it used to be anc-099, until batch 5 was written).
+    const plan = JSON.parse(await readFile(BATCHES_PATH, 'utf8'));
+    let missing = null;
+    for (const r of plan.batches.flatMap((b) => b.rows)) {
+      if (!(await readFile(path.join(HERE, 'fixtures', `${r.id}.json`)).then(() => true, () => false))) { missing = r.id; break; }
+    }
+    if (!missing) return;   // every row is written: nothing left to be missing
     let failed = false;
-    try { execFileSync(process.execPath, [path.join(HERE, 'validate.mjs'), '--only', 'anc-099'], { encoding: 'utf8', stdio: 'pipe' }); }
-    catch (e) { failed = true; assert.match(String(e.stdout), /anc-099\s+MISSING/); }
+    try { execFileSync(process.execPath, [path.join(HERE, 'validate.mjs'), '--only', missing], { encoding: 'utf8', stdio: 'pipe' }); }
+    catch (e) { failed = true; assert.match(String(e.stdout), new RegExp(`${missing}\\s+MISSING`)); }
     assert.ok(failed, 'a missing fixture must fail intake');
   });
 });
@@ -989,8 +996,11 @@ describe('D13 on the full cohort — held-out lock and no early held-out scores'
   });
 
   test('pilot-style length drift fails the simulated cue gate (the documented 96%)', async () => {
+    // The documented 96% is the PLAN's property: the pilot as written plus all 80 planned rows drifting.
+    // Since the simulation skips rows already written, pass only the pilot, or a nearly finished
+    // cohort would leave too few simulated rows for the drift to show.
     const { results } = await validateAll();
-    const existing = results.filter((r) => r.features && r.row && !r.row.excluded).map((r) => ({ id: r.id, row: r.row, features: r.features }));
+    const existing = results.filter((r) => r.features && r.row && !r.row.excluded && r.row.pilot).map((r) => ({ id: r.id, row: r.row, features: r.features }));
     const sim = simulateCueGate(planBatches(design), existing, { sims: 100, cueCheck, lengthDrift: 5 });
     assert.ok(sim.fail_rate >= 0.8, `drift 5 fails only ${sim.fail_rate}`);
   });

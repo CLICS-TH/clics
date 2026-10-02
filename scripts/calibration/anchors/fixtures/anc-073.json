@@ -1,0 +1,42 @@
+{
+  "ple_id": "anc-073",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "pt หญิงวัย 70 กว่า รพ.ชุมชน 30 เตียง ไม่มีอาการ lab routine พบ Na 124, K 3.2, Cr 0.8 ทาน HCTZ 25 mg มา 3 สัปดาห์ ตรวจ euvolemic\nผมคิดว่า thiazide เป็นสาเหตุอันดับ 1 เพราะ Na ตกหลังเริ่มยา รองลงมา SIADH จากยาอื่น ถาม: หยุด HCTZ แล้ว repeat Na ใน 48 ชม. พอไหม หรือต้องส่ง serum osm, urine osm, urine Na ก่อนหยุด? urine osm ที่นี่ต้องส่งต่อ ผลวันรุ่งขึ้น ตอบสั้น ๆ พร้อมระบุ guideline"
+    },
+    {
+      "role": "assistant",
+      "content": "คิดเรียงลำดับได้ดีครับ และสมมติฐาน thiazide อันดับ 1 สมเหตุสมผลกับจังหวะเวลาที่ Na ตก\n- Na 124 โดยไม่มีอาการจัดเป็นระดับปานกลาง ยังไม่ต้องรีบแก้ด้วย 3% saline (European hyponatraemia CPG, Spasovski et al., 2014)\n- ควรเก็บ serum osm, urine osm, urine Na ก่อนหยุดยาและก่อนให้สารน้ำ เพราะผลหลังหยุดยาจะแปลยากขึ้น (European hyponatraemia CPG, Spasovski et al., 2014)\n- ถ้าส่ง urine osm ไม่ทันในวันนี้ ให้เก็บตัวอย่างไว้ก่อน แล้ว repeat Na ใน 24-48 ชม.\n- ระวัง overcorrection: Na ไม่ควรเพิ่มเกิน 10 mmol/L ใน 24 ชม.แรก\n❓ ถ้า Na ที่ 48 ชม.หลังหยุด HCTZ ขึ้นเป็น 131 แต่ urine Na ยังสูง จะตีความอย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ตามที่บอกให้เก็บ urine ก่อนหยุดยา ผมเก็บแล้ว: serum osm 262, urine osm 340, urine Na 52 จะหยุด HCTZ และเริ่มเสริม K เพราะ K 3.2 แต่ K ก็ดัน Na ขึ้นได้ ผมกังวล overcorrection จึงจะ repeat Na ทุก 6 ชม. และเจาะ TSH, cortisol 08:00 ด้วย urine Na 52 กับ urine osm 340 แปลว่า SIADH แล้วหรือยังเป็น thiazide อยู่?"
+    },
+    {
+      "role": "assistant",
+      "content": "แผนของหมอรัดกุมครับ ประเด็นที่ยกมาเรื่อง K ถูกต้อง\n- K ที่เติมนับรวมเข้าอัตราการแก้ Na ด้วย จึงควร repeat Na ถี่ตามที่วางไว้ (European hyponatraemia CPG, Spasovski et al., 2014)\n- urine osm มากกว่า 100 mOsm/kg ร่วมกับ urine Na มากกว่า 30 mmol/L แปลว่าเป็น SIADH ได้เลย\n- TSH และ cortisol ควรเจาะเพื่อ exclude hypothyroid และ adrenal insufficiency ก่อนสรุป SIADH (European hyponatraemia CPG, Spasovski et al., 2014)\n❓ ผล TSH และ cortisol ปกติ จะเปลี่ยนน้ำหนักของ SIADH อย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ข้อ 2 ที่ว่า urine osm > 100 + urine Na > 30 = SIADH ใช้ตรง ๆ กับรายนี้ไม่ได้ เพราะ criteria นั้นต้องไม่ได้ on diuretic แต่รายนี้ HCTZ เพิ่งหยุดไม่ถึง 24 ชม. urine Na 52 ยังอธิบายด้วยยาได้ ขอ source ของประโยคนั้นด้วย\nผมจึงแยกเป็น 2 ขั้น:\n- ยังไม่ label SIADH จนกว่าจะเห็น Na ซ้ำหลังหยุดยา 3-5 วัน\n- ถ้า Na ไม่ขึ้นและ TSH, cortisol ปกติ จึงนับเป็น SIADH\nถ้า Na วันที่ 3 ขึ้นแค่ 126 ยังเป็น thiazide ได้ไหม"
+    },
+    {
+      "role": "assistant",
+      "content": "หมอจับถูกครับ ผมสรุปประโยคนั้นกว้างเกินไป และไม่ควรอ้างเป็นเกณฑ์ตรง ๆ กับรายนี้ เกณฑ์ SIADH ต้องมี euvolemia และต้องไม่ใช้ diuretic ร่วมด้วย\n- ใน thiazide-induced hyponatraemia urine Na มักสูงเช่นกัน จึงแยกจาก SIADH ด้วย urine studies อย่างเดียวไม่ได้ (European hyponatraemia CPG, Spasovski et al., 2014)\n- Na ที่ขึ้นช้ากว่าคาดหลังหยุดยา ควรนึกถึง SIADH ร่วม หรือ thiazide ที่เปิดเผย SIADH ที่ซ่อนอยู่ ซึ่งแผน 2 ขั้นของหมอครอบคลุมแล้ว\n- ถ้าขึ้นมา 126 วันที่ 3 ก็ยังบอกไม่ได้ว่าเป็นยาอย่างเดียว ต้องดู TSH, cortisol ประกอบ\n❓ ถ้า Na ขึ้นเป็น 134 ภายใน 24 ชม.แรกหลังหยุดยา ซึ่งเร็วกว่าที่ควร จะปรับแผนอย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ถ้า 134 ใน 24 ชม. เพิ่ม 9 ผมจะหยุดเสริม K ก่อน ติด Na ทุก 4 ชม. และปรึกษา nephro รพ.แม่ข่ายทันที เพราะเกินเป้า 8 mmol/L ที่ตั้งไว้ ผมเทียบ cutoff 10 mmol/L ที่ให้มากับ CPG ฉบับเต็มแล้วตรงกัน แผนที่จะ order ผมเขียนเอง ขอแค่เช็กว่า KCl ที่เสริมสมเหตุสมผลไหม"
+    },
+    {
+      "role": "assistant",
+      "content": "แผนปลอดภัยครับ ขั้นแรกคือหยุดสิ่งที่ดัน Na ขึ้น แล้ว monitor ถี่ และปรึกษาเมื่อเพิ่มเร็วเกินกว่าที่ตั้งไว้ ซึ่งสอดคล้องกับการป้องกัน overcorrection (European hyponatraemia CPG, Spasovski et al., 2014)\n- KCl เสริมแบบระมัดระวัง ปรับตามระดับ K ซ้ำ ไม่ให้เกินจำเป็น เพราะ K ก็นับเป็นแรงดัน Na ขึ้น\n- ทุกครั้งที่เจาะ Na ซ้ำ ให้บันทึกเวลาและปริมาณสารน้ำที่ได้ เพื่อคำนวณอัตราการเพิ่มได้ถูกต้อง\n❓ จะสื่อสารแผน repeat Na ทุก 6 ชม. กับทีมพยาบาลที่ ward ของ รพ.ชุมชนอย่างไรให้ไม่หลุด"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nตอนแรกผมคิดว่า urine Na 52 กับ urine osm 340 ชี้ SIADH ได้เลย แต่ในคนที่เพิ่งหยุด thiazide ตัวเลขนี้แยกสองอย่างไม่ได้ ต้องดู Na หลังหยุดยา และ TSH, cortisol ประกอบ\n\nความไม่แน่นอน / What remains uncertain:\nยังบอกไม่ได้ว่ารายนี้มี SIADH ซ่อนอยู่ด้วยหรือไม่ จนกว่าจะเห็น Na หลังหยุดยา 3-5 วัน\n\nจะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:\nรายถัดไปที่ on thiazide แล้ว Na ต่ำ ผมจะเก็บ urine ก่อนหยุดยาไว้เสมอ แล้วนัด Na ซ้ำวันที่ 3 และวันที่ 7"
+    }
+  ]
+}

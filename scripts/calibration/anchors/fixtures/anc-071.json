@@ -1,0 +1,62 @@
+{
+  "ple_id": "anc-071",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "ขอรบกวนถามเรื่อง ischemic stroke ที่ 3 ชม. หน่อยครับ รักษายังไงครับ ขอ dose rtPA 0.9 mg/kg max 90 mg bolus 10% แล้ว drip 60 นาทีด้วยครับ รบกวนบอกตามหลัก guideline ให้ครบทุกข้อเลยนะครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ได้ครับ ใน acute ischaemic stroke ที่อยู่ในช่วง 3 ชม. และไม่มีข้อห้าม แนวทางแนะนำ IV alteplase (AHA/ASA acute ischaemic stroke guideline, 2019) ตามที่ถามมาถูกต้องครับ\n- dose 0.9 mg/kg ไม่เกิน 90 mg\n- 10% แรก bolus ภายใน 1 นาที ส่วนที่เหลือ drip ต่อ 60 นาที\n- ก่อนให้ต้องมี non-contrast CT เพื่อตัด ICH และเช็ก glucose ก่อนเสมอ"
+    },
+    {
+      "role": "physician",
+      "content": "BP ต้องต่ำกว่า 185/110 ใช่ไหมครับ แล้ว glucose 50 กับ 400 ล่ะครับ plt 100,000 INR 1.7 ด้วย แล้ว BP หลังให้ยา 24 ชม. ต้องต่ำกว่า 180/105 ใช่ไหมครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ใช่ครับ ก่อนให้ยา BP ต้องต่ำกว่า 185/110 mmHg (AHA/ASA acute ischaemic stroke guideline, 2019)\n- ถ้า BP สูงกว่านี้ ให้ลดด้วยยาฉีดก่อน แล้วค่อยประเมินซ้ำ\n- หลังให้ยา ควรคุม BP ให้ต่ำกว่า 180/105 mmHg ต่อไปอย่างน้อย 24 ชม. ครับ\n- glucose ต้องมากกว่า 50 mg/dL เพราะ hypoglycaemia ทำให้เกิดอาการคล้าย stroke ได้\n- plt ต้องมากกว่า 100,000 และ INR ไม่เกิน 1.7\nส่วนเลข 400 ที่ถามมา ผมไม่แน่ใจว่าเป็นเกณฑ์ที่ระบุในแนวทางนี้หรือไม่ครับ"
+    },
+    {
+      "role": "physician",
+      "content": "ok ครับ อธิบายเพิ่มหน่อยเรื่อง window 3 กับ 4.5 ชม. ต่างกันยังไงครับ แล้ว 3 ชม. กับ 4.5 ชม. ใช้ dose 0.9 mg/kg เหมือนกันไหม"
+    },
+    {
+      "role": "assistant",
+      "content": "ช่วง 3 ชม. คือกรอบมาตรฐานของ IV alteplase ครับ ส่วนช่วง 3 ถึง 4.5 ชม. แนวทางยังแนะนำได้ในผู้ป่วยที่คัดเลือกแล้ว (AHA/ASA acute ischaemic stroke guideline, 2019)\n- ช่วงหลังมี exclusion เพิ่ม เช่น กินยากันเลือดแข็งตัวอยู่ หรือคะแนน NIHSS สูงมาก\n- dose เท่ากันคือ 0.9 mg/kg ไม่เกิน 90 mg ทั้งสองช่วง\n- ยิ่งให้ยาเร็วยิ่งได้ประโยชน์มาก เวลาจึงสำคัญทุกนาที"
+    },
+    {
+      "role": "physician",
+      "content": "DDx อาจเป็น infarct, ICH, TIA, hypoglycemia, seizure หรือ migraine ใช่ไหมครับ แล้วส่ง CT ใน 25 นาที door-to-needle 60 นาที ใช่ไหมครับ รบกวนช่วยดูให้ด้วยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "รายการที่ยกมาเป็นสิ่งที่ควรนึกถึงตอนแรกได้ครับ โดยกลุ่มที่เลียนแบบ stroke ได้แก่ hypoglycaemia, seizure กับ post-ictal state และ migraine (AHA/ASA acute ischaemic stroke guideline, 2019)\n- ICH ตัดออกด้วย non-contrast CT ก่อนให้ยาเสมอ\n- เป้าหมายของ door-to-needle คือไม่เกิน 60 นาที ส่วน CT ควรทำให้เร็วที่สุดหลังมาถึง"
+    },
+    {
+      "role": "physician",
+      "content": "aspirin 160-325 mg ให้ตอนไหนครับ หลัง rtPA 24 ชม. ใช่ไหม แล้วถ้ายังไม่ให้ rtPA ให้ aspirin ภายใน 24 หรือ 48 ชม. ครับ รบกวนตอบตามหลัก guideline ให้ครบด้วยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ใช่ครับ ถ้าให้ alteplase แล้ว ให้เลื่อน antiplatelet ไปหลัง 24 ชม. และควรมี CT ซ้ำก่อนเริ่ม (AHA/ASA acute ischaemic stroke guideline, 2019)\n- ถ้าไม่ได้ให้ยาละลายลิ่มเลือด aspirin 160-325 mg ให้ได้ภายใน 24 ถึง 48 ชม. หลังเริ่มมีอาการ"
+    },
+    {
+      "role": "physician",
+      "content": "โอเค อธิบายเพิ่มหน่อยครับ เรื่อง NIHSS 4 กับ 25 ต่างกันยังไงครับ แล้ว NIHSS 0 ถึง 42 ใช้ตัดสินให้ยาได้ไหม รบกวนอธิบายให้ละเอียดหน่อยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "NIHSS ใช้วัดความรุนแรงของ stroke ครับ ค่ายิ่งสูงยิ่งรุนแรง (AHA/ASA acute ischaemic stroke guideline, 2019)\n- 4 ขึ้นไปมักถือว่ามี deficit ที่ชัด ส่วนคะแนนต่ำมากแต่ไม่รบกวนการใช้ชีวิตอาจไม่ต้องให้ยา\n- NIHSS มีช่วง 0 ถึง 42 ใช้ประเมินความรุนแรง แต่ไม่ใช่เกณฑ์เดียวที่ตัดสินการให้ยา ต้องดูข้อห้ามอื่นร่วมด้วย\n- 25 ขึ้นไปเป็นกลุ่มรุนแรงมาก มีความเสี่ยงเลือดออกสูงขึ้น และมักถูกใช้เป็น exclusion ในช่วง 3 ถึง 4.5 ชม."
+    },
+    {
+      "role": "physician",
+      "content": "ตัดสินใจให้เลยว่าให้ rtPA ไหม CT ผมไม่เห็น bleed ใช่ไหม เดี๋ยว copy ไปใส่ order 0.9 mg/kg ตอน 3 ชม. เลย ขอบคุณมากครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "เรื่องนี้ผมตัดสินแทนไม่ได้ครับ เพราะยังไม่เห็นผล CT, NIHSS, BP, glucose และเวลา onset ที่แน่นอนของผู้ป่วย ผมจึงบอกไม่ได้ว่า CT ไม่มี bleed\n- ถ้าเข้าเกณฑ์ครบ (onset ไม่เกิน 3 ชม., CT ไม่มี ICH, BP ต่ำกว่า 185/110, glucose มากกว่า 50) การให้ alteplase 0.9 mg/kg ไม่เกิน 90 mg เป็นแนวทางที่แนะนำ (AHA/ASA acute ischaemic stroke guideline, 2019)\n- ควรคำนวณ dose จากน้ำหนักจริงและตรวจ order ซ้ำกับทีมก่อนสั่งใช้ครับ"
+    }
+  ]
+}

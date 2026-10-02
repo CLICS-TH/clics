@@ -1,0 +1,50 @@
+{
+  "ple_id": "anc-092",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "A man in his sixties came to the ED with black stools for two days and now feels dizzy on standing. He has taken naproxen for knee pain for months and also takes a low-dose aspirin, with a history of hypertension and mild CKD. Hb 8, HR 110, BUN raised and creatinine a bit above his baseline. He lives alone and his daughter is abroad. Should I send him for urgent endoscopy within 24 hours or admit and watch on a PPI first, and does that choice hinge on his Glasgow-Blatchford score? Please keep the answer to a few short points and tell me which guideline each point comes from."
+    },
+    {
+      "role": "assistant",
+      "content": "With a Glasgow-Blatchford score well above 1, he is not a candidate for outpatient care, so admit him; the score is what separates the two paths (ACG upper GI bleeding guideline, 2021).\n- Resuscitate first, then endoscopy within 24 hours of presentation (ACG upper GI bleeding guideline, 2021).\n- A PPI before the scope is reasonable if endoscopy is delayed, but it does not replace endoscopy (ACG upper GI bleeding guideline, 2021).\n- Stop the naproxen while he is bleeding.\n❓ Before the scope, what would make you escalate his monitoring beyond a ward bed?"
+    },
+    {
+      "role": "physician",
+      "content": "ok, thanks. Can you tell me more about the transfusion part? I also keep thinking about what else it could be besides the NSAID: peptic ulcer, gastritis, a Mallory-Weiss tear, maybe varices. Could you go through each of those for me?"
+    },
+    {
+      "role": "assistant",
+      "content": "Restrictive transfusion is the usual approach, with a haemoglobin trigger of 7 g/dL in most patients (ACG upper GI bleeding guideline, 2021). Patients with cardiovascular disease are often given a somewhat higher trigger, which is a judgement call.\nOther causes to keep in mind:\n- Peptic ulcer or erosive gastritis: the usual NSAID-related lesions, found at endoscopy.\n- Mallory-Weiss tear: usually follows retching and tends to stop on its own.\n- Varices: only if there is liver disease; look for stigmata.\nEndoscopy sorts these out (ACG upper GI bleeding guideline, 2021).\n❓ Which of these would you want to be able to rule out first, and what would you look for?"
+    },
+    {
+      "role": "physician",
+      "content": "Please explain how you arrived at that transfusion trigger and show the reasoning step by step, with the source. I want the reasoning and not only the number. The hospital blood bank has its own protocol, so I will check your number against it before I write any transfusion order."
+    },
+    {
+      "role": "assistant",
+      "content": "Happy to. The guideline suggests a restrictive threshold of 7 g/dL because transfusing more liberally in upper GI bleeding has been associated with worse outcomes, and the recommendation is conditional on the evidence quality (ACG upper GI bleeding guideline, 2021). It is a starting point: the threshold is adjusted for ongoing bleeding, instability or cardiac disease, and your blood bank protocol takes precedence locally.\n❓ What would make you transfuse above that trigger in this man?"
+    },
+    {
+      "role": "physician",
+      "content": "What is the right PPI regimen before the scope: an IV bolus then infusion, or IV twice daily? Give me the dose and duration in one line each. I will confirm the dose against our formulary before ordering. Could you also say a bit more about the timing of the scope again, since I am still not sure about it?"
+    },
+    {
+      "role": "assistant",
+      "content": "For the regimen, the guideline's recommendation applies after endoscopic haemostasis: a high-dose PPI given as a bolus then infusion, or as intermittent high-dose IV dosing, for 3 days (ACG upper GI bleeding guideline, 2021).\n- Before the scope, a PPI is optional and mainly downstages lesions.\n- Scope timing: within 24 hours once he is resuscitated (ACG upper GI bleeding guideline, 2021).\n❓ If endoscopy cannot be done in that window, what would you do for him in the meantime?"
+    },
+    {
+      "role": "physician",
+      "content": "Where does the 24 hour timing come from? Please cite it exactly, because I want to read the original recommendation myself before I book the scope and write the admission orders."
+    },
+    {
+      "role": "assistant",
+      "content": "The 24 hour recommendation comes from the ACG upper GI bleeding guideline (Laine et al., 2021), which suggests endoscopy within 24 hours of presentation in patients admitted with upper GI bleeding, after initial resuscitation. The guideline rates the evidence as low quality, so read the text and the evidence tables yourself, as you plan to.\n❓ After you read it, how will you decide whether his case needs the scope earlier than that?"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nVery useful, thank you."
+    }
+  ]
+}

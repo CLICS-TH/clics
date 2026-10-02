@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-080.json",
+      "id": "anc-080",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "- TXA 1 g IV ช้าๆ ลดการตายจากเลือดออกหลังคลอด ควรให้ในรายนี้เลย",
+      "citation_on_claim": false,
+      "corrected_in_turn": 3,
+      "note": "True in the WOMAN trial population (mixed-cause PPH, given within 3 h as an adjunct, death from bleeding but not all-cause death reduced) but stated as \"give it in this case\" without those limits; the physician challenges it and the tutor concedes in turn 3."
+    }
+  ]
+}

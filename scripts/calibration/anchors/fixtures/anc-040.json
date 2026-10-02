@@ -1,0 +1,74 @@
+{
+  "ple_id": "anc-040",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "pt ชายวัย 60 กว่า เคย laparotomy มาก่อน ปวดท้อง อาเจียน 2 วัน ไม่ผายลม 1 วัน BP 118/74 HR 96 eGFR 38 PMH HTN, DM on metformin กับ amlodipine ตรวจท้องตึง ไม่มี guarding bowel sound เสียงสูง รายนี้ควร operate เลยหรือลอง conservative ก่อนครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ถ้าไม่มีสัญญาณ peritonitis, ischaemia หรือ closed-loop การลอง non-operative management ก่อนเป็นทางเลือกที่รับได้ใน adhesive SBO (WSES Bologna ASBO, 2017)\n- NPO, NG decompression, IV fluid และติดตามอาการกับ lab ซ้ำเป็นระยะ\n- ถ้าเริ่มมี peritonitis, ไข้, HR สูงขึ้น, ปวดมากขึ้น หรือ lactate สูง ให้พิจารณาผ่าตัดเร็ว\n- eGFR 38 ต้องระวัง dehydration และยาที่เป็นพิษต่อไตเพิ่ม\n❓ ถ้าอีก 12 ชม. ท้องตึงขึ้นและ HR สูงขึ้น อะไรจะทำให้ท่านเปลี่ยนจาก conservative เป็น operate"
+    },
+    {
+      "role": "physician",
+      "content": "ขอถามเรื่อง lab ด้วยครับ ผล lab เช้านี้ Na 132 K 3.1 Cr 1.9 ส่วน Hb กับ platelet ปกติ ควรให้ IV fluid ชนิดไหน อัตราเท่าไหร่ดี ขอแบบสั้น ๆ"
+    },
+    {
+      "role": "assistant",
+      "content": "Na ต่ำและ K ต่ำสอดคล้องกับการอาเจียนและการเสียน้ำเข้า third space\n- ให้ isotonic crystalloid เป็น bolus แล้วประเมินซ้ำ; ใน sepsis แนะนำ balanced crystalloid มากกว่า saline (Surviving Sepsis Campaign, 2021) และใน SBO ใช้หลักเดียวกันได้ตามดุลยพินิจ\n- เติม K ทีละน้อยพร้อมติดตามระดับ เพราะ Cr 1.9 ทำให้ K สะสมได้ง่าย\n❓ ท่านจะ recheck electrolyte ทุกกี่ชั่วโมง และอะไรคือสัญญาณให้หยุดเติม K"
+    },
+    {
+      "role": "physician",
+      "content": "Gastrografin ที่เขาใช้กันใน SBO นี่คืออะไร ใช้ตอนไหน ต้องกินหรือฉีดครับ ขออธิบายแบบละเอียดหน่อย"
+    },
+    {
+      "role": "assistant",
+      "content": "Gastrografin คือ water-soluble contrast ที่ให้กิน (หรือให้ผ่าน NG แล้วหนีบสายไว้) ช่วยทั้งวินิจฉัยและอาจช่วยให้ลำไส้ที่อุดตันแบบ adhesive คลายได้\n- ถ่าย film ช่องท้องหลังให้ ถ้า contrast ถึง colon ภายใน 24 ชม. โอกาสหายด้วย conservative สูงขึ้น (WSES Bologna ASBO, 2017)\n- ขนาดที่ใช้ยังไม่แน่ใจว่าที่ท่านมีใช้ตามโปรโตคอลไหน ควรดูตามแนวทางของที่นั่น\n❓ ถ้า contrast ยังไม่ถึง colon ที่ 24 ชม. จะมีผลอย่างไรกับ plan ของท่าน"
+    },
+    {
+      "role": "physician",
+      "content": "ผมจะลอง conservative 24 ชม. ก่อน ok ครับ ตอนนี้ pain score 7/10 ช่วยบอก analgesic ที่ใช้ได้หน่อย"
+    },
+    {
+      "role": "assistant",
+      "content": "ให้ IV opioid ขนาดเล็กแล้วปรับตามอาการได้ และไม่ได้บังอาการ surgical abdomen ถ้าประเมินซ้ำสม่ำเสมอ\n- eGFR 38 ควรเลี่ยง morphine ขนาดสูงเพราะ metabolite สะสม และเลี่ยง NSAIDs\n- conservative ต้องประเมินซ้ำทั้งอาการและ lab เป็นระยะ (WSES Bologna ASBO, 2017)\n❓ ถ้าปวดแย่ลงทั้งที่ให้ยาแก้ปวดแล้ว ท่านจะตีความอย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ผล WBC 14,000 lactate 3.2 ครับ ส่วน CXR ไม่เห็น free air DDx ของ pt อาจเป็น adhesion, internal hernia หรือ tumor recurrence"
+    },
+    {
+      "role": "assistant",
+      "content": "adhesion เป็นสาเหตุที่พบบ่อยที่สุดของ SBO หลังเคยผ่าตัดช่องท้อง (WSES Bologna ASBO, 2017)\n- internal hernia และ tumor recurrence ก็ต้องนึกถึง\n- ค่า lactate หรือ WBC ปกติไม่ได้ตัด strangulation ออก แต่ lactate 3.2 กับ WBC 14,000 ควรเพิ่มความระวังเรื่อง ischaemia\n❓ ท่านจะเรียงลำดับสาเหตุทั้งสามอย่างไร และอะไรจะทำให้ลำดับเปลี่ยน"
+    },
+    {
+      "role": "physician",
+      "content": "แน่ใจนะครับ ขอเปลี่ยนเรื่อง antibiotic ต้องให้ไหม ceftriaxone กับ metronidazole ใช้ได้หรือเปล่า ผมถามเรื่อง antibiotic ว่าต้องให้ไหมอีกครั้ง"
+    },
+    {
+      "role": "assistant",
+      "content": "ยืนยันตามแนวทางครับ ถ้าไม่มีสัญญาณ ischaemia หรือ sepsis ส่วนใหญ่ไม่ได้ให้ antibiotic เป็นประจำ\n- ceftriaxone กับ metronidazole ครอบคลุม gram-negative และ anaerobe ซึ่งเป็น regimen ที่ใช้กันทั่วไป\n- ถ้าสงสัย sepsis ให้ดำเนินการตามกรอบเวลาของแนวทาง (Surviving Sepsis Campaign, 2021)\n❓ ถ้า lactate ซ้ำแล้วยังสูง ท่านจะทำอย่างไรต่อ"
+    },
+    {
+      "role": "physician",
+      "content": "Foley ต้องใส่ไหมครับ pt ปัสสาวะได้เองอยู่ urine output ควรได้เท่าไหร่ต่อชั่วโมง"
+    },
+    {
+      "role": "assistant",
+      "content": "ใส่ได้ถ้าต้องวัด urine output แม่น ซึ่ง Cr 1.9 กับการอาเจียนทำให้ AKI แบบ prerenal เป็นไปได้\n- เป้าทั่วไปคือ urine output ไม่ต่ำกว่า 0.5 ml/kg/ชม.\n- ผู้ป่วย non-operative ต้องถูกประเมินซ้ำเป็นระยะ (WSES Bologna ASBO, 2017)\n❓ ถ้า urine output ต่ำหลังให้ fluid ท่านจะแยก hypovolaemia กับ AKI อย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ช่วยสรุป plan ทั้งหมดให้สั้น ๆ ไม่เกิน 5 บรรทัด เดี๋ยวผมเอาไปลงใน note"
+    },
+    {
+      "role": "assistant",
+      "content": "สรุป plan สั้น ๆ\n- NPO, NG decompression\n- IV balanced crystalloid และเติม K ตามระดับ\n- ติดตาม urine output, อาการ, lactate ซ้ำ\n- Gastrografin แล้วดู film ภายใน 24 ชม.\n- operate ถ้า peritonitis หรือ HR/lactate แย่ลง (WSES Bologna ASBO, 2017)\n❓ ก่อนลงใน note ท่านจะตรวจอะไรซ้ำที่เตียงอีกครั้ง"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nได้ความรู้เยอะมาก ขอบคุณครับ"
+    }
+  ]
+}

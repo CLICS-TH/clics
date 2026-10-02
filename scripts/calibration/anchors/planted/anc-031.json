@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-031.json",
+      "id": "anc-031",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "ถ้าผล Canadian CT Head Rule เป็นลบ ก็ถือว่าเสี่ยงต่ำพอจะไม่ต้อง CT ในกลุ่ม GCS 15",
+      "citation_on_claim": false,
+      "corrected_in_turn": 3,
+      "note": "Canadian CT Head Rule excluded patients on anticoagulants; a negative rule cannot clear this group. Tutor concedes in turn 3."
+    }
+  ]
+}

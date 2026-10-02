@@ -1,0 +1,8 @@
+{"rater":"sonnet","scores":{
+"Q01":{"d1":3,"d2":2,"d3":2,"d4":3,"d5":3,"d6":1,"d7":4,"note":"Case-specific opener (GBS vs 24h scope) but later turns ask for lists; differential unranked; 'I will check against blood bank protocol before I write any order'; reflection 'Very useful, thank you'."},
+"Q02":{"d1":3,"d2":2,"d3":4,"d4":3,"d5":3,"d6":5,"d7":5,"note":"'ไม่มี procalcitonin ไม่ต้องใส่ตัวนั้นมา' shapes plan; 'หมอเป็นคนชี้หลังตรวจซ้ำ'; reflection names before/after, uncertainty on CRP/ANC, concrete verify/teach/audit plan."},
+"Q03":{"d1":5,"d2":4,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"'Cipriani ... ตัดคนมี SI รุนแรงออกส่วนมาก ผลรวมจึงไม่ใช่หลักฐานตรงของ pt รายนี้'; pesticide bottle, 2-night relative, no psych bed shape plan; asks AI to find weaknesses; closing synthesis."},
+"Q04":{"d1":2,"d2":1,"d3":2,"d4":2,"d5":1,"d6":1,"d7":2,"note":"Requests 'ขอแบบละเอียด/ครบทุกข้อ/ทั้งหมด' with no own reasoning; accepts AI unexamined; reflection merely restates rtPA facts 'ได้ความรู้เยอะครับ'; only asks for ref once."},
+"Q05":{"d1":4,"d2":5,"d3":3,"d4":3,"d5":5,"d6":4,"d7":5,"note":"'glibenclamide มี active metabolite ที่ขับออกทางไต ผมจึงจัดเป็นเสี่ยงสูงสุด'; corrects 3 AI overgeneralizations (USPSTF, Beers, ADA); topic-hops across drug classes; reflection states open 3-5y gap."},
+"Q06":{"d1":2,"d2":1,"d3":2,"d4":2,"d5":2,"d6":1,"d7":2,"note":"Repeats 'เริ่ม insulin เมื่อไหร่' near-verbatim; context (mother DM, prior macrosomia, needle fear) given but unused; one blunt 'แน่ใจนะครับ'; wants script 'ไม่ต้องคิดเอง'; generic reflection."}
+}}

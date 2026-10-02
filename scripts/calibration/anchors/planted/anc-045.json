@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-045.json",
+      "id": "anc-045",
+      "turn": 1,
+      "kind": "false",
+      "claim": "การรอถึง 37 สัปดาห์ปลอดภัยสำหรับแม่ทุกราย ตราบใดที่ BP คุมได้ด้วยยา",
+      "citation_on_claim": false,
+      "corrected_in_turn": 3,
+      "note": "Over-generalisation: controlled BP does not make waiting safe for every mother; HELLP or falling platelets can occur with stable BP. Turn 3 corrects it."
+    }
+  ]
+}
