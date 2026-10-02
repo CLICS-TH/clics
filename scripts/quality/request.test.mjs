@@ -30,6 +30,12 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
   assert.ok(chatSrc.includes(CC_PREFIX), 'chief-complaint prefix drifted from chat.js buildMessages');
   assert.ok(chatSrc.includes("role: m.role === 'physician' ? 'user' : 'assistant'"), 'role mapping drifted');
   assert.ok(chatSrc.includes('content: stripArtifactDelimiters(m.content)'), 'history artifact strip drifted');
+  // PII de-identification and system-prompt assembly — the exact calls request.mjs makes.
+  assert.ok(chatSrc.includes('const cleanMessage = stripPii(message, undefined, hints);'), 'message de-identification drifted');
+  assert.ok(chatSrc.includes('const cleanHistory = stripHistoryPii(history, hints).map('), 'history de-identification drifted');
+  assert.ok(chatSrc.includes('${stripPii(chiefComplaint, undefined, hints)}'), 'chief-complaint de-identification drifted');
+  assert.ok(chatSrc.includes('const hints = deriveHintTokens(patient_ref);'), 'PII hint derivation drifted');
+  assert.ok(chatSrc.includes("+ (artifacts ? ARTIFACT_GUIDANCE : '');"), 'ARTIFACT_GUIDANCE concatenation drifted');
   // The single corrective retry (#109): both triggers, how they combine, prompts, fence, failure rule.
   for (const line of [
     'const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));',

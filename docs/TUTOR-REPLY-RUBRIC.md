@@ -100,9 +100,12 @@ Applies to every item except rescue items.
 | 0 | Any invented source, title, PMID, DOI or quotation (`FABRICATED_REFERENCE`). If you can't check a source, say so in `rationale` and don't score it 3. |
 
 `scripts/quality/cite-verify.mjs` checks automatically whether a source *exists*; its result is
-`verified`, `year-mismatch` or `unverified`. Only a judge can check whether the source *says what
-the reply claims*. An `unverified` result does not mean the source was fabricated, because Thai
-guidelines are not indexed in PubMed.
+`verified`, `publisher-only`, `year-mismatch` or `unverified`. Only a judge can check whether the
+source *says what the reply claims*. An `unverified` result does not mean the source was fabricated,
+because Thai guidelines are not indexed in PubMed. A `publisher-only` result means the publisher is
+real but the document was not identified. A real publisher name with an invented title ("WHO
+Guideline on Garlic…") is the commonest fabrication, so check that the document itself exists before
+scoring `citation_honesty` above 1.
 
 ## Must-flags
 

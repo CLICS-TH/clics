@@ -1,6 +1,6 @@
 {
-  "version": "known-sources-v1",
-  "note": "Curated by hand for scripts/quality/cite-verify.mjs. ONLY sources and edition years the curator was certain of; omissions are deliberate. A missing year makes a real citation read \"year-mismatch\" (a false alarm a human clears) - a wrong year would make a false one read \"verified\", which is the failure this list exists to prevent. \"family\" entries verify only that the publisher/series exists and publishes in that year, not the specific document. year_range [from, null] = every year from `from` to the current year.",
+  "version": "known-sources-v2",
+  "note": "Curated by hand for scripts/quality/cite-verify.mjs. ONLY sources and edition years the curator was certain of; omissions are deliberate. A missing year makes a real citation read \"year-mismatch\" (a false alarm a human clears) - a wrong year would make a false one read \"verified\", which is the failure this list exists to prevent. \"family\" entries verify only that the publisher/series exists and publishes in that year, not the specific document. year_range [from, null] = every year from `from` to the current year. v2 (review of PR #113): publisher names live ONLY on family entries — a document entry carries document-specific aliases, so \"<publisher> <invented title>, <year>\" can at most read publisher-only.",
   "sources": [
     {
       "id": "fam-who",
@@ -212,9 +212,7 @@
         "ADA Standards of Care",
         "ADA Standards of Medical Care",
         "Standards of Care in Diabetes",
-        "Standards of Medical Care in Diabetes",
-        "American Diabetes Association",
-        "ADA"
+        "Standards of Medical Care in Diabetes"
       ],
       "kind": "guideline",
       "specificity": "document",
@@ -246,8 +244,6 @@
       "aliases": [
         "Thai CPG diabetes",
         "Thai diabetes guideline",
-        "Diabetes Association of Thailand",
-        "สมาคมโรคเบาหวานแห่งประเทศไทย",
         "แนวทางเวชปฏิบัติสำหรับโรคเบาหวาน"
       ],
       "kind": "guideline",
@@ -416,8 +412,7 @@
       "aliases": [
         "ESC hypertension",
         "ESC/ESH hypertension",
-        "ESH hypertension",
-        "European Society of Hypertension"
+        "ESH hypertension"
       ],
       "kind": "guideline",
       "specificity": "document",
@@ -556,8 +551,7 @@
       "aliases": [
         "AHA/ASA stroke",
         "AHA/ASA acute ischemic stroke",
-        "AHA stroke",
-        "American Stroke Association"
+        "AHA stroke"
       ],
       "kind": "guideline",
       "specificity": "document",
@@ -586,10 +580,8 @@
       "id": "thai-htn",
       "canonical": "Thai Guidelines on the Treatment of Hypertension (Thai Hypertension Society)",
       "aliases": [
-        "Thai Hypertension Society",
         "Thai hypertension guideline",
         "Thai Guidelines on the Treatment of Hypertension",
-        "สมาคมความดันโลหิตสูงแห่งประเทศไทย",
         "แนวทางการรักษาโรคความดันโลหิตสูงในเวชปฏิบัติทั่วไป"
       ],
       "kind": "guideline",
@@ -763,6 +755,88 @@
       "specificity": "family",
       "year_range": [
         2019,
+        null
+      ]
+    },
+    {
+      "id": "fam-ada",
+      "canonical": "American Diabetes Association (ADA)",
+      "aliases": [
+        "ADA",
+        "American Diabetes Association"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1950,
+        null
+      ]
+    },
+    {
+      "id": "fam-thai-dm",
+      "canonical": "Diabetes Association of Thailand",
+      "aliases": [
+        "Diabetes Association of Thailand",
+        "สมาคมโรคเบาหวานแห่งประเทศไทย"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1990,
+        null
+      ]
+    },
+    {
+      "id": "fam-thai-htn",
+      "canonical": "Thai Hypertension Society",
+      "aliases": [
+        "Thai Hypertension Society",
+        "สมาคมความดันโลหิตสูงแห่งประเทศไทย"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1990,
+        null
+      ]
+    },
+    {
+      "id": "fam-esh",
+      "canonical": "European Society of Hypertension (ESH)",
+      "aliases": [
+        "European Society of Hypertension",
+        "ESH"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1990,
+        null
+      ]
+    },
+    {
+      "id": "fam-asa",
+      "canonical": "American Stroke Association",
+      "aliases": [
+        "American Stroke Association"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1997,
+        null
+      ]
+    },
+    {
+      "id": "fam-rcuk",
+      "canonical": "Resuscitation Council UK",
+      "aliases": [
+        "Resuscitation Council UK"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1985,
         null
       ]
     },
@@ -1235,7 +1309,6 @@
       "canonical": "Emergency treatment of anaphylaxis (Resuscitation Council UK)",
       "aliases": [
         "Resuscitation Council UK anaphylaxis",
-        "Resuscitation Council UK",
         "RCUK anaphylaxis"
       ],
       "kind": "guideline",

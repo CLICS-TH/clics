@@ -3,9 +3,16 @@
 // model) into per-arm, per-dimension summaries, unblinded with the key from judge-packet.mjs.
 //
 // Reports, every rate with a Wilson 95% interval:
-//   * per judge and pooled: mean score per dimension, and the share of replies scoring >= 2
-//     ("acceptable" on the 0-3 anchors);
-//   * critical must-flag rate per arm, and counts per flag code;
+//   * THE GATE FIGURE (`gate`): one verdict per REPLY (item × arm), the MINIMUM over every judge and
+//     both A/B orders, and the share of replies scoring >= 2 over n = the number of replies (80 for
+//     the full bank). That is the unit docs/QUALITY-GATES.md pre-registers (e.g. 72/80). Counting
+//     ratings instead — judges × orders × 80 — inflates n to >= 160 and narrows the interval for
+//     free: at 70/80 acceptable replies the pre-registered lower bound is 0.785 (no-go) while a
+//     ratings-level bound reads 0.815 (pass). A reply is critical-flagged if ANY judge flagged it in
+//     ANY order;
+//   * per judge: the same reply-level figures for that judge alone (min over its two orders);
+//   * `ratings_secondary`: the old per-rating summary, kept only as a labelled secondary number;
+//   * critical must-flag counts per flag code;
 //   * pairwise runs: win / tie / loss, position bias (how often slot A is preferred — should be ~50%),
 //     and order consistency (does the same item get the same verdict with A and B swapped?);
 //   * with >= 2 judges: Cohen's kappa per dimension (unweighted and quadratic-weighted, since the
@@ -103,15 +110,40 @@ export function mergeJudgements({ key, results, packetsById }) {
     const flagCounts = {};
     for (const x of rs) for (const f of x.flags) flagCounts[f] = (flagCounts[f] || 0) + 1;
     return [arm, {
-      n_replies: rs.length,
+      unit: 'ratings (judges × orders × replies) — secondary, NOT the gate figure',
+      n_ratings: rs.length,
       dimensions: dims,
       critical_flag_rate: wilson(rs.filter((x) => x.flags.some((f) => CRITICAL.has(f))).length, rs.length),
       flag_counts: flagCounts,
     }];
   }));
 
-  const byJudge = Object.fromEntries(judges.map((j) => [j.id, perArm(rows.filter((x) => x.judge === j.id))]));
-  const pooled = perArm(rows);
+  // Reply level: collapse every rating of one reply (item × arm) to ONE verdict — the lowest score per
+  // dimension and the union of flags — then summarise over replies. See the header for why.
+  const replyLevel = (subset) => {
+    const byReply = new Map();
+    for (const x of subset) {
+      const key2 = `${x.item}\0${x.arm}`;
+      const r = byReply.get(key2) ?? { arm: x.arm, flags: new Set(), min: {} };
+      for (const f of x.flags) r.flags.add(f);
+      for (const [d, v] of Object.entries(x.scores)) if (v != null) r.min[d] = Math.min(r.min[d] ?? 3, v);
+      byReply.set(key2, r);
+    }
+    const replies = [...byReply.values()];
+    return Object.fromEntries(arms.map((arm) => {
+      const rs = replies.filter((r) => r.arm === arm);
+      const dims = Object.fromEntries(DIMENSIONS.map((d) => [d, dimSummary(rs.map((r) => r.min[d]).filter((v) => v !== undefined))]).filter(([, x]) => x.n > 0));
+      return [arm, {
+        unit: 'replies',
+        n_replies: rs.length,
+        dimensions: dims,
+        critical_flag_rate: wilson(rs.filter((r) => [...r.flags].some((f) => CRITICAL.has(f))).length, rs.length),
+      }];
+    }));
+  };
+  const gate = replyLevel(rows);
+  const byJudge = Object.fromEntries(judges.map((j) => [j.id, replyLevel(rows.filter((x) => x.judge === j.id))]));
+  const ratingsSecondary = perArm(rows);
 
   // Per item × arm: every flag any judge raised and the LOWEST score any judge gave per dimension —
   // what clinician-export.mjs uses to decide which replies a clinician must read.
@@ -214,8 +246,9 @@ export function mergeJudgements({ key, results, packetsById }) {
     judges,
     n_results: results.length,
     excluded_items: key.excluded,
+    gate,
     per_judge: byJudge,
-    pooled,
+    ratings_secondary: ratingsSecondary,
     pairwise,
     agreement,
     per_item: perItem,
@@ -227,10 +260,12 @@ export function printMerge(m, log = console.log) {
   log(`\n  judge merge — ${m.n_results} result(s) from ${m.judges.length} judge(s): ${m.judges.map((j) => `${j.id} (${j.kind})`).join(', ')}`);
   log(`  evidence level: ${m.evidence_level.toUpperCase()}`);
   for (const a of m.arms) log(`  ${a.arm} = ${a.label} (${a.provider ?? '?'} ${a.model ?? ''})`);
-  for (const [arm, s] of Object.entries(m.pooled)) {
-    log(`\n  ${arm} — pooled over judges, ${s.n_replies} rating(s)`);
-    for (const [d, x] of Object.entries(s.dimensions)) log(`    ${d.padEnd(18)} mean ${x.mean.toFixed(2)}   >=2: ${fmtRate(x.acceptable)}`);
-    log(`    ${'critical flag'.padEnd(18)} ${fmtRate(s.critical_flag_rate)}`);
+  for (const [arm, s] of Object.entries(m.gate)) {
+    log(`\n  ${arm} — GATE FIGURE: ${s.n_replies} replies, one verdict each (lowest score over all judges and orders)`);
+    for (const [d, x] of Object.entries(s.dimensions)) log(`    ${d.padEnd(18)} >=2: ${fmtRate(x.acceptable)} replies   (mean of lowest ${x.mean.toFixed(2)})`);
+    log(`    ${'critical flag'.padEnd(18)} ${fmtRate(s.critical_flag_rate)} replies`);
+    const r = m.ratings_secondary[arm];
+    log(`    ${'(secondary)'.padEnd(18)} ${r.n_ratings} ratings — per-rating figures in merged.json ratings_secondary; never gate on them`);
   }
   if (m.pairwise) for (const [j, p] of Object.entries(m.pairwise)) {
     log(`\n  pairwise (${j}): ${p.comparison}`);

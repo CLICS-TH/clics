@@ -5,17 +5,22 @@
 // "(Fake Guideline, 2023)" passes it, and so did every Gate 0 reply. This script checks the source:
 //
 //   1. Curated match — scripts/quality/known-sources.json lists real guidelines, statements and
-//      landmark trials with their aliases and the edition years we are sure of. A name match with a
-//      listed year is `verified`; a name match with an unlisted year is `year-mismatch`.
+//      landmark trials with their aliases and the edition years we are sure of. A DOCUMENT match with
+//      a listed year is `verified`; a PUBLISHER/series match ("WHO …", "ESC …", "ADA …") is
+//      `publisher-only`; a match with an unlisted year is `year-mismatch`.
 //   2. PubMed — anything not curated is looked up with NCBI E-utilities esearch: the cited name as a
 //      quoted [Title] phrase AND the year as [dp], falling back to every title word as [ti] (accepted
 //      only when it narrows to <= WORDS_MAX_HITS papers). A hit is `verified`; a hit only without the
 //      year is `year-mismatch`; nothing is `unverified`.
 //
-// THE THREE LABELS, AND WHAT THEY DO NOT MEAN
+// THE FOUR LABELS, AND WHAT THEY DO NOT MEAN
 //   verified       a real document with this name exists for this year. It does NOT mean the
 //                  document says what the reply claims it says — that is the judges' and the
 //                  clinician's question (rubric dimension: citation honesty).
+//   publisher-only the publisher or series is real and publishes in that year, but the DOCUMENT is
+//                  not identified. "(WHO Guideline on Garlic Extract for Hypertension, 2021)" lands
+//                  here — the commonest fabrication is a real publisher with an invented title, so
+//                  this is NOT verified: it does not count toward the C-1 rate and goes to a human.
 //   year-mismatch  the source is real but we hold no edition for that year. Our edition lists are
 //                  deliberately incomplete (only years we are certain of), so this may be our gap.
 //   unverified     we could not confirm it. NOT "fabricated": Thai-language sources are not in
@@ -42,7 +47,7 @@ import { wilson, fmtRate } from './stats.mjs';
 export const KNOWN_SOURCES_FILE = path.join(QUALITY_DIR, 'known-sources.json');
 export const DEFAULT_CACHE = path.join(QUALITY_DIR, 'cache', 'pubmed.json');
 export const ESEARCH = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi';
-export const STATUSES = ['verified', 'year-mismatch', 'unverified'];
+export const STATUSES = ['verified', 'publisher-only', 'year-mismatch', 'unverified'];
 const CURRENT_YEAR = new Date().getUTCFullYear();
 
 /* ---------------------------------------------------------------- parsing */
@@ -76,14 +81,59 @@ export function normalize(s) {
 }
 const tokens = (s) => normalize(s).split(' ').filter((t) => t && !STOP.has(t));
 
+/** Tokens in their ORIGINAL case (NFKC, split on anything that is not a letter or digit). */
+const rawTokens = (s) => String(s).normalize('NFKC').replace(/&/g, ' and ').split(/[^\p{L}\p{N}\u0E00-\u0E7F]+/u).filter(Boolean);
+/** An acronym-like token: two or more capitals ("WHO", "ESC", "NG28", "ProCESS", "RE"). These match
+ *  CASE-SENSITIVELY — otherwise the English word "who" is the WHO and "reduce" is the REDUCE trial. */
+const isAcronym = (t) => (t.match(/\p{Lu}/gu) || []).length >= 2;
+const isAllCaps = (t) => /\p{Lu}/u.test(t) && !/\p{Ll}/u.test(t);
+
 /* --------------------------------------------------------- curated match */
 
-/** Best curated entry for a cited name, or null. Latin aliases match when every alias token appears
- *  in the name (so "ESC Guidelines for Heart Failure" matches the alias "ESC heart failure");
- *  Thai aliases (no word spaces) match as substrings. The most specific alias wins. */
+/**
+ * Does one Latin alias match the cited name? Every significant alias token must be a whole token of
+ * the name — acronym tokens case-sensitively, ordinary words case-insensitively. A ONE-token alias
+ * is the dangerous case (a surname like "Sort", or a trial acronym that is also a word, like
+ * "RECOVERY"), so it needs more:
+ *   - an acronym alias must appear exactly as written (case-sensitive, above). For a TRIAL entry
+ *     that is the "all-caps or next to 'trial'" rule: an exact match of a token with two or more
+ *     capitals ("RECOVERY", "ProCESS") is acronym-shaped by construction, which an ordinary word
+ *     at the start of a sentence ("Recovery", "Reduce") never is. The check below states it anyway,
+ *     so a future change to isAcronym cannot silently drop it;
+ *   - a plain-word alias (a surname) must be the whole name ("Villanueva", "Villanueva et al.") or
+ *     stand next to the word "trial".
+ */
+function latinAliasMatches(alias, entry, name) {
+  const aliasToks = rawTokens(alias).filter((t) => !STOP.has(t.toLowerCase()));
+  if (!aliasToks.length) return 0;
+  const raw = rawTokens(name);
+  const lower = raw.map((t) => t.toLowerCase());
+  const positions = (t) => raw.flatMap((r, i) => ((isAcronym(t) ? r === t : lower[i] === t.toLowerCase()) ? [i] : []));
+  if (!aliasToks.every((t) => positions(t).length)) return 0;
+  if (aliasToks.length === 1) {
+    const t = aliasToks[0];
+    const nextToTrial = positions(t).some((i) => lower[i - 1] === 'trial' || lower[i + 1] === 'trial');
+    if (isAcronym(t)) {
+      if (entry.kind === 'trial' && !nextToTrial) {
+        if (!positions(t).some((i) => isAllCaps(raw[i]) || isAcronym(raw[i]))) return 0;
+        // A title in ALL CAPS makes every word look like an acronym ("HIGH-DOSE VITAMINS CURE…").
+        // There the acronym must be the whole name, not one capitalised word among many.
+        const words = raw.filter((r) => /\p{L}/u.test(r) && !STOP.has(r.toLowerCase()));
+        if (words.length > 1 && words.every(isAllCaps)) return 0;
+      }
+    } else {
+      const wholeName = /^\s*[\p{L}'’-]+(?:\s+et\.?\s+al\.?)?\s*$/u.test(name.trim()) && lower[0] === t.toLowerCase();
+      if (!wholeName && !nextToTrial) return 0;
+    }
+  }
+  return aliasToks.length;
+}
+
+/** Best curated entry for a cited name, or null. Thai aliases (no word spaces) match as substrings;
+ *  Latin aliases per latinAliasMatches. The most specific alias wins; on a tie, a document beats a
+ *  family. */
 export function matchKnown(name, known) {
   const nameNorm = normalize(name);
-  const nameToks = new Set(tokens(name));
   let best = null;
   for (const entry of known.sources) {
     for (const alias of [entry.canonical, ...(entry.aliases ?? [])]) {
@@ -92,8 +142,7 @@ export function matchKnown(name, known) {
         const a = normalize(alias);
         if (a && nameNorm.includes(a)) score = a.replace(/\s/g, '').length / 3;
       } else {
-        const at = tokens(alias);
-        if (at.length && at.every((t) => nameToks.has(t))) score = at.length;
+        score = latinAliasMatches(alias, entry, name);
       }
       if (!score) continue;
       const better = !best || score > best.score ||
@@ -166,15 +215,16 @@ export async function verifyCitation(cit, ctx) {
   const hit = matchKnown(cit.name, ctx.known);
   if (hit) {
     const ok = yearValid(hit.entry, cit.yearCE);
+    const family = hit.entry.specificity === 'family';
     return {
       ...base,
-      status: ok ? 'verified' : 'year-mismatch',
+      status: !ok ? 'year-mismatch' : (family ? 'publisher-only' : 'verified'),
       basis: 'curated',
       specificity: hit.entry.specificity,
       matched: hit.entry.canonical,
       matched_id: hit.entry.id,
       reason: ok
-        ? (hit.entry.specificity === 'family' ? 'publisher/series is real and publishes this year; the specific document is not identified' : undefined)
+        ? (family ? 'publisher/series is real and publishes this year; the specific document is NOT identified — a human must check it exists' : undefined)
         : `curated source, but ${cit.yearCE} is not an edition year we hold (our lists are deliberately incomplete)`,
     };
   }
@@ -264,7 +314,7 @@ export async function verifyReport(report, ctx) {
       by_status: Object.fromEntries(STATUSES.map((s) => [s, count(s)])),
       verified_rate: wilson(count('verified'), all.length),
       items_with_unverified: items.filter((i) => i.citations.some((c) => c.status !== 'verified')).map((i) => i.id),
-      note: '"unverified" means we could not confirm the source — NOT that it is fabricated. Verified means the source exists, not that it says what the reply claims.',
+      note: '"unverified" means we could not confirm the source — NOT that it is fabricated. "publisher-only" means the publisher is real but the document is not identified, and it is NOT counted as verified. Verified means the source exists, not that it says what the reply claims.',
     },
     items,
   };

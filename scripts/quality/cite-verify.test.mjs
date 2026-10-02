@@ -59,17 +59,61 @@ test('yearValid: explicit years and open ranges', () => {
   assert.equal(yearValid({ year_range: [1989, null] }, 1980), false);
 });
 
-test('curated: verified / year-mismatch, with publisher-only specificity said out loud', async () => {
+test('curated: verified / year-mismatch for documents; a publisher match is publisher-only, NOT verified', async () => {
   const ctx = { known, offline: true };
   const v = await verifyCitation(cite('Surviving Sepsis Campaign', 2021), ctx);
   assert.deepEqual([v.status, v.basis, v.specificity], ['verified', 'curated', 'document']);
   const ym = await verifyCitation(cite('Surviving Sepsis Campaign', 2019), ctx);
   assert.equal(ym.status, 'year-mismatch');
   const fam = await verifyCitation(cite('NICE', 2019), ctx);
-  assert.equal(fam.specificity, 'family');
-  assert.match(fam.reason, /not identified/);
-  const be = await verifyCitation(parseCitations('สมาคมความดันโลหิตสูงแห่งประเทศไทย, 2562')[0], ctx);
+  assert.deepEqual([fam.status, fam.specificity], ['publisher-only', 'family']);
+  assert.match(fam.reason, /NOT identified/);
+  const be = await verifyCitation(parseCitations('แนวทางการรักษาโรคความดันโลหิตสูงในเวชปฏิบัติทั่วไป, 2562')[0], ctx);
   assert.equal(be.status, 'verified', 'BE 2562 = CE 2019, a real Thai HT guideline edition');
+  const society = await verifyCitation(parseCitations('สมาคมความดันโลหิตสูงแห่งประเทศไทย, 2562')[0], ctx);
+  assert.equal(society.status, 'publisher-only', 'the society is a publisher, not a document');
+});
+
+// PR #113 review: nine invented citations that the first matcher marked `verified`. Six are the
+// reviewer's; the last three are constructed the same ways (publisher + invented title; a trial
+// acronym that is also an English word, used as a word). None may ever read `verified`.
+const FABRICATED = [
+  ['WHO Guideline on Garlic Extract for Hypertension', 2021, 'publisher-only'],
+  ['ESC Position Paper on Herbal Antihypertensives', 2022, 'publisher-only'],
+  ['High-dose vitamins cure septic shock trial', 2020, 'unverified'],
+  ['Strategies to reduce sepsis mortality with vitamin C', 2013, 'unverified'],
+  ['Patients who receive garlic: a randomised trial', 2019, 'unverified'],
+  ['American Diabetes Association Statement on Cinnamon', 2023, 'publisher-only'],
+  ["Woman's guide to garlic and blood pressure", 2017, 'unverified'],
+  ['Gold standard herbal therapy review', 2024, 'unverified'],
+  ['NICE recommendations on turmeric for arthritis', 2020, 'publisher-only'],
+  ['HIGH-DOSE VITAMINS CURE SEPTIC SHOCK', 2020, 'unverified'],
+];
+test('regression: invented citations are never `verified` (publisher-only or unverified)', async () => {
+  for (const [name, year, want] of FABRICATED) {
+    const r = await verifyCitation(cite(name, year), { known, offline: true });
+    assert.equal(r.status, want, `${name}, ${year} → ${r.status} (${r.matched_id ?? '-'})`);
+  }
+});
+
+test('regression: genuine citations still verify after the stricter matcher', async () => {
+  for (const [name, year] of [['RECOVERY trial', 2021], ['RECOVERY', 2021], ['RECOVERY Collaborative Group', 2021], ['VITAMINS trial', 2020],
+    ['LOVIT', 2022], ['Villanueva et al.', 2013], ['Rivers et al.', 2001], ['Magpie Trial', 2002], ['ProCESS', 2014], ['SPRINT', 2015],
+    ['ADA Standards of Care', 2024], ['Standards of Care in Diabetes', 2024], ['NICE-SUGAR', 2009], ['EMPA-REG OUTCOME', 2015], ['RE-LY', 2009],
+    // GINA and GOLD: explicit early editions PLUS an open annual range — current years verify.
+    ['GINA', 2024], ['Global Initiative for Asthma', 2025], ['GOLD', 2024], ['GOLD COPD report', 2025]]) {
+    const r = await verifyCitation(cite(name, year), { known, offline: true });
+    assert.equal(r.status, 'verified', `${name}, ${year} → ${r.status}`);
+  }
+});
+
+test('acronyms match case-sensitively, as whole tokens', () => {
+  assert.equal(matchKnown('who knows', known), null);
+  assert.equal(matchKnown('Recovery after sepsis', known), null);
+  assert.equal(matchKnown('reduce', known), null);
+  assert.equal(matchKnown('WHO', known).entry.id, 'fam-who');
+  assert.equal(matchKnown('Sort et al.', known).entry.id, 'trial-sort');
+  assert.equal(matchKnown('Strategies to sort triage patients', known), null, 'a surname alias must be the whole name');
 });
 
 test('never says "fabricated": Thai unknowns and author-year cites are unverified, with the reason', async () => {
@@ -141,8 +185,9 @@ test('verifyReport: per-item citations and a summary that refuses to say "fabric
   ]);
   const out = await verifyReport(report, { known, offline: true });
   assert.equal(out.summary.citations, 2);
-  assert.deepEqual(out.summary.by_status, { verified: 1, 'year-mismatch': 0, unverified: 1 });
+  assert.deepEqual(out.summary.by_status, { verified: 1, 'publisher-only': 0, 'year-mismatch': 0, unverified: 1 });
   assert.equal(out.summary.verified_rate.k, 1);
   assert.match(out.summary.note, /NOT that it is fabricated/);
+  assert.match(out.summary.note, /publisher-only.*NOT counted as verified/);
   assert.deepEqual(out.items.map((i) => i.n), [2, 0]);
 });
