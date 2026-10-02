@@ -33,6 +33,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CITATIONS, checkCitation } from './citations.mjs';
 import { DOMAINS } from './design.mjs';
+import { cueFeatures, cueCheck, formatCueMatrix, applyPilotFreeze, PILOT_FREEZE } from './cues.mjs';
 
 const require = createRequire(import.meta.url);
 const { stripPii, makeRegistry } = require('../../../rimpl/src/services/pii-filter.js');
@@ -237,7 +238,7 @@ export async function validateAll({ dir = FIXTURES_DIR, designPath = DESIGN_PATH
     try { doc = JSON.parse(buf.toString('utf8')); } catch (e) { parseError = e.message; }
     const id = name.replace(/\.json$/, '');
     const r = parseError ? { errors: [`invalid JSON: ${parseError}`], warnings: [], stats: null } : validateFixture(doc, name, rows.get(id));
-    results.push({ id, sha256: sha256(buf), row: rows.get(id), ...r });
+    results.push({ id, sha256: sha256(buf), row: rows.get(id), features: doc ? cueFeatures(doc) : null, ...r });
   }
   const ok = results.filter((r) => r.stats && r.row);
   const lengthR = pearson(ok.map((r) => r.stats.physician_chars), ok.map((r) => r.row.target_composite));
@@ -249,7 +250,9 @@ export async function validateAll({ dir = FIXTURES_DIR, designPath = DESIGN_PATH
     physician_chars_vs_target_r: lengthR == null ? null : Math.round(lengthR * 1000) / 1000,
     fixtures: Object.fromEntries(results.map((r) => [r.id, { sha256: r.sha256, ...(r.stats ?? {}) }])),
   };
-  return { results, manifest, lengthR, design };
+  const cues = cueCheck(ok.filter((r) => r.features).map((r) => ({ id: r.id, features: r.features, row: r.row })));
+  Object.assign(cues, applyPilotFreeze(cues.failures, { allPilot: ok.length > 0 && ok.every((r) => r.row.pilot) }));
+  return { results, manifest, lengthR, design, cues };
 }
 
 export const serialiseManifest = (m) => JSON.stringify(m, null, 2) + '\n';
@@ -259,7 +262,7 @@ export const serialiseManifest = (m) => JSON.stringify(m, null, 2) + '\n';
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const check = process.argv.includes('--check');
-  const { results, manifest, lengthR } = await validateAll();
+  const { results, manifest, lengthR, cues } = await validateAll();
   let failed = 0;
   console.log(`\nanchor fixtures — ${results.length} file(s) in ${path.relative(process.cwd(), FIXTURES_DIR)}\n`);
   console.log('  id        status  turns  phys  phys-chars  th-phys  th-tutor  cites  target');
@@ -278,6 +281,18 @@ if (isMain) {
   console.log(`  citations checked against ${CITATIONS.length} allowlisted sources (citations.mjs)`);
   console.log(`  physician chars vs target composite: r = ${lengthR == null ? '—' : lengthR.toFixed(3)}  (|r| > ${MAX_LENGTH_R} fails — length must not encode level)`);
   if (lengthR != null && Math.abs(lengthR) > MAX_LENGTH_R) { console.log('  ✖ length tracks the target'); failed++; }
+
+  console.log('\n' + formatCueMatrix(cues));
+  const ci = (f) => `r = ${f.r.toFixed(2)}${f.lower == null ? '' : `, 95% CI ${f.lower.toFixed(2)}…${f.upper.toFixed(2)}`}`;
+  for (const f of cues.counted) console.log(`  ✖ surface cue: ${f.feature} tracks ${f.target} (${ci(f)})`);
+  for (const f of cues.frozen) console.log(`  ! known (pilot freeze): ${f.feature} tracks ${f.target} (${ci(f)})`);
+  if (cues.frozen.length) console.log(`    ${PILOT_FREEZE.reason}. Lapses when the first non-pilot fixture is added.`);
+  failed += cues.counted.length;
+  const echo = results.filter((r) => r.features?.rubric_echo >= 3);
+  if (echo.length) {
+    console.log('\n  rubric echo (descriptor phrases in physician text, AUTHORING.md §3) — fixtures with >= 3 hits:');
+    for (const r of echo) console.log(`    ${r.id} (target ${r.row?.target_composite}, d5 ${r.row?.targets.d5}): ${Object.entries(r.features.echo_hits).map(([k, v]) => `${k} ×${v}`).join(' · ')}`);
+  }
 
   const want = serialiseManifest(manifest);
   if (check) {

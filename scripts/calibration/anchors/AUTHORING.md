@@ -111,8 +111,36 @@ Tutor turns follow the design's `tutor_mode`, written in the style of
   anchor can be long-winded (verbose, generic, templated); a high anchor can be terse (a brief
   question that names this patient's exact decision is d1 ≥ 3).
 - **Structure is not depth.** Headings, numbered lists and textbook completeness in a physician turn
-  earn nothing. Use them freely in low anchors (a templated "please give DDx, investigation, management,
-  prognosis" prompt is a 1–2 behaviour).
+  earn nothing. A templated "please give DDx, investigation, management, prognosis" prompt is a 1–2
+  behaviour — but see the next point: lists must not appear *only* in low anchors.
+- **No surface cue may track the level** (`cues.mjs`, run by validate.mjs). A scorer must have to read
+  the reasoning to recover the target; if a shallow feature carries it, an AI-vs-target ICC measures
+  the feature. Across the cohort, these are correlated with the target composite and the relevant
+  domain targets, and the gate fails at |r| > 0.4 (n < 50), or unless the 95% CI excludes ±0.4
+  (n ≥ 50):
+  - physician-turn **length**;
+  - **acknowledgements** per turn (`ok`, `โอเค`, `ok ครับ`, `noted`, `รับทราบ` …) — the pilot had low
+    anchors saying "ok ครับ" and high anchors never saying it (r = −0.71);
+  - **numerals** per turn — the pilot's high anchors quoted eGFR, doses and thresholds, its low ones
+    rarely did (r = +0.58);
+  - **bullet / numbered-list lines** — the pilot used lists only for templated low anchors (r = −0.53);
+  - **rubric echo** — the rubric's own descriptor words in physician text (`cues.mjs` `RUBRIC_ECHO`),
+    e.g. the d5 level-5 triad ข้อเท็จจริง / ไม่แน่นอน / ข้อจำกัด (pilot r = +0.64 with d5).
+
+  So, for every anchor you write:
+  - **Express each level through behaviour, never by reciting rubric wording.** A d5 = 5 physician
+    challenges a specific claim and says *why* it does not hold for this patient; they do not announce
+    "the fact is … the uncertainty is … the limitation is …". A d7 = 5 physician cross-checks a dose
+    against the formulary; they do not say "I own this decision" as a formula. A d6 = 5 reflection
+    names what they will do on Monday, not "what changed / next learning".
+  - **Vary acknowledgements, numerals and formatting independently of level.** Brisk high-level
+    physicians type "ok" too; low-level ones paste labs full of numbers. Some high anchors use a
+    numbered list to structure a sharp question; some low anchors are unformatted prose.
+  - **Distribute surface features across levels on purpose.** Before writing a batch, decide for each
+    anchor (independently of its target) whether it is terse or verbose, ack-heavy or not, numeric or
+    not, listy or not — and then write the level inside that shape.
+  - validate.mjs prints the full cue matrix and the per-fixture rubric-echo hits; read both before
+    submitting a batch.
 - **Near-duplicate physician turns cap d2 and d4 at 2** (evaluator rule). Use this only for anchors
   whose d2 and d4 are both ≤ 2.
 - **Evidence for 4–5 is a quotable, case-bound physician sentence** — something that could not have
@@ -281,8 +309,20 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
 5. **Held-out discipline.** Before the full cohort is scored, a held-out split is reserved
    (`SPLIT-anchors.json`, seeded, same method as `scripts/probe/reserve-split.mjs`). Held-out anchors
    are **never** rewritten on the strength of an AI score; their flags are reported as results.
+   **The 20 pilot anchors are tuning-only**: they are scored, read and possibly rewritten before any
+   split exists, so none may ever be held out. `anchor-split.mjs` `checkSplit` rejects a split that
+   holds one out, `heldOutEligible` excludes them, and `anchors.test.mjs` checks the committed
+   `SPLIT-anchors.json` as soon as it exists. Once it exists, `known-groups.mjs` requires
+   `--split tuning|heldout`.
 6. **Proceeding.** The pilot is acceptable for scaling to the full cohort if no more than 4 of 20
-   anchors (20%) are flagged after the single rewrite round. Otherwise this spec is revised first.
+   anchors (20%) **do not express their target** after the single rewrite round. Otherwise this spec
+   is revised first. An anchor that never received a valid score (every run failed production's
+   contract, or never returned) counts as not expressing its target: an anchor the evaluator cannot
+   score is not one it reads correctly, and dropping it would flatter the rule. `known-groups.mjs`
+   prints this verdict (`within` / `exceeded`).
+   *Amendment, 2026-10-02 (review of PR #111):* the "never validly scored counts against" clause was
+   added while the first pilot run was in progress and before its results were analysed. It can only
+   make the rule stricter.
 7. **Labelling.** Every output carries `evidence level: screening-synthetic (AI-authored, AI-scored) —
    not a decisive gate`. No result here is described as human agreement, and no "improved/declined"
    claim is made without its interval.
@@ -296,10 +336,17 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
 | tests (CI) | `npm run test:calibration` | none |
 | what would be sent | `node scripts/calibration/anchors/score-local.mjs --pilot --dry-run` | none |
 | score (local box) | `LOCAL_AI_BASE_URL=… LOCAL_AI_MODEL=… LOCAL_AI_API_KEY=… node scripts/calibration/anchors/score-local.mjs --pilot --repeats 3 --concurrency 2 --out scripts/calibration/anchors/runs/pilot-local-<date>.json` | local box only |
-| analyse | `node scripts/calibration/anchors/known-groups.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json --pilot --out …-known-groups.json` | none |
+| re-check a past run | `node scripts/calibration/anchors/revalidate.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json` (writes `….revalidated.json`; needs rimpl deps) | none |
+| analyse | `node scripts/calibration/anchors/known-groups.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json --pilot [--split tuning\|heldout] --out …-known-groups.json` | none |
 
 `score-local.mjs` is local-only by construction: it never reads `ANTHROPIC_API_KEY`. It verifies
 every fixture's sha256 against `manifest.json` before sending, scores with production's decoding
-(temperature 0, max_tokens 4096) and `pis7PromptFor('local')`, and stamps model, `prompt_version` and
-`rubric_version` on the report. A cloud arm, when budget is approved, is
+(temperature 0, max_tokens 4096) and `pis7PromptFor('local')`, and **scores through production's own
+contract** — `scoreWithConsistency` → `scoreFromText`, `DomainScoresSchema` `.strict()`, with
+`jsonRetries: 0` in off mode exactly as `evaluate.js` — so a reply production would answer 502 to is
+unscored here too. Every raw reply is saved in the report (`rows[].replies`), so `revalidate.mjs` can
+replay a past run through a newer contract offline. Runs made before 2026-10-02 (PR #111 review) hold no
+replies and were parsed by a laxer extractor; revalidate reports their rows as `not_revalidatable`.
+Each row records the model that actually **served** it; `known-groups.mjs` reports those, not the
+requested model. The report stamps `prompt_version` and `rubric_version`. A cloud arm, when budget is approved, is
 `scripts/probe/model-agreement.mjs`-style and belongs in a separate, explicitly approved run.

@@ -17,6 +17,8 @@ import {
   validateFixture, validateAll, serialiseManifest, MANIFEST_PATH, FIXTURES_DIR, REFLECTION_HEADINGS, thaiShare, MAX_LENGTH_R,
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
+import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
+import { checkSplit, splitFilter, heldOutEligible, loadAnchorSplit } from './anchor-split.mjs';
 import {
   knownGroups, normaliseScores, parseThreshold, loadThreshold, spearman, wilson, EVIDENCE_LEVEL,
 } from './known-groups.mjs';
@@ -263,9 +265,162 @@ describe('known-groups.mjs', () => {
       assert.equal(rep.n_scored, 20);
       assert.equal(rep.unscored, 1);
       assert.equal(rep.flags.n, 0);
-      assert.equal(rep.provenance.model, 'synthetic-test');
+      assert.equal(rep.provenance.requested_model, 'synthetic-test');
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
+  });
+});
+
+describe('cues.mjs — surface-cue check', () => {
+  const design = committedDesign;
+  const pilot = design.anchors.filter((a) => a.pilot);
+  const doc = (physician, reflection) => ({ transcript: [
+    ...physician.flatMap((c) => [{ role: 'physician', content: c }, { role: 'assistant', content: 'x' }]),
+    ...(reflection ? [{ role: 'reflection', content: reflection }] : []),
+  ] });
+
+  test('features: acks, numbers, list lines and rubric echo are counted; reflection headings are not', () => {
+    const f = cueFeatures(doc(['ok ครับ แล้ว eGFR 45 ล่ะ', '- ข้อ 1\n- ข้อ 2\nโอเคครับ'],
+      `${REFLECTION_HEADINGS[1]}\nยังไม่แน่นอนเรื่อง dose`));
+    assert.equal(f.acks, 1);                 // "ok" and "โอเค" over 2 turns
+    assert.equal(f.numbers, 1.5);            // 45, 1, 2 over 2 turns
+    assert.equal(f.list_lines, 2);
+    assert.equal(f.rubric_echo, 1);          // "ไม่แน่นอน" in the body only, not in the heading
+  });
+
+  test('a planted cue is caught: acknowledgements that track the target fail the gate', () => {
+    const entries = pilot.map((a) => ({ id: a.id, row: a, features: {
+      length: 1000, acks: 5 - a.target_composite / 20, numbers: 1, list_lines: 0, rubric_echo: 0 } }));
+    const res = cueCheck(entries);
+    assert.ok(res.failures.some((f) => f.feature === 'acks' && f.target === 'composite'));
+    assert.ok(!res.failures.some((f) => f.feature === 'numbers'), 'a constant feature has no correlation');
+  });
+
+  test('gate rule: point threshold below n=50, CI must exclude ±0.4 from n=50', () => {
+    assert.equal(cueFails({ r: 0.45, n: 20, lower: 0.0, upper: 0.74 }), true);
+    assert.equal(cueFails({ r: 0.35, n: 20, lower: -0.1, upper: 0.68 }), false);
+    assert.equal(cueFails({ r: 0.15, n: 100, lower: -0.05, upper: 0.34 }), false);
+    assert.equal(cueFails({ r: 0.25, n: 100, lower: 0.06, upper: 0.42 }), true);
+    for (const [f, ts] of Object.entries(CUE_RELEVANT)) assert.ok(ts.includes('composite'), f);
+  });
+
+  test('pilot freeze: only the recorded pairs, and only while every fixture is pilot', async () => {
+    const { cues } = await validateAll();
+    assert.deepEqual(cues.counted, [], 'a cue outside the pilot freeze');
+    const fails = [{ feature: 'acks', target: 'composite' }, { feature: 'length', target: 'composite' }];
+    assert.deepEqual(applyPilotFreeze(fails, { allPilot: true }).counted, [fails[1]]);
+    assert.deepEqual(applyPilotFreeze(fails, { allPilot: false }).counted, fails);
+    assert.ok(PILOT_FREEZE.pairs.includes('acks:composite'));
+  });
+});
+
+describe('anchor-split.mjs — the pilot is tuning-only', () => {
+  const design = committedDesign;
+  const pilotIds = design.anchors.filter((a) => a.pilot).map((a) => a.id);
+
+  test('no pilot anchor is eligible for held-out', () => {
+    const eligible = new Set(heldOutEligible(design));
+    for (const id of pilotIds) assert.ok(!eligible.has(id), id);
+    assert.equal(eligible.size, design.anchors.length - pilotIds.length);
+  });
+
+  test('a split that holds out a pilot anchor is rejected', () => {
+    const bad = { held_out: [pilotIds[0], 'anc-050'], tuning: ['anc-051'] };
+    assert.ok(checkSplit(design, bad).some((e) => /pilot/.test(e)));
+    assert.throws(() => splitFilter(design, bad, 'heldout'), /pilot/);
+    assert.deepEqual(checkSplit(design, { held_out: ['anc-050'], tuning: [...pilotIds, 'anc-051'] }), []);
+  });
+
+  test('split filter follows the probe rules (D13)', () => {
+    assert.equal(splitFilter(design, null, undefined), null);
+    assert.throws(() => splitFilter(design, null, 'tuning'), /does not exist/);
+    const ok = { held_out: ['anc-050'], tuning: ['anc-051'] };
+    assert.throws(() => splitFilter(design, ok, undefined), /name --split/);
+    assert.deepEqual([...splitFilter(design, ok, 'heldout')], ['anc-050']);
+  });
+
+  test('the committed SPLIT-anchors.json, once it exists, never holds out a pilot anchor', async () => {
+    const split = await loadAnchorSplit();
+    if (split) assert.deepEqual(checkSplit(design, split), []);
+  });
+});
+
+describe('known-groups.mjs — §7.6 rule and served models', () => {
+  const design = committedDesign;
+  const pilot = design.anchors.filter((a) => a.pilot);
+
+  test('anchors with no valid score count AGAINST the proceed rule', () => {
+    const runs = new Map(pilot.slice(0, 15).map((a) => [a.id, [a.targets]]));
+    const rep = knownGroups(design, runs, { threshold: 15, pilotOnly: true });
+    assert.equal(rep.flags.n, 0);
+    assert.equal(rep.missing_ids.length, 5);
+    assert.equal(rep.proceed_rule.not_expressing, 5);
+    assert.equal(rep.proceed_rule.allowed, 4);
+    assert.equal(rep.proceed_rule.verdict, 'exceeded');
+    const sixteen = knownGroups(design, new Map(pilot.slice(0, 16).map((a) => [a.id, [a.targets]])), { threshold: 15, pilotOnly: true });
+    assert.equal(sixteen.proceed_rule.verdict, 'within');
+  });
+
+  test('served model comes from the rows, not the requested model', () => {
+    const t = pilot[0].targets;
+    const n = normaliseScores({ model: 'requested-x', rows: [
+      { id: pilot[0].id, run: 1, scores: t, model: 'served-a' },
+      { id: pilot[0].id, run: 2, scores: t, model: 'served-b' },
+      { id: pilot[0].id, run: 3, scores: null, model: 'served-a', error: 'invalid_scores' },
+    ] });
+    assert.deepEqual(n.provenance.served_models, { 'served-a': 1, 'served-b': 1 });
+    assert.equal(n.provenance.requested_model, 'requested-x');
+    const rep = knownGroups(design, n.runs, { threshold: 15, onlyIds: [pilot[0].id], served: n.served });
+    assert.deepEqual(rep.anchors[0].served_models, ['served-a', 'served-b']);
+  });
+
+  test('a split filter restricts the designed set', () => {
+    const runs = new Map(pilot.map((a) => [a.id, [a.targets]]));
+    const rep = knownGroups(design, runs, { threshold: 15, allowedIds: new Set([pilot[0].id, pilot[1].id]) });
+    assert.equal(rep.n_designed, 2);
+  });
+});
+
+// revalidate.mjs needs zod (rimpl/node_modules), which the bare-checkout CI job does not install.
+// Where rimpl deps exist it runs; on CI it is skipped and the skip reason says why.
+let haveZod = true;
+try { require('../../../rimpl/src/lib/pis7.js'); } catch { haveZod = false; }
+describe("revalidate.mjs — replays saved replies through production's contract", { skip: haveZod ? false : 'rimpl/node_modules (zod) not installed' }, () => {
+  const t = { d1: 2, d2: 3, d3: 2, d4: 1, d5: 2, d6: 1, d7: 2 };
+  const reply = (o) => ({ text: JSON.stringify(o), model: 'm' });
+
+  test('a reply production rejects is un-scored on replay; a valid one is kept', async () => {
+    const { revalidateRun } = await import('./revalidate.mjs');
+    const doc = { consistency: 'off', rows: [
+      { id: 'anc-001', run: 1, scores: t, replies: [reply({ ...t, rationale: { d1: 'q' } })] },
+      { id: 'anc-001', run: 2, scores: t, replies: [reply({ ...t, composite_score: 54 })] },
+      { id: 'anc-001', run: 3, scores: t, replies: [reply({ ...t, rationale: 'a string' })] },
+      { id: 'anc-002', run: 1, scores: t },
+      { id: 'anc-003', run: 1, scores: null, error: 'transport 503', replies: [] },
+    ] };
+    const out = await revalidateRun(doc);
+    assert.deepEqual(out.rows[0].scores, t);
+    assert.equal(out.rows[0].changed, false);
+    assert.equal(out.rows[1].scores, null);
+    assert.equal(out.rows[1].error, 'invalid_scores');
+    assert.equal(out.rows[1].changed, true);
+    assert.equal(out.rows[2].error, 'invalid_scores');
+    assert.equal(out.rows[3].revalidation, 'not_revalidatable');
+    assert.deepEqual(out.rows[3].scores, t, 'unreplayable rows keep their scores and are counted');
+    assert.equal(out.rows[4].error, 'transport 503');
+    assert.equal(out.revalidated.not_revalidatable, 1);
+    assert.equal(out.revalidated.changed, 2);
+    assert.equal(doc.rows[1].scores, t, 'input is not mutated');
+  });
+
+  test('adaptive replay reproduces the rule, and an unanswered re-ask is replay_exhausted', async () => {
+    const { replayRow } = await import('./revalidate.mjs');
+    const ok = reply({ ...t, rationale: {} });
+    const res = await replayRow({ replies: [ok, ok] }, { mode: 'adaptive', jsonRetries: 2 });
+    assert.deepEqual(res.scores, t);
+    assert.equal(res.consistency.calls, 2);
+    const bad = reply({ ...t, extra: 1 });
+    assert.equal((await replayRow({ replies: [bad] }, { mode: 'adaptive', jsonRetries: 2 })).error, 'replay_exhausted');
   });
 });

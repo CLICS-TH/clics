@@ -10,8 +10,17 @@
  *   rimpl prompts    pis7PromptFor('local')  — base rubric + the local addendum, exactly as production
  *   rimpl versions   promptVersionFor('local'), RUBRIC_VERSION — stamped on every row
  *   rimpl transcript flattenForPrompt + deriveHintTokens — the PII strip + defang evaluate.js applies
- *   rimpl parse      parseJsonObject; d1..d7 must be integers 0-5 (evaluate.js's bar)
+ *   rimpl consistency scoreWithConsistency → pis7 scoreFromText — PRODUCTION's contract, in every mode:
+ *                    DomainScoresSchema .strict() (no extra keys; rationale must be an object). Off mode
+ *                    runs it as evaluate.js does: { mode: 'off', jsonRetries: 0 }. A reply production
+ *                    would answer 502 to (invalid_json / invalid_scores) is recorded unscored here too.
  * with evaluate.js's decoding (temperature 0, max_tokens 4096) and user envelope ("TRANSCRIPT:\n…").
+ *
+ * EVERY RAW REPLY IS SAVED (rows[].replies[].text — synthetic transcripts, so the text is safe), in call
+ * order, so a past run can be re-checked offline against a newer contract: revalidate.mjs replays the
+ * saved replies through production's scoreWithConsistency without calling any model.
+ * consistency.js needs zod (rimpl/node_modules); it is imported only for a live run, so --dry-run and
+ * CI's `node --check` stay package-free.
  *
  * Every fixture's sha256 is checked against manifest.json before anything is sent, so a fixture edited
  * after validation cannot be scored under its old id.
@@ -29,7 +38,6 @@
  *                       needs rimpl/node_modules for zod)
  *   --attempts n        transport retries per run (default 3, backoff --retry-base-ms 15000 doubling).
  *                       Only TRANSPORT failures retry: an unparseable reply is a measurement.
- *   --rationale         keep the model's rationale in the report (synthetic text, safe; off by default)
  *   --fixtures dir      default scripts/calibration/anchors/fixtures
  *   PROBE_TIMEOUT_MS    per-call timeout (lib.mjs; default 180000)
  *
@@ -46,7 +54,6 @@ import { pis7PromptFor } from '../../../rimpl/src/lib/prompts.js';
 import { promptVersionFor, RUBRIC_VERSION } from '../../../rimpl/src/lib/versions.js';
 import { flattenForPrompt } from '../../../rimpl/src/lib/transcript.js';
 import { deriveHintTokens } from '../../../rimpl/src/services/pii-filter.js';
-import { parseJsonObject } from '../../../rimpl/src/lib/parse.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
@@ -64,7 +71,6 @@ const attempts = Math.max(1, intArg(flags, 'attempts', 3));
 const retryBaseMs = Math.max(0, intArg(flags, 'retry-base-ms', 15000));
 const consistency = typeof flags.consistency === 'string' ? flags.consistency : 'off';
 if (!['off', 'adaptive'].includes(consistency)) fail(`--consistency must be off or adaptive (got ${consistency})`);
-const keepRationale = Boolean(flags.rationale);
 const outPath = typeof flags.out === 'string' ? path.resolve(flags.out) : null;
 
 /* ---------------------------------------------------------------- fixtures */
@@ -126,74 +132,55 @@ if (dryRun) {
 /* -------------------------------------------------------------------- run */
 
 const cfg = readConfig({ needModel: true });
-let scoreWithConsistency = null;
-if (consistency !== 'off') ({ scoreWithConsistency } = await import('../../../rimpl/src/services/consistency.js'));
+// Production's scorer. Dynamic so a dry run (and CI's node --check) never needs zod.
+const { scoreWithConsistency } = await import('../../../rimpl/src/services/consistency.js');
+// evaluate.js: jsonRetries 0 in off mode, EVAL_JSON_RETRIES (default 2) otherwise.
+const JSON_RETRIES = consistency === 'off' ? 0 : (() => {
+  const n = parseInt(process.env.EVAL_JSON_RETRIES, 10);
+  return Number.isFinite(n) && n >= 0 ? n : 2;
+})();
 
-function extract(text) {
-  let parsed;
-  try { parsed = parseJsonObject(text); } catch { return { scores: null, rationale: null }; }
-  if (!parsed || typeof parsed !== 'object') return { scores: null, rationale: null };
-  const scores = {};
-  for (const d of DOMAINS) {
-    const v = parsed[d];
-    if (!Number.isInteger(v) || v < 0 || v > 5) return { scores: null, rationale: null };
-    scores[d] = v;
-  }
-  return { scores, rationale: parsed.rationale ?? null };
-}
-
-async function once(f) {
-  const r = await chatCompletion(cfg, {
-    systemPrompt: SYSTEM,
-    messages: [{ role: 'user', content: f.userMessage }],
-    maxTokens: EVAL.maxTokens, temperature: EVAL.temperature,
-  });
-  return r;
-}
+class TransportError extends Error {}
 
 async function runJob(job) {
   const t0 = Date.now();
-  let last = null;
+  let lastError = 'transport';
   for (let attempt = 1; attempt <= attempts; attempt++) {
-    if (consistency === 'off') {
-      const r = await once(job.fixture);
-      if (r.ok) {
-        const { scores, rationale } = extract(r.text);
-        return { id: job.fixture.id, run: job.run, scores, error: scores ? null : (r.reasoningOnly ? 'reasoning_only' : 'unparseable'),
-          ms: Date.now() - t0, attempts: attempt, finish_reason: r.finishReason, completion_tokens: r.completionTokens,
-          model: r.model, ...(keepRationale && rationale ? { rationale } : {}) };
+    const replies = [];   // every model reply this run, in call order — re-asks included
+    try {
+      const res = await scoreWithConsistency({
+        mode: consistency,
+        jsonRetries: JSON_RETRIES,
+        callOnce: async () => {
+          const r = await chatCompletion(cfg, {
+            systemPrompt: SYSTEM,
+            messages: [{ role: 'user', content: job.fixture.userMessage }],
+            maxTokens: EVAL.maxTokens, temperature: EVAL.temperature,
+          });
+          if (!r.ok) throw new TransportError(`transport ${r.status ?? ''} ${String(r.error).slice(0, 80)}`.trim());
+          replies.push({ text: r.text ?? '', finish_reason: r.finishReason, completion_tokens: r.completionTokens,
+            model: r.model, ...(r.reasoningOnly ? { reasoning_only: true } : {}) });
+          return { text: r.text ?? '', inputTokens: r.promptTokens ?? 0, outputTokens: r.completionTokens ?? 0 };
+        },
+      });
+      return { id: job.fixture.id, run: job.run, scores: Object.fromEntries(DOMAINS.map((d) => [d, res.scores[d]])),
+        error: null, ms: Date.now() - t0, attempts: attempt, model: replies.at(-1)?.model ?? null,
+        consistency: res.consistency, replies };
+    } catch (e) {
+      if (!(e instanceof TransportError)) {
+        // Pis7ScoreError: production would answer 502. A measurement, never retried.
+        return { id: job.fixture.id, run: job.run, scores: null, error: e.kind ?? e.code ?? e.name ?? 'error',
+          ms: Date.now() - t0, attempts: attempt, model: replies.at(-1)?.model ?? null, replies };
       }
-      last = { error: `transport ${r.status ?? ''} ${String(r.error).slice(0, 80)}`.trim() };
-    } else {
-      let transport = null;
-      let model = null;
-      try {
-        const res = await scoreWithConsistency({
-          mode: consistency, jsonRetries: 2,
-          callOnce: async () => {
-            const r = await once(job.fixture);
-            if (!r.ok) { transport = `transport ${r.status ?? ''}`.trim(); throw new Error(transport); }
-            model = r.model;
-            return { text: r.text ?? '', inputTokens: r.promptTokens ?? 0, outputTokens: r.completionTokens ?? 0 };
-          },
-        });
-        const scores = Object.fromEntries(DOMAINS.map((d) => [d, res.scores[d]]));
-        return { id: job.fixture.id, run: job.run, scores, error: null, ms: Date.now() - t0, attempts: attempt,
-          model, consistency: res.consistency, ...(keepRationale && res.rationale ? { rationale: res.rationale } : {}) };
-      } catch (e) {
-        if (!transport) {
-          return { id: job.fixture.id, run: job.run, scores: null, error: e.code ?? e.name ?? 'error', ms: Date.now() - t0, attempts: attempt, model };
-        }
-        last = { error: transport };
-      }
+      lastError = e.message;
     }
     if (attempt < attempts) {
       const wait = retryBaseMs * 2 ** (attempt - 1);
-      console.log(`    ${yellow('retry')} ${job.fixture.id} #${job.run} (${last.error}) — waiting ${wait / 1000}s`);
+      console.log(`    ${yellow('retry')} ${job.fixture.id} #${job.run} (${lastError}) — waiting ${wait / 1000}s`);
       await new Promise((r) => setTimeout(r, wait));
     }
   }
-  return { id: job.fixture.id, run: job.run, scores: null, error: last?.error ?? 'transport', ms: Date.now() - t0, attempts };
+  return { id: job.fixture.id, run: job.run, scores: null, error: lastError, ms: Date.now() - t0, attempts, model: null, replies: [] };
 }
 
 const report = {
@@ -206,6 +193,8 @@ const report = {
   rubric_version: RUBRIC_VERSION,
   decoding: EVAL,
   consistency,
+  json_retries: JSON_RETRIES,
+  contract: 'rimpl scoreWithConsistency → pis7 scoreFromText (DomainScoresSchema .strict())',
   repeats,
   concurrency,
   design_seed: design.seed,
