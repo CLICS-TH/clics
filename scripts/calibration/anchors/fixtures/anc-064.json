@@ -4,7 +4,7 @@
   "transcript": [
     {
       "role": "physician",
-      "content": "pt หญิงในวัย 40 กว่า G2P2 รอบเดือนมาถี่ 21-24 วัน นานรอบละ 9-10 วัน ใช้ผ้าอนามัย 6-8 ชิ้นต่อวัน เป็นแบบนี้มา 4 เดือนแล้ว UPT neg Hb 10.2 MCV 78 BP 128/82 BMI 31 เป็น DM2 on metformin 1000 mg bid HbA1c 7.1 ไม่ได้คุมกำเนิด TVUS endometrium 11 mm uterus 8.5x5.5x4 cm ovary ปกติ DDx ที่นึกอยู่มี polyp, adenomyosis, myoma, hyperplasia, anovulation รายนี้ควรทำ endometrial biopsy เลยไหมครับ หรือรอดู f/u 1-2 รอบก่อน"
+      "content": "pt หญิงในวัย 40 กว่า G2P2 รอบเดือนมาถี่ 21-24 วัน นานรอบละ 9-10 วัน ใช้ผ้าอนามัย 6-8 ชิ้นต่อวัน เป็นแบบนี้มา 4 เดือนแล้ว UPT neg Hb 10.2 MCV 78 BP 128/82 BMI 31 เป็น DM2 on metformin 1000 mg bid HbA1c 7.1 ไม่ได้คุมกำเนิด TVUS endometrium 11 mm uterus 8.5x5.5x4 cm ovary ปกติ DDx ที่นึกอยู่มี polyp, adenomyosis, myoma, hyperplasia, anovulation รายนี้ควรทำ endometrial biopsy ไหมครับ"
     },
     {
       "role": "assistant",
@@ -12,7 +12,7 @@
     },
     {
       "role": "physician",
-      "content": "ขออธิบายเรื่อง adenomyosis เพิ่มอีกหน่อยครับ TVUS รายนี้ uterus 8.5x5.5x4 cm ผนังหลังหนา 2.6 cm ผนังหน้า 1.7 cm myometrium ไม่ค่อยสม่ำเสมอ แบบนี้เข้าได้ไหม ต้องทำ MRI ต่อหรือเปล่า"
+      "content": "ขอถามเรื่อง adenomyosis หน่อยครับ TVUS รายนี้ uterus 8.5x5.5x4 cm ผนังหลังหนา 2.6 cm ผนังหน้า 1.7 cm myometrium ไม่ค่อยสม่ำเสมอ เข้าได้ไหม ต้องทำ MRI ต่อหรือเปล่า"
     },
     {
       "role": "assistant",
@@ -20,7 +20,7 @@
     },
     {
       "role": "physician",
-      "content": "ประโยคที่ว่าใส่ LNG-IUS ได้เลยทุกราย ไม่ต้อง biopsy ก่อน ผมว่ากว้างเกินไป และบรรทัดนั้นไม่มี source กำกับ adenomyosis กับ hyperplasia เจอร่วมกันได้ ส่วน IUS ทำให้เลือดน้อยลงจนอาจบังสัญญาณเตือน รายที่ endometrium 11 mm BMI 31 HbA1c 7.1 แบบนี้ น่าจะเป็นแค่ความเห็น expert ไม่ใช่ผลจาก RCT ใช่ไหมครับ"
+      "content": "ประโยคที่ว่าใส่ LNG-IUS ได้เลยทุกราย ไม่ต้อง biopsy ก่อน คำว่าทุกรายกว้างเกินไป ผมเดาว่าเป็นแค่ความเห็น expert ไม่ใช่ผลจาก RCT และถ้ามาจาก trial ก็น่าจะคัดผู้ป่วยที่มีโรคร่วมออกไป"
     },
     {
       "role": "assistant",
@@ -28,7 +28,7 @@
     },
     {
       "role": "physician",
-      "content": "ถ้า sono เจอ polyp 1.2 cm ล่ะครับ ต้องทำ hysteroscopy ไหม ช่วยตอบสั้น ๆ พอ 3-4 บรรทัด"
+      "content": "ถ้า sono เจอ polyp 1.2 cm ล่ะครับ ต้องทำ hysteroscopy ไหม ช่วยตอบสั้น ๆ พอ 3-4 บรรทัด ส่วนอื่นยังเหมือนเดิม Hb 10.2 MCV 78 endometrium 11 mm"
     },
     {
       "role": "assistant",
@@ -36,7 +36,7 @@
     },
     {
       "role": "physician",
-      "content": "COC ได้ทุกรายก็กว้างเกินไปเหมือนกันครับ และไม่มี source กำกับ pt รายนี้ BMI 31 DM2 HbA1c 7.1 BP 128/82 estrogen เพิ่มความเสี่ยง VTE ได้ ถ้าตัวเลขนั้นมาจาก trial ผมเดาว่าคัดผู้หญิงที่มีโรคร่วมออกไป ระดับหลักฐานน่าจะเป็นความเห็นกว้าง ๆ มากกว่าผลจากการศึกษา"
+      "content": "COC ได้ทุกราย ก็เป็นอีกข้อที่ใช้กับทุกรายไม่ได้เหมือนกัน ระดับหลักฐานน่าจะเป็นความเห็นกว้าง ๆ ไม่ใช่ผลจากการศึกษา และถ้าตัวเลขมาจาก trial ก็น่าจะคัดผู้หญิงที่มีโรคร่วมออก"
     },
     {
       "role": "assistant",
@@ -44,7 +44,7 @@
     },
     {
       "role": "physician",
-      "content": "ช่วยสรุปแผนรายนี้สั้น ๆ ให้หน่อยครับ ผม biopsy ก่อน ส่ง ferritin ให้ iron เพราะ Hb 10.2 แล้วนัด f/u 4-6 สัปดาห์ ผมจะเอาที่สรุปไปเทียบกับผล pathology ก่อนสั่งยาฮอร์โมนจริง"
+      "content": "ช่วยสรุปแผนรายนี้สั้น ๆ ให้หน่อยครับ biopsy ก่อน ส่ง ferritin ให้ iron แล้วนัด f/u 4-6 สัปดาห์ ค่าล่าสุด Hb 10.2 MCV 78 BP 128/82 BMI 31 HbA1c 7.1 endometrium 11 mm"
     },
     {
       "role": "assistant",
@@ -52,7 +52,7 @@
     },
     {
       "role": "reflection",
-      "content": "เรียนรู้อะไร / What I learned:\nเคสผู้หญิงวัย 40 กว่าที่เลือดออกผิดปกติมา 4 เดือน มี BMI 31 และ DM ควรทำ endometrial biopsy ก่อนเริ่มรักษา การใส่ LNG-IUS หรือให้ COC ต้องดูโรคร่วมของผู้ป่วยก่อน ไม่ใช่ใช้ได้ทุกราย และ Hb 10.2 ต้องให้ iron ควบคู่ไปด้วย"
+      "content": "เรียนรู้อะไร / What I learned:\nเคสผู้หญิงวัย 40 กว่า เลือดออกผิดปกติมา 4 เดือน แผนของผมคือ biopsy ก่อน ส่ง ferritin ให้ iron แล้วนัด f/u 4-6 สัปดาห์ ถ้าผลปกติค่อยกลับมาดู polyp กับ adenomyosis ต่อ ส่วน LNG-IUS กับ COC ที่ตอบมาว่าได้ทุกราย เป็นข้อที่ใช้กับทุกรายไม่ได้"
     }
   ]
 }

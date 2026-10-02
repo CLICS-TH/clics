@@ -3,7 +3,7 @@
   "design_seed": 20261002,
   "rubric_version": "pis7-weights-08b0cb1a",
   "n": 40,
-  "physician_chars_vs_target_r": 0.391,
+  "physician_chars_vs_target_r": 0.385,
   "fixtures": {
     "anc-001": {
       "sha256": "8f4b3118e41a86ba3223baae7488318cfc824ce1b51360efc7bac45acbb6a261",
@@ -282,12 +282,12 @@
       "pii_hits": 0
     },
     "anc-027": {
-      "sha256": "3097c69fa4d4b62230288e3e1eba125061af9e7a14ac09cb819170c0145776e4",
+      "sha256": "03609d4dfd6b5b265099927f18afb065ddaa591ef59e3d69dc9a0296faa9d704",
       "turns": 13,
       "physician_turns": 6,
-      "physician_chars": 1196,
+      "physician_chars": 1094,
       "tutor_chars": 2467,
-      "reflection_chars": 572,
+      "reflection_chars": 532,
       "thai_share_physician": 0,
       "thai_share_tutor": 0,
       "citations": 8,
@@ -354,13 +354,13 @@
       "pii_hits": 0
     },
     "anc-064": {
-      "sha256": "9cef3768d47e50730933e52eeffc2dfde2465015ef1616634652b531f3deeaa9",
+      "sha256": "a99369ea00b8ee03430b8f30dce70bc1bceabe7686be2c57126ab28d355bc582",
       "turns": 13,
       "physician_turns": 6,
-      "physician_chars": 1394,
+      "physician_chars": 1197,
       "tutor_chars": 2615,
-      "reflection_chars": 249,
-      "thai_share_physician": 0.69,
+      "reflection_chars": 267,
+      "thai_share_physician": 0.68,
       "thai_share_tutor": 0.74,
       "citations": 6,
       "pii_hits": 0
