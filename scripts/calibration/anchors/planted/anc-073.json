@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-073.json",
+      "id": "anc-073",
+      "turn": 3,
+      "kind": "false",
+      "claim": "urine osm มากกว่า 100 mOsm/kg ร่วมกับ urine Na มากกว่า 30 mmol/L แปลว่าเป็น SIADH ได้เลย",
+      "citation_on_claim": false,
+      "corrected_in_turn": 5,
+      "note": "Over-generalisation: SIADH criteria need euvolaemia and no diuretic; in thiazide-induced hyponatraemia urine Na is also high. Turn 5 concedes."
+    }
+  ]
+}

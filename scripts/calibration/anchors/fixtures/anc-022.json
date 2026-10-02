@@ -1,0 +1,50 @@
+{
+  "ple_id": "anc-022",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "Man in his 60s booked for elective open colectomy in 3 weeks. Stable exertional angina on metoprolol 50 mg bd, BP and creatinine normal, HR 62, Hb 12.8, no HF, no stroke, and no cardiology review so far. RCRI 2, under 4 METs on the stairs. Does he need stress testing or angiography before this operation, or do I just optimise and go ahead?"
+    },
+    {
+      "role": "assistant",
+      "content": "Good question, and the key principle is that testing is only worth doing if the result would change management.\n- In stable angina on treatment, routine coronary revascularisation before non-cardiac surgery has not improved outcomes (ESC guidelines on non-cardiac surgery, 2022; ACC/AHA perioperative guideline, 2014).\n- Stress imaging is reserved for people with poor functional capacity and a high clinical risk, and only when the result would alter the plan.\n- Beta-blockers should be continued if already taken.\n❓ If the stress test were positive, what exactly would you do differently for this operation?"
+    },
+    {
+      "role": "physician",
+      "content": "A positive test would only matter if it showed a large territory, and I put that at about 10% for stable symptoms like his. A negative result changes nothing, and a positive one leads to angiography in only one patient in ten. Perioperative MI is mostly supply-demand mismatch from tachycardia and anaemia, so stenting a stable lesion would not remove most of the 6% I estimate from RCRI 2. My cut-off for imaging is about 15%, so no test, then."
+    },
+    {
+      "role": "assistant",
+      "content": "That is clear reasoning, and your plan matches the guidance (ESC guidelines on non-cardiac surgery, 2022).\n- RCRI is a rough guide and tends to underestimate risk in some contemporary cohorts, so treat 6% as a floor, not a fixed number.\n- Starting a high-dose beta-blocker de novo on the day of surgery is harmful, but continuing an established dose is recommended (ACC/AHA perioperative guideline, 2014).\n- Avoiding tachycardia, hypotension and anaemia matters more than the label of the test.\n❓ How will you manage his usual medicines on the morning of surgery?"
+    },
+    {
+      "role": "physician",
+      "content": "Fair, so 6% was probably low and 10% is closer. That is still under 15%, so the plan holds, but it makes me want a heart rate in the 60s and Hb above 10 on the day. Metoprolol stays, morning dose with a sip, held only if systolic is under 100 or he is bradycardic. Aspirin continue too?"
+    },
+    {
+      "role": "assistant",
+      "content": "Your morning plan is sensible.\n- Continue the beta-blocker with your hold parameters (ACC/AHA perioperative guideline, 2014).\n- Aspirin in someone with known coronary disease is usually continued unless bleeding risk is judged prohibitive, and 75 to 100 mg is the usual dose range (ESC guidelines on non-cardiac surgery, 2022).\n- Stopping it is a surgical bleeding judgement, so agree that with the surgeon.\n❓ If his angina had worsened over the last month, how would your plan change?"
+    },
+    {
+      "role": "physician",
+      "content": "Aspirin for an open colectomy, are you sure? Ok. If the angina had worsened over the last 4 weeks I would say 30% for a large territory instead of 10%. That crosses my 15%, so I would want imaging and a cardiology review first and I would push the date back. His has been stable, so I stay with no test and keep the date."
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, continue the aspirin, because the coronary protection usually outweighs the extra bleeding risk in this setting (ESC guidelines on non-cardiac surgery, 2022).\n- Your revision is sound: a recent change in angina pattern moves him toward an unstable picture, where cardiology assessment before elective surgery is advised (ESC guidelines on non-cardiac surgery, 2022).\n- Delaying an elective operation by a few weeks is usually acceptable when cardiac risk is changing.\n- For him now, stable symptoms and no test fit the guidance.\n❓ What post-operative cardiac surveillance would you put in place?"
+    },
+    {
+      "role": "physician",
+      "content": "Atorvastatin 40 mg continues, with a troponin at 24 and 48 hours after surgery. Does he need an arterial line, or are 2 large-bore IVs and standard monitoring enough for an open colectomy?"
+    },
+    {
+      "role": "assistant",
+      "content": "Good, those are sensible steps.\n- Statin continuation is recommended around surgery, and routine troponin after surgery is reasonable in patients at elevated cardiac risk (ESC guidelines on non-cardiac surgery, 2022).\n- An arterial line is not mandatory; it depends on the expected fluid shifts and blood loss, and on how tight you want haemodynamic control for an open abdominal case.\n- Keep haemodynamics close to his baseline, around 138/82 and HR 62.\n❓ How would you set the BP and HR alarms for him intra-operatively?"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nFor this man with stable angina, a stress test only matters if a positive result would change what I do, and for him it would not. I will keep his usual cardiac drugs going and aim for a calm heart rate and a good Hb on the day."
+    }
+  ]
+}

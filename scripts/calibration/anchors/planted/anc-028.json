@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-028.json",
+      "id": "anc-028",
+      "turn": 1,
+      "kind": "false",
+      "claim": "- ภายใน 4.5 ชม. ให้ alteplase ได้ทุกรายถ้า CT ไม่พบเลือดออก",
+      "citation_on_claim": false,
+      "corrected_in_turn": 5,
+      "note": "Over-generalisation: a CT without haemorrhage is only one condition for alteplase; contraindications (low glucose, high INR, low platelets, recent DOAC) still apply. Turn 5 concedes and lists them."
+    }
+  ]
+}

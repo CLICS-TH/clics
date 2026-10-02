@@ -1,0 +1,74 @@
+{
+  "ple_id": "anc-068",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "Woman in her 70s, low-energy femoral neck fracture, hemiarthroplasty on day 2, now day 12. Spine T-score -2.9, eGFR 41, 25-OH D 14 ng/mL, Ca 8.1, BMI 21, Hb 10.8.\n- Zoledronic acid 5 mg IV before discharge on day 14\n- or hold until the 6-week visit\nWhich one? Does it hinge on the 12-month refracture risk, or on how soon after surgery it is given?"
+    },
+    {
+      "role": "assistant",
+      "content": "Good question, and both parts matter.\n\n- A fracture in the last 12 months puts her in the very high risk group (Endocrine Society osteoporosis guideline, 2019). Refracture risk is highest in the first 12 to 24 months, so treatment should start in this admission rather than at the 6-week visit.\n- For very high risk the guideline lists anabolic therapy first, with zoledronic acid or denosumab as alternatives (Endocrine Society osteoporosis guideline, 2019).\n- A first infusion once she is stable after surgery is reasonable; there is no need to wait for months.\n- Before any IV bisphosphonate, calcium 8.1 and 25-OH D 14 should be corrected first, and CrCl by Cockcroft-Gault should be at least 35 mL/min per the product label. eGFR 41 is close to that line.\n- Expect a flu-like acute-phase reaction for 1 to 3 days after the first dose."
+    },
+    {
+      "role": "physician",
+      "content": "Separate question, denosumab 60 mg SC every 6 months: if she misses it and comes back at month 8 or 9, is the rebound risk real, and how fast does it start after month 6?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, the rebound is real.\n\n- Denosumab's effect fades within months of a missed dose, bone density falls back and vertebral fracture risk rises after it is stopped (Endocrine Society osteoporosis guideline, 2019).\n- At month 8 or 9 the sensible move is to give the dose as soon as the delay is noticed, not to skip it or restart a new schedule.\n- Because the effect is not sustained once stopped, denosumab is best treated as a drug you commit to continuing."
+    },
+    {
+      "role": "physician",
+      "content": "Romosozumab 210 mg monthly for 12 months or teriparatide 20 mcg daily for 24 months after a hip fracture? For me it hinges on the MI and stroke warning on romosozumab."
+    },
+    {
+      "role": "assistant",
+      "content": "Both are options when risk is very high (Endocrine Society osteoporosis guideline, 2019).\n\n- Romosozumab is given for 12 months and carries a boxed warning for MI, stroke and cardiovascular death. It should not be started after an MI or stroke in the previous 12 months.\n- Teriparatide has no such warning but needs a daily injection for up to 24 months.\n- With either, an antiresorptive has to follow or the gain is lost.\n- The choice therefore rests on cardiovascular history, injection burden and cost."
+    },
+    {
+      "role": "physician",
+      "content": "Going with zoledronic acid 5 mg IV on day 14, then yearly for 3 doses, DXA at month 12. Also on omeprazole 20 mg daily and amlodipine 5 mg daily, weight 48 kg, albumin 3.1."
+    },
+    {
+      "role": "assistant",
+      "content": "Zoledronic acid is a reasonable agent for a very high risk hip fracture patient (Endocrine Society osteoporosis guideline, 2019). Two things belong in the day-14 order before the infusion:\n\n- Correct calcium 8.1 and 25-OH D 14 first. The label advises against infusing with uncorrected hypocalcaemia, and low vitamin D makes post-infusion hypocalcaemia more likely.\n- Confirm CrCl is at least 35 mL/min by Cockcroft-Gault; eGFR 41 is close to that line.\n\nYearly dosing for 3 doses is a sensible first block, with reassessment at the end of it (Endocrine Society osteoporosis guideline, 2019)."
+    },
+    {
+      "role": "physician",
+      "content": "You pick for me: zoledronic acid on day 14, denosumab 60 mg, or teriparatide 20 mcg? Write it as an order with drug, dose, date and DXA at month 12, I will paste it into the chart."
+    },
+    {
+      "role": "assistant",
+      "content": "I can lay out the elements, but please check every line against your formulary and the label before it goes in. Of the three, zoledronic acid fits a very high risk hip fracture and avoids a daily injection (Endocrine Society osteoporosis guideline, 2019). A draft:\n\n- Zoledronic acid 5 mg IV over at least 15 minutes on day 14, once calcium and 25-OH D are corrected and CrCl is at least 35 mL/min\n- Calcium and vitamin D replacement per local protocol\n- Paracetamol for the acute-phase reaction\n- DXA at month 12"
+    },
+    {
+      "role": "physician",
+      "content": "After 3 yearly zoledronic acid doses of 5 mg, when do I stop? It hinges on the femoral neck T-score against -2.5 at month 36 and any new fracture by month 40."
+    },
+    {
+      "role": "assistant",
+      "content": "Reassess after the third dose rather than stopping by default. For women who remain at high risk after 3 yearly infusions, the guideline supports continuing for up to 6 doses (Endocrine Society osteoporosis guideline, 2019).\n\n- A drug holiday is for those whose risk has fallen, for example no new fracture and a femoral neck T-score no longer in the osteoporosis range.\n- She has had a hip fracture, so she will most likely stay in the high risk group at that review."
+    },
+    {
+      "role": "physician",
+      "content": "Explain more about the denosumab part, month 7 to month 12, and the 2 doses in a row. Just tell me more about that whole area, 6 months, 12 months, whatever is useful."
+    },
+    {
+      "role": "assistant",
+      "content": "Sure.\n\n- The dose is due at month 6; its effect starts to wane in the months after that, so a late dose at month 7 to 9 should be given promptly.\n- Giving it late restores cover. There is no need to give two doses in a row to catch up.\n- If denosumab is going to be stopped, plan follow-on antiresorptive treatment rather than leaving a gap (Endocrine Society osteoporosis guideline, 2019)."
+    },
+    {
+      "role": "physician",
+      "content": "Clinic audit: 40 hip fractures in 6 months, 9 got a drug within 90 days. Is 80 percent within 90 days a realistic target for us, or does it hinge on whether ortho or medicine writes the first prescription?"
+    },
+    {
+      "role": "assistant",
+      "content": "It is realistic only if one person is clearly responsible for the first prescription.\n\n- Anyone with a recent fragility hip fracture falls into the very high risk group (Endocrine Society osteoporosis guideline, 2019), so the denominator is simple: all of them, minus those with a contraindication or a limited prognosis.\n- If the first prescription is left to the 6-week clinic, most of the 90-day window is gone before anyone acts.\n- Count the reasons for non-treatment separately (renal function, calcium, declined, died) so the true gap is visible."
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nA hip fracture puts a patient in the highest-risk window for the next fracture, so treatment belongs in the admission and not at the 6-week visit. For very high risk an anabolic drug first is a real option (teriparatide for 24 months, romosozumab for 12), with zoledronic acid or denosumab as alternatives, and each needs a follow-on antiresorptive or the gain is lost. Denosumab is the one I must never leave to chance: a late dose is given at once, never skipped. My own plan on day 12 was an infusion on day 14, written before I had dealt with the calcium of 8.1 and the vitamin D of 14. I now put those two ahead of the drug in the order, because an infusion into a low calcium is how a good plan turns into a hospital readmission.\n\nความไม่แน่นอน / What remains uncertain:\nWhether day 14 is safe enough for this woman, because her creatinine clearance may sit right next to the 35 mL/min cut-off and I never calculated it. I also do not know whether a patient with low weight and a haemoglobin of 10.8 will tolerate the acute-phase reaction after hemiarthroplasty. And I have no idea how our clinic compares with the 90-day target, because nobody has counted.\n\nจะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:\nMonday morning I will calculate Cockcroft-Gault clearance from her actual weight, repeat calcium with albumin and 25-OH D, start vitamin D replacement and re-check calcium before the infusion is booked. I will read the zoledronic acid label and the 2019 Endocrine Society guideline myself on the renal and calcium wording. Then I will pull the last 40 hip fractures from the clinic list, count who received a drug within 90 days and why the others did not, and take that table to the orthopaedic and medical meeting with a proposal that one named person is responsible for the first prescription."
+    }
+  ]
+}

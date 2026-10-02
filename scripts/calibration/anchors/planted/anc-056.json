@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-056.json",
+      "id": "anc-056",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "ผ่าตัดภายใน 48 ชม. หลังมาถึง รพ. สัมพันธ์กับการเสียชีวิตและภาวะแทรกซ้อนที่น้อยลงใน hip fracture",
+      "citation_on_claim": true,
+      "corrected_in_turn": 3,
+      "note": "Early-surgery benefit stated without its limits (mostly observational evidence, no recommendation specific to patients on clopidogrel); tutor concedes this in turn 3."
+    }
+  ]
+}

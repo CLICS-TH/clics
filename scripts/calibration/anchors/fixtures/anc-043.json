@@ -1,0 +1,74 @@
+{
+  "ple_id": "anc-043",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "I have a 7-month-old infant with 3 days of runny nose and cough, now breathing fast. RR 58, SpO2 93% on room air, temp 38.1, wheeze and crackles on both sides, taking about half his usual feeds. HR 156, mild subcostal retractions, alert, no apnoea, no cyanosis. Birth weight was 3.1 kg, born at term, vaccines are up to date, no siblings, mother has a cold, father smokes outside. I think it is bronchiolitis. What is the best management of bronchiolitis?"
+    },
+    {
+      "role": "assistant",
+      "content": "Most infants with bronchiolitis need supportive care: clearing the nose, keeping up hydration, and oxygen only if saturations fall (AAP bronchiolitis guideline, 2014).\n- Diagnosis is clinical; routine chest X-ray and viral testing are not needed (AAP bronchiolitis guideline, 2014).\n- Admit for hypoxia, poor feeding or dehydration, or marked work of breathing.\n- A rate of 58 with feeding at about half of usual sits close to that line.\n❓ Which of the findings you listed would make you decide he needs a bed tonight?"
+    },
+    {
+      "role": "physician",
+      "content": "I will admit him and start salbutamol nebs 2.5 mg every 4 hours and oral prednisolone for 3 days. The nurses on our ward usually expect nebs for these babies. What about bronchodilators and steroids in bronchiolitis in general? Please tell me what the evidence says about them."
+    },
+    {
+      "role": "assistant",
+      "content": "Admission is reasonable, but two parts of that plan need correcting.\n- Salbutamol (albuterol) should not be given routinely; it does not improve oxygen saturation, length of stay or admission rates (AAP bronchiolitis guideline, 2014).\n- Systemic corticosteroids should not be used either; they show no benefit on admission or length of stay (AAP bronchiolitis guideline, 2014).\n- The one exception is a monitored trial of a bronchodilator, continued only if there is a clear documented response.\n❓ What would you record before and after a trial dose to show a response?"
+    },
+    {
+      "role": "physician",
+      "content": "Fine, no salbutamol and no steroids then. I will tell the nurses. You said a trial is continued only if there is a documented response. How would I document a response in a baby this age?"
+    },
+    {
+      "role": "assistant",
+      "content": "Take the same set before and after the dose, at a similar state of the infant: respiratory rate, retractions, SpO2 and a simple clinical score. Continue only if these clearly improve (AAP bronchiolitis guideline, 2014).\n- One good reading is weak proof, because bronchiolitis fluctuates from hour to hour; compare against a baseline taken at a matched time.\n- If nothing clearly changes, stop.\n❓ What would you do if the score improves but SpO2 does not?"
+    },
+    {
+      "role": "physician",
+      "content": "Home is about an hour away by road and mother is very anxious, I will keep him until feeds are back to normal and recheck at 24 hours. Anything else to add to the plan? Mother is staying with him in the room tonight."
+    },
+    {
+      "role": "assistant",
+      "content": "Tie discharge to function rather than a day count: feeding adequately, SpO2 acceptable without oxygen, and a caregiver able to manage at home (AAP bronchiolitis guideline, 2014).\n- Distance from the hospital and the caregiver's confidence are fair parts of that decision.\n- Teach the family the signs that should bring him straight back: refusing feeds, fewer wet nappies, pauses in breathing, or a tiring look.\n❓ What would you tell the mother to expect over the next few days at home?"
+    },
+    {
+      "role": "physician",
+      "content": "What is the 90% saturation cutoff for oxygen based on? I was taught to give oxygen below 94% and his SpO2 is 93%. I suspect the trials behind it were small."
+    },
+    {
+      "role": "assistant",
+      "content": "The guideline says clinicians may choose not to give supplemental oxygen when saturation is above 90% in a well infant (AAP bronchiolitis guideline, 2014).\n- That is graded as a weak option resting on limited evidence and physiology, so you are right to ask where it comes from.\n- Other guidelines use higher cutoffs, which is probably where your 94% comes from.\n- At 93% he does not need oxygen on this approach, but a tiring or poorly feeding infant changes the picture.\n❓ What would make you re-check his saturation sooner than the routine round?"
+    },
+    {
+      "role": "physician",
+      "content": "You said no routine chest X-ray. He has fever 38.1 and crackles on both sides, does that change it? Mother keeps asking for one and says her other relatives had X-rays when they were sick."
+    },
+    {
+      "role": "assistant",
+      "content": "Fever and bilateral crackles are common in bronchiolitis and do not by themselves call for a film. Routine radiography is not recommended; it often shows atelectasis that gets mistaken for pneumonia and leads to unneeded antibiotics (AAP bronchiolitis guideline, 2014).\n- Reconsider if he deteriorates sharply or the picture no longer fits.\n- Explain this to the mother in plain words; reassurance often settles the request.\n❓ What finding on re-examination would make you doubt the diagnosis of bronchiolitis?"
+    },
+    {
+      "role": "physician",
+      "content": "It is now 6 hours after admission and he is taking about 40% of his feeds, 2 wet nappies so far today. NG tube or IV fluids, which one? And should he be on continuous oximetry the whole night?"
+    },
+    {
+      "role": "assistant",
+      "content": "- Nasogastric or intravenous fluids are both recommended when an infant cannot maintain hydration by mouth (AAP bronchiolitis guideline, 2014).\n- Choose by what your ward can do safely and what the infant tolerates.\n- Clinicians may choose not to use continuous pulse oximetry, particularly in a stable infant; regular intermittent checks are reasonable (AAP bronchiolitis guideline, 2014).\n❓ How would you decide between NG and IV fluids for this infant?"
+    },
+    {
+      "role": "physician",
+      "content": "Can you write the plan for this baby in a few lines so I can put it in the notes? Include oxygen, feeding, monitoring and what to tell the family. Keep it to the usual ward format."
+    },
+    {
+      "role": "assistant",
+      "content": "Here is a draft for you to check against your own assessment:\n- Admit for supportive care; clear the nose before feeds.\n- Oxygen only if SpO2 stays below 90% or he tires.\n- Feeds by mouth as tolerated; NG or IV fluids if intake keeps falling.\n- Intermittent SpO2 and respiratory checks; recheck at 24 hours.\n- No routine salbutamol, steroids, antibiotics or chest X-ray (AAP bronchiolitis guideline, 2014).\n❓ Which of these items would you change if he became drowsy overnight?"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nVery useful, I learned a lot. Thank you."
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "ple_id": "anc-099",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "pt ชายวัย 60 กว่า ญาติพามา ER ด้วยแขนขาซ้ายอ่อนแรง พูดไม่ชัด onset 2 ชม. 40 นาที PMH HT, DM, DLP กิน amlodipine 5 mg, metformin 500 mg bid, simvastatin 20 mg ไม่ได้กิน warfarin ปฏิเสธแพ้ยา สูบบุหรี่ 10 มวน/วัน ดื่มแอลกอฮอล์นาน ๆ ครั้ง ไม่มีประวัติชัก ไม่เคยเป็น stroke มาก่อน เช้านี้กินข้าวปกติ\n- BP 168/94, HR 82, RR 18, SpO2 97%\n- DTX 142, NIHSS 9, E4V4M6\n- CT brain ไม่มี bleed\npt รายนี้ควรให้ rtPA ไหมครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ผู้ป่วยรายนี้เข้าเกณฑ์พิจารณา IV alteplase ครับ\n- onset 2 ชม. 40 นาที อยู่ในช่วง 4.5 ชม. และ NIHSS 9 เป็น deficit ที่รบกวนการใช้งาน ส่วน CT ไม่มี bleed (AHA/ASA Stroke, 2019)\n- ก่อนให้ยา BP ต้องต่ำกว่า 185/110 mmHg และ glucose ต้องมากกว่า 50 mg/dL ซึ่งตัวเลขที่ส่งมาอยู่ในช่วงนี้ (AHA/ASA Stroke, 2019)\n- ยิ่งให้เร็วยิ่งดี เป้าหมาย door-to-needle ไม่เกิน 60 นาที"
+    },
+    {
+      "role": "physician",
+      "content": "ok ครับ ตอนนี้ผ่านมา 2 ชม. 55 นาทีแล้ว BP ยัง 168/94 เหมือนเดิม ขอ dose ยากับวิธีให้หน่อยครับ ขอแบบละเอียดเลย ทั้ง bolus และหยด"
+    },
+    {
+      "role": "assistant",
+      "content": "ในช่วงที่เหลือของ window ยังให้ได้ แต่ควรรีบครับ\n- dose alteplase 0.9 mg/kg สูงสุด 90 mg โดยให้ 10% ของ dose แบบ bolus ใน 1 นาที ที่เหลือหยดใน 60 นาที (AHA/ASA Stroke, 2019)\n- ระหว่างหยดและหลังให้ยา 24 ชม. ต้อง monitor neuro check และ BP ถี่ ๆ โดยคุม BP ให้ต่ำกว่า 180/105 mmHg\n- ไม่ให้ antithrombotic ใน 24 ชม. แรกหลังให้ยา"
+    },
+    {
+      "role": "physician",
+      "content": "ผล lab มาแล้วครับ CBC, coag, BUN/Cr, electrolyte ได้ INR 1.1, plt 210,000, Hb 13.2, Cr 0.9, glucose 142 ส่ง ECG แล้วได้ sinus rate 80 ขอ contraindication ของ rtPA ทั้งหมดหน่อยครับ ขอให้ครบทุกข้อเลย"
+    },
+    {
+      "role": "assistant",
+      "content": "ข้อห้ามหลักที่ควรไล่ดูมีดังนี้ครับ (AHA/ASA Stroke, 2019)\n- ICH บน CT, ประวัติ ICH ก่อนหน้า, stroke หรือ head trauma รุนแรงใน 3 เดือน\n- plt ต่ำกว่า 100,000 หรือ INR มากกว่า 1.7, ได้ heparin ที่ aPTT ยาวผิดปกติ หรือกิน DOAC ภายใน 48 ชม.\n- glucose ต่ำกว่า 50 mg/dL, BP คุมไม่ได้ต่ำกว่า 185/110 mmHg\n- ผ่าตัดใหญ่ใน 14 วัน หรือ GI bleed ใน 21 วัน\nค่า lab ที่ส่งมาไม่ติดข้อห้ามเหล่านี้ครับ"
+    },
+    {
+      "role": "physician",
+      "content": "ขอถามต่อเรื่อง pt รายเดิมที่ NIHSS 9 นะครับ ส่วนสาเหตุของ stroke อาจเป็น cardioembolic, lacunar หรือ large artery ก็ได้ครับ อธิบายเพิ่มหน่อยว่าต้อง work up อะไรต่อ ขอทั้งหมดเลยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ประเด็นสาเหตุหลัก ๆ คือ cardioembolic, large artery atherosclerosis และ small vessel ครับ แต่ไม่ควรเลื่อน alteplase เพื่อรอ work up สาเหตุ (AHA/ASA Stroke, 2019)\n- หลังให้ยา ทำ ECG และ monitor rhythm เพื่อหา AF\n- ทำ vascular imaging ของ carotid และ intracranial vessel\n- ตรวจ lipid และพิจารณา echo ตามความเหมาะสม"
+    },
+    {
+      "role": "physician",
+      "content": "ขอ ref หรือ guideline ที่ใช้ด้วยครับ แล้วช่วยสรุป plan ทั้งหมดของ pt รายนี้ตั้งแต่ตอนนี้ใน ER จนถึงหลัง admit 24 ชม. แรกให้ครบทุกอย่างหน่อย ตอนนี้ยังไม่ได้ให้ยา กำลังเตรียม order อยู่ จะ admit stroke unit"
+    },
+    {
+      "role": "assistant",
+      "content": "แหล่งอ้างอิงหลักคือ AHA/ASA acute ischaemic stroke guideline (Powers et al., 2019) ครับ\n- admit stroke unit และให้ alteplase ตามที่คุยกันมา\n- NPO จนกว่าจะผ่าน swallow screen\n- repeat CT หรือ MRI ที่ 24 ชม. ก่อนเริ่ม antiplatelet หรือ anticoagulant\n- เริ่มวางแผน secondary prevention หลังพ้นช่วงเฉียบพลัน"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nrtPA ให้ได้ภายใน 4.5 ชม. dose 0.9 mg/kg bolus 10% ที่เหลือหยด 60 นาที ต้องคุม BP ให้ต่ำกว่า 185/110 ก่อนให้ และหลังให้ต้อง monitor ใกล้ชิด ไม่ให้ antithrombotic ใน 24 ชม. ได้ความรู้เยอะครับ"
+    }
+  ]
+}
