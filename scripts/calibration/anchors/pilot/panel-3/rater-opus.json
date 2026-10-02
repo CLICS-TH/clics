@@ -1,0 +1,10 @@
+{"rater":"opus","scores":{
+"F01":{"d1":5,"d2":4,"d3":2,"d4":4,"d5":5,"d6":4,"d7":5,"note":"Ranked ACL/meniscus/patella; challenged Ottawa setting and septic-arthritis citation mismatch; job context noted but unchanged plan"},
+"F02":{"d1":4,"d2":4,"d3":5,"d4":2,"d5":4,"d6":4,"d7":4,"note":"Rich drug ranking, lactation/bipolar FH/no-CBT context, Cipriani gap; topic-hops ignoring AI follow-ups"},
+"F03":{"d1":2,"d2":2,"d3":1,"d4":2,"d5":5,"d6":1,"d7":3,"note":"Generic hopping questions; excellent three-way evidence appraisal of AI overreach; generic reflection"},
+"F04":{"d1":2,"d2":3,"d3":2,"d4":3,"d5":1,"d6":2,"d7":2,"note":"Justified ranking and updated NSAID order, then generic 'which is best' and deferential capitulation"},
+"F05":{"d1":4,"d2":4,"d3":4,"d4":4,"d5":3,"d6":4,"d7":2,"note":"Strong evidence-population probing, no-cath-lab context; then abdicates decision, skips verification, pastes note"},
+"F06":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":0,"d6":1,"d7":1,"note":"Generic lists, premature ACS closure, one-word diagnosis and copy-paste discharge note requests"},
+"F07":{"d1":3,"d2":4,"d3":3,"d4":4,"d5":4,"d6":4,"d7":4,"note":"Ranked reflex/orthostatic/cardiac with switch triggers; questioned SFSR validation; reflection names changed approach"},
+"F08":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":1,"d6":1,"d7":1,"note":"Generic questions, 'any drug fine' misconception, duplicated HAS-BLED turn, context unused, generic reflection"}
+}}

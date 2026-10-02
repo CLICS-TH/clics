@@ -1,0 +1,22 @@
+{"rater":"sonnet","scores":{
+"E01":{"d1":3,"d2":2,"d3":4,"d4":3,"d5":2,"d6":4,"d7":4,"note":"Tight constraint-driven prompts (no procalcitonin, night nurses); no hypotheses; strong concrete reflection plan."},
+"E02":{"d1":4,"d2":3,"d3":4,"d4":4,"d5":2,"d6":1,"d7":3,"note":"Urine Na vs thiazide question sharp; travel barriers reshape recheck plan; reflection generic."},
+"E03":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"70% probability with decision threshold; shift-work fasting reframed; fact/unknown/limit split; owns final plan."},
+"E04":{"d1":3,"d2":4,"d3":3,"d4":4,"d5":4,"d6":3,"d7":3,"note":"Ranked reflex>orthostatic>cardiac with ECG switch trigger; challenged SFSR validation; brief reflection."},
+"E05":{"d1":1,"d2":2,"d3":1,"d4":1,"d5":1,"d6":1,"d7":2,"note":"Template topic list and slide-copy requests; only the 34-week timing check shows reasoning."},
+"E06":{"d1":3,"d2":2,"d3":2,"d4":2,"d5":5,"d6":1,"d7":4,"note":"Topic-hopping drug questions, then excellent point-by-point rebuttal of overclaimed evidence; generic reflection."},
+"E07":{"d1":3,"d2":4,"d3":3,"d4":3,"d5":2,"d6":2,"d7":2,"note":"Good ranked LBP differential, but 'Which one is best?' and capitulation to AI; reflection restates AI."},
+"E08":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"Island, monsoon, Ramadan reshape insulin choice; separated evidence from expert opinion; four concrete actions."},
+"E09":{"d1":4,"d2":4,"d3":4,"d4":4,"d5":5,"d6":4,"d7":4,"note":"Ranked ACL>meniscus>patellar dislocation; challenged Ottawa generalisability and mismatched septic citation."},
+"E10":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":0,"d6":1,"d7":1,"note":"Generic list requests, asks AI to write chart plan to copy; accepts everything; boilerplate summary."},
+"E11":{"d1":3,"d2":2,"d3":4,"d4":2,"d5":2,"d6":1,"d7":4,"note":"Limits (BUN tomorrow, CXR later) shape prompts and formulary check; admit decision unjustified; reflection generic."},
+"E12":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"Opened Endocrine guideline, found eGFR claim unsupported; 60 km travel makes rebound decisive; concrete audit plan."},
+"E13":{"d1":4,"d2":4,"d3":2,"d4":2,"d5":5,"d6":3,"d7":4,"note":"Time-to-benefit threshold and mechanisms good; no patient; topic-hopping; later precisely corrected three AI overclaims."},
+"E14":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":4,"note":"Asked whether test changes care without cath lab; reversed aspirin plan after appraisal; summary names changes and next steps."},
+"E15":{"d1":2,"d2":1,"d3":2,"d4":1,"d5":2,"d6":1,"d7":2,"note":"'Any antithrombotic is fine?' unreasoned; near-duplicate HAS-BLED turn; asks for table; generic reflection."},
+"E16":{"d1":4,"d2":4,"d3":5,"d4":3,"d5":3,"d6":3,"d7":4,"note":"Pre-planned item list with ranked benzodiazepines and SBP-first differential; one nurse per twelve; little probing of AI."},
+"E17":{"d1":4,"d2":4,"d3":5,"d4":2,"d5":4,"d6":3,"d7":3,"note":"Ranked SSRIs, bipolar family risk, no CBT access; noted Cipriani excluded lactation; 'new question' topic-hopping."},
+"E18":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":1,"d6":1,"d7":1,"note":"Normal first troponin read as 'not ACS for sure'; bed shortage drives discharge; asks AI to write diagnosis note."},
+"E19":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Under-1% prevalence logic, NG59 vs ACP duloxetine conflict, will read NG59 himself; reflection names changed default."},
+"E20":{"d1":5,"d2":5,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"Fact/uncertain/evidence-gap on 30 mL/kg in EF 35%; probed penicillin cross-reactivity source; goals-of-care integrated."}
+}}

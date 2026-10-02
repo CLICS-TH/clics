@@ -21,9 +21,9 @@ export async function loadAnchorSplit(p = SPLIT_ANCHORS_PATH) {
   catch (e) { if (e.code === 'ENOENT') return null; throw e; }
 }
 
-/** Ids a held-out reservation may draw from: every designed anchor that is NOT pilot. */
+/** Ids a held-out reservation may draw from: every active designed anchor that is NOT pilot. */
 export function heldOutEligible(design) {
-  return design.anchors.filter((a) => !a.pilot).map((a) => a.id);
+  return design.anchors.filter((a) => !a.pilot && !a.excluded).map((a) => a.id);
 }
 
 /** Problems with a split, as strings; [] means it is acceptable. */
@@ -36,6 +36,8 @@ export function checkSplit(design, split) {
   if (!Array.isArray(split?.held_out) || !Array.isArray(split?.tuning)) errs.push('split must have held_out[] and tuning[]');
   for (const id of held) if (pilot.has(id)) errs.push(`${id} is a pilot anchor — the pilot is tuning-only and can never be held out`);
   for (const id of [...held, ...tuning]) if (!ids.has(id)) errs.push(`${id} is not in design.json`);
+  const excluded = new Set(design.anchors.filter((a) => a.excluded).map((a) => a.id));
+  for (const id of [...held, ...tuning]) if (excluded.has(id)) errs.push(`${id} was excluded under §7.4 — use its replacement`);
   const both = held.filter((id) => tuning.includes(id));
   if (both.length) errs.push(`in both splits: ${both.join(', ')}`);
   return errs;

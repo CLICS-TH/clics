@@ -1,0 +1,486 @@
+
+
+######## EPISODE G01 ########
+[physician]
+หญิงวัย 70 กว่า distal radius fx จากล้มในบ้าน ยังไม่เคยรักษา osteoporosis eGFR 28 ยาไหนใช้ได้กับไตแบบนี้ ขอ reference ด้วยครับ
+
+[assistant]
+Distal radius fracture จากการล้มในระดับยืน ถือเป็น fragility fracture ซึ่งบ่งชี้ osteoporosis ทางคลินิกและควรได้รับการรักษาครับ (Endocrine Society, 2019)
+
+เรื่องยากับ eGFR 28
+- **Oral bisphosphonate** (alendronate, risedronate) — ไม่แนะนำเมื่อ eGFR ต่ำกว่าประมาณ 30–35
+- **Zoledronic acid** — ห้ามใช้เมื่อ CrCl <35
+- **Denosumab** — ไม่ได้ขับทางไต จึงใช้ได้ แต่มีความเสี่ยง hypocalcemia โดยเฉพาะในผู้ป่วยไตเสื่อม
+
+ก่อนเริ่มยา ควรตรวจ calcium, 25-OH vitamin D, phosphate และ PTH และแก้ภาวะขาด vitamin D ให้เรียบร้อย เพราะในไตเสื่อมขั้นนี้อาจมีความผิดปกติของกระดูกจากโรคไตร่วมด้วย
+
+[physician]
+งั้นเอียงไป denosumab เพราะไม่ผ่านไต แต่ hypocalcemia ที่ว่า — เสี่ยงแค่ไหน หลักฐานมาจากคนไข้กลุ่มไหน
+
+[assistant]
+ความเสี่ยง hypocalcemia หลังฉีด denosumab สูงขึ้นเมื่อการทำงานของไตลดลง โดยเฉพาะ eGFR <30 และในผู้ที่ขาด vitamin D ร่วมด้วย มักเกิดในช่วงสัปดาห์แรกๆ หลังฉีดครับ
+
+เรื่องแหล่งของหลักฐาน
+- การศึกษาหลักของ denosumab มีผู้ป่วยไตเสื่อมรุนแรงอยู่ไม่มาก
+- ข้อมูลในกลุ่ม eGFR <30 ส่วนใหญ่มาจากการศึกษาเชิงสังเกตและรายงานผู้ป่วย จึงประมาณขนาดความเสี่ยงได้ไม่แม่นยำ
+
+แนวทางจึงเน้นให้แก้ vitamin D และ calcium ให้พอก่อนเริ่ม และติดตามระดับ calcium หลังฉีด (Endocrine Society, 2019)
+
+[physician]
+แยกให้ชัดนะครับ ที่รู้แน่: denosumab ไม่ขับทางไต ที่ยังไม่รู้: ขนาดความเสี่ยง hypocalcemia ที่ eGFR <30 เพราะข้อมูลน้อยและเป็น observational ข้อจำกัด: trial หลักแทบไม่มีคนไข้แบบรายนี้ ผลที่เห็นใน trial อาจ transfer มาไม่ได้ตรงๆ ถูกไหม
+
+[assistant]
+เข้าใจถูกต้องครับ แยกได้ชัดเจนมาก
+
+ขอเพิ่มอีกหนึ่งข้อเท็จจริงที่สำคัญ: เมื่อหยุด denosumab จะเกิด **rebound bone loss** และมีรายงาน multiple vertebral fractures หลังหยุดยา จึงไม่ควรหยุดหรือเลื่อนเข็มโดยไม่มียาต่อเนื่อง ซึ่งโดยทั่วไปใช้ bisphosphonate ต่อ (Endocrine Society, 2019)
+
+ในผู้ป่วยรายนี้ที่ใช้ bisphosphonate ไม่ได้เพราะไต ประเด็นนี้มีผลต่อการวางแผนระยะยาวโดยตรง
+
+[physician]
+rebound สำคัญกับรายนี้มาก บ้านไกล รพ. ราว 60 กม. ลูกพามาได้บ้างไม่ได้บ้าง ถ้าเข็ม 6 เดือนเลื่อน เสี่ยงแค่ไหน แล้วเมื่อต่อด้วย bisphosphonate ไม่ได้ ทางออกคืออะไร
+
+[assistant]
+ประเด็นที่ควรวางแผนครับ
+
+- ความเสี่ยง rebound เพิ่มขึ้นเมื่อเข็มถัดไปล่าช้าเกินกำหนดไปหลายสัปดาห์ จึงควรให้ตรงเวลาที่สุด (Endocrine Society, 2019)
+- **ทางปฏิบัติ:** นัดฉีดให้ตรงกับนัดอื่นของผู้ป่วย เช่นนัดไต ตั้งระบบเตือนล่วงหน้า และพิจารณาว่าหน่วยบริการใกล้บ้านฉีดให้ได้หรือไม่ ภายใต้การติดตาม calcium
+- **ถ้าจำเป็นต้องหยุดยาในอนาคต:** ควรวางแผนร่วมกับอายุรแพทย์โรคไต เพราะทางเลือกต่อเนื่องในไตเสื่อมขั้นนี้มีจำกัด
+
+การตัดสินใจเริ่ม denosumab จึงควรรวมการประเมินความเป็นไปได้ที่จะมารับยาต่อเนื่องด้วย
+
+[physician]
+เปิด Endocrine Society 2019 ดูแล้ว ตรงเรื่อง rebound แต่ไม่ได้พูดถึง eGFR <30 ชัดเท่าที่ตอบ ส่วนนั้นมาจากไหนครับ
+
+[assistant]
+ขอบอกตรงๆ ครับ ข้อแนะนำเรื่อง rebound และการแก้ vitamin D ก่อนเริ่ม มาจาก guideline นี้ (Endocrine Society, 2019) แต่รายละเอียดเรื่องเกณฑ์ eGFR ของแต่ละยาและความเสี่ยง hypocalcemia ในไตเสื่อมรุนแรง มาจากข้อมูลกำกับยาและการศึกษาเชิงสังเกต ซึ่งผมไม่ได้ระบุแหล่งเฉพาะไว้ และยังไม่แน่ใจว่ามี guideline ใดสรุปเรื่องนี้ไว้ชัดเจน
+
+สำหรับรายนี้ แนะนำให้ตรวจสอบกับเอกสารกำกับยาของโรงพยาบาล และปรึกษาอายุรแพทย์โรคไตเรื่องความผิดปกติของกระดูกจากโรคไตก่อนเริ่มยาครับ
+
+[physician]
+FRAX ยังมีประโยชน์ไหม หรือ fracture ที่เกิดแล้วทำให้ไม่จำเป็น
+
+[assistant]
+ในผู้ที่มี fragility fracture แล้ว การตัดสินใจรักษาไม่ต้องรอ FRAX ครับ เพราะ fracture ที่เกิดขึ้นเป็นข้อบ่งชี้ในตัวเอง (Endocrine Society, 2019)
+
+FRAX ยังมีประโยชน์ในการสื่อสารความเสี่ยงกับผู้ป่วยและญาติ (FRAX, Kanis et al., 2008) แต่มีข้อจำกัด เช่น ไม่ได้นำการทำงานของไตหรือความเสี่ยงการล้มมาคำนวณโดยตรง จึงอาจประเมินความเสี่ยงต่ำกว่าความจริงในผู้ป่วยแบบรายนี้
+
+[physician]
+แผน: เจาะ Ca, 25-OH vit D, PTH, phosphate แก้ vit D ก่อน แล้วเริ่ม denosumab ประสานไต นัดฉีดพร้อมนัดไต
+
+[assistant]
+แผนนี้เหมาะสมครับ ขอเสริมสองประเด็น
+
+- **ติดตาม calcium** หลังเข็มแรก โดยเฉพาะใน 1–2 สัปดาห์แรก เนื่องจากไตเสื่อมเพิ่มความเสี่ยง hypocalcemia
+- **ป้องกันการล้ม** ซึ่งเป็นกลไกโดยตรงของ fracture นี้ เช่น ประเมินการทรงตัว ทบทวนยาที่ทำให้ง่วงหรือความดันตกเมื่อลุกยืน และปรับสภาพแวดล้อมในบ้าน
+
+การรักษา osteoporosis หลัง fragility fracture ควรเริ่มโดยไม่ล่าช้าเมื่อพร้อม (Endocrine Society, 2019)
+
+[physician]
+ที่เปลี่ยนในวิธีคิดผม: เดิมสั่ง alendronate แทบทุกคนหลัง fracture แต่รายนี้ไตบังคับให้เลือกยาที่ผูกคนไข้ไว้กับการฉีดทุก 6 เดือนตลอด การเลือกยาจึงต้องดูว่าเขามาได้จริงไหม ที่ยังไม่แน่ใจคือ hypocalcemia จริงที่ eGFR ระดับนี้ จะทำ: เจาะ Ca 2 สัปดาห์หลังเข็มแรก ตั้งระบบเตือนนัดฉีด และกลับไปดูใน OPD ออร์โธเราว่าคนไข้ fragility fracture ได้ยาจริงกี่ราย
+
+[assistant]
+เป็นการสังเคราะห์ที่ดีมากครับ โดยเฉพาะการมองว่าความต่อเนื่องในการมารับยาเป็นส่วนหนึ่งของการเลือกยา ไม่ใช่เรื่องรอง เพราะความเสี่ยง rebound หลังหยุด denosumab ทำให้การขาดนัดมีผลทางคลินิกจริง (Endocrine Society, 2019)
+
+การทบทวนว่าผู้ป่วย fragility fracture ในหน่วยงานได้รับการรักษาจริงกี่ราย เป็นจุดเริ่มต้นที่ดีของระบบติดตามหลังกระดูกหัก ซึ่งช่วยลดช่องว่างการรักษาที่พบบ่อยในผู้ป่วยกลุ่มนี้
+
+######## EPISODE G02 ########
+[physician]
+สวัสดีครับ คนไข้สูงอายุลื่นล้มในบ้าน หัวกระแทกขอบโต๊ะ ญาติพามาหลังล้มราว 2 ชั่วโมง กิน apixaban 5 mg วันละ 2 ครั้ง BP 150/90 HR 88 RR 18 GCS 15 pupils 3 mm เท่ากันสองข้าง SpO2 97% T 36.8 DTX 132 Cr 1.1 Hb 12.4 plt 210,000 มีแผลถลอกที่หน้าผากยาว 2 cm ไม่มีแผลที่อื่น ยาที่กินอยู่ apixaban, amlodipine 5 mg, atorvastatin 20 mg, omeprazole 20 mg ญาติบอกว่าปกติเดินในบ้านได้เอง กินข้าวได้ ช่วงนี้ลุกขึ้นแล้วเวียนหัวบ้าง ล้มครั้งนี้เป็นครั้งที่สองในเดือนนี้ เมื่อเช้ากินยาครบทุกตัว ยาละลายลิ่มเลือดกับหัวกระแทก มีอะไรต้องรู้บ้างครับ
+
+[assistant]
+หลักทั่วไปสำหรับผู้ที่กินยาต้านการแข็งตัวของเลือดแล้วบาดเจ็บที่ศีรษะครับ
+
+- NICE ให้พิจารณาทำ CT brain ภายใน 8 ชั่วโมงหลังบาดเจ็บในผู้ที่กินยาต้านการแข็งตัวของเลือด แม้ GCS 15 และไม่มีอาการอื่น (NICE, 2023)
+- Canadian CT Head Rule ใช้กับกลุ่มนี้ไม่ได้ เพราะการศึกษาต้นฉบับตัดผู้ที่กินยาต้านการแข็งตัวของเลือดออก (Stiell et al., 2001)
+- ถ้า CT ครั้งแรกปกติ ความเสี่ยงเลือดออกช้าต่ำมาก ให้กลับบ้านได้เลยโดยไม่ต้องสังเกตอาการต่อ
+
+❓ ผู้ป่วยรายนี้มีปวดศีรษะ อาเจียน หรือหมดสติช่วงสั้นๆ หลังล้มหรือไม่ครับ?
+
+[physician]
+อีกเรื่องที่สงสัยมานานแล้วครับ เรื่อง bridge ด้วย heparin เวลาหยุดยาละลายลิ่มเลือดล่ะครับ
+
+[assistant]
+ขึ้นกับชนิดยาและข้อบ่งชี้ครับ
+
+- ผู้ป่วย AF ที่กิน warfarin และต้องหยุดยาก่อนผ่าตัด การ bridge ด้วย low-molecular-weight heparin ไม่ลด thromboembolism แต่เพิ่มเลือดออกอย่างมีนัยสำคัญ (Douketis et al., 2015)
+- DOAC ออกฤทธิ์และหมดฤทธิ์เร็ว ระยะหยุดยาขึ้นกับชนิดยา การทำงานของไต และความเสี่ยงเลือดออกของหัตถการ โดยไม่ต้อง bridge (ESC, 2022)
+- ดังนั้นผู้ที่กินยาต้านการแข็งตัวของเลือดทุกรายไม่จำเป็นต้อง bridge ก่อนผ่าตัดอีกต่อไป
+
+❓ ถ้าผู้ป่วยรายนี้ต้องเย็บแผลที่หน้าผาก จะต้องหยุด apixaban หรือไม่ครับ?
+
+[physician]
+ยาแก้ฤทธิ์ apixaban ล่ะครับ มีอะไรบ้าง
+
+[assistant]
+ยาที่ใช้แก้ฤทธิ์ factor Xa inhibitor มีดังนี้ครับ
+
+- andexanet alfa เป็นยาแก้ฤทธิ์เฉพาะ ใช้ในเลือดออกรุนแรงที่คุกคามชีวิต ถ้าไม่มีหรือเข้าถึงไม่ได้ ใช้ prothrombin complex concentrate แทน (ESC, 2020)
+- ในเลือดออกรุนแรง ให้หยุดยาและให้การรักษาประคับประคองร่วมด้วย ระดับยาลดลงเร็วถ้าไตทำงานปกติ
+- ขนาดยาของทั้งสองตัวขึ้นกับชนิดและขนาด anti-Xa ที่กิน และเวลาที่กินมื้อสุดท้าย ควรใช้ตามแนวทางของโรงพยาบาลร่วมกับเภสัชกร
+- ผู้ที่กิน apixaban แล้วหัวกระแทก ควรได้ยาแก้ฤทธิ์ทุกรายแม้ CT ปกติ เพื่อความปลอดภัย
+
+❓ ถ้าผู้ป่วยรายนี้ CT ปกติ จะให้ apixaban มื้อถัดไปเมื่อไรครับ?
+
+[physician]
+ก่อนปิด จดไว้ให้ตัวเองว่าที่ได้มาเชื่อได้แค่ไหนครับ เชื่อได้: Canadian CT Head Rule ไม่ครอบคลุมคนกินยาละลายลิ่มเลือด ตรงกับงานต้นฉบับ และการไม่ bridge ใน AF ที่กิน warfarin มี RCT รองรับ น้ำหนักน้อยกว่าที่ฟังดู: CT ภายใน 8 ชั่วโมง เป็นความเห็นผู้เชี่ยวชาญ ไม่ใช่ RCT ยังไม่มีใครรู้: อัตราเลือดออกช้าหลัง CT แรกปกติ มีแต่ cohort ย้อนหลังขนาดเล็ก ตัวเลขแต่ละงานห่างกันหลายเท่า ยังไม่แน่นอน พูดเกินหลักฐาน: กลับบ้านได้เลยไม่ต้องสังเกต, ไม่ต้อง bridge ทุกราย ทั้งที่ RCT นั้นศึกษาเฉพาะ AF, และให้ยาแก้ฤทธิ์ทุกรายแม้ CT ปกติ ซึ่งไม่มีแหล่งไหนรองรับ
+
+[assistant]
+จัดได้ถูกต้องครับ ทั้งสามประโยคพูดเกินหลักฐาน ขอแก้ให้ตรงดังนี้
+
+- **CT ปกติ**: ความเสี่ยงเลือดออกช้าต่ำ แต่ตัวเลขจากการศึกษาย้อนหลังยังกว้างมาก NICE ไม่ได้แนะนำ CT ซ้ำเป็น routine แต่ให้คำแนะนำอาการที่ต้องกลับมา และพิจารณาสังเกตอาการตามความเสี่ยงของแต่ละราย (NICE, 2023)
+- **Bridging**: ข้อสรุปว่าไม่ต้อง bridge มาจากผู้ป่วย AF ที่กิน warfarin (Douketis et al., 2015) ใช้กับ mechanical valve หรือ thromboembolism ที่เพิ่งเกิดไม่ได้ กลุ่มนี้ต้องประเมินแยก
+- **ยาแก้ฤทธิ์**: ใช้เมื่อมีเลือดออกรุนแรงหรือคุกคามชีวิต (ESC, 2020) ไม่มีข้อมูลรองรับการให้ทุกรายที่ CT ปกติ
+
+❓ ถ้าจะให้ผู้ป่วยรายนี้กลับบ้าน จะให้คำแนะนำญาติเรื่องอาการเตือนอย่างไรครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ความรู้เยอะมาก ขอบคุณครับ
+
+######## EPISODE G03 ########
+[physician]
+Hello. I would like to learn about fever in young infants. Please provide a complete overview including:
+1. Definition
+2. Causes / differential diagnosis
+3. Investigations
+4. Management
+5. Prognosis
+I have an infant with fever today, a 7-week-old girl, temperature 38.5, born at 38 weeks, feeding OK according to the mother. Please be as comprehensive as possible and include everything I need to know.
+
+[assistant]
+Happy to help. A quick structured overview:
+
+- **Definition**: in infants up to 60 days, fever is a rectal temperature of 38.0 °C or higher (Pantell et al., 2021).
+- **Causes**: most are viral, but the key concern is invasive bacterial infection — bacteraemia and meningitis — plus urinary tract infection, which is the most common bacterial cause.
+- **Investigations** for a well-appearing infant 29–60 days old: urinalysis, blood culture, and inflammatory markers (procalcitonin if available, plus CRP and absolute neutrophil count). Lumbar puncture depends on those results.
+- **Management**: depends on age band and the inflammatory markers — some infants can be observed with close follow-up, others need admission and parenteral antibiotics (AAP, 2021).
+- **Prognosis**: generally good when bacterial infection is recognised and treated promptly.
+
+The guideline is organised by age in days (8–21, 22–28, 29–60), so the age band is the first thing to pin down for any individual infant.
+
+[physician]
+Thank you. What are the common causes of fever in infants? Could it be UTI, viral infection, sepsis, meningitis, pneumonia, or otitis media? Please list all the possible causes.
+
+[assistant]
+In febrile infants under 3 months, the possibilities include:
+
+- **Viral infections** — the majority (e.g., enterovirus, RSV, influenza)
+- **Urinary tract infection** — the most common serious bacterial infection in this age group
+- **Bacteraemia** — less common, but important not to miss
+- **Bacterial meningitis** — rare, but the most dangerous
+- **Pneumonia** — usually with respiratory signs
+- **Others**: skin/soft tissue infection, osteomyelitis, septic arthritis, and in the first weeks of life, HSV infection
+
+Otitis media is uncommon as the sole cause in this young age group. The guideline's approach is to risk-stratify for invasive bacterial infection rather than to work through every cause one by one (Pantell et al., 2021).
+
+[physician]
+OK. What is the normal value of procalcitonin?
+
+[assistant]
+Procalcitonin is usually very low in healthy individuals. In the febrile-infant pathway, the thresholds that matter are the ones used for risk stratification rather than a "normal range":
+
+- In infants 29–60 days, procalcitonin above about 0.5 ng/mL is treated as abnormal and raises concern for invasive bacterial infection (AAP, 2021).
+- The other inflammatory markers in the same pathway are CRP above 20 mg/L, temperature above 38.5 °C, and an absolute neutrophil count above roughly 4,000 to 5,200 per microlitre.
+
+Values can vary between assays, so the local laboratory's reference information is also worth checking.
+
+[physician]
+OK noted. Next, what antibiotics are used for neonatal sepsis? Please list the drugs and doses.
+
+[assistant]
+Empiric choices depend on age in days and on whether meningitis is suspected (Pantell et al., 2021):
+
+- **First weeks of life**: ampicillin plus either gentamicin or a third-generation cephalosporin such as ceftazidime; the cephalosporin is preferred when meningitis is a concern.
+- **Infants 29–60 days without concern for meningitis**: ceftriaxone is commonly used.
+- **Suspected bacterial meningitis** in the older age band: a meningitic-dose cephalosporin plus vancomycin.
+- Add **acyclovir** when HSV is a possibility (vesicles, seizures, very young age, maternal history).
+
+For exact mg/kg doses and intervals I would rather not quote from memory for a neonate — please check a paediatric dosing reference or the hospital formulary, as intervals change with postnatal age.
+
+[physician]
+Can you explain more about the inflammatory markers you mentioned?
+
+[assistant]
+Sure. The guideline uses inflammatory markers to separate lower-risk from higher-risk well-appearing infants (AAP, 2021):
+
+- **Procalcitonin** rises early in bacterial infection and is the most discriminating single marker in this age group.
+- **CRP** rises more slowly, so a very early CRP can be falsely reassuring.
+- **Absolute neutrophil count** adds information when procalcitonin is not available.
+- **Temperature above 38.5 °C** is also counted as a risk marker.
+
+If any marker is abnormal, the infant is no longer in the lowest-risk group, and lumbar puncture and empiric antibiotics are generally recommended. If all are normal and the urinalysis is negative, observation with close follow-up may be an option, depending on age band and the family's ability to return.
+
+[physician]
+How do you do a lumbar puncture in an infant? Please give me the steps.
+
+[assistant]
+Here are the main steps for an infant lumbar puncture:
+
+1. **Position**: lateral decubitus or sitting, with an assistant holding the infant gently flexed — avoid excessive neck flexion, which can compromise the airway.
+2. **Landmark**: the L3–L4 or L4–L5 interspace; the top of the iliac crests marks roughly L4.
+3. **Asepsis**: sterile gloves, skin preparation, sterile drape; topical anaesthetic if time allows.
+4. **Needle**: a 22-gauge spinal needle with stylet, advanced slowly; remove the stylet often to check for flow.
+5. **Samples**: cell count, Gram stain, culture, glucose and protein; consider HSV PCR when indicated.
+6. **Monitoring**: watch oxygen saturation and breathing throughout.
+
+In the febrile-infant pathway, an LP is indicated for higher-risk infants before antibiotics whenever this does not delay treatment (Pantell et al., 2021).
+
+[physician]
+Please write the management plan for my patient so I can copy it into the chart.
+
+[assistant]
+I can give a plan structure, but the actual plan depends on findings that only the examining doctor has — how well she looks on examination, the urinalysis, and the inflammatory markers — so please adapt it rather than copy it directly.
+
+**Febrile infant, 29–60 days, well-appearing — plan framework (AAP, 2021):**
+- Urinalysis and urine culture by catheter specimen
+- Blood culture, procalcitonin (or CRP and ANC), CBC
+- If urinalysis and all markers are normal: consider observation, with reassessment within 24–36 hours and a reliable way for the family to return
+- If urinalysis is abnormal but markers are normal: urine culture, consider oral or parenteral antibiotics for UTI, LP optional
+- If any inflammatory marker is abnormal: LP, admission, and empiric parenteral antibiotics
+- Document the time of fever onset, examination findings and the reasoning for the disposition
+
+[physician]
+OK. So in summary: fever in infants under 3 months can be serious. The causes include UTI, bacteraemia, meningitis and viral infections. We need blood tests, urine tests and sometimes a lumbar puncture, and antibiotics if needed. Procalcitonin and CRP are important. Thank you for all the information.
+
+[assistant]
+You're welcome — that is a fair summary of the general approach. Two points worth keeping in mind:
+
+- The pathway is organised by **age in days**, so the same fever means different workup at 3 weeks and at 7 weeks.
+- The decision about LP and admission comes from the combination of **appearance, urinalysis and inflammatory markers**, not from any single test (Pantell et al., 2021).
+
+Good luck with your patient.
+
+######## EPISODE G04 ########
+[physician]
+สวัสดีครับ รบกวนช่วยอธิบายเรื่อง pre-eclampsia ให้หน่อยครับ ขอแบบครบๆ เป็นหัวข้อตามนี้เลยครับ
+1) นิยาม
+2) epidemiology
+3) pathophysiology
+4) risk factors
+5) เกณฑ์การวินิจฉัย
+6) การตรวจทางห้องปฏิบัติการ
+7) การรักษา
+8) ภาวะแทรกซ้อน
+9) การป้องกัน
+10) prognosis
+ขอละเอียดหน่อยนะครับ แต่ละหัวข้อขอสักสองสามบรรทัด จะเอาไปอ่านทบทวนก่อนขึ้นเวรห้องคลอดสัปดาห์หน้า ช่วงนี้ไม่ค่อยได้อ่านเลยครับ ตอนเป็น intern ก็เคยอ่านแต่ลืมไปเยอะแล้ว เรื่องนี้ออกสอบบ่อยด้วยครับ ถ้ามีหัวข้อไหนสำคัญที่ผมไม่ได้ใส่ ก็เพิ่มให้ได้เลยครับ
+
+[assistant]
+ได้ครับ สรุปสั้นๆ เฉพาะหัวข้อหลักนะครับ (epidemiology และการตรวจ lab รวมไว้ในข้อเกณฑ์วินิจฉัย)
+
+1) **นิยาม** — ความดัน ≥140/90 mmHg ที่เกิดหลังอายุครรภ์ 20 สัปดาห์ ร่วมกับ proteinuria หรือ end-organ dysfunction (ACOG, 2020)
+2) **Pathophysiology** — การ remodel ของ spiral artery ผิดปกติ ทำให้รกขาดเลือด และเกิด endothelial dysfunction ทั่วร่างกาย
+3) **Severe features** — BP ≥160/110, เกล็ดเลือด <100,000, ค่าตับสูงเป็นสองเท่า, Cr >1.1 mg/dL, pulmonary edema, ปวดศีรษะหรือตามัวที่อธิบายด้วยสาเหตุอื่นไม่ได้
+4) **การรักษา** — การคลอดเป็น definitive treatment ส่วน MgSO4 ใช้ป้องกันชัก และให้ยาลดความดันเมื่อความดันสูงระดับรุนแรง
+- **Risk factors / การป้องกัน** — เคยเป็น pre-eclampsia, chronic hypertension, DM, ตั้งครรภ์แฝด ในกลุ่มเสี่ยงสูงแนะนำ low-dose aspirin เริ่มช่วงไตรมาสแรกถึงต้นไตรมาสสอง
+5) **ภาวะแทรกซ้อน** — eclampsia, HELLP, placental abruption, stroke, FGR
+6) **Prognosis** — อาการส่วนใหญ่ดีขึ้นหลังคลอด แต่มีความเสี่ยงโรคหัวใจและหลอดเลือดระยะยาวสูงขึ้น
+
+❓ ในห้องคลอด จะใช้อาการหรือผล lab ตัวไหนเป็นตัวแรกที่บอกว่าผู้ป่วยมี severe features ครับ?
+
+[physician]
+แล้ว magnesium sulfate ให้ยังไงครับ ขอทั้ง dose วิธีผสม ระยะเวลาที่ให้ และสิ่งที่ต้อง monitor ครับ เพราะเวลาอยู่เวรก็ต้องสั่งเองบ่อย
+
+[assistant]
+MgSO4 ใช้ป้องกันและรักษาอาการชักใน pre-eclampsia ครับ
+
+- **Loading dose** 4–6 g IV ใน 20–30 นาที
+- **Maintenance** 1–2 g/ชม. IV ต่อเนื่องจนถึงประมาณ 24 ชม. หลังคลอด (ACOG, 2020)
+- เฝ้าระวังพิษของยา: deep tendon reflex, อัตราการหายใจ, ปริมาณปัสสาวะ
+- ถ้า reflex หายหรือหายใจช้าลง ให้หยุดยาและเตรียม calcium gluconate
+- ในผู้ป่วยที่ไตทำงานลดลง ยาสะสมได้ ต้องปรับขนาด maintenance
+
+❓ ถ้าผู้ป่วยปัสสาวะออกน้อยระหว่างได้ MgSO4 จะปรับการให้ยาและการ monitor อย่างไรครับ?
+
+[physician]
+ผมเข้าใจแบบนี้ถูกไหมครับ ถ้ามี severe features ตั้งแต่อายุครรภ์ 34 สัปดาห์ขึ้นไป ควรให้คลอดเลยมากกว่าการรอ เพราะความเสี่ยงของแม่ ทั้ง eclampsia, abruption, HELLP มันมากกว่าประโยชน์ที่ทารกจะได้จากการรออีกไม่กี่สัปดาห์ ทารกที่ 34 สัปดาห์ส่วนใหญ่ก็รอดดีอยู่แล้ว ส่วนถ้าไม่มี severe features ก็ expectant management ไปจนถึง 37 สัปดาห์ แล้วค่อยคลอด เพราะช่วงนั้นความเสี่ยงของแม่ยังต่ำกว่าความเสี่ยงของการคลอดก่อนกำหนดของลูก
+
+[assistant]
+ถูกต้องครับ หลักการนี้ตรงกับแนวทางปัจจุบัน
+
+- **Pre-eclampsia with severe features ที่ GA ≥34 สัปดาห์** — แนะนำให้คลอดหลังจาก stabilize แม่แล้ว ไม่ควรรอเพื่อให้ steroid ครบหากจะทำให้การคลอดล่าช้า (ACOG, 2020)
+- **ไม่มี severe features** — expectant management ได้จนถึง 37 สัปดาห์ โดย monitor BP, lab และสุขภาพทารกอย่างใกล้ชิด
+- ช่วง <34 สัปดาห์ จะพิจารณา expectant management ในโรงพยาบาลที่พร้อม และให้ corticosteroid
+
+ข้อควรระวังคือ ถ้าอาการแย่ลงระหว่าง expectant เช่น BP คุมไม่ได้หรือ lab แย่ลง ต้องเปลี่ยนเป็นคลอดทันที
+
+❓ ระหว่าง expectant management ถึง 37 สัปดาห์ จะ monitor อะไรบ้างและถี่แค่ไหนครับ?
+
+[physician]
+แล้วยาลดความดันในคนท้องมีตัวไหนบ้างครับ ขอทั้งแบบที่ใช้ตอนความดันขึ้นสูงมากๆ และแบบที่กินต่อเนื่อง พร้อม dose ครับ
+
+[assistant]
+ยาที่ใช้บ่อยในหญิงตั้งครรภ์มีดังนี้ครับ
+
+**กรณีความดันสูงรุนแรง (≥160/110 ต่อเนื่อง)** ควรให้ยาภายใน 30–60 นาที (ACOG, 2020)
+- Labetalol IV
+- Hydralazine IV
+- Nifedipine ชนิดออกฤทธิ์เร็วแบบรับประทาน
+
+**กรณีใช้ระยะยาว**
+- Labetalol, nifedipine ชนิดออกฤทธิ์นาน, methyldopa
+
+**ห้ามใช้** ACE inhibitor และ ARB ระหว่างตั้งครรภ์ เพราะเป็นอันตรายต่อไตของทารก
+
+❓ ถ้าผู้ป่วยมีประวัติหอบหืด จะเลือกยาตัวไหนสำหรับความดันสูงรุนแรงครับ?
+
+[physician]
+ok ครับ ขอสรุปทั้งหมดที่คุยมาเป็น bullet สั้นๆ ให้หน่อยครับ จะ copy ไปใส่ slide สอน extern ครับ ขอเป็น slide ละหัวข้อ หัวข้อละไม่เกิน 5 bullet ตัวหนังสือไม่ต้องเยอะ ใส่ตัวเลขสำคัญให้ด้วย จะได้ไม่ต้องไปพิมพ์เพิ่มเอง extern จะได้จำไปสอบได้
+
+[assistant]
+ได้ครับ สรุปเป็น bullet ดังนี้ (ACOG, 2020)
+
+- Pre-eclampsia: BP ≥140/90 หลัง 20 สัปดาห์ ร่วมกับ proteinuria หรือ end-organ dysfunction
+- Severe features: BP ≥160/110, เกล็ดเลือดต่ำ, ค่าตับสูง, Cr สูง, pulmonary edema, อาการทางสมองหรือตา
+- MgSO4: loading 4–6 g IV แล้ว 1–2 g/ชม. เฝ้าระวัง reflex การหายใจ และปัสสาวะ
+- Timing: severe features ที่ ≥34 สัปดาห์ ให้คลอด; ไม่มี severe features รอได้ถึง 37 สัปดาห์
+- ยาลดความดันเฉียบพลัน: labetalol, hydralazine, nifedipine; ห้าม ACEI/ARB
+
+ก่อนนำไปสอน แนะนำให้ตรวจทานกับ guideline ฉบับเต็มและแนวปฏิบัติของโรงพยาบาลอีกครั้ง เพราะสรุปนี้ย่อมาก
+
+❓ ถ้า extern ถามว่าทำไม ≥34 สัปดาห์ถึงไม่รอให้ steroid ครบก่อนคลอด จะอธิบายอย่างไรครับ?
+
+[physician]
+ได้ความรู้เยอะเลยครับ thanks ครับ
+
+[assistant]
+ยินดีครับ ขอฝากประเด็นสำคัญไว้หนึ่งข้อครับ ความดัน ≥160/110 ที่ต่อเนื่องเป็นภาวะเร่งด่วน ควรได้ยาลดความดันภายใน 30–60 นาทีเพื่อลดความเสี่ยง stroke ของแม่ (ACOG, 2020)
+
+❓ ในเวรห้องคลอดที่จะถึงนี้ ถ้าพบผู้ป่วยที่ BP 165/112 ครั้งแรก จะทำอะไรเป็นอย่างแรกครับ?
+
+######## EPISODE G05 ########
+[physician]
+ผู้ป่วยหญิงในวัย 70 กว่า มา f/u HT ที่ OPD ตามนัด
+
+ข้อมูลที่มี:
+- โรคประจำตัว: HT มานาน ไม่มี DM ไม่มีโรคหัวใจ ไม่มีโรคตับ
+- ยา: HCTZ 25 mg วันละครั้งมาหลายปี, calcium carbonate, วิตามินรวม
+- อาการ: ไม่มีอาการ ไม่สับสน ไม่ล้ม ไม่อาเจียน กินข้าวได้ปกติ ดื่มน้ำค่อนข้างมากเพราะอากาศร้อน
+- ตรวจร่างกาย: BP 138/80, HR 76, ไม่บวม ไม่มี signs ของ dehydration ชัดเจน
+- Lab routine: Na 126, K 3.4, Cl 92, HCO3 26, BUN 12, Cr 0.9, glucose 98
+
+แบบนี้ต้อง admit เพื่อแก้ Na หรือหยุด HCTZ แล้วนัด recheck ที่ OPD ได้ครับ ขอคำตอบเป็นข้อๆ
+
+[assistant]
+จากข้อมูลนี้ ส่วนใหญ่ดูแลแบบผู้ป่วยนอกได้ครับ
+
+- Na 126 ที่ไม่มีอาการ และน่าจะเป็นมานาน จัดเป็น **moderate, chronic, asymptomatic hyponatraemia** ไม่จำเป็นต้องให้ hypertonic saline และไม่ควรแก้เร็ว เพราะเสี่ยง osmotic demyelination (Spasovski et al., 2014)
+- thiazide เป็นสาเหตุที่พบบ่อยมาก โดยเฉพาะผู้หญิงสูงอายุ ควร **หยุด HCTZ**
+- ส่งตรวจเพิ่ม: serum osmolality, urine osmolality, urine Na, glucose, TSH และประเมิน volume status
+- K 3.4 ที่ต่ำเล็กน้อยก็เข้าได้กับผลของ thiazide ควรแก้ไปด้วย
+
+เหตุที่ควร admit คือ มีอาการทางระบบประสาท, Na ต่ำลงเร็ว, หรือ Na ต่ำกว่าราว 120 ร่วมกับปัจจัยเสี่ยงอื่น
+
+[physician]
+ถ้าหยุด HCTZ แล้ว ควร recheck Na ภายในกี่วันครับ และระหว่างที่ฤทธิ์ยายังอยู่ urine Na ที่สูงจะแยก thiazide effect ออกจาก SIADH ได้ยังไงครับ
+
+[assistant]
+สองเรื่องนี้สัมพันธ์กันครับ
+
+- **Recheck Na**: โดยทั่วไปตรวจซ้ำภายในราว 1 สัปดาห์หลังหยุดยา หรือเร็วกว่านั้นถ้ามีอาการใหม่ เพื่อดูทั้งว่า Na ขึ้น และไม่ได้ขึ้นเร็วเกินไป
+- **urine Na ขณะยังมีฤทธิ์ diuretic แปลผลยาก** เพราะ thiazide ทำให้ urine Na สูงได้เองแม้ไม่มี SIADH (Spasovski et al., 2014)
+- วิธีที่ใช้ได้จริงคือ หยุดยาแล้วดูการตอบสนอง ถ้า Na กลับสู่ปกติหลังหยุดยา สนับสนุนว่าเป็นจาก thiazide ถ้ายังต่ำเท่าเดิม ค่อย workup SIADH และสาเหตุอื่นต่อ
+- uric acid ที่ต่ำอาจช่วยชี้ไปทาง SIADH แต่ก็ไม่จำเพาะ
+
+[physician]
+ผู้ป่วยอยู่คนเดียว บ้านห่างจาก รพ. มาก ต้องนั่งรถโดยสารหลายต่อ ลูกหลานทำงานอยู่ไกล กลับมาเยี่ยมแค่ช่วงเทศกาล ไม่มีใครพามาโรงพยาบาลได้บ่อย มาเจาะเลือดทุกสัปดาห์ลำบากมาก แบบนี้ควรเปลี่ยนแผน recheck ยังไงครับ แล้ว BP จะคุมด้วยยาอะไรแทน HCTZ
+
+[assistant]
+เรื่องการเดินทางมีผลกับแผนจริงครับ
+
+- **Recheck**: ถ้าสถานีอนามัยใกล้บ้านเจาะเลือดส่งต่อได้ ให้เจาะที่นั่นแทน หรือนัดมา รพ. ครั้งเดียวราว 1 สัปดาห์ แล้วเว้นระยะห่างขึ้นถ้าค่าดีขึ้น
+- ให้ความรู้อาการที่ต้องมาทันที: สับสน ซึม เดินเซ ล้ม อาเจียน ชัก และให้ญาติหรือ อสม. ช่วยติดตาม
+- **ยาความดันแทน HCTZ**: ใช้ ACEI/ARB หรือ calcium channel blocker เช่น amlodipine ได้ (Thai Hypertension Society, 2019)
+- ถ้าใช้ ACEI/ARB ให้ตรวจ K และ Cr ตามนัด recheck ครั้งเดียวกัน
+
+[physician]
+ที่บอกว่าใช้ amlodipine แทนได้ มี guideline รองรับไหมครับ
+
+[assistant]
+มีครับ
+
+- calcium channel blocker อย่าง amlodipine เป็นหนึ่งในยากลุ่มแรกที่แนะนำในการรักษาความดันโลหิตสูง ร่วมกับ ACEI/ARB และ diuretic (ESH, 2023)
+- แนวทางของไทยก็จัดให้ CCB เป็นยากลุ่มหลักเช่นกัน (Thai Hypertension Society, 2019)
+- ข้อดีในกรณีนี้คือไม่ทำให้ Na ต่ำ ส่วนผลข้างเคียงที่พบบ่อยคือขาบวม
+
+ถ้าความดันยังไม่ถึงเป้าด้วยยาตัวเดียว การใช้ CCB ร่วมกับ ACEI/ARB เป็นทางเลือกที่ guideline แนะนำ
+
+[physician]
+ok ครับ ถ้าหยุด HCTZ ไปแล้วสักระยะ แต่ Na recheck ยังได้ 126 เท่าเดิม ไม่ขึ้นเลย ต้อง workup อะไรต่อครับ
+
+[assistant]
+ถ้า Na ไม่ขึ้นหลังหยุด thiazide นานพอ ควรหาสาเหตุอื่นอย่างเป็นระบบครับ (Spasovski et al., 2014)
+
+- **ยืนยัน hypotonic**: serum osmolality ต่ำ
+- **urine osmolality**: ถ้าเกิน 100 mOsm/kg แปลว่ามี ADH ทำงานอยู่
+- **urine Na**: ถ้าเกิน 30 mmol/L ใน euvolaemia เข้าได้กับ SIADH
+- ตัดสาเหตุอื่นก่อนวินิจฉัย SIADH: hypothyroidism (TSH), adrenal insufficiency (morning cortisol)
+- ทบทวนยาอื่นที่ทำให้ Na ต่ำ เช่น SSRI, carbamazepine
+- ถ้าเป็น SIADH ให้หาสาเหตุ เช่น โรคปอด มะเร็ง หรือโรคทางระบบประสาท ตามความเหมาะสมของอายุและอาการ
+
+การรักษาเบื้องต้นของ SIADH แบบไม่มีอาการคือจำกัดน้ำ
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ทบทวนเรื่อง Na ต่ำ มีประโยชน์มากครับ
+
+######## EPISODE G06 ########
+[physician]
+หญิงตั้งครรภ์ G3P2 GA 33 wk เป็น GDM จาก 75 g OGTT ตอน 28 wk คุมอาหารมา 2 สัปดาห์ SMBG: fasting 84–90, 1-hr หลังอาหารเช้า/กลางวัน 128–136 แต่หลังมื้อเย็น 165–178 ทุกวัน BMI 27 บ้านอยู่บนเกาะ นั่งเรือมา รพ. ราว 1 ชม. ไฟดับบ่อย ตู้เย็นใช้ได้บ้างไม่ได้บ้าง และตั้งใจถือศีลอดเดือนรอมฎอนที่จะเริ่มในอีกราว 1 สัปดาห์
+
+ผมว่าเริ่ม insulin เลยครับ ต้องเริ่มไหม ขอคำตอบตาม guideline และแยกให้เห็นว่าส่วนไหนเป็นความเห็น เพราะระบบนี้ไม่รู้บริบทบนเกาะและไม่รู้ว่า รพ. เรามี insulin ชนิดไหน
+
+[assistant]
+**ตาม guideline**
+- เป้าระดับน้ำตาลใน GDM: fasting < 95, 1-hr หลังอาหาร < 140 mg/dL (ACOG, 2018)
+- เมื่อคุมอาหารแล้วยังเกินเป้า ควรเริ่มยา และ insulin เป็นยาที่แนะนำเป็นอันดับแรก (ADA, 2024)
+- ผู้ป่วยรายนี้ fasting และหลังมื้อเช้า/กลางวันอยู่ในเป้า แต่หลังมื้อเย็นเกินชัดเจนทุกวัน จึงมีข้อบ่งชี้เริ่มยา
+
+**ส่วนที่เป็นความเห็น**
+- รูปแบบที่เกินเฉพาะหลังมื้อเย็น มักเหมาะกับ rapid-acting insulin ก่อนมื้อเย็นมากกว่า basal insulin
+- หญิงตั้งครรภ์ที่ใช้ insulin มีความเสี่ยง hypoglycemia สูงหากถือศีลอด ควรคุยเรื่องการได้รับการยกเว้น
+- ปากกา insulin ที่เปิดใช้แล้วส่วนใหญ่เก็บที่อุณหภูมิห้องได้ราว 4 สัปดาห์ แต่ขึ้นกับผลิตภัณฑ์
+
+❓ ถ้าผู้ป่วยยืนยันจะถือศีลอด มื้ออาหารจะย้ายไปเป็นมื้อก่อนรุ่งและมื้อละศีลอด จะประเมิน pattern น้ำตาลใหม่อย่างไรก่อนเลือกชนิด insulin ครับ?
+
+[physician]
+เป้า 1-hr < 140 ของ ACOG อิงหญิงตั้งครรภ์ที่กินสามมื้อตามปกติ ไม่มีข้อมูลหญิงที่ถือศีลอดเลย แยกให้ชัดนะครับ ที่เห็นแน่คือหลังมื้อเย็นเกินเป้าทุกวัน ส่วนที่ยังเดาไม่ได้คือ pattern จะเปลี่ยนแค่ไหนเมื่อมื้อย้ายไปก่อนรุ่งกับตอนละศีลอด และที่ไม่มีใครตอบได้คือไม่มี guideline ไหนที่ศึกษาการใช้ insulin ระหว่างถือศีลอดในครรภ์โดยตรง คำแนะนำส่วนนี้จึงเป็น expert opinion ทั้งหมด
+
+งั้นเปลี่ยนคำถาม ถ้าเธอยืนยันจะถือศีลอด ผมว่าให้ NPH ก่อนนอนก็พอครับ ใช้ได้ไหม
+
+[assistant]
+ขออนุญาตแย้งครับ NPH ก่อนนอนไม่ตรงกับปัญหาของผู้ป่วยรายนี้
+
+- NPH ก่อนนอนออกฤทธิ์หลักช่วงกลางคืนถึงเช้า จึงลด fasting glucose ซึ่งตอนนี้อยู่ในเป้าแล้ว (84–90)
+- ระหว่างถือศีลอด ฤทธิ์ที่ค้างถึงช่วงกลางวันที่ไม่ได้กินอาหาร เพิ่มความเสี่ยง hypoglycemia
+- ปัญหาจริงคือหลังมื้อเย็น ซึ่งระหว่างถือศีลอดจะกลายเป็นมื้อละศีลอด การให้ rapid-acting insulin ก่อนมื้อนั้นตรงจุดกว่า และหยุดได้ง่ายถ้ากินน้อย (ADA, 2024)
+- ควรติดตาม SMBG ทั้งก่อนละศีลอดและหลังมื้อ เพื่อปรับขนาด
+
+❓ ถ้าให้ rapid-acting insulin ก่อนมื้อละศีลอด จะวางแผนรับมือ hypoglycemia ที่บ้านซึ่งห่างจาก รพ. อย่างไรครับ?
+
+[physician]
+ok เปลี่ยนเป็น rapid-acting ก่อนมื้อละศีลอด ช่วย argue against แผนนี้ให้หน่อย ถ้าวันไหนเธอเหนื่อยแล้วกินได้น้อย หรือ insulin หมดเพราะเรือไม่วิ่งช่วงมรสุม แผนจะพังตรงไหน แล้วปากกาที่เปิดใช้แล้วเก็บนอกตู้เย็นได้กี่วัน ตัวเลขนี้ผมจะเทียบกับเอกสารกำกับยาของ รพ. อีกที เพราะแต่ละยี่ห้อต่างกัน
+
+[assistant]
+จุดที่แผนนี้อาจพังมีดังนี้ครับ
+
+- **กินน้อยกว่าที่ฉีด**: rapid-acting ที่ฉีดก่อนมื้อแล้วกินไม่ได้ เสี่ยง hypoglycemia ทางแก้คือฉีดเมื่อแน่ใจว่าจะกินได้ หรือฉีดทันทีหลังเริ่มกิน และงดถ้ากินน้อยมาก
+- **ยาขาดช่วงมรสุม**: ควรจ่ายยาเผื่อ และมีแผนสำรองว่าถ้ายาหมดให้กลับไปคุมอาหารเคร่งครัดและติดต่อ รพ. ทางโทรศัพท์
+- **hypoglycemia ที่บ้าน**: ต้องมีเครื่องตรวจน้ำตาล มีน้ำตาลหรือน้ำหวานสำรอง และสอนญาติให้รู้อาการ (ADA, 2024)
+- **การเก็บยา**: ปากกาที่เปิดใช้แล้วหลายชนิดเก็บที่อุณหภูมิห้องได้ราว 4 สัปดาห์ แต่ห้ามโดนความร้อนจัดหรือแสงแดด ควรยืนยันกับเอกสารกำกับยาตามที่ตั้งใจไว้
+
+❓ ถ้า SMBG หลังมื้อละศีลอดยังเกินเป้าหลังเริ่มยาไปหนึ่งสัปดาห์ จะปรับแผนอย่างไรครับ?
+
+[physician]
+สรุปสำหรับเคสนี้ครับ วิธีคิดที่ต่างจากเดิมคือ เดิมผมเริ่ม NPH ก่อนนอนตามความเคยชินทุกราย รอบนี้เห็นชัดว่าต้องดูก่อนว่าเกินเป้าที่มื้อไหน แล้วเลือกชนิด insulin ให้ตรงกับมื้อนั้น โดยเฉพาะเมื่อมื้ออาหารถูกย้ายเพราะถือศีลอด สิ่งที่ยังไม่มีคำตอบคือความปลอดภัยของการถือศีลอดระหว่างใช้ insulin ในครรภ์ ซึ่งไม่มีหลักฐานโดยตรง
+
+สิ่งที่จะทำต่อ: (1) คุยกับเธอและสามีเรื่องการได้รับการยกเว้นการถือศีลอดระหว่างตั้งครรภ์ โดยไม่บังคับ (2) เทียบระยะเวลาเก็บปากกากับเอกสารกำกับยาของ รพ. ก่อนจ่าย (3) จ่ายยาและแถบตรวจเผื่อช่วงมรสุม พร้อมสอนเรื่อง hypoglycemia (4) เขียนแนวทางสั้นๆ ให้ทีมฝากครรภ์ว่าให้เลือก insulin ตาม pattern ของน้ำตาล ไม่ใช่สูตรเดียวทุกคน ขนาดยาเริ่มต้นและการปรับขนาด ผมจะตัดสินเองหลังดู SMBG ครับ
+
+[assistant]
+แผนนี้ครบและเหมาะกับบริบทของผู้ป่วยครับ
+
+- การเลือก insulin ตามมื้อที่เกินเป้าสอดคล้องกับหลักการปรับยาตาม SMBG (ADA, 2024)
+- การคุยเรื่องการยกเว้นการถือศีลอดโดยเคารพการตัดสินใจของผู้ป่วยเป็นสิ่งสำคัญ
+- แนวทางสำหรับทีมฝากครรภ์ช่วยลดการใช้สูตรเดียวกับทุกราย
+
+❓ ในแนวทางสำหรับทีมฝากครรภ์ จะกำหนดเกณฑ์ให้ส่งปรึกษาแพทย์เมื่อใด เช่น เมื่อพบ hypoglycemia หรือเมื่อขนาด insulin เพิ่มขึ้นถึงระดับใดครับ?

@@ -1,0 +1,1702 @@
+
+
+######## EPISODE B01 ########
+[physician]
+หญิงวัย 70 กว่า distal radius fx จากล้มในบ้าน ยังไม่เคยรักษา osteoporosis eGFR 28 ยาไหนใช้ได้กับไตแบบนี้ ขอ reference ด้วยครับ
+
+[assistant]
+Distal radius fracture จากการล้มในระดับยืน ถือเป็น fragility fracture ซึ่งบ่งชี้ osteoporosis ทางคลินิกและควรได้รับการรักษาครับ (Endocrine Society, 2019)
+
+เรื่องยากับ eGFR 28
+- **Oral bisphosphonate** (alendronate, risedronate) — ไม่แนะนำเมื่อ eGFR ต่ำกว่าประมาณ 30–35
+- **Zoledronic acid** — ห้ามใช้เมื่อ CrCl <35
+- **Denosumab** — ไม่ได้ขับทางไต จึงใช้ได้ แต่มีความเสี่ยง hypocalcemia โดยเฉพาะในผู้ป่วยไตเสื่อม
+
+ก่อนเริ่มยา ควรตรวจ calcium, 25-OH vitamin D, phosphate และ PTH และแก้ภาวะขาด vitamin D ให้เรียบร้อย เพราะในไตเสื่อมขั้นนี้อาจมีความผิดปกติของกระดูกจากโรคไตร่วมด้วย
+
+[physician]
+งั้นเอียงไป denosumab เพราะไม่ผ่านไต แต่ hypocalcemia ที่ว่า — เสี่ยงแค่ไหน หลักฐานมาจากคนไข้กลุ่มไหน
+
+[assistant]
+ความเสี่ยง hypocalcemia หลังฉีด denosumab สูงขึ้นเมื่อการทำงานของไตลดลง โดยเฉพาะ eGFR <30 และในผู้ที่ขาด vitamin D ร่วมด้วย มักเกิดในช่วงสัปดาห์แรกๆ หลังฉีดครับ
+
+เรื่องแหล่งของหลักฐาน
+- การศึกษาหลักของ denosumab มีผู้ป่วยไตเสื่อมรุนแรงอยู่ไม่มาก
+- ข้อมูลในกลุ่ม eGFR <30 ส่วนใหญ่มาจากการศึกษาเชิงสังเกตและรายงานผู้ป่วย จึงประมาณขนาดความเสี่ยงได้ไม่แม่นยำ
+
+แนวทางจึงเน้นให้แก้ vitamin D และ calcium ให้พอก่อนเริ่ม และติดตามระดับ calcium หลังฉีด (Endocrine Society, 2019)
+
+[physician]
+แยกให้ชัดนะครับ ข้อเท็จจริง: denosumab ไม่ขับทางไต ไม่แน่นอน: ขนาดความเสี่ยง hypocalcemia ที่ eGFR <30 เพราะข้อมูลน้อยและเป็น observational ข้อจำกัด: trial หลักแทบไม่มีคนไข้แบบรายนี้ ผลที่เห็นใน trial อาจ transfer มาไม่ได้ตรงๆ ถูกไหม
+
+[assistant]
+เข้าใจถูกต้องครับ แยกได้ชัดเจนมาก
+
+ขอเพิ่มอีกหนึ่งข้อเท็จจริงที่สำคัญ: เมื่อหยุด denosumab จะเกิด **rebound bone loss** และมีรายงาน multiple vertebral fractures หลังหยุดยา จึงไม่ควรหยุดหรือเลื่อนเข็มโดยไม่มียาต่อเนื่อง ซึ่งโดยทั่วไปใช้ bisphosphonate ต่อ (Endocrine Society, 2019)
+
+ในผู้ป่วยรายนี้ที่ใช้ bisphosphonate ไม่ได้เพราะไต ประเด็นนี้มีผลต่อการวางแผนระยะยาวโดยตรง
+
+[physician]
+rebound สำคัญกับรายนี้มาก บ้านไกล รพ. ราว 60 กม. ลูกพามาได้ไม่แน่นอน ถ้าเข็ม 6 เดือนเลื่อน เสี่ยงแค่ไหน แล้วเมื่อต่อด้วย bisphosphonate ไม่ได้ ทางออกคืออะไร
+
+[assistant]
+ประเด็นที่ควรวางแผนครับ
+
+- ความเสี่ยง rebound เพิ่มขึ้นเมื่อเข็มถัดไปล่าช้าเกินกำหนดไปหลายสัปดาห์ จึงควรให้ตรงเวลาที่สุด (Endocrine Society, 2019)
+- **ทางปฏิบัติ:** นัดฉีดให้ตรงกับนัดอื่นของผู้ป่วย เช่นนัดไต ตั้งระบบเตือนล่วงหน้า และพิจารณาว่าหน่วยบริการใกล้บ้านฉีดให้ได้หรือไม่ ภายใต้การติดตาม calcium
+- **ถ้าจำเป็นต้องหยุดยาในอนาคต:** ควรวางแผนร่วมกับอายุรแพทย์โรคไต เพราะทางเลือกต่อเนื่องในไตเสื่อมขั้นนี้มีจำกัด
+
+การตัดสินใจเริ่ม denosumab จึงควรรวมการประเมินความเป็นไปได้ที่จะมารับยาต่อเนื่องด้วย
+
+[physician]
+เปิด Endocrine Society 2019 ดูแล้ว ตรงเรื่อง rebound แต่ไม่ได้พูดถึง eGFR <30 ชัดเท่าที่ตอบ ส่วนนั้นมาจากไหนครับ
+
+[assistant]
+ขอบอกตรงๆ ครับ ข้อแนะนำเรื่อง rebound และการแก้ vitamin D ก่อนเริ่ม มาจาก guideline นี้ (Endocrine Society, 2019) แต่รายละเอียดเรื่องเกณฑ์ eGFR ของแต่ละยาและความเสี่ยง hypocalcemia ในไตเสื่อมรุนแรง มาจากข้อมูลกำกับยาและการศึกษาเชิงสังเกต ซึ่งผมไม่ได้ระบุแหล่งเฉพาะไว้ และยังไม่แน่ใจว่ามี guideline ใดสรุปเรื่องนี้ไว้ชัดเจน
+
+สำหรับรายนี้ แนะนำให้ตรวจสอบกับเอกสารกำกับยาของโรงพยาบาล และปรึกษาอายุรแพทย์โรคไตเรื่องความผิดปกติของกระดูกจากโรคไตก่อนเริ่มยาครับ
+
+[physician]
+FRAX ยังมีประโยชน์ไหม หรือ fracture ที่เกิดแล้วทำให้ไม่จำเป็น
+
+[assistant]
+ในผู้ที่มี fragility fracture แล้ว การตัดสินใจรักษาไม่ต้องรอ FRAX ครับ เพราะ fracture ที่เกิดขึ้นเป็นข้อบ่งชี้ในตัวเอง (Endocrine Society, 2019)
+
+FRAX ยังมีประโยชน์ในการสื่อสารความเสี่ยงกับผู้ป่วยและญาติ (FRAX, Kanis et al., 2008) แต่มีข้อจำกัด เช่น ไม่ได้นำการทำงานของไตหรือความเสี่ยงการล้มมาคำนวณโดยตรง จึงอาจประเมินความเสี่ยงต่ำกว่าความจริงในผู้ป่วยแบบรายนี้
+
+[physician]
+แผน: เจาะ Ca, 25-OH vit D, PTH, phosphate แก้ vit D ก่อน แล้วเริ่ม denosumab ประสานไต นัดฉีดพร้อมนัดไต
+
+[assistant]
+แผนนี้เหมาะสมครับ ขอเสริมสองประเด็น
+
+- **ติดตาม calcium** หลังเข็มแรก โดยเฉพาะใน 1–2 สัปดาห์แรก เนื่องจากไตเสื่อมเพิ่มความเสี่ยง hypocalcemia
+- **ป้องกันการล้ม** ซึ่งเป็นกลไกโดยตรงของ fracture นี้ เช่น ประเมินการทรงตัว ทบทวนยาที่ทำให้ง่วงหรือความดันตกเมื่อลุกยืน และปรับสภาพแวดล้อมในบ้าน
+
+การรักษา osteoporosis หลัง fragility fracture ควรเริ่มโดยไม่ล่าช้าเมื่อพร้อม (Endocrine Society, 2019)
+
+[physician]
+ที่เปลี่ยนในวิธีคิดผม: เดิมสั่ง alendronate แทบทุกคนหลัง fracture แต่รายนี้ไตบังคับให้เลือกยาที่ผูกคนไข้ไว้กับการฉีดทุก 6 เดือนตลอด การเลือกยาจึงต้องดูว่าเขามาได้จริงไหม ที่ยังไม่แน่ใจคือ hypocalcemia จริงที่ eGFR ระดับนี้ จะทำ: เจาะ Ca 2 สัปดาห์หลังเข็มแรก ตั้งระบบเตือนนัดฉีด และกลับไปดูใน OPD ออร์โธเราว่าคนไข้ fragility fracture ได้ยาจริงกี่ราย
+
+[assistant]
+เป็นการสังเคราะห์ที่ดีมากครับ โดยเฉพาะการมองว่าความต่อเนื่องในการมารับยาเป็นส่วนหนึ่งของการเลือกยา ไม่ใช่เรื่องรอง เพราะความเสี่ยง rebound หลังหยุด denosumab ทำให้การขาดนัดมีผลทางคลินิกจริง (Endocrine Society, 2019)
+
+การทบทวนว่าผู้ป่วย fragility fracture ในหน่วยงานได้รับการรักษาจริงกี่ราย เป็นจุดเริ่มต้นที่ดีของระบบติดตามหลังกระดูกหัก ซึ่งช่วยลดช่องว่างการรักษาที่พบบ่อยในผู้ป่วยกลุ่มนี้
+
+######## EPISODE B02 ########
+[physician]
+สวัสดีค่ะ รบกวนสอบถามค่ะ มีคนไข้หญิงวัย 70 กว่า มาตรวจ OPD ตามนัด HT กับ DM ค่ะ วันนี้ฟังเจอชีพจรไม่สม่ำเสมอ ทำ ECG เป็น AF ค่ะ เพิ่งเจอครั้งแรก ไม่มีใจสั่น ไม่เหนื่อย ยาที่ใช้อยู่ amlodipine 10, losartan 50, metformin 500 bid น้ำหนักประมาณ 55 กก. Cr 1.4 อยู่กับลูกสาว ไม่ดื่มเหล้า ไม่สูบบุหรี่ เคยผ่าตัดต้อกระจกค่ะ มา รพ.ด้วยรถสองแถว อยากถามว่า AF ต้องให้ยากันเลือดแข็งทุกคนไหมคะ แล้วใช้ยาอะไรได้บ้างคะ
+
+[assistant]
+สวัสดีครับ ไม่ใช่ทุกรายครับ การตัดสินใจให้ยาต้านการแข็งตัวของเลือด (OAC) ใน AF ที่ไม่ใช่ valvular ใช้การประเมินความเสี่ยง stroke ด้วย **CHA2DS2-VASc** (Lip et al., 2010)
+
+- แนะนำให้ OAC เมื่อคะแนน ≥2 ในผู้ชาย หรือ ≥3 ในผู้หญิง และพิจารณาเมื่อคะแนน 1 ในผู้ชาย หรือ 2 ในผู้หญิง (ESC, 2020)
+- ผู้ป่วยรายนี้มีอย่างน้อย: เพศหญิง 1, HT 1, DM 1 และอายุ ≥65 อีกอย่างน้อย 1 (ถ้าอายุ ≥75 ได้ 2) จึงได้ 4–5 คะแนน ซึ่งเข้าเกณฑ์ให้ OAC
+- ยาที่ใช้ได้: NOAC (apixaban, rivaroxaban, dabigatran, edoxaban) หรือ warfarin โดยแนะนำ NOAC มากกว่า warfarin ในผู้ที่ใช้ได้ (ESC, 2020)
+- ควรประเมินความเสี่ยงเลือดออกควบคู่กัน เพื่อหาปัจจัยที่แก้ไขได้ ไม่ใช่เพื่อใช้เป็นเหตุผลงดยา
+
+นอกจากนี้ AF ที่เพิ่งพบควรหาสาเหตุร่วม เช่น thyroid function และทำ echocardiogram ครับ
+
+[physician]
+อาจให้ warfarin หรือ NOAC หรือ aspirin หรือ clopidogrel หรือให้ aspirin คู่กับ clopidogrel ก็ได้ใช่ไหมคะ ที่ รพ.เคยเห็นอาจารย์บางท่านให้ aspirin อย่างเดียว บางท่านให้ warfarin แบบไหนก็ได้ใช่ไหมคะ
+
+[assistant]
+ไม่เท่ากันครับ ขอแยกให้ชัดดังนี้
+
+- **Aspirin ไม่แนะนำ** สำหรับป้องกัน stroke ใน AF เพราะได้ประโยชน์น้อยแต่ยังมีความเสี่ยงเลือดออก (ESC, 2020)
+- **NOAC** เป็นตัวเลือกแรกในผู้ป่วยส่วนใหญ่ เพราะลด stroke ได้อย่างน้อยเท่า warfarin และมีเลือดออกในสมองน้อยกว่า ไม่ต้องติดตาม INR
+- **Aspirin ร่วมกับ clopidogrel** ก็ไม่แนะนำให้ใช้แทน OAC ในผู้ที่ใช้ OAC ได้
+- **Warfarin** ยังจำเป็นในผู้ที่มี mechanical valve หรือ moderate–severe mitral stenosis และเป็นทางเลือกเมื่อเข้าถึง NOAC ไม่ได้ โดยต้องคุม INR 2.0–3.0 ให้อยู่ในช่วงเป้าหมายสม่ำเสมอ
+
+ดังนั้นการเลือกไม่ใช่ "แบบไหนก็ได้" ครับ ขึ้นกับข้อบ่งห้าม การทำงานของไต และการเข้าถึงยา
+
+[physician]
+อธิบายเพิ่มหน่อยค่ะเรื่อง NOAC
+
+[assistant]
+ได้ครับ ประเด็นหลักของ NOAC ใน AF มีดังนี้
+
+- **กลุ่มยา**: dabigatran (direct thrombin inhibitor), apixaban, rivaroxaban, edoxaban (factor Xa inhibitors)
+- **การปรับขนาด**: ขึ้นกับ CrCl (ควรคำนวณด้วย Cockcroft–Gault ไม่ใช่ใช้ค่า Cr อย่างเดียว) อายุ น้ำหนัก และยาที่ใช้ร่วม แต่ละตัวมีเกณฑ์ต่างกัน เช่น apixaban ลดขนาดเมื่อมีอย่างน้อย 2 ใน 3 ข้อ คือ อายุ ≥80, น้ำหนัก ≤60 กก., Cr ≥1.5 mg/dL (ESC, 2020)
+- **Dabigatran** ขับทางไตมากที่สุด จึงต้องระวังเป็นพิเศษเมื่อไตเสื่อม
+- **ข้อห้าม**: mechanical valve, moderate–severe mitral stenosis, ตั้งครรภ์
+- **การติดตาม**: ตรวจ Cr, CBC เป็นระยะ และทบทวนการกินยาให้สม่ำเสมอ เพราะยาออกฤทธิ์สั้น ลืมกินมีผลเร็ว
+
+เรื่องราคาและสิทธิการรักษาก็มีผลต่อการเลือกยาในทางปฏิบัติครับ
+
+[physician]
+แล้วมี guideline ไหมคะ อันนี้
+
+[assistant]
+มีครับ guideline หลักที่ใช้กันบ่อยคือ
+
+- **ESC Guidelines for the management of atrial fibrillation** ฉบับ 2020 และฉบับปรับปรุงล่าสุด (ESC, 2024) ซึ่งฉบับใหม่เปลี่ยนมาใช้ CHA2DS2-VA โดยไม่นับเพศเป็นปัจจัยเสี่ยง
+- **ACC/AHA/ACCP/HRS Guideline for the Diagnosis and Management of Atrial Fibrillation** (ACC/AHA, 2023)
+
+ทั้งสองฉบับแนะนำไปในทางเดียวกันในประเด็นหลัก คือ ประเมินความเสี่ยง stroke, ใช้ NOAC เป็นตัวเลือกแรก และไม่ใช้ aspirin เพื่อป้องกัน stroke ใน AF ครับ
+
+[physician]
+HAS-BLED คืออะไรคะ คนไข้มี HT กับ DM ด้วยค่ะ
+
+[assistant]
+HAS-BLED เป็นคะแนนประเมินความเสี่ยงเลือดออกในผู้ที่ได้ยาต้านการแข็งตัวของเลือด (Pisters et al., 2010)
+
+- **H** — Hypertension ที่คุมไม่ได้ (SBP >160)
+- **A** — Abnormal renal/liver function (ข้อละ 1)
+- **S** — Stroke
+- **B** — Bleeding history หรือ predisposition
+- **L** — Labile INR (เฉพาะผู้ใช้ warfarin)
+- **E** — Elderly (อายุมากกว่า 65)
+- **D** — Drugs (antiplatelet, NSAIDs) หรือ alcohol (ข้อละ 1)
+
+คะแนน ≥3 ถือว่าเสี่ยงสูง แต่ใช้เพื่อหาและแก้ปัจจัยที่แก้ไขได้ เช่น คุมความดัน หยุด NSAIDs และนัดติดตามใกล้ชิดขึ้น ไม่ได้ใช้เป็นเหตุผลงด OAC (ESC, 2020) ส่วน DM ไม่ได้อยู่ในคะแนนนี้ครับ
+
+[physician]
+HAS-BLED คืออะไรคะ คำนวณยังไงคะ คนไข้มี HT กับ DM ด้วยค่ะ แล้วก็กินยาหลายตัวค่ะ
+
+[assistant]
+สรุปสั้นๆ ครับ
+
+- **ไม่ใช่ทุกคน** — ตัดสินจาก CHA2DS2-VASc: OAC แนะนำเมื่อ ≥2 ในผู้ชาย หรือ ≥3 ในผู้หญิง (ESC, 2020)
+- **ยาที่เลือก**: NOAC เป็นตัวเลือกแรก, warfarin เมื่อมีข้อบ่งชี้เฉพาะหรือเข้าถึง NOAC ไม่ได้, aspirin ไม่ใช้เพื่อป้องกัน stroke
+- **ความเสี่ยงเลือดออก** (HAS-BLED) ใช้หาปัจจัยที่แก้ไขได้ ไม่ใช่เหตุผลงดยา
+
+สำหรับผู้ป่วยรายนี้ คะแนน CHA2DS2-VASc อยู่ในเกณฑ์ที่ควรได้ OAC และค่า Cr 1.4 หมายความว่าควรคำนวณ CrCl ก่อนกำหนดขนาด NOAC ครับ
+
+[physician]
+ok ค่ะ ขอเป็นตารางสรุปยาหน่อยค่ะ ใส่ยาแต่ละตัว กลไกการออกฤทธิ์ ข้อควรระวัง ให้ครบเลยค่ะ
+
+[assistant]
+ได้ครับ สรุปย่อดังนี้ (ESC, 2020)
+
+| ยา | กลไก | ประเด็นที่ต้องระวัง |
+|---|---|---|
+| Apixaban | anti-Xa | ลดขนาดตามเกณฑ์อายุ/น้ำหนัก/Cr |
+| Rivaroxaban | anti-Xa | กินพร้อมอาหาร, ปรับตาม CrCl |
+| Edoxaban | anti-Xa | ปรับตาม CrCl และน้ำหนัก |
+| Dabigatran | anti-IIa | ขับทางไตมาก, ระวังใน CrCl ต่ำ |
+| Warfarin | vitamin K antagonist | ต้องติดตาม INR 2.0–3.0, interaction เยอะ |
+
+ขนาดยาจริงควรตรวจสอบกับเอกสารกำกับยาและบัญชียาของโรงพยาบาลก่อนสั่งครับ
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ความรู้เรื่อง AF เยอะเลยค่ะ มีประโยชน์มากค่ะ
+
+######## EPISODE B03 ########
+[physician]
+Man in his 40s, warehouse lifter, 4 months of low back pain. No red flags, no leg symptoms, normal neuro exam. Wants an MRI. Serious pathology here is well under 1%, and disc changes are common on MRI in people without pain, so a scan likely labels him more than it helps. Should he get one?
+
+[assistant]
+Your reasoning matches the guidance. For non-specific low back pain without red flags, imaging is not recommended in a non-specialist setting, because it rarely changes management and incidental findings can increase worry and healthcare use (NICE, 2016). Imaging is reserved for suspected serious pathology, or when the result would change management — for example when a specific intervention such as surgery is being considered.
+
+For management, the usual approach is:
+- **Non-drug first**: exercise therapy, staying active, and psychological approaches such as CBT where pain is persistent (ACP, 2017)
+- **NSAIDs** as the first-choice medication, at the lowest effective dose for the shortest time
+- **Second line**: duloxetine or tramadol; opioids only after other options have failed
+
+Explaining to him why a scan is not being ordered, and what would change that, often matters as much as the decision itself.
+
+[physician]
+He has taken OTC ibuprofen 400 tid daily for two months and now has dyspepsia — not the short course that advice assumes. My order: taper to topical while exercise starts; oral NSAID plus PPI only if needed; duloxetine last. Topical data in back pain are thin, borrowed from knee OA. Your suggestion?
+
+[assistant]
+You're right on both counts. The topical NSAID evidence comes mainly from osteoarthritis and acute musculoskeletal injuries; good trials in chronic low back pain are limited, so it is a reasonable low-risk option but not an evidence-based one for this indication.
+
+- Two months of daily ibuprofen with new dyspepsia is a reason to stop or reduce it; if an oral NSAID is still needed, give gastroprotection with a PPI and review renal function and blood pressure (NICE, 2016).
+- Paracetamol alone is not recommended for low back pain.
+- Duloxetine is listed as a second-choice option (ACP, 2017).
+
+Your ranking is sensible, and making exercise the main treatment rather than the drug is the key change.
+
+[physician]
+Duloxetine: ACP lists it second choice, NG59 recommends against antidepressants for back pain. A guideline conflict, small effect over placebo. His poor sleep and job worry make it tempting, but I won't trade a modest pain effect for nausea and discontinuation symptoms. Am I misreading NG59?
+
+[assistant]
+You're reading it correctly. NICE advises against SSRIs, SNRIs and tricyclics for managing low back pain (NICE, 2016), whereas ACP includes duloxetine as a second-choice option for chronic pain (ACP, 2017). The underlying evidence shows a modest average effect on pain, and the two guidelines weigh it against adverse effects differently.
+
+Two distinctions are worth keeping:
+- If he meets criteria for a depressive or anxiety disorder, treating that is a separate indication with its own evidence base.
+- If not, his sleep and job worry are better addressed directly than through an antidepressant chosen for pain.
+
+[physician]
+Then the real driver is job fear and sleep, not the drug. If he's high risk for long-term disability, the plan should shift to combined physical and psychological therapy. Which psychosocial factors matter most, and is quick risk stratification feasible in a 10-minute visit?
+
+[assistant]
+Yes — risk stratification at first contact is recommended, for example with the STarT Back tool, to decide who needs simpler or more intensive support (NICE, 2016). It takes a few minutes and works in a short consultation.
+
+Psychosocial factors most linked to a poor outcome:
+- **Fear-avoidance** — believing that activity or work will cause harm
+- **Catastrophising** and low mood
+- **Work factors**: heavy physical demands, low job control, fear of losing the job, no access to modified duties
+- **Expecting passive treatment** (scans, injections, rest) to fix it
+
+High-risk patients benefit most from combined physical and psychological approaches.
+
+[physician]
+He scores high on fear-avoidance. Employer offers no modified duties; physio is two hours away with a waiting list. Is a structured home programme with graded activity a reasonable substitute? Strongest case against it, 4 bullets max.
+
+[assistant]
+The strongest case against relying on a home programme alone:
+
+- **Adherence**: unsupervised exercise adherence is often poor, particularly in people with high fear-avoidance, who may avoid exactly the movements they need.
+- **Fear-avoidance is not addressed by exercise alone**: the evidence for high-risk patients is for combined physical and psychological approaches (NICE, 2016).
+- **No feedback loop**: without review, a flare can be read by him as harm and lead to more avoidance.
+- **Work exposure continues**: unchanged heavy lifting with no modified duties may keep provoking pain and reinforce the fear.
+
+None of these rules it out; they point to what a substitute must add — scheduled follow-up and explicit reassurance and education.
+
+[physician]
+Fair — adherence and follow-up are the weak points. I'll read the NG59 wording myself before acting on it, not a chat summary. My call: taper ibuprofen over 2 weeks, topical NSAID, home programme with a phone check every 2 weeks, employer letter on lifting, physio referral as backstop. Anything that contradicts NG59 or ACP?
+
+[assistant]
+Nothing in that plan conflicts with either guideline. It is consistent with non-drug therapy as the core, NSAIDs at the lowest dose for the shortest time, and no routine imaging (NICE, 2016; ACP, 2017).
+
+Two additions to consider:
+- **Education and reassurance** at the first visit — that pain does not mean damage, and that staying active helps recovery.
+- **Safety-netting**: clear instructions to return urgently for new leg weakness, numbness in the saddle area, or bladder or bowel changes.
+
+Checking the original wording yourself is a good step, since summaries can lose qualifiers.
+
+[physician]
+Last check. If at 6 weeks he develops pain below the knee, imaging becomes worthwhile only if that persists despite conservative care and he would accept an intervention — otherwise a scan still changes nothing. Agreed?
+
+[assistant]
+Agreed, with one qualification. New radicular pain often improves with non-surgical care, so imaging is appropriate when symptoms persist and the result would guide an intervention such as a spinal injection or surgery (NICE, 2016).
+
+The qualification is that some features bypass that threshold entirely: progressive motor weakness or signs of cauda equina syndrome need urgent assessment and imaging regardless of how long symptoms have been present.
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+My default for chronic back pain was drug-first: NSAID, then add something. This case moved the centre of gravity to fear-avoidance and work, with drugs as support. I also learned that NICE and ACP disagree on duloxetine, so when one guideline looks decisive I need to check whether another guideline says the opposite.
+
+ความไม่แน่นอน / What remains uncertain:
+Whether a phone-supported home programme works for a patient with high fear-avoidance when psychological therapy is two hours away, and how much the employer letter will actually change his lifting load.
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+Read the NG59 exercise and psychological therapy recommendations in full this week. Start using STarT Back for every new back pain patient in my clinic for the next month and count how many are high risk. Ask the referral hospital physiotherapists whether they can give us a short home programme handout we can use while patients wait.
+
+######## EPISODE B04 ########
+[physician]
+ผู้ป่วยหญิงวัย 30 กว่า หลังคลอดลูกคนแรก 4 เดือน ยังให้นมลูกเต็มที่ PHQ-9 = 18 เข้าเกณฑ์ MDD ครั้งแรก ไม่มี suicidal ideation ไม่มี psychotic feature แต่แม่ของผู้ป่วยเป็น bipolar ที่ รพ.เรามีแค่ fluoxetine, sertraline, amitriptyline ผมเรียงไว้ว่า sertraline มาก่อน เพราะข้อมูลใน lactation ระดับยาในน้ำนมต่ำ, fluoxetine รองลงมาเพราะ half-life ยาวและมี active metabolite สะสมในทารกได้, amitriptyline ท้ายสุดเพราะ anticholinergic เยอะและ overdose อันตรายในคนซึมเศร้า แต่ family history bipolar ทำให้กังวลเรื่อง switch เป็น mania ถ้าให้ SSRI เดี่ยวๆ ควร screen bipolarity อย่างไรก่อนเริ่มยา และถ้าเริ่ม sertraline ควร monitor อะไรใน 2–4 สัปดาห์แรก
+
+[assistant]
+การเรียงลำดับยาสมเหตุสมผลครับ sertraline เป็นตัวเลือกที่ใช้บ่อยในหญิงให้นมบุตร และ SSRI เป็นยากลุ่มแรกที่แนะนำสำหรับ depression ในผู้ใหญ่ (NICE, 2022)
+
+**Screen bipolarity ก่อนเริ่มยา**
+- ถามประวัติช่วงที่อารมณ์ดีผิดปกติ นอนน้อยแต่ไม่เพลีย พูดเร็ว ใช้เงินเกินตัว อย่างน้อย 4 วันติดกัน
+- ถามประวัติ depression ที่เริ่มเร็วหลังคลอด หรือมี psychotic feature ซึ่งเพิ่มโอกาส bipolar
+- ใช้เครื่องมือคัดกรอง เช่น MDQ ประกอบ แต่ไม่ใช้แทนการซักประวัติ
+
+**Monitor ช่วงแรก**
+- นัดทบทวนภายใน 2 สัปดาห์หลังเริ่มยา หรือเร็วกว่านั้นถ้ามีความเสี่ยงฆ่าตัวตาย (NICE, 2022)
+- ถามอาการ activation, นอนไม่หลับ, อาการแบบ hypomania
+- ทารก: การดูดนม การนอน น้ำหนักขึ้น
+
+❓ ถ้าใน 2 สัปดาห์แรกผู้ป่วยนอนน้อยลงแต่รู้สึกมีพลังมากขึ้น จะแยกระหว่างการตอบสนองต่อยากับ hypomania อย่างไรครับ?
+
+[physician]
+อีกเรื่องครับ ผู้ป่วยรายนี้บ้านอยู่ไกล รพ. เดินทางเกือบชั่วโมงและต้องพาลูกมาด้วย นัดทุก 2 สัปดาห์แทบเป็นไปไม่ได้ ที่ รพ.ไม่มีนักจิตวิทยาทำ CBT ผมคิดว่าถ้าให้ยาอย่างเดียวโดยไม่มี psychotherapy อาจได้ผลน้อยกว่า แต่ถ้ารอ CBT ที่ รพ.แม่ข่ายคงรอหลายเดือน ในบริบทแบบนี้มีทางเลือก psychological intervention อะไรที่ทำได้จริงบ้าง และ guideline ที่แนะนำ combination อิงจากหลักฐานใน setting ที่มีนักจิตบำบัดพร้อม ซึ่งไม่ใช่ที่นี่
+
+[assistant]
+ประเด็นเรื่องบริบทสำคัญมากครับ สำหรับ depression ที่รุนแรงมากขึ้น (PHQ-9 ≥16) guideline แนะนำ combination ระหว่าง antidepressant กับ CBT เป็นตัวเลือกหลัก (NICE, 2022) แต่หลักฐานนั้นมาจากระบบที่เข้าถึง psychotherapy ได้
+
+ทางเลือกที่ทำได้จริงในบริบทนี้
+- **Guided self-help** ตามหลัก CBT โดยพยาบาลหรือแพทย์ที่ผ่านการอบรม ติดตามสั้นๆ
+- **Behavioural activation** แบบเรียบง่าย ซึ่งบุคลากรที่ไม่ใช่นักจิตวิทยาฝึกทำได้
+- **ติดตามทางโทรศัพท์หรือ video call** แทนการมา รพ. ในช่วงแรก
+- ประสาน อสม. หรือทีมเยี่ยมบ้าน
+
+❓ ถ้าติดตามทางโทรศัพท์เป็นหลัก จะประเมินความเสี่ยงฆ่าตัวตายให้ปลอดภัยได้อย่างไรครับ?
+
+[physician]
+คำถามใหม่ครับ สามีอยากให้ผู้ป่วยหยุดให้นมลูกเพื่อจะได้กินยาได้ ผมคิดว่าไม่จำเป็นต้องหยุด เพราะ sertraline ผ่านน้ำนมน้อย และการหยุดให้นมทันทีอาจทำให้ผู้ป่วยรู้สึกผิดและอารมณ์แย่ลง แต่ผมไม่แน่ใจว่าข้อมูลความปลอดภัยในทารกมาจากการศึกษาแบบไหน เท่าที่รู้ trial ของยาต้านเศร้า เช่นที่รวมใน NMA ของ Cipriani 2018 ไม่ได้รวมหญิงให้นมบุตร ขอข้อมูลที่ใช้คุยกับครอบครัวได้ พร้อมบอกด้วยว่าหลักฐานแข็งแค่ไหน
+
+[assistant]
+ถูกต้องครับ trial ในการวิเคราะห์ของ Cipriani ไม่ได้รวมหญิงตั้งครรภ์หรือให้นมบุตร (Cipriani et al., 2018) ข้อมูลความปลอดภัยใน lactation มาจาก
+
+- การศึกษาวัดระดับยาในน้ำนมและในเลือดทารก ซึ่งพบว่า sertraline ส่วนใหญ่ตรวจไม่พบหรือต่ำมากในเลือดทารก
+- รายงานผู้ป่วยและการศึกษาเชิงสังเกต ซึ่งไม่พบผลเสียที่ชัดเจนในทารกส่วนใหญ่
+
+ดังนั้นหลักฐานเป็นระดับ observational ไม่ใช่ RCT แต่สอดคล้องกันมากพอที่ guideline หลายฉบับยอมรับการใช้ sertraline ระหว่างให้นม (NICE, 2022)
+
+ประเด็นคุยกับครอบครัว: ประโยชน์ของการให้นมและการรักษาอาการแม่ เทียบกับความเสี่ยงต่อทารกที่ต่ำ และการเฝ้าดูทารกเป็นระยะ
+
+❓ ถ้าทารกคลอดก่อนกำหนดหรือมีปัญหาตับ จะเปลี่ยนการตัดสินใจนี้อย่างไรครับ?
+
+[physician]
+เปลี่ยนเรื่องนะครับ ผล TSH ที่เพิ่งได้มาเป็น 6.8 FT4 ปกติ ผมคิดว่าอาจเป็น postpartum thyroiditis ระยะ hypothyroid ซึ่งทำให้อ่อนเพลียและอารมณ์ซึมได้ แต่ subclinical ระดับนี้ไม่น่าอธิบาย PHQ-9 18 กับ anhedonia ทั้งหมด เลยจะยังเริ่มยาต้านเศร้าตามเดิมและตรวจ TSH ซ้ำใน 6 สัปดาห์ เห็นด้วยไหมครับ
+
+[assistant]
+เหตุผลนี้สมเหตุสมผลครับ
+
+- ภาวะ thyroid ผิดปกติหลังคลอดพบได้และทำให้อาการคล้าย depression ได้ จึงควรตรวจซ้ำตามแผน
+- subclinical hypothyroidism ระดับนี้มักไม่อธิบายอาการซึมเศร้ารุนแรงและ anhedonia ได้ทั้งหมด การเลื่อนการรักษา depression ระดับรุนแรงออกไปจึงมีความเสี่ยงมากกว่า
+- ถ้า TSH สูงขึ้นต่อเนื่องหรือ FT4 ต่ำลง ค่อยพิจารณารักษา thyroid ร่วม
+
+การประเมินอาการซึมเศร้าซ้ำด้วยเครื่องมือเดิม เช่น PHQ-9 ช่วยติดตามการตอบสนองต่อการรักษาได้ (NICE, 2022)
+
+❓ ถ้าใน 6 สัปดาห์ TSH กลับมาปกติแต่อาการซึมเศร้ายังเท่าเดิม จะแปลผลอย่างไรครับ?
+
+[physician]
+อีกเรื่องครับ ขนาดเริ่มต้น sertraline ในคนให้นมบุตรต่างจากปกติไหม ตอบมาเลยครับ
+
+[assistant]
+โดยทั่วไปไม่ต่างกันมากครับ
+
+- เริ่ม **25–50 mg/วัน** ในหญิงให้นมบุตรหลายแห่งเลือกเริ่ม 25 mg เพื่อลดผลข้างเคียงช่วงแรก แล้วปรับเป็น 50 mg ใน 1–2 สัปดาห์
+- ปรับเพิ่มทีละ 25–50 mg ตามการตอบสนอง โดยใช้ขนาดต่ำสุดที่ได้ผล
+- ประเมินการตอบสนองหลังได้ขนาดที่เหมาะสมประมาณ 4 สัปดาห์ก่อนตัดสินว่าไม่ได้ผล (NICE, 2022)
+- เฝ้าดูทารกเรื่องการดูดนม ความง่วงผิดปกติ และน้ำหนัก
+
+❓ ถ้าผู้ป่วยได้ sertraline 100 mg ครบ 4 สัปดาห์แล้วอาการดีขึ้นเพียงเล็กน้อย ขั้นต่อไปจะพิจารณาอะไรครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+สำหรับแม่หลังคลอดที่ให้นมลูกและเป็นซึมเศร้าครั้งแรกแบบรายนี้ sertraline เป็นตัวเลือกที่เหมาะใน รพ.ที่มียาจำกัด ไม่จำเป็นต้องให้หยุดนม เพราะข้อมูลในทารกส่วนใหญ่ปลอดภัยแม้จะเป็นหลักฐานเชิงสังเกต แต่เพราะแม่ของผู้ป่วยเป็น bipolar ต้องซักอาการ hypomania ก่อนเริ่มยาและนัดติดตามใกล้ชิดช่วงแรก ส่วน TSH ที่สูงเล็กน้อยต้องตรวจซ้ำ ไม่ใช่เหตุผลให้เลื่อนการรักษา
+
+######## EPISODE B05 ########
+[physician]
+Hello. I would like to learn about fever in young infants. Please provide a complete overview including:
+1. Definition
+2. Causes / differential diagnosis
+3. Investigations
+4. Management
+5. Prognosis
+I have an infant with fever today, a 7-week-old girl, temperature 38.5, born at 38 weeks, feeding OK according to the mother. Please be as comprehensive as possible and include everything I need to know.
+
+[assistant]
+Happy to help. A quick structured overview:
+
+- **Definition**: in infants up to 60 days, fever is a rectal temperature of 38.0 °C or higher (Pantell et al., 2021).
+- **Causes**: most are viral, but the key concern is invasive bacterial infection — bacteraemia and meningitis — plus urinary tract infection, which is the most common bacterial cause.
+- **Investigations** for a well-appearing infant 29–60 days old: urinalysis, blood culture, and inflammatory markers (procalcitonin if available, plus CRP and absolute neutrophil count). Lumbar puncture depends on those results.
+- **Management**: depends on age band and the inflammatory markers — some infants can be observed with close follow-up, others need admission and parenteral antibiotics (AAP, 2021).
+- **Prognosis**: generally good when bacterial infection is recognised and treated promptly.
+
+The guideline is organised by age in days (8–21, 22–28, 29–60), so the age band is the first thing to pin down for any individual infant.
+
+[physician]
+Thank you. What are the common causes of fever in infants? Could it be UTI, viral infection, sepsis, meningitis, pneumonia, or otitis media? Please list all the possible causes.
+
+[assistant]
+In febrile infants under 3 months, the possibilities include:
+
+- **Viral infections** — the majority (e.g., enterovirus, RSV, influenza)
+- **Urinary tract infection** — the most common serious bacterial infection in this age group
+- **Bacteraemia** — less common, but important not to miss
+- **Bacterial meningitis** — rare, but the most dangerous
+- **Pneumonia** — usually with respiratory signs
+- **Others**: skin/soft tissue infection, osteomyelitis, septic arthritis, and in the first weeks of life, HSV infection
+
+Otitis media is uncommon as the sole cause in this young age group. The guideline's approach is to risk-stratify for invasive bacterial infection rather than to work through every cause one by one (Pantell et al., 2021).
+
+[physician]
+OK. What is the normal value of procalcitonin?
+
+[assistant]
+Procalcitonin is usually very low in healthy individuals. In the febrile-infant pathway, the thresholds that matter are the ones used for risk stratification rather than a "normal range":
+
+- In infants 29–60 days, procalcitonin above about 0.5 ng/mL is treated as abnormal and raises concern for invasive bacterial infection (AAP, 2021).
+- The other inflammatory markers in the same pathway are CRP above 20 mg/L, temperature above 38.5 °C, and an absolute neutrophil count above roughly 4,000 to 5,200 per microlitre.
+
+Values can vary between assays, so the local laboratory's reference information is also worth checking.
+
+[physician]
+OK noted. Next, what antibiotics are used for neonatal sepsis? Please list the drugs and doses.
+
+[assistant]
+Empiric choices depend on age in days and on whether meningitis is suspected (Pantell et al., 2021):
+
+- **First weeks of life**: ampicillin plus either gentamicin or a third-generation cephalosporin such as ceftazidime; the cephalosporin is preferred when meningitis is a concern.
+- **Infants 29–60 days without concern for meningitis**: ceftriaxone is commonly used.
+- **Suspected bacterial meningitis** in the older age band: a meningitic-dose cephalosporin plus vancomycin.
+- Add **acyclovir** when HSV is a possibility (vesicles, seizures, very young age, maternal history).
+
+For exact mg/kg doses and intervals I would rather not quote from memory for a neonate — please check a paediatric dosing reference or the hospital formulary, as intervals change with postnatal age.
+
+[physician]
+Can you explain more about the inflammatory markers you mentioned?
+
+[assistant]
+Sure. The guideline uses inflammatory markers to separate lower-risk from higher-risk well-appearing infants (AAP, 2021):
+
+- **Procalcitonin** rises early in bacterial infection and is the most discriminating single marker in this age group.
+- **CRP** rises more slowly, so a very early CRP can be falsely reassuring.
+- **Absolute neutrophil count** adds information when procalcitonin is not available.
+- **Temperature above 38.5 °C** is also counted as a risk marker.
+
+If any marker is abnormal, the infant is no longer in the lowest-risk group, and lumbar puncture and empiric antibiotics are generally recommended. If all are normal and the urinalysis is negative, observation with close follow-up may be an option, depending on age band and the family's ability to return.
+
+[physician]
+How do you do a lumbar puncture in an infant? Please give me the steps.
+
+[assistant]
+Here are the main steps for an infant lumbar puncture:
+
+1. **Position**: lateral decubitus or sitting, with an assistant holding the infant gently flexed — avoid excessive neck flexion, which can compromise the airway.
+2. **Landmark**: the L3–L4 or L4–L5 interspace; the top of the iliac crests marks roughly L4.
+3. **Asepsis**: sterile gloves, skin preparation, sterile drape; topical anaesthetic if time allows.
+4. **Needle**: a 22-gauge spinal needle with stylet, advanced slowly; remove the stylet often to check for flow.
+5. **Samples**: cell count, Gram stain, culture, glucose and protein; consider HSV PCR when indicated.
+6. **Monitoring**: watch oxygen saturation and breathing throughout.
+
+In the febrile-infant pathway, an LP is indicated for higher-risk infants before antibiotics whenever this does not delay treatment (Pantell et al., 2021).
+
+[physician]
+Please write the management plan for my patient so I can copy it into the chart.
+
+[assistant]
+I can give a plan structure, but the actual plan depends on findings that only the examining doctor has — how well she looks on examination, the urinalysis, and the inflammatory markers — so please adapt it rather than copy it directly.
+
+**Febrile infant, 29–60 days, well-appearing — plan framework (AAP, 2021):**
+- Urinalysis and urine culture by catheter specimen
+- Blood culture, procalcitonin (or CRP and ANC), CBC
+- If urinalysis and all markers are normal: consider observation, with reassessment within 24–36 hours and a reliable way for the family to return
+- If urinalysis is abnormal but markers are normal: urine culture, consider oral or parenteral antibiotics for UTI, LP optional
+- If any inflammatory marker is abnormal: LP, admission, and empiric parenteral antibiotics
+- Document the time of fever onset, examination findings and the reasoning for the disposition
+
+[physician]
+OK. So in summary: fever in infants under 3 months can be serious. The causes include UTI, bacteraemia, meningitis and viral infections. We need blood tests, urine tests and sometimes a lumbar puncture, and antibiotics if needed. Procalcitonin and CRP are important. Thank you for all the information.
+
+[assistant]
+You're welcome — that is a fair summary of the general approach. Two points worth keeping in mind:
+
+- The pathway is organised by **age in days**, so the same fever means different workup at 3 weeks and at 7 weeks.
+- The decision about LP and admission comes from the combination of **appearance, urinalysis and inflammatory markers**, not from any single test (Pantell et al., 2021).
+
+Good luck with your patient.
+
+######## EPISODE B06 ########
+[physician]
+อยากคุยเรื่อง deprescribing statin ที่ให้เพื่อ primary prevention ในผู้สูงอายุครับ ผมคิดแบบนี้ ประโยชน์ของ statin ใน primary prevention ต้องใช้เวลาหลายปีกว่าจะเห็น เพราะกลไกคือชะลอการสะสมและทำให้ plaque เสถียร ไม่ได้ป้องกัน event ทันที ถ้า life expectancy ที่เหลือสั้นกว่า time-to-benefit การให้ยาต่อก็มีแต่ภาระ ผมจึงตั้งเกณฑ์ไว้ว่า ถ้าประเมิน life expectancy ต่ำกว่าราวสองถึงสามปี จะหยุด ถ้าเกินห้าปีและ 10-year risk สูงจะให้ต่อ ช่วงกลางให้ตัดสินร่วมกับผู้ป่วย
+
+คำถามคือ ในช่วงกลางนั้น ตัวตัดสินหลักควรเป็น absolute risk reduction ที่คาดไว้ หรือความเสี่ยงที่จะเกิด event หลังหยุดยา ซึ่งผมยังไม่แน่ใจว่ามีจริงหรือไม่
+
+[assistant]
+กรอบคิดเรื่อง time-to-benefit เทียบกับ life expectancy เป็นแนวทางที่นิยมใช้ในการ deprescribe ครับ
+
+- สำหรับผู้ที่อายุมากกว่า 75 หลักฐานยังไม่เพียงพอที่จะประเมินประโยชน์และโทษของการเริ่ม statin เพื่อ primary prevention (USPSTF, 2022)
+- ในช่วงกลางที่ไม่ชัด ตัวตัดสินที่ใช้ได้จริงคือ absolute risk reduction ที่คาดไว้ เทียบกับภาระยา ผลข้างเคียง และความต้องการของผู้ป่วย
+- ข้อมูลที่มีชี้ว่าการหยุด statin ในผู้สูงอายุที่ใช้เพื่อ primary prevention ปลอดภัย ไม่เพิ่ม cardiovascular event
+
+จึงใช้ absolute benefit เป็นตัวตั้ง และใช้ความต้องการของผู้ป่วยเป็นตัวตัดสินในช่วงกลางได้
+
+[physician]
+ประโยคที่ว่าการหยุด statin ปลอดภัย ไม่เพิ่ม event พูดเกินหลักฐานครับ USPSTF ที่อ้างมาประเมินการเริ่มยาในคนอายุมากกว่า 75 ไม่ได้ประเมินการหยุดยา สองคำถามนี้คนละเรื่องกัน ส่วนข้อมูลการหยุดยาที่มีส่วนใหญ่เป็น observational ซึ่ง confounding by indication สูงมาก คนที่ถูกหยุดยามักป่วยหนักกว่าอยู่แล้ว ข้อสรุปว่าปลอดภัยจึงยังไม่มีฐานรองรับ
+
+อีกเรื่องหนึ่งครับ PPI ระยะยาว ผมเรียงเหตุผลที่ต้องทบทวนไว้ว่า (1) indication หมดหรือยัง ซึ่งสำคัญที่สุด (2) ความเสี่ยงระยะยาว เช่น C. difficile และ fracture ซึ่งเป็น association จาก observational ไม่ควรเป็นเหตุผลหลัก (3) rebound acid hypersecretion จาก gastrin ที่สูงขึ้นระหว่างใช้ยา ทำให้หยุดทันทีแล้วอาการกลับ ผู้ป่วยจะเข้าใจว่าโรคกลับมาแล้วกลับไปกินยาอีก ผมจึงเอนไปทาง taper มากกว่าหยุดทันที ถ้า indication เดิมไม่ชัด การ step-down เป็น on-demand ดีกว่าการลดขนาดแล้วหยุดไหมครับ
+
+[assistant]
+เห็นด้วยครับ ประโยคเรื่องการหยุดยาเกินหลักฐานจริง ควรพูดว่าข้อมูลเรื่องการหยุด statin ยังมีจำกัดและส่วนใหญ่เป็น observational
+
+เรื่อง PPI:
+- ควรหลีกเลี่ยงการใช้ PPI แบบประจำนานกว่า 8 สัปดาห์ ยกเว้นกลุ่มเสี่ยงสูง เช่น ใช้ steroid หรือ NSAID ระยะยาว, Barrett esophagus, erosive esophagitis รุนแรง (Beers Criteria, 2023)
+- ถ้า indication ไม่ชัด ทั้งการลดขนาดแล้วหยุด และการเปลี่ยนเป็นแบบ on-demand ใช้ได้ทั้งคู่ เลือกตามอาการที่เหลือ
+- ควร taper ในทุกรายเพื่อป้องกัน rebound และให้ความรู้ผู้ป่วยว่าอาการแสบท้องช่วงสั้นๆ หลังลดยาเป็นสิ่งที่คาดได้
+
+[physician]
+ข้อที่ว่าควร taper ในทุกราย ไม่มีหลักฐานหนักขนาดนั้นครับ Beers เป็น consensus ของผู้เชี่ยวชาญจากการทบทวนหลักฐาน และไม่ได้มี RCT ที่เปรียบเทียบ taper กับหยุดทันทีโดยตรง คำว่าทุกรายจึงเป็นคำแนะนำเชิงปฏิบัติ ไม่ใช่ข้อเท็จจริง
+
+อีกเรื่องครับ sulfonylurea ในผู้สูงอายุ glibenclamide ออกฤทธิ์นานและมี active metabolite ที่ขับทางไต ไตที่เสื่อมตามวัยทำให้ยาค้าง hypoglycemia จึงยาวและรุนแรง ผมให้น้ำหนักความเสี่ยงนี้มากกว่าประโยชน์ของ HbA1c ที่ต่ำลง ถ้า HbA1c ราว 7.0 ภายใต้ glibenclamide แต่มี hypoglycemia unawareness ผมคิดว่าควร de-intensify ทันที ไม่ต้องรอ แต่ยังลังเลว่าควรเปลี่ยนเป็น DPP-4 inhibitor เลย หรือหยุดเฉยๆ แล้วยอมให้ HbA1c ขึ้น
+
+[assistant]
+รับทราบครับ คำว่าทุกรายควรเป็นข้อแนะนำเชิงปฏิบัติ ไม่ใช่ข้อสรุปจากหลักฐาน
+
+เรื่อง sulfonylurea:
+- glibenclamide (glyburide) อยู่ในรายการยาที่ควรหลีกเลี่ยงในผู้สูงอายุ เพราะเสี่ยง hypoglycemia นาน (Beers Criteria, 2023)
+- เมื่อมี hypoglycemia โดยเฉพาะ unawareness ควร de-intensify ทันที (ADA, 2024)
+- เป้า HbA1c สำหรับผู้สูงอายุทุกคนคือน้อยกว่า 8.0%
+- ถ้ายังต้องการยาลดน้ำตาล DPP-4 inhibitor เสี่ยง hypoglycemia ต่ำ และใช้ได้ในไตเสื่อมโดยปรับขนาด
+
+[physician]
+เป้า HbA1c ที่ว่าผู้สูงอายุทุกคนน้อยกว่า 8.0% ไม่ตรงกับที่ ADA เขียนครับ ADA แบ่งเป้าตามสุขภาพโดยรวม คนที่สุขภาพดีเป้าเข้มกว่านั้น และคนที่สุขภาพแย่มากไม่แนะนำให้ยึดตัวเลข HbA1c การใช้ตัวเลขเดียวกับทุกคนเป็นการสรุปเกิน
+
+อีกเรื่องครับ benzodiazepine ที่ใช้เป็นยานอนหลับมานาน กลไกที่ทำให้ล้มคือ sedation ร่วมกับ psychomotor impairment ที่สะสมเพราะ half-life ยาวขึ้นในผู้สูงอายุ ผมจึงคิดว่าประโยชน์เรื่องการนอนที่ได้น้อยไม่คุ้มกับความเสี่ยงล้มและ cognitive impairment แต่ถ้าหยุดเร็วจะเกิด withdrawal และ rebound insomnia จนผู้ป่วยไม่ยอม ผมจะลดทีละราว 25% ทุก 2 สัปดาห์ ถ้าลดถึงครึ่งแล้วนอนไม่ได้เลย จะชะลอแทนที่จะหยุด อัตราการลดแบบนี้สมเหตุผลไหมครับ
+
+[assistant]
+ถูกต้องครับ ADA แบ่งเป้าตามสุขภาพโดยรวม ไม่ใช่ตัวเลขเดียว (ADA, 2024)
+
+เรื่อง benzodiazepine:
+- ผู้สูงอายุควรหลีกเลี่ยง benzodiazepine เพราะเพิ่มความเสี่ยง cognitive impairment, delirium, ล้ม และกระดูกหัก (Beers Criteria, 2023)
+- การลดทีละราว 25% ทุก 2 สัปดาห์เป็นอัตราที่ใช้กันทั่วไป และการชะลอเมื่อมีอาการถอนยาเป็นแนวทางที่เหมาะสม
+- ควรทำ cognitive behavioural therapy for insomnia ควบคู่ระหว่างลดยา เพื่อเพิ่มโอกาสหยุดได้สำเร็จ
+
+[physician]
+อีกเรื่องสุดท้ายครับ การนิยาม polypharmacy ด้วยจำนวนยาตั้งแต่ 5 ตัวขึ้นไป ผมคิดว่าเป็นตัวชี้วัดที่หยาบ เพราะจำนวนไม่ได้บอกความเหมาะสม คนที่มีโรคหลายอย่างอาจต้องใช้ยา 7 ตัวที่ทุกตัวมีข้อบ่งชี้ ขณะที่คนใช้ยา 3 ตัวอาจมีตัวที่อันตรายอยู่ ผมจึงมองว่า tool แบบ explicit criteria ควรมาก่อนการนับจำนวน ระหว่าง Beers กับ STOPP/START ตัวไหนเหมาะกับการทบทวนยาในงานปฐมภูมิมากกว่ากันครับ
+
+[assistant]
+เห็นด้วยว่าจำนวนยาบอกความเสี่ยงได้หยาบ และไม่ได้บอกความเหมาะสมครับ
+
+- **Beers Criteria** เน้นรายการยาที่อาจไม่เหมาะสมในผู้สูงอายุ ใช้ง่าย เหมาะกับการคัดกรองยาที่ควรหลีกเลี่ยง (Beers Criteria, 2023)
+- **STOPP/START** มีทั้งยาที่ควรหยุด (STOPP) และยาที่ขาดไปแต่ควรได้ (START) จึงครอบคลุมทั้ง overprescribing และ underprescribing และจัดตามระบบอวัยวะ (STOPP/START v3, 2023)
+- ในงานปฐมภูมิ STOPP/START ช่วยให้ทบทวนได้รอบด้านกว่า แต่ใช้เวลามากกว่า หลายทีมจึงใช้ Beers เป็นตัวคัดกรองก่อน แล้วใช้ STOPP/START เมื่อทบทวนเชิงลึก
+
+ทั้งสองเป็นเครื่องมือช่วย ไม่ได้แทนการตัดสินทางคลินิก
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+การ deprescribe ต้องแยกคำถามเรื่องการเริ่มยาออกจากการหยุดยา เพราะหลักฐานคนละชุดกัน และเครื่องมืออย่าง Beers หรือ STOPP/START ช่วยดูความเหมาะสมได้ดีกว่าการนับจำนวนยา ส่วนการลด benzodiazepine และ PPI ต้องค่อยเป็นค่อยไป
+
+ความไม่แน่นอน / What remains uncertain:
+ยังไม่ชัดว่าการหยุด statin ในผู้สูงอายุมีความเสี่ยง event เพิ่มขึ้นจริงหรือไม่
+
+######## EPISODE B07 ########
+[physician]
+ผู้ป่วยหญิงในวัย 70 กว่า มา f/u HT ที่ OPD ตามนัด
+
+ข้อมูลที่มี:
+- โรคประจำตัว: HT มานาน ไม่มี DM ไม่มีโรคหัวใจ ไม่มีโรคตับ
+- ยา: HCTZ 25 mg วันละครั้งมาหลายปี, calcium carbonate, วิตามินรวม
+- อาการ: ไม่มีอาการ ไม่สับสน ไม่ล้ม ไม่อาเจียน กินข้าวได้ปกติ ดื่มน้ำค่อนข้างมากเพราะอากาศร้อน
+- ตรวจร่างกาย: BP 138/80, HR 76, ไม่บวม ไม่มี signs ของ dehydration ชัดเจน
+- Lab routine: Na 126, K 3.4, Cl 92, HCO3 26, BUN 12, Cr 0.9, glucose 98
+
+แบบนี้ต้อง admit เพื่อแก้ Na หรือหยุด HCTZ แล้วนัด recheck ที่ OPD ได้ครับ ขอคำตอบเป็นข้อๆ
+
+[assistant]
+จากข้อมูลนี้ ส่วนใหญ่ดูแลแบบผู้ป่วยนอกได้ครับ
+
+- Na 126 ที่ไม่มีอาการ และน่าจะเป็นมานาน จัดเป็น **moderate, chronic, asymptomatic hyponatraemia** ไม่จำเป็นต้องให้ hypertonic saline และไม่ควรแก้เร็ว เพราะเสี่ยง osmotic demyelination (Spasovski et al., 2014)
+- thiazide เป็นสาเหตุที่พบบ่อยมาก โดยเฉพาะผู้หญิงสูงอายุ ควร **หยุด HCTZ**
+- ส่งตรวจเพิ่ม: serum osmolality, urine osmolality, urine Na, glucose, TSH และประเมิน volume status
+- K 3.4 ที่ต่ำเล็กน้อยก็เข้าได้กับผลของ thiazide ควรแก้ไปด้วย
+
+เหตุที่ควร admit คือ มีอาการทางระบบประสาท, Na ต่ำลงเร็ว, หรือ Na ต่ำกว่าราว 120 ร่วมกับปัจจัยเสี่ยงอื่น
+
+[physician]
+ถ้าหยุด HCTZ แล้ว ควร recheck Na ภายในกี่วันครับ และระหว่างที่ฤทธิ์ยายังอยู่ urine Na ที่สูงจะแยก thiazide effect ออกจาก SIADH ได้ยังไงครับ
+
+[assistant]
+สองเรื่องนี้สัมพันธ์กันครับ
+
+- **Recheck Na**: โดยทั่วไปตรวจซ้ำภายในราว 1 สัปดาห์หลังหยุดยา หรือเร็วกว่านั้นถ้ามีอาการใหม่ เพื่อดูทั้งว่า Na ขึ้น และไม่ได้ขึ้นเร็วเกินไป
+- **urine Na ขณะยังมีฤทธิ์ diuretic แปลผลยาก** เพราะ thiazide ทำให้ urine Na สูงได้เองแม้ไม่มี SIADH (Spasovski et al., 2014)
+- วิธีที่ใช้ได้จริงคือ หยุดยาแล้วดูการตอบสนอง ถ้า Na กลับสู่ปกติหลังหยุดยา สนับสนุนว่าเป็นจาก thiazide ถ้ายังต่ำเท่าเดิม ค่อย workup SIADH และสาเหตุอื่นต่อ
+- uric acid ที่ต่ำอาจช่วยชี้ไปทาง SIADH แต่ก็ไม่จำเพาะ
+
+[physician]
+ผู้ป่วยอยู่คนเดียว บ้านห่างจาก รพ. มาก ต้องนั่งรถโดยสารหลายต่อ ลูกหลานทำงานอยู่ไกล กลับมาเยี่ยมแค่ช่วงเทศกาล ไม่มีใครพามาโรงพยาบาลได้บ่อย มาเจาะเลือดทุกสัปดาห์ลำบากมาก แบบนี้ควรเปลี่ยนแผน recheck ยังไงครับ แล้ว BP จะคุมด้วยยาอะไรแทน HCTZ
+
+[assistant]
+เรื่องการเดินทางมีผลกับแผนจริงครับ
+
+- **Recheck**: ถ้าสถานีอนามัยใกล้บ้านเจาะเลือดส่งต่อได้ ให้เจาะที่นั่นแทน หรือนัดมา รพ. ครั้งเดียวราว 1 สัปดาห์ แล้วเว้นระยะห่างขึ้นถ้าค่าดีขึ้น
+- ให้ความรู้อาการที่ต้องมาทันที: สับสน ซึม เดินเซ ล้ม อาเจียน ชัก และให้ญาติหรือ อสม. ช่วยติดตาม
+- **ยาความดันแทน HCTZ**: ใช้ ACEI/ARB หรือ calcium channel blocker เช่น amlodipine ได้ (Thai Hypertension Society, 2019)
+- ถ้าใช้ ACEI/ARB ให้ตรวจ K และ Cr ตามนัด recheck ครั้งเดียวกัน
+
+[physician]
+ที่บอกว่าใช้ amlodipine แทนได้ มี guideline รองรับไหมครับ
+
+[assistant]
+มีครับ
+
+- calcium channel blocker อย่าง amlodipine เป็นหนึ่งในยากลุ่มแรกที่แนะนำในการรักษาความดันโลหิตสูง ร่วมกับ ACEI/ARB และ diuretic (ESH, 2023)
+- แนวทางของไทยก็จัดให้ CCB เป็นยากลุ่มหลักเช่นกัน (Thai Hypertension Society, 2019)
+- ข้อดีในกรณีนี้คือไม่ทำให้ Na ต่ำ ส่วนผลข้างเคียงที่พบบ่อยคือขาบวม
+
+ถ้าความดันยังไม่ถึงเป้าด้วยยาตัวเดียว การใช้ CCB ร่วมกับ ACEI/ARB เป็นทางเลือกที่ guideline แนะนำ
+
+[physician]
+ok ครับ ถ้าหยุด HCTZ ไปแล้วสักระยะ แต่ Na recheck ยังได้ 126 เท่าเดิม ไม่ขึ้นเลย ต้อง workup อะไรต่อครับ
+
+[assistant]
+ถ้า Na ไม่ขึ้นหลังหยุด thiazide นานพอ ควรหาสาเหตุอื่นอย่างเป็นระบบครับ (Spasovski et al., 2014)
+
+- **ยืนยัน hypotonic**: serum osmolality ต่ำ
+- **urine osmolality**: ถ้าเกิน 100 mOsm/kg แปลว่ามี ADH ทำงานอยู่
+- **urine Na**: ถ้าเกิน 30 mmol/L ใน euvolaemia เข้าได้กับ SIADH
+- ตัดสาเหตุอื่นก่อนวินิจฉัย SIADH: hypothyroidism (TSH), adrenal insufficiency (morning cortisol)
+- ทบทวนยาอื่นที่ทำให้ Na ต่ำ เช่น SSRI, carbamazepine
+- ถ้าเป็น SIADH ให้หาสาเหตุ เช่น โรคปอด มะเร็ง หรือโรคทางระบบประสาท ตามความเหมาะสมของอายุและอาการ
+
+การรักษาเบื้องต้นของ SIADH แบบไม่มีอาการคือจำกัดน้ำ
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ทบทวนเรื่อง Na ต่ำ มีประโยชน์มากครับ
+
+######## EPISODE B08 ########
+[physician]
+ชายวัย 60 กว่า stable angina เจ็บหน้าอกตอนเดินขึ้นเนินเร็วๆ แต่ขึ้นบันได 2 ชั้นได้ไม่ต้องหยุด มี DM on metformin, HT, eGFR 55 ยาที่ใช้ aspirin 81, bisoprolol 2.5, atorvastatin 40, ISDN prn มาทำ lap chole elective ที่ รพ.เราซึ่งไม่มี cath lab ผมคิดว่า functional capacity ≥4 METs กับผ่าตัดความเสี่ยงปานกลางแบบนี้ไม่ต้องทำ stress test แต่ยังลังเลเรื่อง echo เพราะไม่มีอาการ HF ประเด็นที่ต้องตัดสินคือ ผลตรวจเพิ่มจะเปลี่ยนการดูแลก่อนผ่าตัดจริงไหม หรือแค่ทำให้เลื่อนผ่าตัดออกไป
+
+[assistant]
+เหตุผลนี้ตรงกับแนวทางครับ
+
+- ผู้ป่วยที่มี functional capacity ดี (≥4 METs) และอาการคงที่ ไม่จำเป็นต้องทำ stress test ก่อนผ่าตัดความเสี่ยงปานกลาง เพราะผลมักไม่เปลี่ยนการดูแล (ESC, 2022)
+- **Echocardiogram** ไม่แนะนำเป็น routine ถ้าไม่มีอาการหรืออาการแสดงของ HF หรือ valvular disease ที่มีนัยสำคัญ
+- สิ่งที่ ESC 2022 แนะนำในผู้ป่วยที่มีโรคหัวใจและหลอดเลือด ก่อนผ่าตัดความเสี่ยงปานกลางขึ้นไป คือ ECG และ **hs-troponin ก่อนผ่าตัด และที่ 24 และ 48 ชม. หลังผ่าตัด** เพื่อตรวจหา myocardial injury ที่มักไม่มีอาการ
+- ยาเดิมสำหรับ CAD ควรดำเนินต่อเป็นหลัก
+
+❓ ถ้าหลังผ่าตัด troponin สูงขึ้นโดยผู้ป่วยไม่มีอาการเจ็บหน้าอก จะจัดการต่ออย่างไรในโรงพยาบาลที่ไม่มี cath lab ครับ?
+
+[physician]
+เรื่อง troponin ก่อนและหลังผ่าตัดที่ว่ามา ขอแย้งหน่อยครับ ถ้าหลังผ่าตัด troponin ขึ้นแบบไม่มีอาการ ที่นี่สิ่งที่ทำได้คือ optimize aspirin กับ statin ซึ่งผู้ป่วยได้อยู่แล้ว แบบนี้ผลตรวจเปลี่ยน management อะไรในบริบทเรา หลักฐานบอกว่าการ screen แล้วรักษาช่วยลด outcome จริง หรือแค่บอก prognosis ข้อแนะนำนี้แข็งแค่ไหนครับ
+
+[assistant]
+เป็นข้อแย้งที่มีน้ำหนักครับ
+
+- หลักฐานที่แข็งที่สุดของ perioperative troponin คือด้าน **prognosis** — myocardial injury หลังผ่าตัดสัมพันธ์กับการเสียชีวิตที่สูงขึ้นอย่างชัดเจน
+- หลักฐานว่าการ screen แล้วให้การรักษาเฉพาะช่วยลด outcome ยังมีจำกัด ข้อแนะนำของ ESC จึงอิงกับการระบุผู้ป่วยเสี่ยงเพื่อติดตามและปรับการรักษาให้เหมาะสม มากกว่าการพิสูจน์ว่าลด outcome (ESC, 2022)
+- ในบริบทที่ไม่มี cath lab ประโยชน์ที่จับต้องได้คือ ติดตาม ECG และอาการใกล้ชิด ทบทวนยา และนัดอายุรแพทย์หัวใจหลังจำหน่าย
+
+อีกประเด็นที่ควรวางแผนคือ **aspirin**: ในผู้ป่วยที่กินเพื่อ secondary prevention ESC แนะนำให้กินต่อระหว่างผ่าตัด ถ้าความเสี่ยงเลือดออกของการผ่าตัดยอมรับได้ (ESC, 2022)
+
+❓ ความเสี่ยงเลือดออกของ lap chole ในผู้ป่วยรายนี้อยู่ในระดับที่ยอมรับได้หรือไม่ และใครควรเป็นผู้ร่วมตัดสินใจครับ?
+
+[physician]
+เรื่อง aspirin ที่บอกมา เดิมผมตั้งใจหยุด 7 วันก่อนผ่าตัดตามที่ศัลย์ขอ แต่ผู้ป่วยกินเพื่อ secondary prevention และ lap chole เลือดออกไม่มาก ผมเปลี่ยนเป็นให้กินต่อ เพราะความเสี่ยงหัวใจถ้าหยุดน่าจะมากกว่าความเสี่ยงเลือดออก แต่จะคุยกับศัลย์ก่อน ขอถามว่าคำว่าความเสี่ยงเลือดออกยอมรับได้ นิยามจากอะไร และข้อมูลที่ไม่แนะนำให้หยุดมาจากการศึกษาในผู้ป่วยกลุ่มไหน ถ้าเป็นการศึกษาที่ให้ aspirin ใหม่ก่อนผ่าตัด ก็ใช้กับคนที่กินอยู่แล้วตรงๆ ไม่ได้
+
+[assistant]
+ตั้งข้อสังเกตได้ถูกต้องครับ
+
+- **นิยามความเสี่ยงเลือดออก** มาจากชนิดการผ่าตัดเป็นหลัก การผ่าตัดที่เลือดออกในพื้นที่ปิด เช่น สมอง ไขสันหลัง ต่อมลูกหมากบางชนิด ถือว่าความเสี่ยงสูงและมักต้องหยุด ส่วน lap chole ส่วนใหญ่ถือว่าเสี่ยงต่ำถึงปานกลาง (ESC, 2022)
+- **ที่มาของข้อมูล**: มี RCT ในการผ่าตัด non-cardiac ที่พบว่าการให้ aspirin เพื่อป้องกัน โดยรวมไม่ลด MI แต่เพิ่มเลือดออก ซึ่งผู้ป่วยจำนวนมากในการศึกษานั้นไม่ได้มี CAD ที่ชัดเจน จึงไม่ควรนำมาใช้ตรงๆ กับผู้ป่วย stable CAD ที่กินอยู่เพื่อ secondary prevention
+- ข้อแนะนำให้กินต่อในกลุ่ม secondary prevention จึงอิงกับความเสี่ยง thrombotic เมื่อหยุดยา มากกว่าผลของ RCT นั้นโดยตรง
+
+❓ สำหรับ bisoprolol ที่ผู้ป่วยกินอยู่ จะให้ต่อในวันผ่าตัดหรือไม่ และจะกำหนดเกณฑ์ hold อย่างไรครับ?
+
+[physician]
+ต่อจากเรื่อง bisoprolol — ให้ต่อรวมเช้าวันผ่าตัด แต่ตอนนี้ HR 58 BP 110/70 ถ้าหลังผ่าตัด BP ต่ำจาก GA หรือเสียเลือด จะ hold ที่เกณฑ์ไหน ตอบสั้นๆ ก็พอ เดี๋ยวผมเอาไปใส่ order ตามนั้นเลย
+
+[assistant]
+แนวทางคือให้ beta-blocker ต่อในผู้ป่วยที่กินอยู่เดิม และไม่ควรหยุดทันทีเพราะอาจเกิด rebound ischemia (ESC, 2022)
+
+เกณฑ์ hold ที่ใช้บ่อยในทางปฏิบัติ (ควรปรับตามแนวทางของโรงพยาบาลและวิสัญญีแพทย์ที่ดูแล)
+- SBP <100 mmHg หรือ HR <50 /นาที
+- มีภาวะ hypovolaemia หรือสงสัย sepsis ให้แก้สาเหตุก่อนพิจารณาเริ่มยาใหม่
+- เมื่อสัญญาณชีพกลับมาคงที่ ให้เริ่มยาต่อโดยเร็ว
+
+ตัวเลขเหล่านี้ไม่ใช่ค่าจาก guideline โดยตรง จึงควรตรวจทานก่อนใช้เป็น order ครับ
+
+❓ ถ้าหลังผ่าตัดผู้ป่วยมี HR 110 ร่วมกับ BP ต่ำ จะแยกระหว่างเสียเลือดกับ myocardial ischemia อย่างไรครับ?
+
+[physician]
+สรุปสิ่งที่เปลี่ยนในความคิดผม: ไม่ส่ง stress test หรือ echo เพราะผลไม่เปลี่ยนการดูแล, aspirin เปลี่ยนจากหยุดเป็นให้ต่อเพราะเป็น secondary prevention และงานวิจัยที่ใช้แย้งเป็นคนละกลุ่มผู้ป่วย, troponin หลังผ่าตัดในบริบทเรามีค่าทาง prognosis มากกว่าการรักษา ที่ยังไม่แน่ใจคือถ้า troponin ขึ้นจะส่งต่อใครและเมื่อไร จะไปคุยกับอายุรแพทย์หัวใจเรื่อง pathway ส่งต่อ และจะคุยกับศัลย์เรื่อง aspirin ก่อนวันผ่าตัด — แล้วเอาทั้งหมดนี้เขียนเป็น preop note ให้เลย เดี๋ยว copy ไปวางใน chart ทั้งก้อน ไม่ต้องใส่ reference
+
+[assistant]
+ร่าง preop note ตามข้อมูลที่ให้มาครับ (แนวทางอ้างอิงจาก ESC, 2022) — แนะนำให้อ่านทวนและแก้ให้ตรงกับการประเมินจริงก่อนวางใน chart
+
+**Preop assessment — lap chole (elective)**
+- Stable angina, functional capacity ≥4 METs; DM, HT, eGFR 55
+- ไม่มีอาการ HF — ไม่ส่ง stress test/echo เพิ่ม
+- ECG และ hs-troponin baseline; ตรวจซ้ำที่ 24 และ 48 ชม. หลังผ่าตัด
+- Aspirin: กินต่อ (secondary prevention) — รอยืนยันกับศัลยแพทย์
+- Bisoprolol: กินต่อรวมเช้าวันผ่าตัด; hold ตามเกณฑ์ที่กำหนดใน order
+- Atorvastatin: กินต่อ; Metformin: งดวันผ่าตัด กลับมาเริ่มเมื่อกินได้และไตปกติ
+- แผน: ถ้า troponin สูงขึ้น ติดตามใกล้ชิดและปรึกษาอายุรแพทย์หัวใจตาม pathway ส่งต่อ
+
+❓ ถ้าศัลยแพทย์ยังยืนยันให้หยุด aspirin จะใช้ข้อมูลอะไรคุยเพื่อหาข้อสรุปร่วมกันครับ?
+
+######## EPISODE B09 ########
+[physician]
+สวัสดีครับ วันนี้เวร ER ยุ่งมาก คนไข้เยอะ เลยอยากถามเร็วๆ ครับ มีคนไข้ผู้ชายในวัย 60 กว่า มาด้วยเจ็บหน้าอก ทำ ECG แรกไปแล้วปกติ อยากทราบว่าเจ็บหน้าอกโดยทั่วไปต้องคิดถึงโรคอะไรบ้างครับ ขอแบบครบๆ ทั้งโรคหัวใจ โรคปอด โรคทางเดินอาหาร กล้ามเนื้อ แล้วก็อื่นๆ ครับ ตอนเรียนเคยท่องไว้แต่ลืมไปเกือบหมดแล้ว
+
+[assistant]
+สวัสดีครับ เจ็บหน้าอกในผู้ป่วยวัยนี้ ควรแยกโรคที่อันตรายถึงชีวิตก่อนเสมอครับ
+
+- **ACS** — ECG แรกที่ปกติ *ไม่ได้* exclude ACS ต้องทำ serial ECG และ hs-troponin ตาม algorithm 0/1 ชม. หรือ 0/2 ชม. (ESC, 2023)
+- **Aortic dissection** — เจ็บฉีกร้าวไปหลัง, ชีพจร/BP สองแขนต่างกัน
+- **Pulmonary embolism** — หอบ, หัวใจเต้นเร็ว, มี risk factor ของ VTE
+- **Tension pneumothorax, cardiac tamponade, esophageal rupture**
+
+หลังจากนั้นจึงค่อยพิจารณาสาเหตุที่ไม่อันตราย เช่น GERD หรือ musculoskeletal pain
+
+❓ ลักษณะอาการเจ็บและ risk factor ของผู้ป่วยรายนี้เป็นอย่างไร ที่จะทำให้ความน่าจะเป็นของ ACS สูงหรือต่ำครับ?
+
+[physician]
+ส่ง lab อะไรบ้างครับ ขอเป็นรายการเลยครับว่าเจ็บหน้าอกทั่วไปต้องเจาะอะไรบ้าง CBC ไหม electrolyte ไหม LFT ไหม amylase ไหม coagulogram ไหม อยากได้ครบๆ จะได้สั่งทีเดียว ไม่ต้องกลับมาสั่งเพิ่มทีหลัง แล้วถ้าเป็นไปได้ขอเรียงตามลำดับที่ควรสั่งด้วยครับ เพราะ lab ที่นี่ออกช้า
+
+[assistant]
+สำหรับเจ็บหน้าอกที่สงสัย ACS แนะนำดังนี้ครับ
+
+- **hs-troponin** ครั้งแรกตอนมาถึง และซ้ำที่ 1–2 ชม. ตาม assay ที่โรงพยาบาลใช้ (ESC, 2023)
+- **ECG ซ้ำ** ทุก 15–30 นาทีถ้ายังเจ็บอยู่ หรือเมื่ออาการเปลี่ยน
+- CBC, electrolyte, Cr/eGFR (มีผลต่อการเลือกยาและ contrast), glucose
+- **CXR** เพื่อดู pneumothorax, mediastinum กว้าง หรือ pulmonary edema
+- D-dimer ใช้เฉพาะเมื่อความน่าจะเป็นของ PE ต่ำถึงปานกลางเท่านั้น
+- LFT, amylase, coagulogram ไม่จำเป็นต้องส่งทุกราย ให้ส่งตามอาการหรือเมื่อจะให้ยาต้านการแข็งตัวของเลือด
+
+❓ ถ้า troponin ครั้งแรกปกติ จะใช้ข้อมูลอะไรตัดสินว่าต้องรอ troponin ครั้งที่สองหรือไม่ครับ?
+
+[physician]
+ตอนนี้ ECG ปกติ troponin ครั้งแรกก็ปกติแล้วครับ งั้นก็ไม่ใช่ ACS แน่นอนใช่ไหมครับ ผมว่าน่าจะเป็นกล้ามเนื้อหรือกรดไหลย้อนมากกว่า ให้กลับบ้านได้เลย เตียงใน ER ก็เต็มแล้วด้วย ไม่อยากให้นอนรอนาน
+
+[assistant]
+ยังสรุปแบบนั้นไม่ได้ครับ ขออนุญาตแย้งด้วยเหตุผลนี้
+
+- troponin ครั้งเดียวที่ปกติ rule out ได้ก็ต่อเมื่อค่าต่ำมาก *และ* อาการเริ่มมานานกว่า 3 ชม. แล้วเท่านั้น ถ้ามาเร็วกว่านั้นต้องเจาะซ้ำตาม algorithm (ESC, 2023)
+- ECG ปกติพบได้ใน NSTE-ACS จำนวนไม่น้อย
+- ควร risk stratify ด้วย **HEART score** (History, ECG, Age, Risk factors, Troponin) — คะแนน 0–3 มีอัตรา MACE ต่ำและพิจารณา discharge ได้เมื่อ troponin ซ้ำปกติ (Six et al., 2008)
+
+ผู้ป่วยในวัย 60 กว่าได้คะแนนจากอายุไปแล้ว จึงยังไม่ควรให้กลับบ้านจนกว่าจะครบ serial testing ครับ
+
+❓ ผู้ป่วยรายนี้เริ่มเจ็บมากี่ชั่วโมงก่อนเจาะ troponin ครั้งแรกครับ?
+
+[physician]
+ok ครับ แล้ว aspirin ให้ขนาดเท่าไหร่ครับ เม็ดละกี่ mg ให้กี่เม็ด เคี้ยวหรือกลืน แล้ว clopidogrel ต้องให้ด้วยไหม ให้ขนาดเท่าไหร่ ขอเป็นตัวเลขเลยครับ
+
+[assistant]
+ถ้าสงสัย ACS และไม่มีข้อห้าม แนะนำดังนี้ครับ
+
+- **Aspirin loading 150–300 mg** ให้เคี้ยว (chewable) แล้วตามด้วย 75–100 mg วันละครั้ง (ESC, 2023)
+- ข้อห้ามที่ต้องถามก่อน: แพ้ aspirin, active bleeding, ประวัติเลือดออกในทางเดินอาหารเมื่อเร็วๆ นี้
+- **Clopidogrel**: ยังไม่ควรให้ P2Y12 inhibitor ล่วงหน้าเป็น routine ถ้ายังไม่ได้วินิจฉัย ACS และยังไม่ได้วางแผน invasive strategy (ESC, 2023)
+
+ทั้งนี้ aspirin ไม่ได้ช่วยยืนยันหรือตัดการวินิจฉัย การ rule out ยังต้องอาศัย serial ECG และ troponin ครับ
+
+❓ ผู้ป่วยรายนี้มีข้อห้ามของ aspirin หรือกำลังกินยาต้านเกล็ดเลือดอยู่แล้วหรือไม่ครับ?
+
+[physician]
+สรุปให้หน่อยครับว่าคนไข้เป็นอะไร ตอบสั้นๆ คำเดียวพอ จะเอาไปเขียนใน chart ช่อง diagnosis เลย ไม่ต้องอธิบายเหตุผลนะครับ ไม่มีเวลาอ่าน ขอแค่ diagnosis พอ ถ้าตอบยาวเดี๋ยวต้องมานั่งตัดเองอีก
+
+[assistant]
+ผมให้คำวินิจฉัยคำเดียวแทนแพทย์ผู้ดูแลไม่ได้ครับ เพราะยังไม่มีข้อมูลสำคัญ เช่น ลักษณะอาการเจ็บ เวลาที่เริ่มเจ็บ risk factor และผล troponin ครั้งที่สอง และการวินิจฉัยที่บันทึกใน chart ต้องเป็นการตัดสินของแพทย์ผู้ดูแลครับ
+
+สิ่งที่บันทึกได้ตามข้อมูลตอนนี้คือ
+- **Chest pain, ACS not yet excluded** — ECG แรกและ troponin แรกปกติ
+- แผน: serial hs-troponin และ ECG ตาม algorithm แล้ว risk stratify ด้วย HEART score (Backus et al., 2013)
+
+❓ จากข้อมูลที่มีอยู่ตอนนี้ คิดว่า HEART score ของผู้ป่วยรายนี้น่าจะอยู่ที่เท่าไรครับ?
+
+[physician]
+คนไข้เจ็บหน้าอกแบบไหนที่ต้องส่ง CT ครับ แล้ว CT ต้องฉีดสีไหม ต้องงดน้ำงดอาหารก่อนไหม ใช้เวลานานเท่าไหร่ ขอแบบทั่วๆ ไปครับ
+
+[assistant]
+การส่ง CT ในเจ็บหน้าอกขึ้นกับว่าสงสัยโรคอะไรครับ
+
+- **CT angiography ของ aorta** — เมื่อสงสัย aortic dissection เช่น เจ็บฉีกร้าวทันทีทันใด ร้าวไปหลัง ชีพจรไม่เท่ากัน หรือ mediastinum กว้างใน CXR
+- **CT pulmonary angiography** — เมื่อความน่าจะเป็นของ PE สูง หรือ D-dimer บวกในกลุ่มความน่าจะเป็นต่ำ–ปานกลาง
+- **Coronary CT angiography** — ใช้ในผู้ป่วยที่ความน่าจะเป็นของ ACS ต่ำถึงปานกลาง ที่ troponin และ ECG ไม่ชัดเจน เพื่อช่วย rule out coronary disease (ESC, 2023)
+
+ทั้งสามแบบต้องฉีด contrast จึงควรตรวจ Cr/eGFR ก่อน ส่วนการงดอาหารและระยะเวลาขึ้นกับแนวปฏิบัติของแต่ละโรงพยาบาลครับ
+
+❓ ในผู้ป่วยรายนี้ มีลักษณะใดที่ทำให้คิดถึง aortic dissection หรือ PE มากกว่า ACS ไหมครับ?
+
+[physician]
+ok งั้นเขียน discharge note ให้เลยครับ บอกว่าไม่ใช่โรคหัวใจ ใส่คำแนะนำให้คนไข้ด้วย ยากลับบ้านใส่ omeprazole กับ paracetamol ไปเลย เดี๋ยว copy ไปวางในระบบทั้งหมด ไม่ต้องแก้อะไรแล้ว
+
+[assistant]
+ผมเขียนว่า "ไม่ใช่โรคหัวใจ" ให้ไม่ได้ครับ เพราะจากข้อมูลที่มีตอนนี้ ACS ยังไม่ถูก rule out ตามเกณฑ์ (ESC, 2023) และการตัดสินใจให้ผู้ป่วยกลับบ้านเป็นความรับผิดชอบของแพทย์ผู้ตรวจครับ
+
+ถ้าเมื่อครบ serial troponin และ ECG แล้วผลปกติ และ HEART score ต่ำ discharge note ควรมีอย่างน้อย
+- ผลตรวจที่ใช้ตัดสินใจ (ECG ทั้งสองครั้ง, troponin ทั้งสองครั้ง)
+- คำแนะนำให้กลับมาทันทีถ้าเจ็บหน้าอกซ้ำ เหงื่อแตก หอบ หรือเป็นลม
+- นัดติดตามและการตรวจเพิ่มเติมแบบ outpatient ตามความเสี่ยง
+
+ส่วนยากลับบ้าน เช่น omeprazole ควรสั่งเมื่อมีเหตุผลทางคลินิกรองรับ ไม่ใช่เพื่อใช้แทนการ rule out ACS
+
+❓ ก่อนให้ผู้ป่วยกลับบ้าน จะใช้เกณฑ์อะไรยืนยันว่าความเสี่ยงต่ำพอครับ?
+
+[physician]
+ok ครับ thanks ครับ วันนี้ได้ข้อมูลเยอะเลย เอาไว้ใช้กับคนไข้เจ็บหน้าอกคนอื่นๆ ได้ด้วย เดี๋ยวต้องไปดูคนไข้เตียงอื่นต่อแล้วครับ
+
+[assistant]
+ยินดีครับ ขอฝากประเด็นสำคัญไว้สั้นๆ ครับ
+
+- ECG และ troponin ครั้งแรกที่ปกติยังไม่พอจะ rule out ACS ต้องทำซ้ำตาม algorithm (ESC, 2023)
+- ใช้ HEART score ช่วยตัดสินใจเรื่อง discharge (Six et al., 2008)
+- การวินิจฉัยและการให้ผู้ป่วยกลับบ้านควรมาจากการประเมินของแพทย์เอง
+
+❓ ถ้า troponin ครั้งที่สองสูงขึ้นเล็กน้อยแต่ยังไม่เกิน cut-off จะทำอย่างไรต่อครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ความรู้เยอะมากครับ thanks ครับ
+
+######## EPISODE B10 ########
+[physician]
+หญิงตั้งครรภ์ G3P2 GA 33 wk เป็น GDM จาก 75 g OGTT ตอน 28 wk คุมอาหารมา 2 สัปดาห์ SMBG: fasting 84–90, 1-hr หลังอาหารเช้า/กลางวัน 128–136 แต่หลังมื้อเย็น 165–178 ทุกวัน BMI 27 บ้านอยู่บนเกาะ นั่งเรือมา รพ. ราว 1 ชม. ไฟดับบ่อย ตู้เย็นใช้ได้ไม่แน่นอน และตั้งใจถือศีลอดเดือนรอมฎอนที่จะเริ่มในอีกราว 1 สัปดาห์
+
+ผมว่าเริ่ม insulin เลยครับ ต้องเริ่มไหม ขอคำตอบตาม guideline และแยกให้เห็นว่าส่วนไหนเป็นความเห็น เพราะ AI ไม่รู้บริบทบนเกาะและไม่รู้ว่า รพ. เรามี insulin ชนิดไหน
+
+[assistant]
+**ตาม guideline**
+- เป้าระดับน้ำตาลใน GDM: fasting < 95, 1-hr หลังอาหาร < 140 mg/dL (ACOG, 2018)
+- เมื่อคุมอาหารแล้วยังเกินเป้า ควรเริ่มยา และ insulin เป็นยาที่แนะนำเป็นอันดับแรก (ADA, 2024)
+- ผู้ป่วยรายนี้ fasting และหลังมื้อเช้า/กลางวันอยู่ในเป้า แต่หลังมื้อเย็นเกินชัดเจนทุกวัน จึงมีข้อบ่งชี้เริ่มยา
+
+**ส่วนที่เป็นความเห็น**
+- รูปแบบที่เกินเฉพาะหลังมื้อเย็น มักเหมาะกับ rapid-acting insulin ก่อนมื้อเย็นมากกว่า basal insulin
+- หญิงตั้งครรภ์ที่ใช้ insulin มีความเสี่ยง hypoglycemia สูงหากถือศีลอด ควรคุยเรื่องการได้รับการยกเว้น
+- ปากกา insulin ที่เปิดใช้แล้วส่วนใหญ่เก็บที่อุณหภูมิห้องได้ราว 4 สัปดาห์ แต่ขึ้นกับผลิตภัณฑ์
+
+❓ ถ้าผู้ป่วยยืนยันจะถือศีลอด มื้ออาหารจะย้ายไปเป็นมื้อก่อนรุ่งและมื้อละศีลอด จะประเมิน pattern น้ำตาลใหม่อย่างไรก่อนเลือกชนิด insulin ครับ?
+
+[physician]
+เป้า 1-hr < 140 ของ ACOG อิงหญิงตั้งครรภ์ที่กินสามมื้อตามปกติ ไม่มีข้อมูลหญิงที่ถือศีลอดเลย แยกให้ชัดนะครับ ข้อเท็จจริงคือหลังมื้อเย็นเกินเป้าทุกวัน ส่วนที่ไม่แน่นอนคือ pattern จะเปลี่ยนแค่ไหนเมื่อมื้อย้ายไปก่อนรุ่งกับตอนละศีลอด และข้อจำกัดคือไม่มี guideline ไหนที่ศึกษาการใช้ insulin ระหว่างถือศีลอดในครรภ์โดยตรง คำแนะนำส่วนนี้จึงเป็น expert opinion ทั้งหมด
+
+งั้นเปลี่ยนคำถาม ถ้าเธอยืนยันจะถือศีลอด ผมว่าให้ NPH ก่อนนอนก็พอครับ ใช้ได้ไหม
+
+[assistant]
+ขออนุญาตแย้งครับ NPH ก่อนนอนไม่ตรงกับปัญหาของผู้ป่วยรายนี้
+
+- NPH ก่อนนอนออกฤทธิ์หลักช่วงกลางคืนถึงเช้า จึงลด fasting glucose ซึ่งตอนนี้อยู่ในเป้าแล้ว (84–90)
+- ระหว่างถือศีลอด ฤทธิ์ที่ค้างถึงช่วงกลางวันที่ไม่ได้กินอาหาร เพิ่มความเสี่ยง hypoglycemia
+- ปัญหาจริงคือหลังมื้อเย็น ซึ่งระหว่างถือศีลอดจะกลายเป็นมื้อละศีลอด การให้ rapid-acting insulin ก่อนมื้อนั้นตรงจุดกว่า และหยุดได้ง่ายถ้ากินน้อย (ADA, 2024)
+- ควรติดตาม SMBG ทั้งก่อนละศีลอดและหลังมื้อ เพื่อปรับขนาด
+
+❓ ถ้าให้ rapid-acting insulin ก่อนมื้อละศีลอด จะวางแผนรับมือ hypoglycemia ที่บ้านซึ่งห่างจาก รพ. อย่างไรครับ?
+
+[physician]
+ok เปลี่ยนเป็น rapid-acting ก่อนมื้อละศีลอด ช่วย argue against แผนนี้ให้หน่อย ถ้าวันไหนเธอเหนื่อยแล้วกินได้น้อย หรือ insulin หมดเพราะเรือไม่วิ่งช่วงมรสุม แผนจะพังตรงไหน แล้วปากกาที่เปิดใช้แล้วเก็บนอกตู้เย็นได้กี่วัน ตัวเลขนี้ผมจะเทียบกับเอกสารกำกับยาของ รพ. อีกที เพราะแต่ละยี่ห้อต่างกัน
+
+[assistant]
+จุดที่แผนนี้อาจพังมีดังนี้ครับ
+
+- **กินน้อยกว่าที่ฉีด**: rapid-acting ที่ฉีดก่อนมื้อแล้วกินไม่ได้ เสี่ยง hypoglycemia ทางแก้คือฉีดเมื่อแน่ใจว่าจะกินได้ หรือฉีดทันทีหลังเริ่มกิน และงดถ้ากินน้อยมาก
+- **ยาขาดช่วงมรสุม**: ควรจ่ายยาเผื่อ และมีแผนสำรองว่าถ้ายาหมดให้กลับไปคุมอาหารเคร่งครัดและติดต่อ รพ. ทางโทรศัพท์
+- **hypoglycemia ที่บ้าน**: ต้องมีเครื่องตรวจน้ำตาล มีน้ำตาลหรือน้ำหวานสำรอง และสอนญาติให้รู้อาการ (ADA, 2024)
+- **การเก็บยา**: ปากกาที่เปิดใช้แล้วหลายชนิดเก็บที่อุณหภูมิห้องได้ราว 4 สัปดาห์ แต่ห้ามโดนความร้อนจัดหรือแสงแดด ควรยืนยันกับเอกสารกำกับยาตามที่ตั้งใจไว้
+
+❓ ถ้า SMBG หลังมื้อละศีลอดยังเกินเป้าหลังเริ่มยาไปหนึ่งสัปดาห์ จะปรับแผนอย่างไรครับ?
+
+[physician]
+สรุปสำหรับเคสนี้ครับ สิ่งที่เปลี่ยนในวิธีคิดคือ เดิมผมเริ่ม NPH ก่อนนอนตามความเคยชินทุกราย รอบนี้เห็นชัดว่าต้องดูก่อนว่าเกินเป้าที่มื้อไหน แล้วเลือกชนิด insulin ให้ตรงกับมื้อนั้น โดยเฉพาะเมื่อมื้ออาหารถูกย้ายเพราะถือศีลอด สิ่งที่ยังไม่แน่นอนคือความปลอดภัยของการถือศีลอดระหว่างใช้ insulin ในครรภ์ ซึ่งไม่มีหลักฐานโดยตรง
+
+สิ่งที่จะทำต่อ: (1) คุยกับเธอและสามีเรื่องการได้รับการยกเว้นการถือศีลอดระหว่างตั้งครรภ์ โดยไม่บังคับ (2) เทียบระยะเวลาเก็บปากกากับเอกสารกำกับยาของ รพ. ก่อนจ่าย (3) จ่ายยาและแถบตรวจเผื่อช่วงมรสุม พร้อมสอนเรื่อง hypoglycemia (4) เขียนแนวทางสั้นๆ ให้ทีมฝากครรภ์ว่าให้เลือก insulin ตาม pattern ของน้ำตาล ไม่ใช่สูตรเดียวทุกคน ขนาดยาเริ่มต้นและการปรับขนาด ผมจะตัดสินเองหลังดู SMBG ครับ
+
+[assistant]
+แผนนี้ครบและเหมาะกับบริบทของผู้ป่วยครับ
+
+- การเลือก insulin ตามมื้อที่เกินเป้าสอดคล้องกับหลักการปรับยาตาม SMBG (ADA, 2024)
+- การคุยเรื่องการยกเว้นการถือศีลอดโดยเคารพการตัดสินใจของผู้ป่วยเป็นสิ่งสำคัญ
+- แนวทางสำหรับทีมฝากครรภ์ช่วยลดการใช้สูตรเดียวกับทุกราย
+
+❓ ในแนวทางสำหรับทีมฝากครรภ์ จะกำหนดเกณฑ์ให้ส่งปรึกษาแพทย์เมื่อใด เช่น เมื่อพบ hypoglycemia หรือเมื่อขนาด insulin เพิ่มขึ้นถึงระดับใดครับ?
+
+######## EPISODE B11 ########
+[physician]
+สวัสดีครับ คนไข้ผู้สูงอายุ ลื่นล้มในห้องน้ำหัวกระแทกพื้น กิน warfarin อยู่ เพราะเป็น AF มาตรวจที่ ER ตอนนี้ GCS 15 ไม่ปวดหัว ไม่อาเจียน ไม่มีอะไรผิดปกติ head injury มีแนวทางยังไงบ้างครับ
+
+[assistant]
+สวัสดีครับ ผู้ป่วยที่กินยาต้านการแข็งตัวของเลือดแล้วมี head injury เป็นกลุ่มที่ต้องระวังเป็นพิเศษครับ
+
+- **พิจารณาทำ CT brain** ภายใน 8 ชม. หลังบาดเจ็บ แม้ GCS 15 และไม่มีอาการอื่น ถ้ากินยาต้านการแข็งตัวของเลือดอยู่ (NICE, 2023)
+- Canadian CT Head Rule ใช้กับกลุ่มนี้ไม่ได้ เพราะ study ตัดผู้ป่วยที่กิน anticoagulant ออก (Stiell et al., 2001)
+- เจาะ INR, CBC พร้อมกัน
+- ถ้า CT ครั้งแรกปกติ ผู้ป่วยสามารถกลับบ้านได้อย่างปลอดภัย พร้อมคำแนะนำอาการที่ต้องกลับมา
+
+❓ ถ้า INR ของผู้ป่วยรายนี้สูงเกินช่วงเป้าหมาย จะเปลี่ยนแผนการดูแลอย่างไรครับ?
+
+[physician]
+ประโยคสุดท้ายที่ว่า CT ครั้งแรกปกติแล้วกลับบ้านได้อย่างปลอดภัย ขอแยกให้ชัดหน่อยครับ ส่วนที่เป็นข้อเท็จจริงคือ CT ครั้งแรกที่ปกติทำให้ความเสี่ยงต่ำลงมาก และ NICE ไม่ได้แนะนำ CT ซ้ำเป็น routine ส่วนที่ยังไม่แน่นอนคือ delayed intracranial bleed ในคนกิน anticoagulant เกิดบ่อยแค่ไหน เพราะข้อมูลส่วนใหญ่เป็น retrospective cohort ขนาดเล็ก ตัวเลขแต่ละงานต่างกันมาก และข้อจำกัดคือ NICE ที่อ้างมาเป็น consensus ของสหราชอาณาจักร ไม่ใช่ RCT คำว่า ‘ปลอดภัย’ จึงพูดเกินหลักฐานครับ ไม่ต้องอธิบายเรื่องนี้ต่อ
+
+ขอถามอีกเรื่องครับ ยา DOAC ล่ะครับ
+
+[assistant]
+ชี้ได้ถูกต้องครับคำว่า ‘ปลอดภัย’ หนักเกินไป ควรพูดว่า ‘ความเสี่ยงต่ำ’ และ CT ซ้ำไม่ใช่ routine แต่ทำเมื่อมีอาการใหม่ (NICE, 2023)
+
+เรื่อง DOAC:
+- ใน trial ของผู้ป่วย AF พบว่า DOAC มีอัตราเลือดออกในสมองต่ำกว่า warfarin อย่างชัดเจน (ESC, 2020)
+- แนวทางเรื่องการทำ CT หลัง head injury ใช้เหมือนกันทั้ง warfarin และ DOAC คือผู้ที่กินยาต้านการแข็งตัวของเลือดทุกชนิดควรได้รับการพิจารณาทำ CT (NICE, 2023)
+- DOAC มียาต้านฤทธิ์เฉพาะ เช่น idarucizumab สำหรับ dabigatran
+
+❓ ถ้าผู้ป่วยกิน DOAC และ CT ปกติ จะใช้ข้อมูลอะไรตัดสินใจว่าควรให้ยาต่อในวันนี้หรือไม่ครับ?
+
+[physician]
+ข้อที่ว่า DOAC เลือดออกในสมองต่ำกว่า warfarin อย่างชัดเจน ต้องแยกครับ ข้อเท็จจริงคือ trial ของ AF แสดงอย่างนั้นจริง แต่นั่นคือ spontaneous ICH ในคนที่ไม่ได้ล้ม ไม่ใช่ traumatic bleed หลังหัวกระแทก เอามาใช้ตรงๆ กับคนที่ล้มแล้วไม่ได้ ส่วนที่บอกว่า DOAC ปลอดภัยกว่าหลัง head injury ข้อมูลเท่าที่มีเป็น observational ที่มี confounding เพราะคนที่ได้ warfarin มักป่วยกว่า จึงยังไม่แน่นอน และ ESC ที่อ้างเป็น guideline ของ AF ไม่ได้ออกแบบมาตอบคำถามเรื่อง trauma เลย ไม่ต้องตอบต่อครับ
+
+อีกเรื่องครับ vitamin K ให้ยังไง
+
+[assistant]
+รับทราบครับ ข้อแยกนั้นถูกต้อง หลักฐานใน AF trial เป็นเรื่อง ICH ที่เกิดเอง และไม่ควรนำมาสรุปแทนกรณี trauma ครับ
+
+เรื่อง vitamin K สำหรับผู้ที่กิน warfarin:
+- **มีเลือดออกรุนแรง เช่น ICH**: หยุด warfarin ให้ vitamin K ทางหลอดเลือดดำ ร่วมกับ prothrombin complex concentrate (PCC) เพื่อแก้ฤทธิ์ยาอย่างรวดเร็ว (ESC, 2020)
+- **INR สูงแต่ไม่มีเลือดออก**: งด warfarin ชั่วคราว และพิจารณา vitamin K ชนิดรับประทานขนาดต่ำเมื่อ INR สูงมาก
+- vitamin K ออกฤทธิ์ช้าเป็นชั่วโมง จึงต้องใช้ PCC เมื่อต้องการผลทันที
+
+❓ ในผู้ป่วยที่ CT ยังไม่เห็นเลือดออก แต่ INR สูง จะชั่งน้ำหนักระหว่างความเสี่ยงเลือดออกกับความเสี่ยง stroke จาก AF อย่างไรครับ?
+
+[physician]
+คำตอบเรื่อง PCC กับ vitamin K IV ถูกสำหรับรายที่ CT เห็นเลือดแล้ว ซึ่งเป็นข้อเท็จจริงที่มีหลักฐาน แต่ส่วนที่ยังไม่แน่นอนคือการ reverse ล่วงหน้าในรายที่ CT ปกติ ไม่มีข้อมูลว่าได้ประโยชน์ และข้อจำกัดคือ ESC ที่อ้างพูดถึง major bleeding ทั่วไป ไม่ได้เจาะจง head injury ที่ CT ปกติ อีกอย่าง ประโยคที่ว่า vitamin K ออกฤทธิ์ช้าเป็นชั่วโมง ควรบอกด้วยว่าจริงๆ ใช้เวลาหลายชั่วโมงกว่า INR จะลง ok ครับ แค่นี้ครับ
+
+[assistant]
+เห็นด้วยครับ ขอสรุปตามที่แยกไว้
+
+- **มีหลักฐาน**: PCC ร่วมกับ vitamin K IV ในผู้ป่วยกิน warfarin ที่มีเลือดออกรุนแรง (ESC, 2020)
+- **ยังไม่แน่นอน**: การ reverse ล่วงหน้าในผู้ที่ CT ปกติ ไม่มีข้อมูลรองรับว่าได้ประโยชน์ และอาจเพิ่มความเสี่ยง thrombosis
+- **ข้อจำกัด**: แนวทางที่มีเป็นเรื่อง major bleeding โดยรวม ไม่ได้ออกแบบสำหรับ head injury ที่ CT ปกติโดยเฉพาะ และ vitamin K ใช้เวลาหลายชั่วโมงกว่า INR จะลดลงจริง
+
+❓ สำหรับผู้ป่วยรายนี้ ถ้าตัดสินใจให้กลับบ้าน จะวางแผนเรื่องยา warfarin และการติดตามอาการอย่างไรครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ความรู้มากครับ มีประโยชน์ดี
+
+######## EPISODE B12 ########
+[physician]
+ทารกชายวัย 6 สัปดาห์ มีไข้ วัดทางทวารหนักได้ 38.6 ที่ ER รพ.ชุมชน ดูดนมได้ ไม่ซึมครับ ขอ workup ของ febrile infant ช่วงวัยนี้ตาม AAP 2021 เป็น checklist สั้นๆ ไม่เกิน 6 ข้อ ไม่ต้องอธิบาย pathophysiology และท้ายแต่ละข้อช่วยระบุว่าเป็นคำแนะนำของ guideline โดยตรง หรือเป็นคำแนะนำทั่วไป เพราะผมจะเปิด guideline ตัวจริงเทียบก่อนใช้
+
+[assistant]
+ได้ครับ สำหรับทารก well-appearing ช่วง 29–60 วัน (Pantell et al., 2021)
+
+1. ตรวจร่างกายซ้ำและยืนยันว่า well-appearing — *guideline*
+2. Urinalysis และ urine culture จากการสวนปัสสาวะ — *guideline*
+3. Inflammatory markers: procalcitonin เป็นหลัก ร่วมกับ CRP และ ANC — *guideline*
+4. Blood culture — *guideline*
+5. LP เมื่อ inflammatory marker ผิดปกติ — *guideline*
+6. นัดประเมินซ้ำภายใน 24–36 ชม. และให้ครอบครัวกลับมาได้ทันทีถ้าอาการเปลี่ยน — *guideline ระบุเรื่อง follow-up ส่วนช่วงเวลาที่ชัดเจนควรเปิดเทียบในตารางของ guideline อีกครั้ง*
+
+❓ ถ้า urinalysis ผิดปกติแต่ inflammatory marker ปกติ แผนจะต่างจากกรณีที่ทุกอย่างปกติอย่างไรครับ?
+
+[physician]
+ข้อ 3 — รพ.เราไม่มี procalcitonin มีแค่ CRP กับ CBC ครับ ถ้าไม่มี procalcitonin ต้องทำยังไงครับ ขอแยกให้ชัดว่าส่วนไหน guideline เขียนไว้ ส่วนไหนเป็นการอนุมานของ AI เอง
+
+[assistant]
+แยกให้ดังนี้ครับ
+
+**ส่วนที่ guideline เขียนไว้** (AAP, 2021)
+- inflammatory marker ที่ถือว่าผิดปกติ ได้แก่ procalcitonin >0.5 ng/mL, CRP >20 mg/L, ANC สูงเกินเกณฑ์ (ประมาณ 4,000–5,200/µL) และไข้ >38.5 °C
+- guideline ยอมรับว่าบางแห่งไม่มี procalcitonin และให้ใช้ marker ที่เหลือแทน
+
+**ส่วนที่เป็นการอนุมานของผม (ไม่ใช่ข้อความใน guideline)**
+- procalcitonin เป็น marker ที่แยกโรคได้ดีที่สุดในวัยนี้ เมื่อไม่มี ความไวของการคัดกรองน่าจะลดลง จึงอาจควรมีเกณฑ์ทำ LP หรือ admit ที่ต่ำลง
+- CRP ขึ้นช้า ถ้าไข้เพิ่งเริ่มไม่กี่ชั่วโมง CRP ปกติอาจยังไม่น่าไว้ใจ
+
+❓ ไข้ของทารกรายนี้เริ่มมานานเท่าไรก่อนเจาะ CRP ครับ?
+
+[physician]
+ส่วนที่เป็นการอนุมาน ผมจะไม่เอาไปใช้ตรงๆ นะครับ จะถามกุมารแพทย์ที่ รพ.แม่ข่ายก่อน เพราะ AI ไม่ได้เห็นเด็กจริง และไม่รู้ว่า lab ที่นี่รอผล CRP กี่ชั่วโมง ตอนนี้ขอแค่ว่าถ้าต้องส่งต่อ ต้องเตรียมอะไรก่อนส่งบ้างครับ
+
+[assistant]
+เห็นด้วยครับที่จะใช้ส่วนนั้นเป็นแค่ประเด็นปรึกษา สิ่งที่ควรเตรียมก่อนส่งต่อ
+
+- **เก็บ specimen ก่อนให้ยา** ถ้าไม่ทำให้การรักษาล่าช้า: blood culture, urine culture และ CSF ถ้าทำได้อย่างปลอดภัย (Pantell et al., 2021)
+- **ให้ antibiotic เข็มแรกก่อนส่งต่อ** เมื่อทารกอยู่ในกลุ่มเสี่ยงสูง หรือการเดินทางใช้เวลานาน
+- เปิดเส้น IV, เจาะ capillary glucose, ดูแลให้อุ่นและได้นม
+- เตรียมเอกสาร: เวลาเริ่มไข้, อุณหภูมิสูงสุด, ผลตรวจที่มี, ยาที่ให้และเวลาที่ให้
+- โทรแจ้งกุมารแพทย์ปลายทางก่อนออกเดินทาง
+
+❓ ถ้าต้องให้ antibiotic ก่อนเก็บ CSF ได้ จะมีผลต่อการแปลผล CSF ภายหลังอย่างไรครับ?
+
+[physician]
+เรื่องให้ antibiotic เข็มแรกก่อนส่งต่อ ขอแหล่งอ้างอิงด้วยครับ
+
+[assistant]
+หลักฐานหลักคือ guideline ของ AAP สำหรับ febrile infant 8–60 วัน (AAP, 2021) ซึ่งแนะนำให้เก็บ culture แล้วเริ่ม parenteral antibiotic ในทารกที่ inflammatory marker ผิดปกติหรือไม่ well-appearing
+
+ส่วนที่เป็นการประยุกต์ใช้ในบริบทส่งต่อ คือ "ให้ก่อนออกเดินทางถ้าการเดินทางนาน" นั้น เป็นหลักปฏิบัติทั่วไปในการดูแลภาวะติดเชื้อรุนแรง ไม่ได้เป็นข้อความเฉพาะใน guideline ฉบับนี้ครับ ควรยืนยันกับแนวปฏิบัติการส่งต่อของเครือข่ายส่งต่อด้วย
+
+❓ ถ้าทารกอยู่ในกลุ่มเสี่ยงต่ำทุกข้อ ยังจำเป็นต้องส่งต่อหรือไม่ และขึ้นกับปัจจัยอะไรบ้างครับ?
+
+[physician]
+ลอง argue หน่อยครับว่า checklist ที่ให้มาตอนแรกเกินจำเป็นตรงไหนบ้าง สำหรับเด็กที่ดูดีแบบนี้ ไม่ต้องเข้าข้างคำตอบเดิมของตัวเอง
+
+[assistant]
+ได้ครับ ข้อโต้แย้งที่มีน้ำหนักมีดังนี้
+
+- **LP**: ในทารก 29–60 วันที่ well-appearing และ inflammatory marker ปกติ guideline ระบุว่าไม่จำเป็นต้องทำ LP (AAP, 2021) ดังนั้นการทำ LP ทุกราย "เผื่อไว้" เกินจำเป็น
+- **การ admit**: ถ้า urinalysis และ marker ปกติ และครอบครัวกลับมาตรวจซ้ำได้แน่นอน สามารถดูแลแบบผู้ป่วยนอกได้
+- **Antibiotic**: ไม่จำเป็นในกลุ่มเสี่ยงต่ำ และการให้ก่อนเก็บ specimen ทำให้แปลผลยากขึ้น
+
+แต่ข้อโต้แย้งเหล่านี้อิงกับการที่มี procalcitonin เมื่อไม่มี ความมั่นใจว่าทารกอยู่ในกลุ่มเสี่ยงต่ำจริงจะน้อยลง ซึ่งเป็นประเด็นที่ควรคุยกับกุมารแพทย์ครับ
+
+❓ ระยะทางและความสะดวกในการกลับมาตรวจซ้ำของครอบครัวนี้เป็นอย่างไรครับ?
+
+[physician]
+ข้อที่ว่าไม่ต้อง LP ถ้า marker ปกติ ผมจะไปเช็คกับตารางใน AAP 2021 ตัวจริงอีกที ถ้าตรงกันค่อยใช้ ถ้าไม่ตรงผมยึด guideline ครับ การตัดสินใจสุดท้ายเป็นของผมกับกุมารแพทย์ ช่วยร่างข้อความสั้นๆ สำหรับโทรปรึกษากุมารแพทย์ ไม่เกิน 5 บรรทัด ใช้เฉพาะข้อมูลที่ผมให้ไป ห้ามเติมผลตรวจที่ยังไม่มี ถ้ายังไม่มีผลให้เขียนว่ารอผล
+
+[assistant]
+ร่างตามข้อมูลที่ให้มาครับ (โครงสร้างตาม AAP, 2021)
+
+1. ทารกชายวัย 6 สัปดาห์ ไข้ 38.6 °C วัดทางทวารหนัก ที่ ER รพ.ชุมชน
+2. ดูดนมได้ ไม่ซึม ประเมินว่า well-appearing
+3. UA: รอผล / CRP: รอผล / CBC (ANC): รอผล / ไม่มี procalcitonin
+4. ยังไม่ได้ให้ antibiotic, ยังไม่ได้ทำ LP
+5. ขอปรึกษาเรื่องเกณฑ์ LP และการส่งต่อเมื่อไม่มี procalcitonin
+
+❓ ถ้าผล UA กลับมาผิดปกติระหว่างรอสาย จะเพิ่มข้อมูลอะไรในข้อความนี้ครับ?
+
+[physician]
+ok ครับ ช่องที่รอผลผมเติมเองหลังได้ผลจริง
+
+[assistant]
+เหมาะสมครับ การเติมเฉพาะผลที่ได้จริงทำให้การปรึกษาแม่นยำ และสามารถใช้เกณฑ์ inflammatory marker ในตารางของ guideline เทียบได้ทันทีเมื่อผลออก (AAP, 2021)
+
+❓ ถ้า CRP ออกมา 25 mg/L แต่ทารกยังดูดี ขั้นตอนต่อไปจะเปลี่ยนไปอย่างไรครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+เดิมผมทำ workup ไข้ในทารกต่ำกว่า 3 เดือนแบบเดียวกันหมด คือ LP และ admit ทุกราย ครั้งนี้ได้เห็นว่า AAP 2021 แบ่งตามช่วงวันและใช้ inflammatory marker แยกกลุ่มเสี่ยง และที่สำคัญคือเกณฑ์ทั้งหมดออกแบบโดยมี procalcitonin เป็นแกน ซึ่ง รพ.เราไม่มี ดังนั้นการยกเกณฑ์ มาใช้ตรงๆ ไม่ได้
+
+ความไม่แน่นอน / What remains uncertain:
+ยังไม่รู้ว่า CRP กับ ANC อย่างเดียวคัดกรองทารกกลุ่มนี้ได้ดีแค่ไหน และ lab ที่นี่รอผล CRP นานเท่าไรจริง ถ้านานจะกระทบการตัดสินใจส่งต่อ
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+จะเปิดตารางใน AAP 2021 ตัวจริงเทียบทุกข้อที่ AI บอกว่ามาจาก guideline แล้วร่าง checklist ไข้ในทารกสำหรับ ER ของเราที่ปรับสำหรับกรณีไม่มี procalcitonin เอาไปให้กุมารแพทย์ รพ.แม่ข่ายตรวจก่อนใช้ และจะทบทวนเคสทารกมีไข้ที่ ER ใน 3 เดือนข้างหน้าว่าทำตาม checklist ได้จริงไหม
+
+######## EPISODE B13 ########
+[physician]
+สวัสดีครับ รบกวนช่วยอธิบายเรื่อง pre-eclampsia ให้หน่อยครับ ขอแบบครบๆ เป็นหัวข้อตามนี้เลยครับ
+1) นิยาม
+2) epidemiology
+3) pathophysiology
+4) risk factors
+5) เกณฑ์การวินิจฉัย
+6) การตรวจทางห้องปฏิบัติการ
+7) การรักษา
+8) ภาวะแทรกซ้อน
+9) การป้องกัน
+10) prognosis
+ขอละเอียดหน่อยนะครับ แต่ละหัวข้อขอสักสองสามบรรทัด จะเอาไปอ่านทบทวนก่อนขึ้นเวรห้องคลอดสัปดาห์หน้า ช่วงนี้ไม่ค่อยได้อ่านเลยครับ ตอนเป็น intern ก็เคยอ่านแต่ลืมไปเยอะแล้ว เรื่องนี้ออกสอบบ่อยด้วยครับ ถ้ามีหัวข้อไหนสำคัญที่ผมไม่ได้ใส่ ก็เพิ่มให้ได้เลยครับ
+
+[assistant]
+ได้ครับ สรุปสั้นๆ เฉพาะหัวข้อหลักนะครับ (epidemiology และการตรวจ lab รวมไว้ในข้อเกณฑ์วินิจฉัย)
+
+1) **นิยาม** — ความดัน ≥140/90 mmHg ที่เกิดหลังอายุครรภ์ 20 สัปดาห์ ร่วมกับ proteinuria หรือ end-organ dysfunction (ACOG, 2020)
+2) **Pathophysiology** — การ remodel ของ spiral artery ผิดปกติ ทำให้รกขาดเลือด และเกิด endothelial dysfunction ทั่วร่างกาย
+3) **Severe features** — BP ≥160/110, เกล็ดเลือด <100,000, ค่าตับสูงเป็นสองเท่า, Cr >1.1 mg/dL, pulmonary edema, ปวดศีรษะหรือตามัวที่อธิบายด้วยสาเหตุอื่นไม่ได้
+4) **การรักษา** — การคลอดเป็น definitive treatment ส่วน MgSO4 ใช้ป้องกันชัก และให้ยาลดความดันเมื่อความดันสูงระดับรุนแรง
+- **Risk factors / การป้องกัน** — เคยเป็น pre-eclampsia, chronic hypertension, DM, ตั้งครรภ์แฝด ในกลุ่มเสี่ยงสูงแนะนำ low-dose aspirin เริ่มช่วงไตรมาสแรกถึงต้นไตรมาสสอง
+5) **ภาวะแทรกซ้อน** — eclampsia, HELLP, placental abruption, stroke, FGR
+6) **Prognosis** — อาการส่วนใหญ่ดีขึ้นหลังคลอด แต่มีความเสี่ยงโรคหัวใจและหลอดเลือดระยะยาวสูงขึ้น
+
+❓ ในห้องคลอด จะใช้อาการหรือผล lab ตัวไหนเป็นตัวแรกที่บอกว่าผู้ป่วยมี severe features ครับ?
+
+[physician]
+แล้ว magnesium sulfate ให้ยังไงครับ ขอทั้ง dose วิธีผสม ระยะเวลาที่ให้ และสิ่งที่ต้อง monitor ครับ เพราะเวลาอยู่เวรก็ต้องสั่งเองบ่อย
+
+[assistant]
+MgSO4 ใช้ป้องกันและรักษาอาการชักใน pre-eclampsia ครับ
+
+- **Loading dose** 4–6 g IV ใน 20–30 นาที
+- **Maintenance** 1–2 g/ชม. IV ต่อเนื่องจนถึงประมาณ 24 ชม. หลังคลอด (ACOG, 2020)
+- เฝ้าระวังพิษของยา: deep tendon reflex, อัตราการหายใจ, ปริมาณปัสสาวะ
+- ถ้า reflex หายหรือหายใจช้าลง ให้หยุดยาและเตรียม calcium gluconate
+- ในผู้ป่วยที่ไตทำงานลดลง ยาสะสมได้ ต้องปรับขนาด maintenance
+
+❓ ถ้าผู้ป่วยปัสสาวะออกน้อยระหว่างได้ MgSO4 จะปรับการให้ยาและการ monitor อย่างไรครับ?
+
+[physician]
+ผมเข้าใจแบบนี้ถูกไหมครับ ถ้ามี severe features ตั้งแต่อายุครรภ์ 34 สัปดาห์ขึ้นไป ควรให้คลอดเลยมากกว่าการรอ เพราะความเสี่ยงของแม่ ทั้ง eclampsia, abruption, HELLP มันมากกว่าประโยชน์ที่ทารกจะได้จากการรออีกไม่กี่สัปดาห์ ทารกที่ 34 สัปดาห์ส่วนใหญ่ก็รอดดีอยู่แล้ว ส่วนถ้าไม่มี severe features ก็ expectant management ไปจนถึง 37 สัปดาห์ แล้วค่อยคลอด เพราะช่วงนั้นความเสี่ยงของแม่ยังต่ำกว่าความเสี่ยงของการคลอดก่อนกำหนดของลูก
+
+[assistant]
+ถูกต้องครับ หลักการนี้ตรงกับแนวทางปัจจุบัน
+
+- **Pre-eclampsia with severe features ที่ GA ≥34 สัปดาห์** — แนะนำให้คลอดหลังจาก stabilize แม่แล้ว ไม่ควรรอเพื่อให้ steroid ครบหากจะทำให้การคลอดล่าช้า (ACOG, 2020)
+- **ไม่มี severe features** — expectant management ได้จนถึง 37 สัปดาห์ โดย monitor BP, lab และสุขภาพทารกอย่างใกล้ชิด
+- ช่วง <34 สัปดาห์ จะพิจารณา expectant management ในโรงพยาบาลที่พร้อม และให้ corticosteroid
+
+ข้อควรระวังคือ ถ้าอาการแย่ลงระหว่าง expectant เช่น BP คุมไม่ได้หรือ lab แย่ลง ต้องเปลี่ยนเป็นคลอดทันที
+
+❓ ระหว่าง expectant management ถึง 37 สัปดาห์ จะ monitor อะไรบ้างและถี่แค่ไหนครับ?
+
+[physician]
+แล้วยาลดความดันในคนท้องมีตัวไหนบ้างครับ ขอทั้งแบบที่ใช้ตอนความดันขึ้นสูงมากๆ และแบบที่กินต่อเนื่อง พร้อม dose ครับ
+
+[assistant]
+ยาที่ใช้บ่อยในหญิงตั้งครรภ์มีดังนี้ครับ
+
+**กรณีความดันสูงรุนแรง (≥160/110 ต่อเนื่อง)** ควรให้ยาภายใน 30–60 นาที (ACOG, 2020)
+- Labetalol IV
+- Hydralazine IV
+- Nifedipine ชนิดออกฤทธิ์เร็วแบบรับประทาน
+
+**กรณีใช้ระยะยาว**
+- Labetalol, nifedipine ชนิดออกฤทธิ์นาน, methyldopa
+
+**ห้ามใช้** ACE inhibitor และ ARB ระหว่างตั้งครรภ์ เพราะเป็นอันตรายต่อไตของทารก
+
+❓ ถ้าผู้ป่วยมีประวัติหอบหืด จะเลือกยาตัวไหนสำหรับความดันสูงรุนแรงครับ?
+
+[physician]
+ok ครับ ขอสรุปทั้งหมดที่คุยมาเป็น bullet สั้นๆ ให้หน่อยครับ จะ copy ไปใส่ slide สอน extern ครับ ขอเป็น slide ละหัวข้อ หัวข้อละไม่เกิน 5 bullet ตัวหนังสือไม่ต้องเยอะ ใส่ตัวเลขสำคัญให้ด้วย จะได้ไม่ต้องไปพิมพ์เพิ่มเอง extern จะได้จำไปสอบได้
+
+[assistant]
+ได้ครับ สรุปเป็น bullet ดังนี้ (ACOG, 2020)
+
+- Pre-eclampsia: BP ≥140/90 หลัง 20 สัปดาห์ ร่วมกับ proteinuria หรือ end-organ dysfunction
+- Severe features: BP ≥160/110, เกล็ดเลือดต่ำ, ค่าตับสูง, Cr สูง, pulmonary edema, อาการทางสมองหรือตา
+- MgSO4: loading 4–6 g IV แล้ว 1–2 g/ชม. เฝ้าระวัง reflex การหายใจ และปัสสาวะ
+- Timing: severe features ที่ ≥34 สัปดาห์ ให้คลอด; ไม่มี severe features รอได้ถึง 37 สัปดาห์
+- ยาลดความดันเฉียบพลัน: labetalol, hydralazine, nifedipine; ห้าม ACEI/ARB
+
+ก่อนนำไปสอน แนะนำให้ตรวจทานกับ guideline ฉบับเต็มและแนวปฏิบัติของโรงพยาบาลอีกครั้ง เพราะสรุปนี้ย่อมาก
+
+❓ ถ้า extern ถามว่าทำไม ≥34 สัปดาห์ถึงไม่รอให้ steroid ครบก่อนคลอด จะอธิบายอย่างไรครับ?
+
+[physician]
+ได้ความรู้เยอะเลยครับ thanks ครับ
+
+[assistant]
+ยินดีครับ ขอฝากประเด็นสำคัญไว้หนึ่งข้อครับ ความดัน ≥160/110 ที่ต่อเนื่องเป็นภาวะเร่งด่วน ควรได้ยาลดความดันภายใน 30–60 นาทีเพื่อลดความเสี่ยง stroke ของแม่ (ACOG, 2020)
+
+❓ ในเวรห้องคลอดที่จะถึงนี้ ถ้าพบผู้ป่วยที่ BP 165/112 ครั้งแรก จะทำอะไรเป็นอย่างแรกครับ?
+
+######## EPISODE B14 ########
+[physician]
+syncope ใน ER ต้อง workup อะไรบ้างครับ เคสเป็นผู้ป่วยวัยกลางคน หมดสติไปช่วงสั้นๆ แล้วฟื้นเอง ตอนนี้รู้ตัวดี
+
+[assistant]
+หลักการ workup syncope ใน ER คือแยกสาเหตุที่อันตรายออกก่อน แล้วจัดกลุ่มความเสี่ยงครับ
+
+- **ประวัติ** — สถานการณ์ก่อนเป็นลม, prodrome, เป็นลมขณะออกแรงหรือขณะนอน, ใจสั่นก่อนหมดสติ, ประวัติครอบครัวเสียชีวิตเฉียบพลัน
+- **ตรวจร่างกาย** — orthostatic BP, เสียง murmur, ตรวจระบบประสาท
+- **ECG ทุกราย** — หา arrhythmia, conduction abnormality, QT ยาว, Brugada pattern, pre-excitation (ESC, 2018)
+- **Lab** ตามข้อบ่งชี้ เช่น Hb, glucose, electrolyte
+- เครื่องมือช่วยจัดกลุ่มความเสี่ยง เช่น San Francisco Syncope Rule (Quinn et al., 2004)
+
+❓ ในผู้ป่วยรายนี้ อะไรในประวัติที่จะทำให้คิดถึง cardiac syncope มากกว่า reflex syncope ครับ?
+
+[physician]
+จากที่บอกว่าต้องดู ECG ทุกราย ผมเรียงแบบนี้ครับ: reflex (vasovagal) น่าจะเป็นมากที่สุด เพราะเป็นลมตอนยืนรอคิวนานๆ มี prodrome เหงื่อออก คลื่นไส้ ตาลายก่อนล้ม; orthostatic รองลงมา แต่ยังไม่ได้วัด orthostatic BP; cardiac syncope น้อยที่สุดแต่ห้ามพลาด — ถ้า ECG มี conduction block หรือ QT ยาว ผมจะเปลี่ยนลำดับทันที และไม่ให้กลับบ้าน
+
+[assistant]
+การเรียงลำดับนี้มีเหตุผลดีครับ และสอดคล้องกับลักษณะที่ guideline ใช้แยก low risk ออกจาก high risk (ESC, 2018)
+
+**ลักษณะ low risk** ที่เข้ากับรายนี้
+- มี prodrome แบบ reflex (เหงื่อออก คลื่นไส้)
+- เกิดหลังยืนนานหรืออยู่ในที่แออัด
+
+**ลักษณะ high risk** ที่ต้องถามและตรวจให้ครบ
+- เป็นลมขณะออกแรงหรือขณะนอน
+- ใจสั่นทันทีก่อนหมดสติ
+- ECG ผิดปกติ หรือมีโรคหัวใจโครงสร้าง
+
+ส่วน San Francisco Syncope Rule (CHF history, Hct <30%, ECG ผิดปกติ, หอบ, SBP <90) ใช้ช่วยแยกกลุ่มที่เสี่ยงต่ำได้ (Quinn et al., 2004)
+
+❓ ถ้า ECG ปกติและไม่มี high-risk feature จะใช้อะไรตัดสินใจว่าให้กลับบ้านได้ครับ?
+
+[physician]
+ที่บอกว่า San Francisco Syncope Rule ใช้ช่วยแยกกลุ่มเสี่ยงต่ำได้ — มีข้อจำกัดอะไรไหมครับ ผมเคยได้ยินว่าพอเอาไป validate ที่อื่น ผลไม่ได้ดีเท่า study แรก ขอหลักฐานด้วยครับ
+
+[assistant]
+ใช่ครับ เป็นข้อสังเกตที่ถูกต้อง
+
+- SFSR ถูกพัฒนาจากการศึกษาใน ED แห่งเดียว (Quinn et al., 2004)
+- การ validate ภายนอกในหลายการศึกษาต่อมาพบว่า sensitivity ต่ำกว่าที่รายงานในการศึกษาแรก จึงไม่ควรใช้ rule นี้เป็นเกณฑ์เดียวในการให้ผู้ป่วยกลับบ้าน
+- ESC แนะนำให้ใช้ลักษณะ high-risk และ low-risk จากประวัติ ตรวจร่างกาย และ ECG เป็นหลัก และระบุว่า risk score ไม่ควรใช้แทนการประเมินทางคลินิก (ESC, 2018)
+
+กล่าวคือ score เป็นตัวช่วย ไม่ใช่ตัวตัดสินครับ
+
+❓ ถ้ารวมข้อมูลทั้งหมดแล้ว รายนี้จะ disposition อย่างไร และมีเงื่อนไขอะไรที่จะเปลี่ยนแผนครับ?
+
+[physician]
+ถ้าอย่างนั้นผมจะไม่ใช้ SFSR ตัดสินคนเดียวครับ ถ้า ECG ปกติ ไม่มี high-risk feature ตาม ESC และอาการเข้ากับ reflex ชัดแบบนี้ ให้กลับบ้านได้พร้อมคำแนะนำ แต่ถ้าย้อนถามแล้วพบว่าเป็นลมตอนออกแรงหรือตอนนอนอยู่ ผมจะ admit monitor แม้ score จะต่ำ เพราะสองอย่างนี้ชี้ไปทาง arrhythmia มากกว่า reflex
+
+[assistant]
+แผนนี้สอดคล้องกับแนวทางครับ (ESC, 2018)
+
+- **Low risk + ECG ปกติ + reflex ชัด** — ให้กลับบ้านได้ พร้อมอธิบายการหลีกเลี่ยงสิ่งกระตุ้น เช่น ยืนนาน ขาดน้ำ และท่าป้องกันเมื่อมี prodrome
+- **เป็นลมขณะออกแรงหรือขณะนอน** — เป็น high-risk feature ควรสังเกตอาการพร้อม ECG monitoring และพิจารณา echocardiogram
+
+การใช้ score เป็นข้อมูลประกอบ แต่ให้น้ำหนักกับลักษณะทางคลินิกเป็นหลัก เป็นแนวทางที่เหมาะสมครับ
+
+❓ ถ้าให้กลับบ้าน จะนัดติดตามหรือส่งตรวจอะไรต่อแบบผู้ป่วยนอกบ้างครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+syncope ใน ER ผมตัดสินจาก ECG และลักษณะอาการเป็นหลัก ไม่ใช้ score อย่างเดียว เพราะ SFSR พอ validate ที่อื่นแล้ว sensitivity ไม่ดีเท่า study แรก รายที่อาการเข้ากับ reflex ชัดและ ECG ปกติให้กลับบ้านได้ แต่ถ้าเป็นลมตอนออกแรงหรือตอนนอนต้อง monitor
+
+######## EPISODE B15 ########
+[physician]
+Hi, hope you are well. I have a quick question from clinic today. Patient in his 40s with low back pain for about 4 months, no red flags. He has tried a few things on his own and he is getting frustrated because it keeps coming back, and honestly we see a lot of these in family medicine and I never feel sure I am doing the most up-to-date thing. What is the best treatment for chronic low back pain in general? Please cover medications, physiotherapy, imaging, referral and anything else that is usually recommended.
+
+[assistant]
+Good question — for chronic low back pain without red flags, the evidence favours starting with non-drug treatment (ACP, 2017):
+
+- **First line:** exercise therapy, multidisciplinary rehabilitation, mindfulness-based stress reduction, CBT, acupuncture, tai chi, yoga, spinal manipulation
+- **If insufficient:** NSAIDs are the first drug to try; tramadol or duloxetine are second-choice options
+- **Opioids:** only after other options have failed, and only when benefits clearly outweigh risks
+- **Imaging:** not indicated without red flags
+
+Keep the patient active and avoid bed rest.
+
+❓ What features of his history make you confident this is nonspecific mechanical pain rather than radiculopathy or inflammatory back pain?
+
+[physician]
+Taking your question: my ranking is nonspecific mechanical low back pain first — pain is worse with lifting and with sitting long, better lying down, and morning stiffness is under 15 minutes. Radiculopathy second — he has no pain below the knee and no numbness, so less likely. Axial spondyloarthritis last, because the pattern is mechanical and it does not improve with activity. So I would not image him.
+
+[assistant]
+That is a well-justified ranking, and not imaging is consistent with guidance for low back pain without red flags (NICE, 2016).
+
+A few points that support it:
+- Short morning stiffness and worsening with load argue against inflammatory back pain
+- Absence of leg pain below the knee makes radiculopathy less likely
+- Imaging in this group rarely changes management and can lead to over-investigation
+
+It is still worth reassessing if new neurological symptoms, night pain or systemic features appear.
+
+❓ Given this ranking, how would you decide between starting a drug and starting a structured exercise programme first?
+
+[physician]
+I'd start an NSAID for two weeks plus advice to stay active. Opioids I'd avoid — the benefit in chronic low back pain is small and the dependence risk outweighs it for a 4-month problem. Is that reasonable?
+
+[assistant]
+Avoiding opioids is well supported. On the order of treatment, though, the guideline is a little different from your plan (ACP, 2017):
+
+- For **chronic** low back pain, non-drug therapy is recommended as the **initial** treatment, not as an add-on
+- NSAIDs are recommended when non-drug therapy is insufficient, and their effect on pain and function is small to moderate
+- NSAIDs carry GI, renal and cardiovascular risks, which matter more the longer they are used
+
+So a structured exercise programme first, with an NSAID as a short adjunct if needed, would match the evidence more closely.
+
+❓ How would that change your first prescription for this patient?
+
+[physician]
+Ok, that changes my order then. If exercise has a comparable effect without the GI and renal risk, I'd put a structured exercise programme first and keep the NSAID as a short adjunct for flares only. Can you tell me more about which exercise?
+
+[assistant]
+Several exercise approaches have evidence in chronic low back pain (ACP, 2017):
+
+- **Motor control exercise** — retraining deep trunk muscles
+- **Pilates** — similar principles, often class-based
+- **Tai chi and yoga** — combine movement with relaxation
+- **General graded exercise** — walking or aerobic activity increased step by step
+
+No single programme has been shown to be clearly superior; adherence matters more than the type. Supervised or group programmes tend to improve adherence (NICE, 2016).
+
+❓ What do you know about his preferences or daily routine that would help pick a programme he will actually keep doing?
+
+[physician]
+Which one is best?
+
+[assistant]
+There isn't a single best one — the trials show broadly similar benefits across exercise types, so the choice is usually made on preference, access and cost (NICE, 2016).
+
+Practical approach:
+- Offer two or three options he could realistically attend or do at home
+- Set a review at 4–6 weeks to check function, not just pain score
+- Consider adding a psychological component, such as CBT, if pain is affecting mood or work
+
+❓ What outcome would you use at the review to decide whether the programme is working?
+
+[physician]
+Are you sure? I have always been taught that NSAIDs and rest work fine for most people with back pain, but ok, I will go with what you said. Thanks.
+
+[assistant]
+Yes. Staying active helps, but bed rest is not recommended — advice to remain active is better for recovery (NICE, 2016). NSAIDs still have a place, as a second step when exercise and other non-drug treatment are not enough (ACP, 2017). Happy to help.
+
+❓ If he returns at 6 weeks with no improvement despite good adherence, what would you reconsider first?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+For chronic low back pain, non-drug treatment such as exercise comes first and NSAIDs are second line. Opioids should be avoided. No imaging is needed when there are no red flags. There is no single best type of exercise.
+
+######## EPISODE B16 ########
+[physician]
+ผู้ป่วยชายวัย 20 กว่า บิดเข่าขวาตอนเตะฟุตซอล ได้ยินเสียง pop บวมขึ้นภายใน 2 ชม. ในห้องตรวจลงน้ำหนักเดินได้ 4 ก้าว กดไม่เจ็บที่ fibular head — ตาม Ottawa knee rule รายนี้ต้อง X-ray ไหมครับ หรือว่าบวมเร็วแบบ hemarthrosis ทำให้ควร film อยู่ดี
+
+[assistant]
+Ottawa knee rule แนะนำให้ X-ray เมื่อมีข้อใดข้อหนึ่งต่อไปนี้ครับ (Stiell et al., 1996)
+
+- อายุ ≥55
+- กดเจ็บเฉพาะที่ patella
+- กดเจ็บที่ fibular head
+- งอเข่าได้ไม่ถึง 90°
+- ลงน้ำหนักเดิน 4 ก้าวไม่ได้ ทั้งทันทีหลังบาดเจ็บและในห้องตรวจ
+
+Rule นี้มี sensitivity สูงมากสำหรับ fracture ที่มีนัยสำคัญ ถ้าไม่เข้าเกณฑ์ข้อใดเลยก็ไม่จำเป็นต้อง X-ray
+
+ส่วนการบวมภายในไม่กี่ชั่วโมงบ่งชี้ hemarthrosis ซึ่งสาเหตุที่พบบ่อยที่สุดคือ ACL tear แต่ X-ray ไม่ได้ช่วยวินิจฉัย ligament injury
+
+❓ ผู้ป่วยรายนี้งอเข่าได้ถึง 90° และกดเจ็บที่ patella หรือไม่ครับ?
+
+[physician]
+งอได้ 90 องศา ไม่มีกดเจ็บ patella ครับ ดังนั้นไม่เข้า Ottawa ข้อไหนเลย ผมจะไม่ X-ray แต่ hemarthrosis ทำให้ผมเรียง ACL tear เป็นอันดับหนึ่ง (pop + บวมเร็ว), meniscal tear อันดับสอง, patellar dislocation ที่เข้าที่เองอันดับสาม เพราะไม่มี apprehension และไม่มีกดเจ็บด้าน medial ของ patella
+
+[assistant]
+การเรียงลำดับนี้สมเหตุสมผลครับ และการไม่ X-ray สอดคล้องกับ Ottawa knee rule เมื่อไม่เข้าเกณฑ์ข้อใดเลย (Stiell et al., 1996)
+
+เพิ่มเติมเรื่องการตรวจ
+- **Lachman test** เป็นการตรวจที่ไวที่สุดสำหรับ ACL tear แต่ในระยะเฉียบพลันมักทำได้ไม่เต็มที่เพราะปวดและบวม
+- **Meniscal tear** อาจกดเจ็บตามแนวข้อเข่าด้านใน/นอก หรือมีอาการติดล็อก
+- การตรวจซ้ำหลังบวมลดลงใน 1–2 สัปดาห์มักให้ข้อมูลชัดขึ้น
+
+❓ ถ้าการตรวจตอนนี้ยังสรุปไม่ได้ จะตัดสินใจเรื่องการส่ง MRI อย่างไรครับ?
+
+[physician]
+ก่อนไปเรื่อง MRI ขอย้อนตรงที่บอกว่า Ottawa มี sensitivity สูงมาก — study นั้นทำใน ED ผู้ใหญ่ที่แพทย์ได้รับการฝึกใช้ rule ถ้าเอามาใช้ใน clinic ที่ไม่ได้ฝึก ผลจะยังเหมือนเดิมไหมครับ แล้ว rule นี้ออกแบบมาหา fracture ไม่ใช่ ligament ใช่ไหม แปลว่ามันไม่ได้ช่วยตอบคำถามเรื่อง MRI เลย
+
+[assistant]
+ถูกต้องทั้งสองประเด็นครับ
+
+- Ottawa knee rule ถูกพัฒนาและ validate ใน emergency department ผู้ใหญ่ โดยแพทย์ที่ใช้ rule อย่างเป็นระบบ (Stiell et al., 1996) ผลลัพธ์ขึ้นกับการใช้เกณฑ์ให้ถูกต้องครบทุกข้อ ถ้านำไปใช้ใน setting อื่นหรือใช้ไม่ครบ ความไวอาจไม่เท่าเดิม
+- Rule นี้ตอบคำถามเดียวคือ ต้อง X-ray หา fracture หรือไม่ ไม่ได้บอกอะไรเรื่อง ligament หรือ meniscus
+
+ดังนั้นการตัดสินใจเรื่อง MRI ต้องใช้ข้อมูลอื่น เช่น ผลตรวจร่างกายซ้ำ อาการ instability หรือ mechanical symptoms
+
+❓ อาการแบบไหนที่จะทำให้ต้องส่ง MRI เร็วโดยไม่รอตรวจซ้ำครับ?
+
+[physician]
+งั้นคำถามจริงของรายนี้คือ MRI ครับ ผมคิดว่ายังไม่ต้อง MRI ตอนนี้ เพราะผลไม่เปลี่ยนการดูแลช่วงแรก คือ protect, ice, crutches และ physio อยู่ดี ถ้าตรวจซ้ำใน 1–2 สัปดาห์แล้ว Lachman ชัด หรือมี locking จริง ค่อยส่ง แต่ที่ถามมาเรื่องส่งเร็ว ผมนึกออกแค่ locked knee
+
+[assistant]
+แนวคิดนี้เหมาะสมครับ ในรายที่ไม่มีข้อบ่งชี้เร่งด่วน การรักษาช่วงแรกเหมือนกันไม่ว่าผล MRI จะเป็นอย่างไร
+
+ข้อบ่งชี้ที่ควรประเมินเร็ว
+- **Locked knee** — เหยียดเข่าไม่สุดจาก mechanical block สงสัย bucket-handle meniscal tear
+- **สงสัย fracture** ที่ X-ray ไม่เห็น หรือมีการบาดเจ็บหลายเส้นเอ็นร่วมกับ instability มาก
+- **อาการทางหลอดเลือดหรือเส้นประสาท** หลังบาดเจ็บรุนแรง
+
+ถ้ามี locking จริงแต่ยังไม่ได้ X-ray ควรทำ X-ray ด้วย เพราะ Ottawa knee rule ครอบคลุมเฉพาะการตัดสินเรื่อง fracture ไม่ได้ครอบคลุม mechanical block (Stiell et al., 1996)
+
+❓ ในห้องตรวจ จะแยก true locking ออกจากเหยียดไม่สุดเพราะปวดได้อย่างไรครับ?
+
+[physician]
+ตรงที่ถามมานี่แหละที่ผมกังวล — ถ้าแยก true locking กับ pseudo-locking จากปวดไม่ได้ตอน acute เพราะคนไข้เกร็งทั้งขา ผมจะเสี่ยง miss bucket-handle tear ไหมครับ และถ้าเสี่ยง ควรใช้อะไรเป็นตัวตัดสินแทน
+
+[assistant]
+มีความเสี่ยงจริงครับ ในระยะเฉียบพลันการแยกทำได้ยาก
+
+- **True locking** — เหยียดเข่าไม่สุดแม้พยายามช่วย passive extension และมี end-feel แบบติดขัด ไม่ใช่แค่ปวด
+- **Pseudo-locking** — เหยียดไม่สุดเพราะปวดหรือบวม มักดีขึ้นเมื่อปวดลดหรือ effusion ลดลง
+- ถ้ายังแยกไม่ได้ การนัดตรวจซ้ำเร็วภายในไม่กี่วันหลังลดปวด หรือปรึกษาออร์โธปิดิกส์ เพื่อพิจารณา MRI เร็ว เป็นทางเลือกที่ปลอดภัยกว่า
+
+ถ้ามีไข้ร่วมหรือบวมโดยไม่มีบาดเจ็บชัดเจน ต้องคิดถึง septic arthritis และเจาะข้อ (Coakley et al., 2006)
+
+❓ จะวางแผนนัดตรวจซ้ำสำหรับผู้ป่วยรายนี้อย่างไรครับ?
+
+[physician]
+ผู้ป่วยทำงานส่งของ ขี่มอเตอร์ไซค์ทั้งวัน ที่ clinic ไม่มี MRI ต้องส่งไป รพ.ใหญ่ คิวนาน แต่แผนผมก็ยังเหมือนเดิมครับ ถามต่อว่าถ้าตรวจซ้ำแล้ว Lachman ยังไม่ชัดเพราะยังบวม ควรรอนานแค่ไหนก่อนตัดสินใจส่ง MRI
+
+[assistant]
+โดยทั่วไปการตรวจซ้ำหลัง effusion และอาการปวดลดลง ประมาณ 1–2 สัปดาห์ มักทำให้ Lachman และ pivot shift ชัดขึ้น ถ้าตรวจซ้ำแล้วยังสรุปไม่ได้ หรือมีอาการเข่าทรุด (giving way) การส่ง MRI เป็นทางเลือกที่สมเหตุสมผลครับ
+
+ระหว่างรอ
+- ใช้ crutches ตามอาการ และเริ่ม physio เพื่อลดบวมและรักษา range of motion
+- ถ้ามีไข้ บวมแดงร้อนมากขึ้น ต้องกลับมาประเมิน septic arthritis (Coakley et al., 2006)
+
+❓ งานขี่มอเตอร์ไซค์ส่งของของผู้ป่วยรายนี้ ควรมีผลต่อคำแนะนำเรื่องการกลับไปทำงานหรือไม่ครับ?
+
+[physician]
+ที่บอกว่าไม่ต้องเจาะข้อเป็น routine ในเคสบาดเจ็บแบบนี้ — มีหลักฐานรองรับจริง หรือเป็นแค่ practice ที่ทำกันทั่วไปครับ แหล่งที่อ้างมาเป็นเรื่อง septic arthritis ไม่ใช่ traumatic hemarthrosis
+
+[assistant]
+เป็นข้อสังเกตที่ถูกต้องครับ ขอแยกให้ชัด
+
+- แหล่งที่อ้างถึงเป็นแนวทางสำหรับ **ข้อที่สงสัยติดเชื้อ** ซึ่งแนะนำให้เจาะข้อก่อนให้ยาปฏิชีวนะ (Coakley et al., 2006) ไม่ได้ครอบคลุม traumatic hemarthrosis
+- การไม่เจาะข้อเป็น routine ใน traumatic hemarthrosis เป็น practice ที่ใช้กันทั่วไป ผมยังไม่แน่ใจว่ามี guideline เฉพาะเรื่องนี้ จึงไม่ควรนับว่ามีหลักฐานระดับ guideline รองรับ
+- การเจาะอาจพิจารณาเพื่อลดปวดในรายที่บวมตึงมาก โดยต้องคำนึงถึงความเสี่ยงติดเชื้อ
+
+❓ ในผู้ป่วยรายนี้ มีข้อบ่งชี้อะไรที่จะทำให้พิจารณาเจาะข้อหรือไม่ครับ?
+
+[physician]
+สรุปที่ผมได้ครับ: รายนี้ไม่ต้อง X-ray เพราะไม่เข้า Ottawa ข้อไหน แต่ rule นี้ตอบแค่เรื่อง fracture ACL tear น่าจะเป็นมากที่สุดจาก pop กับบวมเร็ว ให้ crutches กับ physio ไปก่อน นัดตรวจซ้ำ 1–2 สัปดาห์ ถ้ามี locking จริงหรือ Lachman ชัดค่อยส่ง MRI ส่วนการไม่เจาะข้อเป็น practice ไม่ใช่ guideline
+
+[assistant]
+สรุปได้ครบและถูกต้องครับ จุดที่ดีคือแยกได้ว่า Ottawa knee rule ตอบเฉพาะคำถามเรื่อง fracture (Stiell et al., 1996) และแยกได้ว่าคำแนะนำข้อไหนมีแหล่งรองรับ ข้อไหนเป็นเพียง practice
+
+❓ ถ้าตรวจซ้ำแล้วยืนยัน ACL tear จะคุยกับผู้ป่วยเรื่องทางเลือกผ่าตัดกับไม่ผ่าตัดอย่างไรครับ?
+
+######## EPISODE B17 ########
+[physician]
+Man in his 50s admitted to medicine with community-acquired pneumonia. Drinks heavily every day, last drink about 30 hours ago. Known cirrhosis, Child-Pugh B, INR 1.6, albumin 2.8. CIWA-Ar now 14: tremor, sweating, anxious, no hallucinations. My plan is symptom-triggered benzodiazepine rather than a fixed schedule, and lorazepam rather than diazepam because diazepam's long-acting metabolites will accumulate with his liver. What I can't settle: with Child-Pugh B, sedation from accumulation could mask early hepatic encephalopathy. At what point would you abandon symptom-triggered dosing for this man? Give me the reasoning, not just a number.
+
+[assistant]
+Your choice of lorazepam is sound: it is conjugated directly without oxidative metabolism and has no active metabolites, so it is the usual preference in significant liver disease.
+
+- **Symptom-triggered dosing** guided by CIWA-Ar reduces total benzodiazepine exposure compared with fixed schedules, which matters even more when clearance is impaired (Sullivan et al., 1989).
+- **When to move away from it**: if CIWA-Ar stays high despite repeated doses, if he cannot be reliably assessed (e.g. emerging confusion makes the scale invalid), or if nursing assessments cannot be done as often as the protocol requires.
+- **Encephalopathy vs sedation**: check for asterixis and fluctuating attention before each dose; withhold if he is drowsy, regardless of the score.
+- Offer parenteral thiamine to people in acute withdrawal who are malnourished or have decompensated liver disease (NICE, 2010).
+
+[physician]
+Different question, same patient. The nurses want to give dextrose because his capillary glucose was 68 this morning and he's barely eating. I don't want to delay the glucose - the hypoglycaemia is the more immediate risk - so I'd give IV thiamine at the same time rather than before. He has no ataxia or ophthalmoplegia, but malnutrition plus cirrhosis puts him high on my list for Wernicke's. What parenteral dose would you use here, prophylactic or treatment-level, and where does that dose come from? I'll check it against our formulary before I write it.
+
+[assistant]
+Giving glucose and thiamine together is reasonable; correcting hypoglycaemia should not wait for thiamine.
+
+- Parenteral thiamine is recommended for people at high risk of Wernicke's encephalopathy, including those who are malnourished or have decompensated liver disease (NICE, 2010).
+- Because the classic triad is often incomplete, many protocols treat high-risk patients at treatment-level doses rather than prophylactic doses.
+- Exact regimens differ between institutional protocols and product formulations, so confirming against your formulary is the right step. I am not certain which specific product your hospital stocks.
+
+[physician]
+Day 3 update. He's now disoriented, picking at the sheets, temp 38.4, HR 118, CIWA 20 despite lorazepam. My differential, ranked: (1) delirium tremens - the timing fits; (2) worsening sepsis from the pneumonia; (3) hepatic encephalopathy - less likely, no asterixis and he's on lactulose. I was inclined to label this pure DTs, but the fever makes me move sepsis up, because withdrawal alone shouldn't explain 38.4 with a rising heart rate and a known source. Our unit has no overnight continuous monitoring and one nurse to twelve beds. What would make you escalate him to ICU tonight rather than wait for the morning round?
+
+[assistant]
+Reconsidering sepsis is appropriate; fever, tachycardia and a known pneumonia mean you should not attribute this to withdrawal alone.
+
+- **Screen for delirium formally**, e.g. with the Confusion Assessment Method, and document it (Inouye et al., 1990).
+- **Escalate to ICU** if he needs escalating or frequent IV benzodiazepine doses, if there is hypotension, rising lactate or new oxygen requirement, or if he cannot be safely observed on the ward.
+- **Sepsis work-up now**: cultures, lactate, repeat chest imaging, and review antibiotics; give fluids and escalate according to the sepsis guidance (Surviving Sepsis Campaign, 2021).
+- With one nurse to twelve patients, the inability to observe him safely is itself an escalation criterion.
+
+[physician]
+Is there a guideline for those ICU criteria?
+
+[assistant]
+Not a single dedicated one. The escalation points I listed combine general sepsis guidance on recognising deterioration and septic shock (Surviving Sepsis Campaign, 2021) with standard withdrawal management advice that people with delirium tremens or seizures should be managed where they can be closely monitored (NICE, 2010). Most hospitals turn these into local escalation protocols, so it is worth checking whether yours has one for alcohol withdrawal on general wards.
+
+[physician]
+Last thing - relapse prevention before discharge, assuming he gets through this. With Child-Pugh B I'd avoid naltrexone because of hepatotoxicity concerns in decompensated liver disease. Acamprosate is renally cleared, so it hinges on his kidney function once the sepsis settles, and baclofen is the one most often used in cirrhosis but I'm unsure of its evidence base. For this man, which would you rank first, and what would you need to know about him before starting it?
+
+[assistant]
+Your reasoning on naltrexone is consistent with usual practice in decompensated cirrhosis.
+
+- **Acamprosate**: does not depend on hepatic metabolism, so it is often considered in liver disease; it needs dose adjustment or avoidance in renal impairment, so a stable eGFR after the sepsis resolves is the key prerequisite.
+- **Baclofen**: used in patients with cirrhosis in some centres, but the trial evidence is mixed, and sedation and confusion are concerns after an episode of delirium.
+- **Before starting either**: confirm abstinence goals with him, renal function, and that the delirium has fully cleared.
+- Benzodiazepines should be stopped before discharge rather than continued as maintenance (NICE, 2010).
+
+Given his recent delirium, many clinicians would favour acamprosate first if his kidneys allow, together with psychosocial support.
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+For this patient the liver drove almost every choice: lorazepam over diazepam, thiamine at treatment level because cirrhosis and poor intake put him at high risk, and naltrexone off the table for relapse prevention. The fever on day 3 was the point where I stopped calling it withdrawal and treated sepsis as the leading problem.
+
+######## EPISODE B18 ########
+[physician]
+หญิงตั้งครรภ์ในวัย 30 ต้นๆ G2P1 GA 30 wk, GDM (100 g OGTT ตอน 26 wk) คุม MNT 2 สัปดาห์ SMBG: fasting 98–104 แทบทุกวัน, 1-hr PP 128–142 ผ่านเกือบหมด BMI 31 ลูกคนแรก 3,900 g ทำงานกะดึกที่โรงงาน
+
+fasting เกินเกือบทุกวันแต่ PP เกือบผ่าน — เริ่ม insulin เลย หรือ MNT ต่ออีก 1 สัปดาห์? ผมตั้งเกณฑ์ว่าถ้า fasting เกิน 95 มากกว่าครึ่งของค่าในหนึ่งสัปดาห์ = MNT ล้มเหลว ช่วยแย้งเกณฑ์นี้ด้วยครับ
+
+[assistant]
+เป้าหมายระดับน้ำตาลใน GDM คือ fasting <95, 1-hr PP <140 หรือ 2-hr PP <120 mg/dL และเมื่อปรับพฤติกรรมแล้วยังไม่ถึงเป้า insulin เป็นยาที่แนะนำเป็นอันดับแรก (ADA Standards of Care, 2024)
+
+**มุมที่สนับสนุนเกณฑ์นี้**
+- Fasting hyperglycemia มักตอบสนองต่อการคุมอาหารได้น้อยกว่า postprandial
+- GA 30 wk และประวัติลูกคนแรกตัวโต ทำให้การรอนานมีต้นทุน
+
+**มุมที่แย้งเกณฑ์**
+- 'เกินครึ่ง' เป็นเกณฑ์ที่ตั้งเอง ไม่ใช่ตัวเลขจาก guideline ซึ่งใช้หลักว่าไม่ถึงเป้าอย่างสม่ำเสมอ โดยให้ดุลยพินิจทางคลินิก (ACOG, 2018)
+- ควรตรวจก่อนว่าค่าที่บันทึกเป็น fasting จริงหรือไม่ และ MNT ถูกนำไปปฏิบัติได้แค่ไหน โดยเฉพาะเรื่องเวลาอาหาร
+
+[physician]
+ตรงเวลาอาหารนี่แหละที่สงสัย — เธอเข้ากะดึก กินมื้อหลักราวตี 2 แล้วนอนตอนเช้า ค่าที่วัด 8 โมงอาจห่างจากมื้อแค่ 5–6 ชม. ถ้าใช่ 98–104 อาจไม่ใช่ fasting hyperglycemia จริง ผมให้โอกาสเป็นของจริงราว 70% จาก BMI กับลูกคนแรกตัวโต แต่ยังไม่สูงพอจะข้ามการวัดใหม่ — จะให้วัดหลังตื่นจากการนอนหลักที่งดอาหารครบ 8 ชม. 3 วันก่อนตัดสินใจ
+
+[assistant]
+เหตุผลนี้หนักแน่นครับ ค่า fasting ตามนิยามต้องวัดหลังงดอาหารอย่างน้อย 8 ชม. ถ้าวัดหลังมื้อเพียง 5–6 ชม. ค่าอาจสูงกว่า fasting จริง และอาจนำไปสู่การเริ่ม insulin โดยไม่จำเป็น
+
+ข้อควรคำนึงสำหรับคนทำงานกะ
+- ยึด **ช่วงนอนหลัก** เป็นตัวกำหนด ไม่ใช่เวลานาฬิกา
+- ถ้าเริ่ม insulin ในภายหลัง NPH มักให้ก่อนช่วงนอนหลักเพื่อคุม fasting ซึ่งสำหรับเธอคือช่วงเช้า
+- การวัดใหม่ 3 วันไม่ทำให้ล่าช้ามาก ถ้ามีนัดติดตามที่ชัดเจน
+
+การตัดสินใจเริ่ม insulin ควรอิงค่าที่วัดถูกวิธีตามเป้า (ADA Standards of Care, 2024)
+
+[physician]
+ที่บอกว่า insulin เป็นอันดับแรก ส่วนหนึ่งเพราะ metformin ผ่านรก — ขอแยกให้ชัดครับ ข้อเท็จจริง: metformin ผ่านรกได้ ความไม่แน่นอน: ผลระยะยาวต่อเด็ก เพราะข้อมูล follow-up ยังน้อย ข้อจำกัดของหลักฐาน: trial ที่บอกว่า metformin ได้ผล perinatal ใกล้เคียง insulin มีผู้หญิงจำนวนไม่น้อยที่ต้องเติม insulin อยู่ดี ถ้าเธอปฏิเสธการฉีด metformin ยังเป็นทางเลือกที่ guideline ยอมรับไหม หรือผมอ่านเกินไป
+
+[assistant]
+การแยกแบบนี้ถูกต้องครับ และไม่ได้อ่านเกินไป
+
+- **ข้อเท็จจริง:** metformin และ glyburide ผ่านรก จึงไม่แนะนำเป็นยาอันดับแรกใน GDM (ADA Standards of Care, 2024)
+- **ความไม่แน่นอน:** ข้อมูลติดตามเด็กระยะยาวหลังได้ metformin ในครรภ์ยังมีจำกัด
+- **ข้อจำกัด:** ในการศึกษาที่เปรียบเทียบ metformin กับ insulin มีผู้หญิงส่วนหนึ่งที่ต้องเติม insulin เพื่อให้ถึงเป้า
+
+สำหรับผู้ป่วยที่ปฏิเสธ insulin หรือไม่สามารถใช้ insulin ได้อย่างปลอดภัย metformin เป็นทางเลือกที่ยอมรับได้หลังให้ข้อมูลเรื่องการผ่านรกและข้อมูลระยะยาวที่ยังจำกัด (ACOG, 2018)
+
+[physician]
+ถ้าวัดใหม่แล้ว fasting จริงยังเกิน ผมจะเริ่ม NPH ก่อนช่วงนอนหลัก — คำถามที่ตัดสินแผนจริงคือ: ที่ รพ.ชุมชน เราไม่มีอายุรแพทย์ต่อมไร้ท่อ ส่ง รพ.ศูนย์ ต้องเดินทาง 80 กม. ถ้าเริ่ม 0.1–0.2 unit/kg แล้ว titrate ทุก 3 วันทางโทรศัพท์ จะปลอดภัยพอไหม เทียบกับการ refer ที่เธออาจไปไม่ได้จริงเพราะต้องลางาน
+
+[assistant]
+การเริ่ม NPH ขนาดต่ำแล้ว titrate ตามค่า SMBG เป็นวิธีที่ใช้ได้ในระดับปฐมภูมิ ถ้ามีระบบติดตามที่ชัดเจนครับ
+
+ปัจจัยที่ทำให้ปลอดภัย
+- สอนการฉีด การวัดน้ำตาล และการจดบันทึกตามเวลาตื่นนอน
+- สอนอาการและการแก้ hypoglycemia ให้ทั้งผู้ป่วยและคนในบ้าน
+- กำหนดเกณฑ์ชัดเจนว่าค่าเท่าไรให้ปรับขนาด และค่าเท่าไรให้โทรกลับทันที
+- insulin ที่เปิดใช้แล้วเก็บที่อุณหภูมิห้องได้ประมาณ 4 สัปดาห์ แต่ต้องไม่ร้อนเกินกว่าที่ฉลากกำหนด ซึ่งต้องระวังในอากาศร้อน
+
+เป้าหมายการปรับขนาดยังคงอิงเป้าระดับน้ำตาลเดิม (ADA Standards of Care, 2024)
+
+[physician]
+ช่วยแย้งแผน titrate ทางโทรศัพท์ของผมหน่อยครับ — AI ไม่รู้ว่า รพ.เรามี pen หรือแค่ vial และไม่รู้ว่าเธออ่านขีดบน syringe ได้ไหม ส่วนนั้นผมเช็คเอง ขอแค่ failure mode ทางคลินิกที่ผมอาจมองข้าม
+
+[assistant]
+Failure mode ทางคลินิกที่ควรคิดไว้ครับ
+
+- **วันหยุดที่กลับไปนอนกลางคืน** — ช่วงนอนหลักเปลี่ยน ถ้าฉีด NPH ตามเวลานาฬิกาเดิม อาจเกิด hypoglycemia ในช่วงที่ไม่ได้กินอาหาร
+- **ความต้องการ insulin เพิ่มขึ้นตามอายุครรภ์** — ถ้า titrate ช้าเกิน ค่าอาจไม่ถึงเป้าจนใกล้คลอด
+- **การติดตามทารก** — GDM ที่ต้องใช้ยามีข้อบ่งชี้ antenatal surveillance และการวางแผนเวลาคลอด ซึ่งควรอยู่ในแผนตั้งแต่ตอนนี้ (ACOG, 2018)
+- **Hypoglycemia ขณะทำงานกะดึก** กับเครื่องจักร — ควรวัดก่อนเข้ากะและพกน้ำตาลติดตัว
+
+[physician]
+วันหยุดที่กลับไปนอนกลางคืน — ข้อนี้ผมไม่ได้คิดถึงเลย ผมจะให้ฉีดขนาดเดิมแต่ก่อนช่วงนอนหลักเสมอ ไม่ยึดนาฬิกา วัดน้ำตาลหลังตื่นทุกครั้ง ถ้ามีค่า <70 แม้ครั้งเดียวให้ลดลง 10–20% แล้วโทรหาผม และนัด NST/ultrasound ตามแนวทางเพราะใช้ยาแล้ว แผนสุดท้ายนี้ผมรับผิดชอบเองครับ
+
+[assistant]
+แผนนี้รัดกุมครับ การยึดช่วงนอนหลักแทนเวลานาฬิกาแก้ failure mode ที่สำคัญที่สุดของคนทำงานกะ และการลดขนาดเมื่อเกิด hypoglycemia เป็นหลักที่ปลอดภัย
+
+การวางแผน antenatal surveillance และการกำหนดเวลาคลอดตั้งแต่เริ่มยา สอดคล้องกับแนวทางสำหรับ GDM ที่ต้องใช้ยา (ACOG, 2018) ส่วนเป้าหมายระดับน้ำตาลยังเป็นตัวกำหนดการปรับขนาดต่อไป (ADA Standards of Care, 2024)
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+สิ่งที่เปลี่ยนในวิธีคิดผมคือ 'fasting' ของคนทำงานกะต้องนิยามจากช่วงนอนหลัก ไม่ใช่เวลา 8 โมง ถ้าไม่ถามเรื่องนี้ผมคงเริ่ม insulin จากค่าที่วัดผิดเวลา และฉีดตามนาฬิกาซึ่งเสี่ยง hypoglycemia ในวันหยุด เกณฑ์ 'เกินครึ่ง' ที่ผมตั้งเองก็ไม่ใช่ตัวเลขจาก guideline
+
+ความไม่แน่นอน / What remains uncertain:
+ผลระยะยาวของ metformin ต่อเด็กยังไม่ชัด ถ้าเธอปฏิเสธการฉีดผมต้องอธิบายความไม่แน่นอนนี้ตรงๆ และยังไม่รู้ว่าการ titrate ทางโทรศัพท์จะปลอดภัยจริงในบริบทเราแค่ไหน
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+จะเปิด ADA 2024 และ ACOG ฉบับเต็มเทียบเรื่องเป้าและ surveillance, ทำ protocol หนึ่งหน้าสำหรับหญิง GDM ที่ทำงานกะ (วัดตามช่วงนอนหลัก ฉีดก่อนนอนหลัก เกณฑ์โทรกลับ) แล้วสอนพยาบาล ANC ของเรา และจะทบทวนผู้ป่วย GDM ที่เริ่ม insulin ปีนี้ว่ามีกี่รายที่ค่า fasting วัดผิดช่วง
+
+######## EPISODE B19 ########
+[physician]
+หญิงในวัย 80 กว่า จากบ้านพักคนชรา ไข้ 38.6 สับสน BP 88/50 HR 118 lactate 3.8 UA WBC เต็ม CXR ไม่ชัด CKD eGFR 28, HFrEF EF 35% → urosepsis > pneumonia
+30 mL/kg เต็มใน EF 35% ให้หมด หรือ bolus 500 แล้ว reassess? อะไรเป็นตัวตัดสิน
+
+[assistant]
+เป็นคำถามที่สำคัญมากครับ
+
+- Surviving Sepsis แนะนำ crystalloid อย่างน้อย 30 mL/kg ภายใน 3 ชม. แรกใน sepsis-induced hypoperfusion (Surviving Sepsis Campaign, 2021)
+- ในผู้ป่วย HFrEF ควรให้เป็น bolus เล็กๆ และประเมินซ้ำทุกครั้งด้วย dynamic measures เช่น passive leg raise, capillary refill time, POCUS
+- เป้า MAP ≥ 65 mmHg และให้ antibiotic ภายใน 1 ชม.
+- ติดตาม lactate ซ้ำเพื่อดูการตอบสนอง
+
+❓ จะใช้สัญญาณอะไรบอกว่าถึงจุดที่ควรหยุดให้น้ำและเริ่ม vasopressor ครับ?
+
+[physician]
+30 mL/kg เป็น weak rec, low-quality evidence — รู้แน่: hypoperfusion ชัด ต้องให้น้ำ; ไม่แน่: ปริมาณที่เหมาะใน EF 35%; ข้อจำกัด: trial เบื้องหลังแทบไม่มี HFrEF รุนแรง
+แผน: 500 mL x2 ดู B-lines/IVC + CRT ทุก bolus ถ้า MAP < 65 หลัง 1 L หรือ B-lines ขึ้น → NE peripheral เลย
+รพ.ชุมชน ไม่มี ICU refer ราว 2 ชม. — peripheral NE ระหว่างรอปลอดภัยแค่ไหน
+
+[assistant]
+แผนนี้สมเหตุผลครับ
+
+- Surviving Sepsis แนะนำให้เริ่ม vasopressor ทาง peripheral line ได้ แทนการรอ central line เพื่อไม่ให้ล่าช้า (Surviving Sepsis Campaign, 2021)
+- ใช้ IV line ขนาดใหญ่ ตำแหน่งต้นแขน หลีกเลี่ยงข้อพับและหลังมือ
+- ตรวจตำแหน่งให้ยาบ่อยเพื่อดู extravasation และเตรียมแนวทางแก้ไขเมื่อรั่ว
+- ระยะเวลาที่ใช้อย่างปลอดภัยในข้อมูลส่วนใหญ่เป็นช่วงสั้นๆ ไม่กี่ชั่วโมง ซึ่งครอบคลุมช่วงรอ refer
+
+❓ ถ้าหลังเริ่ม norepinephrine แล้ว MAP ยังไม่ถึงเป้า ระหว่างรอ refer จะพิจารณาอะไรเพิ่มครับ?
+
+[physician]
+ATB: เคยมี ESBL E. coli ใน urine culture ครั้งก่อน, แพ้ penicillin แบบผื่น ไม่ใช่ anaphylaxis, eGFR 28 → ผมจะให้ ertapenem ปรับตามไต
+ช่วย argue against carbapenem empiric หน่อย antibiogram ของเราไม่มี และ AI ไม่รู้เชื้อใน รพ. เรา ผมตัดสินเอง
+
+[assistant]
+ข้อโต้แย้งต่อการใช้ carbapenem ครับ
+
+- เชื้อ ESBL ใน culture ครั้งก่อนอาจเป็น colonisation ไม่จำเป็นต้องเป็นเชื้อก่อโรคครั้งนี้
+- การใช้ carbapenem กว้างเกินจำเป็นเพิ่มแรงกดดันให้เกิด carbapenem-resistant organisms
+- ถ้าได้ผล culture ควร de-escalate ทันที
+
+ข้อสนับสนุน:
+- septic shock ที่มีความเสี่ยงเชื้อดื้อยา ควรให้ยาที่ครอบคลุมภายใน 1 ชม. แล้วค่อยปรับลด (Surviving Sepsis Campaign, 2021)
+- ประวัติแพ้ penicillin แบบผื่น มีโอกาสแพ้ข้ามกับ carbapenem ต่ำมาก
+- ertapenem ต้องลดขนาดเมื่อ eGFR < 30
+
+❓ จะเก็บ culture อะไรก่อนให้ยา โดยไม่ให้ antibiotic ล่าช้าครับ?
+
+[physician]
+ที่ว่าแพ้ข้ามกับ carbapenem ต่ำมาก มาจากคนที่แพ้แบบไหน? ถ้าเป็นคนที่บอกเองว่าแพ้ ใช้กับเคสนี้ได้ ถ้าเป็นคนที่ยืนยันแล้วว่าเป็น IgE-mediated ตัวเลขอาจต่างกัน แยกให้ด้วยว่าส่วนไหนรู้แน่ ส่วนไหนไม่แน่
+
+[assistant]
+แยกได้ดังนี้ครับ
+
+- **ที่ค่อนข้างแน่**: การแพ้ข้ามระหว่าง penicillin กับ carbapenem พบน้อย ทั้งในผู้ที่รายงานว่าแพ้ และในการศึกษาที่ทดสอบผิวหนังยืนยัน
+- **ที่ยังไม่แน่**: จำนวนผู้ที่ยืนยันว่าเป็น IgE-mediated ในการศึกษามีไม่มาก ช่วงความมั่นใจของตัวเลขจึงกว้าง และข้อมูลในผู้ที่เคยมีปฏิกิริยารุนแรงยังจำกัด
+- **สำหรับเคสนี้**: ประวัติผื่นที่ไม่ใช่ anaphylaxis เป็นกลุ่มเสี่ยงต่ำ การให้ ertapenem พร้อมเฝ้าระวังอาการแพ้จึงสมเหตุผล ไม่ควรเลื่อนยาใน septic shock (Surviving Sepsis Campaign, 2021)
+
+❓ ถ้าระหว่างให้ยาครั้งแรกมีผื่นขึ้น จะตัดสินใจหยุดหรือให้ต่ออย่างไรครับ?
+
+[physician]
+ญาติไม่ต้องการใส่ท่อช่วยหายใจถ้าแย่ลง แต่รับการรักษาอื่นทั้งหมด bundle ไม่ได้คิดเรื่อง goals of care ผมยังให้ NE และ refer เพราะ shock แก้ได้โดยไม่ต้องใส่ท่อ และ รพ.ศูนย์ ดูแล NE ได้ปลอดภัยกว่า แต่ต้องตกลงให้ชัดว่าปลายทางจะไม่ intubate
+
+[assistant]
+เห็นด้วยครับ การปฏิเสธการใส่ท่อช่วยหายใจไม่ได้แปลว่าปฏิเสธการรักษาอื่น
+
+- Surviving Sepsis แนะนำให้คุยเรื่องเป้าหมายการรักษากับผู้ป่วยและครอบครัวตั้งแต่เนิ่นๆ (Surviving Sepsis Campaign, 2021)
+- บันทึกขอบเขตการรักษาให้ชัด (ไม่ intubate แต่ให้ vasopressor และ antibiotic) และส่งต่อข้อมูลนี้ไปกับใบ refer
+- แจ้งญาติว่าถ้าอาการแย่ลงแม้ได้การรักษาเต็มที่แล้ว อาจต้องคุยเรื่องการดูแลแบบประคับประคองต่อ
+
+❓ ถ้าระหว่างเดินทาง refer ผู้ป่วยมีภาวะหายใจล้มเหลว ทีมที่ไปกับรถจะทำอะไรตามขอบเขตที่ตกลงไว้ครับ?
+
+[physician]
+สรุป plan: 500 mL x2 + POCUS, NE peripheral ถ้า MAP < 65, H/C x2 + urine C/S แล้ว ertapenem ปรับไต ภายใน 1 ชม., US ไตหา obstruction, คุยญาติ + บันทึกขอบเขต แล้ว refer มีอะไรที่ผมพลาดไหม
+
+[assistant]
+แผนครบในประเด็นหลักครับ เพิ่มเติมเล็กน้อย
+
+- **source control**: ถ้า US พบ hydronephrosis จาก obstruction ต้องระบายโดยเร็ว ควรแจ้ง รพ.ปลายทางล่วงหน้า (Surviving Sepsis Campaign, 2021)
+- **lactate ซ้ำ** ภายใน 2–4 ชม. เพื่อดูการตอบสนอง
+- **glucose** และ electrolyte โดยเฉพาะ K ในผู้ป่วย CKD
+- ทบทวนยาเดิม เช่น ยาความดันหรือยาขับปัสสาวะสำหรับหัวใจ ควรงดชั่วคราวระหว่าง shock
+
+❓ ยาเดิมของหัวใจตัวไหนที่จะงด และตัวไหนที่จะเริ่มกลับเมื่อ shock ดีขึ้นครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+เดิมผมให้ 30 mL/kg ทุกรายแบบอัตโนมัติ เคสนี้ทำให้เห็นว่าเป็น weak recommendation และใน EF ต่ำต้องให้ทีละ bolus แล้วประเมินด้วย POCUS ทุกครั้ง อีกเรื่องคือ peripheral NE เริ่มได้เลยระหว่างรอ refer ไม่ต้องรอ central line
+
+ความไม่แน่นอน / What remains uncertain:
+ปริมาณน้ำที่เหมาะสมใน HFrEF ยังไม่มีหลักฐานตรง และข้อมูลการแพ้ข้ามในคนที่ยืนยันว่าแพ้ penicillin แบบ IgE ยังมีน้อย
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+(1) audit เวลาจาก triage ถึง antibiotic ของผู้ป่วย sepsis ใน ER เรา 3 เดือนย้อนหลัง (2) ทำ protocol peripheral NE กับพยาบาล ER รวมวิธีจัดการ extravasation (3) ขอทีม lab ทำ antibiogram ของ รพ. เพราะวันนี้ตัดสินใจเรื่อง ESBL โดยไม่มีข้อมูลเชื้อในพื้นที่
+
+######## EPISODE B20 ########
+[physician]
+ขอถามเรื่อง CAP ในผู้สูงอายุครับ
+
+ข้อมูลที่มีตอนนี้: ผู้ป่วยหญิงวัย 70 กว่า มี DM ไข้ ไอมีเสมหะมา 3 วัน RR 22 BP 128/76 รู้ตัวดี ยังไม่ได้ผล BUN อยู่บ้านกับลูกสาว
+
+คำถาม: โดยทั่วไปต้องพิจารณาอะไรบ้างในการตัดสินใจ admit
+
+ข้อจำกัดที่อยากให้ระวัง:
+- AI ไม่ได้เห็นผู้ป่วยและไม่มี CXR จริง อย่าเดาค่า lab หรือผล film ที่ผมไม่ได้ให้
+- ถ้าข้อไหนต้องใช้ข้อมูลที่ยังขาด ให้บอกตรงๆ ว่าขาดอะไร
+- ใส่ reference ทุกข้อ ผมจะเปิด guideline ฉบับเต็มเทียบเอง
+- ตอบเป็นข้อๆ ไม่เกินครึ่งหน้า
+
+[assistant]
+ได้ครับ ตามข้อมูลที่ให้มาเท่านั้นนะครับ
+
+**เครื่องมือช่วยตัดสินใจ**
+- **CURB-65** — Confusion, Urea >7 mmol/L, RR ≥30, BP <90/≤60, อายุ ≥65 (Lim et al., 2003)
+  - จากข้อมูลตอนนี้ได้อย่างน้อย 1 คะแนนจากอายุ ไม่สับสน RR <30 BP ปกติ
+  - **ยังขาด Urea** จึงคำนวณให้ครบไม่ได้
+- ATS/IDSA แนะนำให้ใช้ **PSI** มากกว่า CURB-65 ในการตัดสินใจ site of care ร่วมกับดุลยพินิจทางคลินิก (Metlay et al., 2019)
+
+**ข้อมูลที่ยังขาดและมีผลต่อการตัดสินใจ**
+- SpO2 หรือ oxygen requirement
+- ผล CXR (multilobar, effusion)
+- ความสามารถในการกินยาและน้ำ, ระดับน้ำตาล
+- ใครดูแลที่บ้านได้จริงและกลับมาตรวจซ้ำได้หรือไม่
+
+ผู้ป่วยที่มี severe CAP criteria ควรพิจารณา ICU ส่วนรายที่ไม่รุนแรงและดูแลที่บ้านได้ สามารถรักษาแบบผู้ป่วยนอกได้ (Metlay et al., 2019)
+
+[physician]
+ผมว่า admit ไว้ก่อนแหละครับ ปลอดภัยกว่า
+
+ช่วยลองแย้งแผนนี้ให้หน่อยครับ ขอเหตุผลฝั่งที่ไม่ควร admit เป็นข้อๆ และในแต่ละข้อให้ระบุด้วยว่าเป็นคำแนะนำจาก guideline หรือเป็นความเห็นของ AI เอง จะได้รู้ว่าข้อไหนต้องไปตรวจต่อ
+
+[assistant]
+ได้ครับ เหตุผลฝั่งที่อาจไม่จำเป็นต้อง admit มีดังนี้ครับ
+
+- **[Guideline]** ผู้ป่วย CAP ที่ความเสี่ยงต่ำตามเครื่องมือประเมินและไม่มีเหตุผลอื่น สามารถรักษาแบบผู้ป่วยนอกได้ (Metlay et al., 2019)
+- **[Guideline]** CURB-65 0–1 คะแนนจัดเป็นกลุ่มความเสี่ยงต่ำ — แต่รายนี้ยังขาด Urea จึงยังสรุปไม่ได้ (Lim et al., 2003)
+- **[ความเห็น]** ผู้สูงอายุที่นอนโรงพยาบาลมีความเสี่ยง delirium, ล้ม, กล้ามเนื้ออ่อนแรงจากการนอนนาน และติดเชื้อในโรงพยาบาล
+- **[ความเห็น]** มีผู้ดูแลที่บ้าน อาจทำให้ติดตามอาการได้ ถ้ากลับมาตรวจซ้ำใน 48–72 ชม. ได้จริง
+
+ส่วนเหตุผลที่ยังควรระวังคือ DM อาจทำให้น้ำตาลแกว่งระหว่างติดเชื้อ และยังไม่มีค่า SpO2 ครับ การตัดสินใจขั้นสุดท้ายควรมาจากการประเมินข้างเตียง
+
+[physician]
+แน่ใจนะครับ ok ครับ
+
+แล้ว antibiotic สำหรับ CAP ที่ admit ให้ตัวไหนครับ ขอเงื่อนไขในการตอบดังนี้
+- ตอบตาม ATS/IDSA 2019 เท่านั้น ไม่เอาความเห็นทั่วไป
+- ถ้ายาตัวไหนอาจไม่มีใน รพ.ชุมชน ให้บอกตัวเลือกสำรองไว้ด้วย เดี๋ยวผมเช็คกับบัญชียาของ รพ. เองอีกที เพราะ AI ไม่รู้ว่าที่นี่มียาอะไรบ้าง
+- อย่าคำนวณ dose ตามไต เพราะผมยังไม่ได้ให้ค่า Cr ถ้าต้องปรับให้บอกแค่ว่าตัวไหนต้องปรับ
+- ถ้าข้อไหนไม่แน่ใจให้บอกว่าไม่แน่ใจ ไม่ต้องเดา
+
+[assistant]
+ตาม ATS/IDSA สำหรับผู้ป่วยใน ward ที่ไม่ใช่ severe CAP และไม่มี risk factor ของ MRSA หรือ Pseudomonas (Metlay et al., 2019)
+
+- **ตัวเลือกหลัก:** β-lactam ร่วมกับ macrolide เช่น ceftriaxone 1–2 g IV วันละครั้ง + azithromycin
+- **ตัวเลือกทดแทน:** respiratory fluoroquinolone เดี่ยว เช่น levofloxacin หรือ moxifloxacin
+- **ถ้าไม่มี azithromycin:** ใช้ doxycycline ร่วมกับ β-lactam ได้
+
+ข้อควรระวัง
+- ต้องปรับขนาดยาบางตัวตามการทำงานของไต ซึ่งยังไม่มีค่า Cr
+- fluoroquinolone ในผู้สูงอายุมีความเสี่ยง QT ยาวและเส้นเอ็นอักเสบ
+
+ขอให้ตรวจสอบรายการยากับบัญชียาของโรงพยาบาลตามที่ตั้งใจไว้ครับ
+
+[physician]
+ผมเทียบกับ guideline ฉบับเต็มแล้ว regimen ตรงกันครับ ส่วนจะ admit หรือไม่ ผมจะตัดสินเองที่ข้างเตียง ข้อความที่ได้จาก AI ผมจะไม่เอาไปใส่ chart ตรงๆ
+
+[assistant]
+เหมาะสมมากครับ การตรวจสอบกับ guideline ต้นฉบับและให้การตัดสินใจอยู่ที่แพทย์ผู้ดูแลเป็นแนวทางที่ถูกต้อง
+
+ประเด็นที่ยังรอข้อมูลก่อนตัดสินใจ site of care ได้แก่ Urea, SpO2, ผล CXR และความสามารถในการกินยา ซึ่งเป็นองค์ประกอบของการประเมินความรุนแรงตาม guideline (Metlay et al., 2019)
+
+ถ้าตัดสินใจรักษาแบบผู้ป่วยนอก ควรนัดประเมินซ้ำภายใน 48–72 ชม. และให้ญาติรู้อาการที่ต้องกลับมาทันที เช่น หอบมากขึ้น ซึม หรือกินไม่ได้
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ทบทวนเรื่อง CAP ครับ มีประโยชน์ดีครับ

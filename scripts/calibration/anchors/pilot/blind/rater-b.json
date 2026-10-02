@@ -1,0 +1,22 @@
+{"rater":"b","scores":{
+"B01":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":4,"note":"Distance changed drug choice; checked guideline and caught unsupported eGFR claim; synthesis with concrete actions."},
+"B02":{"d1":2,"d2":1,"d3":2,"d4":1,"d5":1,"d6":1,"d7":1,"note":"Generic questions, repeated HAS-BLED turn, no ranking, accepts everything, reflection generic."},
+"B03":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Guideline conflict spotted, solicited strongest case against, verifies source, reflection names changed default and next steps."},
+"B04":{"d1":4,"d2":4,"d3":5,"d4":3,"d5":4,"d6":3,"d7":3,"note":"Ranked drugs with reasons, context-driven alternatives; topic-hops past AI follow-ups; curt dose request; reflection lacks next action."},
+"B05":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":1,"d6":1,"d7":1,"note":"Textbook list requests, asks for chart-ready plan, restates AI summary, no appraisal or case reasoning."},
+"B06":{"d1":4,"d2":5,"d3":3,"d4":4,"d5":5,"d6":3,"d7":4,"note":"Committed time-to-benefit thresholds; corrected USPSTF, Beers, ADA overreach; no specific patient; reflection modest."},
+"B07":{"d1":3,"d2":2,"d3":4,"d4":4,"d5":2,"d6":1,"d7":3,"note":"Urine Na vs SIADH question good; travel burden changed plan; no own ranking; generic reflection."},
+"B08":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":3,"note":"No cath lab shaped troponin challenge; aspirin reversal justified; but pastes unreferenced AI-drafted note and order thresholds."},
+"B09":{"d1":2,"d2":1,"d3":1,"d4":1,"d5":1,"d6":1,"d7":1,"note":"Premature closure on one normal troponin, bed pressure drives discharge, demands one-word diagnosis and not-cardiac note."},
+"B10":{"d1":4,"d2":4,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Challenged ACOG target for fasting women; island logistics; asked AI to argue against; owns dosing; actionable synthesis."},
+"B11":{"d1":3,"d2":3,"d3":2,"d4":3,"d5":5,"d6":1,"d7":4,"note":"Repeatedly separated fact, uncertainty, limitation of AI claims; abrupt topic changes; no plan; generic reflection."},
+"B12":{"d1":4,"d2":3,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"No-procalcitonin setting drives questions; demanded guideline vs inference split, will verify; strong reflection with audit plan."},
+"B13":{"d1":2,"d2":3,"d3":1,"d4":2,"d5":1,"d6":1,"d7":2,"note":"Exam-review list requests; one reasoned 34-week timing statement; seeks confirmation only; slide-copy use; no reflection."},
+"B14":{"d1":3,"d2":4,"d3":3,"d4":4,"d5":4,"d6":3,"d7":3,"note":"Ranked reflex, orthostatic, cardiac with reorder triggers; probed SFSR validation; reflection case-grounded but no next action."},
+"B15":{"d1":2,"d2":3,"d3":2,"d4":2,"d5":2,"d6":2,"d7":2,"note":"Good ranked differential in turn two; later vague questions, capitulates on NSAID belief; reflection restates AI."},
+"B16":{"d1":4,"d2":4,"d3":3,"d4":4,"d5":5,"d6":4,"d7":4,"note":"Challenged Ottawa generalisability and septic-arthritis citation mismatch; ranked ACL first; rider job did not alter plan."},
+"B17":{"d1":5,"d2":5,"d3":5,"d4":4,"d5":4,"d6":4,"d7":4,"note":"Cirrhosis drove lorazepam and naltrexone choices; moved sepsis up on fever; ranked differential; asked dose provenance."},
+"B18":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Questioned fasting timing in night-shift worker, 70% probability with remeasure threshold; owns plan; rich reflection."},
+"B19":{"d1":4,"d2":5,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"Graded recommendation strength, HFrEF-specific fluid plan, challenged cross-allergy source, goals-of-care; audit actions."},
+"B20":{"d1":3,"d2":2,"d3":2,"d4":2,"d5":3,"d6":1,"d7":4,"note":"Strong constraints on AI and verified regimen against guideline; admit preference unjustified; generic reflection."}
+}}

@@ -409,7 +409,14 @@
         "d6": 1,
         "d7": 2
       },
-      "target_composite": 30
+      "target_composite": 30,
+      "excluded": {
+        "date": "2026-10-02",
+        "reason": "rewritten once (6827719) and still over-expressed by the round-2 blind panel (+22 > 15); §7.4: excluded and replaced",
+        "replaced_by": "anc-101",
+        "archived_fixture": "fixtures/excluded/anc-015.json",
+        "sha256": "2eddee89302094bc95cf951ddded155dde16954029a9776061f34b1ea082088e"
+      }
     },
     {
       "id": "anc-016",
@@ -2673,6 +2680,35 @@
         "d7": 4
       },
       "target_composite": 93
+    },
+    {
+      "id": "anc-101",
+      "pilot": true,
+      "language": "th",
+      "specialty": {
+        "key": "em",
+        "en": "Emergency Medicine",
+        "th": "เวชศาสตร์ฉุกเฉิน"
+      },
+      "case": "minor head injury on anticoagulation — CT decision",
+      "tutor_mode": "examiner",
+      "physician_turns": 4,
+      "reflection": "reflection_turn",
+      "profile": "dissociated",
+      "dissociated_domains": [
+        "d5"
+      ],
+      "targets": {
+        "d1": 1,
+        "d2": 0,
+        "d3": 2,
+        "d4": 0,
+        "d5": 5,
+        "d6": 1,
+        "d7": 2
+      },
+      "target_composite": 30,
+      "replaces": "anc-015"
     }
   ]
 }

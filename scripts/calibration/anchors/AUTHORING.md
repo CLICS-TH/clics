@@ -30,33 +30,32 @@ Sources this spec is grounded in, and which win where they differ:
 1. **Synthetic, no PII.** No names of patients, physicians, nurses or relatives (not even invented
    ones: the PII filter will mask them and the scored text would then differ from the fixture). No
    HN/AN, phone, ID number, date of birth, exact admission date, address, province, or named
-   hospital. Frame cases generically: `ผู้ป่วยชายอายุ 58 ปี`, `a 34-year-old woman, G2P1`,
-   `รพ.ชุมชนขนาด 30 เตียง`, `a district hospital without CT`. Ages, labs and vitals are fine.
+   hospital. Frame cases generically: `ผู้ป่วยชายในวัย 50 กว่า`, `a woman in her 30s, G2P1`,
+   `รพ.ชุมชนขนาด 30 เตียง`, `a district hospital without CT`. Labs and vitals are fine; ages need the
+   phrasing below.
    `validate.mjs` runs `rimpl/src/services/pii-filter.js` over every turn: any change is a failure.
    That rule is stricter than privacy needs, on purpose: every scoring path runs the same filter
    (`flattenForPrompt`), so a masked span is text the evaluator never sees, and an anchor whose
-   evidence was masked no longer expresses its target. The filter over-masks two things that are
-   everywhere in clinical Thai, so write around them:
+   evidence was masked no longer expresses its target.
 
-   | masked by production (do NOT write)                       | survives (write this instead)                         |
-   |-----------------------------------------------------------|-------------------------------------------------------|
-   | `อายุ 58`, `58 ปี`, `อายุ 58 ปี`, `เด็กอายุ 2 เดือน` → `[AGE-n]` | `ในวัย 50 กว่า`, `วัย 70`, `อายุมากกว่า 65`, `เด็ก 7 ขวบ`, `ผู้สูงอายุ` |
-   | `a 58-year-old`, `age 58`, `age 6 weeks`                  | `in his 50s`, `over 65`, `older than 65`, `6-week-old infant`, `2 months old` |
-   | `คุณ…` anywhere — `คุณคิดว่า`, `คุณหมอ`, `ขอบคุณครับ`, `ขอบพระคุณ` → `คุณ[NAME-n]` (swallows the rest of the clause) | drop the pronoun (Thai allows it), or `หมอ`, `ท่าน`; thanks as `thanks ครับ`, `ได้ความรู้มากครับ` |
+   The table below was **re-verified entry by entry with `stripPii` on 2026-10-02, after #114**
+   (which stopped the filter masking much clinical prose). Re-check it whenever pii-filter.js changes.
 
-   Other over-masks found while writing the pilot: `line <word>` reads as a LINE id
-   (`first-line drug therapy`, `joint line tenderness` → `[LINE-n]`); write `first choice`, `ยาตัวแรก`,
-   `tenderness along the joint`. `ต่างจังหวัด` and `รพ.สต.` are masked as addresses (`[ADDR-n]`);
-   write `บ้านอยู่ไกล`, `สถานีอนามัยใกล้บ้าน`. `เชื่อว่า`, `เชื่อมั่น`, `ช่วงความเชื่อมั่น` become
-   `[NAME-n]` (write `คิดว่า`, `95% CI`). English `ward …`, `toward …` and `ห้อง lab` become
-   `[WARD-n]` (write `on the medical floor`, `lab`). `รพ.จังหวัด`, `เครือข่ายจังหวัด` → `[ADDR-n]`
-   (write `รพ.แม่ข่าย`, `เครือข่ายส่งต่อ`). `คุณภาพ`, `คุณสมบัติ` hit the `คุณ` rule; `ชื่อยา X` masks X
-   as a name (and the shared registry then masks X in every later turn); `อายุ 65–74` and
-   `1 ปีที่ผ่านมา` hit AGE (`อายุตั้งแต่ 75 ขึ้นไป` is safe). When validate reports a hit, rephrase, and record any new
-   pattern here.
+   | still masked (do NOT write)                                      | survives (write this instead)                                   |
+   |------------------------------------------------------------------|-----------------------------------------------------------------|
+   | `อายุ 58`, `58 ปี`, `อายุ 58 ปี`, `อายุ 65–74`, `เด็กอายุ 2 เดือน`, `ทารกอายุ 6 สัปดาห์`, `อายุ 18 เดือน` → `[AGE-n]` | `ในวัย 50 กว่า`, `วัย 70`, `อายุมากกว่า 65`, `อายุตั้งแต่ 75 ขึ้นไป`, `เด็ก 7 ขวบ`, `ผู้สูงอายุ` |
+   | `a 58-year-old`, `a 34-year-old woman`, `age 58`, `age 6 weeks` → `[AGE-n]` | `in his 50s`, `a woman in her 30s`, `over 65`, `older than 65`, `6-week-old infant`, `2 months old` |
+   | **durations in years**: `เป็นเบาหวานมา 10 ปี`, `อาการ 3 ปี` → `อาการ [AGE-1]`, `1 ปีที่ผ่านมา` | `เป็น DM มานานกว่าสิบปี`, `ไม่ถึงสองสามปี`, `ช่วงสามถึงห้าปี` |
+   | **คุณ** + a following clause: `คุณคิดว่าอย่างไร`, `คุณจะทำอย่างไรต่อ`, `ถ้าคุณเป็นแพทย์`, `คุณสมบัติ`, and **ขอบคุณ** + a clause (`ขอบคุณที่ชี้ครับ`, `ขอบคุณสำหรับคำตอบครับ`) → `คุณ[NAME-n]` | drop the pronoun (Thai allows it), or `หมอ`, `ท่าน`; plain `ขอบคุณครับ`, `ขอบคุณมากครับ`, `คุณหมอ`, `คุณภาพ` now survive |
+   | `ห้อง lab` → `[WARD-n]`                                          | `lab`, `ส่ง lab`, `ห้องปฏิบัติการ`                                  |
 
-   Durations in years (`เป็นเบาหวานมา 10 ปี`) can trip the age pattern too — run validate and
-   rephrase (`เป็น DM มานานกว่าสิบปี`). `GA 34 wk`, `อายุครรภ์ 34 สัปดาห์`, labs and vitals are safe.
+   **Durations in years are masked as ages** (`อาการ 3 ปี` → `อาการ [AGE-1]`). Whether the filter
+   should mask ages at all is pending the IRB answer on age; until then, write durations in words.
+
+   **No longer masked after #114** (verified; usable again): `first-line`, `joint line tenderness`,
+   `ต่างจังหวัด`, `รพ.สต.`, `รพ.จังหวัด`, `เครือข่ายจังหวัด`, `เชื่อว่า`, `เชื่อมั่น`,
+   `ช่วงความเชื่อมั่น`, English `ward` / `toward`, `ชื่อยา X`. `GA 34 wk`, `อายุครรภ์ 34 สัปดาห์`, labs and
+   vitals were always safe. When validate reports a new hit, rephrase, and add the pattern to the table.
 2. **Blind.** Nothing in a fixture may hint at its target: no `d1`…`d7`, `PIS`, `rubric`, `domain`,
    `composite`, `anchor`, `synthetic`, level talk, or the domain names ("reasoning depth", "critical
    appraisal", "reflective synthesis"…). Clinical scores (HEART, CURB-65, Alvarado, CHA2DS2-VASc…) are
@@ -77,11 +76,13 @@ Sources this spec is grounded in, and which win where they differ:
    (the tutor prompts require it), and every citation must match `citations.mjs`. Do not invent a
    reference, a trial name, a statistic attributed to a paper, or a guideline year. If you are not
    sure, cite a broader source you are sure of, or add to `citations.mjs` only what you can name the
-   publisher and year of without looking it up.
+   publisher and year of without looking it up. A citation vouches only for the sentence it sits on:
+   never put one on a deliberately wrong statement (§5 d5, *planted claims*).
 6. **Clinically correct tutor content.** The tutor is the anti-sycophantic mentor of the real prompts:
    it corrects a physician's error with evidence, it does not invent facts. Physician turns may
    contain errors — that is how low reasoning levels are expressed — but the tutor must not endorse
-   them.
+   them. The **one exception** is a *planted claim* for the physician to appraise (§5 d5); it is
+   allowed only under the conditions listed there, and every one is recorded in `planted-claims.json`.
 
 ## 2. Who carries the signal
 
@@ -148,7 +149,8 @@ Tutor turns follow the design's `tutor_mode`, written in the style of
     not, listy or not — and then write the level inside that shape.
   - validate.mjs prints the full cue matrix and the per-fixture rubric-echo hits; read both before
     submitting a batch.
-  - **The pilot freeze.** The 20 pilot anchors predate this check and fail 6 gated pairs under it
+  - **The pilot freeze** *(lapsed 2026-10-02: nine pilot anchors were edited after the blind
+    diagnosis, see the §7 amendment, and the cohort now passes the gate without it)*. The 20 pilot anchors predate this check and fail 6 gated pairs under it
     (acks vs composite r = −0.71 and vs d5 −0.63; numerals vs composite +0.58 and vs d3 +0.52; list
     lines vs composite −0.53; rubric echo vs d5 +0.64). While they are being scored these are reported
     as known, not counted (`cues.mjs` `PILOT_FREEZE`). The freeze is keyed to the 20 pilot files'
@@ -264,6 +266,28 @@ quoted first in each block; levels 1, 2 and 4 interpolate it using the evaluator
   something real to appraise — a generalisation, a recommendation whose population differs from the
   patient — and the anti-sycophantic tutor then concedes or defends with evidence.)
 
+**Planted claims — how this squares with §1.5 and §1.6.** Something to appraise is best a TRUE
+statement stated without its limits (a trial result whose population differs from the patient). When
+an anchor needs a statement that is actually wrong, it is a *planted claim*, and all of these hold:
+1. it is an over-generalisation or a population mismatch (`ทุกราย`, "for everyone", a trial result
+   carried to a group it excluded) — never an invented fact, number, trial or reference;
+2. **no citation on its line.** A real citation may sit on a neighbouring true sentence, never on the
+   false one: putting `(ADA, 2024)` after "HbA1c < 7% for everyone" attributes an error to a real
+   guideline, which §1.5 forbids;
+3. a later tutor turn in the same transcript corrects it with evidence (the physician catches it, or
+   the tutor concedes), so no anchor ends with an uncorrected error;
+4. it is recorded in `planted-claims.json` (fixture, turn, verbatim text, kind, the turn that corrects
+   it). `validate.mjs` checks each entry against the fixture bytes and fails on a false claim with a
+   citation on its line. An inaccuracy found in a tutor turn AFTER the text was panel-rated is not
+   edited (that would change rated bytes); it is recorded there as kind `unplanted` instead (anc-101
+   turn 5: PCC is dosed by weight, not by agent and timing).
+
+Tutor turns in anchors are **authored text, not tutor output**. Any audit of the tutor's own quality
+(Phase 3, the Thai tutor audit) must exclude the anchor fixtures entirely, and `planted-claims.json`
+says which turns would be actively misleading if it did not. One legacy entry (anc-019 turn 5,
+"HbA1c < 7% for everyone (ADA, 2024)") predates rule 2 and is marked `legacy`; it was not edited
+because any edit changes bytes that were already scored.
+
 ### d6 Reflective Synthesis — *0 no reflection → 3 reasonable summary/reflection → 5 deep synthesis; names the next learning or action*
 - **0** No reflection and no summary anywhere (design `reflection: none`).
 - **1** Generic: "very useful, I learned a lot".
@@ -300,7 +324,9 @@ and still end by asking the tool to just write the order to copy (d7 low).
 4. Re-read as a rater: for every target of 4–5, can you quote the sentence? For every 0–2, can you
    point at the absence? Would a scorer give a different number to any domain? Fix the transcript,
    never the target.
-5. `node scripts/calibration/anchors/validate.mjs` — must pass. It also rewrites `manifest.json`.
+5. Any tutor statement written wrong or unqualified on purpose: follow the planted-claim rules (§5)
+   and add it to `planted-claims.json`.
+6. `node scripts/calibration/anchors/validate.mjs` — must pass. It also rewrites `manifest.json`.
 
 Never change `design.json` to fit a transcript. If a target vector cannot be written naturally,
 say so in the PR and leave the anchor unwritten.
@@ -327,7 +353,12 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
 4. **What a flag means.** A flagged anchor is first a question about the *anchor*, not the scorer. On
    the pilot (all 20 are tuning material) a flagged anchor may be rewritten **once**, re-validated
    (new sha256 in `manifest.json`) and re-scored; if it is flagged again it is excluded and replaced
-   from the design. Rewriting toward the AI's score is circular, so a rewrite must be justified from §5
+   from the design. *Mechanics (added 2026-10-02):* `design.mjs` `REPLACEMENTS` records each exclusion;
+   the excluded row stays in `design.json` marked `excluded` (date, reason, archive path, sha256), its
+   last fixture moves to `fixtures/excluded/` byte for byte, and a NEW id after the cohort (anc-101,
+   anc-102, …) copies its target vector, case slot and every other design attribute. The replacement
+   is a fresh anchor with the normal single-rewrite allowance. Excluded anchors are never scored,
+   counted or held out (`score-local`, `known-groups`, `anchor-split` skip them). Rewriting toward the AI's score is circular, so a rewrite must be justified from §5
    (the behaviour was genuinely missing or ambiguous), never from the AI's number.
 5. **Held-out discipline.** Before the full cohort is scored, a held-out split is reserved
    (`SPLIT-anchors.json`, seeded, same method as `scripts/probe/reserve-split.mjs`). Held-out anchors
@@ -350,6 +381,82 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
    not a decisive gate`. No result here is described as human agreement, and no "improved/declined"
    claim is made without its interval.
 
+### Amendment, 2026-10-02 — who decides that an anchor must be rewritten
+
+*Made after the first strict pilot run (`runs/pilot-local-strict-2026-10-02.json`) and its blind
+diagnosis (`pilot/blind/`, `PILOT-REPORT.md`), and **before any anchor was rewritten** on the strength
+of either.* **That ordering is self-attested, not provable from git:** this amendment and the five
+rewrites landed in the same commit (6827719), so the history cannot show which was written first.
+
+**This deviates from the pre-registered rule above.** §7.2 and §7.4 let the evaluator under test — the
+local model — decide which anchors are flagged and rewritten. That is circular: rewriting an anchor
+until the evaluator under test agrees with its target calibrates the cohort *to that evaluator*, and
+the known-groups statistic then measures how well the cohort was fitted to it rather than how well it
+reads behaviour. The pilot showed why it matters in practice: of the 7 locally flagged anchors (mean
+target 42, local 70), blind raters put most of the gap in the transcripts (blind mean about 63), so
+the local flag mixed an authoring problem with the evaluator's own offset.
+
+The rule from now on:
+
+1. **The rewrite decision is made by a blind rater panel that is independent of the evaluator under
+   test.** The panel is **two different models** (for example a Sonnet and an Opus subagent), each
+   scoring every anchor blind: shuffled labels, no targets, no ids, the `PIS7_EVALUATOR_PROMPT` rubric
+   text and the transcripts only (the `pilot/blind/` packet is the template). Two copies of the same
+   model are one rater, not two — the pilot's two Sonnet raters agreed at composite ICC 0.995.
+2. **An anchor is rewritten when |mean blind composite − target composite| > 15** (the same 15 points
+   as the pre-registered threshold, now applied to the panel). A rewrite is justified from §5 — the
+   behaviour was expressed at the wrong level — never from any evaluator's number. §7.4 is unchanged
+   by this amendment: one rewrite per anchor; an anchor still beyond the line after it is excluded
+   and replaced from the design.
+   **Scope: TUNING anchors only.** Held-out anchors get no panel-driven rewrite, exactly as they get
+   no evaluator-driven one (§7.5); their panel flags, like their evaluator flags, are reported as
+   results.
+   **The panel is not independent of Claude.** The panel is Claude-family (Sonnet + Opus), the anchors
+   are Claude-authored, and the incumbent production evaluator is `claude-sonnet-4-6`. A
+   panel-screened cohort is therefore fitted toward Claude's reading of the rubric, and any result
+   for a Sonnet arm carries that caveat. Whenever Sonnet is the scorer under test, a non-Claude panel
+   member is preferred. This is an **open item**: no non-Claude panel member has been run.
+3. **The local evaluator's flag rate is kept as a reported outcome, never as the acceptance criterion.**
+   §7.2's flag, §7.6's proceed rule and the known-groups statistics are still computed and reported
+   for every scored run.
+4. On the pilot, the only blind ratings were the two Sonnet raters — one rater in effect, so this
+   first selection fell short of item 1; the two-model panel applies from the re-score on. Their mean
+   puts **5 anchors** over the line: anc-015 (+28), anc-006 (+36),
+   anc-019 (+27), anc-014 (+24), anc-005 (+17). These five were rewritten. Four further pilot anchors
+   (anc-007, anc-010, anc-013, anc-016) received **wording-only** edits that replace rubric phrases
+   (the d5 triad, "argue against", "AI ไม่รู้") with behaviourally equivalent wording; their behaviour
+   and targets are unchanged. Without those edits the surface-cue gate cannot pass once the pilot
+   freeze lapses (rubric echo was concentrated in high anchors that no rewrite of the five could
+   offset). All nine need re-scoring by the panel and the local evaluator before any pilot figure is
+   recomputed.
+5. **Round 2 outcome (same day), and §7.4 applied as written.** A Sonnet + Opus panel rated all 20
+   pilot anchors after the rewrites. Two are beyond ±15: anc-015 (+22) and anc-012 (+21).
+   - **anc-015** had used its one rewrite, so under §7.4 it is **excluded and replaced**: a new anchor,
+     **anc-101**, at the same target vector and case slot (`design.mjs` `REPLACEMENTS`). The excluded
+     text is archived byte for byte at `fixtures/excluded/anc-015.json`, sha256 recorded in
+     `design.json`. anc-101 is a fresh anchor with the normal single-rewrite allowance.
+   - **anc-012** had had no rewrite, so under item 2 it is due its one: **rewritten**. If the panel
+     puts it beyond ±15 again, it is excluded and replaced the same way.
+   - Both go to the blind panel and the local evaluator before any pilot figure is recomputed.
+
+   An earlier draft of this item (2627c9b) kept both anchors without applying §7.4. That relaxed the
+   pre-registered rule after the panel's numbers were known; it is withdrawn. Sonnet and Opus are both
+   Claude and agree at composite ICC 0.968, so even this panel is not two independent raters (see the
+   Claude-family caveat under item 2). Human raters remain the decisive gate.
+6. **Round 3 (same day).** The panel rated anc-101 (first write) and the rewritten anc-012 among six
+   unchanged decoys. anc-012 lands at −1 and stays. anc-101 is at +20, so it uses its single rewrite
+   (§7.4); if the panel puts that rewrite beyond ±15, anc-101 is excluded and replaced like anc-015.
+   **Which round counts for a text:** a rule decision uses the round in which that text was *first*
+   rated by a two-model panel (Sonnet + Opus; round 1's two Sonnets were one rater, item 1). A later re-rating of identical text (a decoy) is a stability check, recorded but
+   never a rewrite trigger. This was decided after round 3 showed decoy anc-018 at +16 (+12 in round
+   2, text unchanged); it is written down here so it cannot be chosen again case by case.
+7. **Round 4 (same day).** anc-101's rewrite reads +14, so it stays. Its d7 still reads 1–2 levels
+   high. No panel rewrite is outstanding: 0 of 20 active pilot anchors are beyond ±15 on their deciding
+   round, so the pilot proceeds under §7.6. The excluded anc-015 is not one of the 20; counting it as a
+   failure gives 1 of 20, and the verdict is unchanged. Re-ratings of identical text drifted up to 10 composite
+   points between rounds, so verdicts near the line are noise-limited. `PILOT-REPORT.md` reports the
+   pooled Δ beside the deciding one, and that changes no decision.
+
 ## 8. Pipeline and commands
 
 | step | command | network |
@@ -360,7 +467,7 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
 | what would be sent | `node scripts/calibration/anchors/score-local.mjs --pilot --dry-run` | none |
 | score (local box) | `LOCAL_AI_BASE_URL=… LOCAL_AI_MODEL=… LOCAL_AI_API_KEY=… node scripts/calibration/anchors/score-local.mjs --pilot --repeats 3 --concurrency 2 --out scripts/calibration/anchors/runs/pilot-local-<date>.json` | local box only |
 | re-check a past run | `node scripts/calibration/anchors/revalidate.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json` (writes `….revalidated.json`; needs rimpl deps) | none |
-| analyse | `node scripts/calibration/anchors/known-groups.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json --pilot [--split tuning\|heldout] --out …-known-groups.json` | none |
+| analyse | `node scripts/calibration/anchors/known-groups.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json --pilot [--split tuning\|heldout] --out …-known-groups.json` (add `--include-excluded` only to reproduce a run made before a §7.4 exclusion) | none |
 
 `score-local.mjs` is local-only by construction: it never reads `ANTHROPIC_API_KEY`. It verifies
 every fixture's sha256 against `manifest.json` before sending, scores with production's decoding

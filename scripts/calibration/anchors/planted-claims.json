@@ -1,0 +1,129 @@
+{
+  "note": "Tutor-turn statements in the anchor fixtures that were WRITTEN WRONG ON PURPOSE, or written without their limits on purpose, so the physician has something to appraise (AUTHORING.md §5 d5 and the §1.5/§1.6 reconciliation). They are authored distractors, not tutor output: any audit of tutor quality (Phase 3) must exclude every anchor fixture, and above all these turns. kind: false = clinically wrong as stated; unqualified = true in its source population but stated without its limits; attribution = true, but placed under a citation that does not carry it; unplanted = NOT designed: an authoring inaccuracy found after the text was panel-rated, recorded instead of edited so the rated bytes stand (corrected_in_turn null). citation_on_claim: the line that carries the claim also carries a (Source, Year) citation; for kind false that is forbidden from 2026-10-02, and the one legacy instance is marked legacy. validate.mjs checks every entry against the fixture bytes.",
+  "claims": [
+    {
+      "file": "fixtures/anc-019.json",
+      "id": "anc-019",
+      "turn": 1,
+      "kind": "false",
+      "claim": "ดังนั้นควรหยุด statin ทุกรายที่อายุมากกว่า 75",
+      "citation_on_claim": false,
+      "corrected_in_turn": 9,
+      "note": "USPSTF 2022 says the evidence is insufficient to START a statin from 76; it does not advise stopping one. The citation sits on the previous bullet, which is true."
+    },
+    {
+      "file": "fixtures/anc-019.json",
+      "id": "anc-019",
+      "turn": 3,
+      "kind": "false",
+      "claim": "ผู้ที่กิน PPI นานทุกรายต้อง taper เสมอ ห้ามหยุดทันที",
+      "citation_on_claim": false,
+      "corrected_in_turn": 9,
+      "note": "Tapering reduces rebound symptoms; it is not a prohibition on stopping. Beers 2023 is cited on a different, true bullet."
+    },
+    {
+      "file": "fixtures/anc-019.json",
+      "id": "anc-019",
+      "turn": 5,
+      "kind": "false",
+      "claim": "เป้า HbA1c ควรต่ำกว่า 7% สำหรับทุกคน (ADA, 2024)",
+      "citation_on_claim": true,
+      "legacy": true,
+      "corrected_in_turn": 9,
+      "note": "LEGACY: written before the 2026-10-02 rule, with a real citation attached to the false part (ADA individualises targets; looser for complex older adults). Not edited here because any edit changes the bytes the panel and the local evaluator scored; fix it if anc-019 is ever touched again."
+    },
+    {
+      "file": "fixtures/anc-016.json",
+      "id": "anc-016",
+      "turn": 3,
+      "kind": "attribution",
+      "claim": "ความเสี่ยง hypocalcemia หลังฉีด denosumab สูงขึ้นเมื่อการทำงานของไตลดลง โดยเฉพาะ eGFR <30",
+      "citation_on_claim": false,
+      "corrected_in_turn": 9,
+      "note": "True, but the turn closes on (Endocrine Society, 2019), which does not carry the eGFR detail; the tutor says so in turn 9 when the physician checks."
+    },
+    {
+      "file": "fixtures/anc-011.json",
+      "id": "anc-011",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "Rule นี้มี sensitivity สูงมากสำหรับ fracture ที่มีนัยสำคัญ ถ้าไม่เข้าเกณฑ์ข้อใดเลยก็ไม่จำเป็นต้อง X-ray",
+      "citation_on_claim": false,
+      "corrected_in_turn": 5,
+      "note": "True in the derivation setting (adult ED, trained users); stated without that limit, which the tutor adds in turn 5."
+    },
+    {
+      "file": "fixtures/anc-101.json",
+      "id": "anc-101",
+      "turn": 1,
+      "kind": "false",
+      "claim": "ถ้า CT ครั้งแรกปกติ ความเสี่ยงเลือดออกช้าต่ำมาก ให้กลับบ้านได้เลยโดยไม่ต้องสังเกตอาการต่อ",
+      "citation_on_claim": false,
+      "corrected_in_turn": 7,
+      "note": "Delayed-bleed estimates come from small retrospective cohorts; NICE gives safety-netting and risk-based observation, not 'no observation'."
+    },
+    {
+      "file": "fixtures/anc-101.json",
+      "id": "anc-101",
+      "turn": 3,
+      "kind": "false",
+      "claim": "ดังนั้นผู้ที่กินยาต้านการแข็งตัวของเลือดทุกรายไม่จำเป็นต้อง bridge ก่อนผ่าตัดอีกต่อไป",
+      "citation_on_claim": false,
+      "corrected_in_turn": 7,
+      "note": "BRIDGE (Douketis 2015) studied AF on warfarin and excluded mechanical valves and recent thromboembolism; it cannot be extended to every indication."
+    },
+    {
+      "file": "fixtures/anc-101.json",
+      "id": "anc-101",
+      "turn": 5,
+      "kind": "false",
+      "claim": "ผู้ที่กิน apixaban แล้วหัวกระแทก ควรได้ยาแก้ฤทธิ์ทุกรายแม้ CT ปกติ เพื่อความปลอดภัย",
+      "citation_on_claim": false,
+      "corrected_in_turn": 7,
+      "note": "Reversal is for severe or life-threatening bleeding; nothing supports reversing every patient with a normal CT."
+    },
+    {
+      "file": "fixtures/excluded/anc-015.json",
+      "id": "anc-015",
+      "turn": 1,
+      "kind": "false",
+      "excluded": true,
+      "claim": "ถ้า CT ครั้งแรกปกติ ความเสี่ยงเลือดออกช้าต่ำมาก ให้กลับบ้านได้โดยไม่ต้องสังเกตอาการต่อ",
+      "citation_on_claim": false,
+      "corrected_in_turn": 7,
+      "note": "Excluded anchor (§7.4), archived. Same error as anc-101 turn 1."
+    },
+    {
+      "file": "fixtures/excluded/anc-015.json",
+      "id": "anc-015",
+      "turn": 3,
+      "kind": "false",
+      "excluded": true,
+      "claim": "ดังนั้นหลังหัวกระแทก ผู้ที่กิน DOAC ย่อมปลอดภัยกว่าผู้ที่กิน warfarin",
+      "citation_on_claim": false,
+      "corrected_in_turn": 7,
+      "note": "Excluded anchor (§7.4), archived. AF-trial spontaneous-bleeding data carried over to trauma."
+    },
+    {
+      "file": "fixtures/excluded/anc-015.json",
+      "id": "anc-015",
+      "turn": 5,
+      "kind": "false",
+      "excluded": true,
+      "claim": "ผู้ที่กิน warfarin และหัวกระแทก ควรให้ vitamin K ทุกรายแม้ CT ปกติ เพื่อความปลอดภัย",
+      "citation_on_claim": false,
+      "corrected_in_turn": 7,
+      "note": "Excluded anchor (§7.4), archived. Vitamin K is for major bleeding or a very high INR."
+    },
+    {
+      "file": "fixtures/anc-101.json",
+      "id": "anc-101",
+      "turn": 5,
+      "kind": "unplanted",
+      "claim": "ขนาดยาของทั้งสองตัวขึ้นกับชนิดและขนาด anti-Xa ที่กิน และเวลาที่กินมื้อสุดท้าย",
+      "citation_on_claim": false,
+      "corrected_in_turn": null,
+      "note": "Inaccurate for PCC: PCC for factor Xa inhibitor reversal is dosed by body weight, not by which anti-Xa agent, its dose and the time of the last dose (that applies to andexanet alfa). Found in the PR #115 final review after the panel rated these bytes; not edited, so the rated text stands. Exclude from any tutor audit."
+    }
+  ]
+}

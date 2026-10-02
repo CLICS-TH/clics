@@ -7,6 +7,9 @@
  *     --pilot   restrict the designed set to the 20 pilot anchors (so n_missing means something)
  *     --split tuning|heldout   restrict to one half of SPLIT-anchors.json; REQUIRED once that file
  *               exists (anchor-split.mjs). The pilot is tuning-only and never in held-out.
+ *     --include-excluded   REPRODUCE a historical run: analyse the design as it stood before any §7.4
+ *               replacement (excluded anchors back in, their replacements out). For the record only —
+ *               every decision uses the default, which drops excluded anchors.
  *
  * <scores.json> may be any of:
  *   - score-local.mjs output           {probe, model, prompt_version, rows:[{id, run, scores|null, …}]}
@@ -38,6 +41,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compositeOf, iccTwoRater } from '../../probe/agreement-stats.mjs';
 import { loadAnchorSplit, splitFilter } from './anchor-split.mjs';
+import { PILOT_FREEZE } from './cues.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const AUTHORING_PATH = path.join(HERE, 'AUTHORING.md');
@@ -163,12 +167,18 @@ const r3 = (v) => (v == null ? null : Math.round(v * 1000) / 1000);
  * @param {{threshold: number, onlyIds?: string[], pilotOnly?: boolean, allowedIds?: Set<string>|null,
  *          served?: Map<string, Set<string>>}} opts   allowedIds = a split filter (anchor-split.mjs)
  */
-export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = false, allowedIds = null, served = new Map() } = {}) {
+export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = false, allowedIds = null, served = new Map(), fixtureShas = null, includeExcluded = false } = {}) {
   if (!Number.isFinite(threshold)) throw new Error('knownGroups: a numeric pre-registered threshold is required');
   const wanted = onlyIds ? new Set(onlyIds.map((s) => s.toLowerCase())) : null;
-  const rows = design.anchors.filter((a) => (!wanted || wanted.has(a.id)) && (!pilotOnly || a.pilot)
+  // §7.4-excluded anchors are out of the cohort: never designed-for here, never counted. A scores file
+  // that still holds one (a run made before the exclusion) lists it under excluded_ids.
+  // includeExcluded reproduces a HISTORICAL run exactly: the design as it stood before any §7.4
+  // replacement (excluded anchors back in, their replacements out). Never use it for a decision.
+  const inCohort = (a) => (includeExcluded ? !a.replaces : !a.excluded);
+  const rows = design.anchors.filter((a) => inCohort(a) && (!wanted || wanted.has(a.id)) && (!pilotOnly || a.pilot)
     && (!allowedIds || allowedIds.has(a.id)));
   const unknownIds = [...runs.keys()].filter((id) => !design.anchors.some((a) => a.id === id));
+  const excludedIds = includeExcluded ? [] : [...runs.keys()].filter((id) => design.anchors.some((a) => a.id === id && a.excluded)).sort();
 
   const anchors = [];
   for (const a of rows) {
@@ -227,8 +237,16 @@ export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = fals
   // Known authoring artefacts that inflate a domain's agreement, carried WITH the number so it cannot
   // travel without them (AUTHORING.md §3, pilot freeze).
   const caveats = {};
-  const pilotIds = new Set(design.anchors.filter((a) => a.pilot).map((a) => a.id));
-  if (anchors.some((x) => pilotIds.has(x.id))) caveats.d5 = PILOT_D5_CAVEAT;
+  // The echo (r = 0.64) was measured on the ORIGINAL pilot texts (PILOT_FREEZE.fixtures). The caveat
+  // applies when the pilot anchors scored are those texts. A run that records which bytes it scored
+  // (score-local's `fixtures` map) is checked against them; once any pilot anchor has been rewritten,
+  // the echo is a property of a different set (validate.mjs gates it there) and the caveat is dropped.
+  // A scores file that does not say which bytes it scored is treated as the originals.
+  const originalPilot = (id) => !fixtureShas || fixtureShas[id] == null || fixtureShas[id] === PILOT_FREEZE.fixtures[id];
+  const pilotScored = anchors.filter((x) => PILOT_FREEZE.fixtures[x.id] != null);
+  // A §7.4 replacement (anc-101, …) is new text, so a run that scored one is not the original set either.
+  const scoredReplacement = anchors.some((x) => rows.find((a) => a.id === x.id)?.replaces);
+  if (pilotScored.length && !scoredReplacement && pilotScored.every((x) => originalPilot(x.id))) caveats.d5 = PILOT_D5_CAVEAT;
   return {
     evidence_level: EVIDENCE_LEVEL,
     caveats,
@@ -238,6 +256,8 @@ export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = fals
     n_scored: n,
     n_missing: rows.length - n,
     unknown_ids: unknownIds,
+    excluded_ids: excludedIds,
+    include_excluded: includeExcluded,
     composite: comp,
     per_domain: perDomain,
     flags: { n: flagged.length, ids: flagged.map((x) => x.id), rate: wilson(flagged.length, n) },
@@ -263,11 +283,12 @@ function print(rep, prov) {
   const ci = (o) => (o?.lower == null ? '' : ` [${f(o.lower, 3)}, ${f(o.upper, 3)}]`);
   console.log(`\nknown-groups validity — anchor cohort`);
   console.log(`  EVIDENCE LEVEL: ${rep.evidence_level}`);
+  if (rep.include_excluded) console.log('  --include-excluded: the design BEFORE §7.4 replacements (historical reproduction, not a decision)');
   const servedList = Object.entries(prov.served_models ?? {}).map(([m, k]) => `${m} ×${k}`).join(', ');
   console.log(`  served  ${servedList || '(no per-row model recorded)'}${prov.requested_model && servedList && !Object.keys(prov.served_models).every((m) => m === prov.requested_model) ? `  (requested ${prov.requested_model})` : ''}`);
   if (prov.revalidated) console.log(`  revalidated against ${prov.revalidated.contract}; ${prov.revalidated.not_revalidatable} row(s) could not be (no saved reply)`);
   console.log(`  prompt  ${prov.prompt_version ?? '(not recorded)'} · rubric ${prov.rubric_version ?? '(not recorded)'}`);
-  console.log(`  n scored ${rep.n_scored} of ${rep.n_designed} designed  (missing ${rep.n_missing}${rep.unscored ? `, ${rep.unscored} unscored rows` : ''}${rep.unknown_ids.length ? `, ignored unknown ids ${rep.unknown_ids.join(',')}` : ''})`);
+  console.log(`  n scored ${rep.n_scored} of ${rep.n_designed} designed  (missing ${rep.n_missing}${rep.unscored ? `, ${rep.unscored} unscored rows` : ''}${rep.unknown_ids.length ? `, ignored unknown ids ${rep.unknown_ids.join(',')}` : ''}${rep.excluded_ids?.length ? `, ignored §7.4-excluded ${rep.excluded_ids.join(',')}` : ''})`);
   console.log(`\n  composite (AI vs target, weighted 0-100)`);
   console.log(`    ICC(A,1) ${f(rep.composite.icc?.icc, 3)}${ci(rep.composite.icc)}  ${rep.composite.icc?.interpretation ?? ''}`);
   console.log(`    Spearman ρ ${f(rep.composite.spearman.rho, 3)}${ci(rep.composite.spearman)}   bias ${f(rep.composite.bias)}   mean |Δ| ${f(rep.composite.mean_abs_delta)}`);
@@ -300,17 +321,20 @@ if (isMain) {
   const arg = (k, d = null) => { const i = argv.indexOf(`--${k}`); return i > -1 ? argv[i + 1] : d; };
   const VALUE_FLAGS = new Set(['--arm', '--only', '--design', '--out', '--split']);
   const file = argv.find((a, i) => !a.startsWith('--') && !(i > 0 && VALUE_FLAGS.has(argv[i - 1])));
-  if (!file) { console.error('usage: known-groups.mjs <scores.json> [--pilot] [--split tuning|heldout] [--arm local|cloud] [--only anc-001,…] [--design design.json] [--out report.json]'); process.exit(2); }
+  if (!file) { console.error('usage: known-groups.mjs <scores.json> [--pilot] [--include-excluded] [--split tuning|heldout] [--arm local|cloud] [--only anc-001,…] [--design design.json] [--out report.json]'); process.exit(2); }
   const arm = arg('arm', 'local');
   if (!['local', 'cloud'].includes(arm)) { console.error('--arm must be local or cloud'); process.exit(2); }
   const design = JSON.parse(await readFile(path.resolve(arg('design', DESIGN_PATH)), 'utf8'));
-  const { runs, unscored, provenance, served } = normaliseScores(JSON.parse(await readFile(path.resolve(file), 'utf8')), { arm });
+  const doc = JSON.parse(await readFile(path.resolve(file), 'utf8'));
+  const { runs, unscored, provenance, served } = normaliseScores(doc, { arm });
   const threshold = await loadThreshold();
   const only = arg('only') ? String(arg('only')).split(',').map((s) => s.trim()).filter(Boolean) : null;
   let allowedIds;
   try { allowedIds = splitFilter(design, await loadAnchorSplit(), arg('split')); }
   catch (e) { console.error(`✖ ${e.message}`); process.exit(2); }
-  const rep = { ...knownGroups(design, runs, { threshold, onlyIds: only, pilotOnly: argv.includes('--pilot'), allowedIds, served }),
+  const fixtureShas = doc && !Array.isArray(doc) && doc.fixtures && typeof doc.fixtures === 'object' ? doc.fixtures : null;
+  const includeExcluded = argv.includes('--include-excluded');
+  const rep = { ...knownGroups(design, runs, { threshold, onlyIds: only, pilotOnly: argv.includes('--pilot'), allowedIds, served, fixtureShas, includeExcluded }),
     unscored, source: path.basename(file), arm, split: arg('split'), provenance };
   print(rep, provenance);
   const out = arg('out');

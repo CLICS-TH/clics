@@ -1,0 +1,8 @@
+{"rater":"opus","scores":{
+"G01":{"d1":5,"d2":4,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Commits denosumab, splits known/unknown/limits, checks the cited guideline, 60km distance shapes rebound plan, concrete reflection"},
+"G02":{"d1":2,"d2":1,"d3":1,"d4":2,"d5":5,"d6":2,"d7":3,"note":"Rich data unused, topic-hops, ignores AI questions; final turn sharply grades evidence and flags three overclaims"},
+"G03":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":0,"d6":1,"d7":1,"note":"Templated overview and list requests, patient never reasoned about, asks for a plan to copy into chart"},
+"G04":{"d1":2,"d2":2,"d3":0,"d4":1,"d5":1,"d6":1,"d7":1,"note":"Textbook topic list with no patient; one justified timing check at 34 weeks; copies output to slides"},
+"G05":{"d1":4,"d2":3,"d3":3,"d4":4,"d5":2,"d6":1,"d7":3,"note":"Sharp thiazide-vs-SIADH urine Na question, access limits reshape recheck; asks for guideline; generic reflection"},
+"G06":{"d1":5,"d2":4,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Fasting/island context drives insulin choice, accepts NPH challenge, solicits counterargument, verifies storage, owns dosing"}
+}}

@@ -147,6 +147,13 @@ export function cueCheck(entries) {
   return { n, rule: CUE_RULE, matrix, failures };
 }
 
+// STATUS (2026-10-02): LAPSED. Nine pilot anchors were edited after the blind diagnosis (AUTHORING.md
+// §7 amendment), so freezeApplies() is false and every gated pair counts; the cohort passes the gate
+// on its own. The record below is kept because known-groups.mjs uses PILOT_FREEZE.fixtures to tell a
+// run scored on the ORIGINAL pilot texts (which carries the d5 rubric-echo caveat) from a later one.
+// It names the ORIGINAL pilot ids, so it still lists anc-015 (excluded under §7.4) and never anc-101
+// (its replacement): it records bytes that existed at 359df39, nothing later.
+//
 // THE PILOT FREEZE. The 20 pilot anchors were written before this check existed and are being scored
 // as they stand, so they cannot be rewritten until the scores are back (PR #111 review). On the pilot
 // alone the check finds exactly these failing pairs; they are reported as KNOWN, not counted. Anything
