@@ -1181,3 +1181,37 @@ describe('score-local --addendum-file', () => {
     } finally { await rm(dir, { recursive: true, force: true }); }
   });
 });
+
+describe('addendum-compare (plan 2.6 adoption rule)', async () => {
+  const { adoption, mergeArm, RULE } = await import('./addendum-compare.mjs');
+  const arm = (o) => ({ low: { bias: 25 }, high: { bias: -2 }, icc: { icc: 0.6 }, spearman: { rho: 0.8 }, retest: { icc: 0.9 }, unscored_rows: 0, ...o });
+
+  test('the thresholds are the ones written in AUTHORING.md item 21', async () => {
+    const md = await readFile(path.join(HERE, 'AUTHORING.md'), 'utf8');
+    const item = md.slice(md.indexOf('21. **Plan 2.6'), md.indexOf('## 8. Pipeline'));
+    assert.match(item, new RegExp(`falls by \\*\\*at least ${RULE.lowBiasDropMin}\\*\\*`));
+    assert.match(item, new RegExp(`\\*\\*${RULE.highBiasMax} or less\\*\\*`));
+    assert.match(item, new RegExp(`no more than ${RULE.spearmanDropMax}`));
+    assert.match(item, new RegExp(`\\*\\*${RULE.retestMin} or more\\*\\*`));
+    assert.match(item, new RegExp(`At most \\*\\*${RULE.maxVariants}\\*\\*`));
+  });
+
+  test('adopts only when all five conditions hold', () => {
+    assert.equal(adoption(arm(), arm({ low: { bias: 10 }, icc: { icc: 0.7 } })).adopt, true);
+    assert.equal(adoption(arm(), arm({ low: { bias: 16 }, icc: { icc: 0.7 } })).adopt, false);     // drop 9 < 10
+    assert.equal(adoption(arm(), arm({ low: { bias: -12 }, icc: { icc: 0.7 } })).adopt, true);     // |bias| counts
+    assert.equal(adoption(arm(), arm({ low: { bias: 10 }, icc: { icc: 0.6 } })).adopt, false);     // ICC not higher
+    assert.equal(adoption(arm(), arm({ low: { bias: 10 }, icc: { icc: 0.7 }, high: { bias: -8 } })).adopt, false);
+    assert.equal(adoption(arm(), arm({ low: { bias: 10 }, icc: { icc: 0.7 }, spearman: { rho: 0.74 } })).adopt, false);
+    assert.equal(adoption(arm(), arm({ low: { bias: 10 }, icc: { icc: 0.7 }, retest: { icc: 0.84 } })).adopt, false);
+    assert.equal(adoption(arm(), arm({ low: { bias: 10 }, icc: { icc: 0.7 }, unscored_rows: 1 })).adopt, false);
+  });
+
+  test('refuses to merge report files that disagree on prompt, or score one run twice', () => {
+    const doc = (o) => ({ model: 'm', prompt_version_used: 'p', rubric_version: 'r', fixtures: { 'anc-001': 'a' }, rows: [{ id: 'anc-001', run: 1 }], ...o });
+    assert.throws(() => mergeArm([doc(), doc({ prompt_version_used: 'q', rows: [] })], 'x'), /prompt_version_used/);
+    assert.throws(() => mergeArm([doc(), doc()], 'x'), /appears twice/);
+    assert.throws(() => mergeArm([doc(), doc({ fixtures: { 'anc-001': 'b' }, rows: [] })], 'x'), /two different texts/);
+    assert.equal(mergeArm([doc(), doc({ fixtures: {}, rows: [{ id: 'anc-001', run: 2 }] })], 'x').rows.length, 2);
+  });
+});
