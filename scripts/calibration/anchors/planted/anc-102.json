@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-102.json",
+      "id": "anc-102",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "A CURB-65 of 0 or 1 means home treatment is appropriate.",
+      "citation_on_claim": false,
+      "corrected_in_turn": 3,
+      "note": "CURB-65 0-1 home-treatment rule stated without limits (frailty, living alone, oral intake, comorbidity); turn 3 concedes and cites ATS/IDSA 2019 that scores support, not replace, judgment."
+    }
+  ]
+}
