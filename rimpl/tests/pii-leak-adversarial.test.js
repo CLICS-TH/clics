@@ -421,7 +421,11 @@ describe('adversarial — pathological repetitions cannot crash or stall the fil
   // Second review of PR #114: each resume re-matched the rest of the glued run, so n nested anchors cost
   // O(n^2) — 'คุณ' x 100000 took 1.28 s (7.5 s cold here) vs 3.7 ms on master, reachable through an
   // anonymous guest's history. Runs longer than SHIELD_MAX_RUN now take master's linear path, and runs
-  // under it are bounded per run. Master-sized budget: 100 ms.
+  // under it are bounded per run.
+  // Budget: 500 ms. It is sized against the REGRESSION, not against master's speed: the quadratic
+  // version took 1260–7500 ms cold on these exact inputs, while the fixed filter takes ~5–50 ms locally
+  // and ~2x that on CI, where jest runs with --coverage instrumentation. A 100 ms budget flaked on CI
+  // (102 ms, 2026-10-02) without catching anything a 500 ms budget would miss.
   test.each([
     ["'คุณ'.repeat(100000)"], ["'คุณจะ'.repeat(40000)"], ["'ชื่อยาที่'.repeat(20000)"],
     ["('คุณ'.repeat(85) + ' ').repeat(400)"], // every run just under the bound: still linear
@@ -432,7 +436,7 @@ describe('adversarial — pathological repetitions cannot crash or stall the fil
       stripPii(s);
       process.stdout.write(String(Number(process.hrtime.bigint() - t) / 1e6));`;
     const ms = Number(execFileSync(process.execPath, ['-e', code], { encoding: 'utf8' }));
-    expect(ms).toBeLessThan(100);
+    expect(ms).toBeLessThan(500);
   });
 });
 
