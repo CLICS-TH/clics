@@ -717,6 +717,26 @@ The rule from now on:
 | score (local box) | `LOCAL_AI_BASE_URL=… LOCAL_AI_MODEL=… LOCAL_AI_API_KEY=… node scripts/calibration/anchors/score-local.mjs --pilot --repeats 3 --concurrency 2 --out scripts/calibration/anchors/runs/pilot-local-<date>.json` | local box only |
 | re-check a past run | `node scripts/calibration/anchors/revalidate.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json` (writes `….revalidated.json`; needs rimpl deps) | none |
 | analyse | `node scripts/calibration/anchors/known-groups.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json --pilot [--split tuning\|heldout] --out …-known-groups.json` (add `--include-excluded` only to reproduce a run made before a §7.4 exclusion) | none |
+| plan the SANDBOX import | `node scripts/calibration/anchors/import-sandbox.mjs --physician-id <sandbox physician uuid> --council-id <SANDBOX council uuid> [--split heldout\|tuning\|all] [--only …]` (dry run, the default: prints every row and the counts, contacts no database) | none |
+| import into SANDBOX | the same plus `--confirm [--manifest-out …]` (service role from `backend/.env`; refuses unless the council is SANDBOX and the physician belongs to it; existing ids are skipped; manifest defaults to the gitignored `anchors/imports/sandbox-<split>.json`) | database |
+| plan / attach local scores | `node scripts/calibration/anchors/import-shadow.mjs scripts/calibration/anchors/runs/heldout-local-2026-10-02-merged.json --manifest scripts/calibration/anchors/imports/sandbox-heldout.json` (dry run; add `--confirm` to write `shadow_evaluations`: per-domain median of the K runs, `provider` local) | none / database |
+| local vs auditor | `cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/calibration/three-way.js --include-test --manifest ../scripts/calibration/anchors/imports/sandbox-heldout.json` → section "Local vs Auditor (no Claude row required)" | database (read-only) |
+| undo an import | `node scripts/calibration/anchors/import-sandbox.mjs --rollback scripts/calibration/anchors/imports/sandbox-heldout.json` (dry run; `--confirm` deletes exactly those PLEs; refused while auditor scores or discussions exist unless `--force-export-first` saves them to a local file) | none / database |
+
+**After an import, three steps stay with a human superadmin, and no script here takes them.** The
+imported PLEs land `status='evaluated'` but `privacy_review_status='pending'` and unassigned, so while
+the privacy gate is on (`privacy_review_required=1`) they can be neither assigned nor queued
+(`backend/src/routes/admin.js` assign, `backend/src/routes/auditor.js` queue). Someone must (1) read and clear each one through
+the privacy review (`POST /admin/ples/:id/privacy-review`), (2) assign the auditors
+(`audit_assignments`, via the admin UI — `specialty_id` is NULL, so an admin pinned to one SBX
+specialty does not see them; assign as superadmin), and (3) set `calibration_reveal_locked=1` before the
+first auditor opens one. The importer never writes `ai_evaluations` (the local scores go to the
+never-shown `shadow_evaluations`), never calls a model, and never touches a council other than SANDBOX.
+Do not press **Re-evaluate** on these PLEs: `POST /admin/ples/:id/reevaluate` accepts an evaluated PLE
+with no AI row and would queue a real evaluation. A reflection turn becomes a `ple_reflections` row only
+when it round-trips byte-for-byte through production's rendering (`reflection.js` `asTranscriptTurn`);
+every reflection turn in the cohort does. Anchors with no reflection turn (`in_chat` or `none` by
+design: 30 of 100, 20 of the 60 held-out) get no row, and the importer lists them.
 
 `score-local.mjs` is local-only by construction: it never reads `ANTHROPIC_API_KEY`. It verifies
 every fixture's sha256 against `manifest.json` before sending, scores with production's decoding

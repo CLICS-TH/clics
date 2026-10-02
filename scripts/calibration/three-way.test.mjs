@@ -29,7 +29,7 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, readdirSync, readFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -46,7 +46,8 @@ after(() => { rmSync(runsDir, { recursive: true, force: true }); });
 function run(args = [], { db = 'two-candidates.json' } = {}) {
   const env = {
     ...process.env,
-    MOCK_DB: path.join(FIX, db),
+    // resolve, not join: an absolute path (an in-memory DB written to a temp file) must win.
+    MOCK_DB: path.resolve(FIX, db),
     NODE_PATH: path.join(FIX, 'stub-modules'),
     THREE_WAY_RUNS_DIR: runsDir,
     SUPABASE_URL: 'http://fixture.invalid',
@@ -195,4 +196,86 @@ describe('scoping flags fail closed', () => {
       assert.equal(r.status, 1, `expected exit 1, got ${r.status}. stdout:\n${r.stdout}`);
     });
   }
+});
+
+describe('local-vs-auditor with no Claude row required (anchor PLEs)', () => {
+  // Built in memory: the anchors imported into SANDBOX carry auditor + shadow scores and, on
+  // purpose, NO ai_evaluations row. The three-arm cohort (all three present) can never contain
+  // them, so before this section local-vs-auditor on the anchors was uncomputable.
+  const D = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
+  const vec = (base, i) => Object.fromEntries(D.map((d, k) => [d, Math.max(0, Math.min(5, base + ((i + k) % 3) - 1))]));
+  const comp = (v) => D.reduce((s, d) => s + v[d], 0) * 20 / 7;
+  function makeDb({ claudeOn = [] } = {}) {
+    const db = { ples: [], ai_evaluations: [], audit_scores: [], shadow_evaluations: [],
+      professionals: [{ id: 'ph1', pseudonym: 'P-001' }, { id: 'aud-1', pseudonym: 'P-101', exp_code: 'EXP-R1' }] };
+    for (let i = 0; i < 8; i++) {
+      const id = `a${i}`;
+      const base = 1 + (i % 4);
+      const human = vec(base, i);
+      const local = vec(Math.min(5, base + (i % 2)), i + 1);
+      db.ples.push({ id, is_test: false, physician_id: 'ph1' });
+      db.audit_scores.push({ id: `au-${id}`, ple_id: id, auditor_id: 'aud-1', composite_score: comp(human), ...human });
+      db.shadow_evaluations.push({ id: `sh-${id}`, ple_id: id, provider: 'local', model_version: 'CCME_LLM_v8.0+m',
+        evaluated_at: '2026-10-02T10:00:00Z', error: null, stop_reason: null, composite_score: comp(local), ...local });
+      if (claudeOn.includes(id)) {
+        db.ai_evaluations.push({ id: `ai-${id}`, ple_id: id, composite_score: comp(local), ...local, prompt_version: 'p1', model_version: 'CCME_LLM_v8.0' });
+      }
+    }
+    return db;
+  }
+  let dbDir;
+  before(() => { dbDir = mkdtempSync(path.join(tmpdir(), 'three-way-db-')); });
+  after(() => { rmSync(dbDir, { recursive: true, force: true }); });
+  const runOn = (db, name, args = []) => {
+    const file = path.join(dbDir, `${name}.json`);
+    writeFileSync(file, JSON.stringify(db));
+    return run(args, { db: file });
+  };
+
+  test('with NO ai_evaluations at all: the three arms behave as before, the new section measures all 8', () => {
+    const r = runOn(makeDb(), 'no-claude');
+    assert.equal(r.status, 0, r.stderr);
+    const a = latestArchive();
+    // Unchanged: no Claude row -> no common cohort -> shadow arms unavailable.
+    assert.equal(a.arms.shadow_vs_human, null);
+    assert.equal(a.coverage.ples_all_three, 0);
+    assert.equal(a.common_cohort_n, 0);
+    // The new, separately labelled section with its own n.
+    assert.match(r.stdout, /ARM\s+Local vs Auditor \(no Claude row required\)/);
+    assert.match(r.stdout, /8 PLEs with a Local and an auditor score \(8 of them have no Claude row\)/);
+    assert.equal(a.local_vs_auditor_no_claude.n, 8);
+    assert.equal(a.local_vs_auditor_no_claude.ples_without_claude, 8);
+    assert.equal(a.local_vs_auditor_no_claude.arm.n, 8);
+    assert.equal(typeof a.local_vs_auditor_no_claude.arm.overall.icc, 'number');
+    // Not an acceptance input: the gate still has no local-vs-auditor ICC to read.
+    assert.equal(a.acceptance.local_vs_human_icc, null);
+  });
+
+  test('with Claude on some PLEs: the common-cohort arm keeps its n, the new section counts every shadow+auditor PLE', () => {
+    const r = runOn(makeDb({ claudeOn: ['a0', 'a1', 'a2'] }), 'some-claude');
+    assert.equal(r.status, 0, r.stderr);
+    const a = latestArchive();
+    assert.equal(a.arms.shadow_vs_human.n, 3);
+    assert.equal(a.common_cohort_n, 3);
+    assert.equal(a.local_vs_auditor_no_claude.n, 8);
+    assert.equal(a.local_vs_auditor_no_claude.ples_without_claude, 5);
+  });
+
+  test('it respects --manifest like every other arm', () => {
+    const man = path.join(dbDir, 'man.json');
+    writeFileSync(man, JSON.stringify({ ple_ids: ['a0', 'a1', 'a2', 'a3'] }));
+    const r = runOn(makeDb(), 'scoped', ['--manifest', man]);
+    assert.equal(r.status, 0, r.stderr);
+    assert.equal(latestArchive().local_vs_auditor_no_claude.n, 4);
+  });
+
+  test('without a shadow table the section reports unavailable, not a number', () => {
+    const db = makeDb();
+    delete db.shadow_evaluations;
+    const r = runOn(db, 'no-shadow-table');
+    assert.equal(r.status, 0, r.stderr);
+    const a = latestArchive();
+    assert.equal(a.local_vs_auditor_no_claude.n, 0);
+    assert.equal(a.local_vs_auditor_no_claude.arm, null);
+  });
 });
