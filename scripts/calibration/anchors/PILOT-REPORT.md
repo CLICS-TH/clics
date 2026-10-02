@@ -198,12 +198,69 @@ Beyond ±15 of target, by rater (`analyse2.mjs` prints this):
     to the tool, asks for hold numbers to paste into an order, then overrides the tutor's "check these
     first" and copies the whole note into the chart unread.
 
+## Round 3 — blind panel on the two changed anchors, among decoys
+
+| | |
+|---|---|
+| Texts | anc-101 (first write, sha `b7dd555b…`) and the rewritten anc-012 (sha `2c0fa94a…`), shuffled F01–F08 among six **unchanged** decoys (anc-002, 004, 009, 011, 018, 020) |
+| Panel | one Sonnet and one Opus subagent, same rubric text as rounds 1–2 (`pilot/panel-3/rubric.txt`), no targets or ids; isolation as stated at the top |
+| Analysis | `node scripts/calibration/anchors/pilot/panel-3/analyse3.mjs` (n = 8, so no ICC is computed) |
+
+| anchor | target | Sonnet | Opus | panel | Δ |
+|---|---|---|---|---|---|
+| **anc-012** (rewritten) | 74 | 73 | 73 | 73 | −1 |
+| **anc-101** (new) | 30 | 53 | 46 | 50 | **+20** |
+| anc-002 | 45 | 54 | 44 | 49 | +4 |
+| anc-004 | 62 | 73 | 77 | 75 | +13 |
+| anc-009 | 38 | 28 | 20 | 24 | −14 |
+| anc-011 | 70 | 77 | 82 | 80 | +10 |
+| anc-018 | 58 | 74 | 74 | 74 | +16 |
+| anc-020 | 15 | 23 | 17 | 20 | +5 |
+
+- **Panel stability on identical text.** The six decoys moved −6 to +4 (Sonnet, mean |Δ| 3.2) and −3
+  to +4 (Opus, mean |Δ| 2.3) against round 2. That is six texts and one re-rating each; it says the
+  panel was not wildly unstable this time, not that it is stable in general.
+- **anc-012:** its old text was rated 98 / 92 in round 2; the rewrite reads 73 / 73 against a target of
+  74. Per domain both raters gave [4,4,4,4,3,4,2] against [4,4,4,4,4,4,1]: d5 one level low, d7 one
+  level high, and they cancel in the composite. The rewrite worked on the composite. One rating
+  round on one text cannot show it is right on every domain.
+- **anc-101:** +20 on its first write. Both raters read it high on the same domains: d1 2 (target 1),
+  d2 2 (0), d4 2 (0), d7 4 / 3 (2), and Sonnet's d6 2 (1). d5 was 5 from both, as designed. It
+  therefore uses its single §7.4 rewrite (below).
+- **anc-018 at +16** (unchanged text; +12 in round 2). Recorded, not acted on: a rule decision uses the
+  round in which a text was first panel-rated (AUTHORING.md §7 amendment item 6). That rule was
+  written down **after** seeing this reading, which is why it is stated as a rule and not decided
+  case by case.
+
+### anc-101 rewrite (its one allowance)
+
+Arrows give the INTENDED level; the rewrite has not been rated. Justified from §5, domain by domain,
+against the round-3 notes ("generic hopping questions",
+"excellent three-way evidence appraisal", "generic reflection"):
+- **d1 2 → 1.** The opening asked "what do you generally do" for this case, which is §5's level-2 form
+  (relevant but generic). It now asks a textbook lookup that fits any patient ("ยาละลายลิ่มเลือดกับหัวกระแทก
+  มีอะไรต้องรู้บ้าง").
+- **d2 2 → 0.** The closing appraisal argued *why* each claim failed (trial population, which bleeding
+  the cited guideline covers). That is the physician's own reasoning. It now only labels each claim's
+  evidence status (RCT / expert opinion / small retrospective cohorts / no source).
+- **d4 2 → lower.** The closing turn is now a note to self that asks nothing; the two middle turns are
+  bare topic hops. Appraising the tutor's earlier answers still picks them up, so d4 = 0 alongside d5 = 5
+  remains the hardest combination in the cohort.
+- **d7 3–4 → 2.** The remark that none of the three claims carried a citation was the physician
+  checking the tool's sourcing (§5 d7 4: verifies a key output). It is gone, and the prompts are
+  shorter and less specific.
+- **d6 2 → 1.** The reflection named the topic; it is now generic ("ได้ความรู้เยอะมาก ขอบคุณครับ").
+- Unchanged: the three planted tutor claims (same turns, no citation on the false line, corrected in
+  turn 7; `planted-claims.json` still matches), d5's separation of established / weak / unknown /
+  overreach, and the case itself. Neutral history and a few labs were added to the first turn (listed,
+  never used, as d3 = 2 requires) to keep length from tracking level (cue gate: length vs composite r 0.44, CI reaches inside ±0.1).
+
 ## Pending (for the coordinator — not run here)
 
 | anchor | what changed | needs |
 |---|---|---|
-| **anc-101** | new anchor replacing anc-015; first draft | blind panel + local evaluator |
-| **anc-012** | its one rewrite | blind panel + local evaluator; if still beyond ±15 → excluded and replaced like anc-015 |
+| **anc-101** | its single rewrite (after round 3) | blind panel + local evaluator; if still beyond ±15 → excluded and replaced (§7.4) |
+| anc-012 | rewrite rated −1 in round 3 | local evaluator (running) |
 | anc-014 | tutor turns only: `(NICE, 2010)` → `(NICE, 2011)`; physician text untouched | new sha256, so a local re-score scores new bytes; the evaluator ignores tutor turns |
 
 Until those scores exist, the pilot verdict above is about the round-2 texts, not the current cohort.

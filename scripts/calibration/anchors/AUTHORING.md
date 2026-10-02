@@ -441,6 +441,13 @@ The rule from now on:
    pre-registered rule after the panel's numbers were known; it is withdrawn. Sonnet and Opus are both
    Claude and agree at composite ICC 0.968, so even this panel is not two independent raters (see the
    Claude-family caveat under item 2). Human raters remain the decisive gate.
+6. **Round 3 (same day).** The panel rated anc-101 (first write) and the rewritten anc-012 among six
+   unchanged decoys. anc-012 lands at −1 and stays. anc-101 is at +20, so it uses its single rewrite
+   (§7.4); if the panel puts that rewrite beyond ±15, anc-101 is excluded and replaced like anc-015.
+   **Which round counts for a text:** a rule decision uses the panel round in which that text was
+   *first* rated. A later re-rating of identical text (a decoy) is a stability check, recorded but
+   never a rewrite trigger. This was decided after round 3 showed decoy anc-018 at +16 (+12 in round
+   2, text unchanged); it is written down here so it cannot be chosen again case by case.
 
 ## 8. Pipeline and commands
 
