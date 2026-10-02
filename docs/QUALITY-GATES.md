@@ -390,6 +390,36 @@ What this means, by the rules above:
   on the clinician. No valid C-2 judge exists yet (the local judge fails κ), so that evidence is
   missing. The Claude arm's after-run (about $1.10) has not been run and needs the user's approval.
 
+**Claude after-run result (2026-10-02): NOT SHOWN.**
+
+The run was approved by the user ("claude run") and capped at `--max-usd 2`. It actually cost **$1.27**
+(92,907 in / 66,191 out tokens at $3/$15 per Mtok; 10 corrective retries).
+
+The after-run is `anthropic-sonnet-after-2026-10-02`:
+- model `claude-sonnet-4-6`, the same bank;
+- prompt labels a0e65028 / 9467d3c7, rescue unchanged;
+- sha256 `8e67e3a1…e1f9`, cites `36fc9a03…2218`;
+- baseline `anthropic-sonnet-2026-10-02`, re-verified with known-sources-v5
+  (`comparison-2026-10-02/anthropic-sonnet-2026-10-02.cites-v5.json`).
+
+| | Claude baseline | Claude after |
+|---|---|---|
+| per-reply evidence coverage (the verdict) | 29/74 (39.2%) | 32/74 (43.2%) |
+| paired, n 74 | | gained 12, lost 9, both 20, neither 33 |
+| exact McNemar | | p(improved) 0.332, p(worse) 0.808 → **not shown** |
+| note-only ceiling (gated) | — | 3/74 (4.1%, upper 11.3%) → **pass** |
+| verified citations (descriptive, citation-level) | 34/151 (22.5%) | 52/130 (40.0%) |
+| rescue_reply | 6/6 | 6/6 |
+
+**Both arms: not shown.**
+- Under Amendment 1, nobody may claim the citation rule makes either tutor cite better.
+- Neither arm is *worse*, and both pass the note-only ceiling, so nothing is reverted on C-1.
+- In both arms the citation-level verified rate rose, and the number of citations fell (local
+  199 → 154, Claude 151 → 130). That is consistent with the rule cutting weak citations. It is
+  descriptive only: citations cluster within replies, and it was not the pre-registered measure.
+- Keeping the rule therefore rests, as pre-registered, on the C-2 counts and the clinician. Neither
+  is available yet (no valid non-Claude judge).
+
 The label is 40 characters. The run was launched as `local-deepseek-baseline-master-2026-10-02`, and
 the old tutor-audit `slug()` silently cut it to 40 characters. The truncated name above is the one on
 disk and inside the report, and it is the same run. tutor-audit now refuses such a label instead of
