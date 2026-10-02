@@ -1,0 +1,23 @@
+{
+  "schema": "clics-tutor-judge-local-run/v1",
+  "started_at": "2026-10-02T06:49:09.940Z",
+  "judge_id": "judge-local",
+  "judge_kind": "local-model",
+  "model_requested": "deepseek-v4-flash-dspark",
+  "endpoint": "LOCAL_AI_BASE_URL (not recorded: the address of the on-prem box stays out of committed files)",
+  "system_prompt_sha": "782342533e63",
+  "rubric_version": "rubric-6d7a3347",
+  "max_tokens": 4000,
+  "temperature": 0,
+  "concurrency": 2,
+  "finished_at": "2026-10-02T07:28:50.445Z",
+  "models_reported": [
+    "deepseek-v4-flash-dspark"
+  ],
+  "counts": {
+    "valid": 160,
+    "valid-after-retry": 0,
+    "invalid": 0,
+    "transport-error": 0
+  }
+}
