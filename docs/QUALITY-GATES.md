@@ -113,7 +113,7 @@ about 60 s on the box. Above 25%, flag it as a latency risk for the serving deci
   words are not the trial's. Two cases still read `verified`: a fabricated title made only of the
   real document's own words plus generic words, and a real document cited for a claim it does not
   make (misattribution). Only the judges and the clinician catch these.
-- A clinician looks at **every** `publisher-only`, `unverified` and `year-mismatch` citation (the
+- A clinician looks at **every** `publisher-only`, `document-unconfirmed`, `unverified` and `year-mismatch` citation (the
   clinician export includes them). A source confirmed as invented is a **critical failure**, however
   good the rate is.
 
