@@ -367,6 +367,56 @@ describe('adversarial — clinical false-positive shields do not open a leak', (
 });
 
 // ===========================================================================
+// PR #114 REVIEW — C1 / C2: names that BEGIN with a shield word, and names after
+// a role word + function word. Commit 922002d leaked 117 of these 204 cases (the
+// shield let the rest of the glued run through); master leaked 0. Every name x
+// every template must stay masked. (Names are synthetic; non-gazetteer names
+// are included on purpose — only the anchor rules can catch them.)
+// ===========================================================================
+describe('adversarial — a name that starts like a shield word, or follows role + function word', () => {
+  const NAMES = ['ของขวัญ', 'ภาพพิมพ์', 'ภาพร', 'ภาพิมล', 'คิดถึง', 'กำลังใจ', 'มาลี', 'มีนา', 'ต้อง', 'คะนอง', 'วิไล', 'สมศรี'];
+  const TEMPLATES = [
+    'คุณ{N} อายุ 45 ปี มาด้วยไข้', 'คุณ{N} มาตามนัด', 'คุณ{N}มาด้วยไข้', 'ภรรยาของคุณ{N}โทรมา', 'ขอบคุณครับคุณ{N}',
+    'คุณหมอ{N} ตรวจคนไข้', 'คุณแม่ของ{N}โทรมาสอบถามอาการ', 'คุณยายของ{N}มาเยี่ยม', 'คุณหมอให้ยา{N}แล้ว',
+    'คุณพ่อของ{N}พามาโรงพยาบาล', 'ผู้ป่วยชื่อ {N} มาตามนัด', 'ชื่อยาที่ให้คุณ{N}คือ amlodipine', 'คุณ{N}',
+    'คุณ {N} มาตามนัด', 'คุณภาพชีวิตของคุณ{N}ดีขึ้น', 'คุณครับ คุณ{N}ครับ', 'คุณพยาบาลแจ้งว่าคุณ{N}มาแล้ว',
+  ];
+  const CASES = NAMES.flatMap((n) => TEMPLATES.map((t) => [n, t.replace('{N}', n)]));
+  test.each(CASES)('%s in: %s', (name, input) => {
+    assertScrubbed(input, [name]);
+  });
+
+  test('a quantifier before จังหวัด no longer hides the province that follows', () => {
+    for (const input of ['ต่างจังหวัดเชียงใหม่', 'ทุกจังหวัด เชียงใหม่', 'แต่ละจังหวัด ลำพูน', 'หลายจังหวัดสงขลา']) {
+      assertScrubbed(input, ['เชียงใหม่', 'ลำพูน', 'สงขลา']);
+    }
+  });
+});
+
+// ===========================================================================
+// PR #114 REVIEW — I1: the first shield re-scanned fragments RECURSIVELY, so a
+// 5000-char "คุณจะคุณจะ…" (the backend's max message) blew the stack, and the
+// unhandled rejection exited RIMPL. Each input runs in a FRESH child process
+// (cold JIT, default stack — a warm jest worker can hide it) and must neither
+// throw nor take 200 ms.
+// ===========================================================================
+describe('adversarial — pathological repetitions cannot crash or stall the filter', () => {
+  const { execFileSync } = require('child_process');
+  const FILTER = require.resolve('../src/services/pii-filter');
+  test.each([
+    ['คุณจะ', 1000], ['คุณก็', 1000], ['คุณนะ', 1000], ['คุณภาพ', 1200], ['ชื่อยาที่', 1200], ['คุณหมอ', 1000],
+  ])('%s x %d in a cold process', (unit, n) => {
+    const code = `const { stripPii } = require(${JSON.stringify(FILTER)});
+      const s = ${JSON.stringify(unit)}.repeat(${n});
+      const t = process.hrtime.bigint();
+      stripPii(s);
+      process.stdout.write(String(Number(process.hrtime.bigint() - t) / 1e6));`;
+    const ms = Number(execFileSync(process.execPath, ['-e', code], { encoding: 'utf8' })); // throws on a crash
+    expect(ms).toBeLessThan(200);
+  });
+});
+
+// ===========================================================================
 // ERROR BODIES — a failing call must not echo the transcript back out. The
 // 413 / 503 / 500 paths (lib/ai-errors.js) are driven through the REAL routes
 // with a PII-laden transcript AND a provider error whose message quotes the

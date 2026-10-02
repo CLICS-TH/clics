@@ -187,44 +187,64 @@ function startsWithClinicalLead(token) {
 // ---------------------------------------------------------------------------
 // Clinical FALSE-POSITIVE shields for the คุณ / ชื่อ anchors.
 //
-// Thai has no word spaces, so an anchor (คุณ, ชื่อ) is followed by a run that is
-// sometimes a name and sometimes ordinary prose: ขอบคุณครับ ("thank you"),
-// คุณหมอ ("doctor", a form of address), คุณภาพ ("quality"), คุณคิดว่า ("you
-// think that"), ชื่อยา ("drug name"). The shields below are CLOSED word lists:
-// a run is let through ONLY when it is wholly accounted for by them; anything
-// unknown is still masked exactly as before. So every miss of these lists fails
-// CLOSED (over-masks), never open. Each entry was checked not to begin a common
-// Thai given name — e.g. มา / มี are deliberately ABSENT (มานี, มาลี, มีนา), and
-// short particles that could begin a name (คะ → คะนอง) only count when nothing
-// unknown follows them (see splitKhunRun).
+// Thai has no word spaces, so an anchor (คุณ, ชื่อ) is followed by a glued run
+// that is sometimes a name and sometimes ordinary prose: ขอบคุณครับ ("thank
+// you"), คุณหมอ (a form of address), คุณภาพ ("quality"), ชื่อยา ("drug name").
+//
+// FAIL-CLOSED TOKENISER (scanRun): the WHOLE glued run is split into words from
+// closed lists. The run is let through only if every character is accounted
+// for. At the first unknown segment, everything from the last ANCHOR to the end
+// of the run is masked as one name. An anchor is a point that cannot sit inside
+// a name: the end of a role / kin word at the head of the run (คุณหมอ|สมชาย) or
+// of a complete compound (คุณภาพชีวิต|…). With no anchor the whole run is masked,
+// exactly as on master. Plain list words (particles, function words) are NOT
+// anchors, because names begin with them: ของขวัญ, คิดถึง, กำลังใจ, คะนอง,
+// ภาพร. So "คุณของขวัญ" is masked whole and "คุณแม่ของสมศรี" → "คุณแม่[NAME-n]".
+//
+// The one way a name can still pass is if it is written ENTIRELY of list words.
+// Keep every list free of words that complete a name with another list word:
+// ใจ, ขวัญ, ถึง, ดี and มา / มี (มานี, มาลี, มีนา) are deliberately absent.
+//
+// A nested คุณ / ชื่อ inside the run is not tokenised: the scan stops there and
+// the pass resumes at it (resumable replace, iterative, never recursive), so
+// "ขอบคุณครับคุณสมศรี" still masks สมศรี and a 5000-char "คุณจะคุณจะ…" cannot
+// blow the stack.
 // ---------------------------------------------------------------------------
 
-// Words that can follow คุณ (pronoun "you") or a non-name ชื่อ label and that
-// never begin a Thai given name. Once one of these starts the remainder, the
-// remainder is a phrase, not a name.
-const TH_NON_NAME_LEADS = [
+// Function words / verbs that follow the pronoun คุณ ("you") or a thing-label. None is a Thai given
+// name on its own. NOT here on purpose: มา / มี (มานี, มาลี, มีนา) and ต้อง ("must", also a nickname).
+const TH_FUNCTION_WORDS = [
   'ที่', 'ว่า', 'คือ', 'ของ', 'บอก', 'แจ้ง', 'ให้', 'ได้', 'ไม่', 'ก็', 'จะ', 'ช่วย',
   'และ', 'หรือ', 'เป็น', 'สำหรับ', 'ล่วงหน้า', 'นี้', 'นั้น', 'อะไร', 'ซึ่ง', 'ถาม',
   'ตอบ', 'คิด', 'ตรวจ', 'ควร', 'เคย', 'สามารถ', 'อยาก', 'ลอง', 'ทราบ', 'รู้',
-  'เห็น', 'พิจารณา', 'วินิจฉัย', 'สั่ง', 'กำลัง', 'เลือก', 'ใช้', 'ระบุ', 'อธิบาย',
+  'เห็น', 'พิจารณา', 'วินิจฉัย', 'สั่ง', 'กำลัง', 'เลือก', 'ใช้', 'ระบุ', 'อธิบาย', 'เชื่อ',
 ];
-// NOT here on purpose: มา / มี (มานี, มาลี, มีนา) and ต้อง ("must", but also a common nickname —
-// คุณต้อง). Adding a lead that can begin a name or nickname would open a leak.
-// คุณ + one of these is ONE word (คุณภาพ = quality, คุณค่า = value, …), never a title + name.
-// คุณสมบัติ (property) is deliberately absent: สมบัติ is also a given name (pii-names.th.js), so
-// "คุณสมบัติ" stays masked — the ambiguity is resolved toward masking.
-const TH_KHUN_COMPOUNDS = ['ภาพ', 'ค่า', 'ลักษณะ', 'ประโยชน์', 'ูปการ'];
-// Role / kinship forms of address after คุณ (คุณหมอ, คุณแม่). They are not names, but a real name may
-// FOLLOW them (คุณหมอสมชาย) — so they are kept and whatever unknown run follows is still masked.
-// Short kin words that begin given names (ตา → ตาล, อา → อารีย์ / อานนท์, น้า) are deliberately absent.
+// Polite particles / closings (ขอบคุณครับ, ขอบคุณมากค่ะ). คะ / นะ / มาก can begin a name (คะนอง), which is
+// why no list word is an anchor.
+const TH_PARTICLES = ['ครับ', 'ค่ะ', 'คะ', 'คับ', 'จ้ะ', 'จ้า', 'นะ', 'มาก', 'ผม', 'ดิฉัน'];
+// Clinical nouns that complete common clauses (คุณภาพชีวิตของผู้ป่วยดีขึ้น). Never part of a name.
+const TH_CLINICAL_PROSE = ['ผู้ป่วย', 'คนไข้', 'อาการ', 'ดีขึ้น', 'แย่ลง'];
+// Role / kinship forms of address (คุณหมอ, คุณแม่). They are ANCHORS only at the head of a คุณ run —
+// a real name may follow (คุณหมอสมชาย → คุณหมอ[NAME-n]). Short kin words that begin given names
+// (ตา → ตาล, อา → อารีย์ / อานนท์, น้า) are deliberately absent.
 const TH_ADDRESS_TERMS = [
   'หมอ', 'พยาบาล', 'เภสัชกร', 'อาจารย์', 'แม่', 'พ่อ', 'ป้า', 'ลุง', 'ยาย', 'ปู่', 'ย่า', 'พี่', 'ญาติ',
 ];
-// Polite particles / closings (ขอบคุณครับ, ขอบคุณมากค่ะ). Some could begin a name (คะ, นะ, มาก), so a
-// particle only counts when the run ENDS after it or another listed word follows it.
-const TH_PARTICLES = ['ครับ', 'ค่ะ', 'คะ', 'คับ', 'จ้ะ', 'จ้า', 'นะ', 'มาก', 'ผม', 'ดิฉัน'];
-// ชื่อ + one of these labels a THING (drug, disease, generic / trade name, organism, topic), not a person.
+// คุณ + one of these is ONE word that no given name begins with → an anchor:
+// คุณค่า (value), คุณลักษณะ (attribute), คุณประโยชน์ (benefit), คุณูปการ (contribution).
+// คุณสมบัติ (property) is deliberately absent: สมบัติ is also a given name (pii-names.th.js).
+const TH_KHUN_COMPOUND_ANCHORS = ['ค่า', 'ลักษณะ', 'ประโยชน์', 'ูปการ'];
+// คุณภาพ ("quality") — but ภาพ also begins given names (ภาพร, ภาพิมล, ภาพพิมพ์), so ภาพ is an anchor only
+// together with one of these continuations, each of which makes the compound unambiguous prose:
+// คุณภาพชีวิต (quality of life), คุณภาพการนอน (sleep quality), คุณภาพการรักษา / การดูแล / การบริการ
+// (quality of treatment / care / service). Bare "คุณภาพ" at the end of the run is the word itself.
+const TH_KHUN_PHAP_CONTINUATIONS = ['ชีวิต', 'การนอน', 'การรักษา', 'การดูแล', 'การบริการ'];
+// ชื่อ + one of these labels a THING (drug, disease, generic / trade name, organism, topic). Not an
+// anchor either (ยา begins ยาใจ): "ชื่อยา…" survives only when the whole run tokenises.
 const TH_LABEL_NON_NAME = ['ยา', 'โรค', 'สามัญ', 'การค้า', 'ทางการค้า', 'เชื้อ', 'วิทยาศาสตร์', 'เรื่อง'];
+
+const TH_RUN_WORDS = [...TH_FUNCTION_WORDS, ...TH_PARTICLES, ...TH_CLINICAL_PROSE, ...TH_ADDRESS_TERMS];
+const TH_LABEL_RUN_WORDS = [...TH_RUN_WORDS, ...TH_LABEL_NON_NAME];
 
 // Longest entry of `list` that `s` contains at `pos`, or ''.
 function wordAt(s, pos, list) {
@@ -235,42 +255,61 @@ function wordAt(s, pos, list) {
   return best;
 }
 
-// Classify the Thai run that follows a คุณ anchor. Returns { keep, then }:
-//   keep  — how many leading chars of the run are NOT a name (kept verbatim)
-//   then  — 'recurse': the rest is prose; re-scan it for titles (a nested "คุณสมศรี" is still caught)
-//           'mask':    the rest (from `keep`) is treated as a name and masked
-// keep === 0 && then === 'mask' is the original behaviour (the whole run is the name).
-function splitKhunRun(run) {
-  const compound = wordAt(run, 0, TH_KHUN_COMPOUNDS);
-  if (compound) return { keep: compound.length, then: 'recurse' };
-  let pos = 0;
-  let particlesFrom = -1; // start of a trailing run of particles, if any
+// Tokenise `run` from `pos` (see the block comment). Returns one of
+//   { action: 'survive' }           every character is a list word
+//   { action: 'resume', at }        run[0, at) is list words and a nested anchor starts at `at`
+//   { action: 'mask', at }          keep run[0, at), mask run[at..] as one name (at 0 = master behaviour)
+function scanRun(run, pos, anchor, words, nestedAnchors) {
   while (pos < run.length) {
-    if (pos > 0 && run.startsWith('คุณ', pos)) return { keep: pos, then: 'recurse' };
-    if (wordAt(run, pos, TH_NON_NAME_LEADS)) return { keep: pos, then: 'recurse' };
-    const address = wordAt(run, pos, TH_ADDRESS_TERMS);
-    if (address) { pos += address.length; particlesFrom = -1; continue; }
-    const particle = wordAt(run, pos, TH_PARTICLES);
-    if (particle) { if (particlesFrom < 0) particlesFrom = pos; pos += particle.length; continue; }
-    break; // an unknown segment — possibly a name
+    if (wordAt(run, pos, nestedAnchors)) return { action: 'resume', at: pos };
+    const w = wordAt(run, pos, words);
+    if (!w) return { action: 'mask', at: anchor };
+    pos += w.length;
   }
-  if (pos === run.length) return { keep: pos, then: 'recurse' };
-  // Unknown content right after a particle: the "particle" may be the start of a name (คะนอง) — undo it.
-  if (particlesFrom >= 0) pos = particlesFrom;
-  return { keep: pos, then: 'mask' };
+  return { action: 'survive' };
 }
 
-// Is the run after a ชื่อ label a thing-label (ชื่อยา, ชื่อโรคนี้, ชื่อสามัญ) rather than a person's name?
-// Only when the label word is followed by nothing, another label word, or a non-name lead — so a name
-// that merely begins with a label word (ชื่อยาใจ) is still masked. Returns the label word (to keep
-// verbatim) or ''. The caller re-scans everything AFTER the label word, because the glued run can
-// itself contain a real label ("ชื่อยาที่ผู้ป่วยชื่อสมชายได้รับ").
-function nonNameLabel(run) {
+// The run after a คุณ title.
+function scanKhunRun(run) {
+  let pos = 0;
+  if (run.startsWith('ภาพ')) {
+    const cont = wordAt(run, 3, TH_KHUN_PHAP_CONTINUATIONS);
+    if (cont) pos = 3 + cont.length;
+    else if (run.length === 3) return { action: 'survive' };
+    else if (run.startsWith('คุณ', 3)) return { action: 'resume', at: 3 };
+    else return { action: 'mask', at: 0 }; // ภาพร, ภาพพิมพ์, ภาพิมล — a name, masked whole
+  } else {
+    pos = wordAt(run, 0, TH_KHUN_COMPOUND_ANCHORS).length;
+  }
+  // Role / kin words directly at the head are anchors (คุณหมอ, คุณพี่หมอ); after the head they are
+  // ordinary list words.
+  for (let a = wordAt(run, pos, TH_ADDRESS_TERMS); a; a = wordAt(run, pos, TH_ADDRESS_TERMS)) pos += a.length;
+  return scanRun(run, pos, pos, TH_RUN_WORDS, ['คุณ']);
+}
+
+// The run after a ชื่อ label. null = it does not start with a thing-label (a person's name: master path).
+function scanLabelRun(run) {
   const w = wordAt(run, 0, TH_LABEL_NON_NAME);
-  if (!w) return '';
-  const rest = run.slice(w.length);
-  const ok = rest === '' || !!wordAt(rest, 0, TH_LABEL_NON_NAME) || !!wordAt(rest, 0, TH_NON_NAME_LEADS);
-  return ok ? w : '';
+  if (!w) return null;
+  return scanRun(run, w.length, 0, TH_LABEL_RUN_WORDS, ['ชื่อ', 'คุณ']);
+}
+
+// String#replace for a global regex, except the callback may consume only PART of a match by returning
+// [replacement, consumedLength]; scanning then resumes right after the consumed part. Iterative — the
+// shields above use it instead of re-scanning fragments recursively.
+function replaceResumable(text, re, fn) {
+  const rx = new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`); // exec must advance
+  let out = '';
+  let last = 0;
+  let m;
+  while ((m = rx.exec(text)) !== null) {
+    const r = fn(m);
+    const [rep, used] = Array.isArray(r) ? r : [r, m[0].length];
+    out += text.slice(last, m.index) + rep;
+    last = m.index + Math.max(1, used);
+    rx.lastIndex = last;
+  }
+  return out + text.slice(last);
 }
 
 // Thai nickname field: "ชื่อเล่น X". MUST be matched before the plain "ชื่อ"
@@ -336,7 +375,10 @@ function wardGuard(m) {
 }
 
 // Thai administrative-place pass (ตำบล/ต. อำเภอ/อ. จังหวัด/จ., and the รพ.สต. facility).
-//   - (?<!ต่าง|ทุก|หลาย|แต่ละ): ต่างจังหวัด ("up-country"), ทุกอำเภอ, หลายตำบล are generic.
+//   - ต่างจังหวัด ("up-country"), ทุกจังหวัด are generic, but a quantifier does NOT stop a place that
+//     follows ("ต่างจังหวัดเชียงใหม่", "แต่ละจังหวัด ลำพูน" — still masked). No lookbehind: the
+//     generic uses survive through the lead list below (ต่างจังหวัด มีไข้ / … เพื่อ…) or simply because
+//     no Thai word follows. ต่างอำเภอ / ทุกตำบล + a word stay masked exactly as on master.
 //   - รพ.สต. (sub-district health-promoting hospital) is matched as ONE keyword. Before, its inner
 //     "ต." was read as ตำบล and the label was corrupted to "รพ.ส[ADDR-n]". Now the label survives and
 //     only a following place name (the village / tambon the facility is named after) is masked.
@@ -345,12 +387,12 @@ function wardGuard(m) {
 //     against all 77 province names (tests/pii-false-positives.test.js re-checks every one).
 //     ตำบล/อำเภอ get NO lead list — there are thousands of them and some do begin with a lead
 //     (อำเภอจะนะ, ตำบลในเมือง) — so they keep the original, demonstrative-only exclusion.
-const TH_ADMIN_RE = /(?<!ต่าง|ทุก|หลาย|แต่ละ)(รพ\.\s?สต\.|สต\.|ตำบล|ต\.|อำเภอ|อ\.|จังหวัด|จ\.)(\s*)([ก-ฮะ-๎]+)/g;
+const TH_ADMIN_RE = /(รพ\.\s?สต\.|สต\.|ตำบล|ต\.|อำเภอ|อ\.|จังหวัด|จ\.)(\s*)([ก-ฮะ-๎]+)/g;
 const TH_DEMONSTRATIVE_RE = /^(?:นี้|นั้น|ไหน|ใด|เดียวกัน)/;
 const TH_PROVINCE_NON_PLACE_LEADS = [
   'เพื่อ', 'ที่', 'และ', 'หรือ', 'ได้', 'ไม่', 'แล้ว', 'จาก', 'ด้วย', 'มา', 'มี', 'เป็น', 'ใกล้เคียง',
   'อื่น', 'ของ', 'ให้', 'ก็', 'จะ', 'ซึ่ง', 'เพราะ', 'ส่ง', 'ตรวจ', 'รักษา', 'ทำ', 'ใน', 'กับ', 'ไป',
-  'โดย', 'หลัง', 'ก่อน',
+  'โดย', 'หลัง', 'ก่อน', 'อยู่', 'แต่',
 ];
 // A facility is named after a village / tambon, so its list is narrower (no ที่, ใน, จะ, มา, มี).
 const TH_FACILITY_NON_PLACE_LEADS = [
@@ -594,6 +636,11 @@ function applyHintPass(text, token, hints) {
 // ambiguous with clinical compounds, so this stays conservative — unlike the unambiguous แซ่ clan
 // surnames (applyClanSurnamePass), which are masked verbatim.
 const TH_LETTER_RE = /[ก-ฮะ-๎]/;
+// A gazetteer name glued right after one of these relational words (แม่ของสมศรี, คุณหมอให้ยาสมศรี is
+// handled by the คุณ shield, but บอกให้สมศรี / ไปกับสมศรี / แม่ของสมศรีโทรมา are not after any title) is
+// masked whatever follows it: ของ/กับ/ให้ + a curated personal name is a person. Over-masking a rare
+// clinical "ของสมบัติ" is the cheap side of that trade.
+const TH_RELATIONAL_PRECEDERS = ['ของ', 'กับ', 'ให้'];
 function applyGazetteerPass(text, token) {
   const names = [...TH_GIVEN_NAMES].filter((n) => n.length >= 3).sort((a, b) => b.length - a.length);
   if (names.length === 0) return text;
@@ -602,10 +649,12 @@ function applyGazetteerPass(text, token) {
   return text.replace(re, (match, offset, full) => {
     if (MED_SHIELD.has(match)) return match;
     const prev = offset > 0 ? full[offset - 1] : '';
-    if (TH_LETTER_RE.test(prev)) return match; // glued into a preceding Thai word — skip (conservative)
+    const before = full.slice(Math.max(0, offset - 3), offset);
+    const relational = TH_RELATIONAL_PRECEDERS.some((w) => before.endsWith(w));
+    if (TH_LETTER_RE.test(prev) && !relational) return match; // glued into a preceding word — skip
     const after = full.slice(offset + match.length);
     const standalone = !after || !TH_LETTER_RE.test(after[0]); // space / punct / non-Thai / end follows
-    if (standalone || startsWithClinicalLead(after)) {
+    if (relational || standalone || startsWithClinicalLead(after)) {
       const tok = token('NAME', match);
       registerNameAliases(token, match, tok);
       return tok;
@@ -641,13 +690,11 @@ function applyPass(text, pass, token, hints) {
   if (kind === 'th-gazetteer') return applyGazetteerPass(text, token);
   if (kind === 'th-admin') return applyThAdminPass(text, token);
 
-  // Re-run THIS pass over a fragment a match swallowed but did not mask (used by the คุณ / ชื่อ
-  // shields). A fresh RegExp so the nested scan never shares lastIndex with the outer one.
-  const rescan = (fragment) =>
-    (fragment ? applyPass(fragment, { ...pass, re: new RegExp(re.source, re.flags) }, token, hints) : fragment);
-
-  re.lastIndex = 0;
-  return text.replace(re, (match, g1, g2, g3) => {
+  // Resumable (not String#replace): the คุณ / ชื่อ shields may consume only part of a match and let
+  // the scan resume at a nested anchor. A callback returning a plain string consumes the whole match,
+  // which is exactly String#replace's behaviour.
+  return replaceResumable(text, re, (m) => {
+    const [match, g1, g2, g3] = m;
     if (guard && !guard(match)) return match;
 
     if (cat === 'NAME') {
@@ -667,13 +714,16 @@ function applyPass(text, pass, token, hints) {
         // a single [NAME-n]. The bare surname (g3, no นามสกุล keyword) is only
         // taken when it is not the start of a clinical/verb phrase.
         const given = g1 || '';
-        const label = nonNameLabel(given);
-        if (label) {
-          // ชื่อยา / ชื่อโรค / ชื่อสามัญ … — a thing's name, not a person's. Keep "ชื่อ" + the label
-          // word verbatim and re-scan everything after it (a nested "ชื่อ <real name>" is still masked).
-          const head = /^ชื่อ\s*/.exec(match)[0] + label;
-          return head + rescan(match.slice(head.length));
+        const label = scanLabelRun(given);
+        if (label && label.action !== 'mask') {
+          // ชื่อยา / ชื่อโรค / ชื่อสามัญ … — a thing's name, not a person's, and the whole glued run is
+          // list words (scanLabelRun). Consume only "ชื่อ" + the run (or the run up to a nested ชื่อ /
+          // คุณ) and resume there, so a following real label or bare surname slot is scanned afresh.
+          const lead = /^ชื่อ\s*/.exec(match)[0];
+          const used = lead.length + (label.action === 'resume' ? label.at : given.length);
+          return [match.slice(0, used), used];
         }
+        // A 'mask' verdict for a label run is always at 0 (labels are never anchors): the master path.
         let surname = g2 || '';
         let trailing = ''; // text we matched but must put back (shielded surname)
         if (!surname && g3) {
@@ -705,17 +755,20 @@ function applyPass(text, pass, token, hints) {
         if (MED_SHIELD.has(given.trim())) return match;
         if (title === 'คุณ') {
           // คุณ is also "you", part of ขอบคุณ / คุณภาพ, and a prefix to role words (คุณหมอ).
-          // splitKhunRun keeps only what its closed word lists account for; the rest is either
-          // re-scanned (prose) or masked (an unknown run — fail closed).
-          const { keep, then } = splitKhunRun(given);
-          if (then === 'recurse' || keep > 0) {
-            const ws = match.slice(title.length, match.length - given.length);
-            const kept = given.slice(0, keep);
-            const rest = given.slice(keep);
-            if (then === 'recurse') return title + ws + kept + rescan(rest);
+          // scanKhunRun lets the run through only when every character is a list word; otherwise it
+          // masks from the last anchor (คุณหมอ|…) — or the whole run, exactly as master.
+          const verdict = scanKhunRun(given);
+          const ws = match.slice(title.length, match.length - given.length);
+          if (verdict.action === 'survive') return match;
+          if (verdict.action === 'resume') {
+            const used = title.length + ws.length + verdict.at; // >= 3: always makes progress
+            return [match.slice(0, used), used];
+          }
+          if (verdict.at > 0) {
+            const rest = given.slice(verdict.at);
             const restTok = token('NAME', rest);
             registerNameAliases(token, rest, restTok);
-            return title + ws + kept + restTok;
+            return title + ws + given.slice(0, verdict.at) + restTok;
           }
         }
         const tok = token('NAME', given);

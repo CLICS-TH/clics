@@ -24,13 +24,15 @@ router.post('/', async (req, res) => {
   // PII-strip (incl. the known patient identifier) + defang injected role markers before the cloud model.
   // The shared registry also yields the token→raw reverse map (pii_map) for the on-prem reversible
   // store — built on-prem from the de-id input, so it carries no info the cloud model ever saw.
+  // Inside the try: a de-identification failure answers 500 (fail closed) instead of escaping as an
+  // unhandled rejection that would exit the process.
   const registry = makeRegistry();
-  const transcriptText = flattenForPrompt(parsed.data.transcript, deriveHintTokens(parsed.data.patient_ref), registry);
   // This call is synchronous on the physician's /end: if the backend's deadline hangs up first, the
   // queued or in-flight classifier call is released rather than left to finish for nobody.
   const signal = requestSignal(req, res);
 
   try {
+    const transcriptText = flattenForPrompt(parsed.data.transcript, deriveHintTokens(parsed.data.patient_ref), registry);
     const { text, inputTokens, outputTokens, provider, model } = await callAI({
       purpose: 'criteria',
       systemPrompt: CRITERIA_CLASSIFIER_PROMPT,

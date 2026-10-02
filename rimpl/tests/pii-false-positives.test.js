@@ -29,15 +29,29 @@ describe('คุณ — polite / pronoun / compound uses are not a title + name'
     'ขอบคุณมากครับ ผู้ป่วยมาด้วยไข้',
     'ขอบพระคุณครับ',
     'คุณหมอครับ ผู้ป่วยมาด้วยไข้ 3 วัน',
-    'คุณแม่ของผู้ป่วยพามาโรงพยาบาล',
+    'คุณแม่ของผู้ป่วย',
     'คุณพยาบาลแจ้งว่า BP 90/60',
+    'คุณภาพ',
     'คุณภาพชีวิตของผู้ป่วยดีขึ้น',
-    'คุณภาพการนอนไม่ดี',
-    'คุณค่าทางโภชนาการ',
-    'คุณคิดว่าการวินิจฉัยคืออะไร',
+    'คุณภาพการนอน',
+    'คุณค่า',
+    'คุณลักษณะ',
+    'คุณคิดว่า การวินิจฉัยคืออะไร',
     'คุณควรสั่ง troponin ซ้ำที่ 3 ชั่วโมง',
-    'คุณจะให้ยาอะไรเป็นตัวแรก',
   ])('survives: %s', survives);
+
+  // FAIL-CLOSED by design: a glued run is let through only if EVERY segment is a list word. Ordinary
+  // prose glued after คุณ that the lists do not cover is still masked (as on master) — from the last
+  // anchor (role word / compound) if there is one, else the whole run. Over-masking, never a leak.
+  test.each([
+    ['คุณคิดว่าการวินิจฉัยคืออะไร', 'คุณ[NAME-1]'],
+    ['คุณจะให้ยาอะไรเป็นตัวแรก', 'คุณ[NAME-1]'],
+    ['คุณแม่ของผู้ป่วยพามาโรงพยาบาล', 'คุณแม่[NAME-1]'],
+    ['คุณภาพการนอนไม่ดี', 'คุณภาพการนอน[NAME-1]'],
+    ['คุณค่าทางโภชนาการ', 'คุณค่า[NAME-1]'],
+  ])('unlisted prose after คุณ is still masked (fail-closed): %s', (input, expected) => {
+    expect(stripPii(input)).toBe(expected);
+  });
 
   // Near misses — a real name after คุณ (or after a role word) is still masked.
   test('คุณ + given name', () => {
@@ -54,6 +68,23 @@ describe('คุณ — polite / pronoun / compound uses are not a title + name'
     expect(stripPii('คุณหมอสมชาย ตรวจคนไข้')).toBe('คุณหมอ[NAME-1] ตรวจคนไข้');
     expect(stripPii('คุณแม่สมศรี')).toBe('คุณแม่[NAME-1]');
     expect(stripPii('คุณลุงสมชาย')).toBe('คุณลุง[NAME-1]');
+  });
+  test('role / kin word + function word + name: masked from the role on (C2 of the PR #114 review)', () => {
+    expect(stripPii('คุณแม่ของสมศรีโทรมาสอบถามอาการ')).toBe('คุณแม่[NAME-1]');
+    expect(stripPii('คุณยายของมาลีมาเยี่ยม')).toBe('คุณยาย[NAME-1]');
+    expect(stripPii('คุณพ่อของวิไลพามาโรงพยาบาล')).toBe('คุณพ่อ[NAME-1]');
+    expect(stripPii('คุณหมอให้ยาสมศรีแล้ว')).toBe('คุณหมอ[NAME-1]');
+  });
+  test('a name that BEGINS with a list word is masked whole (C1 of the PR #114 review)', () => {
+    for (const n of ['ของขวัญ', 'คิดถึง', 'กำลังใจ', 'ภาพร', 'ภาพิมล', 'ภาพพิมพ์']) {
+      expect(stripPii(`คุณ${n} มาตามนัด`)).toBe('คุณ[NAME-1] มาตามนัด');
+    }
+    expect(stripPii('คุณของขวัญ อายุ 45 ปี มาด้วยไข้')).toBe('คุณ[NAME-1] [AGE-1] มาด้วยไข้');
+    expect(stripPii('ภรรยาของคุณของขวัญโทรมา')).toBe('ภรรยาของคุณ[NAME-1]');
+  });
+  test('a gazetteer name glued after ของ / กับ / ให้ is masked even with no title (pre-existing leak)', () => {
+    expect(stripPii('แม่ของสมศรีโทรมา')).toBe('แม่ของ[NAME-1]โทรมา');
+    expect(stripPii('ไปกับวีระ')).toBe('ไปกับ[NAME-1]');
   });
   test('a real คุณ + name glued after a polite phrase is still masked', () => {
     expect(stripPii('ขอบคุณครับคุณสมศรี')).toBe('ขอบคุณครับคุณ[NAME-1]');
@@ -160,7 +191,8 @@ describe('ADDR — ต่างจังหวัด, รพ.สต., รพ.จ
   test.each([
     'มาจากต่างจังหวัด มีไข้ 3 วัน',
     'มาจากต่างจังหวัด',
-    'บ้านอยู่ต่างอำเภอ ไกล',
+    'ไปทำงานต่างจังหวัด เพื่อหาเงิน',
+    'บ้านอยู่ต่างอำเภอ',
     'ส่งต่อ รพ.สต. เพื่อติดตามอาการ',
     'ส่งต่อ รพ.สต.',
     'ส่งต่อ รพ.จังหวัด เพื่อทำ CT',
@@ -202,7 +234,9 @@ describe('ADDR — ต่างจังหวัด, รพ.สต., รพ.จ
   ];
   test('the list really is all 77 provinces', () => expect(new Set(PROVINCES).size).toBe(77));
   test.each(PROVINCES)('province %s is masked after จังหวัด / จ. / รพ.จังหวัด, glued or spaced', (p) => {
-    for (const form of [`จังหวัด${p}`, `จังหวัด ${p}`, `จ.${p}`, `จ. ${p}`, `ส่งต่อ รพ.จังหวัด${p}`]) {
+    for (const form of [`จังหวัด${p}`, `จังหวัด ${p}`, `จ.${p}`, `จ. ${p}`, `ส่งต่อ รพ.จังหวัด${p}`,
+      // a quantifier does not hide a place that follows (review of PR #114)
+      `ต่างจังหวัด${p}`, `ทุกจังหวัด ${p}`, `หลายจังหวัด${p}`, `แต่ละจังหวัด ${p}`]) {
       expect(stripPii(form)).not.toContain(p);
     }
   });
