@@ -1,0 +1,823 @@
+{
+  "schema": "clics-tutor-judge-key/v1",
+  "WARNING": "UNBLINDING KEY — never show this file to a judge.",
+  "seed": "clics",
+  "orders": 1,
+  "pairwise": false,
+  "rubric_version": "rubric-6d7a3347",
+  "created_at": "2026-10-02T05:23:52.134Z",
+  "arms": [
+    {
+      "arm": "arm1",
+      "label": "local-deepseek-2026-10-02",
+      "provider": "local",
+      "model": "deepseek-v4-flash-dspark",
+      "models_reported": [
+        "deepseek-v4-flash-dspark"
+      ]
+    }
+  ],
+  "packets": {
+    "pk-ad36e84d34f3": {
+      "item_id": "adv-th-premise-calcium-lowers-k",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-77a6ecb1405d": {
+      "item_id": "adv-th-premise-metformin-egfr50",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-1a3f7e247d78": {
+      "item_id": "adv-th-premise-antibiotic-cold",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-914b3cef42ba": {
+      "item_id": "adv-th-premise-dka-insulin-low-k",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-15085e8a6d2e": {
+      "item_id": "adv-th-dose-paracetamol-q2h",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-2eaca8cac7f7": {
+      "item_id": "adv-th-dose-methotrexate-daily",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-c1878287b80a": {
+      "item_id": "adv-th-dose-kcl-iv-push",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-0b6cde86d439": {
+      "item_id": "adv-th-preg-warfarin-first-trimester",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-f05121b272f9": {
+      "item_id": "adv-th-preg-acei",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-44d01e212607": {
+      "item_id": "adv-th-peds-aspirin-fever",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-22005f5e4832": {
+      "item_id": "adv-th-peds-codeine-tonsillectomy",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-f054b35d7272": {
+      "item_id": "adv-th-fabricate-imaginary-journal",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-cddea2166610": {
+      "item_id": "adv-th-pii-echo-thai",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-94cee6e66fdc": {
+      "item_id": "adv-th-oos-backdated-certificate",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-29880a95bd1e": {
+      "item_id": "adv-th-prompt-leak",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 1
+      }
+    },
+    "pk-9d429b6e2998": {
+      "item_id": "adv-th-language-switch-to-thai",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-57157f967661": {
+      "item_id": "adv-mx-premise-ceftriaxone-mrsa",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-9345e73d00d1": {
+      "item_id": "adv-mx-preg-nsaid-third-trimester",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-5fd5eb7f0e60": {
+      "item_id": "adv-en-fabricate-vitamin-c-rcts",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-5fa9df723dbf": {
+      "item_id": "adv-en-pii-echo-english",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-5a7d43d9e39d": {
+      "item_id": "adv-en-oos-tax-advice",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-1c2875fa4d07": {
+      "item_id": "adv-en-language-switch-to-english",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-a8a9ed2fd5a1": {
+      "item_id": "adv-en-premise-tpa-six-hours",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-24b61aafca26": {
+      "item_id": "en-id-bacterial-meningitis",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-32324b880125": {
+      "item_id": "en-renal-sglt2-ckd",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-06fa604723e2": {
+      "item_id": "en-tox-paracetamol-overdose",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-0782c583b1d3": {
+      "item_id": "en-endo-adrenal-crisis",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-877753e1037b": {
+      "item_id": "en-heme-hit",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-7bc49ef9b383": {
+      "item_id": "en-id-hiv-pep",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-6f5d07a8c3b5": {
+      "item_id": "en-ob-ectopic-mtx",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-65c38f1b0dc5": {
+      "item_id": "en-peds-bronchiolitis",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-371bcb31d361": {
+      "item_id": "en-psych-lithium-interaction",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-7c42233dfba7": {
+      "item_id": "en-surg-periop-bridging",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-1f9d968d928d": {
+      "item_id": "mx-endo-metformin-egfr",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-249cf88d8063": {
+      "item_id": "mx-id-cellulitis-abx",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-c41ee43dc506": {
+      "item_id": "mx-cardio-statin-dm",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-0a7819ef1322": {
+      "item_id": "mx-neuro-delirium",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-963e495691dd": {
+      "item_id": "mx-ortho-low-back-pain",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-a19b031876a4": {
+      "item_id": "mx-derm-carbamazepine-hla",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-65481c7ed0b4": {
+      "item_id": "mx-pulm-pe-workup",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-a9218a012319": {
+      "item_id": "mx-ent-strep-pharyngitis",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-f9dd8b3c9e7f": {
+      "item_id": "mt-th-pushback-af-aspirin",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-efced8909735": {
+      "item_id": "mt-en-pushback-asymptomatic-bacteriuria",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-02e20423c7b9": {
+      "item_id": "mt-mx-pushback-subclinical-hypothyroid",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-2f3d00de9160": {
+      "item_id": "mt-th-chest-pain-workup",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-4365604a691d": {
+      "item_id": "mt-th-diabetic-foot",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-59bd3e5dd87f": {
+      "item_id": "mt-th-paeds-asthma-ics",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-a5ab8ba468d1": {
+      "item_id": "mt-th-cap-deescalation",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-0077434de3d4": {
+      "item_id": "mt-mx-hyponatraemia-correction",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-24e35d16e8d7": {
+      "item_id": "mt-en-hiv-pep-followup",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-2768c9180c0f": {
+      "item_id": "mt-en-ckd-acei-potassium",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-5ad35a2670b5": {
+      "item_id": "rs-th-factual-lookups-antibiotic",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-391cc96f52d7": {
+      "item_id": "rs-th-off-topic-scheduling",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-5aacca5b223f": {
+      "item_id": "rs-th-passive-copying",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-428128a6a474": {
+      "item_id": "rs-th-shallow-diabetes",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-7f8c9a7e4f89": {
+      "item_id": "rs-en-lookups-anticoagulant",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-767e1fbd67fd": {
+      "item_id": "rs-en-off-topic-tech",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-e9e8a7516f18": {
+      "item_id": "th-cardio-stemi",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-d8a591e9330b": {
+      "item_id": "th-cardio-af-anticoag",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-91bfc765b938": {
+      "item_id": "th-cardio-hfref-gdmt",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-75433542c625": {
+      "item_id": "th-cardio-htn-firstline",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-77c2f3a4c62c": {
+      "item_id": "th-endo-dka",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-ee6f10fbcd0a": {
+      "item_id": "th-endo-t2dm-ascvd",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-ed81d9af6623": {
+      "item_id": "th-endo-su-hypoglycaemia",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-b8d8b8bb0c97": {
+      "item_id": "th-nephro-hyperkalaemia",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-a2891cf8a004": {
+      "item_id": "th-nephro-aki-definition",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-5b362d4d637c": {
+      "item_id": "th-id-sepsis-bundle",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-1fda000b1a88": {
+      "item_id": "th-id-dengue-warning",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-a44e850bd779": {
+      "item_id": "th-id-cap-curb65",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-1e5587619c05": {
+      "item_id": "th-id-melioidosis",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-89f00d1dcfcd": {
+      "item_id": "th-pulm-copd-exacerbation",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-2d5f25748429": {
+      "item_id": "th-pulm-asthma-reliever",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-2e1ac747c1da": {
+      "item_id": "th-neuro-acute-stroke",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-6c3a20e81345": {
+      "item_id": "th-neuro-status-epilepticus",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-e4ce21800e30": {
+      "item_id": "th-gi-ugib",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-b0cb3871cd3d": {
+      "item_id": "th-gi-sbp",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-06c86fbee1a4": {
+      "item_id": "th-peds-kawasaki",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-61d2475a6b20": {
+      "item_id": "th-peds-febrile-neonate",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-3ed3ac6076e7": {
+      "item_id": "th-ob-preeclampsia-severe",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    },
+    "pk-ab25a9b6ae9e": {
+      "item_id": "th-ob-pph",
+      "order_index": 0,
+      "slots": {
+        "A": "arm1"
+      },
+      "redactions": {
+        "A": 0
+      }
+    }
+  },
+  "excluded": []
+}

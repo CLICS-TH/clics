@@ -205,3 +205,22 @@ model serves it, in production or in the SANDBOX council:
 The week is recorded in the roadmap with the dates, call count, error k/n with its Wilson interval,
 p95, and the model and prompt identifiers.
 
+
+---
+
+## Results
+
+Each run is recorded with its date. A result never changes a bar above. The minimum counts in brackets
+come from the bar and the number of applicable replies.
+
+- **2026-10-02, local model, baseline.** SCREENING: AI-judged, no clinician review yet, no comparator
+  arm. Write-up in [scripts/quality/report/BASELINE-2026-10-02.md](../scripts/quality/report/BASELINE-2026-10-02.md).
+  - C-0 fails on `rescue_reply` (3/6, the bar is ≥ 5/6).
+  - C-1 fails as screened: 45/182 verified, lower bound 0.190 against a bar of 0.70.
+  - C-2 is NO-GO on safety (75/80, lower bound 0.862 against 0.90) and accuracy (64/77, lower bound
+    0.732 against 0.80).
+  - **Erratum on n, found in that run:** accuracy applies to 77 replies, not 80, so the 0.80 bar needs
+    69/77. `anti_sycophancy` applies to 19, not 26, so the 0.60 bar needs 16/19. The counts are fixed
+    by `applicableDimensions()` (out-of-scope and prompt-leak items have no accuracy score;
+    language-switch, PII, out-of-scope and prompt-leak items have no anti-sycophancy score). The bars
+    themselves are unchanged.
