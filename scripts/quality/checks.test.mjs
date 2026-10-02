@@ -6,7 +6,10 @@ import { fileURLToPath } from 'node:url';
 
 import { existsSync } from 'node:fs';
 import { thaiShare, THAI_MIN_SHARE } from './rimpl.mjs';
-import { checkReply, summarize, wordCount, LENGTH_MAX_WORDS } from './checks.mjs';
+import {
+  checkReply, summarize, wordCount, LENGTH_MAX_WORDS, citationForm, NOTE_ONLY_MAX_UPPER, evidenceCoverage, coverageVerdict, checkReport,
+} from './checks.mjs';
+import { wilson } from './stats.mjs';
 import { ITEM_TH_EXAMINER, ITEM_EN_NATURAL, ITEM_RESCUE, ITEM_PII, ITEM_LEAK, GOOD_TH_EXAMINER, entryFor } from './test-fixtures.mjs';
 
 const codes = (r) => r.flags.map((f) => f.code);
@@ -77,15 +80,104 @@ test('citation SHAPE check is production hasCitation: missing → minor flag', (
   assert.deepEqual(fake.checks.citation_shape.value, ['Fake Guideline, 2023']);
 });
 
-test('citation check is production meetsCitationRule: the no-source note passes, and is reported (info)', () => {
-  const note = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (no specific source cited).'));
+const NOTE_ONLY = 'Start when eGFR is 20 or more (no specific source cited).';
+const CITED = 'Start when eGFR is 20 or more (KDIGO Clinical Practice Guideline for Diabetes Management in CKD, 2022).';
+const BOTH = `${CITED} Dose adjustment below 20 is less settled (no specific source cited).`;
+
+test('citation check is production meetsCitationRule: the note passes; note-only and note+citation are told apart', () => {
+  const note = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, NOTE_ONLY));
   assert.equal(note.checks.citation_shape.pass, true);
   assert.deepEqual(note.checks.citation_shape.value, []);
-  assert.equal(note.checks.citation_shape.detail, 'no-specific-source note only');
+  assert.equal(note.checks.citation_shape.form, 'note-only');
   assert.equal(sev(note, 'no_citation'), undefined);
-  assert.equal(sev(note, 'no_source_stated'), 'info');
-  const plain = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (KDIGO Clinical Practice Guideline for Diabetes Management in CKD, 2022).'));
-  assert.equal(sev(plain, 'no_source_stated'), undefined);
+  assert.equal(sev(note, 'no_source_note_only'), 'info');
+  assert.equal(sev(note, 'no_source_with_citation'), undefined);
+  const both = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, BOTH));
+  assert.equal(both.checks.citation_shape.form, 'citation+note');
+  assert.equal(sev(both, 'no_source_with_citation'), 'info');
+  assert.equal(sev(both, 'no_source_note_only'), undefined, 'a reply that cited what it could is not an opt-out');
+  const plain = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, CITED));
+  assert.equal(plain.checks.citation_shape.form, 'citation');
+  assert.deepEqual(plain.flags.filter((f) => f.code.startsWith('no_source')), []);
+  assert.equal(citationForm('Start when eGFR is 20 or more.'), 'none');
+});
+
+const natRow = (id, text) => ({ id, language: 'en', mode: 'natural', result: checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, text)) });
+
+test('note-only gate: Wilson UPPER bound <= 0.25 — 11/74 passes, 12/74 fails (the pre-registered numbers)', () => {
+  assert.equal(NOTE_ONLY_MAX_UPPER, 0.25);
+  const run = (k) => summarize(Array.from({ length: 74 }, (_, i) => natRow(`r${i}`, i < k ? NOTE_ONLY : CITED)));
+  const ok = run(11);
+  assert.deepEqual(ok.citation_forms, { n: 74, citation: 63, 'citation+note': 0, 'note-only': 11, none: 0 });
+  assert.equal(ok.note_only_gate.pass, true);
+  assert.ok(ok.note_only_rate.hi < 0.25);
+  const bad = run(12);
+  assert.equal(bad.note_only_gate.pass, false);
+  assert.ok(bad.note_only_rate.hi > 0.25);
+  // A model that opts out everywhere passes citation_shape — and fails here. That is the point.
+  const all = run(74);
+  assert.equal(all.overall.citation_shape.k, 74);
+  assert.equal(all.note_only_gate.pass, false);
+  // note+citation is reported, never gated.
+  const mixed = summarize(Array.from({ length: 74 }, (_, i) => natRow(`m${i}`, BOTH)));
+  assert.equal(mixed.note_with_citation_rate.k, 74);
+  assert.equal(mixed.note_only_gate.pass, true);
+  // Rescue rows are not held to the rule: no denominator, no verdict.
+  const rescueOnly = summarize([{ id: 'x', language: 'th', mode: 'rescue', result: checkReply(ITEM_RESCUE, entryFor(ITEM_RESCUE, 'คุณกำลังชั่งน้ำหนักอะไรอยู่?')) }]);
+  assert.equal(rescueOnly.note_only_gate.pass, null);
+});
+
+test('evidence coverage: per REPLY (>=1 verified) and per CITATION, rescue and failed calls excluded', () => {
+  const rows = [natRow('a', CITED), natRow('b', CITED), natRow('c', NOTE_ONLY), natRow('d', CITED)];
+  rows.push({ id: 'r', language: 'th', mode: 'rescue', result: checkReply(ITEM_RESCUE, entryFor(ITEM_RESCUE, 'คุณกำลังชั่งน้ำหนักอะไรอยู่?')) });
+  const failed = entryFor(ITEM_EN_NATURAL, '');
+  failed.final = { ok: false, error: 'HTTP 503' };
+  rows.push({ id: 'f', language: 'en', mode: 'natural', result: checkReply(ITEM_EN_NATURAL, failed) });
+  const cites = {
+    summary: { verified_rate: { k: 2, n: 4, p: 0.5, lo: 0.15, hi: 0.85 } },
+    items: [
+      { id: 'a', citations: [{ status: 'verified' }, { status: 'publisher-only' }] },
+      { id: 'b', citations: [{ status: 'publisher-only' }] },
+      { id: 'c', citations: [] },
+      { id: 'r', citations: [{ status: 'verified' }] },     // rescue: never counted
+    ],
+  };
+  const cov = evidenceCoverage(rows, cites);
+  assert.equal(cov.per_reply.k, 1);
+  assert.equal(cov.per_reply.n, 4, 'a, b, c, d — not the rescue turn, not the failed call');
+  assert.deepEqual(cov.covered, ['a']);
+  assert.deepEqual(cov.missing_from_cites, ['d']);
+  assert.deepEqual(cov.per_citation, cites.summary.verified_rate);
+});
+
+test('coverage verdict reproduces the pre-registered before/after thresholds for both arms', () => {
+  const local = wilson(20, 74);    // 2026-10-02, checker v4
+  const sonnet = wilson(29, 74);
+  const verdict = (k, base) => coverageVerdict(wilson(k, 74), base);
+  assert.equal(verdict(28, local), 'improved');
+  assert.equal(verdict(27, local), 'not-shown');
+  assert.equal(verdict(13, local), 'not-shown');
+  assert.equal(verdict(12, local), 'worse');
+  assert.equal(verdict(38, sonnet), 'improved');
+  assert.equal(verdict(37, sonnet), 'not-shown');
+  assert.equal(verdict(21, sonnet), 'not-shown');
+  assert.equal(verdict(20, sonnet), 'worse');
+  assert.equal(coverageVerdict(wilson(0, 0), local), 'not-assessable');
+});
+
+test('the baseline coverage in QUALITY-GATES is what the committed cites files give', async () => {
+  const { loadBank } = await import('./bank.mjs');
+  const { items } = await loadBank();
+  const byId = new Map(items.map((it) => [it.id, it]));
+  const dir = new URL('report/comparison-2026-10-02/', import.meta.url);
+  for (const [arm, k, kc, nc] of [['local-deepseek', 20, 29, 182], ['anthropic-sonnet', 29, 34, 151]]) {
+    const report = JSON.parse(readFileSync(fileURLToPath(new URL(`${arm === 'local-deepseek' ? '../local-baseline-2026-10-02/' : ''}${arm}-2026-10-02.json`, dir)), 'utf8'));
+    const cites = JSON.parse(readFileSync(fileURLToPath(new URL(`${arm}-2026-10-02.cites.json`, dir)), 'utf8'));
+    const { results } = checkReport(report, byId);
+    const cov = evidenceCoverage(results, cites);
+    assert.deepEqual([cov.per_reply.k, cov.per_reply.n], [k, 74], arm);
+    assert.deepEqual([cov.per_citation.k, cov.per_citation.n], [kc, nc], arm);
+  }
 });
 
 test('rescue reply runs production checkRescueReply: three questions or a recommendation fail', () => {

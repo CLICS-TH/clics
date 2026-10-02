@@ -22,6 +22,7 @@
 // Usage:
 //   node scripts/quality/checks.mjs scripts/quality/report/<label>.json           # print summary
 //   node scripts/quality/checks.mjs scripts/quality/report/<label>.json --write   # also store checks in the report
+//   node scripts/quality/checks.mjs <label>.json --cites <label>.cites.json        # + per-reply evidence coverage
 
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
@@ -34,9 +35,26 @@ import { routeLanguage, includesLoose } from './request.mjs';
 import { wilson, fmtRate } from './stats.mjs';
 
 // v2: citation_shape passes on production's meetsCitationRule (a citation OR an explicit no-source
-// note), not on hasCitation alone, and a no-source note is reported as `no_source_stated`. Not
-// comparable with v1 on citation_shape for a reply that carries only the note.
+// note), not on hasCitation alone. Each non-rescue reply's citation FORM is recorded ('citation',
+// 'citation+note', 'note-only', 'none'), the note-only rate is gated (NOTE_ONLY_MAX_UPPER), and with
+// --cites the per-reply evidence coverage is computed. Not comparable with v1 on citation_shape for
+// a reply that carries only the note.
 export const CHECKS_VERSION = 'checks-v2';
+
+// The note-only ceiling, pre-registered in docs/QUALITY-GATES.md (2026-10-02, before any run under the
+// new prompt): the Wilson 95% UPPER bound of note-only / non-rescue replies must be <= 0.25. At n = 74
+// that allows at most 11 note-only replies (11/74 = 14.9%, upper 24.7%; 12/74 has upper 26.2%).
+export const NOTE_ONLY_MAX_UPPER = 0.25;
+
+export const CITATION_FORMS = ['citation', 'citation+note', 'note-only', 'none'];
+
+/** The citation form of one reply: does it carry a (Source, Year) shape, the no-source note, both? */
+export function citationForm(text) {
+  const cited = hasCitation(text);
+  const note = hasNoSourceStatement(text);
+  if (cited) return note ? 'citation+note' : 'citation';
+  return note ? 'note-only' : 'none';
+}
 // prompts.js: "keep the whole reply under ~400 words". The tilde earns a 10% tolerance.
 export const LENGTH_TARGET_WORDS = 400;
 export const LENGTH_MAX_WORDS = 440;
@@ -140,17 +158,18 @@ export function checkReply(item, entry) {
   } else {
     // Production's rule, as chat.js's retry enforces it: a (Source, Year) citation OR the explicit
     // "(no specific source cited)" note the prompt asks for instead of an invented reference. The
-    // note is honest, not a defect, so it passes. It is still reported (info), because a model that
-    // wrote it everywhere would pass too, and only its rate shows that.
-    const cited = hasCitation(text);
-    const noSource = hasNoSourceStatement(text);
+    // note is honest, not a defect, so it passes. But a model that wrote it everywhere would pass too,
+    // so the FORM is recorded and the note-only rate is gated in summarize(). A reply with the note
+    // AND a citation is a different thing (it cited what it could) and is counted separately.
+    const form = citationForm(text);
     checks.citation_shape = {
       pass: meetsCitationRule(text),
       value: extractReferences(text).map((r) => r.source),
-      detail: noSource ? (cited ? 'citation(s) plus a no-specific-source note' : 'no-specific-source note only') : undefined,
+      form,
     };
     if (!checks.citation_shape.pass) flag('no_citation', 'minor', 'neither a (Source, Year) citation nor a no-specific-source note after the chat.js retry');
-    if (noSource) flag('no_source_stated', 'info', checks.citation_shape.detail);
+    if (form === 'note-only') flag('no_source_note_only', 'info', 'no-specific-source note and no (Source, Year) citation');
+    if (form === 'citation+note') flag('no_source_with_citation', 'info', 'citation(s) plus a no-specific-source note for another point');
   }
 
   const ids = item.identifiers ?? [];
@@ -197,11 +216,23 @@ export function summarize(results) {
     flagCounts[f.code].items.push(r.id);
   }
   const critical = results.filter((r) => r.result.flags.some((f) => f.severity === 'critical'));
+  // Citation forms over the replies held to the citation rule (non-rescue, assessable). Note-only is
+  // gated; note+citation is reported. Both use the same denominator as citation_shape.
+  const cited = assessable.filter((r) => r.result.checks.citation_shape?.form);
+  const forms = Object.fromEntries(CITATION_FORMS.map((f) => [f, cited.filter((r) => r.result.checks.citation_shape.form === f).length]));
+  const noteOnly = wilson(forms['note-only'], cited.length);
   return {
     checks_version: CHECKS_VERSION,
     n_items: results.length,
     n_assessable: assessable.length,
     n_call_failed: results.length - assessable.length,
+    citation_forms: { n: cited.length, ...forms },
+    note_only_rate: noteOnly,
+    note_with_citation_rate: wilson(forms['citation+note'], cited.length),
+    // Pre-registered ceiling: the UPPER bound must stay <= NOTE_ONLY_MAX_UPPER. null when nothing is held to it.
+    note_only_gate: cited.length
+      ? { max_upper: NOTE_ONLY_MAX_UPPER, pass: noteOnly.hi <= NOTE_ONLY_MAX_UPPER }
+      : { max_upper: NOTE_ONLY_MAX_UPPER, pass: null },
     overall: Object.fromEntries(names.map((n) => [n, rate(assessable, n)])),
     by_language: by('language'),
     by_mode: by('mode'),
@@ -211,6 +242,42 @@ export function summarize(results) {
     // this n: 0/80 still allows a true rate up to ~4.6%.
     critical_rate: wilson(critical.length, assessable.length),
   };
+}
+
+/**
+ * Per-REPLY evidence coverage (C-1, pre-registered 2026-10-02): of the replies held to the citation
+ * rule (non-rescue, assessable), how many carry at least one citation cite-verify marks `verified`.
+ * The per-CITATION verified rate cannot see opting out — a reply that cites nothing leaves its
+ * denominator — so the two are always reported together.
+ *   results  checkReport(...).results  (id, mode, result.assessable)
+ *   cites    a <label>.cites.json from cite-verify.mjs ({ summary.verified_rate, items[{ id, citations[{ status }] }] })
+ */
+export function evidenceCoverage(results, cites) {
+  const byId = new Map((cites?.items ?? []).map((it) => [it.id, it]));
+  const held = results.filter((r) => r.mode !== 'rescue' && r.result.assessable);
+  const missing = held.filter((r) => !byId.has(r.id)).map((r) => r.id);
+  const covered = held.filter((r) => (byId.get(r.id)?.citations ?? []).some((c) => c.status === 'verified'));
+  return {
+    per_reply: wilson(covered.length, held.length),
+    per_citation: cites?.summary?.verified_rate ?? null,
+    covered: covered.map((r) => r.id),
+    missing_from_cites: missing,
+  };
+}
+
+/**
+ * The pre-registered before/after verdict on per-reply evidence coverage for ONE arm (same model,
+ * same bank, same verifier version). `baseline` is that arm's coverage before the change.
+ *   improved   after.lo > baseline.p   (the after-run's own lower bound clears the old point estimate,
+ *                                       so it is not reached by chance at the 2.5% one-sided level)
+ *   worse      after.hi < baseline.p
+ *   not-shown  anything else — no claim either way
+ */
+export function coverageVerdict(after, baseline) {
+  if (after?.lo == null || baseline?.p == null) return 'not-assessable';
+  if (after.lo > baseline.p) return 'improved';
+  if (after.hi < baseline.p) return 'worse';
+  return 'not-shown';
 }
 
 /** Recompute checks for a whole report against the given bank items (by id). */
@@ -230,6 +297,20 @@ export function printSummary(summary, log = console.log) {
     (summary.n_call_failed ? `, ${summary.n_call_failed} call failure(s) excluded` : ''));
   for (const [name, w] of Object.entries(summary.overall)) log(`    ${name.padEnd(24)} ${fmtRate(w)}`);
   log(`    ${'critical-flag rate'.padEnd(24)} ${fmtRate(summary.critical_rate)}`);
+  if (summary.citation_forms?.n) {
+    const f = summary.citation_forms;
+    log(`\n  citation forms (non-rescue, n=${f.n}): citation ${f.citation}, citation+note ${f['citation+note']}, note-only ${f['note-only']}, none ${f.none}`);
+    const g = summary.note_only_gate;
+    log(`    ${'note-only (gated)'.padEnd(24)} ${fmtRate(summary.note_only_rate)}  upper <= ${g.max_upper}: ${g.pass ? 'pass' : 'FAIL'}`);
+    log(`    ${'note+citation'.padEnd(24)} ${fmtRate(summary.note_with_citation_rate)}`);
+  }
+  if (summary.evidence_coverage) {
+    const e = summary.evidence_coverage;
+    log(`\n  evidence (from ${e.cites_file})`);
+    log(`    ${'per reply: >=1 verified'.padEnd(24)} ${fmtRate(e.per_reply)}`);
+    if (e.per_citation) log(`    ${'per citation: verified'.padEnd(24)} ${fmtRate(e.per_citation)}`);
+    if (e.missing_from_cites.length) log(`    ⚠ ${e.missing_from_cites.length} reply(ies) absent from the cites file: ${e.missing_from_cites.join(', ')}`);
+  }
   const sev = Object.entries(summary.flags).sort((a, b) =>
     SEVERITY_ORDER.indexOf(a[1].severity) - SEVERITY_ORDER.indexOf(b[1].severity));
   if (sev.length) {
@@ -253,6 +334,14 @@ async function main() {
   const { results, missing } = checkReport(report, new Map(items.map((it) => [it.id, it])));
   if (missing.length) console.log(`  ⚠ ${missing.length} report item(s) not in the current bank (skipped): ${missing.join(', ')}`);
   const summary = summarize(results);
+  const citesAt = rest.indexOf('--cites');
+  if (citesAt !== -1) {
+    const citesFile = rest[citesAt + 1];
+    if (!citesFile) { console.error('--cites needs a <label>.cites.json path'); process.exit(2); }
+    const cites = JSON.parse(await readFile(citesFile, 'utf8'));
+    const { covered, ...cov } = evidenceCoverage(results, cites);
+    summary.evidence_coverage = { cites_file: citesFile, ...cov };
+  }
   printSummary(summary);
   if (rest.includes('--write')) {
     const byId = new Map(results.map((r) => [r.id, r.result]));

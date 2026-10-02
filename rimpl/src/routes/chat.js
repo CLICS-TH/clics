@@ -216,6 +216,9 @@ router.post('/', async (req, res) => {
     const languageMismatch = physicianWroteThai && isLanguageMismatch(text, language);
     let languageRetried = false;   // the retry's reply is the one being returned
     if (needCitation || languageMismatch) {
+      // NOT covered by prompt_version: promptLabel('chat', systemPrompt) below hashes the system prompt
+      // only, so an edit to these retry prompts alone does NOT change the label. Open follow-up (#123);
+      // until it lands, record any retry-prompt edit in the PR and re-run the tutor audit.
       let retryPrompt;
       if (needCitation) {
         retryPrompt = socratic
