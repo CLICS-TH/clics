@@ -599,7 +599,18 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     provider: rimplResponse.provider,
   }));
 
-  res.json({ ...rimplResponse, transcript: transcriptBlock(contextSeen, cap) });
+  // A WHITELIST, never a spread of rimpl's body. That body also carries provider / model /
+  // prompt_version / failed_over_from / rescue — research provenance that would tell a physician which
+  // arm they are in (and that the rescue fired). physician-ui reads exactly these fields.
+  res.json({
+    content: rimplResponse.content,
+    refs: rimplResponse.refs,
+    socratic_question: rimplResponse.socratic_question,
+    token_count: rimplResponse.token_count,
+    input_tokens: rimplResponse.input_tokens,
+    output_tokens: rimplResponse.output_tokens,
+    transcript: transcriptBlock(contextSeen, cap),
+  });
 });
 
 // End session and run PLE quality gate

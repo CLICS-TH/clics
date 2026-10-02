@@ -55,8 +55,13 @@ router.post('/message', async (req, res) => {
     return res.status(502).json({ error: `RIMPL unavailable: ${err.message}` });
   }
 
+  // Whitelisted for the same reason as routes/ples.js: rimpl's body carries provider / model /
+  // prompt_version, which no client needs to see.
   res.json({
-    ...rimplResponse,
+    content: rimplResponse.content,
+    refs: rimplResponse.refs,
+    socratic_question: rimplResponse.socratic_question,
+    token_count: rimplResponse.token_count,
     prompts_used: reserve.used,
     prompts_remaining: reserve.remaining,
     session_ended: reserve.session_ended,

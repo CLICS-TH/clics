@@ -70,6 +70,17 @@ describe('physician chat', () => {
     expect(assistant).toMatchObject({ provider: null, model: null, prompt_version: null });
   });
 
+  test('the turn response is a whitelist: no provider, model, prompt version, fail-over or rescue', async () => {
+    // It used to be a spread of rimpl's whole body, so these reached the physician's browser.
+    mockRimplChat.mockResolvedValue(reply({ ...PROV, failed_over_from: 'anthropic', rescue: { rescuing: true } }));
+    const r = await sendTurn();
+    expect(r.status).toBe(200);
+    expect(r.body.content).toBe('assistant reply');
+    for (const k of ['provider', 'model', 'prompt_version', 'failed_over_from', 'rescue', 'context_tokens']) {
+      expect(r.body).not.toHaveProperty(k);
+    }
+  });
+
   test("the physician's transcript read names its columns and never includes provenance", async () => {
     await auth(request(app).get('/ples/ple1'));
     const read = m.all('messages').find((q) => q.op === 'select');

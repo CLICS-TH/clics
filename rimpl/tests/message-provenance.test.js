@@ -56,3 +56,27 @@ test('audit-discuss versions its fixed instructions, not the per-episode transcr
   expect(a.body.prompt_version).toBe(promptLabel('discuss', P.RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS));
   expect(b.body.prompt_version).toBe(a.body.prompt_version);
 });
+
+// The label must follow the prompt of the RETURNED call through every path that swaps or repeats it.
+// A label computed once, early (say, hoisted above the rescue block to log it), would stamp rescue
+// turns with the examiner hash — the exact rows the rescue analysis needs.
+const { callAI } = require('../src/services/ai');
+const { MAX_RESCUE_ROUNDS } = require('../src/services/rescue');
+
+test('a rescue that has run its cap is labelled with the rescue prompt alone, artifacts or not', async () => {
+  const res = await chat({ socratic: true, artifacts: true, rescue_active: true, rescue_rounds: MAX_RESCUE_ROUNDS });
+  expect(res.status).toBe(200);
+  expect(res.body.rescue).toMatchObject({ exhausted: true });
+  expect(res.body.prompt_version).toBe(promptLabel('chat', P.RIMPL_SYSTEM_PROMPT_RESCUE));
+});
+
+test('a citation retry keeps the label: it resends the same instructions', async () => {
+  callAI.mockClear();
+  callAI
+    .mockResolvedValueOnce({ text: 'An answer with no source.', tokenCount: 50, inputTokens: 40, outputTokens: 10, provider: 'local', model: 'm' })
+    .mockResolvedValueOnce({ text: 'An answer (ADA, 2024).', tokenCount: 60, inputTokens: 45, outputTokens: 15, provider: 'local', model: 'm' });
+  const res = await chat();
+  expect(callAI).toHaveBeenCalledTimes(2);
+  expect(callAI.mock.calls[1][0].systemPrompt).toBe(callAI.mock.calls[0][0].systemPrompt);
+  expect(res.body.prompt_version).toBe(promptLabel('chat', P.RIMPL_SYSTEM_PROMPT_NATURAL));
+});
