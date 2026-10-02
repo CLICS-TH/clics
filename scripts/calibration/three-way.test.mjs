@@ -205,7 +205,7 @@ describe('local-vs-auditor with no Claude row required (anchor PLEs)', () => {
   const D = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
   const vec = (base, i) => Object.fromEntries(D.map((d, k) => [d, Math.max(0, Math.min(5, base + ((i + k) % 3) - 1))]));
   const comp = (v) => D.reduce((s, d) => s + v[d], 0) * 20 / 7;
-  function makeDb({ claudeOn = [] } = {}) {
+  function makeDb({ claudeOn = [], promptOf = () => 'pis7-prompt-x+local-y' } = {}) {
     const db = { ples: [], ai_evaluations: [], audit_scores: [], shadow_evaluations: [],
       professionals: [{ id: 'ph1', pseudonym: 'P-001' }, { id: 'aud-1', pseudonym: 'P-101', exp_code: 'EXP-R1' }] };
     for (let i = 0; i < 8; i++) {
@@ -216,7 +216,8 @@ describe('local-vs-auditor with no Claude row required (anchor PLEs)', () => {
       db.ples.push({ id, is_test: false, physician_id: 'ph1' });
       db.audit_scores.push({ id: `au-${id}`, ple_id: id, auditor_id: 'aud-1', composite_score: comp(human), ...human });
       db.shadow_evaluations.push({ id: `sh-${id}`, ple_id: id, provider: 'local', model_version: 'CCME_LLM_v8.0+m',
-        evaluated_at: '2026-10-02T10:00:00Z', error: null, stop_reason: null, composite_score: comp(local), ...local });
+        evaluated_at: '2026-10-02T10:00:00Z', error: null, stop_reason: null, composite_score: comp(local), ...local,
+        prompt_version: promptOf(i), rubric_version: 'pis7-weights-z' });
       if (claudeOn.includes(id)) {
         db.ai_evaluations.push({ id: `ai-${id}`, ple_id: id, composite_score: comp(local), ...local, prompt_version: 'p1', model_version: 'CCME_LLM_v8.0' });
       }
@@ -267,6 +268,27 @@ describe('local-vs-auditor with no Claude row required (anchor PLEs)', () => {
     const r = runOn(makeDb(), 'scoped', ['--manifest', man]);
     assert.equal(r.status, 0, r.stderr);
     assert.equal(latestArchive().local_vs_auditor_no_claude.n, 4);
+  });
+
+  test('archives the prompt/rubric versions of the arm, and warns only on a mixture', () => {
+    const clean = runOn(makeDb(), 'one-prompt');
+    assert.equal(clean.status, 0, clean.stderr);
+    let a = latestArchive().local_vs_auditor_no_claude;
+    assert.deepEqual(a.prompt_versions, ['pis7-prompt-x+local-y']);
+    assert.deepEqual(a.rubric_versions, ['pis7-weights-z']);
+    assert.match(clean.stdout, /shadow prompt version\(s\): pis7-prompt-x\+local-y/);
+    assert.doesNotMatch(clean.stdout, /this arm pools/);
+
+    const mixed = runOn(makeDb({ promptOf: (i) => (i < 4 ? 'pis7-prompt-x+local-y' : 'pis7-prompt-x+local-NEW') }), 'two-prompts');
+    assert.equal(mixed.status, 0, mixed.stderr);
+    a = latestArchive().local_vs_auditor_no_claude;
+    assert.deepEqual(a.prompt_versions, ['pis7-prompt-x+local-NEW', 'pis7-prompt-x+local-y']);
+    assert.match(mixed.stdout, /!! this arm pools 2 prompt and 1 rubric version/);
+
+    const unrec = runOn(makeDb({ promptOf: () => null }), 'no-prompt');
+    assert.equal(unrec.status, 0, unrec.stderr);
+    assert.deepEqual(latestArchive().local_vs_auditor_no_claude.prompt_versions, ['unrecorded']);
+    assert.match(unrec.stdout, /NO prompt\/rubric version recorded/);
   });
 
   test('without a shadow table the section reports unavailable, not a number', () => {

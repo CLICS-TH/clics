@@ -24,7 +24,10 @@
  * PLE in the cohort carrying a shadow score and >=1 auditor score, with its OWN n, printed after
  * the three arms and archived as `local_vs_auditor_no_claude`. It is NOT an acceptance input and
  * changes nothing above it: the three arms, the coverage funnel and the gates are computed exactly
- * as before. For the anchors: --include-test --manifest anchors/imports/sandbox-heldout.json.
+ * as before. Its prompt/rubric versions are printed and archived, with a warning on a mixture. For
+ * the anchors: --include-test --manifest anchors/imports/sandbox-heldout.json --provider local
+ * --model '<served model label>+anchor-median3' (import-shadow.mjs gives anchor rows their own
+ * model_version so they never pool with live shadow traffic).
  *
  * USABLE TODAY. `shadow_evaluations` may not exist yet (db/migration-shadow-evaluations.sql is
  * deliberately unapplied) and will be empty for a while after it does. Neither is an error: the
@@ -356,7 +359,7 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   ]);
   const shadowRows = await selectAll(
     'shadow_evaluations',
-    'id, ple_id, provider, model_version, composite_score, d1,d2,d3,d4,d5,d6,d7, error, stop_reason, evaluated_at',
+    'id, ple_id, provider, model_version, prompt_version, rubric_version, composite_score, d1,d2,d3,d4,d5,d6,d7, error, stop_reason, evaluated_at',
     { optional: true },
   );
   const shadowTableMissing = shadowRows === null;
@@ -570,6 +573,8 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   // valid score set 8% of the time" is a first-class, potentially disqualifying result, and
   // averaging it away would hide exactly the thing a model swap turns on.
   const shadow = new Map();
+  // Provenance of each scored shadow row (prompt / rubric), read by the no-Claude section below.
+  const shadowVersions = new Map();
   let corpusScored = 0;
   let corpusFailed = 0;
   let auditedFailed = 0;
@@ -582,6 +587,7 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
     const failed = r.error != null || !finiteDoms(r);
     if (failed) { if (auditedSet.has(r.ple_id)) auditedFailed += 1; continue; }
     shadow.set(r.ple_id, toScore(r));
+    shadowVersions.set(r.ple_id, { prompt: r.prompt_version ?? 'unrecorded', rubric: r.rubric_version ?? 'unrecorded' });
   }
   // The corpus pass is now just the candidate's own rows -- they are already corpus-scoped and
   // already this provider/model. Re-filtering shadowRows here would be a second chance to get the
@@ -659,6 +665,21 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   const noClaudeWithout = noClaudeIds.filter(id => !ai.has(id)).length;
   printArm(NO_CLAUDE_ARM, noClaudeArm, null,
     `${plural(noClaudeIds.length, 'PLE')} with a Local and an auditor score (${noClaudeWithout} of them have no Claude row) - its own n`);
+  // ICC is a property of (model x prompt x rubric): report the mixture under this arm exactly as the
+  // ai_evaluations prompt check above does, and warn rather than silently pool.
+  const noClaudePrompts = [...new Set(noClaudeIds.map(id => shadowVersions.get(id)?.prompt ?? 'unrecorded'))].sort();
+  const noClaudeRubrics = [...new Set(noClaudeIds.map(id => shadowVersions.get(id)?.rubric ?? 'unrecorded'))].sort();
+  if (noClaudeIds.length) {
+    console.log(`  shadow prompt version(s): ${noClaudePrompts.join(', ')}`);
+    console.log(`  shadow rubric version(s): ${noClaudeRubrics.join(', ')}`);
+    if (noClaudePrompts.length > 1 || noClaudeRubrics.length > 1) {
+      console.log(`\n  !! this arm pools ${noClaudePrompts.length} prompt and ${noClaudeRubrics.length} rubric version(s).`);
+      console.log(`     ICC is a property of (model x prompt x rubric). Narrow the cohort (--manifest) or report this mixture explicitly.`);
+    }
+    if (noClaudePrompts.includes('unrecorded') || noClaudeRubrics.includes('unrecorded')) {
+      console.log(`\n  !! some shadow rows in this arm have NO prompt/rubric version recorded - they cannot be attributed to a prompt.`);
+    }
+  }
 
   // -- acceptance --
   const localHuman = arms.shadow_vs_human?.overall ?? null;
@@ -724,7 +745,8 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
     arms,
     arms_own_cohort: armsOwn,
     // Separate cohort (see header): not comparable with `arms`, not an acceptance input.
-    local_vs_auditor_no_claude: { n: noClaudeIds.length, ples_without_claude: noClaudeWithout, arm: noClaudeArm },
+    local_vs_auditor_no_claude: { n: noClaudeIds.length, ples_without_claude: noClaudeWithout,
+      prompt_versions: noClaudePrompts, rubric_versions: noClaudeRubrics, arm: noClaudeArm },
     acceptance: {
       contract_compliance: contractOk,
       local_vs_human_icc: iccOk,

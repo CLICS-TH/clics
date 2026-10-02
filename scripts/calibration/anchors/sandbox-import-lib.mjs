@@ -363,11 +363,26 @@ export function medianInt(xs) {
 }
 
 /**
+ * The model_version an anchor shadow row carries: production's modelVersion(served model) PLUS an
+ * `+anchor-median<K>` suffix — never the live label. These rows are a different PROCEDURE (median of
+ * K offline runs, failures skipped, never written) and must not pool with live shadow traffic of the
+ * same model: oversight.js measures the corpus contract rate per (provider, model_version) with no
+ * is_test filter, and three-way.js picks the candidate the same way, so a shared label would add ~60
+ * guaranteed successes to the candidate's contract rate (live 36/40 → 96/100 passes the 95% gate).
+ */
+export function anchorModelVersion(model, k) {
+  if (!Number.isInteger(k) || k < 1 || k % 2 === 0) throw new Error(`anchor median needs an odd K (got ${k})`);
+  return `${modelVersion(model)}+anchor-median${k}`;
+}
+
+/**
  * Map a score-local run to shadow_evaluations rows for the imported PLEs. Pure.
- * Per anchor: the per-domain MEDIAN of its scored runs (all of them, an odd number — an anchor with
- * an even count or a failed run is SKIPPED and listed, never padded or averaged), composite from
- * rimpl compositeOf, provenance from the run file. An anchor whose run scored different bytes from
- * the imported fixture is refused: the score would describe a transcript the auditor never reads.
+ * Per anchor: the per-domain MEDIAN of its K runs (K = run.repeats, odd; every run present and
+ * scored — otherwise the anchor is SKIPPED and listed, never padded or averaged), composite from
+ * rimpl compositeOf, provenance from the run file, model_version = anchorModelVersion (its own
+ * candidate identity). An anchor whose run scored different bytes from the imported fixture — or
+ * whose bytes cannot be checked because either sha is missing — is refused: the score would
+ * describe a transcript the auditor may never read.
  */
 export function planShadow({ run, manifestAnchors, fixtureShas, runFile, runSha }) {
   if (run?.probe !== 'anchors-score-local') throw new Error(`not a score-local run file (probe=${run?.probe})`);
@@ -375,25 +390,26 @@ export function planShadow({ run, manifestAnchors, fixtureShas, runFile, runSha 
   const servedModels = [...new Set((run.rows ?? []).filter((r) => r.scores).map((r) => r.model ?? run.model))];
   if (servedModels.length > 1) throw new Error(`run mixes served models (${servedModels.join(', ')}) — one candidate per shadow row set`);
   const model = servedModels[0] ?? run.model;
+  const K = run.repeats;
+  const label = anchorModelVersion(model, K);
   const evaluatedAt = run.finished_at ?? run.started_at ?? null;
   const rows = [];
   const skipped = [];
   for (const { id, ple_id } of manifestAnchors) {
     const runs = (run.rows ?? []).filter((r) => r.id === id);
     if (!runs.length) { skipped.push({ id, reason: 'not in run file' }); continue; }
-    if (run.fixtures?.[id] && fixtureShas?.[id] && run.fixtures[id] !== fixtureShas[id]) {
-      skipped.push({ id, reason: 'run scored different fixture bytes than were imported' }); continue;
-    }
+    // Fail CLOSED: a missing sha on either side is not "no mismatch".
+    if (!run.fixtures?.[id]) { skipped.push({ id, reason: 'run file has no fixture sha for this anchor' }); continue; }
+    if (!fixtureShas?.[id]) { skipped.push({ id, reason: 'import manifest has no fixture sha for this anchor' }); continue; }
+    if (run.fixtures[id] !== fixtureShas[id]) { skipped.push({ id, reason: 'run scored different fixture bytes than were imported' }); continue; }
+    if (runs.length !== K) { skipped.push({ id, reason: `${runs.length} runs, expected K=${K}` }); continue; }
     const scored = runs.filter((r) => r.scores && DOMAINS.every((d) => Number.isInteger(r.scores[d])));
     if (scored.length !== runs.length) { skipped.push({ id, reason: `${runs.length - scored.length} of ${runs.length} runs unscored` }); continue; }
-    if (scored.length % 2 === 0) { skipped.push({ id, reason: `${scored.length} runs — median of an even count is not an integer` }); continue; }
     const scores = Object.fromEntries(DOMAINS.map((d) => [d, medianInt(scored.map((r) => r.scores[d]))]));
     rows.push({
       ple_id,
       provider: 'local',
-      // Production's shadow writer stamps modelVersion(served model) (rimpl services/shadow.js),
-      // so these rows group with live shadow rows of the same candidate in three-way.js.
-      model_version: modelVersion(model),
+      model_version: label,
       prompt_version: run.prompt_version_used ?? null,
       rubric_version: run.rubric_version ?? null,
       ...scores,
@@ -403,7 +419,7 @@ export function planShadow({ run, manifestAnchors, fixtureShas, runFile, runSha 
       domain_rationale: {
         source: 'scripts/calibration/anchors/import-shadow.mjs',
         anchor_id: id,
-        aggregation: `per-domain median of ${scored.length} runs`,
+        aggregation: `per-domain median of ${K} runs`,
         runs: scored.sort((a, b) => a.run - b.run).map((r) => DOMAINS.map((d) => r.scores[d])),
         run_file: runFile ?? null,
         run_file_sha256: runSha ?? null,
@@ -417,5 +433,34 @@ export function planShadow({ run, manifestAnchors, fixtureShas, runFile, runSha 
       evaluated_at: evaluatedAt,
     });
   }
-  return { rows, skipped, model_version: modelVersion(model) };
+  return { rows, skipped, model_version: label };
+}
+
+/* ------------------------------------------------- existing-row comparison */
+
+/**
+ * Is an already-present anchor PLE byte-identical to what this import would write? Pure.
+ * `stored.messages` are the DB rows (role, content, created_at) in any order; `stored.reflection` is
+ * the ple_reflections row or null. Returns [] when identical, else human-readable differences.
+ * An import skips an existing PLE ONLY when this is empty — a half-written PLE, or one written from
+ * different fixture bytes, must never be counted as imported.
+ */
+export function diffExisting(planned, stored) {
+  const diffs = [];
+  const msgs = [...(stored?.messages ?? [])].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+  if (msgs.length !== planned.messages.length) diffs.push(`${msgs.length} messages stored, ${planned.messages.length} planned`);
+  const n = Math.min(msgs.length, planned.messages.length);
+  for (let i = 0; i < n; i++) {
+    if (msgs[i].role !== planned.messages[i].role) { diffs.push(`message ${i + 1}: role ${msgs[i].role} ≠ ${planned.messages[i].role}`); break; }
+    if (msgs[i].content !== planned.messages[i].content) { diffs.push(`message ${i + 1}: content differs`); break; }
+  }
+  const r = stored?.reflection ?? null;
+  if (!!r !== !!planned.reflection) diffs.push(`reflection ${r ? 'stored' : 'missing'}, ${planned.reflection ? 'planned' : 'not planned'}`);
+  else if (r) {
+    for (const k of ['learned', 'uncertainty', 'application']) {
+      if ((r[k] ?? null) !== (planned.reflection[k] ?? null)) diffs.push(`reflection.${k} differs`);
+    }
+    if (!!r.skipped !== !!planned.reflection.skipped) diffs.push('reflection.skipped differs');
+  }
+  return diffs;
 }

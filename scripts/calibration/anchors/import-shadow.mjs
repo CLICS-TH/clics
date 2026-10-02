@@ -15,11 +15,14 @@
  * No AI is called: the scores already exist in the run file.
  *
  * Per anchor, one row:
- *   d1..d7          per-domain MEDIAN of the K runs (integers; K must be odd and every run scored —
+ *   d1..d7          per-domain MEDIAN of the K runs (K = run.repeats, odd; every run present and scored —
  *                   otherwise the anchor is skipped and listed, never padded or averaged)
  *   composite_score rimpl/src/lib/composite.js compositeOf(medians)
  *   provider        'local'
- *   model_version   modelVersion(served model) — production's shadow-row format (rimpl shadow.js)
+ *   model_version   modelVersion(served model) + '+anchor-median<K>' (anchorModelVersion) — its OWN
+ *                   candidate label, never the live one. The live label would pool these median-of-K,
+ *                   always-successful rows into the live candidate's corpus contract rate
+ *                   (oversight.js, three-way.js; neither filters is_test) and inflate it.
  *   prompt_version  run.prompt_version_used       rubric_version  run.rubric_version
  *   domain_rationale provenance: the K per-run score vectors, run file + its sha256
  *   evaluated_at    run.finished_at ?? run.started_at
@@ -77,6 +80,7 @@ console.log(`\n  ${plan.rows.length} shadow_evaluations row(s) · ${plan.skipped
 for (const s of plan.skipped) console.log(`    skipped ${s.id}: ${s.reason}`);
 
 if (!CONFIRM) {
+  console.log(`\n  three-way: --include-test --manifest <this manifest> --provider local --model '${plan.model_version}'`);
   console.log(`\nDRY RUN — nothing written, no database contacted. Re-run with --confirm to insert.\n`);
   process.exit(0);
 }

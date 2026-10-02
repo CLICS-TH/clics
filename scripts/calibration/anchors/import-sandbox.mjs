@@ -22,7 +22,9 @@
  *     /admin/ples/:id/privacy-review), assigning auditors, and setting calibration_reveal_locked=1
  *     are human superadmin steps (AUTHORING.md §8).
  *
- * Rows written per anchor (ids deterministic, so a re-run is idempotent: existing ids are skipped):
+ * Rows written per anchor (ids deterministic, so a re-run is idempotent: an existing PLE is skipped
+ * only if its stored messages + reflection are byte-identical to the plan; any difference refuses
+ * the whole run before a row is written — roll back first):
  *   ples              id = uuidv5(anchor id, ANCHOR_NAMESPACE); physician/council from the flags;
  *                     specialty NULL; is_test true; status 'evaluated'; started/ended from a seeded
  *                     shuffle over every designed id (queue order ≠ anchor order); turn_count =
@@ -49,8 +51,12 @@
  *                    them, unless --force-export-first, which writes them to a local file first.
  *   --fixtures dir   default scripts/calibration/anchors/fixtures (tests point it elsewhere)
  *
- * HAZARD, not handled here: POST /admin/ples/:id/reevaluate accepts an 'evaluated' PLE with no
- * ai_evaluations row and would queue a REAL evaluation. Nobody should press it on these rows.
+ * RE-EVALUATE IS A HARMLESS NO-OP HERE, not a spend risk. POST /admin/ples/:id/reevaluate accepts an
+ * 'evaluated' PLE with no ai_evaluations row, but enqueueEvaluation (backend/src/services/
+ * ple-finalize.js) only stamps the eval_* columns; claim_ple_evaluations claims status='ple_pass'
+ * rows only and eval-drain returns early on any other status. So pressing it sets eval_enqueued_at,
+ * writes a 'ple.reevaluate' audit-log row and answers "queued" — and nothing ever claims the row: no
+ * AI call, no spend. Still, don't press it: the audit-log row is noise in the study record.
  */
 import { readdir, readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -58,7 +64,7 @@ import { fileURLToPath } from 'node:url';
 import { loadAnchorSplit, splitFilter, loadHeldOutLock, assertHeldOutScorable } from './anchor-split.mjs';
 import { parseArgs } from '../../probe/lib.mjs';
 import {
-  planImport, importManifest, mergeImportManifests, readImportManifest, verifyFixtureBytes, SCHEDULE_SEED, BASE_TIME,
+  planImport, importManifest, mergeImportManifests, readImportManifest, verifyFixtureBytes, diffExisting, SCHEDULE_SEED, BASE_TIME,
   ANCHOR_NAMESPACE, PROVIDER_USED,
 } from './sandbox-import-lib.mjs';
 
@@ -213,17 +219,18 @@ try {
   const planned = plan.anchors.map((a) => a.ple_id);
   const existing = new Set((await selectIn(db, 'ples', 'id', 'id', planned)).map((r) => r.id));
   if (existing.size) await assertAnchorPles(db, [...existing], councilId);
-  // An existing PLE is skipped only if it is COMPLETE; a half-written one (an earlier run died
-  // between inserts) is reported, never silently counted as imported.
-  const incomplete = [];
+  // An existing PLE is skipped only if its stored transcript and reflection are BYTE-IDENTICAL to the
+  // plan (sandbox-import-lib.mjs diffExisting). A half-written PLE, or one written from different
+  // fixture bytes, refuses the whole run before anything is written.
   if (existing.size) {
-    const msgs = await selectIn(db, 'messages', 'ple_id', 'ple_id', [...existing]);
-    const refl = new Set((await selectIn(db, 'ple_reflections', 'ple_id', 'ple_id', [...existing])).map((r) => r.ple_id));
-    const nMsg = {};
-    for (const m of msgs) nMsg[m.ple_id] = (nMsg[m.ple_id] ?? 0) + 1;
+    const msgs = await selectIn(db, 'messages', 'ple_id, role, content, created_at', 'ple_id', [...existing]);
+    const refl = await selectIn(db, 'ple_reflections', 'ple_id, learned, uncertainty, application, skipped', 'ple_id', [...existing]);
+    const bad = [];
     for (const a of plan.anchors.filter((x) => existing.has(x.ple_id))) {
-      if ((nMsg[a.ple_id] ?? 0) !== a.messages.length || refl.has(a.ple_id) !== !!a.reflection) incomplete.push(a.id);
+      const diffs = diffExisting(a, { messages: msgs.filter((m) => m.ple_id === a.ple_id), reflection: refl.find((r) => r.ple_id === a.ple_id) ?? null });
+      if (diffs.length) bad.push(`${a.id}: content differs from fixture ${a.sha256.slice(0, 12)} — roll back first (${diffs.join('; ')})`);
     }
+    if (bad.length) die(`${bad.length} existing PLE(s) do not match this import:\n  ${bad.join('\n  ')}\n  Nothing was written. Clean up with --rollback <manifest> --confirm, then re-import.`);
   }
   // Manifest FIRST: if an insert fails part-way, --rollback still has the exact id list to clean up.
   // Merged into an existing file, never overwritten by a smaller one (an --only top-up).
@@ -242,7 +249,7 @@ try {
     created++;
     console.log(`  ✓ ${a.id} → ${a.ple_id}`);
   }
-  console.log(`\n  ${created} created, ${existing.size} already present${incomplete.length ? `, ${incomplete.length} INCOMPLETE: ${incomplete.join(' ')} (roll back and re-import)` : ''}`);
+  console.log(`\n  ${created} created, ${existing.size} already present (verified identical)`);
   console.log(`  next (human, superadmin): privacy review each PLE, assign auditors, set calibration_reveal_locked=1.\n`);
-  process.exit(incomplete.length ? 1 : 0);
-} catch (e) { die(`${e.message}\n  (rows inserted before this point stay. A re-run skips complete PLEs and reports a half-written one as INCOMPLETE; clean up with --rollback ${path.relative(process.cwd(), manifestOut)} --confirm, then re-import)`); }
+  process.exit(0);
+} catch (e) { die(`${e.message}\n  (rows inserted before this point stay. A re-run skips identical PLEs and refuses a half-written one; clean up with --rollback ${path.relative(process.cwd(), manifestOut)} --confirm, then re-import)`); }

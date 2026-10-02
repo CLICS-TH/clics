@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import {
   uuidv5, anchorPleId, ANCHOR_NAMESPACE, splitReflection, renderReflection, REFLECTION_HEADINGS,
   planAnchor, planImport, importManifest, mergeImportManifests, readImportManifest, verifyFixtureBytes, assertSandboxCouncil,
+  anchorModelVersion, diffExisting,
   medianInt, planShadow, slotIndex, PROVIDER_USED, BASE_TIME, DOMAINS,
 } from './sandbox-import-lib.mjs';
 
@@ -241,7 +242,7 @@ describe('shadow rows: per-domain median of K', () => {
   const anchors = ['anc-a', 'anc-b', 'anc-c', 'anc-d', 'anc-e'].map((id) => ({ id, ple_id: anchorPleId(id) }));
   const shas = { 'anc-a': 'sa', 'anc-b': 'sb', 'anc-c': 'sc', 'anc-d': 'sd', 'anc-e': 'se' };
 
-  test('maps each anchor to one row: medians, production composite, production model_version, provenance', () => {
+  test('maps each anchor to one row: medians, production composite, an anchor-only model_version, provenance', () => {
     const run = baseRun([
       row('anc-a', 1, [1, 2, 3, 4, 5, 0, 1]), row('anc-a', 2, [3, 2, 1, 4, 5, 2, 1]), row('anc-a', 3, [2, 2, 2, 3, 4, 1, 5]),
       row('anc-b', 1, [4, 4, 4, 4, 4, 4, 4]), row('anc-b', 2, [4, 4, 4, 4, 4, 4, 4]), row('anc-b', 3, null, { error: 'invalid_json' }),
@@ -256,7 +257,8 @@ describe('shadow rows: per-domain median of K', () => {
     assert.equal(r.composite_score, compositeOf(med));
     assert.equal(r.ple_id, anchorPleId('anc-a'));
     assert.equal(r.provider, 'local');
-    assert.equal(r.model_version, modelVersion('m-x'));
+    assert.equal(r.model_version, `${modelVersion('m-x')}+anchor-median3`);
+    assert.equal(p.model_version, r.model_version);
     assert.equal(r.prompt_version, 'pis7-prompt-aaaa+local-bbbb');
     assert.equal(r.rubric_version, 'pis7-weights-cccc');
     assert.equal(r.error, null);
@@ -265,15 +267,73 @@ describe('shadow rows: per-domain median of K', () => {
     assert.equal(r.domain_rationale.run_file_sha256, 'f00');
     assert.deepEqual(p.skipped.map((s) => s.id), ['anc-b', 'anc-c', 'anc-d', 'anc-e']);
     assert.match(p.skipped[0].reason, /unscored/);
-    assert.match(p.skipped[1].reason, /even/);
+    assert.match(p.skipped[1].reason, /2 runs, expected K=3/);
     assert.match(p.skipped[2].reason, /different fixture bytes/);
     assert.match(p.skipped[3].reason, /not in run file/);
+  });
+
+  test('the anchor label is NEVER the live modelVersion (median-of-K rows must not pool into the live contract rate)', () => {
+    for (const m of ['m-x', 'deepseek-v4-flash-dspark', 'claude-sonnet', '']) {
+      for (const k of [1, 3, 5]) assert.notEqual(anchorModelVersion(m, k), modelVersion(m));
+    }
+    assert.throws(() => anchorModelVersion('m-x', 2), /odd K/);
+    assert.throws(() => anchorModelVersion('m-x', undefined), /odd K/);
+    // The committed held-out run maps to its own label too.
+    const three = baseRun([1, 2, 3].map((n) => row('anc-a', n, [3, 3, 3, 3, 3, 3, 3])), { 'anc-a': 'sa' });
+    const p = planShadow({ run: three, manifestAnchors: anchors.slice(0, 1), fixtureShas: shas });
+    assert.notEqual(p.rows[0].model_version, modelVersion('m-x'));
+    assert.match(p.rows[0].model_version, /\+anchor-median3$/);
+  });
+
+  test('fails CLOSED when either fixture sha is missing', () => {
+    const rows = [1, 2, 3].map((n) => row('anc-a', n, [3, 3, 3, 3, 3, 3, 3]));
+    const noRunSha = planShadow({ run: baseRun(rows, {}), manifestAnchors: anchors.slice(0, 1), fixtureShas: shas });
+    assert.equal(noRunSha.rows.length, 0);
+    assert.match(noRunSha.skipped[0].reason, /run file has no fixture sha for this anchor/);
+    const noImportSha = planShadow({ run: baseRun(rows, { 'anc-a': 'sa' }), manifestAnchors: anchors.slice(0, 1), fixtureShas: {} });
+    assert.equal(noImportSha.rows.length, 0);
+    assert.match(noImportSha.skipped[0].reason, /import manifest has no fixture sha/);
   });
 
   test('refuses a run that mixes served models or is not a score-local run', () => {
     const mixed = baseRun([row('anc-a', 1, [1, 1, 1, 1, 1, 1, 1]), row('anc-a', 2, [1, 1, 1, 1, 1, 1, 1], { model: 'm-y' })], {});
     assert.throws(() => planShadow({ run: mixed, manifestAnchors: anchors, fixtureShas: shas }), /mixes served models/);
     assert.throws(() => planShadow({ run: { probe: 'other' }, manifestAnchors: anchors }), /not a score-local run/);
+  });
+});
+
+describe('an existing PLE is skipped only if byte-identical (diffExisting)', () => {
+  const plannedFor = async (id) => planAnchor(await fixture(id), { physicianId: PHYS, councilId: COUNCIL, slot: 0, baseMs: Date.parse(BASE_TIME) });
+  // What PostgREST hands back: role/content/created_at (+ ple_id), in no guaranteed order.
+  const stored = (a) => ({
+    messages: [...a.messages].reverse().map((m) => ({ ple_id: m.ple_id, role: m.role, content: m.content, created_at: m.created_at.replace('Z', '+00:00') })),
+    reflection: a.reflection && { ple_id: a.ple_id, learned: a.reflection.learned, uncertainty: a.reflection.uncertainty, application: a.reflection.application, skipped: false },
+  });
+
+  test('identical rows (any read order) → no differences', async () => {
+    const a = await plannedFor('anc-001');
+    assert.deepEqual(diffExisting(a, stored(a)), []);
+    const noRefl = await plannedFor('anc-021');
+    assert.deepEqual(diffExisting(noRefl, stored(noRefl)), []);
+  });
+
+  test('a changed message, a missing message, a wrong role are all differences', async () => {
+    const a = await plannedFor('anc-001');
+    const edited = stored(a); edited.messages[0].content += ' ';
+    assert.match(diffExisting(a, edited).join(), /content differs/);
+    const short = stored(a); short.messages.pop();
+    assert.match(diffExisting(a, short).join(), /messages stored/);
+    const role = stored(a); role.messages.at(-1).role = 'assistant';
+    assert.match(diffExisting(a, role).join(), /role/);
+  });
+
+  test('a missing, extra or different reflection is a difference', async () => {
+    const a = await plannedFor('anc-001');
+    assert.match(diffExisting(a, { ...stored(a), reflection: null }).join(), /reflection missing/);
+    const changed = stored(a); changed.reflection.uncertainty = 'other';
+    assert.match(diffExisting(a, changed).join(), /reflection.uncertainty differs/);
+    const thin = await plannedFor('anc-021');
+    assert.match(diffExisting(thin, { ...stored(thin), reflection: { learned: 'x', uncertainty: null, application: null, skipped: false } }).join(), /reflection stored/);
   });
 });
 
@@ -332,6 +392,7 @@ describe('CLIs, dry-run only, with no database configured', () => {
       const r = run('import-shadow.mjs', [path.join(HERE, 'runs', 'heldout-local-2026-10-02-merged.json'), '--manifest', file]);
       assert.equal(r.status, 0, r.err);
       assert.match(r.out, /3 shadow_evaluations row\(s\) · 0 skipped/);
+      assert.match(r.out, /\+anchor-median3/);
       assert.match(r.out, /DRY RUN — nothing written/);
     } finally { await rm(dir, { recursive: true, force: true }); }
   });
