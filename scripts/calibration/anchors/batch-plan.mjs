@@ -71,11 +71,15 @@ export const needsExtraReview = (r) => r.targets.d4 <= 1 && r.targets.d5 >= 4;
 const nonPilot = (design) => design.anchors.filter((a) => !a.pilot && !a.replaces)
   .sort((x, y) => (x.target_composite - y.target_composite) || x.id.localeCompare(y.id));
 
-/** The active anchor now holding an original slot: follows replaced_by through any later exclusion. */
+/** The active anchor now holding an original slot: follows replaced_by through any later exclusion.
+ *  null when the chain ends in a row excluded as not writable (replaced_by: null, AUTHORING §7 item 11). */
 function holderOf(design, id) {
   const byId = new Map(design.anchors.map((a) => [a.id, a]));
   let a = byId.get(id);
-  for (let guard = 0; a?.excluded && guard < 100; guard++) a = byId.get(a.excluded.replaced_by);
+  for (let guard = 0; a?.excluded && guard < 100; guard++) {
+    if (a.excluded.replaced_by === null) return null;
+    a = byId.get(a.excluded.replaced_by);
+  }
   if (!a || a.excluded) throw new Error(`slot ${id}: no active holder in the design`);
   return a;
 }
@@ -133,7 +137,7 @@ export function planBatches(design, { seed = BATCH_SEED } = {}) {
     // A §7.4 replacement takes over its slot's batch and cue budget. Its attributes are the excluded
     // row's (design.mjs copies every one), so the author's row is unchanged but for the id. The row does
     // not say what it replaces: only a tuning anchor is ever replaced, so that would reveal the split.
-    rows: rows.filter((r) => batchOf[r.id] === b).map((slot) => ({ slot, r: holderOf(design, slot.id) }))
+    rows: rows.filter((r) => batchOf[r.id] === b).map((slot) => ({ slot, r: holderOf(design, slot.id) })).filter((x) => x.r)
       .sort((x, y) => (needsExtraReview(x.r) - needsExtraReview(y.r)) || x.r.id.localeCompare(y.r.id)).map(({ slot, r }) => {
         return {
       id: r.id,

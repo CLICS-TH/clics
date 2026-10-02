@@ -17,7 +17,7 @@ import {
 } from './design.mjs';
 import {
   validateFixture, validateAll, serialiseManifest, MANIFEST_PATH, FIXTURES_DIR, REFLECTION_HEADINGS, thaiShare, checkPlanted,
-  checkBudget, LENGTH_CHARS_TOL, batchCueContribution, updateHeldOutLock, recordIntake, intakeAccepted, loadIntakeLog, appendOnlyViolation,
+  checkBudget, LENGTH_CHARS_TOL, LENGTH_TARGET_EXEMPT_BATCHES, batchCueContribution, updateHeldOutLock, recordIntake, intakeAccepted, loadIntakeLog, appendOnlyViolation,
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
 import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH, PLAN_MD_PATH, BUDGET_LEVELS, BUDGET_RANGES, needsExtraReview } from './batch-plan.mjs';
@@ -1089,5 +1089,37 @@ describe('batch-plan.mjs — per-row length targets', () => {
     assert.match(checkBudget(f(1000 + LENGTH_CHARS_TOL + 1), 4, b).join(), /target 1000/);
     assert.match(checkBudget(f(1000 - LENGTH_CHARS_TOL - 1), 4, b).join(), /target 1000/);
     assert.deepEqual(checkBudget(f(1200), 4, { ...b, length_chars: undefined }), []);   // a row without one: bin only
+  });
+});
+
+describe('§7 amendment item 11 — a row excluded as not writable', () => {
+  const base = generateDesign({ n: DEFAULT_N, seed: DEFAULT_SEED, replacements: [] });
+  const slot = base.anchors.find((a) => !a.pilot).id;
+  const x = { date: 'x', reason: 'x', archived_fixture: 'x', sha256: 'x' };
+  const design = applyReplacements(base, [{ excluded: slot, replaced_by: 'anc-101', ...x }, { excluded: 'anc-101', replaced_by: null, ...x }]);
+  test('is excluded with no replacement and consumes no id', () => {
+    assert.equal(design.anchors.find((a) => a.id === 'anc-101').excluded.replaced_by, null);
+    assert.ok(!design.anchors.some((a) => a.id === 'anc-102'));
+    assert.ok(!checkInvariants(design).some((e) => /replaced exactly once|not writable/.test(e)), checkInvariants(design).join('\n'));
+  });
+  test('drops its slot from the plan and moves nothing else', () => {
+    const plan = (d) => new Map(planBatches(d).batches.flatMap((b) => b.rows.map((r) => [r.id, `${b.batch} ${JSON.stringify(r.cue_budget)}`])));
+    const before = plan(base), after = plan(design);
+    assert.ok(!after.has(slot) && !after.has('anc-101'));
+    for (const [id, v] of after) assert.equal(v, before.get(id), id);
+    assert.equal(after.size, before.size - 1);
+  });
+});
+
+describe('length targets and batches accepted before them', () => {
+  test('re-running intake on an accepted pre-rule batch never asks for a locked anchor back', async () => {
+    const { execFileSync } = await import('node:child_process');
+    const script = fileURLToPath(new URL('./validate.mjs', import.meta.url));
+    const log = await loadIntakeLog();
+    for (const b of LENGTH_TARGET_EXEMPT_BATCHES) {
+      if (!log.entries.some((e) => e.batch === b)) continue;
+      const out = execFileSync(process.execPath, [script, '--batch', String(b)], { encoding: 'utf8' });
+      assert.doesNotMatch(out, /RETURN/, `batch ${b}`);
+    }
   });
 });

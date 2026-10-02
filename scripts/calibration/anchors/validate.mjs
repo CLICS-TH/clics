@@ -176,6 +176,10 @@ export async function loadBudgets() {
 // authors drifted inside them, writing longer for higher targets (batches 1 and 3: r = 0.95 inside the
 // short bin), which rebuilt the length–composite cue the bins were there to break.
 export const LENGTH_CHARS_TOL = 125;
+// Batches written and accepted before length targets existed (2026-10-02). Their rows are held to the
+// bin only: a held-out one is locked and can never be returned to its author, and a tuning one has
+// already used its rewrite. Every later batch, and any later write in it, meets length_chars.
+export const LENGTH_TARGET_EXEMPT_BATCHES = [1, 3];
 export const BUDGET_TOLERANCE = {
   length: { short: [850, 1310], medium: [1190, 1730], long: [1570, 2200] },
   numerals: { few: [0, 1.5], some: [1.5, 4], many: [3.5, Infinity] },
@@ -429,11 +433,13 @@ export async function validateAll({ dir = FIXTURES_DIR, designPath = DESIGN_PATH
     const id = name.replace(/\.json$/, '');
     const r = parseError ? { errors: [`invalid JSON: ${parseError}`], warnings: [], stats: null } : validateFixture(doc, name, rows.get(id));
     const ex = rows.get(id)?.excluded;
-    if (ex) r.errors.push(`${id} was excluded under §7.4 (replaced by ${ex.replaced_by}); its fixture belongs in ${ex.archived_fixture}, not in the active cohort`);
+    if (ex) r.errors.push(`${id} was excluded under §7.4 (${ex.replaced_by ? `replaced by ${ex.replaced_by}` : 'not writable, not replaced'}); its fixture belongs in ${ex.archived_fixture}, not in the active cohort`);
     const features = doc ? cueFeatures(doc) : null;
-    const budget = budgets[id] ? checkBudget(features, r.stats?.physician_turns ?? 1, budgets[id]) : [];
+    const sha = sha256(buf);
+    const b = budgets[id] && LENGTH_TARGET_EXEMPT_BATCHES.includes(budgets[id].batch) ? { ...budgets[id], length_chars: undefined } : budgets[id];
+    const budget = b ? checkBudget(features, r.stats?.physician_turns ?? 1, b) : [];
     for (const d of budget) r.warnings.push(`cue budget: ${d}`);
-    results.push({ id, sha256: sha256(buf), row: rows.get(id), features, budget, ...r });
+    results.push({ id, sha256: sha, row: rows.get(id), features, budget, ...r });
   }
   // §7.4 archive: every excluded anchor's last fixture is kept, byte for byte, where design.json says.
   const archive = [];

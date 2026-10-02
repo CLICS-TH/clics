@@ -573,6 +573,8 @@ The rule from now on:
     - The rule applies to every row, held-out never included (held-out anchors are never rated before
       the lock, §9). anc-102 is the first row it can reach.
     - It changes nothing about the threshold (±15) or the one-rewrite allowance.
+    - In code: a `REPLACEMENTS` entry with `replaced_by: null` excludes the row without consuming an
+      id. The batch plan drops that slot and moves nothing else.
 12. **Round L (2026-10-02).** The anc-102 rewrite reads **+4** and stays, so the item-11 stop rule
     was not reached. Sonnet 68, Opus 76.
     - What changed: every decision now comes before its grounds ("Admitting him." first). The
@@ -581,6 +583,15 @@ The rule from now on:
     - d2 still reads 3 against a target of 1, so the dissociation is only partly visible to this panel.
       The item-10 open question (an unworkable row, or the panel's own halo) stays open.
     - Decoys: anc-016 +11 and anc-007 +6, inside their earlier range.
+13. **Length targets (2026-10-02).** At n = 40 the length cue reached r = 0.40, 95% CI 0.10–0.63,
+    with every author inside their bin. Inside the short bin r was 0.95: authors wrote longer as the
+    target rose.
+    - Every row now carries an exact `length_chars`, drawn inside its bin and independently of its
+      targets. Intake enforces it to ±125.
+    - Batches 1 and 3 were accepted before the rule (`LENGTH_TARGET_EXEMPT_BATCHES`). Their rows are
+      held to the bin only, because their held-out anchors are locked and their tuning anchors have
+      used their rewrites.
+    - anc-102 and the anc-024 rewrite went through intake after the rule and met their targets.
 
 ## 8. Pipeline and commands
 
