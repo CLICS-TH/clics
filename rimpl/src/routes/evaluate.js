@@ -64,7 +64,9 @@ router.post('/', async (req, res) => {
 
   const { ple_id, transcript, patient_ref, shadow, weights_sha256 } = parsed.data;
   // PII-strip (incl. the known patient identifier) + defang injected role markers before the cloud model.
-  const transcriptText = flattenForPrompt(transcript, deriveHintTokens(patient_ref));
+  // Assigned INSIDE the try below: a de-identification failure must answer 500 (fail closed, nothing
+  // sent anywhere), never escape as an unhandled rejection that takes the whole process down.
+  let transcriptText = null;
   // Fires if the backend hangs up (its evaluation deadline): the queued or in-flight scoring call is
   // released, so the backend's retry does not stack a duplicate behind a call nobody will read.
   const signal = requestSignal(req, res);
@@ -75,6 +77,7 @@ router.post('/', async (req, res) => {
   // consistency call answered by a different model than the first.
   let provider = null;
   try {
+    transcriptText = flattenForPrompt(transcript, deriveHintTokens(patient_ref));
     provider = await resolveProviderName('evaluate');
     const mode = consistencyModeFor(provider);
     const systemPrompt = pis7PromptFor(provider);
@@ -197,7 +200,10 @@ router.post('/', async (req, res) => {
     // a data point about the candidate too. transcriptText is de-identified and in scope here.
     // Except a full queue — that says nothing about the transcript, and would only offer a second
     // call to a box that just refused the first.
-    if (parsed.data.shadow && !isQueueFull(err)) fireShadowEvaluation({ pleId: parsed.data.ple_id, transcriptText });
+    // transcriptText is null when de-identification itself failed — then there is nothing safe to shadow.
+    if (transcriptText !== null && parsed.data.shadow && !isQueueFull(err)) {
+      fireShadowEvaluation({ pleId: parsed.data.ple_id, transcriptText });
+    }
     // 503 queue_full (+ Retry-After) / 499 client gone / 413 transcript_too_large / else this 500.
     sendAiError(res, err, 'Evaluation service temporarily unavailable.');
   }

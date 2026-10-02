@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { z } = require('zod');
 const { stripPii, stripHistoryPii, deriveHintTokens } = require('../services/pii-filter');
+const { MAX_TURN_CHARS } = require('../lib/turn-limits');
 const { callAI } = require('../services/ai');
 const { RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS } = require('../lib/prompts');
 const { requestSignal } = require('../lib/request-signal');
@@ -20,13 +21,16 @@ const DOMAINS = [
 ];
 
 const Scores = z.record(z.any());
+// Per-turn cap: see lib/turn-limits.js. The transcript replays stored CLE turns (physician <= 5000
+// chars, assistant <= one chat reply), so the same cap can never reject a real one.
+const Turn = z.object({ role: z.string(), content: z.string().max(MAX_TURN_CHARS) });
 const DiscussSchema = z.object({
-  history: z.array(z.object({ role: z.string(), content: z.string() })).default([]),
-  message: z.string().min(1),
+  history: z.array(Turn).default([]),
+  message: z.string().min(1).max(MAX_TURN_CHARS),
   language: z.enum(['th', 'en']).default('th'),
   // The PLE transcript, sent on-prem so RIMPL can de-identify it before any cloud call (it is stored
   // RAW in the backend DB). Never forwarded to the cloud un-stripped.
-  transcript: z.array(z.object({ role: z.string(), content: z.string() })).default([]),
+  transcript: z.array(Turn).default([]),
   ai_scores: Scores.nullish(),       // { d1..d7, composite_score }
   ai_rationale: Scores.nullish(),    // { d1..d7: "<text>" }
   auditor_scores: Scores.nullish(),  // { d1..d7, composite_score }

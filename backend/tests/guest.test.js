@@ -76,6 +76,22 @@ describe('guest route', () => {
       .set('Authorization', 'Bearer not.a.token').send({ message: 'x' });
     expect(r.status).toBe(401);
   });
+
+  // The client holds and replays the history, so each item is attacker-sized input to RIMPL's PII
+  // filter (review of PR #114). Over the cap is a 400 that never reaches RIMPL; a long but legitimate
+  // assistant reply (one chat reply can run far past 5000 chars) still goes through.
+  test('an over-length history item is a 400 and never reaches RIMPL; a long real reply is accepted', async () => {
+    const { token } = (await request(app).post('/guest/start')).body;
+    rimplChat.mockClear();
+    const tooLong = await request(app).post('/guest/message').set('Authorization', `Bearer ${token}`)
+      .send({ message: 'q', history: [{ role: 'assistant', content: 'ก'.repeat(24001) }] });
+    expect(tooLong.status).toBe(400);
+    expect(rimplChat).not.toHaveBeenCalled();
+
+    const longReply = await request(app).post('/guest/message').set('Authorization', `Bearer ${token}`)
+      .send({ message: 'q', history: [{ role: 'assistant', content: 'ก'.repeat(12000) }] });
+    expect(longReply.status).toBe(200);
+  });
 });
 
 describe('guest aggregate AI-spend brake (F2)', () => {
