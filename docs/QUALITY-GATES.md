@@ -335,7 +335,25 @@ on current master with the current (old) prompt**:
 - report label and file: `local-deepseek-baseline-master-2026-10-0`
   (`scripts/quality/report/local-deepseek-baseline-master-2026-10-0.json`), launched at 14:30:45;
 - prompt labels `chat-prompt-d63340e1` / `chat-prompt-c6efcfc6`;
-- sha256 of the final report: recorded when the run completes.
+- sha256 of the final report: finished 2026-10-02 08:08:36Z, 80/80 replies.
+  - Committed bytes: `3c6fb7cb40fa82b03d56ffd06a13a4218d373092233b67989e05e4edf7f6822b`.
+  - Raw bytes as written: `2e89ea8abe799b5f1a80b435b6b9e07acd772eb0867e340b16560c4cadd5338c`.
+  - The two differ only in `provenance.base_url`, which was redacted before commit, as in the
+    committed 2026-10-02 run.
+  - Its cites file (known-sources-v5, 199 citations, 38 verified) is
+    `local-deepseek-baseline-master-2026-10-0.cites.json`, sha256 `3a9b2534…9488`.
+
+**Noise check (done before any after-run).** The fresh baseline was compared with the committed
+2026-10-02 local run as two runs of the same prompt. The committed run was re-verified with
+known-sources-v5 (`local-baseline-2026-10-02/local-deepseek-2026-10-02.cites-v5.json`), so both
+cites files use one checker version.
+
+- Result: paired n 70; both covered 15, gained 10, lost 5, neither 40. p(improved) 0.151,
+  p(worse) 0.941, verdict **not shown**.
+- Exactly the four #114 items were excluded as `input_differs`.
+- Same prompt, two runs: 15 of 70 items flipped coverage, and the coverage rate moved 28.6% → 35.7%,
+  with no verdict. A point-estimate comparison would have read that as a 7-point gain. The paired
+  test did not.
 
 The label is 40 characters. The run was launched as `local-deepseek-baseline-master-2026-10-02`, and
 the old tutor-audit `slug()` silently cut it to 40 characters. The truncated name above is the one on
