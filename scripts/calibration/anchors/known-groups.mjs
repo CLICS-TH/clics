@@ -7,6 +7,9 @@
  *     --pilot   restrict the designed set to the 20 pilot anchors (so n_missing means something)
  *     --split tuning|heldout   restrict to one half of SPLIT-anchors.json; REQUIRED once that file
  *               exists (anchor-split.mjs). The pilot is tuning-only and never in held-out.
+ *     --include-excluded   REPRODUCE a historical run: analyse the design as it stood before any §7.4
+ *               replacement (excluded anchors back in, their replacements out). For the record only —
+ *               every decision uses the default, which drops excluded anchors.
  *
  * <scores.json> may be any of:
  *   - score-local.mjs output           {probe, model, prompt_version, rows:[{id, run, scores|null, …}]}
@@ -164,15 +167,18 @@ const r3 = (v) => (v == null ? null : Math.round(v * 1000) / 1000);
  * @param {{threshold: number, onlyIds?: string[], pilotOnly?: boolean, allowedIds?: Set<string>|null,
  *          served?: Map<string, Set<string>>}} opts   allowedIds = a split filter (anchor-split.mjs)
  */
-export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = false, allowedIds = null, served = new Map(), fixtureShas = null } = {}) {
+export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = false, allowedIds = null, served = new Map(), fixtureShas = null, includeExcluded = false } = {}) {
   if (!Number.isFinite(threshold)) throw new Error('knownGroups: a numeric pre-registered threshold is required');
   const wanted = onlyIds ? new Set(onlyIds.map((s) => s.toLowerCase())) : null;
   // §7.4-excluded anchors are out of the cohort: never designed-for here, never counted. A scores file
   // that still holds one (a run made before the exclusion) lists it under excluded_ids.
-  const rows = design.anchors.filter((a) => !a.excluded && (!wanted || wanted.has(a.id)) && (!pilotOnly || a.pilot)
+  // includeExcluded reproduces a HISTORICAL run exactly: the design as it stood before any §7.4
+  // replacement (excluded anchors back in, their replacements out). Never use it for a decision.
+  const inCohort = (a) => (includeExcluded ? !a.replaces : !a.excluded);
+  const rows = design.anchors.filter((a) => inCohort(a) && (!wanted || wanted.has(a.id)) && (!pilotOnly || a.pilot)
     && (!allowedIds || allowedIds.has(a.id)));
   const unknownIds = [...runs.keys()].filter((id) => !design.anchors.some((a) => a.id === id));
-  const excludedIds = [...runs.keys()].filter((id) => design.anchors.some((a) => a.id === id && a.excluded)).sort();
+  const excludedIds = includeExcluded ? [] : [...runs.keys()].filter((id) => design.anchors.some((a) => a.id === id && a.excluded)).sort();
 
   const anchors = [];
   for (const a of rows) {
@@ -251,6 +257,7 @@ export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = fals
     n_missing: rows.length - n,
     unknown_ids: unknownIds,
     excluded_ids: excludedIds,
+    include_excluded: includeExcluded,
     composite: comp,
     per_domain: perDomain,
     flags: { n: flagged.length, ids: flagged.map((x) => x.id), rate: wilson(flagged.length, n) },
@@ -276,6 +283,7 @@ function print(rep, prov) {
   const ci = (o) => (o?.lower == null ? '' : ` [${f(o.lower, 3)}, ${f(o.upper, 3)}]`);
   console.log(`\nknown-groups validity — anchor cohort`);
   console.log(`  EVIDENCE LEVEL: ${rep.evidence_level}`);
+  if (rep.include_excluded) console.log('  --include-excluded: the design BEFORE §7.4 replacements (historical reproduction, not a decision)');
   const servedList = Object.entries(prov.served_models ?? {}).map(([m, k]) => `${m} ×${k}`).join(', ');
   console.log(`  served  ${servedList || '(no per-row model recorded)'}${prov.requested_model && servedList && !Object.keys(prov.served_models).every((m) => m === prov.requested_model) ? `  (requested ${prov.requested_model})` : ''}`);
   if (prov.revalidated) console.log(`  revalidated against ${prov.revalidated.contract}; ${prov.revalidated.not_revalidatable} row(s) could not be (no saved reply)`);
@@ -313,7 +321,7 @@ if (isMain) {
   const arg = (k, d = null) => { const i = argv.indexOf(`--${k}`); return i > -1 ? argv[i + 1] : d; };
   const VALUE_FLAGS = new Set(['--arm', '--only', '--design', '--out', '--split']);
   const file = argv.find((a, i) => !a.startsWith('--') && !(i > 0 && VALUE_FLAGS.has(argv[i - 1])));
-  if (!file) { console.error('usage: known-groups.mjs <scores.json> [--pilot] [--split tuning|heldout] [--arm local|cloud] [--only anc-001,…] [--design design.json] [--out report.json]'); process.exit(2); }
+  if (!file) { console.error('usage: known-groups.mjs <scores.json> [--pilot] [--include-excluded] [--split tuning|heldout] [--arm local|cloud] [--only anc-001,…] [--design design.json] [--out report.json]'); process.exit(2); }
   const arm = arg('arm', 'local');
   if (!['local', 'cloud'].includes(arm)) { console.error('--arm must be local or cloud'); process.exit(2); }
   const design = JSON.parse(await readFile(path.resolve(arg('design', DESIGN_PATH)), 'utf8'));
@@ -325,7 +333,8 @@ if (isMain) {
   try { allowedIds = splitFilter(design, await loadAnchorSplit(), arg('split')); }
   catch (e) { console.error(`✖ ${e.message}`); process.exit(2); }
   const fixtureShas = doc && !Array.isArray(doc) && doc.fixtures && typeof doc.fixtures === 'object' ? doc.fixtures : null;
-  const rep = { ...knownGroups(design, runs, { threshold, onlyIds: only, pilotOnly: argv.includes('--pilot'), allowedIds, served, fixtureShas }),
+  const includeExcluded = argv.includes('--include-excluded');
+  const rep = { ...knownGroups(design, runs, { threshold, onlyIds: only, pilotOnly: argv.includes('--pilot'), allowedIds, served, fixtureShas, includeExcluded }),
     unscored, source: path.basename(file), arm, split: arg('split'), provenance };
   print(rep, provenance);
   const out = arg('out');

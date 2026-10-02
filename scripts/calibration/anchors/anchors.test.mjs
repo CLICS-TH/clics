@@ -141,6 +141,9 @@ describe('fixtures', async () => {
     assert.deepEqual(checkPlanted({ claims: [{ ...base, claim: 'Y always', citation_on_claim: false }] }, read), []);
     assert.match(checkPlanted({ claims: [{ ...base, claim: 'Z', citation_on_claim: false }] }, read).join(), /not found verbatim/);
     assert.match(checkPlanted({ claims: [{ ...base, claim: 'Y always', citation_on_claim: false, corrected_in_turn: 2 }] }, read).join(), /later tutor turn/);
+    // An unplanted inaccuracy (found after rating, recorded not edited) has no correcting turn.
+    assert.deepEqual(checkPlanted({ claims: [{ ...base, kind: 'unplanted', claim: 'Y always', citation_on_claim: false, corrected_in_turn: null }] }, read), []);
+    assert.match(checkPlanted({ claims: [{ ...base, kind: 'unplanted', claim: 'Y always', citation_on_claim: false, corrected_in_turn: 3 }] }, read).join(), /null/);
   });
 
   test('every §7.4-excluded anchor\'s last fixture is archived byte for byte', async () => {
@@ -293,6 +296,25 @@ describe('known-groups.mjs', () => {
     assert.equal(rep.n_scored, 20);
     assert.deepEqual(rep.excluded_ids, [old.id]);
     assert.ok(!rep.anchors.some((a) => a.id === old.id));
+  });
+
+  test('--include-excluded reproduces the round-1 run exactly (0.685); the default drops anc-015 (0.750)', async () => {
+    const doc = JSON.parse(await readFile(path.join(HERE, 'runs/pilot-local-strict-2026-10-02.json'), 'utf8'));
+    const { runs } = normaliseScores(doc, { arm: 'local' });
+    const fixtureShas = doc.fixtures && typeof doc.fixtures === 'object' ? doc.fixtures : null;
+    const fx = (v) => Number(v).toFixed(3);
+    const hist = knownGroups(design, runs, { threshold: 15, pilotOnly: true, includeExcluded: true, fixtureShas });
+    assert.equal(hist.n_scored, 20);
+    assert.deepEqual([fx(hist.composite.icc.icc), fx(hist.composite.icc.lower), fx(hist.composite.icc.upper)], ['0.685', '0.196', '0.879']);
+    assert.equal(hist.composite.bias, 11.25);
+    assert.deepEqual(hist.excluded_ids, []);
+    assert.ok(hist.anchors.some((a) => a.id === 'anc-015') && !hist.anchors.some((a) => a.id === 'anc-101'));
+    assert.match(hist.caveats.d5, /RUBRIC ECHO/);
+    const now = knownGroups(design, runs, { threshold: 15, pilotOnly: true, fixtureShas });
+    assert.equal(now.n_scored, 19);
+    assert.equal(fx(now.composite.icc.icc), '0.750');
+    assert.equal(now.composite.bias, 9.68);
+    assert.deepEqual(now.excluded_ids, ['anc-015']);
   });
 
   test('a scorer one level high everywhere: +20 composite bias, everything above 15 flagged', () => {

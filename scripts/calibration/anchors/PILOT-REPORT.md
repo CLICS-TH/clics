@@ -11,9 +11,10 @@
   replaced by **anc-101** at the same target vector and case slot; its text is archived.
 - **Rewrites used:** anc-005, 006, 014, 019 (round 1 → 2), anc-012 (round 2 → 3), anc-101 (its own
   single rewrite, round 3 → 4). anc-015's rewrite failed and led to its exclusion.
-- **Beyond ±15 on each anchor's deciding round** (the first panel rating of its current text,
-  AUTHORING.md §7 amendment item 6): **0 of 20**. No rewrite is outstanding. The §7.6 allowance is 4,
-  so **the pilot proceeds**. Pooled over every round-2–4 rating of the current text, 1 of 20 is beyond
+- **Beyond ±15 on each anchor's deciding round** (the first rating of its current text by a
+  two-model panel, AUTHORING.md §7 amendment item 6): **0 of 20**. No rewrite is outstanding. The §7.6
+  allowance is 4, so **the pilot proceeds**. The excluded anc-015 is not one of the 20. Counting it
+  against the pilot anyway, as a failure, gives 1 of 20, and the verdict is unchanged. Pooled over every round-2–4 rating of the current text, 1 of 20 is beyond
   ±15 (anc-003, +17); that is reported, and the decision stands.
 - **Panel verdicts near the line are noise-limited.** On identical text, the same two models moved
   −6 to +6 (Sonnet) and −3 to +10 (Opus) composite points between rounds. That is the same order as
@@ -61,8 +62,13 @@ nothing below treats their agreement with each other as evidence.
 | A vs B | 0.995 [0.987, 0.998] | +0.5 |
 | local vs mean(A,B) | 0.880 [0.722, 0.951] | −0.8 |
 
-`known-groups.mjs` on the same run (per-domain median of the three runs, then composite) gives
-local vs target ICC(A,1) 0.685 [0.196, 0.879], Spearman ρ 0.798 [0.539, 0.919], bias +11.25.
+`known-groups.mjs` on the same run (per-domain median of the three runs, then composite) gave
+local vs target ICC(A,1) 0.685 [0.196, 0.879], Spearman ρ 0.798 [0.539, 0.919], bias +11.25, n 20/20.
+**These figures were computed at 2627c9b, before anc-015 was excluded**. They reproduce exactly with
+`known-groups.mjs … --pilot --include-excluded`, and a test pins that. The plain command at HEAD
+skips the excluded anc-015 (local 72 against a target of 30) and gives ICC(A,1) 0.750 [0.300, 0.908],
+ρ 0.798 [0.529, 0.921], bias +9.68, n 19/20. That improvement comes from **dropping the anchor the
+evaluator missed most**, not from the evaluator. Quote 0.685 for round 1.
 
 Every lower bound against the target is at or below 0.2. These data are consistent with anything from
 poor to good agreement with the designed targets, for both the local evaluator and the blind rater.
@@ -249,7 +255,7 @@ Beyond ±15 of target, by rater (`analyse2.mjs` prints this):
   d2 2 (0), d4 2 (0), d7 4 / 3 (2), and Sonnet's d6 2 (1). d5 was 5 from both, as designed. It
   therefore uses its single §7.4 rewrite (below).
 - **anc-018 at +16** (unchanged text; +12 in round 2). Recorded, not acted on: a rule decision uses the
-  round in which a text was first panel-rated (AUTHORING.md §7 amendment item 6). That rule was
+  round in which a text was first rated by a two-model panel (AUTHORING.md §7 amendment item 6). That rule was
   written down **after** seeing this reading, which is why it is stated as a rule and not decided
   case by case.
 
@@ -363,8 +369,9 @@ deciding-round Δ. This changes no decision:
 | local evaluator re-score of the changed anchors (and anc-101's rewrite) | run separately by the coordinator; not in this PR |
 | anc-014 tutor citation (NICE, 2010 → 2011) | done; tutor text only, new sha |
 
-Re-running `known-groups.mjs --pilot` on the round-1 run now lists anc-015 as excluded and anc-101
-as never scored (it did not exist then), so its §7.6 line no longer reproduces round 1's. The round-1
-figures in this report are the record.
+Re-running `known-groups.mjs --pilot` on the round-1 run at HEAD drops anc-015 (excluded) and counts
+anc-101 as never scored (it did not exist then). So the **headline ICC, its CI and the bias move**
+(0.685 → 0.750, bias +11.25 → +9.68, n 20 → 19), and the §7.6 line moves with them. Add
+`--include-excluded` to reproduce round 1 exactly. The round-1 figures in this report are the record.
 Planted tutor claims (deliberately wrong statements for the physician to appraise) are listed in
 `planted-claims.json`. anc-101's three carry no citation on the false line (AUTHORING.md §5).

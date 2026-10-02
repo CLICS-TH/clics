@@ -10,7 +10,7 @@
 //
 // POOLING. Rounds 2–4 used the same two models (Sonnet + Opus) and the same rubric text. For each active
 // pilot anchor, every round that rated its CURRENT text is pooled (mean of the per-round panel means).
-// The DECIDING round — the first panel rating of the current text (AUTHORING.md §7 amendment item 6) —
+// The DECIDING round — the first two-model panel rating of the current text (AUTHORING.md §7 amendment item 6) —
 // is what the rule used; the pooled Δ is reported beside it and changes no decision. Round 1 (two
 // Sonnets) is not pooled: a different panel.
 //

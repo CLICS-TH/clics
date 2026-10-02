@@ -278,7 +278,9 @@ an anchor needs a statement that is actually wrong, it is a *planted claim*, and
    the tutor concedes), so no anchor ends with an uncorrected error;
 4. it is recorded in `planted-claims.json` (fixture, turn, verbatim text, kind, the turn that corrects
    it). `validate.mjs` checks each entry against the fixture bytes and fails on a false claim with a
-   citation on its line.
+   citation on its line. An inaccuracy found in a tutor turn AFTER the text was panel-rated is not
+   edited (that would change rated bytes); it is recorded there as kind `unplanted` instead (anc-101
+   turn 5: PCC is dosed by weight, not by agent and timing).
 
 Tutor turns in anchors are **authored text, not tutor output**. Any audit of the tutor's own quality
 (Phase 3, the Thai tutor audit) must exclude the anchor fixtures entirely, and `planted-claims.json`
@@ -444,13 +446,14 @@ The rule from now on:
 6. **Round 3 (same day).** The panel rated anc-101 (first write) and the rewritten anc-012 among six
    unchanged decoys. anc-012 lands at −1 and stays. anc-101 is at +20, so it uses its single rewrite
    (§7.4); if the panel puts that rewrite beyond ±15, anc-101 is excluded and replaced like anc-015.
-   **Which round counts for a text:** a rule decision uses the panel round in which that text was
-   *first* rated. A later re-rating of identical text (a decoy) is a stability check, recorded but
+   **Which round counts for a text:** a rule decision uses the round in which that text was *first*
+   rated by a two-model panel (Sonnet + Opus; round 1's two Sonnets were one rater, item 1). A later re-rating of identical text (a decoy) is a stability check, recorded but
    never a rewrite trigger. This was decided after round 3 showed decoy anc-018 at +16 (+12 in round
    2, text unchanged); it is written down here so it cannot be chosen again case by case.
 7. **Round 4 (same day).** anc-101's rewrite reads +14, so it stays. Its d7 still reads 1–2 levels
    high. No panel rewrite is outstanding: 0 of 20 active pilot anchors are beyond ±15 on their deciding
-   round, so the pilot proceeds under §7.6. Re-ratings of identical text drifted up to 10 composite
+   round, so the pilot proceeds under §7.6. The excluded anc-015 is not one of the 20; counting it as a
+   failure gives 1 of 20, and the verdict is unchanged. Re-ratings of identical text drifted up to 10 composite
    points between rounds, so verdicts near the line are noise-limited. `PILOT-REPORT.md` reports the
    pooled Δ beside the deciding one, and that changes no decision.
 
@@ -464,7 +467,7 @@ The rule from now on:
 | what would be sent | `node scripts/calibration/anchors/score-local.mjs --pilot --dry-run` | none |
 | score (local box) | `LOCAL_AI_BASE_URL=… LOCAL_AI_MODEL=… LOCAL_AI_API_KEY=… node scripts/calibration/anchors/score-local.mjs --pilot --repeats 3 --concurrency 2 --out scripts/calibration/anchors/runs/pilot-local-<date>.json` | local box only |
 | re-check a past run | `node scripts/calibration/anchors/revalidate.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json` (writes `….revalidated.json`; needs rimpl deps) | none |
-| analyse | `node scripts/calibration/anchors/known-groups.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json --pilot [--split tuning\|heldout] --out …-known-groups.json` | none |
+| analyse | `node scripts/calibration/anchors/known-groups.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json --pilot [--split tuning\|heldout] --out …-known-groups.json` (add `--include-excluded` only to reproduce a run made before a §7.4 exclusion) | none |
 
 `score-local.mjs` is local-only by construction: it never reads `ANTHROPIC_API_KEY`. It verifies
 every fixture's sha256 against `manifest.json` before sending, scores with production's decoding

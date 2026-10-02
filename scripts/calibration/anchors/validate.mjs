@@ -68,8 +68,11 @@ export function checkPlanted(planted, readDoc) {
     const cited = CITED_RE.test(line);
     if (cited !== Boolean(c.citation_on_claim)) errs.push(`${at}: citation_on_claim is ${c.citation_on_claim} but the line ${cited ? 'carries' : 'carries no'} citation`);
     if (c.kind === 'false' && cited && !c.legacy) errs.push(`${at}: a deliberately false claim may not carry a citation on its line (AUTHORING.md §5)`);
-    if (!['false', 'unqualified', 'attribution'].includes(c.kind)) errs.push(`${at}: kind must be false|unqualified|attribution`);
-    if (!(c.corrected_in_turn > c.turn) || t[c.corrected_in_turn]?.role !== 'assistant') errs.push(`${at}: corrected_in_turn must be a later tutor turn`);
+    if (!['false', 'unqualified', 'attribution', 'unplanted'].includes(c.kind)) errs.push(`${at}: kind must be false|unqualified|attribution|unplanted`);
+    // 'unplanted' = an authoring inaccuracy found after the text was panel-rated, kept byte for byte and
+    // recorded instead of edited; nothing in the transcript corrects it, so corrected_in_turn is null.
+    if (c.kind === 'unplanted') { if (c.corrected_in_turn != null) errs.push(`${at}: an unplanted inaccuracy has corrected_in_turn null`); }
+    else if (!(c.corrected_in_turn > c.turn) || t[c.corrected_in_turn]?.role !== 'assistant') errs.push(`${at}: corrected_in_turn must be a later tutor turn`);
   }
   return errs;
 }

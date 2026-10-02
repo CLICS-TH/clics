@@ -70,9 +70,9 @@ const span = (xs) => `${sgn(Math.min(...xs))} to ${sgn(Math.max(...xs))}, mean |
 console.log(`\nunchanged decoys, round 3 − round 2 on identical text: sonnet ${span(ds)}; opus ${span(dO)}`);
 console.log('  ' + decoys.map((r, i) => `${r.id} ${sgn(ds[i])}/${sgn(dO[i])}`).join('  '));
 
-// A decoy's text is unchanged and was first panel-rated in round 2; rule decisions use the round in
+// A decoy's text is unchanged and was first rated by a two-model panel in round 2; rule decisions use the round in
 // which a text was FIRST panel-rated, so a decoy crossing the line here is panel noise, not a trigger.
-console.log('  (n.t.) = unchanged decoy beyond ±15 this round: recorded, NOT a rewrite trigger (rule uses the first panel rating of a text)');
+console.log('  (n.t.) = unchanged decoy beyond ±15 this round: recorded, NOT a rewrite trigger (rule uses the first two-model panel rating of a text)');
 
 console.log('\nper-domain, changed anchors (target | sonnet | opus)');
 for (const id of CHANGED) {
