@@ -50,3 +50,49 @@ describe('thaiShare / isLanguageMismatch (language guard metric)', () => {
     expect(isLanguageMismatch(`${EN}\n\`\`\`\ncode\n\`\`\``, 'th')).toBe(true);
   });
 });
+
+describe('artifact blocks and reference lists (language guard metric)', () => {
+  const LEAD = 'ผู้ป่วยรายนี้เข้าได้กับปอดอักเสบ';
+  const TABLE = '| Dx | Features |\n|---|---|\n| Pneumonia | Fever, productive cough, consolidation on imaging |\n| Pulmonary embolism | Pleuritic pain, tachycardia, hypoxia |';
+  const art = `:::artifact{type="differential" title="DDx"}\n${TABLE}\n:::`;
+
+  test('a Thai lead with an English artifact: the raw share is low, the guarded one is not a mismatch', () => {
+    const reply = `${LEAD}\n${art}\nขอให้พิจารณาต่อ`;
+    expect(thaiShare(reply)).toBeLessThan(0.30);                 // what the reviewer measured as a false positive
+    expect(isLanguageMismatch(reply, 'th')).toBe(false);
+  });
+
+  test('the whole block goes, including its closing fence, but prose after it stays', () => {
+    const s = stripNonProse(`ก่อน\n${art}\nหลังจากนั้น and English tail words here`);
+    expect(s).not.toMatch(/Pneumonia|artifact|:::/);
+    expect(s).toMatch(/หลังจากนั้น/);
+    expect(s).toMatch(/English tail/);
+  });
+
+  test('two artifacts in one reply are both removed (non-greedy)', () => {
+    const s = stripNonProse(`${art}\nข้อความไทยตรงกลางระหว่างบล็อก\n${art}`);
+    expect(s).toMatch(/ข้อความไทยตรงกลาง/);
+    expect(s).not.toMatch(/Pneumonia/);
+  });
+
+  test('an unterminated artifact (truncated reply) is stripped to the end', () => {
+    expect(stripNonProse(`${LEAD}\n:::artifact{type="evidence" title="x"}\n${TABLE}`)).not.toMatch(/Pneumonia/);
+  });
+
+  test('an English reply is still caught when an artifact is attached (only the block is ignored)', () => {
+    const english = 'Metformin is first-line therapy for type two diabetes and the dose should follow renal function in every patient.';
+    expect(isLanguageMismatch(`${english}\n${art}`, 'th')).toBe(true);
+  });
+
+  test('a trailing References list (any of the headings) is ignored; the heading must be on its own line', () => {
+    const refs = '1. Metlay JP, Waterer GW, et al. Diagnosis and treatment of adults with community-acquired pneumonia.\n2. Mandell LA, Wunderink RG, et al. IDSA and ATS consensus guidelines on CAP in adults.';
+    for (const h of ['References:', '**References**', '## References', 'เอกสารอ้างอิง', 'Bibliography:']) {
+      const reply = `${LEAD}\n\n${h}\n${refs}`;
+      expect(thaiShare(reply)).toBeLessThan(0.30);
+      expect(isLanguageMismatch(reply, 'th')).toBe(false);
+    }
+    // The word in running English prose is not a heading.
+    const prose = 'The references for this recommendation are strong and the evidence base is consistently good for therapy.';
+    expect(isLanguageMismatch(prose, 'th')).toBe(true);
+  });
+});

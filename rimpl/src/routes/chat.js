@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { stripPii, stripHistoryPii, deriveHintTokens } = require('../services/pii-filter');
 const { ragLookup } = require('../services/rag');
 const { callAI } = require('../services/ai');
-const { hasCitation, extractSocraticQuestion, extractReferences, thaiShare, stripNonProse, isLanguageMismatch } = require('../services/post-filter');
+const { hasCitation, extractSocraticQuestion, extractReferences, thaiShare, stripNonProse, isLanguageMismatch, THAI_MIN_SHARE } = require('../services/post-filter');
 const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE } = require('../lib/prompts');
 const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply } = require('../services/rescue');
 const { flattenForPrompt, stripArtifactDelimiters } = require('../lib/transcript');
@@ -197,14 +197,20 @@ router.post('/', async (req, res) => {
     // turn that fails both gets a SINGLE retry whose prompt asks for both fixes, so a turn never makes
     // more than two AI calls in total (and the billing sums below stay a plain two-call sum).
     //   - citation missing (both modes), or — examiner mode only — the ❓ missing. Not on a rescue turn.
-    //   - LANGUAGE: a Thai question (language === 'th') answered in mostly-not-Thai (post-filter's
-    //     isLanguageMismatch, which ignores code, URLs and citations). Never fires for 'en' — a Thai
-    //     physician who writes English may accept either language, so English is not forced. This one
+    //   - LANGUAGE: the physician wrote substantially in Thai and the reply is mostly-not-Thai
+    //     (post-filter's isLanguageMismatch, which ignores code, URLs, citations, :::artifact blocks
+    //     and a trailing References list). `language === 'th'` alone is NOT enough: the client sets it
+    //     when the message contains ANY Thai codepoint, so "What is first-line for CAP? ครับ" is 'th'.
+    //     We therefore also require the physician's own message to be >= THAI_MIN_SHARE Thai, so a
+    //     physician who wrote in English is never forced into Thai (an English turn is never policed
+    //     either). That share is computed here, on-prem; only the boolean outcome is used. This check
     //     DOES apply to a rescue turn: it asks for a rewrite, not a fresh answer, so it cannot make a
     //     rescue reply answer the question it is deliberately withholding.
     const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));
-    const languageRetry = isLanguageMismatch(text, language);
-    if (needCitation || languageRetry) {
+    const physicianWroteThai = language === 'th' && thaiShare(stripNonProse(message)) >= THAI_MIN_SHARE;
+    const languageMismatch = physicianWroteThai && isLanguageMismatch(text, language);
+    let languageRetried = false;   // the retry's reply is the one being returned
+    if (needCitation || languageMismatch) {
       let retryPrompt;
       if (needCitation) {
         retryPrompt = socratic
@@ -215,17 +221,21 @@ router.post('/', async (req, res) => {
             ? 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม และไม่ต้องปิดท้ายด้วยคำถามชวนคิด'
             : 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation. Engage with the question — do not decline, and do not append a follow-up question.');
         // Both checks failed: the same single retry also pins the language.
-        if (languageRetry) retryPrompt += ' และเขียนคำตอบทั้งหมดเป็นภาษาไทย (Write the whole reply in Thai.)';
+        if (languageMismatch) retryPrompt += ' และเขียนคำตอบทั้งหมดเป็นภาษาไทย (Write the whole reply in Thai.)';
       } else {
         // Language only: the reply is otherwise acceptable, so ask for a rewrite that keeps its
-        // content, citations and any ❓ — not a new answer.
-        retryPrompt = 'กรุณาเขียนคำตอบก่อนหน้านี้ใหม่เป็นภาษาไทย โดยคงเนื้อหาทางคลินิก การอ้างอิง (แหล่ง, ปี) และคำถามที่ขึ้นต้นด้วย ❓ (ถ้ามี) ไว้ตามเดิม — ชื่อยา ตัวย่อ และชื่อแหล่งอ้างอิงเป็นภาษาอังกฤษได้ '
-          + '(Please rewrite your previous reply in Thai, keeping the same clinical content, (Source, Year) citations and any ❓ question on its own line. Drug names, abbreviations and source titles may stay in English.)';
+        // content, citations, any ❓ and any :::artifact block — not a new answer.
+        retryPrompt = 'กรุณาเขียนคำตอบก่อนหน้านี้ใหม่เป็นภาษาไทย โดยคงเนื้อหาทางคลินิก การอ้างอิง (แหล่ง, ปี) และคำถามที่ขึ้นต้นด้วย ❓ (ถ้ามี) ไว้ตามเดิม และคงบล็อก :::artifact ทั้งบล็อก (ถ้ามี) ไว้ตามเดิมทุกประการ — ชื่อยา ตัวย่อ และชื่อแหล่งอ้างอิงเป็นภาษาอังกฤษได้ '
+          + '(Please rewrite your previous reply in Thai, keeping the same clinical content, (Source, Year) citations and any ❓ question on its own line. Keep any :::artifact block exactly as is, fence lines included. Drug names, abbreviations and source titles may stay in English.)';
       }
+      // A citation retry re-ANSWERS, so the artifact fence is stripped from the just-produced reply
+      // before it is fed back, and the corrected reply doesn't echo the literal delimiter. A
+      // language-only retry REWRITES and must keep the fence the side panel depends on, so it sees
+      // the reply intact — but only when artifacts are on (the system prompt then explains the
+      // fence); with them off a stray fence is stripped as before.
+      const keepFence = !needCitation && artifacts;
       const retryMessages = [...messages,
-        // Strip the artifact fence from the just-produced reply before feeding it back as context, so
-        // the corrected reply doesn't echo the literal delimiter.
-        { role: 'assistant', content: stripArtifactDelimiters(text) },
+        { role: 'assistant', content: keepFence ? text : stripArtifactDelimiters(text) },
         { role: 'user', content: retryPrompt },
       ];
       // Same ceiling as the first call — a corrected reply may itself carry an artifact, so a LOWER retry
@@ -236,17 +246,33 @@ router.post('/', async (req, res) => {
       // have ONE physician turn written half by Claude and half by the DGX — and `messages` has no
       // model column, so nothing would record that it happened. `provider` is undefined only when a
       // caller mocked callAI without it, in which case this falls back to normal resolution.
-      const retry = await callAI({ purpose: 'chat', provider, systemPrompt, messages: retryMessages, maxTokens: CHAT_MAX_TOKENS, signal });
-      text = retry.text;
-      tokenCount += retry.tokenCount;
-      inputTokens += retry.inputTokens;
-      outputTokens += retry.outputTokens;
-      lastInputTokens = retry.inputTokens;
-      lastOutputTokens = retry.outputTokens;
-      // The one retry is all there is. If the reply is STILL not Thai, deliver it (a late English
-      // answer beats a 502) but leave a trace with the measured share only — never the content.
-      if (languageRetry && isLanguageMismatch(text, language)) {
-        console.warn(`[RIMPL chat] language retry did not produce Thai (share ${thaiShare(stripNonProse(text)).toFixed(2)}) — delivering as-is`);
+      let retry;
+      try {
+        retry = await callAI({ purpose: 'chat', provider, systemPrompt, messages: retryMessages, maxTokens: CHAT_MAX_TOKENS, signal });
+      } catch (err) {
+        // The client is gone, or the retry was needed for a missing citation/❓ (that reply was not
+        // deliverable, and failing closed there is the existing behaviour): propagate.
+        if (isAborted(err) || needCitation) throw err;
+        // A LANGUAGE-only retry is a nicety on top of a reply that was already deliverable. Losing the
+        // physician's turn (and, on a rescue turn, the rescue activation riding on this response) to a
+        // queue_full / 413 / 5xx on it would be worse than the English answer. Keep the first reply and
+        // its token sums; log the code only, never content.
+        console.warn(`[RIMPL chat] language retry failed (${err?.code ?? err?.status ?? 'error'}) — delivering the first reply`);
+        retry = null;
+      }
+      if (retry) {
+        text = retry.text;
+        tokenCount += retry.tokenCount;
+        inputTokens += retry.inputTokens;
+        outputTokens += retry.outputTokens;
+        lastInputTokens = retry.inputTokens;
+        lastOutputTokens = retry.outputTokens;
+        languageRetried = languageMismatch;
+        // The one retry is all there is. If the reply is STILL not Thai, deliver it (a late English
+        // answer beats a 502) but leave a trace with the measured share only — never the content.
+        if (languageMismatch && isLanguageMismatch(text, language)) {
+          console.warn(`[RIMPL chat] language retry did not produce Thai (share ${thaiShare(stripNonProse(text)).toFixed(2)}) — delivering as-is`);
+        }
       }
     }
 
@@ -270,10 +296,10 @@ router.post('/', async (req, res) => {
       // (services/ai.js; dormant — unset — by default). Null on every ordinary turn. The citation
       // retry above is pinned to `provider`, so the whole turn came from the provider named above.
       failed_over_from: failed_over_from ?? null,
-      // True when the language guard fired (a Thai turn answered in non-Thai, so the one retry asked
-      // for Thai). Advisory and rimpl-local: the backend whitelists its response to the physician and
-      // does not forward this.
-      language_retry: languageRetry,
+      // True when the language guard fired AND its retry's reply is the one returned. False when the
+      // guard did not fire, or when its retry failed and the first reply was kept. Advisory and
+      // rimpl-local: the backend whitelists its response to the physician and does not forward this.
+      language_retry: languageRetried,
       // Advisory, for the backend to persist: which turn the rescue fired on, why, and whether the
       // reply actually honoured the protocol's constraints. The SAP analyses trigger rate and
       // activation point, so an unrecorded rescue is a lost data point.

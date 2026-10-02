@@ -45,6 +45,11 @@ const MIN_JUDGED_LETTERS = 20;
 
 // What the guard IGNORES before measuring, and why:
 //   - fenced ``` code blocks and `inline code`   (identifiers and syntax, not prose)
+//   - whole :::artifact{...} ... ::: blocks      (the prompt puts DDx tables and care plans there,
+//                                                 often in English; fence syntax as in
+//                                                 lib/transcript.js. An unterminated block, e.g. a
+//                                                 truncated reply, is stripped to the end)
+//   - a "References" / "เอกสารอ้างอิง" heading and everything after it (a trailing reference list)
 //   - URLs and markdown link targets             (Latin by nature)
 //   - (Source, Year) citations                   (same pattern as hasCitation; source titles are
 //                                                 often English even in a Thai answer, and the
@@ -53,6 +58,8 @@ const MIN_JUDGED_LETTERS = 20;
 // told apart from English prose by a regex, and the 0.30 bar already allows for them.
 function stripNonProse(text) {
   return String(text ?? '')
+    .replace(/^:::artifact\{[^}\n]*\}[^\n]*(?:\n[\s\S]*?^:::[ \t]*$|[\s\S]*$)/gm, ' ')
+    .replace(/^[ \t]*(?:#{1,6}[ \t]*)?\**(?:References?|Bibliography|เอกสารอ้างอิง|บรรณานุกรม)\**[ \t]*:?[ \t]*\**[ \t]*(?:\n[\s\S]*)?$/im, ' ')
     .replace(/```[\s\S]*?(```|$)/g, ' ')
     .replace(/`[^`\n]*`/g, ' ')
     .replace(/\]\([^)\s]*\)/g, ']')

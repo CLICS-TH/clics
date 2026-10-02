@@ -158,3 +158,170 @@ describe('language guard (chat.js)', () => {
     expect(res.body.prompt_version).toBe(promptLabel('chat', RIMPL_SYSTEM_PROMPT_RESCUE));
   });
 });
+
+// ---------------------------------------------------------------------------------------------
+// Review fixes: retry failure keeps the first reply; physician-language gate; artifact / references.
+// ---------------------------------------------------------------------------------------------
+const { QueueFullError } = require('../src/services/providers/runtime');
+
+const queueFull = () => new QueueFullError({ provider: 'local', lane: 'interactive', maxQueue: 4, retryAfterMs: 30000 });
+const tooLarge = () => Object.assign(new Error('refused before send'), {
+  status: 413, code: 'transcript_too_large', contextTooSmall: true, est_tokens: 70000, limit: 64000,
+});
+const aborted = () => Object.assign(new Error('aborted'), { code: 'aborted', aborted: true });
+const fourExchanges = () => Array.from({ length: 4 }, (_, i) => [
+  { role: 'physician', content: `คำถาม ${i}` }, { role: 'assistant', content: `คำตอบ ${i}` },
+]).flat();
+const SHALLOW = JSON.stringify({ c4: true, c5: false, c6: false, c7: false, on_topic: true });
+const EN_TABLE = '| Dx | Features |\n|---|---|\n| Pneumonia | Fever, productive cough, consolidation |\n| Pulmonary embolism | Pleuritic pain, tachycardia, hypoxia |\n| Heart failure | Orthopnea, oedema, raised JVP |';
+const FENCE = (body) => `:::artifact{type="differential" title="DDx"}\n${body}\n:::`;
+
+describe('a failed language retry keeps the first reply', () => {
+  test.each([['503 queue_full', queueFull], ['413 transcript_too_large', tooLarge]])('%s: 200 with the FIRST text and the first call\'s tokens only', async (_n, mkErr) => {
+    callAI.mockResolvedValueOnce(r(EN_OK, 1000, 300)).mockRejectedValueOnce(mkErr());
+    const res = await send({ language: 'th' });
+    expect(res.status).toBe(200);
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(res.body.content).toBe(EN_OK);
+    expect(res.body.language_retry).toBe(false);
+    expect(res.body.input_tokens).toBe(1000);
+    expect(res.body.output_tokens).toBe(300);
+    expect(res.body.token_count).toBe(1300);
+    expect(res.body.context_tokens).toBe(1300);
+    // Logged by code only, never the content.
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toMatch(/language retry failed \((queue_full|transcript_too_large)\)/);
+    expect(warn.mock.calls[0][0]).not.toContain('Metformin');
+  });
+
+  test('a provider 5xx without a code is logged by status', async () => {
+    callAI.mockResolvedValueOnce(r(EN_OK, 10, 10)).mockRejectedValueOnce(Object.assign(new Error('boom'), { status: 502 }));
+    const res = await send({ language: 'th' });
+    expect(res.status).toBe(200);
+    expect(warn.mock.calls[0][0]).toMatch(/\(502\)/);
+  });
+
+  test('a rescue turn keeps its activation when the language retry fails, and reply_check is on the first reply', async () => {
+    callAI.mockImplementation(async (a) => {
+      if (a.purpose === 'criteria') return r(SHALLOW, 7, 3, { provider: 'local' });
+      if (callAI.mock.calls.filter((c) => c[0].purpose === 'chat').length === 1) {
+        return r('What have you already considered about the likely cause of these symptoms?', 100, 20);
+      }
+      throw queueFull();
+    });
+    const res = await send({ language: 'th', history: fourExchanges(), message: 'ผมยังไม่แน่ใจเลยครับ ขอความเห็นหน่อย' });
+    expect(res.status).toBe(200);
+    expect(res.body.rescue).toMatchObject({ activated: true, rescuing: true, reason: 'not_qualifying' });
+    expect(res.body.rescue.assessment).toMatchObject({ input_tokens: 7, output_tokens: 3 });
+    expect(res.body.rescue.reply_check).toMatchObject({ questions: 1, ok: true });
+    expect(res.body.language_retry).toBe(false);
+    expect(res.body.input_tokens).toBe(100);
+  });
+
+  test('an abort during the retry still yields 499 (nobody to deliver to)', async () => {
+    callAI.mockResolvedValueOnce(r(EN_OK, 10, 10)).mockRejectedValueOnce(aborted());
+    const res = await send({ language: 'th' });
+    expect(res.status).toBe(499);
+    expect(warn).not.toHaveBeenCalledWith(expect.stringMatching(/language retry failed/));
+  });
+
+  test('a retry needed for a MISSING CITATION still fails closed (unchanged): its first reply was not deliverable', async () => {
+    callAI.mockResolvedValueOnce(r(EN_NO_CITE, 10, 10)).mockRejectedValueOnce(queueFull());
+    const res = await send({ language: 'en' });
+    expect(res.status).toBe(503);
+    expect(res.body.code).toBe('queue_full');
+    callAI.mockReset();
+    callAI.mockResolvedValueOnce(r(EN_NO_CITE, 10, 10)).mockRejectedValueOnce(queueFull());
+    expect((await send({ language: 'th' })).status).toBe(503);   // combined citation+language: same
+  });
+});
+
+describe('the guard polices only a physician who wrote substantially in Thai', () => {
+  test("an English message with a trailing ครับ (client says 'th') and an English reply: no retry", async () => {
+    callAI.mockResolvedValueOnce(r(EN_OK, 10, 10));
+    const res = await send({ language: 'th', message: "What's first-line for outpatient CAP? ครับ" });
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(res.body.language_retry).toBe(false);
+    expect(res.body.content).toBe(EN_OK);
+  });
+
+  test('same with ค่ะ, in examiner mode', async () => {
+    callAI.mockResolvedValueOnce(r(EN_OK_Q, 10, 10));
+    const res = await send({ language: 'th', socratic: true, message: 'Should I start empiric doxycycline for a stable outpatient with CAP and no comorbidities? ค่ะ' });
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(res.body.language_retry).toBe(false);
+  });
+
+  test('a substantially Thai message with an English reply: retry', async () => {
+    callAI.mockResolvedValueOnce(r(EN_OK, 10, 10)).mockResolvedValueOnce(r(THAI_OK, 10, 10));
+    const res = await send({ language: 'th', message: 'ผู้ป่วยปอดอักเสบชุมชนแบบผู้ป่วยนอก ควรเริ่มยาปฏิชีวนะตัวไหนก่อนครับ' });
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(res.body.language_retry).toBe(true);
+  });
+
+  test('a Thai message with English drug names still counts as Thai (share is over letters)', async () => {
+    callAI.mockResolvedValueOnce(r(EN_OK, 10, 10)).mockResolvedValueOnce(r(THAI_OK, 10, 10));
+    const res = await send({ language: 'th', message: 'ผู้ป่วยเบาหวาน ควรเริ่ม metformin ก่อนหรือ SGLT2i ครับ เพราะ eGFR ลดลง' });
+    expect(res.body.language_retry).toBe(true);
+  });
+});
+
+describe('artifact blocks and reference lists are not language evidence', () => {
+  const THAI_LEAD = 'ผู้ป่วยรายนี้เข้าได้กับปอดอักเสบ ควรประเมินความรุนแรงก่อน (IDSA/ATS, 2019)';
+
+  test('a Thai lead plus an English DDx artifact: no retry', async () => {
+    callAI.mockResolvedValueOnce(r(`${THAI_LEAD}\n${FENCE(EN_TABLE)}\n❓ คุณคิดถึงโรคใดอีก`, 10, 10));
+    const res = await send({ language: 'th', artifacts: true });
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(res.body.language_retry).toBe(false);
+  });
+
+  test('a Thai answer plus an English trailing References list: no retry', async () => {
+    const refs = '\n\n**References:**\n1. Metlay JP, Waterer GW, Long AC, et al. Diagnosis and treatment of adults with community-acquired pneumonia. Am J Respir Crit Care Med.\n2. Mandell LA, Wunderink RG, Anzueto A, et al. Infectious Diseases Society of America and American Thoracic Society consensus guidelines.';
+    callAI.mockResolvedValueOnce(r(`${THAI_LEAD}${refs}`, 10, 10));
+    const res = await send({ language: 'th' });
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(res.body.language_retry).toBe(false);
+  });
+
+  test('an English reply carrying an artifact IS still caught, and the rewrite sees the fence intact and is told to keep it', async () => {
+    const english = `${EN_OK}\n${FENCE(EN_TABLE)}`;
+    const thai = `${THAI_OK}\n${FENCE(EN_TABLE)}`;
+    callAI.mockResolvedValueOnce(r(english, 10, 10)).mockResolvedValueOnce(r(thai, 10, 10));
+    const res = await send({ language: 'th', artifacts: true });
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(res.body.language_retry).toBe(true);
+    const msgs = callAI.mock.calls[1][0].messages;
+    expect(msgs[msgs.length - 2].content).toContain(':::artifact{type="differential"');   // fence NOT stripped
+    expect(msgs[msgs.length - 2].content).toMatch(/\n:::$/);
+    expect(msgs[msgs.length - 1].content).toMatch(/:::artifact/);
+    expect(msgs[msgs.length - 1].content).toMatch(/Keep any :::artifact block exactly as is/);
+    expect(res.body.content).toContain(':::artifact{type="differential"');
+  });
+
+  test('with artifacts OFF a stray fence is still stripped before replay, as for the citation retry', async () => {
+    callAI.mockResolvedValueOnce(r(`${EN_OK}\n${FENCE(EN_TABLE)}`, 10, 10)).mockResolvedValueOnce(r(THAI_OK, 10, 10));
+    await send({ language: 'th', artifacts: false });
+    const msgs = callAI.mock.calls[1][0].messages;
+    expect(msgs[msgs.length - 2].content).not.toContain(':::');
+  });
+
+  test('a citation retry still strips the fence (it re-answers; unchanged)', async () => {
+    callAI.mockResolvedValueOnce(r(`${EN_NO_CITE}\n${FENCE(EN_TABLE)}`, 10, 10)).mockResolvedValueOnce(r(EN_OK, 10, 10));
+    await send({ language: 'en', artifacts: true });
+    const msgs = callAI.mock.calls[1][0].messages;
+    expect(msgs[msgs.length - 2].content).not.toContain(':::');
+  });
+
+  test('rescue.reply_check is computed on the REWRITTEN text', async () => {
+    // First reply: English with 3 questions (fails the check). Rewrite: Thai with one. If reply_check
+    // were taken from the first reply it would read questions:3, ok:false.
+    const first = 'What have you considered? What else? Anything about the history?';
+    const second = 'คุณพิจารณาสาเหตุที่เป็นไปได้ของอาการเหล่านี้ไว้อย่างไรบ้างแล้ว ❓';
+    callAI.mockResolvedValueOnce(r(first, 10, 10)).mockResolvedValueOnce(r(second, 10, 10));
+    const res = await send({ language: 'th', socratic: true, rescue_active: true, rescue_rounds: MAX_RESCUE_ROUNDS, message: 'ผมไม่แน่ใจว่าควรทำอย่างไรต่อครับ' });
+    expect(res.body.language_retry).toBe(true);
+    expect(res.body.content).toBe(second);
+    expect(res.body.rescue.reply_check).toMatchObject({ questions: 1, ok: true });
+  });
+});
