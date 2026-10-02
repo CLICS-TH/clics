@@ -21,6 +21,32 @@ export function wilson(k, n, z = 1.959963984540054) {
   return { k, n, p, lo: k === 0 ? 0 : Math.max(0, centre - half), hi: k === n ? 1 : Math.min(1, centre + half) };
 }
 
+/** Binomial(n, p) probability mass for every k = 0..n, exact up to floating point. Built in log space,
+ *  so n in the hundreds and p near 0 or 1 cannot underflow an intermediate the way p^n can. */
+export function binomPmf(n, p) {
+  if (!Number.isInteger(n) || n < 0 || !(p >= 0 && p <= 1)) throw new RangeError(`binomPmf: need integer n >= 0 and 0 <= p <= 1, got n=${n} p=${p}`);
+  if (p === 0 || p === 1) return Array.from({ length: n + 1 }, (_, k) => ((p === 0 ? k === 0 : k === n) ? 1 : 0));
+  const lp = Math.log(p);
+  const lq = Math.log1p(-p);
+  const out = new Array(n + 1);
+  let lc = 0;                                   // log C(n, k), built incrementally
+  for (let k = 0; k <= n; k++) {
+    if (k > 0) lc += Math.log(n - k + 1) - Math.log(k);
+    out[k] = Math.exp(lc + k * lp + (n - k) * lq);
+  }
+  return out;
+}
+
+/** P(X >= k) for X ~ Binomial(n, p). k <= 0 is 1; k > n is 0. */
+export function binomUpper(k, n, p = 0.5) {
+  if (k <= 0) return 1;
+  if (k > n) return 0;
+  const pmf = binomPmf(n, p);
+  let s = 0;
+  for (let i = k; i <= n; i++) s += pmf[i];
+  return Math.min(1, s);
+}
+
 /** "k/n (p%, 95% CI lo–hi%)" — the one format every report line uses. */
 export function fmtRate({ k, n, p, lo, hi }) {
   if (!n) return `${k}/${n} (no data)`;

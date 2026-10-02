@@ -32,7 +32,7 @@ import {
   thaiShare, stripNonProse, isThaiMessage, isLanguageMismatch, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
 } from './rimpl.mjs';
 import { routeLanguage, includesLoose } from './request.mjs';
-import { wilson, fmtRate } from './stats.mjs';
+import { wilson, fmtRate, binomPmf, binomUpper } from './stats.mjs';
 
 // v2: citation_shape passes on production's meetsCitationRule (a citation OR an explicit no-source
 // note), not on hasCitation alone. Each non-rescue reply's citation FORM is recorded ('citation',
@@ -265,19 +265,104 @@ export function evidenceCoverage(results, cites) {
   };
 }
 
+// --- Before/after verdict on per-reply evidence coverage (C-1) ---------------------------------------
+//
+// AMENDED 2026-10-02 (docs/QUALITY-GATES.md, before any after-run existed). The first rule compared
+// the after-run's Wilson interval with the baseline's POINT estimate, treating one n=74 run as exact.
+// Its real error rates under "no change" were 9-10% false "improved" and ~7.5% false "worse", not the
+// ~2.5% it claimed. The rule is now an exact one-sided McNemar test: both runs answer the SAME bank
+// items, so the design is paired and only the items whose coverage changed carry information.
+export const MCNEMAR_ALPHA = 0.025;   // per direction
+
 /**
- * The pre-registered before/after verdict on per-reply evidence coverage for ONE arm (same model,
- * same bank, same verifier version). `baseline` is that arm's coverage before the change.
- *   improved   after.lo > baseline.p   (the after-run's own lower bound clears the old point estimate,
- *                                       so it is not reached by chance at the 2.5% one-sided level)
- *   worse      after.hi < baseline.p
- *   not-shown  anything else — no claim either way
+ * Exact one-sided McNemar on the discordant pairs. Under "no change" a discordant item is equally
+ * likely to be a gain or a loss, so gained ~ Binomial(gained + lost, 1/2).
+ *   p_improved = P(B >= gained)    p_worse = P(B <= gained) = P(B >= lost)
+ * Verdict at `alpha` per direction; with no discordant pair nothing can be shown.
  */
-export function coverageVerdict(after, baseline) {
-  if (after?.lo == null || baseline?.p == null) return 'not-assessable';
-  if (after.lo > baseline.p) return 'improved';
-  if (after.hi < baseline.p) return 'worse';
-  return 'not-shown';
+export function mcnemarExact(gained, lost, alpha = MCNEMAR_ALPHA) {
+  if (![gained, lost].every((x) => Number.isInteger(x) && x >= 0)) throw new RangeError(`mcnemarExact: counts must be integers >= 0, got ${gained}, ${lost}`);
+  const n = gained + lost;
+  const p_improved = binomUpper(gained, n);
+  const p_worse = binomUpper(lost, n);
+  const verdict = p_improved <= alpha ? 'improved' : p_worse <= alpha ? 'worse' : 'not-shown';
+  return { gained, lost, n_discordant: n, p_improved, p_worse, alpha, verdict };
+}
+
+/**
+ * Which items a run holds to the citation rule and covers. An item is usable only if it is
+ * non-rescue, the call succeeded (assessable), and the cites file lists it.
+ */
+function coverageById(results, cites) {
+  const citesById = new Map((cites?.items ?? []).map((it) => [it.id, it]));
+  const out = new Map();
+  for (const r of results) {
+    let status;
+    if (r.mode === 'rescue') status = 'rescue';
+    else if (!r.result.assessable) status = 'call_failed';
+    else if (!citesById.has(r.id)) status = 'missing_from_cites';
+    else status = citesById.get(r.id).citations.some((c) => c.status === 'verified') ? 'covered' : 'not_covered';
+    out.set(r.id, status);
+  }
+  return out;
+}
+
+/**
+ * The paired before/after comparison for ONE arm. `before` and `after` are { results, cites }:
+ * checkReport(...).results and a cite-verify .cites.json, for any two runs. Items are paired by id;
+ * an item is excluded if EITHER side is rescue, a failed call, absent from that run, or absent from
+ * that run's cites file. The paired n is reported, with why each excluded item was dropped.
+ */
+export function pairedCoverage(before, after, alpha = MCNEMAR_ALPHA) {
+  const b = coverageById(before.results, before.cites);
+  const a = coverageById(after.results, after.cites);
+  const cells = { both: 0, gained: 0, lost: 0, neither: 0 };
+  const excluded = [];
+  for (const id of [...new Set([...b.keys(), ...a.keys()])].sort()) {
+    const sb = b.get(id) ?? 'absent';
+    const sa = a.get(id) ?? 'absent';
+    const usable = (s) => s === 'covered' || s === 'not_covered';
+    if (!usable(sb) || !usable(sa)) {
+      // Rescue items are excluded by design; only report the others, which say something about a run.
+      if (sb !== 'rescue' && sa !== 'rescue') excluded.push({ id, before: sb, after: sa });
+      continue;
+    }
+    const was = sb === 'covered';
+    const now = sa === 'covered';
+    cells[was && now ? 'both' : now ? 'gained' : was ? 'lost' : 'neither'] += 1;
+  }
+  const n = cells.both + cells.gained + cells.lost + cells.neither;
+  return {
+    n_paired: n,
+    ...cells,
+    before: wilson(cells.both + cells.lost, n),
+    after: wilson(cells.both + cells.gained, n),
+    excluded,
+    ...mcnemarExact(cells.gained, cells.lost, alpha),
+  };
+}
+
+/**
+ * Exact rejection rates of the McNemar rule for n paired items whose cells are independent draws with
+ * P(gain) = pGain and P(loss) = pLoss: the number of discordant items is Binomial(n, pGain + pLoss)
+ * and, given it, the gains are Binomial(d, pGain / (pGain + pLoss)). With pGain = pLoss this is the
+ * false-verdict rate under "no change"; otherwise it is the power.
+ */
+export function mcnemarRejectRates(n, pGain, pLoss, alpha = MCNEMAR_ALPHA) {
+  const pd = pGain + pLoss;
+  const dPmf = binomPmf(n, pd);
+  let improved = 0;
+  let worse = 0;
+  for (let d = 1; d <= n; d++) {
+    if (dPmf[d] < 1e-300) continue;
+    const gPmf = binomPmf(d, pGain / pd);
+    for (let g = 0; g <= d; g++) {
+      const v = mcnemarExact(g, d - g, alpha).verdict;
+      if (v === 'improved') improved += dPmf[d] * gPmf[g];
+      else if (v === 'worse') worse += dPmf[d] * gPmf[g];
+    }
+  }
+  return { improved, worse };
 }
 
 /** Recompute checks for a whole report against the given bank items (by id). */

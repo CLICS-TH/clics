@@ -7,9 +7,11 @@ import { fileURLToPath } from 'node:url';
 import { existsSync } from 'node:fs';
 import { thaiShare, THAI_MIN_SHARE } from './rimpl.mjs';
 import {
-  checkReply, summarize, wordCount, LENGTH_MAX_WORDS, citationForm, NOTE_ONLY_MAX_UPPER, evidenceCoverage, coverageVerdict, checkReport,
+  checkReply, summarize, wordCount, LENGTH_MAX_WORDS, citationForm, NOTE_ONLY_MAX_UPPER, evidenceCoverage, checkReport,
+  mcnemarExact, pairedCoverage, mcnemarRejectRates, MCNEMAR_ALPHA,
 } from './checks.mjs';
-import { wilson } from './stats.mjs';
+import { binomPmf, binomUpper } from './stats.mjs';
+import { pairingWarnings } from './coverage-paired.mjs';
 import { ITEM_TH_EXAMINER, ITEM_EN_NATURAL, ITEM_RESCUE, ITEM_PII, ITEM_LEAK, GOOD_TH_EXAMINER, entryFor } from './test-fixtures.mjs';
 
 const codes = (r) => r.flags.map((f) => f.code);
@@ -150,19 +152,107 @@ test('evidence coverage: per REPLY (>=1 verified) and per CITATION, rescue and f
   assert.deepEqual(cov.per_citation, cites.summary.verified_rate);
 });
 
-test('coverage verdict reproduces the pre-registered before/after thresholds for both arms', () => {
-  const local = wilson(20, 74);    // 2026-10-02, checker v4
-  const sonnet = wilson(29, 74);
-  const verdict = (k, base) => coverageVerdict(wilson(k, 74), base);
-  assert.equal(verdict(28, local), 'improved');
-  assert.equal(verdict(27, local), 'not-shown');
-  assert.equal(verdict(13, local), 'not-shown');
-  assert.equal(verdict(12, local), 'worse');
-  assert.equal(verdict(38, sonnet), 'improved');
-  assert.equal(verdict(37, sonnet), 'not-shown');
-  assert.equal(verdict(21, sonnet), 'not-shown');
-  assert.equal(verdict(20, sonnet), 'worse');
-  assert.equal(coverageVerdict(wilson(0, 0), local), 'not-assessable');
+// --- Amendment 1: the paired McNemar verdict ------------------------------------------------------
+
+test('exact binomial: hand-checkable values', () => {
+  binomPmf(3, 0.5).forEach((x, k) => close1(x, [1 / 8, 3 / 8, 3 / 8, 1 / 8][k]));   // log space: float dust only
+  assert.ok(Math.abs(binomPmf(74, 0.27).reduce((s, x) => s + x, 0) - 1) < 1e-12);
+  assert.ok(Math.abs(binomPmf(4, 0.25)[1] - 4 * 0.25 * 0.75 ** 3) < 1e-15);
+  assert.equal(binomUpper(0, 9), 1);
+  assert.equal(binomUpper(10, 9), 0);
+  assert.ok(Math.abs(binomUpper(8, 9) - 10 / 512) < 1e-15);
+});
+
+test('exact one-sided McNemar: p-values and verdicts on hand-checkable cases', () => {
+  const close = (x, y) => assert.ok(Math.abs(x - y) < 1e-12, `${x} vs ${y}`);
+  // 5 gained, 0 lost: P(B >= 5 | 5) = 1/32 = 0.03125 > 0.025 — five-nil is NOT enough.
+  let m = mcnemarExact(5, 0);
+  close(m.p_improved, 1 / 32);
+  assert.equal(m.verdict, 'not-shown');
+  // 6-0: 1/64 = 0.0156 -> improved.
+  m = mcnemarExact(6, 0);
+  close(m.p_improved, 1 / 64);
+  assert.equal(m.verdict, 'improved');
+  // 8 gained, 1 lost: (C(9,8) + C(9,9)) / 2^9 = 10/512 = 0.0195 -> improved; the mirror is 1.
+  m = mcnemarExact(8, 1);
+  close(m.p_improved, 10 / 512);
+  close(m.p_worse, 1 - 1 / 512);
+  assert.equal(m.verdict, 'improved');
+  // 7-2: (36 + 9 + 1) / 512 = 0.0898 -> not shown.
+  m = mcnemarExact(7, 2);
+  close(m.p_improved, 46 / 512);
+  assert.equal(m.verdict, 'not-shown');
+  // The mirror: 1 gained, 8 lost -> worse.
+  m = mcnemarExact(1, 8);
+  close(m.p_worse, 10 / 512);
+  assert.equal(m.verdict, 'worse');
+  // Concordant pairs do not enter: no discordant pair, nothing shown.
+  m = mcnemarExact(0, 0);
+  assert.deepEqual([m.n_discordant, m.p_improved, m.p_worse, m.verdict], [0, 1, 1, 'not-shown']);
+  assert.throws(() => mcnemarExact(-1, 2), RangeError);
+  assert.equal(MCNEMAR_ALPHA, 0.025);
+});
+
+test('McNemar error rates under "no change" are <= 2.5% per direction (the amendment\'s table)', () => {
+  const r2 = (x) => Number((x * 100).toFixed(2));
+  for (const [p, want] of [[20 / 74, 1.52], [29 / 74, 1.64], [0.5, 1.68]]) {
+    const { improved, worse } = mcnemarRejectRates(74, p * (1 - p), p * (1 - p));
+    assert.ok(improved <= MCNEMAR_ALPHA && worse <= MCNEMAR_ALPHA, `p=${p}`);
+    assert.ok(Math.abs(improved - worse) < 1e-12, 'symmetric under the null');
+    assert.equal(r2(improved), want, `p=${p}`);
+  }
+  for (let p = 0.05; p < 0.96; p += 0.05) {
+    const { improved, worse } = mcnemarRejectRates(74, p * (1 - p), p * (1 - p));
+    assert.ok(improved <= MCNEMAR_ALPHA && worse <= MCNEMAR_ALPHA, `p=${p.toFixed(2)}`);
+  }
+  assert.equal(r2(mcnemarRejectRates(74, 0.05, 0.05).improved), 0.85);
+  // Power rows of the amendment's table.
+  assert.equal(r2(mcnemarRejectRates(74, 0.20, 0.05).improved), 69.76);
+  assert.equal(r2(mcnemarRejectRates(74, 0.17, 0.02).improved), 84.8);
+  assert.equal(r2(mcnemarRejectRates(74, (1 - 20 / 74) * (20 / 74 + 0.15), (20 / 74) * (1 - 20 / 74 - 0.15)).improved), 40.85);
+});
+
+test('pairedCoverage: pairs by id; drops rescue, failed calls, absent items and cites gaps on EITHER side', () => {
+  const row = (id, text, { mode = 'natural', ok = true } = {}) => {
+    const item = mode === 'rescue' ? ITEM_RESCUE : ITEM_EN_NATURAL;
+    const entry = entryFor(item, text);
+    if (!ok) entry.final = { ok: false, error: 'HTTP 503' };
+    return { id, language: 'en', mode, result: checkReply(item, entry) };
+  };
+  const V = { citations: [{ status: 'verified' }] };
+  const P = { citations: [{ status: 'publisher-only' }] };
+  const before = {
+    results: [row('a', CITED), row('b', CITED), row('c', CITED), row('d', 'q?', { mode: 'rescue' }),
+      row('e', CITED, { ok: false }), row('f', CITED), row('g', CITED), row('k', CITED)],
+    cites: { items: [{ id: 'a', ...V }, { id: 'b', ...P }, { id: 'c', ...V }, { id: 'd', ...V }, { id: 'f', ...V }, { id: 'g', ...V }, { id: 'k', ...P }] },
+  };
+  const after = {
+    results: [row('a', CITED), row('b', CITED), row('c', NOTE_ONLY), row('d', 'q?', { mode: 'rescue' }),
+      row('e', CITED), row('f', CITED), row('h', CITED), row('k', CITED)],
+    cites: { items: [{ id: 'a', ...V }, { id: 'b', ...V }, { id: 'c', citations: [] }, { id: 'd', ...V }, { id: 'e', ...V }, { id: 'h', ...V }, { id: 'k', ...P }] },
+  };
+  const r = pairedCoverage(before, after);
+  assert.equal(r.n_paired, 4, 'a (both), b (gained), c (lost), k (neither)');
+  assert.deepEqual([r.both, r.gained, r.lost, r.neither], [1, 1, 1, 1]);
+  assert.deepEqual([r.before.k, r.after.k], [2, 2]);
+  assert.deepEqual(r.excluded, [
+    { id: 'e', before: 'call_failed', after: 'covered' },
+    { id: 'f', before: 'covered', after: 'missing_from_cites' },
+    { id: 'g', before: 'covered', after: 'absent' },
+    { id: 'h', before: 'absent', after: 'covered' },
+  ], 'rescue item d is excluded by design and not listed');
+  assert.equal(r.verdict, 'not-shown');
+  close1(r.p_improved, 0.75);   // P(B >= 1 | 2, 1/2)
+});
+const close1 = (x, y) => assert.ok(Math.abs(x - y) < 1e-12, `${x} vs ${y}`);
+
+test('coverage-paired CLI helper warns when the pairing would measure something other than the prompt', () => {
+  const rep = (over = {}) => ({ label: 'x', provenance: { bank_sha: 'bank-1', models_reported: ['m'], prompt_versions: { natural: 'chat-prompt-old' }, ...over } });
+  const cit = (v = 'known-sources-v5', label = 'x') => ({ known_sources_version: v, report_label: label });
+  assert.deepEqual(pairingWarnings(rep(), rep({ prompt_versions: { natural: 'chat-prompt-new' } }), cit(), cit()), []);
+  const w = pairingWarnings(rep(), rep({ bank_sha: 'bank-2', models_reported: ['other'] }), cit('known-sources-v4'), cit('known-sources-v5', 'y'));
+  assert.equal(w.length, 5, w.join(' | '));
+  assert.match(w.join(' | '), /different banks.*different models.*cite-verify sources.*identical prompt_versions.*after: cites file is for "y"/);
 });
 
 test('the baseline coverage in QUALITY-GATES is what the committed cites files give', async () => {

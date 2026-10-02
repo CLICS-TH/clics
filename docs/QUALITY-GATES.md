@@ -189,6 +189,10 @@ recomputed from the committed `.cites.json` files, which were verified with chec
 The older `local-baseline-2026-10-02` cites file was produced by the pre-#117 checker. It overcounted
 organisation names as `verified`, so it is **not** a baseline for this measure.
 
+> **Superseded by [Amendment 1](#amendment-1-2026-10-02-paired-mcnemar-verdict-fresh-local-baseline),
+> also before any after-run.** The verdict rule, its stated error rate and the local baseline below
+> are kept as originally written, for the record. They are not what the after-run is judged by.
+
 Per-reply coverage is **reported in every run**. Here it is also the **before/after verdict** for a
 prompt change. Compare each arm only with its own baseline (same model, same bank, same checker
 version), using `coverageVerdict` in `checks.mjs`:
@@ -208,6 +212,120 @@ version), using `coverageVerdict` in `checks.mjs`:
   then rests on the C-2 fabrication and misattribution counts and on the clinician.
 - Only **improved**, with the note-only ceiling passed, supports the claim that the new rule makes
   the tutor cite better.
+
+#### Amendment 1 (2026-10-02): paired McNemar verdict, fresh local baseline
+
+Made on 2026-10-02, after the #123 re-review and **before any after-run existed**: no report carries
+the new prompt labels (`chat-prompt-a0e65028` / `chat-prompt-9467d3c7`). It changes two things in the
+entry above: the verdict rule and the local baseline. The note-only ceiling, the per-reply coverage
+measure and the requirement to report C-1 both ways are unchanged.
+
+**Why the rule changed.** The original rule compared the after-run's Wilson interval with the
+baseline's **point** estimate. That treats one n = 74 run as if it were exact. The entry said the
+false-verdict rate was "at most about 2.5%". The exact rates under "no change" are much higher.
+These assume both counts are Binomial(74, p) with p at the baseline:
+
+| Arm | False "improved" | False "worse" (forces a revert) |
+|---|---|---|
+| local (p = 20/74) | 9.9% | 7.5% |
+| Sonnet (p = 29/74) | 9.1% | 7.6% |
+
+**The new rule: an exact one-sided McNemar test, α = 0.025 per direction.** Both runs answer the
+same 74 bank items, so the design is paired.
+
+- Pair the items by id. An item is excluded if **either** run has it as a rescue item, a failed
+  call, missing from the run, or missing from that run's cites file.
+- Report the paired n, and why each other excluded item was dropped.
+- Each pair is covered or not covered before, and the same after. Only the discordant pairs carry
+  information: `gained` (not covered → covered) and `lost` (covered → not covered).
+- Under "no change", gained ~ Binomial(gained + lost, ½). The binomial is computed exactly, with no
+  packages (`scripts/quality/stats.mjs` `binomPmf`).
+
+| Verdict | Rule |
+|---|---|
+| **improved** | P(B ≥ gained) ≤ 0.025 |
+| **worse** | P(B ≥ lost) ≤ 0.025 (the mirror test) |
+| **not shown** | neither; also when there is no discordant pair |
+
+The consequences of each verdict are unchanged from the entry above:
+- **worse**, or a failed note-only ceiling, means revert;
+- **not shown** means nobody may claim an improvement;
+- only **improved**, with the note-only ceiling passed, supports the claim.
+
+Run it with:
+
+```
+node scripts/quality/coverage-paired.mjs <before.json> <before.cites.json> <after.json> <after.cites.json>
+```
+
+It takes any two reports plus their cites files. It warns if the bank, the model or the cite-verify
+version differs between the two, or if the prompt labels are identical. It is implemented by
+`pairedCoverage` / `mcnemarExact` in `checks.mjs`.
+
+**Error rates of the new rule under "no change".** These are exact, from `mcnemarRejectRates` in
+`checks.mjs`. Items are independent, each with P(gain) = P(loss).
+
+| Null model | False "improved" | False "worse" |
+|---|---|---|
+| independent before/after draws at p = 20/74 | 1.52% | 1.52% |
+| independent before/after draws at p = 29/74 | 1.64% | 1.64% |
+| independent draws, worst p (p = 0.50) | 1.68% | 1.68% |
+| stable items, 10% of items discordant | 0.85% | 0.85% |
+
+- Each rate is at most 2.5%. That is guaranteed, not just observed: conditional on the number of
+  discordant pairs, the exact test has size ≤ α.
+- The test is conservative, because the binomial is discrete.
+
+**Power at a true +15 percentage points** (exact, n = 74, α = 0.025):
+
+| Scenario (per item) | McNemar | Newcombe (not chosen) |
+|---|---|---|
+| local 27.0% → 42.0%, before and after independent (gain 30.7%, loss 15.7%) | 40.9% | 48.7% |
+| local 27.0% → 42.0%, stable items (gain 20%, loss 5%) | **69.8%** | 48.2% |
+| local 27.0% → 42.0%, stable items (gain 17%, loss 2%) | **84.8%** | 47.5% |
+| Sonnet 39.2% → 54.2%, independent (gain 33.0%, loss 18.0%) | 38.1% | 47.5% |
+| Sonnet 39.2% → 54.2%, stable items (gain 20%, loss 5%) | **69.8%** | 45.8% |
+
+The "stable items" scenarios are the realistic ones. Whether an item gets a verifiable citation
+depends heavily on the item, which shows even across **different** models. Pair the committed local
+and Sonnet runs by item:
+
+- only 17 of 74 items are discordant (13 gained, 4 lost);
+- if the two runs were independent, about 45% of items would be discordant.
+
+A before/after on the **same** model should be at least that stable. A +15pp effect at that
+stability has roughly 70–85% power. A smaller true effect, or a noisy model, will often read **not
+shown**. That is the intended reading: no improvement may be claimed.
+
+**The documented alternative, not chosen: Newcombe's hybrid-score interval** for the difference of
+two proportions. The reviewer proposed it; the numbers here were recomputed with the same exact
+enumeration. Its verdicts would be: improved if the interval's lower bound is > 0, worse if its
+upper bound is < 0.
+
+- Its error rates under "no change" are 2.53% (local) and 2.64% (Sonnet). That is about α, but not
+  bounded by it.
+- It treats the two runs as independent samples. That throws away the pairing, which is what makes
+  a 74-item comparison informative.
+- Where items are stable, which is what the cross-model data show, it has 45–48% power against
+  McNemar's 70–85%.
+- It wins only if before and after were independent per item (48.7% against 40.9%), and the data
+  argue against that.
+
+**The local baseline is a fresh run.** The local before/after verdict uses a **fresh local run made
+on current master with the current (old) prompt**: label `local-deepseek-baseline-master-2026-10-02`,
+prompt labels `chat-prompt-d63340e1` / `chat-prompt-c6efcfc6`.
+
+- The committed 2026-10-02 local run used the PII filter from before #114, so 4 of its 80 items sent
+  the model different input from what any after-run will send. Pairing needs identical inputs apart
+  from the prompt.
+- This choice was made **before the fresh run's results existed**.
+- The committed 20/74 local figure stays as a **reference only**.
+- The Claude baseline, `comparison-2026-10-02` (harness `44f3b4d`, after #114), stays as it is.
+
+**Re-verification under cite-verify v5.** The #123 re-review re-verified both committed baselines
+under cite-verify v5 (`known-sources-v5`, #125, merged). The results were identical: local 20/74
+per reply and 29/182 per citation; Sonnet 29/74 and 34/151. Before and after files must still be
+verified with **one** checker version, and `coverage-paired.mjs` warns if they were not.
 
 ### C-2: AI-judged screening (optional; it can only say no-go)
 
