@@ -1,0 +1,6 @@
+{"rater":"opus","scores":{
+"R01":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":0,"d6":1,"d7":0,"note":"Generic asks ('เจ็บหน้าอกโดยทั่วไปต้องคิดถึงโรคอะไรบ้าง'); premature 'ไม่ใช่ ACS แน่นอน'; ignores pushback; 'copy ไปวางในระบบ...ไม่ต้องแก้'; reflection generic"},
+"R02":{"d1":2,"d2":2,"d3":2,"d4":1,"d5":2,"d6":1,"d7":1,"note":"Rich case data but generic ask ('ภาพรวม...โดยทั่วไป'); spinal plan ignores clopidogrel flag; 'ขอถามเรื่องอื่นเพิ่ม' hop; one challenge 'แน่ใจนะครับ'; copy-to-chart order"},
+"R03":{"d1":5,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"'หลักฐานมาจากคนไข้กลุ่มไหน'; fact/unknown/limit split; 'เปิด Endocrine Society 2019 ดูแล้ว...มาจากไหน'; 60 km distance drives drug choice; names change + OPD audit"},
+"R04":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"'what does that hinge on with our assay'; challenges HEART derivation cohort; flags anticoagulant timing as extrapolated; CKD -> delta troponin; reflection names change + Monday audit"}
+}}
