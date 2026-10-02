@@ -1916,39 +1916,6 @@
           }
         },
         {
-          "id": "anc-082",
-          "language": "th",
-          "specialty": {
-            "key": "im",
-            "en": "Internal Medicine",
-            "th": "อายุรศาสตร์"
-          },
-          "case": "new atrial fibrillation — anticoagulation decision",
-          "tutor_mode": "natural",
-          "physician_turns": 4,
-          "reflection": "reflection_turn",
-          "profile": "graded",
-          "dissociated_domains": [],
-          "targets": {
-            "d1": 4,
-            "d2": 3,
-            "d3": 4,
-            "d4": 2,
-            "d5": 5,
-            "d6": 5,
-            "d7": 3
-          },
-          "target_composite": 73,
-          "cue_budget": {
-            "length": "long",
-            "ack_turns": 1,
-            "numerals": "many",
-            "list_lines": 0,
-            "rubric_echo": 0,
-            "length_chars": 1830
-          }
-        },
-        {
           "id": "anc-084",
           "language": "th",
           "specialty": {
@@ -2014,6 +1981,39 @@
             "list_lines": 0,
             "rubric_echo": 0,
             "length_chars": 1210
+          }
+        },
+        {
+          "id": "anc-103",
+          "language": "th",
+          "specialty": {
+            "key": "im",
+            "en": "Internal Medicine",
+            "th": "อายุรศาสตร์"
+          },
+          "case": "new atrial fibrillation — anticoagulation decision",
+          "tutor_mode": "natural",
+          "physician_turns": 4,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 3,
+            "d3": 4,
+            "d4": 2,
+            "d5": 5,
+            "d6": 5,
+            "d7": 3
+          },
+          "target_composite": 73,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0,
+            "length_chars": 1830
           }
         },
         {

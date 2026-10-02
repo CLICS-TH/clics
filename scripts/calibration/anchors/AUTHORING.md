@@ -615,6 +615,14 @@ The rule from now on:
       the design targets alone until human raters adjudicate them.
     - No domain-level rewrite trigger was added. One chosen after seeing these numbers would be a
       post-hoc rule, and it would fit the cohort further to Claude's reading.
+15. **Round N (2026-10-02).** The anc-082 rewrite reads **+18** (first write +19). Under §7.4 it is
+    **excluded and replaced** by anc-103, from the same row and slot. Its text is archived at
+    `fixtures/excluded/anc-082.json`, with the sha256 in REPLACEMENTS.
+    - This is the row's first exclusion, so the item-11 stop rule does not apply. It would apply only
+      if anc-103 also fails its rewrite.
+    - The rewrite barely moved, in the same domains: d2 3 read 4–5, d4 2 read 3–4, d7 3 read 5.
+    - Decoys: anc-018 +13 and anc-003 +9, inside their earlier range.
+    - The batch plan changed only by the anc-082 → anc-103 swap.
 
 ## 8. Pipeline and commands
 

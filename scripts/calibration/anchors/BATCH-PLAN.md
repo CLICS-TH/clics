@@ -88,9 +88,9 @@
 | anc-069 | th | Internal Medicine | type 2 diabetes with CKD stage 3 — choosing add-on therapy | examiner | 8 | reflection_turn | dissociated (d2) | 5,2,5,5,5,5,3 | 84 | short ~1060 | 1 | many | 0 |
 | anc-075 | th | Orthopaedics | suspected septic arthritis of the knee | natural | 4 | reflection_turn | graded | 0,1,1,1,2,2,2 | 24 | long ~1930 | 2 | few | some |
 | anc-081 | en | Pediatrics | acute bronchiolitis — admission and therapy | natural | 8 | reflection_turn | graded | 2,2,3,4,3,2,2 | 52 | short ~1150 | 2 | some | some |
-| anc-082 | th | Internal Medicine | new atrial fibrillation — anticoagulation decision | natural | 4 | reflection_turn | graded | 4,3,4,2,5,5,3 | 73 | long ~1830 | 1 | many | 0 |
 | anc-084 | th | Family Medicine | newly found hypertension at a community clinic | natural | 6 | in_chat | graded | 2,3,2,1,1,1,2 | 36 | long ~1970 | 1 | some | some |
 | anc-086 | th | Anaesthesiology | perioperative management of anticoagulation | natural | 6 | in_chat | dissociated (d7) | 4,5,5,5,5,5,2 | 91 | short ~1210 | 0 | some | 0 |
+| anc-103 | th | Internal Medicine | new atrial fibrillation — anticoagulation decision | natural | 4 | reflection_turn | graded | 4,3,4,2,5,5,3 | 73 | long ~1830 | 1 | many | 0 |
 | anc-025 ⚠ | en | Emergency Medicine | suspected sepsis in an older adult — first-hour bundle | examiner | 6 | reflection_turn | dissociated (d5) | 0,0,0,0,4,2,1 | 18 | medium ~1270 | 1 | few | some |
 
 ## Batch 7 — 10 anchors · composites 23–88 · English 2 · examiner 7
