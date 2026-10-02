@@ -628,6 +628,23 @@ The rule from now on:
       d2 = 3; generic follow-ups for d4 = 2; context taken unshaped for d7 = 3).
     - Decoys: anc-014 −4 and anc-010 +7.
     - **No panel rewrite is outstanding for batches 1, 3, 6 and 7.**
+17. **Batches 2–5 panel (2026-10-02).** The panel rated the 4 tuning anchors (first write) among 2
+    unchanged pilot decoys (`pilot/batch-2-5/`).
+    - All four stay: anc-035 +6, anc-042 +1, anc-092 +2, anc-099 −12. Mean Δ −1.0.
+    - anc-099 is the cohort's first clear undershoot. It is a single anchor inside ±15, so no lesson
+      was added.
+    - **Drift on identical text is now as large as the decision line.** The decoys anc-019 and
+      anc-006 read +24 and +16, against +9.5 and +2 in round 2 on the same bytes. The panel mean
+      moved +14.5 and +13.5, and one rater moved 44 → 64.
+      - Earlier rounds put this drift at up to ±10 (item 7).
+      - A single-round verdict within about ±15 of the line is not distinguishable from noise for
+        this panel.
+      - One untested explanation is a packet-contrast effect: this packet's other anchors were
+        mostly low-target. Decoys are rated beside different company each round.
+      - Re-ratings stay stability checks and never trigger a rewrite (item 6). The deciding-round
+        rule is unchanged.
+      - The noise is reported so that the cohort's panel numbers are not read more precisely than
+        they are.
 
 ## 8. Pipeline and commands
 

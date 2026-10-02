@@ -1,0 +1,380 @@
+######## EPISODE Q01 ########
+[physician]
+A man in his sixties came to the ED with black stools for two days and now feels dizzy on standing. He has taken naproxen for knee pain for months and also takes a low-dose aspirin, with a history of hypertension and mild CKD. Hb 8, HR 110, BUN raised and creatinine a bit above his baseline. He lives alone and his daughter is abroad. Should I send him for urgent endoscopy within 24 hours or admit and watch on a PPI first, and does that choice hinge on his Glasgow-Blatchford score? Please keep the answer to a few short points and tell me which guideline each point comes from.
+
+[assistant]
+With a Glasgow-Blatchford score well above 1, he is not a candidate for outpatient care, so admit him; the score is what separates the two paths (ACG upper GI bleeding guideline, 2021).
+- Resuscitate first, then endoscopy within 24 hours of presentation (ACG upper GI bleeding guideline, 2021).
+- A PPI before the scope is reasonable if endoscopy is delayed, but it does not replace endoscopy (ACG upper GI bleeding guideline, 2021).
+- Stop the naproxen while he is bleeding.
+❓ Before the scope, what would make you escalate his monitoring beyond a ward bed?
+
+[physician]
+ok, thanks. Can you tell me more about the transfusion part? I also keep thinking about what else it could be besides the NSAID: peptic ulcer, gastritis, a Mallory-Weiss tear, maybe varices. Could you go through each of those for me?
+
+[assistant]
+Restrictive transfusion is the usual approach, with a haemoglobin trigger of 7 g/dL in most patients (ACG upper GI bleeding guideline, 2021). Patients with cardiovascular disease are often given a somewhat higher trigger, which is a judgement call.
+Other causes to keep in mind:
+- Peptic ulcer or erosive gastritis: the usual NSAID-related lesions, found at endoscopy.
+- Mallory-Weiss tear: usually follows retching and tends to stop on its own.
+- Varices: only if there is liver disease; look for stigmata.
+Endoscopy sorts these out (ACG upper GI bleeding guideline, 2021).
+❓ Which of these would you want to be able to rule out first, and what would you look for?
+
+[physician]
+Please explain how you arrived at that transfusion trigger and show the reasoning step by step, with the source. I want the reasoning and not only the number. The hospital blood bank has its own protocol, so I will check your number against it before I write any transfusion order.
+
+[assistant]
+Happy to. The guideline suggests a restrictive threshold of 7 g/dL because transfusing more liberally in upper GI bleeding has been associated with worse outcomes, and the recommendation is conditional on the evidence quality (ACG upper GI bleeding guideline, 2021). It is a starting point: the threshold is adjusted for ongoing bleeding, instability or cardiac disease, and your blood bank protocol takes precedence locally.
+❓ What would make you transfuse above that trigger in this man?
+
+[physician]
+What is the right PPI regimen before the scope: an IV bolus then infusion, or IV twice daily? Give me the dose and duration in one line each. I will confirm the dose against our formulary before ordering. Could you also say a bit more about the timing of the scope again, since I am still not sure about it?
+
+[assistant]
+For the regimen, the guideline's recommendation applies after endoscopic haemostasis: a high-dose PPI given as a bolus then infusion, or as intermittent high-dose IV dosing, for 3 days (ACG upper GI bleeding guideline, 2021).
+- Before the scope, a PPI is optional and mainly downstages lesions.
+- Scope timing: within 24 hours once he is resuscitated (ACG upper GI bleeding guideline, 2021).
+❓ If endoscopy cannot be done in that window, what would you do for him in the meantime?
+
+[physician]
+Where does the 24 hour timing come from? Please cite it exactly, because I want to read the original recommendation myself before I book the scope and write the admission orders.
+
+[assistant]
+The 24 hour recommendation comes from the ACG upper GI bleeding guideline (Laine et al., 2021), which suggests endoscopy within 24 hours of presentation in patients admitted with upper GI bleeding, after initial resuscitation. The guideline rates the evidence as low quality, so read the text and the evidence tables yourself, as you plan to.
+❓ After you read it, how will you decide whether his case needs the scope earlier than that?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+Very useful, thank you.
+
+######## EPISODE Q02 ########
+[physician]
+ขอ workup ไข้ในทารกครับ ทารกชาย 6-week-old ไข้ 38.4 วัดทางทวารหนักที่บ้านเมื่อเช้า มาที่ รพ.ชุมชน น้ำหนัก 4.2 kg HR 168 RR 48 คลอดครบกำหนด ไม่มีโรคประจำตัว ยังไม่ได้ยาอะไรมา ตอบเป็นรายการสั้นๆ แยกเป็นสองส่วน ส่วนที่ทำได้ที่นี่ กับส่วนที่ต้องส่งต่อ ข้อจำกัดของที่นี่คือไม่มี procalcitonin ไม่ต้องใส่ตัวนั้นมา และไม่ต้องอธิบายพยาธิสภาพ เอาแค่สิ่งที่ต้องทำ
+
+[assistant]
+สำหรับทารกช่วง 29–60 วันที่มีไข้และดูไม่ป่วยหนัก (Pantell et al., 2021)
+
+**ทำได้ที่ รพ.ชุมชน**
+- ตรวจปัสสาวะ (UA) และส่งเพาะเชื้อปัสสาวะ
+- เพาะเชื้อในเลือด
+- CBC กับ ANC และ CRP แทน procalcitonin
+
+**ต้องส่งต่อ**
+- เจาะน้ำไขสันหลังเมื่อ inflammatory marker ผิดปกติ หรือดูป่วย
+- ทารกที่ดูซึม ดูดนมไม่ได้ หรือ marker ผิดปกติ ควรได้ยาฆ่าเชื้อและส่งต่อ
+
+❓ ทารกรายนี้ดูดนมและตื่นตัวดีหรือไม่ครับ?
+
+[physician]
+ok ครับ ตัดส่วนที่อธิบายเหตุผลออก แล้วเรียงข้อในส่วนแรกใหม่ ให้เหลือเฉพาะที่ทำเสร็จได้ภายใน 1 ชั่วโมงที่นี่ ตามลำดับที่ควรทำ
+
+[assistant]
+เรียงตามลำดับครับ
+
+1. ตรวจสัญญาณชีพและประเมินว่าดูป่วยหรือไม่
+2. เก็บปัสสาวะโดยการสวนแบบปลอดเชื้อ ส่ง UA และเพาะเชื้อ
+3. เจาะเลือดส่ง CBC, CRP และเพาะเชื้อในเลือดในครั้งเดียวกัน
+
+ลำดับนี้ใช้กับทารก 29–60 วันที่ดูไม่ป่วยหนัก (Pantell et al., 2021)
+
+❓ ถ้า CRP ยังไม่ออกภายใน 1 ชั่วโมง จะใช้ข้อมูลใดประกอบการตัดสินใจส่งต่อครับ?
+
+[physician]
+รับทราบครับ เด็กดูดนมได้ ตื่นดี UA ปกติ CRP รอผลอยู่ ถ้าต้องส่งต่อ ต้องเตรียมอะไรบ้างครับ
+
+[assistant]
+ถ้าตัดสินใจส่งต่อ ควรเตรียมดังนี้ครับ
+
+- เก็บเลือดและปัสสาวะส่งเพาะเชื้อให้เสร็จก่อนออกจากโรงพยาบาล
+- เปิดเส้นเลือดไว้ และให้ยาฆ่าเชื้อก่อนส่งต่อหากดูป่วยหรือ marker ผิดปกติ (Pantell et al., 2021)
+- ส่งสำเนาผลตรวจทั้งหมด เวลาที่วัดไข้ และน้ำหนักตัว
+- ประสานโรงพยาบาลปลายทางล่วงหน้า
+
+❓ รพ.แม่ข่ายที่ส่งต่อมีกุมารแพทย์พร้อมรับเคสตลอด 24 ชั่วโมงหรือไม่ครับ?
+
+[physician]
+ok ครับ อันนี้มี guideline ไหมครับ
+
+[assistant]
+มีครับ แนวทางหลักที่ใช้อยู่คือ AAP Clinical Practice Guideline สำหรับทารกไข้ช่วง 8–60 วันที่ดูไม่ป่วยหนัก (AAP, 2021) ซึ่งแบ่งการดูแลตามช่วงวัน 8–21, 22–28 และ 29–60 วัน และใช้ inflammatory marker ร่วมกับผลปัสสาวะในการแบ่งกลุ่มเสี่ยง
+
+❓ ทารกรายนี้อยู่ในช่วงวันใดของแนวทางนี้ครับ?
+
+[physician]
+ช่วยเขียนเป็น checklist ส่งต่อ 5 บรรทัด ภาษาที่พยาบาลเวรอ่านแล้วทำตามได้ทันที ขึ้นต้นแต่ละบรรทัดด้วยคำกริยา ไม่ต้องมีเหตุผลประกอบ ไม่ต้องใส่ชื่อยา หมอจะเทียบกับ protocol ส่งต่อของเครือข่ายก่อนติดใช้จริง ส่วนว่าเด็กคนนี้จะส่งหรือไม่ หมอเป็นคนชี้หลังตรวจซ้ำตอน CRP ออก ระบบนี้ไม่ได้อยู่ข้างเตียง
+
+[assistant]
+Checklist ส่งต่อทารกไข้ครับ
+
+1. เก็บปัสสาวะและเลือดส่งเพาะเชื้อก่อนให้ยา
+2. เปิดเส้นเลือดและติดป้ายเวลาที่เปิด
+3. ให้ยาฆ่าเชื้อตามคำสั่งแพทย์ก่อนออกจากโรงพยาบาล
+4. แนบผลตรวจทั้งหมด เวลาวัดไข้ และน้ำหนักตัว
+5. โทรแจ้ง รพ.แม่ข่ายก่อนออกเดินทาง
+
+ลำดับนี้ยึดตามแนวทางทารกไข้ (Pantell et al., 2021)
+
+❓ ข้อใดใน checklist นี้ที่พยาบาลเวรดึกทำได้ยากที่สุดครับ?
+
+[physician]
+ok ข้อ 3 ขอ wording สั้นลงครับ ส่วนลำดับงานหน้างาน หมอจัดเองตามคนที่มีอยู่ในเวร
+
+[assistant]
+ข้อ 3 แบบสั้นครับ: ให้ยาฆ่าเชื้อตามคำสั่งก่อนออกจาก รพ.
+
+การให้ยาฆ่าเชื้อก่อนส่งต่อในทารกที่ดูป่วยหรือ marker ผิดปกติเป็นไปตามแนวทางครับ (Pantell et al., 2021)
+
+❓ ถ้า CRP ออกมาปกติและทารกยังดูดีหลังตรวจซ้ำ จะวางแผนติดตามอย่างไรครับ?
+
+[physician]
+โอเค thanks ครับ
+
+[assistant]
+ยินดีครับ ขอฝากสั้นๆ ว่าทารกที่ดูดีและผลตรวจปกติ ควรมีแผนติดตามภายใน 24–36 ชั่วโมงและให้ผู้ปกครองรู้อาการที่ต้องกลับมาทันทีครับ (Pantell et al., 2021)
+
+❓ ผู้ปกครองรายนี้สามารถกลับมาโรงพยาบาลได้รวดเร็วแค่ไหนหากอาการเปลี่ยนครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ก่อนนี้ผมดูทารกไข้ทุกคนแบบเดียวกัน และรู้สึกว่าทำอะไรไม่ได้เพราะไม่มี procalcitonin ตอนนี้จะแยกตามช่วงวันตามแนวทาง AAP และใช้ CRP กับ ANC แทน ให้การตัดสินใจไม่ไปผูกกับตัวตรวจที่เราไม่มี
+
+ความไม่แน่นอน / What remains uncertain:
+ยังไม่ชัดว่า CRP กับ ANC อย่างเดียวแยกกลุ่มเสี่ยงต่ำได้ดีแค่ไหน เมื่อเทียบกับชุดที่มี procalcitonin ในแนวทาง
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+เปิดอ่าน AAP 2021 ฉบับเต็มตรงส่วนทารก 29–60 วันแล้วเทียบกับ checklist นี้ทีละข้อ ติด checklist ไว้ที่ ER และสอนพยาบาลเวรดึกภายในเดือนนี้ และเก็บข้อมูลทารกไข้ที่ส่งต่อ 3 เดือน แล้วนั่งทบทวนกับกุมารแพทย์ รพ.แม่ข่าย
+
+######## EPISODE Q03 ########
+[physician]
+pt ชายวัย 40 กว่า นอนไม่หลับ 3 สัปดาห์ PHQ-9 = 17 ข้อ 9 ได้ 2 ตกงาน 10 วัน อยู่คนเดียว รพ.ชุมชนเล็ก จิตแพทย์อยู่ไกลมาก คิดว่า MDD เพราะ mood ต่ำหลังตกงาน ควรทำ C-SSRS เลยไหม ผลแบบไหนต้อง refer
+
+[assistant]
+ควรทำเลยครับ PHQ-9 ข้อ 9 บวก ให้ถาม C-SSRS screener ต่อ (Columbia Suicide Severity Rating Scale, Posner et al., 2011)
+- มี intent หรือ plan หรือพฤติกรรมใน 3 เดือน = เสี่ยงสูง ควร refer เร่งด่วนและไม่ปล่อยอยู่คนเดียว
+- แค่ ideation ไม่มี plan = ดูแลใกล้ชิดได้ พร้อม safety plan และจำกัดช่องทางทำร้ายตนเอง
+เรื่อง MDD ที่คิดไว้สมเหตุสมผลครับ เพราะอาการเริ่มหลังตกงาน
+
+[physician]
+C-SSRS ข้อ 1–3 yes ข้อ 4–5 no พฤติกรรมย้อนหลัง 3 เดือน no ยาฆ่าหญ้าขวดเดียวในบ้านสวน ญาติมารับขวดวันนี้ได้ ตามที่ว่าไม่ควรอยู่คนเดียวคืนนี้ แต่ญาติอยู่ได้แค่ 2 คืน ไม่มีเตียงจิตเวช ถ้าไม่ admit ต้องมีอะไรบ้าง
+
+[assistant]
+กลุ่มกลางครับ การเอายาฆ่าหญ้าออกจากบ้านเป็นมาตรการ means restriction ที่ควรทำทันที (Columbia Suicide Severity Rating Scale, Posner et al., 2011)
+- ถ้าไม่ admit ให้ญาติอยู่ด้วยในช่วงคืนแรก ๆ ที่เสี่ยงสุด และมีเบอร์ติดต่อ รพ. ให้ชัด
+- เขียน safety plan สั้น ๆ ให้ pt ถือกลับ
+- นัดติดตามเร็ว ไม่รอให้ครบสัปดาห์
+- ถ้าญาติอยู่ได้แค่ 2 คืน ให้ตกลงว่าใครเข้ามาแทนหลังจากนั้น
+
+[physician]
+เริ่ม sertraline 50 mg จ่าย 7 วัน ได้เลยไหม หลักฐานในคนที่มี SI รุนแรงแค่ไหน
+
+[assistant]
+- antidepressant ทุกตัวได้ผลดีกว่า placebo ใน MDD จึงเริ่ม sertraline ได้เลย
+- ขนาดเริ่มต้นสำหรับ MDD คือ 50 mg ต่อวัน และจ่ายจำนวนน้อยในช่วงแรกเพื่อลดความเสี่ยง overdose (NICE depression NG222, 2022)
+- ผลรวมของ 21 ยาในงานวิเคราะห์ใหญ่ชี้ว่าทุกตัวดีกว่า placebo (Cipriani et al., Lancet 2018)
+
+[physician]
+Cipriani คือ NMA ของ RCT 6–8 สัปดาห์ ที่ตัดคนมี SI รุนแรงออกส่วนมาก ผลรวมจึงไม่ใช่หลักฐานตรงของ pt รายนี้ ส่วน NICE ที่ว่าติดตามถี่ ขอ interval จริง 48 ชม. หรือ 7 วัน
+
+[assistant]
+ถูกต้องครับ ประโยคแรกที่ผมเขียนเหมารวมเกินไป
+- Cipriani 2018 รวม RCT ในผู้ใหญ่ MDD ระยะสั้น และ trial ส่วนใหญ่ตัดคนที่มี SI รุนแรงออก จึงตอบ pt รายนี้ได้แค่ทางอ้อม
+- NICE NG222 แนะนำติดตามถี่ในช่วงแรกสำหรับกลุ่มเสี่ยงฆ่าตัวตาย (NICE depression NG222, 2022) แต่ interval ที่ระบุเป๊ะ ๆ ผมยังไม่แน่ใจ
+
+[physician]
+ผมจะเปิด NG222 ฉบับจริงเอง ระหว่างนี้ใช้ nurse โทร 48 ชม. พบ 7 วัน ถ้าโทรไม่ติด 2 ครั้งใน 24 ชม. ควรทำอะไรต่อ
+
+[assistant]
+ดีครับ ที่จะเปิดฉบับจริงยืนยัน ผมยังไม่แน่ใจตัวเลข interval ที่ NG222 ระบุ
+- โทรไม่ติด 2 ครั้ง ให้โทรหาญาติที่เก็บขวด และขอให้ อสม. ไปเยี่ยมบ้านในวันเดียวกัน
+- เกิน 24 ชม. แล้วยังติดต่อไม่ได้ ควรถือเป็นเหตุเร่งด่วน (NICE depression NG222, 2022)
+
+[physician]
+แผน: sertraline 50 mg 7 วัน tab 50 มีใน formulary ตรงกับที่ท่านบอก ญาติเก็บขวด nurse โทร 48 ชม. นัด 7 วัน tele-psych 72 ชม. ลองหาจุดอ่อนแผนนี้
+
+[assistant]
+ข้อเสนอ 3 จุดที่อาจพลาด
+- ญาติ 1 คนเก็บขวดแล้วเก็บไว้ที่ที่ pt ไม่รู้ ต้องถามให้ชัดว่าไม่มีขวดอื่นอีก
+- nurse ที่โทร 48 ชม. ต้องมีสคริปต์ เพราะถ้าถามไม่ตรงกัน ผลจะเทียบกันไม่ได้ (Columbia Suicide Severity Rating Scale, Posner et al., 2011)
+- ถ้า tele-psych ไม่ติดใน 72 ชม. ต้องมีทางสำรอง
+
+[physician]
+ok ครับ nurse โทรใช้ C-SSRS 6 ข้อได้ไหม Posner 2011 ทำในคลินิก ไม่ใช่ nurse รพ.ชุมชน
+
+[assistant]
+คำถามดีครับ C-SSRS ผ่านการศึกษาทั้งในคลินิกและหลาย setting ที่ใช้ผู้ไม่ใช่แพทย์ (Columbia Suicide Severity Rating Scale, Posner et al., 2011) แต่ผมยังไม่แน่ใจว่าฉบับภาษาไทยผ่านการ validate ทางโทรศัพท์โดย nurse รพ.ชุมชนหรือยัง จึงควรทดสอบความตรงกันก่อนใช้จริง
+
+[physician]
+สรุป: ข้อ 1–3 yes ไม่มี intent จึงดูแลที่ รพ. ญาติเอาขวดออกวันนี้ 2 คืนแรกมีคนอยู่ด้วย sertraline 50 mg 7 วัน ส่วนหลักฐานของยาใน SI ยังไม่ตรง จะเปิด NG222 ตรวจ interval เช็กจิตแพทย์ 72 ชม. และสุ่มฟัง nurse 3 ราย ว่าถาม C-SSRS ตรงกัน
+
+[assistant]
+สรุปได้ชัดเจนครับ ทั้งเรื่องการเอาขวดออกจากบ้าน การจ่ายยาจำนวนน้อย และการนัดตามไว ส่วนหลักฐานของ sertraline ใน pt ที่มี SI ยังเป็นเพียงหลักฐานทางอ้อม จึงควรเก็บข้อมูลใน รพ. ของเราเองต่อไปด้วย (NICE depression NG222, 2022)
+
+######## EPISODE Q04 ########
+[physician]
+pt ชายวัย 60 กว่า ญาติพามา ER ด้วยแขนขาซ้ายอ่อนแรง พูดไม่ชัด onset 2 ชม. 40 นาที PMH HT, DM, DLP กิน amlodipine 5 mg, metformin 500 mg bid, simvastatin 20 mg ไม่ได้กิน warfarin ปฏิเสธแพ้ยา สูบบุหรี่ 10 มวน/วัน ดื่มแอลกอฮอล์นาน ๆ ครั้ง ไม่มีประวัติชัก ไม่เคยเป็น stroke มาก่อน เช้านี้กินข้าวปกติ
+- BP 168/94, HR 82, RR 18, SpO2 97%
+- DTX 142, NIHSS 9, E4V4M6
+- CT brain ไม่มี bleed
+pt รายนี้ควรให้ rtPA ไหมครับ
+
+[assistant]
+ผู้ป่วยรายนี้เข้าเกณฑ์พิจารณา IV alteplase ครับ
+- onset 2 ชม. 40 นาที อยู่ในช่วง 4.5 ชม. และ NIHSS 9 เป็น deficit ที่รบกวนการใช้งาน ส่วน CT ไม่มี bleed (AHA/ASA Stroke, 2019)
+- ก่อนให้ยา BP ต้องต่ำกว่า 185/110 mmHg และ glucose ต้องมากกว่า 50 mg/dL ซึ่งตัวเลขที่ส่งมาอยู่ในช่วงนี้ (AHA/ASA Stroke, 2019)
+- ยิ่งให้เร็วยิ่งดี เป้าหมาย door-to-needle ไม่เกิน 60 นาที
+
+[physician]
+ok ครับ ตอนนี้ผ่านมา 2 ชม. 55 นาทีแล้ว BP ยัง 168/94 เหมือนเดิม ขอ dose ยากับวิธีให้หน่อยครับ ขอแบบละเอียดเลย ทั้ง bolus และหยด
+
+[assistant]
+ในช่วงที่เหลือของ window ยังให้ได้ แต่ควรรีบครับ
+- dose alteplase 0.9 mg/kg สูงสุด 90 mg โดยให้ 10% ของ dose แบบ bolus ใน 1 นาที ที่เหลือหยดใน 60 นาที (AHA/ASA Stroke, 2019)
+- ระหว่างหยดและหลังให้ยา 24 ชม. ต้อง monitor neuro check และ BP ถี่ ๆ โดยคุม BP ให้ต่ำกว่า 180/105 mmHg
+- ไม่ให้ antithrombotic ใน 24 ชม. แรกหลังให้ยา
+
+[physician]
+ผล lab มาแล้วครับ CBC, coag, BUN/Cr, electrolyte ได้ INR 1.1, plt 210,000, Hb 13.2, Cr 0.9, glucose 142 ส่ง ECG แล้วได้ sinus rate 80 ขอ contraindication ของ rtPA ทั้งหมดหน่อยครับ ขอให้ครบทุกข้อเลย
+
+[assistant]
+ข้อห้ามหลักที่ควรไล่ดูมีดังนี้ครับ (AHA/ASA Stroke, 2019)
+- ICH บน CT, ประวัติ ICH ก่อนหน้า, stroke หรือ head trauma รุนแรงใน 3 เดือน
+- plt ต่ำกว่า 100,000 หรือ INR มากกว่า 1.7, ได้ heparin ที่ aPTT ยาวผิดปกติ หรือกิน DOAC ภายใน 48 ชม.
+- glucose ต่ำกว่า 50 mg/dL, BP คุมไม่ได้ต่ำกว่า 185/110 mmHg
+- ผ่าตัดใหญ่ใน 14 วัน หรือ GI bleed ใน 21 วัน
+ค่า lab ที่ส่งมาไม่ติดข้อห้ามเหล่านี้ครับ
+
+[physician]
+ขอถามต่อเรื่อง pt รายเดิมที่ NIHSS 9 นะครับ ส่วนสาเหตุของ stroke อาจเป็น cardioembolic, lacunar หรือ large artery ก็ได้ครับ อธิบายเพิ่มหน่อยว่าต้อง work up อะไรต่อ ขอทั้งหมดเลยครับ
+
+[assistant]
+ประเด็นสาเหตุหลัก ๆ คือ cardioembolic, large artery atherosclerosis และ small vessel ครับ แต่ไม่ควรเลื่อน alteplase เพื่อรอ work up สาเหตุ (AHA/ASA Stroke, 2019)
+- หลังให้ยา ทำ ECG และ monitor rhythm เพื่อหา AF
+- ทำ vascular imaging ของ carotid และ intracranial vessel
+- ตรวจ lipid และพิจารณา echo ตามความเหมาะสม
+
+[physician]
+ขอ ref หรือ guideline ที่ใช้ด้วยครับ แล้วช่วยสรุป plan ทั้งหมดของ pt รายนี้ตั้งแต่ตอนนี้ใน ER จนถึงหลัง admit 24 ชม. แรกให้ครบทุกอย่างหน่อย ตอนนี้ยังไม่ได้ให้ยา กำลังเตรียม order อยู่ จะ admit stroke unit
+
+[assistant]
+แหล่งอ้างอิงหลักคือ AHA/ASA acute ischaemic stroke guideline (Powers et al., 2019) ครับ
+- admit stroke unit และให้ alteplase ตามที่คุยกันมา
+- NPO จนกว่าจะผ่าน swallow screen
+- repeat CT หรือ MRI ที่ 24 ชม. ก่อนเริ่ม antiplatelet หรือ anticoagulant
+- เริ่มวางแผน secondary prevention หลังพ้นช่วงเฉียบพลัน
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+rtPA ให้ได้ภายใน 4.5 ชม. dose 0.9 mg/kg bolus 10% ที่เหลือหยด 60 นาที ต้องคุม BP ให้ต่ำกว่า 185/110 ก่อนให้ และหลังให้ต้อง monitor ใกล้ชิด ไม่ให้ antithrombotic ใน 24 ชม. ได้ความรู้เยอะครับ
+
+######## EPISODE Q05 ########
+[physician]
+ok ครับ ขอถามเรื่องหยุด statin ใน primary prevention ก่อน ผมคิดว่าถ้าคาดว่าจะมีชีวิตอยู่ไม่ถึงสองสามปี ประโยชน์ไม่ทันเกิด เพราะใน trial เส้นกราฟของสองกลุ่มต้องใช้เวลาเป็นปีกว่าจะแยกกัน threshold ที่ผมใช้จึงเป็นเวลาที่เหลือ ไม่ใช่ตัวเลขไขมัน ส่วนถ้าเกินห้าปีผมจะให้ต่อ ช่วงสามถึงห้าปีตรงกลางคือที่ผมยังไม่แน่ใจ ช่วงนั้นควรชั่งอะไรเป็นตัวตัดสินครับ
+
+[assistant]
+หลักคิดเรื่อง time-to-benefit ที่เสนอมาสอดคล้องกับแนวคิดการหยุดยาครับ
+
+- ประโยชน์ของ statin ใน primary prevention ต้องใช้เวลาราวสองถึงห้าปีจึงเห็นชัด
+- หลักฐานในผู้สูงอายุตั้งแต่ 76 ขึ้นไปยังไม่พอจะแนะนำการเริ่มยา (USPSTF, 2022)
+- ดังนั้นควรหยุด statin ทุกรายที่อายุมากกว่า 75
+- ช่วงตรงกลาง ให้ชั่งผลข้างเคียงที่เกิดขึ้นจริง ภาระการกินยาหลายตัว และความต้องการของผู้ป่วย
+
+[physician]
+ok อีกเรื่องครับ PPI ที่กินมานาน ผมว่าถ้าหยุดทันทีจะเกิด acid rebound เพราะกลไกคือระหว่างกินยา gastrin สูงขึ้นและ parietal cell เพิ่มจำนวน พอหยุดยากรดจึงหลั่งเกินกว่าเดิมอยู่หลายสัปดาห์ ผมจึงเอนไปทางลด dose ลงครึ่งหนึ่งก่อน เช่น omeprazole 40 เหลือ 20 mg ราว 2–4 สัปดาห์ แล้วค่อยเปลี่ยนเป็นใช้เมื่อมีอาการ มากกว่าหยุดทันที ลำดับแบบไหนเสี่ยง rebound น้อยที่สุดครับ
+
+[assistant]
+เหตุผลเรื่อง rebound acid hypersecretion ถูกต้องครับ
+
+- ไม่ควรใช้ PPI ต่อเนื่องเกิน 8 สัปดาห์หากไม่มีข้อบ่งชี้ชัดเจน (Beers Criteria, 2023)
+- ทางเลือกคือลดขนาดยาลงทีละขั้น แล้วเปลี่ยนเป็นใช้เมื่อมีอาการ หรือสลับเป็น H2 blocker ช่วงสั้น
+- ผู้ที่กิน PPI นานทุกรายต้อง taper เสมอ ห้ามหยุดทันที
+
+[physician]
+ok ต่อด้วย sulfonylurea ครับ glibenclamide มี active metabolite ที่ขับออกทางไต ผมจึงจัดให้เป็นตัวที่เสี่ยง hypoglycemia สูงที่สุดเมื่อไตเสื่อม รองลงมาเป็น glimepiride ส่วน glipizide กับ gliclazide เสี่ยงน้อยกว่าเพราะ metabolite ออกฤทธิ์น้อยหรือไม่ออกฤทธิ์ ผมจัดอันดับถูกไหม และถ้าจะเลิก sulfonylurea ควรเปลี่ยนไปกลุ่มไหนแทน โดยเฉพาะเมื่อ eGFR ต่ำกว่า 45 หรือ 30 ซึ่งเป็นจุดที่ยาหลายตัวต้องปรับ
+
+[assistant]
+การจัดอันดับนี้สอดคล้องกับหลักฐานครับ
+
+- glibenclamide (glyburide) อยู่ในรายการที่ควรหลีกเลี่ยงในผู้สูงอายุเพราะเสี่ยงน้ำตาลต่ำนาน (Beers Criteria, 2023)
+- ทางเลือกแทนที่เสี่ยง hypoglycemia ต่ำ เช่น DPP-4 inhibitor หรือ SGLT2 inhibitor ตามการทำงานของไต
+- เป้า HbA1c ควรต่ำกว่า 7% สำหรับทุกคน (ADA, 2024)
+
+[physician]
+ok เรื่องสุดท้ายในกลุ่มนี้ benzodiazepine ที่ใช้ช่วยนอนมานาน ผมจะลดทีละประมาณ 10–25% ทุก 2–4 สัปดาห์ เพราะการหยุดเร็วเสี่ยง withdrawal จนถึงชัก ถ้าเป็นตัวที่ half-life สั้น ผมจะเปลี่ยนเป็นตัว half-life ยาวในขนาดเทียบเท่าก่อนแล้วค่อยลด เพื่อให้ระดับยาลดลงเรียบกว่า มีแนวทางไหนแนะนำต่างจากนี้ไหมครับ
+
+[assistant]
+แนวทางที่เสนอใกล้เคียงกับคำแนะนำทั่วไปครับ
+
+- benzodiazepine เป็นยาที่ควรหลีกเลี่ยงในผู้สูงอายุ เพราะเพิ่มความเสี่ยงล้ม สับสน และอุบัติเหตุ (Beers Criteria, 2023)
+- STOPP/START ระบุให้ทบทวนการใช้ยานอนหลับที่ใช้นานเกิน 4 สัปดาห์ (STOPP/START v3, 2023)
+- การเปลี่ยนเป็นตัว half-life ยาวก่อนลด เป็นทางเลือกหนึ่ง แต่ในผู้สูงอายุตัว half-life ยาวสะสมได้ จึงบางคนเลือกลดตัวเดิมช้าๆ แทน
+
+[physician]
+ขอย้อนแก้ 3 จุดในคำตอบก่อนหน้าครับ ที่ว่าควรหยุด statin ทุกรายที่อายุมากกว่า 75 USPSTF ปี 2022 พูดถึงการเริ่มยาในกลุ่มนี้ว่าหลักฐานไม่พอ ไม่ได้บอกให้หยุดยาที่กินอยู่ ที่ว่าต้อง taper PPI ทุกรายห้ามหยุดทันที Beers เป็นฉันทามติของผู้เชี่ยวชาญ ไม่ใช่ผลจาก RCT และไม่ได้ห้ามการหยุดทันที ส่วนที่ว่า HbA1c ต่ำกว่า 7% สำหรับทุกคน ADA ให้ปรับเป้าตามสุขภาพโดยรวม ในผู้สูงอายุที่ซับซ้อนเป้าหลวมกว่านั้น ok ครับ
+
+[assistant]
+ถูกต้องทั้งสามจุดครับ ขอแก้ดังนี้
+
+- **statin**: USPSTF ระบุว่าหลักฐานไม่พอสำหรับการเริ่มยาในผู้สูงอายุตั้งแต่ 76 ขึ้นไป (USPSTF, 2022) ไม่ใช่คำแนะนำให้หยุดยาที่กินอยู่ การหยุดยังเป็นการตัดสินใจรายบุคคล
+- **PPI**: Beers เป็นคำแนะนำจากฉันทามติ (Beers Criteria, 2023) การลดทีละขั้นช่วยลดอาการ rebound แต่ไม่ใช่ข้อห้ามการหยุดทันที
+- **HbA1c**: ADA แนะนำเป้าที่ผ่อนลงสำหรับผู้สูงอายุที่มีโรคร่วมหลายโรคหรือสุขภาพเปราะบาง เช่น ต่ำกว่า 8.0% (ADA, 2024)
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+การหยุดยาแต่ละกลุ่มใช้หลักต่างกัน statin ชั่งเวลาที่ประโยชน์จะเกิดกับเวลาที่เหลือ PPI กับ benzodiazepine ต้องลดทีละขั้นเพราะ rebound และ withdrawal ส่วน sulfonylurea ตัวที่มี metabolite ขับทางไตควรเลิกก่อน
+
+ความไม่แน่นอน / What remains uncertain:
+ช่วงที่คาดว่าจะมีชีวิตอยู่สามถึงห้าปีสำหรับ statin ยังไม่มีเกณฑ์ชัด
+
+######## EPISODE Q06 ########
+[physician]
+สวัสดีครับ ขอปรึกษาเรื่อง GDM หน่อยครับ พอดีวันนี้มีคนไข้ตั้งครรภ์ GA 28 wk มาที่ รพ.ชุมชน ตรวจ OGTT แล้วผิดปกติ ตอนนี้คุมอาหารมาได้สักพัก ยังไม่ได้เจาะน้ำตาลปลายนิ้วที่บ้านสม่ำเสมอ ส่วนประวัติอื่นๆ ก็มีแม่เป็นเบาหวาน ท้องก่อนลูกตัวโต BMI ก่อนท้องสูง เหนื่อยง่าย เท้าบวมนิดหน่อย กินยาบำรุงเลือดกับแคลเซียม ผมใส่ไว้ให้ก่อนเผื่อเป็นประโยชน์ครับ ผมไม่ค่อยได้เจอ GDM บ่อยเลยอยากทบทวนความรู้ให้ชัดเจนหน่อย ขอถามตรงๆ เลยว่า GDM ต้องเริ่ม insulin เมื่อไหร่ครับ ขอแบบที่เข้าใจง่ายๆ ครับ
+
+[assistant]
+สวัสดีครับ GDM ส่วนใหญ่เริ่มจากการปรับอาหาร ออกกำลังกาย และเจาะน้ำตาลปลายนิ้วเองที่บ้าน แล้วพิจารณา insulin เมื่อค่าน้ำตาลยังเกินเป้าหมายหลังปรับไลฟ์สไตล์ไปสักระยะครับ
+
+- เป้าหมายโดยทั่วไป: fasting < 95 mg/dL, 1 ชม.หลังอาหาร < 140 mg/dL, 2 ชม.หลังอาหาร < 120 mg/dL (ACOG, 2018)
+- ถ้าค่าเกินเป้าหมายซ้ำๆ แม้คุมอาหารแล้ว ควรเริ่มการรักษาด้วยยา โดย insulin เป็นยาที่เลือกก่อน (ADA Standards of Care, 2024)
+
+❓ ตอนนี้ผู้ป่วยรายนี้เจาะน้ำตาลปลายนิ้วได้ค่าประมาณเท่าไร และเกินเป้าหมายบ่อยแค่ไหนครับ?
+
+[physician]
+ok ครับ ขอบคุณครับ แล้วถ้าไม่ใช้ insulin มียาอื่นไหมครับ อาจจะเป็น metformin หรือ glibenclamide ก็ได้ หรือจะคุมอาหารต่อไปเรื่อยๆ อีกก็ได้ ผมยังนึกไม่ออกว่าอันไหนจะเหมาะ เพราะคนไข้บอกว่ากลัวเข็มนิดหน่อย แล้วที่โรงพยาบาลเรามียากินครบอยู่แล้ว เลยอยากรู้ว่ายากินใช้แทนได้ไหมครับ คือถามซ้ำอีกทีว่าเริ่ม insulin เมื่อไหร่ แล้วถ้ายังไม่ถึงเวลาก็คุมอาหารไปก่อนได้เท่าไหร่ ผมแค่อยากให้ชัดเจนก่อนนัดคนไข้ครั้งหน้าครับ ไม่อยากให้พลาดอะไร ช่วยตอบแบบเข้าใจง่ายอีกทีก็ได้ครับ
+
+[assistant]
+ยากินใช้ได้ในบางสถานการณ์ แต่ไม่ใช่ตัวเลือกแรกครับ
+
+- metformin และ glyburide ผ่านรกไปถึงทารกได้ จึงไม่แนะนำเป็นยาตัวแรก (ADA Standards of Care, 2024)
+- หากผู้ป่วยไม่สามารถหรือไม่ยอมฉีด insulin จึงค่อยพิจารณายากินเป็นทางเลือก พร้อมอธิบายข้อมูลที่ยังมีจำกัดเรื่องผลต่อทารก
+- การคุมอาหารต่ออย่างเดียวใช้ได้เมื่อค่าน้ำตาลอยู่ในเป้าหมายแล้วเท่านั้น (ACOG, 2018)
+
+❓ ถ้าผู้ป่วยรายนี้ปฏิเสธการฉีดยา จะอธิบายข้อดีข้อเสียของยากินให้เขาฟังอย่างไรครับ?
+
+[physician]
+แน่ใจนะครับว่า insulin ดีกว่ายากิน เพราะผมเคยได้ยินมาอีกแบบ โอเคครับ อีกเรื่องนะครับ ถ้าเป็น GDM แบบนี้ต้องวางแผนคลอดตอนไหนครับ ต้องผ่าคลอดไหม ลูกจะตัวโตไหม ต้องเจาะเลือดลูกหลังคลอดไหม แล้วหลังคลอดแม่ต้องตรวจน้ำตาลซ้ำไหม ขอเป็นภาพรวมก่อนก็ได้ครับ ไม่ต้องละเอียดมาก แต่อยากให้ครอบคลุมทุกเรื่องที่ถามไปนะครับ เพราะตอนนี้ผมอยากเห็นภาพทั้งหมดของการดูแล GDM ตั้งแต่ฝากครรภ์ไปจนถึงหลังคลอดเลย
+
+[assistant]
+ที่ผมตอบไว้อิงตามแนวปฏิบัติครับ ว่า insulin เป็นยาเลือกก่อนเพราะไม่ผ่านรกในปริมาณที่มีนัยสำคัญ (ADA Standards of Care, 2024) ส่วนภาพรวมการดูแลมีดังนี้ครับ
+
+- เวลาคลอด: GDM ที่คุมด้วยอาหารได้ดีมักไม่ต้องคลอดก่อน 39 สัปดาห์ ส่วนที่ใช้ยามักวางแผนคลอดช่วง 39 สัปดาห์ (ACOG, 2018)
+- การผ่าคลอดไม่จำเป็นทุกราย ตัดสินใจจากน้ำหนักทารกโดยประมาณและข้อบ่งชี้ทางสูติศาสตร์อื่น (ACOG, 2018)
+- หลังคลอดควรตรวจน้ำตาลซ้ำเพื่อคัดกรองเบาหวานตลอดชีวิต (ADA Standards of Care, 2024)
+
+❓ จากประวัติท้องแรกที่ลูกตัวโต คิดว่าจะมีผลต่อการวางแผนคลอดรายนี้อย่างไรครับ?
+
+[physician]
+ถ้าคนไข้ถามว่าทำไมต้องฉีด insulin ผมควรอธิบายยังไงดีครับ ขอแบบพูดให้ฟังง่ายๆ ประมาณสองสามประโยคก็พอ ใช้ภาษาที่ไม่ยากเกินไป ไม่ต้องมีศัพท์แพทย์เยอะ เพราะคนไข้ไม่ค่อยมีเวลานั่งฟังนาน แล้วผมจะได้พูดตามได้เลยตอนนัดครั้งหน้าครับ ถ้าคนไข้ยังกลัวอยู่ ก็อยากได้คำพูดที่ใช้ได้เลยโดยไม่ต้องคิดเอง เพราะช่วงนี้ภาระงานในคลินิกค่อนข้างเยอะ
+
+[assistant]
+อธิบายแบบสั้นๆ ได้ประมาณนี้ครับ
+
+- น้ำตาลของแม่ที่สูงผ่านรกไปถึงลูกได้ ทำให้ลูกตัวโตและน้ำตาลต่ำหลังคลอดได้
+- insulin ไม่ผ่านรกในปริมาณที่มีนัยสำคัญ จึงเป็นยาที่เลือกใช้ก่อนในการคุมน้ำตาลช่วงตั้งครรภ์ (ADA Standards of Care, 2024)
+- ควรสอนเรื่องอาการน้ำตาลต่ำ และการเจาะน้ำตาลปลายนิ้วด้วย
+
+❓ ผู้ป่วยรายนี้จะเจาะน้ำตาลปลายนิ้วช่วงไหนของวัน และจะบันทึกผลอย่างไรครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+GDM เริ่มจากคุมอาหารก่อน ถ้าน้ำตาลยังเกินเป้าหมายก็เริ่ม insulin ยากินไม่ใช่ตัวเลือกแรก เพราะผ่านรก แล้วก็ต้องวางแผนคลอดตามที่แนะนำ ขอบคุณครับ
+
