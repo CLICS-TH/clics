@@ -31,6 +31,12 @@
 //     --attempts <n>        transport attempts per call on a network/5xx failure (default 2; recorded)
 //     --arm anthropic --allow-paid   the cloud arm. OFF by default and refuses without --allow-paid:
 //                           it spends real API credit (ANTHROPIC_API_KEY). Budget approval first.
+//     --max-usd <x> --usd-per-mtok-in <p> --usd-per-mtok-out <q>
+//                           spend ceiling, REQUIRED for the paid arm. Spend is the recorded input and
+//                           output tokens of every call (first + retry) at the given prices; once it
+//                           reaches <x>, no further item starts. Calls already in flight finish, so the
+//                           overshoot is at most --concurrency items (each ≤ 2 calls). Prices are
+//                           flags, not a table here, so they are read off the price list on the day.
 //   PROBE_TIMEOUT_MS (default 180000) bounds each call.
 //
 // Output: scripts/quality/report/<label>.json — synthetic questions + verbatim replies, safe to keep.
@@ -42,7 +48,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import {
-  readConfig, chatCompletion, parseArgs, intArg, fail, hr, bold, dim, cyan, yellow, red, green,
+  readConfig, chatCompletion, parseArgs, intArg, floatArg, fail, hr, bold, dim, cyan, yellow, red, green,
   progress, progressDone, printTarget,
 } from '../probe/lib.mjs';
 import { loadBank, selectItems, composition, QUALITY_DIR } from './bank.mjs';
@@ -182,7 +188,10 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
     first,
     retry: retryRec ? {
       reason: retryRec.reason, citation: retryRec.citation, language: retryRec.language,
-      ok: retryRec.ok, error: retryRec.error, ms: retryRec.ms, completion_tokens: retryRec.completion_tokens,
+      ok: retryRec.ok, error: retryRec.error, ms: retryRec.ms,
+      // Both token counts: the retry resends the whole conversation plus the first reply, so its
+      // input is the larger of the two calls' and a spend figure that omits it undercounts.
+      prompt_tokens: retryRec.prompt_tokens, completion_tokens: retryRec.completion_tokens,
       // A failed language-only retry is not the final reply, so keep its text here for the record.
       ...(finalFrom === 'retry' ? {} : { text: retryRec.text }),
     } : null,
@@ -192,6 +201,51 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
   };
   entry.checks = checkReply(item, entry);
   return entry;
+}
+
+/* ---------------------------------------------------------------- spend */
+
+/** Tokens and USD recorded so far: every call's input and output (first AND retry). Reports written
+ *  before the retry's prompt_tokens were recorded count 0 for it, so their figure is a lower bound. */
+export function spendOf(items, { inPerMtok, outPerMtok }) {
+  let inTok = 0;
+  let outTok = 0;
+  for (const e of items) {
+    for (const c of [e.first, e.retry]) {
+      if (!c) continue;
+      inTok += c.prompt_tokens ?? 0;
+      outTok += c.completion_tokens ?? 0;
+    }
+  }
+  return { in_tokens: inTok, out_tokens: outTok, usd: (inTok * inPerMtok + outTok * outPerMtok) / 1e6 };
+}
+
+/** --max-usd and its two prices, validated. null when no ceiling was asked for. */
+export function budgetFromFlags(flags) {
+  if (flags['max-usd'] === undefined) return null;
+  const maxUsd = floatArg(flags, 'max-usd', NaN);
+  const inPerMtok = floatArg(flags, 'usd-per-mtok-in', NaN);
+  const outPerMtok = floatArg(flags, 'usd-per-mtok-out', NaN);
+  if (!(maxUsd > 0)) fail('--max-usd must be a positive number of US dollars');
+  if (!(inPerMtok >= 0) || !(outPerMtok >= 0)) {
+    fail('--max-usd needs the prices it converts tokens with: --usd-per-mtok-in <p> --usd-per-mtok-out <q> (USD per million tokens, from the price list on the day)');
+  }
+  return { maxUsd, inPerMtok, outPerMtok };
+}
+
+/** Run `todo` through `runOne` with `concurrency` workers. `shouldStop()` is asked before each item
+ *  starts; once it says yes, no further item starts and the in-flight ones finish. */
+export async function runQueue(todo, runOne, { concurrency = 1, shouldStop = () => false } = {}) {
+  let next = 0;
+  let stopped = false;
+  const worker = async () => {
+    while (next < todo.length) {
+      if (shouldStop()) { stopped = true; return; }
+      await runOne(todo[next++]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(Math.max(1, concurrency), todo.length) }, worker));
+  return { stopped, started: next };
 }
 
 /* ----------------------------------------------------------------- main */
@@ -226,6 +280,7 @@ async function main() {
     fail('--arm anthropic spends real Anthropic API credit and is OFF by default.\n' +
       '  Get budget approval first (docs/LOCAL-AI-BUDGET-PLAN.md), then re-run with --allow-paid.');
   }
+  const budget = budgetFromFlags(flags);
   const concurrency = Math.max(1, intArg(flags, 'concurrency', 1));
   const attempts = Math.max(1, intArg(flags, 'attempts', 2));
   const limit = intArg(flags, 'limit', Infinity);
@@ -266,13 +321,17 @@ async function main() {
     complete = (req) => chatCompletion(cfg, req);
     target = { arm, provider: 'local', base_url: cfg.baseUrl, model_requested: cfg.model, timeout_ms: cfg.timeoutMs };
   } else {
+    if (!budget) {
+      fail('--arm anthropic needs a spend ceiling: --max-usd <x> --usd-per-mtok-in <p> --usd-per-mtok-out <q>.\n' +
+        '  No item starts once the recorded spend reaches <x>.');
+    }
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) fail('--arm anthropic --allow-paid needs ANTHROPIC_API_KEY in the environment.');
     const model = productionAnthropicModel();
     const timeoutMs = Math.max(1000, parseInt(process.env.PROBE_TIMEOUT_MS || '180000', 10));
     complete = makeAnthropicArm({ apiKey, model, timeoutMs });
     target = { arm, provider: 'anthropic', base_url: 'https://api.anthropic.com/v1', model_requested: model, timeout_ms: timeoutMs };
-    console.log(`  ${yellow('PAID ARM')} ${model} — ${items.length} item(s), up to ${items.length * 2} calls.`);
+    console.log(`  ${yellow('PAID ARM')} ${model} — ${items.length} item(s), up to ${items.length * 2} calls; ceiling $${budget.maxUsd} at $${budget.inPerMtok}/$${budget.outPerMtok} per Mtok in/out.`);
   }
 
   const label = flags.label && flags.label !== true ? slug(flags.label) : `${arm}-${slug(target.model_requested)}-${stamp()}`;
@@ -314,30 +373,43 @@ async function main() {
   console.log(`  report  ${file}${done.size ? `  (resuming: ${done.size} done, ${todo.length} to go)` : ''}`);
   console.log(`  expect  ~${Math.ceil((todo.length * 70) / 60 / concurrency)} min at ~60–70 s/turn on the DGX (retries add more)\n`);
 
-  let next = 0;
   let finished = 0;
   const order = new Map(items.map((it, i) => [it.id, i]));
+  const spendNow = () => (budget ? spendOf(report.items, budget) : null);
+  const recordSpend = (stoppedEarly) => {
+    if (!budget) return;
+    const s = spendNow();
+    report.spend = {
+      max_usd: budget.maxUsd, usd_per_mtok_in: budget.inPerMtok, usd_per_mtok_out: budget.outPerMtok,
+      in_tokens: s.in_tokens, out_tokens: s.out_tokens, usd: Number(s.usd.toFixed(4)), stopped_early: stoppedEarly,
+      note: 'recorded tokens of every call (first + retry) at the given prices — an estimate, not the invoice',
+    };
+  };
   const save = () => {
     report.items.sort((a, b) => (order.get(a.id) ?? 1e9) - (order.get(b.id) ?? 1e9));
+    recordSpend(report.spend?.stopped_early ?? false);
     return writeAtomic(file, report);
   };
   let saving = Promise.resolve();
-  const worker = async () => {
-    while (next < todo.length) {
-      const it = todo[next++];
-      progress(`[${finished + 1}/${todo.length}] ${it.id}…`);
-      const entry = await runItem(it, complete, { maxTokens, retry, artifacts, attempts });
-      report.items = report.items.filter((e) => e.id !== it.id).concat(entry);
-      finished += 1;
-      progressDone();
-      const f = entry.final;
-      const crit = entry.checks.flags.filter((x) => x.severity === 'critical').map((x) => x.code);
-      console.log(`  ${f.ok ? green('✔') : red('✘')} ${it.id.padEnd(30)} ${String(entry.latency_ms_total).padStart(7)} ms  ${f.completion_tokens || 0} tok${entry.retry ? dim(` (retry: ${entry.retry.reason}${entry.retry.ok ? '' : ', failed'})`) : ''}${crit.length ? '  ' + red(crit.join(',')) : ''}${f.ok ? '' : '  ' + red(f.error)}`);
-      saving = saving.then(save);   // serialise writes; save after EVERY item so a crash loses one
-    }
+  if (budget) console.log(`  spend   $${spendNow().usd.toFixed(4)} recorded so far · ceiling $${budget.maxUsd}`);
+  const runOne = async (it) => {
+    progress(`[${finished + 1}/${todo.length}] ${it.id}…`);
+    const entry = await runItem(it, complete, { maxTokens, retry, artifacts, attempts });
+    report.items = report.items.filter((e) => e.id !== it.id).concat(entry);
+    finished += 1;
+    progressDone();
+    const f = entry.final;
+    const crit = entry.checks.flags.filter((x) => x.severity === 'critical').map((x) => x.code);
+    console.log(`  ${f.ok ? green('✔') : red('✘')} ${it.id.padEnd(30)} ${String(entry.latency_ms_total).padStart(7)} ms  ${f.completion_tokens || 0} tok${entry.retry ? dim(` (retry: ${entry.retry.reason}${entry.retry.ok ? '' : ', failed'})`) : ''}${crit.length ? '  ' + red(crit.join(',')) : ''}${f.ok ? '' : '  ' + red(f.error)}`);
+    saving = saving.then(save);   // serialise writes; save after EVERY item so a crash loses one
   };
-  await Promise.all(Array.from({ length: Math.min(concurrency, todo.length) }, worker));
+  const shouldStop = () => budget != null && spendNow().usd >= budget.maxUsd;
+  const { stopped, started } = await runQueue(todo, runOne, { concurrency, shouldStop });
   await saving;
+  recordSpend(stopped);
+  if (stopped) {
+    console.log(`\n  ${red('STOPPED by --max-usd')}: recorded spend $${spendNow().usd.toFixed(4)} ≥ $${budget.maxUsd}; ${todo.length - started} item(s) not started. Raise the ceiling and re-run with --resume.`);
+  }
 
   report.finished_at = new Date().toISOString();
   const models = [...new Set(report.items.map((e) => e.final.response_model).filter(Boolean))];
@@ -354,6 +426,7 @@ async function main() {
   if (fps.length) console.log(`  system_fingerprint(s): ${fps.join(', ')}`);
   const retried = report.items.filter((e) => e.retry);
   console.log(`  corrective retries: ${retried.length}/${report.items.length} turns · language guard fired on ${retried.filter((e) => e.retry.language).length}, its reply delivered on ${report.items.filter((e) => e.language_retry).length}`);
+  if (report.spend) console.log(`  spend: $${report.spend.usd} (${report.spend.in_tokens} in / ${report.spend.out_tokens} out tokens) · ceiling $${report.spend.max_usd}${report.spend.stopped_early ? red(' · stopped early') : ''}`);
   printSummary(report.checks_summary);
   console.log(`\n  ${bold('next:')} node scripts/quality/cite-verify.mjs ${path.relative(process.cwd(), file)}`);
 }

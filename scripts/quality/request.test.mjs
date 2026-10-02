@@ -16,7 +16,7 @@ import {
 import {
   RIMPL_FILES, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE, promptLabel,
 } from './rimpl.mjs';
-import { runItem, makeAnthropicArm, productionAnthropicModel } from './tutor-audit.mjs';
+import { runItem, makeAnthropicArm, productionAnthropicModel, spendOf, runQueue } from './tutor-audit.mjs';
 import { ITEM_TH_EXAMINER, ITEM_EN_NATURAL, ITEM_RESCUE, ITEM_PII, GOOD_TH_EXAMINER } from './test-fixtures.mjs';
 
 const require = createRequire(import.meta.url);
@@ -251,4 +251,56 @@ test('CLI: --dry-run needs no endpoint, prints the de-identified request, and wr
   assert.match(r.stdout, /\[MRN-1\]/);
   assert.match(r.stdout, /identifiers reaching the model: John Testcase/);
   assert.doesNotMatch(r.stdout, /report written|report {2}\//);
+});
+
+/* ------------------------------------------------------------- --max-usd */
+
+test('runItem records the retry call\'s input tokens too (the 2026-10-02 paid run did not)', async () => {
+  let n = 0;
+  const complete = async () => (++n === 1
+    ? { ok: true, text: 'ควรทำ ECG ภายใน 10 นาที', ms: 1, promptTokens: 600, completionTokens: 50 }
+    : { ok: true, text: GOOD_TH_EXAMINER, ms: 1, promptTokens: 700, completionTokens: 80 });
+  const e = await runItem(ITEM_TH_EXAMINER, complete, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1 });
+  assert.deepEqual([e.retry.prompt_tokens, e.retry.completion_tokens], [700, 80]);
+  assert.deepEqual(spendOf([e], { inPerMtok: 3, outPerMtok: 15 }), { in_tokens: 1300, out_tokens: 130, usd: (1300 * 3 + 130 * 15) / 1e6 });
+});
+
+test('spendOf: first + retry at the given prices; an old report without retry input counts 0 for it', () => {
+  const items = [
+    { first: { prompt_tokens: 1000, completion_tokens: 1000 }, retry: null },
+    { first: { prompt_tokens: 1000, completion_tokens: 0 }, retry: { completion_tokens: 2000 } },
+  ];
+  const s = spendOf(items, { inPerMtok: 3, outPerMtok: 15 });
+  assert.deepEqual([s.in_tokens, s.out_tokens], [2000, 3000]);
+  assert.ok(Math.abs(s.usd - 0.051) < 1e-12);
+});
+
+test('runQueue: once recorded spend reaches the ceiling no further item starts; in-flight ones finish', async () => {
+  const prices = { inPerMtok: 0, outPerMtok: 1e6 };           // 1 output token = $1, for readable arithmetic
+  for (const concurrency of [1, 2, 3]) {
+    const items = [];
+    const todo = Array.from({ length: 10 }, (_, i) => `item-${i}`);
+    const runOne = async (id) => {
+      await new Promise((r) => setTimeout(r, 1));
+      items.push({ id, first: { prompt_tokens: 0, completion_tokens: 1 }, retry: null });   // $1 per item
+    };
+    const shouldStop = () => spendOf(items, prices).usd >= 3;
+    const { stopped, started } = await runQueue(todo, runOne, { concurrency, shouldStop });
+    assert.equal(stopped, true);
+    assert.equal(items.length, started, 'every started item finished');
+    assert.ok(items.length >= 3 && items.length <= 3 + concurrency - 1, `c=${concurrency}: ran ${items.length}`);
+  }
+  const all = await runQueue(['a', 'b'], async () => {}, { concurrency: 2 });
+  assert.deepEqual(all, { stopped: false, started: 2 }, 'no ceiling: everything runs');
+});
+
+test('CLI: the paid arm refuses without a spend ceiling, and the ceiling refuses without prices', () => {
+  const noCap = run(['--arm', 'anthropic', '--allow-paid', '--limit', '1']);
+  assert.notEqual(noCap.status, 0);
+  assert.match(noCap.stderr, /--max-usd/);
+  const noPrice = run(['--arm', 'anthropic', '--allow-paid', '--limit', '1', '--max-usd', '1.5']);
+  assert.notEqual(noPrice.status, 0);
+  assert.match(noPrice.stderr, /usd-per-mtok-in/);
+  // Both refusals come before the API-key check: nothing could have been sent.
+  assert.doesNotMatch(noCap.stderr + noPrice.stderr, /ANTHROPIC_API_KEY/);
 });

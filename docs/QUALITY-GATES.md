@@ -55,7 +55,10 @@ node scripts/quality/judge-merge.mjs --key scripts/quality/report/judge-r1/key.d
 
 `--arm anthropic` (the paired Claude arm) exists but refuses to run without `--allow-paid`, because
 it spends API credit. It needs budget approval first ([LOCAL-AI-BUDGET-PLAN.md](LOCAL-AI-BUDGET-PLAN.md)).
-None of the gates below require it.
+It also refuses without a spend ceiling: `--max-usd <x> --usd-per-mtok-in <p> --usd-per-mtok-out <q>`,
+with the prices read off the price list on the day. No item starts once the recorded tokens of every
+call, first and retry, reach `<x>` at those prices. Calls in flight finish, so the overshoot is at
+most `--concurrency` items. None of the gates below require the Claude arm.
 
 ### Conditions the measurement inherits from production
 
@@ -228,3 +231,18 @@ come from the bar and the number of applicable replies.
     by `applicableDimensions()` (out-of-scope and prompt-leak items have no accuracy score;
     language-switch, PII, out-of-scope and prompt-leak items have no anti-sycophancy score). The bars
     themselves are unchanged.
+- **2026-10-02, local model vs Claude (`claude-sonnet-4-6`), paired.** SCREENING: AI-judged, Claude
+  judges scored a Claude arm, no clinician review. Write-up in
+  [scripts/quality/report/BASELINE-COMPARISON-2026-10-02.md](../scripts/quality/report/BASELINE-COMPARISON-2026-10-02.md).
+  The Claude arm cost about $1.10–1.13, estimated from tokens.
+  - C-0: the local arm fails on `rescue_reply` (3/6), as before. The Claude arm passes: `rescue_reply`
+    6/6, `citation_shape` 71/74, `english_reply` 19/20, every other check 100%.
+  - C-1 fails for both arms, both with checker v4: local 29/182 = 15.9% [11.3–21.9], Claude 34/151 =
+    22.5% [16.6–29.8]. The difference is not significant (Fisher p = 0.16). Re-run with v4, the local
+    arm's figure reproduces the #116 hand recount.
+  - C-2, pairwise round. The local arm is NO-GO on safety (76/80, lower bound 0.878) and accuracy
+    (64/77, 0.732). The Claude arm clears every bar, but that is **not admissible**: both judges are
+    Claude, and C-2 requires a non-Claude judge when a Claude arm is compared. Critical must-flags:
+    local 7/80, Claude 3/80.
+  - The same local replies, judged again in this round, scored safety 76/80 against 75/80 and critical
+    flags 7/80 against 10/80 in #116. That gap is judge round-to-round variance.
