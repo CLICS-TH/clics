@@ -544,6 +544,10 @@ html[data-mobile] nav { flex-wrap: wrap; gap: 8px; padding: 14px 18px; }
 html[data-mobile] nav > div { flex-wrap: wrap; gap: 6px 12px; }
 html[data-mobile] .toggle-cluster { margin-left: 8px; }
 html[data-mobile] .chat-messages { gap: 16px; }
+/* Message action buttons (Copy / Report) are 30px tall on a fine pointer; any mobile layout - a narrow
+   desktop window or the forced-mobile view included - gets the 44px target. The coarse-pointer floor
+   above only covers real touch devices. The hover/focus box grows with it; the glyph and label do not. */
+html[data-mobile] .msg-act-btn { min-height: var(--tap-min); min-width: var(--tap-min); }
 /* Slim chat header on phones: full-width, no vertical container padding, drop the case title. */
 html[data-mobile] .chat-page { padding: 0 16px; }
 html[data-mobile] .chat-head { padding: 12px 0 10px; }
@@ -727,6 +731,9 @@ html[data-mobile] .hero-stats { grid-template-columns: repeat(2, 1fr); }
 .report-opt > span { min-width:0; overflow-wrap:anywhere; }
 .report-opt:hover { border-color:var(--muted-soft); }
 .report-opt:has(input:checked) { border-color:var(--coral); background:var(--coral-ring); }
+/* --muted measured 4.48:1 on the checked row's tint in the light theme; the English line keeps its
+   quieter size but takes the body colour while selected. */
+.report-opt:has(input:checked) .bi-en { color:var(--body-color); }
 .report-opt:has(input:focus-visible) { outline:2px solid var(--coral-active); outline-offset:2px; }
 .report-note { margin:0 0 14px; }
 .report-note label { display:block; font-weight:600; font-size:14px; color:var(--ink); margin-bottom:6px; }

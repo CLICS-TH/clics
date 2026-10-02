@@ -138,23 +138,39 @@ const SEVERITY_RANK = { low: 1, medium: 2, high: 3 };
 // genuinely hit 25 distinct unsafe replies needs a person, not a 26th entry.
 const MAX_REPORTS_PER_PLE = 25;
 
+// Returns the stored row's reports, and whether a row exists at all (the first report INSERTs, every
+// later one UPDATEs — see recordReportedReply).
 async function readReports(pleId) {
   const { data, error } = await supabase.from('ple_integrity_flags')
     .select('severity, evidence').eq('ple_id', pleId).eq('signal', REPORTED_REPLY_SIGNAL).maybeSingle();
   if (error) throw new Error(error.message);
-  return Array.isArray(data?.evidence?.reports) ? data.evidence.reports : [];
+  return { exists: !!data, reports: Array.isArray(data?.evidence?.reports) ? data.evidence.reports : [] };
 }
+
+const FLAG_NOTE = 'A physician reported an AI reply as wrong or unsafe. This flags OUR output, not the physician.';
+const WRITE_ATTEMPTS = 5;
+const UNIQUE_VIOLATION = '23505';
 
 /**
  * Record one report. Idempotent per message: a second report on the same reply changes nothing and
  * returns 'duplicate' — the FIRST report (its reason and note) stands.
  *
+ * OPTIMISTIC CONCURRENCY, no migration. Reports for one session live in ONE row's evidence.reports[],
+ * so two reports landing together must not each merge into the same stale array. The row's
+ * evidence.report_count is the version, and it only ever grows by exactly one per append:
+ *   - first report: a plain INSERT. If another report inserted first, the unique (ple_id, signal)
+ *     constraint answers 23505 and we re-read and go round again.
+ *   - later reports: UPDATE ... WHERE evidence->>report_count = <count we read>, returning the row.
+ *     Zero rows back means someone else appended in between; re-read and go round again.
+ * Whoever loses re-reads and appends to the winner's array, so every report survives and the severity
+ * is recomputed over all of them. After WRITE_ATTEMPTS losses it throws — the route answers 500 and
+ * the physician is told it failed, rather than being told a lost report was saved.
+ *
  * @param {object} args
  * @param {string} args.pleId
  * @param {object} args.report  { message_id, reason, note?, turn?, provider, model, prompt_version }
  * @returns {Promise<'recorded'|'duplicate'|'limit'>}
- * @throws on a database error — the route turns that into a 500, because a safety report that
- *         vanishes silently is worse than one the physician is told failed.
+ * @throws on a database error or exhausted retries.
  */
 async function recordReportedReply({ pleId, report }) {
   const entry = {
@@ -168,38 +184,39 @@ async function recordReportedReply({ pleId, report }) {
     reported_at: new Date().toISOString(),
   };
 
-  // Read-merge-write, then read BACK. Two reports on different replies of one session, landing in the
-  // same few milliseconds, would each merge into the same stale array and the later write would drop
-  // the earlier report. The read-back catches that for the loser and retries it. It cannot close the
-  // window completely (that needs a row lock, i.e. an RPC and a migration) — it narrows a
-  // milliseconds-wide race between two taps by one person to something that has not been seen.
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const reports = await readReports(pleId);
+  for (let attempt = 0; attempt < WRITE_ATTEMPTS; attempt += 1) {
+    const { exists, reports } = await readReports(pleId);
     if (reports.some((r) => r.message_id === entry.message_id)) return 'duplicate';
     if (reports.length >= MAX_REPORTS_PER_PLE) return 'limit';
 
     const next = [...reports, entry];
-    const worst = next.reduce((a, r) => {
+    const severity = next.reduce((a, r) => {
       const sev = REPORT_SEVERITY[r.reason] ?? 'low';
       return SEVERITY_RANK[sev] > SEVERITY_RANK[a] ? sev : a;
     }, 'low');
+    const evidence = { report_count: next.length, reports: next, note: FLAG_NOTE };
 
-    const { error } = await supabase.from('ple_integrity_flags').upsert({
-      ple_id: pleId,
-      signal: REPORTED_REPLY_SIGNAL,
-      severity: worst,
-      evidence: {
-        report_count: next.length,
-        reports: next,
-        note: 'A physician reported an AI reply as wrong or unsafe. This flags OUR output, not the physician.',
-      },
-    }, { onConflict: 'ple_id,signal' });
+    if (!exists) {
+      const { error } = await supabase.from('ple_integrity_flags')
+        .insert({ ple_id: pleId, signal: REPORTED_REPLY_SIGNAL, severity, evidence });
+      if (!error) return 'recorded';
+      if (error.code === UNIQUE_VIOLATION) continue;   // someone inserted first: append to theirs
+      throw new Error(error.message);
+    }
+
+    // PostgREST filters a jsonb path with `->>`: ?evidence->>report_count=eq.N (text comparison, so
+    // the count is passed as a string). The guard is part of the UPDATE's WHERE, so the check and the
+    // write are one atomic statement.
+    const { data: won, error } = await supabase.from('ple_integrity_flags')
+      .update({ severity, evidence })
+      .eq('ple_id', pleId).eq('signal', REPORTED_REPLY_SIGNAL)
+      .eq('evidence->>report_count', String(reports.length))
+      .select('ple_id');
     if (error) throw new Error(error.message);
-
-    const after = await readReports(pleId);
-    if (after.some((r) => r.message_id === entry.message_id)) return 'recorded';
+    if (Array.isArray(won) && won.length > 0) return 'recorded';
+    // zero rows: another report changed the count under us — re-read and retry
   }
-  throw new Error('could not record the report: concurrent writes kept overwriting it');
+  throw new Error('could not record the report: concurrent reports kept winning the race');
 }
 
 module.exports = {

@@ -162,18 +162,28 @@ function openReportDialog(messageId) {
       resolve(result);
     }
     function showError(msg) { err.textContent = msg; err.hidden = false; }
-    function focusables() {
-      return Array.prototype.slice.call(ov.querySelectorAll('input, textarea, button')).filter(function (el) { return !el.disabled; });
+    // The dialog's Tab stops in DOM order. A radio group is ONE stop for the browser (the checked radio,
+    // or the first when none is checked), so it is one here too — listing every radio put "first" on a
+    // radio the browser never Tabs to, and Shift+Tab from the checked one walked out of the modal.
+    function tabStops() {
+      const radios = Array.prototype.slice.call(ov.querySelectorAll('input[type="radio"]'));
+      const radioStop = radios.filter(function (r) { return r.checked; })[0] || radios[0];
+      return Array.prototype.slice.call(ov.querySelectorAll('input, textarea, button')).filter(function (el) {
+        return !el.disabled && (el.type !== 'radio' || el === radioStop);
+      });
     }
     function onKey(e) {
       if (e.key === 'Escape') { e.preventDefault(); if (!busy) close(false); return; }
       if (e.key !== 'Tab') return;
       // Keep Tab inside the dialog: the page behind it is inert to a modal.
-      const f = focusables();
-      if (!f.length) return;
-      const first = f[0], last = f[f.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      const stops = tabStops();
+      if (!stops.length) return;
+      const active = document.activeElement;
+      const here = (active && active.type === 'radio') ? stops.filter(function (s) { return s.type === 'radio'; })[0] : active;
+      const i = stops.indexOf(here);
+      if (i === -1) { e.preventDefault(); stops[e.shiftKey ? stops.length - 1 : 0].focus(); }   // focus had left the dialog
+      else if (e.shiftKey && i === 0) { e.preventDefault(); stops[stops.length - 1].focus(); }
+      else if (!e.shiftKey && i === stops.length - 1) { e.preventDefault(); stops[0].focus(); }
     }
     // Choosing a reason answers the "please choose" error; do not leave it standing.
     form.addEventListener('change', function () { err.hidden = true; });

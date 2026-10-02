@@ -33,6 +33,8 @@ const PLE_ID = 'ple-1';
 const OTHER_PLE_ID = 'ple-2';
 const AI_ID = '11111111-1111-4111-8111-111111111111';
 const AI_ID_2 = '22222222-2222-4222-8222-222222222222';
+const AI_ID_3 = '88888888-8888-4888-8888-888888888888';
+const OWN_ASSISTANT = '99999999-9999-4999-8999-999999999999';   // a report the rival request files
 // A fresh physician id per test: the report limiter keeps its counters in memory for the life of the
 // module, so a shared id would burn the 20-per-window allowance across unrelated tests.
 let PHYS_ID;
@@ -53,12 +55,14 @@ function wire(over = {}) {
     messages: [
       { id: AI_ID, ple_id: PLE_ID, role: 'assistant', created_at: '2026-10-01T10:00:02Z', ...PROV },
       { id: AI_ID_2, ple_id: PLE_ID, role: 'assistant', created_at: '2026-10-01T10:01:02Z', provider: 'anthropic', model: 'claude-x', prompt_version: 'chat-prompt-ffff0000' },
+      { id: AI_ID_3, ple_id: PLE_ID, role: 'assistant', created_at: '2026-10-01T10:02:02Z', ...PROV },
       { id: OWN_MSG_ID, ple_id: PLE_ID, role: 'physician', created_at: '2026-10-01T10:00:01Z' },
       { id: FOREIGN_ID, ple_id: OTHER_PLE_ID, role: 'assistant', created_at: '2026-10-01T09:00:00Z', ...PROV },
     ],
     flag: null,               // the single (ple, signal) row
     assistantCount: 2,
-    dropNextFlagWrite: false, // simulate a concurrent writer clobbering our upsert once
+    alwaysLoseRace: false,    // every guarded UPDATE matches zero rows (someone always appended first)
+    rival: null,              // runs once, just before OUR next write: another request committing in between
     ...over,
   };
   m.reset();
@@ -74,10 +78,21 @@ function wire(over = {}) {
       return store.messages.find((x) => x.id === eq('id') && x.ple_id === eq('ple_id')) ?? null;
     }
     if (table === 'ple_integrity_flags') {
-      if (ctx.op === 'upsert') {
-        if (store.dropNextFlagWrite) { store.dropNextFlagWrite = false; return undefined; }
+      // The row behaves like the real table: unique on (ple_id, signal) so a second INSERT is 23505,
+      // and an UPDATE only matches while evidence->>report_count still equals what the writer read.
+      if (ctx.op === 'insert' || ctx.op === 'update') {
+        if (store.rival) { const r = store.rival; store.rival = null; r(); }   // the interleaved writer lands first
+      }
+      if (ctx.op === 'insert') {
+        if (store.flag) return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint' } };
         store.flag = ctx.payload;
         return undefined;
+      }
+      if (ctx.op === 'update') {
+        const guard = eq('evidence->>report_count');
+        if (store.alwaysLoseRace || !store.flag || String(store.flag.evidence.report_count) !== guard) return [];
+        store.flag = { ...store.flag, ...ctx.payload };
+        return [{ ple_id: PLE_ID }];
       }
       return store.flag ?? null;
     }
@@ -85,9 +100,21 @@ function wire(over = {}) {
   };
 }
 
+// Another request's report committing to the flag row, exactly as recordReportedReply would write it.
+function rivalReports(reason, messageId) {
+  return () => {
+    const entry = { message_id: messageId, reason, note: null, turn: 3, ...PROV, reported_at: '2026-10-01T10:05:00Z' };
+    const reports = [...(store.flag?.evidence.reports ?? []), entry];
+    const worst = reports.some((r) => REPORT_SEVERITY[r.reason] === 'high') ? 'high'
+      : reports.some((r) => REPORT_SEVERITY[r.reason] === 'medium') ? 'medium' : 'low';
+    store.flag = { ple_id: PLE_ID, signal: REPORTED_REPLY_SIGNAL, severity: worst,
+      evidence: { report_count: reports.length, reports } };
+  };
+}
+
 const report = (body = { reason: 'wrong_fact' }, { ple = PLE_ID, msg = AI_ID } = {}) =>
   auth(request(app).post(`/ples/${ple}/messages/${msg}/report`)).send(body);
-const upserts = () => m.all('ple_integrity_flags', 'upsert');
+const flagWrites = () => [...m.all('ple_integrity_flags', 'insert'), ...m.all('ple_integrity_flags', 'update')];
 
 beforeEach(() => { wire(); jest.clearAllMocks(); });
 
@@ -95,8 +122,8 @@ describe('recording a report', () => {
   test('writes ONE integrity flag carrying the reason, the note and the reply\'s provenance', async () => {
     const r = await report({ reason: 'unsafe_advice', note: 'dose is 10x too high' });
     expect(r.status).toBe(200);
-    expect(upserts()).toHaveLength(1);
-    expect(upserts()[0].payload).toMatchObject({ ple_id: PLE_ID, signal: REPORTED_REPLY_SIGNAL, severity: 'high' });
+    expect(flagWrites()).toHaveLength(1);
+    expect(m.find('ple_integrity_flags', 'insert').payload).toMatchObject({ ple_id: PLE_ID, signal: REPORTED_REPLY_SIGNAL, severity: 'high' });
     expect(store.flag.evidence.report_count).toBe(1);
     expect(store.flag.evidence.reports[0]).toMatchObject({
       message_id: AI_ID, reason: 'unsafe_advice', note: 'dose is 10x too high', turn: 2, ...PROV,
@@ -104,11 +131,16 @@ describe('recording a report', () => {
     expect(store.flag.evidence.reports[0].reported_at).toEqual(expect.any(String));
   });
 
-  test('upserts on (ple_id, signal) like the rescue flag, so a re-run never accumulates rows', async () => {
-    await report();
-    // The row key is what makes "one row per PLE" true; losing it would turn this into an INSERT
-    // that violates the unique constraint on the second report.
-    expect(m.find('ple_integrity_flags', 'upsert')).toBeDefined();
+  test('the first report INSERTs; a later one UPDATEs guarded by the report_count it read', async () => {
+    await report({ reason: 'wrong_fact' }, { msg: AI_ID });
+    await report({ reason: 'other' }, { msg: AI_ID_2 });
+    expect(m.all('ple_integrity_flags', 'insert')).toHaveLength(1);
+    const [upd] = m.all('ple_integrity_flags', 'update');
+    expect(upd.eqs).toEqual(expect.arrayContaining([
+      ['ple_id', PLE_ID], ['signal', REPORTED_REPLY_SIGNAL], ['evidence->>report_count', '1'],
+    ]));
+    // .select('ple_id') is what lets the writer SEE that zero rows matched.
+    expect(upd.selectArgs).toEqual(['ple_id']);
   });
 
   test('a report with no note stores null, not an empty string', async () => {
@@ -162,7 +194,7 @@ describe('ownership and message validity', () => {
   test('a PLE the physician does not own is 404 — and no message or flag is touched', async () => {
     const r = await report({ reason: 'wrong_fact' }, { ple: OTHER_PLE_ID, msg: FOREIGN_ID });
     expect(r.status).toBe(404);
-    expect(upserts()).toHaveLength(0);
+    expect(flagWrites()).toHaveLength(0);
     expect(m.all('messages')).toHaveLength(0);
     // The ownership filter must actually be in the query, not merely in the double.
     const q = m.find('ples');
@@ -172,7 +204,7 @@ describe('ownership and message validity', () => {
   test('a message from ANOTHER session is 404, even one the physician could name', async () => {
     const r = await report({ reason: 'wrong_fact' }, { ple: PLE_ID, msg: FOREIGN_ID });
     expect(r.status).toBe(404);
-    expect(upserts()).toHaveLength(0);
+    expect(flagWrites()).toHaveLength(0);
     expect(m.find('messages').eqs).toContainEqual(['ple_id', PLE_ID]);
   });
 
@@ -180,13 +212,13 @@ describe('ownership and message validity', () => {
     const r = await report({ reason: 'wrong_fact' }, { msg: OWN_MSG_ID });
     expect(r.status).toBe(400);
     expect(r.body.code).toBe('not_ai_reply');
-    expect(upserts()).toHaveLength(0);
+    expect(flagWrites()).toHaveLength(0);
   });
 
   test('a message id that does not exist is 404', async () => {
     const r = await report({ reason: 'wrong_fact' }, { msg: '99999999-9999-4999-8999-999999999999' });
     expect(r.status).toBe(404);
-    expect(upserts()).toHaveLength(0);
+    expect(flagWrites()).toHaveLength(0);
   });
 
   test('a malformed message id is 404 without touching the database', async () => {
@@ -200,16 +232,24 @@ describe('ownership and message validity', () => {
     const base = m.state.resolve;
     m.state.resolve = (table, kind, ctx) => (table === 'messages' && !ctx.selectArgs?.[1]?.head ? { data: null, error: { message: 'boom' } } : base(table, kind, ctx));
     expect((await report()).status).toBe(500);
-    expect(upserts()).toHaveLength(0);
+    expect(flagWrites()).toHaveLength(0);
   });
 
   test('a failure writing the flag is a 500 the physician is told about — a lost safety report must not look saved', async () => {
     const base = m.state.resolve;
-    m.state.resolve = (table, kind, ctx) => (table === 'ple_integrity_flags' && ctx.op === 'upsert' ? { data: null, error: { message: 'boom' } } : base(table, kind, ctx));
+    m.state.resolve = (table, kind, ctx) => (table === 'ple_integrity_flags' && (ctx.op === 'insert' || ctx.op === 'update') ? { data: null, error: { message: 'boom' } } : base(table, kind, ctx));
     const r = await report();
     expect(r.status).toBe(500);
     expect(r.body.error).toMatch(/try again/i);
     expect(m.find('audit_log')).toBeUndefined();   // nothing was recorded, so nothing is logged
+  });
+
+  test('...and so is a failing UPDATE on a later report', async () => {
+    rivalReports('other', AI_ID_3)();
+    const base = m.state.resolve;
+    m.state.resolve = (table, kind, ctx) => (table === 'ple_integrity_flags' && ctx.op === 'update' ? { data: null, error: { message: 'boom' } } : base(table, kind, ctx));
+    expect((await report()).status).toBe(500);
+    expect(m.find('audit_log')).toBeUndefined();
   });
 });
 
@@ -222,14 +262,14 @@ describe('input validation', () => {
     expect((await report({ reason: 'rude' })).status).toBe(400);
     expect((await report({})).status).toBe(400);
     expect((await report({ note: 'only a note' })).status).toBe(400);
-    expect(upserts()).toHaveLength(0);
+    expect(flagWrites()).toHaveLength(0);
   });
 
   test('caps the note at REPORT_NOTE_MAX characters', async () => {
     expect((await report({ reason: 'other', note: 'x'.repeat(REPORT_NOTE_MAX) })).status).toBe(200);
     wire();
     expect((await report({ reason: 'other', note: 'x'.repeat(REPORT_NOTE_MAX + 1) })).status).toBe(400);
-    expect(upserts()).toHaveLength(0);
+    expect(flagWrites()).toHaveLength(0);
   });
 
   test('strips control characters — a NUL is legal JSON but Postgres jsonb refuses it', async () => {
@@ -249,7 +289,7 @@ describe('idempotency and merging', () => {
     const before = JSON.stringify(store.flag);
     const r = await report({ reason: 'unsafe_advice', note: 'second' });
     expect(r.status).toBe(200);
-    expect(upserts()).toHaveLength(1);                 // no second write
+    expect(flagWrites()).toHaveLength(1);                 // no second write
     expect(JSON.stringify(store.flag)).toBe(before);
     expect(m.all('audit_log', 'insert')).toHaveLength(1); // and no second audit event
   });
@@ -277,18 +317,49 @@ describe('idempotency and merging', () => {
     expect(Object.keys(REPORT_SEVERITY).sort()).toEqual([...REPORT_REASONS].sort());
   });
 
-  test('a write clobbered by a concurrent report is detected by the read-back and retried', async () => {
-    store.dropNextFlagWrite = true;
-    const r = await report({ reason: 'wrong_fact' });
+  test('concurrent reports: B lands between A\'s read and A\'s write — both survive and severity stays the worst', async () => {
+    // The reviewer's interleaving. A reads count 1; B commits a second report; A's guarded UPDATE
+    // (count = 1) now matches nothing, so A re-reads and appends to B's array instead of replacing it.
+    rivalReports('unsafe_advice', AI_ID_3)();                   // the row holds one HIGH report
+    store.rival = rivalReports('wrong_fact', OWN_ASSISTANT);    // B's report lands before A writes
+    const r = await report({ reason: 'other' }, { msg: AI_ID_2 });
     expect(r.status).toBe(200);
-    expect(upserts()).toHaveLength(2);
-    expect(store.flag.evidence.reports.map((x) => x.message_id)).toEqual([AI_ID]);
+    expect(store.flag.evidence.reports.map((x) => x.message_id)).toEqual([AI_ID_3, OWN_ASSISTANT, AI_ID_2]);
+    expect(store.flag.evidence.report_count).toBe(3);
+    expect(store.flag.severity).toBe('high');                   // not lowered by A's 'other'
+    expect(m.all('ple_integrity_flags', 'update')).toHaveLength(2);   // one lost the race, one won
+    expect(m.all('audit_log', 'insert')).toHaveLength(1);            // logged once, after the write was confirmed
   });
 
-  test('if every retry is clobbered the physician is told it failed, not that it worked', async () => {
-    const base = m.state.resolve;
-    m.state.resolve = (table, kind, ctx) => (table === 'ple_integrity_flags' && ctx.op === 'upsert' ? undefined : base(table, kind, ctx));
-    expect((await report()).status).toBe(500);
+  test('a 23505 on the FIRST insert means someone inserted first: re-read, append, keep their report', async () => {
+    store.rival = rivalReports('unsafe_advice', AI_ID_3);       // B inserts the row before A's INSERT
+    const r = await report({ reason: 'other' }, { msg: AI_ID });
+    expect(r.status).toBe(200);
+    expect(store.flag.evidence.reports.map((x) => x.message_id)).toEqual([AI_ID_3, AI_ID]);
+    expect(store.flag.severity).toBe('high');                   // B's HIGH survives A's low
+    expect(m.all('ple_integrity_flags', 'insert')).toHaveLength(1);   // A's insert collided
+    expect(m.all('ple_integrity_flags', 'update')).toHaveLength(1);   // and A retried as an UPDATE
+  });
+
+  test('two reports in flight at once are both recorded and each is audit-logged', async () => {
+    const [a, b] = await Promise.all([
+      report({ reason: 'unsafe_advice' }, { msg: AI_ID }),
+      report({ reason: 'other' }, { msg: AI_ID_2 }),
+    ]);
+    expect([a.status, b.status]).toEqual([200, 200]);
+    expect(store.flag.evidence.reports.map((x) => x.message_id).sort()).toEqual([AI_ID, AI_ID_2].sort());
+    expect(store.flag.severity).toBe('high');
+    expect(m.all('audit_log', 'insert')).toHaveLength(2);
+  });
+
+  test('if every retry loses the race the physician is told it failed, and nothing is audit-logged', async () => {
+    rivalReports('other', AI_ID_3)();
+    store.alwaysLoseRace = true;
+    const r = await report({ reason: 'wrong_fact' });
+    expect(r.status).toBe(500);
+    expect(r.body.error).toMatch(/try again/i);
+    expect(m.all('ple_integrity_flags', 'update')).toHaveLength(5);   // bounded, not infinite
+    expect(m.find('audit_log')).toBeUndefined();
   });
 
   test('a session at the report cap answers 429 report_limit_reached and writes nothing more', async () => {
@@ -297,7 +368,7 @@ describe('idempotency and merging', () => {
     const r = await report();
     expect(r.status).toBe(429);
     expect(r.body.code).toBe('report_limit_reached');
-    expect(upserts()).toHaveLength(0);
+    expect(flagWrites()).toHaveLength(0);
   });
 });
 
