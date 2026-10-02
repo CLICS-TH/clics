@@ -14,7 +14,7 @@
 //     retry keeps the first reply while a failed citation retry fails the turn. ≤ 2 calls per turn.
 //   * the client's `language` rule — 'th' when the message holds ANY Thai codepoint
 //     (physician-ui/public/js/ple-chat.js).
-//   * CHAT_MAX_TOKENS  — max(1500, RIMPL_CHAT_MAX_TOKENS ?? 4000).
+//   * CHAT_MAX_TOKENS  — max(1500, RIMPL_CHAT_MAX_TOKENS ?? 4000), defined in rimpl/src/lib/turn-limits.js.
 // Each replica is pinned by a drift test (request.test.mjs) that reads chat.js as TEXT and fails if
 // the production string or expression it copies is no longer there verbatim. Change chat.js, and
 // the test tells you to change this file in the same PR.

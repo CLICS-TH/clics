@@ -55,7 +55,12 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
   // The client's language label (ple-chat.js): 'th' when the message holds ANY Thai codepoint.
   const pleChat = readFileSync(path.join(HERE, '..', '..', 'physician-ui', 'public', 'js', 'ple-chat.js'), 'utf8');
   assert.ok(pleChat.includes("const language = /[\u0E00-\u0E7F]/.test(message) ? 'th' : 'en';"), 'client language rule drifted');
-  assert.ok(chatSrc.includes("Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10))"), 'CHAT_MAX_TOKENS drifted');
+  // CHAT_MAX_TOKENS lives in lib/turn-limits.js (it also sizes the per-turn length cap); chat.js
+  // must still take it from there and pass it as maxTokens on both the first call and the retry.
+  const limitsSrc = readFileSync(path.join(HERE, '..', '..', 'rimpl', 'src', 'lib', 'turn-limits.js'), 'utf8');
+  assert.ok(limitsSrc.includes("const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));"), 'CHAT_MAX_TOKENS drifted');
+  assert.ok(chatSrc.includes("const { CHAT_MAX_TOKENS, MAX_TURN_CHARS } = require('../lib/turn-limits');"), 'chat.js no longer takes CHAT_MAX_TOKENS from turn-limits');
+  assert.equal(chatSrc.split('maxTokens: CHAT_MAX_TOKENS').length - 1, 2, 'chat.js must pass CHAT_MAX_TOKENS on the first call and the retry');
   assert.ok(chatSrc.includes("(socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)"), 'mode→prompt selection drifted');
   assert.ok(chatSrc.includes('systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE'), 'rescue prompt replacement drifted');
   assert.ok(chatSrc.includes("promptLabel('chat', systemPrompt)"), 'prompt_version label drifted');
