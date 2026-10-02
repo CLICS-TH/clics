@@ -276,7 +276,7 @@ an anchor needs a statement that is actually wrong, it is a *planted claim*, and
    guideline, which §1.5 forbids;
 3. a later tutor turn in the same transcript corrects it with evidence (the physician catches it, or
    the tutor concedes), so no anchor ends with an uncorrected error;
-4. it is recorded in `planted-claims.json` (fixture, turn, verbatim text, kind, the turn that corrects
+4. it is recorded in `planted-claims.json` or the anchor's sidecar `planted/anc-NNN.json` (fixture, turn, verbatim text, kind, the turn that corrects
    it). `validate.mjs` checks each entry against the fixture bytes and fails on a false claim with a
    citation on its line. An inaccuracy found in a tutor turn AFTER the text was panel-rated is not
    edited (that would change rated bytes); it is recorded there as kind `unplanted` instead (anc-101
@@ -479,6 +479,10 @@ The rule from now on:
 | design matrix | `node scripts/calibration/anchors/design.mjs` (`--check` to verify + print coverage) | none |
 | validate + manifest | `node scripts/calibration/anchors/validate.mjs` (`--check` to verify without writing) | none |
 | tests (CI) | `npm run test:calibration` | none |
+| held-out split (once, done) | `node scripts/calibration/anchors/anchor-split.mjs --reserve --seed 20261005 --held-out 40` (refuses to overwrite) | none |
+| batch plan | `node scripts/calibration/anchors/batch-plan.mjs` (`--check` to verify; prints the simulated cue-gate failure rate) | none |
+| author brief | `node scripts/calibration/anchors/author-brief.mjs` (`--check` to verify it matches AUTHORING / validate / cues / citations) | none |
+| batch intake | `node scripts/calibration/anchors/validate.mjs --batch N` or `--only anc-021,anc-034` (writes nothing; exit 1 = return to authors) | none |
 | what would be sent | `node scripts/calibration/anchors/score-local.mjs --pilot --dry-run` | none |
 | score (local box) | `LOCAL_AI_BASE_URL=… LOCAL_AI_MODEL=… LOCAL_AI_API_KEY=… node scripts/calibration/anchors/score-local.mjs --pilot --repeats 3 --concurrency 2 --out scripts/calibration/anchors/runs/pilot-local-<date>.json` | local box only |
 | re-check a past run | `node scripts/calibration/anchors/revalidate.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json` (writes `….revalidated.json`; needs rimpl deps) | none |
@@ -495,3 +499,40 @@ replies and were parsed by a laxer extractor; revalidate reports their rows as `
 Each row records the model that actually **served** it; `known-groups.mjs` reports those, not the
 requested model. The report stamps `prompt_version` and `rubric_version`. A cloud arm, when budget is approved, is
 `scripts/probe/model-agreement.mjs`-style and belongs in a separate, explicitly approved run.
+
+## 9. Scaling to the full cohort (prepared 2026-10-02)
+
+The 80 non-pilot anchors are written by authoring agents, one anchor each, from `AUTHOR-BRIEF.md` and
+one row of `batches.json`. Nobody writing an anchor calls an AI or sees the split. The order, fixed now:
+
+1. **Split first.** `SPLIT-anchors.json` was reserved before any non-pilot anchor existed (§7.5).
+2. **Plan.** `batch-plan.mjs` cuts the 80 rows into 8 batches of 10. Every batch spans the designed
+   range and holds 2 English rows. Each row is assigned a **cue budget** — total physician length,
+   number of acknowledgement tokens, numeral density, list lines, and zero rubric-descriptor words —
+   balanced along the composite order, so no budget tracks the target by construction. The pilot
+   showed that asking authors to "vary" these is not enough. Simulated: with every author inside
+   their budget, the 100-anchor cue gate fails in 0% of draws. With authors who drift +5 physician
+   characters per composite point (the pilot's habit), it fails 97%. Budgets are therefore checked at
+   intake.
+3. **Write.** One author per row writes `fixtures/anc-NNN.json` and, only if it planted or left
+   unqualified a tutor claim, `planted/anc-NNN.json` (sidecars, so parallel authors never edit one
+   shared file). `validate.mjs` reads `planted-claims.json` and every sidecar.
+4. **Intake.** `validate.mjs --batch N` checks, for that batch only:
+   - every per-fixture rule;
+   - the cue budgets — a deviation is an error here and a warning in the full run;
+   - the planted-claim entries;
+   - the batch's contribution to the cohort cue gate, with the fixtures that push a pair most.
+
+   It writes nothing. Exit 1 means the batch goes back to its authors.
+5. **Record.** Once a batch passes intake, `validate.mjs` (no flags) writes `manifest.json`.
+6. **Screen.** The blind panel and the local evaluator score the batch.
+   - **Tuning anchors** follow the §7 amendment (one panel-driven rewrite, then exclude and replace).
+   - **Held-out anchors are never rewritten after a score**, and a test enforces it once a run in
+     `runs/` has scored them.
+
+What had to change in the tooling for 100 fixtures:
+- `known-groups.mjs` refused `--pilot` once the split existed. `--pilot` now implies `--split tuning`.
+- `score-local.mjs` takes `--split`.
+- A §7.4 replacement inherits its excluded anchor's split.
+- With the pilot freeze lapsed, every pilot pair counts. The budgets above are what keeps the cohort
+  inside the gate.

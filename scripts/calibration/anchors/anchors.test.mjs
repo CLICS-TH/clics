@@ -17,8 +17,11 @@ import {
 } from './design.mjs';
 import {
   validateFixture, validateAll, serialiseManifest, MANIFEST_PATH, FIXTURES_DIR, REFLECTION_HEADINGS, thaiShare, checkPlanted,
+  checkBudget, batchCueContribution,
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
+import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH, PLAN_MD_PATH, BUDGET_LEVELS } from './batch-plan.mjs';
+import { buildBrief, BRIEF_PATH } from './author-brief.mjs';
 import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, freezeApplies, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
 import { checkSplit, splitFilter, heldOutEligible, loadAnchorSplit, reserveByDesign } from './anchor-split.mjs';
 import {
@@ -667,5 +670,109 @@ describe("revalidate.mjs — replays saved replies through production's contract
     assert.equal(res.consistency.calls, 2);
     const bad = reply({ ...t, extra: 1 });
     assert.equal((await replayRow({ replies: [bad] }, { mode: 'adaptive', jsonRetries: 2 })).error, 'replay_exhausted');
+  });
+});
+
+describe('scaling to 100 — batch plan, author brief, intake', () => {
+  const design = committedDesign;
+  const plan = planBatches(design);
+  const rows = plan.batches.flatMap((b) => b.rows);
+  const nonPilot = activeAnchors(design).filter((a) => !a.pilot);
+
+  test('batches.json and BATCH-PLAN.md are exactly what the seed generates', async () => {
+    assert.equal(await readFile(BATCHES_PATH, 'utf8'), serialisePlan(plan));
+    assert.equal(await readFile(PLAN_MD_PATH, 'utf8'), planMarkdown(plan) + '\n');
+  });
+
+  test('every non-pilot anchor is in exactly one batch, with its exact design attributes', () => {
+    assert.equal(plan.batches.length, 8);
+    for (const b of plan.batches) assert.equal(b.rows.length, 10);
+    assert.deepEqual(rows.map((r) => r.id).sort(), nonPilot.map((a) => a.id).sort());
+    for (const r of rows) {
+      const d = design.anchors.find((a) => a.id === r.id);
+      for (const k of ['language', 'specialty', 'case', 'tutor_mode', 'physician_turns', 'reflection', 'profile', 'dissociated_domains', 'targets', 'target_composite']) {
+        assert.deepEqual(r[k], d[k], `${r.id} ${k}`);
+      }
+    }
+  });
+
+  test('each batch spans the range and carries its share of English', () => {
+    for (const b of plan.batches) {
+      const c = b.rows.map((r) => r.target_composite);
+      assert.ok(Math.min(...c) <= 25 && Math.max(...c) >= 85, `batch ${b.batch} spans ${Math.min(...c)}-${Math.max(...c)}`);
+      assert.equal(b.rows.filter((r) => r.language === 'en').length, 2, `batch ${b.batch}`);
+    }
+  });
+
+  test('the plan never reveals the split', async () => {
+    const raw = await readFile(BATCHES_PATH, 'utf8') + await readFile(PLAN_MD_PATH, 'utf8') + await readFile(BRIEF_PATH, 'utf8');
+    assert.doesNotMatch(raw, /held.?out|"tuning"|SPLIT-anchors/i);
+  });
+
+  test('cue budgets are balanced and do not track the target', () => {
+    const pearson = (xs, ys) => { const n = xs.length, mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+      let p = 0, sx = 0, sy = 0; xs.forEach((x, i) => { p += (x - mx) * (ys[i] - my); sx += (x - mx) ** 2; sy += (ys[i] - my) ** 2; }); return p / Math.sqrt(sx * sy); };
+    for (const [f, levels] of Object.entries(BUDGET_LEVELS)) {
+      const order = [...new Set(levels)];
+      const v = rows.map((r) => order.indexOf(r.cue_budget[f]));
+      assert.ok(Math.abs(pearson(v, rows.map((r) => r.target_composite))) < 0.15, `${f} tracks the composite`);
+      for (const lvl of order) {
+        const want = rows.length * levels.filter((x) => x === lvl).length / levels.length;
+        assert.ok(Math.abs(rows.filter((r) => r.cue_budget[f] === lvl).length - want) <= 1, `${f}=${lvl}`);
+      }
+    }
+    for (const r of rows) assert.equal(r.cue_budget.rubric_echo, 0);
+  });
+
+  test('authors landing inside their budgets keep the cohort cue gate passing (simulated)', async () => {
+    const { results } = await validateAll();
+    const existing = results.filter((r) => r.features && r.row && !r.row.excluded).map((r) => ({ id: r.id, row: r.row, features: r.features }));
+    const sim = simulateCueGate(plan, existing, { sims: 150, cueCheck });
+    assert.ok(sim.fail_rate <= 0.05, `cue gate fails ${(sim.fail_rate * 100).toFixed(1)}% of simulated cohorts ${JSON.stringify(sim.pairs)}`);
+  });
+
+  test('AUTHOR-BRIEF.md is exactly what author-brief.mjs builds, and carries the governing text verbatim', async () => {
+    const brief = await readFile(BRIEF_PATH, 'utf8');
+    assert.equal(brief, await buildBrief());
+    const md = await readFile(path.join(HERE, 'AUTHORING.md'), 'utf8');
+    for (const h of ['### d1 ', '### d4 ', '### d5 ', '### d7 ', '**Planted claims']) {
+      const line = md.split('\n').find((l) => l.startsWith(h));
+      assert.ok(line && brief.includes(line), `brief lacks: ${h}`);
+    }
+    for (const h of REFLECTION_HEADINGS) assert.ok(brief.includes(h));
+    assert.ok(brief.includes('`อาการ 3 ปี` → `อาการ [AGE-1]`'), 'the N ปี masking note');
+  });
+
+  test('checkBudget flags each kind of deviation', () => {
+    const b = { length: 'short', ack_turns: 0, numerals: 'few', list_lines: 0, rubric_echo: 0 };
+    const ok = { length: 1000, acks: 0, numbers: 1, list_lines: 0, rubric_echo: 0, echo_hits: {} };
+    assert.deepEqual(checkBudget(ok, 5, b), []);
+    assert.match(checkBudget({ ...ok, length: 1900 }, 5, b).join(), /length/);
+    assert.match(checkBudget({ ...ok, acks: 0.4 }, 5, b).join(), /acknowledgement/);
+    assert.match(checkBudget({ ...ok, numbers: 5 }, 5, b).join(), /numerals/);
+    assert.match(checkBudget({ ...ok, list_lines: 3 }, 5, b).join(), /list line/);
+    assert.match(checkBudget({ ...ok, rubric_echo: 1, echo_hits: { 'd5 (5): fact': 1 } }, 5, b).join(), /rubric-descriptor/);
+  });
+
+  test('batchCueContribution names the fixture that pushes a cue', () => {
+    const R = rng(11);
+    const base = activeAnchors(design).slice(0, 60).map((row) => ({ id: row.id, row, features: {
+      length: 1400 + 200 * R.normal(), acks: 0.2, numbers: 2, list_lines: 0, rubric_echo: 0 } }));
+    const top = [...base].sort((a, b) => b.row.target_composite - a.row.target_composite).slice(0, 3).map((e) => e.id);
+    const pushed = base.map((e) => (top.includes(e.id) ? { ...e, features: { ...e.features, length: 6000 } } : e));
+    const c = batchCueContribution(pushed, top);
+    const p = c.pairs.find((x) => x.feature === 'length' && x.target === 'composite');
+    assert.ok(p.worse && p.pushers.length && top.includes(p.pushers[0].id));
+  });
+
+  test('intake mode: validate.mjs --only reports a fixture and writes nothing', async () => {
+    const before = await readFile(MANIFEST_PATH, 'utf8');
+    const out = execFileSync(process.execPath, [path.join(HERE, 'validate.mjs'), '--only', 'anc-020'], { encoding: 'utf8' });
+    assert.match(out, /anc-020\s+ok/);
+    assert.equal(await readFile(MANIFEST_PATH, 'utf8'), before);
+    let failed = false;
+    try { execFileSync(process.execPath, [path.join(HERE, 'validate.mjs'), '--only', 'anc-099'], { encoding: 'utf8', stdio: 'pipe' }); }
+    catch (e) { failed = true; assert.match(String(e.stdout), /anc-099\s+MISSING/); }
+    assert.ok(failed, 'a missing fixture must fail intake');
   });
 });

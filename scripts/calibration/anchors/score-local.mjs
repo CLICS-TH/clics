@@ -31,6 +31,8 @@
  *       --out scripts/calibration/anchors/runs/pilot-local.json
  *
  *   --pilot             only the 20 active pilot anchors (design.json pilot:true, not excluded)
+ *   --split tuning|heldout   only that half of SPLIT-anchors.json (anchor-split.mjs splitFilter).
+ *                       Scoring held-out is allowed; rewriting a held-out anchor after it is not.
  *   --only a,b          only these ids          --limit n     first n after filtering
  *   --repeats K         runs per anchor (default 3 — AUTHORING.md §7)
  *   --concurrency n     default 2, never above LOCAL_MAX_CONCURRENCY when that is set
@@ -48,6 +50,7 @@ import { readdir, readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import { loadAnchorSplit, splitFilter } from './anchor-split.mjs';
 import { readConfig, chatCompletion, parseArgs, intArg, fail, hr, dim, green, red, yellow, bold } from '../../probe/lib.mjs';
 
 import { pis7PromptFor } from '../../../rimpl/src/lib/prompts.js';
@@ -85,6 +88,11 @@ let ids = (await readdir(fixturesDir).catch(() => [])).filter((f) => /^anc-\d{3}
 // of fixtures/, and this guards a stray copy.
 ids = ids.filter((id) => !design.anchors.find((a) => a.id === id)?.excluded);
 if (flags.pilot) ids = ids.filter((id) => design.anchors.find((a) => a.id === id)?.pilot);
+if (typeof flags.split === 'string') {
+  let allowed;
+  try { allowed = splitFilter(design, await loadAnchorSplit(), flags.split); } catch (e) { fail(e.message); }
+  ids = ids.filter((id) => allowed.has(id));
+}
 if (typeof flags.only === 'string') {
   const only = flags.only.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
   const missing = only.filter((id) => !ids.includes(id));
