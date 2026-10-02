@@ -1,0 +1,9 @@
+{"rater":"sonnet","scores":{
+"H01":{"d1":4,"d2":3,"d3":4,"d4":4,"d5":5,"d6":3,"d7":4,"note":"Challenged 'LNG-IUS ได้เลยทุกราย' and 'COC ได้ทุกราย' as unsourced, citing BMI 31/DM2/HbA1c 7.1/VTE; DDx listed unranked; reflection case-grounded but only summarises."},
+"H02":{"d1":4,"d2":4,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Split known/unknown/limits for denosumab at eGFR<30; checked Endocrine Soc 2019 and caught unsupported eGFR claim; 60 km distance drives drug choice; reflection names change + Ca at 2 wk."},
+"H03":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":5,"d6":1,"d7":5,"note":"BRIDGE CHADS2~2 vs this pt score 6; revised to no-bridge as stroke >12 wk; 'ตัวเลขชั่วโมง...RCT หรือความเห็นผู้เชี่ยวชาญ' ; reflection only 'ได้ความรู้เยอะมาก'."},
+"H04":{"d1":3,"d2":4,"d3":4,"d4":4,"d5":5,"d6":5,"d7":5,"note":"'Solid/Untested: frail women who live alone/Blind spot: no oxygen or frailty term. Admit.'; verified minor-criteria count in guideline; reflection names frailty change and local-follow-up gap."},
+"H05":{"d1":4,"d2":4,"d3":3,"d4":4,"d5":1,"d6":5,"d7":3,"note":"Ranked white-coat>primary>secondary ('pt ดูตื่นเต้น'), revised plan; but 'ที่แนะนำมาทั้งหมดผมใช้ตามนั้นเลย ไม่มีอะไรจะถามเพิ่ม' = no critique of AI; reflection strong, concrete."},
+"H06":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":0,"d6":1,"d7":1,"note":"Generic 'list all causes/steps/doses' prompts, topic-hopping, 'OK noted', 'Please write the management plan...copy into the chart'; summary restates AI; 7-week-old never used."},
+"H07":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Ranked ACL>meniscus>plateau fx with reasons; challenged 'Ottawa ลบก็ไม่ต้อง film' scope/study design; driver, far ortho shape plan; 'tutor ยืนยันแทนไม่ได้'; reflection with chart review of 20 cases."}
+}}

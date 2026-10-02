@@ -395,6 +395,16 @@ limits) or `attribution` (true, but placed under a citation that does not carry 
 - **Authors overshoot, most of all on low targets.** Blind raters put the pilot about +8 above target on
   average, and the misses were nearly all *too high*. A 0, 1 or 2 needs a **visible absence**: the turn
   where the behaviour should appear and does not. When unsure, write lower.
+- **Batch 1 still overshot, under this brief** (blind panel on its 5 tuning anchors: mean +13.5, all 5
+  too high, 2 beyond ±15). Domains targeted at 3 and 4 read +0.6 to +0.8 on average, so this is not
+  only a low-target problem. The two misses were a **low domain written next to high ones**: the
+  high behaviour supplied the evidence raters credited to the low one. In anc-027, setting-driven
+  decisions and a graded appraisal (d3 = 5, d5 = 5) read as reasoning, and a d2 = 1 was rated 4. In
+  anc-064, case details the physician raised read as integration, and a d3 = 2 was rated 4. When a
+  domain is ≤ 2 and others are ≥ 4, keep the high behaviour from doing the low domain's work: for
+  d2 ≤ 2 the decisions come with **no** "because" and no alternatives anywhere, and for d3 ≤ 2 the
+  patient's details are stated once and **visibly not used** where they should change the plan. For a
+  domain targeted 3–4, write the plainer of the two versions you are weighing.
 - **d4 = 0 together with d5 ≥ 4 is the hardest combination.** Critiquing the tutor's earlier answers
   *is* picking them up, which reads as follow-up. What finally worked (anc-101): the middle turns are
   bare, generic topic hops that ignore the tutor's ❓; the appraisal comes once, at the end, as a note to
