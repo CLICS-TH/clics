@@ -15,7 +15,8 @@
 // bound later, at first scoring: anchors.test.mjs fails if a held-out fixture that any run in runs/ has
 // scored no longer has the bytes that run scored (held-out anchors are never rewritten after a score).
 //
-//   node scripts/calibration/anchors/anchor-split.mjs --reserve --seed 20261005 --held-out 40
+//   node scripts/calibration/anchors/anchor-split.mjs --reserve --seed 20261005 --held-out 60
+//   (60: ~80% power for the two-rater ICC lower bound to clear 0.75 at a true 0.88 — AUTHORING.md §7.5)
 //
 // Method: the eligible ids (non-pilot, active), sorted by target composite, are cut into consecutive
 // strata of (eligible / held-out) ids; one id per stratum is drawn with a seeded RNG. So held-out spans

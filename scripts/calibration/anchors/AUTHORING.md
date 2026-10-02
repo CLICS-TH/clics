@@ -369,11 +369,18 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
    `SPLIT-anchors.json` as soon as it exists. Once it exists, `known-groups.mjs` requires
    `--split tuning|heldout` (`--pilot` implies `tuning`, since the pilot is tuning-only).
    *Reserved 2026-10-02, before any non-pilot anchor was authored or screened* (D13):
-   `anchor-split.mjs --reserve --seed 20261005 --held-out 40`. **40 held-out, 60 tuning** (the 20
-   pilot anchors plus 40 new). The split is reserved **by design id**, not by fixture: the probe's
+   `anchor-split.mjs --reserve --seed 20261005 --held-out 60`. **60 held-out, 40 tuning** (the 20
+   pilot anchors plus 20 new). The split is reserved **by design id**, not by fixture: the probe's
    `reserve-split.mjs` hashes fixture files, which here would mean writing the anchors before
    reserving, and authoring is the step the split must precede. Held-out is stratified over the
-   designed composite, so it spans the whole range (17–93), unlike the probe's held-out (32–62).
+   designed composite, so it spans the whole range (16–93), unlike the probe's held-out (32–62).
+   **Why 60.** The cohort is about 100 so that the held-out test has power. For the two-rater
+   ICC(A,1) lower bound to clear 0.75 when the true value is 0.88 (the D18 bar), the earlier power
+   work for PR #104 found about 60 pairs gives 80% power, and 26 pairs only a coin flip
+   (`pairsNeededTwoRater` = 26 is the coin-flip n). Re-simulated with `iccTwoRater`, no rater bias,
+   3000 reps: 45 pairs → 0.76, 50 → 0.79, 55 → 0.84, **60 → 0.87**; with a rater bias of 0.5 SD of the
+   error, 60 → 0.61. The first reservation (40 held-out, 61cdcb7) gave 0.71, underpowered by design.
+   It was redrawn **before any non-pilot anchor was authored or screened**, in a commit that says so.
    Fixture bytes are bound at first scoring: `anchors.test.mjs` fails if a held-out fixture that any
    run in `runs/` scored no longer has the bytes that run scored.
    **What this means for authoring and screening.** Every anchor, held-out or tuning, is written the
@@ -479,7 +486,7 @@ The rule from now on:
 | design matrix | `node scripts/calibration/anchors/design.mjs` (`--check` to verify + print coverage) | none |
 | validate + manifest | `node scripts/calibration/anchors/validate.mjs` (`--check` to verify without writing) | none |
 | tests (CI) | `npm run test:calibration` | none |
-| held-out split (once, done) | `node scripts/calibration/anchors/anchor-split.mjs --reserve --seed 20261005 --held-out 40` (refuses to overwrite) | none |
+| held-out split (once, done) | `node scripts/calibration/anchors/anchor-split.mjs --reserve --seed 20261005 --held-out 60` (refuses to overwrite) | none |
 | batch plan | `node scripts/calibration/anchors/batch-plan.mjs` (`--check` to verify; prints the simulated cue-gate failure rate) | none |
 | author brief | `node scripts/calibration/anchors/author-brief.mjs` (`--check` to verify it matches AUTHORING / validate / cues / citations) | none |
 | batch intake | `node scripts/calibration/anchors/validate.mjs --batch N` or `--only anc-021,anc-034` (writes nothing; exit 1 = return to authors) | none |
