@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 
 import {
   parseCitations, matchKnown, yearValid, verifyCitation, verifyReport, esearch, makeRateLimiter, loadKnownSources, WORDS_MAX_HITS,
+  MAX_HITS, organisationOnly,
 } from './cite-verify.mjs';
 import { reportFor, entryFor, ITEM_EN_NATURAL } from './test-fixtures.mjs';
 
@@ -205,7 +206,7 @@ test('rate limiter: never more than 3 requests per second (fake clock)', async (
 
 test('verifyReport: per-item citations and a summary that refuses to say "fabricated"', async () => {
   const report = reportFor('t', 'local', 'm', [
-    entryFor(ITEM_EN_NATURAL, 'Start at eGFR 20 (KDIGO Diabetes CKD, 2022) and see (Fake Society, 2023).'),
+    entryFor(ITEM_EN_NATURAL, 'Start at eGFR 20 (KDIGO Diabetes CKD, 2022) and see (Fake Consensus Panel, 2023).'),
     { ...entryFor({ ...ITEM_EN_NATURAL, id: 'x2' }, ''), final: { ok: false, error: 'timeout' } },
   ]);
   const out = await verifyReport(report, { known, offline: true });
@@ -215,4 +216,76 @@ test('verifyReport: per-item citations and a summary that refuses to say "fabric
   assert.match(out.summary.note, /NOT that it is fabricated/);
   assert.match(out.summary.note, /publisher-only.*document-unconfirmed.*NOT counted as verified/);
   assert.deepEqual(out.items.map((i) => i.n), [2, 0]);
+});
+
+/* ------------------------------------------- organisation-only + hit caps */
+
+// PR #116 review: in the 2026-10-02 baseline, 16 of the 45 `verified` citations were organisation
+// names that PubMed's quoted-title search matched to unrelated papers. These must never verify,
+// whatever PubMed would answer: the stub below returns a small, "plausible" hit count for EVERY
+// query — the worst case for the old phrase path.
+const ORG_ONLY = [
+  ['ACR Guideline', 2021], ['National Institute of Neurological Disorders and Stroke', 2023], ['NINDS', 2023],
+  ['FDA Boxed Warning', 2013], ['American Academy of Otolaryngology', 2019], ['AAO', 2019],
+  ['EAU Guidelines', 2023], ['Endocrine Society', 2016], ['ASH Guideline', 2018], ['ACEP Clinical Policy', 2018],
+  ['Centers for Disease Control and Prevention', 2024], ['CDC', 2024], ['ATA Guidelines', 2014],
+  ['AGA Clinical Practice Update', 2021], ['American Thyroid Association', 2015],
+];
+function alwaysHits(count, calls) {
+  return async (url) => {
+    calls.push(decodeURIComponent(new URL(url).searchParams.get('term')));
+    return { ok: true, status: 200, json: async () => ({ esearchresult: { count: String(count), idlist: ['1'] } }) };
+  };
+}
+
+test('regression: organisation-only names never come back verified, and are not looked up', async () => {
+  for (const [name, year] of ORG_ONLY) {
+    const calls = [];
+    const r = await verifyCitation(cite(name, year), { known, cache: new Map(), fetchImpl: alwaysHits(3, calls) });
+    assert.notEqual(r.status, 'verified', `${name}, ${year} → verified`);
+    assert.deepEqual(calls, [], `${name}: no PubMed query for an organisation-only name`);
+  }
+  const org = await verifyCitation(cite('Endocrine Society', 2016), { known, offline: true });
+  assert.deepEqual([org.status, org.basis], ['publisher-only', 'organisation-name']);
+  assert.equal((await verifyCitation(cite('AAO', 2019), { known, offline: true })).status, 'unverified', 'a bare acronym could be a trial: unverified, not publisher-only');
+  assert.equal((await verifyCitation(cite('NINDS', 2023), { known, offline: true })).status, 'year-mismatch', 'curated (the 1995 rt-PA trial) wins first');
+});
+
+test('organisationOnly: bodies and acronym+document-type words, never a real title that mentions a body', () => {
+  assert.equal(organisationOnly('Centers for Disease Control and Prevention'), 'organisation');
+  assert.equal(organisationOnly('Endocrine Society Clinical Practice Guideline'), 'organisation');
+  assert.equal(organisationOnly('AGA Clinical Practice Update'), 'organisation');
+  assert.equal(organisationOnly('CDC'), 'bare-acronym');
+  for (const title of ['Dexamethasone in Adults with Bacterial Meningitis', 'ISCHEMIA Trial', 'Fake Guideline',
+    'Society of Thoracic Surgeons risk model for cardiac surgery', 'Infectious Diseases Society of America guidelines on cellulitis']) {
+    assert.equal(organisationOnly(title), null, title);
+  }
+});
+
+test('hit cap: an exact-phrase match on more than MAX_HITS titles is a topic, not a citation', async () => {
+  assert.equal(MAX_HITS, WORDS_MAX_HITS, 'one cap for both PubMed paths');
+  const calls = [];
+  const r = await verifyCitation(cite('Hospital Medicine Overview', 2016), { known, cache: new Map(), fetchImpl: alwaysHits(37, calls) });
+  assert.equal(r.status, 'unverified');
+  assert.match(r.reason, /too generic.*37/);
+  assert.equal(calls.length, 1, 'an over-cap phrase stops the lookup');
+  // A cache written before the cap existed is re-judged under it, not trusted.
+  const cache = new Map([['hospital medicine overview|2016', { phrase_year: 37, words_year: null, phrase_any: null, words_any: null, pmids: [] }]]);
+  assert.equal((await verifyCitation(cite('Hospital Medicine Overview', 2016), { known, cache })).status, 'unverified');
+  // An over-cap phrase in other years is not a year-mismatch either.
+  const anyYear = mockFetch({ '"Hospital Medicine Overview"[Title] AND 2016': { count: 0 }, '"Hospital Medicine Overview"[Title]': { count: 500 } });
+  assert.equal((await verifyCitation(cite('Hospital Medicine Overview', 2016), { known, cache: new Map(), fetchImpl: anyYear })).status, 'unverified');
+});
+
+test('real paper titles still verify through PubMed with a proper match (stubbed, offline)', async () => {
+  // de Gans & van de Beek, NEJM 2002 — the actual title, an exact-phrase hit.
+  const deGans = await verifyCitation(cite('Dexamethasone in Adults with Bacterial Meningitis', 2002),
+    { known, cache: new Map(), fetchImpl: mockFetch({ '"Dexamethasone in Adults with Bacterial Meningitis"[Title] AND 2002': { count: 1, ids: ['12432041'] } }) });
+  assert.deepEqual([deGans.status, deGans.basis], ['verified', 'pubmed-phrase']);
+  // Fowler et al., JAMA 2019 (CITRIS-ALI) — a long title the phrase index misses; title words narrow it.
+  const fowlerTitle = 'Effect of Vitamin C Infusion on Organ Failure and Biomarkers of Inflammation and Vascular Injury in Patients With Sepsis and Severe Acute Respiratory Failure';
+  const fowler = await verifyCitation(cite(fowlerTitle, 2019), { known, cache: new Map(), fetchImpl: mockFetch({ '[ti] AND 2019[dp]': { count: 1, ids: ['31573637'] }, '"Effect of Vitamin C': { count: 0, missing: true } }) });
+  assert.deepEqual([fowler.status, fowler.basis], ['verified', 'pubmed-title-words']);
+  // The trial that used to verify only through the uncapped phrase path is curated now.
+  assert.equal((await verifyCitation(cite('ISCHEMIA Trial', 2020), { known, offline: true })).status, 'verified');
 });

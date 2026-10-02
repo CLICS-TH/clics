@@ -10,10 +10,16 @@
 //      that document's ("ESC Guidelines on Garlic … in Heart Failure") is `document-unconfirmed`; a
 //      PUBLISHER/series match ("WHO …", "ESC …", "ADA …") is `publisher-only`; a match with an
 //      unlisted year is `year-mismatch`.
-//   2. PubMed — anything not curated is looked up with NCBI E-utilities esearch: the cited name as a
-//      quoted [Title] phrase AND the year as [dp], falling back to every title word as [ti] (accepted
-//      only when it narrows to <= WORDS_MAX_HITS papers). A hit is `verified`; a hit only without the
-//      year is `year-mismatch`; nothing is `unverified`.
+//   2. Organisation-only names — a name that is just a body ("Endocrine Society", "Centers for
+//      Disease Control and Prevention"), or an acronym plus a document-type word ("ACR Guideline",
+//      "FDA Boxed Warning") — are `publisher-only` WITHOUT a PubMed lookup. PubMed's title index
+//      matches such a name to any paper that mentions the body, which is how 16 of the 45
+//      `verified` in the 2026-10-02 baseline came about. A bare uncurated acronym ("AAO") is
+//      `unverified`: it cannot be told apart from a trial acronym, and it is not looked up.
+//   3. PubMed — anything else is looked up with NCBI E-utilities esearch: the cited name as a quoted
+//      [Title] phrase AND the year as [dp], falling back to every title word as [ti]. Both are
+//      accepted only when they narrow to <= MAX_HITS papers; more is a topic, not a citation. A hit
+//      is `verified`; a hit only without the year is `year-mismatch`; nothing is `unverified`.
 //
 // THE FIVE LABELS, AND WHAT THEY DO NOT MEAN
 //   verified       a real document with this name exists for this year. It does NOT mean the
@@ -310,6 +316,15 @@ export async function verifyCitation(cit, ctx) {
   if (AUTHOR_YEAR_RE.test(cit.name.trim())) {
     return { ...base, status: 'unverified', basis: null, reason: 'author-year citation names no title, so it cannot be resolved to one paper' };
   }
+  const org = organisationOnly(cit.name);
+  if (org === 'organisation') {
+    return { ...base, status: 'publisher-only', basis: 'organisation-name', specificity: 'family',
+      reason: 'names only an organisation (optionally with a document-type word) — the document is NOT identified; not looked up in PubMed' };
+  }
+  if (org === 'bare-acronym') {
+    return { ...base, status: 'unverified', basis: null,
+      reason: 'a bare acronym that is not in the curated list — an organisation and a trial look the same; not looked up in PubMed' };
+  }
   if (ctx.offline) return { ...base, status: 'unverified', basis: null, reason: 'offline — PubMed lookup skipped' };
 
   const phrase = cit.name.replace(/"/g, '').trim();
@@ -325,21 +340,57 @@ export async function verifyCitation(cit, ctx) {
     }
   }
   const evidence = looked;
-  if (looked.phrase_year > 0) return { ...base, status: 'verified', basis: 'pubmed-phrase', specificity: 'pubmed', evidence };
-  if (looked.words_year != null && looked.words_year >= 1 && looked.words_year <= WORDS_MAX_HITS) {
+  // The caps are applied HERE, at classification time, so a cache written before they existed is
+  // re-judged under them rather than trusted.
+  const narrow = (n) => n != null && n >= 1 && n <= MAX_HITS;
+  if (narrow(looked.phrase_year)) return { ...base, status: 'verified', basis: 'pubmed-phrase', specificity: 'pubmed', evidence };
+  if (narrow(looked.words_year)) {
     return { ...base, status: 'verified', basis: 'pubmed-title-words', specificity: 'pubmed', evidence,
       reason: 'every title word matches a paper from this year (looser than an exact phrase)' };
   }
-  if (looked.phrase_any > 0 || (looked.words_any != null && looked.words_any >= 1 && looked.words_any <= WORDS_MAX_HITS)) {
+  if (narrow(looked.phrase_any) || narrow(looked.words_any)) {
     return { ...base, status: 'year-mismatch', basis: 'pubmed', specificity: 'pubmed', evidence, reason: 'a PubMed title matches, but not in this year' };
   }
-  const generic = looked.words_year != null && looked.words_year > WORDS_MAX_HITS;
+  const hits = [looked.phrase_year, looked.words_year, looked.phrase_any, looked.words_any].filter((n) => n > MAX_HITS);
   return { ...base, status: 'unverified', basis: null, evidence,
-    reason: generic ? `name too generic to resolve (${looked.words_year} title-word hits)` : 'no curated match and no PubMed title match' };
+    reason: hits.length ? `name too generic to resolve (${Math.max(...hits)} PubMed title hits)` : 'no curated match and no PubMed title match' };
 }
 
-// A title-words AND query that returns more than this many papers is a topic, not a citation.
-export const WORDS_MAX_HITS = 20;
+// A title search that returns more than this many papers matched a topic or an organisation, not
+// one citation. The SAME cap applies to the exact-phrase path and the title-words fallback: the
+// phrase path used to accept any count, so "Endocrine Society, 2016" (37 papers) and "Centers for
+// Disease Control and Prevention, 2024" (44) read verified.
+export const MAX_HITS = 20;
+export const WORDS_MAX_HITS = MAX_HITS; // kept for callers and tests that name the old constant
+
+/* ------------------------------------------------------ organisation-only */
+
+// Document-type words that may follow an organisation's name without identifying a document.
+const DOC_TYPE_SUFFIX = /\s+(?:clinical\s+practice\s+(?:guidelines?|update)|clinical\s+policy|boxed\s+warning|guidelines?|statement|report)\s*$/i;
+// The nouns organisations are named with. The whole name must be an organisation name built on one.
+const ORG_NOUN = '(?:Society|Association|Academy|College|Institute|Institutes|Organi[sz]ation|Council|Federation|Foundation|Centers?|Centres?|Agency|Administration|Board|Committee|Consortium|Network|Ministry|Department)';
+const ORG_NAME = new RegExp(
+  `^(?:the\\s+)?(?:[A-Z][\\w'’&.-]*\\s+){0,6}${ORG_NOUN}` +
+  `(?:\\s+(?:of|for|on)\\s+(?:(?:[A-Z][\\w'’-]*|and|&|the|of)\\s*){1,8})?$`);
+const ACRONYM_TOKEN = /^[A-Z][A-Z0-9&-]*[A-Z0-9]$/;
+
+/**
+ * Is a cited name nothing but an organisation?
+ *   'organisation'  a body's name ("Endocrine Society"), or acronym(s) followed by a document-type
+ *                   word ("ACR Guideline", "AGA Clinical Practice Update") — publisher-only
+ *   'bare-acronym'  only acronym token(s) and no document-type word ("AAO") — unverifiable as named
+ *   null            anything else, including a real paper title that merely contains a body's name
+ */
+export function organisationOnly(name) {
+  const trimmed = String(name).replace(/[*_]/g, '').trim();
+  const stripped = trimmed.replace(DOC_TYPE_SUFFIX, '').trim();
+  const hadDocType = stripped !== trimmed;
+  if (!stripped) return null;
+  const parts = stripped.split(/[\s/]+/).filter(Boolean);
+  if (parts.length <= 3 && parts.every((t) => ACRONYM_TOKEN.test(t))) return hadDocType ? 'organisation' : 'bare-acronym';
+  if (ORG_NAME.test(stripped)) return 'organisation';
+  return null;
+}
 
 /**
  * The PubMed queries for one (name, year), in the order they stop being needed.
@@ -355,11 +406,12 @@ export async function pubmedLookup(phrase, yearCE, ctx) {
   const py = await run(`"${phrase}"[Title] AND ${yearCE}[dp]`);
   out.phrase_year = py.count;
   out.pmids = py.ids;
-  if (py.count > 0) return out;
+  if (py.count > 0 && py.count <= MAX_HITS) return out;
+  if (py.count > MAX_HITS) { out.pmids = []; return out; }   // a topic or a body, not a document
   if (wordsQ) {
     const wy = await run(`${wordsQ} AND ${yearCE}[dp]`);
     out.words_year = wy.count;
-    if (wy.count >= 1 && wy.count <= WORDS_MAX_HITS) { out.pmids = wy.ids; return out; }
+    if (wy.count >= 1 && wy.count <= MAX_HITS) { out.pmids = wy.ids; return out; }
   }
   out.phrase_any = (await run(`"${phrase}"[Title]`)).count;
   if (out.phrase_any > 0) return out;
