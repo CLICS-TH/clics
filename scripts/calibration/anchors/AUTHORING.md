@@ -30,33 +30,32 @@ Sources this spec is grounded in, and which win where they differ:
 1. **Synthetic, no PII.** No names of patients, physicians, nurses or relatives (not even invented
    ones: the PII filter will mask them and the scored text would then differ from the fixture). No
    HN/AN, phone, ID number, date of birth, exact admission date, address, province, or named
-   hospital. Frame cases generically: `ผู้ป่วยชายอายุ 58 ปี`, `a 34-year-old woman, G2P1`,
-   `รพ.ชุมชนขนาด 30 เตียง`, `a district hospital without CT`. Ages, labs and vitals are fine.
+   hospital. Frame cases generically: `ผู้ป่วยชายในวัย 50 กว่า`, `a woman in her 30s, G2P1`,
+   `รพ.ชุมชนขนาด 30 เตียง`, `a district hospital without CT`. Labs and vitals are fine; ages need the
+   phrasing below.
    `validate.mjs` runs `rimpl/src/services/pii-filter.js` over every turn: any change is a failure.
    That rule is stricter than privacy needs, on purpose: every scoring path runs the same filter
    (`flattenForPrompt`), so a masked span is text the evaluator never sees, and an anchor whose
-   evidence was masked no longer expresses its target. The filter over-masks two things that are
-   everywhere in clinical Thai, so write around them:
+   evidence was masked no longer expresses its target.
 
-   | masked by production (do NOT write)                       | survives (write this instead)                         |
-   |-----------------------------------------------------------|-------------------------------------------------------|
-   | `อายุ 58`, `58 ปี`, `อายุ 58 ปี`, `เด็กอายุ 2 เดือน` → `[AGE-n]` | `ในวัย 50 กว่า`, `วัย 70`, `อายุมากกว่า 65`, `เด็ก 7 ขวบ`, `ผู้สูงอายุ` |
-   | `a 58-year-old`, `age 58`, `age 6 weeks`                  | `in his 50s`, `over 65`, `older than 65`, `6-week-old infant`, `2 months old` |
-   | `คุณ…` anywhere — `คุณคิดว่า`, `คุณหมอ`, `ขอบคุณครับ`, `ขอบพระคุณ` → `คุณ[NAME-n]` (swallows the rest of the clause) | drop the pronoun (Thai allows it), or `หมอ`, `ท่าน`; thanks as `thanks ครับ`, `ได้ความรู้มากครับ` |
+   The table below was **re-verified entry by entry with `stripPii` on 2026-10-02, after #114**
+   (which stopped the filter masking much clinical prose). Re-check it whenever pii-filter.js changes.
 
-   Other over-masks found while writing the pilot: `line <word>` reads as a LINE id
-   (`first-line drug therapy`, `joint line tenderness` → `[LINE-n]`); write `first choice`, `ยาตัวแรก`,
-   `tenderness along the joint`. `ต่างจังหวัด` and `รพ.สต.` are masked as addresses (`[ADDR-n]`);
-   write `บ้านอยู่ไกล`, `สถานีอนามัยใกล้บ้าน`. `เชื่อว่า`, `เชื่อมั่น`, `ช่วงความเชื่อมั่น` become
-   `[NAME-n]` (write `คิดว่า`, `95% CI`). English `ward …`, `toward …` and `ห้อง lab` become
-   `[WARD-n]` (write `on the medical floor`, `lab`). `รพ.จังหวัด`, `เครือข่ายจังหวัด` → `[ADDR-n]`
-   (write `รพ.แม่ข่าย`, `เครือข่ายส่งต่อ`). `คุณภาพ`, `คุณสมบัติ` hit the `คุณ` rule; `ชื่อยา X` masks X
-   as a name (and the shared registry then masks X in every later turn); `อายุ 65–74` and
-   `1 ปีที่ผ่านมา` hit AGE (`อายุตั้งแต่ 75 ขึ้นไป` is safe). When validate reports a hit, rephrase, and record any new
-   pattern here.
+   | still masked (do NOT write)                                      | survives (write this instead)                                   |
+   |------------------------------------------------------------------|-----------------------------------------------------------------|
+   | `อายุ 58`, `58 ปี`, `อายุ 58 ปี`, `อายุ 65–74`, `เด็กอายุ 2 เดือน`, `ทารกอายุ 6 สัปดาห์`, `อายุ 18 เดือน` → `[AGE-n]` | `ในวัย 50 กว่า`, `วัย 70`, `อายุมากกว่า 65`, `อายุตั้งแต่ 75 ขึ้นไป`, `เด็ก 7 ขวบ`, `ผู้สูงอายุ` |
+   | `a 58-year-old`, `a 34-year-old woman`, `age 58`, `age 6 weeks` → `[AGE-n]` | `in his 50s`, `a woman in her 30s`, `over 65`, `older than 65`, `6-week-old infant`, `2 months old` |
+   | **durations in years**: `เป็นเบาหวานมา 10 ปี`, `อาการ 3 ปี` → `อาการ [AGE-1]`, `1 ปีที่ผ่านมา` | `เป็น DM มานานกว่าสิบปี`, `ไม่ถึงสองสามปี`, `ช่วงสามถึงห้าปี` |
+   | **คุณ** + a following clause: `คุณคิดว่าอย่างไร`, `คุณจะทำอย่างไรต่อ`, `ถ้าคุณเป็นแพทย์`, `คุณสมบัติ`, and **ขอบคุณ** + a clause (`ขอบคุณที่ชี้ครับ`, `ขอบคุณสำหรับคำตอบครับ`) → `คุณ[NAME-n]` | drop the pronoun (Thai allows it), or `หมอ`, `ท่าน`; plain `ขอบคุณครับ`, `ขอบคุณมากครับ`, `คุณหมอ`, `คุณภาพ` now survive |
+   | `ห้อง lab` → `[WARD-n]`                                          | `lab`, `ส่ง lab`, `ห้องปฏิบัติการ`                                  |
 
-   Durations in years (`เป็นเบาหวานมา 10 ปี`) can trip the age pattern too — run validate and
-   rephrase (`เป็น DM มานานกว่าสิบปี`). `GA 34 wk`, `อายุครรภ์ 34 สัปดาห์`, labs and vitals are safe.
+   **Durations in years are masked as ages** (`อาการ 3 ปี` → `อาการ [AGE-1]`). Whether the filter
+   should mask ages at all is pending the IRB answer on age; until then, write durations in words.
+
+   **No longer masked after #114** (verified; usable again): `first-line`, `joint line tenderness`,
+   `ต่างจังหวัด`, `รพ.สต.`, `รพ.จังหวัด`, `เครือข่ายจังหวัด`, `เชื่อว่า`, `เชื่อมั่น`,
+   `ช่วงความเชื่อมั่น`, English `ward` / `toward`, `ชื่อยา X`. `GA 34 wk`, `อายุครรภ์ 34 สัปดาห์`, labs and
+   vitals were always safe. When validate reports a new hit, rephrase, and add the pattern to the table.
 2. **Blind.** Nothing in a fixture may hint at its target: no `d1`…`d7`, `PIS`, `rubric`, `domain`,
    `composite`, `anchor`, `synthetic`, level talk, or the domain names ("reasoning depth", "critical
    appraisal", "reflective synthesis"…). Clinical scores (HEART, CURB-65, Alvarado, CHA2DS2-VASc…) are
@@ -388,6 +387,13 @@ The rule from now on:
    freeze lapses (rubric echo was concentrated in high anchors that no rewrite of the five could
    offset). All nine need re-scoring by the panel and the local evaluator before any pilot figure is
    recomputed.
+5. **Round 2 outcome (same day).** A Sonnet + Opus panel rated all 20 rewritten pilot anchors. Two are
+   beyond ±15: anc-015 (+22, rewritten once) and anc-012 (+21, unchanged). That is within the §7.6
+   allowance of 4, so the pilot proceeds. **One rewrite round per anchor is the rule, so there is no
+   second round.** anc-015 and anc-012 are **known over-expressing anchors**, carried into the
+   cohort as they are and listed in every analysis that includes them (`PILOT-REPORT.md` § Round 2).
+   Sonnet and Opus are both Claude and agree at composite ICC 0.968, so even this panel is not two
+   independent raters. Human raters remain the decisive gate.
 
 ## 8. Pipeline and commands
 

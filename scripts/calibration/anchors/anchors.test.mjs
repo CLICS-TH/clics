@@ -118,6 +118,33 @@ describe('fixtures', async () => {
   });
 });
 
+describe('AUTHORING.md §1 PII table matches the production filter', async () => {
+  // The table tells authors what pii-filter.js masks. It went stale once already (#114 changed the
+  // filter); this pins every example to the filter as it is, so the next change turns this red.
+  const { stripPii } = require('../../../rimpl/src/services/pii-filter.js');
+  const md = await readFile(path.join(HERE, 'AUTHORING.md'), 'utf8');
+  const spans = (cell) => [...cell.matchAll(/`([^`]+)`/g)].map((m) => m[1]).filter((x) => !x.includes('['));
+  const table = md.split('\n').filter((l) => /^\s+\| /.test(l) && !/still masked|^\s+\|-/.test(l));
+  const masked = table.flatMap((l) => spans(l.split('|')[1]));
+  const safe = table.flatMap((l) => spans(l.split('|')[2]));
+  const freed = md.match(/\*\*No longer masked after #114\*\*[\s\S]*?(?=\n\n|\n {3}vitals)/)?.[0] ?? '';
+
+  test('the table has examples in both columns', () => {
+    assert.ok(masked.length >= 10 && safe.length >= 10, `${masked.length} masked / ${safe.length} safe`);
+  });
+  test('every "still masked" example is masked', () => {
+    for (const s of masked) assert.notEqual(stripPii(s), s, `not masked any more: ${s}`);
+  });
+  test('every "survives" example survives', () => {
+    for (const s of safe) assert.equal(stripPii(s), s, `masked: ${s}`);
+  });
+  test('every "no longer masked" example survives', () => {
+    const list = spans(freed).filter((s) => !s.includes('/'));
+    assert.ok(list.length >= 8);
+    for (const s of list) assert.equal(stripPii(s), s, `masked again: ${s}`);
+  });
+});
+
 describe('validate.mjs catches what it claims to', () => {
   const row = { id: 'anc-999', language: 'th', tutor_mode: 'examiner', physician_turns: 4, reflection: 'none', target_composite: 50 };
   const good = () => ({

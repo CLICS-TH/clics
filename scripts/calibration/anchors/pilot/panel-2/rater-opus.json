@@ -1,0 +1,22 @@
+{"rater":"opus","scores":{
+"E01":{"d1":2,"d2":1,"d3":3,"d4":2,"d5":1,"d6":4,"d7":4,"note":"Mostly formatting/workflow prompts with strong ownership; little own reasoning; reflection specific with actions"},
+"E02":{"d1":4,"d2":2,"d3":3,"d4":3,"d5":2,"d6":1,"d7":2,"note":"Sharp thiazide-vs-SIADH urine Na question; asks rather than commits; generic reflection"},
+"E03":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"70% probability, shift-work fasting redefinition, solicits plan failure modes, owns plan"},
+"E04":{"d1":3,"d2":4,"d3":3,"d4":4,"d5":4,"d6":3,"d7":3,"note":"Generic opener, then ranked syncope differential, challenged SFSR validation, revised disposition"},
+"E05":{"d1":2,"d2":2,"d3":1,"d4":1,"d5":1,"d6":1,"d7":1,"note":"Textbook topic list for exam/slides; no patient; one check of 34-wk timing logic"},
+"E06":{"d1":2,"d2":2,"d3":1,"d4":3,"d5":5,"d6":1,"d7":3,"note":"Generic dump questions, but precise evidence-level critique of three AI overclaims; generic reflection"},
+"E07":{"d1":2,"d2":3,"d3":2,"d4":3,"d5":2,"d6":2,"d7":2,"note":"Good ranked LBP differential and update, then 'which best', capitulates 'go with what you said'"},
+"E08":{"d1":4,"d2":3,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"Island/Ramadan/fridge context; NPH proposal mismatched pattern but updated; separates evidence levels; strong synthesis"},
+"E09":{"d1":5,"d2":4,"d3":3,"d4":5,"d5":5,"d6":3,"d7":4,"note":"Ranked knee differential, challenged Ottawa setting/scope and citation mismatch; occupation not altering plan"},
+"E10":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":0,"d6":1,"d7":1,"note":"Textbook overview, list questions, asks plan to copy into chart, generic summary"},
+"E11":{"d1":2,"d2":1,"d3":3,"d4":2,"d5":2,"d6":1,"d7":4,"note":"Format-precise prompts, local constraints, verified doses against formulary; 'admit, safer' only reasoning"},
+"E12":{"d1":4,"d2":4,"d3":4,"d4":4,"d5":5,"d6":5,"d7":5,"note":"Checked cited guideline, fact/unknown/limit split; access drives denosumab choice; concrete actions"},
+"E13":{"d1":3,"d2":4,"d3":1,"d4":2,"d5":4,"d6":3,"d7":3,"note":"Mechanism-linked deprescribing reasoning, topic-hopping, no patient; corrected three AI overclaims"},
+"E14":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":4,"d7":2,"note":"Challenged troponin value without cath lab, aspirin evidence population; but copy-paste orders/note unverified"},
+"E15":{"d1":2,"d2":1,"d3":1,"d4":1,"d5":1,"d6":1,"d7":1,"note":"Generic AF questions, 'any drug fine' misconception, repeated HAS-BLED turn, generic reflection"},
+"E16":{"d1":4,"d2":4,"d3":4,"d4":2,"d5":2,"d6":3,"d7":4,"note":"Mechanism-based benzo ranking, SBP-first fever ordering; fixed checklist, accepts answers; formulary ownership"},
+"E17":{"d1":4,"d2":5,"d3":5,"d4":2,"d5":4,"d6":3,"d7":3,"note":"Justified SSRI ranking, bipolar FH, TSH weighing, Cipriani lactation gap; explicit topic switches"},
+"E18":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":0,"d6":1,"d7":0,"note":"Generic lists, premature ACS exclusion, wants one-word diagnosis and unedited discharge note"},
+"E19":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Probabilistic imaging call, NG59/ACP conflict, fear-avoidance pivot, reads source himself, specific actions"},
+"E20":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Committed fluid/NE thresholds in HFrEF, evidence gaps, argue-against carbapenem, goals of care, audits"}
+}}
