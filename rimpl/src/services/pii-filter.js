@@ -184,6 +184,95 @@ function startsWithClinicalLead(token) {
   return TH_CLINICAL_LEADS.some((lead) => token.startsWith(lead));
 }
 
+// ---------------------------------------------------------------------------
+// Clinical FALSE-POSITIVE shields for the คุณ / ชื่อ anchors.
+//
+// Thai has no word spaces, so an anchor (คุณ, ชื่อ) is followed by a run that is
+// sometimes a name and sometimes ordinary prose: ขอบคุณครับ ("thank you"),
+// คุณหมอ ("doctor", a form of address), คุณภาพ ("quality"), คุณคิดว่า ("you
+// think that"), ชื่อยา ("drug name"). The shields below are CLOSED word lists:
+// a run is let through ONLY when it is wholly accounted for by them; anything
+// unknown is still masked exactly as before. So every miss of these lists fails
+// CLOSED (over-masks), never open. Each entry was checked not to begin a common
+// Thai given name — e.g. มา / มี are deliberately ABSENT (มานี, มาลี, มีนา), and
+// short particles that could begin a name (คะ → คะนอง) only count when nothing
+// unknown follows them (see splitKhunRun).
+// ---------------------------------------------------------------------------
+
+// Words that can follow คุณ (pronoun "you") or a non-name ชื่อ label and that
+// never begin a Thai given name. Once one of these starts the remainder, the
+// remainder is a phrase, not a name.
+const TH_NON_NAME_LEADS = [
+  'ที่', 'ว่า', 'คือ', 'ของ', 'บอก', 'แจ้ง', 'ให้', 'ได้', 'ไม่', 'ก็', 'จะ', 'ช่วย',
+  'และ', 'หรือ', 'เป็น', 'สำหรับ', 'ล่วงหน้า', 'นี้', 'นั้น', 'อะไร', 'ซึ่ง', 'ถาม',
+  'ตอบ', 'คิด', 'ตรวจ', 'ควร', 'เคย', 'สามารถ', 'อยาก', 'ลอง', 'ทราบ', 'รู้',
+  'เห็น', 'พิจารณา', 'วินิจฉัย', 'สั่ง', 'กำลัง', 'เลือก', 'ใช้', 'ระบุ', 'อธิบาย',
+];
+// NOT here on purpose: มา / มี (มานี, มาลี, มีนา) and ต้อง ("must", but also a common nickname —
+// คุณต้อง). Adding a lead that can begin a name or nickname would open a leak.
+// คุณ + one of these is ONE word (คุณภาพ = quality, คุณค่า = value, …), never a title + name.
+// คุณสมบัติ (property) is deliberately absent: สมบัติ is also a given name (pii-names.th.js), so
+// "คุณสมบัติ" stays masked — the ambiguity is resolved toward masking.
+const TH_KHUN_COMPOUNDS = ['ภาพ', 'ค่า', 'ลักษณะ', 'ประโยชน์', 'ูปการ'];
+// Role / kinship forms of address after คุณ (คุณหมอ, คุณแม่). They are not names, but a real name may
+// FOLLOW them (คุณหมอสมชาย) — so they are kept and whatever unknown run follows is still masked.
+// Short kin words that begin given names (ตา → ตาล, อา → อารีย์ / อานนท์, น้า) are deliberately absent.
+const TH_ADDRESS_TERMS = [
+  'หมอ', 'พยาบาล', 'เภสัชกร', 'อาจารย์', 'แม่', 'พ่อ', 'ป้า', 'ลุง', 'ยาย', 'ปู่', 'ย่า', 'พี่', 'ญาติ',
+];
+// Polite particles / closings (ขอบคุณครับ, ขอบคุณมากค่ะ). Some could begin a name (คะ, นะ, มาก), so a
+// particle only counts when the run ENDS after it or another listed word follows it.
+const TH_PARTICLES = ['ครับ', 'ค่ะ', 'คะ', 'คับ', 'จ้ะ', 'จ้า', 'นะ', 'มาก', 'ผม', 'ดิฉัน'];
+// ชื่อ + one of these labels a THING (drug, disease, generic / trade name, organism, topic), not a person.
+const TH_LABEL_NON_NAME = ['ยา', 'โรค', 'สามัญ', 'การค้า', 'ทางการค้า', 'เชื้อ', 'วิทยาศาสตร์', 'เรื่อง'];
+
+// Longest entry of `list` that `s` contains at `pos`, or ''.
+function wordAt(s, pos, list) {
+  let best = '';
+  for (const w of list) {
+    if (w.length > best.length && s.startsWith(w, pos)) best = w;
+  }
+  return best;
+}
+
+// Classify the Thai run that follows a คุณ anchor. Returns { keep, then }:
+//   keep  — how many leading chars of the run are NOT a name (kept verbatim)
+//   then  — 'recurse': the rest is prose; re-scan it for titles (a nested "คุณสมศรี" is still caught)
+//           'mask':    the rest (from `keep`) is treated as a name and masked
+// keep === 0 && then === 'mask' is the original behaviour (the whole run is the name).
+function splitKhunRun(run) {
+  const compound = wordAt(run, 0, TH_KHUN_COMPOUNDS);
+  if (compound) return { keep: compound.length, then: 'recurse' };
+  let pos = 0;
+  let particlesFrom = -1; // start of a trailing run of particles, if any
+  while (pos < run.length) {
+    if (pos > 0 && run.startsWith('คุณ', pos)) return { keep: pos, then: 'recurse' };
+    if (wordAt(run, pos, TH_NON_NAME_LEADS)) return { keep: pos, then: 'recurse' };
+    const address = wordAt(run, pos, TH_ADDRESS_TERMS);
+    if (address) { pos += address.length; particlesFrom = -1; continue; }
+    const particle = wordAt(run, pos, TH_PARTICLES);
+    if (particle) { if (particlesFrom < 0) particlesFrom = pos; pos += particle.length; continue; }
+    break; // an unknown segment — possibly a name
+  }
+  if (pos === run.length) return { keep: pos, then: 'recurse' };
+  // Unknown content right after a particle: the "particle" may be the start of a name (คะนอง) — undo it.
+  if (particlesFrom >= 0) pos = particlesFrom;
+  return { keep: pos, then: 'mask' };
+}
+
+// Is the run after a ชื่อ label a thing-label (ชื่อยา, ชื่อโรคนี้, ชื่อสามัญ) rather than a person's name?
+// Only when the label word is followed by nothing, another label word, or a non-name lead — so a name
+// that merely begins with a label word (ชื่อยาใจ) is still masked. Returns the label word (to keep
+// verbatim) or ''. The caller re-scans everything AFTER the label word, because the glued run can
+// itself contain a real label ("ชื่อยาที่ผู้ป่วยชื่อสมชายได้รับ").
+function nonNameLabel(run) {
+  const w = wordAt(run, 0, TH_LABEL_NON_NAME);
+  if (!w) return '';
+  const rest = run.slice(w.length);
+  const ok = rest === '' || !!wordAt(rest, 0, TH_LABEL_NON_NAME) || !!wordAt(rest, 0, TH_NON_NAME_LEADS);
+  return ok ? w : '';
+}
+
 // Thai nickname field: "ชื่อเล่น X". MUST be matched before the plain "ชื่อ"
 // rule (ชื่อ is a prefix of ชื่อเล่น) or the label gets mangled into "ชื่อ" and
 // the nickname leaks. English "nickname X" is handled in the EN labelled rule.
@@ -204,8 +293,15 @@ const EN_NICKNAME_RE = new RegExp(
 //   ends right before ชื่อ; we only anchor on ชื่อ itself.
 // The optional bare-surname group is shielded by startsWithClinicalLead at
 // substitution time. Surname token(s) fold into the same [NAME-n] referent.
+// (?<!เ): the verb เชื่อ ("believe" — เชื่อว่า, ความเชื่อมั่น) CONTAINS ชื่อ. A leading
+// vowel เ always belongs to the syllable it precedes, so "เชื่อ" can never be
+// "เ" + the label ชื่อ — excluding it cannot hide a real label.
+// The bare-surname group may not run THROUGH another ชื่อ: otherwise in
+// "ชื่อยา… ผู้ป่วยชื่อ มานะ" it swallows the second label and leaves the real
+// name (มานะ) outside the match, where nothing masks it.
+const TH_NAME_NO_LABEL = '(?:(?!ชื่อ)[\\u0E01-\\u0E2E\\u0E30-\\u0E4E])+';
 const TH_LABELLED_RE = new RegExp(
-  `ชื่อ\\s*(${TH_NAME})(?:\\s*นามสกุล\\s*(${TH_NAME})|\\s+(${TH_NAME}))?`,
+  `(?<!เ)ชื่อ\\s*(${TH_NAME})(?:\\s*นามสกุล\\s*(${TH_NAME})|\\s+(${TH_NAME_NO_LABEL}))?`,
   'g'
 );
 
@@ -214,6 +310,66 @@ const TH_LABELLED_RE = new RegExp(
 // because TH_LABELLED_RE anchors on ชื่อ). MUST run AFTER TH_LABELLED_RE so the combined
 // "ชื่อ X นามสกุล Y" form is consumed first and this can't re-grab the keyword as a bare surname.
 const TH_SURNAME_RE = new RegExp(`นามสกุล\\s*(${TH_NAME})`, 'g');
+
+// LINE pass guard — see the LINE entry in PASSES. Thai label / explicit English
+// marker → always an id. Bare "line <word>" → only when the word is id-shaped.
+function lineIdGuard(m) {
+  if (m.startsWith('ไลน์')) return true;
+  if (/^line\s*(?:id\b|[:：]|@)/i.test(m)) return true;
+  if (/^LINE\s/.test(m)) return true; // the app's own all-caps spelling
+  const bare = /^line\s+(\S+)$/i.exec(m);
+  if (!bare) return false; // "linear", "lineage" — not the label at all
+  const tok = bare[1];
+  return /^[A-Za-z][A-Za-z0-9._-]{3,}$/.test(tok) && /\d|_|[A-Za-z0-9]{2}\.[A-Za-z0-9]{2}/.test(tok);
+}
+
+// WARD pass guard. Thai ห้อง / หอผู้ป่วย keep their original behaviour. After the
+// English word "ward" an identifier carries a digit or a capital (5A, 4B, 7, ICU,
+// A); an all-lowercase word of 2+ letters is prose ("ward round", "ward is"), and
+// a few capitalised headings ("Ward Round", "WARD STAFF") are prose too.
+const WARD_PROSE = new Set(['round', 'rounds', 'staff', 'nurse', 'nurses', 'team', 'teams', 'manager', 'sister', 'clerk']);
+function wardGuard(m) {
+  if (!/^ward/i.test(m)) return true;
+  const tok = m.replace(/^ward\s+/i, '');
+  if (/^[a-z]{2,}$/.test(tok)) return false;
+  return !WARD_PROSE.has(tok.toLowerCase());
+}
+
+// Thai administrative-place pass (ตำบล/ต. อำเภอ/อ. จังหวัด/จ., and the รพ.สต. facility).
+//   - (?<!ต่าง|ทุก|หลาย|แต่ละ): ต่างจังหวัด ("up-country"), ทุกอำเภอ, หลายตำบล are generic.
+//   - รพ.สต. (sub-district health-promoting hospital) is matched as ONE keyword. Before, its inner
+//     "ต." was read as ตำบล and the label was corrupted to "รพ.ส[ADDR-n]". Now the label survives and
+//     only a following place name (the village / tambon the facility is named after) is masked.
+//   - After จังหวัด / จ. / รพ.สต. a following word that is a grammatical or clinical lead
+//     (รพ.จังหวัด เพื่อ…, ต่อ รพ.สต. และ…) is not a place. For จังหวัด the lead list was checked
+//     against all 77 province names (tests/pii-false-positives.test.js re-checks every one).
+//     ตำบล/อำเภอ get NO lead list — there are thousands of them and some do begin with a lead
+//     (อำเภอจะนะ, ตำบลในเมือง) — so they keep the original, demonstrative-only exclusion.
+const TH_ADMIN_RE = /(?<!ต่าง|ทุก|หลาย|แต่ละ)(รพ\.\s?สต\.|สต\.|ตำบล|ต\.|อำเภอ|อ\.|จังหวัด|จ\.)(\s*)([ก-ฮะ-๎]+)/g;
+const TH_DEMONSTRATIVE_RE = /^(?:นี้|นั้น|ไหน|ใด|เดียวกัน)/;
+const TH_PROVINCE_NON_PLACE_LEADS = [
+  'เพื่อ', 'ที่', 'และ', 'หรือ', 'ได้', 'ไม่', 'แล้ว', 'จาก', 'ด้วย', 'มา', 'มี', 'เป็น', 'ใกล้เคียง',
+  'อื่น', 'ของ', 'ให้', 'ก็', 'จะ', 'ซึ่ง', 'เพราะ', 'ส่ง', 'ตรวจ', 'รักษา', 'ทำ', 'ใน', 'กับ', 'ไป',
+  'โดย', 'หลัง', 'ก่อน',
+];
+// A facility is named after a village / tambon, so its list is narrower (no ที่, ใน, จะ, มา, มี).
+const TH_FACILITY_NON_PLACE_LEADS = [
+  'เพื่อ', 'และ', 'หรือ', 'แล้ว', 'ได้', 'ไม่', 'จาก', 'ด้วย', 'ของ', 'ให้', 'ซึ่ง', 'เพราะ', 'ก็',
+  'ใกล้', 'อื่น', 'เป็น',
+];
+function applyThAdminPass(text, token) {
+  TH_ADMIN_RE.lastIndex = 0;
+  return text.replace(TH_ADMIN_RE, (match, kw, ws, place) => {
+    if (TH_DEMONSTRATIVE_RE.test(place)) return match;
+    const facility = kw.endsWith('สต.');
+    if (facility) {
+      if (wordAt(place, 0, TH_FACILITY_NON_PLACE_LEADS)) return match;
+      return kw + ws + token('ADDR', place);
+    }
+    if ((kw === 'จังหวัด' || kw === 'จ.') && wordAt(place, 0, TH_PROVINCE_NON_PLACE_LEADS)) return match;
+    return token('ADDR', match); // unchanged: keyword + place collapse into one [ADDR-n]
+  });
+}
 
 // Each entry runs against the working text in order. `fn` receives (text, token).
 const PASSES = [
@@ -231,9 +387,20 @@ const PASSES = [
   //   "LINE @foo" / "ไลน์ @foo"             (handle form, the @ is the anchor)
   // The label word (line/ไลน์/ไลน์ไอดี) is consumed too so it is not left
   // dangling; we emit just the token. An optional leading @ on the id is eaten.
+  //
+  // The ENGLISH word "line" is everyday clinical vocabulary (first-line therapy,
+  // IV line, joint line tenderness, line of treatment), so it only counts as the
+  // LINE-app label with an explicit marker:
+  //   line id … | line: … | line @… | LINE … (the app's all-caps name)
+  //   | line <token shaped like an id: starts with a letter, >= 4 chars (LINE's
+  //     own minimum), and carries a digit, an underscore or a dotted segment>
+  // and never when glued to a preceding hyphen/word (first-line, A-line, baseline).
+  // The Thai label ไลน์ is unambiguous (a catheter "line" is สาย) and keeps its
+  // optional colon.
   {
-    re: /(?:\bline(?:\s*id)?|ไลน์(?:ไอดี)?)\s*[:：]?\s*@?([A-Za-z0-9._-]{2,})/gi,
+    re: /(?<![-\w])[Ll][Ii][Nn][Ee](?:\s*[Ii][Dd]\b)?\s*[:：]?\s*@?[A-Za-z0-9._-]{2,}|ไลน์(?:ไอดี)?\s*[:：]?\s*@?[A-Za-z0-9._-]{2,}/g,
     cat: 'LINE',
+    guard: lineIdGuard,
   },
 
   // Thai national ID: 13 digits, with or without the X-XXXX-XXXXX-XX-X dashes.
@@ -303,9 +470,10 @@ const PASSES = [
   { re: /\b\d{4}-\d{2}-\d{2}\b/g, cat: 'DATE' },
 
   // --- Ward ---
-  // No leading \b: it is ASCII-only and never matches before a Thai keyword
-  // (ห้อง / หอผู้ป่วย). The keywords are distinctive enough to anchor on alone.
-  { re: /(?:ward|ห้อง|หอผู้ป่วย)\s+[A-Za-z0-9]+/gi, cat: 'WARD' },
+  // \b only on the English branch (it is ASCII-only and would never match before
+  // a Thai keyword): without it "toward the left" became "to[WARD-n] left".
+  // wardGuard lets English prose after "ward" through (ward round, ward is).
+  { re: /(?:\bward|ห้อง|หอผู้ป่วย)\s+[A-Za-z0-9]+/gi, cat: 'WARD', guard: wardGuard },
 
   // --- Home address (Thai) ---
   // House number: "บ้านเลขที่ 99/1" / "เลขที่ 99/1". Capture the number token
@@ -322,15 +490,8 @@ const PASSES = [
   // The place is a glued Thai run. We exclude a few demonstrative/pronoun leads
   // (นี้ "this", นั้น "that") so prose like "ตำบลนี้" survives. The province
   // alone (จังหวัด...) IS masked here: a named province is an address component.
-  {
-    re: /(?:ตำบล|ต\.|อำเภอ|อ\.|จังหวัด|จ\.)\s*([ก-ฮะ-๎]+)/g,
-    cat: 'ADDR',
-    guard: (m) => {
-      // strip the keyword, look at the place token
-      const place = m.replace(/^(?:ตำบล|ต\.|อำเภอ|อ\.|จังหวัด|จ\.)\s*/, '');
-      return !/^(?:นี้|นั้น|ไหน|ใด|เดียวกัน)/.test(place);
-    },
-  },
+  // Clinical false-positive shields (ต่างจังหวัด, รพ.สต., รพ.จังหวัด เพื่อ…): see applyThAdminPass.
+  { cat: 'ADDR', kind: 'th-admin' },
 
   // --- Intake hints: the KNOWN patient identifier from ple_patient_refs (on-prem), masked verbatim
   // BEFORE the name regexes so it becomes the authoritative [NAME-n] referent. Closes the bare,
@@ -478,6 +639,12 @@ function applyPass(text, pass, token, hints) {
   if (kind === 'intake-hint') return applyHintPass(text, token, hints);
   if (kind === 'th-clan-surname') return applyClanSurnamePass(text, token);
   if (kind === 'th-gazetteer') return applyGazetteerPass(text, token);
+  if (kind === 'th-admin') return applyThAdminPass(text, token);
+
+  // Re-run THIS pass over a fragment a match swallowed but did not mask (used by the คุณ / ชื่อ
+  // shields). A fresh RegExp so the nested scan never shares lastIndex with the outer one.
+  const rescan = (fragment) =>
+    (fragment ? applyPass(fragment, { ...pass, re: new RegExp(re.source, re.flags) }, token, hints) : fragment);
 
   re.lastIndex = 0;
   return text.replace(re, (match, g1, g2, g3) => {
@@ -500,6 +667,13 @@ function applyPass(text, pass, token, hints) {
         // a single [NAME-n]. The bare surname (g3, no นามสกุล keyword) is only
         // taken when it is not the start of a clinical/verb phrase.
         const given = g1 || '';
+        const label = nonNameLabel(given);
+        if (label) {
+          // ชื่อยา / ชื่อโรค / ชื่อสามัญ … — a thing's name, not a person's. Keep "ชื่อ" + the label
+          // word verbatim and re-scan everything after it (a nested "ชื่อ <real name>" is still masked).
+          const head = /^ชื่อ\s*/.exec(match)[0] + label;
+          return head + rescan(match.slice(head.length));
+        }
         let surname = g2 || '';
         let trailing = ''; // text we matched but must put back (shielded surname)
         if (!surname && g3) {
@@ -529,6 +703,21 @@ function applyPass(text, pass, token, hints) {
         const title = g1;
         const given = g2;
         if (MED_SHIELD.has(given.trim())) return match;
+        if (title === 'คุณ') {
+          // คุณ is also "you", part of ขอบคุณ / คุณภาพ, and a prefix to role words (คุณหมอ).
+          // splitKhunRun keeps only what its closed word lists account for; the rest is either
+          // re-scanned (prose) or masked (an unknown run — fail closed).
+          const { keep, then } = splitKhunRun(given);
+          if (then === 'recurse' || keep > 0) {
+            const ws = match.slice(title.length, match.length - given.length);
+            const kept = given.slice(0, keep);
+            const rest = given.slice(keep);
+            if (then === 'recurse') return title + ws + kept + rescan(rest);
+            const restTok = token('NAME', rest);
+            registerNameAliases(token, rest, restTok);
+            return title + ws + kept + restTok;
+          }
+        }
         const tok = token('NAME', given);
         registerNameAliases(token, given, tok);
         // Thai titles glue to the name (นาย+สมชาย), no separating space.

@@ -319,6 +319,54 @@ describe('adversarial — bare unlabelled names', () => {
 });
 
 // ===========================================================================
+// CLINICAL FALSE-POSITIVE SHIELDS — the คุณ / ชื่อ / LINE / WARD / ADDR rules
+// were narrowed so clinical prose survives (ขอบคุณครับ, ชื่อยา, first-line,
+// toward, ต่างจังหวัด, รพ.สต.). Each shield is a closed list; these red-team
+// cases prove none of them opened a door: the real identifier wearing the same
+// shape must still be gone. (Survive-side cases: pii-false-positives.test.js.)
+// ===========================================================================
+describe('adversarial — clinical false-positive shields do not open a leak', () => {
+  test.each([
+    // คุณ: a name glued after a polite phrase / inside a let-through run / after a role word
+    ['ขอบคุณครับคุณสมศรี', ['สมศรี']],
+    ['ขอบคุณค่ะคุณหมอสมชาย', ['สมชาย']],
+    ['ขอบคุณครับสมชาย', ['สมชาย']],
+    ['คุณภาพชีวิตของคุณสมศรีดีขึ้น', ['สมศรี']],
+    ['คุณคิดว่านายวีระเป็นอะไร', ['วีระ']],
+    ['คุณหมอวราภรณ์ สั่งยา', ['วราภรณ์']],
+    // a name that starts like a particle / a non-shield lead
+    ['คุณคะนอง มาตามนัด', ['คะนอง', 'นอง']],
+    ['คุณมาลี มาตามนัด', ['มาลี']],
+    ['คุณมีนา มาตามนัด', ['มีนา']],
+    ['คุณต้อง มาตามนัด', ['ต้อง']], // a nickname that is also the verb "must"
+    // ชื่อ: a name beginning with a label word; a real label after a thing-label
+    ['ผู้ป่วยชื่อยาใจ มาตามนัด', ['ยาใจ']],
+    ['ชื่อยาที่ใช้คือ ชื่อ มานะ', ['มานะ']],
+    ['ชื่อยาที่ผู้ป่วยชื่อสมชายได้รับ', ['สมชาย']],
+    // LEAK CLASS (pre-existing, closed here): the bare-surname slot swallowed a second ชื่อ label and
+    // left the real name outside the match — master emitted "… [NAME-1] มานะ".
+    ['ชื่อ สมชาย ผู้ป่วยชื่อ มานะ', ['สมชาย', 'มานะ']],
+    ['ชื่อยา ผู้ป่วยชื่อ มานะ', ['มานะ']],
+    // LINE: the ids keep masking without a colon when the form is unambiguous
+    ['add line somchai99', ['somchai99']],
+    ['LINE somchai', ['somchai']],
+    ['line doctor.somchai', ['doctor.somchai']],
+    ['ไลน์ไอดี somchai99', ['somchai99']],
+    // WARD: identifiers after a real "ward"
+    ['ward 5A bed 12', ['5A']],
+    ['admitted to ward ICU', ['ward ICU']],
+    ['หอผู้ป่วย 4', ['หอผู้ป่วย 4']],
+    // ADDR: a real place after the narrowed keywords
+    ['รพ.สต.บ้านหนองบัว', ['หนองบัว']],
+    ['ส่งตัวไป รพ.จังหวัดเชียงใหม่', ['เชียงใหม่']],
+    ['อยู่ในจังหวัดเชียงใหม่', ['เชียงใหม่']],
+    ['ตำบลในเมือง อำเภอจะนะ', ['ในเมือง', 'จะนะ']],
+  ])('%s', (input, leaked) => {
+    assertScrubbed(input, leaked);
+  });
+});
+
+// ===========================================================================
 // ERROR BODIES — a failing call must not echo the transcript back out. The
 // 413 / 503 / 500 paths (lib/ai-errors.js) are driven through the REAL routes
 // with a PII-laden transcript AND a provider error whose message quotes the
