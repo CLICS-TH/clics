@@ -103,6 +103,14 @@ const { __mock: m } = require('../src/lib/supabase');
 beforeEach(() => { m.reset(); m.state.caller = ADMIN; m.state.resolve = (t, k, ctx) => ...; });
 ```
 
+**supertest binds to loopback (jest `setupFiles`).** Both `jest.config.js` files load
+`tests/helpers/loopback-listen.js`, which makes supertest's host-less `listen(0)` bind `127.0.0.1` — the
+address it dials — instead of the `::` wildcard. On macOS a wildcard bind can be handed a port that
+another process already holds on `127.0.0.1`, and that process then answers your request (a stray
+401/302/501 or `socket hang up`, a different test each run, green on rerun). If you start a server
+yourself in a test, prefer `listen(0, '127.0.0.1')`. The rimpl copy of the helper must stay byte-identical
+(`backend/tests/loopback-listen.test.js` checks).
+
 ## Live gates (against a running stack — they mutate the shared Supabase)
 
 There is **no separate test database** — these scripts read/write the real Supabase project regardless of
