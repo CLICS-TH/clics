@@ -1,0 +1,5 @@
+{"rater":"opus","scores":{
+"L01":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"'เปิด Endocrine Society 2019 ดูแล้ว...ไม่ได้พูดถึง eGFR <30 ชัดเท่าที่ตอบ ส่วนนั้นมาจากไหน'; 'บ้านไกล รพ. ราว 60 กม.'; synthesis 'การเลือกยาจึงต้องดูว่าเขามาได้จริงไหม'; FRAX turn a mild hop"},
+"L02":{"d1":4,"d2":3,"d3":4,"d4":3,"d5":5,"d6":3,"d7":5,"note":"'The home-treatment line for low scores has no source'; admit + ceftriaxone/doxycycline chosen without stated justification; 'Checked the guideline'; reflection apply step vague"},
+"L03":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"'ผมให้โอกาสเป็นของจริงราว 70%...จะให้วัดหลังตื่นจากการนอนหลัก'; solicits weakness of own 'เกินครึ่ง' rule; 'แผนสุดท้ายนี้ผมรับผิดชอบเอง'; reflection names protocol + ANC teaching"}
+}}

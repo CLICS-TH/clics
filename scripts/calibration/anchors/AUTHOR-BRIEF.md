@@ -413,6 +413,13 @@ limits) or `attribution` (true, but placed under a citation that does not carry 
   too: "compare just those two, briefly" counts as steering. For d7 = 3, give context, then take
   what the tool returns without shaping it. Writing the low domain as a visible absence worked:
   the other two batch-3 anchors and one rewrite landed within ±4.
+- **A low d2 beside a high d5 or d3: put the decision before its grounds.** An appraisal that ends in
+  a decision ("the rule has no source for a patient like him … so admit") is a justified decision and
+  reads as d2 4. What worked: the decision is stated first and bare ("Admitting him."). The appraisal
+  comes as a separate note that labels each claim's evidence status (validated / untested in this
+  population / no source) and concludes nothing. Context appears only as constraints on the orders
+  (an INR date, an oral step-down he can manage alone), never as a reason for the decision. No "so",
+  "then", "given that" or "for him" links a finding to a choice.
 - **d4 = 0 together with d5 ≥ 4 is the hardest combination.** Critiquing the tutor's earlier answers
   *is* picking them up, which reads as follow-up. What finally worked (anc-101): the middle turns are
   bare, generic topic hops that ignore the tutor's ❓; the appraisal comes once, at the end, as a note to

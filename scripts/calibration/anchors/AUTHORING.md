@@ -573,6 +573,14 @@ The rule from now on:
     - The rule applies to every row, held-out never included (held-out anchors are never rated before
       the lock, §9). anc-102 is the first row it can reach.
     - It changes nothing about the threshold (±15) or the one-rewrite allowance.
+12. **Round L (2026-10-02).** The anc-102 rewrite reads **+4** and stays, so the item-11 stop rule
+    was not reached. Sonnet 68, Opus 76.
+    - What changed: every decision now comes before its grounds ("Admitting him." first). The
+      appraisal is a separate note that labels each claim's evidence status and concludes nothing.
+      Context appears only as constraints on the orders, never as a reason for the decision.
+    - d2 still reads 3 against a target of 1, so the dissociation is only partly visible to this panel.
+      The item-10 open question (an unworkable row, or the panel's own halo) stays open.
+    - Decoys: anc-016 +11 and anc-007 +6, inside their earlier range.
 
 ## 8. Pipeline and commands
 

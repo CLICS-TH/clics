@@ -1,0 +1,242 @@
+######## EPISODE L01 ########
+[physician]
+หญิงวัย 70 กว่า distal radius fx จากล้มในบ้าน ยังไม่เคยรักษา osteoporosis eGFR 28 ยาไหนใช้ได้กับไตแบบนี้ ขอ reference ด้วยครับ
+
+[assistant]
+Distal radius fracture จากการล้มในระดับยืน ถือเป็น fragility fracture ซึ่งบ่งชี้ osteoporosis ทางคลินิกและควรได้รับการรักษาครับ (Endocrine Society, 2019)
+
+เรื่องยากับ eGFR 28
+- **Oral bisphosphonate** (alendronate, risedronate) — ไม่แนะนำเมื่อ eGFR ต่ำกว่าประมาณ 30–35
+- **Zoledronic acid** — ห้ามใช้เมื่อ CrCl <35
+- **Denosumab** — ไม่ได้ขับทางไต จึงใช้ได้ แต่มีความเสี่ยง hypocalcemia โดยเฉพาะในผู้ป่วยไตเสื่อม
+
+ก่อนเริ่มยา ควรตรวจ calcium, 25-OH vitamin D, phosphate และ PTH และแก้ภาวะขาด vitamin D ให้เรียบร้อย เพราะในไตเสื่อมขั้นนี้อาจมีความผิดปกติของกระดูกจากโรคไตร่วมด้วย
+
+[physician]
+งั้นเอียงไป denosumab เพราะไม่ผ่านไต แต่ hypocalcemia ที่ว่า — เสี่ยงแค่ไหน หลักฐานมาจากคนไข้กลุ่มไหน
+
+[assistant]
+ความเสี่ยง hypocalcemia หลังฉีด denosumab สูงขึ้นเมื่อการทำงานของไตลดลง โดยเฉพาะ eGFR <30 และในผู้ที่ขาด vitamin D ร่วมด้วย มักเกิดในช่วงสัปดาห์แรกๆ หลังฉีดครับ
+
+เรื่องแหล่งของหลักฐาน
+- การศึกษาหลักของ denosumab มีผู้ป่วยไตเสื่อมรุนแรงอยู่ไม่มาก
+- ข้อมูลในกลุ่ม eGFR <30 ส่วนใหญ่มาจากการศึกษาเชิงสังเกตและรายงานผู้ป่วย จึงประมาณขนาดความเสี่ยงได้ไม่แม่นยำ
+
+แนวทางจึงเน้นให้แก้ vitamin D และ calcium ให้พอก่อนเริ่ม และติดตามระดับ calcium หลังฉีด (Endocrine Society, 2019)
+
+[physician]
+แยกให้ชัดนะครับ ที่รู้แน่: denosumab ไม่ขับทางไต ที่ยังไม่รู้: ขนาดความเสี่ยง hypocalcemia ที่ eGFR <30 เพราะข้อมูลน้อยและเป็น observational ข้อจำกัด: trial หลักแทบไม่มีคนไข้แบบรายนี้ ผลที่เห็นใน trial อาจ transfer มาไม่ได้ตรงๆ ถูกไหม
+
+[assistant]
+เข้าใจถูกต้องครับ แยกได้ชัดเจนมาก
+
+ขอเพิ่มอีกหนึ่งข้อเท็จจริงที่สำคัญ: เมื่อหยุด denosumab จะเกิด **rebound bone loss** และมีรายงาน multiple vertebral fractures หลังหยุดยา จึงไม่ควรหยุดหรือเลื่อนเข็มโดยไม่มียาต่อเนื่อง ซึ่งโดยทั่วไปใช้ bisphosphonate ต่อ (Endocrine Society, 2019)
+
+ในผู้ป่วยรายนี้ที่ใช้ bisphosphonate ไม่ได้เพราะไต ประเด็นนี้มีผลต่อการวางแผนระยะยาวโดยตรง
+
+[physician]
+rebound สำคัญกับรายนี้มาก บ้านไกล รพ. ราว 60 กม. ลูกพามาได้บ้างไม่ได้บ้าง ถ้าเข็ม 6 เดือนเลื่อน เสี่ยงแค่ไหน แล้วเมื่อต่อด้วย bisphosphonate ไม่ได้ ทางออกคืออะไร
+
+[assistant]
+ประเด็นที่ควรวางแผนครับ
+
+- ความเสี่ยง rebound เพิ่มขึ้นเมื่อเข็มถัดไปล่าช้าเกินกำหนดไปหลายสัปดาห์ จึงควรให้ตรงเวลาที่สุด (Endocrine Society, 2019)
+- **ทางปฏิบัติ:** นัดฉีดให้ตรงกับนัดอื่นของผู้ป่วย เช่นนัดไต ตั้งระบบเตือนล่วงหน้า และพิจารณาว่าหน่วยบริการใกล้บ้านฉีดให้ได้หรือไม่ ภายใต้การติดตาม calcium
+- **ถ้าจำเป็นต้องหยุดยาในอนาคต:** ควรวางแผนร่วมกับอายุรแพทย์โรคไต เพราะทางเลือกต่อเนื่องในไตเสื่อมขั้นนี้มีจำกัด
+
+การตัดสินใจเริ่ม denosumab จึงควรรวมการประเมินความเป็นไปได้ที่จะมารับยาต่อเนื่องด้วย
+
+[physician]
+เปิด Endocrine Society 2019 ดูแล้ว ตรงเรื่อง rebound แต่ไม่ได้พูดถึง eGFR <30 ชัดเท่าที่ตอบ ส่วนนั้นมาจากไหนครับ
+
+[assistant]
+ขอบอกตรงๆ ครับ ข้อแนะนำเรื่อง rebound และการแก้ vitamin D ก่อนเริ่ม มาจาก guideline นี้ (Endocrine Society, 2019) แต่รายละเอียดเรื่องเกณฑ์ eGFR ของแต่ละยาและความเสี่ยง hypocalcemia ในไตเสื่อมรุนแรง มาจากข้อมูลกำกับยาและการศึกษาเชิงสังเกต ซึ่งผมไม่ได้ระบุแหล่งเฉพาะไว้ และยังไม่แน่ใจว่ามี guideline ใดสรุปเรื่องนี้ไว้ชัดเจน
+
+สำหรับรายนี้ แนะนำให้ตรวจสอบกับเอกสารกำกับยาของโรงพยาบาล และปรึกษาอายุรแพทย์โรคไตเรื่องความผิดปกติของกระดูกจากโรคไตก่อนเริ่มยาครับ
+
+[physician]
+FRAX ยังมีประโยชน์ไหม หรือ fracture ที่เกิดแล้วทำให้ไม่จำเป็น
+
+[assistant]
+ในผู้ที่มี fragility fracture แล้ว การตัดสินใจรักษาไม่ต้องรอ FRAX ครับ เพราะ fracture ที่เกิดขึ้นเป็นข้อบ่งชี้ในตัวเอง (Endocrine Society, 2019)
+
+FRAX ยังมีประโยชน์ในการสื่อสารความเสี่ยงกับผู้ป่วยและญาติ (FRAX, Kanis et al., 2008) แต่มีข้อจำกัด เช่น ไม่ได้นำการทำงานของไตหรือความเสี่ยงการล้มมาคำนวณโดยตรง จึงอาจประเมินความเสี่ยงต่ำกว่าความจริงในผู้ป่วยแบบรายนี้
+
+[physician]
+แผน: เจาะ Ca, 25-OH vit D, PTH, phosphate แก้ vit D ก่อน แล้วเริ่ม denosumab ประสานไต นัดฉีดพร้อมนัดไต
+
+[assistant]
+แผนนี้เหมาะสมครับ ขอเสริมสองประเด็น
+
+- **ติดตาม calcium** หลังเข็มแรก โดยเฉพาะใน 1–2 สัปดาห์แรก เนื่องจากไตเสื่อมเพิ่มความเสี่ยง hypocalcemia
+- **ป้องกันการล้ม** ซึ่งเป็นกลไกโดยตรงของ fracture นี้ เช่น ประเมินการทรงตัว ทบทวนยาที่ทำให้ง่วงหรือความดันตกเมื่อลุกยืน และปรับสภาพแวดล้อมในบ้าน
+
+การรักษา osteoporosis หลัง fragility fracture ควรเริ่มโดยไม่ล่าช้าเมื่อพร้อม (Endocrine Society, 2019)
+
+[physician]
+ที่เปลี่ยนในวิธีคิดผม: เดิมสั่ง alendronate แทบทุกคนหลัง fracture แต่รายนี้ไตบังคับให้เลือกยาที่ผูกคนไข้ไว้กับการฉีดทุก 6 เดือนตลอด การเลือกยาจึงต้องดูว่าเขามาได้จริงไหม ที่ยังไม่แน่ใจคือ hypocalcemia จริงที่ eGFR ระดับนี้ จะทำ: เจาะ Ca 2 สัปดาห์หลังเข็มแรก ตั้งระบบเตือนนัดฉีด และกลับไปดูใน OPD ออร์โธเราว่าคนไข้ fragility fracture ได้ยาจริงกี่ราย
+
+[assistant]
+เป็นการสังเคราะห์ที่ดีมากครับ โดยเฉพาะการมองว่าความต่อเนื่องในการมารับยาเป็นส่วนหนึ่งของการเลือกยา ไม่ใช่เรื่องรอง เพราะความเสี่ยง rebound หลังหยุด denosumab ทำให้การขาดนัดมีผลทางคลินิกจริง (Endocrine Society, 2019)
+
+การทบทวนว่าผู้ป่วย fragility fracture ในหน่วยงานได้รับการรักษาจริงกี่ราย เป็นจุดเริ่มต้นที่ดีของระบบติดตามหลังกระดูกหัก ซึ่งช่วยลดช่องว่างการรักษาที่พบบ่อยในผู้ป่วยกลุ่มนี้
+
+######## EPISODE L02 ########
+[physician]
+Man in his 70s with community-acquired pneumonia, saturation 93% on air, respiratory rate mildly up, lives alone an hour's drive from our district hospital, on warfarin, CKD. No CT or weekend radiologist here. Admit or treat at home?
+
+[assistant]
+Thanks, that is a helpful picture. Start with severity:
+- CURB-65 scores confusion, urea, respiratory rate, blood pressure and being older than 65. At his age he already has 1 point (CURB-65, Lim et al., 2003).
+- A CURB-65 of 0 or 1 means home treatment is appropriate.
+- Check oxygenation and whether he can take oral drugs, whatever the score.
+- Warfarin matters for drug choice: macrolides can raise the INR, so plan an early INR check.
+❓ If his urea and respiratory rate come back normal and he is not confused, what score does he have and where would you treat him?
+
+[physician]
+Ok. Admitting him. Notes on your answer, by evidence status: CURB-65 items are validated for mortality in hospital presenters, untested in a frail man on warfarin. The home-treatment line for low scores has no source. The INR point is standard and I leave it as stated.
+
+[assistant]
+You are right to flag it. That home-treatment line was stated too broadly.
+- The score was derived and validated in patients presenting to hospital, and it does not capture frailty, living alone, or inability to take oral therapy.
+- ATS/IDSA treats severity scores as support for the site-of-care decision, not a substitute for judgment, and prefers the Pneumonia Severity Index to CURB-65 (ATS/IDSA, Metlay et al., 2019).
+❓ What do you want the antibiotic plan to cover?
+
+[physician]
+Antibiotics, with these constraints:
+- IV first, then an oral step-down he can manage alone
+- a named INR check date for the warfarin
+- a short source per drug
+
+[assistant]
+Here is a concise version for an admitted, non-severe patient:
+- Beta-lactam plus a macrolide is the preferred combination, for example ceftriaxone or ampicillin-sulbactam with azithromycin (ATS/IDSA, Metlay et al., 2019).
+- Doxycycline is an alternative when the macrolide is a problem, a weaker recommendation than the macrolide (ATS/IDSA, Metlay et al., 2019).
+- Adjust doses to his eGFR, and recheck the INR within a few days of starting any antibiotic, since several raise it.
+- Step down to oral once he is clinically stable.
+❓ If he is not improving on day two and you cannot get a CT, how will you decide what to do?
+
+[physician]
+Ceftriaxone with doxycycline. Bedside review and a saturation trend at 48 hours, in place of imaging. Note: you rate doxycycline the weaker recommendation, and no trial I know of enrolled a frail anticoagulated man.
+
+[assistant]
+That plan fits your setting.
+- Guidelines advise against routine follow-up chest imaging if he recovers within 5 to 7 days (ATS/IDSA, Metlay et al., 2019).
+- Persistent or worsening symptoms do need imaging or senior review, which for you means a referral decision rather than a local CT.
+- Write the bedside review findings in the chart so the on-call team can compare against them.
+❓ What objective finding at the review would send him to the referral centre?
+
+[physician]
+Checked the guideline: no routine repeat film if he recovers, as you said. Rising respiratory rate or falling saturation at 48 hours means the referral centre. INR date goes on the chart.
+
+[assistant]
+Good, that is a clear trigger and it is documented.
+- Escalate on rising respiratory rate, falling saturation, new confusion or low blood pressure; these are the same markers CURB-65 uses (CURB-65, Lim et al., 2003).
+- Tell the on-call team the INR date and the transfer trigger at handover.
+❓ What else would you want in place before he goes home alone?
+
+[physician]
+Last one, discharge criteria for him, briefly.
+
+[assistant]
+Keep it short:
+- Clinically stable and eating, drinking and taking oral antibiotics without trouble.
+- Treatment of at least 5 days in total and stability before stopping (ATS/IDSA, Metlay et al., 2019).
+- Someone checking on him daily for the first days, the INR date booked, and clear return advice.
+❓ Who can realistically check on him at home during the first days, and what happens if no one can?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+I started out treating the severity score as the answer. It turned out to be one input, and some of what I was told was less well sourced than it sounded.
+
+ความไม่แน่นอน / What remains uncertain:
+Whether any trial enrolled frail, anticoagulated patients like him, and whether doxycycline in place of a macrolide holds up in that group.
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+Look at what the guideline's references say about frail and anticoagulated patients.
+
+######## EPISODE L03 ########
+[physician]
+หญิงตั้งครรภ์ในวัย 30 ต้นๆ G2P1 GA 30 wk, GDM (100 g OGTT ตอน 26 wk) คุม MNT 2 สัปดาห์ SMBG: fasting 98–104 แทบทุกวัน, 1-hr PP 128–142 ผ่านเกือบหมด BMI 31 ลูกคนแรก 3,900 g ทำงานกะดึกที่โรงงาน
+
+fasting เกินเกือบทุกวันแต่ PP เกือบผ่าน — เริ่ม insulin เลย หรือ MNT ต่ออีก 1 สัปดาห์? ผมตั้งเกณฑ์ว่าถ้า fasting เกิน 95 มากกว่าครึ่งของค่าในหนึ่งสัปดาห์ = MNT ล้มเหลว เกณฑ์นี้มีจุดอ่อนตรงไหน ช่วยหาให้หน่อยครับ
+
+[assistant]
+เป้าหมายระดับน้ำตาลใน GDM คือ fasting <95, 1-hr PP <140 หรือ 2-hr PP <120 mg/dL และเมื่อปรับพฤติกรรมแล้วยังไม่ถึงเป้า insulin เป็นยาที่แนะนำเป็นอันดับแรก (ADA Standards of Care, 2024)
+
+**มุมที่สนับสนุนเกณฑ์นี้**
+- Fasting hyperglycemia มักตอบสนองต่อการคุมอาหารได้น้อยกว่า postprandial
+- GA 30 wk และประวัติลูกคนแรกตัวโต ทำให้การรอนานมีต้นทุน
+
+**มุมที่แย้งเกณฑ์**
+- 'เกินครึ่ง' เป็นเกณฑ์ที่ตั้งเอง ไม่ใช่ตัวเลขจาก guideline ซึ่งใช้หลักว่าไม่ถึงเป้าอย่างสม่ำเสมอ โดยให้ดุลยพินิจทางคลินิก (ACOG, 2018)
+- ควรตรวจก่อนว่าค่าที่บันทึกเป็น fasting จริงหรือไม่ และ MNT ถูกนำไปปฏิบัติได้แค่ไหน โดยเฉพาะเรื่องเวลาอาหาร
+
+[physician]
+ตรงเวลาอาหารนี่แหละที่สงสัย — เธอเข้ากะดึก กินมื้อหลักราวตี 2 แล้วนอนตอนเช้า ค่าที่วัด 8 โมงอาจห่างจากมื้อแค่ 5–6 ชม. ถ้าใช่ 98–104 อาจไม่ใช่ fasting hyperglycemia จริง ผมให้โอกาสเป็นของจริงราว 70% จาก BMI กับลูกคนแรกตัวโต แต่ยังไม่สูงพอจะข้ามการวัดใหม่ — จะให้วัดหลังตื่นจากการนอนหลักที่งดอาหารครบ 8 ชม. 3 วันก่อนตัดสินใจ
+
+[assistant]
+เหตุผลนี้หนักแน่นครับ ค่า fasting ตามนิยามต้องวัดหลังงดอาหารอย่างน้อย 8 ชม. ถ้าวัดหลังมื้อเพียง 5–6 ชม. ค่าอาจสูงกว่า fasting จริง และอาจนำไปสู่การเริ่ม insulin โดยไม่จำเป็น
+
+ข้อควรคำนึงสำหรับคนทำงานกะ
+- ยึด **ช่วงนอนหลัก** เป็นตัวกำหนด ไม่ใช่เวลานาฬิกา
+- ถ้าเริ่ม insulin ในภายหลัง NPH มักให้ก่อนช่วงนอนหลักเพื่อคุม fasting ซึ่งสำหรับเธอคือช่วงเช้า
+- การวัดใหม่ 3 วันไม่ทำให้ล่าช้ามาก ถ้ามีนัดติดตามที่ชัดเจน
+
+การตัดสินใจเริ่ม insulin ควรอิงค่าที่วัดถูกวิธีตามเป้า (ADA Standards of Care, 2024)
+
+[physician]
+ที่บอกว่า insulin เป็นอันดับแรก ส่วนหนึ่งเพราะ metformin ผ่านรก — ขอแยกให้ชัดครับ ที่รู้แน่: metformin ผ่านรกได้ ที่ยังไม่รู้: ผลระยะยาวต่อเด็ก เพราะข้อมูล follow-up ยังน้อย ส่วนตัวหลักฐานเอง: trial ที่บอกว่า metformin ได้ผล perinatal ใกล้เคียง insulin มีผู้หญิงจำนวนไม่น้อยที่ต้องเติม insulin อยู่ดี ถ้าเธอปฏิเสธการฉีด metformin ยังเป็นทางเลือกที่ guideline ยอมรับไหม หรือผมอ่านเกินไป
+
+[assistant]
+การแยกแบบนี้ถูกต้องครับ และไม่ได้อ่านเกินไป
+
+- **ข้อเท็จจริง:** metformin และ glyburide ผ่านรก จึงไม่แนะนำเป็นยาอันดับแรกใน GDM (ADA Standards of Care, 2024)
+- **ความไม่แน่นอน:** ข้อมูลติดตามเด็กระยะยาวหลังได้ metformin ในครรภ์ยังมีจำกัด
+- **ข้อจำกัด:** ในการศึกษาที่เปรียบเทียบ metformin กับ insulin มีผู้หญิงส่วนหนึ่งที่ต้องเติม insulin เพื่อให้ถึงเป้า
+
+สำหรับผู้ป่วยที่ปฏิเสธ insulin หรือไม่สามารถใช้ insulin ได้อย่างปลอดภัย metformin เป็นทางเลือกที่ยอมรับได้หลังให้ข้อมูลเรื่องการผ่านรกและข้อมูลระยะยาวที่ยังจำกัด (ACOG, 2018)
+
+[physician]
+ถ้าวัดใหม่แล้ว fasting จริงยังเกิน ผมจะเริ่ม NPH ก่อนช่วงนอนหลัก — คำถามที่ตัดสินแผนจริงคือ: ที่ รพ.ชุมชน เราไม่มีอายุรแพทย์ต่อมไร้ท่อ ส่ง รพ.ศูนย์ ต้องเดินทาง 80 กม. ถ้าเริ่ม 0.1–0.2 unit/kg แล้ว titrate ทุก 3 วันทางโทรศัพท์ จะปลอดภัยพอไหม เทียบกับการ refer ที่เธออาจไปไม่ได้จริงเพราะต้องลางาน
+
+[assistant]
+การเริ่ม NPH ขนาดต่ำแล้ว titrate ตามค่า SMBG เป็นวิธีที่ใช้ได้ในระดับปฐมภูมิ ถ้ามีระบบติดตามที่ชัดเจนครับ
+
+ปัจจัยที่ทำให้ปลอดภัย
+- สอนการฉีด การวัดน้ำตาล และการจดบันทึกตามเวลาตื่นนอน
+- สอนอาการและการแก้ hypoglycemia ให้ทั้งผู้ป่วยและคนในบ้าน
+- กำหนดเกณฑ์ชัดเจนว่าค่าเท่าไรให้ปรับขนาด และค่าเท่าไรให้โทรกลับทันที
+- insulin ที่เปิดใช้แล้วเก็บที่อุณหภูมิห้องได้ประมาณ 4 สัปดาห์ แต่ต้องไม่ร้อนเกินกว่าที่ฉลากกำหนด ซึ่งต้องระวังในอากาศร้อน
+
+เป้าหมายการปรับขนาดยังคงอิงเป้าระดับน้ำตาลเดิม (ADA Standards of Care, 2024)
+
+[physician]
+หาจุดอ่อนของแผน titrate ทางโทรศัพท์ของผมหน่อยครับ — ระบบนี้ไม่รู้ว่า รพ.เรามี pen หรือแค่ vial และไม่รู้ว่าเธออ่านขีดบน syringe ได้ไหม ส่วนนั้นผมเช็คเอง ขอแค่ failure mode ทางคลินิกที่ผมอาจมองข้าม
+
+[assistant]
+Failure mode ทางคลินิกที่ควรคิดไว้ครับ
+
+- **วันหยุดที่กลับไปนอนกลางคืน** — ช่วงนอนหลักเปลี่ยน ถ้าฉีด NPH ตามเวลานาฬิกาเดิม อาจเกิด hypoglycemia ในช่วงที่ไม่ได้กินอาหาร
+- **ความต้องการ insulin เพิ่มขึ้นตามอายุครรภ์** — ถ้า titrate ช้าเกิน ค่าอาจไม่ถึงเป้าจนใกล้คลอด
+- **การติดตามทารก** — GDM ที่ต้องใช้ยามีข้อบ่งชี้ antenatal surveillance และการวางแผนเวลาคลอด ซึ่งควรอยู่ในแผนตั้งแต่ตอนนี้ (ACOG, 2018)
+- **Hypoglycemia ขณะทำงานกะดึก** กับเครื่องจักร — ควรวัดก่อนเข้ากะและพกน้ำตาลติดตัว
+
+[physician]
+วันหยุดที่กลับไปนอนกลางคืน — ข้อนี้ผมไม่ได้คิดถึงเลย ผมจะให้ฉีดขนาดเดิมแต่ก่อนช่วงนอนหลักเสมอ ไม่ยึดนาฬิกา วัดน้ำตาลหลังตื่นทุกครั้ง ถ้ามีค่า <70 แม้ครั้งเดียวให้ลดลง 10–20% แล้วโทรหาผม และนัด NST/ultrasound ตามแนวทางเพราะใช้ยาแล้ว แผนสุดท้ายนี้ผมรับผิดชอบเองครับ
+
+[assistant]
+แผนนี้รัดกุมครับ การยึดช่วงนอนหลักแทนเวลานาฬิกาแก้ failure mode ที่สำคัญที่สุดของคนทำงานกะ และการลดขนาดเมื่อเกิด hypoglycemia เป็นหลักที่ปลอดภัย
+
+การวางแผน antenatal surveillance และการกำหนดเวลาคลอดตั้งแต่เริ่มยา สอดคล้องกับแนวทางสำหรับ GDM ที่ต้องใช้ยา (ACOG, 2018) ส่วนเป้าหมายระดับน้ำตาลยังเป็นตัวกำหนดการปรับขนาดต่อไป (ADA Standards of Care, 2024)
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+วิธีคิดผมตอนนี้ต่างจากเดิมตรงที่ 'fasting' ของคนทำงานกะต้องนิยามจากช่วงนอนหลัก ไม่ใช่เวลา 8 โมง ถ้าไม่ถามเรื่องนี้ผมคงเริ่ม insulin จากค่าที่วัดผิดเวลา และฉีดตามนาฬิกาซึ่งเสี่ยง hypoglycemia ในวันหยุด เกณฑ์ 'เกินครึ่ง' ที่ผมตั้งเองก็ไม่ใช่ตัวเลขจาก guideline
+
+ความไม่แน่นอน / What remains uncertain:
+ผลระยะยาวของ metformin ต่อเด็กยังไม่ชัด ถ้าเธอปฏิเสธการฉีดผมต้องอธิบายส่วนที่ยังไม่รู้นี้ตรงๆ และยังไม่รู้ว่าการ titrate ทางโทรศัพท์จะปลอดภัยจริงในบริบทเราแค่ไหน
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+จะเปิด ADA 2024 และ ACOG ฉบับเต็มเทียบเรื่องเป้าและ surveillance, ทำ protocol หนึ่งหน้าสำหรับหญิง GDM ที่ทำงานกะ (วัดตามช่วงนอนหลัก ฉีดก่อนนอนหลัก เกณฑ์โทรกลับ) แล้วสอนพยาบาล ANC ของเรา และจะทบทวนผู้ป่วย GDM ที่เริ่ม insulin ปีนี้ว่ามีกี่รายที่ค่า fasting วัดผิดช่วง
+
