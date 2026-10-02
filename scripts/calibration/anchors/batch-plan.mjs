@@ -18,7 +18,15 @@
  * shape. `--check` simulates the cohort cue gate (cues.mjs, all 100 anchors, pilot as written) with
  * authors landing anywhere inside their budgets, and reports how often it would fail.
  *
+ * EXTRA REVIEW. Rows with d4 <= 1 and d5 >= 4 — the combination the pilot could not write first time
+ * (anc-015 excluded, anc-101 needed its rewrite) — are flagged `extra_review`, placed LAST in their
+ * batch, and get a coordinator read before intake. The flag is a design property, the same for every
+ * split, so it reveals nothing about which split a row is in.
+ *
  * The plan never says which split (tuning / held-out) an anchor is in: authors must not know.
+ *
+ *   --drift N   also simulate authors who add N physician characters per composite point
+ *               (the pilot's habit was about 5; at 5 the gate fails almost always — see AUTHORING §9)
  *
  * Package-free.
  */
@@ -52,6 +60,9 @@ export const BUDGET_TEXT = {
   list_lines: { 0: 'NO bullet or numbered lines in physician turns or the reflection', some: '2–4 bullet or numbered lines in physician turns (a structured question or a listed plan)' },
   rubric_echo: 'ZERO rubric-descriptor words in physician turns and the reflection (see AUTHOR-BRIEF §5)',
 };
+
+export const EXTRA_REVIEW = 'd4 <= 1 with d5 >= 4: the hardest combination to write (pilot: anc-015 excluded, anc-101 needed its rewrite). Written last in the batch; the coordinator reads it before intake.';
+export const needsExtraReview = (r) => r.targets.d4 <= 1 && r.targets.d5 >= 4;
 
 const nonPilot = (design) => activeAnchors(design).filter((a) => !a.pilot)
   .sort((x, y) => (x.target_composite - y.target_composite) || x.id.localeCompare(y.id));
@@ -99,7 +110,8 @@ export function planBatches(design, { seed = BATCH_SEED } = {}) {
   for (const r of rows) budgets[r.id].rubric_echo = 0;
   const batches = [...Array(N_BATCHES).keys()].map((b) => ({
     batch: b + 1,
-    rows: rows.filter((r) => batchOf[r.id] === b).sort((x, y) => x.id.localeCompare(y.id)).map((r) => ({
+    rows: rows.filter((r) => batchOf[r.id] === b)
+      .sort((x, y) => (needsExtraReview(x) - needsExtraReview(y)) || x.id.localeCompare(y.id)).map((r) => ({
       id: r.id,
       language: r.language,
       specialty: r.specialty,
@@ -112,6 +124,7 @@ export function planBatches(design, { seed = BATCH_SEED } = {}) {
       targets: r.targets,
       target_composite: r.target_composite,
       cue_budget: budgets[r.id],
+      ...(needsExtraReview(r) ? { extra_review: EXTRA_REVIEW } : {}),
     })),
   }));
   return {
@@ -140,10 +153,11 @@ export function planMarkdown(plan) {
     for (const r of b.rows) {
       const c = r.cue_budget;
       const prof = r.profile === 'dissociated' ? `dissociated (${r.dissociated_domains.join(',')})` : r.profile;
-      L.push(`| ${r.id} | ${r.language} | ${r.specialty.en} | ${r.case} | ${r.tutor_mode} | ${r.physician_turns} | ${r.reflection} | ${prof} | ${t(r.targets)} | ${r.target_composite} | ${c.length} | ${c.ack_turns} | ${c.numerals} | ${c.list_lines} |`);
+      L.push(`| ${r.id}${r.extra_review ? ' ⚠' : ''} | ${r.language} | ${r.specialty.en} | ${r.case} | ${r.tutor_mode} | ${r.physician_turns} | ${r.reflection} | ${prof} | ${t(r.targets)} | ${r.target_composite} | ${c.length} | ${c.ack_turns} | ${c.numerals} | ${c.list_lines} |`);
     }
     L.push('');
   }
+  L.push(`⚠ = extra review: ${EXTRA_REVIEW}`, '');
   return L.join('\n');
 }
 
@@ -154,7 +168,7 @@ export const serialisePlan = (plan) => JSON.stringify(plan, null, 2) + '\n';
  * every planned row landing uniformly at random INSIDE its budget. Returns the failure rate and the
  * pairs that failed. This is what the budgets buy, assuming authors stay inside them.
  */
-export function simulateCueGate(plan, existing, { sims = 400, seed = 7, cueCheck }) {
+export function simulateCueGate(plan, existing, { sims = 400, seed = 7, cueCheck, lengthDrift = 0 }) {
   const R = rng(seed);
   const u = ([lo, hi]) => lo + (hi - lo) * R.next();
   const rows = plan.batches.flatMap((b) => b.rows);
@@ -166,7 +180,7 @@ export function simulateCueGate(plan, existing, { sims = 400, seed = 7, cueCheck
       const b = r.cue_budget;
       const turns = r.physician_turns;
       entries.push({ id: r.id, row: r, features: {
-        length: u(BUDGET_RANGES.length[b.length]),
+        length: u(BUDGET_RANGES.length[b.length]) + lengthDrift * (r.target_composite - 55),
         acks: b.ack_turns / turns,
         numbers: u(BUDGET_RANGES.numerals[b.numerals]),
         list_lines: Math.round(u(BUDGET_RANGES.list_lines[b.list_lines])),
@@ -196,6 +210,12 @@ if (isMain) {
     console.log(`  batch ${b.batch}: ${b.rows.length} rows, composites ${Math.min(...comps)}–${Math.max(...comps)}, en ${b.rows.filter((r) => r.language === 'en').length}, examiner ${b.rows.filter((r) => r.tutor_mode === 'examiner').length}`);
   }
   console.log(`  cue gate, simulated over ${existing.length} existing + ${plan.batches.flatMap((b) => b.rows).length} planned anchors landing inside their budgets: fails ${(sim.fail_rate * 100).toFixed(1)}% of ${sim.sims} draws ${Object.keys(sim.pairs).length ? JSON.stringify(sim.pairs) : ''}`);
+  const di = process.argv.indexOf('--drift');
+  if (di > -1) {
+    const drift = Number(process.argv[di + 1]);
+    const d = simulateCueGate(plan, existing, { cueCheck, lengthDrift: drift });
+    console.log(`  … with authors drifting +${drift} physician characters per composite point: fails ${(d.fail_rate * 100).toFixed(1)}% ${JSON.stringify(d.pairs)}`);
+  }
   if (process.argv.includes('--check')) {
     let bad = 0;
     for (const [p, want] of [[BATCHES_PATH, json], [PLAN_MD_PATH, md]]) {

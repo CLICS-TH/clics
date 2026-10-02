@@ -22,7 +22,7 @@
     }
   },
   "design_sha256": "79755f69472fce813c1b23d57648b98cf3a75248f7d07d3608266e50c0c2f5ba",
-  "note": "Held-out anchors are never rewritten on the strength of any AI or panel score (AUTHORING.md §7.5). Fixture bytes are bound at first scoring (anchors.test.mjs).",
+  "note": "Held-out anchors are never rewritten on the strength of any AI or panel score (AUTHORING.md §7.5). Fixture bytes are bound at intake (HELDOUT-LOCK.json), and no held-out anchor is scored before every one is locked (§9).",
   "held_out": [
     "anc-021",
     "anc-022",

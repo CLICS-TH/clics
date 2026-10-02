@@ -5,6 +5,13 @@
  *
  *   node scripts/calibration/anchors/author-brief.mjs           # (re)write AUTHOR-BRIEF.md
  *   node scripts/calibration/anchors/author-brief.mjs --check   # fail if AUTHOR-BRIEF.md is stale
+ *   node scripts/calibration/anchors/author-brief.mjs --pin     # ONCE: pin the tutor prompts (refuses to overwrite)
+ *
+ * TUTOR PROMPT PIN. Every anchor's tutor turns are written to ONE tutor prompt for the whole cohort —
+ * the production natural/examiner prompts as they stood when the pin was taken (tutor-prompt-pin.json,
+ * texts + their chat prompt_version labels). The brief reads the PIN, never the live prompts.js, so a
+ * tutor-prompt change merged mid-cohort (e.g. PR #123) cannot reach later batches: a change of tutor
+ * style between batches would itself be a surface cue.
  *
  * The rules that already live elsewhere are COPIED IN at build time, never retyped, so the brief cannot
  * drift from them: the §1 PII table and §5 level descriptors (AUTHORING.md, verbatim), the reflection
@@ -13,7 +20,9 @@
  *
  * Package-free.
  */
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, access } from 'node:fs/promises';
+import { createRequire } from 'node:module';
+import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CITATIONS } from './citations.mjs';
@@ -24,6 +33,22 @@ import { BUDGET_TEXT } from './batch-plan.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const BRIEF_PATH = path.join(HERE, 'AUTHOR-BRIEF.md');
+export const PIN_PATH = path.join(HERE, 'tutor-prompt-pin.json');
+const require = createRequire(import.meta.url);
+
+/** The pin record for the current prompts.js — used ONCE, by --pin. */
+export function makePin() {
+  const P = require('../../../rimpl/src/lib/prompts.js');
+  const { promptLabel } = require('../../../rimpl/src/lib/versions.js');
+  let head = null; try { head = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim(); } catch { /* not in git */ }
+  return {
+    note: 'The tutor prompts every anchor in the cohort is written to, pinned before authoring. Do not update when production prompts.js changes (AUTHORING.md §9). prompt_version = rimpl versions.js promptLabel("chat", text), clinical_artifacts off.',
+    pinned_at: new Date().toISOString(),
+    git_head: head,
+    natural: { prompt_version: promptLabel('chat', P.RIMPL_SYSTEM_PROMPT_NATURAL), text: P.RIMPL_SYSTEM_PROMPT_NATURAL },
+    examiner: { prompt_version: promptLabel('chat', P.RIMPL_SYSTEM_PROMPT_EXAMINER), text: P.RIMPL_SYSTEM_PROMPT_EXAMINER },
+  };
+}
 
 /** Lines of AUTHORING.md from the first line matching `from` up to (not including) the first matching `to`. */
 function slice(md, from, to) {
@@ -56,6 +81,8 @@ export async function buildBrief() {
   const levels = slice(md, /^The CREC general scale applies/, /^## 6\. Author checklist/);
   const cites = CITATIONS.map((c) => `| ${c.what} | ${c.years.join(', ')} |`).join('\n');
   const tol = BUDGET_TOLERANCE;
+  const pin = JSON.parse(await readFile(PIN_PATH, 'utf8'));
+  const fence = (t) => '````text\n' + t + '\n````';
 
   return `# Anchor author brief — write ONE fixture from ONE design row
 
@@ -162,6 +189,12 @@ sits on: never put one on a statement that is wrong on purpose (§6).
 ${cites}
 
 ## 3. The tutor turns — write them the way the real tutor would answer
+
+**Pinned prompt.** Every anchor in this cohort writes its tutor turns to the SAME tutor prompts, pinned
+before authoring began: natural \`${pin.natural.prompt_version}\`, examiner \`${pin.examiner.prompt_version}\`
+(full text in Appendix A). If production's tutor prompt changes while the cohort is being written — a
+merged PR, a new citation rule — **do not follow it**: a change of tutor style between batches would
+itself become a surface cue. Appendix A is the tutor you are writing.
 
 The tutor is production's clinical mentor. Its prompt says, in substance:
 - warm, collegial senior colleague; **substantive** answer to the question asked, never declines;
@@ -297,11 +330,31 @@ not a template**):
    among those that "pushed most", say so in your reply rather than distorting your anchor.
 5. Reply with: the id, the path(s) you wrote, one line per domain saying which turn carries its
    evidence (or its absence), and anything you could not make natural.
+6. If your row says \`extra_review\`, write it last and say in your reply how d4 stays low while d5 is
+   high — the coordinator reads it before intake.
+
+## Appendix A — the pinned tutor prompts (verbatim)
+
+**natural** — \`${pin.natural.prompt_version}\`
+
+${fence(pin.natural.text)}
+
+**examiner** — \`${pin.examiner.prompt_version}\`
+
+${fence(pin.examiner.text)}
 `;
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
+  if (process.argv.includes('--pin')) {
+    try { await access(PIN_PATH); console.error('✖ tutor-prompt-pin.json exists — the tutor prompt is pinned for the whole cohort and is not re-pinned'); process.exit(1); }
+    catch (e) { if (e.code !== 'ENOENT') throw e; }
+    const pin = makePin();
+    await writeFile(PIN_PATH, JSON.stringify(pin, null, 2) + '\n');
+    console.log(`pinned tutor prompts: natural ${pin.natural.prompt_version}, examiner ${pin.examiner.prompt_version}`);
+    process.exit(0);
+  }
   const brief = await buildBrief();
   if (process.argv.includes('--check')) {
     let have = null; try { have = await readFile(BRIEF_PATH, 'utf8'); } catch { /* missing */ }

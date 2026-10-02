@@ -17,13 +17,14 @@ import {
 } from './design.mjs';
 import {
   validateFixture, validateAll, serialiseManifest, MANIFEST_PATH, FIXTURES_DIR, REFLECTION_HEADINGS, thaiShare, checkPlanted,
-  checkBudget, batchCueContribution,
+  checkBudget, batchCueContribution, updateHeldOutLock,
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
-import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH, PLAN_MD_PATH, BUDGET_LEVELS } from './batch-plan.mjs';
-import { buildBrief, BRIEF_PATH } from './author-brief.mjs';
+import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH, PLAN_MD_PATH, BUDGET_LEVELS, needsExtraReview } from './batch-plan.mjs';
+import { buildBrief, BRIEF_PATH, PIN_PATH } from './author-brief.mjs';
 import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, freezeApplies, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
-import { checkSplit, splitFilter, heldOutEligible, loadAnchorSplit, reserveByDesign, allocateHeldOut, SPLIT_CELLS, cellOf } from './anchor-split.mjs';
+import { checkSplit, splitFilter, heldOutEligible, loadAnchorSplit, reserveByDesign, allocateHeldOut, SPLIT_CELLS, cellOf,
+  loadHeldOutLock, lockComplete, assertHeldOutScorable } from './anchor-split.mjs';
 import {
   knownGroups, normaliseScores, parseThreshold, loadThreshold, spearman, wilson, EVIDENCE_LEVEL,
 } from './known-groups.mjs';
@@ -793,5 +794,99 @@ describe('scaling to 100 — batch plan, author brief, intake', () => {
     try { execFileSync(process.execPath, [path.join(HERE, 'validate.mjs'), '--only', 'anc-099'], { encoding: 'utf8', stdio: 'pipe' }); }
     catch (e) { failed = true; assert.match(String(e.stdout), /anc-099\s+MISSING/); }
     assert.ok(failed, 'a missing fixture must fail intake');
+  });
+});
+
+describe('D13 on the full cohort — held-out lock and no early held-out scores', () => {
+  const design = committedDesign;
+
+  test('HELDOUT-LOCK.json: only held-out ids, and every locked sha is still the fixture on disk', async () => {
+    const split = await loadAnchorSplit();
+    const lock = await loadHeldOutLock();
+    if (!lock) return;                      // nothing recorded yet
+    const held = new Set(split.held_out);
+    for (const [id, sha] of Object.entries(lock.locked)) {
+      assert.ok(held.has(id), `${id} is locked but not held-out`);
+      const buf = await readFile(path.join(FIXTURES_DIR, `${id}.json`));
+      assert.equal(createHash('sha256').update(buf).digest('hex'), sha, `${id} is held-out and LOCKED; its fixture changed`);
+    }
+  });
+
+  test('a lock entry, once on master, is never changed or dropped (skipped without git or origin/master)', () => {
+    let master = null;
+    try { master = JSON.parse(execFileSync('git', ['show', 'origin/master:scripts/calibration/anchors/HELDOUT-LOCK.json'], { cwd: HERE, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })); }
+    catch { return; }
+    return loadHeldOutLock().then((now) => {
+      for (const [id, sha] of Object.entries(master.locked)) assert.equal(now?.locked?.[id], sha, `${id}: locked on master, changed here`);
+    });
+  });
+
+  test('updateHeldOutLock adds new held-out fixtures, ignores tuning, and reports a changed locked sha', () => {
+    const split = { seed: 1, held_out: ['anc-050', 'anc-051'], tuning: ['anc-052'] };
+    const r = (id, sha) => ({ id, sha256: sha });
+    const first = updateHeldOutLock(split, null, [r('anc-050', 'a'), r('anc-052', 'c')]);
+    assert.deepEqual(first.added, ['anc-050']);
+    assert.deepEqual(first.lock.locked, { 'anc-050': 'a' });
+    const again = updateHeldOutLock(split, first.lock, [r('anc-050', 'CHANGED'), r('anc-051', 'b')]);
+    assert.deepEqual(again.changed, ['anc-050']);
+    assert.deepEqual(again.added, ['anc-051']);
+    assert.equal(updateHeldOutLock(null, null, [r('anc-050', 'a')]).added.length, 0);
+  });
+
+  test('assertHeldOutScorable: refuses any held-out id until all are locked, then only the locked bytes', () => {
+    const split = { held_out: ['anc-050', 'anc-051'], tuning: ['anc-052'] };
+    assert.doesNotThrow(() => assertHeldOutScorable(['anc-052'], { split, lock: null }));
+    assert.throws(() => assertHeldOutScorable(['anc-052', 'anc-050'], { split, lock: { locked: { 'anc-050': 'a' } } }), /only 1 of 2/);
+    const lock = { locked: { 'anc-050': 'a', 'anc-051': 'b' } };
+    assert.ok(lockComplete(split, lock));
+    assert.doesNotThrow(() => assertHeldOutScorable(['anc-050'], { split, lock, fixtureShas: { 'anc-050': 'a' } }));
+    assert.throws(() => assertHeldOutScorable(['anc-050'], { split, lock, fixtureShas: { 'anc-050': 'z' } }), /locked bytes/);
+  });
+
+  test('while the lock is incomplete, no committed run or panel record holds a held-out score', async () => {
+    const split = await loadAnchorSplit();
+    if (lockComplete(split, await loadHeldOutLock())) return;
+    const held = new Set(split.held_out);
+    for (const f of (await readdir(path.join(HERE, 'runs'))).filter((x) => x.endsWith('.json'))) {
+      const doc = JSON.parse(await readFile(path.join(HERE, 'runs', f), 'utf8'));
+      for (const row of doc.rows ?? []) assert.ok(!held.has(row.id), `runs/${f} scores held-out ${row.id} before the lock is complete`);
+    }
+    for (const d of (await readdir(path.join(HERE, 'pilot'))).filter((x) => !x.includes('.'))) {
+      let key = null; try { key = JSON.parse(await readFile(path.join(HERE, 'pilot', d, 'KEY-do-not-share.json'), 'utf8')); } catch { continue; }
+      for (const id of Object.values(key)) assert.ok(!held.has(id), `pilot/${d} rates held-out ${id} before the lock is complete`);
+    }
+  });
+
+  test('no held-out id is named in any document an author reads', async () => {
+    const split = await loadAnchorSplit();
+    const docs = await readFile(path.join(HERE, 'AUTHORING.md'), 'utf8') + await readFile(BRIEF_PATH, 'utf8');
+    for (const id of split.held_out) assert.ok(!docs.includes(id), `${id} (held-out) is named in AUTHORING.md or AUTHOR-BRIEF.md`);
+  });
+
+  test('extra-review rows: exactly the d4 <= 1 / d5 >= 4 rows, last in their batch', () => {
+    const plan = planBatches(design);
+    for (const b of plan.batches) {
+      b.rows.forEach((r, i) => {
+        assert.equal(Boolean(r.extra_review), needsExtraReview(r), r.id);
+        if (r.extra_review) assert.ok(b.rows.slice(i).every((x) => x.extra_review), `${r.id} is not last in batch ${b.batch}`);
+      });
+    }
+  });
+
+  test('pilot-style length drift fails the simulated cue gate (the documented 96%)', async () => {
+    const { results } = await validateAll();
+    const existing = results.filter((r) => r.features && r.row && !r.row.excluded).map((r) => ({ id: r.id, row: r.row, features: r.features }));
+    const sim = simulateCueGate(planBatches(design), existing, { sims: 100, cueCheck, lengthDrift: 5 });
+    assert.ok(sim.fail_rate >= 0.8, `drift 5 fails only ${sim.fail_rate}`);
+  });
+
+  test('the tutor prompt is pinned: the pin is self-consistent and the brief carries it verbatim', async () => {
+    const pin = JSON.parse(await readFile(PIN_PATH, 'utf8'));
+    const { promptLabel } = require('../../../rimpl/src/lib/versions.js');
+    const brief = await readFile(BRIEF_PATH, 'utf8');
+    for (const m of ['natural', 'examiner']) {
+      assert.equal(pin[m].prompt_version, promptLabel('chat', pin[m].text), `${m}: version does not match its text`);
+      assert.ok(brief.includes(pin[m].prompt_version) && brief.includes(pin[m].text), `${m}: brief does not carry the pinned prompt`);
+    }
   });
 });

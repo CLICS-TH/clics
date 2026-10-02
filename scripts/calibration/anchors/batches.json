@@ -1666,40 +1666,6 @@
       "batch": 6,
       "rows": [
         {
-          "id": "anc-025",
-          "language": "en",
-          "specialty": {
-            "key": "em",
-            "en": "Emergency Medicine",
-            "th": "เวชศาสตร์ฉุกเฉิน"
-          },
-          "case": "suspected sepsis in an older adult — first-hour bundle",
-          "tutor_mode": "examiner",
-          "physician_turns": 6,
-          "reflection": "reflection_turn",
-          "profile": "dissociated",
-          "dissociated_domains": [
-            "d5"
-          ],
-          "targets": {
-            "d1": 0,
-            "d2": 0,
-            "d3": 0,
-            "d4": 0,
-            "d5": 4,
-            "d6": 2,
-            "d7": 1
-          },
-          "target_composite": 18,
-          "cue_budget": {
-            "length": "medium",
-            "ack_turns": 1,
-            "numerals": "few",
-            "list_lines": "some",
-            "rubric_echo": 0
-          }
-        },
-        {
           "id": "anc-039",
           "language": "th",
           "specialty": {
@@ -1990,6 +1956,41 @@
             "list_lines": 0,
             "rubric_echo": 0
           }
+        },
+        {
+          "id": "anc-025",
+          "language": "en",
+          "specialty": {
+            "key": "em",
+            "en": "Emergency Medicine",
+            "th": "เวชศาสตร์ฉุกเฉิน"
+          },
+          "case": "suspected sepsis in an older adult — first-hour bundle",
+          "tutor_mode": "examiner",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d5"
+          ],
+          "targets": {
+            "d1": 0,
+            "d2": 0,
+            "d3": 0,
+            "d4": 0,
+            "d5": 4,
+            "d6": 2,
+            "d7": 1
+          },
+          "target_composite": 18,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 1,
+            "numerals": "few",
+            "list_lines": "some",
+            "rubric_echo": 0
+          },
+          "extra_review": "d4 <= 1 with d5 >= 4: the hardest combination to write (pilot: anc-015 excluded, anc-101 needed its rewrite). Written last in the batch; the coordinator reads it before intake."
         }
       ]
     },
@@ -2358,41 +2359,6 @@
           }
         },
         {
-          "id": "anc-055",
-          "language": "th",
-          "specialty": {
-            "key": "psych",
-            "en": "Psychiatry",
-            "th": "จิตเวชศาสตร์"
-          },
-          "case": "delirium vs dementia in a hospitalised older adult",
-          "tutor_mode": "natural",
-          "physician_turns": 5,
-          "reflection": "in_chat",
-          "profile": "dissociated",
-          "dissociated_domains": [
-            "d2",
-            "d4"
-          ],
-          "targets": {
-            "d1": 5,
-            "d2": 1,
-            "d3": 5,
-            "d4": 1,
-            "d5": 5,
-            "d6": 4,
-            "d7": 5
-          },
-          "target_composite": 70,
-          "cue_budget": {
-            "length": "medium",
-            "ack_turns": 0,
-            "numerals": "many",
-            "list_lines": "some",
-            "rubric_echo": 0
-          }
-        },
-        {
           "id": "anc-058",
           "language": "en",
           "specialty": {
@@ -2649,6 +2615,42 @@
             "list_lines": 0,
             "rubric_echo": 0
           }
+        },
+        {
+          "id": "anc-055",
+          "language": "th",
+          "specialty": {
+            "key": "psych",
+            "en": "Psychiatry",
+            "th": "จิตเวชศาสตร์"
+          },
+          "case": "delirium vs dementia in a hospitalised older adult",
+          "tutor_mode": "natural",
+          "physician_turns": 5,
+          "reflection": "in_chat",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d2",
+            "d4"
+          ],
+          "targets": {
+            "d1": 5,
+            "d2": 1,
+            "d3": 5,
+            "d4": 1,
+            "d5": 5,
+            "d6": 4,
+            "d7": 5
+          },
+          "target_composite": 70,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 0,
+            "numerals": "many",
+            "list_lines": "some",
+            "rubric_echo": 0
+          },
+          "extra_review": "d4 <= 1 with d5 >= 4: the hardest combination to write (pilot: anc-015 excluded, anc-101 needed its rewrite). Written last in the batch; the coordinator reads it before intake."
         }
       ]
     }

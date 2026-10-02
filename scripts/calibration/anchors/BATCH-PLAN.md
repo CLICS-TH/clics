@@ -82,7 +82,6 @@
 
 | id | lang | specialty | case | tutor | phys turns | reflection | profile | targets d1–d7 | comp | length | acks | numerals | lists |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| anc-025 | en | Emergency Medicine | suspected sepsis in an older adult — first-hour bundle | examiner | 6 | reflection_turn | dissociated (d5) | 0,0,0,0,4,2,1 | 18 | medium | 1 | few | some |
 | anc-039 | th | Neurology | acute ischaemic stroke at 3 hours — thrombolysis decision | natural | 8 | reflection_turn | graded | 3,4,3,1,3,2,3 | 56 | long | 1 | some | some |
 | anc-046 | th | Pediatrics | first afebrile seizure in a toddler | examiner | 4 | reflection_turn | graded | 3,4,3,4,2,4,4 | 68 | long | 2 | many | 0 |
 | anc-048 | th | Surgery | right lower quadrant pain — appendicitis or not | examiner | 8 | reflection_turn | graded | 4,2,1,3,1,3,3 | 47 | long | 2 | few | some |
@@ -92,6 +91,7 @@
 | anc-082 | th | Internal Medicine | new atrial fibrillation — anticoagulation decision | natural | 4 | reflection_turn | graded | 4,3,4,2,5,5,3 | 73 | long | 1 | many | 0 |
 | anc-084 | th | Family Medicine | newly found hypertension at a community clinic | natural | 6 | in_chat | graded | 2,3,2,1,1,1,2 | 36 | long | 1 | some | some |
 | anc-086 | th | Anaesthesiology | perioperative management of anticoagulation | natural | 6 | in_chat | dissociated (d7) | 4,5,5,5,5,5,2 | 91 | short | 0 | some | 0 |
+| anc-025 ⚠ | en | Emergency Medicine | suspected sepsis in an older adult — first-hour bundle | examiner | 6 | reflection_turn | dissociated (d5) | 0,0,0,0,4,2,1 | 18 | medium | 1 | few | some |
 
 ## Batch 7 — 10 anchors · composites 23–88 · English 2 · examiner 7
 
@@ -113,7 +113,6 @@
 | id | lang | specialty | case | tutor | phys turns | reflection | profile | targets d1–d7 | comp | length | acks | numerals | lists |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | anc-052 | en | Emergency Medicine | chest pain with a non-diagnostic first ECG | examiner | 5 | reflection_turn | graded | 4,3,5,4,5,5,3 | 82 | long | 0 | few | 0 |
-| anc-055 | th | Psychiatry | delirium vs dementia in a hospitalised older adult | natural | 5 | in_chat | dissociated (d2,d4) | 5,1,5,1,5,4,5 | 70 | medium | 0 | many | some |
 | anc-058 | en | Surgery | acute calculous cholecystitis — timing of cholecystectomy | examiner | 5 | reflection_turn | graded | 4,4,3,3,5,4,4 | 77 | long | 0 | many | some |
 | anc-062 | th | Psychiatry | delirium vs dementia in a hospitalised older adult | natural | 4 | reflection_turn | flat | 3,3,3,3,3,3,3 | 60 | short | 2 | few | 0 |
 | anc-070 | th | Surgery | right lower quadrant pain — appendicitis or not | examiner | 7 | reflection_turn | graded | 4,5,5,5,5,3,4 | 91 | medium | 1 | few | some |
@@ -122,4 +121,7 @@
 | anc-085 | th | Family Medicine | chronic low back pain with no red flags | examiner | 5 | none | graded | 2,0,1,1,1,0,2 | 19 | short | 2 | few | some |
 | anc-087 | th | Family Medicine | statin decision for primary prevention | examiner | 7 | reflection_turn | graded | 2,3,1,2,3,3,3 | 48 | short | 0 | some | 0 |
 | anc-094 | th | Emergency Medicine | syncope in a middle-aged adult — risk stratification | natural | 5 | reflection_turn | dissociated (d6) | 1,0,2,1,1,4,1 | 25 | medium | 0 | many | 0 |
+| anc-055 ⚠ | th | Psychiatry | delirium vs dementia in a hospitalised older adult | natural | 5 | in_chat | dissociated (d2,d4) | 5,1,5,1,5,4,5 | 70 | medium | 0 | many | some |
+
+⚠ = extra review: d4 <= 1 with d5 >= 4: the hardest combination to write (pilot: anc-015 excluded, anc-101 needed its rewrite). Written last in the batch; the coordinator reads it before intake.
 

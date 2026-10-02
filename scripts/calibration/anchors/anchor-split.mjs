@@ -12,8 +12,13 @@
 // reserves over fixture files and records their sha256 — here that would mean writing the anchors first,
 // and authoring is exactly the step the split must precede. So the reservation is over design.json ids
 // (the targets are fixed there, seeded), and records design.json's sha256 instead. Fixture bytes are
-// bound later, at first scoring: anchors.test.mjs fails if a held-out fixture that any run in runs/ has
-// scored no longer has the bytes that run scored (held-out anchors are never rewritten after a score).
+// bound at INTAKE: when validate.mjs records a held-out fixture into manifest.json it also writes its
+// sha256 into HELDOUT-LOCK.json, and anchors.test.mjs fails if a locked sha ever changes.
+//
+// NO HELD-OUT SCORE BEFORE THE LOCK IS COMPLETE (AUTHORING.md §9). No rater — the blind panel, the
+// local evaluator, Claude — scores a held-out anchor until all of them are authored and locked.
+// assertHeldOutScorable() is the gate: score-local.mjs and known-groups.mjs call it, and any panel
+// packet builder must (`anchor-split.mjs --check-scorable <ids>` for one built by hand).
 //
 //   node scripts/calibration/anchors/anchor-split.mjs --reserve --seed 20261005 --held-out 60
 //   (60: ~80% power for the two-rater ICC lower bound to clear 0.75 at a true 0.88 — AUTHORING.md §7.5)
@@ -36,6 +41,37 @@ import { rng, DESIGN_PATH } from './design.mjs';
 
 export const SPLIT_ANCHORS_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), 'SPLIT-anchors.json');
 export const SPLIT_NAMES = ['tuning', 'heldout'];
+export const LOCK_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), 'HELDOUT-LOCK.json');
+
+export async function loadHeldOutLock(p = LOCK_PATH) {
+  try { return JSON.parse(await readFile(p, 'utf8')); }
+  catch (e) { if (e.code === 'ENOENT') return null; throw e; }
+}
+
+/** Is every held-out anchor locked? (No split → nothing is held out → trivially complete.) */
+export function lockComplete(split, lock) {
+  if (!split) return true;
+  const locked = lock?.locked ?? {};
+  return split.held_out.every((id) => typeof locked[id] === 'string');
+}
+
+/**
+ * Throws unless these ids may be scored now: a held-out id may be scored only once EVERY held-out
+ * anchor is authored and locked, and only with its locked bytes (fixtureShas, when given).
+ */
+export function assertHeldOutScorable(ids, { split, lock, fixtureShas = null }) {
+  if (!split) return;
+  const held = new Set(split.held_out);
+  const asked = ids.filter((id) => held.has(id));
+  if (!asked.length) return;
+  if (!lockComplete(split, lock)) {
+    const n = Object.keys(lock?.locked ?? {}).length;
+    throw new Error(`refusing to score held-out anchor(s) ${asked.slice(0, 5).join(', ')}${asked.length > 5 ? ' …' : ''}: only ${n} of ${split.held_out.length} held-out anchors are locked. No rater scores a held-out anchor before all of them are authored and locked (AUTHORING.md §9, D13).`);
+  }
+  for (const id of asked) {
+    if (fixtureShas && fixtureShas[id] !== lock.locked[id]) throw new Error(`${id} is held-out and its fixture no longer has the locked bytes (HELDOUT-LOCK.json) — a held-out anchor is never changed after intake`);
+  }
+}
 
 export async function loadAnchorSplit(p = SPLIT_ANCHORS_PATH) {
   try { return JSON.parse(await readFile(p, 'utf8')); }
@@ -143,7 +179,13 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPat
 if (isMain) {
   const argv = process.argv.slice(2);
   const num = (k) => { const i = argv.indexOf(`--${k}`); return i > -1 ? Number(argv[i + 1]) : NaN; };
-  if (!argv.includes('--reserve')) { console.error('usage: anchor-split.mjs --reserve --seed <int> --held-out <n>'); process.exit(2); }
+  if (argv.includes('--report')) { await report(); process.exit(0); }
+  if (argv.includes('--check-scorable')) {
+    const ids = String(argv[argv.indexOf('--check-scorable') + 1] ?? '').split(',').map((x) => x.trim()).filter(Boolean);
+    try { assertHeldOutScorable(ids, { split: await loadAnchorSplit(), lock: await loadHeldOutLock() }); console.log(`✔ may be scored now: ${ids.join(' ')}`); process.exit(0); }
+    catch (e) { console.error(`✖ ${e.message}`); process.exit(1); }
+  }
+  if (!argv.includes('--reserve')) { console.error('usage: anchor-split.mjs --reserve --seed <int> --held-out <n> | --report | --check-scorable <ids>'); process.exit(2); }
   try { await access(SPLIT_ANCHORS_PATH); console.error(`✖ ${SPLIT_ANCHORS_PATH} exists — the split is reserved and is never overwritten (D13). Delete it in a commit that says why.`); process.exit(1); }
   catch (e) { if (e.code !== 'ENOENT') throw e; }
   const seed = num('seed'), heldOut = num('held-out');
@@ -161,7 +203,7 @@ if (isMain) {
     method: 'by DESIGN id, before any non-pilot fixture exists: eligible = non-pilot active anchors, split into language × profile cells (th/en × dissociated/coherent); held-out allocated to cells proportionally (largest remainder; a cell of 2+ keeps at least one tuning anchor); within each cell, ordered by target composite and cut into that many consecutive strata, one id drawn per stratum (design.mjs rng / mulberry32). Pilot and §7.4 replacements of tuning anchors are tuning.',
     cells_non_pilot: cells,
     design_sha256: createHash('sha256').update(bytes).digest('hex'),
-    note: 'Held-out anchors are never rewritten on the strength of any AI or panel score (AUTHORING.md §7.5). Fixture bytes are bound at first scoring (anchors.test.mjs).',
+    note: 'Held-out anchors are never rewritten on the strength of any AI or panel score (AUTHORING.md §7.5). Fixture bytes are bound at intake (HELDOUT-LOCK.json), and no held-out anchor is scored before every one is locked (§9).',
     held_out,
     tuning,
   };
@@ -175,4 +217,35 @@ if (isMain) {
   }
   console.log(`seed ${seed} · design ${record.design_sha256.slice(0, 12)} · head ${git_head ?? '(none)'}`);
   console.log('Commit SPLIT-anchors.json now, before any authoring or screening.');
+}
+
+/**
+ * COORDINATOR-ONLY report (needs SPLIT-anchors.json, which author checkouts do not have): per-cell
+ * counts and composite spans, the batch run order (most tuning anchors first), and where each
+ * extra-review row sits. Kept out of every committed document an author can read.
+ */
+async function report() {
+  const split = await loadAnchorSplit();
+  if (!split) { console.error('✖ no SPLIT-anchors.json in this checkout'); process.exit(1); }
+  const design = JSON.parse(await readFile(DESIGN_PATH, 'utf8'));
+  const row = (id) => design.anchors.find((a) => a.id === id);
+  const span = (ids) => { const c = ids.map((id) => row(id).target_composite); return c.length ? (Math.min(...c) === Math.max(...c) ? `${c[0]}` : `${Math.min(...c)}–${Math.max(...c)}`) : '—'; };
+  const held = new Set(split.held_out);
+  console.log(`split: ${split.held_out.length} held-out / ${split.tuning.length} tuning (seed ${split.seed})`);
+  console.log('cell (non-pilot)   tuning            held-out');
+  for (const c of SPLIT_CELLS) {
+    const ids = design.anchors.filter((a) => !a.pilot && !a.excluded && cellOf(a) === c).map((a) => a.id);
+    const t = ids.filter((id) => !held.has(id)), h = ids.filter((id) => held.has(id));
+    console.log(`  ${c.padEnd(16)} ${String(t.length).padStart(2)} (${span(t)})`.padEnd(38) + `${String(h.length).padStart(2)} (${span(h)})`);
+  }
+  let plan = null;
+  try { plan = JSON.parse(await readFile(path.join(path.dirname(DESIGN_PATH), 'batches.json'), 'utf8')); } catch { /* no plan */ }
+  if (plan) {
+    const per = plan.batches.map((b) => ({ b: b.batch, t: b.rows.filter((r) => !held.has(r.id)).length }));
+    const order = [...per].sort((x, y) => (y.t - x.t) || (x.b - y.b));
+    console.log(`run order (most tuning anchors first): ${order.map((x) => `batch ${x.b} (${x.t})`).join(', ')}`);
+    for (const b of plan.batches) for (const r of b.rows) if (r.extra_review) console.log(`  extra review: ${r.id} in batch ${b.batch} — ${held.has(r.id) ? 'HELD-OUT: can never be rewritten after scoring, so review hardest before intake' : 'tuning'}`);
+  }
+  const lock = await loadHeldOutLock();
+  console.log(`held-out lock: ${Object.keys(lock?.locked ?? {}).length} of ${split.held_out.length} locked${lockComplete(split, lock) ? ' — COMPLETE: held-out may now be scored' : ' — held-out may NOT be scored yet'}`);
 }

@@ -330,6 +330,13 @@ if (isMain) {
   const threshold = await loadThreshold();
   const only = arg('only') ? String(arg('only')).split(',').map((s) => s.trim()).filter(Boolean) : null;
   let allowedIds;
+  // D13: a held-out score is not READ before every held-out anchor is locked either. Refuse a scores
+  // file holding any held-out id while the lock is incomplete (that score should not exist yet).
+  {
+    const { loadHeldOutLock, assertHeldOutScorable } = await import('./anchor-split.mjs');
+    try { assertHeldOutScorable([...runs.keys()], { split: await loadAnchorSplit(), lock: await loadHeldOutLock() }); }
+    catch (e) { console.error(`✖ ${e.message.replace('refusing to score', 'refusing to analyse scores of')}`); process.exit(2); }
+  }
   // The pilot is tuning-only (checkSplit enforces it), so --pilot names its split unambiguously.
   const splitName = arg('split') ?? (argv.includes('--pilot') ? 'tuning' : null);
   try { allowedIds = splitFilter(design, await loadAnchorSplit(), splitName); }

@@ -5,7 +5,12 @@
  *   node scripts/calibration/anchors/validate.mjs           # validate + rewrite manifest.json
  *   node scripts/calibration/anchors/validate.mjs --check   # validate + verify manifest.json, write nothing
  *   node scripts/calibration/anchors/validate.mjs --batch 3            # INTAKE one authoring batch (batches.json)
- *   node scripts/calibration/anchors/validate.mjs --only anc-021,anc-034  # INTAKE named fixtures
+ *   node scripts/calibration/anchors/validate.mjs --only anc-0NN,anc-0MM  # INTAKE named fixtures
+ *
+ * HELD-OUT LOCK. The full run (no flags) that records fixtures into manifest.json also records every
+ * held-out fixture's sha256 into HELDOUT-LOCK.json (SPLIT-anchors.json says which ids are held out).
+ * From then on that fixture may never change: a changed locked sha is an error here and in the tests.
+ * Fixing a held-out anchor BEFORE it is recorded is authoring (AUTHORING.md §7.5).
  *
  * Intake mode (--batch / --only) writes nothing. It reports, for those ids only: every per-fixture
  * error, the CUE BUDGET each was assigned in batches.json (length, acknowledgements, numerals, list
@@ -57,6 +62,31 @@ export const PLANTED_PATH = path.join(HERE, 'planted-claims.json');
 export const PLANTED_DIR = path.join(HERE, 'planted');
 export const BATCHES_PATH = path.join(HERE, 'batches.json');
 
+/**
+ * Held-out lock bookkeeping. Pure. Returns the lock as it should be after this run (new held-out
+ * fixtures added), plus what changed: `changed` = locked ids whose current sha differs (always an
+ * error), `unlocked` = held-out fixtures present but not yet locked.
+ */
+export function updateHeldOutLock(split, lock, results) {
+  const locked = { ...(lock?.locked ?? {}) };
+  if (!split) return { lock, changed: [], unlocked: [], added: [] };
+  const held = new Set(split.held_out);
+  const changed = [], unlocked = [];
+  for (const r of results) {
+    if (!held.has(r.id)) continue;
+    if (locked[r.id] == null) unlocked.push(r.id);
+    else if (locked[r.id] !== r.sha256) changed.push(r.id);
+  }
+  for (const id of unlocked) locked[id] = results.find((r) => r.id === id).sha256;
+  const next = {
+    note: 'sha256 of every held-out anchor fixture, recorded at intake by validate.mjs. A locked fixture never changes (AUTHORING.md §7.5); no held-out anchor is scored before all are locked (§9). Never edit by hand.',
+    split_seed: split.seed,
+    held_out_total: split.held_out.length,
+    locked: Object.fromEntries(Object.entries(locked).sort(([a], [b]) => a.localeCompare(b))),
+  };
+  return { lock: next, changed, unlocked, added: unlocked };
+}
+
 /** All planted-claim entries: planted-claims.json plus every planted/anc-NNN.json sidecar. */
 export async function loadPlanted() {
   const errs = [];
@@ -86,7 +116,7 @@ export async function loadPlanted() {
 export async function loadBudgets() {
   try {
     const plan = JSON.parse(await readFile(BATCHES_PATH, 'utf8'));
-    return Object.fromEntries(plan.batches.flatMap((b) => b.rows.map((r) => [r.id, { ...r.cue_budget, batch: b.batch }])));
+    return Object.fromEntries(plan.batches.flatMap((b) => b.rows.map((r) => [r.id, { ...r.cue_budget, batch: b.batch, extra_review: r.extra_review ?? null }])));
   } catch (e) { if (e.code === 'ENOENT') return {}; throw e; }
 }
 
@@ -451,6 +481,16 @@ if (isMain) {
     for (const r of echo) console.log(`    ${r.id} (target ${r.row?.target_composite}, d5 ${r.row?.targets.d5}): ${Object.entries(r.features.echo_hits).map(([k, v]) => `${k} ×${v}`).join(' · ')}`);
   }
 
+  // Held-out lock (needs SPLIT-anchors.json; an author checkout has none and skips this).
+  const { loadAnchorSplit, loadHeldOutLock, LOCK_PATH } = await import('./anchor-split.mjs');
+  const split = await loadAnchorSplit();
+  const lockNow = await loadHeldOutLock();
+  const lk = updateHeldOutLock(split, lockNow, results);
+  for (const id of lk.changed) console.log(`  ✖ ${id} is held-out and LOCKED, and its fixture changed (HELDOUT-LOCK.json) — a held-out anchor never changes after intake`);
+  failed += lk.changed.length;
+  if (split) console.log(`  held-out lock: ${Object.keys(lockNow?.locked ?? {}).length} of ${split.held_out.length} locked${lk.unlocked.length ? `; ${lk.unlocked.length} present but not yet locked (${lk.unlocked.join(' ')})` : ''}`);
+  if (check && lk.unlocked.length) { console.log('  ✖ held-out fixtures not yet locked — run validate.mjs without --check to record them'); failed++; }
+
   const want = serialiseManifest(manifest);
   if (check) {
     let have = null;
@@ -460,6 +500,10 @@ if (isMain) {
   } else if (!failed) {
     await writeFile(MANIFEST_PATH, want);
     console.log(`  wrote ${path.relative(process.cwd(), MANIFEST_PATH)}`);
+    if (split && lk.added.length) {
+      await writeFile(LOCK_PATH, JSON.stringify(lk.lock, null, 2) + '\n');
+      console.log(`  locked ${lk.added.length} held-out fixture(s) in ${path.relative(process.cwd(), LOCK_PATH)}: ${lk.added.join(' ')}`);
+    }
   }
   console.log(failed ? `\n✖ ${failed} problem(s)\n` : `\n✔ all ${results.length} fixture(s) valid  (domains ${DOMAINS.length}, design n=${manifest.n})\n`);
   process.exit(failed ? 1 : 0);
@@ -492,6 +536,8 @@ async function intake(argv, argOf) {
     for (const e of errs) console.log(`      ✖ ${e}`);
     for (const d of budget) console.log(`      ✖ cue budget: ${d}`);
     for (const w of others) console.log(`      ! ${w}`);
+    const extra = (await loadBudgets())[id]?.extra_review;
+    if (extra) console.log(`      ⚠ EXTRA REVIEW before intake — ${extra}`);
     const mine = planted.filter((e) => e.includes(`(${id} `));
     for (const e of mine) console.log(`      ✖ ${e}`);
     bad += mine.length ? 1 : 0;
