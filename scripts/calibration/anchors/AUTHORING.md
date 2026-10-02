@@ -76,11 +76,13 @@ Sources this spec is grounded in, and which win where they differ:
    (the tutor prompts require it), and every citation must match `citations.mjs`. Do not invent a
    reference, a trial name, a statistic attributed to a paper, or a guideline year. If you are not
    sure, cite a broader source you are sure of, or add to `citations.mjs` only what you can name the
-   publisher and year of without looking it up.
+   publisher and year of without looking it up. A citation vouches only for the sentence it sits on:
+   never put one on a deliberately wrong statement (§5 d5, *planted claims*).
 6. **Clinically correct tutor content.** The tutor is the anti-sycophantic mentor of the real prompts:
    it corrects a physician's error with evidence, it does not invent facts. Physician turns may
    contain errors — that is how low reasoning levels are expressed — but the tutor must not endorse
-   them.
+   them. The **one exception** is a *planted claim* for the physician to appraise (§5 d5); it is
+   allowed only under the conditions listed there, and every one is recorded in `planted-claims.json`.
 
 ## 2. Who carries the signal
 
@@ -264,6 +266,26 @@ quoted first in each block; levels 1, 2 and 4 interpolate it using the evaluator
   something real to appraise — a generalisation, a recommendation whose population differs from the
   patient — and the anti-sycophantic tutor then concedes or defends with evidence.)
 
+**Planted claims — how this squares with §1.5 and §1.6.** Something to appraise is best a TRUE
+statement stated without its limits (a trial result whose population differs from the patient). When
+an anchor needs a statement that is actually wrong, it is a *planted claim*, and all of these hold:
+1. it is an over-generalisation or a population mismatch (`ทุกราย`, "for everyone", a trial result
+   carried to a group it excluded) — never an invented fact, number, trial or reference;
+2. **no citation on its line.** A real citation may sit on a neighbouring true sentence, never on the
+   false one: putting `(ADA, 2024)` after "HbA1c < 7% for everyone" attributes an error to a real
+   guideline, which §1.5 forbids;
+3. a later tutor turn in the same transcript corrects it with evidence (the physician catches it, or
+   the tutor concedes), so no anchor ends with an uncorrected error;
+4. it is recorded in `planted-claims.json` (fixture, turn, verbatim text, kind, the turn that corrects
+   it). `validate.mjs` checks each entry against the fixture bytes and fails on a false claim with a
+   citation on its line.
+
+Tutor turns in anchors are **authored text, not tutor output**. Any audit of the tutor's own quality
+(Phase 3, the Thai tutor audit) must exclude the anchor fixtures entirely, and `planted-claims.json`
+says which turns would be actively misleading if it did not. One legacy entry (anc-019 turn 5,
+"HbA1c < 7% for everyone (ADA, 2024)") predates rule 2 and is marked `legacy`; it was not edited
+because any edit changes bytes that were already scored.
+
 ### d6 Reflective Synthesis — *0 no reflection → 3 reasonable summary/reflection → 5 deep synthesis; names the next learning or action*
 - **0** No reflection and no summary anywhere (design `reflection: none`).
 - **1** Generic: "very useful, I learned a lot".
@@ -300,7 +322,9 @@ and still end by asking the tool to just write the order to copy (d7 low).
 4. Re-read as a rater: for every target of 4–5, can you quote the sentence? For every 0–2, can you
    point at the absence? Would a scorer give a different number to any domain? Fix the transcript,
    never the target.
-5. `node scripts/calibration/anchors/validate.mjs` — must pass. It also rewrites `manifest.json`.
+5. Any tutor statement written wrong or unqualified on purpose: follow the planted-claim rules (§5)
+   and add it to `planted-claims.json`.
+6. `node scripts/calibration/anchors/validate.mjs` — must pass. It also rewrites `manifest.json`.
 
 Never change `design.json` to fit a transcript. If a target vector cannot be written naturally,
 say so in the PR and leave the anchor unwritten.
@@ -327,7 +351,12 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
 4. **What a flag means.** A flagged anchor is first a question about the *anchor*, not the scorer. On
    the pilot (all 20 are tuning material) a flagged anchor may be rewritten **once**, re-validated
    (new sha256 in `manifest.json`) and re-scored; if it is flagged again it is excluded and replaced
-   from the design. Rewriting toward the AI's score is circular, so a rewrite must be justified from §5
+   from the design. *Mechanics (added 2026-10-02):* `design.mjs` `REPLACEMENTS` records each exclusion;
+   the excluded row stays in `design.json` marked `excluded` (date, reason, archive path, sha256), its
+   last fixture moves to `fixtures/excluded/` byte for byte, and a NEW id after the cohort (anc-101,
+   anc-102, …) copies its target vector, case slot and every other design attribute. The replacement
+   is a fresh anchor with the normal single-rewrite allowance. Excluded anchors are never scored,
+   counted or held out (`score-local`, `known-groups`, `anchor-split` skip them). Rewriting toward the AI's score is circular, so a rewrite must be justified from §5
    (the behaviour was genuinely missing or ambiguous), never from the AI's number.
 5. **Held-out discipline.** Before the full cohort is scored, a held-out split is reserved
    (`SPLIT-anchors.json`, seeded, same method as `scripts/probe/reserve-split.mjs`). Held-out anchors
@@ -354,7 +383,8 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
 
 *Made after the first strict pilot run (`runs/pilot-local-strict-2026-10-02.json`) and its blind
 diagnosis (`pilot/blind/`, `PILOT-REPORT.md`), and **before any anchor was rewritten** on the strength
-of either.*
+of either.* **That ordering is self-attested, not provable from git:** this amendment and the five
+rewrites landed in the same commit (6827719), so the history cannot show which was written first.
 
 **This deviates from the pre-registered rule above.** §7.2 and §7.4 let the evaluator under test — the
 local model — decide which anchors are flagged and rewritten. That is circular: rewriting an anchor
@@ -373,7 +403,17 @@ The rule from now on:
    model are one rater, not two — the pilot's two Sonnet raters agreed at composite ICC 0.995.
 2. **An anchor is rewritten when |mean blind composite − target composite| > 15** (the same 15 points
    as the pre-registered threshold, now applied to the panel). A rewrite is justified from §5 — the
-   behaviour was expressed at the wrong level — never from any evaluator's number.
+   behaviour was expressed at the wrong level — never from any evaluator's number. §7.4 is unchanged
+   by this amendment: one rewrite per anchor; an anchor still beyond the line after it is excluded
+   and replaced from the design.
+   **Scope: TUNING anchors only.** Held-out anchors get no panel-driven rewrite, exactly as they get
+   no evaluator-driven one (§7.5); their panel flags, like their evaluator flags, are reported as
+   results.
+   **The panel is not independent of Claude.** The panel is Claude-family (Sonnet + Opus), the anchors
+   are Claude-authored, and the incumbent production evaluator is `claude-sonnet-4-6`. A
+   panel-screened cohort is therefore fitted toward Claude's reading of the rubric, and any result
+   for a Sonnet arm carries that caveat. Whenever Sonnet is the scorer under test, a non-Claude panel
+   member is preferred. This is an **open item**: no non-Claude panel member has been run.
 3. **The local evaluator's flag rate is kept as a reported outcome, never as the acceptance criterion.**
    §7.2's flag, §7.6's proceed rule and the known-groups statistics are still computed and reported
    for every scored run.
@@ -387,13 +427,20 @@ The rule from now on:
    freeze lapses (rubric echo was concentrated in high anchors that no rewrite of the five could
    offset). All nine need re-scoring by the panel and the local evaluator before any pilot figure is
    recomputed.
-5. **Round 2 outcome (same day).** A Sonnet + Opus panel rated all 20 rewritten pilot anchors. Two are
-   beyond ±15: anc-015 (+22, rewritten once) and anc-012 (+21, unchanged). That is within the §7.6
-   allowance of 4, so the pilot proceeds. **One rewrite round per anchor is the rule, so there is no
-   second round.** anc-015 and anc-012 are **known over-expressing anchors**, carried into the
-   cohort as they are and listed in every analysis that includes them (`PILOT-REPORT.md` § Round 2).
-   Sonnet and Opus are both Claude and agree at composite ICC 0.968, so even this panel is not two
-   independent raters. Human raters remain the decisive gate.
+5. **Round 2 outcome (same day), and §7.4 applied as written.** A Sonnet + Opus panel rated all 20
+   pilot anchors after the rewrites. Two are beyond ±15: anc-015 (+22) and anc-012 (+21).
+   - **anc-015** had used its one rewrite, so under §7.4 it is **excluded and replaced**: a new anchor,
+     **anc-101**, at the same target vector and case slot (`design.mjs` `REPLACEMENTS`). The excluded
+     text is archived byte for byte at `fixtures/excluded/anc-015.json`, sha256 recorded in
+     `design.json`. anc-101 is a fresh anchor with the normal single-rewrite allowance.
+   - **anc-012** had had no rewrite, so under item 2 it is due its one: **rewritten**. If the panel
+     puts it beyond ±15 again, it is excluded and replaced the same way.
+   - Both go to the blind panel and the local evaluator before any pilot figure is recomputed.
+
+   An earlier draft of this item (2627c9b) kept both anchors without applying §7.4. That relaxed the
+   pre-registered rule after the panel's numbers were known; it is withdrawn. Sonnet and Opus are both
+   Claude and agree at composite ICC 0.968, so even this panel is not two independent raters (see the
+   Claude-family caveat under item 2). Human raters remain the decisive gate.
 
 ## 8. Pipeline and commands
 

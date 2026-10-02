@@ -3,7 +3,7 @@
   "design_seed": 20261002,
   "rubric_version": "pis7-weights-08b0cb1a",
   "n": 20,
-  "physician_chars_vs_target_r": 0.429,
+  "physician_chars_vs_target_r": 0.424,
   "fixtures": {
     "anc-001": {
       "sha256": "8f4b3118e41a86ba3223baae7488318cfc824ce1b51360efc7bac45acbb6a261",
@@ -138,13 +138,13 @@
       "pii_hits": 0
     },
     "anc-012": {
-      "sha256": "695edebd37039aa83d85abffa5ca60777b8fb98af1c1784f46880420bedb38e3",
+      "sha256": "2c0fa94adcf00be58b8331dc2bb4f3cdb8d077be15523a9a007131bc7c556132",
       "turns": 10,
       "physician_turns": 5,
-      "physician_chars": 1912,
-      "tutor_chars": 3438,
+      "physician_chars": 1686,
+      "tutor_chars": 3400,
       "reflection_chars": 0,
-      "thai_share_physician": 0.79,
+      "thai_share_physician": 0.8,
       "thai_share_tutor": 0.78,
       "citations": 6,
       "pii_hits": 0
@@ -162,7 +162,7 @@
       "pii_hits": 0
     },
     "anc-014": {
-      "sha256": "8c5fe69cd518aec0dec624d40e3d3a4707db262bda0e02ce357732198be5a649",
+      "sha256": "b8fef394bebc6eb789cb5b1dbb163af7db49f316a0717ac6e48178a5cf72159a",
       "turns": 11,
       "physician_turns": 5,
       "physician_chars": 2480,
@@ -171,18 +171,6 @@
       "thai_share_physician": 0,
       "thai_share_tutor": 0,
       "citations": 5,
-      "pii_hits": 0
-    },
-    "anc-015": {
-      "sha256": "2eddee89302094bc95cf951ddded155dde16954029a9776061f34b1ea082088e",
-      "turns": 9,
-      "physician_turns": 4,
-      "physician_chars": 1399,
-      "tutor_chars": 2076,
-      "reflection_chars": 94,
-      "thai_share_physician": 0.85,
-      "thai_share_tutor": 0.84,
-      "citations": 6,
       "pii_hits": 0
     },
     "anc-016": {
@@ -243,6 +231,18 @@
       "thai_share_physician": 0.89,
       "thai_share_tutor": 0.72,
       "citations": 11,
+      "pii_hits": 0
+    },
+    "anc-101": {
+      "sha256": "b7dd555bec17cac3e6d6a33ff78a96c43eb44b555ca73b48a60c1ff3307445a5",
+      "turns": 9,
+      "physician_turns": 4,
+      "physician_chars": 1312,
+      "tutor_chars": 2208,
+      "reflection_chars": 86,
+      "thai_share_physician": 0.88,
+      "thai_share_tutor": 0.83,
+      "citations": 8,
       "pii_hits": 0
     }
   }

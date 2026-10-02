@@ -30,7 +30,7 @@
  *     node scripts/calibration/anchors/score-local.mjs --pilot --repeats 3 --concurrency 2 \
  *       --out scripts/calibration/anchors/runs/pilot-local.json
  *
- *   --pilot             only the 20 pilot anchors (design.json pilot:true)
+ *   --pilot             only the 20 active pilot anchors (design.json pilot:true, not excluded)
  *   --only a,b          only these ids          --limit n     first n after filtering
  *   --repeats K         runs per anchor (default 3 — AUTHORING.md §7)
  *   --concurrency n     default 2, never above LOCAL_MAX_CONCURRENCY when that is set
@@ -81,6 +81,9 @@ try { manifest = JSON.parse(await readFile(path.join(HERE, 'manifest.json'), 'ut
 catch { fail('manifest.json missing — run scripts/calibration/anchors/validate.mjs first.'); }
 
 let ids = (await readdir(fixturesDir).catch(() => [])).filter((f) => /^anc-\d{3}\.json$/.test(f)).map((f) => f.slice(0, -5)).sort();
+// Excluded anchors (§7.4, design.json `excluded`) are never scored; validate.mjs keeps their files out
+// of fixtures/, and this guards a stray copy.
+ids = ids.filter((id) => !design.anchors.find((a) => a.id === id)?.excluded);
 if (flags.pilot) ids = ids.filter((id) => design.anchors.find((a) => a.id === id)?.pilot);
 if (typeof flags.only === 'string') {
   const only = flags.only.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);

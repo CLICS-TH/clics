@@ -42,6 +42,37 @@ const { hasCitation, extractSocraticQuestion, extractReferences } = require('../
 export const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const FIXTURES_DIR = path.join(HERE, 'fixtures');
 export const MANIFEST_PATH = path.join(HERE, 'manifest.json');
+export const PLANTED_PATH = path.join(HERE, 'planted-claims.json');
+
+const CITED_RE = /\([^()]*\b(?:19|20)\d{2}\)/;
+
+/**
+ * planted-claims.json: every tutor statement written wrong (or unqualified) on purpose for the
+ * physician to appraise. Checked against the fixture bytes so the list cannot drift from the text:
+ * the claim is verbatim in that assistant turn, a later assistant turn corrects it, and — the
+ * §1.5/§1.6 reconciliation — a FALSE claim never shares its line with a citation (except the one
+ * recorded legacy instance). `readDoc(file)` returns the parsed fixture or null.
+ */
+export function checkPlanted(planted, readDoc) {
+  const errs = [];
+  for (const [k, c] of (planted?.claims ?? []).entries()) {
+    const at = `planted-claims #${k} (${c.id} turn ${c.turn})`;
+    const doc = readDoc(c.file);
+    if (!doc) { errs.push(`${at}: ${c.file} not found`); continue; }
+    if (path.basename(c.file, '.json') !== c.id) errs.push(`${at}: id does not match ${c.file}`);
+    const t = doc.transcript ?? [];
+    const turn = t[c.turn];
+    if (turn?.role !== 'assistant') { errs.push(`${at}: turn ${c.turn} is not a tutor turn`); continue; }
+    const line = String(turn.content).split('\n').find((l) => l.includes(c.claim));
+    if (!line) { errs.push(`${at}: claim text not found verbatim in that turn`); continue; }
+    const cited = CITED_RE.test(line);
+    if (cited !== Boolean(c.citation_on_claim)) errs.push(`${at}: citation_on_claim is ${c.citation_on_claim} but the line ${cited ? 'carries' : 'carries no'} citation`);
+    if (c.kind === 'false' && cited && !c.legacy) errs.push(`${at}: a deliberately false claim may not carry a citation on its line (AUTHORING.md §5)`);
+    if (!['false', 'unqualified', 'attribution'].includes(c.kind)) errs.push(`${at}: kind must be false|unqualified|attribution`);
+    if (!(c.corrected_in_turn > c.turn) || t[c.corrected_in_turn]?.role !== 'assistant') errs.push(`${at}: corrected_in_turn must be a later tutor turn`);
+  }
+  return errs;
+}
 const DESIGN_PATH = path.join(HERE, 'design.json');
 
 // Production's reflection headings — backend/src/services/reflection.js asTranscriptTurn. Copied
@@ -236,9 +267,19 @@ export async function validateAll({ dir = FIXTURES_DIR, designPath = DESIGN_PATH
     try { doc = JSON.parse(buf.toString('utf8')); } catch (e) { parseError = e.message; }
     const id = name.replace(/\.json$/, '');
     const r = parseError ? { errors: [`invalid JSON: ${parseError}`], warnings: [], stats: null } : validateFixture(doc, name, rows.get(id));
+    const ex = rows.get(id)?.excluded;
+    if (ex) r.errors.push(`${id} was excluded under §7.4 (replaced by ${ex.replaced_by}); its fixture belongs in ${ex.archived_fixture}, not in the active cohort`);
     results.push({ id, sha256: sha256(buf), row: rows.get(id), features: doc ? cueFeatures(doc) : null, ...r });
   }
-  const ok = results.filter((r) => r.stats && r.row);
+  // §7.4 archive: every excluded anchor's last fixture is kept, byte for byte, where design.json says.
+  const archive = [];
+  for (const a of design.anchors.filter((x) => x.excluded)) {
+    let buf = null;
+    try { buf = await readFile(path.join(path.dirname(designPath), a.excluded.archived_fixture)); } catch { /* missing */ }
+    if (!buf) archive.push(`${a.id}: archived fixture ${a.excluded.archived_fixture} is missing`);
+    else if (sha256(buf) !== a.excluded.sha256) archive.push(`${a.id}: archived fixture ${a.excluded.archived_fixture} does not match its recorded sha256`);
+  }
+  const ok = results.filter((r) => r.stats && r.row && !r.row.excluded);
   const lengthR = pearson(ok.map((r) => r.stats.physician_chars), ok.map((r) => r.row.target_composite));
   const manifest = {
     note: 'sha256 of each committed anchor fixture. Targets are NOT here — they live only in design.json. Regenerate with validate.mjs.',
@@ -250,7 +291,16 @@ export async function validateAll({ dir = FIXTURES_DIR, designPath = DESIGN_PATH
   };
   const cues = cueCheck(ok.filter((r) => r.features).map((r) => ({ id: r.id, features: r.features, row: r.row })));
   Object.assign(cues, applyPilotFreeze(cues.failures, { fixtureShas: Object.fromEntries(results.map((r) => [r.id, r.sha256])) }));
-  return { results, manifest, lengthR, design, cues };
+  let planted = [];
+  try {
+    const doc = JSON.parse(await readFile(PLANTED_PATH, 'utf8'));
+    const files = {};
+    for (const c of doc.claims ?? []) {
+      if (!(c.file in files)) { try { files[c.file] = JSON.parse(await readFile(path.join(HERE, c.file), 'utf8')); } catch { files[c.file] = null; } }
+    }
+    planted = checkPlanted(doc, (f) => files[f] ?? null);
+  } catch (e) { planted = [`planted-claims.json unreadable: ${e.message}`]; }
+  return { results, manifest, lengthR, design, cues, archive, planted };
 }
 
 export const serialiseManifest = (m) => JSON.stringify(m, null, 2) + '\n';
@@ -260,7 +310,7 @@ export const serialiseManifest = (m) => JSON.stringify(m, null, 2) + '\n';
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const check = process.argv.includes('--check');
-  const { results, manifest, lengthR, cues } = await validateAll();
+  const { results, manifest, lengthR, cues, archive, planted } = await validateAll();
   let failed = 0;
   console.log(`\nanchor fixtures — ${results.length} file(s) in ${path.relative(process.cwd(), FIXTURES_DIR)}\n`);
   console.log('  id        status  turns  phys  phys-chars  th-phys  th-tutor  cites  target');
@@ -274,6 +324,10 @@ if (isMain) {
     for (const e of r.errors) console.log(`      ✖ ${e}`);
     for (const w of r.warnings) console.log(`      ! ${w}`);
   }
+  for (const e of archive) console.log(`  ✖ excluded-anchor archive: ${e}`);
+  failed += archive.length;
+  for (const e of planted) console.log(`  ✖ ${e}`);
+  failed += planted.length;
   const piiTotal = results.reduce((a, r) => a + (r.stats?.pii_hits ?? 0), 0);
   console.log(`\n  pii-filter hits: ${piiTotal}  (rimpl/src/services/pii-filter.js stripPii; any hit fails)`);
   console.log(`  citations checked against ${CITATIONS.length} allowlisted sources (citations.mjs)`);

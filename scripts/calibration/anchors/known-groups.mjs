@@ -167,9 +167,12 @@ const r3 = (v) => (v == null ? null : Math.round(v * 1000) / 1000);
 export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = false, allowedIds = null, served = new Map(), fixtureShas = null } = {}) {
   if (!Number.isFinite(threshold)) throw new Error('knownGroups: a numeric pre-registered threshold is required');
   const wanted = onlyIds ? new Set(onlyIds.map((s) => s.toLowerCase())) : null;
-  const rows = design.anchors.filter((a) => (!wanted || wanted.has(a.id)) && (!pilotOnly || a.pilot)
+  // §7.4-excluded anchors are out of the cohort: never designed-for here, never counted. A scores file
+  // that still holds one (a run made before the exclusion) lists it under excluded_ids.
+  const rows = design.anchors.filter((a) => !a.excluded && (!wanted || wanted.has(a.id)) && (!pilotOnly || a.pilot)
     && (!allowedIds || allowedIds.has(a.id)));
   const unknownIds = [...runs.keys()].filter((id) => !design.anchors.some((a) => a.id === id));
+  const excludedIds = [...runs.keys()].filter((id) => design.anchors.some((a) => a.id === id && a.excluded)).sort();
 
   const anchors = [];
   for (const a of rows) {
@@ -235,7 +238,9 @@ export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = fals
   // A scores file that does not say which bytes it scored is treated as the originals.
   const originalPilot = (id) => !fixtureShas || fixtureShas[id] == null || fixtureShas[id] === PILOT_FREEZE.fixtures[id];
   const pilotScored = anchors.filter((x) => PILOT_FREEZE.fixtures[x.id] != null);
-  if (pilotScored.length && pilotScored.every((x) => originalPilot(x.id))) caveats.d5 = PILOT_D5_CAVEAT;
+  // A §7.4 replacement (anc-101, …) is new text, so a run that scored one is not the original set either.
+  const scoredReplacement = anchors.some((x) => rows.find((a) => a.id === x.id)?.replaces);
+  if (pilotScored.length && !scoredReplacement && pilotScored.every((x) => originalPilot(x.id))) caveats.d5 = PILOT_D5_CAVEAT;
   return {
     evidence_level: EVIDENCE_LEVEL,
     caveats,
@@ -245,6 +250,7 @@ export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = fals
     n_scored: n,
     n_missing: rows.length - n,
     unknown_ids: unknownIds,
+    excluded_ids: excludedIds,
     composite: comp,
     per_domain: perDomain,
     flags: { n: flagged.length, ids: flagged.map((x) => x.id), rate: wilson(flagged.length, n) },
@@ -274,7 +280,7 @@ function print(rep, prov) {
   console.log(`  served  ${servedList || '(no per-row model recorded)'}${prov.requested_model && servedList && !Object.keys(prov.served_models).every((m) => m === prov.requested_model) ? `  (requested ${prov.requested_model})` : ''}`);
   if (prov.revalidated) console.log(`  revalidated against ${prov.revalidated.contract}; ${prov.revalidated.not_revalidatable} row(s) could not be (no saved reply)`);
   console.log(`  prompt  ${prov.prompt_version ?? '(not recorded)'} · rubric ${prov.rubric_version ?? '(not recorded)'}`);
-  console.log(`  n scored ${rep.n_scored} of ${rep.n_designed} designed  (missing ${rep.n_missing}${rep.unscored ? `, ${rep.unscored} unscored rows` : ''}${rep.unknown_ids.length ? `, ignored unknown ids ${rep.unknown_ids.join(',')}` : ''})`);
+  console.log(`  n scored ${rep.n_scored} of ${rep.n_designed} designed  (missing ${rep.n_missing}${rep.unscored ? `, ${rep.unscored} unscored rows` : ''}${rep.unknown_ids.length ? `, ignored unknown ids ${rep.unknown_ids.join(',')}` : ''}${rep.excluded_ids?.length ? `, ignored §7.4-excluded ${rep.excluded_ids.join(',')}` : ''})`);
   console.log(`\n  composite (AI vs target, weighted 0-100)`);
   console.log(`    ICC(A,1) ${f(rep.composite.icc?.icc, 3)}${ci(rep.composite.icc)}  ${rep.composite.icc?.interpretation ?? ''}`);
   console.log(`    Spearman ρ ${f(rep.composite.spearman.rho, 3)}${ci(rep.composite.spearman)}   bias ${f(rep.composite.bias)}   mean |Δ| ${f(rep.composite.mean_abs_delta)}`);

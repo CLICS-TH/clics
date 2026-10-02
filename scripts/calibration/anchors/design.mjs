@@ -21,7 +21,10 @@
  *     impression and stamps it on every domain is caught;
  *   - physician-turn count is assigned independently of the target, so length cannot encode level;
  *   - specialty mix across Thai Royal Colleges; ~20% English, the rest Thai with code-switching;
- *   - a stratified 20-anchor PILOT (anc-001..anc-020) that includes the lowest and highest composite.
+ *   - a stratified 20-anchor PILOT (anc-001..anc-020) that includes the lowest and highest composite;
+ *   - §7.4 exclusions (REPLACEMENTS below) applied on top: the excluded row stays, marked `excluded`,
+ *     and a new id (anc-101, …) copies its target vector and case slot. Coverage and every invariant
+ *     are computed over the ACTIVE anchors (activeAnchors), so n stays 100.
  *
  * The ids are SHUFFLED with respect to the composite, so an id never hints at a level.
  * Targets live ONLY here — fixtures carry no score, so the scorer stays blind.
@@ -191,7 +194,54 @@ const SAME_STEP_PAIRS = DOMAINS.flatMap((a, i) => DOMAINS.slice(i + 1).filter((b
  * @param {{n?: number, seed?: number}} opts
  * @returns the design object written to design.json
  */
-export function generateDesign({ n = DEFAULT_N, seed = DEFAULT_SEED } = {}) {
+/*
+ * §7.4 EXCLUSIONS AND REPLACEMENTS (AUTHORING.md §7.4 + amendment item 5). An anchor that was rewritten
+ * once and is still beyond the line is EXCLUDED and REPLACED from the design: a new id at the SAME
+ * target vector and case slot (every attribute copied), carrying the normal single-rewrite allowance.
+ * The generator stays the seeded source of truth; this list is applied on top of it, so `--check` still
+ * proves design.json is "seed + these recorded decisions" and nothing else. The excluded anchor keeps
+ * its row (marked `excluded`) and its last fixture is archived under fixtures/excluded/, sha recorded
+ * here, so history is never deleted. New ids continue after n (anc-101, anc-102, …) and are never reused.
+ * Applied only to the committed seed/n — a different seed is a different cohort.
+ */
+export const REPLACEMENTS = [
+  {
+    excluded: 'anc-015',
+    replaced_by: 'anc-101',
+    date: '2026-10-02',
+    reason: 'rewritten once (6827719) and still over-expressed by the round-2 blind panel (+22 > 15); §7.4: excluded and replaced',
+    archived_fixture: 'fixtures/excluded/anc-015.json',
+    sha256: '2eddee89302094bc95cf951ddded155dde16954029a9776061f34b1ea082088e',
+  },
+];
+
+/** An anchor still in the cohort (not excluded under §7.4). */
+export const isActive = (a) => !a.excluded;
+export const activeAnchors = (design) => design.anchors.filter(isActive);
+
+/** Apply §7.4 replacements to a generated design. Pure; throws on an inconsistent list. */
+export function applyReplacements(design, replacements = REPLACEMENTS) {
+  const anchors = design.anchors.map((a) => ({ ...a }));
+  let next = design.n + 1;
+  for (const r of replacements) {
+    const old = anchors.find((a) => a.id === r.excluded);
+    if (!old) throw new Error(`replacement: ${r.excluded} is not in the design`);
+    if (old.excluded) throw new Error(`replacement: ${r.excluded} is already excluded`);
+    const id = `anc-${String(next++).padStart(3, '0')}`;
+    if (id !== r.replaced_by) throw new Error(`replacement: ${r.excluded} must be replaced by the next free id ${id}, not ${r.replaced_by}`);
+    old.excluded = { date: r.date, reason: r.reason, replaced_by: id, archived_fixture: r.archived_fixture, sha256: r.sha256 };
+    const { excluded: _e, ...attrs } = old;
+    anchors.push({ ...attrs, id, replaces: r.excluded });
+  }
+  return { ...design, anchors };
+}
+
+export function generateDesign({ n = DEFAULT_N, seed = DEFAULT_SEED, replacements } = {}) {
+  const base = generateBaseDesign({ n, seed });
+  return applyReplacements(base, replacements ?? (n === DEFAULT_N && seed === DEFAULT_SEED ? REPLACEMENTS : []));
+}
+
+function generateBaseDesign({ n, seed }) {
   if (!Number.isInteger(n) || n < PILOT_N) throw new Error(`n must be an integer >= ${PILOT_N}`);
   const R = rng(seed);
   const LO = 15, HI = 95;
@@ -339,7 +389,7 @@ export function generateDesign({ n = DEFAULT_N, seed = DEFAULT_SEED } = {}) {
 /* ------------------------------------------------------------------ coverage + invariants */
 
 export function coverage(design) {
-  const A = design.anchors;
+  const A = activeAnchors(design);
   const comps = A.map((a) => a.target_composite);
   const bands = [];
   for (let lo = 15; lo < 95; lo += 10) bands.push({ lo, hi: lo + 10, n: comps.filter((c) => c >= lo && c < lo + 10).length });
@@ -379,8 +429,17 @@ export function coverage(design) {
 /** Returns a list of human-readable invariant failures; empty = the design is acceptable. */
 export function checkInvariants(design) {
   const errs = [];
-  const A = design.anchors;
+  const A = activeAnchors(design);
   const cov = coverage(design);
+  const ALL = design.anchors;
+  if (new Set(ALL.map((a) => a.id)).size !== ALL.length) errs.push('duplicate ids (including excluded anchors)');
+  const SAME = ['pilot', 'language', 'specialty', 'case', 'tutor_mode', 'physician_turns', 'reflection', 'profile', 'dissociated_domains', 'targets', 'target_composite'];
+  for (const old of ALL.filter((a) => a.excluded)) {
+    const repl = ALL.filter((a) => a.replaces === old.id);
+    if (repl.length !== 1 || repl[0].id !== old.excluded.replaced_by) { errs.push(`${old.id} is excluded but not replaced exactly once by ${old.excluded.replaced_by}`); continue; }
+    for (const k of SAME) if (JSON.stringify(repl[0][k]) !== JSON.stringify(old[k])) errs.push(`${repl[0].id} must copy ${k} from ${old.id} (same target vector and case slot)`);
+  }
+  for (const a of ALL.filter((x) => x.replaces)) if (!ALL.some((o) => o.id === a.replaces && o.excluded)) errs.push(`${a.id} replaces ${a.replaces}, which is not excluded`);
   for (const a of A) {
     for (const d of DOMAINS) {
       if (!Number.isInteger(a.targets[d]) || a.targets[d] < 0 || a.targets[d] > 5) errs.push(`${a.id} ${d}=${a.targets[d]} is not an integer 0-5`);
@@ -406,9 +465,11 @@ export function checkInvariants(design) {
   if (cov.pilot.n !== PILOT_N) errs.push(`pilot has ${cov.pilot.n} anchors, not ${PILOT_N}`);
   if (!cov.pilot.includesMin || !cov.pilot.includesMax) errs.push('pilot does not include both the lowest and the highest composite');
   if (cov.pilot.english < 3) errs.push(`pilot has ${cov.pilot.english} English anchors (< 3)`);
+  // The pilot is anc-001..anc-020 as generated, with each §7.4-excluded one swapped for its replacement.
   const pilotIds = A.filter((a) => a.pilot).map((a) => a.id).sort();
-  const expected = Array.from({ length: PILOT_N }, (_, k) => `anc-${String(k + 1).padStart(3, '0')}`);
-  if (JSON.stringify(pilotIds) !== JSON.stringify(expected)) errs.push('pilot ids are not anc-001..anc-020');
+  const swap = new Map(ALL.filter((a) => a.excluded).map((a) => [a.id, a.excluded.replaced_by]));
+  const expected = Array.from({ length: PILOT_N }, (_, k) => `anc-${String(k + 1).padStart(3, '0')}`).map((id) => swap.get(id) ?? id).sort();
+  if (JSON.stringify(pilotIds) !== JSON.stringify(expected)) errs.push('pilot ids are not anc-001..anc-020 (with §7.4 replacements swapped in)');
   return errs;
 }
 
@@ -433,6 +494,7 @@ function printCoverage(cov) {
   console.log(`  specialty  ${JSON.stringify(cov.specialties)}`);
   console.log(`  turns×composite r = ${cov.turnsVsComposite.toFixed(3)}  (must stay near 0: length must not encode level)`);
   console.log(`  pilot      n=${cov.pilot.n}  english ${cov.pilot.english}  composites ${cov.pilot.composites.join(' ')}`);
+  for (const r of REPLACEMENTS) console.log(`  excluded   ${r.excluded} → replaced by ${r.replaced_by} (${r.date}; archived ${r.archived_fixture})`);
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

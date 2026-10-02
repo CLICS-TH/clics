@@ -7,7 +7,13 @@
 
 Two blind rounds are reported. **Round 1** (§ What was scored … § Per domain) rated the pilot as
 written in PR #111. **Round 2** (§ Round 2) rated it after the rewrites in this PR. The local
-evaluator has scored round 1's texts only; its re-score of the nine changed anchors is pending.
+evaluator has scored round 1's texts only; its re-score of the changed anchors is pending.
+Applying §7.4 to round 2 as written (§ Verdict), **anc-015 is excluded and replaced by anc-101**, and
+**anc-012 is rewritten**; both are ready for the blind panel and the local re-score (§ Pending).
+
+**Rater isolation (both rounds).** The raters were general-purpose subagents told to read only
+`rubric.txt` and `episodes.txt` from a scratchpad folder outside the repo, and each confirmed it opened
+only those two files. They had file tools, so isolation was by instruction, not enforced.
 
 ## What was scored
 
@@ -83,13 +89,16 @@ ICC(A,1) point estimates; at n = 20 each carries an interval roughly as wide as 
 ## What happened next (this PR)
 
 - The rewrite rule moved from the local evaluator's flag to a blind panel independent of the evaluator
-  under test (AUTHORING.md §7 amendment, dated, made before any rewrite). The local flag rate stays a
-  reported outcome.
+  under test (AUTHORING.md §7 amendment). It is dated as made before any rewrite, but it landed in
+  the same commit as the rewrites (6827719), so that ordering is self-attested, not provable from git.
+  The local flag rate stays a reported outcome.
 - The 5 anchors above were rewritten to express their targets — d4 and d2 in particular — and four
   high anchors (anc-007, anc-010, anc-013, anc-016) had rubric phrases replaced with behaviourally
-  equivalent wording. With nine pilot files changed, the pilot freeze lapsed; the surface-cue gate now
-  passes on its own over all 20 (largest remaining: length vs composite r = 0.43, rubric echo vs d7
-  r = 0.41, list lines vs composite r = −0.40; each CI reaches inside ±0.1).
+  equivalent wording. With nine pilot files changed, the pilot freeze lapsed; the surface-cue gate
+  passed on its own over all 20 (largest remaining at 2627c9b: length vs composite r = 0.43, rubric
+  echo vs d7 r = 0.41, list lines vs composite r = −0.40; each CI reaches inside ±0.1). After this
+  round's exclusion and rewrite (anc-101 in, anc-015 out, anc-012 rewritten) it still passes: length
+  vs composite 0.42, rubric echo vs d7 0.37, list lines vs composite −0.40.
 - The figures in the sections above describe the pilot **before** the rewrites. Round 2 below is the
   blind panel on the rewritten pilot; the local evaluator's re-score of the nine changed anchors is
   pending.
@@ -99,7 +108,7 @@ ICC(A,1) point estimates; at n = 20 each carries an interval roughly as wide as 
 | | |
 |---|---|
 | Texts | all 20 pilot anchors after this PR's rewrites (5 rewritten, 4 reworded, 11 unchanged) |
-| Panel | one Sonnet and one Opus subagent, new shuffle E01–E20, same rubric text as round 1 (`pilot/panel-2/rubric.txt`), no targets or ids. `pilot/panel-2/KEY-do-not-share.json` maps labels back and was withheld while they scored. |
+| Panel | one Sonnet and one Opus subagent (isolation: see the top of this report), new shuffle E01–E20, same rubric text as round 1 (`pilot/panel-2/rubric.txt`), no targets or ids. `pilot/panel-2/KEY-do-not-share.json` maps labels back and was withheld while they scored. |
 | Analysis | `node scripts/calibration/anchors/pilot/panel-2/analyse2.mjs` |
 
 **Caveats that govern every round-2 number:**
@@ -129,8 +138,11 @@ and round 2 used different raters and different texts, so the two rounds' ICCs a
 pair.
 
 Per domain, panel mean vs target (ICC(A,1) point estimates): d1 0.83, d2 0.76, d3 0.82, d4 0.77,
-d5 0.93, d6 0.98, d7 0.84. The d5 figure is no longer carried by rubric echo to the same degree —
-the cue gate now measures rubric echo vs d5 at r = 0.36 on these texts, against 0.64 before.
+d5 0.93, d6 0.98, d7 0.84. Rubric echo vs the d5 target is r = 0.36 [95% CI −0.10, 0.69] on the
+round-2 texts, against 0.64 [0.28, 0.84] on round 1's (Fisher z, n = 20). The intervals overlap, so
+these data do not show that the rewording removed the echo; they show only that it no longer has to
+be there. Echo vs d7 is still r = 0.41 [−0.04, 0.72]. The d5 figure may still owe something to
+wording.
 
 ### Rewrite outcomes (Δ = composite − target)
 
@@ -157,11 +169,46 @@ Read against the Sonnet noise floor (±12 on unchanged texts):
 
 ### Verdict under the amended rule (AUTHORING.md §7 amendment)
 
-- Panel mean beyond ±15 of target: **2 of 20** — 10% [Wilson 3–30%]: **anc-015 (+22)**, rewritten
-  once, and **anc-012 (+21)**, unchanged. Round 1's single-model panel had anc-012 at +12; Sonnet alone
-  moved +12 on its identical text, so its crossing the line is at least partly rater variation.
-- That is within the §7.6 allowance of 4, so **the pilot proceeds**. The rule allows one rewrite round
-  on the pilot, and it has been used. **No second round is run.**
-- **anc-015 and anc-012 are recorded as known over-expressing anchors** and are carried into the
-  cohort as they are. Any analysis that includes them must list them. They are not quietly excluded or
-  re-targeted.
+Beyond ±15 of target, by rater (`analyse2.mjs` prints this):
+
+| rater | over the line | anchors |
+|---|---|---|
+| panel mean (the rule) | **2 / 20** | anc-015 (+22), anc-012 (+21) |
+| Opus alone | 2 / 20 | anc-015, anc-012 |
+| Sonnet alone | **4 / 20** | anc-003, anc-015, anc-005, anc-012 |
+
+- On the panel mean, 2 of 20 — 10% [Wilson 3–30%] — within the §7.6 allowance of 4. **Sonnet alone
+  puts 4 over, exactly at the allowance**: one more Sonnet-read anchor over the line and the pilot
+  would fail on Sonnet's reading. The verdict depends on averaging in Opus.
+- Round 1's single-model panel had anc-012 at +12; Sonnet alone moved +12 on its identical text, so
+  its crossing is at least partly rater variation. That does not change what the rule requires.
+- **§7.4 applied as written** (the earlier draft of this verdict kept both anchors as they were; that
+  relaxed a pre-registered rule after the numbers were known, and is withdrawn):
+  - **anc-015 — excluded and replaced.** It had used its one rewrite and is still over (+22). It is
+    replaced by **anc-101**: same target vector [1,0,2,0,5,1,2] (composite 30), same case slot
+    (Emergency Medicine, minor head injury on anticoagulation), same language, tutor mode, turn count
+    and reflection placement (`design.mjs` `REPLACEMENTS`). The excluded text is kept, byte for byte, at
+    `fixtures/excluded/anc-015.json` (sha256 `2eddee89…088e`, recorded in `design.json`); its round-1
+    and round-2 ratings stay in this report. anc-015 is never scored, counted or held out again.
+  - **anc-012 — rewritten.** It had had no rewrite, so it is due its one. Justified from §5, not from
+    any number: its physician turns expressed level 5 for d1–d5 (a converging question sequence,
+    explicit separation of prognostic from therapeutic evidence, the "guideline assumes resources we
+    lack" layer) and ownership statements that read as d7 3–4. The rewrite is written to keep d1–d6
+    at clear-and-systematic (4) and to make d7 unmistakably low: the physician hands the aspirin decision
+    to the tool, asks for hold numbers to paste into an order, then overrides the tutor's "check these
+    first" and copies the whole note into the chart unread.
+
+## Pending (for the coordinator — not run here)
+
+| anchor | what changed | needs |
+|---|---|---|
+| **anc-101** | new anchor replacing anc-015; first draft | blind panel + local evaluator |
+| **anc-012** | its one rewrite | blind panel + local evaluator; if still beyond ±15 → excluded and replaced like anc-015 |
+| anc-014 | tutor turns only: `(NICE, 2010)` → `(NICE, 2011)`; physician text untouched | new sha256, so a local re-score scores new bytes; the evaluator ignores tutor turns |
+
+Until those scores exist, the pilot verdict above is about the round-2 texts, not the current cohort.
+Re-running `known-groups.mjs --pilot` on the round-1 run now lists anc-015 as excluded and anc-101
+as never scored (it did not exist then), so its §7.6 line no longer reproduces round 1's; the round-1
+figures in this report are the record.
+Planted tutor claims (deliberately wrong statements for the physician to appraise) are listed in
+`planted-claims.json`; anc-101's three carry no citation on the false line (AUTHORING.md §5).

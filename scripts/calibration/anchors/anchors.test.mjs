@@ -9,12 +9,14 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
 
 import {
   generateDesign, checkInvariants, coverage, serialise, DOMAINS, DESIGN_PATH, DEFAULT_N, DEFAULT_SEED, PILOT_N, STEP, rng,
+  REPLACEMENTS, applyReplacements, activeAnchors,
 } from './design.mjs';
 import {
-  validateFixture, validateAll, serialiseManifest, MANIFEST_PATH, FIXTURES_DIR, REFLECTION_HEADINGS, thaiShare,
+  validateFixture, validateAll, serialiseManifest, MANIFEST_PATH, FIXTURES_DIR, REFLECTION_HEADINGS, thaiShare, checkPlanted,
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
 import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, freezeApplies, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
@@ -29,6 +31,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '../../..');
 
 const committedDesign = JSON.parse(await readFile(DESIGN_PATH, 'utf8'));
+const activePilot = (design) => activeAnchors(design).filter((a) => a.pilot);
 
 describe('design.mjs', () => {
   test('is deterministic for a seed, and the seed matters', () => {
@@ -64,17 +67,41 @@ describe('design.mjs', () => {
     for (const a of committedDesign.anchors) assert.equal(a.target_composite, compositeOf(a.targets), a.id);
   });
 
-  test('pilot: 20 anchors anc-001..anc-020, both extremes, >= 3 English', () => {
+  test('pilot: 20 anchors anc-001..anc-020 (§7.4 replacements swapped in), both extremes, >= 3 English', () => {
     const cov = coverage(committedDesign);
     assert.equal(cov.pilot.n, PILOT_N);
     assert.ok(cov.pilot.includesMin && cov.pilot.includesMax);
     assert.ok(cov.pilot.english >= 3);
-    const ids = committedDesign.anchors.filter((a) => a.pilot).map((a) => a.id).sort();
-    assert.deepEqual(ids, Array.from({ length: 20 }, (_, k) => `anc-${String(k + 1).padStart(3, '0')}`));
+    const swap = new Map(REPLACEMENTS.map((r) => [r.excluded, r.replaced_by]));
+    const ids = activePilot(committedDesign).map((a) => a.id).sort();
+    assert.deepEqual(ids, Array.from({ length: 20 }, (_, k) => `anc-${String(k + 1).padStart(3, '0')}`).map((id) => swap.get(id) ?? id).sort());
+  });
+
+  test('§7.4: anc-015 is excluded, kept, and replaced by anc-101 at the same target vector and case slot', () => {
+    const old = committedDesign.anchors.find((a) => a.id === 'anc-015');
+    const neu = committedDesign.anchors.find((a) => a.id === 'anc-101');
+    assert.equal(old.excluded.replaced_by, 'anc-101');
+    assert.equal(neu.replaces, 'anc-015');
+    assert.equal(neu.excluded, undefined);
+    for (const k of ['pilot', 'language', 'specialty', 'case', 'tutor_mode', 'physician_turns', 'reflection', 'profile', 'dissociated_domains', 'targets', 'target_composite']) {
+      assert.deepEqual(neu[k], old[k], k);
+    }
+    assert.equal(activeAnchors(committedDesign).length, DEFAULT_N);
+    assert.equal(committedDesign.n, DEFAULT_N);
+  });
+
+  test('§7.4: replacements take the next free id, never re-exclude, and the invariants catch a bad copy', () => {
+    const base = generateDesign({ replacements: [] });
+    const r = { ...REPLACEMENTS[0] };
+    assert.throws(() => applyReplacements(base, [{ ...r, replaced_by: 'anc-150' }]), /next free id anc-101/);
+    assert.throws(() => applyReplacements(base, [r, { ...r, replaced_by: 'anc-102' }]), /already excluded/);
+    const bad = applyReplacements(base, [r]);
+    bad.anchors.find((a) => a.id === 'anc-101').targets = { ...bad.anchors.find((a) => a.id === 'anc-101').targets, d5: 4 };
+    assert.ok(checkInvariants(bad).some((e) => /must copy targets/.test(e)));
   });
 
   test('ids carry no information about level, and length is decoupled from level', () => {
-    const A = committedDesign.anchors;
+    const A = activeAnchors(committedDesign);
     const idRho = spearman(A.map((a) => Number(a.id.slice(4))), A.map((a) => a.target_composite)).rho;
     // The pilot block (ids 1-20) is a stratified sample, so the id is uninformative within each block.
     assert.ok(Math.abs(idRho) < 0.3, `id vs composite rho ${idRho}`);
@@ -90,9 +117,39 @@ describe('fixtures', async () => {
   const names = (await readdir(FIXTURES_DIR)).filter((f) => /^anc-\d{3}\.json$/.test(f)).sort();
   const rows = new Map(committedDesign.anchors.map((a) => [a.id, a]));
 
-  test('there are fixtures, and each one has a design row', () => {
+  test('there are fixtures, and each one has an ACTIVE design row (excluded anchors are archived)', () => {
     assert.ok(names.length > 0);
-    for (const n of names) assert.ok(rows.has(n.slice(0, -5)), n);
+    for (const n of names) assert.ok(rows.has(n.slice(0, -5)) && !rows.get(n.slice(0, -5)).excluded, n);
+  });
+
+  test('planted-claims.json matches the fixture bytes, and no false claim carries a citation (legacy aside)', async () => {
+    const { planted } = await validateAll();
+    assert.deepEqual(planted, []);
+  });
+
+  test('checkPlanted rejects a false claim with a citation on its line, a missing claim, and an uncorrected one', () => {
+    const doc = { transcript: [
+      { role: 'physician', content: 'q' },
+      { role: 'assistant', content: 'intro\n- X for everyone (ADA, 2024)\n- Y always' },
+      { role: 'physician', content: 'that is wrong' },
+      { role: 'assistant', content: 'corrected' },
+    ] };
+    const read = () => doc;
+    const base = { file: 'fixtures/anc-900.json', id: 'anc-900', turn: 1, kind: 'false', corrected_in_turn: 3 };
+    assert.match(checkPlanted({ claims: [{ ...base, claim: 'X for everyone', citation_on_claim: true }] }, read).join(), /may not carry a citation/);
+    assert.deepEqual(checkPlanted({ claims: [{ ...base, claim: 'X for everyone', citation_on_claim: true, legacy: true }] }, read), []);
+    assert.deepEqual(checkPlanted({ claims: [{ ...base, claim: 'Y always', citation_on_claim: false }] }, read), []);
+    assert.match(checkPlanted({ claims: [{ ...base, claim: 'Z', citation_on_claim: false }] }, read).join(), /not found verbatim/);
+    assert.match(checkPlanted({ claims: [{ ...base, claim: 'Y always', citation_on_claim: false, corrected_in_turn: 2 }] }, read).join(), /later tutor turn/);
+  });
+
+  test('every §7.4-excluded anchor\'s last fixture is archived byte for byte', async () => {
+    const { archive } = await validateAll();
+    assert.deepEqual(archive, []);
+    for (const r of REPLACEMENTS) {
+      const buf = await readFile(path.join(HERE, r.archived_fixture));
+      assert.equal(createHash('sha256').update(buf).digest('hex'), r.sha256, r.excluded);
+    }
   });
 
   for (const name of names) {
@@ -208,7 +265,7 @@ describe('validate.mjs catches what it claims to', () => {
 
 describe('known-groups.mjs', () => {
   const design = committedDesign;
-  const pilot = design.anchors.filter((a) => a.pilot);
+  const pilot = activePilot(design);
   const runsOf = (f) => new Map(pilot.map((a) => [a.id, f(a)]));
 
   test('the pre-registered threshold is read from AUTHORING.md, and is 15', async () => {
@@ -225,6 +282,17 @@ describe('known-groups.mjs', () => {
     assert.equal(rep.composite.bias, 0);
     assert.equal(rep.evidence_level, EVIDENCE_LEVEL);
     assert.equal(rep.retest.max_range, 0);
+  });
+
+  test('a §7.4-excluded anchor in a scores file is ignored and listed, never counted', () => {
+    const old = design.anchors.find((a) => a.excluded);
+    const runs = runsOf((a) => [a.targets]);
+    runs.set(old.id, [{ d1: 5, d2: 5, d3: 5, d4: 5, d5: 5, d6: 5, d7: 5 }]);
+    const rep = knownGroups(design, runs, { threshold: 15, pilotOnly: true });
+    assert.equal(rep.n_designed, 20);
+    assert.equal(rep.n_scored, 20);
+    assert.deepEqual(rep.excluded_ids, [old.id]);
+    assert.ok(!rep.anchors.some((a) => a.id === old.id));
   });
 
   test('a scorer one level high everywhere: +20 composite bias, everything above 15 flagged', () => {
@@ -297,7 +365,7 @@ describe('known-groups.mjs', () => {
 
 describe('cues.mjs — surface-cue check', () => {
   const design = committedDesign;
-  const pilot = design.anchors.filter((a) => a.pilot);
+  const pilot = activePilot(design);
   const doc = (physician, reflection) => ({ transcript: [
     ...physician.flatMap((c) => [{ role: 'physician', content: c }, { role: 'assistant', content: 'x' }]),
     ...(reflection ? [{ role: 'reflection', content: reflection }] : []),
@@ -341,7 +409,7 @@ describe('cues.mjs — surface-cue check', () => {
     const rate = (n) => {
       let fails = 0;
       for (let s = 0; s < 500; s++) {
-        const rows = R.shuffle(design.anchors).slice(0, n);
+        const rows = R.shuffle(activeAnchors(design)).slice(0, n);
         const entries = rows.map((row) => ({ id: row.id, row, features: {
           length: R.normal(), acks: R.normal(), numbers: R.normal(), list_lines: R.normal(), rubric_echo: R.normal() } }));
         if (cueCheck(entries).failures.length) fails++;
@@ -358,7 +426,9 @@ describe('cues.mjs — surface-cue check', () => {
   // Deliberately NOT "the freeze equals every committed fixture": that would turn CI red the moment
   // anc-021 lands, and the tempting fix — pasting the grown sha set into cues.mjs — would re-open the
   // freeze over the whole cohort with caps up to |r| = 0.71.
-  const pilotIds = committedDesign.anchors.filter((a) => a.pilot).map((a) => a.id).sort();
+  // The freeze names the ORIGINAL pilot (as generated, before any §7.4 replacement): it records bytes
+  // that existed at 359df39, so a replacement id (anc-101) can never be in it.
+  const pilotIds = committedDesign.anchors.filter((a) => a.pilot && !a.replaces).map((a) => a.id).sort();
   const assertFreezeKeying = (shas) => {
     assert.deepEqual(Object.keys(PILOT_FREEZE.fixtures).sort(), pilotIds, 'PILOT_FREEZE must name exactly the pilot anchors');
     const on = freezeApplies(shas);
@@ -404,12 +474,14 @@ describe('cues.mjs — surface-cue check', () => {
 
 describe('anchor-split.mjs — the pilot is tuning-only', () => {
   const design = committedDesign;
-  const pilotIds = design.anchors.filter((a) => a.pilot).map((a) => a.id);
+  const pilotIds = activePilot(design).map((a) => a.id);
 
   test('no pilot anchor is eligible for held-out', () => {
     const eligible = new Set(heldOutEligible(design));
     for (const id of pilotIds) assert.ok(!eligible.has(id), id);
-    assert.equal(eligible.size, design.anchors.length - pilotIds.length);
+    assert.equal(eligible.size, activeAnchors(design).length - pilotIds.length);
+    for (const r of REPLACEMENTS) assert.ok(!eligible.has(r.excluded), r.excluded);
+    assert.ok(checkSplit(design, { held_out: ['anc-050'], tuning: [REPLACEMENTS[0].excluded] }).some((e) => /excluded/.test(e)));
   });
 
   test('a split that holds out a pilot anchor is rejected', () => {
@@ -435,7 +507,7 @@ describe('anchor-split.mjs — the pilot is tuning-only', () => {
 
 describe('known-groups.mjs — §7.6 rule and served models', () => {
   const design = committedDesign;
-  const pilot = design.anchors.filter((a) => a.pilot);
+  const pilot = activePilot(design);
 
   test('anchors with no valid score count AGAINST the proceed rule', () => {
     const runs = new Map(pilot.slice(0, 15).map((a) => [a.id, [a.targets]]));
@@ -463,18 +535,22 @@ describe('known-groups.mjs — §7.6 rule and served models', () => {
   });
 
   test('a pilot analysis carries the d5 rubric-echo caveat; a non-pilot one does not', () => {
-    const withPilot = knownGroups(design, new Map(pilot.map((a) => [a.id, [a.targets]])), { threshold: 15, pilotOnly: true });
+    // The caveat describes the ORIGINAL pilot texts; a §7.4 replacement is new text.
+    const origPilot = pilot.filter((a) => !a.replaces);
+    const withPilot = knownGroups(design, new Map(origPilot.map((a) => [a.id, [a.targets]])), { threshold: 15, pilotOnly: true });
     assert.match(withPilot.caveats.d5, /INFLATED BY RUBRIC ECHO/);
     const rest = design.anchors.filter((a) => !a.pilot).slice(0, 5);
     const noPilot = knownGroups(design, new Map(rest.map((a) => [a.id, [a.targets]])), { threshold: 15, onlyIds: rest.map((a) => a.id) });
     assert.equal(noPilot.caveats.d5, undefined);
     // Scored on the ORIGINAL pilot bytes → caveat; once a pilot anchor was rewritten → no caveat.
-    const runs = new Map(pilot.map((a) => [a.id, [a.targets]]));
+    const runs = new Map(origPilot.map((a) => [a.id, [a.targets]]));
     const original = knownGroups(design, runs, { threshold: 15, pilotOnly: true, fixtureShas: { ...PILOT_FREEZE.fixtures } });
     assert.match(original.caveats.d5, /RUBRIC ECHO/);
     const rewritten = knownGroups(design, runs, { threshold: 15, pilotOnly: true,
-      fixtureShas: { ...PILOT_FREEZE.fixtures, 'anc-015': 'f'.repeat(64) } });
+      fixtureShas: { ...PILOT_FREEZE.fixtures, 'anc-007': 'f'.repeat(64) } });
     assert.equal(rewritten.caveats.d5, undefined);
+    const withReplacement = knownGroups(design, new Map(pilot.map((a) => [a.id, [a.targets]])), { threshold: 15, pilotOnly: true });
+    assert.equal(withReplacement.caveats.d5, undefined);
   });
 
   test('a split filter restricts the designed set', () => {

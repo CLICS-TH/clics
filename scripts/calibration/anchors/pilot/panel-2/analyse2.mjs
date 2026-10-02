@@ -54,6 +54,13 @@ for (const [n, x, y] of [
   ['panel vs target', (r) => (r.s + r.o) / 2, (r) => r.target],
 ]) console.log(n.padEnd(18), icc(x, y), ' bias', bias(x, y));
 
+// §7.6 allowance is 4 of 20. The panel mean hides how far each rater alone would put the pilot.
+console.log('\nbeyond ±15 of target, per rater (§7.6 allowance: 4 of 20)');
+for (const [n, f] of [['panel mean', (r) => (r.s + r.o) / 2], ['opus', (r) => r.o], ['sonnet', (r) => r.s]]) {
+  const over = rows.filter((r) => Math.abs(f(r) - r.target) > 15).map((r) => r.id);
+  console.log(`  ${n.padEnd(11)} ${over.length}/${rows.length}  ${over.join(', ')}`);
+}
+
 console.log('\ndomain ICC(A,1): sonnet-vs-opus | panel-vs-target');
 for (const k of DOMAINS) {
   const ic = (x, y) => iccTwoRater(rows.map((r) => ({ a: x(r), b: y(r) }))).icc.toFixed(2).padStart(6);

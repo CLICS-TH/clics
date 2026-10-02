@@ -51,7 +51,7 @@ export const CITATIONS = [
   { match: /Glasgow-Blatchford|Blatchford/i, years: [2000], what: 'Glasgow-Blatchford score (2000)' },
   { match: /Canadian CT Head Rule|Stiell/i, years: [1996, 2001], what: 'Canadian CT Head Rule (2001); Ottawa knee rule (1996)' },
   { match: /Ottawa knee|Ottawa SAH|Perry/i, years: [1996, 2013], what: 'Ottawa knee rule (1996); Ottawa SAH rule (Perry et al., 2013)' },
-  { match: /\bNICE\b/i, years: [2010, 2016, 2022, 2023], what: 'NICE delirium CG103 (2010), low back pain NG59 (2016), depression NG222 (2022), head injury NG232 (2023)' },
+  { match: /\bNICE\b/i, years: [2010, 2011, 2016, 2022, 2023], what: 'NICE delirium CG103 (2010), alcohol-use disorders CG115 (2011), low back pain NG59 (2016), depression NG222 (2022), head injury NG232 (2023)' },
   { match: /\bAAOS\b|American Academy of Orthopaedic Surgeons/i, years: [2021], what: 'AAOS hip fracture guideline 2021' },
   { match: /Endocrine Society/i, years: [2019], what: 'Endocrine Society osteoporosis guideline 2019' },
   { match: /FRAX/i, years: [2008], what: 'FRAX (Kanis et al., 2008)' },

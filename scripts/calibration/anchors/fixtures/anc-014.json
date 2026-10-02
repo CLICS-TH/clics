@@ -16,7 +16,7 @@
     },
     {
       "role": "assistant",
-      "content": "Yes, that ranking matches standard practice:\n\n- Lorazepam and oxazepam are metabolised by glucuronidation, which is relatively preserved in cirrhosis, so accumulation is less likely.\n- Diazepam and chlordiazepoxide depend on hepatic oxidation and have long-acting metabolites; in Child-Pugh B they can accumulate and precipitate encephalopathy.\n- Use the lowest effective doses and reassess sedation frequently (NICE, 2010)."
+      "content": "Yes, that ranking matches standard practice:\n\n- Lorazepam and oxazepam are metabolised by glucuronidation, which is relatively preserved in cirrhosis, so accumulation is less likely.\n- Diazepam and chlordiazepoxide depend on hepatic oxidation and have long-acting metabolites; in Child-Pugh B they can accumulate and precipitate encephalopathy.\n- Use the lowest effective doses and reassess sedation frequently (NICE, 2011)."
     },
     {
       "role": "physician",
@@ -32,7 +32,7 @@
     },
     {
       "role": "assistant",
-      "content": "There is no single trial-based dosing schedule for cirrhosis. Guidance recommends preferring shorter-acting agents such as lorazepam or oxazepam in liver impairment and titrating to symptoms with close monitoring (NICE, 2010). Your hospital formulary and hepatology team are the practical references for exact doses."
+      "content": "There is no single trial-based dosing schedule for cirrhosis. Guidance recommends preferring shorter-acting agents such as lorazepam or oxazepam in liver impairment and titrating to symptoms with close monitoring (NICE, 2011). Your hospital formulary and hepatology team are the practical references for exact doses."
     },
     {
       "role": "physician",
@@ -40,7 +40,7 @@
     },
     {
       "role": "assistant",
-      "content": "Three lines you could use:\n\n1. Acamprosate helps reduce cravings and is not processed by the liver; we will check your kidney function first.\n2. Baclofen is an option if acamprosate doesn't suit you; it can make you drowsy.\n3. Whichever we choose works best alongside support for stopping drinking, which we can arrange before you go home.\n\nAvoiding hepatically metabolised options in advanced liver disease is consistent with guidance (NICE, 2010)."
+      "content": "Three lines you could use:\n\n1. Acamprosate helps reduce cravings and is not processed by the liver; we will check your kidney function first.\n2. Baclofen is an option if acamprosate doesn't suit you; it can make you drowsy.\n3. Whichever we choose works best alongside support for stopping drinking, which we can arrange before you go home.\n\nAvoiding hepatically metabolised options in advanced liver disease is consistent with guidance (NICE, 2011)."
     },
     {
       "role": "reflection",
