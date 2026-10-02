@@ -11,10 +11,10 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 
 import {
-  generateDesign, checkInvariants, coverage, serialise, DOMAINS, DESIGN_PATH, DEFAULT_N, DEFAULT_SEED, PILOT_N, STEP,
+  generateDesign, checkInvariants, coverage, serialise, DOMAINS, DESIGN_PATH, DEFAULT_N, DEFAULT_SEED, PILOT_N, STEP, rng,
 } from './design.mjs';
 import {
-  validateFixture, validateAll, serialiseManifest, MANIFEST_PATH, FIXTURES_DIR, REFLECTION_HEADINGS, thaiShare, MAX_LENGTH_R,
+  validateFixture, validateAll, serialiseManifest, MANIFEST_PATH, FIXTURES_DIR, REFLECTION_HEADINGS, thaiShare,
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
 import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
@@ -111,10 +111,6 @@ describe('fixtures', async () => {
     assert.equal(await readFile(MANIFEST_PATH, 'utf8'), serialiseManifest(manifest));
   });
 
-  test('physician length does not track the target composite', async () => {
-    const { lengthR } = await validateAll();
-    if (lengthR != null) assert.ok(Math.abs(lengthR) <= MAX_LENGTH_R, `r = ${lengthR}`);
-  });
 
   test('reflection headings are production\'s (backend/src/services/reflection.js)', async () => {
     const src = await readFile(path.join(REPO, 'backend/src/services/reflection.js'), 'utf8');
@@ -291,27 +287,62 @@ describe('cues.mjs — surface-cue check', () => {
 
   test('a planted cue is caught: acknowledgements that track the target fail the gate', () => {
     const entries = pilot.map((a) => ({ id: a.id, row: a, features: {
-      length: 1000, acks: 5 - a.target_composite / 20, numbers: 1, list_lines: 0, rubric_echo: 0 } }));
+      length: 1000, acks: 5 - a.target_composite / 20 + (Number(a.id.slice(4)) % 3) * 0.4, numbers: 1, list_lines: 0, rubric_echo: 0 } }));
     const res = cueCheck(entries);
     assert.ok(res.failures.some((f) => f.feature === 'acks' && f.target === 'composite'));
     assert.ok(!res.failures.some((f) => f.feature === 'numbers'), 'a constant feature has no correlation');
+    // A PERFECT cue (r = 1) must fail too — its Fisher-z interval is undefined, not absent.
+    const perfect = cueCheck(pilot.map((a) => ({ id: a.id, row: a, features: {
+      length: a.target_composite, acks: 0, numbers: 1, list_lines: 0, rubric_echo: 0 } })));
+    assert.ok(perfect.failures.some((f) => f.feature === 'length' && f.target === 'composite'));
   });
 
-  test('gate rule: point threshold below n=50, CI must exclude ±0.4 from n=50', () => {
-    assert.equal(cueFails({ r: 0.45, n: 20, lower: 0.0, upper: 0.74 }), true);
-    assert.equal(cueFails({ r: 0.35, n: 20, lower: -0.1, upper: 0.68 }), false);
-    assert.equal(cueFails({ r: 0.15, n: 100, lower: -0.05, upper: 0.34 }), false);
-    assert.equal(cueFails({ r: 0.25, n: 100, lower: 0.06, upper: 0.42 }), true);
+  test('gate rule: fail only when the CI shows a cue beyond ±0.1, at every n', () => {
+    assert.equal(cueFails({ r: 0.45, n: 20, lower: 0.02, upper: 0.74 }), false, 'CI reaches below 0.1');
+    assert.equal(cueFails({ r: 0.55, n: 20, lower: 0.13, upper: 0.80 }), true);
+    assert.equal(cueFails({ r: -0.55, n: 20, lower: -0.80, upper: -0.13 }), true);
+    assert.equal(cueFails({ r: 0.25, n: 100, lower: 0.06, upper: 0.42 }), false);
+    assert.equal(cueFails({ r: 0.30, n: 100, lower: 0.11, upper: 0.47 }), true);
+    assert.equal(cueFails({ r: 0.9, n: 3, lower: null, upper: null }), false, 'no CI, no verdict');
     for (const [f, ts] of Object.entries(CUE_RELEVANT)) assert.ok(ts.includes('composite'), f);
   });
 
-  test('pilot freeze: only the recorded pairs, and only while every fixture is pilot', async () => {
-    const { cues } = await validateAll();
-    assert.deepEqual(cues.counted, [], 'a cue outside the pilot freeze');
-    const fails = [{ feature: 'acks', target: 'composite' }, { feature: 'length', target: 'composite' }];
-    assert.deepEqual(applyPilotFreeze(fails, { allPilot: true }).counted, [fails[1]]);
-    assert.deepEqual(applyPilotFreeze(fails, { allPilot: false }).counted, fails);
-    assert.ok(PILOT_FREEZE.pairs.includes('acks:composite'));
+  test('null simulation: with NO true cue the whole check false-fails <= 20%, with no cliff in n', () => {
+    // Real design targets, features drawn independently of them. 500 seeded sims per n. The check
+    // "fails" when ANY of the 15 gated pairs fails — that is what turns CI red.
+    const R = rng(20261003);
+    const rate = (n) => {
+      let fails = 0;
+      for (let s = 0; s < 500; s++) {
+        const rows = R.shuffle(design.anchors).slice(0, n);
+        const entries = rows.map((row) => ({ id: row.id, row, features: {
+          length: R.normal(), acks: R.normal(), numbers: R.normal(), list_lines: R.normal(), rubric_echo: R.normal() } }));
+        if (cueCheck(entries).failures.length) fails++;
+      }
+      return fails / 500;
+    };
+    const r = { 30: rate(30), 49: rate(49), 50: rate(50), 100: rate(100) };
+    for (const [n, v] of Object.entries(r)) assert.ok(v <= 0.20, `null false-fail rate ${v} at n=${n}`);
+    assert.ok(Math.abs(r[49] - r[50]) <= 0.06, `jump between n=49 (${r[49]}) and n=50 (${r[50]})`);
+    assert.ok(r[100] <= r[30], 'more data must not make noise fail more often');
+  });
+
+  test('pilot freeze: keyed to the exact pilot files, and capped at the recorded r', async () => {
+    const { cues, results } = await validateAll();
+    assert.deepEqual(cues.counted, [], 'a cue outside (or stronger than) the pilot freeze');
+    const shas = Object.fromEntries(results.map((x) => [x.id, x.sha256]));
+    // The freeze's fixture list IS the committed pilot manifest.
+    assert.deepEqual(shas, PILOT_FREEZE.fixtures);
+    const acks = { feature: 'acks', target: 'composite', r: PILOT_FREEZE.pairs['acks:composite'] };
+    const other = { feature: 'length', target: 'composite', r: 0.6 };
+    assert.deepEqual(applyPilotFreeze([acks, other], { fixtureShas: shas }).counted, [other]);
+    // Stronger than recorded → counts, even inside the freeze.
+    const stronger = { ...acks, r: acks.r - 0.05 };
+    assert.deepEqual(applyPilotFreeze([stronger], { fixtureShas: shas }).counted, [stronger]);
+    // One pilot file rewritten → freeze off.
+    assert.deepEqual(applyPilotFreeze([acks], { fixtureShas: { ...shas, 'anc-007': '0'.repeat(64) } }).counted, [acks]);
+    // Any extra fixture → freeze off.
+    assert.deepEqual(applyPilotFreeze([acks], { fixtureShas: { ...shas, 'anc-021': '1'.repeat(64) } }).counted, [acks]);
   });
 });
 

@@ -106,18 +106,25 @@ Tutor turns follow the design's `tutor_mode`, written in the style of
   that stamps one global impression on all seven domains; they are worth the most, so write the
   off-profile domain unmistakably.
 - **Length must not encode level.** `physician_turns` was assigned independently of the target, and
-  validate.mjs fails when the correlation between physician characters and target composite exceeds
-  |r| = 0.4 (the pilot's first draft came in at 0.45–0.60 — authors write more for higher targets). A low
-  anchor can be long-winded (verbose, generic, templated); a high anchor can be terse (a brief
-  question that names this patient's exact decision is d1 ≥ 3).
+  physician length is one of the gated surface cues below (the pilot's first draft came in at
+  r = 0.45–0.60 — authors write more for higher targets). A low anchor can be long-winded (verbose,
+  generic, templated); a high anchor can be terse (a brief question that names this patient's exact
+  decision is d1 ≥ 3).
 - **Structure is not depth.** Headings, numbered lists and textbook completeness in a physician turn
   earn nothing. A templated "please give DDx, investigation, management, prognosis" prompt is a 1–2
   behaviour — but see the next point: lists must not appear *only* in low anchors.
 - **No surface cue may track the level** (`cues.mjs`, run by validate.mjs). A scorer must have to read
   the reasoning to recover the target; if a shallow feature carries it, an AI-vs-target ICC measures
   the feature. Across the cohort, these are correlated with the target composite and the relevant
-  domain targets, and the gate fails at |r| > 0.4 (n < 50), or unless the 95% CI excludes ±0.4
-  (n ≥ 50):
+  domain targets (15 gated pairs, `CUE_RELEVANT`). **A gated pair fails when its 95% CI shows a cue
+  beyond ±0.1** — CI lower > 0.1 or upper < −0.1 — at every n. With no true cue the whole check
+  false-fails about 17% at n = 30, 10% at n = 50 and 4% at n = 100 (seeded simulation in
+  `anchors.test.mjs`, which fails if that rate exceeds 20% or jumps between n = 49 and 50).
+  *Amendment, 2026-10-02 (final review of PR #111), made before any non-pilot fixture existed:* this
+  replaced "|r| > 0.4 below n = 50; from n = 50 fail unless the CI excludes ±0.4", which was an
+  equivalence test above n = 50 and, with no cue at all, false-failed 99% at n = 50 and 27% at
+  n = 100 (60% at n = 21, 7% at n = 49) — a cliff at 50 and CI red on noise. The separate
+  "|r| > 0.4" physician-length gate was folded into this rule at the same time. The cues are:
   - physician-turn **length**;
   - **acknowledgements** per turn (`ok`, `โอเค`, `ok ครับ`, `noted`, `รับทราบ` …) — the pilot had low
     anchors saying "ok ครับ" and high anchors never saying it (r = −0.71);
@@ -141,6 +148,13 @@ Tutor turns follow the design's `tutor_mode`, written in the style of
     not, listy or not — and then write the level inside that shape.
   - validate.mjs prints the full cue matrix and the per-fixture rubric-echo hits; read both before
     submitting a batch.
+  - **The pilot freeze.** The 20 pilot anchors predate this check and fail 6 gated pairs under it
+    (acks vs composite r = −0.71 and vs d5 −0.63; numerals vs composite +0.58 and vs d3 +0.52; list
+    lines vs composite −0.53; rubric echo vs d5 +0.64). While they are being scored these are reported
+    as known, not counted (`cues.mjs` `PILOT_FREEZE`). The freeze is keyed to the 20 pilot files'
+    sha256s and caps each pair at its recorded r: rewrite any pilot anchor, add any new fixture, or let
+    a frozen pair get stronger, and every gated pair counts again. So the next batch must be written to
+    counterbalance these cues, or the pilot rewritten, before validate.mjs passes.
 - **Near-duplicate physician turns cap d2 and d4 at 2** (evaluator rule). Use this only for anchors
   whose d2 and d4 are both ≤ 2.
 - **Evidence for 4–5 is a quotable, case-bound physician sentence** — something that could not have

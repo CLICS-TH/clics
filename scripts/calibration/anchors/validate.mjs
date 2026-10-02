@@ -20,7 +20,7 @@
  *              turns end on a ❓ line, natural turns carry none
  *
  * Cohort-level: Pearson r between physician characters and target composite, so length cannot
- * quietly encode level (reported; |r| > MAX_LENGTH_R fails). The pilot's first draft came in at
+ * quietly encode level — gated, with the other surface cues, by cues.mjs CUE_RULE. The pilot's first draft came in at
  * r = 0.45-0.60: authors write more when the target is higher, without meaning to.
  *
  * Package-free. Prints fixture ids and problems, and the masked spans of a PII hit (the fixtures are
@@ -77,8 +77,6 @@ export function thaiShare(text) {
   const la = (String(text).match(LATIN) ?? []).length;
   return th + la ? th / (th + la) : 0;
 }
-
-export const MAX_LENGTH_R = 0.4;
 
 export const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 
@@ -251,7 +249,7 @@ export async function validateAll({ dir = FIXTURES_DIR, designPath = DESIGN_PATH
     fixtures: Object.fromEntries(results.map((r) => [r.id, { sha256: r.sha256, ...(r.stats ?? {}) }])),
   };
   const cues = cueCheck(ok.filter((r) => r.features).map((r) => ({ id: r.id, features: r.features, row: r.row })));
-  Object.assign(cues, applyPilotFreeze(cues.failures, { allPilot: ok.length > 0 && ok.every((r) => r.row.pilot) }));
+  Object.assign(cues, applyPilotFreeze(cues.failures, { fixtureShas: Object.fromEntries(results.map((r) => [r.id, r.sha256])) }));
   return { results, manifest, lengthR, design, cues };
 }
 
@@ -279,14 +277,13 @@ if (isMain) {
   const piiTotal = results.reduce((a, r) => a + (r.stats?.pii_hits ?? 0), 0);
   console.log(`\n  pii-filter hits: ${piiTotal}  (rimpl/src/services/pii-filter.js stripPii; any hit fails)`);
   console.log(`  citations checked against ${CITATIONS.length} allowlisted sources (citations.mjs)`);
-  console.log(`  physician chars vs target composite: r = ${lengthR == null ? '—' : lengthR.toFixed(3)}  (|r| > ${MAX_LENGTH_R} fails — length must not encode level)`);
-  if (lengthR != null && Math.abs(lengthR) > MAX_LENGTH_R) { console.log('  ✖ length tracks the target'); failed++; }
+  console.log(`  physician chars vs target composite: r = ${lengthR == null ? '—' : lengthR.toFixed(3)}  (gated below as length:composite)`);
 
   console.log('\n' + formatCueMatrix(cues));
   const ci = (f) => `r = ${f.r.toFixed(2)}${f.lower == null ? '' : `, 95% CI ${f.lower.toFixed(2)}…${f.upper.toFixed(2)}`}`;
   for (const f of cues.counted) console.log(`  ✖ surface cue: ${f.feature} tracks ${f.target} (${ci(f)})`);
   for (const f of cues.frozen) console.log(`  ! known (pilot freeze): ${f.feature} tracks ${f.target} (${ci(f)})`);
-  if (cues.frozen.length) console.log(`    ${PILOT_FREEZE.reason}. Lapses when the first non-pilot fixture is added.`);
+  if (cues.frozen.length) console.log(`    ${PILOT_FREEZE.reason}. Applies only to the 20 pilot files byte for byte; capped at the recorded r.`);
   failed += cues.counted.length;
   const echo = results.filter((r) => r.features?.rubric_echo >= 3);
   if (echo.length) {

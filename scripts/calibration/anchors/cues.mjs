@@ -20,16 +20,21 @@
 // target. The full matrix is reported; the GATE applies to the pairs in CUE_RELEVANT, where a cue
 // would plausibly stand in for the behaviour that domain names.
 //
-// THE GATE (CUE_RULE):
-//   n < 50   fail when |r| > 0.4. The CI is too wide at pilot size to say more.
-//   n >= 50  fail unless the 95% CI EXCLUDES ±0.4 — i.e. the data must show the cue is weaker than
-//            0.4, not merely fail to show it is stronger. At n = 100 that passes r up to about ±0.22.
+// THE GATE (CUE_RULE), one rule at every n: a gated pair FAILS only when its 95% CI shows a cue
+// beyond ±0.1 — lower > 0.1 or upper < −0.1. The data must SHOW a cue; noise alone must not fail.
+//
+// Why not the rule this replaced (2026-10-02, before any non-pilot fixture existed). It was
+// "|r| > 0.4 below n = 50; from n = 50 fail unless the CI excludes ±0.4" — an equivalence test above
+// n = 50 that the data had to pass to prove the cue absent. Simulated on the real design targets
+// with NO cue (r = 0), the whole check false-failed 60% at n = 21, 7% at n = 49, then 99% at n = 50,
+// 27% at n = 100: a cliff at 50, and CI red on noise. The rule above false-fails about 17% at n = 30,
+// 10% at 50, 4% at 100 across all 15 gated pairs, with no cliff; anchors.test.mjs pins that with a
+// seeded simulation.
 //
 // Package-free and pure: text in, numbers out.
 
-export const CUE_MAX_R = 0.4;
-export const CUE_CI_MIN_N = 50;
-export const CUE_RULE = `n < ${CUE_CI_MIN_N}: |r| > ${CUE_MAX_R} fails · n >= ${CUE_CI_MIN_N}: fails unless the 95% CI excludes ±${CUE_MAX_R}`;
+export const CUE_MIN_R = 0.1;
+export const CUE_RULE = `a gated pair fails when its 95% CI lies beyond ±${CUE_MIN_R} (lower > ${CUE_MIN_R} or upper < −${CUE_MIN_R}), at every n`;
 export const TARGETS = ['composite', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 export const FEATURES = ['length', 'acks', 'numbers', 'list_lines', 'rubric_echo'];
 
@@ -108,16 +113,16 @@ function pearsonCI(xs, ys) {
   xs.forEach((x, i) => { num += (x - mx) * (ys[i] - my); sx += (x - mx) ** 2; sy += (ys[i] - my) ** 2; });
   if (!sx || !sy) return { r: null, lower: null, upper: null, n, note: 'no variance' };
   const r = num / Math.sqrt(sx * sy);
-  if (n < 4 || Math.abs(r) >= 1) return { r, lower: null, upper: null, n };
+  if (Math.abs(r) >= 1 - 1e-12) return { r, lower: r, upper: r, n };     // a perfect cue is the clearest cue of all
+  if (n < 4) return { r, lower: null, upper: null, n };
   const z = Math.atanh(r), se = 1 / Math.sqrt(n - 3);
   return { r, lower: Math.tanh(z - 1.96 * se), upper: Math.tanh(z + 1.96 * se), n };
 }
 
 /** Does this correlation fail the gate? */
 export function cueFails(c) {
-  if (c?.r == null) return false;
-  if (c.n < CUE_CI_MIN_N) return Math.abs(c.r) > CUE_MAX_R;
-  return !(c.lower > -CUE_MAX_R && c.upper < CUE_MAX_R);
+  if (c?.r == null || c.lower == null || c.upper == null) return false;
+  return c.lower > CUE_MIN_R || c.upper < -CUE_MIN_R;
 }
 
 /**
@@ -145,27 +150,69 @@ export function cueCheck(entries) {
 // THE PILOT FREEZE. The 20 pilot anchors were written before this check existed and are being scored
 // as they stand, so they cannot be rewritten until the scores are back (PR #111 review). On the pilot
 // alone the check finds exactly these failing pairs; they are reported as KNOWN, not counted. Anything
-// else fails at once. The freeze lapses automatically the moment any non-pilot fixture is added: from
+// else fails at once. The freeze lapses automatically the moment any fixture is added or changed: from
 // then on every gated pair counts over the whole cohort, so the remaining anchors must be written to
 // counterbalance these cues (or the pilot rewritten) before validate.mjs passes again.
+//
+// The freeze is keyed to the EXACT pilot fixtures (their manifest sha256s at 359df39), not to pair
+// names: it applies only while the fixture set is precisely these 20 files, byte for byte. Rewrite one
+// pilot anchor (new sha256) or add any other fixture and the freeze is off — every gated pair counts.
+// Each frozen pair is also CAPPED at the r recorded here: a pair that gets stronger is a failure, even
+// inside the freeze.
 export const PILOT_FREEZE = {
   reason: 'pilot anchors written before the cue check; frozen during the pilot scoring run (PR #111)',
-  pairs: [
-    'acks:composite', 'acks:d5',
-    'numbers:composite', 'numbers:d3',
-    'list_lines:composite', 'list_lines:d1',
-    'rubric_echo:d5', 'rubric_echo:d7',
-  ],
+  fixtures: {
+    'anc-001': '8f4b3118e41a86ba3223baae7488318cfc824ce1b51360efc7bac45acbb6a261',
+    'anc-002': '8b67be949eef4b7fb22fd7e1b99d4186cde112e0a326c54b70b3d3e3e97fefe5',
+    'anc-003': '32fe1266316a3be994b131f5872a2cbff414abbd3ea832cbcdf5187a5f5ad37b',
+    'anc-004': 'b1e820e7298d7565e8d56d015a3eb94fee4f260f23c8e686f4f8036f13c1228a',
+    'anc-005': 'ff6b1620717190c5e04fc07964bb5bfa40bde59d3b2b5f096607882a8889418e',
+    'anc-006': '43c97d0aa570f53bc0581d57186c55e3155911060db523c82457cd60689a9bd4',
+    'anc-007': 'b88685dd26124a3e707d43f6f28a91d8eee48940e801cab0691cb835ad6157aa',
+    'anc-008': '0a7bad96476e11753dcfe2ea628ab82fc00be26d137efd87e0e82e532a308a6b',
+    'anc-009': '549a0091dfc019ec4c651b0a911f7032f82792782ec2b9630135322b84ad3bc6',
+    'anc-010': '0ca79c3ca828cee809bd5fecd4cf9b0cbbf16a72fb5f731a4a5b2fc132752e1b',
+    'anc-011': '6d9a331c1c3ea7a38e70c1de44b8e5b62fa6bcc5560faa60366e0a2316948974',
+    'anc-012': '695edebd37039aa83d85abffa5ca60777b8fb98af1c1784f46880420bedb38e3',
+    'anc-013': '7c8a1e667506846f15062a45001eaaeaeb54efdc3c6308c0acf39fbecb158e60',
+    'anc-014': 'c9cf13f1a8d794551c074d09cce72e1729cfd4a8fbf4ce14593704dc15b2a8e5',
+    'anc-015': '24ec14023884ffe457e3180792e906d7e984600459b13b529e6b67f0e2319255',
+    'anc-016': 'b46171bcc22ff6e27000f3feeb8fd19ff4cdb40884cc7152e307856b96e0df18',
+    'anc-017': '3e01fc0b4241941df740f9df97dc3b580669bfeba635fdb16ae24954ceb30702',
+    'anc-018': '8441dc2b7ba0d5635b534dd6193665db3fc416bb544666829f246b66c7759827',
+    'anc-019': 'a2bb3395e6029de16624e5b6639af9fe1572f2860791251f2f990ef3b6f747d9',
+    'anc-020': '88b4cf8ab9c8f2b57f4735b82b83c8de359002ca7e7f4a41e858449e6ab9dd38',
+  },
+  // feature:target → the r recorded on those fixtures. Only these pairs fail CUE_RULE on the pilot.
+  pairs: {
+    'acks:composite': -0.709498,
+    'acks:d5': -0.629880,
+    'numbers:composite': 0.578071,
+    'numbers:d3': 0.519792,
+    'list_lines:composite': -0.529453,
+    'rubric_echo:d5': 0.641464,
+  },
 };
 
-/** Split failures into those the pilot freeze covers and those that count. */
-export function applyPilotFreeze(failures, { allPilot }) {
-  if (!allPilot) return { counted: failures, frozen: [] };
-  const known = new Set(PILOT_FREEZE.pairs);
-  return {
-    counted: failures.filter((f) => !known.has(`${f.feature}:${f.target}`)),
-    frozen: failures.filter((f) => known.has(`${f.feature}:${f.target}`)),
+/** True only when `fixtureShas` (id → sha256) is exactly the frozen pilot set, byte for byte. */
+export function freezeApplies(fixtureShas, freeze = PILOT_FREEZE) {
+  const want = Object.entries(freeze.fixtures);
+  const have = Object.entries(fixtureShas ?? {});
+  return have.length === want.length && want.every(([id, sha]) => fixtureShas[id] === sha);
+}
+
+/**
+ * Split failures into those the pilot freeze covers and those that count. A failure is frozen only
+ * when the fixture set is exactly the frozen one AND the pair is recorded AND it is no stronger than
+ * its recorded r (same sign, |r| not larger).
+ */
+export function applyPilotFreeze(failures, { fixtureShas }, freeze = PILOT_FREEZE) {
+  if (!freezeApplies(fixtureShas, freeze)) return { counted: failures, frozen: [] };
+  const covered = (f) => {
+    const cap = freeze.pairs[`${f.feature}:${f.target}`];
+    return cap != null && Math.sign(f.r) === Math.sign(cap) && Math.abs(f.r) <= Math.abs(cap) + 1e-6;
   };
+  return { counted: failures.filter((f) => !covered(f)), frozen: failures.filter(covered) };
 }
 
 export function formatCueMatrix(res) {
