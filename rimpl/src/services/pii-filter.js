@@ -212,11 +212,13 @@ function startsWithClinicalLead(token) {
 // ---------------------------------------------------------------------------
 
 // Function words / verbs that follow the pronoun คุณ ("you") or a thing-label. None is a Thai given
-// name on its own. NOT here on purpose: มา / มี (มานี, มาลี, มีนา) and ต้อง ("must", also a nickname).
+// name on its own. NOT here on purpose — each is ALSO a given name or nickname, so "คุณ<word>" alone
+// must stay masked: มา / มี (มานี, มาลี, มีนา), ต้อง (nickname), สามารถ and ช่วย (male given names;
+// review of PR #114 — "คุณสามารถ อายุ 50 ปี" leaked). The cost is over-masking glued "คุณสามารถ…".
 const TH_FUNCTION_WORDS = [
-  'ที่', 'ว่า', 'คือ', 'ของ', 'บอก', 'แจ้ง', 'ให้', 'ได้', 'ไม่', 'ก็', 'จะ', 'ช่วย',
+  'ที่', 'ว่า', 'คือ', 'ของ', 'บอก', 'แจ้ง', 'ให้', 'ได้', 'ไม่', 'ก็', 'จะ',
   'และ', 'หรือ', 'เป็น', 'สำหรับ', 'ล่วงหน้า', 'นี้', 'นั้น', 'อะไร', 'ซึ่ง', 'ถาม',
-  'ตอบ', 'คิด', 'ตรวจ', 'ควร', 'เคย', 'สามารถ', 'อยาก', 'ลอง', 'ทราบ', 'รู้',
+  'ตอบ', 'คิด', 'ตรวจ', 'ควร', 'เคย', 'อยาก', 'ลอง', 'ทราบ', 'รู้',
   'เห็น', 'พิจารณา', 'วินิจฉัย', 'สั่ง', 'กำลัง', 'เลือก', 'ใช้', 'ระบุ', 'อธิบาย', 'เชื่อ',
 ];
 // Polite particles / closings (ขอบคุณครับ, ขอบคุณมากค่ะ). คะ / นะ / มาก can begin a name (คะนอง), which is
@@ -231,9 +233,10 @@ const TH_ADDRESS_TERMS = [
   'หมอ', 'พยาบาล', 'เภสัชกร', 'อาจารย์', 'แม่', 'พ่อ', 'ป้า', 'ลุง', 'ยาย', 'ปู่', 'ย่า', 'พี่', 'ญาติ',
 ];
 // คุณ + one of these is ONE word that no given name begins with → an anchor:
-// คุณค่า (value), คุณลักษณะ (attribute), คุณประโยชน์ (benefit), คุณูปการ (contribution).
-// คุณสมบัติ (property) is deliberately absent: สมบัติ is also a given name (pii-names.th.js).
-const TH_KHUN_COMPOUND_ANCHORS = ['ค่า', 'ลักษณะ', 'ประโยชน์', 'ูปการ'];
+// คุณค่า (value), คุณลักษณะ (attribute), คุณูปการ (contribution).
+// Deliberately absent: คุณสมบัติ (สมบัติ is a given name, pii-names.th.js) and คุณประโยชน์ (ประโยชน์ is
+// used as a given name too) — both stay masked.
+const TH_KHUN_COMPOUND_ANCHORS = ['ค่า', 'ลักษณะ', 'ูปการ'];
 // คุณภาพ ("quality") — but ภาพ also begins given names (ภาพร, ภาพิมล, ภาพพิมพ์), so ภาพ is an anchor only
 // together with one of these continuations, each of which makes the compound unambiguous prose:
 // คุณภาพชีวิต (quality of life), คุณภาพการนอน (sleep quality), คุณภาพการรักษา / การดูแล / การบริการ
@@ -293,6 +296,13 @@ function scanLabelRun(run) {
   if (!w) return null;
   return scanRun(run, w.length, 0, TH_LABEL_RUN_WORDS, ['ชื่อ', 'คุณ']);
 }
+
+// Longest glued run the shields will tokenise. Each resume (at a nested คุณ / ชื่อ) re-matches the rest
+// of the run, so a run with n nested anchors costs O(n x run length): fine for real prose, quadratic for
+// a hostile "คุณคุณคุณ…" (review of PR #114: 100k chars took 1.28 s). Longer runs skip the shields and
+// take master's path — the whole run masked as one name: linear, and fail-closed. Real Thai clauses
+// glued after คุณ / ชื่อ are far shorter; one that is not is simply over-masked as on master.
+const SHIELD_MAX_RUN = 256;
 
 // String#replace for a global regex, except the callback may consume only PART of a match by returning
 // [replacement, consumedLength]; scanning then resumes right after the consumed part. Iterative — the
@@ -714,7 +724,7 @@ function applyPass(text, pass, token, hints) {
         // a single [NAME-n]. The bare surname (g3, no นามสกุล keyword) is only
         // taken when it is not the start of a clinical/verb phrase.
         const given = g1 || '';
-        const label = scanLabelRun(given);
+        const label = given.length <= SHIELD_MAX_RUN ? scanLabelRun(given) : null;
         if (label && label.action !== 'mask') {
           // ชื่อยา / ชื่อโรค / ชื่อสามัญ … — a thing's name, not a person's, and the whole glued run is
           // list words (scanLabelRun). Consume only "ชื่อ" + the run (or the run up to a nested ชื่อ /
@@ -753,7 +763,7 @@ function applyPass(text, pass, token, hints) {
         const title = g1;
         const given = g2;
         if (MED_SHIELD.has(given.trim())) return match;
-        if (title === 'คุณ') {
+        if (title === 'คุณ' && given.length <= SHIELD_MAX_RUN) {
           // คุณ is also "you", part of ขอบคุณ / คุณภาพ, and a prefix to role words (คุณหมอ).
           // scanKhunRun lets the run through only when every character is a list word; otherwise it
           // masks from the last anchor (คุณหมอ|…) — or the whole run, exactly as master.

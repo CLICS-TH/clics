@@ -16,12 +16,13 @@ const router = Router();
 // Per-reply output ceiling. Raised from the historical 1500/2500 so a substantial clinical artifact
 // (DDx table / care plan) plus the prose + citation + closing ❓ fit without truncation. Cost is the
 // ACTUAL tokens used, not the ceiling; the per-user $0.50 cap still bounds total spend.
-const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));
+const { CHAT_MAX_TOKENS, MAX_TURN_CHARS } = require('../lib/turn-limits'); // RIMPL_CHAT_MAX_TOKENS, default 4000
 
 const ChatSchema = z.object({
   ple_id: z.string(),
-  history: z.array(z.object({ role: z.string(), content: z.string() })),
-  message: z.string().min(1),
+  // Per-turn cap: see lib/turn-limits.js (sized so no real physician or assistant turn can hit it).
+  history: z.array(z.object({ role: z.string(), content: z.string().max(MAX_TURN_CHARS) })),
+  message: z.string().min(1).max(MAX_TURN_CHARS),
   language: z.enum(['th', 'en']).default('th'),
   chief_complaint: z.string().optional(),
   // The physician's structured patient identifier (ple_patient_refs), passed on-prem SOLELY so RIMPL

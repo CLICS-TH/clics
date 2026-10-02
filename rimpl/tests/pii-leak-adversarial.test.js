@@ -374,7 +374,10 @@ describe('adversarial — clinical false-positive shields do not open a leak', (
 // are included on purpose — only the anchor rules can catch them.)
 // ===========================================================================
 describe('adversarial — a name that starts like a shield word, or follows role + function word', () => {
-  const NAMES = ['ของขวัญ', 'ภาพพิมพ์', 'ภาพร', 'ภาพิมล', 'คิดถึง', 'กำลังใจ', 'มาลี', 'มีนา', 'ต้อง', 'คะนอง', 'วิไล', 'สมศรี'];
+  // สามารถ / ช่วย / ประโยชน์: given names that are ALSO everyday words — once list words, removed after the
+  // second review of PR #114 ("คุณสามารถ อายุ 50 ปี" leaked).
+  const NAMES = ['ของขวัญ', 'ภาพพิมพ์', 'ภาพร', 'ภาพิมล', 'คิดถึง', 'กำลังใจ', 'มาลี', 'มีนา', 'ต้อง', 'คะนอง', 'วิไล', 'สมศรี',
+    'สามารถ', 'ช่วย', 'ประโยชน์'];
   const TEMPLATES = [
     'คุณ{N} อายุ 45 ปี มาด้วยไข้', 'คุณ{N} มาตามนัด', 'คุณ{N}มาด้วยไข้', 'ภรรยาของคุณ{N}โทรมา', 'ขอบคุณครับคุณ{N}',
     'คุณหมอ{N} ตรวจคนไข้', 'คุณแม่ของ{N}โทรมาสอบถามอาการ', 'คุณยายของ{N}มาเยี่ยม', 'คุณหมอให้ยา{N}แล้ว',
@@ -413,6 +416,23 @@ describe('adversarial — pathological repetitions cannot crash or stall the fil
       process.stdout.write(String(Number(process.hrtime.bigint() - t) / 1e6));`;
     const ms = Number(execFileSync(process.execPath, ['-e', code], { encoding: 'utf8' })); // throws on a crash
     expect(ms).toBeLessThan(200);
+  });
+
+  // Second review of PR #114: each resume re-matched the rest of the glued run, so n nested anchors cost
+  // O(n^2) — 'คุณ' x 100000 took 1.28 s (7.5 s cold here) vs 3.7 ms on master, reachable through an
+  // anonymous guest's history. Runs longer than SHIELD_MAX_RUN now take master's linear path, and runs
+  // under it are bounded per run. Master-sized budget: 100 ms.
+  test.each([
+    ["'คุณ'.repeat(100000)"], ["'คุณจะ'.repeat(40000)"], ["'ชื่อยาที่'.repeat(20000)"],
+    ["('คุณ'.repeat(85) + ' ').repeat(400)"], // every run just under the bound: still linear
+  ])('%s in a cold process stays linear', (expr) => {
+    const code = `const { stripPii } = require(${JSON.stringify(FILTER)});
+      const s = ${expr};
+      const t = process.hrtime.bigint();
+      stripPii(s);
+      process.stdout.write(String(Number(process.hrtime.bigint() - t) / 1e6));`;
+    const ms = Number(execFileSync(process.execPath, ['-e', code], { encoding: 'utf8' }));
+    expect(ms).toBeLessThan(100);
   });
 });
 

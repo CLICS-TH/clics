@@ -9,10 +9,17 @@ const { rimplChat } = require('../services/rimpl-client');
 
 const router = Router();
 
+// History is held by an anonymous client and replayed each turn, so every item is attacker-sized
+// input to the RIMPL PII filter — cap it. 24000 chars, not 5000: an assistant reply in that history is
+// one chat reply of up to RIMPL_CHAT_MAX_TOKENS (default 4000) tokens, which can legitimately run well
+// past 5000 Thai/English chars (6 chars/token is a generous bound). Keep in step with MAX_TURN_CHARS in
+// rimpl/src/lib/turn-limits.js; raise both if RIMPL_CHAT_MAX_TOKENS is raised above 4000.
+const MAX_GUEST_TURN_CHARS = 24000;
+
 const GuestMessageSchema = z.object({
   message: z.string().min(1).max(5000),
   language: z.enum(['th', 'en']).default('th'),
-  history: z.array(z.object({ role: z.string(), content: z.string() })).max(8).default([]),
+  history: z.array(z.object({ role: z.string(), content: z.string().max(MAX_GUEST_TURN_CHARS) })).max(8).default([]),
 });
 
 function guestToken(req) {
