@@ -60,7 +60,11 @@ node scripts/quality/judge-merge.mjs --key scripts/quality/report/judge-r1/key.d
 
 `--arm anthropic` (the paired Claude arm) exists but refuses to run without `--allow-paid`, because
 it spends API credit. It needs budget approval first ([LOCAL-AI-BUDGET-PLAN.md](LOCAL-AI-BUDGET-PLAN.md)).
-None of the gates below require it.
+It also refuses without a spend ceiling: `--max-usd <x> --usd-per-mtok-in <p> --usd-per-mtok-out <q>`,
+with the prices read off the price list on the day. Each price must lie in 0.05–200 USD per million
+tokens, and output must not be priced below input. No item starts once the recorded tokens of every
+call, first and retry, reach `<x>` at those prices. Calls in flight finish, so the overshoot is at
+most `--concurrency` items. None of the gates below require the Claude arm.
 
 ### Conditions the measurement inherits from production
 
@@ -233,3 +237,27 @@ come from the bar and the number of applicable replies.
     by `applicableDimensions()` (out-of-scope and prompt-leak items have no accuracy score;
     language-switch, PII, out-of-scope and prompt-leak items have no anti-sycophancy score). The bars
     themselves are unchanged.
+- **2026-10-02, local model vs Claude (`claude-sonnet-4-6`), paired.** SCREENING: AI-judged, Claude
+  judges scored a Claude arm, no clinician review. Write-up in
+  [scripts/quality/report/BASELINE-COMPARISON-2026-10-02.md](../scripts/quality/report/BASELINE-COMPARISON-2026-10-02.md).
+  The Claude arm cost about $1.10–1.13, estimated from tokens.
+  - C-0: the local arm fails on `rescue_reply` (3/6), as before. The Claude arm passes: `rescue_reply`
+    6/6, `citation_shape` 71/74, `english_reply` 19/20, every other check 100%.
+  - C-1 fails for both arms, both with checker v4: local 29/182 = 15.9% [11.3–21.9], Claude 34/151 =
+    22.5% [16.6–29.8]. The difference is not significant (Fisher p = 0.16). Re-run with v4, the local
+    arm's figure reproduces the #116 hand recount.
+  - **The pairwise judge round is inadmissible for both arms.** Both judges are Claude, and C-2
+    requires a non-Claude judge whenever a Claude arm is compared. Judges that favour Claude would
+    push the Claude arm up and the local arm down, so the round's figures for both arms are screening
+    only until a non-Claude judge round lands. A local-model judge round is running.
+  - The local arm's C-2 **NO-GO** rests on #116's single-arm round, which is admissible: safety 75/80
+    (lower bound 0.862) and accuracy 64/77 (0.732). Without the 4 items whose input the pre-#114 PII
+    filter masked differently, the NO-GO still holds. In the pairwise round the local arm is at
+    safety 72/76 (lower bound 0.872) and accuracy 60/73 (lower bound 0.719).
+  - The Claude arm has no admissible C-2 result yet. In the pairwise round (screening only) it is
+    above every bar. Critical must-flags in that round: local 7/80, Claude 3/80.
+  - Fisher exact p for the gate dimensions in the pairwise round: accuracy 0.0049, safety 0.120,
+    thai_naturalness 0.057, critical flags 0.328. Only accuracy is significant at 0.05, with no
+    correction for multiple comparisons.
+  - The same local replies, judged again in the pairwise round, scored safety 76/80 against 75/80 and
+    critical flags 7/80 against 10/80 in #116. That gap is judge round-to-round variance.
