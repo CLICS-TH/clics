@@ -276,7 +276,7 @@ an anchor needs a statement that is actually wrong, it is a *planted claim*, and
    guideline, which §1.5 forbids;
 3. a later tutor turn in the same transcript corrects it with evidence (the physician catches it, or
    the tutor concedes), so no anchor ends with an uncorrected error;
-4. it is recorded in `planted-claims.json` (fixture, turn, verbatim text, kind, the turn that corrects
+4. it is recorded in `planted-claims.json` or the anchor's sidecar `planted/anc-NNN.json` (fixture, turn, verbatim text, kind, the turn that corrects
    it). `validate.mjs` checks each entry against the fixture bytes and fails on a false claim with a
    citation on its line. An inaccuracy found in a tutor turn AFTER the text was panel-rated is not
    edited (that would change rated bytes); it is recorded there as kind `unplanted` instead (anc-101
@@ -367,7 +367,64 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
    split exists, so none may ever be held out. `anchor-split.mjs` `checkSplit` rejects a split that
    holds one out, `heldOutEligible` excludes them, and `anchors.test.mjs` checks the committed
    `SPLIT-anchors.json` as soon as it exists. Once it exists, `known-groups.mjs` requires
-   `--split tuning|heldout`.
+   `--split tuning|heldout` (`--pilot` implies `tuning`, since the pilot is tuning-only).
+   *Reserved 2026-10-02, before any non-pilot anchor was authored or screened* (D13):
+   `anchor-split.mjs --reserve --seed 20261005 --held-out 60`. **60 held-out, 40 tuning** (the 20
+   pilot anchors plus 20 new). The split is reserved **by design id**, not by fixture: the probe's
+   `reserve-split.mjs` hashes fixture files, which here would mean writing the anchors before
+   reserving, and authoring is the step the split must precede. Held-out is stratified on
+   **language × profile** (Thai/English × dissociated/coherent) and, within each cell, over the
+   designed composite. Each cell's held-out share is proportional, and every cell of 2 or more keeps
+   at least one tuning anchor. Held-out therefore spans the whole range (16–93, against the probe's
+   32–62) and mirrors the pool on the two dimensions a D18 result could otherwise lean on.
+   **Per-cell counts and composite spans are coordinator-only:** `anchor-split.mjs --report` prints
+   them, and it needs `SPLIT-anchors.json`. They are not written in any document an author reads,
+   because a cell's tuning span can identify an anchor. The small tuning cells are drawn as the
+   complement of a stratified held-out, so they do not span their cell's range. Low-composite rewrite
+   learning for English and dissociated anchors still comes from the pilot.
+   **Why 60.** The cohort is about 100 so that the held-out test has power. For the two-rater
+   ICC(A,1) lower bound to clear 0.75 when the true value is 0.88 (the D18 bar), the earlier power
+   work for PR #104 found about 60 pairs gives 80% power, and 26 pairs only a coin flip
+   (`pairsNeededTwoRater` = 26 is the coin-flip n). Re-simulated with `iccTwoRater`, no rater bias,
+   3000 reps: 45 pairs → 0.76, 50 → 0.79, 55 → 0.84, **60 → 0.87**; with a rater bias of 0.5 SD of the
+   error, 60 → 0.61. The first reservation (40 held-out, 61cdcb7) gave 0.71, underpowered by design.
+   **60 is a floor, and only with no rater bias.** A systematic bias b, measured in units of the
+   error SD, lowers the true ICC(A,1) itself. At the variance that gives 0.88 with no bias, the true
+   value is 0.879 at b = 0.1, 0.867 at b = 0.5, 0.816 at b = 1.14, and 0.75 at b ≈ 1.7. Simulated at
+   60 pairs, b = 1.14 gives power 0.004. No number of pairs rescues a large bias. Which bias applies
+   matters, and the pilot has two very different numbers:
+   - **D18 (local vs Claude):** on the pilot, local vs the blind Claude raters had a bias of −0.8
+     composite points, about −0.10 error-SD. Small: this is the regime the table above describes.
+   - **Known-groups (local vs designed TARGET):** +11.6 composite points, about **1.14** error-SD.
+     Large, and fatal for an absolute-agreement ICC, but this is the known-groups measure, not D18.
+     Do not carry it into a D18 power claim, or the reverse.
+   It was redrawn **before any non-pilot anchor was authored or screened**, in a commit that says so.
+   The second redraw added the language × profile cells, because the composite-only draw left 1
+   English and 2 dissociated anchors among the 20 new tuning ones. It also happened before any
+   non-pilot anchor existed. Seed, size and the held-out rules are unchanged.
+   **Fixture bytes are bound at intake, not at first scoring.**
+   - A batch is first accepted with `validate.mjs --record-batch N`. That runs the full intake, where
+     a budget deviation is an error, and refuses an `extra_review` row unless
+     `--confirm-extra-review <id>` names it. On success it appends the batch, with each fixture's
+     sha256, to `intake-log.json`.
+   - `validate.mjs` (no flags) then writes `manifest.json` and locks into `HELDOUT-LOCK.json` exactly
+     the held-out fixtures whose current bytes are in the intake log. Any other held-out fixture
+     present is an error and blocks the write.
+   - From then on, `validate.mjs` and `anchors.test.mjs` fail if a locked fixture ever changes. A lock
+     entry already on master may never change; CI fetches origin/master for that check, and fails
+     rather than skips if it cannot read it.
+   - A panel rating or an uncommitted run cannot slip a change past this, because the lock does not
+     depend on any score existing.
+   - Fixing a held-out fixture before it is locked is authoring: fix it and record its batch again.
+   - The repo has no CODEOWNERS file, so `HELDOUT-LOCK.json` has no owner rule. A PR that changes an
+     existing lock entry is a D13 breach by definition, and reviewers should treat it as one.
+   **What this means for authoring and screening.** Every anchor, held-out or tuning, is written the
+   same way and must pass `validate.mjs` (PII, schema, citations, cue gate) before any scoring. Fixing
+   a validator failure before intake is authoring, not tuning. The **blind-panel rewrite rule (§7
+   amendment, item 2) applies to TUNING anchors only**, and no held-out anchor is scored at all until
+   every one is locked (§9). A held-out anchor is never rewritten on the strength of a panel or AI score, and
+   never excluded or replaced under §7.4. Its panel and evaluator flags are reported as results. The
+   batch plan and the author brief never tell an author which split an anchor is in.
 6. **Proceeding.** The pilot is acceptable for scaling to the full cohort if no more than 4 of 20
    anchors (20%) **do not express their target** after the single rewrite round. Otherwise this spec
    is revised first. An anchor that never received a valid score (every run failed production's
@@ -464,6 +521,12 @@ The rule from now on:
 | design matrix | `node scripts/calibration/anchors/design.mjs` (`--check` to verify + print coverage) | none |
 | validate + manifest | `node scripts/calibration/anchors/validate.mjs` (`--check` to verify without writing) | none |
 | tests (CI) | `npm run test:calibration` | none |
+| held-out split (once, done) | `node scripts/calibration/anchors/anchor-split.mjs --reserve --seed 20261005 --held-out 60` (refuses to overwrite) | none |
+| batch plan | `node scripts/calibration/anchors/batch-plan.mjs` (`--check` to verify; prints the simulated cue-gate failure rate) | none |
+| author brief | `node scripts/calibration/anchors/author-brief.mjs` (`--check` to verify it matches AUTHORING / validate / cues / citations) | none |
+| batch intake | `node scripts/calibration/anchors/validate.mjs --batch N` or `--only anc-0NN,anc-0MM` (writes nothing; exit 1 = return to authors) | none |
+| accept a batch | `node scripts/calibration/anchors/validate.mjs --record-batch N [--confirm-extra-review anc-0NN]`, then `validate.mjs` (no flags) to write the manifest and lock its held-out fixtures | none |
+| coordinator report | `node scripts/calibration/anchors/anchor-split.mjs --report` (per-cell counts, run order, extra-review rows, lock progress; needs the split) | none |
 | what would be sent | `node scripts/calibration/anchors/score-local.mjs --pilot --dry-run` | none |
 | score (local box) | `LOCAL_AI_BASE_URL=… LOCAL_AI_MODEL=… LOCAL_AI_API_KEY=… node scripts/calibration/anchors/score-local.mjs --pilot --repeats 3 --concurrency 2 --out scripts/calibration/anchors/runs/pilot-local-<date>.json` | local box only |
 | re-check a past run | `node scripts/calibration/anchors/revalidate.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json` (writes `….revalidated.json`; needs rimpl deps) | none |
@@ -480,3 +543,81 @@ replies and were parsed by a laxer extractor; revalidate reports their rows as `
 Each row records the model that actually **served** it; `known-groups.mjs` reports those, not the
 requested model. The report stamps `prompt_version` and `rubric_version`. A cloud arm, when budget is approved, is
 `scripts/probe/model-agreement.mjs`-style and belongs in a separate, explicitly approved run.
+
+## 9. Scaling to the full cohort (prepared 2026-10-02)
+
+The 80 non-pilot anchors are written by authoring agents, one anchor each, from `AUTHOR-BRIEF.md` and
+one row of `batches.json`. Nobody writing an anchor calls an AI or sees the split. The order, fixed now:
+
+1. **Split first.** `SPLIT-anchors.json` was reserved before any non-pilot anchor existed (§7.5).
+2. **Plan.** `batch-plan.mjs` cuts the 80 rows into 8 batches of 10. Every batch spans the designed
+   range and holds 2 English rows. Each row is assigned a **cue budget** — total physician length,
+   number of acknowledgement tokens, numeral density, list lines, and zero rubric-descriptor words —
+   balanced along the composite order, so no budget tracks the target by construction. The pilot
+   showed that asking authors to "vary" these is not enough. Simulated: with every author inside
+   their budget, the 100-anchor cue gate fails in 0% of draws. With authors who drift +5 physician
+   characters per composite point (the pilot's habit), it fails 96%
+   (`batch-plan.mjs --drift 5` reproduces both). Budgets are therefore checked at intake. Rows with
+   d4 ≤ 1 and d5 ≥ 4 are flagged `extra_review` (a design property, the same for every split). They
+   are written last in their batch and read by the coordinator before intake.
+   Every tutor turn is written to the **pinned** tutor prompts (`tutor-prompt-pin.json`, natural
+   `chat-prompt-d63340e1`, examiner `chat-prompt-c6efcfc6`, taken from master before authoring). The
+   pin holds even if production's tutor prompt changes mid-cohort (e.g. PR #123): a tutor-style change
+   between batches would be a new surface cue.
+3. **Write.** One author per row writes `fixtures/anc-NNN.json` and, only if it planted or left
+   unqualified a tutor claim, `planted/anc-NNN.json` (sidecars, so parallel authors never edit one
+   shared file). `validate.mjs` reads `planted-claims.json` and every sidecar.
+4. **Intake.** `validate.mjs --batch N` checks, for that batch only:
+   - every per-fixture rule;
+   - the cue budgets — a deviation is an error here and a warning in the full run;
+   - the planted-claim entries;
+   - the batch's contribution to the cohort cue gate, with the fixtures that push a pair most.
+
+   It writes nothing. Exit 1 means the batch goes back to its authors.
+5. **Record and lock.** Once a batch passes intake, the coordinator runs
+   `validate.mjs --record-batch N` after reading its extra-review rows, adding
+   `--confirm-extra-review <id>` for each. That repeats the intake and logs the accepted bytes in
+   `intake-log.json`. Then `validate.mjs` with no flags writes `manifest.json` and locks the batch's
+   held-out fixtures (`HELDOUT-LOCK.json`, §7.5). A held-out fixture that never passed intake cannot
+   be locked, and blocks the write.
+6. **Order.** Batches run in descending order of how many **tuning** anchors they hold, so tuning
+   feedback arrives early. The order is coordinator-only: `anchor-split.mjs --report` prints it, along
+   with the extra-review rows.
+7. **Screen TUNING anchors only, by the blind panel only.** Until every held-out anchor is authored and
+   locked, the only scores that exist are blind-panel ratings of tuning anchors.
+   - **No rater scores a held-out anchor before all 60 are locked:** not the blind panel, not the local
+     evaluator, not Claude in any role. Nobody reads such a score either. `score-local.mjs` refuses
+     any held-out id until the lock is complete, and then accepts only the locked bytes.
+     `known-groups.mjs` refuses a scores file that holds a held-out id before then.
+     `scripts/probe/json-contract.mjs --fixtures <dir>` refuses anchor fixtures (matched by ple_id or
+     file name) the same way. `anchor-split.mjs --check-scorable <ids>` is the gate for anything built
+     by hand. There is no panel-packet builder in the repo, so whoever builds a panel packet must run
+     that check on its ids first. Packets are committed under `pilot/<name>/`. While the lock is
+     incomplete, a test scans every committed JSON, TXT, MD and CSV file under the anchors folder,
+     apart from the design-level records, and fails on any held-out id.
+   - **Lessons come ONLY from blind-panel ratings of tuning anchors.** Not from the local evaluator:
+     it is the evaluator under test, and learning from it calibrates the cohort to it. Not from
+     anything held-out.
+   - After a batch's tuning anchors are screened, any **general** lesson (a level authors keep
+     overshooting, a cue authors keep missing) goes into `AUTHORING.md` / `AUTHOR-BRIEF.md` as
+     authoring guidance before the next batch is written. A lesson is **never** applied as a rewrite of
+     a particular anchor outside §7.4, and held-out anchors already written are not touched. Every
+     brief change is a commit, so it is on record which batches were written under which brief.
+   - Tuning anchors then follow the §7 amendment (one panel-driven rewrite, then exclude and replace).
+8. **Score held-out, once.** When the lock covers all 60, held-out anchors are scored — panel and
+   evaluator — on their locked bytes. Their flags are results, never rewrite triggers.
+
+**Author isolation.** Authors work in a plain export of the repository, never a git clone. The export
+leaves out `SPLIT-anchors.json`, `HELDOUT-LOCK.json` and git history, because the history contains
+the split and the commit messages that record it. Everything an author needs — `AUTHOR-BRIEF.md`,
+their row of `batches.json`, the scripts, `fixtures/` for the examples — is split-blind; a test checks
+the brief and the plan. In a checkout without the split, `validate.mjs --only` simply skips the lock.
+
+What had to change in the tooling for 100 fixtures:
+- `known-groups.mjs` refused `--pilot` once the split existed. `--pilot` now implies `--split tuning`.
+- `score-local.mjs` takes `--split`, and refuses held-out ids until the lock is complete.
+- Held-out bytes are locked at intake (`HELDOUT-LOCK.json`), not at first scoring.
+- Parallel authors write planted-claim sidecars instead of one shared file.
+- A §7.4 replacement inherits its excluded anchor's split.
+- With the pilot freeze lapsed, every pilot pair counts. The budgets above are what keeps the cohort
+  inside the gate.

@@ -1,0 +1,2658 @@
+{
+  "seed": 20261006,
+  "note": "Authoring batches for the 80 non-pilot anchors. Each row: the design attributes the author must hit, plus an assigned surface shape (cue_budget) chosen independently of the target. Split membership is deliberately absent. Regenerate with batch-plan.mjs.",
+  "batches": [
+    {
+      "batch": 1,
+      "rows": [
+        {
+          "id": "anc-027",
+          "language": "en",
+          "specialty": {
+            "key": "im",
+            "en": "Internal Medicine",
+            "th": "อายุรศาสตร์"
+          },
+          "case": "community-acquired pneumonia in an older adult — admit or treat at home",
+          "tutor_mode": "examiner",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d2"
+          ],
+          "targets": {
+            "d1": 3,
+            "d2": 1,
+            "d3": 5,
+            "d4": 3,
+            "d5": 5,
+            "d6": 4,
+            "d7": 4
+          },
+          "target_composite": 68,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 1,
+            "numerals": "few",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-034",
+          "language": "th",
+          "specialty": {
+            "key": "neuro",
+            "en": "Neurology",
+            "th": "ประสาทวิทยา"
+          },
+          "case": "new-onset headache with red flags",
+          "tutor_mode": "natural",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 2,
+            "d3": 2,
+            "d4": 1,
+            "d5": 1,
+            "d6": 4,
+            "d7": 1
+          },
+          "target_composite": 39,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 0,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-059",
+          "language": "th",
+          "specialty": {
+            "key": "ortho",
+            "en": "Orthopaedics",
+            "th": "ออร์โธปิดิกส์"
+          },
+          "case": "acute knee injury — when to image",
+          "tutor_mode": "natural",
+          "physician_turns": 7,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 4,
+            "d3": 5,
+            "d4": 5,
+            "d5": 5,
+            "d6": 5,
+            "d7": 5
+          },
+          "target_composite": 93,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 2,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-063",
+          "language": "en",
+          "specialty": {
+            "key": "fm",
+            "en": "Family Medicine",
+            "th": "เวชศาสตร์ครอบครัว"
+          },
+          "case": "polypharmacy review in an older adult living alone",
+          "tutor_mode": "examiner",
+          "physician_turns": 7,
+          "reflection": "in_chat",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 1,
+            "d2": 1,
+            "d3": 1,
+            "d4": 2,
+            "d5": 1,
+            "d6": 2,
+            "d7": 2
+          },
+          "target_composite": 27,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 2,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-064",
+          "language": "th",
+          "specialty": {
+            "key": "obgyn",
+            "en": "Obstetrics & Gynaecology",
+            "th": "สูติศาสตร์และนรีเวชวิทยา"
+          },
+          "case": "abnormal uterine bleeding in a perimenopausal woman",
+          "tutor_mode": "natural",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 2,
+            "d3": 2,
+            "d4": 2,
+            "d5": 4,
+            "d6": 3,
+            "d7": 3
+          },
+          "target_composite": 53,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 0,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-065",
+          "language": "th",
+          "specialty": {
+            "key": "peds",
+            "en": "Pediatrics",
+            "th": "กุมารเวชศาสตร์"
+          },
+          "case": "acute bronchiolitis — admission and therapy",
+          "tutor_mode": "examiner",
+          "physician_turns": 7,
+          "reflection": "in_chat",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d1"
+          ],
+          "targets": {
+            "d1": 1,
+            "d2": 5,
+            "d3": 5,
+            "d4": 5,
+            "d5": 5,
+            "d6": 4,
+            "d7": 4
+          },
+          "target_composite": 84,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 2,
+            "numerals": "some",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-066",
+          "language": "th",
+          "specialty": {
+            "key": "em",
+            "en": "Emergency Medicine",
+            "th": "เวชศาสตร์ฉุกเฉิน"
+          },
+          "case": "chest pain with a non-diagnostic first ECG",
+          "tutor_mode": "natural",
+          "physician_turns": 7,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 1,
+            "d2": 2,
+            "d3": 2,
+            "d4": 1,
+            "d5": 3,
+            "d6": 1,
+            "d7": 2
+          },
+          "target_composite": 35,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 2,
+            "numerals": "many",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-078",
+          "language": "th",
+          "specialty": {
+            "key": "fm",
+            "en": "Family Medicine",
+            "th": "เวชศาสตร์ครอบครัว"
+          },
+          "case": "newly found hypertension at a community clinic",
+          "tutor_mode": "examiner",
+          "physician_turns": 7,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d5"
+          ],
+          "targets": {
+            "d1": 4,
+            "d2": 4,
+            "d3": 2,
+            "d4": 3,
+            "d5": 0,
+            "d6": 4,
+            "d7": 4
+          },
+          "target_composite": 59,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "few",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-090",
+          "language": "th",
+          "specialty": {
+            "key": "anes",
+            "en": "Anaesthesiology",
+            "th": "วิสัญญีวิทยา"
+          },
+          "case": "perioperative management of anticoagulation",
+          "tutor_mode": "examiner",
+          "physician_turns": 8,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d6"
+          ],
+          "targets": {
+            "d1": 4,
+            "d2": 4,
+            "d3": 4,
+            "d4": 3,
+            "d5": 5,
+            "d6": 1,
+            "d7": 4
+          },
+          "target_composite": 74,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 2,
+            "numerals": "some",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-098",
+          "language": "th",
+          "specialty": {
+            "key": "fm",
+            "en": "Family Medicine",
+            "th": "เวชศาสตร์ครอบครัว"
+          },
+          "case": "statin decision for primary prevention",
+          "tutor_mode": "natural",
+          "physician_turns": 8,
+          "reflection": "none",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 0,
+            "d2": 1,
+            "d3": 2,
+            "d4": 1,
+            "d5": 2,
+            "d6": 0,
+            "d7": 1
+          },
+          "target_composite": 21,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "few",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        }
+      ]
+    },
+    {
+      "batch": 2,
+      "rows": [
+        {
+          "id": "anc-040",
+          "language": "th",
+          "specialty": {
+            "key": "surg",
+            "en": "Surgery",
+            "th": "ศัลยศาสตร์"
+          },
+          "case": "small-bowel obstruction in a patient with prior laparotomy",
+          "tutor_mode": "examiner",
+          "physician_turns": 8,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 2,
+            "d3": 1,
+            "d4": 0,
+            "d5": 1,
+            "d6": 1,
+            "d7": 3
+          },
+          "target_composite": 31,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 1,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-042",
+          "language": "th",
+          "specialty": {
+            "key": "obgyn",
+            "en": "Obstetrics & Gynaecology",
+            "th": "สูติศาสตร์และนรีเวชวิทยา"
+          },
+          "case": "gestational diabetes — when to start insulin",
+          "tutor_mode": "examiner",
+          "physician_turns": 4,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 2,
+            "d2": 2,
+            "d3": 1,
+            "d4": 1,
+            "d5": 1,
+            "d6": 2,
+            "d7": 2
+          },
+          "target_composite": 31,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 2,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-043",
+          "language": "en",
+          "specialty": {
+            "key": "peds",
+            "en": "Pediatrics",
+            "th": "กุมารเวชศาสตร์"
+          },
+          "case": "acute bronchiolitis — admission and therapy",
+          "tutor_mode": "examiner",
+          "physician_turns": 8,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 2,
+            "d2": 1,
+            "d3": 3,
+            "d4": 3,
+            "d5": 3,
+            "d6": 1,
+            "d7": 2
+          },
+          "target_composite": 43,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 0,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-045",
+          "language": "th",
+          "specialty": {
+            "key": "obgyn",
+            "en": "Obstetrics & Gynaecology",
+            "th": "สูติศาสตร์และนรีเวชวิทยา"
+          },
+          "case": "pre-eclampsia at 34 weeks — timing of delivery",
+          "tutor_mode": "natural",
+          "physician_turns": 5,
+          "reflection": "none",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d1",
+            "d6"
+          ],
+          "targets": {
+            "d1": 0,
+            "d2": 5,
+            "d3": 4,
+            "d4": 5,
+            "d5": 4,
+            "d6": 0,
+            "d7": 3
+          },
+          "target_composite": 65,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 2,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-047",
+          "language": "th",
+          "specialty": {
+            "key": "anes",
+            "en": "Anaesthesiology",
+            "th": "วิสัญญีวิทยา"
+          },
+          "case": "pre-operative assessment of a patient with stable angina",
+          "tutor_mode": "examiner",
+          "physician_turns": 7,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d5"
+          ],
+          "targets": {
+            "d1": 5,
+            "d2": 4,
+            "d3": 5,
+            "d4": 5,
+            "d5": 2,
+            "d6": 5,
+            "d7": 5
+          },
+          "target_composite": 87,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 2,
+            "numerals": "few",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-056",
+          "language": "th",
+          "specialty": {
+            "key": "ortho",
+            "en": "Orthopaedics",
+            "th": "ออร์โธปิดิกส์"
+          },
+          "case": "hip fracture in an older adult on antiplatelet therapy",
+          "tutor_mode": "natural",
+          "physician_turns": 4,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 5,
+            "d3": 3,
+            "d4": 4,
+            "d5": 5,
+            "d6": 5,
+            "d7": 5
+          },
+          "target_composite": 88,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 0,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-060",
+          "language": "th",
+          "specialty": {
+            "key": "neuro",
+            "en": "Neurology",
+            "th": "ประสาทวิทยา"
+          },
+          "case": "new-onset headache with red flags",
+          "tutor_mode": "natural",
+          "physician_turns": 4,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 3,
+            "d3": 2,
+            "d4": 4,
+            "d5": 2,
+            "d6": 4,
+            "d7": 3
+          },
+          "target_composite": 59,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 0,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-071",
+          "language": "th",
+          "specialty": {
+            "key": "neuro",
+            "en": "Neurology",
+            "th": "ประสาทวิทยา"
+          },
+          "case": "acute ischaemic stroke at 3 hours — thrombolysis decision",
+          "tutor_mode": "natural",
+          "physician_turns": 7,
+          "reflection": "none",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 1,
+            "d2": 2,
+            "d3": 0,
+            "d4": 2,
+            "d5": 0,
+            "d6": 0,
+            "d7": 0
+          },
+          "target_composite": 17,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 2,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-080",
+          "language": "th",
+          "specialty": {
+            "key": "obgyn",
+            "en": "Obstetrics & Gynaecology",
+            "th": "สูติศาสตร์และนรีเวชวิทยา"
+          },
+          "case": "postpartum haemorrhage after vaginal delivery",
+          "tutor_mode": "natural",
+          "physician_turns": 4,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 4,
+            "d3": 4,
+            "d4": 4,
+            "d5": 4,
+            "d6": 4,
+            "d7": 3
+          },
+          "target_composite": 78,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 2,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-092",
+          "language": "en",
+          "specialty": {
+            "key": "surg",
+            "en": "Surgery",
+            "th": "ศัลยศาสตร์"
+          },
+          "case": "upper GI bleed in a patient on NSAIDs",
+          "tutor_mode": "examiner",
+          "physician_turns": 5,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 2,
+            "d3": 2,
+            "d4": 2,
+            "d5": 2,
+            "d6": 1,
+            "d7": 4
+          },
+          "target_composite": 48,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 1,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        }
+      ]
+    },
+    {
+      "batch": 3,
+      "rows": [
+        {
+          "id": "anc-021",
+          "language": "th",
+          "specialty": {
+            "key": "neuro",
+            "en": "Neurology",
+            "th": "ประสาทวิทยา"
+          },
+          "case": "new-onset headache with red flags",
+          "tutor_mode": "natural",
+          "physician_turns": 4,
+          "reflection": "in_chat",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 5,
+            "d3": 4,
+            "d4": 5,
+            "d5": 4,
+            "d6": 2,
+            "d7": 3
+          },
+          "target_composite": 81,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 1,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-023",
+          "language": "th",
+          "specialty": {
+            "key": "neuro",
+            "en": "Neurology",
+            "th": "ประสาทวิทยา"
+          },
+          "case": "acute ischaemic stroke at 3 hours — thrombolysis decision",
+          "tutor_mode": "natural",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 2,
+            "d2": 2,
+            "d3": 1,
+            "d4": 1,
+            "d5": 3,
+            "d6": 3,
+            "d7": 2
+          },
+          "target_composite": 39,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 0,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-024",
+          "language": "en",
+          "specialty": {
+            "key": "psych",
+            "en": "Psychiatry",
+            "th": "จิตเวชศาสตร์"
+          },
+          "case": "first-episode major depression — choosing an antidepressant",
+          "tutor_mode": "examiner",
+          "physician_turns": 8,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 4,
+            "d3": 3,
+            "d4": 4,
+            "d5": 4,
+            "d6": 3,
+            "d7": 3
+          },
+          "target_composite": 73,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 0,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-026",
+          "language": "th",
+          "specialty": {
+            "key": "fm",
+            "en": "Family Medicine",
+            "th": "เวชศาสตร์ครอบครัว"
+          },
+          "case": "newly found hypertension at a community clinic",
+          "tutor_mode": "natural",
+          "physician_turns": 7,
+          "reflection": "none",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 2,
+            "d2": 1,
+            "d3": 1,
+            "d4": 1,
+            "d5": 0,
+            "d6": 0,
+            "d7": 1
+          },
+          "target_composite": 18,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 0,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-050",
+          "language": "th",
+          "specialty": {
+            "key": "peds",
+            "en": "Pediatrics",
+            "th": "กุมารเวชศาสตร์"
+          },
+          "case": "dengue in a school-age child — warning signs and fluids",
+          "tutor_mode": "natural",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 2,
+            "d3": 4,
+            "d4": 2,
+            "d5": 4,
+            "d6": 4,
+            "d7": 3
+          },
+          "target_composite": 61,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 0,
+            "numerals": "some",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-061",
+          "language": "en",
+          "specialty": {
+            "key": "im",
+            "en": "Internal Medicine",
+            "th": "อายุรศาสตร์"
+          },
+          "case": "type 2 diabetes with CKD stage 3 — choosing add-on therapy",
+          "tutor_mode": "examiner",
+          "physician_turns": 8,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 0,
+            "d2": 1,
+            "d3": 2,
+            "d4": 2,
+            "d5": 1,
+            "d6": 2,
+            "d7": 0
+          },
+          "target_composite": 23,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 0,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-091",
+          "language": "th",
+          "specialty": {
+            "key": "psych",
+            "en": "Psychiatry",
+            "th": "จิตเวชศาสตร์"
+          },
+          "case": "suicidal ideation assessment in a primary-care visit",
+          "tutor_mode": "natural",
+          "physician_turns": 7,
+          "reflection": "in_chat",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 3,
+            "d3": 3,
+            "d4": 3,
+            "d5": 3,
+            "d6": 3,
+            "d7": 3
+          },
+          "target_composite": 63,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 0,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-095",
+          "language": "th",
+          "specialty": {
+            "key": "im",
+            "en": "Internal Medicine",
+            "th": "อายุรศาสตร์"
+          },
+          "case": "type 2 diabetes with CKD stage 3 — choosing add-on therapy",
+          "tutor_mode": "examiner",
+          "physician_turns": 8,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 2,
+            "d3": 2,
+            "d4": 2,
+            "d5": 2,
+            "d6": 2,
+            "d7": 3
+          },
+          "target_composite": 45,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 1,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-097",
+          "language": "th",
+          "specialty": {
+            "key": "peds",
+            "en": "Pediatrics",
+            "th": "กุมารเวชศาสตร์"
+          },
+          "case": "first afebrile seizure in a toddler",
+          "tutor_mode": "natural",
+          "physician_turns": 7,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d6",
+            "d7"
+          ],
+          "targets": {
+            "d1": 3,
+            "d2": 3,
+            "d3": 2,
+            "d4": 3,
+            "d5": 1,
+            "d6": 5,
+            "d7": 0
+          },
+          "target_composite": 49,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 2,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-100",
+          "language": "th",
+          "specialty": {
+            "key": "obgyn",
+            "en": "Obstetrics & Gynaecology",
+            "th": "สูติศาสตร์และนรีเวชวิทยา"
+          },
+          "case": "pre-eclampsia at 34 weeks — timing of delivery",
+          "tutor_mode": "natural",
+          "physician_turns": 7,
+          "reflection": "in_chat",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 5,
+            "d2": 5,
+            "d3": 5,
+            "d4": 4,
+            "d5": 5,
+            "d6": 4,
+            "d7": 4
+          },
+          "target_composite": 93,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        }
+      ]
+    },
+    {
+      "batch": 4,
+      "rows": [
+        {
+          "id": "anc-032",
+          "language": "th",
+          "specialty": {
+            "key": "anes",
+            "en": "Anaesthesiology",
+            "th": "วิสัญญีวิทยา"
+          },
+          "case": "perioperative management of anticoagulation",
+          "tutor_mode": "examiner",
+          "physician_turns": 5,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 3,
+            "d3": 4,
+            "d4": 4,
+            "d5": 4,
+            "d6": 4,
+            "d7": 2
+          },
+          "target_composite": 69,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-033",
+          "language": "en",
+          "specialty": {
+            "key": "psych",
+            "en": "Psychiatry",
+            "th": "จิตเวชศาสตร์"
+          },
+          "case": "suicidal ideation assessment in a primary-care visit",
+          "tutor_mode": "examiner",
+          "physician_turns": 6,
+          "reflection": "in_chat",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d3"
+          ],
+          "targets": {
+            "d1": 1,
+            "d2": 1,
+            "d3": 5,
+            "d4": 1,
+            "d5": 2,
+            "d6": 2,
+            "d7": 1
+          },
+          "target_composite": 37,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 2,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-036",
+          "language": "th",
+          "specialty": {
+            "key": "anes",
+            "en": "Anaesthesiology",
+            "th": "วิสัญญีวิทยา"
+          },
+          "case": "perioperative management of anticoagulation",
+          "tutor_mode": "examiner",
+          "physician_turns": 5,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 2,
+            "d2": 3,
+            "d3": 2,
+            "d4": 2,
+            "d5": 4,
+            "d6": 3,
+            "d7": 4
+          },
+          "target_composite": 56,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 2,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-038",
+          "language": "th",
+          "specialty": {
+            "key": "im",
+            "en": "Internal Medicine",
+            "th": "อายุรศาสตร์"
+          },
+          "case": "community-acquired pneumonia in an older adult — admit or treat at home",
+          "tutor_mode": "examiner",
+          "physician_turns": 7,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 4,
+            "d3": 5,
+            "d4": 5,
+            "d5": 5,
+            "d6": 3,
+            "d7": 3
+          },
+          "target_composite": 85,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 0,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-044",
+          "language": "th",
+          "specialty": {
+            "key": "peds",
+            "en": "Pediatrics",
+            "th": "กุมารเวชศาสตร์"
+          },
+          "case": "febrile infant under 3 months — workup threshold",
+          "tutor_mode": "examiner",
+          "physician_turns": 4,
+          "reflection": "in_chat",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 5,
+            "d2": 4,
+            "d3": 3,
+            "d4": 3,
+            "d5": 4,
+            "d6": 3,
+            "d7": 4
+          },
+          "target_composite": 75,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 1,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-057",
+          "language": "th",
+          "specialty": {
+            "key": "ortho",
+            "en": "Orthopaedics",
+            "th": "ออร์โธปิดิกส์"
+          },
+          "case": "hip fracture in an older adult on antiplatelet therapy",
+          "tutor_mode": "natural",
+          "physician_turns": 5,
+          "reflection": "reflection_turn",
+          "profile": "flat",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 1,
+            "d2": 1,
+            "d3": 1,
+            "d4": 1,
+            "d5": 1,
+            "d6": 1,
+            "d7": 1
+          },
+          "target_composite": 20,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-079",
+          "language": "th",
+          "specialty": {
+            "key": "psych",
+            "en": "Psychiatry",
+            "th": "จิตเวชศาสตร์"
+          },
+          "case": "alcohol withdrawal on a medical ward",
+          "tutor_mode": "natural",
+          "physician_turns": 8,
+          "reflection": "none",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d6"
+          ],
+          "targets": {
+            "d1": 3,
+            "d2": 4,
+            "d3": 2,
+            "d4": 2,
+            "d5": 4,
+            "d6": 0,
+            "d7": 1
+          },
+          "target_composite": 51,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 0,
+            "numerals": "many",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-088",
+          "language": "th",
+          "specialty": {
+            "key": "peds",
+            "en": "Pediatrics",
+            "th": "กุมารเวชศาสตร์"
+          },
+          "case": "dengue in a school-age child — warning signs and fluids",
+          "tutor_mode": "natural",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d6"
+          ],
+          "targets": {
+            "d1": 2,
+            "d2": 2,
+            "d3": 3,
+            "d4": 2,
+            "d5": 1,
+            "d6": 5,
+            "d7": 1
+          },
+          "target_composite": 44,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 2,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-089",
+          "language": "th",
+          "specialty": {
+            "key": "surg",
+            "en": "Surgery",
+            "th": "ศัลยศาสตร์"
+          },
+          "case": "upper GI bleed in a patient on NSAIDs",
+          "tutor_mode": "examiner",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 1,
+            "d2": 1,
+            "d3": 3,
+            "d4": 1,
+            "d5": 1,
+            "d6": 1,
+            "d7": 2
+          },
+          "target_composite": 28,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-096",
+          "language": "en",
+          "specialty": {
+            "key": "surg",
+            "en": "Surgery",
+            "th": "ศัลยศาสตร์"
+          },
+          "case": "upper GI bleed in a patient on NSAIDs",
+          "tutor_mode": "natural",
+          "physician_turns": 7,
+          "reflection": "in_chat",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 5,
+            "d3": 5,
+            "d4": 4,
+            "d5": 5,
+            "d6": 5,
+            "d7": 4
+          },
+          "target_composite": 92,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 2,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        }
+      ]
+    },
+    {
+      "batch": 5,
+      "rows": [
+        {
+          "id": "anc-022",
+          "language": "en",
+          "specialty": {
+            "key": "anes",
+            "en": "Anaesthesiology",
+            "th": "วิสัญญีวิทยา"
+          },
+          "case": "pre-operative assessment of a patient with stable angina",
+          "tutor_mode": "examiner",
+          "physician_turns": 5,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 5,
+            "d3": 3,
+            "d4": 3,
+            "d5": 1,
+            "d6": 3,
+            "d7": 3
+          },
+          "target_composite": 62,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 1,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-028",
+          "language": "th",
+          "specialty": {
+            "key": "neuro",
+            "en": "Neurology",
+            "th": "ประสาทวิทยา"
+          },
+          "case": "acute ischaemic stroke at 3 hours — thrombolysis decision",
+          "tutor_mode": "examiner",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d1",
+            "d3"
+          ],
+          "targets": {
+            "d1": 1,
+            "d2": 5,
+            "d3": 0,
+            "d4": 5,
+            "d5": 4,
+            "d6": 3,
+            "d7": 4
+          },
+          "target_composite": 64,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "some",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-031",
+          "language": "th",
+          "specialty": {
+            "key": "em",
+            "en": "Emergency Medicine",
+            "th": "เวชศาสตร์ฉุกเฉิน"
+          },
+          "case": "minor head injury on anticoagulation — CT decision",
+          "tutor_mode": "examiner",
+          "physician_turns": 8,
+          "reflection": "in_chat",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d3"
+          ],
+          "targets": {
+            "d1": 5,
+            "d2": 5,
+            "d3": 1,
+            "d4": 4,
+            "d5": 4,
+            "d6": 3,
+            "d7": 4
+          },
+          "target_composite": 76,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 2,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-035",
+          "language": "th",
+          "specialty": {
+            "key": "psych",
+            "en": "Psychiatry",
+            "th": "จิตเวชศาสตร์"
+          },
+          "case": "suicidal ideation assessment in a primary-care visit",
+          "tutor_mode": "natural",
+          "physician_turns": 8,
+          "reflection": "in_chat",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 5,
+            "d2": 3,
+            "d3": 5,
+            "d4": 4,
+            "d5": 5,
+            "d6": 5,
+            "d7": 5
+          },
+          "target_composite": 89,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 1,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-049",
+          "language": "th",
+          "specialty": {
+            "key": "psych",
+            "en": "Psychiatry",
+            "th": "จิตเวชศาสตร์"
+          },
+          "case": "first-episode major depression — choosing an antidepressant",
+          "tutor_mode": "natural",
+          "physician_turns": 4,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d6"
+          ],
+          "targets": {
+            "d1": 0,
+            "d2": 0,
+            "d3": 1,
+            "d4": 1,
+            "d5": 0,
+            "d6": 4,
+            "d7": 1
+          },
+          "target_composite": 16,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 0,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-053",
+          "language": "th",
+          "specialty": {
+            "key": "surg",
+            "en": "Surgery",
+            "th": "ศัลยศาสตร์"
+          },
+          "case": "acute calculous cholecystitis — timing of cholecystectomy",
+          "tutor_mode": "natural",
+          "physician_turns": 5,
+          "reflection": "none",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 1,
+            "d3": 1,
+            "d4": 1,
+            "d5": 2,
+            "d6": 0,
+            "d7": 2
+          },
+          "target_composite": 29,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 0,
+            "numerals": "some",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-068",
+          "language": "en",
+          "specialty": {
+            "key": "ortho",
+            "en": "Orthopaedics",
+            "th": "ออร์โธปิดิกส์"
+          },
+          "case": "osteoporosis treatment after a fragility fracture",
+          "tutor_mode": "natural",
+          "physician_turns": 8,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d1",
+            "d6"
+          ],
+          "targets": {
+            "d1": 4,
+            "d2": 1,
+            "d3": 1,
+            "d4": 1,
+            "d5": 0,
+            "d6": 5,
+            "d7": 0
+          },
+          "target_composite": 32,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 0,
+            "numerals": "many",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-073",
+          "language": "th",
+          "specialty": {
+            "key": "im",
+            "en": "Internal Medicine",
+            "th": "อายุรศาสตร์"
+          },
+          "case": "hyponatraemia found on routine labs",
+          "tutor_mode": "examiner",
+          "physician_turns": 4,
+          "reflection": "reflection_turn",
+          "profile": "flat",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 4,
+            "d3": 4,
+            "d4": 4,
+            "d5": 4,
+            "d6": 4,
+            "d7": 4
+          },
+          "target_composite": 80,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 0,
+            "numerals": "many",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-077",
+          "language": "th",
+          "specialty": {
+            "key": "neuro",
+            "en": "Neurology",
+            "th": "ประสาทวิทยา"
+          },
+          "case": "new-onset headache with red flags",
+          "tutor_mode": "natural",
+          "physician_turns": 4,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d5",
+            "d7"
+          ],
+          "targets": {
+            "d1": 4,
+            "d2": 4,
+            "d3": 4,
+            "d4": 2,
+            "d5": 0,
+            "d6": 3,
+            "d7": 0
+          },
+          "target_composite": 52,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-099",
+          "language": "th",
+          "specialty": {
+            "key": "neuro",
+            "en": "Neurology",
+            "th": "ประสาทวิทยา"
+          },
+          "case": "acute ischaemic stroke at 3 hours — thrombolysis decision",
+          "tutor_mode": "natural",
+          "physician_turns": 5,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 2,
+            "d3": 2,
+            "d4": 2,
+            "d5": 2,
+            "d6": 2,
+            "d7": 2
+          },
+          "target_composite": 43,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 1,
+            "numerals": "many",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        }
+      ]
+    },
+    {
+      "batch": 6,
+      "rows": [
+        {
+          "id": "anc-039",
+          "language": "th",
+          "specialty": {
+            "key": "neuro",
+            "en": "Neurology",
+            "th": "ประสาทวิทยา"
+          },
+          "case": "acute ischaemic stroke at 3 hours — thrombolysis decision",
+          "tutor_mode": "natural",
+          "physician_turns": 8,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 4,
+            "d3": 3,
+            "d4": 1,
+            "d5": 3,
+            "d6": 2,
+            "d7": 3
+          },
+          "target_composite": 56,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "some",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-046",
+          "language": "th",
+          "specialty": {
+            "key": "peds",
+            "en": "Pediatrics",
+            "th": "กุมารเวชศาสตร์"
+          },
+          "case": "first afebrile seizure in a toddler",
+          "tutor_mode": "examiner",
+          "physician_turns": 4,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 4,
+            "d3": 3,
+            "d4": 4,
+            "d5": 2,
+            "d6": 4,
+            "d7": 4
+          },
+          "target_composite": 68,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 2,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-048",
+          "language": "th",
+          "specialty": {
+            "key": "surg",
+            "en": "Surgery",
+            "th": "ศัลยศาสตร์"
+          },
+          "case": "right lower quadrant pain — appendicitis or not",
+          "tutor_mode": "examiner",
+          "physician_turns": 8,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 2,
+            "d3": 1,
+            "d4": 3,
+            "d5": 1,
+            "d6": 3,
+            "d7": 3
+          },
+          "target_composite": 47,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 2,
+            "numerals": "few",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-069",
+          "language": "th",
+          "specialty": {
+            "key": "im",
+            "en": "Internal Medicine",
+            "th": "อายุรศาสตร์"
+          },
+          "case": "type 2 diabetes with CKD stage 3 — choosing add-on therapy",
+          "tutor_mode": "examiner",
+          "physician_turns": 8,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d2"
+          ],
+          "targets": {
+            "d1": 5,
+            "d2": 2,
+            "d3": 5,
+            "d4": 5,
+            "d5": 5,
+            "d6": 5,
+            "d7": 3
+          },
+          "target_composite": 84,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 1,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-075",
+          "language": "th",
+          "specialty": {
+            "key": "ortho",
+            "en": "Orthopaedics",
+            "th": "ออร์โธปิดิกส์"
+          },
+          "case": "suspected septic arthritis of the knee",
+          "tutor_mode": "natural",
+          "physician_turns": 4,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 0,
+            "d2": 1,
+            "d3": 1,
+            "d4": 1,
+            "d5": 2,
+            "d6": 2,
+            "d7": 2
+          },
+          "target_composite": 24,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 2,
+            "numerals": "few",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-081",
+          "language": "en",
+          "specialty": {
+            "key": "peds",
+            "en": "Pediatrics",
+            "th": "กุมารเวชศาสตร์"
+          },
+          "case": "acute bronchiolitis — admission and therapy",
+          "tutor_mode": "natural",
+          "physician_turns": 8,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 2,
+            "d2": 2,
+            "d3": 3,
+            "d4": 4,
+            "d5": 3,
+            "d6": 2,
+            "d7": 2
+          },
+          "target_composite": 52,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 2,
+            "numerals": "some",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-082",
+          "language": "th",
+          "specialty": {
+            "key": "im",
+            "en": "Internal Medicine",
+            "th": "อายุรศาสตร์"
+          },
+          "case": "new atrial fibrillation — anticoagulation decision",
+          "tutor_mode": "natural",
+          "physician_turns": 4,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 3,
+            "d3": 4,
+            "d4": 2,
+            "d5": 5,
+            "d6": 5,
+            "d7": 3
+          },
+          "target_composite": 73,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-084",
+          "language": "th",
+          "specialty": {
+            "key": "fm",
+            "en": "Family Medicine",
+            "th": "เวชศาสตร์ครอบครัว"
+          },
+          "case": "newly found hypertension at a community clinic",
+          "tutor_mode": "natural",
+          "physician_turns": 6,
+          "reflection": "in_chat",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 2,
+            "d2": 3,
+            "d3": 2,
+            "d4": 1,
+            "d5": 1,
+            "d6": 1,
+            "d7": 2
+          },
+          "target_composite": 36,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "some",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-086",
+          "language": "th",
+          "specialty": {
+            "key": "anes",
+            "en": "Anaesthesiology",
+            "th": "วิสัญญีวิทยา"
+          },
+          "case": "perioperative management of anticoagulation",
+          "tutor_mode": "natural",
+          "physician_turns": 6,
+          "reflection": "in_chat",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d7"
+          ],
+          "targets": {
+            "d1": 4,
+            "d2": 5,
+            "d3": 5,
+            "d4": 5,
+            "d5": 5,
+            "d6": 5,
+            "d7": 2
+          },
+          "target_composite": 91,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 0,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-025",
+          "language": "en",
+          "specialty": {
+            "key": "em",
+            "en": "Emergency Medicine",
+            "th": "เวชศาสตร์ฉุกเฉิน"
+          },
+          "case": "suspected sepsis in an older adult — first-hour bundle",
+          "tutor_mode": "examiner",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d5"
+          ],
+          "targets": {
+            "d1": 0,
+            "d2": 0,
+            "d3": 0,
+            "d4": 0,
+            "d5": 4,
+            "d6": 2,
+            "d7": 1
+          },
+          "target_composite": 18,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 1,
+            "numerals": "few",
+            "list_lines": "some",
+            "rubric_echo": 0
+          },
+          "extra_review": "d4 <= 1 with d5 >= 4: the hardest combination to write (pilot: anc-015 excluded, anc-101 needed its rewrite). Written last in the batch; the coordinator reads it before intake."
+        }
+      ]
+    },
+    {
+      "batch": 7,
+      "rows": [
+        {
+          "id": "anc-029",
+          "language": "en",
+          "specialty": {
+            "key": "obgyn",
+            "en": "Obstetrics & Gynaecology",
+            "th": "สูติศาสตร์และนรีเวชวิทยา"
+          },
+          "case": "abnormal uterine bleeding in a perimenopausal woman",
+          "tutor_mode": "examiner",
+          "physician_turns": 7,
+          "reflection": "in_chat",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d2"
+          ],
+          "targets": {
+            "d1": 5,
+            "d2": 2,
+            "d3": 5,
+            "d4": 5,
+            "d5": 5,
+            "d6": 5,
+            "d7": 5
+          },
+          "target_composite": 88,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 2,
+            "numerals": "few",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-030",
+          "language": "th",
+          "specialty": {
+            "key": "surg",
+            "en": "Surgery",
+            "th": "ศัลยศาสตร์"
+          },
+          "case": "small-bowel obstruction in a patient with prior laparotomy",
+          "tutor_mode": "examiner",
+          "physician_turns": 4,
+          "reflection": "in_chat",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 3,
+            "d3": 3,
+            "d4": 5,
+            "d5": 5,
+            "d6": 3,
+            "d7": 5
+          },
+          "target_composite": 79,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 1,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-037",
+          "language": "en",
+          "specialty": {
+            "key": "em",
+            "en": "Emergency Medicine",
+            "th": "เวชศาสตร์ฉุกเฉิน"
+          },
+          "case": "suspected sepsis in an older adult — first-hour bundle",
+          "tutor_mode": "natural",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 5,
+            "d2": 2,
+            "d3": 3,
+            "d4": 2,
+            "d5": 3,
+            "d6": 3,
+            "d7": 2
+          },
+          "target_composite": 57,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 2,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-041",
+          "language": "th",
+          "specialty": {
+            "key": "ortho",
+            "en": "Orthopaedics",
+            "th": "ออร์โธปิดิกส์"
+          },
+          "case": "suspected septic arthritis of the knee",
+          "tutor_mode": "examiner",
+          "physician_turns": 5,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 3,
+            "d3": 3,
+            "d4": 4,
+            "d5": 4,
+            "d6": 3,
+            "d7": 4
+          },
+          "target_composite": 71,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 2,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-051",
+          "language": "th",
+          "specialty": {
+            "key": "surg",
+            "en": "Surgery",
+            "th": "ศัลยศาสตร์"
+          },
+          "case": "right lower quadrant pain — appendicitis or not",
+          "tutor_mode": "natural",
+          "physician_turns": 8,
+          "reflection": "none",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 0,
+            "d3": 2,
+            "d4": 1,
+            "d5": 2,
+            "d6": 0,
+            "d7": 1
+          },
+          "target_composite": 26,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 1,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-054",
+          "language": "th",
+          "specialty": {
+            "key": "ortho",
+            "en": "Orthopaedics",
+            "th": "ออร์โธปิดิกส์"
+          },
+          "case": "acute knee injury — when to image",
+          "tutor_mode": "examiner",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 1,
+            "d2": 1,
+            "d3": 1,
+            "d4": 2,
+            "d5": 1,
+            "d6": 1,
+            "d7": 1
+          },
+          "target_composite": 23,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 2,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-067",
+          "language": "th",
+          "specialty": {
+            "key": "anes",
+            "en": "Anaesthesiology",
+            "th": "วิสัญญีวิทยา"
+          },
+          "case": "pre-operative assessment of a patient with stable angina",
+          "tutor_mode": "examiner",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 2,
+            "d2": 2,
+            "d3": 2,
+            "d4": 4,
+            "d5": 3,
+            "d6": 3,
+            "d7": 4
+          },
+          "target_composite": 55,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 0,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-072",
+          "language": "th",
+          "specialty": {
+            "key": "anes",
+            "en": "Anaesthesiology",
+            "th": "วิสัญญีวิทยา"
+          },
+          "case": "pre-operative assessment of a patient with stable angina",
+          "tutor_mode": "examiner",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "flat",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 2,
+            "d2": 2,
+            "d3": 2,
+            "d4": 2,
+            "d5": 2,
+            "d6": 2,
+            "d7": 2
+          },
+          "target_composite": 40,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 2,
+            "numerals": "many",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-076",
+          "language": "th",
+          "specialty": {
+            "key": "obgyn",
+            "en": "Obstetrics & Gynaecology",
+            "th": "สูติศาสตร์และนรีเวชวิทยา"
+          },
+          "case": "postpartum haemorrhage after vaginal delivery",
+          "tutor_mode": "examiner",
+          "physician_turns": 5,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d4"
+          ],
+          "targets": {
+            "d1": 0,
+            "d2": 2,
+            "d3": 2,
+            "d4": 5,
+            "d5": 0,
+            "d6": 2,
+            "d7": 0
+          },
+          "target_composite": 33,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 0,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-093",
+          "language": "th",
+          "specialty": {
+            "key": "ortho",
+            "en": "Orthopaedics",
+            "th": "ออร์โธปิดิกส์"
+          },
+          "case": "hip fracture in an older adult on antiplatelet therapy",
+          "tutor_mode": "natural",
+          "physician_turns": 7,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 5,
+            "d2": 3,
+            "d3": 3,
+            "d4": 2,
+            "d5": 3,
+            "d6": 4,
+            "d7": 4
+          },
+          "target_composite": 67,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 0,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        }
+      ]
+    },
+    {
+      "batch": 8,
+      "rows": [
+        {
+          "id": "anc-052",
+          "language": "en",
+          "specialty": {
+            "key": "em",
+            "en": "Emergency Medicine",
+            "th": "เวชศาสตร์ฉุกเฉิน"
+          },
+          "case": "chest pain with a non-diagnostic first ECG",
+          "tutor_mode": "examiner",
+          "physician_turns": 5,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 3,
+            "d3": 5,
+            "d4": 4,
+            "d5": 5,
+            "d6": 5,
+            "d7": 3
+          },
+          "target_composite": 82,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 0,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-058",
+          "language": "en",
+          "specialty": {
+            "key": "surg",
+            "en": "Surgery",
+            "th": "ศัลยศาสตร์"
+          },
+          "case": "acute calculous cholecystitis — timing of cholecystectomy",
+          "tutor_mode": "examiner",
+          "physician_turns": 5,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 4,
+            "d3": 3,
+            "d4": 3,
+            "d5": 5,
+            "d6": 4,
+            "d7": 4
+          },
+          "target_composite": 77,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 0,
+            "numerals": "many",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-062",
+          "language": "th",
+          "specialty": {
+            "key": "psych",
+            "en": "Psychiatry",
+            "th": "จิตเวชศาสตร์"
+          },
+          "case": "delirium vs dementia in a hospitalised older adult",
+          "tutor_mode": "natural",
+          "physician_turns": 4,
+          "reflection": "reflection_turn",
+          "profile": "flat",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 3,
+            "d2": 3,
+            "d3": 3,
+            "d4": 3,
+            "d5": 3,
+            "d6": 3,
+            "d7": 3
+          },
+          "target_composite": 60,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 2,
+            "numerals": "few",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-070",
+          "language": "th",
+          "specialty": {
+            "key": "surg",
+            "en": "Surgery",
+            "th": "ศัลยศาสตร์"
+          },
+          "case": "right lower quadrant pain — appendicitis or not",
+          "tutor_mode": "examiner",
+          "physician_turns": 7,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 4,
+            "d2": 5,
+            "d3": 5,
+            "d4": 5,
+            "d5": 5,
+            "d6": 3,
+            "d7": 4
+          },
+          "target_composite": 91,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 1,
+            "numerals": "few",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-074",
+          "language": "th",
+          "specialty": {
+            "key": "anes",
+            "en": "Anaesthesiology",
+            "th": "วิสัญญีวิทยา"
+          },
+          "case": "perioperative management of anticoagulation",
+          "tutor_mode": "natural",
+          "physician_turns": 4,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 2,
+            "d2": 2,
+            "d3": 2,
+            "d4": 1,
+            "d5": 2,
+            "d6": 3,
+            "d7": 3
+          },
+          "target_composite": 41,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-083",
+          "language": "th",
+          "specialty": {
+            "key": "neuro",
+            "en": "Neurology",
+            "th": "ประสาทวิทยา"
+          },
+          "case": "new-onset headache with red flags",
+          "tutor_mode": "natural",
+          "physician_turns": 4,
+          "reflection": "none",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 1,
+            "d2": 2,
+            "d3": 2,
+            "d4": 2,
+            "d5": 2,
+            "d6": 0,
+            "d7": 3
+          },
+          "target_composite": 35,
+          "cue_budget": {
+            "length": "long",
+            "ack_turns": 1,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-085",
+          "language": "th",
+          "specialty": {
+            "key": "fm",
+            "en": "Family Medicine",
+            "th": "เวชศาสตร์ครอบครัว"
+          },
+          "case": "chronic low back pain with no red flags",
+          "tutor_mode": "examiner",
+          "physician_turns": 5,
+          "reflection": "none",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 2,
+            "d2": 0,
+            "d3": 1,
+            "d4": 1,
+            "d5": 1,
+            "d6": 0,
+            "d7": 2
+          },
+          "target_composite": 19,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 2,
+            "numerals": "few",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-087",
+          "language": "th",
+          "specialty": {
+            "key": "fm",
+            "en": "Family Medicine",
+            "th": "เวชศาสตร์ครอบครัว"
+          },
+          "case": "statin decision for primary prevention",
+          "tutor_mode": "examiner",
+          "physician_turns": 7,
+          "reflection": "reflection_turn",
+          "profile": "graded",
+          "dissociated_domains": [],
+          "targets": {
+            "d1": 2,
+            "d2": 3,
+            "d3": 1,
+            "d4": 2,
+            "d5": 3,
+            "d6": 3,
+            "d7": 3
+          },
+          "target_composite": 48,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 0,
+            "numerals": "some",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-094",
+          "language": "th",
+          "specialty": {
+            "key": "em",
+            "en": "Emergency Medicine",
+            "th": "เวชศาสตร์ฉุกเฉิน"
+          },
+          "case": "syncope in a middle-aged adult — risk stratification",
+          "tutor_mode": "natural",
+          "physician_turns": 5,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d6"
+          ],
+          "targets": {
+            "d1": 1,
+            "d2": 0,
+            "d3": 2,
+            "d4": 1,
+            "d5": 1,
+            "d6": 4,
+            "d7": 1
+          },
+          "target_composite": 25,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 0,
+            "numerals": "many",
+            "list_lines": 0,
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-055",
+          "language": "th",
+          "specialty": {
+            "key": "psych",
+            "en": "Psychiatry",
+            "th": "จิตเวชศาสตร์"
+          },
+          "case": "delirium vs dementia in a hospitalised older adult",
+          "tutor_mode": "natural",
+          "physician_turns": 5,
+          "reflection": "in_chat",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d2",
+            "d4"
+          ],
+          "targets": {
+            "d1": 5,
+            "d2": 1,
+            "d3": 5,
+            "d4": 1,
+            "d5": 5,
+            "d6": 4,
+            "d7": 5
+          },
+          "target_composite": 70,
+          "cue_budget": {
+            "length": "medium",
+            "ack_turns": 0,
+            "numerals": "many",
+            "list_lines": "some",
+            "rubric_echo": 0
+          },
+          "extra_review": "d4 <= 1 with d5 >= 4: the hardest combination to write (pilot: anc-015 excluded, anc-101 needed its rewrite). Written last in the batch; the coordinator reads it before intake."
+        }
+      ]
+    }
+  ]
+}

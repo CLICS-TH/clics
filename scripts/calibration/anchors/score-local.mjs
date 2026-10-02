@@ -31,6 +31,9 @@
  *       --out scripts/calibration/anchors/runs/pilot-local.json
  *
  *   --pilot             only the 20 active pilot anchors (design.json pilot:true, not excluded)
+ *   --split tuning|heldout   only that half of SPLIT-anchors.json (anchor-split.mjs splitFilter).
+ *                       Any held-out id is REFUSED until HELDOUT-LOCK.json covers every held-out
+ *                       anchor (AUTHORING.md §9); a held-out anchor is never rewritten after it.
  *   --only a,b          only these ids          --limit n     first n after filtering
  *   --repeats K         runs per anchor (default 3 — AUTHORING.md §7)
  *   --concurrency n     default 2, never above LOCAL_MAX_CONCURRENCY when that is set
@@ -48,6 +51,7 @@ import { readdir, readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import { loadAnchorSplit, splitFilter, loadHeldOutLock, assertHeldOutScorable } from './anchor-split.mjs';
 import { readConfig, chatCompletion, parseArgs, intArg, fail, hr, dim, green, red, yellow, bold } from '../../probe/lib.mjs';
 
 import { pis7PromptFor } from '../../../rimpl/src/lib/prompts.js';
@@ -85,6 +89,11 @@ let ids = (await readdir(fixturesDir).catch(() => [])).filter((f) => /^anc-\d{3}
 // of fixtures/, and this guards a stray copy.
 ids = ids.filter((id) => !design.anchors.find((a) => a.id === id)?.excluded);
 if (flags.pilot) ids = ids.filter((id) => design.anchors.find((a) => a.id === id)?.pilot);
+if (typeof flags.split === 'string') {
+  let allowed;
+  try { allowed = splitFilter(design, await loadAnchorSplit(), flags.split); } catch (e) { fail(e.message); }
+  ids = ids.filter((id) => allowed.has(id));
+}
 if (typeof flags.only === 'string') {
   const only = flags.only.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
   const missing = only.filter((id) => !ids.includes(id));
@@ -93,6 +102,15 @@ if (typeof flags.only === 'string') {
 }
 if (flags.limit !== undefined) ids = ids.slice(0, intArg(flags, 'limit', ids.length));
 if (!ids.length) fail(`no anchor fixtures selected in ${fixturesDir}`);
+// D13: no held-out anchor is scored until every held-out anchor is authored and locked, and then only
+// with its locked bytes (anchor-split.mjs assertHeldOutScorable). --dry-run sends nothing and scores
+// nothing, so it is exempt.
+if (!dryRun) {
+  try {
+    assertHeldOutScorable(ids, { split: await loadAnchorSplit(), lock: await loadHeldOutLock(),
+      fixtureShas: Object.fromEntries(ids.map((id) => [id, manifest.fixtures?.[id]?.sha256])) });
+  } catch (e) { fail(e.message); }
+}
 
 const fixtures = [];
 for (const id of ids) {
