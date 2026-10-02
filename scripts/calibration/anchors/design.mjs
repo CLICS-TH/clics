@@ -213,6 +213,14 @@ export const REPLACEMENTS = [
     archived_fixture: 'fixtures/excluded/anc-015.json',
     sha256: '2eddee89302094bc95cf951ddded155dde16954029a9776061f34b1ea082088e',
   },
+  {
+    excluded: 'anc-027',
+    replaced_by: 'anc-102',
+    date: '2026-10-02',
+    reason: 'rewritten once (46e1711) and still over-expressed by the batch-3 blind panel (+19 > 15; first write +18 in batch 1); §7.4: excluded and replaced',
+    archived_fixture: 'fixtures/excluded/anc-027.json',
+    sha256: '03609d4dfd6b5b265099927f18afb065ddaa591ef59e3d69dc9a0296faa9d704',
+  },
 ];
 
 /** An anchor still in the cohort (not excluded under §7.4). */

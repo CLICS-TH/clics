@@ -294,13 +294,20 @@ limits) or \`attribution\` (true, but placed under a citation that does not carr
 - **Batch 1 still overshot, under this brief** (blind panel on its 5 tuning anchors: mean +13.5, all 5
   too high, 2 beyond ±15). Domains targeted at 3 and 4 read +0.6 to +0.8 on average, so this is not
   only a low-target problem. The two misses were a **low domain written next to high ones**: the
-  high behaviour supplied the evidence raters credited to the low one. In anc-027, setting-driven
+  high behaviour supplied the evidence raters credited to the low one. In one, setting-driven
   decisions and a graded appraisal (d3 = 5, d5 = 5) read as reasoning, and a d2 = 1 was rated 4. In
-  anc-064, case details the physician raised read as integration, and a d3 = 2 was rated 4. When a
+  another, case details the physician raised read as integration, and a d3 = 2 was rated 4. When a
   domain is ≤ 2 and others are ≥ 4, keep the high behaviour from doing the low domain's work: for
   d2 ≤ 2 the decisions come with **no** "because" and no alternatives anywhere, and for d3 ≤ 2 the
   patient's details are stated once and **visibly not used** where they should change the plan. For a
   domain targeted 3–4, write the plainer of the two versions you are weighing.
+- **Batch 3: one context factor that decides the plan reads as d3 4–5.** In one anchor, a d3 = 3 was
+  rated 5. The patient's night driving decided the drug choice, so raters read that as full
+  integration. For d3 = 3, name the context and let it **touch** the plan (a dose, a follow-up
+  interval, a counselling point) without deciding the main choice. Format steering reads as d7 4–5
+  too: "compare just those two, briefly" counts as steering. For d7 = 3, give context, then take
+  what the tool returns without shaping it. Writing the low domain as a visible absence worked:
+  the other two batch-3 anchors and one rewrite landed within ±4.
 - **d4 = 0 together with d5 ≥ 4 is the hardest combination.** Critiquing the tutor's earlier answers
   *is* picking them up, which reads as follow-up. What finally worked (anc-101): the middle turns are
   bare, generic topic hops that ignore the tutor's ❓; the appraisal comes once, at the end, as a note to

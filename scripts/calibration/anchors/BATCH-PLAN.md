@@ -7,7 +7,6 @@
 
 | id | lang | specialty | case | tutor | phys turns | reflection | profile | targets d1–d7 | comp | length | acks | numerals | lists |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| anc-027 | en | Internal Medicine | community-acquired pneumonia in an older adult — admit or treat at home | examiner | 6 | reflection_turn | dissociated (d2) | 3,1,5,3,5,4,4 | 68 | short | 1 | few | some |
 | anc-034 | th | Neurology | new-onset headache with red flags | natural | 6 | reflection_turn | graded | 3,2,2,1,1,4,1 | 39 | short | 0 | few | 0 |
 | anc-059 | th | Orthopaedics | acute knee injury — when to image | natural | 7 | reflection_turn | graded | 4,4,5,5,5,5,5 | 93 | short | 2 | some | 0 |
 | anc-063 | en | Family Medicine | polypharmacy review in an older adult living alone | examiner | 7 | in_chat | graded | 1,1,1,2,1,2,2 | 27 | medium | 2 | few | 0 |
@@ -17,6 +16,7 @@
 | anc-078 | th | Family Medicine | newly found hypertension at a community clinic | examiner | 7 | reflection_turn | dissociated (d5) | 4,4,2,3,0,4,4 | 59 | long | 1 | few | some |
 | anc-090 | th | Anaesthesiology | perioperative management of anticoagulation | examiner | 8 | reflection_turn | dissociated (d6) | 4,4,4,3,5,1,4 | 74 | medium | 2 | some | some |
 | anc-098 | th | Family Medicine | statin decision for primary prevention | natural | 8 | none | graded | 0,1,2,1,2,0,1 | 21 | long | 1 | few | some |
+| anc-102 | en | Internal Medicine | community-acquired pneumonia in an older adult — admit or treat at home | examiner | 6 | reflection_turn | dissociated (d2) | 3,1,5,3,5,4,4 | 68 | short | 1 | few | some |
 
 ## Batch 2 — 10 anchors · composites 17–88 · English 2 · examiner 5
 

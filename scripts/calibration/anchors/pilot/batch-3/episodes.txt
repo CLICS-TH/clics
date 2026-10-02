@@ -1,0 +1,468 @@
+######## EPISODE J01 ########
+[physician]
+ขอปรึกษาเคสครับ เด็กชาย 2 ขวบ น้ำหนัก 13 กก. มาที่ ER รพ.ชุมชน 30 เตียง ชักเกร็งกระตุกทั้งตัวราว 3 นาที ไม่มีไข้ ไม่เคยชักมาก่อน ไม่มีประวัติศีรษะกระแทก พัฒนาการปกติ วัคซีนครบตามนัด ไม่มีประวัติแพ้ยา กินนมได้ปกติ ครอบครัวไม่มีประวัติชัก บ้านอยู่ห่างจาก รพ. ราว 40 กม. หลังชักซึมไปประมาณ 20 นาทีแล้วตื่นดี vital ตอนมา T 36.8 SpO2 99% DTX 96 ตรวจร่างกายไม่พบ focal sign ผมคิดว่าเป็น first unprovoked seizure เพราะไม่มีไข้และไม่มีอะไรกระตุ้น รายนี้ควร admit ดูอาการ หรือกลับบ้านได้ครับ
+
+[assistant]
+เคสนี้ภาพค่อนข้างชัดครับ ถ้าตอนนี้เด็กกลับมาตื่นดีเหมือนปกติ ตรวจไม่พบ focal sign และ DTX ปกติ ส่วนใหญ่ไม่จำเป็นต้อง admit ถ้าสังเกตอาการจนมั่นใจแล้ว
+
+- neuroimaging ไม่ต้องทำเป็น routine ในเด็กที่กลับมา baseline และตรวจร่างกายปกติ (Hirtz et al., 2000)
+- EEG ควรเป็นส่วนหนึ่งของการประเมินชักครั้งแรก และนัดทำแบบผู้ป่วยนอกได้ (Hirtz et al., 2000)
+- lab routine ไม่จำเป็นถ้าไม่มีข้อบ่งชี้ เช่น อาเจียน ท้องเสีย หรือขาดน้ำ
+- เหตุผลที่ควร admit หรือส่งต่อ: ซึมไม่กลับมา baseline, มี focal sign, ชักนาน หรือชักซ้ำในวันเดียวกัน
+
+เหตุผลที่หมอให้ไว้ว่าไม่มีไข้และไม่มีปัจจัยกระตุ้น สอดคล้องกับ first unprovoked seizure ครับ ก่อนกลับบ้านอย่าลืมสอนผู้ปกครองว่าถ้าชักซ้ำต้องทำอย่างไร
+
+[physician]
+ที่บอกว่า neuroimaging ไม่ต้อง routine ถ้าเด็กกลับมา baseline แล้ว รายไหนที่ควรส่งภาพจริง ๆ ครับ ผมเองเอนไปทางส่งต่อไปทำ CT ไว้ก่อนเพราะกลัวพลาด แล้วที่ว่า lab ส่งเมื่อมีข้อบ่งชี้ ในรายนี้ผมควรเจาะ Na กับ Ca ไว้ด้วยไหม ผู้ปกครองถามมา 2 รอบแล้วว่าตรวจให้ครบไหม
+
+[assistant]
+ภาพสมองพิจารณาเมื่อเด็กไม่กลับมา baseline หรือมี focal deficit หลังชักที่ไม่หายเร็ว (Hirtz et al., 2000) ซึ่งรายนี้ไม่เข้าข่ายครับ
+
+- Na/Ca: เจาะเมื่อมีเหตุให้สงสัย เช่น อาเจียน ท้องเสีย ขาดน้ำ เด็กที่ตื่นดีและไม่มีอาการเหล่านี้ไม่ต้องเจาะเป็น routine (Hirtz et al., 2000)
+- ผู้ปกครองที่กังวล: อธิบายว่าการตรวจเพิ่มโดยไม่มีข้อบ่งชี้ไม่ได้เปลี่ยนการดูแลเด็ก และบอกชัดเจนว่าอาการแบบไหนต้องพากลับมา
+
+[physician]
+ok ครับ ที่บอกว่าต้อง admit ถ้าซึมไม่กลับมา baseline หรือชักซ้ำในวันเดียวกัน รายนี้ผมสังเกตมา 6 ชม. ไม่ชักซ้ำ GCS 15 ตลอด ถ้าอย่างนั้นกลับบ้านได้ใช่ไหมครับ แล้วต้องนัด EEG ภายในกี่วัน
+
+[assistant]
+กลับบ้านได้ครับ ถ้าเด็กตื่นดี กินดื่มได้ และผู้ปกครองเข้าใจแผน
+
+- EEG ทำแบบนัดผู้ป่วยนอก ไม่ใช่เรื่องฉุกเฉิน (Hirtz et al., 2000) ส่วนจำนวนวันที่แนวทางระบุไว้ ผมยังไม่แน่ใจ ควรเช็กกับกุมารประสาทแพทย์ที่รับส่งต่อ
+- สอนผู้ปกครอง: จับเด็กนอนตะแคง ไม่งัดปาก จับเวลา ถ้าชักนานเกิน 5 นาทีหรือไม่ฟื้น ให้พาไปโรงพยาบาลทันที
+
+[physician]
+ผู้ปกครองถามว่าต้องกินยากันชักไหม ตัดสินใจให้เลยครับว่าควรเริ่มยากันชักหรือไม่ ถ้าเริ่มให้ยาอะไร ขนาดเท่าไรสำหรับ 13 กก. เดี๋ยวผม copy ไปใส่ order กลับบ้านเลย
+
+[assistant]
+ในเด็กที่ชักครั้งแรกแล้วตื่นดี โดยทั่วไปยังไม่เริ่มยากันชักต่อเนื่องครับ การเริ่มยาเป็นเรื่องที่คุยกับผู้ปกครองและกุมารแพทย์ระบบประสาทหลังได้ผล EEG (Hirtz et al., 2000)
+
+- ดังนั้นรายนี้จึงไม่มีขนาดยาให้เขียนใน order
+- ถ้าภายหลังต้องใช้ยา ให้เช็กขนาดกับ formulary ของ รพ. ก่อนสั่งทุกครั้ง ไม่ควร copy จากแชตตรง ๆ
+- การสั่งหรือไม่สั่งยาเป็นการตัดสินใจของแพทย์ที่เห็นเด็กจริง ผมช่วยทบทวนเหตุผลให้ได้
+
+[physician]
+โอเค งั้นช่วยเขียน ให้ครบทุกหัวข้อตามแบบฟอร์มปกติ discharge summary กับใบคำแนะนำผู้ปกครองให้เลยครับ เด็กชาย 2 ขวบ ชักครั้งแรก 1 ครั้ง ไม่ให้ยากันชัก นัด EEG กับ f/u ขอแบบพร้อมใช้ เดี๋ยวผม copy ไปวางใน chart เลย ไม่ต้องแก้
+
+[assistant]
+ร่างสั้น ๆ ให้ครับ ต้องให้หมอตรวจทานกับข้อมูลจริงของเด็กก่อนบันทึก
+
+- Dx: first unprovoked seizure, ตื่นดี ตรวจไม่พบ focal sign, DTX ปกติ
+- แผน: กลับบ้าน ไม่เริ่มยากันชัก นัด EEG แบบผู้ป่วยนอก และ f/u กับกุมารแพทย์ (Hirtz et al., 2000)
+- คำแนะนำผู้ปกครอง: ถ้าชักซ้ำให้จับนอนตะแคง จับเวลา ถ้านานเกิน 5 นาทีหรือไม่ฟื้นให้พามา รพ. ทันที
+- ให้พากลับมาเมื่อซึม ไม่กินดื่ม หรือมีไข้
+
+[physician]
+แน่ใจนะครับว่าไม่ต้องให้ยากันชักเลย ผู้ปกครองกลัวมากว่าจะชักซ้ำ ผมเองก็กลัวว่าจะพลาดเหมือนกัน ผู้ปกครองยังนั่งรออยู่หน้าห้องตรวจ ผมอยากให้ได้คำตอบที่ชัดเจนว่าใช่หรือไม่ใช่
+
+[assistant]
+แนวทางโดยทั่วไปคือยังไม่เริ่มยากันชักหลังชักครั้งแรกที่ตื่นดีและไม่มี red flag ครับ ผล EEG และการนัด f/u ช่วยประเมินความเสี่ยงชักซ้ำ (Hirtz et al., 2000) ความกังวลของผู้ปกครองแก้ได้ด้วยการอธิบายและมีแผนชัดเจนว่าถ้าชักซ้ำต้องทำอะไร ส่วนนโยบายเฉพาะของ รพ. ท่าน ผมยังไม่แน่ใจ
+
+[physician]
+สรุปแล้วรายนี้กลับบ้าน นัด EEG ยังไม่ให้ยากันชัก สอนผู้ปกครองเรื่องชักซ้ำ ถูกต้องใช่ไหมครับ ถ้าถูกผมจะบันทึกตามนี้เลย ขอสั้น ๆ พอ
+
+[assistant]
+ถูกต้องครับ ตามแนวทางที่คุยกันมา ไม่ต้อง neuroimaging หรือ lab เป็น routine ในเด็กที่กลับมา baseline และนัด EEG แบบผู้ป่วยนอก (Hirtz et al., 2000) บันทึกให้ครบทั้งเวลาที่ชัก ระยะเวลา และการสอนผู้ปกครอง
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ก่อนปรึกษา ผมเอนไปทางส่งต่อเพื่อทำ CT และเจาะ lab ให้ครบในเด็กชักครั้งแรก เพราะกลัวพลาด ตอนนี้เข้าใจว่าในเด็กที่กลับมาตื่นดี ตรวจไม่พบ focal sign และไม่มีอาเจียน ท้องเสีย ขาดน้ำ การตรวจเหล่านั้นไม่ได้เปลี่ยนการดูแล ที่ควรทำจริงคือสังเกตจนกลับ baseline นัด EEG และสอนผู้ปกครองให้รับมือชักซ้ำได้ ผมเคยคิดว่ายากันชักช่วยป้องกันชักครั้งต่อไป ตอนนี้จะไม่เริ่มยาในเด็กลักษณะนี้
+
+ความไม่แน่นอน / What remains uncertain:
+ยังไม่แน่ใจว่า EEG ของเด็กรายนี้จะผิดปกติหรือไม่ ซึ่งเป็นตัวบอกความเสี่ยงชักซ้ำ และผมยังไม่แน่ใจว่าควรนัด EEG ภายในกี่วัน รวมถึงควรเริ่มยากันชักเมื่อไรถ้าเด็กชักซ้ำเร็ว
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+วันจันทร์ที่เข้าเวร ผมจะเปิดเวชระเบียนเด็กชักครั้งแรกใน ER ย้อนหลัง 6 เดือน ดูว่าส่ง CT และเจาะ lab กี่ราย และมีกี่รายที่มี red flag จริง แล้วเทียบกับ Hirtz et al. 2000 ฉบับเต็ม จากนั้นจะทำใบคำแนะนำผู้ปกครองหน้าเดียวเรื่องปฐมพยาบาลเมื่อชักซ้ำ และสอน intern ในเวรให้ใช้ร่วมกัน พร้อมโทรปรึกษากุมารประสาทแพทย์ก่อนเริ่มยากันชักทุกราย
+
+######## EPISODE J02 ########
+[physician]
+Woman in her 70s with community-acquired pneumonia, right lower lobe on CXR, oxygen saturation 94% on room air. Admit or treat at home?
+
+[assistant]
+Start with severity. Her age already earns 1 point on CURB-65; confusion, urea, respiratory rate and blood pressure decide the rest.
+- A CURB-65 of 0 or 1 means home treatment is appropriate (CURB-65, Lim et al., 2003).
+- If she goes home, an oral beta-lactam plus a macrolide or doxycycline covers outpatients with comorbidities (ATS/IDSA CAP guideline, Metlay et al., 2019).
+❓ Beyond the score, what else about this woman would you check before sending her home?
+
+[physician]
+Your CURB-65 line, by evidence status:
+- Established: predicts 30-day mortality in the hospital cohorts it came from.
+- Untested: frail women who live alone; "home is appropriate" is extrapolated to them.
+- Missing: no term for oxygen or frailty.
+Home treatment for her group: observational evidence at best. Admit.
+
+[assistant]
+You are right. CURB-65 was derived in hospital cohorts and has no term for oxygenation, frailty or home circumstances, so a score of 0 or 1 does not settle the site of care on its own; the guideline pairs severity scoring with clinical judgment (ATS/IDSA CAP guideline, Metlay et al., 2019). My "appropriate" above was too strong for a frail woman who lives alone.
+- Admission is sound when no one can check on her overnight.
+- Without CT, rely on chest examination, repeat saturation and CXR.
+❓ With no CT at your hospital, how will you judge whether she is responding?
+
+[physician]
+Got it. No CT here: exam, repeat saturation and CXR only. Pharmacy stocks ceftriaxone and oral azithromycin, nothing else for CAP. Regimen for that stock, with a source for each point.
+
+[assistant]
+Ceftriaxone IV plus azithromycin fits that stock and is a standard regimen for non-severe inpatient CAP (ATS/IDSA CAP guideline, Metlay et al., 2019).
+- Duration follows clinical stability and should not be shorter than 5 days (ATS/IDSA CAP guideline, Metlay et al., 2019).
+- Review daily: temperature, respiratory rate, saturation, ability to eat.
+❓ What finding on day 2 would make you stop and call for transfer?
+
+[physician]
+Falling saturation or new confusion by day 2: she goes to the referral centre. Ambulance booked at admission.
+
+[assistant]
+Those are sensible triggers. The ATS/IDSA severe CAP criteria list confusion, a respiratory rate of 30 or more and hypotension needing fluids among the minor criteria, and three or more make it severe (ATS/IDSA CAP guideline, Metlay et al., 2019). Early transfer is easier to defend than a late one.
+❓ Which of those criteria can your ward check reliably overnight?
+
+[physician]
+Respiratory rate and confusion. A gas and urea come back next morning, though the criteria assume them at any hour. Nurses call me for a rate of 30 or more or new confusion. I checked the minor-criteria count against the guideline text; it matches yours.
+
+[assistant]
+That is a workable overnight rule. Both are bedside measures, and a rate of 30 or more is also a CURB-65 item (CURB-65, Lim et al., 2003). Write the call-me triggers into the admission orders so the night team does not depend on memory.
+❓ Before discharge, what would you arrange for a woman who lives alone?
+
+[physician]
+Discharge once stable on an oral switch, with a call from the community health nurse at 48 hours.
+
+[assistant]
+A call from the community health nurse fits her situation, and follow-up should confirm that she is eating, drinking and breathing comfortably (ATS/IDSA CAP guideline, Metlay et al., 2019). Make sure the oral antibiotic supply covers the full course before she leaves.
+❓ If the nurse cannot reach her by phone at 48 hours, what is your fallback?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+A low CURB-65 described hospital cohorts, not a frail woman who lives alone. Frailty and who is at home now sit next to the score when I choose the site of care.
+
+ความไม่แน่นอน / What remains uncertain:
+I do not know how many older patients with a low score would have done well at home; we have no local follow-up on them.
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+I will weigh frailty and home situation when I decide between admission and home for the next older pneumonia patient.
+
+######## EPISODE J03 ########
+[physician]
+syncope ใน ER ต้อง workup อะไรบ้างครับ เคสเป็นผู้ป่วยวัยกลางคน หมดสติไปช่วงสั้นๆ แล้วฟื้นเอง ตอนนี้รู้ตัวดี
+
+[assistant]
+หลักการ workup syncope ใน ER คือแยกสาเหตุที่อันตรายออกก่อน แล้วจัดกลุ่มความเสี่ยงครับ
+
+- **ประวัติ** — สถานการณ์ก่อนเป็นลม, prodrome, เป็นลมขณะออกแรงหรือขณะนอน, ใจสั่นก่อนหมดสติ, ประวัติครอบครัวเสียชีวิตเฉียบพลัน
+- **ตรวจร่างกาย** — orthostatic BP, เสียง murmur, ตรวจระบบประสาท
+- **ECG ทุกราย** — หา arrhythmia, conduction abnormality, QT ยาว, Brugada pattern, pre-excitation (ESC, 2018)
+- **Lab** ตามข้อบ่งชี้ เช่น Hb, glucose, electrolyte
+- เครื่องมือช่วยจัดกลุ่มความเสี่ยง เช่น San Francisco Syncope Rule (Quinn et al., 2004)
+
+❓ ในผู้ป่วยรายนี้ อะไรในประวัติที่จะทำให้คิดถึง cardiac syncope มากกว่า reflex syncope ครับ?
+
+[physician]
+จากที่บอกว่าต้องดู ECG ทุกราย ผมเรียงแบบนี้ครับ: reflex (vasovagal) น่าจะเป็นมากที่สุด เพราะเป็นลมตอนยืนรอคิวนานๆ มี prodrome เหงื่อออก คลื่นไส้ ตาลายก่อนล้ม; orthostatic รองลงมา แต่ยังไม่ได้วัด orthostatic BP; cardiac syncope น้อยที่สุดแต่ห้ามพลาด — ถ้า ECG มี conduction block หรือ QT ยาว ผมจะเปลี่ยนลำดับทันที และไม่ให้กลับบ้าน
+
+[assistant]
+การเรียงลำดับนี้มีเหตุผลดีครับ และสอดคล้องกับลักษณะที่ guideline ใช้แยก low risk ออกจาก high risk (ESC, 2018)
+
+**ลักษณะ low risk** ที่เข้ากับรายนี้
+- มี prodrome แบบ reflex (เหงื่อออก คลื่นไส้)
+- เกิดหลังยืนนานหรืออยู่ในที่แออัด
+
+**ลักษณะ high risk** ที่ต้องถามและตรวจให้ครบ
+- เป็นลมขณะออกแรงหรือขณะนอน
+- ใจสั่นทันทีก่อนหมดสติ
+- ECG ผิดปกติ หรือมีโรคหัวใจโครงสร้าง
+
+ส่วน San Francisco Syncope Rule (CHF history, Hct <30%, ECG ผิดปกติ, หอบ, SBP <90) ใช้ช่วยแยกกลุ่มที่เสี่ยงต่ำได้ (Quinn et al., 2004)
+
+❓ ถ้า ECG ปกติและไม่มี high-risk feature จะใช้อะไรตัดสินใจว่าให้กลับบ้านได้ครับ?
+
+[physician]
+ที่บอกว่า San Francisco Syncope Rule ใช้ช่วยแยกกลุ่มเสี่ยงต่ำได้ — มีข้อจำกัดอะไรไหมครับ ผมเคยได้ยินว่าพอเอาไป validate ที่อื่น ผลไม่ได้ดีเท่า study แรก ขอหลักฐานด้วยครับ
+
+[assistant]
+ใช่ครับ เป็นข้อสังเกตที่ถูกต้อง
+
+- SFSR ถูกพัฒนาจากการศึกษาใน ED แห่งเดียว (Quinn et al., 2004)
+- การ validate ภายนอกในหลายการศึกษาต่อมาพบว่า sensitivity ต่ำกว่าที่รายงานในการศึกษาแรก จึงไม่ควรใช้ rule นี้เป็นเกณฑ์เดียวในการให้ผู้ป่วยกลับบ้าน
+- ESC แนะนำให้ใช้ลักษณะ high-risk และ low-risk จากประวัติ ตรวจร่างกาย และ ECG เป็นหลัก และระบุว่า risk score ไม่ควรใช้แทนการประเมินทางคลินิก (ESC, 2018)
+
+กล่าวคือ score เป็นตัวช่วย ไม่ใช่ตัวตัดสินครับ
+
+❓ ถ้ารวมข้อมูลทั้งหมดแล้ว รายนี้จะ disposition อย่างไร และมีเงื่อนไขอะไรที่จะเปลี่ยนแผนครับ?
+
+[physician]
+ถ้าอย่างนั้นผมจะไม่ใช้ SFSR ตัดสินคนเดียวครับ ถ้า ECG ปกติ ไม่มี high-risk feature ตาม ESC และอาการเข้ากับ reflex ชัดแบบนี้ ให้กลับบ้านได้พร้อมคำแนะนำ แต่ถ้าย้อนถามแล้วพบว่าเป็นลมตอนออกแรงหรือตอนนอนอยู่ ผมจะ admit monitor แม้ score จะต่ำ เพราะสองอย่างนี้ชี้ไปทาง arrhythmia มากกว่า reflex
+
+[assistant]
+แผนนี้สอดคล้องกับแนวทางครับ (ESC, 2018)
+
+- **Low risk + ECG ปกติ + reflex ชัด** — ให้กลับบ้านได้ พร้อมอธิบายการหลีกเลี่ยงสิ่งกระตุ้น เช่น ยืนนาน ขาดน้ำ และท่าป้องกันเมื่อมี prodrome
+- **เป็นลมขณะออกแรงหรือขณะนอน** — เป็น high-risk feature ควรสังเกตอาการพร้อม ECG monitoring และพิจารณา echocardiogram
+
+การใช้ score เป็นข้อมูลประกอบ แต่ให้น้ำหนักกับลักษณะทางคลินิกเป็นหลัก เป็นแนวทางที่เหมาะสมครับ
+
+❓ ถ้าให้กลับบ้าน จะนัดติดตามหรือส่งตรวจอะไรต่อแบบผู้ป่วยนอกบ้างครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+syncope ใน ER ผมตัดสินจาก ECG และลักษณะอาการเป็นหลัก ไม่ใช้ score อย่างเดียว เพราะ SFSR พอ validate ที่อื่นแล้ว sensitivity ไม่ดีเท่า study แรก รายที่อาการเข้ากับ reflex ชัดและ ECG ปกติให้กลับบ้านได้ แต่ถ้าเป็นลมตอนออกแรงหรือตอนนอนต้อง monitor
+
+######## EPISODE J04 ########
+[physician]
+มี pt ชายวัยสูงอายุ มาด้วยแขนขาซ้ายอ่อนแรง ปากเบี้ยว พูดไม่ค่อยชัด onset ประมาณ 3 ชม. ก่อนมา รพ. มีประวัติ HT, DM, ไขมันสูง สูบบุหรี่มานาน ญาติบอกว่ากิน warfarin อยู่ แต่ไม่ทราบว่าเริ่มเพราะอะไร BP ตอนมา 190/105 ส่ง CT brain แล้วไม่เห็น bleed ครับ อยากถามว่า stroke ที่มาในช่วง 3 ชม. แบบนี้ ควรทำอะไรบ้างครับ
+
+[assistant]
+ถ้า CT ไม่เห็น bleed และ onset อยู่ภายใน 4.5 ชม. ขั้นต่อไปคือประเมินว่าเข้าเกณฑ์ให้ IV alteplase หรือไม่ครับ (AHA/ASA, 2019)
+
+- ประเมิน NIHSS และเจาะ glucose ทันที เพราะ hypoglycemia เลียนแบบ stroke ได้
+- BP ต้องต่ำกว่า 185/110 ก่อนให้ยา และคุมให้ต่ำกว่า 180/105 ต่อเนื่อง 24 ชม. หลังให้ยา (AHA/ASA, 2019)
+- รายที่ on warfarin ต้องรอผล INR ก่อน ถ้าเกิน 1.7 ไม่ควรให้ alteplase (AHA/ASA, 2019)
+- ตรวจ platelet และซักประวัติเลือดออกหรือผ่าตัดใหญ่ล่าสุดไปพร้อมกัน
+- non-contrast CT ที่ไม่เห็น bleed ก็พอสำหรับตัดสินใจเริ่มยา ไม่ต้องรอ MRI
+- อย่ารอผล lab อื่นที่ไม่จำเป็น เพื่อไม่ให้ door-to-needle time ยืดออกไป
+
+[physician]
+ขอถามอีกเรื่องครับ ตอนนี้ยังไม่ทราบว่าสาเหตุของ stroke รายนี้ อาจเป็น cardioembolic หรือ large artery atherosclerosis หรือ small vessel disease ก็ได้ครับ ยังบอกไม่ได้ว่าเป็นแบบไหน ถ้าแต่ละแบบต้องส่งตรวจอะไรเพิ่มบ้าง รบกวนช่วยบอกหน่อยครับ
+
+[assistant]
+สาเหตุของ stroke รายนี้ตรวจเพิ่มได้ แต่ไม่ควรรอผลก่อนตัดสินใจเรื่อง alteplase ยกเว้น glucose และ INR ที่ต้องได้ผลก่อนครับ (AHA/ASA, 2019)
+
+- **Cardioembolic:** ECG 12 lead และ telemetry หา AF ทำ echocardiogram ถ้าสงสัยโรคลิ้นหัวใจหรือลิ่มเลือดใน LV
+- **Large artery:** ดูภาพหลอดเลือดแดงคอและสมอง เช่น CTA หรือ carotid duplex
+- **Small vessel:** วินิจฉัยจากลักษณะทางคลินิกและภาพ CT/MRI เป็นหลัก ไม่มีการตรวจเฉพาะที่ชี้ขาด
+- ตรวจพื้นฐานที่ช่วยวางแผนป้องกันซ้ำ เช่น lipid profile และ HbA1c
+- ผู้ป่วยที่กิน warfarin อยู่ ควรหาประวัติเดิมเรื่อง AF หรือลิ้นหัวใจเทียมจากเวชระเบียน
+
+[physician]
+ขอเปลี่ยนเรื่องหน่อยครับ ผู้ป่วย AF ทั่วไป ควรเลือก DOAC หรือ warfarin ดีครับ อยากรู้แนวทางล่าสุดแบบกว้างๆ ว่าตอนนี้นิยมใช้ตัวไหน และต้องติดตามอะไรบ้าง
+
+[assistant]
+ใน non-valvular AF แนะนำให้ใช้ DOAC มากกว่า warfarin ในผู้ป่วยที่ใช้ DOAC ได้ (ESC AF Guidelines, 2020)
+
+- Warfarin ยังเป็นตัวเลือกหลักเมื่อมี mechanical valve หรือ mitral stenosis ระดับปานกลางถึงรุนแรง
+- DOAC ไม่ต้องตรวจ INR แต่ต้องปรับขนาดตามการทำงานของไตและน้ำหนักตัวตามชนิดยา
+- ควรประเมินความเสี่ยงเลือดออก เช่น HAS-BLED เพื่อหาปัจจัยที่แก้ไขได้ (HAS-BLED, Pisters et al., 2010)
+- ติดตาม Cr/eGFR และ CBC เป็นระยะ และทบทวนยาอื่นที่มี interaction
+
+[physician]
+กลับไปที่คำตอบแรกครับ เรื่อง window 4.5 ชม. ขอทราบ source ด้วยว่ามาจากที่ไหน แล้วที่บอกว่า CT ไม่เห็น bleed ก็พอ ผมฟังแล้วคล้ายว่า CT ปกติแปลว่าไม่ใช่ infarct ซึ่งใน 3 ชม. แรก CT มักยังไม่เห็นอะไร เลยรู้สึกว่าประโยคนั้นกว้างไปหน่อยครับ
+
+[assistant]
+ถูกต้องครับ ผมควรระบุให้ชัดกว่านี้
+
+- CT ในช่วงแรกใช้เพื่อ exclude bleed เป็นหลัก infarct ใน 3 ชม. แรกมักยังไม่เห็นหรือเห็นเพียงเล็กน้อย CT ปกติจึงไม่ได้แปลว่าไม่ใช่ ischaemic stroke การวินิจฉัยยังอาศัยอาการและ NIHSS (AHA/ASA, 2019)
+- เรื่อง window แนวทางแนะนำ IV alteplase ภายใน 3 ชม. และขยายถึง 4.5 ชม. ในผู้ป่วยที่ผ่านเกณฑ์คัดเลือกที่เข้มกว่า (AHA/ASA, 2019)
+- ข้อมูลช่วง 3-4.5 ชม. มาจากการศึกษาที่คัดผู้ป่วยบางกลุ่มออก เช่น อายุมากกว่า 80 หรือกลุ่มที่ใช้ยาต้านการแข็งตัวของเลือด จึงยังไม่ชัดว่าประโยชน์เท่ากันในกลุ่มนี้ ผมยังไม่แน่ใจรายละเอียดของแต่ละข้อ ควรเปิดดูตัวแนวทางโดยตรง
+
+[physician]
+ขอถามเรื่องยาหลัง stroke หน่อยครับ ควรให้ statin ไหม แล้ว antiplatelet ใช้ตัวไหนดี ช่วยสรุปเป็นข้อๆ ให้หน่อยครับ จะได้เอาไว้อ่านทบทวนทีหลัง และเอาไปเล่าให้น้องๆ ฟังได้ด้วยครับ
+
+[assistant]
+- **Statin:** ผู้ป่วย ischaemic stroke ที่มี atherosclerotic disease ควรได้ statin ขนาดสูง (ACC/AHA Cholesterol Guideline, 2018)
+- **Antiplatelet:** aspirin 162-325 mg ภายใน 24-48 ชม. ในผู้ป่วยที่ไม่ได้ alteplase ถ้าได้ alteplase ให้เลื่อนไปหลัง 24 ชม. และมี CT ซ้ำที่ไม่เห็น bleed (AHA/ASA, 2019)
+- ในรายที่มีข้อบ่งชี้ anticoagulation อยู่แล้ว เช่น AF ต้องวางแผน anticoagulant ควบคู่กัน ไม่ใช้ antiplatelet แทนโดยอัตโนมัติ
+
+[physician]
+แล้วเรื่อง rehab กับการกลืนล่ะครับ ต้องทำอะไรก่อนให้อาหารทางปากไหม และเริ่มกายภาพได้เร็วแค่ไหน อยากได้แบบที่ใช้ได้ทั่วไปครับ ที่ ward ยังไม่ค่อยมีแนวทางที่ชัดเจนให้ทีมพยาบาลทำตามกัน
+
+[assistant]
+- **การกลืน:** ควรคัดกรอง dysphagia ก่อนให้อาหารหรือยาทางปากทุกราย (AHA/ASA, 2019)
+- **Rehab:** เริ่มกายภาพและ mobilization เร็วได้ แต่การลุกเดินแบบเข้มข้นมากภายใน 24 ชม. แรกไม่แนะนำ (AHA/ASA, 2019)
+- ประเมินความเสี่ยงล้มและให้ทีม rehab ร่วมวางแผนตั้งแต่ตอนอยู่ ward
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+pt ชายที่มาด้วยแขนขาซ้ายอ่อนแรงภายใน 3 ชม. ถ้า CT ไม่เห็น bleed ก็เข้าข่ายพิจารณาให้ alteplase ได้ในช่วง window ส่วนสาเหตุของ stroke ต้องตามหาต่อด้วย ECG และภาพหลอดเลือด ผมเข้าใจว่า CT ปกติในช่วงแรกไม่ได้แปลว่าไม่ใช่ infarct หลังจากนั้นเรื่อง statin antiplatelet และ anticoagulant ต้องเลือกตามสาเหตุ แล้วต้องตรวจการกลืนก่อนให้อาหารทางปาก
+
+######## EPISODE J05 ########
+[physician]
+pt หญิงในวัย 40 กว่า G2P2 รอบเดือนมาถี่ 21-24 วัน นานรอบละ 9-10 วัน ใช้ผ้าอนามัย 6-8 ชิ้นต่อวัน เป็นแบบนี้มา 4 เดือนแล้ว UPT neg Hb 10.2 MCV 78 BP 128/82 BMI 31 เป็น DM2 on metformin 1000 mg bid HbA1c 7.1 ไม่ได้คุมกำเนิด TVUS endometrium 11 mm uterus 8.5x5.5x4 cm ovary ปกติ DDx ที่นึกอยู่มี polyp, adenomyosis, myoma, hyperplasia, anovulation รายนี้ควรทำ endometrial biopsy ไหมครับ
+
+[assistant]
+สรุปเคสได้ครบครับ ลองจัดตาม PALM-COEIN จะเห็นภาพชัดขึ้น
+
+- กลุ่มโครงสร้าง: polyp, adenomyosis, leiomyoma, malignancy/hyperplasia ส่วนกลุ่มไม่ใช่โครงสร้างมี ovulatory dysfunction เป็นต้น (FIGO PALM-COEIN, 2018)
+- ช่วงใกล้หมดประจำเดือน anovulation พบบ่อย แต่รายนี้เลือดออกมา 4 เดือน Hb 10.2 MCV 78 และมีปัจจัยเสี่ยงต่อ hyperplasia คือ BMI 31 กับ DM จึงสมเหตุผลที่จะทำ endometrial biopsy ก่อนเริ่มรักษา ไม่ต้องรอดูต่อ
+- MCV ต่ำสอดคล้องกับเสียเลือดเรื้อรัง ควรส่ง ferritin และให้ iron ควบคู่ไปด้วย
+
+ถ้าผล biopsy ปกติ ค่อยกลับมาดูสาเหตุเชิงโครงสร้างต่อจาก TVUS ครับ
+
+[physician]
+ขอถามเรื่อง adenomyosis หน่อยครับ TVUS รายนี้ uterus 8.5x5.5x4 cm ผนังหลังหนา 2.6 cm ผนังหน้า 1.7 cm myometrium ไม่ค่อยสม่ำเสมอ เข้าได้ไหม ต้องทำ MRI ต่อหรือเปล่า
+
+[assistant]
+เข้าได้ครับ
+
+- adenomyosis คือกลุ่ม A ใน PALM-COEIN (FIGO PALM-COEIN, 2018)
+- ลักษณะบน TVUS ที่ช่วยคิดถึง: มดลูกกลมโต ผนังสองข้างหนาไม่เท่ากัน myometrium ไม่สม่ำเสมอ และอาจเห็น cyst เล็ก ๆ ใต้ endometrium
+- MRI ช่วยเมื่อ TVUS ไม่ชัด หรือเมื่อต้องวางแผนผ่าตัด ถ้าอาการคุมได้ด้วยยา ไม่จำเป็นต้องทำทุกราย
+- ถ้าวินิจฉัย adenomyosis จาก TVUS ได้แล้ว ใส่ LNG-IUS ได้เลยทุกราย ไม่ต้อง biopsy ก่อน
+- LNG-IUS ช่วยลดปริมาณเลือดและอาการปวดในผู้ป่วยหลายราย
+
+[physician]
+ประโยคที่ว่าใส่ LNG-IUS ได้เลยทุกราย ไม่ต้อง biopsy ก่อน คำว่าทุกรายกว้างเกินไป ผมเดาว่าเป็นแค่ความเห็น expert ไม่ใช่ผลจาก RCT และถ้ามาจาก trial ก็น่าจะคัดผู้ป่วยที่มีโรคร่วมออกไป
+
+[assistant]
+ถูกต้องครับ ประโยคนั้นกว้างเกินไป ผมไม่ควรพูดว่าทุกราย
+
+- ในรายที่มีปัจจัยเสี่ยง เช่น อ้วน เบาหวาน หรือ endometrium หนา ควรได้ผลชิ้นเนื้อก่อนใส่ LNG-IUS เพราะ hyperplasia อาจอยู่ร่วมกับ adenomyosis ได้ และ IUS อาจบังอาการ
+- การแยก hyperplasia หรือ malignancy ต้องอาศัย histology ซึ่งเป็นกลุ่ม M ใน (FIGO PALM-COEIN, 2018)
+- ผมไม่แน่ใจว่าคำแนะนำข้อนี้ถูกจัดระดับหลักฐานไว้ระดับใด แต่ไม่ใช่ข้อที่ควรพูดว่าใช้ได้ทุกราย
+
+[physician]
+ถ้า sono เจอ polyp 1.2 cm ล่ะครับ ต้องทำ hysteroscopy ไหม ช่วยตอบสั้น ๆ พอ 3-4 บรรทัด ส่วนอื่นยังเหมือนเดิม Hb 10.2 MCV 78 endometrium 11 mm
+
+[assistant]
+ถ้า polyp ทำให้เลือดออกผิดปกติ มักตัดออกด้วย hysteroscopic polypectomy และส่ง histology ทุกครั้ง การขูดแบบไม่เห็นภาพมักตัดได้ไม่หมด polyp เป็นกลุ่ม P ใน (FIGO PALM-COEIN, 2018)
+
+- ระหว่างรอผลชิ้นเนื้อ ใช้ยาเม็ดคุมกำเนิดฮอร์โมนรวม (COC) คุมรอบเดือนได้ทุกราย เพราะเป็นยาที่ใช้ลดเลือดประจำเดือนอยู่แล้ว
+- ถ้ายังเลือดออกมาก ให้ iron ควบคู่ไปด้วยครับ
+
+[physician]
+COC ได้ทุกราย ก็เป็นอีกข้อที่ใช้กับทุกรายไม่ได้เหมือนกัน ระดับหลักฐานน่าจะเป็นความเห็นกว้าง ๆ ไม่ใช่ผลจากการศึกษา และถ้าตัวเลขมาจาก trial ก็น่าจะคัดผู้หญิงที่มีโรคร่วมออก
+
+[assistant]
+ถูกต้องครับ ผมพูดกว้างเกินไป และไม่ได้ระบุว่าอ้างจากประชากรกลุ่มไหน
+
+- COC ไม่เหมาะกับทุกราย ต้องดูปัจจัยเสี่ยง VTE, ความดันโลหิต, การสูบบุหรี่ และไมเกรนที่มี aura ก่อน ผู้ที่อ้วนร่วมกับเบาหวานต้องชั่งน้ำหนักให้รอบคอบกว่านี้
+- ทางเลือกอื่นที่ไม่มี estrogen เช่น progestin หรือ LNG-IUS (หลังได้ผลชิ้นเนื้อ) และ tranexamic acid ช่วงมีเลือดออก ก็ต้องดูข้อห้ามใช้ในผู้ที่เสี่ยงลิ่มเลือดด้วย
+- ovulatory dysfunction เป็นกลุ่ม O ที่รักษาด้วยฮอร์โมนได้ แต่ต้องเลือกยาให้เหมาะกับโรคร่วม (FIGO PALM-COEIN, 2018)
+
+[physician]
+ช่วยสรุปแผนรายนี้สั้น ๆ ให้หน่อยครับ biopsy ก่อน ส่ง ferritin ให้ iron แล้วนัด f/u 4-6 สัปดาห์ ค่าล่าสุด Hb 10.2 MCV 78 BP 128/82 BMI 31 HbA1c 7.1 endometrium 11 mm
+
+[assistant]
+สรุปแผนตามที่คุยกันครับ
+
+- ทำ endometrial biopsy ก่อนเริ่มรักษา เพราะมี BMI 31 และ DM เป็นปัจจัยเสี่ยง
+- ส่ง ferritin และให้ iron สำหรับ Hb 10.2 MCV 78
+- ถ้าผลปกติ ค่อยพิจารณาสาเหตุเชิงโครงสร้าง (adenomyosis, polyp) ตาม TVUS (FIGO PALM-COEIN, 2018)
+- เลือกยาฮอร์โมนหลังรู้ผล pathology และดูโรคร่วมของผู้ป่วยก่อน
+- นัด f/u 4-6 สัปดาห์ตามที่วางไว้ครับ
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+เคสผู้หญิงวัย 40 กว่า เลือดออกผิดปกติมา 4 เดือน แผนของผมคือ biopsy ก่อน ส่ง ferritin ให้ iron แล้วนัด f/u 4-6 สัปดาห์ ถ้าผลปกติค่อยกลับมาดู polyp กับ adenomyosis ต่อ ส่วน LNG-IUS กับ COC ที่ตอบมาว่าได้ทุกราย เป็นข้อที่ใช้กับทุกรายไม่ได้
+
+######## EPISODE J06 ########
+[physician]
+ผู้ป่วยหญิงวัย 70 กว่า ไข้ ไอมีเสมหะสีเหลือง 3 วัน เหนื่อยเวลาเดิน กินข้าวได้น้อยลง T 38.6 RR 24 BP 110/70 HR 104 SpO2 94% room air DTX 186 Hb 11.2 WBC 14,500 Cr 1.1 Na 134 K 4.1 เป็นเบาหวานกินยาอยู่ 2 ตัว ความดันอีก 1 ตัว อยู่บ้านกับลูกสาวที่ทำงานกลางวัน ต้องพิจารณาอะไรบ้างในการ admit ครับ
+
+ขอเกณฑ์ตัดสินที่ตอบไม่เกิน 6 บรรทัด แยกสองส่วน ส่วนแรกเป็นเกณฑ์ที่ใช้ได้ทันทีที่ รพ.ชุมชนตอนนี้ ส่วนที่สองเป็นเกณฑ์ที่ต้องรอผล lab ระบบนี้ไม่เห็นตัวผู้ป่วยและไม่รู้ทรัพยากรของที่นี่ ข้อจำกัดของเราคือ BUN ได้ผลพรุ่งนี้เช้า และ CXR ต้องรอเจ้าหน้าที่เอกซเรย์มาเวรบ่าย ไม่ต้องให้คำวินิจฉัย หมอตรวจเองและตัดสินใจเองว่าจะ admit หรือไม่ ขอให้ตอบเป็นข้อสั้นๆ ไม่ต้องมีหัวข้อย่อย ไม่ต้องมีคำนำ ไม่ต้องสรุปท้าย
+
+[assistant]
+**ใช้ได้ทันที**
+- CRB-65 (สับสน, RR ≥ 30, BP ต่ำ, อายุตั้งแต่ 65 ขึ้นไป) ใช้แทน CURB-65 เมื่อยังไม่มีผล urea (Lim et al., 2003)
+- SpO2 ต่ำกว่า 92% หรือหายใจเหนื่อยมาก เป็นเหตุผลให้นอนโรงพยาบาล
+- ปัจจัยด้านสังคม เช่น ดูแลตัวเองไม่ได้ หรือกินยาไม่ได้
+
+**ต้องรอผล**
+- urea สำหรับ CURB-65 เต็ม และ CXR ยืนยันปอดอักเสบ (Metlay et al., 2019)
+
+การตัดสินใจสุดท้ายขึ้นกับการตรวจร่างกายของแพทย์ครับ
+
+[physician]
+admit ไว้ก่อนครับ ปลอดภัยกว่า
+
+เรื่องยา ขอเป็นตาราง 2 ตัวเลือก คอลัมน์แรกชื่อยา คอลัมน์ที่สองขนาดยาสำหรับไตปกติ คอลัมน์ที่สามขนาดยาเมื่อ eGFR ต่ำกว่า 30 ไม่ต้องอธิบายเหตุผล ไม่ต้องใส่ทางเลือกที่สาม ไม่ต้องเขียนเป็น order เพราะหมอเขียนเอง ขนาดยาหมอจะไล่เทียบกับบัญชียาของโรงพยาบาลก่อนสั่งทุกตัว คนไข้หนักประมาณ 52 kg Cr 1.1 ถ้าต้องคิด CrCl ให้ใช้ค่านี้ ใส่ช่วงเวลาให้ยาเป็นชั่วโมงให้ชัด เช่น ทุก 8 หรือ 12 ชั่วโมง
+
+[assistant]
+ตัวเลือกสำหรับผู้ป่วยในที่ไม่ใช่ ICU (Metlay et al., 2019)
+
+| ตัวเลือก | ไตปกติ | eGFR ต่ำกว่า 30 |
+|---|---|---|
+| ceftriaxone + azithromycin | ceftriaxone 1–2 g วันละครั้ง + azithromycin 500 mg วันละครั้ง | ไม่ต้องปรับทั้งสองตัว |
+| amoxicillin/clavulanate + azithromycin | amoxicillin/clavulanate 1.2 g IV ทุก 8 ชม. + azithromycin 500 mg | ลดความถี่ของ amoxicillin/clavulanate ตามบัญชียา |
+
+โปรดตรวจขนาดยากับบัญชียาของโรงพยาบาลตามที่วางแผนไว้ครับ
+
+[physician]
+อีกเรื่องครับ ขอข้อความสั้นๆ ไว้อธิบายลูกสาวว่าทำไมแม่ต้องนอนโรงพยาบาล ภาษาชาวบ้าน 3 ประโยค ประโยคละไม่เกินหนึ่งบรรทัด ห้ามใส่ตัวเลขหรือศัพท์แพทย์ น้ำเสียงไม่ให้ตกใจ เดี๋ยวหมออ่านแล้วปรับเป็นคำของหมอเองก่อนพูด ลูกสาวต้องลางาน 2 3 วัน ให้มีประโยคที่บอกว่าช่วงแรกสำคัญที่สุดด้วย
+
+[assistant]
+ตัวอย่างข้อความครับ
+
+1. แม่เป็นปอดอักเสบ และตอนนี้หายใจเหนื่อยกว่าปกติ หมอจึงอยากให้อยู่ใกล้ทีมดูแลตลอดเวลา
+2. ที่โรงพยาบาลจะได้ยาฆ่าเชื้อทางเส้นเลือด และวัดออกซิเจนได้ทุกช่วง
+3. ผู้สูงอายุที่เป็นเบาหวานอาจทรุดลงเร็ว การนอนโรงพยาบาลช่วงแรกจึงปลอดภัยกว่าการรอดูที่บ้าน
+
+การนอนโรงพยาบาลเมื่อมีภาวะออกซิเจนต่ำเป็นไปตามคำแนะนำมาตรฐานครับ (Metlay et al., 2019)
+
+[physician]
+เรียบร้อยครับ ขนาดยาหมอไล่เทียบกับบัญชียาของ รพ. แล้วตรงทั้งสองตัวเลือก ส่วนข้อความถึงลูกสาว หมอจะพูดเองด้วยภาษาของหมอ ไม่ได้ copy ไปวางที่ไหน ตอนนี้ให้ยาเข็มแรกไปแล้วเวลา 14:30 นัดประเมินซ้ำพรุ่งนี้ 8 โมง
+
+[assistant]
+ดีมากครับ การเทียบขนาดยากับบัญชียาของโรงพยาบาลก่อนสั่ง และสื่อสารกับญาติด้วยคำของแพทย์เอง เป็นแนวปฏิบัติที่เหมาะสม หลังให้ยาควรประเมินอาการซ้ำภายใน 48–72 ชั่วโมงเพื่อดูการตอบสนองครับ (Metlay et al., 2019)
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ทบทวนเรื่องปอดอักเสบ มีประโยชน์ครับ
+
+######## EPISODE J07 ########
+[physician]
+Man in his 40s, first episode of moderate depression, long-haul truck driver, insomnia is his worst symptom. Mirtazapine or sertraline first, given the night driving? Compare just those two, briefly.
+
+[assistant]
+- Mirtazapine would help his sleep fastest, but it is sedating and promotes weight gain, which matters when he drives at night.
+- Sertraline is not sedating, although SSRIs can worsen sleep and cause jitteriness in the first days.
+- Sertraline and escitalopram sit near the top for both efficacy and acceptability among antidepressants (Cipriani et al. Lancet, 2018).
+- A generic SSRI is the usual first choice for a first episode (NICE NG222, 2022).
+❓ How would you manage his sleep over the first fortnight if you start an SSRI?
+
+[physician]
+Sedation at the wheel rules mirtazapine out. You said SSRIs can worsen sleep early; I'd accept a rough fortnight over a drowsy driver. Sertraline first, escitalopram if gut upset puts him off.
+
+[assistant]
+- That ranking is sound: sertraline more often causes GI upset or loose stools early on, so escitalopram is a sensible second.
+- Warn him that jitteriness and poor sleep usually fade within days to a couple of weeks, and review him within about 2 weeks (NICE NG222, 2022).
+❓ If he is no better at that review, what would you do?
+
+[physician]
+Benefit lags, so I'd hold to 4 weeks on a full dose before switching, unless side effects stop him working.
+
+[assistant]
+- Waiting is reasonable, but week 2 is a checkpoint, not a formality: little or no change by then makes a later response less likely. Check adherence and side effects, and consider a dose increase, before switching (NICE NG222, 2022).
+- If he does respond, continue for at least 6 months after remission (NICE NG222, 2022).
+❓ He is taking it properly at 2 weeks and feels nothing: which would you try first, a higher dose or a different drug?
+
+[physician]
+I'd planned to just wait; since early change predicts response, I'll titrate at 2 weeks instead. Back to your first answer: sertraline and escitalopram near the top is adult trial data at about 8 weeks, isn't it?
+
+[assistant]
+Fair challenge.
+- That network analysis covered adults in acute-phase trials, mostly around 8 weeks, with response as the main outcome (Cipriani et al. Lancet, 2018).
+- It says little about staying well over 6 months, and the gaps between the top drugs are small, so the ranking is a weak tie-breaker, not a prescription for him.
+- Tolerability and his own situation carry more weight here.
+❓ If the ranking is weak, which of your reasons for sertraline still stand?
+
+[physician]
+Sedation and tolerability still stand; the league table doesn't. Same test for 6 months after remission: from trials comparing durations, or consensus?
+
+[assistant]
+- Mostly consensus. The continuation trials compared staying on the drug against switching to placebo, and showed fewer relapses on continuation; I'm not aware of a trial that tests 6 months against longer courses head to head.
+- The guideline figure is a minimum, not an optimum (NICE NG222, 2022).
+❓ What in his history would make you continue longer than that?
+
+[physician]
+Residual symptoms at remission, or an earlier episode I haven't asked about, would push me past 6 months. Then I'd stop slowly, not abruptly.
+
+[assistant]
+- Both are good reasons: residual symptoms and previous episodes mark higher relapse risk, and guidance supports continuing longer in that group (NICE NG222, 2022).
+- Gradual tapering is also right, to reduce discontinuation symptoms (NICE NG222, 2022).
+❓ How would you tell a stopping reaction from a relapse?
+
+[physician]
+Short answer please: how do I tell stopping symptoms from relapse once he's tapering?
+
+[assistant]
+- Discontinuation symptoms (dizziness, irritability, electric-shock sensations, poor sleep) tend to start within days of the last dose and ease quickly if the dose is restored.
+- Relapse builds more gradually over weeks and looks like his original depression.
+- Taper slowly and review him during it (NICE NG222, 2022).
+❓ What would you tell him to do if he feels these symptoms while driving?
+
+[physician]
+He's alone on the road for days. If he runs out or misses doses, what should he know?
+
+[assistant]
+- Tell him not to stop suddenly and to carry a spare supply; discontinuation reactions are reported more often with paroxetine and venlafaxine than with sertraline, but missed doses can still cause them (NICE NG222, 2022).
+- Ask directly about suicidal thoughts at every review, especially early in treatment; a structured tool can help (Columbia Suicide Severity Rating Scale, Posner et al., 2011).
+❓ At the 2-week review, which question would you ask first, and what answer would change your plan?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+For this driver I chose sertraline over mirtazapine because drowsiness at the wheel outweighs the sleep benefit. The drug ranking comes from short acute-phase trials, so it only broke a tie. Early side effects fade, the 2-week review is the checkpoint, treatment runs at least 6 months past remission, and the taper should be slow.
+

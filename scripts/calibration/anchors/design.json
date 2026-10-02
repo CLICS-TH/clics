@@ -735,7 +735,14 @@
         "d6": 4,
         "d7": 4
       },
-      "target_composite": 68
+      "target_composite": 68,
+      "excluded": {
+        "date": "2026-10-02",
+        "reason": "rewritten once (46e1711) and still over-expressed by the batch-3 blind panel (+19 > 15; first write +18 in batch 1); §7.4: excluded and replaced",
+        "replaced_by": "anc-102",
+        "archived_fixture": "fixtures/excluded/anc-027.json",
+        "sha256": "03609d4dfd6b5b265099927f18afb065ddaa591ef59e3d69dc9a0296faa9d704"
+      }
     },
     {
       "id": "anc-028",
@@ -2709,6 +2716,35 @@
       },
       "target_composite": 30,
       "replaces": "anc-015"
+    },
+    {
+      "id": "anc-102",
+      "pilot": false,
+      "language": "en",
+      "specialty": {
+        "key": "im",
+        "en": "Internal Medicine",
+        "th": "อายุรศาสตร์"
+      },
+      "case": "community-acquired pneumonia in an older adult — admit or treat at home",
+      "tutor_mode": "examiner",
+      "physician_turns": 6,
+      "reflection": "reflection_turn",
+      "profile": "dissociated",
+      "dissociated_domains": [
+        "d2"
+      ],
+      "targets": {
+        "d1": 3,
+        "d2": 1,
+        "d3": 5,
+        "d4": 3,
+        "d5": 5,
+        "d6": 4,
+        "d7": 4
+      },
+      "target_composite": 68,
+      "replaces": "anc-027"
     }
   ]
 }

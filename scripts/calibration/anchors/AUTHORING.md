@@ -524,6 +524,28 @@ The rule from now on:
    although batch 1 was written under the pilot lesson "write lower". The general lesson went into the
    brief (§7 there) before batch 3 was written, and no batch-1 anchor was rewritten on its strength.
    Decoys: anc-016 93/90 and anc-008 17/17 (sonnet/opus), inside their earlier range.
+9. **Cohort batch 3 and the batch-1 rewrites (2026-10-02).** The panel rated batch 3's 3 tuning
+   anchors (first write), the rewrites of anc-027 and anc-064, and 2 unchanged pilot decoys
+   (`pilot/batch-3/`, `analyse-b3.mjs`). For every non-decoy this was the deciding round of its text.
+   - anc-023 (+4) and anc-097 (+2) stay. anc-024 (+21) uses its one rewrite.
+   - The anc-064 rewrite reads +2 and stays.
+   - The anc-027 rewrite still reads +19, so under §7.4 anc-027 is **excluded and replaced** by anc-102.
+     The row is unchanged and was the same dissociated d2 = 1 beside d3 = 5 and d5 = 5. Its text is
+     archived at `fixtures/excluded/anc-027.json`, with the sha256 in `design.mjs` REPLACEMENTS.
+   - Decoys: anc-018 72/70 and anc-005 49/46, inside their earlier range.
+   - **The first exclusion after the split was reserved exposed two bugs, fixed in this PR:**
+     - **The batch plan.** It re-drew every batch from the active rows, so the exclusion would have
+       reshuffled batches 1 and 3, which were already written. It now plans over the design's original
+       slots. A replacement takes its slot's batch and cue budget, and its row does not say what it
+       replaces, because only a tuning anchor is ever replaced.
+     - **`checkSplit`.** It rejected any split that listed an excluded anchor. That contradicted
+       `splitFilter`, which lets a later replacement inherit its predecessor's split, and the split
+       is never rewritten (D13). It now rejects only an excluded **held-out** anchor, or a replacement
+       listed on the other side from its predecessor. One older test asserted the broad rule and was
+       updated to the narrow one, with a comment saying why.
+   - Brief: a batch-3 lesson was added (one context factor that decides the plan reads as d3 4–5;
+     format steering reads as d7 4–5). Anchor ids were taken out of the brief's lessons, because
+     naming them tells authors which anchors are tuning.
 
 ## 8. Pipeline and commands
 

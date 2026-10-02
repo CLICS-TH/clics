@@ -33,7 +33,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { rng, DOMAINS, loadDesign, activeAnchors } from './design.mjs';
+import { rng, DOMAINS, loadDesign } from './design.mjs';
 
 export const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const BATCHES_PATH = path.join(HERE, 'batches.json');
@@ -64,8 +64,20 @@ export const BUDGET_TEXT = {
 export const EXTRA_REVIEW = 'd4 <= 1 with d5 >= 4: the hardest combination to write (pilot: anc-015 excluded, anc-101 needed its rewrite). Written last in the batch; the coordinator reads it before intake.';
 export const needsExtraReview = (r) => r.targets.d4 <= 1 && r.targets.d5 >= 4;
 
-const nonPilot = (design) => activeAnchors(design).filter((a) => !a.pilot)
+// The plan is made over the design's ORIGINAL non-pilot slots: an anchor excluded under §7.4 keeps its
+// slot, and a replacement row (`replaces`) is left out. Planning over the active rows instead would
+// re-draw every batch on each exclusion, reshuffling batches that are already written.
+const nonPilot = (design) => design.anchors.filter((a) => !a.pilot && !a.replaces)
   .sort((x, y) => (x.target_composite - y.target_composite) || x.id.localeCompare(y.id));
+
+/** The active anchor now holding an original slot: follows replaced_by through any later exclusion. */
+function holderOf(design, id) {
+  const byId = new Map(design.anchors.map((a) => [a.id, a]));
+  let a = byId.get(id);
+  for (let guard = 0; a?.excluded && guard < 100; guard++) a = byId.get(a.excluded.replaced_by);
+  if (!a || a.excluded) throw new Error(`slot ${id}: no active holder in the design`);
+  return a;
+}
 
 /** Balanced, seeded assignment of one feature's levels along the composite order. */
 function assignLevels(rows, levels, R) {
@@ -110,8 +122,12 @@ export function planBatches(design, { seed = BATCH_SEED } = {}) {
   for (const r of rows) budgets[r.id].rubric_echo = 0;
   const batches = [...Array(N_BATCHES).keys()].map((b) => ({
     batch: b + 1,
-    rows: rows.filter((r) => batchOf[r.id] === b)
-      .sort((x, y) => (needsExtraReview(x) - needsExtraReview(y)) || x.id.localeCompare(y.id)).map((r) => ({
+    // A §7.4 replacement takes over its slot's batch and cue budget. Its attributes are the excluded
+    // row's (design.mjs copies every one), so the author's row is unchanged but for the id. The row does
+    // not say what it replaces: only a tuning anchor is ever replaced, so that would reveal the split.
+    rows: rows.filter((r) => batchOf[r.id] === b).map((slot) => ({ slot, r: holderOf(design, slot.id) }))
+      .sort((x, y) => (needsExtraReview(x.r) - needsExtraReview(y.r)) || x.r.id.localeCompare(y.r.id)).map(({ slot, r }) => {
+        return {
       id: r.id,
       language: r.language,
       specialty: r.specialty,
@@ -123,9 +139,10 @@ export function planBatches(design, { seed = BATCH_SEED } = {}) {
       dissociated_domains: r.dissociated_domains,
       targets: r.targets,
       target_composite: r.target_composite,
-      cue_budget: budgets[r.id],
+      cue_budget: budgets[slot.id],
       ...(needsExtraReview(r) ? { extra_review: EXTRA_REVIEW } : {}),
-    })),
+        };
+      }),
   }));
   return {
     seed,

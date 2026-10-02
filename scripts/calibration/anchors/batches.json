@@ -6,40 +6,6 @@
       "batch": 1,
       "rows": [
         {
-          "id": "anc-027",
-          "language": "en",
-          "specialty": {
-            "key": "im",
-            "en": "Internal Medicine",
-            "th": "อายุรศาสตร์"
-          },
-          "case": "community-acquired pneumonia in an older adult — admit or treat at home",
-          "tutor_mode": "examiner",
-          "physician_turns": 6,
-          "reflection": "reflection_turn",
-          "profile": "dissociated",
-          "dissociated_domains": [
-            "d2"
-          ],
-          "targets": {
-            "d1": 3,
-            "d2": 1,
-            "d3": 5,
-            "d4": 3,
-            "d5": 5,
-            "d6": 4,
-            "d7": 4
-          },
-          "target_composite": 68,
-          "cue_budget": {
-            "length": "short",
-            "ack_turns": 1,
-            "numerals": "few",
-            "list_lines": "some",
-            "rubric_echo": 0
-          }
-        },
-        {
           "id": "anc-034",
           "language": "th",
           "specialty": {
@@ -327,6 +293,40 @@
           "target_composite": 21,
           "cue_budget": {
             "length": "long",
+            "ack_turns": 1,
+            "numerals": "few",
+            "list_lines": "some",
+            "rubric_echo": 0
+          }
+        },
+        {
+          "id": "anc-102",
+          "language": "en",
+          "specialty": {
+            "key": "im",
+            "en": "Internal Medicine",
+            "th": "อายุรศาสตร์"
+          },
+          "case": "community-acquired pneumonia in an older adult — admit or treat at home",
+          "tutor_mode": "examiner",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d2"
+          ],
+          "targets": {
+            "d1": 3,
+            "d2": 1,
+            "d3": 5,
+            "d4": 3,
+            "d5": 5,
+            "d6": 4,
+            "d7": 4
+          },
+          "target_composite": 68,
+          "cue_budget": {
+            "length": "short",
             "ack_turns": 1,
             "numerals": "few",
             "list_lines": "some",
