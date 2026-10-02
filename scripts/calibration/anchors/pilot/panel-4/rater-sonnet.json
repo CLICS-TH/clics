@@ -1,0 +1,8 @@
+{"rater":"sonnet","scores":{
+"G01":{"d1":5,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"Fact/unknown/limit split, checked guideline source, 60 km distance shaped drug choice, case-grounded synthesis."},
+"G02":{"d1":2,"d2":1,"d3":2,"d4":1,"d5":5,"d6":1,"d7":4,"note":"Rich vitals but generic topic-hopping questions; strong end appraisal of evidence; reflection generic 'learned a lot'."},
+"G03":{"d1":1,"d2":1,"d3":1,"d4":2,"d5":1,"d6":1,"d7":1,"note":"Scripted textbook asks, list-all causes, no critique, wants chart-ready plan; generic summary."},
+"G04":{"d1":2,"d2":2,"d3":1,"d4":2,"d5":1,"d6":1,"d7":2,"note":"Exam-review textbook requests; one reasoned timing paraphrase; slide copy; uncritical; 'learned a lot' reflection."},
+"G05":{"d1":4,"d2":3,"d3":4,"d4":4,"d5":3,"d6":1,"d7":3,"note":"Sharp thiazide-vs-SIADH urine Na question; isolation/travel changed recheck plan; asked guideline support; generic reflection."},
+"G06":{"d1":5,"d2":4,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Island/fasting context drove choices, asked AI to argue against plan, verifies label, owns dosing, explicit changed-approach synthesis."}
+}}

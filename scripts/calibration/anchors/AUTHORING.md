@@ -448,6 +448,11 @@ The rule from now on:
    *first* rated. A later re-rating of identical text (a decoy) is a stability check, recorded but
    never a rewrite trigger. This was decided after round 3 showed decoy anc-018 at +16 (+12 in round
    2, text unchanged); it is written down here so it cannot be chosen again case by case.
+7. **Round 4 (same day).** anc-101's rewrite reads +14, so it stays. Its d7 still reads 1–2 levels
+   high. No panel rewrite is outstanding: 0 of 20 active pilot anchors are beyond ±15 on their deciding
+   round, so the pilot proceeds under §7.6. Re-ratings of identical text drifted up to 10 composite
+   points between rounds, so verdicts near the line are noise-limited. `PILOT-REPORT.md` reports the
+   pooled Δ beside the deciding one, and that changes no decision.
 
 ## 8. Pipeline and commands
 
