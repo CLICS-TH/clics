@@ -1,0 +1,66 @@
+{
+  "ple_id": "anc-066",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "ผู้ป่วยชายวัย 50 กว่า เจ็บหน้าอกมา 2 ชม. มาถึงแผนกฉุกเฉินตอนเช้า BP 142/88 HR 96 RR 20 SpO2 97% BT 36.8 ECG แรกไม่มี ST elevation โรคนี้รักษายังไงครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "เคสนี้ต้องคิดถึง NSTE-ACS เป็นหลักจนกว่าจะตัดออกได้ ECG แรกที่ไม่ diagnostic ไม่ได้ตัด ACS ออก\n- ทำ ECG ซ้ำและเทียบกับใบแรก โดยเฉพาะถ้ายังเจ็บอยู่\n- เจาะ hs-troponin แบบ serial (0/1 ชม. หรือ 0/2 ชม.) เพราะ onset แค่ 2 ชม. ค่าแรกอาจยังไม่ขึ้น (ESC ACS guidelines, 2023)\n- ให้ aspirin และยาแก้ปวดตามอาการ\n- ประเมินความเสี่ยงต่อด้วย HEART score เพื่อแยกกลุ่มที่ปลอดภัยพอจะ discharge ออกจากกลุ่มที่ต้อง admit\nถ้า trop สูงขึ้นหรือ ECG เปลี่ยนก็เข้าทาง NSTEMI และปรึกษา cardiologist ต่อ (ESC ACS guidelines, 2023)"
+    },
+    {
+      "role": "physician",
+      "content": "ok ครับ pt เป็น DM HTN กิน metformin 1000 mg amlodipine 5 mg Cr 1.1 eGFR 72 LDL 130 สูบบุหรี่ 20 มวนต่อวัน\nDDx ที่นึกได้\n- ACS\n- PE\n- aortic dissection\n- pericarditis\nควรส่งตรวจอะไรเพิ่มบ้างครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "DDx ที่ต้องไม่พลาดในผู้ป่วยเจ็บหน้าอกคือ ACS, PE, aortic dissection, tension pneumothorax และ esophageal rupture ส่วน pericarditis, GERD, MSK ตามมาทีหลัง (ESC ACS guidelines, 2023)\nตรวจเพิ่มที่คุ้มค่า:\n- CXR ดู mediastinum และ pneumothorax\n- CBC, BUN/Cr, electrolytes, glucose\n- hs-troponin ตามเวลา ไม่ใช่ครั้งเดียว\n- bedside echo ถ้ามี ดู wall motion และ pericardial effusion\nถ้า pain ร้าวไปหลังหรือ BP สองแขนต่างกันมาก ให้ขยับ dissection ขึ้นมาก่อนจะให้ยาต้านเกล็ดเลือดเพิ่ม"
+    },
+    {
+      "role": "physician",
+      "content": "aspirin 300 mg กับ clopidogrel 75 mg ให้ยังไงครับ load 300 หรือ 600 ดี ผมไม่ค่อยมั่นใจเรื่อง dose"
+    },
+    {
+      "role": "assistant",
+      "content": "- Aspirin: load 150-300 mg ทางปากแบบเคี้ยว แล้วต่อด้วย 75-100 mg ต่อวัน (ESC ACS guidelines, 2023)\n- Clopidogrel: ใน NSTE-ACS ที่วางแผน invasive เร็ว ไม่แนะนำให้ pretreat ด้วย P2Y12 เป็นประจำ จึงยังไม่ต้องรีบ load 300 หรือ 600 mg ตอนนี้ (ESC ACS guidelines, 2023)\n- ถ้ายังไม่ยืนยัน NSTEMI ให้ aspirin ก่อน รอ trop ซ้ำ แล้วคุยกับ cardiologist เรื่องเลือก P2Y12 และ dose ตาม strategy ที่ รพ. ทำได้"
+    },
+    {
+      "role": "physician",
+      "content": "HEART score อธิบายเพิ่มหน่อยครับ แต่ละตัวให้ 0 1 2 ยังไง ผู้ป่วยรายนี้ trop ครั้งแรก 12 ng/L ครั้งที่สอง 14 ng/L ที่ 3 ชม. มี DM HTN สูบบุหรี่"
+    },
+    {
+      "role": "assistant",
+      "content": "HEART score มี 5 ตัวแปร ตัวละ 0-2 คะแนน: History, ECG, Age, Risk factors, Troponin\n- History: ไม่น่าสงสัย 0 / สงสัยปานกลาง 1 / สงสัยสูง 2\n- ECG: ปกติ 0 / non-specific repolarisation 1 / ST deviation 2\n- ช่วงวัยของผู้ป่วย: ไม่ถึง 45 = 0, 45 ถึง 64 = 1, 65 ขึ้นไป = 2\n- Risk factors: ไม่มี 0 / 1-2 ตัว 1 / 3 ตัวขึ้นไปหรือมี atherosclerotic disease 2\n- Troponin: ไม่เกิน cutoff 0 / 1-3 เท่า 1 / มากกว่า 3 เท่า 2\nรวม 0-3 = ต่ำ, 4-6 = กลาง, 7-10 = สูง (HEART score, 2008) ส่วน trop 12 และ 14 ต้องดู cutoff ของ assay ที่ รพ. ใช้ก่อนให้คะแนน"
+    },
+    {
+      "role": "physician",
+      "content": "โอเค HEART 0-3 ที่ว่าเสี่ยง MACE ต่ำ มาจาก study ไหนครับ ทำในคนกลุ่มไหน ขอ ref ด้วย ผู้ป่วยรายนี้ได้ 5 คะแนน จะใช้ได้ไหม"
+    },
+    {
+      "role": "assistant",
+      "content": "ประเด็นที่ควรรู้:\n- HEART score derive ครั้งแรกจากผู้ป่วยเจ็บหน้าอกที่แผนกฉุกเฉินศูนย์เดียว (HEART score, 2008)\n- หลังจากนั้นมี validate แบบ prospective หลายศูนย์ในผู้ป่วยเจ็บหน้าอกที่มาแผนกฉุกเฉิน และกลุ่ม 0-3 มี MACE ต่ำ (HEART score, 2013)\n- ข้อควรระวัง: คะแนนนี้ไม่ได้ออกแบบมาสำหรับ ST elevation หรือผู้ป่วย unstable และผลขึ้นกับ troponin assay ที่ใช้ จึงต้องใช้ร่วมกับ serial trop ไม่ใช่แทนที่\n- ผู้ป่วยรายนี้ได้ 5 คะแนน อยู่กลุ่มกลาง ไม่เข้ากลุ่มที่ discharge เร็วได้ (HEART score, 2013)\nส่วนตัวเลข MACE ที่แน่นอนผมยังไม่แน่ใจ ควรเปิดดูจากต้นฉบับ"
+    },
+    {
+      "role": "physician",
+      "content": "สรุป plan ทั้งหมดให้หน่อยครับ ผู้ป่วย trop 12 เป็น 14 ng/L ECG ซ้ำที่ 30 นาทีไม่เปลี่ยน pain score 4 จาก 10 BP 138/84 HR 88"
+    },
+    {
+      "role": "assistant",
+      "content": "สรุปคร่าว ๆ จากข้อมูลที่ส่งมา:\n- ECG ซ้ำไม่เปลี่ยน ส่วน trop 12 เป็น 14 ต้องตีความด้วย cutoff และ delta ของ assay ที่ รพ. ใช้ ถ้าเพิ่มเกิน delta ที่กำหนดถือว่าเข้า NSTEMI (ESC ACS guidelines, 2023)\n- HEART 5 คะแนน = กลุ่มกลาง จึง observe หรือ admit และเจาะ trop ซ้ำที่ 3 ชม. พร้อมปรึกษา cardiologist\n- ให้ aspirin แล้ว เริ่ม high-intensity statin และยาแก้ปวดตามอาการ\n- ถ้ากลับเจ็บซ้ำหรือ ECG เปลี่ยน ให้ทำ ECG ทันที\nทั้งหมดเป็นแนวทางทั่วไป ต้องปรับตามผู้ป่วยจริงที่เตียง"
+    },
+    {
+      "role": "physician",
+      "content": "statin ใช้ตัวไหนขนาดเท่าไหร่ครับ atorvastatin 40 หรือ 80 mg LDL 130 HDL 38 TG 190"
+    },
+    {
+      "role": "assistant",
+      "content": "ใน ACS แนะนำเริ่ม high-intensity statin เร็ว เช่น atorvastatin 40-80 mg โดยไม่ต้องรอผล lipid (ESC ACS guidelines, 2023)\n- เป้า LDL-C ต่ำกว่า 55 mg/dL และลดลงอย่างน้อย 50% จากค่าเดิม (ESC dyslipidaemia guidelines, 2019)\n- LDL 130 ของผู้ป่วยรายนี้ ควรเช็กซ้ำที่ 4-6 สัปดาห์ และพิจารณาเติม ezetimibe ถ้ายังไม่ถึงเป้า (ESC dyslipidaemia guidelines, 2019)"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nได้ความรู้เยอะมาก ขอบคุณครับ"
+    }
+  ]
+}

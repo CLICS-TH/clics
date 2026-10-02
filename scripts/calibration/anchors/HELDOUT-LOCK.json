@@ -1,0 +1,12 @@
+{
+  "note": "sha256 of every held-out anchor fixture, recorded at intake by validate.mjs. A locked fixture never changes (AUTHORING.md §7.5); no held-out anchor is scored before all are locked (§9). Never edit by hand.",
+  "split_seed": 20261005,
+  "held_out_total": 60,
+  "locked": {
+    "anc-034": "48bfe858982f74cc7910c03cad8720e58eaba7a50e982ae29b0e0e727697ec9f",
+    "anc-063": "92d02a03d3b496dd5a47fc8154df9a3084179b2710f3e23b2d9e2fb52854a7a8",
+    "anc-065": "0ae3bf91080cec8e4b028fcc66f53a2cc7c9492f93fca69cefe25e6cc98e4d43",
+    "anc-066": "3b793e302d57e714f8f42e720536a01e7d99c24dc1e901e42cb33dc48985bd05",
+    "anc-098": "0d77926a1af97c2530ce89d599b361c7adb8447c5f60077766d15099e2c9625d"
+  }
+}

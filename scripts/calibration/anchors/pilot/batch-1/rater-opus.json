@@ -1,0 +1,9 @@
+{"rater":"opus","scores":{
+"H01":{"d1":4,"d2":3,"d3":4,"d4":3,"d5":4,"d6":3,"d7":4,"note":"Caught 2 overgeneralisations: 'adenomyosis กับ hyperplasia เจอร่วมกันได้ ส่วน IUS ...บังสัญญาณเตือน' and COC VTE w/ BMI31 DM2; DDx unranked; reflection restates plan, no next action"},
+"H02":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"'ที่รู้แน่...ที่ยังไม่รู้...ข้อจำกัด'; opened Endocrine Soc 2019 and found eGFR<30 claim unsupported; 60 km distance drives drug choice; reflection names change + OPD audit"},
+"H03":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":1,"d7":5,"note":"Challenged BRIDGE population (CHADS2~2), revised bridge->no bridge since stroke 5 mo > 12 wk exclusion; eGFR/distance/cost weighed; reflection only 'ได้ความรู้เยอะมาก ขอบคุณครับ'"},
+"H04":{"d1":3,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"Sorted CURB-65 into solid/untested/blind spot -> admit; pharmacy stock, no CT, night nurses can't get urea shape plan; checked guideline text; reflection names change+uncertainty+action"},
+"H05":{"d1":4,"d2":4,"d3":3,"d4":4,"d5":1,"d6":5,"d7":3,"note":"Ranked white-coat > primary > secondary, revised to two-tier plan; but 'ที่แนะนำมาทั้งหมดผมใช้ตามนั้นเลย ไม่มีอะไรจะถามเพิ่ม' = no appraisal; strong reflection with concrete actions"},
+"H06":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":0,"d6":1,"d7":1,"note":"Templated 'complete overview 1-5', generic 'normal value of procalcitonin', topic-hopping, 'write the management plan...so I can copy it into the chart'; boilerplate summary"},
+"H07":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Ranked ACL>meniscus>plateau fx w/ reasons; 'ที่ validate แล้วคือจับ fracture...ตอนแรกพูดกว้างไปไหม'; 'tutor ยืนยันแทนไม่ได้'; driver/far/ortho 2h -> hold film+callback; chart audit"}
+}}

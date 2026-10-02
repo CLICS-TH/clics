@@ -517,6 +517,13 @@ The rule from now on:
    failure gives 1 of 20, and the verdict is unchanged. Re-ratings of identical text drifted up to 10 composite
    points between rounds, so verdicts near the line are noise-limited. `PILOT-REPORT.md` reports the
    pooled Δ beside the deciding one, and that changes no decision.
+8. **Cohort batch 1 (2026-10-02).** The panel rated the 5 batch-1 tuning anchors (first write, the
+   deciding round) among 2 unchanged pilot decoys (`pilot/batch-1/`, `analyse-b1.mjs`). The 5 held-out
+   batch-1 anchors were not rated (§9). anc-027 is at +18 and anc-064 at +21, so each uses its single
+   rewrite (§7.4). anc-059 (+7), anc-078 (+9) and anc-090 (+13) stay. All 5 read high (mean +13.5),
+   although batch 1 was written under the pilot lesson "write lower". The general lesson went into the
+   brief (§7 there) before batch 3 was written, and no batch-1 anchor was rewritten on its strength.
+   Decoys: anc-016 93/90 and anc-008 17/17 (sonnet/opus), inside their earlier range.
 
 ## 8. Pipeline and commands
 

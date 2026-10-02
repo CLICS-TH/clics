@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-027.json",
+      "id": "anc-027",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "- A CURB-65 of 0 or 1 means home treatment is appropriate (CURB-65, Lim et al., 2003).",
+      "citation_on_claim": true,
+      "corrected_in_turn": 3,
+      "note": "True in its derivation population (hospital cohorts) but stated without limits for a frail older woman living alone; turn 3 concedes the score has no oxygen, frailty or home-circumstance term and defers to clinical judgment."
+    }
+  ]
+}

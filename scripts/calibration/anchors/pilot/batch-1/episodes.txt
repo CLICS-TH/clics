@@ -1,0 +1,625 @@
+######## EPISODE H01 ########
+[physician]
+pt หญิงในวัย 40 กว่า G2P2 รอบเดือนมาถี่ 21-24 วัน นานรอบละ 9-10 วัน ใช้ผ้าอนามัย 6-8 ชิ้นต่อวัน เป็นแบบนี้มา 4 เดือนแล้ว UPT neg Hb 10.2 MCV 78 BP 128/82 BMI 31 เป็น DM2 on metformin 1000 mg bid HbA1c 7.1 ไม่ได้คุมกำเนิด TVUS endometrium 11 mm uterus 8.5x5.5x4 cm ovary ปกติ DDx ที่นึกอยู่มี polyp, adenomyosis, myoma, hyperplasia, anovulation รายนี้ควรทำ endometrial biopsy เลยไหมครับ หรือรอดู f/u 1-2 รอบก่อน
+
+[assistant]
+สรุปเคสได้ครบครับ ลองจัดตาม PALM-COEIN จะเห็นภาพชัดขึ้น
+
+- กลุ่มโครงสร้าง: polyp, adenomyosis, leiomyoma, malignancy/hyperplasia ส่วนกลุ่มไม่ใช่โครงสร้างมี ovulatory dysfunction เป็นต้น (FIGO PALM-COEIN, 2018)
+- ช่วงใกล้หมดประจำเดือน anovulation พบบ่อย แต่รายนี้เลือดออกมา 4 เดือน Hb 10.2 MCV 78 และมีปัจจัยเสี่ยงต่อ hyperplasia คือ BMI 31 กับ DM จึงสมเหตุผลที่จะทำ endometrial biopsy ก่อนเริ่มรักษา ไม่ต้องรอดูต่อ
+- MCV ต่ำสอดคล้องกับเสียเลือดเรื้อรัง ควรส่ง ferritin และให้ iron ควบคู่ไปด้วย
+
+ถ้าผล biopsy ปกติ ค่อยกลับมาดูสาเหตุเชิงโครงสร้างต่อจาก TVUS ครับ
+
+[physician]
+ขออธิบายเรื่อง adenomyosis เพิ่มอีกหน่อยครับ TVUS รายนี้ uterus 8.5x5.5x4 cm ผนังหลังหนา 2.6 cm ผนังหน้า 1.7 cm myometrium ไม่ค่อยสม่ำเสมอ แบบนี้เข้าได้ไหม ต้องทำ MRI ต่อหรือเปล่า
+
+[assistant]
+เข้าได้ครับ
+
+- adenomyosis คือกลุ่ม A ใน PALM-COEIN (FIGO PALM-COEIN, 2018)
+- ลักษณะบน TVUS ที่ช่วยคิดถึง: มดลูกกลมโต ผนังสองข้างหนาไม่เท่ากัน myometrium ไม่สม่ำเสมอ และอาจเห็น cyst เล็ก ๆ ใต้ endometrium
+- MRI ช่วยเมื่อ TVUS ไม่ชัด หรือเมื่อต้องวางแผนผ่าตัด ถ้าอาการคุมได้ด้วยยา ไม่จำเป็นต้องทำทุกราย
+- ถ้าวินิจฉัย adenomyosis จาก TVUS ได้แล้ว ใส่ LNG-IUS ได้เลยทุกราย ไม่ต้อง biopsy ก่อน
+- LNG-IUS ช่วยลดปริมาณเลือดและอาการปวดในผู้ป่วยหลายราย
+
+[physician]
+ประโยคที่ว่าใส่ LNG-IUS ได้เลยทุกราย ไม่ต้อง biopsy ก่อน ผมว่ากว้างเกินไป และบรรทัดนั้นไม่มี source กำกับ adenomyosis กับ hyperplasia เจอร่วมกันได้ ส่วน IUS ทำให้เลือดน้อยลงจนอาจบังสัญญาณเตือน รายที่ endometrium 11 mm BMI 31 HbA1c 7.1 แบบนี้ น่าจะเป็นแค่ความเห็น expert ไม่ใช่ผลจาก RCT ใช่ไหมครับ
+
+[assistant]
+ถูกต้องครับ ประโยคนั้นกว้างเกินไป ผมไม่ควรพูดว่าทุกราย
+
+- ในรายที่มีปัจจัยเสี่ยง เช่น อ้วน เบาหวาน หรือ endometrium หนา ควรได้ผลชิ้นเนื้อก่อนใส่ LNG-IUS เพราะ hyperplasia อาจอยู่ร่วมกับ adenomyosis ได้ และ IUS อาจบังอาการ
+- การแยก hyperplasia หรือ malignancy ต้องอาศัย histology ซึ่งเป็นกลุ่ม M ใน (FIGO PALM-COEIN, 2018)
+- ผมไม่แน่ใจว่าคำแนะนำข้อนี้ถูกจัดระดับหลักฐานไว้ระดับใด แต่ไม่ใช่ข้อที่ควรพูดว่าใช้ได้ทุกราย
+
+[physician]
+ถ้า sono เจอ polyp 1.2 cm ล่ะครับ ต้องทำ hysteroscopy ไหม ช่วยตอบสั้น ๆ พอ 3-4 บรรทัด
+
+[assistant]
+ถ้า polyp ทำให้เลือดออกผิดปกติ มักตัดออกด้วย hysteroscopic polypectomy และส่ง histology ทุกครั้ง การขูดแบบไม่เห็นภาพมักตัดได้ไม่หมด polyp เป็นกลุ่ม P ใน (FIGO PALM-COEIN, 2018)
+
+- ระหว่างรอผลชิ้นเนื้อ ใช้ยาเม็ดคุมกำเนิดฮอร์โมนรวม (COC) คุมรอบเดือนได้ทุกราย เพราะเป็นยาที่ใช้ลดเลือดประจำเดือนอยู่แล้ว
+- ถ้ายังเลือดออกมาก ให้ iron ควบคู่ไปด้วยครับ
+
+[physician]
+COC ได้ทุกรายก็กว้างเกินไปเหมือนกันครับ และไม่มี source กำกับ pt รายนี้ BMI 31 DM2 HbA1c 7.1 BP 128/82 estrogen เพิ่มความเสี่ยง VTE ได้ ถ้าตัวเลขนั้นมาจาก trial ผมเดาว่าคัดผู้หญิงที่มีโรคร่วมออกไป ระดับหลักฐานน่าจะเป็นความเห็นกว้าง ๆ มากกว่าผลจากการศึกษา
+
+[assistant]
+ถูกต้องครับ ผมพูดกว้างเกินไป และไม่ได้ระบุว่าอ้างจากประชากรกลุ่มไหน
+
+- COC ไม่เหมาะกับทุกราย ต้องดูปัจจัยเสี่ยง VTE, ความดันโลหิต, การสูบบุหรี่ และไมเกรนที่มี aura ก่อน ผู้ที่อ้วนร่วมกับเบาหวานต้องชั่งน้ำหนักให้รอบคอบกว่านี้
+- ทางเลือกอื่นที่ไม่มี estrogen เช่น progestin หรือ LNG-IUS (หลังได้ผลชิ้นเนื้อ) และ tranexamic acid ช่วงมีเลือดออก ก็ต้องดูข้อห้ามใช้ในผู้ที่เสี่ยงลิ่มเลือดด้วย
+- ovulatory dysfunction เป็นกลุ่ม O ที่รักษาด้วยฮอร์โมนได้ แต่ต้องเลือกยาให้เหมาะกับโรคร่วม (FIGO PALM-COEIN, 2018)
+
+[physician]
+ช่วยสรุปแผนรายนี้สั้น ๆ ให้หน่อยครับ ผม biopsy ก่อน ส่ง ferritin ให้ iron เพราะ Hb 10.2 แล้วนัด f/u 4-6 สัปดาห์ ผมจะเอาที่สรุปไปเทียบกับผล pathology ก่อนสั่งยาฮอร์โมนจริง
+
+[assistant]
+สรุปแผนตามที่คุยกันครับ
+
+- ทำ endometrial biopsy ก่อนเริ่มรักษา เพราะมี BMI 31 และ DM เป็นปัจจัยเสี่ยง
+- ส่ง ferritin และให้ iron สำหรับ Hb 10.2 MCV 78
+- ถ้าผลปกติ ค่อยพิจารณาสาเหตุเชิงโครงสร้าง (adenomyosis, polyp) ตาม TVUS (FIGO PALM-COEIN, 2018)
+- เลือกยาฮอร์โมนหลังรู้ผล pathology และดูโรคร่วมของผู้ป่วยก่อน
+- นัด f/u 4-6 สัปดาห์ตามที่วางไว้ครับ
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+เคสผู้หญิงวัย 40 กว่าที่เลือดออกผิดปกติมา 4 เดือน มี BMI 31 และ DM ควรทำ endometrial biopsy ก่อนเริ่มรักษา การใส่ LNG-IUS หรือให้ COC ต้องดูโรคร่วมของผู้ป่วยก่อน ไม่ใช่ใช้ได้ทุกราย และ Hb 10.2 ต้องให้ iron ควบคู่ไปด้วย
+
+######## EPISODE H02 ########
+[physician]
+หญิงวัย 70 กว่า distal radius fx จากล้มในบ้าน ยังไม่เคยรักษา osteoporosis eGFR 28 ยาไหนใช้ได้กับไตแบบนี้ ขอ reference ด้วยครับ
+
+[assistant]
+Distal radius fracture จากการล้มในระดับยืน ถือเป็น fragility fracture ซึ่งบ่งชี้ osteoporosis ทางคลินิกและควรได้รับการรักษาครับ (Endocrine Society, 2019)
+
+เรื่องยากับ eGFR 28
+- **Oral bisphosphonate** (alendronate, risedronate) — ไม่แนะนำเมื่อ eGFR ต่ำกว่าประมาณ 30–35
+- **Zoledronic acid** — ห้ามใช้เมื่อ CrCl <35
+- **Denosumab** — ไม่ได้ขับทางไต จึงใช้ได้ แต่มีความเสี่ยง hypocalcemia โดยเฉพาะในผู้ป่วยไตเสื่อม
+
+ก่อนเริ่มยา ควรตรวจ calcium, 25-OH vitamin D, phosphate และ PTH และแก้ภาวะขาด vitamin D ให้เรียบร้อย เพราะในไตเสื่อมขั้นนี้อาจมีความผิดปกติของกระดูกจากโรคไตร่วมด้วย
+
+[physician]
+งั้นเอียงไป denosumab เพราะไม่ผ่านไต แต่ hypocalcemia ที่ว่า — เสี่ยงแค่ไหน หลักฐานมาจากคนไข้กลุ่มไหน
+
+[assistant]
+ความเสี่ยง hypocalcemia หลังฉีด denosumab สูงขึ้นเมื่อการทำงานของไตลดลง โดยเฉพาะ eGFR <30 และในผู้ที่ขาด vitamin D ร่วมด้วย มักเกิดในช่วงสัปดาห์แรกๆ หลังฉีดครับ
+
+เรื่องแหล่งของหลักฐาน
+- การศึกษาหลักของ denosumab มีผู้ป่วยไตเสื่อมรุนแรงอยู่ไม่มาก
+- ข้อมูลในกลุ่ม eGFR <30 ส่วนใหญ่มาจากการศึกษาเชิงสังเกตและรายงานผู้ป่วย จึงประมาณขนาดความเสี่ยงได้ไม่แม่นยำ
+
+แนวทางจึงเน้นให้แก้ vitamin D และ calcium ให้พอก่อนเริ่ม และติดตามระดับ calcium หลังฉีด (Endocrine Society, 2019)
+
+[physician]
+แยกให้ชัดนะครับ ที่รู้แน่: denosumab ไม่ขับทางไต ที่ยังไม่รู้: ขนาดความเสี่ยง hypocalcemia ที่ eGFR <30 เพราะข้อมูลน้อยและเป็น observational ข้อจำกัด: trial หลักแทบไม่มีคนไข้แบบรายนี้ ผลที่เห็นใน trial อาจ transfer มาไม่ได้ตรงๆ ถูกไหม
+
+[assistant]
+เข้าใจถูกต้องครับ แยกได้ชัดเจนมาก
+
+ขอเพิ่มอีกหนึ่งข้อเท็จจริงที่สำคัญ: เมื่อหยุด denosumab จะเกิด **rebound bone loss** และมีรายงาน multiple vertebral fractures หลังหยุดยา จึงไม่ควรหยุดหรือเลื่อนเข็มโดยไม่มียาต่อเนื่อง ซึ่งโดยทั่วไปใช้ bisphosphonate ต่อ (Endocrine Society, 2019)
+
+ในผู้ป่วยรายนี้ที่ใช้ bisphosphonate ไม่ได้เพราะไต ประเด็นนี้มีผลต่อการวางแผนระยะยาวโดยตรง
+
+[physician]
+rebound สำคัญกับรายนี้มาก บ้านไกล รพ. ราว 60 กม. ลูกพามาได้บ้างไม่ได้บ้าง ถ้าเข็ม 6 เดือนเลื่อน เสี่ยงแค่ไหน แล้วเมื่อต่อด้วย bisphosphonate ไม่ได้ ทางออกคืออะไร
+
+[assistant]
+ประเด็นที่ควรวางแผนครับ
+
+- ความเสี่ยง rebound เพิ่มขึ้นเมื่อเข็มถัดไปล่าช้าเกินกำหนดไปหลายสัปดาห์ จึงควรให้ตรงเวลาที่สุด (Endocrine Society, 2019)
+- **ทางปฏิบัติ:** นัดฉีดให้ตรงกับนัดอื่นของผู้ป่วย เช่นนัดไต ตั้งระบบเตือนล่วงหน้า และพิจารณาว่าหน่วยบริการใกล้บ้านฉีดให้ได้หรือไม่ ภายใต้การติดตาม calcium
+- **ถ้าจำเป็นต้องหยุดยาในอนาคต:** ควรวางแผนร่วมกับอายุรแพทย์โรคไต เพราะทางเลือกต่อเนื่องในไตเสื่อมขั้นนี้มีจำกัด
+
+การตัดสินใจเริ่ม denosumab จึงควรรวมการประเมินความเป็นไปได้ที่จะมารับยาต่อเนื่องด้วย
+
+[physician]
+เปิด Endocrine Society 2019 ดูแล้ว ตรงเรื่อง rebound แต่ไม่ได้พูดถึง eGFR <30 ชัดเท่าที่ตอบ ส่วนนั้นมาจากไหนครับ
+
+[assistant]
+ขอบอกตรงๆ ครับ ข้อแนะนำเรื่อง rebound และการแก้ vitamin D ก่อนเริ่ม มาจาก guideline นี้ (Endocrine Society, 2019) แต่รายละเอียดเรื่องเกณฑ์ eGFR ของแต่ละยาและความเสี่ยง hypocalcemia ในไตเสื่อมรุนแรง มาจากข้อมูลกำกับยาและการศึกษาเชิงสังเกต ซึ่งผมไม่ได้ระบุแหล่งเฉพาะไว้ และยังไม่แน่ใจว่ามี guideline ใดสรุปเรื่องนี้ไว้ชัดเจน
+
+สำหรับรายนี้ แนะนำให้ตรวจสอบกับเอกสารกำกับยาของโรงพยาบาล และปรึกษาอายุรแพทย์โรคไตเรื่องความผิดปกติของกระดูกจากโรคไตก่อนเริ่มยาครับ
+
+[physician]
+FRAX ยังมีประโยชน์ไหม หรือ fracture ที่เกิดแล้วทำให้ไม่จำเป็น
+
+[assistant]
+ในผู้ที่มี fragility fracture แล้ว การตัดสินใจรักษาไม่ต้องรอ FRAX ครับ เพราะ fracture ที่เกิดขึ้นเป็นข้อบ่งชี้ในตัวเอง (Endocrine Society, 2019)
+
+FRAX ยังมีประโยชน์ในการสื่อสารความเสี่ยงกับผู้ป่วยและญาติ (FRAX, Kanis et al., 2008) แต่มีข้อจำกัด เช่น ไม่ได้นำการทำงานของไตหรือความเสี่ยงการล้มมาคำนวณโดยตรง จึงอาจประเมินความเสี่ยงต่ำกว่าความจริงในผู้ป่วยแบบรายนี้
+
+[physician]
+แผน: เจาะ Ca, 25-OH vit D, PTH, phosphate แก้ vit D ก่อน แล้วเริ่ม denosumab ประสานไต นัดฉีดพร้อมนัดไต
+
+[assistant]
+แผนนี้เหมาะสมครับ ขอเสริมสองประเด็น
+
+- **ติดตาม calcium** หลังเข็มแรก โดยเฉพาะใน 1–2 สัปดาห์แรก เนื่องจากไตเสื่อมเพิ่มความเสี่ยง hypocalcemia
+- **ป้องกันการล้ม** ซึ่งเป็นกลไกโดยตรงของ fracture นี้ เช่น ประเมินการทรงตัว ทบทวนยาที่ทำให้ง่วงหรือความดันตกเมื่อลุกยืน และปรับสภาพแวดล้อมในบ้าน
+
+การรักษา osteoporosis หลัง fragility fracture ควรเริ่มโดยไม่ล่าช้าเมื่อพร้อม (Endocrine Society, 2019)
+
+[physician]
+ที่เปลี่ยนในวิธีคิดผม: เดิมสั่ง alendronate แทบทุกคนหลัง fracture แต่รายนี้ไตบังคับให้เลือกยาที่ผูกคนไข้ไว้กับการฉีดทุก 6 เดือนตลอด การเลือกยาจึงต้องดูว่าเขามาได้จริงไหม ที่ยังไม่แน่ใจคือ hypocalcemia จริงที่ eGFR ระดับนี้ จะทำ: เจาะ Ca 2 สัปดาห์หลังเข็มแรก ตั้งระบบเตือนนัดฉีด และกลับไปดูใน OPD ออร์โธเราว่าคนไข้ fragility fracture ได้ยาจริงกี่ราย
+
+[assistant]
+เป็นการสังเคราะห์ที่ดีมากครับ โดยเฉพาะการมองว่าความต่อเนื่องในการมารับยาเป็นส่วนหนึ่งของการเลือกยา ไม่ใช่เรื่องรอง เพราะความเสี่ยง rebound หลังหยุด denosumab ทำให้การขาดนัดมีผลทางคลินิกจริง (Endocrine Society, 2019)
+
+การทบทวนว่าผู้ป่วย fragility fracture ในหน่วยงานได้รับการรักษาจริงกี่ราย เป็นจุดเริ่มต้นที่ดีของระบบติดตามหลังกระดูกหัก ซึ่งช่วยลดช่องว่างการรักษาที่พบบ่อยในผู้ป่วยกลุ่มนี้
+
+######## EPISODE H03 ########
+[physician]
+ชายวัย 70 กว่า non-valvular AF + stroke เมื่อ 5 เดือนก่อน CHA2DS2-VASc 6 on warfarin INR 2-3 นัดทำ TKA ที่ รพ.เรา วางแผน spinal แต่ไม่มี point-of-care INR eGFR 38 บ้านไกล 60 กม. ควรหยุด warfarin กี่วันและ bridge ไหม ผมลังเลเพราะ stroke ยังไม่นานกลัวไม่ bridge แต่ bridge ก็เสี่ยง hematoma
+
+[assistant]
+ต้องชั่งความเสี่ยง thrombosis กับเลือดออกรอบ neuraxial ครับ
+
+- โดยทั่วไปหยุด warfarin ประมาณ 5 วันก่อนผ่าตัด และเจาะ INR ก่อน spinal เพื่อยืนยันว่าลดลงพอ (ESC non-cardiac surgery guidelines, 2022)
+- ในผู้ป่วย AF ที่ไม่มี mechanical valve หลักฐาน RCT ไม่สนับสนุน bridging แบบ routine (BRIDGE, 2015)
+- ถ้าจะ bridge ด้วย enoxaparin ที่ eGFR 38 ยาสะสมได้ ต้องลดขนาดและเว้นระยะก่อน spinal ให้นานพอ
+
+❓ ถ้า INR เช้าวันผ่าตัดยังอยู่ที่ 1.8 และ รพ. ไม่มี point-of-care จะทำอย่างไรกับ spinal ครับ?
+
+[physician]
+ok ครับ lab เราผลออกช้า ผมจะเจาะ INR วันก่อนผ่าตัดด้วย ถ้าเช้าวันผ่าตัดยัง 1.8 ผมเลื่อน spinal หรือเปลี่ยนเป็น GA เพราะ hematoma หนักกว่าการเลื่อนเคส ส่วน bridge ผมยังเอนไปทางทำ
+
+[assistant]
+แผนนี้สมเหตุสมผลครับ เจาะ INR วันก่อนผ่าตัดช่วยให้มีเวลาเลื่อนหรือปรับแผน
+
+- CHA2DS2-VASc 6 ถือเป็นความเสี่ยง thromboembolism สูง (CHA2DS2-VASc, Lip et al., 2010) แต่ LMWH ก็เพิ่มเลือดออกหลังผ่าตัด
+- ใน BRIDGE การไม่ bridge ไม่ด้อยกว่าในการป้องกัน stroke และเลือดออกน้อยกว่า (BRIDGE, 2015)
+- ที่ eGFR 38 enoxaparin สะสมได้ ต้องปรับขนาดและเว้นระยะก่อน spinal ให้นานขึ้น
+
+❓ ถ้าเลือก bridge จะเริ่ม LMWH วันไหน และหยุดก่อน spinal กี่ชั่วโมงครับ?
+
+[physician]
+BRIDGE ผู้ป่วยส่วนใหญ่ CHADS2 เฉลี่ยประมาณ 2 ใช่ไหมครับ รายนี้เคย stroke และคะแนน 6 ผลที่ว่าไม่ด้อยกว่าอาจใช้ไม่เต็มที่ ช่วยแยกว่าประโยคไหนมาจากแหล่งที่อ้างจริง ประโยคไหนเป็นความเห็นทั่วไป ผมจะเปิดต้นฉบับเทียบ
+
+[assistant]
+ถูกต้องครับ ผู้ป่วยส่วนใหญ่ใน BRIDGE เป็นกลุ่มความเสี่ยงต่ำถึงปานกลาง CHADS2 เฉลี่ยราว 2 กว่า และไม่รวมผู้ที่มี mechanical valve หรือ stroke/TIA ภายใน 12 สัปดาห์ก่อนเข้าร่วม (BRIDGE, 2015) จึงไม่ควรสรุปว่าใช้ได้กับทุกคน
+
+- ประโยคเรื่องไม่ bridge ใน AF ที่ไม่มี mechanical valve มาจาก BRIDGE ซึ่งศึกษาผู้ป่วยกลุ่มนั้น
+- ส่วนเรื่องหยุด warfarin ประมาณ 5 วันและเจาะ INR ก่อน spinal มาจากแนวทางที่อ้างไว้ (ESC non-cardiac surgery guidelines, 2022)
+- ในรายที่คะแนนสูงมาก หลักฐานจาก RCT มีน้อย ส่วนใหญ่เป็นความเห็นผู้เชี่ยวชาญและการประเมินรายบุคคล
+
+❓ รายนี้ stroke เมื่อ 5 เดือนก่อน ท่านจะให้น้ำหนักข้อมูลนั้นต่อการตัดสินใจ bridge อย่างไรครับ?
+
+[physician]
+stroke 5 เดือนก่อนพ้นช่วง 12 สัปดาห์ที่ BRIDGE ตัดออก ผมเลยปรับจากเดิมที่เอนไป bridge เป็นไม่ bridge ก่อนผ่าตัด ให้ enoxaparin ขนาดป้องกันหลังผ่าตัด แล้วกลับมา warfarin เมื่อแผลคงที่ เพราะ TKA เลือดออกที่ข้อได้มาก
+
+[assistant]
+เหตุผลที่ปรับสมเหตุสมผลครับ stroke ที่เกิน 12 สัปดาห์ทำให้ผู้ป่วยอยู่นอกเกณฑ์ที่ BRIDGE ตัดออกจริง แต่ความเสี่ยงก็ยังสูงกว่าผู้ป่วยส่วนใหญ่ในการศึกษา (BRIDGE, 2015)
+
+- LMWH ขนาดป้องกัน VTE หลัง TKA เป็นแนวปฏิบัติทั่วไป แต่ที่ eGFR 38 ควรตรวจสอบขนาดและติดตามเลือดออก
+- การกลับมาใช้ warfarin ควรรอจนห้ามเลือดที่แผลได้ดีและกินได้ ช่วงเวลาต้องชั่งเป็นรายบุคคล (ESC non-cardiac surgery guidelines, 2022)
+
+❓ warfarin ใช้เวลาหลายวันกว่า INR จะถึงระดับรักษา ช่วงนั้นท่านจะป้องกัน stroke ด้วยอะไรครับ?
+
+[physician]
+enoxaparin ขนาดป้องกันจนกว่า INR ถึงระดับรักษา แต่ผู้ป่วยบ้านไกลและจ่ายยาเอง ผมชั่งอยู่ว่า
+1. นอน รพ. รอ INR
+2. สอนญาติฉีด
+3. เปลี่ยนเป็น DOAC แทน warfarin
+ทางไหนเหมาะกับไตและค่าใช้จ่ายมากกว่าครับ
+
+[assistant]
+ทั้งสามทางเป็นไปได้ครับ ขึ้นกับบริบทของผู้ป่วย
+
+- นอน รพ. จน INR ถึงระดับรักษา ปลอดภัยแต่เสียค่าเตียงและต้องอยู่ไกลบ้านนานขึ้น
+- สอนญาติฉีดทำได้ ถ้าญาติพร้อมและมีคนติดตามเลือดออก
+- DOAC เป็นทางเลือกที่แนวทางยอมรับสำหรับ AF ที่ไม่มี mechanical valve (ESC AF guidelines, 2020) และออกฤทธิ์เร็ว จึงเริ่มหลังผ่าตัดได้เมื่อห้ามเลือดพอโดยไม่ต้อง bridge แต่ขนาดต้องดูตามไตและต้องคุยเรื่องราคากับผู้ป่วย
+
+❓ ถ้าเลือก DOAC ที่ eGFR 38 ท่านจะเลือกตัวไหนและตรวจอะไรก่อนเริ่มครับ?
+
+[physician]
+โอเค ถ้า DOAC ผมเอนไป apixaban เพราะไต แต่ขอแยกก่อน DOAC ดีกว่า warfarin ในการป้องกัน stroke ระยะยาวมี RCT ใหญ่รองรับ ส่วนการเริ่มหลัง TKA ในคนที่เคย stroke น่าจะมาจากการศึกษาป้องกัน VTE หลังผ่าตัดข้อ คนละกลุ่ม มีแหล่งตรงกลุ่มไหมครับ ถ้าไม่มีบอกตรงๆ
+
+[assistant]
+แยกได้ถูกต้องครับ
+
+- ประโยชน์ของ DOAC เทียบกับ warfarin ในการป้องกัน stroke ระยะยาวของ AF ที่ไม่มี mechanical valve มี RCT ขนาดใหญ่รองรับ (ESC AF guidelines, 2020)
+- การเริ่ม DOAC หลัง TKA ในผู้ป่วย AF ที่เคย stroke ไม่มีการศึกษาเฉพาะกลุ่มนี้ที่มั่นใจพอจะอ้างครับ ส่วนมากเป็นข้อมูลจากการป้องกัน VTE หลังผ่าตัดข้อและความเห็นผู้เชี่ยวชาญ ยังไม่แน่ใจว่าตรงกับรายนี้ จึงควรคุยกับศัลยแพทย์กระดูกและอายุรแพทย์หัวใจก่อน
+
+❓ ถ้าต้องเริ่มยากันเลือดแข็งหลังผ่าตัด ท่านจะใช้อะไรบอกว่าแผลห้ามเลือดพอแล้วครับ?
+
+[physician]
+เกณฑ์ผมคือแผลไม่ซึมและ Hb ไม่ลดใน 24 ชม. ส่วนเข็มแรกของ enoxaparin หลังเจาะ spinal ควรเว้นกี่ชั่วโมงที่ eGFR 38 ครับ ตัวเลขที่ได้ผมจะเปิดแนวทางเทียบอีกที
+
+[assistant]
+เกณฑ์นั้นใช้ได้จริงครับ
+
+- ขนาดป้องกันของ enoxaparin โดยทั่วไปเว้นประมาณ 12 ชั่วโมงหลังเจาะ spinal ที่ไม่มีปัญหา และถ้าไตเสื่อมยาค้างนานขึ้น ควรพิจารณาเว้นนานกว่านั้น
+- ตัวเลขชั่วโมงที่แน่นอนควรเทียบกับแนวทางสมาคมวิสัญญีและนโยบาย รพ. ฉบับล่าสุด ผมยังไม่แน่ใจรายละเอียดของ eGFR ระดับนี้
+- หลักคือชั่งความเสี่ยง thrombosis กับ hematoma เป็นรายบุคคล (ESC non-cardiac surgery guidelines, 2022)
+
+❓ ถ้าเจาะ spinal ครั้งแรกแล้วมีเลือดปนออกมา (traumatic tap) จะเปลี่ยนเวลาเริ่ม enoxaparin อย่างไรครับ?
+
+[physician]
+ถ้า traumatic tap ผมจะเลื่อนเข็มแรกและบอก ortho ตัวเลขชั่วโมงที่ให้มา มาจาก RCT หรือความเห็นผู้เชี่ยวชาญครับ ผมเดาว่าอย่างหลัง ถ้าใช่ ผมจะเขียน order เองหลังคุยกับ ortho กับ cardio ขอบคุณครับ
+
+[assistant]
+เดาถูกครับ ตัวเลขชั่วโมงเหล่านี้ส่วนใหญ่มาจากรายงานผู้ป่วยและความเห็นผู้เชี่ยวชาญ ไม่ใช่ RCT และยังไม่แน่ใจว่ามีการทดสอบเฉพาะกลุ่มที่ eGFR ระดับนี้
+
+- ถ้า traumatic tap การเลื่อนเข็มแรกและเฝ้าระวังอาการทางระบบประสาทเป็นแนวปฏิบัติที่พบได้ทั่วไป
+- การบริหารยากันเลือดแข็งรอบผ่าตัดต้องชั่งความเสี่ยงเป็นรายบุคคล (ESC non-cardiac surgery guidelines, 2022)
+
+❓ ถ้า ortho ต้องการเริ่ม anticoagulant เร็วกว่าที่ท่านวางไว้ ท่านจะใช้ข้อมูลอะไรคุยกับทีมครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ความรู้เยอะมาก ขอบคุณครับ
+
+######## EPISODE H04 ########
+[physician]
+Woman in her 70s with community-acquired pneumonia, right lower lobe on CXR, oxygen saturation 94% on room air. Admit or treat at home?
+
+[assistant]
+Start with severity. Her age already earns 1 point on CURB-65; confusion, urea, respiratory rate and blood pressure decide the rest.
+- A CURB-65 of 0 or 1 means home treatment is appropriate (CURB-65, Lim et al., 2003).
+- If she goes home, an oral beta-lactam plus a macrolide or doxycycline covers outpatients with comorbidities (ATS/IDSA CAP guideline, Metlay et al., 2019).
+❓ Beyond the score, what else about this woman would you check before sending her home?
+
+[physician]
+Sorting your CURB-65 line for her:
+- Solid: it predicts 30-day mortality in the hospital cohorts it came from.
+- Untested: frail women who live alone. "Home is appropriate" is an extrapolation there, not a trial result.
+- Blind spot: no oxygen or frailty term at all.
+Evidence for home treatment in her group is observational at best. Admit.
+
+[assistant]
+You are right. CURB-65 was derived in hospital cohorts and has no term for oxygenation, frailty or home circumstances, so a score of 0 or 1 does not settle the site of care on its own; the guideline pairs severity scoring with clinical judgment (ATS/IDSA CAP guideline, Metlay et al., 2019). My "appropriate" above was too strong for a frail woman who lives alone.
+- Admission is sound when no one can check on her overnight.
+- Without CT, rely on chest examination, repeat saturation and CXR.
+❓ With no CT at your hospital, how will you judge whether she is responding?
+
+[physician]
+Got it. No CT here, so exam, repeat saturation and CXR only. Pharmacy stocks ceftriaxone and oral azithromycin, nothing else for CAP. Give me the regimen that fits that stock, with a source for each point, and I will read the text before I order.
+
+[assistant]
+Ceftriaxone IV plus azithromycin fits that stock and is a standard regimen for non-severe inpatient CAP (ATS/IDSA CAP guideline, Metlay et al., 2019).
+- Duration follows clinical stability and should not be shorter than 5 days (ATS/IDSA CAP guideline, Metlay et al., 2019).
+- Review daily: temperature, respiratory rate, saturation, ability to eat.
+❓ What finding on day 2 would make you stop and call for transfer?
+
+[physician]
+Falling saturation or new confusion by day 2: she goes to the referral centre, ambulance booked at admission.
+
+[assistant]
+Those are sensible triggers. The ATS/IDSA severe CAP criteria list confusion, a respiratory rate of 30 or more and hypotension needing fluids among the minor criteria, and three or more make it severe (ATS/IDSA CAP guideline, Metlay et al., 2019). Early transfer is easier to defend than a late one.
+❓ Which of those criteria can your ward check reliably overnight?
+
+[physician]
+Respiratory rate and confusion only. The night nurses cannot get a blood gas or urea until morning. I checked the guideline text for the minor criteria and the count matches yours. I'll tell the nurses to call me for either.
+
+[assistant]
+That is a workable overnight rule. Both are bedside measures, and a rate of 30 or more is also a CURB-65 item (CURB-65, Lim et al., 2003). Write the call-me triggers into the admission orders so the night team does not depend on memory.
+❓ Before discharge, what would you arrange for a woman who lives alone?
+
+[physician]
+Discharge when stable on an oral switch, with a call from the community health nurse at 48 hours. Writing the plan into the chart myself now.
+
+[assistant]
+A call from the community health nurse fits her situation, and follow-up should confirm that she is eating, drinking and breathing comfortably (ATS/IDSA CAP guideline, Metlay et al., 2019). Make sure the oral antibiotic supply covers the full course before she leaves.
+❓ If the nurse cannot reach her by phone at 48 hours, what is your fallback?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+A low CURB-65 told me about hospital cohorts, not about a frail woman who lives alone. I now put frailty and who is at home next to the score before choosing the site of care.
+
+ความไม่แน่นอน / What remains uncertain:
+I still do not know how many of our older patients with a low score do well at home, because we have no local follow-up on them.
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+I will add frailty and living situation to our admission note for pneumonia and use the referral triggers we agreed on for night shifts.
+
+######## EPISODE H05 ########
+[physician]
+pt ชายวัย 40 กว่า มาตรวจสุขภาพที่คลินิกชุมชน BMI สูงเล็กน้อย ไม่สูบบุหรี่ พ่อเป็นความดันสูง ไม่เป็น DM ไม่มีอาการ ตรวจปัสสาวะ dipstick ไม่พบโปรตีน ECG ปกติ วัดความดันที่คลินิกสองครั้งห่างกันสองสัปดาห์ ได้ 152/96 กับ 148/94 คำถามคือวันนี้ควรเริ่มยาเลย หรือให้วัด home BP ก่อนแล้วนัดกลับมา ผมคิดว่าขึ้นกับว่าค่าที่บ้านจะต่ำกว่าที่คลินิกจริงหรือเปล่า
+
+[assistant]
+คำถามตรงจุดครับ ในผู้ป่วยที่ไม่มีอาการและยังไม่พบ organ damage แนะนำให้ยืนยันด้วยการวัดนอกคลินิกก่อนเริ่มยา เพราะค่าที่คลินิกอาจสูงกว่าจริงจาก white-coat effect (Thai Hypertension Society guideline, 2019)
+
+- ค่า 152/96 และ 148/94 จัดเป็น grade 1 ถ้ายืนยันได้
+- Home BP หรือ ABPM ช่วยแยก white-coat กับ masked hypertension (ESH, 2023)
+- การเริ่มยาทันทีโดยไม่รอ มักสงวนไว้สำหรับ grade 2 ขึ้นไป หรือมี organ damage หรือความเสี่ยงโดยรวมสูง
+- แผนวัด home BP ก่อน แล้วนัดกลับมาดูค่าเฉลี่ย จึงสมเหตุสมผลในรายนี้
+
+❓ ถ้าค่า home BP เฉลี่ยกลับออกมาต่ำกว่าค่าที่คลินิกชัดเจน จะเรียกภาวะนี้ว่าอะไร และจะเปลี่ยนแผนอย่างไร
+
+[physician]
+จากที่อธิบายมา ผมจัดลำดับไว้แบบนี้ครับ อันดับแรกคือ white-coat เพราะค่าทั้งสองครั้งอยู่แค่ระดับเบา และ pt ดูตื่นเต้นตอนวัด อันดับสองคือ primary HT จริง ๆ ส่วน secondary ผมวางท้ายสุดเพราะไม่มีร่องรอยชี้ไปทางนั้น ผมเลยมองว่ารอวัดที่บ้านหนึ่งสัปดาห์เสี่ยงน้อยกว่าเริ่มยาแล้วต้องมาถอนทีหลัง ช่วยสรุปวิธีสอน pt วัด home BP เป็นข้อสั้น ๆ ไม่เกินห้าบรรทัด และไล่เหตุผลของแต่ละข้อให้ด้วย
+
+[assistant]
+ลำดับเหตุผลของหมอสมเหตุสมผลครับ เพราะ white-coat ควรถูกตัดออกก่อนเริ่มยาระยะยาว วิธีสอน home BP แบบสั้น ๆ (ESH, 2023)
+
+- ใช้เครื่องวัดต้นแขนที่ผ่านการตรวจสอบความแม่นยำ เพราะเครื่องข้อมือคลาดเคลื่อนง่ายกว่า
+- นั่งพักก่อนวัด หลังพิงเก้าอี้ แขนวางระดับหัวใจ ไม่พูดคุยระหว่างวัด
+- วัดเช้าและเย็นวันละสองครั้ง ห่างกันหนึ่งนาที ต่อเนื่องอย่างน้อยสามวัน ควรครบเจ็ดวัน
+- จดค่าทุกครั้งแล้วหาค่าเฉลี่ย โดยตัดวันแรกทิ้งเมื่อวัดครบเจ็ดวัน
+- ค่าเฉลี่ยตั้งแต่ 135/85 ขึ้นไปถือว่าเข้าเกณฑ์ความดันสูง
+
+เหตุผลของทุกข้อคือลดความแปรปรวนจากท่าทาง เวลา และจำนวนครั้งที่วัด ค่าเฉลี่ยจึงน่าเชื่อถือพอจะใช้ตัดสินเรื่องยา
+
+❓ ถ้าผู้ป่วยวัดได้แค่สามวัน ค่าเฉลี่ยยังใช้ตัดสินได้หรือไม่ และต้องระวังอะไร
+
+[physician]
+โอเคครับ ถ้าค่าเฉลี่ยที่บ้านออกมา 135/85 หรือสูงกว่า ผมจะเริ่มยา อยากรู้ว่ายากลุ่มไหนควรเป็นตัวแรกในกรณีที่ยังไม่มีโรคร่วมอะไร ผมเอนไปทาง CCB หรือ ARB สักตัว ช่วยไล่เหตุผลทีละขั้นว่าเทียบกับ ACEi และ thiazide แล้วต่างกันตรงไหน และบอกด้วยว่าควรเริ่มขนาดต่ำหรือเต็มขนาด
+
+[assistant]
+ตามแนวทางปัจจุบัน ยาเริ่มต้นที่เป็นตัวเลือกหลักมีสี่กลุ่ม คือ ACEi, ARB, CCB และ thiazide-like diuretic ยังไม่มีกลุ่มใดดีกว่าชัดเจนในผู้ที่ไม่มีโรคร่วมที่บังคับเลือก (ESC, 2024)
+
+ไล่เหตุผลทีละขั้น
+- ขั้นแรก ประโยชน์ต่อ outcome มาจากการลดความดันเองเป็นหลัก ไม่ว่าจะใช้ยากลุ่มใด (ESH, 2023)
+- ขั้นสอง เมื่อไม่มีโรคร่วม ให้ผลข้างเคียงและความสม่ำเสมอในการกินยาช่วยเลือก เช่น CCB อาจทำให้บวมที่ข้อเท้า ACEi อาจทำให้ไอแห้ง ส่วน ARB ไอน้อยกว่า
+- ขั้นสาม ตรวจ Cr และ K ก่อนเริ่ม ACEi หรือ ARB
+- ขนาดยา: ใน grade 1 เริ่มขนาดต่ำแล้วปรับตามผล ส่วน grade 2 ขึ้นไปพิจารณา single-pill combination ตั้งแต่ต้น
+
+อีกประเด็นคือ ถ้าเป็น grade 1 ความเสี่ยงโดยรวมต่ำ และไม่มี organ damage แนวทางเปิดให้ลองปรับ lifestyle ก่อนระยะหนึ่ง แล้วค่อยตัดสินเรื่องยา (Thai Hypertension Society guideline, 2019)
+
+❓ ถ้าจะลอง lifestyle ก่อน ควรกำหนดเวลาประเมินซ้ำเมื่อไร และมีสัญญาณอะไรที่ทำให้ต้องเริ่มยาเร็วกว่านั้น
+
+[physician]
+เรื่องลอง lifestyle ก่อนที่พูดถึง ผมอยากต่อว่าถ้าทำจริงต้องเน้นอะไรเป็นอย่างแรก และควรให้เวลานานแค่ไหนก่อนวัดซ้ำ ผมคิดว่าเกลือกับน้ำหนักน่าจะสำคัญที่สุด แต่อยากให้เรียงลำดับผลต่อความดันให้ดูหน่อย
+
+[assistant]
+ถ้าลอง lifestyle ก่อน เรียงตามผลที่คาดและความเป็นไปได้ที่ทำได้จริงจะได้ดังนี้ (ESH, 2023)
+
+- ลดน้ำหนักถ้า BMI สูง น้ำหนักที่ลดได้ช่วยลดความดันตามสัดส่วน
+- ลดเกลือ ลดอาหารแปรรูป น้ำปลา และซอส เพิ่มผักผลไม้ที่มีโพแทสเซียมสูงแบบ DASH
+- ออกกำลังกายแบบแอโรบิกสม่ำเสมอ
+- จำกัดแอลกอฮอล์
+
+ที่หมอเดาว่าเกลือกับน้ำหนักสำคัญที่สุดสมเหตุสมผลครับ ทั้งสองข้อมีหลักฐานดีและวัดผลตามได้ง่าย แต่ตัวเลขผลลดความดันของแต่ละข้อต่างกันมากในแต่ละการศึกษา ผมจึงยังไม่แน่ใจว่าจะจัดอันดับเชิงตัวเลขให้ตรงได้
+
+ส่วนเวลาประเมินซ้ำ แนวทางใช้ช่วงประมาณ 3 ถึง 6 เดือน แล้ววัดซ้ำด้วย home BP ถ้าค่าเฉลี่ยยังเกินเป้าจึงเริ่มยา (Thai Hypertension Society guideline, 2019)
+
+❓ ถ้าผ่านไปสามเดือนแล้วค่าเฉลี่ยลดลงแต่ยังไม่ถึงเป้า จะตัดสินต่ออย่างไร
+
+[physician]
+ผมขอปรับแผนจากตอนแรก เดิมผมตั้งใจว่าถ้า home BP เกินก็เริ่มยาเลยทุกระดับ แต่เมื่อฟังว่าถ้าเป็น grade 1 ที่ความเสี่ยงโดยรวมต่ำ การลองปรับชีวิตก่อนก็ยังสมเหตุสมผล ผมเลยแยกเป็นสองทาง ถ้าค่าเฉลี่ยอยู่ระดับเบาจะให้ลอง lifestyle ก่อนแล้ววัดซ้ำ แต่ถ้าสูงกว่านั้นจะเริ่มยาพร้อมกันไปเลย เพราะการรอเสี่ยงกว่าประโยชน์ที่ได้ แล้วถ้าเริ่มยาไปแล้ว ควรนัดดูผลที่คลินิกอีกเมื่อไหร่
+
+[assistant]
+แผนสองทางที่หมอปรับมาแยกตามระดับความดันและความเสี่ยงรวม ซึ่งสอดคล้องกับแนวทาง (Thai Hypertension Society guideline, 2019)
+
+- หลังเริ่มยา ควรนัดประเมินผลภายในประมาณสองถึงสี่สัปดาห์ ด้วยทั้งค่าที่คลินิกและ home BP (ESH, 2023)
+- ถ้ายังไม่ถึงเป้าและทนยาได้ ปรับขนาดหรือเพิ่มยากลุ่มที่สอง แล้วนัดซ้ำในช่วงใกล้เคียงกัน
+- เมื่อคุมได้แล้วค่อยห่างนัดเป็นราย 3 ถึง 6 เดือน
+- ตรวจ Cr และ K ซ้ำภายในไม่กี่สัปดาห์หลังเริ่ม ACEi หรือ ARB
+
+❓ ถ้าหลังเริ่ม CCB ผู้ป่วยบวมที่ข้อเท้า จะแยกว่าเป็นผลข้างเคียงของยาหรือสาเหตุอื่นอย่างไร
+
+[physician]
+ส่วน lab พื้นฐาน ผมจะส่งตอนนี้เลยหรือรอหลังยืนยันค่าที่บ้านดี ผมเอนไปทางส่งตอนนี้ เพราะผลน่าจะบอกความเสี่ยงรวมที่ใช้ตัดสินว่าจะลอง lifestyle หรือเริ่มยา ตัวที่คิดไว้คือ Cr กับ eGFR, K, น้ำตาล, ไขมัน และ UA ซ้ำ ยังขาดอะไรอีกไหม
+
+[assistant]
+ส่งตอนนี้เลยเหมาะครับ เพราะผลช่วยประเมินความเสี่ยงรวมและ organ damage ซึ่งเป็นตัวกำหนดว่าจะลอง lifestyle หรือเริ่มยา (ESC, 2024)
+
+- Cr/eGFR และ K: ดูไตและเป็น baseline ก่อนใช้ ACEi หรือ ARB
+- น้ำตาลในเลือด (FPG หรือ HbA1c) และ lipid profile: ประเมินความเสี่ยงหัวใจและหลอดเลือดโดยรวม
+- UA ซ้ำ ถ้า dipstick ผิดปกติให้ส่ง UACR
+- ECG ที่ทำแล้ว ดูต่อว่ามี LVH หรือไม่
+
+ที่หมอยังไม่ได้ลิสต์คือ Na ซึ่งมักอยู่ในชุดตรวจพื้นฐานและเป็น baseline ก่อนใช้ thiazide-like ได้ครับ
+
+❓ ถ้า lipid และน้ำตาลปกติทั้งหมด แต่ home BP เฉลี่ยอยู่ระดับ grade 1 ความเสี่ยงรวมจะอยู่ระดับไหน และจะเปลี่ยนแผนหรือไม่
+
+[physician]
+สรุปแผนผมเป็นแบบนี้ครับ
+- ส่ง lab พื้นฐานวันนี้ แล้วสอน pt วัด home BP หนึ่งสัปดาห์
+- ถ้าค่าเฉลี่ยอยู่ระดับเบา ลอง lifestyle ก่อนแล้ววัดซ้ำ ถ้าสูงกว่านั้นเริ่ม CCB หรือ ARB ขนาดต่ำควบคู่ไปด้วย
+- ขนาดยาผมจะเปิดเทียบ formulary ของคลินิกก่อนสั่งจริง
+ผมจะเป็นคนสั่งยาเองหลังเห็นค่า home BP และผล lab ครับ ที่แนะนำมาทั้งหมดผมใช้ตามนั้นเลย ไม่มีอะไรจะถามเพิ่ม แผนนี้ครบตามที่ควรทำแล้วใช่ไหมครับ
+
+[assistant]
+แผนที่สรุปมาครอบคลุมขั้นหลักตามแนวทางแล้วครับ (Thai Hypertension Society guideline, 2019) มีสองจุดที่ควรย้ำก่อนใช้จริง
+
+- ถ้าค่า home BP เฉลี่ยคาบเกี่ยวกับเส้นแบ่งระหว่างปกติกับ grade 1 ให้วัดซ้ำอีกรอบก่อนตัดสิน แทนการเริ่มยาจากค่าชุดเดียว (ESH, 2023)
+- ให้คำแนะนำสัญญาณที่ต้องกลับมาก่อนนัด เช่น ปวดศีรษะรุนแรง เจ็บหน้าอก หรือแขนขาอ่อนแรง
+
+การเปิดเทียบขนาดยากับ formulary ก่อนสั่งเป็นขั้นที่เหมาะสมอยู่แล้ว
+
+❓ ถ้าผู้ป่วยกลับมาโดยค่าเฉลี่ย home BP อยู่กึ่งกลางระหว่างสองทางของแผน และ lab ปกติหมด หมอจะเลือกทางไหนและเพราะอะไร
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ตอนเข้ามาผมตั้งใจจะเริ่มยาทันทีเพราะค่าที่คลินิกสูงสองครั้ง พอคุยจบเปลี่ยนเป็นให้ pt วัด home BP หนึ่งสัปดาห์ก่อน เพราะถ้าเป็น white-coat การให้ยาไปก่อนคือความเสี่ยงที่ไม่จำเป็น และถ้าค่าเฉลี่ยอยู่แค่ grade 1 ที่ความเสี่ยงรวมต่ำ การลองปรับ lifestyle ก่อนก็ยังสมเหตุสมผล แต่ถ้าสูงกว่านั้นการรอเสี่ยงกว่าประโยชน์จึงเริ่มยาไปพร้อมกัน
+
+ความไม่แน่นอน / What remains uncertain:
+ผมยังไม่รู้ว่า pt จะวัดที่บ้านได้สม่ำเสมอแค่ไหน และถ้าค่าเฉลี่ยคาบเกี่ยวระหว่างปกติกับ grade 1 ผมยังไม่มั่นใจว่าจะรอหรือเริ่มยาดี รวมถึงยังไม่ชัดว่าช่วง lifestyle ก่อนควรนานกี่เดือนในรายที่ค่าอยู่ใกล้เส้น
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+วันจันทร์นี้ผมจะสอน pt วัด home BP พร้อมสมุดจดค่า และเปิด formulary เทียบขนาดยาเริ่มต้นของ CCB กับ ARB ก่อนนัดดูผล ผมจะเขียนแผ่นขั้นตอนวัด home BP หนึ่งหน้าไว้ที่คลินิก และทำ checklist lab พื้นฐานสำหรับผู้ป่วยความดันรายใหม่ทุกราย
+
+######## EPISODE H06 ########
+[physician]
+Hello. I would like to learn about fever in young infants. Please provide a complete overview including:
+1. Definition
+2. Causes / differential diagnosis
+3. Investigations
+4. Management
+5. Prognosis
+I have an infant with fever today, a 7-week-old girl, temperature 38.5, born at 38 weeks, feeding OK according to the mother. Please be as comprehensive as possible and include everything I need to know.
+
+[assistant]
+Happy to help. A quick structured overview:
+
+- **Definition**: in infants up to 60 days, fever is a rectal temperature of 38.0 °C or higher (Pantell et al., 2021).
+- **Causes**: most are viral, but the key concern is invasive bacterial infection — bacteraemia and meningitis — plus urinary tract infection, which is the most common bacterial cause.
+- **Investigations** for a well-appearing infant 29–60 days old: urinalysis, blood culture, and inflammatory markers (procalcitonin if available, plus CRP and absolute neutrophil count). Lumbar puncture depends on those results.
+- **Management**: depends on age band and the inflammatory markers — some infants can be observed with close follow-up, others need admission and parenteral antibiotics (AAP, 2021).
+- **Prognosis**: generally good when bacterial infection is recognised and treated promptly.
+
+The guideline is organised by age in days (8–21, 22–28, 29–60), so the age band is the first thing to pin down for any individual infant.
+
+[physician]
+Thank you. What are the common causes of fever in infants? Could it be UTI, viral infection, sepsis, meningitis, pneumonia, or otitis media? Please list all the possible causes.
+
+[assistant]
+In febrile infants under 3 months, the possibilities include:
+
+- **Viral infections** — the majority (e.g., enterovirus, RSV, influenza)
+- **Urinary tract infection** — the most common serious bacterial infection in this age group
+- **Bacteraemia** — less common, but important not to miss
+- **Bacterial meningitis** — rare, but the most dangerous
+- **Pneumonia** — usually with respiratory signs
+- **Others**: skin/soft tissue infection, osteomyelitis, septic arthritis, and in the first weeks of life, HSV infection
+
+Otitis media is uncommon as the sole cause in this young age group. The guideline's approach is to risk-stratify for invasive bacterial infection rather than to work through every cause one by one (Pantell et al., 2021).
+
+[physician]
+OK. What is the normal value of procalcitonin?
+
+[assistant]
+Procalcitonin is usually very low in healthy individuals. In the febrile-infant pathway, the thresholds that matter are the ones used for risk stratification rather than a "normal range":
+
+- In infants 29–60 days, procalcitonin above about 0.5 ng/mL is treated as abnormal and raises concern for invasive bacterial infection (AAP, 2021).
+- The other inflammatory markers in the same pathway are CRP above 20 mg/L, temperature above 38.5 °C, and an absolute neutrophil count above roughly 4,000 to 5,200 per microlitre.
+
+Values can vary between assays, so the local laboratory's reference information is also worth checking.
+
+[physician]
+OK noted. Next, what antibiotics are used for neonatal sepsis? Please list the drugs and doses.
+
+[assistant]
+Empiric choices depend on age in days and on whether meningitis is suspected (Pantell et al., 2021):
+
+- **First weeks of life**: ampicillin plus either gentamicin or a third-generation cephalosporin such as ceftazidime; the cephalosporin is preferred when meningitis is a concern.
+- **Infants 29–60 days without concern for meningitis**: ceftriaxone is commonly used.
+- **Suspected bacterial meningitis** in the older age band: a meningitic-dose cephalosporin plus vancomycin.
+- Add **acyclovir** when HSV is a possibility (vesicles, seizures, very young age, maternal history).
+
+For exact mg/kg doses and intervals I would rather not quote from memory for a neonate — please check a paediatric dosing reference or the hospital formulary, as intervals change with postnatal age.
+
+[physician]
+Can you explain more about the inflammatory markers you mentioned?
+
+[assistant]
+Sure. The guideline uses inflammatory markers to separate lower-risk from higher-risk well-appearing infants (AAP, 2021):
+
+- **Procalcitonin** rises early in bacterial infection and is the most discriminating single marker in this age group.
+- **CRP** rises more slowly, so a very early CRP can be falsely reassuring.
+- **Absolute neutrophil count** adds information when procalcitonin is not available.
+- **Temperature above 38.5 °C** is also counted as a risk marker.
+
+If any marker is abnormal, the infant is no longer in the lowest-risk group, and lumbar puncture and empiric antibiotics are generally recommended. If all are normal and the urinalysis is negative, observation with close follow-up may be an option, depending on age band and the family's ability to return.
+
+[physician]
+How do you do a lumbar puncture in an infant? Please give me the steps.
+
+[assistant]
+Here are the main steps for an infant lumbar puncture:
+
+1. **Position**: lateral decubitus or sitting, with an assistant holding the infant gently flexed — avoid excessive neck flexion, which can compromise the airway.
+2. **Landmark**: the L3–L4 or L4–L5 interspace; the top of the iliac crests marks roughly L4.
+3. **Asepsis**: sterile gloves, skin preparation, sterile drape; topical anaesthetic if time allows.
+4. **Needle**: a 22-gauge spinal needle with stylet, advanced slowly; remove the stylet often to check for flow.
+5. **Samples**: cell count, Gram stain, culture, glucose and protein; consider HSV PCR when indicated.
+6. **Monitoring**: watch oxygen saturation and breathing throughout.
+
+In the febrile-infant pathway, an LP is indicated for higher-risk infants before antibiotics whenever this does not delay treatment (Pantell et al., 2021).
+
+[physician]
+Please write the management plan for my patient so I can copy it into the chart.
+
+[assistant]
+I can give a plan structure, but the actual plan depends on findings that only the examining doctor has — how well she looks on examination, the urinalysis, and the inflammatory markers — so please adapt it rather than copy it directly.
+
+**Febrile infant, 29–60 days, well-appearing — plan framework (AAP, 2021):**
+- Urinalysis and urine culture by catheter specimen
+- Blood culture, procalcitonin (or CRP and ANC), CBC
+- If urinalysis and all markers are normal: consider observation, with reassessment within 24–36 hours and a reliable way for the family to return
+- If urinalysis is abnormal but markers are normal: urine culture, consider oral or parenteral antibiotics for UTI, LP optional
+- If any inflammatory marker is abnormal: LP, admission, and empiric parenteral antibiotics
+- Document the time of fever onset, examination findings and the reasoning for the disposition
+
+[physician]
+OK. So in summary: fever in infants under 3 months can be serious. The causes include UTI, bacteraemia, meningitis and viral infections. We need blood tests, urine tests and sometimes a lumbar puncture, and antibiotics if needed. Procalcitonin and CRP are important. Thank you for all the information.
+
+[assistant]
+You're welcome — that is a fair summary of the general approach. Two points worth keeping in mind:
+
+- The pathway is organised by **age in days**, so the same fever means different workup at 3 weeks and at 7 weeks.
+- The decision about LP and admission comes from the combination of **appearance, urinalysis and inflammatory markers**, not from any single test (Pantell et al., 2021).
+
+Good luck with your patient.
+
+######## EPISODE H07 ########
+[physician]
+pt ชาย วัย 30 กว่า เตะบอลบิดเข่าซ้าย effusion ใน 2 ชม. ลงน้ำหนักได้ 4 ก้าว งอได้ 100° ไม่กดเจ็บ patella/fibular head รพ.ชุมชนมี X-ray ไม่มี MRI ส่ง film วันนี้ หรือ Ottawa ลบแล้วนัด f/u
+
+[assistant]
+รายนี้ไม่เข้าเกณฑ์ Ottawa สักข้อครับ
+- วัยต่ำกว่า 55, ไม่กดเจ็บที่ patella หรือ fibular head, งอได้เกิน 90°, ลงน้ำหนักได้ 4 ก้าว
+- ถ้า Ottawa ลบ ก็ไม่ต้อง film ครับ
+- rule ถูกออกแบบมาหา fracture ที่ต้องรักษา (Ottawa knee rule, 1996) ส่วน effusion ที่มาไวภายในไม่กี่ชั่วโมงชวนคิดถึง hemarthrosis จาก ACL หรือ meniscus ซึ่ง film ไม่ได้เห็น
+- ถ้าอยากรู้เรื่อง ligament ให้ตรวจ Lachman แล้วนัดซ้ำเมื่อบวมยุบ
+
+[physician]
+ok ครับ แต่ "Ottawa ลบก็ไม่ต้อง film" ผมเรียง ACL ก่อน เพราะได้ยิน pop และ effusion มาไวใน 2 ชม., meniscus รอง เพราะไม่มี locking, tibial plateau fx ต่ำเพราะลงน้ำหนักได้ ถ้าเห็น Segond sign จะเปลี่ยนแผนไหม
+
+[assistant]
+ลำดับ DDx ของหมอมีเหตุผลรองรับครับ effusion ที่มาไวบ่งไปทาง hemarthrosis ซึ่ง ACL เป็นสาเหตุที่พบบ่อย
+- Segond sign คือ avulsion fracture เล็กที่ขอบด้านนอกของ tibia ถ้าเห็นสัมพันธ์กับ ACL ขาดมาก แต่พบไม่บ่อย ผมยังไม่แน่ใจสัดส่วนที่แน่ชัด
+- ถ้า film ลบ ก็ยังตัด ACL หรือ meniscus ออกไม่ได้ เพราะ rule ตอบแค่เรื่อง fracture (Ottawa knee rule, 1996)
+- ผลต่อแผน: ถ้าเห็น fracture ต้อง refer แต่ถ้าไม่เห็น ligament ก็ยังต้องตรวจซ้ำอยู่ดี
+
+[physician]
+แยกชั้น "ลบแล้วไม่ต้อง film" ที่ validate แล้วคือจับ fracture ในผู้ใหญ่ที่มา ER ที่ยังไม่เห็นคือ effusion ไวแบบนี้ กับ pt ที่ f/u ยาก ligament ก็ไม่ได้ตอบ ตอนแรกพูดกว้างไปไหม และ evidence เป็น study แบบไหน
+
+[assistant]
+ใช่ครับ ผมพูดกว้างเกินไป "ลบแล้วไม่ต้อง film" ใช้ได้เฉพาะคำถามเรื่อง fracture
+- หลักฐานคือ prospective validation ในผู้ใหญ่ที่มาแผนกฉุกเฉินด้วยเข่าบาดเจ็บเฉียบพลัน ไม่รวมเด็กและผู้ที่กลับมาซ้ำ (Ottawa knee rule, 1996) ผมยังไม่แน่ใจรายละเอียดเกณฑ์คัดออกทุกข้อ ควรเปิดต้นฉบับดู
+- study นี้เป็น cohort ไม่ใช่ RCT และไม่ได้ทดสอบว่า pt ที่ติดตามยากปลอดภัยไหม
+- ส่วน ACL หรือ meniscus rule นี้ไม่ได้ตอบเลย
+
+[physician]
+ถ้า effusion มาช้า เช่น 12 ชม. ACL ต้องลดอันดับไหม Lachman วันนี้ที่ปวดและ guarding เชื่อได้แค่ไหน ถ้าไม่ ควรรอตรวจซ้ำ 5-7 วันไหม
+
+[assistant]
+ใช่ครับ
+- effusion ที่มาช้า (ครึ่งวันขึ้นไป) ชวนไปทาง meniscus หรือ synovial reaction มากกว่า ACL ที่เลือดออกเร็ว ACL จึงลดอันดับลง
+- Lachman ตอนปวดและ guarding มักเชื่อถือได้น้อยลง ตรวจซ้ำเมื่อบวมยุบดีกว่า ผมไม่ขอระบุวันเป๊ะ ๆ เพราะไม่มีแหล่งอ้างอิงตัวเลขนี้ในมือ
+- rule ไม่ได้ใช้เวลาที่ effusion เกิดเป็นเกณฑ์เลย (Ottawa knee rule, 1996) Ottawa ลบแต่ effusion ไว จึงไม่ได้แปลว่า ligament ปลอดภัย
+
+[physician]
+เดิมจะส่ง film กันพลาด แต่ criteria ลบครบ ลงน้ำหนักได้ film ไม่เปลี่ยนแผน ผมเลยปรับเป็น hold ไว้ แต่ rule ไม่ครอบคลุมว่าเขาขับรถส่งของ บ้านไกล อาจไม่กลับ และ ortho ไกล 2 ชม. เลยให้ใบนัด 5 วัน เกณฑ์กลับก่อนนัด และโทรตามวันที่ 3
+
+[assistant]
+แผนสมเหตุสมผลครับ มีข้อเสริมสั้น ๆ
+- เกณฑ์กลับก่อนนัด: ลงน้ำหนักไม่ได้, งอไม่ถึง 90°, บวมตึงขึ้น, ปวดมากขึ้น, ปลายเท้าชาหรือซีด
+- ถ้ากลับมาด้วยข้อใดข้อหนึ่งของ rule ก็นับเป็น Ottawa positive ได้ทันที (Ottawa knee rule, 1996)
+- ถ้าสงสัย ACL ขาด นัด ortho แบบไม่เร่งด่วนได้ เว้นแต่ข้อเข่าล็อก ซึ่งควรส่งต่อเร็ว
+
+[physician]
+ok ครับ ช่วยหาจุดอ่อนแผนนี้ ผมตรวจเองว่าไม่มี bony tenderness เดินได้ 4 ก้าว ส่วนนี้ tutor ยืนยันแทนไม่ได้ ผมจะตรวจซ้ำและเช็ค criteria กับต้นฉบับ Ottawa แยกข้อที่มีแหล่ง กับความเห็น
+
+[assistant]
+จุดอ่อนที่เห็น
+- มีแหล่งรองรับ: rule ไม่ครอบคลุม ligament หรือ meniscus และ derive ในผู้ใหญ่ที่มาแผนกฉุกเฉิน (Ottawa knee rule, 1996)
+- ความเห็น: effusion ตึงมากอาจทำให้ตรวจ bony tenderness และงอเข่าได้ไม่ดี จึงควรตรวจซ้ำก่อนจำหน่ายตามที่หมอวางไว้
+- ความเห็น: ถ้า pt ไม่มาตามนัด แผน hold film เสี่ยงขึ้น ควรมีเบอร์ติดต่อสำรอง
+- ความเห็น: patella ที่หลุดแล้วเข้าที่เองก็ให้ effusion ไวแบบนี้ได้ ควรตรวจ apprehension ด้วย
+
+[physician]
+ถ้าพรุ่งนี้เขากลับมา งอไม่ถึง 90° เพราะบวมตึง แต่ลงน้ำหนักได้ นับ Ottawa positive ไหม หรือควรดูดข้อก่อน film ถ้าเห็น lipohemarthrosis ต้องส่งต่อ ortho ด่วนไหม
+
+[assistant]
+- งอไม่ถึง 90° เป็นหนึ่งในเกณฑ์ของ rule แม้ลงน้ำหนักได้ก็นับเป็น positive และส่ง film ได้ (Ottawa knee rule, 1996)
+- lipohemarthrosis (fat-blood level) บ่งชี้ fracture เข้าข้อ ควรส่งต่อ ortho ตามความเหมาะสมของรอยหัก
+- เรื่องดูดข้อก่อน film ผมไม่มีหลักฐานเฉพาะมารองรับ ยังไม่แน่ใจ และ rule เองก็ไม่ได้ให้ดูดข้อก่อน
+- ถ้างอไม่ได้เพราะข้อล็อก ให้คิดถึง mechanical block ก่อน
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+เดิมผมจะส่ง film ทุกรายที่ effusion มาไวเพราะกลัวพลาด fracture ตอนนี้แยกได้แล้วว่า Ottawa ตอบเฉพาะเรื่อง fracture ในผู้ใหญ่ที่ติดตามได้ ส่วน ACL กับ meniscus ต้องตรวจ Lachman ซ้ำหลังบวมยุบ รายนี้ผมเลื่อน film แต่ต้องมีใบนัดกับเกณฑ์กลับก่อนนัด เพราะบ้านเขาไกลและ ortho ต้องส่งต่อ
+
+ความไม่แน่นอน / What remains uncertain:
+ยังไม่รู้ว่า rule ทำงานดีแค่ไหนในเข่าที่ effusion มาไว และยังไม่รู้ว่าเขาจะกลับมาตามนัดหรือไม่
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+วันจันทร์จะเปิดต้นฉบับ Ottawa เทียบเกณฑ์คัดออกกับ pt ที่ ER เรา ย้อนดู chart เข่าบาดเจ็บ 20 รายล่าสุดว่า film ที่ส่งแล้วลบมีกี่ราย และทำใบเกณฑ์กลับก่อนนัดให้พยาบาลคัดกรองใช้
+

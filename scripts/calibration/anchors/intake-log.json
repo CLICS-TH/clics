@@ -1,0 +1,22 @@
+{
+  "note": "Batches that PASSED intake (validate.mjs --record-batch), with each fixture's sha256 at that moment. Only these bytes may be locked as held-out. Append-only.",
+  "entries": [
+    {
+      "batch": 1,
+      "recorded_at": "2026-10-02T08:01:18.637Z",
+      "confirmed_extra_review": [],
+      "fixtures": {
+        "anc-027": "3097c69fa4d4b62230288e3e1eba125061af9e7a14ac09cb819170c0145776e4",
+        "anc-034": "48bfe858982f74cc7910c03cad8720e58eaba7a50e982ae29b0e0e727697ec9f",
+        "anc-059": "6e22ec71018fd51ba8158d1e27061eeae91d034128c21c52d713761a7cfc7e2d",
+        "anc-063": "92d02a03d3b496dd5a47fc8154df9a3084179b2710f3e23b2d9e2fb52854a7a8",
+        "anc-064": "9cef3768d47e50730933e52eeffc2dfde2465015ef1616634652b531f3deeaa9",
+        "anc-065": "0ae3bf91080cec8e4b028fcc66f53a2cc7c9492f93fca69cefe25e6cc98e4d43",
+        "anc-066": "3b793e302d57e714f8f42e720536a01e7d99c24dc1e901e42cb33dc48985bd05",
+        "anc-078": "6cfaeba0e45dc1d2c29d2afdce6e2854c725d4a8bb145e3783fb162bdda73eeb",
+        "anc-090": "e7c08e4ed321a1fdfc288c8cb4fd5e6660a1d2c9d6900b5b22dc1dd5bd76ff04",
+        "anc-098": "0d77926a1af97c2530ce89d599b361c7adb8447c5f60077766d15099e2c9625d"
+      }
+    }
+  ]
+}

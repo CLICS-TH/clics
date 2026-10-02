@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-065.json",
+      "id": "anc-065",
+      "turn": 3,
+      "kind": "false",
+      "claim": "3% hypertonic saline พ่นช่วยลดวันนอน รพ. ในผู้ป่วยในทุกราย",
+      "citation_on_claim": false,
+      "corrected_in_turn": 5,
+      "note": "Over-generalisation: AAP 2014 advises against it in the ED and only says may for inpatients (weak); benefit is mainly in longer stays. Tutor concedes in turn 5."
+    }
+  ]
+}
