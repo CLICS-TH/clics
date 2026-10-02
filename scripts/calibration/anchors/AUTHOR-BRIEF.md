@@ -18,7 +18,7 @@ file except the two you are told to write.
   "physician_turns": 4-8, "reflection": "none|reflection_turn|in_chat", "profile": "graded|dissociated|flat",
   "dissociated_domains": ["d5"], "targets": {"d1":…,"d7":…}, "target_composite": 0-100,
   "cue_budget": {"length": "short|medium|long", "ack_turns": 0|1|2, "numerals": "few|some|many",
-                 "list_lines": 0|"some", "rubric_echo": 0} }
+                 "list_lines": 0|"some", "rubric_echo": 0, "length_chars": 900-2100} }
 ```
 
 **Output, exactly:**
@@ -321,6 +321,7 @@ So every row comes with a `cue_budget` that was assigned **independently of its 
 | budget | means | the validator accepts |
 |---|---|---|
 | `length` | SHORT — 900–1250 physician characters in total; MEDIUM — 1250–1650 physician characters; LONG — 1650–2100 physician characters | short 850–1310, medium 1190–1730, long 1570–2200 characters (physician turns only, joined) |
+| `length_chars` | your exact length target inside that bin, drawn without reference to your targets. **Hit it, whatever the level:** a high anchor can be short and a low one long. Writing longer as the level rises is the drift this exists to stop | within ±125 characters of the number |
 | `ack_turns` | NO acknowledgement tokens (ok / โอเค / noted / รับทราบ / เข้าใจแล้ว); 1 or 2 = that many physician turns each carry one casual acknowledgement (`ok ครับ`, `โอเค`, `noted`, `รับทราบ`, `เข้าใจแล้ว`, "got it") | exactly that many acknowledgement tokens in physician turns |
 | `numerals` | FEW numerals — about 0–1 per physician turn; SOME numerals — about 2–3 per physician turn; MANY numerals — 4 or more per physician turn (labs, vitals, doses, durations in days) | few ≤ 1.5, some 1.5–4, many ≥ 3.5 per physician turn (every digit group counts: `150/90` is two) |
 | `list_lines` | 0 = NO bullet or numbered lines in physician turns or the reflection; some = 2–4 bullet or numbered lines in physician turns (a structured question or a listed plan) | 0 → none; some → 1–5 lines starting with `-`, `*`, `•` or `1.` |

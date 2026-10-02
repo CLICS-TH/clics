@@ -17,10 +17,10 @@ import {
 } from './design.mjs';
 import {
   validateFixture, validateAll, serialiseManifest, MANIFEST_PATH, FIXTURES_DIR, REFLECTION_HEADINGS, thaiShare, checkPlanted,
-  checkBudget, batchCueContribution, updateHeldOutLock, recordIntake, intakeAccepted, loadIntakeLog, appendOnlyViolation,
+  checkBudget, LENGTH_CHARS_TOL, batchCueContribution, updateHeldOutLock, recordIntake, intakeAccepted, loadIntakeLog, appendOnlyViolation,
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
-import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH, PLAN_MD_PATH, BUDGET_LEVELS, needsExtraReview } from './batch-plan.mjs';
+import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH, PLAN_MD_PATH, BUDGET_LEVELS, BUDGET_RANGES, needsExtraReview } from './batch-plan.mjs';
 import { buildBrief, BRIEF_PATH, PIN_PATH } from './author-brief.mjs';
 import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, freezeApplies, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
 import { checkSplit, splitFilter, heldOutEligible, loadAnchorSplit, reserveByDesign, allocateHeldOut, SPLIT_CELLS, cellOf,
@@ -1063,5 +1063,31 @@ describe('checkSplit — a §7.4 exclusion after the reservation', () => {
   test('a replacement listed as held-out while its predecessor is tuning is an error', () => {
     const design = applyReplacements(base, rep(t));
     assert.match(checkSplit(design, { held_out: ['anc-101'], tuning: [t] }).join('\n'), /listed as held-out/);
+  });
+});
+
+describe('batch-plan.mjs — per-row length targets', () => {
+  const rows = planBatches(generateDesign({ n: DEFAULT_N, seed: DEFAULT_SEED })).batches.flatMap((b) => b.rows);
+  test('every row has a length_chars target inside its bin', () => {
+    for (const r of rows) {
+      const [lo, hi] = BUDGET_RANGES.length[r.cue_budget.length];
+      assert.ok(r.cue_budget.length_chars >= lo && r.cue_budget.length_chars <= hi, `${r.id}: ${r.cue_budget.length_chars} outside ${lo}–${hi}`);
+    }
+  });
+  test('the length targets do not track the composite target', () => {
+    const xs = rows.map((r) => [r.target_composite, r.cue_budget.length_chars]);
+    const m = (k) => xs.reduce((s, x) => s + x[k], 0) / xs.length;
+    const [mt, ml] = [m(0), m(1)];
+    let a = 0, b = 0, c = 0;
+    for (const [t, l] of xs) { a += (t - mt) * (l - ml); b += (t - mt) ** 2; c += (l - ml) ** 2; }
+    assert.ok(Math.abs(a / Math.sqrt(b * c)) < 0.15, `r = ${(a / Math.sqrt(b * c)).toFixed(3)}`);
+  });
+  test('intake returns a fixture inside its bin but off its length target', () => {
+    const b = { length: 'short', length_chars: 1000, ack_turns: 0, numerals: 'few', list_lines: 0, rubric_echo: 0 };
+    const f = (len) => ({ length: len, acks: 0, numbers: 0, list_lines: 0, rubric_echo: 0, echo_hits: {} });
+    assert.deepEqual(checkBudget(f(1000 + LENGTH_CHARS_TOL), 4, b), []);
+    assert.match(checkBudget(f(1000 + LENGTH_CHARS_TOL + 1), 4, b).join(), /target 1000/);
+    assert.match(checkBudget(f(1000 - LENGTH_CHARS_TOL - 1), 4, b).join(), /target 1000/);
+    assert.deepEqual(checkBudget(f(1200), 4, { ...b, length_chars: undefined }), []);   // a row without one: bin only
   });
 });

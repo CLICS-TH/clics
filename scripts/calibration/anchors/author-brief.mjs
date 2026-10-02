@@ -28,7 +28,7 @@ import { fileURLToPath } from 'node:url';
 import { CITATIONS } from './citations.mjs';
 import { RUBRIC_ECHO } from './cues.mjs';
 import { REFLECTION_HEADINGS } from './validate.mjs';
-import { BUDGET_TOLERANCE } from './validate.mjs';
+import { BUDGET_TOLERANCE, LENGTH_CHARS_TOL } from './validate.mjs';
 import { BUDGET_TEXT } from './batch-plan.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -104,7 +104,7 @@ file except the two you are told to write.
   "physician_turns": 4-8, "reflection": "none|reflection_turn|in_chat", "profile": "graded|dissociated|flat",
   "dissociated_domains": ["d5"], "targets": {"d1":…,"d7":…}, "target_composite": 0-100,
   "cue_budget": {"length": "short|medium|long", "ack_turns": 0|1|2, "numerals": "few|some|many",
-                 "list_lines": 0|"some", "rubric_echo": 0} }
+                 "list_lines": 0|"some", "rubric_echo": 0, "length_chars": 900-2100} }
 \`\`\`
 
 **Output, exactly:**
@@ -230,6 +230,7 @@ So every row comes with a \`cue_budget\` that was assigned **independently of it
 | budget | means | the validator accepts |
 |---|---|---|
 | \`length\` | ${BUDGET_TEXT.length.short}; ${BUDGET_TEXT.length.medium}; ${BUDGET_TEXT.length.long} | short ${tol.length.short.join('–')}, medium ${tol.length.medium.join('–')}, long ${tol.length.long.join('–')} characters (physician turns only, joined) |
+| \`length_chars\` | your exact length target inside that bin, drawn without reference to your targets. **Hit it, whatever the level:** a high anchor can be short and a low one long. Writing longer as the level rises is the drift this exists to stop | within ±${LENGTH_CHARS_TOL} characters of the number |
 | \`ack_turns\` | ${BUDGET_TEXT.ack_turns[0]}; 1 or 2 = that many physician turns each carry one casual acknowledgement (\`ok ครับ\`, \`โอเค\`, \`noted\`, \`รับทราบ\`, \`เข้าใจแล้ว\`, "got it") | exactly that many acknowledgement tokens in physician turns |
 | \`numerals\` | ${BUDGET_TEXT.numerals.few}; ${BUDGET_TEXT.numerals.some}; ${BUDGET_TEXT.numerals.many} | few ≤ ${tol.numerals.few[1]}, some ${tol.numerals.some.join('–')}, many ≥ ${tol.numerals.many[0]} per physician turn (every digit group counts: \`150/90\` is two) |
 | \`list_lines\` | 0 = ${BUDGET_TEXT.list_lines[0]}; some = ${BUDGET_TEXT.list_lines.some} | 0 → none; some → ${tol.list_lines.some.join('–')} lines starting with \`-\`, \`*\`, \`•\` or \`1.\` |

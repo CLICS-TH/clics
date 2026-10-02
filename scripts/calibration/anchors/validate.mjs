@@ -171,6 +171,11 @@ export async function loadBudgets() {
 
 // Tolerances around the planned surface shape: wide enough to write naturally, narrow enough that
 // the cohort gate keeps its margin (batch-plan.mjs simulates both).
+// Each row also gets an exact physician-length target inside its bin (cue_budget.length_chars,
+// batch-plan.mjs), met to within this many characters at intake. The bins alone were not enough:
+// authors drifted inside them, writing longer for higher targets (batches 1 and 3: r = 0.95 inside the
+// short bin), which rebuilt the length–composite cue the bins were there to break.
+export const LENGTH_CHARS_TOL = 125;
 export const BUDGET_TOLERANCE = {
   length: { short: [850, 1310], medium: [1190, 1730], long: [1570, 2200] },
   numerals: { few: [0, 1.5], some: [1.5, 4], many: [3.5, Infinity] },
@@ -183,6 +188,9 @@ export function checkBudget(features, physicianTurns, b) {
   const out = [];
   const [lo, hi] = BUDGET_TOLERANCE.length[b.length];
   if (features.length < lo || features.length > hi) out.push(`length ${features.length} chars, budget ${b.length} (${lo}–${hi})`);
+  else if (b.length_chars != null && Math.abs(features.length - b.length_chars) > LENGTH_CHARS_TOL) {
+    out.push(`length ${features.length} chars, target ${b.length_chars} ±${LENGTH_CHARS_TOL}`);
+  }
   const acks = Math.round(features.acks * physicianTurns);
   if (acks !== b.ack_turns) out.push(`${acks} acknowledgement token(s), budget ${b.ack_turns}`);
   const [nlo, nhi] = BUDGET_TOLERANCE.numerals[b.numerals];
