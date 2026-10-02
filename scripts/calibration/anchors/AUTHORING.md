@@ -623,6 +623,11 @@ The rule from now on:
     - The rewrite barely moved, in the same domains: d2 3 read 4–5, d4 2 read 3–4, d7 3 read 5.
     - Decoys: anc-018 +13 and anc-003 +9, inside their earlier range.
     - The batch plan changed only by the anc-082 → anc-103 swap.
+16. **Round O (2026-10-02).** anc-103's first write (replacing anc-082) reads **+6** and stays.
+    - It was written to the brief's newer lessons (a decision with one reason and no ranking for
+      d2 = 3; generic follow-ups for d4 = 2; context taken unshaped for d7 = 3).
+    - Decoys: anc-014 −4 and anc-010 +7.
+    - **No panel rewrite is outstanding for batches 1, 3, 6 and 7.**
 
 ## 8. Pipeline and commands
 
