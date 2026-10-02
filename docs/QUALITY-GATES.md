@@ -49,6 +49,11 @@ node scripts/quality/clinician-export.mjs scripts/quality/report/local-deepseek-
 
 # 3. (optional) AI-judge screening — packets for a judge, then merge
 node scripts/quality/judge-packet.mjs scripts/quality/report/local-deepseek-r1.json --out scripts/quality/report/judge-r1
+#    the on-prem model as one judge (the non-Claude judge C-2 needs when a Claude arm is compared):
+#    one call per packet, rubric embedded once, one corrective retry on an invalid reply, never reads the key
+LOCAL_AI_BASE_URL=… LOCAL_AI_MODEL=… node scripts/quality/judge-local.mjs scripts/quality/report/judge-r1 --dry-run
+LOCAL_AI_BASE_URL=… LOCAL_AI_MODEL=… node scripts/quality/judge-local.mjs scripts/quality/report/judge-r1 --concurrency 1
+#    interrupted, or some packets invalid?  re-run the same command with --resume
 node scripts/quality/judge-merge.mjs --key scripts/quality/report/judge-r1/key.do-not-share.json \
   --packets scripts/quality/report/judge-r1/packets.jsonl <judge1.jsonl> <judge2.jsonl>
 ```
