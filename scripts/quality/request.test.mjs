@@ -16,7 +16,7 @@ import {
 import {
   RIMPL_FILES, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE, promptLabel,
 } from './rimpl.mjs';
-import { runItem, makeAnthropicArm, productionAnthropicModel, spendOf, runQueue, carriedTokens } from './tutor-audit.mjs';
+import { runItem, makeAnthropicArm, productionAnthropicModel, spendOf, runQueue, carriedTokens, checkLabel } from './tutor-audit.mjs';
 import { ITEM_TH_EXAMINER, ITEM_EN_NATURAL, ITEM_RESCUE, ITEM_PII, GOOD_TH_EXAMINER } from './test-fixtures.mjs';
 
 const require = createRequire(import.meta.url);
@@ -257,6 +257,22 @@ test('CLI: --dry-run needs no endpoint, prints the de-identified request, and wr
   assert.match(r.stdout, /\[MRN-1\]/);
   assert.match(r.stdout, /identifiers reaching the model: John Testcase/);
   assert.doesNotMatch(r.stdout, /report written|report {2}\//);
+});
+
+test('--label is used verbatim or refused — never silently truncated or rewritten', () => {
+  assert.equal(checkLabel('local-deepseek-baseline-master-2026-10-0'), 'local-deepseek-baseline-master-2026-10-0');
+  assert.equal(checkLabel('a'.repeat(40)), 'a'.repeat(40));
+  assert.equal(checkLabel('run-1.2'), 'run-1.2');
+  // The 2026-10-02 fresh baseline: 41 characters, which slug() used to cut to "...-2026-10-0".
+  assert.throws(() => checkLabel('local-deepseek-baseline-master-2026-10-02'), /would be written as "local-deepseek-baseline-master-2026-10-0"/);
+  assert.throws(() => checkLabel('Local_Run'), /would be written as "local-run"/);
+  assert.throws(() => checkLabel('-lead'), /not a valid report label/);
+  assert.throws(() => checkLabel(true), /needs a value/);
+  // The CLI refuses before anything runs, even as a dry run.
+  const r = run(['--dry-run', '--limit', '1', '--label', 'local-deepseek-baseline-master-2026-10-02']);
+  assert.notEqual(r.status, 0);
+  assert.match(r.stderr, /would be written as "local-deepseek-baseline-master-2026-10-0"/);
+  assert.doesNotMatch(r.stdout, /requests sent/);
 });
 
 /* ------------------------------------------------------------- --max-usd */

@@ -308,16 +308,39 @@ function coverageById(results, cites) {
 }
 
 /**
- * The paired before/after comparison for ONE arm. `before` and `after` are { results, cites }:
- * checkReport(...).results and a cite-verify .cites.json, for any two runs. Items are paired by id;
- * an item is excluded if EITHER side is rescue, a failed call, absent from that run, or absent from
- * that run's cites file. The paired n is reported, with why each excluded item was dropped.
+ * What a run actually sent the model for each item: id -> the JSON of `request.messages` as
+ * tutor-audit recorded it (de-identified, chief-complaint prefixed; the SYSTEM prompt is not in it,
+ * so a prompt change leaves it untouched). Items without a recorded request are absent.
+ */
+export function inputsById(report) {
+  const out = new Map();
+  for (const e of report?.items ?? []) {
+    if (Array.isArray(e.request?.messages)) out.set(e.id, JSON.stringify(e.request.messages));
+  }
+  return out;
+}
+
+/**
+ * The paired before/after comparison for ONE arm. `before` and `after` are { results, cites, inputs? }:
+ * checkReport(...).results, a cite-verify .cites.json and (optional) inputsById(report), for any two
+ * runs. Items are paired by id; an item is excluded if EITHER side is rescue, a failed call, absent
+ * from that run, or absent from that run's cites file.
+ *
+ * INPUT EQUALITY. A pair only measures the prompt if the model received the same messages both
+ * times. When both sides supply `inputs`, a paired item whose recorded messages differ is EXCLUDED
+ * (status 'input_differs'), not merely warned about: it is decided from the inputs alone, before any
+ * output is looked at, so dropping it cannot bias the verdict, while keeping it would let a change in
+ * the input be counted as an effect of the prompt. An item with no recorded input on either side is
+ * paired but listed in `inputs_unchecked`.
+ * The paired n is reported, with why each excluded item was dropped.
  */
 export function pairedCoverage(before, after, alpha = MCNEMAR_ALPHA) {
   const b = coverageById(before.results, before.cites);
   const a = coverageById(after.results, after.cites);
+  const checkInputs = before.inputs instanceof Map && after.inputs instanceof Map;
   const cells = { both: 0, gained: 0, lost: 0, neither: 0 };
   const excluded = [];
+  const inputsUnchecked = [];
   for (const id of [...new Set([...b.keys(), ...a.keys()])].sort()) {
     const sb = b.get(id) ?? 'absent';
     const sa = a.get(id) ?? 'absent';
@@ -326,6 +349,14 @@ export function pairedCoverage(before, after, alpha = MCNEMAR_ALPHA) {
       // Rescue items are excluded by design; only report the others, which say something about a run.
       if (sb !== 'rescue' && sa !== 'rescue') excluded.push({ id, before: sb, after: sa });
       continue;
+    }
+    if (checkInputs) {
+      const ib = before.inputs.get(id);
+      const ia = after.inputs.get(id);
+      if (ib === undefined || ia === undefined) inputsUnchecked.push(id);
+      else if (ib !== ia) { excluded.push({ id, before: sb, after: sa, reason: 'input_differs' }); continue; }
+    } else {
+      inputsUnchecked.push(id);
     }
     const was = sb === 'covered';
     const now = sa === 'covered';
@@ -338,6 +369,8 @@ export function pairedCoverage(before, after, alpha = MCNEMAR_ALPHA) {
     before: wilson(cells.both + cells.lost, n),
     after: wilson(cells.both + cells.gained, n),
     excluded,
+    inputs_checked: checkInputs,
+    inputs_unchecked: inputsUnchecked,
     ...mcnemarExact(cells.gained, cells.lost, alpha),
   };
 }

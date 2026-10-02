@@ -8,7 +8,7 @@ import { existsSync } from 'node:fs';
 import { thaiShare, THAI_MIN_SHARE } from './rimpl.mjs';
 import {
   checkReply, summarize, wordCount, LENGTH_MAX_WORDS, citationForm, NOTE_ONLY_MAX_UPPER, evidenceCoverage, checkReport,
-  mcnemarExact, pairedCoverage, mcnemarRejectRates, MCNEMAR_ALPHA,
+  mcnemarExact, pairedCoverage, mcnemarRejectRates, MCNEMAR_ALPHA, inputsById,
 } from './checks.mjs';
 import { binomPmf, binomUpper } from './stats.mjs';
 import { pairingWarnings } from './coverage-paired.mjs';
@@ -245,6 +245,36 @@ test('pairedCoverage: pairs by id; drops rescue, failed calls, absent items and 
   close1(r.p_improved, 0.75);   // P(B >= 1 | 2, 1/2)
 });
 const close1 = (x, y) => assert.ok(Math.abs(x - y) < 1e-12, `${x} vs ${y}`);
+
+test('pairedCoverage: an item whose recorded input differs is EXCLUDED; no recorded input is listed, not dropped', () => {
+  const row = (id) => ({ id, language: 'en', mode: 'natural', result: checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, CITED)) });
+  const rep = (msgs) => ({ items: Object.entries(msgs).map(([id, content]) => ({ id, request: { messages: [{ role: 'user', content }] } })) });
+  const V = { citations: [{ status: 'verified' }] };
+  const N0 = { citations: [] };
+  const results = ['a', 'b', 'c', 'u'].map(row);
+  const before = { results, cites: { items: [{ id: 'a', ...N0 }, { id: 'b', ...N0 }, { id: 'c', ...V }, { id: 'u', ...N0 }] },
+    inputs: inputsById(rep({ a: 'same', b: 'MRN 00998877 before #114', c: 'same c' })) };
+  const after = { results, cites: { items: [{ id: 'a', ...V }, { id: 'b', ...V }, { id: 'c', ...V }, { id: 'u', ...V }] },
+    inputs: inputsById(rep({ a: 'same', b: '[MRN-1] after #114', c: 'same c', u: 'only after' })) };
+  const r = pairedCoverage(before, after);
+  assert.equal(r.inputs_checked, true);
+  assert.deepEqual(r.excluded, [{ id: 'b', before: 'not_covered', after: 'covered', reason: 'input_differs' }]);
+  assert.equal(r.n_paired, 3, 'a, c, u — b dropped because the model saw different input');
+  assert.deepEqual([r.gained, r.both], [2, 1]);
+  assert.deepEqual(r.inputs_unchecked, ['u']);
+  // Without inputs on both sides nothing is compared, and every paired item says so.
+  const blind = pairedCoverage({ results, cites: before.cites }, { results, cites: after.cites });
+  assert.equal(blind.inputs_checked, false);
+  assert.equal(blind.n_paired, 4);
+  assert.deepEqual(blind.inputs_unchecked, ['a', 'b', 'c', 'u']);
+  // The CLI's warning names the differing item, and the unrecorded one.
+  const oldReport = rep({ a: 'same', b: 'x' });
+  oldReport.items.push({ id: 'u' });                     // an item with no recorded request
+  const w = pairingWarnings({ ...oldReport, provenance: { prompt_versions: 1 } },
+    { ...rep({ a: 'same', b: 'y', u: 'z' }), provenance: { prompt_versions: 2 } }, {}, {});
+  assert.ok(w.some((s) => /1 item\(s\) received different input.*: b$/.test(s)), w.join(' | '));
+  assert.ok(w.some((s) => /1 item\(s\) in both runs have no recorded request.*: u$/.test(s)), w.join(' | '));
+});
 
 test('coverage-paired CLI helper warns when the pairing would measure something other than the prompt', () => {
   const rep = (over = {}) => ({ label: 'x', provenance: { bank_sha: 'bank-1', models_reported: ['m'], prompt_versions: { natural: 'chat-prompt-old' }, ...over } });

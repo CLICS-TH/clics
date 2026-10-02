@@ -235,6 +235,17 @@ same 74 bank items, so the design is paired.
 
 - Pair the items by id. An item is excluded if **either** run has it as a rescue item, a failed
   call, missing from the run, or missing from that run's cites file.
+- **An item is also excluded if the model received different input in the two runs.** The input is
+  the item's recorded `request.messages`, which is de-identified, has the chief-complaint prefix, and
+  does not include the system prompt, so a prompt change leaves it equal.
+  - Such an item is **excluded**, not just warned about. The decision is made from the inputs alone,
+    before any output is read, so dropping the item cannot bias the verdict.
+  - Keeping it would count a change in what the model was asked as an effect of the prompt.
+  - `coverage-paired.mjs` names every such item. An item with no recorded request on either side
+    stays paired and is listed as "inputs not compared".
+  - On the committed 2026-10-02 runs, the check finds exactly the four items that the #114 PII-filter
+    fix changed: `adv-mx-premise-ceftriaxone-mrsa`, `adv-th-language-switch-to-thai`,
+    `mt-mx-pushback-subclinical-hypothyroid` and `mx-ortho-low-back-pain`.
 - Report the paired n, and why each other excluded item was dropped.
 - Each pair is covered or not covered before, and the same after. Only the discordant pairs carry
   information: `gained` (not covered → covered) and `lost` (covered → not covered).
@@ -258,9 +269,15 @@ Run it with:
 node scripts/quality/coverage-paired.mjs <before.json> <before.cites.json> <after.json> <after.cites.json>
 ```
 
-It takes any two reports plus their cites files. It warns if the bank, the model or the cite-verify
-version differs between the two, or if the prompt labels are identical. It is implemented by
-`pairedCoverage` / `mcnemarExact` in `checks.mjs`.
+It takes any two reports plus their cites files. It is implemented by `pairedCoverage` /
+`mcnemarExact` in `checks.mjs`.
+
+- It warns if the bank, the model or the cite-verify version differs between the two runs.
+- It names the items whose inputs differ.
+- It flags identical prompt labels. Two runs of the same prompt are a **noise check**, not a
+  before/after. Once the fresh local baseline exists, it is compared with the committed 2026-10-02
+  local run this way: the same model, 76 identical inputs, and the four items changed by #114
+  excluded automatically.
 
 **Error rates of the new rule under "no change".** These are exact, from `mcnemarRejectRates` in
 `checks.mjs`. Items are independent, each with P(gain) = P(loss).
@@ -290,7 +307,8 @@ The "stable items" scenarios are the realistic ones. Whether an item gets a veri
 depends heavily on the item, which shows even across **different** models. Pair the committed local
 and Sonnet runs by item:
 
-- only 17 of 74 items are discordant (13 gained, 4 lost);
+- only 17 of the 70 items with identical inputs are discordant (13 gained, 4 lost). Without the input
+  check it was 17 of 74, because the four excluded items were all concordant;
 - if the two runs were independent, about 45% of items would be discordant.
 
 A before/after on the **same** model should be at least that stable. A +15pp effect at that
@@ -312,13 +330,23 @@ upper bound is < 0.
   argue against that.
 
 **The local baseline is a fresh run.** The local before/after verdict uses a **fresh local run made
-on current master with the current (old) prompt**: label `local-deepseek-baseline-master-2026-10-02`,
-prompt labels `chat-prompt-d63340e1` / `chat-prompt-c6efcfc6`.
+on current master with the current (old) prompt**:
+
+- report label and file: `local-deepseek-baseline-master-2026-10-0`
+  (`scripts/quality/report/local-deepseek-baseline-master-2026-10-0.json`), launched at 14:30:45;
+- prompt labels `chat-prompt-d63340e1` / `chat-prompt-c6efcfc6`;
+- sha256 of the final report: recorded when the run completes.
+
+The label is 40 characters. The run was launched as `local-deepseek-baseline-master-2026-10-02`, and
+the old tutor-audit `slug()` silently cut it to 40 characters. The truncated name above is the one on
+disk and inside the report, and it is the same run. tutor-audit now refuses such a label instead of
+truncating it.
 
 - The committed 2026-10-02 local run used the PII filter from before #114, so 4 of its 80 items sent
   the model different input from what any after-run will send. Pairing needs identical inputs apart
   from the prompt.
-- This choice was made **before the fresh run's results existed**.
+- Timing: the baseline was decided at launch (14:30:45) and committed at 14:34:58, while the run was
+  still in progress. No output had been read.
 - The committed 20/74 local figure stays as a **reference only**.
 - The Claude baseline, `comparison-2026-10-02` (harness `44f3b4d`, after #114), stays as it is.
 
