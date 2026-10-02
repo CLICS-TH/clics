@@ -2,8 +2,8 @@
   "note": "sha256 of each committed anchor fixture. Targets are NOT here — they live only in design.json. Regenerate with validate.mjs.",
   "design_seed": 20261002,
   "rubric_version": "pis7-weights-08b0cb1a",
-  "n": 59,
-  "physician_chars_vs_target_r": 0.256,
+  "n": 60,
+  "physician_chars_vs_target_r": 0.266,
   "fixtures": {
     "anc-001": {
       "sha256": "8f4b3118e41a86ba3223baae7488318cfc824ce1b51360efc7bac45acbb6a261",
@@ -710,6 +710,18 @@
       "reflection_chars": 510,
       "thai_share_physician": 0,
       "thai_share_tutor": 0,
+      "citations": 7,
+      "pii_hits": 0
+    },
+    "anc-103": {
+      "sha256": "e62846d3e8cd6d692079c10e3c30bbf7f6c867457e34042b5f5bf9aff3f4efd5",
+      "turns": 9,
+      "physician_turns": 4,
+      "physician_chars": 1835,
+      "tutor_chars": 1950,
+      "reflection_chars": 893,
+      "thai_share_physician": 0.76,
+      "thai_share_tutor": 0.73,
       "citations": 7,
       "pii_hits": 0
     }
