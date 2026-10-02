@@ -175,13 +175,24 @@ export function reserveByDesign(design, { seed, heldOut }) {
   return { held_out: [...heldSet].sort(), tuning: tuning.sort(), cells };
 }
 
+/** Every id after --check-scorable up to the next flag, comma- or space-separated. Reading only the
+ *  next argument let `--check-scorable anc-1 anc-2` pass anc-1 and never look at anc-2. */
+export function scorableIdsArg(argv) {
+  const i = argv.indexOf('--check-scorable');
+  if (i < 0) return [];
+  const rest = argv.slice(i + 1);
+  const end = rest.findIndex((a) => a.startsWith('--'));
+  return (end < 0 ? rest : rest.slice(0, end)).flatMap((a) => a.split(/[\s,]+/)).filter(Boolean);
+}
+
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const argv = process.argv.slice(2);
   const num = (k) => { const i = argv.indexOf(`--${k}`); return i > -1 ? Number(argv[i + 1]) : NaN; };
   if (argv.includes('--report')) { await report(); process.exit(0); }
   if (argv.includes('--check-scorable')) {
-    const ids = String(argv[argv.indexOf('--check-scorable') + 1] ?? '').split(',').map((x) => x.trim()).filter(Boolean);
+    const ids = scorableIdsArg(argv);
+    if (!ids.length) { console.error('✖ --check-scorable needs at least one anchor id'); process.exit(2); }
     try { assertHeldOutScorable(ids, { split: await loadAnchorSplit(), lock: await loadHeldOutLock() }); console.log(`✔ may be scored now: ${ids.join(' ')}`); process.exit(0); }
     catch (e) { console.error(`✖ ${e.message}`); process.exit(1); }
   }

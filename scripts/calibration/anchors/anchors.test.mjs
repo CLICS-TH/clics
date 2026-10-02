@@ -24,7 +24,7 @@ import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH
 import { buildBrief, BRIEF_PATH, PIN_PATH } from './author-brief.mjs';
 import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, freezeApplies, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
 import { checkSplit, splitFilter, heldOutEligible, loadAnchorSplit, reserveByDesign, allocateHeldOut, SPLIT_CELLS, cellOf,
-  loadHeldOutLock, lockComplete, assertHeldOutScorable } from './anchor-split.mjs';
+  loadHeldOutLock, lockComplete, assertHeldOutScorable, scorableIdsArg } from './anchor-split.mjs';
 import {
   knownGroups, normaliseScores, parseThreshold, loadThreshold, spearman, wilson, EVIDENCE_LEVEL,
 } from './known-groups.mjs';
@@ -987,5 +987,28 @@ describe('D13 on the full cohort — held-out lock and no early held-out scores'
       assert.equal(pin[m].prompt_version, promptLabel('chat', pin[m].text), `${m}: version does not match its text`);
       assert.ok(brief.includes(pin[m].prompt_version) && brief.includes(pin[m].text), `${m}: brief does not carry the pinned prompt`);
     }
+  });
+});
+
+describe('anchor-split.mjs --check-scorable reads every id', () => {
+  test('takes space-separated, comma-separated and mixed ids, stopping at the next flag', () => {
+    assert.deepEqual(scorableIdsArg(['--check-scorable', 'anc-001', 'anc-002']), ['anc-001', 'anc-002']);
+    assert.deepEqual(scorableIdsArg(['--check-scorable', 'anc-001,anc-002', 'anc-003']), ['anc-001', 'anc-002', 'anc-003']);
+    assert.deepEqual(scorableIdsArg(['--check-scorable', 'anc-001', '--x', 'anc-009']), ['anc-001']);
+    assert.deepEqual(scorableIdsArg(['--check-scorable']), []);
+  });
+  test('the CLI refuses a held-out id given as a later space-separated argument', async () => {
+    const split = await loadAnchorSplit();
+    const lock = await loadHeldOutLock();
+    if (!split || lockComplete(split, lock)) return;   // only meaningful while the lock is incomplete
+    const tuning = split.tuning[0], held = split.held_out[0];
+    const { spawnSync } = await import('node:child_process');
+    const r = spawnSync(process.execPath, [fileURLToPath(new URL('./anchor-split.mjs', import.meta.url)), '--check-scorable', tuning, held]);
+    assert.equal(r.status, 1, r.stdout.toString() + r.stderr.toString());
+  });
+  test('the CLI refuses an empty id list', async () => {
+    const { spawnSync } = await import('node:child_process');
+    const r = spawnSync(process.execPath, [fileURLToPath(new URL('./anchor-split.mjs', import.meta.url)), '--check-scorable']);
+    assert.equal(r.status, 2);
   });
 });
