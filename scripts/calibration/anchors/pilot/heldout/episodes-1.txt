@@ -1,0 +1,737 @@
+######## EPISODE X101 ########
+[physician]
+pt ชายวัย 60 กว่า มี stable angina, HT, DM on ASA, atenolol, atorvastatin, metformin ECG เดิม sinus rhythm เคยทำ echo แล้ว EF ปกติ lab ล่าสุด Cr ปกติ จะมาผ่าตัดช่องท้องแบบ elective ใต้ GA ช่วยสรุปว่าการประเมินก่อนผ่าตัดในผู้ป่วย stable angina ต้องดูอะไรบ้าง ขอสั้นๆ เป็นข้อ และใส่ source มาด้วยครับ
+
+[assistant]
+ยินดีครับ สรุปสั้นๆ สำหรับ stable angina ที่จะผ่าตัดช่องท้อง elective
+- อาการ: ดู CCS class ปัจจุบัน มี angina ที่แย่ลงหรือเกิดตอนพักไหม ถ้ามีถือว่าไม่ stable ควรเลื่อนผ่าตัดและประเมินใหม่
+- Functional capacity: เดินขึ้นบันไดสองชั้นได้ไหม ถ้าได้ตั้งแต่ 4 METs ขึ้นไป ส่วนใหญ่ไปต่อได้โดยไม่ต้องตรวจเพิ่ม
+- ความเสี่ยงของผู้ป่วยและของการผ่าตัด เช่น RCRI ร่วมกับชนิดผ่าตัด
+- Resting ECG และ lab พื้นฐานตามความเสี่ยง
+- ยาเดิม: beta-blocker และ statin ให้ continue ต่อเนื่อง แต่ไม่แนะนำให้เริ่ม beta-blocker ใหม่ในวันผ่าตัด
+ทั้งหมดนี้สอดคล้องกับ (ESC non-cardiac surgery guidelines, 2022) และ (ACC/AHA perioperative guideline, 2014)
+❓ ถ้า functional capacity ต่ำกว่า 4 METs หรือประเมินไม่ได้ จะเปลี่ยนแผนการตรวจเพิ่มอย่างไร
+
+[physician]
+ที่บอกว่าถ้า METs ต่ำกว่า 4 ให้ตรวจเพิ่ม ตรงนั้นตรวจเพิ่มคืออะไรครับ อาจเป็น stress test, echo หรือ BNP ก็ได้ทั้งนั้นหรือเปล่า อีกอย่างคือ pt หลายคนเดินขึ้นบันไดไม่ไหวเพราะเข่าเสื่อม ไม่ใช่เพราะหัวใจ แบบนี้ค่า METs ที่ได้ใช้ได้แค่ไหนครับ ผมรู้ว่าเป็นหลักทั่วไป แต่อยากให้แยกชัดว่าตัวไหนทำเมื่อไหร่
+
+[assistant]
+ไม่ใช่ทุกตัวเลือกที่เทียบเท่ากันครับ
+- ตรวจเพิ่มเฉพาะเมื่อผลจะเปลี่ยนแผนการดูแล เช่น stress imaging ในผู้ที่ capacity ต่ำและกำลังจะผ่าตัดความเสี่ยงสูง
+- BNP หรือ NT-proBNP ช่วยประเมินความเสี่ยงเพิ่มได้ในผู้ป่วยโรคหัวใจที่จะผ่าตัดความเสี่ยงปานกลางถึงสูง (ESC non-cardiac surgery guidelines, 2022)
+- Echo ไม่ทำเป็นกิจวัตรถ้าไม่มีอาการใหม่
+- ถ้าประเมินจากการเดินไม่ได้เพราะเข่า อาจใช้แบบสอบถามอย่าง DASI แทน แต่เป็นการประเมินคร่าวๆ ใช้ช่วยคัดกรองได้เท่านั้น
+❓ ถ้าผล stress imaging พบ ischaemia บริเวณกว้างแต่ผู้ป่วยไม่มีอาการ การ revascularise ก่อนผ่าตัดมีประโยชน์ไหม
+
+[physician]
+ประโยคที่ว่าตรวจเพิ่มเฉพาะเมื่อผลจะเปลี่ยนแผน อันนี้มี source รองรับไหมครับ เป็น recommendation จาก guideline หรือเป็นแนวคิดทั่วไปของผู้เชี่ยวชาญ ผมอยากรู้ว่าระดับหลักฐานของมันอยู่ตรงไหน
+
+[assistant]
+ถามตรงจุดเลยครับ
+- หลักการ "ตรวจเพิ่มเมื่อผลเปลี่ยนแผน" เป็นแนวคิดที่ guideline ใช้ร่วมกัน (ESC non-cardiac surgery guidelines, 2022)
+- แต่หลักฐานของคำแนะนำเรื่องการตรวจก่อนผ่าตัดส่วนใหญ่มาจากข้อมูล observational และ expert consensus ไม่ใช่ RCT ที่ทดสอบการตรวจโดยตรง
+- ส่วนเรื่องยา เช่น ไม่เริ่ม beta-blocker วันผ่าตัด มีหลักฐานจาก RCT รองรับมากกว่า (ACC/AHA perioperative guideline, 2014)
+❓ ถ้าหลักฐานด้านการตรวจส่วนใหญ่เป็น observational ควรให้น้ำหนักกับคำแนะนำเหล่านั้นอย่างไรเวลาตัดสินใจกับ pt แต่ละราย
+
+[physician]
+ผมเปิด ESC 2022 เทียบแล้ว ส่วน stress imaging ตรงกับที่ตอบมา ขอถามต่อเรื่อง beta-blocker ที่บอกว่า continue ถ้า on อยู่เดิมแต่ไม่เริ่มใหม่วันผ่าตัด ช่วยอธิบายเหตุผลทีละขั้นว่าเริ่มใหม่แล้วเสียอะไร เรียงตามลำดับเวลาจากให้ยาจนถึงเข้าผ่าตัด ตอบสั้นๆ ไม่เกินห้าบรรทัดครับ
+
+[assistant]
+- ถ้าหยุดกะทันหันในผู้ที่ได้ยาอยู่เดิม เสี่ยง rebound tachycardia และ ischaemia จึงให้ continue (ACC/AHA perioperative guideline, 2014)
+- การเริ่มใหม่วันผ่าตัดไม่ลดเหตุการณ์หัวใจโดยรวม แต่เพิ่มความเสี่ยง hypotension, bradycardia และ stroke
+- ที่เป็นปัญหาคือขนาดยาคงที่ค่อนข้างสูงที่ให้ใกล้เวลาผ่าตัด ทำให้ความดันและ HR ตกง่ายใต้ GA
+- ESC ก็ไม่แนะนำให้เริ่มวันผ่าตัดเช่นกัน (ESC non-cardiac surgery guidelines, 2022)
+❓ ถ้าผู้ป่วยหยุด beta-blocker ไปเองหลายวันก่อนมา ควรเริ่มใหม่ก่อนผ่าตัดอย่างไร
+
+[physician]
+ที่บอกว่าเริ่มใหม่วันผ่าตัดแล้วเสี่ยง hypotension กับ stroke ถ้าเริ่มแล้ว titrate ช้าๆ ล่วงหน้าหลายวันก่อนผ่าตัดล่ะครับ ความเสี่ยงนั้นหายไปเลยหรือแค่ลดลง ขอเทียบกับกรณีเริ่มวันผ่าตัดให้เห็นภาพด้วยครับ
+
+[assistant]
+ลดลงแต่ไม่ได้หายไปทั้งหมดครับ
+- ข้อมูลที่แสดงอันตรายส่วนใหญ่มาจากการเริ่มขนาดสูงใกล้เวลาผ่าตัด การเริ่มล่วงหน้าแล้ว titrate ตาม HR และความดันเป็นแนวทางที่ guideline พูดถึง (ESC non-cardiac surgery guidelines, 2022)
+- แต่หลักฐานที่เปรียบเทียบการ titrate ล่วงหน้าโดยตรงยังจำกัด และผมยังไม่แน่ใจเรื่องระยะเวลาล่วงหน้าที่เหมาะสมที่สุด
+- ถ้ามีข้อบ่งชี้อยู่แล้ว เช่น angina คุมไม่ดี ควรเริ่มเพราะข้อบ่งชี้นั้น ไม่ใช่เพื่อการผ่าตัดอย่างเดียว
+❓ ถ้า NPO ยาวกว่าปกติ ยาที่ on อยู่เหล่านี้ควรจัดการอย่างไร
+
+[physician]
+ข้อสุดท้ายครับ statin ที่ on อยู่ ตามที่ตอบมาให้ continue ต่อเนื่อง ถ้า NPO ตั้งแต่เที่ยงคืนต้องเลื่อนยาไหม ผมจะเอาข้อมูลชุดนี้ไปเทียบกับ formulary ของ รพ. อีกที แล้วลงแผนกับทีมศัลยกรรมเอง ส่วนที่ตอบมาผมจะอ่านซ้ำก่อนใช้ทุกข้อครับ
+
+[assistant]
+- Statin: continue ต่อเนื่องได้ ไม่ต้องเว้นช่วงก่อนผ่าตัด (ESC non-cardiac surgery guidelines, 2022)
+- ถ้า NPO ยาว ให้กินพร้อมน้ำจิบเล็กน้อยตามนโยบายของวิสัญญีใน รพ. นั้น หรือเปลี่ยนเป็นทางอื่นถ้าจำเป็น
+- beta-blocker เดิมก็ continue เช่นกัน รวมถึงเช้าวันผ่าตัด (ACC/AHA perioperative guideline, 2014)
+ดีครับที่เทียบกับ formulary และ guideline อีกรอบก่อนลงแผน
+❓ ถ้าเช้าวันผ่าตัดผู้ป่วยบอกว่าลืมกิน statin และ atenolol จะจัดการอย่างไร
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ผู้ป่วย stable angina ที่มาผ่าตัด elective ดูอาการ functional capacity และความเสี่ยงของการผ่าตัดก่อน ถ้า capacity พอก็ไม่ต้องตรวจเพิ่ม ยา beta-blocker กับ statin เดิม continue ได้ แต่ไม่เริ่ม beta-blocker ใหม่วันผ่าตัด และหลักฐานด้านการตรวจส่วนใหญ่เป็น observational ส่วนด้านยาแน่นกว่า
+
+######## EPISODE X102 ########
+[physician]
+สวัสดีครับ วันนี้อยากทบทวน statin ใน primary prevention แบบภาพรวมหน่อยครับ พอดีมีเคสผู้ชายวัย 50 กว่า LDL 162 ไม่เคยกิน statin มาก่อน อยากรู้ว่าแนวทางตอนนี้แนะนำอย่างไรบ้าง ช่วงนี้ที่คลินิกเจอเคสแบบนี้บ่อยครับ
+
+[assistant]
+ใน primary prevention การเริ่ม statin ตัดสินจาก 10-year ASCVD risk รวมกับ LDL-C ไม่ใช่ LDL อย่างเดียว (ACC/AHA Cholesterol Guideline, 2018)
+- ผู้ใหญ่ที่อายุมากกว่า 40 แต่ไม่เกิน 75 และ LDL-C 70-189 mg/dL เป็นกลุ่มที่แนวทางพิจารณา
+- risk ตั้งแต่ 7.5% ขึ้นไป ควรคุยเรื่อง moderate ถึง high-intensity statin กับผู้ป่วย
+❓ หมอจะใช้เครื่องมืออะไรประเมิน 10-year risk ของผู้ป่วยรายนี้ครับ
+
+[physician]
+ผมคิดว่าน่าจะเริ่ม moderate-intensity เพราะ LDL เกิน 160 และ risk น่าจะเกิน 7.5% ในสิบปีข้างหน้า ผมเลยเอนไปทางเริ่มยามากกว่าแค่ปรับ lifestyle ครับ
+
+[assistant]
+เหตุผลของหมอสมเหตุสมผล LDL-C ตั้งแต่ 160 ขึ้นไปเป็น risk enhancer และ risk ตั้งแต่ 7.5% ก็เข้าเกณฑ์คุยเรื่อง statin (ACC/AHA Cholesterol Guideline, 2018)
+- USPSTF แนะนำ statin ขนาดต่ำถึงปานกลางสำหรับผู้ใหญ่ที่อายุมากกว่า 40 แต่ไม่เกิน 75 ที่มี risk factor อย่างน้อย 1 ข้อ และ risk ตั้งแต่ 10% (USPSTF statin primary prevention, 2022)
+❓ ถ้า risk ที่คำนวณได้อยู่ที่ 7.5-10% พอดี หมอจะใช้อะไรช่วยตัดสินครับ
+
+[physician]
+ขอถามเรื่อง high-intensity ด้วยครับ ใช้ตอนไหน แล้ว atorvastatin 40-80 mg กับ rosuvastatin 20-40 mg ใช่กลุ่มนี้ไหมครับ อยากรู้ทั้งขนาดยาและเกณฑ์ที่ใช้เลือกด้วยครับ
+
+[assistant]
+high-intensity ในแนวทางปี 2018 สงวนไว้ให้กลุ่ม risk ตั้งแต่ 20% ขึ้นไป หรือมี risk enhancer หลายข้อ (ACC/AHA Cholesterol Guideline, 2018)
+- atorvastatin 40-80 mg และ rosuvastatin 20-40 mg นับเป็น high-intensity
+- ผลลด LDL-C เฉลี่ยตั้งแต่ 50% ขึ้นไป
+❓ หมอคิดว่าข้อมูลที่ใช้จัดระดับ intensity มาจากกลุ่มประชากรแบบไหนครับ
+
+[physician]
+ที่บอกว่าลด LDL ได้ตั้งแต่ 50% ขึ้นไป ตัวเลขนี้มาจาก study ไหนครับ แล้วใช้กับคนไทยได้ไหม
+
+[assistant]
+ตัวเลขการลด LDL-C เป็นค่าเฉลี่ยจากหลายการศึกษา ไม่ใช่ trial เดียว และแต่ละรายตอบสนองต่างกัน (ACC/AHA Cholesterol Guideline, 2018)
+- ข้อมูล outcome ใน primary prevention ส่วนใหญ่มาจากประชากรตะวันตก การนำมาใช้กับคนไทยจึงต้องตีความอย่างระวัง
+- pooled cohort equations เองก็พัฒนาจากกลุ่มประชากรสหรัฐเป็นหลัก
+❓ ถ้า risk score อาจประเมินคลาดเคลื่อน หมอจะดูปัจจัยอื่นเพิ่มอะไรบ้างครับ
+
+[physician]
+ช่วยอธิบายเพิ่มหน่อยครับ เรื่องจุด 7.5% กับ 20% ที่พูดถึง อยากฟังให้ละเอียดขึ้นอีกนิด เพราะยังงง ๆ อยู่ครับ
+
+[assistant]
+7.5% คือจุดที่เริ่มคุยเรื่อง statin ส่วน 20% คือจุดที่ถือว่า risk สูง (ACC/AHA Cholesterol Guideline, 2018)
+- ช่วง 5-7.5% เป็น borderline ใช้ risk enhancer ช่วยตัดสิน
+- ทุกระดับควรคุย benefit กับ risk ร่วมกับผู้ป่วย
+❓ หมอจะอธิบายผู้ป่วยอย่างไรว่ายานี้ช่วยลดโอกาสเกิดโรคได้เท่าไรครับ
+
+[physician]
+หลังเริ่มยาต้องตรวจ lipid อีกเมื่อไรครับ แล้วต้องดู ALT ด้วยไหม ปกติกี่ครั้งต่อปี 1-2 ครั้งพอไหม ผมยังไม่ค่อยแน่ใจเรื่องนี้เลยอยากถามไว้ก่อนครับ
+
+[assistant]
+หลังเริ่มยา แนะนำ recheck lipid ที่ 4-12 สัปดาห์ เพื่อดูว่าลด LDL-C ได้ตามคาดและผู้ป่วยกินยาสม่ำเสมอ (ACC/AHA Cholesterol Guideline, 2018)
+- baseline ALT ควรมี ส่วนการตรวจซ้ำทำเมื่อมีอาการหรือสงสัย
+- ติดตามอาการปวดกล้ามเนื้อด้วย
+❓ หมอจะทำอย่างไรถ้า LDL-C ลดน้อยกว่าที่คาดครับ
+
+[physician]
+ถ้าสรุป plan คือ atorvastatin 20 mg แล้ว f/u 12 สัปดาห์ ผมสรุปตามที่คุยกันมา แล้วจดตามนี้เลยครับ ขอบคุณมากครับ
+
+[assistant]
+แผนนี้เหมาะกับ moderate-intensity ครับ atorvastatin 20 mg นับเป็น moderate และนัด recheck lipid ที่ 12 สัปดาห์อยู่ในช่วงที่แนะนำ (ACC/AHA Cholesterol Guideline, 2018)
+- เน้นปรับ lifestyle ควบคู่ไปด้วย
+❓ หมอจะวางเป้า LDL-C หรือเป้าลดลงกี่ % สำหรับผู้ป่วยรายนี้ครับ
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ทบทวนว่า statin ใน primary prevention ดูจาก 10-year risk ไม่ใช่ LDL อย่างเดียว moderate-intensity ลด LDL ราว 30-49% ส่วน high-intensity ลดได้ตั้งแต่ 50% ขึ้นไป เคสนี้ผมจะเริ่ม atorvastatin 20 mg แล้ว recheck lipid ที่ 12 สัปดาห์
+
+######## EPISODE X103 ########
+[physician]
+Woman in her 40s, eight months of irregular heavy periods, BMI 34, hypertensive, on low-dose aspirin. Community hospital, no hysteroscopy, pathology takes a week. Does endometrial sampling come before imaging for her, or does the scan decide whether I sample at all?
+
+[assistant]
+Both have a role, and for her sampling doesn't wait on the scan.
+- Heavy irregular bleeding with obesity and age over 45 is a reason to sample the endometrium whatever the imaging shows, as unopposed oestrogen exposure is the concern.
+- The scan finds structural causes such as polyps, fibroids and adenomyosis, which sit in the structural half of the FIGO system (FIGO PALM-COEIN, Munro et al., 2018).
+- A lining under about 4 mm on transvaginal ultrasound effectively rules out endometrial cancer, so a thin lining lets you skip the biopsy.
+- Aspirin can add to heaviness but rarely explains months of irregular cycles.
+❓ Which structural and non-structural causes are on your list for her?
+
+[physician]
+Ok. Taking your point that obesity alone justifies sampling: pipelle at this visit, scan the same day. On my list for her: polyp, adenomyosis, fibroid, hyperplasia or cancer, ovulatory dysfunction, aspirin. If the pipelle comes back clean and she keeps bleeding, what is the next move with no hysteroscopy here?
+
+[assistant]
+Persistent bleeding after a benign blind sample still needs a structural look.
+- Polyps and fibroids are structural causes in the FIGO system (FIGO PALM-COEIN, Munro et al., 2018); a blind pipelle samples diffusely and can miss a focal one.
+- Without hysteroscopy, a repeat transvaginal scan early in the cycle, or saline infusion sonography if you have it, can show a focal lesion.
+- If neither is available, referral for hysteroscopy with directed biopsy is the usual next move.
+- A clean first pipelle shouldn't close the case in a woman with her risk factors.
+❓ What would make you refer her before the pathology even returns?
+
+[physician]
+Noted. Back to your thin-lining claim: under 4 mm excluding cancer came from postmenopausal bleeding series as far as I know, and she is still cycling. Which source carries that cut-off for a woman who bleeds before menopause? Until I see one I'm sampling her whatever the scan says. You can't see her scan, so I'll read it myself.
+
+[assistant]
+You're right, and thank you for catching it. The 4 mm cut-off was derived in postmenopausal women with bleeding. It hasn't been validated to exclude hyperplasia or cancer in a cycling woman, where lining thickness changes with the phase of the cycle, so I shouldn't have offered it as a reason to skip her biopsy.
+- Sampling in her is driven by risk (age and obesity), not by the scan.
+- The FIGO system (FIGO PALM-COEIN, Munro et al., 2018) classifies causes of abnormal bleeding; it sets no thickness rule, so it can't back that cut-off either.
+- I don't have a source to point you to for a premenopausal cut-off.
+❓ If her biopsy shows hyperplasia without atypia, what would you offer her?
+
+[physician]
+Options for hyperplasia without atypia: LNG-IUS, oral progestin, repeat sampling after a few months. She wants to keep her uterus, and each pathology result costs her a week and a trip. Does the evidence for LNG-IUS cover women with her BMI, or did those studies leave out women like her?
+
+[assistant]
+Be careful generalising here. Most data on LNG-IUS for hyperplasia without atypia come from observational series and small trials, and obesity is a recognised predictor of lower regression and more relapse, so women with her BMI are included but do worse. I'm not certain of the exact regression rates, so I won't quote one.
+- Hypertension isn't a contraindication to LNG-IUS; it matters more for oestrogen-containing options.
+- Whichever route, follow-up sampling is needed to confirm regression.
+- Hyperplasia sits in the M category of the FIGO system (FIGO PALM-COEIN, Munro et al., 2018).
+❓ What would you do if the pipelle sample is inadequate rather than benign?
+
+[physician]
+Inadequate sample: repeat pipelle once, then refer for hysteroscopy. Benign report but a focal mass on the scan: refer anyway. Heavy bleeding with dizziness: referral centre that day. Is that referral order anything the guidelines say, or just habit in places like ours?
+
+[assistant]
+Your order is reasonable.
+- Repeating an inadequate sample once and then moving to hysteroscopy is a common local approach.
+- A focal mass on the scan warrants direct visualisation even when the biopsy is benign, since a blind sample can miss it (FIGO PALM-COEIN, Munro et al., 2018).
+- Heavy bleeding with symptoms of volume loss needs same-day assessment.
+The FIGO system classifies causes and doesn't dictate referral order, and I'm not aware of one national rule that fixes it; most pathways are local consensus.
+❓ Which of those three triggers will the clinic nurses find hardest to apply consistently?
+
+[physician]
+Writing the plan for the clinic nurses. Challenge it where it is weak:
+- Pipelle and scan at the first visit
+- Refer if the sample is inadequate twice, a focal mass is seen, or heavy bleeding comes with dizziness
+- Hold aspirin until the bleeding settles
+I'll check tranexamic acid dosing against our formulary first.
+
+[assistant]
+Weak spots I'd check:
+- Pregnancy should be excluded before any sampling.
+- Ask about easy bruising and family bleeding history, since coagulopathy is the C in the FIGO system (FIGO PALM-COEIN, Munro et al., 2018).
+- Check haemoglobin, so anaemia isn't missed.
+- Aspirin: agree the hold with whoever prescribed it, if it was for secondary prevention.
+Checking tranexamic acid dosing against your formulary is the right habit; I can't see your local formulary.
+❓ How will you tell, in a few months, whether the nurses apply the heavy-bleeding trigger the same way?
+
+[physician]
+Summary for my notes: sample at the first visit, scan the same day, refer on a clean sample only if she keeps bleeding. Lining thickness doesn't gate her biopsy. Hyperplasia evidence in women with her BMI is thinner than I assumed, and repeat sampling stays. Monday: add a pregnancy test to the nurse checklist and audit our clinic biopsies for inadequate samples.
+
+[assistant]
+That summary matches what we discussed. Sampling her at the first visit and refusing to let lining thickness decide it is well supported for a woman with her risk factors (FIGO PALM-COEIN, Munro et al., 2018 classifies causes, and does not itself set that rule). Auditing your inadequate-sample rate is a sound way to find out how well the local pathway works.
+❓ What inadequate-sample rate would make you change how the clinic takes the sample?
+
+######## EPISODE X104 ########
+[physician]
+pt ชายวัย 60 กว่า stable angina CCS II on ASA, atenolol, metformin นัด lap chole elective ที่ รพ.จังหวัดซึ่งไม่มี cath lab ผมเอนไปทางไม่ทำ stress test เพราะผลน่าจะไม่เปลี่ยนแผน แต่อยากถามว่าเดินขึ้นบันไดสองชั้นไหว พอเป็นหลักฐาน functional capacity ไหมครับ
+
+[assistant]
+ข้อมูลที่ให้มาสอดคล้องกับแนวทางครับ
+
+- ถ้า functional capacity ดีราว 4 METs ขึ้นไป (เดินขึ้นบันไดสองชั้นเป็นตัวอย่างที่ใช้กันทั่วไป) และอาการคงที่ ไม่จำเป็นต้องทำ stress test ก่อนผ่าตัด เพราะผลมักไม่เปลี่ยนการดูแล (ESC, 2022)
+- lap chole จัดอยู่กลุ่ม intermediate risk โดยทั่วไป ดังนั้นควรทบทวนยาเดิมและ ECG ก่อนผ่า
+- ยังไม่ควรสรุปจากคำบอกเล่าเรื่องบันไดเพียงอย่างเดียว ถ้ามีเรื่องเหนื่อยง่ายหรือเจ็บเวลาเดินช้า ๆ ให้ประเมินซ้ำ
+
+❓ ถ้า angina ของ pt เริ่มเป็นตอนเดินช้า ๆ บนทางราบ หมอจะยังเรียกว่า stable และคงแผนเดิมหรือไม่ครับ
+
+[physician]
+ที่ระบุว่า lap chole เป็น intermediate risk ทำให้ผมนับ RCRI ได้ 2 คือ IHD กับผ่าในช่องท้อง ส่วน DM ไม่ on insulin และ Cr ปกติจึงไม่นับ ผมจัดเป็นเสี่ยงปานกลางค่อนสูง และยังไม่ส่ง stress test เพราะ angina คงที่
+
+[assistant]
+การนับ RCRI ของหมอถูกต้องครับ และผ่าตัดในช่องท้องก็ถูกนับเป็นความเสี่ยงสูงในเกณฑ์เดิม
+
+- RCRI 2 ถือว่าความเสี่ยง cardiac event สูงกว่ากลุ่มต่ำ ผลคือแนวทางแนะนำ biomarker ก่อนและหลังผ่า (ESC, 2022)
+- ECG ก่อนผ่าเป็นพื้นฐานในผู้ป่วย IHD ที่ผ่าตัด intermediate risk ขึ้นไป (ESC, 2022)
+- ไม่ส่ง stress test ยังสมเหตุสมผลถ้าอาการคงที่และไม่เปลี่ยนแผน
+
+❓ ถ้า hs-cTn ไม่มีใช้ในโรงพยาบาลนี้ หมอจะใช้อะไรแทนเพื่อตรวจ myocardial injury ครับ
+
+[physician]
+ok ครับ แต่ lab ที่นี่มีแค่ conventional troponin ไม่มี hs-cTn หรือ BNP ผมจึงเจาะ baseline ก่อนผ่าและวันถัดไปแทน ถ้า baseline สูงเล็กน้อยคงที่อยู่แล้ว ควร postpone ไหมครับ
+
+[assistant]
+เป็นการปรับที่ใช้ได้จริงในบริบทนี้ครับ
+
+- ค่า troponin ก่อนผ่าที่สูงคงที่ ให้ถือเป็นค่าอ้างอิง แล้วดูการเปลี่ยนแปลงหลังผ่า (ESC, 2022)
+- ถ้าสูงใหม่พร้อม ECG หรืออาการเปลี่ยน ควรปรึกษา cardiology ก่อนผ่า elective
+- conventional troponin ไวน้อยกว่า hs-cTn ผลลบจึงมั่นใจได้น้อยกว่า ยังไม่แน่ใจว่ามีเกณฑ์ delta ที่เหมาะกับ assay ของโรงพยาบาลนี้หรือไม่ ควรถามห้องปฏิบัติการ
+
+❓ ถ้าผลหลังผ่าวันถัดไปสูงขึ้นเล็กน้อย โดยที่ pt ไม่มีอาการ หมอจะส่งต่อทันทีหรือเฝ้าดูก่อนครับ
+
+[physician]
+ยาเช้าวันผ่าที่ผมร่างไว้
+- atenolol กินต่อ ASA กินต่อ
+- metformin งดเช้านั้น
+- ชุดยาใน formulary รพ. มีแต่ atenolol ไม่มี bisoprolol
+ขอ source ของเรื่องห้ามหยุด beta-blocker หน่อยครับ จะได้อ้างใน preop note
+
+[assistant]
+แผนยาที่ร่างมาสมเหตุสมผลครับ
+
+- beta-blocker เดิมควรกินต่อต่อเนื่อง รวมเช้าวันผ่า แต่ไม่ควรเริ่มตัวใหม่ในวันผ่า (ESC, 2022)
+- ACC/AHA ก็จัดการกินต่อของ beta-blocker เดิมเป็นคำแนะนำหลักเช่นกัน (ACC/AHA, 2014)
+- metformin งดเช้าวันผ่าเป็นแนวปฏิบัติทั่วไป (ADA Standards of Care in Diabetes, 2024)
+- ASA ต้องชั่งระหว่างเลือดออกกับ cardiac event ของ pt แต่ละราย
+
+❓ ถ้าศัลยแพทย์ขอให้หยุด ASA หมอจะใช้ข้อมูลอะไรของ pt รายนี้คุยกับท่านครับ
+
+[physician]
+รับทราบ ผมย้ายมาที่ GA เลย plan คือ propofol titrate ช้า ๆ กับ fentanyl กัน tachycardia ตอน intubate และตอน insufflate pt on atenolol HR ก่อนนอน 58 ลองเถียงแผนนี้หน่อย แล้วบอกว่าจุดไหนอ่อนที่สุด
+
+[assistant]
+ลองดูจุดอ่อนของแผนตามที่ขอครับ
+
+- propofol กับ fentanyl บน atenolol ที่ HR 58 เสี่ยง bradycardia และ hypotension ได้ง่าย
+- insufflate เร็วอาจกระตุ้น vagal reflex จนหัวใจเต้นช้ามาก ควรเริ่มความดันต่ำและช้า ๆ
+- เป้าหมายคือคุม haemodynamic ให้ใกล้ baseline และเลี่ยงทั้ง tachycardia กับ hypotension เพราะ supply-demand mismatch (ESC, 2022)
+
+❓ ถ้า HR ตกต่ำกว่า 40 ตอน insufflate หมอจะทำอะไรเป็นอย่างแรกครับ
+
+[physician]
+ผมเคยกลัวแค่ tachycardia แต่ที่ชี้ถึง bradycardia ตอน insufflate เมื่อ HR เริ่มต้นต่ำอยู่แล้ว ผมเลยลด propofol เตรียม atropine และ insufflate ช้า ๆ ความดันต่ำ ถ้า ST เปลี่ยนกลางผ่า ผมควรหยุด insufflate ก่อน หรือคิดเรื่อง convert เป็น open ก่อนครับ
+
+[assistant]
+การปรับของหมอสมเหตุสมผลครับ
+
+- ถ้า ST เปลี่ยนกลางผ่า ให้ปล่อยลมออกจากช่องท้องก่อน แล้วแก้ haemodynamics และ oxygenation เป็นลำดับแรก
+- convert เป็น open ตามหลังเมื่อ ST ไม่คืนหลังแก้แล้ว ไม่ใช่ขั้นแรก
+- ที่ไม่มี cath lab หลักคือคุม supply-demand และส่งต่อ (ESC, 2022) ยังไม่แน่ใจว่ามีงานวิจัยที่เทียบสองลำดับนี้โดยตรง
+
+❓ ผู้ช่วยวิสัญญีในทีมหมอรู้ลำดับนี้ทุกคนหรือยังครับ
+
+[physician]
+สรุปแผนที่ผมจะเขียน order เอง ECG กับ troponin baseline, atropine พร้อม, หยุด insufflate ถ้า ST เปลี่ยน, ส่งต่อถ้า troponin ขึ้น ผลจริงของ pt รายนี้ท่านไม่เห็น ผมจึงเช็กจาก chart เอง ช่วยดูว่าแผนนี้ขาด safety net ข้อไหนหรือไม่
+
+[assistant]
+แผนครบถ้วนดีครับ เติมได้อีกสองข้อ
+
+- ควบคุมความปวดหลังผ่าให้ดี เพราะ pain ทำให้ HR กับ BP สูง เพิ่มภาระหัวใจ (ESC, 2022)
+- กลับไปกิน beta-blocker เดิมหลังผ่าโดยเร็วเมื่อกินได้ ติดตาม ECG ก่อนจำหน่าย
+- เขียนเกณฑ์ส่งต่อให้ชัดใน order เช่น troponin ขึ้นร่วมกับอาการ
+
+❓ ถ้าหลังจำหน่ายยังไม่มีนัด cardiology หมอจะปิดช่องนี้อย่างไรครับ
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+lap chole ในผู้ป่วย angina คงที่ที่ RCRI 2 ไม่ต้อง stress test ถ้าเดินขึ้นบันไดสองชั้นได้ แต่ต้องคุม HR กับความดันช่วง insufflate และต้องรู้ว่า atenolol ทำให้ HR เริ่มต้นต่ำอยู่แล้ว
+
+ความไม่แน่นอน / What remains uncertain:
+conventional troponin วันถัดไปเทียบกับ baseline จะไวพอไหม และจะส่งต่อเมื่อ delta เท่าไร ผมยังไม่มีเกณฑ์ที่ห้องปฏิบัติการของเรายืนยัน
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+วันจันทร์จะถามห้องปฏิบัติการเรื่องเวลารอผลและค่า delta ของ assay ที่ใช้ เทียบกับตาราง biomarker ใน ESC 2022 ทำ preop checklist ใส่ใน chart และซ้อมลำดับหยุด insufflate กับทีมห้องผ่าตัดก่อนเคสนี้
+
+######## EPISODE X105 ########
+[physician]
+pt ปวดหลังส่วนล่างเรื้อรังมานานแล้ว ไม่มี red flag ไม่มีไข้ ไม่มีชา ไม่มีอ่อนแรง ขับถ่ายปกติ น้ำหนักไม่ลด เป็นโรคไตเรื้อรังกับ HT อยู่ด้วย ยาที่กินประจำมี amlodipine กับยาลดไขมัน ทำงานนั่งโต๊ะทั้งวัน มาที่ OPD บ่อยๆ ทุกครั้งก็บอกว่าปวดเหมือนเดิม ตรวจร่างกายก็ปกติ SLR negative กดเจ็บที่กล้ามเนื้อหลังเล็กน้อย ผล lab ล่าสุดก็ไม่มีอะไรผิดปกติมาก X-ray เคยทำไว้แล้วก็ปกติ ขอถามเรื่องยาแก้ปวดหน่อยครับ ควรให้ยาอะไรดี
+
+[assistant]
+ปวดหลังส่วนล่างเรื้อรังที่ไม่มี red flag เน้นการรักษาแบบไม่ใช้ยาก่อน คือให้ pt ขยับตัวและออกกำลังกายต่อเนื่อง (NICE low back pain NG59, 2016)
+- ถ้าต้องใช้ยา NSAIDs ขนาดต่ำสุดในระยะสั้นเป็นตัวเลือกหลักในคนทั่วไป (ACP low back pain guideline, 2017)
+- แต่ pt รายนี้มีโรคไตเรื้อรังกับ HT การใช้ NSAIDs ต้องระวังมาก อาจกระทบ eGFR และความดัน
+- Paracetamol ไม่แนะนำสำหรับ low back pain เรื้อรัง (NICE low back pain NG59, 2016)
+❓ ในผู้ป่วยโรคไตเรื้อรัง ยาแก้ปวดกลุ่มไหนที่ยังพิจารณาได้ และต้องติดตามอะไร
+
+[physician]
+ok ครับ แล้วกายภาพบำบัดต้องทำแบบไหนครับ ขอแบบละเอียดๆ เลยนะครับ ช่วยบอกทุกอย่างที่เกี่ยวกับกายภาพบำบัดสำหรับโรคนี้หน่อย อยากได้แบบที่ pt ทำตามได้เองที่บ้านด้วยครับ แล้วก็ช่วยอธิบายแต่ละอย่างมาเลย
+
+[assistant]
+กายภาพบำบัดและโปรแกรมออกกำลังกายเป็นแนวทางหลักของ chronic low back pain (NICE low back pain NG59, 2016)
+- ท่าออกกำลังกายแบบมีผู้สอนหรือเป็นกลุ่ม ช่วยเรื่องการทำงานของหลัง
+- การนวดหรือ manual therapy ใช้เสริมได้ แต่ไม่ควรเป็นการรักษาเดียว (ACP low back pain guideline, 2017)
+- ควรให้ pt เดินและขยับตัวเป็นระยะระหว่างนั่งทำงาน
+❓ ถ้า pt บอกว่าไม่มีเวลามาทำกายภาพที่ รพ. จะปรับแผนอย่างไร
+
+[physician]
+ถ้า pt ยังปวดอยู่ ควรส่งตรวจอะไรเพิ่มไหมครับ ผมอยากรู้ว่าต้องส่งตรวจอะไรบ้างสำหรับ pt ปวดหลังแบบนี้
+- X-ray
+- MRI
+- lab
+
+[assistant]
+ในรายที่ไม่มี red flag ไม่แนะนำให้ส่งภาพถ่ายรังสีเป็นการตรวจประจำ (NICE low back pain NG59, 2016)
+- X-ray และ MRI มักไม่เปลี่ยนแผนการรักษา และพบความผิดปกติที่ไม่เกี่ยวกับอาการได้บ่อย
+- ส่งเมื่อมี red flag หรือกำลังพิจารณา intervention เฉพาะ (ACP low back pain guideline, 2017)
+- lab ไม่จำเป็นถ้าไม่มีข้อสงสัย infection หรือ malignancy
+❓ red flag ข้อไหนที่จะทำให้ต้องส่ง MRI ทันที
+
+[physician]
+แน่ใจนะครับ ผมเห็นหลายที่ส่ง MRI กันเลย เห็นเขาส่งกันทุกรายเลย แล้วทำไมที่นี่ถึงไม่ส่งล่ะครับ ขอเหตุผลหน่อย
+
+[assistant]
+ยืนยันได้ครับ ทั้ง NICE และ ACP ไม่แนะนำให้ส่ง MRI ในผู้ป่วยที่ไม่มี red flag และไม่ได้วางแผนผ่าตัดหรือฉีดยา (ACP low back pain guideline, 2017)
+- ที่เห็นส่ง MRI กันบ่อย มักเป็นความคาดหวังของ pt มากกว่าหลักฐาน
+- ผลที่ได้บ่อยคือ disc bulge ซึ่งพบได้ในคนไม่มีอาการ ทำให้กังวลโดยไม่จำเป็น (NICE low back pain NG59, 2016)
+❓ จะอธิบาย pt อย่างไรเมื่อ pt ขอ MRI
+
+[physician]
+โอเค แล้ว NSAIDs กินได้นานแค่ไหนครับ ช่วยบอกวิธีกินให้ด้วย ขอแบบที่บอก pt ได้เลย pt จะได้กินถูก ผมจะได้บอกได้เลยตอนสั่งยา
+
+[assistant]
+เนื่องจากมีโรคไตเรื้อรัง ควรหลีกเลี่ยง NSAIDs หรือใช้เฉพาะเมื่อจำเป็นจริงๆ และติดตาม eGFR (KDIGO CKD, 2024)
+- ถ้าจะใช้ในคนทั่วไป ให้ขนาดต่ำสุดเป็นช่วงสั้นที่สุดที่คุมอาการได้ (NICE low back pain NG59, 2016)
+- กินหลังอาหาร และไม่ใช้ร่วมกับ NSAIDs ตัวอื่น
+❓ ถ้า pt ต้องใช้ยาแก้ปวดต่อเนื่อง จะวางแผนติดตามไตอย่างไร
+
+######## EPISODE X106 ########
+[physician]
+pt ชายวัย 60 กว่า เป็น DM เข่าขวาบวมแดงร้อน ไข้ 38.2 มา 2 วัน งอไม่ได้ ไม่มีอุบัติเหตุ ไม่เคยฉีดยาเข้าข้อ CRP 180 สงสัย septic arthritis เจาะข้อแล้วเริ่ม ATB เลย หรือรอ Gram stain กับ cell count ก่อน ถ้า Gram ไม่เห็นเชื้อล่ะ
+
+[assistant]
+ถ้าสงสัยจริง ควรเจาะข้อก่อนให้ ATB เพื่อให้ได้ culture แต่ไม่ควรเลื่อนยาไปรอผล Gram stain ถ้า pt ดูป่วยหนัก (BSR/BOA septic arthritis guideline, 2006)
+- Gram stain ไม่เห็นเชื้อ ไม่ได้ตัด septic arthritis ออก เพราะ sensitivity ไม่สูง
+- ใช้ Kocher criteria ช่วยประเมินโอกาสเป็น septic arthritis ได้เลย
+❓ ถ้า cell count ในน้ำไขข้อไม่สูงมาก แต่ pt ยังไข้อยู่ จะตัดสินใจอย่างไร
+
+[physician]
+ok ครับ Gram ลบไม่ตัดทิ้ง งั้นเริ่ม ATB หลังเจาะเลย เดา S. aureus ก่อน เพราะ DM ไข้ บวมแดงเฉียบพลัน ส่วน Kocher ที่ว่า derive จากเด็ก hip ไม่ใช่เข่าผู้ใหญ่ใช่ไหม
+
+[assistant]
+ใช่ครับ Kocher derive และ validate ในเด็กที่ข้อสะโพกเป็นหลัก (Kocher criteria, 1999) จึงเอามาใช้ตรงๆ กับเข่าผู้ใหญ่ไม่ได้ ผมพูดกว้างเกินไป
+- ในผู้ใหญ่ให้ดูอาการ ผลน้ำไขข้อ และ culture ร่วมกัน (BSR/BOA septic arthritis guideline, 2006)
+- S. aureus เป็นเชื้อที่พบบ่อยที่สุด empirical ATB ต้องครอบคลุม
+❓ ถ้า synovial WBC ได้ 30,000 ซึ่งต่ำกว่าเส้นที่หลายคนใช้ จะเปลี่ยนแผนไหม
+
+[physician]
+ถ้า synovial WBC 30,000 ผมยังไม่ตัดทิ้ง เพราะไข้ยังอยู่และ CRP สูงมาก ขอ source ของเส้น 50,000 ด้วยว่ามาจาก pt กลุ่มไหน แล้ว vanco ผมใช้กับ eGFR 45 น้ำหนัก 70 kg ขอ dose ที่ปรับให้ เดี๋ยวเช็คกับ formulary รพ. ก่อนสั่ง
+
+[assistant]
+เส้น 50,000 เป็น rule of thumb ที่ใช้กันทั่วไป ไม่ใช่ cutoff ที่ validate มา ค่าต่ำกว่านั้นยังเป็น septic arthritis ได้ จึงต้องดูร่วมกับทางคลินิก (BSR/BOA septic arthritis guideline, 2006)
+- vanco ต้องปรับตาม eGFR และน้ำหนัก ผมไม่มีตัวเลข dose ที่ตรงกับ formulary ของท่าน ให้ใช้ของโรงพยาบาลเป็นหลัก
+- ตาม Cr และ trough ต่อเนื่อง
+❓ จะตาม trough กับ Cr บ่อยแค่ไหน
+
+[physician]
+โอเค ที่ว่าต้องตาม trough vanco ส่วนเรื่องล้างข้อค่อยคุยทีหลัง — pt eGFR 45 ผมเจาะ trough ก่อน dose ที่ 4 และตาม Cr ทุกวัน แบบนี้พอไหมครับ
+
+[assistant]
+แผนนี้สมเหตุผลครับ ถ้า Cr ขึ้น ให้ทบทวน dose ก่อน dose ถัดไปโดยไม่ต้องรอครบวัน และคุยกับเภสัชกรประกอบ ส่วนการล้างข้อ ให้ปรึกษา ortho ตั้งแต่ต้น เพราะ septic arthritis ต้อง drain ข้อควบคู่กับยา (BSR/BOA septic arthritis guideline, 2006)
+❓ ถ้า culture กลับมาเป็น MRSA ในวันที่ 3 จะปรับ ATB อย่างไร
+
+[physician]
+ถ้า MRSA ผมคง vanco ต่อและหยุด ceftriaxone แล้วปรึกษา ortho ล้างข้อ ส่ง crystal จากน้ำไขข้อด้วย ผมสั่งเองตามนี้ ขอให้ tutor ตอบสั้นๆ ว่ามีอะไรตกหรือไม่
+
+[assistant]
+แผนครบถ้วนดีครับ เพิ่มเติมสองข้อสั้นๆ
+- ถ้าหลัง drain แล้วไข้ไม่ลง ใน 48 ชม. ควรประเมินซ้ำว่าล้างข้อเพียงพอหรือไม่ และหาจุดติดเชื้ออื่น
+- เลือก ATB ต่อตามผล sensitivity และระยะเวลารักษาให้ตกลงร่วมกับทีม ortho และ ID (BSR/BOA septic arthritis guideline, 2006)
+❓ ถ้า pt รายนี้ไม่ยอมนอน รพ. จะปรับแผนอย่างไร
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+เข่าที่สงสัย septic arthritis ต้องเจาะข้อก่อนให้ ATB แต่ไม่ต้องรอผล Gram stain และ Gram ลบไม่ตัดโรคออก Kocher ใช้กับเด็ก hip ไม่ใช่เข่าผู้ใหญ่ ส่วน vanco ในรายที่ eGFR 45 ต้องตาม trough และ Cr และปรึกษา ortho ล้างข้อตั้งแต่ต้น
+
+######## EPISODE X107 ########
+[physician]
+เด็กหญิง 9 ขวบ ไข้สูงมาวันที่ 4 วันนี้ไข้ลงเหลือ 37.8 ปวดท้องรอบสะดือ อาเจียน 3 ครั้งตั้งแต่เช้า ดื่มน้ำได้น้อย ปัสสาวะครั้งสุดท้ายเมื่อเช้า น้ำหนัก 48 กก. สูง 130 ซม. ค่อนข้างอ้วน CBC plt 98,000 Hct 41% tourniquet test positive ไม่เคยมี Hct เดิมให้เทียบ ที่นี่เป็น รพ.ชุมชน 30 เตียง ไม่มี ICU ส่งต่อรถไปประมาณชั่วโมงครึ่ง เด็กอยู่กับยายสองคน ที่บ้านกิน paracetamol เป็นระยะ เพื่อนในห้องป่วยเป็นไข้หลายคน ไม่มีไอ ไม่มีน้ำมูก ไม่มีผื่น ไม่มีเลือดออกตามไรฟัน ไม่มีโรคประจำตัว ไม่เคยแพ้ยา วัคซีนครบตามนัด DDx คิดถึง dengue, influenza หรือ viral infection อื่น ตอนนี้เอนไปทาง admit ไว้ก่อน รายนี้ควร admit ไหมครับ
+
+[assistant]
+ควร admit ครับ รายนี้มีสัญญาณเตือนที่ต้องเฝ้าระวังหลายข้อพร้อมกัน
+
+- ปวดท้อง อาเจียนต่อเนื่อง และดื่มน้ำได้น้อย ล้วนเป็น warning signs ของ dengue ส่วนไข้ที่เพิ่งลงในวันที่ 4 คือช่วงที่เข้า critical phase ซึ่งมี plasma leakage ได้ (WHO dengue guidelines, 2009)
+- เกล็ดเลือดต่ำกว่า 100,000 ร่วมกับ tourniquet test positive สนับสนุน dengue
+- ปัจจัยทางสังคมก็นับเป็นเหตุผลให้ admit เช่น บ้านไกลจากสถานพยาบาล และผู้ดูแลมีเพียงผู้สูงอายุ
+
+ระหว่างที่นอนสังเกตอาการ ควรติดตาม vital signs, capillary refill, ปริมาณปัสสาวะ และ Hct เป็นระยะ
+
+[physician]
+ผม admit ไว้แล้วครับ ตอนนี้ขอเรื่องการให้ IV fluid หน่อย ช่วยอธิบายเพิ่มสั้นๆ ไม่ต้องยาว เอาที่ใช้ได้จริงที่ รพ.ชุมชน ยายถามว่ากลับบ้านไปก่อนแล้วค่อยพามาใหม่ได้ไหม แต่ผมยังไม่ได้ตอบเขา
+
+[assistant]
+ได้ครับ สำหรับผู้ป่วยที่มี warning signs และดื่มน้ำไม่พอ
+
+- เริ่มด้วย isotonic crystalloid เช่น 0.9% NaCl หรือ Ringer's lactate ที่ 5–7 mL/kg/hr นาน 1–2 ชม. แล้วลดเหลือ 3–5 mL/kg/hr ตามอาการ (WHO dengue guidelines, 2009)
+- คำนวณอัตราจากน้ำหนักตัวที่ชั่งได้ตามปกติได้เลย
+- ประเมินซ้ำทุกช่วง ถ้า vital signs ดีขึ้น ปัสสาวะออกดี Hct ไม่สูงขึ้น ก็ลดอัตราลง และให้เท่าที่จำเป็นเท่านั้น เพราะให้เกินทำให้เกิด fluid overload ได้
+
+[physician]
+เรื่องน้ำหนักครับ รายนี้ 48 กก. แต่สูง 130 ซม. เด็กอ้วนชัด ถ้าคิด mL/kg/hr จาก 48 กก. จะได้ fluid มากเกินไปไหม และถ้าต้องปรับ ควรใช้น้ำหนักอะไรครับ
+
+[assistant]
+ถูกต้องครับ ผมควรระบุเรื่องนี้ตั้งแต่ต้น ประโยค "คำนวณจากน้ำหนักตัวที่ชั่งได้" ใช้ไม่ได้กับเด็กอ้วน
+
+- แนวทางของ WHO ระบุว่าในผู้ป่วยอ้วน ให้คำนวณ fluid จาก ideal body weight ไม่ใช่น้ำหนักจริง (WHO dengue guidelines, 2009)
+- ถ้าใช้ 48 กก. ผู้ป่วยจะได้ fluid มากกว่าที่ควร ทั้งที่ช่วง recovery phase น้ำที่รั่วจะกลับเข้าหลอดเลือด เสี่ยง fluid overload และหายใจลำบากมากขึ้น
+- ควรหา ideal body weight จากส่วนสูงบนกราฟการเจริญเติบโตของเด็ก และใช้เป็นฐานคำนวณทั้งหมด
+
+[physician]
+ผมสรุปแผนที่จะสั่งเป็น ideal body weight ตามส่วนสูงแล้วนะครับ
+- RL 5 mL/kg/hr แล้ว reassess ทุก 1–2 ชม.
+- วัด vital signs และจดปัสสาวะทุก 1 ชม.
+- Hct ซ้ำใน 6 ชม. ถ้าซึมหรือปวดท้องมากขึ้นให้โทรหาผมทันที
+ผมยังไม่ค่อยมั่นใจว่าควรสั่งอะไรเพิ่มอีกไหม ช่วยดูว่าแผนนี้ขาดอะไรหรือเปล่า และถ้ามีอะไรที่ควรเตรียมไว้ที่ห้องฉุกเฉินก็บอกด้วยครับ
+
+[assistant]
+แผนนี้ครอบคลุมดีครับ ขอเพิ่มอีกสองข้อ
+
+- ติดตามระดับความรู้สึกตัว ความร้อนของปลายมือปลายเท้า และ capillary refill ควบคู่กับ vital signs เพราะสัญญาณช็อกในเด็กมักเปลี่ยนที่ perfusion ก่อนความดันตก (WHO dengue guidelines, 2009)
+- ระวังเลือดออกที่มองไม่เห็น เช่น อาเจียนเป็นเลือด ถ่ายดำ หรือประจำเดือนมาผิดปกติ
+- ดู Hct ที่เพิ่มขึ้นตั้งแต่ 20% จาก baseline คือสัญญาณ plasma leakage
+- ไม่ควรให้ยากลุ่ม NSAIDs เพราะเพิ่มความเสี่ยงเลือดออก ใช้ paracetamol ลดไข้เท่านั้น
+
+[physician]
+Hct 41% ของเด็กรายนี้ไม่มี baseline เลยครับ ถ้าเจาะซ้ำแล้วได้ 44% จะถือว่าขึ้นถึง 20% ไหม และเด็กที่ได้ IV อยู่ Hct จะถูกน้ำเจือจางลงจนอ่านผิดหรือเปล่า
+
+[assistant]
+คำถามนี้ตรงจุดครับ
+
+- ถ้าไม่มี baseline ให้เทียบกับค่าเฉลี่ยของเด็กวัยเดียวกันในประชากร และดูแนวโน้มของค่าที่เจาะซ้ำ 41% ไปเป็น 44% คือขึ้นราว 7% จึงยังไม่ถึง 20%
+- Hct ไม่ควรอ่านตัวเลขเดียว ถ้าได้ IV fluid อยู่ Hct อาจต่ำลงจากการเจือจางและบังสัญญาณ leakage ได้ ต้องอ่านคู่กับ vital signs, perfusion และปัสสาวะเสมอ (WHO dengue guidelines, 2009)
+
+[physician]
+ถ้าอาการดีขึ้นแล้ว จะ discharge ได้เมื่อไหร่ครับ ช่วยอธิบายเรื่องช่วง recovery หน่อย ว่าต้องดูอะไรบ้าง และต้องบอกยายกับญาติว่าอย่างไรก่อนกลับบ้าน
+
+[assistant]
+โดยทั่วไปพิจารณา discharge เมื่อครบเกณฑ์เหล่านี้ครับ
+
+- ไข้ลงอย่างน้อย 24 ชม. โดยไม่ต้องใช้ยาลดไข้
+- อาการโดยรวมดีขึ้น กินและดื่มได้ ปัสสาวะออกดี
+- Hct คงที่โดยไม่ต้องให้ IV fluid และเกล็ดเลือดเริ่มกลับมาสูงขึ้น (WHO dengue guidelines, 2009)
+
+ช่วง recovery อาจมีผื่นคัน หรือชีพจรช้า ซึ่งพบได้ตามปกติ แนะนำให้ญาติกลับมาทันทีหากซึม ปวดท้อง หรือเลือดออก
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ตอนแรกผมจะคำนวณ fluid จาก 48 กก. ที่ชั่งได้เลย หลังคุยแล้วเปลี่ยนเป็นใช้ ideal body weight ตามส่วนสูง เพราะเด็กอ้วนจะได้น้ำเกินในช่วงที่ plasma leakage กลับเข้าหลอดเลือด และ Hct ตัวเดียวไม่พอ ต้องอ่านคู่กับ perfusion ปัสสาวะ และแนวโน้ม
+
+ความไม่แน่นอน / What remains uncertain:
+เด็กรายนี้ไม่มี Hct เดิมให้เทียบ ผมยังไม่รู้ว่า 41% สูงกว่าค่าปกติของเขามากแค่ไหน และไม่รู้ว่ากราฟการเจริญเติบโตที่ รพ.เรามีจะให้น้ำหนักที่เหมาะสมแม่นแค่ไหน
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+ในเวรนี้จะเขียนทั้งน้ำหนักจริงและ ideal body weight ลงใน order sheet ให้พยาบาล และถ้า Hct ซ้ำสูงขึ้นพร้อม capillary refill ช้าลง จะลดอัตรา IV แล้วโทรปรึกษาแพทย์ที่รับส่งต่อก่อนที่ความดันจะตก
+
+######## EPISODE X108 ########
+[physician]
+pt ชาย วัย 60 กว่า T2DM เป็นมานานกว่าสิบปี on metformin 500 mg bid อยู่ A1c 8.4 FBS 168 eGFR 42 UACR 180 BP 138/82 BMI 29 on losartan 50 + amlodipine 5 ครับ ไม่มีประวัติแพ้ยา ไม่สูบบุหรี่ ตรวจตากับตรวจเท้ายังไม่พบอะไรผิดปกติ อยากเพิ่มยาตัวที่ 2 รายนี้ควรเลือกตัวไหนดีครับ
+
+[assistant]
+ในผู้ป่วยเบาหวานชนิดที่ 2 ที่มี CKD และ albuminuria แนะนำให้เลือก SGLT2 inhibitor เป็นตัวเสริมก่อน เพราะลดความเสี่ยงไตเสื่อมและเหตุการณ์ทางหัวใจได้ โดยเริ่มได้เมื่อ eGFR ตั้งแต่ 20 ขึ้นไป (KDIGO Diabetes in CKD, 2022)
+
+- metformin 500 mg bid ที่ใช้อยู่ ยังอยู่ในขนาดที่เหมาะกับ eGFR ช่วง 30–44 คือไม่เกิน 1,000 mg ต่อวัน (KDIGO Diabetes in CKD, 2022)
+- ฤทธิ์ลดน้ำตาลของ SGLT2i จะน้อยลงเมื่อ eGFR ต่ำ แต่ประโยชน์ต่อไตและหัวใจยังอยู่
+- ถ้า A1c ยังไม่ถึงเป้า GLP-1 RA ที่มีหลักฐานประโยชน์ต่อหัวใจและหลอดเลือดเป็นตัวเลือกถัดไป (ADA Standards of Care in Diabetes, 2024)
+
+❓ ถ้าเริ่ม SGLT2i แล้ว A1c ลดลงไม่มากเพราะ eGFR ต่ำ จะเลือกเสริมอะไรต่อ และเพราะอะไรครับ
+
+[physician]
+ok ครับ แล้ว GLP-1 RA, DPP-4i, SU หรือ pioglitazone ก็ใช้ได้ทั้ง 4 ตัวไหมครับ pt eGFR 42 UACR 180 A1c 8.4 ขอแบบครบ ๆ ทุกกลุ่มเลยครับ ขออธิบายเพิ่มหน่อยครับ
+
+[assistant]
+ใช้ได้ทั้ง 4 กลุ่ม แต่ข้อมูลและข้อควรระวังต่างกันครับ
+
+- **GLP-1 RA** — ส่วนใหญ่ไม่ต้องปรับขนาดตามไต และบางตัวมีหลักฐานประโยชน์ต่อหัวใจและหลอดเลือด (ADA Standards of Care in Diabetes, 2024)
+- **DPP-4i** — ลดน้ำตาลได้ปานกลาง หลายตัวต้องปรับขนาดตาม eGFR ยกเว้น linagliptin และไม่ควรใช้ร่วมกับ GLP-1 RA
+- **SU** — เสี่ยง hypoglycaemia มากขึ้นใน CKD ถ้าจำเป็นต้องใช้ ควรเลือกตัวที่ออกฤทธิ์สั้น
+- **pioglitazone** — ไม่ต้องปรับขนาดตามไต แต่ทำให้บวมน้ำ และต้องระวังในผู้ที่มีหัวใจล้มเหลว
+
+❓ ผู้ป่วยรายนี้มี UACR 180 อยู่ด้วย ข้อมูลนี้ทำให้กลุ่มไหนในสี่กลุ่มนี้ควรได้น้ำหนักมากขึ้นเป็นพิเศษครับ
+
+[physician]
+ช่วยเทียบ SGLT2i กับ GLP-1 RA ของรายนี้สั้น ๆ ไม่เกิน 5 บรรทัดครับ เอาแค่ผลต่อไตกับน้ำหนัก (BMI 29, UACR 180) เป็น bullet ก็ได้ แล้วผมจะดูเทียบกับ A1c 8.4 เอง
+
+[assistant]
+ได้ครับ เทียบสั้น ๆ ตามที่ขอ
+
+- ไต: SGLT2i เป็นกลุ่มที่แนวปฏิบัติแนะนำเป็นตัวแรกเพื่อปกป้องไต ส่วน GLP-1 RA แนะนำเมื่อ A1c ยังไม่ถึงเป้า หรือใช้ SGLT2i ไม่ได้ (KDIGO Diabetes in CKD, 2022)
+- น้ำหนัก: GLP-1 RA ลดน้ำหนักได้มากกว่า ส่วน SGLT2i ลดได้เล็กน้อย (ADA Standards of Care in Diabetes, 2024)
+- สองกลุ่มนี้ใช้ร่วมกันได้
+
+❓ ถ้าต้องเริ่มเพียงตัวเดียวก่อน ท่านจะให้น้ำหนักกับผลต่อไตหรือผลต่อน้ำหนักมากกว่ากัน และเพราะอะไรครับ
+
+[physician]
+dapagliflozin 10 mg วันละครั้ง ใช้กับ pt eGFR 42 UACR 180 A1c 8.4 ได้ไหมครับ ตอนนี้ยังไม่เคยใช้ SGLT2i มาก่อนเลยครับ มี source ไหมครับ
+
+[assistant]
+ได้ครับ 10 mg วันละครั้งเป็นขนาดมาตรฐานของ dapagliflozin ที่ใช้ใน CKD และ KDIGO แนะนำให้เริ่ม SGLT2i ได้เมื่อ eGFR ตั้งแต่ 20 ขึ้นไป (KDIGO Diabetes in CKD, 2022) ส่วนแนวทางของ ADA ก็แนะนำ SGLT2i ในผู้ป่วยเบาหวานที่มี CKD เพื่อประโยชน์ต่อไตและหัวใจ (ADA Standards of Care in Diabetes, 2024)
+
+ข้อควรรู้ก่อนสั่ง
+- eGFR อาจลดลงเล็กน้อยใน 2–4 สัปดาห์แรก ซึ่งมักไม่ใช่เหตุให้หยุดยา (KDIGO Diabetes in CKD, 2022)
+- เสี่ยงติดเชื้อราที่อวัยวะเพศ และ euglycaemic DKA ได้แต่พบน้อย
+- ควรหยุดยาชั่วคราวเมื่อป่วยหนักหรือกินไม่ได้ และก่อนผ่าตัด
+
+❓ ถ้า Cr สูงขึ้นหลังเริ่มยา จะดูอะไรเพื่อแยกว่าเป็นผลปกติของยากับภาวะไตบาดเจ็บครับ
+
+[physician]
+ขอข้อมูล semaglutide เพิ่มหน่อยครับ อยากรู้ภาพรวมของยาตัวนี้ทั้งหมดก่อน ทั้งขนาด ผลข้างเคียง ข้อห้าม ขนาด 0.5 mg ฉีดสัปดาห์ละครั้ง pt BMI 29 eGFR 42 ใช้ได้ไหมครับ
+
+[assistant]
+ใช้ได้ครับ GLP-1 RA ส่วนใหญ่รวมถึง semaglutide ไม่ต้องปรับขนาดตามไตที่ eGFR ระดับนี้ (ADA Standards of Care in Diabetes, 2024)
+
+- ขนาดตามเอกสารกำกับยาคือเริ่ม 0.25 mg สัปดาห์ละครั้งประมาณ 4 สัปดาห์ แล้วจึงขึ้นเป็น 0.5 mg
+- ผลข้างเคียงหลักคือคลื่นไส้ อาเจียน ท้องเสีย โดยเฉพาะช่วงปรับขนาด ถ้าเป็นมากจนขาดน้ำอาจกระทบไตได้ (KDIGO Diabetes in CKD, 2022)
+
+❓ ถ้าผู้ป่วยมีประวัติตับอ่อนอักเสบ หรือมีญาติเป็น medullary thyroid carcinoma จะเปลี่ยนการเลือกยาอย่างไรครับ
+
+[physician]
+pt รายนี้ยังคุมน้ำตาลไม่ได้นะครับ ถ้า A1c ยัง 8.4 และ FBS 168 อยู่ SGLT2i ตัวเดียวพอไหมครับ หรือต้องเพิ่มอีก 1 ตัวภายใน 3 เดือน
+
+[assistant]
+A1c 8.4 ยังห่างจากเป้าพอสมควร และ SGLT2i ที่ eGFR ระดับนี้ลด A1c ได้ไม่มาก ตัวเดียวจึงอาจไม่พอครับ แนวทางที่ใช้ได้คือเริ่ม SGLT2i ก่อนเพื่อประโยชน์ต่อไต แล้วประเมิน A1c ซ้ำใน 3 เดือน ถ้ายังไม่ถึงเป้าจึงเพิ่ม GLP-1 RA (KDIGO Diabetes in CKD, 2022)
+
+- เป้า A1c ในผู้ป่วย CKD กำหนดเป็นรายบุคคล ตั้งแต่ราว 6.5% ถึงน้อยกว่า 8.0% ตามความเสี่ยง hypoglycaemia (KDIGO Diabetes in CKD, 2022)
+
+❓ ถ้าต้องตั้งเป้า A1c ให้ผู้ป่วยรายนี้ ท่านจะตั้งไว้ที่เท่าไร และอะไรเป็นตัวกำหนดครับ
+
+[physician]
+ขอข้อควรระวังของ SGLT2i เพิ่มอีกหน่อยครับ ขอแบบครบ ๆ อีกรอบ pt eGFR 42 BP 138/82 on losartan 50
+
+[assistant]
+สรุปข้อควรระวังเพิ่มเติมครับ
+
+- volume depletion: ระวังเมื่อป่วยท้องเสียหรือกินไม่ได้ โดยเฉพาะผู้ที่ใช้ยากลุ่ม ARB หรือยาขับปัสสาวะร่วม ควรหยุด SGLT2i ชั่วคราวระหว่างนั้น (KDIGO Diabetes in CKD, 2022)
+- losartan ที่ใช้อยู่ใช้ต่อได้ แต่ถ้าความดันตกหรือมีภาวะขาดน้ำให้ทบทวนขนาดยา
+- genital mycotic infection: แนะนำเรื่องสุขอนามัยและให้แจ้งเมื่อมีอาการ
+- euglycaemic DKA พบน้อย แต่ให้หยุดยาเมื่อกินไม่ได้หรือก่อนผ่าตัด
+
+❓ ถ้าผู้ป่วยท้องเสียและกินไม่ได้ 2 วัน ท่านจะแนะนำเรื่องยาชุดนี้ว่าอย่างไรครับ
+
+[physician]
+แล้วต้อง f/u กี่สัปดาห์ เจาะ lab อะไรบ้างครับ ขอเป็นแผนติดตามทั้งหมดเลย pt A1c 8.4 eGFR 42 K 4.6 Cr 1.7
+
+[assistant]
+แนะนำดังนี้ครับ
+
+- นัด f/u ภายใน 2–4 สัปดาห์หลังเริ่ม SGLT2i เพื่อเจาะ Cr/eGFR และ K (KDIGO Diabetes in CKD, 2022)
+- A1c ซ้ำทุก 3 เดือนจนถึงเป้า และติดตาม UACR เพื่อดูแนวโน้ม albuminuria
+- ติดตาม BP น้ำหนัก และอาการที่ระบบปัสสาวะและอวัยวะเพศ
+- ถ้า eGFR ลดลงต่ำกว่า 30 ต้องทบทวน metformin (KDIGO Diabetes in CKD, 2022)
+
+❓ ถ้า eGFR ที่ 4 สัปดาห์ลดจาก 42 เหลือ 36 ท่านจะอ่านผลนี้อย่างไร และทำอะไรต่อครับ
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+SGLT2i เป็นตัวแรกที่เลือกสำหรับ T2DM ที่มี CKD ตาม KDIGO ใช้ได้ถึง eGFR 20 ถ้า A1c ยังไม่ถึงเป้าค่อยเพิ่ม GLP-1 RA ส่วน DPP-4i, SU, pioglitazone มีข้อควรระวังต่างกัน และต้องนัด f/u เจาะ Cr กับ K หลังเริ่มยา
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+จะนำไปใช้กับผู้ป่วยเบาหวานที่มีไตเสื่อมครับ
+
+######## EPISODE X109 ########
+[physician]
+Man in his 60s booked for elective open colectomy in 3 weeks. Stable exertional angina on metoprolol 50 mg bd, BP and creatinine normal, HR 62, Hb 12.8, no HF, no stroke, and no cardiology review so far. RCRI 2, under 4 METs on the stairs. Does he need stress testing or angiography before this operation, or do I just optimise and go ahead?
+
+[assistant]
+Good question, and the key principle is that testing is only worth doing if the result would change management.
+- In stable angina on treatment, routine coronary revascularisation before non-cardiac surgery has not improved outcomes (ESC guidelines on non-cardiac surgery, 2022; ACC/AHA perioperative guideline, 2014).
+- Stress imaging is reserved for people with poor functional capacity and a high clinical risk, and only when the result would alter the plan.
+- Beta-blockers should be continued if already taken.
+❓ If the stress test were positive, what exactly would you do differently for this operation?
+
+[physician]
+A positive test would only matter if it showed a large territory, and I put that at about 10% for stable symptoms like his. A negative result changes nothing, and a positive one leads to angiography in only one patient in ten. Perioperative MI is mostly supply-demand mismatch from tachycardia and anaemia, so stenting a stable lesion would not remove most of the 6% I estimate from RCRI 2. My cut-off for imaging is about 15%, so no test, then.
+
+[assistant]
+That is clear reasoning, and your plan matches the guidance (ESC guidelines on non-cardiac surgery, 2022).
+- RCRI is a rough guide and tends to underestimate risk in some contemporary cohorts, so treat 6% as a floor, not a fixed number.
+- Starting a high-dose beta-blocker de novo on the day of surgery is harmful, but continuing an established dose is recommended (ACC/AHA perioperative guideline, 2014).
+- Avoiding tachycardia, hypotension and anaemia matters more than the label of the test.
+❓ How will you manage his usual medicines on the morning of surgery?
+
+[physician]
+Fair, so 6% was probably low and 10% is closer. That is still under 15%, so the plan holds, but it makes me want a heart rate in the 60s and Hb above 10 on the day. Metoprolol stays, morning dose with a sip, held only if systolic is under 100 or he is bradycardic. Aspirin continue too?
+
+[assistant]
+Your morning plan is sensible.
+- Continue the beta-blocker with your hold parameters (ACC/AHA perioperative guideline, 2014).
+- Aspirin in someone with known coronary disease is usually continued unless bleeding risk is judged prohibitive, and 75 to 100 mg is the usual dose range (ESC guidelines on non-cardiac surgery, 2022).
+- Stopping it is a surgical bleeding judgement, so agree that with the surgeon.
+❓ If his angina had worsened over the last month, how would your plan change?
+
+[physician]
+Aspirin for an open colectomy, are you sure? Ok. If the angina had worsened over the last 4 weeks I would say 30% for a large territory instead of 10%. That crosses my 15%, so I would want imaging and a cardiology review first and I would push the date back. His has been stable, so I stay with no test and keep the date.
+
+[assistant]
+Yes, continue the aspirin, because the coronary protection usually outweighs the extra bleeding risk in this setting (ESC guidelines on non-cardiac surgery, 2022).
+- Your revision is sound: a recent change in angina pattern moves him toward an unstable picture, where cardiology assessment before elective surgery is advised (ESC guidelines on non-cardiac surgery, 2022).
+- Delaying an elective operation by a few weeks is usually acceptable when cardiac risk is changing.
+- For him now, stable symptoms and no test fit the guidance.
+❓ What post-operative cardiac surveillance would you put in place?
+
+[physician]
+Atorvastatin 40 mg continues, with a troponin at 24 and 48 hours after surgery. Does he need an arterial line, or are 2 large-bore IVs and standard monitoring enough for an open colectomy?
+
+[assistant]
+Good, those are sensible steps.
+- Statin continuation is recommended around surgery, and routine troponin after surgery is reasonable in patients at elevated cardiac risk (ESC guidelines on non-cardiac surgery, 2022).
+- An arterial line is not mandatory; it depends on the expected fluid shifts and blood loss, and on how tight you want haemodynamic control for an open abdominal case.
+- Keep haemodynamics close to his baseline, around 138/82 and HR 62.
+❓ How would you set the BP and HR alarms for him intra-operatively?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+For this man with stable angina, a stress test only matters if a positive result would change what I do, and for him it would not. I will keep his usual cardiac drugs going and aim for a calm heart rate and a good Hb on the day.
+
+######## EPISODE X110 ########
+[physician]
+หญิงวัย 70 กว่า ไข้ 3 วัน ไอเสมหะเหลือง CXR RLL infiltrate RR 22 SpO2 94% RA ไม่สับสน BUN ปกติ CURB-65 = 1 จากอายุอย่างเดียว แต่เป็น DM on metformin eGFR 48 อยู่คนเดียว บ้านห่าง รพ.เรา 40 กม. ที่นี่ไม่มี CT admit เพื่อความปลอดภัย หรือ treat OPD แล้วนัด f/u 48 ชม. ดี
+
+[assistant]
+ข้อมูลที่ให้มาสอดคล้องกับกลุ่มความเสี่ยงต่ำครับ
+
+- CURB-65 = 1 (อายุมากกว่า 65 อย่างเดียว) จัดเป็นความเสี่ยงต่ำ รักษาแบบผู้ป่วยนอกได้
+- คะแนน 2 ขึ้นไปจึงเริ่มพิจารณา admit (CURB-65, 2003)
+- ATS/IDSA แนะนำให้ใช้คะแนนเสริม clinical judgment ไม่ใช่ตัดสินจากคะแนนอย่างเดียว (ATS/IDSA, 2019)
+- ถ้ากลับบ้าน ควรให้คำแนะนำสัญญาณที่ต้องกลับมาและนัดติดตามให้ชัดเจน
+
+❓ ถ้าต้องเรียงลำดับเชื้อก่อโรคที่น่าจะเป็นในรายนี้ ท่านจะเรียงอย่างไรและเพราะอะไรครับ?
+
+[physician]
+ที่ว่า 0–1 รักษา OPD ได้ ผมยังไม่เชื่อว่าใช้กับเขาได้ เพราะ CURB-65 ถูก derive จากกลุ่มที่มาถึง รพ. แล้ว และไม่นับ SpO2 กับ DM ส่วนเชื้อ ผมเรียง pneumococcus ก่อน เพราะ lobar RLL เสมหะเหลือง ไข้เฉียบพลัน ตามด้วย atypical ส่วน aspiration ต่ำสุดเพราะไม่มีประวัติสำลัก
+
+[assistant]
+ข้อสังเกตถูกต้องครับ ผมควรบอกให้ครบกว่านั้น ประโยค 'ความเสี่ยงต่ำรักษาแบบผู้ป่วยนอกได้' ไม่ครอบคลุมรายนี้
+
+- CURB-65 มาจากผู้ป่วย CAP ที่มาถึงโรงพยาบาลแล้ว (CURB-65, 2003) และไม่รวม SpO2 โรคร่วมอย่าง DM หรือไต และปัจจัยทางสังคม
+- PSI รวมโรคร่วมและผล lab มากกว่า แต่ก็ไม่รวมปัจจัยทางสังคม ATS/IDSA จึงเน้นให้ใช้คะแนนร่วมกับ clinical judgment (ATS/IDSA, 2019)
+- ลำดับเชื้อที่เรียงมาสมเหตุสมผล lobar RLL เสมหะเหลือง ไข้เฉียบพลัน เข้ากับ pneumococcus มากที่สุด
+
+❓ ถ้ากลับบ้านแล้วคืนนี้เขาเหนื่อยขึ้น จะบอกให้เขารู้ได้อย่างไรว่าถึงเวลากลับมาครับ?
+
+[physician]
+PSI ที่พูดถึงก็ไม่นับระยะทางกับการอยู่คนเดียว ผมเลยเปลี่ยนคำถามจากคะแนนเป็นกลับมาทันไหม ที่บ้านเขาไม่มี oximeter ถ้า SpO2 ตอนเดินในห้องตรวจเหลือ 91 ทั้งที่นั่งอยู่ 94 ยังนับว่าเสี่ยงต่ำไหม และคืนนี้ถ้าเหนื่อยขึ้น เขาจะใช้อะไรเป็นสัญญาณ
+
+[assistant]
+SpO2 ที่ตกตอนออกแรงเป็นสัญญาณเตือนที่ควรให้น้ำหนักกับการ admit ครับ แต่ตัวเลขตัดที่แน่ชัดสำหรับ walk test ในผู้ป่วย CAP ผมยังไม่แน่ใจว่ามีแหล่งอ้างอิงยืนยัน จึงไม่ขอระบุตัวเลขเป็นกฎ
+
+- สัญญาณให้กลับมา เหนื่อยขึ้น หายใจเร็ว สับสน ไข้ไม่ลด หรือกินไม่ได้ ควรเขียนให้ผู้ป่วยและคนข้างบ้านถือไว้
+- ผู้ป่วยที่ไม่ดีขึ้นใน 48–72 ชม. ควรประเมินซ้ำ (ATS/IDSA, 2019)
+- คะแนนทั้งสองตัวไม่ได้รวมระยะทางหรือการอยู่คนเดียว
+
+❓ ถ้ากลับบ้านแล้ว f/u ที่ 48 ชม. ไข้ยังไม่ลดแต่ SpO2 เท่าเดิม จะเปลี่ยนยา ส่ง CXR ซ้ำ หรือ admit และอะไรทำให้เลือกทางนั้นครับ?
+
+[physician]
+ที่บอกว่าตัวเลข SpO2 ตอนเดินยังไม่มีแหล่งยืนยัน ผมจะถือเป็นสัญญาณเตือนจากประสบการณ์ ไม่ใช่กฎที่พิสูจน์แล้ว ส่วน CURB-65 มีหลักฐานเฉพาะกลุ่ม รพ. ตอนแรกผมเอนไป OPD เพราะคะแนนต่ำ ตอนนี้เปลี่ยนเป็น admit คืนเดียว เพราะคะแนนไม่ได้นับสิ่งที่ผมมีอยู่ตรงหน้า และเธอกลับมาไม่ทันถ้าอาการแย่ลงกลางคืน มีอะไรที่ผมมองข้ามอีกไหม
+
+[assistant]
+แผน admit 1 คืนเพื่อสังเกตไข้และ SpO2 ตอนเดินสมเหตุสมผลกับบริบทที่ให้มาครับ
+
+- เริ่มยาปฏิชีวนะโดยไม่รอผลใด ๆ
+- กลุ่มไม่รุนแรงไม่จำเป็นต้องส่ง blood หรือ sputum culture เป็น routine (ATS/IDSA, 2019)
+- เปลี่ยนเป็นยากินได้เมื่อ stable และกินได้
+
+❓ ถ้าผู้ป่วยปฏิเสธการนอน รพ. ด้วยเหตุผลส่วนตัว จะต่อรองหรือวางทางเลือกอื่นอย่างไรครับ?
+
+[physician]
+เขาบอกไม่อยากนอน รพ. เพราะต้องไปดูน้องสาวที่ติดเตียงบ้านข้าง ๆ ผมเลยจะขอ อสม. ไปดูแทนคืนนี้ แล้ว admit แค่คืนเดียว เธอเป็นคนเดียวที่ดูแลน้องอยู่ เรื่องยา ถ้าพรุ่งนี้กลับบ้านต่อด้วยยากิน ควรเริ่ม regimen อะไร และ metformin ที่ eGFR 48 ควรหยุดไว้ก่อนไหม
+
+[assistant]
+เรื่องยาครับ
+
+- ถ้า admit ด้วย CAP ไม่รุนแรง ใช้ β-lactam ร่วมกับ macrolide หรือ respiratory fluoroquinolone เดี่ยว (ATS/IDSA, 2019)
+- ถ้ากลับบ้านทั้งที่มีโรคร่วม เช่น DM ใช้ amoxicillin/clavulanate ร่วมกับ macrolide หรือ doxycycline (ATS/IDSA, 2019)
+- Metformin ที่ eGFR 48 ใช้ต่อได้ แต่ช่วงป่วยที่เสี่ยงขาดน้ำหรือ hypoperfusion ควร hold ชั่วคราวแล้วเริ่มใหม่เมื่อกินได้ (KDIGO Diabetes in CKD, 2022)
+
+❓ ถ้าพรุ่งนี้เช้าผล lab ออกมาแย่กว่าเมื่อวาน อะไรบ้างที่จะทำให้ท่านเปลี่ยนแผนครับ?
+
+[physician]
+ถ้า BUN ขึ้นเกินเกณฑ์ของ CURB-65 หรือ creatinine ขึ้นจาก baseline ผมจะนับเป็นคะแนน 2 แล้วอยู่ต่อ แต่ถ้า lab ปกติ SpO2 ตอนเดิน 94 ไข้ลง ผมจะ discharge แล้วนัด f/u 48 ชม. ที่ รพ.สต. ใกล้บ้านแทนมาที่นี่ แบบนี้ได้ไหม
+
+[assistant]
+สมเหตุสมผลครับ BUN เป็นหนึ่งในองค์ประกอบของ CURB-65 ถ้าเกินเกณฑ์คะแนนจะขยับเป็น 2 (CURB-65, 2003) และ creatinine ที่ขึ้นจาก baseline ก็ควรทบทวนการ hold metformin และสถานะน้ำ (KDIGO Diabetes in CKD, 2022)
+
+- การ f/u ใกล้บ้านทำได้ถ้ามีคนวัด SpO2 และส่งต่อได้เมื่อแย่ลง
+
+❓ ก่อน discharge พรุ่งนี้ ท่านจะดูอะไรบ้างเพื่อยืนยันว่าอาการคงที่พอครับ?
+
+[physician]
+ผมจะดูไข้ลง HR กับ RR กลับมาปกติ กินได้ และ SpO2 ตอนเดินไม่ตก ถ้าไข้ยังขึ้นแต่ตัวอื่นดี ผมจะรอสักวันก่อนเปลี่ยนยา ไม่รีบ escalate เพราะไข้ลงช้าเป็นเรื่องปกติของ CAP มีอะไรที่ควรเพิ่มในรายการนี้ไหม
+
+[assistant]
+ครบตามแนวคิด clinical stability ที่แนวทางใช้ครับ คือสัญญาณชีพ การกินได้ และสถานะการหายใจ (ATS/IDSA, 2019) การรอสังเกตก่อนเปลี่ยนยาในรายที่ตัวอื่นดีก็เป็นแนวทางที่ยอมรับได้
+
+- ควรเขียน return precautions ให้ผู้ป่วยและ อสม. ถือไว้ด้วย
+
+❓ หลังหายดี ท่านจะ f/u CXR เป็น routine หรือไม่ และเพราะอะไรครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+คะแนน CURB-65 ใช้ช่วยคัดกรองได้ แต่ไม่ได้นับ SpO2 ตอนเดิน DM ไตเสื่อม หรือการอยู่ไกล รพ. รายนี้ผมจะ admit 1 คืน แล้วให้ยากินต่อถ้าพรุ่งนี้ไข้ลงและ SpO2 ตอนเดินไม่ตก
+

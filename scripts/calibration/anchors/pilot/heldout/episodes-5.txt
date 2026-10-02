@@ -1,0 +1,649 @@
+######## EPISODE X501 ########
+[physician]
+acute ischaemic stroke ที่มาถึงภายใน 3 ชม. แรก การให้ rtPA ทำอย่างไรครับ ข้อบ่งชี้ ข้อห้าม ขนาดยา ขอแบบ textbook ภาพรวมก็พอ
+
+[assistant]
+ยินดีครับ สรุปภาพรวมสั้น ๆ
+
+- Alteplase 0.9 mg/kg (สูงสุด 90 mg) ให้ 10% เป็น bolus ใน 1 นาที ที่เหลือหยดใน 60 นาที (AHA/ASA stroke guideline, 2019)
+- ก่อนให้ต้องมี NCCT ตัดเลือดออก และคุม BP ให้ต่ำกว่า 185/110 mmHg (AHA/ASA stroke guideline, 2019)
+- ภายใน 4.5 ชม. ให้ alteplase ได้ทุกรายถ้า CT ไม่พบเลือดออก
+- ผลข้างเคียงสำคัญคือ symptomatic ICH จึงต้องเฝ้า neuro check และ BP ใกล้ชิดใน 24 ชม. แรก
+
+❓ ถ้าต้องชั่งระหว่างโอกาสที่ผู้ป่วยจะดีขึ้นกับความเสี่ยง sICH ท่านจะวางสมดุลนี้อย่างไร
+
+[physician]
+ตัวยาตามนั้นครับ ส่วนคำถามสุดท้ายขอตอบเอง ผมมองเป็นสองก้อน ถ้าเป็น stroke จริงและ clot ยังละลายได้ โอกาสที่ผลลัพธ์ดีขึ้นเพิ่มราวหนึ่งในแปด ส่วน sICH จำได้ราวหกในร้อย (ตัวเลขจากความจำ) ถ้าไม่ใช่ stroke จริงก็ได้แต่ harm ผมเลยวางไว้ว่าต้องมั่นใจว่าเป็น stroke จริงอย่างน้อย 90% ถึงจะให้ ok ครับ ต่อไปขอถามว่า tenecteplase ต่างจาก alteplase อย่างไร
+
+[assistant]
+กรอบสองก้อนของท่านถูกทิศทางครับ แต่มีจุดที่ควรเช็ก
+
+- ในกลุ่มที่ภาพคล้าย stroke แต่ไม่ใช่ (mimic) รายงานส่วนใหญ่พบ sICH ต่ำกว่ากลุ่ม stroke จริงมาก ผมยังไม่แน่ใจตัวเลขที่แม่นยำ จึงไม่ขอให้ตัวเลข
+- Tenecteplase 0.4 mg/kg ให้เป็น bolus ครั้งเดียว guideline ระบุว่าอาจพิจารณาแทน alteplase ในผู้ป่วยที่ deficit ไม่มากและไม่มี major intracranial occlusion (AHA/ASA stroke guideline, 2019)
+- ข้อดีเชิงปฏิบัติคือไม่ต้องหยดต่อ 60 นาที
+
+❓ ถ้า harm ในกลุ่ม mimic ต่ำกว่าที่ท่านใช้ในสมการ เส้น 90% ที่วางไว้ยังควรอยู่ที่เดิมไหม
+
+[physician]
+ถ้า harm ในกลุ่ม mimic ต่ำกว่าที่ผมใส่ไว้ เส้น 90% ของผมก็สูงเกิน เพราะ harm ที่คูณด้วยโอกาสเป็น mimic หดลง ผมปรับเหลือราว 75% แต่จะไปเช็กตัวเลขจริงก่อนยึด อีกเรื่อง บรรทัดที่ว่าให้ได้ทุกราย ถ้า CT ไม่พบเลือดออก ผมไม่เห็นด้วย CT ปกติเป็นแค่ข้อเดียว ยังมี glucose ต่ำ, INR สูง, platelet ต่ำ, DOAC ล่าสุด ที่ทำให้ห้ามให้ ช่วยตรวจประโยคนั้นอีกที และไล่ข้อห้ามหลัก
+
+[assistant]
+ท่านจับถูกครับ ประโยคว่า "ได้ทุกราย" กว้างเกินไป CT ไม่พบเลือดออกเป็นเพียงเงื่อนไขหนึ่ง
+
+- ต้องตัด contraindication ก่อน เช่น glucose ต่ำกว่า 50 mg/dL ต้องแก้ก่อนแล้วประเมินใหม่, INR > 1.7, platelet < 100,000 และ DOAC ภายใน 48 ชม. ที่ไม่มีผล coagulation ยืนยัน (AHA/ASA stroke guideline, 2019)
+- การลดเส้นความมั่นใจลงสมเหตุสมผลถ้า harm ใน mimic ต่ำจริง แต่ตัวเลข sICH ของกลุ่มนี้ควรเช็กจากต้นฉบับก่อนยึดถือ
+
+❓ ตัวเลขตัวไหนในสมการของท่านที่หลักฐานรองรับอ่อนที่สุด
+
+[physician]
+ตัวที่อ่อนที่สุดน่าจะเป็น window ที่ผมเอาตัวเลขหนึ่งในแปดไปใช้ ผมจำว่าช่วงแรกภายใน 3 ชม. เป็น Class I LOE A แต่ช่วงหลังถึง 4.5 ชม. เป็น Class I LOE B-R และ trial ตัดบางกลุ่มออก เช่น อายุมากกว่า 80 กับ NIHSS สูงมาก ผมเลยไม่ควรเอาตัวเลขของช่วงแรกไปใช้กับช่วงหลังตรง ๆ ถ้าจะแตะช่วงหลัง เส้นของผมต้องสูงกว่า 75% ใช่ไหม ขอให้ตอบเป็นข้อ แยกว่าส่วนไหนมาจาก RCT ส่วนไหนเป็น expert opinion
+1. Class กับ LOE ที่ผมจำถูกไหม
+2. กลุ่มที่ trial ช่วงหลังตัดออก
+3. benefit ที่ลดลงตามเวลา
+
+[assistant]
+จำได้ถูกครับ
+
+1. Alteplase ภายใน 3 ชม. เป็น Class I, LOE A ส่วน 3-4.5 ชม. เป็น Class I, LOE B-R (AHA/ASA stroke guideline, 2019)
+2. Trial ช่วง 3-4.5 ชม. ตัดกลุ่มอายุมากกว่า 80, NIHSS สูงมาก, ผู้ที่ได้ anticoagulant และผู้ป่วยเบาหวานที่เคย stroke ออก คำแนะนำในกลุ่มเหล่านี้จึงอิงการประมาณ ไม่ได้อิง RCT ตรง ๆ
+3. Benefit ลดลงตามเวลาจริง ทิศทางนี้มาจาก pooled analysis ของหลาย trial ส่วนเส้นความมั่นใจที่เหมาะสมเป็นการตัดสินเชิงคลินิก ไม่มีตัวเลขจากงานวิจัยกำหนด
+
+❓ ท่านคิดว่าเวลาเป็นตัวแทนของอะไรที่ทำให้ benefit ลดลง
+
+[physician]
+เวลาน่าจะเป็นแค่ตัวแทนของ penumbra ที่ยังกู้ได้ เมื่อเวลาไม่ชัดแต่ imaging บอกว่ายังมี mismatch เหตุผลของผมก็ยังใช้ได้ ผมเลยจะเลิกตามเรื่อง window แล้วไปดู imaging selection ขอ overview ไม่เกิน 5 บรรทัด และบอกว่าเส้น 75% ควรขยับไหมถ้าได้ข้อมูลจากภาพ
+
+[assistant]
+การมองเวลาเป็นตัวแทนของ penumbra สอดคล้องกับแนวคิดของ guideline ครับ
+
+- ถ้าไม่ทราบเวลาเริ่มอาการ และมี MRI DWI-FLAIR mismatch การให้ alteplase อาจพิจารณาได้ (AHA/ASA stroke guideline, 2019)
+- Perfusion imaging ใช้เลือกผู้ป่วยในช่วงหลัง 4.5 ชม. อิง trial อีกกลุ่ม ผมไม่ขอสรุปรายละเอียดจากความจำ
+- ส่วนเส้น 75% ของท่านเป็นค่าที่ท่านวางเอง ไม่มีตัวเลขจากงานวิจัยกำหนด imaging ช่วยเพิ่มความมั่นใจว่าเป็น stroke ที่ยังกู้ได้
+
+❓ ถ้า imaging เลือกผู้ป่วยได้ดีกว่าเวลา ท่านจะยังให้น้ำหนักกับเวลาเริ่มอาการอยู่ไหม
+
+[physician]
+ถ้าเวลาชัดและอยู่ใน window ต้องผ่านสามอย่าง คือมั่นใจว่าเป็น stroke จริงเกิน 75%, ไม่มี contraindication, BP ต่ำกว่า 185/110 ถ้าเวลาไม่ชัด ต้องมี imaging ชี้ว่า penumbra ยังอยู่ เวลาเขียน order ผมจะเปิด guideline เทียบขนาดยา 0.9 mg/kg สูงสุด 90 mg และข้อห้ามเอง ไม่ copy จากแชตนี้ และจะไปเช็กตัวเลข sICH ในกลุ่ม mimic
+
+[assistant]
+สรุปของท่านสอดคล้องกับ guideline ครับ การเทียบขนาดยาและข้อห้ามกับต้นฉบับก่อนสั่งยาเป็นนิสัยที่ดี (AHA/ASA stroke guideline, 2019)
+
+- ตัวเลข sICH ในกลุ่ม mimic ควรเช็กจากต้นฉบับ ไม่ใช่จากความจำของผมหรือของท่าน
+
+❓ ถ้าต้องอธิบายเหตุผลของเส้นความมั่นใจนี้ให้ทีมฟัง ท่านจะบอกว่าส่วนไหนมาจากหลักฐานและส่วนไหนเป็นการประเมินของท่านเอง
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+rtPA ให้ประโยชน์เมื่อมั่นใจว่าเป็น stroke จริงและยังอยู่ใน window หลักฐานของช่วงแรกแข็งกว่าช่วงหลัง ประโยค ให้ได้ทุกราย ไม่ถูก ต้องผ่านข้อห้ามก่อน และเวลาเป็นตัวแทนของ penumbra ที่ยังกู้ได้
+
+######## EPISODE X502 ########
+[physician]
+ขอปรึกษา case ครับ pt ชายวัย 60 กว่า มาที่ รพ.ชุมชนขนาด 30 เตียงที่ไม่มี CT ด้วยปวดหัวข้างขวาแบบใหม่ เป็นมาประมาณสองสัปดาห์ ช่วงหลังปวดแรงขึ้นจนตื่นกลางคืน มีเคี้ยวอาหารแล้วเมื่อยกราม และเห็นภาพมัวเป็นพักๆ ตาข้างเดียวกัน ไม่มีไข้ ไม่มีคอแข็ง ไม่มีประวัติศีรษะกระแทก ก่อนหน้านี้ไม่เคยปวดหัวแบบนี้มาก่อน ไม่ได้กินยาแก้ปวดเยอะ ไม่สูบบุหรี่ ดื่มแอลกอฮอล์นานๆ ครั้ง vital sign ปกติ neuro exam ปกติ ไม่มี focal deficit ประวัติเป็น HT กับ DM กิน amlodipine และ metformin ไม่ได้กินยาต้านการแข็งตัวของเลือด ผมคิดว่าอันดับแรกคือ GCA เพราะเป็นปวดหัวใหม่ในคนสูงวัย มี jaw claudication และตามัว ถัดมาคือ mass lesion เพราะปวดจนตื่นกลางคืนและแรงขึ้นเรื่อยๆ ส่วน SAH ผมให้ต่ำสุดเพราะปวดค่อยเป็นค่อยไป ไม่ใช่ thunderclap คำถามคือ ควรเริ่ม prednisolone เลยที่ รพ.นี้ ก่อนรอผล ESR/CRP และ temporal artery biopsy หรือรอผล lab ก่อนค่อยตัดสินใจ เพราะ รพ.จังหวัดอยู่ไกลและ biopsy ทำที่นี่ไม่ได้ครับ
+
+[assistant]
+เป็นการให้เหตุผลที่ดีครับ และลำดับที่หมอตั้งไว้สอดคล้องกับ red flag ของ pt รายนี้
+
+- **red flag ที่เจอ:** ปวดหัวใหม่ที่เริ่มหลังอายุมากกว่า 50 และมีรูปแบบปวดเปลี่ยนไป เป็น red flag ที่ต้องหาสาเหตุทุติยภูมิ (SNNOOP10 headache red flags, 2019) ส่วนเมื่อยกรามและตามัวทำให้ต้องคิดถึง GCA ก่อนโรคอื่น
+- **SAH:** ปวดค่อยเป็นค่อยไปแบบนี้ไม่เข้ากับ thunderclap และ Ottawa SAH rule ใช้กับปวดหัวเฉียบพลันที่ถึงจุดสูงสุดภายในชั่วโมงเดียว จึงไม่ได้ออกแบบมาใช้กับรายนี้ (Ottawa SAH rule, 2013)
+- **ยา:** ถ้าสงสัย GCA ร่วมกับตามัวชัดเจน ไม่ควรรอ biopsy ให้เริ่ม prednisolone ขนาดสูงประมาณ 40-60 mg/วัน ได้เลย เพราะการเสียการมองเห็นถาวรเกิดขึ้นได้เร็ว และ biopsy ยังให้ผลได้อีกหลายสัปดาห์หลังเริ่มยา
+- **ก่อนให้ยา:** เจาะ ESR/CRP/CBC ไว้ก่อน แต่ไม่ต้องรอผล
+- **ตามัว:** ควรให้จักษุแพทย์ตรวจ fundus และ visual acuity ที่ รพ.จังหวัดโดยเร็ว
+
+ส่วน mass lesion ยังต้องหาภาพสมองในที่สุด แต่ลำดับความเร่งด่วนต่ำกว่าการเริ่มยา
+
+[physician]
+ok ครับ ช่วยอธิบายเรื่อง GCA เพิ่มเติมหน่อยครับ อยากได้ภาพรวมของโรคนี้ว่าเป็นอย่างไร มีอะไรที่ควรรู้บ้าง ขออธิบายแบบละเอียดหน่อยนะครับ เพราะไม่ค่อยได้เจอ case แบบนี้ที่ รพ.ชุมชน
+
+[assistant]
+GCA คือ vasculitis ของหลอดเลือดขนาดกลางถึงใหญ่ในคนอายุมากกว่า 50 พบร่วมกับ polymyalgia rheumatica ได้บ่อย
+
+- **อาการเตือน:** ปวดหัวใหม่ เจ็บหนังศีรษะ เมื่อยกรามเวลาเคี้ยว ตามัวหรือเห็นภาพซ้อน ส่วนไข้ต่ำๆ หรือน้ำหนักลดจัดเป็นอาการทั่วร่างกายที่ควรถามเสมอ (SNNOOP10 headache red flags, 2019)
+- **ตรวจร่างกาย:** คลำ temporal artery ว่าเต้นลดลงหรือกดเจ็บ ตรวจ fundus ดู optic disc
+- **lab:** ESR และ CRP มักสูงมาก ความไวของสองตัวร่วมกันสูง แต่ค่าปกติก็ยังไม่ตัด GCA ออกทั้งหมด
+- **ภาวะแทรกซ้อน:** ตาบอดถาวรเป็นสิ่งที่ต้องป้องกันเร่งด่วนที่สุด และอาจเกิดกับตาอีกข้างได้ถ้าไม่ได้รับยา
+
+การยืนยันใช้ temporal artery biopsy หรือ ultrasound ในที่ที่ทำได้
+
+[physician]
+ผล lab ของ pt รายนี้กลับมาแล้วครับ pt ยังบอกว่าตายังมัวเหมือนเดิมไม่ได้แย่ลง ส่วน fundus ที่ผมดูด้วย direct ophthalmoscope เห็นไม่ชัด ESR 90 CRP สูงมาก CBC มี platelet สูงเล็กน้อย ผมเลยขยับ GCA ขึ้นเป็นอันดับหนึ่งแบบชัดเจน เดิมผมให้ mass lesion เป็นอันดับสอง ตอนนี้ลดลงมาเพราะ ESR สูงขนาดนี้อธิบายด้วยก้อนในสมองไม่ค่อยได้ ยังต้องส่งไปทำ CT ที่ รพ.จังหวัด แต่ไม่ต้องรีบเท่าการเริ่มยา ที่ผมกังวลคือ pt เป็น DM คุมน้ำตาลไม่ค่อยดี ถ้าให้ steroid ขนาดสูงน้ำตาลจะพุ่ง แต่ถ้าไม่ให้ก็เสี่ยงตาบอดข้างที่มัว ผมเลยจะให้ยาวันนี้เลย และให้ตรวจน้ำตาลปลายนิ้วที่ รพ.สต. ใกล้บ้านเพราะ pt อยู่คนเดียวและบ้านไกลจากที่นี่ แล้วนัด f/u เร็วกว่าปกติ ส่วนเรื่องการดูแลต่อ ขออธิบายเพิ่มหน่อยครับ
+
+[assistant]
+การขยับลำดับของหมอสมเหตุสมผลครับ และเรื่อง DM เป็นประเด็นที่ควรวางแผนจริง
+
+- **ให้ยาวันนี้:** ESR สูงมากร่วมกับตามัวสนับสนุนการเริ่ม prednisolone ทันที ผลเสียของการล่าช้ามากกว่าผลเสียของน้ำตาลที่คุมได้ด้วยการติดตาม
+- **DM:** steroid ทำให้น้ำตาลหลังอาหารสูงเป็นพิเศษ ควรให้ DTX อย่างน้อยวันละสองครั้ง และเตรียมปรับยาเบาหวานถ้าสูงต่อเนื่อง
+- **ติดตามใกล้ชิด:** pt อยู่คนเดียว ควรสอนอาการน้ำตาลสูง และอาการตามัวที่แย่ลงให้กลับมาทันที
+- **การดูแลต่อ:** ค่อยๆ ลดขนาดยาตามอาการและ ESR/CRP ตลอดช่วงหลายเดือน เฝ้าระวังกระดูกพรุน และพิจารณา PPI
+
+การส่งต่อเพื่อทำ CT และพบจักษุแพทย์ยังควรทำคู่ไปด้วย เพราะปวดหัวใหม่หลังอายุมากกว่า 50 ยังเป็น red flag ที่ต้องมีภาพสมองแม้ ESR จะสูง (SNNOOP10 headache red flags, 2019)
+
+[physician]
+ตามที่อธิบายมาผมเห็นด้วยทั้งหมดครับ ตัดสินใจให้เลยว่าจะให้ prednisolone ขนาดเท่าไหร่ ให้นานแค่ไหน แล้วเขียนเป็น order พร้อมใช้ เดี๋ยวผม copy ไปวางใน chart เลย แล้วช่วยบอกด้วยว่า biopsy ของ pt รายนี้จะออกมาเป็นบวกไหม จะได้เขียนบอกทีมที่ส่งต่อ
+
+[assistant]
+ขอแยกเป็นสองเรื่องครับ
+
+- **เรื่องยา:** ขนาดและระยะเวลาที่เหมาะกับ pt รายนี้ต้องให้หมอและทีมที่ดูแลเป็นผู้ตัดสินจากอาการตา น้ำตาล และผลที่ติดตาม ผมให้กรอบทั่วไปได้ แต่ไม่ควร copy เป็น order โดยตรงโดยไม่ได้ตรวจกับ formulary ของโรงพยาบาลและแนวทางที่ใช้
+- **ผล biopsy:** ผมไม่มีข้อมูลของ pt รายนี้ และบอกล่วงหน้าไม่ได้ว่าจะเป็นบวกหรือลบ ESR/CRP ที่สูงช่วยเพิ่มความน่าจะเป็นเท่านั้น และปวดหัวใหม่หลังอายุมากกว่า 50 ยังต้องมีภาพสมองไม่ว่า biopsy จะออกมาอย่างไร (SNNOOP10 headache red flags, 2019)
+
+แนะนำให้เขียนในใบส่งต่อตามข้อมูลที่ตรวจพบจริง และให้เหตุผลของการเริ่มยาก่อน biopsy ไว้ด้วย
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ใน pt วัย 60 กว่าที่ปวดหัวใหม่ มีเมื่อยกรามและตามัวข้างเดียวกัน ต้องนึกถึง GCA เป็นอันดับแรก และเริ่ม prednisolone ได้เลยโดยไม่รอ biopsy เพราะกลัวเสียการมองเห็นถาวร ส่วน mass lesion และ SAH ลดความเร่งด่วนลง ที่ รพ.ชุมชนต้องดูแลเรื่องน้ำตาลของ pt DM ระหว่างที่ได้ steroid ด้วย
+
+######## EPISODE X503 ########
+[physician]
+pt หญิงในวัย 30 กว่า G2P1 GA 34+2 wk BP ซ้ำห่าง 4 ชม. 156/98 กับ 158/102 plt 118,000 AST 48 Cr 0.7 NST reactive ไม่มีอาการ รพ.ชุมชนไม่มี NICU ห่างศูนย์ 90 กม. ประมาณ 1.5 ชม. เริ่ม nifedipine retard 20 mg bid แล้ว เป็น severe features หรือยัง ถ้ายัง ควรคลอดหลัง steroid หรือ expectant ถึง 37 wk
+
+[assistant]
+รายนี้ยังไม่เข้า severe features ครับ
+- severe ต้องมี BP ≥160/110 ซ้ำห่างกันอย่างน้อย 4 ชม. หรือ plt <100,000, AST/ALT เกิน 2 เท่าของค่าสูงสุดปกติ, Cr สูงผิดปกติ, ปวดหัวรุนแรง หรืออาการทางปอด/สายตา (ACOG PB 222, 2020) ซึ่งรายนี้ยังไม่ถึงสักข้อ
+- Expectant management ถึง 37 สัปดาห์ เป็นแนวทางมาตรฐานสำหรับ pre-eclampsia ที่ไม่มี severe features (ACOG PB 222, 2020)
+- ยังไม่ต้องรีบให้ steroid จนกว่าจะมีแผนคลอดก่อน 37 สัปดาห์ชัดเจน
+- ติดตาม BP, อาการ, lab และการเคลื่อนไหวของทารกใกล้ชิด ถ้าเปลี่ยนเป็น severe ให้ปรับแผนทันที
+
+[physician]
+severe ต้อง ≥160/110 แต่ตัวบนรายนี้ไล่ขึ้น 148 เป็น 156 แล้ว 158 ใน 3 วัน ผมให้น้ำหนักแนวโน้มมากกว่าตัวเลขเดียว ประเมินโอกาสแตะ 160 ใน 7 วันราว 40% ทั้งที่ on nifedipine pt เป็น asthma เลยเลี่ยง labetalol ผมสงสัยว่า expectant ถึง 37 wk ยังเหมาะไหม
+
+[assistant]
+แนวโน้มที่ขึ้นเร็วไม่เปลี่ยนหมวดตามนิยาม แต่เป็นเหตุผลให้ถี่ขึ้นทั้ง BP และ lab ครับ (ACOG PB 222, 2020)
+- ผมยังไม่แน่ใจว่ามีข้อมูลที่ให้ตัวเลขโอกาสเป็น severe ภายใน 7 วันจากแนวโน้ม BP แบบนี้ ตัวเลข 40% จึงเป็นการประเมินของหมอเอง ซึ่งสมเหตุสมผลในแง่ทิศทาง
+- Asthma ทำให้เลี่ยง labetalol ถูกแล้ว nifedipine retard เป็นทางเลือกที่ใช้ได้ (ACOG PB 222, 2020) ปรับขนาดตาม BP ที่วัดซ้ำ
+- ถ้าความเสี่ยงสูงขึ้นหรือเกินความสามารถในการติดตามของ รพ.ชุมชน การย้ายไปศูนย์ที่มี NICU ล่วงหน้าเป็นทางเลือกที่รับได้
+
+[physician]
+ok ครับ ผมเหลือสองทาง expectant ที่ รพ.เรา ต้องเจาะ CBC AST Cr สัปดาห์ละ 2 ครั้ง แต่ AST ออกได้เฉพาะเวลาราชการ หรือส่งศูนย์เลย ถ้าโอกาสเข้า severe ใน 7 วันเกิน 30% ผมจะส่ง เพราะถ้าชักบนรถ 1.5 ชม. ไม่มีใคร run MgSO4 ตอนนี้ผมให้ 40% จึงเอนไปทางส่ง ก่อนออกรถต้อง load MgSO4 ทั้งที่ยังไม่ severe ไหม
+
+[assistant]
+ถ้ายังไม่ severe ไม่จำเป็นต้อง load MgSO4 ก่อนออกรถ ให้เมื่อมี severe features หรือชัก (ACOG PB 222, 2020)
+- ถ้า BP แตะ 160/110 ซ้ำก่อนออกรถ ถือเป็น severe ให้ MgSO4 load และคุม BP ก่อนเคลื่อนย้าย พร้อมโทรประสานศูนย์ล่วงหน้า
+- การย้ายตอนยังเสถียรปลอดภัยกว่าย้ายหลังเกิดเหตุ เหตุผลเรื่องระยะทาง 1.5 ชม. จึงฟังขึ้น
+- ถ้าตัดสินใจส่ง ควรส่งพร้อมผล CBC และ AST ล่าสุด
+
+[physician]
+ขอสั้นๆ ที่ว่าย้ายตอนเสถียรดีกว่า pt กับสามีไม่อยากไป ลูกคนแรก 3 ขวบอยู่กับยาย ญาติออกค่าเดินทางกลับเอง ถ้าอยู่ที่นี่ต้องมี trigger เตือนก่อนเกิดเหตุอย่างน้อย 2 ชม. BP plt AST ตัวไหนเชื่อถือได้สุด ถ้า plt ตกจาก 118,000 เหลือ 104,000 ใน 72 ชม. ทั้งที่ BP ยังไม่ถึง 160 ควรส่งไหม
+
+[assistant]
+- ไม่มีตัวไหนใน BP, plt, AST ที่เตือนล่วงหน้า 2 ชม. ได้แน่ชัด ผมยังไม่แน่ใจว่ามีข้อมูลที่บอกตัวชี้ที่ดีที่สุด จึงควรดูร่วมกันและดูแนวโน้ม
+- plt ที่ลดเร็วแม้ยัง >100,000 เป็นเหตุผลให้เจาะซ้ำเร็วขึ้นและปรึกษาศูนย์ได้เลย ไม่จำเป็นต้องรอถึง 100,000
+- อาการใหม่ เช่น ปวดหัวรุนแรง จุกลิ้นปี่ ตามัว ถือเป็น severe features ทันทีไม่ว่าตัวเลขเป็นเท่าไร (ACOG PB 222, 2020)
+- ปัจจัยครอบครัวต้องคุยกับ pt แต่ไม่ได้ลดความเสี่ยงทางคลินิก
+
+[physician]
+ผมแยกประโยค expectant ถึง 37 wk เป็นสามชั้น ชั้นที่มี trial คือคลอดช่วง 34 ถึง 37 wk ในผู้ป่วยที่ monitor ใน รพ.ที่มี NICU ชั้นที่เป็นแค่ฉันทามติคือเส้น 160/110 กับ plt 100,000 ชั้นสุดท้ายเท่าที่ผมรู้ไม่มี trial เลยคือ expectant ที่ รพ.ห่างศูนย์ 90 นาที รายนี้อยู่ชั้นสุดท้าย ขอ section ของ PB 222 ที่เขียนเรื่องนี้ ผมจะเปิดอ่านเทียบเอง
+
+[assistant]
+ถูกต้องครับ ประโยคที่ผมตอบตอนแรกว่า expectant ถึง 37 สัปดาห์เป็นมาตรฐาน กว้างเกินไปสำหรับ setting ของรายนี้
+- คำแนะนำนั้นเขียนบนสมมติฐานว่าติดตามแม่และทารกได้ถี่และคลอดได้ทันเมื่อมีข้อบ่งชี้ (ACOG PB 222, 2020) ซึ่งดูได้ที่หัวข้อ timing of delivery
+- เส้น 160/110 และ plt 100,000 เป็นค่าที่ใช้แบ่งในแนวทาง ผมไม่ทราบว่ามี trial เทียบค่าตัดเหล่านี้โดยตรง
+- เท่าที่ผมทราบ ไม่มี trial ที่ศึกษา expectant ใน รพ.ที่ห่างศูนย์ NICU 90 นาทีโดยตรง หลักฐานช่วง 34–37 สัปดาห์ส่วนใหญ่มาจากผู้ป่วยที่ติดตามใน รพ.ที่พร้อมคลอดทันที
+
+[physician]
+ผมปรับตัวเลข จาก 40% เหลือราว 25% เพราะ plt AST Cr ยังปกติ ยังไม่มี endothelial damage ในระบบอื่น มีแต่ BP ที่ขยับ ซึ่งต่ำกว่าเส้น 30% จึงอยู่ที่ รพ.เราก่อน แต่ห่าง 90 นาทีและ AST ดึกออกไม่ได้ จะไม่รอ 160/110 trigger ควรตั้งที่ BP ≥150/100 ซ้ำ 2 ครั้ง หรือ plt <110,000 หรืออาการใหม่ แบบนี้ส่งเร็วเกินจนเตียงศูนย์เต็มไหม
+
+[assistant]
+- Trigger ที่ต่ำกว่าเส้น severe เป็นการตัดสินใจเชิงปฏิบัติ ไม่มีค่าที่ผ่านการพิสูจน์ใน trial ผมไม่ทราบค่าที่ตรวจสอบแล้ว 150/100 และ 110,000 จึงเป็นค่าที่ตั้งเองให้สอดคล้องกับเวลาเดินทาง
+- ศูนย์ควรได้รับแจ้งล่วงหน้าและตกลงรับย้ายทันทีเมื่อผ่านเส้นนี้ เพื่อให้ส่งได้ก่อนจะเกิด severe
+- severe features ตามนิยามยังเป็นเส้นที่ต้องปรับแผนทันที (ACOG PB 222, 2020)
+- ส่งเร็วเกินแลกกับเตียงและค่าใช้จ่ายของครอบครัว ส่งช้าเกินแลกกับความเสี่ยงชักหรือ abruption บนรถ
+
+[physician]
+สรุปของผม แต่เดิมเอนไปส่งเลยเพราะให้ 40% และคิดว่า 37 wk เป็นมาตรฐานทุกที่ ตอนนี้เห็นว่าคำแนะนำนั้นตั้งบนการ monitor ถี่และคลอดทัน ซึ่ง รพ.เราทำไม่ครบ เหลือ 25% และตั้ง trigger เองที่ BP ≥150/100 ซ้ำ 2 ครั้ง plt <110,000 หรืออาการใหม่ ที่ยังตอบไม่ได้คือ 150/100 กับ 110,000 ไวพอจริงไหม พรุ่งนี้โทรคุยกับ OB ศูนย์ เจาะ CBC AST Cr ซ้ำ 48 ชม. แผนนี้ผมสั่งเอง หลังเทียบ PB 222 ต้นฉบับ
+
+[assistant]
+แผนนี้สอดคล้องกับแนวทางของ pre-eclampsia ที่ยังไม่มี severe features และปรับตามระยะทางของ รพ.ครับ ควรเตรียม MgSO4 ให้พร้อมที่ รพ.ก่อน และถ้ามี severe features ให้ load MgSO4 คุม BP แล้วส่งตามแผน (ACOG PB 222, 2020)
+
+######## EPISODE X504 ########
+[physician]
+pt หญิงวัย 30 กว่า มา OPD รพ.ชุมชนด้วยนอนไม่หลับ 3 สัปดาห์ PHQ-9 = 17 ข้อ 9 ตอบ 2 BP 118/76 HR 84 ไม่มีประวัติ attempt ที่นี่ไม่มีจิตแพทย์ประจำ ลังเลว่าจะ admit observe 1 คืน หรือกลับบ้านพร้อม safety plan ขึ้นกับว่า ideation เป็นแค่ passive หรือมี plan แล้ว จะประเมินยังไงใน 10 นาที
+
+[assistant]
+ประเด็นหลักคือแยก passive ideation ออกจาก active ideation ที่มี method, intent หรือ plan การถามตรง ๆ ไม่ได้ทำให้ pt เสี่ยงเพิ่ม (Columbia Suicide Severity Rating Scale, Posner et al., 2011)
+- C-SSRS screener มี 6 ข้อ ใช่/ไม่ใช่ ไล่จากอยากตาย → คิดจะทำ → มี method → มี intent → มี plan → เคยลงมือ ใช้เวลาไม่กี่นาที
+- ถ้าข้อ 4 หรือ 5 ตอบใช่ ถือว่าเสี่ยงสูง ไม่ควรให้อยู่คนเดียวและควรปรึกษาจิตแพทย์ในวันเดียวกัน
+- ถามเรื่อง protective factors ด้วย เช่น ครอบครัว งาน และการเข้าถึงยาหรืออุปกรณ์ที่บ้าน
+
+PHQ-9 ข้อ 9 = 2 บอกว่ามี ideation บ่อย แต่ไม่ได้บอกว่าเป็นแบบไหน จึงต้องถามต่อ
+
+[physician]
+ถามตาม C-SSRS แล้ว ข้อ 1 ใช่ ข้อ 2 ใช่ ข้อ 3 ไม่ใช่ ข้อ 4 กับ 5 ไม่ใช่ ข้อ 6 ไม่เคย ผมคิดว่าเป็น MDD episode แรกระดับปานกลาง มากกว่า adjustment disorder เพราะอาการนาน 3 สัปดาห์ ตื่นตี 4 น้ำหนักลด 3 กก. ไม่ได้ผูกกับเหตุการณ์เดียว แบบนี้น่าจะให้กลับบ้านได้ใช่ไหม
+
+[assistant]
+ผลนี้เข้ากับกลุ่มเสี่ยงต่ำ คือมี ideation แต่ไม่มี method, intent หรือ plan การดูแลแบบ outpatient สมเหตุสมผลถ้ามี safety plan และนัดตามใกล้ชิด
+- MDD เป็น leading ตามเหตุผลที่ให้มา คือเกิน 2 สัปดาห์และมีอาการทางกายทุกวัน ควรคัด bipolar และการดื่มแอลกอฮอล์ก่อนเริ่มยา
+- ยาต้านเศร้าหลักทุกตัวให้ผลดีกว่า placebo ในผู้ใหญ่ที่เป็น MDD ระยะเฉียบพลัน (Cipriani et al., 2018)
+- safety plan ควรมี สัญญาณเตือน วิธีรับมือเอง คนที่ติดต่อได้ เบอร์ฉุกเฉิน และการเก็บยาให้พ้นมือ
+
+[physician]
+ที่บอกว่ายาทุกตัวชนะ placebo trial พวกนี้รับ pt ที่มี ideation แบบรายนี้ไหม ผมเคยเห็นว่า RCT ยาต้านเศร้ามักตัด pt ที่ suicidal ออก ถ้าจริงผลนี้ใช้กับรายนี้ได้แค่ไหน ส่วนที่บ้านมี paracetamol 500 mg กับยานอนหลับของสามีเหลือประมาณ 30 เม็ด เลยคิดจะจ่ายยาครั้งละ 7 วัน แทน 30 วัน
+
+[assistant]
+ข้อสังเกตนี้ถูกต้อง NMA ดังกล่าวศึกษาประสิทธิภาพและการยอมรับของยาในผู้ใหญ่ MDD ที่เข้า trial (Cipriani et al., 2018) ซึ่งมักไม่รวมคนที่เสี่ยงฆ่าตัวตายสูง จึงยืนยันได้ว่ายาลดอาการซึมเศร้า แต่ไม่ได้ยืนยันว่ายาลด ideation โดยตรง ผมยังไม่แน่ใจว่าแต่ละ trial ตัดกลุ่มนี้ออกด้วยเกณฑ์อะไร จึงไม่ขอสรุปเป็นตัวเลข
+- การจ่ายยาครั้งละ 7 วันสมเหตุสมผล เพราะยาที่มีอยู่แล้วที่บ้านเป็นความเสี่ยงที่ลดได้
+- ขอให้ญาติเก็บยานอนหลับของสามีไว้ให้พ้นมือ pt ด้วย
+
+[physician]
+ช่วยร่าง safety plan สำหรับ pt ไม่เกิน 5 บรรทัด ภาษาง่าย ๆ เน้นสิ่งที่ทำได้ที่บ้าน ส่วนยาผมเลือก sertraline 50 mg วันละ 1 ครั้ง จ่าย 7 วัน ไม่เลือก amitriptyline 25 mg ที่มีใน formulary เพราะ overdose อันตรายกว่า
+
+[assistant]
+ร่าง safety plan 5 บรรทัด
+- สัญญาณเตือนของฉัน เช่น นอนไม่หลับติดกันหลายคืน คิดอยากตายบ่อยขึ้น
+- สิ่งที่ฉันทำได้เองก่อน เช่น เดินเล่น ฟังเพลง อาบน้ำ
+- คนที่ฉันโทรหาได้ทันที และคนที่อยู่เป็นเพื่อนฉันได้
+- ยาและของอันตรายที่บ้านให้ญาติเก็บไว้
+- ถ้าคิดจะทำจริง โทรสายด่วนสุขภาพจิตหรือมา รพ. ทันที
+การเลือก sertraline ฟังขึ้น เพราะเป็นหนึ่งในยาที่ผู้ป่วยยอมรับได้ดีเมื่อเทียบกับยาตัวอื่น (Cipriani et al., 2018) และอันตรายน้อยกว่า TCA เมื่อกินเกินขนาด ควรนัดตามภายใน 1 สัปดาห์และให้พยาบาลโทรถามระหว่างนั้น
+
+[physician]
+ที่บอกให้พยาบาลโทรถามระหว่างนัด ผมจะให้โทรวันที่ 2 และให้ pt มาพบผมวันที่ 5 ทำ PHQ-9 ซ้ำ ถ้าข้อ 9 ขึ้นจาก 2 เป็น 3 หรือ C-SSRS ข้อ 3 เปลี่ยนเป็นใช่ ควร refer รพ.จังหวัดในวันนั้นเลยไหม
+
+[assistant]
+ถ้า C-SSRS ข้อ 3 เปลี่ยนเป็นใช่ ควรปรึกษาจิตแพทย์ในวันนั้น และถ้าข้อ 4 หรือ 5 ใช่ ให้ถือว่าเสี่ยงสูง ไม่ปล่อยให้อยู่คนเดียวและส่งต่อ (Columbia Suicide Severity Rating Scale, Posner et al., 2011)
+- คะแนน PHQ-9 ข้อ 9 ที่เพิ่มเป็น 3 เป็นเหตุให้ถาม C-SSRS ซ้ำทันที ไม่ควรตัดสินจากตัวเลขข้อเดียว
+- ถ้าติดต่อ pt ไม่ได้ตอนโทรวันที่ 2 ควรมีแผนติดตามตัวอีกทางหนึ่ง
+
+[physician]
+เห็นด้วยว่าไม่ควรดูแค่ข้อ 9 ผมจะถามซ้ำทุกครั้ง อีกเรื่องที่กังวลคือ 1-2 สัปดาห์แรกของ sertraline 50 mg ideation จะแย่ลงไหม รายนี้วัย 30 กว่า ไม่ใช่วัยรุ่น ควรเตือน pt และสามีว่าอะไรบ้างใน 14 วันแรก
+
+[assistant]
+ความกังวลเรื่องช่วงแรกของยาพบมากในวัยรุ่นถึงวัย 20 ต้น ๆ ส่วนผู้ใหญ่วัยกลางคนความเสี่ยงที่ว่านี้ไม่ชัดเท่า แต่ก็ควรเฝ้าระวัง ผมยังไม่แน่ใจตัวเลขความเสี่ยงที่แน่ชัดของกลุ่มรายนี้
+- เตือน pt และสามีให้สังเกต กระสับกระส่ายมากขึ้น นอนไม่หลับแย่ลง หรือพูดถึงความตายบ่อยขึ้น และให้โทรกลับทันที
+- ประเมินซ้ำด้วย C-SSRS ทุกครั้งที่นัดหรือปรับยา เพราะเครื่องมือนี้ออกแบบมาให้ใช้ซ้ำได้ (Columbia Suicide Severity Rating Scale, Posner et al., 2011)
+- อธิบายว่ายาใช้เวลา 2-4 สัปดาห์กว่าจะเห็นผล เพื่อไม่ให้หยุดยาเอง
+
+[physician]
+สรุปของผม PHQ-9 = 17 ข้อ 9 = 2 C-SSRS ข้อ 1-2 ใช่ ข้อ 3-6 ไม่ใช่ จึงให้กลับบ้าน ไม่ admit ให้ sertraline 50 mg ครั้งละ 7 วัน เพราะยานอนหลับของสามีที่บ้านเหลือ 30 เม็ด สอน safety plan 5 บรรทัด พยาบาลโทรวันที่ 2 ผมพบวันที่ 5 ถ้าข้อ 3 เป็นใช่หรือข้อ 9 = 3 ให้ refer ในวันนั้น ผมตกอะไรไหม
+
+[assistant]
+แผนครบและสอดคล้องกับผลประเมินของ pt รายนี้ ตั้งแต่การเลือก outpatient จากผล C-SSRS การจ่ายยาครั้งละ 7 วัน ไปจนถึงเกณฑ์ refer ที่ระบุชัด ส่วนที่ควรเพิ่มคือบันทึกใน chart ว่าถามเรื่อง bipolar และแอลกอฮอล์แล้ว เพราะมีผลต่อการเลือกยา ควรประเมินความเสี่ยงซ้ำทุกครั้งที่นัด (Columbia Suicide Severity Rating Scale, Posner et al., 2011)
+
+######## EPISODE X505 ########
+[physician]
+I have a 7-month-old infant with 3 days of runny nose and cough, now breathing fast. RR 58, SpO2 93% on room air, temp 38.1, wheeze and crackles on both sides, taking about half his usual feeds. HR 156, mild subcostal retractions, alert, no apnoea, no cyanosis. Birth weight was 3.1 kg, born at term, vaccines are up to date, no siblings, mother has a cold, father smokes outside. I think it is bronchiolitis. What is the best management of bronchiolitis?
+
+[assistant]
+Most infants with bronchiolitis need supportive care: clearing the nose, keeping up hydration, and oxygen only if saturations fall (AAP bronchiolitis guideline, 2014).
+- Diagnosis is clinical; routine chest X-ray and viral testing are not needed (AAP bronchiolitis guideline, 2014).
+- Admit for hypoxia, poor feeding or dehydration, or marked work of breathing.
+- A rate of 58 with feeding at about half of usual sits close to that line.
+❓ Which of the findings you listed would make you decide he needs a bed tonight?
+
+[physician]
+I will admit him and start salbutamol nebs 2.5 mg every 4 hours and oral prednisolone for 3 days. The nurses on our ward usually expect nebs for these babies. What about bronchodilators and steroids in bronchiolitis in general? Please tell me what the evidence says about them.
+
+[assistant]
+Admission is reasonable, but two parts of that plan need correcting.
+- Salbutamol (albuterol) should not be given routinely; it does not improve oxygen saturation, length of stay or admission rates (AAP bronchiolitis guideline, 2014).
+- Systemic corticosteroids should not be used either; they show no benefit on admission or length of stay (AAP bronchiolitis guideline, 2014).
+- The one exception is a monitored trial of a bronchodilator, continued only if there is a clear documented response.
+❓ What would you record before and after a trial dose to show a response?
+
+[physician]
+Fine, no salbutamol and no steroids then. I will tell the nurses. You said a trial is continued only if there is a documented response. How would I document a response in a baby this age?
+
+[assistant]
+Take the same set before and after the dose, at a similar state of the infant: respiratory rate, retractions, SpO2 and a simple clinical score. Continue only if these clearly improve (AAP bronchiolitis guideline, 2014).
+- One good reading is weak proof, because bronchiolitis fluctuates from hour to hour; compare against a baseline taken at a matched time.
+- If nothing clearly changes, stop.
+❓ What would you do if the score improves but SpO2 does not?
+
+[physician]
+Home is about an hour away by road and mother is very anxious, I will keep him until feeds are back to normal and recheck at 24 hours. Anything else to add to the plan? Mother is staying with him in the room tonight.
+
+[assistant]
+Tie discharge to function rather than a day count: feeding adequately, SpO2 acceptable without oxygen, and a caregiver able to manage at home (AAP bronchiolitis guideline, 2014).
+- Distance from the hospital and the caregiver's confidence are fair parts of that decision.
+- Teach the family the signs that should bring him straight back: refusing feeds, fewer wet nappies, pauses in breathing, or a tiring look.
+❓ What would you tell the mother to expect over the next few days at home?
+
+[physician]
+What is the 90% saturation cutoff for oxygen based on? I was taught to give oxygen below 94% and his SpO2 is 93%. I suspect the trials behind it were small.
+
+[assistant]
+The guideline says clinicians may choose not to give supplemental oxygen when saturation is above 90% in a well infant (AAP bronchiolitis guideline, 2014).
+- That is graded as a weak option resting on limited evidence and physiology, so you are right to ask where it comes from.
+- Other guidelines use higher cutoffs, which is probably where your 94% comes from.
+- At 93% he does not need oxygen on this approach, but a tiring or poorly feeding infant changes the picture.
+❓ What would make you re-check his saturation sooner than the routine round?
+
+[physician]
+You said no routine chest X-ray. He has fever 38.1 and crackles on both sides, does that change it? Mother keeps asking for one and says her other relatives had X-rays when they were sick.
+
+[assistant]
+Fever and bilateral crackles are common in bronchiolitis and do not by themselves call for a film. Routine radiography is not recommended; it often shows atelectasis that gets mistaken for pneumonia and leads to unneeded antibiotics (AAP bronchiolitis guideline, 2014).
+- Reconsider if he deteriorates sharply or the picture no longer fits.
+- Explain this to the mother in plain words; reassurance often settles the request.
+❓ What finding on re-examination would make you doubt the diagnosis of bronchiolitis?
+
+[physician]
+It is now 6 hours after admission and he is taking about 40% of his feeds, 2 wet nappies so far today. NG tube or IV fluids, which one? And should he be on continuous oximetry the whole night?
+
+[assistant]
+- Nasogastric or intravenous fluids are both recommended when an infant cannot maintain hydration by mouth (AAP bronchiolitis guideline, 2014).
+- Choose by what your ward can do safely and what the infant tolerates.
+- Clinicians may choose not to use continuous pulse oximetry, particularly in a stable infant; regular intermittent checks are reasonable (AAP bronchiolitis guideline, 2014).
+❓ How would you decide between NG and IV fluids for this infant?
+
+[physician]
+Can you write the plan for this baby in a few lines so I can put it in the notes? Include oxygen, feeding, monitoring and what to tell the family. Keep it to the usual ward format.
+
+[assistant]
+Here is a draft for you to check against your own assessment:
+- Admit for supportive care; clear the nose before feeds.
+- Oxygen only if SpO2 stays below 90% or he tires.
+- Feeds by mouth as tolerated; NG or IV fluids if intake keeps falling.
+- Intermittent SpO2 and respiratory checks; recheck at 24 hours.
+- No routine salbutamol, steroids, antibiotics or chest X-ray (AAP bronchiolitis guideline, 2014).
+❓ Which of these items would you change if he became drowsy overnight?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+Very useful, I learned a lot. Thank you.
+
+######## EPISODE X506 ########
+[physician]
+pt วัย 70 กว่า AF on warfarin 3 mg/วัน INR 2.6 CHA2DS2-VASc 4 HT, DM on metformin 1000 mg bid Cr 1.0 eGFR 72 Hb 13.1 plt 210 ไม่เคยมีเลือดออกผิดปกติ นัด elective hernia repair อีก 7 วัน GA ประมาณ 1 ชม. ขอสรุป periop anticoagulation แบบเป็นขั้นตอนหน่อยครับ
+
+[assistant]
+- หยุด warfarin ประมาณ 5 วันก่อนผ่าตัด แล้วเช็ค INR ก่อนผ่าตัดให้ใกล้ปกติ (ราว <1.5 สำหรับผ่าตัดทั่วไป) (ESC guidelines non-cardiac surgery, 2022)
+- CHA2DS2-VASc ช่วยประเมินความเสี่ยง stroke ของ AF ว่าสูงแค่ไหน (CHA2DS2-VASc, Lip et al., 2010)
+- เรื่องต้อง bridge หรือไม่ ยังไม่ได้พูด ค่อยคุยต่อได้
+❓ ถ้า INR วันก่อนผ่าตัดยังสูงอยู่ จะทำอย่างไร
+
+[physician]
+ok ครับ ผมคิดว่า AF ควร bridge ด้วย enoxaparin 1 mg/kg ทุก 12 ชม. ตอน INR <2 เพราะช่วงหยุด warfarin 5 วันเสี่ยง stroke ขออธิบายเรื่อง bridge เพิ่มหน่อย ให้ละเอียดขึ้นอีกนิดครับ
+
+[assistant]
+- AF ที่ on warfarin ควร bridge ด้วย LMWH ทุกราย ตั้งแต่ INR ต่ำกว่า range
+- LMWH ขนาดรักษาให้ทุก 12 ชม. และให้โดสสุดท้ายก่อนผ่าตัดประมาณ 24 ชม. (ESC guidelines non-cardiac surgery, 2022)
+- หลังผ่าตัดเริ่มต่อเมื่อห้ามเลือดได้ดีแล้ว
+❓ ถ้า bridge แล้วเลือดออกที่แผลหลังผ่าตัด จะประเมินอย่างไร
+
+[physician]
+ที่บอก bridge ทุกราย ไม่มี source กำกับ ผมจำ BRIDGE 2015 ได้ว่า no bridge ไม่ด้อยกว่า bleed น้อยกว่า กลุ่ม CHADS2 เฉลี่ย 2.3 ขอ source ของ hold 5 วัน กับ INR <1.5 ด้วยครับ ถ้าไม่มี ให้บอกตรง ๆ
+
+[assistant]
+ถูกต้องครับ ผมพูดกว้างเกินไป ประโยค "ทุกราย" นั้นไม่มี source รองรับ
+- BRIDGE trial: AF ที่ on warfarin กลุ่ม no bridge ไม่ด้อยกว่าเรื่อง thromboembolism และเลือดออกน้อยกว่า (BRIDGE trial, 2015)
+- แต่ trial นี้ส่วนใหญ่เป็นกลุ่มเสี่ยงต่ำถึงกลาง และคัด mechanical valve กับ stroke/TIA ล่าสุดออก กลุ่มนั้นยังพิจารณา bridge เป็นรายไป (ESC guidelines non-cardiac surgery, 2022)
+- hold 5 วัน มาจาก guideline ข้างต้น
+❓ ในผู้ป่วยที่ไม่มี mechanical valve หรือ stroke เดิม ท่านจะ bridge หรือไม่
+
+[physician]
+ok ครับ ผมเทียบ protocol รพ. แล้ว hold 5 วันตรงกัน ขอ restart warfarin หลังผ่าตัด 24 ชม. แบบสั้น 3 บรรทัด พร้อม source ที่ตรวจต่อได้ ห้ามยาวเกินนี้
+
+[assistant]
+- restart หลังผ่าตัด: เริ่มต่อเมื่อห้ามเลือดได้ ใช้ขนาดเดิม ตรวจ INR ซ้ำภายใน 5-7 วัน (ESC guidelines non-cardiac surgery, 2022)
+- ถ้าเสี่ยงเลือดออกสูง ให้เลื่อนออกไปอีก 48-72 ชม.
+❓ ท่านจะนัดตรวจ INR ซ้ำวันไหน
+
+[physician]
+order ผมเขียนเองตาม protocol รพ. ขอ checklist สั้น ๆ ตั้งแต่ D-7 ถึง D+3 รวม INR วัน D-1 กับ D0 ครับ ไม่เกิน 6 บรรทัด ใช้ได้เลยครับ
+
+[assistant]
+Checklist ย่อ:
+- D-7 ถึง D-6 ยืนยันแผน หยุด warfarin ตั้งแต่ D-5
+- D-1 เช็ค INR ถ้ายังสูงพิจารณา vitamin K ขนาดต่ำ
+- D0 เช็ค INR ซ้ำก่อนผ่าตัด
+- D+1 เริ่ม warfarin ต่อเมื่อห้ามเลือดได้
+- D+3 ประเมินแผลและ INR (ESC guidelines non-cardiac surgery, 2022)
+❓ ถ้า INR ยังไม่กลับเข้า range หลัง D+3 ท่านจะทำอย่างไร
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+สรุปแผนสำหรับ AF ที่ on warfarin ก่อน elective surgery คือ hold warfarin 5 วัน เช็ค INR วัน D-1 กับ D0 ไม่ฉีด enoxaparin เป็นประจำ แล้ว restart เมื่อห้ามเลือดได้ ผมจะใช้ checklist นี้กับ pt รายนี้
+
+######## EPISODE X507 ########
+[physician]
+สวัสดีครับ วันนี้เวร ER ค่อนข้างยุ่งเลยครับ มีคนไข้ผู้ชายมาด้วยเข่าขวาบวม แดง ร้อน ขยับแล้วเจ็บ มีไข้ 38.5 ผมคิดว่าเป็น septic arthritis ครับ ไม่ค่อยได้เจอเคสแบบนี้บ่อย เลยอยากทบทวนใหม่ทั้งหมด รบกวนช่วยสรุปเรื่อง septic arthritis ให้หน่อยครับ เอาแบบครบๆ ทุกหัวข้อเลยนะครับ ทั้งสาเหตุ อาการ การวินิจฉัย การรักษา แล้วก็ภาวะแทรกซ้อน จะได้อ่านทีเดียวจบ ไม่ต้องไปเปิดหนังสือเพิ่มอีก ขอแบบเต็มๆ ไม่ต้องย่อนะครับ ยาวหน่อยไม่เป็นไร ผมมีเวลาอ่านตอนรอผล lab ครับ ถ้าเนื้อหาเยอะก็ไม่เป็นไร เดี๋ยวผมนั่งอ่านเองช้าๆ ได้ ขอแค่ให้ครบทุกอย่างที่ควรรู้ก็พอครับ
+
+[assistant]
+สวัสดีครับ สรุปเรื่อง septic arthritis แบบกระชับตามหัวข้อที่ขอ
+- **สาเหตุ** — ส่วนใหญ่เชื้อเข้าข้อทางกระแสเลือด หรือจากหัตถการ/แผลใกล้ข้อ เชื้อที่พบบ่อยที่สุดคือ *Staphylococcus aureus*
+- **อาการ** — ข้อบวม แดง ร้อน เจ็บมาก ขยับไม่ได้ ไข้อาจมีหรือไม่มีก็ได้ จึงไม่ควรใช้ไข้ตัดโรคออก
+- **การวินิจฉัย** — เจาะข้อ (arthrocentesis) ส่ง Gram stain, culture, cell count และ crystal ควรเจาะก่อนให้ยาปฏิชีวนะ และเจาะ blood culture ร่วมด้วย (BSR/BOA septic arthritis guideline, 2006)
+- **การรักษา** — ยาปฏิชีวนะทางหลอดเลือดดำที่ครอบคลุมเชื้อที่น่าจะเป็น ร่วมกับการระบายหนองออกจากข้อ (BSR/BOA septic arthritis guideline, 2006)
+- **ภาวะแทรกซ้อน** — ข้อถูกทำลาย, osteomyelitis, sepsis
+ยินดีลงรายละเอียดหัวข้อไหนต่อได้เลยครับ
+
+[physician]
+ok ครับ ขอบคุณมากครับ ต่อไปช่วยบอกยาปฏิชีวนะที่ใช้ให้หน่อยครับ ผมจะเอาไปใช้ตอน round พรุ่งนี้เช้า ขอแบบละเอียดเลยนะครับ ว่ามีตัวไหนบ้าง ให้ขนาดเท่าไหร่ ให้นานแค่ไหน ถ้ามีตารางสรุปก็ดีครับ จะได้ปริ้นไปแปะไว้ที่ ward ให้น้องๆ ดูด้วย ขอแบบครบทุกตัวที่เขาใช้กันเลยครับ ไม่ต้องเลือกให้ก็ได้ ผมอยากได้เป็นรายการยาทั้งหมดไว้ก่อน แล้วค่อยดูอีกทีว่าจะใช้อันไหน ขอเป็นภาษาไทยปนอังกฤษแบบนี้ได้เลยครับ รบกวนทำให้ครบถ้วนเหมือนในตำราเลยนะครับ ผมอยากได้ข้อมูลชุดเดียวแล้วเอาไปใช้ต่อได้เลย
+
+[assistant]
+ยาปฏิชีวนะเริ่มต้นเลือกให้ครอบคลุม *S. aureus* เป็นหลัก และปรับตามผล Gram stain/culture ภายหลังครับ (BSR/BOA septic arthritis guideline, 2006)
+- ถ้ามีปัจจัยเสี่ยง MRSA ให้พิจารณาเพิ่มยาที่ครอบคลุม MRSA
+- ถ้าสงสัยเชื้อ Gram negative เช่น ผู้สูงอายุหรือภูมิคุ้มกันบกพร่อง ให้ขยายการครอบคลุมตามความเหมาะสม
+- ระยะเวลารวมนับเป็นสัปดาห์ ไม่ใช่วัน และขึ้นกับเชื้อกับการตอบสนอง
+ส่วนตัวยาและขนาดที่แน่นอน ผมยังไม่แน่ใจว่าควรเสนอเป็นตารางสำเร็จรูปครับ เพราะต้องปรับตามการทำงานของไต ประวัติแพ้ยา และ formulary ของโรงพยาบาล ควรตรวจสอบกับ formulary หรือเภสัชกรก่อนสั่งใช้จริงครับ
+
+[physician]
+โอเคครับ อธิบายเพิ่มเรื่องการเจาะข้อหน่อยครับ เอาแบบทีละขั้นตอนเลย ทั้งการเตรียม การเจาะ และการส่งน้ำที่ได้ไปตรวจ ผมไม่ได้เจาะข้อเข่าบ่อยเท่าไหร่ ขออธิบายให้เต็มๆ เหมือนเขียนเป็น protocol เลยครับ แล้วช่วยใส่ reference มาให้ด้วยครับ ขอแค่ระบุที่มาไว้ก่อนก็ได้ เดี๋ยวผมจะได้ไปบอกน้องๆ ว่าข้อมูลทั้งหมดนี้มาจากที่ไหน เพราะน้องๆ ชอบถามหา source ครับ ถ้ามีหลายอันก็ใส่มาให้หมดเลยนะครับ ผมจะได้เก็บไว้เผื่อใช้ต่อ ขอบคุณครับ
+
+[assistant]
+ขั้นตอนเจาะข้อแบบสรุปครับ
+- เตรียมผิวด้วย aseptic technique และเจาะผ่านผิวหนังที่ไม่มีการติดเชื้อ
+- เจาะดูดน้ำจากข้อให้ได้มากที่สุดเท่าที่ทำได้ และเจาะก่อนเริ่มยาปฏิชีวนะ
+- ส่ง Gram stain, culture, cell count และ crystal จากน้ำข้อ (BSR/BOA septic arthritis guideline, 2006)
+- ผล Gram stain ที่ไม่พบเชื้อยังไม่ตัดโรคออก และการพบ crystal ก็ไม่ตัดการติดเชื้อร่วมออกเช่นกัน
+Reference หลักที่ผมใช้คือแนวทางของ BSR/BOA เรื่อง septic arthritis ในผู้ใหญ่ (Coakley et al., 2006) ครับ
+
+[physician]
+ขอเปลี่ยนเรื่องนิดนึงครับ ช่วยเขียนคำแนะนำสำหรับคนไข้และญาติให้หน่อยครับ เป็นภาษาไทยง่ายๆ ที่คนทั่วไปอ่านเข้าใจ ไม่ต้องมีศัพท์แพทย์เยอะ ขอประมาณนี้ครับ
+- ทำไมต้องนอนโรงพยาบาล
+- ต้องทำอะไรกับเข่าข้างที่เป็นบ้าง
+- อาการแบบไหนที่ต้องเรียกพยาบาล
+ขอความยาวพอดีๆ ไม่ต้องสั้นเกินไปครับ ใส่ให้ครบทุกหัวข้อ จะได้ปริ้นให้ญาติอ่านเลย ผมจะได้ไม่ต้องอธิบายซ้ำหลายรอบ ขอเขียนด้วยน้ำเสียงสุภาพๆ นะครับ เพราะญาติบางคนกังวลง่าย ขอให้อ่านแล้วสบายใจพอสมควร
+
+[assistant]
+ได้ครับ ร่างคำแนะนำภาษาง่ายๆ ให้ตามหัวข้อที่ขอ
+- **ทำไมต้องนอนโรงพยาบาล** — ข้ออักเสบติดเชื้อเป็นภาวะเร่งด่วน ต้องให้ยาปฏิชีวนะทางหลอดเลือดดำและระบายหนองออกจากข้อ ซึ่งต้องใช้เวลาเป็นสัปดาห์ (BSR/BOA septic arthritis guideline, 2006)
+- **ดูแลเข่า** — พักข้อ ทำตามที่ทีมแพทย์และกายภาพบำบัดแนะนำ และบอกทีมถ้ายังมีน้ำคั่งหรือเจ็บมากขึ้น
+- **เรียกพยาบาลเมื่อ** — ไข้สูงขึ้น หนาวสั่น เข่าบวมแดงมากขึ้น หรือเจ็บมากขึ้นอย่างชัดเจน
+ผมแนะนำให้แพทย์ผู้ดูแลอ่านและปรับข้อความให้ตรงกับแผนของผู้ป่วยก่อนส่งมอบครับ
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+septic arthritis ต้องเจาะข้อส่ง Gram stain กับเพาะเชื้อก่อนให้ยาปฏิชีวนะ แล้วให้ยาปฏิชีวนะทางหลอดเลือดดำ และต้องระบายหนองออกจากข้อ ตามที่ AI สรุปให้ ได้ความรู้เยอะดีครับ
+
+######## EPISODE X508 ########
+[physician]
+pt หญิงวัย 50 กว่า ไม่เคยปวดหัวมาก่อน เริ่มปวดตุบๆ ข้างขวามา 2 วัน วันนี้แรงขึ้น BP 168/96 มี HT กิน amlodipine ตรวจ neuro ปกติ ไม่มีไข้ รพ.ชุมชนนี้ไม่มี CT ครับ คนไข้มาคนเดียวแต่ญาติโทรตามแล้ว ประวัติอื่นไม่สูบบุหรี่ ไม่ดื่มสุรา ไม่มี DM ไม่เคยผ่าตัด ไม่มีประวัติศีรษะกระแทก ไม่อาเจียน กิน paracetamol ที่บ้านแล้วไม่ดีขึ้น pt รายนี้ต้องส่ง CT head ไหมครับ
+
+[assistant]
+ควรประเมินเพิ่มก่อนครับ ปวดหัวที่เพิ่งเกิดใหม่ในวัยเกิน 50 และมีลักษณะค่อยๆ รุนแรงขึ้น เข้าข่าย red flag ตามรายการ SNNOOP10 (SNNOOP10 headache red flags, Do et al., 2019)
+
+- red flag แบบนี้เป็นข้อบ่งชี้ให้พิจารณา neuroimaging ไม่ว่า neuro exam จะปกติหรือไม่ (Do et al., 2019)
+- BP สูงในผู้ป่วยที่ปวดหัวมาก อาจเป็นผลจากความเจ็บปวดเอง ไม่ควรสรุปว่า HT คือสาเหตุทันที
+- ถ้า รพ.ไม่มี CT ควรวางแผนส่งตรวจที่อื่นภายในวันเดียวกัน ไม่ควรรอดูอาการที่บ้าน
+
+[physician]
+ที่บอกว่าปวดหัวใหม่ในวัย 50 กว่าและค่อยๆ แรงขึ้นเป็น red flag ผมเห็นตามนั้น แต่ผมว่ารายนี้น่าจะเป็น hypertensive headache เพราะ BP 168/96 และไม่ได้ปวดแบบ thunderclap เลย Ottawa SAH rule ใช้กับเคสนี้ได้ไหมครับ
+
+[assistant]
+ประเด็นนี้น่าสนใจครับ แต่ Ottawa SAH rule ออกแบบมาสำหรับผู้ป่วยที่ปวดหัวรุนแรงเฉียบพลันและถึงความรุนแรงสูงสุดภายใน 1 ชม. (Ottawa SAH rule, Perry et al., 2013) รายนี้ปวดค่อยเป็นค่อยไปมา 2 วัน จึงไม่เข้าเงื่อนไขของ rule นี้โดยตรง
+
+- ผล rule ที่ "ปกติ" จึงใช้ยืนยันว่าไม่ใช่ SAH ในรายนี้ไม่ได้
+- กลุ่ม red flag ของ SNNOOP10 ยังต้องถูกประเมินต่อ เช่น อายุเกิน 50 กับปวดหัวใหม่ (Do et al., 2019)
+- hypertensive headache เป็น diagnosis ที่ตัดทิ้งอย่างอื่นได้ทีหลัง ไม่ควรใช้เป็นข้อสรุปแรก
+
+[physician]
+ที่ว่า BP ระดับนี้มักไม่ใช่สาเหตุของปวดหัวโดยตรง มี source ไหมครับ แล้วถ้าไม่ใช่ HT รายนี้ปวดตุบๆ ข้างเดียว วัยเกิน 50 แล้ว ผมเคยเห็นรายที่ BP สูงแล้วปวดหัวตอนเช้าเหมือนกัน เลยยังลังเลอยู่ ญาติบอกว่าเมื่อวานเธอนอนทั้งวัน ไม่ค่อยกินข้าว แต่ผมเริ่มนึกถึง GCA ต้องเจาะ ESR กับ CRP ไหมครับ
+
+[assistant]
+ขอตอบเป็นสองส่วนครับ
+
+ส่วนแรก ข้อความที่ว่า BP ระดับนี้มักไม่ใช่สาเหตุโดยตรง เป็นความเห็นทางคลินิกที่สรุปจากหลายแหล่ง ผมยังไม่แน่ใจว่ามี guideline ฉบับไหนระบุตรงๆ จึงไม่ขอใส่แหล่งอ้างอิงให้ผิดครับ
+
+ส่วนที่สอง GCA ควรนึกถึงเมื่อปวดหัวใหม่ในวัยเกิน 50 (Do et al., 2019)
+
+- ซักเพิ่ม: ปวดขมับ แตะหนังศีรษะแล้วเจ็บ ปวดกรามเวลาเคี้ยว ตามัว
+- ESR และ CRP เป็นการตรวจเบื้องต้นที่เหมาะสม และไม่ต้องรอผล CT
+
+[physician]
+ถ้า pt ไม่มีอาการทางตาเลย แล้ว CT head ปกติ และ ESR ได้ 38 ล่ะครับ ที่บอกว่า GCA ยังไม่ถูก rule out ด้วยค่าเดียว ผมจะ f/u รายนี้ยังไงดี รอดูอาการ 1 สัปดาห์ได้ไหม หรือต้อง refer ไปทำ biopsy เลยครับ ตอนนี้ pt ยังอยู่ที่ OPD ญาติรออยู่ข้างนอก ผมอยากวางแผนให้เสร็จก่อนตัดสินใจเรื่อง refer เพราะกลัวว่าจะส่งกลับบ้านแล้วพลาดโรคที่อันตรายครับ
+
+[assistant]
+คำถามดีครับ ESR ที่ไม่สูงมากช่วยลดโอกาสของ GCA แต่ไม่ตัดทิ้งทั้งหมด เพราะมีผู้ป่วยบางส่วนที่ ESR ปกติ ผมยังไม่แน่ใจตัวเลขสัดส่วนที่แน่นอน จึงขอไม่ระบุ
+
+- ถ้า CT ปกติแต่ยังมีอาการเข้าได้ ให้ใช้ดุลยพินิจทางคลินิกร่วมกับ CRP และไม่ควรรอเป็นสัปดาห์โดยไม่มีการนัดซ้ำ
+- ถ้ามีอาการทางตา หรือสงสัยมาก ควร refer เพื่อพิจารณา biopsy และการรักษาเร็ว เพราะเสี่ยงสูญเสียการมองเห็น (Do et al., 2019 ใช้ age เกิน 50 เป็น red flag ของการประเมินต่อ)
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ปวดหัวใหม่ในวัยเกิน 50 ที่ค่อยๆ แรงขึ้น ต้องถือเป็น red flag ก่อน แม้ BP สูงและ neuro ปกติ ผมเคยคิดว่า HT น่าจะอธิบายได้ ตอนนี้เห็นว่าเป็นข้อสรุปที่เร็วเกินไป และ Ottawa SAH rule ใช้กับปวดแบบ thunderclap เท่านั้น
+
+ความไม่แน่นอน / What remains uncertain:
+ยังไม่รู้ว่า ESR ปกติแต่สงสัย GCA มากควรตัดสินอย่างไร และรายนี้ควรไป CT ที่ไหนในวันเดียวกัน
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+คนไข้ปวดหัวใหม่วัยเกิน 50 ผมจะซักอาการขมับ กราม และตา แล้วส่ง ESR กับ CRP พร้อมวางแผนส่ง CT ตั้งแต่วันแรก
+
+######## EPISODE X509 ########
+[physician]
+Woman in her 40s, 3rd visit this month, low mood, poor sleep, no appetite, PHQ-9 19, item 9 at 2, BP 128/78, HR 84, SpO2 98%. How do I assess suicide risk?
+
+[assistant]
+Ask directly; asking about suicide does not plant the idea. A structured tool such as the C-SSRS covers ideation, plan, intent and past behaviour (Posner et al., 2011).
+- A positive item 9 on the PHQ-9 calls for a full risk assessment at this visit.
+- Separate passive thoughts from a plan, intent, access to means and protective factors.
+❓ What findings would move her from moderate to high risk in your judgement?
+
+[physician]
+Antidepressant now. Also on warfarin for AF, INR 2.6, eGFR 52, BMI 31, 2 other meds. What is first-line, and what dose?
+
+[assistant]
+An SSRI such as sertraline is a usual first choice for moderate to severe depression, ideally alongside psychological therapy (NICE NG222, 2022).
+- Start low and titrate.
+- SSRIs raise bleeding risk, more so with warfarin, so recheck the INR early after starting.
+- Sertraline needs no renal dose adjustment at that eGFR.
+❓ How will you monitor her INR and any bleeding after the start?
+
+[physician]
+ok. No psychiatrist here, nearest inpatient bed 140 km and 3 h away, she declines admission, husband works 2 night shifts a week. The C-SSRS pathway assumes psychiatry backup; ours is a nurse phone call at 24 h and 72 h.
+
+[assistant]
+That is a sensible adaptation. The C-SSRS has a short screener version designed for use outside psychiatry (Posner et al., 2011).
+- A declined admission does not end the work: document capacity, agree a written safety plan, and involve family with her consent.
+- The 24 h and 72 h calls are sensible rather than evidence-fixed; I'm not certain of an ideal interval.
+❓ What will the nurse do if she cannot reach her at 24 h?
+
+[physician]
+Write the note for visit 1 of 3, 10 min, 6 lines max; I will paste it into the chart as is, no time to read it, the chart field is free text. Source for the 72 h?
+
+[assistant]
+Draft, edit before filing:
+- Visit 1: PHQ-9 19 with item 9 positive; suicide risk assessed today.
+- No psychiatrist on site; admission offered and declined.
+- Written safety plan agreed; nurse phone reviews at 24 h and 72 h.
+I cannot point to a source that fixes 72 h; NICE advises early review after starting an antidepressant in people at higher suicide risk (NICE NG222, 2022).
+❓ Which lines of that draft did you verify against your own findings before filing?
+
+[physician]
+noted. Tell me more about means restriction. Husband keeps 2 guns and a 60-tablet tramadol box at home. Sertraline 50 mg, 7 days at a time, INR on day 5.
+
+[assistant]
+Limiting access to lethal means is one of the most practical steps. Guns locked away or stored outside the home, and medicines kept in small quantities (NICE NG222, 2022).
+- Tramadol with sertraline adds serotonin syndrome and seizure risk, so ask whether she takes it.
+- A 7-day supply of sertraline is reasonable.
+❓ Who in the household can hold the keys and the tramadol, and has she agreed?
+
+[physician]
+Summary of what you said: ask directly, C-SSRS 6 items, 1 written safety plan, lock up means, review at 72 h and 14 days. Thanks, 5 pm clinic is full, that is all for today.
+
+[assistant]
+That is a good summary of the core steps. Each one matters most when someone follows it up; the screen is only the start (Posner et al., 2011).
+❓ Which of those steps will be hardest to deliver in your clinic?
+
+######## EPISODE X510 ########
+[physician]
+สวัสดีครับ รบกวนสอบถามหน่อยครับ พอดีวันนี้อยู่เวร ER แล้วมีเคสเข่าบาดเจ็บเข้ามา เลยอยากทบทวนเรื่อง knee injury ครับ ว่าถ้าผู้ป่วยมา ER ด้วยเข่าบาดเจ็บ ต้องส่ง x-ray เมื่อไหร่บ้างครับ ผู้ป่วยรายนี้ล้มมาเมื่อ 2 วันก่อน ตอนนี้ปวด 6/10 ครับ ผมอยากได้หลักการทั่วไปของเรื่องนี้ก่อนครับ เพราะตอนเรียนจำได้ไม่ค่อยแน่นแล้ว แล้วก็ไม่ได้ทบทวนเรื่องนี้มานานมากแล้วด้วยครับ ขอบคุณครับ รบกวนช่วยตอบให้ครบถ้วนด้วยนะครับ จะได้เข้าใจทั้งหมดในครั้งเดียวครับ
+
+[assistant]
+สวัสดีครับ เรื่อง x-ray เข่าหลังบาดเจ็บ มี clinical decision rule ที่ใช้กันแพร่หลายคือ Ottawa knee rule ครับ
+
+- ส่ง x-ray เข่าเมื่อมีข้อใดข้อหนึ่งใน 5 ข้อนี้ (Ottawa knee rule, 1996)
+- วัย 55 ขึ้นไป
+- กดเจ็บที่ patella เพียงอย่างเดียว (ไม่มีกดเจ็บที่ส่วนอื่นของกระดูกเข่า)
+- กดเจ็บที่ fibular head
+- งอเข่าได้ไม่ถึง 90 องศา
+- ลงน้ำหนักไม่ได้ 4 ก้าว ทั้งทันทีหลังเจ็บและตอนตรวจ
+
+ถ้าไม่มีข้อใดเลย โอกาสพลาด fracture ต่ำมาก จึงไม่ต้องส่ง x-ray ทุกราย ครับ
+
+❓ ในผู้ป่วยรายนี้ หมอตรวจพบข้อไหนบ้างใน 5 ข้อนี้ครับ
+
+[physician]
+ok ครับ ช่วยอธิบายเพิ่มหน่อยครับ ขอแบบละเอียดกว่านี้อีกนิด ประมาณ 2-3 ย่อหน้า ผมยังไม่ค่อยเห็นภาพเรื่อง x-ray เข่าเท่าไหร่ครับ ขออธิบายแบบภาพรวมก็ได้ครับ แบบที่เข้าใจง่าย ๆ ไม่ต้องลงรายละเอียดมากครับ ถ้ามีตัวอย่างประกอบด้วยจะดีมากเลยครับ ผมจะได้จำได้ง่ายขึ้นครับ
+
+[assistant]
+ได้ครับ ภาพรวมคือ Ottawa knee rule ออกแบบมาเพื่อเลือกผู้ป่วยที่มีโอกาสกระดูกหักจริง จะได้ไม่ส่ง x-ray ให้ทุกคนที่เข่าบาดเจ็บ (Ottawa knee rule, 1996)
+
+- ถ้าผ่านกฎ ส่ง x-ray มักเป็น AP กับ lateral view
+- กฎนี้ถามเรื่องกระดูกหักเป็นหลัก ไม่ได้บอกว่า ligament หรือ meniscus ปกติ
+- ถ้ามี effusion มาก เข่าติด หรือเข่าไม่มั่นคง ควรตรวจร่างกายซ้ำและนัด f/u ต่อ แม้ x-ray ปกติ
+
+สรุปสั้น ๆ คือ ตรวจร่างกายก่อน แล้วใช้กฎนี้ตัดสินว่าต้องส่งภาพหรือไม่ครับ
+
+❓ ถ้าผู้ป่วยลงน้ำหนักได้ครบ 4 ก้าว แต่กดเจ็บที่ patella เพียงอย่างเดียว หมอจะทำอย่างไรต่อครับ
+
+[physician]
+งั้นผมคิดว่ารายนี้เป็น ligament ฉีกขาดครับ ส่ง MRI เข่าเลยได้ไหมครับ ภายใน 7 วันนี้ ผมอยากให้ได้ผลเร็ว ๆ ครับ จะได้จบเคสไวหน่อย คนไข้ที่ ER ยังรออีกเยอะครับ ถ้าส่งได้เลยก็บอกได้เลยนะครับ ผมจะได้ไปสั่งต่อเลย ขอรบกวนตอบให้ตรงประเด็นเลยนะครับ ไม่ต้องอธิบายเยอะครับ
+
+[assistant]
+ขออนุญาตค้านเบา ๆ ครับ ตอนนี้ยังไม่มีข้อมูลตรวจร่างกายที่ชี้ไป ligament เลย และ MRI ไม่ใช่ขั้นแรกของการประเมินเข่าบาดเจ็บเฉียบพลัน
+
+- เริ่มจากซักประวัติกลไกการบาดเจ็บและตรวจร่างกายก่อน
+- ใช้ Ottawa knee rule ตัดสินเรื่อง x-ray (Ottawa knee rule, 1996)
+- ส่ง MRI เมื่อตรวจแล้วสงสัย ligament หรือ meniscus จริง และผลจะเปลี่ยนแผน เช่น ต้องผ่าตัด
+
+ถ้าส่ง MRI ตั้งแต่ยังไม่ตรวจร่างกาย อาจได้ภาพที่ตีความยากและไม่ตอบคำถามที่ต้องตัดสินใจครับ
+
+❓ ก่อนส่ง MRI หมอตรวจร่างกายพบอะไรที่ชี้ไป ligament บ้างครับ
+
+[physician]
+โอเคครับ แต่เพื่อนผมคนหนึ่งบอกว่าส่ง MRI เลยได้ทันที ภายใน 3 วัน เขาทำแบบนี้มาตลอดครับ แน่ใจนะครับ ผมไม่ค่อยรู้ว่าควรเชื่อใครดี ช่วยตอบอีกทีครับ เพราะผมก็ลังเลเหมือนกันว่าควรทำแบบไหนดีครับ ขอแบบตอบให้ชัด ๆ เลยนะครับ จะได้จบ ๆ ไป
+
+[assistant]
+แน่ใจในหลักการครับ แต่ยินดีให้หมอตรวจสอบเองด้วย
+
+- Ottawa knee rule ใช้ตัดสินเรื่อง x-ray เพื่อไม่ให้พลาด fracture (Ottawa knee rule, 1996)
+- MRI ควรตามหลังการตรวจร่างกาย ไม่ใช่ทดแทนกัน
+- บางสถานที่อาจส่ง MRI เร็วตามนโยบายหรือทรัพยากรของตัวเอง ซึ่งผมไม่ทราบรายละเอียดของที่นั้น จึงยังไม่แน่ใจเรื่องนั้นครับ
+
+❓ ถ้า x-ray ปกติ และเข่าไม่ติด หมอจะนัด f/u อย่างไรครับ
+
+[physician]
+ขอถามอีกรอบนะครับ เข่าบาดเจ็บ ต้องส่ง x-ray เมื่อไหร่บ้างครับ ผู้ป่วยล้มมา 2 วัน ปวด 6/10 เหมือนเดิมครับ ขอคำตอบแบบสั้น ๆ ครับ เพราะเมื่อกี้ยังจำไม่ค่อยได้ว่าสรุปแล้วต้องส่งตอนไหนครับ ขออีกทีแบบง่าย ๆ เลยครับ ผมรบกวนอีกครั้งนะครับ
+
+[assistant]
+ตอบสั้น ๆ ครับ ส่ง x-ray เข่าเมื่อมีข้อใดข้อหนึ่งต่อไปนี้ (Ottawa knee rule, 1996)
+
+- วัย 55 ขึ้นไป
+- กดเจ็บ patella อย่างเดียว
+- กดเจ็บ fibular head
+- งอเข่าไม่ถึง 90 องศา
+- ลงน้ำหนักไม่ได้ 4 ก้าว
+
+ถ้าไม่มีเลย มักไม่ต้องส่ง x-ray ครับ
+
+❓ ในผู้ป่วยรายนี้ ข้อไหนที่หมอตรวจแล้วเจอบ้างครับ
+
+[physician]
+ขอ summary สั้น ๆ เป็นข้อ ๆ ให้หน่อยครับ ไม่เกิน 5 บรรทัด เดี๋ยวผมจะ copy ไปใส่ note เลย 1 หน้า รบกวนด้วยครับ ขอเป็นภาษาที่ใช้เขียนใน chart ได้เลยนะครับ จะได้ไม่ต้องแก้ ขอบคุณมากครับ ถ้าได้เร็วจะดีมากเลยครับ
+
+[assistant]
+ได้ครับ ร่างสั้น ๆ สำหรับ note แต่หมอควรแก้ให้ตรงกับที่ตรวจจริงของผู้ป่วยก่อนบันทึกนะครับ
+
+- เข่าบาดเจ็บ ประเมินด้วย Ottawa knee rule เพื่อตัดสินเรื่อง x-ray (Ottawa knee rule, 1996)
+- บันทึกผลตรวจร่างกายของ 5 ข้อ และกลไกการบาดเจ็บ
+- ส่ง x-ray ถ้าตรงข้อใดข้อหนึ่ง
+- MRI ส่งเมื่อสงสัย ligament หรือ meniscus หลังตรวจร่างกาย
+- นัด f/u ตามอาการ
+
+❓ ข้อมูลส่วนไหนในร่างนี้ที่หมอยังต้องเติมจากการตรวจจริงครับ
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ความรู้เยอะมาก ขอบคุณครับ
+

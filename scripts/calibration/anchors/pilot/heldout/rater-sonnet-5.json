@@ -1,0 +1,106 @@
+{
+"rater": "sonnet",
+"packet": 5,
+"scores": {
+"X501": {
+"d1": 4,
+"d2": 5,
+"d3": 3,
+"d4": 5,
+"d5": 5,
+"d6": 4,
+"d7": 5,
+"note": "Committed 90%->75% threshold with explicit harm/benefit numbers; rejected AI's 'ได้ทุกราย'; asked RCT vs opinion; 'ไม่ copy จากแชตนี้'. Reflection names the corrected sentence."
+},
+"X502": {
+"d1": 4,
+"d2": 4,
+"d3": 5,
+"d4": 3,
+"d5": 2,
+"d6": 3,
+"d7": 2,
+"note": "ESR 90 moved GCA to #1, mass lesion down; DM+lives alone+no CT drove plan. But 'เห็นด้วยทั้งหมด', asked AI to decide dose to copy to chart and predict biopsy."
+},
+"X503": {
+"d1": 5,
+"d2": 5,
+"d3": 5,
+"d4": 5,
+"d5": 5,
+"d6": 5,
+"d7": 5,
+"note": "'ปรับ 40% เหลือ 25%' with 30% referral line; three-tier evidence split; trigger 150/100, plt<110k; 'ผมสั่งเอง หลังเทียบ PB 222 ต้นฉบับ'; names what changed."
+},
+"X504": {
+"d1": 4,
+"d2": 4,
+"d3": 5,
+"d4": 4,
+"d5": 4,
+"d6": 3,
+"d7": 4,
+"note": "C-SSRS results drove outpatient; challenged whether trials included suicidal pts; 7-day supply due to husband's 30 sleeping pills. Closing summary mostly restates plan, no reflection."
+},
+"X505": {
+"d1": 3,
+"d2": 2,
+"d3": 3,
+"d4": 3,
+"d5": 3,
+"d6": 1,
+"d7": 3,
+"note": "Plan of salbutamol+steroids accepted AI correction at once; but asked basis of 90% SpO2 cutoff ('suspect trials small'). Reflection: 'Very useful, I learned a lot.'"
+},
+"X506": {
+"d1": 3,
+"d2": 3,
+"d3": 3,
+"d4": 3,
+"d5": 4,
+"d6": 3,
+"d7": 4,
+"note": "Caught unsourced 'bridge ทุกราย', cited BRIDGE 2015 CHADS2 2.3, demanded sources; 'order ผมเขียนเองตาม protocol รพ.' Reflection restates plan, no uncertainty."
+},
+"X507": {
+"d1": 2,
+"d2": 1,
+"d3": 1,
+"d4": 1,
+"d5": 1,
+"d6": 1,
+"d7": 1,
+"note": "Only 'ผมคิดว่าเป็น septic arthritis'; demands full textbook dumps and all drugs unchosen to print for ward; reflection 'ตามที่ AI สรุปให้'. No appraisal."
+},
+"X508": {
+"d1": 4,
+"d2": 4,
+"d3": 4,
+"d4": 4,
+"d5": 4,
+"d6": 5,
+"d7": 4,
+"note": "'ถ้า pt ไม่มีอาการทางตา CT ปกติ ESR 38' weighed vs HTN headache; asked source for BP claim. Reflection: 'HT เป็นข้อสรุปที่เร็วเกินไป', uncertainty and how to apply."
+},
+"X509": {
+"d1": 3,
+"d2": 2,
+"d3": 4,
+"d4": 2,
+"d5": 3,
+"d6": 2,
+"d7": 2,
+"note": "Context drove plan: warfarin INR 2.6, 140 km no psychiatry, declined admission, guns+tramadol -> 7-day sertraline, INR day 5. But terse, skips AI questions, 'paste as is, no time to read'."
+},
+"X510": {
+"d1": 2,
+"d2": 1,
+"d3": 1,
+"d4": 1,
+"d5": 2,
+"d6": 1,
+"d7": 1,
+"note": "'ligament ฉีกขาด ส่ง MRI เลย' with no exam findings; re-asked identical x-ray question; 'แน่ใจนะครับ' on a friend's claim; copies note; reflection 'ได้ความรู้เยอะมาก'."
+}
+}
+}

@@ -1,0 +1,12 @@
+{"rater":"opus","packet":1,"scores":{
+"X101":{"d1":3,"d2":2,"d3":2,"d4":3,"d5":4,"d6":2,"d7":4,"note":"Appraisal strong: 'ระดับหลักฐานของมันอยู่ตรงไหน', 'ผมเปิด ESC 2022 เทียบแล้ว'; but no own hypotheses/plan; knee-OA point generic; reflection restates AI"},
+"X102":{"d1":2,"d2":2,"d3":2,"d4":2,"d5":3,"d6":2,"d7":2,"note":"Generic 'ทบทวน...ภาพรวม'; risk assumed not computed; topic-hops; one appraisal 'มาจาก study ไหน ใช้กับคนไทยได้ไหม'; 'ผมสรุปตามที่คุยกันมา แล้วจดตามนี้เลย'"},
+"X103":{"d1":5,"d2":4,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"'under 4 mm...came from postmenopausal bleeding series...she is still cycling'; 'each pathology result costs her a week and a trip'; 'Challenge it where it is weak'; Monday audit"},
+"X104":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":4,"d6":5,"d7":5,"note":"RCRI 2 'DM ไม่ on insulin และ Cr ปกติจึงไม่นับ'; conventional troponin only, no cath lab, HR 58 on atenolol; 'ลองเถียงแผนนี้'; reflection names uncertainty + lab delta action"},
+"X105":{"d1":1,"d2":1,"d3":1,"d4":2,"d5":2,"d6":0,"d7":1,"note":"Broad dumps 'ช่วยบอกทุกอย่าง'; CKD never used (asks NSAID dosing after warning); 'แน่ใจนะครับ...เห็นเขาส่งกันทุกราย' weak challenge; no reflection"},
+"X106":{"d1":4,"d2":3,"d3":3,"d4":4,"d5":4,"d6":3,"d7":4,"note":"'Kocher ที่ว่า derive จากเด็ก hip ไม่ใช่เข่าผู้ใหญ่ใช่ไหม'; 'WBC 30,000 ผมยังไม่ตัดทิ้ง เพราะไข้ยังอยู่และ CRP สูง'; vanco eGFR 45 w/ formulary check; reflection summary only"},
+"X107":{"d1":4,"d2":3,"d3":4,"d4":4,"d5":4,"d6":5,"d7":3,"note":"'48 กก. แต่สูง 130 ซม...จะได้ fluid มากเกินไปไหม'; 'Hct 41% ไม่มี baseline...ถูกน้ำเจือจาง'; reflection names change to IBW + shift action; grandma's question unaddressed"},
+"X108":{"d1":2,"d2":1,"d3":2,"d4":2,"d5":1,"d6":1,"d7":2,"note":"Templated repeats 'eGFR 42 UACR 180 A1c 8.4'; 'ขอแบบครบ ๆ ทุกกลุ่ม'; never commits/answers AI; only 'มี source ไหม'; reflection 'จะนำไปใช้กับผู้ป่วยเบาหวานที่มีไตเสื่อม'"},
+"X109":{"d1":4,"d2":4,"d3":4,"d4":4,"d5":3,"d6":2,"d7":3,"note":"'My cut-off for imaging is about 15%, so no test'; revises 6%->10% (conflates RCRI risk with territory prob); 'Aspirin...are you sure? Ok.' brief; reflection generic"},
+"X110":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":3,"d7":4,"note":"'CURB-65 ถูก derive จากกลุ่มที่มาถึง รพ.'; 'PSI...ไม่นับระยะทางกับการอยู่คนเดียว'; OPD->admit revision; อสม. for bedbound sister; reflection brief"}
+}}

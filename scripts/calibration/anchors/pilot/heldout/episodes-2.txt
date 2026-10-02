@@ -1,0 +1,638 @@
+######## EPISODE X201 ########
+[physician]
+หญิงวัย 80 กว่า femoral neck fx displaced on clopidogrel หลังใส่ stent เมื่อประมาณครึ่งปีกว่า ASA ผมให้ต่อไว้ก่อนเพราะ stent Hb 10.8 ผมตัดสินใจไม่ได้ว่าจะผ่า hemiarthroplasty ภายใน 48 ชม. ทั้งที่ยังมี clopidogrel หรือรอประมาณ 5 วัน ซึ่งขึ้นกับว่าเลือดออกเพิ่มแค่ไหนเทียบกับความเสี่ยงของการนอนรอ ขอหลักฐานที่เทียบสองทางนี้พร้อม source ตอบสั้นๆ ผมจะเปิดฉบับเต็มตรวจก่อนใช้
+
+[assistant]
+คำถามตรงประเด็นครับ สรุปหลักฐานที่เกี่ยวข้อง
+
+- ผ่าตัดภายใน 48 ชม. หลังมาถึง รพ. สัมพันธ์กับการเสียชีวิตและภาวะแทรกซ้อนที่น้อยลงใน hip fracture (AAOS hip fracture guideline, 2021)
+- clopidogrel ยับยั้ง P2Y12 แบบไม่ย้อนกลับ ผลจึงอยู่ตามช่วงชีวิตของ platelet ราว 7-10 วัน การรอ 5 วันลดฤทธิ์ลงได้ แต่ไม่ได้ทำให้หมดทั้งหมด
+- ถ้าผ่าตัดเร่งด่วนขณะยังมียา เลือดออกที่เพิ่มขึ้นมักจัดการได้ด้วย hemostasis ที่ดีและเตรียมเลือดไว้ ส่วนการใช้ spinal ต้องคุยกับวิสัญญีแพทย์เพราะยายังออกฤทธิ์
+- aspirin ในผู้ป่วยที่มี stent โดยทั่วไปให้ต่อได้ถ้าความเสี่ยงเลือดออกของการผ่าตัดยอมรับได้ (ESC, 2022)
+
+ผมยังไม่แน่ใจตัวเลขเลือดออกที่เพิ่มขึ้นแบบเจาะจงกลุ่ม on clopidogrel จึงไม่ขอให้ตัวเลขที่อ้างอิงไม่ได้ครับ
+
+[physician]
+ขอแยกข้อ 48 ชม. ก่อน ที่ผมเชื่อค่อนข้างแน่นคือรอเกินสองวันแล้วผลแย่ลง แต่ฐานข้อมูลนั้นเป็น cohort สังเกตเป็นหลัก และ pt ที่ป่วยหนักมักถูกเลื่อนผ่าเอง ส่วนกลุ่มที่ on clopidogrel เท่าที่จำได้มีน้อยมาก และ guideline ไม่น่าแยกวิเคราะห์ไว้ ข้อที่ว่ารอ 5 วันแล้ว platelet ก็ยังฟื้นไม่หมด แปลว่ารอไปก็ไม่ได้ผ่าตอน platelet ปกติ ผมเลยคิดว่าไม่คุ้ม ถ้าโอกาสที่ต้องให้เลือดเพิ่มเพราะผ่าเลยไม่เกินราวหนึ่งในสิบ ผมผ่าเลย แต่ถ้าเกินหนึ่งในสี่ ผมรอ สองตัวเลขนี้มีแหล่งรองรับไหม หรือเป็นแค่ความเห็น
+
+[assistant]
+ตั้งข้อสังเกตได้ถูกต้องครับ ข้อความเรื่อง 48 ชม. ของผมกว้างเกินไป
+
+- หลักฐานเรื่องเวลาผ่าตัดมาจากการศึกษาสังเกตเป็นหลัก มี confounding จาก pt ที่ป่วยหนักถูกเลื่อนผ่า และ guideline ไม่ได้ระบุคำแนะนำเฉพาะกลุ่มที่ on clopidogrel (AAOS hip fracture guideline, 2021)
+- เท่าที่ผมทราบ ข้อมูลของกลุ่ม on clopidogrel เป็น retrospective cohort ขนาดเล็ก ผมไม่มีแหล่งที่ให้ตัวเลขหนึ่งในสิบหรือหนึ่งในสี่ได้ ตัวเลขทั้งสองจึงเป็นความเห็นของท่านเอง
+- platelet ที่ฟื้นเป็นผลทางเภสัชวิทยา ส่วนเลือดออกจริงเป็นผลลัพธ์ทางคลินิก สองอย่างนี้ไม่เท่ากัน อีกทั้งช่วงหยุดยา 5 วันที่แนะนำทั่วไปสำหรับ clopidogrel เป็นบริบทผ่าตัดตามนัด ไม่ได้ออกแบบสำหรับ hip fracture (ESC, 2022)
+
+ส่วนข้อสรุปว่าไม่คุ้มรอ เป็นการตีความที่สมเหตุสมผลจากข้อมูลที่มีครับ
+
+[physician]
+ผมเลยเปลี่ยนจากรอ 5 วัน มาเอนไปผ่าภายใน 48 ชม. ส่วนที่บอกว่าถ้าใช้ spinal ต้องคุยกับวิสัญญีเพราะ clopidogrel ยังออกฤทธิ์ ถ้าเลี่ยง spinal ไปใช้ GA ร่วมกับ block ที่ผิวเผินอย่าง fascia iliaca ความเสี่ยง hematoma ต่างจาก spinal ไหม มีงานที่เทียบตรงๆ ในกลุ่ม on clopidogrel หรือเปล่า ถ้าไม่มี บอกมาตรงๆ
+
+[assistant]
+คำถามที่ควรถามครับ
+
+- block ผิวเผินอย่าง fascia iliaca โดยทั่วไปถือว่าเสี่ยง hematoma ต่ำกว่า neuraxial และใช้ช่วยคุมปวดก่อนและหลังผ่าตัดได้ แต่ไม่ใช่ศูนย์เมื่อยังมี clopidogrel ในร่างกาย
+- ผมไม่ทราบงานที่เทียบ block กับ spinal ตรงๆ ในกลุ่ม on clopidogrel จึงไม่ขอยืนยันว่าต่างกันเท่าไร ถือเป็นช่องว่างของหลักฐานเท่าที่ผมรู้
+- การเลือกเทคนิคระงับความรู้สึกในผู้ป่วยที่ได้ antiplatelet ควรตัดสินร่วมกับวิสัญญีแพทย์ตามแนวปฏิบัติของสถาบัน (ESC, 2022)
+
+[physician]
+สรุปแผน ผ่าภายใน 48 ชม. ASA ต่อ clopidogrel งดตั้งแต่วันนี้ เตรียม PRC 2 unit และ type and cross ไว้ ปรึกษาหมอหัวใจเรื่อง stent แต่ไม่รอคำตอบเพื่อผ่า ช่วยหาจุดอ่อนของแผนนี้ และติดป้ายแต่ละข้อว่ามีแหล่งอ้างอิงหรือเป็นแค่ความเห็น tutor ไม่เห็นฟิล์มของ pt จริง และอาจจำปีของ guideline ผิดได้ ผมเลยจะเทียบฉบับเต็มกับ formulary ก่อนสั่งยา
+
+[assistant]
+แผนเป็นระบบดีครับ ผมลองหาจุดที่ควรเช็คเพิ่ม พร้อมระบุว่ามีแหล่งอ้างอิงหรือไม่
+
+- เวลาผ่าตัด 48 ชม.: มี guideline รองรับในภาพรวม แต่ไม่เฉพาะกลุ่ม on clopidogrel (AAOS hip fracture guideline, 2021)
+- ASA 81 ต่อ: มีคำแนะนำทั่วไปรองรับในผู้ป่วยที่มี stent (ESC, 2022)
+- งด clopidogrel ตั้งแต่วันนี้: platelet จะยังฟื้นไม่ครบก่อนผ่า จึงควรเตรียมเลือดไว้ตามที่วางแผน ข้อนี้ไม่มีแหล่งตัวเลขที่ผมอ้างได้
+- ปรึกษาโรคหัวใจ: สมเหตุสมผล เพราะใส่ stent มาหลายเดือนแล้ว แต่ผมไม่มีเกณฑ์อ้างอิงว่าหยุด clopidogrel กี่วันปลอดภัยใน hip fracture โดยเฉพาะ
+- การเทียบฉบับเต็มและ formulary ก่อนสั่งยาเป็นขั้นตอนที่เหมาะครับ เพราะผมอาจจำรายละเอียดหรือปีของ guideline คลาดเคลื่อนได้
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+เดิมผมเอนไปรอ 5 วันให้ clopidogrel หมดฤทธิ์ แต่ไล่ดูแล้ว platelet ก็ฟื้นแค่บางส่วน ขณะที่การนอนรอทำให้แทรกซ้อนเพิ่ม ผมเลยปรับมาผ่าภายใน 48 ชม. และแยกให้ชัดว่า platelet ฟื้นเป็นผลทางเภสัชวิทยา เลือดออกจริงเป็นผลลัพธ์ทางคลินิก
+
+ความไม่แน่นอน / What remains uncertain:
+ยังไม่รู้ว่าเลือดออกที่เพิ่มในกลุ่ม on clopidogrel จริงๆ เท่าไร เพราะข้อมูลเป็น cohort เล็ก และ guideline ไม่ได้แยกกลุ่มนี้ ตัวเลขหนึ่งในสิบกับหนึ่งในสี่ที่ผมตั้งเป็นความเห็นของผมเอง ไม่มีแหล่งรองรับ
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+วันจันทร์จะเปิด AAOS ฉบับเต็มกับ ESC ตรวจว่าที่ tutor สรุปตรงกับต้นฉบับ ย้อนดูเคส hip fracture ที่ on clopidogrel ของ รพ. เรา นับจำนวนที่ต้องให้เลือดกับ Hb ที่ลดลง คุยกับวิสัญญีให้ตกลงแนวทาง fascia iliaca แทน spinal และนำตัวเลขที่ได้เสนอใน ward conference เพื่อเปลี่ยนความเห็นของผมให้เป็นข้อมูลของหน่วย
+
+######## EPISODE X202 ########
+[physician]
+pt หญิงวัย 20 กว่า มา ER ปวดท้องเริ่มรอบสะดือแล้วย้ายลงมา RLQ มีไข้ต่ำๆ คลื่นไส้ กดเจ็บ RLQ และมี rebound tenderness นิดหน่อย WBC สูงเล็กน้อย Alvarado ได้ประมาณ 6 คะแนน เป็นมาตั้งแต่เมื่อคืน กินอะไรไม่ค่อยได้ ไม่มีอาเจียนมาก ถ่ายปกติ ปัสสาวะไม่แสบขัด เดินหรือไอแล้วเจ็บมากขึ้น vital signs stable ส่วน lab อื่นยังไม่ออกครับ ตอนนี้ลังเลว่าจะพาเข้า OR เลย หรือส่ง imaging ก่อนดี ควรไปทางไหนครับ
+
+[assistant]
+Alvarado ช่วง 5–6 ถือเป็นกลุ่ม equivocal คือยังไม่ควรสรุปว่าใช่ และยังไม่ควรปล่อยกลับ (Alvarado score, 1986)
+- ในกลุ่มนี้ guideline แนะนำให้ใช้ imaging ช่วยก่อนตัดสินใจผ่า เพื่อลดการผ่าแล้วพบไส้ติ่งปกติ (WSES Jerusalem appendicitis, 2020)
+- ถ้า imaging ยังไม่ชัด การ observe แล้วตรวจซ้ำก็เป็นทางเลือกที่สมเหตุสมผล
+❓ ในผู้หญิงวัยนี้ นอกจากไส้ติ่งอักเสบ ยังมีโรคอะไรที่ทำให้ปวด RLQ ได้อีกบ้าง
+
+[physician]
+ok ครับ DDx ที่นึกออกก็ ovarian cyst แตก, PID, ท่อไตมีนิ่ว, mesenteric adenitis แล้วก็ ectopic ด้วย ยังไม่ได้เรียงว่าอันไหนมากสุดครับ ตอนนี้ pt นอนรอที่ ER อยู่ ตรวจร่างกายเสร็จแล้ว ผล urine กับ lab อื่นยังไม่กลับมาเลยครับ ส่วนเรื่อง imaging ที่บอกไว้ ultrasound กับ CT อันไหนควรเริ่มก่อนครับ
+
+[assistant]
+รายการ DDx ครอบคลุมดีครับ โดยเฉพาะ ovarian cyst, PID และ ectopic ซึ่งเป็นเหตุผลที่ ultrasound น่าเริ่มก่อน
+- ultrasound ไม่มีรังสี และดู ovary กับท่อนำไข่ไปพร้อมกันได้ ถ้าไม่ conclusive ค่อยพิจารณา CT (WSES Jerusalem appendicitis, 2020)
+- ก่อนส่ง imaging ใดๆ ควรเช็ก hCG ในผู้หญิงวัยเจริญพันธุ์ เพราะ ectopic ต้องแยกให้ได้ก่อน
+❓ ถ้า ultrasound มองไม่เห็น appendix เลย หมอจะตีความว่าอย่างไร
+
+[physician]
+ต่อจากเรื่อง ultrasound ที่คุยกัน ถ้ามองไม่เห็น appendix ผมก็จะส่ง CT abdomen with contrast ต่อเลยครับ จะได้จบเร็วๆ ขอเป็น CT แบบฉีดสีเลยนะครับ ช่วยบอก protocol สั้นๆ ที่ใช้ปกติหน่อย
+
+[assistant]
+มองไม่เห็น appendix ยังไม่ได้แปลว่าไม่ใช่ appendicitis ต้องดูร่วมกับอาการและผลตรวจซ้ำด้วย
+- CT ที่ใช้บ่อยคือ CT abdomen/pelvis ฉีด IV contrast ช่วยแยก appendicitis จากโรคอื่นได้ดี (WSES Jerusalem appendicitis, 2020)
+- แต่ผล hCG ยังไม่เห็นในเคสนี้เลย ควรได้ผลก่อนส่ง CT ทุกครั้ง
+❓ ถ้า CT ออกมาปกติแต่ผู้ป่วยยังเจ็บอยู่ หมอจะทำอย่างไรต่อ
+
+[physician]
+ถ้า CT ปกติแต่ pt ยังเจ็บอยู่ คงให้ admit ไว้ดูอาการก่อนครับ ตอนนี้ยังไม่ได้ให้ยาแก้ปวดอะไรเลย ระหว่างรอให้ morphine ได้ไหมครับ กลัวจะไปบัง exam แล้ววินิจฉัยช้า พยาบาลถามเรื่องยาอยู่พอดีด้วยครับ
+
+[assistant]
+แนวทาง admit observe แล้วตรวจซ้ำเป็นระยะเป็นทางเลือกที่ใช้กันทั่วไป เมื่อภาพถ่ายยังไม่ตอบคำถามทั้งหมด (WSES Jerusalem appendicitis, 2020)
+- การให้ยาแก้ปวดไม่ได้ทำให้การตรวจหรือการวินิจฉัยพลาดมากขึ้นตามหลักฐานที่มี ให้ได้ตามความจำเป็นครับ
+- สิ่งสำคัญคือบันทึก exam ก่อนให้ยา เพื่อเทียบตอน re-exam
+❓ ถ้า re-exam แล้วอาการแย่ลง หมอจะใช้สัญญาณอะไรตัดสินใจเข้า OR
+
+[physician]
+สัญญาณก็คง ไข้สูงขึ้น กดเจ็บทั่วท้อง แล้ว WBC ขึ้นอีกครับ ผมจะคอยดูตามนี้ไปเรื่อยๆ ครับ จะให้พยาบาลวัด vital signs ซ้ำเป็นระยะด้วย แล้วถ้าสุดท้ายยืนยันว่าเป็น appendicitis แบบไม่ซับซ้อน ให้ antibiotic อย่างเดียวโดยไม่ผ่าได้ไหมครับ
+
+[assistant]
+สัญญาณที่ยกมาเหมาะสมครับ ไข้ที่สูงขึ้นและกดเจ็บทั่วท้องบ่งว่าอาจมี perforation หรือ peritonitis
+- ในผู้ป่วยที่คัดแล้ว คือ uncomplicated และไม่มี appendicolith การให้ antibiotic อย่างเดียวเป็นทางเลือกได้ แต่การผ่าตัดยังเป็นมาตรฐาน และมีโอกาสกลับเป็นซ้ำที่ต้องบอกผู้ป่วย (WSES Jerusalem appendicitis, 2020)
+❓ ผู้ป่วยรายนี้ควรได้ข้อมูลอะไรบ้างก่อนเลือกระหว่างผ่ากับให้ยา
+
+[physician]
+โอเค ผมน่าจะบอกว่า
+1. ผ่าหรือกินยามีความเสี่ยงต่างกัน
+2. กินยาอาจกลับเป็นซ้ำได้
+ผมจะจดไว้ในชาร์ตให้ครบครับ แต่ผมอยากกลับไปเรื่องผ่าก่อน ถ้าผ่า lap กับ open อันไหนดีกว่า แล้วต้องให้ antibiotic ก่อนผ่าเลยไหมครับ
+
+[assistant]
+ข้อมูลที่จะบอกผู้ป่วยตรงประเด็นครับ ควรเพิ่มเรื่องที่ผู้ป่วยให้ความสำคัญด้วย เช่น อยากหายเร็วหรืออยากเลี่ยงการผ่า
+- laparoscopic appendectomy เป็นที่นิยมกว่าในกลุ่มผู้ใหญ่ เพราะแผลติดเชื้อน้อยกว่าและนอนสั้นกว่า (WSES Jerusalem appendicitis, 2020)
+- antibiotic ก่อนผ่าแนะนำให้ในผู้ป่วยที่ผ่า appendectomy เพื่อลดการติดเชื้อแผล (WSES Jerusalem appendicitis, 2020)
+❓ ถ้าที่ รพ. ไม่มีอุปกรณ์ lap หมอจะทำอย่างไร
+
+[physician]
+ที่บอกว่า lap เป็นที่นิยมกว่า open หมายความว่า lap ดีกว่า open ทุกกรณีเลยเหรอครับ แน่ใจนะครับ
+
+[assistant]
+ไม่ทุกกรณีครับ lap มักได้เปรียบเรื่องแผลและวันนอน แต่ open ก็ยังเป็นทางเลือกที่ยอมรับได้ ขึ้นกับความชำนาญของทีมและอุปกรณ์ที่มี (WSES Jerusalem appendicitis, 2020)
+- ถ้าทีมถนัด open มากกว่า ผลลัพธ์โดยรวมก็ไม่ได้แย่ลงอย่างชัดเจน
+- ยังไม่แน่ใจตัวเลขเปรียบเทียบเฉพาะในโรงพยาบาลของหมอ ควรดูข้อมูลของหน่วยเอง
+❓ หมอจะเลือกระหว่าง lap กับ open อย่างไร ถ้าผู้ป่วยมาตอนดึกและทีม lap ไม่อยู่
+
+[physician]
+ขอทวนที่คุยกันทั้งหมดนะครับ สรุปว่า ultrasound ก่อน แล้ว CT ถ้าไม่ชัด ถ้าเป็นไส้ติ่งก็ผ่า lap พร้อมให้ antibiotic ก่อน ใช่ไหมครับ ตอนนี้ pt ยังรอผลอยู่ ผมอยากสรุปให้ทีมฟังด้วย แล้วถ้ายังไม่ชัวร์ว่าไม่ใช่ appendicitis ควร observe ต่อและ re-exam ถี่แค่ไหนครับ
+
+[assistant]
+สรุปได้ถูกต้องครับ ขอเพิ่มว่าต้องเช็ก hCG ก่อนทำ imaging ในผู้หญิงวัยเจริญพันธุ์ด้วย
+- การ observe ควรตรวจซ้ำตามอาการ โดยเฉพาะถ้าอาการเปลี่ยน (WSES Jerusalem appendicitis, 2020)
+- ยังไม่แน่ใจว่ามีช่วงเวลาตายตัวที่ guideline กำหนดสำหรับ re-exam จึงควรดูตามสภาพผู้ป่วย
+❓ ถ้าเป็นผู้ป่วยรายถัดไปที่ Alvarado กลางๆ แบบนี้ หมอจะเริ่มจากอะไรเป็นอย่างแรก
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+เคสหญิงวัย 20 กว่าที่ปวด RLQ และ Alvarado ได้กลางๆ ไม่ควรรีบเข้า OR ควรเริ่มด้วย ultrasound ก่อน แล้วค่อยส่ง CT ถ้ายังไม่ชัด ถ้าเป็น appendicitis แบบไม่ซับซ้อนก็มีทางเลือกให้ antibiotic อย่างเดียว แต่การผ่า lap ยังเป็นมาตรฐาน และต้องให้ antibiotic ก่อนผ่า ส่วนถ้า CT ปกติแต่ยังเจ็บอยู่ ก็ admit observe แล้วตรวจซ้ำ
+
+######## EPISODE X203 ########
+[physician]
+pt ครรภ์แรก GA 34 wk ส่งต่อมาด้วย pre-eclampsia BP ไม่ถึงช่วง severe คุมได้ด้วย nifedipine ไม่ปวดหัว platelet กับ ALT ปกติ ผมวางแผนรอที่นี่ต่อ ไม่ deliver ตอนนี้ เพราะไม่มี severe feature แต่โอกาสที่ต้อง deliver ก่อนครบ 37 wk ผมประเมินว่าเกินครึ่ง เพราะรกยังเป็นต้นเหตุ BP นิ่งก็ไม่ได้แปลว่าโรคหยุด
+
+[assistant]
+แผนนี้สอดคล้องกับแนวทางครับ
+- pre-eclampsia ที่ยังไม่มี severe feature ทำ expectant management ได้จนถึง 37 สัปดาห์ โดยติดตาม BP, lab และสภาพทารกอย่างใกล้ชิด (ACOG PB 222, 2020)
+- ถ้าเกิด severe feature เมื่ออายุครรภ์ตั้งแต่ 34 สัปดาห์ขึ้นไป ให้ deliver หลังทำให้แม่คงที่ (ACOG PB 222, 2020)
+- การรอถึง 37 สัปดาห์ปลอดภัยสำหรับแม่ทุกราย ตราบใดที่ BP คุมได้ด้วยยา
+- ถ้ารอต่อ ควร admit และเจาะ lab ซ้ำเป็นระยะ ส่วนการให้ steroid ปอดขึ้นกับว่าคาดว่าจะ deliver ภายในไม่กี่วันหรือไม่
+
+[physician]
+ok ครับ ที่ว่ารอปลอดภัยกับแม่ทุกราย ผมไม่เห็นด้วย ราย HELLP ที่เคยเจอ BP นิ่งดีมาตลอดจนวันที่ platelet ตก BP จึงบอกแค่ครึ่งเดียว ผมเลย admit และเจาะ lab ซ้ำวันเว้นวัน เพราะบ้านไกลและกลับมาตอนดึกไม่ได้
+
+[assistant]
+ถูกต้องครับ ประโยคที่ว่าปลอดภัยทุกรายนั้นกว้างเกินไป
+- BP ที่คุมได้ไม่ป้องกัน HELLP, platelet ต่ำ หรือ creatinine ขึ้น ซึ่งเกิดได้แม้ BP ยังนิ่ง จึงต้องติดตาม lab ด้วย ไม่ดูแค่ BP (ACOG PB 222, 2020)
+- การ admit เมื่อบ้านไกลและกลับมาไม่ทัน เป็นเหตุผลที่สมเหตุสมผลในบริบทนี้
+- ความถี่ของ lab ที่ตายตัว ยังไม่แน่ใจว่าแนวทางระบุไว้ ให้ยึด trend ของผู้ป่วยรายนั้น
+
+[physician]
+ถ้า platelet ลงมาเหลือแถวหนึ่งแสนสองหมื่นแต่ BP ยังนิ่ง ผมรอต่อ แต่ถ้าต่ำกว่าแสน หรือ ALT ขึ้นเป็นสองเท่าของค่าปกติ ผม deliver ทันที ไม่รอ steroid ปอดครบ เพราะที่ 34 wk ประโยชน์ต่อปอดทารกเล็กกว่าก่อนหน้านี้ แต่ความเสี่ยงของแม่ระหว่างรอสองวันเพิ่มขึ้น
+
+[assistant]
+ที่วางไว้สอดคล้องกับนิยาม severe feature ครับ platelet ต่ำกว่า 100,000 และ transaminase สูงเป็นสองเท่าของค่าบนปกติ ถือว่าเข้าเกณฑ์ (ACOG PB 222, 2020)
+- เมื่อเข้าเกณฑ์แล้ว ที่ตั้งแต่ 34 สัปดาห์ขึ้นไปให้ deliver หลังทำให้แม่คงที่ ไม่ควรเลื่อนเพื่อรอ steroid
+- ประโยชน์ของ steroid ปอดช่วงปลายก่อนกำหนดยังมี แต่เล็กกว่าก่อน 34 สัปดาห์ และอาจพบ hypoglycemia ในทารกเพิ่ม จึงชั่งเป็นรายๆ ไป
+- platelet ที่ลงเร็วไม่ควรมองเป็นตัวเลขเดียว ให้ดู trend ด้วย
+
+[physician]
+โอเค ฝั่งแม่วางไว้แล้ว ต่อไปคือฝั่งทารก ผมจะทำ NST ทุกวัน และ Doppler UA สัปดาห์ละครั้ง ถ้า growth ตกต่ำกว่า 10th centile หรือ UA ผิดปกติ ผมจะขยับวัน deliver ให้เร็วขึ้นแม้แม่ยังดี
+
+[assistant]
+แผนฝั่งทารกสมเหตุสมผลครับ
+- แนวทางแนะนำประเมินการเจริญเติบโตของทารกด้วย ultrasound ร่วมกับการเฝ้าระวังทารกเป็นระยะระหว่างรอ (ACOG PB 222, 2020)
+- NST ทุกวัน ยังไม่แน่ใจว่ามีหลักฐานระบุความถี่ที่ดีที่สุด ส่วนใหญ่ปรับตามความเสี่ยงของรายนั้น
+- ถ้า Doppler UA ปกติแต่ growth ตก ยังถือว่าเสี่ยง ไม่ควรสรุปว่าปลอดภัย
+
+[physician]
+ถ้า UA ปกติแต่ growth ตก ผมถือว่ายังเสี่ยงเหมือนกัน เพราะ Doppler ปกติไม่ได้ตัดโอกาสที่ทารกเริ่มขาดสารอาหารออกไป ผมจะดู AFI และ growth ซ้ำให้ถี่ขึ้นแทนการรอ ผมเขียน order เองหลังเช็คตัวเลขเช้านี้
+
+[assistant]
+เหตุผลนี้ถูกต้องครับ Doppler UA ปกติไม่ได้ตัดโอกาสที่ทารกเจริญเติบโตช้าออกไป
+- การดู AFI ร่วมกับ growth ซ้ำให้ถี่ขึ้นใช้ได้ ความถี่ที่เหมาะสมขึ้นกับ trend ของรายนั้น (ACOG PB 222, 2020)
+- เตรียม magnesium sulfate และยาลด BP ที่ใช้ได้เร็วไว้ใกล้มือ เผื่อเกิด severe feature (ACOG PB 222, 2020)
+
+######## EPISODE X204 ########
+[physician]
+3-month-old infant, runny nose for 3 days, now fast breathing, RR 58, HR 160, T 37.8, SpO2 95% on room air, feeding about 3/4 of usual. Bronchiolitis I think. What is the usual management, and what should I tell the parents?
+
+[assistant]
+Bronchiolitis is a clinical diagnosis from the history and examination (AAP bronchiolitis, 2014).
+- Supportive care: nasal suction, small frequent feeds, fluids if intake falls
+- Oxygen if SpO2 stays below 90% (AAP bronchiolitis, 2014)
+- Admit if feeding is poor, there is apnoea, or work of breathing is increasing
+- Avoid routine steroids, antibiotics and chest imaging
+
+[physician]
+ok. You said no routine CXR. What if he also has a fever of 38.5 and looks a bit tired, do we still skip it?
+
+[assistant]
+Mostly yes. A fever alone does not make the infant's chest film useful, since viral bronchiolitis can cause it, and routine radiographs do not change outcomes (AAP bronchiolitis, 2014). Reserve a CXR for an infant who is unusually unwell or does not follow the expected course.
+
+[physician]
+Got it. You also said no bronchodilators, but colleagues here still give salbutamol nebs. Could this be asthma, an allergy, or a pneumonia instead? He is on day 4 of illness now.
+
+[assistant]
+Those are fair alternatives to keep in mind, and the history and examination usually separate them. Trials of bronchodilators in bronchiolitis show no consistent benefit, so they are not advised routinely (AAP bronchiolitis, 2014). Wheeze that recurs, or a family history of atopy, would raise the question of asthma later.
+
+[physician]
+Where does the SpO2 90% cut-off come from? Our ward uses 92% for infants. Is it from trials, or just opinion?
+
+[assistant]
+A fair question. Some centres use a higher target, and the evidence is weak either way. The 90% cut-off is a consensus statement and rests on lower-quality evidence, so it is a pragmatic line rather than a trial result (AAP bronchiolitis, 2014). Clinical judgement about work of breathing and feeding still matters alongside the number.
+
+[physician]
+Home is about 1 hour from the hospital and mum has 2 other children at home, so how soon should the follow-up be?
+
+[assistant]
+Distance is a sensible factor for the follow-up plan. If he goes home, a review within 24 to 48 hours is reasonable, and the parents should be told clearly when to return sooner (AAP bronchiolitis, 2014).
+
+[physician]
+You mentioned review within 24 to 48 hours. What should the parents watch for at home, and how long does the cough last?
+
+[assistant]
+Return sooner if breathing looks harder, feeding drops, there are pauses in breathing, or he becomes drowsy (AAP bronchiolitis, 2014). The cough often lingers for a few weeks even after the infant improves.
+
+[physician]
+Two more points from your answers so far:
+- the suctioning before feeds
+- hypertonic saline, does it help?
+
+[assistant]
+- Suction before feeds can help a blocked nose to feed more easily; do it gently and not too often
+- Hypertonic saline is not recommended routinely in the emergency setting, and the benefit in admitted infants is limited (AAP bronchiolitis, 2014)
+
+[physician]
+Please write a short handout for the parents so I can give it to them. Discharge is planned for day 5 of the illness.
+
+[assistant]
+Here is a short draft:
+- Keep feeding small amounts often and clear the nose gently
+- Come back if breathing is fast or hard, feeding drops, or he is drowsy
+- The cough can last a few weeks
+Please adjust it to your own practice (AAP bronchiolitis, 2014).
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+Bronchiolitis is a clinical diagnosis. Treat with suction, feeds and oxygen if needed. No routine CXR, steroids or bronchodilators. Review in 24 to 48 hours and tell the parents the warning signs.
+
+######## EPISODE X205 ########
+[physician]
+Man in his 60s, T2DM, HbA1c 8.4, eGFR 42, Cr 1.7, BP 138/82, BMI 31. On metformin 1000 mg bid and glipizide 5 mg bid. Routine clinic visit today, no new complaints. Needs something added.
+
+[assistant]
+Thanks for the clear summary. With eGFR 42 and HbA1c 8.4 on metformin plus a sulfonylurea, there is room to add a drug that also protects the kidney.
+- An SGLT2 inhibitor is recommended for type 2 diabetes with CKD when eGFR is 20 or above, for kidney and cardiovascular benefit that is largely independent of glucose lowering (KDIGO Diabetes in CKD, 2022).
+- Metformin can continue at eGFR 30-44, but the dose is usually reduced to a maximum of 1000 mg per day (KDIGO Diabetes in CKD, 2022).
+- A GLP-1 receptor agonist is the usual alternative or addition when glucose lowering is the main need (ADA Standards of Care in Diabetes, 2024).
+❓ How are you thinking about the sulfonylurea in this regimen?
+
+[physician]
+More data. UACR 180 mg/g, K 4.9, ramipril 5 mg daily, BP 140/84 and 136/80 at the last 2 visits, also on atorvastatin 20 mg. Go on.
+
+[assistant]
+A UACR of 180 mg/g is moderately increased albuminuria, which strengthens the case for an SGLT2 inhibitor (KDIGO Diabetes in CKD, 2022).
+- Keep the ACE inhibitor at the maximum tolerated dose and recheck K and creatinine after any change.
+- A nonsteroidal mineralocorticoid receptor antagonist can be considered for persistent albuminuria despite maximal RAS blockade, but only with eGFR of 25 or above and a normal potassium (KDIGO Diabetes in CKD, 2022).
+- A K of 4.9 is already near the upper end, so that option needs care.
+❓ What would you check before adding anything that changes potassium or volume status?
+
+[physician]
+Glipizide 5 mg bid, 2 hypos last month, 54 and 61 at 3 am. Eats 3 meals, weight 86 kg, lives 40 km from the clinic. Tell me more.
+
+[assistant]
+Sulfonylurea hypoglycaemia becomes more likely as eGFR falls, and readings of 54 and 61 at night are clinically important.
+- When adding an SGLT2 inhibitor or GLP-1 receptor agonist, consider reducing or stopping the sulfonylurea to limit hypoglycaemia (ADA Standards of Care in Diabetes, 2024).
+- Check the timing of the hypos against meals and the glipizide dose.
+- Teach the patient to recognise and treat low glucose.
+❓ What would you do with the glipizide dose once the new drug starts?
+
+[physician]
+So SGLT2i. Empagliflozin 10 mg daily. Cr 1.7, eGFR 42, A1c 8.4.
+
+[assistant]
+Empagliflozin 10 mg once daily is the usual dose, and the class fits this patient.
+- A small early fall in eGFR is expected and is not by itself a reason to stop (KDIGO Diabetes in CKD, 2022).
+- Counsel about genital mycotic infections, volume depletion, and holding the drug on sick days.
+- Recheck creatinine and K within a few weeks of starting.
+❓ What will you tell the patient about sick days and the glipizide?
+
+[physician]
+Are you sure about that. Eating 3 meals, BP 138/82, eGFR 42, 10 mg.
+
+[assistant]
+Yes, the recommendation holds for this patient. Kidney and heart protection with an SGLT2 inhibitor is shown down to eGFR 20 (KDIGO Diabetes in CKD, 2022).
+- The glucose-lowering effect is smaller at eGFR 42, so expect a modest HbA1c fall, not a full correction.
+- That is why the drug is chosen here for organ protection rather than for HbA1c alone (ADA Standards of Care in Diabetes, 2024).
+❓ If HbA1c is still above goal after 3 months, what would you add next?
+
+[physician]
+Explain more about the glucose lowering part. A1c 8.4, eGFR 42, UACR 180.
+
+[assistant]
+Glucose lowering with SGLT2 inhibitors falls as eGFR falls, so at eGFR 42 the HbA1c reduction is usually smaller than in people with normal kidney function.
+- With HbA1c 8.4, a second agent is often needed.
+- A GLP-1 receptor agonist lowers glucose well in CKD with low hypoglycaemia risk, and some have cardiovascular benefit (ADA Standards of Care in Diabetes, 2024).
+- Insulin is usually reserved for markedly high HbA1c or symptomatic hyperglycaemia (ADA Standards of Care in Diabetes, 2024).
+❓ Which second agent would you pick for this patient, and why?
+
+[physician]
+Decide for me, empagliflozin 10 mg, GLP-1 RA or insulin, pick one. I'll put it in the order as you say. Cr 1.7, eGFR 42, A1c 8.4, 3 meals.
+
+[assistant]
+I can't make that choice for you, as the order is yours to decide, but here is how the options compare for this patient.
+- A GLP-1 receptor agonist is the more reasonable second step at this HbA1c, with low hypoglycaemia risk (ADA Standards of Care in Diabetes, 2024).
+- Insulin is not usually the next step at HbA1c 8.4 without symptoms.
+- Please check the agent and dose against your formulary and the renal dosing information before ordering.
+❓ Which parts of this plan will you verify before the order goes into the EMR?
+
+[physician]
+Write the order set and the follow-up plan for 3 months. I will paste it as is, empagliflozin 10 mg, glipizide 5 mg bid, metformin 1000 mg bid.
+
+[assistant]
+I can draft the structure, but the orders must come from you after you review them, and two items need changing first.
+- Metformin 1000 mg bid is 2000 mg per day, above the usual maximum of 1000 mg per day at eGFR 30-44 (KDIGO Diabetes in CKD, 2022).
+- Glipizide 5 mg bid is worth reducing or stopping given the 3 am lows (ADA Standards of Care in Diabetes, 2024).
+- Follow-up: creatinine, K and eGFR at a few weeks, HbA1c and UACR at 3 months, plus a hypoglycaemia review.
+❓ After reviewing these points, what will you write for metformin and glipizide?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+SGLT2 inhibitors are recommended for type 2 diabetes with CKD, metformin dose is reduced at eGFR 30-44, sulfonylureas can cause hypoglycaemia, and a GLP-1 RA can be added as a second agent.
+
+######## EPISODE X206 ########
+[physician]
+Hello. I have a man in his 80s who lives alone and collects tablets from several different clinics. I would like to do a polypharmacy review for him. Can you tell me how a polypharmacy review should be done in general? I want to make sure I do it properly.
+
+[assistant]
+A structured review works best when you go through the list one drug at a time (STOPP/START v3, 2023).
+- Confirm what he actually takes, including over-the-counter drugs and old prescriptions from other clinics.
+- For each drug, ask if there is still a clear indication and if the benefit outweighs the harm at his age.
+- Flag drugs that are potentially inappropriate in older adults (AGS Beers Criteria, 2023).
+- Look for omissions too, not only for drugs to stop.
+❓ Which drug on his list would you look at first, and why?
+
+[physician]
+His list is amlodipine, glibenclamide, diazepam at night, ibuprofen for his knee, omeprazole and amitriptyline. I think most of these are fine to continue because he has been taking them for a long time. Maybe only the omeprazole can be stopped.
+
+[assistant]
+Thanks for the list. A few of these need a closer look before you continue them.
+- Ibuprofen: chronic NSAID use in older adults raises the risk of GI bleeding, kidney injury and raised blood pressure (AGS Beers Criteria, 2023).
+- Diazepam and amitriptyline: both raise the risk of falls, confusion and fractures, which matters a lot for a man living alone (AGS Beers Criteria, 2023).
+- Glibenclamide: a long-acting sulfonylurea with a high hypoglycaemia risk in older adults.
+A long duration of use is not by itself a reason to keep a drug.
+❓ What do you think is the biggest danger for him if he becomes hypoglycaemic or falls at home alone?
+
+[physician]
+ok. Can you tell me more about the sulfonylurea part? I did not really follow what you meant there, sorry. Please explain it again in simple words.
+
+[assistant]
+Of course. Sulfonylureas make the pancreas release insulin whether or not he has eaten, so in an older adult who eats irregularly and may have reduced kidney function, they can cause prolonged hypoglycaemia. The 2023 Beers update advises avoiding sulfonylureas as first- or second-line therapy, and if one must be used, a short-acting one is preferred (AGS Beers Criteria, 2023). Older adults are also given more relaxed glycaemic goals when hypoglycaemia is a risk (ADA Standards of Care in Diabetes, 2024).
+❓ How would you check his kidney function before choosing a replacement?
+
+[physician]
+Are you sure about that? I thought glibenclamide was a standard drug for diabetes, and many of my patients are on it.
+
+[assistant]
+Fair question to ask. Glibenclamide is widely used, but that does not make it the safest choice for him. Long-acting sulfonylureas are specifically listed as drugs to avoid in older adults because of prolonged hypoglycaemia (AGS Beers Criteria, 2023). The ADA also advises choosing agents with a low hypoglycaemia risk and relaxing targets in older adults at risk (ADA Standards of Care in Diabetes, 2024). It is still a decision for you, based on his glucose records and kidney function.
+❓ What would you need to know about his diabetes before changing the drug?
+
+[physician]
+Right. What about the diazepam and the amitriptyline? What should I do about those two? I am not sure how to approach them.
+
+[assistant]
+Both are on the list of drugs to avoid in older adults (AGS Beers Criteria, 2023).
+- Diazepam: if he has taken it for a long time, do not stop it suddenly. Reduce the dose gradually, because abrupt withdrawal can cause rebound insomnia, anxiety and rarely seizures. Add sleep hygiene advice in parallel.
+- Amitriptyline: strongly anticholinergic, so it can cause confusion, constipation, urinary retention and falls. Review why it was started and consider a safer alternative if treatment is still needed (STOPP/START v3, 2023).
+❓ Why was each of these two started, and does that reason still apply?
+
+[physician]
+Can you write the whole plan for him then, drug by drug? Please include every medicine on his list so I have the complete picture.
+
+[assistant]
+Here is a brief draft, to be adjusted to his history and kidney function.
+- Ibuprofen: stop; use paracetamol first for his knee pain.
+- Diazepam: gradual dose reduction over several weeks, not a sudden stop.
+- Amitriptyline: find the original indication, then taper or switch.
+- Glibenclamide: replace with a lower-risk agent once you have checked his kidney function and glucose records.
+- Omeprazole: stop or step down if there is no clear ongoing indication, since long-term use without one is discouraged (AGS Beers Criteria, 2023).
+- Amlodipine: continue for now; check his blood pressure and look for ankle swelling.
+See the STOPP/START v3 criteria for the full checklist (STOPP/START v3, 2023).
+❓ Who will check on him after the changes, given that he lives alone?
+
+[physician]
+Got it, thanks. So to summarise: the ibuprofen should stop, the diazepam should be tapered slowly, the glibenclamide should be changed to a safer drug, the amitriptyline should be reviewed, and the omeprazole can stop if there is no clear reason for it. The list should be reviewed again regularly.
+
+[assistant]
+Your summary matches the main points of the discussion. Keep in mind that the changes work best when made one or two at a time, so you can tell which change caused which effect, and when a follow-up review is booked (STOPP/START v3, 2023).
+❓ How will you arrange his follow-up and who will help him with his tablets at home?
+
+######## EPISODE X207 ########
+[physician]
+สวัสดีครับ มี pt ชายในวัย 50 กว่า มาด้วยเรื่องวูบ 1 ครั้งตอนเช้าวันนี้ ประมาณ 1 นาทีแล้วรู้ตัวเอง ญาติเห็นเหตุการณ์ vital signs BP 128/76 HR 82 RR 18 T 36.8 SpO2 98% DTX 112 ECG sinus rhythm lab Hb 13.2 Na 139 K 4.1 Cr 0.9 ยาประจำ amlodipine 5 mg กับ atorvastatin 20 mg ขอถามว่า syncope ต้องประเมินยังไงบ้างครับ อยากทราบแนวทางทั้งหมดเลยครับ ตอนนี้ pt นอนรอที่ ER อยู่ ขอบคุณมากครับ
+
+[assistant]
+สวัสดีครับ syncope ควรเริ่มจากยืนยันว่าเป็นการหมดสติชั่วคราวจริง แล้วแยกกลุ่มเสี่ยงสูงออกก่อนครับ
+
+- **ประวัติและตรวจร่างกาย**: ถามเหตุการณ์ก่อนวูบ (ท่าขณะเกิด อาการนำ เช่น หน้ามืด เหงื่อแตก ใจสั่น เจ็บหน้าอก) อาการหลังฟื้น และยาที่ใช้ แล้ววัด BP ท่านอนและท่ายืนที่ 1 และ 3 นาที เพื่อหา orthostatic hypotension (ESC, 2018)
+- **ECG 12 leads** ทุกราย เพราะ ECG ผิดปกติและโรคหัวใจโครงสร้างบ่งชี้ความเสี่ยงสูง (ESC, 2018)
+- แบ่งสาเหตุเป็น reflex, orthostatic และ cardiac แล้วค่อยเลือกตรวจเพิ่มตามที่สงสัย ไม่ต้องส่งทุกอย่างครับ
+- เครื่องมือช่วยแบ่งความเสี่ยง เช่น San Francisco Syncope Rule (Quinn et al., 2004)
+
+ข้อมูลที่ให้มาเป็น vital signs และ lab พื้นฐาน ส่วนที่ยังขาดคือลักษณะการวูบ ท่าตอนเกิด และอาการนำครับ
+
+[physician]
+vasovagal syncope รักษายังไงครับ ให้ยาอะไรได้บ้าง ต้องนอน รพ. กี่วันครับ แล้วถ้าเป็นซ้ำล่ะครับ เมื่อ 3 เดือนก่อนก็เคยวูบ 1 ครั้งเหมือนกัน ประมาณ 2 นาที แต่ตอนนั้นไม่ได้มา รพ. เพราะคิดว่าไม่เป็นไร ขอแบบทั่วๆ ไปก่อนครับ รบกวนอธิบายให้ละเอียดหน่อย เพราะที่เรียนมาลืมไปเยอะแล้วครับ
+
+[assistant]
+vasovagal syncope ส่วนใหญ่ไม่อันตรายครับ และไม่ได้เริ่มด้วยยา
+
+- อธิบายให้เข้าใจและแนะนำเลี่ยงตัวกระตุ้น เช่น ยืนนาน อากาศร้อน ขาดน้ำ (ESC, 2018)
+- สอนท่า counter-pressure เช่น ไขว้ขาแล้วเกร็ง หรือเกร็งมือสองข้าง เมื่อเริ่มมีอาการนำ (ESC, 2018)
+- ยายังไม่ใช่แนวทางหลัก เพราะหลักฐานของยาแต่ละกลุ่มไม่ชัดเจน
+- การ admit ไม่ได้ขึ้นกับชื่อโรค แต่ขึ้นกับว่ามีลักษณะเสี่ยงสูงหรือไม่ (ESC, 2018)
+
+ถ้าวูบซ้ำ ควรกลับไปตรวจสอบด้วยว่าการวินิจฉัย vasovagal มีประวัติรองรับจริงหรือไม่ครับ
+
+[physician]
+ขอถามอีกเรื่องครับ CT head ต้องส่งไหมครับ แล้ว MRI กับ echo ล่ะ ตอนนี้สั่งไว้แล้ว CBC 1 ชุด BUN 14 troponin 1 ครั้ง ผลปกติหมดเลยครับ ถ้าส่งอะไรเพิ่มได้ก็ส่งเพิ่มครับ จะได้ครบๆ ไม่ต้องกลับมาถามอีก ขอทั้งหมดที่ควรส่งในผู้ป่วยวูบเลยครับ
+
+[assistant]
+โดยทั่วไป **ไม่ต้องส่ง CT head หรือ MRI เป็น routine** ใน syncope ครับ ถ้าไม่มีอาการทางระบบประสาทหรือการบาดเจ็บที่ศีรษะ เพราะประโยชน์น้อย (ESC, 2018)
+
+- **Echo** ทำเมื่อสงสัยโรคหัวใจโครงสร้าง เช่น มี murmur ประวัติ HF หรือ ECG ผิดปกติ (ESC, 2018)
+- **Troponin** มีประโยชน์เมื่อสงสัยภาวะหัวใจขาดเลือด ไม่ได้ใช้คัดกรองทุกราย
+- การส่งตรวจเพิ่มโดยไม่มีเหตุสงสัยเฉพาะ มักไม่ช่วยหาสาเหตุ และทำให้เจอผลที่ไม่เกี่ยวข้องตามมาครับ
+
+[physician]
+แน่ใจนะครับว่าไม่ต้องส่ง CT head pt อยู่ ER มา 3 ชม. แล้ว BP 128/76 HR 82 ญาติ 2 คนรออยู่ รบกวนตอบอีกทีครับ ผมถามซ้ำเพื่อความแน่ใจ ขอคำตอบชัดๆ ว่าส่งหรือไม่ส่งครับ
+
+[assistant]
+ยืนยันตามเดิมครับ ถ้าไม่มี focal neurological deficit และไม่มีศีรษะกระแทก ไม่แนะนำให้ทำ CT หรือ MRI สมองในการประเมิน syncope (ESC, 2018)
+
+สิ่งที่ควรทำคือ ตรวจระบบประสาทให้ละเอียด และถามประวัติการกระแทกศีรษะให้ชัด ถ้าพบความผิดปกติจึงค่อยพิจารณาส่งภาพถ่ายครับ
+
+[physician]
+ขอ template สรุป case ลง chart หน่อยครับ ใส่ vital signs กับผล lab ที่ให้ไปให้ครบ BP 128/76 HR 82 Hb 13.2 Cr 0.9 เดี๋ยวผม copy ไปวางเลย ขอเป็นภาษาไทยครับ ให้ดูเป็นทางการหน่อย จะได้ใช้ได้เลยไม่ต้องแก้
+
+[assistant]
+ได้ครับ ร่างโครงให้ตามข้อมูลที่ให้มา ควรอ่านทวนและแก้ให้ตรงกับที่ตรวจจริงก่อนวางใน chart นะครับ
+
+**Syncope — บันทึก ER**
+- ประวัติ: วูบ 1 ครั้งตอนเช้า ประมาณ 1 นาที รู้ตัวเอง มีญาติเห็นเหตุการณ์
+- Vital signs: BP 128/76, HR 82, SpO2 98%
+- Lab: Hb 13.2, Cr 0.9, ECG sinus rhythm
+- ยังไม่ได้บันทึก: อาการนำ ท่าขณะเกิด BP ท่ายืน และประวัติโรคหัวใจ ซึ่งเป็นข้อมูลที่ใช้ประเมินความเสี่ยงสูง (ESC, 2018)
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ก่อนหน้านี้ผมคิดว่า syncope ต้องส่ง lab กับภาพถ่ายให้ครบถึงจะปลอดภัย แต่ตอนนี้เห็นว่าประวัติ ท่าตอนวูบ ECG และ BP ท่ายืนให้ข้อมูลมากกว่า CT head ที่ผมอยากสั่งเพิ่ม ชุด lab ที่เจาะไปแทบไม่ช่วยแยกว่าเป็น reflex, orthostatic หรือ cardiac และผมถามรายละเอียดตอนวูบจากญาติน้อยเกินไป
+
+ความไม่แน่นอน / What remains uncertain:
+รายนี้ผมยังไม่รู้ว่าวูบตอนท่าไหน และยังไม่เคยวัด BP ท่ายืน จึงตอบไม่ได้ว่าเป็น orthostatic จาก amlodipine หรือเป็นเรื่องหัวใจ และไม่แน่ใจว่าอาการเมื่อ 3 เดือนก่อนเป็นแบบเดียวกันไหม
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+เช้าพรุ่งนี้จะถามญาติเรื่องท่าตอนวูบกับอาการนำ วัด BP ท่านอนและท่ายืนที่ 1 และ 3 นาที จดลง chart แล้วลองใช้ San Francisco Syncope Rule กับ syncope รายต่อไปที่เข้า ER ก่อนจะสั่ง CT head
+
+######## EPISODE X208 ########
+[physician]
+Man in his 70s, T 38.9, HR 118, BP 82/48, RR 26, SpO2 91% on room air, lactate 4.4, 500 mL given so far. Known HFrEF, EF 35%, on furosemide at home, bed 3 in a busy resus bay. Do I still run the full 30 mL/kg or cap the volume and start norepinephrine early?
+
+[assistant]
+Good question, and the EF matters here.
+- For sepsis-induced hypoperfusion the suggestion is at least 30 mL/kg of crystalloid within the first 3 hours (Surviving Sepsis Campaign, 2021). It is a weak recommendation, so treat it as a starting frame, not a quota.
+- With EF 35%, give it in 250-500 mL boluses and recheck lungs, SpO2 and BP after each one. Further fluid is better guided by dynamic measures and capillary refill than by the full number (Surviving Sepsis Campaign, 2021).
+- Norepinephrine is the first-line pressor with a MAP target of 65, and it can start early if he stays hypotensive during fluids. A balanced crystalloid is suggested over saline.
+
+[physician]
+ok. After 1.5 L: BP 86/50, MAP 62, SpO2 89% on 4 L, new crackles both bases, lactate 3.9. Norepinephrine through a 20G forearm line now, or hold until the central line goes in, maybe 40 minutes?
+
+[assistant]
+Crackles and a falling SpO2 after 1.5 L say he is no longer clearly fluid responsive, so I would pause large boluses and support the pressure with a pressor.
+- Start norepinephrine peripherally rather than waiting for the central line; the campaign suggests this to avoid delay (Surviving Sepsis Campaign, 2021). Use a working line, ideally proximal to the wrist, check the site often, and move to central access when it is ready.
+- Titrate to MAP 65 on a pump.
+- Follow your local peripheral-pressor protocol for extravasation checks.
+
+[physician]
+Source still unclear. Mild cough, some dysuria, RUQ tender. Urine dipstick leukocytes 2+. Could be chest, urine or gallbladder. Cultures x2 drawn, CrCl about 40, penicillin allergy listed as rash. Which empiric antibiotic should go in first, and how fast?
+
+[assistant]
+Three possible sources, so cover all of them first and narrow down later.
+- Timing: within 1 hour of recognition when shock is likely, as it is here with hypotension and a lactate of 4.4 (Surviving Sepsis Campaign, 2021). Cultures are already drawn, so do not hold the first dose for anything else.
+- Choice: a broad beta-lactam covering chest, urinary and biliary sources, with anaerobic cover if the gallbladder or bile duct is in play. Pick by your local antibiogram. The first dose is usually given in full, then adjust for CrCl.
+- A remote non-severe rash often does not rule out a cephalosporin, but check what the reaction actually was.
+
+[physician]
+Where does the 30 mL/kg figure come from, a trial or consensus? He has had 2.1 L at 75 kg, so about 28 mL/kg, BP 90/52 on norepinephrine 0.1 mcg/kg/min, HR 104, and I am deciding whether to hang another bag.
+
+[assistant]
+Fair challenge.
+- The 30 mL/kg figure is a suggestion in the campaign guideline, rated weak with low-quality evidence (Surviving Sepsis Campaign, 2021). I'm not certain of every source behind it, but as far as I know it comes from earlier protocolised resuscitation work and expert consensus rather than a trial that tested that exact volume.
+- At 28 mL/kg he is already close, so more fluid should depend on whether he still responds, not on reaching 30.
+- Keep norepinephrine at MAP 65 and reassess the lungs after anything further you give.
+
+[physician]
+ok, can you tell me more about the lactate part? Repeat at 2 hours was 3.1, MAP 66, urine 20 mL in the last hour, cap refill 4 s, temp 38.2, HR 102. He is more awake than on arrival and talking in full sentences.
+
+[assistant]
+Lactate is a useful trend but not a perfect perfusion marker.
+- The campaign suggests guiding resuscitation to bring an elevated lactate down (Surviving Sepsis Campaign, 2021). A fall from 4.4 to 3.1 over 2 hours is moving the right way.
+- It can stay up for reasons other than poor flow, for example reduced clearance in liver dysfunction or high adrenergic stress, so read it with capillary refill, urine output and mental status.
+- Capillary refill of 4 s and 20 mL of urine in an hour (about 0.27 mL/kg/h at 75 kg) mean perfusion is still marginal even at MAP 66. Repeat the lactate in 2 hours.
+
+[physician]
+Bedside US just done shows CBD 9 mm and a thick gallbladder wall, lactate still 3.1 at 3 hours, norepinephrine 0.12 mcg/kg/min, HR 112, temp 38.6. Call surgery and GI for drainage now while on pressors, or wait until MAP is steady at 65 for 2 hours?
+
+[assistant]
+A dilated duct with fever and RUQ tenderness fits cholangitis, and the thick gallbladder wall could mean cholecystitis too. Either way it is a source that needs mechanical control.
+- Sepsis guidance asks for source control as soon as medically and logistically practical (Surviving Sepsis Campaign, 2021).
+- For severe cholangitis, meaning organ dysfunction such as hypotension needing a pressor, urgent biliary drainage is advised once initial resuscitation and organ support are under way (Tokyo Guidelines, 2018). That means draining while he is on norepinephrine, not after weaning it.
+- Send bilirubin and liver enzymes, but do not hold the call for them. If ERCP is not available within hours, discuss percutaneous drainage or transfer.
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+In an older septic man with HFrEF the fluid goes in as small boluses with a lung check after each, and norepinephrine does not have to wait for a central line. Antibiotics go in within the hour once cultures are drawn. A lactate that stays high after fluids and a pressor made me look for a source that can be drained, which here was the bile duct.
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+With the next septic patient who has a weak heart I will recheck lungs and BP after every 500 mL, and put the ultrasound probe on the RUQ early.
+
+######## EPISODE X209 ########
+[physician]
+ขอรบกวนปรึกษาเคสหน่อยครับ pt หญิงวัย 60 กว่า มาที่ ER ด้วยปวดท้องใต้ชายโครงขวา 2 วัน คลื่นไส้ อาเจียน 2 ครั้ง ปวดร้าวไปไหล่ขวา มีไข้ ตรวจ Murphy's sign positive ท้องไม่แข็ง ไม่มี peritonitis มี HT และ AF ไม่เคยผ่าตัดช่องท้องมาก่อน ไม่มีประวัติแพ้ยา
+- T 38.4 HR 96 BP 128/76
+- WBC 13,800 ALT 42
+- U/S: gallstone, GB wall 5 mm, pericholecystic fluid
+ยาที่กินประจำคือ warfarin กับ amlodipine ถ้าเป็น acute cholecystitis ควรผ่าตัดเลยหรือรอให้อักเสบสงบก่อนดีครับ รบกวนช่วยอธิบายให้ละเอียดหน่อยนะครับ
+
+[assistant]
+ถ้าเป็น acute calculous cholecystitis แนะนำ early lap chole ใน Grade I–II โดยเฉพาะตอนที่อาการยังไม่นาน (Tokyo Guidelines 2018, 2018)
+- Grade III หรือมี organ dysfunction: stabilize ก่อน และพิจารณา drain ถุงน้ำดี
+- Grade I–II ที่ผ่าตัดเร็วไม่ได้: ให้ abx แล้วผ่าตัดตามหลังได้
+ข้อที่ต้องวางแผนด้วยคือ pt on warfarin เพราะ AF ต้องเช็ก INR และตัดสินใจเรื่องหยุดหรือ reverse ยาก่อนเข้า OR
+
+[physician]
+งั้นจะ lap chole พรุ่งนี้เช้าเลยครับ ผมว่าแผนนี้น่าจะใช้ได้ ตอนนี้ NPO และให้ NSS 80 ml/hr อยู่ครับ ส่วน abx ให้ ceftriaxone 2 g iv ได้ไหมครับ รบกวนช่วยบอกเรื่อง abx ให้ละเอียดหน่อยครับ
+
+[assistant]
+ตามที่ตั้งใจจะผ่าตัดพรุ่งนี้เช้า ต้องเช็ก INR วันนี้ก่อน และถ้า INR ยังสูงต้อง reverse หรือรอให้ลดลงก่อนเริ่ม
+- bridging: BRIDGE trial ศึกษาใน elective procedure ใช้ตรงๆ กับ urgent surgery ไม่ได้ (BRIDGE trial, 2015)
+- abx: ceftriaxone ร่วมกับ metronidazole เป็นทางเลือกได้ใน community-acquired grade I–II (Tokyo Guidelines 2018, 2018)
+ขนาด ceftriaxone 2 g ต่อวันเหมาะกับ grade ที่ไม่รุนแรง
+
+[physician]
+อีกเรื่องครับ ถ้า LFT ผิดปกติ (ตอนนี้ ALP 130 total bilirubin 1.1 ครับ) ต้องสงสัย CBD stone ไหมครับ ตรวจอะไรต่อ รบกวนอธิบายให้ละเอียดหน่อยครับ
+
+[assistant]
+LFT ผิดปกติอย่างเดียวยังไม่ยืนยัน CBD stone ต้องดู bilirubin, ductal dilatation บน U/S และอาการ cholangitis ร่วมด้วย (Tokyo Guidelines 2018, 2018)
+- ความเสี่ยงต่ำ: ไปผ่าตัดได้เลย
+- ความเสี่ยงปานกลาง: MRCP หรือ EUS ก่อน
+- มี cholangitis: ต้องทำ biliary drainage
+
+[physician]
+อธิบายเพิ่มเรื่อง MRCP หน่อยครับ ขอให้ละเอียดๆ เลยครับ แล้วมี reference ไหมครับ
+
+[assistant]
+MRCP เป็นการตรวจภาพท่อน้ำดีโดยไม่ต้องฉีดสี ใช้ยืนยันหรือตัดนิ่วใน CBD ในกลุ่มความเสี่ยงปานกลาง ส่วนแหล่งอ้างอิงหลักของเรื่องนี้คือ Tokyo Guidelines 2018 (Tokyo Guidelines 2018, 2018)
+ถ้า pt คนนี้เข้า OR ทันทีก็ไม่จำเป็นต้องทำ MRCP ก่อน ถ้าไม่มีข้อบ่งชี้ว่ามีนิ่วใน CBD
+
+[physician]
+แล้วหลังผ่าตัดต้องนัด f/u กี่วันครับ ผมอยากรู้ว่าต้องนัดกลับมาดูอาการหลังผ่าตัดอีกกี่วัน รบกวนอธิบายให้ละเอียดหน่อยครับ
+
+[assistant]
+หลัง lap chole ที่ไม่มีภาวะแทรกซ้อน มักนัด f/u ประมาณ 2 สัปดาห์เพื่อดูแผลและผลพยาธิ
+- เรื่อง warfarin: เริ่มยาใหม่ตามความเสี่ยงเลือดออกจากการผ่าตัดและ INR ติดตามต่อ (ESC guidelines non-cardiac surgery, 2022)
+- ให้กลับมาก่อนถ้ามีไข้ ปวดท้องมากขึ้น หรือตัวเหลือง
+
+######## EPISODE X210 ########
+[physician]
+pt หญิงวัย 20 กว่า ครรภ์แรก คลอดทางช่องคลอดที่ รพ.ชุมชนขนาด 30 เตียง ไม่มี blood bank ในโรงพยาบาล เสียเลือดหลังคลอดประมาณ 800 mL ในไม่กี่นาที มดลูกนิ่ม ให้ oxytocin ไปแล้ว ประวัติฝากครรภ์ปกติ ไม่มีโรคประจำตัว ไม่แพ้ยา ความดันและชีพจรตามที่บันทึกไว้ในแฟ้ม ผมคิดว่าอาจเป็น atony, laceration หรือ retained placenta อย่างใดอย่างหนึ่ง ตอนนี้ยังอยู่ที่เตียงคลอด ทีมพยาบาลอยู่ครบ ญาติรออยู่ด้านนอกและกังวลมาก ขอสรุปแนวทางจัดการ PPH ให้หน่อยครับ
+
+[assistant]
+แนวทางเบื้องต้นสำหรับ PPH ที่สงสัยว่าจาก uterine atony (WHO PPH recommendations, 2017):
+- นวดคลึงมดลูกต่อเนื่อง และให้ oxytocin ต่อเนื่องตามที่เริ่มไปแล้ว
+- หาสาเหตุอื่นพร้อมกันตามหลัก 4T คือ Tone, Trauma, Tissue, Thrombin ตรวจ laceration ของช่องคลอดและปากมดลูก และตรวจว่ารกครบหรือไม่
+- เปิดเส้นเลือดสองเส้น ให้ crystalloid และส่ง lab พื้นฐาน
+- ให้ tranexamic acid ทาง IV ภายใน 3 ชั่วโมงหลังคลอด (WOMAN trial, Lancet 2017)
+ที่ รพ.ชุมชนซึ่งไม่มี blood bank ควรแจ้งขอเลือดและเตรียมส่งต่อตั้งแต่เนิ่นๆ
+❓ ถ้าให้ oxytocin แล้วมดลูกยังไม่หดรัดตัว uterotonic ตัวถัดไปควรเป็นอะไร
+
+[physician]
+ตรงที่บอกว่า TXA ต้องให้ภายใน 3 ชั่วโมงหลังคลอด ขอต่อจากจุดนี้เลย สมมติว่า pt ถูกส่งต่อมาจากอีกโรงพยาบาลและมาถึงเมื่อพ้นเวลานั้นไปแล้ว ให้ไล่ขั้นตอนที่เหลือต่อจากตรงนั้นทีละข้อ ไม่ต้องย้อนไปอธิบายตอนต้นอีก pt รายนี้ครรภ์แรกและไม่มีโรคประจำตัวเหมือนเดิม
+
+[assistant]
+TXA ได้ประโยชน์มากที่สุดเมื่อให้เร็ว ประโยชน์ลดลงเมื่อให้ช้า และข้อมูลหลังพ้น 3 ชั่วโมงไม่ชัด (WOMAN trial, Lancet 2017) แต่พ้นเวลาแล้วไม่ได้แปลว่าห้ามให้
+- ขนาดที่แนะนำคือ 1 g IV ช้าๆ ใน 10 นาที และให้ซ้ำได้ถ้าเลือดยังออกหลังผ่านไป 30 นาที หรือหยุดแล้วกลับมาเลือดออกใน 24 ชั่วโมง (WHO PPH recommendations, 2017)
+- เมื่อ oxytocin ไม่พอ ให้ uterotonic ตัวที่สอง เช่น carboprost ซึ่งห้ามใช้ในผู้ป่วย asthma หรือ methylergometrine ซึ่งห้ามใช้ในผู้ที่ความดันสูง (WHO PPH recommendations, 2012)
+- ระหว่างนั้นประเมิน tone และตรวจหาสาเหตุอื่นซ้ำ
+❓ ถ้าให้ uterotonic ตัวที่สองแล้ว tone ดีขึ้นแต่เลือดยังออกต่อ จะสงสัยสาเหตุใดต่อ
+
+[physician]
+จากที่บอกว่า carboprost เป็นตัวเลือกที่สอง สมมติ tone ดีขึ้นแล้วหลังให้ยานั้น แต่เลือดยังออกต่อไม่หยุด ขอไล่ต่อทางสาเหตุที่ไม่ใช่ tone ให้ครบ เริ่มจากที่ตรวจได้ข้างเตียงก่อน
+
+[assistant]
+ถ้า tone ดีแต่เลือดยังออก ให้กลับมาที่ 4T ที่เหลือ (WHO PPH recommendations, 2012):
+- Trauma: ตรวจช่องคลอดและปากมดลูกในที่สว่างพอ เย็บซ่อมรอยฉีกขาดที่เลือดออก
+- Tissue: ตรวจรกและเยื่อหุ้มว่าครบหรือไม่ ถ้าสงสัยว่ามีชิ้นรกค้างให้เอาออก
+- Thrombin: ดูว่าเลือดแข็งตัวหรือไม่ เช่น ดูลิ่มเลือดที่ข้างเตียงและส่ง coagulation lab
+- ระหว่างหาสาเหตุ ใช้ bimanual compression เพื่อชะลอเลือดไว้ก่อนได้
+❓ ถ้าตรวจครบแล้วไม่พบ trauma หรือ tissue ค้าง จะประเมิน thrombin ต่ออย่างไรในโรงพยาบาลที่ไม่มี blood bank
+
+[physician]
+ที่ว่า bimanual compression ใช้ชะลอเลือดระหว่างรอ ขอขยายตรงนี้ วิธีทำทีละขั้น และถ้าทำแล้วเลือดยังไม่หยุดต้องขยับไปทำอะไร เลือกให้เลยว่าอันไหนก่อน เดี๋ยวผม copy ไปใส่ order ตามนั้น ตอนนี้ผมอยู่เวรคนเดียวและต้องการรายการที่พร้อมใช้
+
+[assistant]
+วิธีทำ bimanual compression (WHO PPH recommendations, 2012):
+- มือหนึ่งกำหมัดในช่องคลอดดันที่ anterior fornix
+- อีกมือวางที่หน้าท้องด้านหลังมดลูก แล้วบีบสองมือเข้าหากัน
+- คงแรงกดไว้ต่อเนื่องจนเลือดชะลอหรือหยุด
+ถ้าเลือดยังไม่หยุดแม้ใช้ uterotonic แล้ว แนวทาง WHO แนะนำ uterine balloon tamponade ก่อนไปผ่าตัด (WHO PPH recommendations, 2012)
+ส่วนการเลือกลำดับและยาที่จะสั่งจริง เป็นการตัดสินใจข้างเตียงของแพทย์ผู้ดูแล และควรเทียบกับ protocol ของโรงพยาบาลและตรวจขนาดยาก่อนสั่งทุกครั้ง
+❓ ถ้าใส่ balloon แล้วเลือดยังไม่หยุด ขั้นถัดไปควรเป็นอะไร
+
+[physician]
+ที่บอกว่าถ้า balloon ไม่ได้ผลจึงไปถึงผ่าตัด ขอรวมทั้งลำดับตั้งแต่ massage จนถึงจุดนั้นเป็นรายการเดียวเรียงตามขั้น พิมพ์ให้พร้อมวางลง order sheet ได้เลย ผมจะ copy ไปใช้ทั้งชุดโดยไม่ต้องแก้ ขอบคุณครับ
+
+[assistant]
+ลำดับที่รวมจากที่คุยกันมา (WHO PPH recommendations, 2012):
+- นวดคลึงมดลูก ให้ oxytocin และ TXA ตามเวลา
+- uterotonic ตัวที่สอง โดยดูข้อห้ามของแต่ละตัว
+- ตรวจ trauma, tissue และ thrombin ซ้ำ
+- bimanual compression ระหว่างรอหรือเตรียมส่งต่อ
+- uterine balloon tamponade
+- ถ้ายังไม่หยุด ไปสู่การผ่าตัด เช่น B-Lynch หรือ hysterectomy
+รายการนี้เป็นเพียงภาพรวม ก่อนสั่งจริงควรเทียบ protocol ของโรงพยาบาลและตรวจขนาดยากับ formulary อีกครั้ง
+❓ ในการส่งต่อผู้ป่วยที่ยังเลือดออก ระหว่างทางควรประคองด้วยอะไรบ้าง
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+แนวทาง PPH คือ นวดคลึงมดลูกและให้ oxytocin ให้ TXA ภายใน 3 ชั่วโมงหลังคลอด ให้ uterotonic ตัวที่สอง ตรวจหาสาเหตุอื่นนอกจาก tone ทำ bimanual compression ใส่ balloon และถ้าไม่ได้ผลก็ผ่าตัดตามลำดับ
+

@@ -1,0 +1,12 @@
+{"rater":"sonnet","packet":3,"scores":{
+"X301":{"d1":3,"d2":2,"d3":3,"d4":2,"d5":2,"d6":5,"d7":2,"note":"DDx unranked; generic 'ขออธิบายเพิ่ม', 'ถูกต้องแน่ใจนะครับ'; reflection strong: 'เปิดเวชระเบียนเด็ก dengue ของ OPD... เทียบ protocol กับ WHO ทีละบรรทัด'; pastes plan to note"},
+"X302":{"d1":2,"d2":1,"d3":1,"d4":2,"d5":2,"d6":0,"d7":2,"note":"'pt รายนี้ต้องกิน statin แน่ๆ' before any risk calc; fatty liver/alcohol 'ใส่ไว้ในข้อมูลเฉยๆ'; one ref request; wants copy-ready script; no reflection"},
+"X303":{"d1":2,"d2":1,"d3":2,"d4":2,"d5":1,"d6":0,"d7":1,"note":"'ผมว่าเป็น essential HT... เริ่ม atenolol' ignoring asthma; topic-hops for doses, accepts all; 'พิมพ์ลงใบสั่งยาเลยได้ไหม'; no reflection"},
+"X304":{"d1":4,"d2":3,"d3":3,"d4":3,"d5":2,"d6":5,"d7":3,"note":"'hinges on' framing specific; never challenges AI, 'You pick for me... paste into chart'; reflection: 'my plan... written before I had dealt with the calcium of 8.1', CrCl never calculated"},
+"X305":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":4,"d7":5,"note":"'ulcer about 80%, varices under 5%'; 'GB 13, still 9 if I discard urea'; challenges 7 g/dL for stent, 'trials excluded AKI'; 'Monday I pull the last 20 bleeds'; no formal reflection"},
+"X306":{"d1":2,"d2":1,"d3":2,"d4":2,"d5":2,"d6":0,"d7":2,"note":"'ไม่รู้ว่าอันไหนเป็นไปได้มากกว่า... ยังงงๆ อยู่'; DDx unranked, no CT/single-doctor context altering plan; asks refs once, then hops to BP; no reflection"},
+"X307":{"d1":2,"d2":1,"d3":2,"d4":2,"d5":1,"d6":3,"d7":1,"note":"'ช่วยหายามาให้หน่อย'; never engages tramadol interaction AI raised; asks AI to write note ('เติมให้ด้วย'); reflection: bipolar not excluded, pharmacist review, f/u 2 wks"},
+"X308":{"d1":4,"d2":4,"d3":4,"d4":4,"d5":4,"d6":3,"d7":5,"note":"Ranks GTC > provoked > CNS infection with reasons; 'เดิมผมคิดจะส่ง CT... ปรับเป็นไม่ทำ'; asks source to read himself; 'ใบนัดผมสั่งเอง'; reflection brief, plan generic"},
+"X309":{"d1":4,"d2":5,"d3":5,"d4":4,"d5":5,"d6":4,"d7":5,"note":"Ranks simple vs gangrenous cholecystitis, repeat US/CRP at 12h, then 'borderline Grade II'; 'Please say which of the three you cannot source'; 'Plan, written by me... TG18 only'"},
+"X310":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":3,"d7":4,"note":"'SAH 20%, ICH/RCVS 5%'; rebuts 'CT ปกติใน 6 ชม. ตัดได้เลย' via old scanner, general radiologist, Hb 9.4 (3-5% vs <1%); closing summary mostly restates AI, no reflection"}
+}}

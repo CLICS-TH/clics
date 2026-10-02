@@ -1,0 +1,12 @@
+{"rater":"opus","packet":4,"scores":{
+"X401":{"d1":4,"d2":5,"d3":5,"d4":4,"d5":5,"d6":3,"d7":5,"note":"'ผมขยับจากครึ่งหนึ่งเป็น 70%'; challenges 'Alvarado 7 ผ่าได้เลยในทุกราย ผมไม่เห็นด้วย'; radiographer not radiologist; 'ผมจะเปิดต้นฉบับเทียบ...ผมเป็นคนเซ็นแผน'; reflection recap, no next action"},
+"X402":{"d1":2,"d2":1,"d3":2,"d4":2,"d5":1,"d6":1,"d7":2,"note":"Data dumps + generic asks 'ต้องจัดการยังไงบ้าง','ช่วยสรุปแผนให้หน่อย'; lone 'ผมว่าน่าจะเป็น gastric ulcer'; bare 'แน่ใจนะครับ'; Hb at รพ.สต. near home; reflection 'ได้ความรู้เยอะมาก'"},
+"X403":{"d1":5,"d2":5,"d3":4,"d4":5,"d5":5,"d6":5,"d7":5,"note":"'criteria นั้นต้องไม่ได้ on diuretic...ขอ source'; 2-step plan; K raises Na; 'เทียบ cutoff 10 mmol/L กับ CPG ฉบับเต็มแล้ว'; reflection names change, uncertainty, Na day 3/7 next case"},
+"X404":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":4,"note":"Ranked atony>tear; WOMAN challenge 'ลดการตายจากเลือดออก ไม่ได้ลดการตายจากทุกสาเหตุ'; revises to tear+atony; no blood bank/Hb 9 drives transfer; PPH checklist next week"},
+"X405":{"d1":3,"d2":3,"d3":3,"d4":3,"d5":3,"d6":2,"d7":3,"note":"Delirium-on-dementia justified (acute, fluctuating); CAM timing/nurse Qs; stops lorazepam/diphenhydramine; asks 'มี source ไหมครับ'; reflection recaps AI advice, no uncertainty/action"},
+"X406":{"d1":2,"d2":1,"d3":1,"d4":2,"d5":1,"d6":1,"d7":1,"note":"'ขอแบบละเอียดทุกเรื่องเลย','checklist...จะได้ copy ไปใช้'; unranked 'ischemia หรือ hypovolemia หรือ propofol'; bare 'มี reference ไหมครับ'; reflection restates AI checklist"},
+"X407":{"d1":2,"d2":2,"d3":2,"d4":2,"d5":2,"d6":1,"d7":2,"note":"Opens 'โรคนี้รักษายังไงครับ'; unranked DDx list; self-scores HEART 5 and asks 'มาจาก study ไหน ทำในคนกลุ่มไหน...จะใช้ได้ไหม'; topic-hops to statin; reflection 'ได้ความรู้เยอะมาก'"},
+"X408":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":3,"d7":5,"note":"'CRP ขึ้นช้ากว่าไข้...cutoff อิง PCT...ใช้กับ รพ.ที่ไม่มี PCT ได้แค่ไหน'; 'ผมเคยเอนไป viral/UTI...ตอนนี้เปลี่ยนแล้ว'; 'order รายนี้ผมสั่งเอง'; no reflection section"},
+"X409":{"d1":5,"d2":4,"d3":5,"d4":3,"d5":5,"d6":4,"d7":5,"note":"'หาจุดอ่อนแผนนี้'; QTc 478/K/Mg; formulary, 1:12 night nurse, 45 km; 'antipsychotic...มาจาก ICU/หลังผ่าตัด ไม่รวมรายแบบนี้, melatonin เป็น trial เล็ก'; owns order"},
+"X410":{"d1":1,"d2":1,"d3":0,"d4":1,"d5":0,"d6":0,"d7":0,"note":"Guideline-fact confirmations 'ใช่ไหมครับ' with no patient data; unranked DDx; 'ตัดสินใจให้เลยว่าให้ rtPA ไหม CT ผมไม่เห็น bleed ใช่ไหม เดี๋ยว copy ไปใส่ order'; no reflection"}
+}}

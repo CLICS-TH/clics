@@ -1,0 +1,709 @@
+######## EPISODE X601 ########
+[physician]
+pt DM วัย 60 กว่า HbA1c 8.4 eGFR 38 UACR 220 on metformin 500 bid + losartan 50 รพ.ชุมชน จ่ายยาเองไม่เกิน 1500/เดือน add-on SGLT2i, GLP-1 RA, DPP-4i หรือ pioglitazone
+
+[assistant]
+แนวทาง KDIGO สำหรับ T2D ที่มี CKD แนะนำ SGLT2i เป็นยาเพิ่มต่อจาก metformin เมื่อ eGFR ตั้งแต่ 20 ขึ้นไป เพื่อปกป้องไตและหัวใจ (KDIGO Diabetes in CKD, 2022)
+- ฤทธิ์ลดน้ำตาลของ SGLT2i น้อยลงเมื่อ eGFR ต่ำ แต่ประโยชน์ต่อไตและหัวใจไม่ได้พึ่งฤทธิ์ลดน้ำตาล (ADA Standards of Care in Diabetes, 2024)
+- ถ้าต้องลดน้ำตาลเพิ่ม GLP-1 RA ที่มีหลักฐานด้าน CV เป็นตัวเลือกถัดไป (KDIGO Diabetes in CKD, 2022)
+- DPP-4i ลดน้ำตาลได้พอประมาณ ส่วน pioglitazone ต้องระวังบวมน้ำและหัวใจล้มเหลว
+❓ ถ้า SGLT2i ลด HbA1c ได้เพียงเล็กน้อยจาก 8.4 จะตั้งเป้า HbA1c ของ pt รายนี้เท่าไร และจะเติมยาตัวที่สามเมื่อใด
+
+[physician]
+ฤทธิ์ลดน้ำตาลของ SGLT2i ลดลงที่ eGFR 38 ตามที่บอก ถ้า HbA1c ลงแค่ 0.3-0.5 จาก 8.4 ยังเกิน 7.5 อยู่ ต้องเติมตัวที่สามไหม
+
+[assistant]
+เป้า HbA1c ที่ผ่อนลง เช่น ไม่เกิน 8% เหมาะกับผู้ที่มีโรคร่วมหรือเสี่ยง hypoglycemia (ADA Standards of Care in Diabetes, 2024) การตั้งเป้า 7.5 จึงอยู่ในกรอบที่ยอมรับได้
+- ถ้าหลังเริ่ม SGLT2i แล้ว HbA1c ยังสูงกว่าเป้า ค่อยเติม GLP-1 RA ที่มีหลักฐานด้าน CV ได้ (KDIGO Diabetes in CKD, 2022)
+- eGFR มักตกเล็กน้อยช่วงแรกหลังเริ่ม SGLT2i แล้วค่อยนิ่ง (KDIGO Diabetes in CKD, 2022)
+❓ ถ้า eGFR ตกจาก 38 เป็น 31 ใน 4 สัปดาห์หลังเริ่ม SGLT2i จะดูอะไรบ้างและทำอย่างไร
+
+[physician]
+ok ครับ ถ้า eGFR ตกจาก 38 เป็น 31 ใน 4 สัปดาห์ ที่นี่เจาะ Cr ซ้ำได้แค่สัปดาห์ 2 กับ 4 K ล่าสุด 4.9 on losartan 50 ต้องหยุดตัวไหน
+
+[assistant]
+eGFR ที่ตกจาก 38 เป็น 31 คือราว 18% ซึ่งเข้ากับ dip ช่วงแรกที่พบได้ และโดยทั่วไปไม่ใช่เหตุให้หยุด SGLT2i (KDIGO Diabetes in CKD, 2022)
+- ดู volume status, ยา diuretic และยากลุ่ม NSAID ที่อาจซ้ำเติมไต
+- K 4.9 on losartan: เจาะ K ซ้ำพร้อม Cr ที่สัปดาห์ 2 และ 4 ตามที่ทำได้ ถ้า Cr ขึ้นเกิน 30% ภายใน 4 สัปดาห์ค่อยทบทวน losartan (KDIGO CKD, 2024)
+❓ ถ้า pt ท้องเสียจนกินอาหารไม่ได้ 2 วัน ยาตัวไหนควรพักชั่วคราว
+
+[physician]
+ท้องเสียกินไม่ได้ 2 วัน บ้านอยู่ไกล รพ. 40 กม. ให้หยุด SGLT2i metformin losartan พร้อมกัน 3 ตัวใช่ไหม เริ่มใหม่ใน 48 ชม.
+
+[assistant]
+ควรพักชั่วคราวทั้ง SGLT2i, metformin และ ARB ช่วงขาดน้ำหรือกินไม่ได้ แล้วเริ่มใหม่เมื่อกินดื่มได้ปกติราว 24-48 ชม. (KDIGO Diabetes in CKD, 2022) เสี่ยง AKI, euglycaemic ketoacidosis กับ SGLT2i และ lactic acidosis กับ metformin
+- เมื่อโทรปรึกษาไม่ได้ทุกครั้ง การเขียนคำแนะนำ sick day ให้ pt ถือกลับบ้านช่วยได้มาก
+- SGLT2i ชะลอการเสื่อมของไตและลดเหตุการณ์ CV ในผู้ป่วย T2D ที่มี CKD (KDIGO Diabetes in CKD, 2022)
+❓ จะอธิบายประโยชน์ระยะยาวต่อไตให้ pt ที่ UACR 220 ฟังอย่างไร
+
+[physician]
+ที่บอกว่าลด progression ของ CKD ผล primary มาจาก trial ที่รับ eGFR ช่วงไหน UACR 220 ของ pt อยู่ในกลุ่มนั้นไหม หรือเป็นแค่ eGFR slope
+
+[assistant]
+trial หลักของ SGLT2i ใน CKD รับผู้ป่วยที่ eGFR ราว 20-25 ขึ้นไป ส่วนใหญ่มี albuminuria และ primary outcome เป็นผลรวมหลายเหตุการณ์ของไต ได้แก่ eGFR ลดลงมาก, ESKD และเสียชีวิต ไม่ใช่แค่ eGFR slope (KDIGO Diabetes in CKD, 2022)
+- UACR 220 จัดว่ามี albuminuria จึงอยู่ในกลุ่มที่ trial ศึกษา แต่ขนาดประโยชน์เฉพาะช่วงนี้ ผมยังไม่แน่ใจตัวเลข
+- ผลเหล่านี้มาจาก RCT ในผู้ป่วยที่ถูกคัดเลือก ไม่ใช่ประชากร รพ.ชุมชนทั้งหมด
+❓ ถ้า pt ไม่มี albuminuria (UACR ต่ำกว่า 30) หลักฐานด้านไตจะยังใช้กับ pt ได้ตรงเท่าเดิมไหม
+
+[physician]
+แล้ว GLP-1 RA ที่ KDIGO วางถัดไป หลักฐานต่อไตเป็นแค่ secondary หรือ exploratory เทียบ SGLT2i ราคาเกิน 1500 ของ pt แน่ ทำอย่างไร
+
+[assistant]
+ประโยชน์ด้าน CV ของ GLP-1 RA ชัดเจนในตัวที่มีหลักฐาน ส่วนผลต่อไตส่วนใหญ่มาจาก outcome รองและการลด albuminuria ในการศึกษาด้าน CV (ADA Standards of Care in Diabetes, 2024) จึงยังเทียบกับ SGLT2i ตรง ๆ ไม่ได้ ผมยังไม่แน่ใจรายละเอียดรายตัว
+- เรื่องราคา ควรคุยกับ pt และเภสัชกรว่ามีใน formulary ของ รพ. หรือไม่ก่อนตัดสินใจ
+❓ ถ้า GLP-1 RA จ่ายไม่ไหวและ HbA1c ยังเกินเป้า ตัวเลือกลดน้ำตาลที่เหลือมีข้อดีข้อเสียต่างกันอย่างไรที่ eGFR 38
+
+[physician]
+ถ้าจ่ายได้ตัวเดียว: linagliptin 5 mg หรือ sitagliptin 50 mg กับ glipizide 5 mg เสี่ยง hypo ที่เป้า 7.5 ต่างกันแค่ไหน มี RCT เทียบตรงใน CKD 3 ไหม
+
+[assistant]
+- linagliptin ไม่ต้องปรับขนาดตามไต ส่วน sitagliptin ลดเหลือ 50 mg เมื่อ eGFR 30 ถึงต่ำกว่า 45 (KDIGO Diabetes in CKD, 2022)
+- SU เสี่ยง hypoglycemia สูงกว่า DPP-4i ใน CKD และ glipizide เป็นตัวที่เสี่ยงน้อยกว่า SU ตัวอื่น (ADA Standards of Care in Diabetes, 2024)
+- RCT เทียบตรงระหว่างสองกลุ่มนี้ใน CKD 3 ผมไม่แน่ใจว่ามีขนาดใหญ่พอ ข้อมูลส่วนมากเป็น observational
+❓ ถ้าเริ่ม SGLT2i เพื่อไตเป็นหลัก จะติดตามว่าได้ผลด้วยตัวชี้วัดอะไรที่ 3 และ 6 เดือน
+
+[physician]
+ถ้าเริ่ม SGLT2i 10 mg เพื่อไตเป็นหลัก ที่ 3 และ 6 เดือนควรวัดผลด้วย UACR หรือ eGFR slope ส่ง UACR ได้แค่ รพ.จังหวัด 1 ครั้งต่อ 6 เดือน
+
+[assistant]
+UACR เป็นตัวติดตามที่ทำได้จริงในเวชปฏิบัติ และตรวจปีละ 1-2 ครั้งตามระดับความเสี่ยงของ CKD (KDIGO CKD, 2024)
+- eGFR dip ช่วงแรกคาดได้ ไม่ถือว่าล้มเหลว ควรดู slope ระยะยาวมากกว่าค่าเดี่ยว
+- UACR ที่ลดลงเป็น surrogate ไม่ใช่การยืนยัน kidney outcome ในรายบุคคล (KDIGO Diabetes in CKD, 2022)
+❓ ถ้า UACR ไม่ลดลงที่ 6 เดือน จะถือว่ายานี้ไม่ได้ผลกับ pt รายนี้หรือไม่
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+SGLT2i ที่ eGFR 38 ให้ไตและหัวใจเป็นงานหลัก ส่วนการลด HbA1c ตัวนี้ทำได้น้อย จึงจัดเป็นสองงานแยกกัน ตัวลดน้ำตาลต้องเลือกแยก และ sick day ต้องสอน pt ก่อนจ่ายยา
+
+ความไม่แน่นอน / What remains uncertain:
+ยังไม่รู้ขนาดประโยชน์ต่อไตเฉพาะช่วง UACR 220 และไม่มี RCT เทียบ DPP-4i กับ SU ใน CKD 3 โดยตรง
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+วันจันทร์เปิด KDIGO 2022 ส่วน SGLT2i ตรวจ eGFR ขั้นต่ำที่เริ่มได้ เทียบกับ formulary รพ. ว่ามีตัวไหน ให้เภสัชกรเขียนบัตร sick day แล้วทบทวน pt DM+CKD 3 ในคลินิก 20 รายแรกว่ากี่รายได้ SGLT2i และกี่รายมี UACR ใน 12 เดือน
+
+######## EPISODE X602 ########
+[physician]
+ชายวัย 50 กว่า on ward หยุดดื่มมา 40 ชม. HR 112 BP 156/94 T 37.8 มือสั่น เหงื่อออก CIWA 14 ตับแข็ง Child B ควรเริ่ม benzo เลยไหม
+
+[assistant]
+ควรเริ่มครับ CIWA-Ar 14 ถือว่าอยู่ในช่วงที่ต้องให้ยา
+- แนะนำให้ benzodiazepine ตามอาการ (symptom-triggered) โดยประเมินซ้ำทุก 1–2 ชม. (CIWA-Ar, Sullivan 1989)
+- diazepam ออกฤทธิ์เร็ว และเป็นตัวเลือกที่ใช้บ่อย; ในตับแข็งรุนแรงให้พิจารณา lorazepam แทน (NICE CG115, 2011)
+- ประเมิน vital sign และ hydration ควบคู่ไปด้วย
+
+[physician]
+DDx ผมเรียงตามนี้
+1. withdrawal เพราะ onset 40 ชม. tremor sweat HR 112
+2. infection เพราะ T 37.8 WBC 11,000
+3. Wernicke ยังไม่มี ataxia GCS 15
+
+[assistant]
+เรียงได้สมเหตุสมผลครับ
+- withdrawal มักเริ่มภายใน 6–24 ชม. หลังหยุดดื่ม และ peak ราว 24–72 ชม. จึงตรงกับ timeline นี้ (NICE CG115, 2011)
+- ไข้ต่ำ ๆ พบได้ใน withdrawal แต่ถ้า CRP หรือ WBC สูงควรหา infection ควบคู่
+- ผู้ที่ดื่มหนักควรได้ thiamine ฉีดก่อนให้ glucose (NICE CG115, 2011)
+
+[physician]
+อธิบาย dosing เพิ่มหน่อยครับ diazepam 5 หรือ 10 หรือ 20 mg เริ่มเท่าไหร่ ทุกกี่ ชม. ตอนนี้ HR 108 BP 150/90 CIWA 12
+
+[assistant]
+แนวทางทั่วไป
+- เริ่ม diazepam 10 mg IV แล้วประเมินซ้ำ ทุก 1 ชม. จนอาการสงบ
+- ใช้ CIWA-Ar ≥ 8 เป็นเกณฑ์เริ่มยาได้กับทุกราย รวมถึงผู้ป่วยที่ซึมสับสนจนตอบเองไม่ได้
+- ระวัง oversedation และ respiratory depression ถ้าให้ซ้ำหลายครั้ง (NICE CG115, 2011)
+
+[physician]
+CIWA ต้องให้ pt ตอบเองครบ 10 ข้อ รายที่ confused ใช้ไม่ได้ ไม่ใช่ทุกราย และ cutoff 8 มาจาก validation study ไม่ใช่ RCT
+
+[assistant]
+ถูกต้องครับ ผมกล่าวกว้างเกินไป
+- CIWA-Ar ต้องอาศัยการตอบของผู้ป่วยหลายข้อ จึงใช้ไม่ได้ในผู้ป่วยที่สื่อสารไม่ได้ ซึ่งต้องประเมินจากอาการที่สังเกตเห็นเอง (Sullivan et al. CIWA-Ar, 1989)
+- ตัวคะแนนมาจากงาน validation ไม่ใช่การทดลองเทียบการรักษา
+
+[physician]
+ผมเดิมว่า withdrawal อันดับ 1 แต่ CRP 48 กับ WBC 11,000 ทำให้ infection ขยับขึ้น เลยจะส่ง blood culture 2 ขวดก่อนให้ยาตัวที่ 2 ถ้ายัง T 38.1 หลังให้ครบ 2 dose จะ CXR ต่อ
+
+[assistant]
+สมเหตุสมผลครับ การส่ง culture ไม่ควรทำให้การให้ยาล่าช้า
+- ถ้ามีไข้หรือ CRP สูงควรหา source เช่น ปอด ทางเดินปัสสาวะ ท้อง
+- อาการ withdrawal ที่ไม่สงบตามปกติก็เป็นเบาะแสให้หาสาเหตุอื่นด้วย (NICE CG115, 2011)
+
+[physician]
+ที่บอกว่า symptom-triggered ดีกว่า fixed dose นั่น RCT หรือ cohort ระดับ recommendation เท่าไหร่
+
+[assistant]
+ผมยังไม่แน่ใจจำนวนผู้ป่วยในงานเหล่านั้นครับ ขอไม่ระบุตัวเลข
+- แนวทางสนับสนุน symptom-triggered โดยดูจากการลดปริมาณยารวมในผู้ป่วยที่ติดตามใกล้ชิด
+- ระดับหลักฐานแต่ละงานแตกต่างกัน ควรเปิดตัว guideline ฉบับเต็มเพื่อดูระดับ recommendation (NICE CG115, 2011)
+
+[physician]
+ขอ order ที่ copy ลง chart ได้เลย diazepam กับ thiamine พร้อม dose ครบ เช้า 7 โมงจะ round ลงสั่งให้ทัน
+
+[assistant]
+ร่างให้ดูเป็นแนวทางครับ ควรปรับตามผู้ป่วยและ protocol ของหน่วย
+- diazepam 10 mg IV ประเมินซ้ำทุก 1 ชม. หยุดเมื่ออาการสงบ
+- thiamine ฉีดก่อนให้ glucose ตามขนาดใน protocol ของหน่วย (NICE CG115, 2011)
+กรุณาให้เภสัชกรหรือแพทย์อาวุโสตรวจก่อนสั่งใช้จริงด้วย
+
+[physician]
+Na 128 K 3.1 Mg 1.2 ผลเมื่อเช้า แล้ว fluid กับ electrolyte ต้องดูอะไรอีก ตอนนี้ on NSS 80 ml/hr Cr 0.9
+
+[assistant]
+ดูเรื่องต่อไปนี้ครับ
+- แก้ K และ Mg ให้เพียงพอ เพราะ Mg ต่ำทำให้แก้ K ยาก
+- แก้ Na ช้า ๆ ไม่ให้สูงขึ้นเร็วเกินไป เสี่ยง osmotic demyelination (European hyponatraemia CPG, Spasovski et al., 2014)
+- ตรวจ electrolyte ซ้ำตามระยะที่เหมาะสม
+
+######## EPISODE X603 ########
+[physician]
+bronchiolitis รักษายังไงครับ ช่วยสรุปหน่อย
+
+[assistant]
+หลักคือ supportive care ครับ
+- ให้ O2 เมื่อ SpO2 ต่ำกว่า 90% ดูแลเรื่องนมและ hydration ดูดเสมหะจมูกเมื่อจำเป็น (AAP, 2014)
+- ไม่แนะนำ bronchodilator, steroid หรือ antibiotic เป็น routine (AAP, 2014)
+- admit เมื่อกินได้น้อย หายใจลำบาก หรือที่บ้านดูแลต่อไม่ได้ (AAP, 2014)
+
+❓ ถ้าเด็กกินนมได้ครึ่งหนึ่งของปกติแต่ SpO2 อยู่ที่ 93% จะ admit หรือส่งกลับบ้านครับ?
+
+[physician]
+ok ครับ เคสผมเป็นทารก 4 เดือน วันที่สามของโรค RR 55 SpO2 93% RA กินนมได้ครึ่งเดียว ผม admit เพราะกินได้ครึ่งเดียวกับบ้านอยู่ไกล ไม่ใช่เพราะ SpO2 โอกาสแย่จนต้องส่งต่อราว 1 ใน 10 ต่ำพอจะเฝ้าที่ รพ.ชุมชนได้
+
+[assistant]
+เหตุผลสมเหตุสมผลครับ กินได้น้อยกว่าครึ่งและบ้านอยู่ไกลเป็นเหตุผลที่ยอมรับได้ในการ admit แม้ SpO2 ยังไม่ต่ำกว่า 90% (AAP, 2014)
+- ช่วงวันที่ 3–5 ของโรคมักแย่ที่สุด ควรประเมินการกินและปัสสาวะซ้ำ
+- ถ้ากินน้อยกว่าครึ่งต่อเนื่องให้พิจารณา NG หรือ IV
+- 3% hypertonic saline พ่นช่วยลดวันนอน รพ. ในผู้ป่วยในทุกราย
+
+❓ ถ้า SpO2 ตอนหลับตกต่ำกว่า 90% ซ้ำ จะปรับแผนอย่างไรครับ?
+
+[physician]
+ที่บอกว่า 3% saline ช่วยลดวันนอนในผู้ป่วยในทุกราย บรรทัดนั้นไม่มี source ผมจำได้ว่า AAP 2014 ใช้คำว่า may และแนะนำแบบอ่อน trial ส่วนใหญ่เป็นเด็กนอนนาน เคสผมน่าจะกลับบ้านเร็ว ผมจึงไม่พ่น
+
+[assistant]
+ถูกต้องครับ ผมเขียนกว้างเกินไป AAP 2014 ไม่แนะนำให้พ่นในห้องฉุกเฉิน และใช้คำว่า may สำหรับผู้ป่วยใน ด้วยหลักฐานระดับ B และน้ำหนักแนะนำแบบอ่อน (AAP, 2014)
+- ประโยชน์ที่รายงานเห็นชัดในกลุ่มที่นอนนาน ส่วนเด็กที่น่าจะกลับบ้านเร็ว ประโยชน์น้อยหรือไม่ชัด
+
+❓ ถ้าให้ O2 cannula แล้ว SpO2 ยังต่ำกว่า 90% จะ escalate อย่างไรใน รพ.ที่ไม่มี HFNC ครับ?
+
+[physician]
+ตอนแรกผมไม่กังวล SpO2 93% แต่ตอนหลับอาจต่ำลง เลยจะเช็กซ้ำตอนหลับ ที่นี่ไม่มี HFNC PICU ใกล้สุดห่าง 2 ชม. ผมจะโทรส่งต่อเมื่อ
+1. cannula 2 L/min แล้ว SpO2 ยังต่ำกว่า 90
+2. RR เกิน 70 หรือ retraction เพิ่ม
+HFNC ใช้ยังไงครับ
+
+[assistant]
+เกณฑ์ส่งต่อที่วางไว้สมเหตุสมผล ไม่ควรรอลอง O2 นานเมื่อรถ refer ใช้เวลา 2 ชม.
+- HFNC เป็นตัวเลือกก่อนใส่ท่อช่วยหายใจใน รพ.ที่มี PICU รองรับ
+- หลักฐานส่วนใหญ่มาจากหน่วยที่มีการเฝ้าระวังต่อเนื่องและพยาบาลต่อเตียงมากกว่าหอทั่วไป (AAP, 2014)
+
+❓ ระหว่างรอรถ refer จะเฝ้าเด็กและดูแลการให้นมอย่างไรครับ?
+
+[physician]
+ok ครับ ที่ว่าหลักฐาน HFNC ส่วนใหญ่มาจาก รพ.ใหญ่ ตรงกับที่ผมกังวล ต่อให้มีเครื่องก็ไม่มี monitor ต่อเนื่อง พยาบาลคนเดียวดูหลายสิบเตียง จึงเลือกส่งต่อแทนการขอเครื่อง
+
+[assistant]
+ตรงประเด็นครับ เครื่องมือต้องมาพร้อมการเฝ้าระวัง การส่งต่อเร็วจึงเหมาะกับบริบทนี้
+- ระหว่างรอ ให้ดูดเสมหะ จัดท่านอนศีรษะสูงเล็กน้อย และงดนมถ้าหายใจเร็วมากเพื่อลดความเสี่ยงสำลัก
+- ให้ IV fluid ถ้ากินไม่ได้ (AAP, 2014)
+
+❓ ถ้าญาติถามว่าทำไมไม่พ่นยาขยายหลอดลม จะอธิบายอย่างไรครับ?
+
+[physician]
+steroid กับ salbutamol ล่ะครับ เคสนี้ไม่ wheeze ซ้ำ ไม่มีประวัติหอบในครอบครัว ผมเห็นด้วยกับการไม่ให้ ถ้าลอง salbutamol ดีขึ้นใน 30 นาทีก็ยังไม่ต่อ เพราะไม่ใช่ทุกรายตอบสนอง
+
+[assistant]
+AAP 2014 ไม่แนะนำ bronchodilator และ steroid เป็น routine เพราะไม่ลดการ admit หรือวันนอน และมีผลข้างเคียงจากยา (AAP, 2014)
+- ถ้าลอง salbutamol ควรประเมินก่อนและหลังด้วยคะแนนอาการ การไม่ต่อสอดคล้องกัน
+- ในเด็กเล็กมากการ wheeze ซ้ำควรคิดถึงสาเหตุอื่นด้วย
+
+❓ ถ้าตอนเช้าเด็กกินได้ดีขึ้นและ SpO2 หลับนิ่ง จะวาง criteria กลับบ้านอย่างไรครับ?
+
+[physician]
+สรุปของผม เดิมคิดว่า SpO2 93% ตอนตื่นพอแล้ว ตอนนี้จะเช็กตอนหลับด้วย และไม่พ่น 3% saline ในเด็กที่น่าจะกลับบ้านเร็ว admit เพราะกินได้ครึ่งเดียวกับระยะทาง ไม่ใช่เพราะ SpO2 ยังไม่รู้ว่าวันที่สี่จะแย่ลงไหม พรุ่งนี้เช้าจะติดเกณฑ์ส่งต่อไว้ที่เตียง และเปิด AAP ฉบับเต็มเทียบเกณฑ์ O2 แผนนี้ผมเป็นคนสั่ง ไม่ได้ copy จากแชท
+
+[assistant]
+สรุปได้ชัดเจนครับ admit ด้วยเหตุผลเรื่องการกินและระยะทาง เช็ก SpO2 ตอนหลับ และกำหนดจุดส่งต่อไว้ล่วงหน้า สอดคล้องกับ AAP 2014 ซึ่งไม่ได้ใช้ SpO2 อย่างเดียวตัดสิน (AAP, 2014)
+- ข้อที่ตรวจต่อได้คือเกณฑ์ O2 ที่ 90% ในตัวฉบับเต็ม เพราะเกณฑ์นี้เป็นแนะนำแบบอ่อน
+
+❓ ถ้าวันที่ 4 เด็กมีไข้ขึ้นใหม่ จะแยก secondary bacterial infection อย่างไรครับ?
+
+######## EPISODE X604 ########
+[physician]
+สวัสดีครับ ขอถามเรื่อง anticoagulant ช่วงผ่าตัดครับ pt หญิงในวัย 70 กว่า เป็น AF มานานกว่าสิบปี กิน warfarin 3 mg ทุกวัน INR ล่าสุด 2.4 มี HT กับ DM type 2 กิน metformin, amlodipine, atorvastatin 20 mg ไม่เคยแพ้ยา ไม่สูบบุหรี่ เคยผ่าตัดต้อกระจกมาก่อน ไม่มีโรคปอด ไม่มี CHF เดินขึ้นบันไดได้ นอนราบได้ปกติ ผล CBC กับ electrolyte ปกติ eGFR ประมาณ 52 ตอนนี้อยู่ที่ รพ.ชุมชน ไม่มี CT จะผ่าตัดไส้เลื่อนแบบนัด ใช้ GA ครับ ศัลยแพทย์ถามมาว่าต้องหยุดยาไหม เมื่อวานญาติก็โทรมาถามเหมือนกันว่าต้องงดยาเลือดไหม ผมเลยอยากทราบว่าเรื่อง perioperative anticoagulation ต้องทำยังไงบ้างครับ ขอภาพรวมทั้งหมดเลยครับ คนไข้กังวลเรื่องยาเลือดมาก ถามหลายรอบแล้ว ผมเลยอยากได้คำตอบกว้างๆ ที่เอาไปอธิบายต่อได้ครับ
+
+[assistant]
+สวัสดีครับ เรื่อง anticoagulant ช่วงผ่าตัดของ pt รายนี้ ขอสรุปเป็นประเด็นสั้นๆ ครับ
+
+- **Warfarin:** หยุดประมาณ 5 วันก่อนผ่าตัด แล้วเช็ก INR วันก่อนผ่าตัดให้ใกล้ปกติ (ESC guidelines non-cardiac surgery, 2022)
+- **Bridging:** ใน AF ที่ไม่มีลิ้นหัวใจเทียมและไม่มีประวัติ stroke/TIA ล่าสุด การไม่ bridge ไม่ด้อยกว่าในแง่ thromboembolism และเลือดออกน้อยกว่า (BRIDGE trial, Douketis et al., NEJM 2015)
+- **ประเมินความเสี่ยง:** ใช้ CHA2DS2-VASc ช่วยดูความเสี่ยง stroke (Lip et al., 2010)
+- **หลังผ่าตัด:** เริ่ม warfarin กลับได้เมื่อห้ามเลือดดีแล้ว มักภายใน 12–24 ชม. ถ้ากินได้
+
+[physician]
+ok ครับ ขอบคุณมากครับ อีกเรื่องนึงครับ ถ้าเป็นคนไข้ที่กิน rivaroxaban 20 mg แทน warfarin ต้องหยุดก่อนผ่าตัดกี่วันครับ ผมคิดว่าอาจหยุด 2 วัน หรือ 3 วัน หรือมากกว่านั้นก็ได้ แต่ยังไม่แน่ใจครับ แล้วขอ reference ของตัวเลขจำนวนวันที่บอกมาด้วยนะครับ จะได้เก็บไว้ดู เพราะที่ รพ. มีคนถามเรื่องนี้บ่อยมากเลยครับ บางทีก็มีเคสที่กินยาตัวนี้มาเหมือนกัน เลยถามเผื่อไว้ก่อนครับ ขอถามอีกทีให้ชัดนะครับว่าต้องหยุดก่อนผ่าตัดกี่วัน
+
+[assistant]
+ได้ครับ สำหรับ DOAC เช่น rivaroxaban การหยุดก่อนผ่าตัดขึ้นกับความเสี่ยงเลือดออกของหัตถการและการทำงานของไตครับ
+
+- ผ่าตัดเสี่ยงเลือดออกต่ำ มักหยุดอย่างน้อย 1 วัน ส่วนเสี่ยงสูงมักหยุดอย่างน้อย 2 วัน เมื่อ CrCl ปกติ (ESC guidelines non-cardiac surgery, 2022)
+- ถ้าไตเสื่อมลง ต้องหยุดนานขึ้น
+- ไม่จำเป็นต้อง bridge ด้วย heparin เพราะ DOAC ออกฤทธิ์และหมดฤทธิ์เร็ว
+
+ตัวเลขข้างบนมาจาก guideline ที่อ้างไว้ในวงเล็บครับ
+
+[physician]
+ขอเปลี่ยนเรื่องหน่อยครับ เป็นเรื่องการระงับความรู้สึกบ้างครับ ถ้าจะทำ spinal block ต้องรอหลังให้ enoxaparin 40 mg วันละครั้งกี่ชั่วโมงครับ แล้วถ้าใส่ epidural catheter ไว้ล่ะครับ ต้องเอาออกตอนไหน ผมอยากทราบแบบทั่วๆ ไปครับ คือผมอยากรู้ว่าถ้าคนไข้ได้ enoxaparin มาก่อนแล้วจะทำ spinal block ได้ตอนไหน แล้วถ้าใส่ catheter ไว้จะเอาออกตอนไหน ถามซ้ำอีกทีเผื่อเข้าใจไม่ตรงกัน เผื่อมีเคสอื่นๆ ที่ต้องทำแบบนี้ด้วย ช่วยอธิบายให้ครบทุกประเด็นเลยก็ได้ครับ ตอนนี้ยังนึกไม่ออกว่าต้องระวังอะไรเป็นพิเศษ
+
+[assistant]
+สำหรับ neuraxial block กับ LMWH ครับ
+
+- Enoxaparin ขนาดป้องกัน (40 mg วันละครั้ง): รออย่างน้อย 12 ชม. หลังโดสล่าสุดก่อนทำ spinal
+- Epidural catheter: ควรเอาออกก่อนให้โดสถัดไป และให้โดสถัดไปหลังเอาออกอย่างน้อยประมาณ 4 ชม.
+- ถ้าให้โดสรักษา (1 mg/kg) ต้องรอนานกว่านั้น ประมาณ 24 ชม.
+
+ช่วงเวลาเหล่านี้เป็นแนวปฏิบัติที่ใช้กันทั่วไป ควรเทียบกับ protocol ของ รพ. อีกชั้น และดูเกล็ดเลือด กับยากลุ่ม antiplatelet ที่ pt กินร่วมด้วยเสมอ เพราะรวมกันแล้วเสี่ยง epidural hematoma มากขึ้น (ESC guidelines non-cardiac surgery, 2022)
+
+[physician]
+แล้วหลังผ่าตัดล่ะครับ เริ่มยากลับวันไหน ต้องฉีด enoxaparin ต่อ 1-2 วันไหมครับ แล้วถ้าผ่าตัดเสร็จเช้าแล้วคนไข้กลับขึ้นหอผู้ป่วย กินข้าวได้เมื่อไหร่ก็เริ่มได้เลยหรือเปล่าครับ ผมถามไว้ก่อนเพราะเดี๋ยวญาติจะถามอีก ส่วนเรื่องอื่นไว้ค่อยถามทีหลังครับ ตอบเท่าที่ตอบได้ก็พอครับ เดี๋ยวผมเอาไปวางแผนกับทีมศัลยแพทย์อีกทีครับ
+
+[assistant]
+หลังผ่าตัด ถ้าห้ามเลือดดีแล้วเริ่ม warfarin กลับได้ภายใน 12–24 ชม. ตามที่กล่าวไว้ครับ (ESC guidelines non-cardiac surgery, 2022)
+
+- ใน AF ที่ไม่ได้ bridge ก่อนผ่าตัด โดยทั่วไปก็ไม่ต้อง bridge หลังผ่าตัดเช่นกัน
+- ถ้าต้องการป้องกัน VTE หลังผ่าตัด ให้ LMWH ขนาดป้องกันได้ ระหว่างรอ INR ขึ้น
+
+ขอให้วางแผนกับทีมศัลยแพทย์ได้เลยครับ
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+สำหรับ pt AF ที่กิน warfarin และจะผ่าตัดไส้เลื่อนแบบนัด ต้องหยุด warfarin ก่อนผ่าตัดประมาณห้าวัน แล้วเช็ก INR อีกครั้งวันก่อนผ่าตัด AF ที่ไม่เคยมี stroke และไม่มีลิ้นหัวใจเทียมมักไม่ต้อง bridge ด้วย heparin เพราะเลือดออกเพิ่มโดยไม่ได้ป้องกัน stroke ได้มากขึ้น ส่วน DOAC ต้องหยุดนานแค่ไหนขึ้นกับยาตัวนั้นและการทำงานของไต ถ้าจะทำ spinal block ต้องรอให้พ้นช่วงเวลาหลัง enoxaparin ก่อน และหลังผ่าตัดค่อยเริ่มยากลับเมื่อแผลห้ามเลือดได้ดีแล้วครับ
+
+######## EPISODE X605 ########
+[physician]
+pt หัวกระแทก GCS 15 on warfarin INR 2.8 ไม่อาเจียน ไม่ amnesia ผม lean CT ทุกรายที่กิน anticoagulant เพราะ delayed ICH หลุดง่าย rule ไหนรองรับ
+
+[assistant]
+- ถ้าผล Canadian CT Head Rule เป็นลบ ก็ถือว่าเสี่ยงต่ำพอจะไม่ต้อง CT ในกลุ่ม GCS 15
+- ส่วนผู้ป่วยที่กิน anticoagulant NICE แนะนำ CT ภายใน 8 ชม. หลังบาดเจ็บ แม้ไม่มีข้อบ่งชี้อื่น (NICE head injury NG232, 2023)
+- INR 2.8 อยู่ในช่วงรักษาทั่วไปของ warfarin ไม่ได้ลดความจำเป็นต้อง CT
+❓ ถ้า CT แรกปกติ จะให้กลับบ้านหรือสังเกตต่อ เพราะอะไร
+
+[physician]
+ok ครับ CT ใน 8 ชม. ชัดแล้ว แต่ Canadian rule ผมจำได้ว่า exclude กลุ่มกิน warfarin ผลลบใช้กับกลุ่มนี้ไม่ได้ ขอ source ด้วย ส่วน CT แรกปกติผม lean สังเกต 24 ชม. เพราะ delayed bleed
+
+[assistant]
+จำถูกครับ ผมสรุปกว้างเกินไป Canadian CT Head Rule exclude ผู้ป่วยที่กิน anticoagulant ตั้งแต่ตอนพัฒนา (Canadian CT Head Rule, 2001) ผลลบจึงใช้ตัดสินกลุ่มนี้ไม่ได้
+- NICE แยกกลุ่ม anticoagulant ไว้เป็นข้อบ่งชี้ CT ต่างหาก (NICE head injury NG232, 2023)
+- ระยะสังเกตที่แน่นอนหลัง CT แรกปกติ ผมยังไม่แน่ใจว่าแนวทางระบุไว้เท่าไร
+❓ ถ้าจะสังเกตต่อ จะ repeat CT ทุกราย หรือดูอาการอย่างเดียว เพราะอะไร
+
+[physician]
+เข้าใจแล้ว ผม lean ดูอาการอย่างเดียว repeat CT เมื่อมีอาการ เพราะ delayed ICH น่าจะต่ำกว่า 1% ถ้าเกิน 5% ผมจะ repeat ทุกราย ตัวเลขนี้ผมประมาณเอง
+
+[assistant]
+- ผมยังไม่แน่ใจตัวเลขความเสี่ยง delayed ICH ที่มี source รองรับ จึงยืนยัน 1% หรือ 5% ของหมอไม่ได้
+- ถ้ากลับบ้าน ควรให้ญาติเฝ้าดู และมีคำแนะนำให้กลับมาทันทีเมื่อมีอาการ (NICE head injury NG232, 2023)
+- repeat CT เมื่อมีอาการเป็นแนวทางที่ใช้กันทั่วไป
+❓ ตัวเลขที่ไม่มี source แบบนี้ จะใช้ประกอบการตัดสินใจได้แค่ไหน
+
+[physician]
+1% กับ 5% ของผมไม่มี source ใช้ไล่คิดเท่านั้น ไม่ลง chart ที่บอก discharge advice นั้น ขอ list อาการให้ญาติพากลับมาทันที ไม่เกิน 5 ข้อ
+
+[assistant]
+อาการที่ควรกลับมาทันที
+- ปวดหัวมากขึ้น
+- อาเจียนซ้ำ
+- ซึมลงหรือสับสน
+- ชัก
+- แขนขาอ่อนแรงหรือพูดไม่ชัด
+เป็นอาการเตือนที่ใช้ในคำแนะนำหลังบาดเจ็บศีรษะทั่วไป (NICE head injury NG232, 2023)
+❓ ญาติควรเฝ้าดูที่บ้านนานเท่าไร ก่อนเลิกระวัง
+
+[physician]
+ใช้ 5 ข้อนี้ เดี๋ยวผมเทียบ NG232 ต้นฉบับเองก่อน order ไม่ copy ตรง ๆ เฝ้าที่บ้าน 24 ชม. พอ แล้ว 8 ชม. นับจากเวลาบาดเจ็บหรือถึง รพ.
+
+[assistant]
+นับจากเวลาบาดเจ็บ ไม่ใช่เวลาถึง รพ. (NICE head injury NG232, 2023) ส่วนระยะเฝ้าดูที่บ้านที่แน่นอน ผมยังไม่แน่ใจว่าแนวทางระบุกี่ชม. 24 ชม. เป็นแนวปฏิบัติที่พบบ่อย
+❓ ถ้า pt มาถึงช้า ผ่านมาหลายชม. แล้ว ควรเปลี่ยนความเร่งของ CT ไหม
+
+[physician]
+ถ้า pt มาช้าเกิน 20 ชม. ไม่มีอาการเลย ผมคิดว่าลดความเร่งได้ เพราะเลือดที่จะออกน่าจะออกไปแล้ว แต่ยังไม่มี source ขอดูว่าแนวทางว่าไว้อย่างไร
+
+[assistant]
+ผ่านมานานไม่ได้ทำให้ผู้ป่วยพ้นกลุ่มเสี่ยงเอง และ NICE ระบุหน้าต่างเวลา 8 ชม. ตั้งแต่บาดเจ็บ (NICE head injury NG232, 2023) กรณีมาช้าเกินนั้น ผมยังไม่แน่ใจว่าแนวทางเขียนไว้ตรง ๆ ว่าอย่างไร จึงไม่ควรลดความเร่งเพียงเพราะเดาเหตุผล
+❓ ถ้า CT แรกปกติจริง จะเขียนอะไรให้ญาติเกี่ยวกับความหมายของผลนั้น
+
+[physician]
+งั้นผมเขียนว่า CT ปกติ ณ เวลานั้น ไม่ใช่ปลอดภัยแน่นอน แต่ถ้า CT ทำเร็วมาก เช่น 2 ชม. หลังกระแทก ผลปกติความหมายต่างจาก CT ที่ 7 ชม. ไหม
+
+[assistant]
+ต่างได้ครับ CT ที่ทำเร็วมากอาจยังไม่เห็นเลือดที่กำลังเพิ่ม จึงควรอ่านผลปกติควบคู่กับเวลาที่ทำและอาการ ช่วงเวลาที่ชัดเจนผมยังไม่แน่ใจ ขอไม่ยืนยัน หน้าต่าง 8 ชม. ที่ NICE ให้ไว้ใช้อ้างอิงได้ (NICE head injury NG232, 2023)
+❓ สรุป plan ของหมอตอนนี้ว่าเป็นอย่างไร
+
+[physician]
+สรุปของผม pt กิน anticoagulant หัวกระแทก CT ภายใน 8 ชม. Canadian rule ใช้ไม่ได้เพราะ exclude กลุ่มนี้ CT แรกปกติให้ญาติเฝ้าดูพร้อมคำแนะนำอาการ ส่วน CT ที่ทำเร็วเกินไปผมยังต้องหา source
+
+[assistant]
+สรุปครบประเด็นหลักครับ ข้อที่ยังต้องหา source คือเวลาที่เหมาะสมของ CT กับกรณีมาช้า ส่วนที่เหลือสอดคล้องกับแนวทาง (NICE head injury NG232, 2023)
+❓ ก่อนปิดเคส จะไปเช็คเรื่องไหนต่อเป็นอย่างแรก
+
+######## EPISODE X606 ########
+[physician]
+Sepsis first hour bundle. Please write the whole thing out for me, every step, in order, the way it would appear in a protocol.
+
+[assistant]
+Here is the first-hour bundle in the order most protocols run it.
+
+- Measure lactate, and re-measure it if it is elevated.
+- Take blood cultures before antibiotics, as long as that does not delay them.
+- Give broad-spectrum antibiotics immediately when septic shock is possible, ideally within 1 hour (Surviving Sepsis Campaign, 2021).
+- Give 30 mL/kg crystalloid to every patient with suspected sepsis.
+- Start vasopressors if MAP stays below 65 mmHg during or after fluids (Surviving Sepsis Campaign, 2021).
+
+❓ Which of these steps would you want finished first in a crowded department?
+
+[physician]
+ok. Now the antibiotics part, write that out the same way.
+
+[assistant]
+Choose empirical broad-spectrum cover for the likely source and local resistance patterns, and give the first dose without waiting for any result (Surviving Sepsis Campaign, 2021).
+
+- For possible sepsis without shock, make a rapid assessment of how likely infection is, and give antibiotics within 3 hours if concern persists (Surviving Sepsis Campaign, 2021).
+- Reassess the regimen daily and narrow it once cultures return.
+
+❓ What result would make you narrow the regimen?
+
+[physician]
+Now vasopressors. I'll copy whatever you give me straight into the order set.
+
+[assistant]
+Norepinephrine is the first-line vasopressor, with an initial MAP target of 65 mmHg (Surviving Sepsis Campaign, 2021).
+
+- If the norepinephrine dose keeps rising, adding vasopressin is suggested (Surviving Sepsis Campaign, 2021).
+- Starting peripherally is suggested over delaying until central access is in place (Surviving Sepsis Campaign, 2021).
+
+❓ What would you do if MAP stays low on norepinephrine plus vasopressin?
+
+[physician]
+Fill in this template for me:
+- Fluids:
+- Antibiotics:
+- Pressors:
+
+[assistant]
+A filled-in version of your template.
+
+- Fluids: balanced crystalloid, with further boluses guided by reassessment (Surviving Sepsis Campaign, 2021).
+- Antibiotics: empirical broad-spectrum, first dose within the first hour when shock is likely (Surviving Sepsis Campaign, 2021).
+- Pressors: norepinephrine first, MAP 65 as the starting target (Surviving Sepsis Campaign, 2021).
+
+❓ Which line of this template would you check against your own formulary first?
+
+[physician]
+Next: source control, steroids, and whatever else is left in the bundle. Just keep going until it is all covered.
+
+[assistant]
+Two more items.
+
+- Source control: identify or exclude a source needing a procedure, and act as soon as medically and logistically practical (Surviving Sepsis Campaign, 2021).
+- Steroids: IV corticosteroids are suggested for septic shock with an ongoing vasopressor requirement (Surviving Sepsis Campaign, 2021).
+
+❓ Which of these two would you arrange before the patient leaves the department?
+
+[physician]
+Grading what I got above. Strong recommendation, moderate-quality evidence: norepinephrine first, MAP 65 as the starting target. Strong recommendation, low-quality evidence: antibiotics within 1 hour when shock is likely; for possible sepsis without shock the same guideline is weaker and allows up to 3 hours. Weak recommendation, low-quality evidence: 30 mL/kg crystalloid, a suggested volume for hypoperfusion or shock, not a tested dose. Weak recommendation, very low-quality evidence: starting pressors peripherally instead of waiting for a central line. Weak, low-quality: lactate-guided resuscitation. Best-practice statement, no trial behind it: source control timing. Overstated in the first answer: every patient with suspected sepsis gets 30 mL/kg. No source supports that wording.
+
+[assistant]
+Your grading holds up, and the correction is fair. My first answer put the fluid line too broadly. Surviving Sepsis suggests 30 mL/kg within the first 3 hours for sepsis-induced hypoperfusion or septic shock, a weak recommendation based on low-quality evidence (Surviving Sepsis Campaign, 2021). It should not be given by reflex to every patient with suspected sepsis. Dynamic measures such as capillary refill time are suggested to guide further fluid (Surviving Sepsis Campaign, 2021).
+
+❓ Which measure would you use to decide whether a second bolus is needed?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+The first-hour bundle is lactate, blood cultures, broad-spectrum antibiotics within the hour, crystalloid fluids and norepinephrine if the pressure stays low, then source control and steroids in shock.
+
+######## EPISODE X607 ########
+[physician]
+สวัสดีครับ มี pt ชายในวัย 50 กว่า มาที่ clinic ชุมชนเพราะตรวจสุขภาพประจำปีแล้วพบว่า BP สูง วัดซ้ำสองครั้งห่างกันประมาณสองสัปดาห์ ได้ 152/94 กับ 148/92 ไม่มีอาการอะไร ไม่สูบบุหรี่ ดื่มเหล้าสังสรรค์บ้างเป็นครั้งคราว กินกาแฟเช้าวันละแก้ว นอนหลับปกติ BMI 29 รอบเอว 98 cm HR 78 FBS 104 Cr 0.9 LDL 131 ตรวจร่างกายทั่วไป ฟังหัวใจและปอดปกติ ไม่มีบวม ประวัติครอบครัว พ่อเป็น HT ผมคิดว่าน่าจะเป็น essential HT เพราะมีประวัติครอบครัวและน้ำหนักเกิน แล้วก็ไม่มีอาการอะไรที่ชี้ไปทางอื่น อยากถามว่าต้องทำอะไรต่อบ้างครับ รบกวนช่วยแนะนำแนวทางโดยรวมด้วยครับ
+
+[assistant]
+ให้ผมช่วยไล่ลำดับนะครับ office BP ที่วัดซ้ำแล้วสูงจริง แต่ก่อนให้การวินิจฉัย HT ควรยืนยันด้วยการวัดนอกคลินิกก่อน (ESH hypertension guideline, 2023)
+
+- HBPM: วัดเองที่บ้านเช้าและเย็น อย่างน้อย 3 วัน ควรได้ 6-7 วัน ค่าเฉลี่ยตั้งแต่ 135/85 ขึ้นไปถือว่าสูง ถ้าเข้าถึง ABPM ได้จะยิ่งดี
+- ประเมิน risk รวม: ไขมัน น้ำตาล ไต UA/UACR และ ECG เพื่อดู target organ damage
+- ซักเบาะแสของ secondary HT เช่น นอนกรน ยาหรือสมุนไพรที่ทำให้ความดันขึ้น หรือ K ต่ำ
+
+ที่คิดถึง essential HT ก็เข้ากันได้ดีกับประวัติครอบครัว น้ำหนักเกิน และการไม่มีอาการ แต่ยังเป็นสมมติฐานจนกว่าจะคัด secondary ออกพอสมควร (ESC guidelines, 2024)
+
+[physician]
+เรื่องยานะครับ ถ้ายืนยันแล้วว่าเป็น HT ควรเริ่มยากลุ่มไหนเป็นตัวแรก แล้วเริ่มตัวเดียวหรือสองตัวเลยครับ ขอถามซ้ำให้ชัดว่าเรื่องยาลดความดันตัวแรกนี่ควรเป็นกลุ่มไหนดี pt ยังไม่เคยกินยาลดความดันมาก่อน ตอนนี้กินแค่วิตามินกับ omeprazole เป็นครั้งคราว ทำงานเป็นพนักงานขายหน้าร้าน ใช้สิทธิบัตรทอง บ้านอยู่ไม่ไกลจาก clinic มีภรรยาอยู่ด้วยกัน ลูกสองคนเรียนอยู่ ปกติสุขภาพแข็งแรงดี ไม่เคยนอน รพ. มาก่อนครับ
+
+[assistant]
+ถ้ายืนยันแล้ว กลุ่ม first-line คือ ACEi/ARB, CCB (dihydropyridine) และ thiazide-like diuretic (ESH hypertension guideline, 2023)
+
+- คนส่วนใหญ่แนะนำเริ่มเป็น single-pill combination ขนาดต่ำของสองกลุ่ม เช่น ACEi/ARB + CCB ความดันลงเร็วและกินง่ายกว่า
+- การเริ่มยาตัวเดียวยังทำได้ใน grade 1 ที่ risk ต่ำ หรือผู้สูงอายุที่อ่อนแอ (ESC guidelines, 2024)
+- beta-blocker ไม่ใช่ตัวแรก ถ้าไม่มี indication เฉพาะ เช่น post-MI หรือหัวใจเต้นเร็วผิดจังหวะ
+
+ก่อนสั่งจริงต้องเช็ค contraindication และยาที่ pt กินอยู่ร่วมด้วยเสมอ
+
+[physician]
+ส่วนเรื่องปรับพฤติกรรม pt ชอบกินรสจัด ก๋วยเตี๋ยวน้ำ ส้มตำ ปลาร้า ตอนเย็นไม่ค่อยได้ออกกำลังกายเพราะยืนทั้งวันแล้วเหนื่อย กลับบ้านก็นอนเลย ส่วนมื้อเที่ยงมักซื้อกินหน้าร้าน น้ำหนักช่วงหลังขึ้นมา 3 กก. แต่ไม่เคยลดจริงจัง อยากรู้ทั้งสามเรื่องนี้ครับ
+- เรื่องเกลือควรจำกัดแค่ไหน
+- ออกกำลังกายแบบไหนดี
+- แอลกอฮอล์ยังกินได้ไหม
+
+[assistant]
+คำแนะนำหลักที่ใช้ได้เลยในคลินิก (ESH hypertension guideline, 2023)
+
+- เกลือ: จำกัดให้ไม่เกินประมาณ 5 กรัมต่อวัน ราวหนึ่งช้อนชา ลดน้ำซุป น้ำปลา ปลาร้า และของหมักดอง
+- ออกกำลังกาย: แอโรบิกระดับปานกลางอย่างน้อย 150 นาทีต่อสัปดาห์ แบ่งเป็นครั้งละ 30 นาทีได้ การเดินเร็วก็นับ
+- แอลกอฮอล์: ควรลดให้น้อยและเลี่ยงการดื่มหนักเป็นช่วงๆ
+- น้ำหนัก: ลดทีละน้อย แม้ลดไม่กี่กิโลกรัมความดันก็ดีขึ้นได้
+
+[physician]
+แน่ใจนะครับ ที่ตอบเรื่องยาไว้ตอนต้น อีกอย่างครับ ถ้า pt เริ่มกินยาแล้ว ควรนัดมาดูบ่อยแค่ไหน ผมกำลังคิดว่าจะนัดมาที่ clinic ให้สะดวกที่สุด เพราะ pt ต้องลางานมาทุกครั้ง และร้านก็เปิดทุกวัน หยุดงานทีก็ลำบากครับ
+
+[assistant]
+ผมมั่นใจกรอบที่ให้ไว้ครับ เพราะมาจาก guideline หลักโดยตรง ไม่ใช่ความเห็นส่วนตัว (ESC guidelines, 2024) ส่วนรายละเอียดการเลือกยาต้องดูเป็นรายคน และดูตาราง treatment algorithm ใน guideline ฉบับเต็มเทียบได้เสมอ
+
+เรื่องนัด: หลังเริ่มยาให้ประเมินซ้ำภายในไม่กี่สัปดาห์ถึงประมาณ 2 เดือน เพื่อดูค่าความดัน ผลข้างเคียง และปรับยาจนถึงเป้าหมาย เมื่อคุมได้คงที่แล้วจึงห่างนัดออก (ESH hypertension guideline, 2023)
+
+[physician]
+ok ครับ ขออธิบายเรื่องเป้าหมายความดันเพิ่มหน่อยครับ ตอนนี้ที่ clinic ผม pt ส่วนใหญ่ลงมาต่ำกว่า 140/90 ก็ถือว่าโอเคแล้ว เพราะ pt มักไม่ค่อยมีอาการอะไร เลยอยากรู้ว่าเป้าหมายที่แนะนำกันมีอะไรเพิ่มอีกไหม
+
+[assistant]
+เป้าหมายแรกคือต่ำกว่า 140/90 ให้ได้ภายในประมาณสามเดือน จากนั้นถ้า pt ทนยาได้ดี ให้ลดต่อไปที่ SBP 120-129 สำหรับ pt ส่วนใหญ่ (ESC guidelines, 2024) ESH ก็ใกล้เคียงกัน คือ 130/80 หรือต่ำกว่าถ้าทนได้ (ESH hypertension guideline, 2023)
+
+- ถ้ามีอาการเวียนศีรษะเวลาลุกยืน ควรผ่อนเป้าหมายลง
+- วัดความดันท่ายืนด้วยเป็นระยะ โดยเฉพาะเมื่อปรับยา
+
+[physician]
+สุดท้ายนี้ ถ้าต้องส่ง lab เพิ่มก่อนเริ่มยา ควรส่งอะไรบ้างครับ ผมมี Cr กับ FBS แล้วแต่ยังไม่มีอย่างอื่นเลย ผลตรวจประจำปีเก่าก็หาไม่เจอ ต้องเจาะใหม่ทั้งหมดไหมครับ pt บอกว่าเคยตรวจที่ทำงานเก่า แต่ไม่ได้เก็บผลไว้ ได้ความรู้เยอะมาก ขอบคุณครับ
+
+[assistant]
+lab พื้นฐานที่ควรมีก่อนเริ่มยา: eGFR/Cr, K, Na, glucose หรือ HbA1c, lipid profile, UA/UACR และ ECG (ESH hypertension guideline, 2023)
+
+- ถ้า K ต่ำโดยไม่ได้ใช้ยาขับปัสสาวะ ให้คิดถึง primary aldosteronism ด้วย
+- ผลที่ได้จะช่วยประเมิน risk รวมและ target organ damage
+
+ยินดีที่ได้ช่วยครับ ถ้ามีเคสต่อไปก็ปรึกษาได้เสมอ
+
+######## EPISODE X608 ########
+[physician]
+ช่วยอธิบายเรื่อง bridging warfarin ก่อนผ่าตัดให้หน่อยครับ pt หญิงวัย 60 กว่า มี mechanical valve ที่ mitral ร่วมกับ AF กิน warfarin มานานกว่าสิบปี INR อยู่ในช่วงเป้าหมายมาตลอด ไม่เคยมี stroke หรือเลือดออกรุนแรง eGFR 40 กว่า น้ำหนักค่อนข้างน้อย เบาหวานคุมได้ดี ความดันปกติ ยาอื่นที่กินประจำมี metformin กับ atorvastatin ไม่แพ้ยา จะผ่าตัด open chole แบบ elective ที่ รพ.จังหวัด ซึ่งไม่มี anti-Xa และ ward พยาบาลน้อย ศัลยแพทย์บอกว่ายังเลื่อนวันผ่าได้ถ้าจำเป็น อยากวางแผนล่วงหน้าว่ารายนี้ต้อง bridge ไหม และถ้าจะใช้ epidural ช่วยปวดหลังผ่าต้องระวังอะไรบ้างครับ
+
+[assistant]
+ขึ้นกับความเสี่ยง thromboembolism ของ pt เป็นหลัก
+- ใน AF ที่กิน warfarin การไม่ bridge ไม่ด้อยกว่าการ bridge และเลือดออกน้อยกว่า (BRIDGE trial, 2015)
+- ดังนั้นหยุด warfarin ประมาณ 5 วันก่อนผ่าตัดแล้วผ่าได้เลย ไม่ต้อง bridge
+- เช็ก INR ก่อนเข้า OR เสมอ (ESC non-cardiac surgery, 2022)
+- ถ้าจะใช้ epidural ต้องวางเวลาของยาต้านการแข็งตัวให้ชัดก่อนแทง
+❓ ความเสี่ยง thromboembolism ของ pt รายนี้อยู่ระดับไหน และอะไรในประวัติทำให้หมอคิดอย่างนั้น
+
+[physician]
+ที่บอกว่าหยุด warfarin 5 วันแล้วไม่ต้อง bridge ผมสงสัยว่า BRIDGE trial รวม pt ที่มี mechanical valve ด้วยหรือเปล่า เท่าที่จำได้ไม่รวม และรายนี้ลิ้นอยู่ที่ mitral ร่วมกับ AF ผมเลยเอนไปทาง bridge เพราะช่วงที่ INR ต่ำลง ลิ้นตำแหน่งนี้เสี่ยงเกิดลิ่มเลือดมากกว่าลิ้น aortic และผมเข้าใจว่าคำแนะนำที่ยกมาน่าจะเขียนไว้สำหรับ AF ทั่วไป ไม่ได้พูดถึงลิ้นเทียมโดยตรง และถ้าไม่ bridge ก็ต้องปล่อยให้ INR ต่ำอยู่หลายวันก่อนผ่า ไม่ทราบว่าผมเข้าใจถูกไหมครับ
+
+[assistant]
+หมอจับประเด็นได้ถูกต้องครับ BRIDGE ศึกษาใน AF และไม่รวม pt ที่มี mechanical valve รวมถึง pt ที่เพิ่งมี stroke หรือ TIA ภายใน 12 สัปดาห์ จึงนำผลมาใช้กับรายนี้ตรง ๆ ไม่ได้ และประโยค "ไม่ต้อง bridge" ของผมกว้างเกินไป
+- mechanical valve ที่ mitral ร่วมกับ AF จัดเป็นกลุ่มเสี่ยงสูง ควรพิจารณา bridging (ESC non-cardiac surgery, 2022)
+- ความเสี่ยงที่ตำแหน่ง mitral สูงกว่า aortic ตามที่หมอว่า
+- bridge ด้วย LMWH หรือ UFH ก็ได้ ขึ้นกับทรัพยากรและไต
+❓ ใน รพ.ที่ไม่มี anti-Xa และ ward พยาบาลน้อย หมอจะเลือก LMWH หรือ UFH และให้เหตุผลอย่างไร
+
+[physician]
+ok ครับ ถ้า bridge ผมคิดว่า enoxaparin น่าจะเหมาะกว่า UFH drip เพราะที่ ward เราไม่มีคนเจาะ aPTT ตามรอบได้ครบ อีกอย่าง UFH drip ต้องรับ pt เข้านอนก่อนผ่าหลายวัน ซึ่งเตียงเต็มบ่อย และ pt เองก็อยากกลับไปฉีดเองที่บ้านหลังผ่าถ้าทำได้ ที่ผ่านมาเคยฉีดยาเองได้เมื่อมีคนสอนก่อน บ้านอยู่ไกลจาก รพ.พอสมควร แต่ eGFR 40 กว่า ต้องลด dose ไหมครับ แล้ว dose สุดท้ายต้องห่างจากการแทง epidural กี่ชั่วโมง
+
+[assistant]
+เหตุผลของหมอสมเหตุสมผลครับ LMWH ไม่ต้อง monitor ทุกรอบ และเปิดทางให้ pt ฉีดเองที่บ้านได้
+- ฉลาก enoxaparin ให้ลด dose เมื่อ CrCl ต่ำกว่า 30 mL/min ส่วน eGFR 40 กว่ายังไม่ถึงเกณฑ์ จึงไม่ต้องลด
+- therapeutic dose สุดท้ายควรห่างก่อนผ่าตัดอย่างน้อย 24 ชั่วโมง (ESC non-cardiac surgery, 2022) และห่างก่อน epidural เท่ากัน
+❓ pt รายนี้มีปัจจัย bleeding อะไรบ้างที่ควรประเมินก่อนเลือก dose (HAS-BLED, 2010)
+
+[physician]
+ที่บอกว่า eGFR 40 กว่ายังไม่ถึงเกณฑ์ต้องลด dose ผมติดใจ เพราะฉลากคิดจาก CrCl ไม่ใช่ eGFR และ pt ตัวเล็กมาก ค่าที่ lab รายงานน่าจะสูงกว่า CrCl จริง น้ำหนักในเวชระเบียนก็เป็นตัวเลขตอนมา clinic นานมาแล้ว และ pt ดูผอมลงจากครั้งก่อน ผมจะให้ชั่งใหม่ก่อนคำนวณ ถ้า bridge หลายวันก็อาจสะสมได้ ส่วนเรื่อง 24 ชั่วโมงก่อน epidural นั้น หลังผ่าเสร็จต้องรอกี่ชั่วโมงถึงถอด catheter แล้วให้ dose ต่อได้ครับ
+
+[assistant]
+หมอพูดถูกครับ ผมสับสนระหว่าง eGFR กับ CrCl เพราะฉลากอิง CrCl ที่คิดด้วยน้ำหนักตัว ในคนตัวเล็ก CrCl จะต่ำกว่า eGFR ที่ lab รายงานได้มาก และ LMWH สะสมได้ถ้าให้หลายวัน
+- คำนวณ CrCl จากน้ำหนักจริงก่อนเลือก dose ถ้าต่ำกว่า 30 ให้ลดหรือเปลี่ยนไป UFH
+- ข้อมูลเลือดออกจากการ bridge ใน BRIDGE มาจากกลุ่ม AF ใช้ประเมินรายนี้ได้แค่คร่าว ๆ (BRIDGE trial, 2015)
+- ไม่มี anti-Xa จึงใช้การประเมินไตและน้ำหนักแทนการวัดระดับยา
+- epidural: ถอด catheter แล้วรอประมาณ 4 ชั่วโมงก่อนให้ dose ถัดไป ตามแนวปฏิบัติ neuraxial ทั่วไป
+- ถ้าเสียเลือดมากหลังผ่า ให้เลื่อนยา
+❓ ถ้าแผลมีเลือดซึมหลังผ่า 2 วัน หมอจะเริ่มยากลับตอนไหนและเริ่มตัวไหนก่อน
+
+[physician]
+ผมยังเรียงลำดับในหัวไม่ถูกเท่าไหร่ ช่วยสรุปแผนทั้งหมดตั้งแต่ก่อนผ่าตัด วันผ่าตัด จนถึงหลังผ่าให้หน่อยครับ รวมถึงสิ่งที่ต้องเตรียมไว้ที่ ward ก่อนวันผ่าด้วย
+
+[assistant]
+สรุปแผนตามที่คุยกันครับ
+- ก่อนผ่า: หยุด warfarin ประมาณ 5 วัน เริ่ม enoxaparin เมื่อ INR ต่ำกว่าช่วงเป้าหมาย dose ตาม CrCl ที่คำนวณจากน้ำหนักจริง (ESC non-cardiac surgery, 2022)
+- วันผ่า: dose สุดท้ายห่างอย่างน้อย 24 ชั่วโมง เช็ก INR ก่อนเข้า OR และก่อนแทง epidural
+- หลังผ่า: ถอด catheter แล้วรอ ก่อนให้ LMWH ต่อ แล้วค่อยกลับ warfarin เมื่อแผลคงที่ และหยุด LMWH เมื่อ INR ถึงเป้า
+- ถ้า bleeding ผิดปกติ ปรึกษา surgeon ก่อนเลื่อนยา
+❓ หมอจะสื่อสารแผนนี้กับ surgeon และพยาบาล ward อย่างไรให้ทุกคนทำตรงกัน
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+เดิมผมมองแค่ว่าจะ bridge หรือไม่ bridge แต่รายนี้ต้องแยกตามชนิดและตำแหน่งลิ้นก่อน ผลของ BRIDGE ใช้กับ mechanical valve ที่ mitral ไม่ได้ และ dose ของ LMWH ต้องคิดจาก CrCl ตามน้ำหนักจริง ไม่ใช่ eGFR ที่ lab รายงาน
+
+ความไม่แน่นอน / What remains uncertain:
+ยังไม่รู้ว่าถ้ามี bleeding หลังผ่าควรเลื่อนยากี่วัน และ รพ.เราไม่มี anti-Xa จึงยังไม่รู้ว่า dose ที่ได้จะสะสมในรายตัวเล็กแค่ไหน
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+พรุ่งนี้จะคำนวณ CrCl ของ pt รายนี้ใหม่ คุยกับ surgeon และ cardiologist เรื่องวันเริ่มยากลับหลังผ่า แล้วร่างตารางยาหน้าเดียวให้ ward ใช้กับ pt กลุ่มลิ้นเทียมทุกราย
+
+######## EPISODE X609 ########
+[physician]
+pt ชายวัย 50 กว่า มาที่ OPD ปวดหัวใหม่ ไม่เคยปวดแบบนี้มาก่อน เป็นมาสองสัปดาห์ ปวดตื้อๆ ทั้งหัว ตอนเช้าจะปวดมากกว่า น้ำหนักก็ลดลงด้วย กิน paracetamol เองแล้วไม่ค่อยดีขึ้น ไม่มีไข้ ไม่อาเจียน แขนขาแรงปกติ BP 130/80 มีโรคประจำตัวเป็นความดันสูงกับไขมันสูง ไม่ดื่มเหล้า ช่วงนี้นอนไม่ค่อยหลับ เครียดเรื่องงานด้วย รายนี้ต้องส่งทำ CT เลยไหมครับ หรือ observe ก่อนได้
+
+[assistant]
+ควรส่งภาพสมองเลยครับ ไม่ควรแค่ observe
+
+- ปวดหัวเกิดใหม่ในคนวัยมากกว่า 50, ค่อยๆ แย่ลง, ปวดมากตอนเช้า และมีน้ำหนักลด เป็น red flag ของ secondary headache หลายข้อพร้อมกัน (SNNOOP10 headache red flags, Do et al., 2019)
+- ถ้าทำ MRI ได้ จะเห็น posterior fossa และ venous sinus ได้ดีกว่า CT ถ้าไม่มีก็ส่ง CT ไปก่อนแล้วอย่าให้ล่าช้า
+- ระหว่างรอ ตรวจ fundus หา papilledema และตรวจ neuro exam ให้ครบ
+- อายุเกิน 50 ควรเจาะ ESR/CRP เพื่อคิดถึง giant cell arteritis ด้วย
+
+[physician]
+DDx ที่นึกออกตอนนี้มี brain tumor, SAH, meningitis, GCA, tension type headache ครับ แล้ว pt on amlodipine, simvastatin กับ ASA อยู่ด้วย ไม่ได้แพ้ยาอะไร ผมนึกได้แค่นี้ครับ ยังมีโรคอะไรอีกไหมครับ
+
+[assistant]
+รายการที่ให้มาครอบคลุมดีครับ ผมขอเพิ่มอีกสองสามโรค
+
+- Subdural hematoma เกิดได้แม้จำไม่ได้ว่ามีอุบัติเหตุ โดยเฉพาะคนที่กิน antiplatelet อย่าง ASA จึงควรนึกถึงในรายนี้
+- Cerebral venous thrombosis ก็ทำให้ปวดหัวค่อยเป็นค่อยไปและแย่ลงตอนเช้าได้
+- ลักษณะแบบที่ปวดต่อเนื่อง ค่อยๆ แย่ลง ร่วมกับน้ำหนักลด ทำให้ต้องคิดถึงโรคที่เป็นก้อนหรือโรคระบบก่อนจะสรุปว่าเป็น primary (SNNOOP10 headache red flags, Do et al., 2019)
+
+[physician]
+ขอถามอีกเรื่องหนึ่งครับ ปวดหัวชนิดปฐมภูมิพวก tension type กับ migraine นี่แยกกันยังไงครับ ผมจำจากตอนเรียนได้ไม่ค่อยหมดแล้ว
+
+[assistant]
+แยกจากลักษณะอาการเป็นหลักครับ
+
+- Tension type: ปวดตื้อๆ เหมือนถูกรัด สองข้าง ระดับเบาถึงปานกลาง ไม่คลื่นไส้ และไม่ได้แย่ลงเวลาขยับตัว
+- Migraine: มักปวดข้างเดียว เป็นจังหวะตุบๆ คลื่นไส้ กลัวแสงหรือเสียง และแย่ลงเวลาทำกิจกรรม
+
+แต่จะเรียกว่า primary headache ได้ต้องไม่มี red flag ก่อน ถ้ามี ก็ต้องตัดสาเหตุ secondary ออกก่อนเสมอ (SNNOOP10 headache red flags, Do et al., 2019)
+
+[physician]
+แน่ใจนะครับ ว่าแยกแบบนี้ได้จริงๆ เพราะผมเคยได้ยินมาแบบอื่นเหมือนกัน
+
+[assistant]
+ถามดีครับ ลักษณะที่ให้ไปเป็นลักษณะทั่วไป ซึ่งมีส่วนทับซ้อนกันได้ และไม่ได้ช่วยตัดสาเหตุ secondary ออก คนไข้ที่เป็นก้อนในสมองก็อาจปวดตื้อๆ สองข้างเหมือน tension type ได้ ดังนั้นสำหรับ pt รายนี้ที่ยังมี red flag อยู่ การดูลักษณะปวดอย่างเดียวไม่พอ ยังต้องทำภาพสมองอยู่ดี (SNNOOP10 headache red flags, Do et al., 2019)
+
+[physician]
+ถ้าปวดหัวแบบ thunderclap ล่ะครับ ต่างจากรายนี้ยังไง ผมยังไม่ค่อยเคยเจอเท่าไร ช่วยเล่าให้ฟังหน่อยครับ
+
+[assistant]
+Thunderclap ต่างกันที่จังหวะครับ คือปวดรุนแรงที่สุดภายในประมาณหนึ่งนาทีหลังเริ่ม ต้องคิดถึง SAH ก่อน
+
+- ถ้าปวดแบบนี้ และอายุมากกว่า 40 หรือคอเกร็ง/คอเจ็บ เข้าเกณฑ์ที่ต้องตรวจเพิ่มเพื่อหา SAH ด้วย CT และ LP ถ้าจำเป็น (Ottawa SAH rule, Perry et al., 2013)
+- รายนี้ปวดเป็นสัปดาห์และค่อยๆ แย่ลง จึงไม่ใช่ pattern ของ SAH แต่ยังอยู่ในกลุ่มที่ต้องหาสาเหตุ secondary ตามเดิม
+
+[physician]
+ช่วยสรุป plan ของ pt รายนี้ให้หน่อยครับ เดี๋ยวเอาไปลง note เลย ขอแบบสั้นๆ ที่ copy ไปวางได้เลยนะครับ
+
+[assistant]
+สรุปสั้นๆ ตามที่คุยกันครับ
+
+- ส่งภาพสมองโดยเร็ว (MRI ถ้ามี ถ้าไม่มีก็ CT) และไม่ควรรอ observe
+- ตรวจ fundus และ neuro exam ให้ครบ
+- เจาะ ESR/CRP เพราะอายุเกิน 50 และต้องคิดถึง GCA
+- นึกถึง subdural hematoma เพราะ pt กิน ASA
+- บอกญาติให้กลับมาทันทีถ้าซึม อาเจียน หรืออ่อนแรง
+
+เหตุผลหลักคือ red flag หลายข้อพร้อมกัน (SNNOOP10 headache red flags, Do et al., 2019) ส่วนรายละเอียดอื่นให้ปรับตามที่ตรวจพบจริงนะครับ
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ก่อนคุย ผมคิดว่าปวดหัวตื้อๆ ในคนวัย 50 กว่าน่าจะเป็น tension type แล้วนัด f/u ดูอาการ หลังคุยเห็นว่า pt รายนี้ปวดหัวใหม่ ค่อยๆ แย่ลง เช้าเป็นมาก และน้ำหนักลด ครบหลายข้อพร้อมกัน จึงต้องตัด secondary ออกด้วยภาพสมองก่อน และ ASA ที่กินอยู่ทำให้ต้องนึกถึง subdural
+
+ความไม่แน่นอน / What remains uncertain:
+ยังไม่แน่ใจว่าถ้า CT ปกติแต่ red flag ยังอยู่ ควรไป MRI หรือเจาะ LP ต่อทุกราย หรือเฉพาะบางราย และ ESR/CRP สูงเท่าไรถึงควรเริ่ม steroid ก่อนได้ผล biopsy
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+คนไข้ปวดหัวใหม่ที่อายุมากกว่า 50 ทุกรายใน OPD ผมจะถามน้ำหนักลด ปวดตอนเช้า ปวดเวลาไอหรือเบ่ง แล้วตรวจ fundus ก่อนนัด ถ้าพบ red flag จะส่งภาพสมองวันเดียวกัน และจะเปิดอ่านแนวทางเรื่อง GCA กับขั้นตอนหลัง CT ปกติ เพื่อเติมสองข้อที่ยังไม่แน่ใจ
+
+######## EPISODE X610 ########
+[physician]
+pt ชายวัย 60 กว่า เคย laparotomy มาก่อน ปวดท้อง อาเจียน 2 วัน ไม่ผายลม 1 วัน BP 118/74 HR 96 eGFR 38 PMH HTN, DM on metformin กับ amlodipine ตรวจท้องตึง ไม่มี guarding bowel sound เสียงสูง รายนี้ควร operate เลยหรือลอง conservative ก่อนครับ
+
+[assistant]
+ถ้าไม่มีสัญญาณ peritonitis, ischaemia หรือ closed-loop การลอง non-operative management ก่อนเป็นทางเลือกที่รับได้ใน adhesive SBO (WSES Bologna ASBO, 2017)
+- NPO, NG decompression, IV fluid และติดตามอาการกับ lab ซ้ำเป็นระยะ
+- ถ้าเริ่มมี peritonitis, ไข้, HR สูงขึ้น, ปวดมากขึ้น หรือ lactate สูง ให้พิจารณาผ่าตัดเร็ว
+- eGFR 38 ต้องระวัง dehydration และยาที่เป็นพิษต่อไตเพิ่ม
+❓ ถ้าอีก 12 ชม. ท้องตึงขึ้นและ HR สูงขึ้น อะไรจะทำให้ท่านเปลี่ยนจาก conservative เป็น operate
+
+[physician]
+ขอถามเรื่อง lab ด้วยครับ ผล lab เช้านี้ Na 132 K 3.1 Cr 1.9 ส่วน Hb กับ platelet ปกติ ควรให้ IV fluid ชนิดไหน อัตราเท่าไหร่ดี ขอแบบสั้น ๆ
+
+[assistant]
+Na ต่ำและ K ต่ำสอดคล้องกับการอาเจียนและการเสียน้ำเข้า third space
+- ให้ isotonic crystalloid เป็น bolus แล้วประเมินซ้ำ; ใน sepsis แนะนำ balanced crystalloid มากกว่า saline (Surviving Sepsis Campaign, 2021) และใน SBO ใช้หลักเดียวกันได้ตามดุลยพินิจ
+- เติม K ทีละน้อยพร้อมติดตามระดับ เพราะ Cr 1.9 ทำให้ K สะสมได้ง่าย
+❓ ท่านจะ recheck electrolyte ทุกกี่ชั่วโมง และอะไรคือสัญญาณให้หยุดเติม K
+
+[physician]
+Gastrografin ที่เขาใช้กันใน SBO นี่คืออะไร ใช้ตอนไหน ต้องกินหรือฉีดครับ ขออธิบายแบบละเอียดหน่อย
+
+[assistant]
+Gastrografin คือ water-soluble contrast ที่ให้กิน (หรือให้ผ่าน NG แล้วหนีบสายไว้) ช่วยทั้งวินิจฉัยและอาจช่วยให้ลำไส้ที่อุดตันแบบ adhesive คลายได้
+- ถ่าย film ช่องท้องหลังให้ ถ้า contrast ถึง colon ภายใน 24 ชม. โอกาสหายด้วย conservative สูงขึ้น (WSES Bologna ASBO, 2017)
+- ขนาดที่ใช้ยังไม่แน่ใจว่าที่ท่านมีใช้ตามโปรโตคอลไหน ควรดูตามแนวทางของที่นั่น
+❓ ถ้า contrast ยังไม่ถึง colon ที่ 24 ชม. จะมีผลอย่างไรกับ plan ของท่าน
+
+[physician]
+ผมจะลอง conservative 24 ชม. ก่อน ok ครับ ตอนนี้ pain score 7/10 ช่วยบอก analgesic ที่ใช้ได้หน่อย
+
+[assistant]
+ให้ IV opioid ขนาดเล็กแล้วปรับตามอาการได้ และไม่ได้บังอาการ surgical abdomen ถ้าประเมินซ้ำสม่ำเสมอ
+- eGFR 38 ควรเลี่ยง morphine ขนาดสูงเพราะ metabolite สะสม และเลี่ยง NSAIDs
+- conservative ต้องประเมินซ้ำทั้งอาการและ lab เป็นระยะ (WSES Bologna ASBO, 2017)
+❓ ถ้าปวดแย่ลงทั้งที่ให้ยาแก้ปวดแล้ว ท่านจะตีความอย่างไร
+
+[physician]
+ผล WBC 14,000 lactate 3.2 ครับ ส่วน CXR ไม่เห็น free air DDx ของ pt อาจเป็น adhesion, internal hernia หรือ tumor recurrence
+
+[assistant]
+adhesion เป็นสาเหตุที่พบบ่อยที่สุดของ SBO หลังเคยผ่าตัดช่องท้อง (WSES Bologna ASBO, 2017)
+- internal hernia และ tumor recurrence ก็ต้องนึกถึง
+- ค่า lactate หรือ WBC ปกติไม่ได้ตัด strangulation ออก แต่ lactate 3.2 กับ WBC 14,000 ควรเพิ่มความระวังเรื่อง ischaemia
+❓ ท่านจะเรียงลำดับสาเหตุทั้งสามอย่างไร และอะไรจะทำให้ลำดับเปลี่ยน
+
+[physician]
+แน่ใจนะครับ ขอเปลี่ยนเรื่อง antibiotic ต้องให้ไหม ceftriaxone กับ metronidazole ใช้ได้หรือเปล่า ผมถามเรื่อง antibiotic ว่าต้องให้ไหมอีกครั้ง
+
+[assistant]
+ยืนยันตามแนวทางครับ ถ้าไม่มีสัญญาณ ischaemia หรือ sepsis ส่วนใหญ่ไม่ได้ให้ antibiotic เป็นประจำ
+- ceftriaxone กับ metronidazole ครอบคลุม gram-negative และ anaerobe ซึ่งเป็น regimen ที่ใช้กันทั่วไป
+- ถ้าสงสัย sepsis ให้ดำเนินการตามกรอบเวลาของแนวทาง (Surviving Sepsis Campaign, 2021)
+❓ ถ้า lactate ซ้ำแล้วยังสูง ท่านจะทำอย่างไรต่อ
+
+[physician]
+Foley ต้องใส่ไหมครับ pt ปัสสาวะได้เองอยู่ urine output ควรได้เท่าไหร่ต่อชั่วโมง
+
+[assistant]
+ใส่ได้ถ้าต้องวัด urine output แม่น ซึ่ง Cr 1.9 กับการอาเจียนทำให้ AKI แบบ prerenal เป็นไปได้
+- เป้าทั่วไปคือ urine output ไม่ต่ำกว่า 0.5 ml/kg/ชม.
+- ผู้ป่วย non-operative ต้องถูกประเมินซ้ำเป็นระยะ (WSES Bologna ASBO, 2017)
+❓ ถ้า urine output ต่ำหลังให้ fluid ท่านจะแยก hypovolaemia กับ AKI อย่างไร
+
+[physician]
+ช่วยสรุป plan ทั้งหมดให้สั้น ๆ ไม่เกิน 5 บรรทัด เดี๋ยวผมเอาไปลงใน note
+
+[assistant]
+สรุป plan สั้น ๆ
+- NPO, NG decompression
+- IV balanced crystalloid และเติม K ตามระดับ
+- ติดตาม urine output, อาการ, lactate ซ้ำ
+- Gastrografin แล้วดู film ภายใน 24 ชม.
+- operate ถ้า peritonitis หรือ HR/lactate แย่ลง (WSES Bologna ASBO, 2017)
+❓ ก่อนลงใน note ท่านจะตรวจอะไรซ้ำที่เตียงอีกครั้ง
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ความรู้เยอะมาก ขอบคุณครับ
+

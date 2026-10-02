@@ -1,0 +1,12 @@
+{"rater":"sonnet","packet":6,"scores":{
+"X601":{"d1":5,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":4,"note":"'UACR 220 ของ pt อยู่ในกลุ่มนั้นไหม หรือเป็นแค่ eGFR slope'; Cr only wk2/4, formulary 1500 cap; reflection: Monday KDIGO check, audit first 20 DM+CKD3 pts"},
+"X602":{"d1":3,"d2":4,"d3":3,"d4":3,"d5":4,"d6":0,"d7":3,"note":"Ranked DDx, then 'CRP 48 กับ WBC 11,000 ทำให้ infection ขยับขึ้น'; rebutted CIWA in confused pts ('cutoff 8 มาจาก validation ไม่ใช่ RCT'); no reflection; asked for copy-paste orders."},
+"X603":{"d1":4,"d2":5,"d3":5,"d4":4,"d5":5,"d6":5,"d7":4,"note":"'โอกาสแย่จนต้องส่งต่อราว 1 ใน 10'; caught unsourced 3% saline claim; no HFNC/PICU 2h/no continuous monitor; summary 'เดิมคิด SpO2 93% พอ... แผนนี้ผมเป็นคนสั่ง ไม่ได้ copy'"},
+"X604":{"d1":2,"d2":1,"d3":2,"d4":1,"d5":1,"d6":1,"d7":2,"note":"Long generic requests ('ขอภาพรวมทั้งหมด'), topic-hopping warfarin/rivaroxaban/spinal; only a reference request; reflection restates AI content, no case-specific change or action."},
+"X605":{"d1":4,"d2":4,"d3":3,"d4":4,"d5":5,"d6":4,"d7":5,"note":"'Canadian rule ผมจำได้ว่า exclude กลุ่มกิน warfarin'; own 1%/5% thresholds flagged unsourced 'ไม่ลง chart'; 'เทียบ NG232 ต้นฉบับเองก่อน order ไม่ copy ตรง ๆ'; summary notes open source gap."},
+"X606":{"d1":1,"d2":1,"d3":0,"d4":2,"d5":5,"d6":1,"d7":2,"note":"No patient; 'I'll copy whatever you give me straight into the order set', template fill; final turn grades each recommendation and catches 'every patient 30 mL/kg' overstatement; reflection restates bundle."},
+"X607":{"d1":2,"d2":2,"d3":3,"d4":2,"d5":2,"d6":1,"d7":2,"note":"Long case dump, generic asks ('ควรเริ่มยากลุ่มไหนเป็นตัวแรก'); one 'แน่ใจนะครับ' challenge; work-schedule shapes follow-up interval; no reflection, only thanks."},
+"X608":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":4,"note":"'BRIDGE trial รวม pt ที่มี mechanical valve ด้วยหรือเปล่า... ฉลากคิดจาก CrCl ไม่ใช่ eGFR และ pt ตัวเล็ก'; no anti-Xa, ward staffing; reflection: recompute CrCl, one-page ward table."},
+"X609":{"d1":3,"d2":2,"d3":2,"d4":2,"d5":2,"d6":4,"d7":2,"note":"Unranked DDx ('ผมนึกได้แค่นี้ ยังมีโรคอะไรอีกไหม'); topic-hopping; brief 'แน่ใจนะครับ'; copy-paste plan; reflection names change and plan 'ถามน้ำหนักลด ปวดตอนเช้า ตรวจ fundus'."},
+"X610":{"d1":3,"d2":2,"d3":2,"d4":2,"d5":1,"d6":1,"d7":2,"note":"Unranked DDx 'adhesion, internal hernia หรือ tumor recurrence'; topic-hopping (Gastrografin, analgesic, antibiotic, Foley); copy-note summary; reflection 'ได้ความรู้เยอะมาก ขอบคุณครับ'."}
+}}
