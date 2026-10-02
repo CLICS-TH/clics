@@ -1,6 +1,6 @@
 {
-  "version": "known-sources-v2",
-  "note": "Curated by hand for scripts/quality/cite-verify.mjs. ONLY sources and edition years the curator was certain of; omissions are deliberate. A missing year makes a real citation read \"year-mismatch\" (a false alarm a human clears) - a wrong year would make a false one read \"verified\", which is the failure this list exists to prevent. \"family\" entries verify only that the publisher/series exists and publishes in that year, not the specific document. year_range [from, null] = every year from `from` to the current year. v2 (review of PR #113): publisher names live ONLY on family entries — a document entry carries document-specific aliases, so \"<publisher> <invented title>, <year>\" can at most read publisher-only.",
+  "version": "known-sources-v3",
+  "note": "Curated by hand for scripts/quality/cite-verify.mjs. ONLY sources and edition years the curator was certain of; omissions are deliberate. A missing year makes a real citation read \"year-mismatch\" (a false alarm a human clears) - a wrong year would make a false one read \"verified\", which is the failure this list exists to prevent. \"family\" entries verify only that the publisher/series exists and publishes in that year, not the specific document. year_range [from, null] = every year from `from` to the current year. v2 (review of PR #113): publisher names live ONLY on family entries — a document entry carries document-specific aliases, so \"<publisher> <invented title>, <year>\" can at most read publisher-only. v3: document entries carry their official full titles as aliases — those words are the document's vocabulary, and any OTHER word in a cited name makes it document-unconfirmed.",
   "sources": [
     {
       "id": "fam-who",
@@ -875,7 +875,8 @@
       "aliases": [
         "ACOG Practice Bulletin 222",
         "ACOG preeclampsia",
-        "ACOG gestational hypertension"
+        "ACOG gestational hypertension",
+        "ACOG Practice Bulletin No. 222: Gestational Hypertension and Preeclampsia"
       ],
       "kind": "guideline",
       "specificity": "document",
@@ -1126,7 +1127,8 @@
       "canonical": "Global Strategy for Asthma Management and Prevention (GINA report)",
       "aliases": [
         "GINA",
-        "Global Initiative for Asthma"
+        "Global Initiative for Asthma",
+        "Global Strategy for Asthma Management and Prevention"
       ],
       "kind": "guideline",
       "specificity": "document",
@@ -1146,7 +1148,9 @@
       "aliases": [
         "GOLD",
         "GOLD COPD",
-        "Global Initiative for Chronic Obstructive Lung Disease"
+        "Global Initiative for Chronic Obstructive Lung Disease",
+        "Global Strategy for the Diagnosis, Management and Prevention of COPD",
+        "Global Strategy for the Diagnosis, Management, and Prevention of Chronic Obstructive Pulmonary Disease"
       ],
       "kind": "guideline",
       "specificity": "document",

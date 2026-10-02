@@ -88,6 +88,18 @@ const FABRICATED = [
   ['Gold standard herbal therapy review', 2024, 'unverified'],
   ['NICE recommendations on turmeric for arthritis', 2020, 'publisher-only'],
   ['HIGH-DOSE VITAMINS CURE SEPTIC SHOCK', 2020, 'unverified'],
+  // Re-review: a REAL document with an invented topic grafted on (all eight read `verified` before).
+  ['ESC Guidelines on Garlic Supplementation in Heart Failure', 2021, 'document-unconfirmed'],
+  ['KDIGO Clinical Practice Guideline for Turmeric in CKD', 2024, 'document-unconfirmed'],
+  ['NICE NG28 addendum on cinnamon', 2022, 'document-unconfirmed'],
+  ['ADA Standards of Care: cinnamon supplementation', 2024, 'document-unconfirmed'],
+  ['WHO dengue guidelines on papaya leaf extract', 2011, 'document-unconfirmed'],
+  ['แนวทางเวชปฏิบัติสำหรับโรคเบาหวาน เรื่องอบเชย', 2566, 'document-unconfirmed'],
+  ['แนวทางการรักษาโรคความดันโลหิตสูงในเวชปฏิบัติทั่วไป ฉบับกระเทียม', 2562, 'document-unconfirmed'],
+  ['แนวทางการควบคุมวัณโรคประเทศไทย ฉบับสมุนไพร', 2564, 'document-unconfirmed'],
+  // The two "known gaps" from the re-review: they still MATCH a trial, and the leftover rule catches them.
+  ['Sepsis RECOVERY of function', 2021, 'document-unconfirmed'],
+  ['Villanueva trial of garlic', 2013, 'document-unconfirmed'],
 ];
 test('regression: invented citations are never `verified` (publisher-only or unverified)', async () => {
   for (const [name, year, want] of FABRICATED) {
@@ -101,7 +113,20 @@ test('regression: genuine citations still verify after the stricter matcher', as
     ['LOVIT', 2022], ['Villanueva et al.', 2013], ['Rivers et al.', 2001], ['Magpie Trial', 2002], ['ProCESS', 2014], ['SPRINT', 2015],
     ['ADA Standards of Care', 2024], ['Standards of Care in Diabetes', 2024], ['NICE-SUGAR', 2009], ['EMPA-REG OUTCOME', 2015], ['RE-LY', 2009],
     // GINA and GOLD: explicit early editions PLUS an open annual range — current years verify.
-    ['GINA', 2024], ['Global Initiative for Asthma', 2025], ['GOLD', 2024], ['GOLD COPD report', 2025]]) {
+    ['GINA', 2024], ['Global Initiative for Asthma', 2025], ['GOLD', 2024], ['GOLD COPD report', 2025],
+    // Long-form official titles, with years, era markers and generic words — no leftover words.
+    ['2019 Thai Guidelines on the Treatment of Hypertension', 2019],
+    ['แนวทางเวชปฏิบัติสำหรับโรคเบาหวาน พ.ศ. 2566', 2566],
+    ['KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease', 2024],
+    ['ESC Guidelines for the diagnosis and treatment of acute and chronic heart failure', 2021],
+    ['2021 ESC Guidelines for Heart Failure', 2021],
+    ['ADA Standards of Medical Care in Diabetes', 2022],
+    ['Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock', 2021],
+    ['ACOG Practice Bulletin No. 222: Gestational Hypertension and Preeclampsia', 2020],
+    ['Global Strategy for Asthma Management and Prevention', 2024],
+    ['NICE NG28 Type 2 diabetes in adults: management', 2022],
+    ['WHO dengue guidelines', 2009],
+    ['2018 AHA/ACC Guideline on the Management of Blood Cholesterol', 2018]]) {
     const r = await verifyCitation(cite(name, year), { known, offline: true });
     assert.equal(r.status, 'verified', `${name}, ${year} → ${r.status}`);
   }
@@ -185,9 +210,9 @@ test('verifyReport: per-item citations and a summary that refuses to say "fabric
   ]);
   const out = await verifyReport(report, { known, offline: true });
   assert.equal(out.summary.citations, 2);
-  assert.deepEqual(out.summary.by_status, { verified: 1, 'publisher-only': 0, 'year-mismatch': 0, unverified: 1 });
+  assert.deepEqual(out.summary.by_status, { verified: 1, 'document-unconfirmed': 0, 'publisher-only': 0, 'year-mismatch': 0, unverified: 1 });
   assert.equal(out.summary.verified_rate.k, 1);
   assert.match(out.summary.note, /NOT that it is fabricated/);
-  assert.match(out.summary.note, /publisher-only.*NOT counted as verified/);
+  assert.match(out.summary.note, /publisher-only.*document-unconfirmed.*NOT counted as verified/);
   assert.deepEqual(out.items.map((i) => i.n), [2, 0]);
 });

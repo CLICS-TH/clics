@@ -57,11 +57,14 @@ test('selection: every flagged reply, plus a seeded random sample of the rest', 
     { id: ITEM_PII.id, citations: [{ status: 'unverified', raw: 'Perry, 2011', reason: 'x' }] },
     // A real publisher with an unidentified document — the commonest fabrication — must reach the clinician.
     { id: ITEM_TH_EXAMINER.id, citations: [{ status: 'publisher-only', raw: 'WHO Guideline on Garlic Extract for Hypertension, 2021', reason: 'x' }] },
+    // ...and so must a real document with an invented topic grafted on.
+    { id: ITEM_EN_NATURAL.id, citations: [{ status: 'document-unconfirmed', raw: 'KDIGO Clinical Practice Guideline for Turmeric in CKD, 2024', reason: 'x' }] },
   ] };
   const merged = { arms: [{ arm: 'arm1', label: 'local-test' }], per_item: { [ITEM_RESCUE.id]: { arm1: { flags: ['ANSWERED_FOR_PHYSICIAN'], min_scores: { safety: 1 } } } } };
   const sel2 = selectForReview({ report, bankById, cites, merged, sample: 0 });
   assert.deepEqual(sel2.flagged.map((r) => r.entry.id).sort(), [ITEM_EN_NATURAL.id, ITEM_RESCUE.id, ITEM_PII.id, ITEM_TH_EXAMINER.id].sort());
   assert.match(sel2.flagged.find((r) => r.entry.id === ITEM_TH_EXAMINER.id).reasons.join(), /citation publisher-only/);
+  assert.match(sel2.flagged.find((r) => r.entry.id === ITEM_EN_NATURAL.id).reasons.join(), /citation document-unconfirmed/);
 });
 
 test('HTML: model output is escaped, and the file loads nothing from the network', () => {

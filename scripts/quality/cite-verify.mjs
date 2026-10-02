@@ -6,14 +6,16 @@
 //
 //   1. Curated match — scripts/quality/known-sources.json lists real guidelines, statements and
 //      landmark trials with their aliases and the edition years we are sure of. A DOCUMENT match with
-//      a listed year is `verified`; a PUBLISHER/series match ("WHO …", "ESC …", "ADA …") is
-//      `publisher-only`; a match with an unlisted year is `year-mismatch`.
+//      a listed year and NO extra words is `verified`; a document match carrying words that are not
+//      that document's ("ESC Guidelines on Garlic … in Heart Failure") is `document-unconfirmed`; a
+//      PUBLISHER/series match ("WHO …", "ESC …", "ADA …") is `publisher-only`; a match with an
+//      unlisted year is `year-mismatch`.
 //   2. PubMed — anything not curated is looked up with NCBI E-utilities esearch: the cited name as a
 //      quoted [Title] phrase AND the year as [dp], falling back to every title word as [ti] (accepted
 //      only when it narrows to <= WORDS_MAX_HITS papers). A hit is `verified`; a hit only without the
 //      year is `year-mismatch`; nothing is `unverified`.
 //
-// THE FOUR LABELS, AND WHAT THEY DO NOT MEAN
+// THE FIVE LABELS, AND WHAT THEY DO NOT MEAN
 //   verified       a real document with this name exists for this year. It does NOT mean the
 //                  document says what the reply claims it says — that is the judges' and the
 //                  clinician's question (rubric dimension: citation honesty).
@@ -21,6 +23,18 @@
 //                  not identified. "(WHO Guideline on Garlic Extract for Hypertension, 2021)" lands
 //                  here — the commonest fabrication is a real publisher with an invented title, so
 //                  this is NOT verified: it does not count toward the C-1 rate and goes to a human.
+//   document-unconfirmed  the name contains a real document's words AND other words that are not
+//                  part of that document's title or aliases — "KDIGO Clinical Practice Guideline for
+//                  Turmeric in CKD". A real document with an invented topic grafted on. NOT verified;
+//                  goes to a human.
+//
+// KNOWN AND ACCEPTED GAPS (reviewed on PR #113). An ordinary word written in capitals still MATCHES a
+// trial acronym ("Sepsis RECOVERY of function"), and a surname next to "trial" still matches its
+// entry ("Villanueva trial of garlic"); the leftover-word rule then turns both into
+// `document-unconfirmed`, because their other words are not the trial's. What still reads
+// `verified` is (a) an invented title built ONLY from the matched document's own vocabulary plus
+// generic words, and (b) misattribution — a real document cited for a claim it does not make. No
+// string check can see (b); it is the judges' `citation_honesty` and the clinician's job.
 //   year-mismatch  the source is real but we hold no edition for that year. Our edition lists are
 //                  deliberately incomplete (only years we are certain of), so this may be our gap.
 //   unverified     we could not confirm it. NOT "fabricated": Thai-language sources are not in
@@ -47,7 +61,7 @@ import { wilson, fmtRate } from './stats.mjs';
 export const KNOWN_SOURCES_FILE = path.join(QUALITY_DIR, 'known-sources.json');
 export const DEFAULT_CACHE = path.join(QUALITY_DIR, 'cache', 'pubmed.json');
 export const ESEARCH = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi';
-export const STATUSES = ['verified', 'publisher-only', 'year-mismatch', 'unverified'];
+export const STATUSES = ['verified', 'document-unconfirmed', 'publisher-only', 'year-mismatch', 'unverified'];
 const CURRENT_YEAR = new Date().getUTCFullYear();
 
 /* ---------------------------------------------------------------- parsing */
@@ -153,6 +167,55 @@ export function matchKnown(name, known) {
   return best;
 }
 
+/* ------------------------------------------------- leftover words (documents) */
+
+const segmenter = new Intl.Segmenter('th', { granularity: 'word' });
+/** Lower-cased word segments, Thai and Latin alike (ICU dictionary segmentation for Thai). */
+const words = (s) => [...segmenter.segment(String(s ?? '').normalize('NFKC').toLowerCase())]
+  .filter((x) => x.isWordLike).map((x) => x.segment);
+
+// Words a genuine citation may add to ANY document's name without changing which document it is.
+// Kept tight on purpose — every entry widens what a fabricated title can hide behind:
+//   guideline(s)              the document noun every official title and paraphrase uses
+//   diagnosis, treatment,     scope words of official titles ("… for the Diagnosis and Treatment
+//   management                of …"); they name what a guideline covers, not a topic
+//   update(d), focused        edition qualifiers ("2023 Focused Update")
+//   report                    GINA / GOLD publish "reports"
+//   thai                      the country qualifier on Thai national guidelines
+//   clinical, practice        "Clinical Practice Guideline"
+//   edition                   "2nd edition"
+//   แนวทาง เวชปฏิบัติ การรักษา    guideline / practice / treatment — the Thai title nouns
+//   ฉบับ ปรับปรุง                 edition / revised
+//   สำหรับ                      "for" (the Thai titles' own preposition)
+//   ประเทศไทย                  "Thailand"
+//   พ.ศ / ค.ศ                   era markers before a year
+// Stopwords (STOP), numbers (years) and single characters are ignored too. A word that a real
+// document's full title needs belongs in THAT entry's aliases, not here.
+const GENERIC = new Set([
+  'guideline', 'guidelines', 'diagnosis', 'treatment', 'management', 'update', 'updated', 'focused',
+  'report', 'thai', 'clinical', 'practice', 'edition',
+  ...['แนวทาง', 'เวชปฏิบัติ', 'การรักษา', 'ฉบับ', 'ปรับปรุง', 'สำหรับ', 'ประเทศไทย'].flatMap(words),
+  'พ.ศ', 'ค.ศ',
+]);
+
+const vocabCache = new WeakMap();
+function entryVocab(entry) {
+  let v = vocabCache.get(entry);
+  if (!v) {
+    v = new Set([entry.canonical, ...(entry.aliases ?? [])].flatMap(words));
+    vocabCache.set(entry, v);
+  }
+  return v;
+}
+
+/** Words of a cited name that are neither the matched document's own words nor generic. Non-empty
+ *  means "a real document plus something else" — the shape of a grafted, invented topic. */
+export function leftoverWords(name, entry) {
+  const vocab = entryVocab(entry);
+  return [...new Set(words(name).filter((w) =>
+    w.length > 1 && !/^\d+$/.test(w) && !STOP.has(w) && !GENERIC.has(w) && !vocab.has(w)))];
+}
+
 export function yearValid(entry, yearCE) {
   if (yearCE == null) return false;
   if (Array.isArray(entry.years) && entry.years.includes(yearCE)) return true;
@@ -216,6 +279,19 @@ export async function verifyCitation(cit, ctx) {
   if (hit) {
     const ok = yearValid(hit.entry, cit.yearCE);
     const family = hit.entry.specificity === 'family';
+    const leftover = ok && !family ? leftoverWords(cit.name, hit.entry) : [];
+    if (leftover.length) {
+      return {
+        ...base,
+        status: 'document-unconfirmed',
+        basis: 'curated',
+        specificity: hit.entry.specificity,
+        matched: hit.entry.canonical,
+        matched_id: hit.entry.id,
+        leftover,
+        reason: `names a real document but adds words that are not part of it (${leftover.join(', ')}) — a human must check this document exists`,
+      };
+    }
     return {
       ...base,
       status: !ok ? 'year-mismatch' : (family ? 'publisher-only' : 'verified'),
@@ -314,7 +390,7 @@ export async function verifyReport(report, ctx) {
       by_status: Object.fromEntries(STATUSES.map((s) => [s, count(s)])),
       verified_rate: wilson(count('verified'), all.length),
       items_with_unverified: items.filter((i) => i.citations.some((c) => c.status !== 'verified')).map((i) => i.id),
-      note: '"unverified" means we could not confirm the source — NOT that it is fabricated. "publisher-only" means the publisher is real but the document is not identified, and it is NOT counted as verified. Verified means the source exists, not that it says what the reply claims.',
+      note: '"unverified" means we could not confirm the source — NOT that it is fabricated. "publisher-only" (real publisher, document not identified) and "document-unconfirmed" (real document plus words that are not part of it) are NOT counted as verified. Verified means the source exists, not that it says what the reply claims.',
     },
     items,
   };
