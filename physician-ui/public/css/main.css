@@ -386,6 +386,11 @@ body:has(.chat-page) nav { flex:none; }
 .composer-send:disabled { background:var(--coral-disabled); color:var(--muted); cursor:not-allowed; }
 .composer-send svg { width:20px; height:20px; }
 .composer-hint { font-size:12px; color:var(--muted-soft); line-height:1.5; margin:8px 2px 0; }
+/* Standing "AI can be wrong" notice (CREC082 AI Governance & Safety Plan §7). Quiet by design — plain --muted
+   text, no band — but 13.5px and --muted (>=4.5:1 on the chat card in both themes) so it stays readable in
+   Thai. Thai first, English on its own line: .bi-en is nowrap and a full sentence would overflow at 320px. */
+.ai-disclaimer { font-size:13.5px; color:var(--muted); line-height:1.55; margin:8px 2px 0; overflow-wrap:anywhere; }
+.ai-disclaimer-en { display:block; }
 /* Touch sizing handled centrally by the `@media (pointer:coarse)` floor in the primitives block. */
 
 /* ===== Clinical artifacts ===== */
