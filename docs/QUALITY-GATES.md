@@ -355,6 +355,41 @@ cites files use one checker version.
   with no verdict. A point-estimate comparison would have read that as a 7-point gain. The paired
   test did not.
 
+**Local after-run result (2026-10-02): NOT SHOWN.**
+
+The after-run is `local-deepseek-after-2026-10-02`:
+- prompt labels `chat-prompt-a0e65028` / `chat-prompt-9467d3c7`, rescue `chat-prompt-55d91dbd`
+  unchanged;
+- the same bank (`bank-975bb6e06699`) and model as the baseline;
+- launched 08:11:55Z, after this amendment and the baseline sha256 were pushed (cd37301);
+- committed sha256 `12289184…68af2`, raw `40a9713c…1d47` (they differ only in the redacted
+  base_url); cites `ea212e0e…1ffd2` (known-sources-v5).
+
+| | baseline | after |
+|---|---|---|
+| per-reply evidence coverage (the verdict) | 25/74 (33.8%) | 34/74 (45.9%) |
+| paired, n 74 | | gained 17, lost 8, both 17, neither 32 |
+| exact McNemar | | p(improved) **0.054**, p(worse) 0.978 → **not shown** (α 0.025) |
+| note-only ceiling (gated) | — | 5/74 (6.8%, upper 14.9%) ≤ 0.25 → **pass** |
+| note alongside a citation | — | 20/74 (27.0%) |
+| verified citations (descriptive, citation-level) | 38/199 (19.1%) | 50/154 (32.5%) |
+| rescue_reply (rescue prompt unchanged) | 4/6 | 2/6 (Fisher p 0.57) |
+
+What this means, by the rules above:
+- **Nobody may claim the new rule makes the local tutor cite better.** The point estimate moved
+  +12 points, but the same-prompt noise check moved +7 with no change at all, and p = 0.054 does not
+  reach α. It is not *worse* either, so nothing is reverted on C-1.
+- The note-only ceiling passes. The tutor does not hide behind "(no specific source cited)": 5
+  replies use the note alone, and 20 add it next to a real citation.
+- The citation-level verified rate is reported for description only. Citations cluster within
+  replies, it was not the pre-registered measure, and the run cited **fewer** sources (154 vs 199).
+  It is not evidence of an improvement.
+- Rescue is the same prompt in both runs. Across three runs on it (3/6, 4/6, 2/6; 9/18 overall) it
+  fails C-0 regardless of #123; that failure predates this change.
+- Under "not shown", keeping the change rests on the C-2 fabrication and misattribution counts and
+  on the clinician. No valid C-2 judge exists yet (the local judge fails κ), so that evidence is
+  missing. The Claude arm's after-run (about $1.10) has not been run and needs the user's approval.
+
 The label is 40 characters. The run was launched as `local-deepseek-baseline-master-2026-10-02`, and
 the old tutor-audit `slug()` silently cut it to 40 characters. The truncated name above is the one on
 disk and inside the report, and it is the same run. tutor-audit now refuses such a label instead of
