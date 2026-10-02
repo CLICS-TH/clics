@@ -17,7 +17,7 @@ import {
 } from './design.mjs';
 import {
   validateFixture, validateAll, serialiseManifest, MANIFEST_PATH, FIXTURES_DIR, REFLECTION_HEADINGS, thaiShare, checkPlanted,
-  checkBudget, batchCueContribution, updateHeldOutLock, recordIntake, intakeAccepted, loadIntakeLog,
+  checkBudget, batchCueContribution, updateHeldOutLock, recordIntake, intakeAccepted, loadIntakeLog, appendOnlyViolation,
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
 import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH, PLAN_MD_PATH, BUDGET_LEVELS, needsExtraReview } from './batch-plan.mjs';
@@ -823,20 +823,45 @@ describe('D13 on the full cohort — held-out lock and no early held-out scores'
     }
   });
 
-  test('a lock entry, once on master, is never changed or dropped (CI fails if origin/master is missing)', async () => {
+  // Master's copy of a committed record. state: 'no-ref' (no origin/master: a plain export locally; in CI
+  // the job fetches master, so this must FAIL there, never pass silently), 'absent' (master has no such
+  // file yet), or 'ok' with the parsed JSON.
+  const masterCopy = (rel) => {
     const git = (args) => execFileSync('git', args, { cwd: HERE, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-    let haveMaster = false;
-    try { git(['rev-parse', '--verify', '--quiet', 'origin/master']); haveMaster = true; } catch { /* no ref */ }
-    if (!haveMaster) {
-      // Locally this can be a plain export; in CI it must not silently pass (the job fetches master).
-      if (process.env.CI) assert.fail('origin/master is not readable in CI — the held-out lock cannot be compared with master');
-      return;
-    }
-    let master = null;
-    try { master = JSON.parse(git(['show', 'origin/master:scripts/calibration/anchors/HELDOUT-LOCK.json'])); }
-    catch { return; }                       // master has no lock yet: nothing locked to protect
+    try { git(['rev-parse', '--verify', '--quiet', 'origin/master']); } catch { return { state: 'no-ref' }; }
+    try { return { state: 'ok', json: JSON.parse(git(['show', `origin/master:scripts/calibration/anchors/${rel}`])) }; }
+    catch { return { state: 'absent' }; }
+  };
+  const needMaster = (m, what) => {
+    if (m.state !== 'no-ref') return true;
+    if (process.env.CI) assert.fail(`origin/master is not readable in CI — ${what} cannot be compared with master`);
+    return false;
+  };
+
+  test('a lock entry, once on master, is never changed or dropped (CI fails if origin/master is missing)', async () => {
+    const m = masterCopy('HELDOUT-LOCK.json');
+    if (!needMaster(m, 'the held-out lock') || m.state === 'absent') return;   // nothing locked on master yet
     const now = await loadHeldOutLock();
-    for (const [id, sha] of Object.entries(master.locked)) assert.equal(now?.locked?.[id], sha, `${id}: locked on master, changed here`);
+    for (const [id, sha] of Object.entries(m.json.locked)) assert.equal(now?.locked?.[id], sha, `${id}: locked on master, changed here`);
+  });
+
+  test('intake-log.json is append-only against master: master\'s entries are a prefix of this one', async () => {
+    // Without this, a hand-written log entry could admit a held-out fixture that never ran intake
+    // (budget and extra-review gates skipped), and the next writing run would lock it.
+    const m = masterCopy('intake-log.json');
+    if (!needMaster(m, 'the intake log') || m.state === 'absent') return;
+    const now = await loadIntakeLog();
+    const v = appendOnlyViolation(m.json.entries ?? [], now.entries ?? []);
+    assert.equal(v, null, `intake-log.json: ${v}`);
+  });
+
+  test('appendOnlyViolation: a new trailing entry passes; an edited, dropped or reordered one fails', () => {
+    const a = { batch: 1, fixtures: { 'anc-050': 'x' } }, b = { batch: 3, fixtures: { 'anc-060': 'y' } };
+    assert.equal(appendOnlyViolation([a], [a, b]), null);
+    assert.equal(appendOnlyViolation([], [a]), null);
+    assert.match(appendOnlyViolation([a, b], [a]), /removed/);
+    assert.match(appendOnlyViolation([a], [{ ...a, fixtures: { 'anc-050': 'FORGED' } }, b]), /entry 0 \(batch 1\)/);
+    assert.match(appendOnlyViolation([a, b], [b, a, b]), /append-only/);
   });
 
   test('every locked held-out fixture passed its batch intake with those bytes (and extra-review was confirmed)', async () => {

@@ -76,6 +76,16 @@ export async function loadIntakeLog(p = INTAKE_LOG_PATH) {
   catch (e) { if (e.code === 'ENOENT') return { entries: [] }; throw e; }
 }
 
+/**
+ * The intake log is append-only: `was` (master's entries) must be a prefix of `is`. Returns null when
+ * it holds, otherwise the first violation as a sentence. Pure.
+ */
+export function appendOnlyViolation(was = [], is = []) {
+  if (is.length < was.length) return `${is.length} entries here, ${was.length} on master: entries were removed`;
+  const i = was.findIndex((e, k) => JSON.stringify(is[k]) !== JSON.stringify(e));
+  return i < 0 ? null : `entry ${i} (batch ${was[i].batch}) differs from master's: the log is append-only`;
+}
+
 /** id → the sha256 the LATEST accepted intake recorded for it. */
 export function intakeAccepted(log) {
   const out = {};
