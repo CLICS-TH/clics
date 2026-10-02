@@ -39,7 +39,7 @@ import {
 
 // --- single-source imports from rimpl (never copy these) --------------------
 import { RIMPL_SYSTEM_PROMPT_EXAMINER, ARTIFACT_GUIDANCE } from '../../rimpl/src/lib/prompts.js';
-import { hasCitation, extractSocraticQuestion, extractReferences } from '../../rimpl/src/services/post-filter.js';
+import { hasCitation, extractSocraticQuestion, extractReferences, thaiShare, THAI_MIN_SHARE } from '../../rimpl/src/services/post-filter.js';
 
 // chat.js: CHAT_MAX_TOKENS = max(1500, RIMPL_CHAT_MAX_TOKENS ?? 4000)
 const CHAT_MAX_TOKENS = 4000;
@@ -86,18 +86,8 @@ printTarget(cfg, {
 
 /* --------------------------------------------------------- Thai detection */
 
-// Thai block U+0E00–U+0E7F. `thaiShare` is Thai codepoints over Thai+Latin letters, so numbers,
-// punctuation, drug names and English abbreviations (which legitimately appear in Thai clinical
-// prose) do not drag the score down on their own.
-function thaiShare(text) {
-  const thai = (text.match(/[\u0E00-\u0E7F]/g) || []).length;
-  const latin = (text.match(/[A-Za-z]/g) || []).length;
-  return thai + latin === 0 ? 0 : thai / (thai + latin);
-}
-// Below this, the model answered a Thai question substantially in English — an immediate fail for a
-// bilingual product, and visible to physicians on turn one. Clinical Thai routinely runs 50-80%
-// Thai characters because drug and lab names stay in Latin script, so the bar sits well under that.
-const THAI_MIN_SHARE = 0.30;
+// `thaiShare` and the 0.30 bar are single-sourced from rimpl's post-filter (the production language
+// guard in chat.js uses the same metric). The probe reports the RAW share, with nothing excluded.
 
 /* -------------------------------------------------------------------- run */
 
@@ -216,7 +206,7 @@ hr('first-pass format compliance');
 table(
   ['check', 'pass', 'rate', 'cost of failing'],
   [
-    ['answered in Thai', `${inThai}/${answered.length}`, pct(inThai, answered.length), dim('physicians see English on turn one — no retry exists for this')],
+    ['answered in Thai', `${inThai}/${answered.length}`, pct(inThai, answered.length), dim('chat.js retries once (th only) → a second paid/queued call')],
     ['(Source, Year) citation', `${cited}/${answered.length}`, pct(cited, answered.length), dim('chat.js retries → a second paid/queued call')],
     ['closing ❓ (examiner)', `${socr}/${answered.length}`, pct(socr, answered.length), dim('chat.js retries → a second paid/queued call')],
     [bold('both, first pass'), bold(`${clean}/${answered.length}`), bold(pct(clean, answered.length)), dim('the share of turns that cost ONE call instead of two')],
