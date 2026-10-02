@@ -402,12 +402,22 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
    The second redraw added the language × profile cells, because the composite-only draw left 1
    English and 2 dissociated anchors among the 20 new tuning ones. It also happened before any
    non-pilot anchor existed. Seed, size and the held-out rules are unchanged.
-   **Fixture bytes are bound at intake, not at first scoring.** When `validate.mjs` (no flags) records a
-   held-out fixture into `manifest.json`, it also writes the fixture's sha256 into
-   `HELDOUT-LOCK.json`. From then on, `validate.mjs` and `anchors.test.mjs` fail if that fixture ever
-   changes. A panel rating or an uncommitted run cannot slip a change past this, because the lock
-   does not depend on any score existing. Fixing a held-out fixture before it is recorded is
-   authoring.
+   **Fixture bytes are bound at intake, not at first scoring.**
+   - A batch is first accepted with `validate.mjs --record-batch N`. That runs the full intake, where
+     a budget deviation is an error, and refuses an `extra_review` row unless
+     `--confirm-extra-review <id>` names it. On success it appends the batch, with each fixture's
+     sha256, to `intake-log.json`.
+   - `validate.mjs` (no flags) then writes `manifest.json` and locks into `HELDOUT-LOCK.json` exactly
+     the held-out fixtures whose current bytes are in the intake log. Any other held-out fixture
+     present is an error and blocks the write.
+   - From then on, `validate.mjs` and `anchors.test.mjs` fail if a locked fixture ever changes. A lock
+     entry already on master may never change; CI fetches origin/master for that check, and fails
+     rather than skips if it cannot read it.
+   - A panel rating or an uncommitted run cannot slip a change past this, because the lock does not
+     depend on any score existing.
+   - Fixing a held-out fixture before it is locked is authoring: fix it and record its batch again.
+   - The repo has no CODEOWNERS file, so `HELDOUT-LOCK.json` has no owner rule. A PR that changes an
+     existing lock entry is a D13 breach by definition, and reviewers should treat it as one.
    **What this means for authoring and screening.** Every anchor, held-out or tuning, is written the
    same way and must pass `validate.mjs` (PII, schema, citations, cue gate) before any scoring. Fixing
    a validator failure before intake is authoring, not tuning. The **blind-panel rewrite rule (§7
@@ -515,6 +525,8 @@ The rule from now on:
 | batch plan | `node scripts/calibration/anchors/batch-plan.mjs` (`--check` to verify; prints the simulated cue-gate failure rate) | none |
 | author brief | `node scripts/calibration/anchors/author-brief.mjs` (`--check` to verify it matches AUTHORING / validate / cues / citations) | none |
 | batch intake | `node scripts/calibration/anchors/validate.mjs --batch N` or `--only anc-0NN,anc-0MM` (writes nothing; exit 1 = return to authors) | none |
+| accept a batch | `node scripts/calibration/anchors/validate.mjs --record-batch N [--confirm-extra-review anc-0NN]`, then `validate.mjs` (no flags) to write the manifest and lock its held-out fixtures | none |
+| coordinator report | `node scripts/calibration/anchors/anchor-split.mjs --report` (per-cell counts, run order, extra-review rows, lock progress; needs the split) | none |
 | what would be sent | `node scripts/calibration/anchors/score-local.mjs --pilot --dry-run` | none |
 | score (local box) | `LOCAL_AI_BASE_URL=… LOCAL_AI_MODEL=… LOCAL_AI_API_KEY=… node scripts/calibration/anchors/score-local.mjs --pilot --repeats 3 --concurrency 2 --out scripts/calibration/anchors/runs/pilot-local-<date>.json` | local box only |
 | re-check a past run | `node scripts/calibration/anchors/revalidate.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json` (writes `….revalidated.json`; needs rimpl deps) | none |
@@ -562,8 +574,12 @@ one row of `batches.json`. Nobody writing an anchor calls an AI or sees the spli
    - the batch's contribution to the cohort cue gate, with the fixtures that push a pair most.
 
    It writes nothing. Exit 1 means the batch goes back to its authors.
-5. **Record and lock.** Once a batch passes intake, the coordinator runs `validate.mjs` with no flags.
-   That writes `manifest.json` and locks every held-out fixture in it (`HELDOUT-LOCK.json`, §7.5).
+5. **Record and lock.** Once a batch passes intake, the coordinator runs
+   `validate.mjs --record-batch N` after reading its extra-review rows, adding
+   `--confirm-extra-review <id>` for each. That repeats the intake and logs the accepted bytes in
+   `intake-log.json`. Then `validate.mjs` with no flags writes `manifest.json` and locks the batch's
+   held-out fixtures (`HELDOUT-LOCK.json`, §7.5). A held-out fixture that never passed intake cannot
+   be locked, and blocks the write.
 6. **Order.** Batches run in descending order of how many **tuning** anchors they hold, so tuning
    feedback arrives early. The order is coordinator-only: `anchor-split.mjs --report` prints it, along
    with the extra-review rows.
@@ -573,9 +589,12 @@ one row of `batches.json`. Nobody writing an anchor calls an AI or sees the spli
      evaluator, not Claude in any role. Nobody reads such a score either. `score-local.mjs` refuses
      any held-out id until the lock is complete, and then accepts only the locked bytes.
      `known-groups.mjs` refuses a scores file that holds a held-out id before then.
-     `anchor-split.mjs --check-scorable <ids>` is the same gate for anything built by hand. There is
-     no panel-packet builder in the repo, so whoever builds a panel packet must run that check on its
-     ids first.
+     `scripts/probe/json-contract.mjs --fixtures <dir>` refuses anchor fixtures (matched by ple_id or
+     file name) the same way. `anchor-split.mjs --check-scorable <ids>` is the gate for anything built
+     by hand. There is no panel-packet builder in the repo, so whoever builds a panel packet must run
+     that check on its ids first. Packets are committed under `pilot/<name>/`. While the lock is
+     incomplete, a test scans every committed JSON, TXT, MD and CSV file under the anchors folder,
+     apart from the design-level records, and fails on any held-out id.
    - **Lessons come ONLY from blind-panel ratings of tuning anchors.** Not from the local evaluator:
      it is the evaluator under test, and learning from it calibrates the cohort to it. Not from
      anything held-out.

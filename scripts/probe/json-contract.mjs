@@ -132,6 +132,25 @@ async function loadFixtures(dir) {
 
 const fixtures = await loadFixtures(fixturesDir);
 
+// D13 for the anchor cohort: a held-out anchor (scripts/calibration/anchors, SPLIT-anchors.json) is not
+// sent to any evaluator until every held-out anchor is authored and locked — the same gate as
+// score-local.mjs (anchor-split.mjs assertHeldOutScorable). Matched by ple_id or file name, so a
+// renamed copy is caught too. --dry-run sends nothing and is exempt.
+{
+  const anchorIds = fixtures.map((f) => [f.pleId, f.name.replace(/\.json$/, '')].find((x) => /^anc-\d{3}$/.test(String(x)))).filter(Boolean);
+  if (anchorIds.length && !dryRun) {
+    const { loadAnchorSplit, loadHeldOutLock, assertHeldOutScorable } = await import('../calibration/anchors/anchor-split.mjs');
+    const { createHash } = await import('node:crypto');
+    const fixtureShas = {};
+    for (const f of fixtures) {
+      const id = [f.pleId, f.name.replace(/\.json$/, '')].find((x) => /^anc-\d{3}$/.test(String(x)));
+      if (id) fixtureShas[id] = createHash('sha256').update(await readFile(path.join(fixturesDir, f.name))).digest('hex');
+    }
+    try { assertHeldOutScorable(anchorIds, { split: await loadAnchorSplit(), lock: await loadHeldOutLock(), fixtureShas }); }
+    catch (e) { fail(e.message); }
+  }
+}
+
 // The exact prompt evaluate.js builds: PII-stripped + role-marker-defanged, then wrapped.
 for (const f of fixtures) {
   f.flattened = flattenForPrompt(f.transcript, deriveHintTokens(f.patientRef));

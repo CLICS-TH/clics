@@ -7,10 +7,17 @@
  *   node scripts/calibration/anchors/validate.mjs --batch 3            # INTAKE one authoring batch (batches.json)
  *   node scripts/calibration/anchors/validate.mjs --only anc-0NN,anc-0MM  # INTAKE named fixtures
  *
- * HELD-OUT LOCK. The full run (no flags) that records fixtures into manifest.json also records every
- * held-out fixture's sha256 into HELDOUT-LOCK.json (SPLIT-anchors.json says which ids are held out).
- * From then on that fixture may never change: a changed locked sha is an error here and in the tests.
- * Fixing a held-out anchor BEFORE it is recorded is authoring (AUTHORING.md §7.5).
+ *   node scripts/calibration/anchors/validate.mjs --record-batch 3 [--confirm-extra-review anc-0NN]
+ *                                                     # intake 3 and, if it passes, log it as accepted
+ *
+ * HELD-OUT LOCK. A held-out fixture is locked only after its batch PASSED intake: `--record-batch N`
+ * runs the full `--batch N` intake (budget deviations are errors there), refuses an `extra_review` row
+ * unless `--confirm-extra-review <id>` names it, and only then appends the batch, with each fixture's
+ * sha256, to intake-log.json. The full run (no flags) then writes manifest.json and locks, into
+ * HELDOUT-LOCK.json, exactly the held-out fixtures whose current bytes are in the intake log. Any other
+ * held-out fixture present is an ERROR and blocks the write. A locked fixture may never change.
+ * Fixing a held-out anchor before it is locked is authoring (AUTHORING.md §7.5): fix it and record its
+ * batch again.
  *
  * Intake mode (--batch / --only) writes nothing. It reports, for those ids only: every per-fixture
  * error, the CUE BUDGET each was assigned in batches.json (length, acknowledgements, numerals, list
@@ -62,19 +69,51 @@ export const PLANTED_PATH = path.join(HERE, 'planted-claims.json');
 export const PLANTED_DIR = path.join(HERE, 'planted');
 export const BATCHES_PATH = path.join(HERE, 'batches.json');
 
+export const INTAKE_LOG_PATH = path.join(HERE, 'intake-log.json');
+
+export async function loadIntakeLog(p = INTAKE_LOG_PATH) {
+  try { return JSON.parse(await readFile(p, 'utf8')); }
+  catch (e) { if (e.code === 'ENOENT') return { entries: [] }; throw e; }
+}
+
+/** id → the sha256 the LATEST accepted intake recorded for it. */
+export function intakeAccepted(log) {
+  const out = {};
+  for (const e of log?.entries ?? []) for (const [id, sha] of Object.entries(e.fixtures ?? {})) out[id] = sha;
+  return out;
+}
+
 /**
- * Held-out lock bookkeeping. Pure. Returns the lock as it should be after this run (new held-out
- * fixtures added), plus what changed: `changed` = locked ids whose current sha differs (always an
- * error), `unlocked` = held-out fixtures present but not yet locked.
+ * Append one accepted batch to the intake log. Pure. Refuses (errors, log unchanged) when the batch
+ * still has intake failures, or an extra_review row was not explicitly confirmed.
+ * @param {{batch, ids: string[], shas: object, bad: number, extraReview: string[], confirmed: string[], at?: string}} x
  */
-export function updateHeldOutLock(split, lock, results) {
+export function recordIntake(log, { batch, ids, shas, bad, extraReview, confirmed, at = new Date().toISOString() }) {
+  const errors = [];
+  if (bad) errors.push(`batch ${batch} did not pass intake (${bad} item(s) to return) — nothing recorded`);
+  for (const id of extraReview) if (!confirmed.includes(id)) errors.push(`${id} is extra_review: name it in --confirm-extra-review after the coordinator has read it`);
+  for (const id of confirmed) if (!extraReview.includes(id)) errors.push(`--confirm-extra-review ${id}: not an extra_review row of batch ${batch}`);
+  if (errors.length) return { log, errors };
+  const entry = { batch, recorded_at: at, confirmed_extra_review: [...confirmed].sort(),
+    fixtures: Object.fromEntries(ids.map((id) => [id, shas[id]])) };
+  return { log: { note: 'Batches that PASSED intake (validate.mjs --record-batch), with each fixture\'s sha256 at that moment. Only these bytes may be locked as held-out. Append-only.', entries: [...(log?.entries ?? []), entry] }, errors };
+}
+
+/**
+ * Held-out lock bookkeeping. Pure. Returns the lock as it should be after this run, plus:
+ * `changed` = locked ids whose current sha differs (always an error); `added` = held-out fixtures
+ * whose current bytes passed intake (intake log) and are now locked; `unrecorded` = held-out fixtures
+ * present that are neither locked nor accepted at intake with these bytes (an error: they never
+ * passed their batch's intake). Without an intake log argument every unlocked fixture is unrecorded.
+ */
+export function updateHeldOutLock(split, lock, results, accepted = {}) {
   const locked = { ...(lock?.locked ?? {}) };
-  if (!split) return { lock, changed: [], unlocked: [], added: [] };
+  if (!split) return { lock, changed: [], unlocked: [], added: [], unrecorded: [] };
   const held = new Set(split.held_out);
-  const changed = [], unlocked = [];
+  const changed = [], unlocked = [], unrecorded = [];
   for (const r of results) {
     if (!held.has(r.id)) continue;
-    if (locked[r.id] == null) unlocked.push(r.id);
+    if (locked[r.id] == null) (accepted[r.id] === r.sha256 ? unlocked : unrecorded).push(r.id);
     else if (locked[r.id] !== r.sha256) changed.push(r.id);
   }
   for (const id of unlocked) locked[id] = results.find((r) => r.id === id).sha256;
@@ -84,7 +123,7 @@ export function updateHeldOutLock(split, lock, results) {
     held_out_total: split.held_out.length,
     locked: Object.fromEntries(Object.entries(locked).sort(([a], [b]) => a.localeCompare(b))),
   };
-  return { lock: next, changed, unlocked, added: unlocked };
+  return { lock: next, changed, unlocked, added: unlocked, unrecorded };
 }
 
 /** All planted-claim entries: planted-claims.json plus every planted/anc-NNN.json sidecar. */
@@ -444,7 +483,8 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPat
 if (isMain) {
   const argv = process.argv.slice(2);
   const argOf = (k) => { const i = argv.indexOf(`--${k}`); return i > -1 ? argv[i + 1] : null; };
-  if (argOf('only') || argOf('batch')) await intake(argv, argOf);
+  if (argOf('record-batch')) await recordBatchCli(argOf);
+  if (argOf('only') || argOf('batch')) process.exit((await intake(argv, argOf)) ? 1 : 0);
   const check = process.argv.includes('--check');
   const { results, manifest, lengthR, cues, archive, planted } = await validateAll();
   let failed = 0;
@@ -485,9 +525,11 @@ if (isMain) {
   const { loadAnchorSplit, loadHeldOutLock, LOCK_PATH } = await import('./anchor-split.mjs');
   const split = await loadAnchorSplit();
   const lockNow = await loadHeldOutLock();
-  const lk = updateHeldOutLock(split, lockNow, results);
+  const lk = updateHeldOutLock(split, lockNow, results, intakeAccepted(await loadIntakeLog()));
   for (const id of lk.changed) console.log(`  ✖ ${id} is held-out and LOCKED, and its fixture changed (HELDOUT-LOCK.json) — a held-out anchor never changes after intake`);
   failed += lk.changed.length;
+  for (const id of lk.unrecorded) console.log(`  ✖ ${id} is held-out and its current bytes never passed intake — run validate.mjs --record-batch <its batch> first`);
+  failed += lk.unrecorded.length;
   if (split) console.log(`  held-out lock: ${Object.keys(lockNow?.locked ?? {}).length} of ${split.held_out.length} locked${lk.unlocked.length ? `; ${lk.unlocked.length} present but not yet locked (${lk.unlocked.join(' ')})` : ''}`);
   if (check && lk.unlocked.length) { console.log('  ✖ held-out fixtures not yet locked — run validate.mjs without --check to record them'); failed++; }
 
@@ -557,6 +599,23 @@ async function intake(argv, argOf) {
     if (!c.pairs.some((p) => p.fails || p.worse)) console.log('    no gated pair moves away from 0 by more than 0.01');
     if (c.failures.length) { console.log(`  ✖ the cohort fails the cue gate with this batch (${c.failures.map((x) => `${x.feature}:${x.target}`).join(', ')})`); bad++; }
   }
-  console.log(bad ? `\n✖ ${bad} item(s) to return to authors — nothing was written\n` : `\n✔ batch accepted by the validator — run validate.mjs (no flags) to record it in manifest.json\n`);
-  process.exit(bad ? 1 : 0);
+  console.log(bad ? `\n✖ ${bad} item(s) to return to authors — nothing was written\n` : `\n✔ batch accepted by the validator — record it with validate.mjs --record-batch <N>, then run validate.mjs (no flags)\n`);
+  return bad;
+}
+
+async function recordBatchCli(argOf) {
+  const n = argOf('record-batch');
+  const plan = JSON.parse(await readFile(BATCHES_PATH, 'utf8'));
+  const b = plan.batches.find((x) => String(x.batch) === String(n));
+  if (!b) { console.error(`✖ no batch ${n} in batches.json`); process.exit(2); }
+  const bad = await intake(['--batch', n], (k) => (k === 'batch' ? n : null));
+  const { results } = await validateAll();
+  const shas = Object.fromEntries(results.map((r) => [r.id, r.sha256]));
+  const confirmed = String(argOf('confirm-extra-review') ?? '').split(',').map((x) => x.trim()).filter(Boolean);
+  const extraReview = b.rows.filter((r) => r.extra_review).map((r) => r.id);
+  const { log, errors } = recordIntake(await loadIntakeLog(), { batch: b.batch, ids: b.rows.map((r) => r.id), shas, bad, extraReview, confirmed });
+  if (errors.length) { for (const e of errors) console.error(`✖ ${e}`); process.exit(1); }
+  await writeFile(INTAKE_LOG_PATH, JSON.stringify(log, null, 2) + '\n');
+  console.log(`✔ batch ${b.batch} recorded in ${path.relative(process.cwd(), INTAKE_LOG_PATH)} — now run validate.mjs (no flags) to write manifest.json and lock its held-out fixtures`);
+  process.exit(0);
 }

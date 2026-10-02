@@ -17,7 +17,7 @@ import {
 } from './design.mjs';
 import {
   validateFixture, validateAll, serialiseManifest, MANIFEST_PATH, FIXTURES_DIR, REFLECTION_HEADINGS, thaiShare, checkPlanted,
-  checkBudget, batchCueContribution, updateHeldOutLock,
+  checkBudget, batchCueContribution, updateHeldOutLock, recordIntake, intakeAccepted, loadIntakeLog,
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
 import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH, PLAN_MD_PATH, BUDGET_LEVELS, needsExtraReview } from './batch-plan.mjs';
@@ -724,6 +724,17 @@ describe('scaling to 100 — batch plan, author brief, intake', () => {
     }
   });
 
+  test('batches.json rows carry only split-blind fields', () => {
+    const allowed = new Set(['id', 'language', 'specialty', 'case', 'tutor_mode', 'physician_turns', 'reflection', 'profile',
+      'dissociated_domains', 'targets', 'target_composite', 'cue_budget', 'extra_review']);
+    for (const r of rows) for (const k of Object.keys(r)) assert.ok(allowed.has(k), `${r.id}: unexpected field ${k}`);
+    for (const b of plan.batches) {
+      const order = b.rows.map((r) => r.id);
+      const want = [...b.rows].sort((x, y) => (Boolean(x.extra_review) - Boolean(y.extra_review)) || x.id.localeCompare(y.id)).map((r) => r.id);
+      assert.deepEqual(order, want, `batch ${b.batch} order depends on something other than id and extra_review`);
+    }
+  });
+
   test('the plan never reveals the split', async () => {
     const raw = await readFile(BATCHES_PATH, 'utf8') + await readFile(PLAN_MD_PATH, 'utf8') + await readFile(BRIEF_PATH, 'utf8');
     assert.doesNotMatch(raw, /held.?out|"tuning"|SPLIT-anchors/i);
@@ -812,22 +823,74 @@ describe('D13 on the full cohort — held-out lock and no early held-out scores'
     }
   });
 
-  test('a lock entry, once on master, is never changed or dropped (skipped without git or origin/master)', () => {
+  test('a lock entry, once on master, is never changed or dropped (CI fails if origin/master is missing)', async () => {
+    const git = (args) => execFileSync('git', args, { cwd: HERE, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    let haveMaster = false;
+    try { git(['rev-parse', '--verify', '--quiet', 'origin/master']); haveMaster = true; } catch { /* no ref */ }
+    if (!haveMaster) {
+      // Locally this can be a plain export; in CI it must not silently pass (the job fetches master).
+      if (process.env.CI) assert.fail('origin/master is not readable in CI — the held-out lock cannot be compared with master');
+      return;
+    }
     let master = null;
-    try { master = JSON.parse(execFileSync('git', ['show', 'origin/master:scripts/calibration/anchors/HELDOUT-LOCK.json'], { cwd: HERE, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })); }
-    catch { return; }
-    return loadHeldOutLock().then((now) => {
-      for (const [id, sha] of Object.entries(master.locked)) assert.equal(now?.locked?.[id], sha, `${id}: locked on master, changed here`);
-    });
+    try { master = JSON.parse(git(['show', 'origin/master:scripts/calibration/anchors/HELDOUT-LOCK.json'])); }
+    catch { return; }                       // master has no lock yet: nothing locked to protect
+    const now = await loadHeldOutLock();
+    for (const [id, sha] of Object.entries(master.locked)) assert.equal(now?.locked?.[id], sha, `${id}: locked on master, changed here`);
+  });
+
+  test('every locked held-out fixture passed its batch intake with those bytes (and extra-review was confirmed)', async () => {
+    const lock = await loadHeldOutLock();
+    if (!lock) return;
+    const log = await loadIntakeLog();
+    const accepted = intakeAccepted(log);
+    const confirmed = new Set((log.entries ?? []).flatMap((e) => e.confirmed_extra_review ?? []));
+    const plan = planBatches(design);
+    const extra = new Set(plan.batches.flatMap((b) => b.rows.filter((r) => r.extra_review).map((r) => r.id)));
+    for (const [id, sha] of Object.entries(lock.locked)) {
+      assert.equal(accepted[id], sha, `${id} is locked but its bytes never passed intake (intake-log.json)`);
+      if (extra.has(id)) assert.ok(confirmed.has(id), `${id} is extra_review and was locked without --confirm-extra-review`);
+    }
+  });
+
+  test('recordIntake: refuses a failed batch and an unconfirmed extra-review row; appends on success', () => {
+    const base = { batch: 6, ids: ['anc-025', 'anc-030'], shas: { 'anc-025': 'a', 'anc-030': 'b' }, extraReview: ['anc-025'], at: 't' };
+    assert.match(recordIntake(null, { ...base, bad: 2, confirmed: ['anc-025'] }).errors.join(), /did not pass intake/);
+    assert.match(recordIntake(null, { ...base, bad: 0, confirmed: [] }).errors.join(), /anc-025 is extra_review/);
+    assert.match(recordIntake(null, { ...base, bad: 0, confirmed: ['anc-025', 'anc-030'] }).errors.join(), /not an extra_review row/);
+    const ok = recordIntake({ entries: [] }, { ...base, bad: 0, confirmed: ['anc-025'] });
+    assert.deepEqual(ok.errors, []);
+    assert.deepEqual(intakeAccepted(ok.log), { 'anc-025': 'a', 'anc-030': 'b' });
+    // A later re-record (a pre-lock fix) supersedes the earlier sha.
+    const again = recordIntake(ok.log, { ...base, shas: { 'anc-025': 'a2', 'anc-030': 'b' }, bad: 0, confirmed: ['anc-025'] });
+    assert.equal(intakeAccepted(again.log)['anc-025'], 'a2');
+  });
+
+  test('updateHeldOutLock locks only bytes that passed intake; anything else held-out is unrecorded', () => {
+    const split = { seed: 1, held_out: ['anc-050', 'anc-051', 'anc-052'], tuning: ['anc-053'] };
+    const r = (id, sha) => ({ id, sha256: sha });
+    const res = [r('anc-050', 'a'), r('anc-051', 'b'), r('anc-052', 'c'), r('anc-053', 'd')];
+    const out = updateHeldOutLock(split, null, res, { 'anc-050': 'a', 'anc-051': 'OLD' });
+    assert.deepEqual(out.added, ['anc-050']);
+    assert.deepEqual(out.unrecorded.sort(), ['anc-051', 'anc-052']);
+    assert.deepEqual(Object.keys(out.lock.locked), ['anc-050']);
+  });
+
+  test('validate.mjs --record-batch refuses a batch that has not passed intake and writes nothing', async () => {
+    let failed = false;
+    try { execFileSync(process.execPath, [path.join(HERE, 'validate.mjs'), '--record-batch', '6'], { encoding: 'utf8', stdio: 'pipe' }); }
+    catch (e) { failed = true; assert.match(String(e.stderr), /did not pass intake/); assert.match(String(e.stderr), /extra_review/); }
+    assert.ok(failed);
+    await assert.rejects(readFile(path.join(HERE, 'intake-log.json'), 'utf8').then((t) => { if (!JSON.parse(t).entries?.some((e) => e.batch === 6)) throw new Error('not recorded'); }));
   });
 
   test('updateHeldOutLock adds new held-out fixtures, ignores tuning, and reports a changed locked sha', () => {
     const split = { seed: 1, held_out: ['anc-050', 'anc-051'], tuning: ['anc-052'] };
     const r = (id, sha) => ({ id, sha256: sha });
-    const first = updateHeldOutLock(split, null, [r('anc-050', 'a'), r('anc-052', 'c')]);
+    const first = updateHeldOutLock(split, null, [r('anc-050', 'a'), r('anc-052', 'c')], { 'anc-050': 'a' });
     assert.deepEqual(first.added, ['anc-050']);
     assert.deepEqual(first.lock.locked, { 'anc-050': 'a' });
-    const again = updateHeldOutLock(split, first.lock, [r('anc-050', 'CHANGED'), r('anc-051', 'b')]);
+    const again = updateHeldOutLock(split, first.lock, [r('anc-050', 'CHANGED'), r('anc-051', 'b')], { 'anc-051': 'b' });
     assert.deepEqual(again.changed, ['anc-050']);
     assert.deepEqual(again.added, ['anc-051']);
     assert.equal(updateHeldOutLock(null, null, [r('anc-050', 'a')]).added.length, 0);
@@ -851,10 +914,21 @@ describe('D13 on the full cohort — held-out lock and no early held-out scores'
       const doc = JSON.parse(await readFile(path.join(HERE, 'runs', f), 'utf8'));
       for (const row of doc.rows ?? []) assert.ok(!held.has(row.id), `runs/${f} scores held-out ${row.id} before the lock is complete`);
     }
-    for (const d of (await readdir(path.join(HERE, 'pilot'))).filter((x) => !x.includes('.'))) {
-      let key = null; try { key = JSON.parse(await readFile(path.join(HERE, 'pilot', d, 'KEY-do-not-share.json'), 'utf8')); } catch { continue; }
-      for (const id of Object.values(key)) assert.ok(!held.has(id), `pilot/${d} rates held-out ${id} before the lock is complete`);
-    }
+    // Panel packets (keys, rater files) may live anywhere: scan every committed file under anchors/
+    // except the design-level records that list ids by construction.
+    const ALLOWED = new Set(['fixtures', 'planted', 'design.json', 'batches.json', 'BATCH-PLAN.md', 'SPLIT-anchors.json',
+      'HELDOUT-LOCK.json', 'intake-log.json', 'manifest.json', 'anchors.test.mjs']);
+    const walk = async (dir, rel = '') => {
+      for (const ent of await readdir(dir, { withFileTypes: true })) {
+        const r = rel ? `${rel}/${ent.name}` : ent.name;
+        if (!rel && ALLOWED.has(ent.name)) continue;
+        if (ent.isDirectory()) { await walk(path.join(dir, ent.name), r); continue; }
+        if (!/\.(json|txt|md|csv)$/.test(ent.name)) continue;      // data and reports; code names ids in comments
+        const text = await readFile(path.join(dir, ent.name), 'utf8');
+        for (const id of held) assert.ok(!text.includes(id), `${r} names held-out ${id} before the lock is complete (a panel packet or score?)`);
+      }
+    };
+    await walk(HERE);
   });
 
   test('no held-out id is named in any document an author reads', async () => {

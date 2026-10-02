@@ -138,6 +138,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # The anchor suite compares HELDOUT-LOCK.json with master's copy: a held-out fixture locked on
+      # master may never change. A depth-1 checkout has no origin/master, and under CI the test FAILS
+      # without it rather than skipping, so fetch master explicitly.
+      - name: Fetch origin/master for the held-out lock check
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
       - uses: actions/setup-node@v4
         with:
           node-version: 22
