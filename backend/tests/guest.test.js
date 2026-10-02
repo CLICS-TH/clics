@@ -97,3 +97,18 @@ describe('guest aggregate AI-spend brake (F2)', () => {
     _resetGuestBudget(); // don't starve other suites
   });
 });
+
+describe('guest response is a whitelist', () => {
+  test("rimpl's provenance never reaches the guest's browser", async () => {
+    rimplChat.mockResolvedValueOnce({
+      content: 'reply (ACC/AHA, 2024)', refs: [], socratic_question: null, token_count: 5,
+      provider: 'local', model: 'deepseek-v4-flash-dspark', prompt_version: 'chat-prompt-1a2b3c4d',
+    });
+    const start = await request(app).post('/guest/start');
+    const r = await request(app).post('/guest/message')
+      .set('Authorization', `Bearer ${start.body.token}`).send({ message: 'q' });
+    expect(r.status).toBe(200);
+    expect(r.body.content).toBe('reply (ACC/AHA, 2024)');
+    for (const k of ['provider', 'model', 'prompt_version']) expect(r.body).not.toHaveProperty(k);
+  });
+});

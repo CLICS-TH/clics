@@ -365,8 +365,12 @@ router.get('/:id', async (req, res) => {
   const { data: ple, error } = await fetchOwnedPle(req.params.id, req.user.id);
   if (error || !ple) return res.status(404).json({ error: 'Not found' });
 
+  // Explicit columns, never '*': messages also carries provider / model / prompt_version (which AI
+  // answered each turn). That is research provenance, not something the physician should see — it
+  // would tell them which arm they are in.
   const { data: messages } = await supabase
-    .from('messages').select('*').eq('ple_id', req.params.id).order('created_at');
+    .from('messages').select('id, ple_id, role, content, refs, socratic_question, token_count, created_at')
+    .eq('ple_id', req.params.id).order('created_at');
 
   // The private patient identifier is read ONLY here, scoped to the owning physician.
   const { data: ref } = await supabase.from('ple_patient_refs')
@@ -473,6 +477,12 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     refs: rimplResponse.refs,
     socratic_question: rimplResponse.socratic_question,
     token_count: rimplResponse.token_count,
+    // Per-turn provenance (db/migration-message-provenance.sql): which provider and model answered,
+    // under which prompt. ples.provider_used names one provider per episode, which a hybrid or
+    // failed-over episode cannot honestly do. Null when rimpl did not report it (an older rimpl).
+    provider: rimplResponse.provider ?? null,
+    model: rimplResponse.model ?? null,
+    prompt_version: rimplResponse.prompt_version ?? null,
   });
   // Don't pretend success if the turn wasn't saved — let the client retry.
   if (msgErr1 || msgErr2) {
@@ -589,7 +599,18 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     provider: rimplResponse.provider,
   }));
 
-  res.json({ ...rimplResponse, transcript: transcriptBlock(contextSeen, cap) });
+  // A WHITELIST, never a spread of rimpl's body. That body also carries provider / model /
+  // prompt_version / failed_over_from / rescue — research provenance that would tell a physician which
+  // arm they are in (and that the rescue fired). physician-ui reads exactly these fields.
+  res.json({
+    content: rimplResponse.content,
+    refs: rimplResponse.refs,
+    socratic_question: rimplResponse.socratic_question,
+    token_count: rimplResponse.token_count,
+    input_tokens: rimplResponse.input_tokens,
+    output_tokens: rimplResponse.output_tokens,
+    transcript: transcriptBlock(contextSeen, cap),
+  });
 });
 
 // End session and run PLE quality gate

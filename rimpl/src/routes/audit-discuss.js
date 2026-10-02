@@ -4,6 +4,7 @@ const { stripPii, stripHistoryPii, deriveHintTokens } = require('../services/pii
 const { callAI } = require('../services/ai');
 const { RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS } = require('../lib/prompts');
 const { requestSignal } = require('../lib/request-signal');
+const { promptLabel } = require('../lib/versions');
 const { sendAiError, logAiError } = require('../lib/ai-errors');
 
 const router = Router();
@@ -71,7 +72,10 @@ router.post('/', async (req, res) => {
     const { text, tokenCount, inputTokens, outputTokens, provider, model } =
       await callAI({ purpose: 'discuss', systemPrompt, messages, maxTokens: DISCUSS_MAX_TOKENS, signal });
 
-    res.json({ content: text, token_count: tokenCount, input_tokens: inputTokens, output_tokens: outputTokens, provider, model });
+    // prompt_version hashes the fixed instructions only — the transcript/scores block appended to the
+    // system prompt is per-episode data, and hashing it would give every episode its own "version".
+    res.json({ content: text, token_count: tokenCount, input_tokens: inputTokens, output_tokens: outputTokens, provider, model,
+      prompt_version: promptLabel('discuss', RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS) });
   } catch (err) {
     logAiError('[RIMPL audit-discuss]', err);
     // 503 queue_full (+ Retry-After) / 499 client gone / 413 transcript_too_large / else this 500.

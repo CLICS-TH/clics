@@ -342,9 +342,13 @@ router.post('/ples/:id/discuss', async (req, res) => {
   // PostgREST sends NULL (not DEFAULT) for keys missing on a row — which would violate the not-null
   // default-0 token columns. So set 0 explicitly on the auditor turn.
   const { error: insErr } = await supabase.from('audit_discussions').insert([
+    // provider / model / prompt_version are nullable with no default, so NULL on the auditor's own
+    // turn is exactly right — it was not produced by any model.
     { ple_id: req.params.id, auditor_id: req.user.id, role: 'auditor', content: message, input_tokens: 0, output_tokens: 0 },
     { ple_id: req.params.id, auditor_id: req.user.id, role: 'assistant', content: rimplResponse.content,
-      input_tokens: rimplResponse.input_tokens ?? 0, output_tokens: rimplResponse.output_tokens ?? 0 },
+      input_tokens: rimplResponse.input_tokens ?? 0, output_tokens: rimplResponse.output_tokens ?? 0,
+      provider: rimplResponse.provider ?? null, model: rimplResponse.model ?? null,
+      prompt_version: rimplResponse.prompt_version ?? null },
   ]);
   if (insErr) console.error('[auditor] audit_discussions insert failed:', insErr.message);
   if (insErr) {
