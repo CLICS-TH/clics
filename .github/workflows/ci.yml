@@ -107,6 +107,22 @@ jobs:
       - name: Pure-logic tests
         run: node --test scripts/probe/*.test.mjs
 
+  # Tutor-reply quality harness (docs/QUALITY-GATES.md). Like the probe job: the scripts need a live
+  # box, but the bank validation, the deterministic checks, citation classification, packet blinding
+  # and the kappa/Wilson math do not — and they decide a go/no-go, so they are tested offline here.
+  # No npm install: scripts/quality must load rimpl's production modules without a single package.
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check quality scripts
+        run: for f in scripts/quality/*.mjs; do node --check "$f"; done
+      - name: Offline tests (bank, checks, citations, judging, clinician export)
+        run: node --test scripts/quality/*.test.mjs
+
   # Calibration — three-way.js decides G0.5, the programme's go/no-go. Its output is a number an
   # operator writes into a protocol document, so a plausible-but-wrong figure is far worse here than
   # a crash. The same SCOPE-LEAK defect (a `--manifest` filter narrowing a set a later consumer still

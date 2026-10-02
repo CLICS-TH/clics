@@ -1,0 +1,243 @@
+// The audit must send what rimpl's chat route sends. These tests pin the replicas in request.mjs to
+// the production source TEXT (chat.js cannot be imported without express/zod), exercise the runner
+// with a mock transport, and prove the paid arm and the dry run cannot reach the network.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { spawnSync } from 'node:child_process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import {
+  buildChatRequest, buildMessages, retryDecision, retryPrompt, retryMessages, RETRY_PROMPTS, CC_PREFIX, CHAT_MAX_TOKENS, routeLanguage,
+  LANGUAGE_SUFFIX, LANGUAGE_ONLY_PROMPT, LANGUAGE_ONLY_PROMPT_TH, LANGUAGE_ONLY_PROMPT_EN, expectedReplyLanguage,
+} from './request.mjs';
+import {
+  RIMPL_FILES, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE, promptLabel,
+} from './rimpl.mjs';
+import { runItem, makeAnthropicArm, productionAnthropicModel } from './tutor-audit.mjs';
+import { ITEM_TH_EXAMINER, ITEM_EN_NATURAL, ITEM_RESCUE, ITEM_PII, GOOD_TH_EXAMINER } from './test-fixtures.mjs';
+
+const require = createRequire(import.meta.url);
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const chatSrc = readFileSync(RIMPL_FILES.chatRoute, 'utf8');
+
+test('drift guard: every replicated string and rule still appears verbatim in routes/chat.js', () => {
+  for (const mode of ['socratic', 'natural']) for (const lang of ['th', 'en']) {
+    assert.ok(chatSrc.includes(RETRY_PROMPTS[mode][lang]), `retry prompt ${mode}/${lang} drifted from chat.js`);
+  }
+  assert.ok(chatSrc.includes(CC_PREFIX), 'chief-complaint prefix drifted from chat.js buildMessages');
+  assert.ok(chatSrc.includes("role: m.role === 'physician' ? 'user' : 'assistant'"), 'role mapping drifted');
+  assert.ok(chatSrc.includes('content: stripArtifactDelimiters(m.content)'), 'history artifact strip drifted');
+  // The single corrective retry (#109): both triggers, how they combine, prompts, fence, failure rule.
+  for (const line of [
+    'const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));',
+    "const physicianWroteThai = language === 'th' && isThaiMessage(message);",
+    'const languageMismatch = physicianWroteThai && isLanguageMismatch(text, language);',
+    'if (needCitation || languageMismatch) {',
+    'if (languageMismatch) retryPrompt += ',
+    'const keepFence = !needCitation && artifacts;',
+    "{ role: 'assistant', content: keepFence ? text : stripArtifactDelimiters(text) },",
+    'if (isAborted(err) || needCitation) throw err;',
+    'languageRetried = languageMismatch;',
+    'language_retry: languageRetried,',
+  ]) assert.ok(chatSrc.includes(line), `retry logic drifted from chat.js: ${line}`);
+  for (const str of [LANGUAGE_SUFFIX, LANGUAGE_ONLY_PROMPT_TH, LANGUAGE_ONLY_PROMPT_EN]) {
+    assert.ok(chatSrc.includes(str), `language retry prompt drifted: ${str.slice(0, 40)}…`);
+  }
+  // The client's language label (ple-chat.js): 'th' when the message holds ANY Thai codepoint.
+  const pleChat = readFileSync(path.join(HERE, '..', '..', 'physician-ui', 'public', 'js', 'ple-chat.js'), 'utf8');
+  assert.ok(pleChat.includes("const language = /[\u0E00-\u0E7F]/.test(message) ? 'th' : 'en';"), 'client language rule drifted');
+  assert.ok(chatSrc.includes("Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10))"), 'CHAT_MAX_TOKENS drifted');
+  assert.ok(chatSrc.includes("(socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)"), 'mode→prompt selection drifted');
+  assert.ok(chatSrc.includes('systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE'), 'rescue prompt replacement drifted');
+  assert.ok(chatSrc.includes("promptLabel('chat', systemPrompt)"), 'prompt_version label drifted');
+  assert.equal(CHAT_MAX_TOKENS, Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10)));
+});
+
+test('loads without a single package — the CI quality job has no npm install', () => {
+  const closure = (file, seen = new Set()) => {
+    if (!seen.has(file)) {
+      seen.add(file);
+      for (const child of require.cache[file]?.children ?? []) closure(child.filename, seen);
+    }
+    return seen;
+  };
+  const roots = ['../../rimpl/src/services/rescue.js', '../../rimpl/src/lib/prompts.js', '../../rimpl/src/services/pii-filter.js',
+    '../../rimpl/src/lib/transcript.js', '../../rimpl/src/services/post-filter.js', '../../rimpl/src/lib/versions.js'].map((p) => require.resolve(p));
+  const deps = [...new Set(roots.flatMap((r) => [...closure(r)]))];
+  assert.ok(deps.some((f) => f.endsWith(path.join('services', 'rescue.js'))), 'rescue.js must be in the closure');
+  assert.deepEqual(deps.filter((f) => f.includes(`${path.sep}node_modules${path.sep}`)), []);
+});
+
+test('system prompt per mode is production\'s, and the rescue prompt replaces (not appends) with artifacts on', () => {
+  assert.equal(buildChatRequest(ITEM_EN_NATURAL).systemPrompt, RIMPL_SYSTEM_PROMPT_NATURAL);
+  assert.equal(buildChatRequest(ITEM_TH_EXAMINER).systemPrompt, RIMPL_SYSTEM_PROMPT_EXAMINER);
+  assert.equal(buildChatRequest(ITEM_TH_EXAMINER, { artifacts: true }).systemPrompt, RIMPL_SYSTEM_PROMPT_EXAMINER + ARTIFACT_GUIDANCE);
+  assert.equal(buildChatRequest(ITEM_RESCUE, { artifacts: true }).systemPrompt, RIMPL_SYSTEM_PROMPT_RESCUE);
+  const r = buildChatRequest(ITEM_TH_EXAMINER);
+  assert.equal(r.promptVersion, promptLabel('chat', RIMPL_SYSTEM_PROMPT_EXAMINER));
+  assert.equal(r.socratic, true);
+  assert.equal(buildChatRequest(ITEM_RESCUE).socratic, false, 'production only rescues natural-mode sessions');
+});
+
+test('messages: history mapped physician→user, chief complaint prefixed, PII stripped by rimpl\'s filter', () => {
+  const r = buildChatRequest({ ...ITEM_RESCUE, chief_complaint: 'ไข้' });
+  assert.equal(r.messages.length, ITEM_RESCUE.turns.length);
+  assert.deepEqual(r.messages.slice(0, 2).map((m) => m.role), ['user', 'assistant']);
+  assert.ok(r.messages.at(-1).content.startsWith(`${CC_PREFIX}ไข้\n\n`));
+  const pii = buildChatRequest(ITEM_PII);
+  assert.doesNotMatch(pii.messages[0].content, /00998877/, 'the MRN must be masked before any model sees it');
+  // The bare English name has no label and no hint: production's filter lets it through. The request
+  // records that as a FILTER gap, separately from anything the model then does with it.
+  assert.deepEqual(pii.identifiersSent, ['John Testcase']);
+  const withArtifact = buildMessages([{ role: 'assistant', content: ':::artifact{type="care_plan" title="x"}\nbody\n:::' }], 'msg', null);
+  assert.equal(withArtifact[0].content.trim(), 'body', 'the fence is stripped from history, the body kept');
+  assert.deepEqual(withArtifact[1], { role: 'user', content: 'msg' });
+  assert.equal(routeLanguage('What is CAP? ครับ'), 'th', 'any Thai codepoint, as the client sets it');
+  assert.equal(routeLanguage('What is CAP?'), 'en');
+  assert.equal(expectedReplyLanguage(ITEM_EN_NATURAL), 'en');
+});
+
+const TH_MSG = 'ผู้ป่วยเจ็บหน้าอก ควรทำอย่างไรต่อไป';
+const EN_REPLY_CITED = 'Do an ECG within ten minutes of arrival and measure troponin (ESC ACS, 2023).';
+test('retry decision = chat.js: citation/❓ check and the language guard, combined into ONE retry', () => {
+  const base = { socratic: false, rescuing: false, language: 'th', message: TH_MSG };
+  assert.deepEqual(retryDecision('ตอบโดยไม่มีอ้างอิง', base), { fire: true, needCitation: true, languageMismatch: false, physicianWroteThai: true });
+  assert.equal(retryDecision('มีอ้างอิง (KDIGO, 2022)', base).fire, false);
+  assert.equal(retryDecision('มีอ้างอิง (KDIGO, 2022)', { ...base, socratic: true }).needCitation, true, 'examiner also needs ❓');
+  // Language only: Thai turn, English but cited reply -> rewrite prompt, no citation prompt.
+  const lang = retryDecision(EN_REPLY_CITED, base);
+  assert.deepEqual([lang.fire, lang.needCitation, lang.languageMismatch], [true, false, true]);
+  assert.equal(retryPrompt(lang, base), LANGUAGE_ONLY_PROMPT);
+  // Both failed -> the citation prompt with the language suffix: still a SINGLE retry.
+  const both = retryDecision('Do an ECG within ten minutes of arrival and measure troponin.', base);
+  assert.equal(retryPrompt(both, base), RETRY_PROMPTS.natural.th + LANGUAGE_SUFFIX);
+  // Rescue: never a citation retry, but the language guard still applies (a rewrite, not an answer).
+  const rescue = retryDecision('Do an ECG within ten minutes of arrival and measure troponin.', { ...base, rescuing: true });
+  assert.deepEqual([rescue.needCitation, rescue.languageMismatch], [false, true]);
+  // An English turn is never policed; a 'th'-labelled turn written mostly in English is not either.
+  assert.equal(retryDecision(EN_REPLY_CITED, { ...base, language: 'en', message: 'Chest pain, what next?' }).fire, false);
+  assert.equal(retryDecision(EN_REPLY_CITED, { ...base, message: 'Chest pain workup in the emergency department, what next? ครับ' }).languageMismatch, false);
+});
+
+test('retry messages: a citation retry strips the fence; a language-only rewrite keeps it only with artifacts on', () => {
+  const fenced = 'a\n:::artifact{type="x" title="t"}\nbody\n:::';
+  const opts = { socratic: true, language: 'th' };
+  const cit = retryMessages([{ role: 'user', content: 'q' }], fenced, { needCitation: true, languageMismatch: false }, { ...opts, artifacts: true });
+  assert.equal(cit.length, 3);
+  assert.doesNotMatch(cit[1].content, /:::artifact/);
+  assert.equal(cit[2].content, RETRY_PROMPTS.socratic.th);
+  const langOn = retryMessages([], fenced, { needCitation: false, languageMismatch: true }, { ...opts, artifacts: true });
+  assert.match(langOn[0].content, /:::artifact/);
+  const langOff = retryMessages([], fenced, { needCitation: false, languageMismatch: true }, { ...opts, artifacts: false });
+  assert.doesNotMatch(langOff[0].content, /:::artifact/);
+});
+
+test('runItem: retries once on a missing citation, keeps BOTH replies, judges the final one', async () => {
+  const calls = [];
+  const complete = async (req) => {
+    calls.push(req);
+    return calls.length === 1
+      ? { ok: true, text: 'ควรทำ ECG ภายใน 10 นาที', ms: 10, finishReason: 'stop', completionTokens: 5, model: 'm', raw: { system_fingerprint: 'fp-1' } }
+      : { ok: true, text: GOOD_TH_EXAMINER, ms: 20, finishReason: 'stop', completionTokens: 9, model: 'm', raw: { system_fingerprint: 'fp-1' } };
+  };
+  const e = await runItem(ITEM_TH_EXAMINER, complete, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1 });
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].messages.at(-1).content, RETRY_PROMPTS.socratic.th);
+  assert.equal(e.first.text, 'ควรทำ ECG ภายใน 10 นาที');
+  assert.equal(e.final.text, GOOD_TH_EXAMINER);
+  assert.equal(e.final.from, 'retry');
+  assert.equal(e.final.system_fingerprint, 'fp-1');
+  assert.match(e.retry.reason, /no citation/);
+  assert.equal(e.latency_ms_total, 30);
+  assert.deepEqual(e.checks.flags.filter((f) => f.severity !== 'info'), []);
+});
+
+test('runItem: language-only retry — delivered when it succeeds, first reply KEPT when it fails', async () => {
+  const thItem = { ...ITEM_EN_NATURAL, id: 'fx-th-lang', language: 'th', turns: [{ role: 'physician', content: TH_MSG }] };
+  let n = 0;
+  const ok = async () => (++n === 1 ? { ok: true, text: EN_REPLY_CITED, ms: 5 } : { ok: true, text: 'ตรวจคลื่นไฟฟ้าหัวใจภายในสิบนาที (ESC ACS, 2023)', ms: 7 });
+  const e = await runItem(thItem, ok, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1 });
+  assert.deepEqual([n, e.retry.reason, e.retry.language, e.retry.citation, e.language_retry], [2, 'language', true, false, true]);
+  assert.equal(e.final.from, 'retry');
+  assert.equal(e.request.physician_wrote_thai, true);
+  assert.equal(e.checks.checks.language.pass, true);
+  n = 0;
+  const failing = async () => (++n === 1 ? { ok: true, text: EN_REPLY_CITED, ms: 5 } : { ok: false, status: 503, error: 'HTTP 503', text: '' });
+  const k = await runItem(thItem, failing, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1 });
+  assert.equal(k.final.ok, true, 'a failed language-only retry must not cost the physician the turn');
+  assert.equal(k.final.text, EN_REPLY_CITED);
+  assert.match(k.final.from, /^first/);
+  assert.deepEqual([k.retry.ok, k.language_retry], [false, false]);
+  assert.equal(k.checks.flags.find((f) => f.code === 'wrong_language')?.severity, 'critical', 'production would deliver English');
+  n = 0;
+  const citFail = async () => (++n === 1 ? { ok: true, text: 'ไม่มีอ้างอิง', ms: 5 } : { ok: false, status: 503, error: 'HTTP 503', text: '' });
+  const c = await runItem(thItem, citFail, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1 });
+  assert.equal(c.final.ok, false, 'a failed citation retry fails the turn, as in chat.js');
+});
+
+test('runItem: no retry on a failed first call or a rescue turn; --no-retry measures first pass', async () => {
+  let n = 0;
+  const failing = async () => { n += 1; return { ok: false, status: 400, error: 'HTTP 400', text: '' }; };
+  const e = await runItem(ITEM_EN_NATURAL, failing, { maxTokens: 4000, retry: true, artifacts: false, attempts: 3 });
+  assert.equal(n, 1, 'a 400 is not retryable and the chat route does not retry a thrown call');
+  assert.equal(e.final.ok, false);
+  n = 0;
+  const plain = async () => { n += 1; return { ok: true, text: 'แพ้ยาแบบไหน?', ms: 5 }; };
+  await runItem(ITEM_RESCUE, plain, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1 });
+  assert.equal(n, 1, 'a Thai rescue reply with no citation is never retried');
+  n = 0;
+  await runItem(ITEM_EN_NATURAL, plain, { maxTokens: 4000, retry: false, artifacts: false, attempts: 1 });
+  assert.equal(n, 1);
+});
+
+test('runItem: a transport failure (5xx / network) is retried up to --attempts and the attempts are recorded', async () => {
+  let n = 0;
+  const flaky = async () => (++n === 1 ? { ok: false, status: 503, error: 'HTTP 503', text: '' } : { ok: true, text: 'Start at eGFR 20 (KDIGO, 2022).', ms: 5 });
+  const orig = globalThis.setTimeout;
+  globalThis.setTimeout = (fn) => orig(fn, 0); // do not actually wait 5 s in a unit test
+  try {
+    const e = await runItem(ITEM_EN_NATURAL, flaky, { maxTokens: 4000, retry: true, artifacts: false, attempts: 2 });
+    assert.equal(e.final.ok, true);
+    assert.equal(e.first.transport_attempts, 2);
+    assert.equal(e.first.transport_errors[0].error, 'HTTP 503');
+  } finally { globalThis.setTimeout = orig; }
+});
+
+test('paid arm: body mirrors providers/anthropic.js and goes ONLY through the injected fetch', async () => {
+  const seen = [];
+  const fetchImpl = async (url, init) => {
+    seen.push({ url, init });
+    return { ok: true, status: 200, json: async () => ({ model: 'claude-x', content: [{ type: 'text', text: 'hi (X, 2020)' }], stop_reason: 'end_turn', usage: { input_tokens: 3, output_tokens: 4 } }) };
+  };
+  const complete = makeAnthropicArm({ apiKey: 'test-key-not-real', model: 'claude-x', timeoutMs: 1000, fetchImpl });
+  const r = await complete({ systemPrompt: 'S', messages: [{ role: 'user', content: 'q' }], maxTokens: 4000 });
+  assert.equal(seen.length, 1);
+  assert.equal(seen[0].url, 'https://api.anthropic.com/v1/messages');
+  assert.deepEqual(JSON.parse(seen[0].init.body), { model: 'claude-x', max_tokens: 4000, system: 'S', messages: [{ role: 'user', content: 'q' }] });
+  assert.equal(r.text, 'hi (X, 2020)');
+  assert.match(productionAnthropicModel(), /^claude-/);
+});
+
+const run = (args, env = {}) => spawnSync(process.execPath, [path.join(HERE, 'tutor-audit.mjs'), ...args], {
+  encoding: 'utf8', timeout: 30000,
+  env: { PATH: process.env.PATH, ...env },   // no LOCAL_AI_*, no ANTHROPIC_API_KEY inherited
+});
+
+test('CLI: --arm anthropic refuses without --allow-paid (even as a dry run)', () => {
+  const r = run(['--arm', 'anthropic', '--dry-run', '--limit', '1']);
+  assert.notEqual(r.status, 0);
+  assert.match(r.stderr, /allow-paid/);
+});
+
+test('CLI: --dry-run needs no endpoint, prints the de-identified request, and writes nothing', () => {
+  const r = run(['--dry-run', '--ids', 'adv-en-pii-echo-english,th-cardio-stemi']);
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /0 requests sent/);
+  assert.match(r.stdout, /chat-prompt-[0-9a-f]{8}/);
+  assert.match(r.stdout, /\[MRN-1\]/);
+  assert.match(r.stdout, /identifiers reaching the model: John Testcase/);
+  assert.doesNotMatch(r.stdout, /report written|report {2}\//);
+});

@@ -1,0 +1,9 @@
+# PubMed lookup cache (cite-verify.mjs) — regenerable, and a stale cache should not be shared.
+cache/
+# Atomic-write temp files from tutor-audit.mjs.
+report/*.tmp
+# Run reports (report/<label>.json, .cites.json) are synthetic questions + model replies and are
+# safe to commit as the experimental record. Filled-in clinician reviews are NOT produced here and
+# must not be committed: they carry the reviewer's initials.
+*.review.json
+*.review.csv
