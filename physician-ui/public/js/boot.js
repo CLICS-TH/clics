@@ -61,7 +61,8 @@
     if (themeBtn) {
       var dark = currentTheme() === 'dark';
       themeBtn.innerHTML = tglSvg(dark ? 'sun' : 'moon') + '<span class="toggle-label">' + (dark ? 'สว่าง' : 'มืด') + '</span>';
-      themeBtn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+      // Thai first, English after, and the visible word (สว่าง / มืด) is inside the name (WCAG 2.5.3 Label in Name).
+      themeBtn.setAttribute('aria-label', dark ? 'เปลี่ยนเป็นโหมดสว่าง / Switch to light mode' : 'เปลี่ยนเป็นโหมดมืด / Switch to dark mode');
     }
     if (viewBtn) {
       var v = currentView();

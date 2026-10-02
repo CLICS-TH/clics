@@ -49,6 +49,11 @@ function renderMessage(role, content, refs, socratic) {
       div.appendChild(sq);
     }
   }
+  // Screen-reader speaker label — same fixed strings as the signed-in chat (js/ple-chat.js).
+  const who = document.createElement('span');
+  who.className = 'sr-only';
+  who.textContent = role === 'physician' ? 'คุณ / You: ' : 'AI: ';
+  div.insertBefore(who, div.firstChild);
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
@@ -79,7 +84,7 @@ function endSession(msg) {
         </div>
         <a href="/" class="btn btn-primary btn-lg" style="width:100%">สมัครด้วย Google<span class="bi-en">Sign up with Google</span></a>
       </div>`;
-    cta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    cta.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
   }
 }
 
@@ -111,7 +116,8 @@ async function send() {
   const language = /[฀-๿]/.test(message) ? 'th' : 'en';
   const loading = document.createElement('div');
   loading.className = 'msg-assistant'; loading.style.color = 'var(--muted-soft)';
-  loading.textContent = 'กำลังคิด... / Thinking...';
+  // Announced by the log's live region; the sr-only prefix keeps the speaker label consistent.
+  loading.innerHTML = '<span class="sr-only">AI: </span>กำลังคิด... / Thinking...';
   messagesEl.appendChild(loading);
 
   // Send all but the just-pushed message as history; the message goes in `message`.
@@ -141,6 +147,9 @@ async function send() {
 
 sendBtn.addEventListener('click', send);
 inputEl.addEventListener('keydown', e => {
+  // Enter that confirms an IME candidate must not send the half-typed message (Safari reports keyCode 229
+  // on the keydown that ends composition).
+  if (e.isComposing || e.keyCode === 229) return;
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
 });
 

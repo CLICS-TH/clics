@@ -208,3 +208,113 @@ describe('WCAG AA on the token pairs both apps render', () => {
     expect(check('portal dark', portal, ':root[data-theme="dark"]', PORTAL_PAIRS)).toEqual([]);
   });
 });
+
+// ===================================================================================================
+// physician-ui design-a11y  (self-contained block: appended whole so it merges cleanly with any
+// other edit to this file; it reuses palette()/ratio() above and changes nothing in them)
+// ===================================================================================================
+//
+// The pairs above all assert ONE threshold (4.5, text). The 2026-10 design-a11y pass added tokens that
+// are not text: a field border and a keyboard-focus ring are UI components under WCAG 1.4.11, which asks
+// 3:1, not 4.5:1. Holding them to 4.5 would be wrong in the other direction (it would reject a border
+// that is fine), so every pair here carries its OWN minimum.
+//
+//   --field-border  the edge of an input, textarea, select, the chat composer and option rows
+//   --focus         the global :focus-visible outline colour
+//   --error-text    .error-msg, moved off --error (4.27:1 on --surface-soft, 4.01:1 on --surface-card)
+//
+// --field-border has the same hex as the audit-dashboard's own field border so the two apps mirror.
+const UI_MIN = 3;
+type MinPair = [fg: string, bg: string, min: number, where: string];
+
+// Surfaces a field or a focused control can sit on, in both themes.
+const DA_SURFACES = ['canvas', 'surface-soft', 'surface-card'];
+const DA_BOTH: MinPair[] = [
+  ...DA_SURFACES.map((s): MinPair => ['field-border', s, UI_MIN,
+    `input / textarea / select / composer / option-row border on ${s} (WCAG 1.4.11)`]),
+  ...DA_SURFACES.map((s): MinPair => ['focus', s, UI_MIN,
+    `global :focus-visible ring on ${s} (WCAG 1.4.11 / 2.4.7)`]),
+  ...DA_SURFACES.map((s): MinPair => ['error-text', s, AA,
+    `.error-msg text on ${s}`]),
+];
+// Dark theme also has an elevated surface (modals, hovered rows) a ring or border can land on.
+const DA_DARK_ONLY: MinPair[] = [
+  ['field-border', 'surface-dark-elevated', UI_MIN, 'field border on the elevated dark surface'],
+  ['focus', 'surface-dark-elevated', UI_MIN, 'focus ring on the elevated dark surface'],
+  ['error-text', 'surface-dark-elevated', AA, '.error-msg text on the elevated dark surface'],
+];
+
+function checkMin(name: string, css: string, sel: string, pairs: MinPair[]) {
+  const p = palette(css, sel);
+  const failures: string[] = [];
+  for (const [fg, bg, min, where] of pairs) {
+    if (!p[fg] || !p[bg]) {
+      failures.push(`${name}: --${fg} or --${bg} is not a hex token in ${sel} (${where})`);
+      continue;
+    }
+    const r = ratio(p[fg], p[bg]);
+    if (r < min) {
+      failures.push(`${name}: --${fg} ${p[fg]} on --${bg} ${p[bg]} = ${r.toFixed(2)}:1 (needs ${min}) — ${where}`);
+    }
+  }
+  return failures;
+}
+
+// Body of the first rule whose selector line starts with `selectorTail` — so a token that is defined and
+// pinned above but no longer APPLIED (someone reverts one rule to --hairline) is still caught.
+function ruleBody(css: string, selectorTail: string): string {
+  // Anchored to the start of a line: a bare match finds `html[data-mobile] .conv-move {` or
+  // `.hero-stats[hidden] {` first and reads the wrong rule.
+  const re = new RegExp(`^${selectorTail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`, 'm');
+  const m = re.exec(css);
+  if (!m) throw new Error(`rule ${selectorTail} not found in main.css — did the stylesheet change shape?`);
+  return m[1];
+}
+
+describe('physician-ui design-a11y: field border, focus ring, placeholder, error text', () => {
+  const portal = fs.readFileSync(PORTAL_CSS, 'utf8');
+
+  it('--field-border and --focus are defined in both themes', () => {
+    for (const sel of [':root', ':root[data-theme="dark"]']) {
+      const p = palette(portal, sel);
+      expect(p['field-border']).toMatch(/^#[0-9a-f]{6}$/i);
+      expect(p['focus']).toMatch(/^#[0-9a-f]{6}$/i);
+    }
+  });
+
+  it('non-text pairs hold their own minimum — light', () => {
+    expect(checkMin('portal light', portal, ':root', DA_BOTH)).toEqual([]);
+  });
+
+  it('non-text pairs hold their own minimum — dark', () => {
+    expect(checkMin('portal dark', portal, ':root[data-theme="dark"]', [...DA_BOTH, ...DA_DARK_ONLY])).toEqual([]);
+  });
+
+  it('a 3:1 pair is NOT held to 4.5 (the per-pair minimum is real)', () => {
+    // --field-border is 3.29:1 on --surface-card in light: it must pass at 3 and would fail at 4.5.
+    const p = palette(portal, ':root');
+    const r = ratio(p['field-border'], p['surface-card']);
+    expect(r).toBeGreaterThanOrEqual(UI_MIN);
+    expect(r).toBeLessThan(AA);
+  });
+
+  it('the old border colour really did fail, so this guard has something to catch', () => {
+    const p = palette(portal, ':root');
+    expect(ratio(p['hairline'], p['canvas'])).toBeLessThan(UI_MIN);
+  });
+
+  it('every input-like control draws its border with --field-border, not --hairline', () => {
+    for (const sel of ['.form-group select', '.composer', '.folder-form input', '.conv-move', '.report-opt', '.report-note textarea']) {
+      expect(ruleBody(portal, sel)).toContain('var(--field-border)');
+    }
+  });
+
+  it('the base rules that apply the tokens are present', () => {
+    expect(ruleBody(portal, ':focus-visible')).toContain('var(--focus)');
+    // Placeholder pairs (--muted on canvas / soft / card, both themes) are already pinned in PORTAL_PAIRS above.
+    expect(ruleBody(portal, '::placeholder')).toContain('var(--muted)');
+    expect(ruleBody(portal, '.error-msg')).toContain('var(--error-text)');
+    expect(ruleBody(portal, '[hidden]')).toMatch(/display:\s*none\s*!important/);
+    expect(portal).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{[^}]*animation:\s*none\s*!important/);
+  });
+});

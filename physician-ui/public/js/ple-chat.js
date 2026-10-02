@@ -317,6 +317,12 @@ function renderMessage(role, content, refs, socratic, opts) {
     if (!opts.error) addActions(div, mainContent, false, opts.messageId);
     else addActions(div, mainContent, true);
   }
+  // Screen-reader speaker label ("who said this") — the bubble colour/side is the only visible cue.
+  // One fixed string per speaker, identical for every session and experimental arm.
+  const who = document.createElement('span');
+  who.className = 'sr-only';
+  who.textContent = role === 'physician' ? 'คุณ / You: ' : 'AI: ';
+  div.insertBefore(who, div.firstChild);
   // Timestamp
   const t = document.createElement('div');
   t.className = 'msg-time';
@@ -360,12 +366,17 @@ function refreshUsage() {
   if (typeof renderUsageBar === 'function') renderUsageBar(document.getElementById('usageBar'), { mini: true });
 }
 
+// Reloading a long session appends every stored message in one burst; a live region would read the whole
+// transcript aloud. Keep it silent while the history is drawn, then go live for new turns.
+msgEl.setAttribute('aria-live', 'off');
+const goLive = () => setTimeout(() => msgEl.setAttribute('aria-live', 'polite'), 400);
 api.getPle(pleId).then(ple => {
   // A transient failure returns an { error } envelope (no .status) — DON'T bounce to /ple-result
   // (which would then falsely read "Episode not found"); show a recoverable message in place.
   if (ple && ple.error) {
     msgEl.innerHTML =
-      '<div class="msg-assistant">' + icon('warn', 16) + ' โหลดเซสชันไม่สำเร็จ กรุณารีเฟรชหน้านี้ / Could not load this session — please refresh.</div>';
+      '<div class="msg-assistant" role="alert">' + icon('warn', 16) + ' โหลดเซสชันไม่สำเร็จ กรุณารีเฟรชหน้านี้ / Could not load this session — please refresh.</div>';
+    goLive();
     return;
   }
   if (!ple || ple.status !== 'active') { window.location.href = `/ple-result?id=${pleId}`; return; }
@@ -386,7 +397,8 @@ api.getPle(pleId).then(ple => {
   applyTranscript(ple.transcript);
   // Reloaded a session that already sits at the cap: the next turn would 403 anyway — say so now.
   if (transcriptFull(transcript)) { renderMessage('assistant', LIMIT_REACHED_MSG, [], null); lockComposer(); }
-});
+  goLive();
+}, () => goLive());
 
 // The turn never happened: take back the physician bubble sendMessage() drew, so re-sending the
 // restored text does not show the question twice. (Retry on an error bubble re-delivers without
@@ -405,7 +417,9 @@ async function deliver(message) {
   sendBtn.disabled = true;
   const loading = document.createElement('div');
   loading.className = 'msg-assistant';
-  loading.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+  // The dots alone are silent (and, under reduced motion, indistinguishable from an empty bubble):
+  // one fixed sr-only line announces the wait. Same string for every session.
+  loading.innerHTML = '<span class="sr-only">AI กำลังคิด… / AI is thinking…</span><div class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></div>';
   msgEl.appendChild(loading);
   if (nearBottom()) scrollToBottom();
   markActivity(); aiInFlight = true;          // keep the timer running while the AI answers
@@ -474,6 +488,10 @@ autoGrow(); // size the rows=1 composer correctly on load
 
 document.getElementById('sendBtn').addEventListener('click', sendMessage);
 inputEl.addEventListener('keydown', e => {
+  // Enter that confirms an IME candidate (Thai/Japanese/Chinese/Korean) must not send the half-typed
+  // message. isComposing is false on the keydown that ENDS composition in some Safari versions, which
+  // reports keyCode 229 instead.
+  if (e.isComposing || e.keyCode === 229) return;
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 
@@ -513,6 +531,8 @@ document.getElementById('endBtn').addEventListener('click', async () => {
     confirmLabel: hasConversation ? 'จบและส่ง / End & submit' : 'ส่งทั้งที่ยังไม่ได้คุย / Submit anyway',
     cancelLabel: 'ยังไม่จบ / Keep going',
     danger: !hasConversation,
+    // Submitting cannot be undone: focus starts on "Keep going", and Enter there keeps going.
+    irreversible: true,
   });
   if (!ok) return;
   const endBtn = document.getElementById('endBtn');

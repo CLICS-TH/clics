@@ -29,15 +29,17 @@
     </div>
 
     <div class="chat-window card" style="padding:0">
-      <div class="chat-messages" id="messages" style="padding:16px"></div>
+      <div class="chat-messages" id="messages" style="padding:16px" role="log" aria-live="polite" aria-relevant="additions" aria-label="บทสนทนา / Conversation" tabindex="0"></div>
       <div style="padding:12px 16px;border-top:1px solid var(--hairline)">
-        <div class="chat-input-row">
-          <textarea id="input" rows="2" placeholder="พิมพ์คำถามทางคลินิก... / Type a clinical question..."></textarea>
-          <button class="btn btn-primary" id="sendBtn">ส่ง<span class="bi-en">Send</span></button>
+        <!-- Same .composer primitive as /ple-chat: field border, focus ring and 16px type come with it. (.chat-input-row had no CSS, so this textarea was an unstyled UA box.) -->
+        <div class="composer">
+          <label for="input" class="sr-only">พิมพ์คำถามทางคลินิก / Type a clinical question</label>
+          <textarea id="input" rows="2" placeholder="พิมพ์คำถามทางคลินิก... / Type a clinical question..." aria-describedby="hint"></textarea>
+          <button class="composer-send" id="sendBtn" data-icon="arrowUp" data-icon-size="20" aria-label="ส่ง / Send"></button>
         </div>
         <!-- CREC082 AI Governance &amp; Safety Plan §7 — standing "AI may be wrong" notice. Static on purpose: it must show before the first message and survive any JS failure. -->
         <p class="ai-disclaimer" role="note"><span lang="th">AI อาจให้ข้อมูลผิดพลาดหรือล้าสมัย — โปรดตรวจสอบกับแนวทางเวชปฏิบัติปัจจุบันก่อนนำไปใช้กับผู้ป่วย</span><span class="ai-disclaimer-en" lang="en">AI can be wrong or out of date. Verify against current guidelines before applying to a patient.</span></p>
-        <p id="hint" class="session-hint" style="margin-top:6px">Shift+Enter ขึ้นบรรทัดใหม่ · Enter ส่ง<span class="bi-en">Shift+Enter for a new line · Enter to send</span></p>
+        <p id="hint" class="session-hint" style="margin-top:6px"><span class="hint-fine">Shift+Enter ขึ้นบรรทัดใหม่ · Enter ส่ง<span class="bi-en">Shift+Enter for a new line · Enter to send</span></span><span class="hint-touch">Enter ส่ง<span class="bi-en">Enter to send</span></span></p>
       </div>
     </div>
     <div id="guestCta" style="margin-top:16px"></div>
