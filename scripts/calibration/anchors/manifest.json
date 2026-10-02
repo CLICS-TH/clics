@@ -3,7 +3,7 @@
   "design_seed": 20261002,
   "rubric_version": "pis7-weights-08b0cb1a",
   "n": 100,
-  "physician_chars_vs_target_r": 0.222,
+  "physician_chars_vs_target_r": 0.218,
   "fixtures": {
     "anc-001": {
       "sha256": "8f4b3118e41a86ba3223baae7488318cfc824ce1b51360efc7bac45acbb6a261",
@@ -594,11 +594,11 @@
       "pii_hits": 0
     },
     "anc-052": {
-      "sha256": "c9f695a710816a564571677f7783562f22f5359098f1935126cb6149b6d8e5ca",
+      "sha256": "14abbf25f03ef9299fbfa00b3ee47766b9eae36ac1db9aa52d71b3b1742fdd5b",
       "turns": 11,
       "physician_turns": 5,
-      "physician_chars": 2020,
-      "tutor_chars": 2409,
+      "physician_chars": 1873,
+      "tutor_chars": 2335,
       "reflection_chars": 969,
       "thai_share_physician": 0,
       "thai_share_tutor": 0,
