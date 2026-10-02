@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-100.json",
+      "id": "anc-100",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "- Expectant management ถึง 37 สัปดาห์ เป็นแนวทางมาตรฐานสำหรับ pre-eclampsia ที่ไม่มี severe features (ACOG PB 222, 2020)",
+      "citation_on_claim": true,
+      "corrected_in_turn": 9,
+      "note": "True in its guideline population (monitored patients, delivery available promptly) but stated without limits for a district hospital 90 minutes from a NICU; turn 9 concedes the guidance assumes close surveillance and fast delivery and that no trial covers this setting."
+    }
+  ]
+}

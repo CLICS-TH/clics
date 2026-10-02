@@ -28,7 +28,7 @@ import { fileURLToPath } from 'node:url';
 import { CITATIONS } from './citations.mjs';
 import { RUBRIC_ECHO } from './cues.mjs';
 import { REFLECTION_HEADINGS } from './validate.mjs';
-import { BUDGET_TOLERANCE } from './validate.mjs';
+import { BUDGET_TOLERANCE, LENGTH_CHARS_TOL } from './validate.mjs';
 import { BUDGET_TEXT } from './batch-plan.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -104,7 +104,7 @@ file except the two you are told to write.
   "physician_turns": 4-8, "reflection": "none|reflection_turn|in_chat", "profile": "graded|dissociated|flat",
   "dissociated_domains": ["d5"], "targets": {"d1":…,"d7":…}, "target_composite": 0-100,
   "cue_budget": {"length": "short|medium|long", "ack_turns": 0|1|2, "numerals": "few|some|many",
-                 "list_lines": 0|"some", "rubric_echo": 0} }
+                 "list_lines": 0|"some", "rubric_echo": 0, "length_chars": 900-2100} }
 \`\`\`
 
 **Output, exactly:**
@@ -230,6 +230,7 @@ So every row comes with a \`cue_budget\` that was assigned **independently of it
 | budget | means | the validator accepts |
 |---|---|---|
 | \`length\` | ${BUDGET_TEXT.length.short}; ${BUDGET_TEXT.length.medium}; ${BUDGET_TEXT.length.long} | short ${tol.length.short.join('–')}, medium ${tol.length.medium.join('–')}, long ${tol.length.long.join('–')} characters (physician turns only, joined) |
+| \`length_chars\` | your exact length target inside that bin, drawn without reference to your targets. **Hit it, whatever the level:** a high anchor can be short and a low one long. Writing longer as the level rises is the drift this exists to stop | within ±${LENGTH_CHARS_TOL} characters of the number |
 | \`ack_turns\` | ${BUDGET_TEXT.ack_turns[0]}; 1 or 2 = that many physician turns each carry one casual acknowledgement (\`ok ครับ\`, \`โอเค\`, \`noted\`, \`รับทราบ\`, \`เข้าใจแล้ว\`, "got it") | exactly that many acknowledgement tokens in physician turns |
 | \`numerals\` | ${BUDGET_TEXT.numerals.few}; ${BUDGET_TEXT.numerals.some}; ${BUDGET_TEXT.numerals.many} | few ≤ ${tol.numerals.few[1]}, some ${tol.numerals.some.join('–')}, many ≥ ${tol.numerals.many[0]} per physician turn (every digit group counts: \`150/90\` is two) |
 | \`list_lines\` | 0 = ${BUDGET_TEXT.list_lines[0]}; some = ${BUDGET_TEXT.list_lines.some} | 0 → none; some → ${tol.list_lines.some.join('–')} lines starting with \`-\`, \`*\`, \`•\` or \`1.\` |
@@ -294,13 +295,27 @@ limits) or \`attribution\` (true, but placed under a citation that does not carr
 - **Batch 1 still overshot, under this brief** (blind panel on its 5 tuning anchors: mean +13.5, all 5
   too high, 2 beyond ±15). Domains targeted at 3 and 4 read +0.6 to +0.8 on average, so this is not
   only a low-target problem. The two misses were a **low domain written next to high ones**: the
-  high behaviour supplied the evidence raters credited to the low one. In anc-027, setting-driven
+  high behaviour supplied the evidence raters credited to the low one. In one, setting-driven
   decisions and a graded appraisal (d3 = 5, d5 = 5) read as reasoning, and a d2 = 1 was rated 4. In
-  anc-064, case details the physician raised read as integration, and a d3 = 2 was rated 4. When a
+  another, case details the physician raised read as integration, and a d3 = 2 was rated 4. When a
   domain is ≤ 2 and others are ≥ 4, keep the high behaviour from doing the low domain's work: for
   d2 ≤ 2 the decisions come with **no** "because" and no alternatives anywhere, and for d3 ≤ 2 the
   patient's details are stated once and **visibly not used** where they should change the plan. For a
   domain targeted 3–4, write the plainer of the two versions you are weighing.
+- **Batch 3: one context factor that decides the plan reads as d3 4–5.** In one anchor, a d3 = 3 was
+  rated 5. The patient's night driving decided the drug choice, so raters read that as full
+  integration. For d3 = 3, name the context and let it **touch** the plan (a dose, a follow-up
+  interval, a counselling point) without deciding the main choice. Format steering reads as d7 4–5
+  too: "compare just those two, briefly" counts as steering. For d7 = 3, give context, then take
+  what the tool returns without shaping it. Writing the low domain as a visible absence worked:
+  the other two batch-3 anchors and one rewrite landed within ±4.
+- **A low d2 beside a high d5 or d3: put the decision before its grounds.** An appraisal that ends in
+  a decision ("the rule has no source for a patient like him … so admit") is a justified decision and
+  reads as d2 4. What worked: the decision is stated first and bare ("Admitting him."). The appraisal
+  comes as a separate note that labels each claim's evidence status (validated / untested in this
+  population / no source) and concludes nothing. Context appears only as constraints on the orders
+  (an INR date, an oral step-down he can manage alone), never as a reason for the decision. No "so",
+  "then", "given that" or "for him" links a finding to a choice.
 - **d4 = 0 together with d5 ≥ 4 is the hardest combination.** Critiquing the tutor's earlier answers
   *is* picking them up, which reads as follow-up. What finally worked (anc-101): the middle turns are
   bare, generic topic hops that ignore the tutor's ❓; the appraisal comes once, at the end, as a note to

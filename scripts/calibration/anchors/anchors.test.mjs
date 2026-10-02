@@ -17,10 +17,10 @@ import {
 } from './design.mjs';
 import {
   validateFixture, validateAll, serialiseManifest, MANIFEST_PATH, FIXTURES_DIR, REFLECTION_HEADINGS, thaiShare, checkPlanted,
-  checkBudget, batchCueContribution, updateHeldOutLock, recordIntake, intakeAccepted, loadIntakeLog, appendOnlyViolation,
+  checkBudget, LENGTH_CHARS_TOL, LENGTH_TARGET_EXEMPT_BATCHES, batchCueContribution, updateHeldOutLock, recordIntake, intakeAccepted, loadIntakeLog, appendOnlyViolation,
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
-import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH, PLAN_MD_PATH, BUDGET_LEVELS, needsExtraReview } from './batch-plan.mjs';
+import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH, PLAN_MD_PATH, BUDGET_LEVELS, BUDGET_RANGES, needsExtraReview } from './batch-plan.mjs';
 import { buildBrief, BRIEF_PATH, PIN_PATH } from './author-brief.mjs';
 import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, freezeApplies, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
 import { checkSplit, splitFilter, heldOutEligible, loadAnchorSplit, reserveByDesign, allocateHeldOut, SPLIT_CELLS, cellOf,
@@ -507,7 +507,9 @@ describe('anchor-split.mjs — the pilot is tuning-only', () => {
     for (const id of pilotIds) assert.ok(!eligible.has(id), id);
     assert.equal(eligible.size, activeAnchors(design).length - pilotIds.length);
     for (const r of REPLACEMENTS) assert.ok(!eligible.has(r.excluded), r.excluded);
-    assert.ok(checkSplit(design, { held_out: ['anc-050'], tuning: [REPLACEMENTS[0].excluded] }).some((e) => /excluded/.test(e)));
+    // An excluded anchor on the HELD-OUT side is an error. On the tuning side it is how a §7.4 exclusion
+    // made after the reservation looks (the split is never rewritten, D13); see the checkSplit tests below.
+    assert.ok(checkSplit(design, { held_out: [REPLACEMENTS[0].excluded], tuning: ['anc-050'] }).some((e) => /excluded/.test(e)));
   });
 
   test('a split that holds out a pilot anchor is rejected', () => {
@@ -555,7 +557,9 @@ describe('anchor-split.mjs — the pilot is tuning-only', () => {
     }
     // Every active anchor is in exactly one split.
     const all = new Set([...split.held_out, ...split.tuning]);
-    for (const a of activeAnchors(design)) assert.ok(all.has(a.id), `${a.id} is in neither split`);
+    // A §7.4 replacement made after the reservation inherits its predecessor's split (splitFilter).
+    const origin = (a) => { let x = a; while (x?.replaces) x = design.anchors.find((y) => y.id === x.replaces); return x?.id; };
+    for (const a of activeAnchors(design)) assert.ok(all.has(a.id) || all.has(origin(a)), `${a.id} is in neither split`);
   });
 
   test('reserveByDesign never holds out a pilot or excluded anchor, and depends on the seed', () => {
@@ -1010,5 +1014,112 @@ describe('anchor-split.mjs --check-scorable reads every id', () => {
     const { spawnSync } = await import('node:child_process');
     const r = spawnSync(process.execPath, [fileURLToPath(new URL('./anchor-split.mjs', import.meta.url)), '--check-scorable']);
     assert.equal(r.status, 2);
+  });
+});
+
+describe('batch-plan.mjs — a §7.4 replacement never reshuffles the plan', () => {
+  const slotOf = (design, id) => { let a = design.anchors.find((x) => x.id === id); while (a?.replaces) a = design.anchors.find((x) => x.id === a.replaces); return a.id; };
+  const slots = (design) => planBatches(design).batches.flatMap((b) => b.rows.map((r) => [slotOf(design, r.id), { batch: b.batch, id: r.id, budget: JSON.stringify(r.cue_budget) }]));
+  test('every slot keeps its batch and cue budget; only a replaced slot changes id', () => {
+    const before = new Map(slots(generateDesign({ n: DEFAULT_N, seed: DEFAULT_SEED, replacements: [] })));
+    const after = new Map(slots(generateDesign({ n: DEFAULT_N, seed: DEFAULT_SEED })));
+    assert.equal(after.size, before.size);
+    const replaced = new Map(REPLACEMENTS.map((r) => [r.excluded, r.replaced_by]));
+    for (const [slot, b] of before) {
+      const a = after.get(slot);
+      assert.ok(a, `slot ${slot} disappeared`);
+      assert.equal(a.batch, b.batch, `slot ${slot} moved batch`);
+      assert.equal(a.budget, b.budget, `slot ${slot} changed cue budget`);
+      assert.equal(a.id, replaced.get(slot) ?? slot);
+    }
+  });
+  test('a chained replacement (a replacement later excluded itself) lands on the last holder', () => {
+    const base = generateDesign({ n: DEFAULT_N, seed: DEFAULT_SEED, replacements: [] });
+    const slot = base.anchors.find((a) => !a.pilot).id;
+    const chain = [
+      { excluded: slot, replaced_by: 'anc-101', date: 'x', reason: 'x', archived_fixture: 'x', sha256: 'x' },
+      { excluded: 'anc-101', replaced_by: 'anc-102', date: 'x', reason: 'x', archived_fixture: 'x', sha256: 'x' },
+    ];
+    const design = applyReplacements(base, chain);
+    const ids = planBatches(design).batches.flatMap((b) => b.rows.map((r) => r.id));
+    assert.ok(ids.includes('anc-102') && !ids.includes('anc-101') && !ids.includes(slot));
+    assert.equal(slotOf(design, 'anc-102'), slot);
+  });
+});
+
+describe('checkSplit — a §7.4 exclusion after the reservation', () => {
+  const base = generateDesign({ n: DEFAULT_N, seed: DEFAULT_SEED, replacements: [] });
+  const [t, h] = base.anchors.filter((a) => !a.pilot).map((a) => a.id);
+  const rep = (excluded) => [{ excluded, replaced_by: 'anc-101', date: 'x', reason: 'x', archived_fixture: 'x', sha256: 'x' }];
+  test('a tuning anchor excluded later stays listed; its replacement inherits tuning', () => {
+    const design = applyReplacements(base, rep(t));
+    assert.deepEqual(checkSplit(design, { held_out: [h], tuning: [t] }), []);
+    assert.ok(splitFilter(design, { held_out: [h], tuning: [t] }, 'tuning').has('anc-101'));
+  });
+  test('a held-out anchor that was excluded is an error', () => {
+    const design = applyReplacements(base, rep(h));
+    assert.match(checkSplit(design, { held_out: [h], tuning: [t] }).join('\n'), /never excluded/);
+  });
+  test('a replacement listed as held-out while its predecessor is tuning is an error', () => {
+    const design = applyReplacements(base, rep(t));
+    assert.match(checkSplit(design, { held_out: ['anc-101'], tuning: [t] }).join('\n'), /listed as held-out/);
+  });
+});
+
+describe('batch-plan.mjs — per-row length targets', () => {
+  const rows = planBatches(generateDesign({ n: DEFAULT_N, seed: DEFAULT_SEED })).batches.flatMap((b) => b.rows);
+  test('every row has a length_chars target inside its bin', () => {
+    for (const r of rows) {
+      const [lo, hi] = BUDGET_RANGES.length[r.cue_budget.length];
+      assert.ok(r.cue_budget.length_chars >= lo && r.cue_budget.length_chars <= hi, `${r.id}: ${r.cue_budget.length_chars} outside ${lo}–${hi}`);
+    }
+  });
+  test('the length targets do not track the composite target', () => {
+    const xs = rows.map((r) => [r.target_composite, r.cue_budget.length_chars]);
+    const m = (k) => xs.reduce((s, x) => s + x[k], 0) / xs.length;
+    const [mt, ml] = [m(0), m(1)];
+    let a = 0, b = 0, c = 0;
+    for (const [t, l] of xs) { a += (t - mt) * (l - ml); b += (t - mt) ** 2; c += (l - ml) ** 2; }
+    assert.ok(Math.abs(a / Math.sqrt(b * c)) < 0.15, `r = ${(a / Math.sqrt(b * c)).toFixed(3)}`);
+  });
+  test('intake returns a fixture inside its bin but off its length target', () => {
+    const b = { length: 'short', length_chars: 1000, ack_turns: 0, numerals: 'few', list_lines: 0, rubric_echo: 0 };
+    const f = (len) => ({ length: len, acks: 0, numbers: 0, list_lines: 0, rubric_echo: 0, echo_hits: {} });
+    assert.deepEqual(checkBudget(f(1000 + LENGTH_CHARS_TOL), 4, b), []);
+    assert.match(checkBudget(f(1000 + LENGTH_CHARS_TOL + 1), 4, b).join(), /target 1000/);
+    assert.match(checkBudget(f(1000 - LENGTH_CHARS_TOL - 1), 4, b).join(), /target 1000/);
+    assert.deepEqual(checkBudget(f(1200), 4, { ...b, length_chars: undefined }), []);   // a row without one: bin only
+  });
+});
+
+describe('§7 amendment item 11 — a row excluded as not writable', () => {
+  const base = generateDesign({ n: DEFAULT_N, seed: DEFAULT_SEED, replacements: [] });
+  const slot = base.anchors.find((a) => !a.pilot).id;
+  const x = { date: 'x', reason: 'x', archived_fixture: 'x', sha256: 'x' };
+  const design = applyReplacements(base, [{ excluded: slot, replaced_by: 'anc-101', ...x }, { excluded: 'anc-101', replaced_by: null, ...x }]);
+  test('is excluded with no replacement and consumes no id', () => {
+    assert.equal(design.anchors.find((a) => a.id === 'anc-101').excluded.replaced_by, null);
+    assert.ok(!design.anchors.some((a) => a.id === 'anc-102'));
+    assert.ok(!checkInvariants(design).some((e) => /replaced exactly once|not writable/.test(e)), checkInvariants(design).join('\n'));
+  });
+  test('drops its slot from the plan and moves nothing else', () => {
+    const plan = (d) => new Map(planBatches(d).batches.flatMap((b) => b.rows.map((r) => [r.id, `${b.batch} ${JSON.stringify(r.cue_budget)}`])));
+    const before = plan(base), after = plan(design);
+    assert.ok(!after.has(slot) && !after.has('anc-101'));
+    for (const [id, v] of after) assert.equal(v, before.get(id), id);
+    assert.equal(after.size, before.size - 1);
+  });
+});
+
+describe('length targets and batches accepted before them', () => {
+  test('re-running intake on an accepted pre-rule batch never asks for a locked anchor back', async () => {
+    const { execFileSync } = await import('node:child_process');
+    const script = fileURLToPath(new URL('./validate.mjs', import.meta.url));
+    const log = await loadIntakeLog();
+    for (const b of LENGTH_TARGET_EXEMPT_BATCHES) {
+      if (!log.entries.some((e) => e.batch === b)) continue;
+      const out = execFileSync(process.execPath, [script, '--batch', String(b)], { encoding: 'utf8' });
+      assert.doesNotMatch(out, /RETURN/, `batch ${b}`);
+    }
   });
 });

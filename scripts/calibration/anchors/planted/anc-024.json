@@ -1,0 +1,24 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-024.json",
+      "id": "anc-024",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "- Sertraline and escitalopram sit near the top for both efficacy and acceptability among antidepressants (Cipriani et al. Lancet, 2018).",
+      "citation_on_claim": true,
+      "corrected_in_turn": 7,
+      "note": "True for acute-phase adult trials (mostly 8 weeks, response outcome) but stated without that scope for a patient who will be treated for months; turn 7 concedes the ranking is a weak tie-breaker."
+    },
+    {
+      "file": "fixtures/anc-024.json",
+      "id": "anc-024",
+      "turn": 5,
+      "kind": "unqualified",
+      "claim": "- If he does respond, continue for at least 6 months after remission (NICE NG222, 2022).",
+      "citation_on_claim": true,
+      "corrected_in_turn": 9,
+      "note": "The guideline minimum stated without its evidence base; turn 9 says it is consensus from placebo-substitution continuation trials, a minimum rather than a trial-derived optimum."
+    }
+  ]
+}

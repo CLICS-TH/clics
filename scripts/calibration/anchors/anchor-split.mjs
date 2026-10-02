@@ -93,8 +93,17 @@ export function checkSplit(design, split) {
   if (!Array.isArray(split?.held_out) || !Array.isArray(split?.tuning)) errs.push('split must have held_out[] and tuning[]');
   for (const id of held) if (pilot.has(id)) errs.push(`${id} is a pilot anchor — the pilot is tuning-only and can never be held out`);
   for (const id of [...held, ...tuning]) if (!ids.has(id)) errs.push(`${id} is not in design.json`);
-  const excluded = new Set(design.anchors.filter((a) => a.excluded).map((a) => a.id));
-  for (const id of [...held, ...tuning]) if (excluded.has(id)) errs.push(`${id} was excluded under §7.4 — use its replacement`);
+  // The split is reserved once and never rewritten (D13), so a tuning anchor excluded under §7.4 AFTER the
+  // reservation stays listed and its replacement inherits the split (splitFilter). A held-out anchor is
+  // never excluded (§7.5), and a replacement must not also be listed on the other side.
+  const byId = new Map(design.anchors.map((a) => [a.id, a]));
+  for (const id of held) if (byId.get(id)?.excluded) errs.push(`${id} is held out but was excluded under §7.4 — held-out anchors are never excluded (§7.5)`);
+  for (const id of tuning) {
+    for (let a = byId.get(id), guard = 0; a?.excluded && guard < 100; guard++) {
+      a = byId.get(a.excluded.replaced_by);
+      if (a && held.includes(a.id)) errs.push(`${a.id} replaces tuning anchor ${id} but is listed as held-out`);
+    }
+  }
   const both = held.filter((id) => tuning.includes(id));
   if (both.length) errs.push(`in both splits: ${both.join(', ')}`);
   return errs;

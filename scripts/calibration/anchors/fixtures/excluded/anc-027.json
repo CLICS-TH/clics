@@ -12,7 +12,7 @@
     },
     {
       "role": "physician",
-      "content": "Sorting your CURB-65 line for her:\n- Solid: it predicts 30-day mortality in the hospital cohorts it came from.\n- Untested: frail women who live alone. \"Home is appropriate\" is an extrapolation there, not a trial result.\n- Blind spot: no oxygen or frailty term at all.\nEvidence for home treatment in her group is observational at best. Admit."
+      "content": "Your CURB-65 line, by evidence status:\n- Established: predicts 30-day mortality in the hospital cohorts it came from.\n- Untested: frail women who live alone; \"home is appropriate\" is extrapolated to them.\n- Missing: no term for oxygen or frailty.\nHome treatment for her group: observational evidence at best. Admit."
     },
     {
       "role": "assistant",
@@ -20,7 +20,7 @@
     },
     {
       "role": "physician",
-      "content": "Got it. No CT here, so exam, repeat saturation and CXR only. Pharmacy stocks ceftriaxone and oral azithromycin, nothing else for CAP. Give me the regimen that fits that stock, with a source for each point, and I will read the text before I order."
+      "content": "Got it. No CT here: exam, repeat saturation and CXR only. Pharmacy stocks ceftriaxone and oral azithromycin, nothing else for CAP. Regimen for that stock, with a source for each point."
     },
     {
       "role": "assistant",
@@ -28,7 +28,7 @@
     },
     {
       "role": "physician",
-      "content": "Falling saturation or new confusion by day 2: she goes to the referral centre, ambulance booked at admission."
+      "content": "Falling saturation or new confusion by day 2: she goes to the referral centre. Ambulance booked at admission."
     },
     {
       "role": "assistant",
@@ -36,7 +36,7 @@
     },
     {
       "role": "physician",
-      "content": "Respiratory rate and confusion only. The night nurses cannot get a blood gas or urea until morning. I checked the guideline text for the minor criteria and the count matches yours. I'll tell the nurses to call me for either."
+      "content": "Respiratory rate and confusion. A gas and urea come back next morning, though the criteria assume them at any hour. Nurses call me for a rate of 30 or more or new confusion. I checked the minor-criteria count against the guideline text; it matches yours."
     },
     {
       "role": "assistant",
@@ -44,7 +44,7 @@
     },
     {
       "role": "physician",
-      "content": "Discharge when stable on an oral switch, with a call from the community health nurse at 48 hours. Writing the plan into the chart myself now."
+      "content": "Discharge once stable on an oral switch, with a call from the community health nurse at 48 hours."
     },
     {
       "role": "assistant",
@@ -52,7 +52,7 @@
     },
     {
       "role": "reflection",
-      "content": "เรียนรู้อะไร / What I learned:\nA low CURB-65 told me about hospital cohorts, not about a frail woman who lives alone. I now put frailty and who is at home next to the score before choosing the site of care.\n\nความไม่แน่นอน / What remains uncertain:\nI still do not know how many of our older patients with a low score do well at home, because we have no local follow-up on them.\n\nจะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:\nI will add frailty and living situation to our admission note for pneumonia and use the referral triggers we agreed on for night shifts."
+      "content": "เรียนรู้อะไร / What I learned:\nA low CURB-65 described hospital cohorts, not a frail woman who lives alone. Frailty and who is at home now sit next to the score when I choose the site of care.\n\nความไม่แน่นอน / What remains uncertain:\nI do not know how many older patients with a low score would have done well at home; we have no local follow-up on them.\n\nจะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:\nI will weigh frailty and home situation when I decide between admission and home for the next older pneumonia patient."
     }
   ]
 }

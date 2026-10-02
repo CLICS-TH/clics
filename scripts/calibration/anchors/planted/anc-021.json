@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-021.json",
+      "id": "anc-021",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "- NCCT ที่ทำภายใน 6 ชม. หลัง onset ไวมากจนถ้าปกติก็ตัด SAH ได้และไม่ต้อง LP ต่อ",
+      "citation_on_claim": false,
+      "corrected_in_turn": 3,
+      "note": "True in its source population (modern scanner, expert reader, normal Hb) but stated without limits; the physician challenges it for a 16-slice remote read with Hb 9.4 and the tutor concedes in turn 3."
+    }
+  ]
+}

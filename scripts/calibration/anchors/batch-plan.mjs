@@ -33,7 +33,8 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { rng, DOMAINS, loadDesign, activeAnchors } from './design.mjs';
+import { rng, DOMAINS, loadDesign } from './design.mjs';
+import { LENGTH_CHARS_TOL } from './validate.mjs';
 
 export const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const BATCHES_PATH = path.join(HERE, 'batches.json');
@@ -64,8 +65,24 @@ export const BUDGET_TEXT = {
 export const EXTRA_REVIEW = 'd4 <= 1 with d5 >= 4: the hardest combination to write (pilot: anc-015 excluded, anc-101 needed its rewrite). Written last in the batch; the coordinator reads it before intake.';
 export const needsExtraReview = (r) => r.targets.d4 <= 1 && r.targets.d5 >= 4;
 
-const nonPilot = (design) => activeAnchors(design).filter((a) => !a.pilot)
+// The plan is made over the design's ORIGINAL non-pilot slots: an anchor excluded under §7.4 keeps its
+// slot, and a replacement row (`replaces`) is left out. Planning over the active rows instead would
+// re-draw every batch on each exclusion, reshuffling batches that are already written.
+const nonPilot = (design) => design.anchors.filter((a) => !a.pilot && !a.replaces)
   .sort((x, y) => (x.target_composite - y.target_composite) || x.id.localeCompare(y.id));
+
+/** The active anchor now holding an original slot: follows replaced_by through any later exclusion.
+ *  null when the chain ends in a row excluded as not writable (replaced_by: null, AUTHORING §7 item 11). */
+function holderOf(design, id) {
+  const byId = new Map(design.anchors.map((a) => [a.id, a]));
+  let a = byId.get(id);
+  for (let guard = 0; a?.excluded && guard < 100; guard++) {
+    if (a.excluded.replaced_by === null) return null;
+    a = byId.get(a.excluded.replaced_by);
+  }
+  if (!a || a.excluded) throw new Error(`slot ${id}: no active holder in the design`);
+  return a;
+}
 
 /** Balanced, seeded assignment of one feature's levels along the composite order. */
 function assignLevels(rows, levels, R) {
@@ -108,10 +125,21 @@ export function planBatches(design, { seed = BATCH_SEED } = {}) {
     for (const r of rows) budgets[r.id][f] = got[r.id];
   }
   for (const r of rows) budgets[r.id].rubric_echo = 0;
+  // The length target is drawn from its own stream (seed + 1), so adding it moved nothing else in the
+  // plan, and drawn per slot in the composite order with no reference to the target itself.
+  const RL = rng(seed + 1);
+  for (const r of rows) {
+    const [lo, hi] = BUDGET_RANGES.length[budgets[r.id].length];
+    budgets[r.id].length_chars = Math.round((lo + (hi - lo) * RL.next()) / 10) * 10;
+  }
   const batches = [...Array(N_BATCHES).keys()].map((b) => ({
     batch: b + 1,
-    rows: rows.filter((r) => batchOf[r.id] === b)
-      .sort((x, y) => (needsExtraReview(x) - needsExtraReview(y)) || x.id.localeCompare(y.id)).map((r) => ({
+    // A §7.4 replacement takes over its slot's batch and cue budget. Its attributes are the excluded
+    // row's (design.mjs copies every one), so the author's row is unchanged but for the id. The row does
+    // not say what it replaces: only a tuning anchor is ever replaced, so that would reveal the split.
+    rows: rows.filter((r) => batchOf[r.id] === b).map((slot) => ({ slot, r: holderOf(design, slot.id) })).filter((x) => x.r)
+      .sort((x, y) => (needsExtraReview(x.r) - needsExtraReview(y.r)) || x.r.id.localeCompare(y.r.id)).map(({ slot, r }) => {
+        return {
       id: r.id,
       language: r.language,
       specialty: r.specialty,
@@ -123,9 +151,10 @@ export function planBatches(design, { seed = BATCH_SEED } = {}) {
       dissociated_domains: r.dissociated_domains,
       targets: r.targets,
       target_composite: r.target_composite,
-      cue_budget: budgets[r.id],
+      cue_budget: budgets[slot.id],
       ...(needsExtraReview(r) ? { extra_review: EXTRA_REVIEW } : {}),
-    })),
+        };
+      }),
   }));
   return {
     seed,
@@ -135,7 +164,7 @@ export function planBatches(design, { seed = BATCH_SEED } = {}) {
 }
 
 export function budgetProse(b) {
-  return [BUDGET_TEXT.length[b.length], BUDGET_TEXT.ack_turns[b.ack_turns], BUDGET_TEXT.numerals[b.numerals],
+  return [`${BUDGET_TEXT.length[b.length]}; aim for ${b.length_chars} (±${LENGTH_CHARS_TOL})`, BUDGET_TEXT.ack_turns[b.ack_turns], BUDGET_TEXT.numerals[b.numerals],
     BUDGET_TEXT.list_lines[b.list_lines], BUDGET_TEXT.rubric_echo];
 }
 
@@ -153,7 +182,7 @@ export function planMarkdown(plan) {
     for (const r of b.rows) {
       const c = r.cue_budget;
       const prof = r.profile === 'dissociated' ? `dissociated (${r.dissociated_domains.join(',')})` : r.profile;
-      L.push(`| ${r.id}${r.extra_review ? ' ⚠' : ''} | ${r.language} | ${r.specialty.en} | ${r.case} | ${r.tutor_mode} | ${r.physician_turns} | ${r.reflection} | ${prof} | ${t(r.targets)} | ${r.target_composite} | ${c.length} | ${c.ack_turns} | ${c.numerals} | ${c.list_lines} |`);
+      L.push(`| ${r.id}${r.extra_review ? ' ⚠' : ''} | ${r.language} | ${r.specialty.en} | ${r.case} | ${r.tutor_mode} | ${r.physician_turns} | ${r.reflection} | ${prof} | ${t(r.targets)} | ${r.target_composite} | ${c.length} ~${c.length_chars} | ${c.ack_turns} | ${c.numerals} | ${c.list_lines} |`);
     }
     L.push('');
   }
@@ -171,7 +200,9 @@ export const serialisePlan = (plan) => JSON.stringify(plan, null, 2) + '\n';
 export function simulateCueGate(plan, existing, { sims = 400, seed = 7, cueCheck, lengthDrift = 0 }) {
   const R = rng(seed);
   const u = ([lo, hi]) => lo + (hi - lo) * R.next();
-  const rows = plan.batches.flatMap((b) => b.rows);
+  // Rows already written are in `existing` with their measured features; only the rest are simulated.
+  const have = new Set(existing.map((e) => e.id));
+  const rows = plan.batches.flatMap((b) => b.rows).filter((r) => !have.has(r.id));
   let fails = 0;
   const pairs = {};
   for (let s = 0; s < sims; s++) {
@@ -180,7 +211,8 @@ export function simulateCueGate(plan, existing, { sims = 400, seed = 7, cueCheck
       const b = r.cue_budget;
       const turns = r.physician_turns;
       entries.push({ id: r.id, row: r, features: {
-        length: u(BUDGET_RANGES.length[b.length]) + lengthDrift * (r.target_composite - 55),
+        length: (b.length_chars != null ? b.length_chars + u([-LENGTH_CHARS_TOL, LENGTH_CHARS_TOL]) : u(BUDGET_RANGES.length[b.length]))
+          + lengthDrift * (r.target_composite - 55),
         acks: b.ack_turns / turns,
         numbers: u(BUDGET_RANGES.numerals[b.numerals]),
         list_lines: Math.round(u(BUDGET_RANGES.list_lines[b.list_lines])),
@@ -209,7 +241,7 @@ if (isMain) {
     const comps = b.rows.map((r) => r.target_composite);
     console.log(`  batch ${b.batch}: ${b.rows.length} rows, composites ${Math.min(...comps)}–${Math.max(...comps)}, en ${b.rows.filter((r) => r.language === 'en').length}, examiner ${b.rows.filter((r) => r.tutor_mode === 'examiner').length}`);
   }
-  console.log(`  cue gate, simulated over ${existing.length} existing + ${plan.batches.flatMap((b) => b.rows).length} planned anchors landing inside their budgets: fails ${(sim.fail_rate * 100).toFixed(1)}% of ${sim.sims} draws ${Object.keys(sim.pairs).length ? JSON.stringify(sim.pairs) : ''}`);
+  console.log(`  cue gate, simulated over ${existing.length} existing + ${plan.batches.flatMap((b) => b.rows).filter((r) => !existing.some((e) => e.id === r.id)).length} planned anchors landing inside their budgets: fails ${(sim.fail_rate * 100).toFixed(1)}% of ${sim.sims} draws ${Object.keys(sim.pairs).length ? JSON.stringify(sim.pairs) : ''}`);
   const di = process.argv.indexOf('--drift');
   if (di > -1) {
     const drift = Number(process.argv[di + 1]);

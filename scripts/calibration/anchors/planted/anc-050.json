@@ -1,0 +1,24 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-050.json",
+      "id": "anc-050",
+      "turn": 3,
+      "kind": "unqualified",
+      "claim": "- คำนวณอัตราจากน้ำหนักตัวที่ชั่งได้ตามปกติได้เลย",
+      "citation_on_claim": false,
+      "corrected_in_turn": 5,
+      "note": "Fine for most children, but wrong for an obese child; turn 5 concedes WHO dengue 2009 uses ideal body weight in obese patients."
+    },
+    {
+      "file": "fixtures/anc-050.json",
+      "id": "anc-050",
+      "turn": 7,
+      "kind": "unqualified",
+      "claim": "- ดู Hct ที่เพิ่มขึ้นตั้งแต่ 20% จาก baseline คือสัญญาณ plasma leakage",
+      "citation_on_claim": false,
+      "corrected_in_turn": 9,
+      "note": "True when a baseline exists; this child has none and is on IV fluid, so turn 9 says use the age population mean, read the trend and pair it with perfusion."
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "ple_id": "anc-061",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "Man in his 60s, T2DM, HbA1c 8.4, eGFR 42, Cr 1.7, BP 138/82, BMI 31. On metformin 1000 mg bid and glipizide 5 mg bid. Routine clinic visit today, no new complaints. Needs something added."
+    },
+    {
+      "role": "assistant",
+      "content": "Thanks for the clear summary. With eGFR 42 and HbA1c 8.4 on metformin plus a sulfonylurea, there is room to add a drug that also protects the kidney.\n- An SGLT2 inhibitor is recommended for type 2 diabetes with CKD when eGFR is 20 or above, for kidney and cardiovascular benefit that is largely independent of glucose lowering (KDIGO Diabetes in CKD, 2022).\n- Metformin can continue at eGFR 30-44, but the dose is usually reduced to a maximum of 1000 mg per day (KDIGO Diabetes in CKD, 2022).\n- A GLP-1 receptor agonist is the usual alternative or addition when glucose lowering is the main need (ADA Standards of Care in Diabetes, 2024).\n❓ How are you thinking about the sulfonylurea in this regimen?"
+    },
+    {
+      "role": "physician",
+      "content": "More data. UACR 180 mg/g, K 4.9, ramipril 5 mg daily, BP 140/84 and 136/80 at the last 2 visits, also on atorvastatin 20 mg. Go on."
+    },
+    {
+      "role": "assistant",
+      "content": "A UACR of 180 mg/g is moderately increased albuminuria, which strengthens the case for an SGLT2 inhibitor (KDIGO Diabetes in CKD, 2022).\n- Keep the ACE inhibitor at the maximum tolerated dose and recheck K and creatinine after any change.\n- A nonsteroidal mineralocorticoid receptor antagonist can be considered for persistent albuminuria despite maximal RAS blockade, but only with eGFR of 25 or above and a normal potassium (KDIGO Diabetes in CKD, 2022).\n- A K of 4.9 is already near the upper end, so that option needs care.\n❓ What would you check before adding anything that changes potassium or volume status?"
+    },
+    {
+      "role": "physician",
+      "content": "Glipizide 5 mg bid, 2 hypos last month, 54 and 61 at 3 am. Eats 3 meals, weight 86 kg, lives 40 km from the clinic. Tell me more."
+    },
+    {
+      "role": "assistant",
+      "content": "Sulfonylurea hypoglycaemia becomes more likely as eGFR falls, and readings of 54 and 61 at night are clinically important.\n- When adding an SGLT2 inhibitor or GLP-1 receptor agonist, consider reducing or stopping the sulfonylurea to limit hypoglycaemia (ADA Standards of Care in Diabetes, 2024).\n- Check the timing of the hypos against meals and the glipizide dose.\n- Teach the patient to recognise and treat low glucose.\n❓ What would you do with the glipizide dose once the new drug starts?"
+    },
+    {
+      "role": "physician",
+      "content": "So SGLT2i. Empagliflozin 10 mg daily. Cr 1.7, eGFR 42, A1c 8.4."
+    },
+    {
+      "role": "assistant",
+      "content": "Empagliflozin 10 mg once daily is the usual dose, and the class fits this patient.\n- A small early fall in eGFR is expected and is not by itself a reason to stop (KDIGO Diabetes in CKD, 2022).\n- Counsel about genital mycotic infections, volume depletion, and holding the drug on sick days.\n- Recheck creatinine and K within a few weeks of starting.\n❓ What will you tell the patient about sick days and the glipizide?"
+    },
+    {
+      "role": "physician",
+      "content": "Are you sure about that. Eating 3 meals, BP 138/82, eGFR 42, 10 mg."
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, the recommendation holds for this patient. Kidney and heart protection with an SGLT2 inhibitor is shown down to eGFR 20 (KDIGO Diabetes in CKD, 2022).\n- The glucose-lowering effect is smaller at eGFR 42, so expect a modest HbA1c fall, not a full correction.\n- That is why the drug is chosen here for organ protection rather than for HbA1c alone (ADA Standards of Care in Diabetes, 2024).\n❓ If HbA1c is still above goal after 3 months, what would you add next?"
+    },
+    {
+      "role": "physician",
+      "content": "Explain more about the glucose lowering part. A1c 8.4, eGFR 42, UACR 180."
+    },
+    {
+      "role": "assistant",
+      "content": "Glucose lowering with SGLT2 inhibitors falls as eGFR falls, so at eGFR 42 the HbA1c reduction is usually smaller than in people with normal kidney function.\n- With HbA1c 8.4, a second agent is often needed.\n- A GLP-1 receptor agonist lowers glucose well in CKD with low hypoglycaemia risk, and some have cardiovascular benefit (ADA Standards of Care in Diabetes, 2024).\n- Insulin is usually reserved for markedly high HbA1c or symptomatic hyperglycaemia (ADA Standards of Care in Diabetes, 2024).\n❓ Which second agent would you pick for this patient, and why?"
+    },
+    {
+      "role": "physician",
+      "content": "Decide for me, empagliflozin 10 mg, GLP-1 RA or insulin, pick one. I'll put it in the order as you say. Cr 1.7, eGFR 42, A1c 8.4, 3 meals."
+    },
+    {
+      "role": "assistant",
+      "content": "I can't make that choice for you, as the order is yours to decide, but here is how the options compare for this patient.\n- A GLP-1 receptor agonist is the more reasonable second step at this HbA1c, with low hypoglycaemia risk (ADA Standards of Care in Diabetes, 2024).\n- Insulin is not usually the next step at HbA1c 8.4 without symptoms.\n- Please check the agent and dose against your formulary and the renal dosing information before ordering.\n❓ Which parts of this plan will you verify before the order goes into the EMR?"
+    },
+    {
+      "role": "physician",
+      "content": "Write the order set and the follow-up plan for 3 months. I will paste it as is, empagliflozin 10 mg, glipizide 5 mg bid, metformin 1000 mg bid."
+    },
+    {
+      "role": "assistant",
+      "content": "I can draft the structure, but the orders must come from you after you review them, and two items need changing first.\n- Metformin 1000 mg bid is 2000 mg per day, above the usual maximum of 1000 mg per day at eGFR 30-44 (KDIGO Diabetes in CKD, 2022).\n- Glipizide 5 mg bid is worth reducing or stopping given the 3 am lows (ADA Standards of Care in Diabetes, 2024).\n- Follow-up: creatinine, K and eGFR at a few weeks, HbA1c and UACR at 3 months, plus a hypoglycaemia review.\n❓ After reviewing these points, what will you write for metformin and glipizide?"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nSGLT2 inhibitors are recommended for type 2 diabetes with CKD, metformin dose is reduced at eGFR 30-44, sulfonylureas can cause hypoglycaemia, and a GLP-1 RA can be added as a second agent."
+    }
+  ]
+}

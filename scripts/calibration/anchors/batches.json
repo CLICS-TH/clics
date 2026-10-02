@@ -6,40 +6,6 @@
       "batch": 1,
       "rows": [
         {
-          "id": "anc-027",
-          "language": "en",
-          "specialty": {
-            "key": "im",
-            "en": "Internal Medicine",
-            "th": "อายุรศาสตร์"
-          },
-          "case": "community-acquired pneumonia in an older adult — admit or treat at home",
-          "tutor_mode": "examiner",
-          "physician_turns": 6,
-          "reflection": "reflection_turn",
-          "profile": "dissociated",
-          "dissociated_domains": [
-            "d2"
-          ],
-          "targets": {
-            "d1": 3,
-            "d2": 1,
-            "d3": 5,
-            "d4": 3,
-            "d5": 5,
-            "d6": 4,
-            "d7": 4
-          },
-          "target_composite": 68,
-          "cue_budget": {
-            "length": "short",
-            "ack_turns": 1,
-            "numerals": "few",
-            "list_lines": "some",
-            "rubric_echo": 0
-          }
-        },
-        {
           "id": "anc-034",
           "language": "th",
           "specialty": {
@@ -68,7 +34,8 @@
             "ack_turns": 0,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1060
           }
         },
         {
@@ -100,7 +67,8 @@
             "ack_turns": 2,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 960
           }
         },
         {
@@ -132,7 +100,8 @@
             "ack_turns": 2,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1350
           }
         },
         {
@@ -164,7 +133,8 @@
             "ack_turns": 0,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1550
           }
         },
         {
@@ -198,7 +168,8 @@
             "ack_turns": 2,
             "numerals": "some",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 960
           }
         },
         {
@@ -230,7 +201,8 @@
             "ack_turns": 2,
             "numerals": "many",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1230
           }
         },
         {
@@ -264,7 +236,8 @@
             "ack_turns": 1,
             "numerals": "few",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1970
           }
         },
         {
@@ -298,7 +271,8 @@
             "ack_turns": 2,
             "numerals": "some",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1270
           }
         },
         {
@@ -330,7 +304,43 @@
             "ack_turns": 1,
             "numerals": "few",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1730
+          }
+        },
+        {
+          "id": "anc-102",
+          "language": "en",
+          "specialty": {
+            "key": "im",
+            "en": "Internal Medicine",
+            "th": "อายุรศาสตร์"
+          },
+          "case": "community-acquired pneumonia in an older adult — admit or treat at home",
+          "tutor_mode": "examiner",
+          "physician_turns": 6,
+          "reflection": "reflection_turn",
+          "profile": "dissociated",
+          "dissociated_domains": [
+            "d2"
+          ],
+          "targets": {
+            "d1": 3,
+            "d2": 1,
+            "d3": 5,
+            "d4": 3,
+            "d5": 5,
+            "d6": 4,
+            "d7": 4
+          },
+          "target_composite": 68,
+          "cue_budget": {
+            "length": "short",
+            "ack_turns": 1,
+            "numerals": "few",
+            "list_lines": "some",
+            "rubric_echo": 0,
+            "length_chars": 1120
           }
         }
       ]
@@ -367,7 +377,8 @@
             "ack_turns": 1,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1050
           }
         },
         {
@@ -399,7 +410,8 @@
             "ack_turns": 2,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1760
           }
         },
         {
@@ -431,7 +443,8 @@
             "ack_turns": 0,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1860
           }
         },
         {
@@ -466,7 +479,8 @@
             "ack_turns": 2,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1070
           }
         },
         {
@@ -500,7 +514,8 @@
             "ack_turns": 2,
             "numerals": "few",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1460
           }
         },
         {
@@ -532,7 +547,8 @@
             "ack_turns": 0,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1430
           }
         },
         {
@@ -564,7 +580,8 @@
             "ack_turns": 0,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1200
           }
         },
         {
@@ -596,7 +613,8 @@
             "ack_turns": 2,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1050
           }
         },
         {
@@ -628,7 +646,8 @@
             "ack_turns": 2,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 2040
           }
         },
         {
@@ -660,7 +679,8 @@
             "ack_turns": 1,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1570
           }
         }
       ]
@@ -697,7 +717,8 @@
             "ack_turns": 1,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1480
           }
         },
         {
@@ -729,7 +750,8 @@
             "ack_turns": 0,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1440
           }
         },
         {
@@ -761,7 +783,8 @@
             "ack_turns": 0,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1080
           }
         },
         {
@@ -793,7 +816,8 @@
             "ack_turns": 0,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1490
           }
         },
         {
@@ -825,7 +849,8 @@
             "ack_turns": 0,
             "numerals": "some",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 2050
           }
         },
         {
@@ -857,7 +882,8 @@
             "ack_turns": 0,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 920
           }
         },
         {
@@ -889,7 +915,8 @@
             "ack_turns": 0,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1460
           }
         },
         {
@@ -921,7 +948,8 @@
             "ack_turns": 1,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1300
           }
         },
         {
@@ -956,7 +984,8 @@
             "ack_turns": 2,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1830
           }
         },
         {
@@ -988,7 +1017,8 @@
             "ack_turns": 1,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1780
           }
         }
       ]
@@ -1025,7 +1055,8 @@
             "ack_turns": 1,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 2010
           }
         },
         {
@@ -1059,7 +1090,8 @@
             "ack_turns": 2,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1020
           }
         },
         {
@@ -1091,7 +1123,8 @@
             "ack_turns": 2,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 910
           }
         },
         {
@@ -1123,7 +1156,8 @@
             "ack_turns": 0,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1750
           }
         },
         {
@@ -1155,7 +1189,8 @@
             "ack_turns": 1,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1590
           }
         },
         {
@@ -1187,7 +1222,8 @@
             "ack_turns": 1,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1780
           }
         },
         {
@@ -1221,7 +1257,8 @@
             "ack_turns": 0,
             "numerals": "many",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 990
           }
         },
         {
@@ -1255,7 +1292,8 @@
             "ack_turns": 2,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1340
           }
         },
         {
@@ -1287,7 +1325,8 @@
             "ack_turns": 1,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 2090
           }
         },
         {
@@ -1319,7 +1358,8 @@
             "ack_turns": 2,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1830
           }
         }
       ]
@@ -1356,7 +1396,8 @@
             "ack_turns": 1,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1600
           }
         },
         {
@@ -1391,7 +1432,8 @@
             "ack_turns": 1,
             "numerals": "some",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1840
           }
         },
         {
@@ -1425,7 +1467,8 @@
             "ack_turns": 2,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1140
           }
         },
         {
@@ -1457,7 +1500,8 @@
             "ack_turns": 1,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1210
           }
         },
         {
@@ -1491,7 +1535,8 @@
             "ack_turns": 0,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 2080
           }
         },
         {
@@ -1523,7 +1568,8 @@
             "ack_turns": 0,
             "numerals": "some",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1070
           }
         },
         {
@@ -1558,7 +1604,8 @@
             "ack_turns": 0,
             "numerals": "many",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1620
           }
         },
         {
@@ -1590,7 +1637,8 @@
             "ack_turns": 0,
             "numerals": "many",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1280
           }
         },
         {
@@ -1625,7 +1673,8 @@
             "ack_turns": 1,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 2050
           }
         },
         {
@@ -1657,7 +1706,8 @@
             "ack_turns": 1,
             "numerals": "many",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1190
           }
         }
       ]
@@ -1694,7 +1744,8 @@
             "ack_turns": 1,
             "numerals": "some",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1680
           }
         },
         {
@@ -1726,7 +1777,8 @@
             "ack_turns": 2,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 2010
           }
         },
         {
@@ -1758,7 +1810,8 @@
             "ack_turns": 2,
             "numerals": "few",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1860
           }
         },
         {
@@ -1792,7 +1845,8 @@
             "ack_turns": 1,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1060
           }
         },
         {
@@ -1824,7 +1878,8 @@
             "ack_turns": 2,
             "numerals": "few",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1930
           }
         },
         {
@@ -1856,7 +1911,8 @@
             "ack_turns": 2,
             "numerals": "some",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1150
           }
         },
         {
@@ -1888,7 +1944,8 @@
             "ack_turns": 1,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1830
           }
         },
         {
@@ -1920,7 +1977,8 @@
             "ack_turns": 1,
             "numerals": "some",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1970
           }
         },
         {
@@ -1954,7 +2012,8 @@
             "ack_turns": 0,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1210
           }
         },
         {
@@ -1988,7 +2047,8 @@
             "ack_turns": 1,
             "numerals": "few",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1270
           },
           "extra_review": "d4 <= 1 with d5 >= 4: the hardest combination to write (pilot: anc-015 excluded, anc-101 needed its rewrite). Written last in the batch; the coordinator reads it before intake."
         }
@@ -2028,7 +2088,8 @@
             "ack_turns": 2,
             "numerals": "few",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 2080
           }
         },
         {
@@ -2060,7 +2121,8 @@
             "ack_turns": 1,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1190
           }
         },
         {
@@ -2092,7 +2154,8 @@
             "ack_turns": 2,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1420
           }
         },
         {
@@ -2124,7 +2187,8 @@
             "ack_turns": 2,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 970
           }
         },
         {
@@ -2156,7 +2220,8 @@
             "ack_turns": 1,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 980
           }
         },
         {
@@ -2188,7 +2253,8 @@
             "ack_turns": 2,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1570
           }
         },
         {
@@ -2220,7 +2286,8 @@
             "ack_turns": 0,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1500
           }
         },
         {
@@ -2252,7 +2319,8 @@
             "ack_turns": 2,
             "numerals": "many",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1250
           }
         },
         {
@@ -2286,7 +2354,8 @@
             "ack_turns": 0,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1360
           }
         },
         {
@@ -2318,7 +2387,8 @@
             "ack_turns": 0,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1380
           }
         }
       ]
@@ -2355,7 +2425,8 @@
             "ack_turns": 0,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1970
           }
         },
         {
@@ -2387,7 +2458,8 @@
             "ack_turns": 0,
             "numerals": "many",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1830
           }
         },
         {
@@ -2419,7 +2491,8 @@
             "ack_turns": 2,
             "numerals": "few",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1030
           }
         },
         {
@@ -2451,7 +2524,8 @@
             "ack_turns": 1,
             "numerals": "few",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1310
           }
         },
         {
@@ -2483,7 +2557,8 @@
             "ack_turns": 1,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1930
           }
         },
         {
@@ -2515,7 +2590,8 @@
             "ack_turns": 1,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1850
           }
         },
         {
@@ -2547,7 +2623,8 @@
             "ack_turns": 2,
             "numerals": "few",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 990
           }
         },
         {
@@ -2579,7 +2656,8 @@
             "ack_turns": 0,
             "numerals": "some",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 970
           }
         },
         {
@@ -2613,7 +2691,8 @@
             "ack_turns": 0,
             "numerals": "many",
             "list_lines": 0,
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1300
           }
         },
         {
@@ -2648,7 +2727,8 @@
             "ack_turns": 0,
             "numerals": "many",
             "list_lines": "some",
-            "rubric_echo": 0
+            "rubric_echo": 0,
+            "length_chars": 1270
           },
           "extra_review": "d4 <= 1 with d5 >= 4: the hardest combination to write (pilot: anc-015 excluded, anc-101 needed its rewrite). Written last in the batch; the coordinator reads it before intake."
         }

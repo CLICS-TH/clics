@@ -1,0 +1,74 @@
+{
+  "ple_id": "anc-024",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "Man in his 40s, first moderate depression, long-haul truck driver. Insomnia is his worst symptom, pulling me toward mirtazapine, but I'd normally start an SSRI. Mirtazapine or sertraline first?"
+    },
+    {
+      "role": "assistant",
+      "content": "- Mirtazapine would help his sleep fastest, but it is sedating and promotes weight gain, which matters when he drives at night.\n- Sertraline is not sedating, although SSRIs can worsen sleep and cause jitteriness in the first days.\n- Sertraline and escitalopram sit near the top for both efficacy and acceptability among antidepressants (Cipriani et al. Lancet, 2018).\n- A generic SSRI is the usual first choice for a first episode (NICE NG222, 2022).\n❓ How would you manage his sleep over the first fortnight if you start an SSRI?"
+    },
+    {
+      "role": "physician",
+      "content": "Sertraline, then. I'd accept a rough fortnight of poor sleep for a first-line drug, with routine sleep advice and a review. Escitalopram if gut upset puts him off."
+    },
+    {
+      "role": "assistant",
+      "content": "- That ranking is sound: sertraline more often causes GI upset or loose stools early on, so escitalopram is a sensible second.\n- Warn him that jitteriness and poor sleep usually fade within days to a couple of weeks, and review him within about 2 weeks (NICE NG222, 2022).\n❓ If he is no better at that review, what would you do?"
+    },
+    {
+      "role": "physician",
+      "content": "Benefit lags, so I'd hold to 4 weeks on a full dose before switching, unless side effects stop him working."
+    },
+    {
+      "role": "assistant",
+      "content": "- Waiting is reasonable, but week 2 is a checkpoint, not a formality: little or no change by then makes a later response less likely. Check adherence and side effects, and consider a dose increase, before switching (NICE NG222, 2022).\n- If he does respond, continue for at least 6 months after remission (NICE NG222, 2022).\n❓ He is taking it properly at 2 weeks and feels nothing: which would you try first, a higher dose or a different drug?"
+    },
+    {
+      "role": "physician",
+      "content": "I'd planned to just wait; since early change predicts response, I'll look for it at 2 weeks and raise the dose if none. Was sertraline near the top in adult trials at about 8 weeks?"
+    },
+    {
+      "role": "assistant",
+      "content": "Fair challenge.\n- That network analysis covered adults in acute-phase trials, mostly around 8 weeks, with response as the main outcome (Cipriani et al. Lancet, 2018).\n- It says little about staying well over 6 months, and the gaps between the top drugs are small, so the ranking is a weak tie-breaker, not a prescription for him.\n- Tolerability and his own situation carry more weight here.\n❓ If the ranking is weak, which of your reasons for sertraline still stand?"
+    },
+    {
+      "role": "physician",
+      "content": "First-line status and tolerability still stand; the league table doesn't. Is 6 months after remission trial-based or consensus?"
+    },
+    {
+      "role": "assistant",
+      "content": "- Mostly consensus. The continuation trials compared staying on the drug against switching to placebo, and showed fewer relapses on continuation; I'm not aware of a trial that tests 6 months against longer courses head to head.\n- The guideline figure is a minimum, not an optimum (NICE NG222, 2022).\n❓ What in his history would make you continue longer than that?"
+    },
+    {
+      "role": "physician",
+      "content": "Residual symptoms, or an earlier episode I haven't asked about, would push me past 6 months. Then I'd stop slowly, not abruptly."
+    },
+    {
+      "role": "assistant",
+      "content": "- Both are good reasons: residual symptoms and previous episodes mark higher relapse risk, and guidance supports continuing longer in that group (NICE NG222, 2022).\n- Gradual tapering is also right, to reduce discontinuation symptoms (NICE NG222, 2022).\n❓ How would you tell a stopping reaction from a relapse?"
+    },
+    {
+      "role": "physician",
+      "content": "By timing, I think: stopping symptoms come within days of dropping the dose, relapse builds over weeks. Anything else that separates them?"
+    },
+    {
+      "role": "assistant",
+      "content": "- Discontinuation symptoms (dizziness, irritability, electric-shock sensations, poor sleep) tend to start within days of the last dose and ease quickly if the dose is restored.\n- Relapse builds more gradually over weeks and looks like his original depression.\n- Taper slowly and review him during it (NICE NG222, 2022).\n❓ What would you tell him to do if he feels these symptoms while driving?"
+    },
+    {
+      "role": "physician",
+      "content": "If he feels dizzy at the wheel he should pull over. What if he runs out or misses doses on a long trip?"
+    },
+    {
+      "role": "assistant",
+      "content": "- Tell him not to stop suddenly and to carry a spare supply; discontinuation reactions are reported more often with paroxetine and venlafaxine than with sertraline, but missed doses can still cause them (NICE NG222, 2022).\n- Ask directly about suicidal thoughts at every review, especially early in treatment; a structured tool can help (Columbia Suicide Severity Rating Scale, Posner et al., 2011).\n❓ At the 2-week review, which question would you ask first, and what answer would change your plan?"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nFor this driver I started sertraline rather than mirtazapine because it is the usual first-line drug, and I accepted a rough first fortnight for his sleep. The drug ranking comes from short acute-phase trials, so it only broke a tie. I will review him at 2 weeks, treat for at least 6 months past remission, and taper slowly."
+    }
+  ]
+}

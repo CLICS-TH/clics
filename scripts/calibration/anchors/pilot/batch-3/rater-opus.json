@@ -1,0 +1,9 @@
+{"rater":"opus","scores":{
+"J01":{"d1":3,"d2":2,"d3":2,"d4":3,"d5":1,"d6":5,"d7":1,"note":"Builds early ('สังเกตมา 6 ชม. ไม่ชักซ้ำ GCS 15') but abdicates: 'ตัดสินใจให้เลยครับ...copy ไปวางใน chart เลย ไม่ต้องแก้'; strong reflection: audit 6-mo ER charts, teach interns"},
+"J02":{"d1":3,"d2":4,"d3":5,"d4":4,"d5":5,"d6":4,"d7":5,"note":"'Untested: frail women who live alone...Admit'; 'gas and urea come back next morning, though the criteria assume them at any hour'; 'I checked the minor-criteria count against the guideline text'"},
+"J03":{"d1":3,"d2":4,"d3":3,"d4":4,"d5":4,"d6":3,"d7":3,"note":"Ranked reflex>orthostatic>cardiac 'ถ้า ECG มี conduction block หรือ QT ยาว ผมจะเปลี่ยนลำดับทันที'; challenged SFSR external validation 'ขอหลักฐานด้วย'; opening generic; brief reflection"},
+"J04":{"d1":2,"d2":2,"d3":1,"d4":2,"d5":3,"d6":2,"d7":2,"note":"Unranked etiologies 'ยังบอกไม่ได้ว่าเป็นแบบไหน' despite warfarin; topic-hops 'ขอเปลี่ยนเรื่อง...AF ทั่วไป'; one good catch: CT ใน 3 ชม. แรกมักยังไม่เห็นอะไร"},
+"J05":{"d1":3,"d2":2,"d3":2,"d4":2,"d5":3,"d6":2,"d7":3,"note":"Unranked DDx list; caught 'ทุกราย' over-generalisations twice but with near-duplicate templated critique ('ความเห็น expert...trial คัดโรคร่วมออก') -> d4 cap; reflection restates plan"},
+"J06":{"d1":3,"d2":1,"d3":3,"d4":2,"d5":2,"d6":1,"d7":5,"note":"Excellent prompting/ownership: 'BUN ได้ผลพรุ่งนี้เช้า', 'ขนาดยาหมอไล่เทียบกับบัญชียาของ รพ. แล้ว'; but no reasoning: 'admit ไว้ก่อนครับ ปลอดภัยกว่า'; reflection 'มีประโยชน์ครับ'"},
+"J07":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":3,"d7":5,"note":"'Sedation at the wheel rules mirtazapine out'; updated 'I'll titrate at 2 weeks instead'; 'adult trial data at about 8 weeks, isn't it?'; 'the league table doesn't'; reflection lacks next step"}
+}}

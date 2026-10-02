@@ -213,6 +213,14 @@ export const REPLACEMENTS = [
     archived_fixture: 'fixtures/excluded/anc-015.json',
     sha256: '2eddee89302094bc95cf951ddded155dde16954029a9776061f34b1ea082088e',
   },
+  {
+    excluded: 'anc-027',
+    replaced_by: 'anc-102',
+    date: '2026-10-02',
+    reason: 'rewritten once (46e1711) and still over-expressed by the batch-3 blind panel (+19 > 15; first write +18 in batch 1); §7.4: excluded and replaced',
+    archived_fixture: 'fixtures/excluded/anc-027.json',
+    sha256: '03609d4dfd6b5b265099927f18afb065ddaa591ef59e3d69dc9a0296faa9d704',
+  },
 ];
 
 /** An anchor still in the cohort (not excluded under §7.4). */
@@ -227,6 +235,13 @@ export function applyReplacements(design, replacements = REPLACEMENTS) {
     const old = anchors.find((a) => a.id === r.excluded);
     if (!old) throw new Error(`replacement: ${r.excluded} is not in the design`);
     if (old.excluded) throw new Error(`replacement: ${r.excluded} is already excluded`);
+    // AUTHORING §7 amendment item 11: a replacement that fails its rewrite means the row cannot be
+    // written under this rubric and panel. It is excluded with replaced_by: null and NOT replaced; no
+    // id is consumed, and the cell stands one short.
+    if (r.replaced_by === null) {
+      old.excluded = { date: r.date, reason: r.reason, replaced_by: null, archived_fixture: r.archived_fixture, sha256: r.sha256 };
+      continue;
+    }
     const id = `anc-${String(next++).padStart(3, '0')}`;
     if (id !== r.replaced_by) throw new Error(`replacement: ${r.excluded} must be replaced by the next free id ${id}, not ${r.replaced_by}`);
     old.excluded = { date: r.date, reason: r.reason, replaced_by: id, archived_fixture: r.archived_fixture, sha256: r.sha256 };
@@ -436,6 +451,7 @@ export function checkInvariants(design) {
   const SAME = ['pilot', 'language', 'specialty', 'case', 'tutor_mode', 'physician_turns', 'reflection', 'profile', 'dissociated_domains', 'targets', 'target_composite'];
   for (const old of ALL.filter((a) => a.excluded)) {
     const repl = ALL.filter((a) => a.replaces === old.id);
+    if (old.excluded.replaced_by === null) { if (repl.length) errs.push(`${old.id} is excluded as not writable but has a replacement`); continue; }
     if (repl.length !== 1 || repl[0].id !== old.excluded.replaced_by) { errs.push(`${old.id} is excluded but not replaced exactly once by ${old.excluded.replaced_by}`); continue; }
     for (const k of SAME) if (JSON.stringify(repl[0][k]) !== JSON.stringify(old[k])) errs.push(`${repl[0].id} must copy ${k} from ${old.id} (same target vector and case slot)`);
   }
@@ -468,7 +484,8 @@ export function checkInvariants(design) {
   // The pilot is anc-001..anc-020 as generated, with each §7.4-excluded one swapped for its replacement.
   const pilotIds = A.filter((a) => a.pilot).map((a) => a.id).sort();
   const swap = new Map(ALL.filter((a) => a.excluded).map((a) => [a.id, a.excluded.replaced_by]));
-  const expected = Array.from({ length: PILOT_N }, (_, k) => `anc-${String(k + 1).padStart(3, '0')}`).map((id) => swap.get(id) ?? id).sort();
+  const expected = Array.from({ length: PILOT_N }, (_, k) => `anc-${String(k + 1).padStart(3, '0')}`)
+    .map((id) => (swap.has(id) ? swap.get(id) : id)).filter(Boolean).sort();
   if (JSON.stringify(pilotIds) !== JSON.stringify(expected)) errs.push('pilot ids are not anc-001..anc-020 (with §7.4 replacements swapped in)');
   return errs;
 }

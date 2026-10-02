@@ -524,6 +524,74 @@ The rule from now on:
    although batch 1 was written under the pilot lesson "write lower". The general lesson went into the
    brief (§7 there) before batch 3 was written, and no batch-1 anchor was rewritten on its strength.
    Decoys: anc-016 93/90 and anc-008 17/17 (sonnet/opus), inside their earlier range.
+9. **Cohort batch 3 and the batch-1 rewrites (2026-10-02).** The panel rated batch 3's 3 tuning
+   anchors (first write), the rewrites of anc-027 and anc-064, and 2 unchanged pilot decoys
+   (`pilot/batch-3/`, `analyse-b3.mjs`). For every non-decoy this was the deciding round of its text.
+   - anc-023 (+4) and anc-097 (+2) stay. anc-024 (+21) uses its one rewrite.
+   - The anc-064 rewrite reads +2 and stays.
+   - The anc-027 rewrite still reads +19, so under §7.4 anc-027 is **excluded and replaced** by anc-102.
+     The row is unchanged and was the same dissociated d2 = 1 beside d3 = 5 and d5 = 5. Its text is
+     archived at `fixtures/excluded/anc-027.json`, with the sha256 in `design.mjs` REPLACEMENTS.
+   - Decoys: anc-018 72/70 and anc-005 49/46, inside their earlier range.
+   - **The first exclusion after the split was reserved exposed two bugs, fixed in this PR:**
+     - **The batch plan.** It re-drew every batch from the active rows, so the exclusion would have
+       reshuffled batches 1 and 3, which were already written. It now plans over the design's original
+       slots. A replacement takes its slot's batch and cue budget, and its row does not say what it
+       replaces, because only a tuning anchor is ever replaced.
+     - **`checkSplit`.** It rejected any split that listed an excluded anchor. That contradicted
+       `splitFilter`, which lets a later replacement inherit its predecessor's split, and the split
+       is never rewritten (D13). It now rejects only an excluded **held-out** anchor, or a replacement
+       listed on the other side from its predecessor. One older test asserted the broad rule and was
+       updated to the narrow one, with a comment saying why.
+   - Brief: a batch-3 lesson was added (one context factor that decides the plan reads as d3 4–5;
+     format steering reads as d7 4–5). Anchor ids were taken out of the brief's lessons, because
+     naming them tells authors which anchors are tuning.
+10. **Round K (2026-10-02).** The panel rated anc-102 (first write, replacing anc-027) and the
+    anc-024 rewrite among 2 unchanged pilot decoys (`pilot/round-k/`).
+    - The anc-024 rewrite reads +9 and stays.
+    - anc-102 reads +22, so it uses its one rewrite (§7.4).
+    - Decoys: anc-020 +1, anc-012 −1.
+    - **This row has now missed three times, the same way.** anc-027 first write +18, its rewrite +19,
+      anc-102 +22. Each time d2 = 1 was read as 4. Both raters quote the same thing as reasoning: an
+      appraisal of the tutor's claim that ends in the decision (the low-score rule "has no source"
+      and does not cover this patient, then "Admit").
+    - Under this rubric, a patient-specific appraisal (d5 = 5) that context turns into the plan
+      (d3 = 5) **is** a justified decision. So `[3,1,5,3,5,4,4]` may not be writable at all.
+    - A second reading cannot be ruled out with a Claude-only panel: the panel may itself be the
+      scorer that stamps one impression on all seven domains, which is what dissociated anchors exist
+      to catch (`profile: dissociated`). If so, the panel rule filters out exactly the dissociated
+      anchors that Claude cannot read, and fits the cohort to Claude's halo. Only a non-Claude or
+      human rater can tell the two readings apart. It is recorded as an open item next to item 2's.
+11. **Stop rule for a row that cannot be written (amendment, 2026-10-02).** This was decided after
+    round K and **before anc-102's rewrite was rated**. §7.4 had no stop: a row whose replacement also
+    fails would be replaced again from the same row, indefinitely.
+    - From now on, when a **replacement** anchor fails its rewrite (the fourth text on one design row
+      beyond ±15 on its deciding round), the row is declared **not writable under this rubric and
+      panel**. It is excluded and not replaced from the same row.
+    - The cohort then stands one anchor short in that row's cell. The deficit is reported with the
+      known-groups result and is never filled by an ad-hoc new row.
+    - The rule applies to every row, held-out never included (held-out anchors are never rated before
+      the lock, §9). anc-102 is the first row it can reach.
+    - It changes nothing about the threshold (±15) or the one-rewrite allowance.
+    - In code: a `REPLACEMENTS` entry with `replaced_by: null` excludes the row without consuming an
+      id. The batch plan drops that slot and moves nothing else.
+12. **Round L (2026-10-02).** The anc-102 rewrite reads **+4** and stays, so the item-11 stop rule
+    was not reached. Sonnet 68, Opus 76.
+    - What changed: every decision now comes before its grounds ("Admitting him." first). The
+      appraisal is a separate note that labels each claim's evidence status and concludes nothing.
+      Context appears only as constraints on the orders, never as a reason for the decision.
+    - d2 still reads 3 against a target of 1, so the dissociation is only partly visible to this panel.
+      The item-10 open question (an unworkable row, or the panel's own halo) stays open.
+    - Decoys: anc-016 +11 and anc-007 +6, inside their earlier range.
+13. **Length targets (2026-10-02).** At n = 40 the length cue reached r = 0.40, 95% CI 0.10–0.63,
+    with every author inside their bin. Inside the short bin r was 0.95: authors wrote longer as the
+    target rose.
+    - Every row now carries an exact `length_chars`, drawn inside its bin and independently of its
+      targets. Intake enforces it to ±125.
+    - Batches 1 and 3 were accepted before the rule (`LENGTH_TARGET_EXEMPT_BATCHES`). Their rows are
+      held to the bin only, because their held-out anchors are locked and their tuning anchors have
+      used their rewrites.
+    - anc-102 and the anc-024 rewrite went through intake after the rule and met their targets.
 
 ## 8. Pipeline and commands
 

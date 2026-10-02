@@ -1,0 +1,5 @@
+{"rater":"sonnet","scores":{
+"L01":{"d1":4,"d2":4,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Quotes: 'บ้านไกล รพ. ราว 60 กม. ... ถ้าเข็ม 6 เดือนเลื่อน เสี่ยงแค่ไหน'; fact/unknown/limitation split; opened Endocrine 2019, caught eGFR<30 claim unsourced; synthesis with 3 actions."},
+"L02":{"d1":3,"d2":3,"d3":4,"d4":3,"d5":4,"d6":3,"d7":4,"note":"'CURB-65 ... untested in a frail man on warfarin. The home-treatment line has no source'; 48h bedside review in place of imaging; checked guideline. Terse, little ranking; reflection modest."},
+"L03":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"'ให้โอกาสเป็นของจริงราว 70% ... ยังไม่สูงพอจะข้ามการวัดใหม่' (night-shift fasting); asked AI to attack own criterion; 'ผมไม่ได้คิดถึงเลย'; reflection with protocol/teaching plan."}
+}}
