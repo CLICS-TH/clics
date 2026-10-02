@@ -324,3 +324,43 @@ test('organisation-only: dashed body names, "Societies", and two bodies joined b
   // A single body with "and" inside it still matches without a split.
   assert.equal(organisationOnly('Centers for Disease Control and Prevention'), 'organisation');
 });
+
+test('a body spelled out in full does not hide its document behind the family (#123 review)', async () => {
+  // The same documents written with the acronym already verify; spelled out they read publisher-only
+  // (the family alias is longer) or document-unconfirmed ("american", "association" left over).
+  const SPELLED = [
+    ['Infectious Diseases Society of America Clinical Practice Guidelines for Community-Acquired Pneumonia', 2019, 'ats-idsa-cap'],
+    ['European Society of Cardiology Guidelines for the Management of Atrial Fibrillation', 2020, 'esc-af'],
+    ['Kidney Disease: Improving Global Outcomes Clinical Practice Guideline for Diabetes Management in Chronic Kidney Disease', 2022, 'kdigo-dm-ckd'],
+    ['American College of Cardiology/American Heart Association Guideline for the Management of Heart Failure', 2022, 'aha-hf'],
+    ['American Diabetes Association Standards of Care in Diabetes', 2024, 'ada-standards'],
+  ];
+  for (const [name, year, id] of SPELLED) {
+    const calls = [];
+    const r = await verifyCitation(cite(name, year), { known, cache: new Map(), fetchImpl: alwaysHits(3, calls) });
+    assert.deepEqual([r.status, r.matched_id], ['verified', id], name);
+    assert.deepEqual(calls, [], `${name}: decided by the curated list`);
+  }
+  // Fabrications stay unverified in BOTH forms: a real body (and maybe a real document) plus an invented topic.
+  const FABRICATED = [
+    ['European Society of Cardiology Guidelines on Garlic for Heart Failure', 2021],
+    ['ESC Guidelines on Garlic for Heart Failure', 2021],
+    ['European Society of Cardiology Guidelines on Garlic', 2021],
+    ['ESC Guidelines on Garlic', 2021],
+    ['Infectious Diseases Society of America Guidelines on Garlic for Community-Acquired Pneumonia', 2019],
+    ['Kidney Disease: Improving Global Outcomes Clinical Practice Guideline for Turmeric in CKD', 2024],
+    ['American Diabetes Association Standards of Care for Cinnamon', 2024],
+    ['American College of Cardiology/American Heart Association Guideline for Homeopathy in Heart Failure', 2022],
+    ['American Heart Association Guideline on Garlic', 2022],
+  ];
+  for (const [name, year] of FABRICATED) {
+    const calls = [];
+    const r = await verifyCitation(cite(name, year), { known, cache: new Map(), fetchImpl: alwaysHits(3, calls) });
+    assert.ok(['document-unconfirmed', 'publisher-only'].includes(r.status), `${name} → ${r.status}`);
+    assert.deepEqual(calls, [], name);
+  }
+  // An acronym alone does not lend the family's spelled-out words to a document's vocabulary.
+  const graft = await verifyCitation(cite('ACC/AHA Guideline for the Management of Heart Failure in College Athletes', 2022), { known, offline: true });
+  assert.equal(graft.status, 'document-unconfirmed');
+  assert.ok(graft.leftover.includes('college'), JSON.stringify(graft.leftover));
+});

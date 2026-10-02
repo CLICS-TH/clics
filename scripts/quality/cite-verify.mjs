@@ -41,6 +41,11 @@
 // `verified` is (a) an invented title built ONLY from the matched document's own vocabulary plus
 // generic words, and (b) misattribution — a real document cited for a claim it does not make. No
 // string check can see (b); it is the judges' `citation_honesty` and the clinician's job.
+// Nor can it detect a GARBLED but recognisable title: "Surviving Sepsis Campaign: International
+// Guidelines for Sepsis and Septic Shock Management, 2021" reorders the real title's own words and
+// reads `verified`. Whether a title is quoted correctly is the judges' and the clinician's job too.
+// A body spelled out in full ("European Society of Cardiology …") is matched to that family's
+// documents as if written with its acronym ("ESC …"); see documentViaFamily.
 //   year-mismatch  the source is real but we hold no edition for that year. Our edition lists are
 //                  deliberately incomplete (only years we are certain of), so this may be our gap.
 //   unverified     we could not confirm it. NOT "fabricated": Thai-language sources are not in
@@ -151,7 +156,9 @@ function latinAliasMatches(alias, entry, name) {
 
 /** Best curated entry for a cited name, or null. Thai aliases (no word spaces) match as substrings;
  *  Latin aliases per latinAliasMatches. The most specific alias wins; on a tie, a document beats a
- *  family. */
+ *  family. When the winner is a FAMILY, its documents are tried as well (documentViaFamily): a body
+ *  spelled out in full ("European Society of Cardiology Guidelines for the Management of Atrial
+ *  Fibrillation") is a longer alias than the document's own ("ESC AF"), and must not hide it. */
 export function matchKnown(name, known) {
   const nameNorm = normalize(name);
   let best = null;
@@ -170,7 +177,54 @@ export function matchKnown(name, known) {
       if (better) best = { entry, alias, score };
     }
   }
+  if (best?.entry.specificity === 'family') return documentViaFamily(name, best.entry, known) ?? best;
   return best;
+}
+
+/** The family's acronym tokens ("ESC"; "AHA", "ACC"; "KDIGO") — how its documents' aliases name it. */
+function familyAcronyms(fam) {
+  return [...new Set([fam.canonical, ...(fam.aliases ?? [])].filter((a) => !THAI_RE.test(a)).flatMap(rawTokens).filter(isAcronym))];
+}
+
+/**
+ * A family matched, possibly through its spelled-out name. Try that family's DOCUMENTS against the
+ * name with the family's acronyms supplied, so "European Society of Cardiology … Atrial Fibrillation"
+ * can match "ESC atrial fibrillation". Only document aliases that name the family by acronym AND
+ * carry at least one more word take part — the document must be identified by more than the family.
+ * A document found this way wins; the leftover-word rule still applies to it in verifyCitation.
+ */
+function documentViaFamily(name, fam, known) {
+  const acr = familyAcronyms(fam);
+  if (!acr.length) return null;
+  const supplied = `${name} ${acr.join(' ')}`;
+  let best = null;
+  for (const entry of known.sources) {
+    if (entry.specificity !== 'document') continue;
+    for (const alias of [entry.canonical, ...(entry.aliases ?? [])]) {
+      if (THAI_RE.test(alias)) continue;
+      const toks = rawTokens(alias).filter((t) => !STOP.has(t.toLowerCase()));
+      if (toks.length < 2 || !toks.some((t) => acr.includes(t))) continue;
+      const score = latinAliasMatches(alias, entry, supplied);
+      if (score && (!best || score > best.score)) best = { entry, alias, score, via_family: fam.id };
+    }
+  }
+  return best;
+}
+
+/**
+ * Families a matched document belongs to (they share an acronym: "ADA" is in both fam-ada and
+ * ada-standards) AND whose name the citation spells out. Their words count as the document's own
+ * vocabulary, so "American Diabetes Association Standards of Care in Diabetes" leaves no
+ * "american" / "association" behind.
+ */
+export function linkedFamilies(name, doc, known) {
+  const docAcr = new Set([doc.canonical, ...(doc.aliases ?? [])].filter((a) => !THAI_RE.test(a)).flatMap(rawTokens).filter(isAcronym));
+  // Only a SPELLED-OUT name links (several words, no acronym): an "AHA" in the citation is already
+  // the document's own vocabulary and must not also grant the family's words ("heart", "college").
+  const spelledOut = (a) => !THAI_RE.test(a) && rawTokens(a).length >= 2 && !rawTokens(a).some(isAcronym);
+  return known.sources.filter((f) => f.specificity === 'family' &&
+    familyAcronyms(f).some((a) => docAcr.has(a)) &&
+    [f.canonical, ...(f.aliases ?? [])].some((a) => spelledOut(a) && latinAliasMatches(a, f, name)));
 }
 
 /* ------------------------------------------------- leftover words (documents) */
@@ -214,12 +268,13 @@ function entryVocab(entry) {
   return v;
 }
 
-/** Words of a cited name that are neither the matched document's own words nor generic. Non-empty
- *  means "a real document plus something else" — the shape of a grafted, invented topic. */
-export function leftoverWords(name, entry) {
-  const vocab = entryVocab(entry);
+/** Words of a cited name that are neither the matched document's own words (plus those of any
+ *  `families` it belongs to, spelled out in the name) nor generic. Non-empty means "a real document
+ *  plus something else" — the shape of a grafted, invented topic. */
+export function leftoverWords(name, entry, families = []) {
+  const vocabs = [entry, ...families].map(entryVocab);
   return [...new Set(words(name).filter((w) =>
-    w.length > 1 && !/^\d+$/.test(w) && !STOP.has(w) && !GENERIC.has(w) && !vocab.has(w)))];
+    w.length > 1 && !/^\d+$/.test(w) && !STOP.has(w) && !GENERIC.has(w) && !vocabs.some((v) => v.has(w))))];
 }
 
 export function yearValid(entry, yearCE) {
@@ -285,7 +340,7 @@ export async function verifyCitation(cit, ctx) {
   if (hit) {
     const ok = yearValid(hit.entry, cit.yearCE);
     const family = hit.entry.specificity === 'family';
-    const leftover = ok && !family ? leftoverWords(cit.name, hit.entry) : [];
+    const leftover = ok && !family ? leftoverWords(cit.name, hit.entry, linkedFamilies(cit.name, hit.entry, ctx.known)) : [];
     if (leftover.length) {
       return {
         ...base,
@@ -294,6 +349,7 @@ export async function verifyCitation(cit, ctx) {
         specificity: hit.entry.specificity,
         matched: hit.entry.canonical,
         matched_id: hit.entry.id,
+        ...(hit.via_family ? { via_family: hit.via_family } : {}),
         leftover,
         reason: `names a real document but adds words that are not part of it (${leftover.join(', ')}) — a human must check this document exists`,
       };
@@ -305,6 +361,7 @@ export async function verifyCitation(cit, ctx) {
       specificity: hit.entry.specificity,
       matched: hit.entry.canonical,
       matched_id: hit.entry.id,
+      ...(hit.via_family ? { via_family: hit.via_family } : {}),
       reason: ok
         ? (family ? 'publisher/series is real and publishes this year; the specific document is NOT identified — a human must check it exists' : undefined)
         : `curated source, but ${cit.yearCE} is not an edition year we hold (our lists are deliberately incomplete)`,
