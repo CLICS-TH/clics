@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { stripPii, stripHistoryPii, deriveHintTokens } = require('../services/pii-filter');
 const { ragLookup } = require('../services/rag');
 const { callAI } = require('../services/ai');
-const { hasCitation, extractSocraticQuestion, extractReferences } = require('../services/post-filter');
+const { hasCitation, extractSocraticQuestion, extractReferences, thaiShare, stripNonProse, isLanguageMismatch } = require('../services/post-filter');
 const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE } = require('../lib/prompts');
 const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply } = require('../services/rescue');
 const { flattenForPrompt, stripArtifactDelimiters } = require('../lib/transcript');
@@ -193,15 +193,35 @@ router.post('/', async (req, res) => {
     // one thing the rescue must not do.
     const rescuing = !!rescue?.rescuing;   // EVERY rescue round, not only the first
 
-    // Retry once if a citation is missing (both modes), or — examiner mode only — the ❓ is missing.
-    if (!rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)))) {
-      const retryPrompt = socratic
-        ? (language === 'th'
-          ? 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) และปิดท้ายด้วยคำถามชวนคิดขึ้นบรรทัดใหม่นำหน้าด้วย ❓ — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม'
-          : 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation and end with a ❓ question on its own line. Engage with the question — do not decline to answer.')
-        : (language === 'th'
-          ? 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม และไม่ต้องปิดท้ายด้วยคำถามชวนคิด'
-          : 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation. Engage with the question — do not decline, and do not append a follow-up question.');
+    // ONE corrective retry, whatever is wrong. Two independent checks decide whether it fires, and a
+    // turn that fails both gets a SINGLE retry whose prompt asks for both fixes, so a turn never makes
+    // more than two AI calls in total (and the billing sums below stay a plain two-call sum).
+    //   - citation missing (both modes), or — examiner mode only — the ❓ missing. Not on a rescue turn.
+    //   - LANGUAGE: a Thai question (language === 'th') answered in mostly-not-Thai (post-filter's
+    //     isLanguageMismatch, which ignores code, URLs and citations). Never fires for 'en' — a Thai
+    //     physician who writes English may accept either language, so English is not forced. This one
+    //     DOES apply to a rescue turn: it asks for a rewrite, not a fresh answer, so it cannot make a
+    //     rescue reply answer the question it is deliberately withholding.
+    const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));
+    const languageRetry = isLanguageMismatch(text, language);
+    if (needCitation || languageRetry) {
+      let retryPrompt;
+      if (needCitation) {
+        retryPrompt = socratic
+          ? (language === 'th'
+            ? 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) และปิดท้ายด้วยคำถามชวนคิดขึ้นบรรทัดใหม่นำหน้าด้วย ❓ — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม'
+            : 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation and end with a ❓ question on its own line. Engage with the question — do not decline to answer.')
+          : (language === 'th'
+            ? 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม และไม่ต้องปิดท้ายด้วยคำถามชวนคิด'
+            : 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation. Engage with the question — do not decline, and do not append a follow-up question.');
+        // Both checks failed: the same single retry also pins the language.
+        if (languageRetry) retryPrompt += ' และเขียนคำตอบทั้งหมดเป็นภาษาไทย (Write the whole reply in Thai.)';
+      } else {
+        // Language only: the reply is otherwise acceptable, so ask for a rewrite that keeps its
+        // content, citations and any ❓ — not a new answer.
+        retryPrompt = 'กรุณาเขียนคำตอบก่อนหน้านี้ใหม่เป็นภาษาไทย โดยคงเนื้อหาทางคลินิก การอ้างอิง (แหล่ง, ปี) และคำถามที่ขึ้นต้นด้วย ❓ (ถ้ามี) ไว้ตามเดิม — ชื่อยา ตัวย่อ และชื่อแหล่งอ้างอิงเป็นภาษาอังกฤษได้ '
+          + '(Please rewrite your previous reply in Thai, keeping the same clinical content, (Source, Year) citations and any ❓ question on its own line. Drug names, abbreviations and source titles may stay in English.)';
+      }
       const retryMessages = [...messages,
         // Strip the artifact fence from the just-produced reply before feeding it back as context, so
         // the corrected reply doesn't echo the literal delimiter.
@@ -223,6 +243,11 @@ router.post('/', async (req, res) => {
       outputTokens += retry.outputTokens;
       lastInputTokens = retry.inputTokens;
       lastOutputTokens = retry.outputTokens;
+      // The one retry is all there is. If the reply is STILL not Thai, deliver it (a late English
+      // answer beats a 502) but leave a trace with the measured share only — never the content.
+      if (languageRetry && isLanguageMismatch(text, language)) {
+        console.warn(`[RIMPL chat] language retry did not produce Thai (share ${thaiShare(stripNonProse(text)).toFixed(2)}) — delivering as-is`);
+      }
     }
 
     res.json({
@@ -245,6 +270,10 @@ router.post('/', async (req, res) => {
       // (services/ai.js; dormant — unset — by default). Null on every ordinary turn. The citation
       // retry above is pinned to `provider`, so the whole turn came from the provider named above.
       failed_over_from: failed_over_from ?? null,
+      // True when the language guard fired (a Thai turn answered in non-Thai, so the one retry asked
+      // for Thai). Advisory and rimpl-local: the backend whitelists its response to the physician and
+      // does not forward this.
+      language_retry: languageRetry,
       // Advisory, for the backend to persist: which turn the rescue fired on, why, and whether the
       // reply actually honoured the protocol's constraints. The SAP analyses trigger rate and
       // activation point, so an unrecorded rescue is a lost data point.
