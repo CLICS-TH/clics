@@ -18,9 +18,11 @@
 //   node scripts/calibration/anchors/anchor-split.mjs --reserve --seed 20261005 --held-out 60
 //   (60: ~80% power for the two-rater ICC lower bound to clear 0.75 at a true 0.88 — AUTHORING.md §7.5)
 //
-// Method: the eligible ids (non-pilot, active), sorted by target composite, are cut into consecutive
-// strata of (eligible / held-out) ids; one id per stratum is drawn with a seeded RNG. So held-out spans
-// the whole designed range by construction — the probe's held-out spanned only 32–62 against tuning's
+// Method: the eligible ids (non-pilot, active) are split into language × profile cells; held-out is
+// allocated to each cell in proportion to its size (a cell of 2+ keeps at least one tuning anchor);
+// within a cell, ids sorted by target composite are cut into consecutive strata and one per stratum is
+// drawn with a seeded RNG. So held-out mirrors tuning on language and profile, and spans the whole
+// designed range by construction — the probe's held-out spanned only 32–62 against tuning's
 // 34–89 (G0.5), and no agreement statistic on a range that narrow can be decisive. Refuses to
 // overwrite SPLIT-anchors.json: to change it, delete it in a commit that says why.
 //
@@ -84,25 +86,57 @@ export function splitFilter(design, split, name) {
   return members;
 }
 
+/** The stratification cells: language × profile (dissociated vs coherent = graded or flat). */
+export const SPLIT_CELLS = ['th/coherent', 'th/dissociated', 'en/coherent', 'en/dissociated'];
+export const cellOf = (a) => `${a.language}/${a.profile === 'dissociated' ? 'dissociated' : 'coherent'}`;
+
 /**
- * Reserve held-out by design id. Pure: design in, {held_out, tuning} out.
+ * How many held-out per cell: proportional to the cell's size (largest remainder, ties in SPLIT_CELLS
+ * order), summing to heldOut, never taking a whole cell of 2 or more (tuning keeps at least one).
+ */
+export function allocateHeldOut(sizes, heldOut) {
+  const total = Object.values(sizes).reduce((a, b) => a + b, 0);
+  const cap = (c) => (sizes[c] >= 2 ? sizes[c] - 1 : sizes[c]);
+  const want = Object.fromEntries(SPLIT_CELLS.map((c) => [c, ((sizes[c] ?? 0) * heldOut) / total]));
+  const got = Object.fromEntries(SPLIT_CELLS.map((c) => [c, Math.min(Math.floor(want[c]), cap(c))]));
+  let left = heldOut - Object.values(got).reduce((a, b) => a + b, 0);
+  const order = [...SPLIT_CELLS].sort((x, y) => (want[y] - Math.floor(want[y])) - (want[x] - Math.floor(want[x])) || SPLIT_CELLS.indexOf(x) - SPLIT_CELLS.indexOf(y));
+  while (left > 0) {
+    const c = order.find((k) => got[k] < cap(k) && got[k] < Math.ceil(want[k])) ?? order.find((k) => got[k] < cap(k));
+    if (!c) throw new Error('cannot allocate held-out within the caps');
+    got[c]++; left--;
+  }
+  return got;
+}
+
+/**
+ * Reserve held-out by design id. Pure: design in, {held_out, tuning, cells} out.
+ * Within each language × profile cell, ordered by designed composite, the cell's held-out share is
+ * drawn one per consecutive stratum (seeded), so held-out mirrors tuning on language, on profile and
+ * along the composite.
  * @param {{seed: number, heldOut: number}} opts
  */
 export function reserveByDesign(design, { seed, heldOut }) {
   if (!Number.isInteger(seed)) throw new Error('seed must be an integer');
-  const eligible = design.anchors.filter((a) => !a.pilot && !a.excluded)
-    .sort((x, y) => (x.target_composite - y.target_composite) || x.id.localeCompare(y.id));
+  const eligible = design.anchors.filter((a) => !a.pilot && !a.excluded);
   if (!Number.isInteger(heldOut) || heldOut < 2 || heldOut > eligible.length - 2) throw new Error(`held-out must be 2..${eligible.length - 2}`);
+  const byCell = Object.fromEntries(SPLIT_CELLS.map((c) => [c, eligible.filter((a) => cellOf(a) === c)
+    .sort((x, y) => (x.target_composite - y.target_composite) || x.id.localeCompare(y.id))]));
+  const alloc = allocateHeldOut(Object.fromEntries(SPLIT_CELLS.map((c) => [c, byCell[c].length])), heldOut);
   const R = rng(seed);
   const held = [];
-  for (let k = 0; k < heldOut; k++) {
-    const lo = Math.floor((k * eligible.length) / heldOut);
-    const hi = Math.floor(((k + 1) * eligible.length) / heldOut);
-    held.push(eligible[lo + Math.floor(R.next() * (hi - lo))].id);
+  for (const c of SPLIT_CELLS) {
+    const rows = byCell[c], h = alloc[c];
+    for (let k = 0; k < h; k++) {
+      const lo = Math.floor((k * rows.length) / h);
+      const hi = Math.floor(((k + 1) * rows.length) / h);
+      held.push(rows[lo + Math.floor(R.next() * (hi - lo))].id);
+    }
   }
   const heldSet = new Set(held);
   const tuning = design.anchors.filter((a) => !a.excluded && !heldSet.has(a.id)).map((a) => a.id);
-  return { held_out: [...heldSet].sort(), tuning: tuning.sort() };
+  const cells = Object.fromEntries(SPLIT_CELLS.map((c) => [c, { held_out: alloc[c], tuning: byCell[c].length - alloc[c] }]));
+  return { held_out: [...heldSet].sort(), tuning: tuning.sort(), cells };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -115,7 +149,7 @@ if (isMain) {
   const seed = num('seed'), heldOut = num('held-out');
   const bytes = await readFile(DESIGN_PATH);
   const design = JSON.parse(bytes.toString('utf8'));
-  const { held_out, tuning } = reserveByDesign(design, { seed, heldOut });
+  const { held_out, tuning, cells } = reserveByDesign(design, { seed, heldOut });
   const errs = checkSplit(design, { held_out, tuning });
   if (errs.length) { console.error(`✖ ${errs.join('\n  ')}`); process.exit(1); }
   let git_head = null; try { git_head = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim(); } catch { /* not in git */ }
@@ -124,7 +158,8 @@ if (isMain) {
     reserved_at: new Date().toISOString(),
     git_head,
     seed,
-    method: 'by DESIGN id, before any non-pilot fixture exists: eligible = non-pilot active anchors sorted by target composite, cut into held-out-many consecutive strata, one id drawn per stratum (design.mjs rng / mulberry32). Pilot and §7.4 replacements of tuning anchors are tuning.',
+    method: 'by DESIGN id, before any non-pilot fixture exists: eligible = non-pilot active anchors, split into language × profile cells (th/en × dissociated/coherent); held-out allocated to cells proportionally (largest remainder; a cell of 2+ keeps at least one tuning anchor); within each cell, ordered by target composite and cut into that many consecutive strata, one id drawn per stratum (design.mjs rng / mulberry32). Pilot and §7.4 replacements of tuning anchors are tuning.',
+    cells_non_pilot: cells,
     design_sha256: createHash('sha256').update(bytes).digest('hex'),
     note: 'Held-out anchors are never rewritten on the strength of any AI or panel score (AUTHORING.md §7.5). Fixture bytes are bound at first scoring (anchors.test.mjs).',
     held_out,
@@ -134,6 +169,10 @@ if (isMain) {
   const rng_ = (xs) => `${Math.min(...xs)}–${Math.max(...xs)}`;
   console.log(`held-out (${held_out.length}) composites ${rng_(comp(held_out))}: ${held_out.join(' ')}`);
   console.log(`tuning   (${tuning.length}) composites ${rng_(comp(tuning))}`);
+  for (const [c, v] of Object.entries(cells)) {
+    const ids = (set) => set.filter((id) => { const r = design.anchors.find((a) => a.id === id); return !r.pilot && cellOf(r) === c; });
+    console.log(`  ${c.padEnd(15)} tuning ${String(v.tuning).padStart(2)} (${rng_(comp(ids(tuning)))})   held-out ${String(v.held_out).padStart(2)} (${rng_(comp(ids(held_out)))})`);
+  }
   console.log(`seed ${seed} · design ${record.design_sha256.slice(0, 12)} · head ${git_head ?? '(none)'}`);
   console.log('Commit SPLIT-anchors.json now, before any authoring or screening.');
 }

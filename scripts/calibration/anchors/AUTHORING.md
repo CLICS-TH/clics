@@ -372,8 +372,22 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
    `anchor-split.mjs --reserve --seed 20261005 --held-out 60`. **60 held-out, 40 tuning** (the 20
    pilot anchors plus 20 new). The split is reserved **by design id**, not by fixture: the probe's
    `reserve-split.mjs` hashes fixture files, which here would mean writing the anchors before
-   reserving, and authoring is the step the split must precede. Held-out is stratified over the
-   designed composite, so it spans the whole range (16–93), unlike the probe's held-out (32–62).
+   reserving, and authoring is the step the split must precede. Held-out is stratified on
+   **language × profile** (Thai/English × dissociated/coherent) and, within each cell, over the
+   designed composite. Each cell's held-out share is proportional, and every cell of 2 or more keeps
+   at least one tuning anchor. Held-out therefore spans the whole range (16–93, against the probe's
+   32–62) and mirrors the pool on the two dimensions a D18 result could otherwise lean on.
+
+   | cell (non-pilot) | tuning | held-out |
+   |---|---|---|
+   | th / coherent | 12 (composites 20–93) | 35 (17–93) |
+   | th / dissociated | 4 (49–91) | 13 (16–87) |
+   | en / coherent | 3 (48–82) | 8 (23–92) |
+   | en / dissociated | 1 (68) | 4 (18–88) |
+
+   The small tuning cells are drawn as the complement of a stratified held-out, so they do not span
+   their cell's range. Low-composite rewrite learning for English and dissociated anchors still comes
+   from the pilot.
    **Why 60.** The cohort is about 100 so that the held-out test has power. For the two-rater
    ICC(A,1) lower bound to clear 0.75 when the true value is 0.88 (the D18 bar), the earlier power
    work for PR #104 found about 60 pairs gives 80% power, and 26 pairs only a coin flip
@@ -381,6 +395,9 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
    3000 reps: 45 pairs → 0.76, 50 → 0.79, 55 → 0.84, **60 → 0.87**; with a rater bias of 0.5 SD of the
    error, 60 → 0.61. The first reservation (40 held-out, 61cdcb7) gave 0.71, underpowered by design.
    It was redrawn **before any non-pilot anchor was authored or screened**, in a commit that says so.
+   The second redraw added the language × profile cells, because the composite-only draw left 1
+   English and 2 dissociated anchors among the 20 new tuning ones. It also happened before any
+   non-pilot anchor existed. Seed, size and the held-out rules are unchanged.
    Fixture bytes are bound at first scoring: `anchors.test.mjs` fails if a held-out fixture that any
    run in `runs/` scored no longer has the bytes that run scored.
    **What this means for authoring and screening.** Every anchor, held-out or tuning, is written the
@@ -532,7 +549,17 @@ one row of `batches.json`. Nobody writing an anchor calls an AI or sees the spli
 
    It writes nothing. Exit 1 means the batch goes back to its authors.
 5. **Record.** Once a batch passes intake, `validate.mjs` (no flags) writes `manifest.json`.
-6. **Screen.** The blind panel and the local evaluator score the batch.
+6. **Order.** Batches run in descending order of how many **tuning** anchors they hold, so screening
+   feedback arrives early. With the split above that is batch 1 (5 tuning), then 3, 6, 7 (3 each),
+   then 2, 5 (2 each), then 4, 8 (1 each). Only the coordinator uses this order; authors are not told
+   the split.
+   - After each batch is screened, any **general** lesson (a level authors keep overshooting, a cue
+     authors keep missing) goes into `AUTHORING.md` / `AUTHOR-BRIEF.md` as authoring guidance before
+     the next batch is written.
+   - A lesson is **never** applied as a rewrite of a particular anchor outside §7.4. Held-out anchors
+     already written are not touched.
+   - Every brief change is a commit, so it is on record which batches were written under which brief.
+7. **Screen.** The blind panel and the local evaluator score the batch.
    - **Tuning anchors** follow the §7 amendment (one panel-driven rewrite, then exclude and replace).
    - **Held-out anchors are never rewritten after a score**, and a test enforces it once a run in
      `runs/` has scored them.

@@ -23,7 +23,7 @@ import { checkCitation } from './citations.mjs';
 import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH, PLAN_MD_PATH, BUDGET_LEVELS } from './batch-plan.mjs';
 import { buildBrief, BRIEF_PATH } from './author-brief.mjs';
 import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, freezeApplies, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
-import { checkSplit, splitFilter, heldOutEligible, loadAnchorSplit, reserveByDesign } from './anchor-split.mjs';
+import { checkSplit, splitFilter, heldOutEligible, loadAnchorSplit, reserveByDesign, allocateHeldOut, SPLIT_CELLS, cellOf } from './anchor-split.mjs';
 import {
   knownGroups, normaliseScores, parseThreshold, loadThreshold, spearman, wilson, EVIDENCE_LEVEL,
 } from './known-groups.mjs';
@@ -536,11 +536,22 @@ describe('anchor-split.mjs — the pilot is tuning-only', () => {
     const again = reserveByDesign(generateDesign({ replacements: [] }), { seed: split.seed, heldOut: split.held_out.length });
     assert.deepEqual(again.held_out, split.held_out);
     const comp = (ids) => ids.map((id) => design.anchors.find((a) => a.id === id).target_composite);
-    const h = comp(split.held_out), t = comp(split.tuning.filter((id) => !design.anchors.find((a) => a.id === id).pilot));
-    // Stratified: held-out reaches both ends of the range, unlike the probe's 32-62 (G0.5).
+    const eligible = heldOutEligible(design);
+    const h = comp(split.held_out), e = comp(eligible);
+    // Stratified: held-out reaches both ends of the range, unlike the probe's 32-62 (G0.5), and its
+    // centre is the eligible pool's.
     assert.ok(Math.min(...h) <= 20 && Math.max(...h) >= 90, `held-out range ${Math.min(...h)}-${Math.max(...h)}`);
     const mean = (xs) => xs.reduce((x, y) => x + y, 0) / xs.length;
-    assert.ok(Math.abs(mean(h) - mean(t)) < 5, `held-out mean ${mean(h)} vs tuning ${mean(t)}`);
+    assert.ok(Math.abs(mean(h) - mean(e)) < 3, `held-out mean ${mean(h)} vs eligible ${mean(e)}`);
+    // Stratified on language × profile: each cell's held-out share is proportional (±1), and every
+    // cell of 2 or more keeps a tuning anchor.
+    const row = (id) => design.anchors.find((a) => a.id === id);
+    for (const c of SPLIT_CELLS) {
+      const n = eligible.filter((id) => cellOf(row(id)) === c).length;
+      const nh = split.held_out.filter((id) => cellOf(row(id)) === c).length;
+      assert.ok(Math.abs(nh - (n * split.held_out.length) / eligible.length) <= 1, `${c}: ${nh} of ${n} held out`);
+      if (n >= 2) assert.ok(nh <= n - 1, `${c}: no tuning anchor left`);
+    }
     // Every active anchor is in exactly one split.
     const all = new Set([...split.held_out, ...split.tuning]);
     for (const a of activeAnchors(design)) assert.ok(all.has(a.id), `${a.id} is in neither split`);
@@ -551,6 +562,14 @@ describe('anchor-split.mjs — the pilot is tuning-only', () => {
     assert.deepEqual(checkSplit(design, r), []);
     assert.notDeepEqual(r.held_out, reserveByDesign(design, { seed: 8, heldOut: 40 }).held_out);
     assert.throws(() => reserveByDesign(design, { seed: 7, heldOut: 79 }), /held-out must be/);
+  });
+
+  test('allocateHeldOut is proportional, sums exactly, and never empties a cell of 2+ of tuning', () => {
+    const got = allocateHeldOut({ 'th/coherent': 47, 'th/dissociated': 17, 'en/coherent': 11, 'en/dissociated': 5 }, 60);
+    assert.deepEqual(got, { 'th/coherent': 35, 'th/dissociated': 13, 'en/coherent': 8, 'en/dissociated': 4 });
+    const small = allocateHeldOut({ 'th/coherent': 10, 'th/dissociated': 2, 'en/coherent': 2, 'en/dissociated': 1 }, 12);
+    assert.equal(Object.values(small).reduce((a, b) => a + b, 0), 12);
+    assert.ok(small['th/dissociated'] <= 1 && small['en/coherent'] <= 1);
   });
 
   test('a §7.4 replacement inherits the split of the anchor it replaces', () => {
