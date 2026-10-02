@@ -1,0 +1,74 @@
+{
+  "ple_id": "anc-039",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "ผู้ป่วยชายวัย 60 กว่า แขนขาซ้ายอ่อนแรงกับปากเบี้ยว onset 2 ชม. 40 นาที ญาติเห็นตอนกินข้าวเช้า NIHSS 9 BP 172/98 HR 84 SpO2 97% T 36.8 DTX 142 CT ไม่เห็น bleed ไม่มี early sign เด่น ECG เป็น sinus มี HT กับ DM กิน amlodipine กับ metformin และ atorvastatin ไม่เคยมีประวัติ stroke มาก่อน ไม่ได้กินยากันเลือดแข็ง ไม่มีประวัติผ่าตัดหรือเลือดออกที่ไหนเลย pt รายนี้ควรให้ rt-PA ไหมครับ ผมเอียงไปทางให้ เพราะยังอยู่ใน window และ deficit ยัง disabling ส่วน hypoglycemia กับ Todd's paralysis น่าจะรองลงมา เพราะ DTX ปกติและไม่มีประวัติชัก"
+    },
+    {
+      "role": "assistant",
+      "content": "เหตุผลของหมอสมเหตุสมผลครับ รายนี้เข้าเกณฑ์ให้ IV alteplase ได้ ถ้าไม่มีข้อห้ามอื่น\n- onset 2 ชม. 40 นาทีอยู่ใน window 4.5 ชม. และ NIHSS 9 ยังเป็น deficit ที่กระทบการใช้ชีวิต (AHA/ASA acute ischaemic stroke guideline, Powers et al., 2019)\n- CT ไม่มี hemorrhage, DTX 142 ตัด hypoglycemia ได้ และ BP 172/98 ต่ำกว่า 185/110 ที่ต้องคุมก่อนให้ยา\n- ถ้าไม่สงสัย coagulopathy และไม่ได้ on anticoagulant ไม่ต้องรอผล CBC/INR ก่อนเริ่มยา\nอย่าลืมยืนยัน last known well จากญาติให้ชัด เพราะเวลานี้เป็นตัวกำหนด window"
+    },
+    {
+      "role": "physician",
+      "content": "ญาติบอกน้ำหนักประมาณ 72 kg คำนวณ rt-PA ให้หน่อยครับ ขอแบบ bolus กับ infusion ว่าเท่าไหร่ ผมจะได้เตรียมยาที่ ER ให้พร้อมก่อน แล้วจะได้ไม่ต้องเสียเวลารอเภสัชกรมาคำนวณอีกรอบ"
+    },
+    {
+      "role": "assistant",
+      "content": "ใช้ alteplase 0.9 mg/kg ไม่เกิน 90 mg รวม (AHA/ASA acute ischaemic stroke guideline, Powers et al., 2019)\n- ขนาดรวม 72 x 0.9 = 64.8 mg\n- bolus 10% ≈ 6.5 mg ฉีดใน 1 นาที\n- ที่เหลือ ≈ 58.3 mg หยดต่อใน 60 นาที\nตรวจน้ำหนักจริงด้วยการชั่ง ถ้าประมาณด้วยสายตาอาจคลาดเคลื่อนและได้ยาเกินหรือขาดครับ"
+    },
+    {
+      "role": "physician",
+      "content": "ok ครับ แล้ว 0.9 mg/kg นี่ได้มาจาก study ไหนครับ ใช้กับคนไทยตัวเล็กได้ไหม"
+    },
+    {
+      "role": "assistant",
+      "content": "0.9 mg/kg เป็นขนาดมาตรฐานที่ guideline แนะนำสำหรับ acute ischaemic stroke ภายใน 4.5 ชม. (AHA/ASA acute ischaemic stroke guideline, Powers et al., 2019)\n- ขนาดนี้มาจากงานวิจัยช่วงแรกที่ทำในประเทศตะวันตก\n- บางประเทศในเอเชียใช้ขนาดต่ำกว่า แต่ผมยังไม่แน่ใจว่าข้อมูลของคนไทยโดยเฉพาะสรุปไว้อย่างไร จึงไม่ควรอ้างว่าลดขนาดแล้วปลอดภัยกว่า\nในทางปฏิบัติ ให้ตาม protocol ของ รพ. และขนาดที่ guideline ระบุครับ"
+    },
+    {
+      "role": "physician",
+      "content": "อีกเรื่องครับ ระหว่าง infusion กับหลังให้ยา ควร monitor BP กับ neuro check ทุกกี่นาที แล้วถ้า BP เกิน 180/105 ใช้ยาอะไรดี ที่ ER มี labetalol กับ nicardipine"
+    },
+    {
+      "role": "assistant",
+      "content": "หลังให้ rt-PA ควรคุม BP ให้ต่ำกว่า 180/105 อย่างน้อย 24 ชม. (AHA/ASA acute ischaemic stroke guideline, Powers et al., 2019)\n- vital และ neuro check ทุก 15 นาทีในช่วง 2 ชม. แรก ต่อด้วยทุก 30 นาทีอีก 6 ชม. แล้วทุกชั่วโมงจนครบ 24 ชม.\n- ยาที่ใช้บ่อย ได้แก่ labetalol หรือ nicardipine แบบ IV\n- ถ้ามีปวดหัวรุนแรง อาเจียน หรือ BP พุ่ง ให้หยุด infusion แล้วส่ง CT ทันที"
+    },
+    {
+      "role": "physician",
+      "content": "เรื่อง aspirin ครับ pt รายนี้เป็น DM กับ HT อยู่ด้วย ถ้าให้ rt-PA ไปแล้ว จะเริ่ม aspirin เมื่อไหร่ดี และต้องทำอะไรก่อนเริ่มบ้างครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "หลังให้ alteplase ให้รอก่อน ไม่เริ่ม aspirin ใน 24 ชม. แรก และควรทำ CT หรือ MRI ซ้ำก่อนเริ่ม เพื่อยืนยันว่าไม่มี hemorrhage (AHA/ASA acute ischaemic stroke guideline, Powers et al., 2019)\n- ถ้าผล imaging ปกติ เริ่ม antiplatelet ต่อได้ตามปกติ\n- ถ้าไม่ได้ให้ rt-PA ให้ aspirin ภายใน 24 ถึง 48 ชม. หลัง onset"
+    },
+    {
+      "role": "physician",
+      "content": "ระหว่าง infusion ไปได้ 25 นาที pt ปวดหัวมากและอาเจียน BP พุ่งเป็น 196/112\n1. symptomatic ICH เพราะปวดหัวรุนแรง อาเจียน BP พุ่ง หลังได้ rt-PA\n2. hypertensive surge จากความเจ็บปวด แต่อธิบายอาเจียนกับ neuro ที่เปลี่ยนไม่ได้\n3. angioedema ลิ้นยังไม่บวม ผมให้อยู่ลำดับสุดท้าย\nผมหยุด infusion ก่อนและสั่ง CT stat เพราะเสียประโยชน์จากยาที่เหลือ แต่ ICH อันตรายกว่า"
+    },
+    {
+      "role": "assistant",
+      "content": "ลำดับของหมอเหมาะสมครับ ICH ต้องนึกถึงก่อนเมื่อมีอาการแบบนี้ระหว่างให้ alteplase (AHA/ASA acute ischaemic stroke guideline, Powers et al., 2019)\n- หยุด infusion, ส่ง CT non-contrast ฉุกเฉิน และเจาะ CBC, PT/INR, aPTT, fibrinogen, type and cross-match\n- ถ้า CT ยืนยัน ICH ให้ cryoprecipitate 10 unit ภายใน 10 ถึง 30 นาที ตามที่ guideline ระบุไว้\n- ปรึกษา neurosurgery และ hematology ควบคู่ไปด้วย\n- คุม BP ไว้ ระหว่างรอผล CT"
+    },
+    {
+      "role": "physician",
+      "content": "ขอถามอีกกรณีไว้เผื่อเจอตอนเวรดึกครับ ถ้า pt ตื่นนอนมาแล้วมีอาการอ่อนแรง ไม่รู้ว่าเริ่มตอนไหน จะให้ rt-PA ได้ไหมครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ถ้า onset ไม่ทราบหรือเกิดตอนนอนหลับ และเลย 4.5 ชม. จาก last known well ปกติไม่ให้ แต่ถ้ามี MRI และพบ DWI-FLAIR mismatch อาจพิจารณาให้ได้ภายใน 4.5 ชม. หลังรู้ตัวว่ามีอาการ (AHA/ASA acute ischaemic stroke guideline, Powers et al., 2019)\n- เป็นระดับ recommendation ที่อ่อนกว่ากรณี onset ชัดเจน\n- รพ. ที่ไม่มี MRI ใช้เกณฑ์นี้ไม่ได้"
+    },
+    {
+      "role": "physician",
+      "content": "สุดท้ายขอ criteria ที่ต้องเช็กก่อนให้ rt-PA ครบๆ หน่อยครับ ผมจะดูอีกทีว่าครบไหม แล้วค่อยเริ่มยา"
+    },
+    {
+      "role": "assistant",
+      "content": "สรุปสั้นๆ สำหรับผู้ป่วยกลุ่มภายใน 4.5 ชม. (AHA/ASA acute ischaemic stroke guideline, Powers et al., 2019)\n- onset หรือ last known well ภายใน 4.5 ชม. และ deficit ที่วัดได้\n- CT ไม่มี hemorrhage, BP ต่ำกว่า 185/110, glucose มากกว่า 50 mg/dL\n- platelet มากกว่า 100,000, INR ไม่เกิน 1.7 และไม่ได้ on anticoagulant ออกฤทธิ์อยู่\n- ไม่มีประวัติ ICH, stroke รุนแรงหรือศีรษะบาดเจ็บรุนแรงช่วงสามเดือน"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nได้ทบทวนว่า rt-PA ให้ได้ภายใน 4.5 ชม. ขนาด 0.9 mg/kg และต้องคุม BP ให้ต่ำกว่าที่ guideline กำหนด ได้ความรู้เรื่อง monitoring หลังให้ยากับการเริ่ม aspirin ตามที่ AI สรุปให้ ขอบคุณครับ"
+    }
+  ]
+}

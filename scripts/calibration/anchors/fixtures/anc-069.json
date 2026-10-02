@@ -1,0 +1,74 @@
+{
+  "ple_id": "anc-069",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "pt DM วัย 60 กว่า HbA1c 8.4 eGFR 38 UACR 220 on metformin 500 bid + losartan 50 รพ.ชุมชน จ่ายยาเองไม่เกิน 1500/เดือน add-on SGLT2i, GLP-1 RA, DPP-4i หรือ pioglitazone"
+    },
+    {
+      "role": "assistant",
+      "content": "แนวทาง KDIGO สำหรับ T2D ที่มี CKD แนะนำ SGLT2i เป็นยาเพิ่มต่อจาก metformin เมื่อ eGFR ตั้งแต่ 20 ขึ้นไป เพื่อปกป้องไตและหัวใจ (KDIGO Diabetes in CKD, 2022)\n- ฤทธิ์ลดน้ำตาลของ SGLT2i น้อยลงเมื่อ eGFR ต่ำ แต่ประโยชน์ต่อไตและหัวใจไม่ได้พึ่งฤทธิ์ลดน้ำตาล (ADA Standards of Care in Diabetes, 2024)\n- ถ้าต้องลดน้ำตาลเพิ่ม GLP-1 RA ที่มีหลักฐานด้าน CV เป็นตัวเลือกถัดไป (KDIGO Diabetes in CKD, 2022)\n- DPP-4i ลดน้ำตาลได้พอประมาณ ส่วน pioglitazone ต้องระวังบวมน้ำและหัวใจล้มเหลว\n❓ ถ้า SGLT2i ลด HbA1c ได้เพียงเล็กน้อยจาก 8.4 จะตั้งเป้า HbA1c ของ pt รายนี้เท่าไร และจะเติมยาตัวที่สามเมื่อใด"
+    },
+    {
+      "role": "physician",
+      "content": "ฤทธิ์ลดน้ำตาลของ SGLT2i ลดลงที่ eGFR 38 ตามที่บอก ถ้า HbA1c ลงแค่ 0.3-0.5 จาก 8.4 ยังเกิน 7.5 อยู่ ต้องเติมตัวที่สามไหม"
+    },
+    {
+      "role": "assistant",
+      "content": "เป้า HbA1c ที่ผ่อนลง เช่น ไม่เกิน 8% เหมาะกับผู้ที่มีโรคร่วมหรือเสี่ยง hypoglycemia (ADA Standards of Care in Diabetes, 2024) การตั้งเป้า 7.5 จึงอยู่ในกรอบที่ยอมรับได้\n- ถ้าหลังเริ่ม SGLT2i แล้ว HbA1c ยังสูงกว่าเป้า ค่อยเติม GLP-1 RA ที่มีหลักฐานด้าน CV ได้ (KDIGO Diabetes in CKD, 2022)\n- eGFR มักตกเล็กน้อยช่วงแรกหลังเริ่ม SGLT2i แล้วค่อยนิ่ง (KDIGO Diabetes in CKD, 2022)\n❓ ถ้า eGFR ตกจาก 38 เป็น 31 ใน 4 สัปดาห์หลังเริ่ม SGLT2i จะดูอะไรบ้างและทำอย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ok ครับ ถ้า eGFR ตกจาก 38 เป็น 31 ใน 4 สัปดาห์ ที่นี่เจาะ Cr ซ้ำได้แค่สัปดาห์ 2 กับ 4 K ล่าสุด 4.9 on losartan 50 ต้องหยุดตัวไหน"
+    },
+    {
+      "role": "assistant",
+      "content": "eGFR ที่ตกจาก 38 เป็น 31 คือราว 18% ซึ่งเข้ากับ dip ช่วงแรกที่พบได้ และโดยทั่วไปไม่ใช่เหตุให้หยุด SGLT2i (KDIGO Diabetes in CKD, 2022)\n- ดู volume status, ยา diuretic และยากลุ่ม NSAID ที่อาจซ้ำเติมไต\n- K 4.9 on losartan: เจาะ K ซ้ำพร้อม Cr ที่สัปดาห์ 2 และ 4 ตามที่ทำได้ ถ้า Cr ขึ้นเกิน 30% ภายใน 4 สัปดาห์ค่อยทบทวน losartan (KDIGO CKD, 2024)\n❓ ถ้า pt ท้องเสียจนกินอาหารไม่ได้ 2 วัน ยาตัวไหนควรพักชั่วคราว"
+    },
+    {
+      "role": "physician",
+      "content": "ท้องเสียกินไม่ได้ 2 วัน บ้านอยู่ไกล รพ. 40 กม. ให้หยุด SGLT2i metformin losartan พร้อมกัน 3 ตัวใช่ไหม เริ่มใหม่ใน 48 ชม."
+    },
+    {
+      "role": "assistant",
+      "content": "ควรพักชั่วคราวทั้ง SGLT2i, metformin และ ARB ช่วงขาดน้ำหรือกินไม่ได้ แล้วเริ่มใหม่เมื่อกินดื่มได้ปกติราว 24-48 ชม. (KDIGO Diabetes in CKD, 2022) เสี่ยง AKI, euglycaemic ketoacidosis กับ SGLT2i และ lactic acidosis กับ metformin\n- เมื่อโทรปรึกษาไม่ได้ทุกครั้ง การเขียนคำแนะนำ sick day ให้ pt ถือกลับบ้านช่วยได้มาก\n- SGLT2i ชะลอการเสื่อมของไตและลดเหตุการณ์ CV ในผู้ป่วย T2D ที่มี CKD (KDIGO Diabetes in CKD, 2022)\n❓ จะอธิบายประโยชน์ระยะยาวต่อไตให้ pt ที่ UACR 220 ฟังอย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ที่บอกว่าลด progression ของ CKD ผล primary มาจาก trial ที่รับ eGFR ช่วงไหน UACR 220 ของ pt อยู่ในกลุ่มนั้นไหม หรือเป็นแค่ eGFR slope"
+    },
+    {
+      "role": "assistant",
+      "content": "trial หลักของ SGLT2i ใน CKD รับผู้ป่วยที่ eGFR ราว 20-25 ขึ้นไป ส่วนใหญ่มี albuminuria และ primary outcome เป็นผลรวมหลายเหตุการณ์ของไต ได้แก่ eGFR ลดลงมาก, ESKD และเสียชีวิต ไม่ใช่แค่ eGFR slope (KDIGO Diabetes in CKD, 2022)\n- UACR 220 จัดว่ามี albuminuria จึงอยู่ในกลุ่มที่ trial ศึกษา แต่ขนาดประโยชน์เฉพาะช่วงนี้ ผมยังไม่แน่ใจตัวเลข\n- ผลเหล่านี้มาจาก RCT ในผู้ป่วยที่ถูกคัดเลือก ไม่ใช่ประชากร รพ.ชุมชนทั้งหมด\n❓ ถ้า pt ไม่มี albuminuria (UACR ต่ำกว่า 30) หลักฐานด้านไตจะยังใช้กับ pt ได้ตรงเท่าเดิมไหม"
+    },
+    {
+      "role": "physician",
+      "content": "แล้ว GLP-1 RA ที่ KDIGO วางถัดไป หลักฐานต่อไตเป็นแค่ secondary หรือ exploratory เทียบ SGLT2i ราคาเกิน 1500 ของ pt แน่ ทำอย่างไร"
+    },
+    {
+      "role": "assistant",
+      "content": "ประโยชน์ด้าน CV ของ GLP-1 RA ชัดเจนในตัวที่มีหลักฐาน ส่วนผลต่อไตส่วนใหญ่มาจาก outcome รองและการลด albuminuria ในการศึกษาด้าน CV (ADA Standards of Care in Diabetes, 2024) จึงยังเทียบกับ SGLT2i ตรง ๆ ไม่ได้ ผมยังไม่แน่ใจรายละเอียดรายตัว\n- เรื่องราคา ควรคุยกับ pt และเภสัชกรว่ามีใน formulary ของ รพ. หรือไม่ก่อนตัดสินใจ\n❓ ถ้า GLP-1 RA จ่ายไม่ไหวและ HbA1c ยังเกินเป้า ตัวเลือกลดน้ำตาลที่เหลือมีข้อดีข้อเสียต่างกันอย่างไรที่ eGFR 38"
+    },
+    {
+      "role": "physician",
+      "content": "ถ้าจ่ายได้ตัวเดียว: linagliptin 5 mg หรือ sitagliptin 50 mg กับ glipizide 5 mg เสี่ยง hypo ที่เป้า 7.5 ต่างกันแค่ไหน มี RCT เทียบตรงใน CKD 3 ไหม"
+    },
+    {
+      "role": "assistant",
+      "content": "- linagliptin ไม่ต้องปรับขนาดตามไต ส่วน sitagliptin ลดเหลือ 50 mg เมื่อ eGFR 30 ถึงต่ำกว่า 45 (KDIGO Diabetes in CKD, 2022)\n- SU เสี่ยง hypoglycemia สูงกว่า DPP-4i ใน CKD และ glipizide เป็นตัวที่เสี่ยงน้อยกว่า SU ตัวอื่น (ADA Standards of Care in Diabetes, 2024)\n- RCT เทียบตรงระหว่างสองกลุ่มนี้ใน CKD 3 ผมไม่แน่ใจว่ามีขนาดใหญ่พอ ข้อมูลส่วนมากเป็น observational\n❓ ถ้าเริ่ม SGLT2i เพื่อไตเป็นหลัก จะติดตามว่าได้ผลด้วยตัวชี้วัดอะไรที่ 3 และ 6 เดือน"
+    },
+    {
+      "role": "physician",
+      "content": "ถ้าเริ่ม SGLT2i 10 mg เพื่อไตเป็นหลัก ที่ 3 และ 6 เดือนควรวัดผลด้วย UACR หรือ eGFR slope ส่ง UACR ได้แค่ รพ.จังหวัด 1 ครั้งต่อ 6 เดือน"
+    },
+    {
+      "role": "assistant",
+      "content": "UACR เป็นตัวติดตามที่ทำได้จริงในเวชปฏิบัติ และตรวจปีละ 1-2 ครั้งตามระดับความเสี่ยงของ CKD (KDIGO CKD, 2024)\n- eGFR dip ช่วงแรกคาดได้ ไม่ถือว่าล้มเหลว ควรดู slope ระยะยาวมากกว่าค่าเดี่ยว\n- UACR ที่ลดลงเป็น surrogate ไม่ใช่การยืนยัน kidney outcome ในรายบุคคล (KDIGO Diabetes in CKD, 2022)\n❓ ถ้า UACR ไม่ลดลงที่ 6 เดือน จะถือว่ายานี้ไม่ได้ผลกับ pt รายนี้หรือไม่"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nSGLT2i ที่ eGFR 38 ให้ไตและหัวใจเป็นงานหลัก ส่วนการลด HbA1c ตัวนี้ทำได้น้อย จึงจัดเป็นสองงานแยกกัน ตัวลดน้ำตาลต้องเลือกแยก และ sick day ต้องสอน pt ก่อนจ่ายยา\n\nความไม่แน่นอน / What remains uncertain:\nยังไม่รู้ขนาดประโยชน์ต่อไตเฉพาะช่วง UACR 220 และไม่มี RCT เทียบ DPP-4i กับ SU ใน CKD 3 โดยตรง\n\nจะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:\nวันจันทร์เปิด KDIGO 2022 ส่วน SGLT2i ตรวจ eGFR ขั้นต่ำที่เริ่มได้ เทียบกับ formulary รพ. ว่ามีตัวไหน ให้เภสัชกรเขียนบัตร sick day แล้วทบทวน pt DM+CKD 3 ในคลินิก 20 รายแรกว่ากี่รายได้ SGLT2i และกี่รายมี UACR ใน 12 เดือน"
+    }
+  ]
+}

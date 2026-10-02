@@ -905,12 +905,24 @@ describe('D13 on the full cohort — held-out lock and no early held-out scores'
     assert.deepEqual(Object.keys(out.lock.locked), ['anc-050']);
   });
 
-  test('validate.mjs --record-batch refuses a batch that has not passed intake and writes nothing', async () => {
+  test('validate.mjs --record-batch refuses a batch that has not passed intake and writes nothing', async (t) => {
+    // Any batch not yet recorded whose fixtures are not all written (it used to be batch 6, until batch 6
+    // was written). Once every batch is recorded there is nothing left to refuse.
+    const plan = JSON.parse(await readFile(BATCHES_PATH, 'utf8'));
+    const recorded = new Set((await loadIntakeLog()).entries.map((e) => e.batch));
+    const exists = async (id) => readFile(path.join(HERE, 'fixtures', `${id}.json`)).then(() => true, () => false);
+    let n = null;
+    for (const b of plan.batches) {
+      if (recorded.has(b.batch)) continue;
+      if ((await Promise.all(b.rows.map((r) => exists(r.id)))).includes(false)) { n = b.batch; break; }
+    }
+    if (n == null) { t.skip('every batch is written or recorded'); return; }
+    const before = await readFile(path.join(HERE, 'intake-log.json'), 'utf8').catch(() => null);
     let failed = false;
-    try { execFileSync(process.execPath, [path.join(HERE, 'validate.mjs'), '--record-batch', '6'], { encoding: 'utf8', stdio: 'pipe' }); }
-    catch (e) { failed = true; assert.match(String(e.stderr), /did not pass intake/); assert.match(String(e.stderr), /extra_review/); }
-    assert.ok(failed);
-    await assert.rejects(readFile(path.join(HERE, 'intake-log.json'), 'utf8').then((t) => { if (!JSON.parse(t).entries?.some((e) => e.batch === 6)) throw new Error('not recorded'); }));
+    try { execFileSync(process.execPath, [path.join(HERE, 'validate.mjs'), '--record-batch', String(n)], { encoding: 'utf8', stdio: 'pipe' }); }
+    catch (e) { failed = true; assert.match(String(e.stderr), /did not pass intake/); }
+    assert.ok(failed, `batch ${n} was accepted`);
+    assert.equal(await readFile(path.join(HERE, 'intake-log.json'), 'utf8').catch(() => null), before, 'intake-log.json changed');
   });
 
   test('updateHeldOutLock adds new held-out fixtures, ignores tuning, and reports a changed locked sha', () => {

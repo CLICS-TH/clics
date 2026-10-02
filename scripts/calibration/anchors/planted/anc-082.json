@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-082.json",
+      "id": "anc-082",
+      "turn": 1,
+      "kind": "false",
+      "claim": "- หลักฐาน RCT ของ DOAC ครอบคลุมผู้ป่วย AF กว้างมาก รวมถึงกลุ่มไตเสื่อม จึงไม่ต้องกังวลเรื่องไตเพิ่มในรายนี้",
+      "citation_on_claim": false,
+      "corrected_in_turn": 5,
+      "note": "Over-generalisation: DOAC pivotal RCTs excluded CrCl below about 25-30, so \"no renal concern\" does not hold for this patient (CrCl ~26); the tutor concedes with evidence in turn 5."
+    }
+  ]
+}

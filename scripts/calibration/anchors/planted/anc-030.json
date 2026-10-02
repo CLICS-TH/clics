@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-030.json",
+      "id": "anc-030",
+      "turn": 1,
+      "kind": "false",
+      "claim": "- water-soluble contrast ช่วยลดการผ่าตัดในผู้ป่วย adhesive SBO ทุกราย จึงควรให้ทุกรายก่อนคิดเรื่องผ่าตัด",
+      "citation_on_claim": false,
+      "corrected_in_turn": 5,
+      "note": "Over-generalisation: water-soluble contrast does not reduce surgery in every adhesive SBO and is not for peritonitis/strangulation; turn 5 concedes and limits it to prediction of non-op success."
+    }
+  ]
+}

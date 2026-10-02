@@ -1,0 +1,66 @@
+{
+  "ple_id": "anc-093",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "pt หญิงวัย 80 กว่า ล้มที่บ้าน vital stable ไม่มี injury อื่น intertrochanteric fx ขวา on clopidogrel 75 มก. หลังใส่ DES เมื่อ 8 เดือนก่อน Hb 10.8 ควรรอหยุด clopidogrel ครบ 5 วันก่อนผ่าตัดไหม หรือผ่าได้เลยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ไม่จำเป็นต้องรอครบ 5 วันครับ\n- hip fracture ควรผ่าตัดภายใน 48 ชม. เมื่อผู้ป่วยพร้อมทางการแพทย์ (AAOS hip fracture guideline, 2021) การรอให้ platelet function กลับมาปกติจะทำให้ผ่าเกินกรอบนี้\n- clopidogrel อย่างเดียวไม่ใช่เหตุผลให้เลื่อนผ่าตัด ส่วนใหญ่ผ่าได้โดยเสียเลือดเพิ่มเล็กน้อย\n- ใน DES ที่ยังไม่ครบ 12 เดือน การหยุด P2Y12 มีความเสี่ยง stent thrombosis ควรปรึกษา cardiologist ก่อนหยุดหรือเปลี่ยนยา (ESC non-cardiac surgery guidelines, 2022)\n- เตรียม Hb ซ้ำและ group & cross-match ไว้ แล้วผ่าตามเวลาที่ OR พร้อม"
+    },
+    {
+      "role": "physician",
+      "content": "ถ้าไม่รอ ผมกังวลสองเรื่อง คือเลือดออกเพิ่มระหว่างผ่ากับ stent thrombosis ถ้าหยุดยา ในเคสนี้สองอย่างนี้อย่างไหนน่ากลัวกว่า และ Hb 10.8 ควร cross-match ไว้กี่ unit ครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ในแง่ผลลัพธ์ stent thrombosis น่ากลัวกว่า เพราะอาจเป็น MI ขนาดใหญ่ ส่วนเลือดออกเพิ่มจาก clopidogrel มักคุมได้ด้วยเทคนิคผ่าตัดและการเตรียมเลือด ความเสี่ยง stent thrombosis สูงสุดในช่วงแรกหลังใส่ stent และเมื่อหยุด P2Y12 ก่อนเวลา (ESC non-cardiac surgery guidelines, 2022)\n- cross-match ไว้ 2 unit เป็นจุดเริ่มต้นที่สมเหตุสมผลสำหรับ intertrochanteric fx ที่จะผ่า เป็นแนวปฏิบัติทั่วไป ไม่ใช่ตัวเลขจากงานวิจัยชิ้นใด\n- ปรับตามความเสียหายของกระดูกและวิธีผ่าที่ศัลยแพทย์เลือก"
+    },
+    {
+      "role": "physician",
+      "content": "เรื่อง anesthesia ยังไม่ค่อยเข้าใจ อธิบายเพิ่มหน่อยครับว่า spinal ทำได้ไหมในเคสนี้ แล้ว block ที่ว่าทำที่ไหน ทำก่อนหรือหลังเข้า OR"
+    },
+    {
+      "role": "assistant",
+      "content": "- spinal หรือ neuraxial ในคนที่ on clopidogrel โดยทั่วไปต้องรอหยุดยาราว 5-7 วัน ถ้าไม่รอ GA หรือ peripheral nerve block จึงเป็นทางเลือก ส่วน aspirin อย่างเดียวไม่ห้าม neuraxial\n- fascia iliaca block ทำได้ตั้งแต่ ER หรือหอผู้ป่วยก่อนเข้า OR ช่วยคุมปวดและลด opioid ซึ่งสำคัญในผู้สูงอายุ (AAOS hip fracture guideline, 2021)\n- ถ้าจะทำหลัง induction ก็ทำได้ แต่การทำก่อนผ่าให้ประโยชน์เรื่องปวดมากกว่า"
+    },
+    {
+      "role": "physician",
+      "content": "ผมเอนไปทาง GA ร่วมกับ fascia iliaca block ผ่าภายใน 48 ชม. โดยไม่หยุด clopidogrel เพราะ stent ยังไม่ครบ 12 เดือน และ eGFR 48 เลยจะเลี่ยง NSAIDs ใช้ paracetamol 1 กรัมกับ block แทน แผนนี้เหมาะไหมครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "แผนนี้สมเหตุสมผลครับ เหตุผลที่หมอให้ไว้สอดคล้องกับแนวทางที่คุยกัน\n- การเลี่ยง NSAIDs ถูกต้อง เพราะ AGS Beers Criteria แนะนำหลีกเลี่ยง NSAIDs ต่อเนื่องในผู้สูงอายุเนื่องจากเสี่ยงเลือดออกทางเดินอาหารและไตเสื่อม (AGS Beers Criteria, 2023)\n- paracetamol ร่วมกับ regional block เป็น multimodal analgesia ที่ลด opioid ได้ (AAOS hip fracture guideline, 2021)\n- อย่าลืมแจ้ง cardiologist ว่าไม่หยุด clopidogrel เพื่อให้ตกลงแผนต่อหลังผ่า"
+    },
+    {
+      "role": "physician",
+      "content": "ที่บอกว่าผ่าภายใน 48 ชม. ดีกว่า หลักฐานตรงนี้มาจาก RCT หรือ cohort ครับ และกลุ่มที่ศึกษามีคนที่ on antiplatelet รวมอยู่ไหม ผมอยากรู้ว่าตัวเลขนั้นใช้กับเคสนี้ได้แค่ไหน เพราะต้องอธิบายญาติให้ถูกว่าหลักฐานแน่นแค่ไหน"
+    },
+    {
+      "role": "assistant",
+      "content": "คำถามดีครับ\n- หลักฐานเรื่องเวลาผ่าตัดส่วนใหญ่มาจาก observational cohort และ meta-analysis ของ cohort ซึ่งมี confounding เพราะผู้ป่วยที่ไม่พร้อมมักถูกเลื่อนไปผ่าทีหลัง จึงสรุปเรื่อง mortality ได้ไม่หนักแน่นเท่า RCT (AAOS hip fracture guideline, 2021)\n- หลายการศึกษามีผู้ป่วยที่ on antiplatelet อยู่ในกลุ่มศึกษา แต่ส่วนใหญ่ไม่ได้แยกวิเคราะห์เฉพาะกลุ่มนี้ จึงยังไม่แน่ใจว่าขนาดผลเท่ากันในเคสนี้ การผ่าเร็วยังเป็นทิศทางที่แนวทางสนับสนุน แต่ไม่ควรอ้างตัวเลขเป๊ะ"
+    },
+    {
+      "role": "physician",
+      "content": "ขอสรุปแผนก่อนผ่าตามลำดับเวลา สำหรับ รพ.จังหวัดที่ไม่มี platelet function test ไม่เกิน 5 บรรทัด และใส่แหล่งอ้างอิงท้ายแต่ละข้อ ผมจะเปิดเทียบกับ guideline ฉบับเต็มเอง แล้วคุยกับวิสัญญีแพทย์ก่อนสั่งจริง"
+    },
+    {
+      "role": "assistant",
+      "content": "- ที่ ER: fascia iliaca block ร่วมกับ paracetamol เลี่ยง NSAIDs (AAOS hip fracture guideline, 2021; AGS Beers Criteria, 2023)\n- ตรวจ Hb ซ้ำ, group & cross-match 2 unit\n- ปรึกษา cardiologist เรื่องไม่หยุด clopidogrel เพราะ DES ยังไม่ครบ 12 เดือน (ESC non-cardiac surgery guidelines, 2022)\n- ผ่าภายใน 48 ชม. ด้วย GA หรือ peripheral block โดยไม่ทำ neuraxial (AAOS hip fracture guideline, 2021)\n- หลังผ่า: ติดตาม Hb วันที่ 1 และ 2 แล้วต่อ clopidogrel ตามแผน cardiologist"
+    },
+    {
+      "role": "physician",
+      "content": "ถ้าคืนก่อนผ่า Hb ลงเหลือ 9.1 ผมควรเตรียม platelet ไว้ก่อนเลย หรือรอให้มี surgical bleeding แล้วค่อยให้ และถ้าให้ platelet จะไปหักล้าง clopidogrel ที่ยังออกฤทธิ์อยู่ได้จริงไหมครับ เพราะเคสนี้กินยาตัวนี้ทุกเช้า"
+    },
+    {
+      "role": "assistant",
+      "content": "- ไม่แนะนำให้ platelet ล่วงหน้า ให้เมื่อมี bleeding ที่ห้ามเลือดไม่ได้ ส่วน Hb 9.1 ยังไม่ถึงเกณฑ์ให้เลือดตามแนวทางที่ใช้ restrictive strategy ถ้าไม่มีอาการ (AAOS hip fracture guideline, 2021)\n- active metabolite ของ clopidogrel มี half-life สั้น แต่ถ้าเพิ่งกินยาเช้านี้ ยาในเลือดยังสร้าง metabolite ต่อเนื่อง platelet ที่ให้จึงอาจถูกยับยั้งบางส่วน\n- ยังไม่แน่ใจว่าต้องให้กี่ unit ถึงได้ผลเพราะข้อมูลในกลุ่มนี้มีน้อย ควรตกลงกับวิสัญญีและ blood bank ไว้ล่วงหน้า"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nเดิมผมคิดว่า hip fracture ที่ on clopidogrel ต้องรอหยุดยาก่อนผ่า ตอนนี้เข้าใจว่าการรอทำให้ผ่าเกิน 48 ชม. และเสี่ยง stent thrombosis เมื่อ DES ยังไม่ครบ 12 เดือน จึงตั้งใจผ่าเร็วด้วย GA กับ fascia iliaca block โดยไม่หยุดยา\n\nความไม่แน่นอน / What remains uncertain:\nหลักฐานเรื่อง 48 ชม. ส่วนใหญ่เป็น cohort และกลุ่มที่ on antiplatelet ไม่ได้แยกวิเคราะห์ ผมยังไม่รู้ว่าถ้าเลือดออกจริงควรให้ platelet กี่ unit\n\nจะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:\nจะอ่านส่วน timing กับ transfusion ใน AAOS ฉบับเต็ม และคุยกับวิสัญญีกับ cardiologist เพื่อทำแนวทางสั้น ๆ สำหรับ hip fracture ที่ on antiplatelet ในโรงพยาบาลของเรา"
+    }
+  ]
+}

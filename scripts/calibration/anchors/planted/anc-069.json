@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-069.json",
+      "id": "anc-069",
+      "turn": 7,
+      "kind": "unqualified",
+      "claim": "SGLT2i ชะลอการเสื่อมของไตและลดเหตุการณ์ CV ในผู้ป่วย T2D ที่มี CKD (KDIGO Diabetes in CKD, 2022)",
+      "citation_on_claim": true,
+      "corrected_in_turn": 9,
+      "note": "True in the trial populations (eGFR about 20-25 or higher, mostly albuminuric) but stated without them; turn 9 states the population and that benefit size for this UACR range is unknown."
+    }
+  ]
+}

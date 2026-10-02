@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-025.json",
+      "id": "anc-025",
+      "turn": 1,
+      "kind": "false",
+      "claim": "Give 30 mL/kg crystalloid to every patient with suspected sepsis.",
+      "citation_on_claim": false,
+      "corrected_in_turn": 11,
+      "note": "30 mL/kg is a weak, low-quality-evidence suggestion for sepsis-induced hypoperfusion or septic shock, not for every suspected sepsis; turn 11 corrects it."
+    }
+  ]
+}
