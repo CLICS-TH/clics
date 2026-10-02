@@ -1,0 +1,50 @@
+{
+  "ple_id": "anc-052",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "A man in his fifties with two hours of central pressure that eased by the time he reached us. First ECG shows only nonspecific lateral T flattening. We're a district hospital with a conventional troponin, no high-sensitivity assay, and the PCI centre is a long ambulance ride away. He's diabetic and was reluctant to come in at all. I lean towards unstable angina because the pressure came on while he was walking and settled at rest. With a negative first troponin and a low HEART score, do I discharge him, or keep him for a repeat and transfer, and what does that hinge on with our assay?"
+    },
+    {
+      "role": "assistant",
+      "content": "Not on a single negative conventional troponin this early. With pain starting about two hours ago, the first sample can be falsely reassuring, so a later repeat is needed (ESC guidelines, 2020).\n- A HEART score of three or fewer identifies a low-risk group in which early discharge is safe (HEART score, 2013).\n- Diabetes and exertional pressure push the history and risk-factor points up, so he may not score low at all.\n❓ How would you score his history and risk factors honestly, and would that number change your plan?"
+    },
+    {
+      "role": "physician",
+      "content": "You said a score of three or fewer makes early discharge safe. I'd score his history and risk factors high, so he isn't low anyway. But where does that low-risk group come from? I'd guess emergency departments with cardiology on site and patients who can return within minutes, which isn't a man who lives far out and has already told us he won't come back."
+    },
+    {
+      "role": "assistant",
+      "content": "Fair challenge, and I stated that too broadly. The HEART score was developed and tested in emergency department cohorts with hospital follow-up (HEART score, 2013). It ranks risk; it does not tell you whether a man who lives far away will come back if his pain returns. For him a low score would not make discharge safe, and with his risk factors it would not be low.\n❓ Does your lab's troponin assay support a one-hour rule-out pathway at all, or only a later repeat?"
+    },
+    {
+      "role": "physician",
+      "content": "Our lab's assay is conventional, so the one-hour pathway needs a high-sensitivity assay we don't have, and I can't borrow its cut-offs. His mild kidney impairment may also leave the second troponin chronically raised, so I'll look at the change between samples. If I'm suspicious enough to give aspirin now, does the anticoagulant wait for the repeat, or is waiting just delay?"
+    },
+    {
+      "role": "assistant",
+      "content": "Right, the one-hour algorithms are validated for high-sensitivity assays, so with a conventional assay stay with a later repeat (ESC guidelines, 2023). A chronically raised baseline from kidney disease is a real issue, and the change between samples is the better signal.\n- Aspirin can be given now when ACS is suspected; no need to wait for the repeat (ESC guidelines, 2023).\n- Parenteral anticoagulation is recommended once NSTE-ACS is diagnosed, so it can follow the repeat result (ESC guidelines, 2023).\n❓ What would make you start anticoagulation before the repeat?"
+    },
+    {
+      "role": "physician",
+      "content": "Aspirin now is solid. The anticoagulant timing I'd treat as extrapolated: as far as I know those trials enrolled confirmed or biomarker-positive patients, not someone with a nondiagnostic ECG and a conventional assay. Same for the HEART reply: a validated risk ranking, not a demonstrated safe discharge rule for people who can't return. I'll ring the transfer centre now and hold him for the repeat."
+    },
+    {
+      "role": "assistant",
+      "content": "That is a sensible line and an honest read of the evidence. The HEART score is a validated risk ranking, not a trial-proven discharge rule for patients with poor follow-up (HEART score, 2013), and anticoagulant timing in conventional-assay patients rests largely on consensus (ESC guidelines, 2023). Holding him for the repeat is defensible, and calling the transfer centre in parallel costs little.\n❓ How reliable is the onset time you have for him?"
+    },
+    {
+      "role": "physician",
+      "content": "He can't say exactly; the pressure began while he walked in from the car park. You said the repeat is timed from onset. If onset is vague, do I count three hours from arrival, and does that change how long I hold him before transfer if the second sample comes back only slightly above the first?"
+    },
+    {
+      "role": "assistant",
+      "content": "If onset is vague, do not count from the earliest guess; time the repeat from arrival and give it the full interval, because a repeat that is too early can be falsely reassuring (ESC guidelines, 2020). Hold him at least until it is back, and keep transfer ready to start the moment it rises or the pain recurs.\n❓ What would you tell him about returning if he insists on going home before the repeat?"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nI came in treating a low HEART score as permission to discharge. It is a risk ranking tested where patients can return and cardiology is on site, and our assay is not the one the one-hour pathway was built for. The repeat sample, timed from onset or from arrival, matters more for us than the score. Aspirin does not wait; anticoagulation can.\n\nความไม่แน่นอน / What remains uncertain:\nWhether a repeat after three hours on a conventional assay is enough for a man who won't return, and how to count when onset is vague. I have not found a trial that answers it for a district hospital.\n\nจะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:\nOn Monday I will pull our last chest pain discharges with a single troponin and see how many came back within a week, ask the lab for the assay's cut-off and imprecision at the low end, and draft a one-page pathway with the transfer centre that fixes who calls whom when onset time is unclear."
+    }
+  ]
+}

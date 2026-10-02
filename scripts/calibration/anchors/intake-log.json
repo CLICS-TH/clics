@@ -104,6 +104,42 @@
         "anc-077": "11f6d474f1535403777fd15d9fef4c08f033008eaff6729f036e5c84d9a8b313",
         "anc-099": "a83c0652c810ec6f9589028fe12a3ec8fd8d0ce72982ef56b1bcee5f3c61461b"
       }
+    },
+    {
+      "batch": 4,
+      "recorded_at": "2026-10-02T09:25:19.607Z",
+      "confirmed_extra_review": [],
+      "fixtures": {
+        "anc-032": "03e4264cf8cff5e9f1a3bd1f63e4af556e60505cd6ef9e231fec20cb3067b5b7",
+        "anc-033": "9ad2d97167e7e5f8e2e4fb1eb4f2e4cab4e47067e0542285ede7aafeedc3aebb",
+        "anc-036": "bfbe2e0f415838b278b3a8e6136e28c43e32666d9a9723d42b24c90b9e358dfd",
+        "anc-038": "f68a1ace8cda8ac51474fd4e1b2c7e49ef948d74fb23c3e18c9b3435ac94dde0",
+        "anc-044": "47fa99598a0885f9b97abf88c2ecd543b352c06ba5a8801428d127b014729fd9",
+        "anc-057": "3c378229cd76b8b47f6e56d4b8eee017f7c5962304d2f2b022c955d71ef5f641",
+        "anc-079": "98b98af664da709ad2d9ea4ca1ea394b5c4c120b221019bfb6534349090ea76a",
+        "anc-088": "dd30d28f34a86b8d97783a67c93b0e8fe0626a884484f5e215240d7aa40082e8",
+        "anc-089": "5fa30e1b034d81b7fdead7a83c0d6f059d0cb7d7dea27a8177afb307e839c45e",
+        "anc-096": "af5b6560b370db8785c2da518b921892e4733a358719e48de6d409d4b9981725"
+      }
+    },
+    {
+      "batch": 8,
+      "recorded_at": "2026-10-02T09:25:19.909Z",
+      "confirmed_extra_review": [
+        "anc-055"
+      ],
+      "fixtures": {
+        "anc-052": "c9f695a710816a564571677f7783562f22f5359098f1935126cb6149b6d8e5ca",
+        "anc-058": "a649fda95fca273a44329dbc4bf919f3d2b3c6e6951214313cb8b473b830efa8",
+        "anc-062": "279d646cba4ba2879736d00bcbbe80b42622d499ebf8258429503bbeede6f374",
+        "anc-070": "a9fedf2ed61088bb5741c654fbab9d77ca29e6518c2b09478f3de7900e1fff60",
+        "anc-074": "cf059bdf1b7d37d5402d31774941e72d6533fe6bb1d0cbab1be566e3fb856bdd",
+        "anc-083": "1af6bcc060eb4276891553531facc17edd2885124d39c15488588892be203399",
+        "anc-085": "7254037ae8b9dd6674ea344393792735e630469632624b16cdb443f8f33049fb",
+        "anc-087": "45bc03d737333c9a6475c270a8fb8be459eff1ce7dbae35583fa57240335d1f9",
+        "anc-094": "4a2047b80c1dd182685c3d6304d2fa45215fb913340cab05befc267068700691",
+        "anc-055": "1563b8305e8848ea78e8581ed7b247219b81281519ee9bed85f495fe8a0dad9c"
+      }
     }
   ]
 }

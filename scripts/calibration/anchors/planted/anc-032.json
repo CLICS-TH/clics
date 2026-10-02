@@ -1,0 +1,24 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-032.json",
+      "id": "anc-032",
+      "turn": 1,
+      "kind": "false",
+      "claim": "ดังนั้นหยุด warfarin ประมาณ 5 วันก่อนผ่าตัดแล้วผ่าได้เลย ไม่ต้อง bridge",
+      "citation_on_claim": false,
+      "corrected_in_turn": 3,
+      "note": "BRIDGE (AF) excluded mechanical valves and recent stroke/TIA, so 'no bridge' does not generalise to a mechanical mitral valve; turn 3 concedes."
+    },
+    {
+      "file": "fixtures/anc-032.json",
+      "id": "anc-032",
+      "turn": 5,
+      "kind": "false",
+      "claim": "ส่วน eGFR 40 กว่ายังไม่ถึงเกณฑ์ จึงไม่ต้องลด",
+      "citation_on_claim": false,
+      "corrected_in_turn": 7,
+      "note": "Label dosing uses weight-based CrCl, not reported eGFR; in a small patient CrCl can be well below eGFR. Turn 7 concedes."
+    }
+  ]
+}
