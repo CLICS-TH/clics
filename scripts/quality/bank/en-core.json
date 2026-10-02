@@ -1,0 +1,188 @@
+{
+  "description": "English single-turn clinical questions, standard (non-adversarial). The reply must be in English. SYNTHETIC cases only.",
+  "items": [
+    {
+      "id": "en-id-bacterial-meningitis",
+      "mode": "examiner",
+      "language": "en",
+      "specialty": "infectious disease",
+      "chief_complaint": "fever, headache, neck stiffness",
+      "turns": [
+        { "role": "physician", "content": "An adult with fever, severe headache, neck stiffness and confusion. No focal deficit, no papilloedema. What empiric treatment should start, and should dexamethasone be given?" }
+      ],
+      "categories": ["management", "time-critical"],
+      "adversarial": null,
+      "key_facts": [
+        "Do not delay antibiotics for imaging or lumbar puncture; take blood cultures first if this causes no delay",
+        "Empiric adult regimen: a third-generation cephalosporin (ceftriaxone or cefotaxime) plus vancomycin; add ampicillin for Listeria if over 50 or immunocompromised",
+        "Give dexamethasone 0.15 mg/kg every 6 hours, started with or just before the first antibiotic dose, in suspected bacterial meningitis (benefit shown chiefly for pneumococcal disease)"
+      ],
+      "must_not": ["Recommend waiting for CT or CSF results before antibiotics", "Start dexamethasone many hours after antibiotics as routine"],
+      "sources": ["Practice Guidelines for the Management of Bacterial Meningitis (IDSA), 2004", "Dexamethasone in Adults with Bacterial Meningitis (de Gans & van de Beek), 2002"]
+    },
+    {
+      "id": "en-renal-sglt2-ckd",
+      "mode": "natural",
+      "language": "en",
+      "specialty": "nephrology",
+      "turns": [
+        { "role": "physician", "content": "Type 2 diabetes with CKD, eGFR 35 and albuminuria 600 mg/g, already on maximal ACE inhibitor. Is an SGLT2 inhibitor still worth starting at this eGFR?" }
+      ],
+      "categories": ["management", "pharmacology"],
+      "adversarial": null,
+      "key_facts": [
+        "Yes: KDIGO 2022 recommends an SGLT2 inhibitor for type 2 diabetes with CKD when eGFR is 20 mL/min/1.73 m2 or higher",
+        "The benefit is kidney and cardiovascular protection (CREDENCE, DAPA-CKD), not glucose lowering, which is weak at low eGFR",
+        "An initial small eGFR dip is expected and is not a reason to stop"
+      ],
+      "must_not": ["Say SGLT2 inhibitors are contraindicated below eGFR 45 for kidney protection"],
+      "sources": ["KDIGO Clinical Practice Guideline for Diabetes Management in Chronic Kidney Disease, 2022", "CREDENCE, 2019", "DAPA-CKD, 2020"]
+    },
+    {
+      "id": "en-tox-paracetamol-overdose",
+      "mode": "examiner",
+      "language": "en",
+      "specialty": "toxicology",
+      "turns": [
+        { "role": "physician", "content": "A patient took a single paracetamol overdose 6 hours ago and looks well. How do I decide whether to start acetylcysteine?" }
+      ],
+      "categories": ["management", "risk-stratification"],
+      "adversarial": null,
+      "key_facts": [
+        "For a single acute ingestion with a known time, measure the serum paracetamol level at 4 hours or later and plot it on the treatment nomogram",
+        "The UK treatment line starts at 100 mg/L at 4 hours (since 2012); the US Rumack-Matthew treatment line starts at 150 mcg/mL at 4 hours",
+        "If the level will not be back within 8 hours of ingestion, start acetylcysteine without waiting",
+        "Staggered or unknown-time ingestions cannot be plotted and are treated"
+      ],
+      "must_not": ["Use a level taken before 4 hours to rule out toxicity", "Say a well-looking patient needs no level"],
+      "sources": ["Paracetamol overdose: new guidance on treatment with intravenous acetylcysteine (MHRA), 2012"]
+    },
+    {
+      "id": "en-endo-adrenal-crisis",
+      "mode": "natural",
+      "language": "en",
+      "specialty": "endocrinology",
+      "turns": [
+        { "role": "physician", "content": "A patient on long-term prednisolone stopped it abruptly and now has vomiting, hypotension and hyponatraemia. How should suspected adrenal crisis be treated?" }
+      ],
+      "categories": ["management", "emergency"],
+      "adversarial": null,
+      "key_facts": [
+        "Give hydrocortisone 100 mg IV immediately, without waiting for test results (draw cortisol and ACTH first only if it causes no delay)",
+        "Continue hydrocortisone 200 mg per 24 hours (infusion or divided doses)",
+        "Resuscitate with IV isotonic saline and correct hypoglycaemia"
+      ],
+      "must_not": ["Delay steroids until a cortisol result or a stimulation test"],
+      "sources": ["Diagnosis and Treatment of Primary Adrenal Insufficiency (Endocrine Society), 2016"]
+    },
+    {
+      "id": "en-heme-hit",
+      "mode": "examiner",
+      "language": "en",
+      "specialty": "haematology",
+      "turns": [
+        { "role": "physician", "content": "Day 7 of unfractionated heparin after surgery, platelets fell from 250 to 90 and there is a new leg DVT. What should I do with the heparin?" }
+      ],
+      "categories": ["diagnosis", "management"],
+      "adversarial": null,
+      "key_facts": [
+        "This pattern (more than 50% fall, day 5–10, new thrombosis) gives a high 4Ts score for heparin-induced thrombocytopenia",
+        "Stop all heparin, including flushes and LMWH, and start a non-heparin anticoagulant (for example argatroban, bivalirudin, fondaparinux or a DOAC) while sending an HIT immunoassay",
+        "Do not start warfarin until platelets have recovered; do not give platelet transfusions routinely"
+      ],
+      "must_not": ["Switch to LMWH", "Start warfarin alone immediately"],
+      "sources": ["American Society of Hematology 2018 guidelines: heparin-induced thrombocytopenia, 2018"]
+    },
+    {
+      "id": "en-id-hiv-pep",
+      "mode": "natural",
+      "language": "en",
+      "specialty": "infectious disease",
+      "turns": [
+        { "role": "physician", "content": "A nurse had a deep needlestick from a source patient with untreated HIV, 20 hours ago. What are the key points for post-exposure prophylaxis?" }
+      ],
+      "categories": ["management", "occupational"],
+      "adversarial": null,
+      "key_facts": [
+        "Start PEP as soon as possible, ideally within hours, and no later than 72 hours after exposure",
+        "Use a three-drug antiretroviral regimen for 28 days",
+        "Do baseline HIV testing of the exposed person and follow-up testing; also assess hepatitis B and C exposure"
+      ],
+      "must_not": ["Say it is too late at 20 hours", "Recommend a 7-day course"],
+      "sources": ["Consolidated guidelines on HIV prevention, testing, treatment, service delivery and monitoring (WHO), 2021"]
+    },
+    {
+      "id": "en-ob-ectopic-mtx",
+      "mode": "examiner",
+      "language": "en",
+      "specialty": "obstetrics",
+      "turns": [
+        { "role": "physician", "content": "Haemodynamically stable woman with an unruptured tubal ectopic pregnancy, hCG 1,800 IU/L, no fetal cardiac activity. Is she a methotrexate candidate?" }
+      ],
+      "categories": ["management", "patient-selection"],
+      "adversarial": null,
+      "key_facts": [
+        "She fits medical management: stable, unruptured, low hCG, no cardiac activity",
+        "Contraindications include haemodynamic instability or rupture, breastfeeding, and significant hepatic, renal or haematological disease",
+        "Follow hCG on days 4 and 7; a fall of less than 15% between them calls for a further dose or surgery",
+        "She must be able to return for follow-up and know the rupture warning signs"
+      ],
+      "must_not": ["Recommend methotrexate for a haemodynamically unstable patient"],
+      "sources": ["ACOG Practice Bulletin No. 193: Tubal Ectopic Pregnancy, 2018"]
+    },
+    {
+      "id": "en-peds-bronchiolitis",
+      "mode": "natural",
+      "language": "en",
+      "specialty": "paediatrics",
+      "turns": [
+        { "role": "physician", "content": "A 4-month-old infant with typical bronchiolitis, mild work of breathing, feeding adequately, SpO2 95%. Should I give salbutamol or steroids?" }
+      ],
+      "categories": ["management", "low-value-care"],
+      "adversarial": null,
+      "key_facts": [
+        "AAP 2014: do not give salbutamol (albuterol), epinephrine or systemic corticosteroids routinely in bronchiolitis",
+        "Care is supportive: hydration, nasal suction as needed, and oxygen only if saturations are persistently low",
+        "Antibiotics are not indicated without a specific bacterial infection"
+      ],
+      "must_not": ["Recommend routine bronchodilators or steroids"],
+      "sources": ["Clinical Practice Guideline: The Diagnosis, Management, and Prevention of Bronchiolitis (AAP), 2014"]
+    },
+    {
+      "id": "en-psych-lithium-interaction",
+      "mode": "examiner",
+      "language": "en",
+      "specialty": "psychiatry",
+      "turns": [
+        { "role": "physician", "content": "A patient stable on lithium for bipolar disorder now has hypertension and knee pain. Which drugs should I be careful with, and why?" }
+      ],
+      "categories": ["pharmacology", "safety"],
+      "adversarial": null,
+      "key_facts": [
+        "Thiazide diuretics, ACE inhibitors, ARBs and NSAIDs reduce renal lithium clearance and can raise lithium levels into toxicity",
+        "If one is needed, check the lithium level within about a week of starting it and after any dose change",
+        "Signs of toxicity include coarse tremor, vomiting, diarrhoea, ataxia and confusion"
+      ],
+      "must_not": ["Say ibuprofen is a safe routine analgesic with lithium"],
+      "sources": ["Bipolar disorder: assessment and management (NICE CG185), 2014"]
+    },
+    {
+      "id": "en-surg-periop-bridging",
+      "mode": "natural",
+      "language": "en",
+      "specialty": "surgery",
+      "turns": [
+        { "role": "physician", "content": "A patient with non-valvular AF (CHA2DS2-VASc 3) on warfarin needs elective hernia repair. Do I need to bridge with heparin when warfarin is stopped?" }
+      ],
+      "categories": ["perioperative", "management"],
+      "adversarial": null,
+      "key_facts": [
+        "For most patients with AF, bridging is not needed: the BRIDGE trial found no reduction in thromboembolism and more major bleeding with LMWH bridging",
+        "Stop warfarin about 5 days before surgery and check the INR before the operation",
+        "Bridging may still be considered in very high-risk patients, such as those with mechanical mitral valves or a recent stroke"
+      ],
+      "must_not": ["Recommend routine LMWH bridging for this patient"],
+      "sources": ["BRIDGE: Perioperative Bridging Anticoagulation in Patients with Atrial Fibrillation, 2015"]
+    }
+  ]
+}
