@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { stripPii, stripHistoryPii, deriveHintTokens } = require('../services/pii-filter');
 const { ragLookup } = require('../services/rag');
 const { callAI } = require('../services/ai');
-const { hasCitation, extractSocraticQuestion, extractReferences, thaiShare, stripNonProse, isLanguageMismatch, THAI_MIN_SHARE } = require('../services/post-filter');
+const { hasCitation, extractSocraticQuestion, extractReferences, thaiShare, stripNonProse, isLanguageMismatch, isThaiMessage } = require('../services/post-filter');
 const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE } = require('../lib/prompts');
 const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply } = require('../services/rescue');
 const { flattenForPrompt, stripArtifactDelimiters } = require('../lib/transcript');
@@ -207,7 +207,7 @@ router.post('/', async (req, res) => {
     //     DOES apply to a rescue turn: it asks for a rewrite, not a fresh answer, so it cannot make a
     //     rescue reply answer the question it is deliberately withholding.
     const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));
-    const physicianWroteThai = language === 'th' && thaiShare(stripNonProse(message)) >= THAI_MIN_SHARE;
+    const physicianWroteThai = language === 'th' && isThaiMessage(message);
     const languageMismatch = physicianWroteThai && isLanguageMismatch(text, language);
     let languageRetried = false;   // the retry's reply is the one being returned
     if (needCitation || languageMismatch) {

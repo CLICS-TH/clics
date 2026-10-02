@@ -325,3 +325,30 @@ describe('artifact blocks and reference lists are not language evidence', () => 
     expect(res.body.rescue.reply_check).toMatchObject({ questions: 1, ok: true });
   });
 });
+
+describe('a hostile message cannot stall the route', () => {
+  test('a 5000-char pathological message finishes under a time budget (the guard treats it as Thai and retries once)', async () => {
+    const message = `ก\nReferences${' '.repeat(4980)}x`;
+    expect(message.length).toBeLessThanOrEqual(5000);
+    callAI.mockResolvedValueOnce(r(EN_OK, 10, 10)).mockResolvedValueOnce(r(THAI_OK, 10, 10));
+    const t0 = Date.now();
+    const res = await send({ language: 'th', message });
+    const ms = Date.now() - t0;
+    expect(res.status).toBe(200);
+    expect(ms).toBeLessThan(1000);          // the old regex needed ~100 s for this message
+    // After the References heading is cut, what is left of the message is the Thai "ก", so the gate
+    // reads it as Thai and the English reply gets its one retry.
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(res.body.language_retry).toBe(true);
+  });
+
+  test('the other pathological shapes through /chat, 5000 chars each, stay under budget', async () => {
+    for (const message of ['(a, '.repeat(1250), '](' .repeat(2500), ':::artifact{a}\n'.repeat(333), '`a\n'.repeat(1666)]) {
+      callAI.mockReset().mockResolvedValueOnce(r(THAI_OK, 10, 10));
+      const t0 = Date.now();
+      const res = await send({ language: 'th', message });
+      expect(res.status).toBe(200);
+      expect(Date.now() - t0).toBeLessThan(1000);
+    }
+  });
+});

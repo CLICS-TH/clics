@@ -1,5 +1,47 @@
+// (Source, Year) citations: "(" + at least one char + "," + optional whitespace + 4 digits + anything
+// + ")". This used to be the regex /\([^)]+,\s*\d{4}[^)]*\)/g, which is O(n^2) in the length of the
+// text (and worse with long whitespace runs) on input like "(a, (a, (a, ..." with no ")". It runs on
+// the model's output AND, via stripNonProse, on text a physician typed, so it is a hand-written
+// LINEAR scan with exactly the same matches. Why it is equivalent: `[^)]` cannot cross a ")", so every
+// match of a "(" ends at the FIRST ")" after it; a later "(" before that ")" sees a suffix of the
+// same content and can only match if the earlier one did. So each "(" ... ")" segment is tested once
+// and a failed segment is skipped whole. tests/language-guard-metric.test.js diffs it against the
+// regex on a randomised corpus.
+function hasYearAfterComma(s, from, to) {
+  // content is s[from, to); the comma needs one char before it inside the content.
+  for (let c = s.indexOf(',', from + 1); c !== -1 && c < to; c = s.indexOf(',', c + 1)) {
+    let k = c + 1;
+    while (k < to && /\s/.test(s[k])) k++;
+    if (k + 4 > to) continue;
+    let digits = true;
+    for (let d = 0; d < 4; d++) {
+      const code = s.charCodeAt(k + d);
+      if (code < 48 || code > 57) { digits = false; break; }
+    }
+    if (digits) return true;
+  }
+  return false;
+}
+
+// [{ start, end, inner }] for each citation; `end` is exclusive and includes the ")".
+function citationSpans(text, { first = false } = {}) {
+  const s = String(text ?? '');
+  const spans = [];
+  let i = s.indexOf('(');
+  while (i !== -1) {
+    const j = s.indexOf(')', i + 1);
+    if (j === -1) break;
+    if (hasYearAfterComma(s, i + 1, j)) {
+      spans.push({ start: i, end: j + 1, inner: s.slice(i + 1, j) });
+      if (first) break;
+    }
+    i = s.indexOf('(', j + 1);
+  }
+  return spans;
+}
+
 function hasCitation(content) {
-  return /\([^)]+,\s*\d{4}[^)]*\)/.test(content);
+  return citationSpans(content, { first: true }).length > 0;
 }
 
 function extractSocraticQuestion(content) {
@@ -12,13 +54,7 @@ function extractSocraticQuestion(content) {
 }
 
 function extractReferences(content) {
-  const refs = [];
-  const pattern = /\(([^)]+,\s*\d{4}[^)]*)\)/g;
-  let match;
-  while ((match = pattern.exec(content)) !== null) {
-    refs.push({ source: match[1].trim(), title: match[1].split(',')[0].trim() });
-  }
-  return refs;
+  return citationSpans(content).map(({ inner }) => ({ source: inner.trim(), title: inner.split(',')[0].trim() }));
 }
 
 // --- Language guard -------------------------------------------------------------------------------
@@ -56,15 +92,45 @@ const MIN_JUDGED_LETTERS = 20;
 //                                                 prompt REQUIRES them)
 // Deliberately NOT ignored: drug names, lab names and abbreviations in running prose. They cannot be
 // told apart from English prose by a regex, and the 0.30 bar already allows for them.
+//
+// COST. This runs on model output and, through isThaiMessage, on what a physician typed (and the
+// guest route reaches it too), so every step must be linear. Rules for editing it: no two adjacent
+// unbounded quantifiers over overlapping classes (that is what made the heading regex cubic), no
+// nested quantifiers, and a class that a quantified group is scanning must not contain the group's own
+// opener (the link regex excludes "]" for that reason). tests/language-guard-metric.test.js runs every
+// step on pathological input under a time budget.
+const MAX_PROSE_CHARS = 100000;   // a reply is <= a few thousand tokens; this only bounds a hostile input
+// A heading line on its own: optional #/*/space decoration, the word, optional ":", "*", spaces.
+const REFERENCES_HEADING = /^[ \t#*]*(?:References?|Bibliography|เอกสารอ้างอิง|บรรณานุกรม)[ \t*:]*$/im;
+
 function stripNonProse(text) {
-  return String(text ?? '')
-    .replace(/^:::artifact\{[^}\n]*\}[^\n]*(?:\n[\s\S]*?^:::[ \t]*$|[\s\S]*$)/gm, ' ')
-    .replace(/^[ \t]*(?:#{1,6}[ \t]*)?\**(?:References?|Bibliography|เอกสารอ้างอิง|บรรณานุกรม)\**[ \t]*:?[ \t]*\**[ \t]*(?:\n[\s\S]*)?$/im, ' ')
+  let s = String(text ?? '');
+  if (s.length > MAX_PROSE_CHARS) s = s.slice(0, MAX_PROSE_CHARS);
+  s = s.replace(/^:::artifact\{[^}\n]*\}[^\n]*(?:\n[\s\S]*?^:::[ \t]*$|[\s\S]*$)/gm, ' ');
+  const heading = REFERENCES_HEADING.exec(s);
+  if (heading) s = s.slice(0, heading.index);
+  s = s
     .replace(/```[\s\S]*?(```|$)/g, ' ')
     .replace(/`[^`\n]*`/g, ' ')
-    .replace(/\]\([^)\s]*\)/g, ']')
-    .replace(/https?:\/\/\S+/g, ' ')
-    .replace(/\([^)]+,\s*\d{4}[^)]*\)/g, ' ');
+    .replace(/\]\([^)\s\]]*\)/g, ']')
+    .replace(/https?:\/\/\S+/g, ' ');
+  // Citations last, by span, so the linear scanner above is the only thing that reads parentheses.
+  let out = '';
+  let at = 0;
+  for (const { start, end } of citationSpans(s)) {
+    out += s.slice(at, start) + ' ';
+    at = end;
+  }
+  return out + s.slice(at);
+}
+
+// Is the PHYSICIAN's message substantially Thai? The client labels a turn 'th' when the message holds
+// ANY Thai codepoint, so this is the real test of what language they wrote in. Measured on the first
+// MESSAGE_SAMPLE_CHARS only (a message can be 5000 chars and arrives from outside), with the same
+// exclusions as the reply measure. On-prem only: the caller uses just the boolean.
+const MESSAGE_SAMPLE_CHARS = 1000;
+function isThaiMessage(message) {
+  return thaiShare(stripNonProse(String(message ?? '').slice(0, MESSAGE_SAMPLE_CHARS))) >= THAI_MIN_SHARE;
 }
 
 // True when the reply to a Thai-language turn is not substantially Thai. ONLY 'th' is policed: a
@@ -79,5 +145,6 @@ function isLanguageMismatch(text, language, { min = THAI_MIN_SHARE } = {}) {
 
 module.exports = {
   hasCitation, extractSocraticQuestion, extractReferences,
-  thaiShare, isLanguageMismatch, stripNonProse, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
+  thaiShare, isLanguageMismatch, isThaiMessage, stripNonProse, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
+  MAX_PROSE_CHARS, MESSAGE_SAMPLE_CHARS,
 };
