@@ -63,7 +63,7 @@ import {
 } from './request.mjs';
 import {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
-  promptLabel, hasCitation, extractSocraticQuestion, RIMPL_FILES,
+  promptLabel, meetsCitationRule, extractSocraticQuestion, RIMPL_FILES,
 } from './rimpl.mjs';
 import { checkReply, summarize, printSummary, CHECKS_VERSION } from './checks.mjs';
 
@@ -157,7 +157,7 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
   const decision = retry && first.ok ? retryDecision(first.text, req) : null;
   if (decision?.fire) {
     const reason = [
-      decision.needCitation && !hasCitation(first.text) && 'no citation',
+      decision.needCitation && !meetsCitationRule(first.text) && 'no citation',
       decision.needCitation && req.socratic && !extractSocraticQuestion(first.text) && 'no ❓',
       decision.languageMismatch && 'language',
     ].filter(Boolean).join(' + ');

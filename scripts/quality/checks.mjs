@@ -6,8 +6,10 @@
 //   language     the production language guard — post-filter.js isThaiMessage + isLanguageMismatch
 //                (#109): only a turn the physician wrote substantially in Thai is policed, and the
 //                reply is measured AFTER stripNonProse (code, URLs, citations, artifacts, references)
-//   citation     hasCitation                 — rimpl/src/services/post-filter.js (SHAPE only — see
-//                                              cite-verify.mjs for whether the source is real)
+//   citation     meetsCitationRule           — rimpl/src/services/post-filter.js: a (Source, Year)
+//                                              SHAPE (hasCitation) or the prompt's explicit "(no
+//                                              specific source cited)" note — what chat.js's retry
+//                                              enforces. Shape only; cite-verify.mjs says if it is real
 //   socratic     extractSocraticQuestion     — post-filter.js (what chat.js enforces for examiner)
 //   rescue       checkRescueReply            — rimpl/src/services/rescue.js (CREC082 §4 post-check)
 //   length       "keep the whole reply under ~400 words" — rimpl/src/lib/prompts.js
@@ -25,13 +27,16 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 import {
-  hasCitation, extractSocraticQuestion, extractReferences, checkRescueReply,
+  hasCitation, hasNoSourceStatement, meetsCitationRule, extractSocraticQuestion, extractReferences, checkRescueReply,
   thaiShare, stripNonProse, isThaiMessage, isLanguageMismatch, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
 } from './rimpl.mjs';
 import { routeLanguage, includesLoose } from './request.mjs';
 import { wilson, fmtRate } from './stats.mjs';
 
-export const CHECKS_VERSION = 'checks-v1';
+// v2: citation_shape passes on production's meetsCitationRule (a citation OR an explicit no-source
+// note), not on hasCitation alone, and a no-source note is reported as `no_source_stated`. Not
+// comparable with v1 on citation_shape for a reply that carries only the note.
+export const CHECKS_VERSION = 'checks-v2';
 // prompts.js: "keep the whole reply under ~400 words". The tilde earns a 10% tolerance.
 export const LENGTH_TARGET_WORDS = 400;
 export const LENGTH_MAX_WORDS = 440;
@@ -133,9 +138,19 @@ export function checkReply(item, entry) {
       flag('rescue_violation', 'major', `rescue post-check failed: ${why}`);
     }
   } else {
+    // Production's rule, as chat.js's retry enforces it: a (Source, Year) citation OR the explicit
+    // "(no specific source cited)" note the prompt asks for instead of an invented reference. The
+    // note is honest, not a defect, so it passes. It is still reported (info), because a model that
+    // wrote it everywhere would pass too, and only its rate shows that.
     const cited = hasCitation(text);
-    checks.citation_shape = { pass: cited, value: extractReferences(text).map((r) => r.source) };
-    if (!cited) flag('no_citation', 'minor', 'no (Source, Year) citation after the chat.js retry');
+    const noSource = hasNoSourceStatement(text);
+    checks.citation_shape = {
+      pass: meetsCitationRule(text),
+      value: extractReferences(text).map((r) => r.source),
+      detail: noSource ? (cited ? 'citation(s) plus a no-specific-source note' : 'no-specific-source note only') : undefined,
+    };
+    if (!checks.citation_shape.pass) flag('no_citation', 'minor', 'neither a (Source, Year) citation nor a no-specific-source note after the chat.js retry');
+    if (noSource) flag('no_source_stated', 'info', checks.citation_shape.detail);
   }
 
   const ids = item.identifiers ?? [];

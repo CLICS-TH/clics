@@ -130,6 +130,36 @@ describe('POST /chat', () => {
     expect(callAI).toHaveBeenCalledTimes(2);
   });
 
+  // The prompt tells the model to write the no-source note INSTEAD of inventing a reference. If the
+  // guard retried that, it would push the model straight back to inventing one.
+  test('an explicit no-specific-source note satisfies the citation rule — no retry (English and Thai)', async () => {
+    callAI.mockResolvedValueOnce(reply('Metformin is usually first-line (no specific source cited).'));
+    await request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'q', language: 'en', socratic: false });
+    expect(callAI).toHaveBeenCalledTimes(1);
+    callAI.mockClear();
+    callAI.mockResolvedValueOnce(reply('ยาเมทฟอร์มินมักเป็นยาตัวแรก (ไม่มีแหล่งอ้างอิงเฉพาะ)\n❓ ถ้าไตเสื่อมจะเปลี่ยนการเลือกยาอย่างไร'));
+    await request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'ยาตัวแรกคืออะไร', language: 'th', socratic: true });
+    expect(callAI).toHaveBeenCalledTimes(1);
+  });
+
+  test('the note does not excuse a missing ❓ in examiner mode, and the retry offers the note instead of demanding a citation', async () => {
+    callAI
+      .mockResolvedValueOnce(reply('Metformin is usually first-line (no specific source cited).'))  // note, NO ❓
+      .mockResolvedValueOnce(reply('Metformin is usually first-line (no specific source cited).\n❓ Why?'));
+    await request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'q', language: 'en', socratic: true });
+    expect(callAI).toHaveBeenCalledTimes(2);
+    const asked = callAI.mock.calls[1][0].messages.at(-1).content;
+    expect(asked).toMatch(/\(no specific source cited\) instead of inventing one/);
+  });
+
+  test('a clinical "no specific source of infection" is NOT a no-source note — still retried', async () => {
+    callAI
+      .mockResolvedValueOnce(reply('No specific source of infection was found, so treat empirically.'))
+      .mockResolvedValueOnce(reply('Treat empirically (Surviving Sepsis Campaign International Guidelines, 2021).'));
+    await request(app).post('/chat').send({ ple_id: 'x', history: [], message: 'q', language: 'en', socratic: false });
+    expect(callAI).toHaveBeenCalledTimes(2);
+  });
+
   // CONTEXT vs BILLING. The backend stores "what the model last saw" as ples.context_tokens for its
   // transcript cap. input_tokens / output_tokens are billing figures and are SUMMED over every call in
   // the turn, so on a retry turn they run ~2x the real context and the 64k cap fired at ~32k.

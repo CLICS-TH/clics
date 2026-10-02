@@ -44,6 +44,28 @@ function hasCitation(content) {
   return citationSpans(content, { first: true }).length > 0;
 }
 
+// The tutor prompts (lib/prompts.js, EVIDENCE-BASED) tell the model that when it is not confident a
+// specific source exists and says what it is claiming, it must write "(no specific source cited)" —
+// in Thai "(ไม่มีแหล่งอ้างอิงเฉพาะ)" — rather than invent a citation. That note is an honest answer to
+// the citation rule, so chat.js must not treat it as a missing citation and retry: a retry there
+// would push the model straight back to inventing one, and the prompt and the guard would fight.
+//
+// Deliberately NARROW: only those two phrasings and their obvious variants. A looser "no specific
+// source" would accept the clinical phrase "no specific source of infection was found". Each
+// alternative is literal text with single-step whitespace runs between words, so the scan is linear.
+const NO_SOURCE_STATEMENT = /\bno\s+specific\s+(?:sources?|references?|citations?)\s+(?:(?:is|are|was|were)\s+)?cited\b|ไม่มีแหล่งอ้างอิง\s*(?:ที่\s*)?เฉพาะ/i;
+
+function hasNoSourceStatement(content) {
+  return NO_SOURCE_STATEMENT.test(String(content ?? ''));
+}
+
+// What chat.js's corrective retry enforces: a (Source, Year) citation OR an explicit no-source note.
+// hasCitation stays the SHAPE test on its own (extractReferences, the probes and the anchor validator
+// use it); this is the rule.
+function meetsCitationRule(content) {
+  return hasCitation(content) || hasNoSourceStatement(content);
+}
+
 function extractSocraticQuestion(content) {
   const lines = content.split('\n');
   for (let i = lines.length - 1; i >= 0; i--) {
@@ -144,7 +166,7 @@ function isLanguageMismatch(text, language, { min = THAI_MIN_SHARE } = {}) {
 }
 
 module.exports = {
-  hasCitation, extractSocraticQuestion, extractReferences,
+  hasCitation, hasNoSourceStatement, meetsCitationRule, extractSocraticQuestion, extractReferences,
   thaiShare, isLanguageMismatch, isThaiMessage, stripNonProse, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
   MAX_PROSE_CHARS, MESSAGE_SAMPLE_CHARS,
 };

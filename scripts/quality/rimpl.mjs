@@ -42,7 +42,7 @@ export const {
 } = prompts;
 export const { promptLabel } = versions;
 export const {
-  hasCitation, extractSocraticQuestion, extractReferences,
+  hasCitation, hasNoSourceStatement, meetsCitationRule, extractSocraticQuestion, extractReferences,
   // The production language guard (#109) — ONE definition of "answered in Thai", shared with
   // scripts/probe/thai-probe.mjs. Package-free.
   thaiShare, isLanguageMismatch, isThaiMessage, stripNonProse, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,

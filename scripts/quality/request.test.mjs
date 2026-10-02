@@ -38,7 +38,7 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
   assert.ok(chatSrc.includes("+ (artifacts ? ARTIFACT_GUIDANCE : '');"), 'ARTIFACT_GUIDANCE concatenation drifted');
   // The single corrective retry (#109): both triggers, how they combine, prompts, fence, failure rule.
   for (const line of [
-    'const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));',
+    'const needCitation = !rescuing && (!meetsCitationRule(text) || (socratic && !extractSocraticQuestion(text)));',
     "const physicianWroteThai = language === 'th' && isThaiMessage(message);",
     'const languageMismatch = physicianWroteThai && isLanguageMismatch(text, language);',
     'if (needCitation || languageMismatch) {',
@@ -118,6 +118,12 @@ test('retry decision = chat.js: citation/❓ check and the language guard, combi
   assert.deepEqual(retryDecision('ตอบโดยไม่มีอ้างอิง', base), { fire: true, needCitation: true, languageMismatch: false, physicianWroteThai: true });
   assert.equal(retryDecision('มีอ้างอิง (KDIGO, 2022)', base).fire, false);
   assert.equal(retryDecision('มีอ้างอิง (KDIGO, 2022)', { ...base, socratic: true }).needCitation, true, 'examiner also needs ❓');
+  // The prompt's honest alternative to inventing a source satisfies the rule, as in chat.js.
+  assert.equal(retryDecision('ยาตัวแรกคือเมทฟอร์มิน (ไม่มีแหล่งอ้างอิงเฉพาะ)', base).fire, false);
+  assert.equal(retryDecision('ยาตัวแรกคือเมทฟอร์มิน (ไม่มีแหล่งอ้างอิงเฉพาะ)', { ...base, socratic: true }).needCitation, true, 'the note does not excuse a missing ❓');
+  assert.equal(retryDecision('Metformin first (no specific source cited).', { ...base, language: 'en', message: 'q' }).fire, false);
+  assert.equal(retryDecision('No specific source of infection was found.', { ...base, language: 'en', message: 'q' }).needCitation, true,
+    'clinical prose is not the note');
   // Language only: Thai turn, English but cited reply -> rewrite prompt, no citation prompt.
   const lang = retryDecision(EN_REPLY_CITED, base);
   assert.deepEqual([lang.fire, lang.needCitation, lang.languageMismatch], [true, false, true]);

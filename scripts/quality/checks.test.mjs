@@ -77,6 +77,17 @@ test('citation SHAPE check is production hasCitation: missing → minor flag', (
   assert.deepEqual(fake.checks.citation_shape.value, ['Fake Guideline, 2023']);
 });
 
+test('citation check is production meetsCitationRule: the no-source note passes, and is reported (info)', () => {
+  const note = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (no specific source cited).'));
+  assert.equal(note.checks.citation_shape.pass, true);
+  assert.deepEqual(note.checks.citation_shape.value, []);
+  assert.equal(note.checks.citation_shape.detail, 'no-specific-source note only');
+  assert.equal(sev(note, 'no_citation'), undefined);
+  assert.equal(sev(note, 'no_source_stated'), 'info');
+  const plain = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (KDIGO Clinical Practice Guideline for Diabetes Management in CKD, 2022).'));
+  assert.equal(sev(plain, 'no_source_stated'), undefined);
+});
+
 test('rescue reply runs production checkRescueReply: three questions or a recommendation fail', () => {
   const ok = checkReply(ITEM_RESCUE, entryFor(ITEM_RESCUE, 'ผู้ป่วยรายนี้แพ้ยาแบบไหน และคุณกำลังชั่งน้ำหนักอะไรอยู่?'));
   assert.equal(ok.checks.rescue_reply.pass, true);
