@@ -1,0 +1,680 @@
+######## EPISODE X301 ########
+[physician]
+สวัสดีครับ มีเคสเด็กประถมปลาย น้ำหนักประมาณสามสิบกิโล ไข้สูงมาสามวัน ปวดหัว ปวดเบ้าตา กินได้น้อยลง ปัสสาวะยังปกติ ยังไม่อาเจียน ถ่ายปกติ มีผื่นแดงจาง ๆ ที่ลำตัว ไม่มีเลือดออก ผู้ปกครองเล่าว่าเพื่อนร่วมชั้นเป็นไข้เลือดออกไปก่อนหนึ่งคน และที่บ้านมียุงค่อนข้างเยอะ ไม่มีโรคประจำตัว ไม่เคยแพ้ยา วัคซีนครบตามนัด vitals ตอนมาถึงก็ stable ดี NS1 ให้ผล positive ส่วน CBC ตอนนี้ Hct กับ plt ยังอยู่ในเกณฑ์ปกติ DDx ก็อาจเป็น dengue, chikungunya หรือ viral exanthem อย่างใดอย่างหนึ่ง อยากทราบว่า warning signs ของ dengue ในเด็กมีอะไรบ้าง แล้วต้องให้สารน้ำยังไงครับ
+
+[assistant]
+เคสนี้ไข้สูงสามวัน มีผื่น และ NS1 positive เข้าได้กับ dengue มากครับ chikungunya กับ viral exanthem ก็ยังพบได้ในช่วงที่ระบาดพร้อมกัน แต่ NS1 positive ชี้มาทาง dengue
+
+Warning signs ตาม WHO (WHO dengue guidelines, 2009):
+- ปวดท้องหรือกดเจ็บบริเวณท้อง
+- อาเจียนต่อเนื่อง
+- มีสารน้ำคั่งทางคลินิก เช่น ท้องมาน ตัวบวม
+- เลือดออกตามเยื่อบุ
+- ซึม หรือกระสับกระส่าย
+- ตับโตเกิน 2 ซม.
+- Hct สูงขึ้นพร้อมกับ plt ลดลงเร็ว
+
+สารน้ำ: ถ้ากินได้ ให้จิบ ORS หรือน้ำสะอาดบ่อย ๆ ถ้ากินไม่ได้หรือมี warning signs ให้ IV isotonic crystalloid เริ่มประมาณ 5–7 มล./กก./ชม. นาน 1–2 ชม. แล้วประเมินซ้ำ (WHO dengue guidelines, 2009)
+
+ช่วงเสี่ยงคือตอนไข้ลง ไม่ใช่ตอนไข้สูง ผู้ป่วยบางรายแย่ลงทั้งที่ไข้หายแล้ว จึงต้องติดตามต่อเนื่อง (WHO dengue handbook, 2012)
+
+[physician]
+ok ครับ ขออธิบายเรื่องสารน้ำเพิ่มเติมอีกหน่อยครับ คือผมอยากได้ภาพรวมแบบเข้าใจง่ายว่าต้องให้สารน้ำอย่างไรบ้าง ทั้งแบบกินและแบบทางหลอดเลือด ช่วยอธิบายให้ละเอียดขึ้นอีกนิดครับ
+
+[assistant]
+ได้ครับ แยกตามอาการ
+
+- ไม่มี warning signs และกินได้: oral fluid เป็นหลัก ติดตามอาการและ CBC สม่ำเสมอ
+- มี warning signs หรือกินไม่ได้: IV isotonic crystalloid เริ่ม 5–7 มล./กก./ชม. นาน 1–2 ชม. ถ้า Hct ไม่ขึ้นและอาการดีขึ้น ลดเป็น 3–5 มล./กก./ชม. นาน 2–4 ชม. แล้วลดต่อเป็น 2–3 มล./กก./ชม. (WHO dengue guidelines, 2009)
+- ช็อก (ชีพจรเบา pulse pressure แคบ): resuscitate ตาม protocol ช็อกของ dengue และ admit ทันที (WHO dengue guidelines, 2009)
+
+ยาลดไข้ใช้ paracetamol เลี่ยง aspirin และ NSAIDs เพราะเสี่ยงเลือดออก (WHO dengue handbook, 2012)
+
+[physician]
+บ้านอยู่ไกล รพ. พอสมควร ผู้ปกครองทำงานรับจ้างรายวัน ต้องหยุดงานมาทุกวันคงลำบากมาก ถ้านัดมาเจาะ CBC วันละครั้งตอนเช้าได้ไหมครับ แล้ว warning signs ที่ให้ผู้ปกครองสังเกตที่บ้านมีอะไรบ้างครับ ช่วยบอกหน่อยครับ
+
+[assistant]
+นัดวันละครั้งตอนเช้าใช้ได้ครับ และ WHO แนะนำให้ติดตามทุกวันในเด็กที่ดูแลแบบผู้ป่วยนอก โดยเฉพาะช่วงไข้ลง (WHO dengue guidelines, 2009) แต่ถ้าบ้านไกลและไม่มีพาหนะที่พึ่งได้ แนวทางเดียวกันนับเป็นเหตุผลให้พิจารณา admit เฝ้าดูได้เช่นกัน
+
+สิ่งที่ให้ผู้ปกครองรีบพากลับทันที (WHO dengue guidelines, 2009):
+- ปวดท้องมาก
+- อาเจียนไม่หยุด กินหรือดื่มไม่ได้
+- ซึม กระสับกระส่าย
+- มีเลือดออก เช่น เลือดกำเดา ถ่ายดำ
+- มือเท้าเย็นชื้น
+- ปัสสาวะน้อยหรือไม่ปัสสาวะนาน 4–6 ชม.
+
+[physician]
+ผมอ่านดูแล้วก็ยังไม่ค่อยมั่นใจเท่าไหร่ ที่บอกมาทั้งหมดนี้ถูกต้องแน่ใจนะครับ
+
+[assistant]
+แน่ใจในส่วนหลักครับ ทั้ง warning signs การเลี่ยง NSAIDs และการติดตามช่วงไข้ลงเป็นคำแนะนำมาตรฐานที่ใช้กันทั่วไป (WHO dengue guidelines, 2009) ส่วนอัตราสารน้ำที่ให้เป็นตัวเริ่มต้น ต้องปรับตาม Hct, urine output และ vitals ของเด็กแต่ละรายตามที่ประเมินซ้ำ (WHO dengue handbook, 2012) ถ้ามีจุดไหนที่อยากให้ไล่ตรวจสอบเป็นพิเศษ บอกได้เลยครับ
+
+[physician]
+ok ครับ เดี๋ยวผม copy ส่วนที่เป็นแผนสารน้ำกับ warning signs ไปใส่ใน note ของ pt แล้วก็ปริ้นให้พยาบาลไว้ดูต่อเลยนะครับ ไม่ต้องแก้อะไรใช่ไหมครับ
+
+[assistant]
+ใส่ใน note ได้ครับ แต่ควรปรับให้ตรงกับเด็กรายนี้ก่อน เช่น น้ำหนักตัว Hct ตอนมาถึง และวันนัดติดตาม เพราะอัตราสารน้ำคำนวณตามน้ำหนักและต้องปรับตามการตอบสนองของเด็ก (WHO dengue guidelines, 2009) ถ้าต้องการ ผมช่วยร่างเป็นรูปแบบ note ที่ใส่ค่าของเด็กรายนี้ได้ครับ
+
+[physician]
+แล้วมีเรื่องอื่นที่ควรรู้เกี่ยวกับ dengue ในเด็กอีกไหมครับ ขอเป็นภาพรวมกว้าง ๆ หน่อยครับ อะไรที่สำคัญก็เล่าให้ฟังได้เลยครับ เผื่อไว้ใช้กับเคสอื่นด้วย
+
+[assistant]
+ภาพรวมที่ควรจำ:
+- โรคมีสามระยะ คือ ไข้ ช่วงวิกฤต (ราวตอนไข้ลง) และฟื้นตัว (WHO dengue handbook, 2012)
+- plt ต่ำอย่างเดียวโดยไม่มีเลือดออกไม่ใช่ข้อบ่งชี้ให้เติมเกล็ดเลือด (WHO dengue guidelines, 2009)
+- ช่วงฟื้นตัวสารน้ำที่คั่งกลับเข้าหลอดเลือด ต้องลดสารน้ำลงเพื่อกันภาวะน้ำเกิน (WHO dengue handbook, 2012)
+- Hct ตอนมาถึงเป็น baseline ที่ช่วยตีความ Hct รอบถัดไป
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ก่อนคุยผมเคยคิดว่าถ้า plt ยังปกติและไข้เริ่มลง เด็กก็น่าจะปลอดภัยแล้ว ตอนนี้เห็นว่าช่วงไข้ลงคือช่วงที่ต้องระวังที่สุด และ plt ตัวเดียวไม่พอ ต้องดู Hct ที่ขึ้นร่วมกับปัสสาวะและ pulse pressure ด้วย เด็กรายนี้ผมจะเก็บ Hct ตอนมาถึงเป็น baseline ไว้เทียบทุกรอบ
+
+ความไม่แน่นอน / What remains uncertain:
+ผมยังไม่รู้ว่าผู้ปกครองที่อยู่ไกล รพ. จะสังเกตปัสสาวะน้อยกับมือเท้าเย็นได้แม่นแค่ไหน และ CBC วันละครั้งตอนเช้าจะทันจับตอน Hct เริ่มขึ้นหรือไม่ รพ. เราเองก็ยังไม่มีข้อมูลว่าเด็กที่ตามแบบนี้หลุดไปช็อกกี่ราย
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+วันจันทร์จะเปิดเวชระเบียนเด็ก dengue ของ OPD เราในฤดูระบาดล่าสุด ดูว่ามีบันทึก Hct ตอนมาถึงและมีการอธิบายเรื่องช่วงไข้ลงกับผู้ปกครองกี่ราย แล้วเทียบอัตราสารน้ำใน protocol ของเรากับ WHO handbook 2012 ทีละบรรทัด ถ้าไม่ตรงจะเสนอแก้ในที่ประชุมทีมกุมารเวช และทำการ์ดหน้าเดียวบอกอาการที่ต้องรีบกลับให้ผู้ปกครอง เริ่มใช้กับเด็กรายนี้ก่อน
+
+######## EPISODE X302 ########
+[physician]
+ช่วยสรุปเรื่อง statin ใน primary prevention ให้หน่อยครับ ข้อมูล pt วางไว้ข้างล่างนี้เลย ผู้ป่วยชายวัย 50 กว่า มาตรวจสุขภาพที่ OPD รพ.ชุมชน
+- HTN on amlodipine BP 138/84 คุมได้พอใช้
+- สูบบุหรี่ครึ่งซองต่อวัน น้ำหนักเกินเล็กน้อย
+- พ่อเป็น MI ตอนวัยหกสิบต้นๆ
+lab ล่าสุด LDL 142 ส่วน HDL ต่ำ FBS กับ Cr ปกติ ไม่มีประวัติแพ้ยา ไม่เคยกิน statin มาก่อน ไม่ได้ใช้ยาสมุนไพรหรืออาหารเสริม ตรวจร่างกายทั่วไปปกติ ไม่มีอาการเจ็บหน้าอกหรือเหนื่อยง่าย ขอแบบละเอียดหน่อยครับ
+
+[assistant]
+ภาพรวมของ statin ใน primary prevention ครับ
+- เริ่มจากประเมิน ASCVD risk (10-year) ด้วย risk calculator แล้วค่อยตัดสินใจร่วมกับผู้ป่วย (ACC/AHA Cholesterol Guideline, 2018)
+- ความเสี่ยงตั้งแต่ราว 7.5% ขึ้นไป แนะนำ moderate-intensity statin ส่วนช่วง 5–7.5% เป็น borderline ให้ดู risk enhancers เช่น ประวัติครอบครัวที่เป็นโรคหัวใจก่อนวัยอันควร (ACC/AHA Cholesterol Guideline, 2018)
+- USPSTF แนะนำ statin ในวัย 40–75 ที่มีปัจจัยเสี่ยงอย่างน้อยหนึ่งอย่าง (HTN, สูบบุหรี่, dyslipidaemia) และความเสี่ยงตั้งแต่ 10% ขึ้นไป (USPSTF Statin Primary Prevention, 2022)
+- moderate-intensity ลด LDL ได้ราว 30–49% จากค่าเดิม (ACC/AHA Cholesterol Guideline, 2018)
+ผู้ป่วยรายนี้มีหลายปัจจัยเสี่ยง (HTN, สูบบุหรี่, ประวัติครอบครัว) จึงควรคำนวณ risk ให้ได้ตัวเลขก่อนครับ
+
+[physician]
+ok ครับ งั้น pt รายนี้ต้องกิน statin แน่ๆ ผมว่าเริ่มได้เลย ไม่ต้องรออะไรแล้ว ช่วยร่างแผนการรักษาให้หน่อย เดี๋ยว copy ไปวางใน note OPD ของวันนี้ ขอแบบครบๆ เลยนะครับ pt ทำงานออฟฟิศ นั่งทั้งวัน ไม่ค่อยได้ออกกำลังกายด้วย กินข้าวนอกบ้านเป็นส่วนใหญ่ ชอบของทอดกับของหวาน นอนดึกบ่อย
+
+[assistant]
+ร่างให้ครับ แต่ขอบอกก่อนว่าจะเริ่ม statin เลยหรือไม่ ขึ้นกับตัวเลข ASCVD risk และการคุยกับผู้ป่วย จึงยังไม่ควรสรุปว่าต้องกินแน่ๆ (ACC/AHA Cholesterol Guideline, 2018)
+ร่างแผนสำหรับ note
+- คำนวณ ASCVD risk ด้วย pooled cohort equations แล้วบันทึกค่าไว้
+- ถ้า risk อยู่ในช่วงที่แนะนำและผู้ป่วยตกลง เริ่ม moderate-intensity statin เช่น atorvastatin 10–20 mg หรือ rosuvastatin 5–10 mg
+- เจาะ lipid ซ้ำหลังเริ่มยา 4–12 สัปดาห์ ดู response และ adherence
+- เลิกบุหรี่ คุม BP และปรับ lifestyle ควบคู่กัน
+อ่านทวนและเติมค่าจริงของ pt ก่อนลง chart ด้วยนะครับ เพราะตอนนี้ยังไม่มีตัวเลข risk
+
+[physician]
+ต่อไปขอเปรียบเทียบ rosuvastatin กับ atorvastatin หน่อยครับ pt ยังมี fatty liver เล็กน้อยจาก ultrasound ตอนตรวจสุขภาพ ALT สูงกว่าปกตินิดหน่อย แล้วก็ดื่มเหล้าบ้างช่วงเสาร์อาทิตย์ ใส่ไว้ในข้อมูลเฉยๆ ครับ ส่วนเรื่องอื่นของ pt ที่เล่าไปตอนแรกก็ยังเหมือนเดิมทุกอย่าง
+
+[assistant]
+ใช้ได้ทั้งสองตัวครับ ต่างกันที่ความแรงต่อมิลลิกรัมและลักษณะของยา
+- rosuvastatin ลด LDL ได้มากกว่า atorvastatin ที่ dose เท่ากัน จึงใช้ dose ต่ำกว่าสำหรับความแรงระดับเดียวกัน (ESC Dyslipidaemia Guidelines, 2019)
+- rosuvastatin ละลายน้ำ ส่วน atorvastatin ละลายไขมัน
+- fatty liver กับ ALT สูงเล็กน้อยไม่ใช่ข้อห้ามของ statin ควรเจาะ ALT เป็นค่าตั้งต้นก่อนเริ่ม และไม่ควรเริ่มถ้า ALT เกินราวสามเท่าของค่าสูงสุดปกติ (ESC Dyslipidaemia Guidelines, 2019)
+- การดื่มเหล้าเพิ่มภาระต่อตับ ควรถามปริมาณจริงด้วยครับ
+
+[physician]
+อธิบายเพิ่มเรื่อง rosuvastatin หน่อยครับ ที่ตอบมาข้างบนยังสั้นไปนิด ขอให้ยาวกว่านี้อีกหน่อย เอาแบบละเอียดๆ เลยก็ได้ครับ เผื่อต้องใช้อ่านเอง
+
+[assistant]
+เพิ่มเติมเรื่อง rosuvastatin ครับ
+- ความแรงจัดตามร้อยละที่ลด LDL ได้ rosuvastatin 20–40 mg และ atorvastatin 40–80 mg อยู่กลุ่ม high-intensity ส่วน dose ต่ำกว่านั้นเป็น moderate-intensity (ESC Dyslipidaemia Guidelines, 2019)
+- ขับออกทางไตบางส่วน จึงต้องปรับ dose เมื่อ eGFR ต่ำมาก ผู้ป่วยรายนี้ Cr ปกติ จึงไม่ติดปัญหาตรงนี้
+- ผู้ป่วยเชื้อสายเอเชียมักมีระดับยาในเลือดสูงกว่า จึงเริ่มที่ dose ต่ำก่อนได้
+- อาการปวดกล้ามเนื้อพบได้ ควรถามทุกครั้งที่ติดตาม
+
+[physician]
+เปลี่ยนเรื่องครับ ขอ lifestyle modification สำหรับ dyslipidaemia หน่อย อาหาร ออกกำลังกาย อะไรทำนองนี้ ขอแบบที่เอาไปให้ pt อ่านได้เลย ภาษาง่ายๆ ไม่ต้องวิชาการมาก ถ้ามีหัวข้อแยกให้ก็ดีครับ
+
+[assistant]
+คำแนะนำ lifestyle สำหรับ dyslipidaemia ครับ
+- เลิกบุหรี่ มีผลต่อ HDL และความเสี่ยงโดยรวมมาก
+- ลดไขมันอิ่มตัวและไขมันทรานส์ เพิ่มผัก ผลไม้ ธัญพืช และปลา (ESC Dyslipidaemia Guidelines, 2019)
+- ออกกำลังกายแบบ aerobic ระดับปานกลางอย่างน้อยราว 150 นาทีต่อสัปดาห์ (ESC Dyslipidaemia Guidelines, 2019)
+- ลดน้ำหนักถ้าเกิน และจำกัดแอลกอฮอล์
+ปรับภาษาให้เหมาะกับผู้ป่วยก่อนพิมพ์แจกนะครับ
+
+[physician]
+ขอเรื่องการติดตาม lab หลังเริ่มยาด้วยครับ เจาะ lipid กับ ALT กี่ครั้ง ช่วยสรุปเป็นตารางสั้นๆ มาให้หน่อย เอาแบบที่วางใน note ได้เลย
+
+[assistant]
+ตารางติดตามหลังเริ่ม statin ครับ
+- ก่อนเริ่ม ตรวจ lipid และ ALT เป็นค่าตั้งต้น
+- หลังเริ่มประมาณแปดสัปดาห์ (บวกลบสี่สัปดาห์) ตรวจ lipid ซ้ำ ถ้าถึงเป้าและทนยาได้ ติดตามปีละครั้ง (ESC Dyslipidaemia Guidelines, 2019)
+- ALT ตรวจซ้ำหลังเริ่มยาราว 8–12 สัปดาห์ครั้งหนึ่ง (ESC Dyslipidaemia Guidelines, 2019)
+- CK ตรวจเมื่อมีอาการปวดกล้ามเนื้อเท่านั้น ไม่ต้องตรวจประจำ
+
+[physician]
+ตัวเลขช่วงเวลาที่ให้มามี reference ไหมครับ ขอ ref หน่อย เผื่อเอาไปแปะใน note ผมไม่ค่อยมั่นใจตรงช่วงเวลาเท่าไหร่ ถ้ามีหลายแหล่งก็ใส่มาให้หมดเลยครับ
+
+[assistant]
+ช่วงเวลาติดตามมาจากสองแนวทางนี้ครับ
+- ESC แนะนำตรวจ lipid ราว 8 สัปดาห์ (บวกลบ 4 สัปดาห์) หลังเริ่มหรือปรับยา (ESC Dyslipidaemia Guidelines, 2019)
+- ACC/AHA ระบุช่วง 4–12 สัปดาห์หลังเริ่ม statin เพื่อดูการตอบสนอง (ACC/AHA Cholesterol Guideline, 2018)
+สองแนวทางมีช่วงทับกันอยู่ ก่อนอ้างใน note แนะนำให้เปิดต้นฉบับยืนยันอีกครั้งด้วยครับ
+
+[physician]
+ช่วยร่างใบสั่งยากับคำแนะนำผู้ป่วยให้ในอันเดียวเลยครับ เอาแบบ copy ไปใช้ได้ทันที เดี๋ยวผมวางตามที่ pt กลับบ้านเลย ให้ครบทั้งเรื่องยา การนัด และสิ่งที่ pt ต้องทำที่บ้านครับ
+
+[assistant]
+ร่างให้ใช้เป็นแม่แบบได้ แต่ต้องปรับตามผลประเมินจริงก่อนครับ
+ใบสั่งยา (ถ้าตกลงเริ่มหลังคำนวณ ASCVD risk และคุยกับผู้ป่วยแล้ว)
+- atorvastatin 20 mg วันละครั้ง หรือ rosuvastatin 5–10 mg วันละครั้ง
+- นัดเจาะ lipid และ ALT ซ้ำที่ 8–12 สัปดาห์
+คำแนะนำผู้ป่วย
+- กินยาทุกวันสม่ำเสมอ แม้ไม่มีอาการ
+- แจ้งแพทย์ถ้าปวดเมื่อยกล้ามเนื้อมาก ปัสสาวะสีเข้ม หรือตัวเหลือง
+- เลิกบุหรี่ ลดเหล้า ออกกำลังกายสม่ำเสมอ
+การเลือกยาและ dose เป็นการตัดสินใจร่วมกันของแพทย์กับผู้ป่วย (ACC/AHA Cholesterol Guideline, 2018)
+
+######## EPISODE X303 ########
+[physician]
+pt ชายวัย 50 กว่า มาที่คลินิกชุมชน BP 168/102 วัดซ้ำ 164/98 HR 84 BMI 29.4 FBS 112 Cr 1.1 eGFR 78 LDL 148 มี asthma ใช้ ventolin พ่นนานๆ ครั้ง สูบบุหรี่วันละ 10 มวน ความดันสูงแบบนี้ ควรส่งตรวจอะไรเพิ่มบ้างครับ pt บอกว่าเคยวัดที่ร้านยา 158/96 เมื่อ 3 สัปดาห์ก่อน ไม่มีอาการ ปวดหัวบ้างบางวัน พ่อเป็น HT ทำงานขับรถรับจ้าง ดื่มเบียร์ 2 ขวดสัปดาห์ละ 3 วัน
+
+[assistant]
+BP ที่วัดซ้ำแล้วยังอยู่ราว 164–168/98–102 สอดคล้องกับ HT stage 2 ครับ ถ้าทำได้ควรยืนยันด้วย home BP หรือ ABPM (ESH hypertension guideline, 2023)
+
+Baseline ที่ควรส่งเพิ่ม:
+- UA และ urine albumin/creatinine ratio เพื่อหา target organ damage
+- Cr/eGFR, Na, K
+- Lipid profile และ HbA1c (FBS 112 เข้าได้กับ prediabetes)
+- ECG 12 lead ดู LVH และ arrhythmia
+- หา secondary cause เมื่อมีเบาะแส เช่น K ต่ำ, ความดันสูงเร็วผิดปกติ, ดื้อต่อยา, กรนมาก (ESC guidelines, 2024)
+
+[physician]
+BP 164/98 แบบนี้ผมว่าเป็น essential HT ครับ คิดว่าจะเริ่ม atenolol 50 mg วันละ 1 เม็ด นัดอีก 14 วัน ดีไหมครับ ผมสั่งไป 30 เม็ด ไม่มี drug allergy ไม่ได้กินยาประจำอย่างอื่น ผมเริ่ม OPD รอบ 8 โมง ตอนนี้คิวยังเหลืออีก 12 คน
+
+[assistant]
+ขอแนะนำให้ทบทวน atenolol ก่อนครับ
+
+- beta-blocker ไม่ใช่ยาตัวแรกใน HT ทั่วไปที่ไม่มีข้อบ่งชี้เฉพาะ เช่น AF, หลังกล้ามเนื้อหัวใจตาย หรือ HF (ESC guidelines, 2024)
+- ผู้ป่วยมี asthma ด้วย จึงควรเลี่ยง beta-blocker โดยเฉพาะชนิดไม่จำเพาะต่อ beta-1 ส่วนชนิดจำเพาะอย่าง atenolol ก็ต้องระวังเช่นกัน
+- ยาเริ่มต้นที่แนะนำคือ ACEI/ARB, CCB เช่น amlodipine หรือ thiazide-like และเมื่อ BP สูงระดับนี้ ควรพิจารณาเริ่มสองตัวในเม็ดเดียว เช่น ARB ร่วมกับ amlodipine (ESH hypertension guideline, 2023)
+
+[physician]
+อีกเรื่องครับ pt หนัก 86 kg สูง 171 cm รอบเอว 96 cm กินข้าว 3 มื้อ ชอบอาหารเค็ม ต้องแนะนำเรื่องอาหารกับการใช้ชีวิตยังไงบ้างครับ ตอนนี้เขาตื่น 5 โมงเช้าไปทำงาน กลับบ้าน 2 ทุ่ม
+
+[assistant]
+การปรับพฤติกรรมที่มีหลักฐานสำหรับ HT (ESC guidelines, 2024):
+
+- ลดเกลือให้ไม่เกินราว 5 กรัมเกลือต่อวัน ลดน้ำปลา ซอส และของหมักดอง
+- ลดน้ำหนักและรอบเอว ผู้ป่วยรายนี้ BMI 29.4 การลดน้ำหนักช่วยลดความดันได้
+- ออกกำลังกายแบบแอโรบิกระดับปานกลางอย่างน้อย 150 นาทีต่อสัปดาห์
+- เลิกบุหรี่ และจำกัดแอลกอฮอล์
+- เพิ่มผักผลไม้ ลดอาหารแปรรูป
+
+ตั้งเป้าทีละเรื่องจะทำได้จริงกว่าเปลี่ยนทุกอย่างพร้อมกันครับ
+
+[physician]
+แล้วเรื่องไขมันล่ะครับ lab ออกมา TC 231 LDL 148 HDL 38 TG 190 ต้องให้ statin ไหมครับ เจาะตอนอดอาหาร 12 ชม. ผล lab ครั้งนี้ครั้งแรก
+
+[assistant]
+การให้ statin ตัดสินจากความเสี่ยงโรคหัวใจและหลอดเลือดโดยรวม ไม่ได้ดูแค่ตัวเลข LDL ครับ
+
+- ประเมินความเสี่ยงในสิบปีข้างหน้าด้วย risk score ที่คลินิกใช้อยู่ (ESC guidelines, 2019)
+- ผู้ป่วยรายนี้มี HT stage 2 สูบบุหรี่ และ LDL 148 จึงมีโอกาสสูงที่ความเสี่ยงจะเข้าเกณฑ์ควรให้ statin
+- ในวัย 40 ถึง 75 ที่มีปัจจัยเสี่ยงอย่างน้อยหนึ่งอย่าง และความเสี่ยงในสิบปีข้างหน้าตั้งแต่ร้อยละ 10 ขึ้นไป USPSTF แนะนำให้เริ่ม statin (USPSTF statin primary prevention, 2022)
+- ปรับพฤติกรรมไปพร้อมกัน และตรวจ lipid ซ้ำหลังเริ่มยาราว 4–12 สัปดาห์
+
+[physician]
+amlodipine กับ losartan ที่บอกมา เริ่มกี่ mg ครับ ถ้า BP ตอนนี้ 164/98 แล้วนัด 4 สัปดาห์กลับมายัง 150/90 ต้องปรับเป็นกี่ mg ขอแบบละเอียดหน่อยครับ
+
+[assistant]
+ขนาดยาที่ใช้บ่อย (ESH hypertension guideline, 2023):
+
+- amlodipine เริ่ม 5 mg วันละครั้ง ปรับได้สูงสุด 10 mg
+- losartan เริ่ม 50 mg วันละครั้ง ปรับได้สูงสุด 100 mg
+- ถ้ากลับมา 4 สัปดาห์แล้วยังอยู่ที่ราว 150/90 ให้ปรับ amlodipine เป็น 10 mg และ/หรือ losartan เป็น 100 mg ก่อน แล้วค่อยพิจารณาเพิ่มตัวที่สาม เช่น thiazide-like
+- เป้าหมายคือลด BP ให้ต่ำกว่า 140/90 ก่อน และถ้าทนได้ควรลงไปที่ราว 120–129/70–79 (ESC guidelines, 2024)
+
+[physician]
+ควรให้ pt ซื้อเครื่องวัดความดันไว้ที่บ้านไหมครับ ราคา 1,500 ถึง 2,500 บาท วัดเช้า 1 ครั้ง เย็น 1 ครั้ง ก็พอไหม ที่คลินิกมีให้ยืม 1 เครื่อง ผมว่าสะดวกดีเพราะบ้านเขาอยู่ห่างไป 5 กิโลเมตร
+
+[assistant]
+ควรครับ home BP ช่วยทั้งยืนยันการวินิจฉัยและติดตามผลการรักษา (ESH hypertension guideline, 2023)
+
+- ใช้เครื่องวัดต้นแขนที่ผ่านการ validate และ cuff ขนาดพอดี
+- นั่งพัก 5 นาที วัดช่วงเช้าก่อนกินยาและช่วงเย็น ช่วงละ 2 ครั้ง ห่างกัน 1 นาที ต่อเนื่อง 7 วันก่อนมาพบ จะน่าเชื่อถือกว่าวัดช่วงละครั้ง
+- ค่า home BP เฉลี่ย 135/85 เทียบเท่ากับ 140/90 ที่วัดในคลินิก
+
+[physician]
+amlodipine 5 mg กับ losartan 50 mg วันละครั้ง นัด 2 สัปดาห์ แบบนี้ผมพิมพ์ลงใบสั่งยาเลยได้ไหมครับ BP 164/98
+
+[assistant]
+ขนาดและการนัดนี้เหมาะกับ BP ระดับนี้ครับ การเริ่มยาสองตัวพร้อมกันสอดคล้องกับแนวทาง (ESC guidelines, 2024)
+
+- ตรวจ K และ Cr/eGFR ราว 1–2 สัปดาห์หลังเริ่ม ARB
+- เตือนผู้ป่วยเรื่องขาบวมจาก amlodipine และไอแห้งหรือบวมที่หน้าซึ่งพบได้น้อยกว่ามากกับ ARB
+- ตรวจสอบรายการยากับ formulary ของคลินิกก่อนสั่งจริง
+
+######## EPISODE X304 ########
+[physician]
+Woman in her 70s, low-energy femoral neck fracture, hemiarthroplasty on day 2, now day 12. Spine T-score -2.9, eGFR 41, 25-OH D 14 ng/mL, Ca 8.1, BMI 21, Hb 10.8.
+- Zoledronic acid 5 mg IV before discharge on day 14
+- or hold until the 6-week visit
+Which one? Does it hinge on the 12-month refracture risk, or on how soon after surgery it is given?
+
+[assistant]
+Good question, and both parts matter.
+
+- A fracture in the last 12 months puts her in the very high risk group (Endocrine Society osteoporosis guideline, 2019). Refracture risk is highest in the first 12 to 24 months, so treatment should start in this admission rather than at the 6-week visit.
+- For very high risk the guideline lists anabolic therapy first, with zoledronic acid or denosumab as alternatives (Endocrine Society osteoporosis guideline, 2019).
+- A first infusion once she is stable after surgery is reasonable; there is no need to wait for months.
+- Before any IV bisphosphonate, calcium 8.1 and 25-OH D 14 should be corrected first, and CrCl by Cockcroft-Gault should be at least 35 mL/min per the product label. eGFR 41 is close to that line.
+- Expect a flu-like acute-phase reaction for 1 to 3 days after the first dose.
+
+[physician]
+Separate question, denosumab 60 mg SC every 6 months: if she misses it and comes back at month 8 or 9, is the rebound risk real, and how fast does it start after month 6?
+
+[assistant]
+Yes, the rebound is real.
+
+- Denosumab's effect fades within months of a missed dose, bone density falls back and vertebral fracture risk rises after it is stopped (Endocrine Society osteoporosis guideline, 2019).
+- At month 8 or 9 the sensible move is to give the dose as soon as the delay is noticed, not to skip it or restart a new schedule.
+- Because the effect is not sustained once stopped, denosumab is best treated as a drug you commit to continuing.
+
+[physician]
+Romosozumab 210 mg monthly for 12 months or teriparatide 20 mcg daily for 24 months after a hip fracture? For me it hinges on the MI and stroke warning on romosozumab.
+
+[assistant]
+Both are options when risk is very high (Endocrine Society osteoporosis guideline, 2019).
+
+- Romosozumab is given for 12 months and carries a boxed warning for MI, stroke and cardiovascular death. It should not be started after an MI or stroke in the previous 12 months.
+- Teriparatide has no such warning but needs a daily injection for up to 24 months.
+- With either, an antiresorptive has to follow or the gain is lost.
+- The choice therefore rests on cardiovascular history, injection burden and cost.
+
+[physician]
+Going with zoledronic acid 5 mg IV on day 14, then yearly for 3 doses, DXA at month 12. Also on omeprazole 20 mg daily and amlodipine 5 mg daily, weight 48 kg, albumin 3.1.
+
+[assistant]
+Zoledronic acid is a reasonable agent for a very high risk hip fracture patient (Endocrine Society osteoporosis guideline, 2019). Two things belong in the day-14 order before the infusion:
+
+- Correct calcium 8.1 and 25-OH D 14 first. The label advises against infusing with uncorrected hypocalcaemia, and low vitamin D makes post-infusion hypocalcaemia more likely.
+- Confirm CrCl is at least 35 mL/min by Cockcroft-Gault; eGFR 41 is close to that line.
+
+Yearly dosing for 3 doses is a sensible first block, with reassessment at the end of it (Endocrine Society osteoporosis guideline, 2019).
+
+[physician]
+You pick for me: zoledronic acid on day 14, denosumab 60 mg, or teriparatide 20 mcg? Write it as an order with drug, dose, date and DXA at month 12, I will paste it into the chart.
+
+[assistant]
+I can lay out the elements, but please check every line against your formulary and the label before it goes in. Of the three, zoledronic acid fits a very high risk hip fracture and avoids a daily injection (Endocrine Society osteoporosis guideline, 2019). A draft:
+
+- Zoledronic acid 5 mg IV over at least 15 minutes on day 14, once calcium and 25-OH D are corrected and CrCl is at least 35 mL/min
+- Calcium and vitamin D replacement per local protocol
+- Paracetamol for the acute-phase reaction
+- DXA at month 12
+
+[physician]
+After 3 yearly zoledronic acid doses of 5 mg, when do I stop? It hinges on the femoral neck T-score against -2.5 at month 36 and any new fracture by month 40.
+
+[assistant]
+Reassess after the third dose rather than stopping by default. For women who remain at high risk after 3 yearly infusions, the guideline supports continuing for up to 6 doses (Endocrine Society osteoporosis guideline, 2019).
+
+- A drug holiday is for those whose risk has fallen, for example no new fracture and a femoral neck T-score no longer in the osteoporosis range.
+- She has had a hip fracture, so she will most likely stay in the high risk group at that review.
+
+[physician]
+Explain more about the denosumab part, month 7 to month 12, and the 2 doses in a row. Just tell me more about that whole area, 6 months, 12 months, whatever is useful.
+
+[assistant]
+Sure.
+
+- The dose is due at month 6; its effect starts to wane in the months after that, so a late dose at month 7 to 9 should be given promptly.
+- Giving it late restores cover. There is no need to give two doses in a row to catch up.
+- If denosumab is going to be stopped, plan follow-on antiresorptive treatment rather than leaving a gap (Endocrine Society osteoporosis guideline, 2019).
+
+[physician]
+Clinic audit: 40 hip fractures in 6 months, 9 got a drug within 90 days. Is 80 percent within 90 days a realistic target for us, or does it hinge on whether ortho or medicine writes the first prescription?
+
+[assistant]
+It is realistic only if one person is clearly responsible for the first prescription.
+
+- Anyone with a recent fragility hip fracture falls into the very high risk group (Endocrine Society osteoporosis guideline, 2019), so the denominator is simple: all of them, minus those with a contraindication or a limited prognosis.
+- If the first prescription is left to the 6-week clinic, most of the 90-day window is gone before anyone acts.
+- Count the reasons for non-treatment separately (renal function, calcium, declined, died) so the true gap is visible.
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+A hip fracture puts a patient in the highest-risk window for the next fracture, so treatment belongs in the admission and not at the 6-week visit. For very high risk an anabolic drug first is a real option (teriparatide for 24 months, romosozumab for 12), with zoledronic acid or denosumab as alternatives, and each needs a follow-on antiresorptive or the gain is lost. Denosumab is the one I must never leave to chance: a late dose is given at once, never skipped. My own plan on day 12 was an infusion on day 14, written before I had dealt with the calcium of 8.1 and the vitamin D of 14. I now put those two ahead of the drug in the order, because an infusion into a low calcium is how a good plan turns into a hospital readmission.
+
+ความไม่แน่นอน / What remains uncertain:
+Whether day 14 is safe enough for this woman, because her creatinine clearance may sit right next to the 35 mL/min cut-off and I never calculated it. I also do not know whether a patient with low weight and a haemoglobin of 10.8 will tolerate the acute-phase reaction after hemiarthroplasty. And I have no idea how our clinic compares with the 90-day target, because nobody has counted.
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+Monday morning I will calculate Cockcroft-Gault clearance from her actual weight, repeat calcium with albumin and 25-OH D, start vitamin D replacement and re-check calcium before the infusion is booked. I will read the zoledronic acid label and the 2019 Endocrine Society guideline myself on the renal and calcium wording. Then I will pull the last 40 hip fractures from the clinic list, count who received a drug within 90 days and why the others did not, and take that table to the orthopaedic and medical meeting with a proposal that one named person is responsible for the first prescription.
+
+######## EPISODE X305 ########
+[physician]
+Man in his 60s, melena for 2 days, on diclofenac 75 mg bid and aspirin 81 mg since a stent 8 months ago. HR 112, BP 104/62, Hb 8.4, Cr 1.9 (baseline 1.1). District hospital, scope only Tue/Thu, referral 3 hours away. Transfer tonight or scope here Thursday? What does it hinge on, given the stent and the AKI?
+
+[assistant]
+Good framing. A few reference points for the decision:
+- Heart rate 112 with systolic 104 suggests significant volume loss, and the Glasgow-Blatchford score will be high; only a score of 0-1 is considered for outpatient care (Glasgow-Blatchford score, 2000).
+- Resuscitate first, then endoscopy within 24 hours of presentation is suggested (ACG upper GI bleeding guideline, Laine et al., 2021).
+- Transfuse restrictively: the trigger is 7 g/dL for upper GI bleeding patients.
+- NSAID stops; the aspirin is secondary prevention for a stent, so plan to resume it early rather than stop it for good.
+Transfer tonight if he cannot be stabilised or the scope really cannot happen within about 24 hours.
+
+[physician]
+Glasgow-Blatchford is 13, still 9 if I discard the 4 urea points as AKI. My read: ulcer about 80%, varices under 5% (platelets 210, no liver stigmata), so no octreotide. If HR is still above 100 after 2 units, does the 24 h window hold?
+
+[assistant]
+Your arithmetic holds, and discounting the urea is a sensible way to check the AKI effect.
+- If HR stays above 100 after 2 units, treat him as unstable: urgent endoscopy, not the Thursday list, so transfer (ACG upper GI bleeding guideline, Laine et al., 2021).
+- A low variceal probability and no octreotide is reasonable without liver disease signs.
+- Erythromycin before the scope is suggested to improve visualisation (ACG upper GI bleeding guideline, Laine et al., 2021).
+
+[physician]
+ok, but the 7 g/dL line sounds like it covers everybody. He has a stent, and I believe the restrictive-transfusion trials left out active cardiac disease. Which guideline sentence covers a patient like him, and how strong is the evidence under it?
+
+[assistant]
+Fair challenge; I stated the 7 g/dL figure without its population, and I should have. The guideline's restrictive policy comes from trials that mostly excluded patients with major cardiovascular disease and massive bleeding.
+- For cardiovascular disease a higher trigger around 8 g/dL is generally used, but that rests on indirect, low-certainty evidence (ACG upper GI bleeding guideline, Laine et al., 2021).
+- I am not certain of the exact wording of the sentence, so confirm it in the full text.
+
+[physician]
+I said hold at 7; with the stent I now say transfuse at 8, one unit at a time with a repeat Hb. Blood bank has 4 units. If 2 units leave HR above 100 he goes 180 km tonight, not Thursday. Pantoprazole 80 mg bolus, then 8 mg/h for 72 h; check that against the guideline text.
+
+[assistant]
+Your update fits his stent and his current 8.4.
+- After endoscopic therapy, high-dose PPI for 72 hours is suggested, either continuous or intermittent (ACG upper GI bleeding guideline, Laine et al., 2021).
+- The 80 mg bolus then 8 mg/h matches the usual regimen; verify the vial count against your formulary, since 8 mg/h over 72 h is a lot of 40 mg vials.
+- Re-bleeding risk is highest in the first 72 hours (ACG upper GI bleeding guideline, Laine et al., 2021).
+
+[physician]
+Noted on aspirin. Counterfactual: HR 92, Hb 9.1 after 2 units, and Thursday's scope shows a clean-based ulcer. Does that cut the 72 h, or do Cr 1.9 and the stent keep him in? The score 0 to 1 discharge rule was never built for someone like him.
+
+[assistant]
+Reasonable. A clean-based ulcer is low risk for re-bleeding, so a shorter stay is defensible if he stays stable (ACG upper GI bleeding guideline, Laine et al., 2021).
+- Cr 1.9 and the stent are good reasons to keep monitoring even then; those are not ulcer reasons, they are patient reasons.
+- Agreed that score 0-1 does not describe him (Glasgow-Blatchford score, 2000).
+
+[physician]
+Settled for me: stop diclofenac, scope within 24 h, high-dose PPI after endoscopic therapy. Still open: the 8 g/dL trigger in cardiac patients and the aspirin restart day, both on indirect evidence. The trials behind your summary mostly excluded AKI, so they do not speak to him.
+
+[assistant]
+That split is fair. The guideline evidence is stronger for the timing and PPI points than for the cardiac trigger and the aspirin restart day (ACG upper GI bleeding guideline, Laine et al., 2021).
+- One caution: for the restart day I know of no firm figure to give you, so treat any number you hear, including mine, as a prompt to check the source.
+
+[physician]
+Summary for my notes: Hb 8 trigger because of the stent, 2 units then reassess HR, transfer tonight if HR stays above 100, pantoprazole 80 mg then 8 mg/h. Monday I pull the last 20 bleeds here and compare Hb at transfusion, cardiac history and hours to scope.
+
+[assistant]
+That plan is coherent and the audit is a good way to see whether your cardiac patients are being under-transfused. Reading the cardiac sentence in the full guideline yourself is right (ACG upper GI bleeding guideline, Laine et al., 2021).
+
+######## EPISODE X306 ########
+[physician]
+สวัสดีครับ มี pt หญิงในวัย 50 กว่า มาที่ รพ.ชุมชนขนาด 30 เตียง ด้วยอาการปวดหัวมาประมาณ 2 สัปดาห์ ปวดทั่วๆ หัว ตื้อๆ ไม่ได้ปวดเป็นจุดชัดเจน เป็นมากขึ้นเรื่อยๆ โดยเฉพาะช่วงหลังตื่นนอน มีคลื่นไส้เล็กน้อยด้วย ไม่ได้อาเจียน ไม่มีไข้ ไม่สูบบุหรี่ ดื่มแอลกอฮอล์นานๆ ครั้ง ทำงานแม่บ้าน นอนหลับได้ปกติ กินข้าวได้ ปัสสาวะปกติ น้ำหนักตัวไม่ได้ลดลง หมดประจำเดือนแล้ว ญาติพามาส่ง ประวัติเดิมเป็น HT กับ DM กินยา amlodipine กับ metformin อยู่ประจำ ขาดยาบ้างบางวัน ที่ รพ. ไม่มี CT ถ้าจะส่งต่อก็ไกลพอสมควร V/S วันนี้ BP 150/90 HR 82 T 36.8 neuro exam เบื้องต้นยังปกติ ไม่มีอ่อนแรง ไม่มีชา พูดชัด เดินได้ปกติ หมอเลยอยากถามว่าอาการปวดหัวแบบนี้ต้องทำยังไงบ้างครับ รักษายังไงดี
+
+[assistant]
+ปวดหัวที่เพิ่งเริ่มเป็นประมาณ 2 สัปดาห์และค่อยๆ แย่ลง ในผู้ป่วยวัยกลางคน ควรคัดแยก secondary headache ก่อนจะรักษาแบบ primary headache ครับ
+- red flags ที่เข้าได้ในเคสนี้คือ ปวดแย่ลงเรื่อยๆ ปวดมากช่วงหลังตื่นนอน คลื่นไส้ และเป็น headache ใหม่ในวัยกลางคน (SNNOOP10 headache red flags, 2019)
+- neuro exam ปกติ ยังไม่พอที่จะตัดโรคในสมองออก
+- เมื่อมี red flags แบบนี้ ควรคิดเรื่อง neuroimaging ก่อน ส่วนการรักษาตามอาการเป็นขั้นต่อไป
+- ระหว่างรอ ให้ยาแก้ปวดพื้นฐานได้ แต่ระวังอย่าให้บังอาการจนประเมินต่อยาก
+ถ้า รพ. ไม่มี CT ก็ต้องเตรียมเรื่องส่งต่อไว้ด้วยครับ
+
+[physician]
+ok ครับ red flag หลายอย่างเลยนะครับ หมอยังไม่ค่อยเห็นภาพ DDx ที่นึกออกตอนนี้ก็มี tension headache, migraine, ปวดหัวจาก HT หรืออาจเป็น SAH หรือ tumor ก็ได้ครับ แต่ไม่รู้เหมือนกันว่าอันไหนเป็นไปได้มากกว่า pt เป็น DM กับ HT มานานกว่าสิบปี ใช้ยาประจำ ที่บ้านมีลูกสาวคนหนึ่งดูแลอยู่ด้วย ตอนนี้ pt ยังกินข้าวกับเดินเหินได้ตามปกติ แต่บ่นว่าปวดหัวรบกวนการนอนบ้าง ตอนนี้ยังงงๆ อยู่ครับ ช่วยอธิบายเรื่อง red flag เพิ่มเติมหน่อยครับ
+
+[assistant]
+ได้ครับ SNNOOP10 เป็นรายการ red flags ที่ใช้คัดแยก secondary headache (SNNOOP10 headache red flags, 2019) ตัวอย่างเช่น
+- ปวดรุนแรงถึงจุดสูงสุดทันที (thunderclap)
+- ปวดครั้งแรกในวัยกลางคนขึ้นไป หรือรูปแบบการปวดเปลี่ยนไปจากเดิม
+- ปวดแย่ลงเรื่อยๆ หรือเปลี่ยนตามท่าและการเบ่ง
+- มีอาการทาง neuro ร่วม เช่น อ่อนแรง ชา การมองเห็นผิดปกติ
+- มีไข้ หรือมีโรคร่วมที่กดภูมิคุ้มกัน หรือมีประวัติมะเร็ง
+รายการนี้ใช้ช่วยตัดสินใจว่าควรตรวจภาพถ่ายเพิ่มหรือไม่ ไม่ได้บอกว่าเป็นโรคอะไรโดยตรง ส่วน Ottawa SAH rule (Perry et al., 2013) ออกแบบไว้สำหรับปวดหัวรุนแรงเฉียบพลัน จึงตรงกับเคสปวดสองสัปดาห์แบบค่อยเป็นค่อยไปน้อยกว่าครับ
+
+[physician]
+ขอ ref ที่ใช้ด้วยครับ เผื่อหมอจะเอาไปอ่านต่อ หรือเอาไปเล่าให้น้องที่ รพ. ฟังตอนประชุมเช้า แล้วที่ รพ. หมอไม่มี CT นะครับ ส่งต่อก็ไกล pt เป็น DM HT กินยา amlodipine 5 mg กับ metformin อยู่ ปกติตรวจเลือดที่ รพ. ได้แค่ CBC กับ glucose ที่ รพ. มีแพทย์เวรแค่คนเดียว พยาบาลเวรก็น้อย ตอนบ่ายคนไข้ใน OPD ก็เยอะ ญาติก็ถามอยู่ว่าอาการนี้เป็นอะไร เดี๋ยวหมอดู pt อีกรอบครับ
+
+[assistant]
+แหล่งที่ใช้ในการตอบคือ SNNOOP10 (Do et al., 2019) สำหรับรายการ red flags และ Ottawa SAH rule (Perry et al., 2013) สำหรับปวดหัวรุนแรงเฉียบพลันครับ ส่วนที่ผมพูดเรื่องการให้ยาแก้ปวดพื้นฐานระหว่างรอ เป็นแนวปฏิบัติทั่วไป ไม่ได้อ้างจากเปเปอร์ฉบับใดโดยเฉพาะ
+CBC กับ glucose ช่วยดูภาพรวมได้ แต่ไม่ได้ตัดสาเหตุในสมองออก (SNNOOP10 headache red flags, 2019) หากหมอประเมิน pt อีกรอบแล้วพบอาการเพิ่ม ก็ใช้รายการข้างต้นเทียบได้เลยครับ
+
+[physician]
+อีกเรื่องครับ หมออยากถามเรื่องความดันของ pt ด้วย เพราะญาติถามมาหลายรอบแล้ว BP 150/90 ที่วัดได้วันนี้ ต้องปรับยาลดความดันไหมครับ ตอนนี้ pt กิน amlodipine 5 mg วันละครั้ง แล้วความดันสูงแบบนี้จะเป็นสาเหตุที่ทำให้ปวดหัวด้วยหรือเปล่าครับ ส่วนยาที่กินอยู่ pt บอกว่าลืมกินบ้างบางวัน ยังไม่เคยเปลี่ยนยามาก่อน ไม่ได้เปลี่ยนยาเลย เป็นยาเดิมทั้งหมดที่รับจาก รพ. ใกล้บ้านครับ
+
+[assistant]
+ความดัน 150/90 ที่วัดครั้งเดียวใน รพ. ยังไม่พอจะปรับยาครับ ควรวัดซ้ำและยืนยันด้วยการวัดที่บ้านหรือ ambulatory BP (ESC guidelines, 2024)
+ส่วนเป้าหมายความดันในผู้ป่วย DM แนวทาง ACC/AHA แนะนำต่ำกว่า 130/80 (ACC/AHA hypertension guideline, 2017)
+เรื่องปวดหัว ความดันสูงเรื้อรังระดับนี้มักไม่ใช่คำอธิบายของปวดหัวใหม่ที่มี red flags ครับ จึงไม่ควรลดความสำคัญของ red flags ลงเพราะ HT
+
+######## EPISODE X307 ########
+[physician]
+pt หญิงวัย 30 กว่า มาที่ OPD จิตเวชด้วยเรื่องอารมณ์เศร้า เบื่อ ไม่อยากทำอะไร เป็นมาประมาณสองเดือนแล้ว นอนหลับยาก ตื่นกลางดึกแล้วหลับต่อไม่ได้ นอนได้แค่ 4 ชม. กินข้าวได้น้อยลง น้ำหนักลงไปราว 3 กก. สมาธิไม่ดี ทำงานออฟฟิศผิดพลาดบ่อย เหนื่อยง่ายทั้งวัน ช่วงนี้ไม่ค่อยอยากเจอใคร ร้องไห้ง่าย ตอนเช้าแย่กว่าตอนเย็น ชอบโทษตัวเองว่าทำงานไม่ดี ท่าทางซึม พูดช้า สบตาน้อย แต่ให้ข้อมูลได้ดี ไม่มีความคิดอยากตายชัดเจน PHQ-9 ได้ 17 คะแนน ไม่เคยกินยา antidepressant มาก่อน ไม่มีโรคประจำตัวอื่น ยกเว้นปวดหลังเรื้อรังที่กิน tramadol เป็นบางวัน ปฏิเสธประวัติแพ้ยา แฟนกับแม่มาด้วย เป็นห่วงมาก อยากให้หายเร็ว ๆ ประวัติครอบครัวแม่เคยเป็นโรคซึมเศร้าเหมือนกัน ดื่มแอลกอฮอล์นาน ๆ ครั้งเวลามีงานสังสรรค์ ไม่สูบบุหรี่ ไม่ใช้สารเสพติด ประจำเดือนมาปกติ ไม่ได้ตั้งครรภ์ ครับ ช่วยหายามาให้หน่อย
+
+[assistant]
+รายนี้เข้าได้กับ major depressive episode แรกในระดับปานกลางถึงรุนแรง (PHQ-9 17) ตัวเลือกที่ใช้กันบ่อยคือกลุ่ม SSRI
+
+- sertraline หรือ escitalopram เป็นตัวเลือกที่ให้สมดุลระหว่างประสิทธิผลกับการทนยาได้ดีใน network meta-analysis (Cipriani et al., Lancet 2018)
+- ระดับปานกลางถึงรุนแรงแนะนำให้ใช้ยาร่วมกับการบำบัดทางจิตใจแบบเข้มข้น ไม่ใช่ยาอย่างเดียว (NICE depression NG222, 2022)
+- ก่อนเริ่มยาควรซักประวัติ mania/hypomania และประเมินความเสี่ยงฆ่าตัวตายแบบมีโครงสร้าง เช่น C-SSRS (Posner et al., 2011)
+- ที่ต้องระวังในรายนี้คือ tramadol ที่ pt กินเป็นบางวัน เมื่อใช้ร่วมกับ SSRI เพิ่มความเสี่ยง serotonin syndrome และ tramadol เองก็ลด seizure threshold จึงควรทบทวนเรื่องนี้ก่อนสั่งยา
+- ช่วงเริ่มยาควรนัด f/u ใกล้ชิดเพื่อดู side effect และ SI (NICE depression NG222, 2022)
+
+[physician]
+อีกเรื่องนึงครับ pt บอกว่านอนไม่หลับเป็นปัญหาที่สุด กลางวันง่วงแต่กลางคืนตาสว่าง แฟนเล่าว่าช่วงเย็นชอบนั่งเฉย ๆ ไม่ค่อยคุยกับใคร กินข้าวไม่ครบมื้อ วันหยุดนอนอยู่บนเตียงทั้งวัน เลิกไปเที่ยวกับเพื่อนแล้ว งานอดิเรกที่เคยชอบก็ไม่ทำ ตอนเช้าบอกว่าใจหวิว ๆ ไม่อยากลุกไปทำงาน ที่ทำงานช่วงนี้งานเยอะ หัวหน้าเพิ่งเปลี่ยน ต้องเข้าประชุมเช้า ย้ายมาอยู่คอนโดคนเดียวไกลจากบ้านแม่ เดินทางไปทำงานวันละเกือบชั่วโมง เสาร์อาทิตย์ไม่ได้ออกกำลังกายเลย กินกาแฟวันละหลายแก้วเพื่อให้ตื่น ช่วยเขียนคำแนะนำเรื่องการนอนให้ผู้ป่วยหน่อยครับ จะปริ้นต์ให้ pt กลับไปอ่านที่บ้านเลย
+
+[assistant]
+ร่างคำแนะนำสำหรับผู้ป่วย (ปรับภาษาให้เหมาะกับ pt ก่อนปริ้นต์ได้)
+
+- เข้านอนและตื่นให้เป็นเวลาเดิมทุกวัน รวมวันหยุด
+- งดคาเฟอีนช่วงบ่ายถึงเย็น และไม่ใช้โทรศัพท์บนเตียง
+- ถ้านอนไม่หลับนานเกินราว 20 นาที ให้ลุกไปทำกิจกรรมเบา ๆ แล้วค่อยกลับมานอน
+- เดินหรือออกกำลังกายเบา ๆ ช่วงเช้าหรือกลางวัน
+- ถ้ารู้สึกแย่ลงหรือมีความคิดอยากตาย ให้โทรกลับมาทันที ไม่ต้องรอวันนัด
+
+การนอนผิดปกติเป็นส่วนหนึ่งของอาการ depression เอง จึงควรติดตามต่อเนื่องหลังเริ่มการรักษา (NICE depression NG222, 2022) และ SSRI บางตัวอาจทำให้นอนยากขึ้นในช่วงแรก ควรบอก pt ล่วงหน้า
+
+[physician]
+ขอข้อมูลเพิ่มเติมเกี่ยวกับ sertraline หน่อยครับ pt ตัวสูงราว 160 ซม. หนัก 62 กก. BP 118/76 HR 72 ผล lab CBC TSH ปกติหมด ตรวจร่างกายไม่พบอะไรผิดปกติ แม่ของ pt ถามว่ายากินแล้วติดไหม ต้องกินนานแค่ไหน กลัวว่าจะง่วงตอนทำงาน แฟนก็ถามว่าจะเห็นผลเมื่อไหร่ ผมยังตอบเขาไม่ถูกครับ pt บอกว่ากินวิตามินรวมกับพาราเซตามอลบ้างเวลาปวดหัว ไม่เคยกินสมุนไพรอะไร ผมยังไม่ได้สั่งยาอะไรเลยครับ รอดูคำตอบก่อน ยังไม่ได้บอกเรื่องค่ายากับ pt เลย แม่เขาก็เป็นห่วงเรื่องเงินด้วย
+
+[assistant]
+ผล lab และ vital signs ที่ให้มาไม่ขัดกับการเริ่ม sertraline
+
+- ขนาดเริ่มต้นที่พบบ่อยคือ 50 mg วันละครั้ง ปรับเพิ่มตามการตอบสนองและการทนยา
+- ยากลุ่มนี้ไม่ได้ทำให้เสพติด แต่ถ้าหยุดเร็วเกินไปอาจมีอาการถอนยาและโรคกลับมาเป็นซ้ำได้
+- ผลเริ่มเห็นภายในไม่กี่สัปดาห์แรก และควรประเมินผลซ้ำด้วย PHQ-9 หลังให้ยาครบขนาดพอสมควร (NICE depression NG222, 2022)
+- ผลข้างเคียงที่พบบ่อยช่วงแรกคือคลื่นไส้ ปวดศีรษะ นอนยาก บางรายง่วง ซึ่งมักดีขึ้นเอง
+
+อย่าลืม tramadol ที่ pt กินอยู่ด้วย ควรคุยเรื่อง serotonin syndrome กับ pt ก่อนสั่ง sertraline
+
+[physician]
+ช่วยสรุปทั้งหมดเป็น note ลง chart ให้หน่อยครับ ใส่ทั้ง assessment แล้วก็ plan ให้ครบเลย เดี๋ยวผม copy ไปวางตอนจบ OPD วันนี้ ผู้ป่วยรอนานแล้วครับ คิวยังเหลืออีกหลายคน ภาษาจะเป็นอังกฤษปนไทยแบบที่เขียนกันทั่วไปก็ได้ ผมไม่ได้ต้องการรูปแบบอะไรพิเศษ ถ้ามีอะไรตกหล่นก็เติมให้ด้วยนะครับ รบกวนด้วยนะครับ
+
+[assistant]
+ร่าง note สำหรับ chart (ควรอ่านทวนและแก้ให้ตรงกับที่ตรวจจริงก่อนบันทึก)
+
+**Assessment:** first-episode major depressive episode ระดับปานกลางถึงรุนแรง PHQ-9 17 ยังไม่มี SI ชัดเจน ยังไม่ได้ซักประวัติ mania ละเอียด
+
+**Plan:**
+- เริ่ม sertraline ซึ่งเป็นตัวเลือกที่สมดุลระหว่างผลกับการทนยา (Cipriani et al., Lancet 2018) ขนาด 50 mg วันละครั้ง
+- ทบทวน tramadol ที่ pt ใช้ร่วม เพราะเสี่ยง serotonin syndrome และให้ข้อมูลอาการเตือนกับ pt
+- แนะนำ psychotherapy ร่วมด้วย (NICE depression NG222, 2022)
+- ให้คำแนะนำเรื่องการนอน และนัด f/u ใกล้ชิดเพื่อดู side effect, SI และ PHQ-9 ซ้ำ
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ก่อนหน้านี้ผมคิดว่ายากลุ่ม antidepressant ใช้แทนกันได้เกือบหมด แต่รายนี้ทำให้เห็นว่าการเลือกยาต้องดูทั้งประสิทธิผลและการทนยา sertraline หรือ escitalopram เป็นตัวเลือกแรกที่สมเหตุสมผล และคะแนน PHQ-9 ระดับนี้ควรมี psychotherapy ร่วมด้วย ไม่ควรให้ยาอย่างเดียว
+
+ความไม่แน่นอน / What remains uncertain:
+ผมยังไม่แน่ใจว่า pt รายนี้จะตอบสนองต่อยาตัวแรกหรือไม่ และยังไม่รู้ว่ามี bipolar spectrum ซ่อนอยู่หรือเปล่า เพราะประวัติ mania ยังซักไม่ละเอียดพอ
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+นัดครั้งหน้าจะซักประวัติ mania ย้อนหลังให้ครบ ทบทวนรายการยาทั้งหมดที่ pt กินอยู่ร่วมกับเภสัชกรก่อนสั่ง นัด f/u ภายในสองสัปดาห์เพื่อดู side effect และ SI แล้วประเมิน PHQ-9 ซ้ำเทียบกับคะแนนเดิม จากนั้นจะเปิด guideline ฉบับเต็มอ่านส่วนระยะเวลาการให้ยาต่อเนื่อง
+
+######## EPISODE X308 ########
+[physician]
+เด็กชาย 2 ขวบ น้ำหนัก 13 กก. แม่พามาหลังชักเกร็งทั้งตัวที่บ้านนาน 2 นาที ไม่มีไข้ BT 36.8 HR 118 RR 28 SpO2 98% DTX 92 ตื่นดีหลัง 20 นาที ไม่มีบาดเจ็บศีรษะ พัฒนาการปกติ วัคซีนครบตามนัด ไม่เคยชักมาก่อน ไม่มีประวัติชักในครอบครัว คลอดครบกำหนดน้ำหนักแรกเกิดปกติ กินอาหารเช้าปกติ ขับถ่ายปกติ ส่วนสูงตามเกณฑ์ บ้านอยู่ห่างจาก รพ.ชุมชน 40 กม. ผมอยู่เวรดึก ขอถามข้อเดียว ใน first afebrile seizure รายนี้ ควรส่ง CT/MRI ก่อน discharge ไหม หรือทำ EEG แล้วนัด f/u ก็พอ ตอบสั้น ๆ เป็นภาษาไทยปนอังกฤษได้เลย และบอก source ที่อ้างด้วยครับ เพราะผมอยากเปิดอ่านต้นฉบับเองก่อนอธิบายญาติ แม่ดูกังวลมากและนั่งรออยู่หน้าห้องตรวจ
+
+[assistant]
+คำถามตรงประเด็นเลยครับ สำหรับเด็กชักครั้งแรกแบบไม่มีไข้ ที่ตื่นกลับมาดีและตรวจระบบประสาทปกติ
+
+- neuroimaging ฉุกเฉินไม่ใช่การตรวจประจำ พิจารณาเมื่อมี focal deficit, ซึมไม่ฟื้นตามที่ควร, บาดเจ็บศีรษะ หรือชักแบบ focal (AAN/CNS first non-febrile seizure in children, Hirtz et al., 2000)
+- EEG เป็นส่วนหนึ่งของการประเมินหลังชักครั้งแรก เพราะช่วยบอกชนิดการชักและโอกาสชักซ้ำ (Hirtz et al., 2000)
+- DTX 92 ตัดภาวะน้ำตาลต่ำออกไปแล้ว ส่วน lab อื่นให้ตามอาการ เช่น อาเจียน ท้องเสีย ซึม
+
+❓ จากข้อมูลที่ให้มา ตอนนี้หมอคิดถึงการวินิจฉัยอะไรเป็นอันดับแรก และอะไรที่ทำให้ยังไม่ปักใจ
+
+[physician]
+ok ครับ ตามที่บอกว่า imaging ไม่ใช่ routine ผมเรียงไว้แบบนี้ อันดับแรกคือ unprovoked generalized tonic-clonic seizure เพราะไม่มีไข้ ตื่นภายใน 20 นาที exam neuro ปกติ รองลงมาคือ provoked จาก electrolyte แต่ผมให้ต่ำเพราะไม่มีอาเจียนท้องเสีย ส่วน CNS infection ต่ำสุดเพราะ BT 36.8 ไม่มี meningism ที่ยังค้างใจคือ EEG ควรทำตอน admit ภายใน 24 ชม. แรก หรือ OPD ใน 2 สัปดาห์ เพราะ yield น่าจะต่างกัน ตอนนี้ HR 112 RR 26 แล้ว ผมยังไม่ได้ให้ยาอะไรเลยนอกจาก observe ที่ ER ถ้าต้องรอผลอะไรเพิ่มผมยังพอมีเวลาอยู่ ตอนนี้เด็กนั่งเล่นของเล่นกับแม่ได้ตามปกติ
+
+[assistant]
+การเรียงของหมอผูกกับข้อมูลของเด็กจริง ๆ ครับ
+
+- ในแนวทางที่ผมอ้างถึง EEG ถูกจัดเป็นส่วนของการประเมิน โดยไม่ได้ระบุช่วงเวลาที่ตายตัว (Hirtz et al., 2000) ส่วนการนัด OPD เมื่อเด็กตื่นดีและตรวจปกติเป็นแนวปฏิบัติที่พบบ่อย
+- EEG ผิดปกติ และสาเหตุแบบ remote symptomatic สัมพันธ์กับโอกาสชักซ้ำที่สูงขึ้น (Hirtz et al., 2000)
+- หลังชักใหม่ ๆ EEG อาจมี slowing ชั่วคราวได้ จึงควรแปลผลตามเวลาที่ทำ ส่วนว่าแต่ละที่นิยมกำหนดกี่วัน ผมยังไม่แน่ใจ
+
+❓ ถ้าผล EEG กลับมาผิดปกติ แผนของหมอจะเปลี่ยนจากตอนนี้อย่างไร
+
+[physician]
+ok ครับ เดิมผมคิดจะส่ง CT ไว้ก่อนเพราะกลัวพลาด แต่ GCS 15 มาตั้งแต่ 20 นาที ไม่มี focal sign ผมเลยปรับเป็นไม่ทำ CT discharge ได้ แล้วนัด EEG กับ f/u ที่ 2 สัปดาห์ บ้านไกล 40 กม. เลยให้แม่โทรรายงานอาการที่ 1 สัปดาห์ก่อน และถ่าย VDO ไว้ถ้าชักซ้ำ ผมจะเขียนใน OPD card ให้ครบทั้งสามเรื่องนี้ด้วย เผื่อเวรอื่นมาอ่านต่อ ส่วนที่ว่า EEG ผิดปกติแล้วชักซ้ำง่ายขึ้น ขอ source หน่อยว่ามาจากงานแบบไหน ผมจะเปิดอ่านเทียบเอง
+
+[assistant]
+การปรับแผนของหมอมีเหตุรองรับครับ CT ไม่จำเป็นเมื่อฟื้นเป็นปกติและไม่มี focal sign (Hirtz et al., 2000)
+
+- ความเสี่ยงชักซ้ำสูงในช่วงสองปีแรก และสูงขึ้นเมื่อ EEG ผิดปกติหรือมีสาเหตุเดิมในสมอง ข้อมูลนี้มาจากงานแบบ cohort ที่แนวทาง AAN รวบรวมไว้ ไม่ใช่การทดลองแบบ randomized (Hirtz et al., 2000)
+- ผมไม่ยกตัวเลขเดียว เพราะช่วงที่รายงานกว้าง
+- การโทรติดตามที่ 1 สัปดาห์ช่วยให้บ้านไกลยังตามได้ และ VDO ช่วยแยกชนิดการชัก
+
+❓ ถ้าครอบครัวถามว่าควรเริ่มยากันชักตั้งแต่ครั้งแรกไหม หมออธิบายอย่างไร
+
+[physician]
+ผมจะอธิบายแม่ด้วยภาษาง่าย ๆ ว่าครั้งแรกนี้ยังไม่เริ่ม AED เพราะชักซ้ำไม่ได้ทุกราย และยามีผลข้างเคียง ถ้าชักนานเกิน 5 นาทีให้โทร 1669 ทันที wording นี้ผมเขียนไว้แล้ว ช่วยเทียบกับ source ว่าตรงไหม โดยเฉพาะประโยค ยังไม่เริ่ม AED กับ ชักเกิน 5 นาที ถ้าไม่ตรงผมจะแก้เอง ส่วนใบนัด EEG กับ f/u ผมสั่งเอง ไม่ต้องร่างให้ครับ แค่ช่วยดูว่า wording ที่ผมให้ไปตรงกับที่อ่านมาหรือไม่ เวลาแม่กลับบ้านผมจะอธิบายซ้ำอีก 2 รอบตอน discharge และตอนรับใบนัด
+
+[assistant]
+ประเด็น AED ตรงกับแนวทางครับ หลังชักครั้งแรก ยากันชักไม่ได้บ่งชี้เพื่อป้องกันโรคลมชักระยะยาว และพิจารณาเป็นรายคนเมื่อประโยชน์เกินความเสี่ยง (Hirtz et al., 2000)
+
+- เกณฑ์ 5 นาทีมาจากแนวปฏิบัติทั่วไป ไม่ได้อยู่ในเอกสารที่ผมอ้าง ควรตรวจกับ protocol ของ รพ. อีกครั้ง
+- ผมร่างใบนัดให้ไม่ได้อยู่แล้วครับ เพราะรายละเอียดคิวของ รพ. ผมไม่ทราบ
+
+❓ ถ้าชักซ้ำก่อนถึงวัน EEG หมอจะให้ผู้ปกครองทำอะไรเป็นลำดับแรก
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ก่อนคุยผมคิดว่า CT ก่อนกลับบ้านปลอดภัยที่สุด ตอนนี้เห็นว่าเด็กรายนี้ฟื้นเป็นปกติและไม่มี focal sign จึงไม่จำเป็นต้อง image ฉุกเฉิน แต่ EEG ควรนัดให้ครบ และเรื่อง AED ครั้งแรกต้องแยกจากเรื่องโอกาสชักซ้ำเวลาอธิบายผู้ปกครอง
+
+ความไม่แน่นอน / What remains uncertain:
+ผมยังไม่รู้ว่า EEG ที่ รพ.ของเราจะได้คิวภายในสองสัปดาห์จริงหรือไม่ และตัวเลขโอกาสชักซ้ำที่เหมาะจะบอกแม่คือเท่าไร
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+จะใช้แนวทางนี้กับเด็กชักครั้งแรกรายต่อไป และเทียบ wording เรื่อง AED กับ protocol ของ รพ. อีกครั้ง
+
+######## EPISODE X309 ########
+[physician]
+Man in his 60s, T2DM on metformin (HbA1c 8.4), RUQ pain 3 days, T 38.4. WBC 14,200, CRP 112, bili 1.1, Cr 1.0. US: stone, wall 5 mm, CBD 5 mm. District hospital, laparoscopy available. Lap chole within 24-48 h, or antibiotics and delayed surgery at 6 weeks? It hinges on whether he is Grade I or II under TG18 at day 3. Keep to TG18 and give the source for each recommendation.
+
+[assistant]
+Good case to think through; the decision does hinge on the grade.
+- Severity: TG18 calls it Grade II if any of these is present: WBC above 18,000, a palpable tender RUQ mass, symptoms beyond 72 h, or marked local inflammation (gangrene, abscess, biliary peritonitis). On your numbers WBC is 14,200 and there is no mass, so duration is the only criterion in play (Tokyo Guidelines, 2018).
+- Timing: early laparoscopic cholecystectomy is the preferred route for Grade I, and it shortens total hospital stay without raising complications compared with delayed surgery (Tokyo Guidelines, 2018).
+- Antibiotics and a wait of about 6 weeks is the fallback for patients who cannot have early surgery, not the default.
+❓ Where exactly do you start the 72 hours, and what finding would push him from Grade I to Grade II?
+
+[physician]
+You put the 72 h line right at the edge for him. Leading hypothesis is simple cholecystitis, Grade I, because WBC is only 14,200, no mass, wall 5 mm. Second is early gangrenous change, given CRP 112 and T 38.4. Third is a duct stone, less likely with bili 1.1 and CBD 5 mm. I will repeat US and CRP at 12 h to separate the first two.
+
+[assistant]
+Both readings are reasonable, and gangrenous change is the one that matters.
+- Marked local inflammation is itself a Grade II criterion, so a thicker wall or a CRP that keeps climbing at 12 h reclassifies him (Tokyo Guidelines, 2018).
+- Date the 72 hours from the onset of the pain that brought him in, and note how you dated it in the chart.
+- For Grade II, TG18 supports early LC only in a centre with advanced laparoscopic experience when there are no negative predictors (jaundice, neurological or respiratory dysfunction); otherwise drain first (Tokyo Guidelines, 2018).
+- I'm not certain of the exact number of days after onset that TG18 gives as the outer limit for early surgery; the usual teaching is within about a week.
+❓ If the repeat ultrasound shows a thicker wall but his CRP is flat, which finding would you trust more?
+
+[physician]
+Back to the shorter-stay claim in your first answer. Sorting it:
+1. Early LC beats delayed on total stay: several RCTs, but mostly Grade I-II patients, surgeons who do laparoscopy daily.
+2. Grade II negative-predictor list: consensus opinion, no trial I know of.
+3. Diabetic man, HbA1c 8.4, 1 surgeon on call: no source I know of tested that mix.
+Please say which of the three you cannot source.
+
+[assistant]
+Fair challenge, and you have sorted it correctly.
+- The shorter-stay result came from trials that mostly enrolled Grade I-II patients, with surgeons experienced in laparoscopy and few high-risk patients, so I stated it without its edges (Tokyo Guidelines, 2018).
+- The negative-predictor list rests on expert consensus rather than a trial, and your third point stands: I know of no trial of this exact mix.
+- Your sourcing note is a good habit; the evidence for high-risk patients is mainly observational.
+❓ Given that, what would you ask the theatre team before fixing the first list?
+
+[physician]
+Repeat at 12 h: CRP 131, wall 6 mm, T 37.9. I said Grade I earlier; with CRP up from 112 and the wall thicker, I now rank gangrenous change level with simple cholecystitis, so I treat him as borderline Grade II. First list is about 30 h from admission. Glucose 246 on arrival; metformin held, sliding-scale insulin, checks every 4 h. Which glucose range should I reach before induction?
+
+[assistant]
+Reasonable plan; metformin held and insulin cover are standard for a surgical admission.
+- Aim for glucose 100-180 mg/dL around surgery (ADA Standards of Care, 2024).
+- An HbA1c of 8.4 is not a reason to delay an urgent operation, but it raises the risk of wound infection, so check glucose every 4 h and keep it in range after surgery too.
+- Antibiotics continue until surgery; keep him nil by mouth from midnight.
+❓ If the 12 h repeat had been flat rather than rising, would you still have moved him to borderline Grade II?
+
+[physician]
+Plan, written by me: lap chole on the first list at 08:00, antibiotics until then, glucose 100-180 mg/dL before induction, consent includes conversion. Gangrenous gallbladder means convert or drain. Check this list against TG18 only and name the section for anything that contradicts it. I will read that section myself too, since you were not sure of the day limit.
+
+[assistant]
+Nothing in your list contradicts TG18.
+- Bail-out options when the gallbladder is gangrenous or the anatomy is unsafe (conversion, drainage, subtotal cholecystectomy) are all set out in the TG18 surgical strategy section (Tokyo Guidelines, 2018).
+- The glucose range matches the ADA perioperative target (ADA Standards of Care, 2024).
+- I can't give you the day limit with confidence, so reading the timing section yourself is the right move.
+❓ If the first list is cancelled and he waits a further 24 h, which finding would make you reach for drainage rather than waiting for the next list?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+I came in treating 72 hours as a hard line. It is one Grade II marker among several, and the early-surgery results I leaned on came from patients and surgeons unlike mine. I now grade him on the whole picture and re-check at 12 hours.
+
+ความไม่แน่นอน / What remains uncertain:
+Whether a diabetic man with HbA1c 8.4 and a single surgeon on call does as well as the trial groups. I also do not know our own conversion rate beyond hearsay.
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+Read the TG18 timing section myself, and for this patient record grade, hours from onset and what I find at surgery so the team can see how the call was made.
+
+######## EPISODE X310 ########
+[physician]
+pt หญิงวัย 50 กว่า ปวดหัวรุนแรงทันทีตอนยกของเมื่อ 3 ชม. ก่อน ไม่เคยเป็นมาก่อน อาเจียนหลายครั้ง BP 168/96 GCS เต็ม คอไม่แข็ง ไม่มี focal sign ไม่ได้กิน anticoagulant ผมให้ SAH ราว 20% ICH กับ RCVS อย่างละ 5% เพราะ onset เป็นนาทีและเกิดตอนออกแรง ที่นี่มี CT 16 slice แต่ radiologist อ่านทางไกลต้องรอราวชั่วโมง ส่งต่อไกล 120 กม. ใช้ 2 ชม. ถ้า CT ปกติที่ 3 ชม. จะพอไหม หรือต้อง LP/CTA ต่อ
+
+[assistant]
+ลำดับความเสี่ยงที่ประเมินมาสมเหตุสมผลครับ thunderclap ตอนออกแรงในวัยนี้ต้อง r/o SAH ก่อนเสมอ
+
+- Ottawa SAH rule: อายุตั้งแต่ 40 ขึ้นไป หรือเกิดตอน exertion อย่างใดอย่างหนึ่งก็ถือว่า positive ต้อง investigate ต่อ ยังไม่ควร discharge (Ottawa SAH rule, Perry et al., 2013)
+- NCCT ที่ทำภายใน 6 ชม. หลัง onset ไวมากจนถ้าปกติก็ตัด SAH ได้และไม่ต้อง LP ต่อ
+- red flag ของ pt รายนี้ตรงกับ SNNOOP10 คือ onset เฉียบพลัน อายุมากกว่า 50 และมีตัวกระตุ้นจากการออกแรง (SNNOOP10 headache red flags, Do et al., 2019)
+- ระหว่างรอผลอ่าน เฝ้า GCS กับ pupil ซ้ำเป็นระยะ และยังไม่ต้องลด BP แรงเกินไป
+
+[physician]
+ok ครับ แต่ประโยค CT ปกติภายใน 6 ชม. ตัดได้เลย ผมว่ากว้างไป งานที่มาของตัวเลขนี้ใช้ scanner รุ่นใหม่และ neuroradiologist อ่านตรง ที่นี่เครื่องเก่ากว่าและอ่านทางไกลโดย general radiologist แล้ว pt Hb 9.4 เลือดสดจึงจางจนกลืนกับเนื้อสมอง ผมจึงว่าความเสี่ยงหลัง CT ปกติน่าจะ 3-5% ไม่ใช่ต่ำกว่า 1% ซึ่งเป็นระดับที่ผมยอมได้ถ้าไม่ตรวจต่อ LP ตอนนี้คงเร็วไปสำหรับ xanthochromia ใช่ไหม
+
+[assistant]
+ประเด็นที่ยกมาถูกต้องครับ ประโยคเมื่อกี้ของผมกว้างเกินไป
+
+- ตัวเลขความไวใกล้ 100% ที่ 6 ชม. มาจากกลุ่มศึกษาที่ใช้ scanner รุ่นใหม่และผู้อ่านที่ชำนาญ จึงไม่ควรเหมารวมกับ scanner หรือผู้อ่านทุกแบบ
+- Hb ต่ำทำให้ความไวของ CT ลดลง เพราะเลือดสดที่ density ลดลงจะเสมอกับเนื้อสมอง การแปลผลที่นี่จึงควรระวังกว่าตัวเลขในงานวิจัย
+- Ottawa SAH rule ออกแบบมาไม่ให้พลาด SAH ในผู้ป่วยตื่นรู้ตัว ปวดหัวใหม่รุนแรง ถึงจุดสูงสุดภายใน 1 ชม. ซึ่งตรงกับ pt รายนี้ (Ottawa SAH rule, Perry et al., 2013)
+- xanthochromia ต้องรออย่างน้อยประมาณ 12 ชม. หลัง onset LP ที่ 3-4 ชม. จึงตัด SAH ไม่ได้ และอาจเจอ traumatic tap ทำให้แปลผลยากขึ้น
+- CTA ใช้แทน LP ได้ถ้าที่นี่ทำได้ ถ้าไม่ได้ การส่งต่อไปที่ที่มี CTA กับ neurosurgeon เป็นทางที่สมเหตุสมผล
+
+[physician]
+ถ้า LP ต้องรอ 12 ชม. ตอนนั้น pt อยู่ที่ รพ.ปลายทางแล้ว คำถามผมเลยเปลี่ยนจาก CT ปกติพอไหม เป็นส่งต่อเลยหรือรอ CT ที่นี่ก่อน CT กับรออ่านผลใช้ราว 1 ชม. บวกเดินทาง 2 ชม. จะถึงที่ 6 ชม. ส่วนส่งต่อเลยจะถึงที่ 5 ชม. และ neuroradiologist อ่านได้ทันที ญาติกังวลค่ารถ แต่ CT ที่นี่ปกติผมก็ต้องส่งต่ออยู่ดีเพราะ Hb ต่ำ ผมเลยเอนไปส่งต่อเลย ถ้า CT เห็นเลือดแค่จุดเดียวที่ sulcus จะเปลี่ยนแผนไหม
+
+[assistant]
+การส่งต่อเลยสมเหตุสมผลครับ ด้วยเหตุผลที่ให้มาเอง ทั้ง Hb ต่ำ ผู้อ่านทางไกล และเวลาที่เสียไประหว่างรอ
+
+- ถ้า CT ที่นี่ปกติก็ยังต้องส่งต่ออยู่ดี การรอผลจึงไม่เปลี่ยนปลายทาง แต่เสียเวลา
+- ถ้าเห็นเลือดแค่ที่ sulcus ก็ไม่ควรเปลี่ยนแผน และต้องคิดถึง convexity SAH ที่พบร่วมกับ RCVS ได้ ซึ่งต้องทำ vascular imaging ต่อและเลี่ยงยา vasoactive เช่น triptan
+- Ottawa SAH rule ออกแบบมาเพื่อไม่ให้พลาด SAH ไม่ได้ช่วยแยกสาเหตุอื่นอย่าง RCVS (Ottawa SAH rule, Perry et al., 2013)
+- แจ้งปลายทางล่วงหน้าให้เตรียม CT/CTA และ neurosurgeon เพื่อไม่ให้เสียเวลาซ้ำ
+
+[physician]
+สรุปที่ได้ Ottawa SAH rule positive ต้อง investigate ต่อ, CT ใน 6 ชม. ไวมากแต่ขึ้นกับรุ่น scanner ผู้อ่าน และ Hb, xanthochromia ต้องรอ LP ที่ 12 ชม. ขึ้นไป, convexity SAH ต้องคิดถึง RCVS และทำ CTA ต่อ ขอบคุณครับ ระหว่างส่งต่อถ้า BP ขึ้นเป็น 190/100 ควรลดแค่ไหนโดยไม่ให้ perfusion ตก
+
+[assistant]
+สรุปถูกต้องครับ โดยเฉพาะข้อแรกที่ rule positive แล้วต้อง investigate ต่อ (Ottawa SAH rule, Perry et al., 2013)
+
+- เรื่องเป้าหมาย BP ก่อน aneurysm ได้รับการรักษา ผมยังไม่แน่ใจตัวเลขที่แน่ชัด เพราะหลักฐานไม่เด่น และแนวปฏิบัติแต่ละที่ต่างกัน
+- หลักที่ใช้กันคือเลี่ยงทั้ง BP สูงมากและ BP ตก เพราะ perfusion ของสมองสำคัญ
+- ถ้าต้องลดระหว่างทาง ใช้ยาฉีดที่ปรับขนาดได้ง่าย ลดทีละน้อยและเฝ้า GCS ตลอด
+- โทรปรึกษาปลายทางก่อนออกเดินทางว่าต้องการเป้าหมาย BP แบบไหน
+

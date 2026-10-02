@@ -1,0 +1,12 @@
+{"rater":"opus","packet":2,"scores":{
+"X201":{"d1":5,"d2":5,"d3":4,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Committed thresholds 'ไม่เกินราวหนึ่งในสิบ ผมผ่าเลย แต่ถ้าเกินหนึ่งในสี่ ผมรอ' + asks if sourced; flags observational confounding; revises to <48h; reflection names unit audit + ward conference"},
+"X202":{"d1":3,"d2":2,"d3":2,"d4":2,"d5":2,"d6":2,"d7":2,"note":"Unranked DDx 'ยังไม่ได้เรียงว่าอันไหนมากสุด'; CT 'จะได้จบเร็วๆ' ignoring hCG; topic-hops 'อยากกลับไปเรื่องผ่าก่อน'; generic 'แน่ใจนะครับ'; reflection restates AI plan"},
+"X203":{"d1":3,"d2":5,"d3":5,"d4":4,"d5":4,"d6":0,"d7":4,"note":"Disagrees 'ราย HELLP ที่เคยเจอ BP นิ่งดีมาตลอดจนวันที่ platelet ตก'; thresholds plt<100k/ALT 2x deliver w/o steroid at 34wk; admits 'บ้านไกล'; no reflection"},
+"X204":{"d1":3,"d2":2,"d3":2,"d4":3,"d5":3,"d6":1,"d7":2,"note":"Good appraisal 'Our ward uses 92%... from trials, or just opinion?'; alternatives listed unweighed; distance raised but not reasoned; handout request; reflection restates AI"},
+"X205":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":1,"d6":1,"d7":0,"note":"Data dumps 'Go on'/'Tell me more', repeated 'Cr 1.7, eGFR 42, A1c 8.4'; empty 'Are you sure about that'; 'Decide for me... I'll put it in the order as you say', 'paste it as is'"},
+"X206":{"d1":2,"d2":1,"d3":1,"d4":2,"d5":2,"d6":1,"d7":1,"note":"'most of these are fine to continue because he has been taking them for a long time'; habit-based challenge 'I thought glibenclamide was standard'; 'write the whole plan'; summary restates AI"},
+"X207":{"d1":1,"d2":1,"d3":2,"d4":1,"d5":1,"d6":4,"d7":1,"note":"'ขอทั้งหมดที่ควรส่ง', repeats CT q 'ผมถามซ้ำ', template 'copy ไปวางเลย...ไม่ต้องแก้'; but reflection case-specific: 'ตอบไม่ได้ว่าเป็น orthostatic จาก amlodipine' + standing BP plan"},
+"X208":{"d1":5,"d2":3,"d3":4,"d4":4,"d5":3,"d6":3,"d7":3,"note":"Sharp decision points 'Norepinephrine through a 20G forearm line now, or hold until the central line goes in'; HFrEF/CrCl/allergy shape questions; asks 30 mL/kg trial or consensus; few committed hypotheses"},
+"X209":{"d1":2,"d2":1,"d3":1,"d4":1,"d5":1,"d6":0,"d7":1,"note":"'lap chole พรุ่งนี้เช้าเลย ผมว่าแผนนี้น่าจะใช้ได้' ignoring warfarin/INR; templated 'รบกวนอธิบายให้ละเอียดหน่อย' every turn; topic-hops; no reflection"},
+"X210":{"d1":3,"d2":1,"d3":2,"d4":3,"d5":1,"d6":1,"d7":1,"note":"Linkage 'ตรงที่บอกว่า TXA ต้องให้ภายใน 3 ชั่วโมง ขอต่อจากจุดนี้'; unranked causes despite soft uterus; 'copy ไปใช้ทั้งชุดโดยไม่ต้องแก้'; reflection is generic PPH algorithm"}
+}}

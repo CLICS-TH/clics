@@ -659,6 +659,46 @@ The rule from now on:
     - Exclusions: anc-015 (pilot), anc-027 and anc-082, replaced by anc-101, anc-102 and anc-103.
       The item-11 stop rule was never reached.
     - Held-out: 60 of 60 locked and not yet rated by anyone.
+20. **Held-out scored, once (2026-10-02).** The user said go. Scoring used the current evaluator
+    prompt, with no d4 change. Every rating used the locked bytes (sha256 verified against
+    HELDOUT-LOCK.json). The evidence is screening-synthetic, not a decisive gate.
+    - **Blind panel** (`pilot/heldout/`): Sonnet and Opus, 6 shuffled packets of 10, no ids, no
+      targets.
+      - Panel mean vs target: ICC(A,1) **0.902 [0.654, 0.959]**, Spearman 0.94, bias +7.1. 13 of 60
+        are beyond ±15.
+      - Sonnet vs Opus: 0.961.
+      - Low dissociated domains were lifted in **14 of 14** cases (mean +2.0 levels); high ones read
+        correctly (−0.5). This confirms item 14 on held-out data.
+    - **Local evaluator** (DeepSeek `deepseek-v4-flash-dspark`, `pis7-prompt-59561c29+local-c5ffe572aa81`,
+      temperature 0, K = 3; `runs/heldout-local-2026-10-02-*.json`):
+      - The first invocation stopped at the 2-hour tool limit after 120 of 180 evaluations (runs 1–2;
+        the report is written after every run, so none was lost).
+      - Run 3 was scored by a second invocation and merged, relabelled run 3. Model, prompt,
+        rubric, decoding and contract were checked identical. 180 of 180 scored, 0 errors.
+    - **Pre-registered known-groups result** (`runs/heldout-local-2026-10-02-known-groups.json`):
+      - DeepSeek vs target: ICC(A,1) **0.587 [0.122, 0.796]**, below target. Spearman 0.787,
+        bias **+13.3**.
+      - 27 of 60 are beyond ±15 (45%).
+      - Per domain, Spearman runs from 0.49 (d7) to 0.88 (d6).
+      - Under §7.5 these are results only. The §7.6 "EXCEEDED" line in the tool output concerns a
+        tuning rewrite round and does not apply: held-out anchors are never rewritten.
+    - **Compressed scale.** DeepSeek's composites span 29–91 (SD 16.1), against target 16–93 (SD 23.5)
+      and panel 17–100 (SD 27.3).
+      - It over-scores low anchors: +25.4 on targets below 40, +14.2 on 40–69.
+      - It is about right on high anchors: −2.4 on 70 and above.
+      - Many composites sit at 75–80 (all 4s).
+    - **DeepSeek vs the Claude panel** (screening D18 analogue, held-out):
+      - ICC(A,1) **0.708 [0.533, 0.821]** with the mean of 3; 0.744 [0.601, 0.840] with run 1 alone.
+        Bias +6.3.
+      - The lower bound is below 0.75, so this does not pass a D18-style screen.
+    - **Test–retest** (DeepSeek run 1 vs run 2): ICC(A,1) 0.907 [0.824, 0.948]. Median composite
+      range across the 3 runs is 3, maximum 20. The evaluator is consistent with itself; the
+      shortfall is calibration (compression and low-end lift), not noise.
+    - **Reading.** The anchors read roughly as designed to Claude (0.90), which is circular: Claude
+      wrote them. The local evaluator ranks anchors reasonably (ρ 0.79) but compresses the scale.
+      As a scorer it does not yet match either reference. The held-out set is now spent for this
+      prompt: a re-calibrated prompt (for example a d4/low-end fix) needs fresh anchors or human
+      raters to be judged.
 
 ## 8. Pipeline and commands
 

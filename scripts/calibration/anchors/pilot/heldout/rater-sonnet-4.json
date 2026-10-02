@@ -1,0 +1,12 @@
+{"rater":"sonnet","packet":4,"scores":{
+"X401":{"d1":4,"d2":5,"d3":4,"d4":4,"d5":5,"d6":4,"d7":5,"note":"Appendicitis 50% -> 70% if score 7; newlywed, no CT, radiographer U/S; rebutted AI 'ทุกราย', asked fact vs opinion split, 'ผมเป็นคนเซ็นแผน'; reflection names probabilities."},
+"X402":{"d1":2,"d2":2,"d3":2,"d4":2,"d5":1,"d6":1,"d7":1,"note":"Data dumps, 'น่าจะเป็น gastric ulcer' unranked; only critique 'แน่ใจนะครับ'; copied from progress note; reflection 'ได้ความรู้เยอะมาก ขอบคุณครับ'."},
+"X403":{"d1":5,"d2":5,"d3":4,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Challenged AI SIADH rule: criteria need no diuretic, HCTZ stopped <24h, asked source; 2-step plan; checked cutoff vs full CPG; reflection with uncertainty and next-case action."},
+"X404":{"d1":4,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Challenged TXA via WOMAN trial (cause-specific mortality, 3h window, mixed PPH); revised atony-only to tear+atony; no blood bank, Hb 9; reflection plus PPH checklist plan."},
+"X405":{"d1":3,"d2":3,"d3":3,"d4":3,"d5":3,"d6":2,"d7":3,"note":"Delirium on dementia; feared CAM false-negative; asked source for wait-before-memory-test; reflection mostly restates AI plan without own insight or next action."},
+"X406":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":1,"d6":1,"d7":1,"note":"Generic 'ขอละเอียดทุกเรื่อง', 'checklist เต็มๆ copy ไปใช้'; unranked intra-op causes; only 'มี reference ไหมครับ'; reflection restates AI checklist."},
+"X407":{"d1":2,"d2":2,"d3":2,"d4":2,"d5":3,"d6":1,"d7":2,"note":"'โรคนี้รักษายังไงครับ', unranked DDx list, asks doses; some appraisal asking HEART derivation/population; reflection 'ได้ความรู้เยอะมาก ขอบคุณครับ'."},
+"X408":{"d1":5,"d2":5,"d3":4,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Challenged AI: CRP rises late, fever just started, algorithm built on PCT-capable ED; reranked UTI>viral>bacteremia; final summary, will verify full algorithm, 'order ผมสั่งเอง'."},
+"X409":{"d1":4,"d2":3,"d3":5,"d4":4,"d5":5,"d6":4,"d7":5,"note":"Formulary of 3 drugs, 1 nurse:12 beds, daughter alone 45 km; asked AI to find plan weaknesses; evidence caveats: haloperidol data ICU/post-op not this case; 'ลง order เอง'."},
+"X410":{"d1":2,"d2":1,"d3":1,"d4":2,"d5":1,"d6":0,"d7":1,"note":"Rote 'ใช่ไหมครับ' confirmations, no patient reasoning; 'ตัดสินใจให้เลยว่าให้ rtPA ไหม... copy ไปใส่ order' offloads decision; no reflection."}
+}}

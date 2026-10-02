@@ -1,0 +1,12 @@
+{"rater":"opus","packet":5,"scores":{
+"X501":{"d1":4,"d2":5,"d3":2,"d4":5,"d5":5,"d6":3,"d7":5,"note":"Threshold 90%->75% with mechanism; 'ประโยค ให้ได้ทุกราย ผมไม่เห็นด้วย'; asks RCT vs expert opinion; no real patient so context thin; reflection lacks next action"},
+"X502":{"d1":4,"d2":4,"d3":4,"d4":3,"d5":1,"d6":3,"d7":1,"note":"Ranked GCA>mass>SAH, re-ranked on ESR 90; DM/lives alone -> DTX at รพ.สต.; but 'เห็นด้วยทั้งหมด...เขียนเป็น order...copy ไปวาง' and asks AI to predict biopsy"},
+"X503":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"40%->25% vs 30% transfer threshold; 90 km, no NICU, AST office-hours only; three-tier evidence split of '37 wk'; 'แผนนี้ผมสั่งเอง หลังเทียบ PB 222 ต้นฉบับ'"},
+"X504":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":4,"d6":3,"d7":4,"note":"MDD vs adjustment justified; challenges Cipriani applicability to suicidal pts; husband's 30 hypnotics -> 7-day supply; sertraline over amitriptyline; plan recap, no learning"},
+"X505":{"d1":3,"d2":2,"d3":3,"d4":3,"d5":3,"d6":1,"d7":2,"note":"Generic 'best management'; salbutamol+pred because nurses expect, reversed without reasoning; questions 90% SpO2 cutoff evidence; reflection 'Very useful, I learned a lot'"},
+"X506":{"d1":3,"d2":3,"d3":2,"d4":3,"d5":4,"d6":3,"d7":4,"note":"'ที่บอก bridge ทุกราย ไม่มี source กำกับ ผมจำ BRIDGE 2015...ถ้าไม่มี ให้บอกตรง ๆ'; checks hospital protocol, writes own order; CHA2DS2-VASc 4 never drives a decision"},
+"X507":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":0,"d6":1,"d7":1,"note":"Textbook dumps 'ขอแบบครบทุกหัวข้อ', drug table to print for ward, topic-hopping; no critique; reflection 'ตามที่ AI สรุปให้ ได้ความรู้เยอะดี'"},
+"X508":{"d1":3,"d2":3,"d3":3,"d4":3,"d5":3,"d6":4,"d7":3,"note":"Anchors on hypertensive headache then raises GCA; asks source for BP claim and Ottawa applicability; reflection names what changed, uncertainty and how to apply"},
+"X509":{"d1":2,"d2":2,"d3":3,"d4":2,"d5":2,"d6":1,"d7":1,"note":"'How do I assess suicide risk?' generic; context (warfarin, guns, tramadol) drives 7-day supply/INR day 5; 'paste into chart as is, no time to read it'; summary restates AI"},
+"X510":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":1,"d6":1,"d7":1,"note":"Near-duplicate repeat of x-ray question; unjustified 'ligament ฉีกขาด ส่ง MRI'; 'เพื่อนบอก...แน่ใจนะครับ' not appraisal; copy note as-is; reflection 'ได้ความรู้เยอะมาก'"}
+}}

@@ -1,0 +1,12 @@
+{"rater":"sonnet","packet":1,"scores":{
+"X101":{"d1":3,"d2":2,"d3":2,"d4":4,"d5":4,"d6":2,"d7":4,"note":"Asked evidence level of 'test only if it changes plan'; 'ผมเปิด ESC 2022 เทียบแล้ว'; no ranked commitment; reflection a generic recap of AI points."},
+"X102":{"d1":2,"d2":2,"d3":2,"d4":2,"d5":2,"d6":2,"d7":2,"note":"One committed 'เริ่ม moderate-intensity เพราะ LDL เกิน 160' then topic-hops; vague 'ยังงง ๆ อยู่'; Thai-applicability asked; plan atorva 20 never discussed."},
+"X103":{"d1":5,"d2":4,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Caught 4 mm cutoff is postmenopausal 'she is still cycling'; no hysteroscopy/1-week pathology shape plan; 'Challenge it where it is weak'; Monday pregnancy-test + audit."},
+"X104":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":4,"d6":5,"d7":5,"note":"Counted RCRI 2 excluding non-insulin DM; conventional troponin only, atenolol HR 58 -> bradycardia at insufflation; 'ลองเถียงแผนนี้'; reflection has uncertainty and Monday lab action."},
+"X105":{"d1":1,"d2":1,"d3":2,"d4":1,"d5":2,"d6":0,"d7":1,"note":"Generic 'ขอแบบละเอียดๆ ทุกอย่าง', 'ส่งตรวจอะไรบ้าง'; asked NSAID dosing despite CKD; 'แน่ใจนะ...เห็นเขาส่ง MRI กันทุกราย' is social-proof not evidence; no reflection."},
+"X106":{"d1":4,"d2":4,"d3":4,"d4":4,"d5":5,"d6":3,"d7":4,"note":"'Kocher derive จากเด็ก hip ไม่ใช่เข่าผู้ใหญ่ใช่ไหม'; WBC 30,000 not dismissed 'เพราะไข้ยังอยู่ CRP สูง'; vanco at eGFR 45 trough plan; reflection recap only."},
+"X107":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":4,"note":"'48 กก. แต่สูง 130 ซม. ... fluid มากเกินไปไหม' exposed AI error; Hct 41->44 with IV dilution; 1.5h transfer, no ICU; reflection names change, uncertainty, order-sheet action."},
+"X108":{"d1":2,"d2":2,"d3":2,"d4":2,"d5":2,"d6":1,"d7":2,"note":"Repeated 'ขอแบบครบ ๆ' blanket asks, topic-hopping; numbers restated but do not drive reasoning; one 'มี source ไหม'; reflection 'จะนำไปใช้กับผู้ป่วยเบาหวานที่มีไตเสื่อม' generic."},
+"X109":{"d1":4,"d2":5,"d3":4,"d4":4,"d5":4,"d6":3,"d7":3,"note":"'10% large territory... cut-off for imaging about 15%'; revised 6%->10%; worsened angina 30% crosses cutoff; 'Aspirin for an open colectomy, are you sure?'; reflection short, no next step."},
+"X110":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":4,"d7":4,"note":"'CURB-65 derive จากกลุ่มที่มาถึง รพ. แล้ว ไม่นับ SpO2 กับ DM'; ranked pneumococcus first; lives alone/40 km/sister bedbound; 'เปลี่ยนคำถามจากคะแนนเป็นกลับมาทันไหม'; flipped OPD->admit."}
+}}

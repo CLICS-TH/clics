@@ -1,0 +1,12 @@
+{"rater":"opus","packet":6,"scores":{
+"X601":{"d1":5,"d2":3,"d3":5,"d4":4,"d5":4,"d6":5,"d7":4,"note":"Context drives choices (budget 1500, Cr only wk2/4, UACR 1x/6mo); probes 'trial รับ eGFR ช่วงไหน UACR 220 อยู่ในกลุ่มนั้นไหม'; reflection audits 20 pts; little ranked commitment"},
+"X602":{"d1":3,"d2":4,"d3":2,"d4":3,"d5":4,"d6":1,"d7":2,"note":"Ranked DDx + revision 'CRP 48 กับ WBC 11,000 ทำให้ infection ขยับขึ้น'; CIWA challenge; Child B never used in dosing; 'order ที่ copy ลง chart ได้เลย'; no reflection"},
+"X603":{"d1":3,"d2":5,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"'โอกาสแย่จนต้องส่งต่อราว 1 ใน 10'; no HFNC/PICU 2h/1 nurse -> refer; caught unsourced 3% saline; 'แผนนี้ผมเป็นคนสั่ง ไม่ได้ copy'; opener generic"},
+"X604":{"d1":2,"d2":1,"d3":1,"d4":1,"d5":1,"d6":2,"d7":1,"note":"Verbose context never used; 'ขอภาพรวมทั้งหมด', 'ขอเปลี่ยนเรื่องหน่อย', 'ตอบเท่าที่ตอบได้ก็พอ'; repeated questions; reflection restates AI content"},
+"X605":{"d1":4,"d2":4,"d3":3,"d4":4,"d5":5,"d6":3,"d7":5,"note":"'Canadian rule exclude กลุ่มกิน warfarin'; '<1% ... เกิน 5% repeat ทุกราย ตัวเลขนี้ผมประมาณเอง'; 'เทียบ NG232 ต้นฉบับเองก่อน order'; summary only, no reflection"},
+"X606":{"d1":1,"d2":1,"d3":0,"d4":1,"d5":4,"d6":1,"d7":2,"note":"Templated requests, no patient; 'copy whatever you give me straight into the order set'; one strong grading turn: 'every patient gets 30 mL/kg. No source supports'; generic reflection"},
+"X607":{"d1":2,"d2":2,"d3":2,"d4":1,"d5":1,"d6":1,"d7":2,"note":"Brief essential-HT hypothesis; topic-hops drug/lifestyle/target/lab; generic 'แน่ใจนะครับ'; context listed not reasoned; ends 'ได้ความรู้เยอะมาก ขอบคุณครับ'"},
+"X608":{"d1":4,"d2":5,"d3":5,"d4":4,"d5":5,"d6":5,"d7":4,"note":"BRIDGE excludes mech valve, mitral>aortic -> bridge; enoxaparin over UFH (no aPTT, beds); 'ฉลากคิดจาก CrCl ไม่ใช่ eGFR ... pt ตัวเล็ก'; reflection names change + plan"},
+"X609":{"d1":2,"d2":2,"d3":2,"d4":2,"d5":1,"d6":5,"d7":1,"note":"Unranked DDx 'นึกได้แค่นี้'; textbook detours; generic 'แน่ใจนะครับ'; 'copy ไปวางได้เลย'; reflection strong: 'เดิมคิดว่า...tension type แล้วนัด f/u', specific uncertainties+action"},
+"X610":{"d1":2,"d2":1,"d3":1,"d4":1,"d5":1,"d6":1,"d7":1,"note":"Unranked DDx, no update on lactate 3.2/WBC 14k; metformin+eGFR 38 ignored; topic hops (Gastrografin คืออะไร); copy plan to note; reflection 'ได้ความรู้เยอะมาก ขอบคุณครับ'"}
+}}
