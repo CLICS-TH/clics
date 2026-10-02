@@ -12,6 +12,7 @@ import fs from 'fs';
 import path from 'path';
 import { ATTESTATIONS } from '@/lib/pis7-rubric';
 import { ANCHOR_CLARITY } from '@/components/DomainScorer';
+import { REPORT_REASON, REPORTED_REPLY_SIGNAL } from '@/lib/report-reasons';
 
 const REPO = path.join(__dirname, '..', '..');
 const SCHEMAS = path.join(REPO, 'backend', 'src', 'lib', 'schemas.js');
@@ -62,5 +63,21 @@ describe('front-end mirrors of back-end vocabulary', () => {
       expect(a.th.trim().length).toBeGreaterThan(0);
       expect(a.en.trim().length).toBeGreaterThan(0);
     }
+  });
+
+  it('REPORT_REASON labels exactly the reasons the report endpoint accepts', () => {
+    // A reason the API takes and this page cannot name would render as a raw key in the safety queue.
+    expect(Object.keys(REPORT_REASON)).toEqual(stringArray(schemas, 'REPORT_REASONS'));
+    for (const r of Object.values(REPORT_REASON)) {
+      expect(r.th.trim().length).toBeGreaterThan(0);
+      expect(r.en.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it('the reported-reply signal is the one the backend writes', () => {
+    const scan = fs.readFileSync(path.join(REPO, 'backend', 'src', 'services', 'integrity-scan.js'), 'utf8');
+    const m = /const REPORTED_REPLY_SIGNAL = '([A-Z0-9_]+)'/.exec(scan);
+    if (!m) throw new Error('REPORTED_REPLY_SIGNAL not found in integrity-scan.js — did the declaration change shape?');
+    expect(REPORTED_REPLY_SIGNAL).toBe(m[1]);
   });
 });
