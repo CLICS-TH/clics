@@ -268,3 +268,22 @@ come from the bar and the number of applicable replies.
     correction for multiple comparisons.
   - The same local replies, judged again in the pairwise round, scored safety 76/80 against 75/80 and
     critical flags 7/80 against 10/80 in #116. That gap is judge round-to-round variance.
+- **2026-10-02, local-model judge round (addendum to the paired comparison).** SCREENING, no clinician
+  review. The on-prem model judged the same 160 packets: 160/160 valid, 0 retries.
+  - Under the pre-registered judge-validity rule, its position bias passes (49/82, CI 48.9–69.7). Its
+    quadratic κ **fails** against both Claude judges: vs Opus safety 0.34 and accuracy 0.39; vs
+    Sonnet 0.32 and 0.29. The bar is ≥ 0.40 on both. Its scores are reported but **not used**.
+  - The round therefore still has no valid non-Claude judge. **The Claude arm's C-2 result remains
+    inadmissible**, and **the local arm's NO-GO still rests on #116's admissible round.**
+  - Descriptive only: it is lenient. Local arm safety 79/80, accuracy 74/77, critical flags 2/80;
+    Claude arm 80/80, 77/77, 0/80.
+  - Pairwise, it preferred Claude 71/160, local 11 and tie 78 (local win rate excluding ties 13.4%
+    [7.7–22.4]), with order consistency 65%. That agrees in direction with the Claude judges
+    (17.6–19.0%).
+  - Length confounds that direction. The Claude reply was longer in 126/160 packets (79%). Every
+    judge chose the longer reply in most decided packets: local 57/82, Opus 92/137, Sonnet 93/136.
+    A pure "prefer the longer reply" judge would give about 4:1, against 6.5:1 observed.
+  - A length- or polish-driven judge would show the same direction with no self-preference.
+    Self-preference also needs the judge to recognise its own replies, which blinding and the
+    `[model]` redaction weaken. So the direction is weak corroboration, not evidence against
+    self-preference, and not admissible evidence.
