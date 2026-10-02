@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-096.json",
+      "id": "anc-096",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "- Transfuse restrictively: the trigger is 7 g/dL for upper GI bleeding patients.",
+      "citation_on_claim": false,
+      "corrected_in_turn": 5,
+      "note": "True for the general restrictive-policy population but stated without limits; the physician challenges it for a patient with a coronary stent and the tutor concedes that the trials mostly excluded major cardiovascular disease and a higher trigger around 8 g/dL is generally used."
+    }
+  ]
+}

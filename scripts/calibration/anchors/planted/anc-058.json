@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-058.json",
+      "id": "anc-058",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "it shortens total hospital stay without raising complications compared with delayed surgery",
+      "citation_on_claim": true,
+      "corrected_in_turn": 5,
+      "note": "True in the trials behind it (mostly Grade I-II, experienced laparoscopic surgeons, few high-risk patients) but stated without those edges; the later tutor turn concedes the population limits."
+    }
+  ]
+}

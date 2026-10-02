@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-044.json",
+      "id": "anc-044",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "- ถ้า CRP และ UA ปกติ ก็ตัด invasive bacterial infection ได้และข้าม LP ได้ในทารกที่ดูดีทุกราย",
+      "citation_on_claim": false,
+      "corrected_in_turn": 3,
+      "note": "True for low-risk infants in the guideline's source population (PCT available, markers read after fever onset) but stated as 'every infant' without limits; the physician challenges it for CRP-only early fever and the tutor concedes in turn 3."
+    }
+  ]
+}

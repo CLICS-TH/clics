@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-079.json",
+      "id": "anc-079",
+      "turn": 5,
+      "kind": "false",
+      "claim": "- ใช้ CIWA-Ar ≥ 8 เป็นเกณฑ์เริ่มยาได้กับทุกราย รวมถึงผู้ป่วยที่ซึมสับสนจนตอบเองไม่ได้",
+      "citation_on_claim": false,
+      "corrected_in_turn": 7,
+      "note": "CIWA-Ar needs the patient to answer, so it cannot be used for every patient (not for confused or sedated ones); the physician catches it in turn 6 and the tutor concedes in turn 7."
+    }
+  ]
+}

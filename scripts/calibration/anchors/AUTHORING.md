@@ -645,6 +645,20 @@ The rule from now on:
         rule is unchanged.
       - The noise is reported so that the cohort's panel numbers are not read more precisely than
         they are.
+18. **Batches 4–8 panel (2026-10-02).** The cohort is complete: 100 fixtures, and the held-out lock
+    covers 60 of 60. The panel rated the last 2 tuning anchors (first write) among 2 unchanged pilot
+    decoys (`pilot/batch-4-8/`).
+    - anc-057 reads +13 and stays.
+    - anc-052 reads +16.0 (Sonnet 96, Opus 100) and uses its one rewrite. It is near the line that
+      item 17 says this panel cannot resolve, but the rule is applied as written.
+    - Decoys: anc-016 +14, anc-020 +3.
+19. **Round S (2026-10-02).** The anc-052 rewrite reads **+11.5** and stays. Decoys: anc-007 +6,
+    anc-008 −10.
+    - **The tuning screen is complete.** 40 tuning anchors were each screened by the two-model panel
+      on their current text, and none is outstanding.
+    - Exclusions: anc-015 (pilot), anc-027 and anc-082, replaced by anc-101, anc-102 and anc-103.
+      The item-11 stop rule was never reached.
+    - Held-out: 60 of 60 locked and not yet rated by anyone.
 
 ## 8. Pipeline and commands
 

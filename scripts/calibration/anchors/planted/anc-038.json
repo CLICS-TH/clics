@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-038.json",
+      "id": "anc-038",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "- CURB-65 = 1 (อายุมากกว่า 65 อย่างเดียว) จัดเป็นความเสี่ยงต่ำ รักษาแบบผู้ป่วยนอกได้",
+      "citation_on_claim": false,
+      "corrected_in_turn": 3,
+      "note": "True in the derivation population (patients already at hospital) but stated without limits; the physician challenges it for a patient with DM, SpO2 and social factors the score does not count, and the tutor concedes in turn 3."
+    }
+  ]
+}

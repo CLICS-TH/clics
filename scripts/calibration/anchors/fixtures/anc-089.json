@@ -1,0 +1,58 @@
+{
+  "ple_id": "anc-089",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "pt ชายวัย 60 กว่า ส่งต่อมาจาก รพ.ชุมชน โดยรถ ambulance ใช้เวลาเดินทาง 90 นาที อาเจียนเป็นเลือดสด 2 ครั้ง ถ่ายดำ 1 วัน vitals BP 100/60 HR 112 RR 20 T 37.2 SpO2 97% Hb 8.9 Hct 27 Plt 210,000 BUN 38 Cr 1.4 eGFR 48 INR 1.1 โรคประจำตัว DM HT OA เข่า กิน diclofenac 50 mg วันละ 3 ครั้ง มา 2 สัปดาห์ ร่วมกับ aspirin 81 mg และ metformin 500 mg วันละ 2 ครั้ง ผมว่าน่าจะเป็น gastric ulcer ครับ ไม่ดื่มเหล้า ไม่สูบบุหรี่ น้ำหนัก 72 kg สูง 168 cm BMI 25.5 ไม่มีประวัติแพ้ยา ไม่เคยผ่าตัดช่องท้อง ขอถามว่า UGIB จาก NSAIDs ต้องจัดการยังไงบ้างครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ภาพนี้เข้าได้กับเลือดออกจากแผลในกระเพาะอาหารที่สัมพันธ์กับ NSAIDs ร่วมกับ aspirin ครับ แนวทางเบื้องต้นคือ\n- resuscitate ก่อน ให้ IV access 2 เส้นพร้อมสารน้ำ แล้วประเมินความเสี่ยง Glasgow-Blatchford score ของ pt รายนี้สูง จึงต้อง admit ไม่ใช่ดูแบบผู้ป่วยนอก (Glasgow-Blatchford score, 2000)\n- ส่ง EGD ภายใน 24 ชั่วโมงหลังปรับสภาพ เพื่อยืนยันแหล่งเลือดและทำ hemostasis ถ้าพบ high-risk stigmata (ACG upper GI bleeding guideline, 2021)\n- หยุด diclofenac ทันที ส่วน aspirin ถ้าใช้เพื่อป้องกันหลอดเลือดซ้ำ ไม่ควรหยุดนานเกินจำเป็น (ACG upper GI bleeding guideline, 2021)\n- metformin ควร hold ไว้ระหว่างที่ hemodynamics ยังไม่นิ่ง\n❓ ถ้า EGD พบแผลที่ยังมี visible vessel แผนการให้ PPI และการเฝ้าระวังหลังทำหัตถการจะต่างจากแผลสะอาดอย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ตอนนี้ pt อยู่ ward ให้ NSS 1000 ml แล้ว BP 108/68 HR 104 urine 40 ml/hr Hb 8.4 Na 138 K 4.2 Cl 102 HCO3 22 Alb 3.6 AST 28 ALT 31 glucose 186 ยาประจำอีก amlodipine 5 mg กับ simvastatin 20 mg ตอนนี้ NPO มา 8 ชม. แล้ว ECG 12 lead ได้ sinus rhythm rate 108 troponin ปกติ ที่ รพ.ชุมชนให้ omeprazole 40 mg IV มา 1 ครั้ง ถามเรื่อง PPI ครับ ให้ยังไงและให้นานแค่ไหน รบกวนด้วยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "เรื่อง PPI ขึ้นกับผล EGD ครับ\n- ก่อน EGD ให้ PPI ไปก่อนได้ แต่ไม่ทดแทนการส่องกล้อง\n- ถ้าพบแผลที่มี high-risk stigmata และทำ hemostasis สำเร็จ ให้ PPI ขนาดสูงต่อเนื่องหรือเป็นช่วง ๆ นาน 3 วัน แล้วต่อด้วย PPI วันละสองครั้งจนครบ 14 วัน (ACG upper GI bleeding guideline, 2021)\n- หลังจากนั้นลดเป็นวันละครั้งตามข้อบ่งชี้ เช่น ยังต้องใช้ aspirin ต่อ\nส่วน NPO และสารน้ำที่ให้อยู่ ควรประเมินซ้ำทุกเวร\n❓ ถ้า pt ยังต้องกิน aspirin ต่อ ท่านจะวางแผนเรื่อง PPI และการติดตามอย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ok ครับ เรื่องเลือดบ้างครับ ต้องให้ PRC เมื่อไหร่ ญาติบอกว่าเสียเลือดไปประมาณ 500 ml ส่ง CBC ซ้ำตอน 18.00 น. ได้ Hb 8.1 Hct 24 Plt 198,000 BP 104/66 HR 100 RR 18 T 36.9 SpO2 98% urine 35 ml/hr ยังไม่มีอาเจียนซ้ำ ถ่ายดำอีก 1 ครั้ง ส่ง group O Rh+ crossmatch ไว้ 2 unit แล้ว PT 12.5 sec aPTT 30 sec"
+    },
+    {
+      "role": "assistant",
+      "content": "ในแง่การให้เลือด แนวทางแนะนำ restrictive strategy ครับ\n- ให้ PRC เมื่อ Hb ต่ำกว่า 7 g/dL ในผู้ป่วยทั่วไป (ACG upper GI bleeding guideline, 2021)\n- ผู้ป่วยโรคหัวใจและหลอดเลือดอาจพิจารณาเกณฑ์ที่สูงกว่านี้ตามดุลยพินิจแพทย์\n- Hb 8.1 ตอนนี้ยังสูงกว่าเกณฑ์ และ vitals ค่อนข้างนิ่ง จึงยังไม่ต้องให้ PRC แต่ให้เฝ้าดูเลือดออกต่อเนื่องและ CBC ซ้ำ\n❓ ถ้า Hb ตกเหลือ 6.8 พร้อม HR 125 ท่านจะให้ PRC กี่ unit และตรวจอะไรซ้ำหลังให้"
+    },
+    {
+      "role": "physician",
+      "content": "แน่ใจนะครับ แล้วเรื่อง H. pylori ต้องตรวจไหมครับ ตอนนี้ผ่านมา 36 ชม. แล้ว ผล EGD เช้านี้ พบ gastric ulcer 1.5 cm ที่ antrum มี visible vessel ฉีด epinephrine 1:10,000 รวม 8 ml และใส่ clip 2 อัน CXR ไม่พบ free air หลังทำ BP 112/70 HR 96 Hb 8.6 Hct 26 BUN 30"
+    },
+    {
+      "role": "assistant",
+      "content": "ยืนยันครับ restrictive threshold มาจากการศึกษาแบบสุ่มและถูกรวมไว้ในแนวทางล่าสุด (ACG upper GI bleeding guideline, 2021) ส่วนผล EGD ที่ได้ถือเป็น high-risk stigmata ซึ่งเข้ากับแผนให้ PPI ขนาดสูง 3 วันที่คุยกันไว้\n- epinephrine ไม่ควรใช้เดี่ยว ๆ ต้องร่วมกับ clip หรือ thermal therapy ซึ่ง pt ได้ครบแล้ว (ACG upper GI bleeding guideline, 2021)\n- H. pylori ควรตรวจในผู้ป่วย ulcer bleeding ทุกราย ถ้าพบเชื้อให้กำจัดเชื้อ (ACG upper GI bleeding guideline, 2021)\n- ถ้าผลตรวจช่วงเลือดออกเฉียบพลันเป็นลบ ควรตรวจซ้ำภายหลัง เพราะอาจเป็น false negative\n❓ ถ้า rapid urease test ให้ผลลบ ท่านจะสรุปว่าไม่มี H. pylori ได้หรือไม่ เพราะอะไร"
+    },
+    {
+      "role": "physician",
+      "content": "อธิบายเรื่อง H. pylori เพิ่มหน่อยครับ pt อยู่ห่างจาก รพ. ประมาณ 60 km (ข้อมูลนี้ผมก๊อปจาก progress note) ผมเลยจะนัดเจาะ Hb ซ้ำที่ รพ.สต. ใกล้บ้านในอีก 3 วัน แทนที่จะให้มา รพ. ตอนนี้ Hb 8.9 BP 116/72 HR 90 Cr 1.3 K 4.0 Na 139 diclofenac หยุดแล้ว เขาบอกว่าซื้อยาแก้ปวดจากร้านยากินเพิ่มอีกวันละ 2 เม็ดด้วย ปวดเข่ามาประมาณ 2 เดือน"
+    },
+    {
+      "role": "assistant",
+      "content": "เรื่อง H. pylori ครับ\n- ตรวจให้ครบ ถ้าบวกต้องให้ regimen กำจัดเชื้อตามแนวทางที่ใช้ในประเทศ และยืนยันว่าเชื้อหายภายหลัง (ACG upper GI bleeding guideline, 2021)\n- ควรหยุด NSAIDs ถาวรเท่าที่ทำได้ เพราะ NSAIDs เป็นปัจจัยสำคัญของแผลรายนี้\n- นัดเจาะ Hb ซ้ำที่สถานพยาบาลใกล้บ้านภายใน 3 วันทำได้ ถ้ามีช่องทางส่งผลกลับมาให้แพทย์\n- แนะนำอาการเตือนให้กลับมาทันที เช่น ถ่ายดำซ้ำ เวียนศีรษะ ใจสั่น\n❓ ถ้าสถานพยาบาลใกล้บ้านเจาะ Hb ได้แต่แปลผลต่อไม่ได้ อาการแบบไหนที่ควรให้ pt กลับมา รพ. ทันที"
+    },
+    {
+      "role": "physician",
+      "content": "ช่วยสรุปแผนให้หน่อยครับ pt จะ D/C พรุ่งนี้ Hb 9.1 BP 118/74 HR 88 Cr 1.3 eGFR 54 กินข้าวได้แล้ว ถ่ายเหลืองแล้ว 1 ครั้ง glucose 142 BUN 22 Hct 28 Plt 214,000 ยังมี OA เข่าอยู่ด้วย ญาติ 2 คนรออยู่ถามว่าพรุ่งนี้กลับได้ไหม"
+    },
+    {
+      "role": "assistant",
+      "content": "สรุปแผนก่อนจำหน่ายตามที่คุยกัน\n- หยุด diclofenac และหลีกเลี่ยง NSAIDs ต่อ\n- PPI ขนาดสูงครบ 3 วัน แล้ววันละสองครั้งจนครบ 14 วัน (ACG upper GI bleeding guideline, 2021)\n- ตรวจและรักษา H. pylori ถ้าพบเชื้อ\n- aspirin ให้ต่อหรือไม่ตามข้อบ่งชี้ของ pt\n- เจาะ Hb ซ้ำที่สถานพยาบาลใกล้บ้านภายใน 3 วัน และสอนอาการเตือน\n❓ ถ้า pt ยังปวดเข่ามากหลังหยุด diclofenac ท่านจะเลือกยาแก้ปวดอะไร และต้องเฝ้าระวังอะไร"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nได้ความรู้เยอะมาก ขอบคุณครับ"
+    }
+  ]
+}

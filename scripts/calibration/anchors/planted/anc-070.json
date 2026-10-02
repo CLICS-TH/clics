@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-070.json",
+      "id": "anc-070",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "- Alvarado 7 ขึ้นไปเข้าได้กับไส้ติ่งอักเสบพอจะผ่าตัดได้เลยในทุกราย",
+      "citation_on_claim": false,
+      "corrected_in_turn": 7,
+      "note": "A score of 7 or more is a risk stratifier, not a licence to operate on everyone and not validated for women of reproductive age without imaging; the physician challenges 'ทุกราย' in turn 6 and the tutor concedes in turn 7 with the WSES Jerusalem guideline."
+    }
+  ]
+}

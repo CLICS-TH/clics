@@ -1,0 +1,305 @@
+######## EPISODE R01 ########
+[physician]
+สวัสดีครับ วันนี้เวร ER ยุ่งมาก คนไข้เยอะ เลยอยากถามเร็วๆ ครับ มีคนไข้ผู้ชายในวัย 60 กว่า มาด้วยเจ็บหน้าอก ทำ ECG แรกไปแล้วปกติ อยากทราบว่าเจ็บหน้าอกโดยทั่วไปต้องคิดถึงโรคอะไรบ้างครับ ขอแบบครบๆ ทั้งโรคหัวใจ โรคปอด โรคทางเดินอาหาร กล้ามเนื้อ แล้วก็อื่นๆ ครับ ตอนเรียนเคยท่องไว้แต่ลืมไปเกือบหมดแล้ว
+
+[assistant]
+สวัสดีครับ เจ็บหน้าอกในผู้ป่วยวัยนี้ ควรแยกโรคที่อันตรายถึงชีวิตก่อนเสมอครับ
+
+- **ACS** — ECG แรกที่ปกติ *ไม่ได้* exclude ACS ต้องทำ serial ECG และ hs-troponin ตาม algorithm 0/1 ชม. หรือ 0/2 ชม. (ESC, 2023)
+- **Aortic dissection** — เจ็บฉีกร้าวไปหลัง, ชีพจร/BP สองแขนต่างกัน
+- **Pulmonary embolism** — หอบ, หัวใจเต้นเร็ว, มี risk factor ของ VTE
+- **Tension pneumothorax, cardiac tamponade, esophageal rupture**
+
+หลังจากนั้นจึงค่อยพิจารณาสาเหตุที่ไม่อันตราย เช่น GERD หรือ musculoskeletal pain
+
+❓ ลักษณะอาการเจ็บและ risk factor ของผู้ป่วยรายนี้เป็นอย่างไร ที่จะทำให้ความน่าจะเป็นของ ACS สูงหรือต่ำครับ?
+
+[physician]
+ส่ง lab อะไรบ้างครับ ขอเป็นรายการเลยครับว่าเจ็บหน้าอกทั่วไปต้องเจาะอะไรบ้าง CBC ไหม electrolyte ไหม LFT ไหม amylase ไหม coagulogram ไหม อยากได้ครบๆ จะได้สั่งทีเดียว ไม่ต้องกลับมาสั่งเพิ่มทีหลัง แล้วถ้าเป็นไปได้ขอเรียงตามลำดับที่ควรสั่งด้วยครับ เพราะ lab ที่นี่ออกช้า
+
+[assistant]
+สำหรับเจ็บหน้าอกที่สงสัย ACS แนะนำดังนี้ครับ
+
+- **hs-troponin** ครั้งแรกตอนมาถึง และซ้ำที่ 1–2 ชม. ตาม assay ที่โรงพยาบาลใช้ (ESC, 2023)
+- **ECG ซ้ำ** ทุก 15–30 นาทีถ้ายังเจ็บอยู่ หรือเมื่ออาการเปลี่ยน
+- CBC, electrolyte, Cr/eGFR (มีผลต่อการเลือกยาและ contrast), glucose
+- **CXR** เพื่อดู pneumothorax, mediastinum กว้าง หรือ pulmonary edema
+- D-dimer ใช้เฉพาะเมื่อความน่าจะเป็นของ PE ต่ำถึงปานกลางเท่านั้น
+- LFT, amylase, coagulogram ไม่จำเป็นต้องส่งทุกราย ให้ส่งตามอาการหรือเมื่อจะให้ยาต้านการแข็งตัวของเลือด
+
+❓ ถ้า troponin ครั้งแรกปกติ จะใช้ข้อมูลอะไรตัดสินว่าต้องรอ troponin ครั้งที่สองหรือไม่ครับ?
+
+[physician]
+ตอนนี้ ECG ปกติ troponin ครั้งแรกก็ปกติแล้วครับ งั้นก็ไม่ใช่ ACS แน่นอนใช่ไหมครับ ผมว่าน่าจะเป็นกล้ามเนื้อหรือกรดไหลย้อนมากกว่า ให้กลับบ้านได้เลย เตียงใน ER ก็เต็มแล้วด้วย ไม่อยากให้นอนรอนาน
+
+[assistant]
+ยังสรุปแบบนั้นไม่ได้ครับ ขออนุญาตแย้งด้วยเหตุผลนี้
+
+- troponin ครั้งเดียวที่ปกติ rule out ได้ก็ต่อเมื่อค่าต่ำมาก *และ* อาการเริ่มมานานกว่า 3 ชม. แล้วเท่านั้น ถ้ามาเร็วกว่านั้นต้องเจาะซ้ำตาม algorithm (ESC, 2023)
+- ECG ปกติพบได้ใน NSTE-ACS จำนวนไม่น้อย
+- ควร risk stratify ด้วย **HEART score** (History, ECG, Age, Risk factors, Troponin) — คะแนน 0–3 มีอัตรา MACE ต่ำและพิจารณา discharge ได้เมื่อ troponin ซ้ำปกติ (Six et al., 2008)
+
+ผู้ป่วยในวัย 60 กว่าได้คะแนนจากอายุไปแล้ว จึงยังไม่ควรให้กลับบ้านจนกว่าจะครบ serial testing ครับ
+
+❓ ผู้ป่วยรายนี้เริ่มเจ็บมากี่ชั่วโมงก่อนเจาะ troponin ครั้งแรกครับ?
+
+[physician]
+ok ครับ แล้ว aspirin ให้ขนาดเท่าไหร่ครับ เม็ดละกี่ mg ให้กี่เม็ด เคี้ยวหรือกลืน แล้ว clopidogrel ต้องให้ด้วยไหม ให้ขนาดเท่าไหร่ ขอเป็นตัวเลขเลยครับ
+
+[assistant]
+ถ้าสงสัย ACS และไม่มีข้อห้าม แนะนำดังนี้ครับ
+
+- **Aspirin loading 150–300 mg** ให้เคี้ยว (chewable) แล้วตามด้วย 75–100 mg วันละครั้ง (ESC, 2023)
+- ข้อห้ามที่ต้องถามก่อน: แพ้ aspirin, active bleeding, ประวัติเลือดออกในทางเดินอาหารเมื่อเร็วๆ นี้
+- **Clopidogrel**: ยังไม่ควรให้ P2Y12 inhibitor ล่วงหน้าเป็น routine ถ้ายังไม่ได้วินิจฉัย ACS และยังไม่ได้วางแผน invasive strategy (ESC, 2023)
+
+ทั้งนี้ aspirin ไม่ได้ช่วยยืนยันหรือตัดการวินิจฉัย การ rule out ยังต้องอาศัย serial ECG และ troponin ครับ
+
+❓ ผู้ป่วยรายนี้มีข้อห้ามของ aspirin หรือกำลังกินยาต้านเกล็ดเลือดอยู่แล้วหรือไม่ครับ?
+
+[physician]
+สรุปให้หน่อยครับว่าคนไข้เป็นอะไร ตอบสั้นๆ คำเดียวพอ จะเอาไปเขียนใน chart ช่อง diagnosis เลย ไม่ต้องอธิบายเหตุผลนะครับ ไม่มีเวลาอ่าน ขอแค่ diagnosis พอ ถ้าตอบยาวเดี๋ยวต้องมานั่งตัดเองอีก
+
+[assistant]
+ผมให้คำวินิจฉัยคำเดียวแทนแพทย์ผู้ดูแลไม่ได้ครับ เพราะยังไม่มีข้อมูลสำคัญ เช่น ลักษณะอาการเจ็บ เวลาที่เริ่มเจ็บ risk factor และผล troponin ครั้งที่สอง และการวินิจฉัยที่บันทึกใน chart ต้องเป็นการตัดสินของแพทย์ผู้ดูแลครับ
+
+สิ่งที่บันทึกได้ตามข้อมูลตอนนี้คือ
+- **Chest pain, ACS not yet excluded** — ECG แรกและ troponin แรกปกติ
+- แผน: serial hs-troponin และ ECG ตาม algorithm แล้ว risk stratify ด้วย HEART score (Backus et al., 2013)
+
+❓ จากข้อมูลที่มีอยู่ตอนนี้ คิดว่า HEART score ของผู้ป่วยรายนี้น่าจะอยู่ที่เท่าไรครับ?
+
+[physician]
+คนไข้เจ็บหน้าอกแบบไหนที่ต้องส่ง CT ครับ แล้ว CT ต้องฉีดสีไหม ต้องงดน้ำงดอาหารก่อนไหม ใช้เวลานานเท่าไหร่ ขอแบบทั่วๆ ไปครับ
+
+[assistant]
+การส่ง CT ในเจ็บหน้าอกขึ้นกับว่าสงสัยโรคอะไรครับ
+
+- **CT angiography ของ aorta** — เมื่อสงสัย aortic dissection เช่น เจ็บฉีกร้าวทันทีทันใด ร้าวไปหลัง ชีพจรไม่เท่ากัน หรือ mediastinum กว้างใน CXR
+- **CT pulmonary angiography** — เมื่อความน่าจะเป็นของ PE สูง หรือ D-dimer บวกในกลุ่มความน่าจะเป็นต่ำ–ปานกลาง
+- **Coronary CT angiography** — ใช้ในผู้ป่วยที่ความน่าจะเป็นของ ACS ต่ำถึงปานกลาง ที่ troponin และ ECG ไม่ชัดเจน เพื่อช่วย rule out coronary disease (ESC, 2023)
+
+ทั้งสามแบบต้องฉีด contrast จึงควรตรวจ Cr/eGFR ก่อน ส่วนการงดอาหารและระยะเวลาขึ้นกับแนวปฏิบัติของแต่ละโรงพยาบาลครับ
+
+❓ ในผู้ป่วยรายนี้ มีลักษณะใดที่ทำให้คิดถึง aortic dissection หรือ PE มากกว่า ACS ไหมครับ?
+
+[physician]
+ok งั้นเขียน discharge note ให้เลยครับ บอกว่าไม่ใช่โรคหัวใจ ใส่คำแนะนำให้คนไข้ด้วย ยากลับบ้านใส่ omeprazole กับ paracetamol ไปเลย เดี๋ยว copy ไปวางในระบบทั้งหมด ไม่ต้องแก้อะไรแล้ว
+
+[assistant]
+ผมเขียนว่า "ไม่ใช่โรคหัวใจ" ให้ไม่ได้ครับ เพราะจากข้อมูลที่มีตอนนี้ ACS ยังไม่ถูก rule out ตามเกณฑ์ (ESC, 2023) และการตัดสินใจให้ผู้ป่วยกลับบ้านเป็นความรับผิดชอบของแพทย์ผู้ตรวจครับ
+
+ถ้าเมื่อครบ serial troponin และ ECG แล้วผลปกติ และ HEART score ต่ำ discharge note ควรมีอย่างน้อย
+- ผลตรวจที่ใช้ตัดสินใจ (ECG ทั้งสองครั้ง, troponin ทั้งสองครั้ง)
+- คำแนะนำให้กลับมาทันทีถ้าเจ็บหน้าอกซ้ำ เหงื่อแตก หอบ หรือเป็นลม
+- นัดติดตามและการตรวจเพิ่มเติมแบบ outpatient ตามความเสี่ยง
+
+ส่วนยากลับบ้าน เช่น omeprazole ควรสั่งเมื่อมีเหตุผลทางคลินิกรองรับ ไม่ใช่เพื่อใช้แทนการ rule out ACS
+
+❓ ก่อนให้ผู้ป่วยกลับบ้าน จะใช้เกณฑ์อะไรยืนยันว่าความเสี่ยงต่ำพอครับ?
+
+[physician]
+ok ครับ thanks ครับ วันนี้ได้ข้อมูลเยอะเลย เอาไว้ใช้กับคนไข้เจ็บหน้าอกคนอื่นๆ ได้ด้วย เดี๋ยวต้องไปดูคนไข้เตียงอื่นต่อแล้วครับ
+
+[assistant]
+ยินดีครับ ขอฝากประเด็นสำคัญไว้สั้นๆ ครับ
+
+- ECG และ troponin ครั้งแรกที่ปกติยังไม่พอจะ rule out ACS ต้องทำซ้ำตาม algorithm (ESC, 2023)
+- ใช้ HEART score ช่วยตัดสินใจเรื่อง discharge (Six et al., 2008)
+- การวินิจฉัยและการให้ผู้ป่วยกลับบ้านควรมาจากการประเมินของแพทย์เอง
+
+❓ ถ้า troponin ครั้งที่สองสูงขึ้นเล็กน้อยแต่ยังไม่เกิน cut-off จะทำอย่างไรต่อครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ความรู้เยอะมากครับ thanks ครับ
+
+######## EPISODE R02 ########
+[physician]
+pt หญิงสูงอายุ ในวัย 80 กว่า ล้มที่บ้านแล้วปวดสะโพกขวามาก เดินลงน้ำหนักไม่ได้ ญาติพามาที่ รพ.ชุมชน ขนาด 30 เตียง ไม่มี CT x-ray เห็น displaced femoral neck fracture ด้านขวา โรคประจำตัวมี HT, DM, CAD เคยใส่ stent ทานยา aspirin 81 mg กับ clopidogrel 75 mg ทุกวัน นอกจากนี้ก็ amlodipine, metformin, atorvastatin วัดได้ BP 150/90 HR 88 Hb 11.2 Cr 1.4 ญาติบอกว่าปกติเดินเองได้ ไม่ใช้ไม้เท้า ทานข้าวได้ตามปกติ ไม่มีไข้ ไม่มีไอ ตอนนี้ให้ IV fluid ไว้ก่อน ญาติรออยู่หน้าห้อง ลูกสาวยังเดินทางมาไม่ถึง ผมอยากรู้ภาพรวมของ hip fracture ในผู้สูงอายุว่าโดยทั่วไปรักษายังไง ช่วยอธิบายให้ละเอียดหน่อยครับ
+
+[assistant]
+ยินดีครับ สรุปภาพรวมสั้น ๆ สำหรับ displaced femoral neck fracture ในผู้สูงอายุ
+- เป้าหมายหลักคือผ่าตัดให้เร็ว โดยทั่วไปภายใน 24–48 ชม. หลังมาถึง รพ. เมื่อ optimize อาการได้พอสมควร (AAOS hip fracture guideline, 2021)
+- รายที่ displaced ในผู้สูงอายุ มักเลือก arthroplasty (hemi หรือ total) มากกว่า fixation เพราะโอกาสที่ fixation ล้มเหลวและต้องผ่าซ้ำสูงกว่า (AAOS hip fracture guideline, 2021)
+- ยาที่ทานอยู่สำคัญมากก่อนผ่า: pt มี stent และทาน aspirin กับ clopidogrel อยู่ ไม่ควรหยุดยาเองโดยไม่ชั่งความเสี่ยง stent thrombosis เทียบกับเลือดออก ควรคุยกับ cardiologist เรื่องระยะเวลาหลังใส่ stent และแผนยา (ESC guidelines non-cardiac surgery, 2022)
+- Hb 11.2 กับ Cr 1.4 ควรติดตามต่อ และเตรียม type & screen ไว้
+- หลังผ่าตัดเริ่มลุกเดินเร็วและทำ rehab ร่วมกับทีมสหสาขา
+
+[physician]
+ok ครับ งั้นผมวางแผนผ่า hemiarthroplasty พรุ่งนี้เช้า 8 โมง ใช้ spinal block เลยนะครับ ส่วนเรื่องยาแก้ปวด pt ตอนนี้ปวด 8/10 นอนไม่ได้เลย ญาติก็กังวลมาก อยากทราบว่าควรใช้ยาแก้ปวดอะไรดีครับ ช่วยบอกยาที่ใช้บ่อยหน่อย แล้วก็อยากทราบว่าต้องเตรียมอะไรอีกก่อนเข้าห้องผ่าตัด เพราะที่ รพ.เราไม่ค่อยได้ผ่ารายแบบนี้ ขอรบกวนช่วยบอกเป็นข้อ ๆ ให้ครบหน่อยครับ
+
+[assistant]
+แผน hemiarthroplasty ตอนเช้าสมเหตุสมผลกับรายที่ displaced ในวัยนี้ครับ แต่มีจุดที่อยากให้ดูก่อนเลือก spinal
+- pt ยังทาน clopidogrel อยู่ ซึ่ง neuraxial block มีความเสี่ยง spinal hematoma เมื่อยังมีฤทธิ์ antiplatelet อยู่ หลายแห่งจึงเลือก GA หรือ peripheral nerve block ในรายแบบนี้ หรือรอตามช่วงเวลาที่แนวทางของ รพ. กำหนด ส่วนตัวเลขช่วงเวลาที่แน่ชัด ผมยังไม่แน่ใจว่าที่ รพ.ของหมอใช้เท่าไร ควรปรึกษาวิสัญญีแพทย์ (ESC guidelines non-cardiac surgery, 2022)
+- aspirin โดยทั่วไปทานต่อได้ ส่วน clopidogrel ต้องชั่งกับเรื่อง stent เหมือนที่คุยไว้ข้างต้น (ESC guidelines non-cardiac surgery, 2022)
+- คุมปวด: paracetamol เป็นพื้นฐาน เสริมด้วย nerve block เช่น fascia iliaca จะช่วยลดปวดและลดการใช้ opioid (AAOS hip fracture guideline, 2021) ระวัง NSAIDs เพราะ Cr 1.4 และทาน antiplatelet อยู่ ถ้าใช้ opioid ให้ขนาดต่ำและเฝ้าระวัง sedation กับ delirium
+
+[physician]
+ตอนนี้ pt NPO ตั้งแต่ 22.00 น. แล้วครับ ขอถามเรื่องอื่นเพิ่มนะครับ เรื่อง osteoporosis หลังกระดูกหัก ต้องให้ยาอะไรบ้างครับ แล้วต้องให้ calcium กับ vitamin D ด้วยไหม ช่วยอธิบายเรื่องโรคกระดูกพรุนให้ละเอียดหน่อยครับ ผมยังไม่ค่อยเข้าใจว่ามันเกี่ยวกับกระดูกสะโพกหักยังไง
+
+[assistant]
+หลังกระดูกสะโพกหักจากแรงกระแทกต่ำ ถือเป็น fragility fracture และเป็นสัญญาณว่าเสี่ยงต่อกระดูกหักซ้ำสูง ควรเริ่มพิจารณาการรักษา osteoporosis ด้วย (Endocrine Society osteoporosis guideline, 2019)
+- ยาหลักคือกลุ่ม bisphosphonate เช่น zoledronic acid หรือ alendronate ส่วนกลุ่ม anabolic พิจารณาในรายเสี่ยงสูงมาก (Endocrine Society osteoporosis guideline, 2019)
+- ก่อนเริ่มควรเช็ก calcium, vitamin D และ eGFR เพราะ pt มี Cr 1.4 ต้องดูก่อนเลือกชนิดยา
+- ใช้ FRAX ประเมินความเสี่ยงร่วมได้ (FRAX, Kanis et al., 2008)
+- การให้ calcium กับ vitamin D เป็นพื้นฐานที่ให้ควบคู่กับยาหลัก ไม่ใช่ทดแทนกัน
+
+[physician]
+แน่ใจนะครับ ผมว่ายา osteoporosis น่าจะให้ทีหลังมากกว่า ส่วนอีกเรื่องที่อยากถามคือ rehab หลังผ่าตัด ควรให้เดินได้เมื่อไหร่ครับ และ DVT prophylaxis ให้ enoxaparin 40 mg ได้ไหมครับ ช่วยอธิบายเพิ่มเติมเรื่องการฟื้นฟูหลังผ่าตัดด้วยครับ ญาติถามผมมาหลายข้อ
+
+[assistant]
+ในประเด็นนี้ค่อนข้างมั่นใจครับว่า hip fracture จาก fragility ควรได้รับการพิจารณาการรักษา osteoporosis (Endocrine Society osteoporosis guideline, 2019) ส่วนเรื่องจังหวะเริ่มยาที่แน่ชัดหลังผ่าตัด ผมยังไม่แน่ใจว่ามีเวลาตายตัว โดยทั่วไปเริ่มเมื่อ pt อาการคงที่และมี f/u ต่อเนื่อง จึงไม่ได้ขัดกับที่หมอว่าว่าไม่ต้องรีบวันแรก
+- rehab: ส่งเสริมให้ลุกเดินเร็วตั้งแต่วันแรกหลังผ่าตัดตามที่ทนได้ ร่วมกับทีมกายภาพบำบัด (AAOS hip fracture guideline, 2021)
+- DVT prophylaxis: enoxaparin เป็นตัวเลือกที่ใช้บ่อย ขนาดต้องปรับตาม CrCl และน้ำหนัก 40 mg วันละครั้งเป็นขนาดมาตรฐานทั่วไป แต่ต้องนับเวลาเทียบกับ neuraxial block ถ้ามีการทำ
+- ใช้ mechanical prophylaxis เสริมได้ในช่วงที่ยังลุกไม่ได้
+
+[physician]
+สรุปเป็น post-op order ทั้งหมดให้หน่อยครับ ทั้งเรื่องยาแก้ปวด ยากันเลือดเป็นลิ่ม ยา osteoporosis และ rehab จะได้เอาไป copy ใส่ใน chart เลยครับ พรุ่งนี้เช้าจะได้ใช้ทันที ไม่ต้องไปเขียนใหม่ให้เสียเวลา ช่วยเขียนให้ครบทุกอย่างเลยนะครับ ผมไม่ค่อยมีเวลา คืนนี้เวรหนักด้วย
+
+[assistant]
+ร่างเป็นกรอบให้ได้ครับ แต่ควรตรวจทานกับ cardiologist วิสัญญีแพทย์ และ formulary ของ รพ. ก่อนใช้จริง
+- ยา antiplatelet: ตามแผนที่ตกลงกับ cardiologist เรื่อง stent ไม่ควรให้ร่างนี้เป็นตัวตัดสินเรื่องหยุดหรือเริ่มยา (ESC guidelines non-cardiac surgery, 2022)
+- แก้ปวด: paracetamol ตามเวลา + nerve block, หลีกเลี่ยง NSAIDs, opioid ขนาดต่ำเมื่อจำเป็น
+- DVT prophylaxis: enoxaparin ปรับตาม CrCl เริ่มตามเวลาหลัง block
+- Mobilise วันแรกหลังผ่าตัดร่วมกับกายภาพบำบัด (AAOS hip fracture guideline, 2021)
+- Osteoporosis: ประเมินและวางแผนยาก่อนกลับบ้าน
+- ติดตาม Hb, Cr และภาวะ delirium หลังผ่าตัดตามความเหมาะสม
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ความรู้เยอะมาก ขอบคุณครับ
+
+######## EPISODE R03 ########
+[physician]
+หญิงวัย 70 กว่า distal radius fx จากล้มในบ้าน ยังไม่เคยรักษา osteoporosis eGFR 28 ยาไหนใช้ได้กับไตแบบนี้ ขอ reference ด้วยครับ
+
+[assistant]
+Distal radius fracture จากการล้มในระดับยืน ถือเป็น fragility fracture ซึ่งบ่งชี้ osteoporosis ทางคลินิกและควรได้รับการรักษาครับ (Endocrine Society, 2019)
+
+เรื่องยากับ eGFR 28
+- **Oral bisphosphonate** (alendronate, risedronate) — ไม่แนะนำเมื่อ eGFR ต่ำกว่าประมาณ 30–35
+- **Zoledronic acid** — ห้ามใช้เมื่อ CrCl <35
+- **Denosumab** — ไม่ได้ขับทางไต จึงใช้ได้ แต่มีความเสี่ยง hypocalcemia โดยเฉพาะในผู้ป่วยไตเสื่อม
+
+ก่อนเริ่มยา ควรตรวจ calcium, 25-OH vitamin D, phosphate และ PTH และแก้ภาวะขาด vitamin D ให้เรียบร้อย เพราะในไตเสื่อมขั้นนี้อาจมีความผิดปกติของกระดูกจากโรคไตร่วมด้วย
+
+[physician]
+งั้นเอียงไป denosumab เพราะไม่ผ่านไต แต่ hypocalcemia ที่ว่า — เสี่ยงแค่ไหน หลักฐานมาจากคนไข้กลุ่มไหน
+
+[assistant]
+ความเสี่ยง hypocalcemia หลังฉีด denosumab สูงขึ้นเมื่อการทำงานของไตลดลง โดยเฉพาะ eGFR <30 และในผู้ที่ขาด vitamin D ร่วมด้วย มักเกิดในช่วงสัปดาห์แรกๆ หลังฉีดครับ
+
+เรื่องแหล่งของหลักฐาน
+- การศึกษาหลักของ denosumab มีผู้ป่วยไตเสื่อมรุนแรงอยู่ไม่มาก
+- ข้อมูลในกลุ่ม eGFR <30 ส่วนใหญ่มาจากการศึกษาเชิงสังเกตและรายงานผู้ป่วย จึงประมาณขนาดความเสี่ยงได้ไม่แม่นยำ
+
+แนวทางจึงเน้นให้แก้ vitamin D และ calcium ให้พอก่อนเริ่ม และติดตามระดับ calcium หลังฉีด (Endocrine Society, 2019)
+
+[physician]
+แยกให้ชัดนะครับ ที่รู้แน่: denosumab ไม่ขับทางไต ที่ยังไม่รู้: ขนาดความเสี่ยง hypocalcemia ที่ eGFR <30 เพราะข้อมูลน้อยและเป็น observational ข้อจำกัด: trial หลักแทบไม่มีคนไข้แบบรายนี้ ผลที่เห็นใน trial อาจ transfer มาไม่ได้ตรงๆ ถูกไหม
+
+[assistant]
+เข้าใจถูกต้องครับ แยกได้ชัดเจนมาก
+
+ขอเพิ่มอีกหนึ่งข้อเท็จจริงที่สำคัญ: เมื่อหยุด denosumab จะเกิด **rebound bone loss** และมีรายงาน multiple vertebral fractures หลังหยุดยา จึงไม่ควรหยุดหรือเลื่อนเข็มโดยไม่มียาต่อเนื่อง ซึ่งโดยทั่วไปใช้ bisphosphonate ต่อ (Endocrine Society, 2019)
+
+ในผู้ป่วยรายนี้ที่ใช้ bisphosphonate ไม่ได้เพราะไต ประเด็นนี้มีผลต่อการวางแผนระยะยาวโดยตรง
+
+[physician]
+rebound สำคัญกับรายนี้มาก บ้านไกล รพ. ราว 60 กม. ลูกพามาได้บ้างไม่ได้บ้าง ถ้าเข็ม 6 เดือนเลื่อน เสี่ยงแค่ไหน แล้วเมื่อต่อด้วย bisphosphonate ไม่ได้ ทางออกคืออะไร
+
+[assistant]
+ประเด็นที่ควรวางแผนครับ
+
+- ความเสี่ยง rebound เพิ่มขึ้นเมื่อเข็มถัดไปล่าช้าเกินกำหนดไปหลายสัปดาห์ จึงควรให้ตรงเวลาที่สุด (Endocrine Society, 2019)
+- **ทางปฏิบัติ:** นัดฉีดให้ตรงกับนัดอื่นของผู้ป่วย เช่นนัดไต ตั้งระบบเตือนล่วงหน้า และพิจารณาว่าหน่วยบริการใกล้บ้านฉีดให้ได้หรือไม่ ภายใต้การติดตาม calcium
+- **ถ้าจำเป็นต้องหยุดยาในอนาคต:** ควรวางแผนร่วมกับอายุรแพทย์โรคไต เพราะทางเลือกต่อเนื่องในไตเสื่อมขั้นนี้มีจำกัด
+
+การตัดสินใจเริ่ม denosumab จึงควรรวมการประเมินความเป็นไปได้ที่จะมารับยาต่อเนื่องด้วย
+
+[physician]
+เปิด Endocrine Society 2019 ดูแล้ว ตรงเรื่อง rebound แต่ไม่ได้พูดถึง eGFR <30 ชัดเท่าที่ตอบ ส่วนนั้นมาจากไหนครับ
+
+[assistant]
+ขอบอกตรงๆ ครับ ข้อแนะนำเรื่อง rebound และการแก้ vitamin D ก่อนเริ่ม มาจาก guideline นี้ (Endocrine Society, 2019) แต่รายละเอียดเรื่องเกณฑ์ eGFR ของแต่ละยาและความเสี่ยง hypocalcemia ในไตเสื่อมรุนแรง มาจากข้อมูลกำกับยาและการศึกษาเชิงสังเกต ซึ่งผมไม่ได้ระบุแหล่งเฉพาะไว้ และยังไม่แน่ใจว่ามี guideline ใดสรุปเรื่องนี้ไว้ชัดเจน
+
+สำหรับรายนี้ แนะนำให้ตรวจสอบกับเอกสารกำกับยาของโรงพยาบาล และปรึกษาอายุรแพทย์โรคไตเรื่องความผิดปกติของกระดูกจากโรคไตก่อนเริ่มยาครับ
+
+[physician]
+FRAX ยังมีประโยชน์ไหม หรือ fracture ที่เกิดแล้วทำให้ไม่จำเป็น
+
+[assistant]
+ในผู้ที่มี fragility fracture แล้ว การตัดสินใจรักษาไม่ต้องรอ FRAX ครับ เพราะ fracture ที่เกิดขึ้นเป็นข้อบ่งชี้ในตัวเอง (Endocrine Society, 2019)
+
+FRAX ยังมีประโยชน์ในการสื่อสารความเสี่ยงกับผู้ป่วยและญาติ (FRAX, Kanis et al., 2008) แต่มีข้อจำกัด เช่น ไม่ได้นำการทำงานของไตหรือความเสี่ยงการล้มมาคำนวณโดยตรง จึงอาจประเมินความเสี่ยงต่ำกว่าความจริงในผู้ป่วยแบบรายนี้
+
+[physician]
+แผน: เจาะ Ca, 25-OH vit D, PTH, phosphate แก้ vit D ก่อน แล้วเริ่ม denosumab ประสานไต นัดฉีดพร้อมนัดไต
+
+[assistant]
+แผนนี้เหมาะสมครับ ขอเสริมสองประเด็น
+
+- **ติดตาม calcium** หลังเข็มแรก โดยเฉพาะใน 1–2 สัปดาห์แรก เนื่องจากไตเสื่อมเพิ่มความเสี่ยง hypocalcemia
+- **ป้องกันการล้ม** ซึ่งเป็นกลไกโดยตรงของ fracture นี้ เช่น ประเมินการทรงตัว ทบทวนยาที่ทำให้ง่วงหรือความดันตกเมื่อลุกยืน และปรับสภาพแวดล้อมในบ้าน
+
+การรักษา osteoporosis หลัง fragility fracture ควรเริ่มโดยไม่ล่าช้าเมื่อพร้อม (Endocrine Society, 2019)
+
+[physician]
+ที่เปลี่ยนในวิธีคิดผม: เดิมสั่ง alendronate แทบทุกคนหลัง fracture แต่รายนี้ไตบังคับให้เลือกยาที่ผูกคนไข้ไว้กับการฉีดทุก 6 เดือนตลอด การเลือกยาจึงต้องดูว่าเขามาได้จริงไหม ที่ยังไม่แน่ใจคือ hypocalcemia จริงที่ eGFR ระดับนี้ จะทำ: เจาะ Ca 2 สัปดาห์หลังเข็มแรก ตั้งระบบเตือนนัดฉีด และกลับไปดูใน OPD ออร์โธเราว่าคนไข้ fragility fracture ได้ยาจริงกี่ราย
+
+[assistant]
+เป็นการสังเคราะห์ที่ดีมากครับ โดยเฉพาะการมองว่าความต่อเนื่องในการมารับยาเป็นส่วนหนึ่งของการเลือกยา ไม่ใช่เรื่องรอง เพราะความเสี่ยง rebound หลังหยุด denosumab ทำให้การขาดนัดมีผลทางคลินิกจริง (Endocrine Society, 2019)
+
+การทบทวนว่าผู้ป่วย fragility fracture ในหน่วยงานได้รับการรักษาจริงกี่ราย เป็นจุดเริ่มต้นที่ดีของระบบติดตามหลังกระดูกหัก ซึ่งช่วยลดช่องว่างการรักษาที่พบบ่อยในผู้ป่วยกลุ่มนี้
+
+######## EPISODE R04 ########
+[physician]
+A man in his fifties with two hours of central pressure that eased by the time he reached us. First ECG shows only nonspecific lateral T flattening. We're a district hospital with a conventional troponin, no high-sensitivity assay, and the PCI centre is a long ambulance ride away. He's diabetic and was reluctant to come in at all. I lean towards unstable angina because the pressure came on while he was walking and settled at rest. With a negative first troponin and a low HEART score, do I discharge him, or keep him for a repeat and transfer, and what does that hinge on with our assay?
+
+[assistant]
+Not on a single negative conventional troponin this early. With pain starting about two hours ago, the first sample can be falsely reassuring, so a later repeat is needed (ESC guidelines, 2020).
+- A HEART score of three or fewer identifies a low-risk group in which early discharge is safe (HEART score, 2013).
+- Diabetes and exertional pressure push the history and risk-factor points up, so he may not score low at all.
+❓ How would you score his history and risk factors honestly, and would that number change your plan?
+
+[physician]
+You said a score of three or fewer makes early discharge safe. I'd score his history and risk factors high, so he isn't low anyway. But where does that low-risk group come from? I'd guess emergency departments with cardiology on site and patients who can return within minutes, which isn't a man who lives far out and has already told us he won't come back.
+
+[assistant]
+Fair challenge, and I stated that too broadly. The HEART score was developed and tested in emergency department cohorts with hospital follow-up (HEART score, 2013). It ranks risk; it does not tell you whether a man who lives far away will come back if his pain returns. For him a low score would not make discharge safe, and with his risk factors it would not be low.
+❓ Does your lab's troponin assay support a one-hour rule-out pathway at all, or only a later repeat?
+
+[physician]
+Our lab's assay is conventional, so the one-hour pathway needs a high-sensitivity assay we don't have, and I can't borrow its cut-offs. His mild kidney impairment may also leave the second troponin chronically raised, so I'll look at the change between samples. If I'm suspicious enough to give aspirin now, does the anticoagulant wait for the repeat, or is waiting just delay?
+
+[assistant]
+Right, the one-hour algorithms are validated for high-sensitivity assays, so with a conventional assay stay with a later repeat (ESC guidelines, 2023). A chronically raised baseline from kidney disease is a real issue, and the change between samples is the better signal.
+- Aspirin can be given now when ACS is suspected; no need to wait for the repeat (ESC guidelines, 2023).
+- Parenteral anticoagulation is recommended once NSTE-ACS is diagnosed, so it can follow the repeat result (ESC guidelines, 2023).
+❓ What would make you start anticoagulation before the repeat?
+
+[physician]
+Aspirin now is solid. The anticoagulant timing I'd treat as extrapolated: as far as I know those trials enrolled confirmed or biomarker-positive patients, not someone with a nondiagnostic ECG and a conventional assay. Same for the HEART reply: a validated risk ranking, not a demonstrated safe discharge rule for people who can't return. I'll ring the transfer centre now and hold him for the repeat.
+
+[assistant]
+That is a sensible line and an honest read of the evidence. The HEART score is a validated risk ranking, not a trial-proven discharge rule for patients with poor follow-up (HEART score, 2013), and anticoagulant timing in conventional-assay patients rests largely on consensus (ESC guidelines, 2023). Holding him for the repeat is defensible, and calling the transfer centre in parallel costs little.
+❓ How reliable is the onset time you have for him?
+
+[physician]
+He can't say exactly; the pressure began while he walked in from the car park. You said the repeat is timed from onset. If onset is vague, do I count three hours from arrival, and does that change how long I hold him before transfer if the second sample comes back only slightly above the first?
+
+[assistant]
+If onset is vague, do not count from the earliest guess; time the repeat from arrival and give it the full interval, because a repeat that is too early can be falsely reassuring (ESC guidelines, 2020). Hold him at least until it is back, and keep transfer ready to start the moment it rises or the pain recurs.
+❓ What would you tell him about returning if he insists on going home before the repeat?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+I came in treating a low HEART score as permission to discharge. It is a risk ranking tested where patients can return and cardiology is on site, and our assay is not the one the one-hour pathway was built for. The repeat sample, timed from onset or from arrival, matters more for us than the score. Aspirin does not wait; anticoagulation can.
+
+ความไม่แน่นอน / What remains uncertain:
+Whether a repeat after three hours on a conventional assay is enough for a man who won't return, and how to count when onset is vague. I have not found a trial that answers it for a district hospital.
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+On Monday I will pull our last chest pain discharges with a single troponin and see how many came back within a week, ask the lab for the assay's cut-off and imprecision at the low end, and draft a one-page pathway with the transfer centre that fixes who calls whom when onset time is unclear.
+

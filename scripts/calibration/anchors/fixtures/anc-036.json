@@ -1,0 +1,50 @@
+{
+  "ple_id": "anc-036",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "pt วัย 70 กว่า AF on warfarin 3 mg/วัน INR 2.6 CHA2DS2-VASc 4 HT, DM on metformin 1000 mg bid Cr 1.0 eGFR 72 Hb 13.1 plt 210 ไม่เคยมีเลือดออกผิดปกติ นัด elective hernia repair อีก 7 วัน GA ประมาณ 1 ชม. ขอสรุป periop anticoagulation แบบเป็นขั้นตอนหน่อยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "- หยุด warfarin ประมาณ 5 วันก่อนผ่าตัด แล้วเช็ค INR ก่อนผ่าตัดให้ใกล้ปกติ (ราว <1.5 สำหรับผ่าตัดทั่วไป) (ESC guidelines non-cardiac surgery, 2022)\n- CHA2DS2-VASc ช่วยประเมินความเสี่ยง stroke ของ AF ว่าสูงแค่ไหน (CHA2DS2-VASc, Lip et al., 2010)\n- เรื่องต้อง bridge หรือไม่ ยังไม่ได้พูด ค่อยคุยต่อได้\n❓ ถ้า INR วันก่อนผ่าตัดยังสูงอยู่ จะทำอย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ok ครับ ผมคิดว่า AF ควร bridge ด้วย enoxaparin 1 mg/kg ทุก 12 ชม. ตอน INR <2 เพราะช่วงหยุด warfarin 5 วันเสี่ยง stroke ขออธิบายเรื่อง bridge เพิ่มหน่อย ให้ละเอียดขึ้นอีกนิดครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "- AF ที่ on warfarin ควร bridge ด้วย LMWH ทุกราย ตั้งแต่ INR ต่ำกว่า range\n- LMWH ขนาดรักษาให้ทุก 12 ชม. และให้โดสสุดท้ายก่อนผ่าตัดประมาณ 24 ชม. (ESC guidelines non-cardiac surgery, 2022)\n- หลังผ่าตัดเริ่มต่อเมื่อห้ามเลือดได้ดีแล้ว\n❓ ถ้า bridge แล้วเลือดออกที่แผลหลังผ่าตัด จะประเมินอย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ที่บอก bridge ทุกราย ไม่มี source กำกับ ผมจำ BRIDGE 2015 ได้ว่า no bridge ไม่ด้อยกว่า bleed น้อยกว่า กลุ่ม CHADS2 เฉลี่ย 2.3 ขอ source ของ hold 5 วัน กับ INR <1.5 ด้วยครับ ถ้าไม่มี ให้บอกตรง ๆ"
+    },
+    {
+      "role": "assistant",
+      "content": "ถูกต้องครับ ผมพูดกว้างเกินไป ประโยค \"ทุกราย\" นั้นไม่มี source รองรับ\n- BRIDGE trial: AF ที่ on warfarin กลุ่ม no bridge ไม่ด้อยกว่าเรื่อง thromboembolism และเลือดออกน้อยกว่า (BRIDGE trial, 2015)\n- แต่ trial นี้ส่วนใหญ่เป็นกลุ่มเสี่ยงต่ำถึงกลาง และคัด mechanical valve กับ stroke/TIA ล่าสุดออก กลุ่มนั้นยังพิจารณา bridge เป็นรายไป (ESC guidelines non-cardiac surgery, 2022)\n- hold 5 วัน มาจาก guideline ข้างต้น\n❓ ในผู้ป่วยที่ไม่มี mechanical valve หรือ stroke เดิม ท่านจะ bridge หรือไม่"
+    },
+    {
+      "role": "physician",
+      "content": "ok ครับ ผมเทียบ protocol รพ. แล้ว hold 5 วันตรงกัน ขอ restart warfarin หลังผ่าตัด 24 ชม. แบบสั้น 3 บรรทัด พร้อม source ที่ตรวจต่อได้ ห้ามยาวเกินนี้"
+    },
+    {
+      "role": "assistant",
+      "content": "- restart หลังผ่าตัด: เริ่มต่อเมื่อห้ามเลือดได้ ใช้ขนาดเดิม ตรวจ INR ซ้ำภายใน 5-7 วัน (ESC guidelines non-cardiac surgery, 2022)\n- ถ้าเสี่ยงเลือดออกสูง ให้เลื่อนออกไปอีก 48-72 ชม.\n❓ ท่านจะนัดตรวจ INR ซ้ำวันไหน"
+    },
+    {
+      "role": "physician",
+      "content": "order ผมเขียนเองตาม protocol รพ. ขอ checklist สั้น ๆ ตั้งแต่ D-7 ถึง D+3 รวม INR วัน D-1 กับ D0 ครับ ไม่เกิน 6 บรรทัด ใช้ได้เลยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "Checklist ย่อ:\n- D-7 ถึง D-6 ยืนยันแผน หยุด warfarin ตั้งแต่ D-5\n- D-1 เช็ค INR ถ้ายังสูงพิจารณา vitamin K ขนาดต่ำ\n- D0 เช็ค INR ซ้ำก่อนผ่าตัด\n- D+1 เริ่ม warfarin ต่อเมื่อห้ามเลือดได้\n- D+3 ประเมินแผลและ INR (ESC guidelines non-cardiac surgery, 2022)\n❓ ถ้า INR ยังไม่กลับเข้า range หลัง D+3 ท่านจะทำอย่างไร"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nสรุปแผนสำหรับ AF ที่ on warfarin ก่อน elective surgery คือ hold warfarin 5 วัน เช็ค INR วัน D-1 กับ D0 ไม่ฉีด enoxaparin เป็นประจำ แล้ว restart เมื่อห้ามเลือดได้ ผมจะใช้ checklist นี้กับ pt รายนี้"
+    }
+  ]
+}

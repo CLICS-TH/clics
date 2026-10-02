@@ -1,0 +1,50 @@
+{
+  "ple_id": "anc-057",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "pt หญิงสูงอายุ ในวัย 80 กว่า ล้มที่บ้านแล้วปวดสะโพกขวามาก เดินลงน้ำหนักไม่ได้ ญาติพามาที่ รพ.ชุมชน ขนาด 30 เตียง ไม่มี CT x-ray เห็น displaced femoral neck fracture ด้านขวา โรคประจำตัวมี HT, DM, CAD เคยใส่ stent ทานยา aspirin 81 mg กับ clopidogrel 75 mg ทุกวัน นอกจากนี้ก็ amlodipine, metformin, atorvastatin วัดได้ BP 150/90 HR 88 Hb 11.2 Cr 1.4 ญาติบอกว่าปกติเดินเองได้ ไม่ใช้ไม้เท้า ทานข้าวได้ตามปกติ ไม่มีไข้ ไม่มีไอ ตอนนี้ให้ IV fluid ไว้ก่อน ญาติรออยู่หน้าห้อง ลูกสาวยังเดินทางมาไม่ถึง ผมอยากรู้ภาพรวมของ hip fracture ในผู้สูงอายุว่าโดยทั่วไปรักษายังไง ช่วยอธิบายให้ละเอียดหน่อยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ยินดีครับ สรุปภาพรวมสั้น ๆ สำหรับ displaced femoral neck fracture ในผู้สูงอายุ\n- เป้าหมายหลักคือผ่าตัดให้เร็ว โดยทั่วไปภายใน 24–48 ชม. หลังมาถึง รพ. เมื่อ optimize อาการได้พอสมควร (AAOS hip fracture guideline, 2021)\n- รายที่ displaced ในผู้สูงอายุ มักเลือก arthroplasty (hemi หรือ total) มากกว่า fixation เพราะโอกาสที่ fixation ล้มเหลวและต้องผ่าซ้ำสูงกว่า (AAOS hip fracture guideline, 2021)\n- ยาที่ทานอยู่สำคัญมากก่อนผ่า: pt มี stent และทาน aspirin กับ clopidogrel อยู่ ไม่ควรหยุดยาเองโดยไม่ชั่งความเสี่ยง stent thrombosis เทียบกับเลือดออก ควรคุยกับ cardiologist เรื่องระยะเวลาหลังใส่ stent และแผนยา (ESC guidelines non-cardiac surgery, 2022)\n- Hb 11.2 กับ Cr 1.4 ควรติดตามต่อ และเตรียม type & screen ไว้\n- หลังผ่าตัดเริ่มลุกเดินเร็วและทำ rehab ร่วมกับทีมสหสาขา"
+    },
+    {
+      "role": "physician",
+      "content": "ok ครับ งั้นผมวางแผนผ่า hemiarthroplasty พรุ่งนี้เช้า 8 โมง ใช้ spinal block เลยนะครับ ส่วนเรื่องยาแก้ปวด pt ตอนนี้ปวด 8/10 นอนไม่ได้เลย ญาติก็กังวลมาก อยากทราบว่าควรใช้ยาแก้ปวดอะไรดีครับ ช่วยบอกยาที่ใช้บ่อยหน่อย แล้วก็อยากทราบว่าต้องเตรียมอะไรอีกก่อนเข้าห้องผ่าตัด เพราะที่ รพ.เราไม่ค่อยได้ผ่ารายแบบนี้ ขอรบกวนช่วยบอกเป็นข้อ ๆ ให้ครบหน่อยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "แผน hemiarthroplasty ตอนเช้าสมเหตุสมผลกับรายที่ displaced ในวัยนี้ครับ แต่มีจุดที่อยากให้ดูก่อนเลือก spinal\n- pt ยังทาน clopidogrel อยู่ ซึ่ง neuraxial block มีความเสี่ยง spinal hematoma เมื่อยังมีฤทธิ์ antiplatelet อยู่ หลายแห่งจึงเลือก GA หรือ peripheral nerve block ในรายแบบนี้ หรือรอตามช่วงเวลาที่แนวทางของ รพ. กำหนด ส่วนตัวเลขช่วงเวลาที่แน่ชัด ผมยังไม่แน่ใจว่าที่ รพ.ของหมอใช้เท่าไร ควรปรึกษาวิสัญญีแพทย์ (ESC guidelines non-cardiac surgery, 2022)\n- aspirin โดยทั่วไปทานต่อได้ ส่วน clopidogrel ต้องชั่งกับเรื่อง stent เหมือนที่คุยไว้ข้างต้น (ESC guidelines non-cardiac surgery, 2022)\n- คุมปวด: paracetamol เป็นพื้นฐาน เสริมด้วย nerve block เช่น fascia iliaca จะช่วยลดปวดและลดการใช้ opioid (AAOS hip fracture guideline, 2021) ระวัง NSAIDs เพราะ Cr 1.4 และทาน antiplatelet อยู่ ถ้าใช้ opioid ให้ขนาดต่ำและเฝ้าระวัง sedation กับ delirium"
+    },
+    {
+      "role": "physician",
+      "content": "ตอนนี้ pt NPO ตั้งแต่ 22.00 น. แล้วครับ ขอถามเรื่องอื่นเพิ่มนะครับ เรื่อง osteoporosis หลังกระดูกหัก ต้องให้ยาอะไรบ้างครับ แล้วต้องให้ calcium กับ vitamin D ด้วยไหม ช่วยอธิบายเรื่องโรคกระดูกพรุนให้ละเอียดหน่อยครับ ผมยังไม่ค่อยเข้าใจว่ามันเกี่ยวกับกระดูกสะโพกหักยังไง"
+    },
+    {
+      "role": "assistant",
+      "content": "หลังกระดูกสะโพกหักจากแรงกระแทกต่ำ ถือเป็น fragility fracture และเป็นสัญญาณว่าเสี่ยงต่อกระดูกหักซ้ำสูง ควรเริ่มพิจารณาการรักษา osteoporosis ด้วย (Endocrine Society osteoporosis guideline, 2019)\n- ยาหลักคือกลุ่ม bisphosphonate เช่น zoledronic acid หรือ alendronate ส่วนกลุ่ม anabolic พิจารณาในรายเสี่ยงสูงมาก (Endocrine Society osteoporosis guideline, 2019)\n- ก่อนเริ่มควรเช็ก calcium, vitamin D และ eGFR เพราะ pt มี Cr 1.4 ต้องดูก่อนเลือกชนิดยา\n- ใช้ FRAX ประเมินความเสี่ยงร่วมได้ (FRAX, Kanis et al., 2008)\n- การให้ calcium กับ vitamin D เป็นพื้นฐานที่ให้ควบคู่กับยาหลัก ไม่ใช่ทดแทนกัน"
+    },
+    {
+      "role": "physician",
+      "content": "แน่ใจนะครับ ผมว่ายา osteoporosis น่าจะให้ทีหลังมากกว่า ส่วนอีกเรื่องที่อยากถามคือ rehab หลังผ่าตัด ควรให้เดินได้เมื่อไหร่ครับ และ DVT prophylaxis ให้ enoxaparin 40 mg ได้ไหมครับ ช่วยอธิบายเพิ่มเติมเรื่องการฟื้นฟูหลังผ่าตัดด้วยครับ ญาติถามผมมาหลายข้อ"
+    },
+    {
+      "role": "assistant",
+      "content": "ในประเด็นนี้ค่อนข้างมั่นใจครับว่า hip fracture จาก fragility ควรได้รับการพิจารณาการรักษา osteoporosis (Endocrine Society osteoporosis guideline, 2019) ส่วนเรื่องจังหวะเริ่มยาที่แน่ชัดหลังผ่าตัด ผมยังไม่แน่ใจว่ามีเวลาตายตัว โดยทั่วไปเริ่มเมื่อ pt อาการคงที่และมี f/u ต่อเนื่อง จึงไม่ได้ขัดกับที่หมอว่าว่าไม่ต้องรีบวันแรก\n- rehab: ส่งเสริมให้ลุกเดินเร็วตั้งแต่วันแรกหลังผ่าตัดตามที่ทนได้ ร่วมกับทีมกายภาพบำบัด (AAOS hip fracture guideline, 2021)\n- DVT prophylaxis: enoxaparin เป็นตัวเลือกที่ใช้บ่อย ขนาดต้องปรับตาม CrCl และน้ำหนัก 40 mg วันละครั้งเป็นขนาดมาตรฐานทั่วไป แต่ต้องนับเวลาเทียบกับ neuraxial block ถ้ามีการทำ\n- ใช้ mechanical prophylaxis เสริมได้ในช่วงที่ยังลุกไม่ได้"
+    },
+    {
+      "role": "physician",
+      "content": "สรุปเป็น post-op order ทั้งหมดให้หน่อยครับ ทั้งเรื่องยาแก้ปวด ยากันเลือดเป็นลิ่ม ยา osteoporosis และ rehab จะได้เอาไป copy ใส่ใน chart เลยครับ พรุ่งนี้เช้าจะได้ใช้ทันที ไม่ต้องไปเขียนใหม่ให้เสียเวลา ช่วยเขียนให้ครบทุกอย่างเลยนะครับ ผมไม่ค่อยมีเวลา คืนนี้เวรหนักด้วย"
+    },
+    {
+      "role": "assistant",
+      "content": "ร่างเป็นกรอบให้ได้ครับ แต่ควรตรวจทานกับ cardiologist วิสัญญีแพทย์ และ formulary ของ รพ. ก่อนใช้จริง\n- ยา antiplatelet: ตามแผนที่ตกลงกับ cardiologist เรื่อง stent ไม่ควรให้ร่างนี้เป็นตัวตัดสินเรื่องหยุดหรือเริ่มยา (ESC guidelines non-cardiac surgery, 2022)\n- แก้ปวด: paracetamol ตามเวลา + nerve block, หลีกเลี่ยง NSAIDs, opioid ขนาดต่ำเมื่อจำเป็น\n- DVT prophylaxis: enoxaparin ปรับตาม CrCl เริ่มตามเวลาหลัง block\n- Mobilise วันแรกหลังผ่าตัดร่วมกับกายภาพบำบัด (AAOS hip fracture guideline, 2021)\n- Osteoporosis: ประเมินและวางแผนยาก่อนกลับบ้าน\n- ติดตาม Hb, Cr และภาวะ delirium หลังผ่าตัดตามความเหมาะสม"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nได้ความรู้เยอะมาก ขอบคุณครับ"
+    }
+  ]
+}

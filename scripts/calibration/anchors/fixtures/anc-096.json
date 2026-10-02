@@ -1,0 +1,62 @@
+{
+  "ple_id": "anc-096",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "Man in his 60s, melena for 2 days, on diclofenac 75 mg bid and aspirin 81 mg since a stent 8 months ago. HR 112, BP 104/62, Hb 8.4, Cr 1.9 (baseline 1.1). District hospital, scope only Tue/Thu, referral 3 hours away. Transfer tonight or scope here Thursday? What does it hinge on, given the stent and the AKI?"
+    },
+    {
+      "role": "assistant",
+      "content": "Good framing. A few reference points for the decision:\n- Heart rate 112 with systolic 104 suggests significant volume loss, and the Glasgow-Blatchford score will be high; only a score of 0-1 is considered for outpatient care (Glasgow-Blatchford score, 2000).\n- Resuscitate first, then endoscopy within 24 hours of presentation is suggested (ACG upper GI bleeding guideline, Laine et al., 2021).\n- Transfuse restrictively: the trigger is 7 g/dL for upper GI bleeding patients.\n- NSAID stops; the aspirin is secondary prevention for a stent, so plan to resume it early rather than stop it for good.\nTransfer tonight if he cannot be stabilised or the scope really cannot happen within about 24 hours."
+    },
+    {
+      "role": "physician",
+      "content": "Glasgow-Blatchford is 13, still 9 if I discard the 4 urea points as AKI. My read: ulcer about 80%, varices under 5% (platelets 210, no liver stigmata), so no octreotide. If HR is still above 100 after 2 units, does the 24 h window hold?"
+    },
+    {
+      "role": "assistant",
+      "content": "Your arithmetic holds, and discounting the urea is a sensible way to check the AKI effect.\n- If HR stays above 100 after 2 units, treat him as unstable: urgent endoscopy, not the Thursday list, so transfer (ACG upper GI bleeding guideline, Laine et al., 2021).\n- A low variceal probability and no octreotide is reasonable without liver disease signs.\n- Erythromycin before the scope is suggested to improve visualisation (ACG upper GI bleeding guideline, Laine et al., 2021)."
+    },
+    {
+      "role": "physician",
+      "content": "ok, but the 7 g/dL line sounds like it covers everybody. He has a stent, and I believe the restrictive-transfusion trials left out active cardiac disease. Which guideline sentence covers a patient like him, and how strong is the evidence under it?"
+    },
+    {
+      "role": "assistant",
+      "content": "Fair challenge; I stated the 7 g/dL figure without its population, and I should have. The guideline's restrictive policy comes from trials that mostly excluded patients with major cardiovascular disease and massive bleeding.\n- For cardiovascular disease a higher trigger around 8 g/dL is generally used, but that rests on indirect, low-certainty evidence (ACG upper GI bleeding guideline, Laine et al., 2021).\n- I am not certain of the exact wording of the sentence, so confirm it in the full text."
+    },
+    {
+      "role": "physician",
+      "content": "I said hold at 7; with the stent I now say transfuse at 8, one unit at a time with a repeat Hb. Blood bank has 4 units. If 2 units leave HR above 100 he goes 180 km tonight, not Thursday. Pantoprazole 80 mg bolus, then 8 mg/h for 72 h; check that against the guideline text."
+    },
+    {
+      "role": "assistant",
+      "content": "Your update fits his stent and his current 8.4.\n- After endoscopic therapy, high-dose PPI for 72 hours is suggested, either continuous or intermittent (ACG upper GI bleeding guideline, Laine et al., 2021).\n- The 80 mg bolus then 8 mg/h matches the usual regimen; verify the vial count against your formulary, since 8 mg/h over 72 h is a lot of 40 mg vials.\n- Re-bleeding risk is highest in the first 72 hours (ACG upper GI bleeding guideline, Laine et al., 2021)."
+    },
+    {
+      "role": "physician",
+      "content": "Noted on aspirin. Counterfactual: HR 92, Hb 9.1 after 2 units, and Thursday's scope shows a clean-based ulcer. Does that cut the 72 h, or do Cr 1.9 and the stent keep him in? The score 0 to 1 discharge rule was never built for someone like him."
+    },
+    {
+      "role": "assistant",
+      "content": "Reasonable. A clean-based ulcer is low risk for re-bleeding, so a shorter stay is defensible if he stays stable (ACG upper GI bleeding guideline, Laine et al., 2021).\n- Cr 1.9 and the stent are good reasons to keep monitoring even then; those are not ulcer reasons, they are patient reasons.\n- Agreed that score 0-1 does not describe him (Glasgow-Blatchford score, 2000)."
+    },
+    {
+      "role": "physician",
+      "content": "Settled for me: stop diclofenac, scope within 24 h, high-dose PPI after endoscopic therapy. Still open: the 8 g/dL trigger in cardiac patients and the aspirin restart day, both on indirect evidence. The trials behind your summary mostly excluded AKI, so they do not speak to him."
+    },
+    {
+      "role": "assistant",
+      "content": "That split is fair. The guideline evidence is stronger for the timing and PPI points than for the cardiac trigger and the aspirin restart day (ACG upper GI bleeding guideline, Laine et al., 2021).\n- One caution: for the restart day I know of no firm figure to give you, so treat any number you hear, including mine, as a prompt to check the source."
+    },
+    {
+      "role": "physician",
+      "content": "Summary for my notes: Hb 8 trigger because of the stent, 2 units then reassess HR, transfer tonight if HR stays above 100, pantoprazole 80 mg then 8 mg/h. Monday I pull the last 20 bleeds here and compare Hb at transfusion, cardiac history and hours to scope."
+    },
+    {
+      "role": "assistant",
+      "content": "That plan is coherent and the audit is a good way to see whether your cardiac patients are being under-transfused. Reading the cardiac sentence in the full guideline yourself is right (ACG upper GI bleeding guideline, Laine et al., 2021)."
+    }
+  ]
+}

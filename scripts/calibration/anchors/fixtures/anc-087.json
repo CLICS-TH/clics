@@ -1,0 +1,66 @@
+{
+  "ple_id": "anc-087",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "สวัสดีครับ วันนี้อยากทบทวน statin ใน primary prevention แบบภาพรวมหน่อยครับ พอดีมีเคสผู้ชายวัย 50 กว่า LDL 162 ไม่เคยกิน statin มาก่อน อยากรู้ว่าแนวทางตอนนี้แนะนำอย่างไรบ้าง ช่วงนี้ที่คลินิกเจอเคสแบบนี้บ่อยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ใน primary prevention การเริ่ม statin ตัดสินจาก 10-year ASCVD risk รวมกับ LDL-C ไม่ใช่ LDL อย่างเดียว (ACC/AHA Cholesterol Guideline, 2018)\n- ผู้ใหญ่ที่อายุมากกว่า 40 แต่ไม่เกิน 75 และ LDL-C 70-189 mg/dL เป็นกลุ่มที่แนวทางพิจารณา\n- risk ตั้งแต่ 7.5% ขึ้นไป ควรคุยเรื่อง moderate ถึง high-intensity statin กับผู้ป่วย\n❓ หมอจะใช้เครื่องมืออะไรประเมิน 10-year risk ของผู้ป่วยรายนี้ครับ"
+    },
+    {
+      "role": "physician",
+      "content": "ผมคิดว่าน่าจะเริ่ม moderate-intensity เพราะ LDL เกิน 160 และ risk น่าจะเกิน 7.5% ในสิบปีข้างหน้า ผมเลยเอนไปทางเริ่มยามากกว่าแค่ปรับ lifestyle ครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "เหตุผลของหมอสมเหตุสมผล LDL-C ตั้งแต่ 160 ขึ้นไปเป็น risk enhancer และ risk ตั้งแต่ 7.5% ก็เข้าเกณฑ์คุยเรื่อง statin (ACC/AHA Cholesterol Guideline, 2018)\n- USPSTF แนะนำ statin ขนาดต่ำถึงปานกลางสำหรับผู้ใหญ่ที่อายุมากกว่า 40 แต่ไม่เกิน 75 ที่มี risk factor อย่างน้อย 1 ข้อ และ risk ตั้งแต่ 10% (USPSTF statin primary prevention, 2022)\n❓ ถ้า risk ที่คำนวณได้อยู่ที่ 7.5-10% พอดี หมอจะใช้อะไรช่วยตัดสินครับ"
+    },
+    {
+      "role": "physician",
+      "content": "ขอถามเรื่อง high-intensity ด้วยครับ ใช้ตอนไหน แล้ว atorvastatin 40-80 mg กับ rosuvastatin 20-40 mg ใช่กลุ่มนี้ไหมครับ อยากรู้ทั้งขนาดยาและเกณฑ์ที่ใช้เลือกด้วยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "high-intensity ในแนวทางปี 2018 สงวนไว้ให้กลุ่ม risk ตั้งแต่ 20% ขึ้นไป หรือมี risk enhancer หลายข้อ (ACC/AHA Cholesterol Guideline, 2018)\n- atorvastatin 40-80 mg และ rosuvastatin 20-40 mg นับเป็น high-intensity\n- ผลลด LDL-C เฉลี่ยตั้งแต่ 50% ขึ้นไป\n❓ หมอคิดว่าข้อมูลที่ใช้จัดระดับ intensity มาจากกลุ่มประชากรแบบไหนครับ"
+    },
+    {
+      "role": "physician",
+      "content": "ที่บอกว่าลด LDL ได้ตั้งแต่ 50% ขึ้นไป ตัวเลขนี้มาจาก study ไหนครับ แล้วใช้กับคนไทยได้ไหม"
+    },
+    {
+      "role": "assistant",
+      "content": "ตัวเลขการลด LDL-C เป็นค่าเฉลี่ยจากหลายการศึกษา ไม่ใช่ trial เดียว และแต่ละรายตอบสนองต่างกัน (ACC/AHA Cholesterol Guideline, 2018)\n- ข้อมูล outcome ใน primary prevention ส่วนใหญ่มาจากประชากรตะวันตก การนำมาใช้กับคนไทยจึงต้องตีความอย่างระวัง\n- pooled cohort equations เองก็พัฒนาจากกลุ่มประชากรสหรัฐเป็นหลัก\n❓ ถ้า risk score อาจประเมินคลาดเคลื่อน หมอจะดูปัจจัยอื่นเพิ่มอะไรบ้างครับ"
+    },
+    {
+      "role": "physician",
+      "content": "ช่วยอธิบายเพิ่มหน่อยครับ เรื่องจุด 7.5% กับ 20% ที่พูดถึง อยากฟังให้ละเอียดขึ้นอีกนิด เพราะยังงง ๆ อยู่ครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "7.5% คือจุดที่เริ่มคุยเรื่อง statin ส่วน 20% คือจุดที่ถือว่า risk สูง (ACC/AHA Cholesterol Guideline, 2018)\n- ช่วง 5-7.5% เป็น borderline ใช้ risk enhancer ช่วยตัดสิน\n- ทุกระดับควรคุย benefit กับ risk ร่วมกับผู้ป่วย\n❓ หมอจะอธิบายผู้ป่วยอย่างไรว่ายานี้ช่วยลดโอกาสเกิดโรคได้เท่าไรครับ"
+    },
+    {
+      "role": "physician",
+      "content": "หลังเริ่มยาต้องตรวจ lipid อีกเมื่อไรครับ แล้วต้องดู ALT ด้วยไหม ปกติกี่ครั้งต่อปี 1-2 ครั้งพอไหม ผมยังไม่ค่อยแน่ใจเรื่องนี้เลยอยากถามไว้ก่อนครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "หลังเริ่มยา แนะนำ recheck lipid ที่ 4-12 สัปดาห์ เพื่อดูว่าลด LDL-C ได้ตามคาดและผู้ป่วยกินยาสม่ำเสมอ (ACC/AHA Cholesterol Guideline, 2018)\n- baseline ALT ควรมี ส่วนการตรวจซ้ำทำเมื่อมีอาการหรือสงสัย\n- ติดตามอาการปวดกล้ามเนื้อด้วย\n❓ หมอจะทำอย่างไรถ้า LDL-C ลดน้อยกว่าที่คาดครับ"
+    },
+    {
+      "role": "physician",
+      "content": "ถ้าสรุป plan คือ atorvastatin 20 mg แล้ว f/u 12 สัปดาห์ ผมสรุปตามที่คุยกันมา แล้วจดตามนี้เลยครับ ขอบคุณมากครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "แผนนี้เหมาะกับ moderate-intensity ครับ atorvastatin 20 mg นับเป็น moderate และนัด recheck lipid ที่ 12 สัปดาห์อยู่ในช่วงที่แนะนำ (ACC/AHA Cholesterol Guideline, 2018)\n- เน้นปรับ lifestyle ควบคู่ไปด้วย\n❓ หมอจะวางเป้า LDL-C หรือเป้าลดลงกี่ % สำหรับผู้ป่วยรายนี้ครับ"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nได้ทบทวนว่า statin ใน primary prevention ดูจาก 10-year risk ไม่ใช่ LDL อย่างเดียว moderate-intensity ลด LDL ราว 30-49% ส่วน high-intensity ลดได้ตั้งแต่ 50% ขึ้นไป เคสนี้ผมจะเริ่ม atorvastatin 20 mg แล้ว recheck lipid ที่ 12 สัปดาห์"
+    }
+  ]
+}

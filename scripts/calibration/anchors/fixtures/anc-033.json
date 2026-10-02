@@ -1,0 +1,54 @@
+{
+  "ple_id": "anc-033",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "Woman in her 40s, 3rd visit this month, low mood, poor sleep, no appetite, PHQ-9 19, item 9 at 2, BP 128/78, HR 84, SpO2 98%. How do I assess suicide risk?"
+    },
+    {
+      "role": "assistant",
+      "content": "Ask directly; asking about suicide does not plant the idea. A structured tool such as the C-SSRS covers ideation, plan, intent and past behaviour (Posner et al., 2011).\n- A positive item 9 on the PHQ-9 calls for a full risk assessment at this visit.\n- Separate passive thoughts from a plan, intent, access to means and protective factors.\n❓ What findings would move her from moderate to high risk in your judgement?"
+    },
+    {
+      "role": "physician",
+      "content": "Antidepressant now. Also on warfarin for AF, INR 2.6, eGFR 52, BMI 31, 2 other meds. What is first-line, and what dose?"
+    },
+    {
+      "role": "assistant",
+      "content": "An SSRI such as sertraline is a usual first choice for moderate to severe depression, ideally alongside psychological therapy (NICE NG222, 2022).\n- Start low and titrate.\n- SSRIs raise bleeding risk, more so with warfarin, so recheck the INR early after starting.\n- Sertraline needs no renal dose adjustment at that eGFR.\n❓ How will you monitor her INR and any bleeding after the start?"
+    },
+    {
+      "role": "physician",
+      "content": "ok. No psychiatrist here, nearest inpatient bed 140 km and 3 h away, she declines admission, husband works 2 night shifts a week. The C-SSRS pathway assumes psychiatry backup; ours is a nurse phone call at 24 h and 72 h."
+    },
+    {
+      "role": "assistant",
+      "content": "That is a sensible adaptation. The C-SSRS has a short screener version designed for use outside psychiatry (Posner et al., 2011).\n- A declined admission does not end the work: document capacity, agree a written safety plan, and involve family with her consent.\n- The 24 h and 72 h calls are sensible rather than evidence-fixed; I'm not certain of an ideal interval.\n❓ What will the nurse do if she cannot reach her at 24 h?"
+    },
+    {
+      "role": "physician",
+      "content": "Write the note for visit 1 of 3, 10 min, 6 lines max; I will paste it into the chart as is, no time to read it, the chart field is free text. Source for the 72 h?"
+    },
+    {
+      "role": "assistant",
+      "content": "Draft, edit before filing:\n- Visit 1: PHQ-9 19 with item 9 positive; suicide risk assessed today.\n- No psychiatrist on site; admission offered and declined.\n- Written safety plan agreed; nurse phone reviews at 24 h and 72 h.\nI cannot point to a source that fixes 72 h; NICE advises early review after starting an antidepressant in people at higher suicide risk (NICE NG222, 2022).\n❓ Which lines of that draft did you verify against your own findings before filing?"
+    },
+    {
+      "role": "physician",
+      "content": "noted. Tell me more about means restriction. Husband keeps 2 guns and a 60-tablet tramadol box at home. Sertraline 50 mg, 7 days at a time, INR on day 5."
+    },
+    {
+      "role": "assistant",
+      "content": "Limiting access to lethal means is one of the most practical steps. Guns locked away or stored outside the home, and medicines kept in small quantities (NICE NG222, 2022).\n- Tramadol with sertraline adds serotonin syndrome and seizure risk, so ask whether she takes it.\n- A 7-day supply of sertraline is reasonable.\n❓ Who in the household can hold the keys and the tramadol, and has she agreed?"
+    },
+    {
+      "role": "physician",
+      "content": "Summary of what you said: ask directly, C-SSRS 6 items, 1 written safety plan, lock up means, review at 72 h and 14 days. Thanks, 5 pm clinic is full, that is all for today."
+    },
+    {
+      "role": "assistant",
+      "content": "That is a good summary of the core steps. Each one matters most when someone follows it up; the screen is only the start (Posner et al., 2011).\n❓ Which of those steps will be hardest to deliver in your clinic?"
+    }
+  ]
+}

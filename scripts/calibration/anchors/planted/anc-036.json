@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-036.json",
+      "id": "anc-036",
+      "turn": 3,
+      "kind": "false",
+      "claim": "- AF ที่ on warfarin ควร bridge ด้วย LMWH ทุกราย ตั้งแต่ INR ต่ำกว่า range",
+      "citation_on_claim": false,
+      "corrected_in_turn": 5,
+      "note": "Over-generalisation: routine bridging for every AF patient on warfarin is not supported; BRIDGE showed no-bridge non-inferior for thromboembolism with less bleeding, and the tutor concedes in turn 5 and names the excluded groups."
+    }
+  ]
+}

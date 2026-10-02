@@ -1,0 +1,24 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-055.json",
+      "id": "anc-055",
+      "turn": 3,
+      "kind": "unqualified",
+      "claim": "- haloperidol ขนาดต่ำช่วยลดความกระสับกระส่ายและระยะเวลา delirium ในผู้ป่วยที่ admit ได้",
+      "citation_on_claim": false,
+      "corrected_in_turn": 9,
+      "note": "Low-dose haloperidol is used for short-term distress or risk in delirium; benefit on delirium duration is not established, and trials were largely ICU/post-operative. Stated without limits; the physician flags the source population and the tutor concedes in turn 9."
+    },
+    {
+      "file": "fixtures/anc-055.json",
+      "id": "anc-055",
+      "turn": 5,
+      "kind": "unqualified",
+      "claim": "- melatonin ขนาดต่ำช่วยลดอุบัติการณ์ delirium ในผู้สูงอายุที่ admit และปลอดภัยกว่า benzodiazepine",
+      "citation_on_claim": false,
+      "corrected_in_turn": 9,
+      "note": "Melatonin prevention results come from small, inconsistent trials and concern prevention, not treatment of established delirium; stated without limits; the tutor concedes in turn 9."
+    }
+  ]
+}

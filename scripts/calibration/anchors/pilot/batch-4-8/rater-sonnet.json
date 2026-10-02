@@ -1,0 +1,6 @@
+{"rater":"sonnet","scores":{
+"R01":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":1,"d6":1,"d7":1,"note":"Generic list questions; 'ไม่ใช่ ACS แน่นอนใช่ไหม...กลับบ้านได้เลย' premature closure; asks AI to write diagnosis/discharge note unedited; reflection 'ได้ความรู้เยอะมาก'."},
+"R02":{"d1":2,"d2":2,"d3":2,"d4":1,"d5":2,"d6":1,"d7":1,"note":"Gave rich context but plan 'hemiarthroplasty...spinal block' ignores clopidogrel; topic-hopping; one 'แน่ใจนะครับ ผมว่ายา osteoporosis น่าจะให้ทีหลัง'; asks copy-paste orders; generic reflection."},
+"R03":{"d1":5,"d2":4,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"'บ้านไกล 60 กม. ถ้าเข็ม 6 เดือนเลื่อน เสี่ยงแค่ไหน'; fact/unknown/limit split; checked Endocrine 2019 and caught eGFR<30 gap; reflection with Ca at 2 wk, OPD audit."},
+"R04":{"d1":5,"d2":4,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"Challenged HEART low-risk cohort origin ('cardiology on site...can return'); conventional assay cannot use 1-h cut-offs, CKD delta; flagged anticoagulant timing as extrapolated; concrete Monday plan."}
+}}

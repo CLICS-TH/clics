@@ -1,0 +1,70 @@
+{
+  "ple_id": "anc-079",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "ชายวัย 50 กว่า on ward หยุดดื่มมา 40 ชม. HR 112 BP 156/94 T 37.8 มือสั่น เหงื่อออก CIWA 14 ตับแข็ง Child B ควรเริ่ม benzo เลยไหม"
+    },
+    {
+      "role": "assistant",
+      "content": "ควรเริ่มครับ CIWA-Ar 14 ถือว่าอยู่ในช่วงที่ต้องให้ยา\n- แนะนำให้ benzodiazepine ตามอาการ (symptom-triggered) โดยประเมินซ้ำทุก 1–2 ชม. (CIWA-Ar, Sullivan 1989)\n- diazepam ออกฤทธิ์เร็ว และเป็นตัวเลือกที่ใช้บ่อย; ในตับแข็งรุนแรงให้พิจารณา lorazepam แทน (NICE CG115, 2011)\n- ประเมิน vital sign และ hydration ควบคู่ไปด้วย"
+    },
+    {
+      "role": "physician",
+      "content": "DDx ผมเรียงตามนี้\n1. withdrawal เพราะ onset 40 ชม. tremor sweat HR 112\n2. infection เพราะ T 37.8 WBC 11,000\n3. Wernicke ยังไม่มี ataxia GCS 15"
+    },
+    {
+      "role": "assistant",
+      "content": "เรียงได้สมเหตุสมผลครับ\n- withdrawal มักเริ่มภายใน 6–24 ชม. หลังหยุดดื่ม และ peak ราว 24–72 ชม. จึงตรงกับ timeline นี้ (NICE CG115, 2011)\n- ไข้ต่ำ ๆ พบได้ใน withdrawal แต่ถ้า CRP หรือ WBC สูงควรหา infection ควบคู่\n- ผู้ที่ดื่มหนักควรได้ thiamine ฉีดก่อนให้ glucose (NICE CG115, 2011)"
+    },
+    {
+      "role": "physician",
+      "content": "อธิบาย dosing เพิ่มหน่อยครับ diazepam 5 หรือ 10 หรือ 20 mg เริ่มเท่าไหร่ ทุกกี่ ชม. ตอนนี้ HR 108 BP 150/90 CIWA 12"
+    },
+    {
+      "role": "assistant",
+      "content": "แนวทางทั่วไป\n- เริ่ม diazepam 10 mg IV แล้วประเมินซ้ำ ทุก 1 ชม. จนอาการสงบ\n- ใช้ CIWA-Ar ≥ 8 เป็นเกณฑ์เริ่มยาได้กับทุกราย รวมถึงผู้ป่วยที่ซึมสับสนจนตอบเองไม่ได้\n- ระวัง oversedation และ respiratory depression ถ้าให้ซ้ำหลายครั้ง (NICE CG115, 2011)"
+    },
+    {
+      "role": "physician",
+      "content": "CIWA ต้องให้ pt ตอบเองครบ 10 ข้อ รายที่ confused ใช้ไม่ได้ ไม่ใช่ทุกราย และ cutoff 8 มาจาก validation study ไม่ใช่ RCT"
+    },
+    {
+      "role": "assistant",
+      "content": "ถูกต้องครับ ผมกล่าวกว้างเกินไป\n- CIWA-Ar ต้องอาศัยการตอบของผู้ป่วยหลายข้อ จึงใช้ไม่ได้ในผู้ป่วยที่สื่อสารไม่ได้ ซึ่งต้องประเมินจากอาการที่สังเกตเห็นเอง (Sullivan et al. CIWA-Ar, 1989)\n- ตัวคะแนนมาจากงาน validation ไม่ใช่การทดลองเทียบการรักษา"
+    },
+    {
+      "role": "physician",
+      "content": "ผมเดิมว่า withdrawal อันดับ 1 แต่ CRP 48 กับ WBC 11,000 ทำให้ infection ขยับขึ้น เลยจะส่ง blood culture 2 ขวดก่อนให้ยาตัวที่ 2 ถ้ายัง T 38.1 หลังให้ครบ 2 dose จะ CXR ต่อ"
+    },
+    {
+      "role": "assistant",
+      "content": "สมเหตุสมผลครับ การส่ง culture ไม่ควรทำให้การให้ยาล่าช้า\n- ถ้ามีไข้หรือ CRP สูงควรหา source เช่น ปอด ทางเดินปัสสาวะ ท้อง\n- อาการ withdrawal ที่ไม่สงบตามปกติก็เป็นเบาะแสให้หาสาเหตุอื่นด้วย (NICE CG115, 2011)"
+    },
+    {
+      "role": "physician",
+      "content": "ที่บอกว่า symptom-triggered ดีกว่า fixed dose นั่น RCT หรือ cohort ระดับ recommendation เท่าไหร่"
+    },
+    {
+      "role": "assistant",
+      "content": "ผมยังไม่แน่ใจจำนวนผู้ป่วยในงานเหล่านั้นครับ ขอไม่ระบุตัวเลข\n- แนวทางสนับสนุน symptom-triggered โดยดูจากการลดปริมาณยารวมในผู้ป่วยที่ติดตามใกล้ชิด\n- ระดับหลักฐานแต่ละงานแตกต่างกัน ควรเปิดตัว guideline ฉบับเต็มเพื่อดูระดับ recommendation (NICE CG115, 2011)"
+    },
+    {
+      "role": "physician",
+      "content": "ขอ order ที่ copy ลง chart ได้เลย diazepam กับ thiamine พร้อม dose ครบ เช้า 7 โมงจะ round ลงสั่งให้ทัน"
+    },
+    {
+      "role": "assistant",
+      "content": "ร่างให้ดูเป็นแนวทางครับ ควรปรับตามผู้ป่วยและ protocol ของหน่วย\n- diazepam 10 mg IV ประเมินซ้ำทุก 1 ชม. หยุดเมื่ออาการสงบ\n- thiamine ฉีดก่อนให้ glucose ตามขนาดใน protocol ของหน่วย (NICE CG115, 2011)\nกรุณาให้เภสัชกรหรือแพทย์อาวุโสตรวจก่อนสั่งใช้จริงด้วย"
+    },
+    {
+      "role": "physician",
+      "content": "Na 128 K 3.1 Mg 1.2 ผลเมื่อเช้า แล้ว fluid กับ electrolyte ต้องดูอะไรอีก ตอนนี้ on NSS 80 ml/hr Cr 0.9"
+    },
+    {
+      "role": "assistant",
+      "content": "ดูเรื่องต่อไปนี้ครับ\n- แก้ K และ Mg ให้เพียงพอ เพราะ Mg ต่ำทำให้แก้ K ยาก\n- แก้ Na ช้า ๆ ไม่ให้สูงขึ้นเร็วเกินไป เสี่ยง osmotic demyelination (European hyponatraemia CPG, Spasovski et al., 2014)\n- ตรวจ electrolyte ซ้ำตามระยะที่เหมาะสม"
+    }
+  ]
+}
