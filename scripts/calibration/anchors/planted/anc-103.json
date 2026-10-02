@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-103.json",
+      "id": "anc-103",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "- apixaban ลด stroke และ major bleeding ได้ดีกว่า warfarin จึงเหมาะกับรายที่ตาม INR ยาก",
+      "citation_on_claim": false,
+      "corrected_in_turn": 7,
+      "note": "True in the trial population but stated without limits; the physician separates evidence tiers in turn 6 (trial weight, INR control, subgroup only) and the tutor concedes in turn 7."
+    }
+  ]
+}

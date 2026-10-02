@@ -1,0 +1,5 @@
+{"rater":"opus","scores":{
+"P01":{"d1":3,"d2":4,"d3":4,"d4":1,"d5":2,"d6":3,"d7":4,"note":"Ranked w/ mechanism: 'lorazepam first, because it is glucuronidated'; 'SBP first given his ascites'. But preset list, 'Noted. Next item' ignores AI's HE/thiamine points; reflection recap only."},
+"P02":{"d1":3,"d2":4,"d3":5,"d4":2,"d5":5,"d6":5,"d7":4,"note":"Turns 2-3 vague 'ขอรายละเอียดทั้งหมดเลย'; then evidence tiers: 'เป็นค่าเฉลี่ยของ trial ไม่ใช่ค่าของรายนี้'; reflection names change + Monday label check, INR audit, pharmacist order set."},
+"P03":{"d1":5,"d2":5,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"'500 mL x2 ... MAP < 65 หลัง 1 L หรือ B-lines ขึ้น → NE peripheral'; 'ช่วย argue against carbapenem ... ผมตัดสินเอง'; probes cross-reactivity population; 3 concrete actions."}
+}}

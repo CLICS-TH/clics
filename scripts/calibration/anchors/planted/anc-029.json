@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-029.json",
+      "id": "anc-029",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "A lining under about 4 mm on transvaginal ultrasound effectively rules out endometrial cancer, so a thin lining lets you skip the biopsy.",
+      "citation_on_claim": false,
+      "corrected_in_turn": 5,
+      "note": "The thin-lining cut-off comes from postmenopausal bleeding; it is not validated to skip sampling in a cycling woman with risk factors. Turn 5 concedes and says sampling is risk-driven."
+    }
+  ]
+}

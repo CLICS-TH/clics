@@ -1,0 +1,5 @@
+{"rater":"opus","scores":{
+"N01":{"d1":3,"d2":4,"d3":3,"d4":4,"d5":4,"d6":3,"d7":4,"note":"Ranked reflex>orthostatic>cardiac w/ trigger: 'ถ้า ECG มี conduction block หรือ QT ยาว ผมจะเปลี่ยนลำดับทันที'; challenged SFSR external validation; opening Q generic; reflection lacks next action"},
+"N02":{"d1":4,"d2":4,"d3":5,"d4":3,"d5":5,"d6":5,"d7":5,"note":"Caught AI overclaim: 'CrCl ที่คำนวณเองได้ราว 26 mL/min อยู่ขอบที่ trial หลักคัดออก'; setting (INR monthly, 2h travel, cost) drives DOAC; reflection: pharmacist check + audit 20 cases; turns 2/4 hop"},
+"N03":{"d1":4,"d2":2,"d3":3,"d4":3,"d5":2,"d6":1,"d7":2,"note":"Good probe 'urine Na ที่สูงจะแยก thiazide effect ออกจาก SIADH ได้ยังไง' but no own hypotheses/plan; only generic 'มี guideline รองรับไหม'; reflection 'ได้ทบทวนเรื่อง Na ต่ำ มีประโยชน์มากครับ'"}
+}}

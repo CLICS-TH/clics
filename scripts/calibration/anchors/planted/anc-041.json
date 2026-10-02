@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-041.json",
+      "id": "anc-041",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "- ใช้ Kocher criteria ช่วยประเมินโอกาสเป็น septic arthritis ได้เลย",
+      "citation_on_claim": false,
+      "corrected_in_turn": 3,
+      "note": "Kocher criteria were derived in children with hip joint infection and not validated for the adult knee; turn 3 concedes this with the Kocher 1999 citation."
+    }
+  ]
+}

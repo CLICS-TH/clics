@@ -1,0 +1,74 @@
+{
+  "ple_id": "anc-081",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "3-month-old infant, runny nose for 3 days, now fast breathing, RR 58, HR 160, T 37.8, SpO2 95% on room air, feeding about 3/4 of usual. Bronchiolitis I think. What is the usual management, and what should I tell the parents?"
+    },
+    {
+      "role": "assistant",
+      "content": "Bronchiolitis is a clinical diagnosis from the history and examination (AAP bronchiolitis, 2014).\n- Supportive care: nasal suction, small frequent feeds, fluids if intake falls\n- Oxygen if SpO2 stays below 90% (AAP bronchiolitis, 2014)\n- Admit if feeding is poor, there is apnoea, or work of breathing is increasing\n- Avoid routine steroids, antibiotics and chest imaging"
+    },
+    {
+      "role": "physician",
+      "content": "ok. You said no routine CXR. What if he also has a fever of 38.5 and looks a bit tired, do we still skip it?"
+    },
+    {
+      "role": "assistant",
+      "content": "Mostly yes. A fever alone does not make the infant's chest film useful, since viral bronchiolitis can cause it, and routine radiographs do not change outcomes (AAP bronchiolitis, 2014). Reserve a CXR for an infant who is unusually unwell or does not follow the expected course."
+    },
+    {
+      "role": "physician",
+      "content": "Got it. You also said no bronchodilators, but colleagues here still give salbutamol nebs. Could this be asthma, an allergy, or a pneumonia instead? He is on day 4 of illness now."
+    },
+    {
+      "role": "assistant",
+      "content": "Those are fair alternatives to keep in mind, and the history and examination usually separate them. Trials of bronchodilators in bronchiolitis show no consistent benefit, so they are not advised routinely (AAP bronchiolitis, 2014). Wheeze that recurs, or a family history of atopy, would raise the question of asthma later."
+    },
+    {
+      "role": "physician",
+      "content": "Where does the SpO2 90% cut-off come from? Our ward uses 92% for infants. Is it from trials, or just opinion?"
+    },
+    {
+      "role": "assistant",
+      "content": "A fair question. Some centres use a higher target, and the evidence is weak either way. The 90% cut-off is a consensus statement and rests on lower-quality evidence, so it is a pragmatic line rather than a trial result (AAP bronchiolitis, 2014). Clinical judgement about work of breathing and feeding still matters alongside the number."
+    },
+    {
+      "role": "physician",
+      "content": "Home is about 1 hour from the hospital and mum has 2 other children at home, so how soon should the follow-up be?"
+    },
+    {
+      "role": "assistant",
+      "content": "Distance is a sensible factor for the follow-up plan. If he goes home, a review within 24 to 48 hours is reasonable, and the parents should be told clearly when to return sooner (AAP bronchiolitis, 2014)."
+    },
+    {
+      "role": "physician",
+      "content": "You mentioned review within 24 to 48 hours. What should the parents watch for at home, and how long does the cough last?"
+    },
+    {
+      "role": "assistant",
+      "content": "Return sooner if breathing looks harder, feeding drops, there are pauses in breathing, or he becomes drowsy (AAP bronchiolitis, 2014). The cough often lingers for a few weeks even after the infant improves."
+    },
+    {
+      "role": "physician",
+      "content": "Two more points from your answers so far:\n- the suctioning before feeds\n- hypertonic saline, does it help?"
+    },
+    {
+      "role": "assistant",
+      "content": "- Suction before feeds can help a blocked nose to feed more easily; do it gently and not too often\n- Hypertonic saline is not recommended routinely in the emergency setting, and the benefit in admitted infants is limited (AAP bronchiolitis, 2014)"
+    },
+    {
+      "role": "physician",
+      "content": "Please write a short handout for the parents so I can give it to them. Discharge is planned for day 5 of the illness."
+    },
+    {
+      "role": "assistant",
+      "content": "Here is a short draft:\n- Keep feeding small amounts often and clear the nose gently\n- Come back if breathing is fast or hard, feeding drops, or he is drowsy\n- The cough can last a few weeks\nPlease adjust it to your own practice (AAP bronchiolitis, 2014)."
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nBronchiolitis is a clinical diagnosis. Treat with suction, feeds and oxygen if needed. No routine CXR, steroids or bronchodilators. Review in 24 to 48 hours and tell the parents the warning signs."
+    }
+  ]
+}

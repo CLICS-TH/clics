@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-086.json",
+      "id": "anc-086",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "- AF ส่วนใหญ่ไม่ต้อง bridge เพราะ BRIDGE trial พบว่าการไม่ bridge ไม่ด้อยกว่าและเลือดออกน้อยกว่า (BRIDGE trial, 2015)",
+      "citation_on_claim": true,
+      "corrected_in_turn": 3,
+      "note": "BRIDGE result stated without its population limits; stroke/TIA within 12 weeks was excluded, and turn 3 concedes this."
+    }
+  ]
+}

@@ -2207,7 +2207,14 @@
         "d6": 5,
         "d7": 3
       },
-      "target_composite": 73
+      "target_composite": 73,
+      "excluded": {
+        "date": "2026-10-02",
+        "reason": "rewritten once and still over-expressed by the round-N blind panel (+18 > 15; first write +19 in batches 6-7); §7.4: excluded and replaced",
+        "replaced_by": "anc-103",
+        "archived_fixture": "fixtures/excluded/anc-082.json",
+        "sha256": "2904bf6fdd68bd0aaa0b2807b2b248d07d85eabcfa65d4c23b116ae55689c8f5"
+      }
     },
     {
       "id": "anc-083",
@@ -2745,6 +2752,33 @@
       },
       "target_composite": 68,
       "replaces": "anc-027"
+    },
+    {
+      "id": "anc-103",
+      "pilot": false,
+      "language": "th",
+      "specialty": {
+        "key": "im",
+        "en": "Internal Medicine",
+        "th": "อายุรศาสตร์"
+      },
+      "case": "new atrial fibrillation — anticoagulation decision",
+      "tutor_mode": "natural",
+      "physician_turns": 4,
+      "reflection": "reflection_turn",
+      "profile": "graded",
+      "dissociated_domains": [],
+      "targets": {
+        "d1": 4,
+        "d2": 3,
+        "d3": 4,
+        "d4": 2,
+        "d5": 5,
+        "d6": 5,
+        "d7": 3
+      },
+      "target_composite": 73,
+      "replaces": "anc-082"
     }
   ]
 }

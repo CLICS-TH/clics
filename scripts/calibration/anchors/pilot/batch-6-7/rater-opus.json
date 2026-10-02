@@ -1,0 +1,10 @@
+{"rater":"opus","scores":{
+"M01":{"d1":4,"d2":5,"d3":5,"d4":4,"d5":5,"d6":4,"d7":4,"note":"\"BRIDGE ตัดคนที่มี stroke หรือ TIA ภายใน 12 สัปดาห์ออก pt รายนี้ 8 สัปดาห์\"; eGFR 40/no anti-Xa/no PCC drives plan; \"ตอนแรกคิดว่าใช้ผล BRIDGE ได้...เลยเปลี่ยน\""},
+"M02":{"d1":5,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"Separates fact/unknown: \"ไม่มี guideline ไหนที่ศึกษาการใช้ insulin ระหว่างถือศีลอดในครรภ์\"; island/boat/power/Ramadan; \"เดิมผมเริ่ม NPH ก่อนนอนตามความเคยชิน\""},
+"M03":{"d1":2,"d2":1,"d3":1,"d4":1,"d5":1,"d6":0,"d7":1,"note":"Generic, topic-hopping: \"ขอแบบทั่วไปเลยก็ได้\", \"อธิบายใหม่อีกรอบก็ได้\"; no ranked ddx; \"งั้นผมใช้ตามนี้เลย เดี๋ยวพิมพ์ลง chart\" without verification"},
+"M04":{"d1":4,"d2":3,"d3":4,"d4":3,"d5":4,"d6":4,"d7":4,"note":"\"หลักฐาน...มาจาก RCT หรือ cohort...มีคนที่ on antiplatelet รวมอยู่ไหม\"; eGFR 48 -> avoid NSAIDs; platelet vs active clopidogrel; reflection names change + verify w/ anesth"},
+"M05":{"d1":3,"d2":4,"d3":2,"d4":2,"d5":2,"d6":1,"d7":2,"note":"Ranked ddx at ICH turn: \"หยุด infusion...เพราะเสียประโยชน์จากยาที่เหลือ แต่ ICH อันตรายกว่า\"; else retrieval; dose calc \"ไม่ต้องรอเภสัชกร\"; reflection \"ตามที่ AI สรุปให้\""},
+"M06":{"d1":1,"d2":2,"d3":0,"d4":1,"d5":0,"d6":1,"d7":1,"note":"Textbook 10-heading request, no patient; ignores AI questions; copies to slides \"จะได้ไม่ต้องไปพิมพ์เพิ่มเอง\"; one generic ≥34wk reasoning turn; \"ได้ความรู้เยอะเลย\""},
+"M07":{"d1":4,"d2":4,"d3":4,"d4":4,"d5":5,"d6":3,"d7":5,"note":"\"contrast ลดการผ่าตัดได้ทุกราย ผมว่าเกินไป...หรือแค่คัดคนที่หายเอง\"; asks argue-against w/ WSES sections; \"แชทนี้ไม่ได้เห็นท้อง pt จริง\"; ending is plan summary only"},
+"M08":{"d1":4,"d2":5,"d3":5,"d4":3,"d5":5,"d6":5,"d7":4,"note":"\"ผมหา basis ไม่เจอ เพราะ CrCl...ราว 26 อยู่ขอบที่ trial หลักคัดออก\"; Cr1.2->5mg contingency; audit 20 DOAC cases; turns 2/4 templated \"ขอรายละเอียดเพิ่มหน่อย\""}
+}}

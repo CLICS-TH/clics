@@ -1,0 +1,10 @@
+{"rater":"sonnet","scores":{
+"M01":{"d1":5,"d2":5,"d3":5,"d4":5,"d5":5,"d6":5,"d7":4,"note":"BRIDGE excluded TIA <12wk, pt 8wk; eGFR 40, no anti-Xa/PCC; 'ตอนแรกคิดว่าใช้ผล BRIDGE ได้ แต่ TIA เพิ่ง 8 สัปดาห์ เลยเปลี่ยน'; Monday chart pull"},
+"M02":{"d1":4,"d2":4,"d3":5,"d4":5,"d5":5,"d6":5,"d7":5,"note":"ACOG target based on 3 normal meals, no fasting data; 'ช่วย argue against แผนนี้'; reflection: NPH-for-all habit changed to meal-specific; island/monsoon plan"},
+"M03":{"d1":2,"d2":1,"d3":1,"d4":2,"d5":1,"d6":0,"d7":1,"note":"Generic 'Alvarado ขอแบบทั่วไป', repeated 'อธิบายเพิ่ม', 'ผมใช้ตามนี้เลย'; only asked for ref; no reflection, no ranking"},
+"M04":{"d1":4,"d2":4,"d3":4,"d4":4,"d5":4,"d6":5,"d7":4,"note":"'หลักฐาน 48 ชม. มาจาก RCT หรือ cohort ... on antiplatelet รวมอยู่ไหม'; DES 8mo, eGFR 48 avoid NSAID; reflection names changed view, uncertainty, plan"},
+"M05":{"d1":3,"d2":4,"d3":3,"d4":2,"d5":3,"d6":1,"d7":2,"note":"Ranked ICH>surge>angioedema at 25 min; asked 0.9 mg/kg source in Thai; but offloads dose calc and checklist to AI; reflection 'ตามที่ AI สรุปให้ ขอบคุณ'"},
+"M06":{"d1":1,"d2":2,"d3":1,"d4":1,"d5":1,"d6":1,"d7":1,"note":"Templated 10-heading textbook request; topic-hopping; 34wk/37wk timing reasoning is textbook; closes 'ได้ความรู้เยอะเลยครับ thanks'; slide-copy request"},
+"M07":{"d1":4,"d2":4,"d3":3,"d4":4,"d5":5,"d6":3,"d7":5,"note":"'ที่ว่า contrast ลดการผ่าตัดได้ทุกราย ผมว่าเกินไป ... แค่คัดคนที่หายเองอยู่แล้ว'; asked AI to argue vs plan, cites WSES sections; summary has triggers, no change named"},
+"M08":{"d1":4,"d2":5,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"'ประโยคที่ว่าไม่ต้องกังวลเรื่องไตในรายนี้ ผมหา basis ไม่เจอ' CrCl ~26; reflection: Cr 1.2 -> CrCl>30 -> 5 mg bid; pharmacist, 20-case audit"}
+}}

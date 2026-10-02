@@ -1,0 +1,58 @@
+{
+  "ple_id": "anc-072",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "pt ชายในวัย 60 กว่า stable angina CCS II จะทำ lap chole elective ใน 2 สัปดาห์ BP 138/82 HR 74 SpO2 98% Cr 1.1 eGFR 68 HbA1c 7.4 EF 55% Hb 13.8 K 4.1 Na 139 FBS 132 plt 245000 INR 1.0 BMI 27 Mallampati II ไม่สูบบุหรี่ ดื่มนานๆ ครั้ง on ASA 81, atorvastatin 40, metoprolol 50, metformin 1000, amlodipine 5 ควรประเมินก่อนผ่าตัดยังไงดีครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "ผู้ป่วยรายนี้เป็นผ่าตัด risk ต่ำถึงปานกลาง ควรเริ่มจากประเมิน functional capacity และ RCRI ก่อน (ESC Guidelines on non-cardiac surgery, 2022)\n- stable angina ที่ควบคุมได้และ EF 55% ไม่จำเป็นต้อง stress test ทุกราย\n- ECG baseline ควรมี\n- ให้ต่อ beta-blocker และ statin ที่ใช้อยู่\n❓ จากข้อมูล ผู้ป่วยรายนี้มีปัจจัยใดบ้างที่ทำให้ RCRI สูงขึ้น"
+    },
+    {
+      "role": "physician",
+      "content": "ขออธิบายเพิ่มหน่อยครับเรื่อง RCRI ว่าคิดยังไง แล้วควรส่งตรวจอะไรบ้าง ECG, CXR, CBC, BUN/Cr, echo, stress test, coronary CTA หรือ cath เลย pt เดินขึ้นบันได 2 ชั้นได้ ไม่เคยมี chest pain ตอนพัก ไม่เคยทำ echo"
+    },
+    {
+      "role": "assistant",
+      "content": "RCRI นับปัจจัยเสี่ยง เช่น ischemic heart disease, DM ที่ใช้ insulin, Cr มากกว่า 2, ผ่าตัดเสี่ยงสูง (ESC Guidelines on non-cardiac surgery, 2022)\n- รายนี้ได้ 1 แต้ม จาก IHD\n- ECG, CBC, BUN/Cr ส่งได้ตามปกติ\n- echo ทำเมื่อมีอาการหัวใจล้มเหลวหรือไม่เคยประเมิน LV function\n❓ ถ้าผู้ป่วยมี functional capacity ต่ำกว่า 4 METs ท่านจะเปลี่ยนแผนอย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ok ครับ pt on ASA 81 กับ metoprolol 50 แล้วก็ metformin 1000 กับ amlodipine 5 atorvastatin 40 ต้องหยุดอะไรบ้างก่อนผ่าตัด 1 วัน หรือ 3 วัน หรือ 7 วัน หรือไม่ต้องหยุดเลย ขอข้อมูลให้ครบทุกตัวด้วยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "แนะนำให้ต่อ aspirin และ beta-blocker ต่อเนื่องในผู้ป่วยที่ใช้อยู่เดิม (ACC/AHA perioperative guideline, 2014)\n- ASA 81 ต่อได้เมื่อมี CAD\n- metoprolol ต่อ ไม่หยุดกะทันหัน\n- metformin มักหยุดในวันผ่าตัด\n- ไม่ควรเริ่ม beta-blocker ขนาดสูงในวันผ่าตัด\n❓ ถ้า pt มี HR 55 ก่อนผ่าตัด ท่านจะปรับ metoprolol หรือไม่"
+    },
+    {
+      "role": "physician",
+      "content": "ถ้าหลัง induce แล้ว BP ตกเหลือ 85/50 HR 110 อาจเป็น ischemia หรือ hypovolemia หรือยา propofol ก็ได้ครับ ขออธิบายเรื่อง intra-op เพิ่มอีกหน่อยครับ ขอแบบละเอียดทุกเรื่องเลย ทั้ง monitor, ยา, fluid"
+    },
+    {
+      "role": "assistant",
+      "content": "ภาวะ BP ตกหลัง induce มีหลายสาเหตุ ควรตรวจ ECG ดู ST change และให้ fluid กับ vasopressor ตามสาเหตุ (ESC Guidelines on non-cardiac surgery, 2022)\n- รักษา MAP ให้เพียงพอเพื่อ coronary perfusion\n- เลี่ยง tachycardia\n- เฝ้าดู ST ต่อเนื่อง\n❓ ท่านจะจัดลำดับสาเหตุเหล่านี้อย่างไรเมื่อ ST ไม่เปลี่ยน"
+    },
+    {
+      "role": "physician",
+      "content": "มี reference ไหมครับ โอเคครับ case นี้ GA ประมาณ 90 นาที ผ่าตัดเช้า 1 case ต่อวัน ใช้ ETT เบอร์ 7.5 ช่วยสรุปให้หน่อยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "แหล่งอ้างอิงหลักคือ (ESC Guidelines on non-cardiac surgery, 2022) และ ACC/AHA perioperative guideline (2014) ซึ่งครอบคลุมการประเมินความเสี่ยงและการจัดการยา\n- GA 90 นาทีถือเป็นผ่าตัดความเสี่ยงต่ำถึงปานกลาง\n- เน้นรักษา hemodynamics ให้นิ่ง\n❓ ท่านอยากให้ checklist เน้นช่วงไหนมากที่สุด"
+    },
+    {
+      "role": "physician",
+      "content": "ขอเป็น checklist เลยครับ เอาแบบเต็มๆ ทุกหัวข้อ จะได้ copy ไปใช้\n1. ตรวจก่อนผ่าตัด\n2. ยาที่ต้องหยุด\n3. การเฝ้าระวัง intra-op และ post-op 24 ชม."
+    },
+    {
+      "role": "assistant",
+      "content": "สรุป checklist (ESC Guidelines on non-cardiac surgery, 2022)\n1. ก่อนผ่าตัด: RCRI, ECG, CBC, BUN/Cr\n2. ยา: ต่อ ASA, metoprolol, statin; หยุด metformin วันผ่าตัด\n3. Intra-op/post-op: เฝ้าดู ST, รักษา MAP, ติดตาม troponin หากมีอาการ\n❓ ท่านจะบันทึกข้อมูลใดลงใน pre-anesthetic record เป็นอันดับแรก"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nประเมินความเสี่ยงด้วย RCRI และ functional capacity ส่ง ECG, CBC, BUN/Cr ต่อ ASA, beta-blocker และ statin หยุด metformin วันผ่าตัด เฝ้าระวัง ST และ MAP ระหว่างดมยาสลบ"
+    }
+  ]
+}

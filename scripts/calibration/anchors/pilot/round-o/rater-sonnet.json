@@ -1,0 +1,5 @@
+{"rater":"sonnet","scores":{
+"P01":{"d1":4,"d2":4,"d3":4,"d4":2,"d5":2,"d6":2,"d7":4,"note":"Pre-scripted question list, 'Noted. Next item:' topic-hops (d4 low); case-specific ranking 'SBP first given his ascites'; asks 'does ranking hold'; one-line reflection; 'I'll check dose against formulary'."},
+"P02":{"d1":3,"d2":4,"d3":4,"d4":3,"d5":5,"d6":5,"d7":4,"note":"Turn 4 splits RCT vs subgroup vs no-RCT: 'warfarin arm ตรวจ INR ถี่กว่าคลินิกที่รายนี้ไปได้มาก'; reflection names changed belief, uncertainty, concrete Monday actions; earlier turns 'ขอรายละเอียดทั้งหมด' generic."},
+"P03":{"d1":5,"d2":5,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"'30 mL/kg เต็มใน EF 35% หรือ bolus 500 แล้ว reassess? อะไรเป็นตัวตัดสิน'; thresholds 'MAP<65 หลัง 1 L หรือ B-lines'; 'ช่วย argue against carbapenem... ผมตัดสินเอง'; 3-part audit plan."}
+}}

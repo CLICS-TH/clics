@@ -1,0 +1,50 @@
+{
+  "ple_id": "anc-041",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "pt ชายวัย 60 กว่า เป็น DM เข่าขวาบวมแดงร้อน ไข้ 38.2 มา 2 วัน งอไม่ได้ ไม่มีอุบัติเหตุ ไม่เคยฉีดยาเข้าข้อ CRP 180 สงสัย septic arthritis เจาะข้อแล้วเริ่ม ATB เลย หรือรอ Gram stain กับ cell count ก่อน ถ้า Gram ไม่เห็นเชื้อล่ะ"
+    },
+    {
+      "role": "assistant",
+      "content": "ถ้าสงสัยจริง ควรเจาะข้อก่อนให้ ATB เพื่อให้ได้ culture แต่ไม่ควรเลื่อนยาไปรอผล Gram stain ถ้า pt ดูป่วยหนัก (BSR/BOA septic arthritis guideline, 2006)\n- Gram stain ไม่เห็นเชื้อ ไม่ได้ตัด septic arthritis ออก เพราะ sensitivity ไม่สูง\n- ใช้ Kocher criteria ช่วยประเมินโอกาสเป็น septic arthritis ได้เลย\n❓ ถ้า cell count ในน้ำไขข้อไม่สูงมาก แต่ pt ยังไข้อยู่ จะตัดสินใจอย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ok ครับ Gram ลบไม่ตัดทิ้ง งั้นเริ่ม ATB หลังเจาะเลย เดา S. aureus ก่อน เพราะ DM ไข้ บวมแดงเฉียบพลัน ส่วน Kocher ที่ว่า derive จากเด็ก hip ไม่ใช่เข่าผู้ใหญ่ใช่ไหม"
+    },
+    {
+      "role": "assistant",
+      "content": "ใช่ครับ Kocher derive และ validate ในเด็กที่ข้อสะโพกเป็นหลัก (Kocher criteria, 1999) จึงเอามาใช้ตรงๆ กับเข่าผู้ใหญ่ไม่ได้ ผมพูดกว้างเกินไป\n- ในผู้ใหญ่ให้ดูอาการ ผลน้ำไขข้อ และ culture ร่วมกัน (BSR/BOA septic arthritis guideline, 2006)\n- S. aureus เป็นเชื้อที่พบบ่อยที่สุด empirical ATB ต้องครอบคลุม\n❓ ถ้า synovial WBC ได้ 30,000 ซึ่งต่ำกว่าเส้นที่หลายคนใช้ จะเปลี่ยนแผนไหม"
+    },
+    {
+      "role": "physician",
+      "content": "ถ้า synovial WBC 30,000 ผมยังไม่ตัดทิ้ง เพราะไข้ยังอยู่และ CRP สูงมาก ขอ source ของเส้น 50,000 ด้วยว่ามาจาก pt กลุ่มไหน แล้ว vanco ผมใช้กับ eGFR 45 น้ำหนัก 70 kg ขอ dose ที่ปรับให้ เดี๋ยวเช็คกับ formulary รพ. ก่อนสั่ง"
+    },
+    {
+      "role": "assistant",
+      "content": "เส้น 50,000 เป็น rule of thumb ที่ใช้กันทั่วไป ไม่ใช่ cutoff ที่ validate มา ค่าต่ำกว่านั้นยังเป็น septic arthritis ได้ จึงต้องดูร่วมกับทางคลินิก (BSR/BOA septic arthritis guideline, 2006)\n- vanco ต้องปรับตาม eGFR และน้ำหนัก ผมไม่มีตัวเลข dose ที่ตรงกับ formulary ของท่าน ให้ใช้ของโรงพยาบาลเป็นหลัก\n- ตาม Cr และ trough ต่อเนื่อง\n❓ จะตาม trough กับ Cr บ่อยแค่ไหน"
+    },
+    {
+      "role": "physician",
+      "content": "โอเค ที่ว่าต้องตาม trough vanco ส่วนเรื่องล้างข้อค่อยคุยทีหลัง — pt eGFR 45 ผมเจาะ trough ก่อน dose ที่ 4 และตาม Cr ทุกวัน แบบนี้พอไหมครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "แผนนี้สมเหตุผลครับ ถ้า Cr ขึ้น ให้ทบทวน dose ก่อน dose ถัดไปโดยไม่ต้องรอครบวัน และคุยกับเภสัชกรประกอบ ส่วนการล้างข้อ ให้ปรึกษา ortho ตั้งแต่ต้น เพราะ septic arthritis ต้อง drain ข้อควบคู่กับยา (BSR/BOA septic arthritis guideline, 2006)\n❓ ถ้า culture กลับมาเป็น MRSA ในวันที่ 3 จะปรับ ATB อย่างไร"
+    },
+    {
+      "role": "physician",
+      "content": "ถ้า MRSA ผมคง vanco ต่อและหยุด ceftriaxone แล้วปรึกษา ortho ล้างข้อ ส่ง crystal จากน้ำไขข้อด้วย ผมสั่งเองตามนี้ ขอให้ tutor ตอบสั้นๆ ว่ามีอะไรตกหรือไม่"
+    },
+    {
+      "role": "assistant",
+      "content": "แผนครบถ้วนดีครับ เพิ่มเติมสองข้อสั้นๆ\n- ถ้าหลัง drain แล้วไข้ไม่ลง ใน 48 ชม. ควรประเมินซ้ำว่าล้างข้อเพียงพอหรือไม่ และหาจุดติดเชื้ออื่น\n- เลือก ATB ต่อตามผล sensitivity และระยะเวลารักษาให้ตกลงร่วมกับทีม ortho และ ID (BSR/BOA septic arthritis guideline, 2006)\n❓ ถ้า pt รายนี้ไม่ยอมนอน รพ. จะปรับแผนอย่างไร"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nเข่าที่สงสัย septic arthritis ต้องเจาะข้อก่อนให้ ATB แต่ไม่ต้องรอผล Gram stain และ Gram ลบไม่ตัดโรคออก Kocher ใช้กับเด็ก hip ไม่ใช่เข่าผู้ใหญ่ ส่วน vanco ในรายที่ eGFR 45 ต้องตาม trough และ Cr และปรึกษา ortho ล้างข้อตั้งแต่ต้น"
+    }
+  ]
+}

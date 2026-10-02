@@ -1,0 +1,58 @@
+{
+  "ple_id": "anc-037",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "Man in his 70s, T 38.9, HR 118, BP 82/48, RR 26, SpO2 91% on room air, lactate 4.4, 500 mL given so far. Known HFrEF, EF 35%, on furosemide at home, bed 3 in a busy resus bay. Do I still run the full 30 mL/kg or cap the volume and start norepinephrine early?"
+    },
+    {
+      "role": "assistant",
+      "content": "Good question, and the EF matters here.\n- For sepsis-induced hypoperfusion the suggestion is at least 30 mL/kg of crystalloid within the first 3 hours (Surviving Sepsis Campaign, 2021). It is a weak recommendation, so treat it as a starting frame, not a quota.\n- With EF 35%, give it in 250-500 mL boluses and recheck lungs, SpO2 and BP after each one. Further fluid is better guided by dynamic measures and capillary refill than by the full number (Surviving Sepsis Campaign, 2021).\n- Norepinephrine is the first-line pressor with a MAP target of 65, and it can start early if he stays hypotensive during fluids. A balanced crystalloid is suggested over saline."
+    },
+    {
+      "role": "physician",
+      "content": "ok. After 1.5 L: BP 86/50, MAP 62, SpO2 89% on 4 L, new crackles both bases, lactate 3.9. Norepinephrine through a 20G forearm line now, or hold until the central line goes in, maybe 40 minutes?"
+    },
+    {
+      "role": "assistant",
+      "content": "Crackles and a falling SpO2 after 1.5 L say he is no longer clearly fluid responsive, so I would pause large boluses and support the pressure with a pressor.\n- Start norepinephrine peripherally rather than waiting for the central line; the campaign suggests this to avoid delay (Surviving Sepsis Campaign, 2021). Use a working line, ideally proximal to the wrist, check the site often, and move to central access when it is ready.\n- Titrate to MAP 65 on a pump.\n- Follow your local peripheral-pressor protocol for extravasation checks."
+    },
+    {
+      "role": "physician",
+      "content": "Source still unclear. Mild cough, some dysuria, RUQ tender. Urine dipstick leukocytes 2+. Could be chest, urine or gallbladder. Cultures x2 drawn, CrCl about 40, penicillin allergy listed as rash. Which empiric antibiotic should go in first, and how fast?"
+    },
+    {
+      "role": "assistant",
+      "content": "Three possible sources, so cover all of them first and narrow down later.\n- Timing: within 1 hour of recognition when shock is likely, as it is here with hypotension and a lactate of 4.4 (Surviving Sepsis Campaign, 2021). Cultures are already drawn, so do not hold the first dose for anything else.\n- Choice: a broad beta-lactam covering chest, urinary and biliary sources, with anaerobic cover if the gallbladder or bile duct is in play. Pick by your local antibiogram. The first dose is usually given in full, then adjust for CrCl.\n- A remote non-severe rash often does not rule out a cephalosporin, but check what the reaction actually was."
+    },
+    {
+      "role": "physician",
+      "content": "Where does the 30 mL/kg figure come from, a trial or consensus? He has had 2.1 L at 75 kg, so about 28 mL/kg, BP 90/52 on norepinephrine 0.1 mcg/kg/min, HR 104, and I am deciding whether to hang another bag."
+    },
+    {
+      "role": "assistant",
+      "content": "Fair challenge.\n- The 30 mL/kg figure is a suggestion in the campaign guideline, rated weak with low-quality evidence (Surviving Sepsis Campaign, 2021). I'm not certain of every source behind it, but as far as I know it comes from earlier protocolised resuscitation work and expert consensus rather than a trial that tested that exact volume.\n- At 28 mL/kg he is already close, so more fluid should depend on whether he still responds, not on reaching 30.\n- Keep norepinephrine at MAP 65 and reassess the lungs after anything further you give."
+    },
+    {
+      "role": "physician",
+      "content": "ok, can you tell me more about the lactate part? Repeat at 2 hours was 3.1, MAP 66, urine 20 mL in the last hour, cap refill 4 s, temp 38.2, HR 102. He is more awake than on arrival and talking in full sentences."
+    },
+    {
+      "role": "assistant",
+      "content": "Lactate is a useful trend but not a perfect perfusion marker.\n- The campaign suggests guiding resuscitation to bring an elevated lactate down (Surviving Sepsis Campaign, 2021). A fall from 4.4 to 3.1 over 2 hours is moving the right way.\n- It can stay up for reasons other than poor flow, for example reduced clearance in liver dysfunction or high adrenergic stress, so read it with capillary refill, urine output and mental status.\n- Capillary refill of 4 s and 20 mL of urine in an hour (about 0.27 mL/kg/h at 75 kg) mean perfusion is still marginal even at MAP 66. Repeat the lactate in 2 hours."
+    },
+    {
+      "role": "physician",
+      "content": "Bedside US just done shows CBD 9 mm and a thick gallbladder wall, lactate still 3.1 at 3 hours, norepinephrine 0.12 mcg/kg/min, HR 112, temp 38.6. Call surgery and GI for drainage now while on pressors, or wait until MAP is steady at 65 for 2 hours?"
+    },
+    {
+      "role": "assistant",
+      "content": "A dilated duct with fever and RUQ tenderness fits cholangitis, and the thick gallbladder wall could mean cholecystitis too. Either way it is a source that needs mechanical control.\n- Sepsis guidance asks for source control as soon as medically and logistically practical (Surviving Sepsis Campaign, 2021).\n- For severe cholangitis, meaning organ dysfunction such as hypotension needing a pressor, urgent biliary drainage is advised once initial resuscitation and organ support are under way (Tokyo Guidelines, 2018). That means draining while he is on norepinephrine, not after weaning it.\n- Send bilirubin and liver enzymes, but do not hold the call for them. If ERCP is not available within hours, discuss percutaneous drainage or transfer."
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nIn an older septic man with HFrEF the fluid goes in as small boluses with a lung check after each, and norepinephrine does not have to wait for a central line. Antibiotics go in within the hour once cultures are drawn. A lactate that stays high after fluids and a pressor made me look for a source that can be drained, which here was the bile duct.\n\nจะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:\nWith the next septic patient who has a weak heart I will recheck lungs and BP after every 500 mL, and put the ultrasound probe on the RUQ early."
+    }
+  ]
+}

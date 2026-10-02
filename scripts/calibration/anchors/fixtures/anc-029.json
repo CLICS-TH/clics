@@ -1,0 +1,62 @@
+{
+  "ple_id": "anc-029",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "Woman in her 40s, eight months of irregular heavy periods, BMI 34, hypertensive, on low-dose aspirin. Community hospital, no hysteroscopy, pathology takes a week. Does endometrial sampling come before imaging for her, or does the scan decide whether I sample at all?"
+    },
+    {
+      "role": "assistant",
+      "content": "Both have a role, and for her sampling doesn't wait on the scan.\n- Heavy irregular bleeding with obesity and age over 45 is a reason to sample the endometrium whatever the imaging shows, as unopposed oestrogen exposure is the concern.\n- The scan finds structural causes such as polyps, fibroids and adenomyosis, which sit in the structural half of the FIGO system (FIGO PALM-COEIN, Munro et al., 2018).\n- A lining under about 4 mm on transvaginal ultrasound effectively rules out endometrial cancer, so a thin lining lets you skip the biopsy.\n- Aspirin can add to heaviness but rarely explains months of irregular cycles.\n❓ Which structural and non-structural causes are on your list for her?"
+    },
+    {
+      "role": "physician",
+      "content": "Ok. Taking your point that obesity alone justifies sampling: pipelle at this visit, scan the same day. On my list for her: polyp, adenomyosis, fibroid, hyperplasia or cancer, ovulatory dysfunction, aspirin. If the pipelle comes back clean and she keeps bleeding, what is the next move with no hysteroscopy here?"
+    },
+    {
+      "role": "assistant",
+      "content": "Persistent bleeding after a benign blind sample still needs a structural look.\n- Polyps and fibroids are structural causes in the FIGO system (FIGO PALM-COEIN, Munro et al., 2018); a blind pipelle samples diffusely and can miss a focal one.\n- Without hysteroscopy, a repeat transvaginal scan early in the cycle, or saline infusion sonography if you have it, can show a focal lesion.\n- If neither is available, referral for hysteroscopy with directed biopsy is the usual next move.\n- A clean first pipelle shouldn't close the case in a woman with her risk factors.\n❓ What would make you refer her before the pathology even returns?"
+    },
+    {
+      "role": "physician",
+      "content": "Noted. Back to your thin-lining claim: under 4 mm excluding cancer came from postmenopausal bleeding series as far as I know, and she is still cycling. Which source carries that cut-off for a woman who bleeds before menopause? Until I see one I'm sampling her whatever the scan says. You can't see her scan, so I'll read it myself."
+    },
+    {
+      "role": "assistant",
+      "content": "You're right, and thank you for catching it. The 4 mm cut-off was derived in postmenopausal women with bleeding. It hasn't been validated to exclude hyperplasia or cancer in a cycling woman, where lining thickness changes with the phase of the cycle, so I shouldn't have offered it as a reason to skip her biopsy.\n- Sampling in her is driven by risk (age and obesity), not by the scan.\n- The FIGO system (FIGO PALM-COEIN, Munro et al., 2018) classifies causes of abnormal bleeding; it sets no thickness rule, so it can't back that cut-off either.\n- I don't have a source to point you to for a premenopausal cut-off.\n❓ If her biopsy shows hyperplasia without atypia, what would you offer her?"
+    },
+    {
+      "role": "physician",
+      "content": "Options for hyperplasia without atypia: LNG-IUS, oral progestin, repeat sampling after a few months. She wants to keep her uterus, and each pathology result costs her a week and a trip. Does the evidence for LNG-IUS cover women with her BMI, or did those studies leave out women like her?"
+    },
+    {
+      "role": "assistant",
+      "content": "Be careful generalising here. Most data on LNG-IUS for hyperplasia without atypia come from observational series and small trials, and obesity is a recognised predictor of lower regression and more relapse, so women with her BMI are included but do worse. I'm not certain of the exact regression rates, so I won't quote one.\n- Hypertension isn't a contraindication to LNG-IUS; it matters more for oestrogen-containing options.\n- Whichever route, follow-up sampling is needed to confirm regression.\n- Hyperplasia sits in the M category of the FIGO system (FIGO PALM-COEIN, Munro et al., 2018).\n❓ What would you do if the pipelle sample is inadequate rather than benign?"
+    },
+    {
+      "role": "physician",
+      "content": "Inadequate sample: repeat pipelle once, then refer for hysteroscopy. Benign report but a focal mass on the scan: refer anyway. Heavy bleeding with dizziness: referral centre that day. Is that referral order anything the guidelines say, or just habit in places like ours?"
+    },
+    {
+      "role": "assistant",
+      "content": "Your order is reasonable.\n- Repeating an inadequate sample once and then moving to hysteroscopy is a common local approach.\n- A focal mass on the scan warrants direct visualisation even when the biopsy is benign, since a blind sample can miss it (FIGO PALM-COEIN, Munro et al., 2018).\n- Heavy bleeding with symptoms of volume loss needs same-day assessment.\nThe FIGO system classifies causes and doesn't dictate referral order, and I'm not aware of one national rule that fixes it; most pathways are local consensus.\n❓ Which of those three triggers will the clinic nurses find hardest to apply consistently?"
+    },
+    {
+      "role": "physician",
+      "content": "Writing the plan for the clinic nurses. Challenge it where it is weak:\n- Pipelle and scan at the first visit\n- Refer if the sample is inadequate twice, a focal mass is seen, or heavy bleeding comes with dizziness\n- Hold aspirin until the bleeding settles\nI'll check tranexamic acid dosing against our formulary first."
+    },
+    {
+      "role": "assistant",
+      "content": "Weak spots I'd check:\n- Pregnancy should be excluded before any sampling.\n- Ask about easy bruising and family bleeding history, since coagulopathy is the C in the FIGO system (FIGO PALM-COEIN, Munro et al., 2018).\n- Check haemoglobin, so anaemia isn't missed.\n- Aspirin: agree the hold with whoever prescribed it, if it was for secondary prevention.\nChecking tranexamic acid dosing against your formulary is the right habit; I can't see your local formulary.\n❓ How will you tell, in a few months, whether the nurses apply the heavy-bleeding trigger the same way?"
+    },
+    {
+      "role": "physician",
+      "content": "Summary for my notes: sample at the first visit, scan the same day, refer on a clean sample only if she keeps bleeding. Lining thickness doesn't gate her biopsy. Hyperplasia evidence in women with her BMI is thinner than I assumed, and repeat sampling stays. Monday: add a pregnancy test to the nurse checklist and audit our clinic biopsies for inadequate samples."
+    },
+    {
+      "role": "assistant",
+      "content": "That summary matches what we discussed. Sampling her at the first visit and refusing to let lining thickness decide it is well supported for a woman with her risk factors (FIGO PALM-COEIN, Munro et al., 2018 classifies causes, and does not itself set that rule). Auditing your inadequate-sample rate is a sound way to find out how well the local pathway works.\n❓ What inadequate-sample rate would make you change how the clinic takes the sample?"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "ple_id": "anc-086",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "pt หญิงวัย 70 กว่า hip fracture ที่ รพ.ชุมชน on warfarin เพราะ AF INR 2.6 และมี TIA เมื่อสองเดือนก่อน ต้อง bridge ด้วย LMWH ก่อนผ่าไหมครับ ช่วยแนะนำหน่อย"
+    },
+    {
+      "role": "assistant",
+      "content": "ตัดสินใจเป็นสองชั้นครับ\n- ความเสี่ยงลิ่มเลือด: AF ร่วมกับ TIA ล่าสุดทำให้ CHA2DS2-VASc สูง (CHA2DS2-VASc, Lip et al., 2010)\n- AF ส่วนใหญ่ไม่ต้อง bridge เพราะ BRIDGE trial พบว่าการไม่ bridge ไม่ด้อยกว่าและเลือดออกน้อยกว่า (BRIDGE trial, 2015)\n- ก่อน spinal ต้องรอ INR ลดลงก่อน vitamin K ขนาดต่ำช่วยเร่งได้\nแผนเบื้องต้น: หยุด warfarin, ให้ vitamin K ขนาดต่ำ แล้วตรวจ INR ซ้ำก่อนตัดสินใจเรื่อง bridge"
+    },
+    {
+      "role": "physician",
+      "content": "BRIDGE ตัดคนที่มี stroke หรือ TIA ภายใน 12 สัปดาห์ออก pt รายนี้ 8 สัปดาห์ จึงไม่อยู่ในกลุ่มที่ผลนั้นพูดถึง ส่วน CHA2DS2-VASc 6 ก็บอกไม่ได้ว่าช่วงขาดยาสั้นๆ เสี่ยงแค่ไหน"
+    },
+    {
+      "role": "assistant",
+      "content": "ถูกต้องครับ ผล BRIDGE ใช้กับรายนี้ตรงๆ ไม่ได้ เพราะกลุ่มที่เพิ่งมี stroke หรือ TIA ถูกตัดออกจากการศึกษา (BRIDGE trial, 2015)\n- แนวทาง ESC เรื่องผ่าตัดนอกหัวใจให้พิจารณา bridge เป็นรายๆ ในกลุ่มเสี่ยงลิ่มเลือดสูง เช่น มี TIA ล่าสุด (ESC non-cardiac surgery guidelines, 2022)\n- ส่วนเลือดออกต้องชั่งคู่กัน เพราะ hip fracture เสียเลือดเองอยู่แล้ว"
+    },
+    {
+      "role": "physician",
+      "content": "แต่ eGFR 40 enoxaparin จะสะสม และ bridge ก่อนผ่าแล้วค่อย spinal ก็เสี่ยง รพ.นี้ไม่มี anti-Xa ไม่มี PCC ผมเลยคิดว่าให้ vitamin K รอ INR ลง แล้วเริ่ม enoxaparin ขนาดลดหลังผ่า 24 ชม. ดีกว่าไหม"
+    },
+    {
+      "role": "assistant",
+      "content": "สมเหตุสมผลครับ ผมเห็นด้วยกับทิศทางนี้\n- ก่อน spinal LMWH ขนาดรักษาควรเว้นอย่างน้อย 24 ชม. และไตที่ eGFR 40 ทำให้ยาอยู่นานขึ้น\n- การเริ่ม LMWH หลังผ่าเมื่อห้ามเลือดได้ดีแล้ว เป็นแนวทางที่ใช้กันทั่วไปในผู้ป่วยเสี่ยงสูง (ESC non-cardiac surgery guidelines, 2022)\n- การเลื่อนผ่ารอ INR ควรไม่เกิน 48 ชม. หลังเข้า รพ. เพื่อไม่ให้ผลลัพธ์ของ hip fracture แย่ลง"
+    },
+    {
+      "role": "physician",
+      "content": "ถ้า INR เช้าพรุ่งนี้ยัง 1.8 ล่ะครับ spinal ได้ไหม หรือไป GA ร่วมกับ block เพราะรอต่อ 24 ชม. อีกก็เกินที่ควร"
+    },
+    {
+      "role": "assistant",
+      "content": "ถ้า INR ยังสูงอยู่ การเปลี่ยนไป GA ร่วมกับ peripheral block เป็นทางเลือกที่เหมาะกับ รพ.ที่ไม่มี PCC เพราะเลี่ยงความเสี่ยง epidural hematoma ได้\n- แต่ผู้สูงอายุที่เพิ่งมี TIA ต้องคุม BP ช่วง induction ให้ดี เพราะ perfusion สมองไวต่อความดันตก (AHA/ASA stroke guideline, 2019)"
+    },
+    {
+      "role": "physician",
+      "content": "ตรงที่ BRIDGE ยืนยันแล้วคือ AF ที่ไม่มี TIA ใหม่ ส่วนกลุ่มของ pt มีแต่ความเห็นผู้เชี่ยวชาญ ไม่มี RCT และ HAS-BLED ก็สร้างมาไม่ใช่เพื่อเลือดออกหลังผ่า ผมเลยอ่านตัวเลขพวกนี้เป็นแค่ทิศทาง"
+    },
+    {
+      "role": "assistant",
+      "content": "สรุปได้ตรงครับ การประเมินความเสี่ยงเลือดออกเดิมยังใช้ HAS-BLED เป็นภาพรวมได้ แต่ควรตีความอย่างระวังในช่วงผ่าตัด (HAS-BLED, Pisters et al., 2010)\n- ในกลุ่มที่ไม่มีข้อมูล RCT การตัดสินใจรายบุคคลเป็นวิธีที่แนวทางยอมรับ"
+    },
+    {
+      "role": "physician",
+      "content": "สรุปแผน: ไม่ bridge ก่อนผ่า รอ INR ต่ำกว่า 1.5 ด้วย vitamin K ขนาดต่ำ แล้ว enoxaparin ขนาดลดหลังผ่า 24 ชม. ตอนแรกคิดว่าใช้ผล BRIDGE ได้ แต่ TIA เพิ่ง 8 สัปดาห์ เลยเปลี่ยน ที่ยังตอบไม่ได้คือเสี่ยง stroke ช่วงรอ จันทร์นี้ผมจะดึงเคส hip fracture ที่ on warfarin ใน รพ. มาดู INR ก่อนผ่า ช่วยเรียบเรียงเป็น note pre-op ให้ copy ลงเวชระเบียนเลยครับ"
+    },
+    {
+      "role": "assistant",
+      "content": "Pre-op note (ฉบับร่าง)\n- Dx: hip fracture, AF on warfarin, TIA ล่าสุด\n- แผน: หยุด warfarin, vitamin K ขนาดต่ำ, ตรวจ INR ซ้ำ ผ่าเมื่อ INR ต่ำกว่า 1.5\n- Bridge: ไม่ให้ก่อนผ่า พิจารณา enoxaparin ขนาดลดหลังผ่า 24 ชม. เมื่อห้ามเลือดได้ (ESC non-cardiac surgery guidelines, 2022)"
+    }
+  ]
+}
