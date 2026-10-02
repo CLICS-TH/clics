@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { stripPii, stripHistoryPii, deriveHintTokens } = require('../services/pii-filter');
 const { ragLookup } = require('../services/rag');
 const { callAI } = require('../services/ai');
-const { hasCitation, extractSocraticQuestion, extractReferences, thaiShare, stripNonProse, isLanguageMismatch, isThaiMessage } = require('../services/post-filter');
+const { meetsCitationRule, extractSocraticQuestion, extractReferences, thaiShare, stripNonProse, isLanguageMismatch, isThaiMessage } = require('../services/post-filter');
 const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE } = require('../lib/prompts');
 const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply } = require('../services/rescue');
 const { flattenForPrompt, stripArtifactDelimiters } = require('../lib/transcript');
@@ -198,6 +198,10 @@ router.post('/', async (req, res) => {
     // turn that fails both gets a SINGLE retry whose prompt asks for both fixes, so a turn never makes
     // more than two AI calls in total (and the billing sums below stay a plain two-call sum).
     //   - citation missing (both modes), or — examiner mode only — the ❓ missing. Not on a rescue turn.
+    //     "Missing" means neither a (Source, Year) citation NOR the prompt's explicit "(no specific
+    //     source cited)" / "(ไม่มีแหล่งอ้างอิงเฉพาะ)" note (post-filter meetsCitationRule). The prompt
+    //     tells the model to write that note rather than invent a reference, so the guard must accept
+    //     it — retrying it would push the model back toward inventing one.
     //   - LANGUAGE: the physician wrote substantially in Thai and the reply is mostly-not-Thai
     //     (post-filter's isLanguageMismatch, which ignores code, URLs, citations, :::artifact blocks
     //     and a trailing References list). `language === 'th'` alone is NOT enough: the client sets it
@@ -207,20 +211,23 @@ router.post('/', async (req, res) => {
     //     either). That share is computed here, on-prem; only the boolean outcome is used. This check
     //     DOES apply to a rescue turn: it asks for a rewrite, not a fresh answer, so it cannot make a
     //     rescue reply answer the question it is deliberately withholding.
-    const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));
+    const needCitation = !rescuing && (!meetsCitationRule(text) || (socratic && !extractSocraticQuestion(text)));
     const physicianWroteThai = language === 'th' && isThaiMessage(message);
     const languageMismatch = physicianWroteThai && isLanguageMismatch(text, language);
     let languageRetried = false;   // the retry's reply is the one being returned
     if (needCitation || languageMismatch) {
+      // NOT covered by prompt_version: promptLabel('chat', systemPrompt) below hashes the system prompt
+      // only, so an edit to these retry prompts alone does NOT change the label. Open follow-up (#123);
+      // until it lands, record any retry-prompt edit in the PR and re-run the tutor audit.
       let retryPrompt;
       if (needCitation) {
         retryPrompt = socratic
           ? (language === 'th'
-            ? 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) และปิดท้ายด้วยคำถามชวนคิดขึ้นบรรทัดใหม่นำหน้าด้วย ❓ — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม'
-            : 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation and end with a ❓ question on its own line. Engage with the question — do not decline to answer.')
+            ? 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) ที่ระบุชื่อเอกสารเฉพาะ เช่น ชื่อแนวทางเวชปฏิบัติ แถลงการณ์ หรือชื่อการศึกษา — หากไม่มั่นใจว่ามีแหล่งเฉพาะที่กล่าวเช่นนั้นจริง ให้เขียน (ไม่มีแหล่งอ้างอิงเฉพาะ) แทน ห้ามแต่งแหล่งอ้างอิงขึ้นเอง — และปิดท้ายด้วยคำถามชวนคิดขึ้นบรรทัดใหม่นำหน้าด้วย ❓ — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม'
+            : 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation that names a specific guideline, statement or trial — or, where you are not confident a specific source exists and says this, write (no specific source cited) instead of inventing one — and end with a ❓ question on its own line. Engage with the question — do not decline to answer.')
           : (language === 'th'
-            ? 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม และไม่ต้องปิดท้ายด้วยคำถามชวนคิด'
-            : 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation. Engage with the question — do not decline, and do not append a follow-up question.');
+            ? 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) ที่ระบุชื่อเอกสารเฉพาะ เช่น ชื่อแนวทางเวชปฏิบัติ แถลงการณ์ หรือชื่อการศึกษา — หากไม่มั่นใจว่ามีแหล่งเฉพาะที่กล่าวเช่นนั้นจริง ให้เขียน (ไม่มีแหล่งอ้างอิงเฉพาะ) แทน ห้ามแต่งแหล่งอ้างอิงขึ้นเอง — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม และไม่ต้องปิดท้ายด้วยคำถามชวนคิด'
+            : 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation that names a specific guideline, statement or trial — or, where you are not confident a specific source exists and says this, write (no specific source cited) instead of inventing one. Engage with the question — do not decline, and do not append a follow-up question.');
         // Both checks failed: the same single retry also pins the language.
         if (languageMismatch) retryPrompt += ' และเขียนคำตอบทั้งหมดเป็นภาษาไทย (Write the whole reply in Thai.)';
       } else {

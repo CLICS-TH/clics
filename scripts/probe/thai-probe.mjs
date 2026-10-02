@@ -7,11 +7,16 @@
 //
 // What IS automatable, and what this script measures per reply:
 //   1. Did it answer in Thai at all?           (Thai-codepoint share of the reply)
-//   2. Is there a (Source, Year) citation?     — services/post-filter.js hasCitation
+//   2. Is there a (Source, Year) citation?     — services/post-filter.js hasCitation (SHAPE row)
+//      Does it meet the citation rule?          — services/post-filter.js meetsCitationRule: a
+//                                                 citation OR the prompt's explicit "(no specific
+//                                                 source cited)" note. THIS is what chat.js enforces.
 //   3. Does it close with a ❓ Socratic line?   — services/post-filter.js extractSocraticQuestion
-// (2) and (3) are the exact checks routes/chat.js runs; when either fails, chat.js burns a SECOND
-// model call to retry. A model that fails them routinely doubles latency and spend on the highest-
-// volume call site in the product, so the first-pass rate below is the number that matters.
+// meetsCitationRule and (3) are the exact checks routes/chat.js runs; when either fails, chat.js
+// burns a SECOND model call to retry. A note-only reply does NOT retry, so the shape row alone
+// would overstate the retry rate. A model that fails them routinely doubles latency and spend on
+// the highest-volume call site in the product, so the first-pass rate below is the number that
+// matters.
 //
 // What is NOT automatable: whether the Thai is clinically usable. This script therefore PRINTS every
 // reply in full. A Thai-speaking clinician has to read them. That judgement is the gate.
@@ -39,7 +44,7 @@ import {
 
 // --- single-source imports from rimpl (never copy these) --------------------
 import { RIMPL_SYSTEM_PROMPT_EXAMINER, ARTIFACT_GUIDANCE } from '../../rimpl/src/lib/prompts.js';
-import { hasCitation, extractSocraticQuestion, extractReferences, thaiShare, THAI_MIN_SHARE } from '../../rimpl/src/services/post-filter.js';
+import { hasCitation, meetsCitationRule, extractSocraticQuestion, extractReferences, thaiShare, THAI_MIN_SHARE } from '../../rimpl/src/services/post-filter.js';
 
 // chat.js: CHAT_MAX_TOKENS = max(1500, RIMPL_CHAT_MAX_TOKENS ?? 4000)
 const CHAT_MAX_TOKENS = 4000;
@@ -118,7 +123,8 @@ for (const [i, prompt] of prompts.entries()) {
     stopReason: r.stopReason,
     text,
     thai: thaiShare(text),
-    citation: hasCitation(text),
+    citation: hasCitation(text),                          // the SHAPE alone
+    citationRule: meetsCitationRule(text),                // what chat.js enforces: shape OR the no-source note
     refs: extractReferences(text).map((x) => x.source),
     socratic,                                             // what chat.js requires
     endsWithQuestion: lines.length > 0 && lines[lines.length - 1].startsWith('❓'),
@@ -180,7 +186,7 @@ table(
   results.map((r) => [
     String(r.i),
     !r.ok ? red('—') : (r.thai >= THAI_MIN_SHARE ? green(`${(r.thai * 100).toFixed(0)}%`) : red(`${(r.thai * 100).toFixed(0)}%`)),
-    !r.ok ? red('—') : (r.citation ? green('yes') : red('no')),
+    !r.ok ? red('—') : (r.citation ? green('yes') : (r.citationRule ? yellow('note') : red('no'))),
     !r.ok ? red('—') : (r.socratic ? green('yes') : red('no')),
     !r.ok ? red('—') : (r.endsWithQuestion ? green('yes') : yellow('no')),
     r.completionTokens || '—',
@@ -191,6 +197,8 @@ table(
 );
 console.log(`  ${dim('thai         = Thai codepoints ÷ (Thai + Latin letters). Latin drug/lab names are normal.')}`);
 console.log(`  ${dim('citation     = post-filter.hasCitation — a "(Source, Year)" pattern anywhere in the reply.')}`);
+console.log(`  ${dim('               A reply with only the "(no specific source cited)" note reads "note": chat.js')}`);
+console.log(`  ${dim('               accepts it (meetsCitationRule) and does not retry.')}`);
 console.log(`  ${dim('❓ (chat.js)  = post-filter.extractSocraticQuestion — the LAST line beginning with ❓,')}`);
 console.log(`  ${dim('               scanning upward. This is the check chat.js actually enforces.')}`);
 console.log(`  ${dim('❓ last line  = stricter: the final non-empty line begins with ❓. chat.js does not')}`);
@@ -198,16 +206,19 @@ console.log(`  ${dim('               require this, but a model that trails prose
 
 const answered = results.filter((r) => r.ok && !r.reasoningOnly);
 const cited = answered.filter((r) => r.citation).length;
+const ruleMet = answered.filter((r) => r.citationRule).length;
 const socr = answered.filter((r) => r.socratic).length;
 const inThai = answered.filter((r) => r.thai >= THAI_MIN_SHARE).length;
-const clean = answered.filter((r) => r.citation && r.socratic).length;
+// What chat.js's retry actually checks: the citation RULE (shape OR the no-source note), not the shape.
+const clean = answered.filter((r) => r.citationRule && r.socratic).length;
 
 hr('first-pass format compliance');
 table(
   ['check', 'pass', 'rate', 'cost of failing'],
   [
     ['answered in Thai', `${inThai}/${answered.length}`, pct(inThai, answered.length), dim('chat.js retries once (th only) → a second paid/queued call')],
-    ['(Source, Year) citation', `${cited}/${answered.length}`, pct(cited, answered.length), dim('chat.js retries → a second paid/queued call')],
+    ['(Source, Year) citation (shape)', `${cited}/${answered.length}`, pct(cited, answered.length), dim('reported only — a note-only reply fails this but does not retry')],
+    ['citation rule (shape or note)', `${ruleMet}/${answered.length}`, pct(ruleMet, answered.length), dim('chat.js retries → a second paid/queued call')],
     ['closing ❓ (examiner)', `${socr}/${answered.length}`, pct(socr, answered.length), dim('chat.js retries → a second paid/queued call')],
     [bold('both, first pass'), bold(`${clean}/${answered.length}`), bold(pct(clean, answered.length)), dim('the share of turns that cost ONE call instead of two')],
   ],
@@ -215,7 +226,8 @@ table(
 );
 const retryRate = answered.length ? 1 - clean / answered.length : 0;
 console.log(`\n  ${retryRate > 0.25 ? yellow('⚠') : ' '} ${Math.round(retryRate * 100)}% of turns would trigger chat.js's one-shot retry.`);
-console.log(`  ${dim('chat.js retries once when the citation or the ❓ is missing (routes/chat.js:78-95).')}`);
+console.log(`  ${dim('chat.js retries once when the citation rule (citation or no-source note) or the ❓ fails')}`);
+console.log(`  ${dim('(routes/chat.js needCitation). This line does not count the separate language retry.')}`);
 console.log(`  ${dim('That is a correctness safety net, not a budget line — but on the highest-volume call')}`);
 console.log(`  ${dim('site it roughly doubles latency and GPU occupancy for every turn that needs it.')}`);
 
@@ -260,7 +272,7 @@ await writeReport(flags.out, {
   target: { baseUrl: cfg.baseUrl, model: cfg.model },
   config: { maxTokens, temperature: temperature ?? null, artifacts: useArtifacts, prompts: prompts.length, thaiMinShare: THAI_MIN_SHARE },
   summary: {
-    answered: answered.length, inThai, cited, socratic: socr, cleanFirstPass: clean,
+    answered: answered.length, inThai, cited, citationRuleMet: ruleMet, socratic: socr, cleanFirstPass: clean,
     retryRate,
     automatedFailures: failures,
     humanReviewRequired: true,
@@ -271,7 +283,7 @@ await writeReport(flags.out, {
     i: r.i, prompt: r.prompt, ok: r.ok, error: r.error ?? null,
     ms: Math.round(r.ms), completionTokens: r.completionTokens,
     finishReason: r.finishReason ?? null, truncated: r.truncated,
-    thaiShare: r.thai, citation: r.citation, refs: r.refs,
+    thaiShare: r.thai, citation: r.citation, citationRule: r.citationRule, refs: r.refs,
     socraticQuestion: r.socratic, endsWithQuestion: r.endsWithQuestion,
     text: r.text,
   })),

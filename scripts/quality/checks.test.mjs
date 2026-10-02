@@ -6,7 +6,12 @@ import { fileURLToPath } from 'node:url';
 
 import { existsSync } from 'node:fs';
 import { thaiShare, THAI_MIN_SHARE } from './rimpl.mjs';
-import { checkReply, summarize, wordCount, LENGTH_MAX_WORDS } from './checks.mjs';
+import {
+  checkReply, summarize, wordCount, LENGTH_MAX_WORDS, citationForm, NOTE_ONLY_MAX_UPPER, evidenceCoverage, checkReport,
+  mcnemarExact, pairedCoverage, mcnemarRejectRates, MCNEMAR_ALPHA, inputsById,
+} from './checks.mjs';
+import { binomPmf, binomUpper } from './stats.mjs';
+import { pairingWarnings } from './coverage-paired.mjs';
 import { ITEM_TH_EXAMINER, ITEM_EN_NATURAL, ITEM_RESCUE, ITEM_PII, ITEM_LEAK, GOOD_TH_EXAMINER, entryFor } from './test-fixtures.mjs';
 
 const codes = (r) => r.flags.map((f) => f.code);
@@ -75,6 +80,224 @@ test('citation SHAPE check is production hasCitation: missing → minor flag', (
   const fake = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (Fake Guideline, 2023).'));
   assert.equal(fake.checks.citation_shape.pass, true);
   assert.deepEqual(fake.checks.citation_shape.value, ['Fake Guideline, 2023']);
+});
+
+const NOTE_ONLY = 'Start when eGFR is 20 or more (no specific source cited).';
+const CITED = 'Start when eGFR is 20 or more (KDIGO Clinical Practice Guideline for Diabetes Management in CKD, 2022).';
+const BOTH = `${CITED} Dose adjustment below 20 is less settled (no specific source cited).`;
+
+test('citation check is production meetsCitationRule: the note passes; note-only and note+citation are told apart', () => {
+  const note = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, NOTE_ONLY));
+  assert.equal(note.checks.citation_shape.pass, true);
+  assert.deepEqual(note.checks.citation_shape.value, []);
+  assert.equal(note.checks.citation_shape.form, 'note-only');
+  assert.equal(sev(note, 'no_citation'), undefined);
+  assert.equal(sev(note, 'no_source_note_only'), 'info');
+  assert.equal(sev(note, 'no_source_with_citation'), undefined);
+  const both = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, BOTH));
+  assert.equal(both.checks.citation_shape.form, 'citation+note');
+  assert.equal(sev(both, 'no_source_with_citation'), 'info');
+  assert.equal(sev(both, 'no_source_note_only'), undefined, 'a reply that cited what it could is not an opt-out');
+  const plain = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, CITED));
+  assert.equal(plain.checks.citation_shape.form, 'citation');
+  assert.deepEqual(plain.flags.filter((f) => f.code.startsWith('no_source')), []);
+  assert.equal(citationForm('Start when eGFR is 20 or more.'), 'none');
+});
+
+const natRow = (id, text) => ({ id, language: 'en', mode: 'natural', result: checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, text)) });
+
+test('note-only gate: Wilson UPPER bound <= 0.25 — 11/74 passes, 12/74 fails (the pre-registered numbers)', () => {
+  assert.equal(NOTE_ONLY_MAX_UPPER, 0.25);
+  const run = (k) => summarize(Array.from({ length: 74 }, (_, i) => natRow(`r${i}`, i < k ? NOTE_ONLY : CITED)));
+  const ok = run(11);
+  assert.deepEqual(ok.citation_forms, { n: 74, citation: 63, 'citation+note': 0, 'note-only': 11, none: 0 });
+  assert.equal(ok.note_only_gate.pass, true);
+  assert.ok(ok.note_only_rate.hi < 0.25);
+  const bad = run(12);
+  assert.equal(bad.note_only_gate.pass, false);
+  assert.ok(bad.note_only_rate.hi > 0.25);
+  // A model that opts out everywhere passes citation_shape — and fails here. That is the point.
+  const all = run(74);
+  assert.equal(all.overall.citation_shape.k, 74);
+  assert.equal(all.note_only_gate.pass, false);
+  // note+citation is reported, never gated.
+  const mixed = summarize(Array.from({ length: 74 }, (_, i) => natRow(`m${i}`, BOTH)));
+  assert.equal(mixed.note_with_citation_rate.k, 74);
+  assert.equal(mixed.note_only_gate.pass, true);
+  // Rescue rows are not held to the rule: no denominator, no verdict.
+  const rescueOnly = summarize([{ id: 'x', language: 'th', mode: 'rescue', result: checkReply(ITEM_RESCUE, entryFor(ITEM_RESCUE, 'คุณกำลังชั่งน้ำหนักอะไรอยู่?')) }]);
+  assert.equal(rescueOnly.note_only_gate.pass, null);
+});
+
+test('evidence coverage: per REPLY (>=1 verified) and per CITATION, rescue and failed calls excluded', () => {
+  const rows = [natRow('a', CITED), natRow('b', CITED), natRow('c', NOTE_ONLY), natRow('d', CITED)];
+  rows.push({ id: 'r', language: 'th', mode: 'rescue', result: checkReply(ITEM_RESCUE, entryFor(ITEM_RESCUE, 'คุณกำลังชั่งน้ำหนักอะไรอยู่?')) });
+  const failed = entryFor(ITEM_EN_NATURAL, '');
+  failed.final = { ok: false, error: 'HTTP 503' };
+  rows.push({ id: 'f', language: 'en', mode: 'natural', result: checkReply(ITEM_EN_NATURAL, failed) });
+  const cites = {
+    summary: { verified_rate: { k: 2, n: 4, p: 0.5, lo: 0.15, hi: 0.85 } },
+    items: [
+      { id: 'a', citations: [{ status: 'verified' }, { status: 'publisher-only' }] },
+      { id: 'b', citations: [{ status: 'publisher-only' }] },
+      { id: 'c', citations: [] },
+      { id: 'r', citations: [{ status: 'verified' }] },     // rescue: never counted
+    ],
+  };
+  const cov = evidenceCoverage(rows, cites);
+  assert.equal(cov.per_reply.k, 1);
+  assert.equal(cov.per_reply.n, 4, 'a, b, c, d — not the rescue turn, not the failed call');
+  assert.deepEqual(cov.covered, ['a']);
+  assert.deepEqual(cov.missing_from_cites, ['d']);
+  assert.deepEqual(cov.per_citation, cites.summary.verified_rate);
+});
+
+// --- Amendment 1: the paired McNemar verdict ------------------------------------------------------
+
+test('exact binomial: hand-checkable values', () => {
+  binomPmf(3, 0.5).forEach((x, k) => close1(x, [1 / 8, 3 / 8, 3 / 8, 1 / 8][k]));   // log space: float dust only
+  assert.ok(Math.abs(binomPmf(74, 0.27).reduce((s, x) => s + x, 0) - 1) < 1e-12);
+  assert.ok(Math.abs(binomPmf(4, 0.25)[1] - 4 * 0.25 * 0.75 ** 3) < 1e-15);
+  assert.equal(binomUpper(0, 9), 1);
+  assert.equal(binomUpper(10, 9), 0);
+  assert.ok(Math.abs(binomUpper(8, 9) - 10 / 512) < 1e-15);
+});
+
+test('exact one-sided McNemar: p-values and verdicts on hand-checkable cases', () => {
+  const close = (x, y) => assert.ok(Math.abs(x - y) < 1e-12, `${x} vs ${y}`);
+  // 5 gained, 0 lost: P(B >= 5 | 5) = 1/32 = 0.03125 > 0.025 — five-nil is NOT enough.
+  let m = mcnemarExact(5, 0);
+  close(m.p_improved, 1 / 32);
+  assert.equal(m.verdict, 'not-shown');
+  // 6-0: 1/64 = 0.0156 -> improved.
+  m = mcnemarExact(6, 0);
+  close(m.p_improved, 1 / 64);
+  assert.equal(m.verdict, 'improved');
+  // 8 gained, 1 lost: (C(9,8) + C(9,9)) / 2^9 = 10/512 = 0.0195 -> improved; the mirror is 1.
+  m = mcnemarExact(8, 1);
+  close(m.p_improved, 10 / 512);
+  close(m.p_worse, 1 - 1 / 512);
+  assert.equal(m.verdict, 'improved');
+  // 7-2: (36 + 9 + 1) / 512 = 0.0898 -> not shown.
+  m = mcnemarExact(7, 2);
+  close(m.p_improved, 46 / 512);
+  assert.equal(m.verdict, 'not-shown');
+  // The mirror: 1 gained, 8 lost -> worse.
+  m = mcnemarExact(1, 8);
+  close(m.p_worse, 10 / 512);
+  assert.equal(m.verdict, 'worse');
+  // Concordant pairs do not enter: no discordant pair, nothing shown.
+  m = mcnemarExact(0, 0);
+  assert.deepEqual([m.n_discordant, m.p_improved, m.p_worse, m.verdict], [0, 1, 1, 'not-shown']);
+  assert.throws(() => mcnemarExact(-1, 2), RangeError);
+  assert.equal(MCNEMAR_ALPHA, 0.025);
+});
+
+test('McNemar error rates under "no change" are <= 2.5% per direction (the amendment\'s table)', () => {
+  const r2 = (x) => Number((x * 100).toFixed(2));
+  for (const [p, want] of [[20 / 74, 1.52], [29 / 74, 1.64], [0.5, 1.68]]) {
+    const { improved, worse } = mcnemarRejectRates(74, p * (1 - p), p * (1 - p));
+    assert.ok(improved <= MCNEMAR_ALPHA && worse <= MCNEMAR_ALPHA, `p=${p}`);
+    assert.ok(Math.abs(improved - worse) < 1e-12, 'symmetric under the null');
+    assert.equal(r2(improved), want, `p=${p}`);
+  }
+  for (let p = 0.05; p < 0.96; p += 0.05) {
+    const { improved, worse } = mcnemarRejectRates(74, p * (1 - p), p * (1 - p));
+    assert.ok(improved <= MCNEMAR_ALPHA && worse <= MCNEMAR_ALPHA, `p=${p.toFixed(2)}`);
+  }
+  assert.equal(r2(mcnemarRejectRates(74, 0.05, 0.05).improved), 0.85);
+  // Power rows of the amendment's table.
+  assert.equal(r2(mcnemarRejectRates(74, 0.20, 0.05).improved), 69.76);
+  assert.equal(r2(mcnemarRejectRates(74, 0.17, 0.02).improved), 84.8);
+  assert.equal(r2(mcnemarRejectRates(74, (1 - 20 / 74) * (20 / 74 + 0.15), (20 / 74) * (1 - 20 / 74 - 0.15)).improved), 40.85);
+});
+
+test('pairedCoverage: pairs by id; drops rescue, failed calls, absent items and cites gaps on EITHER side', () => {
+  const row = (id, text, { mode = 'natural', ok = true } = {}) => {
+    const item = mode === 'rescue' ? ITEM_RESCUE : ITEM_EN_NATURAL;
+    const entry = entryFor(item, text);
+    if (!ok) entry.final = { ok: false, error: 'HTTP 503' };
+    return { id, language: 'en', mode, result: checkReply(item, entry) };
+  };
+  const V = { citations: [{ status: 'verified' }] };
+  const P = { citations: [{ status: 'publisher-only' }] };
+  const before = {
+    results: [row('a', CITED), row('b', CITED), row('c', CITED), row('d', 'q?', { mode: 'rescue' }),
+      row('e', CITED, { ok: false }), row('f', CITED), row('g', CITED), row('k', CITED)],
+    cites: { items: [{ id: 'a', ...V }, { id: 'b', ...P }, { id: 'c', ...V }, { id: 'd', ...V }, { id: 'f', ...V }, { id: 'g', ...V }, { id: 'k', ...P }] },
+  };
+  const after = {
+    results: [row('a', CITED), row('b', CITED), row('c', NOTE_ONLY), row('d', 'q?', { mode: 'rescue' }),
+      row('e', CITED), row('f', CITED), row('h', CITED), row('k', CITED)],
+    cites: { items: [{ id: 'a', ...V }, { id: 'b', ...V }, { id: 'c', citations: [] }, { id: 'd', ...V }, { id: 'e', ...V }, { id: 'h', ...V }, { id: 'k', ...P }] },
+  };
+  const r = pairedCoverage(before, after);
+  assert.equal(r.n_paired, 4, 'a (both), b (gained), c (lost), k (neither)');
+  assert.deepEqual([r.both, r.gained, r.lost, r.neither], [1, 1, 1, 1]);
+  assert.deepEqual([r.before.k, r.after.k], [2, 2]);
+  assert.deepEqual(r.excluded, [
+    { id: 'e', before: 'call_failed', after: 'covered' },
+    { id: 'f', before: 'covered', after: 'missing_from_cites' },
+    { id: 'g', before: 'covered', after: 'absent' },
+    { id: 'h', before: 'absent', after: 'covered' },
+  ], 'rescue item d is excluded by design and not listed');
+  assert.equal(r.verdict, 'not-shown');
+  close1(r.p_improved, 0.75);   // P(B >= 1 | 2, 1/2)
+});
+const close1 = (x, y) => assert.ok(Math.abs(x - y) < 1e-12, `${x} vs ${y}`);
+
+test('pairedCoverage: an item whose recorded input differs is EXCLUDED; no recorded input is listed, not dropped', () => {
+  const row = (id) => ({ id, language: 'en', mode: 'natural', result: checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, CITED)) });
+  const rep = (msgs) => ({ items: Object.entries(msgs).map(([id, content]) => ({ id, request: { messages: [{ role: 'user', content }] } })) });
+  const V = { citations: [{ status: 'verified' }] };
+  const N0 = { citations: [] };
+  const results = ['a', 'b', 'c', 'u'].map(row);
+  const before = { results, cites: { items: [{ id: 'a', ...N0 }, { id: 'b', ...N0 }, { id: 'c', ...V }, { id: 'u', ...N0 }] },
+    inputs: inputsById(rep({ a: 'same', b: 'MRN 00998877 before #114', c: 'same c' })) };
+  const after = { results, cites: { items: [{ id: 'a', ...V }, { id: 'b', ...V }, { id: 'c', ...V }, { id: 'u', ...V }] },
+    inputs: inputsById(rep({ a: 'same', b: '[MRN-1] after #114', c: 'same c', u: 'only after' })) };
+  const r = pairedCoverage(before, after);
+  assert.equal(r.inputs_checked, true);
+  assert.deepEqual(r.excluded, [{ id: 'b', before: 'not_covered', after: 'covered', reason: 'input_differs' }]);
+  assert.equal(r.n_paired, 3, 'a, c, u — b dropped because the model saw different input');
+  assert.deepEqual([r.gained, r.both], [2, 1]);
+  assert.deepEqual(r.inputs_unchecked, ['u']);
+  // Without inputs on both sides nothing is compared, and every paired item says so.
+  const blind = pairedCoverage({ results, cites: before.cites }, { results, cites: after.cites });
+  assert.equal(blind.inputs_checked, false);
+  assert.equal(blind.n_paired, 4);
+  assert.deepEqual(blind.inputs_unchecked, ['a', 'b', 'c', 'u']);
+  // The CLI's warning names the differing item, and the unrecorded one.
+  const oldReport = rep({ a: 'same', b: 'x' });
+  oldReport.items.push({ id: 'u' });                     // an item with no recorded request
+  const w = pairingWarnings({ ...oldReport, provenance: { prompt_versions: 1 } },
+    { ...rep({ a: 'same', b: 'y', u: 'z' }), provenance: { prompt_versions: 2 } }, {}, {});
+  assert.ok(w.some((s) => /1 item\(s\) received different input.*: b$/.test(s)), w.join(' | '));
+  assert.ok(w.some((s) => /1 item\(s\) in both runs have no recorded request.*: u$/.test(s)), w.join(' | '));
+});
+
+test('coverage-paired CLI helper warns when the pairing would measure something other than the prompt', () => {
+  const rep = (over = {}) => ({ label: 'x', provenance: { bank_sha: 'bank-1', models_reported: ['m'], prompt_versions: { natural: 'chat-prompt-old' }, ...over } });
+  const cit = (v = 'known-sources-v5', label = 'x') => ({ known_sources_version: v, report_label: label });
+  assert.deepEqual(pairingWarnings(rep(), rep({ prompt_versions: { natural: 'chat-prompt-new' } }), cit(), cit()), []);
+  const w = pairingWarnings(rep(), rep({ bank_sha: 'bank-2', models_reported: ['other'] }), cit('known-sources-v4'), cit('known-sources-v5', 'y'));
+  assert.equal(w.length, 5, w.join(' | '));
+  assert.match(w.join(' | '), /different banks.*different models.*cite-verify sources.*identical prompt_versions.*after: cites file is for "y"/);
+});
+
+test('the baseline coverage in QUALITY-GATES is what the committed cites files give', async () => {
+  const { loadBank } = await import('./bank.mjs');
+  const { items } = await loadBank();
+  const byId = new Map(items.map((it) => [it.id, it]));
+  const dir = new URL('report/comparison-2026-10-02/', import.meta.url);
+  for (const [arm, k, kc, nc] of [['local-deepseek', 20, 29, 182], ['anthropic-sonnet', 29, 34, 151]]) {
+    const report = JSON.parse(readFileSync(fileURLToPath(new URL(`${arm === 'local-deepseek' ? '../local-baseline-2026-10-02/' : ''}${arm}-2026-10-02.json`, dir)), 'utf8'));
+    const cites = JSON.parse(readFileSync(fileURLToPath(new URL(`${arm}-2026-10-02.cites.json`, dir)), 'utf8'));
+    const { results } = checkReport(report, byId);
+    const cov = evidenceCoverage(results, cites);
+    assert.deepEqual([cov.per_reply.k, cov.per_reply.n], [k, 74], arm);
+    assert.deepEqual([cov.per_citation.k, cov.per_citation.n], [kc, nc], arm);
+  }
 });
 
 test('rescue reply runs production checkRescueReply: three questions or a recommendation fail', () => {

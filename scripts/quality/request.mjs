@@ -4,7 +4,7 @@
 // --------------------------------------
 // Imported from rimpl (via ./rimpl.mjs): the three system prompts and ARTIFACT_GUIDANCE, the PII
 // filter (stripPii / stripHistoryPii / deriveHintTokens), the artifact-fence strip, and every
-// predicate the retry decision is made of — hasCitation, extractSocraticQuestion, isThaiMessage,
+// predicate the retry decision is made of — meetsCitationRule, extractSocraticQuestion, isThaiMessage,
 // isLanguageMismatch (services/post-filter.js) — plus promptLabel (the provenance hash).
 //
 // Replicated, because chat.js does not export them and requiring chat.js pulls express + zod:
@@ -28,7 +28,7 @@
 import {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
   promptLabel, stripPii, stripHistoryPii, deriveHintTokens, stripArtifactDelimiters,
-  hasCitation, extractSocraticQuestion, isThaiMessage, isLanguageMismatch,
+  meetsCitationRule, extractSocraticQuestion, isThaiMessage, isLanguageMismatch,
 } from './rimpl.mjs';
 
 export const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));
@@ -38,12 +38,12 @@ export const RAG_NOTE = 'none — ragDocs=[] (production documents corpus is emp
 // Verbatim from routes/chat.js. Keyed [socratic][language].
 export const RETRY_PROMPTS = {
   socratic: {
-    th: 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) และปิดท้ายด้วยคำถามชวนคิดขึ้นบรรทัดใหม่นำหน้าด้วย ❓ — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม',
-    en: 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation and end with a ❓ question on its own line. Engage with the question — do not decline to answer.',
+    th: 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) ที่ระบุชื่อเอกสารเฉพาะ เช่น ชื่อแนวทางเวชปฏิบัติ แถลงการณ์ หรือชื่อการศึกษา — หากไม่มั่นใจว่ามีแหล่งเฉพาะที่กล่าวเช่นนั้นจริง ให้เขียน (ไม่มีแหล่งอ้างอิงเฉพาะ) แทน ห้ามแต่งแหล่งอ้างอิงขึ้นเอง — และปิดท้ายด้วยคำถามชวนคิดขึ้นบรรทัดใหม่นำหน้าด้วย ❓ — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม',
+    en: 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation that names a specific guideline, statement or trial — or, where you are not confident a specific source exists and says this, write (no specific source cited) instead of inventing one — and end with a ❓ question on its own line. Engage with the question — do not decline to answer.',
   },
   natural: {
-    th: 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม และไม่ต้องปิดท้ายด้วยคำถามชวนคิด',
-    en: 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation. Engage with the question — do not decline, and do not append a follow-up question.',
+    th: 'ช่วยตอบคำถามเดิมให้ครบถ้วนและเป็นประโยชน์อีกครั้ง โดยใส่การอ้างอิงอย่างน้อยหนึ่งแห่งในรูปแบบ (แหล่ง, ปี) ที่ระบุชื่อเอกสารเฉพาะ เช่น ชื่อแนวทางเวชปฏิบัติ แถลงการณ์ หรือชื่อการศึกษา — หากไม่มั่นใจว่ามีแหล่งเฉพาะที่กล่าวเช่นนั้นจริง ให้เขียน (ไม่มีแหล่งอ้างอิงเฉพาะ) แทน ห้ามแต่งแหล่งอ้างอิงขึ้นเอง — ตอบให้จริง ไม่ต้องปฏิเสธคำถาม และไม่ต้องปิดท้ายด้วยคำถามชวนคิด',
+    en: 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation that names a specific guideline, statement or trial — or, where you are not confident a specific source exists and says this, write (no specific source cited) instead of inventing one. Engage with the question — do not decline, and do not append a follow-up question.',
   },
 };
 
@@ -115,13 +115,13 @@ export function buildChatRequest(item, { artifacts = false } = {}) {
 
 /**
  * chat.js's ONE corrective retry decision, composed from production's own predicates.
- *   needCitation      citation missing (both modes) or ❓ missing (examiner); never on a rescue turn
+ *   needCitation      neither a citation nor a no-source note (both modes) or ❓ missing (examiner); never on a rescue turn
  *   languageMismatch  the physician wrote substantially Thai (isThaiMessage on the RAW message, with
  *                     language === 'th') and the reply is not (isLanguageMismatch). Applies to rescue
  *                     turns too — it asks for a rewrite, not a new answer.
  */
 export function retryDecision(text, { socratic, rescuing, language, message }) {
-  const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));
+  const needCitation = !rescuing && (!meetsCitationRule(text) || (socratic && !extractSocraticQuestion(text)));
   const physicianWroteThai = language === 'th' && isThaiMessage(message);
   const languageMismatch = physicianWroteThai && isLanguageMismatch(text, language);
   return { fire: needCitation || languageMismatch, needCitation, languageMismatch, physicianWroteThai };

@@ -24,7 +24,8 @@
 //     --dry-run             print what would be sent for each selected item; send nothing, write nothing
 //     --ids a,b,c           only these bank items          --limit <n>   first n (bank file order)
 //     --concurrency <n>     parallel calls (default 1; the box decodes ~60 s/turn — keep it 1–2)
-//     --label <name>        report name (default <arm>-<model>-<UTC stamp>)
+//     --label <name>        report name, used verbatim: <= 40 chars of a-z 0-9 . - (anything else is
+//                           refused, never rewritten); default <arm>-<model>-<UTC stamp>
 //     --resume              reuse report/<label>.json, skip items that already have an answered reply
 //     --artifacts           append ARTIFACT_GUIDANCE (the superadmin clinical_artifacts toggle)
 //     --no-retry            skip the chat.js corrective retry (first-pass compliance only)
@@ -63,7 +64,7 @@ import {
 } from './request.mjs';
 import {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
-  promptLabel, hasCitation, extractSocraticQuestion, RIMPL_FILES,
+  promptLabel, meetsCitationRule, extractSocraticQuestion, RIMPL_FILES,
 } from './rimpl.mjs';
 import { checkReply, summarize, printSummary, CHECKS_VERSION } from './checks.mjs';
 
@@ -157,7 +158,7 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
   const decision = retry && first.ok ? retryDecision(first.text, req) : null;
   if (decision?.fire) {
     const reason = [
-      decision.needCitation && !hasCitation(first.text) && 'no citation',
+      decision.needCitation && !meetsCitationRule(first.text) && 'no citation',
       decision.needCitation && req.socratic && !extractSocraticQuestion(first.text) && 'no ❓',
       decision.languageMismatch && 'language',
     ].filter(Boolean).join(' + ');
@@ -281,6 +282,23 @@ function gitCommit() {
   try { return execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], { encoding: 'utf8' }).trim(); } catch { return null; }
 }
 const slug = (s) => String(s || 'model').toLowerCase().replace(/[^a-z0-9.]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+
+/**
+ * A --label is used VERBATIM as the report's file name and its `label`, or refused. It used to be
+ * passed through slug(), which silently lowercased, re-punctuated and cut it at 40 characters — so
+ * "local-deepseek-baseline-master-2026-10-02" was written as "...-2026-10-0" and a label registered
+ * in docs/QUALITY-GATES.md named a file that never existed. Returns the label, or throws.
+ */
+export function checkLabel(raw) {
+  if (raw === true || raw == null || String(raw) === '') throw new Error('--label needs a value');
+  const label = String(raw);
+  const s = slug(label);
+  if (s !== label) {
+    throw new Error(`--label "${label}" is not a valid report label: it would be written as "${s}". ` +
+      'Use at most 40 characters of a-z, 0-9, "." and "-" (no leading or trailing "-").');
+  }
+  return label;
+}
 const stamp = () => new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
 
 async function writeAtomic(file, obj) {
@@ -306,6 +324,11 @@ async function main() {
   if (arm === 'anthropic' && !flags['allow-paid']) {
     fail('--arm anthropic spends real Anthropic API credit and is OFF by default.\n' +
       '  Get budget approval first (docs/LOCAL-AI-BUDGET-PLAN.md), then re-run with --allow-paid.');
+  }
+  // Checked before anything else runs, so a bad label never costs a call or a partial report.
+  let labelFlag = null;
+  if (flags.label !== undefined) {
+    try { labelFlag = checkLabel(flags.label); } catch (e) { fail(e.message); }
   }
   const budget = budgetFromFlags(flags);
   const concurrency = Math.max(1, intArg(flags, 'concurrency', 1));
@@ -361,7 +384,7 @@ async function main() {
     console.log(`  ${yellow('PAID ARM')} ${model} — ${items.length} item(s), up to ${items.length * 2} calls; ceiling $${budget.maxUsd} at $${budget.inPerMtok}/$${budget.outPerMtok} per Mtok in/out.`);
   }
 
-  const label = flags.label && flags.label !== true ? slug(flags.label) : `${arm}-${slug(target.model_requested)}-${stamp()}`;
+  const label = labelFlag ?? `${arm}-${slug(target.model_requested)}-${stamp()}`;
   await mkdir(REPORT_DIR, { recursive: true });
   const file = path.join(REPORT_DIR, `${label}.json`);
 

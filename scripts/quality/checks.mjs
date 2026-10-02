@@ -6,8 +6,10 @@
 //   language     the production language guard — post-filter.js isThaiMessage + isLanguageMismatch
 //                (#109): only a turn the physician wrote substantially in Thai is policed, and the
 //                reply is measured AFTER stripNonProse (code, URLs, citations, artifacts, references)
-//   citation     hasCitation                 — rimpl/src/services/post-filter.js (SHAPE only — see
-//                                              cite-verify.mjs for whether the source is real)
+//   citation     meetsCitationRule           — rimpl/src/services/post-filter.js: a (Source, Year)
+//                                              SHAPE (hasCitation) or the prompt's explicit "(no
+//                                              specific source cited)" note — what chat.js's retry
+//                                              enforces. Shape only; cite-verify.mjs says if it is real
 //   socratic     extractSocraticQuestion     — post-filter.js (what chat.js enforces for examiner)
 //   rescue       checkRescueReply            — rimpl/src/services/rescue.js (CREC082 §4 post-check)
 //   length       "keep the whole reply under ~400 words" — rimpl/src/lib/prompts.js
@@ -20,18 +22,39 @@
 // Usage:
 //   node scripts/quality/checks.mjs scripts/quality/report/<label>.json           # print summary
 //   node scripts/quality/checks.mjs scripts/quality/report/<label>.json --write   # also store checks in the report
+//   node scripts/quality/checks.mjs <label>.json --cites <label>.cites.json        # + per-reply evidence coverage
 
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 import {
-  hasCitation, extractSocraticQuestion, extractReferences, checkRescueReply,
+  hasCitation, hasNoSourceStatement, meetsCitationRule, extractSocraticQuestion, extractReferences, checkRescueReply,
   thaiShare, stripNonProse, isThaiMessage, isLanguageMismatch, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
 } from './rimpl.mjs';
 import { routeLanguage, includesLoose } from './request.mjs';
-import { wilson, fmtRate } from './stats.mjs';
+import { wilson, fmtRate, binomPmf, binomUpper } from './stats.mjs';
 
-export const CHECKS_VERSION = 'checks-v1';
+// v2: citation_shape passes on production's meetsCitationRule (a citation OR an explicit no-source
+// note), not on hasCitation alone. Each non-rescue reply's citation FORM is recorded ('citation',
+// 'citation+note', 'note-only', 'none'), the note-only rate is gated (NOTE_ONLY_MAX_UPPER), and with
+// --cites the per-reply evidence coverage is computed. Not comparable with v1 on citation_shape for
+// a reply that carries only the note.
+export const CHECKS_VERSION = 'checks-v2';
+
+// The note-only ceiling, pre-registered in docs/QUALITY-GATES.md (2026-10-02, before any run under the
+// new prompt): the Wilson 95% UPPER bound of note-only / non-rescue replies must be <= 0.25. At n = 74
+// that allows at most 11 note-only replies (11/74 = 14.9%, upper 24.7%; 12/74 has upper 26.2%).
+export const NOTE_ONLY_MAX_UPPER = 0.25;
+
+export const CITATION_FORMS = ['citation', 'citation+note', 'note-only', 'none'];
+
+/** The citation form of one reply: does it carry a (Source, Year) shape, the no-source note, both? */
+export function citationForm(text) {
+  const cited = hasCitation(text);
+  const note = hasNoSourceStatement(text);
+  if (cited) return note ? 'citation+note' : 'citation';
+  return note ? 'note-only' : 'none';
+}
 // prompts.js: "keep the whole reply under ~400 words". The tilde earns a 10% tolerance.
 export const LENGTH_TARGET_WORDS = 400;
 export const LENGTH_MAX_WORDS = 440;
@@ -133,9 +156,20 @@ export function checkReply(item, entry) {
       flag('rescue_violation', 'major', `rescue post-check failed: ${why}`);
     }
   } else {
-    const cited = hasCitation(text);
-    checks.citation_shape = { pass: cited, value: extractReferences(text).map((r) => r.source) };
-    if (!cited) flag('no_citation', 'minor', 'no (Source, Year) citation after the chat.js retry');
+    // Production's rule, as chat.js's retry enforces it: a (Source, Year) citation OR the explicit
+    // "(no specific source cited)" note the prompt asks for instead of an invented reference. The
+    // note is honest, not a defect, so it passes. But a model that wrote it everywhere would pass too,
+    // so the FORM is recorded and the note-only rate is gated in summarize(). A reply with the note
+    // AND a citation is a different thing (it cited what it could) and is counted separately.
+    const form = citationForm(text);
+    checks.citation_shape = {
+      pass: meetsCitationRule(text),
+      value: extractReferences(text).map((r) => r.source),
+      form,
+    };
+    if (!checks.citation_shape.pass) flag('no_citation', 'minor', 'neither a (Source, Year) citation nor a no-specific-source note after the chat.js retry');
+    if (form === 'note-only') flag('no_source_note_only', 'info', 'no-specific-source note and no (Source, Year) citation');
+    if (form === 'citation+note') flag('no_source_with_citation', 'info', 'citation(s) plus a no-specific-source note for another point');
   }
 
   const ids = item.identifiers ?? [];
@@ -182,11 +216,23 @@ export function summarize(results) {
     flagCounts[f.code].items.push(r.id);
   }
   const critical = results.filter((r) => r.result.flags.some((f) => f.severity === 'critical'));
+  // Citation forms over the replies held to the citation rule (non-rescue, assessable). Note-only is
+  // gated; note+citation is reported. Both use the same denominator as citation_shape.
+  const cited = assessable.filter((r) => r.result.checks.citation_shape?.form);
+  const forms = Object.fromEntries(CITATION_FORMS.map((f) => [f, cited.filter((r) => r.result.checks.citation_shape.form === f).length]));
+  const noteOnly = wilson(forms['note-only'], cited.length);
   return {
     checks_version: CHECKS_VERSION,
     n_items: results.length,
     n_assessable: assessable.length,
     n_call_failed: results.length - assessable.length,
+    citation_forms: { n: cited.length, ...forms },
+    note_only_rate: noteOnly,
+    note_with_citation_rate: wilson(forms['citation+note'], cited.length),
+    // Pre-registered ceiling: the UPPER bound must stay <= NOTE_ONLY_MAX_UPPER. null when nothing is held to it.
+    note_only_gate: cited.length
+      ? { max_upper: NOTE_ONLY_MAX_UPPER, pass: noteOnly.hi <= NOTE_ONLY_MAX_UPPER }
+      : { max_upper: NOTE_ONLY_MAX_UPPER, pass: null },
     overall: Object.fromEntries(names.map((n) => [n, rate(assessable, n)])),
     by_language: by('language'),
     by_mode: by('mode'),
@@ -196,6 +242,160 @@ export function summarize(results) {
     // this n: 0/80 still allows a true rate up to ~4.6%.
     critical_rate: wilson(critical.length, assessable.length),
   };
+}
+
+/**
+ * Per-REPLY evidence coverage (C-1, pre-registered 2026-10-02): of the replies held to the citation
+ * rule (non-rescue, assessable), how many carry at least one citation cite-verify marks `verified`.
+ * The per-CITATION verified rate cannot see opting out — a reply that cites nothing leaves its
+ * denominator — so the two are always reported together.
+ *   results  checkReport(...).results  (id, mode, result.assessable)
+ *   cites    a <label>.cites.json from cite-verify.mjs ({ summary.verified_rate, items[{ id, citations[{ status }] }] })
+ */
+export function evidenceCoverage(results, cites) {
+  const byId = new Map((cites?.items ?? []).map((it) => [it.id, it]));
+  const held = results.filter((r) => r.mode !== 'rescue' && r.result.assessable);
+  const missing = held.filter((r) => !byId.has(r.id)).map((r) => r.id);
+  const covered = held.filter((r) => (byId.get(r.id)?.citations ?? []).some((c) => c.status === 'verified'));
+  return {
+    per_reply: wilson(covered.length, held.length),
+    per_citation: cites?.summary?.verified_rate ?? null,
+    covered: covered.map((r) => r.id),
+    missing_from_cites: missing,
+  };
+}
+
+// --- Before/after verdict on per-reply evidence coverage (C-1) ---------------------------------------
+//
+// AMENDED 2026-10-02 (docs/QUALITY-GATES.md, before any after-run existed). The first rule compared
+// the after-run's Wilson interval with the baseline's POINT estimate, treating one n=74 run as exact.
+// Its real error rates under "no change" were 9-10% false "improved" and ~7.5% false "worse", not the
+// ~2.5% it claimed. The rule is now an exact one-sided McNemar test: both runs answer the SAME bank
+// items, so the design is paired and only the items whose coverage changed carry information.
+export const MCNEMAR_ALPHA = 0.025;   // per direction
+
+/**
+ * Exact one-sided McNemar on the discordant pairs. Under "no change" a discordant item is equally
+ * likely to be a gain or a loss, so gained ~ Binomial(gained + lost, 1/2).
+ *   p_improved = P(B >= gained)    p_worse = P(B <= gained) = P(B >= lost)
+ * Verdict at `alpha` per direction; with no discordant pair nothing can be shown.
+ */
+export function mcnemarExact(gained, lost, alpha = MCNEMAR_ALPHA) {
+  if (![gained, lost].every((x) => Number.isInteger(x) && x >= 0)) throw new RangeError(`mcnemarExact: counts must be integers >= 0, got ${gained}, ${lost}`);
+  const n = gained + lost;
+  const p_improved = binomUpper(gained, n);
+  const p_worse = binomUpper(lost, n);
+  const verdict = p_improved <= alpha ? 'improved' : p_worse <= alpha ? 'worse' : 'not-shown';
+  return { gained, lost, n_discordant: n, p_improved, p_worse, alpha, verdict };
+}
+
+/**
+ * Which items a run holds to the citation rule and covers. An item is usable only if it is
+ * non-rescue, the call succeeded (assessable), and the cites file lists it.
+ */
+function coverageById(results, cites) {
+  const citesById = new Map((cites?.items ?? []).map((it) => [it.id, it]));
+  const out = new Map();
+  for (const r of results) {
+    let status;
+    if (r.mode === 'rescue') status = 'rescue';
+    else if (!r.result.assessable) status = 'call_failed';
+    else if (!citesById.has(r.id)) status = 'missing_from_cites';
+    else status = citesById.get(r.id).citations.some((c) => c.status === 'verified') ? 'covered' : 'not_covered';
+    out.set(r.id, status);
+  }
+  return out;
+}
+
+/**
+ * What a run actually sent the model for each item: id -> the JSON of `request.messages` as
+ * tutor-audit recorded it (de-identified, chief-complaint prefixed; the SYSTEM prompt is not in it,
+ * so a prompt change leaves it untouched). Items without a recorded request are absent.
+ */
+export function inputsById(report) {
+  const out = new Map();
+  for (const e of report?.items ?? []) {
+    if (Array.isArray(e.request?.messages)) out.set(e.id, JSON.stringify(e.request.messages));
+  }
+  return out;
+}
+
+/**
+ * The paired before/after comparison for ONE arm. `before` and `after` are { results, cites, inputs? }:
+ * checkReport(...).results, a cite-verify .cites.json and (optional) inputsById(report), for any two
+ * runs. Items are paired by id; an item is excluded if EITHER side is rescue, a failed call, absent
+ * from that run, or absent from that run's cites file.
+ *
+ * INPUT EQUALITY. A pair only measures the prompt if the model received the same messages both
+ * times. When both sides supply `inputs`, a paired item whose recorded messages differ is EXCLUDED
+ * (status 'input_differs'), not merely warned about: it is decided from the inputs alone, before any
+ * output is looked at, so dropping it cannot bias the verdict, while keeping it would let a change in
+ * the input be counted as an effect of the prompt. An item with no recorded input on either side is
+ * paired but listed in `inputs_unchecked`.
+ * The paired n is reported, with why each excluded item was dropped.
+ */
+export function pairedCoverage(before, after, alpha = MCNEMAR_ALPHA) {
+  const b = coverageById(before.results, before.cites);
+  const a = coverageById(after.results, after.cites);
+  const checkInputs = before.inputs instanceof Map && after.inputs instanceof Map;
+  const cells = { both: 0, gained: 0, lost: 0, neither: 0 };
+  const excluded = [];
+  const inputsUnchecked = [];
+  for (const id of [...new Set([...b.keys(), ...a.keys()])].sort()) {
+    const sb = b.get(id) ?? 'absent';
+    const sa = a.get(id) ?? 'absent';
+    const usable = (s) => s === 'covered' || s === 'not_covered';
+    if (!usable(sb) || !usable(sa)) {
+      // Rescue items are excluded by design; only report the others, which say something about a run.
+      if (sb !== 'rescue' && sa !== 'rescue') excluded.push({ id, before: sb, after: sa });
+      continue;
+    }
+    if (checkInputs) {
+      const ib = before.inputs.get(id);
+      const ia = after.inputs.get(id);
+      if (ib === undefined || ia === undefined) inputsUnchecked.push(id);
+      else if (ib !== ia) { excluded.push({ id, before: sb, after: sa, reason: 'input_differs' }); continue; }
+    } else {
+      inputsUnchecked.push(id);
+    }
+    const was = sb === 'covered';
+    const now = sa === 'covered';
+    cells[was && now ? 'both' : now ? 'gained' : was ? 'lost' : 'neither'] += 1;
+  }
+  const n = cells.both + cells.gained + cells.lost + cells.neither;
+  return {
+    n_paired: n,
+    ...cells,
+    before: wilson(cells.both + cells.lost, n),
+    after: wilson(cells.both + cells.gained, n),
+    excluded,
+    inputs_checked: checkInputs,
+    inputs_unchecked: inputsUnchecked,
+    ...mcnemarExact(cells.gained, cells.lost, alpha),
+  };
+}
+
+/**
+ * Exact rejection rates of the McNemar rule for n paired items whose cells are independent draws with
+ * P(gain) = pGain and P(loss) = pLoss: the number of discordant items is Binomial(n, pGain + pLoss)
+ * and, given it, the gains are Binomial(d, pGain / (pGain + pLoss)). With pGain = pLoss this is the
+ * false-verdict rate under "no change"; otherwise it is the power.
+ */
+export function mcnemarRejectRates(n, pGain, pLoss, alpha = MCNEMAR_ALPHA) {
+  const pd = pGain + pLoss;
+  const dPmf = binomPmf(n, pd);
+  let improved = 0;
+  let worse = 0;
+  for (let d = 1; d <= n; d++) {
+    if (dPmf[d] < 1e-300) continue;
+    const gPmf = binomPmf(d, pGain / pd);
+    for (let g = 0; g <= d; g++) {
+      const v = mcnemarExact(g, d - g, alpha).verdict;
+      if (v === 'improved') improved += dPmf[d] * gPmf[g];
+      else if (v === 'worse') worse += dPmf[d] * gPmf[g];
+    }
+  }
+  return { improved, worse };
 }
 
 /** Recompute checks for a whole report against the given bank items (by id). */
@@ -215,6 +415,20 @@ export function printSummary(summary, log = console.log) {
     (summary.n_call_failed ? `, ${summary.n_call_failed} call failure(s) excluded` : ''));
   for (const [name, w] of Object.entries(summary.overall)) log(`    ${name.padEnd(24)} ${fmtRate(w)}`);
   log(`    ${'critical-flag rate'.padEnd(24)} ${fmtRate(summary.critical_rate)}`);
+  if (summary.citation_forms?.n) {
+    const f = summary.citation_forms;
+    log(`\n  citation forms (non-rescue, n=${f.n}): citation ${f.citation}, citation+note ${f['citation+note']}, note-only ${f['note-only']}, none ${f.none}`);
+    const g = summary.note_only_gate;
+    log(`    ${'note-only (gated)'.padEnd(24)} ${fmtRate(summary.note_only_rate)}  upper <= ${g.max_upper}: ${g.pass ? 'pass' : 'FAIL'}`);
+    log(`    ${'note+citation'.padEnd(24)} ${fmtRate(summary.note_with_citation_rate)}`);
+  }
+  if (summary.evidence_coverage) {
+    const e = summary.evidence_coverage;
+    log(`\n  evidence (from ${e.cites_file})`);
+    log(`    ${'per reply: >=1 verified'.padEnd(24)} ${fmtRate(e.per_reply)}`);
+    if (e.per_citation) log(`    ${'per citation: verified'.padEnd(24)} ${fmtRate(e.per_citation)}`);
+    if (e.missing_from_cites.length) log(`    ⚠ ${e.missing_from_cites.length} reply(ies) absent from the cites file: ${e.missing_from_cites.join(', ')}`);
+  }
   const sev = Object.entries(summary.flags).sort((a, b) =>
     SEVERITY_ORDER.indexOf(a[1].severity) - SEVERITY_ORDER.indexOf(b[1].severity));
   if (sev.length) {
@@ -238,6 +452,14 @@ async function main() {
   const { results, missing } = checkReport(report, new Map(items.map((it) => [it.id, it])));
   if (missing.length) console.log(`  ⚠ ${missing.length} report item(s) not in the current bank (skipped): ${missing.join(', ')}`);
   const summary = summarize(results);
+  const citesAt = rest.indexOf('--cites');
+  if (citesAt !== -1) {
+    const citesFile = rest[citesAt + 1];
+    if (!citesFile) { console.error('--cites needs a <label>.cites.json path'); process.exit(2); }
+    const cites = JSON.parse(await readFile(citesFile, 'utf8'));
+    const { covered, ...cov } = evidenceCoverage(results, cites);
+    summary.evidence_coverage = { cites_file: citesFile, ...cov };
+  }
   printSummary(summary);
   if (rest.includes('--write')) {
     const byId = new Map(results.map((r) => [r.id, r.result]));
