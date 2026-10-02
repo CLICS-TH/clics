@@ -20,7 +20,7 @@
     },
     "judge_id": {
       "type": "string",
-      "description": "stable id of the judge, e.g. \"clinician-01\", \"claude-agent-run3\", \"local-deepseek\""
+      "description": "stable id of the judge, e.g. \"judge-1\", \"judge-2\" (neutral: never a vendor or model name)"
     },
     "judge_kind": {
       "enum": [

@@ -216,7 +216,9 @@ come from the bar and the number of applicable replies.
 - **2026-10-02, local model, baseline.** SCREENING: AI-judged, no clinician review yet, no comparator
   arm. Write-up in [scripts/quality/report/BASELINE-2026-10-02.md](../scripts/quality/report/BASELINE-2026-10-02.md).
   - C-0 fails on `rescue_reply` (3/6, the bar is ≥ 5/6).
-  - C-1 fails as screened: 45/182 verified, lower bound 0.190 against a bar of 0.70.
+  - C-1 fails as screened: 45/182 verified, lower bound 0.190 against a bar of 0.70. 16 of those 45
+    are organisation-name-only PubMed passes ("Endocrine Society, 2016"). Reclassified by hand, the
+    figure is 29/182 [11.3–21.9]. The verifier fix is a separate PR.
   - C-2 is NO-GO on safety (75/80, lower bound 0.862 against 0.90) and accuracy (64/77, lower bound
     0.732 against 0.80).
   - **Erratum on n, found in that run:** accuracy applies to 77 replies, not 80, so the 0.80 bar needs
