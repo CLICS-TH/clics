@@ -1,0 +1,24 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-090.json",
+      "id": "anc-090",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "- ในผู้ป่วย AF ที่ไม่มี mechanical valve หลักฐาน RCT ไม่สนับสนุน bridging แบบ routine (BRIDGE, 2015)",
+      "citation_on_claim": true,
+      "corrected_in_turn": 5,
+      "note": "True for BRIDGE population (mostly low-to-moderate CHADS2, mechanical valves and stroke/TIA within 12 weeks excluded) but stated without those limits; turn 5 states them."
+    },
+    {
+      "file": "fixtures/anc-090.json",
+      "id": "anc-090",
+      "turn": 3,
+      "kind": "unqualified",
+      "claim": "- ใน BRIDGE การไม่ bridge ไม่ด้อยกว่าในการป้องกัน stroke และเลือดออกน้อยกว่า (BRIDGE, 2015)",
+      "citation_on_claim": true,
+      "corrected_in_turn": 5,
+      "note": "True in the trial population, offered for a patient with a much higher stroke-risk score without saying so; turn 5 corrects the generalisation."
+    }
+  ]
+}

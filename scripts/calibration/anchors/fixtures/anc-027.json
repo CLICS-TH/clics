@@ -1,0 +1,58 @@
+{
+  "ple_id": "anc-027",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "Woman in her 70s with community-acquired pneumonia, right lower lobe on CXR, oxygen saturation 94% on room air. Admit or treat at home?"
+    },
+    {
+      "role": "assistant",
+      "content": "Start with severity. Her age already earns 1 point on CURB-65; confusion, urea, respiratory rate and blood pressure decide the rest.\n- A CURB-65 of 0 or 1 means home treatment is appropriate (CURB-65, Lim et al., 2003).\n- If she goes home, an oral beta-lactam plus a macrolide or doxycycline covers outpatients with comorbidities (ATS/IDSA CAP guideline, Metlay et al., 2019).\n❓ Beyond the score, what else about this woman would you check before sending her home?"
+    },
+    {
+      "role": "physician",
+      "content": "Sorting your CURB-65 line for her:\n- Solid: it predicts 30-day mortality in the hospital cohorts it came from.\n- Untested: frail women who live alone. \"Home is appropriate\" is an extrapolation there, not a trial result.\n- Blind spot: no oxygen or frailty term at all.\nEvidence for home treatment in her group is observational at best. Admit."
+    },
+    {
+      "role": "assistant",
+      "content": "You are right. CURB-65 was derived in hospital cohorts and has no term for oxygenation, frailty or home circumstances, so a score of 0 or 1 does not settle the site of care on its own; the guideline pairs severity scoring with clinical judgment (ATS/IDSA CAP guideline, Metlay et al., 2019). My \"appropriate\" above was too strong for a frail woman who lives alone.\n- Admission is sound when no one can check on her overnight.\n- Without CT, rely on chest examination, repeat saturation and CXR.\n❓ With no CT at your hospital, how will you judge whether she is responding?"
+    },
+    {
+      "role": "physician",
+      "content": "Got it. No CT here, so exam, repeat saturation and CXR only. Pharmacy stocks ceftriaxone and oral azithromycin, nothing else for CAP. Give me the regimen that fits that stock, with a source for each point, and I will read the text before I order."
+    },
+    {
+      "role": "assistant",
+      "content": "Ceftriaxone IV plus azithromycin fits that stock and is a standard regimen for non-severe inpatient CAP (ATS/IDSA CAP guideline, Metlay et al., 2019).\n- Duration follows clinical stability and should not be shorter than 5 days (ATS/IDSA CAP guideline, Metlay et al., 2019).\n- Review daily: temperature, respiratory rate, saturation, ability to eat.\n❓ What finding on day 2 would make you stop and call for transfer?"
+    },
+    {
+      "role": "physician",
+      "content": "Falling saturation or new confusion by day 2: she goes to the referral centre, ambulance booked at admission."
+    },
+    {
+      "role": "assistant",
+      "content": "Those are sensible triggers. The ATS/IDSA severe CAP criteria list confusion, a respiratory rate of 30 or more and hypotension needing fluids among the minor criteria, and three or more make it severe (ATS/IDSA CAP guideline, Metlay et al., 2019). Early transfer is easier to defend than a late one.\n❓ Which of those criteria can your ward check reliably overnight?"
+    },
+    {
+      "role": "physician",
+      "content": "Respiratory rate and confusion only. The night nurses cannot get a blood gas or urea until morning. I checked the guideline text for the minor criteria and the count matches yours. I'll tell the nurses to call me for either."
+    },
+    {
+      "role": "assistant",
+      "content": "That is a workable overnight rule. Both are bedside measures, and a rate of 30 or more is also a CURB-65 item (CURB-65, Lim et al., 2003). Write the call-me triggers into the admission orders so the night team does not depend on memory.\n❓ Before discharge, what would you arrange for a woman who lives alone?"
+    },
+    {
+      "role": "physician",
+      "content": "Discharge when stable on an oral switch, with a call from the community health nurse at 48 hours. Writing the plan into the chart myself now."
+    },
+    {
+      "role": "assistant",
+      "content": "A call from the community health nurse fits her situation, and follow-up should confirm that she is eating, drinking and breathing comfortably (ATS/IDSA CAP guideline, Metlay et al., 2019). Make sure the oral antibiotic supply covers the full course before she leaves.\n❓ If the nurse cannot reach her by phone at 48 hours, what is your fallback?"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nA low CURB-65 told me about hospital cohorts, not about a frail woman who lives alone. I now put frailty and who is at home next to the score before choosing the site of care.\n\nความไม่แน่นอน / What remains uncertain:\nI still do not know how many of our older patients with a low score do well at home, because we have no local follow-up on them.\n\nจะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:\nI will add frailty and living situation to our admission note for pneumonia and use the referral triggers we agreed on for night shifts."
+    }
+  ]
+}

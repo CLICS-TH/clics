@@ -1,0 +1,24 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-064.json",
+      "id": "anc-064",
+      "turn": 3,
+      "kind": "false",
+      "claim": "- ถ้าวินิจฉัย adenomyosis จาก TVUS ได้แล้ว ใส่ LNG-IUS ได้เลยทุกราย ไม่ต้อง biopsy ก่อน",
+      "citation_on_claim": false,
+      "corrected_in_turn": 5,
+      "note": "Over-generalisation: LNG-IUS without endometrial sampling is not safe for every woman with adenomyosis; with risk factors (obesity, DM, thick endometrium) histology comes first. Turn 5 concedes."
+    },
+    {
+      "file": "fixtures/anc-064.json",
+      "id": "anc-064",
+      "turn": 7,
+      "kind": "false",
+      "claim": "- ระหว่างรอผลชิ้นเนื้อ ใช้ยาเม็ดคุมกำเนิดฮอร์โมนรวม (COC) คุมรอบเดือนได้ทุกราย เพราะเป็นยาที่ใช้ลดเลือดประจำเดือนอยู่แล้ว",
+      "citation_on_claim": false,
+      "corrected_in_turn": 9,
+      "note": "Over-generalisation: COC is not suitable for every woman (VTE risk factors, hypertension, smoking, migraine with aura). Turn 9 concedes and lists what to check."
+    }
+  ]
+}

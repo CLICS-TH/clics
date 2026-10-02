@@ -1,0 +1,14 @@
+{
+  "claims": [
+    {
+      "file": "fixtures/anc-059.json",
+      "id": "anc-059",
+      "turn": 1,
+      "kind": "unqualified",
+      "claim": "ถ้า Ottawa ลบ ก็ไม่ต้อง film ครับ",
+      "citation_on_claim": false,
+      "corrected_in_turn": 5,
+      "note": "True for the fracture question in adult ED patients who can be followed up, stated without those limits; turn 5 concedes it is too broad and names the population, the cohort design and what the rule does not answer."
+    }
+  ]
+}
