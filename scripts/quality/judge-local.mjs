@@ -111,9 +111,20 @@ export function correctivePrompt(errors) {
 
 /* ------------------------------------------------------------------ parsing */
 
-/** The first balanced top-level JSON object in a reply, ignoring <think> blocks and code fences. */
+/** The first balanced top-level JSON object in a reply's ANSWER. Everything up to the LAST </think>
+ *  is reasoning and is dropped first, so a draft verdict written while thinking is never picked even
+ *  when the opening <think> is missing; an unclosed <think> (reasoning cut off) drops what follows it. */
+export function answerPart(text) {
+  let s = String(text ?? '');
+  const closes = [...s.matchAll(/<\/think>/gi)];
+  if (closes.length) { const last = closes.at(-1); s = s.slice(last.index + last[0].length); }
+  const open = s.search(/<think>/i);
+  if (open !== -1) s = s.slice(0, open);
+  return s;
+}
+
 export function extractJsonObject(text) {
-  const s = String(text ?? '').replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/```(?:json)?/gi, '');
+  const s = answerPart(text).replace(/```(?:json)?/gi, '');
   for (let start = s.indexOf('{'); start !== -1; start = s.indexOf('{', start + 1)) {
     let depth = 0;
     let inStr = false;
@@ -242,6 +253,20 @@ export async function judgePacket(packet, complete, { system, schema, maxTokens 
   };
 }
 
+/* ------------------------------------------------------------------- resume */
+
+export const systemPromptSha = (system) => createHash('sha256').update(system).digest('hex').slice(0, 12);
+
+/** Why the earlier run's results cannot be continued under this run's settings (empty = compatible).
+ *  Only fields the earlier meta recorded are compared. */
+export function resumeConflicts(prior, current) {
+  const out = [];
+  for (const k of ['model_requested', 'system_prompt_sha']) {
+    if (prior?.[k] != null && prior[k] !== current[k]) out.push(`${k}: earlier run ${JSON.stringify(prior[k])}, this run ${JSON.stringify(current[k])}`);
+  }
+  return out;
+}
+
 /* --------------------------------------------------------------------- main */
 
 /** Read the four judge-facing files. key.do-not-share.json is never opened. */
@@ -288,7 +313,7 @@ async function main() {
   if (flags['dry-run']) {
     hr('judge-local — DRY RUN (nothing is sent, nothing is written)');
     const sizes = todo.map((p) => buildUserPrompt(p).length);
-    console.log(`  system prompt ${system.length} chars (rubric embedded once) · ${todo.length} packet(s) · user prompt ${Math.min(...sizes)}–${Math.max(...sizes)} chars`);
+    console.log(`  system prompt ${system.length} chars, sha ${systemPromptSha(system)} (rubric embedded once) · ${todo.length} packet(s) · user prompt ${Math.min(...sizes)}–${Math.max(...sizes)} chars`);
     console.log(`  ${dim('rough tokens per call: (system + user chars) / 3 for mixed Thai/English — check it fits the box context')}`);
     return;
   }
@@ -302,10 +327,23 @@ async function main() {
     judge_id: judgeId, judge_kind: JUDGE_KIND,
     model_requested: cfg.model,
     endpoint: 'LOCAL_AI_BASE_URL (not recorded: the address of the on-prem box stays out of committed files)',
-    system_prompt_sha: createHash('sha256').update(system).digest('hex').slice(0, 12),
+    system_prompt_sha: systemPromptSha(system),
     rubric_version: inputs.packets[0]?.rubric_version ?? null,
     max_tokens: maxTokens, temperature, concurrency,
   };
+  if (flags.resume) {
+    // A results file mixing two models, or two prompts, is not one judge. Checked before any call.
+    if (existsSync(metaFile)) {
+      const prior = JSON.parse(await readFile(metaFile, 'utf8'));
+      const conflicts = resumeConflicts(prior, meta);
+      if (conflicts.length) fail(`--resume refused: ${out} was written under different settings.\n  ${conflicts.join('\n  ')}\n  Use a new --out for this model or prompt.`);
+    } else if (done.size) {
+      console.log(yellow(`  ⚠ no ${path.basename(metaFile)} from the earlier run, so its model and prompt cannot be checked`));
+    }
+  }
+  // Written at the start too (finished_at null), so a run that dies part-way still leaves the
+  // model and prompt a later --resume is checked against. The end of the run rewrites it with counts.
+  await writeFile(metaFile, JSON.stringify({ ...meta, finished_at: null }, null, 2) + '\n', 'utf8');
 
   const counts = { valid: 0, 'valid-after-retry': 0, invalid: 0, 'transport-error': 0 };
   const models = new Set();

@@ -289,3 +289,38 @@ test('real paper titles still verify through PubMed with a proper match (stubbed
   // The trial that used to verify only through the uncapped phrase path is curated now.
   assert.equal((await verifyCitation(cite('ISCHEMIA Trial', 2020), { known, offline: true })).status, 'verified');
 });
+
+test('organisation-only: dashed body names, "Societies", and two bodies joined by and/& (#120 review)', async () => {
+  const ORGS = [
+    'American Academy of Otolaryngology–Head and Neck Surgery',      // en dash
+    'American Academy of Otolaryngology—Head and Neck Surgery',      // em dash
+    'American Academy of Otolaryngology – Head and Neck Surgery',    // spaced dash
+    'American Academy of Otolaryngology-Head and Neck Surgery Clinical Practice Guideline',
+    'Joint British Diabetes Societies',
+    'Joint British Diabetes Societies Guideline',
+    'Society of Critical Care Medicine and European Society of Intensive Care Medicine',
+    'Society of Critical Care Medicine & European Society of Intensive Care Medicine',
+    'Infectious Diseases Society of America and Society for Healthcare Epidemiology of America Guidelines',
+  ];
+  for (const name of ORGS) {
+    assert.equal(organisationOnly(name), 'organisation', name);
+    const calls = [];
+    const r = await verifyCitation(cite(name, 2021), { known, cache: new Map(), fetchImpl: alwaysHits(3, calls) });
+    assert.notEqual(r.status, 'verified', name);
+    assert.equal(r.status, 'publisher-only', name);
+    assert.deepEqual(calls, [], `${name}: not looked up in PubMed`);
+  }
+  // Still null: real titles that contain "and", a dash, or a body's name next to ordinary words.
+  for (const title of [
+    'Dexamethasone and Hydrocortisone in Septic Shock',
+    'Hydrocortisone plus Fludrocortisone for Adults with Septic Shock',
+    'Society of Critical Care Medicine and outcomes in sepsis',
+    'Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock',
+    'Centers for Disease Control and Prevention data on influenza vaccination',
+    'Early Goal-Directed Therapy in the Treatment of Severe Sepsis and Septic Shock',
+  ]) {
+    assert.equal(organisationOnly(title), null, title);
+  }
+  // A single body with "and" inside it still matches without a split.
+  assert.equal(organisationOnly('Centers for Disease Control and Prevention'), 'organisation');
+});
