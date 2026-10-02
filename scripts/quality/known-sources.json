@@ -1,6 +1,6 @@
 {
-  "version": "known-sources-v4",
-  "note": "Curated by hand for scripts/quality/cite-verify.mjs. ONLY sources and edition years the curator was certain of; omissions are deliberate. A missing year makes a real citation read \"year-mismatch\" (a false alarm a human clears) - a wrong year would make a false one read \"verified\", which is the failure this list exists to prevent. \"family\" entries verify only that the publisher/series exists and publishes in that year, not the specific document. year_range [from, null] = every year from `from` to the current year. v2 (review of PR #113): publisher names live ONLY on family entries — a document entry carries document-specific aliases, so \"<publisher> <invented title>, <year>\" can at most read publisher-only. v3: document entries carry their official full titles as aliases — those words are the document's vocabulary, and any OTHER word in a cited name makes it document-unconfirmed. v4: ISCHEMIA (2020) and COURAGE (2007) added. The PubMed phrase path is now capped, and a trial name like \"ISCHEMIA Trial\" matches dozens of titles, so landmark trials belong here.",
+  "version": "known-sources-v5",
+  "note": "Curated by hand for scripts/quality/cite-verify.mjs. ONLY sources and edition years the curator was certain of; omissions are deliberate. A missing year makes a real citation read \"year-mismatch\" (a false alarm a human clears) - a wrong year would make a false one read \"verified\", which is the failure this list exists to prevent. \"family\" entries verify only that the publisher/series exists and publishes in that year, not the specific document. year_range [from, null] = every year from `from` to the current year. v2 (review of PR #113): publisher names live ONLY on family entries — a document entry carries document-specific aliases, so \"<publisher> <invented title>, <year>\" can at most read publisher-only. v3: document entries carry their official full titles as aliases — those words are the document's vocabulary, and any OTHER word in a cited name makes it document-unconfirmed. v4: ISCHEMIA (2020) and COURAGE (2007) added. The PubMed phrase path is now capped, and a trial name like \"ISCHEMIA Trial\" matches dozens of titles, so landmark trials belong here. v5: the joint ATS/IDSA 2019 CAP guideline also answers to \"IDSA community-acquired pneumonia\" / \"ATS community-acquired pneumonia\" (each society publishes it as its own), so a citation naming only one of the two societies is not read as publisher-only.",
   "sources": [
     {
       "id": "fam-who",
@@ -645,7 +645,11 @@
         "ATS/IDSA community-acquired pneumonia",
         "IDSA/ATS community-acquired pneumonia",
         "ATS/IDSA CAP",
-        "IDSA/ATS CAP"
+        "IDSA/ATS CAP",
+        "IDSA community-acquired pneumonia",
+        "ATS community-acquired pneumonia",
+        "IDSA CAP",
+        "ATS CAP"
       ],
       "kind": "guideline",
       "specificity": "document",

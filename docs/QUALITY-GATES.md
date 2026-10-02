@@ -124,6 +124,13 @@ about 60 s on the box. Above 25%, flag it as a latency risk for the serving deci
   words are not the trial's. Two cases still read `verified`: a fabricated title made only of the
   real document's own words plus generic words, and a real document cited for a claim it does not
   make (misattribution). Only the judges and the clinician catch these.
+- cite-verify cannot detect a garbled but recognisable title. "Surviving Sepsis Campaign:
+  International Guidelines for Sepsis and Septic Shock Management, 2021" reorders the real title's
+  words and reads `verified`. Whether a title is quoted correctly is the judges' and the clinician's
+  job.
+- A body spelled out in full is matched as if written with its acronym, so "European Society of
+  Cardiology Guidelines for the Management of Atrial Fibrillation, 2020" verifies like "ESC …". Its
+  spelled-out words are not counted as leftovers (known-sources v5).
 - A clinician looks at **every** `publisher-only`, `document-unconfirmed`, `unverified` and `year-mismatch` citation (the
   clinician export includes them). A source confirmed as invented is a **critical failure**, however
   good the rate is.
