@@ -1,0 +1,258 @@
+#!/usr/bin/env node
+/*
+ * Known-groups validity on the anchor cohort: does the evaluator's score track the DESIGNED target?
+ * OFFLINE — reads a scores file and design.json, calls nothing.
+ *
+ *   node scripts/calibration/anchors/known-groups.mjs <scores.json> [--pilot] [--arm local|cloud] [--out report.json]
+ *     --pilot   restrict the designed set to the 20 pilot anchors (so n_missing means something)
+ *
+ * <scores.json> may be any of:
+ *   - score-local.mjs output           {probe, model, prompt_version, rows:[{id, run, scores|null, …}]}
+ *   - scripts/probe/model-agreement.mjs  {rows:[{id, local, cloud, …}]}   (pick the arm with --arm)
+ *   - a plain list                      [{id, scores:{d1..d7}}]           (repeat an id for K runs)
+ *
+ * WHAT IT COMPUTES — the pre-registered analysis in AUTHORING.md §7, nothing chosen after the fact:
+ *   - per anchor: per-domain MEDIAN over its runs, composite = production compositeOf of that vector;
+ *   - ICC(A,1) AI composite vs target composite, F-based 95% CI (backend icc.js iccTwoRater — the
+ *     estimator GET /oversight/icc uses), Spearman ρ (composite and per domain, approximate 95% CI);
+ *   - mean bias (AI − target) per domain and for the composite;
+ *   - FLAG every anchor with |AI composite − target| > the PRE-REGISTERED threshold, which is read
+ *     from AUTHORING.md at run time, so the number in the spec and the number applied cannot diverge;
+ *     the flag rate carries a Wilson 95% interval;
+ *   - domain flags (|median − target| >= 2), diagnostic only;
+ *   - test–retest: composite spread across runs, per anchor with >= 2 runs.
+ *
+ * EVIDENCE LEVEL: screening-synthetic (AI-authored, AI-scored) — not a decisive gate. Printed on
+ * every report and written into the JSON, because a number that travels without its label gets
+ * quoted as human agreement.
+ *
+ * Package-free (production composite + ICC load with no npm install).
+ */
+import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { compositeOf, iccTwoRater } from '../../probe/agreement-stats.mjs';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+export const AUTHORING_PATH = path.join(HERE, 'AUTHORING.md');
+export const DESIGN_PATH = path.join(HERE, 'design.json');
+export const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
+export const EVIDENCE_LEVEL = 'screening-synthetic (AI-authored, AI-scored) — not a decisive gate';
+export const DOMAIN_FLAG_DELTA = 2;
+
+/** The pre-registered composite threshold, parsed from AUTHORING.md. Throws if the line is missing. */
+export function parseThreshold(markdown) {
+  const m = String(markdown).match(/PRE-REGISTERED THRESHOLD:\s*(\d+(?:\.\d+)?)\s*composite points/);
+  if (!m) throw new Error('AUTHORING.md has no "PRE-REGISTERED THRESHOLD: <n> composite points" line');
+  return Number(m[1]);
+}
+
+export async function loadThreshold(p = AUTHORING_PATH) {
+  return parseThreshold(await readFile(p, 'utf8'));
+}
+
+const isScoreSet = (s) => s != null && typeof s === 'object' && DOMAINS.every((d) => Number.isFinite(s[d]));
+
+/**
+ * Normalise any accepted scores file into Map(id → [{d1..d7}, …]) plus provenance.
+ * Rows without a full score set are counted, never silently dropped.
+ */
+export function normaliseScores(doc, { arm = 'local' } = {}) {
+  const rows = Array.isArray(doc) ? doc : (Array.isArray(doc?.rows) ? doc.rows : null);
+  if (!rows) throw new Error('scores file: expected an array or an object with a rows[] array');
+  const runs = new Map();
+  let unscored = 0;
+  for (const r of rows) {
+    const id = String(r?.id ?? '').toLowerCase();
+    if (!id) { unscored++; continue; }
+    const s = r.scores !== undefined ? r.scores : r[arm];
+    if (!isScoreSet(s)) { unscored++; continue; }
+    if (!runs.has(id)) runs.set(id, []);
+    runs.get(id).push(Object.fromEntries(DOMAINS.map((d) => [d, s[d]])));
+  }
+  const provenance = Array.isArray(doc) ? {} : {
+    model: doc.model ?? (arm === 'cloud' ? doc.cloudModel : doc.localModel) ?? null,
+    prompt_version: doc.prompt_version_used ?? (arm === 'local' ? (doc.local_prompt_version ?? doc.prompt_version) : doc.prompt_version) ?? null,
+    rubric_version: doc.rubric_version ?? null,
+    probe: doc.probe ?? null,
+  };
+  return { runs, unscored, provenance };
+}
+
+const median = (xs) => {
+  const s = [...xs].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+};
+const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
+
+/** Average ranks (ties share the mean rank). */
+function ranks(xs) {
+  const idx = xs.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]);
+  const r = new Array(xs.length);
+  for (let i = 0; i < idx.length;) {
+    let j = i;
+    while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++;
+    const avg = (i + j) / 2 + 1;
+    for (let k = i; k <= j; k++) r[idx[k][1]] = avg;
+    i = j + 1;
+  }
+  return r;
+}
+
+function pearson(xs, ys) {
+  const mx = mean(xs), my = mean(ys);
+  const num = xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0);
+  const den = Math.sqrt(xs.reduce((a, x) => a + (x - mx) ** 2, 0) * ys.reduce((a, y) => a + (y - my) ** 2, 0));
+  return den ? num / den : null;
+}
+
+/**
+ * Spearman ρ with an approximate 95% CI (Fisher z, Fieller–Hartley–Pearson SE = sqrt(1.06/(n−3))).
+ * Null when n < 4 or either side has no variance — "no variance" is not "no agreement".
+ */
+export function spearman(xs, ys) {
+  const n = xs.length;
+  if (n < 2) return { rho: null, lower: null, upper: null, n };
+  const rho = pearson(ranks(xs), ranks(ys));
+  if (rho == null) return { rho: null, lower: null, upper: null, n, note: 'no variance' };
+  if (n < 4 || Math.abs(rho) >= 1) return { rho, lower: null, upper: null, n };
+  const z = Math.atanh(rho);
+  const se = Math.sqrt(1.06 / (n - 3));
+  return { rho, lower: Math.tanh(z - 1.96 * se), upper: Math.tanh(z + 1.96 * se), n };
+}
+
+/** Wilson score 95% interval for k of n. */
+export function wilson(k, n) {
+  if (!n) return { p: null, lower: null, upper: null };
+  const z = 1.96, p = k / n;
+  const den = 1 + z * z / n;
+  const centre = (p + z * z / (2 * n)) / den;
+  const half = (z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n))) / den;
+  return { p, lower: Math.max(0, centre - half), upper: Math.min(1, centre + half) };
+}
+
+const r2 = (v) => (v == null ? null : Math.round(v * 100) / 100);
+const r3 = (v) => (v == null ? null : Math.round(v * 1000) / 1000);
+
+/**
+ * The analysis. Pure: design + normalised runs in, report object out.
+ * @param {object} design        design.json
+ * @param {Map<string, object[]>} runs  id → score vectors
+ * @param {{threshold: number, onlyIds?: string[], pilotOnly?: boolean}} opts
+ */
+export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = false } = {}) {
+  if (!Number.isFinite(threshold)) throw new Error('knownGroups: a numeric pre-registered threshold is required');
+  const wanted = onlyIds ? new Set(onlyIds.map((s) => s.toLowerCase())) : null;
+  const rows = design.anchors.filter((a) => (!wanted || wanted.has(a.id)) && (!pilotOnly || a.pilot));
+  const unknownIds = [...runs.keys()].filter((id) => !design.anchors.some((a) => a.id === id));
+
+  const anchors = [];
+  for (const a of rows) {
+    const vecs = runs.get(a.id) ?? [];
+    if (!vecs.length) continue;
+    const med = Object.fromEntries(DOMAINS.map((d) => [d, median(vecs.map((v) => v[d]))]));
+    const aiComposite = compositeOf(med);
+    const perRun = vecs.map((v) => compositeOf(v));
+    const delta = r2(aiComposite - a.target_composite);
+    const domainFlags = DOMAINS.filter((d) => Math.abs(med[d] - a.targets[d]) >= DOMAIN_FLAG_DELTA);
+    anchors.push({
+      id: a.id,
+      language: a.language,
+      profile: a.profile,
+      runs: vecs.length,
+      target: a.targets,
+      target_composite: a.target_composite,
+      ai_median: med,
+      ai_composite: aiComposite,
+      delta,
+      flagged: Math.abs(aiComposite - a.target_composite) > threshold,
+      domain_flags: domainFlags,
+      retest_range: perRun.length >= 2 ? r2(Math.max(...perRun) - Math.min(...perRun)) : null,
+    });
+  }
+
+  const n = anchors.length;
+  const comp = {
+    n,
+    icc: iccTwoRater(anchors.map((x) => ({ a: x.ai_composite, b: x.target_composite }))),
+    spearman: spearman(anchors.map((x) => x.ai_composite), anchors.map((x) => x.target_composite)),
+    bias: r2(mean(anchors.map((x) => x.ai_composite - x.target_composite))),
+    mean_abs_delta: r2(mean(anchors.map((x) => Math.abs(x.ai_composite - x.target_composite)))),
+  };
+  const perDomain = Object.fromEntries(DOMAINS.map((d) => {
+    const ai = anchors.map((x) => x.ai_median[d]);
+    const tg = anchors.map((x) => x.target[d]);
+    return [d, {
+      spearman: spearman(ai, tg),
+      icc: iccTwoRater(anchors.map((x) => ({ a: x.ai_median[d], b: x.target[d] }))),
+      bias: r2(mean(ai.map((v, i) => v - tg[i]))),
+      mean_abs_delta: r2(mean(ai.map((v, i) => Math.abs(v - tg[i])))),
+      flagged: anchors.filter((x) => x.domain_flags.includes(d)).length,
+    }];
+  }));
+  const flagged = anchors.filter((x) => x.flagged);
+  const ranges = anchors.map((x) => x.retest_range).filter((v) => v != null);
+
+  return {
+    evidence_level: EVIDENCE_LEVEL,
+    threshold,
+    domain_flag_delta: DOMAIN_FLAG_DELTA,
+    n_designed: rows.length,
+    n_scored: n,
+    n_missing: rows.length - n,
+    unknown_ids: unknownIds,
+    composite: comp,
+    per_domain: perDomain,
+    flags: { n: flagged.length, ids: flagged.map((x) => x.id), rate: wilson(flagged.length, n) },
+    retest: ranges.length ? { n: ranges.length, median_range: median(ranges), max_range: Math.max(...ranges) } : null,
+    anchors,
+  };
+}
+
+/* ------------------------------------------------------------------ CLI */
+
+function print(rep, prov) {
+  const f = (v, d = 2) => (v == null ? '—' : Number(v).toFixed(d));
+  const ci = (o) => (o?.lower == null ? '' : ` [${f(o.lower, 3)}, ${f(o.upper, 3)}]`);
+  console.log(`\nknown-groups validity — anchor cohort`);
+  console.log(`  EVIDENCE LEVEL: ${rep.evidence_level}`);
+  console.log(`  scorer ${prov.model ?? '(model not recorded)'} · prompt ${prov.prompt_version ?? '(not recorded)'} · rubric ${prov.rubric_version ?? '(not recorded)'}`);
+  console.log(`  n scored ${rep.n_scored} of ${rep.n_designed} designed  (missing ${rep.n_missing}${rep.unscored ? `, ${rep.unscored} unscored rows` : ''}${rep.unknown_ids.length ? `, ignored unknown ids ${rep.unknown_ids.join(',')}` : ''})`);
+  console.log(`\n  composite (AI vs target, weighted 0-100)`);
+  console.log(`    ICC(A,1) ${f(rep.composite.icc?.icc, 3)}${ci(rep.composite.icc)}  ${rep.composite.icc?.interpretation ?? ''}`);
+  console.log(`    Spearman ρ ${f(rep.composite.spearman.rho, 3)}${ci(rep.composite.spearman)}   bias ${f(rep.composite.bias)}   mean |Δ| ${f(rep.composite.mean_abs_delta)}`);
+  console.log(`\n    domain   Spearman ρ [95% CI]          ICC(A,1)   bias   mean|Δ|  flags(|Δ|>=${rep.domain_flag_delta})`);
+  for (const d of DOMAINS) {
+    const s = rep.per_domain[d];
+    console.log(`    ${d}       ${f(s.spearman.rho, 3).padStart(6)}${ci(s.spearman).padEnd(22)} ${f(s.icc?.icc, 3).padStart(8)}  ${f(s.bias).padStart(5)}  ${f(s.mean_abs_delta).padStart(7)}  ${s.flagged}`);
+  }
+  console.log(`\n  PRE-REGISTERED flag: |AI composite − target| > ${rep.threshold}  (AUTHORING.md §7)`);
+  console.log(`    flagged ${rep.flags.n}/${rep.n_scored}  rate ${f(rep.flags.rate.p != null ? rep.flags.rate.p * 100 : null, 0)}% [${f(rep.flags.rate.lower != null ? rep.flags.rate.lower * 100 : null, 0)}–${f(rep.flags.rate.upper != null ? rep.flags.rate.upper * 100 : null, 0)}%]`);
+  console.log('\n    id        lang  target  AI      Δ       runs  retest  flag  domain flags');
+  for (const a of [...rep.anchors].sort((x, y) => x.target_composite - y.target_composite)) {
+    console.log(`    ${a.id}   ${a.language.padEnd(4)}  ${String(a.target_composite).padStart(6)}  ${f(a.ai_composite, 1).padStart(5)}  ${(a.delta >= 0 ? '+' : '') + f(a.delta, 1)}`.padEnd(52)
+      + `${String(a.runs).padStart(4)}  ${f(a.retest_range, 0).padStart(6)}  ${a.flagged ? 'FLAG' : '    '}  ${a.domain_flags.join(',')}`);
+  }
+  if (rep.retest) console.log(`\n  test–retest composite range: median ${f(rep.retest.median_range, 1)}, max ${f(rep.retest.max_range, 1)} over ${rep.retest.n} anchors with >=2 runs`);
+  console.log(`\n  ${rep.evidence_level}. Not human agreement; do not quote as such.\n`);
+}
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  const argv = process.argv.slice(2);
+  const arg = (k, d = null) => { const i = argv.indexOf(`--${k}`); return i > -1 ? argv[i + 1] : d; };
+  const VALUE_FLAGS = new Set(['--arm', '--only', '--design', '--out']);
+  const file = argv.find((a, i) => !a.startsWith('--') && !(i > 0 && VALUE_FLAGS.has(argv[i - 1])));
+  if (!file) { console.error('usage: known-groups.mjs <scores.json> [--pilot] [--arm local|cloud] [--only anc-001,…] [--design design.json] [--out report.json]'); process.exit(2); }
+  const arm = arg('arm', 'local');
+  if (!['local', 'cloud'].includes(arm)) { console.error('--arm must be local or cloud'); process.exit(2); }
+  const design = JSON.parse(await readFile(path.resolve(arg('design', DESIGN_PATH)), 'utf8'));
+  const { runs, unscored, provenance } = normaliseScores(JSON.parse(await readFile(path.resolve(file), 'utf8')), { arm });
+  const threshold = await loadThreshold();
+  const only = arg('only') ? String(arg('only')).split(',').map((s) => s.trim()).filter(Boolean) : null;
+  const rep = { ...knownGroups(design, runs, { threshold, onlyIds: only, pilotOnly: argv.includes('--pilot') }), unscored, source: path.basename(file), arm, provenance };
+  print(rep, provenance);
+  const out = arg('out');
+  if (out) { await writeFile(path.resolve(out), JSON.stringify(rep, null, 2) + '\n'); console.log(`  report → ${out}\n`); }
+}
