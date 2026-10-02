@@ -191,7 +191,8 @@ function iccTwoWay(rows, { k } = {}) {
  * compared against.
  *
  *   ICC(A,1) = (MSR - MSE) / (MSR + (k-1)MSE + k(MSC - MSE)/n)
- *   ICC(A,k) = (MSR - MSE) / (MSR +          (MSC - MSE)/n)
+ *   ICC(A,k) = (MSR - MSE) / (MSR +          (MSC - MSE)/n)   — computed as Spearman-Brown of
+ *              ICC(A,1), which is identical except past its pole (see iccTwoWayAverage's body)
  *
  * Same mean squares, one term dropped. (Spearman-Brown, k·r/(1+(k-1)r), gives the identical value
  * here — it cancels exactly for absolute agreement — but computing from the MS terms directly keeps
@@ -234,11 +235,18 @@ function iccTwoWayAverage(rows, { k } = {}) {
   const MSr = SSr / (n - 1);
   const MSc = SSc / (width - 1);
   const MSe = Math.max(SSe / ((n - 1) * (width - 1)), 0.0001);
-  const icc = (MSr - MSe) / (MSr + (MSc - MSe) / n);
-
-  // The interval is built on the SINGLE-measure estimate and then stepped up, so both statistics
-  // share one derivation of the bounds.
+  // The estimate AND its interval are the single-measure ones stepped up by Spearman-Brown, so both
+  // share one derivation. For absolute agreement this equals (MSR - MSE) / (MSR + (MSC - MSE)/n)
+  // exactly — except past the pole at single = -1/(k-1), where that closed form's denominator goes
+  // negative too and the ratio flips POSITIVE: a pair of raters who disagreed completely read 0.999
+  // 'Excellent' (found 2026-10, the same pole as the interval bug fixed in #104). spearmanBrown()
+  // returns -1 there, which finish() reports as -0.999 'Below target'.
   const single = (MSr - MSe) / (MSr + (width - 1) * MSe + width * (MSc - MSe) / n);
+  const icc = spearmanBrown(single, width);
+  if (icc == null) {
+    return { icc: null, lower: null, upper: null, n, k: width, n_excluded: excluded,
+      rater_counts: counts, ...labels, interpretation: 'Insufficient variance (identical scores)' };
+  }
   const ci = twoWayAgreementCI(single, { MSr, MSc, MSe, n, k: width });
   return finish(icc, n, { lower: spearmanBrown(ci.lower, width), upper: spearmanBrown(ci.upper, width) },
     { k: width, n_excluded: excluded, rater_counts: counts, ...labels });

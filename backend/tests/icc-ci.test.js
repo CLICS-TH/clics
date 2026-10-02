@@ -159,3 +159,26 @@ describe('one-way bounds equal an independent derivation', () => {
     expect(got).toMatchObject({ lower: 0.609, upper: 0.965 });
   });
 });
+
+describe('ICC(A,k) point estimate past the Spearman-Brown pole (found 2026-10)', () => {
+  const { verdictFor } = require('../src/services/icc');
+  // Two raters in complete disagreement. The closed form (MSR-MSE)/(MSR+(MSC-MSE)/n) has BOTH terms
+  // negative here and returned +0.999 'Excellent'.
+  const OPPOSED = [[1, 5], [5, 1], [2, 4], [4, 2]];
+
+  test('complete disagreement is never reported as agreement', () => {
+    const r = iccTwoWayAverage(OPPOSED);
+    expect(r.icc).toBeLessThan(0);
+    expect(r.interpretation).toBe('Below target (< 0.75)');
+    expect(verdictFor(r, 0.75).state).not.toBe('pass');
+  });
+
+  test('away from the pole the estimate is unchanged: it still equals the closed form', () => {
+    for (const rows of [THREE, PAIRS, BIASED]) {
+      const { n, k, MSr, MSc, MSe } = msTerms(rows);
+      const closed = (MSr - MSe) / (MSr + (MSc - MSe) / n);
+      expect(iccTwoWayAverage(rows).icc).toBeCloseTo(Math.min(closed, 0.999), 3);
+      expect(k).toBeGreaterThan(1);
+    }
+  });
+});
