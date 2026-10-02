@@ -1,0 +1,6 @@
+{"rater":"opus","scores":{
+"K01":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":0,"d6":1,"d7":0,"note":"Generic list asks ('เจ็บหน้าอกโดยทั่วไป...ขอแบบครบๆ'); premature closure 'ไม่ใช่ ACS แน่นอน'; ignores pushback, 'ไม่ต้องแก้อะไรแล้ว'; reflection 'ได้ความรู้เยอะมากครับ thanks'"},
+"K02":{"d1":4,"d2":4,"d3":4,"d4":4,"d5":5,"d6":4,"d7":4,"note":"'First-line status and tolerability still stand; the league table doesn't. Is 6 months after remission trial-based or consensus?'; updates to week-2 dose check; driver-specific dosing/driving"},
+"K03":{"d1":4,"d2":4,"d3":4,"d4":4,"d5":3,"d6":4,"d7":2,"note":"Good appraisal ('ข้อมูลนี้มาจากผู้ป่วยกลุ่มไหน', no cath lab) but abdicates: 'ตัดสินให้เลย...ไม่ต้องคุยกับศัลย์', 'ตัวเลข hold ไม่ต้องตรวจทานแล้ว...copy...ทั้งก้อน'"},
+"K04":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"'low-scores-go-home line has no source...doubt it covers a frail man alone and on warfarin'; 'Checked the guideline'; 'sign the orders after the INR is back'; reflection names change+uncertainty+action"}
+}}

@@ -1,0 +1,337 @@
+######## EPISODE K01 ########
+[physician]
+สวัสดีครับ วันนี้เวร ER ยุ่งมาก คนไข้เยอะ เลยอยากถามเร็วๆ ครับ มีคนไข้ผู้ชายในวัย 60 กว่า มาด้วยเจ็บหน้าอก ทำ ECG แรกไปแล้วปกติ อยากทราบว่าเจ็บหน้าอกโดยทั่วไปต้องคิดถึงโรคอะไรบ้างครับ ขอแบบครบๆ ทั้งโรคหัวใจ โรคปอด โรคทางเดินอาหาร กล้ามเนื้อ แล้วก็อื่นๆ ครับ ตอนเรียนเคยท่องไว้แต่ลืมไปเกือบหมดแล้ว
+
+[assistant]
+สวัสดีครับ เจ็บหน้าอกในผู้ป่วยวัยนี้ ควรแยกโรคที่อันตรายถึงชีวิตก่อนเสมอครับ
+
+- **ACS** — ECG แรกที่ปกติ *ไม่ได้* exclude ACS ต้องทำ serial ECG และ hs-troponin ตาม algorithm 0/1 ชม. หรือ 0/2 ชม. (ESC, 2023)
+- **Aortic dissection** — เจ็บฉีกร้าวไปหลัง, ชีพจร/BP สองแขนต่างกัน
+- **Pulmonary embolism** — หอบ, หัวใจเต้นเร็ว, มี risk factor ของ VTE
+- **Tension pneumothorax, cardiac tamponade, esophageal rupture**
+
+หลังจากนั้นจึงค่อยพิจารณาสาเหตุที่ไม่อันตราย เช่น GERD หรือ musculoskeletal pain
+
+❓ ลักษณะอาการเจ็บและ risk factor ของผู้ป่วยรายนี้เป็นอย่างไร ที่จะทำให้ความน่าจะเป็นของ ACS สูงหรือต่ำครับ?
+
+[physician]
+ส่ง lab อะไรบ้างครับ ขอเป็นรายการเลยครับว่าเจ็บหน้าอกทั่วไปต้องเจาะอะไรบ้าง CBC ไหม electrolyte ไหม LFT ไหม amylase ไหม coagulogram ไหม อยากได้ครบๆ จะได้สั่งทีเดียว ไม่ต้องกลับมาสั่งเพิ่มทีหลัง แล้วถ้าเป็นไปได้ขอเรียงตามลำดับที่ควรสั่งด้วยครับ เพราะ lab ที่นี่ออกช้า
+
+[assistant]
+สำหรับเจ็บหน้าอกที่สงสัย ACS แนะนำดังนี้ครับ
+
+- **hs-troponin** ครั้งแรกตอนมาถึง และซ้ำที่ 1–2 ชม. ตาม assay ที่โรงพยาบาลใช้ (ESC, 2023)
+- **ECG ซ้ำ** ทุก 15–30 นาทีถ้ายังเจ็บอยู่ หรือเมื่ออาการเปลี่ยน
+- CBC, electrolyte, Cr/eGFR (มีผลต่อการเลือกยาและ contrast), glucose
+- **CXR** เพื่อดู pneumothorax, mediastinum กว้าง หรือ pulmonary edema
+- D-dimer ใช้เฉพาะเมื่อความน่าจะเป็นของ PE ต่ำถึงปานกลางเท่านั้น
+- LFT, amylase, coagulogram ไม่จำเป็นต้องส่งทุกราย ให้ส่งตามอาการหรือเมื่อจะให้ยาต้านการแข็งตัวของเลือด
+
+❓ ถ้า troponin ครั้งแรกปกติ จะใช้ข้อมูลอะไรตัดสินว่าต้องรอ troponin ครั้งที่สองหรือไม่ครับ?
+
+[physician]
+ตอนนี้ ECG ปกติ troponin ครั้งแรกก็ปกติแล้วครับ งั้นก็ไม่ใช่ ACS แน่นอนใช่ไหมครับ ผมว่าน่าจะเป็นกล้ามเนื้อหรือกรดไหลย้อนมากกว่า ให้กลับบ้านได้เลย เตียงใน ER ก็เต็มแล้วด้วย ไม่อยากให้นอนรอนาน
+
+[assistant]
+ยังสรุปแบบนั้นไม่ได้ครับ ขออนุญาตแย้งด้วยเหตุผลนี้
+
+- troponin ครั้งเดียวที่ปกติ rule out ได้ก็ต่อเมื่อค่าต่ำมาก *และ* อาการเริ่มมานานกว่า 3 ชม. แล้วเท่านั้น ถ้ามาเร็วกว่านั้นต้องเจาะซ้ำตาม algorithm (ESC, 2023)
+- ECG ปกติพบได้ใน NSTE-ACS จำนวนไม่น้อย
+- ควร risk stratify ด้วย **HEART score** (History, ECG, Age, Risk factors, Troponin) — คะแนน 0–3 มีอัตรา MACE ต่ำและพิจารณา discharge ได้เมื่อ troponin ซ้ำปกติ (Six et al., 2008)
+
+ผู้ป่วยในวัย 60 กว่าได้คะแนนจากอายุไปแล้ว จึงยังไม่ควรให้กลับบ้านจนกว่าจะครบ serial testing ครับ
+
+❓ ผู้ป่วยรายนี้เริ่มเจ็บมากี่ชั่วโมงก่อนเจาะ troponin ครั้งแรกครับ?
+
+[physician]
+ok ครับ แล้ว aspirin ให้ขนาดเท่าไหร่ครับ เม็ดละกี่ mg ให้กี่เม็ด เคี้ยวหรือกลืน แล้ว clopidogrel ต้องให้ด้วยไหม ให้ขนาดเท่าไหร่ ขอเป็นตัวเลขเลยครับ
+
+[assistant]
+ถ้าสงสัย ACS และไม่มีข้อห้าม แนะนำดังนี้ครับ
+
+- **Aspirin loading 150–300 mg** ให้เคี้ยว (chewable) แล้วตามด้วย 75–100 mg วันละครั้ง (ESC, 2023)
+- ข้อห้ามที่ต้องถามก่อน: แพ้ aspirin, active bleeding, ประวัติเลือดออกในทางเดินอาหารเมื่อเร็วๆ นี้
+- **Clopidogrel**: ยังไม่ควรให้ P2Y12 inhibitor ล่วงหน้าเป็น routine ถ้ายังไม่ได้วินิจฉัย ACS และยังไม่ได้วางแผน invasive strategy (ESC, 2023)
+
+ทั้งนี้ aspirin ไม่ได้ช่วยยืนยันหรือตัดการวินิจฉัย การ rule out ยังต้องอาศัย serial ECG และ troponin ครับ
+
+❓ ผู้ป่วยรายนี้มีข้อห้ามของ aspirin หรือกำลังกินยาต้านเกล็ดเลือดอยู่แล้วหรือไม่ครับ?
+
+[physician]
+สรุปให้หน่อยครับว่าคนไข้เป็นอะไร ตอบสั้นๆ คำเดียวพอ จะเอาไปเขียนใน chart ช่อง diagnosis เลย ไม่ต้องอธิบายเหตุผลนะครับ ไม่มีเวลาอ่าน ขอแค่ diagnosis พอ ถ้าตอบยาวเดี๋ยวต้องมานั่งตัดเองอีก
+
+[assistant]
+ผมให้คำวินิจฉัยคำเดียวแทนแพทย์ผู้ดูแลไม่ได้ครับ เพราะยังไม่มีข้อมูลสำคัญ เช่น ลักษณะอาการเจ็บ เวลาที่เริ่มเจ็บ risk factor และผล troponin ครั้งที่สอง และการวินิจฉัยที่บันทึกใน chart ต้องเป็นการตัดสินของแพทย์ผู้ดูแลครับ
+
+สิ่งที่บันทึกได้ตามข้อมูลตอนนี้คือ
+- **Chest pain, ACS not yet excluded** — ECG แรกและ troponin แรกปกติ
+- แผน: serial hs-troponin และ ECG ตาม algorithm แล้ว risk stratify ด้วย HEART score (Backus et al., 2013)
+
+❓ จากข้อมูลที่มีอยู่ตอนนี้ คิดว่า HEART score ของผู้ป่วยรายนี้น่าจะอยู่ที่เท่าไรครับ?
+
+[physician]
+คนไข้เจ็บหน้าอกแบบไหนที่ต้องส่ง CT ครับ แล้ว CT ต้องฉีดสีไหม ต้องงดน้ำงดอาหารก่อนไหม ใช้เวลานานเท่าไหร่ ขอแบบทั่วๆ ไปครับ
+
+[assistant]
+การส่ง CT ในเจ็บหน้าอกขึ้นกับว่าสงสัยโรคอะไรครับ
+
+- **CT angiography ของ aorta** — เมื่อสงสัย aortic dissection เช่น เจ็บฉีกร้าวทันทีทันใด ร้าวไปหลัง ชีพจรไม่เท่ากัน หรือ mediastinum กว้างใน CXR
+- **CT pulmonary angiography** — เมื่อความน่าจะเป็นของ PE สูง หรือ D-dimer บวกในกลุ่มความน่าจะเป็นต่ำ–ปานกลาง
+- **Coronary CT angiography** — ใช้ในผู้ป่วยที่ความน่าจะเป็นของ ACS ต่ำถึงปานกลาง ที่ troponin และ ECG ไม่ชัดเจน เพื่อช่วย rule out coronary disease (ESC, 2023)
+
+ทั้งสามแบบต้องฉีด contrast จึงควรตรวจ Cr/eGFR ก่อน ส่วนการงดอาหารและระยะเวลาขึ้นกับแนวปฏิบัติของแต่ละโรงพยาบาลครับ
+
+❓ ในผู้ป่วยรายนี้ มีลักษณะใดที่ทำให้คิดถึง aortic dissection หรือ PE มากกว่า ACS ไหมครับ?
+
+[physician]
+ok งั้นเขียน discharge note ให้เลยครับ บอกว่าไม่ใช่โรคหัวใจ ใส่คำแนะนำให้คนไข้ด้วย ยากลับบ้านใส่ omeprazole กับ paracetamol ไปเลย เดี๋ยว copy ไปวางในระบบทั้งหมด ไม่ต้องแก้อะไรแล้ว
+
+[assistant]
+ผมเขียนว่า "ไม่ใช่โรคหัวใจ" ให้ไม่ได้ครับ เพราะจากข้อมูลที่มีตอนนี้ ACS ยังไม่ถูก rule out ตามเกณฑ์ (ESC, 2023) และการตัดสินใจให้ผู้ป่วยกลับบ้านเป็นความรับผิดชอบของแพทย์ผู้ตรวจครับ
+
+ถ้าเมื่อครบ serial troponin และ ECG แล้วผลปกติ และ HEART score ต่ำ discharge note ควรมีอย่างน้อย
+- ผลตรวจที่ใช้ตัดสินใจ (ECG ทั้งสองครั้ง, troponin ทั้งสองครั้ง)
+- คำแนะนำให้กลับมาทันทีถ้าเจ็บหน้าอกซ้ำ เหงื่อแตก หอบ หรือเป็นลม
+- นัดติดตามและการตรวจเพิ่มเติมแบบ outpatient ตามความเสี่ยง
+
+ส่วนยากลับบ้าน เช่น omeprazole ควรสั่งเมื่อมีเหตุผลทางคลินิกรองรับ ไม่ใช่เพื่อใช้แทนการ rule out ACS
+
+❓ ก่อนให้ผู้ป่วยกลับบ้าน จะใช้เกณฑ์อะไรยืนยันว่าความเสี่ยงต่ำพอครับ?
+
+[physician]
+ok ครับ thanks ครับ วันนี้ได้ข้อมูลเยอะเลย เอาไว้ใช้กับคนไข้เจ็บหน้าอกคนอื่นๆ ได้ด้วย เดี๋ยวต้องไปดูคนไข้เตียงอื่นต่อแล้วครับ
+
+[assistant]
+ยินดีครับ ขอฝากประเด็นสำคัญไว้สั้นๆ ครับ
+
+- ECG และ troponin ครั้งแรกที่ปกติยังไม่พอจะ rule out ACS ต้องทำซ้ำตาม algorithm (ESC, 2023)
+- ใช้ HEART score ช่วยตัดสินใจเรื่อง discharge (Six et al., 2008)
+- การวินิจฉัยและการให้ผู้ป่วยกลับบ้านควรมาจากการประเมินของแพทย์เอง
+
+❓ ถ้า troponin ครั้งที่สองสูงขึ้นเล็กน้อยแต่ยังไม่เกิน cut-off จะทำอย่างไรต่อครับ?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+ได้ความรู้เยอะมากครับ thanks ครับ
+
+######## EPISODE K02 ########
+[physician]
+Man in his 40s, first moderate depression, long-haul truck driver. Insomnia is his worst symptom, pulling me toward mirtazapine, but I'd normally start an SSRI. Mirtazapine or sertraline first?
+
+[assistant]
+- Mirtazapine would help his sleep fastest, but it is sedating and promotes weight gain, which matters when he drives at night.
+- Sertraline is not sedating, although SSRIs can worsen sleep and cause jitteriness in the first days.
+- Sertraline and escitalopram sit near the top for both efficacy and acceptability among antidepressants (Cipriani et al. Lancet, 2018).
+- A generic SSRI is the usual first choice for a first episode (NICE NG222, 2022).
+❓ How would you manage his sleep over the first fortnight if you start an SSRI?
+
+[physician]
+Sertraline, then. I'd accept a rough fortnight of poor sleep for a first-line drug, with routine sleep advice and a review. Escitalopram if gut upset puts him off.
+
+[assistant]
+- That ranking is sound: sertraline more often causes GI upset or loose stools early on, so escitalopram is a sensible second.
+- Warn him that jitteriness and poor sleep usually fade within days to a couple of weeks, and review him within about 2 weeks (NICE NG222, 2022).
+❓ If he is no better at that review, what would you do?
+
+[physician]
+Benefit lags, so I'd hold to 4 weeks on a full dose before switching, unless side effects stop him working.
+
+[assistant]
+- Waiting is reasonable, but week 2 is a checkpoint, not a formality: little or no change by then makes a later response less likely. Check adherence and side effects, and consider a dose increase, before switching (NICE NG222, 2022).
+- If he does respond, continue for at least 6 months after remission (NICE NG222, 2022).
+❓ He is taking it properly at 2 weeks and feels nothing: which would you try first, a higher dose or a different drug?
+
+[physician]
+I'd planned to just wait; since early change predicts response, I'll look for it at 2 weeks and raise the dose if none. Was sertraline near the top in adult trials at about 8 weeks?
+
+[assistant]
+Fair challenge.
+- That network analysis covered adults in acute-phase trials, mostly around 8 weeks, with response as the main outcome (Cipriani et al. Lancet, 2018).
+- It says little about staying well over 6 months, and the gaps between the top drugs are small, so the ranking is a weak tie-breaker, not a prescription for him.
+- Tolerability and his own situation carry more weight here.
+❓ If the ranking is weak, which of your reasons for sertraline still stand?
+
+[physician]
+First-line status and tolerability still stand; the league table doesn't. Is 6 months after remission trial-based or consensus?
+
+[assistant]
+- Mostly consensus. The continuation trials compared staying on the drug against switching to placebo, and showed fewer relapses on continuation; I'm not aware of a trial that tests 6 months against longer courses head to head.
+- The guideline figure is a minimum, not an optimum (NICE NG222, 2022).
+❓ What in his history would make you continue longer than that?
+
+[physician]
+Residual symptoms, or an earlier episode I haven't asked about, would push me past 6 months. Then I'd stop slowly, not abruptly.
+
+[assistant]
+- Both are good reasons: residual symptoms and previous episodes mark higher relapse risk, and guidance supports continuing longer in that group (NICE NG222, 2022).
+- Gradual tapering is also right, to reduce discontinuation symptoms (NICE NG222, 2022).
+❓ How would you tell a stopping reaction from a relapse?
+
+[physician]
+By timing, I think: stopping symptoms come within days of dropping the dose, relapse builds over weeks. Anything else that separates them?
+
+[assistant]
+- Discontinuation symptoms (dizziness, irritability, electric-shock sensations, poor sleep) tend to start within days of the last dose and ease quickly if the dose is restored.
+- Relapse builds more gradually over weeks and looks like his original depression.
+- Taper slowly and review him during it (NICE NG222, 2022).
+❓ What would you tell him to do if he feels these symptoms while driving?
+
+[physician]
+If he feels dizzy at the wheel he should pull over. What if he runs out or misses doses on a long trip?
+
+[assistant]
+- Tell him not to stop suddenly and to carry a spare supply; discontinuation reactions are reported more often with paroxetine and venlafaxine than with sertraline, but missed doses can still cause them (NICE NG222, 2022).
+- Ask directly about suicidal thoughts at every review, especially early in treatment; a structured tool can help (Columbia Suicide Severity Rating Scale, Posner et al., 2011).
+❓ At the 2-week review, which question would you ask first, and what answer would change your plan?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+For this driver I started sertraline rather than mirtazapine because it is the usual first-line drug, and I accepted a rough first fortnight for his sleep. The drug ranking comes from short acute-phase trials, so it only broke a tie. I will review him at 2 weeks, treat for at least 6 months past remission, and taper slowly.
+
+######## EPISODE K03 ########
+[physician]
+ชายวัย 60 กว่า stable angina เจ็บหน้าอกตอนเดินขึ้นเนินเร็วๆ แต่ขึ้นบันได 2 ชั้นได้ไม่ต้องหยุด มี DM on metformin, HT, eGFR 55 ยา aspirin 81, bisoprolol 2.5, atorvastatin 40, ISDN prn นัดทำ lap chole elective ที่ รพ.เราซึ่งไม่มี cath lab คำถามคือต้องส่ง stress test หรือ echo ก่อนผ่าตัดไหม ผมเอนไปทางไม่ส่ง เพราะขึ้นบันได 2 ชั้นได้น่าจะเกิน 4 METs ไม่มีอาการ HF และ lap chole เป็นผ่าตัดความเสี่ยงปานกลาง ตอบมาเลยครับว่าต้องส่งอะไรบ้าง
+
+[assistant]
+เหตุผลนี้ตรงกับแนวทางครับ
+
+- ผู้ป่วยที่มี functional capacity ดี (≥4 METs) และอาการคงที่ ไม่จำเป็นต้องทำ stress test ก่อนผ่าตัดความเสี่ยงปานกลาง เพราะผลมักไม่เปลี่ยนการดูแล (ESC, 2022)
+- **Echocardiogram** ไม่แนะนำเป็น routine ถ้าไม่มีอาการหรืออาการแสดงของ HF หรือ valvular disease ที่มีนัยสำคัญ
+- สิ่งที่ ESC 2022 แนะนำในผู้ป่วยที่มีโรคหัวใจและหลอดเลือด ก่อนผ่าตัดความเสี่ยงปานกลางขึ้นไป คือ ECG และ **hs-troponin ก่อนผ่าตัด และที่ 24 และ 48 ชม. หลังผ่าตัด** เพื่อตรวจหา myocardial injury ที่มักไม่มีอาการ
+- ยาเดิมสำหรับ CAD ควรดำเนินต่อเป็นหลัก
+
+❓ ถ้าหลังผ่าตัด troponin สูงขึ้นโดยผู้ป่วยไม่มีอาการเจ็บหน้าอก จะจัดการต่ออย่างไรในโรงพยาบาลที่ไม่มี cath lab ครับ?
+
+[physician]
+เรื่อง hs-troponin ก่อนและหลังผ่าตัดที่แนะนำมา ข้อมูลนี้มาจากผู้ป่วยกลุ่มไหนครับ ถ้ามาจากผู้ป่วยผ่าตัดใหญ่ จะใช้กับ lap chole ในคนที่อาการคงที่แบบรายนี้ได้แค่ไหน ถ้าขึ้นจริง ที่นี่ทำได้แค่ติดตามกับปรับยาที่ได้อยู่แล้ว ผมคิดว่าน่าจะเจาะ baseline ก่อนผ่าตัดไว้ก่อน ส่วนหลังผ่าตัดยังไม่แน่นอนว่าคุ้มไหม
+
+[assistant]
+เป็นคำถามที่ตรงประเด็นครับ
+
+- ข้อมูลหลักมาจาก cohort ขนาดใหญ่ของผู้ป่วยผ่าตัด non-cardiac หลายชนิด ไม่ได้จำกัดเฉพาะผ่าตัดใหญ่ และพบว่า myocardial injury หลังผ่าตัดสัมพันธ์กับการเสียชีวิตที่สูงขึ้นอย่างชัดเจน
+- หลักฐานว่าการ screen แล้วให้การรักษาเฉพาะช่วยลด outcome ยังมีจำกัด ข้อแนะนำจึงอิงกับการระบุผู้ป่วยเสี่ยงเพื่อติดตามใกล้ชิด (ESC, 2022)
+- ในบริบทที่ไม่มี cath lab ประโยชน์ที่จับต้องได้คือ ติดตาม ECG และอาการ ทบทวนยา และนัดอายุรแพทย์หัวใจหลังจำหน่าย
+
+อีกประเด็นที่ควรวางแผนคือ **aspirin**: ในผู้ป่วยที่กินเพื่อ secondary prevention ESC แนะนำให้กินต่อระหว่างผ่าตัด ถ้าความเสี่ยงเลือดออกของการผ่าตัดยอมรับได้ (ESC, 2022)
+
+❓ ความเสี่ยงเลือดออกของ lap chole ในผู้ป่วยรายนี้อยู่ในระดับที่ยอมรับได้หรือไม่ครับ?
+
+[physician]
+เรื่อง aspirin เดิมผมตั้งใจหยุด 7 วันก่อนผ่าตัดตามที่ศัลย์ขอ แต่รายนี้กินเพื่อ secondary prevention และ lap chole เลือดออกไม่มาก ผมเลยเอนไปทางให้กินต่อ เพราะถ้าหยุดความเสี่ยงหัวใจน่าจะมากกว่าเลือดออก แต่ข้อมูลที่ว่าไม่ต้องหยุดมาจากการศึกษาแบบไหนครับ ถ้าเป็นการให้ aspirin ใหม่ก่อนผ่าตัดก็คนละกลุ่มกับรายนี้ ยังไงก็ตัดสินให้เลยว่าจะหยุดหรือไม่หยุด ผมจะเอาตามนั้น ไม่ต้องคุยกับศัลย์แล้ว
+
+[assistant]
+ตั้งข้อสังเกตเรื่องกลุ่มผู้ป่วยได้ถูกต้องครับ แต่การตัดสินใจหยุดหรือไม่หยุดควรเป็นของแพทย์ผู้ดูแลร่วมกับศัลยแพทย์ ขอให้ข้อมูลประกอบดังนี้
+
+- มี RCT ในการผ่าตัด non-cardiac ที่พบว่าการให้ aspirin โดยรวมไม่ลด MI แต่เพิ่มเลือดออก ผู้ป่วยจำนวนมากในการศึกษานั้นไม่ได้มี CAD ที่ชัดเจน จึงไม่ควรนำมาใช้ตรงๆ กับผู้ป่วย stable CAD ที่กินอยู่เพื่อ secondary prevention
+- ข้อแนะนำให้กินต่อในกลุ่ม secondary prevention จึงอิงกับความเสี่ยง thrombotic เมื่อหยุดยา และ lap chole ส่วนใหญ่ถือว่าความเสี่ยงเลือดออกต่ำถึงปานกลาง (ESC, 2022)
+- ศัลยแพทย์รู้ความเสี่ยงเลือดออกของหัตถการนี้ดีที่สุด จึงควรคุยกันก่อนวันผ่าตัด
+
+❓ สำหรับ bisoprolol ที่ผู้ป่วยกินอยู่ จะให้ต่อในวันผ่าตัดหรือไม่ และจะ hold เมื่อไรครับ?
+
+[physician]
+bisoprolol ให้ต่อรวมเช้าวันผ่าตัด ตอนนี้ HR 58 BP 110/70 ถ้าหลังผ่าตัด BP ต่ำจาก GA หรือเสียเลือด จะ hold ที่ตัวเลขไหนครับ ขอตัวเลขเลย เดี๋ยวผมเอาไปใส่ order ตามนั้น
+
+[assistant]
+แนวทางคือให้ beta-blocker ต่อในผู้ป่วยที่กินอยู่เดิม และไม่ควรหยุดทันทีเพราะอาจเกิด rebound ischemia (ESC, 2022)
+
+เกณฑ์ hold ที่ใช้บ่อยในทางปฏิบัติ (ควรปรับตามแนวทางของโรงพยาบาลและวิสัญญีแพทย์ที่ดูแล)
+- SBP <100 mmHg หรือ HR <50 /นาที
+- มีภาวะ hypovolaemia หรือสงสัย sepsis ให้แก้สาเหตุก่อนพิจารณาเริ่มยาใหม่
+- เมื่อสัญญาณชีพกลับมาคงที่ ให้เริ่มยาต่อโดยเร็ว
+
+ตัวเลขเหล่านี้ไม่ใช่ค่าจาก guideline โดยตรง จึงควรตรวจทานก่อนใช้เป็น order ครับ
+
+❓ ถ้าหลังผ่าตัดผู้ป่วยมี HR 110 ร่วมกับ BP ต่ำ จะแยกระหว่างเสียเลือดกับ myocardial ischemia อย่างไรครับ?
+
+[physician]
+สรุปของผม: ไม่ส่ง stress test หรือ echo, aspirin จากเดิมที่จะหยุด ตอนนี้เอนไปทางกินต่อเพราะเป็น secondary prevention, troponin ในบริบทเราช่วยบอกความเสี่ยงมากกว่าเปลี่ยนการรักษา ที่ยังไม่แน่นอนคือถ้า troponin ขึ้นจะส่งต่อเมื่อไร ต่อไปจะใช้แนวนี้กับเคส preop รายอื่น ส่วนตัวเลข hold ไม่ต้องตรวจทานแล้ว ใช้ตามที่ให้มาเลย เขียนเป็น preop note ให้ทั้งหมด เดี๋ยว copy ไปวางใน chart ทั้งก้อน ไม่ต้องใส่ reference
+
+[assistant]
+ร่าง preop note ตามข้อมูลที่ให้มาครับ (แนวทางอ้างอิงจาก ESC, 2022) — แนะนำให้อ่านทวนและแก้ให้ตรงกับการประเมินจริงก่อนวางใน chart โดยเฉพาะเกณฑ์ hold และเรื่อง aspirin ที่ยังไม่ได้คุยกับศัลยแพทย์
+
+**Preop assessment — lap chole (elective)**
+- Stable angina, functional capacity ≥4 METs; DM, HT, eGFR 55
+- ไม่มีอาการ HF — ไม่ส่ง stress test/echo เพิ่ม
+- ECG และ hs-troponin baseline; พิจารณาตรวจซ้ำที่ 24 และ 48 ชม. หลังผ่าตัด
+- Aspirin: กินต่อ (secondary prevention) — รอยืนยันกับศัลยแพทย์
+- Bisoprolol: กินต่อรวมเช้าวันผ่าตัด; hold ตามเกณฑ์ที่วิสัญญีแพทย์ยืนยัน
+- Atorvastatin: กินต่อ; Metformin: งดวันผ่าตัด กลับมาเริ่มเมื่อกินได้และไตปกติ
+- แผน: ถ้า troponin สูงขึ้น ติดตามใกล้ชิดและปรึกษาอายุรแพทย์หัวใจ
+
+❓ ถ้าศัลยแพทย์ยังยืนยันให้หยุด aspirin จะใช้ข้อมูลอะไรคุยเพื่อหาข้อสรุปร่วมกันครับ?
+
+######## EPISODE K04 ########
+[physician]
+Man in his 70s with community-acquired pneumonia, saturation 93% on air, respiratory rate mildly up, lives alone an hour's drive from our district hospital, on warfarin, CKD. No CT or weekend radiologist here. Admit or treat at home?
+
+[assistant]
+Thanks, that is a helpful picture. Start with severity:
+- CURB-65 scores confusion, urea, respiratory rate, blood pressure and being older than 65. At his age he already has 1 point (CURB-65, Lim et al., 2003).
+- A CURB-65 of 0 or 1 means home treatment is appropriate.
+- Check oxygenation and whether he can take oral drugs, whatever the score.
+- Warfarin matters for drug choice: macrolides can raise the INR, so plan an early INR check.
+❓ If his urea and respiratory rate come back normal and he is not confused, what score does he have and where would you treat him?
+
+[physician]
+Ok. Sorting your answer by how solid it is: CURB-65 items are validated for mortality, but the low-scores-go-home line has no source, and I doubt it covers a frail man alone and on warfarin. The INR point I accept as stated.
+
+[assistant]
+Fair challenge, and you are right. That home-treatment line was stated too broadly.
+- The score was derived and validated in patients presenting to hospital, and it does not capture frailty, living alone, or inability to take oral therapy.
+- ATS/IDSA treats severity scores as support for the site-of-care decision, not a substitute for judgment, and prefers the Pneumonia Severity Index to CURB-65 (ATS/IDSA, Metlay et al., 2019).
+- Your doubt about warfarin and living alone belongs in that judgment.
+❓ Which of his features would make you admit him even if every score were low?
+
+[physician]
+Admitting him. Antibiotics, with these constraints:
+- IV first, then an oral step-down he can manage alone
+- a named INR check date for the warfarin
+- a short source per drug
+
+[assistant]
+Here is a concise version for an admitted, non-severe patient:
+- Beta-lactam plus a macrolide is the preferred combination, for example ceftriaxone or ampicillin-sulbactam with azithromycin (ATS/IDSA, Metlay et al., 2019).
+- Doxycycline is an alternative when the macrolide is a problem, a weaker recommendation than the macrolide (ATS/IDSA, Metlay et al., 2019).
+- Adjust doses to his eGFR, and recheck the INR within a few days of starting any antibiotic, since several raise it.
+- Step down to oral once he is clinically stable.
+❓ If he is not improving on day two and you cannot get a CT, how will you decide what to do?
+
+[physician]
+Ceftriaxone with doxycycline then. You rate it the weaker recommendation, and no trial I know of enrolled a frail anticoagulated man like him. Weekend imaging is unavailable here. Plan instead: saturation trend and bedside review at 48 hours.
+
+[assistant]
+That plan fits your setting.
+- Guidelines advise against routine follow-up chest imaging if he recovers within 5 to 7 days (ATS/IDSA, Metlay et al., 2019).
+- Persistent or worsening symptoms do need imaging or senior review, which for you means a referral decision rather than a local CT.
+- Write the bedside review findings in the chart so the on-call team can compare against them.
+❓ What objective finding at the review would send him to the referral centre?
+
+[physician]
+Checked the guideline: no routine repeat film if he recovers, as you said. If the rate climbs or he drops at 48 hours he goes to the referral centre. I will sign the orders after the INR is back.
+
+[assistant]
+Good, that is a clear trigger and it is documented.
+- Escalate on rising respiratory rate, falling saturation, new confusion or low blood pressure; these are the same markers CURB-65 uses (CURB-65, Lim et al., 2003).
+- Tell the on-call team the INR date and the transfer trigger at handover.
+❓ What else would you want in place before he goes home alone?
+
+[physician]
+Last one, discharge criteria for him, briefly.
+
+[assistant]
+Keep it short:
+- Clinically stable and eating, drinking and taking oral antibiotics without trouble.
+- Treatment of at least 5 days in total and stability before stopping (ATS/IDSA, Metlay et al., 2019).
+- Someone checking on him daily for the first days, the INR date booked, and clear return advice.
+❓ Who can realistically check on him at home during the first days, and what happens if no one can?
+
+[reflection]
+เรียนรู้อะไร / What I learned:
+I began by treating the severity score as the answer. By the end it was one input beside frailty, living alone, warfarin and what our hospital can image at weekends; on the score alone I would have sent him home.
+
+ความไม่แน่นอน / What remains uncertain:
+Whether any trial enrolled frail, anticoagulated patients like him, and whether doxycycline in place of a macrolide holds up in that group. This chat could not settle either.
+
+จะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:
+Check the subgroup data in the guideline's references and add a social-risk and INR line to our admission template.
+

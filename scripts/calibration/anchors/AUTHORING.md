@@ -546,6 +546,33 @@ The rule from now on:
    - Brief: a batch-3 lesson was added (one context factor that decides the plan reads as d3 4–5;
      format steering reads as d7 4–5). Anchor ids were taken out of the brief's lessons, because
      naming them tells authors which anchors are tuning.
+10. **Round K (2026-10-02).** The panel rated anc-102 (first write, replacing anc-027) and the
+    anc-024 rewrite among 2 unchanged pilot decoys (`pilot/round-k/`).
+    - The anc-024 rewrite reads +9 and stays.
+    - anc-102 reads +22, so it uses its one rewrite (§7.4).
+    - Decoys: anc-020 +1, anc-012 −1.
+    - **This row has now missed three times, the same way.** anc-027 first write +18, its rewrite +19,
+      anc-102 +22. Each time d2 = 1 was read as 4. Both raters quote the same thing as reasoning: an
+      appraisal of the tutor's claim that ends in the decision (the low-score rule "has no source"
+      and does not cover this patient, then "Admit").
+    - Under this rubric, a patient-specific appraisal (d5 = 5) that context turns into the plan
+      (d3 = 5) **is** a justified decision. So `[3,1,5,3,5,4,4]` may not be writable at all.
+    - A second reading cannot be ruled out with a Claude-only panel: the panel may itself be the
+      scorer that stamps one impression on all seven domains, which is what dissociated anchors exist
+      to catch (`profile: dissociated`). If so, the panel rule filters out exactly the dissociated
+      anchors that Claude cannot read, and fits the cohort to Claude's halo. Only a non-Claude or
+      human rater can tell the two readings apart. It is recorded as an open item next to item 2's.
+11. **Stop rule for a row that cannot be written (amendment, 2026-10-02).** This was decided after
+    round K and **before anc-102's rewrite was rated**. §7.4 had no stop: a row whose replacement also
+    fails would be replaced again from the same row, indefinitely.
+    - From now on, when a **replacement** anchor fails its rewrite (the fourth text on one design row
+      beyond ±15 on its deciding round), the row is declared **not writable under this rubric and
+      panel**. It is excluded and not replaced from the same row.
+    - The cohort then stands one anchor short in that row's cell. The deficit is reported with the
+      known-groups result and is never filled by an ad-hoc new row.
+    - The rule applies to every row, held-out never included (held-out anchors are never rated before
+      the lock, §9). anc-102 is the first row it can reach.
+    - It changes nothing about the threshold (±15) or the one-rewrite allowance.
 
 ## 8. Pipeline and commands
 

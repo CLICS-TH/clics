@@ -1,0 +1,6 @@
+{"rater":"sonnet","scores":{
+"K01":{"d1":1,"d2":1,"d3":1,"d4":1,"d5":0,"d6":1,"d7":1,"note":"Generic list-everything questions; 'ไม่ใช่ ACS แน่นอนใช่ไหม ... ให้กลับบ้านได้เลย'; asks AI for one-word diagnosis and discharge note; reflection 'ได้ความรู้เยอะมากครับ'."},
+"K02":{"d1":4,"d2":4,"d3":4,"d4":4,"d5":4,"d6":4,"d7":4,"note":"'First-line status and tolerability still stand; the league table doesn't. Is 6 months after remission trial-based or consensus?'; truck driver: 'pull over', missed doses on long trip; reflection case-specific."},
+"K03":{"d1":4,"d2":4,"d3":4,"d4":4,"d5":3,"d6":4,"d7":2,"note":"Questions troponin evidence population for lap chole; aspirin stop->continue revision. But 'ตัวเลข hold ไม่ต้องตรวจทานแล้ว ... ไม่ต้องใส่ reference' and 'ตัดสินให้เลย ไม่ต้องคุยกับศัลย์' cede ownership."},
+"K04":{"d1":4,"d2":4,"d3":5,"d4":4,"d5":5,"d6":5,"d7":5,"note":"'Sorting your answer by how solid it is: ...low-scores-go-home line has no source'; 'no trial enrolled a frail anticoagulated man'; 'Checked the guideline'; reflection names change, uncertainty, template action."}
+}}
