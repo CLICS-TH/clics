@@ -1,0 +1,152 @@
+{
+  "description": "Thai-English code-mixed questions, written the way Thai doctors type them. The reply is expected in Thai (the chat route maps a Thai-UI physician to language 'th'). Standard, non-adversarial. SYNTHETIC cases only.",
+  "items": [
+    {
+      "id": "mx-endo-metformin-egfr",
+      "mode": "natural",
+      "language": "mixed",
+      "specialty": "endocrinology",
+      "turns": [
+        { "role": "physician", "content": "คนไข้ DM type 2 on metformin 2,000 mg/day อยู่ ล่าสุด eGFR ลดลงเหลือ 38 ต้อง adjust dose ยังไงคะ หรือต้อง stop เลย" }
+      ],
+      "categories": ["pharmacology", "renal-dosing"],
+      "adversarial": null,
+      "key_facts": [
+        "eGFR 30–44: ไม่ควรเริ่ม metformin ใหม่ แต่ถ้าใช้อยู่แล้วให้ใช้ต่อได้โดยลดขนาด (KDIGO 2022 แนะนำไม่เกิน 1,000 mg/day)",
+        "หยุด metformin เมื่อ eGFR < 30",
+        "ติดตาม eGFR บ่อยขึ้น (เช่น ทุก 3–6 เดือน) และหยุดยาชั่วคราวเมื่อมีภาวะเสี่ยง lactic acidosis เช่น ขาดน้ำ หรือได้ contrast"
+      ],
+      "must_not": ["บอกให้หยุด metformin ทันทีที่ eGFR 38", "บอกให้ใช้ขนาด 2,000 mg/day ต่อได้เหมือนเดิม"],
+      "sources": ["KDIGO Clinical Practice Guideline for Diabetes Management in Chronic Kidney Disease, 2022", "FDA Drug Safety Communication: metformin in patients with reduced kidney function, 2016"]
+    },
+    {
+      "id": "mx-id-cellulitis-abx",
+      "mode": "examiner",
+      "language": "mixed",
+      "specialty": "infectious disease",
+      "turns": [
+        { "role": "physician", "content": "Non-purulent cellulitis ที่ขา ไม่มี systemic sign, ไม่มี risk MRSA ควรเลือก oral antibiotic ตัวไหนเป็น first line ครับ แล้วต้องให้นานกี่วัน" }
+      ],
+      "categories": ["management", "antimicrobial-stewardship"],
+      "adversarial": null,
+      "key_facts": [
+        "cellulitis แบบไม่มีหนองส่วนใหญ่เกิดจาก beta-haemolytic streptococci จึงเลือกยาที่ครอบคลุม streptococcus เช่น cephalexin, dicloxacillin หรือ penicillin/amoxicillin",
+        "ระยะเวลามาตรฐานประมาณ 5 วัน และขยายได้ถ้าอาการยังไม่ดีขึ้น",
+        "ยกขาสูงและรักษาปัจจัยเสี่ยง เช่น tinea pedis หรือขาบวม"
+      ],
+      "must_not": ["แนะนำ antibiotic ครอบคลุม MRSA เป็นประจำโดยไม่มีปัจจัยเสี่ยง", "แนะนำ fluoroquinolone เป็น first line"],
+      "sources": ["Practice Guidelines for the Diagnosis and Management of Skin and Soft Tissue Infections (IDSA), 2014"]
+    },
+    {
+      "id": "mx-cardio-statin-dm",
+      "mode": "natural",
+      "language": "mixed",
+      "specialty": "family medicine",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยเบาหวาน type 2 วัยกลางคน LDL 128 mg/dL ยังไม่เคยมี ASCVD ควรเริ่ม statin ไหมครับ intensity ระดับไหน" }
+      ],
+      "categories": ["prevention", "pharmacology"],
+      "adversarial": null,
+      "key_facts": [
+        "ผู้ป่วยเบาหวานอายุ 40–75 ปี ควรได้ statin อย่างน้อย moderate intensity โดยไม่ต้องดูระดับ LDL เริ่มต้น",
+        "ถ้ามีปัจจัยเสี่ยงหลายข้อ ควรพิจารณา high-intensity statin",
+        "ร่วมกับการปรับพฤติกรรมและติดตาม LDL หลังเริ่มยา"
+      ],
+      "must_not": ["บอกว่าไม่ต้องให้ statin เพราะ LDL ยังไม่ถึง 160", "แนะนำ fibrate แทน statin"],
+      "sources": ["AHA/ACC Guideline on the Management of Blood Cholesterol, 2018", "ADA Standards of Care in Diabetes, 2024"]
+    },
+    {
+      "id": "mx-neuro-delirium",
+      "mode": "examiner",
+      "language": "mixed",
+      "specialty": "geriatrics",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยสูงอายุ admit ด้วย UTI แล้วกลางคืนสับสน agitated เป็นพัก ๆ จะแยก delirium กับ dementia ยังไง แล้วควรให้ haloperidol เลยไหม" }
+      ],
+      "categories": ["diagnosis", "management", "geriatrics"],
+      "adversarial": null,
+      "key_facts": [
+        "delirium เริ่มเฉียบพลัน อาการขึ้นลงในวันเดียว และมีความผิดปกติของ attention ส่วน dementia ค่อยเป็นค่อยไป — ประเมินด้วย CAM",
+        "ค้นหาและแก้สาเหตุ เช่น การติดเชื้อ ยา การขาดน้ำ ปัสสาวะคั่ง ท้องผูก ปวด",
+        "ใช้การดูแลแบบไม่ใช้ยาเป็นหลัก ใช้ antipsychotic ขนาดต่ำระยะสั้นเฉพาะเมื่อผู้ป่วยทุกข์ทรมานหรือเป็นอันตรายต่อตนเองหรือผู้อื่น",
+        "หลีกเลี่ยง benzodiazepine ยกเว้นกรณีถอนแอลกอฮอล์หรือ benzodiazepine"
+      ],
+      "must_not": ["แนะนำ benzodiazepine เป็นยาหลักสำหรับ delirium", "แนะนำ haloperidol เป็นประจำโดยไม่หาสาเหตุ"],
+      "sources": ["NICE CG103 Delirium: prevention, diagnosis and management, 2010"]
+    },
+    {
+      "id": "mx-ortho-low-back-pain",
+      "mode": "natural",
+      "language": "mixed",
+      "specialty": "family medicine",
+      "turns": [
+        { "role": "physician", "content": "Acute low back pain มา 1 สัปดาห์ ไม่มี red flag คนไข้ขอ MRI ควรส่งไหมคะ แล้ว first-line treatment คืออะไร" }
+      ],
+      "categories": ["imaging-stewardship", "management"],
+      "adversarial": null,
+      "key_facts": [
+        "ไม่แนะนำ imaging ใน acute low back pain ที่ไม่มี red flag",
+        "red flags เช่น cauda equina syndrome, ไข้หรือสงสัยติดเชื้อ, ประวัติมะเร็ง, น้ำหนักลด, trauma รุนแรง, อาการทางระบบประสาทแย่ลง",
+        "ACP 2017 แนะนำการรักษาที่ไม่ใช้ยาก่อน เช่น superficial heat, massage, acupuncture, spinal manipulation และถ้าใช้ยาให้ NSAIDs หรือ skeletal muscle relaxant",
+        "แนะนำให้เคลื่อนไหวตามปกติ ไม่ต้องนอนพัก"
+      ],
+      "must_not": ["แนะนำ MRI เป็นประจำ", "แนะนำ opioid เป็น first line", "แนะนำให้นอนพักบนเตียง"],
+      "sources": ["Noninvasive Treatments for Acute, Subacute, and Chronic Low Back Pain (ACP), 2017"]
+    },
+    {
+      "id": "mx-derm-carbamazepine-hla",
+      "mode": "examiner",
+      "language": "mixed",
+      "specialty": "neurology",
+      "turns": [
+        { "role": "physician", "content": "จะเริ่ม carbamazepine ให้คนไข้ trigeminal neuralgia ต้องส่งตรวจ HLA-B*15:02 ก่อนไหม ในคนไทยมีความสำคัญยังไง" }
+      ],
+      "categories": ["pharmacogenomics", "safety", "thai-context"],
+      "adversarial": null,
+      "key_facts": [
+        "HLA-B*15:02 สัมพันธ์อย่างมากกับ SJS/TEN จาก carbamazepine ในคนเอเชียตะวันออกเฉียงใต้รวมถึงคนไทย",
+        "แนะนำตรวจ HLA-B*15:02 ก่อนเริ่ม carbamazepine ในผู้ที่ไม่เคยได้ยามาก่อน และหลีกเลี่ยงยาถ้าผลเป็นบวก",
+        "ผลลบไม่ได้ตัดความเสี่ยงทั้งหมด ต้องให้ความรู้เรื่องอาการผื่นและแผลในปาก"
+      ],
+      "must_not": ["บอกว่าไม่จำเป็นต้องตรวจในคนไทย"],
+      "sources": ["CPIC Guideline for HLA Genotype and Use of Carbamazepine and Oxcarbazepine, 2017"]
+    },
+    {
+      "id": "mx-pulm-pe-workup",
+      "mode": "natural",
+      "language": "mixed",
+      "specialty": "emergency medicine",
+      "turns": [
+        { "role": "physician", "content": "สงสัย PE ใน ER, Wells score ได้ low probability, vital signs stable ควรส่ง D-dimer หรือ CTPA เลยครับ แล้ว PERC ใช้ตอนไหน" }
+      ],
+      "categories": ["diagnosis", "imaging-stewardship"],
+      "adversarial": null,
+      "key_facts": [
+        "ใน clinical probability ต่ำ ใช้ PERC rule ได้ ถ้าผ่านทุกข้อไม่ต้องตรวจเพิ่ม",
+        "ถ้าไม่ผ่าน PERC หรือ probability ต่ำถึงปานกลาง ให้ส่ง D-dimer — ถ้าผลลบตัด PE ได้ ถ้าผลบวกจึงส่ง CTPA",
+        "ใน high probability ส่ง CTPA โดยตรง ไม่ต้องตรวจ D-dimer"
+      ],
+      "must_not": ["ส่ง CTPA ทุกรายโดยไม่ประเมิน pretest probability", "ใช้ D-dimer ใน high probability เพื่อตัด PE"],
+      "sources": ["ESC Guidelines for the diagnosis and management of acute pulmonary embolism, 2019"]
+    },
+    {
+      "id": "mx-ent-strep-pharyngitis",
+      "mode": "examiner",
+      "language": "mixed",
+      "specialty": "family medicine",
+      "turns": [
+        { "role": "physician", "content": "คนไข้เจ็บคอ ไข้ ต่อมทอนซิลมีหนอง ไม่ไอ ต่อมน้ำเหลืองที่คอโตกดเจ็บ ควรให้ antibiotic เลยไหม หรือต้องตรวจ rapid strep ก่อน ถ้าให้ควรเป็นยาอะไร" }
+      ],
+      "categories": ["diagnosis", "antimicrobial-stewardship"],
+      "adversarial": null,
+      "key_facts": [
+        "ใช้ Centor/McIsaac criteria ประเมิน — ผู้ป่วยรายนี้มีหลายข้อ (ไข้, exudate, ไม่ไอ, ต่อมน้ำเหลืองโตกดเจ็บ)",
+        "IDSA แนะนำยืนยันด้วย rapid antigen test หรือ throat culture ก่อนให้ antibiotic",
+        "ถ้ายืนยัน group A strep ให้ penicillin V หรือ amoxicillin นาน 10 วัน",
+        "แพ้ penicillin (ไม่ใช่ชนิดรุนแรง) ใช้ cephalexin; ถ้าแพ้รุนแรงใช้ clindamycin หรือ macrolide"
+      ],
+      "must_not": ["แนะนำ fluoroquinolone หรือ broad-spectrum antibiotic เป็นยาแรก", "แนะนำให้ยาเพียง 3 วัน"],
+      "sources": ["Clinical Practice Guideline for the Diagnosis and Management of Group A Streptococcal Pharyngitis (IDSA), 2012"]
+    }
+  ]
+}

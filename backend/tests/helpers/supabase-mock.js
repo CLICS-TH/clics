@@ -33,10 +33,10 @@ function makeSupabaseMock() {
   };
 
   function builder(table) {
-    const rec = { table, op: 'select', selectArgs: null, eqs: [], ors: [], iss: [], nots: [], ins: [], payload: undefined };
+    const rec = { table, op: 'select', selectArgs: null, eqs: [], neqs: [], ors: [], iss: [], nots: [], ins: [], payload: undefined };
     state.queries.push(rec);
     const ctx = () => ({
-      op: rec.op, eqs: rec.eqs, ors: rec.ors, iss: rec.iss, nots: rec.nots, ins: rec.ins, payload: rec.payload, selectArgs: rec.selectArgs,
+      op: rec.op, eqs: rec.eqs, neqs: rec.neqs, ors: rec.ors, iss: rec.iss, nots: rec.nots, ins: rec.ins, payload: rec.payload, selectArgs: rec.selectArgs,
       id: (col = 'id') => (rec.eqs.find((e) => e[0] === col) || [])[1],
     });
     const self = {};
@@ -60,7 +60,11 @@ function makeSupabaseMock() {
     // unrecognisable to the double rather than making a test fail. Recording it lets a suite match
     // on set membership the same way it matches on equality.
     self.in = (c, vals) => { rec.ins.push([c, vals]); return self; };
-    for (const fn of ['order', 'range', 'limit', 'neq', 'gte', 'lte', 'lt', 'gt', 'contains']) self[fn] = () => self;
+    // ADDITIVE: record .neq() (rec.neqs) so a suite can assert an exclusion filter was applied. It was
+    // a silent no-op below, which made a "this query must NOT match X" property untestable. Still
+    // chainable; suites that never read neqs are unaffected.
+    self.neq = (c, v) => { rec.neqs.push([c, v]); return self; };
+    for (const fn of ['order', 'range', 'limit', 'gte', 'lte', 'lt', 'gt', 'contains']) self[fn] = () => self;
 
     const read = (kind) => {
       const c = ctx();

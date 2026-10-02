@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
-const { MessageSchema, CreateCleSchema, UpdateCleSchema, ReflectionSchema } = require('../lib/schemas');
+const { MessageSchema, ReportReplySchema, CreateCleSchema, UpdateCleSchema, ReflectionSchema } = require('../lib/schemas');
 const { computeTier1, hasScorableContent, clampDuration } = require('../services/ple-gate');
 const { rimplChat } = require('../services/rimpl-client');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
@@ -16,7 +16,8 @@ const acceptability = require('../lib/acceptability');
 const { creditSettings, getSetting, transcriptCap } = require('../lib/settings');
 const { creditFor, creditTable } = require('../services/credit');
 const { COMPLETED_STATUSES } = require('../lib/ple-status');
-const { scanPle, flagRescueReplyBreach } = require('../services/integrity-scan');
+const { scanPle, flagRescueReplyBreach, recordReportedReply } = require('../services/integrity-scan');
+const rateLimit = require('express-rate-limit');
 
 const router = Router();
 
@@ -471,7 +472,9 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     ple_id: req.params.id, role: 'physician',
     content: message, token_count: physicianTokens,
   });
-  const { error: msgErr2 } = await supabase.from('messages').insert({
+  // .select('id').single(): the client needs this row's id so the reply can be reported
+  // (POST /:id/messages/:messageId/report) without a second round trip to find it.
+  const { data: assistantRow, error: msgErr2 } = await supabase.from('messages').insert({
     ple_id: req.params.id, role: 'assistant',
     content: rimplResponse.content,
     refs: rimplResponse.refs,
@@ -483,7 +486,7 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     provider: rimplResponse.provider ?? null,
     model: rimplResponse.model ?? null,
     prompt_version: rimplResponse.prompt_version ?? null,
-  });
+  }).select('id').single();
   // Don't pretend success if the turn wasn't saved — let the client retry.
   if (msgErr1 || msgErr2) {
     console.error('[ples] failed to persist message:', (msgErr1 || msgErr2).message);
@@ -603,6 +606,9 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   // prompt_version / failed_over_from / rescue — research provenance that would tell a physician which
   // arm they are in (and that the rescue fired). physician-ui reads exactly these fields.
   res.json({
+    // The stored assistant row's id (null only if the insert returned no row). Not provenance: it is
+    // the same id GET /ples/:id already returns for every message.
+    message_id: assistantRow?.id ?? null,
     content: rimplResponse.content,
     refs: rimplResponse.refs,
     socratic_question: rimplResponse.socratic_question,
@@ -611,6 +617,87 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     output_tokens: rimplResponse.output_tokens,
     transcript: transcriptBlock(contextSeen, cap),
   });
+});
+
+// Report an AI tutor reply as wrong or unsafe — the safety event log CREC082's Risk & Incident Plan
+// commits to. Written into ple_integrity_flags (services/integrity-scan.js recordReportedReply) so it
+// reaches the same admin queue as every other flag.
+//
+// Deliberately NOT behind requireConsent / requireBudget: it creates no study data and spends no AI,
+// and a physician whose budget is spent is exactly one who must still be able to say "that was
+// wrong". Never calls an AI — the note is physician-typed and may contain PII.
+//
+// WHAT THE RESPONSE DOES NOT CARRY. The flag row stores the reply's provider / model / prompt_version
+// (read here with the service role) so a safety event can be attributed to a model; the response is
+// a bare { ok: true } so none of it — nor whether the report was new or a repeat — reaches the
+// physician. Provenance would tell them which arm of the study they are in.
+const REPORT_RATE_MAX = 20;
+const reportLimiter = rateLimit({
+  windowMs: 10 * 60_000, max: REPORT_RATE_MAX, standardHeaders: true, legacyHeaders: false,
+  // Per physician, not per IP: verifyJwt has already run, and a clinic's shared NAT must not make one
+  // physician's report depend on a colleague's.
+  keyGenerator: (req) => `report:${req.user.id}`,
+  message: { error: 'Too many reports — please wait a few minutes.', code: 'report_rate_limited' },
+});
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+router.post('/:id/messages/:messageId/report', reportLimiter, async (req, res) => {
+  const parsed = ReportReplySchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  // A malformed id is "not found", not a 500 from Postgres' uuid cast.
+  if (!UUID_RE.test(req.params.messageId)) return res.status(404).json({ error: 'Not found' });
+
+  // Ownership first. A PLE that is not yours and one that does not exist answer identically.
+  const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id, 'id, council_id, physician_id');
+  if (!ple) return res.status(404).json({ error: 'Not found' });
+
+  // Scoped to THIS ple: a message id from someone else's session (or another of the physician's own)
+  // must not resolve here.
+  const { data: msg, error: mErr } = await supabase.from('messages')
+    .select('id, role, created_at, provider, model, prompt_version')
+    .eq('id', req.params.messageId).eq('ple_id', ple.id).maybeSingle();
+  if (sendDbError(res, mErr)) return;
+  if (!msg) return res.status(404).json({ error: 'Not found' });
+  if (msg.role !== 'assistant') {
+    return res.status(400).json({ error: 'Only an AI reply can be reported.', code: 'not_ai_reply' });
+  }
+
+  // Which AI turn this is (1-based), so a reviewer can find it in the transcript. Fail-soft: the
+  // report matters more than its locator.
+  let turn = null;
+  try {
+    const { count } = await supabase.from('messages').select('id', { count: 'exact', head: true })
+      .eq('ple_id', ple.id).eq('role', 'assistant').lte('created_at', msg.created_at);
+    if (Number.isFinite(count)) turn = count;
+  } catch { /* locator only */ }
+
+  let outcome;
+  try {
+    outcome = await recordReportedReply({
+      pleId: ple.id,
+      report: {
+        message_id: msg.id, reason: parsed.data.reason, note: parsed.data.note, turn,
+        provider: msg.provider, model: msg.model, prompt_version: msg.prompt_version,
+      },
+    });
+  } catch (e) {
+    console.error('[ples] failed to record a reply report:', ple.id, e.message);
+    return res.status(500).json({ error: 'Could not save your report. Please try again.' });
+  }
+  if (outcome === 'limit') {
+    return res.status(429).json({ error: 'This session already has the maximum number of reports.', code: 'report_limit_reached' });
+  }
+
+  // Only the FIRST report is logged. The note is deliberately absent: audit_log is read by oversight
+  // roles and the note may carry PII; the flag row holds it.
+  if (outcome === 'recorded') {
+    logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'ple.reply_reported',
+      targetType: 'ple', targetId: ple.id, councilId: ple.council_id,
+      metadata: { message_id: msg.id, reason: parsed.data.reason, has_note: !!parsed.data.note, turn,
+        provider: msg.provider, model: msg.model, prompt_version: msg.prompt_version } });
+  }
+
+  res.json({ ok: true });
 });
 
 // End session and run PLE quality gate

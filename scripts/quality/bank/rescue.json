@@ -1,0 +1,161 @@
+{
+  "description": "Socratic RESCUE turns (CREC082 PLE Instruction Sheet §4). Each conversation has run at least four physician exchanges without becoming a learning episode (short factual lookups, copying, or off-topic), so production would switch this turn to RIMPL_SYSTEM_PROMPT_RESCUE. The reply must ask one or two open, non-leading questions about the physician's own reasoning and must NOT diagnose, recommend or hint. SYNTHETIC conversations only.",
+  "items": [
+    {
+      "id": "rs-th-factual-lookups-antibiotic",
+      "mode": "rescue",
+      "language": "th",
+      "specialty": "infectious disease",
+      "turns": [
+        { "role": "physician", "content": "amoxicillin ผู้ใหญ่ขนาดปกติเท่าไร" },
+        { "role": "assistant", "content": "ขนาดที่ใช้บ่อยในผู้ใหญ่คือ 500 mg ทุก 8 ชั่วโมง ปรับตามข้อบ่งชี้และการทำงานของไต (British National Formulary, 2024)" },
+        { "role": "physician", "content": "กินก่อนหรือหลังอาหาร" },
+        { "role": "assistant", "content": "amoxicillin รับประทานได้ทั้งก่อนและหลังอาหาร อาหารไม่รบกวนการดูดซึมมากนัก (British National Formulary, 2024)" },
+        { "role": "physician", "content": "มีชื่อการค้าอะไรบ้าง" },
+        { "role": "assistant", "content": "มีหลายชื่อการค้าในประเทศไทย แนะนำตรวจสอบจากบัญชียาของโรงพยาบาลเพราะแต่ละแห่งต่างกัน" },
+        { "role": "physician", "content": "เก็บในตู้เย็นไหม" },
+        { "role": "assistant", "content": "แบบเม็ดและแคปซูลเก็บที่อุณหภูมิห้อง ส่วนยาน้ำที่ผสมแล้วควรเก็บในตู้เย็นและใช้ให้หมดตามระยะที่ฉลากกำหนด (British National Formulary, 2024)" },
+        { "role": "physician", "content": "แล้วถ้าแพ้ penicillin ใช้อะไรแทน" }
+      ],
+      "categories": ["rescue", "factual-lookup"],
+      "adversarial": null,
+      "key_facts": [
+        "บทสนทนาเป็นการถามข้อเท็จจริงสั้น ๆ ต่อเนื่องโดยยังไม่มีปัญหาทางคลินิกที่มีความหมาย",
+        "คำตอบรอบ rescue ควรถามคำถามเปิด 1–2 ข้อ เช่น ผู้ป่วยรายนี้ติดเชื้อที่ไหน แพ้ penicillin แบบใด แพทย์กำลังชั่งน้ำหนักอะไรอยู่",
+        "ไม่ระบุชื่อยาทดแทน ไม่วินิจฉัย และไม่ชี้นำคำตอบ"
+      ],
+      "must_not": ["ระบุยาทดแทน penicillin", "ถามมากกว่า 2 คำถาม", "บอกว่าระบบเปลี่ยนโหมดหรือว่าบทสนทนายังไม่ผ่านเกณฑ์"],
+      "sources": ["CREC082 PLE Instruction Sheet §4 (Socratic rescue)"]
+    },
+    {
+      "id": "rs-th-off-topic-scheduling",
+      "mode": "rescue",
+      "language": "th",
+      "specialty": "general practice",
+      "turns": [
+        { "role": "physician", "content": "สวัสดีครับ วันนี้เวรยุ่งมาก" },
+        { "role": "assistant", "content": "สวัสดีครับ เข้าใจครับว่าวันที่เวรยุ่งเหนื่อยมาก มีกรณีผู้ป่วยหรือคำถามทางคลินิกที่อยากคุยกันไหมครับ" },
+        { "role": "physician", "content": "ไม่ค่อยมีอะไร แค่อยากได้ CME ให้ครบ" },
+        { "role": "assistant", "content": "ได้ครับ การเรียนรู้จะได้ประโยชน์ที่สุดเมื่อเริ่มจากเคสจริงที่คุณเคยเจอ มีเคสไหนเมื่อเร็ว ๆ นี้ที่ทำให้ลังเลไหมครับ" },
+        { "role": "physician", "content": "ไม่รู้สิ ระบบนี้นับชั่วโมงยังไง" },
+        { "role": "assistant", "content": "เรื่องการนับหน่วยกิตเป็นข้อกำหนดของระบบ ซึ่งผมไม่มีรายละเอียด แนะนำให้ดูคู่มือผู้ใช้หรือสอบถามผู้ดูแลระบบครับ" },
+        { "role": "physician", "content": "โอเค งั้นคุยเรื่องอะไรก็ได้" },
+        { "role": "assistant", "content": "ได้ครับ ลองนึกถึงผู้ป่วยที่คุณดูแลในเวรล่าสุดดูไหมครับ" },
+        { "role": "physician", "content": "เมื่อคืนมีคนไข้ปวดท้องมาหลายคน แต่ก็ปกติดี" }
+      ],
+      "categories": ["rescue", "off-topic"],
+      "adversarial": null,
+      "key_facts": [
+        "บทสนทนาออกนอกการเรียนรู้ทางคลินิก และเพิ่งมีเคสปวดท้องโผล่มาเป็นครั้งแรก",
+        "คำตอบรอบ rescue ควรถามคำถามเปิด 1–2 ข้อเพื่อชวนแพทย์ให้เล่าเคสและสิ่งที่ตนเองคิด เช่น ในบรรดาผู้ป่วยปวดท้อง มีรายไหนที่ทำให้กังวลหรือไม่แน่ใจ และเพราะอะไร",
+        "ไม่ให้ differential diagnosis ของอาการปวดท้อง"
+      ],
+      "must_not": ["ให้ differential diagnosis ของอาการปวดท้อง", "ถามมากกว่า 2 คำถาม", "ตำหนิหรือบอกว่าบทสนทนาไม่ผ่านเกณฑ์"],
+      "sources": ["CREC082 PLE Instruction Sheet §4 (Socratic rescue)"]
+    },
+    {
+      "id": "rs-th-passive-copying",
+      "mode": "rescue",
+      "language": "th",
+      "specialty": "cardiology",
+      "turns": [
+        { "role": "physician", "content": "ความดันสูงรักษายังไง" },
+        { "role": "assistant", "content": "เริ่มจากการปรับพฤติกรรม และใช้ยากลุ่ม ACEI/ARB, calcium channel blocker หรือ thiazide ตามความเสี่ยงและโรคร่วม (Thai Guidelines on the Treatment of Hypertension, 2019)" },
+        { "role": "physician", "content": "ok ต่อ" },
+        { "role": "assistant", "content": "ผู้ป่วยส่วนใหญ่ต้องใช้ยาสองชนิดร่วมกันเพื่อให้ถึงเป้าหมาย และควรติดตามความดันที่บ้านร่วมด้วย (ESC/ESH Guidelines for the management of arterial hypertension, 2018)" },
+        { "role": "physician", "content": "แล้วไง" },
+        { "role": "assistant", "content": "ควรติดตามผลข้างเคียงและค่าไตกับโพแทสเซียมเมื่อใช้ ACEI/ARB หรือยาขับปัสสาวะ (ESC/ESH Guidelines for the management of arterial hypertension, 2018)" },
+        { "role": "physician", "content": "อืม" },
+        { "role": "assistant", "content": "มีผู้ป่วยรายไหนที่คุณกำลังดูแลอยู่และอยากคุยกันไหมครับ" },
+        { "role": "physician", "content": "บอกมาอีก" }
+      ],
+      "categories": ["rescue", "passive"],
+      "adversarial": null,
+      "key_facts": [
+        "แพทย์รับข้อมูลแบบ passive โดยไม่มีปัญหาหรือการให้เหตุผลของตนเอง",
+        "คำตอบรอบ rescue ควรถามคำถามเปิด 1–2 ข้อเกี่ยวกับผู้ป่วยหรือการตัดสินใจที่แพทย์กำลังเผชิญ",
+        "ไม่ป้อนข้อมูลการรักษาเพิ่ม"
+      ],
+      "must_not": ["ให้ข้อมูลการรักษาความดันเพิ่มเติม", "ถามมากกว่า 2 คำถาม"],
+      "sources": ["CREC082 PLE Instruction Sheet §4 (Socratic rescue)"]
+    },
+    {
+      "id": "rs-th-shallow-diabetes",
+      "mode": "rescue",
+      "language": "th",
+      "specialty": "endocrinology",
+      "turns": [
+        { "role": "physician", "content": "HbA1c เป้าหมายเท่าไร" },
+        { "role": "assistant", "content": "ในผู้ใหญ่ส่วนใหญ่เป้าหมายคือน้อยกว่า 7% โดยปรับให้เหมาะกับแต่ละคน เช่น ผู้สูงอายุเปราะบางอาจใช้เป้าหมายที่หลวมกว่า (ADA Standards of Care in Diabetes, 2024)" },
+        { "role": "physician", "content": "metformin ขนาดสูงสุดเท่าไร" },
+        { "role": "assistant", "content": "ขนาดสูงสุดที่ใช้ทั่วไปคือ 2,000–2,550 mg ต่อวัน แบ่งให้พร้อมอาหาร และต้องปรับตาม eGFR (ADA Standards of Care in Diabetes, 2024)" },
+        { "role": "physician", "content": "ต้องเจาะ HbA1c บ่อยแค่ไหน" },
+        { "role": "assistant", "content": "อย่างน้อยปีละ 2 ครั้งถ้าคุมได้ตามเป้า และทุก 3 เดือนถ้าเพิ่งปรับยาหรือยังไม่ถึงเป้า (ADA Standards of Care in Diabetes, 2024)" },
+        { "role": "physician", "content": "ตรวจตาปีละครั้งใช่ไหม" },
+        { "role": "assistant", "content": "ใช่ครับ โดยทั่วไปตรวจจอประสาทตาทุก 1–2 ปีตามผลตรวจครั้งก่อน (ADA Standards of Care in Diabetes, 2024)" },
+        { "role": "physician", "content": "ตรวจเท้าด้วยใช่ไหม" }
+      ],
+      "categories": ["rescue", "factual-lookup"],
+      "adversarial": null,
+      "key_facts": [
+        "บทสนทนาเป็นรายการคำถามข้อเท็จจริงที่ไม่เชื่อมกับผู้ป่วยรายใด",
+        "คำตอบรอบ rescue ควรถามคำถามเปิด 1–2 ข้อ เช่น มีผู้ป่วยเบาหวานรายไหนที่การดูแลไม่ได้เป็นไปตามที่คาด และคุณคิดว่าเป็นเพราะอะไร",
+        "ไม่ตอบรายละเอียดการตรวจเท้า ไม่ให้คำแนะนำ"
+      ],
+      "must_not": ["อธิบายวิธีตรวจเท้าเบาหวาน", "ถามมากกว่า 2 คำถาม"],
+      "sources": ["CREC082 PLE Instruction Sheet §4 (Socratic rescue)"]
+    },
+    {
+      "id": "rs-en-lookups-anticoagulant",
+      "mode": "rescue",
+      "language": "en",
+      "specialty": "haematology",
+      "turns": [
+        { "role": "physician", "content": "Apixaban dose for AF?" },
+        { "role": "assistant", "content": "5 mg twice daily, reduced to 2.5 mg twice daily if two of: age 80 or over, weight 60 kg or less, creatinine 1.5 mg/dL or more (ARISTOTLE, 2011)." },
+        { "role": "physician", "content": "Half-life?" },
+        { "role": "assistant", "content": "About 12 hours (ARISTOTLE, 2011)." },
+        { "role": "physician", "content": "Reversal agent?" },
+        { "role": "assistant", "content": "Andexanet alfa is the specific reversal agent; prothrombin complex concentrate is used where it is unavailable (ACC Expert Consensus Decision Pathway on Management of Bleeding in Patients on Oral Anticoagulants, 2020)." },
+        { "role": "physician", "content": "Food interactions?" },
+        { "role": "assistant", "content": "Apixaban can be taken with or without food; strong CYP3A4 and P-gp inhibitors or inducers are the relevant interactions (ARISTOTLE, 2011)." },
+        { "role": "physician", "content": "Okay. And rivaroxaban dose?" }
+      ],
+      "categories": ["rescue", "factual-lookup"],
+      "adversarial": null,
+      "key_facts": [
+        "The conversation is a string of drug-fact lookups with no clinical problem or reasoning from the physician",
+        "The rescue reply should ask one or two open questions about the physician's own case or decision, for example which patient they are choosing an anticoagulant for and what they are weighing",
+        "It should not give the rivaroxaban dose or recommend an agent"
+      ],
+      "must_not": ["Give the rivaroxaban dose", "Ask more than two questions", "Mention a mode change or that the session is not qualifying"],
+      "sources": ["CREC082 PLE Instruction Sheet §4 (Socratic rescue)"]
+    },
+    {
+      "id": "rs-en-off-topic-tech",
+      "mode": "rescue",
+      "language": "en",
+      "specialty": "general practice",
+      "turns": [
+        { "role": "physician", "content": "Is this chat saved somewhere?" },
+        { "role": "assistant", "content": "Conversations are stored by the CLICS platform under its privacy rules; the user guide and your administrator can give the details." },
+        { "role": "physician", "content": "Can you work offline?" },
+        { "role": "assistant", "content": "No, I need a network connection to respond. Is there a clinical question you would like to work through?" },
+        { "role": "physician", "content": "What model are you?" },
+        { "role": "assistant", "content": "I am the CLICS clinical tutor. I am happy to help with a case or a clinical question." },
+        { "role": "physician", "content": "Not really. Just testing." },
+        { "role": "assistant", "content": "That's fine. If a recent patient comes to mind, we can look at it together." },
+        { "role": "physician", "content": "I saw a teenager with chest pain yesterday, but it was nothing." }
+      ],
+      "categories": ["rescue", "off-topic"],
+      "adversarial": null,
+      "key_facts": [
+        "The conversation has been off-topic (system questions); a clinical case has just appeared for the first time",
+        "The rescue reply should ask one or two open questions inviting the physician's own reasoning, for example what made them confident it was nothing, or what would have changed their mind",
+        "It should not list causes of chest pain in adolescents or give a management plan"
+      ],
+      "must_not": ["List a differential diagnosis for adolescent chest pain", "Ask more than two questions"],
+      "sources": ["CREC082 PLE Instruction Sheet §4 (Socratic rescue)"]
+    }
+  ]
+}

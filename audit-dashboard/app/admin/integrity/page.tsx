@@ -31,7 +31,8 @@ import { Card } from '@/components/ui/card';
 // here — using it would render every English half at full weight, which is the density problem
 // BiLabel was introduced to remove.
 import { BiLabel } from '@/components/BiLabel';
-import { AlertTriangle, ClipboardPaste, Repeat, Timer, Fingerprint, ShieldQuestion } from 'lucide-react';
+import { REPORT_REASON, REPORTED_REPLY_SIGNAL } from '@/lib/report-reasons';
+import { AlertTriangle, ClipboardPaste, Repeat, Timer, Fingerprint, ShieldQuestion, Flag } from 'lucide-react';
 
 type Severity = 'low' | 'medium' | 'high';
 type Flag = { signal: string; severity: Severity; evidence: Record<string, unknown>; created_at: string };
@@ -60,7 +61,80 @@ const SIGNAL: Record<string, { th: string; en: string; icon: typeof Repeat; note
     note: 'เทียบกับตัวเองเท่านั้น ไม่ได้เทียบกับคนอื่น / Compared only against this physician’s own baseline, never against other people.' },
   R1_RESCUE_REPLY_BREACH: { th: 'คำตอบ rescue ผิดข้อกำหนด', en: 'A rescue reply broke the protocol', icon: ShieldQuestion,
     note: 'นี่คือ output ของระบบเรา ไม่ใช่ของแพทย์ / This flags OUR output, not the physician’s.' },
+  // Raised BY the physician (POST /ples/:id/messages/:messageId/report), not about them — the CREC082
+  // Risk & Incident Plan's safety event log. Keep the key in step with REPORTED_REPLY_SIGNAL in
+  // backend/src/services/integrity-scan.js (__tests__/backend-mirrors.test.ts reads it).
+  [REPORTED_REPLY_SIGNAL]: { th: 'แพทย์รายงานคำตอบของ AI', en: 'A physician reported an AI reply', icon: Flag,
+    note: 'แพทย์ระบุว่าคำตอบของ AI ผิดหรือไม่ปลอดภัย นี่คือ output ของระบบเรา ไม่ใช่ของแพทย์ และไม่มีผลต่อคะแนนหรือการสุ่มตรวจ / The physician said an AI reply was wrong or unsafe. This flags OUR output, not the physician, and does not affect their score or the audit sample.' },
 };
+
+type ReplyReport = {
+  message_id?: string; reason?: string; note?: string | null; turn?: number | null;
+  provider?: string | null; model?: string | null; prompt_version?: string | null; reported_at?: string;
+};
+
+/*
+ * One block per reported reply. Three things are deliberate:
+ *
+ * ATTRIBUTION IS THE POINT. provider / model / prompt_version were read from the message row on the
+ * server when the report was filed — it is how a safety event gets pinned on a model. A reply that
+ * predates per-turn provenance has none, and that is printed as "not recorded" rather than left blank:
+ * a blank would read as "no model", which is a different (and false) statement.
+ *
+ * THE NOTE IS PHYSICIAN-TYPED TEXT and may contain identifiers despite the warning shown when it was
+ * written. It is rendered as text (React escapes it), wrapped, and capped by the API at 500 chars. It
+ * is not in the audit log and never reached an AI. A missing note shows nothing: never written is not
+ * the same as written-and-empty.
+ *
+ * `break-words` on every value: message ids and prompt labels have no break opportunity, and the
+ * Card clips its overflow — without it the page does not scroll, it silently CUTS the evidence off.
+ */
+function ReportEvidence({ e }: { e: Record<string, unknown> }) {
+  const reports = (Array.isArray(e.reports) ? e.reports : []) as ReplyReport[];
+  if (!reports.length) return null;
+  return (
+    <ul className="mt-2 space-y-2">
+      {reports.map((r, i) => {
+        const reason = r.reason ? REPORT_REASON[r.reason] : undefined;
+        const attributed = r.provider || r.model || r.prompt_version;
+        return (
+          <li key={r.message_id ?? i} className="rounded-lg border border-border bg-muted/40 p-3">
+            <p className="text-sm font-medium text-foreground">
+              {reason ? <BiLabel th={reason.th} en={reason.en} /> : (r.reason ?? '—')}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
+              {typeof r.turn === 'number' ? `คำตอบ AI ครั้งที่ ${r.turn} / AI reply #${r.turn}` : 'ไม่ทราบลำดับ / reply position unknown'}
+              {r.reported_at ? ` · ${new Date(r.reported_at).toLocaleString('th-TH')}` : ''}
+            </p>
+            {r.note ? (
+              <p className="mt-2 border-l-2 border-border pl-3 text-sm leading-relaxed whitespace-pre-wrap break-words text-foreground">
+                {r.note}
+              </p>
+            ) : null}
+            <dl className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <div className="flex min-w-0 gap-1.5">
+                <dt className="shrink-0 font-medium">
+                  <BiLabel th="ผู้ตอบ" en="answered by" />
+                </dt>
+                <dd className="min-w-0 font-mono break-all text-foreground">
+                  {attributed
+                    ? [r.provider, r.model, r.prompt_version].filter(Boolean).join(' · ')
+                    : 'ไม่ได้บันทึก / not recorded'}
+                </dd>
+              </div>
+              {r.message_id && (
+                <div className="flex min-w-0 gap-1.5">
+                  <dt className="shrink-0 font-medium">message_id</dt>
+                  <dd className="min-w-0 font-mono break-all tabular-nums text-foreground">{r.message_id}</dd>
+                </div>
+              )}
+            </dl>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 const SEV: Record<Severity, { cls: string; th: string; en: string }> = {
   high: { cls: 'bg-destructive/10 text-danger', th: 'สูง', en: 'High' },
@@ -268,7 +342,9 @@ export default function IntegrityQueuePage() {
                             {meta ? <BiLabel th={meta.th} en={meta.en} /> : f.signal}
                           </p>
                           {meta?.note && <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{meta.note}</p>}
-                          <EvidenceRows e={f.evidence ?? {}} />
+                          {f.signal === REPORTED_REPLY_SIGNAL
+                            ? <ReportEvidence e={f.evidence ?? {}} />
+                            : <EvidenceRows e={f.evidence ?? {}} />}
                           {genre && <GenreCounters g={genre} />}
                         </div>
                         {/* Thai-first, like every other severity on this page. The card-level

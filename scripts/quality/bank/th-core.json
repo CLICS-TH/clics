@@ -1,0 +1,443 @@
+{
+  "description": "Thai single-turn clinical questions, standard (non-adversarial). SYNTHETIC: every case is invented; no real patient, physician or identifier.",
+  "items": [
+    {
+      "id": "th-cardio-stemi",
+      "mode": "examiner",
+      "language": "th",
+      "specialty": "cardiology",
+      "chief_complaint": "เจ็บแน่นหน้าอกขณะพัก 1 ชั่วโมง",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยชายเจ็บแน่นหน้าอกขณะพักมา 1 ชั่วโมง คลื่นไฟฟ้าหัวใจพบ ST ยกใน lead II, III, aVF โรงพยาบาลชุมชนของผมทำ PCI ไม่ได้ และส่งต่อไปโรงพยาบาลที่ทำได้ต้องใช้เวลาประมาณ 3 ชั่วโมง ควรตัดสินใจอย่างไรเรื่อง reperfusion" }
+      ],
+      "categories": ["management", "time-critical", "thai-context"],
+      "adversarial": null,
+      "key_facts": [
+        "นี่คือ inferior STEMI ซึ่งต้องทำ reperfusion โดยเร็ว",
+        "ถ้าคาดว่าเวลาจากการวินิจฉัยถึง PCI เกิน 120 นาที ควรให้ fibrinolysis (ภายใน 10 นาทีหลังวินิจฉัยตาม ESC 2017/2023) แล้วส่งต่อ",
+        "หลังให้ fibrinolysis ควรส่งต่อไปโรงพยาบาลที่ทำ PCI ได้ (pharmaco-invasive) และทำ rescue PCI หาก reperfusion ล้มเหลว",
+        "ให้ aspirin loading และ antiplatelet ตัวที่สอง พร้อม anticoagulant ร่วมกับ fibrinolysis"
+      ],
+      "must_not": [
+        "แนะนำให้รอส่ง primary PCI 3 ชั่วโมงโดยไม่ให้ fibrinolysis",
+        "ไม่กล่าวถึงข้อห้ามของ fibrinolysis เลย"
+      ],
+      "sources": ["ESC Guidelines for the management of acute myocardial infarction in patients presenting with ST-segment elevation, 2017", "ESC Guidelines for the management of acute coronary syndromes, 2023"]
+    },
+    {
+      "id": "th-cardio-af-anticoag",
+      "mode": "natural",
+      "language": "th",
+      "specialty": "cardiology",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยหญิงเป็น atrial fibrillation ชนิด non-valvular มีความดันโลหิตสูงและเบาหวาน ไม่เคยมีเลือดออกผิดปกติ ไตทำงานปกติ ควรเริ่มยาต้านการแข็งตัวของเลือดหรือไม่ และควรเลือกยากลุ่มใด" }
+      ],
+      "categories": ["management", "risk-stratification"],
+      "adversarial": null,
+      "key_facts": [
+        "ประเมินความเสี่ยงหลอดเลือดสมองด้วย CHA2DS2-VASc (หรือ CHA2DS2-VA ตาม ESC 2024) — ความดันสูงและเบาหวานได้คะแนนอย่างละ 1",
+        "คะแนนระดับนี้แนะนำให้เริ่ม oral anticoagulant",
+        "ใน non-valvular AF แนะนำ DOAC มากกว่า warfarin (ยกเว้นลิ้นหัวใจเทียมชนิดกลไก หรือ mitral stenosis ปานกลางถึงรุนแรง)",
+        "aspirin ไม่ใช่ทางเลือกทดแทนสำหรับป้องกันหลอดเลือดสมองใน AF"
+      ],
+      "must_not": ["แนะนำ aspirin แทน anticoagulant", "แนะนำ warfarin เป็นอันดับแรกโดยไม่มีข้อบ่งชี้"],
+      "sources": ["ESC Guidelines for the management of atrial fibrillation, 2020", "ESC Guidelines for the management of atrial fibrillation, 2024"]
+    },
+    {
+      "id": "th-cardio-hfref-gdmt",
+      "mode": "examiner",
+      "language": "th",
+      "specialty": "cardiology",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยภาวะหัวใจล้มเหลวชนิด LVEF ลดลง (LVEF 30%) อาการคงที่แล้ว ตอนนี้ได้ enalapril และ furosemide อยู่ ควรปรับยาอย่างไรให้ได้ guideline-directed medical therapy ครบ" }
+      ],
+      "categories": ["management", "pharmacology"],
+      "adversarial": null,
+      "key_facts": [
+        "GDMT สำหรับ HFrEF มี 4 กลุ่มหลัก: ARNI (หรือ ACEI/ARB), beta-blocker ที่มีหลักฐาน (bisoprolol, carvedilol, metoprolol succinate), MRA และ SGLT2 inhibitor",
+        "อาจเปลี่ยน ACEI เป็น sacubitril/valsartan โดยต้องหยุด ACEI อย่างน้อย 36 ชั่วโมงก่อนเริ่ม",
+        "ต้องติดตามโพแทสเซียมและการทำงานของไตเมื่อเริ่ม MRA หรือปรับ RAAS inhibitor",
+        "furosemide ใช้ควบคุมอาการคั่งน้ำ ไม่ได้ลดอัตราตาย"
+      ],
+      "must_not": ["ให้ ACEI ร่วมกับ sacubitril/valsartan พร้อมกัน", "แนะนำ beta-blocker ที่ไม่มีหลักฐานใน HFrEF เช่น atenolol เป็นทางเลือกหลัก"],
+      "sources": ["ESC Guidelines for the diagnosis and treatment of acute and chronic heart failure, 2021", "AHA/ACC/HFSA Guideline for the Management of Heart Failure, 2022"]
+    },
+    {
+      "id": "th-cardio-htn-firstline",
+      "mode": "natural",
+      "language": "th",
+      "specialty": "family medicine",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยความดันโลหิตสูงรายใหม่ วัดซ้ำได้ประมาณ 158/96 mmHg ไม่มีโรคร่วม ควรเริ่มยาลดความดันกลุ่มใด และควรเริ่มด้วยยาตัวเดียวหรือสองตัว" }
+      ],
+      "categories": ["management", "primary-care"],
+      "adversarial": null,
+      "key_facts": [
+        "ยากลุ่มแรกที่ใช้ได้คือ ACEI หรือ ARB, calcium channel blocker และ thiazide/thiazide-like diuretic",
+        "แนวทาง ESC/ESH 2018 แนะนำเริ่มด้วยยาสองตัวขนาดต่ำในเม็ดเดียวสำหรับผู้ป่วยส่วนใหญ่ ยกเว้นความดันระดับ 1 ความเสี่ยงต่ำหรือผู้สูงอายุเปราะบาง",
+        "ไม่ใช้ ACEI ร่วมกับ ARB",
+        "ควรแนะนำการปรับพฤติกรรมร่วมด้วย"
+      ],
+      "must_not": ["แนะนำ ACEI ร่วมกับ ARB", "แนะนำ beta-blocker เป็นยาตัวแรกโดยไม่มีข้อบ่งชี้เฉพาะ"],
+      "sources": ["ESC/ESH Guidelines for the management of arterial hypertension, 2018", "Thai Guidelines on the Treatment of Hypertension, 2019"]
+    },
+    {
+      "id": "th-endo-dka",
+      "mode": "examiner",
+      "language": "th",
+      "specialty": "endocrinology",
+      "chief_complaint": "หอบเหนื่อย อาเจียน ระดับน้ำตาลสูง",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยเบาหวานชนิดที่ 1 มาด้วยหายใจหอบลึก อาเจียน ระดับน้ำตาล 480 mg/dL, pH 7.12, HCO3 9 mEq/L, ketone ในเลือดสูง, K 4.6 mEq/L ควรให้การรักษาเบื้องต้นตามลำดับอย่างไร" }
+      ],
+      "categories": ["management", "emergency"],
+      "adversarial": null,
+      "key_facts": [
+        "เริ่มด้วยการให้สารน้ำ isotonic saline ทางหลอดเลือดดำ",
+        "เมื่อ K ≥ 3.3 mEq/L จึงเริ่ม regular insulin ทางหลอดเลือดดำ (เช่น 0.1 unit/kg/hr)",
+        "ให้โพแทสเซียมเสริมในสารน้ำเมื่อ K อยู่ระหว่าง 3.3–5.2 mEq/L และติดตาม K ซ้ำบ่อย ๆ",
+        "เติม dextrose เมื่อระดับน้ำตาลลดลงถึงประมาณ 200–250 mg/dL โดยยังให้ insulin ต่อจนภาวะ ketoacidosis หาย",
+        "ค้นหาและรักษาปัจจัยกระตุ้น"
+      ],
+      "must_not": ["แนะนำให้ bicarbonate เป็นประจำที่ pH 7.12", "หยุด insulin เมื่อน้ำตาลลดลงทั้งที่ยังมีภาวะเลือดเป็นกรด"],
+      "sources": ["Hyperglycemic crises in adult patients with diabetes (ADA consensus), 2009"]
+    },
+    {
+      "id": "th-endo-t2dm-ascvd",
+      "mode": "natural",
+      "language": "th",
+      "specialty": "endocrinology",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยเบาหวานชนิดที่ 2 เคยเป็นกล้ามเนื้อหัวใจขาดเลือดเมื่อปีที่แล้ว ตอนนี้ได้ metformin ขนาดเต็มแล้ว HbA1c ยังอยู่ที่ 8.5% eGFR 75 ควรเลือกยาตัวที่สองกลุ่มใดดี" }
+      ],
+      "categories": ["management", "pharmacology"],
+      "adversarial": null,
+      "key_facts": [
+        "ผู้ป่วยมี ASCVD จึงควรเลือก SGLT2 inhibitor หรือ GLP-1 receptor agonist ที่มีหลักฐานลดเหตุการณ์หัวใจและหลอดเลือด",
+        "การเลือกยากลุ่มนี้ทำโดยไม่ขึ้นกับค่า HbA1c",
+        "sulfonylurea และ DPP-4 inhibitor ไม่มีหลักฐานลดเหตุการณ์หัวใจและหลอดเลือด"
+      ],
+      "must_not": ["แนะนำ sulfonylurea เป็นตัวเลือกแรกโดยไม่กล่าวถึงประโยชน์ต่อหัวใจของ SGLT2i/GLP-1RA"],
+      "sources": ["ADA Standards of Care in Diabetes, 2024", "EMPA-REG OUTCOME, 2015"]
+    },
+    {
+      "id": "th-endo-su-hypoglycaemia",
+      "mode": "examiner",
+      "language": "th",
+      "specialty": "emergency medicine",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยสูงอายุกิน glibenclamide มาด้วยซึมลง น้ำตาลปลายนิ้ว 42 mg/dL ให้ 50% glucose แล้วรู้สึกตัวดี ญาติขอกลับบ้านเลย จะให้กลับได้ไหม" }
+      ],
+      "categories": ["disposition", "pharmacology", "safety"],
+      "adversarial": null,
+      "key_facts": [
+        "ภาวะน้ำตาลต่ำจาก sulfonylurea ออกฤทธิ์ยาวโดยเฉพาะ glibenclamide มักเกิดซ้ำได้หลายชั่วโมงถึงหลายวัน",
+        "ควรรับไว้สังเกตอาการและเฝ้าระวังระดับน้ำตาลอย่างน้อย 24 ชั่วโมง พร้อมให้ dextrose ต่อเนื่องตามความจำเป็น",
+        "octreotide ใช้ร่วมได้ในภาวะน้ำตาลต่ำซ้ำจาก sulfonylurea",
+        "ควรทบทวนและหยุดหรือเปลี่ยนยา glibenclamide ในผู้สูงอายุ"
+      ],
+      "must_not": ["อนุญาตให้กลับบ้านทันทีหลังรู้สึกตัว"],
+      "sources": ["ADA Standards of Care in Diabetes, 2024"]
+    },
+    {
+      "id": "th-nephro-hyperkalaemia",
+      "mode": "examiner",
+      "language": "th",
+      "specialty": "nephrology",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยไตวายเรื้อรังมาด้วยอ่อนแรง K 7.2 mEq/L ECG มี peaked T และ QRS กว้าง ควรรักษาอย่างไรตามลำดับ" }
+      ],
+      "categories": ["management", "emergency"],
+      "adversarial": null,
+      "key_facts": [
+        "ให้ calcium gluconate (หรือ calcium chloride) ทางหลอดเลือดดำทันทีเพื่อป้องกันหัวใจ — calcium ไม่ได้ลดระดับโพแทสเซียม",
+        "เลื่อนโพแทสเซียมเข้าเซลล์ด้วย insulin ร่วมกับ glucose และอาจเสริม salbutamol แบบพ่น",
+        "ขับโพแทสเซียมออกด้วย potassium binder, ยาขับปัสสาวะถ้ายังมีปัสสาวะ หรือ dialysis",
+        "ติดตาม ECG และระดับน้ำตาลหลังให้ insulin"
+      ],
+      "must_not": ["บอกว่า calcium gluconate ลดระดับโพแทสเซียม", "ให้ KCl หรือยาที่เพิ่มโพแทสเซียม"],
+      "sources": ["KDIGO Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease, 2024"]
+    },
+    {
+      "id": "th-nephro-aki-definition",
+      "mode": "natural",
+      "language": "th",
+      "specialty": "nephrology",
+      "turns": [
+        { "role": "physician", "content": "เกณฑ์การวินิจฉัย acute kidney injury ตาม KDIGO มีอะไรบ้าง และแบ่งระยะอย่างไร" }
+      ],
+      "categories": ["definition", "knowledge"],
+      "adversarial": null,
+      "key_facts": [
+        "creatinine เพิ่มขึ้น ≥ 0.3 mg/dL ภายใน 48 ชั่วโมง หรือ",
+        "creatinine เพิ่มขึ้น ≥ 1.5 เท่าของค่าพื้นฐานภายใน 7 วัน หรือ",
+        "ปัสสาวะ < 0.5 mL/kg/hr นาน 6 ชั่วโมง",
+        "แบ่งเป็นระยะ 1–3 ตามระดับ creatinine ที่เพิ่มขึ้น (1.5–1.9, 2.0–2.9, ≥3 เท่า หรือ ≥4.0 mg/dL หรือเริ่ม dialysis) และปริมาณปัสสาวะ"
+      ],
+      "must_not": ["ใช้เกณฑ์ RIFLE แทน KDIGO โดยไม่บอก"],
+      "sources": ["KDIGO Clinical Practice Guideline for Acute Kidney Injury, 2012"]
+    },
+    {
+      "id": "th-id-sepsis-bundle",
+      "mode": "examiner",
+      "language": "th",
+      "specialty": "critical care",
+      "chief_complaint": "ไข้ หนาวสั่น ความดันต่ำ",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยไข้สูง หนาวสั่น สงสัยติดเชื้อทางเดินปัสสาวะ ความดัน 82/50 mmHg lactate 4.5 mmol/L ใน 1 ชั่วโมงแรกควรทำอะไรบ้าง" }
+      ],
+      "categories": ["management", "time-critical"],
+      "adversarial": null,
+      "key_facts": [
+        "ตรวจ lactate และเก็บ blood culture ก่อนให้ยาปฏิชีวนะ ถ้าไม่ทำให้ยาล่าช้า",
+        "ให้ยาปฏิชีวนะแบบครอบคลุมกว้างทางหลอดเลือดดำโดยเร็ว ภายใน 1 ชั่วโมงในภาวะ septic shock หรือสงสัยสูง",
+        "ให้ crystalloid 30 mL/kg ภายใน 3 ชั่วโมงแรกสำหรับความดันต่ำหรือ lactate ≥ 4",
+        "ให้ vasopressor (norepinephrine เป็นตัวแรก) เพื่อรักษา MAP ≥ 65 mmHg หากความดันยังต่ำ"
+      ],
+      "must_not": ["รอผล culture ก่อนให้ยาปฏิชีวนะ", "แนะนำ dopamine เป็น vasopressor ตัวแรก"],
+      "sources": ["Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock, 2021"]
+    },
+    {
+      "id": "th-id-dengue-warning",
+      "mode": "natural",
+      "language": "th",
+      "specialty": "infectious disease",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยไข้เลือดออกเดงกีวันที่ 4 ไข้เริ่มลง ควรเฝ้าระวังอาการเตือน (warning signs) อะไรบ้าง และยาลดไข้ตัวไหนห้ามใช้" }
+      ],
+      "categories": ["monitoring", "thai-context"],
+      "adversarial": null,
+      "key_facts": [
+        "ช่วงไข้ลดเป็นระยะวิกฤตที่อาจเกิดการรั่วของพลาสมา",
+        "warning signs: ปวดท้อง/กดเจ็บท้อง, อาเจียนต่อเนื่อง, มีการคั่งของน้ำ, เลือดออกตามเยื่อบุ, ซึมหรือกระสับกระส่าย, ตับโต > 2 cm, hematocrit เพิ่มขึ้นพร้อมเกล็ดเลือดลดลงเร็ว",
+        "ใช้ paracetamol ลดไข้ หลีกเลี่ยง aspirin และ NSAIDs"
+      ],
+      "must_not": ["แนะนำ ibuprofen หรือ aspirin ลดไข้", "บอกว่าไข้ลดแล้วหมายถึงพ้นอันตราย"],
+      "sources": ["Dengue: guidelines for diagnosis, treatment, prevention and control (WHO), 2009"]
+    },
+    {
+      "id": "th-id-cap-curb65",
+      "mode": "examiner",
+      "language": "th",
+      "specialty": "pulmonology",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยปอดอักเสบติดเชื้อจากชุมชน สับสนเล็กน้อย BUN 28 mg/dL อัตราการหายใจ 32 ครั้ง/นาที ความดัน 100/60 mmHg จะใช้ CURB-65 ตัดสินใจว่าควรรักษาแบบผู้ป่วยนอกหรือรับไว้อย่างไร" }
+      ],
+      "categories": ["risk-stratification", "disposition"],
+      "adversarial": null,
+      "key_facts": [
+        "CURB-65 ให้ 1 คะแนนต่อข้อ: Confusion, Urea > 7 mmol/L (BUN > 19 mg/dL), RR ≥ 30, SBP < 90 หรือ DBP ≤ 60, อายุ ≥ 65",
+        "ผู้ป่วยรายนี้ได้อย่างน้อย 4 คะแนน (สับสน, urea, RR, DBP 60) ถือว่ารุนแรงสูง",
+        "คะแนน ≥ 3 ควรรับไว้ในโรงพยาบาลและพิจารณา ICU เมื่อ 4–5 คะแนน"
+      ],
+      "must_not": ["แนะนำให้รักษาแบบผู้ป่วยนอก"],
+      "sources": ["CURB-65 (Lim et al.), 2003", "BTS Guidelines for the management of community acquired pneumonia in adults, 2009"]
+    },
+    {
+      "id": "th-id-melioidosis",
+      "mode": "natural",
+      "language": "th",
+      "specialty": "infectious disease",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยชาวนาจากภาคอีสานเป็นเบาหวาน มาด้วยไข้สูงและฝีในตับหลายตำแหน่ง สงสัย melioidosis ควรเลือกยาปฏิชีวนะอะไร และต้องรักษานานแค่ไหน" }
+      ],
+      "categories": ["management", "thai-context"],
+      "adversarial": null,
+      "key_facts": [
+        "เชื้อก่อโรคคือ Burkholderia pseudomallei พบมากในภาคตะวันออกเฉียงเหนือ เบาหวานเป็นปัจจัยเสี่ยงสำคัญ",
+        "ระยะ intensive ใช้ ceftazidime หรือ meropenem ทางหลอดเลือดดำอย่างน้อย 10–14 วัน (นานกว่านั้นถ้ามีฝีลึก)",
+        "ตามด้วยระยะ eradication ด้วย co-trimoxazole รับประทานอย่างน้อย 3–6 เดือนเพื่อลดการกลับเป็นซ้ำ",
+        "ฝีขนาดใหญ่อาจต้องระบายหนอง"
+      ],
+      "must_not": ["แนะนำ ceftriaxone หรือ aminoglycoside เป็นยาหลัก", "ให้รักษาเพียง 7 วันโดยไม่มีระยะ eradication"],
+      "sources": ["Melioidosis (Wiersinga et al., N Engl J Med), 2012"]
+    },
+    {
+      "id": "th-pulm-copd-exacerbation",
+      "mode": "natural",
+      "language": "th",
+      "specialty": "pulmonology",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วย COPD กำเริบ หอบเหนื่อยมากขึ้น เสมหะเปลี่ยนเป็นสีเขียวและมากขึ้น ไม่ต้องใส่ท่อช่วยหายใจ ควรให้ยาอะไรบ้าง และ steroid ควรให้นานกี่วัน" }
+      ],
+      "categories": ["management"],
+      "adversarial": null,
+      "key_facts": [
+        "ให้ยาขยายหลอดลมออกฤทธิ์สั้น (SABA ร่วมกับหรือไม่ร่วมกับ SAMA)",
+        "ให้ systemic corticosteroid เช่น prednisolone 40 mg ต่อวันประมาณ 5 วัน (REDUCE trial)",
+        "ให้ยาปฏิชีวนะเมื่อเสมหะเป็นหนองร่วมกับอาการหอบหรือเสมหะเพิ่ม",
+        "ให้ออกซิเจนเป้าหมาย SpO2 88–92% เพื่อหลีกเลี่ยง hypercapnia"
+      ],
+      "must_not": ["ให้ steroid นาน 14 วันขึ้นไปเป็นมาตรฐาน", "ให้ออกซิเจนจนเป้าหมาย SpO2 100%"],
+      "sources": ["GOLD COPD report, 2024", "REDUCE trial (Leuschner et al.), 2013"]
+    },
+    {
+      "id": "th-pulm-asthma-reliever",
+      "mode": "examiner",
+      "language": "th",
+      "specialty": "pulmonology",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยหอบหืดผู้ใหญ่มีอาการสัปดาห์ละ 1–2 ครั้ง ตอนนี้ใช้ salbutamol พ่นอย่างเดียวเวลามีอาการ แนวทาง GINA ปัจจุบันยังแนะนำแบบนี้ไหม" }
+      ],
+      "categories": ["management", "guideline-update"],
+      "adversarial": null,
+      "key_facts": [
+        "ตั้งแต่ GINA 2019 ไม่แนะนำการใช้ SABA เพียงอย่างเดียวในผู้ใหญ่และวัยรุ่น",
+        "reliever ที่แนะนำคือ ICS-formoterol ขนาดต่ำเมื่อมีอาการ (as-needed)",
+        "การใช้ SABA อย่างเดียวเพิ่มความเสี่ยงการกำเริบรุนแรงและเสียชีวิต"
+      ],
+      "must_not": ["บอกว่าการใช้ salbutamol อย่างเดียวยังเป็นทางเลือกที่แนะนำ"],
+      "sources": ["Global Initiative for Asthma (GINA), 2019", "Global Initiative for Asthma (GINA), 2024"]
+    },
+    {
+      "id": "th-neuro-acute-stroke",
+      "mode": "examiner",
+      "language": "th",
+      "specialty": "neurology",
+      "chief_complaint": "แขนขาซีกขวาอ่อนแรงทันที",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยแขนขาขวาอ่อนแรงและพูดไม่ชัด เห็นตอนเป็นครั้งสุดท้ายว่าปกติเมื่อ 2 ชั่วโมงก่อน CT ไม่มีเลือดออก ความดัน 200/115 mmHg ให้ยาละลายลิ่มเลือดได้ไหม" }
+      ],
+      "categories": ["management", "time-critical"],
+      "adversarial": null,
+      "key_facts": [
+        "อยู่ในช่วงเวลาให้ IV alteplase ได้ (ภายใน 4.5 ชั่วโมงจากเวลาที่เห็นว่าปกติครั้งสุดท้าย)",
+        "ต้องลดความดันให้ต่ำกว่า 185/110 mmHg ก่อนให้ยา และรักษาให้ต่ำกว่า 180/105 mmHg หลังให้ยา 24 ชั่วโมง",
+        "ประเมิน large vessel occlusion เพื่อพิจารณา mechanical thrombectomy",
+        "ตรวจระดับน้ำตาลและทบทวนข้อห้ามอื่นของ thrombolysis"
+      ],
+      "must_not": ["ให้ alteplase ทันทีขณะความดันยัง 200/115 mmHg", "ห้ามให้ยาละลายลิ่มเลือดเพียงเพราะความดันสูงโดยไม่พยายามลดความดันก่อน"],
+      "sources": ["AHA/ASA Guidelines for the Early Management of Patients With Acute Ischemic Stroke, 2019"]
+    },
+    {
+      "id": "th-neuro-status-epilepticus",
+      "mode": "natural",
+      "language": "th",
+      "specialty": "neurology",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยผู้ใหญ่ชักเกร็งกระตุกทั้งตัวต่อเนื่องเกิน 5 นาที ยังไม่ได้เปิดเส้นเลือด ควรให้ยาอะไรเป็นลำดับแรก และถ้ายังไม่หยุดควรให้อะไรต่อ" }
+      ],
+      "categories": ["management", "emergency"],
+      "adversarial": null,
+      "key_facts": [
+        "ลำดับแรกคือ benzodiazepine: ถ้ายังไม่มีเส้นเลือด ให้ midazolam เข้ากล้าม (10 mg ในผู้ใหญ่ > 40 kg) หรือทางอื่นที่ไม่ใช่หลอดเลือดดำ; ถ้ามีเส้นเลือดให้ lorazepam หรือ diazepam IV",
+        "ถ้ายังชักต่อหลัง benzodiazepine ให้ยาลำดับที่สอง: levetiracetam, fosphenytoin/phenytoin หรือ valproate ทางหลอดเลือดดำ ซึ่ง ESETT พบว่าได้ผลใกล้เคียงกัน",
+        "ตรวจระดับน้ำตาลและดูแลทางเดินหายใจ"
+      ],
+      "must_not": ["รอให้ชักครบ 30 นาทีก่อนให้ยา", "ข้าม benzodiazepine ไปใช้ยาลำดับที่สองเลย"],
+      "sources": ["Evidence-Based Guideline: Treatment of Convulsive Status Epilepticus (American Epilepsy Society), 2016", "ESETT, 2019"]
+    },
+    {
+      "id": "th-gi-ugib",
+      "mode": "examiner",
+      "language": "th",
+      "specialty": "gastroenterology",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยอาเจียนเป็นเลือดและถ่ายดำ ความดัน 96/60 mmHg Hb 7.8 g/dL ไม่มีประวัติตับแข็งหรือโรคหัวใจ ควรให้เลือดที่ระดับ Hb เท่าไร และควรส่องกล้องเมื่อใด" }
+      ],
+      "categories": ["management", "transfusion"],
+      "adversarial": null,
+      "key_facts": [
+        "ใช้เกณฑ์ให้เลือดแบบ restrictive ที่ Hb < 7 g/dL (เป้าหมาย 7–9) ในผู้ป่วยที่ไม่มีโรคหัวใจ ซึ่งลดอัตราตายเทียบกับเกณฑ์ที่สูงกว่า",
+        "ให้สารน้ำและประเมินด้วย Glasgow-Blatchford score",
+        "ให้ PPI ทางหลอดเลือดดำ",
+        "ส่องกล้องภายใน 24 ชั่วโมงหลังให้สารน้ำจนคงที่"
+      ],
+      "must_not": ["ให้เลือดเพื่อให้ Hb > 10 g/dL เป็นเป้าหมาย"],
+      "sources": ["Transfusion strategies for acute upper gastrointestinal bleeding (Villanueva et al.), 2013", "ESGE Guideline nonvariceal upper gastrointestinal hemorrhage, 2021"]
+    },
+    {
+      "id": "th-gi-sbp",
+      "mode": "natural",
+      "language": "th",
+      "specialty": "hepatology",
+      "turns": [
+        { "role": "physician", "content": "ผู้ป่วยตับแข็งมีท้องมาน มีไข้และปวดท้อง เจาะน้ำในท้องได้ PMN 420 cells/mm3 ควรวินิจฉัยว่าอะไร และให้การรักษาอย่างไร" }
+      ],
+      "categories": ["diagnosis", "management"],
+      "adversarial": null,
+      "key_facts": [
+        "PMN ในน้ำในช่องท้อง ≥ 250 cells/mm3 วินิจฉัย spontaneous bacterial peritonitis",
+        "ให้ยาปฏิชีวนะ เช่น third-generation cephalosporin ทางหลอดเลือดดำ",
+        "ให้ albumin 1.5 g/kg ในวันแรกและ 1 g/kg ในวันที่ 3 เพื่อลดการเกิดไตวายและอัตราตาย",
+        "หลังหายควรให้ยาป้องกันการกลับเป็นซ้ำ"
+      ],
+      "must_not": ["รอผลเพาะเชื้อก่อนเริ่มยาปฏิชีวนะ"],
+      "sources": ["EASL Clinical Practice Guidelines for the management of patients with decompensated cirrhosis, 2018", "Sort et al., 1999"]
+    },
+    {
+      "id": "th-peds-kawasaki",
+      "mode": "examiner",
+      "language": "th",
+      "specialty": "paediatrics",
+      "turns": [
+        { "role": "physician", "content": "เด็ก 3 ขวบ มีไข้สูงมา 6 วัน ตาแดงทั้งสองข้างไม่มีขี้ตา ปากแดงแตก ผื่นตามตัว มือเท้าบวมแดง ต่อมน้ำเหลืองที่คอโต ควรนึกถึงโรคอะไร และรักษาอย่างไร" }
+      ],
+      "categories": ["diagnosis", "management"],
+      "adversarial": null,
+      "key_facts": [
+        "เข้าได้กับ Kawasaki disease ชนิด complete: ไข้ ≥ 5 วัน ร่วมกับลักษณะหลักอย่างน้อย 4 ใน 5 ข้อ",
+        "รักษาด้วย IVIG 2 g/kg ครั้งเดียวร่วมกับ aspirin โดยควรให้ IVIG ภายใน 10 วันแรกของไข้",
+        "ทำ echocardiogram เพื่อประเมิน coronary artery aneurysm"
+      ],
+      "must_not": ["แนะนำ corticosteroid แทน IVIG เป็นการรักษาหลัก", "บอกว่าไม่ต้องตรวจ echocardiogram"],
+      "sources": ["Diagnosis, Treatment, and Long-Term Management of Kawasaki Disease (AHA Scientific Statement), 2017"]
+    },
+    {
+      "id": "th-peds-febrile-neonate",
+      "mode": "natural",
+      "language": "th",
+      "specialty": "paediatrics",
+      "turns": [
+        { "role": "physician", "content": "ทารกแรกเกิด 3 สัปดาห์ มีไข้ 38.4 องศา ดูดนมได้ ไม่มีอาการอื่น ตรวจร่างกายปกติ ควรตรวจเพิ่มอะไรบ้าง และให้กลับบ้านได้ไหม" }
+      ],
+      "categories": ["disposition", "risk-stratification"],
+      "adversarial": null,
+      "key_facts": [
+        "ทารกที่มีไข้ในช่วง 8–21 วัน (และทารกอายุไม่ถึง 1 เดือนตาม NICE) ถือว่าเสี่ยงต่อการติดเชื้อแบคทีเรียรุนแรงสูงแม้ดูดี",
+        "AAP 2021 แนะนำสำหรับช่วง 8–21 วัน: urinalysis และเพาะเชื้อปัสสาวะ, blood culture, เจาะน้ำไขสันหลัง (CSF) และให้ยาปฏิชีวนะทางหลอดเลือดดำ",
+        "ควรรับไว้รักษาในโรงพยาบาล"
+      ],
+      "must_not": ["ให้กลับบ้านพร้อมยาลดไข้", "ไม่เจาะน้ำไขสันหลัง"],
+      "sources": ["Evaluation and Management of Well-Appearing Febrile Infants 8 to 60 Days Old (AAP), 2021", "NICE NG143 Fever in under 5s, 2019"]
+    },
+    {
+      "id": "th-ob-preeclampsia-severe",
+      "mode": "examiner",
+      "language": "th",
+      "specialty": "obstetrics",
+      "turns": [
+        { "role": "physician", "content": "หญิงตั้งครรภ์อายุครรภ์ 34 สัปดาห์ ความดัน 166/112 mmHg ปวดศีรษะมาก ตามัว โปรตีนในปัสสาวะ 2+ เกล็ดเลือด 95,000 ควรวินิจฉัยและให้การรักษาเร่งด่วนอย่างไร" }
+      ],
+      "categories": ["management", "emergency"],
+      "adversarial": null,
+      "key_facts": [
+        "เป็น preeclampsia with severe features (ความดัน ≥ 160/110, อาการทางสมอง/ตา, เกล็ดเลือด < 100,000)",
+        "ให้ magnesium sulfate เพื่อป้องกันการชัก",
+        "ลดความดันเร่งด่วนด้วย labetalol IV, hydralazine IV หรือ nifedipine ชนิดออกฤทธิ์เร็วรับประทาน",
+        "ที่อายุครรภ์ ≥ 34 สัปดาห์ แนะนำให้คลอดหลังมารดาคงที่"
+      ],
+      "must_not": ["แนะนำ ACEI หรือ ARB ลดความดัน", "ให้ diazepam แทน magnesium sulfate เป็นยาหลักป้องกันชัก"],
+      "sources": ["ACOG Practice Bulletin No. 222: Gestational Hypertension and Preeclampsia, 2020", "Magpie Trial, 2002"]
+    },
+    {
+      "id": "th-ob-pph",
+      "mode": "natural",
+      "language": "th",
+      "specialty": "obstetrics",
+      "turns": [
+        { "role": "physician", "content": "หลังคลอดทางช่องคลอด 30 นาที มีเลือดออกประมาณ 800 mL มดลูกนุ่มไม่แข็งตัว ควรจัดการอย่างไร และ tranexamic acid ควรให้เมื่อไร" }
+      ],
+      "categories": ["management", "emergency"],
+      "adversarial": null,
+      "key_facts": [
+        "สาเหตุที่พบบ่อยที่สุดคือมดลูกหดรัดตัวไม่ดี (tone) — ประเมินตามหลัก 4T",
+        "นวดมดลูกและให้ uterotonic โดย oxytocin เป็นยาตัวแรก",
+        "ให้ tranexamic acid 1 g ทางหลอดเลือดดำโดยเร็วภายใน 3 ชั่วโมงหลังคลอด (ให้ซ้ำได้อีก 1 g หากยังมีเลือดออก)",
+        "ให้สารน้ำ เตรียมเลือด และขอความช่วยเหลือ"
+      ],
+      "must_not": ["ให้ tranexamic acid หลัง 3 ชั่วโมงเป็นทางเลือกปกติ", "ให้ methylergonovine ในผู้ที่มีความดันโลหิตสูง"],
+      "sources": ["WHO recommendations for the prevention and treatment of postpartum haemorrhage, 2017", "WOMAN trial, 2017"]
+    }
+  ]
+}

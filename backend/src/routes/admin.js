@@ -10,7 +10,7 @@ const { minAuditorsPerPle, privacyReviewRequired } = require('../lib/settings');
 const identity = require('../services/identity');
 const { whereCleared, isCleared, CLEARED, DECISIONS } = require('../lib/privacy-review');
 const { stratifiedSample, assignRoundRobin } = require('../services/audit-sampling');
-const { scanPle } = require('../services/integrity-scan');
+const { scanPle, REPORTED_REPLY_SIGNAL } = require('../services/integrity-scan');
 const { sendDbError, pageParams } = require('../lib/db-helpers');
 const { assertSlotAvailable } = require('../lib/accounts');
 const { newInviteToken } = require('../lib/invite-token');
@@ -576,7 +576,10 @@ router.post('/ples/sample', async (req, res) => {
     supabase.from('audit_assignments').select('ple_id').in('ple_id', ids),
     // Integrity flags force a PLE into the sample. The table arrives with the fraud detector; before
     // that migration it does not exist, and a missing table must not take the sampler down with it.
-    supabase.from('ple_integrity_flags').select('ple_id').in('ple_id', ids)
+    // A physician's own report of an AI reply is NOT a reason to audit the session: it would let a
+    // physician pull their own episodes into the audited subset and bias the ICC that subset
+    // estimates. Reports reach a reviewer through the integrity queue instead.
+    supabase.from('ple_integrity_flags').select('ple_id').in('ple_id', ids).neq('signal', REPORTED_REPLY_SIGNAL)
       .then(r => r, () => ({ data: [] })),
   ]);
   const scoreOf = Object.fromEntries((evals ?? []).map(e => [e.ple_id, Number(e.composite_score)]));

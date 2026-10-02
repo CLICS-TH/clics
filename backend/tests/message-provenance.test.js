@@ -47,6 +47,8 @@ describe('physician chat', () => {
           input_tokens: 0, output_tokens: 0, chief_complaint: 'chest pain' };
       }
       if (table === 'messages' && kind === 'list') return [];
+      // The assistant insert is chained .select('id').single() so the response can name the row.
+      if (table === 'messages' && kind === 'single') return { id: 'a1b2c3d4-0000-4000-8000-000000000001' };
       return undefined;
     };
   });
@@ -79,6 +81,14 @@ describe('physician chat', () => {
     for (const k of ['provider', 'model', 'prompt_version', 'failed_over_from', 'rescue', 'context_tokens']) {
       expect(r.body).not.toHaveProperty(k);
     }
+  });
+
+  test('the turn response names the stored assistant row so the reply can be reported', async () => {
+    // Needed by POST /ples/:id/messages/:messageId/report. It is the row id GET /ples/:id already
+    // returns for every message, not provenance.
+    mockRimplChat.mockResolvedValue(reply(PROV));
+    const r = await sendTurn();
+    expect(r.body.message_id).toBe('a1b2c3d4-0000-4000-8000-000000000001');
   });
 
   test("the physician's transcript read names its columns and never includes provenance", async () => {

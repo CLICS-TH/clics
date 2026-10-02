@@ -101,6 +101,9 @@ window.api = {
   updatePle: (id, body) => apiFetch(`/ples/${id}`, { method: 'PATCH', body }),
   deletePle: (id) => apiFetch(`/ples/${id}`, { method: 'DELETE' }),
   sendMessage: (id, body) => apiFetch(`/ples/${id}/message`, { method: 'POST', body }),
+  // Report an AI reply as wrong or unsafe (the CREC082 safety event log). body = { reason, note? }.
+  // Resolves { ok: true } — deliberately nothing else; a repeat report answers the same.
+  reportReply: (id, messageId, body) => apiFetch(`/ples/${id}/messages/${messageId}/report`, { method: 'POST', body }),
   endPle: (id, body) => apiFetch(`/ples/${id}/end`, { method: 'POST', body }),
   // CREC082 ICF §3 step 3. Submitting (or skipping) the reflection is what releases a session from
   // 'ended' into screening — the reflection is part of what gets screened.

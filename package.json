@@ -19,7 +19,7 @@
     "test:manuals-scale": "node scripts/manuals/scale-audit.mjs",
     "manuals:capture": "node scripts/manuals/capture.mjs",
     "test:nav-width": "node scripts/responsive/nav-width-audit.mjs",
-    "test:calibration": "node --check scripts/calibration/three-way.js && node --test scripts/calibration/three-way.test.mjs"
+    "test:calibration": "node --check scripts/calibration/three-way.js && node --check scripts/calibration/anchors/score-local.mjs && node --check scripts/calibration/anchors/revalidate.mjs && node --test scripts/calibration/three-way.test.mjs scripts/calibration/anchors/anchors.test.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

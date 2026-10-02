@@ -1,5 +1,23 @@
 const { z } = require('zod');
 
+// A physician reporting an unsafe or wrong AI tutor reply (CREC082 Risk & Incident Plan — the "safety
+// event log"). MIRRORED by physician-ui/public/js/ple-chat.js REPORT_REASONS (the picker) and by
+// audit-dashboard/app/admin/integrity/page.tsx REPORT_REASON (the reviewer's labels); the jest
+// mirror tests in backend/tests/reply-report.test.js and audit-dashboard/__tests__/backend-mirrors
+// keep all three in step.
+const REPORT_REASONS = ['wrong_fact', 'unsafe_advice', 'fabricated_reference', 'wrong_language', 'other'];
+const REPORT_NOTE_MAX = 500;
+
+const ReportReplySchema = z.object({
+  reason: z.enum(REPORT_REASONS),
+  // Physician-typed free text: it may carry PII, so it is capped, stored only in the database beside
+  // the other physician notes, and never forwarded to any AI. Control characters are dropped — a NUL
+  // (\u0000) is legal JSON but is rejected by Postgres jsonb, which would turn one stray byte into a
+  // 500 and lose the report. Newlines and tabs survive. Blank collapses to "no note".
+  note: z.string().max(REPORT_NOTE_MAX).optional()
+    .transform((v) => v?.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').trim() || undefined),
+});
+
 const MessageSchema = z.object({
   message: z.string().min(1).max(5000),
   language: z.enum(['th', 'en']).default('th'),
@@ -102,7 +120,7 @@ const ReflectionSchema = z.object({
 });
 
 module.exports = {
-  MessageSchema, ScoreSchema, CreateCleSchema, AssignSchema, ReflectionSchema,
+  MessageSchema, ReportReplySchema, REPORT_REASONS, REPORT_NOTE_MAX, ScoreSchema, CreateCleSchema, AssignSchema, ReflectionSchema,
   PrivacyConcernSchema, SCORE_ATTESTATIONS, ANCHOR_CLARITY,
   CreateFolderSchema, UpdateFolderSchema, UpdateCleSchema,
 };

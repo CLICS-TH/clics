@@ -1,0 +1,1753 @@
+{
+  "version": "known-sources-v3",
+  "note": "Curated by hand for scripts/quality/cite-verify.mjs. ONLY sources and edition years the curator was certain of; omissions are deliberate. A missing year makes a real citation read \"year-mismatch\" (a false alarm a human clears) - a wrong year would make a false one read \"verified\", which is the failure this list exists to prevent. \"family\" entries verify only that the publisher/series exists and publishes in that year, not the specific document. year_range [from, null] = every year from `from` to the current year. v2 (review of PR #113): publisher names live ONLY on family entries — a document entry carries document-specific aliases, so \"<publisher> <invented title>, <year>\" can at most read publisher-only. v3: document entries carry their official full titles as aliases — those words are the document's vocabulary, and any OTHER word in a cited name makes it document-unconfirmed.",
+  "sources": [
+    {
+      "id": "fam-who",
+      "canonical": "World Health Organization (WHO)",
+      "aliases": [
+        "WHO",
+        "World Health Organization",
+        "องค์การอนามัยโลก"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1950,
+        null
+      ]
+    },
+    {
+      "id": "fam-nice",
+      "canonical": "National Institute for Health and Care Excellence (NICE) guidance",
+      "aliases": [
+        "NICE",
+        "National Institute for Health and Care Excellence",
+        "National Institute for Health and Clinical Excellence"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1999,
+        null
+      ]
+    },
+    {
+      "id": "fam-esc",
+      "canonical": "European Society of Cardiology (ESC) Guidelines",
+      "aliases": [
+        "ESC",
+        "European Society of Cardiology"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        2000,
+        null
+      ]
+    },
+    {
+      "id": "fam-aha-acc",
+      "canonical": "American Heart Association / American College of Cardiology guidelines",
+      "aliases": [
+        "AHA",
+        "ACC",
+        "ACC/AHA",
+        "AHA/ACC",
+        "American Heart Association",
+        "American College of Cardiology"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1990,
+        null
+      ]
+    },
+    {
+      "id": "fam-kdigo",
+      "canonical": "Kidney Disease: Improving Global Outcomes (KDIGO) guidelines",
+      "aliases": [
+        "KDIGO",
+        "Kidney Disease Improving Global Outcomes"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "years": [
+        2009,
+        2012,
+        2013,
+        2017,
+        2020,
+        2021,
+        2022,
+        2024
+      ]
+    },
+    {
+      "id": "fam-acog",
+      "canonical": "American College of Obstetricians and Gynecologists (ACOG)",
+      "aliases": [
+        "ACOG",
+        "American College of Obstetricians and Gynecologists"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1980,
+        null
+      ]
+    },
+    {
+      "id": "fam-aap",
+      "canonical": "American Academy of Pediatrics (AAP)",
+      "aliases": [
+        "AAP",
+        "American Academy of Pediatrics"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1950,
+        null
+      ]
+    },
+    {
+      "id": "fam-idsa",
+      "canonical": "Infectious Diseases Society of America (IDSA)",
+      "aliases": [
+        "IDSA",
+        "Infectious Diseases Society of America"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1990,
+        null
+      ]
+    },
+    {
+      "id": "fam-bts",
+      "canonical": "British Thoracic Society (BTS)",
+      "aliases": [
+        "BTS",
+        "British Thoracic Society"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1990,
+        null
+      ]
+    },
+    {
+      "id": "fam-easl",
+      "canonical": "European Association for the Study of the Liver (EASL)",
+      "aliases": [
+        "EASL",
+        "European Association for the Study of the Liver"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1995,
+        null
+      ]
+    },
+    {
+      "id": "fam-thai-moph",
+      "canonical": "Ministry of Public Health, Thailand (incl. Department of Disease Control)",
+      "aliases": [
+        "กระทรวงสาธารณสุข",
+        "กรมควบคุมโรค",
+        "Thai Ministry of Public Health",
+        "Ministry of Public Health Thailand",
+        "Department of Disease Control Thailand"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1990,
+        null
+      ]
+    },
+    {
+      "id": "fam-thai-royal-colleges",
+      "canonical": "Thai Royal Colleges (physicians, paediatricians, obstetricians)",
+      "aliases": [
+        "ราชวิทยาลัยอายุรแพทย์แห่งประเทศไทย",
+        "Royal College of Physicians of Thailand",
+        "ราชวิทยาลัยกุมารแพทย์แห่งประเทศไทย",
+        "Royal College of Pediatricians of Thailand",
+        "ราชวิทยาลัยสูตินรีแพทย์แห่งประเทศไทย",
+        "Royal Thai College of Obstetricians and Gynaecologists",
+        "RTCOG"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1990,
+        null
+      ]
+    },
+    {
+      "id": "fam-thai-nephrology",
+      "canonical": "Nephrology Society of Thailand",
+      "aliases": [
+        "Nephrology Society of Thailand",
+        "Thai Society of Nephrology",
+        "สมาคมโรคไตแห่งประเทศไทย"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        2000,
+        null
+      ]
+    },
+    {
+      "id": "ada-standards",
+      "canonical": "ADA Standards of Care in Diabetes (annual, Diabetes Care supplement)",
+      "aliases": [
+        "ADA Standards of Care",
+        "ADA Standards of Medical Care",
+        "Standards of Care in Diabetes",
+        "Standards of Medical Care in Diabetes"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "year_range": [
+        1989,
+        null
+      ],
+      "note": "Published every year; titled \"Standards of Medical Care in Diabetes\" until 2022."
+    },
+    {
+      "id": "ada-hyperglycaemic-crises",
+      "canonical": "Hyperglycemic crises in adult patients with diabetes (ADA consensus; Kitabchi et al.)",
+      "aliases": [
+        "hyperglycemic crises",
+        "hyperglycaemic crises",
+        "Kitabchi"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2006,
+        2009,
+        2024
+      ]
+    },
+    {
+      "id": "thai-dm-cpg",
+      "canonical": "Clinical Practice Guideline for Diabetes (Diabetes Association of Thailand et al.)",
+      "aliases": [
+        "Thai CPG diabetes",
+        "Thai diabetes guideline",
+        "แนวทางเวชปฏิบัติสำหรับโรคเบาหวาน"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2011,
+        2014,
+        2017,
+        2023
+      ],
+      "note": "BE 2554, 2557, 2560, 2566."
+    },
+    {
+      "id": "endo-adrenal",
+      "canonical": "Diagnosis and Treatment of Primary Adrenal Insufficiency (Endocrine Society)",
+      "aliases": [
+        "Endocrine Society adrenal insufficiency",
+        "primary adrenal insufficiency Endocrine Society"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2016
+      ]
+    },
+    {
+      "id": "kdigo-aki",
+      "canonical": "KDIGO Clinical Practice Guideline for Acute Kidney Injury",
+      "aliases": [
+        "KDIGO AKI",
+        "KDIGO acute kidney injury"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2012
+      ]
+    },
+    {
+      "id": "kdigo-ckd",
+      "canonical": "KDIGO Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+      "aliases": [
+        "KDIGO CKD",
+        "KDIGO chronic kidney disease"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2012,
+        2024
+      ]
+    },
+    {
+      "id": "kdigo-dm-ckd",
+      "canonical": "KDIGO Clinical Practice Guideline for Diabetes Management in Chronic Kidney Disease",
+      "aliases": [
+        "KDIGO diabetes",
+        "KDIGO diabetes CKD",
+        "KDIGO diabetes management"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2020,
+        2022
+      ]
+    },
+    {
+      "id": "kdigo-bp",
+      "canonical": "KDIGO Clinical Practice Guideline for the Management of Blood Pressure in CKD",
+      "aliases": [
+        "KDIGO blood pressure",
+        "KDIGO BP"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2012,
+        2021
+      ]
+    },
+    {
+      "id": "esc-hf",
+      "canonical": "ESC Guidelines for the diagnosis and treatment of acute and chronic heart failure",
+      "aliases": [
+        "ESC heart failure",
+        "ESC HF"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2012,
+        2016,
+        2021,
+        2023
+      ]
+    },
+    {
+      "id": "esc-af",
+      "canonical": "ESC Guidelines for the management of atrial fibrillation",
+      "aliases": [
+        "ESC atrial fibrillation",
+        "ESC AF"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2010,
+        2012,
+        2016,
+        2020,
+        2024
+      ]
+    },
+    {
+      "id": "esc-acs",
+      "canonical": "ESC Guidelines for the management of acute coronary syndromes (incl. STEMI / NSTE-ACS)",
+      "aliases": [
+        "ESC ACS",
+        "ESC acute coronary syndromes",
+        "ESC STEMI",
+        "ESC NSTE-ACS"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2012,
+        2015,
+        2017,
+        2020,
+        2023
+      ]
+    },
+    {
+      "id": "esc-ccs",
+      "canonical": "ESC Guidelines for the management of chronic coronary syndromes",
+      "aliases": [
+        "ESC chronic coronary syndromes",
+        "ESC CCS"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2019,
+        2024
+      ]
+    },
+    {
+      "id": "esc-pe",
+      "canonical": "ESC Guidelines for the diagnosis and management of acute pulmonary embolism",
+      "aliases": [
+        "ESC pulmonary embolism",
+        "ESC PE"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2008,
+        2014,
+        2019
+      ]
+    },
+    {
+      "id": "esc-htn",
+      "canonical": "ESC/ESH Guidelines for the management of arterial hypertension",
+      "aliases": [
+        "ESC hypertension",
+        "ESC/ESH hypertension",
+        "ESH hypertension"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2013,
+        2018,
+        2023,
+        2024
+      ]
+    },
+    {
+      "id": "esc-lipids",
+      "canonical": "ESC/EAS Guidelines for the management of dyslipidaemias",
+      "aliases": [
+        "ESC dyslipidaemia",
+        "ESC dyslipidemia",
+        "ESC/EAS dyslipidaemias",
+        "ESC/EAS dyslipidemia"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2011,
+        2016,
+        2019
+      ]
+    },
+    {
+      "id": "aha-hf",
+      "canonical": "AHA/ACC/HFSA Guideline for the Management of Heart Failure",
+      "aliases": [
+        "AHA/ACC/HFSA heart failure",
+        "ACC/AHA heart failure",
+        "AHA/ACC heart failure",
+        "ACCF/AHA heart failure"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2013,
+        2017,
+        2022
+      ]
+    },
+    {
+      "id": "acc-aha-bp",
+      "canonical": "ACC/AHA Guideline for the Prevention, Detection, Evaluation, and Management of High Blood Pressure in Adults",
+      "aliases": [
+        "ACC/AHA hypertension",
+        "AHA/ACC hypertension",
+        "ACC/AHA high blood pressure",
+        "AHA/ACC high blood pressure",
+        "ACC/AHA blood pressure"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2017,
+        2025
+      ]
+    },
+    {
+      "id": "aha-chol",
+      "canonical": "AHA/ACC Guideline on the Management of Blood Cholesterol",
+      "aliases": [
+        "AHA/ACC cholesterol",
+        "ACC/AHA cholesterol",
+        "ACC/AHA blood cholesterol",
+        "AHA/ACC blood cholesterol"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2013,
+        2018
+      ]
+    },
+    {
+      "id": "acc-aha-prevention",
+      "canonical": "ACC/AHA Guideline on the Primary Prevention of Cardiovascular Disease",
+      "aliases": [
+        "ACC/AHA primary prevention",
+        "AHA/ACC primary prevention"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2019
+      ]
+    },
+    {
+      "id": "acc-aha-af",
+      "canonical": "AHA/ACC/HRS (ACC/AHA/ACCP/HRS) Guideline for the Management of Atrial Fibrillation",
+      "aliases": [
+        "ACC/AHA atrial fibrillation",
+        "AHA/ACC/HRS atrial fibrillation",
+        "ACC/AHA AF",
+        "AHA/ACC/HRS AF"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2014,
+        2019,
+        2023
+      ]
+    },
+    {
+      "id": "aha-cpr-ecc",
+      "canonical": "AHA Guidelines for Cardiopulmonary Resuscitation and Emergency Cardiovascular Care",
+      "aliases": [
+        "AHA ACLS",
+        "ACLS",
+        "AHA CPR",
+        "AHA ECC",
+        "American Heart Association CPR"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2000,
+        2005,
+        2010,
+        2015,
+        2017,
+        2018,
+        2019,
+        2020,
+        2023,
+        2025
+      ]
+    },
+    {
+      "id": "aha-asa-stroke",
+      "canonical": "AHA/ASA Guidelines for the Early Management of Patients With Acute Ischemic Stroke",
+      "aliases": [
+        "AHA/ASA stroke",
+        "AHA/ASA acute ischemic stroke",
+        "AHA stroke"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2013,
+        2018,
+        2019
+      ]
+    },
+    {
+      "id": "aha-kawasaki",
+      "canonical": "Diagnosis, Treatment, and Long-Term Management of Kawasaki Disease (AHA Scientific Statement)",
+      "aliases": [
+        "AHA Kawasaki",
+        "American Heart Association Kawasaki",
+        "Kawasaki disease scientific statement"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2004,
+        2017
+      ]
+    },
+    {
+      "id": "thai-htn",
+      "canonical": "Thai Guidelines on the Treatment of Hypertension (Thai Hypertension Society)",
+      "aliases": [
+        "Thai hypertension guideline",
+        "Thai Guidelines on the Treatment of Hypertension",
+        "แนวทางการรักษาโรคความดันโลหิตสูงในเวชปฏิบัติทั่วไป"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2012,
+        2015,
+        2019
+      ],
+      "note": "BE 2555, 2558, 2562."
+    },
+    {
+      "id": "ssc-adult",
+      "canonical": "Surviving Sepsis Campaign: International Guidelines for Management of Sepsis and Septic Shock",
+      "aliases": [
+        "Surviving Sepsis Campaign",
+        "SSC"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2004,
+        2008,
+        2012,
+        2016,
+        2021
+      ]
+    },
+    {
+      "id": "ssc-paeds",
+      "canonical": "Surviving Sepsis Campaign International Guidelines for the Management of Septic Shock and Sepsis-Associated Organ Dysfunction in Children",
+      "aliases": [
+        "Surviving Sepsis Campaign pediatric",
+        "Surviving Sepsis Campaign paediatric",
+        "Surviving Sepsis Campaign children",
+        "SSC pediatric"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2020
+      ]
+    },
+    {
+      "id": "sepsis-3",
+      "canonical": "The Third International Consensus Definitions for Sepsis and Septic Shock (Sepsis-3)",
+      "aliases": [
+        "Sepsis-3",
+        "Third International Consensus Definitions for Sepsis"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2016
+      ]
+    },
+    {
+      "id": "ats-idsa-cap",
+      "canonical": "Diagnosis and Treatment of Adults with Community-acquired Pneumonia (ATS/IDSA)",
+      "aliases": [
+        "ATS/IDSA community-acquired pneumonia",
+        "IDSA/ATS community-acquired pneumonia",
+        "ATS/IDSA CAP",
+        "IDSA/ATS CAP"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2007,
+        2019
+      ]
+    },
+    {
+      "id": "curb65",
+      "canonical": "Defining community acquired pneumonia severity on presentation to hospital (CURB-65; Lim et al., Thorax)",
+      "aliases": [
+        "CURB-65",
+        "CURB65"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2003
+      ]
+    },
+    {
+      "id": "bts-cap",
+      "canonical": "BTS Guidelines for the management of community acquired pneumonia in adults",
+      "aliases": [
+        "BTS community acquired pneumonia",
+        "BTS CAP",
+        "BTS pneumonia"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2001,
+        2004,
+        2009
+      ]
+    },
+    {
+      "id": "idsa-meningitis",
+      "canonical": "Practice Guidelines for the Management of Bacterial Meningitis (IDSA)",
+      "aliases": [
+        "IDSA bacterial meningitis",
+        "IDSA meningitis"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2004,
+        2017
+      ]
+    },
+    {
+      "id": "who-dengue",
+      "canonical": "Dengue: guidelines for diagnosis, treatment, prevention and control (WHO)",
+      "aliases": [
+        "WHO dengue",
+        "WHO dengue guidelines",
+        "WHO SEARO dengue"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2009,
+        2011
+      ]
+    },
+    {
+      "id": "who-snakebite",
+      "canonical": "Guidelines for the management of snakebites (WHO SEARO)",
+      "aliases": [
+        "WHO snakebite",
+        "WHO SEARO snakebite",
+        "Guidelines for the management of snakebites"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2010,
+        2016
+      ]
+    },
+    {
+      "id": "who-hiv",
+      "canonical": "Consolidated guidelines on HIV prevention, testing, treatment, service delivery and monitoring (WHO)",
+      "aliases": [
+        "WHO HIV",
+        "WHO consolidated HIV guidelines",
+        "WHO antiretroviral"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2013,
+        2016,
+        2021
+      ]
+    },
+    {
+      "id": "who-tb",
+      "canonical": "WHO consolidated guidelines on tuberculosis (modules)",
+      "aliases": [
+        "WHO tuberculosis",
+        "WHO TB",
+        "WHO consolidated guidelines on tuberculosis"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        2019,
+        null
+      ]
+    },
+    {
+      "id": "fam-ada",
+      "canonical": "American Diabetes Association (ADA)",
+      "aliases": [
+        "ADA",
+        "American Diabetes Association"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1950,
+        null
+      ]
+    },
+    {
+      "id": "fam-thai-dm",
+      "canonical": "Diabetes Association of Thailand",
+      "aliases": [
+        "Diabetes Association of Thailand",
+        "สมาคมโรคเบาหวานแห่งประเทศไทย"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1990,
+        null
+      ]
+    },
+    {
+      "id": "fam-thai-htn",
+      "canonical": "Thai Hypertension Society",
+      "aliases": [
+        "Thai Hypertension Society",
+        "สมาคมความดันโลหิตสูงแห่งประเทศไทย"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1990,
+        null
+      ]
+    },
+    {
+      "id": "fam-esh",
+      "canonical": "European Society of Hypertension (ESH)",
+      "aliases": [
+        "European Society of Hypertension",
+        "ESH"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1990,
+        null
+      ]
+    },
+    {
+      "id": "fam-asa",
+      "canonical": "American Stroke Association",
+      "aliases": [
+        "American Stroke Association"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1997,
+        null
+      ]
+    },
+    {
+      "id": "fam-rcuk",
+      "canonical": "Resuscitation Council UK",
+      "aliases": [
+        "Resuscitation Council UK"
+      ],
+      "kind": "guideline",
+      "specificity": "family",
+      "year_range": [
+        1985,
+        null
+      ]
+    },
+    {
+      "id": "thai-tb",
+      "canonical": "National Tuberculosis Control Programme Guideline, Thailand",
+      "aliases": [
+        "แนวทางการควบคุมวัณโรคประเทศไทย",
+        "Thai national TB guideline",
+        "National Tuberculosis Control Programme Guideline Thailand"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2018,
+        2021
+      ],
+      "note": "BE 2561, 2564."
+    },
+    {
+      "id": "thai-hiv",
+      "canonical": "Thailand National Guidelines on HIV/AIDS Treatment and Prevention",
+      "aliases": [
+        "Thailand National Guidelines on HIV/AIDS",
+        "Thai national HIV guidelines"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2017
+      ]
+    },
+    {
+      "id": "acog-preeclampsia",
+      "canonical": "ACOG Practice Bulletin: Gestational Hypertension and Preeclampsia",
+      "aliases": [
+        "ACOG Practice Bulletin 222",
+        "ACOG preeclampsia",
+        "ACOG gestational hypertension",
+        "ACOG Practice Bulletin No. 222: Gestational Hypertension and Preeclampsia"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2013,
+        2019,
+        2020
+      ]
+    },
+    {
+      "id": "acog-ectopic",
+      "canonical": "ACOG Practice Bulletin No. 193: Tubal Ectopic Pregnancy",
+      "aliases": [
+        "ACOG ectopic pregnancy",
+        "ACOG Practice Bulletin 193",
+        "ACOG tubal ectopic"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2018
+      ]
+    },
+    {
+      "id": "who-pph",
+      "canonical": "WHO recommendations for the prevention and treatment of postpartum haemorrhage",
+      "aliases": [
+        "WHO postpartum haemorrhage",
+        "WHO postpartum hemorrhage",
+        "WHO PPH"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2012,
+        2017,
+        2018
+      ]
+    },
+    {
+      "id": "who-anc",
+      "canonical": "WHO recommendations on antenatal care for a positive pregnancy experience",
+      "aliases": [
+        "WHO antenatal care"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2016
+      ]
+    },
+    {
+      "id": "who-diarrhoea",
+      "canonical": "The treatment of diarrhoea: a manual for physicians and other senior health workers (WHO)",
+      "aliases": [
+        "WHO diarrhoea",
+        "WHO diarrhea",
+        "WHO treatment of diarrhoea"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2005
+      ]
+    },
+    {
+      "id": "who-pocketbook",
+      "canonical": "Pocket Book of Hospital Care for Children (WHO)",
+      "aliases": [
+        "WHO pocket book",
+        "Pocket Book of Hospital Care for Children"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2005,
+        2013
+      ]
+    },
+    {
+      "id": "aap-febrile-infant",
+      "canonical": "Evaluation and Management of Well-Appearing Febrile Infants 8 to 60 Days Old (AAP)",
+      "aliases": [
+        "AAP febrile infant",
+        "febrile infants 8 to 60 days"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2021
+      ]
+    },
+    {
+      "id": "aap-bronchiolitis",
+      "canonical": "Clinical Practice Guideline: The Diagnosis, Management, and Prevention of Bronchiolitis (AAP)",
+      "aliases": [
+        "AAP bronchiolitis"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2006,
+        2014
+      ]
+    },
+    {
+      "id": "nice-ng143",
+      "canonical": "NICE NG143 Fever in under 5s: assessment and initial management",
+      "aliases": [
+        "NICE NG143",
+        "NICE fever in under 5s",
+        "NICE feverish illness in children"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2013,
+        2019
+      ]
+    },
+    {
+      "id": "nice-ng133",
+      "canonical": "NICE NG133 Hypertension in pregnancy: diagnosis and management",
+      "aliases": [
+        "NICE NG133",
+        "NICE hypertension in pregnancy"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2010,
+        2019
+      ]
+    },
+    {
+      "id": "nice-ng28",
+      "canonical": "NICE NG28 Type 2 diabetes in adults: management",
+      "aliases": [
+        "NICE NG28",
+        "NICE type 2 diabetes"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2015,
+        2022
+      ]
+    },
+    {
+      "id": "nice-ng136",
+      "canonical": "NICE NG136 Hypertension in adults: diagnosis and management",
+      "aliases": [
+        "NICE NG136",
+        "NICE hypertension"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2019,
+        2023
+      ]
+    },
+    {
+      "id": "nice-ng51",
+      "canonical": "NICE NG51 Suspected sepsis: recognition, diagnosis and early management",
+      "aliases": [
+        "NICE NG51",
+        "NICE sepsis"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2016,
+        2024
+      ]
+    },
+    {
+      "id": "nice-cg103",
+      "canonical": "NICE CG103 Delirium: prevention, diagnosis and management",
+      "aliases": [
+        "NICE CG103",
+        "NICE delirium"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2010
+      ]
+    },
+    {
+      "id": "nice-ng222",
+      "canonical": "NICE NG222 Depression in adults: treatment and management",
+      "aliases": [
+        "NICE NG222",
+        "NICE depression",
+        "NICE CG90"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2009,
+        2022
+      ]
+    },
+    {
+      "id": "nice-ng203",
+      "canonical": "NICE NG203 Chronic kidney disease: assessment and management",
+      "aliases": [
+        "NICE NG203",
+        "NICE chronic kidney disease",
+        "NICE CKD"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2021
+      ]
+    },
+    {
+      "id": "nice-ng196",
+      "canonical": "NICE NG196 Atrial fibrillation: diagnosis and management",
+      "aliases": [
+        "NICE NG196",
+        "NICE atrial fibrillation"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2021
+      ]
+    },
+    {
+      "id": "nice-ng106",
+      "canonical": "NICE NG106 Chronic heart failure in adults",
+      "aliases": [
+        "NICE NG106",
+        "NICE heart failure",
+        "NICE chronic heart failure"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2018
+      ]
+    },
+    {
+      "id": "gina",
+      "canonical": "Global Strategy for Asthma Management and Prevention (GINA report)",
+      "aliases": [
+        "GINA",
+        "Global Initiative for Asthma",
+        "Global Strategy for Asthma Management and Prevention"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        1995,
+        2002
+      ],
+      "year_range": [
+        2006,
+        null
+      ],
+      "note": "Updated every year since 2006."
+    },
+    {
+      "id": "gold",
+      "canonical": "Global Strategy for the Diagnosis, Management and Prevention of COPD (GOLD report)",
+      "aliases": [
+        "GOLD",
+        "GOLD COPD",
+        "Global Initiative for Chronic Obstructive Lung Disease",
+        "Global Strategy for the Diagnosis, Management and Prevention of COPD",
+        "Global Strategy for the Diagnosis, Management, and Prevention of Chronic Obstructive Pulmonary Disease"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2001,
+        2006
+      ],
+      "year_range": [
+        2011,
+        null
+      ],
+      "note": "Updated every year since 2011."
+    },
+    {
+      "id": "acg-ugib",
+      "canonical": "ACG Clinical Guideline: Upper Gastrointestinal and Ulcer Bleeding",
+      "aliases": [
+        "ACG upper GI bleeding",
+        "ACG ulcer bleeding",
+        "ACG upper gastrointestinal bleeding"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2012,
+        2021
+      ]
+    },
+    {
+      "id": "esge-nvugib",
+      "canonical": "ESGE Guideline: Endoscopic diagnosis and management of nonvariceal upper gastrointestinal hemorrhage",
+      "aliases": [
+        "ESGE nonvariceal",
+        "ESGE upper gastrointestinal bleeding",
+        "ESGE upper GI bleeding"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2015,
+        2021
+      ]
+    },
+    {
+      "id": "easl-decomp",
+      "canonical": "EASL Clinical Practice Guidelines for the management of patients with decompensated cirrhosis",
+      "aliases": [
+        "EASL decompensated cirrhosis",
+        "EASL cirrhosis",
+        "EASL ascites"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2010,
+        2018
+      ]
+    },
+    {
+      "id": "bsg-ida",
+      "canonical": "British Society of Gastroenterology guidelines for the management of iron deficiency anaemia in adults",
+      "aliases": [
+        "BSG iron deficiency",
+        "British Society of Gastroenterology iron deficiency",
+        "BSG IDA"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2011,
+        2021
+      ]
+    },
+    {
+      "id": "ash-hit",
+      "canonical": "American Society of Hematology 2018 guidelines: heparin-induced thrombocytopenia",
+      "aliases": [
+        "ASH heparin-induced thrombocytopenia",
+        "ASH HIT"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2018
+      ]
+    },
+    {
+      "id": "acr-gout",
+      "canonical": "American College of Rheumatology Guideline for the Management of Gout",
+      "aliases": [
+        "ACR gout",
+        "American College of Rheumatology gout"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2012,
+        2020
+      ]
+    },
+    {
+      "id": "aes-status",
+      "canonical": "Evidence-Based Guideline: Treatment of Convulsive Status Epilepticus (American Epilepsy Society)",
+      "aliases": [
+        "American Epilepsy Society status epilepticus",
+        "AES status epilepticus",
+        "Glauser"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2016
+      ]
+    },
+    {
+      "id": "acp-lbp",
+      "canonical": "Noninvasive Treatments for Acute, Subacute, and Chronic Low Back Pain (ACP)",
+      "aliases": [
+        "ACP low back pain",
+        "American College of Physicians low back pain"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2007,
+        2017
+      ]
+    },
+    {
+      "id": "wses-appendicitis",
+      "canonical": "WSES Jerusalem guidelines on diagnosis and treatment of acute appendicitis",
+      "aliases": [
+        "WSES appendicitis",
+        "Jerusalem guidelines"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2016,
+        2020
+      ]
+    },
+    {
+      "id": "wao-anaphylaxis",
+      "canonical": "World Allergy Organization Anaphylaxis Guidance",
+      "aliases": [
+        "World Allergy Organization anaphylaxis",
+        "WAO anaphylaxis"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2011,
+        2015,
+        2020
+      ]
+    },
+    {
+      "id": "rcuk-anaphylaxis",
+      "canonical": "Emergency treatment of anaphylaxis (Resuscitation Council UK)",
+      "aliases": [
+        "Resuscitation Council UK anaphylaxis",
+        "RCUK anaphylaxis"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2008,
+        2021
+      ]
+    },
+    {
+      "id": "cpic-carbamazepine",
+      "canonical": "CPIC Guideline for HLA Genotype and Use of Carbamazepine and Oxcarbazepine",
+      "aliases": [
+        "CPIC carbamazepine",
+        "CPIC HLA-B"
+      ],
+      "kind": "guideline",
+      "specificity": "document",
+      "years": [
+        2013,
+        2017,
+        2018
+      ]
+    },
+    {
+      "id": "trial-ukpds",
+      "canonical": "UK Prospective Diabetes Study (UKPDS 33/34; 10-year follow-up)",
+      "aliases": [
+        "UKPDS",
+        "UK Prospective Diabetes Study"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        1998,
+        2008
+      ]
+    },
+    {
+      "id": "trial-dcct",
+      "canonical": "Diabetes Control and Complications Trial (DCCT)",
+      "aliases": [
+        "DCCT",
+        "Diabetes Control and Complications Trial"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        1993
+      ]
+    },
+    {
+      "id": "trial-sprint",
+      "canonical": "SPRINT: A Randomized Trial of Intensive versus Standard Blood-Pressure Control",
+      "aliases": [
+        "SPRINT",
+        "SPRINT Research Group"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2015
+      ]
+    },
+    {
+      "id": "trial-empareg",
+      "canonical": "EMPA-REG OUTCOME",
+      "aliases": [
+        "EMPA-REG OUTCOME",
+        "EMPA-REG"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2015
+      ]
+    },
+    {
+      "id": "trial-dapahf",
+      "canonical": "DAPA-HF",
+      "aliases": [
+        "DAPA-HF"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2019
+      ]
+    },
+    {
+      "id": "trial-paradigm",
+      "canonical": "PARADIGM-HF",
+      "aliases": [
+        "PARADIGM-HF"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2014
+      ]
+    },
+    {
+      "id": "trial-dapackd",
+      "canonical": "DAPA-CKD",
+      "aliases": [
+        "DAPA-CKD"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2020
+      ]
+    },
+    {
+      "id": "trial-credence",
+      "canonical": "CREDENCE",
+      "aliases": [
+        "CREDENCE"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2019
+      ]
+    },
+    {
+      "id": "trial-empakidney",
+      "canonical": "EMPA-KIDNEY",
+      "aliases": [
+        "EMPA-KIDNEY"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2022,
+        2023
+      ]
+    },
+    {
+      "id": "trial-rely",
+      "canonical": "RE-LY (dabigatran vs warfarin)",
+      "aliases": [
+        "RE-LY"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2009
+      ]
+    },
+    {
+      "id": "trial-aristotle",
+      "canonical": "ARISTOTLE (apixaban vs warfarin)",
+      "aliases": [
+        "ARISTOTLE"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2011
+      ]
+    },
+    {
+      "id": "trial-rocket",
+      "canonical": "ROCKET AF (rivaroxaban vs warfarin)",
+      "aliases": [
+        "ROCKET AF",
+        "ROCKET-AF"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2011
+      ]
+    },
+    {
+      "id": "trial-isis2",
+      "canonical": "ISIS-2 (streptokinase and aspirin in acute MI)",
+      "aliases": [
+        "ISIS-2",
+        "ISIS 2"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        1988
+      ]
+    },
+    {
+      "id": "trial-ninds",
+      "canonical": "NINDS rt-PA Stroke Study (tissue plasminogen activator for acute ischemic stroke)",
+      "aliases": [
+        "NINDS rt-PA",
+        "NINDS"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        1995
+      ]
+    },
+    {
+      "id": "trial-ecass3",
+      "canonical": "ECASS III (alteplase 3 to 4.5 hours after stroke)",
+      "aliases": [
+        "ECASS III",
+        "ECASS-3",
+        "ECASS 3"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2008
+      ]
+    },
+    {
+      "id": "trial-crash2",
+      "canonical": "CRASH-2 (tranexamic acid in trauma)",
+      "aliases": [
+        "CRASH-2",
+        "CRASH 2"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2010
+      ]
+    },
+    {
+      "id": "trial-woman",
+      "canonical": "WOMAN trial (tranexamic acid in postpartum haemorrhage)",
+      "aliases": [
+        "WOMAN trial",
+        "WOMAN Trial Collaborators"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2017
+      ]
+    },
+    {
+      "id": "trial-ardsnet",
+      "canonical": "ARDSNet ARMA: lower tidal volumes in ALI/ARDS",
+      "aliases": [
+        "ARDSNet",
+        "ARDS Network",
+        "ARMA"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2000
+      ]
+    },
+    {
+      "id": "trial-nicesugar",
+      "canonical": "NICE-SUGAR (intensive vs conventional glucose control in ICU)",
+      "aliases": [
+        "NICE-SUGAR"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2009
+      ]
+    },
+    {
+      "id": "trial-rivers",
+      "canonical": "Early Goal-Directed Therapy in Severe Sepsis and Septic Shock (Rivers et al.)",
+      "aliases": [
+        "Rivers",
+        "early goal-directed therapy"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2001
+      ]
+    },
+    {
+      "id": "trial-process",
+      "canonical": "ProCESS / ARISE / ProMISe (protocolised care in early septic shock)",
+      "aliases": [
+        "ProCESS",
+        "ARISE",
+        "ProMISe"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2014,
+        2015
+      ]
+    },
+    {
+      "id": "trial-magpie",
+      "canonical": "Magpie Trial (magnesium sulphate in pre-eclampsia)",
+      "aliases": [
+        "Magpie Trial",
+        "MAGPIE"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2002
+      ]
+    },
+    {
+      "id": "trial-aspre",
+      "canonical": "ASPRE (aspirin vs placebo in pregnancies at high risk for preterm preeclampsia)",
+      "aliases": [
+        "ASPRE"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2017
+      ]
+    },
+    {
+      "id": "trial-reduce",
+      "canonical": "REDUCE (short-term vs conventional glucocorticoid therapy in COPD exacerbation; Leuschner et al.)",
+      "aliases": [
+        "REDUCE trial",
+        "Leuschner"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2013
+      ]
+    },
+    {
+      "id": "trial-villanueva",
+      "canonical": "Transfusion Strategies for Acute Upper Gastrointestinal Bleeding (Villanueva et al.)",
+      "aliases": [
+        "Villanueva",
+        "Transfusion strategies for acute upper gastrointestinal bleeding"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2013
+      ]
+    },
+    {
+      "id": "trial-sort",
+      "canonical": "Effect of intravenous albumin on renal impairment and mortality in SBP (Sort et al.)",
+      "aliases": [
+        "Sort et al"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        1999
+      ]
+    },
+    {
+      "id": "trial-degans",
+      "canonical": "Dexamethasone in Adults with Bacterial Meningitis (de Gans & van de Beek)",
+      "aliases": [
+        "de Gans"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2002
+      ]
+    },
+    {
+      "id": "trial-bridge",
+      "canonical": "BRIDGE: Perioperative Bridging Anticoagulation in Patients with Atrial Fibrillation",
+      "aliases": [
+        "BRIDGE trial",
+        "BRIDGE Investigators",
+        "Douketis"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2015
+      ]
+    },
+    {
+      "id": "trial-esett",
+      "canonical": "ESETT (Established Status Epilepticus Treatment Trial)",
+      "aliases": [
+        "ESETT",
+        "Established Status Epilepticus Treatment Trial"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2019
+      ]
+    },
+    {
+      "id": "trial-vitamins",
+      "canonical": "VITAMINS (vitamin C, hydrocortisone and thiamine in septic shock)",
+      "aliases": [
+        "VITAMINS trial",
+        "VITAMINS"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2020
+      ]
+    },
+    {
+      "id": "trial-lovit",
+      "canonical": "LOVIT (intravenous vitamin C in adults with sepsis in the ICU)",
+      "aliases": [
+        "LOVIT"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2022
+      ]
+    },
+    {
+      "id": "trial-recovery-dex",
+      "canonical": "RECOVERY: Dexamethasone in Hospitalized Patients with Covid-19",
+      "aliases": [
+        "RECOVERY",
+        "RECOVERY Collaborative Group"
+      ],
+      "kind": "trial",
+      "specificity": "document",
+      "years": [
+        2020,
+        2021
+      ]
+    }
+  ]
+}
