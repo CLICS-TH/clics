@@ -321,7 +321,11 @@ create table public.messages (
   refs              jsonb default '[]'::jsonb,
   socratic_question text,
   token_count       integer default 0,
-  created_at        timestamptz default now()
+  created_at        timestamptz default now(),
+  -- per-turn AI provenance (migration-message-provenance.sql); NULL on physician turns
+  provider          text,
+  model             text,
+  prompt_version    text
 );
 
 -- PIS-7 scored by AI

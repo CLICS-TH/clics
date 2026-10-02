@@ -32,4 +32,13 @@ function promptVersionFor(provider, addendum = PIS7_LOCAL_ADDENDUM) {
   return `${PROMPT_VERSION}+local-${crypto.createHash('sha256').update(addendum).digest('hex').slice(0, 12)}`;
 }
 
-module.exports = { WEIGHTS, modelVersion, PROMPT_VERSION, RUBRIC_VERSION, promptVersionFor };
+// The tutor and discussion prompts are versioned the same way, so a stored message can say which
+// instructions produced it — otherwise a prompt edit is invisible in the transcript record, and a
+// before/after quality comparison (or a local-vs-cloud one) cannot tell its two arms apart.
+// `text` is the exact system prompt sent (chat: the mode's prompt, plus artifact guidance when on),
+// or its fixed base (discuss: the per-episode transcript block is data, not instructions).
+function promptLabel(kind, text) {
+  return `${kind}-prompt-${sha8(text)}`;
+}
+
+module.exports = { WEIGHTS, modelVersion, PROMPT_VERSION, RUBRIC_VERSION, promptVersionFor, promptLabel };

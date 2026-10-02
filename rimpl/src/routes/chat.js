@@ -8,6 +8,7 @@ const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_
 const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply } = require('../services/rescue');
 const { flattenForPrompt, stripArtifactDelimiters } = require('../lib/transcript');
 const { requestSignal } = require('../lib/request-signal');
+const { promptLabel } = require('../lib/versions');
 const { sendAiError, logAiError, isAborted } = require('../lib/ai-errors');
 
 const router = Router();
@@ -237,6 +238,9 @@ router.post('/', async (req, res) => {
       // omitting it under a hybrid would bill on-prem tokens at cloud rates.
       provider,
       model,
+      // Which instructions produced this reply: the hash of the system prompt actually sent on the
+      // returned call (mode prompt, rescue prompt if the rescue took over, plus artifact guidance).
+      prompt_version: promptLabel('chat', systemPrompt),
       // Set only when the primary provider was down and CHAT_FAILOVER_PROVIDER answered instead
       // (services/ai.js; dormant — unset — by default). Null on every ordinary turn. The citation
       // retry above is pinned to `provider`, so the whole turn came from the provider named above.
