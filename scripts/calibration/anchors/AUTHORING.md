@@ -416,6 +416,10 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
    - A panel rating or an uncommitted run cannot slip a change past this, because the lock does not
      depend on any score existing.
    - Fixing a held-out fixture before it is locked is authoring: fix it and record its batch again.
+   - `intake-log.json` is **append-only** against master by the same test pattern: master's entries
+     must be a prefix of the branch's, so an entry can be added but never edited or removed. A
+     hand-written entry for a fixture that never ran intake would otherwise let the writing run lock
+     it, skipping the budget and extra-review gates.
    - The repo has no CODEOWNERS file, so `HELDOUT-LOCK.json` has no owner rule. A PR that changes an
      existing lock entry is a D13 breach by definition, and reviewers should treat it as one.
    **What this means for authoring and screening.** Every anchor, held-out or tuning, is written the
