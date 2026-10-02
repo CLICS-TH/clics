@@ -167,3 +167,18 @@ The caveats above apply here in full, and one more:
 
 So a passing run here is a **directional signal, not a passed gate** — same standing as everything
 else in this directory.
+
+---
+
+# Anchor cohort — `anchors/`
+
+A SYNTHETIC calibration cohort: transcripts written to designed PIS-7 targets that span the whole
+scale, because the real fixtures are too narrow (held-out composites 32–62) for any ICC on them to be
+decisive. The design matrix, authoring spec, pre-registered flag threshold, validator, local-only
+scorer and offline known-groups analysis all live there — start with
+[`anchors/AUTHORING.md`](anchors/AUTHORING.md). Evidence level: **screening-synthetic (AI-authored,
+AI-scored)**, never a substitute for the human gate above.
+
+The 20 pilot anchors (`design.json` `pilot: true`) are **tuning-only**: they are scored and may be
+rewritten before any split is reserved, so no future `anchors/SPLIT-anchors.json` may hold one out
+(`anchor-split.mjs` enforces it, and the test suite checks the file once it exists).

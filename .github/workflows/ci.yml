@@ -114,6 +114,10 @@ jobs:
   # never by a test -- once flipping the contract gate FAIL 50% -> PASS 100% on the same database.
   # The suite runs the real script against a fixture DB through a stubbed supabase client: no
   # network, no paid API, no writes into the committed runs/.
+  # The same job runs the anchor-cohort suite (scripts/calibration/anchors/anchors.test.mjs): the design
+  # matrix must regenerate byte-for-byte from its seed, every committed synthetic fixture must pass
+  # schema / blindness / pii-filter / citation-allowlist checks, and manifest.json must match the files.
+  # Package-free like the rest of this job.
   calibration:
     runs-on: ubuntu-latest
     steps:
@@ -121,7 +125,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Scope-leak regression suite
+      - name: Scope-leak regression suite + anchor cohort checks
         run: npm run test:calibration
 
   # Manuals — the physician + auditor guides are GENERATED from docs/manuals/content/*.md into

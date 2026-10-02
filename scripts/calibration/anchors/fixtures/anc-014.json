@@ -1,0 +1,50 @@
+{
+  "ple_id": "anc-014",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "Man in his 50s admitted to medicine with community-acquired pneumonia. Drinks heavily every day, last drink about 30 hours ago. Known cirrhosis, Child-Pugh B, INR 1.6, albumin 2.8. CIWA-Ar now 14: tremor, sweating, anxious, no hallucinations. My plan is symptom-triggered benzodiazepine rather than a fixed schedule, and lorazepam rather than diazepam because diazepam's long-acting metabolites will accumulate with his liver. What I can't settle: with Child-Pugh B, sedation from accumulation could mask early hepatic encephalopathy. At what point would you abandon symptom-triggered dosing for this man? Give me the reasoning, not just a number."
+    },
+    {
+      "role": "assistant",
+      "content": "Your choice of lorazepam is sound: it is conjugated directly without oxidative metabolism and has no active metabolites, so it is the usual preference in significant liver disease.\n\n- **Symptom-triggered dosing** guided by CIWA-Ar reduces total benzodiazepine exposure compared with fixed schedules, which matters even more when clearance is impaired (Sullivan et al., 1989).\n- **When to move away from it**: if CIWA-Ar stays high despite repeated doses, if he cannot be reliably assessed (e.g. emerging confusion makes the scale invalid), or if nursing assessments cannot be done as often as the protocol requires.\n- **Encephalopathy vs sedation**: check for asterixis and fluctuating attention before each dose; withhold if he is drowsy, regardless of the score.\n- Offer parenteral thiamine to people in acute withdrawal who are malnourished or have decompensated liver disease (NICE, 2010)."
+    },
+    {
+      "role": "physician",
+      "content": "Different question, same patient. The nurses want to give dextrose because his capillary glucose was 68 this morning and he's barely eating. I don't want to delay the glucose - the hypoglycaemia is the more immediate risk - so I'd give IV thiamine at the same time rather than before. He has no ataxia or ophthalmoplegia, but malnutrition plus cirrhosis puts him high on my list for Wernicke's. What parenteral dose would you use here, prophylactic or treatment-level, and where does that dose come from? I'll check it against our formulary before I write it."
+    },
+    {
+      "role": "assistant",
+      "content": "Giving glucose and thiamine together is reasonable; correcting hypoglycaemia should not wait for thiamine.\n\n- Parenteral thiamine is recommended for people at high risk of Wernicke's encephalopathy, including those who are malnourished or have decompensated liver disease (NICE, 2010).\n- Because the classic triad is often incomplete, many protocols treat high-risk patients at treatment-level doses rather than prophylactic doses.\n- Exact regimens differ between institutional protocols and product formulations, so confirming against your formulary is the right step. I am not certain which specific product your hospital stocks."
+    },
+    {
+      "role": "physician",
+      "content": "Day 3 update. He's now disoriented, picking at the sheets, temp 38.4, HR 118, CIWA 20 despite lorazepam. My differential, ranked: (1) delirium tremens - the timing fits; (2) worsening sepsis from the pneumonia; (3) hepatic encephalopathy - less likely, no asterixis and he's on lactulose. I was inclined to label this pure DTs, but the fever makes me move sepsis up, because withdrawal alone shouldn't explain 38.4 with a rising heart rate and a known source. Our unit has no overnight continuous monitoring and one nurse to twelve beds. What would make you escalate him to ICU tonight rather than wait for the morning round?"
+    },
+    {
+      "role": "assistant",
+      "content": "Reconsidering sepsis is appropriate; fever, tachycardia and a known pneumonia mean you should not attribute this to withdrawal alone.\n\n- **Screen for delirium formally**, e.g. with the Confusion Assessment Method, and document it (Inouye et al., 1990).\n- **Escalate to ICU** if he needs escalating or frequent IV benzodiazepine doses, if there is hypotension, rising lactate or new oxygen requirement, or if he cannot be safely observed on the ward.\n- **Sepsis work-up now**: cultures, lactate, repeat chest imaging, and review antibiotics; give fluids and escalate according to the sepsis guidance (Surviving Sepsis Campaign, 2021).\n- With one nurse to twelve patients, the inability to observe him safely is itself an escalation criterion."
+    },
+    {
+      "role": "physician",
+      "content": "Is there a guideline for those ICU criteria?"
+    },
+    {
+      "role": "assistant",
+      "content": "Not a single dedicated one. The escalation points I listed combine general sepsis guidance on recognising deterioration and septic shock (Surviving Sepsis Campaign, 2021) with standard withdrawal management advice that people with delirium tremens or seizures should be managed where they can be closely monitored (NICE, 2010). Most hospitals turn these into local escalation protocols, so it is worth checking whether yours has one for alcohol withdrawal on general wards."
+    },
+    {
+      "role": "physician",
+      "content": "Last thing - relapse prevention before discharge, assuming he gets through this. With Child-Pugh B I'd avoid naltrexone because of hepatotoxicity concerns in decompensated liver disease. Acamprosate is renally cleared, so it hinges on his kidney function once the sepsis settles, and baclofen is the one most often used in cirrhosis but I'm unsure of its evidence base. For this man, which would you rank first, and what would you need to know about him before starting it?"
+    },
+    {
+      "role": "assistant",
+      "content": "Your reasoning on naltrexone is consistent with usual practice in decompensated cirrhosis.\n\n- **Acamprosate**: does not depend on hepatic metabolism, so it is often considered in liver disease; it needs dose adjustment or avoidance in renal impairment, so a stable eGFR after the sepsis resolves is the key prerequisite.\n- **Baclofen**: used in patients with cirrhosis in some centres, but the trial evidence is mixed, and sedation and confusion are concerns after an episode of delirium.\n- **Before starting either**: confirm abstinence goals with him, renal function, and that the delirium has fully cleared.\n- Benzodiazepines should be stopped before discharge rather than continued as maintenance (NICE, 2010).\n\nGiven his recent delirium, many clinicians would favour acamprosate first if his kidneys allow, together with psychosocial support."
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nFor this patient the liver drove almost every choice: lorazepam over diazepam, thiamine at treatment level because cirrhosis and poor intake put him at high risk, and naltrexone off the table for relapse prevention. The fever on day 3 was the point where I stopped calling it withdrawal and treated sepsis as the leading problem."
+    }
+  ]
+}

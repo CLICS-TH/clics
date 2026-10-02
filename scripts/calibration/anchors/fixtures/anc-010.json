@@ -1,0 +1,58 @@
+{
+  "ple_id": "anc-010",
+  "patient_ref": null,
+  "transcript": [
+    {
+      "role": "physician",
+      "content": "หญิงในวัย 80 กว่า จากบ้านพักคนชรา ไข้ 38.6 สับสน BP 88/50 HR 118 lactate 3.8 UA WBC เต็ม CXR ไม่ชัด CKD eGFR 28, HFrEF EF 35% → urosepsis > pneumonia\n30 mL/kg เต็มใน EF 35% ให้หมด หรือ bolus 500 แล้ว reassess? อะไรเป็นตัวตัดสิน"
+    },
+    {
+      "role": "assistant",
+      "content": "เป็นคำถามที่สำคัญมากครับ\n\n- Surviving Sepsis แนะนำ crystalloid อย่างน้อย 30 mL/kg ภายใน 3 ชม. แรกใน sepsis-induced hypoperfusion (Surviving Sepsis Campaign, 2021)\n- ในผู้ป่วย HFrEF ควรให้เป็น bolus เล็กๆ และประเมินซ้ำทุกครั้งด้วย dynamic measures เช่น passive leg raise, capillary refill time, POCUS\n- เป้า MAP ≥ 65 mmHg และให้ antibiotic ภายใน 1 ชม.\n- ติดตาม lactate ซ้ำเพื่อดูการตอบสนอง\n\n❓ จะใช้สัญญาณอะไรบอกว่าถึงจุดที่ควรหยุดให้น้ำและเริ่ม vasopressor ครับ?"
+    },
+    {
+      "role": "physician",
+      "content": "30 mL/kg เป็น weak rec, low-quality evidence — รู้แน่: hypoperfusion ชัด ต้องให้น้ำ; ไม่แน่: ปริมาณที่เหมาะใน EF 35%; ข้อจำกัด: trial เบื้องหลังแทบไม่มี HFrEF รุนแรง\nแผน: 500 mL x2 ดู B-lines/IVC + CRT ทุก bolus ถ้า MAP < 65 หลัง 1 L หรือ B-lines ขึ้น → NE peripheral เลย\nรพ.ชุมชน ไม่มี ICU refer ราว 2 ชม. — peripheral NE ระหว่างรอปลอดภัยแค่ไหน"
+    },
+    {
+      "role": "assistant",
+      "content": "แผนนี้สมเหตุผลครับ\n\n- Surviving Sepsis แนะนำให้เริ่ม vasopressor ทาง peripheral line ได้ แทนการรอ central line เพื่อไม่ให้ล่าช้า (Surviving Sepsis Campaign, 2021)\n- ใช้ IV line ขนาดใหญ่ ตำแหน่งต้นแขน หลีกเลี่ยงข้อพับและหลังมือ\n- ตรวจตำแหน่งให้ยาบ่อยเพื่อดู extravasation และเตรียมแนวทางแก้ไขเมื่อรั่ว\n- ระยะเวลาที่ใช้อย่างปลอดภัยในข้อมูลส่วนใหญ่เป็นช่วงสั้นๆ ไม่กี่ชั่วโมง ซึ่งครอบคลุมช่วงรอ refer\n\n❓ ถ้าหลังเริ่ม norepinephrine แล้ว MAP ยังไม่ถึงเป้า ระหว่างรอ refer จะพิจารณาอะไรเพิ่มครับ?"
+    },
+    {
+      "role": "physician",
+      "content": "ATB: เคยมี ESBL E. coli ใน urine culture ครั้งก่อน, แพ้ penicillin แบบผื่น ไม่ใช่ anaphylaxis, eGFR 28 → ผมจะให้ ertapenem ปรับตามไต\nช่วย argue against carbapenem empiric หน่อย antibiogram ของเราไม่มี และ AI ไม่รู้เชื้อใน รพ. เรา ผมตัดสินเอง"
+    },
+    {
+      "role": "assistant",
+      "content": "ข้อโต้แย้งต่อการใช้ carbapenem ครับ\n\n- เชื้อ ESBL ใน culture ครั้งก่อนอาจเป็น colonisation ไม่จำเป็นต้องเป็นเชื้อก่อโรคครั้งนี้\n- การใช้ carbapenem กว้างเกินจำเป็นเพิ่มแรงกดดันให้เกิด carbapenem-resistant organisms\n- ถ้าได้ผล culture ควร de-escalate ทันที\n\nข้อสนับสนุน:\n- septic shock ที่มีความเสี่ยงเชื้อดื้อยา ควรให้ยาที่ครอบคลุมภายใน 1 ชม. แล้วค่อยปรับลด (Surviving Sepsis Campaign, 2021)\n- ประวัติแพ้ penicillin แบบผื่น มีโอกาสแพ้ข้ามกับ carbapenem ต่ำมาก\n- ertapenem ต้องลดขนาดเมื่อ eGFR < 30\n\n❓ จะเก็บ culture อะไรก่อนให้ยา โดยไม่ให้ antibiotic ล่าช้าครับ?"
+    },
+    {
+      "role": "physician",
+      "content": "ที่ว่าแพ้ข้ามกับ carbapenem ต่ำมาก มาจากคนที่แพ้แบบไหน? ถ้าเป็นคนที่บอกเองว่าแพ้ ใช้กับเคสนี้ได้ ถ้าเป็นคนที่ยืนยันแล้วว่าเป็น IgE-mediated ตัวเลขอาจต่างกัน แยกให้ด้วยว่าส่วนไหนรู้แน่ ส่วนไหนไม่แน่"
+    },
+    {
+      "role": "assistant",
+      "content": "แยกได้ดังนี้ครับ\n\n- **ที่ค่อนข้างแน่**: การแพ้ข้ามระหว่าง penicillin กับ carbapenem พบน้อย ทั้งในผู้ที่รายงานว่าแพ้ และในการศึกษาที่ทดสอบผิวหนังยืนยัน\n- **ที่ยังไม่แน่**: จำนวนผู้ที่ยืนยันว่าเป็น IgE-mediated ในการศึกษามีไม่มาก ช่วงความมั่นใจของตัวเลขจึงกว้าง และข้อมูลในผู้ที่เคยมีปฏิกิริยารุนแรงยังจำกัด\n- **สำหรับเคสนี้**: ประวัติผื่นที่ไม่ใช่ anaphylaxis เป็นกลุ่มเสี่ยงต่ำ การให้ ertapenem พร้อมเฝ้าระวังอาการแพ้จึงสมเหตุผล ไม่ควรเลื่อนยาใน septic shock (Surviving Sepsis Campaign, 2021)\n\n❓ ถ้าระหว่างให้ยาครั้งแรกมีผื่นขึ้น จะตัดสินใจหยุดหรือให้ต่ออย่างไรครับ?"
+    },
+    {
+      "role": "physician",
+      "content": "ญาติไม่ต้องการใส่ท่อช่วยหายใจถ้าแย่ลง แต่รับการรักษาอื่นทั้งหมด bundle ไม่ได้คิดเรื่อง goals of care ผมยังให้ NE และ refer เพราะ shock แก้ได้โดยไม่ต้องใส่ท่อ และ รพ.ศูนย์ ดูแล NE ได้ปลอดภัยกว่า แต่ต้องตกลงให้ชัดว่าปลายทางจะไม่ intubate"
+    },
+    {
+      "role": "assistant",
+      "content": "เห็นด้วยครับ การปฏิเสธการใส่ท่อช่วยหายใจไม่ได้แปลว่าปฏิเสธการรักษาอื่น\n\n- Surviving Sepsis แนะนำให้คุยเรื่องเป้าหมายการรักษากับผู้ป่วยและครอบครัวตั้งแต่เนิ่นๆ (Surviving Sepsis Campaign, 2021)\n- บันทึกขอบเขตการรักษาให้ชัด (ไม่ intubate แต่ให้ vasopressor และ antibiotic) และส่งต่อข้อมูลนี้ไปกับใบ refer\n- แจ้งญาติว่าถ้าอาการแย่ลงแม้ได้การรักษาเต็มที่แล้ว อาจต้องคุยเรื่องการดูแลแบบประคับประคองต่อ\n\n❓ ถ้าระหว่างเดินทาง refer ผู้ป่วยมีภาวะหายใจล้มเหลว ทีมที่ไปกับรถจะทำอะไรตามขอบเขตที่ตกลงไว้ครับ?"
+    },
+    {
+      "role": "physician",
+      "content": "สรุป plan: 500 mL x2 + POCUS, NE peripheral ถ้า MAP < 65, H/C x2 + urine C/S แล้ว ertapenem ปรับไต ภายใน 1 ชม., US ไตหา obstruction, คุยญาติ + บันทึกขอบเขต แล้ว refer มีอะไรที่ผมพลาดไหม"
+    },
+    {
+      "role": "assistant",
+      "content": "แผนครบในประเด็นหลักครับ เพิ่มเติมเล็กน้อย\n\n- **source control**: ถ้า US พบ hydronephrosis จาก obstruction ต้องระบายโดยเร็ว ควรแจ้ง รพ.ปลายทางล่วงหน้า (Surviving Sepsis Campaign, 2021)\n- **lactate ซ้ำ** ภายใน 2–4 ชม. เพื่อดูการตอบสนอง\n- **glucose** และ electrolyte โดยเฉพาะ K ในผู้ป่วย CKD\n- ทบทวนยาเดิม เช่น ยาความดันหรือยาขับปัสสาวะสำหรับหัวใจ ควรงดชั่วคราวระหว่าง shock\n\n❓ ยาเดิมของหัวใจตัวไหนที่จะงด และตัวไหนที่จะเริ่มกลับเมื่อ shock ดีขึ้นครับ?"
+    },
+    {
+      "role": "reflection",
+      "content": "เรียนรู้อะไร / What I learned:\nเดิมผมให้ 30 mL/kg ทุกรายแบบอัตโนมัติ เคสนี้ทำให้เห็นว่าเป็น weak recommendation และใน EF ต่ำต้องให้ทีละ bolus แล้วประเมินด้วย POCUS ทุกครั้ง อีกเรื่องคือ peripheral NE เริ่มได้เลยระหว่างรอ refer ไม่ต้องรอ central line\n\nความไม่แน่นอน / What remains uncertain:\nปริมาณน้ำที่เหมาะสมใน HFrEF ยังไม่มีหลักฐานตรง และข้อมูลการแพ้ข้ามในคนที่ยืนยันว่าแพ้ penicillin แบบ IgE ยังมีน้อย\n\nจะตรวจสอบ/นำไปใช้อย่างไร / How I will verify or apply it:\n(1) audit เวลาจาก triage ถึง antibiotic ของผู้ป่วย sepsis ใน ER เรา 3 เดือนย้อนหลัง (2) ทำ protocol peripheral NE กับพยาบาล ER รวมวิธีจัดการ extravasation (3) ขอทีม lab ทำ antibiogram ของ รพ. เพราะวันนี้ตัดสินใจเรื่อง ESBL โดยไม่มีข้อมูลเชื้อในพื้นที่"
+    }
+  ]
+}
