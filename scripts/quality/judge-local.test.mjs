@@ -2,7 +2,7 @@
 // stub; nothing here touches the network.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync, readdirSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
@@ -12,7 +12,7 @@ import { buildPackets, resultSchema, DIMENSIONS } from './judge-packet.mjs';
 import { mergeJudgements } from './judge-merge.mjs';
 import {
   blindView, buildSystemPrompt, buildUserPrompt, extractJsonObject, validateSchema, toResult, judgePacket,
-  loadJudgeInputs, JUDGE_ID, JUDGE_KIND,
+  loadJudgeInputs, JUDGE_ID, JUDGE_KIND, resumeConflicts, systemPromptSha,
 } from './judge-local.mjs';
 import { ITEM_TH_EXAMINER, ITEM_EN_NATURAL, ITEM_RESCUE, ITEM_PII, GOOD_TH_EXAMINER, entryFor, reportFor } from './test-fixtures.mjs';
 
@@ -179,4 +179,54 @@ test('runner inputs: reads the four judge-facing files only; CLI dry run sends n
   const live = spawnSync(process.execPath, [path.join(HERE, 'judge-local.mjs'), dir, '--limit', '1'], { encoding: 'utf8', env, timeout: 30000 });
   assert.notEqual(live.status, 0, 'without LOCAL_AI_BASE_URL it refuses before sending anything');
   assert.match(live.stderr, /LOCAL_AI_BASE_URL/);
+});
+
+test('a draft verdict inside the reasoning is never picked: everything up to the LAST </think> is dropped', () => {
+  // The review case: no opening tag, a draft object, then the closing tag and the real answer.
+  assert.deepEqual(extractJsonObject('Draft {"preference":"A"} … </think> {"preference":"B"}'), { ok: true, value: { preference: 'B' } });
+  assert.deepEqual(extractJsonObject('<think>{"v":1}</think> x <think>{"v":2}</think>\n{"v":3}'), { ok: true, value: { v: 3 } });
+  // Reasoning cut off mid-way (unclosed <think>): what follows it is not an answer.
+  assert.deepEqual(extractJsonObject('{"v":1}\n<think>maybe {"v":2}'), { ok: true, value: { v: 1 } });
+  assert.equal(extractJsonObject('<think>only a draft {"v":2}').ok, false);
+});
+
+test('--resume refuses when the earlier run used another model or system prompt; a matching v1 meta resumes', () => {
+  assert.deepEqual(resumeConflicts({ model_requested: 'm', system_prompt_sha: 'abc' }, { model_requested: 'm', system_prompt_sha: 'abc' }), []);
+  assert.equal(resumeConflicts({ model_requested: 'm1', system_prompt_sha: 'abc' }, { model_requested: 'm2', system_prompt_sha: 'abc' }).length, 1);
+  assert.match(resumeConflicts({ system_prompt_sha: 'abc' }, { model_requested: 'm', system_prompt_sha: 'def' })[0], /system_prompt_sha/);
+  assert.deepEqual(resumeConflicts({}, { model_requested: 'm', system_prompt_sha: 'x' }), [], 'fields the earlier meta lacks are not compared');
+
+  const dir = mkdtempSync(path.join(tmpdir(), 'judge-local-resume-'));
+  writeFileSync(path.join(dir, 'packets.jsonl'), packets.map((p) => JSON.stringify(p)).join('\n') + '\n');
+  writeFileSync(path.join(dir, 'rubric.md'), RUBRIC);
+  writeFileSync(path.join(dir, 'results.schema.json'), JSON.stringify(schema));
+  writeFileSync(path.join(dir, 'JUDGE-INSTRUCTIONS.md'), '# Judge instructions\n');
+  const out = path.join(dir, 'results-local.jsonl');
+  writeFileSync(out, JSON.stringify({ packet_id: packets[0].packet_id }) + '\n');
+  const sha = systemPromptSha(buildSystemPrompt({ instructions: '# Judge instructions\n', rubric: RUBRIC, schema }));
+  // The v1 meta exactly as a finished run writes it (the format of the run in progress on the box).
+  const v1 = (model, sysSha) => JSON.stringify({
+    schema: 'clics-tutor-judge-local-run/v1', started_at: '2026-10-02T06:48:05.538Z', judge_id: 'judge-local', judge_kind: 'local-model',
+    model_requested: model, endpoint: 'LOCAL_AI_BASE_URL (not recorded)', system_prompt_sha: sysSha, rubric_version: 'rubric-t',
+    max_tokens: 4000, temperature: 0, concurrency: 2, finished_at: '2026-10-02T06:49:01.937Z', models_reported: [model],
+    counts: { valid: 1, 'valid-after-retry': 0, invalid: 0, 'transport-error': 0 },
+  });
+  // --limit 0: even if the guard failed, no packet would be sent. The URL is a closed loopback port.
+  const env = { PATH: process.env.PATH, LOCAL_AI_BASE_URL: 'http://127.0.0.1:9/v1', LOCAL_AI_MODEL: 'model-now' };
+  const resume = () => spawnSync(process.execPath, [path.join(HERE, 'judge-local.mjs'), dir, '--resume', '--limit', '0'], { encoding: 'utf8', env, timeout: 30000 });
+
+  writeFileSync(`${out}.meta.json`, v1('model-before', sha));
+  const m = resume();
+  assert.notEqual(m.status, 0);
+  assert.match(m.stderr, /--resume refused[\s\S]*model_requested: earlier run "model-before", this run "model-now"/);
+
+  writeFileSync(`${out}.meta.json`, v1('model-now', 'aaaaaaaaaaaa'));
+  const p = resume();
+  assert.notEqual(p.status, 0);
+  assert.match(p.stderr, /system_prompt_sha/);
+
+  writeFileSync(`${out}.meta.json`, v1('model-now', sha));
+  const okRun = resume();
+  assert.equal(okRun.status, 0, okRun.stderr);
+  assert.equal(JSON.parse(readFileSync(`${out}.meta.json`, 'utf8')).system_prompt_sha, sha);
 });

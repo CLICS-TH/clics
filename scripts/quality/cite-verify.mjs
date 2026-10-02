@@ -368,10 +368,23 @@ export const WORDS_MAX_HITS = MAX_HITS; // kept for callers and tests that name 
 // Document-type words that may follow an organisation's name without identifying a document.
 const DOC_TYPE_SUFFIX = /\s+(?:clinical\s+practice\s+(?:guidelines?|update)|clinical\s+policy|boxed\s+warning|guidelines?|statement|report)\s*$/i;
 // The nouns organisations are named with. The whole name must be an organisation name built on one.
-const ORG_NOUN = '(?:Society|Association|Academy|College|Institute|Institutes|Organi[sz]ation|Council|Federation|Foundation|Centers?|Centres?|Agency|Administration|Board|Committee|Consortium|Network|Ministry|Department)';
+const ORG_NOUN = '(?:Society|Societies|Association|Academy|College|Institute|Institutes|Organi[sz]ation|Council|Federation|Foundation|Centers?|Centres?|Agency|Administration|Board|Committee|Consortium|Network|Ministry|Department)';
+// Hyphens, en dashes and em dashes may join words inside a body's name ("American Academy of
+// Otolaryngology–Head and Neck Surgery"), or stand alone between them.
 const ORG_NAME = new RegExp(
-  `^(?:the\\s+)?(?:[A-Z][\\w'’&.-]*\\s+){0,6}${ORG_NOUN}` +
-  `(?:\\s+(?:of|for|on)\\s+(?:(?:[A-Z][\\w'’-]*|and|&|the|of)\\s*){1,8})?$`);
+  `^(?:the\\s+)?(?:[A-Z][\\w'’&.\\-–—]*\\s+){0,6}${ORG_NOUN}` +
+  `(?:\\s+(?:of|for|on)\\s+(?:(?:[A-Z][\\w'’\\-–—]*|[-–—]|and|&|the|of)\\s*){1,8})?$`);
+
+/** One body's name, or two bodies joined by "and" / "&" ("Society of Critical Care Medicine and
+ *  European Society of Intensive Care Medicine"). The whole string is tried first, so an "and"
+ *  inside one body ("Centers for Disease Control and Prevention") never needs a split. */
+function isOrgName(s) {
+  if (ORG_NAME.test(s)) return true;
+  for (const m of s.matchAll(/\s+(?:and|&)\s+/g)) {
+    if (ORG_NAME.test(s.slice(0, m.index)) && ORG_NAME.test(s.slice(m.index + m[0].length))) return true;
+  }
+  return false;
+}
 const ACRONYM_TOKEN = /^[A-Z][A-Z0-9&-]*[A-Z0-9]$/;
 
 /**
@@ -388,7 +401,7 @@ export function organisationOnly(name) {
   if (!stripped) return null;
   const parts = stripped.split(/[\s/]+/).filter(Boolean);
   if (parts.length <= 3 && parts.every((t) => ACRONYM_TOKEN.test(t))) return hadDocType ? 'organisation' : 'bare-acronym';
-  if (ORG_NAME.test(stripped)) return 'organisation';
+  if (isOrgName(stripped)) return 'organisation';
   return null;
 }
 
