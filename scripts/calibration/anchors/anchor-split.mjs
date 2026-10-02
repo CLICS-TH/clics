@@ -8,10 +8,28 @@
 // appear in held_out. checkSplit() enforces it; anchors.test.mjs runs checkSplit on the committed
 // SPLIT-anchors.json the moment one is added.
 //
+// RESERVED BY DESIGN ID, BEFORE ANY NON-PILOT FIXTURE EXISTS (2026-10-02). scripts/probe/reserve-split.mjs
+// reserves over fixture files and records their sha256 — here that would mean writing the anchors first,
+// and authoring is exactly the step the split must precede. So the reservation is over design.json ids
+// (the targets are fixed there, seeded), and records design.json's sha256 instead. Fixture bytes are
+// bound later, at first scoring: anchors.test.mjs fails if a held-out fixture that any run in runs/ has
+// scored no longer has the bytes that run scored (held-out anchors are never rewritten after a score).
+//
+//   node scripts/calibration/anchors/anchor-split.mjs --reserve --seed 20261005 --held-out 40
+//
+// Method: the eligible ids (non-pilot, active), sorted by target composite, are cut into consecutive
+// strata of (eligible / held-out) ids; one id per stratum is drawn with a seeded RNG. So held-out spans
+// the whole designed range by construction — the probe's held-out spanned only 32–62 against tuning's
+// 34–89 (G0.5), and no agreement statistic on a range that narrow can be decisive. Refuses to
+// overwrite SPLIT-anchors.json: to change it, delete it in a commit that says why.
+//
 // Package-free.
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile, access } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { rng, DESIGN_PATH } from './design.mjs';
 
 export const SPLIT_ANCHORS_PATH = path.join(path.dirname(fileURLToPath(import.meta.url)), 'SPLIT-anchors.json');
 export const SPLIT_NAMES = ['tuning', 'heldout'];
@@ -59,5 +77,62 @@ export function splitFilter(design, split, name) {
   if (errs.length) throw new Error(`SPLIT-anchors.json is invalid:\n  - ${errs.join('\n  - ')}`);
   if (!name) throw new Error(`SPLIT-anchors.json exists; name --split ${SPLIT_NAMES.join('|')} (analysing all anchors would fold held-out into tuning)`);
   if (!SPLIT_NAMES.includes(name)) throw new Error(`--split must be ${SPLIT_NAMES.join('|')} (got ${name})`);
-  return new Set(name === 'heldout' ? split.held_out : split.tuning);
+  // A §7.4 replacement made after the reservation inherits the split of the anchor it replaces.
+  const members = new Set(name === 'heldout' ? split.held_out : split.tuning);
+  for (const a of design.anchors) if (a.replaces && members.has(a.replaces)) members.add(a.id);
+  return members;
+}
+
+/**
+ * Reserve held-out by design id. Pure: design in, {held_out, tuning} out.
+ * @param {{seed: number, heldOut: number}} opts
+ */
+export function reserveByDesign(design, { seed, heldOut }) {
+  if (!Number.isInteger(seed)) throw new Error('seed must be an integer');
+  const eligible = design.anchors.filter((a) => !a.pilot && !a.excluded)
+    .sort((x, y) => (x.target_composite - y.target_composite) || x.id.localeCompare(y.id));
+  if (!Number.isInteger(heldOut) || heldOut < 2 || heldOut > eligible.length - 2) throw new Error(`held-out must be 2..${eligible.length - 2}`);
+  const R = rng(seed);
+  const held = [];
+  for (let k = 0; k < heldOut; k++) {
+    const lo = Math.floor((k * eligible.length) / heldOut);
+    const hi = Math.floor(((k + 1) * eligible.length) / heldOut);
+    held.push(eligible[lo + Math.floor(R.next() * (hi - lo))].id);
+  }
+  const heldSet = new Set(held);
+  const tuning = design.anchors.filter((a) => !a.excluded && !heldSet.has(a.id)).map((a) => a.id);
+  return { held_out: [...heldSet].sort(), tuning: tuning.sort() };
+}
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  const argv = process.argv.slice(2);
+  const num = (k) => { const i = argv.indexOf(`--${k}`); return i > -1 ? Number(argv[i + 1]) : NaN; };
+  if (!argv.includes('--reserve')) { console.error('usage: anchor-split.mjs --reserve --seed <int> --held-out <n>'); process.exit(2); }
+  try { await access(SPLIT_ANCHORS_PATH); console.error(`✖ ${SPLIT_ANCHORS_PATH} exists — the split is reserved and is never overwritten (D13). Delete it in a commit that says why.`); process.exit(1); }
+  catch (e) { if (e.code !== 'ENOENT') throw e; }
+  const seed = num('seed'), heldOut = num('held-out');
+  const bytes = await readFile(DESIGN_PATH);
+  const design = JSON.parse(bytes.toString('utf8'));
+  const { held_out, tuning } = reserveByDesign(design, { seed, heldOut });
+  const errs = checkSplit(design, { held_out, tuning });
+  if (errs.length) { console.error(`✖ ${errs.join('\n  ')}`); process.exit(1); }
+  let git_head = null; try { git_head = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim(); } catch { /* not in git */ }
+  const comp = (ids) => ids.map((id) => design.anchors.find((a) => a.id === id).target_composite);
+  const record = {
+    reserved_at: new Date().toISOString(),
+    git_head,
+    seed,
+    method: 'by DESIGN id, before any non-pilot fixture exists: eligible = non-pilot active anchors sorted by target composite, cut into held-out-many consecutive strata, one id drawn per stratum (design.mjs rng / mulberry32). Pilot and §7.4 replacements of tuning anchors are tuning.',
+    design_sha256: createHash('sha256').update(bytes).digest('hex'),
+    note: 'Held-out anchors are never rewritten on the strength of any AI or panel score (AUTHORING.md §7.5). Fixture bytes are bound at first scoring (anchors.test.mjs).',
+    held_out,
+    tuning,
+  };
+  await writeFile(SPLIT_ANCHORS_PATH, JSON.stringify(record, null, 2) + '\n');
+  const rng_ = (xs) => `${Math.min(...xs)}–${Math.max(...xs)}`;
+  console.log(`held-out (${held_out.length}) composites ${rng_(comp(held_out))}: ${held_out.join(' ')}`);
+  console.log(`tuning   (${tuning.length}) composites ${rng_(comp(tuning))}`);
+  console.log(`seed ${seed} · design ${record.design_sha256.slice(0, 12)} · head ${git_head ?? '(none)'}`);
+  console.log('Commit SPLIT-anchors.json now, before any authoring or screening.');
 }

@@ -20,7 +20,7 @@ import {
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
 import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, freezeApplies, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
-import { checkSplit, splitFilter, heldOutEligible, loadAnchorSplit } from './anchor-split.mjs';
+import { checkSplit, splitFilter, heldOutEligible, loadAnchorSplit, reserveByDesign } from './anchor-split.mjs';
 import {
   knownGroups, normaliseScores, parseThreshold, loadThreshold, spearman, wilson, EVIDENCE_LEVEL,
 } from './known-groups.mjs';
@@ -524,6 +524,51 @@ describe('anchor-split.mjs — the pilot is tuning-only', () => {
   test('the committed SPLIT-anchors.json, once it exists, never holds out a pilot anchor', async () => {
     const split = await loadAnchorSplit();
     if (split) assert.deepEqual(checkSplit(design, split), []);
+  });
+
+  test('SPLIT-anchors.json is reserved by design id, reproducibly, and spans the designed range', async () => {
+    const split = await loadAnchorSplit();
+    assert.ok(split, 'SPLIT-anchors.json must exist before any non-pilot anchor is authored (D13)');
+    // Reproducible from the seed over the GENERATED design (before any later §7.4 replacement).
+    const again = reserveByDesign(generateDesign({ replacements: [] }), { seed: split.seed, heldOut: split.held_out.length });
+    assert.deepEqual(again.held_out, split.held_out);
+    const comp = (ids) => ids.map((id) => design.anchors.find((a) => a.id === id).target_composite);
+    const h = comp(split.held_out), t = comp(split.tuning.filter((id) => !design.anchors.find((a) => a.id === id).pilot));
+    // Stratified: held-out reaches both ends of the range, unlike the probe's 32-62 (G0.5).
+    assert.ok(Math.min(...h) <= 20 && Math.max(...h) >= 90, `held-out range ${Math.min(...h)}-${Math.max(...h)}`);
+    const mean = (xs) => xs.reduce((x, y) => x + y, 0) / xs.length;
+    assert.ok(Math.abs(mean(h) - mean(t)) < 5, `held-out mean ${mean(h)} vs tuning ${mean(t)}`);
+    // Every active anchor is in exactly one split.
+    const all = new Set([...split.held_out, ...split.tuning]);
+    for (const a of activeAnchors(design)) assert.ok(all.has(a.id), `${a.id} is in neither split`);
+  });
+
+  test('reserveByDesign never holds out a pilot or excluded anchor, and depends on the seed', () => {
+    const r = reserveByDesign(design, { seed: 7, heldOut: 40 });
+    assert.deepEqual(checkSplit(design, r), []);
+    assert.notDeepEqual(r.held_out, reserveByDesign(design, { seed: 8, heldOut: 40 }).held_out);
+    assert.throws(() => reserveByDesign(design, { seed: 7, heldOut: 79 }), /held-out must be/);
+  });
+
+  test('a §7.4 replacement inherits the split of the anchor it replaces', () => {
+    const d = { anchors: [...design.anchors, { id: 'anc-999', replaces: 'anc-051' }] };
+    const sp = { held_out: ['anc-050'], tuning: ['anc-051'] };
+    assert.ok(splitFilter(d, sp, 'tuning').has('anc-999'));
+    assert.ok(!splitFilter(d, sp, 'heldout').has('anc-999'));
+  });
+
+  test('held-out fixtures are bound at first scoring: a scored held-out text is never changed', async () => {
+    const split = await loadAnchorSplit();
+    const held = new Set(split?.held_out ?? []);
+    const manifest = JSON.parse(await readFile(MANIFEST_PATH, 'utf8'));
+    const runsDir = path.join(HERE, 'runs');
+    for (const f of (await readdir(runsDir)).filter((x) => x.endsWith('.json'))) {
+      const doc = JSON.parse(await readFile(path.join(runsDir, f), 'utf8'));
+      for (const [id, sha] of Object.entries(doc?.fixtures ?? {})) {
+        if (!held.has(id)) continue;
+        assert.equal(manifest.fixtures?.[id]?.sha256, sha, `${id} is held-out and was scored in runs/${f}; its fixture changed after that score`);
+      }
+    }
   });
 });
 

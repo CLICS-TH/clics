@@ -367,7 +367,22 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
    split exists, so none may ever be held out. `anchor-split.mjs` `checkSplit` rejects a split that
    holds one out, `heldOutEligible` excludes them, and `anchors.test.mjs` checks the committed
    `SPLIT-anchors.json` as soon as it exists. Once it exists, `known-groups.mjs` requires
-   `--split tuning|heldout`.
+   `--split tuning|heldout` (`--pilot` implies `tuning`, since the pilot is tuning-only).
+   *Reserved 2026-10-02, before any non-pilot anchor was authored or screened* (D13):
+   `anchor-split.mjs --reserve --seed 20261005 --held-out 40`. **40 held-out, 60 tuning** (the 20
+   pilot anchors plus 40 new). The split is reserved **by design id**, not by fixture: the probe's
+   `reserve-split.mjs` hashes fixture files, which here would mean writing the anchors before
+   reserving, and authoring is the step the split must precede. Held-out is stratified over the
+   designed composite, so it spans the whole range (17–93), unlike the probe's held-out (32–62).
+   Fixture bytes are bound at first scoring: `anchors.test.mjs` fails if a held-out fixture that any
+   run in `runs/` scored no longer has the bytes that run scored.
+   **What this means for authoring and screening.** Every anchor, held-out or tuning, is written the
+   same way and must pass `validate.mjs` (PII, schema, citations, cue gate) before any scoring. Fixing
+   a validator failure before the first score is authoring, not tuning. From the first AI score or
+   blind-panel rating on, the **blind-panel rewrite rule (§7 amendment, item 2) applies to TUNING
+   anchors only**. A held-out anchor is never rewritten on the strength of a panel or AI score, and
+   never excluded or replaced under §7.4. Its panel and evaluator flags are reported as results. The
+   batch plan and the author brief never tell an author which split an anchor is in.
 6. **Proceeding.** The pilot is acceptable for scaling to the full cohort if no more than 4 of 20
    anchors (20%) **do not express their target** after the single rewrite round. Otherwise this spec
    is revised first. An anchor that never received a valid score (every run failed production's

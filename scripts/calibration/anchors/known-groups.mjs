@@ -5,7 +5,7 @@
  *
  *   node scripts/calibration/anchors/known-groups.mjs <scores.json> [--pilot] [--arm local|cloud] [--out report.json]
  *     --pilot   restrict the designed set to the 20 pilot anchors (so n_missing means something)
- *     --split tuning|heldout   restrict to one half of SPLIT-anchors.json; REQUIRED once that file
+ *     --split tuning|heldout   restrict to one half of SPLIT-anchors.json (--pilot implies tuning); REQUIRED once that file
  *               exists (anchor-split.mjs). The pilot is tuning-only and never in held-out.
  *     --include-excluded   REPRODUCE a historical run: analyse the design as it stood before any §7.4
  *               replacement (excluded anchors back in, their replacements out). For the record only —
@@ -330,7 +330,9 @@ if (isMain) {
   const threshold = await loadThreshold();
   const only = arg('only') ? String(arg('only')).split(',').map((s) => s.trim()).filter(Boolean) : null;
   let allowedIds;
-  try { allowedIds = splitFilter(design, await loadAnchorSplit(), arg('split')); }
+  // The pilot is tuning-only (checkSplit enforces it), so --pilot names its split unambiguously.
+  const splitName = arg('split') ?? (argv.includes('--pilot') ? 'tuning' : null);
+  try { allowedIds = splitFilter(design, await loadAnchorSplit(), splitName); }
   catch (e) { console.error(`✖ ${e.message}`); process.exit(2); }
   const fixtureShas = doc && !Array.isArray(doc) && doc.fixtures && typeof doc.fixtures === 'object' ? doc.fixtures : null;
   const includeExcluded = argv.includes('--include-excluded');
