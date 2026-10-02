@@ -592,6 +592,29 @@ The rule from now on:
       held to the bin only, because their held-out anchors are locked and their tuning anchors have
       used their rewrites.
     - anc-102 and the anc-024 rewrite went through intake after the rule and met their targets.
+14. **Batches 6–7 panel (2026-10-02).** The panel rated the 6 tuning anchors (first write) among 2
+    unchanged pilot decoys (`pilot/batch-6-7/`).
+    - anc-030 +3, anc-039 −4, anc-051 −4, anc-086 +3 and anc-093 +11 stay.
+    - anc-082 is +19 and uses its one rewrite. d2 (target 3) read 5; d3, d4 and d7 read about a
+      level high.
+    - Mean Δ +4.5, against +13.5 for batch 1 and +9 for batch 3's first writes: the brief lessons are
+      landing.
+    - Decoys: anc-017 −1. anc-013 +15, inside its earlier range (its composite has read high since
+      the pilot).
+    - **Finding, not a rule change: the panel lifts a LOW dissociated domain.** On the latest
+      rating of every dissociated anchor rated so far, the dissociated domain reads as follows:
+      - Targeted **low** beside high ones: read **+1.6 levels** on average, with 10 of 11 lifted by
+        1–3 levels. For anc-013, d2 = 1 has been read 3–4 by every rater in every round since the
+        pilot.
+      - Targeted **high** beside low ones: read about right, −0.4 (n = 5).
+    - One domain at 15–20% weight lifted by 1.6 levels moves the composite only about 5 points, so the
+      ±15 rule never sees it.
+    - A Claude panel cannot tell whether the authors fail to write the absence or the raters read
+      the high domains into the low one (item 10). Either way, **the panel does not confirm the
+      low side of dissociated anchors.** Per-domain known-groups results for those domains rest on
+      the design targets alone until human raters adjudicate them.
+    - No domain-level rewrite trigger was added. One chosen after seeing these numbers would be a
+      post-hoc rule, and it would fit the cohort further to Claude's reading.
 
 ## 8. Pipeline and commands
 
