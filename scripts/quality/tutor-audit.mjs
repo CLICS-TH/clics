@@ -36,7 +36,13 @@
 //                           output tokens of every call (first + retry) at the given prices; once it
 //                           reaches <x>, no further item starts. Calls already in flight finish, so the
 //                           overshoot is at most --concurrency items (each ≤ 2 calls). Prices are
-//                           flags, not a table here, so they are read off the price list on the day.
+//                           flags, not a table here, so they are read off the price list on the day;
+//                           each must lie in 0.05–200 USD per MILLION tokens (a per-1k-token figure
+//                           falls outside it), and output must not be cheaper than input.
+//                           With --resume, the tokens of a failed item's earlier attempt are carried
+//                           forward (`replaced_attempts_tokens`) and counted. Not counted: a call that
+//                           failed in transport (an HTTP error or timeout records no usage), so the
+//                           figure can sit slightly below the invoice.
 //   PROBE_TIMEOUT_MS (default 180000) bounds each call.
 //
 // Output: scripts/quality/report/<label>.json — synthetic questions + verbatim replies, safe to keep.
@@ -220,16 +226,37 @@ export function spendOf(items, { inPerMtok, outPerMtok }) {
   return { in_tokens: inTok, out_tokens: outTok, usd: (inTok * inPerMtok + outTok * outPerMtok) / 1e6 };
 }
 
+/** On --resume: tokens billed to attempts that are about to be replaced (failed items), plus any the
+ *  prior report already carried. Counted by the spend ceiling so a re-run cannot hide them. */
+export function carriedTokens(prior) {
+  const now = spendOf((prior?.items ?? []).filter((e) => !e.final?.ok), { inPerMtok: 0, outPerMtok: 0 });
+  return {
+    in_tokens: (prior?.replaced_attempts_tokens?.in_tokens ?? 0) + now.in_tokens,
+    out_tokens: (prior?.replaced_attempts_tokens?.out_tokens ?? 0) + now.out_tokens,
+  };
+}
+
+// Sanity band for a per-MILLION-token price. A zero price would make every call free and the ceiling
+// unreachable; a per-1k-token figure typed by mistake (e.g. 0.003) falls below the band.
+export const PRICE_BAND_USD_PER_MTOK = [0.05, 200];
+
 /** --max-usd and its two prices, validated. null when no ceiling was asked for. */
 export function budgetFromFlags(flags) {
   if (flags['max-usd'] === undefined) return null;
   const maxUsd = floatArg(flags, 'max-usd', NaN);
   const inPerMtok = floatArg(flags, 'usd-per-mtok-in', NaN);
   const outPerMtok = floatArg(flags, 'usd-per-mtok-out', NaN);
+  const [lo, hi] = PRICE_BAND_USD_PER_MTOK;
   if (!(maxUsd > 0)) fail('--max-usd must be a positive number of US dollars');
-  if (!(inPerMtok >= 0) || !(outPerMtok >= 0)) {
+  if (Number.isNaN(inPerMtok) || Number.isNaN(outPerMtok)) {
     fail('--max-usd needs the prices it converts tokens with: --usd-per-mtok-in <p> --usd-per-mtok-out <q> (USD per million tokens, from the price list on the day)');
   }
+  for (const [name, v] of [['usd-per-mtok-in', inPerMtok], ['usd-per-mtok-out', outPerMtok]]) {
+    if (!(v >= lo && v <= hi)) {
+      fail(`--${name} ${v} is outside the sanity band ${lo}–${hi} USD per MILLION tokens. A zero price disables the ceiling; a figure per 1k tokens is 1000× too small.`);
+    }
+  }
+  if (outPerMtok < inPerMtok) fail(`--usd-per-mtok-out (${outPerMtok}) is below --usd-per-mtok-in (${inPerMtok}); output tokens are never the cheaper side — are the two swapped?`);
   return { maxUsd, inPerMtok, outPerMtok };
 }
 
@@ -346,6 +373,9 @@ async function main() {
   }
   const done = new Map((prior?.items ?? []).filter((e) => e.final?.ok).map((e) => [e.id, e]));
   const todo = items.filter((it) => !done.has(it.id));
+  // A failed item is re-run and its entry replaced; the tokens its earlier attempt was billed for are
+  // carried forward here so the spend figure still counts them.
+  const replaced = carriedTokens(prior);
 
   const report = {
     schema: REPORT_SCHEMA,
@@ -367,6 +397,7 @@ async function main() {
       synthetic: 'every question, case and identifier is invented — replies are safe to store',
     },
     composition: composition(items),
+    ...(replaced.in_tokens || replaced.out_tokens ? { replaced_attempts_tokens: replaced } : {}),
     items: [...done.values()],
   };
 
@@ -375,14 +406,20 @@ async function main() {
 
   let finished = 0;
   const order = new Map(items.map((it, i) => [it.id, i]));
-  const spendNow = () => (budget ? spendOf(report.items, budget) : null);
+  const spendNow = () => {
+    if (!budget) return null;
+    const s = spendOf(report.items, budget);
+    const inTok = s.in_tokens + replaced.in_tokens;
+    const outTok = s.out_tokens + replaced.out_tokens;
+    return { in_tokens: inTok, out_tokens: outTok, usd: (inTok * budget.inPerMtok + outTok * budget.outPerMtok) / 1e6 };
+  };
   const recordSpend = (stoppedEarly) => {
     if (!budget) return;
     const s = spendNow();
     report.spend = {
       max_usd: budget.maxUsd, usd_per_mtok_in: budget.inPerMtok, usd_per_mtok_out: budget.outPerMtok,
       in_tokens: s.in_tokens, out_tokens: s.out_tokens, usd: Number(s.usd.toFixed(4)), stopped_early: stoppedEarly,
-      note: 'recorded tokens of every call (first + retry) at the given prices — an estimate, not the invoice',
+      note: 'recorded tokens of every call (first + retry, plus replaced failed attempts) at the given prices — an estimate, not the invoice; transport-failed calls record no usage',
     };
   };
   const save = () => {

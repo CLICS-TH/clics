@@ -16,7 +16,7 @@ import {
 import {
   RIMPL_FILES, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE, promptLabel,
 } from './rimpl.mjs';
-import { runItem, makeAnthropicArm, productionAnthropicModel, spendOf, runQueue } from './tutor-audit.mjs';
+import { runItem, makeAnthropicArm, productionAnthropicModel, spendOf, runQueue, carriedTokens } from './tutor-audit.mjs';
 import { ITEM_TH_EXAMINER, ITEM_EN_NATURAL, ITEM_RESCUE, ITEM_PII, GOOD_TH_EXAMINER } from './test-fixtures.mjs';
 
 const require = createRequire(import.meta.url);
@@ -301,6 +301,33 @@ test('CLI: the paid arm refuses without a spend ceiling, and the ceiling refuses
   const noPrice = run(['--arm', 'anthropic', '--allow-paid', '--limit', '1', '--max-usd', '1.5']);
   assert.notEqual(noPrice.status, 0);
   assert.match(noPrice.stderr, /usd-per-mtok-in/);
-  // Both refusals come before the API-key check: nothing could have been sent.
-  assert.doesNotMatch(noCap.stderr + noPrice.stderr, /ANTHROPIC_API_KEY/);
+  // Prices that would disable or distort the ceiling: zero, per-1k-token slips, absurdly high, swapped.
+  const bad = [
+    [['0', '0'], /sanity band 0\.05–200/],
+    [['3', '0'], /usd-per-mtok-out 0 is outside the sanity band/],
+    [['0.003', '0.015'], /sanity band 0\.05–200 USD per MILLION/],
+    [['3', '15000'], /outside the sanity band/],
+    [['15', '3'], /below --usd-per-mtok-in.*swapped/],
+  ];
+  const outs = [noCap.stderr, noPrice.stderr];
+  for (const [[pin, pout], re] of bad) {
+    const r = run(['--arm', 'anthropic', '--allow-paid', '--limit', '1', '--max-usd', '5', '--usd-per-mtok-in', pin, '--usd-per-mtok-out', pout]);
+    assert.notEqual(r.status, 0, `${pin}/${pout} must refuse`);
+    assert.match(r.stderr, re, `${pin}/${pout}`);
+    outs.push(r.stderr);
+  }
+  // Every refusal comes before the API-key check: nothing could have been sent.
+  assert.doesNotMatch(outs.join('\n'), /ANTHROPIC_API_KEY/);
+});
+
+test('--resume: tokens billed to a failed attempt that is re-run are carried forward, not dropped', () => {
+  const prior = {
+    replaced_attempts_tokens: { in_tokens: 100, out_tokens: 10 },
+    items: [
+      { final: { ok: true }, first: { prompt_tokens: 5000, completion_tokens: 5000 }, retry: null },        // kept, counted as an item
+      { final: { ok: false }, first: { prompt_tokens: 700, completion_tokens: 900 }, retry: { prompt_tokens: 1600, completion_tokens: 0 } },
+    ],
+  };
+  assert.deepEqual(carriedTokens(prior), { in_tokens: 100 + 700 + 1600, out_tokens: 10 + 900 });
+  assert.deepEqual(carriedTokens(null), { in_tokens: 0, out_tokens: 0 });
 });

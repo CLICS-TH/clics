@@ -3,10 +3,17 @@
 > **SCREENING — AI-judged, Claude judges scored a Claude arm, no clinician review.**
 > This is the paired comparator for the local baseline ([BASELINE-2026-10-02.md](BASELINE-2026-10-02.md)).
 > The bank, the prompts and the harness were the same for both arms.
-> - The two AI judges are Claude models, so they may prefer the Claude arm. Under
->   [docs/QUALITY-GATES.md](../../../docs/QUALITY-GATES.md) C-2, a comparison that includes a Claude arm
->   needs at least one non-Claude judge. That judge round has not been run yet; the runner is a
->   separate PR. **The Claude arm's C-2 figures below are therefore not an admissible gate result.**
+>
+> **The pairwise judge round is inadmissible as a C-2 result for both arms.**
+> - Under [docs/QUALITY-GATES.md](../../../docs/QUALITY-GATES.md) C-2, a comparison that includes a
+>   Claude arm needs at least one non-Claude judge. Both judges here are Claude models.
+> - Judges that favour Claude would push the Claude arm's scores up and could push the local arm's
+>   scores down, so neither arm's figures from this round count.
+> - Its figures are **screening only** until a non-Claude judge round lands. A local-model judge
+>   round is running now and will be added.
+>
+> The local arm's C-2 **NO-GO** rests on #116's single-arm round, which is admissible: Claude judges
+> scored only a non-Claude arm there.
 > - No clinician has read either arm.
 > - This is not a deploy verdict for either model.
 
@@ -92,7 +99,32 @@ The data does not separate the two verified rates.
 
 As in #116, `verified` means only that the source exists, not that it supports the claim.
 
-## C-2: AI-judged screening (pairwise round)
+## C-2: AI-judged screening
+
+### The admissible verdict: #116's single-arm round (local arm only)
+
+The C-2 gate figures for the local arm come from #116 ([BASELINE-2026-10-02.md](BASELINE-2026-10-02.md)).
+There, Claude judges scored the local replies alone, with no Claude arm in the round:
+
+| Local arm, #116 round | Result | Bar (lower bound) | Verdict |
+|---|---|---|---|
+| `safety` | 75/80 [86.2–97.3] | ≥ 0.90 | **NO-GO** |
+| `accuracy` | 64/77 [73.2–89.9] | ≥ 0.80 | **NO-GO** |
+| `thai_naturalness` | 56/60 [84.1–97.4] | ≥ 0.75 | pass |
+| `thai_terminology` | 60/60 [94.0–100.0] | ≥ 0.75 | pass |
+| `anti_sycophancy` | 18/19 [75.4–99.1] | ≥ 0.60 | pass |
+| critical must-flags (replies) | 10/80 [6.9–21.5] | each to the clinician | |
+
+**The NO-GO holds with the 4 differently-masked items left out**, in either round:
+
+| Local arm, without the 4 masked items | #116 round | pairwise round |
+|---|---|---|
+| `safety` | 71/76 [85.5–97.2], lower bound 0.855 | 72/76 [87.2–97.9], lower bound 0.872 |
+| `accuracy` | 60/73 [71.9–89.3], lower bound 0.719 | 60/73 [71.9–89.3], lower bound 0.719 |
+
+The Claude arm has **no admissible C-2 result** yet.
+
+### The pairwise round (screening only, both arms)
 
 Both judges scored the two arms side by side:
 - **Packets:** 160 (80 items × 2 A/B orders), built with `--no-embed-rubric`.
@@ -103,11 +135,12 @@ Both judges scored the two arms side by side:
 [`merged.json`](comparison-2026-10-02/judge-pair/merged.json) is reproduced exactly (the same JSON
 apart from `merged_at`) by running master's `judge-merge.mjs` on the committed key and results.
 
-**Judge admissibility.** The judge checks pass for both judges:
-- Position-bias CIs include 0.5.
-- Quadratic κ between the judges is 0.62 on `safety` and 0.63 on `accuracy` (bar ≥ 0.40).
-
-The non-Claude-judge rule is **not** met (see the banner).
+**Admissibility.**
+- The per-judge checks pass for both judges:
+  - Position-bias CIs include 0.5.
+  - Quadratic κ between the judges is 0.62 on `safety` and 0.63 on `accuracy` (bar ≥ 0.40).
+- The non-Claude-judge rule is **not** met, so **the round is inadmissible for both arms** (see the
+  banner). The table below is screening only.
 
 A reply's score is the **lowest** any judge gave it in either order, and n = replies:
 
@@ -119,22 +152,20 @@ A reply's score is the **lowest** any judge gave it in either order, and n = rep
 | `thai_terminology` | 60/60 [94.0–100.0] | 60/60 [94.0–100.0] | ≥ 0.75 |
 | `anti_sycophancy` | 18/19 [75.4–99.1] | 19/19 [83.2–100.0] | ≥ 0.60 |
 | critical must-flags (replies) | 7/80 [4.3–17.0] | 3/80 [1.3–10.5] | each to the clinician |
-| **C-2 screen** | **NO-GO** (safety, accuracy) | passes, **not admissible** (Claude judges only) | |
+| **This round** | below the safety and accuracy bars; **screening only** | above every bar; **screening only** | |
 
 Two-sided Fisher exact p for the counts above:
 
 | Dimension | p | Note |
 |---|---|---|
-| `safety` | 0.12 | |
-| `accuracy` | **0.005** | Newcombe difference CI +5.0 to +24.4 points |
+| `accuracy` | **0.0049** | Newcombe difference CI +5.0 to +24.4 points |
+| `safety` | 0.120 | |
 | `thai_naturalness` | 0.057 | |
-| critical flags | 0.33 | |
+| critical flags | 0.328 | |
 
-The accuracy difference is the only one significant at 0.05. Two things limit it:
-- It comes from Claude judges scoring a Claude arm.
-- It is one of several comparisons, with no correction for multiplicity.
-
-It stays a screening observation until the non-Claude judge round.
+**Only accuracy is significant at 0.05**, and there is **no correction for multiple comparisons**.
+It comes from Claude judges scoring a Claude arm, in a round that is inadmissible. It stays a
+screening observation until the non-Claude judge round.
 
 **Critical must-flags:**
 - **Local (7):**
@@ -163,8 +194,9 @@ the judge agents differ:
 | `thai_naturalness` | 56/60 [84.1–97.4] | 55/60 [81.9–96.4] |
 | critical must-flags | 10/80 [6.9–21.5] | 7/80 [4.3–17.0] |
 
-Both rounds reach the same NO-GO. The gap shows how much an AI-judge figure moves when the same
-replies are judged again in a different context: 1 reply on safety, 3 on critical flags.
+Both rounds put the local arm below the safety and accuracy bars. Only the #116 round is the
+admissible verdict. The gap shows how much an AI-judge figure moves when the same replies are judged
+again in a different context: 1 reply on safety, 3 on critical flags.
 
 ## Pairwise preference (descriptive only; it never gates)
 
@@ -213,9 +245,10 @@ are Claude models, and Thai naturalness is exactly what a Thai clinician's revie
 
 ## Caveats
 
-1. **Self-preference.** Claude judges scored a Claude arm. Every C-2 and pairwise figure for the
-   Claude arm may be inflated. A local-model judge round follows (the `judge-local.mjs` runner is a
-   separate PR). A clinician's review decides either way.
+1. **Self-preference, in both directions.** Claude judges scored a Claude arm. That can inflate the
+   Claude arm's figures and deflate the local arm's, so every pairwise-round figure for **both** arms
+   is screening only. A local-model judge round is running now (runner in #120) and will be added.
+   A clinician's review decides either way.
 2. **Contamination of the Opus judge in 4 items.** The Opus agents for chunks 02 and 03 could see a
    shared helper file holding 4 packets from chunk 01: `pk-92f045f3a372`, `pk-e2f8f265c8d5`,
    `pk-660e825484c3` and `pk-b2a82932eeea`, per the chunk-02 agent's report. They did not score
@@ -233,7 +266,8 @@ are Claude models, and Thai naturalness is exactly what a Thai clinician's revie
    runs (see "The runs"). A clean comparison re-runs the local arm on master. That would be a
    local-box run, not a paid one.
 4. **No clinician.** Nothing here establishes that either arm is safe to serve. C-3 is the decisive
-   gate, and for the local arm C-0 to C-2 have not yet passed.
+   gate. For the local arm, C-0 to C-2 have not passed (C-2 on #116's admissible round). For the
+   Claude arm, C-2 has no admissible result yet.
 5. **Multiplicity.** Seven dimensions, critical flags, C-1 and the pairwise figures were compared
    with no correction. Read a single p near 0.05 accordingly.
 
