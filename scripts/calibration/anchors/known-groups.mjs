@@ -38,6 +38,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compositeOf, iccTwoRater } from '../../probe/agreement-stats.mjs';
 import { loadAnchorSplit, splitFilter } from './anchor-split.mjs';
+import { PILOT_FREEZE } from './cues.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const AUTHORING_PATH = path.join(HERE, 'AUTHORING.md');
@@ -163,7 +164,7 @@ const r3 = (v) => (v == null ? null : Math.round(v * 1000) / 1000);
  * @param {{threshold: number, onlyIds?: string[], pilotOnly?: boolean, allowedIds?: Set<string>|null,
  *          served?: Map<string, Set<string>>}} opts   allowedIds = a split filter (anchor-split.mjs)
  */
-export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = false, allowedIds = null, served = new Map() } = {}) {
+export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = false, allowedIds = null, served = new Map(), fixtureShas = null } = {}) {
   if (!Number.isFinite(threshold)) throw new Error('knownGroups: a numeric pre-registered threshold is required');
   const wanted = onlyIds ? new Set(onlyIds.map((s) => s.toLowerCase())) : null;
   const rows = design.anchors.filter((a) => (!wanted || wanted.has(a.id)) && (!pilotOnly || a.pilot)
@@ -227,8 +228,14 @@ export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = fals
   // Known authoring artefacts that inflate a domain's agreement, carried WITH the number so it cannot
   // travel without them (AUTHORING.md §3, pilot freeze).
   const caveats = {};
-  const pilotIds = new Set(design.anchors.filter((a) => a.pilot).map((a) => a.id));
-  if (anchors.some((x) => pilotIds.has(x.id))) caveats.d5 = PILOT_D5_CAVEAT;
+  // The echo (r = 0.64) was measured on the ORIGINAL pilot texts (PILOT_FREEZE.fixtures). The caveat
+  // applies when the pilot anchors scored are those texts. A run that records which bytes it scored
+  // (score-local's `fixtures` map) is checked against them; once any pilot anchor has been rewritten,
+  // the echo is a property of a different set (validate.mjs gates it there) and the caveat is dropped.
+  // A scores file that does not say which bytes it scored is treated as the originals.
+  const originalPilot = (id) => !fixtureShas || fixtureShas[id] == null || fixtureShas[id] === PILOT_FREEZE.fixtures[id];
+  const pilotScored = anchors.filter((x) => PILOT_FREEZE.fixtures[x.id] != null);
+  if (pilotScored.length && pilotScored.every((x) => originalPilot(x.id))) caveats.d5 = PILOT_D5_CAVEAT;
   return {
     evidence_level: EVIDENCE_LEVEL,
     caveats,
@@ -304,13 +311,15 @@ if (isMain) {
   const arm = arg('arm', 'local');
   if (!['local', 'cloud'].includes(arm)) { console.error('--arm must be local or cloud'); process.exit(2); }
   const design = JSON.parse(await readFile(path.resolve(arg('design', DESIGN_PATH)), 'utf8'));
-  const { runs, unscored, provenance, served } = normaliseScores(JSON.parse(await readFile(path.resolve(file), 'utf8')), { arm });
+  const doc = JSON.parse(await readFile(path.resolve(file), 'utf8'));
+  const { runs, unscored, provenance, served } = normaliseScores(doc, { arm });
   const threshold = await loadThreshold();
   const only = arg('only') ? String(arg('only')).split(',').map((s) => s.trim()).filter(Boolean) : null;
   let allowedIds;
   try { allowedIds = splitFilter(design, await loadAnchorSplit(), arg('split')); }
   catch (e) { console.error(`✖ ${e.message}`); process.exit(2); }
-  const rep = { ...knownGroups(design, runs, { threshold, onlyIds: only, pilotOnly: argv.includes('--pilot'), allowedIds, served }),
+  const fixtureShas = doc && !Array.isArray(doc) && doc.fixtures && typeof doc.fixtures === 'object' ? doc.fixtures : null;
+  const rep = { ...knownGroups(design, runs, { threshold, onlyIds: only, pilotOnly: argv.includes('--pilot'), allowedIds, served, fixtureShas }),
     unscored, source: path.basename(file), arm, split: arg('split'), provenance };
   print(rep, provenance);
   const out = arg('out');

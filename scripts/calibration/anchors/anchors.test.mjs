@@ -441,6 +441,13 @@ describe('known-groups.mjs — §7.6 rule and served models', () => {
     const rest = design.anchors.filter((a) => !a.pilot).slice(0, 5);
     const noPilot = knownGroups(design, new Map(rest.map((a) => [a.id, [a.targets]])), { threshold: 15, onlyIds: rest.map((a) => a.id) });
     assert.equal(noPilot.caveats.d5, undefined);
+    // Scored on the ORIGINAL pilot bytes → caveat; once a pilot anchor was rewritten → no caveat.
+    const runs = new Map(pilot.map((a) => [a.id, [a.targets]]));
+    const original = knownGroups(design, runs, { threshold: 15, pilotOnly: true, fixtureShas: { ...PILOT_FREEZE.fixtures } });
+    assert.match(original.caveats.d5, /RUBRIC ECHO/);
+    const rewritten = knownGroups(design, runs, { threshold: 15, pilotOnly: true,
+      fixtureShas: { ...PILOT_FREEZE.fixtures, 'anc-015': 'f'.repeat(64) } });
+    assert.equal(rewritten.caveats.d5, undefined);
   });
 
   test('a split filter restricts the designed set', () => {

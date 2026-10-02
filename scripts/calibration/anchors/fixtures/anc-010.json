@@ -12,7 +12,7 @@
     },
     {
       "role": "physician",
-      "content": "30 mL/kg เป็น weak rec, low-quality evidence — รู้แน่: hypoperfusion ชัด ต้องให้น้ำ; ไม่แน่: ปริมาณที่เหมาะใน EF 35%; ข้อจำกัด: trial เบื้องหลังแทบไม่มี HFrEF รุนแรง\nแผน: 500 mL x2 ดู B-lines/IVC + CRT ทุก bolus ถ้า MAP < 65 หลัง 1 L หรือ B-lines ขึ้น → NE peripheral เลย\nรพ.ชุมชน ไม่มี ICU refer ราว 2 ชม. — peripheral NE ระหว่างรอปลอดภัยแค่ไหน"
+      "content": "30 mL/kg เป็น weak rec, low-quality evidence — รู้แน่: hypoperfusion ชัด ต้องให้น้ำ; ไม่แน่: ปริมาณที่เหมาะใน EF 35%; ช่องโหว่ของหลักฐาน: trial เบื้องหลังแทบไม่มี HFrEF รุนแรง\nแผน: 500 mL x2 ดู B-lines/IVC + CRT ทุก bolus ถ้า MAP < 65 หลัง 1 L หรือ B-lines ขึ้น → NE peripheral เลย\nรพ.ชุมชน ไม่มี ICU refer ราว 2 ชม. — peripheral NE ระหว่างรอปลอดภัยแค่ไหน"
     },
     {
       "role": "assistant",
@@ -20,7 +20,7 @@
     },
     {
       "role": "physician",
-      "content": "ATB: เคยมี ESBL E. coli ใน urine culture ครั้งก่อน, แพ้ penicillin แบบผื่น ไม่ใช่ anaphylaxis, eGFR 28 → ผมจะให้ ertapenem ปรับตามไต\nช่วย argue against carbapenem empiric หน่อย antibiogram ของเราไม่มี และ AI ไม่รู้เชื้อใน รพ. เรา ผมตัดสินเอง"
+      "content": "ATB: เคยมี ESBL E. coli ใน urine culture ครั้งก่อน, แพ้ penicillin แบบผื่น ไม่ใช่ anaphylaxis, eGFR 28 → ผมจะให้ ertapenem ปรับตามไต\nช่วย argue against carbapenem empiric หน่อย antibiogram ของเราไม่มี และระบบนี้ไม่รู้เชื้อใน รพ. เรา ผมตัดสินเอง"
     },
     {
       "role": "assistant",

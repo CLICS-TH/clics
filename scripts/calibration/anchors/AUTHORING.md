@@ -148,7 +148,8 @@ Tutor turns follow the design's `tutor_mode`, written in the style of
     not, listy or not — and then write the level inside that shape.
   - validate.mjs prints the full cue matrix and the per-fixture rubric-echo hits; read both before
     submitting a batch.
-  - **The pilot freeze.** The 20 pilot anchors predate this check and fail 6 gated pairs under it
+  - **The pilot freeze** *(lapsed 2026-10-02: nine pilot anchors were edited after the blind
+    diagnosis, see the §7 amendment, and the cohort now passes the gate without it)*. The 20 pilot anchors predate this check and fail 6 gated pairs under it
     (acks vs composite r = −0.71 and vs d5 −0.63; numerals vs composite +0.58 and vs d3 +0.52; list
     lines vs composite −0.53; rubric echo vs d5 +0.64). While they are being scored these are reported
     as known, not counted (`cues.mjs` `PILOT_FREEZE`). The freeze is keyed to the 20 pilot files'
@@ -349,6 +350,44 @@ the line below, and `anchors.test.mjs` fails if the two ever differ.
 7. **Labelling.** Every output carries `evidence level: screening-synthetic (AI-authored, AI-scored) —
    not a decisive gate`. No result here is described as human agreement, and no "improved/declined"
    claim is made without its interval.
+
+### Amendment, 2026-10-02 — who decides that an anchor must be rewritten
+
+*Made after the first strict pilot run (`runs/pilot-local-strict-2026-10-02.json`) and its blind
+diagnosis (`pilot/blind/`, `PILOT-REPORT.md`), and **before any anchor was rewritten** on the strength
+of either.*
+
+**This deviates from the pre-registered rule above.** §7.2 and §7.4 let the evaluator under test — the
+local model — decide which anchors are flagged and rewritten. That is circular: rewriting an anchor
+until the evaluator under test agrees with its target calibrates the cohort *to that evaluator*, and
+the known-groups statistic then measures how well the cohort was fitted to it rather than how well it
+reads behaviour. The pilot showed why it matters in practice: of the 7 locally flagged anchors (mean
+target 42, local 70), blind raters put most of the gap in the transcripts (blind mean about 63), so
+the local flag mixed an authoring problem with the evaluator's own offset.
+
+The rule from now on:
+
+1. **The rewrite decision is made by a blind rater panel that is independent of the evaluator under
+   test.** The panel is **two different models** (for example a Sonnet and an Opus subagent), each
+   scoring every anchor blind: shuffled labels, no targets, no ids, the `PIS7_EVALUATOR_PROMPT` rubric
+   text and the transcripts only (the `pilot/blind/` packet is the template). Two copies of the same
+   model are one rater, not two — the pilot's two Sonnet raters agreed at composite ICC 0.995.
+2. **An anchor is rewritten when |mean blind composite − target composite| > 15** (the same 15 points
+   as the pre-registered threshold, now applied to the panel). A rewrite is justified from §5 — the
+   behaviour was expressed at the wrong level — never from any evaluator's number.
+3. **The local evaluator's flag rate is kept as a reported outcome, never as the acceptance criterion.**
+   §7.2's flag, §7.6's proceed rule and the known-groups statistics are still computed and reported
+   for every scored run.
+4. On the pilot, the only blind ratings were the two Sonnet raters — one rater in effect, so this
+   first selection fell short of item 1; the two-model panel applies from the re-score on. Their mean
+   puts **5 anchors** over the line: anc-015 (+28), anc-006 (+36),
+   anc-019 (+27), anc-014 (+24), anc-005 (+17). These five were rewritten. Four further pilot anchors
+   (anc-007, anc-010, anc-013, anc-016) received **wording-only** edits that replace rubric phrases
+   (the d5 triad, "argue against", "AI ไม่รู้") with behaviourally equivalent wording; their behaviour
+   and targets are unchanged. Without those edits the surface-cue gate cannot pass once the pilot
+   freeze lapses (rubric echo was concentrated in high anchors that no rewrite of the five could
+   offset). All nine need re-scoring by the panel and the local evaluator before any pilot figure is
+   recomputed.
 
 ## 8. Pipeline and commands
 
