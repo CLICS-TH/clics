@@ -700,6 +700,33 @@ The rule from now on:
       prompt: a re-calibrated prompt (for example a d4/low-end fix) needs fresh anchors or human
       raters to be judged.
 
+21. **Plan 2.6 pre-registration: local low-end fix, tuning only (written 2026-10-02, before the
+    tuning split was scored by DeepSeek as a whole).** Not fully blind: the 20 pilot anchors were
+    scored with the shipping addendum in `runs/pilot-local-strict-2026-10-02.json`, and several were
+    rewritten since. The rules below were not tuned on that run. Item 20 showed compression, not noise: DeepSeek
+    over-scores low anchors by about +25 and is about right at the top. This loop changes only
+    `PIS7_LOCAL_ADDENDUM` (`rimpl/src/lib/prompts.js`). The cloud prompt and the rubric mirror stay as
+    they are.
+    - **Data.** The 40 tuning anchors only (10 below a target of 40, 15 at 40–69, 15 at 70 and
+      above). K = 3, temperature 0, scored with `score-local.mjs --split tuning`. Held-out is never
+      scored again in this loop.
+    - **Baseline.** The shipping addendum (`+local-c5ffe572aa81`) on tuning, scored first.
+    - **Variants.** At most **3** addendum variants, each scored once on the same 40 anchors. A
+      variant must be justified from the rubric (§5), never by naming an anchor or a score.
+    - **Adoption rule.** A variant may replace the baseline only if **all** of these hold against
+      the baseline run:
+      1. low band (target below 40): |mean bias| falls by **at least 10** points;
+      2. composite ICC(A,1) vs target: the point estimate is higher;
+      3. high band (target 70 and above): |mean bias| is **7 or less**;
+      4. composite Spearman: drops by **no more than 0.05**;
+      5. test–retest (run 1 vs run 2) ICC(A,1) is **0.85 or more**, and no run fails to parse.
+    - If more than one variant passes, the highest ICC(A,1) wins. If none passes, the baseline stays
+      and the result is reported as a null.
+    - **What a pass means.** The variant is selected on the same 40 anchors it is measured on, so its
+      tuning numbers are optimistic. They are screening-synthetic and **are not validation**. A
+      selected prompt is judged only by the SANDBOX human auditors (plan 2.7) or by fresh anchors.
+      Nothing ships to production on this loop alone.
+
 ## 8. Pipeline and commands
 
 | step | command | network |
