@@ -86,6 +86,13 @@ test('ignores the purpose and signal keys callAI forwards (extra keys change not
     lastOk: expect.any(Number), lastError: null }); // no `lanes`: still the FIFO
 });
 
+// §10.2: provenance must name the model that ANSWERED. The API reports it in the response body;
+// the requested id is only the fallback for a response that omits it (as the mocks above do).
+test('stamps the model the API reports, not the one requested', async () => {
+  mockCall.mockResolvedValueOnce({ data: { ...MSG, model: 'claude-sonnet-4-6-served' }, response: { headers: new Map() } });
+  expect((await call(args())).model).toBe('claude-sonnet-4-6-served');
+});
+
 test('ready() reports up when ANTHROPIC_API_KEY is present (no completion call, no spend)', () => {
   const { checks } = provider.ready();
   expect(checks.anthropic_key.status).toBe('up');

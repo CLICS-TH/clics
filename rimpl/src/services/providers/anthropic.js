@@ -19,6 +19,10 @@ const { createRunner } = require('./runtime');
 // evaluation is slow rather than lost. Tunable for the same reason the local one is.
 const CLIENT_TIMEOUT_MS = Math.max(1000, parseInt(process.env.CLAUDE_TIMEOUT_MS || '150000', 10));
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: CLIENT_TIMEOUT_MS, maxRetries: 0 });
+// PINNED, not an alias. From the 4.6 generation on, Anthropic's canonical model ids carry no date:
+// GET /v1/models/claude-sonnet-4-6 resolves to itself (created 2026-02-17), the same way the older
+// dated ids (claude-sonnet-4-5-20250929) do. Verified 2026-10-02. Never swap this for a moving alias
+// (a "-latest" name): CREC082 §10.2 requires the model behind every score to be fixed and recorded.
 const MODEL = 'claude-sonnet-4-6';
 
 // Prompt caching (default OFF). The ~2k-token system prompt is re-sent every turn at full input price;
@@ -102,7 +106,10 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
     // stopReason distinguishes "hit max_tokens" (a real length/truncation problem) from
     // "end_turn" (the model finished on its own without ever producing the expected JSON) —
     // callers that fail to parse `text` need this to tell those two very different causes apart.
-    return { text, inputTokens, outputTokens, tokenCount: inputTokens + outputTokens, stopReason: data.stop_reason, model: MODEL };
+    // §10.2 provenance names the model the API SAYS answered, not the one we asked for. Today they are
+    // the same id; if they ever differ, the record must show the real one. MODEL only if none came back.
+    const model = typeof data.model === 'string' && data.model ? data.model : MODEL;
+    return { text, inputTokens, outputTokens, tokenCount: inputTokens + outputTokens, stopReason: data.stop_reason, model };
   });
 }
 
