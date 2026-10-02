@@ -20,6 +20,7 @@ import {
   checkBudget, LENGTH_CHARS_TOL, LENGTH_TARGET_EXEMPT_BATCHES, batchCueContribution, updateHeldOutLock, recordIntake, intakeAccepted, loadIntakeLog, appendOnlyViolation,
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
+import { promptVersionFor } from '../../../rimpl/src/lib/versions.js';
 import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH, PLAN_MD_PATH, BUDGET_LEVELS, BUDGET_RANGES, needsExtraReview } from './batch-plan.mjs';
 import { buildBrief, BRIEF_PATH, PIN_PATH } from './author-brief.mjs';
 import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, freezeApplies, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
@@ -1143,5 +1144,40 @@ describe('length targets and batches accepted before them', () => {
       const out = execFileSync(process.execPath, [script, '--batch', String(b)], { encoding: 'utf8' });
       assert.doesNotMatch(out, /RETURN/, `batch ${b}`);
     }
+  });
+});
+
+// Plan 2.6 (AUTHORING.md §7 item 21): a candidate addendum is scored through the same prompt and
+// version functions as production, so its rows can never carry the shipping prompt's label.
+describe('score-local --addendum-file', () => {
+  const dry = (...extra) => execFileSync(process.execPath,
+    [path.join(HERE, 'score-local.mjs'), '--split', 'tuning', '--only', 'anc-001', '--repeats', '1', '--dry-run', ...extra],
+    { encoding: 'utf8', stdio: 'pipe', env: { PATH: process.env.PATH } });
+  const versionOf = (out) => out.match(/pis7-prompt-[0-9a-f]{8}(\+local-[0-9a-f]{12})?/)[0];
+
+  test('without the flag the shipping addendum is used, unchanged', () => {
+    const out = dry();
+    assert.match(out, /addendum\s+shipping PIS7_LOCAL_ADDENDUM/);
+    assert.equal(versionOf(out), promptVersionFor('local'));
+  });
+
+  test('a candidate gets its own +local suffix, and a trailing newline does not change it', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'addendum-'));
+    try {
+      await writeFile(path.join(dir, 'a.txt'), 'CANDIDATE RULE.');
+      await writeFile(path.join(dir, 'b.txt'), 'CANDIDATE RULE.\n\n');
+      const a = versionOf(dry('--addendum-file', path.join(dir, 'a.txt')));
+      assert.equal(a, promptVersionFor('local', 'CANDIDATE RULE.'));
+      assert.notEqual(a, promptVersionFor('local'));
+      assert.equal(versionOf(dry('--addendum-file', path.join(dir, 'b.txt'))), a);
+    } finally { await rm(dir, { recursive: true, force: true }); }
+  });
+
+  test('an empty candidate is refused rather than silently scoring the bare base prompt', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'addendum-'));
+    try {
+      await writeFile(path.join(dir, 'empty.txt'), '\n  \n');
+      assert.throws(() => dry('--addendum-file', path.join(dir, 'empty.txt')), /is empty/);
+    } finally { await rm(dir, { recursive: true, force: true }); }
   });
 });

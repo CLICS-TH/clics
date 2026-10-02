@@ -1,0 +1,33 @@
+SCORING PROCESS (read before you score):
+
+- Score each domain on ITS OWN evidence. Do not let an overall impression of the session set a level
+  and then apply that level across the domains: a transcript can be 4 on one domain and 2 on another.
+  Read the transcript once per domain, looking only for that domain's evidence.
+- No level is a starting point. For each domain, find the HIGHEST level on the scale whose
+  description the physician's own turns actually meet, and stop there. A 3 has to be earned like any
+  other score: it needs a physician turn that shows the 3-level behaviour in that domain's PER-DOMAIN
+  ANCHOR above.
+- Absence is evidence. If a domain's behaviour never appears in the physician's turns, the score is
+  0 or 1, and the rationale says what the physician did instead (accepted the answer as given, moved
+  to an unrelated question, wrote no reflection). A behaviour that appears once and thinly is 2.
+- Quote the transcript to award 4 or 5. To award 0, 1 or 2, quote the turn you are scoring or name
+  what the physician did instead.
+- d1 asks whether the QUESTION exposes a real decision point in THIS case, not whether it is long or
+  technically sophisticated. A brief question that names this patient's specific decision ('statin or
+  not, given the transaminases?') is 3 or above. Only a question that would fit any patient
+  unchanged — 'what is the differential?' — is 2 or below.
+- Judge what the physician actually did with the case in front of them. Do not lower a score because
+  a stronger version of the same behaviour is imaginable, or because the writing is blunt or
+  unpolished. Do not raise one because the AI's answers were good: only the physician's turns and
+  reflection are evidence.
+
+HOW TO QUOTE INSIDE A RATIONALE: the rules above make you quote the transcript in most rationales,
+and each rationale is one JSON string. Mark the physician's words with SINGLE quotes — the physician
+asked 'statin or not, given the transaminases?' — and keep each rationale on a single line. A
+double-quote character, or a line break, inside a rationale ends that string early and the whole
+evaluation is unreadable and has to be thrown away and re-asked. Single quotes read exactly the same
+to the auditor and cannot break the reply. Quote just as much as the rules above require: this
+changes the punctuation you quote with, never whether you must quote.
+
+OUTPUT FORMAT IS UNCHANGED BY THIS SECTION: reply with ONLY the JSON object specified above — the
+seven integer scores and the rationale object, nothing before it and nothing after it.

@@ -42,6 +42,10 @@
  *   --attempts n        transport retries per run (default 3, backoff --retry-base-ms 15000 doubling).
  *                       Only TRANSPORT failures retry: an unparseable reply is a measurement.
  *   --fixtures dir      default scripts/calibration/anchors/fixtures
+ *   --addendum-file f   score a CANDIDATE local addendum instead of the shipping PIS7_LOCAL_ADDENDUM
+ *                       (plan 2.6, AUTHORING.md §7 item 21). rimpl is not edited: the file's text goes
+ *                       through the same pis7PromptFor/promptVersionFor, so the report's
+ *                       prompt_version_used carries the candidate's own +local-<sha> suffix.
  *   PROBE_TIMEOUT_MS    per-call timeout (lib.mjs; default 180000)
  *
  * The report (--out) is written after EVERY completed run, so an interrupted run keeps what it has.
@@ -124,8 +128,17 @@ for (const id of ids) {
   fixtures.push({ id, sha256: got, userMessage: `TRANSCRIPT:\n${flattened}` });
 }
 
-const SYSTEM = pis7PromptFor('local');
-const PROMPT_VERSION_USED = promptVersionFor('local');
+// Trailing whitespace is dropped so a file saved with a final newline hashes like the same text
+// pasted into prompts.js. An empty file is refused: pis7PromptFor would silently fall back to the
+// bare base prompt, and the report would not say so.
+let addendum;
+if (typeof flags['addendum-file'] === 'string') {
+  const file = path.resolve(flags['addendum-file']);
+  addendum = { file: path.relative(path.resolve(HERE, '../../..'), file), text: (await readFile(file, 'utf8')).replace(/\s+$/, '') };
+  if (!addendum.text) fail(`--addendum-file ${addendum.file} is empty`);
+}
+const SYSTEM = addendum ? pis7PromptFor('local', addendum.text) : pis7PromptFor('local');
+const PROMPT_VERSION_USED = addendum ? promptVersionFor('local', addendum.text) : promptVersionFor('local');
 const jobs = [];
 for (let run = 1; run <= repeats; run++) for (const f of fixtures) jobs.push({ fixture: f, run });
 const estMin = Math.ceil(jobs.length / concurrency) * SECONDS_PER_EVAL_ESTIMATE * (consistency === 'adaptive' ? 2.3 : 1) / 60;
@@ -139,6 +152,7 @@ if (dryRun) {
   console.log(`  concurrency  ${concurrency}${Number.isFinite(envCap) ? ` (LOCAL_MAX_CONCURRENCY=${envCap})` : ''}`);
   console.log(`  estimate     ~${Math.round(estMin)} min at ~${SECONDS_PER_EVAL_ESTIMATE} s/eval${consistency === 'adaptive' ? ' (adaptive ≈ 2.3 calls/run)' : ''}`);
   console.log(`  prompt       pis7PromptFor('local') ${SYSTEM.length} chars · ${PROMPT_VERSION_USED} · ${RUBRIC_VERSION}`);
+  console.log(`  addendum     ${addendum ? `CANDIDATE ${addendum.file}` : 'shipping PIS7_LOCAL_ADDENDUM'}`);
   console.log(`  decoding     temperature ${EVAL.temperature}, max_tokens ${EVAL.maxTokens} (evaluate.js)`);
   console.log(`  manifest     every sha256 verified`);
   console.log(`  ids          ${ids.join(' ')}`);
@@ -211,6 +225,7 @@ const report = {
   model: cfg.model,
   base_url_origin: cfg.origin,
   prompt_version_used: PROMPT_VERSION_USED,
+  addendum: addendum ? { candidate: addendum.file, sha256: createHash('sha256').update(addendum.text).digest('hex') } : 'shipping',
   rubric_version: RUBRIC_VERSION,
   decoding: EVAL,
   consistency,
