@@ -278,6 +278,12 @@ come from the bar and the number of applicable replies.
   - Descriptive only: it is lenient. Local arm safety 79/80, accuracy 74/77, critical flags 2/80;
     Claude arm 80/80, 77/77, 0/80.
   - Pairwise, it preferred Claude 71/160, local 11 and tie 78 (local win rate excluding ties 13.4%
-    [7.7–22.4]), with order consistency 65%. A local judge's self-preference would lean the other
-    way, so this agrees in direction with the Claude judges (17.6–19.0%). It is corroboration, not
-    admissible evidence.
+    [7.7–22.4]), with order consistency 65%. That agrees in direction with the Claude judges
+    (17.6–19.0%).
+  - Length confounds that direction. The Claude reply was longer in 126/160 packets (79%). Every
+    judge chose the longer reply in most decided packets: local 57/82, Opus 92/137, Sonnet 93/136.
+    A pure "prefer the longer reply" judge would give about 4:1, against 6.5:1 observed.
+  - A length- or polish-driven judge would show the same direction with no self-preference.
+    Self-preference also needs the judge to recognise its own replies, which blinding and the
+    `[model]` redaction weaken. So the direction is weak corroboration, not evidence against
+    self-preference, and not admissible evidence.

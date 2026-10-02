@@ -358,13 +358,24 @@ Its 2 critical flags are both on the local arm:
 Preference κ against the Claude judges is low: 0.13 against Opus and 0.21 against Sonnet, compared
 with 0.48 between the two Claude judges.
 
-**The direction matters.**
+**The direction: weak corroboration, confounded by length.**
 - A local judge with self-preference would lean towards the local arm. This one still prefers the
-  Claude arm by about **6 to 1** among decided pairs (71 vs 11).
+  Claude arm by about 6 to 1 among decided pairs (71 vs 11).
 - That agrees in direction with the Claude judges, whose local win rate excluding ties is 17.6%
   (Sonnet) and 19.0% (Opus).
-- This is **directional corroboration only, not admissible C-2 evidence**, because the judge failed
-  the validity check.
+- **But reply length confounds this argument** (measured by the #126 review, in characters):
+  - The Claude arm's reply was the longer one in **126/160 packets (79%)**.
+  - All three judges chose the longer reply in most decided packets: `judge-local` 57/82 (70%),
+    Opus 92/137 (67%), Sonnet 93/136 (68%).
+  - A judge that always preferred the longer reply would favour Claude about 4 to 1, against the
+    6.5 to 1 observed here.
+- A judge driven by length or polish would therefore show the **same direction without any
+  self-preference**.
+- Self-preference also requires the judge to recognise its own replies. Blinding and the `[model]`
+  redaction make that harder.
+- So the direction is **weak corroboration at most, not evidence against self-preference**, in
+  either the local judge or the Claude judges. It is not admissible C-2 evidence either, because
+  the judge failed the validity check.
 
 ### 3. The three-judge figure (not the gate)
 
