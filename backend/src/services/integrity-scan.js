@@ -102,4 +102,107 @@ async function flagRescueReplyBreach({ pleId, check, turn }) {
   if (error) throw new Error(error.message);
 }
 
-module.exports = { scanPle, flagRescueReplyBreach, DETECTOR_SIGNALS };
+// ---------------------------------------------------------------------------------------------------
+// A physician reported an AI tutor reply as wrong or unsafe — the "safety event log" CREC082's Risk &
+// Incident Plan commits to. It rides the same table as the detector's flags and the rescue post-check
+// so it reaches the same reviewers through the same queue, but it is the one signal here that comes
+// FROM the physician rather than ABOUT them.
+//
+// WHAT IT IS NOT. It is not an accusation, so it cannot be scored against the physician; it is not
+// shown to the physician after the fact; and it must not steer the audit sample (routes/admin.js
+// excludes it from the forced-inclusion set — a physician who could pull their own episodes into the
+// audited subset would bias the very ICC that subset exists to estimate).
+//
+// ONE ROW PER PLE, MANY REPORTS INSIDE IT. The table is unique on (ple_id, signal), so separate
+// reports on separate replies of one session are merged into evidence.reports[] rather than
+// overwriting each other. Each entry carries the provider / model / prompt_version of the reply it is
+// about, read server-side from `messages` — that attribution is the reason the log exists (which model
+// said it?) and none of it is ever returned to the physician.
+//
+// PII CONSTRAINT. report.note is physician-typed free text and may carry identifiers. It stays in
+// this row and nowhere else; nothing in this module may send it to a model.
+const REPORTED_REPLY_SIGNAL = 'S1_PHYSICIAN_REPORTED_REPLY';
+
+// Severity orders the reviewer's queue; it does not rank anyone. Only advice that could harm a patient
+// is 'high'. The row carries the WORST severity across its reports.
+const REPORT_SEVERITY = {
+  unsafe_advice: 'high',
+  wrong_fact: 'medium',
+  fabricated_reference: 'medium',
+  wrong_language: 'low',
+  other: 'low',
+};
+const SEVERITY_RANK = { low: 1, medium: 2, high: 3 };
+
+// Bounds evidence.reports[] (a jsonb array that is rewritten on every report). A session that has
+// genuinely hit 25 distinct unsafe replies needs a person, not a 26th entry.
+const MAX_REPORTS_PER_PLE = 25;
+
+async function readReports(pleId) {
+  const { data, error } = await supabase.from('ple_integrity_flags')
+    .select('severity, evidence').eq('ple_id', pleId).eq('signal', REPORTED_REPLY_SIGNAL).maybeSingle();
+  if (error) throw new Error(error.message);
+  return Array.isArray(data?.evidence?.reports) ? data.evidence.reports : [];
+}
+
+/**
+ * Record one report. Idempotent per message: a second report on the same reply changes nothing and
+ * returns 'duplicate' — the FIRST report (its reason and note) stands.
+ *
+ * @param {object} args
+ * @param {string} args.pleId
+ * @param {object} args.report  { message_id, reason, note?, turn?, provider, model, prompt_version }
+ * @returns {Promise<'recorded'|'duplicate'|'limit'>}
+ * @throws on a database error — the route turns that into a 500, because a safety report that
+ *         vanishes silently is worse than one the physician is told failed.
+ */
+async function recordReportedReply({ pleId, report }) {
+  const entry = {
+    message_id: report.message_id,
+    reason: report.reason,
+    note: report.note ?? null,
+    turn: report.turn ?? null,
+    provider: report.provider ?? null,
+    model: report.model ?? null,
+    prompt_version: report.prompt_version ?? null,
+    reported_at: new Date().toISOString(),
+  };
+
+  // Read-merge-write, then read BACK. Two reports on different replies of one session, landing in the
+  // same few milliseconds, would each merge into the same stale array and the later write would drop
+  // the earlier report. The read-back catches that for the loser and retries it. It cannot close the
+  // window completely (that needs a row lock, i.e. an RPC and a migration) — it narrows a
+  // milliseconds-wide race between two taps by one person to something that has not been seen.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const reports = await readReports(pleId);
+    if (reports.some((r) => r.message_id === entry.message_id)) return 'duplicate';
+    if (reports.length >= MAX_REPORTS_PER_PLE) return 'limit';
+
+    const next = [...reports, entry];
+    const worst = next.reduce((a, r) => {
+      const sev = REPORT_SEVERITY[r.reason] ?? 'low';
+      return SEVERITY_RANK[sev] > SEVERITY_RANK[a] ? sev : a;
+    }, 'low');
+
+    const { error } = await supabase.from('ple_integrity_flags').upsert({
+      ple_id: pleId,
+      signal: REPORTED_REPLY_SIGNAL,
+      severity: worst,
+      evidence: {
+        report_count: next.length,
+        reports: next,
+        note: 'A physician reported an AI reply as wrong or unsafe. This flags OUR output, not the physician.',
+      },
+    }, { onConflict: 'ple_id,signal' });
+    if (error) throw new Error(error.message);
+
+    const after = await readReports(pleId);
+    if (after.some((r) => r.message_id === entry.message_id)) return 'recorded';
+  }
+  throw new Error('could not record the report: concurrent writes kept overwriting it');
+}
+
+module.exports = {
+  scanPle, flagRescueReplyBreach, recordReportedReply,
+  DETECTOR_SIGNALS, REPORTED_REPLY_SIGNAL, REPORT_SEVERITY, MAX_REPORTS_PER_PLE,
+};

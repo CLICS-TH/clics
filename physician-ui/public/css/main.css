@@ -320,12 +320,19 @@ body:has(.chat-page) nav { flex:none; }
 .msg-socratic .soc-text { font-style:italic; font-weight:600; }
 
 /* Per-message actions (Copy / Retry) — quiet until hover/focus on pointer devices, always shown on touch */
-.msg-actions { display:flex; gap:4px; margin-top:10px; opacity:0; transition:opacity .15s; }
+.msg-actions { display:flex; flex-wrap:wrap; gap:4px; margin-top:10px; opacity:0; transition:opacity .15s; }
 .msg-assistant:hover .msg-actions, .msg-assistant:focus-within .msg-actions { opacity:1; }
 @media (hover:none) { .msg-actions { opacity:1; } }
-.msg-act-btn { display:inline-flex; align-items:center; gap:5px; background:none; border:1px solid transparent; border-radius:var(--r-sm); padding:4px 8px; font-family:var(--font-body); font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; transition:background .15s, color .15s, border-color .15s; }
+.msg-act-btn { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; background:none; border:1px solid transparent; border-radius:var(--r-sm); padding:4px 8px; font-family:var(--font-body); font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; transition:background .15s, color .15s, border-color .15s; }
 .msg-act-btn:hover { background:var(--canvas); color:var(--ink); border-color:var(--hairline); }
 .msg-act-btn svg { width:14px; height:14px; }
+/* Report an AI reply. Thai text here is 13px (the sibling Copy button is 12px); the colour is
+   --body-color rather than --muted because --muted lands at ~4.5:1 on --surface-card, the bubble
+   surface, and this is the one control whose purpose is safety. */
+.msg-report-btn { font-size:13px; color:var(--body-color); }
+.msg-report-btn[aria-disabled="true"] { cursor:default; }
+.msg-report-btn[aria-disabled="true"]:hover { background:none; border-color:transparent; color:var(--body-color); }
+.msg-report-btn:focus-visible { outline:2px solid var(--coral-active); outline-offset:2px; }
 
 /* Typing indicator — three pulsing dots replace the plain "Thinking…" text */
 .typing-dots { display:inline-flex; gap:5px; align-items:center; padding:4px 2px; }
@@ -709,6 +716,26 @@ html[data-mobile] .hero-stats { grid-template-columns: repeat(2, 1fr); }
 .bi-stack { display:inline-flex; flex-direction:column; align-items:flex-start; line-height:1.15; }
 .bi-stack .bi-en { margin-left:0; }
 
+/* ===== Report-an-AI-reply dialog (js/ple-chat.js openReportDialog) ===== */
+.report-card { max-width:480px; }
+.report-card .bi-en { display:block; margin-left:0; white-space:normal; color:var(--muted); }
+.report-lead { color:var(--body-color); font-size:14px; line-height:1.6; margin:0 0 14px; }
+.report-reasons { border:none; padding:0; margin:0 0 14px; min-width:0; }
+.report-reasons legend { font-weight:600; font-size:14px; color:var(--ink); padding:0; margin-bottom:8px; }
+.report-opt { display:flex; align-items:center; gap:12px; min-height:var(--tap-min); padding:8px 12px; margin-bottom:6px; border:1px solid var(--hairline); border-radius:var(--r-md); background:var(--canvas); color:var(--ink); font-size:14px; line-height:1.45; cursor:pointer; }
+.report-opt input { flex:none; width:20px; height:20px; margin:0; accent-color:var(--coral-active); }
+.report-opt > span { min-width:0; overflow-wrap:anywhere; }
+.report-opt:hover { border-color:var(--muted-soft); }
+.report-opt:has(input:checked) { border-color:var(--coral); background:var(--coral-ring); }
+.report-opt:has(input:focus-visible) { outline:2px solid var(--coral-active); outline-offset:2px; }
+.report-note { margin:0 0 14px; }
+.report-note label { display:block; font-weight:600; font-size:14px; color:var(--ink); margin-bottom:6px; }
+.report-note textarea { display:block; width:100%; min-height:88px; resize:vertical; padding:10px 12px; border:1px solid var(--hairline); border-radius:var(--r-md); background:var(--canvas); color:var(--ink); font-family:var(--font-body); font-size:16px; line-height:1.5; }
+.report-note textarea:focus { outline:none; border-color:var(--coral); box-shadow:0 0 0 3px var(--coral-ring); }
+.report-hint { margin:6px 0 0; font-size:13px; line-height:1.5; color:var(--muted); }
+.report-error { margin:0 0 12px; font-size:14px; font-weight:600; color:var(--error-text); }
+.report-card .modal-actions .btn { min-height:44px; }
+
 /* ===== Themed confirm modal + toast (replaces native confirm()/alert()) ===== */
 .modal-overlay { position:fixed; inset:0; background:rgba(20,20,19,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; }
 .modal-card { background:var(--canvas); border:1px solid var(--hairline); border-radius:var(--r-xl); box-shadow:0 20px 60px rgba(20,20,19,0.28); max-width:440px; width:100%; padding:28px; max-height:min(90dvh, 90vh); overflow-y:auto; }
@@ -724,6 +751,11 @@ html[data-mobile] .hero-stats { grid-template-columns: repeat(2, 1fr); }
 .toast { pointer-events:auto; background:var(--surface-dark); color:var(--on-dark); padding:12px 18px; border-radius:var(--r-pill); font-size:14px; box-shadow:0 6px 20px rgba(20,20,19,0.28); max-width:90vw; overflow-wrap:anywhere; }
 .toast-error { background:var(--error); color:#fff; }
 .toast-success { background:var(--success-text); color:#fff; }
+/* Dark theme flips --success-text / --error to LIGHT tones, so the white-on-fill pair above measured
+   1.57:1 (success) and about 3.4:1 (error). The report confirmation relies on this toast, so in dark it
+   uses the tinted surface + its own text token instead (about 9:1). */
+:root[data-theme="dark"] .toast-success { background:var(--success-bg); color:var(--success-text); }
+:root[data-theme="dark"] .toast-error { background:var(--error-bg); color:var(--error-text); }
 @media (prefers-reduced-motion: no-preference) {
   .modal-overlay { animation: clics-fade .15s ease both; }
   .modal-card, .toast { animation: clics-rise .22s ease both; }

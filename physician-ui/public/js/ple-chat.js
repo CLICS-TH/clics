@@ -95,6 +95,143 @@ function scrollToBottom() { msgEl.scrollTop = msgEl.scrollHeight; }
 msgEl.addEventListener('scroll', () => scrollBtn.classList.toggle('show', !nearBottom()));
 scrollBtn.addEventListener('click', () => { scrollToBottom(); scrollBtn.classList.remove('show'); });
 
+// ---- Reporting an AI reply (CREC082 Risk & Incident Plan: the safety event log) ----
+// MIRRORS backend/src/lib/schemas.js REPORT_REASONS / REPORT_NOTE_MAX — backend/tests/reply-report.test.js
+// reads this block and fails if the two drift. The server stamps WHICH model said it; nothing here
+// ever sees or sends that.
+const REPORT_NOTE_MAX = 500;
+const REPORT_REASONS = [
+  { key: 'wrong_fact',           th: 'ข้อมูลทางการแพทย์ไม่ถูกต้อง',               en: 'Incorrect medical fact' },
+  { key: 'unsafe_advice',        th: 'คำแนะนำที่อาจไม่ปลอดภัยต่อผู้ป่วย',          en: 'Advice that could be unsafe for a patient' },
+  { key: 'fabricated_reference', th: 'อ้างอิงที่ไม่มีอยู่จริงหรือไม่ตรงกับเนื้อหา', en: 'A reference that does not exist or does not match' },
+  { key: 'wrong_language',       th: 'ภาษาผิดหรือสื่อความหมายคลาดเคลื่อน',         en: 'Wrong or misleading language' },
+  { key: 'other',                th: 'อื่น ๆ',                                    en: 'Something else' },
+];
+
+// Static strings only: every interpolated value is a constant above, never user text.
+function reportErrorMessage(res) {
+  if (res && res.code === 'report_rate_limited') return 'รายงานบ่อยเกินไป กรุณารอสักครู่ / Too many reports — please wait a few minutes.';
+  if (res && res.code === 'report_limit_reached') return 'เซสชันนี้มีรายงานครบจำนวนสูงสุดแล้ว / This session already has the maximum number of reports.';
+  return 'ส่งรายงานไม่สำเร็จ กรุณาลองใหม่ / Could not send the report — please try again.';
+}
+
+// Resolves true once the report is saved, false if the physician cancels. Not confirmModal: that one
+// confirms on Enter, which would submit the form from inside the note field.
+function openReportDialog(messageId) {
+  return new Promise(function (resolve) {
+    const opener = document.activeElement;
+    const ov = document.createElement('div');
+    ov.className = 'modal-overlay';
+    ov.setAttribute('role', 'dialog');
+    ov.setAttribute('aria-modal', 'true');
+    ov.setAttribute('aria-labelledby', 'reportTitle');
+    ov.innerHTML =
+      '<form class="modal-card report-card" novalidate>' +
+        '<h2 id="reportTitle">รายงานคำตอบของ AI<span class="bi-en">Report an AI reply</span></h2>' +
+        '<p class="report-lead">ช่วยให้ทีมงานตรวจสอบคำตอบที่ผิดหรือไม่ปลอดภัย รายงานนี้ไม่มีผลต่อคะแนนของคุณ' +
+          '<span class="bi-en">Help the team review a wrong or unsafe answer. A report does not affect your score.</span></p>' +
+        '<fieldset class="report-reasons"><legend>เกิดปัญหาแบบไหน<span class="bi-en">What went wrong?</span></legend>' +
+          REPORT_REASONS.map(function (r) {
+            return '<label class="report-opt"><input type="radio" name="reportReason" value="' + r.key + '">' +
+              '<span>' + r.th + '<span class="bi-en">' + r.en + '</span></span></label>';
+          }).join('') +
+        '</fieldset>' +
+        '<div class="report-note">' +
+          '<label for="reportNote">รายละเอียดเพิ่มเติม (ไม่บังคับ)<span class="bi-en">More detail (optional)</span></label>' +
+          '<textarea id="reportNote" rows="3" maxlength="' + REPORT_NOTE_MAX + '" aria-describedby="reportNoteHint"></textarea>' +
+          '<p class="report-hint" id="reportNoteHint">ห้ามใส่ชื่อหรือข้อมูลที่ระบุตัวผู้ป่วย ข้อความนี้เห็นได้เฉพาะผู้ดูแลระบบของโครงการ และไม่ถูกส่งให้ AI' +
+            '<span class="bi-en">Do not include patient names or identifiers. Visible only to project administrators; never sent to an AI.</span></p>' +
+        '</div>' +
+        '<p class="error-msg report-error" id="reportError" role="alert" hidden></p>' +
+        '<div class="modal-actions">' +
+          '<button type="button" class="btn btn-ghost" data-act="cancel">ยกเลิก / Cancel</button>' +
+          '<button type="submit" class="btn btn-primary" data-act="send">ส่งรายงาน / Send report</button>' +
+        '</div>' +
+      '</form>';
+
+    const form = ov.querySelector('form');
+    const err = ov.querySelector('#reportError');
+    const sendBtn = ov.querySelector('[data-act="send"]');
+    const note = ov.querySelector('#reportNote');
+    let busy = false;
+
+    function close(result) {
+      document.removeEventListener('keydown', onKey, true);
+      ov.remove();
+      if (opener && opener.focus) { try { opener.focus(); } catch (e) {} }
+      resolve(result);
+    }
+    function showError(msg) { err.textContent = msg; err.hidden = false; }
+    function focusables() {
+      return Array.prototype.slice.call(ov.querySelectorAll('input, textarea, button')).filter(function (el) { return !el.disabled; });
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') { e.preventDefault(); if (!busy) close(false); return; }
+      if (e.key !== 'Tab') return;
+      // Keep Tab inside the dialog: the page behind it is inert to a modal.
+      const f = focusables();
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    // Choosing a reason answers the "please choose" error; do not leave it standing.
+    form.addEventListener('change', function () { err.hidden = true; });
+    ov.querySelector('[data-act="cancel"]').addEventListener('click', function () { if (!busy) close(false); });
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (busy) return;
+      const chosen = form.querySelector('input[name="reportReason"]:checked');
+      if (!chosen) {
+        showError('กรุณาเลือกประเภทของปัญหา / Please choose what went wrong.');
+        form.querySelector('input[name="reportReason"]').focus();
+        return;
+      }
+      busy = true; err.hidden = true;
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'กำลังส่ง… / Sending…';
+      const body = { reason: chosen.value };
+      const text = note.value.trim();
+      if (text) body.note = text.slice(0, REPORT_NOTE_MAX);
+      const res = await api.reportReply(pleId, messageId, body);
+      busy = false;
+      if (res && res.ok === true) { close(true); return; }
+      sendBtn.disabled = false;
+      sendBtn.textContent = 'ส่งรายงาน / Send report';
+      showError(reportErrorMessage(res));
+    });
+
+    document.addEventListener('keydown', onKey, true);
+    document.body.appendChild(ov);
+    form.querySelector('input[name="reportReason"]').focus();
+  });
+}
+
+function addReportButton(bar, messageId) {
+  const btn = document.createElement('button');
+  btn.className = 'msg-act-btn msg-report-btn';
+  btn.type = 'button';
+  btn.setAttribute('aria-haspopup', 'dialog');
+  btn.setAttribute('aria-label', 'รายงานคำตอบนี้ว่าไม่ถูกต้องหรือไม่ปลอดภัย / Report this reply as wrong or unsafe');
+  btn.insertAdjacentHTML('beforeend', icon('flag', 14));
+  btn.insertAdjacentHTML('beforeend', '<span>รายงาน / Report</span>');
+  btn.addEventListener('click', async () => {
+    // aria-disabled, not disabled: a disabled button drops focus to <body> the moment the dialog
+    // hands it back, which strands a keyboard user at the top of the page.
+    if (btn.getAttribute('aria-disabled') === 'true') {
+      toast('คุณรายงานคำตอบนี้แล้ว / You already reported this reply', '');
+      return;
+    }
+    const sent = await openReportDialog(messageId);
+    if (!sent) return;
+    btn.setAttribute('aria-disabled', 'true');
+    btn.setAttribute('aria-label', 'รายงานคำตอบนี้แล้ว / This reply was reported');
+    btn.querySelector('span').textContent = 'รายงานแล้ว / Reported';
+    toast('ส่งรายงานแล้ว ขอบคุณ ทีมงานจะตรวจสอบ / Report sent — thank you, the team will review it', 'success');
+  });
+  bar.appendChild(btn);
+}
+
 function fmtClock(d) {
   return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
@@ -167,7 +304,7 @@ function renderMessage(role, content, refs, socratic, opts) {
       div.appendChild(sq);
     }
     // Per-message actions: Copy always; Retry only on a failed turn (re-sends the same question).
-    if (!opts.error) addActions(div, mainContent, false);
+    if (!opts.error) addActions(div, mainContent, false, opts.messageId);
     else addActions(div, mainContent, true);
   }
   // Timestamp
@@ -181,7 +318,7 @@ function renderMessage(role, content, refs, socratic, opts) {
   return div;
 }
 
-function addActions(div, rawText, isError) {
+function addActions(div, rawText, isError, messageId) {
   const bar = document.createElement('div');
   bar.className = 'msg-actions';
   if (!isError) {
@@ -195,6 +332,8 @@ function addActions(div, rawText, isError) {
       catch { toast('คัดลอกไม่สำเร็จ / Copy failed', 'error'); }
     });
     bar.appendChild(copy);
+    // Only a stored reply can be reported — a system notice or an error bubble has no message row.
+    if (messageId) addReportButton(bar, messageId);
   } else if (lastUserMessage) {
     const retry = document.createElement('button');
     retry.className = 'msg-act-btn';
@@ -229,7 +368,7 @@ api.getPle(pleId).then(ple => {
   turns = ple.turn_count ?? 0;
   tokenCount = ple.token_count ?? 0;
   document.getElementById('turns').textContent = turns;
-  (ple.messages ?? []).forEach((m, i) => renderMessage(m.role, m.content, m.refs, m.socratic_question, { at: m.created_at, msgIndex: i }));
+  (ple.messages ?? []).forEach((m, i) => renderMessage(m.role, m.content, m.refs, m.socratic_question, { at: m.created_at, msgIndex: i, messageId: m.id }));
   nextMsgIndex = (ple.messages ?? []).length;   // live turns continue the index for stable artifact IDs
   document.getElementById('sessionProgress').hidden = false;
   updateProgress();
@@ -265,7 +404,7 @@ async function deliver(message) {
   aiInFlight = false; markActivity();
   loading.remove();
   if (res?.content) {
-    renderMessage('assistant', res.content, res.refs, res.socratic_question, { msgIndex: nextMsgIndex++, live: true });
+    renderMessage('assistant', res.content, res.refs, res.socratic_question, { msgIndex: nextMsgIndex++, live: true, messageId: res.message_id });
     turns += 1;
     tokenCount += (res.input_tokens || 0) + (res.output_tokens || 0);
     document.getElementById('turns').textContent = turns;
