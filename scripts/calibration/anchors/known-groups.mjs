@@ -47,6 +47,8 @@ export const EVIDENCE_LEVEL = 'screening-synthetic (AI-authored, AI-scored) — 
 export const DOMAIN_FLAG_DELTA = 2;
 // AUTHORING.md §7.6: "no more than 4 of 20 anchors (20%)".
 export const PROCEED_MAX_SHARE = 0.2;
+export const PILOT_D5_CAVEAT = 'd5 is INFLATED BY RUBRIC ECHO on the pilot anchors: rubric-descriptor phrases '
+  + 'correlate r = 0.64 with the d5 target (cues.mjs), so d5 can be recovered from wording without judging the appraisal.';
 
 /** The pre-registered composite threshold, parsed from AUTHORING.md. Throws if the line is missing. */
 export function parseThreshold(markdown) {
@@ -222,8 +224,14 @@ export function knownGroups(design, runs, { threshold, onlyIds, pilotOnly = fals
   const allowed = Math.floor(PROCEED_MAX_SHARE * rows.length);
   const ranges = anchors.map((x) => x.retest_range).filter((v) => v != null);
 
+  // Known authoring artefacts that inflate a domain's agreement, carried WITH the number so it cannot
+  // travel without them (AUTHORING.md §3, pilot freeze).
+  const caveats = {};
+  const pilotIds = new Set(design.anchors.filter((a) => a.pilot).map((a) => a.id));
+  if (anchors.some((x) => pilotIds.has(x.id))) caveats.d5 = PILOT_D5_CAVEAT;
   return {
     evidence_level: EVIDENCE_LEVEL,
+    caveats,
     threshold,
     domain_flag_delta: DOMAIN_FLAG_DELTA,
     n_designed: rows.length,
@@ -267,6 +275,7 @@ function print(rep, prov) {
   for (const d of DOMAINS) {
     const s = rep.per_domain[d];
     console.log(`    ${d}       ${f(s.spearman.rho, 3).padStart(6)}${ci(s.spearman).padEnd(22)} ${f(s.icc?.icc, 3).padStart(8)}  ${f(s.bias).padStart(5)}  ${f(s.mean_abs_delta).padStart(7)}  ${s.flagged}`);
+    if (rep.caveats?.[d]) console.log(`             ⚠ ${rep.caveats[d]}`);
   }
   console.log(`\n  PRE-REGISTERED flag: |AI composite − target| > ${rep.threshold}  (AUTHORING.md §7)`);
   console.log(`    flagged ${rep.flags.n}/${rep.n_scored}  rate ${f(rep.flags.rate.p != null ? rep.flags.rate.p * 100 : null, 0)}% [${f(rep.flags.rate.lower != null ? rep.flags.rate.lower * 100 : null, 0)}–${f(rep.flags.rate.upper != null ? rep.flags.rate.upper * 100 : null, 0)}%]`);

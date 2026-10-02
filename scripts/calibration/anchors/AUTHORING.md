@@ -155,6 +155,15 @@ Tutor turns follow the design's `tutor_mode`, written in the style of
     sha256s and caps each pair at its recorded r: rewrite any pilot anchor, add any new fixture, or let
     a frozen pair get stronger, and every gated pair counts again. So the next batch must be written to
     counterbalance these cues, or the pilot rewritten, before validate.mjs passes.
+  - **Acks need light counterbalancing as the cohort grows.** Simulated at final review of PR #111:
+    the pilot unchanged plus 80 anchors with NO cue failed the check 18% of the time, mostly on
+    acks:composite and acks:d5 — the pilot's acknowledgement pattern is strong enough to show through
+    80 neutral anchors. So in the next batches give some high-target physicians a casual "ok ครับ" /
+    "noted" and keep some low-target ones ack-free, rather than relying on dilution.
+  - **Reporting the pilot.** Wherever pilot known-groups results are written up, label the d5 result
+    **inflated by rubric echo**: on the pilot, the count of rubric-descriptor phrases correlates
+    r = 0.64 with the d5 target, so a scorer can recover d5 from the wording without judging the
+    appraisal. `known-groups.mjs --pilot` prints this caveat under the d5 row.
 - **Near-duplicate physician turns cap d2 and d4 at 2** (evaluator rule). Use this only for anchors
   whose d2 and d4 are both ≤ 2.
 - **Evidence for 4–5 is a quotable, case-bound physician sentence** — something that could not have

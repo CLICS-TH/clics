@@ -17,7 +17,7 @@ import {
   validateFixture, validateAll, serialiseManifest, MANIFEST_PATH, FIXTURES_DIR, REFLECTION_HEADINGS, thaiShare,
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
-import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
+import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, freezeApplies, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
 import { checkSplit, splitFilter, heldOutEligible, loadAnchorSplit } from './anchor-split.mjs';
 import {
   knownGroups, normaliseScores, parseThreshold, loadThreshold, spearman, wilson, EVIDENCE_LEVEL,
@@ -327,12 +327,41 @@ describe('cues.mjs — surface-cue check', () => {
     assert.ok(r[100] <= r[30], 'more data must not make noise fail more often');
   });
 
-  test('pilot freeze: keyed to the exact pilot files, and capped at the recorded r', async () => {
-    const { cues, results } = await validateAll();
-    assert.deepEqual(cues.counted, [], 'a cue outside (or stronger than) the pilot freeze');
-    const shas = Object.fromEntries(results.map((x) => [x.id, x.sha256]));
-    // The freeze's fixture list IS the committed pilot manifest.
-    assert.deepEqual(shas, PILOT_FREEZE.fixtures);
+  // The freeze must name exactly the PILOT anchors, and may only ever be ON for their recorded bytes.
+  // Deliberately NOT "the freeze equals every committed fixture": that would turn CI red the moment
+  // anc-021 lands, and the tempting fix — pasting the grown sha set into cues.mjs — would re-open the
+  // freeze over the whole cohort with caps up to |r| = 0.71.
+  const pilotIds = committedDesign.anchors.filter((a) => a.pilot).map((a) => a.id).sort();
+  const assertFreezeKeying = (shas) => {
+    assert.deepEqual(Object.keys(PILOT_FREEZE.fixtures).sort(), pilotIds, 'PILOT_FREEZE must name exactly the pilot anchors');
+    const on = freezeApplies(shas);
+    for (const id of pilotIds) {
+      if (shas[id] !== undefined && shas[id] !== PILOT_FREEZE.fixtures[id]) {
+        assert.equal(on, false, `${id} changed since the freeze was recorded, yet the freeze still applies`);
+      }
+    }
+    return on;
+  };
+
+  test('pilot freeze: names exactly the pilot anchors and applies only to their recorded bytes', async () => {
+    const { results } = await validateAll();
+    assertFreezeKeying(Object.fromEntries(results.map((x) => [x.id, x.sha256])));
+  });
+
+  test('an extra non-pilot fixture keeps the keying valid and turns the freeze OFF', () => {
+    const grown = { ...PILOT_FREEZE.fixtures, 'anc-021': '1'.repeat(64) };
+    assert.equal(assertFreezeKeying(grown), false);
+    assert.equal(assertFreezeKeying({ ...PILOT_FREEZE.fixtures }), true);
+    assert.equal(assertFreezeKeying({ ...PILOT_FREEZE.fixtures, 'anc-007': '0'.repeat(64) }), false);
+  });
+
+  test('the cue gate holds on the committed cohort (frozen pairs count once the freeze is off)', async () => {
+    const { cues } = await validateAll();
+    assert.deepEqual(cues.counted, [], 'a cue outside, or stronger than, the pilot freeze');
+  });
+
+  test('pilot freeze caps each pair at its recorded r', () => {
+    const shas = { ...PILOT_FREEZE.fixtures };
     const acks = { feature: 'acks', target: 'composite', r: PILOT_FREEZE.pairs['acks:composite'] };
     const other = { feature: 'length', target: 'composite', r: 0.6 };
     assert.deepEqual(applyPilotFreeze([acks, other], { fixtureShas: shas }).counted, [other]);
@@ -404,6 +433,14 @@ describe('known-groups.mjs — §7.6 rule and served models', () => {
     assert.equal(n.provenance.requested_model, 'requested-x');
     const rep = knownGroups(design, n.runs, { threshold: 15, onlyIds: [pilot[0].id], served: n.served });
     assert.deepEqual(rep.anchors[0].served_models, ['served-a', 'served-b']);
+  });
+
+  test('a pilot analysis carries the d5 rubric-echo caveat; a non-pilot one does not', () => {
+    const withPilot = knownGroups(design, new Map(pilot.map((a) => [a.id, [a.targets]])), { threshold: 15, pilotOnly: true });
+    assert.match(withPilot.caveats.d5, /INFLATED BY RUBRIC ECHO/);
+    const rest = design.anchors.filter((a) => !a.pilot).slice(0, 5);
+    const noPilot = knownGroups(design, new Map(rest.map((a) => [a.id, [a.targets]])), { threshold: 15, onlyIds: rest.map((a) => a.id) });
+    assert.equal(noPilot.caveats.d5, undefined);
   });
 
   test('a split filter restricts the designed set', () => {
