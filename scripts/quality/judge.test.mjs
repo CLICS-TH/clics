@@ -99,6 +99,8 @@ test('applicable dimensions follow the item', () => {
   assert.deepEqual(redactModelNames('I am GPT-4o, not Qwen2.5 or claude', ['qwen2.5']).text, 'I am [model], not [model] or [model]');
   assert.equal(redactModelNames('the gold standard opus of gemination').redactions, 0, 'whole words only');
   assert.deepEqual(Object.keys(resultSchema().properties.scores.properties.A.properties), DIMENSIONS);
+  // The schema is shown to judges: its example ids must not reveal which vendors or models are in play.
+  assert.doesNotMatch(resultSchema().properties.judge_id.description, /deepseek|claude|sonnet|opus|qwen|llama|gpt|local/i);
 });
 
 /* ---------------------------------------------------------------- merge */

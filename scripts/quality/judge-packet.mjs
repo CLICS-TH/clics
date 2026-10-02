@@ -191,7 +191,7 @@ export function resultSchema() {
     properties: {
       schema: { const: RESULT_SCHEMA },
       packet_id: { type: 'string' },
-      judge_id: { type: 'string', description: 'stable id of the judge, e.g. "clinician-01", "claude-agent-run3", "local-deepseek"' },
+      judge_id: { type: 'string', description: 'stable id of the judge, e.g. "judge-1", "judge-2" (neutral: never a vendor or model name)' },
       judge_kind: { enum: ['human', 'claude-agent', 'local-model', 'other'] },
       scores: { type: 'object', description: 'per slot (A, B); a dimension not in applicable_dimensions MUST be null', properties: { A: slotScores, B: slotScores }, additionalProperties: false },
       must_flags: { type: 'object', properties: { A: { type: 'array', items: { enum: Object.keys(MUST_FLAGS) } }, B: { type: 'array', items: { enum: Object.keys(MUST_FLAGS) } } }, additionalProperties: false },
