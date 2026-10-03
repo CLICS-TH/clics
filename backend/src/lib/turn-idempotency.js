@@ -73,6 +73,11 @@ function logMissing(where, err) {
 }
 function _resetLogThrottle() { lastMissingLogAt.clear(); }
 
+// CLOCKS. Every age here compares a timestamp written by the DATABASE clock (claimed_at default now(),
+// created_at clock_timestamp()) with this process's clock (Date.now()). Skew between the two shifts each
+// window by the skew: the margins (+20 s on the claim ceiling, the 30 s orphan grace) absorb ordinary NTP
+// drift. A skew larger than a margin can make a live claim look stale (or an orphan look young); that
+// costs a 202 or a takeover, never a duplicate — the unique physician index still decides what is stored.
 const ageMs = (iso) => Date.now() - new Date(iso).getTime();
 // A claim is FRESH while its holder could still be working on it.
 const isFresh = (claim) => !!claim && claim.status === 'in_flight' && !(ageMs(claim.claimed_at) > STALE_CLAIM_MS);
@@ -118,7 +123,9 @@ async function classifyIncomplete(ple, key, stored) {
 }
 
 // Delete an orphaned physician row, and only that row: id + PLE + role + key, so a different row can never
-// match. The caller holds the turn's claim, so no live request is writing this key meanwhile.
+// match. The caller holds the turn's claim, so no live request is writing this key meanwhile. Used ONLY on
+// the two-insert fallback, right before the new pair is written; with store_chat_turn the delete happens
+// inside the store's own transaction instead.
 async function deleteOrphan(pleId, key, physicianId) {
   const { error } = await supabase.from('messages').delete()
     .eq('id', physicianId).eq('ple_id', pleId).eq('role', 'physician').eq('client_turn_id', key);
@@ -137,14 +144,17 @@ async function deleteKeyRows(pleId, key) {
 }
 
 // ---- the atomic write ---------------------------------------------------------------------------------
-// store_chat_turn(): both rows in one transaction, refused when the PLE is not active.
+// store_chat_turn(): both rows in one transaction, refused when the PLE is not active. `key` may be null
+// (an unkeyed turn: same atomicity and refusal, no idempotency). `replacePhysicianId` names an orphaned
+// question to delete INSIDE the same transaction before the pair is written (the repair path), so the
+// delete happens only if the new pair is stored, and never in a session that has ended.
 //   { state: 'stored', physicianId, assistantId }
 //   { state: 'duplicate' }     the physician key already exists (23505): both rows rolled back
 //   { state: 'not_active' }    the session ended while the AI was answering: nothing stored
 //   { state: 'unavailable' }   function missing: fall back to the two inserts (logged)
 //   { state: 'error', error }  anything else (which may include a commit whose reply was lost)
 const NOT_ACTIVE_SQLSTATE = 'CT409';
-async function storeTurnAtomic({ pleId, key, physician, assistant }) {
+async function storeTurnAtomic({ pleId, key, physician, assistant, replacePhysicianId = null }) {
   const { data, error } = await supabase.rpc('store_chat_turn', {
     p_ple_id: pleId,
     p_client_turn_id: key,
@@ -157,6 +167,7 @@ async function storeTurnAtomic({ pleId, key, physician, assistant }) {
     p_provider: assistant.provider ?? null,
     p_model: assistant.model ?? null,
     p_prompt_version: assistant.prompt_version ?? null,
+    p_replace_physician_id: replacePhysicianId,
   });
   if (error) {
     if (isMissingSchema(error)) { logMissing('store', error); return { state: 'unavailable' }; }

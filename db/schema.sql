@@ -350,17 +350,18 @@ alter table public.chat_turn_claims enable row level security;
 -- Store one keyed chat turn (physician + assistant) atomically; refuses a PLE that is no longer active
 -- (SQLSTATE CT409). Service role only. (migration-message-client-turn-id.sql)
 create or replace function public.store_chat_turn(
-  p_ple_id            uuid,
-  p_client_turn_id    uuid,
-  p_physician_content text,
-  p_physician_tokens  integer,
-  p_assistant_content text,
-  p_refs              jsonb,
-  p_socratic_question text,
-  p_assistant_tokens  integer,
-  p_provider          text,
-  p_model             text,
-  p_prompt_version    text)
+  p_ple_id               uuid,
+  p_client_turn_id       uuid,      -- NULL for an unkeyed turn: same atomicity and refusal, no idempotency
+  p_physician_content    text,
+  p_physician_tokens     integer,
+  p_assistant_content    text,
+  p_refs                 jsonb,
+  p_socratic_question    text,
+  p_assistant_tokens     integer,
+  p_provider             text,
+  p_model                text,
+  p_prompt_version       text,
+  p_replace_physician_id uuid default null)  -- an orphaned question of THIS key to replace (repair)
 returns table (physician_id uuid, assistant_id uuid)
 language plpgsql
 set search_path = public
@@ -379,10 +380,22 @@ begin
   if v_status <> 'active' then
     raise exception 'store_chat_turn: ple_not_active % (%)', p_ple_id, v_status using errcode = 'CT409';
   end if;
+  -- Repair: remove the orphaned question this turn replaces — only that row (id + PLE + role + key), and
+  -- only while no reply carries the key. Inside this transaction, so it is undone if anything below fails
+  -- and never happens in a session that has ended (refused above).
+  if p_replace_physician_id is not null then
+    delete from public.messages m
+     where m.id = p_replace_physician_id
+       and m.ple_id = p_ple_id
+       and m.role = 'physician'
+       and m.client_turn_id = p_client_turn_id
+       and not exists (select 1 from public.messages a
+                        where a.ple_id = p_ple_id and a.role = 'assistant' and a.client_turn_id = p_client_turn_id);
+  end if;
   -- Explicit column lists (never an array insert, which sends NULL instead of DEFAULT for an omitted key).
   -- clock_timestamp(), not now(): now() is the transaction start, so both rows would tie on created_at and
   -- the transcript order (ORDER BY created_at) would become arbitrary. A 23505 on the physician key aborts
-  -- the whole call, so neither row is stored.
+  -- the whole call, so neither row is stored (and a replaced orphan is restored).
   insert into public.messages (ple_id, role, content, token_count, client_turn_id, created_at)
   values (p_ple_id, 'physician', p_physician_content, coalesce(p_physician_tokens, 0), p_client_turn_id, clock_timestamp())
   returning id into v_physician;
@@ -394,9 +407,9 @@ begin
   return query select v_physician, v_assistant;
 end $$;
 
-revoke all on function public.store_chat_turn(uuid, uuid, text, integer, text, jsonb, text, integer, text, text, text)
+revoke all on function public.store_chat_turn(uuid, uuid, text, integer, text, jsonb, text, integer, text, text, text, uuid)
   from public, anon, authenticated;
-grant execute on function public.store_chat_turn(uuid, uuid, text, integer, text, jsonb, text, integer, text, text, text)
+grant execute on function public.store_chat_turn(uuid, uuid, text, integer, text, jsonb, text, integer, text, text, text, uuid)
   to service_role;
 
 -- PIS-7 scored by AI

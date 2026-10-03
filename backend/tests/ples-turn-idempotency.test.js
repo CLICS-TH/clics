@@ -54,7 +54,7 @@ const reply = (content = 'assistant reply') => ({
 const OLD = () => new Date(Date.now() - turnIdem.STALE_CLAIM_MS - 5_000).toISOString();
 const NOW = () => new Date().toISOString();
 
-let messages, claims, pleRow, uniqueViolations, missing, hooks, rpcMode, errSpy, warnSpy;
+let messages, claims, pleRow, uniqueViolations, missing, hooks, rpcMode, rpcCalls, errSpy, warnSpy;
 const sb = require('../src/lib/supabase').supabase;
 
 // Filters the real code must put on every write that can touch an existing row.
@@ -78,13 +78,21 @@ function installStore() {
   sb.rpc = async (name, a) => {
     if (name !== 'store_chat_turn') return { data: null, error: null };
     mockCalls.push('rpc:store');
-    if (rpcMode.missing) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.store_chat_turn(p_assistant_content, ...) in the schema cache' } };
+    rpcCalls.push(a);
+    // The function ships in the same migration as the column and the table: if they are missing, so is it.
+    if (rpcMode.missing || missing.column || missing.table) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.store_chat_turn(p_assistant_content, ...) in the schema cache' } };
     if (pleRow.status !== 'active') return { data: null, error: { code: 'CT409', message: `store_chat_turn: ple_not_active ${a.p_ple_id} (${pleRow.status})` } };
-    if (messages.some((r) => r.role === 'physician' && r.ple_id === a.p_ple_id && r.client_turn_id === a.p_client_turn_id)) {
+    // Repair: delete the orphan INSIDE the transaction (same filters as the SQL), applied only on commit.
+    const keyed = a.p_client_turn_id != null;
+    const replaced = a.p_replace_physician_id && keyed && !messages.some((r) => r.ple_id === a.p_ple_id && r.role === 'assistant' && r.client_turn_id === a.p_client_turn_id)
+      ? messages.filter((r) => !(r.id === a.p_replace_physician_id && r.ple_id === a.p_ple_id && r.role === 'physician' && r.client_turn_id === a.p_client_turn_id))
+      : messages;
+    if (keyed && replaced.some((r) => r.role === 'physician' && r.ple_id === a.p_ple_id && r.client_turn_id === a.p_client_turn_id)) {
       uniqueViolations += 1;
       return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint "messages_ple_client_turn_uidx"' } };
     }
     if (rpcMode.errorNoCommit) return { data: null, error: { code: '08006', message: 'connection terminated' } };
+    messages = replaced;
     const t = Date.now();
     const phys = { id: `msg-${++seq}`, ple_id: a.p_ple_id, role: 'physician', content: a.p_physician_content, token_count: a.p_physician_tokens, client_turn_id: a.p_client_turn_id, refs: [], socratic_question: null, created_at: new Date(t).toISOString() };
     const asst = { id: `msg-${++seq}`, ple_id: a.p_ple_id, role: 'assistant', content: a.p_assistant_content, refs: a.p_refs ?? [], socratic_question: a.p_socratic_question, token_count: a.p_assistant_tokens, provider: a.p_provider, model: a.p_model, prompt_version: a.p_prompt_version, client_turn_id: a.p_client_turn_id, created_at: new Date(t + 1).toISOString() };
@@ -161,7 +169,7 @@ function installStore() {
 beforeEach(() => {
   m.reset();
   messages = []; claims = []; uniqueViolations = 0; missing = { column: false, table: false }; hooks = {};
-  rpcMode = { missing: false, commitThenError: false, errorNoCommit: false };
+  rpcMode = { missing: false, commitThenError: false, errorNoCommit: false }; rpcCalls = [];
   mockCalls.length = 0;
   for (const f of [mockRimplChat, mockReserve, mockRefund, mockAccrue, mockBudgetState]) f.mockReset();
   mockRimplChat.mockImplementation(async () => { mockCalls.push('rimpl'); return reply(); });
@@ -190,15 +198,43 @@ const storeTurn = (key = KEY, content = 'stored reply') => {
 const claim = (claimed_at, token = 'tok-0') =>
   claims.push({ ple_id: 'ple1', client_turn_id: KEY, claim_token: token, status: 'in_flight', claimed_at, created_at: claimed_at });
 
-describe('no key: behaves exactly as before', () => {
-  test('rows written after rimpl, no key anywhere, no claim or keyed lookup', async () => {
+describe('no key', () => {
+  test('stored through store_chat_turn with a NULL key: both rows or neither, no claim, no keyed lookup', async () => {
     const r = await send();
     expect(r.status).toBe(200);
-    expect(mockCalls).toEqual(['reserve', 'rimpl', 'insert:physician', 'insert:assistant']);
-    expect(insertPayloads().every((p) => !('client_turn_id' in p))).toBe(true);
+    expect(mockCalls).toEqual(['reserve', 'rimpl', 'rpc:store']);
+    expect(rpcCalls[0]).toMatchObject({ p_client_turn_id: null, p_replace_physician_id: null, p_physician_content: TEXT });
+    expect(messages.map((x) => [x.role, x.client_turn_id])).toEqual([['physician', null], ['assistant', null]]);
+    expect(m.all('messages', 'insert')).toHaveLength(0);
     expect(m.all('chat_turn_claims')).toHaveLength(0);
     expect(m.state.queries.some((q) => q.eqs.some((e) => e[0] === 'client_turn_id'))).toBe(false);
     expect(r.body.deduplicated).toBeUndefined();
+  });
+
+  test('an unkeyed turn on a session that ended while the AI answered: 409 ple_not_active, refunded, nothing stored', async () => {
+    mockRimplChat.mockImplementation(async () => { pleRow.status = 'ended'; return reply(); });
+    const r = await send();
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('ple_not_active');
+    expect(messages).toHaveLength(0);
+    expect(mockRefund).toHaveBeenCalledTimes(1);
+  });
+
+  test('an unkeyed store error: no read-back, 500 + refund (today\'s answer)', async () => {
+    rpcMode.errorNoCommit = true;
+    const r = await send();
+    expect(r.status).toBe(500);
+    expect(mockRefund).toHaveBeenCalledTimes(1);
+    expect(m.state.queries.some((q) => q.eqs.some((e) => e[0] === 'client_turn_id'))).toBe(false);
+  });
+
+  test('unkeyed on the fallback path (no function) behaves as today: the two plain inserts', async () => {
+    rpcMode.missing = true;
+    const r = await send();
+    expect(r.status).toBe(200);
+    expect(mockCalls).toEqual(['reserve', 'rimpl', 'rpc:store', 'insert:physician', 'insert:assistant']);
+    expect(insertPayloads().every((p) => !('client_turn_id' in p))).toBe(true);
+    expect(m.all('ples').some((q) => q.selectArgs?.[0] === 'status')).toBe(false); // no extra status read
   });
 
   test('two identical unkeyed sends still store two turns (no accidental dedup on text)', async () => {
@@ -463,7 +499,7 @@ describe('code deployed before the migration', () => {
     missing.column = true;
     const r = await send({ client_turn_id: KEY });
     expect(r.status).toBe(200);
-    expect(mockCalls).toEqual(['reserve', 'rimpl', 'insert:physician', 'insert:assistant']);
+    expect(mockCalls).toEqual(['reserve', 'rimpl', 'rpc:store', 'insert:physician', 'insert:assistant']);
     expect(insertPayloads().every((p) => !('client_turn_id' in p))).toBe(true);
     expect(errSpy.mock.calls.some((c) => /missing column public\.messages\.client_turn_id \(messages lookup\).*DISABLED/.test(String(c[0])))).toBe(true);
   });
@@ -541,6 +577,36 @@ describe('store_chat_turn: the atomic path', () => {
     expect(claims[0].status).toBe('done');
   });
 
+  test('repair via the store: the orphan is replaced INSIDE store_chat_turn, never deleted by a separate call', async () => {
+    const old = new Date(Date.now() - 10 * 60_000).toISOString();
+    messages.push({ id: 'orphan', ple_id: 'ple1', role: 'physician', content: TEXT, client_turn_id: KEY, created_at: old });
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(200);
+    expect(rpcCalls[0].p_replace_physician_id).toBe('orphan');
+    expect(m.all('messages', 'delete')).toHaveLength(0);
+    expect(messages.map((x) => x.role)).toEqual(['physician', 'assistant']);
+    expect(messages.some((x) => x.id === 'orphan')).toBe(false);
+    expect(mockRimplChat.mock.calls[0][0].history.some((h) => h.content === TEXT)).toBe(false);
+  });
+
+  test('repair on a session that ENDS mid-request: the store refuses (CT409), orphan untouched, 409, refunded', async () => {
+    const old = new Date(Date.now() - 10 * 60_000).toISOString();
+    messages.push({ id: 'orphan', ple_id: 'ple1', role: 'physician', content: TEXT, client_turn_id: KEY, created_at: old });
+    mockRimplChat.mockImplementation(async () => { pleRow.status = 'ended'; return reply(); });
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('ple_not_active');
+    expect(messages).toEqual([expect.objectContaining({ id: 'orphan' })]);
+    expect(mockRefund).toHaveBeenCalledTimes(1);
+    expect(claims).toHaveLength(0);
+  });
+
+  test('a store error whose read-back finds nothing is LOGGED as not stored (a late commit would be visible)', async () => {
+    rpcMode.errorNoCommit = true;
+    await send({ client_turn_id: KEY });
+    expect(errSpy.mock.calls.some((c) => /read-back found 'none'.*NOT stored/.test(String(c[0])))).toBe(true);
+  });
+
   test('an error with nothing committed: 500, refunded, slot freed, and the retry starts clean', async () => {
     rpcMode.errorNoCommit = true;
     const r = await send({ client_turn_id: KEY });
@@ -614,6 +680,31 @@ describe('fallback: store_chat_turn missing (code ahead of the migration) → th
     expect(del.eqs).toEqual(expect.arrayContaining([['id', 'orphan'], ['ple_id', 'ple1'], ['role', 'physician'], ['client_turn_id', KEY]]));
     expect(claims[0].claim_token).not.toBe('tok-dead');
     expect(mockRimplChat).toHaveBeenCalledTimes(1);
+    // The orphan was kept OUT of what the AI saw (it would have read the question twice).
+    const sent = mockRimplChat.mock.calls[0][0];
+    expect(sent.history.some((h) => h.content === TEXT)).toBe(false);
+    expect(sent.history.every((h) => Object.keys(h).sort().join() === 'content,role')).toBe(true);
+  });
+
+  test('fallback repair on a session that ENDS while the AI answers: orphan untouched, 409, refunded', async () => {
+    const old = new Date(Date.now() - 10 * 60_000).toISOString();
+    messages.push({ id: 'orphan', ple_id: 'ple1', role: 'physician', content: TEXT, client_turn_id: KEY, created_at: old });
+    mockRimplChat.mockImplementation(async () => { pleRow.status = 'ended'; return reply(); });
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('ple_not_active');
+    expect(messages).toEqual([expect.objectContaining({ id: 'orphan' })]);
+    expect(m.all('messages', 'delete')).toHaveLength(0);
+    expect(mockRefund).toHaveBeenCalledTimes(1);
+  });
+
+  test('fallback repair whose AI call fails leaves the orphan in place (the delete only happens at the store)', async () => {
+    const old = new Date(Date.now() - 10 * 60_000).toISOString();
+    messages.push({ id: 'orphan', ple_id: 'ple1', role: 'physician', content: TEXT, client_turn_id: KEY, created_at: old });
+    mockRimplChat.mockRejectedValueOnce(new Error('connect ECONNREFUSED'));
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(502);
+    expect(messages).toEqual([expect.objectContaining({ id: 'orphan' })]);
   });
 
   test('an old orphan with NO claim at all (legacy) is repaired the same way', async () => {
