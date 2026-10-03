@@ -839,8 +839,13 @@ function fitKeyboard() {
   const root = document.documentElement;
   const vvH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
   const typing = coarsePointer.matches && document.activeElement === inputEl;
-  root.toggleAttribute('data-kb-compact', typing && vvH < KB_SHORT_PX);
   root.style.removeProperty('--kb-lift');
+  // At rest too: a screen too short for the full layout (320x568, a landscape phone) would cut the CREC082
+  // notice off at the bottom, so it gets the same compact form. Measured in the full layout. No lift at rest:
+  // the page does not scroll, so a lifted nav could not be reached again.
+  root.removeAttribute('data-kb-compact');
+  const compact = (typing && vvH < KB_SHORT_PX) || composerSpill() > 0.5;
+  root.toggleAttribute('data-kb-compact', compact);
   if (!typing) return;
   const nav = document.querySelector('body > nav');
   const head = document.querySelector('.chat-head');
@@ -867,6 +872,7 @@ inputEl.addEventListener('input', fitKeyboard);   // the box grows as lines are 
 if (window.visualViewport) window.visualViewport.addEventListener('resize', fitKeyboard);
 window.addEventListener('resize', fitKeyboard);
 autoGrow(); // size the rows=1 composer correctly on load
+fitKeyboard(); // a short screen at rest gets the compact notice from the first paint
 
 document.getElementById('sendBtn').addEventListener('click', sendMessage);
 inputEl.addEventListener('keydown', e => {

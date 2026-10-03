@@ -51,6 +51,10 @@ function startServer() {
 
 const SIZES = [{ w: 320, h: 568 }, { w: 375, h: 667 }, { w: 390, h: 844 }];
 const KEYBOARD_PX = 300;
+// Rest only (no keyboard pass): a phone browser's real inner height with its bars, and landscape phones.
+// 640x304 is a KNOWN GAP (measured, not asserted): even compact, the notice ends ~6px below the screen; it
+// needs the session header itself to compact in landscape, a design call left open.
+const REST_SIZES = [{ w: 320, h: 460 }, { w: 568, h: 320 }, { w: 640, h: 304, knownGap: true }];
 const SHORT_VIEWPORT_PX = 500;   // below this, with the composer focused, the composer area compacts (js/ple-chat.js)
 const N = 30;
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
@@ -132,6 +136,9 @@ for (const { w, h } of SIZES) {
     check(load.bubbles === N, `${tag}: ${N} messages drawn (${load.bubbles}, ${load.srCount} sr-only labels inside #messages)`);
     check(load.scrollH <= load.innerH + 1, `${tag}: document fits the viewport (scrollHeight ${load.scrollH} <= innerHeight ${load.innerH} + 1)`);
     check(!load.fabOnComposer, `${tag}: the jump-to-latest button does not cover the composer`);
+    check(inView(load.disclaimer, load.vvH) && inView(load.composer, load.vvH), `${tag} at rest: composer and AI disclaimer fully on screen (disclaimer bottom ${load.disclaimer && Math.round(load.disclaimer.bottom)} <= ${load.vvH})`);
+    check(load.spill <= 0.5, `${tag} at rest: composer area inside the chat card (spill ${load.spill}px)`);
+    check(load.discSeen.length > 0, `${tag} at rest: the disclaimer is never hidden`);
     check(load.leaks === 0, `${tag}: every sr-only label is contained by #messages (${load.leaks} escape it)`);
 
     await page.evaluate(() => window.scrollTo(0, 99999));
@@ -165,7 +172,7 @@ for (const { w, h } of SIZES) {
       check(!kb.hint || !kb.hint.shown, `${tag} +keyboard: input hint hidden`);
       check(kb.discLines === 1, `${tag} +keyboard: disclaimer is ONE line (${kb.discLines})`);
     } else {
-      check(!kb.compact && kb.hint && kb.hint.shown, `${tag} +keyboard: tall enough (${kb.vvH}px) -> full layout kept`);
+      if (!kb.compact) check(kb.hint && kb.hint.shown, `${tag} +keyboard: tall enough (${kb.vvH}px) and fits -> full layout kept`);
     }
     await page.evaluate(() => { const all = document.querySelectorAll('#messages .msg-physician, #messages .msg-assistant'); all[all.length - 1].scrollIntoView(); });
     const kbLast = await m();
@@ -185,16 +192,53 @@ for (const { w, h } of SIZES) {
     await page.setViewportSize({ width: w, height: h });
     await page.waitForTimeout(150);
     const closed = await m();
-    check(!closed.compact && closed.hint && closed.hint.shown && closed.discLines > 1, `${tag} keyboard closed: full hint + full disclaimer back (${closed.discLines} lines)`);
+    check(closed.compact === load.compact && inView(closed.disclaimer, closed.vvH), `${tag} keyboard closed: back to the at-rest layout (compact ${closed.compact}, ${closed.discLines} disclaimer lines)`);
+    if (!load.compact) check(closed.hint && closed.hint.shown && closed.discLines > 1, `${tag} keyboard closed: full hint + full disclaimer back`);
     // Keyboard dismissed by leaving the box (viewport still short): full layout a beat later, no lift left behind.
     await page.setViewportSize({ width: w, height: h - KEYBOARD_PX });
     await page.focus('#input');
     await page.evaluate(() => document.getElementById('input').blur());
     await page.waitForTimeout(450);
-    const blurred = await page.evaluate(() => ({ compact: document.documentElement.hasAttribute('data-kb-compact'), lift: document.documentElement.style.getPropertyValue('--kb-lift') }));
-    check(!blurred.compact && !blurred.lift, `${tag} box left: compact form and lift cleared`);
+    const blurred = await page.evaluate(() => ({ lift: document.documentElement.style.getPropertyValue('--kb-lift') }));
+    const bl = await m();
+    check(!blurred.lift, `${tag} box left: no lift at rest (the nav stays reachable)`);
+    // (Viewport still keyboard-short with the box blurred is transient: a real keyboard closes on blur.)
+    check(bl.compact || !bl.spill || bl.spill <= 0.5, `${tag} box left: compact whenever the full layout would spill`);
     await page.setViewportSize({ width: w, height: h });
     report.push({ size: tag, scrollHeight: load.scrollH, innerHeight: load.innerH, restSpill: load.spill, keyboard: { vvH: kb.vvH, compact: kb.compact, composerBottom: kb.composer && Math.round(kb.composer.bottom), disclaimerBottom: kb.disclaimer && Math.round(kb.disclaimer.bottom) } });
+  } catch (e) {
+    check(false, `${tag}: ${String(e.message).split('\n')[0]}`);
+  }
+  await ctx.close();
+}
+
+// ---- rest only: short in-browser heights and landscape phones ----
+for (const { w, h, knownGap } of REST_SIZES) {
+  const tag = `${w}x${h}`;
+  console.log(`\n== ${tag} (rest)`);
+  const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+  await ctx.addInitScript(() => { try { localStorage.setItem('clics_token', 'scroll-guard'); } catch {} });
+  await ctx.route('**/*', (route) => {
+    const req = route.request(); const url = req.url();
+    if (url.startsWith(base)) return route.continue();
+    if (!url.startsWith('http://localhost:3001')) return route.abort();
+    if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
+    const path = new URL(url).pathname;
+    const body = path === '/ples/smoke' && req.method() === 'GET' ? ple : {};
+    return route.fulfill({ status: 200, headers: CORS, contentType: 'application/json', body: JSON.stringify(body) });
+  });
+  const page = await ctx.newPage();
+  try {
+    await page.goto(base + '/ple-chat?id=smoke', { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction((n) => document.querySelectorAll('#messages .msg-physician, #messages .msg-assistant').length >= n, N, { timeout: 10000 });
+    await page.waitForTimeout(200);
+    const r = await page.evaluate(MEASURE);
+    check(r.scrollH <= r.innerH + 1, `${tag} at rest: document fits the viewport (${r.scrollH} <= ${r.innerH} + 1)`);
+    check(inView(r.composer, r.vvH), `${tag} at rest: composer fully on screen`);
+    const discOk = inView(r.disclaimer, r.vvH) && r.discSeen.length > 0;
+    const discMsg = `${tag} at rest: AI disclaimer fully on screen (bottom ${r.disclaimer && Math.round(r.disclaimer.bottom)} <= ${r.vvH})`;
+    if (knownGap) console.log(`  ${discOk ? 'PASS' : 'KNOWN GAP'} ${discMsg}`); else check(discOk, discMsg);
+    report.push({ size: tag, rest: true, compact: r.compact, restSpill: r.spill });
   } catch (e) {
     check(false, `${tag}: ${String(e.message).split('\n')[0]}`);
   }

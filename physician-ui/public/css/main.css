@@ -512,6 +512,9 @@ body:has(.chat-page) nav { flex:none; }
 html[data-kb-compact] .composer-hint { display:none; }
 html[data-kb-compact] .ai-disclaimer > [lang]:not(.ai-disclaimer-short) { display:none; }
 html[data-kb-compact] .ai-disclaimer-short { display:block; }
+html[data-kb-compact] .chat-head { padding:6px 0; }   /* also at rest on a screen too short for the full layout */
+html[data-kb-compact] .ai-disclaimer { margin-top:4px; }
+html[data-kb-compact] .composer-wrap { padding-top:8px; padding-bottom:calc(6px + var(--safe-b)); }
 body:has(.chat-page) > nav { margin-top:calc(-1 * var(--kb-lift, 0px)); }   /* 0 unless typing (fitKeyboard) */
 /* Touch sizing handled centrally by the `@media (pointer:coarse)` floor in the primitives block. */
 
