@@ -806,6 +806,25 @@ The rule from now on:
       - **Where "40" sits** depends on the rater, and only human raters can fix it. Plan 2.7 / #135 stays the decisive input.
     - **For DeepSeek tuning (on hold):** the target is spread and ranking, not the low band alone. Held-out is spent for the current prompt.
 
+24. **Pre-registration: local scale-compression fix, tuning only, with an AI-consensus interim reference (written 2026-10-03, before any v3/v4 score existed).** Human auditors are unavailable, and the user chose to resume DeepSeek tuning against an interim AI reference. Item 23 located DeepSeek's specific defect in its **compressed scale and weaker ranking**, not in the low-band lift alone. That is the target here.
+    - **Baseline** (shipping `+local-c5ffe572aa81`, tuning split, from item 22's run): SD(AI) 18.35 against SD(target) 22.7, a ratio of 0.81. ICC(A,1) 0.82, Spearman 0.83, high-band bias −2.3, test–retest 0.94.
+    - **Candidates, written blind** before any candidate score existed:
+      - `addenda/v3-weak-work-anchors.txt`: the shipping addendum plus concrete 1-level behaviours per domain and an instruction to keep weak and strong sessions far apart. #138 noted that no variant describing weak work had been tried.
+      - `addenda/v4-weak-work-no-default3.txt`: v3 without the "3 is the anchor" bullet.
+    - **Adoption rule** (`addendum-compare.mjs --rule spread`, `RULE_SPREAD`). All five conditions must hold:
+      1. SD(AI)/SD(target) rises by **0.08 or more** and stays **1.15 or less**.
+      2. ICC(A,1) vs target is higher.
+      3. Spearman falls by **no more than 0.03**.
+      4. |high-band bias| is **7 or less**.
+      5. Test–retest is **0.85 or more**, with no unscored run.
+      - At most **2** variants. If both pass, the one with the higher ICC wins.
+    - **Held-out, once, for the winner only.** Held-out is spent for the shipping prompt, but a new prompt may be scored on it once. Reported:
+      - against target;
+      - against the **AI consensus**: the mean of the blind Sonnet, Opus and GPT composites (items 20 and 23);
+      - against the shipping prompt's held-out run.
+    - **What the consensus can and cannot show.** It is an interim **screening** reference and not a decisive gate. Two of its three members are Claude, the family that wrote the anchors, and GPT reads every band about 20 points high. It can show whether DeepSeek's spread and ranking move toward the other families. It **cannot** settle where "40" sits. The SANDBOX auditor round (60 anchors, 4 auditors, assigned 2026-10-03) stays the decisive input.
+    - **Same run conditions as item 21:** K = 3, consistency off, temperature 0, one job on the box. Transport-only failures are dropped and re-scored with a `merge_note`.
+
 ## 8. Pipeline and commands
 
 | step | command | network |

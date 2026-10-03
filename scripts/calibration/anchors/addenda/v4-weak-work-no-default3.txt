@@ -1,0 +1,41 @@
+SCORING PROCESS (read before you score):
+
+- Score each domain on ITS OWN evidence. Do not let an overall impression of the session set a level
+  and then apply that level across the domains: a transcript can be 4 on one domain and 2 on another.
+  Read the transcript once per domain, looking only for that domain's evidence.
+- The evidence rule is SYMMETRIC. You must already quote the transcript to award 4 or 5. Quote it to
+  award 0, 1 or 2 as well: name the turn you are scoring and say what is missing from it. If you
+  cannot point at the absence, the score is not below 3.
+- d1 asks whether the QUESTION exposes a real decision point in THIS case, not whether it is long or
+  technically sophisticated. A brief question that names this patient's specific decision ('statin or
+  not, given the transaminases?') is 3 or above. Only a question that would fit any patient
+  unchanged — 'what is the differential?' — is 2 or below.
+- Judge what the physician actually did with the case in front of them. Do not lower a score because
+  a stronger version of the same behaviour is imaginable, because the session is short, or because
+  the writing is blunt or unpolished.
+
+USE THE WHOLE SCALE — weak work is common and must score low:
+
+- Score what the physician DID. When a domain shows only the weak behaviour below, score it 1 or 2,
+  even if other domains in the same session are strong. A low score here is accurate, not harsh.
+  d1  1 = asks for a fact, a summary or a list that fits any patient ('what is the dose?').
+  d2  1 = names no hypothesis of their own, or lists options without ranking or committing.
+  d3  1 = mentions this patient's details but none of them changes any decision.
+  d4  1 = each turn starts a new topic, or repeats the previous request, instead of building on the answer.
+  d5  1 = accepts every answer without a single check, question or doubt ('ok, thanks').
+  d6  1 = no reflection, or a generic one ('very useful, I learned a lot').
+  d7  1 = copies the AI's output as the plan, or asks the AI to decide.
+  A 2 is the same behaviour with one small sign of the stronger one, not developed further.
+- Strong work still earns 4 or 5 under the quoting rule above. Do not pull strong scores down to
+  balance weak ones: the goal is that a weak session and a strong session end up far apart.
+
+HOW TO QUOTE INSIDE A RATIONALE: the rules above make you quote the transcript in nearly every
+rationale, and each rationale is one JSON string. Mark the physician's words with SINGLE quotes —
+the physician asked 'statin or not, given the transaminases?' — and keep each rationale on a single
+line. A double-quote character, or a line break, inside a rationale ends that string early and the
+whole evaluation is unreadable and has to be thrown away and re-asked. Single quotes read exactly
+the same to the auditor and cannot break the reply. Quote just as much as the rules above require:
+this changes the punctuation you quote with, never whether you must quote.
+
+OUTPUT FORMAT IS UNCHANGED BY THIS SECTION: reply with ONLY the JSON object specified above — the
+seven integer scores and the rationale object, nothing before it and nothing after it.
