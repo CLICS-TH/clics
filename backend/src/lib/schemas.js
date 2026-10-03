@@ -21,6 +21,9 @@ const ReportReplySchema = z.object({
 const MessageSchema = z.object({
   message: z.string().min(1).max(5000),
   language: z.enum(['th', 'en']).default('th'),
+  // Idempotency key (db/migration-message-client-turn-id.sql). A UUID the client generates once per
+  // typed turn and REUSES on retry; optional, and a request without it behaves exactly as it always did.
+  client_turn_id: z.string().uuid().optional(),
 });
 
 // How clear a domain's behavioural anchor was for this transcript. The approved assessment form asks

@@ -27,7 +27,10 @@ async function apiFetch(path, options = {}) {
   } catch {
     // Network rejection OR timeout abort — return the same { error } shape callers already branch on,
     // so awaited buttons re-enable instead of staying disabled forever.
-    return { error: 'เครือข่ายขัดข้อง กรุณาลองใหม่ / Network error — please try again.' };
+    // `code` lets a caller tell "the request never got an answer" (the server may still have acted on it,
+    // and a chat turn is the case that matters) from a definite server refusal. Additive: callers that
+    // only read `.error` are unaffected.
+    return { error: 'เครือข่ายขัดข้อง กรุณาลองใหม่ / Network error — please try again.', code: 'network_error' };
   }
   // Session-expiry handling — ONLY when a token was attached. An unauthenticated 401
   // (e.g. a wrong password on /auth/login) must fall through so the page shows the
@@ -49,7 +52,7 @@ async function apiFetch(path, options = {}) {
   try {
     return await res.json();
   } catch {
-    return { error: 'เซิร์ฟเวอร์ขัดข้องชั่วคราว กรุณาลองใหม่ / Server error — please try again.' };
+    return { error: 'เซิร์ฟเวอร์ขัดข้องชั่วคราว กรุณาลองใหม่ / Server error — please try again.', code: 'bad_response' };
   }
 }
 

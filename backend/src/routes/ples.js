@@ -17,6 +17,7 @@ const { creditSettings, getSetting, transcriptCap } = require('../lib/settings')
 const { creditFor, creditTable } = require('../services/credit');
 const { COMPLETED_STATUSES } = require('../lib/ple-status');
 const { scanPle, flagRescueReplyBreach, recordReportedReply } = require('../services/integrity-scan');
+const turnIdem = require('../lib/turn-idempotency');
 const rateLimit = require('express-rate-limit');
 
 const router = Router();
@@ -382,13 +383,59 @@ router.get('/:id', async (req, res) => {
     transcript: transcriptBlock(Number(ple.context_tokens ?? 0), cap) });
 });
 
+// A keyed turn that is already stored (or being processed by another request): answer from the record,
+// never from rimpl, and charge nothing — no reservation is taken on this path.
+async function respondExistingTurn(res, ple, turnKey, seen) {
+  if (seen.state === 'conflict') {
+    return res.status(409).json({
+      error: 'This turn id was already used for a different message.', code: 'turn_id_reused',
+    });
+  }
+  if (seen.state === 'pending') {
+    // The original request has claimed the turn but its reply is not stored yet. 202, not an error:
+    // nothing failed, and the client should look again rather than send the text again.
+    res.set('Retry-After', String(turnIdem.PENDING_RETRY_AFTER_S));
+    return res.status(202).json({
+      pending: true, code: 'turn_pending', client_turn_id: turnKey,
+      user_message_id: seen.physician?.id ?? null, retry_after_s: turnIdem.PENDING_RETRY_AFTER_S,
+    });
+  }
+  // done. Same whitelist as a live reply (no provider / model / prompt version). input_/output_tokens
+  // are not stored per message, so they are absent here; the client treats absent as 0.
+  const cap = await transcriptCap();
+  return res.json({
+    deduplicated: true,
+    user_message_id: seen.physician.id,
+    message_id: seen.assistant.id,
+    content: seen.assistant.content,
+    refs: seen.assistant.refs,
+    socratic_question: seen.assistant.socratic_question,
+    token_count: seen.assistant.token_count,
+    transcript: transcriptBlock(Number(ple.context_tokens ?? 0), cap),
+  });
+}
+
 // Send a message turn
 router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   const parsed = MessageSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id);
-  if (!ple || ple.status !== 'active') return res.status(400).json({ error: 'PLE not active' });
+  if (!ple) return res.status(400).json({ error: 'PLE not active' });
+
+  // Idempotency (client_turn_id). A retry of a turn that is already stored must NOT insert, call rimpl
+  // or reserve budget again — it gets the stored turn back, or "pending" while the original is still in
+  // flight. Looked up BEFORE the active-status and budget gates on purpose: the turn exists, and the
+  // physician is owed its answer even if the session has since ended. No key → none of this runs.
+  const turnKey = parsed.data.client_turn_id ?? null;
+  let keyed = false;
+  if (turnKey) {
+    const seen = await turnIdem.lookupTurn(req.params.id, turnKey, parsed.data.message, { reclaim: ple.status === 'active' });
+    if (seen.state === 'error') return res.status(500).json({ error: 'Could not check this message. Please try again.', code: 'turn_lookup_failed' });
+    if (seen.state !== 'none' && seen.state !== 'unavailable') return respondExistingTurn(res, ple, turnKey, seen);
+    keyed = seen.state === 'none'; // 'unavailable' = column missing: proceed exactly as an unkeyed request
+  }
+  if (ple.status !== 'active') return res.status(400).json({ error: 'PLE not active' });
 
   const { data: history } = await supabase
     .from('messages').select('role, content').eq('ple_id', req.params.id).order('created_at');
@@ -412,6 +459,20 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     });
   }
 
+  // Claim the turn's slot BEFORE any paid work (keyed requests only): the physician row goes in first,
+  // under the unique (ple_id, client_turn_id) index, so of two overlapping requests the database picks
+  // one. The loser never reaches the reservation below, so it cannot be charged. Everything after this
+  // point that ends the turn without a stored reply must release the claim.
+  const physicianTokens = Math.ceil(message.length / 4);
+  let claimId = null;
+  if (keyed) {
+    const claim = await turnIdem.claimTurn({ pleId: req.params.id, key: turnKey, message, tokens: physicianTokens });
+    if (claim.state === 'error') return res.status(500).json({ error: 'Could not save this message. Please try again.', code: 'turn_claim_failed' });
+    if (claim.state === 'claimed') claimId = claim.id;
+    else if (claim.state !== 'unavailable') return respondExistingTurn(res, ple, turnKey, claim);
+  }
+  const releaseClaim = () => turnIdem.releaseTurn(req.params.id, claimId);
+
   // ATOMICALLY reserve this turn's estimated cost before the paid call — closes the parallel-turn
   // TOCTOU where concurrent turns all passed requireBudget's stale read before any spend landed.
   // Reconciled to the real cost on success; refunded on any failure below. The token ceiling rides
@@ -419,6 +480,7 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
   const [limit, tokenLimit] = await Promise.all([effectiveLimit(req.user), effectiveTokenLimit(req.user)]);
   const reservation = await reserveUsage(req.user.id, limit, RESERVE_ESTIMATE_USD, 'physician', tokenLimit);
   if (!reservation.ok) {
+    await releaseClaim(); // refused before it was answered — nothing of this turn may stay stored
     const b = await budgetState(req.user);
     return res.status(403).json({
       error: b.reason === 'tokens'
@@ -447,6 +509,7 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     });
   } catch (err) {
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
+    await releaseClaim(); // and the slot, so a retry with the same key starts clean
     // rimpl's proactive size backstop (or its body limit): the transcript no longer fits the model —
     // the same outcome as our own cap above, so the same code, and a human-readable "end the session".
     if (err.status === 413 || err.code === 'transcript_too_large') {
@@ -466,9 +529,8 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     return res.status(502).json({ error: `RIMPL unavailable: ${err.message}`, code: 'rimpl_unavailable' });
   }
 
-  const physicianTokens = Math.ceil(message.length / 4);
-
-  const { error: msgErr1 } = await supabase.from('messages').insert({
+  // A keyed turn's physician row was inserted at the claim above; only an unkeyed one is written now.
+  const { error: msgErr1 } = claimId ? { error: null } : await supabase.from('messages').insert({
     ple_id: req.params.id, role: 'physician',
     content: message, token_count: physicianTokens,
   });
@@ -486,11 +548,17 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
     provider: rimplResponse.provider ?? null,
     model: rimplResponse.model ?? null,
     prompt_version: rimplResponse.prompt_version ?? null,
+    // Same key as the physician row, so a retry reads the stored pair back by key. Only a keyed turn
+    // (claimId set) has the column, so an unkeyed insert never names it.
+    ...(claimId ? { client_turn_id: turnKey } : {}),
   }).select('id').single();
   // Don't pretend success if the turn wasn't saved — let the client retry.
   if (msgErr1 || msgErr2) {
     console.error('[ples] failed to persist message:', (msgErr1 || msgErr2).message);
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // turn not saved — release the reservation
+    // A keyed turn would otherwise leave its physician row with no reply, and every retry would be told
+    // "pending" forever. Release only when the reply row is the one that failed (the claim row exists).
+    if (claimId && msgErr2) await releaseClaim();
     return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
   }
 

@@ -5,6 +5,9 @@ let turns = 0;
 let tokenCount = 0;          // running depth signal, seeded from the server on load
 let lastUserMessage = null;  // for Retry after a failed turn
 let nextMsgIndex = 0;        // stable per-message index for deterministic artifact IDs
+let pendingTurn = null;      // { key, text }: the turn whose outcome is not settled yet — its key is reused on retry
+let lastStoredId = null;     // id of the newest stored message this page knows about (anchor for the settle poll)
+let lastErrorBubble = null;  // the failed-turn bubble, so a re-send can take it down
 
 // Transcript-length cap (server-enforced; the local model has a finite context). Seeded from
 // GET /ples/:id and refreshed from every turn's response as { used, limit, pct, warn }. `warn` is the
@@ -380,6 +383,7 @@ api.getPle(pleId).then(ple => {
   document.getElementById('turns').textContent = turns;
   (ple.messages ?? []).forEach((m, i) => renderMessage(m.role, m.content, m.refs, m.socratic_question, { at: m.created_at, msgIndex: i, messageId: m.id }));
   nextMsgIndex = (ple.messages ?? []).length;   // live turns continue the index for stable artifact IDs
+  lastStoredId = (ple.messages ?? []).length ? ple.messages[ple.messages.length - 1].id : null;
   document.getElementById('sessionProgress').hidden = false;
   updateProgress();
   refreshUsage();
@@ -399,10 +403,112 @@ function retractPhysicianBubble() {
   nextMsgIndex = Math.max(0, nextMsgIndex - 1);
 }
 
+// ---- Lost-connection settle ----
+// A chat turn is stored by the backend AFTER the AI answers (up to ~100 s), so a dropped connection or a
+// client timeout does not mean the turn failed: it is very often stored, and a blind Retry would put the
+// physician's message into the scored transcript twice. So an unanswered request is never retried
+// straight away. Each typed turn carries a client_turn_id (the backend refuses to store one turn twice),
+// and before offering Retry the page reads the episode back and shows the stored turn if it is there.
+//
+// COPY PENDING — the Thai/English wording below is a draft (design-map-delta §4 a/b), not approved. It
+// lives in this one constant so the final wording is a one-place change. No model or provider is named.
+const SETTLE_COPY = {
+  checking: 'การเชื่อมต่อหลุดระหว่างรอคำตอบ กำลังตรวจว่าข้อความของคุณถูกบันทึกหรือไม่ / Connection lost while waiting. Checking whether your message was saved...',
+  arrived: 'คำตอบมาถึงแล้ว (การเชื่อมต่อหลุดไปชั่วครู่) / The reply arrived (the connection dropped for a moment).',
+  notReceived: 'ข้อความนี้ยังไม่ได้ส่ง ข้อความยังอยู่ในช่องพิมพ์ กดส่งอีกครั้งได้ / This message was not sent. It is still in the box; you can send it again.',
+  cannotConfirm: 'ยังยืนยันไม่ได้ว่าส่งข้อความสำเร็จหรือไม่ รีเฟรชหน้าเพื่อดูบทสนทนาล่าสุดก่อนส่งซ้ำ / Could not confirm whether it was sent. Refresh to see the latest conversation before sending again.',
+};
+const SETTLE_POLL_MS = 3000;
+// The backend's own ceiling for one turn is ~100 s (RIMPL_CHAT_TIMEOUT_MS) plus its DB calls: after this
+// long from the send, a turn that is not stored is not coming.
+const SETTLE_SERVER_CEILING_MS = 115000;
+// A request that already ran past that (the 130 s client timeout) still gets a couple of reads.
+const SETTLE_MIN_MS = 6000;
+
+function newTurnId() {
+  try {
+    if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    const b = crypto.getRandomValues(new Uint8Array(16));
+    b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;      // RFC 4122 v4
+    const h = Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+    return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
+  } catch { return null; } // no key: the request is sent unkeyed, exactly as before
+}
+// One key per typed turn, REUSED while the same text is still unsettled (Retry, or Send on the restored text).
+function turnKeyFor(message) {
+  if (pendingTurn && pendingTurn.text === message) return pendingTurn.key;
+  const key = newTurnId();
+  pendingTurn = key ? { key, text: message } : null;
+  return key;
+}
+// "No answer came back" (the server may still have acted), as opposed to a definite refusal.
+function outcomeUnknown(res) {
+  return !!res && !res.content && (res.code === 'network_error' || res.code === 'bad_response' || res.code === 'turn_pending');
+}
+
+// The stored turn for `text`, looking only at what is newer than the last message this page knew about.
+// (Matches on text, not on the key, so it also works before the backend has the key column.)
+function findStoredTurn(msgs, text) {
+  let from = 0;
+  if (lastStoredId) {
+    const i = msgs.findIndex(x => x.id === lastStoredId);
+    if (i >= 0) from = i + 1;
+  }
+  for (let i = from; i < msgs.length; i++) {
+    if (msgs[i].role === 'physician' && msgs[i].content === text) {
+      const next = msgs[i + 1];
+      return { physician: msgs[i], assistant: next && next.role === 'assistant' ? next : null };
+    }
+  }
+  return { physician: null, assistant: null };
+}
+
+// Poll the episode until the turn's reply shows up, or the backend could not still be working on it.
+// Resolves { state: 'found', ple, assistant } | { state: 'absent' } | { state: 'unknown' } (never read it,
+// or the message is stored but unanswered).
+async function settleLostTurn(message, sentAt) {
+  const note = document.createElement('div');
+  note.className = 'msg-assistant';
+  note.setAttribute('role', 'status');
+  note.textContent = SETTLE_COPY.checking;
+  msgEl.appendChild(note);
+  if (nearBottom()) scrollToBottom();
+  const deadline = Math.max(sentAt + SETTLE_SERVER_CEILING_MS, Date.now() + SETTLE_MIN_MS);
+  let read = false, sawPhysician = false;
+  try {
+    for (;;) {
+      const ple = await api.getPle(pleId);
+      if (ple && !ple.error && Array.isArray(ple.messages)) {
+        read = true;
+        const hit = findStoredTurn(ple.messages, message);
+        if (hit.assistant) return { state: 'found', ple, assistant: hit.assistant };
+        sawPhysician = !!hit.physician;
+      }
+      if (Date.now() + SETTLE_POLL_MS > deadline) break;
+      await new Promise(r => setTimeout(r, SETTLE_POLL_MS));
+    }
+  } finally {
+    note.remove();
+  }
+  // Stored but never answered, or never readable: not "not sent". Say so; Retry (same key) sorts it out.
+  return { state: read && !sawPhysician ? 'absent' : 'unknown' };
+}
+
+// Failed turn: error bubble with Retry, and the text back in the box, but never over what the physician
+// has typed since (the Retry button holds the failed text either way).
+function renderTurnFailure(message, text) {
+  lastErrorBubble = renderMessage('assistant', text, [], null, { error: true });
+  const input = document.getElementById('input');
+  if (!input.value.trim()) { input.value = message; autoGrow(); }
+}
+
 // Core turn delivery — shared by Send and Retry so neither re-draws the physician bubble.
 async function deliver(message) {
   const sendBtn = document.getElementById('sendBtn');
   sendBtn.disabled = true;
+  if (lastErrorBubble) { lastErrorBubble.remove(); lastErrorBubble = null; } // a re-send replaces the old failure notice
+  const turnKey = turnKeyFor(message);
+  const sentAt = Date.now();
   const loading = document.createElement('div');
   loading.className = 'msg-assistant';
   loading.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
@@ -410,10 +516,11 @@ async function deliver(message) {
   if (nearBottom()) scrollToBottom();
   markActivity(); aiInFlight = true;          // keep the timer running while the AI answers
   const language = /[฀-๿]/.test(message) ? 'th' : 'en';
-  const res = await api.sendMessage(pleId, { message, language });
-  aiInFlight = false; markActivity();
+  const res = await api.sendMessage(pleId, turnKey ? { message, language, client_turn_id: turnKey } : { message, language });
   loading.remove();
   if (res?.content) {
+    aiInFlight = false; markActivity();
+    pendingTurn = null; if (res.message_id) lastStoredId = res.message_id;
     renderMessage('assistant', res.content, res.refs, res.socratic_question, { msgIndex: nextMsgIndex++, live: true, messageId: res.message_id });
     turns += 1;
     tokenCount += (res.input_tokens || 0) + (res.output_tokens || 0);
@@ -422,6 +529,7 @@ async function deliver(message) {
     refreshUsage();
     applyTranscript(res.transcript);
   } else if (res?.code === 'budget_exceeded') {
+    aiInFlight = false; markActivity(); pendingTurn = null;
     // reason 'tokens' is the token-denominated cap (local AI); 'cost' the $ cap. Same outcome here.
     const unit = res.reason === 'tokens' ? ' (โทเค็น / tokens)' : '';
     retractPhysicianBubble(); // refused before it was saved — a bubble would claim it was said
@@ -429,20 +537,44 @@ async function deliver(message) {
     document.getElementById('input').value = message; // restore the typed question
     refreshUsage();
   } else if (res?.code === 'transcript_limit_reached') {
+    aiInFlight = false; markActivity(); pendingTurn = null;
     // The transcript cap: nothing more can be sent to this session. End is the only move left.
     if (res.used != null && res.limit != null) transcript = { used: res.used, limit: res.limit, warn: true };
     retractPhysicianBubble(); // refused before it was saved — a bubble would claim it was said
     renderMessage('assistant', LIMIT_REACHED_MSG, [], null);
     lockComposer();
   } else if (res?.code === 'ai_busy') {
+    aiInFlight = false; markActivity(); pendingTurn = null;
     // Local AI at capacity (503) — transient. Keep the question so one tap re-sends it after the wait.
     const wait = Number(res.retry_after_s) > 0 ? Math.ceil(Number(res.retry_after_s)) : 30;
     retractPhysicianBubble();
     renderMessage('assistant', `ระบบ AI กำลังทำงานหนัก — ลองอีกครั้งใน ${wait} วินาที / AI is busy — try again in ${wait} s`, [], null);
     document.getElementById('input').value = message; // restore the typed question
+  } else if (outcomeUnknown(res)) {
+    // No answer came back, so we do not know whether the turn was stored. Look before offering Retry.
+    // (turn_pending = the backend says the original request is still working: its clock restarts now.)
+    const settled = await settleLostTurn(message, res.code === 'turn_pending' ? Date.now() : sentAt);
+    aiInFlight = false; markActivity();
+    if (settled.state === 'found') {
+      const a = settled.assistant, p = settled.ple;
+      pendingTurn = null; lastStoredId = a.id;
+      renderMessage('assistant', a.content, a.refs, a.socratic_question, { msgIndex: nextMsgIndex++, live: true, messageId: a.id, at: a.created_at });
+      turns = p.turn_count ?? turns + 1;
+      tokenCount = p.token_count ?? tokenCount;
+      document.getElementById('turns').textContent = turns;
+      updateProgress();
+      refreshUsage();
+      applyTranscript(p.transcript);
+      toast(SETTLE_COPY.arrived, 'success');
+    } else {
+      // Not found: Retry (and Send on the restored text) reuse pendingTurn's key, so a turn that lands
+      // late is answered from the record instead of being stored twice.
+      renderTurnFailure(message, settled.state === 'absent' ? SETTLE_COPY.notReceived : SETTLE_COPY.cannotConfirm);
+    }
   } else {
+    aiInFlight = false; markActivity();
     // The turn failed — restore the text and offer a Retry on the error bubble.
-    renderMessage('assistant', 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong — please try again.', [], null, { error: true });
+    lastErrorBubble = renderMessage('assistant', 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong — please try again.', [], null, { error: true });
     document.getElementById('input').value = message;
   }
   if (composerLocked) return; // stays locked — never re-enable Send past the cap
@@ -459,7 +591,10 @@ async function sendMessage() {
   input.value = '';
   autoGrow();
   lastUserMessage = message;
-  renderMessage('physician', message, null, null, { msgIndex: nextMsgIndex++ });
+  // Sending the restored text of an unsettled turn: its bubble is still on screen, so don't draw it twice.
+  if (!(pendingTurn && pendingTurn.text === message)) {
+    renderMessage('physician', message, null, null, { msgIndex: nextMsgIndex++ });
+  }
   deliver(message);
 }
 

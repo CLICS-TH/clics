@@ -325,8 +325,14 @@ create table public.messages (
   -- per-turn AI provenance (migration-message-provenance.sql); NULL on physician turns
   provider          text,
   model             text,
-  prompt_version    text
+  prompt_version    text,
+  -- idempotency key of the chat turn (migration-message-client-turn-id.sql); NULL when the client sent none
+  client_turn_id    uuid
 );
+-- one physician row per (PLE, client turn id): a retried turn cannot be stored twice
+create unique index messages_ple_client_turn_uidx
+  on public.messages (ple_id, client_turn_id)
+  where client_turn_id is not null and role = 'physician';
 
 -- PIS-7 scored by AI
 create table public.ai_evaluations (
