@@ -8,10 +8,12 @@ process.env.CLAUDE_MAX_CONCURRENCY = '3';
 process.env.CLAUDE_MAX_RETRIES = '5';
 process.env.CLAUDE_RETRY_BASE_MS = '5'; // tiny backoff so tests run fast
 process.env.ANTHROPIC_API_KEY = 'test-key';
+delete process.env.CLAUDE_TIMEOUT_MS;   // the late-retry cutoff is derived from it
 
 const mockCall = jest.fn(); // resolves/rejects the .withResponse() promise per attempt
 jest.mock('@anthropic-ai/sdk', () => jest.fn().mockImplementation(() => ({
-  messages: { create: () => ({ withResponse: () => mockCall() }) },
+  // The request options are passed through to mockCall so the abort tests below can read `signal`.
+  messages: { create: (body, opts) => ({ withResponse: () => mockCall(body, opts) }) },
 })));
 
 const provider = require('../src/services/providers/anthropic');
@@ -73,17 +75,97 @@ test('exposes the provider interface ai.js dispatches on', () => {
   expect(typeof provider.ready).toBe('function');
 });
 
-// services/ai.js now forwards `purpose` and `signal` to EVERY provider (the local one picks a queue
-// lane from the purpose and cancels on the signal). The relay has neither concept and must simply
-// ignore both keys — same request, same result, no lane, no cancellation.
-test('ignores the purpose and signal keys callAI forwards (extra keys change nothing)', async () => {
-  mockCall.mockResolvedValueOnce(okResp);
-  const ac = new AbortController();
-  const r = await call({ ...args(), purpose: 'chat', signal: ac.signal });
-  expect(r).toEqual({ text: 'hi', inputTokens: 5, outputTokens: 7, tokenCount: 12, stopReason: 'end_turn', model: 'claude-sonnet-4-6' });
+// services/ai.js forwards `purpose` and `signal` to EVERY provider. Anthropic has no lanes, but the
+// signal reaches the SDK (an in-flight call is cancelled at the socket) and the runner (a queued call
+// never starts), and the purpose marks an evaluation for the late-retry cutoff. Without the signal a
+// hung-up call ran to completion, billed and unmetered, and the drain then paid for it again.
+describe('the caller\'s abort signal', () => {
+  // What SDK 0.30.1 does with `signal`: rejects the in-flight request with APIUserAbortError.
+  const abortable = (_body, opts) => new Promise((_resolve, reject) => {
+    const fail = () => reject(Object.assign(new Error('Request was aborted.'), { name: 'APIUserAbortError' }));
+    if (opts?.signal?.aborted) return fail();
+    opts?.signal?.addEventListener('abort', fail, { once: true });
+  });
+
+  test('reaches the SDK, and an abort in flight rejects as aborted with NO retry', async () => {
+    mockCall.mockImplementation(abortable);
+    const ac = new AbortController();
+    const p = call({ ...args(), purpose: 'evaluate', signal: ac.signal });
+    await sleep(5);
+    expect(mockCall.mock.calls[0][1].signal).toBeDefined();   // passed through to messages.create
+    ac.abort();
+    await expect(p).rejects.toMatchObject({ aborted: true, code: 'aborted' });
+    await sleep(20);
+    expect(mockCall).toHaveBeenCalledTimes(1);                 // "Request was aborted." matches /aborted/, but is never retried
+  });
+
+  test('a call still QUEUED when its caller hangs up never starts', async () => {
+    const hold = [];
+    mockCall.mockImplementation(() => new Promise((resolve) => hold.push(() => resolve(okResp))));
+    const busy = [call(args()), call(args()), call(args())];          // fill all 3 slots
+    await sleep(5);
+    expect(mockCall).toHaveBeenCalledTimes(3);
+    const ac = new AbortController();
+    const queued = call({ ...args(), signal: ac.signal });
+    ac.abort();                                                         // hung up while waiting
+    hold.forEach((release) => release());
+    await Promise.all(busy);
+    await expect(queued).rejects.toMatchObject({ aborted: true });
+    expect(mockCall).toHaveBeenCalledTimes(3);                         // the 4th never reached the SDK
+  });
+
+  test('a normal call is unaffected by the purpose and signal keys', async () => {
+    mockCall.mockResolvedValueOnce(okResp);
+    const ac = new AbortController();
+    const r = await call({ ...args(), purpose: 'chat', signal: ac.signal });
+    expect(r).toEqual({ text: 'hi', inputTokens: 5, outputTokens: 7, tokenCount: 12, stopReason: 'end_turn', model: 'claude-sonnet-4-6' });
+    expect(mockCall).toHaveBeenCalledTimes(1);
+    expect(provider.stats()).toEqual({ provider: 'anthropic', active: 0, queued: 0, maxConcurrency: 3,
+      lastOk: expect.any(Number), lastError: null }); // no `lanes`: still the FIFO
+  });
+});
+
+// A retry that STARTS after 480 − 150 − 30 = 300s cannot finish before the backend's 480s deadline.
+describe('late-retry cutoff for evaluations', () => {
+  let now, spy, warn;
+  beforeEach(() => {
+    now = 1_000_000;
+    spy = jest.spyOn(Date, 'now').mockImplementation(() => now);
+    warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  afterEach(() => { spy.mockRestore(); warn.mockRestore(); });
+  // The 529 "arrives" after the given number of seconds.
+  const lateFailure = (seconds) => async () => { now += seconds * 1000; throw { status: 529 }; };
+
+  test('the cutoff is derived from the timeouts: 480 − 150 − 30 = 300s by default', () => {
+    expect(provider.EVAL_LATE_RETRY_MS).toBe(300000);
+  });
+
+  test.each(['evaluate', 'shadow'])('a %s error arriving after the cutoff is NOT retried', async (purpose) => {
+    mockCall.mockImplementationOnce(lateFailure(301)).mockResolvedValue(okResp);
+    await expect(call({ ...args(), purpose })).rejects.toMatchObject({ status: 529 });
+    expect(mockCall).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls.flat().join(' ')).toMatch(/not retrying a late evaluation error/);
+  });
+
+  test('an evaluation error inside the cutoff is still retried', async () => {
+    mockCall.mockImplementationOnce(lateFailure(200)).mockResolvedValue(okResp);
+    expect((await call({ ...args(), purpose: 'evaluate' })).text).toBe('hi');
+    expect(mockCall).toHaveBeenCalledTimes(2);
+  });
+
+  test('chat is not subject to it (its own 100s caller deadline aborts it instead)', async () => {
+    mockCall.mockImplementationOnce(lateFailure(301)).mockResolvedValue(okResp);
+    expect((await call({ ...args(), purpose: 'chat' })).text).toBe('hi');
+    expect(mockCall).toHaveBeenCalledTimes(2);
+  });
+});
+
+// A timeout is APIConnectionTimeoutError ("Request timed out."): not retryable, one attempt.
+test('a client timeout is ONE attempt, not retried', async () => {
+  mockCall.mockRejectedValue(Object.assign(new Error('Request timed out.'), { name: 'APIConnectionTimeoutError' }));
+  await expect(call({ ...args(), purpose: 'evaluate' })).rejects.toThrow(/timed out/);
   expect(mockCall).toHaveBeenCalledTimes(1);
-  expect(provider.stats()).toEqual({ provider: 'anthropic', active: 0, queued: 0, maxConcurrency: 3,
-    lastOk: expect.any(Number), lastError: null }); // no `lanes`: still the FIFO
 });
 
 // §10.2: provenance must name the model that ANSWERED. The API reports it in the response body;

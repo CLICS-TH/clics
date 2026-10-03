@@ -15,9 +15,30 @@ const { createRunner } = require('./runtime');
 // after the maxTokens bump in routes/evaluate.js), so the SDK's own 55s ceiling fired mid-generation
 // (APIConnectionTimeoutError) before the model ever finished. 85s then fixed that but left no room
 // for the on-prem provider, whose measured evaluations ran 82.5s and 87.8s — one already over. Both
-// providers now share a 150s ceiling under backend's outer RIMPL_EVAL_TIMEOUT_MS (180s), so a slow
-// evaluation is slow rather than lost. Tunable for the same reason the local one is.
+// providers share a 150s ceiling, under the backend's outer RIMPL_EVAL_TIMEOUT_MS (480s since the
+// evaluation drain; it was 180s when this ceiling was set), so a slow evaluation is slow rather than
+// lost. Tunable for the same reason the local one is.
+//
+// WHAT A TIMEOUT DOES. The SDK throws APIConnectionTimeoutError ("Request timed out."), which
+// isRetryable() below does NOT match (no status, no network code, and "timed out" is not "timeout").
+// So a timed-out call is ONE attempt and then an error (a 500 from the route), not a retry. Other
+// retryable errors on an evaluation stop being retried once a further attempt could no longer finish
+// inside the backend's deadline (EVAL_LATE_RETRY_MS below).
 const CLIENT_TIMEOUT_MS = Math.max(1000, parseInt(process.env.CLAUDE_TIMEOUT_MS || '150000', 10));
+
+// LATE-RETRY CUTOFF for evaluations. The backend gives /evaluate RIMPL_EVAL_TIMEOUT_MS in all
+// (backend/src/services/rimpl-client.js, default 480s; this mirrors that default, it does not read it).
+// A retry that STARTS later than (that deadline − one full attempt − slack) cannot finish before the
+// backend hangs up. The caller's abort signal (call() below) would cancel it then, but the tokens it
+// generated meanwhile are billed, and the drain re-claims the row and pays again. So an evaluation
+// error arriving after the cutoff fails now, and the drain's own backoff takes over. The slack covers
+// the backoff sleep (up to 30s with a Retry-After). Derived, not hardcoded: raise CLAUDE_TIMEOUT_MS and
+// the cutoff moves with it.
+const EVAL_CALLER_DEADLINE_MS = 480000;
+const EVAL_LATE_RETRY_SLACK_MS = 30000;
+const EVAL_LATE_RETRY_MS = Math.max(0, EVAL_CALLER_DEADLINE_MS - CLIENT_TIMEOUT_MS - EVAL_LATE_RETRY_SLACK_MS); // 300s by default
+// The purposes that are an evaluation: the served one and the shadow (services/shadow.js).
+const EVAL_PURPOSES = new Set(['evaluate', 'shadow']);
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: CLIENT_TIMEOUT_MS, maxRetries: 0 });
 // PINNED, not an alias. From the 4.6 generation on, Anthropic's canonical model ids carry no date:
 // GET /v1/models/claude-sonnet-4-6 resolves to itself (created 2026-02-17), the same way the older
@@ -39,6 +60,7 @@ const RETRYABLE_STATUS = new Set([408, 409, 429, 500, 502, 503, 529]); // rate-l
 const RETRYABLE_CODES = new Set(['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'EPIPE', 'ENETUNREACH', 'EAI_AGAIN']);
 
 function isRetryable(err) {
+  if (err?.noRetry === true) return false;   // set by call() for a late evaluation error (EVAL_LATE_RETRY_MS)
   if (err && typeof err.status === 'number' && RETRYABLE_STATUS.has(err.status)) return true;
   const code = err?.code || err?.cause?.code;
   if (code && RETRYABLE_CODES.has(code)) return true;
@@ -84,8 +106,15 @@ const runner = createRunner({
   },
 });
 
-async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
-  return runner.run(async () => {
+async function call({ systemPrompt, messages, maxTokens = 1500, temperature, purpose, signal }) {
+  const startedAt = Date.now();
+  const isEval = EVAL_PURPOSES.has(purpose);
+  // `signal` is the caller's client-gone signal (lib/request-signal.js). Passed to the runner, a call
+  // still QUEUED when the backend hangs up never starts (runtime.js re-checks it when the slot frees);
+  // passed to the SDK, an in-flight call is cancelled at the socket (APIUserAbortError), and the runner
+  // turns that into an AbortError that is never retried. Without it, a hung-up call ran to completion,
+  // billed and unmetered, and for an evaluation the drain then re-claimed the row and paid again.
+  return runner.run(async (_attempt, sig) => {
     // .withResponse() yields the same Message as `data` PLUS the HTTP response, so we can read
     // the anthropic-ratelimit-* headers to learn the binding dimension.
     // When caching is on, the system prompt is sent as a cacheable text block (array form).
@@ -94,7 +123,17 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
       : systemPrompt;
     const body = { model: MODEL, max_tokens: maxTokens, system, messages };
     if (temperature != null) body.temperature = temperature;
-    const { data, response: httpResp } = await client.messages.create(body).withResponse();
+    let data, httpResp;
+    try {
+      ({ data, response: httpResp } = await client.messages.create(body, { signal: sig }).withResponse());
+    } catch (err) {
+      const elapsed = Date.now() - startedAt;
+      if (isEval && elapsed > EVAL_LATE_RETRY_MS && err && typeof err === 'object' && !sig?.aborted) {
+        err.noRetry = true;
+        console.warn(`[claude] not retrying a late evaluation error (status ${err.status ?? '?'}, ${Math.round(elapsed / 1000)}s elapsed > ${Math.round(EVAL_LATE_RETRY_MS / 1000)}s): a further attempt could not finish inside the caller's ${EVAL_CALLER_DEADLINE_MS / 1000}s`);
+      }
+      throw err;
+    }
     logRateLimit(httpResp?.headers, 'ok');
     // Join ALL text blocks, not just content[0]: a reply led by a non-text block (thinking/tool)
     // would otherwise silently become '' and degrade the chat (blank reply) or the eval (composite 0).
@@ -110,7 +149,7 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
     // the same id; if they ever differ, the record must show the real one. MODEL only if none came back.
     const model = typeof data.model === 'string' && data.model ? data.model : MODEL;
     return { text, inputTokens, outputTokens, tokenCount: inputTokens + outputTokens, stopReason: data.stop_reason, model };
-  });
+  }, { signal });
 }
 
 // A key that is present and constructible can still be unable to serve a single request: an
@@ -171,4 +210,4 @@ function servingCheck() {
   };
 }
 
-module.exports = { name: 'anthropic', call, model: () => MODEL, ready, stats: runner.stats, MODEL };
+module.exports = { name: 'anthropic', call, model: () => MODEL, ready, stats: runner.stats, MODEL, EVAL_LATE_RETRY_MS };
