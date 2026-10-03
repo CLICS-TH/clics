@@ -12,20 +12,23 @@ const sendBtn = document.getElementById('sendBtn');
 const remainingEl = document.getElementById('remaining');
 const hintEl = document.getElementById('hint');
 
-function renderMessage(role, content, refs, socratic) {
+// opts.system marks a CLIENT-generated notice (could not start, server error): not model output, so no AI chip.
+// Neutral .msg-system style and an sr-only "ระบบ / System:"; announced once through #chatLive (no role=status on
+// the bubble, which would announce it a second time). Same contract as js/ple-chat.js.
+function renderMessage(role, content, refs, socratic, opts) {
+  opts = opts || {};
   const div = document.createElement('div');
-  div.className = role === 'physician' ? 'msg-physician' : 'msg-assistant';
+  div.className = role === 'physician' ? 'msg-physician' : 'msg-assistant' + (opts.system ? ' msg-system' : '');
+  let spoken = '';   // what #chatLive says: content only
   if (role === 'physician') {
     div.textContent = content;
   } else {
     const main = (content || '').replace(/\n❓[^\n]*$/, '').trim();
-    // AI output is untrusted HTML once marked.parse runs it — sanitize before injecting, and
-    // fail SAFE to plain text if either lib is unavailable (never inject unsanitized markup).
-    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-      div.innerHTML = DOMPurify.sanitize(marked.parse(main));
-    } else {
-      div.textContent = main;
-    }
+    // AI output is untrusted HTML once marked.parse runs it. markdownFragment (js/ui.js) sanitises and hardens
+    // it; null means the libs did not load, and then we fail SAFE to plain text.
+    const mdFrag = markdownFragment(main);
+    if (mdFrag) div.appendChild(mdFrag); else div.textContent = main;
+    spoken = plainTextOf(div) + (socratic ? ' ' + socratic : '');
     if (refs?.length) {
       const r = document.createElement('div');
       r.className = 'msg-refs';
@@ -49,8 +52,25 @@ function renderMessage(role, content, refs, socratic) {
       div.appendChild(sq);
     }
   }
+  // Speaker label — same as the signed-in chat (js/ple-chat.js): sr-only for the physician, the visible
+  // AI chip (also the screen-reader label) for the assistant. One fixed label, see AI_LABEL in js/ui.js.
+  if (role === 'physician') {
+    const who = document.createElement('span');
+    who.className = 'sr-only';
+    who.textContent = 'คุณ / You: ';
+    div.insertBefore(who, div.firstChild);
+  } else if (opts.system) {
+    const who = document.createElement('span');
+    who.className = 'sr-only';
+    who.textContent = 'ระบบ / System: ';
+    div.insertBefore(who, div.firstChild);
+  } else {
+    div.insertBefore(aiChip(), div.firstChild);
+  }
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
+  // Every assistant bubble here is new (the guest chat has no stored history): announce speaker + text only.
+  if (role !== 'physician') announceChat(opts.system ? SYSTEM_SPEAKER : aiSpeakerLabel(), spoken);
 }
 
 function setRemaining(n) {
@@ -79,7 +99,7 @@ function endSession(msg) {
         </div>
         <a href="/" class="btn btn-primary btn-lg" style="width:100%">สมัครด้วย Google<span class="bi-en">Sign up with Google</span></a>
       </div>`;
-    cta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    cta.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
   }
 }
 
@@ -96,7 +116,7 @@ async function start() {
     const busy = res.status === 429 || res.status === 503;
     renderMessage('assistant', busy
       ? 'ระบบทดลองใช้งานไม่ว่างขณะนี้ กรุณารีเฟรชเพื่อลองใหม่ / The trial is busy right now — please refresh to try again.'
-      : 'ไม่สามารถเริ่มเซสชันผู้เยี่ยมชมได้ กรุณารีเฟรช / Could not start a guest session — please refresh to try again.');
+      : 'ไม่สามารถเริ่มเซสชันผู้เยี่ยมชมได้ กรุณารีเฟรช / Could not start a guest session — please refresh to try again.', null, null, { system: true });
   }
 }
 
@@ -108,40 +128,54 @@ async function send() {
   renderMessage('physician', message);
   history.push({ role: 'physician', content: message });
 
-  const language = /[฀-๿]/.test(message) ? 'th' : 'en';
-  const loading = document.createElement('div');
-  loading.className = 'msg-assistant'; loading.style.color = 'var(--muted-soft)';
-  loading.textContent = 'กำลังคิด... / Thinking...';
-  messagesEl.appendChild(loading);
+  // Lock the box for the length of the turn (readOnly keeps focus): the failed text goes back on error and
+  // nothing the guest types meanwhile can be overwritten. Always released, even if drawing the reply throws.
+  inputEl.readOnly = true; inputEl.setAttribute('aria-busy', 'true');
+  try {
+    const language = /[฀-๿]/.test(message) ? 'th' : 'en';
+    const loading = document.createElement('div');
+    loading.className = 'msg-assistant'; loading.style.color = 'var(--muted-soft)';
+    // Announced by the log's live region, after the AI chip that labels the speaker.
+    loading.appendChild(aiChip());
+    loading.append('กำลังคิด... / Thinking...');
+    messagesEl.appendChild(loading);
+    announceChat(aiSpeakerLabel(), 'กำลังคิด... / Thinking...');
+    const disarmSlow = armSlowNote(loading, () => { messagesEl.scrollTop = messagesEl.scrollHeight; });
 
-  // Send all but the just-pushed message as history; the message goes in `message`.
-  const priorHistory = history.slice(0, -1);
-  const res = await api.guestMessage(guestToken, { message, language, history: priorHistory });
-  loading.remove();
+    // Send all but the just-pushed message as history; the message goes in `message`.
+    const priorHistory = history.slice(0, -1);
+    const res = await api.guestMessage(guestToken, { message, language, history: priorHistory });
+    disarmSlow();
+    loading.remove();
 
-  if (res.ok && res.body?.content) {
-    renderMessage('assistant', res.body.content, res.body.refs, res.body.socratic_question);
-    history.push({ role: 'assistant', content: res.body.content });
-    setRemaining(res.body.prompts_remaining ?? 0);
-    if (res.body.session_ended) {
-      endSession('ครบ 2 คำถามแล้ว / You\'ve used both guest prompts.');
+    if (res.ok && res.body?.content) {
+      renderMessage('assistant', res.body.content, res.body.refs, res.body.socratic_question);
+      history.push({ role: 'assistant', content: res.body.content });
+      setRemaining(res.body.prompts_remaining ?? 0);
+      if (res.body.session_ended) {
+        endSession('ครบ 2 คำถามแล้ว / You\'ve used both guest prompts.');
+      } else {
+        sendBtn.disabled = false; inputEl.focus();
+      }
+    } else if (res.status === 403) {
+      endSession(res.body?.error);
     } else {
-      sendBtn.disabled = false; inputEl.focus();
+      renderMessage('assistant', (res.body?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong.'), null, null, { system: true });
+      setRemaining(promptsRemaining); // unchanged display
+      history.pop();                  // the turn failed — drop it so a retry doesn't duplicate the turn
+      inputEl.value = message;        // restore the typed text so the guest can retry
+      sendBtn.disabled = false;
     }
-  } else if (res.status === 403) {
-    endSession(res.body?.error);
-  } else {
-    renderMessage('assistant', (res.body?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong.'));
-    setRemaining(promptsRemaining); // unchanged display
-    history.pop();                  // the turn failed — drop it so a retry doesn't duplicate the turn
-    inputEl.value = message;        // restore the typed text so the guest can retry
-    sendBtn.disabled = false;
+  } finally {
+    inputEl.readOnly = false; inputEl.removeAttribute('aria-busy');
   }
 }
 
 sendBtn.addEventListener('click', send);
 inputEl.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  // Same rule as /ple-chat (enterSends in js/ui.js): desktop Enter sends; touch Enter is a newline, Send submits;
+  // never during IME composition.
+  if (enterSends(e)) { e.preventDefault(); send(); }
 });
 
 start();

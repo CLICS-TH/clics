@@ -48,13 +48,6 @@
   var registry = new Map();
   function register(a) { if (!registry.has(a.id)) registry.set(a.id, a); return a.id; }
 
-  // Sanitized markdown → HTML for the panel body; fail SAFE to plain text if either lib is unavailable
-  // (mirrors ple-chat.js renderMessage — AI output is untrusted once marked.parse runs it).
-  function renderBody(body) {
-    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') return DOMPurify.sanitize(marked.parse(body));
-    var d = document.createElement('div'); d.textContent = body; return d.innerHTML;
-  }
-
   // An inline chip placed in the message bubble; tapping it opens the artifact in the side panel.
   function chip(a) {
     var b = document.createElement('button');
@@ -77,7 +70,10 @@
     document.getElementById('artifactTitle').textContent = a.title;
     var kindEl = document.getElementById('artifactKind');
     if (kindEl) kindEl.textContent = kindOf(a.type).label;
-    document.getElementById('artifactBody').innerHTML = renderBody(a.body);
+    // Same hardened, sanitised markdown as the chat bubbles (js/ui.js); plain text if the libs did not load.
+    var bodyEl = document.getElementById('artifactBody');
+    var frag = window.markdownFragment ? window.markdownFragment(a.body) : null;
+    if (frag) bodyEl.replaceChildren(frag); else bodyEl.textContent = a.body;
     var trunc = document.getElementById('artifactTrunc');
     if (trunc) trunc.hidden = !a.truncated;
     p.dataset.activeId = id;

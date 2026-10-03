@@ -145,6 +145,9 @@ function collect(thaiMinPx) {
     if (el.disabled || el.getAttribute('aria-disabled') === 'true' || el.closest('[disabled]')) continue;
     const box = el.getBoundingClientRect();
     if (!box.width || !box.height) continue;
+    // Visually-hidden text (.sr-only: a 1x1 clipped box) is for screen readers. Its text is deliberately
+    // "wider than its clip box", and it has no painted pixels to score for contrast or Thai size.
+    if (box.width <= 1 && box.height <= 1) continue;
 
     // ---- clipping: is the text wider than the box that clips it?
     // text-overflow:ellipsis is deliberate truncation, not a clip — flagging it reports a design

@@ -65,6 +65,10 @@ const PAGES = [
   { path: '/identity', token: true, label: 'identity' },
   { path: '/ple-reflect', token: true, label: 'ple-reflect' },
   { path: '/acceptability', token: true, label: 'acceptability' },
+  // The two pages a physician spends the session on. The id is a placeholder: the backend is blocked in this
+  // run, so each renders its error/empty shell, which is still the composer, header and result frame.
+  { path: '/ple-chat?id=smoke', token: true, label: 'ple-chat' },
+  { path: '/ple-result?id=smoke', token: true, label: 'ple-result' },
   // Public: /manual carries data-public so a reader stuck at sign-in can still read how to sign in.
   { path: '/manual', token: false, label: 'manual' },
 ];
