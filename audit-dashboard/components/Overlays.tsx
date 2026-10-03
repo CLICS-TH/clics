@@ -87,7 +87,7 @@ function ConfirmDialog({ c }: { c: Confirm }) {
         aria-label={c.title ? undefined : "ยืนยัน / Confirm"}
         aria-describedby={c.body ? bodyId : undefined}
         tabIndex={-1}
-        className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl border border-border bg-card p-7 shadow-2xl"
+        className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl border border-border bg-card p-7 shadow-pop"
       >
         {c.title && <h2 id={titleId} className="font-heading mb-2 text-xl sm:text-2xl text-foreground">{c.title}</h2>}
         {c.body && <div id={bodyId} className="mb-6 text-sm leading-relaxed text-muted-foreground">{c.body}</div>}
@@ -123,7 +123,7 @@ export function Overlays() {
             key={t.id}
             role={t.type === "error" ? "alert" : "status"}
             className={cn(
-              "pointer-events-auto flex max-w-[90vw] items-center gap-2 rounded-full px-4 py-2.5 text-sm shadow-lg",
+              "pointer-events-auto flex max-w-[90vw] items-center gap-2 rounded-full px-4 py-2.5 text-sm shadow-pop",
               t.type === "error" ? "bg-destructive text-white" : "bg-foreground text-background"
             )}
           >

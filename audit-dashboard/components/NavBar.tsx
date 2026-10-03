@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { canAudit } from '@/lib/auth';
 import { RoleBadge } from './RoleBadge';
 import { ThemeToggle, ViewportToggle } from './Toggles';
@@ -72,6 +72,21 @@ export function NavBar() {
   // labels never wrap and the identity cluster is never pushed off-screen. The threshold scales with
   // links.length; a FIXED one is what let admin (9) and superadmin (14) overflow every real monitor.
   const compact = useIsNavCompact(links.length);
+  const menuId = useId();
+  const menuBtn = useRef<HTMLButtonElement>(null);
+  const menuOpen = open && compact;
+  // Escape closes the mobile menu and puts focus back on the button that opened it (a keyboard user
+  // who opened the menu otherwise lands nowhere). Registered only while the menu is actually showing.
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return;
+      setOpen(false);
+      menuBtn.current?.focus();
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [menuOpen]);
   if (!user) return null;
 
   function logout() {
@@ -126,7 +141,7 @@ export function NavBar() {
         {/* Desktop links */}
         {!compact && (
           <div className="flex flex-1 items-center gap-4">
-            {links.map(l => <Link key={l.href} href={l.href} className={linkClass(l.href)}><BiLabel th={l.th} en={l.en} /></Link>)}
+            {links.map(l => <Link key={l.href} href={l.href} className={linkClass(l.href)} aria-current={isActive(l.href) ? 'page' : undefined}><BiLabel th={l.th} en={l.en} /></Link>)}
           </div>
         )}
 
@@ -154,7 +169,7 @@ export function NavBar() {
             </button>
           )}
           {compact && (
-            <button onClick={() => setOpen(o => !o)} aria-label="เมนู / Menu" aria-expanded={open}
+            <button ref={menuBtn} onClick={() => setOpen(o => !o)} aria-label="เมนู / Menu" aria-expanded={open} aria-controls={menuOpen ? menuId : undefined}
               className="rounded-md border border-border p-1.5 text-muted-foreground hover:text-foreground">
               <Menu className="size-5" />
             </button>
@@ -164,14 +179,14 @@ export function NavBar() {
 
       {/* Mobile dropdown */}
       {compact && open && (
-        <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div id={menuId} className="mt-3 flex flex-col gap-2 border-t border-border pt-3 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Identity header (the desktop identity block is hidden on phones, so surface it here). */}
           <div className="px-2 pb-1">
             <p className="text-sm font-medium text-foreground">{user.full_name_th || user.full_name_en}</p>
             {specialtyLine && <p className="text-xs text-muted-foreground">{specialtyLine}</p>}
           </div>
           {links.map(l => (
-            <Link key={l.href} href={l.href} onClick={() => setOpen(false)}
+            <Link key={l.href} href={l.href} onClick={() => setOpen(false)} aria-current={isActive(l.href) ? 'page' : undefined}
               className={`rounded-md px-2 py-2 text-sm ${isActive(l.href) ? 'bg-secondary text-coral-on-tint font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
               <BiLabel th={l.th} en={l.en} />
             </Link>

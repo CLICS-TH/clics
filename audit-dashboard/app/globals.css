@@ -70,6 +70,9 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Popover / dialog / toast elevation. Dark surfaces need a heavier shadow to separate from the
+     canvas at all, so the value is a per-theme variable (--pop-shadow, below) behind ONE utility. */
+  --shadow-pop: var(--pop-shadow);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -187,6 +190,7 @@
   /* Responsive primitives (mirrored with physician-ui main.css). viewport-fit=cover (set in
      app/layout.tsx) is required for the safe-area insets to be non-zero on notched phones. */
   color-scheme: light;
+  --pop-shadow: 0 8px 24px rgb(20 20 19 / 0.14), 0 2px 6px rgb(20 20 19 / 0.08);
   --tap-min: 44px;
   --safe-t: env(safe-area-inset-top);
   --safe-r: env(safe-area-inset-right);
@@ -196,6 +200,7 @@
 
 .dark {
   color-scheme: dark;
+  --pop-shadow: 0 10px 30px rgb(0 0 0 / 0.6), 0 2px 8px rgb(0 0 0 / 0.45);
   --background: #181715;
   --foreground: #faf9f5;
   --card: #252320;
