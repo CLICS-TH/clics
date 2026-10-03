@@ -5,9 +5,6 @@ let turns = 0;
 let tokenCount = 0;          // running depth signal, seeded from the server on load
 let lastUserMessage = null;  // for Retry after a failed turn
 let nextMsgIndex = 0;        // stable per-message index for deterministic artifact IDs
-let pendingTurn = null;      // { key, text }: the turn whose outcome is not settled yet — its key is reused on retry
-let lastStoredId = null;     // id of the newest stored message this page knows about (anchor for the settle poll)
-let lastErrorBubble = null;  // the failed-turn bubble, so a re-send can take it down
 
 // Transcript-length cap (server-enforced; the local model has a finite context). Seeded from
 // GET /ples/:id and refreshed from every turn's response as { used, limit, pct, warn }. `warn` is the
@@ -249,11 +246,15 @@ function fmtClock(d) {
   return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 
+// opts.system marks a CLIENT-generated notice (limit reached, AI busy, error): it is not model output, so it
+// never wears the AI chip. It gets a neutral style (.msg-system) and an sr-only "ระบบ / System:"; a live one is
+// announced once through #chatLive (no role=status on the bubble, which would announce it twice).
 function renderMessage(role, content, refs, socratic, opts) {
   opts = opts || {};
   const stick = nearBottom();
   const div = document.createElement('div');
-  div.className = role === 'physician' ? 'msg-physician' : 'msg-assistant';
+  div.className = role === 'physician' ? 'msg-physician' : 'msg-assistant' + (opts.system ? ' msg-system' : '');
+  let spoken = '';   // what #chatLive says for a live reply / notice: the content only, never buttons or the clock
   if (role === 'physician') {
     div.textContent = content;
   } else {
@@ -265,13 +266,12 @@ function renderMessage(role, content, refs, socratic, opts) {
       work = ex.cleanContent; artifacts = ex.artifacts;
     }
     const mainContent = work.replace(/\n❓[^\n]*$/, '').trim();
-    // AI output is untrusted HTML once marked.parse runs it — sanitize before injecting, and
-    // fail SAFE to plain text if either lib is unavailable (never inject unsanitized markup).
-    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-      div.innerHTML = DOMPurify.sanitize(marked.parse(mainContent));
-    } else {
-      div.textContent = mainContent;
-    }
+    // AI output is untrusted HTML once marked.parse runs it. markdownFragment (js/ui.js) sanitises it and
+    // hardens it (no remote media, level-3+ headings, focusable table/code scrollers); it returns null when
+    // the libs did not load, and then we fail SAFE to plain text, never to unsanitised markup.
+    const mdFrag = markdownFragment(mainContent);
+    if (mdFrag) div.appendChild(mdFrag); else div.textContent = mainContent;
+    spoken = plainTextOf(div);
     artifacts.forEach(a => { CLICSArtifacts.register(a); div.appendChild(CLICSArtifacts.chip(a)); });
     // Auto-open the panel for a freshly-generated artifact (live turn), like Claude does; never on reload.
     if (opts.live && artifacts.length) CLICSArtifacts.open(artifacts[artifacts.length - 1].id);
@@ -312,6 +312,7 @@ function renderMessage(role, content, refs, socratic, opts) {
       const txt = document.createElement('span');
       txt.className = 'soc-text';
       txt.textContent = socratic;
+      spoken += ' ' + socratic;
       body.appendChild(lbl); body.appendChild(txt);
       sq.appendChild(body);
       div.appendChild(sq);
@@ -320,12 +321,40 @@ function renderMessage(role, content, refs, socratic, opts) {
     if (!opts.error) addActions(div, mainContent, false, opts.messageId);
     else addActions(div, mainContent, true);
   }
+  // Speaker label. Physician: sr-only "คุณ / You:" (the coral bubble on the right is the visible cue).
+  // Assistant: the visible AI chip, which is also what a screen reader hears — no second sr-only "AI".
+  // One fixed label for every session, arm and provider (see AI_LABEL in js/ui.js).
+  if (role === 'physician') {
+    const who = document.createElement('span');
+    who.className = 'sr-only';
+    who.textContent = 'คุณ / You: ';
+    div.insertBefore(who, div.firstChild);
+  } else if (opts.system) {
+    const who = document.createElement('span');
+    who.className = 'sr-only';
+    who.textContent = 'ระบบ / System: ';
+    div.insertBefore(who, div.firstChild);
+  } else {
+    div.insertBefore(aiChip(), div.firstChild);
+  }
   // Timestamp
   const t = document.createElement('div');
   t.className = 'msg-time';
+  // Decorative: an AX-tree dump showed the clock read inside every bubble. Still visible; not part of the reply.
+  t.setAttribute('aria-hidden', 'true');
+  // Announce a NEW reply or notice (never the history draw): speaker label + plain text, nothing else.
+  if (role !== 'physician' && (opts.live || opts.announce)) {
+    announceChat(opts.system ? SYSTEM_SPEAKER : aiSpeakerLabel(), spoken);
+  }
   t.textContent = fmtClock(opts.at ? new Date(opts.at) : new Date());
   div.appendChild(t);
 
+  // The newest assistant bubble keeps its action row (Copy / Report / Retry) visible; older ones show it on
+  // hover or focus. A system notice only takes the mark when it carries an action (the Retry on an error).
+  if (role !== 'physician' && (!opts.system || opts.error)) {
+    msgEl.querySelectorAll('.msg-assistant.is-latest').forEach(b => b.classList.remove('is-latest'));
+    div.classList.add('is-latest');
+  }
   msgEl.appendChild(div);
   if (stick) scrollToBottom(); else scrollBtn.classList.add('show');
   return div;
@@ -353,7 +382,13 @@ function addActions(div, rawText, isError, messageId) {
     retry.type = 'button';
     retry.insertAdjacentHTML('beforeend', icon('refresh', 14));
     retry.insertAdjacentHTML('beforeend', '<span>ลองใหม่ / Retry</span>');
-    retry.addEventListener('click', () => { div.remove(); deliver(lastUserMessage); });
+    retry.addEventListener('click', () => {
+      div.remove();                       // removes the focused button: put focus somewhere real first
+      // The failed text was put back in the box; sending it again must not leave a stale copy behind.
+      if (inputEl.value.trim() === lastUserMessage) { inputEl.value = ''; autoGrow(); }
+      inputEl.focus();
+      deliver(lastUserMessage);
+    });
     bar.appendChild(retry);
   }
   div.appendChild(bar);
@@ -363,12 +398,13 @@ function refreshUsage() {
   if (typeof renderUsageBar === 'function') renderUsageBar(document.getElementById('usageBar'), { mini: true });
 }
 
+// History draw: renderMessage is called without live/announce, so nothing here reaches #chatLive.
 api.getPle(pleId).then(ple => {
   // A transient failure returns an { error } envelope (no .status) — DON'T bounce to /ple-result
   // (which would then falsely read "Episode not found"); show a recoverable message in place.
   if (ple && ple.error) {
     msgEl.innerHTML =
-      '<div class="msg-assistant">' + icon('warn', 16) + ' โหลดเซสชันไม่สำเร็จ กรุณารีเฟรชหน้านี้ / Could not load this session — please refresh.</div>';
+      '<div class="msg-assistant" role="alert">' + icon('warn', 16) + ' โหลดเซสชันไม่สำเร็จ กรุณารีเฟรชหน้านี้ / Could not load this session — please refresh.</div>';
     return;
   }
   if (!ple || ple.status !== 'active') { window.location.href = `/ple-result?id=${pleId}`; return; }
@@ -383,14 +419,13 @@ api.getPle(pleId).then(ple => {
   document.getElementById('turns').textContent = turns;
   (ple.messages ?? []).forEach((m, i) => renderMessage(m.role, m.content, m.refs, m.socratic_question, { at: m.created_at, msgIndex: i, messageId: m.id }));
   nextMsgIndex = (ple.messages ?? []).length;   // live turns continue the index for stable artifact IDs
-  lastStoredId = (ple.messages ?? []).length ? ple.messages[ple.messages.length - 1].id : null;
   document.getElementById('sessionProgress').hidden = false;
   updateProgress();
   refreshUsage();
   applyTranscript(ple.transcript);
   // Reloaded a session that already sits at the cap: the next turn would 403 anyway — say so now.
-  if (transcriptFull(transcript)) { renderMessage('assistant', LIMIT_REACHED_MSG, [], null); lockComposer(); }
-});
+  if (transcriptFull(transcript)) { renderMessage('assistant', LIMIT_REACHED_MSG, [], null, { system: true }); lockComposer(); }
+}).catch(e => { console.error(e); });   // a throw while drawing history must not become an unhandled rejection
 
 // The turn never happened: take back the physician bubble sendMessage() drew, so re-sending the
 // restored text does not show the question twice. (Retry on an error bubble re-delivers without
@@ -403,124 +438,49 @@ function retractPhysicianBubble() {
   nextMsgIndex = Math.max(0, nextMsgIndex - 1);
 }
 
-// ---- Lost-connection settle ----
-// A chat turn is stored by the backend AFTER the AI answers (up to ~100 s), so a dropped connection or a
-// client timeout does not mean the turn failed: it is very often stored, and a blind Retry would put the
-// physician's message into the scored transcript twice. So an unanswered request is never retried
-// straight away. Each typed turn carries a client_turn_id (the backend refuses to store one turn twice),
-// and before offering Retry the page reads the episode back and shows the stored turn if it is there.
-//
-// COPY PENDING — the Thai/English wording below is a draft (design-map-delta §4 a/b), not approved. It
-// lives in this one constant so the final wording is a one-place change. No model or provider is named.
-const SETTLE_COPY = {
-  checking: 'การเชื่อมต่อหลุดระหว่างรอคำตอบ กำลังตรวจว่าข้อความของคุณถูกบันทึกหรือไม่ / Connection lost while waiting. Checking whether your message was saved...',
-  arrived: 'คำตอบมาถึงแล้ว (การเชื่อมต่อหลุดไปชั่วครู่) / The reply arrived (the connection dropped for a moment).',
-  notReceived: 'ข้อความนี้ยังไม่ได้ส่ง ข้อความยังอยู่ในช่องพิมพ์ กดส่งอีกครั้งได้ / This message was not sent. It is still in the box; you can send it again.',
-  cannotConfirm: 'ยังยืนยันไม่ได้ว่าส่งข้อความสำเร็จหรือไม่ รีเฟรชหน้าเพื่อดูบทสนทนาล่าสุดก่อนส่งซ้ำ / Could not confirm whether it was sent. Refresh to see the latest conversation before sending again.',
-};
-const SETTLE_POLL_MS = 3000;
-// The backend's own ceiling for one turn is ~100 s (RIMPL_CHAT_TIMEOUT_MS) plus its DB calls: after this
-// long from the send, a turn that is not stored is not coming.
-const SETTLE_SERVER_CEILING_MS = 115000;
-// A request that already ran past that (the 130 s client timeout) still gets a couple of reads.
-const SETTLE_MIN_MS = 6000;
-
-function newTurnId() {
-  try {
-    if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
-    const b = crypto.getRandomValues(new Uint8Array(16));
-    b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;      // RFC 4122 v4
-    const h = Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
-    return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
-  } catch { return null; } // no key: the request is sent unkeyed, exactly as before
-}
-// One key per typed turn, REUSED while the same text is still unsettled (Retry, or Send on the restored text).
-function turnKeyFor(message) {
-  if (pendingTurn && pendingTurn.text === message) return pendingTurn.key;
-  const key = newTurnId();
-  pendingTurn = key ? { key, text: message } : null;
-  return key;
-}
-// "No answer came back" (the server may still have acted), as opposed to a definite refusal.
-function outcomeUnknown(res) {
-  return !!res && !res.content && (res.code === 'network_error' || res.code === 'bad_response' || res.code === 'turn_pending');
-}
-
-// The stored turn for `text`, looking only at what is newer than the last message this page knew about.
-// (Matches on text, not on the key, so it also works before the backend has the key column.)
-function findStoredTurn(msgs, text) {
-  let from = 0;
-  if (lastStoredId) {
-    const i = msgs.findIndex(x => x.id === lastStoredId);
-    if (i >= 0) from = i + 1;
-  }
-  for (let i = from; i < msgs.length; i++) {
-    if (msgs[i].role === 'physician' && msgs[i].content === text) {
-      const next = msgs[i + 1];
-      return { physician: msgs[i], assistant: next && next.role === 'assistant' ? next : null };
-    }
-  }
-  return { physician: null, assistant: null };
-}
-
-// Poll the episode until the turn's reply shows up, or the backend could not still be working on it.
-// Resolves { state: 'found', ple, assistant } | { state: 'absent' } | { state: 'unknown' } (never read it,
-// or the message is stored but unanswered).
-async function settleLostTurn(message, sentAt) {
-  const note = document.createElement('div');
-  note.className = 'msg-assistant';
-  note.setAttribute('role', 'status');
-  note.textContent = SETTLE_COPY.checking;
-  msgEl.appendChild(note);
-  if (nearBottom()) scrollToBottom();
-  const deadline = Math.max(sentAt + SETTLE_SERVER_CEILING_MS, Date.now() + SETTLE_MIN_MS);
-  let read = false, sawPhysician = false;
-  try {
-    for (;;) {
-      const ple = await api.getPle(pleId);
-      if (ple && !ple.error && Array.isArray(ple.messages)) {
-        read = true;
-        const hit = findStoredTurn(ple.messages, message);
-        if (hit.assistant) return { state: 'found', ple, assistant: hit.assistant };
-        sawPhysician = !!hit.physician;
-      }
-      if (Date.now() + SETTLE_POLL_MS > deadline) break;
-      await new Promise(r => setTimeout(r, SETTLE_POLL_MS));
-    }
-  } finally {
-    note.remove();
-  }
-  // Stored but never answered, or never readable: not "not sent". Say so; Retry (same key) sorts it out.
-  return { state: read && !sawPhysician ? 'absent' : 'unknown' };
-}
-
-// Failed turn: error bubble with Retry, and the text back in the box, but never over what the physician
-// has typed since (the Retry button holds the failed text either way).
-function renderTurnFailure(message, text) {
-  lastErrorBubble = renderMessage('assistant', text, [], null, { error: true });
-  const input = document.getElementById('input');
-  if (!input.value.trim()) { input.value = message; autoGrow(); }
-}
-
 // Core turn delivery — shared by Send and Retry so neither re-draws the physician bubble.
+// The failed turn's text goes back in the box without clobbering anything the physician has typed since:
+// empty box -> the message; same text -> leave it; a different draft -> message first, draft kept below it.
+function restoreDraft(message) {
+  const cur = inputEl.value.trim();
+  if (!cur) inputEl.value = message;
+  else if (cur !== message) inputEl.value = message + '\n\n' + inputEl.value;
+  autoGrow();
+}
+
+// Whatever happens inside a turn (including a throw while drawing the reply), the box and Send come back.
 async function deliver(message) {
+  try { await deliverTurn(message); }
+  finally {
+    inputEl.readOnly = false; inputEl.removeAttribute('aria-busy');
+    if (!composerLocked) document.getElementById('sendBtn').disabled = false;
+  }
+}
+
+async function deliverTurn(message) {
   const sendBtn = document.getElementById('sendBtn');
   sendBtn.disabled = true;
-  if (lastErrorBubble) { lastErrorBubble.remove(); lastErrorBubble = null; } // a re-send replaces the old failure notice
-  const turnKey = turnKeyFor(message);
-  const sentAt = Date.now();
+  // Lock the box for the length of the turn. readOnly (not disabled) so it keeps focus and a screen reader
+  // keeps its place; Send is disabled and aria-busy says why. Nothing can be typed over the failed text.
+  inputEl.readOnly = true; inputEl.setAttribute('aria-busy', 'true');
   const loading = document.createElement('div');
   loading.className = 'msg-assistant';
-  loading.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+  // The dots alone are silent (and, under reduced motion, indistinguishable from an empty bubble):
+  // one fixed sr-only line announces the wait. Same string for every session.
+  loading.appendChild(aiChip());
+  loading.insertAdjacentHTML('beforeend', '<span class="sr-only">กำลังคิด… / is thinking…</span><div class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></div>');
   msgEl.appendChild(loading);
+  announceChat(aiSpeakerLabel(), 'กำลังคิด… / is thinking…');
   if (nearBottom()) scrollToBottom();
+  // After a while the dots alone read as a hang: add one visible line (copy + delay in js/ui.js).
+  const disarmSlow = armSlowNote(loading, () => { if (nearBottom()) scrollToBottom(); });
   markActivity(); aiInFlight = true;          // keep the timer running while the AI answers
   const language = /[฀-๿]/.test(message) ? 'th' : 'en';
-  const res = await api.sendMessage(pleId, turnKey ? { message, language, client_turn_id: turnKey } : { message, language });
+  const res = await api.sendMessage(pleId, { message, language });
+  disarmSlow();
+  aiInFlight = false; markActivity();
   loading.remove();
   if (res?.content) {
-    aiInFlight = false; markActivity();
-    pendingTurn = null; if (res.message_id) lastStoredId = res.message_id;
     renderMessage('assistant', res.content, res.refs, res.socratic_question, { msgIndex: nextMsgIndex++, live: true, messageId: res.message_id });
     turns += 1;
     tokenCount += (res.input_tokens || 0) + (res.output_tokens || 0);
@@ -529,57 +489,33 @@ async function deliver(message) {
     refreshUsage();
     applyTranscript(res.transcript);
   } else if (res?.code === 'budget_exceeded') {
-    aiInFlight = false; markActivity(); pendingTurn = null;
     // reason 'tokens' is the token-denominated cap (local AI); 'cost' the $ cap. Same outcome here.
     const unit = res.reason === 'tokens' ? ' (โทเค็น / tokens)' : '';
     retractPhysicianBubble(); // refused before it was saved — a bubble would claim it was said
-    renderMessage('assistant', 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ คุณยังสามารถจบเซสชันนี้ได้ / AI usage limit reached — contact an administrator. You can still end this session.' + unit, [], null);
-    document.getElementById('input').value = message; // restore the typed question
+    renderMessage('assistant', 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ คุณยังสามารถจบเซสชันนี้ได้ / AI usage limit reached — contact an administrator. You can still end this session.' + unit, [], null, { system: true, announce: true });
+    restoreDraft(message); // restore the typed question
     refreshUsage();
   } else if (res?.code === 'transcript_limit_reached') {
-    aiInFlight = false; markActivity(); pendingTurn = null;
     // The transcript cap: nothing more can be sent to this session. End is the only move left.
     if (res.used != null && res.limit != null) transcript = { used: res.used, limit: res.limit, warn: true };
     retractPhysicianBubble(); // refused before it was saved — a bubble would claim it was said
-    renderMessage('assistant', LIMIT_REACHED_MSG, [], null);
+    renderMessage('assistant', LIMIT_REACHED_MSG, [], null, { system: true, announce: true });
     lockComposer();
   } else if (res?.code === 'ai_busy') {
-    aiInFlight = false; markActivity(); pendingTurn = null;
     // Local AI at capacity (503) — transient. Keep the question so one tap re-sends it after the wait.
     const wait = Number(res.retry_after_s) > 0 ? Math.ceil(Number(res.retry_after_s)) : 30;
     retractPhysicianBubble();
-    renderMessage('assistant', `ระบบ AI กำลังทำงานหนัก — ลองอีกครั้งใน ${wait} วินาที / AI is busy — try again in ${wait} s`, [], null);
-    document.getElementById('input').value = message; // restore the typed question
-  } else if (outcomeUnknown(res)) {
-    // No answer came back, so we do not know whether the turn was stored. Look before offering Retry.
-    // (turn_pending = the backend says the original request is still working: its clock restarts now.)
-    const settled = await settleLostTurn(message, res.code === 'turn_pending' ? Date.now() : sentAt);
-    aiInFlight = false; markActivity();
-    if (settled.state === 'found') {
-      const a = settled.assistant, p = settled.ple;
-      pendingTurn = null; lastStoredId = a.id;
-      renderMessage('assistant', a.content, a.refs, a.socratic_question, { msgIndex: nextMsgIndex++, live: true, messageId: a.id, at: a.created_at });
-      turns = p.turn_count ?? turns + 1;
-      tokenCount = p.token_count ?? tokenCount;
-      document.getElementById('turns').textContent = turns;
-      updateProgress();
-      refreshUsage();
-      applyTranscript(p.transcript);
-      toast(SETTLE_COPY.arrived, 'success');
-    } else {
-      // Not found: Retry (and Send on the restored text) reuse pendingTurn's key, so a turn that lands
-      // late is answered from the record instead of being stored twice.
-      renderTurnFailure(message, settled.state === 'absent' ? SETTLE_COPY.notReceived : SETTLE_COPY.cannotConfirm);
-    }
+    renderMessage('assistant', `ระบบ AI กำลังทำงานหนัก — ลองอีกครั้งใน ${wait} วินาที / AI is busy — try again in ${wait} s`, [], null, { system: true, announce: true });
+    restoreDraft(message); // restore the typed question
   } else {
-    aiInFlight = false; markActivity();
     // The turn failed — restore the text and offer a Retry on the error bubble.
-    lastErrorBubble = renderMessage('assistant', 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong — please try again.', [], null, { error: true });
-    document.getElementById('input').value = message;
+    renderMessage('assistant', 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong — please try again.', [], null, { error: true, system: true, announce: true });
+    restoreDraft(message);
   }
+  inputEl.readOnly = false; inputEl.removeAttribute('aria-busy');
   if (composerLocked) return; // stays locked — never re-enable Send past the cap
   sendBtn.disabled = false;
-  document.getElementById('input').focus();
+  inputEl.focus();
 }
 
 async function sendMessage() {
@@ -591,10 +527,7 @@ async function sendMessage() {
   input.value = '';
   autoGrow();
   lastUserMessage = message;
-  // Sending the restored text of an unsettled turn: its bubble is still on screen, so don't draw it twice.
-  if (!(pendingTurn && pendingTurn.text === message)) {
-    renderMessage('physician', message, null, null, { msgIndex: nextMsgIndex++ });
-  }
+  renderMessage('physician', message, null, null, { msgIndex: nextMsgIndex++ });
   deliver(message);
 }
 
@@ -609,6 +542,10 @@ autoGrow(); // size the rows=1 composer correctly on load
 
 document.getElementById('sendBtn').addEventListener('click', sendMessage);
 inputEl.addEventListener('keydown', e => {
+  // Enter that confirms an IME candidate (Thai/Japanese/Chinese/Korean) must not send the half-typed
+  // message. isComposing is false on the keydown that ENDS composition in some Safari versions, which
+  // reports keyCode 229 instead. (The 229 half is unverified on Android Gboard.)
+  if (e.isComposing || e.keyCode === 229) return;
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 
@@ -626,13 +563,13 @@ function tierOneGuardBody() {
     { met: tokenCount >= T_TOKENS,  label: 'ความลึกของบทสนทนา / Conversation depth' },
   ];
   const list = rows.map(r =>
-    `<div style="display:flex;align-items:center;gap:8px;margin:5px 0;color:var(--muted);font-size:.9rem">` +
+    `<div style="display:flex;align-items:center;gap:8px;margin:5px 0;color:var(--muted)">` +
       icon(r.met ? 'checkCircle' : 'x', 16) +
       `<span>${r.label}</span></div>`).join('');
   return (
     `<p style="margin:0 0 8px">การประเมินจะดูว่าบทสนทนานี้แสดง <b>คำถามที่มีความหมาย · การพัฒนาเหตุผล · การเชื่อมโยงหลักฐาน · การสรุปการเรียนรู้</b> หรือไม่` +
-    `<br><span style="color:var(--muted);font-size:.9rem">Your session is assessed on whether it shows a meaningful question, developing reasoning, evidence integration, and reflective synthesis.</span></p>` +
-    `<p style="margin:14px 0 4px;font-size:.85rem;color:var(--muted)">ข้อมูลการมีส่วนร่วม (บันทึกไว้ ไม่ใช่เกณฑ์ตัดสิน) / Engagement, recorded but not a criterion:</p>` +
+    `<br><span style="color:var(--muted)">Your session is assessed on whether it shows a meaningful question, developing reasoning, evidence integration, and reflective synthesis.</span></p>` +
+    `<p style="margin:14px 0 4px;color:var(--muted)">ข้อมูลการมีส่วนร่วม (บันทึกไว้ ไม่ใช่เกณฑ์ตัดสิน) / Engagement, recorded but not a criterion:</p>` +
     list +
     `<p style="margin:12px 0 0"><b>ส่งแล้วทำต่อไม่ได้อีก</b> <span style="color:var(--muted)">— This session can't be resumed once submitted.</span></p>`
   );
@@ -648,6 +585,8 @@ document.getElementById('endBtn').addEventListener('click', async () => {
     confirmLabel: hasConversation ? 'จบและส่ง / End & submit' : 'ส่งทั้งที่ยังไม่ได้คุย / Submit anyway',
     cancelLabel: 'ยังไม่จบ / Keep going',
     danger: !hasConversation,
+    // Submitting cannot be undone: focus starts on "Keep going", and Enter there keeps going.
+    irreversible: true,
   });
   if (!ok) return;
   const endBtn = document.getElementById('endBtn');
