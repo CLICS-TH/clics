@@ -3,7 +3,7 @@
 // calibration tutor about the evaluation (why the AI scored a domain a certain way, where they
 // diverge). Metered against the auditor's SEPARATE budget pool (POST /auditor/ples/:id/discuss).
 import { useEffect, useRef, useState } from 'react';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, REQUEST_TIMEOUT_CODE } from '@/lib/api';
 import { Markdown } from './Markdown';
 import { Button } from './ui/button';
 import { Textarea } from './ui/input';
@@ -14,28 +14,61 @@ import type { ApiResult } from '@/lib/types';
 
 type Msg = { role: string; content: string };
 
+// The backend may run for up to ~100s (rimpl's own ceiling), so the client must wait LONGER than that
+// or it gives up on a call that is about to succeed. 130s matches the physician portal's client limit.
+export const DISCUSS_TIMEOUT_MS = 130_000;
+// Within this many px of the bottom counts as "reading the latest message".
+const NEAR_BOTTOM_PX = 80;
+
+const TIMEOUT_MSG =
+  'ใช้เวลานานเกินไป คำถามของคุณอาจถูกบันทึกไว้แล้ว รีเฟรชหน้าเพื่อดูการสนทนาล่าสุดก่อนส่งซ้ำ / '
+  + 'This is taking too long. Your question may already have been saved — reload the page to see the latest discussion before sending again.';
+const SEND_FAILED_MSG = 'ส่งไม่สำเร็จ กรุณาลองใหม่ / Could not send. Please try again.';
+
+// Smooth scrolling is motion: honour the OS reduced-motion setting.
+function scrollBehavior(): ScrollBehavior {
+  try {
+    return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  } catch {
+    return 'auto';
+  }
+}
+
 export function AuditorChatBox({ pleId }: { pleId: string }) {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState('');
   const [usageVersion, setUsageVersion] = useState(0);
-  const endRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  // Whether the reader is at the bottom. A reader who scrolled up to re-read an earlier answer must not
+  // be yanked down when a new message lands.
+  const follow = useRef(true);
 
   useEffect(() => {
     apiFetch<Msg[]>(`/auditor/ples/${pleId}/discussion`).then(d => setMsgs(Array.isArray(d) ? d : [])).catch(() => {});
   }, [pleId]);
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs.length, sending]);
+  // Scrolls the LIST only (scrollIntoView on a sentinel also scrolled the whole page).
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el || !follow.current) return;
+    el.scrollTo?.({ top: el.scrollHeight, behavior: scrollBehavior() });
+  }, [msgs.length, sending]);
+  function onListScroll() {
+    const el = listRef.current;
+    if (el) follow.current = el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_PX;
+  }
 
   async function send() {
     const text = input.trim();
     if (!text || sending) return;
     setErr(''); setSending(true);
+    follow.current = true; // the auditor's own message always comes into view
     setMsgs(m => [...m, { role: 'auditor', content: text }]); // optimistic
     setInput('');
     try {
       const res = await apiFetch<ApiResult<{ content: string }>>(`/auditor/ples/${pleId}/discuss`, {
-        method: 'POST', body: JSON.stringify({ message: text }),
+        method: 'POST', body: JSON.stringify({ message: text }), timeoutMs: DISCUSS_TIMEOUT_MS,
       });
       const content = (res as { content?: string })?.content;
       if (content && !(res as { error?: unknown })?.error) {
@@ -46,14 +79,16 @@ export function AuditorChatBox({ pleId }: { pleId: string }) {
         setMsgs(m => m.slice(0, -1));
         setInput(text);
         const code = (res as { code?: string })?.code;
+        // A timeout is NOT "not sent": the server may finish and store the exchange after we gave up.
+        // The text is put back so nothing is lost, but nothing is re-sent for the auditor.
         setErr(code === 'budget_exceeded'
           ? 'ใช้โควตา AI ครบแล้ว — ติดต่อผู้ดูแลระบบ / AI allowance used up — contact an administrator.'
-          : 'ส่งไม่สำเร็จ กรุณาลองใหม่ / Could not send. Please try again.');
+          : code === REQUEST_TIMEOUT_CODE ? TIMEOUT_MSG : SEND_FAILED_MSG);
       }
     } catch {
       setMsgs(m => m.slice(0, -1));
       setInput(text);
-      setErr('ส่งไม่สำเร็จ กรุณาลองใหม่ / Could not send. Please try again.');
+      setErr(SEND_FAILED_MSG);
     } finally {
       setSending(false);
     }
@@ -63,7 +98,7 @@ export function AuditorChatBox({ pleId }: { pleId: string }) {
     <div className="space-y-3 border-t pt-4">
       <h3 className="text-sm font-medium">พูดคุยกับ AI เกี่ยวกับผลการประเมิน / Discuss this evaluation with AI</h3>
       <AuditorUsageBar version={usageVersion} />
-      <div className="h-[32rem] max-h-[70vh] overflow-y-auto space-y-3 rounded-lg border bg-background p-3">
+      <div ref={listRef} onScroll={onListScroll} className="h-[32rem] max-h-[70vh] overflow-y-auto space-y-3 rounded-lg border bg-background p-3">
         {msgs.length === 0 && (
           <StateMessage kind="empty" className="py-0 text-xs"
             title={<>ถามได้ เช่น “ทำไม AI ให้คะแนนหมวด Critical Appraisal สูงกว่าฉัน?” / Ask e.g. &ldquo;Why did the AI score Critical Appraisal higher than I did?&rdquo;</>} />
@@ -79,14 +114,18 @@ export function AuditorChatBox({ pleId }: { pleId: string }) {
           </div>
         ))}
         {sending && <StateMessage kind="loading" className="py-0 text-xs" title="กำลังคิด… / Thinking…" />}
-        <div ref={endRef} />
       </div>
       {err && <StateMessage kind="error" className="px-3 py-2 text-sm" title={err} />}
       <div className="flex gap-2">
         <Textarea className="flex-1" rows={3} aria-label="คำถามถึง AI / Your question for the AI"
           placeholder="พิมพ์คำถาม… / Type your question…" value={input}
           onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+          onKeyDown={e => {
+            // Enter that CONFIRMS an IME candidate (Thai, Japanese, …) must not send: isComposing is the
+            // standard flag, keyCode 229 covers browsers that fire the keydown after composition ends.
+            if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+          }}
           disabled={sending} />
         <Button onClick={send} disabled={sending || !input.trim()} className="self-end">ส่ง / Send</Button>
       </div>

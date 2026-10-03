@@ -36,4 +36,23 @@ const config = {
   },
 };
 
-module.exports = createJestConfig(config);
+// react-markdown and the unified/remark/micromark tree under it ship ONLY as ES modules, which jest will
+// not parse from node_modules. next/jest installs its own transformIgnorePatterns, so replace them
+// after it has resolved: transform these packages, ignore the rest of node_modules as before. This is
+// what lets Markdown.test.tsx run the REAL renderer instead of a mock that would test nothing.
+const ESM_PACKAGES = [
+  'react-markdown', 'remark-[^/]+', 'rehype-[^/]+', 'unified', 'bail', 'devlop', 'trough', 'vfile[^/]*',
+  'unist-[^/]+', 'mdast-[^/]+', 'micromark[^/]*', 'hast-[^/]+', 'html-url-attributes', 'property-information',
+  'space-separated-tokens', 'comma-separated-tokens', 'decode-named-character-reference',
+  'character-entities[^/]*', 'trim-lines', 'ccount', 'markdown-table', 'zwitch', 'longest-streak',
+  'is-plain-obj', 'escape-string-regexp', 'stringify-entities', 'estree-util-[^/]+',
+].join('|');
+
+module.exports = async () => {
+  const resolved = await createJestConfig(config)();
+  resolved.transformIgnorePatterns = [
+    `/node_modules/(?!(?:\\.pnpm/)?(?:${ESM_PACKAGES})/)`,
+    '^.+\\.module\\.(css|sass|scss)$',
+  ];
+  return resolved;
+};
