@@ -1,0 +1,241 @@
+{
+  "reports": 2,
+  "anchors": 14,
+  "calls": 28,
+  "spent_usd": 0.5389,
+  "parse_ok": {
+    "k": 28,
+    "n": 28,
+    "p": 1,
+    "lo": 0.8793566952341543,
+    "hi": 0.9999999999999998
+  },
+  "invalid_json": 0,
+  "refusals": 0,
+  "max_tokens_truncations": 0,
+  "thinking_tokens_reported_max": 0,
+  "output_tokens_max": 1250,
+  "latency_ms": {
+    "p50": 8187,
+    "max": 10587
+  },
+  "cost_per_eval_usd": {
+    "mean": 0.01924642857142857,
+    "max": 0.024348
+  },
+  "spread": {
+    "anchors_with_k_scored": 14,
+    "domain_exact_agreement": {
+      "k": 90,
+      "n": 98,
+      "p": 0.9183673469387755,
+      "lo": 0.8471171284576644,
+      "hi": 0.9580559410323579
+    },
+    "domains_differing_by_2plus": 0,
+    "composite_identical": {
+      "k": 7,
+      "n": 14,
+      "p": 0.5,
+      "lo": 0.26799202452413634,
+      "hi": 0.7320079754758637
+    },
+    "composite_ranges": [
+      {
+        "id": "anc-057",
+        "target": 20,
+        "composites": [
+          36,
+          38
+        ],
+        "range": 2
+      },
+      {
+        "id": "anc-007",
+        "target": 94,
+        "composites": [
+          97,
+          94
+        ],
+        "range": 3
+      },
+      {
+        "id": "anc-002",
+        "target": 45,
+        "composites": [
+          44,
+          44
+        ],
+        "range": 0
+      },
+      {
+        "id": "anc-024",
+        "target": 73,
+        "composites": [
+          63,
+          60
+        ],
+        "range": 3
+      },
+      {
+        "id": "anc-005",
+        "target": 34,
+        "composites": [
+          33,
+          33
+        ],
+        "range": 0
+      },
+      {
+        "id": "anc-039",
+        "target": 56,
+        "composites": [
+          48,
+          48
+        ],
+        "range": 0
+      },
+      {
+        "id": "anc-014",
+        "target": 66,
+        "composites": [
+          52,
+          52
+        ],
+        "range": 0
+      },
+      {
+        "id": "anc-020",
+        "target": 15,
+        "composites": [
+          18,
+          20
+        ],
+        "range": 2
+      },
+      {
+        "id": "anc-086",
+        "target": 91,
+        "composites": [
+          81,
+          84
+        ],
+        "range": 3
+      },
+      {
+        "id": "anc-092",
+        "target": 48,
+        "composites": [
+          51,
+          51
+        ],
+        "range": 0
+      },
+      {
+        "id": "anc-013",
+        "target": 78,
+        "composites": [
+          82,
+          87
+        ],
+        "range": 5
+      },
+      {
+        "id": "anc-008",
+        "target": 26,
+        "composites": [
+          25,
+          28
+        ],
+        "range": 3
+      },
+      {
+        "id": "anc-064",
+        "target": 53,
+        "composites": [
+          57,
+          57
+        ],
+        "range": 0
+      },
+      {
+        "id": "anc-052",
+        "target": 82,
+        "composites": [
+          88,
+          88
+        ],
+        "range": 0
+      }
+    ],
+    "composite_range_max": 5
+  },
+  "sum_abs_delta": {
+    "per_anchor": [
+      {
+        "id": "anc-057",
+        "sum_abs_delta": 1
+      },
+      {
+        "id": "anc-007",
+        "sum_abs_delta": 1
+      },
+      {
+        "id": "anc-002",
+        "sum_abs_delta": 0
+      },
+      {
+        "id": "anc-024",
+        "sum_abs_delta": 1
+      },
+      {
+        "id": "anc-005",
+        "sum_abs_delta": 0
+      },
+      {
+        "id": "anc-039",
+        "sum_abs_delta": 0
+      },
+      {
+        "id": "anc-014",
+        "sum_abs_delta": 0
+      },
+      {
+        "id": "anc-020",
+        "sum_abs_delta": 1
+      },
+      {
+        "id": "anc-086",
+        "sum_abs_delta": 1
+      },
+      {
+        "id": "anc-092",
+        "sum_abs_delta": 0
+      },
+      {
+        "id": "anc-013",
+        "sum_abs_delta": 2
+      },
+      {
+        "id": "anc-008",
+        "sum_abs_delta": 1
+      },
+      {
+        "id": "anc-064",
+        "sum_abs_delta": 0
+      },
+      {
+        "id": "anc-052",
+        "sum_abs_delta": 0
+      }
+    ],
+    "median": 0.5,
+    "at_or_under_2": {
+      "k": 14,
+      "n": 14,
+      "p": 1,
+      "lo": 0.7846891972623642,
+      "hi": 1
+    }
+  }
+}

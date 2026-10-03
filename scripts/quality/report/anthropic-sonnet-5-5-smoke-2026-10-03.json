@@ -1,0 +1,809 @@
+{
+  "schema": "clics-tutor-audit/v1",
+  "label": "anthropic-sonnet-5-5-smoke-2026-10-03",
+  "started_at": "2026-10-03T08:07:20.131Z",
+  "finished_at": "2026-10-03T08:07:56.167Z",
+  "target": {
+    "arm": "anthropic",
+    "provider": "anthropic",
+    "base_url": "https://api.anthropic.com/v1",
+    "model_requested": "claude-sonnet-5-5",
+    "timeout_ms": 180000
+  },
+  "provenance": {
+    "git_commit": "b3e329abf1e3",
+    "bank_sha": "bank-975bb6e06699",
+    "bank_files": [
+      "adversarial.json",
+      "en-core.json",
+      "mixed-core.json",
+      "multiturn.json",
+      "rescue.json",
+      "th-core.json"
+    ],
+    "prompt_versions": {
+      "natural": "chat-prompt-d63340e1",
+      "examiner": "chat-prompt-c6efcfc6",
+      "rescue": "chat-prompt-55d91dbd"
+    },
+    "max_tokens": 5200,
+    "temperature": null,
+    "retry": "chat.js single corrective retry (citation/❓ + language guard, #109)",
+    "artifacts": false,
+    "rag": "none — ragDocs=[] (production documents corpus is empty; docs/LOCAL-MODEL-ROADMAP.md P3)",
+    "checks_version": "checks-v1",
+    "synthetic": "every question, case and identifier is invented — replies are safe to store",
+    "models_reported": [
+      "claude-sonnet-5-5"
+    ],
+    "system_fingerprints": []
+  },
+  "composition": {
+    "total": 4,
+    "language": {
+      "en": 2,
+      "th": 2
+    },
+    "mode": {
+      "examiner": 2,
+      "natural": 2
+    },
+    "specialty": {
+      "toxicology": 1,
+      "endocrinology": 1,
+      "cardiology": 1,
+      "infectious disease": 1
+    },
+    "adversarial": {
+      "none": 4
+    },
+    "multiTurn": 0
+  },
+  "items": [
+    {
+      "id": "en-tox-paracetamol-overdose",
+      "mode": "examiner",
+      "language": "en",
+      "specialty": "toxicology",
+      "adversarial_type": null,
+      "started_at": "2026-10-03T08:07:20.138Z",
+      "finished_at": "2026-10-03T08:07:28.363Z",
+      "request": {
+        "prompt_version": "chat-prompt-c6efcfc6",
+        "socratic": true,
+        "rescuing": false,
+        "route_language": "en",
+        "physician_wrote_thai": false,
+        "messages": [
+          {
+            "role": "user",
+            "content": "A patient took a single paracetamol overdose 6 hours ago and looks well. How do I decide whether to start acetylcysteine?"
+          }
+        ],
+        "identifiers_sent": []
+      },
+      "first": {
+        "ok": true,
+        "text": "Looking well at 6 hours is expected and reassuring only in the sense that it tells you nothing: hepatotoxicity is usually silent for the first 24 hours, so symptoms shouldn't guide this decision.\n\n**Core approach**\n- **Confirm it's truly a single acute ingestion** with a known time. If time is unknown or it's staggered, treat on a more conservative basis.\n- **Take a serum paracetamol level at ≥4 hours post-ingestion**. You're at 6 hours, so send it now. Levels before 4 hours are unreliable (the curve hasn't peaked).\n- **Plot it on the treatment nomogram**. If the level is at or above the treatment line, start acetylcysteine (NAC). In the UK the line is 100 mg/L at 4 h for all patients (MHRA/CHM, 2012); older guidance used a 150 mg/L line (Rumack-Matthew nomogram, 1975), with a 200 mg/L line in some protocols.\n- **Draw baseline ALT/AST, INR, creatinine, and venous gas/lactate**, since these help establish a baseline and flag early injury.\n\n**Don't wait for the level if**\n- The ingestion is ≥8 hours ago, because NAC is most protective when started within 8-10 hours, so start while awaiting the result (TOXBASE, 2023; Prescott et al., Lancet, 1979).\n- Time is unknown or the dose is large (>150 mg/kg or >12 g), with the same logic of treating empirically.\n\nYou're at 6 hours, so you have time to get the level back and decide, but don't let the lab turnaround push you past the 8-hour window.\n\n**Other points**\n- **Activated charcoal** is worth considering if the patient presents within 1 hour of a substantial ingestion; at 6 hours it's of little value.\n- **Treat on clinical risk** if the nomogram is borderline or the patient has risk factors (chronic alcohol use, malnutrition, enzyme inducers). Some guidelines lower the threshold here.\n- After starting NAC, **reassess at the end of the infusion**. Stop only if the paracetamol is undetectable and ALT/INR are normal; otherwise continue (TOXBASE, 2023).\n\n❓ If this patient's 6-hour level comes back just below the treatment line but they're a chronic alcohol user on phenytoin, would you still withhold NAC, and what is your reasoning?",
+        "error": null,
+        "status": 200,
+        "ms": 8224,
+        "finish_reason": "end_turn",
+        "stop_reason": "end_turn",
+        "prompt_tokens": 1031,
+        "completion_tokens": 808,
+        "response_model": "claude-sonnet-5-5",
+        "system_fingerprint": null,
+        "reasoning_only": false,
+        "transport_attempts": 1,
+        "transport_errors": []
+      },
+      "retry": null,
+      "language_retry": false,
+      "final": {
+        "ok": true,
+        "text": "Looking well at 6 hours is expected and reassuring only in the sense that it tells you nothing: hepatotoxicity is usually silent for the first 24 hours, so symptoms shouldn't guide this decision.\n\n**Core approach**\n- **Confirm it's truly a single acute ingestion** with a known time. If time is unknown or it's staggered, treat on a more conservative basis.\n- **Take a serum paracetamol level at ≥4 hours post-ingestion**. You're at 6 hours, so send it now. Levels before 4 hours are unreliable (the curve hasn't peaked).\n- **Plot it on the treatment nomogram**. If the level is at or above the treatment line, start acetylcysteine (NAC). In the UK the line is 100 mg/L at 4 h for all patients (MHRA/CHM, 2012); older guidance used a 150 mg/L line (Rumack-Matthew nomogram, 1975), with a 200 mg/L line in some protocols.\n- **Draw baseline ALT/AST, INR, creatinine, and venous gas/lactate**, since these help establish a baseline and flag early injury.\n\n**Don't wait for the level if**\n- The ingestion is ≥8 hours ago, because NAC is most protective when started within 8-10 hours, so start while awaiting the result (TOXBASE, 2023; Prescott et al., Lancet, 1979).\n- Time is unknown or the dose is large (>150 mg/kg or >12 g), with the same logic of treating empirically.\n\nYou're at 6 hours, so you have time to get the level back and decide, but don't let the lab turnaround push you past the 8-hour window.\n\n**Other points**\n- **Activated charcoal** is worth considering if the patient presents within 1 hour of a substantial ingestion; at 6 hours it's of little value.\n- **Treat on clinical risk** if the nomogram is borderline or the patient has risk factors (chronic alcohol use, malnutrition, enzyme inducers). Some guidelines lower the threshold here.\n- After starting NAC, **reassess at the end of the infusion**. Stop only if the paracetamol is undetectable and ALT/INR are normal; otherwise continue (TOXBASE, 2023).\n\n❓ If this patient's 6-hour level comes back just below the treatment line but they're a chronic alcohol user on phenytoin, would you still withhold NAC, and what is your reasoning?",
+        "error": null,
+        "status": 200,
+        "ms": 8224,
+        "finish_reason": "end_turn",
+        "stop_reason": "end_turn",
+        "prompt_tokens": 1031,
+        "completion_tokens": 808,
+        "response_model": "claude-sonnet-5-5",
+        "system_fingerprint": null,
+        "reasoning_only": false,
+        "transport_attempts": 1,
+        "transport_errors": [],
+        "from": "first"
+      },
+      "latency_ms_total": 8224,
+      "checks": {
+        "assessable": true,
+        "checks": {
+          "answered": {
+            "pass": true
+          },
+          "english_reply": {
+            "pass": true,
+            "value": 0,
+            "detail": "English turn (not policed in production): reply English (0% Thai in prose, cut 0.3)"
+          },
+          "length": {
+            "pass": true,
+            "value": 359,
+            "detail": "359 words (target <~400)"
+          },
+          "not_truncated": {
+            "pass": true
+          },
+          "no_reasoning_leak": {
+            "pass": true
+          },
+          "socratic_close": {
+            "pass": true,
+            "value": "If this patient's 6-hour level comes back just below the treatment line but they're a chronic alcohol user on phenytoin, would you still withhold NAC, and what is your reasoning?"
+          },
+          "socratic_last_line": {
+            "pass": true
+          },
+          "citation_shape": {
+            "pass": true,
+            "value": [
+              "MHRA/CHM, 2012",
+              "Rumack-Matthew nomogram, 1975",
+              "TOXBASE, 2023; Prescott et al., Lancet, 1979",
+              "TOXBASE, 2023"
+            ]
+          }
+        },
+        "flags": []
+      }
+    },
+    {
+      "id": "en-endo-adrenal-crisis",
+      "mode": "natural",
+      "language": "en",
+      "specialty": "endocrinology",
+      "adversarial_type": null,
+      "started_at": "2026-10-03T08:07:28.364Z",
+      "finished_at": "2026-10-03T08:07:36.938Z",
+      "request": {
+        "prompt_version": "chat-prompt-d63340e1",
+        "socratic": false,
+        "rescuing": false,
+        "route_language": "en",
+        "physician_wrote_thai": false,
+        "messages": [
+          {
+            "role": "user",
+            "content": "A patient on long-term prednisolone stopped it abruptly and now has vomiting, hypotension and hyponatraemia. How should suspected adrenal crisis be treated?"
+          }
+        ],
+        "identifiers_sent": []
+      },
+      "first": {
+        "ok": true,
+        "text": "This picture (abrupt cessation after long-term glucocorticoid, plus vomiting, hypotension and hyponatraemia) is classic for adrenal crisis from glucocorticoid-induced adrenal suppression. Treat on clinical suspicion; don't wait for cortisol or ACTH results (Endocrine Society Guideline, 2016).\n\n**Immediate management**\n- **Hydrocortisone 100 mg IV/IM bolus immediately**, then 200 mg/24 h by continuous infusion (or 50 mg IV/IM q6h) (Endocrine Society, 2016; ESE/Endocrine Society Guideline on Adrenal Insufficiency, 2024).\n- **Fluids:** 0.9% saline 1 L in the first hour, then continue per volume status and haemodynamics, with close monitoring (Endocrine Society, 2016).\n- **If vomiting prevents oral intake**, parenteral hydrocortisone is essential.\n\n**Practical points**\n- Draw blood for cortisol/ACTH, electrolytes and glucose *before* the first dose if it doesn't delay treatment, but never hold the steroid for them.\n- Check glucose (hypoglycaemia is common; give dextrose if low).\n- Hydrocortisone at these doses gives enough mineralocorticoid effect, so fludrocortisone isn't needed acutely.\n- Search for and treat the precipitant (infection, GI illness, other illness).\n- **Sodium correction:** hyponatraemia usually corrects well with saline plus hydrocortisone. Monitor closely and avoid overly rapid correction (aim for ≤8-10 mmol/L per 24 h) to reduce osmotic demyelination risk, especially because ADH-driven water retention resolves quickly once cortisol is replaced (Spasovski et al., European Guideline on Hyponatraemia, 2014).\n\n**After stabilisation**\n- Taper hydrocortisone to oral replacement over a few days as the patient recovers.\n- Restart a glucocorticoid and plan a supervised, gradual taper rather than stopping again. Assess HPA axis recovery later (e.g., morning cortisol, ± ACTH stimulation test) before fully discontinuing.\n- Educate on sick-day rules, a steroid emergency card/medical alert, and an emergency IM hydrocortisone kit (Endocrine Society, 2016).\n\n**A caution on interpretation:** if the patient were already on high-dose prednisolone and stopped abruptly, remember prednisolone itself has little mineralocorticoid activity. Hyponatraemia here is driven mainly by cortisol deficiency (↑ADH, hypovolaemia) rather than true aldosterone deficiency, which is typical of secondary/tertiary adrenal insufficiency, and that's why hyperkalaemia is usually absent. Don't be reassured by a normal potassium.\n\nHappy to go through dosing adjustments for specific scenarios (e.g., a patient on ICU pressors, or pregnancy) if useful.",
+        "error": null,
+        "status": 200,
+        "ms": 8573,
+        "finish_reason": "end_turn",
+        "stop_reason": "end_turn",
+        "prompt_tokens": 653,
+        "completion_tokens": 1025,
+        "response_model": "claude-sonnet-5-5",
+        "system_fingerprint": null,
+        "reasoning_only": false,
+        "transport_attempts": 1,
+        "transport_errors": []
+      },
+      "retry": null,
+      "language_retry": false,
+      "final": {
+        "ok": true,
+        "text": "This picture (abrupt cessation after long-term glucocorticoid, plus vomiting, hypotension and hyponatraemia) is classic for adrenal crisis from glucocorticoid-induced adrenal suppression. Treat on clinical suspicion; don't wait for cortisol or ACTH results (Endocrine Society Guideline, 2016).\n\n**Immediate management**\n- **Hydrocortisone 100 mg IV/IM bolus immediately**, then 200 mg/24 h by continuous infusion (or 50 mg IV/IM q6h) (Endocrine Society, 2016; ESE/Endocrine Society Guideline on Adrenal Insufficiency, 2024).\n- **Fluids:** 0.9% saline 1 L in the first hour, then continue per volume status and haemodynamics, with close monitoring (Endocrine Society, 2016).\n- **If vomiting prevents oral intake**, parenteral hydrocortisone is essential.\n\n**Practical points**\n- Draw blood for cortisol/ACTH, electrolytes and glucose *before* the first dose if it doesn't delay treatment, but never hold the steroid for them.\n- Check glucose (hypoglycaemia is common; give dextrose if low).\n- Hydrocortisone at these doses gives enough mineralocorticoid effect, so fludrocortisone isn't needed acutely.\n- Search for and treat the precipitant (infection, GI illness, other illness).\n- **Sodium correction:** hyponatraemia usually corrects well with saline plus hydrocortisone. Monitor closely and avoid overly rapid correction (aim for ≤8-10 mmol/L per 24 h) to reduce osmotic demyelination risk, especially because ADH-driven water retention resolves quickly once cortisol is replaced (Spasovski et al., European Guideline on Hyponatraemia, 2014).\n\n**After stabilisation**\n- Taper hydrocortisone to oral replacement over a few days as the patient recovers.\n- Restart a glucocorticoid and plan a supervised, gradual taper rather than stopping again. Assess HPA axis recovery later (e.g., morning cortisol, ± ACTH stimulation test) before fully discontinuing.\n- Educate on sick-day rules, a steroid emergency card/medical alert, and an emergency IM hydrocortisone kit (Endocrine Society, 2016).\n\n**A caution on interpretation:** if the patient were already on high-dose prednisolone and stopped abruptly, remember prednisolone itself has little mineralocorticoid activity. Hyponatraemia here is driven mainly by cortisol deficiency (↑ADH, hypovolaemia) rather than true aldosterone deficiency, which is typical of secondary/tertiary adrenal insufficiency, and that's why hyperkalaemia is usually absent. Don't be reassured by a normal potassium.\n\nHappy to go through dosing adjustments for specific scenarios (e.g., a patient on ICU pressors, or pregnancy) if useful.",
+        "error": null,
+        "status": 200,
+        "ms": 8573,
+        "finish_reason": "end_turn",
+        "stop_reason": "end_turn",
+        "prompt_tokens": 653,
+        "completion_tokens": 1025,
+        "response_model": "claude-sonnet-5-5",
+        "system_fingerprint": null,
+        "reasoning_only": false,
+        "transport_attempts": 1,
+        "transport_errors": [],
+        "from": "first"
+      },
+      "latency_ms_total": 8573,
+      "checks": {
+        "assessable": true,
+        "checks": {
+          "answered": {
+            "pass": true
+          },
+          "english_reply": {
+            "pass": true,
+            "value": 0,
+            "detail": "English turn (not policed in production): reply English (0% Thai in prose, cut 0.3)"
+          },
+          "length": {
+            "pass": true,
+            "value": 354,
+            "detail": "354 words (target <~400)"
+          },
+          "not_truncated": {
+            "pass": true
+          },
+          "no_reasoning_leak": {
+            "pass": true
+          },
+          "no_socratic_in_natural": {
+            "pass": true
+          },
+          "citation_shape": {
+            "pass": true,
+            "value": [
+              "Endocrine Society Guideline, 2016",
+              "Endocrine Society, 2016; ESE/Endocrine Society Guideline on Adrenal Insufficiency, 2024",
+              "Endocrine Society, 2016",
+              "Spasovski et al., European Guideline on Hyponatraemia, 2014",
+              "Endocrine Society, 2016"
+            ]
+          }
+        },
+        "flags": []
+      }
+    },
+    {
+      "id": "th-cardio-stemi",
+      "mode": "examiner",
+      "language": "th",
+      "specialty": "cardiology",
+      "adversarial_type": null,
+      "started_at": "2026-10-03T08:07:36.941Z",
+      "finished_at": "2026-10-03T08:07:46.138Z",
+      "request": {
+        "prompt_version": "chat-prompt-c6efcfc6",
+        "socratic": true,
+        "rescuing": false,
+        "route_language": "th",
+        "physician_wrote_thai": true,
+        "messages": [
+          {
+            "role": "user",
+            "content": "ข้อมูลผู้ป่วยเบื้องต้น / Case (chief complaint): เจ็บแน่นหน้าอกขณะพัก 1 ชั่วโมง\n\nผู้ป่วยชายเจ็บแน่นหน้าอกขณะพักมา 1 ชั่วโมง คลื่นไฟฟ้าหัวใจพบ ST ยกใน lead II, III, aVF โรงพยาบาลชุมชนของผมทำ PCI ไม่ได้ และส่งต่อไปโรงพยาบาลที่ทำได้ต้องใช้เวลาประมาณ 3 ชั่วโมง ควรตัดสินใจอย่างไรเรื่อง reperfusion"
+          }
+        ],
+        "identifiers_sent": []
+      },
+      "first": {
+        "ok": true,
+        "text": "กรณีนี้คือ inferior STEMI ที่มาเร็ว (1 ชม. หลังเริ่มอาการ) และเวลาส่งต่อประมาณ 3 ชม. ซึ่งเกินเป้า FMC-to-device ≤120 นาที จึงเข้าเกณฑ์ **fibrinolysis ที่โรงพยาบาลชุมชน แล้วค่อยส่งต่อ (pharmaco-invasive strategy)** (ESC STEMI Guidelines, 2023; ACC/AHA STEMI Guideline, 2013)\n\n**แนวทางตัดสินใจ**\n- ถ้า PCI ไม่ทันภายใน 120 นาที ให้ fibrinolysis **ภายใน 10 นาทีหลังวินิจฉัย** (door-to-needle เป้า ≤30 นาที)\n- ผู้ป่วยมาเร็ว (<2–3 ชม.) ประโยชน์จาก lytic สูงสุด\n- ตรวจ contraindication ก่อน: ประวัติ ICH, stroke ใน 3 เดือน, เลือดออกที่ active, aortic dissection, ผ่าตัด/บาดเจ็บรุนแรงล่าสุด, ความดันสูงมากที่คุมไม่ได้\n\n**ยาที่ใช้**\n- ASA 150–300 mg เคี้ยว + P2Y12 inhibitor (clopidogrel 300 mg ถ้าอายุ ≤75 ปี) + anticoagulant (enoxaparin ตามอายุ/ไต)\n- Tenecteplase (weight-based; ลดครึ่งขนาดถ้าอายุ ≥75 ปี) เป็นตัวเลือกที่สะดวกที่สุดก่อนส่งต่อ (STREAM, 2013)\n\n**หลังให้ lytic**\n- ส่งต่อทันทีทุกราย ไม่ว่าจะ reperfuse สำเร็จหรือไม่\n- ประเมิน ST resolution ที่ 60–90 นาที: ลดลง <50% = failed → **rescue PCI ทันที**\n- ถ้า reperfuse สำเร็จ ทำ angiography ภายใน 2–24 ชม. (STREAM-2/ESC, 2023)\n\n**เฉพาะ inferior MI**\n- ตรวจ right-sided leads (V4R) เพื่อดู RV involvement\n- ระวัง **nitrates และ preload reduction** ถ้า RV infarct หรือ hypotension เพราะอาจทำให้ BP ตกรุนแรง\n- เฝ้าระวัง bradycardia/AV block (เตรียม atropine/pacing)\n\n❓ ถ้าผู้ป่วยรายนี้มี BP 80/50, V4R ST ยก และชีพจร 45 ครั้ง/นาที หลังได้ lytic ไปแล้ว คุณจะจัดการ hemodynamics อย่างไร และอะไรคือสิ่งที่ \"ห้ามให้\" ในสถานการณ์นี้?",
+        "error": null,
+        "status": 200,
+        "ms": 9196,
+        "finish_reason": "end_turn",
+        "stop_reason": "end_turn",
+        "prompt_tokens": 1245,
+        "completion_tokens": 1092,
+        "response_model": "claude-sonnet-5-5",
+        "system_fingerprint": null,
+        "reasoning_only": false,
+        "transport_attempts": 1,
+        "transport_errors": []
+      },
+      "retry": null,
+      "language_retry": false,
+      "final": {
+        "ok": true,
+        "text": "กรณีนี้คือ inferior STEMI ที่มาเร็ว (1 ชม. หลังเริ่มอาการ) และเวลาส่งต่อประมาณ 3 ชม. ซึ่งเกินเป้า FMC-to-device ≤120 นาที จึงเข้าเกณฑ์ **fibrinolysis ที่โรงพยาบาลชุมชน แล้วค่อยส่งต่อ (pharmaco-invasive strategy)** (ESC STEMI Guidelines, 2023; ACC/AHA STEMI Guideline, 2013)\n\n**แนวทางตัดสินใจ**\n- ถ้า PCI ไม่ทันภายใน 120 นาที ให้ fibrinolysis **ภายใน 10 นาทีหลังวินิจฉัย** (door-to-needle เป้า ≤30 นาที)\n- ผู้ป่วยมาเร็ว (<2–3 ชม.) ประโยชน์จาก lytic สูงสุด\n- ตรวจ contraindication ก่อน: ประวัติ ICH, stroke ใน 3 เดือน, เลือดออกที่ active, aortic dissection, ผ่าตัด/บาดเจ็บรุนแรงล่าสุด, ความดันสูงมากที่คุมไม่ได้\n\n**ยาที่ใช้**\n- ASA 150–300 mg เคี้ยว + P2Y12 inhibitor (clopidogrel 300 mg ถ้าอายุ ≤75 ปี) + anticoagulant (enoxaparin ตามอายุ/ไต)\n- Tenecteplase (weight-based; ลดครึ่งขนาดถ้าอายุ ≥75 ปี) เป็นตัวเลือกที่สะดวกที่สุดก่อนส่งต่อ (STREAM, 2013)\n\n**หลังให้ lytic**\n- ส่งต่อทันทีทุกราย ไม่ว่าจะ reperfuse สำเร็จหรือไม่\n- ประเมิน ST resolution ที่ 60–90 นาที: ลดลง <50% = failed → **rescue PCI ทันที**\n- ถ้า reperfuse สำเร็จ ทำ angiography ภายใน 2–24 ชม. (STREAM-2/ESC, 2023)\n\n**เฉพาะ inferior MI**\n- ตรวจ right-sided leads (V4R) เพื่อดู RV involvement\n- ระวัง **nitrates และ preload reduction** ถ้า RV infarct หรือ hypotension เพราะอาจทำให้ BP ตกรุนแรง\n- เฝ้าระวัง bradycardia/AV block (เตรียม atropine/pacing)\n\n❓ ถ้าผู้ป่วยรายนี้มี BP 80/50, V4R ST ยก และชีพจร 45 ครั้ง/นาที หลังได้ lytic ไปแล้ว คุณจะจัดการ hemodynamics อย่างไร และอะไรคือสิ่งที่ \"ห้ามให้\" ในสถานการณ์นี้?",
+        "error": null,
+        "status": 200,
+        "ms": 9196,
+        "finish_reason": "end_turn",
+        "stop_reason": "end_turn",
+        "prompt_tokens": 1245,
+        "completion_tokens": 1092,
+        "response_model": "claude-sonnet-5-5",
+        "system_fingerprint": null,
+        "reasoning_only": false,
+        "transport_attempts": 1,
+        "transport_errors": [],
+        "from": "first"
+      },
+      "latency_ms_total": 9196,
+      "checks": {
+        "assessable": true,
+        "checks": {
+          "answered": {
+            "pass": true
+          },
+          "language": {
+            "pass": true,
+            "value": 0.606,
+            "detail": "Thai turn: reply Thai (or too little prose to judge) (61% Thai in prose, cut 0.3)"
+          },
+          "length": {
+            "pass": true,
+            "value": 269,
+            "detail": "269 words (target <~400)"
+          },
+          "not_truncated": {
+            "pass": true
+          },
+          "no_reasoning_leak": {
+            "pass": true
+          },
+          "socratic_close": {
+            "pass": true,
+            "value": "ถ้าผู้ป่วยรายนี้มี BP 80/50, V4R ST ยก และชีพจร 45 ครั้ง/นาที หลังได้ lytic ไปแล้ว คุณจะจัดการ hemodynamics อย่างไร และอะไรคือสิ่งที่ \"ห้ามให้\" ในสถานการณ์นี้?"
+          },
+          "socratic_last_line": {
+            "pass": true
+          },
+          "citation_shape": {
+            "pass": true,
+            "value": [
+              "ESC STEMI Guidelines, 2023; ACC/AHA STEMI Guideline, 2013",
+              "STREAM, 2013",
+              "STREAM-2/ESC, 2023"
+            ]
+          }
+        },
+        "flags": []
+      }
+    },
+    {
+      "id": "th-id-dengue-warning",
+      "mode": "natural",
+      "language": "th",
+      "specialty": "infectious disease",
+      "adversarial_type": null,
+      "started_at": "2026-10-03T08:07:46.140Z",
+      "finished_at": "2026-10-03T08:07:56.162Z",
+      "request": {
+        "prompt_version": "chat-prompt-d63340e1",
+        "socratic": false,
+        "rescuing": false,
+        "route_language": "th",
+        "physician_wrote_thai": true,
+        "messages": [
+          {
+            "role": "user",
+            "content": "ผู้ป่วยไข้เลือดออกเดงกีวันที่ 4 ไข้เริ่มลง ควรเฝ้าระวังอาการเตือน (warning signs) อะไรบ้าง และยาลดไข้ตัวไหนห้ามใช้"
+          }
+        ],
+        "identifiers_sent": []
+      },
+      "first": {
+        "ok": true,
+        "text": "วันที่ 4–5 ที่ไข้เริ่มลงคือ **ช่วงวิกฤต (critical phase)** ที่เสี่ยงพลาสมารั่วและช็อกมากที่สุด จึงต้องเฝ้าระวังใกล้ชิด ไม่ควรวางใจว่าไข้ลงแล้วดีขึ้น\n\n**Warning signs ที่ต้องเฝ้าระวัง (WHO Dengue Guidelines, 2009; ปรับใน WHO, 2012)**\n- ปวดท้องมากหรือกดเจ็บบริเวณท้อง (โดยเฉพาะใต้ชายโครงขวา)\n- อาเจียนต่อเนื่อง (≥3 ครั้ง/วัน) กินหรือดื่มไม่ได้\n- มีเลือดออกผิดปกติ เช่น เลือดกำเดา เหงือกออก อาเจียนหรือถ่ายเป็นเลือด ประจำเดือนมามากผิดปกติ\n- ซึม กระสับกระส่าย หรือเหนื่อยอ่อนเพลียมากขึ้น\n- ตับโตเกิน 2 ซม.\n- มีน้ำในช่องเยื่อหุ้มปอดหรือช่องท้อง (clinical fluid accumulation)\n- **Hct เพิ่มขึ้นพร้อมกับเกล็ดเลือดลดลงเร็ว** (ถ้า Hct เพิ่ม ≥20% จากค่าเดิมเป็นสัญญาณพลาสมารั่ว)\n\n**อาการช็อก (ต้องรีบรักษา):** ชีพจรเบาเร็ว, pulse pressure แคบ (≤20 mmHg), ปลายมือเท้าเย็น, capillary refill ช้า, ปัสสาวะออกน้อย\n\n**ยาลดไข้**\n- **ใช้ได้:** พาราเซตามอล (Paracetamol) ขนาดปกติ ไม่เกินขนาดสูงสุดต่อวัน\n- **ห้ามใช้:** แอสไพริน (Aspirin) และ NSAIDs เช่น ไอบูโพรเฟน, ไดโคลฟีแนค เพราะเพิ่มความเสี่ยงเลือดออกและระคายกระเพาะ ทำให้เสี่ยงเลือดออกในทางเดินอาหาร และ Aspirin ในเด็กยังเสี่ยง Reye's syndrome (WHO, 2009; กรมควบคุมโรค แนวทางเวชปฏิบัติโรคไข้เลือดออก)\n- ควรหลีกเลี่ยงการใช้ steroid และ antibiotic ที่ไม่จำเป็น\n\n**แนวทางการดูแลช่วงนี้**\n- ติดตาม vital signs, intake/output (urine output ≥0.5 mL/kg/hr) และ Hct เป็นระยะ\n- ส่งเสริมการดื่มน้ำ/ORS ถ้ายังกินได้ ถ้ามี warning signs หรือกินไม่ได้ ควรรับไว้ในโรงพยาบาลและให้สารน้ำ crystalloid ทางหลอดเลือดดำตามแนวทาง\n\nหากต้องการ ผมช่วยไล่เรื่องการเลือกชนิดและอัตราสารน้ำในแต่ละระยะต่อได้ครับ",
+        "error": null,
+        "status": 200,
+        "ms": 10022,
+        "finish_reason": "end_turn",
+        "stop_reason": "end_turn",
+        "prompt_tokens": 694,
+        "completion_tokens": 1234,
+        "response_model": "claude-sonnet-5-5",
+        "system_fingerprint": null,
+        "reasoning_only": false,
+        "transport_attempts": 1,
+        "transport_errors": []
+      },
+      "retry": null,
+      "language_retry": false,
+      "final": {
+        "ok": true,
+        "text": "วันที่ 4–5 ที่ไข้เริ่มลงคือ **ช่วงวิกฤต (critical phase)** ที่เสี่ยงพลาสมารั่วและช็อกมากที่สุด จึงต้องเฝ้าระวังใกล้ชิด ไม่ควรวางใจว่าไข้ลงแล้วดีขึ้น\n\n**Warning signs ที่ต้องเฝ้าระวัง (WHO Dengue Guidelines, 2009; ปรับใน WHO, 2012)**\n- ปวดท้องมากหรือกดเจ็บบริเวณท้อง (โดยเฉพาะใต้ชายโครงขวา)\n- อาเจียนต่อเนื่อง (≥3 ครั้ง/วัน) กินหรือดื่มไม่ได้\n- มีเลือดออกผิดปกติ เช่น เลือดกำเดา เหงือกออก อาเจียนหรือถ่ายเป็นเลือด ประจำเดือนมามากผิดปกติ\n- ซึม กระสับกระส่าย หรือเหนื่อยอ่อนเพลียมากขึ้น\n- ตับโตเกิน 2 ซม.\n- มีน้ำในช่องเยื่อหุ้มปอดหรือช่องท้อง (clinical fluid accumulation)\n- **Hct เพิ่มขึ้นพร้อมกับเกล็ดเลือดลดลงเร็ว** (ถ้า Hct เพิ่ม ≥20% จากค่าเดิมเป็นสัญญาณพลาสมารั่ว)\n\n**อาการช็อก (ต้องรีบรักษา):** ชีพจรเบาเร็ว, pulse pressure แคบ (≤20 mmHg), ปลายมือเท้าเย็น, capillary refill ช้า, ปัสสาวะออกน้อย\n\n**ยาลดไข้**\n- **ใช้ได้:** พาราเซตามอล (Paracetamol) ขนาดปกติ ไม่เกินขนาดสูงสุดต่อวัน\n- **ห้ามใช้:** แอสไพริน (Aspirin) และ NSAIDs เช่น ไอบูโพรเฟน, ไดโคลฟีแนค เพราะเพิ่มความเสี่ยงเลือดออกและระคายกระเพาะ ทำให้เสี่ยงเลือดออกในทางเดินอาหาร และ Aspirin ในเด็กยังเสี่ยง Reye's syndrome (WHO, 2009; กรมควบคุมโรค แนวทางเวชปฏิบัติโรคไข้เลือดออก)\n- ควรหลีกเลี่ยงการใช้ steroid และ antibiotic ที่ไม่จำเป็น\n\n**แนวทางการดูแลช่วงนี้**\n- ติดตาม vital signs, intake/output (urine output ≥0.5 mL/kg/hr) และ Hct เป็นระยะ\n- ส่งเสริมการดื่มน้ำ/ORS ถ้ายังกินได้ ถ้ามี warning signs หรือกินไม่ได้ ควรรับไว้ในโรงพยาบาลและให้สารน้ำ crystalloid ทางหลอดเลือดดำตามแนวทาง\n\nหากต้องการ ผมช่วยไล่เรื่องการเลือกชนิดและอัตราสารน้ำในแต่ละระยะต่อได้ครับ",
+        "error": null,
+        "status": 200,
+        "ms": 10022,
+        "finish_reason": "end_turn",
+        "stop_reason": "end_turn",
+        "prompt_tokens": 694,
+        "completion_tokens": 1234,
+        "response_model": "claude-sonnet-5-5",
+        "system_fingerprint": null,
+        "reasoning_only": false,
+        "transport_attempts": 1,
+        "transport_errors": [],
+        "from": "first"
+      },
+      "latency_ms_total": 10022,
+      "checks": {
+        "assessable": true,
+        "checks": {
+          "answered": {
+            "pass": true
+          },
+          "language": {
+            "pass": true,
+            "value": 0.819,
+            "detail": "Thai turn: reply Thai (or too little prose to judge) (82% Thai in prose, cut 0.3)"
+          },
+          "length": {
+            "pass": true,
+            "value": 317,
+            "detail": "317 words (target <~400)"
+          },
+          "not_truncated": {
+            "pass": true
+          },
+          "no_reasoning_leak": {
+            "pass": true
+          },
+          "no_socratic_in_natural": {
+            "pass": true
+          },
+          "citation_shape": {
+            "pass": true,
+            "value": [
+              "WHO Dengue Guidelines, 2009; ปรับใน WHO, 2012",
+              "WHO, 2009; กรมควบคุมโรค แนวทางเวชปฏิบัติโรคไข้เลือดออก"
+            ]
+          }
+        },
+        "flags": []
+      }
+    }
+  ],
+  "spend": {
+    "max_usd": 0.075,
+    "usd_per_mtok_in": 2,
+    "usd_per_mtok_out": 10,
+    "in_tokens": 3623,
+    "out_tokens": 4159,
+    "usd": 0.0488,
+    "stopped_early": false,
+    "note": "recorded tokens of every call (first + retry, plus replaced failed attempts) at the given prices — an estimate, not the invoice; transport-failed calls record no usage"
+  },
+  "checks_summary": {
+    "checks_version": "checks-v1",
+    "n_items": 4,
+    "n_assessable": 4,
+    "n_call_failed": 0,
+    "overall": {
+      "answered": {
+        "k": 4,
+        "n": 4,
+        "p": 1,
+        "lo": 0.5101091635454027,
+        "hi": 1
+      },
+      "english_reply": {
+        "k": 2,
+        "n": 2,
+        "p": 1,
+        "lo": 0.34238022750665303,
+        "hi": 1
+      },
+      "length": {
+        "k": 4,
+        "n": 4,
+        "p": 1,
+        "lo": 0.5101091635454027,
+        "hi": 1
+      },
+      "not_truncated": {
+        "k": 4,
+        "n": 4,
+        "p": 1,
+        "lo": 0.5101091635454027,
+        "hi": 1
+      },
+      "no_reasoning_leak": {
+        "k": 4,
+        "n": 4,
+        "p": 1,
+        "lo": 0.5101091635454027,
+        "hi": 1
+      },
+      "socratic_close": {
+        "k": 2,
+        "n": 2,
+        "p": 1,
+        "lo": 0.34238022750665303,
+        "hi": 1
+      },
+      "socratic_last_line": {
+        "k": 2,
+        "n": 2,
+        "p": 1,
+        "lo": 0.34238022750665303,
+        "hi": 1
+      },
+      "citation_shape": {
+        "k": 4,
+        "n": 4,
+        "p": 1,
+        "lo": 0.5101091635454027,
+        "hi": 1
+      },
+      "no_socratic_in_natural": {
+        "k": 2,
+        "n": 2,
+        "p": 1,
+        "lo": 0.34238022750665303,
+        "hi": 1
+      },
+      "language": {
+        "k": 2,
+        "n": 2,
+        "p": 1,
+        "lo": 0.34238022750665303,
+        "hi": 1
+      }
+    },
+    "by_language": {
+      "en": {
+        "answered": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "english_reply": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "length": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "not_truncated": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "no_reasoning_leak": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "socratic_close": {
+          "k": 1,
+          "n": 1,
+          "p": 1,
+          "lo": 0.20654931437723745,
+          "hi": 1
+        },
+        "socratic_last_line": {
+          "k": 1,
+          "n": 1,
+          "p": 1,
+          "lo": 0.20654931437723745,
+          "hi": 1
+        },
+        "citation_shape": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "no_socratic_in_natural": {
+          "k": 1,
+          "n": 1,
+          "p": 1,
+          "lo": 0.20654931437723745,
+          "hi": 1
+        }
+      },
+      "th": {
+        "answered": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "length": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "not_truncated": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "no_reasoning_leak": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "socratic_close": {
+          "k": 1,
+          "n": 1,
+          "p": 1,
+          "lo": 0.20654931437723745,
+          "hi": 1
+        },
+        "socratic_last_line": {
+          "k": 1,
+          "n": 1,
+          "p": 1,
+          "lo": 0.20654931437723745,
+          "hi": 1
+        },
+        "citation_shape": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "no_socratic_in_natural": {
+          "k": 1,
+          "n": 1,
+          "p": 1,
+          "lo": 0.20654931437723745,
+          "hi": 1
+        },
+        "language": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        }
+      }
+    },
+    "by_mode": {
+      "examiner": {
+        "answered": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "english_reply": {
+          "k": 1,
+          "n": 1,
+          "p": 1,
+          "lo": 0.20654931437723745,
+          "hi": 1
+        },
+        "length": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "not_truncated": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "no_reasoning_leak": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "socratic_close": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "socratic_last_line": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "citation_shape": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "language": {
+          "k": 1,
+          "n": 1,
+          "p": 1,
+          "lo": 0.20654931437723745,
+          "hi": 1
+        }
+      },
+      "natural": {
+        "answered": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "english_reply": {
+          "k": 1,
+          "n": 1,
+          "p": 1,
+          "lo": 0.20654931437723745,
+          "hi": 1
+        },
+        "length": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "not_truncated": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "no_reasoning_leak": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "citation_shape": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "no_socratic_in_natural": {
+          "k": 2,
+          "n": 2,
+          "p": 1,
+          "lo": 0.34238022750665303,
+          "hi": 1
+        },
+        "language": {
+          "k": 1,
+          "n": 1,
+          "p": 1,
+          "lo": 0.20654931437723745,
+          "hi": 1
+        }
+      }
+    },
+    "flags": {},
+    "items_with_critical": [],
+    "critical_rate": {
+      "k": 0,
+      "n": 4,
+      "p": 0,
+      "lo": 0,
+      "hi": 0.4898908364545973
+    }
+  },
+  "label_note": "renamed after the run: tutor-audit truncated the requested label to 40 characters (\"…-2026-1\"); no other field changed"
+}
