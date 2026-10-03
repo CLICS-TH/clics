@@ -219,7 +219,7 @@
   --destructive: #c64545;
   --ok: #5db872;            /* success text — bright green reads well on the dark canvas (7.31:1) */
   /* Was #f26e69, which measured 4.47:1 on the /20 tint Badge/Button destructive use in dark mode and
-     4.01:1 on its /30 hover. #f8807b: 5.18:1 on /20 and 4.66:1 on /30 (both over --card), 5.75 card. */
+     4.01:1 on its /30 hover. #f8807b: 5.18:1 on /20 and 4.66:1 on /30 (both over --card), 6.24 on the card itself. */
   --danger: #f8807b;
   --link: #cc785c;          /* bright coral is already 5.47:1 on the dark canvas — no change needed */
   --coral-on-tint: #f0bda8; /* 9.96:1 on --muted, 9.37:1 on --card, 10.71:1 on the canvas */

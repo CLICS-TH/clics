@@ -91,6 +91,24 @@ describe('TranscriptView', () => {
     expect(md).toHaveTextContent('Watch troponin (AHA, 2021).');
   });
 
+  it('refs and the question line stay readable on the solid-coral physician bubble (white, not muted)', () => {
+    render(
+      <TranscriptView
+        messages={[
+          { role: 'physician', content: 'x', refs: [{ source: 'UpToDate' }], socratic_question: 'Why?' },
+          { role: 'assistant', content: 'y', refs: [{ source: 'NEJM' }], socratic_question: 'And?' },
+        ]}
+      />
+    );
+    // muted-foreground on bg-coral-active is 1.08:1; white is 5.06:1.
+    expect(screen.getByText('UpToDate').closest('p')).toHaveClass('text-white');
+    expect(screen.getByText('UpToDate').closest('p')).not.toHaveClass('text-muted-foreground');
+    expect(screen.getByText('Why?').closest('p')).toHaveClass('text-white');
+    // the assistant side is unchanged
+    expect(screen.getByText('NEJM').closest('p')).toHaveClass('text-muted-foreground');
+    expect(screen.getByText('And?').closest('p')).toHaveClass('text-coral-on-tint');
+  });
+
   it('joins reference sources with " · "', () => {
     const { container } = render(
       <TranscriptView

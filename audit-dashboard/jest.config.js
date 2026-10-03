@@ -19,6 +19,7 @@ const config = {
     'lib/pis7-rubric.ts',
     'lib/chart-colors.ts',
     'lib/theme.ts',
+    'lib/settings-patch.ts',
     'components/ThemeProvider.tsx',
     'components/DomainScorer.tsx',
     'components/TranscriptView.tsx',

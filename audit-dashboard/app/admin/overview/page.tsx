@@ -12,6 +12,7 @@ import { useChartColors } from '@/lib/chart-colors';
 import { PageIntro } from '@/components/PageIntro';
 import { RoleBadge } from '@/components/RoleBadge';
 import { toast } from '@/components/Overlays';
+import { patchUsageSetting } from '@/lib/settings-patch';
 import { Badge } from '@/components/ui/badge';
 import { StatStrip, type Stat } from '@/components/StatStrip';
 import { IccPanel } from '@/components/IccPanel';
@@ -79,28 +80,24 @@ export default function OverviewPage() {
   const activeCouncils = (councils ?? []).filter(c => c.active !== false);
 
   // ---- Settings writes ----
-  // apiFetch never rejects: a failed PATCH resolves with an {error} envelope, so the try/catch the
-  // toggles used to carry could not fire. Worse, the echo field was then read as undefined and written
-  // into state, so the switch FLIPPED to "off" while the server kept the old value — a lock that
-  // looked released but was not. A write counts only if the API echoes the value back; otherwise the
-  // control stays where it was and the failure is said out loud.
+  // See lib/settings-patch.ts for why a write is only trusted when the API echoes it back. The echo,
+  // not the request, goes into state: the server is the truth.
   async function patchSetting<K extends keyof UsageSettings>(
     key: K, value: UsageSettings[K], setSaving: (saving: boolean) => void,
   ) {
     if (!usage) return;
     setSaving(true);
     try {
-      const next = await apiFetch<UsageSettings & { error?: unknown }>('/admin/usage-settings', {
-        method: 'PATCH', body: JSON.stringify({ [key]: value }),
-      });
-      if (!next || next.error || next[key] === undefined) {
-        const why = typeof next?.error === 'string' ? ` (${next.error})` : '';
+      const r = await patchUsageSetting(key, value);
+      if (r.status === 'failed') {
+        const why = r.reason ? ` (${r.reason})` : '';
         toast(`บันทึกไม่สำเร็จ การตั้งค่าไม่เปลี่ยนแปลง / Could not save — the setting was not changed.${why}`, 'error');
         return;
       }
-      setUsage(u => (u ? { ...u, [key]: next[key] } : u));
-    } catch {
-      toast('บันทึกไม่สำเร็จ การตั้งค่าไม่เปลี่ยนแปลง / Could not save — the setting was not changed.', 'error');
+      setUsage(u => (u ? { ...u, [key]: r.value } : u));
+      if (r.status === 'mismatch') {
+        toast('บันทึกแล้ว แต่เซิร์ฟเวอร์รายงานค่าที่ต่างจากที่ตั้ง กรุณารีโหลดหน้า / Saved, but the server reports a different value than the one you set. Reload the page to check.', 'error');
+      }
     } finally {
       setSaving(false);
     }

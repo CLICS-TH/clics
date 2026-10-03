@@ -51,14 +51,15 @@ export const TranscriptView = memo(function TranscriptView({ messages }: { messa
         const extras = (
           <>
             {m.refs?.length ? (
-              <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+              // On the physician's solid-coral bubble muted-foreground is 1.08:1; plain white is 5.06:1.
+              <p className={`mt-2 flex items-center gap-1.5 text-xs ${isPhysician ? "text-white" : "text-muted-foreground"}`}>
                 <Paperclip className="size-3.5 shrink-0" />
                 {m.refs.map((r) => r.source ?? r.title).join(" · ")}
               </p>
             ) : null}
             {m.socratic_question && (
               // text-coral-on-tint, not text-link: link is 4.24:1 on the AI surface, this is 6.08:1.
-              <p className="mt-2 flex items-start gap-1.5 text-xs italic text-coral-on-tint">
+              <p className={`mt-2 flex items-start gap-1.5 text-xs italic ${isPhysician ? "text-white" : "text-coral-on-tint"}`}>
                 <HelpCircle className="mt-0.5 size-3.5 shrink-0" />
                 {m.socratic_question}
               </p>
@@ -71,7 +72,7 @@ export const TranscriptView = memo(function TranscriptView({ messages }: { messa
         return isPhysician ? (
           <div key={i} className="ml-auto max-w-[85%] rounded-xl bg-coral-active p-3 text-sm text-white">
             {isReflection ? (
-              <p className="mb-1 text-xs font-semibold text-white/90">
+              <p className="mb-1 text-xs font-semibold text-white">
                 การสะท้อนคิดของแพทย์ / Physician reflection
               </p>
             ) : null}
