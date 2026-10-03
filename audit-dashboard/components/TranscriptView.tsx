@@ -2,6 +2,7 @@
 import { memo } from "react";
 import { Paperclip, HelpCircle } from "lucide-react";
 import { Markdown } from "@/components/Markdown";
+import { AiOutput } from "@/components/ui/ai-output";
 
 interface Message {
   role: string;
@@ -47,21 +48,8 @@ export const TranscriptView = memo(function TranscriptView({ messages }: { messa
         const body = isPhysician
           ? stripArtifactFences(m.content)
           : stripArtifactFences(m.content).replace(/\n❓[^\n]*$/, "").trim();
-        return (
-          <div
-            key={i}
-            className={
-              isPhysician
-                ? "ml-auto max-w-[85%] rounded-xl bg-coral-active p-3 text-sm text-white"
-                : "max-w-[92%] rounded-xl border border-border bg-card p-4"
-            }
-          >
-            {isReflection ? (
-              <p className="mb-1 text-xs font-semibold text-white/90">
-                การสะท้อนคิดของแพทย์ / Physician reflection
-              </p>
-            ) : null}
-            {isPhysician ? <p className="whitespace-pre-wrap text-sm">{body}</p> : <Markdown>{body}</Markdown>}
+        const extras = (
+          <>
             {m.refs?.length ? (
               <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Paperclip className="size-3.5 shrink-0" />
@@ -69,12 +57,32 @@ export const TranscriptView = memo(function TranscriptView({ messages }: { messa
               </p>
             ) : null}
             {m.socratic_question && (
-              <p className="mt-2 flex items-start gap-1.5 text-xs italic text-link">
+              // text-coral-on-tint, not text-link: link is 4.24:1 on the AI surface, this is 6.08:1.
+              <p className="mt-2 flex items-start gap-1.5 text-xs italic text-coral-on-tint">
                 <HelpCircle className="mt-0.5 size-3.5 shrink-0" />
                 {m.socratic_question}
               </p>
             )}
+          </>
+        );
+        // The person's own turns stay solid coral (human = coral). Everything the AI wrote is an
+        // AiOutput: slate-blue surface plus an explicit "AI" label, so the two voices are never told
+        // apart by colour alone.
+        return isPhysician ? (
+          <div key={i} className="ml-auto max-w-[85%] rounded-xl bg-coral-active p-3 text-sm text-white">
+            {isReflection ? (
+              <p className="mb-1 text-xs font-semibold text-white/90">
+                การสะท้อนคิดของแพทย์ / Physician reflection
+              </p>
+            ) : null}
+            <p className="whitespace-pre-wrap text-sm">{body}</p>
+            {extras}
           </div>
+        ) : (
+          <AiOutput key={i} variant="bubble" className="max-w-[92%] rounded-xl p-4">
+            <Markdown>{body}</Markdown>
+            {extras}
+          </AiOutput>
         );
       })}
     </div>

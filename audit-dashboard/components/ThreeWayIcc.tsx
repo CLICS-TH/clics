@@ -54,17 +54,18 @@ const pct = (v: number | null | undefined) =>
 
 // --destructive (#c64545) clears 4.5:1 on the light canvas (4.59:1) but only 3.7:1 on the dark one,
 // so it is used ONLY for the display-size figures (large text, 3:1 bar — and it keeps IccPanel's
-// look). Small red text uses a measured pair instead: 6.14:1 light / 6.48:1 dark. --ok clears 4.5:1
-// in BOTH modes at any size, so the pass tone needs no split.
-const FAIL_SMALL = 'text-red-700 dark:text-red-400';
+// look). Small red text is the shared --danger token (text-danger), pinned in contrast.test.ts —
+// this file used to carry its own raw red-700/red-400 pair, a third red beside destructive and danger.
+// --ok clears 4.5:1 in BOTH modes at any size, so the pass tone needs no split.
+const FAIL_SMALL = 'text-danger';
 
 // Interpretation-band chip, same ladder as IccPanel so the two panels never disagree.
 function bandClass(icc: number | null | undefined): string {
   if (icc == null) return 'bg-muted text-muted-foreground';
-  if (icc >= 0.95) return 'bg-[var(--chart-pass-bg)] text-[var(--chart-pass-text)]';
+  if (icc >= 0.95) return 'bg-chart-pass-bg text-chart-pass-text';
   if (icc >= 0.85) return 'bg-secondary text-foreground';
-  if (icc >= GATE) return 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
-  return `bg-destructive/10 ${FAIL_SMALL}`;
+  if (icc >= GATE) return 'bg-notice-bg text-notice-text';
+  return 'bg-error-bg text-error-text';
 }
 // Display-size figures only (text-2xl and up).
 const gateClass = (icc: number | null | undefined) =>

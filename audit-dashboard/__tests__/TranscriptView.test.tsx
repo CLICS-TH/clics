@@ -11,9 +11,11 @@ jest.mock('@/components/Markdown', () => ({
 jest.mock('lucide-react', () => ({
   Paperclip: () => <svg data-testid="icon-paperclip" />,
   HelpCircle: () => <svg data-testid="icon-help" />,
+  Bot: () => <svg data-testid="icon-bot" />, // AiOutput's source icon
 }));
 
 import { TranscriptView } from '@/components/TranscriptView';
+import { AI_LABEL } from '@/lib/ai-label';
 
 describe('TranscriptView', () => {
   it('labels reflection as physician-authored evidence and preserves a final question verbatim', () => {
@@ -33,6 +35,22 @@ describe('TranscriptView', () => {
   it('renders an assistant turn through Markdown', () => {
     render(<TranscriptView messages={[{ role: 'assistant', content: 'Consider **sepsis**.' }]} />);
     expect(screen.getByTestId('md')).toHaveTextContent('Consider **sepsis**.');
+  });
+
+  it('marks every AI turn with a visible AI label and a labelled group; the person\'s turns get none', () => {
+    render(
+      <TranscriptView
+        messages={[
+          { role: 'physician', content: 'My differential is PE.' },
+          { role: 'assistant', content: 'Consider sepsis.' },
+          { role: 'assistant', content: 'And a PE.' },
+        ]}
+      />
+    );
+    const groups = screen.getAllByRole('group', { name: AI_LABEL.chip });
+    expect(groups).toHaveLength(2);                                   // one per AI turn, none for the physician
+    groups.forEach((g) => expect(g).toHaveClass('bg-ai-bg', 'text-ai-text', 'border-ai-border'));
+    expect(screen.getByText('My differential is PE.').closest('[role="group"]')).toBeNull();
   });
 
   it('strips the trailing ❓ Socratic line from the rendered assistant body', () => {

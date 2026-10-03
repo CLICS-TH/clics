@@ -4,6 +4,8 @@ import { useSearchParams } from 'next/navigation';
 import { apiFetch, apiFetchPaged } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile } from '@/components/ViewportProvider';
 import { STATUS_MAP } from '@/lib/labels';
@@ -14,18 +16,18 @@ import { Check } from 'lucide-react';
 
 const PAGE_SIZE = 50;
 
-// Color-code status so admins can triage at a glance (was a monochrome outline badge).
-// ple_pass and evaluated share the "passing" tone — keep it single-sourced so they can't drift.
-const PASS_TONE = 'border-transparent bg-[var(--chart-pass-bg)] text-[var(--chart-pass-text)]';
-const STATUS_TONE: Record<string, string> = {
-  ple_pass: PASS_TONE,
-  evaluated: PASS_TONE,
-  ple_flag_t2: 'border-transparent bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
-  ple_fail_t1: 'border-transparent bg-destructive/10 text-destructive',
+// Color-code status so admins can triage at a glance. The tones are Badge variants on the shared
+// --notice/--error/--chart-pass tokens (this table used to carry amber-100 / destructive-10, and the
+// "did not pass" badge measured 4.02:1 light and 2.69:1 dark). The status TEXT is always shown, so
+// colour is never the only signal. ple_pass and evaluated share the "passing" tone.
+const STATUS_TONE: Record<string, 'ok' | 'notice' | 'error'> = {
+  ple_pass: 'ok',
+  evaluated: 'ok',
+  ple_flag_t2: 'notice',
+  ple_fail_t1: 'error',
 };
 function StatusBadge({ status }: { status: string }) {
-  const tone = STATUS_TONE[status];
-  return <Badge variant="outline" className={tone}>{STATUS_MAP[status] ?? status}</Badge>;
+  return <Badge variant={STATUS_TONE[status] ?? 'outline'}>{STATUS_MAP[status] ?? status}</Badge>;
 }
 
 function AdminClesContent() {
@@ -102,12 +104,13 @@ function AdminClesContent() {
           </span>
         )}
         {showPicker && (
-          <select className="min-w-0 max-w-[200px] rounded-md border border-border bg-background px-2 py-1.5 text-xs"
+          <Select className="max-w-[200px] px-2 py-1.5 text-xs"
+            aria-label={`มอบหมายผู้ตรวจ / Assign an auditor — ${p.professionals?.full_name_th ?? p.id}`}
             value=""
             onChange={e => e.target.value && assign(p.id, e.target.value)}>
             <option value="">{assigned > 0 ? 'เพิ่มผู้ประเมิน / Add auditor…' : 'เลือก Auditor...'}</option>
             {auditors.map((a: Auditor) => <option key={a.id} value={a.id}>{a.full_name_th}</option>)}
-          </select>
+          </Select>
         )}
       </div>
     );
@@ -161,35 +164,35 @@ function AdminClesContent() {
               <p className="mt-3 text-xs text-muted-foreground">มอบหมาย / Assign</p>
               <div className="mt-1 flex items-center justify-between gap-2">
                 {assignControl(p)}
-                <a href={`/admin/ples/${p.id}`} className="text-xs underline text-primary">ดูบทสนทนา / View</a>
+                <a href={`/admin/ples/${p.id}`} className="text-xs underline text-link">ดูบทสนทนา / View</a>
               </div>
             </div>
           ))}
         </div>
       ) : (
         /* Desktop: table */
-        <div className="border rounded-xl overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-secondary"><tr>
-              <th className="px-4 py-3 text-left"><BiLabel th="แพทย์" en="Physician" tooltip /></th>
-              <th className="px-4 py-3 text-left"><BiLabel th="สภา" en="Council" tooltip /></th>
-              <th className="px-4 py-3 text-left"><BiLabel th="วันที่" en="Date" tooltip /></th>
-              <th className="px-4 py-3 text-left"><BiLabel th="สถานะ" en="Status" tooltip /></th>
-              <th className="px-4 py-3 text-left"><BiLabel th="มอบหมายผู้ตรวจ" en="Assign Auditor" tooltip /></th>
-              <th className="px-4 py-3 text-left"><BiLabel th="บทสนทนา" en="Session" tooltip /></th>
-            </tr></thead>
-            <tbody>{ples.map(p => (
-              <tr key={p.id} className="border-t hover:bg-secondary">
-                <td className="px-4 py-3">{p.professionals?.full_name_th ?? '—'}{p.is_test && <span className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground border border-border rounded px-1">test</span>}</td>
-                <td className="px-4 py-3 text-muted-foreground">{councilName(p)}</td>
-                <td className="px-4 py-3">{new Date(p.started_at).toLocaleDateString('th-TH')}</td>
-                <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
-                <td className="px-4 py-3">{assignControl(p)}</td>
-                <td className="px-4 py-3"><a href={`/admin/ples/${p.id}`} className="text-xs underline text-primary">ดู / View</a></td>
-              </tr>
-            ))}</tbody>
-          </table>
-        </div>
+        <Table label="PLEs ทั้งหมด / All PLEs" containerClassName="rounded-xl border">
+          <TableHeader className="bg-secondary">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="h-auto px-4 py-3"><BiLabel th="แพทย์" en="Physician" tooltip /></TableHead>
+              <TableHead className="h-auto px-4 py-3"><BiLabel th="สภา" en="Council" tooltip /></TableHead>
+              <TableHead className="h-auto px-4 py-3"><BiLabel th="วันที่" en="Date" tooltip /></TableHead>
+              <TableHead className="h-auto px-4 py-3"><BiLabel th="สถานะ" en="Status" tooltip /></TableHead>
+              <TableHead className="h-auto px-4 py-3"><BiLabel th="มอบหมายผู้ตรวจ" en="Assign Auditor" tooltip /></TableHead>
+              <TableHead className="h-auto px-4 py-3"><BiLabel th="บทสนทนา" en="Session" tooltip /></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>{ples.map(p => (
+            <TableRow key={p.id} className="hover:bg-secondary">
+              <TableCell className="px-4 py-3">{p.professionals?.full_name_th ?? '—'}{p.is_test && <span className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground border border-border rounded px-1">test</span>}</TableCell>
+              <TableCell className="px-4 py-3 text-muted-foreground">{councilName(p)}</TableCell>
+              <TableCell className="px-4 py-3">{new Date(p.started_at).toLocaleDateString('th-TH')}</TableCell>
+              <TableCell className="px-4 py-3"><StatusBadge status={p.status} /></TableCell>
+              <TableCell className="px-4 py-3">{assignControl(p)}</TableCell>
+              <TableCell className="px-4 py-3"><a href={`/admin/ples/${p.id}`} className="text-xs underline text-link">ดู / View</a></TableCell>
+            </TableRow>
+          ))}</TableBody>
+        </Table>
       )}
 
       {ples.length < total && (

@@ -4,6 +4,7 @@ import { apiFetch } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { pleStatusCards } from '@/lib/labels';
 import { PageIntro } from '@/components/PageIntro';
+import { StateMessage } from '@/components/ui/state-message';
 import { CardGridSkeleton } from '@/components/Skeleton';
 import type { CleStats, IccData } from '@/lib/types';
 
@@ -19,9 +20,8 @@ export default function StatsPage() {
     if (getUser()?.role === 'superadmin') apiFetch<IccData>('/admin/icc').then(setIcc).catch(() => {});
   }, []);
   if (statsErr) return (
-    <div className="mx-auto max-w-4xl p-6 md:p-8 text-center">
-      <p className="text-muted-foreground mb-3">โหลดสถิติไม่สำเร็จ / Could not load stats.</p>
-      <button className="text-sm text-primary underline" onClick={() => location.reload()}>ลองใหม่ / Retry</button>
+    <div className="mx-auto max-w-4xl p-6 md:p-8">
+      <StateMessage kind="error" center onRetry={() => location.reload()} title="โหลดสถิติไม่สำเร็จ / Could not load stats." />
     </div>
   );
   if (!stats) return (

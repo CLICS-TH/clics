@@ -477,7 +477,7 @@ export default function UsersPage() {
   // Dual-role marker: a physician who also holds auditor rights (professionals.can_audit).
   const SpecialChip = () => (
     <span title="แพทย์ที่เป็นผู้ตรวจด้วย / Physician with auditor rights"
-      className="text-[10px] px-1.5 py-0.5 rounded-full border border-primary/40 bg-primary/10 text-foreground whitespace-nowrap">
+      className="text-xs px-1.5 py-0.5 rounded-full border border-primary/40 bg-primary/10 text-foreground whitespace-nowrap">
       Special
     </span>
   );
@@ -710,7 +710,7 @@ export default function UsersPage() {
             placeholder="เช่น 50" value={poolLimit} onChange={e => setPoolLimit(e.target.value)} />
           <Button variant="outline" className="text-xs px-3 py-1 h-auto" onClick={savePool}>บันทึก / Save</Button>
         </div>
-        <p className="text-[11px] text-muted-foreground mt-1.5">
+        <p className="text-xs text-muted-foreground mt-1.5">
           * ตัวเลขนี้คือยอดที่ระบบคำนวณ — ยอดคงเหลือจริงดูได้ที่ Anthropic Console / This is the amount metered by CLICS; the real remaining balance lives in the Anthropic Console (linked above).
         </p>
       </div>

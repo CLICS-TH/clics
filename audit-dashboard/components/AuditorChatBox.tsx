@@ -6,6 +6,9 @@ import { useEffect, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Markdown } from './Markdown';
 import { Button } from './ui/button';
+import { Textarea } from './ui/input';
+import { AiOutput } from './ui/ai-output';
+import { StateMessage } from './ui/state-message';
 import { AuditorUsageBar } from './AuditorUsageBar';
 import type { ApiResult } from '@/lib/types';
 
@@ -62,23 +65,25 @@ export function AuditorChatBox({ pleId }: { pleId: string }) {
       <AuditorUsageBar version={usageVersion} />
       <div className="h-[32rem] max-h-[70vh] overflow-y-auto space-y-3 rounded-lg border bg-background p-3">
         {msgs.length === 0 && (
-          <p className="text-xs text-muted-foreground">
-            ถามได้ เช่น “ทำไม AI ให้คะแนนหมวด Critical Appraisal สูงกว่าฉัน?” / Ask e.g. &ldquo;Why did the AI score Critical Appraisal higher than I did?&rdquo;
-          </p>
+          <StateMessage kind="empty" className="py-0 text-xs"
+            title={<>ถามได้ เช่น “ทำไม AI ให้คะแนนหมวด Critical Appraisal สูงกว่าฉัน?” / Ask e.g. &ldquo;Why did the AI score Critical Appraisal higher than I did?&rdquo;</>} />
         )}
         {msgs.map((m, i) => (
           <div key={i} className={m.role === 'auditor' ? 'text-right' : ''}>
-            <div className={`inline-block max-w-[85%] rounded-lg px-3 py-2 text-left ${m.role === 'auditor' ? 'bg-primary/10' : 'bg-secondary'}`}>
-              {m.role === 'auditor' ? <p className="text-sm whitespace-pre-wrap">{m.content}</p> : <Markdown>{m.content}</Markdown>}
-            </div>
+            {m.role === 'auditor'
+              // The auditor's own words: human = coral tint, no AI chrome.
+              ? <div className="inline-block max-w-[85%] rounded-lg bg-primary/10 px-3 py-2 text-left">
+                  <p className="text-sm whitespace-pre-wrap">{m.content}</p>
+                </div>
+              : <AiOutput variant="bubble" className="inline-block max-w-[85%] text-left"><Markdown>{m.content}</Markdown></AiOutput>}
           </div>
         ))}
-        {sending && <p className="text-xs text-muted-foreground">กำลังคิด… / Thinking…</p>}
+        {sending && <StateMessage kind="loading" className="py-0 text-xs" title="กำลังคิด… / Thinking…" />}
         <div ref={endRef} />
       </div>
-      {err && <p className="text-xs text-destructive">{err}</p>}
+      {err && <StateMessage kind="error" className="px-3 py-2 text-sm" title={err} />}
       <div className="flex gap-2">
-        <textarea className="flex-1 border rounded-lg p-2 text-sm" rows={3}
+        <Textarea className="flex-1" rows={3} aria-label="คำถามถึง AI / Your question for the AI"
           placeholder="พิมพ์คำถาม… / Type your question…" value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}

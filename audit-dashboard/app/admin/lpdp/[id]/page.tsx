@@ -70,7 +70,7 @@ export default function PhysicianProfilePage() {
         <p className="text-muted-foreground text-sm py-8 text-center">ยังไม่มีเซสชัน / No sessions yet.</p>
       ) : Object.entries(groups).map(([label, items]) => (
         <div key={label} className="mb-5">
-          <h3 className="text-sm font-semibold text-primary mb-2">{label} <span className="text-muted-foreground font-normal">({items.length})</span></h3>
+          <h3 className="text-sm font-semibold text-link mb-2">{label} <span className="text-muted-foreground font-normal">({items.length})</span></h3>
           <div className="space-y-2">
             {items.map((s) => {
               const humanAvg = s.audits?.length
@@ -99,7 +99,7 @@ export default function PhysicianProfilePage() {
                       {(s.audits ?? []).map((a) => `${a.auditor_name || 'ไม่ทราบชื่อ / Unknown'} (${round(Number(a.composite_score))})`).join(' · ')}
                     </p>
                   )}
-                  <p className="mt-2 text-xs text-primary">ดูบทสนทนา / View chat →</p>
+                  <p className="mt-2 text-xs text-link">ดูบทสนทนา / View chat →</p>
                 </a>
               );
             })}

@@ -64,6 +64,8 @@
   --color-chart-threshold: var(--chart-threshold);
   --color-chart-warn: var(--chart-warn);
   --color-chart-teal: var(--chart-teal);
+  --color-chart-pass-bg: var(--chart-pass-bg);
+  --color-chart-pass-text: var(--chart-pass-text);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);

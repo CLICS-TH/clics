@@ -232,6 +232,13 @@ const DA_PAIRS: MinPair[] = [
   ['ai-border', 'ai-bg', NON_TEXT, 'AiOutput border against its own fill'],
   ['ai-border', 'background', NON_TEXT, 'AiOutput border against the page'],
   ['ai-border', 'card', NON_TEXT, 'AiOutput border inside a Card'],
+  // Everything ELSE that is painted on the AI surface: Markdown links and the Socratic line use
+  // --coral-on-tint (--link is 4.24:1 here and would fail), citations use muted, bold uses foreground.
+  ['coral-on-tint', 'ai-bg', AA, 'AiOutput: Markdown links, Socratic question line'],
+  ['muted-foreground', 'ai-bg', AA, 'AiOutput: citation line, blockquotes'],
+  ['foreground', 'ai-bg', AA, 'AiOutput: Markdown strong / code'],
+  // Badge ok tone (+ the ICC chips and StatStrip pass figure that share the same pair)
+  ['chart-pass-text', 'chart-pass-bg', AA, 'Badge ok, ICC >= 0.95 chip, council ICC chip'],
   // --- form controls: the edge of a text field is a UI component (1.4.11)
   ['field', 'background', NON_TEXT, 'ui/input on the page'],
   ['field', 'card', NON_TEXT, 'ui/input inside a Card'],

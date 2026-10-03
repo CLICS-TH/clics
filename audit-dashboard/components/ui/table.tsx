@@ -4,11 +4,30 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+// The ONE data table. What it enforces that a bare <table> does not:
+//   * the scroll container is a labelled, focusable region — a keyboard user can scroll a wide table
+//     sideways, and a screen reader hears what the region is (`label` is REQUIRED);
+//   * header cells default to scope="col" (override with scope="row" for row headers);
+//   * numbers: pass `num` on a TableHead/TableCell for right-aligned tabular figures;
+//   * no `whitespace-nowrap` by default — bilingual Thai/English cells must wrap, and a nowrap column
+//     is what pushed tables wider than a phone. Add it per column where a value must not break.
+function Table({
+  className,
+  containerClassName,
+  label,
+  ...props
+}: React.ComponentProps<"table"> & {
+  /** Accessible name of the scroll region, e.g. "PLEs ทั้งหมด / All PLEs". */
+  label: string
+  containerClassName?: string
+}) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      role="region"
+      aria-label={label}
+      tabIndex={0}
+      className={cn("relative w-full overflow-x-auto rounded-lg", containerClassName)}
     >
       <table
         data-slot="table"
@@ -65,12 +84,19 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   )
 }
 
-function TableHead({ className, ...props }: React.ComponentProps<"th">) {
+function TableHead({
+  className,
+  num,
+  scope = "col",
+  ...props
+}: React.ComponentProps<"th"> & { num?: boolean }) {
   return (
     <th
       data-slot="table-head"
+      scope={scope}
       className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+        "h-10 px-2 align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0",
+        num ? "text-right tabular-nums" : "text-left",
         className
       )}
       {...props}
@@ -78,12 +104,17 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   )
 }
 
-function TableCell({ className, ...props }: React.ComponentProps<"td">) {
+function TableCell({
+  className,
+  num,
+  ...props
+}: React.ComponentProps<"td"> & { num?: boolean }) {
   return (
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        "p-2 align-middle [&:has([role=checkbox])]:pr-0",
+        num && "text-right tabular-nums",
         className
       )}
       {...props}
