@@ -22,6 +22,7 @@ const { pis7PromptFor } = require('../lib/prompts');
 const { Pis7ScoreError } = require('../lib/pis7');
 const { scoreWithConsistency, MODES: CONSISTENCY_MODES } = require('./consistency');
 const { modelVersion, promptVersionFor, RUBRIC_VERSION } = require('../lib/versions');
+const { evalMaxTokensFor } = require('../lib/eval-decoding');
 
 // Math.max(x, parseInt('auto',10)) is NaN, not x — Math.max PROPAGATES NaN, and a NaN maxTokens
 // serialises to `"max_tokens": null` on the wire (Anthropic 400s; an OpenAI-compatible server
@@ -34,9 +35,10 @@ function intEnv(name, dflt, min = 0) {
 // Default OFF. Set to a provider name ('local') to start collecting.
 const shadowProvider = () => String(process.env.SHADOW_EVAL_PROVIDER || '').trim().toLowerCase();
 
-// Same ceiling as the served evaluation (routes/evaluate.js) — a shadow score truncated at a smaller
+// Same ceiling as the served evaluation would give THIS provider (lib/eval-decoding.js: 16000 on
+// anthropic, where adaptive thinking shares it; 4096 on local). A shadow score truncated at a smaller
 // ceiling would look like a model failure when it was really our own budget.
-const shadowMaxTokens = () => intEnv('SHADOW_EVAL_MAX_TOKENS', 4096, 1000);
+const shadowMaxTokens = (provider) => intEnv('SHADOW_EVAL_MAX_TOKENS', evalMaxTokensFor(provider), 1000);
 
 // Shed the shadow when anyone is already WAITING for that provider. Both providers share one FIFO
 // queue per provider (services/providers/runtime.js), so an unshed shadow would take a slot ahead of
@@ -139,7 +141,7 @@ async function runShadowEvaluation({ pleId, transcriptText, servedProvider }) {
         // different exam.
         systemPrompt: pis7PromptFor(provider),
         messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
-        maxTokens: shadowMaxTokens(),
+        maxTokens: shadowMaxTokens(provider),
       });
       // Call 1 stamps the row — the same attribution the served evaluation uses — so a row stays
       // comparable with a single-call row whatever the mode.

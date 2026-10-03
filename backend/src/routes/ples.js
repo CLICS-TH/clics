@@ -4,8 +4,9 @@ const { verifyJwt, requireRole } = require('../middleware/auth');
 const { MessageSchema, ReportReplySchema, CreateCleSchema, UpdateCleSchema, ReflectionSchema } = require('../lib/schemas');
 const { computeTier1, hasScorableContent, clampDuration } = require('../services/ple-gate');
 const { rimplChat } = require('../services/rimpl-client');
+const { isRimplRefusal, AI_REFUSED_MESSAGE } = require('../lib/rimpl-refusal');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
-const { finalizeScreening, toPassCols } = require('../services/ple-finalize');
+const { finalizeScreening, toPassCols, flagRefusedScreening } = require('../services/ple-finalize');
 const { effectiveLimit, effectiveTokenLimit, budgetState, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
 const { settlementDelta, costUsd } = require('../lib/pricing');
 const { logEvent } = require('../lib/audit');
@@ -446,6 +447,29 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
       rescue_rounds: Math.max(0, (ple.turn_count ?? 0) - (ple.rescue_exchanges_before ?? 0)),
     });
   } catch (err) {
+    // The model's safeguards DECLINED the turn (rimpl 422 'refused'). Nothing is delivered, but the
+    // call was served and billed, so the reservation settles to its real, provider-priced cost instead
+    // of being refunded. Refunding it would let declined turns spend money the cap never sees.
+    if (isRimplRefusal(err)) {
+      const { input_tokens: inT, output_tokens: outT, provider } = err.usage;
+      await accrueUsage(req.user.id, inT, outT, settlementDelta({
+        estimate: RESERVE_ESTIMATE_USD, inputTokens: inT, outputTokens: outT,
+        applied: reservation.applied, provider,
+      }));
+      // The rescue classifier that ran on this turn was billed as well. That is the STUDY's spend, charged
+      // to the episode exactly as the delivered-turn path does below (never to the physician's meter).
+      const a = err.assessment;
+      if (a && (a.input_tokens || a.output_tokens)) {
+        const { error: aErr } = await supabase.from('ples').update({
+          rescue_assessment_tokens: (ple.rescue_assessment_tokens ?? 0) + a.input_tokens + a.output_tokens,
+          rescue_assessment_cost_usd: Number(ple.rescue_assessment_cost_usd ?? 0) + costUsd(a.input_tokens, a.output_tokens, a.provider),
+        }).eq('id', req.params.id);
+        if (aErr) console.error('[ples] failed to record a refused turn\'s rescue-assessment cost:', req.params.id, aErr.message);
+      }
+      console.warn(`[ples] chat turn declined by the model's safeguards (category ${err.category ?? 'none'})`);
+      // COPY PENDING (#136): bilingual and neutral (lib/rimpl-refusal.js); `ai_refused` is the contract.
+      return res.status(422).json({ error: AI_REFUSED_MESSAGE, code: 'ai_refused' });
+    }
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
     // rimpl's proactive size backstop (or its body limit): the transcript no longer fits the model —
     // the same outcome as our own cap above, so the same code, and a human-readable "end the session".
@@ -810,6 +834,12 @@ router.post('/:id/end', requireConsent, async (req, res) => {
     });
     res.json(out);
   } catch (err) {
+    // Declined by the model's safeguards: deterministic, so leaving it 'ended' would only make reconcile
+    // pay for the same decline on its next sweep. Straight to manual QA instead (already metered).
+    if (isRimplRefusal(err)) {
+      await flagRefusedScreening({ pleId: req.params.id, ple, err });
+      return res.json({ status: 'ple_flag_t2', criteria: tier1 });
+    }
     console.error(`[ples] /end tier-2 finalize failed for ${req.params.id} — left 'ended' for reconcile:`, err.message);
     res.status(202).json({ status: 'ended', criteria: tier1, pending: 'tier2' });
   }
@@ -917,6 +947,11 @@ router.post('/:id/reflection', requireConsent, async (req, res) => {
     });
     res.json(out);
   } catch (err) {
+    // Declined by the model's safeguards: straight to manual QA, as at /end.
+    if (isRimplRefusal(err)) {
+      await flagRefusedScreening({ pleId: ple.id, ple, err });
+      return res.json({ status: 'ple_flag_t2' });
+    }
     console.error(`[ples] screening after reflection failed for ${ple.id} — left 'ended' for reconcile:`, err.message);
     res.status(202).json({ status: 'ended', pending: 'tier2' });
   }

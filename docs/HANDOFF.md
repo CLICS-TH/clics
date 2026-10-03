@@ -563,7 +563,7 @@ Loose ends a successor inherits, most urgent first:
 ## Known gaps & deferred work
 
 - **Full middleware spec** — [MIDDLEWARE-KNOWN-GAPS.md](MIDDLEWARE-KNOWN-GAPS.md): L4 multi-provider
-  rotation not built (Claude-only, `claude-sonnet-4-6`); the "4 pre-filter signals" and "ELM" are
+  rotation not built (Claude, `claude-sonnet-5-5` since 2026-10-03, plus the on-prem `local` provider); the "4 pre-filter signals" and "ELM" are
   spec'd but not implemented; PII is regex-mask + pseudonym, not yet a fully reversible lookup table
   (residual risk: bare unlabelled **native** Thai surnames not recorded at intake; the `แซ่` Chinese-Thai
   clan-surname class is masked verbatim as of 2026-06-22 — see `rimpl/src/services/pii-filter.js`).

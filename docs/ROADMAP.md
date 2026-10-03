@@ -56,4 +56,4 @@ Larger build-outs once the pilot is stable:
 
 ---
 
-*Reproducibility note:* AI evaluations are tagged `CCME_LLM_v8.0` while the model is pinned to `claude-sonnet-4-6` in `rimpl/src/services/claude.js`. If the model is changed, re-run the Tier-2 calibration sample for drift (pilot protocol).
+*Reproducibility note:* AI evaluations are tagged `CCME_LLM_v8.0+<served model>`. The Anthropic model is pinned in `rimpl/src/services/providers/anthropic.js`: `claude-sonnet-5-5` from 2026-10-03 (`claude-sonnet-4-6` before). That change requires re-running the calibration on 5-5 before its scores count as calibrated (pilot protocol; see `scripts/calibration/prompt-versions.md`, 2026-10-03 note).

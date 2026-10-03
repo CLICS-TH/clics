@@ -372,6 +372,9 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature, pur
       // null on this transport, which is the honest answer rather than one inferred from a model name.
       runtime: data.system_fingerprint || null,
       engine: engineOf(data.system_fingerprint),
+      // What this call SENT, for §10.2 provenance (routes/evaluate.js), in the same shape the
+      // anthropic provider reports. This transport sends no thinking mode and no effort, so both are null.
+      decoding: { temperature: body.temperature ?? null, thinking: null, effort: null },
     };
   }, { lane: laneFor(purpose), signal });
 }

@@ -207,7 +207,8 @@ async function callProvider({ provider: name, purpose, systemPrompt, messages, m
 
 // `purpose` and `signal` travel to the provider deliberately: the local provider picks its queue lane
 // from the purpose (a chat turn must never wait behind an evaluation) and cancels at the transport
-// from the signal. A provider that has neither concept (Anthropic) simply ignores both keys.
+// from the signal. Anthropic has no lanes, but it uses both: the purpose picks its request shape and
+// timeout (lib/anthropic-request.js), and the signal cancels a queued or in-flight call.
 async function callWith(provider, { systemPrompt, messages, maxTokens, temperature, purpose, signal }) {
   const result = await provider.call({ systemPrompt, messages, maxTokens, temperature, purpose, signal });
   // `provider` + `model` travel WITH the result, deliberately. A module-level MODEL constant is only

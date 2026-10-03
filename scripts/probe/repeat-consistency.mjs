@@ -6,7 +6,8 @@
  * is only interpretable against a baseline: if a single model re-scoring the same transcript already
  * moves by 4 points, then a local-vs-cloud Σ|Δ| of 4 is indistinguishable from noise and means
  * nothing. Observed in the wild: PLE-002 scored Σ|Δ| 3 in a smoke run and Σ|Δ| 10 in the full run,
- * same fixture, temperature 0 on both arms.
+ * same fixture, temperature 0 on the local arm (the cloud arm sends what production sends: on
+ * claude-sonnet-5-5 no temperature at all, because a non-default value is a 400 there).
  *
  * WHY IT TESTS EACH ARM SEPARATELY. Σ|Δ| is a DIFFERENCE. A change in it proves something moved,
  * not which side. Both arms are suspect:
@@ -40,6 +41,8 @@ import { scoreWithConsistency } from '../../rimpl/src/services/consistency.js';
 import { applySplit } from './split.mjs';
 import { parseJsonObject } from '../../rimpl/src/lib/parse.js';
 import { flattenForPrompt } from '../../rimpl/src/lib/transcript.js';
+import { requestShape } from '../../rimpl/src/lib/anthropic-request.js';
+import { evalMaxTokensFor } from '../../rimpl/src/lib/eval-decoding.js';
 import { deriveHintTokens } from '../../rimpl/src/services/pii-filter.js';
 import { compositeSpread } from './agreement-stats.mjs';
 
@@ -84,10 +87,19 @@ const CLOUD_MODEL = process.env.CLOUD_MODEL || (() => {
   let src;
   try { src = readFileSync(p, 'utf8'); }
   catch (e) { fail(`cannot read ${p} to determine the production model: ${e.message}`); }
-  const m = src.match(/claude-[a-z0-9.-]+/);
-  if (!m) fail(`no claude-* model id found in ${p} — cannot confirm which model production uses.`);
-  return m[0];
+  // The MODEL constant itself, not the first claude-* string in the file: the pin's comment names
+  // other ids (the previous model, rejected snapshot candidates), and a first-match regex would pick one.
+  const m = src.match(/const MODEL = '(claude-[a-z0-9.-]+)'/);
+  if (!m) fail(`no MODEL constant found in ${p} — cannot confirm which model production uses.`);
+  return m[1];
 })();
+// The body production's /evaluate sends for that model (thinking mode and effort for the `evaluate`
+// purpose; temperature only where the model accepts it) and its max_tokens, from the same modules the
+// provider and the route read. claude-sonnet-5-5 400s on temperature 0, so the cloud arm runs at the
+// API default, adaptive thinking at effort high, max_tokens 16000. Throws for an undeclared model.
+let CLOUD_SHAPE;
+try { CLOUD_SHAPE = requestShape(CLOUD_MODEL, { temperature: 0, purpose: 'evaluate' }); } catch (e) { fail(e.message); }
+const CLOUD_MAX_TOKENS = evalMaxTokensFor('anthropic');
 if (ARM !== 'local' && !ANTHROPIC_KEY) fail('No ANTHROPIC_API_KEY (checked env and rimpl/.env).');
 
 const cfg = ARM === 'cloud' ? null : readConfig();
@@ -173,7 +185,7 @@ async function cloudArm(fx) {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
-      model: CLOUD_MODEL, max_tokens: 4096, temperature: 0,
+      model: CLOUD_MODEL, max_tokens: CLOUD_MAX_TOKENS, ...CLOUD_SHAPE.fields,
       system: CLOUD_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${fx.flattened}` }],
     }),
@@ -194,7 +206,8 @@ hr('repeat consistency — the noise floor under any agreement number');
 if (ARM !== 'cloud') console.log(`  local   ${cfg.model}  @ ${cfg.baseUrl}`);
 if (ARM !== 'local') console.log(`  cloud   ${CLOUD_MODEL}  @ api.anthropic.com`);
 console.log(`  arms    ${ARM}`);
-console.log(`  design  ${fixtures.length} fixture(s) × ${REPEATS} repeats, temperature 0, IDENTICAL prompt each time`);
+console.log(`  design  ${fixtures.length} fixture(s) × ${REPEATS} repeats, temperature 0 local / ${CLOUD_SHAPE.sent.temperature ?? 'API default'} cloud, IDENTICAL prompt each time`);
+if (ARM !== 'local') console.log(`  cloud   thinking ${CLOUD_SHAPE.sent.thinking ?? 'none'} · effort ${CLOUD_SHAPE.sent.effort ?? 'API default'} · max_tokens ${CLOUD_MAX_TOKENS}`);
 console.log(`  rule    local arm consistency = ${CONSISTENCY}${CONSISTENCY !== 'off' ? ` (agree: maxΔ ≤ 1${AGREE_SUM ? `, Σ|Δ| ≤ ${AGREE_SUM}` : ''}) — each repeat is one full rule evaluation` : ' (single calls)'}`);
 console.log(`  split   ${split ? `${split.name} (reserved ${split.reserved_at})` : '(none reserved)'}  ·  prompt ${PROMPT_VERSION} (local ${promptVersionFor('local')}${ADDENDUM_ON && PIS7_LOCAL_ADDENDUM ? ', addendum ON' : ', addendum OFF'})`);
 console.log(`\n  ${dim('Any spread below is the model disagreeing with ITSELF. An agreement Σ|Δ| at or')}`);

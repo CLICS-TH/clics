@@ -5,10 +5,12 @@
 // re-runs just this step — the session is never permanently stranded at 'ended'.
 const { supabase } = require('../lib/supabase');
 const { rimplEvaluateCriteria, isDeterministicRimplError } = require('./rimpl-client');
+const { isRimplRefusal } = require('../lib/rimpl-refusal');
 const { accrueUsage } = require('../lib/usage');
 const { costUsd } = require('../lib/pricing');
 const evalDrain = require('./eval-drain');
 const { persistPiiMap } = require('../lib/pii-map');
+const { logEvent } = require('../lib/audit');
 
 // PLE-gate booleans live in the c1_pass..c6_pass columns; map {c1..} -> {c1_pass..}.
 const toPassCols = (crit) => Object.fromEntries(Object.entries(crit).map(([k, v]) => [`${k}_pass`, v]));
@@ -34,7 +36,18 @@ async function evaluateCriteriaWithRetry(payload, attempts = 3) {
 // stays 'ended' so the next reconcile sweep retries it, instead of a transient blip permanently
 // flagging a qualifying session to manual QA. Returns { status, criteria }.
 async function finalizeScreening({ pleId, physicianId, transcript, tier1, patient_ref, ple = {} }) {
-  const crit = await evaluateCriteriaWithRetry({ transcript, patient_ref });
+  let crit;
+  try {
+    crit = await evaluateCriteriaWithRetry({ transcript, patient_ref });
+  } catch (e) {
+    // Declined by the model's safeguards: billed, so metered (as below), then the existing failure path.
+    if (isRimplRefusal(e)) {
+      console.warn(`[ple-finalize] criteria classifier for ${pleId} declined by the model's safeguards (category ${e.category ?? 'none'})`);
+      await accrueUsage(physicianId, e.usage.input_tokens, e.usage.output_tokens,
+        costUsd(e.usage.input_tokens, e.usage.output_tokens, e.usage.provider));
+    }
+    throw e;
+  }
   // Persist the reversible on-prem PII map RIMPL returned (encrypted, fail-soft) — Tier-1 audit.
   await persistPiiMap(pleId, crit.pii_map);
   // The CREC082 §1 qualifying test, all four elements. c7 (context/evidence integration) is the one
@@ -94,4 +107,25 @@ async function enqueueEvaluation(pleId, { front = false } = {}) {
   evalDrain.kick();
 }
 
-module.exports = { finalizeScreening, evaluateCriteriaWithRetry, toPassCols, enqueueEvaluation };
+// The tier-2 classifier was DECLINED by the model's safeguards (rimpl 422 'refused'). That is
+// deterministic: the same transcript is declined again, and every attempt is billed. So the session goes
+// straight to manual QA instead of resting at 'ended' for reconcile to pay for the same decline. The
+// usage is already metered (finalizeScreening, above).
+//
+// The same state machine and audit event as the evaluation drain's flag() (services/eval-drain.js):
+// status 'ple_flag_t2', the claim cleared, a `deterministic:<status>:<code>` reason in eval_last_error,
+// and 'ple.eval_deterministic_failure' in the audit log. It is guarded on 'ended', the only state a
+// tier-2 screening runs from, so a session something else already moved on is left alone. Best-effort
+// like flag(): a failed write is logged and the session stays 'ended', where reconcile still finds it.
+async function flagRefusedScreening({ pleId, ple, err }) {
+  const reason = `deterministic:${err?.status ?? 422}:refused${err?.category ? ':' + err.category : ''}`;
+  const { error } = await supabase.from('ples')
+    .update({ status: 'ple_flag_t2', eval_claimed_at: null, eval_last_error: reason })
+    .eq('id', pleId).eq('status', 'ended');
+  if (error) console.error(`[ple-finalize] PLE ${pleId}: refusal flag write failed: ${error.message}`);
+  console.warn(`[ple-finalize] PLE ${pleId}: tier-2 classifier declined by the model's safeguards -> manual QA (${reason})`);
+  await logEvent({ action: 'ple.eval_deterministic_failure', targetType: 'ple', targetId: pleId, councilId: ple?.council_id ?? null,
+    metadata: { reason, stage: 'criteria' } }).catch(() => {});
+}
+
+module.exports = { finalizeScreening, evaluateCriteriaWithRetry, toPassCols, enqueueEvaluation, flagRefusedScreening };

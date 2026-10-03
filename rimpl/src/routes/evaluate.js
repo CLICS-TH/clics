@@ -14,10 +14,11 @@ const { sendAiError, logAiError, isQueueFull } = require('../lib/ai-errors');
 
 const router = Router();
 
-// The evaluator's decoding parameters, in ONE place. §10.2 requires them frozen and recorded, and
-// the only way the recorded value cannot drift from the value sent is for both to read this.
-// temperature 0: the scoring instrument must be reproducible, and a sampled score is not.
-const EVAL_DECODING = { temperature: 0, maxTokens: 4096 };
+// The evaluator's REQUESTED decoding parameters (temperature 0; max_tokens per provider) live in
+// lib/eval-decoding.js, shared with the shadow evaluator. What is RECORDED is what the provider reports
+// it actually sent (`decoding` on the call result): claude-sonnet-5-5 rejects a non-default temperature
+// with a 400, so the anthropic provider does not send it and provenance must read null there.
+const { EVAL_DECODING, evalMaxTokensFor } = require('../lib/eval-decoding');
 
 // Self-consistency (services/consistency.js; docs/LOCAL-MODEL-ROADMAP.md D18 / D21) — for the LOCAL
 // arm only. EVAL_CONSISTENCY: off (default) | adaptive (two calls, a third when the pair disagrees) |
@@ -82,6 +83,9 @@ router.post('/', async (req, res) => {
     const mode = consistencyModeFor(provider);
     const systemPrompt = pis7PromptFor(provider);
     const promptVersion = promptVersionFor(provider);
+    // Per provider: 16000 on anthropic (adaptive thinking shares the ceiling with the JSON), 4096 on
+    // local. See lib/eval-decoding.js for the PLE-052 history behind both numbers.
+    const maxTokens = evalMaxTokensFor(provider);
 
     // The raw replies, kept for the 502 diagnostics (first = the billed call, last = the one that
     // failed to parse). services/consistency.js itself carries no model text.
@@ -94,16 +98,16 @@ router.post('/', async (req, res) => {
         systemPrompt,
         messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
         signal,
-        // 4096, not 2000/3000: a 130k-token transcript (PLE-052, 2026-08-17) truncated the model's
-        // JSON mid-rationale at BOTH 2000 and 3000 — the response never reached the closing `}`, so
-        // parseJsonObject's "no match" fallback silently returned {} instead of surfacing a parse
-        // error, and Zod flagged it as out-of-range/missing domain scores. Same failure mode as the
-        // earlier 1000→2000 bump (calibration: 1000 truncates on ~46k-token transcripts), recurring
-        // twice at larger sizes — the evidence-threshold rule (quote a physician utterance for any
-        // 4-5) makes rationale length scale with how much of the transcript is genuinely quotable,
-        // not just token count, and two undersized guesses in a row means give real headroom instead
-        // of incrementing again. max_tokens is a ceiling, not a spend — an unused allowance costs $0.
-        maxTokens: EVAL_DECODING.maxTokens,
+        // Local 4096, not 2000/3000: a 130k-token transcript (PLE-052, 2026-08-17) truncated the
+        // model's JSON mid-rationale at BOTH 2000 and 3000 — the response never reached the closing
+        // `}`, so parseJsonObject's "no match" fallback silently returned {} instead of surfacing a
+        // parse error, and Zod flagged it as out-of-range/missing domain scores. Same failure mode as
+        // the earlier 1000→2000 bump (calibration: 1000 truncates on ~46k-token transcripts),
+        // recurring twice at larger sizes — the evidence-threshold rule (quote a physician utterance
+        // for any 4-5) makes rationale length scale with how much of the transcript is genuinely
+        // quotable, not just token count. Anthropic 16000 since claude-sonnet-5-5: adaptive thinking
+        // counts toward the same ceiling (lib/eval-decoding.js). max_tokens is a ceiling, not a spend.
+        maxTokens,
         temperature: EVAL_DECODING.temperature,
       });
       first ??= last;
@@ -156,6 +160,9 @@ router.post('/', async (req, res) => {
     // config_fingerprint, which does not cover these fields — is byte-identical to before.
     const engine = first?.engine ?? null;
     const runtime = first?.runtime ?? null;
+    // Same call, same reason: the decoding the provider reports it SENT. A provider that reports nothing
+    // leaves temperature null rather than restating the request, because "asked for 0" is not "ran at 0".
+    const sent = first?.decoding ?? {};
 
     res.json({
       ple_id,
@@ -177,7 +184,8 @@ router.post('/', async (req, res) => {
       provenance: buildProvenance({
         provider, model,
         promptVersion, rubricVersion: RUBRIC_VERSION,
-        temperature: EVAL_DECODING.temperature, maxTokens: EVAL_DECODING.maxTokens,
+        temperature: sent.temperature ?? null, maxTokens,
+        thinking: sent.thinking ?? null, effort: sent.effort ?? null,
         weightsSha256: weights_sha256 ?? null,
         engine, runtime,
         consistency,

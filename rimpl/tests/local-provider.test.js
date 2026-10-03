@@ -150,6 +150,15 @@ describe('request shape', () => {
     expect(lastBody().temperature).toBe(0);
   });
 
+  // §10.2: routes/evaluate.js records the decoding the provider reports it SENT, in the same shape
+  // as the anthropic provider. Here that is what went over the wire; there is no thinking switch.
+  test('reports the decoding it actually sent', async () => {
+    fetchMock.mockResolvedValue(res(completion()));
+    const local = load();
+    expect((await local.call(args({ temperature: 0 }))).decoding).toEqual({ temperature: 0, thinking: null, effort: null });
+    expect((await local.call(args())).decoding).toEqual({ temperature: null, thinking: null, effort: null });
+  });
+
   test('defaults max_tokens to 1500 when the caller omits it', async () => {
     fetchMock.mockResolvedValue(res(completion()));
     await load().call({ systemPrompt: 's', messages: [{ role: 'user', content: 'x' }] });

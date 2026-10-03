@@ -21,7 +21,7 @@ const MSG = { content: [{ text: 'hi' }], usage: { input_tokens: 1, output_tokens
 const okReply = { data: MSG, response: { headers: new Map() } };
 const err = (status, message) => Object.assign(new Error(message), { status });
 const serving = () => provider.ready().checks.anthropic_serving;
-const say = async (msg = 'x') => provider.call({ system: 's', messages: [{ role: 'user', content: msg }] });
+const say = async (msg = 'x') => provider.call({ system: 's', messages: [{ role: 'user', content: msg }], purpose: 'chat' });
 
 beforeEach(() => { mockCall.mockReset(); });
 

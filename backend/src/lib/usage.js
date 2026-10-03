@@ -103,6 +103,12 @@ async function budgetState(user, pool = 'physician') {
 
 // A conservative per-turn cost reservation (override via env). ~$0.012/turn typical, ~$0.03 worst
 // case; reserving high means we may block a hair early, never late — then settle to the real cost.
+// Those figures are claude-sonnet-4-6's. On claude-sonnet-5-5 a chat turn runs without thinking
+// (between_tools) at $2/$10 with ~30% more tokens per text, so roughly 0.87x, and $0.02 stays
+// conservative. Auditor discussion turns (routes/auditor.js) reserve the same estimate but now run
+// adaptive thinking at effort low, with up to 3000 output tokens (~$0.03 of output alone), so they settle
+// above it more often. Settling is what makes the meter right; the estimate only gates. Evaluations
+// (adaptive thinking) are metered after the fact, not reserved (services/ple-evaluation.js).
 const RESERVE_ESTIMATE_USD = parseFloat(process.env.USAGE_RESERVE_ESTIMATE_USD || '0.02');
 
 // Add one Claude call's cost + tokens to a user's running meter for `pool` (atomic via RPC). A signed

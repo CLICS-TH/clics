@@ -5,6 +5,9 @@ let guestToken = null;
 let promptsRemaining = 2;
 let ended = false;
 const history = []; // [{ role: 'physician'|'assistant', content }]
+// COPY PENDING (#136): same placeholder as ple-chat.js AI_REFUSED_MSG, shown for backend code
+// 'ai_refused' (the model's safeguards declined the message) instead of the server's string.
+const AI_REFUSED_MSG = 'AI ไม่สามารถตอบข้อความนี้ได้ กรุณาลองเรียบเรียงคำถามใหม่ / The AI could not respond to this message. Please try rephrasing your question.';
 
 const messagesEl = document.getElementById('messages');
 const inputEl = document.getElementById('input');
@@ -131,7 +134,9 @@ async function send() {
   } else if (res.status === 403) {
     endSession(res.body?.error);
   } else {
-    renderMessage('assistant', (res.body?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong.'));
+    renderMessage('assistant', res.body?.code === 'ai_refused'
+      ? AI_REFUSED_MSG
+      : (res.body?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong.'));
     setRemaining(promptsRemaining); // unchanged display
     history.pop();                  // the turn failed — drop it so a retry doesn't duplicate the turn
     inputEl.value = message;        // restore the typed text so the guest can retry

@@ -14,7 +14,7 @@
 //     retry keeps the first reply while a failed citation retry fails the turn. ≤ 2 calls per turn.
 //   * the client's `language` rule — 'th' when the message holds ANY Thai codepoint
 //     (physician-ui/public/js/ple-chat.js).
-//   * CHAT_MAX_TOKENS  — max(1500, RIMPL_CHAT_MAX_TOKENS ?? 4000), defined in rimpl/src/lib/turn-limits.js.
+//   * CHAT_MAX_TOKENS  — max(1500, RIMPL_CHAT_MAX_TOKENS ?? 5200), defined in rimpl/src/lib/turn-limits.js.
 // Each replica is pinned by a drift test (request.test.mjs) that reads chat.js as TEXT and fails if
 // the production string or expression it copies is no longer there verbatim. Change chat.js, and
 // the test tells you to change this file in the same PR.
@@ -31,7 +31,7 @@ import {
   hasCitation, extractSocraticQuestion, isThaiMessage, isLanguageMismatch,
 } from './rimpl.mjs';
 
-export const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));
+export const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '5200', 10));
 
 export const RAG_NOTE = 'none — ragDocs=[] (production documents corpus is empty; docs/LOCAL-MODEL-ROADMAP.md P3)';
 
@@ -137,11 +137,14 @@ export function retryPrompt(decision, { socratic, language }) {
 }
 
 /** Retry messages: a citation retry re-ANSWERS (fence stripped from the fed-back reply); a
- *  language-only retry REWRITES and keeps the fence, but only when artifacts are on. */
+ *  language-only retry REWRITES and keeps the fence, but only when artifacts are on. An EMPTY first
+ *  reply is never fed back (the Messages API 400s on empty content): the retry is then a plain re-ask,
+ *  as in chat.js. */
 export function retryMessages(messages, firstText, decision, { socratic, language, artifacts = false }) {
   const keepFence = !decision.needCitation && artifacts;
+  const priorReply = keepFence ? firstText : stripArtifactDelimiters(firstText);
   return [...messages,
-    { role: 'assistant', content: keepFence ? firstText : stripArtifactDelimiters(firstText) },
+    ...(priorReply.trim() ? [{ role: 'assistant', content: priorReply }] : []),
     { role: 'user', content: retryPrompt(decision, { socratic, language }) },
   ];
 }

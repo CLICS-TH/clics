@@ -215,6 +215,21 @@ describe('a rescue that has already fired keeps applying, and can end', () => {
     // per session; at one per round it is spend nobody can account for.
     expect(res.body.rescue.assessment).toMatchObject({ input_tokens: 900, output_tokens: 40, provider: 'anthropic' });
   });
+
+  test('a REFUSED reply still reports the classifier cost on the 422, so the study is charged for it', async () => {
+    callAI.mockReset();
+    callAI.mockResolvedValueOnce({ text: JSON.stringify(SHALLOW), tokenCount: 10, inputTokens: 900, outputTokens: 40, provider: 'anthropic', model: 'm' });
+    callAI.mockRejectedValueOnce(Object.assign(new Error('model declined the request (refusal)'), {
+      code: 'refused', category: 'general_harms', inputTokens: 1500, outputTokens: 2, model: 'claude-sonnet-5-5',
+      usage: { inputTokens: 1500, outputTokens: 2, provider: 'anthropic' },
+    }));
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const res = await post(rescued());
+    warn.mockRestore();
+    expect(res.status).toBe(422);
+    expect(res.body).toMatchObject({ code: 'refused', input_tokens: 1500, output_tokens: 2,
+      assessment: { input_tokens: 900, output_tokens: 40, provider: 'anthropic' } });
+  });
 });
 
 // Bounding the cost of re-assessing every round, and not losing spend that was already billed.

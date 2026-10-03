@@ -50,6 +50,11 @@ function configFingerprint(p) {
       top_p: p.decoding?.top_p ?? null,
       seed: p.decoding?.seed ?? null,
       num_ctx: p.decoding?.num_ctx ?? null,
+      // ONLY when a thinking mode was sent (claude-sonnet-5-5 and later). Omitted otherwise so every
+      // fingerprint written before the field existed, and every local one, hashes exactly as it did.
+      ...(p.decoding?.thinking ? { thinking: p.decoding.thinking } : {}),
+      // Same rule for the effort level sent (output_config.effort).
+      ...(p.decoding?.effort ? { effort: p.decoding.effort } : {}),
     },
     // ONLY when present. An evaluation without a consistency block must hash byte-identically to one
     // produced before the field existed, or every stored fingerprint in the pilot stops being
@@ -69,7 +74,7 @@ function configFingerprint(p) {
  */
 function buildProvenance({
   provider, model, promptVersion, rubricVersion,
-  temperature, maxTokens, topP, seed, numCtx,
+  temperature, maxTokens, topP, seed, numCtx, thinking = null, effort = null,
   weightsSha256 = null, engine = null, quantization = null, runtime = null,
   consistency = null,
 }) {
@@ -85,6 +90,12 @@ function buildProvenance({
       top_p: topP ?? null,
       seed: seed ?? null,
       num_ctx: numCtx ?? null,
+      // The thinking mode sent (e.g. 'adaptive'), present only when one was. It changes what the
+      // model does before it answers, so two scores that differ in it are two configurations.
+      ...(thinking ? { thinking } : {}),
+      // The effort level sent (output_config.effort), present only when one was. It sets how much the
+      // model thinks, so it is configuration in the same sense.
+      ...(effort ? { effort } : {}),
     },
     // Declared: filled from the Model Lock Record. Null until the evaluator is locked.
     weights_sha256: weightsSha256 || null,

@@ -9,6 +9,7 @@ const { logEvent } = require('../lib/audit');
 const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD, effectiveTokenLimit, budgetState } = require('../lib/usage');
 const { settlementDelta } = require('../lib/pricing');
 const { rimplAuditDiscuss } = require('../services/rimpl-client');
+const { isRimplRefusal, AI_REFUSED_MESSAGE } = require('../lib/rimpl-refusal');
 const { peerCalibrationEnabled, privacyReviewRequired, calibrationRevealLocked } = require('../lib/settings');
 const { whereCleared, isCleared } = require('../lib/privacy-review');
 const reflection = require('../services/reflection');
@@ -334,6 +335,18 @@ router.post('/ples/:id/discuss', async (req, res) => {
       patient_ref: pref?.patient_ref ?? null, // scrubbed on-prem; never reaches the cloud
     });
   } catch (err) {
+    // Declined by the model's safeguards: billed, so settle the AUDITOR pool to the real cost (same rule
+    // as the physician chat turn in routes/ples.js) rather than refunding it.
+    if (isRimplRefusal(err)) {
+      const { input_tokens: inT, output_tokens: outT, provider } = err.usage;
+      await accrueUsage(req.user.id, inT, outT, settlementDelta({
+        estimate: RESERVE_ESTIMATE_USD, inputTokens: inT, outputTokens: outT,
+        applied: reservation.applied, provider,
+      }), 'auditor');
+      console.warn(`[auditor] discuss turn declined by the model's safeguards (category ${err.category ?? 'none'})`);
+      // COPY PENDING (#136), as in routes/ples.js.
+      return res.status(422).json({ error: AI_REFUSED_MESSAGE, code: 'ai_refused' });
+    }
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied, 'auditor');
     return res.status(502).json({ error: `RIMPL unavailable: ${err.message}`, code: 'rimpl_unavailable' });
   }

@@ -75,13 +75,14 @@ const sendTurn = () => auth(request(app).post('/ples/ple1/message')).send({ mess
 
 // ── 1. Pure rate table ────────────────────────────────────────────────────────────────────────────
 
-test('anthropic pricing is UNCHANGED — the 2-arg legacy signature still means anthropic', () => {
-  expect(INPUT_PER_M).toBe(3);
-  expect(OUTPUT_PER_M).toBe(15);
-  expect(costUsd(1_000_000, 1_000_000)).toBeCloseTo(18, 9);
+test('anthropic pricing is the claude-sonnet-5-5 rate — the 2-arg legacy signature still means anthropic', () => {
+  // $2 / $10 per MTok (platform.claude.com/docs/en/about-claude/pricing, verified 2026-10-03).
+  expect(INPUT_PER_M).toBe(2);
+  expect(OUTPUT_PER_M).toBe(10);
+  expect(costUsd(1_000_000, 1_000_000)).toBeCloseTo(12, 9);
   // The old 2-arg call and the new explicit 3-arg call must agree exactly.
   expect(costUsd(IN, OUT)).toBe(costUsd(IN, OUT, 'anthropic'));
-  expect(costUsd(IN, OUT)).toBeCloseTo((IN / 1e6) * 3 + (OUT / 1e6) * 15, 12);
+  expect(costUsd(IN, OUT)).toBeCloseTo((IN / 1e6) * 2 + (OUT / 1e6) * 10, 12);
 });
 
 test('the local provider costs exactly $0 — the DGX is a sunk cost, marginal tokens are free', () => {

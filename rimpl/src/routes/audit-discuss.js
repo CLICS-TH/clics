@@ -12,7 +12,13 @@ const router = Router();
 
 // A calibration-chat reply is short prose (no tables/artifacts); keep the ceiling modest — the
 // auditor's separate $0.50 pool bounds total spend, but the transcript context per turn is large.
-const DISCUSS_MAX_TOKENS = Math.max(800, parseInt(process.env.RIMPL_DISCUSS_MAX_TOKENS || '1200', 10));
+// 3000, was 1200: on claude-sonnet-5-5 this purpose runs ADAPTIVE thinking at effort low
+// (lib/anthropic-request.js), and thinking counts toward max_tokens. 1200 was a reply-only budget,
+// ~1560 tokens of the same text under the new tokenizer, so 1200 could now cut a reply short. The
+// ceiling also bounds the call's time: this turn has the backend's 100s (RIMPL_CHAT_TIMEOUT_MS), and at
+// the ~41 tok/s a 4-6 chat turn measured (948 output tokens in 23.0s, docs/RAG-ROLLOUT-CHECKLIST.md),
+// 3000 tokens is ~73s, inside it. A larger ceiling would trade a truncated reply for a timed-out one.
+const DISCUSS_MAX_TOKENS = Math.max(800, parseInt(process.env.RIMPL_DISCUSS_MAX_TOKENS || '3000', 10));
 
 const DOMAINS = [
   ['d1', 'Clinical Question Intelligence'], ['d2', 'Reasoning Depth'], ['d3', 'Contextual Integration'],
