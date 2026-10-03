@@ -15,6 +15,12 @@
 //     FINAL arbiter: if a late original and the retry that took over its stale claim both get there, the
 //     second physician insert fails and that request stores nothing.
 //
+//   - Where the database has it, the pair is written by ONE call, store_chat_turn() (same migration): one
+//     transaction, each row stamped clock_timestamp() so order and timestamps mean what they always did,
+//     refused when the PLE is no longer active. A crash can then never leave half a turn behind. Without
+//     the function (code ahead of the migration, or a schema cache behind it) the route falls back to the
+//     two inserts it always made, and keeps the compensating delete and the orphan repair for that path.
+//
 // DEPLOY ORDER. Code ships before the migration (the 2026-09 outage rule: never require the database
 // ahead of the code). A missing table or column is treated as "no key" and said in the log, throttled:
 // a fallback that drops its error is worse than a 500. Any OTHER database error is surfaced, not absorbed.
@@ -32,25 +38,40 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 const MSG_COLS = 'id, role, content, refs, socratic_question, token_count, created_at';
 
-// Unknown table: 42P01 (Postgres) / PGRST205 (PostgREST schema cache). Unknown column: 42703 / PGRST204.
+// Unknown table: 42P01 / PGRST205. Unknown column: 42703 / PGRST204. Unknown function: 42883 / PGRST202.
+const MISSING_CODES = ['42P01', 'PGRST205', '42703', 'PGRST204', '42883', 'PGRST202'];
 function isMissingSchema(err) {
   if (!err) return false;
-  if (['42P01', 'PGRST205', '42703', 'PGRST204'].includes(err.code)) return true;
-  return /(chat_turn_claims|client_turn_id)/.test(err.message || '') &&
+  if (MISSING_CODES.includes(err.code)) return true;
+  return /(chat_turn_claims|client_turn_id|store_chat_turn)/.test(err.message || '') &&
     /(does not exist|schema cache|could not find)/i.test(err.message || '');
 }
 const isUniqueViolation = (err) => !!err && err.code === '23505';
 
-// Throttled: once the backend is deployed and the migration is not, every keyed turn would log.
-let lastMissingLogAt = 0;
-function logMissing(where, err) {
-  const now = Date.now();
-  if (now - lastMissingLogAt < 60_000) return;
-  lastMissingLogAt = now;
-  console.error(`[turn-idem] chat_turn_claims / messages.client_turn_id missing (${where}) — idempotency DISABLED, ` +
-    `turns are stored without a key until db/migration-message-client-turn-id.sql is applied: ${err.message}`);
+// Name the object that is actually missing, so the log says what to apply rather than a list to guess from.
+function missingObject(err) {
+  const msg = String(err?.message || '');
+  if (/store_chat_turn/.test(msg) || ['42883', 'PGRST202'].includes(err?.code)) return 'function public.store_chat_turn()';
+  if (/chat_turn_claims/.test(msg) || ['42P01', 'PGRST205'].includes(err?.code)) return 'table public.chat_turn_claims';
+  if (/client_turn_id/.test(msg) || ['42703', 'PGRST204'].includes(err?.code)) return 'column public.messages.client_turn_id';
+  return 'an object from db/migration-message-client-turn-id.sql';
 }
-function _resetLogThrottle() { lastMissingLogAt = 0; }
+const MISSING_EFFECT = {
+  'function public.store_chat_turn()': 'turns are stored by two separate inserts (not atomic) until',
+};
+
+// Throttled PER OBJECT: once the backend is deployed and the migration is not, every keyed turn would log.
+const lastMissingLogAt = new Map();
+function logMissing(where, err) {
+  const object = missingObject(err);
+  const now = Date.now();
+  if (now - (lastMissingLogAt.get(object) || 0) < 60_000) return;
+  lastMissingLogAt.set(object, now);
+  const effect = MISSING_EFFECT[object] || 'idempotency DISABLED, turns are stored without a key until';
+  console.error(`[turn-idem] missing ${object} (${where}) — ${effect} db/migration-message-client-turn-id.sql ` +
+    `is applied: ${err.message}`);
+}
+function _resetLogThrottle() { lastMissingLogAt.clear(); }
 
 const ageMs = (iso) => Date.now() - new Date(iso).getTime();
 // A claim is FRESH while its holder could still be working on it.
@@ -59,8 +80,9 @@ const isFresh = (claim) => !!claim && claim.status === 'in_flight' && !(ageMs(cl
 // ---- the record (messages) ---------------------------------------------------------------------------
 // What `messages` holds under this key. Never throws.
 //   none | unavailable | error
-//   done        physician + assistant stored                 → answer from the record
-//   incomplete  physician stored, assistant not (yet)         → the holder is between its two inserts
+//   done        physician + its reply stored                  → answer from the record
+//   incomplete  physician stored, no reply at or after it      → (fallback path only) between the two
+//               inserts, or a crash left half a turn: see classifyIncomplete
 //   conflict    the key was first used for DIFFERENT text      → a client bug; never answer with the old turn
 async function findStoredTurn(pleId, key, message) {
   const { data, error } = await supabase
@@ -74,8 +96,81 @@ async function findStoredTurn(pleId, key, message) {
   const physician = rows.find((r) => r.role === 'physician');
   if (!physician) return { state: 'none' };
   if (physician.content !== message) return { state: 'conflict', physician };
-  const assistant = rows.find((r) => r.role === 'assistant');
-  return assistant ? { state: 'done', physician, assistant } : { state: 'incomplete', physician };
+  // The reply is the assistant row written AT OR AFTER the question, never one that predates it.
+  const asked = new Date(physician.created_at).getTime();
+  const assistant = rows.find((r) => r.role === 'assistant' && !(new Date(r.created_at).getTime() < asked));
+  if (assistant) return { state: 'done', physician, assistant };
+  return { state: 'incomplete', physician, keyedAssistant: rows.some((r) => r.role === 'assistant') };
+}
+
+// A physician row with no reply. Only reachable on the two-insert fallback path (store_chat_turn writes
+// both rows or neither). What to do with it:
+//   pending  a request is (or may still be) between its two inserts: a live claim, or the row is young
+//   repair   an orphan from a request that died: take the claim, delete the orphan, run the turn again
+//   refuse   it cannot be repaired here (session closed, or some reply row carries the key)
+const ORPHAN_GRACE_MS = 30_000;
+async function classifyIncomplete(ple, key, stored) {
+  const read = await readClaim(ple.id, key);
+  if (read.claim && isFresh(read.claim)) return 'pending';
+  if (ageMs(stored.physician.created_at) < ORPHAN_GRACE_MS) return 'pending';
+  if (ple.status !== 'active' || stored.keyedAssistant) return 'refuse';
+  return 'repair';
+}
+
+// Delete an orphaned physician row, and only that row: id + PLE + role + key, so a different row can never
+// match. The caller holds the turn's claim, so no live request is writing this key meanwhile.
+async function deleteOrphan(pleId, key, physicianId) {
+  const { error } = await supabase.from('messages').delete()
+    .eq('id', physicianId).eq('ple_id', pleId).eq('role', 'physician').eq('client_turn_id', key);
+  if (error) console.error(`[turn-idem] PLE ${pleId}: could not delete orphaned physician row ${physicianId}:`, error.message);
+  else console.warn(`[turn-idem] PLE ${pleId}: removed orphaned physician row ${physicianId} (no reply, request gone) before re-running the turn`);
+  return !error;
+}
+
+// Fallback path, a write reported as failed: remove EVERY row carrying this key (the error may have been
+// reported for a write that committed), so the transcript keeps no half turn and a retry starts clean.
+// Only ever called by the request that holds the key's claim and whose own insert did not hit the unique
+// index — i.e. the key's rows, if any, are this request's own.
+async function deleteKeyRows(pleId, key) {
+  const { error } = await supabase.from('messages').delete().eq('ple_id', pleId).eq('client_turn_id', key);
+  if (error) console.error(`[turn-idem] PLE ${pleId}: could not remove the rows of a failed turn:`, error.message);
+}
+
+// ---- the atomic write ---------------------------------------------------------------------------------
+// store_chat_turn(): both rows in one transaction, refused when the PLE is not active.
+//   { state: 'stored', physicianId, assistantId }
+//   { state: 'duplicate' }     the physician key already exists (23505): both rows rolled back
+//   { state: 'not_active' }    the session ended while the AI was answering: nothing stored
+//   { state: 'unavailable' }   function missing: fall back to the two inserts (logged)
+//   { state: 'error', error }  anything else (which may include a commit whose reply was lost)
+const NOT_ACTIVE_SQLSTATE = 'CT409';
+async function storeTurnAtomic({ pleId, key, physician, assistant }) {
+  const { data, error } = await supabase.rpc('store_chat_turn', {
+    p_ple_id: pleId,
+    p_client_turn_id: key,
+    p_physician_content: physician.content,
+    p_physician_tokens: physician.token_count,
+    p_assistant_content: assistant.content,
+    p_refs: assistant.refs ?? null,
+    p_socratic_question: assistant.socratic_question ?? null,
+    p_assistant_tokens: assistant.token_count ?? null,
+    p_provider: assistant.provider ?? null,
+    p_model: assistant.model ?? null,
+    p_prompt_version: assistant.prompt_version ?? null,
+  });
+  if (error) {
+    if (isMissingSchema(error)) { logMissing('store', error); return { state: 'unavailable' }; }
+    if (isUniqueViolation(error)) return { state: 'duplicate' };
+    if (error.code === NOT_ACTIVE_SQLSTATE || /ple_not_active/.test(error.message || '')) return { state: 'not_active' };
+    console.error('[turn-idem] store_chat_turn failed:', error.message);
+    return { state: 'error', error };
+  }
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row?.physician_id || !row?.assistant_id) {
+    console.error('[turn-idem] store_chat_turn returned no ids:', JSON.stringify(data));
+    return { state: 'error', error: new Error('store_chat_turn returned no ids') };
+  }
+  return { state: 'stored', physicianId: row.physician_id, assistantId: row.assistant_id };
 }
 
 // ---- claims ------------------------------------------------------------------------------------------
@@ -165,7 +260,8 @@ async function freshClaimExists(pleId) {
 }
 
 module.exports = {
-  findStoredTurn, readClaim, claimTurn, releaseClaim, completeClaim, freshClaimExists,
-  isFresh, isMissingSchema, isUniqueViolation, logMissing, _resetLogThrottle,
-  STALE_CLAIM_MS, PENDING_RETRY_AFTER_S, UUID_RE, MSG_COLS,
+  findStoredTurn, classifyIncomplete, deleteOrphan, deleteKeyRows, storeTurnAtomic,
+  readClaim, claimTurn, releaseClaim, completeClaim, freshClaimExists,
+  isFresh, isMissingSchema, isUniqueViolation, logMissing, missingObject, _resetLogThrottle,
+  STALE_CLAIM_MS, ORPHAN_GRACE_MS, PENDING_RETRY_AFTER_S, NOT_ACTIVE_SQLSTATE, UUID_RE, MSG_COLS,
 };

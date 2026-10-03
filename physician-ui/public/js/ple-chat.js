@@ -407,6 +407,9 @@ function refreshUsage() {
 }
 
 // History draw: renderMessage is called without live/announce, so nothing here reaches #chatLive.
+// Send stays off until the history is drawn: a turn sent before it would not know the turns before it (and a
+// reloaded, still-unsettled turn must be resumed first, not raced by a new one).
+document.getElementById('sendBtn').disabled = true;
 api.getPle(pleId).then(ple => {
   // A transient failure returns an { error } envelope (no .status) — DON'T bounce to /ple-result
   // (which would then falsely read "Episode not found"); show a recoverable message in place.
@@ -432,9 +435,13 @@ api.getPle(pleId).then(ple => {
   updateProgress();
   refreshUsage();
   applyTranscript(ple.transcript);
+  if (Number(ple.turn_ceiling_ms) > 0) SETTLE_SERVER_CEILING_MS = Number(ple.turn_ceiling_ms) + 5000;
   // Reloaded a session that already sits at the cap: the next turn would 403 anyway — say so now.
   if (transcriptFull(transcript)) { renderMessage('assistant', LIMIT_REACHED_MSG, [], null, { system: true }); lockComposer(); }
-  else resumePendingTurn(ple.messages ?? []);   // a turn this tab sent before a reload, still unsettled
+  else {
+    document.getElementById('sendBtn').disabled = false;
+    resumePendingTurn(ple.messages ?? []);   // a turn this tab sent before a reload, still unsettled
+  }
 }).catch(e => { console.error(e); });   // a throw while drawing history must not become an unhandled rejection
 
 // The turn never happened: take back the physician bubble sendMessage() drew, so re-sending the
@@ -494,9 +501,10 @@ const SETTLE_COPY = {
   endInFlight: 'ข้อความล่าสุดยังรอคำตอบอยู่ กรุณารอคำตอบก่อนจบเซสชัน / A message is still being answered. Wait for the reply, then end the session.',
 };
 const SETTLE_POLL_MS = 3000;
-// The backend's own ceiling for one turn is ~100 s (RIMPL_CHAT_TIMEOUT_MS) plus its DB writes, and it
-// treats a claim as abandoned 120 s after it was taken: past this, a turn that is not stored is not coming.
-const SETTLE_SERVER_CEILING_MS = 125000;
+// How long after a send the backend could still be storing that turn. The server says it (GET /ples/:id
+// turn_ceiling_ms = RIMPL_CHAT_TIMEOUT_MS + margin, the age at which it treats a claim as abandoned); the
+// constant is only the fallback for an older backend, and matches its default (100 s + 20 s) plus 5 s.
+let SETTLE_SERVER_CEILING_MS = 125000;
 // A request that already ran past that (the 130 s client timeout, or a reload long after) still gets a
 // couple of reads.
 const SETTLE_MIN_MS = 6000;
@@ -534,8 +542,11 @@ function turnKeyFor(message) {
   return key;
 }
 // "No answer came back" (the server may still have acted), as opposed to a definite refusal.
+// turn_incomplete: the question is stored and its reply is not, in a state the server would not repair
+// on this request. It is still THIS turn, so it is settled and retried under the SAME key, never re-keyed.
 function outcomeUnknown(res) {
-  return !!res && !res.content && (res.code === 'network_error' || res.code === 'bad_response' || res.code === 'turn_pending');
+  return !!res && !res.content &&
+    ['network_error', 'bad_response', 'turn_pending', 'turn_incomplete'].includes(res.code);
 }
 
 // The stored turn for this key. GET /ples/:id carries client_turn_id on physician rows once the backend
@@ -701,9 +712,9 @@ async function deliverTurn(message) {
     // (turn_pending = the backend says another request is still working on it: the clock restarts now.)
     await settleAndRender(message, turnKey, res.code === 'turn_pending' ? Date.now() : sentAt);
   } else {
-    // A definite failure. The key is kept for Retry, except where the server says it cannot be reused:
-    // turn_id_reused (a client bug) and turn_incomplete (that question is stored without a reply).
-    if (res?.code === 'turn_id_reused' || res?.code === 'turn_incomplete') setPendingTurn(null);
+    // A definite failure. The key is kept for Retry, except where it cannot be reused: turn_id_reused (a
+    // client bug) and ple_not_active (the session ended; nothing was stored).
+    if (res?.code === 'turn_id_reused' || res?.code === 'ple_not_active') setPendingTurn(null);
     // The turn failed — restore the text and offer a Retry on the error bubble.
     renderTurnFailure(message, 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong — please try again.');
   }

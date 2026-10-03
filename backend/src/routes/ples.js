@@ -396,7 +396,10 @@ router.get('/:id', async (req, res) => {
 
   const cap = await transcriptCap();
   res.json({ ...ple, patient_ref: ref?.patient_ref ?? null, messages: messages ?? [],
-    transcript: transcriptBlock(Number(ple.context_tokens ?? 0), cap) });
+    transcript: transcriptBlock(Number(ple.context_tokens ?? 0), cap),
+    // How long one chat turn can still be in flight on the server (RIMPL_CHAT_TIMEOUT_MS + margin): the
+    // portal sizes its lost-connection settle window from this instead of hard-coding the number.
+    turn_ceiling_ms: turnIdem.STALE_CLAIM_MS });
 });
 
 // ---- Chat-turn idempotency (client_turn_id) — see lib/turn-idempotency.js ----
@@ -416,13 +419,12 @@ async function respondStoredTurn(res, ple, turnKey, stored) {
     return res.status(409).json({ error: 'This turn id was already used for a different message.', code: 'turn_id_reused' });
   }
   if (stored.state === 'incomplete') {
-    // The physician row is stored and the reply is not. While a request holds the claim it is between
-    // its two inserts: pending. With no live claim the reply was lost for good (its compensating delete
-    // failed); say so rather than promise a reply that is not coming.
-    const read = await turnIdem.readClaim(ple.id, turnKey);
-    if (read.claim && turnIdem.isFresh(read.claim)) return respondPending(res, turnKey);
-    console.error(`[turn-idem] PLE ${ple.id}: physician row ${stored.physician.id} has no reply and no live claim`);
-    return res.status(409).json({ error: 'This message was saved without a reply. Please send a new message.', code: 'turn_incomplete' });
+    // The physician row is stored and the reply is not (two-insert fallback path only). Pending while a
+    // request may still be between its inserts. Callers that can repair an orphan do so before reaching
+    // here; what is left cannot be repaired here (closed session, or a reply row already carries the key).
+    if ((await turnIdem.classifyIncomplete(ple, turnKey, stored)) === 'pending') return respondPending(res, turnKey);
+    console.error(`[turn-idem] PLE ${ple.id}: physician row ${stored.physician.id} has no reply and cannot be repaired here`);
+    return res.status(409).json({ error: 'This message was saved without a reply.', code: 'turn_incomplete' });
   }
   // done. Same whitelist as a live reply (no provider / model / prompt version). input_/output_tokens are
   // not stored per message, so they are absent; the client treats absent as 0.
@@ -453,6 +455,13 @@ async function replayKeyedTurn(req, res, next) {
     const stored = await turnIdem.findStoredTurn(ple.id, key, req.body.message);
     if (stored.state === 'error') return res.status(500).json({ error: 'Could not check this message. Please try again.', code: 'turn_lookup_failed' });
     if (stored.state === 'unavailable') { req.turnIdemUnavailable = true; return next(); }
+    if (stored.state === 'incomplete' && (await turnIdem.classifyIncomplete(ple, key, stored)) === 'repair') {
+      // An orphaned question from a request that died between its two inserts (fallback path). The
+      // handler takes the claim, removes the orphan and runs the turn again — rather than strand the
+      // physician on a question that can never be answered.
+      req.turnRepairOrphanId = stored.physician.id;
+      return next();
+    }
     if (stored.state !== 'none') return respondStoredTurn(res, ple, key, stored);
     const read = await turnIdem.readClaim(ple.id, key);
     if (read.error) return res.status(500).json({ error: 'Could not check this message. Please try again.', code: 'turn_lookup_failed' });
@@ -514,6 +523,20 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
     // 'unavailable': table missing — proceed exactly as an unkeyed request (already logged).
   }
   const releaseClaim = () => turnIdem.releaseClaim(req.params.id, turnKey, claimToken);
+  if (claimToken && req.turnRepairOrphanId) {
+    // Holding the claim now, so nothing else writes this key. Re-check before deleting anything: only the
+    // same orphan, still unanswered, in a session that is still active (checked above).
+    const again = await turnIdem.findStoredTurn(req.params.id, turnKey, message);
+    if (again.state === 'incomplete' && again.physician.id === req.turnRepairOrphanId && !again.keyedAssistant) {
+      if (!(await turnIdem.deleteOrphan(req.params.id, turnKey, again.physician.id))) {
+        await releaseClaim();
+        return res.status(500).json({ error: 'Could not save this message. Please try again.', code: 'turn_repair_failed' });
+      }
+    } else if (again.state !== 'none') {
+      await releaseClaim();
+      return respondStoredTurn(res, ple, turnKey, again);
+    }
+  }
 
   // ATOMICALLY reserve this turn's estimated cost before the paid call — closes the parallel-turn
   // TOCTOU where concurrent turns all passed requireBudget's stale read before any spend landed.
@@ -573,71 +596,107 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
 
   const physicianTokens = Math.ceil(message.length / 4);
 
-  // Keyed: the physician row carries the key, under the unique (ple_id, client_turn_id) index. That index
-  // is the final arbiter — if a late original and the retry that took over its stale claim BOTH got an
-  // answer from rimpl, only the first to get here stores anything.
-  let keyStored = !!claimToken;
-  // (Unkeyed: the same plain insert as always. Keyed: also read the row's id, for the undo below.)
-  const physicianInsert = supabase.from('messages').insert({
-    ple_id: req.params.id, role: 'physician',
-    content: message, token_count: physicianTokens,
-    ...(keyStored ? { client_turn_id: turnKey } : {}),
-  });
-  let { data: physicianRow, error: msgErr1 } = keyStored ? await physicianInsert.select('id').single() : await physicianInsert;
-  if (keyStored && msgErr1 && turnIdem.isMissingSchema(msgErr1)) {
-    // The claims table exists but the column does not (a schema cache behind the migration): store the
-    // turn unkeyed rather than lose it, and say so.
-    turnIdem.logMissing('physician insert', msgErr1);
-    keyStored = false;
-    ({ data: physicianRow, error: msgErr1 } = await supabase.from('messages').insert({
-      ple_id: req.params.id, role: 'physician', content: message, token_count: physicianTokens,
-    }));
-  }
-  if (keyStored && msgErr1) {
-    await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // this request stores nothing
+  // A keyed request that lost to another request for the same turn (the unique physician index fired):
+  // it stores nothing, gives its reservation back, frees its slot, and answers from the record.
+  const loseToConcurrent = async () => {
+    await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied);
     await releaseClaim();
-    if (turnIdem.isUniqueViolation(msgErr1)) {
-      // Lost to another request for the same turn. Its reply is the one in the record; this one is dropped
-      // (the physician never saw it), and its reservation is refunded above.
-      console.warn(`[turn-idem] PLE ${req.params.id}: a concurrent request stored this turn first — dropping this reply`);
-      const stored = await turnIdem.findStoredTurn(req.params.id, turnKey, message);
-      if (stored.state === 'done' || stored.state === 'conflict') return respondStoredTurn(res, ple, turnKey, stored);
-      return respondPending(res, turnKey); // the winner is between its two inserts
+    console.warn(`[turn-idem] PLE ${req.params.id}: a concurrent request stored this turn first — dropping this reply`);
+    const stored = await turnIdem.findStoredTurn(req.params.id, turnKey, message);
+    if (stored.state === 'done' || stored.state === 'conflict') return respondStoredTurn(res, ple, turnKey, stored);
+    return respondPending(res, turnKey); // the winner is between its two inserts (fallback path)
+  };
+
+  // Keyed: both rows carry the key; the unique (ple_id, client_turn_id) index on the physician row is the
+  // final arbiter — if a late original and the retry that took over its stale claim BOTH got an answer
+  // from rimpl, only the first to store anything does.
+  let keyStored = !!claimToken;
+  let storedAtomically = false;
+  let assistantRow = null, physicianRow = null, msgErr1 = null, msgErr2 = null;
+
+  if (keyStored) {
+    // ONE transaction for the pair (db/migration-message-client-turn-id.sql store_chat_turn): a crash can
+    // never leave half a turn, and it refuses a session that ended while the AI was answering.
+    const atomic = await turnIdem.storeTurnAtomic({
+      pleId: req.params.id, key: turnKey,
+      physician: { content: message, token_count: physicianTokens },
+      assistant: rimplResponse,
+    });
+    if (atomic.state === 'stored') { storedAtomically = true; assistantRow = { id: atomic.assistantId }; }
+    else if (atomic.state === 'duplicate') return loseToConcurrent();
+    else if (atomic.state === 'not_active') {
+      await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied);
+      await releaseClaim();
+      return res.status(409).json({ error: 'This session has ended; the reply was not saved.', code: 'ple_not_active' });
+    } else if (atomic.state === 'error') {
+      // Either nothing was stored (rolled back), or the commit happened and only its reply was lost. Read
+      // back: if THIS reply is in the record under the key, the turn is stored and settles normally.
+      const check = await turnIdem.findStoredTurn(req.params.id, turnKey, message);
+      if (check.state === 'done' && check.assistant.content === rimplResponse.content) {
+        console.warn(`[turn-idem] PLE ${req.params.id}: store_chat_turn reported an error but the turn is stored — continuing`);
+        storedAtomically = true; assistantRow = { id: check.assistant.id };
+      } else {
+        await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied);
+        await releaseClaim();
+        return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
+      }
     }
-    console.error('[ples] failed to persist message:', msgErr1.message);
-    return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
+    // 'unavailable': the function is not there yet — the two inserts below (logged).
   }
-  // .select('id').single(): the client needs this row's id so the reply can be reported
-  // (POST /:id/messages/:messageId/report) without a second round trip to find it.
-  const { data: assistantRow, error: msgErr2 } = await supabase.from('messages').insert({
-    ple_id: req.params.id, role: 'assistant',
-    content: rimplResponse.content,
-    refs: rimplResponse.refs,
-    socratic_question: rimplResponse.socratic_question,
-    token_count: rimplResponse.token_count,
-    // Per-turn provenance (db/migration-message-provenance.sql): which provider and model answered,
-    // under which prompt. ples.provider_used names one provider per episode, which a hybrid or
-    // failed-over episode cannot honestly do. Null when rimpl did not report it (an older rimpl).
-    provider: rimplResponse.provider ?? null,
-    model: rimplResponse.model ?? null,
-    prompt_version: rimplResponse.prompt_version ?? null,
-    // Same key as the physician row, so a retry reads the stored pair back by key.
-    ...(keyStored ? { client_turn_id: turnKey } : {}),
-  }).select('id').single();
+
+  if (!storedAtomically) {
+    // The two inserts this route has always made. (Unkeyed: the same plain physician insert as always.
+    // Keyed fallback: also read the row's id.)
+    const physicianInsert = supabase.from('messages').insert({
+      ple_id: req.params.id, role: 'physician',
+      content: message, token_count: physicianTokens,
+      ...(keyStored ? { client_turn_id: turnKey } : {}),
+    });
+    ({ data: physicianRow, error: msgErr1 } = keyStored ? await physicianInsert.select('id').single() : await physicianInsert);
+    if (keyStored && msgErr1 && turnIdem.isMissingSchema(msgErr1)) {
+      // The claims table exists but the column does not (a schema cache behind the migration): store the
+      // turn unkeyed rather than lose it, and say so.
+      turnIdem.logMissing('physician insert', msgErr1);
+      keyStored = false;
+      ({ data: physicianRow, error: msgErr1 } = await supabase.from('messages').insert({
+        ple_id: req.params.id, role: 'physician', content: message, token_count: physicianTokens,
+      }));
+    }
+    if (keyStored && msgErr1) {
+      if (turnIdem.isUniqueViolation(msgErr1)) return loseToConcurrent();
+      console.error('[ples] failed to persist message:', msgErr1.message);
+      await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied);
+      await turnIdem.deleteKeyRows(req.params.id, turnKey); // the error may belong to a write that committed
+      await releaseClaim();
+      return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
+    }
+    // .select('id').single(): the client needs this row's id so the reply can be reported
+    // (POST /:id/messages/:messageId/report) without a second round trip to find it.
+    ({ data: assistantRow, error: msgErr2 } = await supabase.from('messages').insert({
+      ple_id: req.params.id, role: 'assistant',
+      content: rimplResponse.content,
+      refs: rimplResponse.refs,
+      socratic_question: rimplResponse.socratic_question,
+      token_count: rimplResponse.token_count,
+      // Per-turn provenance (db/migration-message-provenance.sql): which provider and model answered,
+      // under which prompt. ples.provider_used names one provider per episode, which a hybrid or
+      // failed-over episode cannot honestly do. Null when rimpl did not report it (an older rimpl).
+      provider: rimplResponse.provider ?? null,
+      model: rimplResponse.model ?? null,
+      prompt_version: rimplResponse.prompt_version ?? null,
+      // Same key as the physician row, so a retry reads the stored pair back by key.
+      ...(keyStored ? { client_turn_id: turnKey } : {}),
+    }).select('id').single());
+  }
   // Don't pretend success if the turn wasn't saved — let the client retry.
   if (msgErr1 || msgErr2) {
     console.error('[ples] failed to persist message:', (msgErr1 || msgErr2).message);
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // turn not saved — release the reservation
     if (claimToken) {
-      // Keyed: take the unanswered physician row back out, so the transcript never keeps a question with
-      // no reply and the retry starts clean. Filtered on id AND key AND role: it can only ever remove the
-      // row this request just wrote.
-      if (keyStored && physicianRow?.id) {
-        const { error: undoErr } = await supabase.from('messages').delete()
-          .eq('id', physicianRow.id).eq('ple_id', req.params.id).eq('role', 'physician')
-          .eq('client_turn_id', turnKey);
-        if (undoErr) console.error(`[turn-idem] PLE ${req.params.id}: could not remove unanswered physician row ${physicianRow.id}:`, undoErr.message);
-      }
+      // Keyed fallback: remove EVERY row carrying the key — the physician row this request wrote AND a reply
+      // whose insert may have committed although it was reported as an error — so the transcript keeps no
+      // half turn and the retry starts clean. (Unkeyed turns keep today's behaviour.)
+      if (keyStored) await turnIdem.deleteKeyRows(req.params.id, turnKey);
       await releaseClaim();
     }
     return res.status(500).json({ error: 'Failed to save the message. Please try again.' });

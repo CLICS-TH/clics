@@ -9,7 +9,10 @@
 // The two tables are played by a small in-memory store that enforces the same keys the migration creates
 // (claims primary key, partial unique index on physician rows) and REFUSES an update/delete that lacks
 // the filters the real code must send — so "the DB is the arbiter" and "it can only touch its own row"
-// are exercised, not asserted.
+// are exercised, not asserted. store_chat_turn() is played the same way: both rows or neither, refused
+// for a closed session, 23505 on a duplicate key. (Its SQL was also run against a throwaway Postgres 17.)
+// Two failure shapes are modelled because they are the ones that leave half a turn: a write that
+// COMMITS but is reported as an error, and a process that dies BETWEEN the two fallback inserts.
 jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSupabaseMock());
 const mockCalls = [];
 const mockRimplChat = jest.fn();
@@ -51,11 +54,12 @@ const reply = (content = 'assistant reply') => ({
 const OLD = () => new Date(Date.now() - turnIdem.STALE_CLAIM_MS - 5_000).toISOString();
 const NOW = () => new Date().toISOString();
 
-let messages, claims, pleRow, uniqueViolations, missing, hooks, errSpy, warnSpy;
+let messages, claims, pleRow, uniqueViolations, missing, hooks, rpcMode, errSpy, warnSpy;
+const sb = require('../src/lib/supabase').supabase;
 
 // Filters the real code must put on every write that can touch an existing row.
 const REQUIRED = {
-  'messages:delete': ['id', 'ple_id', 'role', 'client_turn_id'],
+  'messages:delete': ['ple_id', 'client_turn_id'],
   'chat_turn_claims:delete': ['ple_id', 'client_turn_id', 'claim_token'],
   'chat_turn_claims:update': ['ple_id', 'client_turn_id', 'claim_token'],
 };
@@ -70,6 +74,24 @@ const matches = (row, eqs) => eqs.every(([c, v]) => row[c] === v);
 
 function installStore() {
   let seq = 0;
+  // store_chat_turn(): one transaction. Mirrors db/migration-message-client-turn-id.sql.
+  sb.rpc = async (name, a) => {
+    if (name !== 'store_chat_turn') return { data: null, error: null };
+    mockCalls.push('rpc:store');
+    if (rpcMode.missing) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.store_chat_turn(p_assistant_content, ...) in the schema cache' } };
+    if (pleRow.status !== 'active') return { data: null, error: { code: 'CT409', message: `store_chat_turn: ple_not_active ${a.p_ple_id} (${pleRow.status})` } };
+    if (messages.some((r) => r.role === 'physician' && r.ple_id === a.p_ple_id && r.client_turn_id === a.p_client_turn_id)) {
+      uniqueViolations += 1;
+      return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint "messages_ple_client_turn_uidx"' } };
+    }
+    if (rpcMode.errorNoCommit) return { data: null, error: { code: '08006', message: 'connection terminated' } };
+    const t = Date.now();
+    const phys = { id: `msg-${++seq}`, ple_id: a.p_ple_id, role: 'physician', content: a.p_physician_content, token_count: a.p_physician_tokens, client_turn_id: a.p_client_turn_id, refs: [], socratic_question: null, created_at: new Date(t).toISOString() };
+    const asst = { id: `msg-${++seq}`, ple_id: a.p_ple_id, role: 'assistant', content: a.p_assistant_content, refs: a.p_refs ?? [], socratic_question: a.p_socratic_question, token_count: a.p_assistant_tokens, provider: a.p_provider, model: a.p_model, prompt_version: a.p_prompt_version, client_turn_id: a.p_client_turn_id, created_at: new Date(t + 1).toISOString() };
+    messages.push(phys, asst);
+    if (rpcMode.commitThenError) return { data: null, error: { code: '08006', message: 'connection terminated after commit' } };
+    return { data: [{ physician_id: phys.id, assistant_id: asst.id }], error: null };
+  };
   m.state.resolve = (table, kind, ctx) => {
     if (table === 'ples' && kind === 'single') return pleRow;
     if (table === 'app_settings') return { value: 0 };
@@ -139,6 +161,7 @@ function installStore() {
 beforeEach(() => {
   m.reset();
   messages = []; claims = []; uniqueViolations = 0; missing = { column: false, table: false }; hooks = {};
+  rpcMode = { missing: false, commitThenError: false, errorNoCommit: false };
   mockCalls.length = 0;
   for (const f of [mockRimplChat, mockReserve, mockRefund, mockAccrue, mockBudgetState]) f.mockReset();
   mockRimplChat.mockImplementation(async () => { mockCalls.push('rimpl'); return reply(); });
@@ -208,7 +231,8 @@ describe('first request with a key', () => {
     });
     const r = await send({ client_turn_id: KEY });
     expect(r.status).toBe(200);
-    expect(mockCalls).toEqual(['claim:insert', 'reserve', 'rimpl', 'insert:physician', 'insert:assistant', 'claim:done']);
+    expect(mockCalls).toEqual(['claim:insert', 'reserve', 'rimpl', 'rpc:store', 'claim:done']);
+    expect(m.all('messages', 'insert')).toHaveLength(0);   // no separate inserts on the atomic path
     expect(physicianRows()).toEqual([expect.objectContaining({ content: TEXT, client_turn_id: KEY })]);
     expect(assistantRows()).toEqual([expect.objectContaining({ client_turn_id: KEY, content: 'assistant reply' })]);
     expect(claims[0].status).toBe('done');
@@ -386,25 +410,6 @@ describe('a keyed turn that ends without a stored reply frees its slot', () => {
     expect(messages).toHaveLength(0);
   });
 
-  test('reply row fails to save: the unanswered physician row is removed (by id+ple+role+key), claim released, refund, 500', async () => {
-    hooks.messages = (ctx) => (ctx.op === 'insert' && ctx.payload.role === 'assistant')
-      ? (mockCalls.push('insert:assistant'), { data: null, error: { message: 'boom' } }) : undefined;
-    const r = await send({ client_turn_id: KEY });
-    expect(r.status).toBe(500);
-    expect(mockRefund).toHaveBeenCalledTimes(1);
-    expect(messages).toHaveLength(0);
-    expect(claims).toHaveLength(0);
-    const del = m.find('messages', 'delete');
-    expect(del.eqs).toEqual(expect.arrayContaining([['ple_id', 'ple1'], ['role', 'physician'], ['client_turn_id', KEY]]));
-  });
-
-  test('a physician row with no reply and NO live claim is reported, not promised (409 turn_incomplete)', async () => {
-    messages.push({ id: 'p9', ple_id: 'ple1', role: 'physician', content: TEXT, client_turn_id: KEY, created_at: NOW() });
-    const r = await send({ client_turn_id: KEY });
-    expect(r.status).toBe(409);
-    expect(r.body.code).toBe('turn_incomplete');
-    expect(mockRimplChat).not.toHaveBeenCalled();
-  });
 });
 
 describe('/end while a turn is being answered', () => {
@@ -449,7 +454,7 @@ describe('GET /ples/:id', () => {
     expect(r.status).toBe(200);
     expect(r.body.messages).toHaveLength(2);
     expect(r.body.messages.every((x) => !('client_turn_id' in x))).toBe(true);
-    expect(errSpy.mock.calls.some((c) => /missing \(transcript read\)/.test(String(c[0])))).toBe(true);
+    expect(errSpy.mock.calls.some((c) => /missing column public\.messages\.client_turn_id \(transcript read\)/.test(String(c[0])))).toBe(true);
   });
 });
 
@@ -460,7 +465,7 @@ describe('code deployed before the migration', () => {
     expect(r.status).toBe(200);
     expect(mockCalls).toEqual(['reserve', 'rimpl', 'insert:physician', 'insert:assistant']);
     expect(insertPayloads().every((p) => !('client_turn_id' in p))).toBe(true);
-    expect(errSpy.mock.calls.some((c) => /missing \(messages lookup\).*DISABLED/.test(String(c[0])))).toBe(true);
+    expect(errSpy.mock.calls.some((c) => /missing column public\.messages\.client_turn_id \(messages lookup\).*DISABLED/.test(String(c[0])))).toBe(true);
   });
 
   test('claims table missing: the unkeyed flow, logged', async () => {
@@ -469,7 +474,7 @@ describe('code deployed before the migration', () => {
     expect(r.status).toBe(200);
     expect(physicianRows()).toHaveLength(1);
     expect(insertPayloads().every((p) => !('client_turn_id' in p))).toBe(true);
-    expect(errSpy.mock.calls.some((c) => /missing \(claim lookup\)/.test(String(c[0])))).toBe(true);
+    expect(errSpy.mock.calls.some((c) => /missing table public\.chat_turn_claims \(claim lookup\)/.test(String(c[0])))).toBe(true);
   });
 
   test('claims table missing never blocks /end', async () => {
@@ -486,5 +491,183 @@ describe('code deployed before the migration', () => {
     expect(r.body.code).toBe('turn_lookup_failed');
     expect(mockRimplChat).not.toHaveBeenCalled();
     expect(mockReserve).not.toHaveBeenCalled();
+  });
+});
+
+describe('store_chat_turn: the atomic path', () => {
+  test('the pair is written by ONE call, physician first (clock_timestamp), both keyed, provenance stored', async () => {
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(200);
+    expect(mockCalls.filter((c) => c === 'rpc:store')).toHaveLength(1);
+    const [p, a] = messages;
+    expect(p).toMatchObject({ role: 'physician', content: TEXT, client_turn_id: KEY });
+    expect(a).toMatchObject({ role: 'assistant', content: 'assistant reply', client_turn_id: KEY, provider: 'local', model: 'secret-model' });
+    expect(new Date(p.created_at) < new Date(a.created_at)).toBe(true);
+    expect(r.body.message_id).toBe(a.id);
+  });
+
+  test('a session that ended while the AI was answering: refused, NOTHING stored, refunded, slot freed', async () => {
+    mockRimplChat.mockImplementation(async () => { pleRow.status = 'ended'; return reply(); }); // /end won the race
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('ple_not_active');
+    expect(messages).toHaveLength(0);
+    expect(claims).toHaveLength(0);
+    expect(mockRefund).toHaveBeenCalledTimes(1);
+    expect(mockAccrue).not.toHaveBeenCalled();
+  });
+
+  test('a duplicate physician key (23505) rolls back BOTH rows: the loser stores nothing and answers from the record', async () => {
+    storeTurn(KEY, 'FIRST reply');
+    claims.length = 0;                       // the winner's claim is gone; this request claims afresh
+    hooks.messages = (ctx) => (ctx.op === 'select' && ctx.eqs.some((e) => e[0] === 'client_turn_id') && !hooks.seen)
+      ? (hooks.seen = true, []) : undefined;  // its replay lookup read stale, so it reaches the store
+    const r = await send({ client_turn_id: KEY });
+    expect(uniqueViolations).toBe(1);
+    expect(messages).toHaveLength(2);         // no orphan physician row, no second reply
+    expect(r.body).toMatchObject({ deduplicated: true, content: 'FIRST reply' });
+    expect(mockRefund).toHaveBeenCalledTimes(1);
+    expect(claims).toHaveLength(0);           // released
+  });
+
+  test('commit reported as an error: the read-back finds THIS reply stored, so the turn settles normally', async () => {
+    rpcMode.commitThenError = true;
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(200);
+    expect(r.body.deduplicated).toBeUndefined();
+    expect(messages).toHaveLength(2);
+    expect(mockRefund).not.toHaveBeenCalled();
+    expect(mockAccrue).toHaveBeenCalledTimes(1);
+    expect(claims[0].status).toBe('done');
+  });
+
+  test('an error with nothing committed: 500, refunded, slot freed, and the retry starts clean', async () => {
+    rpcMode.errorNoCommit = true;
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(500);
+    expect(messages).toHaveLength(0);
+    expect(claims).toHaveLength(0);
+    expect(mockRefund).toHaveBeenCalledTimes(1);
+    rpcMode.errorNoCommit = false;
+    expect((await send({ client_turn_id: KEY })).status).toBe(200);
+    expect(messages).toHaveLength(2);
+  });
+});
+
+describe('fallback: store_chat_turn missing (code ahead of the migration) → the two inserts', () => {
+  beforeEach(() => { rpcMode.missing = true; });
+
+  test('PGRST202 falls back to physician-then-assistant inserts, keyed, and the log names the FUNCTION', async () => {
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(200);
+    expect(mockCalls).toEqual(['claim:insert', 'reserve', 'rimpl', 'rpc:store', 'insert:physician', 'insert:assistant', 'claim:done']);
+    expect(messages.map((x) => x.client_turn_id)).toEqual([KEY, KEY]);
+    expect(errSpy.mock.calls.some((c) => /missing function public\.store_chat_turn\(\) \(store\).*two separate inserts/.test(String(c[0])))).toBe(true);
+  });
+
+  test('S-1: a reply that COMMITTED but was reported as an error → every row of the key is removed', async () => {
+    hooks.messages = (ctx) => {
+      if (ctx.op === 'insert' && ctx.payload.role === 'assistant') {
+        mockCalls.push('insert:assistant');
+        messages.push({ id: 'ghost', created_at: NOW(), refs: [], socratic_question: null, ...ctx.payload }); // committed…
+        return { data: null, error: { code: '08006', message: 'connection terminated' } };              // …reported failed
+      }
+      return undefined;
+    };
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(500);
+    expect(messages).toHaveLength(0);           // physician AND the ghost reply
+    const del = m.find('messages', 'delete');
+    expect(del.eqs).toEqual([['ple_id', 'ple1'], ['client_turn_id', KEY]]);
+    expect(claims).toHaveLength(0);
+    expect(mockRefund).toHaveBeenCalledTimes(1);
+    hooks.messages = null;
+    expect((await send({ client_turn_id: KEY })).status).toBe(200);
+    expect(physicianRows()).toHaveLength(1);
+  });
+
+  test('a physician insert that committed but errored (not 23505) is also removed with its key', async () => {
+    hooks.messages = (ctx) => {
+      if (ctx.op === 'insert' && ctx.payload.role === 'physician') {
+        mockCalls.push('insert:physician');
+        messages.push({ id: 'ghost-p', created_at: NOW(), ...ctx.payload });
+        return { data: null, error: { code: '08006', message: 'connection terminated' } };
+      }
+      return undefined;
+    };
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(500);
+    expect(messages).toHaveLength(0);
+    expect(mockCalls).not.toContain('insert:assistant');
+  });
+
+  test('crash between the inserts (an OLD orphan, its claim stale) is REPAIRED: claim taken, orphan removed, turn re-run', async () => {
+    const old = new Date(Date.now() - turnIdem.ORPHAN_GRACE_MS - turnIdem.STALE_CLAIM_MS).toISOString();
+    messages.push({ id: 'orphan', ple_id: 'ple1', role: 'physician', content: TEXT, client_turn_id: KEY, created_at: old });
+    claim(old, 'tok-dead');
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(200);
+    expect(messages.find((x) => x.id === 'orphan')).toBeUndefined();
+    expect(physicianRows()).toHaveLength(1);
+    expect(assistantRows()).toHaveLength(1);
+    const del = m.find('messages', 'delete');
+    expect(del.eqs).toEqual(expect.arrayContaining([['id', 'orphan'], ['ple_id', 'ple1'], ['role', 'physician'], ['client_turn_id', KEY]]));
+    expect(claims[0].claim_token).not.toBe('tok-dead');
+    expect(mockRimplChat).toHaveBeenCalledTimes(1);
+  });
+
+  test('an old orphan with NO claim at all (legacy) is repaired the same way', async () => {
+    const old = new Date(Date.now() - 10 * 60_000).toISOString();
+    messages.push({ id: 'orphan', ple_id: 'ple1', role: 'physician', content: TEXT, client_turn_id: KEY, created_at: old });
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(200);
+    expect(physicianRows()).toEqual([expect.objectContaining({ content: TEXT })]);
+    expect(physicianRows()[0].id).not.toBe('orphan');
+  });
+
+  test('a YOUNG orphan (< 30 s, no live claim) is pending (202): it may still get its reply', async () => {
+    messages.push({ id: 'young', ple_id: 'ple1', role: 'physician', content: TEXT, client_turn_id: KEY, created_at: NOW() });
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(202);
+    expect(r.body.code).toBe('turn_pending');
+    expect(messages).toHaveLength(1);
+    expect(mockRimplChat).not.toHaveBeenCalled();
+  });
+
+  test('an old orphan in an ENDED session is never edited: 409 turn_incomplete', async () => {
+    pleRow.status = 'ended';
+    messages.push({ id: 'orphan', ple_id: 'ple1', role: 'physician', content: TEXT, client_turn_id: KEY, created_at: new Date(Date.now() - 10 * 60_000).toISOString() });
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('turn_incomplete');
+    expect(messages).toHaveLength(1);
+  });
+
+  test('a keyed reply that PREDATES the question is not its reply', async () => {
+    const t = Date.now() - 10 * 60_000;
+    messages.push({ id: 'a-early', ple_id: 'ple1', role: 'assistant', content: 'stray', client_turn_id: KEY, created_at: new Date(t).toISOString() });
+    messages.push({ id: 'p-late', ple_id: 'ple1', role: 'physician', content: TEXT, client_turn_id: KEY, created_at: new Date(t + 1000).toISOString() });
+    const found = await turnIdem.findStoredTurn('ple1', KEY, TEXT);
+    expect(found.state).toBe('incomplete');
+    expect(found.keyedAssistant).toBe(true);
+    // …and because a reply row carries the key, the orphan is not auto-repaired.
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(409);
+    expect(messages).toHaveLength(2);
+  });
+
+  test('two overlapping requests on the fallback path still store ONE turn', async () => {
+    mockRimplChat.mockImplementation(() => new Promise((res) => { mockCalls.push('rimpl'); setTimeout(() => res(reply()), 60); }));
+    const [ra, rb] = await Promise.all([send({ client_turn_id: KEY }), send({ client_turn_id: KEY })]);
+    expect([ra.status, rb.status].sort()).toEqual([200, 202]);
+    expect(physicianRows()).toHaveLength(1);
+    expect(assistantRows()).toHaveLength(1);
+  });
+});
+
+describe('GET /ples/:id turn ceiling', () => {
+  test('tells the portal how long a turn can still be in flight (no hard-coded client constant)', async () => {
+    const r = await auth(request(app).get('/ples/ple1'));
+    expect(r.body.turn_ceiling_ms).toBe(turnIdem.STALE_CLAIM_MS);
   });
 });

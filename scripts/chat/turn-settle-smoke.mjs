@@ -37,7 +37,7 @@ const fails = [];
 const check = (c, msg) => { console.log((c ? 'PASS ' : 'FAIL ') + msg); if (!c) fails.push(msg); };
 const json = (route, status, body) => route.fulfill({ status, headers: CORS, contentType: 'application/json', body: JSON.stringify(body) });
 
-async function scenario(browser, base, name, { onPost, onEnd, keyed = false, useClock = false }, drive) {
+async function scenario(browser, base, name, { onPost, onEnd, keyed = false, useClock = false, ceiling = null, getDelayMs = 0 }, drive) {
   console.log('\n== ' + name);
   const ctx = await browser.newContext({ viewport: { width: 1000, height: 800 } });
   const page = await ctx.newPage();
@@ -59,7 +59,9 @@ async function scenario(browser, base, name, { onPost, onEnd, keyed = false, use
     const path = new URL(url).pathname;
     if (path === '/ples/ple1' && req.method() === 'GET') {
       store.gets++;
-      return json(route, 200, { id: 'ple1', status: 'active', title: 't', turn_count: 0, token_count: 50, messages: store.messages, transcript: null });
+      if (getDelayMs && store.gets === 1) await new Promise((r) => setTimeout(r, getDelayMs));
+      return json(route, 200, { id: 'ple1', status: 'active', title: 't', turn_count: 0, token_count: 50, messages: store.messages, transcript: null,
+        ...(ceiling ? { turn_ceiling_ms: ceiling } : {}) });
     }
     if (path === '/ples/ple1/message' && req.method() === 'POST') {
       const body = JSON.parse(req.postData());
@@ -228,6 +230,65 @@ await scenario(browser, base, 'H: End answered 409 turn_in_flight -> bilingual t
   const t = await page.locator('.toast').last().innerText();
   check(/รอคำตอบ/.test(t) && /still being answered/.test(t), 'turn_in_flight toast is the Thai/English copy');
   check(!(await page.locator('#endBtn').isDisabled()), 'End re-enabled');
+});
+
+await scenario(browser, base, 'I: 409 turn_incomplete -> settles and retries under the SAME key, never a new one', {
+  keyed: true, useClock: true,
+  onPost: ({ route, store, addTurn, addReply, body }) => {
+    if (store.posts.length === 1) {
+      addTurn(body.message, null, body.client_turn_id);   // stored question, no reply (crash between inserts)
+      return json(route, 409, { error: 'This message was saved without a reply.', code: 'turn_incomplete' });
+    }
+    addReply('REPAIRED REPLY');
+    return json(route, 200, { message_id: 'r1', content: 'REPAIRED REPLY', refs: [], socratic_question: null });
+  },
+}, async ({ page, store }) => {
+  await sendText(page, text);
+  await page.waitForSelector('#messages .msg-system');
+  await pump(page, 135000);
+  await page.waitForSelector('#messages .msg-act-btn:has-text("Retry")', { timeout: 5000 });
+  const notice = await page.locator('#messages .msg-system').last().innerText();
+  check(/Retry/.test(notice) && !/Refresh/.test(notice), 'cannotConfirm copy points at Retry, not Refresh');
+  check(await page.evaluate(() => JSON.parse(sessionStorage.getItem('clics_turn_ple1') || 'null')?.key) === store.posts[0].client_turn_id, 'the key is still pending after turn_incomplete');
+  await page.fill('#input', '');
+  await page.click('#messages .msg-act-btn:has-text("Retry")');
+  await bodyHas(page, 'REPAIRED REPLY', 5000);
+  check(store.posts.length === 2 && store.posts[1].client_turn_id === store.posts[0].client_turn_id, 'turn_incomplete never re-keys: Retry used the SAME key');
+});
+
+await scenario(browser, base, 'J: Send is off until the history has loaded', {
+  getDelayMs: 1500,
+  onPost: ({ route }) => json(route, 200, { message_id: 'j', content: 'J', refs: [], socratic_question: null }),
+}, async ({ page, store }) => {
+  // scenario() already waited ~300 ms after DOMContentLoaded; the history GET is held for 1.5 s.
+  check(await page.locator('#sendBtn').isDisabled(), 'Send disabled while the history loads');
+  await page.fill('#input', 'too early');
+  await page.press('#input', 'Enter');
+  check(store.posts.length === 0, 'Enter before the history loads sends nothing');
+  await page.waitForFunction(() => !document.getElementById('sendBtn').disabled, null, { timeout: 5000 });
+  check(true, 'Send enabled once the history is drawn');
+});
+
+await scenario(browser, base, 'K: the settle window comes from the server (turn_ceiling_ms), not a constant', {
+  useClock: true, ceiling: 10000,
+  onPost: ({ route }) => route.abort('failed'),
+}, async ({ page, store }) => {
+  await sendText(page, text);
+  await page.waitForSelector('#messages .msg-system');
+  const g0 = store.gets;
+  await pump(page, 30000);
+  await page.waitForSelector('#messages .msg-act-btn:has-text("Retry")', { timeout: 5000 });
+  const polls = store.gets - g0;
+  check(polls >= 3 && polls <= 7, `a 10 s server ceiling gives a ~15 s window (${polls} reads), not 125 s`);
+});
+
+await scenario(browser, base, 'L: signing out clears every pending chat-turn key in the tab', {
+  onPost: ({ route }) => route.abort('failed'),
+}, async ({ page }) => {
+  await page.evaluate(() => { sessionStorage.setItem('clics_turn_ple1', '{"key":"k","text":"t"}'); sessionStorage.setItem('clics_turn_other', '{}'); sessionStorage.setItem('keep_me', '1'); });
+  await page.evaluate(() => window.api.logout());
+  const left = await page.evaluate(() => Object.keys(sessionStorage));
+  check(!left.some((k) => k.startsWith('clics_turn_')) && left.includes('keep_me'), 'api.logout() removed clics_turn_* only: ' + JSON.stringify(left));
 });
 
 await browser.close(); server.close();

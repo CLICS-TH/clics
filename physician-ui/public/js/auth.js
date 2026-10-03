@@ -12,6 +12,14 @@ function getUser() {
 function redirectToLogin(msg) {
   try { sessionStorage.setItem('clics_auth_msg', msg); } catch {}
   try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); } catch {}
+  // …and any unsettled chat-turn key (js/api.js clearChatTurnState): it belongs to the session that just ended.
+  try {
+    if (typeof window.clearChatTurnState === 'function') window.clearChatTurnState();
+    else for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const k = sessionStorage.key(i);
+      if (k && k.startsWith('clics_turn_')) sessionStorage.removeItem(k);
+    }
+  } catch {}
   window.location.replace('/');
   throw new Error('clics: redirecting to login');
 }
