@@ -49,11 +49,16 @@ function renderMessage(role, content, refs, socratic) {
       div.appendChild(sq);
     }
   }
-  // Screen-reader speaker label — same fixed strings as the signed-in chat (js/ple-chat.js).
-  const who = document.createElement('span');
-  who.className = 'sr-only';
-  who.textContent = role === 'physician' ? 'คุณ / You: ' : 'AI: ';
-  div.insertBefore(who, div.firstChild);
+  // Speaker label — same as the signed-in chat (js/ple-chat.js): sr-only for the physician, the visible
+  // AI chip (also the screen-reader label) for the assistant. One fixed label, see AI_LABEL in js/ui.js.
+  if (role === 'physician') {
+    const who = document.createElement('span');
+    who.className = 'sr-only';
+    who.textContent = 'คุณ / You: ';
+    div.insertBefore(who, div.firstChild);
+  } else {
+    div.insertBefore(aiChip(), div.firstChild);
+  }
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
@@ -116,8 +121,9 @@ async function send() {
   const language = /[฀-๿]/.test(message) ? 'th' : 'en';
   const loading = document.createElement('div');
   loading.className = 'msg-assistant'; loading.style.color = 'var(--muted-soft)';
-  // Announced by the log's live region; the sr-only prefix keeps the speaker label consistent.
-  loading.innerHTML = '<span class="sr-only">AI: </span>กำลังคิด... / Thinking...';
+  // Announced by the log's live region, after the AI chip that labels the speaker.
+  loading.appendChild(aiChip());
+  loading.append('กำลังคิด... / Thinking...');
   messagesEl.appendChild(loading);
 
   // Send all but the just-pushed message as history; the message goes in `message`.

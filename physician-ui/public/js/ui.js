@@ -73,6 +73,29 @@
     });
   };
 
+  // The visible "this is the AI" marker on every assistant bubble (/ple-chat, /guest-chat).
+  //
+  // COPY PENDING owner/ethics sign-off — "AI" is a neutral placeholder, not approved wording.
+  // BLINDING: this is ONE fixed pair for every session, experimental arm and provider. Never derive it
+  // from the response, the arm or the model, and never name a model or provider here — arm and model
+  // are hidden from the physician by design. Change the wording here and nowhere else.
+  window.AI_LABEL = { th: 'AI', en: 'AI' };
+
+  // aiChip() -> <span class="ai-chip">. Slate-blue via --ai-* (never the human coral). It is also the
+  // screen-reader speaker label, so callers must NOT add a separate sr-only "AI".
+  window.aiChip = function () {
+    var c = document.createElement('span');
+    c.className = 'ai-chip';
+    c.textContent = window.AI_LABEL.th;
+    if (window.AI_LABEL.en && window.AI_LABEL.en !== window.AI_LABEL.th) {
+      var en = document.createElement('span');
+      en.className = 'bi-en';
+      en.textContent = window.AI_LABEL.en;
+      c.appendChild(en);
+    }
+    return c;
+  };
+
   // toast(message, type) — type: '' | 'success' | 'error'. Auto-dismisses.
   window.toast = function (msg, type) {
     var wrap = document.querySelector('.toast-wrap');

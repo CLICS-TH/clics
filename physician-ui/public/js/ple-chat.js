@@ -317,12 +317,17 @@ function renderMessage(role, content, refs, socratic, opts) {
     if (!opts.error) addActions(div, mainContent, false, opts.messageId);
     else addActions(div, mainContent, true);
   }
-  // Screen-reader speaker label ("who said this") — the bubble colour/side is the only visible cue.
-  // One fixed string per speaker, identical for every session and experimental arm.
-  const who = document.createElement('span');
-  who.className = 'sr-only';
-  who.textContent = role === 'physician' ? 'คุณ / You: ' : 'AI: ';
-  div.insertBefore(who, div.firstChild);
+  // Speaker label. Physician: sr-only "คุณ / You:" (the coral bubble on the right is the visible cue).
+  // Assistant: the visible AI chip, which is also what a screen reader hears — no second sr-only "AI".
+  // One fixed label for every session, arm and provider (see AI_LABEL in js/ui.js).
+  if (role === 'physician') {
+    const who = document.createElement('span');
+    who.className = 'sr-only';
+    who.textContent = 'คุณ / You: ';
+    div.insertBefore(who, div.firstChild);
+  } else {
+    div.insertBefore(aiChip(), div.firstChild);
+  }
   // Timestamp
   const t = document.createElement('div');
   t.className = 'msg-time';
@@ -419,7 +424,8 @@ async function deliver(message) {
   loading.className = 'msg-assistant';
   // The dots alone are silent (and, under reduced motion, indistinguishable from an empty bubble):
   // one fixed sr-only line announces the wait. Same string for every session.
-  loading.innerHTML = '<span class="sr-only">AI กำลังคิด… / AI is thinking…</span><div class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></div>';
+  loading.appendChild(aiChip());
+  loading.insertAdjacentHTML('beforeend', '<span class="sr-only">กำลังคิด… / is thinking…</span><div class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></div>');
   msgEl.appendChild(loading);
   if (nearBottom()) scrollToBottom();
   markActivity(); aiInFlight = true;          // keep the timer running while the AI answers

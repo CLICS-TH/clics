@@ -222,6 +222,7 @@ describe('WCAG AA on the token pairs both apps render', () => {
 //   --field-border  the edge of an input, textarea, select, the chat composer and option rows
 //   --focus         the global :focus-visible outline colour
 //   --error-text    .error-msg, moved off --error (4.27:1 on --surface-soft, 4.01:1 on --surface-card)
+//   --ai-bg/-border/-text  the slate-blue AI chip on every assistant bubble (text 4.5:1, border 3:1)
 //
 // --field-border has the same hex as the audit-dashboard's own field border so the two apps mirror.
 const UI_MIN = 3;
@@ -236,12 +237,19 @@ const DA_BOTH: MinPair[] = [
     `global :focus-visible ring on ${s} (WCAG 1.4.11 / 2.4.7)`]),
   ...DA_SURFACES.map((s): MinPair => ['error-text', s, AA,
     `.error-msg text on ${s}`]),
+  // The AI chip: its label on its own fill (text, 4.5), and its border against the bubble it sits on
+  // (surface-card, soft and canvas for the guest/other surfaces) and against its own fill (UI, 3).
+  ['ai-text', 'ai-bg', AA, '.ai-chip label on the chip fill'],
+  ['ai-border', 'ai-bg', UI_MIN, '.ai-chip border against its own fill'],
+  ...DA_SURFACES.map((s): MinPair => ['ai-border', s, UI_MIN,
+    `.ai-chip border on ${s} (the bubble is --surface-card)`]),
 ];
 // Dark theme also has an elevated surface (modals, hovered rows) a ring or border can land on.
 const DA_DARK_ONLY: MinPair[] = [
   ['field-border', 'surface-dark-elevated', UI_MIN, 'field border on the elevated dark surface'],
   ['focus', 'surface-dark-elevated', UI_MIN, 'focus ring on the elevated dark surface'],
   ['error-text', 'surface-dark-elevated', AA, '.error-msg text on the elevated dark surface'],
+  ['ai-border', 'surface-dark-elevated', UI_MIN, '.ai-chip border on the elevated dark surface'],
 ];
 
 function checkMin(name: string, css: string, sel: string, pairs: MinPair[]) {
@@ -271,7 +279,7 @@ function ruleBody(css: string, selectorTail: string): string {
   return m[1];
 }
 
-describe('physician-ui design-a11y: field border, focus ring, placeholder, error text', () => {
+describe('physician-ui design-a11y: field border, focus ring, placeholder, error text, AI chip, theme', () => {
   const portal = fs.readFileSync(PORTAL_CSS, 'utf8');
 
   it('--field-border and --focus are defined in both themes', () => {
@@ -306,6 +314,40 @@ describe('physician-ui design-a11y: field border, focus ring, placeholder, error
   it('every input-like control draws its border with --field-border, not --hairline', () => {
     for (const sel of ['.form-group select', '.composer', '.folder-form input', '.conv-move', '.report-opt', '.report-note textarea']) {
       expect(ruleBody(portal, sel)).toContain('var(--field-border)');
+    }
+  });
+
+  it('the AI chip is drawn from --ai-* and never from the human coral', () => {
+    const body = ruleBody(portal, '.ai-chip');
+    for (const t of ['var(--ai-bg)', 'var(--ai-border)', 'var(--ai-text)']) expect(body).toContain(t);
+    expect(body).not.toMatch(/coral/);
+  });
+
+  it('Thai running text sits at or above the 11.5pt floor', () => {
+    const m = /--fs-body-th:\s*([0-9.]+)rem/.exec(portal);
+    expect(m).not.toBeNull();
+    expect(Number(m![1]) * 16).toBeGreaterThanOrEqual(15.33);   // 11.5pt
+    for (const sel of ['.error-msg', '.session-hint', '.ai-disclaimer', '.note', '.sub', '.guest-banner',
+      '.report-lead', '.report-opt', '.report-hint', '.report-error', '.modal-body', '.notice']) {
+      expect(ruleBody(portal, sel)).toContain('var(--fs-body-th)');
+    }
+  });
+
+  it('every page head carries the same theme snippet and the two theme-color metas', () => {
+    // The pre-paint snippet is hand-duplicated (no build step), so drift is the failure mode: a head left
+    // on the old snippet flashes the wrong theme for System readers.
+    const dir = path.join(REPO, 'physician-ui', 'public');
+    const pages = fs.readdirSync(dir).filter((f) => f.endsWith('.html')).map((f) => path.join(dir, f))
+      .concat(path.join(dir, 'auth', 'callback.html'));
+    expect(pages.length).toBe(16);
+    const prefix = "p=localStorage.getItem('clics_theme')}catch(e){}if(p!=='light'&&p!=='dark')p='system';d.setAttribute('data-theme-pref',p);";
+    for (const f of pages) {
+      const html = fs.readFileSync(f, 'utf8');
+      const n = path.basename(f);
+      expect([n, html.includes(prefix)]).toEqual([n, true]);
+      expect([n, html.includes("matchMedia('(prefers-color-scheme: dark)')")]).toEqual([n, true]);
+      expect([n, (html.match(/<meta name="theme-color"/g) || []).length]).toEqual([n, 2]);
+      expect([n, html.includes("clics_theme')==='dark')d.setAttribute")]).toEqual([n, false]);
     }
   });
 
