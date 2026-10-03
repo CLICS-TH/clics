@@ -37,9 +37,9 @@ const fails = [];
 const check = (c, msg) => { console.log((c ? 'PASS ' : 'FAIL ') + msg); if (!c) fails.push(msg); };
 const json = (route, status, body) => route.fulfill({ status, headers: CORS, contentType: 'application/json', body: JSON.stringify(body) });
 
-async function scenario(browser, base, name, { onPost, onEnd, keyed = false, useClock = false, ceiling = null, getDelayMs = 0 }, drive) {
+async function scenario(browser, base, name, { onPost, onEnd, keyed = false, useClock = false, ceiling = null, getDelayMs = 0, colorScheme = 'light', reducedMotion = 'no-preference' }, drive) {
   console.log('\n== ' + name);
-  const ctx = await browser.newContext({ viewport: { width: 1000, height: 800 } });
+  const ctx = await browser.newContext({ viewport: { width: 1000, height: 800 }, colorScheme, reducedMotion });
   const page = await ctx.newPage();
   await page.addInitScript(() => { try { localStorage.setItem('clics_token', 'x'); } catch {} });
   const store = { messages: [], posts: [], gets: 0 };
@@ -191,8 +191,10 @@ await scenario(browser, base, 'F: reload mid-turn; the server stores it meanwhil
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#messages .msg-system', { timeout: 5000 });
   check(await count(page, '.msg-physician') === 1, 'the unsettled question is back on screen after reload');
+  check(await count(page, '.msg-physician.is-pending .msg-pending') === 1, 'the redrawn, unconfirmed question is faded with its Sending line');
   addTurn(text, 'AFTER RELOAD', saved.key);
   await bodyHas(page, 'AFTER RELOAD');
+  check(await count(page, '.msg-physician.is-pending, .msg-physician .msg-pending') === 0, 'found on settle: fade and Sending line gone');
   check(store.posts.length === 1, 'no second POST after the reload');
   check(await count(page, '.msg-physician') === 1, 'still one physician bubble');
   check(await page.evaluate(() => sessionStorage.getItem('clics_turn_ple1')) === null, 'pending cleared once settled');
@@ -290,6 +292,146 @@ await scenario(browser, base, 'L: signing out clears every pending chat-turn key
   const left = await page.evaluate(() => Object.keys(sessionStorage));
   check(!left.some((k) => k.startsWith('clics_turn_')) && left.includes('keep_me'), 'api.logout() removed clics_turn_* only: ' + JSON.stringify(left));
 });
+
+// ---- the physician bubble of a lost turn: one on screen, whatever the physician does next ----
+// Not received (read back, not there): the bubble comes down and the text goes back in the box. The check that
+// skips a redraw follows the bubble element, not the text, so a same-text Send draws it again exactly once.
+const lostThenAnswer = ({ route, store, addTurn, body }) => {
+  if (store.posts.length === 1) return route.abort('failed');
+  addTurn(body.message, 'REPLY ' + store.posts.length, body.client_turn_id);
+  return json(route, 200, { message_id: 'm' + store.posts.length, content: 'REPLY ' + store.posts.length, refs: [], socratic_question: null });
+};
+const ownText = (page) => page.locator('#messages .msg-physician').evaluateAll((els) => els.map((e) => [...e.childNodes].filter((n) => n.nodeType === 3).map((n) => n.data).join('')));
+
+await scenario(browser, base, 'M: not received, then an EDITED re-send -> one bubble (the new text), new key', {
+  useClock: true, keyed: true, onPost: lostThenAnswer,
+}, async ({ page, store }) => {
+  await sendText(page, 'Q2');
+  await page.waitForSelector('#messages .msg-system');
+  await pump(page, 135000);
+  await page.waitForSelector('#messages .msg-act-btn:has-text("Retry")', { timeout: 5000 });
+  check(/was not sent/.test(await page.locator('#messages .msg-system').last().innerText()), 'settled as not received');
+  check(await count(page, '.msg-physician') === 0, 'not received: the unsent bubble is taken down');
+  check(await page.inputValue('#input') === 'Q2', 'its text is back in the box');
+  await page.fill('#input', 'Q2 edited');
+  await page.press('#input', 'Enter');
+  await bodyHas(page, 'REPLY 2', 5000);
+  const bubbles = await ownText(page);
+  check(bubbles.length === 1 && bubbles[0] === 'Q2 edited', 'exactly one bubble, the edited text: ' + JSON.stringify(bubbles));
+  check(store.posts.length === 2 && store.posts[1].client_turn_id !== store.posts[0].client_turn_id, 'the edited text is a new turn: a new key');
+  check(await count(page, '.msg-physician.is-pending') === 0, 'answered: not faded');
+});
+
+await scenario(browser, base, 'N: not received, then the SAME text re-sent with Send -> one bubble, same key', {
+  useClock: true, keyed: true, onPost: lostThenAnswer,
+}, async ({ page, store }) => {
+  await sendText(page, text);
+  await page.waitForSelector('#messages .msg-system');
+  await pump(page, 135000);
+  await page.waitForSelector('#messages .msg-act-btn:has-text("Retry")', { timeout: 5000 });
+  check(await count(page, '.msg-physician') === 0, 'not received: the unsent bubble is taken down');
+  await page.click('#sendBtn');   // the restored text, unchanged
+  await page.waitForTimeout(100);
+  check(await count(page, '.msg-physician') === 1, 'the same-text Send draws the question once (not zero: the redraw check reads the screen)');
+  await bodyHas(page, 'REPLY 2', 5000);
+  check(JSON.stringify(await ownText(page)) === JSON.stringify([text]), 'still one bubble once answered');
+  check(store.posts.length === 2 && store.posts[1].client_turn_id === store.posts[0].client_turn_id, 'the same text re-sent under the SAME key');
+});
+
+// ---- pending bubble: faded with "กำลังส่ง… / Sending…" until the turn is confirmed stored ----
+const PENDING = 'กำลังส่ง… / Sending…';
+// WCAG contrast of an element's text against its real background (every fill on the way up, composited).
+const CONTRAST = (el) => {
+  const rgba = (c) => { const m = c.match(/[\d.]+/g).map(Number); return { r: m[0], g: m[1], b: m[2], a: m.length > 3 ? m[3] : 1 }; };
+  const over = (top, under) => ({ r: top.r * top.a + under.r * (1 - top.a), g: top.g * top.a + under.g * (1 - top.a), b: top.b * top.a + under.b * (1 - top.a), a: 1 });
+  let under = { r: 255, g: 255, b: 255, a: 1 };
+  const chain = []; for (let n = el; n && n.nodeType === 1; n = n.parentElement) chain.push(n);
+  for (const n of chain.reverse()) { const bg = rgba(getComputedStyle(n).backgroundColor); if (bg.a > 0) under = over(bg, under); }
+  const fg = over(rgba(getComputedStyle(el).color), under);
+  const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
+  const a = lum(fg), b = lum(under);
+  return Math.round(((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)) * 100) / 100;
+};
+for (const theme of ['light', 'dark']) {
+  await scenario(browser, base, `O (${theme}): in flight -> faded + Sending line, contrast >= 4.5; answered -> plain bubble`, {
+    colorScheme: theme,
+    onPost: async ({ route, addTurn, body }) => {
+      await new Promise((r) => setTimeout(r, 1500));
+      addTurn(body.message, 'O REPLY', body.client_turn_id);
+      return json(route, 200, { message_id: 'o1', content: 'O REPLY', refs: [], socratic_question: null });
+    },
+  }, async ({ page }) => {
+    check(await page.evaluate(() => document.documentElement.getAttribute('data-theme') || 'light') === theme, `theme is ${theme}`);
+    await sendText(page, text);
+    await page.waitForSelector('#messages .msg-physician.is-pending', { timeout: 2000 });
+    await page.waitForTimeout(300);   // past the fade-in transition: measure the settled colours
+    const label = await page.locator('#messages .msg-physician .msg-pending').innerText();
+    check(label === PENDING, 'the Sending line reads "' + label + '"');
+    const px = await page.locator('#messages .msg-physician .msg-pending').evaluate((e) => parseFloat(getComputedStyle(e).fontSize));
+    check(px >= 12, `Sending line ${px}px >= 12px (the 9pt micro floor, the .msg-time size)`);
+    const cr = await page.locator('#messages .msg-physician.is-pending').evaluate(CONTRAST);
+    const crLabel = await page.locator('#messages .msg-physician .msg-pending').evaluate(CONTRAST);
+    check(cr >= 4.5 && crLabel >= 4.5, `faded bubble text ${cr}:1 and Sending line ${crLabel}:1 >= 4.5:1 (${theme})`);
+    check(!/Sending|กำลังส่ง/.test(await page.evaluate(() => document.getElementById('chatLive').textContent)), 'the Sending line is not announced (#chatLive says the AI is thinking)');
+    await bodyHas(page, 'O REPLY', 5000);
+    check(await count(page, '.msg-physician.is-pending, .msg-physician .msg-pending') === 0, 'confirmed: the fade and the Sending line are gone');
+    await page.waitForTimeout(300);
+    const crDone = await page.locator('#messages .msg-physician').evaluate(CONTRAST);
+    check(crDone >= 4.5, `stored bubble ${crDone}:1 (${theme})`);
+  });
+}
+
+await scenario(browser, base, 'P: cannot confirm -> stays faded without the Sending line; Retry -> line back; answered -> plain', {
+  keyed: true, useClock: true,
+  onPost: ({ route, store, addTurn, addReply, body }) => {
+    if (store.posts.length === 1) {
+      addTurn(body.message, null, body.client_turn_id);   // question stored, reply missing: "unknown"
+      return json(route, 409, { error: 'saved without a reply', code: 'turn_incomplete' });
+    }
+    addReply('P REPLY');
+    return json(route, 200, { message_id: 'p9', content: 'P REPLY', refs: [], socratic_question: null });
+  },
+}, async ({ page }) => {
+  await sendText(page, text);
+  await page.waitForSelector('#messages .msg-system');
+  await pump(page, 135000);
+  await page.waitForSelector('#messages .msg-act-btn:has-text("Retry")', { timeout: 5000 });
+  check(await count(page, '.msg-physician') === 1 && await count(page, '.msg-physician.is-pending') === 1, 'cannot confirm: the bubble stays, faded (it may be stored)');
+  check(await count(page, '.msg-physician .msg-pending') === 0, 'no Sending line while nothing is being sent');
+  await page.fill('#input', '');
+  await page.click('#messages .msg-act-btn:has-text("Retry")');
+  await bodyHas(page, 'P REPLY', 5000);
+  check(await count(page, '.msg-physician') === 1, 'Retry does not draw a second bubble');
+  check(await count(page, '.msg-physician.is-pending, .msg-physician .msg-pending') === 0, 'answered: plain bubble');
+});
+
+await scenario(browser, base, 'P2: Retry on a cannot-confirm turn shows the Sending line again while it runs', {
+  keyed: true,
+  onPost: ({ route, store, addTurn, body }) => {
+    if (store.posts.length === 1) return json(route, 500, { error: 'x' });   // definite failure: bubble stays, unconfirmed
+    return new Promise(() => {});                                              // the Retry hangs: in flight
+  },
+}, async ({ page }) => {
+  await sendText(page, text);
+  await page.waitForSelector('#messages .msg-act-btn:has-text("Retry")', { timeout: 5000 });
+  check(await count(page, '.msg-physician.is-pending') === 1 && await count(page, '.msg-physician .msg-pending') === 0, 'failed: faded, no Sending line');
+  await page.fill('#input', '');
+  await page.click('#messages .msg-act-btn:has-text("Retry")');
+  await page.waitForSelector('#messages .msg-physician .msg-pending', { timeout: 2000 });
+  check(await count(page, '.msg-physician') === 1, 'Retry in flight: one bubble, with the Sending line');
+});
+
+for (const motion of ['reduce', 'no-preference']) {
+  await scenario(browser, base, `Q (${motion}): the fade transition respects prefers-reduced-motion`, {
+    reducedMotion: motion,
+    onPost: () => new Promise(() => {}),
+  }, async ({ page }) => {
+    await sendText(page, text);
+    await page.waitForSelector('#messages .msg-physician.is-pending', { timeout: 2000 });
+    const d = await page.locator('#messages .msg-physician').evaluate((e) => getComputedStyle(e).transitionDuration);
+    check(motion === 'reduce' ? /^0s(, 0s)*$/.test(d) : d !== '0s', `transition-duration ${d}`);
+  });
+}
 
 await browser.close(); server.close();
 console.log(fails.length ? `\nFAILED: ${fails.length}` : '\nALL PASS');

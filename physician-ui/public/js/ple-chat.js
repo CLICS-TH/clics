@@ -8,6 +8,7 @@ let nextMsgIndex = 0;        // stable per-message index for deterministic artif
 let pendingTurn = null;      // { key, text, sentAt }: the turn whose outcome is not settled; its key is reused on retry
 let lastStoredId = null;     // id of the newest stored message this page knows about (text-match fallback anchor)
 let lastErrorBubble = null;  // the failed-turn notice, so a re-send can take it down
+let turnBubble = null;       // { el, text, stored }: the physician bubble of the turn not yet answered (see drawTurnBubble)
 let settling = false;        // reading the episode back after a lost connection (see settleLostTurn)
 
 // Transcript-length cap (server-enforced; the local model has a finite context). Seeded from
@@ -97,8 +98,23 @@ const msgEl = document.getElementById('messages');
 const scrollBtn = document.getElementById('scrollBottomBtn');
 function nearBottom() { return msgEl.scrollHeight - msgEl.scrollTop - msgEl.clientHeight < 80; }
 function scrollToBottom() { msgEl.scrollTop = msgEl.scrollHeight; }
-msgEl.addEventListener('scroll', () => scrollBtn.classList.toggle('show', !nearBottom()));
+let pinnedToBottom = true;   // the reader was at the latest message the last time the list scrolled
+msgEl.addEventListener('scroll', () => { pinnedToBottom = nearBottom(); scrollBtn.classList.toggle('show', !pinnedToBottom); });
 scrollBtn.addEventListener('click', () => { scrollToBottom(); scrollBtn.classList.remove('show'); });
+// When the list changes height (a keyboard opens, the composer area grows or compacts): a reader who was at the
+// latest message stays there, and the jump-to-latest button sits just above the composer area, whatever its
+// height. It was a fixed 84px from the card bottom, which put it over the Send button once the composer area
+// was shorter than that and over the AI notice while it was taller.
+if (window.ResizeObserver) {
+  new ResizeObserver(() => {
+    const gap = scrollBtn.parentElement.getBoundingClientRect().bottom - msgEl.getBoundingClientRect().bottom;
+    scrollBtn.style.bottom = Math.max(12, Math.round(gap) + 12) + 'px';
+    // A list too short to hold the button (a keyboard up on a small phone) gets none: it would sit on the header.
+    // (68 = the button at its 44px touch size + 12px above and below; its own size reads 0 while display:none.)
+    scrollBtn.hidden = msgEl.clientHeight < 68;
+    if (pinnedToBottom) scrollToBottom();
+  }).observe(msgEl);
+}
 
 // ---- Reporting an AI reply (CREC082 Risk & Incident Plan: the safety event log) ----
 // MIRRORS backend/src/lib/schemas.js REPORT_REASONS / REPORT_NOTE_MAX — backend/tests/reply-report.test.js
@@ -395,6 +411,8 @@ function addActions(div, rawText, isError, messageId) {
       // The failed text was put back in the box; sending it again must not leave a stale copy behind.
       if (inputEl.value.trim() === lastUserMessage) { inputEl.value = ''; autoGrow(); }
       inputEl.focus();
+      // A "not received" settle took the question off screen: put it back, once, before re-sending it.
+      if (!turnBubbleShown(lastUserMessage)) drawTurnBubble(lastUserMessage);
       deliver(lastUserMessage);
     });
     bar.appendChild(retry);
@@ -428,7 +446,7 @@ api.getPle(pleId).then(ple => {
   turns = ple.turn_count ?? 0;
   tokenCount = ple.token_count ?? 0;
   document.getElementById('turns').textContent = turns;
-  (ple.messages ?? []).forEach((m, i) => renderMessage(m.role, m.content, m.refs, m.socratic_question, { at: m.created_at, msgIndex: i, messageId: m.id }));
+  const drawn = (ple.messages ?? []).map((m, i) => renderMessage(m.role, m.content, m.refs, m.socratic_question, { at: m.created_at, msgIndex: i, messageId: m.id }));
   nextMsgIndex = (ple.messages ?? []).length;   // live turns continue the index for stable artifact IDs
   lastStoredId = (ple.messages ?? []).length ? ple.messages[ple.messages.length - 1].id : null;
   document.getElementById('sessionProgress').hidden = false;
@@ -440,18 +458,48 @@ api.getPle(pleId).then(ple => {
   if (transcriptFull(transcript)) { renderMessage('assistant', LIMIT_REACHED_MSG, [], null, { system: true }); lockComposer(); }
   else {
     document.getElementById('sendBtn').disabled = false;
-    resumePendingTurn(ple.messages ?? []);   // a turn this tab sent before a reload, still unsettled
+    resumePendingTurn(ple.messages ?? [], drawn);   // a turn this tab sent before a reload, still unsettled
   }
 }).catch(e => { console.error(e); });   // a throw while drawing history must not become an unhandled rejection
 
-// The turn never happened: take back the physician bubble sendMessage() drew, so re-sending the
-// restored text does not show the question twice. (Retry on an error bubble re-delivers without
-// redrawing it, which is why that path needs no retraction.)
+// The physician bubble of the turn in hand. Whether it is on screen is read from the DOM (its element), never
+// from the text: a bubble taken back after a "not received" settle leaves the same text in the box, and a
+// same-text re-send must draw it again, exactly once.
+function drawTurnBubble(message) {
+  turnBubble = { el: renderMessage('physician', message, null, null, { msgIndex: nextMsgIndex++ }), text: message, stored: false };
+}
+function turnBubbleShown(message) {
+  return !!turnBubble && turnBubble.text === message && turnBubble.el.isConnected;
+}
+// 'sending'     — a request or settle is running: faded, with the "Sending…" line
+// 'unconfirmed' — the turn failed or could not be confirmed: still faded (it may or may not be stored), no line
+// 'stored'      — answered: the ordinary bubble
+// A bubble drawn from the history is a stored row and is never faded. No announcement: #chatLive already says
+// the AI is thinking, and the bubble sits in the (silent) log.
+const PENDING_LABEL = 'กำลังส่ง… / Sending…';
+function setTurnBubbleState(state) {
+  if (!turnBubble || !turnBubble.el.isConnected) return;
+  const el = turnBubble.el;
+  const pending = state !== 'stored' && !turnBubble.stored;
+  el.classList.toggle('is-pending', pending);
+  let label = el.querySelector('.msg-pending');
+  if (pending && state === 'sending' && !label) {
+    label = document.createElement('div');
+    label.className = 'msg-pending';
+    label.textContent = PENDING_LABEL;
+    el.insertBefore(label, el.querySelector('.msg-time'));
+  } else if (!(pending && state === 'sending') && label) {
+    label.remove();
+  }
+}
+function confirmTurnBubble() { setTurnBubbleState('stored'); turnBubble = null; }
+
+// The turn never happened: take back the physician bubble drawn for it, so re-sending the restored text
+// does not show the question twice (the next Send or Retry draws it again: turnBubbleShown).
 function retractPhysicianBubble() {
-  const bubbles = msgEl.querySelectorAll('.msg-physician');
-  const last = bubbles[bubbles.length - 1];
-  if (!last) return;
-  last.remove();
+  if (!turnBubble || !turnBubble.el.isConnected) return;
+  turnBubble.el.remove();
+  turnBubble = null;
   nextMsgIndex = Math.max(0, nextMsgIndex - 1);
 }
 
@@ -607,6 +655,7 @@ async function settleAndRender(message, key, sentAt) {
   if (settled.state === 'found') {
     const a = settled.assistant;
     setPendingTurn(null); lastStoredId = a.id;
+    confirmTurnBubble();
     renderMessage('assistant', a.content, a.refs, a.socratic_question, { msgIndex: nextMsgIndex++, live: true, messageId: a.id, at: a.created_at });
     // +1 rather than the server's turn_count: the counters are written just after the reply row, so a
     // read that found the reply can still carry the old count.
@@ -617,14 +666,21 @@ async function settleAndRender(message, key, sentAt) {
     refreshUsage();
     applyTranscript(settled.ple.transcript);
     toast(SETTLE_COPY.arrived, 'success');
+  } else if (settled.state === 'absent') {
+    // Read back and not there: nothing was stored. Take the bubble down (the text goes back in the box), so an
+    // edited re-send shows one question, not the stale one and the new one. The key stays for a same-text Send.
+    retractPhysicianBubble();
+    renderTurnFailure(message, SETTLE_COPY.notReceived);
   } else {
-    renderTurnFailure(message, settled.state === 'absent' ? SETTLE_COPY.notReceived : SETTLE_COPY.cannotConfirm);
+    // Unknown: it may be stored, so the bubble stays (faded) and Retry reuses the key.
+    renderTurnFailure(message, SETTLE_COPY.cannotConfirm);
   }
 }
 
 // Failed turn: a system notice with Retry (it holds the failed text) and the text back in the box,
 // without clobbering a draft (restoreDraft).
 function renderTurnFailure(message, text) {
+  setTurnBubbleState('unconfirmed');
   lastErrorBubble = renderMessage('assistant', text, [], null, { error: true, system: true, announce: true });
   restoreDraft(message);
 }
@@ -632,14 +688,20 @@ function renderTurnFailure(message, text) {
 // After a reload: the turn this tab sent may have been stored while the page was gone. If it is in the
 // history just drawn, it is settled. If not, put the question back on screen and settle it as if the
 // connection had just dropped; Retry, if it comes to that, reuses the SAME key.
-function resumePendingTurn(msgs) {
+function resumePendingTurn(msgs, drawn) {
   const saved = loadPendingTurn();
   if (!saved) return;
   const hit = findStoredTurn(msgs, saved.text, saved.key, { fromStart: true });
   if (hit.assistant) { setPendingTurn(null); return; }   // stored, and already drawn with the history
   pendingTurn = saved;
   lastUserMessage = saved.text;
-  if (!hit.physician) renderMessage('physician', saved.text, null, null, { msgIndex: nextMsgIndex++ });
+  if (!hit.physician) drawTurnBubble(saved.text);
+  else {
+    // The question is stored and already drawn with the history: that bubble IS this turn's (never faded).
+    const el = drawn && drawn[msgs.indexOf(hit.physician)];
+    turnBubble = el ? { el, text: saved.text, stored: true } : null;
+  }
+  setTurnBubbleState('sending');
   withTurnLock(async () => {
     document.getElementById('sendBtn').disabled = true;
     inputEl.readOnly = true; inputEl.setAttribute('aria-busy', 'true');
@@ -652,6 +714,7 @@ async function deliverTurn(message) {
   const sendBtn = document.getElementById('sendBtn');
   sendBtn.disabled = true;
   if (lastErrorBubble) { lastErrorBubble.remove(); lastErrorBubble = null; } // a re-send replaces the old failure notice
+  setTurnBubbleState('sending');
   const turnKey = turnKeyFor(message);
   const sentAt = Date.now();
   if (pendingTurn) setPendingTurn({ ...pendingTurn, sentAt });   // the settle window runs from THIS attempt
@@ -678,6 +741,7 @@ async function deliverTurn(message) {
   loading.remove();
   if (res?.content) {
     setPendingTurn(null); if (res.message_id) lastStoredId = res.message_id;
+    confirmTurnBubble();
     renderMessage('assistant', res.content, res.refs, res.socratic_question, { msgIndex: nextMsgIndex++, live: true, messageId: res.message_id });
     turns += 1;
     tokenCount += (res.input_tokens || 0) + (res.output_tokens || 0);
@@ -736,10 +800,9 @@ async function sendMessage() {
   // A new turn supersedes any earlier failed one: drop its notice + Retry, so a stale Retry can never re-send a
   // turn after this one (or a later one) has gone through.
   msgEl.querySelectorAll('.msg-assistant.has-retry').forEach(b => b.remove());
-  // Sending the restored text of an unsettled turn: its bubble is still on screen, so don't draw it twice.
-  if (!(pendingTurn && pendingTurn.text === message)) {
-    renderMessage('physician', message, null, null, { msgIndex: nextMsgIndex++ });
-  }
+  // Sending the restored text of an unanswered turn whose bubble is still on screen: don't draw it twice. If a
+  // "not received" settle took it down, draw it again (once): the check reads the screen, not the text alone.
+  if (!turnBubbleShown(message)) drawTurnBubble(message);
   deliver(message);
 }
 
@@ -750,6 +813,56 @@ function autoGrow() {
   inputEl.style.height = Math.min(inputEl.scrollHeight, 168) + 'px';
 }
 inputEl.addEventListener('input', autoGrow);
+
+// ---- Soft keyboard up on a small phone ----
+// While the composer is focused on a touch screen ("typing") and the visible viewport is short (< 500px: a
+// keyboard is up), html[data-kb-compact] hides the input hint and drops the CREC082 notice to its one-line form
+// (css; the notice is shortened, never hidden). While typing, if the composer area still spills out of the chat
+// card (a viewport that resizes for the keyboard: 320x568 leaves 268px), --kb-lift moves the nav and session
+// header up off the screen by the spill, as a phone does when it pans to a focused field. Nothing is removed;
+// all of it returns when the keyboard closes or the box loses focus. A keyboard that does not resize the layout
+// viewport (iOS) leaves the card whole: no spill, no lift, the browser pans. Without visualViewport the layout
+// viewport stands in; without :has() the page keeps its full layout.
+const KB_SHORT_PX = 500;
+const coarsePointer = window.matchMedia ? window.matchMedia('(pointer: coarse)') : { matches: false };
+function composerSpill() {
+  const win = document.querySelector('.chat-window');
+  const wrap = document.querySelector('.composer-wrap');
+  if (!win || !wrap) return 0;
+  const cardBottom = Math.min(window.innerHeight, win.getBoundingClientRect().bottom - (parseFloat(getComputedStyle(win).borderBottomWidth) || 0));
+  return wrap.getBoundingClientRect().bottom - cardBottom;
+}
+function fitKeyboard() {
+  const root = document.documentElement;
+  const vvH = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  const typing = coarsePointer.matches && document.activeElement === inputEl;
+  root.toggleAttribute('data-kb-compact', typing && vvH < KB_SHORT_PX);
+  root.style.removeProperty('--kb-lift');
+  if (!typing) return;
+  const nav = document.querySelector('body > nav');
+  const head = document.querySelector('.chat-head');
+  if (!nav) return;
+  // At most the whole nav + header. The card does not always grow 1:1 with the lift (it can be squeezed below
+  // its content), so re-measure: a couple of passes settle it.
+  const cap = Math.ceil((head || nav).getBoundingClientRect().bottom - nav.getBoundingClientRect().top);
+  let lift = 0;
+  for (let pass = 0; pass < 4; pass++) {
+    const spill = composerSpill();
+    if (spill <= 0.5 || lift >= cap) break;
+    lift = Math.min(cap, lift + Math.ceil(spill));
+    root.style.setProperty('--kb-lift', lift + 'px');
+  }
+}
+inputEl.addEventListener('focus', fitKeyboard);
+// Leaving the box changes the layout (the hint, the full notice and the chrome come back). Doing that on blur,
+// synchronously, moved Send out from under the finger between mousedown and mouseup and the tap was lost. So
+// Send never takes focus from the box (mousedown), and the full layout returns a beat after a blur: by then the
+// tap that caused it has landed, and a keyboard closing takes about that long anyway.
+inputEl.addEventListener('blur', () => setTimeout(fitKeyboard, 300));
+document.getElementById('sendBtn').addEventListener('mousedown', e => e.preventDefault());
+inputEl.addEventListener('input', fitKeyboard);   // the box grows as lines are typed
+if (window.visualViewport) window.visualViewport.addEventListener('resize', fitKeyboard);
+window.addEventListener('resize', fitKeyboard);
 autoGrow(); // size the rows=1 composer correctly on load
 
 document.getElementById('sendBtn').addEventListener('click', sendMessage);
