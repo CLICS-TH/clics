@@ -75,11 +75,23 @@
 
   // The visible "this is the AI" marker on every assistant bubble (/ple-chat, /guest-chat).
   //
-  // COPY PENDING owner/ethics sign-off — "AI" is a neutral placeholder, not approved wording.
+  // Approved by the product owner 2026-10-03
   // BLINDING: this is ONE fixed pair for every session, experimental arm and provider. Never derive it
   // from the response, the arm or the model, and never name a model or provider here — arm and model
   // are hidden from the physician by design. Change the wording here and nowhere else.
   window.AI_LABEL = { th: 'AI', en: 'AI' };
+
+  // Does Enter send? Fine pointer (desktop): Enter sends, Shift+Enter is a newline. Coarse pointer (phone /
+  // tablet keyboard, which has no Shift+Enter): Enter is a newline and only the Send button submits.
+  // The SAME media query drives the visible hint in css/main.css (.hint-fine / .hint-touch), evaluated per
+  // keypress, so the hint and the behaviour cannot disagree — not even after a rotation or an external keyboard
+  // changes the primary pointer.
+  window.COMPOSER_TOUCH_QUERY = '(pointer: coarse)';
+  window.enterSends = function (e) {
+    if (e.key !== 'Enter' || e.shiftKey) return false;
+    if (e.isComposing || e.keyCode === 229) return false;   // IME candidate confirm (229 half unverified on Android Gboard)
+    return !(window.matchMedia && window.matchMedia(window.COMPOSER_TOUCH_QUERY).matches);
+  };
 
   // aiChip() -> <span class="ai-chip">. Slate-blue via --ai-* (never the human coral). It is also the
   // screen-reader speaker label, so callers must NOT add a separate sr-only "AI".

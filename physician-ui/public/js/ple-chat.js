@@ -548,11 +548,10 @@ autoGrow(); // size the rows=1 composer correctly on load
 
 document.getElementById('sendBtn').addEventListener('click', sendMessage);
 inputEl.addEventListener('keydown', e => {
-  // Enter that confirms an IME candidate (Thai/Japanese/Chinese/Korean) must not send the half-typed
-  // message. isComposing is false on the keydown that ENDS composition in some Safari versions, which
-  // reports keyCode 229 instead. (The 229 half is unverified on Android Gboard.)
-  if (e.isComposing || e.keyCode === 229) return;
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  // enterSends (js/ui.js): desktop Enter sends, Shift+Enter is a newline; on touch Enter is a newline and only
+  // the Send button submits; never while an IME candidate is being confirmed (isComposing, or keyCode 229 on the
+  // Safari keydown that ENDS composition). Anything else falls through to the textarea's own newline.
+  if (enterSends(e)) { e.preventDefault(); sendMessage(); }
 });
 
 // Pre-submit guard. It used to present duration / turns / depth as the Tier-1 criteria, with a red

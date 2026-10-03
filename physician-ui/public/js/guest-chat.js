@@ -173,10 +173,9 @@ async function send() {
 
 sendBtn.addEventListener('click', send);
 inputEl.addEventListener('keydown', e => {
-  // Enter that confirms an IME candidate must not send the half-typed message (Safari reports keyCode 229
-  // on the keydown that ends composition; the 229 half is unverified on Android Gboard).
-  if (e.isComposing || e.keyCode === 229) return;
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  // Same rule as /ple-chat (enterSends in js/ui.js): desktop Enter sends; touch Enter is a newline, Send submits;
+  // never during IME composition.
+  if (enterSends(e)) { e.preventDefault(); send(); }
 });
 
 start();

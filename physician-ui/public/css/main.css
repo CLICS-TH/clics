@@ -475,8 +475,10 @@ body:has(.chat-page) nav { flex:none; }
 .composer textarea[readonly] { color:var(--muted); }
 .composer-send svg { width:20px; height:20px; }
 .composer-hint { font-size:12px; color:var(--muted-soft); line-height:1.5; margin:8px 2px 0; }
-/* Shift+Enter does not exist on a touch keyboard, so touch shows only the half of the hint that is true there. */
+/* On touch, Enter is a newline and only Send submits (js/ui.js enterSends uses this SAME query), so the touch hint says so. */
 .hint-touch { display:none; }
+/* A Thai clause in the hint must not break mid-phrase ("ขึ้นบรรทัด / ใหม่" did at 375px). */
+.hint-touch .nowrap { white-space:nowrap; }
 @media (pointer:coarse) { .hint-fine { display:none; } .hint-touch { display:inline; } }
 /* Standing "AI can be wrong" notice (CREC082 AI Governance & Safety Plan §7). Quiet by design — plain --muted
    text, no band — but 13.5px and --muted (>=4.5:1 on the chat card in both themes) so it stays readable in
