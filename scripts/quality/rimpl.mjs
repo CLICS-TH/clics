@@ -49,7 +49,7 @@ export const {
 } = postFilter;
 export const { stripPii, stripHistoryPii, deriveHintTokens } = pii;
 export const { stripArtifactDelimiters } = transcript;
-export const { checkRescueReply, RESCUE_AFTER_EXCHANGES, MAX_RESCUE_QUESTIONS } = rescue;
+export const { checkRescueReply, RESCUE_AFTER_EXCHANGES, MAX_RESCUE_QUESTIONS, RESCUE_RETRY_PROMPT } = rescue;
 
 /** Absolute paths of the production files this module mirrors behaviour from (for drift tests). */
 export const RIMPL_FILES = {
