@@ -13,6 +13,13 @@ const CHAT_TIMEOUT_MS = parseInt(process.env.RIMPL_CHAT_TIMEOUT_MS || '100000', 
 // up on an evaluation the provider was about to return, which reads as a provider failure in the
 // logs and costs the physician their credit for a call that actually succeeded.
 //
+// KEEP IT AT 480, and in particular below the drain's lease. EVAL_LEASE_S (services/eval-drain.js) is
+// 600: a claimed row whose lease has expired is re-claimed on the drain's next tick, at most
+// EVAL_DRAIN_INTERVAL_MS (60s) later. A timeout of 660s or more therefore guarantees a window where one
+// row is evaluated twice, and anything above 600 risks it. 480 leaves 120s under the lease. rimpl's
+// anthropic provider assumes this number for its late-retry cutoff
+// (rimpl/src/services/providers/anthropic.js EVAL_LATE_RETRY_MS); change both together.
+//
 // 480s since the evaluation drain: the PIS-7 call left the physician's HTTP path entirely (it is
 // claimed from the ple_pass queue in the background), and with the consistency layer a local
 // evaluation is 2–3 serial ~70s calls plus rimpl's own queue wait. The criteria call is different —
