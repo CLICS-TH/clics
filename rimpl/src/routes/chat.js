@@ -5,7 +5,7 @@ const { ragLookup } = require('../services/rag');
 const { callAI } = require('../services/ai');
 const { hasCitation, extractSocraticQuestion, extractReferences, thaiShare, stripNonProse, isLanguageMismatch, isThaiMessage } = require('../services/post-filter');
 const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE } = require('../lib/prompts');
-const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply } = require('../services/rescue');
+const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply, RESCUE_RETRY_PROMPT } = require('../services/rescue');
 const { flattenForPrompt, stripArtifactDelimiters } = require('../lib/transcript');
 const { requestSignal } = require('../lib/request-signal');
 const { promptLabel } = require('../lib/versions');
@@ -210,8 +210,12 @@ router.post('/', async (req, res) => {
     const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));
     const physicianWroteThai = language === 'th' && isThaiMessage(message);
     const languageMismatch = physicianWroteThai && isLanguageMismatch(text, language);
+    // RESCUE: a rescue reply with no question, more than the allowed questions, or a diagnosis/plan breaks
+    // the rescue (rescue.js checkRescueReply). It gets the same single retry — a REWRITE into questions.
+    const needRescue = rescuing && !checkRescueReply(text).ok;
     let languageRetried = false;   // the retry's reply is the one being returned
-    if (needCitation || languageMismatch) {
+    let rescueRetried = false;
+    if (needCitation || languageMismatch || needRescue) {
       let retryPrompt;
       if (needCitation) {
         retryPrompt = socratic
@@ -223,6 +227,9 @@ router.post('/', async (req, res) => {
             : 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation. Engage with the question — do not decline, and do not append a follow-up question.');
         // Both checks failed: the same single retry also pins the language.
         if (languageMismatch) retryPrompt += ' และเขียนคำตอบทั้งหมดเป็นภาษาไทย (Write the whole reply in Thai.)';
+      } else if (needRescue) {
+        retryPrompt = language === 'th' ? RESCUE_RETRY_PROMPT.th : RESCUE_RETRY_PROMPT.en;
+        if (languageMismatch) retryPrompt += ' และเขียนเป็นภาษาไทย (Write it in Thai.)';
       } else {
         // Language only: the reply is otherwise acceptable, so ask for a rewrite that keeps its
         // content, citations, any ❓ and any :::artifact block — not a new answer.
@@ -234,7 +241,7 @@ router.post('/', async (req, res) => {
       // language-only retry REWRITES and must keep the fence the side panel depends on, so it sees
       // the reply intact — but only when artifacts are on (the system prompt then explains the
       // fence); with them off a stray fence is stripped as before.
-      const keepFence = !needCitation && artifacts;
+      const keepFence = !needCitation && !needRescue && artifacts;
       const retryMessages = [...messages,
         { role: 'assistant', content: keepFence ? text : stripArtifactDelimiters(text) },
         { role: 'user', content: retryPrompt },
@@ -258,7 +265,7 @@ router.post('/', async (req, res) => {
         // physician's turn (and, on a rescue turn, the rescue activation riding on this response) to a
         // queue_full / 413 / 5xx on it would be worse than the English answer. Keep the first reply and
         // its token sums; log the code only, never content.
-        console.warn(`[RIMPL chat] language retry failed (${err?.code ?? err?.status ?? 'error'}) — delivering the first reply`);
+        console.warn(`[RIMPL chat] ${needRescue ? 'rescue' : 'language'} retry failed (${err?.code ?? err?.status ?? 'error'}) — delivering the first reply`);
         retry = null;
       }
       if (retry) {
@@ -269,6 +276,7 @@ router.post('/', async (req, res) => {
         lastInputTokens = retry.inputTokens;
         lastOutputTokens = retry.outputTokens;
         languageRetried = languageMismatch;
+        rescueRetried = needRescue;
         // The one retry is all there is. If the reply is STILL not Thai, deliver it (a late English
         // answer beats a 502) but leave a trace with the measured share only — never the content.
         if (languageMismatch && isLanguageMismatch(text, language)) {
@@ -301,6 +309,8 @@ router.post('/', async (req, res) => {
       // guard did not fire, or when its retry failed and the first reply was kept. Advisory and
       // rimpl-local: the backend whitelists its response to the physician and does not forward this.
       language_retry: languageRetried,
+      // True when the rescue rules failed on the first reply AND the rewrite is the reply returned.
+      rescue_retry: rescueRetried,
       // Advisory, for the backend to persist: which turn the rescue fired on, why, and whether the
       // reply actually honoured the protocol's constraints. The SAP analyses trigger rate and
       // activation point, so an unrecorded rescue is a lost data point.

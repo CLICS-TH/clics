@@ -235,7 +235,9 @@ describe('the rescue loop is bounded', () => {
     // claimed the rescue prompt stayed in force. It did not: the prompt is only set inside the
     // assess block, so at the cap the turn fell through to the general examiner prompt — the exact
     // instrument swap the per-round rescue exists to prevent, reappearing silently at round nine.
-    mockTurn({ reply: 'Metformin is first-line (ADA, 2024).' });
+    // A reply that follows the rescue rules (one question): a reply with NO question would now get the
+    // rescue rewrite retry (chat-rescue-retry.test.js), which is not what this test is about.
+    mockTurn({ reply: 'What are you weighing most in this decision?' });
     const res = await post({ history: fourExchanges(), message: 'q', rescue_active: true, rescue_rounds: 20 });
     expect(res.status).toBe(200);
     expect(callAI).toHaveBeenCalledTimes(1);                       // no classifier call: nothing to pay for

@@ -147,6 +147,16 @@ const DIAGNOSIS_MARKERS = [
 ];
 const MAX_RESCUE_QUESTIONS = 2;
 
+// The ONE corrective retry for a rescue reply that broke the rescue rules (no question, too many, or
+// a diagnosis/plan). Measured 2026-10-03 on the local model: a rescue system prompt alone was ignored on
+// 6/12 then 10/18 turns — the model answered the lookup it was asked for. The instruction rides in the
+// LAST user turn, which the model follows far more reliably than a system prompt. It asks for a
+// REWRITE into questions, so it can never make the rescue answer what it deliberately withholds.
+const RESCUE_RETRY_PROMPT = {
+  th: 'ในข้อความนี้ยังไม่ต้องให้คำตอบ การวินิจฉัย หรือแผนการรักษา — ช่วยเขียนข้อความก่อนหน้าใหม่ให้เป็นคำถามเปิด 1–2 ข้อ ที่ชวนให้แพทย์อธิบายการคิดของตนเอง (กำลังชั่งน้ำหนักอะไร ไม่แน่ใจตรงไหน หรือจะหาและตรวจสอบคำตอบอย่างไร) และลงท้ายแต่ละคำถามด้วยเครื่องหมาย ?',
+  en: 'Do not give the answer, a diagnosis or a plan in this reply. Rewrite your previous reply as one or two open questions that ask the physician to explain their own thinking (what they are weighing, what they are unsure of, or how they would find and check the answer). End each question with a question mark.',
+};
+
 function checkRescueReply(text = '') {
   // '?' and the Thai/full-width '？', plus the ❓ the examiner prompt uses.
   const questions = (text.match(/[?？❓]/g) || []).length;
@@ -162,6 +172,6 @@ function checkRescueReply(text = '') {
 
 module.exports = {
   RESCUE_AFTER_EXCHANGES, MAX_RESCUE_QUESTIONS, MAX_RESCUE_ROUNDS,
-  countExchanges, shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply,
+  countExchanges, shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply, RESCUE_RETRY_PROMPT,
   flattenForPrompt, // re-exported so the chat route builds its transcript the same way
 };

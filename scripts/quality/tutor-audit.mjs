@@ -160,16 +160,17 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
       decision.needCitation && !hasCitation(first.text) && 'no citation',
       decision.needCitation && req.socratic && !extractSocraticQuestion(first.text) && 'no ❓',
       decision.languageMismatch && 'language',
+      decision.needRescue && 'rescue rules',
     ].filter(Boolean).join(' + ');
     const second = callRecord(await withAttempts(() => complete({
       systemPrompt: req.systemPrompt, messages: retryMessages(req.messages, first.text, decision, req), maxTokens,
     }), attempts));
-    retryRec = { reason, citation: decision.needCitation, language: decision.languageMismatch, ...second };
+    retryRec = { reason, citation: decision.needCitation, language: decision.languageMismatch, rescue: decision.needRescue, ...second };
     if (second.ok || decision.needCitation) {
       final = second;
       finalFrom = 'retry';
     } else {
-      finalFrom = 'first (language-only retry failed — chat.js keeps the first reply)';
+      finalFrom = 'first (language/rescue retry failed — chat.js keeps the first reply)';
     }
   }
   // Production's own response field: the language guard fired AND its retry's reply is returned.
@@ -193,7 +194,7 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
     },
     first,
     retry: retryRec ? {
-      reason: retryRec.reason, citation: retryRec.citation, language: retryRec.language,
+      reason: retryRec.reason, citation: retryRec.citation, language: retryRec.language, rescue: retryRec.rescue,
       ok: retryRec.ok, error: retryRec.error, ms: retryRec.ms,
       // Both token counts: the retry resends the whole conversation plus the first reply, so its
       // input is the larger of the two calls' and a spend figure that omits it undercounts.

@@ -41,9 +41,12 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
     'const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));',
     "const physicianWroteThai = language === 'th' && isThaiMessage(message);",
     'const languageMismatch = physicianWroteThai && isLanguageMismatch(text, language);',
-    'if (needCitation || languageMismatch) {',
+    'if (needCitation || languageMismatch || needRescue) {',
+    'const needRescue = rescuing && !checkRescueReply(text).ok;',
+    'rescueRetried = needRescue;',
+    'rescue_retry: rescueRetried,',
     'if (languageMismatch) retryPrompt += ',
-    'const keepFence = !needCitation && artifacts;',
+    'const keepFence = !needCitation && !needRescue && artifacts;',
     "{ role: 'assistant', content: keepFence ? text : stripArtifactDelimiters(text) },",
     'if (isAborted(err) || needCitation) throw err;',
     'languageRetried = languageMismatch;',
@@ -115,7 +118,7 @@ const TH_MSG = 'ผู้ป่วยเจ็บหน้าอก ควรท
 const EN_REPLY_CITED = 'Do an ECG within ten minutes of arrival and measure troponin (ESC ACS, 2023).';
 test('retry decision = chat.js: citation/❓ check and the language guard, combined into ONE retry', () => {
   const base = { socratic: false, rescuing: false, language: 'th', message: TH_MSG };
-  assert.deepEqual(retryDecision('ตอบโดยไม่มีอ้างอิง', base), { fire: true, needCitation: true, languageMismatch: false, physicianWroteThai: true });
+  assert.deepEqual(retryDecision('ตอบโดยไม่มีอ้างอิง', base), { fire: true, needCitation: true, languageMismatch: false, needRescue: false, physicianWroteThai: true });
   assert.equal(retryDecision('มีอ้างอิง (KDIGO, 2022)', base).fire, false);
   assert.equal(retryDecision('มีอ้างอิง (KDIGO, 2022)', { ...base, socratic: true }).needCitation, true, 'examiner also needs ❓');
   // Language only: Thai turn, English but cited reply -> rewrite prompt, no citation prompt.
@@ -330,4 +333,17 @@ test('--resume: tokens billed to a failed attempt that is re-run are carried for
   };
   assert.deepEqual(carriedTokens(prior), { in_tokens: 100 + 700 + 1600, out_tokens: 10 + 900 });
   assert.deepEqual(carriedTokens(null), { in_tokens: 0, out_tokens: 0 });
+});
+
+test('rescue retry = chat.js: a rescue reply that breaks the rules fires ONE rewrite retry with RESCUE_RETRY_PROMPT', async () => {
+  const { RESCUE_RETRY_PROMPT } = await import('./rimpl.mjs');
+  const base = { socratic: true, rescuing: true, language: 'en', message: 'dose?' };
+  const ans = retryDecision('Rivaroxaban 20 mg once daily (ROCKET AF, 2011).', base);
+  assert.deepEqual([ans.fire, ans.needRescue, ans.needCitation], [true, true, false]);
+  assert.equal(retryMessages([{ role: 'user', content: 'q' }], 'x', ans, base).at(-1).content, RESCUE_RETRY_PROMPT.en);
+  const th = retryDecision('ให้ 20 mg วันละครั้ง', { ...base, language: 'th', message: 'ขนาดยาเท่าไร' });
+  assert.equal(retryMessages([], 'x', th, { ...base, language: 'th' }).at(-1).content.startsWith(RESCUE_RETRY_PROMPT.th), true);
+  assert.equal(retryDecision('What are you weighing here?', base).fire, false);
+  assert.equal(retryDecision('Rivaroxaban 20 mg once daily (ROCKET AF, 2011).', { ...base, rescuing: false, socratic: false }).needRescue, false);
+  assert.ok(chatSrc.includes("retryPrompt = language === 'th' ? RESCUE_RETRY_PROMPT.th : RESCUE_RETRY_PROMPT.en;"), 'rescue retry prompt choice drifted');
 });

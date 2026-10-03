@@ -28,7 +28,7 @@
 import {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
   promptLabel, stripPii, stripHistoryPii, deriveHintTokens, stripArtifactDelimiters,
-  hasCitation, extractSocraticQuestion, isThaiMessage, isLanguageMismatch,
+  hasCitation, extractSocraticQuestion, isThaiMessage, isLanguageMismatch, checkRescueReply, RESCUE_RETRY_PROMPT,
 } from './rimpl.mjs';
 
 export const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));
@@ -119,12 +119,15 @@ export function buildChatRequest(item, { artifacts = false } = {}) {
  *   languageMismatch  the physician wrote substantially Thai (isThaiMessage on the RAW message, with
  *                     language === 'th') and the reply is not (isLanguageMismatch). Applies to rescue
  *                     turns too — it asks for a rewrite, not a new answer.
+ *   needRescue        a rescue reply that fails checkRescueReply (no question, too many, or a diagnosis):
+ *                     a REWRITE into questions (RESCUE_RETRY_PROMPT).
  */
 export function retryDecision(text, { socratic, rescuing, language, message }) {
   const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));
   const physicianWroteThai = language === 'th' && isThaiMessage(message);
   const languageMismatch = physicianWroteThai && isLanguageMismatch(text, language);
-  return { fire: needCitation || languageMismatch, needCitation, languageMismatch, physicianWroteThai };
+  const needRescue = !!rescuing && !checkRescueReply(text).ok;
+  return { fire: needCitation || languageMismatch || needRescue, needCitation, languageMismatch, needRescue, physicianWroteThai };
 }
 
 /** The retry prompt chat.js sends for a decision. */
@@ -133,13 +136,17 @@ export function retryPrompt(decision, { socratic, language }) {
     const p = RETRY_PROMPTS[socratic ? 'socratic' : 'natural'][language === 'th' ? 'th' : 'en'];
     return decision.languageMismatch ? p + LANGUAGE_SUFFIX : p;
   }
+  if (decision.needRescue) {
+    const p = language === 'th' ? RESCUE_RETRY_PROMPT.th : RESCUE_RETRY_PROMPT.en;
+    return decision.languageMismatch ? p + ' และเขียนเป็นภาษาไทย (Write it in Thai.)' : p;
+  }
   return LANGUAGE_ONLY_PROMPT;
 }
 
 /** Retry messages: a citation retry re-ANSWERS (fence stripped from the fed-back reply); a
  *  language-only retry REWRITES and keeps the fence, but only when artifacts are on. */
 export function retryMessages(messages, firstText, decision, { socratic, language, artifacts = false }) {
-  const keepFence = !decision.needCitation && artifacts;
+  const keepFence = !decision.needCitation && !decision.needRescue && artifacts;
   return [...messages,
     { role: 'assistant', content: keepFence ? firstText : stripArtifactDelimiters(firstText) },
     { role: 'user', content: retryPrompt(decision, { socratic, language }) },
