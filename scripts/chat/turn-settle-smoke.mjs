@@ -433,6 +433,23 @@ for (const motion of ['reduce', 'no-preference']) {
   });
 }
 
+await scenario(browser, base, 'R: unkeyed backend, 500 after the question was stored (orphan), then reload -> stored bubble kept', {
+  useClock: true, keyed: false,
+  onPost: ({ route, addTurn, body }) => { addTurn(body.message, null); return json(route, 500, { error: 'Failed to save the message. Please try again.' }); },
+}, async ({ page, store }) => {
+  await sendText(page, text);
+  await page.waitForSelector('#messages .msg-act-btn:has-text("Retry")', { timeout: 5000 });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(500);
+  check(await count(page, '.msg-physician') === 1, 'one physician bubble after reload (history row adopted)');
+  await pump(page, 135000);
+  await page.waitForTimeout(300);
+  check(store.messages.filter((m) => m.role === 'physician').length === 1, 'one stored physician row');
+  check(await count(page, '.msg-physician') === 1, 'the stored question stays on screen after the settle');
+  const notice = (await page.locator('#messages .msg-system').allInnerTexts()).join(' | ');
+  check(/Could not confirm/.test(notice) && !/was not sent/.test(notice), 'cannot-confirm copy, never "was not sent", for a stored question');
+});
+
 await browser.close(); server.close();
 console.log(fails.length ? `\nFAILED: ${fails.length}` : '\nALL PASS');
 process.exit(fails.length ? 1 : 0);

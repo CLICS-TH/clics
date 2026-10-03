@@ -498,6 +498,8 @@ function confirmTurnBubble() { setTurnBubbleState('stored'); turnBubble = null; 
 // does not show the question twice (the next Send or Retry draws it again: turnBubbleShown).
 function retractPhysicianBubble() {
   if (!turnBubble || !turnBubble.el.isConnected) return;
+  // A bubble adopted from history is a stored row: never take it off the screen.
+  if (turnBubble.stored) return;
   turnBubble.el.remove();
   turnBubble = null;
   nextMsgIndex = Math.max(0, nextMsgIndex - 1);
@@ -666,13 +668,14 @@ async function settleAndRender(message, key, sentAt) {
     refreshUsage();
     applyTranscript(settled.ple.transcript);
     toast(SETTLE_COPY.arrived, 'success');
-  } else if (settled.state === 'absent') {
+  } else if (settled.state === 'absent' && !turnBubble?.stored) {
     // Read back and not there: nothing was stored. Take the bubble down (the text goes back in the box), so an
     // edited re-send shows one question, not the stale one and the new one. The key stays for a same-text Send.
     retractPhysicianBubble();
     renderTurnFailure(message, SETTLE_COPY.notReceived);
   } else {
-    // Unknown: it may be stored, so the bubble stays (faded) and Retry reuses the key.
+    // Unknown, or "absent" for a question history already shows as stored (an unkeyed orphan the read-back
+    // window cannot see): it may be stored, so the bubble stays (faded) and Retry reuses the key.
     renderTurnFailure(message, SETTLE_COPY.cannotConfirm);
   }
 }
