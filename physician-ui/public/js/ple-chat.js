@@ -382,7 +382,10 @@ function addActions(div, rawText, isError, messageId) {
     retry.type = 'button';
     retry.insertAdjacentHTML('beforeend', icon('refresh', 14));
     retry.insertAdjacentHTML('beforeend', '<span>ลองใหม่ / Retry</span>');
+    div.classList.add('has-retry');      // sendMessage() removes this bubble before any new turn starts
     retry.addEventListener('click', () => {
+      // Never a second concurrent turn, and never past the transcript cap.
+      if (aiInFlight || composerLocked || document.getElementById('sendBtn').disabled) return;
       div.remove();                       // removes the focused button: put focus somewhere real first
       // The failed text was put back in the box; sending it again must not leave a stale copy behind.
       if (inputEl.value.trim() === lastUserMessage) { inputEl.value = ''; autoGrow(); }
@@ -527,6 +530,9 @@ async function sendMessage() {
   input.value = '';
   autoGrow();
   lastUserMessage = message;
+  // A new turn supersedes any earlier failed one: drop its notice + Retry, so a stale Retry can never re-send a
+  // turn after this one (or a later one) has gone through.
+  msgEl.querySelectorAll('.msg-assistant.has-retry').forEach(b => b.remove());
   renderMessage('physician', message, null, null, { msgIndex: nextMsgIndex++ });
   deliver(message);
 }
