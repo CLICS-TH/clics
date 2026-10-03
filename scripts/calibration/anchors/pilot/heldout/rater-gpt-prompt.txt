@@ -1,0 +1,6 @@
+You are an independent blind rater for a medical-education research study. Work ONLY with the two files in the current directory: rubric.txt and episodes.txt. Do not open, list or search any other file or directory, and do not use the network.
+
+episodes.txt holds 10 synthetic physician–AI tutoring episodes, each headed "######## EPISODE X###". Score EACH episode on the 7 PIS-7 domains (d1–d7, integers 0–5) exactly as rubric.txt instructs: score the PHYSICIAN's turns (and any [REFLECTION]), ignore the AI turns, and follow every calibration rule, the scale, and the per-domain anchors. Score each episode independently on its own evidence; do not rank or normalise across the packet.
+
+Your final message must be ONLY this JSON (no prose, no code fence), one entry per episode id, with a short note quoting the decisive physician evidence:
+{"scores":{"X101":{"d1":0,"d2":0,"d3":0,"d4":0,"d5":0,"d6":0,"d7":0,"note":"..."}, ...}}
