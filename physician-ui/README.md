@@ -18,7 +18,7 @@ when on localhost, and the prod URLs otherwise.
 ## Pages (`public/*.html`)
 
 `index.html` (login) · `dashboard.html` (CLE list + folders + usage meter + consent gate) ·
-`cle-new.html` (start a CLE) · `cle-chat.html` (chat) · `cle-result.html` (PIS-7 result) ·
+`ple-new.html` (start a CLE) · `ple-chat.html` (chat) · `ple-result.html` (PIS-7 result) ·
 `lpdp.html` (longitudinal trend) · `guest-chat.html` (anonymous trial) · `invite.html` (accept invite) ·
 `forgot.html` / `reset.html` (password reset).
 
@@ -29,7 +29,7 @@ when on localhost, and the prod URLs otherwise.
   `supabase-client.js`. **`icons.js`** (`icon(name, size)` → inline-SVG line icons) and **`ui.js`**
   (`toast()` / `confirmModal()`) are the shared design-system primitives — added in the 2026-06 design
   audit; prefer them over native `alert`/`confirm` and emoji.
-- **Per-page logic:** `dashboard.js`, `cle-chat.js`, `guest-chat.js`, `invite.js`, `reset.js`,
+- **Per-page logic:** `dashboard.js`, `ple-chat.js`, `guest-chat.js`, `invite.js`, `reset.js`,
   `forgot.js`, `oauth-callback.js`.
 
 ## Conventions
