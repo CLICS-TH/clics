@@ -16,6 +16,12 @@
 // ctx : { op, eqs:[[col,val],...], payload, selectArgs, id(col='id') }
 // professionals.single() filtered by the caller's own id auto-returns `state.caller` (so verifyJwt
 // works without the test having to special-case it); any other read falls through to `resolve`.
+// The double has no store_chat_turn() (db/migration-message-client-turn-id.sql), and says so the way
+// PostgREST does — so every suite that does not model the function exercises the two-insert path the
+// backend falls back to, exactly as before that function existed. tests/ples-turn-idempotency.test.js
+// models the function itself.
+const STORE_FN_ABSENT = { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.store_chat_turn in the schema cache' } };
+
 function makeSupabaseMock() {
   const state = { caller: null, resolve: () => undefined, queries: [] };
 
@@ -82,7 +88,7 @@ function makeSupabaseMock() {
   }
 
   return {
-    supabase: { from: builder, rpc: () => Promise.resolve({ data: null, error: null }) },
+    supabase: { from: builder, rpc: (name) => Promise.resolve(name === 'store_chat_turn' ? STORE_FN_ABSENT : { data: null, error: null }) },
     authSupabase: {
       auth: {
         getUser: () => Promise.resolve(
@@ -108,4 +114,4 @@ function makeSupabaseMock() {
   };
 }
 
-module.exports = { makeSupabaseMock };
+module.exports = { makeSupabaseMock, STORE_FN_ABSENT };

@@ -5,7 +5,9 @@
 jest.mock('../src/lib/supabase', () => {
   const base = require('./helpers/supabase-mock').makeSupabaseMock();
   // Reservations succeed; the budget path is tested elsewhere (pricing-provider.test.js).
-  base.supabase.rpc = () => Promise.resolve({ data: true, error: null });
+  // store_chat_turn stays absent (helper default): these tests read the per-row insert payloads.
+  base.supabase.rpc = (name) => Promise.resolve(name === 'store_chat_turn'
+    ? require('./helpers/supabase-mock').STORE_FN_ABSENT : { data: true, error: null });
   return base;
 });
 const mockRimplChat = jest.fn();

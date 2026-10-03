@@ -6,6 +6,18 @@ const REQUEST_TIMEOUT_MS = 130000;
 
 function getToken() { return localStorage.getItem('clics_token'); }
 
+// A chat page keeps the key of an unsettled turn in sessionStorage ('clics_turn_<pleId>', js/ple-chat.js)
+// so a reload can resume it. Signing out (or a dead session) must not hand it to the next sign-in in this tab.
+function clearChatTurnState() {
+  try {
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const k = sessionStorage.key(i);
+      if (k && k.startsWith('clics_turn_')) sessionStorage.removeItem(k);
+    }
+  } catch {}
+}
+window.clearChatTurnState = clearChatTurnState;
+
 function timeoutSignal() {
   try { return AbortSignal.timeout(REQUEST_TIMEOUT_MS); } catch { return undefined; } // older browsers: no timeout
 }
@@ -27,12 +39,16 @@ async function apiFetch(path, options = {}) {
   } catch {
     // Network rejection OR timeout abort — return the same { error } shape callers already branch on,
     // so awaited buttons re-enable instead of staying disabled forever.
-    return { error: 'เครือข่ายขัดข้อง กรุณาลองใหม่ / Network error — please try again.' };
+    // `code` lets a caller tell "the request never got an answer" (the server may still have acted on it,
+    // and a chat turn is the case that matters) from a definite server refusal. Additive: callers that
+    // only read `.error` are unaffected.
+    return { error: 'เครือข่ายขัดข้อง กรุณาลองใหม่ / Network error — please try again.', code: 'network_error' };
   }
   // Session-expiry handling — ONLY when a token was attached. An unauthenticated 401
   // (e.g. a wrong password on /auth/login) must fall through so the page shows the
   // error inline instead of bouncing through the "session expired" redirect.
   if (res.status === 401 && token) {
+    clearChatTurnState();
     try { sessionStorage.setItem('clics_auth_msg', 'เซสชันหมดอายุ — กรุณาเข้าสู่ระบบอีกครั้ง / Session expired — please sign in again.'); } catch {}
     // Preserve display prefs across the session-expiry wipe (mirror the portal's ?logout=1 handler) —
     // a dark-mode user shouldn't get reset to light just because their token expired.
@@ -49,7 +65,7 @@ async function apiFetch(path, options = {}) {
   try {
     return await res.json();
   } catch {
-    return { error: 'เซิร์ฟเวอร์ขัดข้องชั่วคราว กรุณาลองใหม่ / Server error — please try again.' };
+    return { error: 'เซิร์ฟเวอร์ขัดข้องชั่วคราว กรุณาลองใหม่ / Server error — please try again.', code: 'bad_response' };
   }
 }
 
@@ -80,7 +96,7 @@ async function publicFetch(path, options = {}) {
 
 window.api = {
   login: (email, password) => apiFetch('/auth/login', { method: 'POST', body: { email, password } }),
-  logout: () => apiFetch('/auth/logout', { method: 'POST' }),
+  logout: () => { clearChatTurnState(); return apiFetch('/auth/logout', { method: 'POST' }); },
   me: () => apiFetch('/auth/me'),
   // Link a Google account to the signed-in (password/invited) user — posts the Google session token
   // with the user's existing CLICS bearer token. Returns { ok, linked_providers } or { error }.
