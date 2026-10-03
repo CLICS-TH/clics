@@ -8,9 +8,12 @@ import {
 import { apiFetch, apiDownload } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { DOMAIN_KEYS, DOMAIN_LABELS, ROLE_LABELS, pleStatusCards, budgetToneHex } from '@/lib/labels';
-import { CHART } from '@/lib/chart-colors';
+import { useChartColors } from '@/lib/chart-colors';
 import { PageIntro } from '@/components/PageIntro';
 import { RoleBadge } from '@/components/RoleBadge';
+import { toast } from '@/components/Overlays';
+import { patchUsageSetting } from '@/lib/settings-patch';
+import { Badge } from '@/components/ui/badge';
 import { StatStrip, type Stat } from '@/components/StatStrip';
 import { IccPanel } from '@/components/IccPanel';
 import { AiProviderPanel } from '@/components/AiProviderPanel';
@@ -35,6 +38,7 @@ type Invite = { id: string; email: string; status: string };
 
 
 export default function OverviewPage() {
+  const CHART = useChartColors();
   const router = useRouter();
   const me = useAuthUser();
   const [stats, setStats] = useState<CleStats | null>(null);
@@ -75,19 +79,36 @@ export default function OverviewPage() {
     (counts ?? []).find(r => r.council_id === councilId && r.role === role)?.n ?? 0;
   const activeCouncils = (councils ?? []).filter(c => c.active !== false);
 
+  // ---- Settings writes ----
+  // See lib/settings-patch.ts for why a write is only trusted when the API echoes it back. The echo,
+  // not the request, goes into state: the server is the truth.
+  async function patchSetting<K extends keyof UsageSettings>(
+    key: K, value: UsageSettings[K], setSaving: (saving: boolean) => void,
+  ) {
+    if (!usage) return;
+    setSaving(true);
+    try {
+      const r = await patchUsageSetting(key, value);
+      if (r.status === 'failed') {
+        const why = r.reason ? ` (${r.reason})` : '';
+        toast(`บันทึกไม่สำเร็จ การตั้งค่าไม่เปลี่ยนแปลง / Could not save — the setting was not changed.${why}`, 'error');
+        return;
+      }
+      setUsage(u => (u ? { ...u, [key]: r.value } : u));
+      if (r.status === 'mismatch') {
+        toast('บันทึกแล้ว แต่เซิร์ฟเวอร์รายงานค่าที่ต่างจากที่ตั้ง กรุณารีโหลดหน้า / Saved, but the server reports a different value than the one you set. Reload the page to check.', 'error');
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
   // ---- Pilot Test Mode toggle ----
   const [pilotSaving, setPilotSaving] = useState(false);
   const pilotOn = usage?.pilot_test_mode === true;
   async function togglePilot() {
     if (!usage) return;
-    setPilotSaving(true);
-    try {
-      const next = await apiFetch<UsageSettings>('/admin/usage-settings', {
-        method: 'PATCH', body: JSON.stringify({ pilot_test_mode: !pilotOn }),
-      });
-      setUsage(u => (u ? { ...u, pilot_test_mode: next.pilot_test_mode } : u));
-    } catch { /* leave state unchanged on failure */ }
-    setPilotSaving(false);
+    await patchSetting('pilot_test_mode', !pilotOn, setPilotSaving);
   }
 
   // ---- Clinical Artifacts toggle ----
@@ -95,42 +116,21 @@ export default function OverviewPage() {
   const artifactsOn = usage?.clinical_artifacts_enabled === true;
   async function toggleArtifacts() {
     if (!usage) return;
-    setArtifactsSaving(true);
-    try {
-      const next = await apiFetch<UsageSettings>('/admin/usage-settings', {
-        method: 'PATCH', body: JSON.stringify({ clinical_artifacts_enabled: !artifactsOn }),
-      });
-      setUsage(u => (u ? { ...u, clinical_artifacts_enabled: next.clinical_artifacts_enabled } : u));
-    } catch { /* leave state unchanged on failure */ }
-    setArtifactsSaving(false);
+    await patchSetting('clinical_artifacts_enabled', !artifactsOn, setArtifactsSaving);
   }
 
   const [peerSaving, setPeerSaving] = useState(false);
   const peerOn = usage?.peer_calibration_enabled === true;
   async function togglePeer() {
     if (!usage) return;
-    setPeerSaving(true);
-    try {
-      const next = await apiFetch<UsageSettings>('/admin/usage-settings', {
-        method: 'PATCH', body: JSON.stringify({ peer_calibration_enabled: !peerOn }),
-      });
-      setUsage(u => (u ? { ...u, peer_calibration_enabled: next.peer_calibration_enabled } : u));
-    } catch { /* leave state unchanged on failure */ }
-    setPeerSaving(false);
+    await patchSetting('peer_calibration_enabled', !peerOn, setPeerSaving);
   }
 
   const [holdSaving, setHoldSaving] = useState(false);
   const holdOn = usage?.hold_result_until_audited === true;
   async function toggleHold() {
     if (!usage) return;
-    setHoldSaving(true);
-    try {
-      const next = await apiFetch<UsageSettings>('/admin/usage-settings', {
-        method: 'PATCH', body: JSON.stringify({ hold_result_until_audited: !holdOn }),
-      });
-      setUsage(u => (u ? { ...u, hold_result_until_audited: next.hold_result_until_audited } : u));
-    } catch { /* leave state unchanged on failure */ }
-    setHoldSaving(false);
+    await patchSetting('hold_result_until_audited', !holdOn, setHoldSaving);
   }
 
   // ---- Calibration reveal lock ----
@@ -141,14 +141,7 @@ export default function OverviewPage() {
   const lockOn = usage?.calibration_reveal_locked === true;
   async function toggleLock() {
     if (!usage) return;
-    setLockSaving(true);
-    try {
-      const next = await apiFetch<UsageSettings>('/admin/usage-settings', {
-        method: 'PATCH', body: JSON.stringify({ calibration_reveal_locked: !lockOn }),
-      });
-      setUsage(u => (u ? { ...u, calibration_reveal_locked: next.calibration_reveal_locked } : u));
-    } catch { /* leave state unchanged on failure */ }
-    setLockSaving(false);
+    await patchSetting('calibration_reveal_locked', !lockOn, setLockSaving);
   }
 
   // ---- Minimum auditors per PLE ----
@@ -160,14 +153,7 @@ export default function OverviewPage() {
   const minAuditors = usage?.min_auditors_per_cle ?? 1;
   async function setMinAuditors(n: number) {
     if (!usage || n === minAuditors || n < 1 || n > 10) return;
-    setMinAudSaving(true);
-    try {
-      const next = await apiFetch<UsageSettings>('/admin/usage-settings', {
-        method: 'PATCH', body: JSON.stringify({ min_auditors_per_cle: n }),
-      });
-      setUsage(u => (u ? { ...u, min_auditors_per_cle: next.min_auditors_per_cle } : u));
-    } catch { /* leave state unchanged on failure */ }
-    setMinAudSaving(false);
+    await patchSetting('min_auditors_per_cle', n, setMinAudSaving);
   }
 
   const [exporting, setExporting] = useState(false);
@@ -183,7 +169,7 @@ export default function OverviewPage() {
   const pool = usage?.api_budget_pool_usd ?? 0;
   const used = usage?.total_used_usd ?? 0;
   const budgetPct = pool > 0 ? Math.min(used / pool, 1) : 0;
-  const budgetColor = budgetToneHex(budgetPct);
+  const budgetColor = budgetToneHex(budgetPct, CHART);
 
   return (
     <div className="mx-auto w-full max-w-5xl p-6 md:p-10 space-y-8">
@@ -205,7 +191,7 @@ export default function OverviewPage() {
       <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="font-heading text-xl text-foreground">Calibration — ICC(2,1)</h2>
-          <a href="/admin/icc" className="text-sm text-primary underline-offset-4 hover:underline">
+          <a href="/admin/icc" className="text-sm text-link underline-offset-4 hover:underline">
             ดูรายละเอียด / Open ICC dashboard →
           </a>
         </div>
@@ -268,13 +254,12 @@ export default function OverviewPage() {
                       <p className="text-sm font-medium">{c.name_th}</p>
                       <p className="text-xs text-muted-foreground">{c.name_en}</p>
                     </div>
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums ${
-                        cIcc ? (cIcc.icc >= 0.75 ? 'bg-[var(--chart-pass-bg)] text-[var(--chart-pass-text)]' : 'bg-destructive/10 text-destructive') : 'bg-secondary text-muted-foreground'
-                      }`}
+                    <Badge
+                      variant={cIcc ? (cIcc.icc >= 0.75 ? 'ok' : 'error') : 'secondary'}
+                      className="h-auto shrink-0 px-2.5 font-semibold tabular-nums"
                       title="ICC ของสภานี้ / This council's ICC">
                       ICC {cIcc ? cIcc.icc.toFixed(3) : '—'}
-                    </span>
+                    </Badge>
                   </div>
                   <p className="mt-3 text-sm text-foreground tabular-nums">
                     แพทย์ {countOf(c.id, 'physician')} · Auditor {countOf(c.id, 'auditor')} · Admin {countOf(c.id, 'admin')}

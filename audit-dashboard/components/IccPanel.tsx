@@ -1,3 +1,5 @@
+import { Badge } from '@/components/ui/badge';
+
 interface Props { icc: number | null; lower: number | null; upper: number | null; n: number; interpretation: string; }
 export function IccPanel({ icc, lower, upper, n, interpretation }: Props) {
   // Degenerate (icc null = identical scores / insufficient variance): show a neutral value, never
@@ -18,12 +20,9 @@ export function IccPanel({ icc, lower, upper, n, interpretation }: Props) {
       <h2 className="font-semibold mb-3">ICC(2,1) — AI vs Expert Auditor</h2>
       <p className={`text-3xl sm:text-4xl font-bold ${color}`}>{icc.toFixed(3)}</p>
       <p className="text-sm text-muted-foreground mt-1">95% CI: [{lower?.toFixed(3) ?? '—'}, {upper?.toFixed(3) ?? '—'}] · n = {n}</p>
-      <span className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold ${
-        icc >= 0.95 ? 'bg-[var(--chart-pass-bg)] text-[var(--chart-pass-text)]' :
-        icc >= 0.85 ? 'bg-secondary text-foreground' :
-        icc >= 0.75 ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' :
-        'bg-destructive/10 text-destructive'
-      }`}>{interpretation}</span>
+      <Badge
+        variant={icc >= 0.95 ? 'ok' : icc >= 0.85 ? 'secondary' : icc >= 0.75 ? 'notice' : 'error'}
+        className="mt-2 h-auto px-3 py-1 font-semibold">{interpretation}</Badge>
       <p className="text-xs text-muted-foreground mt-2">เป้าหมาย: ICC ≥ 0.75 (lower bound)</p>
     </div>
   );

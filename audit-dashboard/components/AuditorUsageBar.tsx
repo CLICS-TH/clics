@@ -4,11 +4,12 @@
 // reviewer. Re-fetches /auth/me when `version` bumps (the chat box bumps it after each turn).
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
-import { CHART } from '@/lib/chart-colors';
+import { useChartColors } from '@/lib/chart-colors';
 
 type MeUser = { auditor_usage_cost_usd?: number | null; auditor_usage_limit_effective_usd?: number | null };
 
 export function AuditorUsageBar({ version = 0 }: { version?: number }) {
+  const CHART = useChartColors();
   const [u, setU] = useState<MeUser | null>(null);
   useEffect(() => {
     apiFetch<{ user?: MeUser }>('/auth/me').then(d => setU(d?.user ?? null)).catch(() => {});

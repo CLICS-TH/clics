@@ -1,6 +1,6 @@
 // Single source of truth for status/role labels and the PIS-7 weighting,
 // shared across the admin and auditor pages.
-import { CHART } from './chart-colors';
+import { CHART_LIGHT, type ChartPalette } from './chart-colors';
 
 export const STATUS_MAP: Record<string, string> = {
   active: 'กำลังดำเนินการ',
@@ -85,9 +85,10 @@ export function pleStatusCards(stats: Record<string, number> | null | undefined)
 }
 
 // Org API-budget meter tone — one set of thresholds everywhere (amber ≥75%, red ≥90%).
-// Colors come from the shared CHART palette so the meter, charts, and --chart-* tokens never drift.
-export function budgetToneHex(fraction: number): string {
-  return fraction >= 0.9 ? CHART.fail : fraction >= 0.75 ? CHART.warn : CHART.pass;
+// Colors come from the shared chart palette so the meter, charts, and --chart-* tokens never drift.
+// Pass the palette for the active theme (useChartColors()); the light set is the default.
+export function budgetToneHex(fraction: number, palette: ChartPalette = CHART_LIGHT): string {
+  return fraction >= 0.9 ? palette.fail : fraction >= 0.75 ? palette.warn : palette.pass;
 }
 
 // Token counts, two ways. `fmtTokens` is the SETTINGS figure (300,000 — a number an operator types and

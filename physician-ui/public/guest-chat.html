@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Browser chrome follows the OS; js/boot.js and the snippet below pin both to the chosen theme when the reader overrides it. -->
+  <meta name="theme-color" content="#faf9f5" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#181715" media="(prefers-color-scheme: dark)" />
   <title>CLICS — โหมดผู้เยี่ยมชม / Guest</title>
-  <script>(function(){var d=document.documentElement;try{if(localStorage.getItem('clics_theme')==='dark')d.setAttribute('data-theme','dark');var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');}catch(e){}})();</script>
+  <script>(function(){var d=document.documentElement,p,dk;try{p=localStorage.getItem('clics_theme')}catch(e){}if(p!=='light'&&p!=='dark')p='system';d.setAttribute('data-theme-pref',p);try{dk=p==='dark'||(p==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);if(dk)d.setAttribute('data-theme','dark');if(p!=='system'){var m=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<m.length;i++)m[i].setAttribute('content',dk?'#181715':'#faf9f5');}var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');}catch(e){}})();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
@@ -29,15 +32,20 @@
     </div>
 
     <div class="chat-window card" style="padding:0">
-      <div class="chat-messages" id="messages" style="padding:16px"></div>
+      <div class="chat-messages" id="messages" style="padding:16px" role="log" aria-live="off" aria-label="บทสนทนา / Conversation" tabindex="0"></div>
+      <!-- The ONE announcer for this chat (js/ui.js announceChat). The log above stays navigable but silent: read live it
+           also announced every Copy / Report button inside each new bubble. This node only ever holds speaker + plain text. -->
+      <div id="chatLive" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
       <div style="padding:12px 16px;border-top:1px solid var(--hairline)">
-        <div class="chat-input-row">
-          <textarea id="input" rows="2" placeholder="พิมพ์คำถามทางคลินิก... / Type a clinical question..."></textarea>
-          <button class="btn btn-primary" id="sendBtn">ส่ง<span class="bi-en">Send</span></button>
+        <!-- Same .composer primitive as /ple-chat: field border, focus ring and 16px type come with it. (.chat-input-row had no CSS, so this textarea was an unstyled UA box.) -->
+        <div class="composer">
+          <label for="input" class="sr-only">พิมพ์คำถามทางคลินิก / Type a clinical question</label>
+          <textarea id="input" rows="2" placeholder="พิมพ์คำถามทางคลินิก... / Type a clinical question..." aria-describedby="hint"></textarea>
+          <button class="composer-send" id="sendBtn" data-icon="arrowUp" data-icon-size="20" aria-label="ส่ง / Send"></button>
         </div>
         <!-- CREC082 AI Governance &amp; Safety Plan §7 — standing "AI may be wrong" notice. Static on purpose: it must show before the first message and survive any JS failure. -->
         <p class="ai-disclaimer" role="note"><span lang="th">AI อาจให้ข้อมูลผิดพลาดหรือล้าสมัย — โปรดตรวจสอบกับแนวทางเวชปฏิบัติปัจจุบันก่อนนำไปใช้กับผู้ป่วย</span><span class="ai-disclaimer-en" lang="en">AI can be wrong or out of date. Verify against current guidelines before applying to a patient.</span></p>
-        <p id="hint" class="session-hint" style="margin-top:6px">Shift+Enter ขึ้นบรรทัดใหม่ · Enter ส่ง<span class="bi-en">Shift+Enter for a new line · Enter to send</span></p>
+        <p id="hint" class="session-hint" style="margin-top:6px"><span class="hint-fine">Shift+Enter ขึ้นบรรทัดใหม่ · Enter ส่ง<span class="bi-en">Shift+Enter for a new line · Enter to send</span></span><span class="hint-touch"><span class="nowrap">แตะปุ่มส่งเพื่อส่ง</span> · <span class="nowrap">Enter ขึ้นบรรทัด</span><span class="bi-en">Tap Send to send · Enter for a new line</span></span></p>
       </div>
     </div>
     <div id="guestCta" style="margin-top:16px"></div>
@@ -46,6 +54,7 @@
   <script src="/js/config.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/icons.js"></script>
+  <script src="/js/ui.js"></script>
   <script src="/js/guest-chat.js"></script>
   <script src="/js/boot.js" defer></script>
 </body>

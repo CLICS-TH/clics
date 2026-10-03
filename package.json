@@ -13,12 +13,14 @@
     "test:responsive": "node scripts/responsive/responsive-smoke.mjs",
     "test:mobile-audit": "node scripts/responsive/mobile-audit.mjs",
     "test:readability": "node scripts/readability/audit.mjs",
+    "test:chat-settle": "node scripts/chat/turn-settle-smoke.mjs",
     "manuals": "node scripts/manuals/build.mjs",
     "test:manuals": "node --test scripts/manuals/lib/parse.test.mjs scripts/manuals/lib/pii-gate.test.mjs && node scripts/manuals/build.mjs --check && node scripts/manuals/verify-labels.mjs && node scripts/manuals/prose-audit.mjs",
     "test:manuals-embed": "node scripts/manuals/embed-smoke.mjs",
     "test:manuals-scale": "node scripts/manuals/scale-audit.mjs",
     "manuals:capture": "node scripts/manuals/capture.mjs",
     "test:nav-width": "node scripts/responsive/nav-width-audit.mjs",
+    "test:markdown-vectors": "node scripts/security/markdown-vectors.mjs",
     "test:calibration": "node --check scripts/calibration/three-way.js && node --check scripts/calibration/anchors/score-local.mjs && node --check scripts/calibration/anchors/revalidate.mjs && node --check scripts/calibration/anchors/import-sandbox.mjs && node --check scripts/calibration/anchors/import-shadow.mjs && node --check scripts/calibration/anchors/sandbox-import-lib.mjs && node --check scripts/calibration/anchors/sandbox-db.mjs && node --test scripts/calibration/three-way.test.mjs scripts/calibration/anchors/anchors.test.mjs scripts/calibration/anchors/sandbox-import.test.mjs"
   },
   "devDependencies": {

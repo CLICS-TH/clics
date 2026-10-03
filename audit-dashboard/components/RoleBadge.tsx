@@ -6,8 +6,8 @@ import { getUser } from '@/lib/auth';
 const ROLE: Record<string, { label: string; sub: string; cls: string }> = {
     // bg-coral-active: white on bright --primary measures 3.28:1 at this 13px/500. See badge.tsx.
   superadmin: { label: 'Superadmin', sub: 'ดูแลระบบ', cls: 'bg-coral-active text-primary-foreground' },
-  admin: { label: 'Admin', sub: 'จัดการ pilot', cls: 'bg-[#5db8a6]/20 text-foreground' },
-  auditor: { label: 'Auditor', sub: 'ผู้ตรวจประเมิน', cls: 'bg-[#e8a55a]/20 text-foreground' },
+  admin: { label: 'Admin', sub: 'จัดการ pilot', cls: 'bg-chart-teal/20 text-foreground' },
+  auditor: { label: 'Auditor', sub: 'ผู้ตรวจประเมิน', cls: 'bg-chart-threshold/20 text-foreground' },
   physician: { label: 'Physician', sub: 'แพทย์อาสา', cls: 'bg-primary/15 text-foreground' },
 };
 

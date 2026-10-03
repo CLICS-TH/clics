@@ -27,6 +27,7 @@ jest.mock('../src/lib/supabase', () => {
       mockMeter.increments.push(args);
       return Promise.resolve({ data: null, error: null });
     }
+    if (name === 'store_chat_turn') return Promise.resolve(require('./helpers/supabase-mock').STORE_FN_ABSENT);
     return Promise.resolve({ data: null, error: null });
   };
   return base;

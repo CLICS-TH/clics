@@ -65,7 +65,7 @@ function LoginGate() {
   return (
     <div className="flex items-center justify-center min-h-dvh bg-background p-6">
       <div className="w-full max-w-sm space-y-2 p-8 bg-card rounded-xl shadow border border-border text-center animate-in fade-in slide-in-from-bottom-2 duration-500 motion-reduce:animate-none">
-        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">Audit Dashboard</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-link">Audit Dashboard</p>
         {/* The ECG pulse loops while the token is validating; it rests once an error stops the sign-in. */}
         <h1 className="mt-2 flex justify-center">
           <ClicsLogo size={30} animated={error ? 'none' : hasToken ? 'loading' : 'once'} />
@@ -74,7 +74,7 @@ function LoginGate() {
         {error ? (
           <>
             <p className="mt-1 text-sm text-destructive">{error}</p>
-            <a href={PORTAL_URL} className="mt-3 inline-block text-sm text-primary underline underline-offset-4">
+            <a href={PORTAL_URL} className="mt-3 inline-block text-sm text-link underline underline-offset-4">
               กลับไปหน้าเข้าสู่ระบบ / Back to the sign-in portal
             </a>
           </>

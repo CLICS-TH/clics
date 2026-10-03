@@ -28,7 +28,7 @@ export default function ForgotPage() {
     <div className="flex items-center justify-center min-h-dvh bg-background p-6">
       <div className="w-full max-w-sm space-y-5 p-8 bg-card rounded-xl shadow border border-border animate-in fade-in slide-in-from-bottom-2 duration-500 motion-reduce:animate-none">
         <div className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">Audit Dashboard</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-link">Audit Dashboard</p>
           <h1 className="mt-2 text-3xl font-semibold text-primary font-heading tracking-tight">CLICS</h1>
           <p className="mt-1 text-sm text-muted-foreground">ตั้งรหัสผ่านใหม่ / Reset your password</p>
         </div>
@@ -41,7 +41,7 @@ export default function ForgotPage() {
             <p className="text-sm text-muted-foreground">
               If an account exists for that email, a reset link is on its way. Check your inbox.
             </p>
-            <Link href="/login" className="inline-block text-sm text-primary underline-offset-4 hover:underline">
+            <Link href="/login" className="inline-block text-sm text-link underline-offset-4 hover:underline">
               ← กลับไปเข้าสู่ระบบ / Back to login
             </Link>
           </div>
@@ -59,7 +59,7 @@ export default function ForgotPage() {
               {busy ? 'กำลังส่ง...' : 'ส่งลิงก์ตั้งรหัสผ่าน / Send reset link'}
             </Button>
             <p className="text-center">
-              <Link href="/login" className="text-sm text-primary underline-offset-4 hover:underline">
+              <Link href="/login" className="text-sm text-link underline-offset-4 hover:underline">
                 ← กลับไปเข้าสู่ระบบ / Back to login
               </Link>
             </p>

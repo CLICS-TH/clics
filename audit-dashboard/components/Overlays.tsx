@@ -6,6 +6,7 @@
 import * as React from "react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useDialog } from "@/components/ui/use-dialog";
 import { cn } from "@/lib/utils";
 
 type ToastType = "success" | "error" | "info";
@@ -49,6 +50,60 @@ function closeConfirm(c: Confirm, val: boolean) {
   set({ ...state, confirms: state.confirms.filter((x) => x.id !== c.id) });
 }
 
+// One confirm dialog. Mounted per confirm (keyed by id) so the focus handling in useDialog opens and
+// closes with it.
+//
+// Keyboard contract (a destructive confirm must not be one stray Enter away):
+//   * focus starts on Cancel — the safe choice — not on the action,
+//   * Tab is trapped inside, Escape cancels, focus returns to the opener,
+//   * Enter activates the focused BUTTON, as the browser does natively: Enter on Cancel cancels, Enter
+//     on OK confirms. It used to be a global shortcut that confirmed regardless of focus, so Enter on a
+//     focused Cancel confirmed — including danger dialogs.
+//   * Enter with focus on the dialog itself (not a button) confirms only a NON-danger dialog.
+function ConfirmDialog({ c }: { c: Confirm }) {
+  const panel = React.useRef<HTMLDivElement>(null);
+  const titleId = React.useId();
+  const bodyId = React.useId();
+  useDialog(panel, {
+    onEscape: () => closeConfirm(c, false),
+    onKey: (e) => {
+      if (e.key !== "Enter") return;
+      const el = e.target as HTMLElement | null;
+      if (el?.closest("button, a, input, textarea, select")) return; // native activation / typing
+      e.preventDefault();
+      if (!c.danger) closeConfirm(c, true);
+    },
+  });
+  return (
+    <div
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-5"
+      onClick={(e) => { if (e.target === e.currentTarget) closeConfirm(c, false); }}
+    >
+      <div
+        ref={panel}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={c.title ? titleId : undefined}
+        aria-label={c.title ? undefined : "ยืนยัน / Confirm"}
+        aria-describedby={c.body ? bodyId : undefined}
+        tabIndex={-1}
+        className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl border border-border bg-card p-7 shadow-pop"
+      >
+        {c.title && <h2 id={titleId} className="font-heading mb-2 text-xl sm:text-2xl text-foreground">{c.title}</h2>}
+        {c.body && <div id={bodyId} className="mb-6 text-sm leading-relaxed text-muted-foreground">{c.body}</div>}
+        <div className="flex justify-end gap-2.5">
+          <Button variant="ghost" data-autofocus onClick={() => closeConfirm(c, false)}>
+            {c.cancelLabel || "ยกเลิก / Cancel"}
+          </Button>
+          <Button variant={c.danger ? "destructive" : "default"} onClick={() => closeConfirm(c, true)}>
+            {c.confirmLabel || "ยืนยัน / Confirm"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Overlays() {
   const s = React.useSyncExternalStore(
     (l) => {
@@ -60,16 +115,6 @@ export function Overlays() {
   );
   const top = s.confirms[s.confirms.length - 1];
 
-  React.useEffect(() => {
-    if (!top) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") { e.preventDefault(); closeConfirm(top, false); }
-      else if (e.key === "Enter") { e.preventDefault(); closeConfirm(top, true); }
-    }
-    document.addEventListener("keydown", onKey, true);
-    return () => document.removeEventListener("keydown", onKey, true);
-  }, [top]);
-
   return (
     <>
       <div className="pointer-events-none fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] left-1/2 z-[100] flex -translate-x-1/2 flex-col items-center gap-2">
@@ -78,7 +123,7 @@ export function Overlays() {
             key={t.id}
             role={t.type === "error" ? "alert" : "status"}
             className={cn(
-              "pointer-events-auto flex max-w-[90vw] items-center gap-2 rounded-full px-4 py-2.5 text-sm shadow-lg",
+              "pointer-events-auto flex max-w-[90vw] items-center gap-2 rounded-full px-4 py-2.5 text-sm shadow-pop",
               t.type === "error" ? "bg-destructive text-white" : "bg-foreground text-background"
             )}
           >
@@ -88,27 +133,7 @@ export function Overlays() {
         ))}
       </div>
 
-      {top && (
-        <div
-          className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-5"
-          role="dialog"
-          aria-modal="true"
-          onClick={(e) => { if (e.target === e.currentTarget) closeConfirm(top, false); }}
-        >
-          <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl border border-border bg-card p-7 shadow-2xl">
-            {top.title && <h2 className="font-heading mb-2 text-xl sm:text-2xl text-foreground">{top.title}</h2>}
-            {top.body && <div className="mb-6 text-sm leading-relaxed text-muted-foreground">{top.body}</div>}
-            <div className="flex justify-end gap-2.5">
-              <Button variant="ghost" onClick={() => closeConfirm(top, false)}>
-                {top.cancelLabel || "ยกเลิก / Cancel"}
-              </Button>
-              <Button variant={top.danger ? "destructive" : "default"} onClick={() => closeConfirm(top, true)}>
-                {top.confirmLabel || "ยืนยัน / Confirm"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {top && <ConfirmDialog key={top.id} c={top} />}
     </>
   );
 }

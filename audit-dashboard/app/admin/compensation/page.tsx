@@ -6,6 +6,9 @@ import { useAuthUser } from '@/lib/client-store';
 import { PageIntro } from '@/components/PageIntro';
 import { Skeleton } from '@/components/Skeleton';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { StateMessage } from '@/components/ui/state-message';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useIsMobile } from '@/components/ViewportProvider';
 import { toast } from '@/components/Overlays';
 import type { PayoutReport, PayoutRecipient, ApiResult } from '@/lib/types';
@@ -123,22 +126,24 @@ export default function CompensationPage() {
                 ))}
               </div>
             ) : (
-              <div className="border rounded-xl overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-secondary text-left">
-                    <tr><th className="p-3 font-medium">แพทย์ / Physician</th><th className="p-3 font-medium">PLE</th><th className="p-3 font-medium text-right">฿</th></tr>
-                  </thead>
-                  <tbody>
-                    {report.recipients.map((r, i) => (
-                      <tr key={r.physician ?? i} className="border-t">
-                        <td className="p-3 font-mono">{r.physician ?? '—'}</td>
-                        <td className="p-3 tabular-nums">{r.completed_cles}/{report.cap_cles || '∞'}</td>
-                        <td className="p-3 tabular-nums text-right">{baht(r.amount_thb)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table label="ผู้รับค่าตอบแทน / Compensation recipients" containerClassName="rounded-xl border">
+                <TableHeader className="bg-secondary">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="h-auto p-3">แพทย์ / Physician</TableHead>
+                    <TableHead className="h-auto p-3">PLE</TableHead>
+                    <TableHead num className="h-auto p-3">฿</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {report.recipients.map((r, i) => (
+                    <TableRow key={r.physician ?? i} className="border-b-0 border-t">
+                      <TableCell className="p-3 font-mono">{r.physician ?? '—'}</TableCell>
+                      <TableCell className="p-3 tabular-nums">{r.completed_cles}/{report.cap_cles || '∞'}</TableCell>
+                      <TableCell num className="p-3">{baht(r.amount_thb)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </>
         )}
@@ -166,12 +171,12 @@ export default function CompensationPage() {
         <div className="flex flex-wrap items-end gap-4">
           <label className="text-sm">
             <span className="block text-muted-foreground mb-1">฿ ต่อ PLE / per PLE</span>
-            <input type="number" min={0} className="w-32 rounded-md border border-border bg-background px-3 py-2 text-sm tabular-nums"
+            <Input type="number" min={0} className="w-32 tabular-nums"
               value={rateInput} onChange={e => setRateInput(e.target.value)} />
           </label>
           <label className="text-sm">
             <span className="block text-muted-foreground mb-1">เพดาน (PLE) / Cap — 0 = ไม่จำกัด</span>
-            <input type="number" min={0} step={1} className="w-32 rounded-md border border-border bg-background px-3 py-2 text-sm tabular-nums"
+            <Input type="number" min={0} step={1} className="w-32 tabular-nums"
               value={capInput} onChange={e => setCapInput(e.target.value)} />
           </label>
           <Button onClick={saveSettings} disabled={!settings}>บันทึก / Save</Button>
@@ -214,7 +219,7 @@ function Stat({ value, label, tone }: { value: string; label: string; tone?: 'wa
 }
 
 function Empty() {
-  return <div className="text-muted-foreground">ยังไม่มีผู้ทำ PLE ครบเกณฑ์ / No physician has a completed PLE yet.</div>;
+  return <StateMessage kind="empty" className="py-6" title="ยังไม่มีผู้ทำ PLE ครบเกณฑ์ / No physician has a completed PLE yet." />;
 }
 
 // One physician row with an inline "mark paid" editor (amount prefilled to outstanding + a reference).
@@ -246,13 +251,12 @@ function PayoutRow({ r, expanded, onToggle, onPay }: {
         <div className="mt-3 flex flex-wrap items-end gap-3 border-t pt-3">
           <label className="text-sm">
             <span className="block text-muted-foreground mb-1">จำนวน ฿ / Amount</span>
-            <input type="number" min={0} className="w-32 rounded-md border border-border bg-background px-3 py-2 text-sm tabular-nums"
+            <Input type="number" min={0} className="w-32 tabular-nums"
               value={amount} onChange={e => setAmount(e.target.value)} />
           </label>
           <label className="text-sm flex-1 min-w-[180px]">
             <span className="block text-muted-foreground mb-1">อ้างอิง / Reference (optional)</span>
-            <input className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-              placeholder="เลขที่โอน / transfer ref" value={ref} onChange={e => setRef(e.target.value)} />
+            <Input placeholder="เลขที่โอน / transfer ref" value={ref} onChange={e => setRef(e.target.value)} />
           </label>
           <Button size="sm" onClick={() => onPay(Number(amount), ref)}>ยืนยัน / Confirm</Button>
         </div>

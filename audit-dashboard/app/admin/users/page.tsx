@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile, useIsTableCompact } from '@/components/ViewportProvider';
+import { useChartColors } from '@/lib/chart-colors';
 import { ROLE_LABELS, ACCOUNT_STATUS_MAP, budgetToneHex, roleToUi, roleToWire, POSITION_OPTIONS, positionLabel, fmtTokens } from '@/lib/labels';
 import { type ApiResult, type UsageSettings, formatApiError } from '@/lib/types';
 import { UsageMeter } from '@/components/UsageMeter';
@@ -79,6 +80,7 @@ const ROLE_FILTERS: { key: string; label: string }[] = [
 ];
 
 export default function UsersPage() {
+  const CHART = useChartColors();
   const [users, setUsers] = useState<User[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [cap, setCap] = useState<Record<string, string>>({});
@@ -475,7 +477,7 @@ export default function UsersPage() {
   // Dual-role marker: a physician who also holds auditor rights (professionals.can_audit).
   const SpecialChip = () => (
     <span title="แพทย์ที่เป็นผู้ตรวจด้วย / Physician with auditor rights"
-      className="text-[10px] px-1.5 py-0.5 rounded-full border border-primary/40 bg-primary/10 text-foreground whitespace-nowrap">
+      className="text-xs px-1.5 py-0.5 rounded-full border border-primary/40 bg-primary/10 text-foreground whitespace-nowrap">
       Special
     </span>
   );
@@ -534,7 +536,7 @@ export default function UsersPage() {
   const poolPctNum = parseFloat(poolLimit);
   const poolHasValue = Number.isFinite(poolPctNum) && poolPctNum > 0;
   const poolPct = poolHasValue ? Math.min(100, Math.round((totalUsed / poolPctNum) * 100)) : 0;
-  const poolToneColor = budgetToneHex(poolPct / 100); // shared thresholds/colors (lib/labels.ts)
+  const poolToneColor = budgetToneHex(poolPct / 100, CHART); // shared thresholds/colors (lib/labels.ts)
 
   return (
     <div className="p-6 md:p-10">
@@ -708,7 +710,7 @@ export default function UsersPage() {
             placeholder="เช่น 50" value={poolLimit} onChange={e => setPoolLimit(e.target.value)} />
           <Button variant="outline" className="text-xs px-3 py-1 h-auto" onClick={savePool}>บันทึก / Save</Button>
         </div>
-        <p className="text-[11px] text-muted-foreground mt-1.5">
+        <p className="text-xs text-muted-foreground mt-1.5">
           * ตัวเลขนี้คือยอดที่ระบบคำนวณ — ยอดคงเหลือจริงดูได้ที่ Anthropic Console / This is the amount metered by CLICS; the real remaining balance lives in the Anthropic Console (linked above).
         </p>
       </div>
