@@ -33,6 +33,13 @@ test('a category carrying text is dropped; an unknown provider bills at the PAID
   expect(err.usage).toEqual({ input_tokens: 0, output_tokens: 0, provider: 'anthropic' });
 });
 
+test('a /chat refusal carries the rescue classifier\'s usage (study spend), numbers only', async () => {
+  global.fetch = jest.fn(async () => reply(422, { code: 'refused', input_tokens: 10, output_tokens: 1, provider: 'anthropic',
+    assessment: { input_tokens: 900, output_tokens: 40, provider: 'anthropic', note: 'ignored' } }));
+  const err = await rimplChat({ ple_id: 'p', history: [], message: 'q' }).catch((e) => e);
+  expect(err.assessment).toEqual({ input_tokens: 900, output_tokens: 40, provider: 'anthropic' });
+});
+
 test('a local refusal keeps the local ($0) provider', async () => {
   global.fetch = jest.fn(async () => reply(422, { code: 'refused', category: null, input_tokens: 10, output_tokens: 1, provider: 'local' }));
   const err = await rimplChat({ ple_id: 'p', history: [], message: 'q' }).catch((e) => e);

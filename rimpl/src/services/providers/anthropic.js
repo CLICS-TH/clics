@@ -11,33 +11,44 @@ const { requestShape } = require('../../lib/anthropic-request');
 
 // We do our own retry (via the shared runner), so disable the SDK's internal retry to avoid
 // double-retrying.
-// 150000, not 85000 (and originally 55000): a 130k-token eval transcript (PLE-052, 2026-08-17)
-// needed >55s just to generate the JSON scoring response (7 domains + quote-grounded rationale,
-// after the maxTokens bump in routes/evaluate.js), so the SDK's own 55s ceiling fired mid-generation
-// (APIConnectionTimeoutError) before the model ever finished. 85s then fixed that but left no room
-// for the on-prem provider, whose measured evaluations ran 82.5s and 87.8s — one already over. Both
-// providers now share a 150s ceiling under backend's outer RIMPL_EVAL_TIMEOUT_MS (180s), so a slow
-// evaluation is slow rather than lost. Tunable for the same reason the local one is.
+//
+// The CLIENT TIMEOUT, per purpose. History: 55s fired mid-generation on PLE-052 (a ~130k-token eval
+// transcript, 2026-08-17); 85s left no room for the on-prem provider's ~83-88s evaluations; 150s held
+// until claude-sonnet-5-5.
 //
 // 300000 for EVALUATIONS since claude-sonnet-5-5 (2026-10-03). The evaluator now runs adaptive thinking
-// at effort high with max_tokens 16000 (routes/evaluate.js), so one call may generate up to 16000
+// at effort high with max_tokens 16000 (lib/eval-decoding.js), so one call may generate up to 16000
 // tokens of thinking plus JSON. The only measured cloud throughput is 4-6's: 1-3.2k output tokens in
 // 16.0-65.7s on 5.1k-token inputs (docs/GATE0-DGX-RESULTS.md §7.1), i.e. roughly 50-100 tok/s with
 // prefill included. At a conservative 60 tok/s a full 16000-token reply needs ~267s, and the prefill of
-// the largest transcript seen (PLE-052, ~130k tokens) adds seconds, not minutes, so 300s covers the
-// worst single call. It must stay UNDER backend's RIMPL_EVAL_TIMEOUT_MS (480s since the evaluation
-// drain), leaving 180s for rimpl's queue wait. Invert the two and the backend hangs up on a score that
-// was about to arrive. A TIMED-OUT attempt is still retried by the runner, and a second 300s attempt
-// cannot finish inside 480s; the drain then re-claims the row on its own backoff. That is unchanged
-// from the 150s era (several retries already overran 180s), and preferable to cutting a slow score short.
+// the largest transcript seen (PLE-052) adds seconds, not minutes, so 300s covers the worst single call.
+// It must stay UNDER the backend's RIMPL_EVAL_TIMEOUT_MS (480s), leaving 180s for rimpl's queue wait.
+// Invert the two and the backend hangs up on a score that was about to arrive.
+//
+// WHAT A TIMEOUT DOES. The SDK throws APIConnectionTimeoutError ("Request timed out."), which
+// isRetryable() below does NOT match (no status, no network code, and "timed out" is not "timeout").
+// So a timed-out evaluation is ONE attempt and then an error: a single 500, not a retry. Other
+// retryable errors on an evaluation are cut off by the late-retry rule (EVAL_LATE_RETRY_MS) once a
+// second attempt could no longer finish inside the backend's deadline.
 // Unmeasured on 5.5: the paid repeat-consistency run should record latency before deploy.
 const EVAL_TIMEOUT_MS = Math.max(1000, parseInt(process.env.CLAUDE_TIMEOUT_MS || '300000', 10));
-// Chat, criteria and discuss keep the 150s ceiling they had. The backend gives each of them 100s
-// (RIMPL_CHAT_TIMEOUT_MS) or 180s (criteria at /end), so a longer inner ceiling would only hold a
-// concurrency slot for a caller that has already gone.
+// Chat, criteria and discuss keep 150s. The backend gives each of them 100s (RIMPL_CHAT_TIMEOUT_MS) or
+// 180s (criteria at /end). When the backend hangs up first, the caller's signal now aborts the call
+// (see call() below), so this ceiling only matters for a caller that is still waiting.
 const INTERACTIVE_TIMEOUT_MS = Math.max(1000, parseInt(process.env.CLAUDE_INTERACTIVE_TIMEOUT_MS || '150000', 10));
 const EVAL_PURPOSES = new Set(['evaluate', 'shadow']);
 const timeoutFor = (purpose) => (EVAL_PURPOSES.has(purpose) ? EVAL_TIMEOUT_MS : INTERACTIVE_TIMEOUT_MS);
+
+// LATE-RETRY CUTOFF for evaluations. The backend gives /evaluate 480s in all
+// (backend/src/services/rimpl-client.js RIMPL_EVAL_TIMEOUT_MS; it mirrors that default, it does not read
+// it). A retry that STARTS after 480 − 300 − slack seconds cannot finish before the backend hangs up,
+// so it would only buy a reply nobody reads. The abort below would cancel it at 480s, but the tokens
+// already generated are billed, and the drain then re-claims the row and pays again. So an evaluation
+// error that arrives later than this is not retried: it fails now, and the drain's own backoff takes
+// over. The slack covers the backoff sleep (up to 30s with a Retry-After) and the prefill.
+const EVAL_CALLER_DEADLINE_MS = 480000;
+const EVAL_LATE_RETRY_SLACK_MS = 30000;
+const EVAL_LATE_RETRY_MS = Math.max(0, EVAL_CALLER_DEADLINE_MS - EVAL_TIMEOUT_MS - EVAL_LATE_RETRY_SLACK_MS); // 150s by default
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: EVAL_TIMEOUT_MS, maxRetries: 0 });
 // PINNED, not an alias. From the 4.6 generation on, Anthropic's canonical model ids carry no date:
 // GET /v1/models/claude-sonnet-5-5 resolves to itself (display "Claude Sonnet 5.5", created
@@ -70,6 +81,7 @@ const RETRYABLE_STATUS = new Set([408, 409, 429, 500, 502, 503, 529]); // rate-l
 const RETRYABLE_CODES = new Set(['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'EPIPE', 'ENETUNREACH', 'EAI_AGAIN']);
 
 function isRetryable(err) {
+  if (err?.noRetry === true) return false;   // set by call() for a late evaluation error (EVAL_LATE_RETRY_MS)
   if (err && typeof err.status === 'number' && RETRYABLE_STATUS.has(err.status)) return true;
   const code = err?.code || err?.cause?.code;
   if (code && RETRYABLE_CODES.has(code)) return true;
@@ -139,7 +151,7 @@ class RefusalError extends Error {
 // response might carry can ride into a log line or an error body.
 const safeCategory = (c) => (typeof c === 'string' && /^[a-z_]{1,40}$/.test(c) ? c : null);
 
-async function call({ systemPrompt, messages, maxTokens = 1500, temperature, purpose }) {
+async function call({ systemPrompt, messages, maxTokens = 1500, temperature, purpose, signal }) {
   // The model-specific fields (thinking mode and effort for this purpose; sampling only where the model
   // accepts it) come from lib/anthropic-request.js, the same rule the offline probes use. On
   // claude-sonnet-5-5 a requested temperature is NOT sent: a non-default value is a 400 there, which on
@@ -148,7 +160,13 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature, pur
   // must not take a slot or register as a provider failure.
   const shape = requestShape(MODEL, { temperature, purpose });
   if (shape.dropped.length) warnDroppedOnce(shape.dropped);
-  const data = await runner.run(async () => {
+  const startedAt = Date.now();
+  const isEval = EVAL_PURPOSES.has(purpose);
+  // `signal` is the caller's client-gone signal (lib/request-signal.js). Passed to the runner, a call
+  // still QUEUED when the backend hangs up never starts; passed to the SDK, an in-flight one is cancelled
+  // at the socket (APIUserAbortError), and the runner turns that into an AbortError that is never retried.
+  // Without it, a hung-up evaluation ran to completion, billed unmetered, and the drain then paid again.
+  const data = await runner.run(async (_attempt, sig) => {
     // .withResponse() yields the same Message as `data` PLUS the HTTP response, so we can read
     // the anthropic-ratelimit-* headers to learn the binding dimension.
     // When caching is on, the system prompt is sent as a cacheable text block (array form).
@@ -156,10 +174,19 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature, pur
       ? [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }]
       : systemPrompt;
     const body = { model: MODEL, max_tokens: maxTokens, system, messages, ...shape.fields };
-    const { data: msg, response: httpResp } = await client.messages.create(body, { timeout: timeoutFor(purpose) }).withResponse();
-    logRateLimit(httpResp?.headers, 'ok');
-    return msg;
-  });
+    try {
+      const { data: msg, response: httpResp } = await client.messages.create(body, { timeout: timeoutFor(purpose), signal: sig }).withResponse();
+      logRateLimit(httpResp?.headers, 'ok');
+      return msg;
+    } catch (err) {
+      const elapsed = Date.now() - startedAt;
+      if (isEval && elapsed > EVAL_LATE_RETRY_MS && err && typeof err === 'object' && !sig?.aborted) {
+        err.noRetry = true;
+        console.warn(`[claude] not retrying a late evaluation error (status ${err.status ?? '?'}, ${Math.round(elapsed / 1000)}s elapsed > ${Math.round(EVAL_LATE_RETRY_MS / 1000)}s): a second attempt could not finish inside the caller's ${EVAL_CALLER_DEADLINE_MS / 1000}s`);
+      }
+      throw err;
+    }
+  }, { signal });
   // Outside the runner on purpose: the request was SERVED, so the runner records a success and
   // /health/deep stays green. A refusal says something about this request, not about the account.
   if (data.stop_reason === 'refusal') {
@@ -260,4 +287,4 @@ function servingCheck() {
   };
 }
 
-module.exports = { name: 'anthropic', call, model: () => MODEL, ready, stats: runner.stats, MODEL, RefusalError };
+module.exports = { name: 'anthropic', call, model: () => MODEL, ready, stats: runner.stats, MODEL, RefusalError, EVAL_LATE_RETRY_MS };

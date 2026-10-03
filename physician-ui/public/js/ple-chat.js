@@ -42,6 +42,10 @@ function lockComposer() {
   renderTranscriptNotice();
 }
 const LIMIT_REACHED_MSG = 'บทสนทนานี้ยาวถึงขีดจำกัดแล้ว กรุณาจบเซสชันเพื่อส่งประเมิน / This conversation has reached its length limit — please end the session to submit it';
+// COPY PENDING (#136): the AI's safeguards declined the turn (backend 422 code 'ai_refused'). Placeholder
+// wording, neutral, with no category and no policy word, asking for a rephrase. #136 owns the final copy.
+// Kept identical to backend/src/lib/rimpl-refusal.js AI_REFUSED_MESSAGE and guest-chat.js.
+const AI_REFUSED_MSG = 'AI ไม่สามารถตอบข้อความนี้ได้ กรุณาลองเรียบเรียงคำถามใหม่ / The AI could not respond to this message. Please try rephrasing your question.';
 
 // Engagement reference points (mirror backend/src/services/ple-gate.js c1-c3). They are NOT the
 // pass criteria — CREC082 §1 judges a learning episode on four qualities, not on minutes or tokens —
@@ -251,6 +255,19 @@ function renderMessage(role, content, refs, socratic, opts) {
   const stick = nearBottom();
   const div = document.createElement('div');
   div.className = role === 'physician' ? 'msg-physician' : 'msg-assistant';
+  // A system notice (not a model reply): plain assistant styling plus `msg-system`, the class #136's
+  // system-notice conventions will style. No action bar: nothing to copy, report or retry.
+  if (opts.system) {
+    div.classList.add('msg-system');
+    div.textContent = content;
+    const ts = document.createElement('div');
+    ts.className = 'msg-time';
+    ts.textContent = fmtClock(new Date());
+    div.appendChild(ts);
+    msgEl.appendChild(div);
+    if (stick) scrollToBottom(); else scrollBtn.classList.add('show');
+    return div;
+  }
   if (role === 'physician') {
     div.textContent = content;
   } else {
@@ -440,6 +457,13 @@ async function deliver(message) {
     retractPhysicianBubble();
     renderMessage('assistant', `ระบบ AI กำลังทำงานหนัก — ลองอีกครั้งใน ${wait} วินาที / AI is busy — try again in ${wait} s`, [], null);
     document.getElementById('input').value = message; // restore the typed question
+  } else if (res?.code === 'ai_refused') {
+    // The model's safeguards declined this message. Re-sending the SAME text would be declined again,
+    // so there is no Retry: a neutral notice, and the text back in the box to rephrase. The message
+    // was never saved, so its bubble is retracted, as for the other refused-before-save codes.
+    retractPhysicianBubble();
+    renderMessage('assistant', AI_REFUSED_MSG, [], null, { system: true });
+    document.getElementById('input').value = message;
   } else {
     // The turn failed — restore the text and offer a Retry on the error bubble.
     renderMessage('assistant', 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong — please try again.', [], null, { error: true });

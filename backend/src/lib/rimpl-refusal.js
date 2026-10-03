@@ -11,4 +11,10 @@ function isRimplRefusal(err) {
   return !!err && err.code === 'refused' && !!err.usage;
 }
 
-module.exports = { isRimplRefusal };
+// The 422 `error` text a client gets for a declined turn: Thai first, then English, like every other
+// bilingual string the physician sees. Neutral on purpose: no category, no policy word. COPY PENDING
+// (#136): the final wording goes through the #136 copy conventions. The `ai_refused` code is the
+// contract, and physician-ui keys its own notice off it.
+const AI_REFUSED_MESSAGE = 'AI ไม่สามารถตอบข้อความนี้ได้ กรุณาลองเรียบเรียงคำถามใหม่ / The AI could not respond to this message. Please try rephrasing your question.';
+
+module.exports = { isRimplRefusal, AI_REFUSED_MESSAGE };

@@ -9,7 +9,7 @@ const { logEvent } = require('../lib/audit');
 const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD, effectiveTokenLimit, budgetState } = require('../lib/usage');
 const { settlementDelta } = require('../lib/pricing');
 const { rimplAuditDiscuss } = require('../services/rimpl-client');
-const { isRimplRefusal } = require('../lib/rimpl-refusal');
+const { isRimplRefusal, AI_REFUSED_MESSAGE } = require('../lib/rimpl-refusal');
 const { peerCalibrationEnabled, privacyReviewRequired, calibrationRevealLocked } = require('../lib/settings');
 const { whereCleared, isCleared } = require('../lib/privacy-review');
 const reflection = require('../services/reflection');
@@ -345,7 +345,7 @@ router.post('/ples/:id/discuss', async (req, res) => {
       }), 'auditor');
       console.warn(`[auditor] discuss turn declined by the model's safeguards (category ${err.category ?? 'none'})`);
       // COPY PENDING (#136), as in routes/ples.js.
-      return res.status(422).json({ error: 'The AI could not respond to this message.', code: 'ai_refused' });
+      return res.status(422).json({ error: AI_REFUSED_MESSAGE, code: 'ai_refused' });
     }
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied, 'auditor');
     return res.status(502).json({ error: `RIMPL unavailable: ${err.message}`, code: 'rimpl_unavailable' });

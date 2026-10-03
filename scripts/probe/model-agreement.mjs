@@ -236,7 +236,10 @@ console.log(`  local   ${cfg.model}  @ ${cfg.baseUrl}`);
 console.log(`  cloud   ${CLOUD_MODEL}  @ api.anthropic.com`);
 console.log(`  prompt  pis7PromptFor: local ${LOCAL_PROMPT.length} chars (addendum ${PIS7_LOCAL_ADDENDUM ? 'ON' : 'empty'}) · cloud ${CLOUD_PROMPT.length} chars — imported from rimpl`);
 console.log(`  rule    local arm consistency = ${CONSISTENCY}${CONSISTENCY === 'adaptive' ? ' (2 calls; 3rd + per-domain median when any domain differs by >1)' : ''}; cloud arm single call`);
-console.log(`  n       ${fixtures.length} fixture(s), temperature 0 local / ${CLOUD_SHAPE.sent.temperature ?? 'API default'} cloud${CLOUD_SHAPE.sent.thinking ? `, cloud thinking ${CLOUD_SHAPE.sent.thinking}` : ''}`);
+console.log(`  n       ${fixtures.length} fixture(s), temperature 0 local / ${CLOUD_SHAPE.sent.temperature ?? 'API default'} cloud`);
+// The cloud arm's frozen evaluate shape: it is part of the instrument (config_fingerprint), so a run's
+// header must say which shape produced it.
+console.log(`  cloud   thinking ${CLOUD_SHAPE.sent.thinking ?? 'none'} · effort ${CLOUD_SHAPE.sent.effort ?? 'API default'} · max_tokens ${CLOUD_MAX_TOKENS}`);
 console.log(`  retry   up to ${ARM_ATTEMPTS} attempts per arm on transport failures, ${RETRY_BASE_MS / 1000}s backoff doubling`
   + `${ARM_ATTEMPTS === 1 ? red('  — OFF: lost fixtures bias ICC upward, see withRetry') : ''}`);
 console.log(`  split   ${split ? `${split.name} (reserved ${split.reserved_at})` : '(none reserved)'}  ·  prompt ${PROMPT_VERSION} (local ${promptVersionFor('local')})\n`);

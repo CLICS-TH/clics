@@ -5,7 +5,10 @@
 // 5200, was 4000: claude-sonnet-5-5's tokenizer counts ~30% more tokens for the same text (official
 // migration guide), so 4000 x 1.3 keeps the same reply LENGTH in characters. Chat runs `between_tools`
 // (no thinking; lib/anthropic-request.js), so none of it goes to thinking. It is a ceiling: replies
-// rarely approach it, and the backend's 100s chat timeout bounds the turn whatever this says.
+// rarely approach it, and the backend's 100s chat timeout bounds the turn whatever this says. The
+// SPEND is bounded too: when the backend hangs up at 100s, the request's abort signal now cancels the
+// in-flight Anthropic call (providers/anthropic.js), so a turn nobody will read stops generating.
+// Tokens produced before the abort are still billed, and no response reports them.
 const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '5200', 10));
 
 // Longest content one transcript / history turn may carry into /chat and /audit-discuss.

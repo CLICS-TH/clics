@@ -13,6 +13,14 @@ const CHAT_TIMEOUT_MS = parseInt(process.env.RIMPL_CHAT_TIMEOUT_MS || '100000', 
 // up on an evaluation the provider was about to return, which reads as a provider failure in the
 // logs and costs the physician their credit for a call that actually succeeded.
 //
+// KEEP IT AT 480, and in particular below the drain's lease. EVAL_LEASE_S (services/eval-drain.js) is
+// 600: a claimed row whose lease has expired is re-claimed on the drain's next tick, at most
+// EVAL_DRAIN_INTERVAL_MS (60s) later. A timeout of 660s or more therefore guarantees a window where one
+// row is evaluated twice, and anything above 600 risks it. 480 leaves 120s under the lease. rimpl's
+// anthropic provider is sized against this number: its 300s per-call ceiling and its late-retry cutoff
+// (rimpl/src/services/providers/anthropic.js EVAL_LATE_RETRY_MS) both assume 480. Change all three
+// together, or not at all.
+//
 // 480s since the evaluation drain: the PIS-7 call left the physician's HTTP path entirely (it is
 // claimed from the ple_pass queue in the background), and with the consistency layer a local
 // evaluation is 2–3 serial ~70s calls plus rimpl's own queue wait. The criteria call is different —
@@ -48,6 +56,16 @@ async function rimplError(path, res) {
           // Unknown or missing → the PAID rate, the same fail-toward-over-billing rule as parseWithProvider.
           provider: body.provider === 'local' ? 'local' : 'anthropic',
         };
+        // A /chat refusal also reports the rescue classifier that ran on the turn, which is the STUDY's
+        // spend (routes/ples.js charges it to the episode, as on a delivered turn).
+        const a = body.assessment;
+        if (a && typeof a === 'object') {
+          err.assessment = {
+            input_tokens: Number.isFinite(a.input_tokens) ? a.input_tokens : 0,
+            output_tokens: Number.isFinite(a.output_tokens) ? a.output_tokens : 0,
+            provider: a.provider === 'local' ? 'local' : 'anthropic',
+          };
+        }
       }
       const ra = Number(body.retry_after_s);
       if (Number.isFinite(ra) && ra > 0) err.retryAfterMs = ra * 1000;

@@ -207,6 +207,7 @@ if (ARM !== 'cloud') console.log(`  local   ${cfg.model}  @ ${cfg.baseUrl}`);
 if (ARM !== 'local') console.log(`  cloud   ${CLOUD_MODEL}  @ api.anthropic.com`);
 console.log(`  arms    ${ARM}`);
 console.log(`  design  ${fixtures.length} fixture(s) × ${REPEATS} repeats, temperature 0 local / ${CLOUD_SHAPE.sent.temperature ?? 'API default'} cloud, IDENTICAL prompt each time`);
+if (ARM !== 'local') console.log(`  cloud   thinking ${CLOUD_SHAPE.sent.thinking ?? 'none'} · effort ${CLOUD_SHAPE.sent.effort ?? 'API default'} · max_tokens ${CLOUD_MAX_TOKENS}`);
 console.log(`  rule    local arm consistency = ${CONSISTENCY}${CONSISTENCY !== 'off' ? ` (agree: maxΔ ≤ 1${AGREE_SUM ? `, Σ|Δ| ≤ ${AGREE_SUM}` : ''}) — each repeat is one full rule evaluation` : ' (single calls)'}`);
 console.log(`  split   ${split ? `${split.name} (reserved ${split.reserved_at})` : '(none reserved)'}  ·  prompt ${PROMPT_VERSION} (local ${promptVersionFor('local')}${ADDENDUM_ON && PIS7_LOCAL_ADDENDUM ? ', addendum ON' : ', addendum OFF'})`);
 console.log(`\n  ${dim('Any spread below is the model disagreeing with ITSELF. An agreement Σ|Δ| at or')}`);

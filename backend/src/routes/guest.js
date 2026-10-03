@@ -6,7 +6,7 @@ const { Router } = require('express');
 const { z } = require('zod');
 const { startGuestSession, verifyGuestToken, consumeGuestPrompt, MAX_PROMPTS } = require('../lib/guest');
 const { rimplChat } = require('../services/rimpl-client');
-const { isRimplRefusal } = require('../lib/rimpl-refusal');
+const { isRimplRefusal, AI_REFUSED_MESSAGE } = require('../lib/rimpl-refusal');
 
 const router = Router();
 
@@ -64,7 +64,7 @@ router.post('/message', async (req, res) => {
     // Declined by the model's safeguards. Guests have no $ meter (the prompt count bounds them), so
     // there is nothing to settle. COPY PENDING (#136), as in routes/ples.js.
     if (isRimplRefusal(err)) {
-      return res.status(422).json({ error: 'The AI could not respond to this message.', code: 'ai_refused' });
+      return res.status(422).json({ error: AI_REFUSED_MESSAGE, code: 'ai_refused' });
     }
     return res.status(502).json({ error: `RIMPL unavailable: ${err.message}` });
   }

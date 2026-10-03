@@ -66,6 +66,14 @@ function sendAiError(res, err, fallback = 'AI service temporarily unavailable. P
       output_tokens: Number.isFinite(err.outputTokens) ? err.outputTokens : 0,
       provider: KNOWN_PROVIDERS.has(err.usage?.provider) ? err.usage.provider : 'anthropic',
       model: typeof err.model === 'string' && /^[a-z0-9.-]{1,64}$/.test(err.model) ? err.model : null,
+      // The rescue classifier's usage when one ran on this chat turn (routes/chat.js): billed, and the
+      // STUDY's spend, not the physician's. Numbers and a whitelisted provider only.
+      ...(err.assessment ? {
+        assessment: {
+          ...numbersOnly(err.assessment, ['input_tokens', 'output_tokens']),
+          provider: KNOWN_PROVIDERS.has(err.assessment.provider) ? err.assessment.provider : 'anthropic',
+        },
+      } : {}),
     });
   }
   return res.status(500).json({ error: fallback });

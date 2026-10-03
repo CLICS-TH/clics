@@ -182,8 +182,20 @@ router.post('/', async (req, res) => {
       }
     }
 
-    let { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from } =
-      await callAI({ purpose: 'chat', systemPrompt, messages, maxTokens: CHAT_MAX_TOKENS, signal });
+    // A refusal leaves this route as a 422, and the rescue classifier that already ran on this turn was
+    // billed too. Its usage rides on the error (`assessment`, the same shape as the success body's
+    // rescue.assessment) so the backend can charge it to the study as it would on a delivered turn.
+    const withAssessment = (err) => {
+      if (isRefused(err) && rescue?.assessment) err.assessment = rescue.assessment;
+      return err;
+    };
+    let first;
+    try {
+      first = await callAI({ purpose: 'chat', systemPrompt, messages, maxTokens: CHAT_MAX_TOKENS, signal });
+    } catch (err) {
+      throw withAssessment(err);
+    }
+    let { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from } = first;
     // The call whose answer goes back: the retry below REPLACES these while the billing sums accumulate.
     // On a fail-over turn this result already is the fail-over call's, so these are its figures.
     let lastInputTokens = inputTokens;
@@ -268,7 +280,7 @@ router.post('/', async (req, res) => {
         if (isAborted(err)) throw err;
         if (needCitation) {
           if (isRefused(err)) { err.inputTokens = inputTokens; err.outputTokens = outputTokens; }
-          throw err;
+          throw withAssessment(err);
         }
         // A LANGUAGE-only retry is a nicety on top of a reply that was already deliverable. Losing the
         // physician's turn (and, on a rescue turn, the rescue activation riding on this response) to a

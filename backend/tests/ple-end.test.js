@@ -19,8 +19,10 @@ jest.mock('../src/lib/db-helpers', () => ({
   sendDbError: (res, err) => { if (err) { res.status(500).json({ error: 'db' }); return true; } return false; },
 }));
 
+const mockFlagRefused = jest.fn(async () => {});
 jest.mock('../src/services/ple-finalize', () => ({
   finalizeScreening: (...a) => mockFinalize(...a),
+  flagRefusedScreening: (...a) => mockFlagRefused(...a),
   // real toPassCols so the persisted patch carries c1_pass..c3_pass
   toPassCols: (crit) => Object.fromEntries(Object.entries(crit).map(([k, v]) => [`${k}_pass`, v])),
 }));
@@ -112,6 +114,18 @@ test("a persistent tier-2 RIMPL failure leaves the session at recoverable 'ended
   expect(res.body.pending).toBe('tier2');
   // It must NOT have written a terminal ple_flag_t2 — reconcile will retry the 'ended' row.
   expect(mockUpdates.every(u => u.status !== 'ple_flag_t2')).toBe(true);
+});
+
+test('a REFUSED tier-2 classifier goes straight to manual QA (ple_flag_t2), not to reconcile', async () => {
+  // Deterministic: reconcile would only pay for the same decline on its next sweep.
+  mockFlagRefused.mockClear();
+  mockFinalize = jest.fn(async () => { throw Object.assign(new Error('RIMPL /evaluate-criteria error: 422'), {
+    status: 422, code: 'refused', category: 'bio', usage: { input_tokens: 5000, output_tokens: 1, provider: 'anthropic' } }); });
+  const res = await end('ple1', { active_seconds: 999999 });
+  expect(res.status).toBe(200);
+  expect(res.body.status).toBe('ple_flag_t2');
+  expect(mockFlagRefused).toHaveBeenCalledTimes(1);
+  expect(mockFlagRefused.mock.calls[0][0]).toMatchObject({ pleId: 'ple1', err: expect.objectContaining({ code: 'refused' }) });
 });
 
 test('a SHORT session is no longer rejected — it reaches the qualifying classifier', async () => {
