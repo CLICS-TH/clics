@@ -21,7 +21,7 @@ import {
   fmtTokens,
   fmtTokensK,
 } from '@/lib/labels';
-import { CHART } from '@/lib/chart-colors';
+import { CHART_LIGHT as CHART } from '@/lib/chart-colors';
 
 describe('PIS-7 weights', () => {
   it('sum to exactly 1.0', () => {

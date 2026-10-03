@@ -171,12 +171,12 @@ function GenreCounters({ g }: { g: Record<string, number> }) {
       <dl className="grid gap-2 @min-[520px]:grid-cols-3">
         {items.map((it) => (
           <div key={it.k} className="rounded border border-border bg-background px-2.5 py-2">
-            <dt className="text-[11px] leading-snug text-muted-foreground">
+            <dt className="text-xs leading-snug text-muted-foreground">
               <BiLabel th={it.th} en={it.en} />
             </dt>
             <dd className="mt-0.5 font-mono text-sm tabular-nums text-foreground">
               {typeof it.v === 'number' ? it.v : '—'}
-              {!it.raw && <span className="ml-1 text-[10px] text-muted-foreground">/100 ตัวอักษร</span>}
+              {!it.raw && <span className="ml-1 text-xs text-muted-foreground">/100 ตัวอักษร</span>}
             </dd>
           </div>
         ))}

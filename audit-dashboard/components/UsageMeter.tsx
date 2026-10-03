@@ -27,7 +27,7 @@ export function UsageMeter({
 }) {
   const fmtUsed = unit === 'usd' ? `$${used.toFixed(4)}` : fmtTokensK(used);
   const tag = label
-    ? <span className="text-[10px] uppercase tracking-wide text-muted-foreground mr-1">{label}</span>
+    ? <span className="text-xs uppercase tracking-wide text-muted-foreground mr-1">{label}</span>
     : null;
   if (!showLimit) return <p className="text-xs tabular-nums text-muted-foreground">{tag}{fmtUsed}</p>;
 

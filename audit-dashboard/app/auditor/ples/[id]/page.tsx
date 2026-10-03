@@ -6,6 +6,11 @@ import { DomainScorer } from '@/components/DomainScorer';
 import { TranscriptView } from '@/components/TranscriptView';
 import { Button } from '@/components/ui/button';
 import { PageIntro } from '@/components/PageIntro';
+import { Textarea, Checkbox } from '@/components/ui/input';
+import { StateMessage } from '@/components/ui/state-message';
+import { AiOutput } from '@/components/ui/ai-output';
+import { Modal } from '@/components/ui/modal';
+import { AI_LABEL } from '@/lib/ai-label';
 import { computeComposite } from '@/lib/labels';
 import { PIS7_RUBRIC, ATTESTATIONS } from '@/lib/pis7-rubric';
 import { Pis7Radar } from '@/components/Pis7Radar';
@@ -127,19 +132,18 @@ export default function AuditorScorePage() {
     else toast('บันทึกความยินยอมไม่สำเร็จ / Could not record consent.', 'error');
   }
 
-  if (!data) return <div className="p-8 text-muted-foreground">กำลังโหลด...</div>;
+  if (!data) return <div className="mx-auto max-w-3xl p-6 md:p-10"><StateMessage kind="loading" center title="กำลังโหลด… / Loading…" /></div>;
 
   // A 404 ("Not found or not assigned") resolves with the JSON error body — explain it
   // instead of rendering an empty scoring UI the auditor could submit against.
   if (data.error) return (
     <div className="max-w-3xl mx-auto p-6 md:p-10">
-      <div className="border rounded-xl p-6 text-center space-y-3">
-        <p className="font-medium">ไม่พบเซสชันนี้ หรือคุณไม่ได้รับมอบหมายให้ตรวจ</p>
-        <p className="text-sm text-muted-foreground">
-          This session could not be found, or it is not assigned to you. ({String(data.error)})
-        </p>
-        <Button variant="outline" onClick={() => router.push('/auditor/queue')}>← กลับไปที่คิว / Back to queue</Button>
-      </div>
+      <StateMessage kind="error" center title="ไม่พบเซสชันนี้ หรือคุณไม่ได้รับมอบหมายให้ตรวจ">
+        This session could not be found, or it is not assigned to you. ({String(data.error)})
+        <div className="mt-3">
+          <Button variant="outline" onClick={() => router.push('/auditor/queue')}>← กลับไปที่คิว / Back to queue</Button>
+        </div>
+      </StateMessage>
     </div>
   );
 
@@ -176,7 +180,8 @@ export default function AuditorScorePage() {
               <span className="text-3xl font-semibold text-primary tabular-nums">{composite != null ? composite.toFixed(1) : '—'}</span>
               <span className="text-sm text-muted-foreground">/ 100</span>
             </div>
-            <textarea className="w-full border rounded-lg p-3 text-sm mt-3" rows={3}
+            <Textarea className="mt-3 p-3" rows={3}
+              aria-label="หมายเหตุ / Notes"
               placeholder="หมายเหตุ / Notes (optional)" value={notes}
               onChange={e => setNotes(e.target.value)} disabled={submitted} />
             {!submitted && (
@@ -185,7 +190,7 @@ export default function AuditorScorePage() {
                 <div className="space-y-2">
                   {ATTESTATIONS.map((a) => (
                     <label key={a.key} className="flex gap-2 text-sm">
-                      <input type="checkbox" className="mt-0.5 shrink-0" checked={!!attest[a.key]}
+                      <Checkbox className="mt-0.5" checked={!!attest[a.key]}
                         onChange={e => setAttest(s => ({ ...s, [a.key]: e.target.checked }))} />
                       <span>{a.th} / {a.en}</span>
                     </label>
@@ -216,8 +221,8 @@ export default function AuditorScorePage() {
                     <label htmlFor="concern" className="block text-sm font-medium">
                       ระบุตำแหน่งและลักษณะของข้อมูล / Where in the transcript, and what kind
                     </label>
-                    <textarea id="concern" rows={3} value={concern} onChange={e => setConcern(e.target.value)}
-                      className="w-full rounded-lg border p-3 text-sm"
+                    <Textarea id="concern" rows={3} value={concern} onChange={e => setConcern(e.target.value)}
+                      className="p-3"
                       placeholder="เช่น เทิร์นที่ 3 ระบุชื่อโรงพยาบาลและวันที่ / e.g. turn 3 names a hospital and a date" />
                     <p className="text-xs text-muted-foreground">
                       เซสชันนี้จะถูกกักไว้เพื่อตรวจสอบและออกจากคิวของคุณ ไม่มีการบันทึกคะแนน /
@@ -240,27 +245,32 @@ export default function AuditorScorePage() {
               reveal block because when the lock is on the server sends no ai_evaluation at all, so
               nothing below would render and the rater would be left guessing. */}
           {submitted && data.reveal_locked && (
-            <div className="border rounded-xl p-5 bg-secondary">
-              <h2 className="font-heading text-xl">🙈 ปิดการเผยคะแนนไว้ระหว่างรอบสอบเทียบ / AI reveal locked for this round</h2>
-              <p className="text-sm text-muted-foreground mt-2">
+            <StateMessage kind="locked" heading="h2" aria-describedby="reveal-lock-why"
+              title="ปิดการเผยคะแนนไว้ระหว่างรอบสอบเทียบ / AI reveal locked for this round">
+              <p id="reveal-lock-why" className="text-muted-foreground">
                 คะแนนของคุณถูกบันทึกเรียบร้อยแล้ว ระหว่างรอบสอบเทียบระบบจะยังไม่แสดงคะแนน AI ค่าเฉลี่ยของผู้ตรวจท่านอื่น
                 และการสนทนากับ AI เพื่อให้การให้คะแนน PLE ถัดไปเป็นอิสระจากกัน ผู้ประสานงานจะเปิดให้ดูเมื่อทุกท่านให้คะแนนครบแล้ว •
                 Your score is saved. For the duration of this calibration round the AI score, the auditor
                 average and the AI discussion stay hidden so that each session is scored independently of
                 the last. The coordinator opens them once every rater has finished.
               </p>
-            </div>
+            </StateMessage>
           )}
           {submitted && data.ai_evaluation && (
             <div className="border rounded-xl p-5 bg-secondary space-y-4">
               <div>
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <h2 className="font-heading text-xl">AI Score <span className="text-sm font-normal text-muted-foreground">(เปิดเผยหลังส่งคะแนน)</span></h2>
-                  {/* Repeat-scoring metadata, when RIMPL recorded it. Renders nothing otherwise; display only. */}
-                  <ConsistencyChip provenance={data.ai_evaluation.provenance} />
-                </div>
-                <p className="text-3xl font-semibold text-primary tabular-nums">{Number(data.ai_evaluation.composite_score).toFixed(1)} <span className="text-base text-muted-foreground">/ 100</span></p>
-                <p className="text-sm text-muted-foreground mt-1">คะแนนของคุณ / Yours: {composite != null ? composite.toFixed(1) : '—'}</p>
+                {/* Colour law: coral = the human (your Total above), slate-blue = the AI. The AI number was
+                    coral, which made the two totals look like the same kind of thing. The label text is
+                    AI_LABEL (approved by the product owner 2026-10-03). */}
+                <AiOutput label={AI_LABEL.score}>
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <p className="text-3xl font-semibold tabular-nums">{Number(data.ai_evaluation.composite_score).toFixed(1)} <span className="text-base">/ 100</span></p>
+                    {/* Repeat-scoring metadata, when RIMPL recorded it. Renders nothing otherwise; display only. */}
+                    <ConsistencyChip provenance={data.ai_evaluation.provenance} />
+                  </div>
+                  <p className="mt-1 text-xs">เปิดเผยหลังส่งคะแนน / Revealed after you submit</p>
+                </AiOutput>
+                <p className="mt-2 text-sm text-muted-foreground">คะแนนของคุณ / Yours: {composite != null ? composite.toFixed(1) : '—'}</p>
               </div>
               {/* Per-domain comparison: where you scored above/below the AI across the 7 PIS-7 axes. */}
               <div>
@@ -287,19 +297,16 @@ export default function AuditorScorePage() {
       </div>
 
       {needsConsent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true">
-          <div className="max-h-[90dvh] w-full max-w-lg space-y-4 overflow-y-auto rounded-xl border bg-background p-6">
-            <h2 className="font-heading text-xl">ความยินยอมผู้เชี่ยวชาญประเมิน / Expert Auditor Consent</h2>
-            <p className="text-sm text-muted-foreground">ก่อนให้คะแนน กรุณายืนยันข้อตกลงด้านความลับและผลประโยชน์ทับซ้อน (Appendix 04/15) / Before scoring, confirm the confidentiality + COI terms.</p>
-            <label className="flex gap-2 text-sm"><input type="checkbox" checked={conf} onChange={e => setConf(e.target.checked)} /> รักษาความลับของ transcript คะแนน และข้อมูลวิจัย ไม่บันทึก/ดาวน์โหลด/ส่งต่อ / I will keep transcripts, scores, and research data confidential — no screenshots, downloads, or sharing.</label>
-            <label className="flex gap-2 text-sm"><input type="checkbox" checked={calib} onChange={e => setCalib(e.target.checked)} /> เข้าใจ rubric/behavioral anchors และจะประเมินตามเกณฑ์มาตรฐานเดียวกัน / I understand the PIS-7 rubric/anchors and will score by the calibrated standard.</label>
-            <label className="flex gap-2 text-sm"><input type="checkbox" checked={coiNone} onChange={e => setCoiNone(e.target.checked)} /> ไม่มีผลประโยชน์ทับซ้อนกับผู้เข้าร่วมวิจัยรายนี้ และจะแจ้งทันทีหากพบภายหลัง / I have no conflict of interest with this participant and will report any that arises.</label>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setNeedsConsent(false)}>ยกเลิก / Cancel</Button>
-              <Button disabled={!consentReady} onClick={recordConsent}>ยินยอมและส่งคะแนน / Consent &amp; submit</Button>
-            </div>
+        <Modal title="ความยินยอมผู้เชี่ยวชาญประเมิน / Expert Auditor Consent" onClose={() => setNeedsConsent(false)}>
+          <p className="text-sm text-muted-foreground">ก่อนให้คะแนน กรุณายืนยันข้อตกลงด้านความลับและผลประโยชน์ทับซ้อน (Appendix 04/15) / Before scoring, confirm the confidentiality + COI terms.</p>
+          <label className="flex gap-2 text-sm"><Checkbox className="mt-0.5" checked={conf} onChange={e => setConf(e.target.checked)} /> รักษาความลับของ transcript คะแนน และข้อมูลวิจัย ไม่บันทึก/ดาวน์โหลด/ส่งต่อ / I will keep transcripts, scores, and research data confidential — no screenshots, downloads, or sharing.</label>
+          <label className="flex gap-2 text-sm"><Checkbox className="mt-0.5" checked={calib} onChange={e => setCalib(e.target.checked)} /> เข้าใจ rubric/behavioral anchors และจะประเมินตามเกณฑ์มาตรฐานเดียวกัน / I understand the PIS-7 rubric/anchors and will score by the calibrated standard.</label>
+          <label className="flex gap-2 text-sm"><Checkbox className="mt-0.5" checked={coiNone} onChange={e => setCoiNone(e.target.checked)} /> ไม่มีผลประโยชน์ทับซ้อนกับผู้เข้าร่วมวิจัยรายนี้ และจะแจ้งทันทีหากพบภายหลัง / I have no conflict of interest with this participant and will report any that arises.</label>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setNeedsConsent(false)}>ยกเลิก / Cancel</Button>
+            <Button disabled={!consentReady} onClick={recordConsent}>ยินยอมและส่งคะแนน / Consent &amp; submit</Button>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

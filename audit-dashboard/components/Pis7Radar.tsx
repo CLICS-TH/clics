@@ -5,7 +5,7 @@
 // this is pure presentation. recharts sets SVG fill/stroke ATTRIBUTES (CSS var() doesn't resolve
 // there), so the series colours come from the hex CHART palette; the grid/ticks ride `currentColor`.
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend, Tooltip, ResponsiveContainer } from 'recharts';
-import { CHART } from '@/lib/chart-colors';
+import { useChartColors } from '@/lib/chart-colors';
 import { PIS7_RUBRIC } from '@/lib/pis7-rubric';
 import { DOMAIN_LABELS } from '@/lib/labels';
 
@@ -32,6 +32,7 @@ function ChartTooltip({ active, payload, cmpName }: { active?: boolean; payload?
 // either the AI (slate-blue, pass `ai`) or the auditor-cohort average (violet, pass `peer`). The same
 // component powers both the vs-AI and vs-peer cards so they read identically.
 export function Pis7Radar({ ai, peer, human, peerLabel }: { ai?: ScoreMap; peer?: ScoreMap; human: ScoreMap; peerLabel?: string }) {
+  const CHART = useChartColors();
   const isPeer = ai == null && peer != null;
   const cmpMap = isPeer ? peer : ai;
   // The peer series defaults to "average" but a caller can override it (e.g. a single other auditor,

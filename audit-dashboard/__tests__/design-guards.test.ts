@@ -1,0 +1,75 @@
+// Source-level guards for the design-a11y rules a component test cannot see — each is a pattern that
+// compiles, renders and looks fine in a screenshot and is still wrong:
+//
+//   text-primary as SMALL text   bright coral is 3.11:1 on the light canvas and 2.71:1 on --secondary;
+//                                small text must use text-link (or text-coral-on-tint on a tint)
+//   text-[10px] / text-[11px]    below the Thai small-text floor (text-xs is 13px here)
+//   a raw <table> in a page that was migrated to ui/table (labelled scroll region, scope, numerics)
+//
+// Line-based, so a className split across lines can escape it; that is a limit of the technique, not
+// a licence — write the class on one line.
+import { readFileSync, readdirSync, statSync } from 'fs';
+import { join, relative } from 'path';
+
+const ROOT = join(__dirname, '..');
+
+function files(dir: string, acc: string[] = []): string[] {
+  for (const e of readdirSync(dir)) {
+    const p = join(dir, e);
+    if (statSync(p).isDirectory()) files(p, acc);
+    else if (/\.tsx$/.test(p)) acc.push(p);
+  }
+  return acc;
+}
+const SOURCES = [...files(join(ROOT, 'app')), ...files(join(ROOT, 'components'))];
+const lines = (f: string) => readFileSync(f, 'utf8').split('\n');
+const rel = (f: string) => relative(ROOT, f);
+
+describe('design-a11y source guards', () => {
+  it('no small text is coloured with bright coral (text-primary)', () => {
+    const bad: string[] = [];
+    for (const f of SOURCES) {
+      lines(f).forEach((l, i) => {
+        // `text-primary` as a colour class — not text-primary-foreground, not hover:/dark: variants of other tokens.
+        if (!/(^|[\s"'`])text-primary(?![-\w/])/.test(l)) return;
+        // Large text (>= 24px) is held to 3:1, which 3.11:1 clears on the canvas.
+        if (/\btext-(2xl|3xl|4xl|5xl|6xl|display|fluid-xl|fluid-2xl)\b/.test(l)) return;
+        // Small: an explicit small size on the same line.
+        if (/\btext-(xs|sm|base|\[1\dpx\])\b/.test(l)) bad.push(`${rel(f)}:${i + 1}  ${l.trim().slice(0, 110)}`);
+      });
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('nothing is set below the Thai small-text floor, except Latin-only "test" tags', () => {
+    const bad: string[] = [];
+    for (const f of SOURCES) {
+      lines(f).forEach((l, i) => {
+        if (!/text-\[(9|10|11)px\]/.test(l)) return;
+        if (/>test<\/span>/.test(l)) return;   // the Latin-only is_test marker on admin/ples
+        bad.push(`${rel(f)}:${i + 1}  ${l.trim().slice(0, 110)}`);
+      });
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('pages migrated to ui/table keep no raw <table>', () => {
+    const migrated = ['app/admin/ples/page.tsx', 'app/admin/compensation/page.tsx', 'components/RaterSpread.tsx'];
+    const bad = migrated.filter((f) => /<table[\s>]/.test(readFileSync(join(ROOT, f), 'utf8')));
+    expect(bad).toEqual([]);
+  });
+
+  it('the AI colour tokens are only used where the AI wrote the content', () => {
+    // --ai-* means "an AI produced this". Allowed homes: the AiOutput primitive, the Badge tone, and
+    // the AI score block. Anywhere else it would dilute the signal (peer = violet, human = coral).
+    const allowed = ['components/ui/ai-output.tsx', 'components/ui/badge.tsx'];
+    const bad: string[] = [];
+    for (const f of SOURCES) {
+      if (allowed.includes(rel(f))) continue;
+      lines(f).forEach((l, i) => {
+        if (/(bg|text|border)-ai-(bg|text|border)/.test(l)) bad.push(`${rel(f)}:${i + 1}  ${l.trim().slice(0, 110)}`);
+      });
+    }
+    expect(bad).toEqual([]);
+  });
+});

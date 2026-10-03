@@ -15,22 +15,39 @@ function redirectToLogin(): void {
   window.location.href = '/login';
 }
 
-export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+// `timeoutMs` is opt-in (most calls are short). When set, the request is aborted at that point and
+// resolves with { error, code: 'timeout' } — still an envelope, never a rejection. An abort does NOT
+// mean the server stopped: the backend may finish and store the work after the client gave up, so a
+// caller must never re-send automatically on a timeout.
+export const REQUEST_TIMEOUT_CODE = 'timeout';
+
+export async function apiFetch<T>(path: string, options: RequestInit & { timeoutMs?: number } = {}): Promise<T> {
   const token = getToken();
+  const { timeoutMs, ...init } = options;
+  const ctrl = timeoutMs ? new AbortController() : null;
+  let timedOut = false;
+  const timer = ctrl ? setTimeout(() => { timedOut = true; ctrl.abort(); }, timeoutMs) : null;
   let res: Response;
   try {
     res = await fetch(`${BASE}${path}`, {
-      ...options,
+      ...init,
+      ...(ctrl ? { signal: ctrl.signal } : {}),
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(options.headers ?? {}),
+        ...(init.headers ?? {}),
       },
     });
   } catch {
+    if (timedOut) {
+      return { error: 'หมดเวลารอการตอบกลับ / The request timed out.', code: REQUEST_TIMEOUT_CODE } as unknown as T;
+    }
     // Never REJECT on a network failure — callers check `.error`, so an envelope keeps action buttons
     // (Approve/Reject/Create…) from stranding disabled. Mirrors apiFetchPaged's non-throwing contract.
     return { error: 'เครือข่ายขัดข้อง กรุณาลองใหม่ / Network error. Please try again.' } as unknown as T;
+  } finally {
+    // Headers are in (or the call failed): the timeout guards a stalled upstream, not the body read.
+    if (timer) clearTimeout(timer);
   }
   if (res.status === 401 && typeof window !== 'undefined') {
     redirectToLogin();

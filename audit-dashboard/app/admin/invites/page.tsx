@@ -5,6 +5,7 @@ import { getUser } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
+import { StateMessage } from '@/components/ui/state-message';
 import { useIsMobile } from '@/components/ViewportProvider';
 import { ROLE_LABELS, INVITE_STATUS_MAP, roleToWire, POSITION_OPTIONS } from '@/lib/labels';
 import { type ApiResult, formatApiError } from '@/lib/types';
@@ -47,7 +48,8 @@ export default function InvitesPage() {
   // fetchInvites only sets state asynchronously (mount effect stays free of synchronous setState); the
   // `load` wrapper adds the error-reset for the Retry button + post-action refresh (event handlers).
   const fetchInvites = useCallback(() => {
-    apiFetch<Invite[]>('/admin/invites').then(d => setInvites(Array.isArray(d) ? d : [])).catch(() => setLoadErr(true));
+    // apiFetch never rejects — a failed load is a non-array {error} body (not "no invites yet").
+    apiFetch<Invite[]>('/admin/invites').then(d => { if (Array.isArray(d)) setInvites(d); else setLoadErr(true); }).catch(() => setLoadErr(true));
   }, []);
   const load = () => { setLoadErr(false); fetchInvites(); };
 
@@ -147,7 +149,7 @@ export default function InvitesPage() {
 
   // Small chip marking a physician invite that also grants auditor access.
   const SpecialChip = () => (
-    <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-foreground">
+    <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-xs font-medium text-foreground">
       Special
     </span>
   );
@@ -257,14 +259,11 @@ export default function InvitesPage() {
 
       {/* Invite list */}
       {loadErr ? (
-        <div className="py-10 text-center">
-          <p className="text-muted-foreground text-sm mb-3">โหลดรายการไม่สำเร็จ / Could not load invites.</p>
-          <button className="text-sm text-primary underline" onClick={load}>ลองใหม่ / Retry</button>
-        </div>
+        <StateMessage kind="error" center onRetry={load} title="โหลดรายการไม่สำเร็จ / Could not load invites." />
       ) : invites === null ? (
-        <p className="text-muted-foreground text-sm py-10 text-center">กำลังโหลด… / Loading…</p>
+        <StateMessage kind="loading" center title="กำลังโหลด… / Loading…" />
       ) : invites.length === 0 ? (
-        <p className="text-muted-foreground text-sm py-10 text-center">ยังไม่มีคำเชิญ / No invites yet.</p>
+        <StateMessage kind="empty" center title="ยังไม่มีคำเชิญ / No invites yet." />
       ) : mobile ? (
         <div className="space-y-3">
           {invites.map(inv => (

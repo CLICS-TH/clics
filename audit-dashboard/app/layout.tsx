@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Footer } from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { THEME_BOOT } from "@/lib/theme";
 import { ViewportProvider } from "@/components/ViewportProvider";
 import { AppShell } from "@/components/AppShell";
 import { Overlays } from "@/components/Overlays";
@@ -49,10 +50,18 @@ export const metadata: Metadata = {
 
 // viewportFit:'cover' is required for the env(safe-area-inset-*) used by the responsive primitives
 // (globals.css) to be non-zero on notched / home-indicator devices (tablets auditors may use).
+//
+// themeColor is the media form (generate-viewport.md) so the browser chrome follows the OS on first
+// paint; the values mirror --background (:root / .dark in globals.css). lib/theme.ts applyTheme()
+// rewrites these metas when the person picks Light/Dark against the OS.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#faf9f5" },
+    { media: "(prefers-color-scheme: dark)", color: "#181715" },
+  ],
 };
 
 export default function RootLayout({
@@ -70,7 +79,7 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){try{var e=document.documentElement;var t=localStorage.getItem('clics_theme');var d=t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches;if(d)e.classList.add('dark');" +
+              "(function(){try{var e=document.documentElement;" + THEME_BOOT +
               // Same no-FOUC reason as the theme: without this a reader who chose English watches
               // the Thai copy of /manual paint first and then swap.
               "if(localStorage.getItem('clics_manual_lang')==='en'){e.setAttribute('data-manual-lang','en');e.setAttribute('lang','en');}" +

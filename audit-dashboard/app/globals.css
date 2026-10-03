@@ -38,6 +38,18 @@
   --color-coral-on-tint: var(--coral-on-tint);
   --color-warn: var(--warn);
   --color-ok: var(--ok);
+  /* design-a11y tokens (2026-10). Each needs its --color-* line or Tailwind silently renders it as
+     inherited text (theme-tokens.test.ts enforces this). --field is the 3:1 border for form controls;
+     --notice-* and --error-* are tinted status pairs (values shared with physician-ui); --ai-* is the
+     slate-blue "AI wrote this" treatment — never used for anything a person wrote. */
+  --color-field: var(--field);
+  --color-notice-bg: var(--notice-bg);
+  --color-notice-text: var(--notice-text);
+  --color-error-bg: var(--error-bg);
+  --color-error-text: var(--error-text);
+  --color-ai-bg: var(--ai-bg);
+  --color-ai-border: var(--ai-border);
+  --color-ai-text: var(--ai-text);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -51,10 +63,16 @@
   --color-chart-fail: var(--chart-fail);
   --color-chart-threshold: var(--chart-threshold);
   --color-chart-warn: var(--chart-warn);
+  --color-chart-teal: var(--chart-teal);
+  --color-chart-pass-bg: var(--chart-pass-bg);
+  --color-chart-pass-text: var(--chart-pass-text);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Popover / dialog / toast elevation. Dark surfaces need a heavier shadow to separate from the
+     canvas at all, so the value is a per-theme variable (--pop-shadow, below) behind ONE utility. */
+  --shadow-pop: var(--pop-shadow);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -117,21 +135,43 @@
   /* Amber TEXT. Previously UNDEFINED: admin/compensation and StatStrip both wrote
      var(--warn, #e08a1e) and always got the fallback — #e08a1e is --chart-warn, a SOLID-FILL
      colour, and measures 2.55:1 as text here. Defining it fixes those sites with no edit. */
-  --warn: #a06624;
+  /* Was #a06624, which cleared AA by 0.01 (4.51:1) and fell to 3.93:1 on --secondary. #8a5a1c is
+     5.60:1 on the canvas and 4.88:1 on --secondary. */
+  --warn: #8a5a1c;
   --border: #e6dfd8;
   --input: #e6dfd8;
-  --ring: #cc785c;
+  /* FORM-CONTROL border. --border / --input (1.25:1) are decorative and fail the 3:1 non-text bar
+     for the edge of a text field. 3.77:1 on the canvas, 3.29:1 on --secondary. Controls only. */
+  --field: #857f75;
+  /* Tinted status pairs. Same hex as physician-ui's warning and error pairs so the two apps agree. */
+  --notice-bg: #fef3cd;
+  --notice-text: #7a5900;
+  --error-bg: #fde8e8;
+  --error-text: #7a1c1c;
+  /* AI-authored content: slate-blue, matching the radar's AI series (CHART.ai) and distinct from
+     coral (human) and violet (peer). Same hex as physician-ui's --ai-*. */
+  --ai-bg: #eef2f9;
+  --ai-border: #4f72ad;
+  --ai-text: #2c4673;
+  /* Focus ring. Was #cc785c, 3.11:1 on the canvas and 2.71:1 on --secondary (fails 3:1 on the
+     latter). #a9583e = --coral-active: 4.80:1 canvas, 4.19:1 --secondary, 4.46:1 --muted. */
+  --ring: #a9583e;
   --chart-1: #cc785c;
   --chart-2: #181715;
   --chart-3: #5db8a6;
   --chart-4: #e8a55a;
   --chart-5: #6c6a64;
+  --chart-teal: #2f8f7e;   /* Bland-Altman mean line; solid-mark variant, 3.73:1 on the light card */
   /* Semantic status colours for charts/badges — centralised so dark mode + rebrands stay consistent
      (was hardcoded #5db872/#c64545/#e8a55a inline in overview/icc). */
-  --chart-pass: #5db872;
+  /* Light-mode MARK variants: the dark-mode hues measure 2.33 / 2.00 / 2.55:1 on the light card, under
+     the 3:1 non-text bar, so a threshold line or pass bar nearly vanishes. These clear 3:1 on it
+     (4.10 / 3.59 / 3.78). The .dark block keeps the original brighter hues. chart-colors.ts mirrors
+     BOTH sets and __tests__/chart-mirror.test.ts fails if they drift. */
+  --chart-pass: #2f8a4b;
   --chart-fail: #c64545;
-  --chart-threshold: #e8a55a;
-  --chart-warn: #e08a1e;   /* saturated amber for solid fills (usage/budget meters) — same in both modes */
+  --chart-threshold: #b8741a;
+  --chart-warn: #b86e00;   /* solid fills (usage/budget meters) */
   --chart-human: #cc785c;  /* PIS-7 radar: human auditor series (mirror of CHART.human) */
   --chart-ai: #5b7fb9;     /* PIS-7 radar: AI series (mirror of CHART.ai) */
   --chart-peer: #8d6fc9;   /* PIS-7 radar: auditor-cohort-average series (mirror of CHART.peer) */
@@ -149,6 +189,8 @@
 
   /* Responsive primitives (mirrored with physician-ui main.css). viewport-fit=cover (set in
      app/layout.tsx) is required for the safe-area insets to be non-zero on notched phones. */
+  color-scheme: light;
+  --pop-shadow: 0 8px 24px rgb(20 20 19 / 0.14), 0 2px 6px rgb(20 20 19 / 0.08);
   --tap-min: 44px;
   --safe-t: env(safe-area-inset-top);
   --safe-r: env(safe-area-inset-right);
@@ -157,6 +199,8 @@
 }
 
 .dark {
+  color-scheme: dark;
+  --pop-shadow: 0 10px 30px rgb(0 0 0 / 0.6), 0 2px 8px rgb(0 0 0 / 0.45);
   --background: #181715;
   --foreground: #faf9f5;
   --card: #252320;
@@ -174,18 +218,29 @@
   --accent-foreground: #faf9f5;
   --destructive: #c64545;
   --ok: #5db872;            /* success text — bright green reads well on the dark canvas (7.31:1) */
-  --danger: #f26e69;        /* tuned to the HOVER tint (4.52:1 on /30); 6.15:1 canvas, 5.38:1 card */
+  /* Was #f26e69, which measured 4.47:1 on the /20 tint Badge/Button destructive use in dark mode and
+     4.01:1 on its /30 hover. #f8807b: 5.18:1 on /20 and 4.66:1 on /30 (both over --card), 6.24 on the card itself. */
+  --danger: #f8807b;
   --link: #cc785c;          /* bright coral is already 5.47:1 on the dark canvas — no change needed */
   --coral-on-tint: #f0bda8; /* 9.96:1 on --muted, 9.37:1 on --card, 10.71:1 on the canvas */
   --warn: #e08a1e;          /* 6.67:1 on the dark canvas — the fill colour happens to work here */
   --border: rgba(250,249,245,0.10);
   --input: rgba(250,249,245,0.15);
-  --ring: #cc785c;
+  --field: #85827b;         /* 4.67:1 canvas, 4.09:1 card, 4.35:1 --secondary */
+  --notice-bg: #34290c;     /* physician-ui dark pair; 9.47:1 */
+  --notice-text: #f0cf7a;
+  --error-bg: #3a1c1c;      /* physician-ui dark pair; 7.68:1 */
+  --error-text: #f0a3a3;
+  --ai-bg: #1b2536;         /* text 10.78:1, border 5.73:1 on its own bg, 5.83:1 on --card */
+  --ai-border: #7f9fd4;
+  --ai-text: #c9d9f4;
+  --ring: #cc785c;          /* 5.47:1 canvas, 4.78:1 card, 5.09:1 --secondary */
   --chart-1: #cc785c;
   --chart-2: #faf9f5;
   --chart-3: #5db8a6;
   --chart-4: #e8a55a;
   --chart-5: #a09d96;
+  --chart-teal: #5db8a6;
   --chart-pass: #5db872;
   --chart-fail: #c64545;
   --chart-threshold: #e8a55a;
@@ -204,7 +259,14 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
+  }
+  /* One solid focus ring for everything that takes keyboard focus. It was a 50%-alpha outline
+     (1.69:1 on the light canvas). --ring clears 3:1 on every surface in both themes (contrast.test.ts).
+     Controls that suppress the outline (Button) draw their own indicator. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
   body {
     @apply bg-background text-foreground;
@@ -269,4 +331,19 @@
   .clics-ecg[data-anim='once'] .ecg-line { animation: ecg-draw 1.2s cubic-bezier(.4,0,.2,1) .15s forwards; }
   .clics-ecg[data-anim='once'] .ecg-beat { animation: ecg-beat 4s ease-in-out 1.6s infinite; }
   .clics-ecg[data-anim='loading'] .ecg-line { animation: ecg-draw 1.4s cubic-bezier(.4,0,.2,1) infinite; }
+}
+
+/* Global reduced-motion reset. The ECG block above is already gated on no-preference and a few
+   components carry motion-reduce: utilities, but ~13 animate-in / animate-pulse / transition sites
+   did not. This makes the preference hold everywhere: animations run once in ~0ms (so an animated
+   element still lands in its end state) and transitions are instant. Unlayered on purpose — an
+   !important rule beats Tailwind's utilities whichever layer they sit in. */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
 }

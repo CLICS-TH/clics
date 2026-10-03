@@ -7,6 +7,7 @@
 // disagreement. Read as a bare ICC that looks like "the AI is wrong about our episodes", which calls
 // for the opposite work from what is needed. This panel is the sentence the ICC cannot say.
 import type { RaterSpread } from '@/lib/types';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 // ICC = var_between / (var_between + var_error), so 0.75 needs var_between ≥ 3 × var_error. Stated in
 // score points because that is what an instruction can use.
@@ -103,69 +104,69 @@ export function RaterSpreadPanel({ data }: { data: RaterSpread | null }) {
       {/* Two different problems with two different fixes, deliberately not merged: a domain everyone
           scores IDENTICALLY is a discrimination problem; a domain everyone calls AMBIGUOUS is a
           rubric problem. */}
-      <div className="overflow-x-auto">
+      <div>
         <h3 className="text-sm font-medium mb-2">รายด้าน / Per domain</h3>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-left">
-              <th className="py-2 pr-4 font-medium">ด้าน / Domain</th>
-              <th className="py-2 pr-4 font-medium">SD</th>
-              <th className="py-2 pr-4 font-medium">ค่าที่ใช้ซ้ำ / Modal</th>
-              <th className="py-2 font-medium">ระบุว่ากำกวม / Ambiguous</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table label="รายด้าน / Per domain">
+          <TableHeader>
+            <TableRow className="border-border text-left">
+              <TableHead className="h-auto py-2 pr-4 pl-0">ด้าน / Domain</TableHead>
+              <TableHead className="h-auto py-2 pr-4 pl-0">SD</TableHead>
+              <TableHead className="h-auto py-2 pr-4 pl-0">ค่าที่ใช้ซ้ำ / Modal</TableHead>
+              <TableHead className="h-auto py-2 pl-0">ระบุว่ากำกวม / Ambiguous</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {domains.map(([d, v]) => {
               const anchor = data.anchor_clarity?.[d];
               const collapsed = v.distinct <= 1 && v.n > 1;
               return (
-                <tr key={d} className="border-b border-border/50">
-                  <td className="py-2 pr-4 font-medium uppercase">{d}</td>
-                  <td className={`py-2 pr-4 tabular-nums ${collapsed ? 'text-danger' : ''}`}>{v.sd ?? '—'}</td>
-                  <td className="py-2 pr-4 tabular-nums">
+                <TableRow key={d} className="border-border/50">
+                  <TableHead scope="row" className="h-auto py-2 pr-4 pl-0 uppercase">{d}</TableHead>
+                  <TableCell className={`py-2 pr-4 pl-0 tabular-nums ${collapsed ? 'text-danger' : ''}`}>{v.sd ?? '—'}</TableCell>
+                  <TableCell className="py-2 pr-4 pl-0 tabular-nums">
                     {v.modal_value ?? '—'}
                     {v.modal_share != null && (
                       <span className="ml-1 text-xs text-muted-foreground">{Math.round(v.modal_share * 100)}%</span>
                     )}
-                  </td>
-                  <td className="py-2 tabular-nums">
+                  </TableCell>
+                  <TableCell className="py-2 pl-0 tabular-nums">
                     {anchor == null || anchor.answered === 0
                       ? <span className="text-muted-foreground">ยังไม่ระบุ / not asked</span>
                       : `${anchor.ambiguous}/${anchor.answered}`}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               );
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* Per auditor, so one rater flattening the scale is distinguishable from everyone doing it. */}
-      <div className="overflow-x-auto">
+      <div>
         <h3 className="text-sm font-medium mb-2">รายผู้ตรวจ / Per auditor</h3>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-left">
-              <th className="py-2 pr-4 font-medium">ผู้ตรวจ</th>
-              <th className="py-2 pr-4 font-medium">n</th>
-              <th className="py-2 pr-4 font-medium">เฉลี่ย / Mean</th>
-              <th className="py-2 pr-4 font-medium">SD</th>
-              <th className="py-2 font-medium">ช่วง / Range</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table label="รายผู้ตรวจ / Per auditor">
+          <TableHeader>
+            <TableRow className="border-border text-left">
+              <TableHead className="h-auto py-2 pr-4 pl-0">ผู้ตรวจ</TableHead>
+              <TableHead className="h-auto py-2 pr-4 pl-0">n</TableHead>
+              <TableHead className="h-auto py-2 pr-4 pl-0">เฉลี่ย / Mean</TableHead>
+              <TableHead className="h-auto py-2 pr-4 pl-0">SD</TableHead>
+              <TableHead className="h-auto py-2 pl-0">ช่วง / Range</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {data.per_auditor.map((a) => (
-              <tr key={a.auditor_id} className="border-b border-border/50">
-                <td className="py-2 pr-4 font-mono text-xs">{a.auditor_id.slice(0, 8)}</td>
-                <td className="py-2 pr-4 tabular-nums">{a.n}</td>
-                <td className="py-2 pr-4 tabular-nums">{a.mean ?? '—'}</td>
+              <TableRow key={a.auditor_id} className="border-border/50">
+                <TableHead scope="row" className="h-auto py-2 pr-4 pl-0 font-mono text-xs">{a.auditor_id.slice(0, 8)}</TableHead>
+                <TableCell className="py-2 pr-4 pl-0 tabular-nums">{a.n}</TableCell>
+                <TableCell className="py-2 pr-4 pl-0 tabular-nums">{a.mean ?? '—'}</TableCell>
                 {/* SD 0 across more than one episode is one rater giving everything the same score. */}
-                <td className={`py-2 pr-4 tabular-nums ${a.sd === 0 && a.n > 1 ? 'text-danger' : ''}`}>{a.sd ?? '—'}</td>
-                <td className="py-2 tabular-nums">{a.min ?? '—'}–{a.max ?? '—'}</td>
-              </tr>
+                <TableCell className={`py-2 pr-4 pl-0 tabular-nums ${a.sd === 0 && a.n > 1 ? 'text-danger' : ''}`}>{a.sd ?? '—'}</TableCell>
+                <TableCell className="py-2 pl-0 tabular-nums">{a.min ?? '—'}–{a.max ?? '—'}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <p className="text-xs text-muted-foreground">
