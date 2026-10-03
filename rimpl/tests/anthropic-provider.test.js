@@ -87,9 +87,18 @@ test('exposes the provider interface ai.js dispatches on', () => {
 // runner (a queued call never starts). Without it a hung-up evaluation ran on, billed and unmetered,
 // and the drain then paid for it again.
 describe('the caller\'s abort signal', () => {
+  // ISOLATED: these tests hold SDK calls open on purpose. A FRESH provider (its own runner, so its own
+  // slots) per test, and every still-pending mock released afterwards, so a regression here fails only
+  // these tests instead of leaking held slots or hung promises into the rest of the file.
+  let p;
+  const pending = [];   // settle functions of mocks still open at the end of a test
+  beforeEach(() => { jest.isolateModules(() => { p = require('../src/services/providers/anthropic'); }); });
+  afterEach(() => { while (pending.length) pending.pop()(); });
+
   // What SDK 0.30.1 does with `signal`: rejects the in-flight request with APIUserAbortError.
-  const abortable = (_body, opts) => new Promise((_resolve, reject) => {
+  const abortable = (_body, opts) => new Promise((resolve, reject) => {
     const fail = () => reject(Object.assign(new Error('Request was aborted.'), { name: 'APIUserAbortError' }));
+    pending.push(() => resolve(okResp));
     if (opts?.signal?.aborted) return fail();
     opts?.signal?.addEventListener('abort', fail, { once: true });
   });
@@ -97,25 +106,24 @@ describe('the caller\'s abort signal', () => {
   test('reaches the SDK, and an abort in flight rejects as aborted with NO retry', async () => {
     mockCall.mockImplementation(abortable);
     const ac = new AbortController();
-    const p = call({ ...args('evaluate'), signal: ac.signal });
+    const call1 = p.call({ ...args('evaluate'), signal: ac.signal });
     await sleep(5);
     expect(mockCall.mock.calls[0][1].signal).toBeDefined();   // passed through to messages.create
     ac.abort();
-    await expect(p).rejects.toMatchObject({ aborted: true, code: 'aborted' });
+    await expect(call1).rejects.toMatchObject({ aborted: true, code: 'aborted' });
     await sleep(20);
     expect(mockCall).toHaveBeenCalledTimes(1);                 // "Request was aborted." matches /aborted/, but is never retried
   });
 
   test('a call still QUEUED when its caller hangs up never starts', async () => {
-    const hold = [];
-    mockCall.mockImplementation(() => new Promise((resolve) => hold.push(() => resolve(okResp))));
-    const busy = [call(args()), call(args()), call(args())];          // fill all 3 slots
+    mockCall.mockImplementation(() => new Promise((resolve) => pending.push(() => resolve(okResp))));
+    const busy = [p.call(args()), p.call(args()), p.call(args())];    // fill all 3 slots
     await sleep(5);
     expect(mockCall).toHaveBeenCalledTimes(3);
     const ac = new AbortController();
-    const queued = call({ ...args(), signal: ac.signal });
+    const queued = p.call({ ...args(), signal: ac.signal });
     ac.abort();                                                         // hung up while waiting
-    hold.forEach((release) => release());
+    while (pending.length) pending.pop()();                             // free the slots
     await Promise.all(busy);
     await expect(queued).rejects.toMatchObject({ aborted: true });
     expect(mockCall).toHaveBeenCalledTimes(3);                         // the 4th never reached the SDK
@@ -124,17 +132,17 @@ describe('the caller\'s abort signal', () => {
   test('a normal call is unaffected by the signal key', async () => {
     mockCall.mockResolvedValueOnce(okResp);
     const ac = new AbortController();
-    const r = await call({ ...args('chat'), signal: ac.signal });
+    const r = await p.call({ ...args('chat'), signal: ac.signal });
     expect(r).toEqual({ text: 'hi', inputTokens: 5, outputTokens: 7, tokenCount: 12, stopReason: 'end_turn', model: 'claude-sonnet-5-5',
       decoding: CHAT_SENT });
     expect(mockCall).toHaveBeenCalledTimes(1);
-    expect(provider.stats()).toEqual({ provider: 'anthropic', active: 0, queued: 0, maxConcurrency: 3,
+    expect(p.stats()).toEqual({ provider: 'anthropic', active: 0, queued: 0, maxConcurrency: 3,
       lastOk: expect.any(Number), lastError: null }); // no `lanes`: still the FIFO
   });
 });
 
 // A retry that STARTS after 480 − 300 − 30 = 150s cannot finish before the backend's 480s deadline.
-describe('late-retry cutoff for evaluations', () => {
+describe('late-retry cutoff for /evaluate', () => {
   let now, spy, warn;
   beforeEach(() => {
     now = 1_000_000;
@@ -149,24 +157,61 @@ describe('late-retry cutoff for evaluations', () => {
     expect(provider.EVAL_LATE_RETRY_MS).toBe(150000);
   });
 
-  // `shadow` is an evaluation too (services/shadow.js): same cutoff.
-  test.each(['evaluate', 'shadow'])('a %s error arriving after the cutoff is NOT retried', async (purpose) => {
+  test('an /evaluate error arriving after the cutoff is NOT retried', async () => {
     mockCall.mockImplementationOnce(lateFailure(151)).mockResolvedValue(okResp);
-    await expect(call(args(purpose))).rejects.toMatchObject({ status: 529 });
+    await expect(call(args('evaluate'))).rejects.toMatchObject({ status: 529 });
     expect(mockCall).toHaveBeenCalledTimes(1);
-    expect(warn.mock.calls.flat().join(' ')).toMatch(/not retrying a late evaluation error/);
+    expect(warn.mock.calls.flat().join(' ')).toMatch(/not retrying a late \/evaluate error/);
   });
 
-  test('an evaluation error inside the cutoff is still retried', async () => {
+  test('...and the health record still calls it RETRYABLE (the decision is separate from the classification)', async () => {
+    mockCall.mockImplementationOnce(lateFailure(151));
+    await call(args('evaluate')).catch(() => {});
+    expect(provider.stats().lastError).toMatchObject({ status: 529, retryable: true, attempts: 1 });
+    expect(provider.isRetryable({ status: 529, noRetry: true })).toBe(true);
+    expect(provider.shouldRetry({ status: 529, noRetry: true })).toBe(false);
+    expect(provider.shouldRetry({ status: 529 })).toBe(true);
+  });
+
+  test('an /evaluate error inside the cutoff is still retried', async () => {
     mockCall.mockImplementationOnce(lateFailure(100)).mockResolvedValue(okResp);
     expect((await call(args('evaluate'))).text).toBe('hi');
     expect(mockCall).toHaveBeenCalledTimes(2);
   });
 
-  test('chat is not subject to it (its own 100s caller deadline aborts it instead)', async () => {
+  // shadow runs after the response is sent (services/shadow.js); chat's own 100s caller deadline aborts it.
+  test.each(['shadow', 'chat'])('%s is not subject to it (no /evaluate caller deadline)', async (purpose) => {
     mockCall.mockImplementationOnce(lateFailure(151)).mockResolvedValue(okResp);
-    expect((await call(args('chat'))).text).toBe('hi');
+    expect((await call(args(purpose))).text).toBe('hi');
     expect(mockCall).toHaveBeenCalledTimes(2);
+  });
+});
+
+// The cutoff is computed at module load from CLAUDE_TIMEOUT_MS, so these load a fresh copy.
+describe('late-retry cutoff configuration', () => {
+  const loadWith = (timeoutMs) => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const saved = process.env.CLAUDE_TIMEOUT_MS;
+    process.env.CLAUDE_TIMEOUT_MS = String(timeoutMs);
+    let mod;
+    try { jest.isolateModules(() => { mod = require('../src/services/providers/anthropic'); }); }
+    finally {
+      if (saved === undefined) delete process.env.CLAUDE_TIMEOUT_MS; else process.env.CLAUDE_TIMEOUT_MS = saved;
+    }
+    const logged = warn.mock.calls.flat().join(' ');
+    warn.mockRestore();
+    return { mod, logged };
+  };
+
+  test('a CLAUDE_TIMEOUT_MS near the deadline cannot drive the cutoff to 0: it is floored at 60s', () => {
+    expect(loadWith(470000).mod.EVAL_LATE_RETRY_MS).toBe(60000);   // 480 − 470 − 30 < 0 → floor
+    expect(loadWith(380000).mod.EVAL_LATE_RETRY_MS).toBe(70000);   // above the floor: still derived
+  });
+
+  test('boot warns when CLAUDE_TIMEOUT_MS + slack reaches the backend deadline, and only then', () => {
+    expect(loadWith(450000).logged).toMatch(/reaches the backend's 480000ms \/evaluate deadline/);
+    expect(loadWith(449999).logged).not.toMatch(/reaches the backend/);
+    expect(loadWith(300000).logged).not.toMatch(/reaches the backend/);   // the 5.5 default
   });
 });
 

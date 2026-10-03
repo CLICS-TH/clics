@@ -28,27 +28,45 @@ const { requestShape } = require('../../lib/anthropic-request');
 // WHAT A TIMEOUT DOES. The SDK throws APIConnectionTimeoutError ("Request timed out."), which
 // isRetryable() below does NOT match (no status, no network code, and "timed out" is not "timeout").
 // So a timed-out evaluation is ONE attempt and then an error: a single 500, not a retry. Other
-// retryable errors on an evaluation are cut off by the late-retry rule (EVAL_LATE_RETRY_MS) once a
-// second attempt could no longer finish inside the backend's deadline.
+// retryable errors on a served /evaluate are cut off by the late-retry rule (EVAL_LATE_RETRY_MS) once a
+// further attempt could no longer finish inside the backend's deadline.
 // Unmeasured on 5.5: the paid repeat-consistency run should record latency before deploy.
 const EVAL_TIMEOUT_MS = Math.max(1000, parseInt(process.env.CLAUDE_TIMEOUT_MS || '300000', 10));
 // Chat, criteria and discuss keep 150s. The backend gives each of them 100s (RIMPL_CHAT_TIMEOUT_MS) or
 // 180s (criteria at /end). When the backend hangs up first, the caller's signal now aborts the call
 // (see call() below), so this ceiling only matters for a caller that is still waiting.
 const INTERACTIVE_TIMEOUT_MS = Math.max(1000, parseInt(process.env.CLAUDE_INTERACTIVE_TIMEOUT_MS || '150000', 10));
+// The long timeout goes to both evaluations, the served one and the shadow (services/shadow.js).
 const EVAL_PURPOSES = new Set(['evaluate', 'shadow']);
 const timeoutFor = (purpose) => (EVAL_PURPOSES.has(purpose) ? EVAL_TIMEOUT_MS : INTERACTIVE_TIMEOUT_MS);
 
-// LATE-RETRY CUTOFF for evaluations. The backend gives /evaluate 480s in all
-// (backend/src/services/rimpl-client.js RIMPL_EVAL_TIMEOUT_MS; it mirrors that default, it does not read
-// it). A retry that STARTS after 480 − 300 − slack seconds cannot finish before the backend hangs up,
-// so it would only buy a reply nobody reads. The abort below would cancel it at 480s, but the tokens
-// already generated are billed, and the drain then re-claims the row and pays again. So an evaluation
-// error that arrives later than this is not retried: it fails now, and the drain's own backoff takes
-// over. The slack covers the backoff sleep (up to 30s with a Retry-After) and the prefill.
+// LATE-RETRY CUTOFF for evaluations. The backend gives /evaluate RIMPL_EVAL_TIMEOUT_MS in all
+// (backend/src/services/rimpl-client.js, default 480s; this mirrors that default, it does not read it).
+// A retry that STARTS later than (that deadline − one full attempt − slack) cannot finish before the
+// backend hangs up. The caller's abort signal (call() below) would cancel it then, but the tokens it
+// generated meanwhile are billed, and the drain re-claims the row and pays again. So an evaluation
+// error arriving after the cutoff fails now, and the drain's own backoff takes over. The slack covers
+// the backoff sleep (up to 30s with a Retry-After). Derived, not hardcoded: raise CLAUDE_TIMEOUT_MS and
+// the cutoff moves with it.
+//
+// FLOORED at 60s. Without a floor, a CLAUDE_TIMEOUT_MS near the deadline would drive the cutoff to 0
+// and silently turn off every evaluation retry, including the cheap, early 429/529 retries that cost a
+// few seconds and are what the retry policy exists for. A misconfiguration should be loud, not
+// absorbed, hence the boot warning below.
+//
+// EVAL_CALLER_DEADLINE_MS mirrors backend/src/services/rimpl-client.js RIMPL_EVAL_TIMEOUT_MS (480s). It
+// cannot read it across the service boundary, so CHANGE BOTH TOGETHER.
 const EVAL_CALLER_DEADLINE_MS = 480000;
 const EVAL_LATE_RETRY_SLACK_MS = 30000;
-const EVAL_LATE_RETRY_MS = Math.max(0, EVAL_CALLER_DEADLINE_MS - EVAL_TIMEOUT_MS - EVAL_LATE_RETRY_SLACK_MS); // 150s by default
+const EVAL_LATE_RETRY_FLOOR_MS = 60000;
+const EVAL_LATE_RETRY_MS = Math.max(EVAL_LATE_RETRY_FLOOR_MS, EVAL_CALLER_DEADLINE_MS - EVAL_TIMEOUT_MS - EVAL_LATE_RETRY_SLACK_MS); // 150s by default (480 − 300 − 30)
+if (EVAL_TIMEOUT_MS + EVAL_LATE_RETRY_SLACK_MS >= EVAL_CALLER_DEADLINE_MS) {
+  console.warn(`[claude] CLAUDE_TIMEOUT_MS=${EVAL_TIMEOUT_MS} plus ${EVAL_LATE_RETRY_SLACK_MS}ms slack reaches the backend's ${EVAL_CALLER_DEADLINE_MS}ms /evaluate deadline: a single slow evaluation can outlive its caller. The late-retry cutoff is held at its ${EVAL_LATE_RETRY_FLOOR_MS}ms floor. Lower CLAUDE_TIMEOUT_MS, or raise RIMPL_EVAL_TIMEOUT_MS (backend) and EVAL_CALLER_DEADLINE_MS here together.`);
+}
+// Only the SERVED evaluation has a caller deadline. The shadow evaluation (services/shadow.js) runs in
+// the background after the response has been sent, so nobody is waiting on it and it keeps every retry.
+// (It still gets the long EVAL_TIMEOUT_MS via EVAL_PURPOSES above: it is a full evaluation.)
+const LATE_RETRY_PURPOSES = new Set(['evaluate']);
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: EVAL_TIMEOUT_MS, maxRetries: 0 });
 // PINNED, not an alias. From the 4.6 generation on, Anthropic's canonical model ids carry no date:
 // GET /v1/models/claude-sonnet-5-5 resolves to itself (display "Claude Sonnet 5.5", created
@@ -80,12 +98,18 @@ const RETRY_BASE_MS = Math.max(1, parseInt(process.env.CLAUDE_RETRY_BASE_MS || '
 const RETRYABLE_STATUS = new Set([408, 409, 429, 500, 502, 503, 529]); // rate-limit / overload / transient
 const RETRYABLE_CODES = new Set(['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'EPIPE', 'ENETUNREACH', 'EAI_AGAIN']);
 
+// CLASSIFICATION only: is this the kind of error a retry could fix? Recorded as lastError.retryable, so
+// it must stay truthful. Whether THIS call retries is shouldRetry() below.
 function isRetryable(err) {
-  if (err?.noRetry === true) return false;   // set by call() for a late evaluation error (EVAL_LATE_RETRY_MS)
   if (err && typeof err.status === 'number' && RETRYABLE_STATUS.has(err.status)) return true;
   const code = err?.code || err?.cause?.code;
   if (code && RETRYABLE_CODES.has(code)) return true;
   return /timeout|aborted|terminated|fetch failed|network|overloaded/i.test(err?.message || '');
+}
+// The retry DECISION: a retryable error, unless call() marked it `noRetry` (a late /evaluate error that a
+// further attempt could not finish before the caller's deadline; EVAL_LATE_RETRY_MS).
+function shouldRetry(err) {
+  return err?.noRetry !== true && isRetryable(err);
 }
 function retryAfterMs(err) {
   const h = err?.headers;
@@ -120,6 +144,7 @@ const runner = createRunner({
   maxRetries: MAX_RETRIES,
   retryBaseMs: RETRY_BASE_MS,
   isRetryable,
+  shouldRetry,
   retryAfterMs,
   onRetry: (err, attempt, ra) => {
     console.warn(`[claude] retryable error (status ${err?.status ?? '?'}${ra != null ? `, retry-after ${Math.round(ra / 1000)}s` : ''}), attempt ${attempt + 1}/${MAX_RETRIES} — backing off`);
@@ -161,7 +186,7 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature, pur
   const shape = requestShape(MODEL, { temperature, purpose });
   if (shape.dropped.length) warnDroppedOnce(shape.dropped);
   const startedAt = Date.now();
-  const isEval = EVAL_PURPOSES.has(purpose);
+  const lateRetryCapped = LATE_RETRY_PURPOSES.has(purpose);   // served /evaluate only, not shadow
   // `signal` is the caller's client-gone signal (lib/request-signal.js). Passed to the runner, a call
   // still QUEUED when the backend hangs up never starts; passed to the SDK, an in-flight one is cancelled
   // at the socket (APIUserAbortError), and the runner turns that into an AbortError that is never retried.
@@ -180,9 +205,9 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature, pur
       return msg;
     } catch (err) {
       const elapsed = Date.now() - startedAt;
-      if (isEval && elapsed > EVAL_LATE_RETRY_MS && err && typeof err === 'object' && !sig?.aborted) {
+      if (lateRetryCapped && elapsed > EVAL_LATE_RETRY_MS && err && typeof err === 'object' && !sig?.aborted) {
         err.noRetry = true;
-        console.warn(`[claude] not retrying a late evaluation error (status ${err.status ?? '?'}, ${Math.round(elapsed / 1000)}s elapsed > ${Math.round(EVAL_LATE_RETRY_MS / 1000)}s): a second attempt could not finish inside the caller's ${EVAL_CALLER_DEADLINE_MS / 1000}s`);
+        console.warn(`[claude] not retrying a late /evaluate error (status ${err.status ?? '?'}, ${Math.round(elapsed / 1000)}s elapsed > ${Math.round(EVAL_LATE_RETRY_MS / 1000)}s cutoff): a further attempt could not finish inside the backend's ${EVAL_CALLER_DEADLINE_MS / 1000}s /evaluate deadline`);
       }
       throw err;
     }
@@ -287,4 +312,4 @@ function servingCheck() {
   };
 }
 
-module.exports = { name: 'anthropic', call, model: () => MODEL, ready, stats: runner.stats, MODEL, RefusalError, EVAL_LATE_RETRY_MS };
+module.exports = { name: 'anthropic', call, model: () => MODEL, ready, stats: runner.stats, MODEL, RefusalError, EVAL_LATE_RETRY_MS, isRetryable, shouldRetry };
