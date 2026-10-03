@@ -261,7 +261,7 @@ export default function AuditorScorePage() {
               <div>
                 {/* Colour law: coral = the human (your Total above), slate-blue = the AI. The AI number was
                     coral, which made the two totals look like the same kind of thing. The label text is
-                    AI_LABEL (placeholder copy, pending owner/ethics sign-off). */}
+                    AI_LABEL (approved by the product owner 2026-10-03). */}
                 <AiOutput label={AI_LABEL.score}>
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                     <p className="text-3xl font-semibold tabular-nums">{Number(data.ai_evaluation.composite_score).toFixed(1)} <span className="text-base">/ 100</span></p>

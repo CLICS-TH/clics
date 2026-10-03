@@ -75,8 +75,8 @@ describe('AiOutput', () => {
   });
 });
 
-describe('AI_LABEL (copy pending owner/ethics sign-off)', () => {
-  it('carries the neutral placeholders and no governance claim', () => {
+describe('AI_LABEL (approved by the product owner 2026-10-03)', () => {
+  it('carries the approved wording and no governance claim', () => {
     expect(AI_LABEL.chip).toBe('AI');
     expect(AI_LABEL.score).toBe('คะแนนจาก AI / AI score');
     // "the AI does not score / is not a verdict" is false for CLICS — keep it out of the label.
