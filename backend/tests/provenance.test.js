@@ -51,13 +51,17 @@ describe('honest about what it can and cannot measure', () => {
   });
 
   test('the decoding parameters recorded are the ones the evaluator actually sends', () => {
-    // Not a module constant restated: routes/evaluate.js reads EVAL_DECODING for both the call and
-    // the record, so the two cannot drift.
+    // The REQUEST still reads EVAL_DECODING. The RECORD reads what the provider reports it sent
+    // (`decoding` on the call result), not the request: claude-sonnet-5-5 rejects a non-default
+    // temperature, so the anthropic provider sends none and the record must say null there, not 0.
+    // Behaviour is covered end to end in rimpl/tests/anthropic-request.test.js.
     const src = require('fs').readFileSync(require('path').join(__dirname, '../../rimpl/src/routes/evaluate.js'), 'utf8');
     expect(src).toMatch(/const EVAL_DECODING = \{ temperature: 0, maxTokens: 4096 \}/);
     expect(src).toMatch(/maxTokens: EVAL_DECODING\.maxTokens/);
-    expect(src).toMatch(/temperature: EVAL_DECODING\.temperature/);
-    expect(src).toMatch(/temperature: EVAL_DECODING\.temperature, maxTokens: EVAL_DECODING\.maxTokens/);
+    expect(src).toMatch(/temperature: EVAL_DECODING\.temperature/);   // the request
+    expect(src).toMatch(/const sent = first\?\.decoding \?\? \{\};/);
+    expect(src).toMatch(/temperature: sent\.temperature \?\? null, maxTokens: EVAL_DECODING\.maxTokens/);
+    expect(src).not.toMatch(/temperature: EVAL_DECODING\.temperature, maxTokens: EVAL_DECODING\.maxTokens/);
   });
 
   test('temperature is 0 — a sampled scoring instrument is not reproducible', () => {

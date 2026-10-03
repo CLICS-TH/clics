@@ -5,7 +5,7 @@
 - **Backend:** Node.js + Express (port 3001), Supabase SDK (auth + DB), Anthropic SDK (via RIMPL). JWT auth via Supabase Auth (`signInWithPassword` / `auth.getUser`).
 - **Database:** Supabase / PostgreSQL, AES-256 at rest, row-level security.
 - **Middleware:** RIMPL (custom, on-premise, port 3003), Claude-only today (see [architecture.md](architecture.md) / [MIDDLEWARE-KNOWN-GAPS.md](MIDDLEWARE-KNOWN-GAPS.md)).
-- **AI Providers (planned):** Claude (Anthropic), GPT-4o (OpenAI), Gemini (Google Vertex AI), Mistral — randomized per session via L4. **Currently only Claude (`claude-sonnet-4-6`) is wired.**
+- **AI Providers (planned):** Claude (Anthropic), GPT-4o (OpenAI), Gemini (Google Vertex AI), Mistral — randomized per session via L4. **Currently only Claude (`claude-sonnet-5-5` since 2026-10-03, `claude-sonnet-4-6` before) and the on-prem `local` provider are wired.**
 
 ## Design system
 

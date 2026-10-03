@@ -25,7 +25,8 @@ Every request must carry the `x-internal-token` shared secret (matched against t
 - `src/routes/` — `chat.js` (a chat turn: RAG + PII strip → Claude → citation/Socratic post-filter +
   retry), `evaluate.js` (PIS-7 d1–d7 evaluation of a finished session), `evaluate-criteria.js` (C1–C6
   screening signals).
-- `src/services/` — `claude.js` (Anthropic SDK; **Claude-only today**, pinned to `claude-sonnet-4-6`),
+- `src/services/` — `providers/anthropic.js` (Anthropic SDK, pinned to `claude-sonnet-5-5` since 2026-10-03;
+  the model's request shape lives in `src/lib/anthropic-request.js`), `providers/local.js` (on-prem),
   `pii-filter.js` (regex de-identification + pseudonyms), `post-filter.js` (citation + Socratic
   enforcement), `rag.js` (reference retrieval).
 - `src/lib/` — **`prompts.js`** (the system prompts **and the authoritative PIS-7 rubric / scale anchors**),

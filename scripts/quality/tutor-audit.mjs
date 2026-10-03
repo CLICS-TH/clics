@@ -66,6 +66,7 @@ import {
   promptLabel, hasCitation, extractSocraticQuestion, RIMPL_FILES,
 } from './rimpl.mjs';
 import { checkReply, summarize, printSummary, CHECKS_VERSION } from './checks.mjs';
+import { requestShape } from '../../rimpl/src/lib/anthropic-request.js';
 
 export const REPORT_SCHEMA = 'clics-tutor-audit/v1';
 export const REPORT_DIR = path.join(QUALITY_DIR, 'report');
@@ -80,16 +81,20 @@ export function productionAnthropicModel() {
   return m[1];
 }
 
-/** Anthropic Messages API, same body shape as rimpl/src/services/providers/anthropic.js. Only ever
- *  constructed behind --allow-paid. `fetchImpl` is injectable for tests. */
+/** Anthropic Messages API, same body shape as rimpl/src/services/providers/anthropic.js, including the
+ *  model-specific fields from rimpl/src/lib/anthropic-request.js (on claude-sonnet-5-5, thinking
+ *  `between_tools`: without it the arm would run adaptive thinking that production does not). Only ever
+ *  constructed behind --allow-paid. `fetchImpl` is injectable for tests. Throws for a model with no
+ *  declared shape, before any request is made. */
 export function makeAnthropicArm({ apiKey, model, timeoutMs, fetchImpl = fetch }) {
+  const { fields } = requestShape(model);   // chat.js sends no temperature, so none is asked for here
   return async function complete({ systemPrompt, messages, maxTokens }) {
     const t0 = performance.now();
     try {
       const res = await fetchImpl('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model, max_tokens: maxTokens, system: systemPrompt, messages }),
+        body: JSON.stringify({ model, max_tokens: maxTokens, system: systemPrompt, messages, ...fields }),
         signal: AbortSignal.timeout(timeoutMs),
       });
       const json = await res.json().catch(() => null);

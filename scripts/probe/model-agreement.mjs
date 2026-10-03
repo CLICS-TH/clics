@@ -47,6 +47,7 @@ import { scoreWithConsistency, MODES } from '../../rimpl/src/services/consistenc
 import { applySplit } from './split.mjs';
 import { parseJsonObject } from '../../rimpl/src/lib/parse.js';
 import { flattenForPrompt } from '../../rimpl/src/lib/transcript.js';
+import { requestShape } from '../../rimpl/src/lib/anthropic-request.js';
 import { deriveHintTokens } from '../../rimpl/src/services/pii-filter.js';
 // Production's weighted composite and ICC(A,1) estimator — see agreement-stats.mjs for why they are shared.
 import { compositeAgreement, domainAgreement } from './agreement-stats.mjs';
@@ -87,10 +88,17 @@ const CLOUD_MODEL = process.env.CLOUD_MODEL || (() => {
   let src;
   try { src = readFileSync(p, 'utf8'); }
   catch (e) { fail(`cannot read ${p} to determine the production model: ${e.message}`); }
-  const m = src.match(/claude-[a-z0-9.-]+/);
-  if (!m) fail(`no claude-* model id found in ${p} — cannot confirm which model production uses.`);
-  return m[0];
+  // The MODEL constant itself, not the first claude-* string in the file: the pin's comment names
+  // other ids (the previous model, rejected snapshot candidates), and a first-match regex would pick one.
+  const m = src.match(/const MODEL = '(claude-[a-z0-9.-]+)'/);
+  if (!m) fail(`no MODEL constant found in ${p} — cannot confirm which model production uses.`);
+  return m[1];
 })();
+// The body production sends for that model (thinking mode; temperature only where the model accepts
+// it), from the same module the provider reads. claude-sonnet-5-5 400s on temperature 0, so the cloud
+// arm runs at the API default, as rimpl's /evaluate now does. Throws for a model with no declared shape.
+let CLOUD_SHAPE;
+try { CLOUD_SHAPE = requestShape(CLOUD_MODEL, { temperature: 0 }); } catch (e) { fail(e.message); }
 if (!ANTHROPIC_KEY) fail('No ANTHROPIC_API_KEY (checked env and rimpl/.env). The cloud arm cannot run.');
 
 const cfg = readConfig();
@@ -188,7 +196,7 @@ async function cloudArm(fx) {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
-        model: CLOUD_MODEL, max_tokens: 4096, temperature: 0,
+        model: CLOUD_MODEL, max_tokens: 4096, ...CLOUD_SHAPE.fields,
         system: CLOUD_PROMPT,
         messages: [{ role: 'user', content: `TRANSCRIPT:\n${fx.flattened}` }],
       }),
@@ -225,7 +233,7 @@ console.log(`  local   ${cfg.model}  @ ${cfg.baseUrl}`);
 console.log(`  cloud   ${CLOUD_MODEL}  @ api.anthropic.com`);
 console.log(`  prompt  pis7PromptFor: local ${LOCAL_PROMPT.length} chars (addendum ${PIS7_LOCAL_ADDENDUM ? 'ON' : 'empty'}) · cloud ${CLOUD_PROMPT.length} chars — imported from rimpl`);
 console.log(`  rule    local arm consistency = ${CONSISTENCY}${CONSISTENCY === 'adaptive' ? ' (2 calls; 3rd + per-domain median when any domain differs by >1)' : ''}; cloud arm single call`);
-console.log(`  n       ${fixtures.length} fixture(s), temperature 0 both arms`);
+console.log(`  n       ${fixtures.length} fixture(s), temperature 0 local / ${CLOUD_SHAPE.sent.temperature ?? 'API default'} cloud${CLOUD_SHAPE.sent.thinking ? `, cloud thinking ${CLOUD_SHAPE.sent.thinking}` : ''}`);
 console.log(`  retry   up to ${ARM_ATTEMPTS} attempts per arm on transport failures, ${RETRY_BASE_MS / 1000}s backoff doubling`
   + `${ARM_ATTEMPTS === 1 ? red('  — OFF: lost fixtures bias ICC upward, see withRetry') : ''}`);
 console.log(`  split   ${split ? `${split.name} (reserved ${split.reserved_at})` : '(none reserved)'}  ·  prompt ${PROMPT_VERSION} (local ${promptVersionFor('local')})\n`);

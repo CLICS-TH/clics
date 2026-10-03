@@ -53,6 +53,40 @@ PLE dropped — the 46k-token transcript truncates the evaluator's 1000-token ou
 > regeneration after the original was wiped, and the raters were synthetic. The gap this exposes is
 > closed by Gate 0.5 (real human auditors), not by re-measuring against agents.
 
+> ### ⚠️ 2026-10-03 — the evaluator MODEL changed: `claude-sonnet-4-6` → `claude-sonnet-5-5`
+>
+> Branch `feat/rimpl-sonnet-5-5` re-pins `rimpl/src/services/providers/anthropic.js` to
+> `claude-sonnet-5-5`. `GET /v1/models/claude-sonnet-5-5` resolves to itself (created 2026-09-28), and
+> no dated snapshot exists, so the canonical id is the snapshot. **Not deployed when this was written.**
+> This note applies from the deploy that ships it.
+>
+> **This is a new instrument even though the prompt did not change.** `PROMPT_VERSION` is still
+> `pis7-prompt-59561c29` (v3) and the rubric is still `pis7-weights-08b0cb1a`, but ICC is a property of
+> (model × prompt × rubric), and the model is one of the three. The request shape changed too, so the
+> scoring call is not 4-6's call with a new name:
+> - **temperature 0 is no longer sent.** Sonnet 5.5 returns a 400 for any non-default temperature, so
+>   the evaluator runs at the API default. Provenance records `decoding.temperature: null` (what was
+>   sent), not 0.
+> - **thinking is `between_tools`** (no up-front thinking), recorded as `decoding.thinking`. Omitting it
+>   on 5.5 would have run adaptive thinking, which 4-6 never did.
+> - **tokenizer:** about 30% more tokens for the same text, so `max_tokens` 4096 holds roughly a
+>   quarter less rationale than it did.
+> - New rows read `model_version` `CCME_LLM_v8.0+claude-sonnet-5-5`, and every anthropic score gets a
+>   new `config_fingerprint`. Do not pool scores from either side of the change.
+>
+> **What does not transfer:** every ICC, agreement and calibration figure measured with
+> `claude-sonnet-4-6` as the evaluator, or as the cloud arm of a comparison. That covers the 0.811
+> (already stale, v2), the Model-axis table below (all "vs claude-sonnet-4-6"), and any held-out or
+> D18 verdict whose incumbent was 4-6. Those rows stay as historical results for the 4-6 instrument.
+> They are not rewritten, and they must not be cited for 5-5.
+>
+> **Before 5-5 scores are treated as calibrated:** re-run the D18 / human-auditor calibration (Gate 0.5)
+> on `claude-sonnet-5-5`. Until then, 5-5 scores have the status 4-6's v3 scores had: unmeasured.
+>
+> **Protocol:** CREC082 §10.2 requires the evaluator model to be fixed and recorded. A change of
+> evaluator model may need an IRB/protocol amendment or notification before any participant is scored
+> on it. The PI decides that; the code change does not.
+
 ## Notes per version
 
 ### v0 — original (2026-06-07)

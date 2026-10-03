@@ -7,15 +7,19 @@
 // against the provider that ACTUALLY served it — rimpl reports that on each response.
 //
 // Rates are USD per 1M tokens.
-//  * anthropic — the published claude-sonnet-4-6 rates; override with CLAUDE_INPUT_PER_M /
-//    CLAUDE_OUTPUT_PER_M (unchanged, existing deployments set these).
+//  * anthropic — the published claude-sonnet-5-5 rates, $2 input / $10 output per MTok, standard
+//    (non-batch, global-routing) tier. Verified 2026-10-03 against platform.claude.com/docs/en/
+//    about-claude/pricing. These were $3 / $15 while rimpl pinned claude-sonnet-4-6. Override with
+//    CLAUDE_INPUT_PER_M / CLAUDE_OUTPUT_PER_M. An override left at 3 / 15 on a deployment now
+//    OVER-bills by 50%. Sonnet 5.5's tokenizer also counts about 30% more tokens than 4-6 for the
+//    same text, so a turn costs roughly 0.87x what it did, not 0.67x.
 //  * local     — 0/0 on purpose: the DGX is a sunk capital cost, so the MARGINAL cost of a token is
 //    zero. If a council ever wants hardware amortisation on the meter instead, set
 //    LOCAL_INPUT_PER_M / LOCAL_OUTPUT_PER_M and it flows through every caller with no code change.
 const num = (v, dflt) => { const n = parseFloat(v); return Number.isFinite(n) ? n : dflt; };
 
-const INPUT_PER_M = num(process.env.CLAUDE_INPUT_PER_M, 3);
-const OUTPUT_PER_M = num(process.env.CLAUDE_OUTPUT_PER_M, 15);
+const INPUT_PER_M = num(process.env.CLAUDE_INPUT_PER_M, 2);
+const OUTPUT_PER_M = num(process.env.CLAUDE_OUTPUT_PER_M, 10);
 
 // The provider assumed when none is reported. Deliberately the PAID one — see ratesFor().
 const DEFAULT_PROVIDER = 'anthropic';

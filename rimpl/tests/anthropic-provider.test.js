@@ -11,7 +11,8 @@ process.env.ANTHROPIC_API_KEY = 'test-key';
 
 const mockCall = jest.fn(); // resolves/rejects the .withResponse() promise per attempt
 jest.mock('@anthropic-ai/sdk', () => jest.fn().mockImplementation(() => ({
-  messages: { create: () => ({ withResponse: () => mockCall() }) },
+  // The request body is passed through to mockCall so the request-shape tests below can read it.
+  messages: { create: (body) => ({ withResponse: () => mockCall(body) }) },
 })));
 
 const provider = require('../src/services/providers/anthropic');
@@ -31,7 +32,9 @@ test('retries a 429 (rate-limit) then succeeds', async () => {
   // reply. Exact-match so a dropped field fails here rather than downstream.
   expect(r).toEqual({
     text: 'hi', inputTokens: 5, outputTokens: 7, tokenCount: 12,
-    stopReason: 'end_turn', model: 'claude-sonnet-4-6',
+    stopReason: 'end_turn', model: 'claude-sonnet-5-5',
+    // What was SENT (routes/evaluate.js records it as provenance): no temperature was asked for here.
+    decoding: { temperature: null, thinking: 'between_tools' },
   });
   expect(mockCall).toHaveBeenCalledTimes(3);
 });
@@ -68,7 +71,7 @@ test('caps in-flight concurrency to CLAUDE_MAX_CONCURRENCY (queue)', async () =>
 // silently — pin the shape.
 test('exposes the provider interface ai.js dispatches on', () => {
   expect(provider.name).toBe('anthropic');
-  expect(provider.model()).toBe('claude-sonnet-4-6');
+  expect(provider.model()).toBe('claude-sonnet-5-5');
   expect(typeof provider.call).toBe('function');
   expect(typeof provider.ready).toBe('function');
 });
@@ -80,7 +83,8 @@ test('ignores the purpose and signal keys callAI forwards (extra keys change not
   mockCall.mockResolvedValueOnce(okResp);
   const ac = new AbortController();
   const r = await call({ ...args(), purpose: 'chat', signal: ac.signal });
-  expect(r).toEqual({ text: 'hi', inputTokens: 5, outputTokens: 7, tokenCount: 12, stopReason: 'end_turn', model: 'claude-sonnet-4-6' });
+  expect(r).toEqual({ text: 'hi', inputTokens: 5, outputTokens: 7, tokenCount: 12, stopReason: 'end_turn', model: 'claude-sonnet-5-5',
+    decoding: { temperature: null, thinking: 'between_tools' } });
   expect(mockCall).toHaveBeenCalledTimes(1);
   expect(provider.stats()).toEqual({ provider: 'anthropic', active: 0, queued: 0, maxConcurrency: 3,
     lastOk: expect.any(Number), lastError: null }); // no `lanes`: still the FIFO
@@ -89,8 +93,36 @@ test('ignores the purpose and signal keys callAI forwards (extra keys change not
 // §10.2: provenance must name the model that ANSWERED. The API reports it in the response body;
 // the requested id is only the fallback for a response that omits it (as the mocks above do).
 test('stamps the model the API reports, not the one requested', async () => {
-  mockCall.mockResolvedValueOnce({ data: { ...MSG, model: 'claude-sonnet-4-6-served' }, response: { headers: new Map() } });
-  expect((await call(args())).model).toBe('claude-sonnet-4-6-served');
+  mockCall.mockResolvedValueOnce({ data: { ...MSG, model: 'claude-sonnet-5-5-served' }, response: { headers: new Map() } });
+  expect((await call(args())).model).toBe('claude-sonnet-5-5-served');
+});
+
+// claude-sonnet-5-5 request shape (lib/anthropic-request.js; official Sonnet 5.5 migration guide).
+// Each of these is a 400 or a silent behaviour change on the scored path if it regresses.
+describe('claude-sonnet-5-5 request shape', () => {
+  test('a requested temperature is NOT sent (non-default sampling is a 400 on this model) and the result says so', async () => {
+    mockCall.mockResolvedValueOnce(okResp);
+    const r = await call({ ...args(), temperature: 0 });   // what routes/evaluate.js asks for
+    const body = mockCall.mock.calls[0][0];
+    expect(body).not.toHaveProperty('temperature');
+    expect(body).not.toHaveProperty('top_p');
+    expect(body).not.toHaveProperty('top_k');
+    expect(r.decoding).toEqual({ temperature: null, thinking: 'between_tools' }); // provenance must not claim 0
+  });
+
+  test("thinking is sent as between_tools: omitting it would run ADAPTIVE thinking against max_tokens, and 'disabled' is a 400", async () => {
+    mockCall.mockResolvedValueOnce(okResp);
+    await call(args());
+    const body = mockCall.mock.calls[0][0];
+    expect(body.thinking).toEqual({ type: 'between_tools' });   // and nothing else inside it: any extra field is a 400
+    expect(body).not.toHaveProperty('output_config');           // between_tools is a 400 at effort xhigh/max; the default (high) is accepted
+    expect(body).toMatchObject({ model: 'claude-sonnet-5-5', max_tokens: 10, system: 's', messages: [{ role: 'user', content: 'x' }] });
+  });
+
+  test('a reply led by a thinking block still yields only the text', async () => {
+    mockCall.mockResolvedValueOnce({ data: { ...MSG, content: [{ type: 'thinking', thinking: '', signature: 'sig' }, { type: 'text', text: 'answer' }] }, response: { headers: new Map() } });
+    expect((await call(args())).text).toBe('answer');
+  });
 });
 
 test('ready() reports up when ANTHROPIC_API_KEY is present (no completion call, no spend)', () => {

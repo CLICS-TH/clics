@@ -50,14 +50,14 @@ test('a LOCAL criteria call is metered at $0, not at Anthropic rates', async () 
 test('an ANTHROPIC criteria call still bills the full real cost (no behaviour change on the paid path)', async () => {
   mockCrit = { c4: true, c5: true, c6: true, c7: true, input_tokens: 130000, output_tokens: 50, provider: 'anthropic', pii_map: [] };
   await run();
-  // 130000/1e6*3 + 50/1e6*15
-  expect(costArg()).toBeCloseTo(0.39075, 6);
+  // 130000/1e6*2 + 50/1e6*10 (claude-sonnet-5-5 rates, backend/src/lib/pricing.js)
+  expect(costArg()).toBeCloseTo(0.2605, 6);
 });
 
 test('a criteria response with NO provider is billed as anthropic (fail toward over-billing)', async () => {
   mockCrit = { c4: true, c5: true, c6: true, c7: true, input_tokens: 130000, output_tokens: 50, pii_map: [] };
   await run();
-  expect(costArg()).toBeCloseTo(0.39075, 6);
+  expect(costArg()).toBeCloseTo(0.2605, 6);
 });
 
 test('the c4-c6 FAIL path meters identically — a flagged PLE is not billed differently', async () => {

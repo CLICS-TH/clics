@@ -11,7 +11,7 @@ _The middleware **works end-to-end as a Claude-only pipeline** (PII masking → 
 
 ## L4 — API Randomization Layer (multi-provider) — NOT IMPLEMENTED
 - The flowchart shows L4 randomizing the AI provider per session across **Claude / GPT-4o / Gemini / Mistral** via `hashSessionId()`, with failover and `provider_used` logging.
-- Reality: `rimpl/src/services/claude.js` hard-codes a single model (`claude-sonnet-4-6`) and is the only provider client. There is **no `hashSessionId()`, no GPT-4o/Gemini/Mistral client, no failover, and no per-session provider selection.**
+- Reality: one Anthropic model is pinned in `rimpl/src/services/providers/anthropic.js` (`claude-sonnet-5-5` since 2026-10-03; `claude-sonnet-4-6` before), and the only other provider is the on-prem `local` one. There is **no `hashSessionId()`, no GPT-4o/Gemini/Mistral client, no failover, and no per-session provider selection.**
 - `ples.provider_used` exists in `db/schema.sql` but is a static default (`'claude'`), not a logged runtime choice.
 - **Impact:** the privacy/bias rationale of vendor rotation is not exercised. All de-identified traffic goes to Claude.
 
@@ -42,4 +42,4 @@ _The middleware **works end-to-end as a Claude-only pipeline** (PII masking → 
 - There is **no backend health-check** of RIMPL before routing (`/health/deep` is a possible future add).
 
 ## Reproducibility
-- AI evaluations are tagged `CCME_LLM_v8.0` (`model_version`), but the underlying Claude model is pinned in code (`claude-sonnet-4-6`). If the model is swapped, re-run the Tier-2 calibration sample for drift (per the pilot protocol).
+- AI evaluations are tagged `CCME_LLM_v8.0+<served model>` (`model_version`), and the Claude model is pinned in code (`rimpl/src/services/providers/anthropic.js`). **2026-10-03:** the pin moved from `claude-sonnet-4-6` to `claude-sonnet-5-5`, which changes the instrument. No 4-6 ICC transfers, and the D18 / human-auditor calibration must be re-run on 5-5 before its scores count as calibrated. See [`scripts/calibration/prompt-versions.md`](../scripts/calibration/prompt-versions.md) (2026-10-03 note).

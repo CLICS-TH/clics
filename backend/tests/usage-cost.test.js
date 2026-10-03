@@ -14,10 +14,10 @@ const { effectiveLimit, standardLimit } = require('../src/lib/usage');
 
 beforeEach(() => { mockSetting = { data: { value: 0.5 }, error: null }; });
 
-test('costUsd: default Sonnet pricing — 1M in + 1M out = $18', () => {
-  expect(INPUT_PER_M).toBe(3);
-  expect(OUTPUT_PER_M).toBe(15);
-  expect(costUsd(1_000_000, 1_000_000)).toBeCloseTo(18, 6);
+test('costUsd: default Sonnet 5.5 pricing — 1M in + 1M out = $12', () => {
+  expect(INPUT_PER_M).toBe(2);
+  expect(OUTPUT_PER_M).toBe(10);
+  expect(costUsd(1_000_000, 1_000_000)).toBeCloseTo(12, 6);
 });
 
 test('costUsd: zero / missing tokens cost nothing', () => {
@@ -26,8 +26,8 @@ test('costUsd: zero / missing tokens cost nothing', () => {
 });
 
 test('costUsd: input and output priced separately', () => {
-  expect(costUsd(1_000_000, 0)).toBeCloseTo(3, 6);
-  expect(costUsd(0, 1_000_000)).toBeCloseTo(15, 6);
+  expect(costUsd(1_000_000, 0)).toBeCloseTo(2, 6);
+  expect(costUsd(0, 1_000_000)).toBeCloseTo(10, 6);
 });
 
 test('effectiveLimit: a per-user override wins over the standard default', async () => {

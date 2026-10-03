@@ -55,7 +55,7 @@ describe('GET /health/deep (rimpl)', () => {
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('ok');
     expect(res.body.service).toBe('rimpl');
-    expect(res.body.model).toBe('claude-sonnet-4-6');
+    expect(res.body.model).toBe('claude-sonnet-5-5');
     expect(res.body.checks.anthropic_key.status).toBe('up');
     expect(res.body.checks.anthropic_client.status).toBe('up');
     expect(res.body.checks.supabase.status).toBe('up');
@@ -194,7 +194,7 @@ describe('GET /health/deep — routing.override (PROVIDER_SETTINGS_SOURCE)', () 
       expect(res.body.routing).toEqual({
         source: 'env', override: true, reason: 'PROVIDER_SETTINGS_SOURCE=env', evaluator_locked_at: null,
       });
-      expect(res.body.models.chat).toEqual({ provider: 'anthropic', model: 'claude-sonnet-4-6' }); // env chain, unset → default
+      expect(res.body.models.chat).toEqual({ provider: 'anthropic', model: 'claude-sonnet-5-5' }); // env chain, unset → default
       expect(warnSpy).toHaveBeenCalledWith(expect.stringMatching(/PROVIDER_SETTINGS_SOURCE=env/));
     } finally {
       warnSpy.mockRestore();

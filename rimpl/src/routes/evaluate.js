@@ -14,9 +14,11 @@ const { sendAiError, logAiError, isQueueFull } = require('../lib/ai-errors');
 
 const router = Router();
 
-// The evaluator's decoding parameters, in ONE place. §10.2 requires them frozen and recorded, and
-// the only way the recorded value cannot drift from the value sent is for both to read this.
+// The evaluator's REQUESTED decoding parameters, in ONE place. §10.2 requires them frozen and recorded.
 // temperature 0: the scoring instrument must be reproducible, and a sampled score is not.
+// What is RECORDED is what the provider reports it actually sent (`decoding` on the call result), not
+// this object: claude-sonnet-5-5 rejects a non-default temperature with a 400, so the anthropic
+// provider does not send it and provenance must read null there. The local provider sends 0 as asked.
 const EVAL_DECODING = { temperature: 0, maxTokens: 4096 };
 
 // Self-consistency (services/consistency.js; docs/LOCAL-MODEL-ROADMAP.md D18 / D21) — for the LOCAL
@@ -156,6 +158,9 @@ router.post('/', async (req, res) => {
     // config_fingerprint, which does not cover these fields — is byte-identical to before.
     const engine = first?.engine ?? null;
     const runtime = first?.runtime ?? null;
+    // Same call, same reason: the decoding the provider reports it SENT. A provider that reports nothing
+    // leaves temperature null rather than restating the request, because "asked for 0" is not "ran at 0".
+    const sent = first?.decoding ?? {};
 
     res.json({
       ple_id,
@@ -177,7 +182,8 @@ router.post('/', async (req, res) => {
       provenance: buildProvenance({
         provider, model,
         promptVersion, rubricVersion: RUBRIC_VERSION,
-        temperature: EVAL_DECODING.temperature, maxTokens: EVAL_DECODING.maxTokens,
+        temperature: sent.temperature ?? null, maxTokens: EVAL_DECODING.maxTokens,
+        thinking: sent.thinking ?? null,
         weightsSha256: weights_sha256 ?? null,
         engine, runtime,
         consistency,

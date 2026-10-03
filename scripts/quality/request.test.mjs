@@ -223,13 +223,25 @@ test('paid arm: body mirrors providers/anthropic.js and goes ONLY through the in
     seen.push({ url, init });
     return { ok: true, status: 200, json: async () => ({ model: 'claude-x', content: [{ type: 'text', text: 'hi (X, 2020)' }], stop_reason: 'end_turn', usage: { input_tokens: 3, output_tokens: 4 } }) };
   };
-  const complete = makeAnthropicArm({ apiKey: 'test-key-not-real', model: 'claude-x', timeoutMs: 1000, fetchImpl });
+  const complete = makeAnthropicArm({ apiKey: 'test-key-not-real', model: 'claude-sonnet-5-5', timeoutMs: 1000, fetchImpl });
   const r = await complete({ systemPrompt: 'S', messages: [{ role: 'user', content: 'q' }], maxTokens: 4000 });
   assert.equal(seen.length, 1);
   assert.equal(seen[0].url, 'https://api.anthropic.com/v1/messages');
-  assert.deepEqual(JSON.parse(seen[0].init.body), { model: 'claude-x', max_tokens: 4000, system: 'S', messages: [{ role: 'user', content: 'q' }] });
+  // between_tools: production's thinking mode on this model (lib/anthropic-request.js). Without it the
+  // arm would run adaptive thinking, which production does not, and measure a different tutor.
+  assert.deepEqual(JSON.parse(seen[0].init.body), {
+    model: 'claude-sonnet-5-5', max_tokens: 4000, system: 'S', messages: [{ role: 'user', content: 'q' }],
+    thinking: { type: 'between_tools' },
+  });
   assert.equal(r.text, 'hi (X, 2020)');
   assert.match(productionAnthropicModel(), /^claude-/);
+});
+
+test('paid arm: a model with no declared request shape is refused before any request', () => {
+  let called = false;
+  const fetchImpl = async () => { called = true; return { ok: true, status: 200, json: async () => ({}) }; };
+  assert.throws(() => makeAnthropicArm({ apiKey: 'k', model: 'claude-x', timeoutMs: 1000, fetchImpl }), /No Anthropic request shape/);
+  assert.equal(called, false);
 });
 
 const run = (args, env = {}) => spawnSync(process.execPath, [path.join(HERE, 'tutor-audit.mjs'), ...args], {

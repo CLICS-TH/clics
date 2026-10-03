@@ -7,6 +7,7 @@
 // retention (ZDR) arrangement on the Anthropic account, not by code. Track that in GO-LIVE-CHECKLIST.
 const Anthropic = require('@anthropic-ai/sdk');
 const { createRunner } = require('./runtime');
+const { requestShape } = require('../../lib/anthropic-request');
 
 // We do our own retry (via the shared runner), so disable the SDK's internal retry to avoid
 // double-retrying.
@@ -20,10 +21,19 @@ const { createRunner } = require('./runtime');
 const CLIENT_TIMEOUT_MS = Math.max(1000, parseInt(process.env.CLAUDE_TIMEOUT_MS || '150000', 10));
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: CLIENT_TIMEOUT_MS, maxRetries: 0 });
 // PINNED, not an alias. From the 4.6 generation on, Anthropic's canonical model ids carry no date:
-// GET /v1/models/claude-sonnet-4-6 resolves to itself (created 2026-02-17), the same way the older
-// dated ids (claude-sonnet-4-5-20250929) do. Verified 2026-10-02. Never swap this for a moving alias
+// GET /v1/models/claude-sonnet-5-5 resolves to itself (display "Claude Sonnet 5.5", created
+// 2026-09-28, max_input_tokens 1000000, max_tokens 128000), the same way the older dated ids
+// (claude-sonnet-4-5-20250929) do. No dated variant exists: claude-sonnet-5-5-20260928 and
+// claude-sonnet-5-5-latest both 404, and the account's /v1/models listing has no other 5.5 entry.
+// So the canonical id IS the snapshot. Verified 2026-10-03. Never swap this for a moving alias
 // (a "-latest" name): CREC082 §10.2 requires the model behind every score to be fixed and recorded.
-const MODEL = 'claude-sonnet-4-6';
+//
+// Changed from claude-sonnet-4-6 (created 2026-02-17) on 2026-10-03. THAT CHANGES THE INSTRUMENT:
+// every ICC / calibration figure measured on 4-6 does not transfer (ICC is a property of model x
+// prompt x rubric). See scripts/calibration/prompt-versions.md. The request shape changed with it.
+// lib/anthropic-request.js says what this model accepts, and boot fails if it has no entry there.
+const MODEL = 'claude-sonnet-5-5';
+requestShape(MODEL); // fail at boot, not on the first scored evaluation, if the pin has no declared shape
 
 // Prompt caching (default OFF). The ~2k-token system prompt is re-sent every turn at full input price;
 // caching it cuts that to ~10% after the first call. DEFAULT OFF because zero-data-retention (ZDR)
@@ -92,8 +102,13 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
     const system = PROMPT_CACHE
       ? [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }]
       : systemPrompt;
-    const body = { model: MODEL, max_tokens: maxTokens, system, messages };
-    if (temperature != null) body.temperature = temperature;
+    // The model-specific fields (thinking mode; sampling only where the model accepts it) come from
+    // lib/anthropic-request.js, the same rule the offline probes use. On claude-sonnet-5-5 a requested
+    // temperature is NOT sent: a non-default value is a 400 there, which on the scored path would be
+    // a 502 on every evaluation. `sent` below records what actually went out, so provenance says so.
+    const shape = requestShape(MODEL, { temperature });
+    if (shape.dropped.length) warnDroppedOnce(shape.dropped);
+    const body = { model: MODEL, max_tokens: maxTokens, system, messages, ...shape.fields };
     const { data, response: httpResp } = await client.messages.create(body).withResponse();
     logRateLimit(httpResp?.headers, 'ok');
     // Join ALL text blocks, not just content[0]: a reply led by a non-text block (thinking/tool)
@@ -109,8 +124,21 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
     // §10.2 provenance names the model the API SAYS answered, not the one we asked for. Today they are
     // the same id; if they ever differ, the record must show the real one. MODEL only if none came back.
     const model = typeof data.model === 'string' && data.model ? data.model : MODEL;
-    return { text, inputTokens, outputTokens, tokenCount: inputTokens + outputTokens, stopReason: data.stop_reason, model };
+    // `decoding` is what this call SENT (temperature null when the model refuses sampling; the thinking
+    // mode). routes/evaluate.js records it as §10.2 provenance instead of restating what it asked for.
+    return { text, inputTokens, outputTokens, tokenCount: inputTokens + outputTokens, stopReason: data.stop_reason, model, decoding: shape.sent };
   });
+}
+
+// Once per process per parameter: enough for an operator to see why provenance reads temperature
+// null, without a line on every evaluation.
+const warnedDropped = new Set();
+function warnDroppedOnce(names) {
+  for (const n of names) {
+    if (warnedDropped.has(n)) continue;
+    warnedDropped.add(n);
+    console.warn(`[claude] ${n} requested but not sent: ${MODEL} rejects non-default sampling parameters (recorded as null in provenance)`);
+  }
 }
 
 // A key that is present and constructible can still be unable to serve a single request: an

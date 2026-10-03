@@ -50,6 +50,9 @@ function configFingerprint(p) {
       top_p: p.decoding?.top_p ?? null,
       seed: p.decoding?.seed ?? null,
       num_ctx: p.decoding?.num_ctx ?? null,
+      // ONLY when a thinking mode was sent (claude-sonnet-5-5 and later). Omitted otherwise so every
+      // fingerprint written before the field existed, and every local one, hashes exactly as it did.
+      ...(p.decoding?.thinking ? { thinking: p.decoding.thinking } : {}),
     },
     // ONLY when present. An evaluation without a consistency block must hash byte-identically to one
     // produced before the field existed, or every stored fingerprint in the pilot stops being
@@ -69,7 +72,7 @@ function configFingerprint(p) {
  */
 function buildProvenance({
   provider, model, promptVersion, rubricVersion,
-  temperature, maxTokens, topP, seed, numCtx,
+  temperature, maxTokens, topP, seed, numCtx, thinking = null,
   weightsSha256 = null, engine = null, quantization = null, runtime = null,
   consistency = null,
 }) {
@@ -85,6 +88,9 @@ function buildProvenance({
       top_p: topP ?? null,
       seed: seed ?? null,
       num_ctx: numCtx ?? null,
+      // The thinking mode sent (e.g. 'between_tools'), present only when one was. It changes what the
+      // model does before it answers, so two scores that differ in it are two configurations.
+      ...(thinking ? { thinking } : {}),
     },
     // Declared: filled from the Model Lock Record. Null until the evaluator is locked.
     weights_sha256: weightsSha256 || null,
