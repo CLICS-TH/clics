@@ -476,7 +476,7 @@ The rule from now on:
    are Claude-authored, and the incumbent production evaluator is `claude-sonnet-4-6`. A
    panel-screened cohort is therefore fitted toward Claude's reading of the rubric, and any result
    for a Sonnet arm carries that caveat. Whenever Sonnet is the scorer under test, a non-Claude panel
-   member is preferred. This is an **open item**: no non-Claude panel member has been run.
+   member is preferred. This was an **open item**: a non-Claude rater (GPT) has now rated held-out, see item 23.
 3. **The local evaluator's flag rate is kept as a reported outcome, never as the acceptance criterion.**
    §7.2's flag, §7.6's proceed rule and the known-groups statistics are still computed and reported
    for every scored run.
@@ -699,6 +699,37 @@ The rule from now on:
       As a scorer it does not yet match either reference. The held-out set is now spent for this
       prompt: a re-calibrated prompt (for example a d4/low-end fix) needs fresh anchors or human
       raters to be judged.
+
+23. **A non-Claude blind rater on held-out (2026-10-03).** This closes the open item in the blind-panel rewrite rule (item 1), which noted that no non-Claude panel member had been run. Numbering follows #138's items 21–22.
+    - **Setup:** GPT (`gpt-5.6-sol`, effort high) rated the same 6 shuffled packets with the same `rubric.txt`. It ran through `codex exec` in a read-only sandbox containing only that packet's two files: no ids, no targets, no key. The prompt is in `pilot/heldout/rater-gpt-prompt.txt`. It ran once, so GPT has no test–retest.
+    - **Reproduce:** `node scripts/calibration/anchors/pilot/heldout/analyse-gpt.mjs`. The same script reproduces item 20's panel and DeepSeek figures.
+    - **Results:**
+
+      | | ICC(A,1) vs target | Spearman | SD (target 23.5) | Bias vs target |
+      |---|---|---|---|---|
+      | GPT | 0.649 [0.000, 0.882] | 0.90 | 25.4 | +20.4 [17.2, 23.5] |
+      | Claude panel | 0.902 | 0.94 | 27.3 | +7.1 |
+      | DeepSeek | 0.587 | 0.79 | 16.1 | +13.4 |
+
+      - **GPT:** ICC vs the Claude panel 0.833 [0.043, 0.949], Spearman 0.94. DeepSeek vs GPT: ICC 0.730 [0.528, 0.844], Spearman 0.85.
+      - **Bias by target band** (t 95% CI):
+
+        | Target band | GPT | DeepSeek |
+        |---|---|---|
+        | < 40 (n 21) | +20.6 [13.6, 27.6] | +25.4 |
+        | 40–69 (n 22) | +23.3 | +14.2 |
+        | ≥ 70 (n 17) | +16.3 [12.7, 19.8] | −2.4 |
+
+      - **Paired, below 40:** DeepSeek minus GPT +4.8 [−2.1, 11.7].
+      - **Ceiling:** 21 of 60 GPT composites are 95 or higher.
+      - **Low dissociated domains** (target ≤ 1): GPT lifted 11 of 11, by +3.3 levels on average.
+    - **Reading** (screening-synthetic, n = 60, one GPT pass):
+      - **The anchors' order and spread carry across model families.** GPT, which did not write the anchors, ranks them almost as Claude does and uses the full range.
+      - **Absolute level does not carry.** GPT reads every band about 20 points high, which is uniform leniency, not compression.
+      - **What is specific to DeepSeek** is the compressed scale (SD 16) and weaker ranking (ρ 0.79). Both other families keep the spread.
+      - **The low-end lift on its own does not single DeepSeek out.** At the bottom, DeepSeek sits close to GPT; the interval includes 0.
+      - **Where "40" sits** depends on the rater, and only human raters can fix it. Plan 2.7 / #135 stays the decisive input.
+    - **For DeepSeek tuning (on hold):** the target is spread and ranking, not the low band alone. Held-out is spent for the current prompt.
 
 ## 8. Pipeline and commands
 
