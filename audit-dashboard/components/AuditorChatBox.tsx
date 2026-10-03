@@ -2,7 +2,7 @@
 // Auditor AI discussion chat — appears on the post-submit reveal pane. The auditor asks an AI
 // calibration tutor about the evaluation (why the AI scored a domain a certain way, where they
 // diverge). Metered against the auditor's SEPARATE budget pool (POST /auditor/ples/:id/discuss).
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiFetch, REQUEST_TIMEOUT_CODE } from '@/lib/api';
 import { Markdown } from './Markdown';
 import { Button } from './ui/button';
@@ -14,8 +14,11 @@ import type { ApiResult } from '@/lib/types';
 
 type Msg = { role: string; content: string };
 
-// The backend may run for up to ~100s (rimpl's own ceiling), so the client must wait LONGER than that
-// or it gives up on a call that is about to succeed. 130s matches the physician portal's client limit.
+// The backend gives rimpl up to RIMPL_CHAT_TIMEOUT_MS (default 100000ms,
+// backend/src/services/rimpl-client.js) for /audit-discuss; rimpl's own provider limit is longer
+// (150s). This client timeout MUST stay above RIMPL_CHAT_TIMEOUT_MS, or the page gives up on a call
+// the backend is still allowed to finish and store. If that env var is raised, raise this too.
+// 130s also matches the physician portal's client limit.
 export const DISCUSS_TIMEOUT_MS = 130_000;
 // Within this many px of the bottom counts as "reading the latest message".
 const NEAR_BOTTOM_PX = 80;
@@ -39,15 +42,23 @@ export function AuditorChatBox({ pleId }: { pleId: string }) {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState('');
+  // A failed history load must not read as "no discussion yet" (apiFetch never rejects: a failure is a
+  // non-array {error} body).
+  const [loadErr, setLoadErr] = useState(false);
   const [usageVersion, setUsageVersion] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
   // Whether the reader is at the bottom. A reader who scrolled up to re-read an earlier answer must not
   // be yanked down when a new message lands.
   const follow = useRef(true);
 
-  useEffect(() => {
-    apiFetch<Msg[]>(`/auditor/ples/${pleId}/discussion`).then(d => setMsgs(Array.isArray(d) ? d : [])).catch(() => {});
+  const loadDiscussion = useCallback(() => {
+    apiFetch<Msg[]>(`/auditor/ples/${pleId}/discussion`)
+      .then(d => { if (Array.isArray(d)) setMsgs(d); else setLoadErr(true); })
+      .catch(() => setLoadErr(true));
   }, [pleId]);
+  useEffect(() => { loadDiscussion(); }, [loadDiscussion]);
+  // Retry is a user event, so resetting the error here is not a setState-in-effect.
+  const retryLoad = () => { setLoadErr(false); loadDiscussion(); };
   // Scrolls the LIST only (scrollIntoView on a sentinel also scrolled the whole page).
   useEffect(() => {
     const el = listRef.current;
@@ -99,7 +110,11 @@ export function AuditorChatBox({ pleId }: { pleId: string }) {
       <h3 className="text-sm font-medium">พูดคุยกับ AI เกี่ยวกับผลการประเมิน / Discuss this evaluation with AI</h3>
       <AuditorUsageBar version={usageVersion} />
       <div ref={listRef} onScroll={onListScroll} className="h-[32rem] max-h-[70vh] overflow-y-auto space-y-3 rounded-lg border bg-background p-3">
-        {msgs.length === 0 && (
+        {loadErr && (
+          <StateMessage kind="error" className="px-3 py-2 text-sm" onRetry={retryLoad}
+            title="โหลดการสนทนาก่อนหน้าไม่สำเร็จ / Could not load the earlier discussion." />
+        )}
+        {!loadErr && msgs.length === 0 && (
           <StateMessage kind="empty" className="py-0 text-xs"
             title={<>ถามได้ เช่น “ทำไม AI ให้คะแนนหมวด Critical Appraisal สูงกว่าฉัน?” / Ask e.g. &ldquo;Why did the AI score Critical Appraisal higher than I did?&rdquo;</>} />
         )}

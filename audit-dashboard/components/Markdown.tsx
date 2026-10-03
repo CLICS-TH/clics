@@ -6,12 +6,14 @@
 // output stays XSS-safe.
 //
 // Three rules on top of that, because this renders text an AI wrote:
-//   * Images are dropped. react-markdown renders `![x](url)` as a real <img> (and React preloads it),
-//     so a reply could make the auditor's browser fetch an arbitrary remote URL. Verified, not assumed.
+//   * Images are never rendered or fetched. react-markdown renders `![x](url)` as a real <img> (and
+//     React preloads it), so a reply could make the auditor's browser fetch an arbitrary remote URL.
+//     Verified, not assumed. The ALT text is kept as plain text so the words are not silently lost.
 //   * Headings are shifted so the highest level inside a reply is h3: a reply must never outrank the
 //     page's own h1/h2 in the outline a screen reader navigates by.
-//   * Tables and code blocks scroll inside a focusable, labelled region — a keyboard user cannot scroll
-//     an overflow box that cannot take focus.
+//   * Tables and code blocks scroll inside a focusable, labelled group — a keyboard user cannot scroll
+//     an overflow box that cannot take focus. role=group, not region: a long reply would otherwise add
+//     a landmark per table (matches the physician portal).
 // Link behaviour is deliberately unchanged.
 import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
@@ -40,7 +42,7 @@ const COMPONENTS: Components = {
   h6: (p) => <h6 className={H3} {...clean(p)} />,
   table: (p) => (
     <div
-      role="region"
+      role="group"
       tabIndex={0}
       aria-label="ตาราง / Table"
       className="my-3 max-w-full overflow-x-auto"
@@ -51,8 +53,10 @@ const COMPONENTS: Components = {
       />
     </div>
   ),
+  // The src is never used: no <img>, no preload, no request. Only the alt survives, as text.
+  img: ({ alt }) => (alt ? <span data-md-img-alt="">{alt}</span> : null),
   pre: (p) => (
-    <pre role="region" tabIndex={0} aria-label="โค้ด / Code" {...clean(p)} />
+    <pre role="group" tabIndex={0} aria-label="โค้ด / Code" {...clean(p)} />
   ),
 };
 
@@ -68,7 +72,7 @@ export function Markdown({ children }: { children: string }) {
         [&_pre]:my-3 [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:border [&_pre]:border-border [&_pre]:bg-muted [&_pre]:p-3
         [&_pre_code]:border-0 [&_pre_code]:bg-transparent [&_pre_code]:p-0"
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={COMPONENTS} disallowedElements={["img"]}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={COMPONENTS}>
         {children}
       </ReactMarkdown>
     </div>

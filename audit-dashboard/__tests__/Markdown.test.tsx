@@ -7,11 +7,27 @@ import { Markdown } from '@/components/Markdown';
 const html = (md: string) => render(<Markdown>{md}</Markdown>).container;
 
 describe('images', () => {
-  it('a markdown image is dropped — no <img>, so the browser never fetches the URL', () => {
+  it('a markdown image is never rendered or fetched — no <img>, no preload, no URL anywhere', () => {
     const c = html('before\n\n![x](https://evil.example/pixel.png)\n\nafter');
     expect(c.querySelector('img')).toBeNull();
     expect(c.textContent).toContain('before');
     expect(c.textContent).toContain('after');
+    expect(c.innerHTML).not.toContain('evil.example');
+    expect(document.head.innerHTML).not.toContain('evil.example');   // React 19 hoists <img> preloads here
+  });
+
+  it('keeps the image ALT text as plain text, so the words are not silently lost', () => {
+    const c = html('ดู ![แผนภาพการไหลเวียน](https://evil.example/p.png) ประกอบ');
+    const alt = c.querySelector('[data-md-img-alt]')!;
+    expect(alt.tagName).toBe('SPAN');
+    expect(alt.textContent).toBe('แผนภาพการไหลเวียน');
+    expect(c.textContent).toContain('ดู แผนภาพการไหลเวียน ประกอบ');
+    expect(c.querySelector('img')).toBeNull();
+  });
+
+  it('an image with no alt leaves nothing behind', () => {
+    const c = html('![](https://evil.example/p.png)');
+    expect(c.querySelector('[data-md-img-alt], img')).toBeNull();
     expect(c.innerHTML).not.toContain('evil.example');
   });
 
@@ -37,10 +53,11 @@ describe('heading levels', () => {
   });
 });
 
-describe('scroll regions', () => {
-  it('a table sits in a focusable, labelled region', () => {
+describe('scroll groups', () => {
+  it('a table sits in a focusable, labelled group (not a landmark region)', () => {
     const c = html('| a | b |\n|---|---|\n| 1 | 2 |');
-    const region = c.querySelector('[role="region"]') as HTMLElement;
+    expect(c.querySelector('[role="region"]')).toBeNull();
+    const region = c.querySelector('[role="group"]') as HTMLElement;
     expect(region).not.toBeNull();
     expect(region.getAttribute('tabindex')).toBe('0');
     expect(region.getAttribute('aria-label')).toBe('ตาราง / Table');
@@ -50,17 +67,17 @@ describe('scroll regions', () => {
     expect(c.querySelectorAll('th')).toHaveLength(2);
   });
 
-  it('a code block is a focusable, labelled region', () => {
+  it('a code block is a focusable, labelled group', () => {
     const pre = html('```\nconst a = 1;\n```').querySelector('pre') as HTMLElement;
-    expect(pre.getAttribute('role')).toBe('region');
+    expect(pre.getAttribute('role')).toBe('group');
     expect(pre.getAttribute('tabindex')).toBe('0');
     expect(pre.getAttribute('aria-label')).toBe('โค้ด / Code');
     expect(pre).not.toHaveAttribute('node');
     expect(pre.textContent).toContain('const a = 1;');
   });
 
-  it('inline code is not turned into a region', () => {
-    expect(html('use `x` here').querySelector('[role="region"]')).toBeNull();
+  it('inline code is not turned into a scroll group', () => {
+    expect(html('use `x` here').querySelector('[role="group"]')).toBeNull();
   });
 });
 

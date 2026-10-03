@@ -145,6 +145,43 @@ describe('scrolling', () => {
   });
 });
 
+describe('loading the earlier discussion', () => {
+  it('a failed load is an error with Retry, not an empty discussion', async () => {
+    mockApi.mockImplementation((path: string) =>
+      Promise.resolve(/\/discussion$/.test(path) ? { error: 'boom' } : { content: 'x' }));
+    await renderBox();
+    expect(screen.getByRole('alert')).toHaveTextContent('Could not load the earlier discussion');
+    expect(screen.queryByText(/Ask e\.g\./)).toBeNull();           // the empty-state hint is NOT shown
+  });
+
+  it('a rejected load is an error too', async () => {
+    mockApi.mockImplementation((path: string) =>
+      /\/discussion$/.test(path) ? Promise.reject(new Error('x')) : Promise.resolve({ content: 'x' }));
+    await renderBox();
+    expect(screen.getByRole('alert')).toHaveTextContent('Could not load the earlier discussion');
+  });
+
+  it('Retry reloads, and a successful reload shows the history', async () => {
+    let fail = true;
+    mockApi.mockImplementation((path: string) => Promise.resolve(
+      /\/discussion$/.test(path)
+        ? (fail ? { error: 'boom' } : [{ role: 'auditor', content: 'คำถามเดิม' }])
+        : { content: 'x' }));
+    await renderBox();
+    fail = false;
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /ลองใหม่|Retry/ })); });
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByText('คำถามเดิม')).toBeInTheDocument();
+    expect(mockApi.mock.calls.filter(([p]) => /\/discussion$/.test(p))).toHaveLength(2);
+  });
+
+  it('an empty history shows the empty hint, not an error', async () => {
+    await renderBox();
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByText(/Ask e\.g\./)).toBeInTheDocument();
+  });
+});
+
 describe('discuss timeout', () => {
   it('passes a generous timeout: longer than the backend\'s ~100s ceiling', async () => {
     await renderBox();
