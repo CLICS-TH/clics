@@ -14,7 +14,8 @@ export default function StatsPage() {
   const [statsErr, setStatsErr] = useState(false);
   useEffect(() => {
     // .catch so a failed load shows an error instead of hanging on the skeleton forever.
-    apiFetch<CleStats>('/admin/stats').then(setStats).catch(() => setStatsErr(true));
+    // apiFetch never rejects — a failed load is an {error} body, which is not a stats object.
+    apiFetch<CleStats>('/admin/stats').then(d => { if (d && !(d as { error?: unknown }).error) setStats(d); else setStatsErr(true); }).catch(() => setStatsErr(true));
     // /admin/icc is superadmin-only — for admins it 403s and the section silently hides,
     // so don't fire the request at all unless the viewer is a superadmin.
     if (getUser()?.role === 'superadmin') apiFetch<IccData>('/admin/icc').then(setIcc).catch(() => {});

@@ -22,12 +22,16 @@ export default function AuditorQueue() {
   const router = useRouter();
 
   // Fetch only sets state in its async callbacks — keeping the synchronous loading-reset out of the
-  // mount effect (react-hooks/set-state-in-effect). Defensive: a 500 resolves with a non-array error
-  // body, so guard the spread (it used to throw and blank the page); .catch surfaces a network reject
-  // as an error, not a false "empty".
+  // mount effect (react-hooks/set-state-in-effect). apiFetch NEVER rejects: a 500 or a network failure
+  // resolves with a non-array {error} body. That used to be read as an empty queue ("No PLEs assigned
+  // yet"), so a failed load told the rater they had nothing to do and the Retry state was unreachable.
+  // Anything that is not an array is now an error; .catch stays as a belt for a thrown render error.
   const fetchQueue = useCallback(() => {
     apiFetch<CleItem[]>('/auditor/queue')
-      .then(d => setPlEs(Array.isArray(d) ? [...d].sort((a, b) => Number(!!a.scored) - Number(!!b.scored)) : []))
+      .then(d => {
+        if (Array.isArray(d)) setPlEs([...d].sort((a, b) => Number(!!a.scored) - Number(!!b.scored)));
+        else setErr(true);
+      })
       .catch(() => setErr(true));
   }, []);
 

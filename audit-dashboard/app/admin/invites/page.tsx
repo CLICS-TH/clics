@@ -48,7 +48,8 @@ export default function InvitesPage() {
   // fetchInvites only sets state asynchronously (mount effect stays free of synchronous setState); the
   // `load` wrapper adds the error-reset for the Retry button + post-action refresh (event handlers).
   const fetchInvites = useCallback(() => {
-    apiFetch<Invite[]>('/admin/invites').then(d => setInvites(Array.isArray(d) ? d : [])).catch(() => setLoadErr(true));
+    // apiFetch never rejects — a failed load is a non-array {error} body (not "no invites yet").
+    apiFetch<Invite[]>('/admin/invites').then(d => { if (Array.isArray(d)) setInvites(d); else setLoadErr(true); }).catch(() => setLoadErr(true));
   }, []);
   const load = () => { setLoadErr(false); fetchInvites(); };
 

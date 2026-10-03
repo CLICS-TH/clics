@@ -16,7 +16,9 @@ export default function FlaggedPage() {
   // The fetch only sets state asynchronously (keeps the mount effect free of synchronous setState); the
   // `load` wrapper adds the error-reset for the Retry button + post-action refresh (both event handlers).
   const fetchFlagged = useCallback(() => {
-    apiFetch<CleRow[]>('/admin/ples/flagged').then(d => setPlEs(Array.isArray(d) ? d : [])).catch(() => setErr(true));
+    // apiFetch never rejects — a failed load is a non-array {error} body, which must read as an error,
+    // not as "no sessions awaiting review".
+    apiFetch<CleRow[]>('/admin/ples/flagged').then(d => { if (Array.isArray(d)) setPlEs(d); else setErr(true); }).catch(() => setErr(true));
   }, []);
   const load = () => { setErr(false); fetchFlagged(); };
   useEffect(() => { fetchFlagged(); }, [fetchFlagged]);
