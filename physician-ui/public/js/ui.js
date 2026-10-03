@@ -146,13 +146,20 @@
   //
   // markdownFragment(md) -> DocumentFragment, or null when marked / DOMPurify did not load (the caller then
   // falls back to textContent, never to unsanitised HTML). DOMPurify stays the sanitiser; on top of it:
-  //   - no remote media: `img` alone is NOT enough — DOMPurify's defaults also let through <picture><source>,
-  //     <video>/<audio src> and <svg><image href>, each of which fetches a remote URL when rendered;
+  //   - nothing that fetches a remote URL or restyles the page. DOMPurify's defaults (3.1.6, measured in a browser)
+  //     let ALL of these through: <img>, <picture><source srcset>, <video>/<audio src>, <svg><image href>,
+  //     style="…url()", <style> with url() / @import / @font-face (and <style>body{display:none}</style>, which
+  //     hid the whole page), <table|td background>, <input type=image src>, and <form action> + <button>.
+  //     So whole tags (media, svg/math, style, form, object/embed/iframe, link/meta) and the attributes that load
+  //     or post (style, background, src, srcset, poster, action, formaction, ping) are forbidden outright.
+  //     Any <input> that is not a GFM task-list checkbox is removed. Kept: task-list checkboxes, table `align`, links;
   //   - headings are announced as level 3+ (role=heading aria-level = n+2, capped at 6) so a reply never
   //     outranks the page's own headings, while the element and its CSS stay as they are;
   //   - tables and code blocks scroll inside a focusable, labelled group so a keyboard user can reach them.
   // Links are left exactly as DOMPurify delivers them today (clickable <a href>, no target/rel added).
-  var MD_FORBID = ['img', 'picture', 'source', 'video', 'audio', 'track', 'image', 'svg', 'math'];
+  var MD_FORBID = ['img', 'picture', 'source', 'video', 'audio', 'track', 'image', 'svg', 'math',
+    'style', 'form', 'object', 'embed', 'iframe', 'link', 'meta'];
+  var MD_FORBID_ATTR = ['style', 'background', 'src', 'srcset', 'poster', 'action', 'formaction', 'ping'];
   function mdWrap(el, label) {
     var w = document.createElement('div');
     w.className = 'md-scroll';
@@ -164,7 +171,12 @@
   }
   window.markdownFragment = function (md) {
     if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') return null;
-    var frag = DOMPurify.sanitize(marked.parse(md), { FORBID_TAGS: MD_FORBID, RETURN_DOM_FRAGMENT: true });
+    var frag = DOMPurify.sanitize(marked.parse(md), { FORBID_TAGS: MD_FORBID, FORBID_ATTR: MD_FORBID_ATTR, RETURN_DOM_FRAGMENT: true });
+    // The only input markdown legitimately produces is a GFM task-list checkbox; anything else (an <input
+    // type=image> with its src already stripped, a text field, a button-like input) is dropped.
+    Array.prototype.forEach.call(frag.querySelectorAll('input'), function (i) {
+      if ((i.getAttribute('type') || '').toLowerCase() !== 'checkbox') i.remove();
+    });
     Array.prototype.forEach.call(frag.querySelectorAll('h1,h2,h3,h4,h5,h6'), function (h) {
       h.setAttribute('role', 'heading');
       h.setAttribute('aria-level', String(Math.min(6, Number(h.tagName.charAt(1)) + 2)));
