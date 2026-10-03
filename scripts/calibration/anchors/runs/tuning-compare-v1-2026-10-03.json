@@ -1,0 +1,167 @@
+{
+  "probe": "anchors-addendum-compare",
+  "evidence_level": "screening-synthetic (AI-authored, AI-scored) — not a decisive gate",
+  "rule": {
+    "lowBand": 40,
+    "highBand": 70,
+    "lowBiasDropMin": 10,
+    "highBiasMax": 7,
+    "spearmanDropMax": 0.05,
+    "retestMin": 0.85,
+    "maxVariants": 3
+  },
+  "baseline_files": [
+    "runs/tuning-local-baseline-2026-10-02-h1.json",
+    "runs/tuning-local-baseline-2026-10-02-h2.json"
+  ],
+  "variant_files": [
+    "runs/tuning-local-v1-2026-10-02-h1.json",
+    "runs/tuning-local-v1-2026-10-02-h2.json"
+  ],
+  "baseline": {
+    "prompt_version": "pis7-prompt-59561c29+local-c5ffe572aa81",
+    "addendum": "shipping",
+    "n_designed": 40,
+    "n_scored": 40,
+    "unscored_rows": 0,
+    "icc": {
+      "icc": 0.819,
+      "lower": 0.595,
+      "upper": 0.913,
+      "n": 40,
+      "interpretation": "Good"
+    },
+    "spearman": {
+      "rho": 0.8312039098214986,
+      "lower": 0.6963972070078147,
+      "upper": 0.9093518182766843,
+      "n": 40
+    },
+    "bias": 6.4,
+    "low": {
+      "n": 10,
+      "bias": 12
+    },
+    "mid": {
+      "n": 15,
+      "bias": 11.33
+    },
+    "high": {
+      "n": 15,
+      "bias": -2.27
+    },
+    "ai_range": [
+      29,
+      90
+    ],
+    "ai_sd": 18.35,
+    "flagged": 10,
+    "retest": {
+      "icc": 0.94,
+      "lower": 0.89,
+      "upper": 0.968,
+      "n": 40,
+      "interpretation": "Very Good"
+    },
+    "per_domain_bias": {
+      "d1": 0,
+      "d2": 0.48,
+      "d3": 0.38,
+      "d4": 0.7,
+      "d5": 0.33,
+      "d6": -0.2,
+      "d7": 0.35
+    }
+  },
+  "variant": {
+    "prompt_version": "pis7-prompt-59561c29+local-f2883fc1a9f0",
+    "addendum": {
+      "candidate": "scripts/calibration/anchors/addenda/v1-evidence-first.txt",
+      "sha256": "f2883fc1a9f0a821c89f535baaccecedc8c38c6d7f78565b8b49058bd16e1698"
+    },
+    "n_designed": 40,
+    "n_scored": 40,
+    "unscored_rows": 0,
+    "icc": {
+      "icc": 0.8,
+      "lower": 0.573,
+      "upper": 0.902,
+      "n": 40,
+      "interpretation": "Good"
+    },
+    "spearman": {
+      "rho": 0.8071207677443948,
+      "lower": 0.6566863156438204,
+      "upper": 0.8957839528311621,
+      "n": 40
+    },
+    "bias": 6.63,
+    "low": {
+      "n": 10,
+      "bias": 12.9
+    },
+    "mid": {
+      "n": 15,
+      "bias": 10.67
+    },
+    "high": {
+      "n": 15,
+      "bias": -1.6
+    },
+    "ai_range": [
+      29,
+      85
+    ],
+    "ai_sd": 18.88,
+    "flagged": 9,
+    "retest": {
+      "icc": 0.923,
+      "lower": 0.86,
+      "upper": 0.958,
+      "n": 40,
+      "interpretation": "Very Good"
+    },
+    "per_domain_bias": {
+      "d1": 0,
+      "d2": 0.5,
+      "d3": 0.45,
+      "d4": 0.7,
+      "d5": 0.18,
+      "d6": -0.12,
+      "d7": 0.45
+    }
+  },
+  "checks": [
+    {
+      "id": 1,
+      "rule": "|low-band bias| falls by >= 10",
+      "value": "12 -> 12.9",
+      "pass": false
+    },
+    {
+      "id": 2,
+      "rule": "ICC(A,1) vs target point estimate is higher",
+      "value": "0.82 -> 0.8",
+      "pass": false
+    },
+    {
+      "id": 3,
+      "rule": "|high-band bias| <= 7",
+      "value": "-1.6",
+      "pass": true
+    },
+    {
+      "id": 4,
+      "rule": "Spearman drops by <= 0.05",
+      "value": "0.83 -> 0.81",
+      "pass": true
+    },
+    {
+      "id": 5,
+      "rule": "test–retest ICC >= 0.85 and no unscored run",
+      "value": "0.92, unscored 0",
+      "pass": true
+    }
+  ],
+  "adopt": false
+}

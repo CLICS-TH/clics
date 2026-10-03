@@ -1,0 +1,187 @@
+{
+  "probe": "anchors-score-local",
+  "evidence_level": "screening-synthetic (AI-authored, AI-scored) — not a decisive gate",
+  "started_at": "2026-10-03T07:34:20.080Z",
+  "model": "deepseek-v4-flash-dspark",
+  "base_url_origin": "(redacted before commit: on-prem evaluation box)",
+  "prompt_version_used": "pis7-prompt-59561c29+local-98bc211098fb",
+  "addendum": {
+    "candidate": "scripts/calibration/anchors/addenda/v2-format-only.txt",
+    "sha256": "98bc211098fb0d45c71a4ca26514104e160ab4a27898244ab06f6444a5a2e80f"
+  },
+  "rubric_version": "pis7-weights-08b0cb1a",
+  "decoding": {
+    "temperature": 0,
+    "maxTokens": 4096
+  },
+  "consistency": "off",
+  "json_retries": 0,
+  "contract": "rimpl scoreWithConsistency → pis7 scoreFromText (DomainScoresSchema .strict())",
+  "repeats": 1,
+  "concurrency": 2,
+  "design_seed": 20261002,
+  "fixtures": {
+    "anc-101": "35631435f1dba66abcb40f3bd59880018c6203b674cbbe00516f384d469d6a90",
+    "anc-102": "8a50395e7e0f693131f3514f3c03882a0b8ebcc2d85470e094bbb309dab608c8",
+    "anc-103": "e62846d3e8cd6d692079c10e3c30bbf7f6c867457e34042b5f5bf9aff3f4efd5"
+  },
+  "rows": [
+    {
+      "id": "anc-101",
+      "run": 1,
+      "scores": {
+        "d1": 2,
+        "d2": 2,
+        "d3": 2,
+        "d4": 1,
+        "d5": 4,
+        "d6": 1,
+        "d7": 3
+      },
+      "error": null,
+      "ms": 105876,
+      "attempts": 1,
+      "model": "deepseek-v4-flash-dspark",
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "off",
+        "rule": "single",
+        "calls": 1,
+        "max_delta": null,
+        "sum_delta": null,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            2,
+            2,
+            2,
+            1,
+            4,
+            1,
+            3
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 0,
+        "extra_output_tokens": 0,
+        "latency_ms": 105876
+      },
+      "replies": [
+        {
+          "text": "{\n  \"d1\": 2,\n  \"d2\": 2,\n  \"d3\": 2,\n  \"d4\": 1,\n  \"d5\": 4,\n  \"d6\": 1,\n  \"d7\": 3,\n  \"rationale\": {\n    \"d1\": \"The physician's initial question is case-specific ('ยาละลายลิ่มเลือดกับหัวกระแทก มีอะไรต้องรู้บ้างครับ'), but subsequent questions are generic and not tailored to this patient's decision points. The follow-up questions about bridging, reversal agents, and timing of the next apixaban dose are standard anticoagulation topics that could apply to any DOAC patient, not specifically to this elderly fall with head strike. The questions do not probe the specific clinical dilemma of this patient (e.g., whether to restart apixaban given recurrent falls and dizziness).\",\n    \"d2\": \"The physician does not commit to ranked hypotheses or weigh risk-benefit for this patient. The reasoning is largely absent; the physician asks questions but does not articulate a differential or justify a management plan. The only reasoning appears in the reflection where the physician categorizes evidence reliability, but this is not clinical reasoning about the patient's case. There is no update of hypotheses in response to new information.\",\n    \"d3\": \"The physician mentions the patient's age, apixaban use, and head strike in the initial prompt, but this context does not visibly alter any subsequent decision or question. The questions about bridging and reversal agents are generic and do not incorporate this patient's specific factors (e.g., recurrent falls, dizziness, renal function Cr 1.1, or the fact that the fall was the second in a month). Context is mentioned but does not change the reasoning.\",\n    \"d4\": \"The physician's turns do not build on the AI's previous answers. After the AI asks about headache/vomiting/loss of consciousness, the physician abruptly changes topic to bridging, then to reversal agents, then to a reflection. There is no probing, narrowing, or testing of the AI's prior responses. The reflection is a meta-commentary on evidence reliability, not an iterative inquiry into the case.\",\n    \"d5\": \"The physician demonstrates strong critical appraisal in the reflection, explicitly separating what is credible ('Canadian CT Head Rule ไม่ครอบคลุมคนกินยาละลายลิ่มเลือด ตรงกับงานต้นฉบับ'), what is weaker ('CT ภายใน 8 ชั่วโมง เป็นความเห็นผู้เชี่ยวชาญ ไม่ใช่ RCT'), and what is overclaimed ('กลับบ้านได้เลยไม่ต้องสังเกต, ไม่ต้อง bridge ทุกราย'). This is a clear, case-grounded critique of the AI's output, showing the physician can distinguish fact, uncertainty, and limitation.\",\n    \"d6\": \"The reflection is minimal and generic: 'ได้ความรู้เยอะมาก ขอบคุณครับ' (learned a lot, thank you). It does not name a specific takeaway, next learning step, or how the physician will apply the knowledge. There is no synthesis of what changed in their approach or a case-grounded lesson.\",\n    \"d7\": \"The physician uses the AI appropriately by asking focused questions and later verifying the AI's claims against known evidence (e.g., noting that the bridging RCT was specific to AF). The reflection shows clinical ownership by categorizing evidence reliability. However, the prompts are not highly precise or strategically steered; they are mostly generic anticoagulation questions, and the physician does not request specific verification of the AI's claims during the dialogue.\"\n  }\n}",
+          "finish_reason": "stop",
+          "completion_tokens": 743,
+          "model": "deepseek-v4-flash-dspark"
+        }
+      ]
+    },
+    {
+      "id": "anc-102",
+      "run": 1,
+      "scores": {
+        "d1": 3,
+        "d2": 3,
+        "d3": 4,
+        "d4": 3,
+        "d5": 4,
+        "d6": 4,
+        "d7": 4
+      },
+      "error": null,
+      "ms": 127545,
+      "attempts": 1,
+      "model": "deepseek-v4-flash-dspark",
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "off",
+        "rule": "single",
+        "calls": 1,
+        "max_delta": null,
+        "sum_delta": null,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            3,
+            3,
+            4,
+            3,
+            4,
+            4,
+            4
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 0,
+        "extra_output_tokens": 0,
+        "latency_ms": 127545
+      },
+      "replies": [
+        {
+          "text": "```json\n{\n  \"d1\": 3,\n  \"d2\": 3,\n  \"d3\": 4,\n  \"d4\": 3,\n  \"d5\": 4,\n  \"d6\": 4,\n  \"d7\": 4,\n  \"rationale\": {\n    \"d1\": \"The physician opens with a case-specific question: 'Admit or treat at home?' for a man in his 70s with CAP, sat 93%, on warfarin, CKD, living alone an hour away. Subsequent questions are targeted ('What objective finding at the review would send him to the referral centre?', 'Who can realistically check on him at home...?') rather than generic. However, the final question 'discharge criteria for him, briefly' is somewhat generic and does not probe a new decision point, capping the score at 3.\",\n    \"d2\": \"The physician commits to a decision ('Admitting him') and justifies it by critiquing the CURB-65's validation ('untested in a frail man on warfarin'). They weigh the evidence status of the AI's claims ('The home-treatment line for low scores has no source'). They also select antibiotics with constraints ('IV first, then an oral step-down he can manage alone') and set a 48-hour review trigger. This is structured reasoning, though it does not deeply link mechanism or weigh multiple competing hypotheses in detail.\",\n    \"d3\": \"Context visibly changes decisions throughout: living alone an hour away drives admission; warfarin drives the INR check and antibiotic choice; CKD drives dose adjustment; lack of CT/weekend radiologist drives bedside review instead of imaging. The physician explicitly names these constraints ('a named INR check date for the warfarin', 'Bedside review and a saturation trend at 48 hours, in place of imaging'). This is thorough integration, though the physician does not explicitly discuss limits of applying context (e.g., how frailty alters CURB-65 interpretation beyond noting it).\",\n    \"d4\": \"The physician builds on the AI's answers: after the AI flags the home-treatment line as too broad, the physician accepts the correction and moves to antibiotics; after the AI suggests doxycycline as weaker, the physician notes 'no trial I know of enrolled a frail anticoagulated man' and proceeds. The final question about home support follows logically from the AI's discharge criteria. However, the physician does not strategically adapt questions to probe the AI's earlier claims (e.g., does not ask for the source of the home-treatment line), and the last question is brief and generic.\",\n    \"d5\": \"The physician actively critiques the AI: 'CURB-65 items are validated for mortality in hospital presenters, untested in a frail man on warfarin. The home-treatment line for low scores has no source.' They also challenge the doxycycline recommendation ('you rate doxycycline the weaker recommendation, and no trial I know of enrolled a frail anticoagulated man'). This is clear appraisal of the AI's limits and evidence status, though the physician does not request specific citations or probe the AI's reasoning further.\",\n    \"d6\": \"The reflection is explicit and case-grounded: 'I started out treating the severity score as the answer. It turned out to be one input, and some of what I was told was less well sourced than it sounded.' It names a specific uncertainty ('Whether any trial enrolled frail, anticoagulated patients like him') and a concrete next action ('Look at what the guideline's references say about frail and anticoagulated patients'). This is a genuine synthesis that names what changed and how to apply it, though it does not articulate a broader teaching point.\",\n    \"d7\": \"The physician uses the AI as a tool while maintaining clinical ownership: they state the final plan ('Ceftriaxone with doxycycline. Bedside review and a saturation trend at 48 hours'), verify the AI's guideline claim ('Checked the guideline: no routine repeat film if he recovers, as you said'), and explicitly flag evidence gaps. They steer the conversation with constraints ('with these constraints: IV first... a named INR check date'). This is critical use, though the physician does not ask the AI to show its sources or verify the doxycycline evidence directly.\"\n  }\n}\n```",
+          "finish_reason": "stop",
+          "completion_tokens": 896,
+          "model": "deepseek-v4-flash-dspark"
+        }
+      ]
+    },
+    {
+      "id": "anc-103",
+      "run": 1,
+      "scores": {
+        "d1": 4,
+        "d2": 5,
+        "d3": 4,
+        "d4": 4,
+        "d5": 5,
+        "d6": 5,
+        "d7": 5
+      },
+      "error": null,
+      "ms": 100254,
+      "attempts": 1,
+      "model": "deepseek-v4-flash-dspark",
+      "consistency": {
+        "method": "self-consistency",
+        "mode": "off",
+        "rule": "single",
+        "calls": 1,
+        "max_delta": null,
+        "sum_delta": null,
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": 0
+        },
+        "per_call_scores": [
+          [
+            4,
+            5,
+            4,
+            4,
+            5,
+            5,
+            5
+          ]
+        ],
+        "json_retries": 0,
+        "extra_input_tokens": 0,
+        "extra_output_tokens": 0,
+        "latency_ms": 100254
+      },
+      "replies": [
+        {
+          "text": "{\n  \"d1\": 4,\n  \"d2\": 5,\n  \"d3\": 4,\n  \"d4\": 4,\n  \"d5\": 5,\n  \"d6\": 5,\n  \"d7\": 5,\n  \"rationale\": {\n    \"d1\": \"The physician asks case-specific questions that expose real decision points: 'ผมลังเลระหว่าง apixaban กับ warfarin ซึ่งขึ้นกับว่าตาม INR ได้จริงไหมและค่ายาไหวไหม' and later requests a stepwise plan for rate control and anticoagulation in the ER without echo. These are not generic questions but directly target the management dilemma for this patient.\",\n    \"d2\": \"The physician commits to a ranked decision with justification: 'เอนไปทาง apixaban 5 mg bid เพราะ INR ตามยาก' and later explicitly weighs evidence levels, distinguishing RCT-supported claims from subgroup analyses and label-based criteria. The final synthesis 'ผมจะสั่ง apixaban 5 mg bid หยุด naproxen และ aspirin' shows deep reasoning linking mechanism, evidence, and limits.\",\n    \"d3\": \"Context visibly changes decisions: the physician notes 'บ้านไกล รพ. 45 กม. คลินิก INR ใกล้ที่สุดนัดได้เดือนละครั้ง และยา DOAC ต้องจ่ายเอง' which directly influences the choice of apixaban over warfarin. The patient's weight, eGFR, and concurrent NSAID/aspirin use are integrated into the dosing and bleeding-risk reasoning, and the physician even considers the wife's role in medication adherence.\",\n    \"d4\": \"Each turn builds on the AI's previous answer: after the AI recommends apixaban, the physician asks for rate control and timing; then for follow-up labs and patient education; then for evidence levels. The final turn explicitly engages the AI's earlier claim and corrects it, showing iterative probing rather than topic-hopping.\",\n    \"d5\": \"The physician critically appraises the AI's output, noting 'ผล stroke และ major bleeding ที่ดีกว่า warfarin ในคนน้ำหนัก 58 kg กับ eGFR 52 ซึ่ง trial ไม่ได้ออกแบบมาทดสอบกลุ่มนี้' and 'ตัวเลขดีกว่า warfarin ที่ได้ยินมาจึงเป็นค่าเฉลี่ยของ trial ไม่ใช่ค่าของรายนี้'. This separates fact, uncertainty, and limitation well, and even prompts the AI to correct its own overgeneralization.\",\n    \"d6\": \"The reflection is deep and case-grounded: 'ตอนแรกผมเชื่อว่า apixaban ชนะ warfarin ทุกรายอยู่แล้ว แต่ตอนนี้แยกได้ว่าผลดังกล่าวมาจากประชากรของ trial' and names a concrete next action: 'จะเปิดฉลากยา apixaban ฉบับล่าสุดเทียบเกณฑ์ลดขนาดยากับรายการยาในโรงพยาบาล แล้วดึงข้อมูลผู้ป่วย AF ที่กิน warfarin ในปีที่ผ่านมา'. This is not a generic summary but a synthesis that names what changed and how it will be applied.\",\n    \"d7\": \"The physician uses the AI as a tool while maintaining clinical ownership: they request specific evidence levels, correct the AI's overgeneralization, and plan to verify against local data and the drug label. The prompt 'ขอรายละเอียดเพิ่มเรื่อง rate control กับจังหวะเริ่มยาหน่อยครับ' is precise and steers the conversation, and the final plan is the physician's own decision, not a passive acceptance of AI output.\"\n  }\n}",
+          "finish_reason": "stop",
+          "completion_tokens": 750,
+          "model": "deepseek-v4-flash-dspark"
+        }
+      ]
+    }
+  ],
+  "finished_at": "2026-10-03T07:37:46.227Z"
+}

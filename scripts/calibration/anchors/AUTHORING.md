@@ -727,6 +727,38 @@ The rule from now on:
       selected prompt is judged only by the SANDBOX human auditors (plan 2.7) or by fresh anchors.
       Nothing ships to production on this loop alone.
 
+22. **Plan 2.6 result: null; the shipping addendum stays (2026-10-03).** All three arms were scored
+    on the 40 tuning anchors with K = 3. The rule in item 21 was applied by `addendum-compare.mjs`.
+    Reports: `runs/tuning-compare-v{1,2}-2026-10-03.json`. The evidence is screening-synthetic.
+
+    | | baseline `c5ffe572aa81` | v1 `f2883fc1a9f0` | v2 `98bc211098fb` |
+    |---|---|---|---|
+    | ICC(A,1) vs target | 0.82 [0.60, 0.91] | 0.80 [0.57, 0.90] | 0.82 [0.65, 0.91] |
+    | Spearman | 0.83 | 0.81 | 0.87 |
+    | low-band bias (n 10) | +12.0 | +12.9 | +14.2 |
+    | mid-band bias (n 15) | +11.3 | +10.7 | +7.6 |
+    | high-band bias (n 15) | −2.3 | −1.6 | −2.5 |
+    | test–retest | 0.94 | 0.92 | 0.90 |
+    | rule | | fails 1, 2 | fails 1 |
+
+    - **Not adopted.** Neither variant meets condition 1. The low-band lift did not fall: v1 removed
+      the "default to 3" rules, and v2 removed every scoring rule.
+    - **Reading.** The over-scoring of weak work belongs to the local model, not to the addendum's
+      wording. By domain, d4 (+0.7) and d2 (+0.5) are the steady contributors in all three arms.
+    - **v2's mid-band and Spearman gains** are below what the pre-registered rule counts, and they
+      come from the same 40 anchors used to select. They are not a reason to switch.
+    - **v3 is not authored.** One more variant was allowed. A low-band rule would have to describe
+      what weak work looks like, which risks fitting the anchors. The next evidence should be the
+      SANDBOX human auditors (plan 2.7).
+    - **Provenance.**
+      - v2 half 2 ran in four invocations: the 2-hour tool limit cut the first, and the network to
+        the box dropped during the others.
+      - 4 rows that failed in transport (`ENETUNREACH`, so no model reply exists) were dropped and
+        re-scored.
+      - No model-produced failure was dropped. All 360 evaluations scored.
+      - Configuration was checked identical before merging (`runs/*-h2-merged.json` `merge_note`).
+      - The box address is redacted.
+
 ## 8. Pipeline and commands
 
 | step | command | network |
