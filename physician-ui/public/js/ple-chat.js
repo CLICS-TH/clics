@@ -246,11 +246,14 @@ function fmtClock(d) {
   return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 
+// opts.system marks a CLIENT-generated notice (limit reached, AI busy, error): it is not model output, so it
+// never wears the AI chip. It gets a neutral style (.msg-system), role=status and an sr-only "ระบบ / System:".
 function renderMessage(role, content, refs, socratic, opts) {
   opts = opts || {};
   const stick = nearBottom();
   const div = document.createElement('div');
-  div.className = role === 'physician' ? 'msg-physician' : 'msg-assistant';
+  div.className = role === 'physician' ? 'msg-physician' : 'msg-assistant' + (opts.system ? ' msg-system' : '');
+  if (opts.system) div.setAttribute('role', 'status');
   if (role === 'physician') {
     div.textContent = content;
   } else {
@@ -325,6 +328,11 @@ function renderMessage(role, content, refs, socratic, opts) {
     who.className = 'sr-only';
     who.textContent = 'คุณ / You: ';
     div.insertBefore(who, div.firstChild);
+  } else if (opts.system) {
+    const who = document.createElement('span');
+    who.className = 'sr-only';
+    who.textContent = 'ระบบ / System: ';
+    div.insertBefore(who, div.firstChild);
   } else {
     div.insertBefore(aiChip(), div.firstChild);
   }
@@ -381,7 +389,6 @@ api.getPle(pleId).then(ple => {
   if (ple && ple.error) {
     msgEl.innerHTML =
       '<div class="msg-assistant" role="alert">' + icon('warn', 16) + ' โหลดเซสชันไม่สำเร็จ กรุณารีเฟรชหน้านี้ / Could not load this session — please refresh.</div>';
-    goLive();
     return;
   }
   if (!ple || ple.status !== 'active') { window.location.href = `/ple-result?id=${pleId}`; return; }
@@ -401,9 +408,8 @@ api.getPle(pleId).then(ple => {
   refreshUsage();
   applyTranscript(ple.transcript);
   // Reloaded a session that already sits at the cap: the next turn would 403 anyway — say so now.
-  if (transcriptFull(transcript)) { renderMessage('assistant', LIMIT_REACHED_MSG, [], null); lockComposer(); }
-  goLive();
-}, () => goLive());
+  if (transcriptFull(transcript)) { renderMessage('assistant', LIMIT_REACHED_MSG, [], null, { system: true }); lockComposer(); }
+}).catch(e => { console.error(e); }).then(goLive);   // always back to polite, even if the draw above threw
 
 // The turn never happened: take back the physician bubble sendMessage() drew, so re-sending the
 // restored text does not show the question twice. (Retry on an error bubble re-delivers without
@@ -445,24 +451,24 @@ async function deliver(message) {
     // reason 'tokens' is the token-denominated cap (local AI); 'cost' the $ cap. Same outcome here.
     const unit = res.reason === 'tokens' ? ' (โทเค็น / tokens)' : '';
     retractPhysicianBubble(); // refused before it was saved — a bubble would claim it was said
-    renderMessage('assistant', 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ คุณยังสามารถจบเซสชันนี้ได้ / AI usage limit reached — contact an administrator. You can still end this session.' + unit, [], null);
+    renderMessage('assistant', 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ คุณยังสามารถจบเซสชันนี้ได้ / AI usage limit reached — contact an administrator. You can still end this session.' + unit, [], null, { system: true });
     document.getElementById('input').value = message; // restore the typed question
     refreshUsage();
   } else if (res?.code === 'transcript_limit_reached') {
     // The transcript cap: nothing more can be sent to this session. End is the only move left.
     if (res.used != null && res.limit != null) transcript = { used: res.used, limit: res.limit, warn: true };
     retractPhysicianBubble(); // refused before it was saved — a bubble would claim it was said
-    renderMessage('assistant', LIMIT_REACHED_MSG, [], null);
+    renderMessage('assistant', LIMIT_REACHED_MSG, [], null, { system: true });
     lockComposer();
   } else if (res?.code === 'ai_busy') {
     // Local AI at capacity (503) — transient. Keep the question so one tap re-sends it after the wait.
     const wait = Number(res.retry_after_s) > 0 ? Math.ceil(Number(res.retry_after_s)) : 30;
     retractPhysicianBubble();
-    renderMessage('assistant', `ระบบ AI กำลังทำงานหนัก — ลองอีกครั้งใน ${wait} วินาที / AI is busy — try again in ${wait} s`, [], null);
+    renderMessage('assistant', `ระบบ AI กำลังทำงานหนัก — ลองอีกครั้งใน ${wait} วินาที / AI is busy — try again in ${wait} s`, [], null, { system: true });
     document.getElementById('input').value = message; // restore the typed question
   } else {
     // The turn failed — restore the text and offer a Retry on the error bubble.
-    renderMessage('assistant', 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong — please try again.', [], null, { error: true });
+    renderMessage('assistant', 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong — please try again.', [], null, { error: true, system: true });
     document.getElementById('input').value = message;
   }
   if (composerLocked) return; // stays locked — never re-enable Send past the cap
@@ -496,7 +502,7 @@ document.getElementById('sendBtn').addEventListener('click', sendMessage);
 inputEl.addEventListener('keydown', e => {
   // Enter that confirms an IME candidate (Thai/Japanese/Chinese/Korean) must not send the half-typed
   // message. isComposing is false on the keydown that ENDS composition in some Safari versions, which
-  // reports keyCode 229 instead.
+  // reports keyCode 229 instead. (The 229 half is unverified on Android Gboard.)
   if (e.isComposing || e.keyCode === 229) return;
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
@@ -515,13 +521,13 @@ function tierOneGuardBody() {
     { met: tokenCount >= T_TOKENS,  label: 'ความลึกของบทสนทนา / Conversation depth' },
   ];
   const list = rows.map(r =>
-    `<div style="display:flex;align-items:center;gap:8px;margin:5px 0;color:var(--muted);font-size:.9rem">` +
+    `<div style="display:flex;align-items:center;gap:8px;margin:5px 0;color:var(--muted)">` +
       icon(r.met ? 'checkCircle' : 'x', 16) +
       `<span>${r.label}</span></div>`).join('');
   return (
     `<p style="margin:0 0 8px">การประเมินจะดูว่าบทสนทนานี้แสดง <b>คำถามที่มีความหมาย · การพัฒนาเหตุผล · การเชื่อมโยงหลักฐาน · การสรุปการเรียนรู้</b> หรือไม่` +
-    `<br><span style="color:var(--muted);font-size:.9rem">Your session is assessed on whether it shows a meaningful question, developing reasoning, evidence integration, and reflective synthesis.</span></p>` +
-    `<p style="margin:14px 0 4px;font-size:.85rem;color:var(--muted)">ข้อมูลการมีส่วนร่วม (บันทึกไว้ ไม่ใช่เกณฑ์ตัดสิน) / Engagement, recorded but not a criterion:</p>` +
+    `<br><span style="color:var(--muted)">Your session is assessed on whether it shows a meaningful question, developing reasoning, evidence integration, and reflective synthesis.</span></p>` +
+    `<p style="margin:14px 0 4px;color:var(--muted)">ข้อมูลการมีส่วนร่วม (บันทึกไว้ ไม่ใช่เกณฑ์ตัดสิน) / Engagement, recorded but not a criterion:</p>` +
     list +
     `<p style="margin:12px 0 0"><b>ส่งแล้วทำต่อไม่ได้อีก</b> <span style="color:var(--muted)">— This session can't be resumed once submitted.</span></p>`
   );

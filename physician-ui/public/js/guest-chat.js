@@ -12,9 +12,13 @@ const sendBtn = document.getElementById('sendBtn');
 const remainingEl = document.getElementById('remaining');
 const hintEl = document.getElementById('hint');
 
-function renderMessage(role, content, refs, socratic) {
+// opts.system marks a CLIENT-generated notice (could not start, server error): not model output, so no AI chip.
+// Neutral .msg-system style, role=status, sr-only "ระบบ / System:". Same contract as js/ple-chat.js.
+function renderMessage(role, content, refs, socratic, opts) {
+  opts = opts || {};
   const div = document.createElement('div');
-  div.className = role === 'physician' ? 'msg-physician' : 'msg-assistant';
+  div.className = role === 'physician' ? 'msg-physician' : 'msg-assistant' + (opts.system ? ' msg-system' : '');
+  if (opts.system) div.setAttribute('role', 'status');
   if (role === 'physician') {
     div.textContent = content;
   } else {
@@ -55,6 +59,11 @@ function renderMessage(role, content, refs, socratic) {
     const who = document.createElement('span');
     who.className = 'sr-only';
     who.textContent = 'คุณ / You: ';
+    div.insertBefore(who, div.firstChild);
+  } else if (opts.system) {
+    const who = document.createElement('span');
+    who.className = 'sr-only';
+    who.textContent = 'ระบบ / System: ';
     div.insertBefore(who, div.firstChild);
   } else {
     div.insertBefore(aiChip(), div.firstChild);
@@ -106,7 +115,7 @@ async function start() {
     const busy = res.status === 429 || res.status === 503;
     renderMessage('assistant', busy
       ? 'ระบบทดลองใช้งานไม่ว่างขณะนี้ กรุณารีเฟรชเพื่อลองใหม่ / The trial is busy right now — please refresh to try again.'
-      : 'ไม่สามารถเริ่มเซสชันผู้เยี่ยมชมได้ กรุณารีเฟรช / Could not start a guest session — please refresh to try again.');
+      : 'ไม่สามารถเริ่มเซสชันผู้เยี่ยมชมได้ กรุณารีเฟรช / Could not start a guest session — please refresh to try again.', null, null, { system: true });
   }
 }
 
@@ -143,7 +152,7 @@ async function send() {
   } else if (res.status === 403) {
     endSession(res.body?.error);
   } else {
-    renderMessage('assistant', (res.body?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong.'));
+    renderMessage('assistant', (res.body?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong.'), null, null, { system: true });
     setRemaining(promptsRemaining); // unchanged display
     history.pop();                  // the turn failed — drop it so a retry doesn't duplicate the turn
     inputEl.value = message;        // restore the typed text so the guest can retry
@@ -153,7 +162,8 @@ async function send() {
 
 sendBtn.addEventListener('click', send);
 inputEl.addEventListener('keydown', e => {
-  // Enter that confirms an IME candidate must not send the half-typed message (Safari reports keyCode 229
+  // Enter that confirms an IME candidate must not send the half-typed message (Safari reports keyCode 229;
+  // the 229 half is unverified on Android Gboard)
   // on the keydown that ends composition).
   if (e.isComposing || e.keyCode === 229) return;
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }

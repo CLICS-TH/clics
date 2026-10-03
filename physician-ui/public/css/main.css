@@ -23,14 +23,15 @@
   /* Border of an INPUT-LIKE control (text field, textarea, select, the composer, option rows). WCAG
      1.4.11 wants >=3:1 for the edge that tells you where a control is; --hairline is 1.25:1 on the
      canvas, so it stays for decorative card/row outlines only. #857f75: 3.77 canvas, 3.50 --surface-soft,
-     3.29 --surface-card. Same hex in audit-dashboard so the two apps mirror (pinned in contrast.test.ts). */
+     3.29 --surface-card. Value shared with the audit-dashboard branch so the two apps mirror; the cross-app equality assertion lands once both have merged. */
   --field-border:    #857f75;
   /* Keyboard focus ring colour (the global :focus-visible below). Same hex as --coral-active, written
      out so contrast.test.ts can read it: 4.80 canvas, 4.46 --surface-soft, 4.19 --surface-card. */
   --focus:           #a9583e;
   /* AI treatment: slate-blue, deliberately NOT coral (coral is the human physician's colour). Same hex as
-     the audit-dashboard's --ai-* so the two apps mirror. text on bg 8.38:1; border on canvas 4.59, soft 4.26,
-     card 4.00, on --ai-bg 4.31 (UI needs 3:1). Pinned in contrast.test.ts. */
+     the audit-dashboard's --ai-* so the two apps mirror (that cross-app equality assertion lands once both
+     branches have merged). text on bg 8.38:1; border on canvas 4.59, soft 4.26, card 4.00, on --ai-bg 4.31
+     (UI needs 3:1). The portal side of each pair is pinned in contrast.test.ts. */
   --ai-bg:           #eef2f9;
   --ai-border:       #4f72ad;
   --ai-text:         #2c4673;
@@ -338,6 +339,10 @@ body:has(.chat-page) nav { flex:none; }
    9pt, the micro-label floor. The label TEXT is placeholder copy pending owner/ethics sign-off. */
 .ai-chip { display:block; width:fit-content; max-width:100%; margin:0 0 8px; padding:1px 10px; border:1px solid var(--ai-border); border-radius:var(--r-pill); background:var(--ai-bg); color:var(--ai-text); font-family:var(--font-body); font-size:12px; font-weight:600; line-height:1.5; letter-spacing:.3px; }
 .ai-chip .bi-en { font-size:1em; font-weight:500; }
+
+/* A client-generated NOTICE (limit reached, AI busy, error) drawn as an assistant-side bubble but not model output:
+   no AI chip, no slate-blue, no coral. Neutral dashed outline (--field-border, 3:1) so it reads as a system line. */
+.msg-assistant.msg-system { background:transparent; border:1px dashed var(--field-border); box-shadow:none; color:var(--body-color); }
 
 /* Readable rendered-markdown inside AI answers */
 .msg-assistant > :first-child,

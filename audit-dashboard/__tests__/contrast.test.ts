@@ -211,7 +211,8 @@ describe('WCAG AA on the token pairs both apps render', () => {
 
 // ===================================================================================================
 // physician-ui design-a11y  (self-contained block: appended whole so it merges cleanly with any
-// other edit to this file; it reuses palette()/ratio() above and changes nothing in them)
+// other edit to this file; it reuses palette()/ratio() above and changes nothing in them. Its top-level
+// names carry a Pui/PUI_ prefix so they cannot collide with another branch's block in this file)
 // ===================================================================================================
 //
 // The pairs above all assert ONE threshold (4.5, text). The 2026-10 design-a11y pass added tokens that
@@ -225,34 +226,34 @@ describe('WCAG AA on the token pairs both apps render', () => {
 //   --ai-bg/-border/-text  the slate-blue AI chip on every assistant bubble (text 4.5:1, border 3:1)
 //
 // --field-border has the same hex as the audit-dashboard's own field border so the two apps mirror.
-const UI_MIN = 3;
-type MinPair = [fg: string, bg: string, min: number, where: string];
+const PUI_UI_MIN = 3;
+type PuiMinPair = [fg: string, bg: string, min: number, where: string];
 
 // Surfaces a field or a focused control can sit on, in both themes.
-const DA_SURFACES = ['canvas', 'surface-soft', 'surface-card'];
-const DA_BOTH: MinPair[] = [
-  ...DA_SURFACES.map((s): MinPair => ['field-border', s, UI_MIN,
+const PUI_DA_SURFACES = ['canvas', 'surface-soft', 'surface-card'];
+const PUI_DA_BOTH: PuiMinPair[] = [
+  ...PUI_DA_SURFACES.map((s): PuiMinPair => ['field-border', s, PUI_UI_MIN,
     `input / textarea / select / composer / option-row border on ${s} (WCAG 1.4.11)`]),
-  ...DA_SURFACES.map((s): MinPair => ['focus', s, UI_MIN,
+  ...PUI_DA_SURFACES.map((s): PuiMinPair => ['focus', s, PUI_UI_MIN,
     `global :focus-visible ring on ${s} (WCAG 1.4.11 / 2.4.7)`]),
-  ...DA_SURFACES.map((s): MinPair => ['error-text', s, AA,
+  ...PUI_DA_SURFACES.map((s): PuiMinPair => ['error-text', s, AA,
     `.error-msg text on ${s}`]),
   // The AI chip: its label on its own fill (text, 4.5), and its border against the bubble it sits on
   // (surface-card, soft and canvas for the guest/other surfaces) and against its own fill (UI, 3).
   ['ai-text', 'ai-bg', AA, '.ai-chip label on the chip fill'],
-  ['ai-border', 'ai-bg', UI_MIN, '.ai-chip border against its own fill'],
-  ...DA_SURFACES.map((s): MinPair => ['ai-border', s, UI_MIN,
+  ['ai-border', 'ai-bg', PUI_UI_MIN, '.ai-chip border against its own fill'],
+  ...PUI_DA_SURFACES.map((s): PuiMinPair => ['ai-border', s, PUI_UI_MIN,
     `.ai-chip border on ${s} (the bubble is --surface-card)`]),
 ];
 // Dark theme also has an elevated surface (modals, hovered rows) a ring or border can land on.
-const DA_DARK_ONLY: MinPair[] = [
-  ['field-border', 'surface-dark-elevated', UI_MIN, 'field border on the elevated dark surface'],
-  ['focus', 'surface-dark-elevated', UI_MIN, 'focus ring on the elevated dark surface'],
+const PUI_DA_DARK_ONLY: PuiMinPair[] = [
+  ['field-border', 'surface-dark-elevated', PUI_UI_MIN, 'field border on the elevated dark surface'],
+  ['focus', 'surface-dark-elevated', PUI_UI_MIN, 'focus ring on the elevated dark surface'],
   ['error-text', 'surface-dark-elevated', AA, '.error-msg text on the elevated dark surface'],
-  ['ai-border', 'surface-dark-elevated', UI_MIN, '.ai-chip border on the elevated dark surface'],
+  ['ai-border', 'surface-dark-elevated', PUI_UI_MIN, '.ai-chip border on the elevated dark surface'],
 ];
 
-function checkMin(name: string, css: string, sel: string, pairs: MinPair[]) {
+function checkMinPui(name: string, css: string, sel: string, pairs: PuiMinPair[]) {
   const p = palette(css, sel);
   const failures: string[] = [];
   for (const [fg, bg, min, where] of pairs) {
@@ -270,7 +271,7 @@ function checkMin(name: string, css: string, sel: string, pairs: MinPair[]) {
 
 // Body of the first rule whose selector line starts with `selectorTail` — so a token that is defined and
 // pinned above but no longer APPLIED (someone reverts one rule to --hairline) is still caught.
-function ruleBody(css: string, selectorTail: string): string {
+function ruleBodyPui(css: string, selectorTail: string): string {
   // Anchored to the start of a line: a bare match finds `html[data-mobile] .conv-move {` or
   // `.hero-stats[hidden] {` first and reads the wrong rule.
   const re = new RegExp(`^${selectorTail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`, 'm');
@@ -291,36 +292,42 @@ describe('physician-ui design-a11y: field border, focus ring, placeholder, error
   });
 
   it('non-text pairs hold their own minimum — light', () => {
-    expect(checkMin('portal light', portal, ':root', DA_BOTH)).toEqual([]);
+    expect(checkMinPui('portal light', portal, ':root', PUI_DA_BOTH)).toEqual([]);
   });
 
   it('non-text pairs hold their own minimum — dark', () => {
-    expect(checkMin('portal dark', portal, ':root[data-theme="dark"]', [...DA_BOTH, ...DA_DARK_ONLY])).toEqual([]);
+    expect(checkMinPui('portal dark', portal, ':root[data-theme="dark"]', [...PUI_DA_BOTH, ...PUI_DA_DARK_ONLY])).toEqual([]);
   });
 
   it('a 3:1 pair is NOT held to 4.5 (the per-pair minimum is real)', () => {
     // --field-border is 3.29:1 on --surface-card in light: it must pass at 3 and would fail at 4.5.
     const p = palette(portal, ':root');
     const r = ratio(p['field-border'], p['surface-card']);
-    expect(r).toBeGreaterThanOrEqual(UI_MIN);
+    expect(r).toBeGreaterThanOrEqual(PUI_UI_MIN);
     expect(r).toBeLessThan(AA);
   });
 
   it('the old border colour really did fail, so this guard has something to catch', () => {
     const p = palette(portal, ':root');
-    expect(ratio(p['hairline'], p['canvas'])).toBeLessThan(UI_MIN);
+    expect(ratio(p['hairline'], p['canvas'])).toBeLessThan(PUI_UI_MIN);
   });
 
   it('every input-like control draws its border with --field-border, not --hairline', () => {
     for (const sel of ['.form-group select', '.composer', '.folder-form input', '.conv-move', '.report-opt', '.report-note textarea']) {
-      expect(ruleBody(portal, sel)).toContain('var(--field-border)');
+      expect(ruleBodyPui(portal, sel)).toContain('var(--field-border)');
     }
   });
 
   it('the AI chip is drawn from --ai-* and never from the human coral', () => {
-    const body = ruleBody(portal, '.ai-chip');
+    const body = ruleBodyPui(portal, '.ai-chip');
     for (const t of ['var(--ai-bg)', 'var(--ai-border)', 'var(--ai-text)']) expect(body).toContain(t);
     expect(body).not.toMatch(/coral/);
+  });
+
+  it('a client-generated notice is neutral: no AI slate-blue, no human coral', () => {
+    const m = /^\.msg-assistant\.msg-system\s*\{([^}]*)\}/m.exec(portal);
+    expect(m).not.toBeNull();
+    expect(m![1]).not.toMatch(/--ai-|coral/);
   });
 
   it('Thai running text sits at or above the 11.5pt floor', () => {
@@ -329,7 +336,7 @@ describe('physician-ui design-a11y: field border, focus ring, placeholder, error
     expect(Number(m![1]) * 16).toBeGreaterThanOrEqual(15.33);   // 11.5pt
     for (const sel of ['.error-msg', '.session-hint', '.ai-disclaimer', '.note', '.sub', '.guest-banner',
       '.report-lead', '.report-opt', '.report-hint', '.report-error', '.modal-body', '.notice']) {
-      expect(ruleBody(portal, sel)).toContain('var(--fs-body-th)');
+      expect(ruleBodyPui(portal, sel)).toContain('var(--fs-body-th)');
     }
   });
 
@@ -352,11 +359,11 @@ describe('physician-ui design-a11y: field border, focus ring, placeholder, error
   });
 
   it('the base rules that apply the tokens are present', () => {
-    expect(ruleBody(portal, ':focus-visible')).toContain('var(--focus)');
+    expect(ruleBodyPui(portal, ':focus-visible')).toContain('var(--focus)');
     // Placeholder pairs (--muted on canvas / soft / card, both themes) are already pinned in PORTAL_PAIRS above.
-    expect(ruleBody(portal, '::placeholder')).toContain('var(--muted)');
-    expect(ruleBody(portal, '.error-msg')).toContain('var(--error-text)');
-    expect(ruleBody(portal, '[hidden]')).toMatch(/display:\s*none\s*!important/);
+    expect(ruleBodyPui(portal, '::placeholder')).toContain('var(--muted)');
+    expect(ruleBodyPui(portal, '.error-msg')).toContain('var(--error-text)');
+    expect(ruleBodyPui(portal, '[hidden]')).toMatch(/display:\s*none\s*!important/);
     expect(portal).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{[^}]*animation:\s*none\s*!important/);
   });
 });
