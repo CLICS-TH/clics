@@ -13,12 +13,13 @@ const remainingEl = document.getElementById('remaining');
 const hintEl = document.getElementById('hint');
 
 // opts.system marks a CLIENT-generated notice (could not start, server error): not model output, so no AI chip.
-// Neutral .msg-system style, role=status, sr-only "ระบบ / System:". Same contract as js/ple-chat.js.
+// Neutral .msg-system style and an sr-only "ระบบ / System:"; announced once through #chatLive (no role=status on
+// the bubble, which would announce it a second time). Same contract as js/ple-chat.js.
 function renderMessage(role, content, refs, socratic, opts) {
   opts = opts || {};
   const div = document.createElement('div');
   div.className = role === 'physician' ? 'msg-physician' : 'msg-assistant' + (opts.system ? ' msg-system' : '');
-  if (opts.system) div.setAttribute('role', 'status');
+  let spoken = '';   // what #chatLive says: content only
   if (role === 'physician') {
     div.textContent = content;
   } else {
@@ -27,6 +28,7 @@ function renderMessage(role, content, refs, socratic, opts) {
     // it; null means the libs did not load, and then we fail SAFE to plain text.
     const mdFrag = markdownFragment(main);
     if (mdFrag) div.appendChild(mdFrag); else div.textContent = main;
+    spoken = plainTextOf(div) + (socratic ? ' ' + socratic : '');
     if (refs?.length) {
       const r = document.createElement('div');
       r.className = 'msg-refs';
@@ -67,6 +69,8 @@ function renderMessage(role, content, refs, socratic, opts) {
   }
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
+  // Every assistant bubble here is new (the guest chat has no stored history): announce speaker + text only.
+  if (role !== 'physician') announceChat(opts.system ? SYSTEM_SPEAKER : aiSpeakerLabel(), spoken);
 }
 
 function setRemaining(n) {
@@ -135,6 +139,7 @@ async function send() {
     loading.appendChild(aiChip());
     loading.append('กำลังคิด... / Thinking...');
     messagesEl.appendChild(loading);
+    announceChat(aiSpeakerLabel(), 'กำลังคิด... / Thinking...');
     const disarmSlow = armSlowNote(loading, () => { messagesEl.scrollTop = messagesEl.scrollHeight; });
 
     // Send all but the just-pushed message as history; the message goes in `message`.

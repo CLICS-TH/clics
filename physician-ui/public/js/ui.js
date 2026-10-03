@@ -96,6 +96,52 @@
     return c;
   };
 
+  // ---- The chat announcer (one visually hidden role=status node per chat page, #chatLive).
+  //
+  // The message list is role=log with aria-live=off: an accessibility-tree dump showed that, read live, every new
+  // bubble also announced its Copy / Report buttons. So new replies and notices are announced HERE instead, as
+  // "speaker: plain text" only. Never called while history is drawn. The node is cleared first so the same
+  // text twice still announces, and a long reply is cut so it does not hold the reader for minutes.
+  var ANNOUNCE_MAX = 600;
+  var ANNOUNCE_MORE = '… (อ่านต่อในแชต / continue in the chat)';
+  var announceTimer = null;
+  // The speaker label the AI chip shows, as text (same constant, so the two can never disagree).
+  window.aiSpeakerLabel = function () {
+    var L = window.AI_LABEL;
+    return L.en && L.en !== L.th ? L.th + ' / ' + L.en : L.th;
+  };
+  window.SYSTEM_SPEAKER = 'ระบบ / System';
+  // Plain text of rendered content, with a space at every block boundary (textContent alone glues
+  // "Heading" + "Paragraph" and table cells into one word).
+  var BLOCK = /^(P|DIV|LI|H[1-6]|TD|TH|TR|PRE|BLOCKQUOTE|UL|OL|TABLE|BR|HR)$/;
+  window.plainTextOf = function (node) {
+    var out = [];
+    (function walk(n) {
+      if (n.nodeType === 3) { out.push(n.nodeValue); return; }
+      if (n.nodeType !== 1 && n.nodeType !== 11) return;
+      if (n.nodeType === 1 && (n.getAttribute('aria-hidden') === 'true' || n.classList.contains('sr-only'))) return;
+      var block = n.nodeType === 1 && BLOCK.test(n.tagName);
+      if (block) out.push(' ');
+      for (var c = n.firstChild; c; c = c.nextSibling) walk(c);
+      if (block) out.push(' ');
+    })(node);
+    return out.join('').replace(/\s+/g, ' ').trim();
+  };
+  window.announceChat = function (speaker, text) {
+    var n = document.getElementById('chatLive');
+    if (!n) return;
+    var t = String(text == null ? '' : text).replace(/\s+/g, ' ').trim();
+    if (t.length > ANNOUNCE_MAX) {
+      var cut = t.slice(0, ANNOUNCE_MAX);
+      var sp = cut.lastIndexOf(' ');
+      if (sp > ANNOUNCE_MAX - 80) cut = cut.slice(0, sp);   // end on a word when one is near (Thai often has none)
+      t = cut + ANNOUNCE_MORE;
+    }
+    n.textContent = '';
+    clearTimeout(announceTimer);
+    announceTimer = setTimeout(function () { n.textContent = speaker + ': ' + t; }, 120);
+  };
+
   // ---- Safe markdown, ONE helper for every place AI text becomes DOM (/ple-chat, /guest-chat, the artifact panel).
   //
   // markdownFragment(md) -> DocumentFragment, or null when marked / DOMPurify did not load (the caller then
@@ -145,6 +191,7 @@
       en.textContent = window.AI_SLOW.en;
       n.appendChild(en);
       bubble.appendChild(n);
+      window.announceChat(window.aiSpeakerLabel(), window.AI_SLOW.th + ' / ' + window.AI_SLOW.en);
       if (onShow) onShow();
     }, window.AI_SLOW.afterMs);
     return function () { clearTimeout(t); };

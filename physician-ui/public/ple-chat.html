@@ -49,8 +49,11 @@
     </div>
     <div class="chat-container">
     <div class="chat-window card" style="padding:0">
-      <!-- The conversation is a live log: new turns are announced politely; tabindex lets a keyboard user scroll it. -->
-      <div class="chat-messages" id="messages" style="padding:16px" role="log" aria-live="polite" aria-relevant="additions" aria-label="บทสนทนา / Conversation" tabindex="0"></div>
+      <!-- The conversation log: navigable (role=log, tabindex lets a keyboard user scroll it) but not itself live. -->
+      <div class="chat-messages" id="messages" style="padding:16px" role="log" aria-live="off" aria-label="บทสนทนา / Conversation" tabindex="0"></div>
+      <!-- The ONE announcer for this chat (js/ui.js announceChat). The log above stays navigable but silent: read live it
+           also announced every Copy / Report button inside each new bubble. This node only ever holds speaker + plain text. -->
+      <div id="chatLive" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
       <button class="scroll-bottom" id="scrollBottomBtn" data-icon="arrowDown" aria-label="เลื่อนไปข้อความล่าสุด / Scroll to latest"></button>
       <div class="composer-wrap">
         <!-- Transcript-length notice — js/ple-chat.js fills it once the server reports transcript.warn -->

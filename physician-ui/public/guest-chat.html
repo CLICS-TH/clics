@@ -32,7 +32,10 @@
     </div>
 
     <div class="chat-window card" style="padding:0">
-      <div class="chat-messages" id="messages" style="padding:16px" role="log" aria-live="polite" aria-relevant="additions" aria-label="บทสนทนา / Conversation" tabindex="0"></div>
+      <div class="chat-messages" id="messages" style="padding:16px" role="log" aria-live="off" aria-label="บทสนทนา / Conversation" tabindex="0"></div>
+      <!-- The ONE announcer for this chat (js/ui.js announceChat). The log above stays navigable but silent: read live it
+           also announced every Copy / Report button inside each new bubble. This node only ever holds speaker + plain text. -->
+      <div id="chatLive" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
       <div style="padding:12px 16px;border-top:1px solid var(--hairline)">
         <!-- Same .composer primitive as /ple-chat: field border, focus ring and 16px type come with it. (.chat-input-row had no CSS, so this textarea was an unstyled UA box.) -->
         <div class="composer">
