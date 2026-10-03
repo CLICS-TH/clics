@@ -21,7 +21,15 @@ const badgeVariants = cva(
           "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
-        link: "text-primary underline-offset-4 hover:underline",
+        // Tinted status tones on the shared tokens. Text is always present (colour is never the only
+        // signal) and every pair is pinned in __tests__/contrast.test.ts. These replace the ad-hoc
+        // amber-100 / destructive-10 / red-700 combinations that each measured differently.
+        notice: "bg-notice-bg text-notice-text",
+        ok: "bg-chart-pass-bg text-chart-pass-text",
+        error: "bg-error-bg text-error-text",
+        ai: "border-ai-border bg-ai-bg text-ai-text",
+        // text-link, not text-primary: bright coral is 3.11:1 on the light canvas.
+        link: "text-link underline-offset-4 hover:underline",
       },
     },
     defaultVariants: {

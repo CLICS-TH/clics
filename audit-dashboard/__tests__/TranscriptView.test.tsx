@@ -11,9 +11,11 @@ jest.mock('@/components/Markdown', () => ({
 jest.mock('lucide-react', () => ({
   Paperclip: () => <svg data-testid="icon-paperclip" />,
   HelpCircle: () => <svg data-testid="icon-help" />,
+  Bot: () => <svg data-testid="icon-bot" />, // AiOutput's source icon
 }));
 
 import { TranscriptView } from '@/components/TranscriptView';
+import { AI_LABEL } from '@/lib/ai-label';
 
 describe('TranscriptView', () => {
   it('labels reflection as physician-authored evidence and preserves a final question verbatim', () => {
@@ -33,6 +35,22 @@ describe('TranscriptView', () => {
   it('renders an assistant turn through Markdown', () => {
     render(<TranscriptView messages={[{ role: 'assistant', content: 'Consider **sepsis**.' }]} />);
     expect(screen.getByTestId('md')).toHaveTextContent('Consider **sepsis**.');
+  });
+
+  it('marks every AI turn with a visible AI label and a labelled group; the person\'s turns get none', () => {
+    render(
+      <TranscriptView
+        messages={[
+          { role: 'physician', content: 'My differential is PE.' },
+          { role: 'assistant', content: 'Consider sepsis.' },
+          { role: 'assistant', content: 'And a PE.' },
+        ]}
+      />
+    );
+    const groups = screen.getAllByRole('group', { name: AI_LABEL.chip });
+    expect(groups).toHaveLength(2);                                   // one per AI turn, none for the physician
+    groups.forEach((g) => expect(g).toHaveClass('bg-ai-bg', 'text-ai-text', 'border-ai-border'));
+    expect(screen.getByText('My differential is PE.').closest('[role="group"]')).toBeNull();
   });
 
   it('strips the trailing ❓ Socratic line from the rendered assistant body', () => {
@@ -71,6 +89,24 @@ describe('TranscriptView', () => {
     expect(md.textContent).not.toContain(':::');
     expect(md).toHaveTextContent('| ACS | high |');       // artifact body survives
     expect(md).toHaveTextContent('Watch troponin (AHA, 2021).');
+  });
+
+  it('refs and the question line stay readable on the solid-coral physician bubble (white, not muted)', () => {
+    render(
+      <TranscriptView
+        messages={[
+          { role: 'physician', content: 'x', refs: [{ source: 'UpToDate' }], socratic_question: 'Why?' },
+          { role: 'assistant', content: 'y', refs: [{ source: 'NEJM' }], socratic_question: 'And?' },
+        ]}
+      />
+    );
+    // muted-foreground on bg-coral-active is 1.08:1; white is 5.06:1.
+    expect(screen.getByText('UpToDate').closest('p')).toHaveClass('text-white');
+    expect(screen.getByText('UpToDate').closest('p')).not.toHaveClass('text-muted-foreground');
+    expect(screen.getByText('Why?').closest('p')).toHaveClass('text-white');
+    // the assistant side is unchanged
+    expect(screen.getByText('NEJM').closest('p')).toHaveClass('text-muted-foreground');
+    expect(screen.getByText('And?').closest('p')).toHaveClass('text-coral-on-tint');
   });
 
   it('joins reference sources with " · "', () => {

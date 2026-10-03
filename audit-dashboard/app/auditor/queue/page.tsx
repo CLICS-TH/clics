@@ -6,6 +6,8 @@ import { getUser, canAudit } from '@/lib/auth';
 import { Badge } from '@/components/ui/badge';
 import { Check } from 'lucide-react';
 import { PageIntro } from '@/components/PageIntro';
+import { Input } from '@/components/ui/input';
+import { StateMessage } from '@/components/ui/state-message';
 
 interface CleItem {
   id: string; ended_at: string; turn_count: number; token_count: number; scored?: boolean;
@@ -20,12 +22,16 @@ export default function AuditorQueue() {
   const router = useRouter();
 
   // Fetch only sets state in its async callbacks — keeping the synchronous loading-reset out of the
-  // mount effect (react-hooks/set-state-in-effect). Defensive: a 500 resolves with a non-array error
-  // body, so guard the spread (it used to throw and blank the page); .catch surfaces a network reject
-  // as an error, not a false "empty".
+  // mount effect (react-hooks/set-state-in-effect). apiFetch NEVER rejects: a 500 or a network failure
+  // resolves with a non-array {error} body. That used to be read as an empty queue ("No PLEs assigned
+  // yet"), so a failed load told the rater they had nothing to do and the Retry state was unreachable.
+  // Anything that is not an array is now an error; .catch stays as a belt for a thrown render error.
   const fetchQueue = useCallback(() => {
     apiFetch<CleItem[]>('/auditor/queue')
-      .then(d => setPlEs(Array.isArray(d) ? [...d].sort((a, b) => Number(!!a.scored) - Number(!!b.scored)) : []))
+      .then(d => {
+        if (Array.isArray(d)) setPlEs([...d].sort((a, b) => Number(!!a.scored) - Number(!!b.scored)));
+        else setErr(true);
+      })
       .catch(() => setErr(true));
   }, []);
 
@@ -64,23 +70,24 @@ export default function AuditorQueue() {
             เหลือ <span className="font-semibold text-foreground">{toScore}</span> รอประเมิน / {toScore} to score
             {toScore === 0 && ' — ประเมินครบแล้ว / all scored'}
           </p>
-          <input
-            className="w-full max-w-sm border rounded-lg px-3 py-2 text-sm mb-4 bg-background"
+          <Input
+            className="mb-4 max-w-sm"
             placeholder="ค้นหา / Filter…"
+            aria-label="ค้นหาในคิว / Filter the queue"
             value={filter} onChange={e => setFilter(e.target.value)} />
         </>
       )}
       {err
-        ? <div className="text-center py-10">
-            <p className="text-muted-foreground mb-3">โหลดคิวไม่สำเร็จ / Could not load the queue.</p>
-            <button className="text-sm text-primary underline" onClick={retry}>ลองใหม่ / Retry</button>
-          </div>
+        ? <StateMessage kind="error" center onRetry={retry} title="โหลดคิวไม่สำเร็จ / Could not load the queue.">
+            ติดต่อเซิร์ฟเวอร์ไม่ได้ ลองอีกครั้ง หากยังไม่สำเร็จให้แจ้งผู้ดูแลระบบ /
+            The server could not be reached. Try again, and tell your administrator if it keeps failing.
+          </StateMessage>
         : ples === null
-        ? <p className="text-muted-foreground text-center py-10">กำลังโหลด… / Loading…</p>
+        ? <StateMessage kind="loading" center title="กำลังโหลด… / Loading…" />
         : list.length === 0
-        ? <p className="text-muted-foreground text-center py-10">ยังไม่มี PLE ที่ได้รับมอบหมาย / No PLEs assigned yet.</p>
+        ? <StateMessage kind="empty" center title="ยังไม่มี PLE ที่ได้รับมอบหมาย / No PLEs assigned yet." />
         : visible.length === 0
-        ? <p className="text-muted-foreground text-center py-10">ไม่พบรายการที่ตรงกับคำค้น / No items match the filter.</p>
+        ? <StateMessage kind="empty" center title="ไม่พบรายการที่ตรงกับคำค้น / No items match the filter." />
         : visible.map(p => (
           // role + tabIndex + keydown: a bare <div onClick> is not in the tab order, so an auditor
           // could not open a queued PLE without a pointer. Mirrors the fix already in the physician

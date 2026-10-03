@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { PageIntro } from '@/components/PageIntro';
+import { StateMessage } from '@/components/ui/state-message';
 import { toast, confirmDialog } from '@/components/Overlays';
 import type { CleRow, ApiResult } from '@/lib/types';
 import { Check, X } from 'lucide-react';
@@ -15,7 +16,9 @@ export default function FlaggedPage() {
   // The fetch only sets state asynchronously (keeps the mount effect free of synchronous setState); the
   // `load` wrapper adds the error-reset for the Retry button + post-action refresh (both event handlers).
   const fetchFlagged = useCallback(() => {
-    apiFetch<CleRow[]>('/admin/ples/flagged').then(d => setPlEs(Array.isArray(d) ? d : [])).catch(() => setErr(true));
+    // apiFetch never rejects — a failed load is a non-array {error} body, which must read as an error,
+    // not as "no sessions awaiting review".
+    apiFetch<CleRow[]>('/admin/ples/flagged').then(d => { if (Array.isArray(d)) setPlEs(d); else setErr(true); }).catch(() => setErr(true));
   }, []);
   const load = () => { setErr(false); fetchFlagged(); };
   useEffect(() => { fetchFlagged(); }, [fetchFlagged]);
@@ -58,14 +61,11 @@ export default function FlaggedPage() {
         subtitle="QA Queue — sessions flagged for manual review (C4–C6)"
       />
       {err
-        ? <div className="text-center py-10">
-            <p className="text-muted-foreground mb-3">โหลดคิวไม่สำเร็จ / Could not load the queue.</p>
-            <button className="text-sm text-primary underline" onClick={load}>ลองใหม่ / Retry</button>
-          </div>
+        ? <StateMessage kind="error" center onRetry={load} title="โหลดคิวไม่สำเร็จ / Could not load the queue." />
         : ples === null
-        ? <p className="text-muted-foreground text-center py-10">กำลังโหลด… / Loading…</p>
+        ? <StateMessage kind="loading" center title="กำลังโหลด… / Loading…" />
         : ples.length === 0
-        ? <p className="text-muted-foreground text-center py-10">ไม่มี session รอตรวจสอบ / No sessions awaiting review.</p>
+        ? <StateMessage kind="empty" center title="ไม่มี session รอตรวจสอบ / No sessions awaiting review." />
         : ples.map(p => (
           <div key={p.id} className="border rounded-xl p-5 mb-3">
             <div className="flex flex-col gap-3 @min-[520px]:flex-row @min-[520px]:items-start @min-[520px]:justify-between">

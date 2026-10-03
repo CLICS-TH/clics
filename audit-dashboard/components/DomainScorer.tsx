@@ -109,7 +109,7 @@ export function DomainScorer({ scores, onChange, anchors, onAnchorChange, disabl
                 </button>
               ))}
             </div>
-            <div className="mt-1.5 flex justify-between px-0.5 text-[11px] text-muted-foreground">
+            <div className="mt-1.5 flex justify-between px-0.5 text-xs text-muted-foreground">
               <span>{PIS7_SCALE[0].shortTh} · {PIS7_SCALE[0].shortEn}</span>
               <span>{PIS7_SCALE[5].shortTh} · {PIS7_SCALE[5].shortEn}</span>
             </div>

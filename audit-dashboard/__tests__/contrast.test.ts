@@ -209,6 +209,127 @@ describe('WCAG AA on the token pairs both apps render', () => {
   });
 });
 
+// ===== BEGIN audit-dashboard design-a11y ===========================================================
+// Appended as its own block (physician-ui's parallel branch appends a `physician-ui design-a11y` block
+// to this same file) — both blocks are purely additive, so a merge is "take both".
+//
+// Everything above asserts ONE bar (4.5:1 text). This block adds a per-pair MINIMUM, because the new
+// tokens are mostly non-text UI (a form-field edge, a focus ring, a chart mark) where WCAG 1.4.11 asks
+// for 3:1, and holding them to 4.5 would be as wrong as holding text to 3.
+type MinPair = [fg: string, bg: string, min: number, where: string];
+
+const NON_TEXT = 3;
+
+const DA_PAIRS: MinPair[] = [
+  // --- amber text. Was 4.51 on the canvas (0.01 of margin) and not guarded at all.
+  ['warn', 'background', AA, 'payout amber on the page (admin/compensation)'],
+  ['warn', 'card', AA, 'payout amber inside a Card'],
+  // --- tinted status pairs (shared hex with physician-ui)
+  ['notice-text', 'notice-bg', AA, 'StateMessage notice / Badge notice'],
+  ['error-text', 'error-bg', AA, 'StateMessage error / Badge error'],
+  // --- the AI treatment: text on its fill, and its border as the non-text edge
+  ['ai-text', 'ai-bg', AA, 'AiOutput body, AI Score card, assistant bubbles'],
+  ['ai-border', 'ai-bg', NON_TEXT, 'AiOutput border against its own fill'],
+  ['ai-border', 'background', NON_TEXT, 'AiOutput border against the page'],
+  ['ai-border', 'card', NON_TEXT, 'AiOutput border inside a Card'],
+  // Everything ELSE that is painted on the AI surface: Markdown links and the Socratic line use
+  // --coral-on-tint (--link is 4.24:1 here and would fail), citations use muted, bold uses foreground.
+  ['coral-on-tint', 'ai-bg', AA, 'AiOutput: Markdown links, Socratic question line'],
+  ['muted-foreground', 'ai-bg', AA, 'AiOutput: citation line, blockquotes'],
+  ['foreground', 'ai-bg', AA, 'AiOutput: Markdown strong / code'],
+  // Badge ok tone (+ the ICC chips and StatStrip pass figure that share the same pair)
+  ['chart-pass-text', 'chart-pass-bg', AA, 'Badge ok, ICC >= 0.95 chip, council ICC chip'],
+  // --- form controls: the edge of a text field is a UI component (1.4.11)
+  ['field', 'background', NON_TEXT, 'ui/input on the page'],
+  ['field', 'card', NON_TEXT, 'ui/input inside a Card'],
+  ['field', 'secondary', NON_TEXT, 'ui/input on a tinted (bg-secondary) panel'],
+  ['field', 'muted', NON_TEXT, 'ui/input on a bg-muted panel'],
+  // --- the focus ring (2.4.7 / 1.4.11)
+  ['ring', 'background', NON_TEXT, ':focus-visible on the page'],
+  ['ring', 'card', NON_TEXT, ':focus-visible inside a Card'],
+  ['ring', 'secondary', NON_TEXT, ':focus-visible on a tinted panel'],
+  ['ring', 'muted', NON_TEXT, ':focus-visible on a bg-muted panel'],
+  // --- chart marks vs the card they are drawn on (1.4.11). `fail` is a mark AND a 4xl stat figure.
+  ['chart-pass', 'card', NON_TEXT, 'ICC bars, usage meter pass fill'],
+  ['chart-fail', 'card', NON_TEXT, 'ICC fail bars, limits of agreement'],
+  ['chart-threshold', 'card', NON_TEXT, '0.75 threshold reference line'],
+  ['chart-warn', 'card', NON_TEXT, 'usage meter warn fill'],
+  ['chart-teal', 'card', NON_TEXT, 'Bland-Altman mean line'],
+  ['chart-human', 'card', NON_TEXT, 'radar: auditor series'],
+  ['chart-ai', 'card', NON_TEXT, 'radar: AI series'],
+  ['chart-peer', 'card', NON_TEXT, 'radar: peer-average series'],
+];
+
+// Tokens declared only in :root are inherited by .dark (same element), so the dark palette is the
+// light one overlaid with the .dark block — which is what the browser computes.
+function effective(css: string, sel: string): Record<string, string> {
+  return sel === ':root' ? palette(css, ':root') : { ...palette(css, ':root'), ...palette(css, sel) };
+}
+
+function checkMin(name: string, css: string, sel: string, pairs: MinPair[]) {
+  const p = effective(css, sel);
+  const failures: string[] = [];
+  for (const [fg, bg, min, where] of pairs) {
+    if (!p[fg] || !p[bg]) {
+      failures.push(`${name}: --${fg} or --${bg} is not a hex token in ${sel} (${where})`);
+      continue;
+    }
+    const r = ratio(p[fg], p[bg]);
+    if (r < min) failures.push(`${name}: --${fg} ${p[fg]} on --${bg} ${p[bg]} = ${r.toFixed(2)}:1 (needs ${min}) — ${where}`);
+  }
+  return failures;
+}
+
+// Tinted fills at the alphas Badge/Button actually paint, INCLUDING the dark ones the 0.10-only
+// DASH_TINTS above cannot see: dark Badge destructive is /20 and its hover is /30; light hover is /20.
+// Before this block --danger measured 4.47:1 on the dark /20 tint and 4.01:1 on /30, and nothing said so.
+const DA_TINTS: { sel: string; name: string; pairs: TintPair[] }[] = [
+  { sel: ':root', name: 'light', pairs: [
+    ['danger', 'destructive', 0.10, 'card', 'Badge/Button destructive, light'],
+    ['danger', 'destructive', 0.20, 'card', 'Badge/Button destructive :hover, light'],
+  ] },
+  { sel: '.dark', name: 'dark', pairs: [
+    ['danger', 'destructive', 0.20, 'card', 'Badge/Button destructive, dark'],
+    ['danger', 'destructive', 0.30, 'card', 'Badge/Button destructive :hover, dark'],
+    ['danger', 'destructive', 0.20, 'background', 'destructive tint straight on the page, dark'],
+  ] },
+];
+
+describe('audit-dashboard design-a11y — per-pair minimums and the new tokens', () => {
+  const dash = fs.readFileSync(DASH_CSS, 'utf8');
+
+  it('the effective-palette overlay lets .dark inherit tokens it does not redeclare', () => {
+    // --chart-human lives only in :root; if the overlay broke, every dark chart pair would report
+    // "not a hex token" instead of being measured.
+    expect(effective(dash, '.dark')['chart-human']).toBe(palette(dash, ':root')['chart-human']);
+    expect(effective(dash, '.dark').field).toBe(palette(dash, '.dark').field);
+  });
+
+  it('light', () => { expect(checkMin('dash light', dash, ':root', DA_PAIRS)).toEqual([]); });
+  it('dark', () => { expect(checkMin('dash dark', dash, '.dark', DA_PAIRS)).toEqual([]); });
+
+  it.each(DA_TINTS)('alpha tints — $name', ({ sel, name, pairs }) => {
+    expect(checkTints(`dash ${name}`, dash, sel, pairs)).toEqual([]);
+  });
+
+  it('every new design-a11y token is a hex in BOTH themes (no theme-blind utility)', () => {
+    const tokens = ['field', 'notice-bg', 'notice-text', 'error-bg', 'error-text', 'ai-bg', 'ai-border',
+      'ai-text', 'ring', 'warn', 'chart-teal', 'chart-pass', 'chart-threshold', 'chart-warn'];
+    const missing: string[] = [];
+    for (const sel of [':root', '.dark']) {
+      const p = palette(dash, sel);
+      for (const t of tokens) if (!p[t]) missing.push(`--${t} missing (as a hex) from ${sel}`);
+    }
+    expect(missing).toEqual([]);
+  });
+
+  it('the AI palette matches the values the physician-ui branch ships (the two apps must agree)', () => {
+    expect(palette(dash, ':root')).toMatchObject({ 'ai-bg': '#eef2f9', 'ai-border': '#4f72ad', 'ai-text': '#2c4673' });
+    expect(palette(dash, '.dark')).toMatchObject({ 'ai-bg': '#1b2536', 'ai-border': '#7f9fd4', 'ai-text': '#c9d9f4' });
+  });
+});
+// ===== END audit-dashboard design-a11y =============================================================
+
 // ===================================================================================================
 // physician-ui design-a11y  (self-contained block: appended whole so it merges cleanly with any
 // other edit to this file; it reuses palette()/ratio() above and changes nothing in them. Its top-level
