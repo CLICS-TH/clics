@@ -62,15 +62,62 @@ PLE dropped — the 46k-token transcript truncates the evaluator's 1000-token ou
 >
 > **This is a new instrument even though the prompt did not change.** `PROMPT_VERSION` is still
 > `pis7-prompt-59561c29` (v3) and the rubric is still `pis7-weights-08b0cb1a`, but ICC is a property of
-> (model × prompt × rubric), and the model is one of the three. The request shape changed too, so the
-> scoring call is not 4-6's call with a new name:
-> - **temperature 0 is no longer sent.** Sonnet 5.5 returns a 400 for any non-default temperature, so
->   the evaluator runs at the API default. Provenance records `decoding.temperature: null` (what was
->   sent), not 0.
-> - **thinking is `between_tools`** (no up-front thinking), recorded as `decoding.thinking`. Omitting it
->   on 5.5 would have run adaptive thinking, which 4-6 never did.
-> - **tokenizer:** about 30% more tokens for the same text, so `max_tokens` 4096 holds roughly a
->   quarter less rationale than it did.
+> (model × prompt × rubric), and the model is one of the three. The scoring call also changed shape, so
+> it is not 4-6's call with a new name. The per-purpose shape lives in `rimpl/src/lib/anthropic-request.js`.
+>
+> **(a) Why adaptive thinking for the evaluator, and the shape is frozen with the fingerprint.** The
+> evaluator sends `thinking: {type: "adaptive"}` with `output_config: {effort: "high"}`. The Sonnet 5.5
+> prompting guide says: "Use adaptive thinking for reasoning tasks without tools. In a request without
+> tools, `between_tools` means the model answers without thinking first", and on JSON-output reasoning
+> tasks "accuracy on these tasks is lower" under `between_tools`. PIS-7 scoring is exactly that kind of
+> task. Effort `high` is the guide's starting point for work that is neither agentic nor
+> latency-sensitive, and the evaluation runs in the background drain. Chat and the criteria classifier
+> stay on `between_tools` (effort low), because they run inside the physician's 100s request. That
+> shape is **frozen from the first 5-5 score.** Thinking mode and effort enter `config_fingerprint`, so
+> changing either after the first score splits the corpus exactly as a prompt edit would: record it
+> here and never pool the two sides.
+>
+> **(b) Effort is recorded.** Every 5-5 score's provenance carries `decoding.thinking: "adaptive"` and
+> `decoding.effort: "high"`. Both are omitted when not sent, so local and every pre-existing fingerprint
+> hash byte-identically. `decoding.temperature` is `null`: see (h).
+>
+> **(c) max_tokens 4096 → 16000 (anthropic only).** Thinking counts toward `max_tokens`. The visible JSON
+> alone needed 4096 on 4-6: PLE-052 (2026-08-17, ~130k-token transcript) truncated the JSON
+> mid-rationale at both 2000 and 3000, and 1000 had truncated on ~46k-token transcripts. Under the new
+> tokenizer (about 30% more tokens per text) that JSON is ~5.3k tokens, and 16000 leaves ~10k for
+> thinking. The local evaluator stays at 4096: raising it would move every local fingerprint, and
+> prompt + max_tokens must fit the served context. `lib/eval-decoding.js` holds both. The anthropic
+> evaluation timeout rose 150s → 300s to fit the larger ceiling, still under the backend's 480s.
+>
+> **(d) Test–retest on 5-5 is unmeasured.** The anthropic evaluation path is single-call: no
+> self-consistency, and no re-ask on invalid JSON. Adaptive thinking at the API-default temperature is
+> not deterministic, so a 5-5 score's repeatability is unknown. A repeat-consistency run
+> (`scripts/probe/repeat-consistency.mjs`, cloud arm; **paid, needs approval**) must come before ANY
+> agreement claim about 5-5. It also measures the latency and the per-PLE cost that (c) could only
+> estimate.
+>
+> **(e) Held-out policy.** The configuration base v3 prompt × `claude-sonnet-5-5` × the frozen shape may
+> score the held-out set **ONCE**, and only after the shape has been frozen on the tuning split. Any
+> shape change after that burns the held-out set for 5-5, as a prompt change would.
+>
+> **(f) The tutor model changed too, which is a PI protocol item.** `chat` runs on the same pin, so the
+> tutor physicians talk to is now 5-5 (between_tools, effort low), not 4-6. The tutor's behaviour is what
+> the study's arms manipulate, so this changes the intervention, not only the measuring instrument.
+> Sessions on either side of the deploy are not one arm. The PI decides how the protocol records it.
+>
+> **(g) Refusals.** Sonnet 5.5 can decline (`stop_reason: "refusal"`) in five categories: `cyber`, `bio`,
+> `frontier_llm`, `reasoning_extraction`, `general_harms`. rimpl turns that into a typed, non-retried
+> error (`422 code: refused`). It logs the category only, the backend meters the billed tokens, and an
+> evaluation goes to manual QA. **There is no `fallbacks` re-run on another model, ever:** a score from
+> a different model is exactly what §10.2 forbids. A refused evaluation is a missing score, not a
+> different one. Count refusals per category before any agreement analysis: they are not random
+> missingness.
+>
+> **(h) Temperature cannot be set on 5-5.** A non-default temperature is a 400, so the evaluator runs at
+> the API default, and provenance says `null`, which is what was sent. §10.2's decoding requirement is
+> therefore met as **"fixed and recorded"**, not as "deterministic". The PI decides how the Model Lock
+> Record words this.
+>
 > - New rows read `model_version` `CCME_LLM_v8.0+claude-sonnet-5-5`, and every anthropic score gets a
 >   new `config_fingerprint`. Do not pool scores from either side of the change.
 >
@@ -80,12 +127,13 @@ PLE dropped — the 46k-token transcript truncates the evaluator's 1000-token ou
 > D18 verdict whose incumbent was 4-6. Those rows stay as historical results for the 4-6 instrument.
 > They are not rewritten, and they must not be cited for 5-5.
 >
-> **Before 5-5 scores are treated as calibrated:** re-run the D18 / human-auditor calibration (Gate 0.5)
-> on `claude-sonnet-5-5`. Until then, 5-5 scores have the status 4-6's v3 scores had: unmeasured.
+> **Before 5-5 scores are treated as calibrated:** run the repeat-consistency check in (d), then re-run
+> the D18 / human-auditor calibration (Gate 0.5) on `claude-sonnet-5-5`. Until then, 5-5 scores have the
+> status 4-6's v3 scores had: unmeasured.
 >
 > **Protocol:** CREC082 §10.2 requires the evaluator model to be fixed and recorded. A change of
-> evaluator model may need an IRB/protocol amendment or notification before any participant is scored
-> on it. The PI decides that; the code change does not.
+> evaluator model, and of tutor model per (f), may need an IRB/protocol amendment or notification before
+> any participant is scored on it. The PI decides that; the code change does not.
 
 ## Notes per version
 

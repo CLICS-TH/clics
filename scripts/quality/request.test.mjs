@@ -44,8 +44,10 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
     'if (needCitation || languageMismatch) {',
     'if (languageMismatch) retryPrompt += ',
     'const keepFence = !needCitation && artifacts;',
-    "{ role: 'assistant', content: keepFence ? text : stripArtifactDelimiters(text) },",
-    'if (isAborted(err) || needCitation) throw err;',
+    'const priorReply = keepFence ? text : stripArtifactDelimiters(text);',
+    "...(priorReply.trim() ? [{ role: 'assistant', content: priorReply }] : []),",
+    'if (isAborted(err)) throw err;',
+    'if (needCitation) {',
     'languageRetried = languageMismatch;',
     'language_retry: languageRetried,',
   ]) assert.ok(chatSrc.includes(line), `retry logic drifted from chat.js: ${line}`);
@@ -58,13 +60,13 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
   // CHAT_MAX_TOKENS lives in lib/turn-limits.js (it also sizes the per-turn length cap); chat.js
   // must still take it from there and pass it as maxTokens on both the first call and the retry.
   const limitsSrc = readFileSync(path.join(HERE, '..', '..', 'rimpl', 'src', 'lib', 'turn-limits.js'), 'utf8');
-  assert.ok(limitsSrc.includes("const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));"), 'CHAT_MAX_TOKENS drifted');
+  assert.ok(limitsSrc.includes("const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '5200', 10));"), 'CHAT_MAX_TOKENS drifted');
   assert.ok(chatSrc.includes("const { CHAT_MAX_TOKENS, MAX_TURN_CHARS } = require('../lib/turn-limits');"), 'chat.js no longer takes CHAT_MAX_TOKENS from turn-limits');
   assert.equal(chatSrc.split('maxTokens: CHAT_MAX_TOKENS').length - 1, 2, 'chat.js must pass CHAT_MAX_TOKENS on the first call and the retry');
   assert.ok(chatSrc.includes("(socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)"), 'mode→prompt selection drifted');
   assert.ok(chatSrc.includes('systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE'), 'rescue prompt replacement drifted');
   assert.ok(chatSrc.includes("promptLabel('chat', systemPrompt)"), 'prompt_version label drifted');
-  assert.equal(CHAT_MAX_TOKENS, Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10)));
+  assert.equal(CHAT_MAX_TOKENS, Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '5200', 10)));
 });
 
 test('loads without a single package — the CI quality job has no npm install', () => {
@@ -227,14 +229,34 @@ test('paid arm: body mirrors providers/anthropic.js and goes ONLY through the in
   const r = await complete({ systemPrompt: 'S', messages: [{ role: 'user', content: 'q' }], maxTokens: 4000 });
   assert.equal(seen.length, 1);
   assert.equal(seen[0].url, 'https://api.anthropic.com/v1/messages');
-  // between_tools: production's thinking mode on this model (lib/anthropic-request.js). Without it the
-  // arm would run adaptive thinking, which production does not, and measure a different tutor.
+  // The chat purpose's shape on this model (lib/anthropic-request.js): between_tools at effort low.
+  // Without it the arm would run adaptive thinking at effort high, which production does not, and
+  // measure a different tutor.
   assert.deepEqual(JSON.parse(seen[0].init.body), {
     model: 'claude-sonnet-5-5', max_tokens: 4000, system: 'S', messages: [{ role: 'user', content: 'q' }],
-    thinking: { type: 'between_tools' },
+    thinking: { type: 'between_tools' }, output_config: { effort: 'low' },
   });
   assert.equal(r.text, 'hi (X, 2020)');
   assert.match(productionAnthropicModel(), /^claude-/);
+});
+
+test('paid arm: a safeguard refusal is a FAILED call carrying its usage and category, as in production', async () => {
+  const fetchImpl = async () => ({ ok: true, status: 200, json: async () => ({
+    model: 'claude-sonnet-5-5', content: [], stop_reason: 'refusal', stop_details: { category: 'bio', explanation: 'NOT-LOGGED' },
+    usage: { input_tokens: 900, output_tokens: 2 } }) });
+  const complete = makeAnthropicArm({ apiKey: 'k', model: 'claude-sonnet-5-5', timeoutMs: 1000, fetchImpl });
+  const r = await complete({ systemPrompt: 'S', messages: [{ role: 'user', content: 'q' }], maxTokens: 4000 });
+  assert.equal(r.ok, false);
+  assert.equal(r.refused, true);
+  assert.equal(r.error, 'refused:bio');
+  assert.equal(r.promptTokens, 900);
+  assert.doesNotMatch(JSON.stringify(r), /NOT-LOGGED/);
+});
+
+test('retryMessages never feeds an empty first reply back as an assistant turn', () => {
+  const msgs = retryMessages([{ role: 'user', content: 'q' }], '  ', { needCitation: true, languageMismatch: false }, { socratic: false, language: 'en' });
+  assert.equal(msgs.some((m) => m.role === 'assistant'), false);
+  assert.equal(msgs[msgs.length - 1].role, 'user');
 });
 
 test('paid arm: a model with no declared request shape is refused before any request', () => {

@@ -84,7 +84,7 @@ describe('guest route', () => {
     const { token } = (await request(app).post('/guest/start')).body;
     rimplChat.mockClear();
     const tooLong = await request(app).post('/guest/message').set('Authorization', `Bearer ${token}`)
-      .send({ message: 'q', history: [{ role: 'assistant', content: 'ก'.repeat(24001) }] });
+      .send({ message: 'q', history: [{ role: 'assistant', content: 'ก'.repeat(31201) }] });
     expect(tooLong.status).toBe(400);
     expect(rimplChat).not.toHaveBeenCalled();
 

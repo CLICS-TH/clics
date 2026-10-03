@@ -51,21 +51,24 @@ describe('honest about what it can and cannot measure', () => {
   });
 
   test('the decoding parameters recorded are the ones the evaluator actually sends', () => {
-    // The REQUEST still reads EVAL_DECODING. The RECORD reads what the provider reports it sent
-    // (`decoding` on the call result), not the request: claude-sonnet-5-5 rejects a non-default
+    // The REQUEST reads lib/eval-decoding.js (temperature 0; max_tokens per provider, 16000 on anthropic
+    // where adaptive thinking shares it, 4096 on local). The RECORD reads what the provider reports it
+    // sent (`decoding` on the call result), not the request: claude-sonnet-5-5 rejects a non-default
     // temperature, so the anthropic provider sends none and the record must say null there, not 0.
     // Behaviour is covered end to end in rimpl/tests/anthropic-request.test.js.
-    const src = require('fs').readFileSync(require('path').join(__dirname, '../../rimpl/src/routes/evaluate.js'), 'utf8');
-    expect(src).toMatch(/const EVAL_DECODING = \{ temperature: 0, maxTokens: 4096 \}/);
-    expect(src).toMatch(/maxTokens: EVAL_DECODING\.maxTokens/);
-    expect(src).toMatch(/temperature: EVAL_DECODING\.temperature/);   // the request
-    expect(src).toMatch(/const sent = first\?\.decoding \?\? \{\};/);
-    expect(src).toMatch(/temperature: sent\.temperature \?\? null, maxTokens: EVAL_DECODING\.maxTokens/);
-    expect(src).not.toMatch(/temperature: EVAL_DECODING\.temperature, maxTokens: EVAL_DECODING\.maxTokens/);
+    const read = (rel) => require('fs').readFileSync(require('path').join(__dirname, '../../rimpl/src', rel), 'utf8');
+    const route = read('routes/evaluate.js');
+    expect(read('lib/eval-decoding.js')).toMatch(/const EVAL_DECODING = Object\.freeze\(\{ temperature: 0, maxTokens: 4096 \}\)/);
+    expect(read('lib/eval-decoding.js')).toMatch(/EVAL_MAX_TOKENS_BY_PROVIDER = Object\.freeze\(\{ anthropic: 16000 \}\)/);
+    expect(route).toMatch(/const maxTokens = evalMaxTokensFor\(provider\);/);
+    expect(route).toMatch(/temperature: EVAL_DECODING\.temperature/);   // the request
+    expect(route).toMatch(/const sent = first\?\.decoding \?\? \{\};/);
+    expect(route).toMatch(/temperature: sent\.temperature \?\? null, maxTokens,/);
+    expect(route).toMatch(/thinking: sent\.thinking \?\? null, effort: sent\.effort \?\? null,/);
   });
 
-  test('temperature is 0 — a sampled scoring instrument is not reproducible', () => {
-    const src = require('fs').readFileSync(require('path').join(__dirname, '../../rimpl/src/routes/evaluate.js'), 'utf8');
+  test('temperature 0 is still what the evaluator REQUESTS — a sampled scoring instrument is not reproducible', () => {
+    const src = require('fs').readFileSync(require('path').join(__dirname, '../../rimpl/src/lib/eval-decoding.js'), 'utf8');
     expect(src).toMatch(/temperature: 0,/);
   });
 

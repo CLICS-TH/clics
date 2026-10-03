@@ -48,6 +48,7 @@ import { applySplit } from './split.mjs';
 import { parseJsonObject } from '../../rimpl/src/lib/parse.js';
 import { flattenForPrompt } from '../../rimpl/src/lib/transcript.js';
 import { requestShape } from '../../rimpl/src/lib/anthropic-request.js';
+import { evalMaxTokensFor } from '../../rimpl/src/lib/eval-decoding.js';
 import { deriveHintTokens } from '../../rimpl/src/services/pii-filter.js';
 // Production's weighted composite and ICC(A,1) estimator — see agreement-stats.mjs for why they are shared.
 import { compositeAgreement, domainAgreement } from './agreement-stats.mjs';
@@ -94,11 +95,13 @@ const CLOUD_MODEL = process.env.CLOUD_MODEL || (() => {
   if (!m) fail(`no MODEL constant found in ${p} — cannot confirm which model production uses.`);
   return m[1];
 })();
-// The body production sends for that model (thinking mode; temperature only where the model accepts
-// it), from the same module the provider reads. claude-sonnet-5-5 400s on temperature 0, so the cloud
-// arm runs at the API default, as rimpl's /evaluate now does. Throws for a model with no declared shape.
+// The body production's /evaluate sends for that model (thinking mode and effort for the `evaluate`
+// purpose; temperature only where the model accepts it) and its max_tokens, from the same modules the
+// provider and the route read. claude-sonnet-5-5 400s on temperature 0, so the cloud arm runs at the
+// API default, adaptive thinking at effort high, max_tokens 16000. Throws for an undeclared model.
 let CLOUD_SHAPE;
-try { CLOUD_SHAPE = requestShape(CLOUD_MODEL, { temperature: 0 }); } catch (e) { fail(e.message); }
+try { CLOUD_SHAPE = requestShape(CLOUD_MODEL, { temperature: 0, purpose: 'evaluate' }); } catch (e) { fail(e.message); }
+const CLOUD_MAX_TOKENS = evalMaxTokensFor('anthropic');
 if (!ANTHROPIC_KEY) fail('No ANTHROPIC_API_KEY (checked env and rimpl/.env). The cloud arm cannot run.');
 
 const cfg = readConfig();
@@ -196,7 +199,7 @@ async function cloudArm(fx) {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
-        model: CLOUD_MODEL, max_tokens: 4096, ...CLOUD_SHAPE.fields,
+        model: CLOUD_MODEL, max_tokens: CLOUD_MAX_TOKENS, ...CLOUD_SHAPE.fields,
         system: CLOUD_PROMPT,
         messages: [{ role: 'user', content: `TRANSCRIPT:\n${fx.flattened}` }],
       }),

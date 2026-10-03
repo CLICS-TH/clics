@@ -9,7 +9,7 @@ const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRe
 const { flattenForPrompt, stripArtifactDelimiters } = require('../lib/transcript');
 const { requestSignal } = require('../lib/request-signal');
 const { promptLabel } = require('../lib/versions');
-const { sendAiError, logAiError, isAborted } = require('../lib/ai-errors');
+const { sendAiError, logAiError, isAborted, isRefused } = require('../lib/ai-errors');
 
 const router = Router();
 
@@ -235,8 +235,12 @@ router.post('/', async (req, res) => {
       // the reply intact — but only when artifacts are on (the system prompt then explains the
       // fence); with them off a stray fence is stripped as before.
       const keepFence = !needCitation && artifacts;
+      const priorReply = keepFence ? text : stripArtifactDelimiters(text);
+      // NEVER an empty assistant turn: the Messages API rejects empty content with a 400, which would
+      // turn a recoverable missing citation into a failed turn. With nothing to correct, the retry is a
+      // plain re-ask (two consecutive user turns, which the API joins into one).
       const retryMessages = [...messages,
-        { role: 'assistant', content: keepFence ? text : stripArtifactDelimiters(text) },
+        ...(priorReply.trim() ? [{ role: 'assistant', content: priorReply }] : []),
         { role: 'user', content: retryPrompt },
       ];
       // Same ceiling as the first call — a corrected reply may itself carry an artifact, so a LOWER retry
@@ -251,9 +255,21 @@ router.post('/', async (req, res) => {
       try {
         retry = await callAI({ purpose: 'chat', provider, systemPrompt, messages: retryMessages, maxTokens: CHAT_MAX_TOKENS, signal });
       } catch (err) {
+        // A refused retry was still BILLED. Fold its tokens into this turn's sums so the backend meters
+        // them whichever way the turn ends.
+        if (isRefused(err)) {
+          inputTokens += err.inputTokens ?? 0;
+          outputTokens += err.outputTokens ?? 0;
+          tokenCount += (err.inputTokens ?? 0) + (err.outputTokens ?? 0);
+        }
         // The client is gone, or the retry was needed for a missing citation/❓ (that reply was not
-        // deliverable, and failing closed there is the existing behaviour): propagate.
-        if (isAborted(err) || needCitation) throw err;
+        // deliverable, and failing closed there is the existing behaviour): propagate. A refusal here
+        // carries the WHOLE turn's usage (first call + refused retry), so the 422 meters both.
+        if (isAborted(err)) throw err;
+        if (needCitation) {
+          if (isRefused(err)) { err.inputTokens = inputTokens; err.outputTokens = outputTokens; }
+          throw err;
+        }
         // A LANGUAGE-only retry is a nicety on top of a reply that was already deliverable. Losing the
         // physician's turn (and, on a rescue turn, the rescue activation riding on this response) to a
         // queue_full / 413 / 5xx on it would be worse than the English answer. Keep the first reply and

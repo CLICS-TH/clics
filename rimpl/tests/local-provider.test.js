@@ -155,8 +155,8 @@ describe('request shape', () => {
   test('reports the decoding it actually sent', async () => {
     fetchMock.mockResolvedValue(res(completion()));
     const local = load();
-    expect((await local.call(args({ temperature: 0 }))).decoding).toEqual({ temperature: 0, thinking: null });
-    expect((await local.call(args())).decoding).toEqual({ temperature: null, thinking: null });
+    expect((await local.call(args({ temperature: 0 }))).decoding).toEqual({ temperature: 0, thinking: null, effort: null });
+    expect((await local.call(args())).decoding).toEqual({ temperature: null, thinking: null, effort: null });
   });
 
   test('defaults max_tokens to 1500 when the caller omits it', async () => {

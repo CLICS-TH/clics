@@ -4,6 +4,7 @@ const { verifyJwt, requireRole } = require('../middleware/auth');
 const { MessageSchema, ReportReplySchema, CreateCleSchema, UpdateCleSchema, ReflectionSchema } = require('../lib/schemas');
 const { computeTier1, hasScorableContent, clampDuration } = require('../services/ple-gate');
 const { rimplChat } = require('../services/rimpl-client');
+const { isRimplRefusal } = require('../lib/rimpl-refusal');
 const { fetchOwnedPle, ownsFolder, sendDbError } = require('../lib/db-helpers');
 const { finalizeScreening, toPassCols } = require('../services/ple-finalize');
 const { effectiveLimit, effectiveTokenLimit, budgetState, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD } = require('../lib/usage');
@@ -446,6 +447,20 @@ router.post('/:id/message', requireConsent, requireBudget, async (req, res) => {
       rescue_rounds: Math.max(0, (ple.turn_count ?? 0) - (ple.rescue_exchanges_before ?? 0)),
     });
   } catch (err) {
+    // The model's safeguards DECLINED the turn (rimpl 422 'refused'). Nothing is delivered, but the
+    // call was served and billed, so the reservation settles to its real, provider-priced cost instead
+    // of being refunded. Refunding it would let declined turns spend money the cap never sees.
+    if (isRimplRefusal(err)) {
+      const { input_tokens: inT, output_tokens: outT, provider } = err.usage;
+      await accrueUsage(req.user.id, inT, outT, settlementDelta({
+        estimate: RESERVE_ESTIMATE_USD, inputTokens: inT, outputTokens: outT,
+        applied: reservation.applied, provider,
+      }));
+      console.warn(`[ples] chat turn declined by the model's safeguards (category ${err.category ?? 'none'})`);
+      // COPY PENDING (#136): the physician-facing wording is to go through the #136 copy conventions.
+      // Until then the stable code is the contract; the text stays neutral and names no category.
+      return res.status(422).json({ error: 'The AI could not respond to this message.', code: 'ai_refused' });
+    }
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
     // rimpl's proactive size backstop (or its body limit): the transcript no longer fits the model —
     // the same outcome as our own cap above, so the same code, and a human-readable "end the session".

@@ -5,6 +5,7 @@
 // re-runs just this step — the session is never permanently stranded at 'ended'.
 const { supabase } = require('../lib/supabase');
 const { rimplEvaluateCriteria, isDeterministicRimplError } = require('./rimpl-client');
+const { isRimplRefusal } = require('../lib/rimpl-refusal');
 const { accrueUsage } = require('../lib/usage');
 const { costUsd } = require('../lib/pricing');
 const evalDrain = require('./eval-drain');
@@ -34,7 +35,18 @@ async function evaluateCriteriaWithRetry(payload, attempts = 3) {
 // stays 'ended' so the next reconcile sweep retries it, instead of a transient blip permanently
 // flagging a qualifying session to manual QA. Returns { status, criteria }.
 async function finalizeScreening({ pleId, physicianId, transcript, tier1, patient_ref, ple = {} }) {
-  const crit = await evaluateCriteriaWithRetry({ transcript, patient_ref });
+  let crit;
+  try {
+    crit = await evaluateCriteriaWithRetry({ transcript, patient_ref });
+  } catch (e) {
+    // Declined by the model's safeguards: billed, so metered (as below), then the existing failure path.
+    if (isRimplRefusal(e)) {
+      console.warn(`[ple-finalize] criteria classifier for ${pleId} declined by the model's safeguards (category ${e.category ?? 'none'})`);
+      await accrueUsage(physicianId, e.usage.input_tokens, e.usage.output_tokens,
+        costUsd(e.usage.input_tokens, e.usage.output_tokens, e.usage.provider));
+    }
+    throw e;
+  }
   // Persist the reversible on-prem PII map RIMPL returned (encrypted, fail-soft) — Tier-1 audit.
   await persistPiiMap(pleId, crit.pii_map);
   // The CREC082 §1 qualifying test, all four elements. c7 (context/evidence integration) is the one

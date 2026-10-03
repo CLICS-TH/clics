@@ -6,15 +6,17 @@ const { Router } = require('express');
 const { z } = require('zod');
 const { startGuestSession, verifyGuestToken, consumeGuestPrompt, MAX_PROMPTS } = require('../lib/guest');
 const { rimplChat } = require('../services/rimpl-client');
+const { isRimplRefusal } = require('../lib/rimpl-refusal');
 
 const router = Router();
 
 // History is held by an anonymous client and replayed each turn, so every item is attacker-sized
-// input to the RIMPL PII filter — cap it. 24000 chars, not 5000: an assistant reply in that history is
-// one chat reply of up to RIMPL_CHAT_MAX_TOKENS (default 4000) tokens, which can legitimately run well
-// past 5000 Thai/English chars (6 chars/token is a generous bound). Keep in step with MAX_TURN_CHARS in
-// rimpl/src/lib/turn-limits.js; raise both if RIMPL_CHAT_MAX_TOKENS is raised above 4000.
-const MAX_GUEST_TURN_CHARS = 24000;
+// input to the RIMPL PII filter — cap it. 31200 chars, not 5000: an assistant reply in that history is
+// one chat reply of up to RIMPL_CHAT_MAX_TOKENS (default 5200 since claude-sonnet-5-5; was 4000)
+// tokens, which can legitimately run well past 5000 Thai/English chars (6 chars/token is a generous
+// bound: 5200 x 6). Keep in step with MAX_TURN_CHARS in rimpl/src/lib/turn-limits.js; raise both if
+// RIMPL_CHAT_MAX_TOKENS is raised above 5200.
+const MAX_GUEST_TURN_CHARS = 31200;
 
 const GuestMessageSchema = z.object({
   message: z.string().min(1).max(5000),
@@ -59,6 +61,11 @@ router.post('/message', async (req, res) => {
   try {
     rimplResponse = await rimplChat({ ple_id: verified.sessionId, history, message, language });
   } catch (err) {
+    // Declined by the model's safeguards. Guests have no $ meter (the prompt count bounds them), so
+    // there is nothing to settle. COPY PENDING (#136), as in routes/ples.js.
+    if (isRimplRefusal(err)) {
+      return res.status(422).json({ error: 'The AI could not respond to this message.', code: 'ai_refused' });
+    }
     return res.status(502).json({ error: `RIMPL unavailable: ${err.message}` });
   }
 

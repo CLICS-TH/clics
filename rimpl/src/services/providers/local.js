@@ -373,8 +373,8 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature, pur
       runtime: data.system_fingerprint || null,
       engine: engineOf(data.system_fingerprint),
       // What this call SENT, for §10.2 provenance (routes/evaluate.js), in the same shape the
-      // anthropic provider reports. This transport has no thinking switch, so that slot is null.
-      decoding: { temperature: body.temperature ?? null, thinking: null },
+      // anthropic provider reports. This transport sends no thinking mode and no effort, so both are null.
+      decoding: { temperature: body.temperature ?? null, thinking: null, effort: null },
     };
   }, { lane: laneFor(purpose), signal });
 }

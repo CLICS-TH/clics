@@ -37,6 +37,18 @@ async function rimplError(path, res) {
     if (body && typeof body === 'object') {
       if (typeof body.code === 'string') err.code = body.code;
       if (typeof body.error === 'string') err.detail = body.error.slice(0, 200);
+      // A safeguard REFUSAL (rimpl 422 code 'refused'): the model declined, but the tokens were billed.
+      // Carry the usage so the caller meters it, and the category (a short word) for the logs. Numbers
+      // and a whitelisted provider only. Nothing else in the body rides along.
+      if (body.code === 'refused') {
+        err.category = typeof body.category === 'string' && /^[a-z_]{1,40}$/.test(body.category) ? body.category : null;
+        err.usage = {
+          input_tokens: Number.isFinite(body.input_tokens) ? body.input_tokens : 0,
+          output_tokens: Number.isFinite(body.output_tokens) ? body.output_tokens : 0,
+          // Unknown or missing → the PAID rate, the same fail-toward-over-billing rule as parseWithProvider.
+          provider: body.provider === 'local' ? 'local' : 'anthropic',
+        };
+      }
       const ra = Number(body.retry_after_s);
       if (Number.isFinite(ra) && ra > 0) err.retryAfterMs = ra * 1000;
     }
@@ -55,6 +67,7 @@ const DETERMINISTIC_STATUSES = new Set([400, 401, 403, 413, 422, 502]);
 function isDeterministicRimplError(err) {
   return err && typeof err.status === 'number' && DETERMINISTIC_STATUSES.has(err.status);
 }
+
 
 // rimpl now routes each AI call to a provider — the Anthropic cloud, or the on-prem local model —
 // and reports which one ACTUALLY served the call on every response. Stamp it on the parsed body so

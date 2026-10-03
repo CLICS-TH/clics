@@ -3,6 +3,7 @@ const { supabase } = require('../lib/supabase');
 const { evaluatorWeightsSha256 } = require('../lib/settings');
 const { compositeScore } = require('./ple-gate');
 const { rimplEvaluate, isDeterministicRimplError } = require('./rimpl-client');
+const { isRimplRefusal } = require('../lib/rimpl-refusal');
 const { accrueUsage } = require('../lib/usage');
 const { costUsd } = require('../lib/pricing');
 
@@ -76,7 +77,20 @@ async function triggerEvaluation(pleId, transcript, physicianId, patientRef, { a
   // the moment it is produced. Read per call rather than cached: if it is declared (or re-declared)
   // mid-pilot, the scores either side carry different values and the break is visible in the data.
   const weights_sha256 = await evaluatorWeightsSha256().catch(() => null);
-  const result = await evaluateWithRetry({ ple_id: pleId, transcript, patient_ref: patientRef, weights_sha256 }, attempts);
+  let result;
+  try {
+    result = await evaluateWithRetry({ ple_id: pleId, transcript, patient_ref: patientRef, weights_sha256 }, attempts);
+  } catch (e) {
+    // Declined by the model's safeguards: deterministic (422), so the caller routes the PLE to manual QA
+    // exactly as before, but the call was billed. Meter it the way a scored evaluation is metered (no
+    // reservation on this path), then rethrow. NEVER retried on another model.
+    if (isRimplRefusal(e)) {
+      console.warn(`[ple-evaluation] PIS-7 evaluation for ${pleId} declined by the model's safeguards (category ${e.category ?? 'none'})`);
+      await accrueUsage(physicianId, e.usage.input_tokens, e.usage.output_tokens,
+        costUsd(e.usage.input_tokens, e.usage.output_tokens, e.usage.provider));
+    }
+    throw e;
+  }
   const { fresh } = await persistEvaluation(pleId, physicianId, result);
   // Accrue the PIS-7 evaluation's cost to the physician's meter ONLY when this call actually wrote
   // the row — a dup-eval race (reconcile vs /end) must not double-charge the physician. There is no

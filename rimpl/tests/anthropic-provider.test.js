@@ -8,11 +8,14 @@ process.env.CLAUDE_MAX_CONCURRENCY = '3';
 process.env.CLAUDE_MAX_RETRIES = '5';
 process.env.CLAUDE_RETRY_BASE_MS = '5'; // tiny backoff so tests run fast
 process.env.ANTHROPIC_API_KEY = 'test-key';
+delete process.env.CLAUDE_TIMEOUT_MS;
+delete process.env.CLAUDE_INTERACTIVE_TIMEOUT_MS;
 
 const mockCall = jest.fn(); // resolves/rejects the .withResponse() promise per attempt
 jest.mock('@anthropic-ai/sdk', () => jest.fn().mockImplementation(() => ({
-  // The request body is passed through to mockCall so the request-shape tests below can read it.
-  messages: { create: (body) => ({ withResponse: () => mockCall(body) }) },
+  // The request body and per-request options are passed through to mockCall so the request-shape and
+  // timeout tests below can read them.
+  messages: { create: (body, opts) => ({ withResponse: () => mockCall(body, opts) }) },
 })));
 
 const provider = require('../src/services/providers/anthropic');
@@ -20,7 +23,10 @@ const call = provider.call;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const MSG = { content: [{ text: 'hi' }], usage: { input_tokens: 5, output_tokens: 7 }, stop_reason: 'end_turn' };
 const okResp = { data: MSG, response: { headers: new Map() } };
-const args = () => ({ systemPrompt: 's', messages: [{ role: 'user', content: 'x' }], maxTokens: 10 });
+// Every production caller names its purpose (services/ai.js PURPOSES, plus 'shadow'); the shape
+// depends on it, so the tests do too.
+const args = (purpose = 'chat') => ({ systemPrompt: 's', messages: [{ role: 'user', content: 'x' }], maxTokens: 10, purpose });
+const CHAT_SENT = { temperature: null, thinking: 'between_tools', effort: 'low' };
 
 beforeEach(() => { mockCall.mockReset(); });
 
@@ -34,7 +40,7 @@ test('retries a 429 (rate-limit) then succeeds', async () => {
     text: 'hi', inputTokens: 5, outputTokens: 7, tokenCount: 12,
     stopReason: 'end_turn', model: 'claude-sonnet-5-5',
     // What was SENT (routes/evaluate.js records it as provenance): no temperature was asked for here.
-    decoding: { temperature: null, thinking: 'between_tools' },
+    decoding: CHAT_SENT,
   });
   expect(mockCall).toHaveBeenCalledTimes(3);
 });
@@ -76,15 +82,14 @@ test('exposes the provider interface ai.js dispatches on', () => {
   expect(typeof provider.ready).toBe('function');
 });
 
-// services/ai.js now forwards `purpose` and `signal` to EVERY provider (the local one picks a queue
-// lane from the purpose and cancels on the signal). The relay has neither concept and must simply
-// ignore both keys — same request, same result, no lane, no cancellation.
-test('ignores the purpose and signal keys callAI forwards (extra keys change nothing)', async () => {
+// services/ai.js forwards `purpose` and `signal` to EVERY provider. The purpose now picks the request
+// shape and the timeout; the signal is still ignored (no cancellation on this transport).
+test('ignores the signal key callAI forwards (no lane, no cancellation)', async () => {
   mockCall.mockResolvedValueOnce(okResp);
   const ac = new AbortController();
-  const r = await call({ ...args(), purpose: 'chat', signal: ac.signal });
+  const r = await call({ ...args('chat'), signal: ac.signal });
   expect(r).toEqual({ text: 'hi', inputTokens: 5, outputTokens: 7, tokenCount: 12, stopReason: 'end_turn', model: 'claude-sonnet-5-5',
-    decoding: { temperature: null, thinking: 'between_tools' } });
+    decoding: CHAT_SENT });
   expect(mockCall).toHaveBeenCalledTimes(1);
   expect(provider.stats()).toEqual({ provider: 'anthropic', active: 0, queued: 0, maxConcurrency: 3,
     lastOk: expect.any(Number), lastError: null }); // no `lanes`: still the FIFO
@@ -97,31 +102,103 @@ test('stamps the model the API reports, not the one requested', async () => {
   expect((await call(args())).model).toBe('claude-sonnet-5-5-served');
 });
 
-// claude-sonnet-5-5 request shape (lib/anthropic-request.js; official Sonnet 5.5 migration guide).
-// Each of these is a 400 or a silent behaviour change on the scored path if it regresses.
+// claude-sonnet-5-5 request shape PER PURPOSE (lib/anthropic-request.js; official Sonnet 5.5 migration
+// and prompting guides). Each of these is a 400, a timeout, or a silent instrument change if it regresses.
 describe('claude-sonnet-5-5 request shape', () => {
-  test('a requested temperature is NOT sent (non-default sampling is a 400 on this model) and the result says so', async () => {
+  const bodyOf = () => mockCall.mock.calls[0][0];
+  const optsOf = () => mockCall.mock.calls[0][1];
+
+  test('evaluate: adaptive thinking at explicit effort high; the requested temperature 0 is NOT sent (a 400 on this model)', async () => {
     mockCall.mockResolvedValueOnce(okResp);
-    const r = await call({ ...args(), temperature: 0 });   // what routes/evaluate.js asks for
-    const body = mockCall.mock.calls[0][0];
-    expect(body).not.toHaveProperty('temperature');
-    expect(body).not.toHaveProperty('top_p');
-    expect(body).not.toHaveProperty('top_k');
-    expect(r.decoding).toEqual({ temperature: null, thinking: 'between_tools' }); // provenance must not claim 0
+    const r = await call({ ...args('evaluate'), temperature: 0 });   // what routes/evaluate.js asks for
+    expect(bodyOf().thinking).toEqual({ type: 'adaptive' });
+    expect(bodyOf().output_config).toEqual({ effort: 'high' });
+    expect(bodyOf()).not.toHaveProperty('temperature');
+    expect(bodyOf()).not.toHaveProperty('top_p');
+    expect(bodyOf()).not.toHaveProperty('top_k');
+    expect(r.decoding).toEqual({ temperature: null, thinking: 'adaptive', effort: 'high' }); // provenance must not claim 0
   });
 
-  test("thinking is sent as between_tools: omitting it would run ADAPTIVE thinking against max_tokens, and 'disabled' is a 400", async () => {
+  test('shadow scores with the evaluator\'s shape (comparing two instruments otherwise)', async () => {
     mockCall.mockResolvedValueOnce(okResp);
-    await call(args());
-    const body = mockCall.mock.calls[0][0];
-    expect(body.thinking).toEqual({ type: 'between_tools' });   // and nothing else inside it: any extra field is a 400
-    expect(body).not.toHaveProperty('output_config');           // between_tools is a 400 at effort xhigh/max; the default (high) is accepted
-    expect(body).toMatchObject({ model: 'claude-sonnet-5-5', max_tokens: 10, system: 's', messages: [{ role: 'user', content: 'x' }] });
+    const r = await call(args('shadow'));
+    expect(r.decoding).toEqual({ temperature: null, thinking: 'adaptive', effort: 'high' });
+  });
+
+  test.each(['chat', 'criteria'])('%s: between_tools at effort low (inside the 100s chat budget; no thinking field beyond `type`)', async (purpose) => {
+    mockCall.mockResolvedValueOnce(okResp);
+    await call(args(purpose));
+    expect(bodyOf().thinking).toEqual({ type: 'between_tools' });   // any other field inside it is a 400
+    expect(bodyOf().output_config).toEqual({ effort: 'low' });       // between_tools 400s at xhigh/max
+    expect(bodyOf()).toMatchObject({ model: 'claude-sonnet-5-5', max_tokens: 10, system: 's', messages: [{ role: 'user', content: 'x' }] });
+  });
+
+  test('discuss: adaptive thinking at effort low', async () => {
+    mockCall.mockResolvedValueOnce(okResp);
+    const r = await call(args('discuss'));
+    expect(bodyOf().thinking).toEqual({ type: 'adaptive' });
+    expect(r.decoding.effort).toBe('low');
+  });
+
+  test('a missing or undeclared purpose is refused BEFORE the queue: never a guessed shape, never a slot', async () => {
+    await expect(call({ ...args(), purpose: undefined })).rejects.toThrow(/No Anthropic request shape/);
+    await expect(call(args('embed'))).rejects.toThrow(/No Anthropic request shape/);
+    expect(mockCall).not.toHaveBeenCalled();
+  });
+
+  test('timeouts: an evaluation gets 300s (thinking + 16000-token ceiling); interactive purposes keep 150s', async () => {
+    mockCall.mockResolvedValue(okResp);
+    await call(args('evaluate'));
+    await call(args('shadow'));
+    await call(args('chat'));
+    await call(args('discuss'));
+    expect(mockCall.mock.calls.map((c) => c[1].timeout)).toEqual([300000, 300000, 150000, 150000]);
+    expect(optsOf().timeout).toBe(300000);
   });
 
   test('a reply led by a thinking block still yields only the text', async () => {
     mockCall.mockResolvedValueOnce({ data: { ...MSG, content: [{ type: 'thinking', thinking: '', signature: 'sig' }, { type: 'text', text: 'answer' }] }, response: { headers: new Map() } });
-    expect((await call(args())).text).toBe('answer');
+    expect((await call(args('evaluate'))).text).toBe('answer');
+  });
+});
+
+// stop_reason "refusal" (HTTP 200): a typed, NON-retryable error carrying the billed usage and the
+// category, never the content. No fallback model, ever.
+describe('safeguard refusals', () => {
+  const REFUSAL = { data: { content: [], usage: { input_tokens: 900, output_tokens: 3 }, stop_reason: 'refusal',
+    stop_details: { type: 'refusal', category: 'bio', explanation: 'SECRET-EXPLANATION-TEXT' }, model: 'claude-sonnet-5-5' },
+  response: { headers: new Map() } };
+  let warn;
+  beforeEach(() => { warn = jest.spyOn(console, 'warn').mockImplementation(() => {}); });
+  afterEach(() => warn.mockRestore());
+
+  test('throws RefusalError {code: refused, category, tokens} after ONE call (not retried)', async () => {
+    mockCall.mockResolvedValue(REFUSAL);
+    const err = await call(args('evaluate')).catch((e) => e);
+    expect(err).toBeInstanceOf(provider.RefusalError);
+    expect(err).toMatchObject({ code: 'refused', category: 'bio', inputTokens: 900, outputTokens: 3, model: 'claude-sonnet-5-5',
+      usage: { inputTokens: 900, outputTokens: 3, provider: 'anthropic' } });
+    expect(mockCall).toHaveBeenCalledTimes(1);
+  });
+
+  test('logs the category only, never the explanation or content', async () => {
+    mockCall.mockResolvedValue(REFUSAL);
+    await call(args('chat')).catch(() => {});
+    const logged = warn.mock.calls.flat().join(' ');
+    expect(logged).toMatch(/refusal .*category bio/);
+    expect(logged).not.toMatch(/SECRET-EXPLANATION-TEXT/);
+  });
+
+  test('an unexpected category value is dropped, not passed on', async () => {
+    mockCall.mockResolvedValue({ ...REFUSAL, data: { ...REFUSAL.data, stop_details: { category: 'Bio <script>' } } });
+    expect((await call(args('chat')).catch((e) => e)).category).toBeNull();
+  });
+
+  test('a refusal is a SERVED request: the runner records success, so /health/deep stays green', async () => {
+    mockCall.mockResolvedValue(REFUSAL);
+    await call(args('chat')).catch(() => {});
+    expect(provider.stats().lastError).toBeNull();
+    expect(provider.ready().checks.anthropic_serving.status).toBe('up');
   });
 });
 

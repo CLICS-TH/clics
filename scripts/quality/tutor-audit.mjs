@@ -82,12 +82,15 @@ export function productionAnthropicModel() {
 }
 
 /** Anthropic Messages API, same body shape as rimpl/src/services/providers/anthropic.js, including the
- *  model-specific fields from rimpl/src/lib/anthropic-request.js (on claude-sonnet-5-5, thinking
- *  `between_tools`: without it the arm would run adaptive thinking that production does not). Only ever
+ *  model-specific fields from rimpl/src/lib/anthropic-request.js (on claude-sonnet-5-5, the chat purpose's
+ *  thinking `between_tools` and effort `low`: without them the arm would run adaptive thinking at effort
+ *  high, which production does not). Only ever
  *  constructed behind --allow-paid. `fetchImpl` is injectable for tests. Throws for a model with no
  *  declared shape, before any request is made. */
 export function makeAnthropicArm({ apiKey, model, timeoutMs, fetchImpl = fetch }) {
-  const { fields } = requestShape(model);   // chat.js sends no temperature, so none is asked for here
+  // purpose 'chat': the tutor's shape (between_tools, effort low on claude-sonnet-5-5). chat.js sends no
+  // temperature, so none is asked for here.
+  const { fields } = requestShape(model, { purpose: 'chat' });
   return async function complete({ systemPrompt, messages, maxTokens }) {
     const t0 = performance.now();
     try {
@@ -101,6 +104,17 @@ export function makeAnthropicArm({ apiKey, model, timeoutMs, fetchImpl = fetch }
       const ms = performance.now() - t0;
       if (!res.ok) return { ok: false, ms, status: res.status, error: `HTTP ${res.status}: ${JSON.stringify(json)?.slice(0, 300)}`, text: '' };
       const text = (json?.content ?? []).filter((b) => b.type === 'text').map((b) => b.text).join('');
+      // A safeguard refusal (HTTP 200, stop_reason "refusal") is a FAILED call, as in production
+      // (providers/anthropic.js throws, the route answers 422): no retry follows a refused first call,
+      // and a refused citation retry fails the turn. The category word only, never content.
+      if (json?.stop_reason === 'refusal') {
+        const cat = json?.stop_details?.category;
+        return {
+          ok: false, ms, status: res.status, error: `refused:${typeof cat === 'string' && /^[a-z_]{1,40}$/.test(cat) ? cat : 'none'}`, text: '',
+          refused: true, promptTokens: json?.usage?.input_tokens ?? 0, completionTokens: json?.usage?.output_tokens ?? 0,
+          model: json?.model || model, raw: { id: json?.id },
+        };
+      }
       return {
         ok: true, ms, status: res.status, error: null, text,
         finishReason: json?.stop_reason ?? null, stopReason: json?.stop_reason ?? null,

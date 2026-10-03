@@ -18,8 +18,27 @@ const { requestShape } = require('../../lib/anthropic-request');
 // for the on-prem provider, whose measured evaluations ran 82.5s and 87.8s — one already over. Both
 // providers now share a 150s ceiling under backend's outer RIMPL_EVAL_TIMEOUT_MS (180s), so a slow
 // evaluation is slow rather than lost. Tunable for the same reason the local one is.
-const CLIENT_TIMEOUT_MS = Math.max(1000, parseInt(process.env.CLAUDE_TIMEOUT_MS || '150000', 10));
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: CLIENT_TIMEOUT_MS, maxRetries: 0 });
+//
+// 300000 for EVALUATIONS since claude-sonnet-5-5 (2026-10-03). The evaluator now runs adaptive thinking
+// at effort high with max_tokens 16000 (routes/evaluate.js), so one call may generate up to 16000
+// tokens of thinking plus JSON. The only measured cloud throughput is 4-6's: 1-3.2k output tokens in
+// 16.0-65.7s on 5.1k-token inputs (docs/GATE0-DGX-RESULTS.md §7.1), i.e. roughly 50-100 tok/s with
+// prefill included. At a conservative 60 tok/s a full 16000-token reply needs ~267s, and the prefill of
+// the largest transcript seen (PLE-052, ~130k tokens) adds seconds, not minutes, so 300s covers the
+// worst single call. It must stay UNDER backend's RIMPL_EVAL_TIMEOUT_MS (480s since the evaluation
+// drain), leaving 180s for rimpl's queue wait. Invert the two and the backend hangs up on a score that
+// was about to arrive. A TIMED-OUT attempt is still retried by the runner, and a second 300s attempt
+// cannot finish inside 480s; the drain then re-claims the row on its own backoff. That is unchanged
+// from the 150s era (several retries already overran 180s), and preferable to cutting a slow score short.
+// Unmeasured on 5.5: the paid repeat-consistency run should record latency before deploy.
+const EVAL_TIMEOUT_MS = Math.max(1000, parseInt(process.env.CLAUDE_TIMEOUT_MS || '300000', 10));
+// Chat, criteria and discuss keep the 150s ceiling they had. The backend gives each of them 100s
+// (RIMPL_CHAT_TIMEOUT_MS) or 180s (criteria at /end), so a longer inner ceiling would only hold a
+// concurrency slot for a caller that has already gone.
+const INTERACTIVE_TIMEOUT_MS = Math.max(1000, parseInt(process.env.CLAUDE_INTERACTIVE_TIMEOUT_MS || '150000', 10));
+const EVAL_PURPOSES = new Set(['evaluate', 'shadow']);
+const timeoutFor = (purpose) => (EVAL_PURPOSES.has(purpose) ? EVAL_TIMEOUT_MS : INTERACTIVE_TIMEOUT_MS);
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: EVAL_TIMEOUT_MS, maxRetries: 0 });
 // PINNED, not an alias. From the 4.6 generation on, Anthropic's canonical model ids carry no date:
 // GET /v1/models/claude-sonnet-5-5 resolves to itself (display "Claude Sonnet 5.5", created
 // 2026-09-28, max_input_tokens 1000000, max_tokens 128000), the same way the older dated ids
@@ -33,7 +52,9 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: C
 // prompt x rubric). See scripts/calibration/prompt-versions.md. The request shape changed with it.
 // lib/anthropic-request.js says what this model accepts, and boot fails if it has no entry there.
 const MODEL = 'claude-sonnet-5-5';
-requestShape(MODEL); // fail at boot, not on the first scored evaluation, if the pin has no declared shape
+// Fail at boot, not on the first scored evaluation, if the pin has no declared shape for a purpose rimpl
+// sends it. `shadow` is services/shadow.js; the rest are services/ai.js PURPOSES.
+for (const purpose of ['evaluate', 'shadow', 'chat', 'criteria', 'discuss']) requestShape(MODEL, { purpose });
 
 // Prompt caching (default OFF). The ~2k-token system prompt is re-sent every turn at full input price;
 // caching it cuts that to ~10% after the first call. DEFAULT OFF because zero-data-retention (ZDR)
@@ -94,40 +115,80 @@ const runner = createRunner({
   },
 });
 
-async function call({ systemPrompt, messages, maxTokens = 1500, temperature }) {
-  return runner.run(async () => {
+// A safeguard refusal: HTTP 200, `stop_reason: "refusal"`, `stop_details.category` naming why. It is
+// NOT retryable (the same request would be declined again, and each attempt is billed) and it is not
+// a provider failure (the provider served the request). The error carries the category and the billed
+// usage, numbers and a fixed-vocabulary word only, never the content, so callers can meter it and
+// sendAiError (lib/ai-errors.js) can answer with a distinct code. NEVER answered by a `fallbacks`
+// re-run: a different model producing a score is exactly what §10.2 forbids.
+class RefusalError extends Error {
+  constructor({ category, inputTokens, outputTokens, model }) {
+    super(`model declined the request (refusal${category ? `, category ${category}` : ''})`);
+    this.name = 'RefusalError';
+    this.code = 'refused';
+    this.category = category;
+    this.inputTokens = inputTokens;
+    this.outputTokens = outputTokens;
+    this.model = model;
+    // Same shape as the usage the rescue path already reads off a failed classifier call
+    // (routes/chat.js), so a refused assessment is still charged to the study.
+    this.usage = { inputTokens, outputTokens, provider: 'anthropic' };
+  }
+}
+// Anthropic documents the category set as open. Only a short lowercase word passes, so nothing else the
+// response might carry can ride into a log line or an error body.
+const safeCategory = (c) => (typeof c === 'string' && /^[a-z_]{1,40}$/.test(c) ? c : null);
+
+async function call({ systemPrompt, messages, maxTokens = 1500, temperature, purpose }) {
+  // The model-specific fields (thinking mode and effort for this purpose; sampling only where the model
+  // accepts it) come from lib/anthropic-request.js, the same rule the offline probes use. On
+  // claude-sonnet-5-5 a requested temperature is NOT sent: a non-default value is a 400 there, which on
+  // the scored path would be a 502 on every evaluation. `sent` below records what actually went out, so
+  // provenance says so. Resolved BEFORE the queue: an undeclared purpose is a programming error and
+  // must not take a slot or register as a provider failure.
+  const shape = requestShape(MODEL, { temperature, purpose });
+  if (shape.dropped.length) warnDroppedOnce(shape.dropped);
+  const data = await runner.run(async () => {
     // .withResponse() yields the same Message as `data` PLUS the HTTP response, so we can read
     // the anthropic-ratelimit-* headers to learn the binding dimension.
     // When caching is on, the system prompt is sent as a cacheable text block (array form).
     const system = PROMPT_CACHE
       ? [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }]
       : systemPrompt;
-    // The model-specific fields (thinking mode; sampling only where the model accepts it) come from
-    // lib/anthropic-request.js, the same rule the offline probes use. On claude-sonnet-5-5 a requested
-    // temperature is NOT sent: a non-default value is a 400 there, which on the scored path would be
-    // a 502 on every evaluation. `sent` below records what actually went out, so provenance says so.
-    const shape = requestShape(MODEL, { temperature });
-    if (shape.dropped.length) warnDroppedOnce(shape.dropped);
     const body = { model: MODEL, max_tokens: maxTokens, system, messages, ...shape.fields };
-    const { data, response: httpResp } = await client.messages.create(body).withResponse();
+    const { data: msg, response: httpResp } = await client.messages.create(body, { timeout: timeoutFor(purpose) }).withResponse();
     logRateLimit(httpResp?.headers, 'ok');
-    // Join ALL text blocks, not just content[0]: a reply led by a non-text block (thinking/tool)
-    // would otherwise silently become '' and degrade the chat (blank reply) or the eval (composite 0).
-    // Select by .text presence so thinking/tool_use blocks (no .text) drop out.
-    const text = (data.content || []).filter((b) => typeof b.text === 'string').map((b) => b.text).join('');
-    const inputTokens = data.usage?.input_tokens ?? 0;
-    const outputTokens = data.usage?.output_tokens ?? 0;
-    // tokenCount (summed) is kept for the C3 PLE gate; input/output are split out for cost.
-    // stopReason distinguishes "hit max_tokens" (a real length/truncation problem) from
-    // "end_turn" (the model finished on its own without ever producing the expected JSON) —
-    // callers that fail to parse `text` need this to tell those two very different causes apart.
-    // §10.2 provenance names the model the API SAYS answered, not the one we asked for. Today they are
-    // the same id; if they ever differ, the record must show the real one. MODEL only if none came back.
-    const model = typeof data.model === 'string' && data.model ? data.model : MODEL;
-    // `decoding` is what this call SENT (temperature null when the model refuses sampling; the thinking
-    // mode). routes/evaluate.js records it as §10.2 provenance instead of restating what it asked for.
-    return { text, inputTokens, outputTokens, tokenCount: inputTokens + outputTokens, stopReason: data.stop_reason, model, decoding: shape.sent };
+    return msg;
   });
+  // Outside the runner on purpose: the request was SERVED, so the runner records a success and
+  // /health/deep stays green. A refusal says something about this request, not about the account.
+  if (data.stop_reason === 'refusal') {
+    const category = safeCategory(data.stop_details?.category);
+    const model = typeof data.model === 'string' && data.model ? data.model : MODEL;
+    console.warn(`[claude] refusal (purpose ${purpose ?? '?'}, category ${category ?? 'none'})`); // the category only, never content
+    throw new RefusalError({
+      category, model,
+      inputTokens: data.usage?.input_tokens ?? 0,
+      outputTokens: data.usage?.output_tokens ?? 0,
+    });
+  }
+  // Join ALL text blocks, not just content[0]: a reply led by a non-text block (thinking/tool)
+  // would otherwise silently become '' and degrade the chat (blank reply) or the eval (composite 0).
+  // Select by .text presence so thinking/tool_use blocks (no .text) drop out.
+  const text = (data.content || []).filter((b) => typeof b.text === 'string').map((b) => b.text).join('');
+  const inputTokens = data.usage?.input_tokens ?? 0;
+  const outputTokens = data.usage?.output_tokens ?? 0;
+  // tokenCount (summed) is kept for the C3 PLE gate; input/output are split out for cost.
+  // stopReason distinguishes "hit max_tokens" (a real length/truncation problem) from
+  // "end_turn" (the model finished on its own without ever producing the expected JSON) —
+  // callers that fail to parse `text` need this to tell those two very different causes apart.
+  // §10.2 provenance names the model the API SAYS answered, not the one we asked for. Today they are
+  // the same id; if they ever differ, the record must show the real one. MODEL only if none came back.
+  const model = typeof data.model === 'string' && data.model ? data.model : MODEL;
+  // `decoding` is what this call SENT (temperature null when the model refuses sampling; the thinking
+  // mode; the effort). routes/evaluate.js records it as §10.2 provenance instead of restating what it
+  // asked for.
+  return { text, inputTokens, outputTokens, tokenCount: inputTokens + outputTokens, stopReason: data.stop_reason, model, decoding: shape.sent };
 }
 
 // Once per process per parameter: enough for an operator to see why provenance reads temperature
@@ -199,4 +260,4 @@ function servingCheck() {
   };
 }
 
-module.exports = { name: 'anthropic', call, model: () => MODEL, ready, stats: runner.stats, MODEL };
+module.exports = { name: 'anthropic', call, model: () => MODEL, ready, stats: runner.stats, MODEL, RefusalError };

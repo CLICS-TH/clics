@@ -12,7 +12,13 @@
 //    about-claude/pricing. These were $3 / $15 while rimpl pinned claude-sonnet-4-6. Override with
 //    CLAUDE_INPUT_PER_M / CLAUDE_OUTPUT_PER_M. An override left at 3 / 15 on a deployment now
 //    OVER-bills by 50%. Sonnet 5.5's tokenizer also counts about 30% more tokens than 4-6 for the
-//    same text, so a turn costs roughly 0.87x what it did, not 0.67x.
+//    same text, so the cost of the same text is roughly 1.3 x 2/3 = 0.87x what it was, not 0.67x.
+//    That holds for the purposes that run WITHOUT thinking (chat and criteria: `between_tools`,
+//    rimpl/src/lib/anthropic-request.js). The evaluator and the auditor discussion run ADAPTIVE
+//    thinking, billed as output at $10/MTok though never shown. An evaluation may now bill up to its
+//    16000-token ceiling in output (~$0.16) where 4-6 billed 1-3.2k (~$0.015-0.05). Its real cost per
+//    PLE is unmeasured until the paid repeat-consistency run; re-baseline cost dashboards from that,
+//    not from this arithmetic.
 //  * local     — 0/0 on purpose: the DGX is a sunk capital cost, so the MARGINAL cost of a token is
 //    zero. If a council ever wants hardware amortisation on the meter instead, set
 //    LOCAL_INPUT_PER_M / LOCAL_OUTPUT_PER_M and it flows through every caller with no code change.

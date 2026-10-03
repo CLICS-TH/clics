@@ -3,6 +3,15 @@
 //   503 { code: 'queue_full', retry_after_s }  + Retry-After  — the provider's lane is full
 //   499 (no body)                                             — the client hung up; nobody to answer
 //   413 { code: 'transcript_too_large', est_tokens, limit }   — the prompt cannot fit the model
+//   422 { code: 'refused', category, input_tokens, output_tokens, provider, model }
+//                                                             — the model's safeguards declined the
+//                                                               request (stop_reason "refusal"). 422,
+//                                                               not 5xx: re-sending the same request is
+//                                                               declined again and billed again, so the
+//                                                               backend must treat it as deterministic
+//                                                               (rimpl-client DETERMINISTIC_STATUSES).
+//                                                               The tokens are BILLED, so they travel
+//                                                               back for the backend to meter.
 //   500 { error }                                             — the route's own generic message
 //
 // Bodies are deliberately generic. The transcript, the identifiers it carried, and the provider's
@@ -11,6 +20,10 @@
 const isQueueFull = (err) => !!err && err.code === 'queue_full';
 const isAborted = (err) => !!err && (err.aborted === true || err.code === 'aborted');
 const isTooLarge = (err) => !!err && (err.contextTooSmall === true || err.code === 'transcript_too_large');
+const isRefused = (err) => !!err && err.code === 'refused';
+// A refusal's category is a short lowercase word from Anthropic's (open) set; anything else is dropped.
+const refusalCategory = (err) => (typeof err?.category === 'string' && /^[a-z_]{1,40}$/.test(err.category) ? err.category : null);
+const KNOWN_PROVIDERS = new Set(['anthropic', 'local']);
 
 // Copy ONLY the named keys, and only when they are finite numbers (else null). An error body travels
 // back through the backend; a field that is not a number does not get in, whatever else the provider
@@ -43,6 +56,18 @@ function sendAiError(res, err, fallback = 'AI service temporarily unavailable. P
       ...(err.calibration ? { calibration: numbersOnly(err.calibration, ['ratio', 'n']) } : {}),
     });
   }
+  if (isRefused(err)) {
+    // Generic wording on purpose: the physician-facing notice is the backend's (and is COPY PENDING).
+    return res.status(422).json({
+      error: 'The AI model declined this request.',
+      code: 'refused',
+      category: refusalCategory(err),
+      input_tokens: Number.isFinite(err.inputTokens) ? err.inputTokens : 0,
+      output_tokens: Number.isFinite(err.outputTokens) ? err.outputTokens : 0,
+      provider: KNOWN_PROVIDERS.has(err.usage?.provider) ? err.usage.provider : 'anthropic',
+      model: typeof err.model === 'string' && /^[a-z0-9.-]{1,64}$/.test(err.model) ? err.model : null,
+    });
+  }
   return res.status(500).json({ error: fallback });
 }
 
@@ -51,7 +76,9 @@ function sendAiError(res, err, fallback = 'AI service temporarily unavailable. P
 function logAiError(tag, err) {
   if (isAborted(err)) return console.warn(`${tag} client went away — call aborted (${err?.message || ''})`);
   if (isQueueFull(err) || isTooLarge(err)) return console.warn(`${tag} ${err.code}: ${err.message}`);
+  // `refused:<category>`, a distinct line from invalid_json / out-of-range. The category only, never content.
+  if (isRefused(err)) return console.warn(`${tag} refused:${refusalCategory(err) ?? 'none'}`);
   console.error(`${tag} error:`, err);
 }
 
-module.exports = { sendAiError, logAiError, isQueueFull, isAborted, isTooLarge };
+module.exports = { sendAiError, logAiError, isQueueFull, isAborted, isTooLarge, isRefused };

@@ -464,6 +464,11 @@ describe('adversarial — error bodies through /chat and /evaluate carry no tran
     ['413 transcript_too_large', () => echoing({ status: 413, code: 'transcript_too_large', contextTooSmall: true, est_tokens: 99999, limit: 32000 }), 413],
     ['503 queue_full', () => new QueueFullError({ provider: 'local', lane: 'interactive', maxQueue: 4, retryAfterMs: 30000 }), 503],
     ['500 generic provider failure', () => echoing({ status: 500 }), 500],
+    // A safeguard refusal (providers/anthropic.js RefusalError) whose message quotes the prompt: the
+    // 422 body is a NEW response surface since claude-sonnet-5-5 and carries numbers, a whitelisted
+    // provider/model and a one-word category only.
+    ['422 refused (safeguard)', () => echoing({ code: 'refused', category: 'general_harms', inputTokens: 900, outputTokens: 2,
+      model: 'claude-sonnet-5-5', usage: { inputTokens: 900, outputTokens: 2, provider: 'anthropic' } }), 422],
   ];
 
   let errSpy, warnSpy;
@@ -538,6 +543,19 @@ describe('adversarial — error bodies through /chat and /evaluate carry no tran
     expect(res2.status).toBe(413);
     expect(res2.body.calibration).toEqual({ ratio: null, n: 5 });
     assertNoLeak(res2);
+  });
+
+  test('422 refused body: exactly the whitelisted fields; a category or model carrying text is dropped', async () => {
+    callAI.mockRejectedValueOnce(echoing({ code: 'refused', category: line, inputTokens: 900, outputTokens: 2,
+      model: `claude ${line}`, usage: { inputTokens: 900, outputTokens: 2, provider: line } }));
+    const res = await request(app).post('/evaluate').send({ ple_id: 'x', transcript: history, patient_ref: RAW.name, shadow: false });
+    expect(res.status).toBe(422);
+    expect(res.body).toEqual({ error: expect.any(String), code: 'refused', category: null, input_tokens: 900, output_tokens: 2,
+      provider: 'anthropic', model: null });
+    assertNoLeak(res);
+    // The log line names the category word only. Here there is none, so it says so.
+    expect(warnSpy.mock.calls.flat().join(' ')).toMatch(/\[RIMPL evaluate\] refused:none/);
+    for (const frag of LEAKS) expect(warnSpy.mock.calls.flat().join(' ')).not.toContain(frag);
   });
 
   test('503 body: code + retry_after_s, and the Retry-After header', async () => {
