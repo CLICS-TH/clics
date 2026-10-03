@@ -22,7 +22,7 @@
     "manuals:capture": "node scripts/manuals/capture.mjs",
     "test:nav-width": "node scripts/responsive/nav-width-audit.mjs",
     "test:markdown-vectors": "node scripts/security/markdown-vectors.mjs",
-    "test:calibration": "node --check scripts/calibration/three-way.js && node --check scripts/calibration/anchors/score-local.mjs && node --check scripts/calibration/anchors/revalidate.mjs && node --test scripts/calibration/three-way.test.mjs scripts/calibration/anchors/anchors.test.mjs"
+    "test:calibration": "node --check scripts/calibration/three-way.js && node --check scripts/calibration/anchors/score-local.mjs && node --check scripts/calibration/anchors/revalidate.mjs && node --check scripts/calibration/anchors/import-sandbox.mjs && node --check scripts/calibration/anchors/import-shadow.mjs && node --check scripts/calibration/anchors/sandbox-import-lib.mjs && node --check scripts/calibration/anchors/sandbox-db.mjs && node --test scripts/calibration/three-way.test.mjs scripts/calibration/anchors/anchors.test.mjs scripts/calibration/anchors/sandbox-import.test.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

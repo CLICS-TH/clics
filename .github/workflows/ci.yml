@@ -133,6 +133,8 @@ jobs:
   # The same job runs the anchor-cohort suite (scripts/calibration/anchors/anchors.test.mjs): the design
   # matrix must regenerate byte-for-byte from its seed, every committed synthetic fixture must pass
   # schema / blindness / pii-filter / citation-allowlist checks, and manifest.json must match the files.
+  # And the SANDBOX import planner (anchors/sandbox-import.test.mjs): fixture -> ples/messages/reflection
+  # rows, held-out sha refusal, non-SANDBOX council refusal, median-of-K shadow rows — dry-run only.
   # Package-free like the rest of this job.
   calibration:
     runs-on: ubuntu-latest
