@@ -700,6 +700,81 @@ The rule from now on:
       prompt: a re-calibrated prompt (for example a d4/low-end fix) needs fresh anchors or human
       raters to be judged.
 
+21. **Plan 2.6 pre-registration: local low-end fix, tuning only (written 2026-10-02, before the
+    tuning split was scored by DeepSeek as a whole).** Not fully blind: the 20 pilot anchors were
+    scored with the shipping addendum in `runs/pilot-local-strict-2026-10-02.json`, and several were
+    rewritten since. The rules below were not tuned on that run. Item 20 showed compression, not noise: DeepSeek
+    over-scores low anchors by about +25 and is about right at the top. This loop changes only
+    `PIS7_LOCAL_ADDENDUM` (`rimpl/src/lib/prompts.js`). The cloud prompt and the rubric mirror stay as
+    they are.
+    - **Data.** The 40 tuning anchors only (10 below a target of 40, 15 at 40–69, 15 at 70 and
+      above). K = 3, temperature 0, scored with `score-local.mjs --split tuning`. Held-out is never
+      scored again in this loop.
+    - **Baseline.** The shipping addendum (`+local-c5ffe572aa81`) on tuning, scored first.
+    - **Variants.** At most **3** addendum variants, each scored once on the same 40 anchors. A
+      variant must be justified from the rubric (§5), never by naming an anchor or a score.
+    - **Adoption rule.** A variant may replace the baseline only if **all** of these hold against
+      the baseline run:
+      1. low band (target below 40): |mean bias| falls by **at least 10** points;
+      2. composite ICC(A,1) vs target: the point estimate is higher;
+      3. high band (target 70 and above): |mean bias| is **7 or less**;
+      4. composite Spearman: drops by **no more than 0.05**;
+      5. test–retest (run 1 vs run 2) ICC(A,1) is **0.85 or more**, and no run fails to parse.
+    - If more than one variant passes, the highest ICC(A,1) wins. If none passes, the baseline stays
+      and the result is reported as a null.
+    - **What a pass means.** The variant is selected on the same 40 anchors it is measured on, so its
+      tuning numbers are optimistic. They are screening-synthetic and **are not validation**. A
+      selected prompt is judged only by the SANDBOX human auditors (plan 2.7) or by fresh anchors.
+      Nothing ships to production on this loop alone.
+
+22. **Plan 2.6 result: null; the shipping addendum stays (2026-10-03).** All three arms were scored
+    on the 40 tuning anchors with K = 3. The rule in item 21 was applied by `addendum-compare.mjs`.
+    Reports: `runs/tuning-compare-v{1,2}-2026-10-03.json`. The evidence is screening-synthetic.
+
+    | | baseline `c5ffe572aa81` | v1 `f2883fc1a9f0` | v2 `98bc211098fb` |
+    |---|---|---|---|
+    | ICC(A,1) vs target | 0.82 [0.60, 0.91] | 0.80 [0.57, 0.90] | 0.82 [0.65, 0.91] |
+    | Spearman | 0.83 | 0.81 | 0.87 |
+    | low-band bias (n 10) | +12.0 | +12.9 | +14.2 |
+    | mid-band bias (n 15) | +11.3 | +10.7 | +7.6 |
+    | high-band bias (n 15) | −2.3 | −1.6 | −2.5 |
+    | test–retest | 0.94 | 0.92 | 0.90 |
+    | rule | | fails 1, 2 | fails 1 |
+
+    - **Not adopted.** Neither variant meets condition 1. The tuning baseline's low-band bias was
+      +12.0, not the roughly +25 seen on held-out (item 20). So condition 1 asked for near-elimination,
+      down to +2 or less, and both variants raised the bias instead.
+    - **Low-band bias** (n = 10, mean with t 95% CI, df 9):
+      - baseline +12.0 [7.6, 16.4];
+      - v1 +12.9 [8.0, 17.8];
+      - v2 +14.2 [9.4, 19.0].
+      - Paired change against baseline: v1 +0.9 [−3.3, 5.1], v2 +2.2 [−2.6, 7.0]. Most of v2's +2.2
+        is one anchor, anc-023, which went from +4 to +24.
+      - A fall of 10 lies outside both intervals, so the null stands.
+    - **Reading** (corrected after review). Removing the addendum's "default to 3" rules (v1), or all of
+      its scoring rules (v2), did not reduce the low-band lift. The lift therefore does not come from
+      those rules.
+      - These arms cannot tell apart the local model, the shared base prompt
+        (`PIS7_EVALUATOR_PROMPT`) and the designed targets. The Claude panel also lifted low
+        dissociated domains (item 20, 14 of 14).
+      - No variant that DESCRIBES weak work was tried.
+      - Within the low band the lift is spread across d1–d5 and d7. d4 is largest, at about +1.1. The
+        whole-cohort per-domain bias reported by the tool covers all 40 anchors, not the low band.
+    - **Not counted.** The rule does not count mid-band bias, and Spearman is only a guard against a
+      drop. v2's mid-band (+7.6) and Spearman (0.87) movements are therefore not a reason to switch.
+      They were also measured on the same 40 anchors used to select.
+    - **v3 is not authored.** One more variant was allowed. A low-band rule would have to describe
+      what weak work looks like, which risks fitting the anchors. The next evidence should be the
+      SANDBOX human auditors (plan 2.7).
+    - **Provenance.**
+      - v2 half 2 ran in four invocations: the 2-hour tool limit cut the first, and the network to
+        the box dropped during the others.
+      - 4 rows that failed in transport (`ENETUNREACH`, so no model reply exists) were dropped and
+        re-scored.
+      - No model-produced failure was dropped. All 360 evaluations scored.
+      - Configuration was checked identical before merging (`runs/*-h2-merged.json` `merge_note`).
+      - The box address is redacted.
+
 ## 8. Pipeline and commands
 
 | step | command | network |
