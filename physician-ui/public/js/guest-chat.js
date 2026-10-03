@@ -71,6 +71,7 @@ function renderMessage(role, content, refs, socratic, opts) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
   // Every assistant bubble here is new (the guest chat has no stored history): announce speaker + text only.
   if (role !== 'physician') announceChat(opts.system ? SYSTEM_SPEAKER : aiSpeakerLabel(), spoken);
+  return div;
 }
 
 function setRemaining(n) {
@@ -125,7 +126,7 @@ async function send() {
   const message = inputEl.value.trim();
   if (!message || !guestToken) return;
   sendBtn.disabled = true; inputEl.value = '';
-  renderMessage('physician', message);
+  const bubble = renderMessage('physician', message);
   history.push({ role: 'physician', content: message });
 
   // Lock the box for the length of the turn (readOnly keeps focus): the failed text goes back on error and
@@ -163,6 +164,7 @@ async function send() {
       renderMessage('assistant', (res.body?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong.'), null, null, { system: true });
       setRemaining(promptsRemaining); // unchanged display
       history.pop();                  // the turn failed — drop it so a retry doesn't duplicate the turn
+      bubble.remove();                // ...and its bubble, so the re-send shows the question once (nothing is stored here)
       inputEl.value = message;        // restore the typed text so the guest can retry
       sendBtn.disabled = false;
     }

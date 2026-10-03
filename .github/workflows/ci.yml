@@ -268,6 +268,13 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Responsive smoke (320/375/768/1280)
         run: npm run test:responsive
+      # /ple-chat with 30 messages at 320/375/390: the page never scrolls past the composer, and with a
+      # keyboard up the composer and the one-line AI notice stay on screen. Hermetic, ~10 s.
+      - name: Chat page-scroll guard (320x568 / 375x667 / 390x844)
+        run: npm run test:chat-scroll
+      # /ple-chat lost-connection settle (#141 client_turn_id + the one-bubble rules). Hermetic, fake clock.
+      - name: Chat turn-settle smoke
+        run: npm run test:chat-settle
       # Mobile audit: physician-ui hermetic (always) + dashboard auditor live-smoke only on master
       # pushes. Same-repository PRs otherwise inherit the production secrets too. The harness
       # exits non-zero on any finding. SUPER_* deliberately unset → no real admin creds in CI.
