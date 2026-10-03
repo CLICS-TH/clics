@@ -240,6 +240,9 @@ const PUI_DA_BOTH: PuiMinPair[] = [
     `.error-msg text on ${s}`]),
   // The AI chip: its label on its own fill (text, 4.5), and its border against the bubble it sits on
   // (surface-card, soft and canvas for the guest/other surfaces) and against its own fill (UI, 3).
+  // Disabled Send (the composer while a turn runs): glyph on its fill, and the inset ring against that fill.
+  ['muted', 'coral-disabled', PUI_UI_MIN, 'disabled Send glyph on its fill (UI component)'],
+  ['field-border', 'coral-disabled', PUI_UI_MIN, 'disabled Send ring on its fill'],
   ['ai-text', 'ai-bg', AA, '.ai-chip label on the chip fill'],
   ['ai-border', 'ai-bg', PUI_UI_MIN, '.ai-chip border against its own fill'],
   ...PUI_DA_SURFACES.map((s): PuiMinPair => ['ai-border', s, PUI_UI_MIN,
@@ -322,6 +325,10 @@ describe('physician-ui design-a11y: field border, focus ring, placeholder, error
     const body = ruleBodyPui(portal, '.ai-chip');
     for (const t of ['var(--ai-bg)', 'var(--ai-border)', 'var(--ai-text)']) expect(body).toContain(t);
     expect(body).not.toMatch(/coral/);
+  });
+
+  it('disabled Send keeps a visible ring drawn from --field-border', () => {
+    expect(ruleBodyPui(portal, '.composer-send:disabled')).toContain('var(--field-border)');
   });
 
   it('a client-generated notice is neutral: no AI slate-blue, no human coral', () => {

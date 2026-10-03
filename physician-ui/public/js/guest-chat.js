@@ -23,13 +23,10 @@ function renderMessage(role, content, refs, socratic, opts) {
     div.textContent = content;
   } else {
     const main = (content || '').replace(/\n❓[^\n]*$/, '').trim();
-    // AI output is untrusted HTML once marked.parse runs it — sanitize before injecting, and
-    // fail SAFE to plain text if either lib is unavailable (never inject unsanitized markup).
-    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-      div.innerHTML = DOMPurify.sanitize(marked.parse(main));
-    } else {
-      div.textContent = main;
-    }
+    // AI output is untrusted HTML once marked.parse runs it. markdownFragment (js/ui.js) sanitises and hardens
+    // it; null means the libs did not load, and then we fail SAFE to plain text.
+    const mdFrag = markdownFragment(main);
+    if (mdFrag) div.appendChild(mdFrag); else div.textContent = main;
     if (refs?.length) {
       const r = document.createElement('div');
       r.className = 'msg-refs';
@@ -127,44 +124,52 @@ async function send() {
   renderMessage('physician', message);
   history.push({ role: 'physician', content: message });
 
-  const language = /[฀-๿]/.test(message) ? 'th' : 'en';
-  const loading = document.createElement('div');
-  loading.className = 'msg-assistant'; loading.style.color = 'var(--muted-soft)';
-  // Announced by the log's live region, after the AI chip that labels the speaker.
-  loading.appendChild(aiChip());
-  loading.append('กำลังคิด... / Thinking...');
-  messagesEl.appendChild(loading);
+  // Lock the box for the length of the turn (readOnly keeps focus): the failed text goes back on error and
+  // nothing the guest types meanwhile can be overwritten. Always released, even if drawing the reply throws.
+  inputEl.readOnly = true; inputEl.setAttribute('aria-busy', 'true');
+  try {
+    const language = /[฀-๿]/.test(message) ? 'th' : 'en';
+    const loading = document.createElement('div');
+    loading.className = 'msg-assistant'; loading.style.color = 'var(--muted-soft)';
+    // Announced by the log's live region, after the AI chip that labels the speaker.
+    loading.appendChild(aiChip());
+    loading.append('กำลังคิด... / Thinking...');
+    messagesEl.appendChild(loading);
+    const disarmSlow = armSlowNote(loading, () => { messagesEl.scrollTop = messagesEl.scrollHeight; });
 
-  // Send all but the just-pushed message as history; the message goes in `message`.
-  const priorHistory = history.slice(0, -1);
-  const res = await api.guestMessage(guestToken, { message, language, history: priorHistory });
-  loading.remove();
+    // Send all but the just-pushed message as history; the message goes in `message`.
+    const priorHistory = history.slice(0, -1);
+    const res = await api.guestMessage(guestToken, { message, language, history: priorHistory });
+    disarmSlow();
+    loading.remove();
 
-  if (res.ok && res.body?.content) {
-    renderMessage('assistant', res.body.content, res.body.refs, res.body.socratic_question);
-    history.push({ role: 'assistant', content: res.body.content });
-    setRemaining(res.body.prompts_remaining ?? 0);
-    if (res.body.session_ended) {
-      endSession('ครบ 2 คำถามแล้ว / You\'ve used both guest prompts.');
+    if (res.ok && res.body?.content) {
+      renderMessage('assistant', res.body.content, res.body.refs, res.body.socratic_question);
+      history.push({ role: 'assistant', content: res.body.content });
+      setRemaining(res.body.prompts_remaining ?? 0);
+      if (res.body.session_ended) {
+        endSession('ครบ 2 คำถามแล้ว / You\'ve used both guest prompts.');
+      } else {
+        sendBtn.disabled = false; inputEl.focus();
+      }
+    } else if (res.status === 403) {
+      endSession(res.body?.error);
     } else {
-      sendBtn.disabled = false; inputEl.focus();
+      renderMessage('assistant', (res.body?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong.'), null, null, { system: true });
+      setRemaining(promptsRemaining); // unchanged display
+      history.pop();                  // the turn failed — drop it so a retry doesn't duplicate the turn
+      inputEl.value = message;        // restore the typed text so the guest can retry
+      sendBtn.disabled = false;
     }
-  } else if (res.status === 403) {
-    endSession(res.body?.error);
-  } else {
-    renderMessage('assistant', (res.body?.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong.'), null, null, { system: true });
-    setRemaining(promptsRemaining); // unchanged display
-    history.pop();                  // the turn failed — drop it so a retry doesn't duplicate the turn
-    inputEl.value = message;        // restore the typed text so the guest can retry
-    sendBtn.disabled = false;
+  } finally {
+    inputEl.readOnly = false; inputEl.removeAttribute('aria-busy');
   }
 }
 
 sendBtn.addEventListener('click', send);
 inputEl.addEventListener('keydown', e => {
-  // Enter that confirms an IME candidate must not send the half-typed message (Safari reports keyCode 229;
-  // the 229 half is unverified on Android Gboard)
-  // on the keydown that ends composition).
+  // Enter that confirms an IME candidate must not send the half-typed message (Safari reports keyCode 229
+  // on the keydown that ends composition; the 229 half is unverified on Android Gboard).
   if (e.isComposing || e.keyCode === 229) return;
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
 });

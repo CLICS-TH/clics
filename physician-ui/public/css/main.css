@@ -331,6 +331,19 @@ body:has(.chat-page) nav { flex:none; }
 .msg-physician { align-self:flex-end; background:var(--coral-active); color:var(--on-primary); padding:13px 17px; border-radius:18px 18px 5px 18px; max-width:78%; min-width:0; overflow-wrap:anywhere; line-height:1.6; box-shadow:0 1px 2px rgba(20,20,19,0.08); }
 .msg-assistant { align-self:flex-start; background:var(--surface-card); border:1px solid var(--hairline); padding:18px 20px; border-radius:18px 18px 18px 5px; max-width:90%; min-width:0; color:var(--body-color); overflow-wrap:anywhere; line-height:1.72; box-shadow:0 1px 3px rgba(20,20,19,0.05); }
 
+/* Line shown in the typing bubble once a turn has run long (js/ui.js armSlowNote). */
+.typing-note { margin-top:6px; font-size:var(--fs-body-th); color:var(--muted); line-height:1.5; }
+.typing-note .bi-en { font-size:.84em; }
+
+/* Tables and code blocks scroll inside a focusable, labelled group (js/ui.js markdownFragment), so a keyboard
+   user can reach the overflow. The wrapper scrolls; the table / pre inside it does not. */
+.md-scroll { overflow-x:auto; max-width:100%; margin:12px 0; -webkit-overflow-scrolling:touch; }
+.msg-assistant .md-scroll > table, .artifact-body .md-scroll > table { display:table; margin:0; max-width:none; }
+.msg-assistant .md-scroll > pre, .artifact-body .md-scroll > pre { margin:0; overflow:visible; }
+/* Break only at word boundaries inside a scrolling table: with the bubble's overflow-wrap:anywhere every column could
+   shrink to one letter and the group would never need to scroll. A long table now scrolls instead of crushing. */
+.md-scroll th, .md-scroll td { overflow-wrap:break-word; min-width:6ch; }
+
 /* The log is a scrollable, focusable region: draw its ring INSIDE the box so the chat page's overflow:hidden never clips it. */
 .chat-messages:focus-visible { outline-offset:-2px; }
 
@@ -385,7 +398,8 @@ body:has(.chat-page) nav { flex:none; }
 
 /* Per-message actions (Copy / Retry) — quiet until hover/focus on pointer devices, always shown on touch */
 .msg-actions { display:flex; flex-wrap:wrap; gap:4px; margin-top:10px; opacity:0; transition:opacity .15s; }
-.msg-assistant:hover .msg-actions, .msg-assistant:focus-within .msg-actions { opacity:1; }
+.msg-assistant:hover .msg-actions, .msg-assistant:focus-within .msg-actions,
+.msg-assistant.is-latest .msg-actions { opacity:1; }   /* the newest reply always shows Copy / Report (js marks it .is-latest) */
 @media (hover:none) { .msg-actions { opacity:1; } }
 .msg-act-btn { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; background:none; border:1px solid transparent; border-radius:var(--r-sm); padding:4px 8px; font-family:var(--font-body); font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; transition:background .15s, color .15s, border-color .15s; }
 .msg-act-btn:hover { background:var(--canvas); color:var(--ink); border-color:var(--hairline); }
@@ -454,7 +468,11 @@ body:has(.chat-page) nav { flex:none; }
 .composer-send { flex:none; width:38px; height:38px; border-radius:50%; border:none; background:var(--coral-active); color:var(--on-primary); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:opacity .15s; }
 .composer-send:hover { background:var(--coral-hover); }
 .composer-send:active { background:var(--coral-press); }
-.composer-send:disabled { background:var(--coral-disabled); color:var(--muted); cursor:not-allowed; }
+/* Disabled Send is still a control the reader has to find while a turn runs: its glyph is --muted on --coral-disabled
+   (>=3:1 in both themes) and an inset --field-border ring (3:1 on the composer) keeps the circle visible. */
+.composer-send:disabled { background:var(--coral-disabled); color:var(--muted); cursor:not-allowed; box-shadow:inset 0 0 0 1px var(--field-border); }
+/* While a turn runs the box is read-only (focus and screen-reader position kept); show it is not taking input. */
+.composer textarea[readonly] { color:var(--muted); }
 .composer-send svg { width:20px; height:20px; }
 .composer-hint { font-size:12px; color:var(--muted-soft); line-height:1.5; margin:8px 2px 0; }
 /* Shift+Enter does not exist on a touch keyboard, so touch shows only the half of the hint that is true there. */

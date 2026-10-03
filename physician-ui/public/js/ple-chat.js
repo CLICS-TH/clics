@@ -265,13 +265,11 @@ function renderMessage(role, content, refs, socratic, opts) {
       work = ex.cleanContent; artifacts = ex.artifacts;
     }
     const mainContent = work.replace(/\n❓[^\n]*$/, '').trim();
-    // AI output is untrusted HTML once marked.parse runs it — sanitize before injecting, and
-    // fail SAFE to plain text if either lib is unavailable (never inject unsanitized markup).
-    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-      div.innerHTML = DOMPurify.sanitize(marked.parse(mainContent));
-    } else {
-      div.textContent = mainContent;
-    }
+    // AI output is untrusted HTML once marked.parse runs it. markdownFragment (js/ui.js) sanitises it and
+    // hardens it (no remote media, level-3+ headings, focusable table/code scrollers); it returns null when
+    // the libs did not load, and then we fail SAFE to plain text, never to unsanitised markup.
+    const mdFrag = markdownFragment(mainContent);
+    if (mdFrag) div.appendChild(mdFrag); else div.textContent = mainContent;
     artifacts.forEach(a => { CLICSArtifacts.register(a); div.appendChild(CLICSArtifacts.chip(a)); });
     // Auto-open the panel for a freshly-generated artifact (live turn), like Claude does; never on reload.
     if (opts.live && artifacts.length) CLICSArtifacts.open(artifacts[artifacts.length - 1].id);
@@ -339,9 +337,19 @@ function renderMessage(role, content, refs, socratic, opts) {
   // Timestamp
   const t = document.createElement('div');
   t.className = 'msg-time';
+  // Decorative for the live log: an AX-tree dump showed the clock being read inside every announced addition.
+  // Still visible; the time is not part of what the reply says. (The Copy / Report buttons are focusable and
+  // so cannot be hidden this way — see the report notes.)
+  t.setAttribute('aria-hidden', 'true');
   t.textContent = fmtClock(opts.at ? new Date(opts.at) : new Date());
   div.appendChild(t);
 
+  // The newest assistant bubble keeps its action row (Copy / Report / Retry) visible; older ones show it on
+  // hover or focus. A system notice only takes the mark when it carries an action (the Retry on an error).
+  if (role !== 'physician' && (!opts.system || opts.error)) {
+    msgEl.querySelectorAll('.msg-assistant.is-latest').forEach(b => b.classList.remove('is-latest'));
+    div.classList.add('is-latest');
+  }
   msgEl.appendChild(div);
   if (stick) scrollToBottom(); else scrollBtn.classList.add('show');
   return div;
@@ -369,7 +377,13 @@ function addActions(div, rawText, isError, messageId) {
     retry.type = 'button';
     retry.insertAdjacentHTML('beforeend', icon('refresh', 14));
     retry.insertAdjacentHTML('beforeend', '<span>ลองใหม่ / Retry</span>');
-    retry.addEventListener('click', () => { div.remove(); deliver(lastUserMessage); });
+    retry.addEventListener('click', () => {
+      div.remove();                       // removes the focused button: put focus somewhere real first
+      // The failed text was put back in the box; sending it again must not leave a stale copy behind.
+      if (inputEl.value.trim() === lastUserMessage) { inputEl.value = ''; autoGrow(); }
+      inputEl.focus();
+      deliver(lastUserMessage);
+    });
     bar.appendChild(retry);
   }
   div.appendChild(bar);
@@ -423,9 +437,30 @@ function retractPhysicianBubble() {
 }
 
 // Core turn delivery — shared by Send and Retry so neither re-draws the physician bubble.
+// The failed turn's text goes back in the box without clobbering anything the physician has typed since:
+// empty box -> the message; same text -> leave it; a different draft -> message first, draft kept below it.
+function restoreDraft(message) {
+  const cur = inputEl.value.trim();
+  if (!cur) inputEl.value = message;
+  else if (cur !== message) inputEl.value = message + '\n\n' + inputEl.value;
+  autoGrow();
+}
+
+// Whatever happens inside a turn (including a throw while drawing the reply), the box and Send come back.
 async function deliver(message) {
+  try { await deliverTurn(message); }
+  finally {
+    inputEl.readOnly = false; inputEl.removeAttribute('aria-busy');
+    if (!composerLocked) document.getElementById('sendBtn').disabled = false;
+  }
+}
+
+async function deliverTurn(message) {
   const sendBtn = document.getElementById('sendBtn');
   sendBtn.disabled = true;
+  // Lock the box for the length of the turn. readOnly (not disabled) so it keeps focus and a screen reader
+  // keeps its place; Send is disabled and aria-busy says why. Nothing can be typed over the failed text.
+  inputEl.readOnly = true; inputEl.setAttribute('aria-busy', 'true');
   const loading = document.createElement('div');
   loading.className = 'msg-assistant';
   // The dots alone are silent (and, under reduced motion, indistinguishable from an empty bubble):
@@ -434,9 +469,12 @@ async function deliver(message) {
   loading.insertAdjacentHTML('beforeend', '<span class="sr-only">กำลังคิด… / is thinking…</span><div class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></div>');
   msgEl.appendChild(loading);
   if (nearBottom()) scrollToBottom();
+  // After a while the dots alone read as a hang: add one visible line (copy + delay in js/ui.js).
+  const disarmSlow = armSlowNote(loading, () => { if (nearBottom()) scrollToBottom(); });
   markActivity(); aiInFlight = true;          // keep the timer running while the AI answers
   const language = /[฀-๿]/.test(message) ? 'th' : 'en';
   const res = await api.sendMessage(pleId, { message, language });
+  disarmSlow();
   aiInFlight = false; markActivity();
   loading.remove();
   if (res?.content) {
@@ -452,7 +490,7 @@ async function deliver(message) {
     const unit = res.reason === 'tokens' ? ' (โทเค็น / tokens)' : '';
     retractPhysicianBubble(); // refused before it was saved — a bubble would claim it was said
     renderMessage('assistant', 'ถึงขีดจำกัดการใช้งาน AI แล้ว — ติดต่อผู้ดูแลระบบ คุณยังสามารถจบเซสชันนี้ได้ / AI usage limit reached — contact an administrator. You can still end this session.' + unit, [], null, { system: true });
-    document.getElementById('input').value = message; // restore the typed question
+    restoreDraft(message); // restore the typed question
     refreshUsage();
   } else if (res?.code === 'transcript_limit_reached') {
     // The transcript cap: nothing more can be sent to this session. End is the only move left.
@@ -465,15 +503,16 @@ async function deliver(message) {
     const wait = Number(res.retry_after_s) > 0 ? Math.ceil(Number(res.retry_after_s)) : 30;
     retractPhysicianBubble();
     renderMessage('assistant', `ระบบ AI กำลังทำงานหนัก — ลองอีกครั้งใน ${wait} วินาที / AI is busy — try again in ${wait} s`, [], null, { system: true });
-    document.getElementById('input').value = message; // restore the typed question
+    restoreDraft(message); // restore the typed question
   } else {
     // The turn failed — restore the text and offer a Retry on the error bubble.
     renderMessage('assistant', 'เกิดข้อผิดพลาด กรุณาลองใหม่ / Something went wrong — please try again.', [], null, { error: true, system: true });
-    document.getElementById('input').value = message;
+    restoreDraft(message);
   }
+  inputEl.readOnly = false; inputEl.removeAttribute('aria-busy');
   if (composerLocked) return; // stays locked — never re-enable Send past the cap
   sendBtn.disabled = false;
-  document.getElementById('input').focus();
+  inputEl.focus();
 }
 
 async function sendMessage() {

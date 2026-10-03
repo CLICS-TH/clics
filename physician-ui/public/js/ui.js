@@ -96,6 +96,60 @@
     return c;
   };
 
+  // ---- Safe markdown, ONE helper for every place AI text becomes DOM (/ple-chat, /guest-chat, the artifact panel).
+  //
+  // markdownFragment(md) -> DocumentFragment, or null when marked / DOMPurify did not load (the caller then
+  // falls back to textContent, never to unsanitised HTML). DOMPurify stays the sanitiser; on top of it:
+  //   - no remote media: `img` alone is NOT enough — DOMPurify's defaults also let through <picture><source>,
+  //     <video>/<audio src> and <svg><image href>, each of which fetches a remote URL when rendered;
+  //   - headings are announced as level 3+ (role=heading aria-level = n+2, capped at 6) so a reply never
+  //     outranks the page's own headings, while the element and its CSS stay as they are;
+  //   - tables and code blocks scroll inside a focusable, labelled group so a keyboard user can reach them.
+  // Links are left exactly as DOMPurify delivers them today (clickable <a href>, no target/rel added).
+  var MD_FORBID = ['img', 'picture', 'source', 'video', 'audio', 'track', 'image', 'svg', 'math'];
+  function mdWrap(el, label) {
+    var w = document.createElement('div');
+    w.className = 'md-scroll';
+    w.setAttribute('role', 'group');
+    w.setAttribute('aria-label', label);
+    w.tabIndex = 0;
+    el.parentNode.replaceChild(w, el);
+    w.appendChild(el);
+  }
+  window.markdownFragment = function (md) {
+    if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') return null;
+    var frag = DOMPurify.sanitize(marked.parse(md), { FORBID_TAGS: MD_FORBID, RETURN_DOM_FRAGMENT: true });
+    Array.prototype.forEach.call(frag.querySelectorAll('h1,h2,h3,h4,h5,h6'), function (h) {
+      h.setAttribute('role', 'heading');
+      h.setAttribute('aria-level', String(Math.min(6, Number(h.tagName.charAt(1)) + 2)));
+    });
+    Array.prototype.forEach.call(frag.querySelectorAll('table'), function (t) { mdWrap(t, 'ตาราง / Table'); });
+    Array.prototype.forEach.call(frag.querySelectorAll('pre'), function (p) { mdWrap(p, 'โค้ด / Code'); });
+    return frag;
+  };
+
+  // A visible line in the typing bubble once a turn has run long. CLICS answers in one piece (no streaming),
+  // so there are no stages to report and this says nothing about any: it only tells the reader the wait is
+  // expected. COPY PENDING owner/ethics sign-off — placeholder wording; one fixed pair, never varying by
+  // session, arm or provider. The delay is a plain number so it can be tuned in one place.
+  window.AI_SLOW = { afterMs: 8000, th: 'ยังทำงานอยู่', en: 'Still working…' };
+  // armSlowNote(bubble, onShow) -> disarm(). Call disarm() when the reply (or an error) arrives.
+  window.armSlowNote = function (bubble, onShow) {
+    var t = setTimeout(function () {
+      if (!bubble.isConnected) return;
+      var n = document.createElement('div');
+      n.className = 'typing-note';
+      n.textContent = window.AI_SLOW.th;
+      var en = document.createElement('span');
+      en.className = 'bi-en';
+      en.textContent = window.AI_SLOW.en;
+      n.appendChild(en);
+      bubble.appendChild(n);
+      if (onShow) onShow();
+    }, window.AI_SLOW.afterMs);
+    return function () { clearTimeout(t); };
+  };
+
   // toast(message, type) — type: '' | 'success' | 'error'. Auto-dismisses.
   window.toast = function (msg, type) {
     var wrap = document.querySelector('.toast-wrap');
