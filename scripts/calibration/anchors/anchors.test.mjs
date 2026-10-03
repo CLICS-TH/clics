@@ -20,6 +20,7 @@ import {
   checkBudget, LENGTH_CHARS_TOL, LENGTH_TARGET_EXEMPT_BATCHES, batchCueContribution, updateHeldOutLock, recordIntake, intakeAccepted, loadIntakeLog, appendOnlyViolation,
 } from './validate.mjs';
 import { checkCitation } from './citations.mjs';
+import { promptVersionFor } from '../../../rimpl/src/lib/versions.js';
 import { planBatches, planMarkdown, serialisePlan, simulateCueGate, BATCHES_PATH, PLAN_MD_PATH, BUDGET_LEVELS, BUDGET_RANGES, needsExtraReview } from './batch-plan.mjs';
 import { buildBrief, BRIEF_PATH, PIN_PATH } from './author-brief.mjs';
 import { cueFeatures, cueCheck, cueFails, applyPilotFreeze, freezeApplies, PILOT_FREEZE, CUE_RELEVANT } from './cues.mjs';
@@ -1143,5 +1144,81 @@ describe('length targets and batches accepted before them', () => {
       const out = execFileSync(process.execPath, [script, '--batch', String(b)], { encoding: 'utf8' });
       assert.doesNotMatch(out, /RETURN/, `batch ${b}`);
     }
+  });
+});
+
+// Plan 2.6 (AUTHORING.md §7 item 21): a candidate addendum is scored through the same prompt and
+// version functions as production, so its rows can never carry the shipping prompt's label.
+describe('score-local --addendum-file', () => {
+  const dry = (...extra) => execFileSync(process.execPath,
+    [path.join(HERE, 'score-local.mjs'), '--split', 'tuning', '--only', 'anc-001', '--repeats', '1', '--dry-run', ...extra],
+    { encoding: 'utf8', stdio: 'pipe', env: { PATH: process.env.PATH } });
+  const versionOf = (out) => out.match(/pis7-prompt-[0-9a-f]{8}(\+local-[0-9a-f]{12})?/)[0];
+
+  test('without the flag the shipping addendum is used, unchanged', () => {
+    const out = dry();
+    assert.match(out, /addendum\s+shipping PIS7_LOCAL_ADDENDUM/);
+    assert.equal(versionOf(out), promptVersionFor('local'));
+  });
+
+  test('a candidate gets its own +local suffix, and a trailing newline does not change it', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'addendum-'));
+    try {
+      await writeFile(path.join(dir, 'a.txt'), 'CANDIDATE RULE.');
+      await writeFile(path.join(dir, 'b.txt'), 'CANDIDATE RULE.\n\n');
+      const a = versionOf(dry('--addendum-file', path.join(dir, 'a.txt')));
+      assert.equal(a, promptVersionFor('local', 'CANDIDATE RULE.'));
+      assert.notEqual(a, promptVersionFor('local'));
+      assert.equal(versionOf(dry('--addendum-file', path.join(dir, 'b.txt'))), a);
+    } finally { await rm(dir, { recursive: true, force: true }); }
+  });
+
+  test('an empty candidate is refused rather than silently scoring the bare base prompt', async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), 'addendum-'));
+    try {
+      await writeFile(path.join(dir, 'empty.txt'), '\n  \n');
+      assert.throws(() => dry('--addendum-file', path.join(dir, 'empty.txt')), /is empty/);
+    } finally { await rm(dir, { recursive: true, force: true }); }
+  });
+});
+
+describe('addendum-compare (plan 2.6 adoption rule)', async () => {
+  const { adoption, mergeArm, RULE } = await import('./addendum-compare.mjs');
+  const arm = (o) => ({ low: { bias: 25 }, high: { bias: -2 }, icc: { icc: 0.6 }, spearman: { rho: 0.8 }, retest: { icc: 0.9 }, unscored_rows: 0, ...o });
+
+  test('the thresholds are the ones written in AUTHORING.md item 21', async () => {
+    const md = await readFile(path.join(HERE, 'AUTHORING.md'), 'utf8');
+    const item = md.slice(md.indexOf('21. **Plan 2.6'), md.indexOf('## 8. Pipeline'));
+    assert.match(item, new RegExp(`falls by \\*\\*at least ${RULE.lowBiasDropMin}\\*\\*`));
+    assert.match(item, new RegExp(`\\*\\*${RULE.highBiasMax} or less\\*\\*`));
+    assert.match(item, new RegExp(`no more than ${RULE.spearmanDropMax}`));
+    assert.match(item, new RegExp(`\\*\\*${RULE.retestMin} or more\\*\\*`));
+    assert.match(item, new RegExp(`At most \\*\\*${RULE.maxVariants}\\*\\*`));
+    assert.match(item, new RegExp(`below a target of ${RULE.lowBand}`));
+    assert.match(item, new RegExp(`target below ${RULE.lowBand}\\)`));
+    assert.match(item, new RegExp(`target ${RULE.highBand} and above\\)`));
+  });
+
+  test('adopts only when all five conditions hold', () => {
+    assert.equal(adoption(arm(), arm({ low: { bias: 10 }, icc: { icc: 0.7 } })).adopt, true);
+    assert.equal(adoption(arm(), arm({ low: { bias: 16 }, icc: { icc: 0.7 } })).adopt, false);     // drop 9 < 10
+    assert.equal(adoption(arm(), arm({ low: { bias: -12 }, icc: { icc: 0.7 } })).adopt, true);     // |bias| counts
+    assert.equal(adoption(arm(), arm({ low: { bias: 10 }, icc: { icc: 0.6 } })).adopt, false);     // ICC not higher
+    assert.equal(adoption(arm(), arm({ low: { bias: 10 }, icc: { icc: 0.7 }, high: { bias: -8 } })).adopt, false);
+    assert.equal(adoption(arm(), arm({ low: { bias: 10 }, icc: { icc: 0.7 }, spearman: { rho: 0.74 } })).adopt, false);
+    assert.equal(adoption(arm(), arm({ low: { bias: 10 }, icc: { icc: 0.7 }, retest: { icc: 0.84 } })).adopt, false);
+    assert.equal(adoption(arm(), arm({ low: { bias: 10 }, icc: { icc: 0.7 }, unscored_rows: 1 })).adopt, false);
+  });
+
+  test('refuses to merge report files that disagree on prompt, or score one run twice', () => {
+    const doc = (o) => ({ model: 'm', prompt_version_used: 'p', rubric_version: 'r', fixtures: { 'anc-001': 'a' }, rows: [{ id: 'anc-001', run: 1 }], ...o });
+    assert.throws(() => mergeArm([doc(), doc({ prompt_version_used: 'q', rows: [] })], 'x'), /prompt_version_used/);
+    assert.throws(() => mergeArm([doc(), doc()], 'x'), /appears twice/);
+    assert.throws(() => mergeArm([doc(), doc({ fixtures: { 'anc-001': 'b' }, rows: [] })], 'x'), /two different texts/);
+    assert.equal(mergeArm([doc(), doc({ fixtures: {}, rows: [{ id: 'anc-001', run: 2 }] })], 'x').rows.length, 2);
+    for (const [k, v] of [['decoding', { temperature: 1 }], ['consistency', 'adaptive'], ['json_retries', 2], ['contract', 'other']]) {
+      assert.throws(() => mergeArm([doc({ [k]: 'base' }), doc({ [k]: v, rows: [] })], 'x'), new RegExp(k));
+    }
+    assert.throws(() => mergeArm([doc({ rows: [{ id: 'anc-001', run: 1, scores: {}, model: 'other' }] })], 'x'), /served by other/);
   });
 });

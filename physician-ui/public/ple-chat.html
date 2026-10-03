@@ -64,7 +64,8 @@
           <button class="composer-send" id="sendBtn" data-icon="arrowUp" data-icon-size="20" aria-label="ส่ง / Send"></button>
         </div>
         <!-- CREC082 AI Governance &amp; Safety Plan §7 — standing "AI may be wrong" notice. Static on purpose: it must show before the first message and survive any JS failure. -->
-        <p class="ai-disclaimer" role="note"><span lang="th">AI อาจให้ข้อมูลผิดพลาดหรือล้าสมัย — โปรดตรวจสอบกับแนวทางเวชปฏิบัติปัจจุบันก่อนนำไปใช้กับผู้ป่วย</span><span class="ai-disclaimer-en" lang="en">AI can be wrong or out of date. Verify against current guidelines before applying to a patient.</span></p>
+        <!-- The one-line form shows only while typing on a short viewport (soft keyboard up, js/ple-chat.js fitKeyboard); the notice is never hidden. -->
+        <p class="ai-disclaimer" role="note"><span lang="th">AI อาจให้ข้อมูลผิดพลาดหรือล้าสมัย — โปรดตรวจสอบกับแนวทางเวชปฏิบัติปัจจุบันก่อนนำไปใช้กับผู้ป่วย</span><span class="ai-disclaimer-en" lang="en">AI can be wrong or out of date. Verify against current guidelines before applying to a patient.</span><span class="ai-disclaimer-short" lang="th">AI อาจผิดพลาด<span class="bi-en" lang="en">AI can make mistakes</span></span></p>
         <!-- Two hints, one shown per pointer type by the same (pointer: coarse) query that decides what Enter does (js/ui.js enterSends). -->
         <p class="composer-hint" id="composerHint"><span class="hint-fine">Enter ส่ง · Shift+Enter ขึ้นบรรทัด<span class="bi-en">Enter to send · Shift+Enter for new line</span></span><span class="hint-touch"><span class="nowrap">แตะปุ่มส่งเพื่อส่ง</span> · <span class="nowrap">Enter ขึ้นบรรทัด</span><span class="bi-en">Tap Send to send · Enter for a new line</span></span></p>
       </div>

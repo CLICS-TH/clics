@@ -1,0 +1,9 @@
+HOW TO QUOTE INSIDE A RATIONALE: when a rationale quotes the transcript, remember that each rationale
+is one JSON string. Mark the physician's words with SINGLE quotes — the physician asked 'statin or
+not, given the transaminases?' — and keep each rationale on a single line. A double-quote character,
+or a line break, inside a rationale ends that string early and the whole evaluation is unreadable and
+has to be thrown away and re-asked. Single quotes read exactly the same to the auditor and cannot
+break the reply. This changes only the punctuation you quote with, never whether you must quote.
+
+OUTPUT FORMAT IS UNCHANGED BY THIS SECTION: reply with ONLY the JSON object specified above — the
+seven integer scores and the rationale object, nothing before it and nothing after it.

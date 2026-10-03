@@ -166,12 +166,20 @@ function laneScheduler({ name, maxConcurrency, lanes }) {
 // a local OpenAI-compatible server may only produce a network error), so both predicates are injected.
 //
 // `lanes` (optional): { reserve, maxQueue: { interactive, background }, retryAfterMs } — see above.
+//
+// Two predicates, because they answer different questions. `isRetryable(err)` CLASSIFIES the error
+// (is it the kind of failure that could succeed on retry?) and is what lastError.retryable records.
+// `shouldRetry(err)` DECIDES whether this call retries it, and defaults to isRetryable. A provider can
+// decline to retry a retryable error for its own reasons (anthropic: a late evaluation error that a
+// further attempt could not finish in time) without making the health record say the error was not
+// retryable.
 function createRunner({
   name,
   maxConcurrency,
   maxRetries,
   retryBaseMs,
   isRetryable,
+  shouldRetry = isRetryable,
   retryAfterMs = () => null,
   onRetry = null,
   lanes = null,
@@ -224,7 +232,7 @@ function createRunner({
           // A caller that has hung up gets no retry: the work would be dead on arrival, and the slot
           // it is holding is exactly what the next caller is waiting for.
           if (signal?.aborted) throw isAborted(err) ? err : new AbortError(laneTag, err);
-          if (attempt < maxRetries && isRetryable(err)) {
+          if (attempt < maxRetries && shouldRetry(err)) {
             if (onRetry) onRetry(err, attempt, retryAfterMs(err));
             await sleep(backoffMs(attempt, err), signal); // slot stays held during backoff — the wait ends early on abort
             // Hung up during the backoff: release now (finally), not after one more attempt against a dead caller.

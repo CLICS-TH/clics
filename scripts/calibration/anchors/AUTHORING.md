@@ -700,6 +700,81 @@ The rule from now on:
       prompt: a re-calibrated prompt (for example a d4/low-end fix) needs fresh anchors or human
       raters to be judged.
 
+21. **Plan 2.6 pre-registration: local low-end fix, tuning only (written 2026-10-02, before the
+    tuning split was scored by DeepSeek as a whole).** Not fully blind: the 20 pilot anchors were
+    scored with the shipping addendum in `runs/pilot-local-strict-2026-10-02.json`, and several were
+    rewritten since. The rules below were not tuned on that run. Item 20 showed compression, not noise: DeepSeek
+    over-scores low anchors by about +25 and is about right at the top. This loop changes only
+    `PIS7_LOCAL_ADDENDUM` (`rimpl/src/lib/prompts.js`). The cloud prompt and the rubric mirror stay as
+    they are.
+    - **Data.** The 40 tuning anchors only (10 below a target of 40, 15 at 40–69, 15 at 70 and
+      above). K = 3, temperature 0, scored with `score-local.mjs --split tuning`. Held-out is never
+      scored again in this loop.
+    - **Baseline.** The shipping addendum (`+local-c5ffe572aa81`) on tuning, scored first.
+    - **Variants.** At most **3** addendum variants, each scored once on the same 40 anchors. A
+      variant must be justified from the rubric (§5), never by naming an anchor or a score.
+    - **Adoption rule.** A variant may replace the baseline only if **all** of these hold against
+      the baseline run:
+      1. low band (target below 40): |mean bias| falls by **at least 10** points;
+      2. composite ICC(A,1) vs target: the point estimate is higher;
+      3. high band (target 70 and above): |mean bias| is **7 or less**;
+      4. composite Spearman: drops by **no more than 0.05**;
+      5. test–retest (run 1 vs run 2) ICC(A,1) is **0.85 or more**, and no run fails to parse.
+    - If more than one variant passes, the highest ICC(A,1) wins. If none passes, the baseline stays
+      and the result is reported as a null.
+    - **What a pass means.** The variant is selected on the same 40 anchors it is measured on, so its
+      tuning numbers are optimistic. They are screening-synthetic and **are not validation**. A
+      selected prompt is judged only by the SANDBOX human auditors (plan 2.7) or by fresh anchors.
+      Nothing ships to production on this loop alone.
+
+22. **Plan 2.6 result: null; the shipping addendum stays (2026-10-03).** All three arms were scored
+    on the 40 tuning anchors with K = 3. The rule in item 21 was applied by `addendum-compare.mjs`.
+    Reports: `runs/tuning-compare-v{1,2}-2026-10-03.json`. The evidence is screening-synthetic.
+
+    | | baseline `c5ffe572aa81` | v1 `f2883fc1a9f0` | v2 `98bc211098fb` |
+    |---|---|---|---|
+    | ICC(A,1) vs target | 0.82 [0.60, 0.91] | 0.80 [0.57, 0.90] | 0.82 [0.65, 0.91] |
+    | Spearman | 0.83 | 0.81 | 0.87 |
+    | low-band bias (n 10) | +12.0 | +12.9 | +14.2 |
+    | mid-band bias (n 15) | +11.3 | +10.7 | +7.6 |
+    | high-band bias (n 15) | −2.3 | −1.6 | −2.5 |
+    | test–retest | 0.94 | 0.92 | 0.90 |
+    | rule | | fails 1, 2 | fails 1 |
+
+    - **Not adopted.** Neither variant meets condition 1. The tuning baseline's low-band bias was
+      +12.0, not the roughly +25 seen on held-out (item 20). So condition 1 asked for near-elimination,
+      down to +2 or less, and both variants raised the bias instead.
+    - **Low-band bias** (n = 10, mean with t 95% CI, df 9):
+      - baseline +12.0 [7.6, 16.4];
+      - v1 +12.9 [8.0, 17.8];
+      - v2 +14.2 [9.4, 19.0].
+      - Paired change against baseline: v1 +0.9 [−3.3, 5.1], v2 +2.2 [−2.6, 7.0]. Most of v2's +2.2
+        is one anchor, anc-023, which went from +4 to +24.
+      - A fall of 10 lies outside both intervals, so the null stands.
+    - **Reading** (corrected after review). Removing the addendum's "default to 3" rules (v1), or all of
+      its scoring rules (v2), did not reduce the low-band lift. The lift therefore does not come from
+      those rules.
+      - These arms cannot tell apart the local model, the shared base prompt
+        (`PIS7_EVALUATOR_PROMPT`) and the designed targets. The Claude panel also lifted low
+        dissociated domains (item 20, 14 of 14).
+      - No variant that DESCRIBES weak work was tried.
+      - Within the low band the lift is spread across d1–d5 and d7. d4 is largest, at about +1.1. The
+        whole-cohort per-domain bias reported by the tool covers all 40 anchors, not the low band.
+    - **Not counted.** The rule does not count mid-band bias, and Spearman is only a guard against a
+      drop. v2's mid-band (+7.6) and Spearman (0.87) movements are therefore not a reason to switch.
+      They were also measured on the same 40 anchors used to select.
+    - **v3 is not authored.** One more variant was allowed. A low-band rule would have to describe
+      what weak work looks like, which risks fitting the anchors. The next evidence should be the
+      SANDBOX human auditors (plan 2.7).
+    - **Provenance.**
+      - v2 half 2 ran in four invocations: the 2-hour tool limit cut the first, and the network to
+        the box dropped during the others.
+      - 4 rows that failed in transport (`ENETUNREACH`, so no model reply exists) were dropped and
+        re-scored.
+      - No model-produced failure was dropped. All 360 evaluations scored.
+      - Configuration was checked identical before merging (`runs/*-h2-merged.json` `merge_note`).
+      - The box address is redacted.
+
 23. **A non-Claude blind rater on held-out (2026-10-03).** This closes the open item in the blind-panel rewrite rule (item 1), which noted that no non-Claude panel member had been run. Numbering follows #138's items 21–22.
     - **Setup:** GPT (`gpt-5.6-sol`, effort high) rated the same 6 shuffled packets with the same `rubric.txt`. It ran through `codex exec` in a read-only sandbox containing only that packet's two files: no ids, no targets, no key. The prompt is in `pilot/heldout/rater-gpt-prompt.txt`. It ran once, so GPT has no test–retest.
     - **Reproduce:** `node scripts/calibration/anchors/pilot/heldout/analyse-gpt.mjs`. The same script reproduces item 20's panel and DeepSeek figures.
@@ -748,6 +823,33 @@ The rule from now on:
 | score (local box) | `LOCAL_AI_BASE_URL=… LOCAL_AI_MODEL=… LOCAL_AI_API_KEY=… node scripts/calibration/anchors/score-local.mjs --pilot --repeats 3 --concurrency 2 --out scripts/calibration/anchors/runs/pilot-local-<date>.json` | local box only |
 | re-check a past run | `node scripts/calibration/anchors/revalidate.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json` (writes `….revalidated.json`; needs rimpl deps) | none |
 | analyse | `node scripts/calibration/anchors/known-groups.mjs scripts/calibration/anchors/runs/pilot-local-<date>.json --pilot [--split tuning\|heldout] --out …-known-groups.json` (add `--include-excluded` only to reproduce a run made before a §7.4 exclusion) | none |
+| plan the SANDBOX import | `node scripts/calibration/anchors/import-sandbox.mjs --physician-id <sandbox physician uuid> --council-id <SANDBOX council uuid> [--split heldout\|tuning\|all] [--only …]` (dry run, the default: prints every row and the counts, contacts no database) | none |
+| import into SANDBOX | the same plus `--confirm [--manifest-out …]` (service role from `backend/.env`; refuses unless the council is SANDBOX and the physician belongs to it; an existing PLE is skipped only if its stored messages and reflection are byte-identical to the fixture, otherwise the run is refused before any write; manifest defaults to the gitignored `anchors/imports/sandbox-<split>.json`) | database |
+| plan / attach local scores | `node scripts/calibration/anchors/import-shadow.mjs scripts/calibration/anchors/runs/heldout-local-2026-10-02-merged.json --manifest scripts/calibration/anchors/imports/sandbox-heldout.json` (dry run; add `--confirm` to write `shadow_evaluations`: per-domain median of the K runs, `provider` local, `model_version` `CCME_LLM_v8.0+<served model>+anchor-median<K>` — its own candidate label, never the live one, so the median-of-K rows never pool into the live candidate's contract rate) | none / database |
+| local vs auditor | `cd backend && NODE_PATH="$PWD/node_modules" node ../scripts/calibration/three-way.js --include-test --manifest ../scripts/calibration/anchors/imports/sandbox-heldout.json --provider local --model 'CCME_LLM_v8.0+deepseek-v4-flash-dspark+anchor-median3'` (the label import-shadow printed; name it explicitly, never let the harness pick by recency) → section "Local vs Auditor (no Claude row required)" | database (read-only) |
+| undo an import | `node scripts/calibration/anchors/import-sandbox.mjs --rollback scripts/calibration/anchors/imports/sandbox-heldout.json` (dry run; `--confirm` deletes exactly those PLEs; refused while auditor scores or discussions exist unless `--force-export-first` saves them to a local file) | none / database |
+
+**After an import, three steps stay with a human superadmin, and no script here takes them.** The
+imported PLEs land `status='evaluated'` but `privacy_review_status='pending'` and unassigned, so while
+the privacy gate is on (`privacy_review_required=1`) they can be neither assigned nor queued
+(`backend/src/routes/admin.js` assign, `backend/src/routes/auditor.js` queue). Someone must (1) read and clear each one through
+the privacy review (`POST /admin/ples/:id/privacy-review`), (2) assign the auditors
+(`audit_assignments`, via the admin UI — `specialty_id` is NULL, so an admin pinned to one SBX
+specialty does not see them; assign as superadmin), and (3) set `calibration_reveal_locked=1` before the
+first auditor opens one. The importer never writes `ai_evaluations` (the local scores go to the
+never-shown `shadow_evaluations`), never calls a model, and never touches a council other than SANDBOX.
+Do not press **Re-evaluate** on these PLEs, though it is harmless: `POST /admin/ples/:id/reevaluate`
+accepts an evaluated PLE with no AI row, but `enqueueEvaluation` only stamps the `eval_*` columns, the
+drain claims `status='ple_pass'` rows only, and `eval-drain.js` returns early on any other status — so it
+sets `eval_enqueued_at`, writes a `ple.reevaluate` audit-log row and answers "queued", and nothing ever
+claims the row (no AI call, no spend). The audit-log row is noise in the study record. The SANDBOX
+physician who owns the PLEs sees an empty result page for each one (there is no AI row to show); that is
+expected, not a fault. **Raters must not have access to this repository:** the PLE id in the auditor URL
+is `uuidv5(anchor id, ANCHOR_NAMESPACE)`, and the namespace is committed, so anyone with the repo can map
+a PLE back to its anchor and its designed target in `design.json` — which breaks the blind. A reflection turn becomes a `ple_reflections` row only
+when it round-trips byte-for-byte through production's rendering (`reflection.js` `asTranscriptTurn`);
+every reflection turn in the cohort does. Anchors with no reflection turn (`in_chat` or `none` by
+design: 30 of 100, 20 of the 60 held-out) get no row, and the importer lists them.
 
 `score-local.mjs` is local-only by construction: it never reads `ANTHROPIC_API_KEY`. It verifies
 every fixture's sha256 against `manifest.json` before sending, scores with production's decoding
