@@ -149,9 +149,10 @@ describe('late-retry cutoff for evaluations', () => {
     expect(provider.EVAL_LATE_RETRY_MS).toBe(150000);
   });
 
-  test('an evaluation error arriving after the cutoff is NOT retried', async () => {
+  // `shadow` is an evaluation too (services/shadow.js): same cutoff.
+  test.each(['evaluate', 'shadow'])('a %s error arriving after the cutoff is NOT retried', async (purpose) => {
     mockCall.mockImplementationOnce(lateFailure(151)).mockResolvedValue(okResp);
-    await expect(call(args('evaluate'))).rejects.toMatchObject({ status: 529 });
+    await expect(call(args(purpose))).rejects.toMatchObject({ status: 529 });
     expect(mockCall).toHaveBeenCalledTimes(1);
     expect(warn.mock.calls.flat().join(' ')).toMatch(/not retrying a late evaluation error/);
   });
@@ -274,6 +275,14 @@ describe('safeguard refusals', () => {
     expect(provider.stats().lastError).toBeNull();
     expect(provider.ready().checks.anthropic_serving.status).toBe('up');
   });
+});
+
+// A timeout is APIConnectionTimeoutError ("Request timed out."): isRetryable does not match it, so it
+// is ONE attempt and then an error, never a retry (from fix/rimpl-abort-signal).
+test('a client timeout is ONE attempt, not retried', async () => {
+  mockCall.mockRejectedValue(Object.assign(new Error('Request timed out.'), { name: 'APIConnectionTimeoutError' }));
+  await expect(call(args('evaluate'))).rejects.toThrow(/timed out/);
+  expect(mockCall).toHaveBeenCalledTimes(1);
 });
 
 test('ready() reports up when ANTHROPIC_API_KEY is present (no completion call, no spend)', () => {
