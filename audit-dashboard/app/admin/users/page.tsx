@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PageIntro } from '@/components/PageIntro';
 import { useIsMobile, useIsTableCompact } from '@/components/ViewportProvider';
+import { useChartColors } from '@/lib/chart-colors';
 import { ROLE_LABELS, ACCOUNT_STATUS_MAP, budgetToneHex, roleToUi, roleToWire, POSITION_OPTIONS, positionLabel, fmtTokens } from '@/lib/labels';
 import { type ApiResult, type UsageSettings, formatApiError } from '@/lib/types';
 import { UsageMeter } from '@/components/UsageMeter';
@@ -79,6 +80,7 @@ const ROLE_FILTERS: { key: string; label: string }[] = [
 ];
 
 export default function UsersPage() {
+  const CHART = useChartColors();
   const [users, setUsers] = useState<User[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [cap, setCap] = useState<Record<string, string>>({});
@@ -534,7 +536,7 @@ export default function UsersPage() {
   const poolPctNum = parseFloat(poolLimit);
   const poolHasValue = Number.isFinite(poolPctNum) && poolPctNum > 0;
   const poolPct = poolHasValue ? Math.min(100, Math.round((totalUsed / poolPctNum) * 100)) : 0;
-  const poolToneColor = budgetToneHex(poolPct / 100); // shared thresholds/colors (lib/labels.ts)
+  const poolToneColor = budgetToneHex(poolPct / 100, CHART); // shared thresholds/colors (lib/labels.ts)
 
   return (
     <div className="p-6 md:p-10">

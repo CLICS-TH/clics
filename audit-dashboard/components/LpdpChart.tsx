@@ -1,9 +1,10 @@
 'use client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { CHART } from '@/lib/chart-colors';
+import { useChartColors } from '@/lib/chart-colors';
 
 interface Props { data: { label: string; composite_score: number }[]; }
 export function LpdpChart({ data }: Props) {
+  const CHART = useChartColors();
   return (
     <div className="border rounded-xl p-5">
       <h2 className="font-semibold mb-3">Longitudinal Professional Development Profile</h2>
@@ -17,7 +18,7 @@ export function LpdpChart({ data }: Props) {
           <YAxis domain={[0,100]} label={{ value:'Score/100', angle:-90, position:'insideLeft' }} tick={{ fill: 'currentColor', fontSize: 11 }} />
           <Tooltip />
           <ReferenceLine y={75} stroke={CHART.threshold} strokeDasharray="4 4" label="เป้าหมาย" />
-          <Line type="monotone" dataKey="composite_score" stroke="#cc785c" strokeWidth={2} dot={{ r:4 }} />
+          <Line type="monotone" dataKey="composite_score" stroke={CHART.human} strokeWidth={2} dot={{ r:4 }} />
         </LineChart>
       </ResponsiveContainer>
       </div>

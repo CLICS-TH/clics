@@ -8,7 +8,7 @@ import {
 import { apiFetch, apiDownload } from '@/lib/api';
 import { getUser } from '@/lib/auth';
 import { DOMAIN_KEYS, DOMAIN_LABELS, ROLE_LABELS, pleStatusCards, budgetToneHex } from '@/lib/labels';
-import { CHART } from '@/lib/chart-colors';
+import { useChartColors } from '@/lib/chart-colors';
 import { PageIntro } from '@/components/PageIntro';
 import { RoleBadge } from '@/components/RoleBadge';
 import { StatStrip, type Stat } from '@/components/StatStrip';
@@ -35,6 +35,7 @@ type Invite = { id: string; email: string; status: string };
 
 
 export default function OverviewPage() {
+  const CHART = useChartColors();
   const router = useRouter();
   const me = useAuthUser();
   const [stats, setStats] = useState<CleStats | null>(null);
@@ -183,7 +184,7 @@ export default function OverviewPage() {
   const pool = usage?.api_budget_pool_usd ?? 0;
   const used = usage?.total_used_usd ?? 0;
   const budgetPct = pool > 0 ? Math.min(used / pool, 1) : 0;
-  const budgetColor = budgetToneHex(budgetPct);
+  const budgetColor = budgetToneHex(budgetPct, CHART);
 
   return (
     <div className="mx-auto w-full max-w-5xl p-6 md:p-10 space-y-8">

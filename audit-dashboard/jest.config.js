@@ -18,6 +18,8 @@ const config = {
     'lib/labels.ts',
     'lib/pis7-rubric.ts',
     'lib/chart-colors.ts',
+    'lib/theme.ts',
+    'components/ThemeProvider.tsx',
     'components/DomainScorer.tsx',
     'components/TranscriptView.tsx',
     'components/BiLabel.tsx',

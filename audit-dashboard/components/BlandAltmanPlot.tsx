@@ -1,10 +1,11 @@
 'use client';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ReferenceLine, Tooltip, ResponsiveContainer } from 'recharts';
-import { CHART } from '@/lib/chart-colors';
+import { useChartColors } from '@/lib/chart-colors';
 
 interface Props { pairs: { ai: number; human: number }[]; }
 
 export function BlandAltmanPlot({ pairs }: Props) {
+  const CHART = useChartColors();
   const data = pairs.map(p => ({ mean: (p.ai + p.human) / 2, diff: p.ai - p.human }));
   const diffs = data.map(d => d.diff);
   const meanDiff = diffs.reduce((a,b) => a+b, 0) / (diffs.length || 1);
@@ -21,10 +22,10 @@ export function BlandAltmanPlot({ pairs }: Props) {
           <XAxis dataKey="mean" name="Mean" label={{ value:'Mean score', position:'insideBottom', offset:-2 }} tick={{ fill: 'currentColor', fontSize: 11 }} />
           <YAxis dataKey="diff" name="AI − Human" label={{ value:'AI − Human', angle:-90, position:'insideLeft' }} tick={{ fill: 'currentColor', fontSize: 11 }} />
           <Tooltip />
-          <ReferenceLine y={meanDiff} stroke="#5db8a6" strokeDasharray="4 4" />
+          <ReferenceLine y={meanDiff} stroke={CHART.teal} strokeDasharray="4 4" />
           <ReferenceLine y={meanDiff + loa} stroke={CHART.fail} strokeDasharray="3 3" />
           <ReferenceLine y={meanDiff - loa} stroke={CHART.fail} strokeDasharray="3 3" />
-          <Scatter data={data} fill="#cc785c" opacity={0.7} />
+          <Scatter data={data} fill={CHART.human} opacity={0.7} />
         </ScatterChart>
       </ResponsiveContainer>
       </div>
