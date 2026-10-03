@@ -1,127 +1,171 @@
 // Idempotency for a physician chat turn (POST /ples/:id/message with `client_turn_id`).
 //
 // THE PROBLEM. The route persists a turn only AFTER rimpl answers (up to ~100 s). A dropped connection
-// therefore looked like a failed turn to the client while the backend went on to store it, and the
-// client's Retry stored the physician message a second time in the scored transcript (CREC082).
+// looked like a failed turn to the client while the backend went on to store it, and the client's Retry
+// stored the physician message a second time in the scored transcript (CREC082).
 //
-// THE MECHANISM. A keyed turn CLAIMS its slot before any paid work: the physician row is inserted first,
-// carrying the key, under the partial unique index (ple_id, client_turn_id) WHERE role = 'physician'
-// (db/migration-message-client-turn-id.sql). The database — not an in-memory check — decides which of two
-// overlapping requests owns the turn; the loser gets a unique violation, never reaches rimpl, and never
-// reserves budget. The assistant reply is stamped with the same key so a retry reads the stored pair back
-// by key.
+// THE DESIGN (db/migration-message-client-turn-id.sql).
+//   - A CLAIM in `chat_turn_claims` says "a request is working on this turn". It is taken before any paid
+//     work and lives OUTSIDE `messages`, so the scored transcript never holds a row for an unanswered
+//     turn. A claim left by a killed request (a redeploy kills in-flight turns) is inert metadata: past
+//     STALE_CLAIM_MS the next retry takes it over. Release, completion and takeover are all conditional
+//     on the holder's random `claim_token`, so a late request can never undo another's claim.
+//   - The physician + assistant rows are written after rimpl returns, exactly as before (same order, same
+//     timestamps). The partial unique index on (ple_id, client_turn_id) WHERE role='physician' is the
+//     FINAL arbiter: if a late original and the retry that took over its stale claim both get there, the
+//     second physician insert fails and that request stores nothing.
 //
-// DEPLOY ORDER. The column may not exist yet (code ships before the migration; the 2026-09 outage rule is
-// never to require the database ahead of the code). Every query here treats "column missing" as "no key",
-// and says so in the log: a fallback that drops its error is worse than a 500.
+// DEPLOY ORDER. Code ships before the migration (the 2026-09 outage rule: never require the database
+// ahead of the code). A missing table or column is treated as "no key" and said in the log, throttled:
+// a fallback that drops its error is worse than a 500. Any OTHER database error is surfaced, not absorbed.
+const crypto = require('crypto');
 const { supabase } = require('./supabase');
 
 // The rimpl chat call is bounded by RIMPL_CHAT_TIMEOUT_MS (services/rimpl-client.js, default 100 s). A
-// claimed physician row with no reply that is older than that, plus a margin for the surrounding DB
-// calls, cannot belong to a request that is still running — its process died. Read the env here rather
-// than importing rimpl-client so a test that mocks that module cannot turn this into NaN.
+// claim older than that plus a margin for the DB writes around it cannot belong to a request that is
+// still alive. (If one somehow is, the unique index above still keeps the transcript to one turn.) Read
+// the env here rather than importing rimpl-client so a test that mocks that module cannot make this NaN.
 const CHAT_TIMEOUT_MS = parseInt(process.env.RIMPL_CHAT_TIMEOUT_MS || '100000', 10);
-const STALE_CLAIM_MS = CHAT_TIMEOUT_MS + 60_000;
+const STALE_CLAIM_MS = CHAT_TIMEOUT_MS + 20_000;
 const PENDING_RETRY_AFTER_S = 5;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const COLS = 'id, role, content, refs, socratic_question, token_count, created_at';
+const MSG_COLS = 'id, role, content, refs, socratic_question, token_count, created_at';
 
-// PostgREST reports an unknown column as PGRST204 (insert/update, schema cache) or 42703 (filter/select).
-function isMissingColumn(err) {
+// Unknown table: 42P01 (Postgres) / PGRST205 (PostgREST schema cache). Unknown column: 42703 / PGRST204.
+function isMissingSchema(err) {
   if (!err) return false;
-  if (err.code === 'PGRST204' || err.code === '42703') return true;
-  return /client_turn_id/.test(err.message || '') && /(column|schema cache)/i.test(err.message || '');
+  if (['42P01', 'PGRST205', '42703', 'PGRST204'].includes(err.code)) return true;
+  return /(chat_turn_claims|client_turn_id)/.test(err.message || '') &&
+    /(does not exist|schema cache|could not find)/i.test(err.message || '');
 }
 const isUniqueViolation = (err) => !!err && err.code === '23505';
 
-// Throttled: once the backend is deployed and the migration is not, every turn would log.
+// Throttled: once the backend is deployed and the migration is not, every keyed turn would log.
 let lastMissingLogAt = 0;
-function logMissingColumn(where, err) {
+function logMissing(where, err) {
   const now = Date.now();
   if (now - lastMissingLogAt < 60_000) return;
   lastMissingLogAt = now;
-  console.error(`[turn-idem] client_turn_id column missing (${where}) — idempotency DISABLED, turns are stored ` +
-    `without a key until db/migration-message-client-turn-id.sql is applied: ${err.message}`);
+  console.error(`[turn-idem] chat_turn_claims / messages.client_turn_id missing (${where}) — idempotency DISABLED, ` +
+    `turns are stored without a key until db/migration-message-client-turn-id.sql is applied: ${err.message}`);
 }
 function _resetLogThrottle() { lastMissingLogAt = 0; }
 
-// What is stored for this key. Never throws.
-//   { state: 'none' }                              nothing stored under this key
-//   { state: 'unavailable' }                       column missing — behave as an unkeyed request
-//   { state: 'done', physician, assistant }        both rows stored
-//   { state: 'pending', physician }                physician row claimed, no reply yet (original in flight)
-//   { state: 'conflict', physician }               same key already used for DIFFERENT text
-//   { state: 'error', error }                      the lookup itself failed (not a missing column)
-// `reclaim: false` forbids deleting an abandoned claim (used for an episode that is no longer active:
-// its transcript is closed and must not be edited).
-async function lookupTurn(pleId, key, message, { reclaim = true } = {}) {
+const ageMs = (iso) => Date.now() - new Date(iso).getTime();
+// A claim is FRESH while its holder could still be working on it.
+const isFresh = (claim) => !!claim && claim.status === 'in_flight' && !(ageMs(claim.claimed_at) > STALE_CLAIM_MS);
+
+// ---- the record (messages) ---------------------------------------------------------------------------
+// What `messages` holds under this key. Never throws.
+//   none | unavailable | error
+//   done        physician + assistant stored                 → answer from the record
+//   incomplete  physician stored, assistant not (yet)         → the holder is between its two inserts
+//   conflict    the key was first used for DIFFERENT text      → a client bug; never answer with the old turn
+async function findStoredTurn(pleId, key, message) {
   const { data, error } = await supabase
-    .from('messages').select(COLS).eq('ple_id', pleId).eq('client_turn_id', key).order('created_at');
+    .from('messages').select(`${MSG_COLS}, client_turn_id`).eq('ple_id', pleId).eq('client_turn_id', key).order('created_at');
   if (error) {
-    if (isMissingColumn(error)) { logMissingColumn('lookup', error); return { state: 'unavailable' }; }
-    console.error('[turn-idem] lookup failed:', error.message);
+    if (isMissingSchema(error)) { logMissing('messages lookup', error); return { state: 'unavailable' }; }
+    console.error('[turn-idem] messages lookup failed:', error.message);
     return { state: 'error', error };
   }
   const rows = data ?? [];
   const physician = rows.find((r) => r.role === 'physician');
   if (!physician) return { state: 'none' };
-  // A key is bound to the text it first carried. The same key with other text is a client bug, and
-  // answering it with the OLD turn would show the physician a reply to a question they did not ask.
   if (physician.content !== message) return { state: 'conflict', physician };
   const assistant = rows.find((r) => r.role === 'assistant');
-  if (assistant) return { state: 'done', physician, assistant };
-  const ageMs = Date.now() - new Date(physician.created_at).getTime();
-  if (reclaim && Number.isFinite(ageMs) && ageMs > STALE_CLAIM_MS) {
-    // Abandoned claim (the process that took it died before it could release it). Delete exactly that
-    // row by id — if another retry reclaimed first, its NEW row has a different id and is untouched —
-    // and let this request take the slot. Loud, because it removes a stored physician message.
-    console.error(`[turn-idem] reclaiming abandoned claim ${physician.id} on PLE ${pleId} (age ${Math.round(ageMs / 1000)}s, no reply)`);
-    const { error: delErr } = await supabase.from('messages').delete()
-      .eq('id', physician.id).eq('ple_id', pleId).eq('role', 'physician');
-    if (delErr) { console.error('[turn-idem] could not delete abandoned claim:', delErr.message); return { state: 'pending', physician }; }
-    return { state: 'none' };
-  }
-  return { state: 'pending', physician };
+  return assistant ? { state: 'done', physician, assistant } : { state: 'incomplete', physician };
 }
 
-// Take the slot: insert the physician row WITH the key. The unique index arbitrates.
-//   { state: 'claimed', id }   this request owns the turn — go on to reserve + call rimpl
-//   { state: 'unavailable' }   column missing — behave as an unkeyed request
-//   { state: 'done' | 'pending' | 'conflict', ... }   another request got there first (same shape as lookupTurn)
+// ---- claims ------------------------------------------------------------------------------------------
+async function readClaim(pleId, key) {
+  const { data, error } = await supabase.from('chat_turn_claims')
+    .select('ple_id, client_turn_id, claim_token, status, claimed_at')
+    .eq('ple_id', pleId).eq('client_turn_id', key).maybeSingle();
+  if (error) {
+    if (isMissingSchema(error)) { logMissing('claim lookup', error); return { unavailable: true }; }
+    console.error('[turn-idem] claim lookup failed:', error.message);
+    return { error };
+  }
+  return { claim: data ?? null };
+}
+
+// Take the turn. Two attempts, because the state can move between the read and the write.
+//   { state: 'claimed', token }   this request owns the turn: reserve budget, call rimpl, store
+//   { state: 'busy' }             another request holds it fresh, or has completed it
+//   { state: 'unavailable' }      table missing: behave as an unkeyed request
 //   { state: 'error', error }
-async function claimTurn({ pleId, key, message, tokens }) {
+async function claimTurn(pleId, key) {
   for (let attempt = 0; attempt < 2; attempt++) {
-    const { data, error } = await supabase.from('messages').insert({
-      ple_id: pleId, role: 'physician', content: message, token_count: tokens, client_turn_id: key,
-    }).select('id').single();
-    if (!error) return { state: 'claimed', id: data?.id ?? null };
-    if (isMissingColumn(error)) { logMissingColumn('claim', error); return { state: 'unavailable' }; }
-    if (!isUniqueViolation(error)) {
-      console.error('[turn-idem] claim failed:', error.message);
+    const read = await readClaim(pleId, key);
+    if (read.unavailable) return { state: 'unavailable' };
+    if (read.error) return { state: 'error', error: read.error };
+    const claim = read.claim;
+    const token = crypto.randomUUID();
+
+    if (!claim) {
+      const { error } = await supabase.from('chat_turn_claims')
+        .insert({ ple_id: pleId, client_turn_id: key, claim_token: token, status: 'in_flight' });
+      if (!error) return { state: 'claimed', token };
+      if (isMissingSchema(error)) { logMissing('claim insert', error); return { state: 'unavailable' }; }
+      if (isUniqueViolation(error)) continue;          // someone claimed between our read and insert: re-read
+      console.error('[turn-idem] claim insert failed:', error.message);
       return { state: 'error', error };
     }
-    // Lost the race. Whoever won decides the outcome; if they have already released (their turn
-    // failed) the slot is free again and one more attempt takes it.
-    const seen = await lookupTurn(pleId, key, message);
-    if (seen.state !== 'none') return seen;
+    if (claim.status === 'done' || isFresh(claim)) return { state: 'busy' };
+
+    // Stale: its holder is gone. Take it over ATOMICALLY: the update matches only while the old token is
+    // still there, so of two retries racing for the same stale claim exactly one gets a row back.
+    const { data, error } = await supabase.from('chat_turn_claims')
+      .update({ claim_token: token, status: 'in_flight', claimed_at: new Date().toISOString() })
+      .eq('ple_id', pleId).eq('client_turn_id', key).eq('claim_token', claim.claim_token)
+      .select('claim_token');
+    if (error) {
+      console.error('[turn-idem] claim takeover failed:', error.message);
+      return { state: 'error', error };
+    }
+    if (Array.isArray(data) && data.length === 1) {
+      console.warn(`[turn-idem] took over a stale claim on PLE ${pleId} (claimed ${Math.round(ageMs(claim.claimed_at) / 1000)}s ago)`);
+      return { state: 'claimed', token };
+    }
+    // Lost the takeover race: re-read and decide again.
   }
-  // Two lost races in a row with the slot empty each time: report it as in flight rather than loop.
-  return { state: 'pending', physician: null };
+  return { state: 'busy' };
 }
 
-// Give the slot back when the turn did not complete (budget refused, rimpl failed, reply not saved), so
-// a retry with the same key starts clean instead of finding a physician row with no reply forever.
-// A failure to release is logged at error level: the row is then an orphan that only the stale-claim
-// reclaim (above) can clear.
-async function releaseTurn(pleId, claimId) {
-  if (!claimId) return;
-  const { error } = await supabase.from('messages').delete()
-    .eq('id', claimId).eq('ple_id', pleId).eq('role', 'physician');
-  if (error) console.error(`[turn-idem] ORPHANED claim ${claimId} on PLE ${pleId} — release failed:`, error.message);
+// The turn ended without a stored reply: free the slot so a retry with the same key starts clean.
+async function releaseClaim(pleId, key, token) {
+  if (!token) return;
+  const { error } = await supabase.from('chat_turn_claims').delete()
+    .eq('ple_id', pleId).eq('client_turn_id', key).eq('claim_token', token);
+  if (error) console.error(`[turn-idem] could not release claim on PLE ${pleId} (it goes stale on its own):`, error.message);
+}
+
+// The turn is stored: the claim stays as a 'done' marker (inert; the record is what answers retries).
+async function completeClaim(pleId, key, token) {
+  if (!token) return;
+  const { error } = await supabase.from('chat_turn_claims').update({ status: 'done' })
+    .eq('ple_id', pleId).eq('client_turn_id', key).eq('claim_token', token);
+  if (error) console.error(`[turn-idem] could not mark claim done on PLE ${pleId}:`, error.message);
+}
+
+// Is any turn on this PLE being answered right now? (/end must not close the transcript under it.)
+// Fails OPEN on a database error, with a log: a broken claims read must never trap a physician in a
+// session they cannot end. A stale claim never counts.
+async function freshClaimExists(pleId) {
+  const { data, error } = await supabase.from('chat_turn_claims')
+    .select('status, claimed_at').eq('ple_id', pleId).eq('status', 'in_flight');
+  if (error) {
+    if (isMissingSchema(error)) logMissing('end check', error);
+    else console.error('[turn-idem] in-flight check failed (allowing /end):', error.message);
+    return false;
+  }
+  return (data ?? []).some(isFresh);
 }
 
 module.exports = {
-  lookupTurn, claimTurn, releaseTurn,
-  isMissingColumn, isUniqueViolation, _resetLogThrottle,
-  STALE_CLAIM_MS, PENDING_RETRY_AFTER_S,
+  findStoredTurn, readClaim, claimTurn, releaseClaim, completeClaim, freshClaimExists,
+  isFresh, isMissingSchema, isUniqueViolation, logMissing, _resetLogThrottle,
+  STALE_CLAIM_MS, PENDING_RETRY_AFTER_S, UUID_RE, MSG_COLS,
 };

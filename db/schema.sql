@@ -334,6 +334,19 @@ create unique index messages_ple_client_turn_uidx
   on public.messages (ple_id, client_turn_id)
   where client_turn_id is not null and role = 'physician';
 
+-- A request working on a chat turn RIGHT NOW (migration-message-client-turn-id.sql). Kept out of
+-- `messages` so the scored transcript never holds an unanswered keyed row; deny-all to client roles.
+create table public.chat_turn_claims (
+  ple_id         uuid not null references public.ples(id) on delete cascade,
+  client_turn_id uuid not null,
+  claim_token    uuid not null,
+  status         text not null default 'in_flight' check (status in ('in_flight', 'done')),
+  claimed_at     timestamptz not null default now(),
+  created_at     timestamptz not null default now(),
+  primary key (ple_id, client_turn_id)
+);
+alter table public.chat_turn_claims enable row level security;
+
 -- PIS-7 scored by AI
 create table public.ai_evaluations (
   id               uuid primary key default gen_random_uuid(),

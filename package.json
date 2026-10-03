@@ -13,6 +13,7 @@
     "test:responsive": "node scripts/responsive/responsive-smoke.mjs",
     "test:mobile-audit": "node scripts/responsive/mobile-audit.mjs",
     "test:readability": "node scripts/readability/audit.mjs",
+    "test:chat-settle": "node scripts/chat/turn-settle-smoke.mjs",
     "manuals": "node scripts/manuals/build.mjs",
     "test:manuals": "node --test scripts/manuals/lib/parse.test.mjs scripts/manuals/lib/pii-gate.test.mjs && node scripts/manuals/build.mjs --check && node scripts/manuals/verify-labels.mjs && node scripts/manuals/prose-audit.mjs",
     "test:manuals-embed": "node scripts/manuals/embed-smoke.mjs",
