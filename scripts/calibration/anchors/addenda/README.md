@@ -2,8 +2,9 @@
 
 Scored on the 40 tuning anchors only, with
 `score-local.mjs --split tuning --addendum-file scripts/calibration/anchors/addenda/<file>`.
-The adoption rule is pre-registered in AUTHORING.md §7 item 21. Both files were written on
-2026-10-02, before the baseline tuning run had returned any score. Each change is justified from the
+The adoption rule is pre-registered in AUTHORING.md §7 item 21. Both files were committed
+on 2026-10-02, two minutes after the baseline run started. By then 2 of its 120 evaluations had
+returned (anc-001, anc-002), and neither was read before the candidates were written. Each change is justified from the
 rubric, not from an anchor's number.
 
 - **v1-evidence-first.txt** removes the shipping addendum's two "default to 3" rules: "3 is the

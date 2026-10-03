@@ -41,15 +41,21 @@ const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : nu
 /** Merge the report files of ONE arm into one score-local-shaped doc, refusing a provenance mixture. */
 export function mergeArm(docs, label) {
   if (!docs.length) throw new Error(`${label}: no report files`);
-  const keys = ['model', 'prompt_version_used', 'rubric_version'];
+  // Everything that changes what a score means must be identical across the files of one arm. A
+  // half run with --consistency adaptive merged into an 'off' half would credit self-consistency to
+  // the wording (the same class of error as the probe's 'median3 never ran').
+  const keys = ['model', 'prompt_version_used', 'rubric_version', 'decoding', 'consistency', 'json_retries', 'contract'];
   for (const k of keys) {
-    const vals = [...new Set(docs.map((d) => d[k] ?? null))];
+    const vals = [...new Set(docs.map((d) => JSON.stringify(d[k] ?? null)))];
     if (vals.length !== 1) throw new Error(`${label}: report files disagree on ${k} (${vals.join(' vs ')})`);
   }
   const fixtures = {};
   for (const d of docs) for (const [id, sha] of Object.entries(d.fixtures ?? {})) {
     if (fixtures[id] && fixtures[id] !== sha) throw new Error(`${label}: ${id} scored on two different texts`);
     fixtures[id] = sha;
+  }
+  for (const d of docs) for (const r of d.rows ?? []) {
+    if (r.scores && r.model && r.model !== d.model) throw new Error(`${label}: ${r.id} run ${r.run} was served by ${r.model}, not ${d.model}`);
   }
   const seen = new Set();
   for (const d of docs) for (const r of d.rows ?? []) {
@@ -60,6 +66,7 @@ export function mergeArm(docs, label) {
   return {
     probe: 'anchors-score-local', model: docs[0].model, prompt_version_used: docs[0].prompt_version_used,
     rubric_version: docs[0].rubric_version, addendum: docs[0].addendum ?? 'shipping',
+    decoding: docs[0].decoding, consistency: docs[0].consistency, json_retries: docs[0].json_retries, contract: docs[0].contract,
     fixtures, rows: docs.flatMap((d) => d.rows ?? []),
   };
 }
@@ -135,6 +142,13 @@ async function main() {
   const base = mergeArm(await load(baseFiles), 'baseline');
   const cand = mergeArm(await load(candFiles), 'variant');
   if (base.rubric_version !== cand.rubric_version) throw new Error(`rubric differs: ${base.rubric_version} vs ${cand.rubric_version}`);
+  for (const k of ['model', 'decoding', 'consistency', 'json_retries', 'contract']) {
+    if (JSON.stringify(base[k] ?? null) !== JSON.stringify(cand[k] ?? null)) throw new Error(`the arms differ on ${k}: only the addendum may differ`);
+  }
+  const heldOut = new Set((await loadAnchorSplit()).held_out);
+  for (const doc of [base, cand]) for (const r of doc.rows) {
+    if (heldOut.has(r.id)) throw new Error(`${r.id} is a HELD-OUT anchor: this tool compares tuning runs only, and a held-out score under a new prompt must not be hidden by filtering`);
+  }
   if (base.prompt_version_used === cand.prompt_version_used) throw new Error('baseline and variant carry the same prompt version — nothing is being compared');
   const ids = new Set([...Object.keys(base.fixtures), ...Object.keys(cand.fixtures)]);
   for (const id of ids) if (base.fixtures[id] !== cand.fixtures[id]) throw new Error(`${id}: the arms scored different text (or only one arm scored it)`);

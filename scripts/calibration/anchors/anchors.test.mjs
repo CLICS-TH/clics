@@ -1194,6 +1194,9 @@ describe('addendum-compare (plan 2.6 adoption rule)', async () => {
     assert.match(item, new RegExp(`no more than ${RULE.spearmanDropMax}`));
     assert.match(item, new RegExp(`\\*\\*${RULE.retestMin} or more\\*\\*`));
     assert.match(item, new RegExp(`At most \\*\\*${RULE.maxVariants}\\*\\*`));
+    assert.match(item, new RegExp(`below a target of ${RULE.lowBand}`));
+    assert.match(item, new RegExp(`target below ${RULE.lowBand}\\)`));
+    assert.match(item, new RegExp(`target ${RULE.highBand} and above\\)`));
   });
 
   test('adopts only when all five conditions hold', () => {
@@ -1213,5 +1216,9 @@ describe('addendum-compare (plan 2.6 adoption rule)', async () => {
     assert.throws(() => mergeArm([doc(), doc()], 'x'), /appears twice/);
     assert.throws(() => mergeArm([doc(), doc({ fixtures: { 'anc-001': 'b' }, rows: [] })], 'x'), /two different texts/);
     assert.equal(mergeArm([doc(), doc({ fixtures: {}, rows: [{ id: 'anc-001', run: 2 }] })], 'x').rows.length, 2);
+    for (const [k, v] of [['decoding', { temperature: 1 }], ['consistency', 'adaptive'], ['json_retries', 2], ['contract', 'other']]) {
+      assert.throws(() => mergeArm([doc({ [k]: 'base' }), doc({ [k]: v, rows: [] })], 'x'), new RegExp(k));
+    }
+    assert.throws(() => mergeArm([doc({ rows: [{ id: 'anc-001', run: 1, scores: {}, model: 'other' }] })], 'x'), /served by other/);
   });
 });

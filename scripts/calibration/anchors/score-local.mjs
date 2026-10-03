@@ -132,6 +132,7 @@ for (const id of ids) {
 // pasted into prompts.js. An empty file is refused: pis7PromptFor would silently fall back to the
 // bare base prompt, and the report would not say so.
 let addendum;
+if (flags['addendum-file'] !== undefined && typeof flags['addendum-file'] !== 'string') fail('--addendum-file needs a path');
 if (typeof flags['addendum-file'] === 'string') {
   const file = path.resolve(flags['addendum-file']);
   addendum = { file: path.relative(path.resolve(HERE, '../../..'), file), text: (await readFile(file, 'utf8')).replace(/\s+$/, '') };

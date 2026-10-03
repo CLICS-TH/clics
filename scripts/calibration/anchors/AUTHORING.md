@@ -741,12 +741,28 @@ The rule from now on:
     | test–retest | 0.94 | 0.92 | 0.90 |
     | rule | | fails 1, 2 | fails 1 |
 
-    - **Not adopted.** Neither variant meets condition 1. The low-band lift did not fall: v1 removed
-      the "default to 3" rules, and v2 removed every scoring rule.
-    - **Reading.** The over-scoring of weak work belongs to the local model, not to the addendum's
-      wording. By domain, d4 (+0.7) and d2 (+0.5) are the steady contributors in all three arms.
-    - **v2's mid-band and Spearman gains** are below what the pre-registered rule counts, and they
-      come from the same 40 anchors used to select. They are not a reason to switch.
+    - **Not adopted.** Neither variant meets condition 1. The tuning baseline's low-band bias was
+      +12.0, not the roughly +25 seen on held-out (item 20). So condition 1 asked for near-elimination,
+      down to +2 or less, and both variants raised the bias instead.
+    - **Low-band bias** (n = 10, mean with t 95% CI, df 9):
+      - baseline +12.0 [7.6, 16.4];
+      - v1 +12.9 [8.0, 17.8];
+      - v2 +14.2 [9.4, 19.0].
+      - Paired change against baseline: v1 +0.9 [−3.3, 5.1], v2 +2.2 [−2.6, 7.0]. Most of v2's +2.2
+        is one anchor, anc-023, which went from +4 to +24.
+      - A fall of 10 lies outside both intervals, so the null stands.
+    - **Reading** (corrected after review). Removing the addendum's "default to 3" rules (v1), or all of
+      its scoring rules (v2), did not reduce the low-band lift. The lift therefore does not come from
+      those rules.
+      - These arms cannot tell apart the local model, the shared base prompt
+        (`PIS7_EVALUATOR_PROMPT`) and the designed targets. The Claude panel also lifted low
+        dissociated domains (item 20, 14 of 14).
+      - No variant that DESCRIBES weak work was tried.
+      - Within the low band the lift is spread across d1–d5 and d7. d4 is largest, at about +1.1. The
+        whole-cohort per-domain bias reported by the tool covers all 40 anchors, not the low band.
+    - **Not counted.** The rule does not count mid-band bias, and Spearman is only a guard against a
+      drop. v2's mid-band (+7.6) and Spearman (0.87) movements are therefore not a reason to switch.
+      They were also measured on the same 40 anchors used to select.
     - **v3 is not authored.** One more variant was allowed. A low-band rule would have to describe
       what weak work looks like, which risks fitting the anchors. The next evidence should be the
       SANDBOX human auditors (plan 2.7).
