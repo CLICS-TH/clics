@@ -806,6 +806,69 @@ The rule from now on:
       - **Where "40" sits** depends on the rater, and only human raters can fix it. Plan 2.7 / #135 stays the decisive input.
     - **For DeepSeek tuning (on hold):** the target is spread and ranking, not the low band alone. Held-out is spent for the current prompt.
 
+24. **Pre-registration: local scale-compression fix, tuning only, with an AI-consensus interim reference (written 2026-10-03, before any v3/v4 score existed).** Human auditors are unavailable, and the user chose to resume DeepSeek tuning against an interim AI reference. Item 23 located DeepSeek's specific defect in its **compressed scale and weaker ranking**, not in the low-band lift alone. That is the target here.
+    - **Baseline** (shipping `+local-c5ffe572aa81`, tuning split, from item 22's run): SD(AI) 18.35 against SD(target) 22.7, a ratio of 0.81. ICC(A,1) 0.82, Spearman 0.83, high-band bias −2.3, test–retest 0.94.
+    - **Candidates, written blind** before any candidate score existed:
+      - `addenda/v3-weak-work-anchors.txt`: the shipping addendum plus concrete 1-level behaviours per domain and an instruction to keep weak and strong sessions far apart. #138 noted that no variant describing weak work had been tried.
+      - `addenda/v4-weak-work-no-default3.txt`: v3 without the "3 is the anchor" bullet.
+    - **Adoption rule** (`addendum-compare.mjs --rule spread`, `RULE_SPREAD`). All five conditions must hold:
+      1. SD(AI)/SD(target) rises by **0.08 or more** and stays **1.15 or less**.
+      2. ICC(A,1) vs target is higher.
+      3. Spearman falls by **no more than 0.03**.
+      4. |high-band bias| is **7 or less**.
+      5. Test–retest is **0.85 or more**, with no unscored run.
+      - At most **2** variants. If both pass, the one with the higher ICC wins.
+    - **Held-out, once, for the winner only.** Held-out is spent for the shipping prompt, but a new prompt may be scored on it once. Reported:
+      - against target;
+      - against the **AI consensus**: the mean of the blind Sonnet, Opus and GPT composites (items 20 and 23);
+      - against the shipping prompt's held-out run.
+    - **What the consensus can and cannot show.** It is an interim **screening** reference and not a decisive gate. Two of its three members are Claude, the family that wrote the anchors, and GPT reads every band about 20 points high. It can show whether DeepSeek's spread and ranking move toward the other families. It **cannot** settle where "40" sits. The SANDBOX auditor round (60 anchors, 4 auditors, assigned 2026-10-03) stays the decisive input.
+    - **Same run conditions as item 21:** K = 3, consistency off, temperature 0, one job on the box. Transport-only failures are dropped and re-scored with a `merge_note`.
+
+25. **Result of item 24 (2026-10-03/04): v4 adopted on tuning; on held-out it moves the right way but by less than the rule asked, and nothing is shown.** Screening-synthetic throughout.
+    - **Tuning** (`runs/compare-tuning-v{3,4}-2026-10-03.json`, 40 anchors × 3, 240/240 scored; two transport timeouts succeeded on retry):
+
+      | vs baseline | v3 | v4 |
+      |---|---|---|
+      | SD ratio (0.81 →) | 0.82 ✗ | **0.90** ✓ |
+      | ICC(A,1) vs target (0.82 →) | 0.85 | 0.85 [0.64, 0.93] |
+      | Spearman (0.83 →) | 0.87 | 0.85 |
+      | high-band bias | −3.0 | −1.0 |
+      | test–retest | 0.94 | 0.93 |
+      | verdict | NOT ADOPTED (rule 1) | **ADOPTABLE** |
+
+      - The extra "1 =" anchors alone (v3) did not widen the scale. Dropping the "3 is the anchor" default (v4) did.
+    - **Held-out, once, v4** (`+local-699af9694d0e`, `runs/heldout-local-v4-2026-10-03-merged.json`, 60 anchors × 3). The box became unreachable during the run, so 103 of 180 calls returned no score (transport only). They were re-scored with the identical prompt, keeping every originally scored row; see the file's `merge_note`. 180/180 scored.
+    - **Reproduce:** `node scripts/calibration/anchors/pilot/heldout/analyse-v4.mjs`, plus `known-groups.mjs <run> --split heldout`.
+
+      | 60 held-out anchors | shipping (item 20) | v4 |
+      |---|---|---|
+      | ICC(A,1) vs target | 0.587 [0.122, 0.796] | 0.649 [0.191, 0.833] |
+      | Spearman vs target | 0.787 | 0.813 |
+      | SD ratio (target SD 23.5) | 0.70 | 0.75 |
+      | bias, weak band < 40 (n 21) | +25.2 [18.7, 31.8] | +22.6 [16.2, 29.1] |
+      | bias, high band ≥ 70 (n 17) | −2.8 | −2.8 |
+      | flagged (\|Δ\| > 15) | 27/60, 45% [33–58%] | 23/60, 38% [27–51%] |
+      | ICC(A,1) vs AI consensus | 0.757 [0.625, 0.847] | 0.813 [0.706, 0.884] |
+      | test–retest r1–r2 / r1–r3 | 0.91 / 0.89 | 0.93 / 0.95 |
+
+      - **Paired, v4 minus shipping, same 60 anchors:**
+        - error vs target: −1.0 [−2.2, 0.2];
+        - weak-band score: −2.6 [−5.4, 0.2];
+        - error vs consensus: −1.2 [−2.5, 0.1].
+      - All three intervals include 0.
+      - The AI consensus itself: ICC vs target 0.841 [0.138, 0.949], bias about +11 in every band, SD 26.3.
+    - **Reading.**
+      - Every point estimate moves toward the target and toward the consensus.
+      - The held-out spread gain is +0.05, under the +0.08 the tuning rule required, and no paired difference is distinguishable from zero.
+      - The compression is **reduced, not fixed**: weak work is still read about 23 points high, while the consensus reads every band about 11 high, so DeepSeek's defect stays its *shape*, not its level.
+      - v4 is not a demonstrated improvement on held-out.
+    - **Decision.**
+      - Shipping stays `+local-c5ffe572aa81`.
+      - v4 is kept as the candidate arm for the SANDBOX auditor round, which decides between them.
+      - DeepSeek does not score production in any case.
+      - No further prompt variant is scored against held-out: v4 has had its one look.
+
 ## 8. Pipeline and commands
 
 | step | command | network |

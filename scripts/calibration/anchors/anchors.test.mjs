@@ -1222,3 +1222,21 @@ describe('addendum-compare (plan 2.6 adoption rule)', async () => {
     assert.throws(() => mergeArm([doc({ rows: [{ id: 'anc-001', run: 1, scores: {}, model: 'other' }] })], 'x'), /served by other/);
   });
 });
+
+test('item 24: the spread rule in code matches AUTHORING, and adoptionSpread applies it', async () => {
+  const { RULE_SPREAD, adoptionSpread } = await import('./addendum-compare.mjs');
+  const md = await readFile(path.join(path.dirname(fileURLToPath(import.meta.url)), 'AUTHORING.md'), 'utf8');
+  const item = md.slice(md.indexOf('24. **Pre-registration: local scale-compression'), md.indexOf('## 8. Pipeline'));
+  assert.match(item, new RegExp(`rises by \\*\\*${RULE_SPREAD.sdRatioRiseMin} or more\\*\\*`));
+  assert.match(item, new RegExp(`stays \\*\\*${RULE_SPREAD.sdRatioMax} or less\\*\\*`));
+  assert.match(item, new RegExp(`no more than ${RULE_SPREAD.spearmanDropMax}`));
+  assert.match(item, new RegExp(`\\*\\*${RULE_SPREAD.highBiasMax} or less\\*\\*`));
+  assert.match(item, new RegExp(`\\*\\*${RULE_SPREAD.retestMin} or more\\*\\*`));
+  assert.match(item, new RegExp(`At most \\*\\*${RULE_SPREAD.maxVariants}\\*\\*`));
+  const arm = (sd, icc, rho, hb, rt) => ({ ai_sd: sd, target_sd: 22.7, icc: { icc }, spearman: { rho }, high: { bias: hb }, retest: { icc: rt }, unscored_rows: 0 });
+  const base = arm(18.35, 0.82, 0.83, -2.3, 0.94);
+  assert.equal(adoptionSpread(base, arm(20.5, 0.84, 0.82, -3, 0.9)).adopt, true);
+  assert.equal(adoptionSpread(base, arm(19.5, 0.84, 0.82, -3, 0.9)).adopt, false);   // ratio +0.05 only
+  assert.equal(adoptionSpread(base, arm(27.0, 0.84, 0.82, -3, 0.9)).adopt, false);   // overshoot 1.19
+  assert.equal(adoptionSpread(base, arm(20.5, 0.84, 0.79, -3, 0.9)).adopt, false);   // Spearman -0.04
+});

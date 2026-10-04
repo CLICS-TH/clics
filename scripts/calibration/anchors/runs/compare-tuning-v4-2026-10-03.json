@@ -1,0 +1,169 @@
+{
+  "probe": "anchors-addendum-compare",
+  "evidence_level": "screening-synthetic (AI-authored, AI-scored) — not a decisive gate",
+  "rule": {
+    "sdRatioRiseMin": 0.08,
+    "sdRatioMax": 1.15,
+    "spearmanDropMax": 0.03,
+    "highBiasMax": 7,
+    "retestMin": 0.85,
+    "maxVariants": 2
+  },
+  "rule_item": 24,
+  "baseline_files": [
+    "runs/tuning-local-baseline-2026-10-02-h1.json",
+    "runs/tuning-local-baseline-2026-10-02-h2.json"
+  ],
+  "variant_files": [
+    "scripts/calibration/anchors/runs/tuning-local-v4-weak-work-no-default3-2026-10-03-h1.json",
+    "scripts/calibration/anchors/runs/tuning-local-v4-weak-work-no-default3-2026-10-03-h2.json"
+  ],
+  "baseline": {
+    "prompt_version": "pis7-prompt-59561c29+local-c5ffe572aa81",
+    "addendum": "shipping",
+    "n_designed": 40,
+    "n_scored": 40,
+    "unscored_rows": 0,
+    "icc": {
+      "icc": 0.819,
+      "lower": 0.595,
+      "upper": 0.913,
+      "n": 40,
+      "interpretation": "Good"
+    },
+    "spearman": {
+      "rho": 0.8312039098214986,
+      "lower": 0.6963972070078147,
+      "upper": 0.9093518182766843,
+      "n": 40
+    },
+    "bias": 6.4,
+    "low": {
+      "n": 10,
+      "bias": 12
+    },
+    "mid": {
+      "n": 15,
+      "bias": 11.33
+    },
+    "high": {
+      "n": 15,
+      "bias": -2.27
+    },
+    "ai_range": [
+      29,
+      90
+    ],
+    "target_sd": 22.71,
+    "ai_sd": 18.35,
+    "flagged": 10,
+    "retest": {
+      "icc": 0.94,
+      "lower": 0.89,
+      "upper": 0.968,
+      "n": 40,
+      "interpretation": "Very Good"
+    },
+    "per_domain_bias": {
+      "d1": 0,
+      "d2": 0.48,
+      "d3": 0.38,
+      "d4": 0.7,
+      "d5": 0.33,
+      "d6": -0.2,
+      "d7": 0.35
+    }
+  },
+  "variant": {
+    "prompt_version": "pis7-prompt-59561c29+local-699af9694d0e",
+    "addendum": {
+      "candidate": "scripts/calibration/anchors/addenda/v4-weak-work-no-default3.txt",
+      "sha256": "699af9694d0e26a3e26eabd9390dbbf4f0bf024d88def55e8f37e0a89d871a22"
+    },
+    "n_designed": 40,
+    "n_scored": 40,
+    "unscored_rows": 0,
+    "icc": {
+      "icc": 0.845,
+      "lower": 0.642,
+      "upper": 0.926,
+      "n": 40,
+      "interpretation": "Good"
+    },
+    "spearman": {
+      "rho": 0.8505058399033611,
+      "lower": 0.7288316437905618,
+      "upper": 0.9201073653654599,
+      "n": 40
+    },
+    "bias": 6.2,
+    "low": {
+      "n": 10,
+      "bias": 9.6
+    },
+    "mid": {
+      "n": 15,
+      "bias": 11.13
+    },
+    "high": {
+      "n": 15,
+      "bias": -1
+    },
+    "ai_range": [
+      20,
+      100
+    ],
+    "target_sd": 22.71,
+    "ai_sd": 20.53,
+    "flagged": 8,
+    "retest": {
+      "icc": 0.933,
+      "lower": 0.877,
+      "upper": 0.964,
+      "n": 40,
+      "interpretation": "Very Good"
+    },
+    "per_domain_bias": {
+      "d1": -0.05,
+      "d2": 0.43,
+      "d3": 0.43,
+      "d4": 0.7,
+      "d5": 0.28,
+      "d6": -0.12,
+      "d7": 0.35
+    }
+  },
+  "checks": [
+    {
+      "id": 1,
+      "rule": "SD(AI)/SD(target) rises by >= 0.08 and stays <= 1.15",
+      "value": "0.81 -> 0.9",
+      "pass": true
+    },
+    {
+      "id": 2,
+      "rule": "ICC(A,1) vs target point estimate is higher",
+      "value": "0.82 -> 0.85",
+      "pass": true
+    },
+    {
+      "id": 3,
+      "rule": "Spearman drops by <= 0.03",
+      "value": "0.83 -> 0.85",
+      "pass": true
+    },
+    {
+      "id": 4,
+      "rule": "|high-band bias| <= 7",
+      "value": "-1",
+      "pass": true
+    },
+    {
+      "id": 5,
+      "rule": "test–retest ICC >= 0.85 and no unscored run",
+      "value": "0.93, unscored 0",
+      "pass": true
+    }
+  ],
+  "adopt": true
+}

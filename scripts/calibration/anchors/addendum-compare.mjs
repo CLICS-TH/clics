@@ -35,6 +35,16 @@ export const RULE = Object.freeze({
   maxVariants: 3,
 });
 
+// AUTHORING.md §7 item 24 — the scale-compression rule, written before any v3/v4 score existed.
+export const RULE_SPREAD = Object.freeze({
+  sdRatioRiseMin: 0.08,   // 1. SD(AI)/SD(target) rises by at least this
+  sdRatioMax: 1.15,       //    ...and does not overshoot past this
+  spearmanDropMax: 0.03,  // 3. composite Spearman may fall by at most this
+  highBiasMax: 7,         // 4. |high-band bias| at most this
+  retestMin: 0.85,        // 5. test–retest ICC(A,1) at least this, no unscored run
+  maxVariants: 2,
+});
+
 const r2 = (x) => (x == null ? null : Math.round(x * 100) / 100);
 const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
 
@@ -97,6 +107,7 @@ export function armStats(design, doc, { threshold, allowedIds }) {
     mid: band((t) => t >= RULE.lowBand && t < RULE.highBand),
     high: band((t) => t >= RULE.highBand),
     ai_range: ai.length ? [Math.min(...ai), Math.max(...ai)] : null,
+    target_sd: kg.anchors.length > 1 ? r2(Math.sqrt(kg.anchors.reduce((a, x) => a + (x.target_composite - mean(kg.anchors.map((y) => y.target_composite))) ** 2, 0) / (kg.anchors.length - 1))) : null,
     ai_sd: ai.length > 1 ? r2(Math.sqrt(ai.reduce((a, v) => a + (v - mean(ai)) ** 2, 0) / (ai.length - 1))) : null,
     flagged: kg.anchors.filter((x) => x.flagged).length,
     retest: iccTwoRater(pairs),
@@ -122,6 +133,30 @@ export function adoption(base, cand) {
     { id: 5, rule: `test–retest ICC >= ${RULE.retestMin} and no unscored run`,
       value: `${r2(cand.retest?.icc)}, unscored ${cand.unscored_rows}`,
       pass: cand.retest?.icc != null && cand.retest.icc >= RULE.retestMin && cand.unscored_rows === 0 },
+  ];
+  return { checks, adopt: checks.every((c) => c.pass) };
+}
+
+/** Item 24: the five scale-compression conditions. Every one must hold. */
+export function adoptionSpread(base, cand) {
+  const ratio = (x) => (x.ai_sd != null && x.target_sd ? x.ai_sd / x.target_sd : null);
+  const rb = ratio(base), rc = ratio(cand);
+  const checks = [
+    { id: 1, rule: `SD(AI)/SD(target) rises by >= ${RULE_SPREAD.sdRatioRiseMin} and stays <= ${RULE_SPREAD.sdRatioMax}`,
+      value: `${r2(rb)} -> ${r2(rc)}`,
+      pass: rb != null && rc != null && rc - rb >= RULE_SPREAD.sdRatioRiseMin && rc <= RULE_SPREAD.sdRatioMax },
+    { id: 2, rule: 'ICC(A,1) vs target point estimate is higher',
+      value: `${r2(base.icc?.icc)} -> ${r2(cand.icc?.icc)}`,
+      pass: base.icc?.icc != null && cand.icc?.icc != null && cand.icc.icc > base.icc.icc },
+    { id: 3, rule: `Spearman drops by <= ${RULE_SPREAD.spearmanDropMax}`,
+      value: `${r2(base.spearman?.rho)} -> ${r2(cand.spearman?.rho)}`,
+      pass: base.spearman?.rho != null && cand.spearman?.rho != null && base.spearman.rho - cand.spearman.rho <= RULE_SPREAD.spearmanDropMax },
+    { id: 4, rule: `|high-band bias| <= ${RULE_SPREAD.highBiasMax}`,
+      value: `${cand.high.bias}`,
+      pass: cand.high.bias != null && Math.abs(cand.high.bias) <= RULE_SPREAD.highBiasMax },
+    { id: 5, rule: `test–retest ICC >= ${RULE_SPREAD.retestMin} and no unscored run`,
+      value: `${r2(cand.retest?.icc)}, unscored ${cand.unscored_rows}`,
+      pass: cand.retest?.icc != null && cand.retest.icc >= RULE_SPREAD.retestMin && cand.unscored_rows === 0 },
   ];
   return { checks, adopt: checks.every((c) => c.pass) };
 }
@@ -155,7 +190,8 @@ async function main() {
 
   const B = armStats(design, base, { threshold, allowedIds });
   const C = armStats(design, cand, { threshold, allowedIds });
-  const verdict = adoption(B, C);
+  const spread = flag('rule') === 'spread';
+  const verdict = spread ? adoptionSpread(B, C) : adoption(B, C);
   const line = (k, b, c) => console.log(`  ${k.padEnd(22)} ${String(b).padEnd(26)} ${c}`);
   console.log(`addendum-compare — ${EVIDENCE_LEVEL}; tuning split, selection not validation`);
   line('', 'baseline', 'variant');
@@ -172,13 +208,14 @@ async function main() {
   line('flagged (>threshold)', B.flagged, C.flagged);
   line('test–retest ICC', ci(B.retest), ci(C.retest));
   line('unscored rows', B.unscored_rows, C.unscored_rows);
-  console.log('\n  pre-registered adoption rule (AUTHORING.md §7 item 21):');
+  line('target SD', B.target_sd, C.target_sd);
+  console.log(`\n  pre-registered adoption rule (AUTHORING.md §7 item ${spread ? 24 : 21}):`);
   for (const c of verdict.checks) console.log(`   ${c.pass ? 'PASS' : 'FAIL'}  ${c.id}. ${c.rule}: ${c.value}`);
   console.log(`\n  ${verdict.adopt ? 'ADOPTABLE on tuning — still needs human validation (plan 2.7)' : 'NOT ADOPTED — the baseline stays'}`);
   const out = flag('out');
   if (out) {
     await writeFile(path.resolve(out), JSON.stringify({
-      probe: 'anchors-addendum-compare', evidence_level: EVIDENCE_LEVEL, rule: RULE,
+      probe: 'anchors-addendum-compare', evidence_level: EVIDENCE_LEVEL, rule: spread ? RULE_SPREAD : RULE, rule_item: spread ? 24 : 21,
       baseline_files: baseFiles, variant_files: candFiles, baseline: B, variant: C, ...verdict,
     }, null, 2) + '\n');
     console.log(`  wrote ${out}`);
