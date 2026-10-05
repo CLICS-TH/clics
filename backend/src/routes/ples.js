@@ -13,7 +13,9 @@ const { pilotTestMode, clinicalArtifactsEnabled, holdResultUntilAudited, calibra
 const identity = require('../services/identity');
 const reflection = require('../services/reflection');
 const acceptability = require('../lib/acceptability');
-const { creditSettings, getSetting, transcriptCap } = require('../lib/settings');
+const { creditSettings, getSetting, transcriptCap, chatStreamingEnabled } = require('../lib/settings');
+const { sseStream } = require('../lib/sse');
+const { recordSupersededDraft } = require('../services/superseded-draft');
 const { creditFor, creditTable } = require('../services/credit');
 const { COMPLETED_STATUSES } = require('../lib/ple-status');
 const { scanPle, flagRescueReplyBreach, recordReportedReply } = require('../services/integrity-scan');
@@ -476,11 +478,17 @@ async function replayKeyedTurn(req, res, next) {
 
 // Send a message turn
 router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, async (req, res) => {
+  // Streamed reply (lib/sse.js). The stream opens on rimpl's first word, so until then — and on every
+  // turn that never streams (setting off, a rescue turn, a failure before the first word) — `out()` IS
+  // `res` and every answer below is the plain JSON it always was. Once it has opened, `out()` turns the
+  // same status + body into the stream's final `done` event.
+  let sse = null;
+  const out = () => (sse ? sse.out() : res);
   const parsed = MessageSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  if (!parsed.success) return out().status(400).json({ error: parsed.error.flatten() });
 
   const { data: ple } = await fetchOwnedPle(req.params.id, req.user.id);
-  if (!ple || ple.status !== 'active') return res.status(400).json({ error: 'PLE not active' });
+  if (!ple || ple.status !== 'active') return out().status(400).json({ error: 'PLE not active' });
   const turnKey = parsed.data.client_turn_id ?? null;
 
   // `id` too, so an orphaned question this request is about to replace (see the repair below) can be left
@@ -501,7 +509,7 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
   const cap = await transcriptCap();
   const contextUsed = Number(ple.context_tokens ?? 0);
   if (cap.limit > 0 && contextUsed + Math.ceil(message.length / 4) >= cap.limit) {
-    return res.status(403).json({
+    return out().status(403).json({
       error: 'This conversation has reached its length limit. Please end the session to submit it.',
       code: 'transcript_limit_reached', used: contextUsed, limit: cap.limit,
     });
@@ -514,13 +522,13 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
   let claimToken = null;
   if (turnKey && !req.turnIdemUnavailable) {
     const claim = await turnIdem.claimTurn(req.params.id, turnKey);
-    if (claim.state === 'error') return res.status(500).json({ error: 'Could not save this message. Please try again.', code: 'turn_claim_failed' });
+    if (claim.state === 'error') return out().status(500).json({ error: 'Could not save this message. Please try again.', code: 'turn_claim_failed' });
     if (claim.state === 'claimed') claimToken = claim.token;
     else if (claim.state === 'busy') {
       // Someone holds it, or finished it since the replay check: answer from the record if it is there.
       const stored = await turnIdem.findStoredTurn(req.params.id, turnKey, message);
-      if (stored.state === 'done' || stored.state === 'conflict' || stored.state === 'incomplete') return respondStoredTurn(res, ple, turnKey, stored);
-      return respondPending(res, turnKey);
+      if (stored.state === 'done' || stored.state === 'conflict' || stored.state === 'incomplete') return respondStoredTurn(out(), ple, turnKey, stored);
+      return respondPending(out(), turnKey);
     }
     // 'unavailable': table missing — proceed exactly as an unkeyed request (already logged).
   }
@@ -537,7 +545,7 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
       replaceOrphanId = again.physician.id;
     } else if (again.state !== 'none') {
       await releaseClaim();
-      return respondStoredTurn(res, ple, turnKey, again);
+      return respondStoredTurn(out(), ple, turnKey, again);
     }
   }
   // What the AI sees: the transcript as it stands, minus the orphan being replaced (it would otherwise
@@ -555,13 +563,15 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
   if (!reservation.ok) {
     await releaseClaim(); // refused before the AI was asked: free the slot
     const b = await budgetState(req.user);
-    return res.status(403).json({
+    return out().status(403).json({
       error: b.reason === 'tokens'
         ? `AI usage limit reached (${(b.tokenLimit ?? tokenLimit).toLocaleString('en-US')} tokens). Contact an administrator.`
         : `AI usage limit reached ($${limit.toFixed(2)}). Contact an administrator.`,
       code: 'budget_exceeded', reason: b.reason ?? 'cost',
     });
   }
+
+  if (parsed.data.stream === true && await chatStreamingEnabled()) sse = sseStream(res);
 
   let rimplResponse;
   try {
@@ -579,6 +589,9 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
       // answer has not changed. Derived, not stored: rescue_exchanges_before is the turn count at
       // activation, so the difference IS the number of rounds spent in rescue.
       rescue_rounds: Math.max(0, (ple.turn_count ?? 0) - (ple.rescue_exchanges_before ?? 0)),
+      // Pieces of the reply go straight on to the physician; only `delta` and `replace` exist.
+      stream: !!sse,
+      onEvent: sse ? (name, data) => sse.send(name, data) : undefined,
     });
   } catch (err) {
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
@@ -586,7 +599,7 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
     // rimpl's proactive size backstop (or its body limit): the transcript no longer fits the model —
     // the same outcome as our own cap above, so the same code, and a human-readable "end the session".
     if (err.status === 413 || err.code === 'transcript_too_large') {
-      return res.status(403).json({
+      return out().status(403).json({
         error: 'This conversation has reached its length limit. Please end the session to submit it.',
         code: 'transcript_limit_reached', used: contextUsed, limit: cap.limit,
       });
@@ -595,11 +608,11 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
     // fail-over — CREC082 forbids sending a research transcript to a cloud API because the box is busy.
     if (err.status === 503) {
       const retry_after_s = Math.max(5, Math.round((err.retryAfterMs ?? 30_000) / 1000));
-      res.set('Retry-After', String(retry_after_s));
-      return res.status(503).json({ error: 'The AI is busy. Please try again shortly.', code: 'ai_busy', retry_after_s });
+      out().set('Retry-After', String(retry_after_s));
+      return out().status(503).json({ error: 'The AI is busy. Please try again shortly.', code: 'ai_busy', retry_after_s });
     }
     // Stable machine code (matches the /health/deep readiness signal + the repo's code: convention).
-    return res.status(502).json({ error: `RIMPL unavailable: ${err.message}`, code: 'rimpl_unavailable' });
+    return out().status(502).json({ error: `RIMPL unavailable: ${err.message}`, code: 'rimpl_unavailable' });
   }
 
   const physicianTokens = Math.ceil(message.length / 4);
@@ -611,8 +624,8 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
     await releaseClaim();
     console.warn(`[turn-idem] PLE ${req.params.id}: a concurrent request stored this turn first — dropping this reply`);
     const stored = await turnIdem.findStoredTurn(req.params.id, turnKey, message);
-    if (stored.state === 'done' || stored.state === 'conflict') return respondStoredTurn(res, ple, turnKey, stored);
-    return respondPending(res, turnKey); // the winner is between its two inserts (fallback path)
+    if (stored.state === 'done' || stored.state === 'conflict') return respondStoredTurn(out(), ple, turnKey, stored);
+    return respondPending(out(), turnKey); // the winner is between its two inserts (fallback path)
   };
 
   // Keyed: both rows carry the key; the unique (ple_id, client_turn_id) index on the physician row is the
@@ -640,7 +653,7 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
   else if (atomic.state === 'duplicate') return loseToConcurrent();
   else if (atomic.state === 'not_active') {
     await refundAndRelease();   // nothing stored; a repaired orphan is untouched (the delete rolled back)
-    return res.status(409).json({ error: 'This session has ended; the reply was not saved.', code: 'ple_not_active' });
+    return out().status(409).json({ error: 'This session has ended; the reply was not saved.', code: 'ple_not_active' });
   } else if (atomic.state === 'error') {
     if (keyStored) {
       // Either nothing was stored (rolled back), or the commit happened and only its reply was lost. Read
@@ -655,12 +668,12 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
         console.error(`[turn-idem] PLE ${req.params.id}: store_chat_turn errored and the read-back found '${check.state}' — ` +
           `treating the turn as NOT stored (refund + 500); a late commit would show up under key ${turnKey}`);
         await refundAndRelease();
-        return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
+        return out().status(500).json({ error: 'Failed to save the message. Please try again.' });
       }
     } else {
       // Unkeyed: no key to read back by. Today's answer to a failed save: refund + 500.
       await refundAndRelease();
-      return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
+      return out().status(500).json({ error: 'Failed to save the message. Please try again.' });
     }
   }
   // 'unavailable': the function is not there yet — the two inserts below (logged).
@@ -672,11 +685,11 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
     const { data: now } = await supabase.from('ples').select('status').eq('id', req.params.id).single();
     if (now && now.status !== 'active') {
       await refundAndRelease();
-      return res.status(409).json({ error: 'This session has ended; the reply was not saved.', code: 'ple_not_active' });
+      return out().status(409).json({ error: 'This session has ended; the reply was not saved.', code: 'ple_not_active' });
     }
     if (replaceOrphanId && !(await turnIdem.deleteOrphan(req.params.id, turnKey, replaceOrphanId))) {
       await refundAndRelease();
-      return res.status(500).json({ error: 'Could not save this message. Please try again.', code: 'turn_repair_failed' });
+      return out().status(500).json({ error: 'Could not save this message. Please try again.', code: 'turn_repair_failed' });
     }
   }
 
@@ -704,7 +717,7 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
       await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied);
       await turnIdem.deleteKeyRows(req.params.id, turnKey); // the error may belong to a write that committed
       await releaseClaim();
-      return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
+      return out().status(500).json({ error: 'Failed to save the message. Please try again.' });
     }
     // .select('id').single(): the client needs this row's id so the reply can be reported
     // (POST /:id/messages/:messageId/report) without a second round trip to find it.
@@ -735,7 +748,7 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
       if (keyStored) await turnIdem.deleteKeyRows(req.params.id, turnKey);
       await releaseClaim();
     }
-    return res.status(500).json({ error: 'Failed to save the message. Please try again.' });
+    return out().status(500).json({ error: 'Failed to save the message. Please try again.' });
   }
 
   const turnIn = rimplResponse.input_tokens ?? 0;
@@ -832,6 +845,11 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
   if (counterErr) console.error('[ples] failed to update counters:', counterErr.message);
   // Stored: the claim becomes an inert 'done' marker (a key stored unkeyed frees it instead).
   if (claimToken) await (keyStored ? turnIdem.completeClaim(req.params.id, turnKey, claimToken) : releaseClaim());
+  // A streamed draft the corrective retry replaced: the physician saw it, so the record keeps it beside
+  // the reply that replaced it. Never on the scored transcript (content), never sent back to the client.
+  if (rimplResponse.superseded_draft && assistantRow?.id) {
+    await recordSupersededDraft(assistantRow.id, rimplResponse.superseded_draft, rimplResponse.superseded_reason);
+  }
 
   // Settle the reservation to the turn's REAL cost, priced against the provider that ACTUALLY served
   // it (rimpl reports it; the on-prem model is $0). We compute the delta here and pass it as
@@ -851,7 +869,7 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
   // A WHITELIST, never a spread of rimpl's body. That body also carries provider / model /
   // prompt_version / failed_over_from / rescue — research provenance that would tell a physician which
   // arm they are in (and that the rescue fired). physician-ui reads exactly these fields.
-  res.json({
+  out().json({
     // The stored assistant row's id (null only if the insert returned no row). Not provenance: it is
     // the same id GET /ples/:id already returns for every message.
     message_id: assistantRow?.id ?? null,

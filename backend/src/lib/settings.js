@@ -35,6 +35,13 @@ async function clinicalArtifactsEnabled() {
   return (await getSetting('clinical_artifacts', 0)) === 1;
 }
 
+// Chat streaming (superadmin setting `chat_streaming`, default OFF): when ON, a physician-ui turn that
+// asks for it gets the reply word by word (server-sent events) instead of all at once. Off restores the
+// whole-reply behaviour for everyone, with no deploy.
+async function chatStreamingEnabled() {
+  return (await getSetting('chat_streaming', 0)) === 1;
+}
+
 // Peer Calibration (superadmin toggle): when ON, a PLE may be assigned to several auditors and the
 // auditor reveal pane shows a you-vs-auditor-average PIS-7 radar. Default OFF (single-auditor blind audit).
 async function peerCalibrationEnabled() {
@@ -179,4 +186,5 @@ async function creditSettings() {
 }
 
 module.exports = {
+  chatStreamingEnabled,
   calibrationRevealLocked, getSetting, getTextSetting, iccGates, transcriptCap, minAuditorsPerPle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };
