@@ -247,8 +247,18 @@ async function httpStream(url, { body, timeoutMs, apiKey, signal, onDelta }) {
     err.headers = res.headers;
     throw err;
   }
+  // A server that ignores `stream` answers with one JSON completion: hand its text over in one piece.
+  if (/application\/json/i.test(res.headers?.get?.('content-type') || '')) {
+    let data;
+    try { data = await res.json(); } catch (e) { throw tag(e); }
+    const whole = data?.choices?.[0]?.message?.content;
+    if (typeof whole === 'string' && whole) onDelta(whole);
+    return data;
+  }
   let text = '', finish = null, usage = null, model = null, fingerprint = null;
-  let emitted = false;
+  let emitted = false, sawDone = false;
+  // Protocol failures carry noRetry once text has gone out, like every other mid-stream failure.
+  const protocolError = (msg) => Object.assign(new Error(`local AI stream: ${msg}`), { status: 502, code: 'stream_incomplete', ...(emitted ? { noRetry: true } : {}) });
   const decoder = new TextDecoder();
   let buf = '';
   try {
@@ -260,9 +270,11 @@ async function httpStream(url, { body, timeoutMs, apiKey, signal, onDelta }) {
         buf = buf.slice(nl + 1);
         if (!line.startsWith('data:')) continue;
         const payload = line.slice(5).trim();
-        if (payload === '[DONE]') continue;
+        if (payload === '[DONE]') { sawDone = true; continue; }
         let j;
         try { j = JSON.parse(payload); } catch { continue; }   // a keep-alive or a torn line: skip it
+        // vLLM / proxies report a failure mid-stream as a data line with an `error` object (status 200).
+        if (j.error) throw protocolError(`server error ${String(j.error.message || j.error.type || '').slice(0, 200)}`);
         if (j.model) model = j.model;
         if (j.system_fingerprint) fingerprint = j.system_fingerprint;
         if (j.usage) usage = j.usage;
@@ -277,10 +289,13 @@ async function httpStream(url, { body, timeoutMs, apiKey, signal, onDelta }) {
       }
     }
   } catch (e) {
-    const err = tag(e);
+    const err = e?.code === 'stream_incomplete' ? e : tag(e);
     if (emitted) err.noRetry = true;
     throw err;
   }
+  // A body that just stops (no [DONE], no finish_reason) is a cut-off reply, not a finished one: storing
+  // it would put half an answer in the transcript as if the model had meant it.
+  if (!sawDone && !finish) throw protocolError('the reply ended before the server finished it');
   return {
     choices: [{ message: { content: text }, finish_reason: finish }],
     usage, model, system_fingerprint: fingerprint,
@@ -363,6 +378,7 @@ function engineOf(fingerprint) {
 
 // `purpose` picks the queue lane (LANE_FOR); `signal` is the caller's client-gone signal — while
 // queued it drops the waiter, in flight it cancels the request at the socket. Both optional.
+let warnedNoStreamUsage = false;
 // `onDelta(text)` (optional) streams the reply — see httpStream. The resolved result is unchanged.
 async function call({ systemPrompt, messages, maxTokens = 1500, temperature, purpose, signal, onDelta }) {
   const { baseUrl, model, apiKey, timeoutMs, numCtx, maxPromptTokens } = cfg();
@@ -433,9 +449,17 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature, pur
     // plus reasoning_content) must degrade to '' rather than leak chain-of-thought into a clinical
     // transcript — the caller surfaces the failure via stopReason instead.
     const text = typeof choice?.message?.content === 'string' ? choice.message.content : '';
-    const inputTokens = data.usage?.prompt_tokens ?? 0;
-    observePromptTokens(est, data.usage?.prompt_tokens);
-    const outputTokens = data.usage?.completion_tokens ?? 0;
+    // A streamed reply from a server that ignored include_usage has no usage at all. Zero would let the
+    // token cap and the transcript cap never move, so estimate (the same bytes/3 unit as the prompt
+    // backstop) and say so once.
+    const streamedNoUsage = !!onDelta && !data.usage;
+    if (streamedNoUsage && !warnedNoStreamUsage) {
+      warnedNoStreamUsage = true;
+      console.warn('[local-ai] streamed reply carried no usage (server ignores stream_options.include_usage) — estimating tokens from bytes/3');
+    }
+    const inputTokens = streamedNoUsage ? Math.round(predicted ?? est) : (data.usage?.prompt_tokens ?? 0);
+    if (!streamedNoUsage) observePromptTokens(est, data.usage?.prompt_tokens);
+    const outputTokens = streamedNoUsage ? Math.ceil(Buffer.byteLength(text, 'utf8') / 3) : (data.usage?.completion_tokens ?? 0);
     const rawFinish = choice?.finish_reason ?? null;
 
     return {

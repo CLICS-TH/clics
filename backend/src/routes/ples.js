@@ -572,6 +572,7 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
   }
 
   if (parsed.data.stream === true && await chatStreamingEnabled()) sse = sseStream(res);
+  let onScreen = '';   // the streamed text the physician is looking at right now (cleared by `replace`)
 
   let rimplResponse;
   try {
@@ -591,9 +592,20 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
       rescue_rounds: Math.max(0, (ple.turn_count ?? 0) - (ple.rescue_exchanges_before ?? 0)),
       // Pieces of the reply go straight on to the physician; only `delta` and `replace` exist.
       stream: !!sse,
-      onEvent: sse ? (name, data) => sse.send(name, data) : undefined,
+      onEvent: sse ? (name, data) => {
+        if (name === 'delta' && typeof data?.text === 'string') onScreen += data.text;
+        else if (name === 'replace') onScreen = '';
+        sse.send(name, data);
+      } : undefined,
     });
   } catch (err) {
+    // A streamed turn that failed after its first words: nothing is stored (there is no finished reply),
+    // but the physician READ those words. Record what was shown, so the episode's record does not
+    // silently differ from what the physician experienced. Never part of the scored transcript.
+    if (onScreen) {
+      logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'ple.stream_exposure', targetType: 'ple', targetId: req.params.id,
+        metadata: { shown_text: onScreen, turn: (ple.turn_count ?? 0) + 1, client_turn_id: turnKey, error_status: err.status ?? null, error_code: err.code ?? null } });
+    }
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied); // no turn delivered — release the reservation
     await releaseClaim(); // and the slot, so a retry with the same key starts clean
     // rimpl's proactive size backstop (or its body limit): the transcript no longer fits the model —

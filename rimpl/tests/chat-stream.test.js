@@ -63,7 +63,7 @@ describe('streamed chat (chat.js + lib/sse.js)', () => {
     expect(typeof callAI.mock.calls[0][0].onDelta).toBe('function');
   });
 
-  test('a streamed draft replaced by the citation retry: replace event, retry streamed, draft reported', async () => {
+  test('a streamed draft replaced by the citation retry: replace, the retry sent whole, draft reported', async () => {
     callAI.mockImplementationOnce(streamed([NO_CITE], 100, 40)).mockImplementationOnce(streamed([GOOD], 160, 30));
     const res = await turn();
     const events = parseSse(res.text);
@@ -75,7 +75,8 @@ describe('streamed chat (chat.js + lib/sse.js)', () => {
     expect(body.superseded_draft).toBe(NO_CITE);
     expect(body.superseded_reason).toBe('citation');
     expect(body.token_count).toBe(140 + 190);   // both calls still billed
-    expect(typeof callAI.mock.calls[1][0].onDelta).toBe('function');
+    // The retry is NOT streamed (a retry failing half-way would leave unrecorded words on screen).
+    expect(callAI.mock.calls[1][0].onDelta).toBeUndefined();
   });
 
   test('a failed language-only retry keeps the first reply and reports no superseded draft', async () => {

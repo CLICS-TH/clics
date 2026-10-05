@@ -275,11 +275,13 @@ router.post('/', async (req, res) => {
       const firstText = text;
       const firstShown = shown;
       const reason = needCitation ? 'citation' : needRescue ? 'rescue' : 'language';
-      // Tell the caller the text it is showing is about to be replaced, then stream the retry.
+      // Tell the caller the text it is showing is about to be replaced. The retry itself is NOT streamed:
+      // a retry that failed half-way would leave words on screen that no record holds (and a failed
+      // language-only retry keeps the first reply). Its finished text goes out in one piece below.
       if (sse && firstShown) { sse.send('replace', { reason }); shown = false; }
       let retry;
       try {
-        retry = await callAI({ purpose: 'chat', provider, systemPrompt, messages: retryMessages, maxTokens: CHAT_MAX_TOKENS, signal, onDelta });
+        retry = await callAI({ purpose: 'chat', provider, systemPrompt, messages: retryMessages, maxTokens: CHAT_MAX_TOKENS, signal });
       } catch (err) {
         // The client is gone, or the retry was needed for a missing citation/❓ (that reply was not
         // deliverable, and failing closed there is the existing behaviour): propagate.
@@ -301,6 +303,7 @@ router.post('/', async (req, res) => {
         languageRetried = languageMismatch;
         rescueRetried = needRescue;
         if (firstShown) { supersededDraft = firstText; supersededReason = reason; }
+        if (sse) sse.send('delta', { text });
         // The one retry is all there is. If the reply is STILL not Thai, deliver it (a late English
         // answer beats a 502) but leave a trace with the measured share only — never the content.
         if (languageMismatch && isLanguageMismatch(text, language)) {

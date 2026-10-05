@@ -132,5 +132,25 @@ describe('streamed physician turn (ples.js + lib/sse.js)', () => {
     expect(ev[1].data.status).toBe(503);
     expect(ev[1].data.body).toMatchObject({ code: 'ai_busy', retry_after_s: 20 });
     expect(m.all('messages', 'insert')).toHaveLength(0);
+    // What the physician read is on the record, outside the transcript.
+    const ex = m.all('audit_log', 'insert').map((q) => q.payload).find((p) => p.action === 'ple.stream_exposure');
+    expect(ex).toMatchObject({ target_type: 'ple', target_id: 'ple1' });
+    expect(ex.metadata).toMatchObject({ shown_text: 'Amox', turn: 1, error_status: 503, error_code: 'queue_full' });
+  });
+
+  test('text cleared by `replace` is not what the physician was left looking at', async () => {
+    const err = Object.assign(new Error('RIMPL /chat error: 500'), { status: 500 });
+    mockRimplChat.mockImplementation(streams([['delta', { text: 'draft' }], ['replace', { reason: 'citation' }], ['delta', { text: 'fixed' }]], err));
+    await send();
+    const ex = m.all('audit_log', 'insert').map((q) => q.payload).find((p) => p.action === 'ple.stream_exposure');
+    expect(ex.metadata.shown_text).toBe('fixed');
+  });
+
+  test('a failure before any text records no exposure', async () => {
+    const busy = Object.assign(new Error('RIMPL /chat error: 503'), { status: 503, code: 'queue_full' });
+    mockRimplChat.mockImplementation(streams([], busy));
+    const r = await send();
+    expect(r.status).toBe(503);
+    expect(m.all('audit_log', 'insert').map((q) => q.payload).filter((p) => p.action === 'ple.stream_exposure')).toHaveLength(0);
   });
 });

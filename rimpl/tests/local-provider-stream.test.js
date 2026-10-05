@@ -94,3 +94,32 @@ test('a failure after text has gone out is terminal: no second attempt, noRetry 
   expect(fetchMock).toHaveBeenCalledTimes(1);
   expect(pieces).toEqual(['half an ans']);
 });
+
+test('a body that just stops (no [DONE], no finish_reason) is an error, not a finished reply', async () => {
+  fetchMock.mockResolvedValue(sseResponse([line({ choices: [{ delta: { content: 'partial' } }] })]));
+  await expect(load().call({ systemPrompt: 's', messages: [{ role: 'user', content: 'q' }], purpose: 'chat', onDelta: () => {} }))
+    .rejects.toMatchObject({ code: 'stream_incomplete', noRetry: true });
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+
+test('an error object inside the stream (HTTP 200) is an error', async () => {
+  fetchMock.mockResolvedValue(sseResponse([line({ error: { message: 'CUDA out of memory' } })]));
+  await expect(load().call({ systemPrompt: 's', messages: [{ role: 'user', content: 'q' }], purpose: 'chat', onDelta: () => {} }))
+    .rejects.toMatchObject({ code: 'stream_incomplete' });
+});
+
+test('a server that ignores stream and answers JSON: the text goes out in one piece', async () => {
+  fetchMock.mockResolvedValueOnce({ ok: true, status: 200, headers: new Map([['content-type', 'application/json']]),
+    json: async () => ({ choices: [{ message: { content: 'whole reply' }, finish_reason: 'stop' }], usage: { prompt_tokens: 3, completion_tokens: 2 } }) });
+  const pieces = [];
+  const out = await load().call({ systemPrompt: 's', messages: [{ role: 'user', content: 'q' }], purpose: 'chat', onDelta: (t) => pieces.push(t) });
+  expect(pieces).toEqual(['whole reply']);
+  expect(out).toMatchObject({ text: 'whole reply', inputTokens: 3, outputTokens: 2 });
+});
+
+test('a streamed reply with no usage chunk is estimated, never billed as zero', async () => {
+  fetchMock.mockResolvedValueOnce(sseResponse([line({ choices: [{ delta: { content: 'abcdef' }, finish_reason: 'stop' }] }), 'data: [DONE]\n\n']));
+  const out = await load().call({ systemPrompt: 'sys', messages: [{ role: 'user', content: 'hello there' }], purpose: 'chat', onDelta: () => {} });
+  expect(out.outputTokens).toBe(2);          // 6 bytes / 3
+  expect(out.inputTokens).toBeGreaterThan(0);
+});
