@@ -163,7 +163,9 @@ function failoverProviderFor(primary) {
  * @throws QueueFullError `{code:'queue_full', status:503, lane, retryAfterMs}` when the provider's
  *                   lane for this purpose is full — nothing was queued (providers/runtime.js).
  */
-async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTokens, temperature, signal }) {
+// `onDelta` (optional, chat only in practice) streams the reply — providers/*.js call(). Once any text has
+// been handed out, the turn is committed to the provider that produced it: no fail-over.
+async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTokens, temperature, signal, onDelta }) {
   if (purpose && !PURPOSES.includes(purpose)) {
     throw new Error(`Unknown AI purpose "${purpose}". Valid: ${PURPOSES.join(', ')}`);
   }
@@ -176,14 +178,18 @@ async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTo
     await settings.ensureFresh(SETTING_PURPOSES);
     provider = providerFor(purpose);
   }
-  const request = { systemPrompt, messages, maxTokens, temperature, purpose, signal };
+  let emitted = false;
+  const request = {
+    systemPrompt, messages, maxTokens, temperature, purpose, signal,
+    onDelta: onDelta ? (t) => { emitted = true; onDelta(t); } : undefined,
+  };
   const failover = !pinned && FAILOVER_PURPOSES.has(purpose) ? failoverProviderFor(provider) : null;
   if (!failover) return callWith(provider, request);
 
   try {
     return await callWith(provider, request);
   } catch (err) {
-    if (!isProviderDown(err)) throw err;
+    if (!isProviderDown(err) || emitted) throw err;
     console.warn(`[ai] chat fail-over: primary "${provider.name}" is down (${downReason(err)}) — retrying once on "${failover.name}"`);
     // The SAME request object the primary received: nothing is rebuilt here, so nothing can reach the
     // second provider that did not already reach the first — the de-identification upstream in the
@@ -209,8 +215,8 @@ async function callProvider({ provider: name, purpose, systemPrompt, messages, m
 // from the purpose (a chat turn must never wait behind an evaluation) and cancels at the transport
 // from the signal. Anthropic has no lanes, but it uses both: the signal cancels a queued or in-flight
 // call, and the purpose marks an evaluation for its late-retry cutoff.
-async function callWith(provider, { systemPrompt, messages, maxTokens, temperature, purpose, signal }) {
-  const result = await provider.call({ systemPrompt, messages, maxTokens, temperature, purpose, signal });
+async function callWith(provider, { systemPrompt, messages, maxTokens, temperature, purpose, signal, onDelta }) {
+  const result = await provider.call({ systemPrompt, messages, maxTokens, temperature, purpose, signal, ...(onDelta ? { onDelta } : {}) });
   // `provider` + `model` travel WITH the result, deliberately. A module-level MODEL constant is only
   // correct while exactly one model exists; under a hybrid it silently mislabels which system
   // produced a score (§10.2 provenance) and which rate to bill it at.

@@ -126,7 +126,10 @@ const runner = createRunner({
   },
 });
 
-async function call({ systemPrompt, messages, maxTokens = 1500, temperature, purpose, signal }) {
+// `onDelta(text)` (optional) streams the reply: each text piece is handed over as it arrives, and the
+// call still resolves with the same whole-reply result. Once a piece has gone out the attempt can no
+// longer be retried — the caller has already shown it — so an error after that point is terminal.
+async function call({ systemPrompt, messages, maxTokens = 1500, temperature, purpose, signal, onDelta }) {
   const startedAt = Date.now();
   const isEval = EVAL_PURPOSES.has(purpose);
   // `signal` is the caller's client-gone signal (lib/request-signal.js). Passed to the runner, a call
@@ -144,9 +147,19 @@ async function call({ systemPrompt, messages, maxTokens = 1500, temperature, pur
     const body = { model: MODEL, max_tokens: maxTokens, system, messages };
     if (temperature != null) body.temperature = temperature;
     let data, httpResp;
+    let emitted = false;
     try {
-      ({ data, response: httpResp } = await client.messages.create(body, { signal: sig }).withResponse());
+      if (onDelta) {
+        const stream = client.messages.stream(body, { signal: sig });
+        stream.on('text', (t) => { if (t) { emitted = true; onDelta(t); } });
+        data = await stream.finalMessage();
+        // SDK 0.30's MessageStream exposes no HTTP response, so a streamed call skips the
+        // rate-limit header log below (logRateLimit tolerates undefined).
+      } else {
+        ({ data, response: httpResp } = await client.messages.create(body, { signal: sig }).withResponse());
+      }
     } catch (err) {
+      if (emitted && err && typeof err === 'object') err.noRetry = true;
       const elapsed = Date.now() - startedAt;
       if (isEval && elapsed > EVAL_LATE_RETRY_MS && err && typeof err === 'object' && !sig?.aborted) {
         err.noRetry = true;
