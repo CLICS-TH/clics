@@ -450,6 +450,96 @@ await scenario(browser, base, 'R: unkeyed backend, 500 after the question was st
   check(/Could not confirm/.test(notice) && !/was not sent/.test(notice), 'cannot-confirm copy, never "was not sent", for a stored question');
 });
 
+// ---- Streamed replies (backend setting chat_streaming; js/api.js readEventStream, ple-chat.js liveReply) ----
+const sse = (route, events) => route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'text/event-stream; charset=utf-8' },
+  body: events.map(([n, d]) => `event: ${n}\ndata: ${JSON.stringify(d)}\n\n`).join('') });
+
+await scenario(browser, base, 'S: streamed reply -> the stored reply is drawn once, the live bubble is gone, the POST asked to stream', {
+  keyed: true,
+  onPost: ({ route, body, addTurn }) => {
+    addTurn(body.message, 'Amoxicillin 1 g tds (BTS, 2019).', body.client_turn_id);
+    return sse(route, [['delta', { text: 'Amoxicillin ' }], ['delta', { text: '1 g tds (BTS, 2019).' }],
+      ['done', { status: 200, body: { message_id: 'a1', content: 'Amoxicillin 1 g tds (BTS, 2019).', refs: [{ source: 'BTS' }], socratic_question: null, input_tokens: 5, output_tokens: 5 } }]]);
+  },
+}, async ({ page, store }) => {
+  await sendText(page, text);
+  await bodyHas(page, 'Amoxicillin 1 g tds');
+  check(store.posts[0].stream === true, 'the POST asked for a stream');
+  check(await count(page, '.msg-streaming') === 0, 'no live bubble left behind');
+  check(await count(page, '.typing-dots') === 0, 'no typing dots left behind');
+  check(await count(page, '.msg-assistant:not(.msg-system)') === 1, 'exactly one assistant reply');
+  check(await count(page, '.ref-chip') === 1, 'refs come from the stored turn');
+  check(await page.locator('#turns').innerText() === '1', 'turn counted once');
+  check(await page.evaluate(() => sessionStorage.getItem('clics_turn_ple1')) === null, 'pending key cleared');
+});
+
+await scenario(browser, base, 'T: streamed then replaced -> only the corrected reply remains', {
+  onPost: ({ route, body, addTurn }) => {
+    addTurn(body.message, 'CORRECTED (NICE, 2023).');
+    return sse(route, [['delta', { text: 'DRAFT WITHOUT CITATION' }], ['replace', { reason: 'citation' }], ['delta', { text: 'CORRECTED (NICE, 2023).' }],
+      ['done', { status: 200, body: { message_id: 'a1', content: 'CORRECTED (NICE, 2023).', refs: [], socratic_question: null } }]]);
+  },
+}, async ({ page }) => {
+  await sendText(page, text);
+  await bodyHas(page, 'CORRECTED (NICE, 2023).');
+  check(!(await page.evaluate(() => document.body.innerText.includes('DRAFT WITHOUT CITATION'))), 'the replaced draft is not on screen');
+  check(await count(page, '.msg-assistant:not(.msg-system)') === 1, 'one assistant reply');
+});
+
+await scenario(browser, base, 'U: stream breaks off before done -> settled like a dropped connection (reads back, never re-sent)', {
+  keyed: true,
+  onPost: ({ route, body, addTurn }) => {
+    addTurn(body.message, 'STORED AFTER BREAK', body.client_turn_id);
+    return sse(route, [['delta', { text: 'half a rep' }]]);   // no done event
+  },
+}, async ({ page, store }) => {
+  await sendText(page, text);
+  await bodyHas(page, 'STORED AFTER BREAK');
+  check(store.posts.length === 1, 'exactly one POST (no blind retry)');
+  check(store.gets >= 2, `the episode was read back (gets=${store.gets})`);
+  check(await count(page, '.msg-streaming') === 0, 'no live bubble left behind');
+});
+
+await scenario(browser, base, 'V: a streamed error (done 503 ai_busy) -> the usual busy notice and the text restored', {
+  onPost: ({ route }) => sse(route, [['delta', { text: 'Amox' }], ['done', { status: 503, body: { error: 'busy', code: 'ai_busy', retry_after_s: 20 } }]]),
+}, async ({ page }) => {
+  await sendText(page, text);
+  await bodyHas(page, 'AI is busy');
+  check(/20/.test(await page.locator('#messages .msg-system').last().innerText()), 'wait taken from the body');
+  check(await page.inputValue('#input') === text, 'text restored');
+  check(await count(page, '.msg-streaming') === 0, 'no live bubble left behind');
+});
+
+await scenario(browser, base, 'W: the live bubble itself (liveReply): text grows, artifact fence held back, replace note, hidden from screen readers', {
+  onPost: ({ route }) => json(route, 200, {}),
+}, async ({ page }) => {
+  const r = await page.evaluate(async () => {
+    const b = document.createElement('div'); b.className = 'msg-assistant';
+    b.innerHTML = '<div class="typing-dots"></div>';
+    document.getElementById('messages').appendChild(b);
+    const live = liveReply(b, () => {});
+    const tick = () => new Promise((res) => requestAnimationFrame(() => setTimeout(res, 0)));
+    live.onEvent('delta', { text: 'First **part**' }); await tick();
+    const a = b.querySelector('.msg-stream-body').innerText;
+    live.onEvent('delta', { text: '\n:::artifact{type="ddx"}\n| a | b |' }); await tick();
+    const fence = b.querySelector('.msg-stream-body').innerText;
+    const strong = !!b.querySelector('.msg-stream-body strong');
+    live.onEvent('replace', { reason: 'language' }); await tick();
+    const afterReplace = b.querySelector('.msg-stream-body').innerText;
+    const note = b.querySelector('.typing-note');
+    const md = !!markdownFragment('x');   // the markdown libs load from a CDN this smoke blocks
+    return { md, a, fence, strong, afterReplace, noteShown: !note.hidden, noteText: note.innerText,
+      hidden: b.querySelector('.msg-stream-body').getAttribute('aria-hidden'), dots: !!b.querySelector('.typing-dots') };
+  });
+  // With the libs: sanitised markdown. Without them (this smoke): plain text, never raw HTML.
+  check(r.a.trim() === (r.md ? 'First part' : 'First **part**'), `text drawn as it arrives (${JSON.stringify(r.a)}, markdown ${r.md ? 'on' : 'off'})`);
+  check(r.strong === r.md, 'markdown when the libs are there, plain text when not');
+  check(!/artifact|\| a \|/.test(r.fence), 'the :::artifact block is held back');
+  check(r.afterReplace.trim() === '' && r.noteShown && /Refining/.test(r.noteText), 'replace clears the text under the refining note');
+  check(r.hidden === 'true', 'live text is aria-hidden (the finished reply is announced once)');
+  check(!r.dots, 'typing dots replaced');
+});
+
 await browser.close(); server.close();
 console.log(fails.length ? `\nFAILED: ${fails.length}` : '\nALL PASS');
 process.exit(fails.length ? 1 : 0);

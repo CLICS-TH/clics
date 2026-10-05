@@ -534,6 +534,59 @@ async function withTurnLock(fn) {
   }
 }
 
+// ---- Streamed reply (backend setting chat_streaming) ----
+// Turns the typing bubble into the reply as its pieces arrive. `replace` means a post-check failed and a
+// corrected reply is coming: the text so far is cleared under a one-line note. The live text is shown as
+// sanitised markdown (markdownFragment, plain text if the libs did not load) and is hidden from screen
+// readers — the finished reply is announced once, as before, when renderMessage draws it. A clinical
+// artifact block is held back until the end (it opens in the side panel from the stored reply).
+function liveReply(bubble, disarmSlow) {
+  let text = '', body = null, note = null, frame = 0;
+  const paint = () => {
+    frame = 0;
+    if (!body) return;
+    const stick = nearBottom();
+    const fence = text.search(/(^|\n):::/);
+    const shown = (fence >= 0 ? text.slice(0, fence) : text).trim();
+    const frag = shown ? markdownFragment(shown) : null;
+    body.replaceChildren();
+    if (frag) body.appendChild(frag); else body.textContent = shown;
+    if (stick) scrollToBottom();
+  };
+  const start = () => {
+    disarmSlow();
+    bubble.replaceChildren(aiChip());
+    bubble.classList.add('msg-streaming');
+    bubble.insertAdjacentHTML('beforeend', '<span class="sr-only">กำลังพิมพ์คำตอบ… / is writing a reply…</span>');
+    body = document.createElement('div');
+    body.className = 'msg-stream-body';
+    body.setAttribute('aria-hidden', 'true');
+    note = document.createElement('div');
+    note.className = 'typing-note';
+    note.hidden = true;
+    note.textContent = 'กำลังปรับคำตอบ…';
+    const en = document.createElement('span');
+    en.className = 'bi-en';
+    en.textContent = 'Refining the answer…';
+    note.appendChild(en);
+    bubble.append(note, body);
+  };
+  const onEvent = (name, data) => {
+    if (name === 'delta' && data && typeof data.text === 'string') {
+      if (!body) start();
+      if (note) note.hidden = true;
+      text += data.text;
+      if (!frame) frame = requestAnimationFrame(paint);
+    } else if (name === 'replace') {
+      if (!body) start();
+      text = '';
+      note.hidden = false;
+      paint();
+    }
+  };
+  return { onEvent };
+}
+
 // ---- Lost-connection settle (client_turn_id) ----
 // The backend stores a chat turn only AFTER the AI answers (up to ~100 s), so a dropped connection or a
 // client timeout does not mean the turn failed: it is very often stored, and a blind Retry used to put
@@ -737,7 +790,11 @@ async function deliverTurn(message) {
   const disarmSlow = armSlowNote(loading, () => { if (nearBottom()) scrollToBottom(); });
   markActivity(); aiInFlight = true;          // keep the timer running while the AI answers
   const language = /[฀-๿]/.test(message) ? 'th' : 'en';
-  const res = await api.sendMessage(pleId, turnKey ? { message, language, client_turn_id: turnKey } : { message, language });
+  // Streamed reply: the typing bubble becomes the reply as it arrives (see liveReply). Whatever happens,
+  // the final answer below is handled exactly as a whole reply always was — the live text is a preview
+  // that the stored reply then replaces, so refs, ❓, artifacts and Report all come from the stored turn.
+  const live = liveReply(loading, disarmSlow);
+  const res = await api.sendMessage(pleId, turnKey ? { message, language, client_turn_id: turnKey } : { message, language }, live.onEvent);
   disarmSlow();
   // aiInFlight keeps covering the settle below when the outcome is unknown; every other outcome is final.
   if (!outcomeUnknown(res)) { aiInFlight = false; markActivity(); }

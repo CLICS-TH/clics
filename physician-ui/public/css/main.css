@@ -423,6 +423,12 @@ body:has(.chat-page) nav { flex:none; }
 
 /* Typing indicator — three pulsing dots replace the plain "Thinking…" text */
 .typing-dots { display:inline-flex; gap:5px; align-items:center; padding:4px 2px; }
+/* Streamed reply (ple-chat.js liveReply): the typing bubble filling in. A soft caret marks it as still arriving;
+   no animation under reduced motion. The stored reply replaces this bubble when the turn completes. */
+.msg-stream-body { min-height:1.2em; }
+.msg-stream-body > :last-child::after { content:''; display:inline-block; width:.5em; height:1em; margin-left:2px; vertical-align:-0.15em; background:var(--muted-soft); border-radius:1px; animation:stream-caret 1s steps(2,start) infinite; }
+@keyframes stream-caret { to { visibility:hidden; } }
+@media (prefers-reduced-motion: reduce) { .msg-stream-body > :last-child::after { animation:none; } }
 .typing-dots span { width:7px; height:7px; border-radius:50%; background:var(--muted-soft); animation:typing-bounce 1.2s infinite ease-in-out; }
 .typing-dots span:nth-child(2) { animation-delay:.18s; }
 .typing-dots span:nth-child(3) { animation-delay:.36s; }

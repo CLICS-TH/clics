@@ -24,10 +24,11 @@ function timeoutSignal() {
 
 async function apiFetch(path, options = {}) {
   const token = getToken();
+  const { onEvent, ...init } = options;
   let res;
   try {
     res = await fetch(`${BASE}${path}`, {
-      ...options,
+      ...init,
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -59,6 +60,9 @@ async function apiFetch(path, options = {}) {
     window.location.href = '/'; return;
   }
   if (res.status === 204) return null;
+  // A streamed reply (server-sent events): pieces go to onEvent, and the result is the final `done`
+  // event's body — the same object a plain JSON answer would have been.
+  if (onEvent && /text\/event-stream/i.test(res.headers.get('content-type') || '')) return readEventStream(res, onEvent);
   // Guard the body parse: Railway edge 502/503 (and proxy error pages) return non-JSON HTML, which
   // would throw here and leave the caller's awaited button dead/disabled. Return the { error } shape
   // callers already branch on.
@@ -67,6 +71,40 @@ async function apiFetch(path, options = {}) {
   } catch {
     return { error: 'เซิร์ฟเวอร์ขัดข้องชั่วคราว กรุณาลองใหม่ / Server error — please try again.', code: 'bad_response' };
   }
+}
+
+// Read a server-sent event stream: `delta` / `replace` events go to onEvent in order, and the final
+// `done` event ({ status, body }) resolves with its body. A stream that breaks off before `done` is the
+// same "no answer came back" as a dropped request (code network_error): the turn may or may not have
+// been stored, and the caller settles it the same way.
+async function readEventStream(res, onEvent) {
+  const reader = res.body && res.body.getReader ? res.body.getReader() : null;
+  if (!reader) return { error: 'เซิร์ฟเวอร์ขัดข้องชั่วคราว กรุณาลองใหม่ / Server error — please try again.', code: 'bad_response' };
+  const decoder = new TextDecoder();
+  let buf = '';
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf('\n\n')) >= 0) {
+        const block = buf.slice(0, i);
+        buf = buf.slice(i + 2);
+        const name = (/^event: ?(.*)$/m.exec(block) || [])[1];
+        const raw = (/^data: ?(.*)$/m.exec(block) || [])[1];
+        if (!name || raw == null) continue;
+        let data;
+        try { data = JSON.parse(raw); } catch { continue; }
+        if (name === 'done') {
+          try { reader.cancel(); } catch {}
+          return (data && data.body) || { error: 'เซิร์ฟเวอร์ขัดข้องชั่วคราว กรุณาลองใหม่ / Server error — please try again.', code: 'bad_response' };
+        }
+        try { onEvent(name, data); } catch {}   // a rendering slip must never lose the turn's outcome
+      }
+    }
+  } catch { /* the connection dropped mid-reply */ }
+  return { error: 'เครือข่ายขัดข้อง กรุณาลองใหม่ / Network error — please try again.', code: 'network_error' };
 }
 
 // Public / unauthenticated calls (sign-up requests, OAuth, guest). These must NOT
@@ -116,7 +154,9 @@ window.api = {
   getPle: (id) => apiFetch(`/ples/${id}`),
   updatePle: (id, body) => apiFetch(`/ples/${id}`, { method: 'PATCH', body }),
   deletePle: (id) => apiFetch(`/ples/${id}`, { method: 'DELETE' }),
-  sendMessage: (id, body) => apiFetch(`/ples/${id}/message`, { method: 'POST', body }),
+  // With onEvent the turn asks to be streamed; the backend streams only while the superadmin
+  // `chat_streaming` setting is on (and never a rescue turn), and otherwise answers in plain JSON.
+  sendMessage: (id, body, onEvent) => apiFetch(`/ples/${id}/message`, { method: 'POST', body: onEvent ? { ...body, stream: true } : body, onEvent }),
   // Report an AI reply as wrong or unsafe (the CREC082 safety event log). body = { reason, note? }.
   // Resolves { ok: true } — deliberately nothing else; a repeat report answers the same.
   reportReply: (id, messageId, body) => apiFetch(`/ples/${id}/messages/${messageId}/report`, { method: 'POST', body }),
