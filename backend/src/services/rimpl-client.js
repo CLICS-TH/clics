@@ -33,22 +33,31 @@ const CRITERIA_TIMEOUT_MS = parseInt(process.env.RIMPL_CRITERIA_TIMEOUT_MS || '1
 // this, the reconcile sweep retries a deterministically-failing eval forever, re-paying Anthropic.
 async function rimplError(path, res) {
   const status = typeof res === 'number' ? res : res?.status;
-  const err = new Error(`RIMPL ${path} error: ${status}`);
-  err.status = status;
   // rimpl's queue/size errors carry a machine-readable body ({ code, retry_after_s }) and, for a
   // full queue, a Retry-After header. Surface both so the drain can back off by the server's own
   // estimate rather than a guess, and so a 413 can be told apart from any other deterministic 4xx.
+  let body = null;
   if (res && typeof res === 'object') {
-    let body = null;
     try { body = typeof res.json === 'function' ? await res.json() : null; } catch { body = null; }
-    if (body && typeof body === 'object') {
-      if (typeof body.code === 'string') err.code = body.code;
-      if (typeof body.error === 'string') err.detail = body.error.slice(0, 200);
-      const ra = Number(body.retry_after_s);
-      if (Number.isFinite(ra) && ra > 0) err.retryAfterMs = ra * 1000;
-    }
+  }
+  const err = errorFromBody(path, status, body);
+  if (res && typeof res === 'object') {
     const hdr = Number(res.headers?.get?.('retry-after'));
     if (Number.isFinite(hdr) && hdr > 0) err.retryAfterMs = hdr * 1000;
+  }
+  return err;
+}
+
+// The same error from a status and an already-parsed body — also how a streamed reply's final
+// `done` event reports a failure (readChatStream).
+function errorFromBody(path, status, body) {
+  const err = new Error(`RIMPL ${path} error: ${status}`);
+  err.status = status;
+  if (body && typeof body === 'object') {
+    if (typeof body.code === 'string') err.code = body.code;
+    if (typeof body.error === 'string') err.detail = body.error.slice(0, 200);
+    const ra = Number(body.retry_after_s);
+    if (Number.isFinite(ra) && ra > 0) err.retryAfterMs = ra * 1000;
   }
   return err;
 }
@@ -80,10 +89,18 @@ async function parseWithProvider(res) {
 // `patient_ref` (the physician's structured patient identifier) is forwarded to RIMPL on-prem SOLELY
 // so RIMPL can scrub it from the narrative/transcript before any cloud call — it is never forwarded
 // to the cloud AI. See docs/constraints.md (data boundary).
-async function rimplChat({ ple_id, history, message, language, chief_complaint, patient_ref, socratic, artifacts, rescue_active, already_qualified, rescue_rounds }) {
+//
+// `stream: true` asks rimpl for server-sent events (rimpl/src/lib/sse.js): each `delta` / `replace`
+// event is handed to `onEvent(name, data)` as it arrives, and the call still resolves with the same
+// body (or throws the same error) as a non-streamed call — taken from the final `done` event. rimpl
+// answers a rescue turn, and any failure before the first word, in plain JSON; both are read as before.
+async function rimplChat({ ple_id, history, message, language, chief_complaint, patient_ref, socratic, artifacts, rescue_active, already_qualified, rescue_rounds, stream = false, onEvent }) {
   const res = await fetch(`${RIMPL_URL}/chat`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
+    headers: {
+      'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '',
+      ...(stream ? { accept: 'text/event-stream' } : {}),
+    },
     // rescue_active / already_qualified are latches from the `ples` row. RIMPL is stateless, so
     // without them it would re-run the qualifying classifier on every turn past the fourth.
     // rescue_rounds must travel too: RIMPL defaults it to 0, so dropping it here silently disables
@@ -91,11 +108,48 @@ async function rimplChat({ ple_id, history, message, language, chief_complaint, 
     body: JSON.stringify({ ple_id, history, message, language, chief_complaint, patient_ref,
       socratic: !!socratic, artifacts: !!artifacts,
       rescue_active: !!rescue_active, already_qualified: !!already_qualified,
-      rescue_rounds: Math.max(0, Number(rescue_rounds) || 0) }),
+      rescue_rounds: Math.max(0, Number(rescue_rounds) || 0),
+      ...(stream ? { stream: true } : {}) }),
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });
   if (!res.ok) throw await rimplError('/chat', res);
+  if (stream && /text\/event-stream/i.test(res.headers?.get?.('content-type') || '')) return readChatStream(res, onEvent);
   return parseWithProvider(res);
+}
+
+// Read rimpl's chat event stream. Events other than `done` go to onEvent in order; `done` carries
+// { status, body }: a 2xx resolves with the body (provider stamped as parseWithProvider does), any
+// other status throws the error rimplError would have thrown. A stream that ends without `done` (rimpl
+// died mid-reply) throws a 502: nothing was produced that could be stored.
+async function readChatStream(res, onEvent) {
+  const decoder = new TextDecoder();
+  let buf = '';
+  const handle = (block) => {
+    const name = /^event: ?(.*)$/m.exec(block)?.[1]?.trim();
+    const raw = /^data: ?(.*)$/m.exec(block)?.[1];
+    if (!name || raw == null) return null;
+    let data;
+    try { data = JSON.parse(raw); } catch { return null; }
+    if (name === 'done') return { done: data };
+    if (onEvent) onEvent(name, data);
+    return null;
+  };
+  for await (const chunk of res.body) {
+    buf += decoder.decode(chunk, { stream: true });
+    let i;
+    while ((i = buf.indexOf('\n\n')) >= 0) {
+      const block = buf.slice(0, i);
+      buf = buf.slice(i + 2);
+      const r = handle(block);
+      if (r) {
+        const { status, body } = r.done || {};
+        if (typeof status !== 'number' || status >= 400) throw errorFromBody('/chat', status ?? 502, body);
+        if (body && typeof body === 'object' && !body.provider) body.provider = DEFAULT_PROVIDER;
+        return body;
+      }
+    }
+  }
+  throw errorFromBody('/chat', 502, { error: 'the reply stream ended before it finished' });
 }
 
 // Auditor calibration chat: discuss a PLE's AI evaluation vs the auditor's own scores. The transcript

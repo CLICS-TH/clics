@@ -198,9 +198,9 @@
     return frag;
   };
 
-  // A visible line in the typing bubble once a turn has run long. CLICS answers in one piece (no streaming),
-  // so there are no stages to report and this says nothing about any: it only tells the reader the wait is
-  // expected. COPY PENDING owner/ethics sign-off — placeholder wording; one fixed pair, never varying by
+  // A visible line in the typing bubble once a turn has run long (before its first word, when the reply is
+  // streamed). There are no stages to report and this says nothing about any: it only tells the reader the
+  // wait is expected. COPY PENDING owner/ethics sign-off — placeholder wording; one fixed pair, never varying by
   // session, arm or provider. The delay is a plain number so it can be tuned in one place.
   window.AI_SLOW = { afterMs: 8000, th: 'ยังทำงานอยู่', en: 'Still working…' };
   // armSlowNote(bubble, onShow) -> disarm(). Call disarm() when the reply (or an error) arrives.

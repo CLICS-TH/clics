@@ -24,6 +24,9 @@ const MessageSchema = z.object({
   // Idempotency key (db/migration-message-client-turn-id.sql). A UUID the client generates once per
   // typed turn and REUSES on retry; optional, and a request without it behaves exactly as it always did.
   client_turn_id: z.string().uuid().optional(),
+  // Ask for the reply as server-sent events (lib/sse.js). Honoured only while the superadmin
+  // `chat_streaming` setting is on; otherwise, and on a rescue turn, the answer is plain JSON as before.
+  stream: z.boolean().optional(),
 });
 
 // How clear a domain's behavioural anchor was for this transcript. The approved assessment form asks

@@ -10,6 +10,7 @@ const { flattenForPrompt, stripArtifactDelimiters } = require('../lib/transcript
 const { requestSignal } = require('../lib/request-signal');
 const { promptLabel } = require('../lib/versions');
 const { sendAiError, logAiError, isAborted } = require('../lib/ai-errors');
+const { sseStream } = require('../lib/sse');
 
 const router = Router();
 
@@ -42,6 +43,10 @@ const ChatSchema = z.object({
   // Rounds this rescue has already run. RIMPL is stateless, so the spend cap cannot live here alone.
   rescue_rounds: z.number().int().min(0).default(0),
   already_qualified: z.boolean().default(false),
+  // Stream the reply as server-sent events (lib/sse.js). Honoured on every turn EXCEPT a rescue turn,
+  // which is answered whole as before: its post-check may rewrite the reply, and a physician who had
+  // watched the first draft arrive would already have read the answer the rescue exists to withhold.
+  stream: z.boolean().default(false),
 });
 
 // `cleanMessage` MUST already be PII-stripped by the caller (see the route): the RAG embedding
@@ -82,7 +87,7 @@ router.post('/', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { history, message, language, chief_complaint, patient_ref, socratic, artifacts,
-          rescue_active, already_qualified, rescue_rounds } = parsed.data;
+          rescue_active, already_qualified, rescue_rounds, stream } = parsed.data;
   // KNOWN patient identifiers to scrub deterministically (closes the bare-unlabelled-name leak).
   const hints = deriveHintTokens(patient_ref);
   // Examiner mode (CLE2 / remediation) leads with Socratic questioning and MUST end on ❓; natural
@@ -93,6 +98,9 @@ router.post('/', async (req, res) => {
   // Fires if the physician's client (or the backend's deadline) hangs up: a queued call leaves the
   // queue and an in-flight one is cancelled, so a turn nobody is waiting for stops holding the model.
   const signal = requestSignal(req, res);
+  // Set once the rescue decision is known (below). Until a first delta is sent the route answers in
+  // plain JSON, so every early failure keeps its usual status and body.
+  let sse = null;
 
   try {
     // De-identify ONCE, up front: PII must never leave the on-prem boundary — not to Claude and
@@ -182,17 +190,22 @@ router.post('/', async (req, res) => {
       }
     }
 
-    let { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from } =
-      await callAI({ purpose: 'chat', systemPrompt, messages, maxTokens: CHAT_MAX_TOKENS, signal });
-    // The call whose answer goes back: the retry below REPLACES these while the billing sums accumulate.
-    // On a fail-over turn this result already is the fail-over call's, so these are its figures.
-    let lastInputTokens = inputTokens;
-    let lastOutputTokens = outputTokens;
-
     // A rescue turn asks questions and deliberately gives no answer, so it has nothing to cite and
     // the citation retry does not apply — running it would prompt the model to answer, which is the
     // one thing the rescue must not do.
     const rescuing = !!rescue?.rescuing;   // EVERY rescue round, not only the first
+
+    // Streaming: known only now, because a rescue turn is never streamed (see the schema).
+    if (stream && !rescuing) sse = sseStream(res);
+    let shown = false;   // text of the CURRENT call has reached the caller
+    const onDelta = sse ? (t) => { shown = true; sse.send('delta', { text: t }); } : undefined;
+
+    let { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from } =
+      await callAI({ purpose: 'chat', systemPrompt, messages, maxTokens: CHAT_MAX_TOKENS, signal, onDelta });
+    // The call whose answer goes back: the retry below REPLACES these while the billing sums accumulate.
+    // On a fail-over turn this result already is the fail-over call's, so these are its figures.
+    let lastInputTokens = inputTokens;
+    let lastOutputTokens = outputTokens;
 
     // ONE corrective retry, whatever is wrong. Two independent checks decide whether it fires, and a
     // turn that fails both gets a SINGLE retry whose prompt asks for both fixes, so a turn never makes
@@ -215,6 +228,11 @@ router.post('/', async (req, res) => {
     const needRescue = rescuing && !checkRescueReply(text).ok;
     let languageRetried = false;   // the retry's reply is the one being returned
     let rescueRetried = false;
+    // A streamed first draft that the retry below replaces. The physician watched it arrive, so the
+    // record keeps it (the backend stores it beside the reply it was replaced by); never set on a
+    // non-streamed turn, where nobody saw it.
+    let supersededDraft = null;
+    let supersededReason = null;
     if (needCitation || languageMismatch || needRescue) {
       let retryPrompt;
       if (needCitation) {
@@ -254,6 +272,13 @@ router.post('/', async (req, res) => {
       // have ONE physician turn written half by Claude and half by the DGX — and `messages` has no
       // model column, so nothing would record that it happened. `provider` is undefined only when a
       // caller mocked callAI without it, in which case this falls back to normal resolution.
+      const firstText = text;
+      const firstShown = shown;
+      const reason = needCitation ? 'citation' : needRescue ? 'rescue' : 'language';
+      // Tell the caller the text it is showing is about to be replaced. The retry itself is NOT streamed:
+      // a retry that failed half-way would leave words on screen that no record holds (and a failed
+      // language-only retry keeps the first reply). Its finished text goes out in one piece below.
+      if (sse && firstShown) { sse.send('replace', { reason }); shown = false; }
       let retry;
       try {
         retry = await callAI({ purpose: 'chat', provider, systemPrompt, messages: retryMessages, maxTokens: CHAT_MAX_TOKENS, signal });
@@ -277,6 +302,8 @@ router.post('/', async (req, res) => {
         lastOutputTokens = retry.outputTokens;
         languageRetried = languageMismatch;
         rescueRetried = needRescue;
+        if (firstShown) { supersededDraft = firstText; supersededReason = reason; }
+        if (sse) sse.send('delta', { text });
         // The one retry is all there is. If the reply is STILL not Thai, deliver it (a late English
         // answer beats a 502) but leave a trace with the measured share only — never the content.
         if (languageMismatch && isLanguageMismatch(text, language)) {
@@ -285,7 +312,7 @@ router.post('/', async (req, res) => {
       }
     }
 
-    res.json({
+    (sse ? sse.out() : res).json({
       content: text,
       refs: extractReferences(text),
       socratic_question: extractSocraticQuestion(text),
@@ -317,11 +344,18 @@ router.post('/', async (req, res) => {
       // Post-checked on every round that ran under the rescue prompt. Checking only the first round
       // left rounds two onward of a rescued session governed by no constraint at all.
       rescue: rescue && { ...rescue, reply_check: rescue.rescuing ? checkRescueReply(text) : null },
+      // Streamed turns only (absent otherwise, so a non-streamed body is unchanged): the draft the
+      // physician saw before the retry replaced it, and which check replaced it.
+      ...(sse ? { superseded_draft: supersededDraft, superseded_reason: supersededReason } : {}),
     });
   } catch (err) {
     logAiError('[RIMPL chat]', err);
     // 503 queue_full (+ Retry-After) / 499 client gone / 413 transcript_too_large / else this 500.
-    sendAiError(res, err, 'AI service temporarily unavailable. Please try again.');
+    // Once a stream is open the error becomes its final event, with the status and body it would
+    // have had (lib/sse.js out()).
+    const out = sse ? sse.out() : res;
+    sendAiError(out, err, 'AI service temporarily unavailable. Please try again.');
+    if (sse?.open && isAborted(err) && !res.writableEnded) res.end();
   }
 });
 
