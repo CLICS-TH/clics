@@ -498,8 +498,20 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
 
   // The physician's structured patient identifier — sent to RIMPL (on-prem) ONLY so it can scrub the
   // name from the narrative before the cloud call (never forwarded to the cloud). Owner-scoped read.
-  const { data: pref } = await supabase.from('ple_patient_refs')
+  const { data: pref, error: prefErr } = await supabase.from('ple_patient_refs')
     .select('patient_ref').eq('ple_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
+  // FAIL CLOSED on a READ ERROR. Destructuring only `data` turned a PostgREST error into "no
+  // patient_ref", so RIMPL lost the scrub hints and an untitled name ("วรินทรปวดท้องมา 2 วัน") went to
+  // the cloud. Checked HERE — before the turn claim and the budget reservation — so there is nothing to
+  // release or refund, and a retry with the same client_turn_id starts clean. No row is NOT an error.
+  if (prefErr) {
+    console.error(`[ples] /message: patient_ref read failed for ${req.params.id} — turn refused, nothing sent`);
+    out().set('Retry-After', '5');
+    return out().status(503).json({
+      error: 'ระบบไม่พร้อมชั่วคราว กรุณาลองใหม่อีกครั้ง / The service is temporarily unavailable. Please try again.',
+      code: 'deidentify_unavailable', retry_after_s: 5,
+    });
+  }
 
   const { message, language } = parsed.data;
 
@@ -1081,12 +1093,20 @@ router.post('/:id/end', requireConsent, async (req, res) => {
   // permanently demote a qualifying session to manual QA.
   const transcript = await reflection.withReflection(req.params.id, msgs.map(m => ({ role: m.role, content: m.content })));
   // Patient identifier → scrubbed from the transcript on-prem before the cloud eval (never forwarded).
-  const { data: endRef } = await supabase.from('ple_patient_refs')
+  const { data: endRef, error: endRefErr } = await supabase.from('ple_patient_refs')
     .select('patient_ref').eq('ple_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
+  // A READ ERROR must not screen the transcript without its scrub hints. The session is already
+  // claimed at 'ended' — the recoverable "tier-2 pending" state — so answer exactly as a failed
+  // finalize does and let reconcile screen it once the read works. No row is fine.
+  if (endRefErr) {
+    console.error(`[ples] /end: patient_ref read failed for ${req.params.id} — left 'ended' for reconcile, nothing sent`);
+    return res.status(202).json({ status: 'ended', criteria: tier1, pending: 'tier2' });
+  }
   try {
     const out = await finalizeScreening({
       pleId: req.params.id, physicianId: ple.physician_id, transcript, tier1,
       patient_ref: endRef?.patient_ref ?? null,
+      chief_complaint: ple.chief_complaint ?? null, // seeds RIMPL's token numbering; never shown to the model
       ple, // socratic_reason + is_test, so the consecutive-failure counter can skip the sessions it must
     });
     res.json(out);
@@ -1188,13 +1208,21 @@ router.post('/:id/reflection', requireConsent, async (req, res) => {
   const { data: messages } = await supabase.from('messages')
     .select('role, content').eq('ple_id', ple.id).order('created_at');
   const transcript = await reflection.withReflection(ple.id, (messages ?? []).map(m => ({ role: m.role, content: m.content })));
-  const { data: pref } = await supabase.from('ple_patient_refs')
+  const { data: pref, error: prefErr } = await supabase.from('ple_patient_refs')
     .select('patient_ref').eq('ple_id', ple.id).eq('physician_id', req.user.id).maybeSingle();
+  // Same fail-closed rule as /end: the reflection is saved, the session stays 'ended', and reconcile
+  // screens it once the hints can be read. Never screened without them. No row is fine.
+  if (prefErr) {
+    console.error(`[ples] /reflection: patient_ref read failed for ${ple.id} — left 'ended' for reconcile, nothing sent`);
+    return res.status(202).json({ status: 'ended', pending: 'tier2' });
+  }
   try {
     const out = await finalizeScreening({
       pleId: ple.id, physicianId: req.user.id, transcript,
       tier1: { c1: ple.c1_pass, c2: ple.c2_pass, c3: ple.c3_pass },
-      patient_ref: pref?.patient_ref ?? null, ple,
+      patient_ref: pref?.patient_ref ?? null,
+      chief_complaint: ple.chief_complaint ?? null, // seeds RIMPL's token numbering; never shown to the model
+      ple,
     });
     res.json(out);
   } catch (err) {

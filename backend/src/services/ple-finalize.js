@@ -33,8 +33,10 @@ async function evaluateCriteriaWithRetry(payload, attempts = 3) {
 // PIS-7 evaluation. THROWS on a persistent RIMPL error WITHOUT writing a terminal status — the session
 // stays 'ended' so the next reconcile sweep retries it, instead of a transient blip permanently
 // flagging a qualifying session to manual QA. Returns { status, criteria }.
-async function finalizeScreening({ pleId, physicianId, transcript, tier1, patient_ref, ple = {} }) {
-  const crit = await evaluateCriteriaWithRetry({ transcript, patient_ref });
+// `chief_complaint` seeds RIMPL's token numbering (never shown to the classifier), so the PII map it
+// returns is the reverse of the tokens every other route uses. Falls back to the ple row's own.
+async function finalizeScreening({ pleId, physicianId, transcript, tier1, patient_ref, chief_complaint, ple = {} }) {
+  const crit = await evaluateCriteriaWithRetry({ transcript, patient_ref, chief_complaint: chief_complaint ?? ple.chief_complaint ?? null });
   // Persist the reversible on-prem PII map RIMPL returned (encrypted, fail-soft) — Tier-1 audit.
   await persistPiiMap(pleId, crit.pii_map);
   // The CREC082 §1 qualifying test, all four elements. c7 (context/evidence integration) is the one

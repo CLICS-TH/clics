@@ -9,6 +9,7 @@ const { logEvent } = require('../lib/audit');
 const { effectiveLimit, reserveUsage, accrueUsage, refundUsage, RESERVE_ESTIMATE_USD, effectiveTokenLimit, budgetState } = require('../lib/usage');
 const { settlementDelta } = require('../lib/pricing');
 const { rimplAuditDiscuss } = require('../services/rimpl-client');
+const { deidentifyTranscript } = require('../services/deidentified-transcript');
 const { peerCalibrationEnabled, privacyReviewRequired, calibrationRevealLocked } = require('../lib/settings');
 const { whereCleared, isCleared } = require('../lib/privacy-review');
 const reflection = require('../services/reflection');
@@ -32,6 +33,14 @@ function requireAuditorConsent(req, res, next) {
   }
   next();
 }
+
+// The auditor's transcript (and the discussion grounded in it) cannot be de-identified right now.
+// Transient by nature — RIMPL down or slow, or the patient_ref scrub hints unreadable — and never
+// answered with the raw text instead.
+const DEIDENTIFY_UNAVAILABLE = Object.freeze({
+  error: 'การแสดงบทสนทนาขัดข้องชั่วคราว / The transcript is temporarily unavailable.',
+  code: 'deidentify_unavailable',
+});
 
 const router = Router();
 router.use(verifyJwt, requireRole('auditor'));
@@ -74,11 +83,14 @@ router.get('/queue', async (req, res) => {
 });
 
 router.get('/ples/:id', async (req, res) => {
-  const { data: ple, error: pleErr } = await supabase
-    .from('ples').select('id, status, turn_count, token_count, ended_at, auditor_id, privacy_review_status, privacy_concern_open')
+  // chief_complaint is read ONLY to seed RIMPL's de-identification (below) and is never returned:
+  // it is raw physician text, and this response goes to an auditor.
+  const { data: pleRow, error: pleErr } = await supabase
+    .from('ples').select('id, status, turn_count, token_count, ended_at, auditor_id, privacy_review_status, privacy_concern_open, chief_complaint')
     .eq('id', req.params.id).maybeSingle();
+  const { chief_complaint: chiefComplaint = null, ...ple } = pleRow ?? {};
   if (pleErr) return res.status(500).json({ error: 'Could not load the assigned session' });
-  if (!ple || !(await isAssignedAuditor(ple.id, req.user.id, ple.auditor_id))) {
+  if (!pleRow || !(await isAssignedAuditor(ple.id, req.user.id, ple.auditor_id))) {
     return res.status(404).json({ error: 'Not found or not assigned' });
   }
   // Mirror the queue gate on the direct URL: an old bookmark must not expose a session whose
@@ -87,20 +99,39 @@ router.get('/ples/:id', async (req, res) => {
     return res.status(404).json({ error: 'Not found or not assigned' });
   }
 
-  // Transcript + this auditor's own score are independent — fetch together.
-  const [messageResult, scoreResult] = await Promise.all([
+  // Transcript + this auditor's own score are independent — fetch together. The patient_ref rides
+  // along for the de-identification below (scrub hints only, never returned).
+  const [messageResult, scoreResult, prefResult] = await Promise.all([
     supabase.from('messages').select('role, content, refs, socratic_question, created_at')
       .eq('ple_id', req.params.id).order('created_at'),
     supabase.from('audit_scores').select('*').eq('ple_id', req.params.id).eq('auditor_id', req.user.id).maybeSingle(),
+    supabase.from('ple_patient_refs').select('patient_ref').eq('ple_id', req.params.id).maybeSingle(),
   ]);
   if (messageResult.error || scoreResult.error) {
     return res.status(500).json({ error: 'Could not load the complete scoring evidence' });
   }
-  let messages;
+  let rawMessages;
   try {
-    messages = await reflection.withReflection(req.params.id, messageResult.data ?? [], { strict: true });
+    rawMessages = await reflection.withReflection(req.params.id, messageResult.data ?? [], { strict: true });
   } catch {
     return res.status(500).json({ error: 'Could not load the complete scoring evidence' });
+  }
+
+  // The auditor reads the DE-IDENTIFIED transcript (docs/CONSENT-TEMPLATE.md §3), masked by RIMPL
+  // on-prem; the raw one stays the record in `messages`. FAIL CLOSED: if RIMPL is down, slow or
+  // answers wrongly — or the patient_ref needed for its hints cannot be read — the auditor gets a
+  // 503 and no transcript at all. There is no raw fallback, by design.
+  let messages;
+  try {
+    if (prefResult.error) throw new Error('patient_ref read failed');
+    messages = await deidentifyTranscript(rawMessages, {
+      patientRef: prefResult.data?.patient_ref ?? null,
+      chiefComplaint: typeof chiefComplaint === 'string' ? chiefComplaint : null,
+    });
+  } catch (err) {
+    // The status/class only: never the transcript, never the patient_ref.
+    console.error(`[auditor] de-identification unavailable for the transcript view (${err?.status ?? err?.name ?? 'error'})`);
+    return res.status(503).json(DEIDENTIFY_UNAVAILABLE);
   }
   const existing = scoreResult.data;
 
@@ -276,8 +307,10 @@ router.post('/ples/:id/discuss', async (req, res) => {
   const parsed = DiscussMsgSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
+  // chief_complaint: forwarded to RIMPL only to seed its token numbering (never shown to the model or
+  // returned), so the discussion's transcript tokens match the auditor's de-identified view.
   const { data: ple } = await supabase
-    .from('ples').select('id, auditor_id, council_id, physician_id').eq('id', req.params.id).single();
+    .from('ples').select('id, auditor_id, council_id, physician_id, chief_complaint').eq('id', req.params.id).single();
   if (!ple) return res.status(404).json({ error: 'Not found' });
   if (!(await isAssignedAuditor(ple.id, req.user.id, ple.auditor_id))) return res.status(403).json({ error: 'Not assigned to you' });
 
@@ -317,8 +350,15 @@ router.post('/ples/:id/discuss', async (req, res) => {
   // Transcript (de-identified on-prem by RIMPL), patient_ref (scrub hints only), prior discussion turns.
   const { data: transcript } = await supabase.from('messages')
     .select('role, content').eq('ple_id', req.params.id).order('created_at');
-  const { data: pref } = await supabase.from('ple_patient_refs')
+  const { data: pref, error: prefErr } = await supabase.from('ple_patient_refs')
     .select('patient_ref').eq('ple_id', req.params.id).maybeSingle();
+  // FAIL CLOSED on a READ ERROR: without the scrub hints an untitled patient name in the transcript
+  // would reach the model. Release the reservation and refuse; nothing is sent. No row is fine.
+  if (prefErr) {
+    await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied, 'auditor');
+    console.error(`[auditor] /discuss: patient_ref read failed for ${req.params.id} — refused, nothing sent`);
+    return res.status(503).json(DEIDENTIFY_UNAVAILABLE);
+  }
   const { data: prior } = await supabase.from('audit_discussions')
     .select('role, content').eq('ple_id', req.params.id).eq('auditor_id', req.user.id).order('created_at');
 
@@ -332,6 +372,7 @@ router.post('/ples/:id/discuss', async (req, res) => {
       ai_rationale: aiEval.domain_rationale ?? null,
       auditor_scores: auditScore,
       patient_ref: pref?.patient_ref ?? null, // scrubbed on-prem; never reaches the cloud
+      chief_complaint: typeof ple.chief_complaint === 'string' ? ple.chief_complaint : null, // numbering seed only
     });
   } catch (err) {
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied, 'auditor');

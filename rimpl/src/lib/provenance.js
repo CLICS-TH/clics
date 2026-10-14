@@ -72,6 +72,7 @@ function buildProvenance({
   temperature, maxTokens, topP, seed, numCtx,
   weightsSha256 = null, engine = null, quantization = null, runtime = null,
   consistency = null,
+  deid = null,
 }) {
   const p = {
     provider: provider ?? null,
@@ -95,6 +96,11 @@ function buildProvenance({
     // How several calls were reconciled into this score (services/consistency.js) — present only when
     // the evaluation ran that way. Numbers and fixed-vocabulary strings; never model text.
     ...(consistency ? { consistency } : {}),
+    // How the scored transcript was de-identified — which token numbering it used (lib/transcript.js
+    // seedWithChiefComplaint). Recorded, but deliberately NOT in config_fingerprint: it describes the
+    // input, not the evaluator's configuration, and folding it in would make every fingerprint written
+    // after this change incomparable with the ones before it.
+    deid: deid ?? null,
   };
   return { ...p, config_fingerprint: configFingerprint(p) };
 }

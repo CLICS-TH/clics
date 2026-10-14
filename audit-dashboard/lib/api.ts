@@ -57,9 +57,18 @@ export async function apiFetch<T>(path: string, options: RequestInit & { timeout
   // returns an HTML page). An unguarded res.json() reject left action buttons (e.g. invite Create)
   // stranded disabled forever; callers check `.error`, so an envelope re-enables them cleanly.
   const body = await res.json().catch(() => null);
+  // An error response also carries its HTTP status as `httpStatus`, so a caller can tell "not yours"
+  // (404/403) from "down for a moment" (503) without parsing message text. Additive and error-only:
+  // a success body comes back untouched, and the name cannot collide with a body's own `status`.
+  // `status >= 400`, not `res.ok`, so a minimal Response stand-in (tests) without `ok` reads as success.
+  const httpStatus = res.status >= 400 ? res.status : undefined;
   if (body == null) {
-    return { error: 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณาลองใหม่ / The server did not respond. Please try again.' } as unknown as T;
+    return {
+      error: 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณาลองใหม่ / The server did not respond. Please try again.',
+      ...(httpStatus ? { httpStatus } : {}),
+    } as unknown as T;
   }
+  if (httpStatus && typeof body === 'object' && !Array.isArray(body)) return { ...body, httpStatus } as T;
   return body as T;
 }
 

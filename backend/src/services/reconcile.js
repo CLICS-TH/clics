@@ -27,7 +27,8 @@ async function reconcileEvaluations(now = Date.now()) {
   const { data: stuck, error: stuckErr } = await supabase
     // socratic_reason + is_test: finalizeScreening needs them to decide whether this session feeds
     // the consecutive-failure counter. Omitted, every swept session would look natural and real.
-    .from('ples').select('id, physician_id, status, c1_pass, c2_pass, c3_pass, socratic_reason, is_test, council_id, eval_enqueued_at, ended_at')
+    // chief_complaint: seeds RIMPL's token numbering for the classifier (never shown to it).
+    .from('ples').select('id, physician_id, status, c1_pass, c2_pass, c3_pass, socratic_reason, is_test, council_id, eval_enqueued_at, ended_at, chief_complaint')
     .in('status', ['ended', 'ple_pass']).lt('ended_at', cutoff)
     .order('ended_at').limit(200);
   if (stuckErr) throw new Error(`reconcile: stuck-session query failed: ${stuckErr.message}`);
@@ -58,8 +59,16 @@ async function reconcileEvaluations(now = Date.now()) {
         let transcript = msgs.map(m => ({ role: m.role, content: m.content }));
         // Patient identifier → scrubbed from the transcript on-prem before any model call. This sweep
         // runs server-side (NOT as the owner), so read by ple_id only — the service-role key bypasses RLS.
-        const { data: pref } = await supabase.from('ple_patient_refs')
+        // A READ ERROR must not become "no patient_ref": the classifier would then get the transcript
+        // without its scrub hints, and an untitled patient name would reach the model. Skip and retry
+        // next sweep, exactly as for a failed messages read. No row is fine (none was recorded).
+        const { data: pref, error: prefErr } = await supabase.from('ple_patient_refs')
           .select('patient_ref').eq('ple_id', p.id).maybeSingle();
+        if (prefErr) {
+          console.error(`[reconcile] PLE ${p.id}: skipped (patient_ref read error: ${prefErr.message})`);
+          failed++;
+          continue;
+        }
         const patientRef = pref?.patient_ref ?? null;
         // A session can rest at 'ended' for a second reason now: the physician was asked for a
         // reflection and has not written one. Sweeping it here IS the intended backstop — after the
@@ -73,6 +82,7 @@ async function reconcileEvaluations(now = Date.now()) {
           pleId: p.id, physicianId: p.physician_id, transcript,
           tier1: { c1: p.c1_pass, c2: p.c2_pass, c3: p.c3_pass },
           patient_ref: patientRef,
+          chief_complaint: p.chief_complaint ?? null,
           ple: p, // socratic_reason + is_test for the consecutive-failure counter
         });
         recovered++;
