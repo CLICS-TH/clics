@@ -1,6 +1,8 @@
 // The evidence-marker labels come from the prompt module, so the line the model is told to write and
 // the line this file accepts are one definition (see the evidence-level section below).
-const { EVIDENCE_LEVELS, EVIDENCE_TH_LABEL, EVIDENCE_EN_LABEL } = require('../lib/prompts');
+const {
+  EVIDENCE_LEVELS, EVIDENCE_TH_LABEL, EVIDENCE_EN_LABEL, EVIDENCE_TH_LABEL_SHORT, EVIDENCE_EN_LABEL_SHORT, evidenceLineFor,
+} = require('../lib/prompts');
 
 // (Source, Year) citations: "(" + at least one char + "," + optional whitespace + 4 digits + anything
 // + ")". This used to be the regex /\([^)]+,\s*\d{4}[^)]*\)/g, which is O(n^2) in the length of the
@@ -64,15 +66,23 @@ function extractReferences(content) {
 // --- Evidence-level marker (CCME R5) -------------------------------------------------------------
 //
 // The line lib/prompts.js EVIDENCE_GUIDANCE asks for, as a checkable field:
-//   ระดับหลักฐาน: <สูง|ปานกลาง|ต่ำ|ความเห็นผู้เชี่ยวชาญ> (Evidence: <high|moderate|low|expert opinion>)
+//   ระดับหลักฐานของข้อแนะนำหลัก: <สูง|ปานกลาง|ต่ำ|ความเห็นผู้เชี่ยวชาญ|ไม่ได้ประเมิน>
+//     (Evidence for the main recommendation: <high|moderate|low|expert opinion|not graded>)
 // Built from EVIDENCE_LEVELS, the same table the prompt is built from, so the two cannot drift.
+// Returns the level KEY: 'high' | 'moderate' | 'low' | 'expert' | 'not_graded' — a stable contract.
 //
-// WHAT COUNTS AS A MARKER LINE. A whole line (after trimming and removing markdown bold `**` / `__`)
-// that is the Thai label, the English label, or both — Thai first with the English in parentheses, or
-// English first with the Thai in parentheses. English is case-insensitive; a full-width colon is
-// accepted. A marker run into a prose line, wrapped in `inline code`, bulleted, or carrying a level
-// outside the four (e.g. "very low") is NOT a marker: the prompt asks for the line on its own, and a
-// checkable field that accepted every near-miss would stop being checkable.
+// WHAT IS ACCEPTED (a near-compliant line is READ, not re-asked — a retry costs a model call):
+//   - the Thai part, the English part, or both: Thai first with the English in parentheses, or English
+//     first with the Thai in parentheses;
+//   - the full labels the prompt shows, or the short ones (ระดับหลักฐาน / Evidence);
+//   - in the parenthesised part, the level alone without its label: "ระดับหลักฐาน: สูง (high)";
+//   - English in any case; a full-width colon; any spacing inside "expert opinion" / "not graded";
+//   - decoration around the whole line: surrounding whitespace, markdown bold (** / __) anywhere in it,
+//     ONE italic wrapper (*…* or _…_), a leading > blockquote, ONE trailing "." or "。", and NBSP /
+//     other space-like characters (read as a space) or zero-width characters (removed).
+// WHAT IS NOT: a marker run into a prose line, a bulleted line, `inline code`, a level outside the five
+// (e.g. "very low"), or any other text on the line. The prompt asks for the line on its own; a check
+// that accepted every near-miss would stop being a check.
 //
 // WHAT DOES NOT COUNT. A marker line inside a fenced ``` code block or inside a :::artifact{...} block
 // (fence syntax as in lib/transcript.js; an unterminated fence runs to the end, as in stripNonProse) is
@@ -85,23 +95,43 @@ function extractReferences(content) {
 // would silently choose between two claims the model made.
 //
 // COST. stripNonProse runs this on a physician's message too, so it is linear: one pass over the lines,
-// a line longer than EVIDENCE_LINE_MAX_CHARS is skipped before any regex sees it, and no regex below
-// has two adjacent unbounded quantifiers over overlapping classes.
+// a line longer than EVIDENCE_LINE_MAX_CHARS is skipped before any regex sees it (the longest valid line
+// is 104 chars), and no regex below has two adjacent unbounded quantifiers over overlapping classes.
 const EVIDENCE_LINE_MAX_CHARS = 200;
 const EVIDENCE_BY_TH = new Map(EVIDENCE_LEVELS.map((l) => [l.th, l.key]));
 const EVIDENCE_BY_EN = new Map(EVIDENCE_LEVELS.map((l) => [l.en, l.key]));
+const spaced = (s) => s.replace(/ /g, '[ \\t]+');   // "expert opinion", "for the main recommendation"
 const TH_ALT = EVIDENCE_LEVELS.map((l) => l.th).join('|');
-// "expert opinion" tolerates more than one space between its words.
-const EN_ALT = EVIDENCE_LEVELS.map((l) => l.en.replace(/ /g, '[ \\t]+')).join('|');
-const TH_PART = `${EVIDENCE_TH_LABEL}[ \\t]*[:：][ \\t]*(${TH_ALT})`;
-const EN_PART = `${EVIDENCE_EN_LABEL}[ \\t]*[:：][ \\t]*(${EN_ALT})`;
-const EVIDENCE_TH_FIRST = new RegExp(`^${TH_PART}(?:[ \\t]*\\([ \\t]*${EN_PART}[ \\t]*\\))?$`, 'i');
-const EVIDENCE_EN_FIRST = new RegExp(`^${EN_PART}(?:[ \\t]*\\([ \\t]*${TH_PART}[ \\t]*\\))?$`, 'i');
+const EN_ALT = EVIDENCE_LEVELS.map((l) => spaced(l.en)).join('|');
+// Longer label first in each alternation; anchored by the colon that must follow.
+const TH_LABEL_RE = `(?:${EVIDENCE_TH_LABEL}|${EVIDENCE_TH_LABEL_SHORT})`;
+const EN_LABEL_RE = `(?:${spaced(EVIDENCE_EN_LABEL)}|${spaced(EVIDENCE_EN_LABEL_SHORT)})`;
+const COLON = '[ \\t]*[:：][ \\t]*';
+const EVIDENCE_TH_FIRST = new RegExp(
+  `^${TH_LABEL_RE}${COLON}(${TH_ALT})(?:[ \\t]*\\([ \\t]*(?:${EN_LABEL_RE}${COLON})?(${EN_ALT})[ \\t]*\\))?$`, 'i');
+const EVIDENCE_EN_FIRST = new RegExp(
+  `^${EN_LABEL_RE}${COLON}(${EN_ALT})(?:[ \\t]*\\([ \\t]*(?:${TH_LABEL_RE}${COLON})?(${TH_ALT})[ \\t]*\\))?$`, 'i');
 
-// One line -> 'high' | 'moderate' | 'low' | 'expert' | 'conflict' (Thai and English disagree) | null.
+const ZERO_WIDTH = /[­᠎​-‍⁠﻿]/g;
+const SPACE_LIKE = /[   -   　]/g;
+// Strip the decoration listed under WHAT IS ACCEPTED, nothing else.
+function normalizeMarkerLine(line) {
+  let t = line.replace(ZERO_WIDTH, '').replace(SPACE_LIKE, ' ').replace(/\*\*|__/g, '').trim();
+  t = t.replace(/^(?:>[ \t]*)+/, '');
+  let dropped = false;
+  const dropDot = () => {
+    if (!dropped && /[.。]$/.test(t)) { t = t.slice(0, -1).trimEnd(); dropped = true; }
+  };
+  dropDot();   // "…)." and "*…*." both end in the dot
+  if (t.length >= 2 && (t[0] === '*' || t[0] === '_') && t[t.length - 1] === t[0]) t = t.slice(1, -1).trim();
+  dropDot();   // "*….*"
+  return t;
+}
+
+// One line -> a level key | 'conflict' (Thai and English disagree) | null.
 function parseEvidenceLine(line) {
   if (typeof line !== 'string' || line.length > EVIDENCE_LINE_MAX_CHARS) return null;
-  const t = line.replace(/\*\*|__/g, '').trim();
+  const t = normalizeMarkerLine(line);
   let th = null;
   let en = null;
   let m = EVIDENCE_TH_FIRST.exec(t);
@@ -139,11 +169,45 @@ function findEvidenceMarkers(content) {
   return found;
 }
 
-// 'high' | 'moderate' | 'low' | 'expert' | null — null when there is no marker, more than one, or a
-// self-contradicting one (see AMBIGUITY above).
+// A level key ('high' | 'moderate' | 'low' | 'expert' | 'not_graded') | null — null when there is no
+// marker, more than one, or a self-contradicting one (see AMBIGUITY above).
 function extractEvidenceLevel(content) {
   const found = findEvidenceMarkers(content);
   return found.length === 1 && found[0].level !== 'conflict' ? found[0].level : null;
+}
+
+// SPLICE, DON'T ADOPT. The chat route's marker-only retry (EVIDENCE_RETRY_PROMPT.only) asks for the one
+// line alone; this takes the level from that answer and writes the CANONICAL line for it into the FIRST
+// reply, which already passed every other check and which, on a streamed turn, the physician has
+// already been reading. Nothing else in `retryText` is used, so a rewrite can never drop an artifact or
+// reword prose behind the physician's back.
+//   - `retryText` must hold exactly ONE marker line (outside any fence) with a consistent level; else null.
+//   - Any marker lines the first reply already had (two of them, or a self-contradicting one — which is
+//     why the retry fired) are removed, so the result holds exactly one.
+//   - Placement is the prompt's: natural mode -> appended as the last line; examiner mode -> inserted
+//     directly above the LAST ❓ line, so the ❓ stays last (appended if there is none).
+//   - The result must read back as exactly that level (an unterminated fence at the end of a truncated
+//     reply would swallow an appended line); if it does not, null.
+// Returns { text, level } or null. On null the caller keeps the first reply unchanged.
+function spliceEvidenceLine(firstText, retryText, { socratic = false } = {}) {
+  const found = findEvidenceMarkers(retryText);
+  if (found.length !== 1 || found[0].level === 'conflict') return null;
+  const { level } = found[0];
+  const line = evidenceLineFor(level);
+  const first = String(firstText ?? '');
+  const stale = new Set(findEvidenceMarkers(first).map((mk) => mk.line));
+  const lines = first.split('\n').filter((_, i) => !stale.has(i));
+  let text = null;
+  if (socratic) {
+    let q = -1;
+    for (let i = lines.length - 1; i >= 0; i--) if (lines[i].trim().startsWith('❓')) { q = i; break; }
+    if (q >= 0) { lines.splice(q, 0, line); text = lines.join('\n'); }
+  }
+  if (text == null) {
+    const base = lines.join('\n');
+    text = base + (base === '' || base.endsWith('\n') ? '' : '\n') + line;
+  }
+  return extractEvidenceLevel(text) === level ? { text, level } : null;
 }
 
 // --- Language guard -------------------------------------------------------------------------------
@@ -181,10 +245,12 @@ const MIN_JUDGED_LETTERS = 20;
 //                                                 prompt REQUIRES them)
 //   - evidence-level marker lines                (parseEvidenceLine; the prompt REQUIRES the line,
 //                                                 bilingual, in every reply of either language. Each
-//                                                 is 54-60% Thai by itself, so measuring it would lift
-//                                                 a short English reply to a Thai question over the
-//                                                 bar and hide it, and would credit an English turn's
-//                                                 reply with Thai it never wrote)
+//                                                 is 76-104 chars and 45-51% Thai by itself — above
+//                                                 the 0.30 bar, so measuring it could never sink a
+//                                                 Thai reply, but it WOULD lift a short English reply
+//                                                 to a Thai question over the bar and hide it, and
+//                                                 credit an English turn's reply with Thai it never
+//                                                 wrote)
 // Deliberately NOT ignored: drug names, lab names and abbreviations in running prose. They cannot be
 // told apart from English prose by a regex, and the 0.30 bar already allows for them.
 //
@@ -203,9 +269,8 @@ function stripNonProse(text) {
   if (s.length > MAX_PROSE_CHARS) s = s.slice(0, MAX_PROSE_CHARS);
   s = s.replace(/^:::artifact\{[^}\n]*\}[^\n]*(?:\n[\s\S]*?^:::[ \t]*$|[\s\S]*$)/gm, ' ');
   // Whole marker lines, wherever they are (one inside a code block would be stripped as code anyway).
-  if (s.includes(EVIDENCE_TH_LABEL) || /evidence/i.test(s)) {
-    s = s.split('\n').filter((line) => !parseEvidenceLine(line.replace(/\r$/, ''))).join('\n');
-  }
+  // No cheap pre-check on the label: a zero-width character inside it would defeat one.
+  s = s.split('\n').filter((line) => !parseEvidenceLine(line.replace(/\r$/, ''))).join('\n');
   const heading = REFERENCES_HEADING.exec(s);
   if (heading) s = s.slice(0, heading.index);
   s = s
@@ -244,7 +309,7 @@ function isLanguageMismatch(text, language, { min = THAI_MIN_SHARE } = {}) {
 
 module.exports = {
   hasCitation, extractSocraticQuestion, extractReferences,
-  extractEvidenceLevel, findEvidenceMarkers, parseEvidenceLine, EVIDENCE_LINE_MAX_CHARS,
+  extractEvidenceLevel, findEvidenceMarkers, parseEvidenceLine, spliceEvidenceLine, EVIDENCE_LINE_MAX_CHARS,
   thaiShare, isLanguageMismatch, isThaiMessage, stripNonProse, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
   MAX_PROSE_CHARS, MESSAGE_SAMPLE_CHARS,
 };

@@ -43,8 +43,10 @@ async function chatStreamingEnabled() {
 }
 
 // Evidence-level marker (app setting `chat_evidence_marker`, default OFF; CCME requirement R5): when ON,
-// the chat call tells RIMPL to make every non-rescue tutor reply carry exactly one GRADE evidence-level
-// line (ระดับหลักฐาน: … (Evidence: …)), which RIMPL checks and folds into its single corrective retry. A
+// the chat call tells RIMPL to make every non-rescue tutor reply carry exactly one evidence-level line
+// (ระดับหลักฐานของข้อแนะนำหลัก: … (Evidence for the main recommendation: …) — GRADE high/moderate/low, expert
+// opinion, or not graded), which RIMPL checks and folds into its single corrective retry. Needs the
+// clinician check in docs/QUALITY-GATES.md before it is switched on. A
 // tutor-prompt change, so it is a research-stimulus change like clinical_artifacts: switched on
 // deliberately. The evaluator prompt is untouched. Off sends RIMPL exactly the prompt it sends today.
 async function chatEvidenceMarkerEnabled() {

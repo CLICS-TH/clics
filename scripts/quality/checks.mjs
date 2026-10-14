@@ -43,8 +43,9 @@ import { wilson, fmtRate } from './stats.mjs';
 // markup in the returned one. Inline markup production removes is an `info` flag, not a leak. A v1
 // figure for no_reasoning_leak counted any <think> in the raw content and is not comparable.
 // checks-v3 (2026-10-14): + evidence_marker / evidence_marker_placement (CCME R5), on --evidence-marker
-// reports only. An earlier report re-checked under v3 gains nothing: its entries carry no
-// request.evidence_marker.
+// reports only. The value is production's level key — high | moderate | low | expert | not_graded — and
+// "not graded" PASSES the shape check: it is a valid answer, not a missing one. An earlier report
+// re-checked under v3 gains nothing: its entries carry no request.evidence_marker.
 export const CHECKS_VERSION = 'checks-v3';
 // prompts.js: "keep the whole reply under ~400 words". The tilde earns a 10% tolerance.
 export const LENGTH_TARGET_WORDS = 400;

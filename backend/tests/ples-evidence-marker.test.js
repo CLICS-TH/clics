@@ -25,7 +25,7 @@ app.use('/ples', require('../src/routes/ples'));
 const auth = (r) => r.set('Authorization', 'Bearer test');
 const ASSISTANT_ID = 'a1b2c3d4-0000-4000-8000-000000000002';
 
-const MARKED = 'Amoxicillin 1 g tds (BTS, 2019).\nระดับหลักฐาน: ปานกลาง (Evidence: moderate)';
+const MARKED = 'Amoxicillin 1 g tds (BTS, 2019).\nระดับหลักฐานของข้อแนะนำหลัก: ปานกลาง (Evidence for the main recommendation: moderate)';
 const body = (extra = {}) => ({
   content: MARKED, refs: [], socratic_question: null,
   token_count: 120, input_tokens: 100, output_tokens: 20,

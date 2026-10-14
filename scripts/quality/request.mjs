@@ -14,8 +14,9 @@
 //   * the ONE corrective retry (#109): how the checks combine (citation/❓, language, rescue rules and
 //     — with the evidence marker on — the evidence line), which prompt each case gets, whether the
 //     artifact fence is kept, that a FAILED language-only / evidence-only retry keeps the first reply
-//     while a failed citation retry fails the turn, and that an evidence-only rewrite which does not
-//     hold is discarded for the first reply. ≤ 2 calls per turn.
+//     while a failed citation retry fails the turn, that an evidence-only retry is a small line-only
+//     call whose one line is SPLICED into the first reply (post-filter spliceEvidenceLine, imported),
+//     and that an optional retry past the deadline cutoff is skipped. ≤ 2 calls per turn.
 //   * the client's `language` rule — 'th' when the message holds ANY Thai codepoint
 //     (physician-ui/public/js/ple-chat.js).
 //   * CHAT_MAX_TOKENS  — max(1500, RIMPL_CHAT_MAX_TOKENS ?? 4000), defined in rimpl/src/lib/turn-limits.js.
@@ -31,7 +32,8 @@
 
 import {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
-  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, extractEvidenceLevel,
+  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, extractEvidenceLevel, spliceEvidenceLine,
+  EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS,
   promptLabel, stripPii, stripHistoryPii, deriveHintTokens, makeRegistry, stripArtifactDelimiters,
   hasCitation, extractSocraticQuestion, isThaiMessage, isLanguageMismatch, checkRescueReply, RESCUE_RETRY_PROMPT,
 } from './rimpl.mjs';
@@ -159,9 +161,23 @@ export function retryDecision(text, { socratic, rescuing, language, message, evi
   };
 }
 
-/** chat.js's `reason` for a decision (the SSE `replace` event and superseded_reason). */
+/** chat.js's `reason` for a decision (the SSE `replace` event and superseded_reason); null = no retry. */
 export function retryReason(decision) {
-  return decision.needCitation ? 'citation' : decision.needRescue ? 'rescue' : decision.languageMismatch ? 'language' : 'evidence';
+  return decision.needCitation ? 'citation' : decision.needRescue ? 'rescue' : decision.languageMismatch ? 'language' : decision.needEvidence ? 'evidence' : null;
+}
+
+/** chat.js `retrySkipped`: an OPTIONAL retry (language or evidence) that would start past the cutoff
+ *  (lib/turn-limits.js CHAT_OPTIONAL_RETRY_CUTOFF_MS) is skipped and the first reply delivered. The
+ *  harness measures the elapsed time as the first call's latency, which leaves out chat.js's RAG lookup
+ *  and rescue classifier — so it can only skip LATER than production, never earlier. */
+export function optionalRetrySkipped(decision, elapsedMs, cutoffMs = CHAT_OPTIONAL_RETRY_CUTOFF_MS) {
+  const reason = retryReason(decision);
+  return (reason === 'language' || reason === 'evidence') && elapsedMs > cutoffMs;
+}
+
+/** The retry's max_tokens: the marker-only call asks for one line, every other retry gets the full ceiling. */
+export function retryMaxTokens(decision, maxTokens = CHAT_MAX_TOKENS) {
+  return retryReason(decision) === 'evidence' ? EVIDENCE_LINE_MAX_TOKENS : maxTokens;
 }
 
 /** The retry prompt chat.js sends for a decision. */
@@ -180,14 +196,12 @@ export function retryPrompt(decision, { socratic, language }) {
   return EVIDENCE_RETRY_PROMPT.only[lang];
 }
 
-/** chat.js `keepFirst`: an evidence-only rewrite is discarded for the first reply when it still has no
- *  single evidence line, or lost what the first reply had (citation, ❓ in examiner mode, Thai on a
- *  Thai turn). Only ever true for an evidence-only decision; the retry call itself must have succeeded. */
-export function keepFirstReply(decision, retryText, { socratic, language }) {
-  if (retryReason(decision) !== 'evidence') return false;
-  return extractEvidenceLevel(retryText) == null
-    || !hasCitation(retryText) || (socratic && !extractSocraticQuestion(retryText))
-    || (decision.physicianWroteThai && isLanguageMismatch(retryText, language));
+/** chat.js evidence-only branch: SPLICE, DON'T ADOPT. The one marker line of the line-only answer goes
+ *  into the FIRST reply (production's own spliceEvidenceLine); null keeps the first reply unchanged.
+ *  Only for an evidence-only decision — every other retry's reply is used whole. */
+export function evidenceSplice(decision, firstText, retryText, { socratic }) {
+  if (retryReason(decision) !== 'evidence') return null;
+  return spliceEvidenceLine(firstText, retryText, { socratic });
 }
 
 /** Retry messages: a citation retry re-ANSWERS (fence stripped from the fed-back reply); a

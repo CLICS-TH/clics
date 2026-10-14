@@ -12,11 +12,11 @@ import { fileURLToPath } from 'node:url';
 import {
   buildChatRequest, buildMessages, retryDecision, retryPrompt, retryMessages, RETRY_PROMPTS, CC_PREFIX, CHAT_MAX_TOKENS, routeLanguage,
   LANGUAGE_SUFFIX, LANGUAGE_ONLY_PROMPT, LANGUAGE_ONLY_PROMPT_TH, LANGUAGE_ONLY_PROMPT_EN, expectedReplyLanguage,
-  keepFirstReply, retryReason,
+  retryReason, evidenceSplice, optionalRetrySkipped, retryMaxTokens,
 } from './request.mjs';
 import {
   RIMPL_FILES, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE, promptLabel,
-  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT,
+  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, evidenceLineFor, EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS,
 } from './rimpl.mjs';
 import { runItem, makeAnthropicArm, productionAnthropicModel, spendOf, runQueue, carriedTokens } from './tutor-audit.mjs';
 import { ITEM_TH_EXAMINER, ITEM_EN_NATURAL, ITEM_RESCUE, ITEM_PII, GOOD_TH_EXAMINER } from './test-fixtures.mjs';
@@ -51,7 +51,7 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
     'const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));',
     "const physicianWroteThai = language === 'th' && isThaiMessage(message);",
     'const languageMismatch = physicianWroteThai && isLanguageMismatch(text, language);',
-    'if (needCitation || languageMismatch || needRescue || needEvidence) {',
+    'if ((needCitation || languageMismatch || needRescue || needEvidence) && !retrySkipped) {',
     'const needRescue = rescuing && !checkRescueReply(text).ok;',
     'rescueRetried = needRescue;',
     'rescue_retry: rescueRetried,',
@@ -63,14 +63,21 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
     'language_retry: languageRetried,',
     // The evidence marker (CCME R5): its trigger, its share of the prompt selection, the rewrite that
     // does not hold, and the two response fields — request.mjs retryDecision / retryPrompt /
-    // retryReason / keepFirstReply replicate exactly these.
+    // retryReason / evidenceSplice / optionalRetrySkipped / retryMaxTokens replicate exactly these.
     'const needEvidence = evidence_marker && !rescuing && extractEvidenceLevel(text) == null;',
     '} else if (languageMismatch) {',
     'retryPrompt = EVIDENCE_RETRY_PROMPT.only[language];',
-    "const reason = needCitation ? 'citation' : needRescue ? 'rescue' : languageMismatch ? 'language' : 'evidence';",
-    "const keepFirst = !!retry && reason === 'evidence' && (extractEvidenceLevel(retry.text) == null",
-    '|| !hasCitation(retry.text) || (socratic && !extractSocraticQuestion(retry.text))',
-    '|| (physicianWroteThai && isLanguageMismatch(retry.text, language)));',
+    "const reason = needCitation ? 'citation' : needRescue ? 'rescue' : languageMismatch ? 'language' : needEvidence ? 'evidence' : null;",
+    // The deadline: only the two OPTIONAL retries are skipped, by elapsed time against the cutoff.
+    'const elapsedMs = Date.now() - turnStartedAt;',
+    "const retrySkipped = (reason === 'language' || reason === 'evidence') && elapsedMs > CHAT_OPTIONAL_RETRY_CUTOFF_MS;",
+    // Evidence-only: a small line-only call, no up-front replace, the one line spliced into the first reply.
+    "const evidenceOnly = reason === 'evidence';",
+    "if (sse && firstShown && !evidenceOnly) { sse.send('replace', { reason }); shown = false; }",
+    'maxTokens: evidenceOnly ? EVIDENCE_LINE_MAX_TOKENS : CHAT_MAX_TOKENS, signal });',
+    'if (retry && evidenceOnly) {',
+    'const spliced = spliceEvidenceLine(firstText, retry.text, { socratic });',
+    'text = spliced.text;',
     'evidenceRetried = needEvidence;',
     'evidence_retry: evidenceRetried,',
     'evidence_level: evidence_marker && !rescuing ? extractEvidenceLevel(text) : null,',
@@ -88,8 +95,12 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
   // must still take it from there and pass it as maxTokens on both the first call and the retry.
   const limitsSrc = readFileSync(path.join(HERE, '..', '..', 'rimpl', 'src', 'lib', 'turn-limits.js'), 'utf8');
   assert.ok(limitsSrc.includes("const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));"), 'CHAT_MAX_TOKENS drifted');
-  assert.ok(chatSrc.includes("const { CHAT_MAX_TOKENS, MAX_TURN_CHARS } = require('../lib/turn-limits');"), 'chat.js no longer takes CHAT_MAX_TOKENS from turn-limits');
-  assert.equal(chatSrc.split('maxTokens: CHAT_MAX_TOKENS').length - 1, 2, 'chat.js must pass CHAT_MAX_TOKENS on the first call and the retry');
+  assert.ok(chatSrc.includes("const { CHAT_MAX_TOKENS, MAX_TURN_CHARS, EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS } = require('../lib/turn-limits');"), 'chat.js no longer takes its limits from turn-limits');
+  // At most two calls a turn: the first at the full ceiling, and the retry at the full ceiling unless
+  // it is the marker-only call, which gets the small cap.
+  assert.equal(chatSrc.split('maxTokens: CHAT_MAX_TOKENS,').length - 1, 1, 'chat.js must pass CHAT_MAX_TOKENS on the first call');
+  assert.equal(chatSrc.split('maxTokens: evidenceOnly ? EVIDENCE_LINE_MAX_TOKENS : CHAT_MAX_TOKENS').length - 1, 1, 'chat.js must size the retry by its kind');
+  assert.equal(chatSrc.split('await callAI(').length - 1, 2, 'chat.js must make at most two model calls a turn');
   assert.ok(chatSrc.includes("(socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)"), 'mode→prompt selection drifted');
   assert.ok(chatSrc.includes('systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE'), 'rescue prompt replacement drifted');
   assert.ok(chatSrc.includes("promptLabel('chat', systemPrompt)"), 'prompt_version label drifted');
@@ -376,7 +387,7 @@ test('rescue retry = chat.js: a rescue reply that breaks the rules fires ONE rew
 
 /* ------------------------------------------------------- evidence marker (CCME R5) */
 
-const MARK = 'ระดับหลักฐาน: ปานกลาง (Evidence: moderate)';
+const MARK = evidenceLineFor('moderate');
 const EN_CITED = 'Do an ECG within ten minutes of arrival and measure troponin (ESC ACS, 2023).';
 
 test('evidence marker: the guidance is appended per mode, after artifacts, never on a rescue item', () => {
@@ -390,71 +401,110 @@ test('evidence marker: the guidance is appended per mode, after artifacts, never
   assert.equal(buildChatRequest(ITEM_EN_NATURAL).systemPrompt, RIMPL_SYSTEM_PROMPT_NATURAL);
 });
 
-test('evidence marker: decision, prompt and reason replicate chat.js', () => {
+test('evidence marker: decision, prompt, reason and call size replicate chat.js', () => {
   const base = { socratic: false, rescuing: false, language: 'en', message: 'Chest pain, what next?', evidenceMarker: true };
   const only = retryDecision(EN_CITED, base);
   assert.deepEqual([only.fire, only.needEvidence, only.needCitation, only.languageMismatch], [true, true, false, false]);
   assert.equal(retryReason(only), 'evidence');
   assert.equal(retryPrompt(only, base), EVIDENCE_RETRY_PROMPT.only.en);
   assert.equal(retryPrompt(only, { ...base, language: 'th' }), EVIDENCE_RETRY_PROMPT.only.th);
+  assert.equal(retryMaxTokens(only, 4000), EVIDENCE_LINE_MAX_TOKENS, 'the marker-only call is small');
   assert.equal(retryDecision(`${EN_CITED}\n${MARK}`, base).fire, false);
+  assert.equal(retryDecision(`${EN_CITED}\nEvidence: low.`, base).fire, false, 'a near-compliant short form is read, not re-asked');
+  assert.equal(retryReason(retryDecision(`${EN_CITED}\n${MARK}`, base)), null);
   assert.equal(retryDecision(EN_CITED, { ...base, evidenceMarker: false }).fire, false, 'off: never fires');
   assert.equal(retryDecision(EN_CITED, { ...base, rescuing: true }).needEvidence, false, 'never on a rescue turn');
-  // Folded into the other retries as a suffix.
+  // Folded into the other retries as a suffix, at the full ceiling.
   const cit = retryDecision('Do an ECG within ten minutes.', base);
   assert.equal(retryPrompt(cit, base), RETRY_PROMPTS.natural.en + EVIDENCE_RETRY_PROMPT.suffix.en);
+  assert.equal(retryMaxTokens(cit, 4000), 4000);
   const th = { ...base, language: 'th', message: TH_MSG };
   const all3 = retryDecision('Do an ECG within ten minutes.', th);
   assert.equal(retryPrompt(all3, th), RETRY_PROMPTS.natural.th + LANGUAGE_SUFFIX + EVIDENCE_RETRY_PROMPT.suffix.th);
   const langEv = retryDecision(EN_CITED, th);
   assert.equal(retryPrompt(langEv, th), LANGUAGE_ONLY_PROMPT + EVIDENCE_RETRY_PROMPT.suffix.th);
-  // A rewrite (evidence only) keeps the fence when artifacts are on, like the language-only rewrite.
+  assert.equal(retryMaxTokens(langEv, 4000), 4000);
+  // The marker-only call sees the reply with its fence intact when artifacts are on, like a rewrite.
   const fenced = `${EN_CITED}\n:::artifact{type="x" title="t"}\nbody\n:::`;
   assert.match(retryMessages([], fenced, only, { ...base, artifacts: true })[0].content, /:::artifact/);
 });
 
-test('evidence marker: keepFirstReply = chat.js keepFirst (evidence-only rewrites that do not hold)', () => {
+test('evidence marker: evidenceSplice = chat.js splice (one line into the FIRST reply, nothing else)', () => {
   const base = { socratic: false, rescuing: false, language: 'en', message: 'Chest pain, what next?', evidenceMarker: true };
   const only = retryDecision(EN_CITED, base);
-  assert.equal(keepFirstReply(only, `${EN_CITED}\n${MARK}`, base), false, 'a rewrite that holds is used');
-  assert.equal(keepFirstReply(only, EN_CITED, base), true, 'still no marker');
-  assert.equal(keepFirstReply(only, `${EN_CITED}\n${MARK}\n${MARK}`, base), true, 'two markers');
-  assert.equal(keepFirstReply(only, `Do an ECG within ten minutes.\n${MARK}`, base), true, 'lost the citation');
+  assert.deepEqual(evidenceSplice(only, EN_CITED, 'Evidence: moderate', base), { text: `${EN_CITED}\n${MARK}`, level: 'moderate' });
+  // A whole rewrite that dropped the artifact cannot get through: only the line is taken.
+  const first = `${EN_CITED}\n:::artifact{type="differential" title="DDx"}\n| a | b |\n:::`;
+  assert.equal(evidenceSplice(only, first, `Rewritten without the table.\n${MARK}`, base).text, `${first}\n${MARK}`);
+  assert.equal(evidenceSplice(only, EN_CITED, 'no line here', base), null, 'no line: the first reply stands');
+  assert.equal(evidenceSplice(only, EN_CITED, `${MARK}\n${MARK}`, base), null, 'two lines: the first reply stands');
   const ex = { ...base, socratic: true };
   const exOnly = retryDecision(`${EN_CITED}\n❓ What next?`, ex);
-  assert.equal(keepFirstReply(exOnly, `${EN_CITED}\n${MARK}`, ex), true, 'lost the ❓');
-  const th = { ...base, language: 'th', message: TH_MSG };
-  const thOnly = retryDecision('ตรวจคลื่นไฟฟ้าหัวใจภายในสิบนาที (ESC ACS, 2023)', th);
-  assert.equal(keepFirstReply(thOnly, `${EN_CITED}\n${MARK}`, th), true, 'came back in English on a Thai turn');
-  // Never for a citation or language retry: those replies are used even without the marker.
-  assert.equal(keepFirstReply(retryDecision('no cite', base), 'no marker (X, 2020)', base), false);
+  assert.equal(evidenceSplice(exOnly, `${EN_CITED}\n❓ What next?`, MARK, ex).text, `${EN_CITED}\n${MARK}\n❓ What next?`);
+  // Never for a citation or language retry: those replies are used whole.
+  assert.equal(evidenceSplice(retryDecision('no cite', base), 'no cite', MARK, base), null);
 });
 
-test('runItem --evidence-marker: rewrite delivered when it holds, first reply kept when it does not', async () => {
+test('deadline: optionalRetrySkipped = chat.js retrySkipped (only language/evidence, only past the cutoff)', () => {
+  assert.equal(CHAT_OPTIONAL_RETRY_CUTOFF_MS, 50000, 'the default the harness runs with');
+  const base = { socratic: false, rescuing: false, language: 'en', message: 'Chest pain, what next?', evidenceMarker: true };
+  const ev = retryDecision(EN_CITED, base);
+  assert.equal(optionalRetrySkipped(ev, 50001), true);
+  assert.equal(optionalRetrySkipped(ev, 50000), false, 'strictly past it');
+  const th = { ...base, language: 'th', message: TH_MSG };
+  assert.equal(optionalRetrySkipped(retryDecision(`${EN_CITED}\n${MARK}`, th), 60000), true, 'language-only');
+  assert.equal(optionalRetrySkipped(retryDecision('Do an ECG within ten minutes.', base), 90000), false, 'a citation retry is required');
+  assert.equal(optionalRetrySkipped(retryDecision('Rivaroxaban 20 mg (ROCKET AF, 2011).', { ...base, rescuing: true, socratic: true }), 90000), false, 'a rescue retry is required');
+});
+
+test('runItem --evidence-marker: line spliced when given, first reply kept unchanged when not', async () => {
+  const calls = [];
   let n = 0;
-  const holds = async () => (++n === 1 ? { ok: true, text: 'Start at eGFR 20 (KDIGO, 2022).', ms: 5 } : { ok: true, text: `Start at eGFR 20 (KDIGO, 2022).\n${MARK}`, ms: 6 });
-  const e = await runItem(ITEM_EN_NATURAL, holds, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1, evidenceMarker: true });
+  const give = async (req) => { calls.push(req); return ++n === 1 ? { ok: true, text: 'Start at eGFR 20 (KDIGO, 2022).', ms: 5 } : { ok: true, text: 'Evidence: moderate', ms: 2 }; };
+  const e = await runItem(ITEM_EN_NATURAL, give, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1, evidenceMarker: true });
   assert.equal(n, 2);
+  assert.equal(calls[1].maxTokens, EVIDENCE_LINE_MAX_TOKENS);
   assert.equal(e.request.evidence_marker, true);
   assert.match(e.retry.reason, /evidence marker/);
-  assert.deepEqual([e.final.from, e.evidence_retry, e.evidence_level], ['retry', true, 'moderate']);
+  assert.equal(e.final.text, `Start at eGFR 20 (KDIGO, 2022).\n${MARK}`);
+  assert.deepEqual([e.final.from, e.evidence_retry, e.evidence_level], ['first + spliced evidence line', true, 'moderate']);
+  assert.equal(e.retry.text, 'Evidence: moderate', 'the line-only answer is kept for the record');
   assert.equal(e.checks.checks.evidence_marker.pass, true);
+  assert.equal(e.checks.checks.evidence_marker_placement.pass, true);
   n = 0;
   const useless = async () => { n += 1; return { ok: true, text: 'Start at eGFR 20 (KDIGO, 2022).', ms: 5 }; };
   const k = await runItem(ITEM_EN_NATURAL, useless, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1, evidenceMarker: true });
   assert.equal(n, 2, 'still at most two calls');
-  assert.match(k.final.from, /^first \(evidence rewrite rejected/);
+  assert.match(k.final.from, /^first \(the evidence retry gave no single line/);
+  assert.equal(k.final.text, 'Start at eGFR 20 (KDIGO, 2022).');
   assert.deepEqual([k.evidence_retry, k.evidence_level], [false, null]);
   assert.equal(k.checks.flags.find((f) => f.code === 'no_evidence_marker')?.severity, 'minor');
   n = 0;
-  const failing = async () => (++n === 1 ? { ok: true, text: 'Start at eGFR 20 (KDIGO, 2022).', ms: 5 } : { ok: false, status: 503, error: 'HTTP 503', text: '' });
+  const failing = async () => (++n === 1 ? { ok: true, text: 'Start at eGFR 20 (KDIGO, 2022).', ms: 5 } : { ok: false, status: 400, error: 'HTTP 400', text: '' });
   const f = await runItem(ITEM_EN_NATURAL, failing, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1, evidenceMarker: true });
   assert.equal(f.final.ok, true, 'a failed evidence-only retry keeps the deliverable first reply');
+  assert.match(f.final.from, /evidence retry failed/);
   // Off: no check, no retry, no field.
   n = 0;
   const off = await runItem(ITEM_EN_NATURAL, useless, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1 });
   assert.equal(n, 1);
   assert.deepEqual([off.request.evidence_marker, off.evidence_level, off.checks.checks.evidence_marker], [false, null, undefined]);
+});
+
+test('runItem: an optional retry past the cutoff is skipped and recorded, as chat.js skips it', async () => {
+  let n = 0;
+  const slowFirst = async () => { n += 1; return { ok: true, text: 'Start at eGFR 20 (KDIGO, 2022).', ms: 60000 }; };
+  const e = await runItem(ITEM_EN_NATURAL, slowFirst, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1, evidenceMarker: true });
+  assert.equal(n, 1, 'no second call');
+  assert.deepEqual(e.retry_skipped, { reason: 'evidence', elapsed_ms: 60000 });
+  assert.equal(e.retry, null);
+  assert.match(e.final.from, /evidence retry skipped/);
+  // A required (citation) retry is never skipped.
+  n = 0;
+  const slowNoCite = async () => (++n === 1 ? { ok: true, text: 'Start at eGFR 20.', ms: 60000 } : { ok: true, text: 'Start at eGFR 20 (KDIGO, 2022).', ms: 5 });
+  const c = await runItem(ITEM_EN_NATURAL, slowNoCite, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1 });
+  assert.equal(n, 2);
+  assert.equal(c.retry_skipped, null);
 });
 
 test('CLI: --dry-run --evidence-marker shows the guidance on, and a different prompt version', () => {

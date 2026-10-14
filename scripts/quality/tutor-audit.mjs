@@ -64,7 +64,8 @@ import {
 } from '../probe/lib.mjs';
 import { loadBank, selectItems, composition, QUALITY_DIR } from './bank.mjs';
 import {
-  buildChatRequest, retryDecision, retryMessages, keepFirstReply, CHAT_MAX_TOKENS, RAG_NOTE,
+  buildChatRequest, retryDecision, retryMessages, retryReason, retryMaxTokens, optionalRetrySkipped, evidenceSplice,
+  CHAT_MAX_TOKENS, RAG_NOTE,
 } from './request.mjs';
 import {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
@@ -164,9 +165,14 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
   // turn (500) — no retry. Otherwise the retry fires when the citation/❓ check OR the language guard
   // fails (one prompt asks for both fixes). If the retry call itself fails: a citation retry fails
   // the turn (the first reply was not deliverable); a LANGUAGE-only (or evidence-only) retry keeps the
-  // first reply. An evidence-only rewrite that does not hold (keepFirstReply) is discarded likewise.
+  // first reply. An evidence-only retry is a small line-only call whose one line is SPLICED into the
+  // first reply (evidenceSplice); without a usable line the first reply stands unchanged. An optional
+  // retry past the deadline cutoff is skipped (optionalRetrySkipped), as chat.js does.
   const decision = retry && first.ok ? retryDecision(first.text, req) : null;
-  if (decision?.fire) {
+  const skipped = decision?.fire && optionalRetrySkipped(decision, first.ms ?? 0)
+    ? { reason: retryReason(decision), elapsed_ms: first.ms } : null;
+  let spliced = null;
+  if (decision?.fire && !skipped) {
     const reason = [
       decision.needCitation && !hasCitation(first.text) && 'no citation',
       decision.needCitation && req.socratic && !extractSocraticQuestion(first.text) && 'no ❓',
@@ -175,21 +181,32 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
       decision.needEvidence && 'evidence marker',
     ].filter(Boolean).join(' + ');
     const second = callRecord(await withAttempts(() => complete({
-      systemPrompt: req.systemPrompt, messages: retryMessages(req.messages, first.text, decision, req), maxTokens,
+      systemPrompt: req.systemPrompt, messages: retryMessages(req.messages, first.text, decision, req),
+      maxTokens: retryMaxTokens(decision, maxTokens),
     }), attempts));
     retryRec = { reason, citation: decision.needCitation, language: decision.languageMismatch, rescue: decision.needRescue, evidence: decision.needEvidence, ...second };
-    if (second.ok && keepFirstReply(decision, second.text, req)) {
-      finalFrom = 'first (evidence rewrite rejected — chat.js keeps the first reply)';
+    if (retryReason(decision) === 'evidence') {
+      spliced = second.ok ? evidenceSplice(decision, first.text, second.text, req) : null;
+      if (spliced) {
+        final = { ...first, text: spliced.text };
+        finalFrom = 'first + spliced evidence line';
+      } else {
+        finalFrom = second.ok
+          ? 'first (the evidence retry gave no single line — chat.js keeps the first reply unchanged)'
+          : 'first (evidence retry failed — chat.js keeps the first reply)';
+      }
     } else if (second.ok || decision.needCitation) {
       final = second;
       finalFrom = 'retry';
     } else {
-      finalFrom = 'first (language/rescue/evidence retry failed — chat.js keeps the first reply)';
+      finalFrom = 'first (language/rescue retry failed — chat.js keeps the first reply)';
     }
+  } else if (skipped) {
+    finalFrom = `first (${skipped.reason} retry skipped: past the deadline cutoff — chat.js delivers the first reply)`;
   }
-  // Production's own response fields: the guard fired AND its retry's reply is returned.
+  // Production's own response fields: the guard fired AND its retry produced the returned reply.
   const languageRetry = !!(retryRec && retryRec.language && finalFrom === 'retry');
-  const evidenceRetry = !!(retryRec && retryRec.evidence && finalFrom === 'retry');
+  const evidenceRetry = !!(retryRec && retryRec.evidence && (finalFrom === 'retry' || spliced));
   const entry = {
     id: item.id,
     mode: item.mode,
@@ -216,9 +233,11 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
       // Both token counts: the retry resends the whole conversation plus the first reply, so its
       // input is the larger of the two calls' and a spend figure that omits it undercounts.
       prompt_tokens: retryRec.prompt_tokens, completion_tokens: retryRec.completion_tokens,
-      // A failed language-only retry is not the final reply, so keep its text here for the record.
+      // A retry whose reply is not the final one (a failed language-only retry, or the line-only
+      // answer the evidence line was spliced from) keeps its text here for the record.
       ...(finalFrom === 'retry' ? {} : { text: retryRec.text }),
     } : null,
+    retry_skipped: skipped,                 // chat.js `retrySkipped`: an optional retry past the cutoff
     language_retry: languageRetry,          // = chat.js response field `language_retry`
     evidence_retry: evidenceRetry,          // = chat.js response field `evidence_retry`
     // = chat.js `evidence_level`: null with the marker off, on a rescue turn, or with no single line.
@@ -488,6 +507,8 @@ async function main() {
   if (fps.length) console.log(`  system_fingerprint(s): ${fps.join(', ')}`);
   const retried = report.items.filter((e) => e.retry);
   console.log(`  corrective retries: ${retried.length}/${report.items.length} turns · language guard fired on ${retried.filter((e) => e.retry.language).length}, its reply delivered on ${report.items.filter((e) => e.language_retry).length}`);
+  const skippedRetries = report.items.filter((e) => e.retry_skipped).length;
+  if (skippedRetries) console.log(`  optional retries skipped past the deadline cutoff: ${skippedRetries} (chat.js delivers the first reply on these)`);
   if (evidenceMarker) {
     const marked = report.items.filter((e) => e.evidence_level != null).length;
     console.log(`  evidence marker: fired the retry on ${retried.filter((e) => e.retry.evidence).length}, its reply delivered on ${report.items.filter((e) => e.evidence_retry).length} · final replies carrying one marker ${marked}/${report.items.length}`);

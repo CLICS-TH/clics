@@ -18,6 +18,20 @@ const { supabase } = require('../lib/supabase');
 const MISSING = new Set(['42703', 'PGRST204']);   // undefined column / not in PostgREST's schema cache
 let lastMissingLogAt = 0;
 
+// A missing-column error, and ONLY that. Matching the bare column name was not enough: a CHECK
+// violation (23514) names its constraint, `messages_superseded_reason_check`, which contains it — and
+// reporting that as "the migration is not applied" sends whoever reads the log to the wrong fix while a
+// real write failure goes unseen. Without a code, only the two missing-column message shapes count:
+// Postgres `column "superseded_draft" of relation "messages" does not exist` and PostgREST
+// `Could not find the 'superseded_draft' column of 'messages' in the schema cache`.
+const CHECK_VIOLATION = '23514';
+const MISSING_COLUMN_MESSAGE = /column "superseded_(?:draft|reason)"|'superseded_(?:draft|reason)' column/;
+function isMissingColumn(error) {
+  if (MISSING.has(error.code)) return true;
+  if (error.code === CHECK_VIOLATION) return false;
+  return MISSING_COLUMN_MESSAGE.test(error.message || '');
+}
+
 // The reasons the column's CHECK constraint accepts (db/migration-message-superseded-draft.sql:
 // messages_superseded_reason_check). rimpl can name a check the constraint does not know yet — 'evidence',
 // the evidence-level marker's rewrite (setting chat_evidence_marker) — and writing it would fail the
@@ -32,7 +46,7 @@ async function recordSupersededDraft(messageId, draft, reason) {
       .update({ superseded_draft: draft, superseded_reason: KNOWN_REASONS.has(reason) ? reason : null })
       .eq('id', messageId).eq('role', 'assistant');
     if (!error) return 'recorded';
-    if (MISSING.has(error.code) || /superseded_(draft|reason)/.test(error.message || '')) {
+    if (isMissingColumn(error)) {
       const now = Date.now();
       if (now - lastMissingLogAt > 60_000) {
         lastMissingLogAt = now;
@@ -50,4 +64,4 @@ async function recordSupersededDraft(messageId, draft, reason) {
 
 function _resetLogThrottle() { lastMissingLogAt = 0; }
 
-module.exports = { recordSupersededDraft, _resetLogThrottle, KNOWN_REASONS };
+module.exports = { recordSupersededDraft, _resetLogThrottle, KNOWN_REASONS, isMissingColumn };

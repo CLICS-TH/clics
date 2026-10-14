@@ -159,7 +159,7 @@ test('content that was nothing but reasoning is reasoning_only (critical), named
 });
 
 test('the semantics changed, so the version did', () => {
-  assert.equal(CHECKS_VERSION, 'checks-v2');
+  assert.equal(CHECKS_VERSION, 'checks-v3');
 });
 
 test('summarize: pass rates carry Wilson intervals, failures excluded from denominators', () => {
@@ -182,7 +182,7 @@ test('summarize: pass rates carry Wilson intervals, failures excluded from denom
 
 /* ------------------------------------------------------- evidence marker (CCME R5) */
 
-const MARK = 'ระดับหลักฐาน: สูง (Evidence: high)';
+const MARK = 'ระดับหลักฐานของข้อแนะนำหลัก: สูง (Evidence for the main recommendation: high)';
 const marked = (item, text) => {
   const e = entryFor(item, text);
   e.request.evidence_marker = true;
@@ -199,6 +199,14 @@ test('evidence_marker: present on a --evidence-marker run → pass, and placemen
   assert.equal(ex.checks.evidence_marker_placement.pass, true, ex.checks.evidence_marker_placement.detail);
   assert.equal(ex.checks.socratic_last_line.pass, true);
   assert.equal(ex.checks.language.pass, true, 'the bilingual line is not language evidence');
+});
+
+test('evidence_marker: "not graded" and the short forms are valid answers, not missing ones', () => {
+  const ng = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (KDIGO, 2022).\nระดับหลักฐานของข้อแนะนำหลัก: ไม่ได้ประเมิน (Evidence for the main recommendation: not graded)'));
+  assert.deepEqual([ng.checks.evidence_marker.pass, ng.checks.evidence_marker.value], [true, 'not_graded']);
+  const short = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (KDIGO, 2022).\n*Evidence: low*.'));
+  assert.deepEqual([short.checks.evidence_marker.pass, short.checks.evidence_marker.value], [true, 'low']);
+  assert.deepEqual(short.flags, []);
 });
 
 test('evidence_marker: missing / ambiguous is a MINOR flag; misplaced is a separate minor flag', () => {

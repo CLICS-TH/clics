@@ -39,12 +39,13 @@ const rescue = require('../../rimpl/src/services/rescue.js');
 // The reasoning-markup rule the local transport applies to every reply (providers/local-factory.js
 // re-exports it). Package-free: lib/think-markup.js requires nothing.
 const thinkMarkup = require('../../rimpl/src/lib/think-markup.js');
+const turnLimits = require('../../rimpl/src/lib/turn-limits.js');
 
 export const {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
   // The evidence-level marker (CCME R5; setting chat_evidence_marker): the guidance per mode, its share
   // of the single corrective retry, and the one label table the prompt and the parser are built from.
-  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, EVIDENCE_LEVELS,
+  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, EVIDENCE_LEVELS, evidenceLineFor,
 } = prompts;
 export const { promptLabel } = versions;
 export const {
@@ -53,8 +54,10 @@ export const {
   // scripts/probe/thai-probe.mjs. Package-free.
   thaiShare, isLanguageMismatch, isThaiMessage, stripNonProse, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
   // The evidence-marker parser chat.js checks with (one marker line outside any fence, else null).
-  extractEvidenceLevel, findEvidenceMarkers, parseEvidenceLine,
+  extractEvidenceLevel, findEvidenceMarkers, parseEvidenceLine, spliceEvidenceLine,
 } = postFilter;
+// The marker-only call's ceiling and the optional-retry cutoff (routes/chat.js reads both from here).
+export const { EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS } = turnLimits;
 export const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = pii;
 export const { stripArtifactDelimiters } = transcript;
 export const { checkRescueReply, RESCUE_AFTER_EXCHANGES, MAX_RESCUE_QUESTIONS, RESCUE_RETRY_PROMPT } = rescue;
