@@ -228,6 +228,11 @@ export interface AuditorPle {
   // exists so the UI can say so — an unexplained empty pane reads as a bug.
   reveal_locked?: boolean;
   error?: unknown;
+  // Error envelope only. `code` is the backend's machine-readable reason ('deidentify_unavailable' when
+  // RIMPL cannot mask the transcript and the route fails closed with a 503); `httpStatus` is attached
+  // by apiFetch to every error response. Together they separate "not yours" from "down for a moment".
+  code?: string;
+  httpStatus?: number;
 }
 
 // GET /auditor/calibration — this auditor's mean PIS-7 (d1–d7) vs the AI's, across scored PLEs.

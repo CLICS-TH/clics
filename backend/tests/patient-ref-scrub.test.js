@@ -29,9 +29,20 @@ test('finalizeScreening threads patient_ref to the criteria classifier AND the P
     pleId: 'c1', physicianId: 'p1', transcript,
     tier1: { c1: true, c2: true, c3: true }, patient_ref: 'นายสมชาย ใจดี',
   });
-  expect(rimplEvaluateCriteria).toHaveBeenCalledWith({ transcript, patient_ref: 'นายสมชาย ใจดี' });
+  expect(rimplEvaluateCriteria).toHaveBeenCalledWith({ transcript, patient_ref: 'นายสมชาย ใจดี', chief_complaint: null });
   // The PIS-7 half no longer runs inline: the session is enqueued and the drain is woken. The drain
   // threads patient_ref from ple_patient_refs (eval-drain.test.js), so nothing here can drop it.
   expect(triggerEvaluation).not.toHaveBeenCalled();
   expect(evalDrain.kick).toHaveBeenCalledTimes(1);
+});
+
+test('finalizeScreening threads the chief complaint to the classifier (numbering seed; falls back to the ple row)', async () => {
+  rimplEvaluateCriteria.mockClear();
+  const transcript = [{ role: 'physician', content: 'ปวดท้อง' }];
+  await finalizeScreening({ pleId: 'c1', physicianId: 'p1', transcript, tier1: { c1: true, c2: true, c3: true },
+    patient_ref: null, chief_complaint: 'ปวดท้อง 2 วัน' });
+  expect(rimplEvaluateCriteria).toHaveBeenLastCalledWith({ transcript, patient_ref: null, chief_complaint: 'ปวดท้อง 2 วัน' });
+  await finalizeScreening({ pleId: 'c1', physicianId: 'p1', transcript, tier1: { c1: true, c2: true, c3: true },
+    patient_ref: null, ple: { chief_complaint: 'จากแถว ples' } });
+  expect(rimplEvaluateCriteria).toHaveBeenLastCalledWith({ transcript, patient_ref: null, chief_complaint: 'จากแถว ples' });
 });

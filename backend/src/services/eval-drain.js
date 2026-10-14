@@ -89,7 +89,7 @@ async function runOne(pleId) {
       e.status = loaded.reason === 'empty' ? 422 : 503;
       throw e;
     }
-    await triggerEvaluation(pleId, loaded.transcript, ple.physician_id, loaded.patientRef, { attempts: 1 });
+    await triggerEvaluation(pleId, loaded.transcript, ple.physician_id, loaded.patientRef, { attempts: 1, chiefComplaint: loaded.chiefComplaint });
     const { error } = await supabase.from('ples')
       .update({ eval_claimed_at: null, eval_last_error: null }).eq('id', pleId);
     if (error) console.error(`[eval-drain] PLE ${pleId}: post-evaluate clear failed: ${error.message}`);

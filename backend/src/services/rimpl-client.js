@@ -155,39 +155,73 @@ async function readChatStream(res, onEvent) {
 // Auditor calibration chat: discuss a PLE's AI evaluation vs the auditor's own scores. The transcript
 // is sent so RIMPL can de-identify it on-prem before the cloud call (stored raw); patient_ref gives
 // the scrub hints. Metered against the auditor's SEPARATE budget pool by the caller.
-async function rimplAuditDiscuss({ history, message, language, transcript, ai_scores, ai_rationale, auditor_scores, patient_ref }) {
+// chief_complaint is NOT shown to the model: it seeds RIMPL's token numbering so the discussion reads
+// the transcript with the same tokens as the auditor's de-identified view (rimplDeidentify below).
+async function rimplAuditDiscuss({ history, message, language, transcript, ai_scores, ai_rationale, auditor_scores, patient_ref, chief_complaint }) {
   const res = await fetch(`${RIMPL_URL}/audit-discuss`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
-    body: JSON.stringify({ history, message, language, transcript, ai_scores, ai_rationale, auditor_scores, patient_ref }),
+    body: JSON.stringify({ history, message, language, transcript, ai_scores, ai_rationale, auditor_scores, patient_ref,
+      chief_complaint: chief_complaint ?? null }),
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });
   if (!res.ok) throw await rimplError('/audit-discuss', res);
   return parseWithProvider(res);
 }
 
+// De-identified copy of a stored transcript for a HUMAN reader who must not see identifiers (the
+// auditor; docs/CONSENT-TEMPLATE.md). RIMPL masks every turn under ONE registry seeded with the chief
+// complaint and the patient_ref hints, in the order /chat uses, and makes no AI call. The raw
+// transcript stays in the DB as the evidentiary record; nothing is written back.
+//
+// Throws on ANY failure — a non-2xx, a timeout, a body that is not the same number of string turns it
+// was given. The caller must fail closed (no fallback to the raw text): see routes/auditor.js.
+// Short timeout: there is no model behind it, only the on-prem filter, and an auditor is waiting.
+const DEIDENTIFY_TIMEOUT_MS = parseInt(process.env.RIMPL_DEIDENTIFY_TIMEOUT_MS || '15000', 10);
+async function rimplDeidentify({ messages, patient_ref, chief_complaint }) {
+  const res = await fetch(`${RIMPL_URL}/deidentify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
+    body: JSON.stringify({ messages, patient_ref: patient_ref ?? null, chief_complaint: chief_complaint ?? null }),
+    signal: AbortSignal.timeout(DEIDENTIFY_TIMEOUT_MS),
+  });
+  if (!res.ok) throw await rimplError('/deidentify', res);
+  const body = await res.json();
+  const out = body?.messages;
+  if (!Array.isArray(out) || out.length !== messages.length || out.some(m => typeof m?.content !== 'string')) {
+    throw new Error('RIMPL /deidentify returned a malformed transcript');
+  }
+  return body;
+}
+
 // `shadow: false` opts out of RIMPL's shadow evaluation. Only the calibration harness sets it: a
 // --mode rescore run re-scores the real cohort through this route and would otherwise overwrite the
 // pilot's accumulated shadow rows with calibration-run rows.
-async function rimplEvaluate({ ple_id, transcript, patient_ref, shadow, weights_sha256 }) {
+//
+// `chief_complaint` (here and on rimplEvaluateCriteria) is NEVER shown to the model: RIMPL runs it
+// through the token registry first and discards it, so the transcript is numbered as /chat numbered it
+// and the persisted PII map, the auditor's view and the evaluator's input agree on every token. A
+// caller that omits it (the calibration harness) gets the transcript-only numbering, recorded as such
+// in provenance.deid. An older RIMPL ignores the key (its zod schemas strip unknown keys).
+async function rimplEvaluate({ ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256 }) {
   const res = await fetch(`${RIMPL_URL}/evaluate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
     // weights_sha256: the DECLARED Model Lock checksum (§10.2). RIMPL cannot read it — the weights
     // file sits on the DGX, not behind the inference API — so it is stamped onto the score from the
     // declaration instead, and its absence is recorded as "not locked" rather than hidden.
-    body: JSON.stringify({ ple_id, transcript, patient_ref, shadow, weights_sha256: weights_sha256 ?? null }),
+    body: JSON.stringify({ ple_id, transcript, patient_ref, chief_complaint: chief_complaint ?? null, shadow, weights_sha256: weights_sha256 ?? null }),
     signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
   });
   if (!res.ok) throw await rimplError('/evaluate', res);
   return parseWithProvider(res);
 }
 
-async function rimplEvaluateCriteria({ transcript, patient_ref }) {
+async function rimplEvaluateCriteria({ transcript, patient_ref, chief_complaint }) {
   const res = await fetch(`${RIMPL_URL}/evaluate-criteria`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
-    body: JSON.stringify({ transcript, patient_ref }),
+    body: JSON.stringify({ transcript, patient_ref, chief_complaint: chief_complaint ?? null }),
     signal: AbortSignal.timeout(CRITERIA_TIMEOUT_MS),
   });
   if (!res.ok) throw await rimplError('/evaluate-criteria', res);
@@ -226,4 +260,4 @@ async function probeRimplProvider({ name, purpose = 'chat', timeoutMs = PROVIDER
   return res.json();
 }
 
-module.exports = { rimplChat, rimplAuditDiscuss, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep, probeRimplProvider, DEFAULT_PROVIDER };
+module.exports = { rimplChat, rimplAuditDiscuss, rimplDeidentify, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep, probeRimplProvider, DEFAULT_PROVIDER };

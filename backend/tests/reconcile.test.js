@@ -12,6 +12,8 @@ let mockMsgs;      // ple_id -> message rows
 let mockWrites;    // captured insert/update ops for assertions
 let mockSettings;  // app_settings key -> { value, value_text }
 let mockCouncils;  // rows for the councils lookup
+let mockRefs;      // ple_id -> patient_ref
+let mockRefsError; // a ple_patient_refs read error message (null = the read works)
 
 // Table-aware thenable mock: ples sweep ends in .in().lt().order().limit(); ai_evaluations /
 // ple_patient_refs / app_settings in .maybeSingle(); messages + councils in a direct await.
@@ -29,6 +31,10 @@ jest.mock('../src/lib/supabase', () => ({
         maybeSingle: () => {
           if (table === 'app_settings') return Promise.resolve({ data: mockSettings[key] ?? null, error: null });
           if (table === 'ai_evaluations') return Promise.resolve({ data: mockEvals[pleId] ?? null, error: null });
+          if (table === 'ple_patient_refs') {
+            if (mockRefsError) return Promise.resolve({ data: null, error: { message: mockRefsError } });
+            return Promise.resolve({ data: mockRefs[pleId] ? { patient_ref: mockRefs[pleId] } : null, error: null });
+          }
           return Promise.resolve({ data: null, error: null });
         },
         then: (resolve) => {
@@ -64,6 +70,8 @@ beforeEach(() => {
   mockWrites = [];
   mockSettings = {};
   mockCouncils = [];
+  mockRefs = {};
+  mockRefsError = null;
   invalidateScope();
   finalizeScreening.mockReset().mockResolvedValue({ status: 'ple_pass', criteria: {} });
   enqueueEvaluation.mockReset().mockResolvedValue(undefined);
@@ -103,6 +111,39 @@ test("a stranded 'ended' session finishes tier-2 via finalizeScreening (recovere
     pleId: 'pleE', physicianId: 'doc1', tier1: { c1: true, c2: true, c3: true },
   }));
   expect(enqueueEvaluation).not.toHaveBeenCalled(); // finalizeScreening enqueues on its own
+  expect(result).toEqual({ stuck: 1, ...ZERO, recovered: 1 });
+});
+
+test("an 'ended' session is screened with its patient_ref AND its chief complaint (the numbering seed)", async () => {
+  mockPles = [{ id: 'pleE', physician_id: 'doc1', status: 'ended', c1_pass: true, c2_pass: true, c3_pass: true, chief_complaint: 'ปวดท้อง 2 วัน' }];
+  mockMsgs = { pleE: [{ role: 'physician', content: 'วรินทรปวดท้องมา 2 วัน' }] };
+  mockRefs = { pleE: 'นางวรินทร ใจงาม' };
+  await reconcileEvaluations();
+  expect(finalizeScreening).toHaveBeenCalledWith(expect.objectContaining({
+    pleId: 'pleE', patient_ref: 'นางวรินทร ใจงาม', chief_complaint: 'ปวดท้อง 2 วัน',
+  }));
+});
+
+test("FAIL CLOSED: a patient_ref READ ERROR skips the 'ended' session (retried next sweep) — never screened without its hints", async () => {
+  // Before: `{ data: pref }` made the error patient_ref=null and the classifier received
+  // 'วรินทรปวดท้องมา 2 วัน' with no hint to scrub the untitled name.
+  mockPles = [{ id: 'pleE', physician_id: 'doc1', status: 'ended', c1_pass: true, c2_pass: true, c3_pass: true }];
+  mockMsgs = { pleE: [{ role: 'physician', content: 'วรินทรปวดท้องมา 2 วัน' }] };
+  mockRefsError = 'connection reset';
+  const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  const result = await reconcileEvaluations();
+  expect(finalizeScreening).not.toHaveBeenCalled();
+  expect(pleUpdates()).toEqual([]); // left at 'ended', untouched
+  expect(result).toEqual({ stuck: 1, ...ZERO, failed: 1 });
+  expect(errSpy.mock.calls.flat().join(' ')).not.toContain('วรินทร');
+  errSpy.mockRestore();
+});
+
+test("NO patient_ref row is not an error: the 'ended' session is screened with patient_ref null", async () => {
+  mockPles = [{ id: 'pleE', physician_id: 'doc1', status: 'ended', c1_pass: true, c2_pass: true, c3_pass: true }];
+  mockMsgs = { pleE: [{ role: 'physician', content: 'x' }] };
+  const result = await reconcileEvaluations();
+  expect(finalizeScreening).toHaveBeenCalledWith(expect.objectContaining({ patient_ref: null, chief_complaint: null }));
   expect(result).toEqual({ stuck: 1, ...ZERO, recovered: 1 });
 });
 

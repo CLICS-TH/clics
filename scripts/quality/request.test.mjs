@@ -31,9 +31,15 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
   assert.ok(chatSrc.includes("role: m.role === 'physician' ? 'user' : 'assistant'"), 'role mapping drifted');
   assert.ok(chatSrc.includes('content: stripArtifactDelimiters(m.content)'), 'history artifact strip drifted');
   // PII de-identification and system-prompt assembly — the exact calls request.mjs makes.
-  assert.ok(chatSrc.includes('const cleanMessage = stripPii(message, undefined, hints);'), 'message de-identification drifted');
-  assert.ok(chatSrc.includes('const cleanHistory = stripHistoryPii(history, hints).map('), 'history de-identification drifted');
-  assert.ok(chatSrc.includes('${stripPii(chiefComplaint, undefined, hints)}'), 'chief-complaint de-identification drifted');
+  for (const line of [
+    'const registry = makeRegistry();',
+    "const cleanChiefComplaint = chiefComplaint ? stripPii(chiefComplaint, registry, hints) : '';",
+    'const cleanHistory = stripHistoryPii(history, hints, registry);',
+    'const cleanMessage = stripPii(message, registry, hints);',
+    'deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints });',
+    '${cleanChiefComplaint}',
+    'const history = cleanHistory.map(m => ({',
+  ]) assert.ok(chatSrc.includes(line), `one-registry de-identification drifted: ${line}`);
   assert.ok(chatSrc.includes('const hints = deriveHintTokens(patient_ref);'), 'PII hint derivation drifted');
   assert.ok(chatSrc.includes("+ (artifacts ? ARTIFACT_GUIDANCE : '');"), 'ARTIFACT_GUIDANCE concatenation drifted');
   // The single corrective retry (#109): both triggers, how they combine, prompts, fence, failure rule.
@@ -106,7 +112,7 @@ test('messages: history mapped physician→user, chief complaint prefixed, PII s
   // The bare English name has no label and no hint: production's filter lets it through. The request
   // records that as a FILTER gap, separately from anything the model then does with it.
   assert.deepEqual(pii.identifiersSent, ['John Testcase']);
-  const withArtifact = buildMessages([{ role: 'assistant', content: ':::artifact{type="care_plan" title="x"}\nbody\n:::' }], 'msg', null);
+  const withArtifact = buildMessages([{ role: 'assistant', content: ':::artifact{type="care_plan" title="x"}\nbody\n:::' }], 'msg', '');
   assert.equal(withArtifact[0].content.trim(), 'body', 'the fence is stripped from history, the body kept');
   assert.deepEqual(withArtifact[1], { role: 'user', content: 'msg' });
   assert.equal(routeLanguage('What is CAP? ครับ'), 'th', 'any Thai codepoint, as the client sets it');

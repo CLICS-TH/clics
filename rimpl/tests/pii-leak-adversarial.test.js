@@ -633,3 +633,136 @@ describe('adversarial — the consistency block on a 200 /evaluate carries numbe
     for (const frag of LEAKS) expect(wire).not.toContain(frag);
   });
 });
+
+// ===========================================================================
+// ONE REGISTRY PER OUTBOUND CALL. /chat used to de-identify the chief
+// complaint, the history and the current message under THREE registries, each
+// numbering from 1 — so inside one prompt "[NAME-1]" in the history and
+// "[NAME-1]" in the message could be two different people, and a name the
+// history introduced with a title went out BARE when the message repeated it
+// without one (the message's fresh registry had never seen it). /audit-discuss
+// had the same split across transcript / history / message. Names here are
+// NOT in the given-name gazetteer on purpose: only the shared registry's
+// bare-name pass can catch their untitled repeat.
+// ===========================================================================
+describe('adversarial — one registry per outbound call (coreference across the whole prompt)', () => {
+  const A = 'กฤตภาส';   // person A — titled นาย, then repeated bare
+  const B = 'วรินทร';   // person B — a different person, titled นาง
+  const tokenAfter = (text, title) => (new RegExp(`${title}(\\[NAME-\\d+\\])`).exec(text) || [])[1];
+  const citedReply = { text: 'พิจารณาตามแนวทาง (ESC, 2023).\n❓ คิดถึงอะไรต่อ', tokenCount: 10, inputTokens: 5, outputTokens: 5, provider: 'anthropic' };
+
+  let warnSpy, errSpy;
+  beforeEach(() => {
+    callAI.mockReset().mockResolvedValue(citedReply);
+    require('../src/services/rag').ragLookup.mockClear();
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+  afterEach(() => { warnSpy.mockRestore(); errSpy.mockRestore(); });
+
+  const chat = (body) => request(app).post('/chat').send({ ple_id: 'x', language: 'th', ...body });
+  const sentMessages = (i = 0) => callAI.mock.calls[i][0].messages;
+
+  test('/chat: the same person in the history and the current message gets the SAME token', async () => {
+    // B is named FIRST in the message, so a registry private to the message would number A "[NAME-2]".
+    await chat({ history: [{ role: 'physician', content: `นาย${A} มาด้วยไข้` }, { role: 'assistant', content: 'ขอข้อมูลเพิ่ม' }],
+      message: `นาง${B} บอกว่า นาย${A} ยังมีไข้อยู่` });
+    const [hist, , last] = sentMessages();
+    const inHistory = tokenAfter(hist.content, 'นาย');
+    expect(inHistory).toMatch(/^\[NAME-\d+\]$/);
+    expect(tokenAfter(last.content, 'นาย')).toBe(inHistory);
+    expect(JSON.stringify(sentMessages())).not.toContain(A);
+  });
+
+  test('/chat: two different people never share a token (history vs current message)', async () => {
+    await chat({ history: [{ role: 'physician', content: `นาย${A} มาด้วยไข้` }, { role: 'assistant', content: 'ขอข้อมูลเพิ่ม' }],
+      message: `นาง${B} เป็นภรรยา` });
+    const [hist, , last] = sentMessages();
+    const a = tokenAfter(hist.content, 'นาย');
+    const b = tokenAfter(last.content, 'นาง');
+    expect(a).toMatch(/^\[NAME-\d+\]$/);
+    expect(b).toMatch(/^\[NAME-\d+\]$/);
+    expect(b).not.toBe(a); // separate registries gave BOTH "[NAME-1]"
+  });
+
+  test('/chat: a name the history introduced with a title is masked when the message repeats it BARE (leaked before)', async () => {
+    await chat({ history: [{ role: 'physician', content: `นาย${A} มาด้วยไข้` }, { role: 'assistant', content: 'ขอข้อมูลเพิ่ม' }],
+      message: `${A}ยังมีไข้อยู่` });
+    const sent = JSON.stringify(sentMessages());
+    expect(sent).not.toContain(A);
+    const [hist, , last] = sentMessages();
+    expect(last.content).toContain(tokenAfter(hist.content, 'นาย'));
+    // RAG embeds the same de-identified message the model receives — never the raw name.
+    const ragArg = require('../src/services/rag').ragLookup.mock.calls[0][0];
+    expect(ragArg).not.toContain(A);
+    expect(last.content).toContain(ragArg);
+  });
+
+  test('/chat: chief complaint and current message share the registry (coreference + the bare repeat)', async () => {
+    await chat({ history: [], chief_complaint: `นาย${A} อายุ 45 ปี เจ็บหน้าอก`, message: `${A} ยังเจ็บอยู่ และ นาง${B} เป็นภรรยา` });
+    const [last] = sentMessages();
+    expect(last.content).not.toContain(A);
+    expect(last.content).not.toContain(B);
+    const a = tokenAfter(last.content, 'นาย');          // from the chief complaint block
+    const tokens = last.content.match(/\[NAME-\d+\]/g);
+    expect(tokens.filter(t => t === a).length).toBe(2); // CC "นาย[A]" and the message's bare "[A]"
+    expect(tokenAfter(last.content, 'นาง')).not.toBe(a);
+  });
+
+  test('/chat: numbering is prefix-stable — turn N numbers the earlier turns exactly as turn N-1 did', async () => {
+    const cc = `นาย${A} เจ็บหน้าอก`;
+    const h1 = { role: 'physician', content: `นาง${B} พามา` };
+    const h2 = { role: 'assistant', content: 'ขอข้อมูลเพิ่ม' };
+    await chat({ history: [h1, h2], chief_complaint: cc, message: `${B} บอกว่าปวดมาก` });
+    await chat({ history: [h1, h2, { role: 'physician', content: `${B} บอกว่าปวดมาก` }, h2], chief_complaint: cc, message: 'ต่อ' });
+    const firstTurn = sentMessages(0);
+    const nextTurn = sentMessages(1);
+    expect(nextTurn[0].content).toBe(firstTurn[0].content);   // h1 masked identically on both turns
+    expect(nextTurn[2].content).toBe(firstTurn[2].content.split('\n\n').slice(1).join('\n\n')); // turn-1 message, now history
+  });
+
+  test('/chat rescue classifier reads the SAME tokens as the chat call', async () => {
+    const p = (content) => ({ role: 'physician', content });
+    const a = { role: 'assistant', content: 'ขอข้อมูลเพิ่ม' };
+    callAI.mockReset()
+      .mockResolvedValueOnce({ text: '{"c4":true,"c5":true,"c6":true,"c7":true,"on_topic":true}', inputTokens: 1, outputTokens: 1, provider: 'anthropic' })
+      .mockResolvedValueOnce(citedReply);
+    await chat({ history: [p(`นาย${A} มาด้วยไข้`), a, p('ต่อ'), a, p(`นาง${B} มาด้วย`), a, p('ต่อ'), a], message: `${A} กับ ${B} ยังมีไข้` });
+    expect(callAI.mock.calls[0][0].purpose).toBe('criteria');
+    const classifier = callAI.mock.calls[0][0].messages[0].content;
+    const chatMsgs = callAI.mock.calls[1][0].messages;
+    for (const frag of [A, B]) expect(classifier + JSON.stringify(chatMsgs)).not.toContain(frag);
+    const ta = tokenAfter(chatMsgs[0].content, 'นาย');
+    const tb = tokenAfter(chatMsgs[4].content, 'นาง');
+    expect(tokenAfter(classifier, 'นาย')).toBe(ta);
+    expect(tokenAfter(classifier, 'นาง')).toBe(tb);
+    expect(classifier).toContain(`${ta} กับ ${tb} ยังมีไข้`);
+    expect(chatMsgs.at(-1).content).toContain(`${ta} กับ ${tb} ยังมีไข้`);
+  });
+
+  test('/audit-discuss: transcript, discussion history and the auditor message share one registry', async () => {
+    await request(app).post('/audit-discuss').send({
+      transcript: [{ role: 'physician', content: `นาย${A} มาด้วยไข้` }, { role: 'assistant', content: 'ขอข้อมูลเพิ่ม' }],
+      history: [{ role: 'auditor', content: `นาง${B} คือใคร` }, { role: 'assistant', content: 'ไม่ทราบ' }],
+      message: `${A} ได้ยาอะไร`,
+    });
+    const { systemPrompt, messages } = callAI.mock.calls[0][0];
+    const wire = systemPrompt + JSON.stringify(messages);
+    for (const frag of [A, B]) expect(wire).not.toContain(frag);    // the bare repeat in the message leaked before
+    const ta = tokenAfter(systemPrompt, 'นาย');
+    expect(messages.at(-1).content).toBe(`${ta} ได้ยาอะไร`);
+    expect(tokenAfter(messages[0].content, 'นาง')).not.toBe(ta);
+  });
+
+  test('/audit-discuss: the chief complaint seeds the numbering but is never sent', async () => {
+    await request(app).post('/audit-discuss').send({
+      chief_complaint: `นาย${A} ผื่นแดงที่แขนซ้าย`, patient_ref: null,
+      transcript: [{ role: 'physician', content: `${A} มาด้วยไข้` }], message: 'คิดอย่างไร',
+    });
+    const { systemPrompt, messages } = callAI.mock.calls[0][0];
+    const wire = systemPrompt + JSON.stringify(messages);
+    expect(wire).not.toContain(A);                // the bare transcript mention is caught via the CC alias
+    expect(wire).not.toContain('ผื่นแดงที่แขนซ้าย'); // the CC text itself does not travel
+    expect(systemPrompt).toContain('Physician: [NAME-1] มาด้วยไข้');
+  });
+});

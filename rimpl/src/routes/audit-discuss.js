@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { z } = require('zod');
-const { stripPii, stripHistoryPii, deriveHintTokens } = require('../services/pii-filter');
+const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = require('../services/pii-filter');
+const { seedWithChiefComplaint } = require('../lib/transcript');
 const { MAX_TURN_CHARS } = require('../lib/turn-limits');
 const { callAI } = require('../services/ai');
 const { RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS } = require('../lib/prompts');
@@ -36,6 +37,11 @@ const DiscussSchema = z.object({
   auditor_scores: Scores.nullish(),  // { d1..d7, composite_score }
   // patient identifier → scrub hints only (never forwarded to the cloud).
   patient_ref: z.string().nullish(),
+  // The PLE's chief complaint. NOT sent to the model: it only seeds the token registry first, so this
+  // call numbers the transcript exactly as the chat did (and as the auditor's de-identified view does,
+  // POST /deidentify) — "[NAME-2]" in the auditor's question is then the "[NAME-2]" the model reads.
+  // Absent (an older backend) it is simply not seeded, as before.
+  chief_complaint: z.string().max(MAX_TURN_CHARS).nullish(),
 });
 
 function scoresBlock(ai, auditor, rationale) {
@@ -51,26 +57,33 @@ router.post('/', async (req, res) => {
   const parsed = DiscussSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { history, message, language, transcript, ai_scores, ai_rationale, auditor_scores, patient_ref } = parsed.data;
+  const { history, message, language, transcript, ai_scores, ai_rationale, auditor_scores, patient_ref, chief_complaint } = parsed.data;
   const hints = deriveHintTokens(patient_ref);
   // Fires if the auditor's client hangs up: the queued or in-flight call is released.
   const signal = requestSignal(req, res);
 
   try {
-    const cleanMessage = stripPii(message, undefined, hints);
+    // ONE registry for everything this call sends, so a token is one referent across the transcript,
+    // the discussion history and the auditor's new message (three registries numbered each from 1).
+    // Order = chief complaint (seed only, discarded) -> transcript -> discussion history -> message:
+    // the transcript numbering then matches the chat's and the auditor's view, and is prefix-stable
+    // as the discussion grows.
+    const registry = makeRegistry();
+    seedWithChiefComplaint(registry, chief_complaint, hints);
     // De-identify the transcript BEFORE it reaches the cloud (it is stored raw on-prem). Each turn
     // re-sends it as grounding — the auditor's separate budget pool bounds the cost.
-    const cleanTranscript = stripHistoryPii(transcript, hints)
+    const cleanTranscript = stripHistoryPii(transcript, hints, registry)
       .map(m => `${m.role === 'assistant' ? 'AI' : 'Physician'}: ${m.content}`).join('\n');
     const context =
       `\n\n=== PLE TRANSCRIPT (de-identified) ===\n${cleanTranscript || '(empty)'}\n\n` +
       `=== ${scoresBlock(ai_scores, auditor_scores, ai_rationale)} ===`;
     // Grounding lives in the system prompt; the conversation stays a clean Q&A so history isn't bloated.
     const systemPrompt = RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS + context;
-    const cleanHistory = stripHistoryPii(history, hints).map(m => ({
+    const cleanHistory = stripHistoryPii(history, hints, registry).map(m => ({
       role: m.role === 'assistant' ? 'assistant' : 'user',
       content: m.content,
     }));
+    const cleanMessage = stripPii(message, registry, hints);
     const messages = [...cleanHistory, { role: 'user', content: cleanMessage }];
 
     const { text, tokenCount, inputTokens, outputTokens, provider, model } =

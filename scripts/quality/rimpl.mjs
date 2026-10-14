@@ -47,7 +47,7 @@ export const {
   // scripts/probe/thai-probe.mjs. Package-free.
   thaiShare, isLanguageMismatch, isThaiMessage, stripNonProse, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
 } = postFilter;
-export const { stripPii, stripHistoryPii, deriveHintTokens } = pii;
+export const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = pii;
 export const { stripArtifactDelimiters } = transcript;
 export const { checkRescueReply, RESCUE_AFTER_EXCHANGES, MAX_RESCUE_QUESTIONS, RESCUE_RETRY_PROMPT } = rescue;
 

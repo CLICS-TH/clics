@@ -28,6 +28,8 @@ app.use('/chat', require('./routes/chat'));
 app.use('/evaluate', require('./routes/evaluate'));
 app.use('/evaluate-criteria', require('./routes/evaluate-criteria'));
 app.use('/audit-discuss', require('./routes/audit-discuss'));
+// Masked copy of a stored transcript for a human reader (the auditor). No AI call.
+app.use('/deidentify', require('./routes/deidentify'));
 
 if (require.main === module) {
   const PORT = process.env.PORT || 3003;
