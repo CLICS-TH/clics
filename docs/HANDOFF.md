@@ -1,24 +1,55 @@
 # CLICS — Handoff Snapshot
 
-*State of the app as of **2026-09-03**, for the developer continuing this project. Pairs with
-[../README.md](../README.md) (orientation), [../CONTRIBUTING.md](../CONTRIBUTING.md) (how to work in it),
-and [ROADMAP.md](ROADMAP.md) (what to build next).*
+*A chronological log, newest first. The sections below 2026-09-03 are history and are left as written.
+Pairs with [../README.md](../README.md) (orientation), [../CONTRIBUTING.md](../CONTRIBUTING.md) (how to
+work in it), and [ROADMAP.md](ROADMAP.md) (what to build next).*
 
-> **Four days behind, as of 2026-09-07.** Not rewritten wholesale — the newer work is written up where
-> it happened, and duplicating it here is how this file went stale in the first place. What landed
-> after 2026-09-03:
+> ## Current state — 2026-10-14
+>
+> **Production is live and healthy** on master `2aad1d7a`: physician-ui + audit-dashboard on Vercel,
+> backend + rimpl on Railway, Supabase Postgres (ap-northeast-1). `/health/deep` green.
+>
+> **The pilot has not started.** No participant is enrolled; every account in production is a test
+> account. The one thing gating the local-model decision is **human auditor scores**, not more code.
+>
+> ### What landed since 2026-09-07
 >
 > | where | what |
 > |---|---|
-> | [GATE0-DGX-RESULTS.md](GATE0-DGX-RESULTS.md) §8.9–8.11, §5.2 | the nine-port sweep (the block is **source-scoped**, `:3003` refuses rather than drops), rimpl's first real run against the box, and `cme-dev` identified as a **gateway** whose inference hosts are LAN-only |
-> | [METHODOLOGY-local-vs-sonnet.{en,th}.md](METHODOLOGY-local-vs-sonnet.en.md) | the whole local-evaluator screening programme, including the held-out gate spent 2026-09-04: **ICC 0.436 (0.000–0.873), n=8, `insufficient`** |
-> | [ONPREM-INSTALL.th.md](ONPREM-INSTALL.th.md) | the Thai install spec handed to the box owner |
-> | [RAG-ROLLOUT-CHECKLIST.md](RAG-ROLLOUT-CHECKLIST.md) | `rag_enabled` migration applied and verified in production 2026-09-06 (`fa3fa89`) |
-> | [G0.5-HUMAN-RATER-PREP.th.md](G0.5-HUMAN-RATER-PREP.th.md) §0 | the production rater-spread measurement — `gate.meets: false` |
-> | [pilot-timeline.md](pilot-timeline.md) | the published schedule marked superseded |
+> | [calibration AUTHORING.md](../scripts/calibration/anchors/AUTHORING.md) §7 items 20–25 | the whole anchor-cohort programme: 100 designed anchors, a 60-anchor held-out split, the blind Sonnet/Opus/GPT panel, and two pre-registered attempts to fix the local evaluator's scale compression |
+> | PRs #104–#114 | F-based ICC CI, weighted composite everywhere, ICC(A,k) pole fix, rubric mirror + per-turn provenance — all deployed 2026-10-02 |
+> | PR #135 | SANDBOX anchor import + shadow import + the local-vs-auditor arm (plan 2.7) |
+> | PR #141 | duplicate-turn idempotency (`client_turn_id`, `chat_turn_claims`, `store_chat_turn`); migration applied to production |
+> | PRs #136/#137/#142 | DPU design port, phone chat scroll guard, one bubble per question, keyboard compact |
+> | PR #144 | the rescue rules are now **enforced** by one corrective retry — final replies breaking them fell 6/12 → 1/18 (Fisher p = 0.009) |
+> | PR #145 | items 24–25: the v4 addendum is adoptable on tuning but **not shown** on held-out |
+> | PR #146 | **streamed chat replies** (SSE end-to-end), setting `chat_streaming`, live since 2026-10-06 |
 >
-> PRs #84–#89 and #91–#92. The "Open threads" list below has been re-checked against production; two
-> of its figures were wrong and are corrected in place.
+> ### Where the local evaluator actually stands
+>
+> Measured on the 60 held-out anchors, **screening-synthetic** (AI-authored cases, AI-scored — not
+> human agreement, and not a decisive gate):
+>
+> | | vs designed target | vs AI consensus | test–retest |
+> |---|---|---|---|
+> | DeepSeek, shipping prompt | **0.587** [0.12, 0.80] | 0.757 | 0.91 |
+> | DeepSeek, v4 prompt (item 25) | **0.649** [0.19, 0.83] | 0.813 | 0.93–0.95 |
+>
+> Every paired v4-minus-shipping difference includes 0, so v4 is *not* demonstrated to be better.
+> The defect is **scale compression**: weak work is read ~23 points too high. The shipping prompt
+> stays; v4 is the candidate arm for the auditor round, which decides between them.
+>
+> ### Blocked on people, not code
+>
+> 1. **Auditor round** — 60 anchors imported to SANDBOX, 4 auditors assigned, AI scores locked. Waiting.
+> 2. **#140 Sonnet 5.5** — needs PI/IRB sign-off.
+> 3. **Key rotation** — the old `vfgbijux…` service_role key and the admin/superadmin passwords.
+>
+> ### Working with CCME on the on-prem move
+>
+> See **[ARCHITECTURE-MAPPING-CCME.md](ARCHITECTURE-MAPPING-CCME.md)** — maps the CCME architecture
+> proposal's R1–R10 against what is already built (8 of 10 present), and records which model
+> endpoints are reachable from the CLICS tailnet.
 
 ## Read this first — the 2026-08/09 outage
 
