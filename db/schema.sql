@@ -815,15 +815,22 @@ $$;
 -- ===== Audit trail (see db/migration-audit-log.sql) — append-only event log for the ethics committee =====
 create table public.audit_log (
   id          uuid primary key default gen_random_uuid(),
-  actor_id    uuid references public.professionals(id) on delete set null,
+  -- No FK: an `on delete set null` cascade is an UPDATE, which the append-only trigger refuses, and
+  -- audit evidence should outlive the user it names (db/migration-audit-log-chain.sql).
+  actor_id    uuid,
   actor_role  text,
   action      text not null,
   target_type text,
   target_id   text,
   council_id  uuid references public.councils(id),
   metadata    jsonb,
-  created_at  timestamptz not null default now()
+  created_at  timestamptz not null default now(),
+  -- Hash chain, all three set by the audit_log_chain trigger below — never by the caller.
+  seq         bigint not null,
+  prev_hash   bytea  not null,
+  row_hash    bytea  not null
 );
+create unique index audit_log_seq_key on public.audit_log(seq);
 create index audit_log_created_idx on public.audit_log(created_at);
 create index audit_log_target_idx  on public.audit_log(target_type, target_id);
 create index audit_log_actor_idx   on public.audit_log(actor_id);
@@ -831,6 +838,161 @@ alter table public.audit_log enable row level security;
 create policy "audit_log: oversight read" on public.audit_log for select using (
   exists (select 1 from public.professionals p where p.id = auth.uid() and p.role in ('superadmin','ethics'))
 );
+
+-- Hash chain + append-only (see db/migration-audit-log-chain.sql for the reasoning).
+-- ---- 3. Canonical form + hash --------------------------------------------------------------------
+-- A jsonb array is unambiguous about NULLs and escaping, and jsonb's text output is deterministic
+-- (normalised whitespace, sorted object keys). created_at is rendered in UTC with microseconds so the
+-- hash does not depend on the session's TimeZone. The leading 'v1' versions the canonical form: a
+-- later change to what is hashed starts 'v2' rather than silently invalidating every old row.
+-- Every function here pins search_path = '' and qualifies its own objects, so nothing planted in
+-- public can stand in for a built-in (this matters most for the SECURITY DEFINER trigger below).
+create or replace function public.audit_log_row_hash(
+  p_prev bytea, p_seq bigint, p_id uuid, p_created_at timestamptz, p_actor_id uuid, p_actor_role text,
+  p_action text, p_target_type text, p_target_id text, p_council_id uuid, p_metadata jsonb
+) returns bytea
+language sql stable
+set search_path = ''
+as $$
+  select pg_catalog.sha256(pg_catalog.convert_to(pg_catalog.jsonb_build_array(
+    'v1', pg_catalog.encode(p_prev, 'hex'), p_seq, p_id::text,
+    pg_catalog.to_char(p_created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"'),
+    p_actor_id::text, p_actor_role, p_action, p_target_type, p_target_id, p_council_id::text, p_metadata
+  )::text, 'UTF8'))
+$$;
+
+-- The chain's first prev_hash: 32 zero bytes.
+create or replace function public.audit_log_genesis() returns bytea
+language sql immutable set search_path = ''
+as $$ select pg_catalog.decode(pg_catalog.repeat('00', 32), 'hex') $$;
+
+-- ---- 5. Chain on insert --------------------------------------------------------------------------
+-- SECURITY DEFINER so the "last row" read never depends on what the INSERTING role can see: a
+-- caller whose RLS hid the newest rows would otherwise chain to an older one and fork the chain.
+create or replace function public.audit_log_chain() returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_prev bytea;
+  v_seq  bigint;
+begin
+  -- One chain, one writer at a time. Held to the end of the inserting transaction, so the next
+  -- writer reads this row's hash only once it is committed (READ COMMITTED takes a new snapshot per
+  -- statement). If this transaction rolls back, the next writer simply chains to the real last row.
+  perform pg_catalog.pg_advisory_xact_lock(7209114052026);
+  select a.row_hash, a.seq into v_prev, v_seq from public.audit_log a order by a.seq desc limit 1;
+  NEW.seq        := coalesce(v_seq, 0) + 1;
+  NEW.prev_hash  := coalesce(v_prev, public.audit_log_genesis());
+  -- The database's clock, not the caller's: "when" is the field an audit record exists to answer, so
+  -- a writer must not be able to insert an event dated in the past. (Also covers a PostgREST array
+  -- insert that sends NULL instead of the column default.)
+  NEW.created_at := pg_catalog.now();
+  NEW.row_hash   := public.audit_log_row_hash(NEW.prev_hash, NEW.seq, NEW.id, NEW.created_at, NEW.actor_id,
+                      NEW.actor_role, NEW.action, NEW.target_type, NEW.target_id, NEW.council_id, NEW.metadata);
+  return NEW;
+end $$;
+
+-- BEFORE triggers fire in name order. Any future BEFORE INSERT trigger that changes NEW must sort
+-- BEFORE 'audit_log_chain', or the hash would cover a row other than the one stored.
+drop trigger if exists audit_log_chain on public.audit_log;
+create trigger audit_log_chain before insert on public.audit_log
+  for each row execute function public.audit_log_chain();
+
+-- ---- 6. Refuse UPDATE / DELETE / TRUNCATE --------------------------------------------------------
+create or replace function public.audit_log_immutable() returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  raise exception 'audit_log is append-only (% refused)', tg_op using errcode = 'insufficient_privilege';
+end $$;
+
+drop trigger if exists audit_log_no_update on public.audit_log;
+create trigger audit_log_no_update before update or delete on public.audit_log
+  for each row execute function public.audit_log_immutable();
+drop trigger if exists audit_log_no_truncate on public.audit_log;
+create trigger audit_log_no_truncate before truncate on public.audit_log
+  for each statement execute function public.audit_log_immutable();
+
+-- ---- 7. Verify + head ----------------------------------------------------------------------------
+-- Walks the whole chain and reports the first seq where a link, a hash or the 1..n numbering breaks.
+--
+-- WHAT A WALK ALONE CANNOT SEE. Whoever can disable the triggers (the table owner) can cut rows off
+-- the END, or edit a row and re-hash everything after it, and the walk still comes back consistent:
+-- the hash function has no secret. Both are caught only by comparing against a head (seq, hash) that
+-- was copied somewhere the owner cannot rewrite. Pass that as the anchor: `anchored` is true only when
+-- the walk reached that seq and found exactly that hash. Without an anchor, ok=true means
+-- "internally consistent", NOT "complete and unaltered" — the API says so.
+drop function if exists public.audit_log_verify();
+drop function if exists public.audit_log_verify(bigint, text);
+create function public.audit_log_verify(p_anchor_seq bigint default null, p_anchor_hash text default null)
+returns table (ok boolean, checked bigint, first_bad_seq bigint, reason text, head_seq bigint, head_hash text,
+               anchored boolean)
+language plpgsql stable
+set search_path = ''
+as $$
+declare
+  r record;
+  v_prev bytea := public.audit_log_genesis();
+  v_expect bigint := 1;
+  v_n bigint := 0;
+  v_anchor_seen boolean := false;
+begin
+  if (p_anchor_seq is null) <> (p_anchor_hash is null) then
+    raise exception 'anchor needs both seq and hash' using errcode = 'invalid_parameter_value';
+  end if;
+  for r in select * from public.audit_log order by seq loop
+    v_n := v_n + 1;
+    if r.seq <> v_expect then
+      return query select false, v_n, r.seq, 'seq_gap'::text, null::bigint, null::text, false; return;
+    end if;
+    if r.prev_hash <> v_prev then
+      return query select false, v_n, r.seq, 'prev_hash_mismatch'::text, null::bigint, null::text, false; return;
+    end if;
+    if r.row_hash <> public.audit_log_row_hash(r.prev_hash, r.seq, r.id, r.created_at, r.actor_id, r.actor_role,
+                                               r.action, r.target_type, r.target_id, r.council_id, r.metadata) then
+      return query select false, v_n, r.seq, 'row_hash_mismatch'::text, null::bigint, null::text, false; return;
+    end if;
+    if r.seq = p_anchor_seq then
+      if pg_catalog.encode(r.row_hash, 'hex') <> pg_catalog.lower(p_anchor_hash) then
+        return query select false, v_n, r.seq, 'anchor_mismatch'::text, null::bigint, null::text, false; return;
+      end if;
+      v_anchor_seen := true;
+    end if;
+    v_prev := r.row_hash;
+    v_expect := v_expect + 1;
+  end loop;
+  if p_anchor_seq is not null and not v_anchor_seen then
+    -- The anchored row no longer exists: the tail was cut below a head someone had recorded.
+    return query select false, v_n, v_expect, 'truncated_below_anchor'::text, null::bigint, null::text, false; return;
+  end if;
+  return query select true, v_n, null::bigint, null::text,
+    nullif(v_expect - 1, 0), case when v_n = 0 then null else pg_catalog.encode(v_prev, 'hex') end, v_anchor_seen;
+end $$;
+
+create or replace function public.audit_log_head()
+returns table (head_seq bigint, head_hash text, head_at timestamptz)
+language sql stable
+set search_path = ''
+as $$ select seq, pg_catalog.encode(row_hash, 'hex'), created_at from public.audit_log order by seq desc limit 1 $$;
+
+-- Functions are executable by PUBLIC by default, and PostgREST exposes them as RPC to anon and
+-- authenticated. Only the service role (the backend) may call these. Every grant is EXPLICIT — verify
+-- runs as its caller and calls the two helpers, so relying on Supabase's default function ACL would
+-- break on plain PostgreSQL (the on-prem path).
+revoke all on function public.audit_log_verify(bigint, text) from public, anon, authenticated;
+revoke all on function public.audit_log_head()   from public, anon, authenticated;
+revoke all on function public.audit_log_row_hash(bytea, bigint, uuid, timestamptz, uuid, text, text, text, text, uuid, jsonb)
+  from public, anon, authenticated;
+revoke all on function public.audit_log_genesis() from public, anon, authenticated;
+revoke all on function public.audit_log_chain() from public, anon, authenticated;
+grant execute on function public.audit_log_row_hash(bytea, bigint, uuid, timestamptz, uuid, text, text, text, text, uuid, jsonb)
+  to service_role;
+grant execute on function public.audit_log_genesis()           to service_role;
+grant execute on function public.audit_log_verify(bigint, text) to service_role;
+grant execute on function public.audit_log_head()              to service_role;
 
 -- ===== Structured informed consent (see db/migration-consents.sql) — auditable consent records =====
 create table public.consents (

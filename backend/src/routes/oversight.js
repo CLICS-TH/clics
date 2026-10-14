@@ -9,6 +9,7 @@ const { computeICC21, iccTwoRater, verdictFor } = require('../services/icc');
 const { pairedSets } = require('../services/agreement');
 const { raterSpread } = require('../services/rater-spread');
 const { iccGates } = require('../lib/settings');
+const { verifyChain } = require('../services/audit-chain');
 
 const router = Router();
 router.use(verifyJwt, requireRole('analyst', 'ethics', 'superadmin'));
@@ -215,6 +216,26 @@ router.get('/audit-log', requireRole('ethics', 'superadmin'), async (req, res) =
   if (sendDbError(res, error)) return;
   res.setHeader('X-Total-Count', count ?? 0);
   res.json({ total: count ?? 0, limit, offset, events: data ?? [] });
+});
+
+// Does the audit trail still link, row to row? The database recomputes its own hash chain
+// (db/migration-audit-log-chain.sql) and names the first row that does not. Same roles as the log.
+// Pass ?anchor_seq=&anchor_hash= — a head recorded earlier, held outside Supabase — to also detect a
+// truncated tail or a re-hashed chain; only an anchored pass reports `intact`. `broken` is still a
+// 200: the answer IS the finding, and the ethics view must show it.
+router.get('/audit-log/verify', requireRole('ethics', 'superadmin'), async (req, res) => {
+  const { anchor_seq: seqRaw, anchor_hash: hashRaw } = req.query;
+  let anchor = null;
+  if (seqRaw != null || hashRaw != null) {
+    const seq = Number(seqRaw);
+    if (!Number.isSafeInteger(seq) || seq < 1 || !/^[0-9a-f]{64}$/i.test(String(hashRaw || ''))) {
+      return res.status(400).json({ error: 'anchor_seq must be a positive integer and anchor_hash 64 hex characters' });
+    }
+    anchor = { seq, hash: String(hashRaw).toLowerCase() };
+  }
+  const result = await verifyChain(anchor);
+  if (result.status === 'error') return res.status(500).json(result);
+  res.json(result);
 });
 
 module.exports = router;
