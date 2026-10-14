@@ -36,6 +36,9 @@ const postFilter = require('../../rimpl/src/services/post-filter.js');
 const pii = require('../../rimpl/src/services/pii-filter.js');
 const transcript = require('../../rimpl/src/lib/transcript.js');
 const rescue = require('../../rimpl/src/services/rescue.js');
+// The reasoning-markup rule the local transport applies to every reply (providers/local-factory.js
+// re-exports it). Package-free: lib/think-markup.js requires nothing.
+const thinkMarkup = require('../../rimpl/src/lib/think-markup.js');
 
 export const {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
@@ -50,6 +53,7 @@ export const {
 export const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = pii;
 export const { stripArtifactDelimiters } = transcript;
 export const { checkRescueReply, RESCUE_AFTER_EXCHANGES, MAX_RESCUE_QUESTIONS, RESCUE_RETRY_PROMPT } = rescue;
+export const { stripThink, createThinkFilter } = thinkMarkup;
 
 /** Absolute paths of the production files this module mirrors behaviour from (for drift tests). */
 export const RIMPL_FILES = {

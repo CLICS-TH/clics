@@ -557,3 +557,23 @@ describe('thinking + onReasoning pass-through', () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+describe('r3_distinct_models (readiness)', () => {
+  afterEach(() => { delete mockLocal.endpointKey; delete mockTutor.endpointKey; });
+
+  test('equal keys: one warn check; providers without endpointKey (or unconfigured) add nothing', async () => {
+    expect(await ai.readiness()).not.toHaveProperty('r3_distinct_models');   // mocks without endpointKey
+    mockLocal.endpointKey = () => 'http://box/v1 m';
+    mockTutor.endpointKey = () => null;                                       // tutor unconfigured
+    expect(await ai.readiness()).not.toHaveProperty('r3_distinct_models');
+    mockTutor.endpointKey = () => 'http://box/v1 m';
+    expect((await ai.readiness()).r3_distinct_models).toMatchObject({ status: 'warn' });
+  });
+
+  test('it does not make the provider probe unfit: probeProvider reads only the provider\'s own checks', async () => {
+    mockLocal.endpointKey = () => 'k';
+    mockTutor.endpointKey = () => 'k';
+    expect(await ai.probeProvider('local-tutor', 'chat')).toMatchObject({ fit: true });
+  });
+});

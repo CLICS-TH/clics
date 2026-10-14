@@ -28,6 +28,7 @@
 // encrypted end to end. Never point a *_BASE_URL at a plaintext public address.
 const { createRunner } = require('./runtime');
 const settings = require('../provider-settings');
+const { stripThink, createThinkFilter, closesThink, flagOn } = require('../../lib/think-markup');
 
 // Config is read LAZILY (first call), not at module load: this module is required unconditionally by
 // services/ai.js, and must not throw or capture stale env when the local provider is not in use.
@@ -152,129 +153,11 @@ async function httpJson(url, { method = 'GET', body, timeoutMs, apiKey, signal, 
 }
 
 // ---------------------------------------------------------------------------------------------
-// Inline reasoning markup. A reasoning model served WITHOUT a reasoning parser (vLLM/SGLang
-// --reasoning-parser) returns its chain-of-thought INSIDE `content`, wrapped in <think>…</think>,
-// instead of in the separate reasoning_content field that is already dropped below. Left alone it
-// would be shown to the physician, stored in the transcript, and fed to the evaluator as if the
-// model had meant it. Defensive: on a correctly configured server none of this ever matches, and a
-// reply with no tag is returned byte-identical.
-//
-// stripThink(text) is the rule for every reply that is RETURNED (non-streamed, and the final text of
-// a streamed one):
-//   1. a closing tag with no opening tag before it: the chat template opened the block inside the
-//      prompt (DeepSeek-R1-style), so everything up to and including that first </think> is reasoning;
-//   2. every complete <think>…</think> block (and the whitespace after it) is removed;
-//   3. any other stray </think> token is removed;
-//   4. a <think> that is never closed (the reply was cut off mid-thought) drops everything after it.
-// A reply that was ALL reasoning comes back '' — the caller already treats an empty reply as a
-// failure, which is the honest outcome.
-const OPEN = '<think>';
-const CLOSE = '</think>';
-const HAS_THINK_MARKUP = /<\/?think>/i;
-
-function stripThink(text) {
-  if (typeof text !== 'string' || !HAS_THINK_MARKUP.test(text)) return text;
-  let out = text;
-  const firstClose = out.search(/<\/think>/i);
-  const firstOpen = out.search(/<think>/i);
-  if (firstClose !== -1 && (firstOpen === -1 || firstClose < firstOpen)) {
-    out = out.slice(firstClose + CLOSE.length).replace(/^\s+/, '');
-  }
-  out = out.replace(/<think>[\s\S]*?<\/think>\s*/gi, '');
-  out = out.replace(/<\/think>\s*/gi, '');
-  const open = out.search(/<think>/i);
-  return open === -1 ? out : out.slice(0, open);
-}
-
-// The streaming twin of stripThink: decides, piece by piece, what may be SHOWN. Text inside a block
-// is never emitted; a possible partial tag at the end of a piece ("…<thi") is held until the next
-// piece shows whether it is one, so the decision is never made on half a tag. For rules 2–4 the
-// concatenation of what it emits equals stripThink(the whole reply).
-//
-// Rule 1 CANNOT be applied to a stream without holding back the whole reply: the text before an
-// orphan </think> looks like an answer until the tag arrives. The returned (stored) text still
-// follows rule 1; only what was already streamed cannot be recalled. `sawOrphanClose` says when that
-// happened, so the provider can warn once. Configuring the server's reasoning parser removes the case.
-//
-// `onThink()` fires on every block opened — the provider turns that into one onReasoning call.
-function createThinkFilter({ emit, onThink }) {
-  let inside = false;
-  let held = '';          // a possible partial tag withheld from the end of the previous piece
-  let skipWs = false;     // drop whitespace right after a removed tag (stripThink's trailing \s*)
-  let sawOpen = false;
-  let sawOrphanClose = false;
-
-  // Length of the longest tail of `s` that is a proper prefix of one of `tags`.
-  function partialTail(s, tags) {
-    const lower = s.toLowerCase();
-    let best = 0;
-    for (const tag of tags) {
-      for (let n = Math.min(tag.length - 1, lower.length); n > best; n--) {
-        if (tag.startsWith(lower.slice(-n))) { best = n; break; }
-      }
-    }
-    return best;
-  }
-
-  function push(piece) {
-    let buf = held + piece;
-    held = '';
-    let out = '';
-    while (buf) {
-      if (inside) {
-        const j = buf.toLowerCase().indexOf(CLOSE);
-        if (j === -1) { held = buf.slice(buf.length - partialTail(buf, [CLOSE])); break; }
-        inside = false;
-        skipWs = true;
-        buf = buf.slice(j + CLOSE.length);
-        continue;
-      }
-      if (skipWs) {
-        const ws = buf.match(/^\s*/)[0];
-        buf = buf.slice(ws.length);
-        if (!buf) break;
-        skipWs = false;
-      }
-      const lower = buf.toLowerCase();
-      const i = lower.indexOf(OPEN);
-      const k = lower.indexOf(CLOSE);
-      if (i !== -1 && (k === -1 || i < k)) {
-        out += buf.slice(0, i);
-        inside = true;
-        sawOpen = true;
-        onThink?.();
-        buf = buf.slice(i + OPEN.length);
-        continue;
-      }
-      if (k !== -1) {
-        // A stray closing tag. Before any opening tag it is rule 1's orphan, whose reasoning has
-        // already been emitted as if it were the answer — recorded so the provider can say so.
-        if (!sawOpen && !sawOrphanClose) sawOrphanClose = true;
-        out += buf.slice(0, k);
-        skipWs = true;
-        buf = buf.slice(k + CLOSE.length);
-        continue;
-      }
-      const keep = partialTail(buf, [OPEN, CLOSE]);
-      out += buf.slice(0, buf.length - keep);
-      held = buf.slice(buf.length - keep);
-      break;
-    }
-    if (out) emit(out);
-  }
-
-  // The reply is complete: a withheld partial tag was just text after all, unless it sits inside an
-  // unterminated block (rule 4), in which case it was reasoning like everything around it. (Text is
-  // only ever withheld outside a block once skipWs has been consumed, so there is no whitespace rule
-  // left to apply here.)
-  function end() {
-    const rest = held;
-    held = '';
-    if (!inside && rest) emit(rest);
-  }
-
-  return { push, end, sawOrphanClose: () => sawOrphanClose };
-}
+// Inline reasoning markup (<think>…</think> in `content`) — stripThink / createThinkFilter live in
+// lib/think-markup.js, package-free, so the probe/quality harness judges the very text this transport
+// returns. See that file for exactly what is and is not withheld from a stream. Per instance,
+// <envPrefix>THINK_PREOPENED=1 declares that the server's chat template opens the block inside the
+// prompt (DeepSeek-R1, Qwen3 Thinking-2507), so nothing is shown or returned until the first </think>.
 
 // The streaming twin of httpJson: POST with `stream: true` and read the OpenAI-style SSE body,
 // `data: {chunk}` lines ending in `data: [DONE]`. Each content piece goes to `onDelta` as it arrives
@@ -283,7 +166,10 @@ function createThinkFilter({ emit, onThink }) {
 // usage, model, system_fingerprint), so call() reads both the same way. Only `delta.content` strings
 // are taken: reasoning_content (chain-of-thought) is dropped, as in call(); its ARRIVAL is reported to
 // `onReasoning()` (no content passed), which call() limits to once.
-async function httpStream(url, { body, timeoutMs, apiKey, signal, onDelta, onReasoning, proxyUrl, label = 'local AI' }) {
+//
+// `preopened` starts the filter inside a reasoning block (the THINK_PREOPENED knob); `onOrphanClose`
+// is told, once, when a </think> arrives that no <think> opened — see lib/think-markup.js.
+async function httpStream(url, { body, timeoutMs, apiKey, signal, onDelta, onReasoning, onOrphanClose, preopened = false, proxyUrl, label = 'local AI' }) {
   const headers = { accept: 'text/event-stream', 'content-type': 'application/json' };
   if (apiKey) headers.authorization = `Bearer ${apiKey}`;
   const tag = (e) => {
@@ -314,14 +200,14 @@ async function httpStream(url, { body, timeoutMs, apiKey, signal, onDelta, onRea
   // `emitted` = text has actually been SHOWN. Reasoning withheld by the filter does not count: a
   // failure after nothing but reasoning is still safe to retry, the physician has seen no reply.
   let emitted = false;
-  const filter = createThinkFilter({ emit: (t) => { emitted = true; onDelta(t); }, onThink: onReasoning });
+  const filter = createThinkFilter({ emit: (t) => { emitted = true; onDelta(t); }, onThink: onReasoning, onOrphanClose, preopened });
   // A server that ignores `stream` answers with one JSON completion: hand its text over in one piece.
   if (/application\/json/i.test(res.headers?.get?.('content-type') || '')) {
     let data;
     try { data = await res.json(); } catch (e) { throw tag(e); }
     const whole = data?.choices?.[0]?.message?.content;
     if (typeof whole === 'string' && whole) { filter.push(whole); filter.end(); }
-    return { ...data, orphanThinkStreamed: filter.sawOrphanClose() };
+    return data;
   }
   let text = '', finish = null, usage = null, model = null, fingerprint = null;
   let sawDone = false;
@@ -371,7 +257,6 @@ async function httpStream(url, { body, timeoutMs, apiKey, signal, onDelta, onRea
   return {
     choices: [{ message: { content: text }, finish_reason: finish }],
     usage, model, system_fingerprint: fingerprint,
-    orphanThinkStreamed: filter.sawOrphanClose(),
   };
 }
 
@@ -482,6 +367,11 @@ function createLocalProvider({
     // an over-long prompt only arrives after the box has already spent time on it. Set from the WP0
     // capacity probe (the largest size at which the served model still recalled the sentinel).
     maxPromptTokens: intEnv(`${envPrefix}MAX_PROMPT_TOKENS`, 0, 0),
+    // The chat template opens the reasoning block INSIDE THE PROMPT (DeepSeek-R1, Qwen3
+    // Thinking-2507 on a server without --reasoning-parser): the reply is `…reasoning…</think>answer`.
+    // On, nothing is streamed or returned until the first </think>, and a reply that never closes the
+    // block is an error rather than a blank or a leak (see call()). Off (default): unchanged.
+    thinkPreopened: flagOn(process.env[`${envPrefix}THINK_PREOPENED`]),
   });
 
   const proxyUrl = () => {
@@ -603,10 +493,19 @@ function createLocalProvider({
   // text from the reply: the operator needs to know the server is misconfigured, not what it thought.
   let warnedNoStreamUsage = false;
   let warnedThinkMarkup = false;
-  function warnThinkMarkup(orphanStreamed) {
+  let warnedThinkLeak = false;
+  function warnThinkMarkup() {
     if (warnedThinkMarkup) return;
     warnedThinkMarkup = true;
-    console.warn(`${log} the reply carried inline <think> markup in its content; it was removed before the reply was returned${orphanStreamed ? ' — but text before a closing </think> with no opening tag had ALREADY been streamed to the caller' : ''}. Configure the server to return reasoning separately (vLLM/SGLang: --reasoning-parser).`);
+    console.warn(`${log} the reply carried inline <think> markup in its content; it was removed before the reply was returned. Configure the server to return reasoning separately (vLLM/SGLang: --reasoning-parser).`);
+  }
+  // The one case a stream SHOWS reasoning: the template pre-opened the block and this instance was not
+  // told, so pieces before the </think> went out as if they were the answer. Names the knob that stops
+  // it. No reply text, ever.
+  function warnThinkLeak() {
+    if (warnedThinkLeak) return;
+    warnedThinkLeak = true;
+    console.warn(`${log} streamed text before a closing </think> with no opening tag had ALREADY been shown to the caller: the server's chat template opens the reasoning block inside the prompt. Set ${envPrefix}THINK_PREOPENED=1 to withhold everything until the first </think> — or, properly, run the server with --reasoning-parser.`);
   }
 
   // `purpose` picks the queue lane (LANE_FOR); `signal` is the caller's client-gone signal — while
@@ -616,7 +515,7 @@ function createLocalProvider({
   // is called ONCE, with nothing, when the reply's reasoning starts arriving — so a caller can show
   // "thinking…" without ever receiving the reasoning itself.
   async function call({ systemPrompt, messages, maxTokens = 1500, temperature, purpose, signal, onDelta, thinking, onReasoning }) {
-    const { baseUrl, model, apiKey, timeoutMs, numCtx, maxPromptTokens } = cfg();
+    const { baseUrl, model, apiKey, timeoutMs, numCtx, maxPromptTokens, thinkPreopened } = cfg();
     if (!baseUrl) throw new Error(`${envPrefix}BASE_URL is not set (AI_PROVIDER=${name} requires it)`);
     if (!model) throw new Error(`${envPrefix}MODEL is not set (AI_PROVIDER=${name} requires it)`);
 
@@ -661,12 +560,19 @@ function createLocalProvider({
     const noteReasoning = typeof onReasoning === 'function'
       ? () => { if (!reasoningNoted) { reasoningNoted = true; onReasoning(); } }
       : undefined;
+    // A </think> that nothing opened: reasoning happened (so "thinking…" is true, even late), and if
+    // text had already been shown it was that reasoning — say so once, naming the knob.
+    let leakedThisCall = false;
+    const onOrphanClose = ({ leaked }) => {
+      noteReasoning?.();
+      if (leaked) { leakedThisCall = true; warnThinkLeak(); }
+    };
 
     return getRunner().run(async (_attempt, sig) => {
       let data;
       try {
         data = onDelta
-          ? await httpStream(`${baseUrl}/chat/completions`, { body, timeoutMs, apiKey, signal: sig, onDelta, onReasoning: noteReasoning, proxyUrl: proxyUrl(), label })
+          ? await httpStream(`${baseUrl}/chat/completions`, { body, timeoutMs, apiKey, signal: sig, onDelta, onReasoning: noteReasoning, onOrphanClose, preopened: thinkPreopened, proxyUrl: proxyUrl(), label })
           : await httpJson(`${baseUrl}/chat/completions`, { method: 'POST', body, timeoutMs, apiKey, signal: sig, proxyUrl: proxyUrl(), label });
       } catch (e) {
         // Measured on the DGX (Ollama 0.32.15): a 9,144-token evaluation returns
@@ -697,8 +603,8 @@ function createLocalProvider({
       // transcript — the caller surfaces the failure via stopReason instead. Inline <think> markup in
       // a string content is the same leak by another route: stripThink removes it.
       const raw = typeof choice?.message?.content === 'string' ? choice.message.content : '';
-      const text = stripThink(raw);
-      if (text !== raw) warnThinkMarkup(!!data.orphanThinkStreamed);
+      const text = stripThink(raw, { preopened: thinkPreopened });
+      if (text !== raw && !leakedThisCall) warnThinkMarkup();
       // A streamed reply from a server that ignored include_usage has no usage at all. Zero would let the
       // token cap and the transcript cap never move, so estimate (the same bytes/3 unit as the prompt
       // backstop) and say so once. From the RAW content: the box generated the reasoning tokens too.
@@ -711,6 +617,24 @@ function createLocalProvider({
       if (!streamedNoUsage) observePromptTokens(est, data.usage?.prompt_tokens);
       const outputTokens = streamedNoUsage ? Math.ceil(Buffer.byteLength(raw, 'utf8') / 3) : (data.usage?.completion_tokens ?? 0);
       const rawFinish = choice?.finish_reason ?? null;
+
+      // THINK_PREOPENED and the reply never closed its reasoning block: by the operator's own
+      // declaration, every byte of it was reasoning (most often it hit max_tokens mid-thought).
+      // An ERROR, not '' and not the raw text, because the physician must see neither:
+      //   * the raw text IS the chain of thought — returning it is the leak this knob exists to stop;
+      //   * '' would be stored as a blank turn (chat) or a deterministic bad-output 502 (evaluate),
+      //     i.e. a recorded failure for something a fresh generation may well complete.
+      // A thrown error stores nothing: the route answers its generic 500, which the backend treats as
+      // retryable (eval drain) and the physician sees as "try again". noRetry: not re-generated here
+      // — four full generations on a shared box for one turn is the wrong place to retry — and
+      // services/ai.js does not count it as a DOWN provider (the box answered). Numbers only.
+      if (thinkPreopened && raw && !closesThink(raw)) {
+        const err = new Error(`${label}: the reply never closed its reasoning block (${envPrefix}THINK_PREOPENED=1) — there is no answer text to return (finish_reason ${rawFinish ?? 'none'}, ${outputTokens} output tokens)`);
+        err.status = 502;
+        err.code = 'reasoning_only';
+        err.noRetry = true;
+        throw err;
+      }
 
       return {
         text,
@@ -821,10 +745,26 @@ function createLocalProvider({
     }
   }
 
+  // WHICH endpoint and model this instance would call, normalised for comparison — or null while
+  // unconfigured. Used only by services/ai.js readiness() to compare the tutor with the evaluator
+  // (CCME R3). Never reported anywhere: /health/deep is unauthenticated, and the box address is not
+  // something it may print.
+  function endpointKey() {
+    const { baseUrl, model } = cfg();
+    if (!baseUrl || !model) return null;
+    let where = baseUrl.toLowerCase();
+    try {
+      const u = new URL(baseUrl);
+      where = `${u.origin}${u.pathname.replace(/\/+$/, '')}`;   // host case and a default port do not make a different box
+    } catch { /* not a URL — compare the string as written */ }
+    return `${where} ${model}`;
+  }
+
   return {
     _resetDispatcher,
     name,
     call,
+    endpointKey,
     ...(embeddings ? { embed } : {}),
     model: () => cfg().model,
     ...(embeddings ? { embedModel: () => cfg().embedModel } : {}),
@@ -838,7 +778,8 @@ function createLocalProvider({
 
 module.exports = {
   createLocalProvider,
-  stripThink, createThinkFilter, thinkingEnabled,
+  // Re-exported from lib/think-markup.js — one definition, shared with the probe/quality harness.
+  stripThink, createThinkFilter, closesThink, flagOn, thinkingEnabled,
   THINKING_STYLES, LANE_FOR, laneFor, estimatePromptTokens, isRetryable,
   _resetDispatcher,
 };

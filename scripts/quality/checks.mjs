@@ -27,11 +27,17 @@ import { pathToFileURL } from 'node:url';
 import {
   hasCitation, extractSocraticQuestion, extractReferences, checkRescueReply,
   thaiShare, stripNonProse, isThaiMessage, isLanguageMismatch, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
+  stripThink, createThinkFilter,
 } from './rimpl.mjs';
 import { routeLanguage, includesLoose } from './request.mjs';
 import { wilson, fmtRate } from './stats.mjs';
 
-export const CHECKS_VERSION = 'checks-v1';
+// checks-v2 (2026-10-14): every check reads the reply production RETURNS — rimpl's stripThink applied
+// to the served content (probe/lib.mjs chatCompletion; for a v1 report, applied here) — and
+// no_reasoning_leak asks only what a physician could SEE: reasoning on screen in a streamed reply, or
+// markup in the returned one. Inline markup production removes is an `info` flag, not a leak. A v1
+// figure for no_reasoning_leak counted any <think> in the raw content and is not comparable.
+export const CHECKS_VERSION = 'checks-v2';
 // prompts.js: "keep the whole reply under ~400 words". The tilde earns a 10% tolerance.
 export const LENGTH_TARGET_WORDS = 400;
 export const LENGTH_MAX_WORDS = 440;
@@ -53,9 +59,27 @@ export function wordCount(text) {
  *                        request: {identifiers_sent}, retry }
  * @returns {{assessable:boolean, checks:Record<string,{pass:boolean|null, value?:any, detail?:string}>, flags:Array}}
  */
+// Would a STREAMING physician have seen reasoning? Fed to production's own filter one character at a
+// time — the finest a real stream can be cut — so this is the worst case of what reaches the screen.
+// The one way it can: a block the chat template opened in the prompt (no <think>, a later </think>)
+// on an instance without THINK_PREOPENED; whatever went out before that tag was the reasoning.
+function streamedReasoningLeak(rawText, preopened) {
+  if (!rawText || !/<\/think>/i.test(rawText)) return false;
+  const f = createThinkFilter({ emit: () => {}, preopened });
+  for (const ch of rawText) f.push(ch);
+  f.end();
+  return f.sawOrphanLeak();
+}
+
 export function checkReply(item, entry) {
   const final = entry.final ?? {};
-  const text = typeof final.text === 'string' ? final.text : '';
+  // `text` = the reply production RETURNS (and stores, and shows when not streaming); `raw_text` = the
+  // content as served. A v1 report has no raw_text and its `text` IS the served content, so production's
+  // rule is applied to it here — with the template default, since v1 runs had no THINK_PREOPENED.
+  const hasRaw = typeof final.raw_text === 'string';
+  const rawText = hasRaw ? final.raw_text : (typeof final.text === 'string' ? final.text : '');
+  const preopened = !!final.think_preopened;
+  const text = hasRaw ? (typeof final.text === 'string' ? final.text : '') : stripThink(rawText, { preopened });
   const checks = {};
   const flags = [];
   const flag = (code, severity, detail) => flags.push({ code, severity, detail });
@@ -67,10 +91,14 @@ export function checkReply(item, entry) {
     return { assessable: false, checks: { answered: { pass: false, detail: 'call failed' } }, flags };
   }
   const empty = !text.trim();
-  checks.answered = { pass: !empty, detail: final.reasoning_only ? 'content empty, reasoning_content present' : undefined };
+  // Nothing but reasoning — in reasoning_content, or inline markup that strips to nothing.
+  const reasoningOnly = !!final.reasoning_only || (empty && rawText.trim() !== '');
+  checks.answered = { pass: !empty, detail: reasoningOnly ? 'no answer text: the reply was reasoning only' : undefined };
   if (empty) {
-    flag(final.reasoning_only ? 'reasoning_only' : 'empty_reply', 'critical',
-      'rimpl would show the physician a blank reply');
+    flag(reasoningOnly ? 'reasoning_only' : 'empty_reply', 'critical',
+      preopened && reasoningOnly
+        ? 'the reply never closed its pre-opened reasoning block — rimpl answers with an error (reasoning_only)'
+        : 'rimpl would show the physician a blank reply');
     return { assessable: true, checks, flags };
   }
 
@@ -107,11 +135,26 @@ export function checkReply(item, entry) {
   checks.not_truncated = { pass: !truncated };
   if (truncated) flag('truncated', 'major', 'finish_reason=length — the reply was cut off');
 
-  if (/<\/?think>/i.test(text)) {
-    checks.no_reasoning_leak = { pass: false };
-    flag('reasoning_leak', 'major', 'reply contains <think> markup — chain-of-thought shown to the physician');
-  } else {
-    checks.no_reasoning_leak = { pass: true };
+  // What a physician can actually SEE (v2). Not "the raw content contained <think>": production strips
+  // that from the returned reply and withholds a model-opened block from a stream, so it never reaches
+  // a screen. Two ways something can:
+  //   returned  markup left in the reply production returns — a production bug if it ever happens;
+  //   streamed  a template-opened block on an instance without THINK_PREOPENED — the pieces before the
+  //             </think> were shown (streaming is the chat_streaming setting; this is its worst case).
+  const returnedLeak = /<\/?think>/i.test(text);
+  const streamedLeak = streamedReasoningLeak(rawText, preopened);
+  checks.no_reasoning_leak = {
+    pass: !returnedLeak && !streamedLeak,
+    detail: returnedLeak ? 'the returned reply still carries <think> markup'
+      : streamedLeak ? 'streamed, the reasoning before a </think> with no opening tag would be shown' : undefined,
+  };
+  if (returnedLeak) {
+    flag('reasoning_leak', 'major', 'the reply production returns still contains <think> markup — chain-of-thought shown to the physician');
+  } else if (streamedLeak) {
+    flag('reasoning_leak', 'major', 'streamed, this reply would show its reasoning: the chat template opens the <think> block in the prompt. Set <PREFIX>THINK_PREOPENED=1 for this server, or (properly) run it with --reasoning-parser');
+  }
+  if (/<\/?think>/i.test(rawText) && !returnedLeak && !streamedLeak) {
+    flag('reasoning_markup', 'info', 'the server put reasoning in `content`; rimpl removed it before anyone saw it — configure the server with --reasoning-parser');
   }
 
   const socraticQ = extractSocraticQuestion(text);

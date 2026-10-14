@@ -193,6 +193,60 @@ describe('GET /health/deep (rimpl)', () => {
     }
   });
 
+  // CCME R3: the tutor must be a distinct artifact from the evaluator. Configured to the very same
+  // endpoint + model, it is not — a WARNING (reported, never 503: backend reads 503 as "rimpl down").
+  describe('r3_distinct_models', () => {
+    const KEYS = ['LOCAL_AI_BASE_URL', 'LOCAL_AI_MODEL', 'LOCAL_TUTOR_AI_BASE_URL', 'LOCAL_TUTOR_AI_MODEL'];
+    let saved;
+    beforeEach(() => { saved = Object.fromEntries(KEYS.map((k) => [k, process.env[k]])); for (const k of KEYS) delete process.env[k]; });
+    afterEach(() => { for (const k of KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; } });
+
+    test('same endpoint + model: a warn check, still 200 ok, and neither URL in the body', async () => {
+      process.env.LOCAL_AI_BASE_URL = 'http://Box.Tailnet:80/v1/';   // same box, written differently
+      process.env.LOCAL_AI_MODEL = 'qwen-same';
+      process.env.LOCAL_TUTOR_AI_BASE_URL = 'http://box.tailnet/v1';
+      process.env.LOCAL_TUTOR_AI_MODEL = 'qwen-same';
+      const res = await request(app).get('/health/deep');
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('ok');
+      expect(res.body.checks.r3_distinct_models).toMatchObject({ status: 'warn', warning: expect.stringMatching(/CCME R3/) });
+      expect(res.body.warnings).toEqual(['r3_distinct_models']);
+      expect(JSON.stringify(res.body)).not.toMatch(/tailnet/i);
+    });
+
+    test('a warn never masks a real failure: with a down check as well, it is 503 degraded', async () => {
+      process.env.LOCAL_AI_BASE_URL = 'http://box.tailnet/v1';
+      process.env.LOCAL_AI_MODEL = 'qwen-same';
+      process.env.LOCAL_TUTOR_AI_BASE_URL = 'http://box.tailnet/v1';
+      process.env.LOCAL_TUTOR_AI_MODEL = 'qwen-same';
+      delete process.env.ANTHROPIC_API_KEY;
+      const res = await request(app).get('/health/deep');
+      expect(res.status).toBe(503);
+      expect(res.body.checks.r3_distinct_models.status).toBe('warn');
+    });
+
+    test.each([
+      ['a different model on the same endpoint', 'http://box.tailnet/v1', 'qwen-tutor'],
+      ['the same model on a different endpoint', 'http://other.tailnet/v1', 'qwen-same'],
+    ])('%s: no warning', async (_l, tutorUrl, tutorModel) => {
+      process.env.LOCAL_AI_BASE_URL = 'http://box.tailnet/v1';
+      process.env.LOCAL_AI_MODEL = 'qwen-same';
+      process.env.LOCAL_TUTOR_AI_BASE_URL = tutorUrl;
+      process.env.LOCAL_TUTOR_AI_MODEL = tutorModel;
+      const res = await request(app).get('/health/deep');
+      expect(res.body.checks).not.toHaveProperty('r3_distinct_models');
+      expect(res.body).not.toHaveProperty('warnings');
+    });
+
+    test('the tutor unconfigured: no warning (nothing to compare)', async () => {
+      process.env.LOCAL_AI_BASE_URL = 'http://box.tailnet/v1';
+      process.env.LOCAL_AI_MODEL = 'qwen-same';
+      const res = await request(app).get('/health/deep');
+      expect(res.status).toBe(200);
+      expect(res.body.checks).not.toHaveProperty('r3_distinct_models');
+    });
+  });
+
   // The chat fail-over target (CHAT_FAILOVER_PROVIDER) is probed too, so a fail-over that could not
   // work — no ANTHROPIC_API_KEY on an all-local box — is visible here, before the outage it is meant
   // to cover. It is probed, not made active: `providers` and `queues` still name only what routes.

@@ -141,5 +141,5 @@ if (!usableLevels.length) {
 } else {
   const best = usableLevels[usableLevels.length - 1];
   console.log(`  LOCAL_MAX_CONCURRENCY=${best.conc}   ${dim(`(highest level with p95 ${Math.round(best.p95/1000)}s inside the ${LOCAL_AI_TIMEOUT_MS/1000}s timeout and 0 failures)`)}`);
-  console.log(`  ${dim('providers/local.js defaults to 24 — a placeholder, not a measurement.')}\n`);
+  console.log(`  ${dim('rimpl defaults to 2 — getRunner() in rimpl/src/services/providers/local-factory.js, set from the DGX measurement (p95 114 s at 2, 154 s at 4).')}\n`);
 }

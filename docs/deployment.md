@@ -43,7 +43,7 @@ Deploys run from the **local working tree** (not GitHub). Backend + RIMPL on **R
   evaluate/criteria) can be different models on different boxes (CCME R3). `LOCAL_TUTOR_AI_BASE_URL` /
   `LOCAL_TUTOR_AI_MODEL` (`LOCAL_TUTOR_AI_API_KEY` if the endpoint wants one), plus the same optional
   knobs as the evaluator under its own names: `LOCAL_TUTOR_AI_TIMEOUT_MS`, `_MIN_CONTEXT`, `_NUM_CTX`,
-  `_MAX_PROMPT_TOKENS`, `_THINKING_STYLE`, and queue `LOCAL_TUTOR_MAX_CONCURRENCY` /
+  `_MAX_PROMPT_TOKENS`, `_THINKING_STYLE`, `_THINK_PREOPENED`, and queue `LOCAL_TUTOR_MAX_CONCURRENCY` /
   `_INTERACTIVE_RESERVE` / `_MAX_QUEUE_INTERACTIVE` / `_MAX_QUEUE_BACKGROUND` / `_QUEUE_RETRY_AFTER_S` /
   `_MAX_RETRIES` / `_RETRY_BASE_MS`. It reuses `LOCAL_AI_HTTP_PROXY` unless `LOCAL_TUTOR_AI_HTTP_PROXY` is
   set (empty = direct). Nothing routes to it until `ai_provider_chat` / `ai_provider_discuss` names it;

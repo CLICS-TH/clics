@@ -14,14 +14,15 @@
 //     default request is byte-identical to before the field existed.
 
 const {
-  stripThink, createThinkFilter, thinkingEnabled, THINKING_STYLES,
+  stripThink, createThinkFilter, thinkingEnabled, THINKING_STYLES, flagOn, closesThink,
 } = require('../src/services/providers/local-factory');
+const markup = require('../src/lib/think-markup');
 
 const ENV = [
   'LOCAL_AI_BASE_URL', 'LOCAL_AI_MODEL', 'LOCAL_AI_TIMEOUT_MS', 'LOCAL_AI_THINKING_STYLE', 'LOCAL_AI_HTTP_PROXY',
-  'LOCAL_MAX_RETRIES', 'LOCAL_RETRY_BASE_MS',
+  'LOCAL_AI_THINK_PREOPENED', 'LOCAL_MAX_RETRIES', 'LOCAL_RETRY_BASE_MS',
   'LOCAL_TUTOR_AI_BASE_URL', 'LOCAL_TUTOR_AI_MODEL', 'LOCAL_TUTOR_AI_TIMEOUT_MS', 'LOCAL_TUTOR_AI_THINKING_STYLE',
-  'LOCAL_TUTOR_AI_HTTP_PROXY', 'LOCAL_TUTOR_MAX_RETRIES', 'LOCAL_TUTOR_RETRY_BASE_MS',
+  'LOCAL_TUTOR_AI_HTTP_PROXY', 'LOCAL_TUTOR_AI_THINK_PREOPENED', 'LOCAL_TUTOR_MAX_RETRIES', 'LOCAL_TUTOR_RETRY_BASE_MS',
 ];
 let savedEnv, realFetch, fetchMock, warnSpy;
 
@@ -94,14 +95,15 @@ describe('stripThink — the rule for every returned reply', () => {
 
 // ---------------------------------------------------------------------------
 describe('createThinkFilter — what a stream may show', () => {
-  function run(raw, splits) {
+  function run(raw, splits, { preopened = false } = {}) {
     const out = [];
     let thinks = 0;
-    const f = createThinkFilter({ emit: (t) => out.push(t), onThink: () => { thinks++; } });
+    const orphans = [];
+    const f = createThinkFilter({ emit: (t) => out.push(t), onThink: () => { thinks++; }, onOrphanClose: (o) => orphans.push(o), preopened });
     let at = 0;
     for (const s of [...splits, raw.length]) { f.push(raw.slice(at, s)); at = s; }
     f.end();
-    return { text: out.join(''), out, thinks, orphan: f.sawOrphanClose() };
+    return { text: out.join(''), out, thinks, orphans, orphan: f.sawOrphanClose(), leak: f.sawOrphanLeak() };
   }
   // Every case except the orphan close, which a stream cannot recall (see below).
   const CASES = [
@@ -142,12 +144,92 @@ describe('createThinkFilter — what a stream may show', () => {
     expect(run('<think>a</think>One. <think>b</think>Two.', [3, 20]).thinks).toBe(2);
   });
 
-  test('the orphan close: the text before it was already emitted — it is FLAGGED, and the returned text still drops it', () => {
+  test('the orphan close, knob OFF: only pieces ALREADY emitted leak — they are FLAGGED; the rest of that piece is dropped', () => {
     const raw = `${SECRET}\n</think>\n\nAnswer.`;
     const r = run(raw, [10]);
     expect(r.orphan).toBe(true);
-    expect(r.text).toBe(`${SECRET}\nAnswer.`);   // what a stream could not take back
-    expect(stripThink(raw)).toBe('Answer.');      // what is returned and stored
+    expect(r.leak).toBe(true);
+    expect(r.orphans).toEqual([{ leaked: true }]);
+    expect(r.text).toBe(`${SECRET.slice(0, 10)}Answer.`);   // what a stream could not take back: the first piece only
+    expect(stripThink(raw)).toBe('Answer.');                 // what is returned and stored
+  });
+
+  test('the orphan close inside the FIRST piece leaks nothing, and emits exactly stripThink(whole)', () => {
+    const raw = `${SECRET}\n</think>\n\nAnswer.`;
+    const r = run(raw, []);
+    expect(r).toMatchObject({ orphan: true, leak: false, text: 'Answer.' });
+    expect(r.orphans).toEqual([{ leaked: false }]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// THINK_PREOPENED: the chat template opens the block in the prompt (DeepSeek-R1, Qwen3 Thinking-2507
+// without --reasoning-parser), so the reply is `…reasoning…</think>answer`. With the knob ON nothing
+// is shown or returned before the first </think>; with it OFF the behaviour is exactly as above.
+describe('THINK_PREOPENED — the rule and the filter', () => {
+  function run(raw, splits) {
+    const out = [];
+    let thinks = 0;
+    const f = createThinkFilter({ emit: (t) => out.push(t), onThink: () => { thinks++; }, preopened: true });
+    let at = 0;
+    for (const s of [...splits, raw.length]) { f.push(raw.slice(at, s)); at = s; }
+    f.end();
+    return { text: out.join(''), thinks, orphan: f.sawOrphanClose(), leak: f.sawOrphanLeak() };
+  }
+  const PRE = [
+    `${SECRET}\n</think>\n\nAnswer.`,
+    `${SECRET}</think>Answer with a < sign.`,
+    `${SECRET}</think>One.<think>more ${SECRET}</think>Two.`,
+    `${SECRET}</think>One.</think>Two.`,
+    `</think>Answer straight away.`,
+  ];
+
+  test.each(PRE)('every 2-way split of %j emits NOTHING before the close, and exactly stripThink(whole, preopened)', (raw) => {
+    const expected = stripThink(raw, { preopened: true });
+    expect(expected).not.toContain('Somchai');
+    for (let i = 0; i <= raw.length; i++) {
+      const r = run(raw, [i]);
+      expect(r.text).toBe(expected);
+      expect(r).toMatchObject({ orphan: false, leak: false });   // the first </think> is the expected one, not an orphan
+    }
+    expect(run(raw, Array.from({ length: raw.length }, (_, i) => i)).text).toBe(expected);
+  });
+
+  test('a stream with ONLY reasoning before </think>: no delta at all until the tag, then the answer', () => {
+    const out = [];
+    const f = createThinkFilter({ emit: (t) => out.push(t), preopened: true });
+    for (const p of ['the physician ', 'is probably ', 'Somchai\n']) { f.push(p); expect(out).toEqual([]); }
+    f.push('</think>\n\nAnswer.');
+    f.end();
+    expect(out).toEqual(['Answer.']);
+  });
+
+  test('no close tag at all: the whole reply is reasoning — nothing emitted, stripThink returns empty', () => {
+    const raw = `${SECRET} and a final answer that never left the block`;
+    expect(run(raw, [7]).text).toBe('');
+    expect(stripThink(raw, { preopened: true })).toBe('');
+    expect(closesThink(raw)).toBe(false);
+    expect(closesThink(`${SECRET}</think>x`)).toBe(true);
+  });
+
+  test('onThink fires on the first piece — reasoning is arriving from byte one', () => {
+    expect(run(`${SECRET}</think>Answer.`, [3, 9]).thinks).toBe(1);
+  });
+
+  test('knob OFF on the same inputs is unchanged: the rule-1 result, orphan detected', () => {
+    expect(stripThink(`${SECRET}\n</think>\n\nAnswer.`)).toBe('Answer.');
+    expect(stripThink('Plain reply.')).toBe('Plain reply.');
+    expect(stripThink('Plain reply.', { preopened: true })).toBe('');   // why the knob must match the server
+  });
+
+  test('flagOn: lenient on purpose — a typo for "on" must not quietly mean "show the reasoning"', () => {
+    for (const v of ['1', 'true', 'TRUE', ' yes ', 'on']) expect(flagOn(v)).toBe(true);
+    for (const v of [undefined, '', '0', 'false', 'off', 'no', '2']) expect(flagOn(v)).toBe(false);
+  });
+
+  test('ONE definition: the transport re-exports lib/think-markup.js, it does not copy it', () => {
+    expect(stripThink).toBe(markup.stripThink);
+    expect(createThinkFilter).toBe(markup.createThinkFilter);
   });
 });
 
@@ -193,11 +275,50 @@ describe.each(['local', 'local-tutor'])('%s: returned replies are stripped', (wh
     expect(r.text).toBe('Whole reply.');
   });
 
-  test('streamed orphan close: the stored text drops the reasoning, and the warning says it was already streamed', async () => {
+  test('streamed orphan close (knob OFF): stored text drops the reasoning; ONE warning names the knob; onReasoning fires', async () => {
     fetchMock.mockResolvedValueOnce(sse([content('reasoning text\n'), content('</think>\n\nAnswer.'), ...done]));
-    const r = await load(which).call(args({ onDelta: () => {} }));
+    const onReasoning = jest.fn();
+    const pieces = [];
+    const r = await load(which).call(args({ onDelta: (t) => pieces.push(t), onReasoning }));
     expect(r.text).toBe('Answer.');
-    expect(warnSpy.mock.calls[0][0]).toMatch(/ALREADY been streamed/);
+    expect(pieces).toEqual(['reasoning text\n', 'Answer.']);   // the first piece is the leak the warning is about
+    expect(onReasoning).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    const knob = which === 'local' ? 'LOCAL_AI_THINK_PREOPENED=1' : 'LOCAL_TUTOR_AI_THINK_PREOPENED=1';
+    expect(warnSpy.mock.calls[0][0]).toContain(knob);
+    expect(warnSpy.mock.calls[0][0]).toMatch(/ALREADY been shown/);
+    expect(warnSpy.mock.calls[0][0]).not.toContain('reasoning text');
+  });
+
+  test('THINK_PREOPENED=1, streamed: nothing is shown before </think>, onReasoning fires before any text', async () => {
+    process.env[`${which === 'local' ? 'LOCAL_AI_' : 'LOCAL_TUTOR_AI_'}THINK_PREOPENED`] = '1';
+    fetchMock.mockResolvedValueOnce(sse([content('the physician '), content('is probably Somchai\n</thi'), content('nk>\n\nAnswer.'), ...done]));
+    const order = [];
+    const r = await load(which).call(args({ onDelta: (t) => order.push(t), onReasoning: () => order.push('reasoning') }));
+    expect(order).toEqual(['reasoning', 'Answer.']);
+    expect(r.text).toBe('Answer.');
+    expect(warnSpy.mock.calls.map(([m]) => m).join('\n')).not.toMatch(/ALREADY been shown/);
+  });
+
+  test.each([['streamed', true], ['non-streamed', false]])('THINK_PREOPENED=1, %s, no close tag at all: an ERROR (reasoning_only, not retried) — never the text, never a blank reply', async (_l, streamed) => {
+    process.env[`${which === 'local' ? 'LOCAL_AI_' : 'LOCAL_TUTOR_AI_'}THINK_PREOPENED`] = '1';
+    const body = `${SECRET}; still thinking when max_tokens hit`;
+    fetchMock.mockResolvedValue(streamed
+      ? sse([content(body.slice(0, 12)), content(body.slice(12)), line({ choices: [{ delta: {}, finish_reason: 'length' }], usage: { prompt_tokens: 9, completion_tokens: 40 } }), 'data: [DONE]\n\n'])
+      : json(body, { choices: [{ message: { content: body }, finish_reason: 'length' }] }));
+    const pieces = [];
+    const err = await load(which).call(args(streamed ? { onDelta: (t) => pieces.push(t) } : {})).then(() => null, (e) => e);
+    expect(err).toMatchObject({ code: 'reasoning_only', status: 502, noRetry: true });
+    expect(err.message).toMatch(/THINK_PREOPENED=1/);
+    expect(err.message).not.toContain('Somchai');
+    expect(pieces).toEqual([]);                 // the physician saw nothing
+    expect(fetchMock).toHaveBeenCalledTimes(1); // and the shared box was not asked three more times
+  });
+
+  test('THINK_PREOPENED=1 and an EMPTY content: unchanged — returns "" (the existing empty-reply path), no error', async () => {
+    process.env[`${which === 'local' ? 'LOCAL_AI_' : 'LOCAL_TUTOR_AI_'}THINK_PREOPENED`] = '1';
+    fetchMock.mockResolvedValue(json(''));
+    expect((await load(which).call(args())).text).toBe('');
   });
 
   test('streamed: a failure after NOTHING BUT reasoning is retried — no reply text had been shown', async () => {
@@ -310,5 +431,26 @@ describe('thinking control — sent only when asked for AND the server style is 
     expect(Object.keys(sent()).sort()).toEqual(['max_tokens', 'messages', 'model', 'stream']);
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(warnSpy.mock.calls[0][0]).toMatch(/LOCAL_TUTOR_AI_THINKING_STYLE="qwen" is not one of/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+describe('THINK_PREOPENED is per instance', () => {
+  test("the evaluator's knob does not reach the tutor, and vice versa", async () => {
+    process.env.LOCAL_AI_THINK_PREOPENED = '1';
+    fetchMock.mockImplementation(async () => json('Plain answer, no markup.'));
+    expect((await load('local-tutor').call(args())).text).toBe('Plain answer, no markup.');
+    await expect(load('local').call(args())).rejects.toMatchObject({ code: 'reasoning_only' });
+    delete process.env.LOCAL_AI_THINK_PREOPENED;
+    process.env.LOCAL_TUTOR_AI_THINK_PREOPENED = '1';
+    expect((await load('local').call(args())).text).toBe('Plain answer, no markup.');
+    await expect(load('local-tutor').call(args())).rejects.toMatchObject({ code: 'reasoning_only' });
+  });
+
+  test('a reasoning_only error is not a DOWN provider: the chat fail-over would not move it to another vendor', () => {
+    jest.resetModules();
+    const { isProviderDown } = require('../src/services/ai');
+    expect(isProviderDown(Object.assign(new Error('x'), { status: 502, code: 'reasoning_only', noRetry: true }))).toBe(false);
+    expect(isProviderDown(Object.assign(new Error('x'), { status: 502 }))).toBe(true);   // an ordinary 5xx still is
   });
 });

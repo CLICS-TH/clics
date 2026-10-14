@@ -152,8 +152,10 @@ function errorCode(err) {
 // The DOWN class: connection refused / reset / unresolvable, our own client deadline
 // (AbortSignal.timeout → DOMException 'TimeoutError', tagged `localTimeout` by providers/local.js), or
 // an HTTP 5xx from the provider itself. Everything else propagates to the route unchanged.
+// `reasoning_only` (providers/local-factory.js, THINK_PREOPENED) is not DOWN either: the box answered,
+// with nothing but reasoning. A second vendor would not make the first one's template close its block.
 function isProviderDown(err) {
-  if (!err || isQueueFull(err) || isAborted(err) || isTooLarge(err)) return false;
+  if (!err || isQueueFull(err) || isAborted(err) || isTooLarge(err) || err.code === 'reasoning_only') return false;
   if (err.localTimeout === true || err.name === 'TimeoutError') return true;
   if (typeof err.status === 'number') return err.status >= 500;
   const code = errorCode(err);
@@ -410,6 +412,21 @@ async function readiness() {
       checks[`${purpose}_routing`] = { status: 'down', error: `"${name}" cannot serve "${purpose}" — it serves only ${PROVIDER_PURPOSES[name].join(', ')}` };
     }
   }
+  // CCME R3: the evaluator must be a distinct model artifact from the tutor. If the tutor instance is
+  // configured to the SAME endpoint and the SAME model as the evaluator, the split is nominal. A
+  // WARNING, not a failure (routes/health.js counts `warn` as serving): nothing is broken, the
+  // deployment is just not doing what its configuration claims. Two caveats it cannot get past:
+  // equal names prove nothing about weights (ready() proves reachability, not identity), and two
+  // gateways in front of one checkpoint compare as different. It is a tripwire, not a proof.
+  // Neither URL is reported — /health/deep is unauthenticated.
+  try {
+    const evaluatorAt = local.endpointKey?.();
+    const tutorAt = localTutor.endpointKey?.();
+    if (evaluatorAt && tutorAt && evaluatorAt === tutorAt) {
+      checks.r3_distinct_models = { status: 'warn',
+        warning: 'local-tutor is configured to the same endpoint and model as local (the evaluator): LOCAL_TUTOR_AI_BASE_URL + LOCAL_TUTOR_AI_MODEL equal LOCAL_AI_BASE_URL + LOCAL_AI_MODEL, so the tutor and the evaluator are one model artifact (CCME R3 requires two)' };
+    }
+  } catch { /* a comparison that cannot be made is not a finding */ }
   for (const [name, provider] of providersToProbe({ includeEmbed })) {
     if (!provider) { checks[`${name}_provider`] = { status: 'down', error: `unknown provider "${name}"` }; continue; }
     try {
