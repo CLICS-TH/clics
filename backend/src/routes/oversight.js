@@ -9,6 +9,7 @@ const { computeICC21, iccTwoRater, verdictFor } = require('../services/icc');
 const { pairedSets } = require('../services/agreement');
 const { raterSpread } = require('../services/rater-spread');
 const { iccGates } = require('../lib/settings');
+const { verifyChain } = require('../services/audit-chain');
 
 const router = Router();
 router.use(verifyJwt, requireRole('analyst', 'ethics', 'superadmin'));
@@ -215,6 +216,15 @@ router.get('/audit-log', requireRole('ethics', 'superadmin'), async (req, res) =
   if (sendDbError(res, error)) return;
   res.setHeader('X-Total-Count', count ?? 0);
   res.json({ total: count ?? 0, limit, offset, events: data ?? [] });
+});
+
+// Is the audit trail complete and unaltered? The database recomputes its own hash chain
+// (db/migration-audit-log-chain.sql) and names the first row that does not link. Same roles as the
+// log itself. `broken` is still a 200: the answer IS the finding, and the ethics view must show it.
+router.get('/audit-log/verify', requireRole('ethics', 'superadmin'), async (req, res) => {
+  const result = await verifyChain();
+  if (result.status === 'error') return res.status(500).json(result);
+  res.json(result);
 });
 
 module.exports = router;
