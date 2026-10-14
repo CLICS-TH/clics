@@ -65,6 +65,42 @@ describe('when to shadow at all', () => {
   });
 });
 
+// CCME R3: the evaluator must be a distinct model artifact from the tutor. A shadow row is a candidate
+// evaluator's score, and the Model Lock picks its candidate from shadow_evaluations — so the tutor
+// model must never produce one. Refused cleanly: no call, no row, one warning, nothing thrown.
+describe('the tutor model is never a shadow evaluator', () => {
+  test('SHADOW_EVAL_PROVIDER=local-tutor: skipped, no call, no row — warned ONCE however many evaluations run', async () => {
+    process.env.SHADOW_EVAL_PROVIDER = 'local-tutor';
+    expect(shadowTarget('anthropic')).toBeNull();
+    expect(shadowTarget('local')).toBeNull();
+    expect(await run()).toEqual({ skipped: true });
+    expect(await run()).toEqual({ skipped: true });
+    expect(mockCallProvider).not.toHaveBeenCalled();
+    expect(mockUpsert).not.toHaveBeenCalled();
+    const refusals = warnSpy.mock.calls.filter(([m]) => /cannot be a shadow evaluator/.test(m));
+    expect(refusals).toHaveLength(1);
+    expect(refusals[0][0]).toBe('[shadow] SHADOW_EVAL_PROVIDER="local-tutor" cannot be a shadow evaluator — it serves only chat, discuss — shadow disabled');
+  });
+
+  test('case and whitespace do not get around it', () => {
+    process.env.SHADOW_EVAL_PROVIDER = '  Local-Tutor ';
+    expect(shadowTarget('anthropic')).toBeNull();
+  });
+
+  test('fire-and-forget stays fire-and-forget: nothing reaches the served evaluation', async () => {
+    process.env.SHADOW_EVAL_PROVIDER = 'local-tutor';
+    expect(() => fireShadowEvaluation({ pleId: 'ple-1', transcriptText: 'Physician: hi', servedProvider: 'anthropic' })).not.toThrow();
+    await new Promise((r) => setImmediate(r));
+    expect(console.error).not.toHaveBeenCalled();
+    expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  test('the evaluator transport is unaffected: local still shadows', () => {
+    process.env.SHADOW_EVAL_PROVIDER = 'local';
+    expect(shadowTarget('anthropic')).toBe('local');
+  });
+});
+
 describe('recording', () => {
   beforeEach(() => { process.env.SHADOW_EVAL_PROVIDER = 'local'; });
 

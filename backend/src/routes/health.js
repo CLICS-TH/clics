@@ -8,6 +8,7 @@ const { probeRimplDeep } = require('../services/rimpl-client');
 const evalDrain = require('../services/eval-drain');
 const { resolveScope } = require('../lib/eval-scope');
 const { getSetting } = require('../lib/settings');
+const { chainHead } = require('../services/audit-chain');
 
 const router = Router();
 
@@ -149,9 +150,23 @@ function waitSeconds(iso) {
   return Number.isFinite(t) ? Math.max(0, Math.round((Date.now() - t) / 1000)) : 0;
 }
 
+// The audit trail's chain head (seq + hash). INFORMATIONAL — it never flips the verdict: a missing
+// head means the migration is not applied yet, not that anything is down. It is reported so the value
+// can be copied somewhere Supabase cannot rewrite; the full verify is on demand at
+// GET /oversight/audit-log/verify, because it walks every row.
+async function checkAuditChain() {
+  try {
+    return await withTimeout(chainHead(), SUPABASE_TIMEOUT_MS);
+  } catch (e) {
+    return { status: 'error', error: e.message };
+  }
+}
+
 router.get('/deep', async (_req, res) => {
-  const [supabaseCheck, rimplCheck, evalQueue] = await Promise.all([checkSupabase(), checkRimpl(), checkEvalQueue()]);
-  const checks = { supabase: supabaseCheck, rimpl: rimplCheck, eval_queue: evalQueue };
+  const [supabaseCheck, rimplCheck, evalQueue, auditChain] = await Promise.all([
+    checkSupabase(), checkRimpl(), checkEvalQueue(), checkAuditChain(),
+  ]);
+  const checks = { supabase: supabaseCheck, rimpl: rimplCheck, eval_queue: evalQueue, audit_chain: auditChain };
   const allUp = supabaseCheck.status === 'up' && rimplCheck.status === 'up' && evalQueue.status !== 'down';
   res.status(allUp ? 200 : 503).json({
     status: allUp ? 'ok' : 'degraded',

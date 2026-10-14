@@ -225,7 +225,7 @@ const NON_TEXT = 3;
 
 const DA_PAIRS: MinPair[] = [
   // --- amber text. Was 4.51 on the canvas (0.01 of margin) and not guarded at all.
-  ['warn', 'background', AA, 'payout amber on the page (admin/compensation)'],
+  ['warn', 'background', AA, 'payout amber on the page (admin/compensation); ai-readiness Warning status'],
   ['warn', 'card', AA, 'payout amber inside a Card'],
   // --- tinted status pairs (shared hex with physician-ui)
   ['notice-text', 'notice-bg', AA, 'StateMessage notice / Badge notice'],

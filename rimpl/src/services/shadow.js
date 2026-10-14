@@ -16,7 +16,7 @@
 //      served evaluation built; it does not re-read, re-flatten, or re-strip anything.
 //   4. It must never become visible. shadow_evaluations is RLS deny-all: a second AI score reaching
 //      an auditor would anchor their blind scoring and corrupt the ICC it exists to measure.
-const { callProvider, providerNameFor, PROVIDERS } = require('./ai');
+const { callProvider, providerNameFor, servesPurpose, PROVIDER_PURPOSES, PROVIDERS } = require('./ai');
 const { supabase } = require('../lib/supabase');
 const { pis7PromptFor } = require('../lib/prompts');
 const { Pis7ScoreError } = require('../lib/pis7');
@@ -66,6 +66,10 @@ const shadowConsistencyMode = () => {
 // rule than the one being decided on would be the two-validators problem all over again.
 const shadowMaxSumDelta = () => intEnv('EVAL_CONSISTENCY_MAX_SUM_DELTA', 0, 0);
 
+// Said once per provider name per process: shadowTarget runs on every evaluation, and a refused
+// configuration is a standing condition, not an event.
+const refusedWarned = new Set();
+
 // Decide whether to shadow, and with what. Exported so the route can skip the work entirely.
 function shadowTarget(servedProvider) {
   const name = shadowProvider();
@@ -73,6 +77,18 @@ function shadowTarget(servedProvider) {
   const provider = PROVIDERS[name];
   if (!provider) {                              // typo'd config: say so once, don't silently no-op
     console.warn(`[shadow] SHADOW_EVAL_PROVIDER="${name}" is not a known provider — shadow disabled`);
+    return null;
+  }
+  // A provider that may not evaluate may not shadow-evaluate either (services/ai.js PURPOSE_CLASS):
+  // `local-tutor` is the tutor model, and CCME R3 needs the evaluator to be a distinct artifact.
+  // Its scores would land in shadow_evaluations as if it were a candidate evaluator, and the Model
+  // Lock picks its candidate from that table. Refuse here, quietly for the served evaluation — this
+  // runs after the response, and a refused shadow is a missing data point, never an error.
+  if (!servesPurpose(name, 'shadow')) {
+    if (!refusedWarned.has(name)) {
+      refusedWarned.add(name);
+      console.warn(`[shadow] SHADOW_EVAL_PROVIDER="${name}" cannot be a shadow evaluator — it serves only ${PROVIDER_PURPOSES[name].join(', ')} — shadow disabled`);
+    }
     return null;
   }
   // Shadowing the model that already served is pure waste: same model, same prompt, no comparison.

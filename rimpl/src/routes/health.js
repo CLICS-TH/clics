@@ -86,10 +86,15 @@ router.get('/deep', async (_req, res) => {
     supabase: await checkSupabase(),
   };
 
-  const allUp = Object.values(checks).every((c) => c.status === 'up');
+  // `warn` is a finding about the configuration, not a dependency that cannot serve (today only
+  // r3_distinct_models, services/ai.js readiness()): it is reported in `checks` and `warnings` but
+  // never turns the endpoint 503 — backend's /health/deep reads that status code as "rimpl is down".
+  const allUp = Object.values(checks).every((c) => c.status === 'up' || c.status === 'warn');
+  const warnings = Object.entries(checks).filter(([, c]) => c.status === 'warn').map(([k]) => k);
   res.status(allUp ? 200 : 503).json({
     status: allUp ? 'ok' : 'degraded',
     service: 'rimpl',
+    ...(warnings.length ? { warnings } : {}),
     model: summaryModel(),
     providers: activeProviders(),
     // Per-purpose truth — the only field that stays correct under a hybrid.

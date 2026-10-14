@@ -3,11 +3,12 @@
 // WHAT IS IMPORTED vs WHAT IS REPLICATED
 // --------------------------------------
 // Imported from rimpl (via ./rimpl.mjs): the three system prompts and ARTIFACT_GUIDANCE, the PII
-// filter (stripPii / stripHistoryPii / deriveHintTokens), the artifact-fence strip, and every
+// filter (stripPii / stripHistoryPii / deriveHintTokens / makeRegistry), the artifact-fence strip, and every
 // predicate the retry decision is made of — hasCitation, extractSocraticQuestion, isThaiMessage,
 // isLanguageMismatch (services/post-filter.js) — plus promptLabel (the provenance hash).
 //
 // Replicated, because chat.js does not export them and requiring chat.js pulls express + zod:
+//   * deidentifyTurn() — ONE pii registry per call, filled chief complaint → history → message.
 //   * buildMessages()  — the chief-complaint prefix, physician→user role mapping, artifact strip.
 //   * the ONE corrective retry (#109): how the two checks combine (citation/❓ and language), which
 //     prompt each case gets, whether the artifact fence is kept, and that a FAILED language-only
@@ -27,7 +28,7 @@
 
 import {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
-  promptLabel, stripPii, stripHistoryPii, deriveHintTokens, stripArtifactDelimiters,
+  promptLabel, stripPii, stripHistoryPii, deriveHintTokens, makeRegistry, stripArtifactDelimiters,
   hasCitation, extractSocraticQuestion, isThaiMessage, isLanguageMismatch, checkRescueReply, RESCUE_RETRY_PROMPT,
 } from './rimpl.mjs';
 
@@ -68,15 +69,27 @@ export function expectedReplyLanguage(item) {
   return routeLanguage(item.turns[item.turns.length - 1].content);
 }
 
-/** Replica of chat.js buildMessages(history, cleanMessage, ragDocs=[], chiefComplaint, hints). */
-export function buildMessages(history, cleanMessage, chiefComplaint, hints = []) {
-  const cc = chiefComplaint ? `${CC_PREFIX}${stripPii(chiefComplaint, undefined, hints)}\n\n` : '';
+/** Replica of chat.js deidentifyTurn(): ONE registry for the whole outbound call, filled in session
+ *  order (chief complaint, then history oldest-first, then the message), so a name gets one token
+ *  everywhere in the prompt and a bare repeat of a titled name is still masked. */
+export function deidentifyTurn({ chiefComplaint, history, message, hints }) {
+  const registry = makeRegistry();
+  const cleanChiefComplaint = chiefComplaint ? stripPii(chiefComplaint, registry, hints) : '';
+  const cleanHistory = stripHistoryPii(history, hints, registry);
+  const cleanMessage = stripPii(message, registry, hints);
+  return { cleanChiefComplaint, cleanHistory, cleanMessage };
+}
+
+/** Replica of chat.js buildMessages(cleanHistory, cleanMessage, ragDocs=[], cleanChiefComplaint).
+ *  Every input is ALREADY de-identified (deidentifyTurn); this only assembles the prompt. */
+export function buildMessages(cleanHistory, cleanMessage, cleanChiefComplaint) {
+  const cc = cleanChiefComplaint ? `${CC_PREFIX}${cleanChiefComplaint}\n\n` : '';
   const context = ''; // ragDocs = [] — see header
-  const cleanHistory = stripHistoryPii(history, hints).map((m) => ({
+  const history = cleanHistory.map((m) => ({
     role: m.role === 'physician' ? 'user' : 'assistant',
     content: stripArtifactDelimiters(m.content),
   }));
-  return [...cleanHistory, { role: 'user', content: cc + cleanMessage + context }];
+  return [...history, { role: 'user', content: cc + cleanMessage + context }];
 }
 
 /**
@@ -95,8 +108,9 @@ export function buildChatRequest(item, { artifacts = false } = {}) {
   const systemPrompt = rescuing
     ? RIMPL_SYSTEM_PROMPT_RESCUE
     : (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL) + (artifacts ? ARTIFACT_GUIDANCE : '');
-  const cleanMessage = stripPii(message, undefined, hints);
-  const messages = buildMessages(history, cleanMessage, item.chief_complaint, hints);
+  const { cleanChiefComplaint, cleanHistory, cleanMessage } =
+    deidentifyTurn({ chiefComplaint: item.chief_complaint, history, message, hints });
+  const messages = buildMessages(cleanHistory, cleanMessage, cleanChiefComplaint);
   const sentText = messages.map((m) => m.content).join('\n');
   return {
     socratic,

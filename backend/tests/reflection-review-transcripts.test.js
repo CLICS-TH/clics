@@ -1,6 +1,13 @@
 // Human reviewers must receive the saved reflection that the evaluator reads. Exercise the real
 // routers/helper and mock only the database/auth edge; no model calls or real patient data.
 jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSupabaseMock());
+// GET /auditor/ples/:id now de-identifies the transcript through RIMPL and fails closed without it.
+// That is not this suite's subject: an identity stand-in keeps it hermetic and about what it tests;
+// tests/auditor-transcript-deid.test.js covers the masking and the 503.
+jest.mock('../src/services/rimpl-client', () => ({
+  ...jest.requireActual('../src/services/rimpl-client'),
+  rimplDeidentify: async ({ messages }) => ({ messages: messages.map((m) => ({ role: m.role, content: m.content })) }),
+}));
 
 const request = require('supertest');
 const express = require('express');

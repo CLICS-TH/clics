@@ -11,9 +11,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { PageIntro } from '@/components/PageIntro';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, HelpCircle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, XCircle, HelpCircle, RefreshCw } from 'lucide-react';
 
-interface Check { status: string; model?: string | null; context_length?: number | string | null; min_context?: number | null; error?: string | null }
+// `warning` rides on a `warn` check, `error` on a `down` one (rimpl services/ai.js readiness()).
+interface Check { status: string; model?: string | null; context_length?: number | string | null; min_context?: number | null; error?: string | null; warning?: string | null }
 // Measured by embedding a probe string, because no endpoint reports a vector width. `dimension` is
 // null when the probe could not run — which is a distinct answer from a mismatch, and is rendered
 // as one.
@@ -34,11 +35,33 @@ interface Readiness {
   embedding: Embedding | null;
 }
 
+// The same verdict rimpl's /health/deep reaches (routes/health.js): `up` and `warn` both SERVE — a
+// warning is a finding about the configuration, e.g. r3_distinct_models (tutor and evaluator are one
+// model artifact, CCME R3) — and every other value is not. That includes a status this screen
+// predates, and none at all: the endpoint already counted those as not serving and answered 503, so
+// the screen says Down too rather than inventing a fourth meaning. Before `warn` existed here, a
+// serving box with one config finding read as red "Down" — the opposite of what it was.
+type Status = 'up' | 'warn' | 'down';
+function statusOf(c: Check): Status {
+  return c.status === 'up' || c.status === 'warn' ? c.status : 'down';
+}
+
+// Not colour alone: each state has its own icon and its own words.
+const STATUS_VIEW: Record<Status, { tone: string; Icon: typeof CheckCircle2; label: string }> = {
+  up: { tone: 'text-ok', Icon: CheckCircle2, label: 'พร้อม / Up' },
+  warn: { tone: 'text-warn', Icon: AlertTriangle, label: 'คำเตือน / Warning' },
+  down: { tone: 'text-danger', Icon: XCircle, label: 'ไม่พร้อม / Down' },
+};
+
 // 'unknown' is its own state, never folded into either of the other two. A context we could not read
 // is not a context we read and approved — that distinction is the whole point of the screen.
-function contextState(c: Check): 'ok' | 'bad' | 'unknown' {
-  if (c.status !== 'up') return 'bad';
-  return typeof c.context_length === 'number' ? 'ok' : 'unknown';
+// 'none' is a warning that names no context at all: r3_distinct_models is a comparison, not a model,
+// so "unknown" would claim there was a window to read, and red would claim it failed.
+function contextState(c: Check, status: Status): 'ok' | 'bad' | 'unknown' | 'none' {
+  if (status === 'down') return 'bad';
+  if (typeof c.context_length === 'number') return 'ok';
+  if (status === 'warn' && c.context_length == null) return 'none';
+  return 'unknown';
 }
 
 export default function AiReadinessPage() {
@@ -57,7 +80,10 @@ export default function AiReadinessPage() {
   useEffect(() => { load(); }, [load]);
   const refresh = () => { setBusy(true); load(); };
 
-  const entries = Object.entries(data?.checks ?? {});
+  // A null or non-object entry renders as a check with no status (Down, "no status reported") rather
+  // than throwing on `.status` and blanking the whole table — the rows beside it are still the answer.
+  const entries = Object.entries(data?.checks ?? {}).map(([name, c]): [string, Check] =>
+    [name, c && typeof c === 'object' ? c : { status: '' }]);
 
   return (
     <div className="mx-auto max-w-3xl p-6 space-y-6">
@@ -98,17 +124,31 @@ export default function AiReadinessPage() {
             </thead>
             <tbody>
               {entries.map(([name, c]) => {
-                const state = contextState(c);
+                const status = statusOf(c);
+                const state = contextState(c, status);
+                const view = STATUS_VIEW[status];
+                // Down for a reason the screen cannot name: say what arrived, so "Down" is not
+                // mistaken for a dependency that answered `down`.
+                const unrecognised = status === 'down' && c.status !== 'down';
+                const raw = typeof c.status === 'string' ? c.status : '';
                 return (
                   <tr key={name} className="border-b border-border/50 align-top">
                     <td className="py-3 pr-4 font-medium">{name}</td>
                     <td className="py-3 pr-4">
-                      <span className={`inline-flex items-center gap-1.5 ${c.status === 'up' ? 'text-ok' : 'text-danger'}`}>
-                        {c.status === 'up'
-                          ? <CheckCircle2 className="size-4" aria-hidden="true" />
-                          : <XCircle className="size-4" aria-hidden="true" />}
-                        {c.status === 'up' ? 'พร้อม / Up' : 'ไม่พร้อม / Down'}
+                      <span className={`inline-flex items-center gap-1.5 ${view.tone}`}>
+                        <view.Icon className="size-4 shrink-0" aria-hidden="true" />
+                        {view.label}
                       </span>
+                      {status === 'warn' && c.warning && (
+                        <p className="mt-1 max-w-xs text-xs text-muted-foreground break-words">{c.warning}</p>
+                      )}
+                      {unrecognised && (
+                        <p className="mt-1 max-w-xs text-xs text-muted-foreground break-words">
+                          {raw
+                            ? <>สถานะที่ไม่รู้จัก / Unrecognised status <span className="font-mono">{raw}</span></>
+                            : 'ไม่มีสถานะ / No status reported'}
+                        </p>
+                      )}
                       {c.error && <p className="mt-1 max-w-xs text-xs text-muted-foreground">{c.error}</p>}
                     </td>
                     <td className="py-3 pr-4 font-mono text-xs">{c.model ?? '—'}</td>
@@ -132,6 +172,7 @@ export default function AiReadinessPage() {
                         </span>
                       )}
                       {state === 'bad' && <span className="text-danger">—</span>}
+                      {state === 'none' && <span className="text-muted-foreground">—</span>}
                     </td>
                   </tr>
                 );

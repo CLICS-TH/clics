@@ -4,9 +4,10 @@ const { callAI, resolveProviderName } = require('../services/ai');
 const { pis7PromptFor } = require('../lib/prompts');
 const { Pis7ScoreError } = require('../lib/pis7');
 const { scoreWithConsistency, MODES: CONSISTENCY_MODES } = require('../services/consistency');
-const { flattenForPrompt } = require('../lib/transcript');
+const { flattenForPrompt, seedWithChiefComplaint } = require('../lib/transcript');
 const { buildProvenance } = require('../lib/provenance');
-const { deriveHintTokens } = require('../services/pii-filter');
+const { deriveHintTokens, makeRegistry } = require('../services/pii-filter');
+const { MAX_TURN_CHARS } = require('../lib/turn-limits');
 const { modelVersion, promptVersionFor, RUBRIC_VERSION } = require('../lib/versions');
 const { fireShadowEvaluation } = require('../services/shadow');
 const { requestSignal } = require('../lib/request-signal');
@@ -48,6 +49,10 @@ const EvalSchema = z.object({
   // On-prem patient identifier, scrubbed from the transcript before the cloud eval; never forwarded.
   // nullish: the backend sends `?? null` when none was recorded — null must pass schema validation.
   patient_ref: z.string().nullish(),
+  // The PLE's chief complaint. NEVER sent to the model: it only seeds the token registry first, so the
+  // transcript is numbered as /chat numbered it (lib/transcript.js seedWithChiefComplaint). Absent (an
+  // older backend, the calibration harness) the numbering is the transcript-only one, as before.
+  chief_complaint: z.string().max(MAX_TURN_CHARS).nullish(),
   // The DECLARED weights checksum from the Model Lock Record, forwarded by the backend from
   // app_settings. Absent = the evaluator is not locked yet, which the score then says on its face.
   weights_sha256: z.string().trim().max(128).nullish(),
@@ -62,11 +67,13 @@ router.post('/', async (req, res) => {
   const parsed = EvalSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { ple_id, transcript, patient_ref, shadow, weights_sha256 } = parsed.data;
+  const { ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256 } = parsed.data;
   // PII-strip (incl. the known patient identifier) + defang injected role markers before the cloud model.
   // Assigned INSIDE the try below: a de-identification failure must answer 500 (fail closed, nothing
   // sent anywhere), never escape as an unhandled rejection that takes the whole process down.
   let transcriptText = null;
+  // Which numbering the scored input used (lib/transcript.js) — recorded in provenance.
+  let deid = null;
   // Fires if the backend hangs up (its evaluation deadline): the queued or in-flight scoring call is
   // released, so the backend's retry does not stack a duplicate behind a call nobody will read.
   const signal = requestSignal(req, res);
@@ -77,7 +84,15 @@ router.post('/', async (req, res) => {
   // consistency call answered by a different model than the first.
   let provider = null;
   try {
-    transcriptText = flattenForPrompt(transcript, deriveHintTokens(patient_ref));
+    // ONE registry, seeded with the chief complaint first (discarded), so the evaluator reads the
+    // tokens /chat, /evaluate-criteria's PII map and the auditor's view use. The chief complaint itself
+    // never reaches the model. The transcript text changes in token numbers — and, the one non-numbering
+    // effect, a name the chief complaint introduced with a title is now also masked where the
+    // transcript repeats it bare (the bare-name pass knows it). The system prompt is untouched.
+    const hints = deriveHintTokens(patient_ref);
+    const registry = makeRegistry();
+    deid = seedWithChiefComplaint(registry, chief_complaint, hints);
+    transcriptText = flattenForPrompt(transcript, hints, registry);
     provider = await resolveProviderName('evaluate');
     const mode = consistencyModeFor(provider);
     const systemPrompt = pis7PromptFor(provider);
@@ -181,6 +196,7 @@ router.post('/', async (req, res) => {
         weightsSha256: weights_sha256 ?? null,
         engine, runtime,
         consistency,
+        deid,
       }),
       // D21: the physician is billed call 1 only. The system-initiated calls live in `consistency`.
       input_tokens: billed.inputTokens,

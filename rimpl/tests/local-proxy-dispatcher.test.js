@@ -112,7 +112,7 @@ test('readiness, context lookup, chat and embeddings cross the real proxy with a
   const result = await run('ready,chat,embed');
   expect(result.filter((r) => r.error)).toEqual([]);
   // Assert on `error` as well as `status`, so a failure SAYS WHY. Every `down` path in
-  // local.js:429-449 carries a distinct error string ('LOCAL_AI_BASE_URL not set', '/models
+  // local-factory.js ready() carries a distinct error string ('LOCAL_AI_BASE_URL not set', '/models
   // returned 200 but enumerated no models', 'model "x" not served (available: ...)', a fetch or
   // TimeoutError message). Asserting only the up-shape hid all of it: the 2026-09-10 CI failure
   // printed `status: 'down'` and nothing else, so the cause could not be read off the log and the

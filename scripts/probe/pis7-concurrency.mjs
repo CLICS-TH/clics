@@ -43,14 +43,15 @@ const ABORT_P95_MS = Number(argStr('abort-p95', '300000'));
 // rimpl's real budgets — the lines that decide whether a level is usable at all.
 // READ FROM THE SOURCE, never hardcoded: an earlier version pinned 85s/100s, which were the values
 // BEFORE providers/local.js raised its ceiling, and every "exceeds the timeout" verdict it printed
-// was wrong by 65s. Defaults here mirror local.js:36 and rimpl-client.js:15.
+// was wrong by 65s. Defaults here mirror the `${envPrefix}TIMEOUT_MS` default in local-factory.js
+// (the evaluator instance, providers/local.js, reads it as LOCAL_AI_TIMEOUT_MS) and rimpl-client.js:15.
 const intFrom = (src, name, dflt) => {
-  const m = src.match(new RegExp(`${name}['"]?\\s*,\\s*(\\d+)`)) || src.match(new RegExp(`${name}\\s*\\|\\|\\s*'(\\d+)'`));
+  const m = src.match(new RegExp(`${name}['"\`]?\\s*,\\s*(\\d+)`)) || src.match(new RegExp(`${name}\\s*\\|\\|\\s*'(\\d+)'`));
   return m ? Number(m[1]) : dflt;
 };
-const localSrc = readFileSync(path.join(REPO_ROOT, 'rimpl/src/services/providers/local.js'), 'utf8');
+const localSrc = readFileSync(path.join(REPO_ROOT, 'rimpl/src/services/providers/local-factory.js'), 'utf8');
 const beSrc = readFileSync(path.join(REPO_ROOT, 'backend/src/services/rimpl-client.js'), 'utf8');
-const LOCAL_AI_TIMEOUT_MS = Number(process.env.LOCAL_AI_TIMEOUT_MS) || intFrom(localSrc, 'LOCAL_AI_TIMEOUT_MS', 150000);
+const LOCAL_AI_TIMEOUT_MS = Number(process.env.LOCAL_AI_TIMEOUT_MS) || intFrom(localSrc, '\\{envPrefix\\}TIMEOUT_MS', 150000);
 const RIMPL_EVAL_TIMEOUT_MS = Number(process.env.RIMPL_EVAL_TIMEOUT_MS) || intFrom(beSrc, 'RIMPL_EVAL_TIMEOUT_MS', 180000);
 
 const cfg = readConfig();
@@ -140,5 +141,5 @@ if (!usableLevels.length) {
 } else {
   const best = usableLevels[usableLevels.length - 1];
   console.log(`  LOCAL_MAX_CONCURRENCY=${best.conc}   ${dim(`(highest level with p95 ${Math.round(best.p95/1000)}s inside the ${LOCAL_AI_TIMEOUT_MS/1000}s timeout and 0 failures)`)}`);
-  console.log(`  ${dim('providers/local.js defaults to 24 — a placeholder, not a measurement.')}\n`);
+  console.log(`  ${dim('rimpl defaults to 2 — getRunner() in rimpl/src/services/providers/local-factory.js, set from the DGX measurement (p95 114 s at 2, 154 s at 4).')}\n`);
 }

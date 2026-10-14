@@ -2,14 +2,14 @@
 //
 // WHY THIS DOES NOT CALL rimpl/src/services/providers/local.js
 // -----------------------------------------------------------
-// That module is the production transport, and it is deliberately defensive: it caps concurrency
-// (LOCAL_MAX_CONCURRENCY, default 24), retries retryable failures with backoff, and normalises
-// `finish_reason` into the Anthropic vocabulary. Every one of those behaviours DESTROYS a
-// measurement:
+// That module is the production transport (implemented in providers/local-factory.js), and it is
+// deliberately defensive: it caps concurrency (LOCAL_MAX_CONCURRENCY, default 2 — getRunner() in
+// createLocalProvider), retries retryable failures with backoff, and normalises `finish_reason`
+// into the Anthropic vocabulary. Every one of those behaviours DESTROYS a measurement:
 //   * a retrying client turns a 30% failure rate into an apparent 0% one — the exact number Gate 0
 //     exists to find;
-//   * a concurrency cap of 24 makes the 32-way throughput level unmeasurable (it would silently
-//     measure 24);
+//   * a concurrency cap makes every level above it unmeasurable (a 32-way level would silently
+//     measure the cap);
 //   * a normalised stop reason hides whether the server said `length` or `stop`.
 // So the probes speak the raw OpenAI-compatible protocol here: no retries, no queue, raw
 // finish_reason preserved alongside the mapped one. Everything that must stay single-source — the
@@ -25,7 +25,16 @@
 // transport, exactly like the provider it mirrors.
 
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+
+// The reasoning-markup rule production applies to every local reply — IMPORTED, never copied, so a
+// measurement judges the text rimpl would actually return. rimpl/src/lib/think-markup.js has no
+// require() at all (this job has no npm install); providers/local-factory.js re-exports the same
+// functions, but loading it would also load provider-settings.js and its env validation.
+const requireCjs = createRequire(import.meta.url);
+const { stripThink, closesThink, flagOn } = requireCjs('../../rimpl/src/lib/think-markup.js');
+export { stripThink, closesThink, flagOn };
 
 export const PROBE_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(PROBE_DIR, '..', '..');
@@ -104,6 +113,9 @@ export function readConfig({ needModel = true } = {}) {
     // Deliberately NOT LOCAL_AI_TIMEOUT_MS: that is rimpl's production ceiling (85s). A probe wants
     // its own, usually longer, budget — a cold model load can take minutes on first request.
     timeoutMs: Math.max(1000, parseInt(process.env.PROBE_TIMEOUT_MS || '180000', 10)),
+    // The SAME variable rimpl's evaluator instance reads (providers/local.js): set it as the server is
+    // configured, and the measurement strips reasoning exactly as production does. See chatCompletion.
+    thinkPreopened: flagOn(process.env.LOCAL_AI_THINK_PREOPENED),
   };
 }
 
@@ -115,6 +127,7 @@ export function printTarget(cfg, extra = {}) {
   if (cfg.model) console.log(`  model        ${cfg.model}`);
   console.log(`  api key      ${cfg.apiKey ? dim('set (' + cfg.apiKey.length + ' chars)') : dim('none')}`);
   console.log(`  timeout      ${cfg.timeoutMs} ms`);
+  console.log(`  think block  ${cfg.thinkPreopened ? 'pre-opened by the template (LOCAL_AI_THINK_PREOPENED=1)' : dim('model-opened (LOCAL_AI_THINK_PREOPENED unset)')}`);
   for (const [k, v] of Object.entries(extra)) console.log(`  ${k.padEnd(12)} ${v}`);
   if (!/\/v\d+$/.test(cfg.baseUrl) && !/\/api$/.test(cfg.baseUrl)) {
     console.log(dim(`  note: base URL does not end in a version prefix (e.g. /v1). If the chat`));
@@ -170,8 +183,17 @@ export const FINISH_REASON = {
 
 /**
  * One non-streaming chat completion, raw: no retry, no concurrency limit. See the header comment.
- * Field extraction mirrors providers/local.js exactly, INCLUDING the rule that a non-string
- * `message.content` degrades to '' rather than leaking structured/reasoning content.
+ *
+ * `text` is what providers/local-factory.js would RETURN for this reply: a non-string
+ * `message.content` degrades to '' (never structured/reasoning content), and inline <think> markup is
+ * removed by production's own stripThink — honouring `cfg.thinkPreopened` (LOCAL_AI_THINK_PREOPENED),
+ * as the server-side knob does. `rawText` is the content exactly as served, kept for the checks that
+ * ask what a STREAMING physician would have seen (scripts/quality/checks.mjs no_reasoning_leak).
+ *
+ * Deliberate difference, recorded rather than hidden: with thinkPreopened and a reply that never
+ * closes its block, production THROWS (code reasoning_only, no reply at all). Here that is
+ * `{ ok: true, text: '', reasoningOnly: true, reasoningUnclosed: true }` — a probe reports, it does not
+ * crash, and every caller already treats reasoningOnly as its own failure class.
  */
 export async function chatCompletion(cfg, { systemPrompt, messages, maxTokens = 1024, temperature }) {
   const body = {
@@ -200,19 +222,27 @@ export async function chatCompletion(cfg, { systemPrompt, messages, maxTokens = 
 
   const choice = r.json?.choices?.[0];
   const content = choice?.message?.content;
-  const text = typeof content === 'string' ? content : '';
+  const rawText = typeof content === 'string' ? content : '';
+  const preopened = !!cfg.thinkPreopened;
+  const text = stripThink(rawText, { preopened });
   const raw = choice?.finish_reason ?? null;
   // A model that returns content:null plus reasoning_content (DeepSeek-style "thinking" output)
   // will look like an empty reply to rimpl. Surface it explicitly — it is a config fix (ask the
   // server to separate reasoning, or use a non-thinking variant), not a model-quality verdict.
+  // Same failure, other route: content that was NOTHING BUT inline reasoning strips to ''.
   const reasoningOnly = text === '' && (
     typeof choice?.message?.reasoning_content === 'string' ||
-    typeof choice?.message?.reasoning === 'string'
+    typeof choice?.message?.reasoning === 'string' ||
+    rawText.trim() !== ''
   );
+  const reasoningUnclosed = preopened && rawText !== '' && !closesThink(rawText);
 
   return {
     ok: true, ms: r.ms, status: r.status, error: null,
     text,
+    rawText,
+    thinkPreopened: preopened,
+    ...(reasoningUnclosed ? { reasoningUnclosed: true } : {}),
     finishReason: raw,
     stopReason: raw ? (FINISH_REASON[raw] ?? raw) : null,
     promptTokens: r.json?.usage?.prompt_tokens ?? 0,

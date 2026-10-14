@@ -133,6 +133,7 @@ describe('three arms', () => {
       ples_with_human: 5, ples_with_ai: 5, ples_with_shadow: 4, ples_all_three: 4,
       shadow_failed: 1, shadow_contract_rate: 0.8,
       shadow_scored_corpus: 4, shadow_failed_corpus: 1, shadow_contract_rate_corpus: 0.8,
+      shadow_ineligible: 0,
     });
     expect(shadow).toEqual({ available: true, provider: 'local', model_version: 'qwen-2.5-72b' });
   });
@@ -378,6 +379,48 @@ test('with two candidate models, only the most recent one is used and it is name
   expect(arms.shadow_vs_human.n).toBe(2);
   expect(arms.ai_vs_human.n).toBe(2);
   expect(coverage.shadow_contract_rate).toBe(1);   // both of the winning candidate's runs are scored
+});
+
+// ── The tutor model is never a candidate evaluator (CCME R3) ─────────────────────────────────────
+// services/agreement.js picks the Model Lock's candidate from shadow_evaluations. rimpl refuses to
+// shadow-score with `local-tutor`, but a row that exists anyway (an older rimpl, a hand insert) must
+// not be able to become the candidate — however recent it is — and must be COUNTED, not hidden.
+describe('local-tutor shadow rows', () => {
+  const base = {
+    audit: [row('c1', 80, 4), row('c2', 60, 3), row('c3', 90, 5)],
+    ai: [row('c1', 82, 4), row('c2', 58, 3), row('c3', 88, 4)],
+    ples: [{ id: 'c1', is_test: false }, { id: 'c2', is_test: false }, { id: 'c3', is_test: false }],
+  };
+  const tutorRow = (id, c, d) => shadowRow(id, c, d, { provider: 'local-tutor', model_version: 'qwen-tutor', evaluated_at: '2026-10-14T00:00:00Z' });
+
+  test('a NEWER tutor set never displaces the evaluator candidate, and is counted as ineligible', async () => {
+    m.state.caller = ANALYST;
+    tables({ ...base, shadow: [
+      shadowRow('c1', 79, 4), shadowRow('c2', 61, 3),
+      tutorRow('c1', 80, 4), tutorRow('c2', 60, 3), tutorRow('c3', 90, 5),
+    ] });
+    const { arms, coverage, shadow } = (await auth(request(app).get('/oversight/icc/three-way'))).body;
+    expect(shadow).toEqual({ available: true, provider: 'local', model_version: 'qwen-2.5-72b' });
+    expect(coverage.ples_with_shadow).toBe(2);
+    expect(coverage.shadow_ineligible).toBe(3);
+    expect(arms.shadow_vs_human.n).toBe(2);
+  });
+
+  test('ONLY tutor rows: no candidate at all, no shadow arms, and the decisive verdict cannot pass', async () => {
+    m.state.caller = ANALYST;
+    tables({ ...base, shadow: [tutorRow('c1', 80, 4), tutorRow('c2', 60, 3), tutorRow('c3', 90, 5)] });
+    const { arms, coverage, shadow } = (await auth(request(app).get('/oversight/icc/three-way'))).body;
+    expect(shadow).toEqual({ available: false, provider: null, model_version: null });
+    expect(arms.shadow_vs_human).toBeNull();
+    expect(coverage.shadow_ineligible).toBe(3);
+
+    // The Model Lock asks the same question through the same code.
+    const { decisiveVerdict } = require('../src/services/agreement');
+    const gate = await decisiveVerdict({});
+    expect(gate.ok).toBe(true);
+    expect(gate.candidate).toBeNull();
+    expect(gate.verdict.state).not.toBe('pass');
+  });
 });
 
 // ── The generalized statistic ────────────────────────────────────────────────────────────────────

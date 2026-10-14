@@ -16,11 +16,15 @@
 // the very model it is supposed to be compared against.
 const anthropic = require('./providers/anthropic');
 const local = require('./providers/local');
+const localTutor = require('./providers/local-tutor');
 const openaiEmbed = require('./providers/openai-embed');
 const settings = require('./provider-settings');
 const { isQueueFull, isAborted, isTooLarge } = require('../lib/ai-errors');
 
-const PROVIDERS = { anthropic, local };
+// `local` is the on-prem EVALUATOR (DeepSeek); `local-tutor` is the on-prem tutor model, a second
+// instance of the same transport on its own endpoint (providers/local-tutor.js, CCME R3). Each key
+// must equal the provider's own `name`: results, provenance and bills are stamped with that name.
+const PROVIDERS = { anthropic, local, 'local-tutor': localTutor };
 
 // 'criteria' = the C1–C6 classifier, 'discuss' = the auditor calibration tutor.
 const PURPOSES = ['chat', 'evaluate', 'criteria', 'discuss'];
@@ -50,6 +54,38 @@ function embedProviderName() {
   return settings.overrideFor(EMBED_PURPOSE) || envProviderName(EMBED_PURPOSE, 'EMBED_PROVIDER', 'openai');
 }
 
+// The purposes a provider may serve, for a provider that may NOT serve all of them; a provider absent
+// from this map serves every purpose.
+//
+// `local-tutor` is the TUTOR model, and CCME R3 requires the evaluator to be a distinct model
+// artifact from the tutor. evaluate scores the very dialogue the tutor produced, and criteria decides
+// whether that dialogue counts — routing either to the tutor would judge a model's conversation with
+// the same model, under a prompt nobody calibrated it on. Backend's superadmin switch offers
+// local-tutor for chat and discuss only; this is the same rule at the boundary, so an env var
+// (AI_PROVIDER=local-tutor, the easy way to mean "all on-prem" and get it wrong) or a hand-written
+// app_settings row cannot do what the switch refuses. It fails LOUDLY — the call throws, and
+// readiness() reports the purpose down — exactly like an unknown provider name.
+const PROVIDER_PURPOSES = { 'local-tutor': ['chat', 'discuss'] };
+
+// Purposes that are not in PURPOSES but must obey the same rule as one that is. `shadow` is a second,
+// never-served PIS-7 score of the same transcript (services/shadow.js): it IS an evaluation, and its
+// rows are the corpus a candidate evaluator is judged and locked on. Shadow-scoring with the tutor
+// would produce agreement data that looks like a candidate evaluator and is not one — so whatever
+// may not `evaluate` may not `shadow` either. One list (PROVIDER_PURPOSES), read through this map.
+const PURPOSE_CLASS = { shadow: 'evaluate' };
+
+function servesPurpose(name, purpose) {
+  const allowed = PROVIDER_PURPOSES[name];
+  return !purpose || !allowed || allowed.includes(PURPOSE_CLASS[purpose] ?? purpose);
+}
+
+function assertServes(provider, purpose, whence) {
+  if (!servesPurpose(provider.name, purpose)) {
+    throw new Error(`AI provider "${provider.name}" (from ${whence}) cannot serve "${purpose}" — it serves only ${PROVIDER_PURPOSES[provider.name].join(', ')}`);
+  }
+  return provider;
+}
+
 // Fail loudly on an unknown name. Silently falling back to Anthropic on a typo would mean paying
 // cloud rates while believing you were on-prem — and, for `evaluate`, scoring under a model nobody
 // intended. This is also why the database layer above cannot introduce a default of its own.
@@ -64,7 +100,7 @@ function lookup(registry, name, whence) {
 function providerFor(purpose) {
   const name = providerNameFor(purpose);
   const whence = `${purpose ? `app_settings.ai_provider_${purpose} / AI_PROVIDER_${String(purpose).toUpperCase()} / ` : ''}AI_PROVIDER`;
-  return lookup(PROVIDERS, name, whence);
+  return assertServes(lookup(PROVIDERS, name, whence), purpose, whence);
 }
 
 // Resolve the provider NAME for a purpose — database layer included, validated, nothing called. For a
@@ -116,8 +152,10 @@ function errorCode(err) {
 // The DOWN class: connection refused / reset / unresolvable, our own client deadline
 // (AbortSignal.timeout → DOMException 'TimeoutError', tagged `localTimeout` by providers/local.js), or
 // an HTTP 5xx from the provider itself. Everything else propagates to the route unchanged.
+// `reasoning_only` (providers/local-factory.js, THINK_PREOPENED) is not DOWN either: the box answered,
+// with nothing but reasoning. A second vendor would not make the first one's template close its block.
 function isProviderDown(err) {
-  if (!err || isQueueFull(err) || isAborted(err) || isTooLarge(err)) return false;
+  if (!err || isQueueFull(err) || isAborted(err) || isTooLarge(err) || err.code === 'reasoning_only') return false;
   if (err.localTimeout === true || err.name === 'TimeoutError') return true;
   if (typeof err.status === 'number') return err.status >= 500;
   const code = errorCode(err);
@@ -165,13 +203,21 @@ function failoverProviderFor(primary) {
  */
 // `onDelta` (optional, chat only in practice) streams the reply — providers/*.js call(). Once any text has
 // been handed out, the turn is committed to the provider that produced it: no fail-over.
-async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTokens, temperature, signal, onDelta }) {
+//
+// `thinking` (optional): true/false or { enabled, budget? } — ask a reasoning model to think, or not.
+// Forwarded only when given; a provider sends it only if its server is configured for it
+// (providers/local-factory.js <prefix>THINKING_STYLE, default none). Anthropic ignores it.
+// `onReasoning()` (optional, streamed calls only): called once, with nothing, when the reply's
+// reasoning starts arriving, so a caller can show "thinking…". The reasoning text never leaves the
+// provider. It does NOT commit the turn the way onDelta does: no reply text has been shown yet.
+// Nobody passes either yet.
+async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTokens, temperature, signal, onDelta, thinking, onReasoning }) {
   if (purpose && !PURPOSES.includes(purpose)) {
     throw new Error(`Unknown AI purpose "${purpose}". Valid: ${PURPOSES.join(', ')}`);
   }
   let provider;
   if (pinned) {
-    provider = lookup(PROVIDERS, String(pinned).trim().toLowerCase(), 'a pinned provider');
+    provider = assertServes(lookup(PROVIDERS, String(pinned).trim().toLowerCase(), 'a pinned provider'), purpose, 'a pinned provider');
   } else {
     // Cold cache blocks here exactly once per process; afterwards this is a cache read with a
     // background refresh. See provider-settings.ensureFresh.
@@ -182,6 +228,7 @@ async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTo
   const request = {
     systemPrompt, messages, maxTokens, temperature, purpose, signal,
     onDelta: onDelta ? (t) => { emitted = true; onDelta(t); } : undefined,
+    thinking, onReasoning,
   };
   const failover = !pinned && FAILOVER_PURPOSES.has(purpose) ? failoverProviderFor(provider) : null;
   if (!failover) return callWith(provider, request);
@@ -206,17 +253,29 @@ async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTo
  * whose entire job is to run the model that ISN'T serving. Routes must keep using callAI(purpose):
  * naming a vendor in a route is what this design exists to prevent.
  */
-async function callProvider({ provider: name, purpose, systemPrompt, messages, maxTokens, temperature, signal }) {
-  const provider = lookup(PROVIDERS, String(name || '').trim().toLowerCase(), 'an explicit provider name');
-  return callWith(provider, { systemPrompt, messages, maxTokens, temperature, purpose, signal });
+//
+// Still subject to the purpose guard (PROVIDER_PURPOSES via servesPurpose): naming the provider skips
+// ROUTING, not the rule about what it may do. services/shadow.js refuses such a target before it gets
+// here; this is the backstop if anything ever calls past that check.
+async function callProvider({ provider: name, purpose, systemPrompt, messages, maxTokens, temperature, signal, thinking, onReasoning }) {
+  const provider = assertServes(lookup(PROVIDERS, String(name || '').trim().toLowerCase(), 'an explicit provider name'), purpose, 'an explicit provider name');
+  return callWith(provider, { systemPrompt, messages, maxTokens, temperature, purpose, signal, thinking, onReasoning });
 }
 
 // `purpose` and `signal` travel to the provider deliberately: the local provider picks its queue lane
 // from the purpose (a chat turn must never wait behind an evaluation) and cancels at the transport
 // from the signal. Anthropic has no lanes, but it uses both: the signal cancels a queued or in-flight
 // call, and the purpose marks an evaluation for its late-retry cutoff.
-async function callWith(provider, { systemPrompt, messages, maxTokens, temperature, purpose, signal, onDelta }) {
-  const result = await provider.call({ systemPrompt, messages, maxTokens, temperature, purpose, signal, ...(onDelta ? { onDelta } : {}) });
+//
+// The optional fields are spread in only when present, so a call that uses none of them reaches the
+// provider with exactly the arguments it always had.
+async function callWith(provider, { systemPrompt, messages, maxTokens, temperature, purpose, signal, onDelta, thinking, onReasoning }) {
+  const result = await provider.call({
+    systemPrompt, messages, maxTokens, temperature, purpose, signal,
+    ...(onDelta ? { onDelta } : {}),
+    ...(thinking != null ? { thinking } : {}),
+    ...(typeof onReasoning === 'function' ? { onReasoning } : {}),
+  });
   // `provider` + `model` travel WITH the result, deliberately. A module-level MODEL constant is only
   // correct while exactly one model exists; under a hybrid it silently mislabels which system
   // produced a score (§10.2 provenance) and which rate to bill it at.
@@ -345,6 +404,29 @@ async function readiness() {
   await settings.ensureFresh(SETTING_PURPOSES).catch(() => {});
   // Sync read: ensureFresh above has just warmed the cache, and ragEnabled() would refresh it twice.
   const includeEmbed = (settings.numberFor('rag_enabled') ?? 0) === 1;
+  // A purpose routed to a provider that may not serve it fails EVERY call (providerFor throws), so the
+  // deployment is not ready, whatever that provider's own probe says. See PROVIDER_PURPOSES.
+  for (const purpose of PURPOSES) {
+    const name = providerNameFor(purpose);
+    if (!servesPurpose(name, purpose)) {
+      checks[`${purpose}_routing`] = { status: 'down', error: `"${name}" cannot serve "${purpose}" — it serves only ${PROVIDER_PURPOSES[name].join(', ')}` };
+    }
+  }
+  // CCME R3: the evaluator must be a distinct model artifact from the tutor. If the tutor instance is
+  // configured to the SAME endpoint and the SAME model as the evaluator, the split is nominal. A
+  // WARNING, not a failure (routes/health.js counts `warn` as serving): nothing is broken, the
+  // deployment is just not doing what its configuration claims. Two caveats it cannot get past:
+  // equal names prove nothing about weights (ready() proves reachability, not identity), and two
+  // gateways in front of one checkpoint compare as different. It is a tripwire, not a proof.
+  // Neither URL is reported — /health/deep is unauthenticated.
+  try {
+    const evaluatorAt = local.endpointKey?.();
+    const tutorAt = localTutor.endpointKey?.();
+    if (evaluatorAt && tutorAt && evaluatorAt === tutorAt) {
+      checks.r3_distinct_models = { status: 'warn',
+        warning: 'local-tutor is configured to the same endpoint and model as local (the evaluator): LOCAL_TUTOR_AI_BASE_URL + LOCAL_TUTOR_AI_MODEL equal LOCAL_AI_BASE_URL + LOCAL_AI_MODEL, so the tutor and the evaluator are one model artifact (CCME R3 requires two)' };
+    }
+  } catch { /* a comparison that cannot be made is not a finding */ }
   for (const [name, provider] of providersToProbe({ includeEmbed })) {
     if (!provider) { checks[`${name}_provider`] = { status: 'down', error: `unknown provider "${name}"` }; continue; }
     try {
@@ -378,6 +460,11 @@ async function probeProvider(name, purpose = 'chat') {
   if (!provider) {
     return { provider: name, purpose, fit: false, code: 'unknown_provider',
       reason: `"${name}" is not a known ${purpose === EMBED_PURPOSE ? 'embedding ' : ''}provider`, checks: {} };
+  }
+  // Refused before any probe: a provider that may not serve this purpose is unfit however healthy it is.
+  if (!servesPurpose(name, purpose)) {
+    return { provider: name, purpose, fit: false, code: 'purpose_not_served',
+      reason: `"${name}" cannot serve "${purpose}" — it serves only ${PROVIDER_PURPOSES[name].join(', ')}`, checks: {} };
   }
 
   let checks = {};
@@ -442,6 +529,6 @@ function providerSettingsStatus() {
 module.exports = {
   callAI, callProvider, embedText, ragEnabled, resolveProviderName,
   activeProviders, defaultProvider, modelsByPurpose, providerNameFor, embedProviderName,
-  providerSettingsStatus, readiness, probeProvider, isProviderDown,
-  PURPOSES, PROVIDERS, EMBED_PROVIDERS, EMBED_PURPOSE, SETTING_PURPOSES,
+  providerSettingsStatus, readiness, probeProvider, isProviderDown, servesPurpose,
+  PURPOSES, PROVIDERS, EMBED_PROVIDERS, EMBED_PURPOSE, SETTING_PURPOSES, PROVIDER_PURPOSES,
 };

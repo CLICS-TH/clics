@@ -90,6 +90,18 @@ test('the local provider costs exactly $0 — the DGX is a sunk cost, marginal t
   expect(costUsd(50_000_000, 50_000_000, 'local')).toBe(0);
 });
 
+test('the on-prem TUTOR (local-tutor) costs exactly $0 too, and is NOT an unknown provider', () => {
+  // rimpl reports provider 'local-tutor' for a chat/discuss turn served by the tutor box. Missing from
+  // the rate table it would bill at anthropic rates — free tokens throttling a physician at the cap.
+  const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  expect(costUsd(IN, OUT, 'local-tutor')).toBe(0);
+  expect(costUsd(50_000_000, 50_000_000, 'local-tutor')).toBe(0);
+  expect(warn).not.toHaveBeenCalled();
+  warn.mockRestore();
+  expect(settlementDelta({ estimate: RESERVE_ESTIMATE_USD, inputTokens: IN, outputTokens: OUT, applied: true, provider: 'local-tutor' }))
+    .toBeCloseTo(-RESERVE_ESTIMATE_USD, 12);
+});
+
 test('an UNKNOWN provider bills at anthropic rates, never at $0 (fail toward over-billing)', () => {
   // A vendor added to rimpl before its rates land here must not silently stop metering real spend —
   // and it must SAY SO, so the gap is noticed before an invoice is.

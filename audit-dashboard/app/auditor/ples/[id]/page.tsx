@@ -7,7 +7,7 @@ import { TranscriptView } from '@/components/TranscriptView';
 import { Button } from '@/components/ui/button';
 import { PageIntro } from '@/components/PageIntro';
 import { Textarea, Checkbox } from '@/components/ui/input';
-import { StateMessage } from '@/components/ui/state-message';
+import { StateMessage, RETRY_LABEL } from '@/components/ui/state-message';
 import { AiOutput } from '@/components/ui/ai-output';
 import { Modal } from '@/components/ui/modal';
 import { AI_LABEL } from '@/lib/ai-label';
@@ -22,6 +22,19 @@ import type { AuditorPle, ApiResult } from '@/lib/types';
 import { Check } from 'lucide-react';
 
 const EMPTY_SCORES: Record<string, number | null> = { d1:null,d2:null,d3:null,d4:null,d5:null,d6:null,d7:null };
+
+// Why the load failed decides what the auditor is told. Every failure used to render as "not found or
+// not assigned", so a de-identification outage — the route FAILS CLOSED with a 503 and no transcript
+// when RIMPL cannot mask it — read as a lost assignment. Only a 404/403 means "not yours"; a 503 (or
+// the code, whichever arrives) is a temporary outage; anything else is a load failure worth retrying.
+// The bare-string form is what backend/src/routes/auditor.js sent before the code field was added.
+const DEIDENTIFY_UNAVAILABLE = 'deidentify_unavailable';
+type LoadFailure = 'outage' | 'not_found' | 'failed';
+function loadFailure(d: AuditorPle): LoadFailure {
+  if (d.httpStatus === 503 || d.code === DEIDENTIFY_UNAVAILABLE || d.error === DEIDENTIFY_UNAVAILABLE) return 'outage';
+  if (d.httpStatus === 404 || d.httpStatus === 403) return 'not_found';
+  return 'failed';
+}
 
 export default function AuditorScorePage() {
   const { id } = useParams<{ id: string }>();
@@ -132,20 +145,57 @@ export default function AuditorScorePage() {
     else toast('บันทึกความยินยอมไม่สำเร็จ / Could not record consent.', 'error');
   }
 
+  // Re-fetch in place (no page reload): back to the loading state, then whatever the server says now.
+  function retryLoad() { setData(null); void loadData(); }
+
   if (!data) return <div className="mx-auto max-w-3xl p-6 md:p-10"><StateMessage kind="loading" center title="กำลังโหลด… / Loading…" /></div>;
 
-  // A 404 ("Not found or not assigned") resolves with the JSON error body — explain it
-  // instead of rendering an empty scoring UI the auditor could submit against.
-  if (data.error) return (
-    <div className="max-w-3xl mx-auto p-6 md:p-10">
-      <StateMessage kind="error" center title="ไม่พบเซสชันนี้ หรือคุณไม่ได้รับมอบหมายให้ตรวจ">
-        This session could not be found, or it is not assigned to you. ({String(data.error)})
-        <div className="mt-3">
-          <Button variant="outline" onClick={() => router.push('/auditor/queue')}>← กลับไปที่คิว / Back to queue</Button>
-        </div>
-      </StateMessage>
-    </div>
-  );
+  // A failed load resolves with the JSON error body — explain it instead of rendering an empty
+  // scoring UI the auditor could submit against. Which explanation depends on WHY (loadFailure).
+  if (data.error) {
+    const failure = loadFailure(data);
+    const backToQueue = (
+      <Button variant="outline" onClick={() => router.push('/auditor/queue')}>← กลับไปที่คิว / Back to queue</Button>
+    );
+    if (failure === 'not_found') return (
+      <div className="max-w-3xl mx-auto p-6 md:p-10">
+        <StateMessage kind="error" center title="ไม่พบเซสชันนี้ หรือคุณไม่ได้รับมอบหมายให้ตรวจ">
+          This session could not be found, or it is not assigned to you. ({String(data.error)})
+          <div className="mt-3">{backToQueue}</div>
+        </StateMessage>
+      </div>
+    );
+    return (
+      <div className="max-w-3xl mx-auto p-6 md:p-10">
+        <StateMessage kind="error"
+          title={failure === 'outage'
+            ? 'การแสดงบทสนทนาขัดข้องชั่วคราว / The transcript is temporarily unavailable'
+            : 'โหลดเซสชันนี้ไม่สำเร็จ / Could not load this session'}>
+          {/* text-base, not the primitive's text-sm: this is body copy and must clear the Thai floor. */}
+          {failure === 'outage' ? (
+            <div className="space-y-2 text-base">
+              <p>ระบบปกปิดข้อมูลที่ระบุตัวบุคคลขัดข้องชั่วคราว จึงงดแสดงบทสนทนาไว้ก่อน ไม่มีข้อมูลใดสูญหาย
+                งานที่ได้รับมอบหมายและคะแนนที่ส่งแล้วยังอยู่ครบ กรุณาลองใหม่อีกครั้งใน
+                {/* Keep "อีกสักครู่" whole: at 320px it otherwise splits สัก|ครู่, orphaning ครู่. */}
+                <span className="whitespace-nowrap">อีกสักครู่</span></p>
+              <p>The service that masks identifying details is briefly unavailable, so the transcript is held
+                back rather than shown unmasked. Nothing was lost — your assignment and any score you
+                submitted are kept. Please try again in a moment.</p>
+            </div>
+          ) : (
+            <div className="space-y-1 text-base">
+              <p>ไม่มีข้อมูลใดสูญหาย กรุณาลองใหม่อีกครั้ง / Nothing was lost. Please try again.</p>
+              <p>รายละเอียด / Detail: {String(data.error)}</p>
+            </div>
+          )}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button onClick={retryLoad}>{RETRY_LABEL}</Button>
+            {backToQueue}
+          </div>
+        </StateMessage>
+      </div>
+    );
+  }
 
   const composite = allSet ? computeComposite(scores as Record<string, number>) : null;
   // Peer card wording: peer_avg excludes self, so peer_n === 1 means a SINGLE other auditor — call it

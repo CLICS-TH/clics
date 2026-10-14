@@ -1,12 +1,12 @@
 const { Router } = require('express');
 const { z } = require('zod');
-const { stripPii, stripHistoryPii, deriveHintTokens } = require('../services/pii-filter');
+const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = require('../services/pii-filter');
 const { ragLookup } = require('../services/rag');
 const { callAI } = require('../services/ai');
 const { hasCitation, extractSocraticQuestion, extractReferences, thaiShare, stripNonProse, isLanguageMismatch, isThaiMessage } = require('../services/post-filter');
 const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE } = require('../lib/prompts');
 const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply, RESCUE_RETRY_PROMPT } = require('../services/rescue');
-const { flattenForPrompt, stripArtifactDelimiters } = require('../lib/transcript');
+const { formatDeidentified, stripArtifactDelimiters } = require('../lib/transcript');
 const { requestSignal } = require('../lib/request-signal');
 const { promptLabel } = require('../lib/versions');
 const { sendAiError, logAiError, isAborted } = require('../lib/ai-errors');
@@ -49,13 +49,35 @@ const ChatSchema = z.object({
   stream: z.boolean().default(false),
 });
 
-// `cleanMessage` MUST already be PII-stripped by the caller (see the route): the RAG embedding
-// and the Claude call must use the same de-identified text, and PII must never reach either.
-async function buildMessages(history, cleanMessage, ragDocs, chiefComplaint, hints = []) {
+// De-identify everything one outbound call carries under ONE registry, so a token means one person
+// (or phone, HN, ...) across the whole prompt: `[NAME-1]` in the history and `[NAME-1]` in the
+// current message are the same referent, and one person never gets two tokens. Separate registries
+// (as here before) numbered each piece from 1, so two different patients could share `[NAME-1]`.
+//
+// ORDER IS LOAD-BEARING. Tokens are numbered by first appearance in processing order, and a name part
+// seen earlier is also caught bare later (the filter's bare-name pass). The order is the order the
+// session happened in: chief complaint (given at creation) -> stored history, oldest first -> the
+// current message. That makes the numbering prefix-stable: turn N numbers every earlier turn exactly
+// as turn N-1 did, so the tokens the model wrote into its own stored replies keep meaning the same
+// person on later turns. POST /deidentify (the auditor's view) uses the same order for the same reason.
+//
+// Returns the pieces still separate: the caller embeds `cleanMessage` for RAG and sends the very same
+// string to the model (the RAG lookup and the AI call must see identical de-identified text).
+function deidentifyTurn({ chiefComplaint, history, message, hints }) {
+  const registry = makeRegistry();
+  const cleanChiefComplaint = chiefComplaint ? stripPii(chiefComplaint, registry, hints) : '';
+  const cleanHistory = stripHistoryPii(history, hints, registry);
+  const cleanMessage = stripPii(message, registry, hints);
+  return { cleanChiefComplaint, cleanHistory, cleanMessage };
+}
+
+// Every input here MUST already be PII-stripped by deidentifyTurn (see the route): this function only
+// assembles the prompt and masks nothing.
+function buildMessages(cleanHistory, cleanMessage, ragDocs, cleanChiefComplaint) {
   // Ground every turn in the case the physician opened the session with, so the AI
   // never has to ask for patient details it was already given at creation.
-  const cc = chiefComplaint
-    ? `ข้อมูลผู้ป่วยเบื้องต้น / Case (chief complaint): ${stripPii(chiefComplaint, undefined, hints)}\n\n`
+  const cc = cleanChiefComplaint
+    ? `ข้อมูลผู้ป่วยเบื้องต้น / Case (chief complaint): ${cleanChiefComplaint}\n\n`
     : '';
   const context = ragDocs.length
     ? `\n\nRelevant guidelines:\n${ragDocs.map(d => `[${d.source}] ${d.content}`).join('\n')}`
@@ -63,11 +85,11 @@ async function buildMessages(history, cleanMessage, ragDocs, chiefComplaint, hin
   // Strip any clinical-artifact control syntax from prior turns before replaying them to the cloud:
   // the artifact body stays (clinical context the AI may need), but the `:::artifact{...}` fence never
   // re-enters the chat context — otherwise the model would see, and start mimicking, the literal delimiter.
-  const cleanHistory = stripHistoryPii(history, hints).map(m => ({
+  const history = cleanHistory.map(m => ({
     role: m.role === 'physician' ? 'user' : 'assistant',
     content: stripArtifactDelimiters(m.content),
   }));
-  return [...cleanHistory, { role: 'user', content: cc + cleanMessage + context }];
+  return [...history, { role: 'user', content: cc + cleanMessage + context }];
 }
 
 // What the model LAST saw plus what it said, for the ONE call whose answer is returned — as a plain
@@ -103,11 +125,13 @@ router.post('/', async (req, res) => {
   let sse = null;
 
   try {
-    // De-identify ONCE, up front: PII must never leave the on-prem boundary — not to Claude and
-    // not to the OpenAI embeddings API behind RAG. ragLookup previously received the raw message.
-    const cleanMessage = stripPii(message, undefined, hints);
+    // De-identify ONCE, up front, under one shared registry (deidentifyTurn): PII must never leave
+    // the on-prem boundary — not to Claude and not to the OpenAI embeddings API behind RAG.
+    // ragLookup previously received the raw message.
+    const { cleanChiefComplaint, cleanHistory, cleanMessage } =
+      deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints });
     const ragDocs = await ragLookup(cleanMessage);
-    const messages = await buildMessages(history, cleanMessage, ragDocs, chief_complaint, hints);
+    const messages = buildMessages(cleanHistory, cleanMessage, ragDocs, cleanChiefComplaint);
 
     // Socratic rescue (CREC082 PLE Instruction Sheet §4). Decided HERE, from the conversation, on
     // the turn it applies to — never from which episode this is or who the physician is.
@@ -138,8 +162,10 @@ router.post('/', async (req, res) => {
       try {
         // Include the turn just sent — the physician may have qualified the session WITH this
         // message, and rescuing them for a gap they have already closed would be plainly wrong.
+        // The turns already stripped above, under the SAME registry, so the classifier reads the
+        // tokens the chat call reads (re-stripping here used a fresh registry: a second numbering).
         const assessed = await assessQualifying(
-          flattenForPrompt([...history, { role: 'physician', content: cleanMessage }], hints), { signal });
+          formatDeidentified([...cleanHistory, { role: 'physician', content: cleanMessage }]), { signal });
         const decision = rescueDecision(assessed);
         rescue = {
           // First activation, distinct from a later round of an ongoing rescue. The backend stamps

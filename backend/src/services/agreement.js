@@ -12,6 +12,7 @@
 const { supabase } = require('../lib/supabase');
 const { iccTwoRater, verdictFor } = require('./icc');
 const { iccGates } = require('../lib/settings');
+const { evaluateClass } = require('../lib/ai-providers');
 
 const ICC_DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
 const SHADOW_COLS = 'ple_id, provider, model_version, composite_score, d1,d2,d3,d4,d5,d6,d7, error, evaluated_at';
@@ -44,7 +45,7 @@ async function pairedSets({ includeTest = false } = {}) {
   if (auditErr) return { ok: false, error: auditErr };
   if (!auditScores?.length) {
     return { ok: true, empty: true, humanBy: new Map(), aiBy: new Map(), shadowBy: new Map(),
-      withAi: [], allThree: [], compareIds: [], candidate: null, shadowAvailable: false, shadowFailed: 0 };
+      withAi: [], allThree: [], compareIds: [], candidate: null, shadowAvailable: false, shadowFailed: 0, shadowIneligible: 0 };
   }
 
   const scoredIds = [...new Set(auditScores.map(a => a.ple_id))];
@@ -81,9 +82,17 @@ async function pairedSets({ includeTest = false } = {}) {
   // ONE candidate per arm. `provider` is the TRANSPORT ('local'), not the candidate — a second
   // candidate model on the same transport is a SEPARATE paired set. Pooling two models into one arm
   // would report a number that describes neither, so pick the most recent (provider, model_version).
+  //
+  // ONLY from a provider that may serve `evaluate` (lib/ai-providers.js evaluateClass). The candidate
+  // chosen here is what POST /admin/evaluator-lock freezes as the study's measuring instrument, and
+  // the tutor model (`local-tutor`) must never be that: CCME R3 needs the evaluator to be a distinct
+  // artifact from the tutor. rimpl already refuses to write such rows; a row that exists anyway (an
+  // older rimpl, a hand insert) is left out of every arm and COUNTED, not silently dropped.
   const groups = new Map();
+  let shadowIneligible = 0;
   for (const r of (shadowRes.data ?? [])) {
     if (!inScope(r.ple_id)) continue;
+    if (!evaluateClass(r.provider)) { shadowIneligible++; continue; }
     const key = `${r.provider} ${r.model_version}`;
     const g = groups.get(key) ?? { provider: r.provider, model_version: r.model_version, rows: [], latest: 0 };
     g.rows.push(r);
@@ -113,7 +122,7 @@ async function pairedSets({ includeTest = false } = {}) {
     ok: true, empty: false,
     humanBy, aiBy, shadowBy, withAi, allThree,
     compareIds: shadowAvailable ? allThree : withAi,
-    candidate, shadowAvailable, shadowFailed,
+    candidate, shadowAvailable, shadowFailed, shadowIneligible,
   };
 }
 

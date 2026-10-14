@@ -44,6 +44,8 @@ const PROVIDER_COPY: Record<string, { label: string; where: string }> = {
   anthropic: { label: 'Claude', where: 'คลาวด์ / cloud' },
   openai: { label: 'OpenAI', where: 'คลาวด์ / cloud' },
   local: { label: 'DGX ในองค์กร', where: 'on-premise' },
+  // The on-prem TUTOR model (rimpl providers/local-tutor.js) — offered for chat and discuss only.
+  'local-tutor': { label: 'โมเดลผู้สอนในองค์กร', where: 'on-premise tutor' },
 };
 
 const OPERATIONAL: Purpose[] = ['chat', 'criteria', 'discuss', 'embed'];
@@ -74,9 +76,9 @@ export function AiProviderPanel() {
   }
 
   function choose(purpose: Purpose, provider: string) {
-    if (!data || provider === data.providers[purpose]) return;
+    // A locked evaluator's buttons are disabled; the `locked` term is belt and braces behind them.
+    if (!data || provider === data.providers[purpose] || (purpose === 'evaluate' && locked)) return;
     if (purpose === 'evaluate') {
-      if (locked) return;                                   // the button is disabled; belt and braces
       setErr('');
       setPending({ purpose, provider, phrase: data.confirm_phrases.change_evaluator });
       setTyped('');
@@ -87,19 +89,33 @@ export function AiProviderPanel() {
 
   const rows = (purposes: Purpose[], disabled: boolean) => purposes.map(p => {
     const current = data!.providers[p];
+    // While this purpose saves, its options are aria-disabled rather than `disabled`: disabling the
+    // option a keyboard user just pressed blurs it and drops their focus to <body>, so they would
+    // have to Tab back from the top of the page. The click guard below does what `disabled` did.
+    const busy = saving === p;
+    // Layout is intrinsic, not breakpoint-tuned, because the choice count differs per purpose (chat
+    // and discuss offer three since the on-prem tutor, the rest two) and the panel can be mounted at
+    // any width:
+    //   · The description has a 28rem flex-basis. If it cannot keep that much room beside the
+    //     choices, the choices wrap onto their own line below it. It used to be `flex-1` (basis 0)
+    //     beside a `shrink-0` group; with three choices that squeezed the description to ~30px at
+    //     768px (Thai broken into one word per line) and pushed the group 300–370px past the card
+    //     edge on phones.
+    //   · The radiogroup wraps its options and may shrink to its widest option, so at 320px they
+    //     stack instead of overflowing. Separate bordered options rather than one joined segment:
+    //     a joined segment cannot wrap cleanly, and its overflow-hidden clipped the focus ring.
+    //   · Each option is two nowrap lines, provider over location. A label is never split, and the
+    //     longest one ('โมเดลผู้สอนในองค์กร') still fits a 320px phone.
     return (
-      <div key={p} className="flex flex-wrap items-center justify-between gap-3 border-t py-4 first:border-t-0 first:pt-0">
-        <div className="min-w-0 flex-1 pr-2">
+      <div key={p} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t py-4 first:border-t-0 first:pt-0">
+        <div className="min-w-0 flex-[1_1_28rem]">
           <p className="text-sm font-medium">
             {PURPOSE_COPY[p].icon} {PURPOSE_COPY[p].th}
             <span className="ml-1 text-[0.8em] font-normal opacity-[0.85]">{PURPOSE_COPY[p].en}</span>
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">{PURPOSE_COPY[p].note}</p>
         </div>
-        {/* max-w-full + flex-wrap: the two options need ~350px on one line, so below that they stack
-            (each grows to the full width) instead of running past a phone's viewport. */}
-        <div role="radiogroup" aria-label={`${PURPOSE_COPY[p].en} provider`}
-          className="inline-flex max-w-full shrink-0 flex-wrap overflow-hidden rounded-lg border">
+        <div role="radiogroup" aria-label={`${PURPOSE_COPY[p].en} provider`} className="flex flex-wrap gap-2">
           {data!.choices[p].map(name => {
             const on = name === current;
             return (
@@ -107,22 +123,24 @@ export function AiProviderPanel() {
                 key={name}
                 role="radio"
                 aria-checked={on}
-                disabled={disabled || saving === p}
-                onClick={() => choose(p, name)}
+                disabled={disabled}
+                aria-disabled={busy || undefined}
+                onClick={() => { if (!busy) choose(p, name); }}
                 title={`${PROVIDER_COPY[name]?.label ?? name} — ${PROVIDER_COPY[name]?.where ?? name}`}
                 // Selected state is a TINT + an inset ring, not solid --primary. White on #cc785c
                 // measures 3.28:1, which fails WCAG body text at this 13px size (the large-text
                 // exemption starts at 18.66px bold). The tint keeps --foreground on the label at
-                // ~16:1 while the ring carries the selection just as unambiguously.
-                className={`grow px-3 py-2 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60
+                // ~16:1 while the ring carries the selection just as unambiguously. The border stays
+                // 1px in both states (only its colour changes) so selecting never shifts the layout.
+                className={`flex-auto rounded-lg border px-3 py-2 text-left text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60 aria-disabled:cursor-wait aria-disabled:opacity-60
                   ${on
-                    ? 'bg-primary/15 font-semibold text-foreground ring-2 ring-inset ring-primary'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                    ? 'border-primary bg-primary/15 font-semibold text-foreground ring-2 ring-inset ring-primary'
+                    : 'border-field text-muted-foreground hover:bg-muted hover:text-foreground'}`}
               >
-                {PROVIDER_COPY[name]?.label ?? name}
+                <span className="block whitespace-nowrap">{PROVIDER_COPY[name]?.label ?? name}</span>{' '}
                 {/* No opacity on this: dimming 13px text pushed it to ~3.5:1. Where the data goes
                     is the single most important thing on this control — it does not get faded. */}
-                <span className="ml-1">· {PROVIDER_COPY[name]?.where ?? ''}</span>
+                <span className="block whitespace-nowrap">{PROVIDER_COPY[name]?.where ?? ''}</span>
               </button>
             );
           })}

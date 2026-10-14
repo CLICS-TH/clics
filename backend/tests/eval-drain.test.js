@@ -5,7 +5,7 @@
 //   * exhausted attempts route to manual QA with an audit event;
 //   * it never exceeds the concurrency, and never scores an empty transcript.
 process.env.EVAL_MAX_ATTEMPTS = '3';
-let mockRows, mockMsgs, mockMsgsError, mockRefs, mockClaims, mockWrites, mockRpcCalls, mockSettings, mockCouncils, mockSpend;
+let mockRows, mockMsgs, mockMsgsError, mockRefs, mockRefsError, mockClaims, mockWrites, mockRpcCalls, mockSettings, mockCouncils, mockSpend;
 
 jest.mock('../src/lib/supabase', () => ({
   supabase: {
@@ -18,7 +18,10 @@ jest.mock('../src/lib/supabase', () => ({
         in: () => c, order: () => c, limit: () => c, lt: () => c, is: () => c,
         maybeSingle: () => {
           if (table === 'ples') return Promise.resolve({ data: mockRows[id] ?? null, error: null });
-          if (table === 'ple_patient_refs') return Promise.resolve({ data: mockRefs[id] ? { patient_ref: mockRefs[id] } : null, error: null });
+          if (table === 'ple_patient_refs') {
+            if (mockRefsError) return Promise.resolve({ data: null, error: { message: mockRefsError } });
+            return Promise.resolve({ data: mockRefs[id] ? { patient_ref: mockRefs[id] } : null, error: null });
+          }
           if (table === 'app_settings') return Promise.resolve({ data: mockSettings[key] ?? null, error: null });
           return Promise.resolve({ data: null, error: null });
         },
@@ -65,7 +68,7 @@ async function settle() {
 const updates = (table) => mockWrites.filter((w) => w.table === table);
 
 beforeEach(() => {
-  mockRows = {}; mockMsgs = {}; mockMsgsError = null; mockRefs = {}; mockClaims = []; mockWrites = []; mockRpcCalls = [];
+  mockRows = {}; mockMsgs = {}; mockMsgsError = null; mockRefs = {}; mockRefsError = null; mockClaims = []; mockWrites = []; mockRpcCalls = [];
   mockSettings = {}; mockCouncils = []; mockSpend = 0;
   invalidateScope();
   Object.assign(drain._state, { running: false, inFlight: 0, ticking: false, kicked: false, claimed: 0, evaluated: 0, deferred: 0, flagged: 0, lastError: null, pool: null, poolWasExhausted: false });
@@ -73,13 +76,14 @@ beforeEach(() => {
   logEvent.mockClear();
 });
 
-test('claims through the RPC with the scope, evaluates with attempts:1 and the patient_ref, then clears the claim', async () => {
-  mockRows = { p1: { id: 'p1', physician_id: 'doc1', status: 'ple_pass', eval_attempts: 1, council_id: 'c1' } };
+test('claims through the RPC with the scope, evaluates with attempts:1, the patient_ref and the chief complaint, then clears the claim', async () => {
+  mockRows = { p1: { id: 'p1', physician_id: 'doc1', status: 'ple_pass', eval_attempts: 1, council_id: 'c1', chief_complaint: 'chest pain 2h' } };
   mockMsgs = { p1: MSGS }; mockRefs = { p1: 'นายสมชาย ใจดี' }; mockClaims = ['p1'];
   await drain.tick(); await settle();
   expect(mockRpcCalls[0][0]).toBe('claim_ple_evaluations');
   expect(mockRpcCalls[0][1]).toMatchObject({ p_limit: 1, p_exclude_councils: null, p_include_councils: null });
-  expect(triggerEvaluation).toHaveBeenCalledWith('p1', MSGS, 'doc1', 'นายสมชาย ใจดี', { attempts: 1 });
+  // The chief complaint seeds RIMPL's token numbering (never shown to the evaluator).
+  expect(triggerEvaluation).toHaveBeenCalledWith('p1', MSGS, 'doc1', 'นายสมชาย ใจดี', { attempts: 1, chiefComplaint: 'chest pain 2h' });
   const clear = updates('ples').find((w) => w.id === 'p1' && w.payload.eval_claimed_at === null && w.payload.eval_last_error === null);
   expect(clear).toBeTruthy();
   expect(drain.status().counters).toMatchObject({ claimed: 1, evaluated: 1, deferred: 0, flagged: 0 });
@@ -144,6 +148,26 @@ test('a FAILED messages read is transient: deferred with backoff, never evaluate
   expect(triggerEvaluation).not.toHaveBeenCalled();
   expect(updates('ples').some((w) => w.payload.eval_next_at)).toBe(true);
   expect(updates('ples').some((w) => w.payload.status === 'ple_flag_t2')).toBe(false);
+});
+
+test('a FAILED patient_ref read is transient: deferred, never evaluated WITHOUT the scrub hints, never flagged', async () => {
+  // Before: `{ data: pref }` turned the error into patient_ref=null and the transcript was scored
+  // without its hints — an untitled patient name would have reached the evaluator.
+  mockRows = { p1: { id: 'p1', physician_id: 'doc1', status: 'ple_pass', eval_attempts: 1 } };
+  mockMsgs = { p1: [{ role: 'physician', content: 'วรินทรปวดท้องมา 2 วัน' }] }; mockRefsError = 'connection reset'; mockClaims = ['p1'];
+  await drain.tick(); await settle();
+  expect(triggerEvaluation).not.toHaveBeenCalled();
+  const deferred = updates('ples').find((w) => w.payload.eval_next_at);
+  expect(deferred).toBeTruthy();
+  expect(deferred.payload.eval_last_error).toMatch(/503:transcript_patient_ref_error/);
+  expect(updates('ples').some((w) => w.payload.status === 'ple_flag_t2')).toBe(false);
+});
+
+test('NO patient_ref row is not an error: evaluated with patient_ref null', async () => {
+  mockRows = { p1: { id: 'p1', physician_id: 'doc1', status: 'ple_pass', eval_attempts: 1 } };
+  mockMsgs = { p1: MSGS }; mockClaims = ['p1'];
+  await drain.tick(); await settle();
+  expect(triggerEvaluation).toHaveBeenCalledWith('p1', MSGS, 'doc1', null, { attempts: 1, chiefComplaint: null });
 });
 
 test('never claims more than the free concurrency, and a tick while saturated claims nothing', async () => {
@@ -235,6 +259,6 @@ describe('the org-wide budget pool actually stops evaluation', () => {
     mockSettings.api_budget_pool_usd = { value: 50 };
     mockRpcCalls = []; mockClaims = ['p1'];
     await drain.tick(); await settle();
-    expect(triggerEvaluation).toHaveBeenCalledWith('p1', MSGS, 'doc1', null, { attempts: 1 });
+    expect(triggerEvaluation).toHaveBeenCalledWith('p1', MSGS, 'doc1', null, { attempts: 1, chiefComplaint: null });
   });
 });

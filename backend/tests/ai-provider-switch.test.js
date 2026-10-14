@@ -80,7 +80,11 @@ describe('GET /admin/ai-providers', () => {
 
   test('publishes the valid choices per purpose so the UI never hardcodes them', async () => {
     const r = await auth(request(app).get('/admin/ai-providers'));
-    expect(r.body.choices.chat).toEqual(['anthropic', 'local']);
+    expect(r.body.choices.chat).toEqual(['anthropic', 'local', 'local-tutor']);
+    expect(r.body.choices.discuss).toEqual(['anthropic', 'local', 'local-tutor']);
+    // The tutor model never scores and never screens (CCME R3: the evaluator is a distinct artifact).
+    expect(r.body.choices.evaluate).toEqual(['anthropic', 'local']);
+    expect(r.body.choices.criteria).toEqual(['anthropic', 'local']);
     // Anthropic has no embeddings API — offering it here would be a switch that throws on first use.
     expect(r.body.choices.embed).toEqual(['openai', 'local']);
   });
@@ -257,5 +261,47 @@ describe('a provider must be READY before traffic is pointed at it', () => {
     const r = await patch({ purpose: 'embed', provider: 'openai' });
     expect(r.status).toBe(200);
     expect(mockProbe).not.toHaveBeenCalled();
+  });
+});
+
+// The on-prem TUTOR model (rimpl providers/local-tutor.js): offered for the conversational purposes,
+// refused for the instrument and the screen. rimpl refuses the same routes itself; this is the
+// operator-facing half, so the refusal arrives as a 400 at the switch rather than a 500 per call.
+describe('local-tutor', () => {
+  test.each(['chat', 'discuss'])('%s -> local-tutor goes through the readiness probe and is applied', async (purpose) => {
+    const r = await patch({ purpose, provider: 'local-tutor' });
+    expect(r.status).toBe(200);
+    expect(r.body.providers[purpose]).toBe('local-tutor');
+    expect(mockProbe).toHaveBeenCalledWith(expect.objectContaining({ name: 'local-tutor', purpose }));
+    expect(mockSettings[`ai_provider_${purpose}`]).toBe('local-tutor');
+    expect(mockEvents).toContainEqual(expect.objectContaining({
+      action: 'ai_provider_change', metadata: { purpose, from: 'anthropic', to: 'local-tutor' },
+    }));
+  });
+
+  test.each([
+    ['evaluate', { confirm: 'CHANGE EVALUATOR' }],
+    ['criteria', {}],
+    ['embed', {}],
+  ])('%s -> local-tutor is refused 400 invalid_provider, before any probe or write', async (purpose, extra) => {
+    const r = await patch({ purpose, provider: 'local-tutor', ...extra });
+    expect(r.status).toBe(400);
+    expect(r.body.code).toBe('invalid_provider');
+    expect(mockProbe).not.toHaveBeenCalled();
+    expect(mockUpserts).toHaveLength(0);
+  });
+
+  test('an unfit tutor box (e.g. LOCAL_TUTOR_AI_BASE_URL unset) refuses the switch like any other provider', async () => {
+    mockVerdict = { fit: false, code: 'provider_down', reason: 'LOCAL_TUTOR_AI_BASE_URL not set' };
+    const r = await patch({ purpose: 'chat', provider: 'local-tutor' });
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('provider_not_ready');
+    expect(r.body.error).toMatch(/LOCAL_TUTOR_AI_BASE_URL not set/);
+    expect(mockSettings.ai_provider_chat).toBeUndefined();
+  });
+
+  test('the defaults are unchanged: nothing routes to the tutor until someone picks it', async () => {
+    const r = await auth(request(app).get('/admin/ai-providers'));
+    expect(Object.values(r.body.providers)).not.toContain('local-tutor');
   });
 });

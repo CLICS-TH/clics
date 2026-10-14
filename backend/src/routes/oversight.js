@@ -9,6 +9,7 @@ const { computeICC21, iccTwoRater, verdictFor } = require('../services/icc');
 const { pairedSets } = require('../services/agreement');
 const { raterSpread } = require('../services/rater-spread');
 const { iccGates } = require('../lib/settings');
+const { verifyChain } = require('../services/audit-chain');
 
 const router = Router();
 router.use(verifyJwt, requireRole('analyst', 'ethics', 'superadmin'));
@@ -100,7 +101,7 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
   if (sets.empty) {
     return res.json({
       arms: { ai_vs_human: emptyArm(), shadow_vs_human: null, ai_vs_shadow: null },
-      coverage: { ples_with_human: 0, ples_with_ai: 0, ples_with_shadow: 0, ples_all_three: 0, shadow_failed: 0, shadow_contract_rate: null },
+      coverage: { ples_with_human: 0, ples_with_ai: 0, ples_with_shadow: 0, ples_all_three: 0, shadow_failed: 0, shadow_contract_rate: null, shadow_ineligible: 0 },
       shadow: { available: false, provider: null, model_version: null },
       gates: {
         screening: { arm: 'ai_vs_shadow', ...verdictFor(null, gates.screening) },
@@ -108,7 +109,7 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
       },
     });
   }
-  const { humanBy, aiBy, shadowBy, withAi, allThree, compareIds, candidate, shadowAvailable, shadowFailed } = sets;
+  const { humanBy, aiBy, shadowBy, withAi, allThree, compareIds, candidate, shadowAvailable, shadowFailed, shadowIneligible } = sets;
   const shadowAttempts = shadowBy.size + shadowFailed;
 
   // CONTRACT RATE — corpus-wide, not cohort-scoped. The figures above count only this candidate's
@@ -177,6 +178,10 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
       shadow_scored_corpus: corpusScored,
       shadow_failed_corpus: corpusFailed,
       shadow_contract_rate_corpus: corpusAttempts ? Math.round((corpusScored / corpusAttempts) * 1000) / 1000 : null,
+      // Shadow rows from a provider that may not evaluate (the tutor model, `local-tutor`): never a
+      // candidate, never in an arm — and counted here, because a row left out silently is a row
+      // nobody asks about. Non-zero means something wrote one; rimpl refuses to.
+      shadow_ineligible: shadowIneligible,
     },
     shadow: {
       available: shadowAvailable,
@@ -215,6 +220,26 @@ router.get('/audit-log', requireRole('ethics', 'superadmin'), async (req, res) =
   if (sendDbError(res, error)) return;
   res.setHeader('X-Total-Count', count ?? 0);
   res.json({ total: count ?? 0, limit, offset, events: data ?? [] });
+});
+
+// Does the audit trail still link, row to row? The database recomputes its own hash chain
+// (db/migration-audit-log-chain.sql) and names the first row that does not. Same roles as the log.
+// Pass ?anchor_seq=&anchor_hash= — a head recorded earlier, held outside Supabase — to also detect a
+// truncated tail or a re-hashed chain; only an anchored pass reports `intact`. `broken` is still a
+// 200: the answer IS the finding, and the ethics view must show it.
+router.get('/audit-log/verify', requireRole('ethics', 'superadmin'), async (req, res) => {
+  const { anchor_seq: seqRaw, anchor_hash: hashRaw } = req.query;
+  let anchor = null;
+  if (seqRaw != null || hashRaw != null) {
+    const seq = Number(seqRaw);
+    if (!Number.isSafeInteger(seq) || seq < 1 || !/^[0-9a-f]{64}$/i.test(String(hashRaw || ''))) {
+      return res.status(400).json({ error: 'anchor_seq must be a positive integer and anchor_hash 64 hex characters' });
+    }
+    anchor = { seq, hash: String(hashRaw).toLowerCase() };
+  }
+  const result = await verifyChain(anchor);
+  if (result.status === 'error') return res.status(500).json(result);
+  res.json(result);
 });
 
 module.exports = router;

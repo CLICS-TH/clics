@@ -3,8 +3,9 @@ const { z } = require('zod');
 const { callAI } = require('../services/ai');
 const { CRITERIA_CLASSIFIER_PROMPT } = require('../lib/prompts');
 const { parseJsonObject } = require('../lib/parse');
-const { flattenForPrompt } = require('../lib/transcript');
+const { flattenForPrompt, seedWithChiefComplaint } = require('../lib/transcript');
 const { deriveHintTokens, makeRegistry } = require('../services/pii-filter');
+const { MAX_TURN_CHARS } = require('../lib/turn-limits');
 const { requestSignal } = require('../lib/request-signal');
 const { sendAiError, logAiError } = require('../lib/ai-errors');
 
@@ -15,6 +16,11 @@ const Schema = z.object({
   // On-prem patient identifier, scrubbed from the transcript before the cloud call; never forwarded.
   // nullish: the backend sends `?? null` when none was recorded — null must pass schema validation.
   patient_ref: z.string().nullish(),
+  // Seeds the token registry first and is NEVER sent to the model (lib/transcript.js
+  // seedWithChiefComplaint), so the pii_map below numbers tokens exactly as /chat, /evaluate and the
+  // auditor's view do. The map then also holds the chief complaint's own entries, which is what makes
+  // it the reverse of those tokens.
+  chief_complaint: z.string().max(MAX_TURN_CHARS).nullish(),
 });
 
 router.post('/', async (req, res) => {
@@ -32,7 +38,9 @@ router.post('/', async (req, res) => {
   const signal = requestSignal(req, res);
 
   try {
-    const transcriptText = flattenForPrompt(parsed.data.transcript, deriveHintTokens(parsed.data.patient_ref), registry);
+    const hints = deriveHintTokens(parsed.data.patient_ref);
+    seedWithChiefComplaint(registry, parsed.data.chief_complaint, hints);
+    const transcriptText = flattenForPrompt(parsed.data.transcript, hints, registry);
     const { text, inputTokens, outputTokens, provider, model } = await callAI({
       purpose: 'criteria',
       systemPrompt: CRITERIA_CLASSIFIER_PROMPT,

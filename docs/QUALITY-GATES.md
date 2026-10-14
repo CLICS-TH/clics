@@ -102,7 +102,15 @@ errors) must be ≤ 2/80; a run with more says the box is not ready and nothing 
 | `rescue_reply` (`checkRescueReply`) | ≥ 5/6 | 6 | 5 (n is too small for a CI; descriptive gate) |
 | `length` (≤ 440 words) | lower bound ≥ 0.80 | 80 | 72/80 |
 | `truncated` | ≤ 1 | 80 | — |
-| `reasoning_leak` (`<think>` shown) | zero | 80 | — |
+| `reasoning_leak` (reasoning a physician could **see**) | zero | 80 | — |
+
+**Since `checks-v2` (2026-10-14)** every check reads the reply production **returns**: rimpl's own
+`stripThink` (`rimpl/src/lib/think-markup.js`) applied to the served content, honouring
+`LOCAL_AI_THINK_PREOPENED` as the server does. `reasoning_leak` counts only reasoning a physician
+could see: markup left in the returned reply, or, under streaming, the pieces of a template-opened
+block (no `<think>`, a later `</think>`) on an instance without `THINK_PREOPENED`. Inline markup
+that production removes is the `info` flag `reasoning_markup` (fix: the server's `--reasoning-parser`).
+A `checks-v1` `reasoning_leak` figure counted any `<think>` in the raw content and is not comparable.
 
 **Reported, not gated:** how often the language guard fired, and how often its reply was delivered (`language_retry`). Also the first-pass retry rate (`retry_used`). Each retry is a second call of
 about 60 s on the box. Above 25%, flag it as a latency risk for the serving decision.
