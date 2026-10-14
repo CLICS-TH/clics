@@ -77,7 +77,8 @@ function extractReferences(content) {
 //   - the full labels the prompt shows, or the short ones (ระดับหลักฐาน / Evidence);
 //   - in the parenthesised part, the level alone without its label: "ระดับหลักฐาน: สูง (high)";
 //   - English in any case; a full-width colon; any spacing inside "expert opinion" / "not graded";
-//   - decoration around the whole line: surrounding whitespace, markdown bold (** / __) anywhere in it,
+//   - decoration around the whole line: surrounding whitespace (but see NESTED below), markdown bold
+//     (** / __) anywhere in it,
 //     ONE italic wrapper (*…* or _…_), a leading > blockquote, ONE leading list marker (- * + • ‣ ◦ ▪
 //     or 1. / 1)), ONE trailing "." or "。", and NBSP / other space-like characters (read as a space) or
 //     zero-width characters (removed).
@@ -85,8 +86,12 @@ function extractReferences(content) {
 // outside the five (e.g. "very low"), another label ("Level of evidence:"), a "สูง / high" pair, or any
 // other text on the line such as a trailing citation. The prompt asks for the line on its own; a check
 // that accepted every near-miss would stop being a check. Those near-misses are still RECOGNISED as
-// evidence statements (isEvidenceStatementLine below), so the splice can remove them and the reply never
-// shows two evidence statements.
+// evidence statements (isEvidenceStatementLine below), so the splice can remove the bare ones — and
+// refuses to touch a reply whose near-miss carries anything more than a level.
+//
+// NESTED. An indented list item ("  - Evidence: high" under one option) or an indented block (4+ spaces
+// or a tab) is content: it grades that option, not the reply's main recommendation, so it is neither read
+// as the marker nor removed, and the reply-level line is never written over it.
 //
 // WHAT DOES NOT COUNT. A marker line inside a fenced ``` code block or inside a :::artifact{...} block
 // (fence syntax as in lib/transcript.js; an unterminated fence runs to the end, as in stripNonProse) is
@@ -100,7 +105,9 @@ function extractReferences(content) {
 //
 // COST. stripNonProse runs this on a physician's message too, so it is linear: one pass over the lines,
 // a line longer than EVIDENCE_LINE_MAX_CHARS is skipped before any regex sees it (the longest valid line
-// is 104 chars), and no regex below has two adjacent unbounded quantifiers over overlapping classes.
+// is 104 chars), every regex is anchored at the line start, and no two unbounded quantifiers over
+// overlapping classes sit next to each other without a required literal between them (the near-miss
+// regexes' label tails are bounded, {0,30} / {0,60} / {0,80}).
 const EVIDENCE_LINE_MAX_CHARS = 200;
 const EVIDENCE_BY_TH = new Map(EVIDENCE_LEVELS.map((l) => [l.th, l.key]));
 const EVIDENCE_BY_EN = new Map(EVIDENCE_LEVELS.map((l) => [l.en, l.key]));
@@ -135,9 +142,17 @@ function normalizeMarkerLine(line) {
   return t;
 }
 
+// A NESTED list item ("  - Evidence: high" under one option) or an indented block (4+ spaces or a tab:
+// a list item's continuation, or code) belongs to the content above it. It grades that option, not the
+// reply's main recommendation, so it is never the reply-level marker and never a statement to remove.
+const NESTED_OR_INDENTED = /^(?: {1,3}(?:>[ \t]*)*(?:[-*+\u2022\u2023\u25E6\u25AA]|\d{1,3}[.)])[ \t]| {4}|\t)/;
+function isNestedOrIndented(line) {
+  return NESTED_OR_INDENTED.test(line);
+}
+
 // One line -> a level key | 'conflict' (Thai and English disagree) | null.
 function parseEvidenceLine(line) {
-  if (typeof line !== 'string' || line.length > EVIDENCE_LINE_MAX_CHARS) return null;
+  if (typeof line !== 'string' || line.length > EVIDENCE_LINE_MAX_CHARS || isNestedOrIndented(line)) return null;
   const t = normalizeMarkerLine(line);
   let th = null;
   let en = null;
@@ -197,38 +212,81 @@ function extractEvidenceLevel(content) {
 // The retry fires precisely because the first reply's evidence line did not parse. If the splice removed
 // only the lines the strict parser reads, that near-miss would stay and the canonical line would land
 // next to it: two evidence statements on screen, possibly disagreeing. So this LOOSER test recognises a
-// line that STARTS WITH an evidence label once its decoration is stripped (blockquote, # heading, list
-// marker, leading emoji, bold/italic), whatever follows:
-//   - an unambiguous grading label followed by a colon (an optional "(…)" may sit between them): the
-//     prompt's own labels, "Evidence level / grade / certainty / quality / rating", "Level / grade /
-//     certainty / quality / strength of (the) evidence", "ระดับหลักฐาน…", "คุณภาพ(ของ)หลักฐาน",
-//     "ความน่าเชื่อถือของหลักฐาน";
-//   - the bare label "Evidence:" ONLY when a level word follows the colon at once, as a whole word
-//     ("Evidence: high (BTS, 2019)", "Evidence: very low"). Bare "Evidence:" also introduces ordinary
-//     content ("Evidence: two RCTs show …", "Evidence: high-quality RCTs show …"), and that is not an
-//     evidence-level statement to delete.
-// A line that starts with ❓ is never one (it is the examiner's question). It is used ONLY to decide which
-// lines the splice removes and to check that the result holds one statement; it never yields a level, so
-// it cannot make a near-miss count as compliant.
+// line that, once its decoration is stripped (blockquote, # heading, list marker, leading emoji,
+// bold/italic), is an evidence label, a colon and a LEVEL — and NOTHING ELSE:
+//   - the label: the prompt's own labels, "Evidence level / grade / certainty / quality / rating",
+//     "Level / grade / certainty / quality / strength of (the) evidence", "ระดับหลักฐาน…",
+//     "คุณภาพ(ของ)หลักฐาน", "ความน่าเชื่อถือของหลักฐาน" (an optional "(…)" may sit before the colon), or
+//     the bare "Evidence";
+//   - the level: one of the five, in either language, as a WHOLE word (no Latin letter after an English
+//     level, no Thai letter after a Thai one, so "สูง" never matches "สูงอายุ"), plus GRADE's "very low" /
+//     ต่ำมาก and สูงมาก, optionally "X / Y", optionally followed by "certainty" or "quality"; after an
+//     unambiguous label (not bare "Evidence") also a grade token such as "A", "B-R", "1a", "II";
+//   - then at most two "(…)" of <= 80 chars each, an optional final full stop, and the END of the line.
+// END-ANCHORED on purpose. "Evidence: low molecular weight heparin remains preferred …", "Evidence: high
+// blood pressure accelerates …" and "Quality of evidence: two small RCTs (n=120) …" START like an evidence
+// statement and are clinical content; a test that only looked at the start deleted them from correct
+// replies. A line that starts with ❓ is never one (it is the examiner's question), nor is a NESTED list
+// item or an indented block (see isNestedOrIndented). The test never yields a level, so it cannot make
+// a near-miss count as compliant.
+//
+// DETECTED is not REMOVABLE. A detected line is removed only when everything after its level is itself
+// level-like — "(Evidence for the main recommendation: high)", "(high)", "(GRADE)" — so no citation, trial
+// size or other content goes with it (isRemovableEvidenceStatement). If ANY detected line is not removable,
+// the splice refuses the whole change and the reply stands as it is: a second evidence statement on screen
+// can be corrected later, a deleted clinical line cannot.
 const LOOSE_LABEL_EN = `(?:${spaced(EVIDENCE_EN_LABEL)}|evidence[ \\t]+(?:level|grade|certainty|quality|rating)|(?:level|grade|certainty|quality|strength)[ \\t]+of[ \\t]+(?:the[ \\t]+)?evidence)`;
-const LOOSE_LABEL_TH = `(?:${EVIDENCE_TH_LABEL_SHORT}|คุณภาพ(?:ของ)?หลักฐาน|ความน่าเชื่อถือของหลักฐาน)[^:：\\n]{0,30}`;
-const LOOSE_LABELLED = new RegExp(`^(?:${LOOSE_LABEL_EN}|${LOOSE_LABEL_TH})(?:[ \\t]*\\([^)\\n]{0,60}\\))?[ \\t]*[:：]`, 'i');
-const LOOSE_BARE = new RegExp(`^${EVIDENCE_EN_LABEL_SHORT}[ \\t]*[:：][ \\t]*(?:${TH_ALT}|(?:very[ \\t-]+low|${EN_ALT})(?![A-Za-z-]))`, 'i');
+const LOOSE_LABEL_TH_ROOT = `(?:${EVIDENCE_TH_LABEL_SHORT}|คุณภาพ(?:ของ)?หลักฐาน|ความน่าเชื่อถือของหลักฐาน)`;
+const LOOSE_LABEL_TH = `${LOOSE_LABEL_TH_ROOT}[^:：\\n]{0,30}`;
+const LOOSE_LABEL_TH_REMOVABLE = `${LOOSE_LABEL_TH_ROOT}[\\u0E00-\\u0E7F]{0,30}`;   // Thai letters only: no "(Smith, 2020)"
+const EN_LEVEL_WORD = `(?:very[ \\t-]+low|very[ \\t-]+high|${EN_ALT})(?![A-Za-z])`;
+const TH_LEVEL_WORD = `(?:สูงมาก|ต่ำมาก|${TH_ALT})(?![\\u0E00-\\u0E7F])`;
+const ONE_LEVEL = `(?:${EN_LEVEL_WORD}|${TH_LEVEL_WORD})`;
+const LEVEL_VALUE = `${ONE_LEVEL}(?:[ \\t]*/[ \\t]*${ONE_LEVEL})?(?:[ \\t-]+(?:certainty|quality)(?![A-Za-z]))?`;
+const GRADE_TOKEN = `(?:grade[ \\t]+)?(?:[A-D](?:-[A-Z]{1,3})?|[1-5][a-c]?|I{1,3}|IV)(?![A-Za-z0-9])`;
+const PRE_COLON_PAREN = '(?:[ \\t]*\\([^)\\n]{0,60}\\))?';
+const PRE_COLON_PAREN_REMOVABLE = '(?:[ \\t]*\\([ \\t]*[A-Za-z\\u0E00-\\u0E7F]{1,20}(?:[ \\t]+[A-Za-z\\u0E00-\\u0E7F]{1,20})?[ \\t]*\\))?';
+const LINE_END = '(?:[ \\t]*[.。])?[ \\t]*$';
+const TAIL_ANY = `(?:[ \\t]*\\([^()\\n]{0,80}\\)){0,2}${LINE_END}`;
+const PAREN_LEVEL = `\\([ \\t]*(?:GRADE|(?:(?:${LOOSE_LABEL_EN}|${EN_LABEL_RE}|${TH_LABEL_RE})[ \\t]*[:：][ \\t]*)?(?:${LEVEL_VALUE}))[ \\t]*\\)`;
+const TAIL_LEVEL = `(?:[ \\t]*${PAREN_LEVEL}){0,2}${LINE_END}`;
+const COLON_SP = '[ \\t]*[:：][ \\t]*';
+const looseRe = (labelEn, labelTh, preParen, tail) => [
+  new RegExp(`^(?:${labelEn}|${labelTh})${preParen}${COLON_SP}(?:${LEVEL_VALUE}|${GRADE_TOKEN})${tail}`, 'i'),
+  new RegExp(`^${EVIDENCE_EN_LABEL_SHORT}${COLON_SP}${LEVEL_VALUE}${tail}`, 'i'),   // bare "Evidence:": levels only
+];
+const LOOSE_DETECT = looseRe(LOOSE_LABEL_EN, LOOSE_LABEL_TH, PRE_COLON_PAREN, TAIL_ANY);
+const LOOSE_REMOVABLE = looseRe(LOOSE_LABEL_EN, LOOSE_LABEL_TH_REMOVABLE, PRE_COLON_PAREN_REMOVABLE, TAIL_LEVEL);
 const LEADING_EMOJI = /^(?:[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}][\u{FE0F}\u{20E3}]*[ \t]*)+/u;
 
-function isEvidenceStatementLine(line) {
-  if (typeof line !== 'string' || line.length > EVIDENCE_LINE_MAX_CHARS) return false;
-  if (parseEvidenceLine(line)) return true;
+// Decoration stripped for the loose tests, or null when the line can never be a statement.
+function looseCore(line) {
+  if (typeof line !== 'string' || line.length > EVIDENCE_LINE_MAX_CHARS || isNestedOrIndented(line)) return null;
   let t = line.replace(ZERO_WIDTH, '').replace(SPACE_LIKE, ' ').replace(/\*\*|__/g, '').trim();
-  if (t.startsWith('❓')) return false;
-  // Decoration may stack in any order ("> - ### 📊 *…"); strip it until nothing changes. Bounded: each
+  if (t.startsWith('❓')) return null;
+  // Decoration may stack in any order ("> - ### 📊 *…*"); strip it until nothing changes. Bounded: each
   // pass removes at least one character or stops, and a line is at most EVIDENCE_LINE_MAX_CHARS long.
   for (let pass = 0, prev = null; pass < 8 && t !== prev; pass++) {
     prev = t;
     t = t.replace(/^(?:>[ \t]*)+/, '').replace(/^#{1,6}[ \t]*/, '').replace(LIST_MARKER, '')
-      .replace(LEADING_EMOJI, '').replace(/^[*_]+/, '').trimStart();
+      .replace(LEADING_EMOJI, '').replace(/^[*_]+/, '').replace(/[*_]+([.。]?)[ \t]*$/, '$1').trim();
   }
-  return LOOSE_LABELLED.test(t) || LOOSE_BARE.test(t);
+  return t;
+}
+
+// A near-miss or a strict marker: an evidence label, a colon and a level, and nothing else (see above).
+function isEvidenceStatementLine(line) {
+  if (parseEvidenceLine(line)) return true;
+  const t = looseCore(line);
+  return t != null && (parseEvidenceLine(t) != null || LOOSE_DETECT.some((re) => re.test(t)));
+}
+
+// A statement the splice may delete: a strict marker, or a near-miss whose every trailing "(…)" is itself
+// level-like. Never a line carrying a citation, a number or any other content after its level.
+function isRemovableEvidenceStatement(line) {
+  if (parseEvidenceLine(line)) return true;
+  const t = looseCore(line);
+  return t != null && (parseEvidenceLine(t) != null || LOOSE_REMOVABLE.some((re) => re.test(t)));
 }
 
 // Line indices (outside fences) of every evidence statement: strict markers and near-misses alike.
@@ -246,7 +304,10 @@ function findEvidenceStatements(content) {
 //   - Every evidence statement the first reply already has outside a fence is removed first: strict
 //     markers (two of them, or a self-contradicting one) AND near-misses (isEvidenceStatementLine). So the
 //     result holds exactly ONE evidence statement outside fences — checked on the way out, not assumed.
-//     Lines inside a fence are content and are never touched.
+//     If any of them carries more than a level (isRemovableEvidenceStatement: a citation, a trial size,
+//     any content), NOTHING is removed and the result is null. Lines inside a fence are content and are
+//     never touched; nor are nested list items or indented blocks. Blank lines a removal exposes at the
+//     end (or the start) of the reply go with it.
 //   - Placement is the prompt's, after a BLANK line (markdown's paragraph break, without which marked /
 //     ReactMarkdown merge the line into the paragraph, list item or table above it): natural mode ->
 //     appended as the last line, so with nothing removed the result is a pure append of the first reply;
@@ -262,8 +323,17 @@ function spliceEvidenceLine(firstText, retryText, { socratic = false } = {}) {
   const { level } = found[0];
   const line = evidenceLineFor(level);
   const first = String(firstText ?? '');
-  const stale = new Set(findEvidenceStatements(first));
-  const lines = first.split('\n').filter((_, i) => !stale.has(i));
+  const firstLines = first.split('\n');
+  const staleAt = findEvidenceStatements(first);
+  // Everything removed must be a bare evidence statement; one that carries content refuses the whole splice.
+  if (staleAt.some((i) => !isRemovableEvidenceStatement(firstLines[i]))) return null;
+  const stale = new Set(staleAt);
+  const lines = firstLines.filter((_, i) => !stale.has(i));
+  // A removed line leaves the blank line that preceded (or followed) it. At the end that would leave the
+  // reply ending in "\n" after the ❓ — and the transcript views lift the question with /\n❓[^\n]*$/,
+  // which then misses it and the ❓ shows twice — so blank lines the removal exposed at either end go.
+  if (!first.endsWith('\n')) while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
+  if (firstLines[0].trim() !== '') while (lines.length && lines[0].trim() === '') lines.shift();
   let text = null;
   if (socratic) {
     let q = -1;
@@ -407,7 +477,7 @@ function isLanguageMismatch(text, language, { min = THAI_MIN_SHARE } = {}) {
 module.exports = {
   hasCitation, extractSocraticQuestion, extractReferences,
   extractEvidenceLevel, findEvidenceMarkers, parseEvidenceLine, spliceEvidenceLine, EVIDENCE_LINE_MAX_CHARS,
-  isEvidenceStatementLine, findEvidenceStatements, evidenceMarkerPlaced, placeEvidenceLine,
+  isEvidenceStatementLine, isRemovableEvidenceStatement, findEvidenceStatements, evidenceMarkerPlaced, placeEvidenceLine,
   thaiShare, isLanguageMismatch, isThaiMessage, stripNonProse, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
   MAX_PROSE_CHARS, MESSAGE_SAMPLE_CHARS,
 };

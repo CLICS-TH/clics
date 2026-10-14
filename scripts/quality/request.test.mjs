@@ -464,6 +464,14 @@ test('evidence marker: evidencePlacement = chat.js placeMarker (off, rescue, mis
   assert.equal(evidencePlacement(`${EN_CITED}\n❓ What next?\n${MARK}`, ex), `${EN_CITED}\n\n${MARK}\n❓ What next?`);
   assert.equal(evidencePlacement(`${EN_CITED}\nLevel of evidence: high\n${MARK}`, nat), `${EN_CITED}\n\n${MARK}`);
   assert.equal(evidencePlacement(`${EN_CITED}\n${MARK}`, nat), null, 'placed: left as it is');
+  // A clinical line that merely STARTS like an evidence statement is content: a correct reply is untouched.
+  assert.equal(evidencePlacement(`${EN_CITED}\nEvidence: low molecular weight heparin remains preferred.\n\n${MARK}`, nat), null);
+  // A near-miss carrying content beside a misplaced marker: the move is refused, nothing is deleted.
+  assert.equal(evidencePlacement(`${MARK}\n${EN_CITED}\nEvidence: high (NICE, 2023)`, nat), null);
+  // A nested item grades one option: never the reply-level marker.
+  assert.equal(evidencePlacement(`${EN_CITED}\n- Option A\n  - Evidence: high\n\n${MARK}`, nat), null);
+  // The examiner move leaves no trailing newline after the ❓.
+  assert.equal(evidencePlacement(`${EN_CITED}\n\n❓ What next?\n\n${MARK}`, ex), `${EN_CITED}\n\n${MARK}\n❓ What next?`);
   assert.equal(evidencePlacement(`${MARK}\n${EN_CITED}`, { ...nat, evidenceMarker: false }), null, 'off: never');
   // A rescue item's request carries evidenceMarker false (buildChatRequest), so a rescue turn is never touched.
   const rescueReq = buildChatRequest(ITEM_RESCUE, { evidenceMarker: true });

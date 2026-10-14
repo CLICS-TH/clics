@@ -287,6 +287,44 @@ describe('PLACEMENT: one valid marker in the wrong place is moved with NO model 
     expect(res.body.content).toBe(`${EN}\n${Q}\n${MARK}`);
   });
 
+  // Clinical lines that START like an evidence statement (the final review's list). A correct reply that
+  // holds one must come back byte-identical: no model call, nothing moved, nothing deleted.
+  test.each([
+    '**Evidence:** high sensitivity troponin below the limit of detection at arrival rules out MI (ESC, 2023).',
+    'Evidence: low molecular weight heparin remains preferred in cancer-associated VTE.',
+    'Evidence: high blood pressure accelerates eGFR decline.',
+    'Evidence: low back pain usually resolves within six weeks.',
+    'Quality of evidence: two small RCTs (n=120), no trials in children.',
+    'ระดับหลักฐานตาม GRADE มี 4 ระดับ:',
+    'คุณภาพของหลักฐาน: RCT ขนาดเล็ก 2 ฉบับ (Smith, 2020)',
+    'Evidence: สูงอายุและไตเสื่อมเพิ่มความเสี่ยงเลือดออก',
+    '  - Evidence: high',
+  ])('a correct reply holding %j comes back BYTE-IDENTICAL', async (line) => {
+    const reply = `${EN}\n${line}\n\n${MARK}`;
+    callAI.mockResolvedValueOnce(r(reply));
+    const res = await on();
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(res.body).toMatchObject({ content: reply, evidence_level: 'moderate', evidence_retry: false });
+    const exam = `${EN}\n${line}\n\n${MARK}\n${Q}`;
+    callAI.mockResolvedValueOnce(r(exam));
+    expect((await on({ socratic: true })).body.content).toBe(exam);
+  });
+
+  test('a content-carrying near-miss beside a valid marker: the move is REFUSED, the reply stands as written', async () => {
+    const reply = `${EN}\nEvidence: high (NICE, 2023)\n${MARK}\nMore advice.`;   // misplaced AND beside a cited near-miss
+    callAI.mockResolvedValueOnce(r(reply));
+    const res = await on();
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(res.body).toMatchObject({ content: reply, evidence_level: 'moderate' });
+  });
+
+  test('examiner: a marker moved from after the ❓ leaves no trailing newline, so the ❓ is lifted once', async () => {
+    callAI.mockResolvedValueOnce(r(`${EN}\n\n${Q}\n\n${MARK}`));
+    const res = await on({ socratic: true });
+    expect(res.body.content).toBe(`${EN}\n\n${MARK}\n${Q}`);
+    expect(res.body.content.match(/\n❓[^\n]*$/)[0]).toBe(`\n${Q}`);   // audit-dashboard TranscriptView.tsx:50
+  });
+
   test('a well-placed marker without the blank line is left as it is (not moved for that alone)', async () => {
     callAI.mockResolvedValueOnce(r(EN_M));
     expect((await on()).body.content).toBe(EN_M);
@@ -407,6 +445,15 @@ describe('streaming', () => {
     expect(ev[1].data).toEqual({ reason: 'language' });
     expect(ev[2].data.text).toBe(EN_S);
     expect(ev.at(-1).data.body).toMatchObject({ content: EN_S, superseded_draft: first, superseded_reason: 'evidence' });
+  });
+
+  test('a correct streamed reply holding a clinical "Evidence: low molecular weight heparin…" line: nothing replaced', async () => {
+    const reply = `${EN}\nEvidence: low molecular weight heparin remains preferred in cancer-associated VTE.\n\n${MARK}`;
+    callAI.mockImplementationOnce(streamed(reply));
+    const ev = parseSse((await on({ stream: true })).text);
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(ev.map((e) => e.event)).toEqual(['delta', 'done']);
+    expect(ev.at(-1).data.body).toMatchObject({ content: reply, superseded_draft: null });
   });
 
   test('a well-placed streamed reply: delta, done — nothing replaced', async () => {

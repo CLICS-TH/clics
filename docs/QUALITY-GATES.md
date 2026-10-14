@@ -207,9 +207,12 @@ carries, gain one line. All of the following must hold first:
    interval and the share that needed the retry (`evidence_retry`). Also `evidence_marker_placement`
    (natural: the last line; examiner: directly above the ❓; and no second, near-miss evidence statement
    on screen). Production now ENFORCES placement without a model call: chat.js moves a misplaced valid
-   marker and removes near-miss statements (`evidence_moved` in the audit; `superseded_reason`
-   `evidence` on a streamed turn). So a placement failure after production's fix is a move it refused —
-   typically because the near-miss carried the reply's only citation — and should be rare.
+   marker and removes BARE near-miss statements — label, colon, level and nothing else (`evidence_moved`
+   in the audit; `superseded_reason` `evidence` on a streamed turn). A near-miss that carries anything
+   more (a citation, a trial size) is never deleted: the whole move is refused and the reply stands, so a
+   placement failure after production's fix is such a refusal, and should be rare. Lines that merely
+   start like one ("Evidence: low molecular weight heparin …") are content and never touched, nor is a
+   nested list item ("  - Evidence: high" under one option).
 4. **The level set is frozen.** `evidence_level` values (`high`, `moderate`, `low`, `expert`, `not_graded`)
    are a stable contract once anything is stored against them: add a level, never rename or reuse one.
 

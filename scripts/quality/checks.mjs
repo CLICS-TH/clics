@@ -208,8 +208,9 @@ export function checkReply(item, entry) {
       } else {
         // The prompt's placement, as production defines it (post-filter evidenceMarkerPlaced): natural =
         // the very last line; examiner = directly above the closing ❓. chat.js moves a misplaced marker
-        // (placeEvidenceLine), so a failure here is one it could not move — e.g. the move would have
-        // dropped the reply's only citation — or a report from before that fix.
+        // (placeEvidenceLine), so a failure here is one it refused to make — a near-miss beside the marker
+        // carries content (a citation, a trial size) that a move would delete — or a report from before
+        // that fix.
         const socratic = item.mode === 'examiner';
         const placed = evidenceMarkerPlaced(text, { socratic });
         const others = findEvidenceStatements(text).length - 1;   // near-miss statements beside the marker

@@ -6,7 +6,7 @@
 // the cost bound. Pure functions: no route, no AI, no network.
 const {
   extractEvidenceLevel, findEvidenceMarkers, parseEvidenceLine, spliceEvidenceLine, EVIDENCE_LINE_MAX_CHARS,
-  isEvidenceStatementLine, findEvidenceStatements, evidenceMarkerPlaced, placeEvidenceLine,
+  isEvidenceStatementLine, isRemovableEvidenceStatement, findEvidenceStatements, evidenceMarkerPlaced, placeEvidenceLine,
   stripNonProse, isLanguageMismatch, thaiShare, isThaiMessage, hasCitation, extractSocraticQuestion,
 } = require('../src/services/post-filter');
 const P = require('../src/lib/prompts');
@@ -183,6 +183,11 @@ describe('parseEvidenceLine: what counts as one marker line', () => {
     'ระดับหลักฐาน: สูงมาก',
     `${LINE.high}..`,                                      // more than ONE trailing full stop
     `- - ${LINE.high}`,                                    // more than ONE list marker
+    `  - ${LINE.high}`,                                    // a NESTED list item grades one option, not the reply
+    '  - Evidence: high',
+    ` - ${LINE.high}`,                                     // an indented list item, however shallow
+    `    ${LINE.high}`,                                    // an indented block (continuation or code)
+    `\t${LINE.high}`,
     `-${LINE.high}`,                                       // a dash with no space is not a list marker
     `### ${LINE.high}`,                                    // a heading (a near-miss: removed, not read)
     `\u{1F4CA} ${LINE.high}`,                              // a leading emoji (likewise)
@@ -326,31 +331,33 @@ describe('spliceEvidenceLine: take ONE line from the marker-only answer, keep th
 });
 
 describe('near-miss evidence statements: recognised for REMOVAL, never read as a level', () => {
-  // Every form the coordinator listed, plus the obvious neighbours. None of them parses (or, for the
-  // bullets, each parses AND is a statement), and every one is a statement the splice must remove.
+  // Label + colon + level and NOTHING else (end-anchored): detected, and removable.
   const NEAR_MISS = [
     `### ${LINE.high}`,
     `## Evidence level: moderate`,
     `\u{1F4CA} ${LINE.high}`,                          // emoji prefix
     `\u{1F4CA}\u{FE0F} **Evidence level:** low`,
-    `${LINE.high} (BTS, 2019)`,                        // trailing citation
     'ระดับหลักฐาน: สูง / high',                         // slash pair
     'Evidence level: high',
     'Level of evidence: moderate',
     'Level of evidence (GRADE): low',
+    'Level of evidence: moderate (GRADE)',
     'Level of the evidence: low',
     'Quality of evidence: moderate',
     'Strength of evidence: high',
     'Certainty of evidence: low',
     'Evidence grade: A',
+    'Level of evidence: B-R',
     'Evidence quality: moderate',
     '**Evidence level:** high',
+    '*Evidence level: high*.',
     '- Evidence level: high',
     '- - Evidence level: high',                        // stacked list markers
     '> ### \u{1F4CA} *Evidence level: high*',           // stacked decoration
     '1. Level of evidence: moderate',
-    'Evidence: high (BTS, 2019)',                      // bare label + a level word
     'Evidence: very low',
+    'Evidence: low certainty.',
+    'Evidence: moderate-certainty',
     'ระดับหลักฐาน: สูงมาก',
     'ระดับหลักฐาน: high',
     'ระดับหลักฐานของข้อแนะนำนี้: ปานกลาง',
@@ -358,10 +365,31 @@ describe('near-miss evidence statements: recognised for REMOVAL, never read as a
     'คุณภาพของหลักฐาน: ต่ำ',
     'ความน่าเชื่อถือของหลักฐาน: สูง',
   ];
+  // Detected (so they count, and the result is never claimed to hold one statement) but NOT removable:
+  // something after the level is content. A splice or a move that would delete one is refused whole.
+  const CARRIES_CONTENT = [
+    `${LINE.high} (BTS, 2019)`,                        // a citation
+    'Evidence: high (BTS, 2019)',
+    'Evidence level: high (two RCTs, n=120)',          // a trial size
+    'Level of evidence (Smith, 2020): low',
+    'ระดับหลักฐาน (Smith, 2020): สูง',
+  ];
   const BULLETED = [`- ${LINE.high}`, `* ${LINE.high}`, `• ${LINE.high}`, `1. ${LINE.high}`];
+  // Clinical lines that START like an evidence statement. A start-anchored detector deleted these from
+  // correct replies; they must never be touched.
   const PROSE_CONTROLS = [
     'Evidence: two RCTs show a mortality benefit (BTS, 2019).',
     'Evidence: high-quality RCTs show a mortality benefit.',   // a level word inside a compound: content
+    '**Evidence:** high sensitivity troponin below the limit of detection at arrival rules out MI (ESC, 2023).',
+    'Evidence: low molecular weight heparin remains preferred in cancer-associated VTE.',
+    'Evidence: high blood pressure accelerates eGFR decline.',
+    'Evidence: low back pain usually resolves within six weeks.',
+    'Quality of evidence: two small RCTs (n=120), no trials in children.',
+    'Level of evidence: 1 RCT and two cohorts',
+    'ระดับหลักฐานตาม GRADE มี 4 ระดับ:',
+    'คุณภาพของหลักฐาน: RCT ขนาดเล็ก 2 ฉบับ (Smith, 2020)',
+    'Evidence: สูงอายุและไตเสื่อมเพิ่มความเสี่ยงเลือดออก',   // สูง is not สูงอายุ
+    'ระดับหลักฐาน: สูงอายุเป็นปัจจัยเสี่ยง',
     'The evidence is high quality.',
     'Evidence suggests benefit in older adults.',
     'Evidence-based practice: start with the guideline.',
@@ -370,22 +398,42 @@ describe('near-miss evidence statements: recognised for REMOVAL, never read as a
     'หลักฐานจาก RCT: สนับสนุนการให้ยา',
     '❓ Evidence level: what would change your plan?',  // the examiner's question, never removed
     `\`${LINE.high}\``,
+    '  - Evidence: high',                              // a nested item: grades one option, content
+    `    ${LINE.low}`,
   ];
 
-  test.each(NEAR_MISS)('%j is a statement but not a marker', (line) => {
+  test.each(NEAR_MISS)('%j is a removable statement but not a marker', (line) => {
     expect(isEvidenceStatementLine(line)).toBe(true);
+    expect(isRemovableEvidenceStatement(line)).toBe(true);
     expect(parseEvidenceLine(line)).toBeNull();
+  });
+
+  test.each(CARRIES_CONTENT)('%j is a statement that carries content: detected, never removed', (line) => {
+    expect(isEvidenceStatementLine(line)).toBe(true);
+    expect(isRemovableEvidenceStatement(line)).toBe(false);
+    expect(parseEvidenceLine(line)).toBeNull();
+    // Refused whole: the retry splice keeps the first reply, and a valid marker beside it is not moved.
+    expect(spliceEvidenceLine(`${PROSE}\n${line}`, LINE.low)).toBeNull();
+    expect(spliceEvidenceLine(`${PROSE}\n${line}\n${Q}`, LINE.low, { socratic: true })).toBeNull();
+    expect(placeEvidenceLine(`${PROSE}\n${line}\n\n${LINE.low}`)).toBeNull();
   });
 
   test.each(BULLETED)('%j (bulleted canonical) is a marker AND a statement', (line) => {
     expect(parseEvidenceLine(line)).toBe('high');
     expect(isEvidenceStatementLine(line)).toBe(true);
+    expect(isRemovableEvidenceStatement(line)).toBe(true);
   });
 
-  test.each(PROSE_CONTROLS)('%j is prose, and stays', (line) => {
+  test.each(PROSE_CONTROLS)('%j is content, and stays — in a splice and beside a valid marker', (line) => {
     expect(isEvidenceStatementLine(line)).toBe(false);
-    const r = spliceEvidenceLine(`${PROSE}\n${line}`, LINE.low);
-    expect(r.text).toBe(`${PROSE}\n${line}\n\n${LINE.low}`);
+    expect(isRemovableEvidenceStatement(line)).toBe(false);
+    expect(spliceEvidenceLine(`${PROSE}\n${line}`, LINE.low).text).toBe(`${PROSE}\n${line}\n\n${LINE.low}`);
+    // A correct reply holding the line comes back byte-identical: nothing to move, nothing removed.
+    for (const socratic of [false, true]) {
+      const reply = socratic ? `${PROSE}\n${line}\n\n${LINE.low}\n${Q}` : `${PROSE}\n${line}\n\n${LINE.low}`;
+      expect(placeEvidenceLine(reply, { socratic })).toBeNull();
+      expect(findEvidenceStatements(reply)).toHaveLength(1);
+    }
   });
 
   test.each([...NEAR_MISS, ...BULLETED])('%j is removed in both modes; the result holds exactly one statement', (nm) => {
@@ -399,12 +447,8 @@ describe('near-miss evidence statements: recognised for REMOVAL, never read as a
     expect(extractSocraticQuestion(exam.text)).toBe(Q.slice(2));
   });
 
-  test('a near-miss carrying the reply\'s ONLY citation is not removed: null, the first reply stands', () => {
-    const first = 'Start amoxicillin 1 g three times daily for 5 days.\nEvidence: high (BTS, 2019)';
-    expect(hasCitation(first)).toBe(true);
-    expect(spliceEvidenceLine(first, LINE.high)).toBeNull();
-    // With the citation also in the prose, removal is safe.
-    expect(spliceEvidenceLine(`${PROSE}\nEvidence: high (BTS, 2019)`, LINE.high).text).toBe(`${PROSE}\n\n${LINE.high}`);
+  test('one content-carrying statement refuses the whole splice, even beside removable ones', () => {
+    expect(spliceEvidenceLine(`${PROSE}\nEvidence level: high\nEvidence: high (BTS, 2019)`, LINE.high)).toBeNull();
   });
 
   test('a near-miss inside a fence is content: it stays, and does not count', () => {
@@ -412,6 +456,18 @@ describe('near-miss evidence statements: recognised for REMOVAL, never read as a
     const r = spliceEvidenceLine(first, LINE.low);
     expect(r.text).toBe(`${first}\n\n${LINE.low}`);
     expect(findEvidenceStatements(r.text)).toHaveLength(1);
+  });
+
+  test('a NESTED item is content: never the marker, never removed, never relabelled for the main recommendation', () => {
+    const opts = `${PROSE}\n- Option A: amoxicillin\n  - Evidence: high\n- Option B: doxycycline\n  - ${LINE.low}`;
+    expect(extractEvidenceLevel(opts)).toBeNull();
+    expect(findEvidenceStatements(opts)).toEqual([]);
+    expect(placeEvidenceLine(opts)).toBeNull();
+    // The retry's line is appended; the nested ones stay exactly where they were.
+    expect(spliceEvidenceLine(opts, LINE.moderate).text).toBe(`${opts}\n\n${LINE.moderate}`);
+    // Beside a valid reply-level marker, a correct reply is left byte-identical.
+    expect(placeEvidenceLine(`${opts}\n\n${LINE.moderate}`)).toBeNull();
+    expect(extractEvidenceLevel(`${opts}\n\n${LINE.moderate}`)).toBe('moderate');
   });
 
   test('findEvidenceStatements counts strict markers and near-misses alike, outside fences', () => {
@@ -446,6 +502,18 @@ describe('placement: one valid marker in the wrong place is moved with NO model 
     expect(placeEvidenceLine(`${LINE.high}\n${PROSE}\n${Q}`, s)).toBe(`${PROSE}\n\n${LINE.high}\n${Q}`);
     expect(placeEvidenceLine(`${PROSE}\n**Evidence: expert opinion**\nMore.\n${Q}`, s))
       .toBe(`${PROSE}\nMore.\n\n${LINE.expert}\n${Q}`);   // written canonically on the way
+  });
+
+  test('examiner: a marker after the ❓ with a blank line before it leaves NO trailing newline behind', () => {
+    const moved = placeEvidenceLine(`${PROSE}\n\n${Q}\n\n${LINE.low}`, { socratic: true });
+    expect(moved).toBe(`${PROSE}\n\n${LINE.low}\n${Q}`);
+    expect(moved.endsWith(Q)).toBe(true);
+    // audit-dashboard TranscriptView.tsx and physician-ui ple-chat.js / guest-chat.js lift the ❓ with this.
+    expect(moved.match(/\n❓[^\n]*$/)[0]).toBe(`\n${Q}`);
+    // A first reply that itself ended in a newline keeps it; a marker removed from the top takes the
+    // blank line under it too.
+    expect(placeEvidenceLine(`${PROSE}\n${Q}\n${LINE.low}\n`, { socratic: true })).toBe(`${PROSE}\n\n${LINE.low}\n${Q}\n`);
+    expect(placeEvidenceLine(`${LINE.low}\n\n${PROSE}`)).toBe(`${PROSE}\n\n${LINE.low}`);
   });
 
   test('natural: a marker that is not the last line moves to the end', () => {

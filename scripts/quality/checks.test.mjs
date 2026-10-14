@@ -237,6 +237,18 @@ test('evidence_marker: a near-miss statement beside a placed marker fails placem
   assert.equal(sev(noQ, 'no_socratic_question'), 'major');
 });
 
+test('evidence_marker: clinical lines that merely START like a statement, and nested items, are not extra statements', () => {
+  for (const line of [
+    'Evidence: low molecular weight heparin remains preferred in cancer-associated VTE.',
+    'Quality of evidence: two small RCTs (n=120), no trials in children.',
+    '- Option A\n  - Evidence: high',
+  ]) {
+    const r = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, `Start when eGFR is 20 or more (KDIGO, 2022).\n${line}\n\n${MARK}`));
+    assert.equal(r.checks.evidence_marker_placement.pass, true, line);
+    assert.equal(sev(r, 'evidence_statement_extra'), undefined, line);
+  }
+});
+
 test('evidence_marker: not checked on a run without the flag, nor on a rescue turn', () => {
   const off = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (KDIGO, 2022).'));
   assert.equal(off.checks.evidence_marker, undefined);

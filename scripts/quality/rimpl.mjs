@@ -56,7 +56,7 @@ export const {
   // The evidence-marker parser chat.js checks with (one marker line outside any fence, else null), the
   // splice, the near-miss detector the splice removes with, and the placement fix (chat.js placeMarker).
   extractEvidenceLevel, findEvidenceMarkers, parseEvidenceLine, spliceEvidenceLine,
-  isEvidenceStatementLine, findEvidenceStatements, evidenceMarkerPlaced, placeEvidenceLine,
+  isEvidenceStatementLine, isRemovableEvidenceStatement, findEvidenceStatements, evidenceMarkerPlaced, placeEvidenceLine,
 } = postFilter;
 // The marker-only call's ceiling and the optional-retry cutoff (routes/chat.js reads both from here).
 export const { EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS } = turnLimits;
