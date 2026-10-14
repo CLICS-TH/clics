@@ -182,6 +182,34 @@ describe('GET /evaluator-lock', () => {
   });
 });
 
+// The candidate is frozen as the study's measuring instrument, so it must be a provider that may serve
+// `evaluate` (lib/ai-providers.js). services/agreement.js never picks the tutor model; this pins the
+// same rule at the write itself, so it holds even if the assembly changes (CCME R3).
+describe('the tutor model is never a lockable evaluator', () => {
+  const tutorGate = () => ({ ...verdict('pass'), candidate: { provider: 'local-tutor', model_version: 'qwen-tutor' } });
+
+  test('POST refuses a local-tutor candidate even on a passing verdict — no record, no flag', async () => {
+    mockGate = tutorGate();
+    const r = await declare();
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('candidate_not_evaluator');
+    expect(lockRows()).toHaveLength(0);
+    expect(mockSettings.evaluator_locked_at).toBeUndefined();
+  });
+
+  test('GET does not offer the form for it', async () => {
+    mockGate = tutorGate();
+    const r = await auth(request(app).get('/admin/evaluator-lock'));
+    expect(r.body.can_declare).toBe(false);
+  });
+
+  test('the evaluator transport is unaffected: a passing local candidate still locks', async () => {
+    const r = await declare();
+    expect(r.status).toBe(200);
+    expect(lockRows()).toHaveLength(1);
+  });
+});
+
 test('once declared, the evaluator provider is refused outright', async () => {
   // The lock is only worth having if it actually stops the thing it names. This is the existing
   // refusal; the point here is that DECLARING is what arms it.

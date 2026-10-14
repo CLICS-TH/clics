@@ -38,6 +38,17 @@ Deploys run from the **local working tree** (not GitHub). Backend + RIMPL on **R
   provider's requests use the proxy (`services/providers/local.js`); Anthropic and Supabase keep the
   normal route. This is the documented FALLBACK to decision D3 (move rimpl on-prem) and does **not**
   change where PII is processed — it is for reachability testing, not for the pilot.
+- **rimpl, on-prem TUTOR model (2026-10-14, optional — dormant until routed):** a second on-prem
+  endpoint, provider `local-tutor`, so the tutor (chat/discuss) and the PIS-7 evaluator (`local`,
+  evaluate/criteria) can be different models on different boxes (CCME R3). `LOCAL_TUTOR_AI_BASE_URL` /
+  `LOCAL_TUTOR_AI_MODEL` (`LOCAL_TUTOR_AI_API_KEY` if the endpoint wants one), plus the same optional
+  knobs as the evaluator under its own names: `LOCAL_TUTOR_AI_TIMEOUT_MS`, `_MIN_CONTEXT`, `_NUM_CTX`,
+  `_MAX_PROMPT_TOKENS`, `_THINKING_STYLE`, and queue `LOCAL_TUTOR_MAX_CONCURRENCY` /
+  `_INTERACTIVE_RESERVE` / `_MAX_QUEUE_INTERACTIVE` / `_MAX_QUEUE_BACKGROUND` / `_QUEUE_RETRY_AFTER_S` /
+  `_MAX_RETRIES` / `_RETRY_BASE_MS`. It reuses `LOCAL_AI_HTTP_PROXY` unless `LOCAL_TUTOR_AI_HTTP_PROXY` is
+  set (empty = direct). Nothing routes to it until `ai_provider_chat` / `ai_provider_discuss` names it;
+  rimpl refuses it for evaluate / criteria / embed, and `/health/deep` reports it as `local_tutor_ai`
+  only while it is routed. Backend bills it at `LOCAL_TUTOR_INPUT_PER_M` / `_OUTPUT_PER_M` (default 0).
 - **backend, `/health/deep` queue verdict (2026-09-03, optional — defaults shown):** `HEALTH_PROBE_TIMEOUT_MS=2000`, `HEALTH_QUEUE_STUCK_S=900`, `HEALTH_QUEUE_STUCK_ETA_MULTIPLE=3`. The evaluation queue can now fail the verdict, so `/health/deep` answering 200 finally means the drain is claiming work. The stuck grace is `max(HEALTH_QUEUE_STUCK_S, predicted_wait × multiple)` where the prediction uses the same `eval_drain_concurrency` / `eval_p50_seconds` the physician's queue ETA uses — raise the multiple if a legitimate cohort backlog ever reads red.
 - **rimpl** (Railway): `INTERNAL_TOKEN` (must match backend byte-for-byte), `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `PORT=3003`. Local-model lanes (optional, defaults): `LOCAL_MAX_CONCURRENCY=2`, `LOCAL_INTERACTIVE_RESERVE=1`, `LOCAL_MAX_QUEUE_INTERACTIVE=4`, `LOCAL_MAX_QUEUE_BACKGROUND=2`, `RIMPL_BODY_LIMIT=2mb`. **Never set `PROVIDER_SETTINGS_SOURCE=env` in prod (rimpl refuses to boot); leave `CHAT_FAILOVER_PROVIDER` unset (CREC decision pending).**
 - **audit-dashboard** (Vercel): `NEXT_PUBLIC_API_URL`.

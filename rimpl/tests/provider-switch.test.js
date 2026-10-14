@@ -41,6 +41,15 @@ const mockOpenaiEmbed = {
 jest.mock('../src/services/providers/anthropic', () => mockAnthropic);
 jest.mock('../src/services/providers/local', () => mockLocal);
 jest.mock('../src/services/providers/openai-embed', () => mockOpenaiEmbed);
+// The on-prem tutor (providers/local-tutor.js) — dormant unless a purpose names it.
+const mockTutor = {
+  name: 'local-tutor',
+  call: jest.fn(async () => ({ text: 'T', inputTokens: 5, outputTokens: 6, tokenCount: 11, stopReason: 'end_turn', model: 'qwen-tutor' })),
+  model: jest.fn(() => 'qwen-tutor'),
+  ready: jest.fn(async () => ({ checks: { local_tutor_ai: { status: 'up' } } })),
+  stats: jest.fn(() => ({ provider: 'local-tutor', active: 0, queued: 0 })),
+};
+jest.mock('../src/services/providers/local-tutor', () => mockTutor);
 
 // The fake app_settings table. One `mock`-prefixed object, because jest.mock factories are hoisted
 // above the file's other declarations and may only close over names beginning with "mock".
@@ -273,5 +282,28 @@ describe('embeddings move with everything else', () => {
     mockDb.rows = [{ key: 'ai_provider_embed', value_text: 'local' }];
     mockLocal.embed.mockResolvedValueOnce(Array(1024).fill(0.1)); // bge-m3 is 1024, the corpus is 1536
     await expect(ai.embedText('x')).rejects.toThrow(/1024 dimensions; the document corpus is 1536/);
+  });
+});
+
+// The superadmin switch offers local-tutor for chat / discuss only (backend AI_PROVIDER_CHOICES). A
+// row written by hand — SQL console, a migration, a bad import — bypasses that list, so rimpl applies
+// the same rule itself: the tutor model never scores, and never decides whether a session counts.
+describe('a database row naming local-tutor', () => {
+  test('for chat / discuss: routes there, with the evaluator left where it was', async () => {
+    mockDb.rows = [row('chat', 'local-tutor'), row('discuss', 'local-tutor'), row('evaluate', 'local')];
+    expect((await ai.callAI(args('chat'))).provider).toBe('local-tutor');
+    expect((await ai.callAI(args('discuss'))).provider).toBe('local-tutor');
+    expect((await ai.callAI(args('evaluate'))).provider).toBe('local');
+    expect(mockTutor.call).toHaveBeenCalledTimes(2);
+  });
+
+  test.each(['evaluate', 'criteria'])('for %s: THROWS, never calls the tutor, never falls back to env or a default', async (purpose) => {
+    process.env.AI_PROVIDER = 'anthropic';
+    mockDb.rows = [row(purpose, 'local-tutor')];
+    await expect(ai.callAI(args(purpose))).rejects.toThrow(new RegExp(`app_settings\\.ai_provider_${purpose}.*cannot serve "${purpose}"`));
+    await expect(ai.resolveProviderName(purpose)).rejects.toThrow(/cannot serve/);
+    expect(mockTutor.call).not.toHaveBeenCalled();
+    expect(mockAnthropic.call).not.toHaveBeenCalled();
+    expect(mockLocal.call).not.toHaveBeenCalled();
   });
 });

@@ -30,6 +30,7 @@ const config = {
     'components/UsageMeter.tsx',
     'components/ConsistencyChip.tsx',
     'components/LocalAiCapacityCard.tsx',
+    'components/AiProviderPanel.tsx',
   ],
   coverageThreshold: {
     global: { statements: 100, branches: 90, functions: 100, lines: 100 },

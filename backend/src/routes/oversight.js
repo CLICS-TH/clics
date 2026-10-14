@@ -101,7 +101,7 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
   if (sets.empty) {
     return res.json({
       arms: { ai_vs_human: emptyArm(), shadow_vs_human: null, ai_vs_shadow: null },
-      coverage: { ples_with_human: 0, ples_with_ai: 0, ples_with_shadow: 0, ples_all_three: 0, shadow_failed: 0, shadow_contract_rate: null },
+      coverage: { ples_with_human: 0, ples_with_ai: 0, ples_with_shadow: 0, ples_all_three: 0, shadow_failed: 0, shadow_contract_rate: null, shadow_ineligible: 0 },
       shadow: { available: false, provider: null, model_version: null },
       gates: {
         screening: { arm: 'ai_vs_shadow', ...verdictFor(null, gates.screening) },
@@ -109,7 +109,7 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
       },
     });
   }
-  const { humanBy, aiBy, shadowBy, withAi, allThree, compareIds, candidate, shadowAvailable, shadowFailed } = sets;
+  const { humanBy, aiBy, shadowBy, withAi, allThree, compareIds, candidate, shadowAvailable, shadowFailed, shadowIneligible } = sets;
   const shadowAttempts = shadowBy.size + shadowFailed;
 
   // CONTRACT RATE — corpus-wide, not cohort-scoped. The figures above count only this candidate's
@@ -178,6 +178,10 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
       shadow_scored_corpus: corpusScored,
       shadow_failed_corpus: corpusFailed,
       shadow_contract_rate_corpus: corpusAttempts ? Math.round((corpusScored / corpusAttempts) * 1000) / 1000 : null,
+      // Shadow rows from a provider that may not evaluate (the tutor model, `local-tutor`): never a
+      // candidate, never in an arm — and counted here, because a row left out silently is a row
+      // nobody asks about. Non-zero means something wrote one; rimpl refuses to.
+      shadow_ineligible: shadowIneligible,
     },
     shadow: {
       available: shadowAvailable,

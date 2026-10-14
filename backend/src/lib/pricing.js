@@ -12,6 +12,10 @@
 //  * local     — 0/0 on purpose: the DGX is a sunk capital cost, so the MARGINAL cost of a token is
 //    zero. If a council ever wants hardware amortisation on the meter instead, set
 //    LOCAL_INPUT_PER_M / LOCAL_OUTPUT_PER_M and it flows through every caller with no code change.
+//  * local-tutor — the on-prem TUTOR model (rimpl providers/local-tutor.js; chat / discuss), a second
+//    on-prem endpoint beside the evaluator. Same reasoning, same 0/0 default, its own override pair
+//    LOCAL_TUTOR_INPUT_PER_M / LOCAL_TUTOR_OUTPUT_PER_M. It MUST be listed: an unknown name is billed
+//    at anthropic rates below, which would throttle physicians against the cap for free tokens.
 const num = (v, dflt) => { const n = parseFloat(v); return Number.isFinite(n) ? n : dflt; };
 
 const INPUT_PER_M = num(process.env.CLAUDE_INPUT_PER_M, 3);
@@ -23,6 +27,7 @@ const DEFAULT_PROVIDER = 'anthropic';
 const RATES = {
   anthropic: { in: INPUT_PER_M, out: OUTPUT_PER_M },
   local: { in: num(process.env.LOCAL_INPUT_PER_M, 0), out: num(process.env.LOCAL_OUTPUT_PER_M, 0) },
+  'local-tutor': { in: num(process.env.LOCAL_TUTOR_INPUT_PER_M, 0), out: num(process.env.LOCAL_TUTOR_OUTPUT_PER_M, 0) },
 };
 
 // An UNKNOWN provider name must never be zero-rated: adding a vendor to rimpl before adding its rates

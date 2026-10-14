@@ -106,7 +106,7 @@ export const MUTATIONS = [
   {
     id: 'readiness/numbers-are-fields',
     why: 'The refusal must carry measured and required as fields; prose only a human can parse is what shipped.',
-    file: 'rimpl/src/services/providers/local.js',
+    file: 'rimpl/src/services/providers/local-factory.js',
     find: "status: 'down', model, context_length: ctx, min_context: minContext,",
     replace: "status: 'down', model, context_length: ctx,",
     dir: 'rimpl',
@@ -115,9 +115,9 @@ export const MUTATIONS = [
   {
     id: 'readiness/unknown-is-unfit',
     why: 'A server that cannot be enumerated proves nothing and must not read as ready.',
-    file: 'rimpl/src/services/providers/local.js',
-    find: "      return { checks: { local_ai: { status: 'down', error: '/models returned 200 but enumerated no models' } } };",
-    replace: "      return { checks: { local_ai: { status: 'up', model, context_length: 'unknown' } } };",
+    file: 'rimpl/src/services/providers/local-factory.js',
+    find: "        return { checks: { [checkKey]: { status: 'down', error: '/models returned 200 but enumerated no models' } } };",
+    replace: "        return { checks: { [checkKey]: { status: 'up', model, context_length: 'unknown' } } };",
     dir: 'rimpl',
     suite: 'tests/local-provider.test.js',
   },

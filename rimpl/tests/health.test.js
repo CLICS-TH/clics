@@ -141,6 +141,58 @@ describe('GET /health/deep (rimpl)', () => {
     }
   });
 
+  // The on-prem TUTOR provider (providers/local-tutor.js) ships dormant. A deployment that never
+  // routes to it must not be probed for it, reported degraded for it, or show its queue — whatever its
+  // env says. Routed to and unconfigured, it is (correctly) down, under its OWN check key.
+  test('local-tutor dormant: no local_tutor_ai check, no queue, still 200 — even with its env unset', async () => {
+    const TUTOR_KEYS = ['LOCAL_TUTOR_AI_BASE_URL', 'LOCAL_TUTOR_AI_MODEL'];
+    const saved = Object.fromEntries(TUTOR_KEYS.map((k) => [k, process.env[k]]));
+    for (const k of TUTOR_KEYS) delete process.env[k];
+    try {
+      const res = await request(app).get('/health/deep');
+      expect(res.status).toBe(200);
+      expect(res.body.checks).not.toHaveProperty('local_tutor_ai');
+      expect(res.body.queues).not.toHaveProperty('local-tutor');
+      expect(res.body.providers).toEqual(['anthropic']);
+    } finally {
+      for (const k of TUTOR_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
+    }
+  });
+
+  test('local-tutor routed for chat but unconfigured: 503, local_tutor_ai down, its own queue reported — no outbound request', async () => {
+    const TUTOR_KEYS = ['LOCAL_TUTOR_AI_BASE_URL', 'LOCAL_TUTOR_AI_MODEL'];
+    const saved = Object.fromEntries(TUTOR_KEYS.map((k) => [k, process.env[k]]));
+    for (const k of TUTOR_KEYS) delete process.env[k];
+    const fetchSpy = jest.spyOn(global, 'fetch').mockRejectedValue(new Error('no network in tests'));
+    try {
+      process.env.AI_PROVIDER_CHAT = 'local-tutor';
+      const res = await request(app).get('/health/deep');
+      expect(res.status).toBe(503);
+      expect(res.body.checks.local_tutor_ai).toEqual({ status: 'down', error: 'LOCAL_TUTOR_AI_BASE_URL not set' });
+      expect(res.body.checks.anthropic_key.status).toBe('up');      // the other side of the hybrid is unaffected
+      expect(res.body.checks).not.toHaveProperty('local_ai');      // the evaluator box is not active here
+      expect(res.body.models.chat).toEqual({ provider: 'local-tutor', model: '' });
+      expect(Object.keys(res.body.queues).sort()).toEqual(['anthropic', 'local-tutor']);
+      expect(res.body.queues['local-tutor']).toMatchObject({ provider: 'local-tutor', active: 0, queued: 0 });
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+      fetchSpy.mockRestore();
+      for (const k of TUTOR_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
+    }
+  });
+
+  test('evaluate routed to local-tutor is reported down as a ROUTING fault, not hidden behind a healthy box', async () => {
+    const fetchSpy = jest.spyOn(global, 'fetch').mockRejectedValue(new Error('no network in tests'));
+    try {
+      process.env.AI_PROVIDER_EVALUATE = 'local-tutor';
+      const res = await request(app).get('/health/deep');
+      expect(res.status).toBe(503);
+      expect(res.body.checks.evaluate_routing).toMatchObject({ status: 'down', error: expect.stringMatching(/"local-tutor" cannot serve "evaluate"/) });
+    } finally {
+      fetchSpy.mockRestore();
+    }
+  });
+
   // The chat fail-over target (CHAT_FAILOVER_PROVIDER) is probed too, so a fail-over that could not
   // work — no ANTHROPIC_API_KEY on an all-local box — is visible here, before the outage it is meant
   // to cover. It is probed, not made active: `providers` and `queues` still name only what routes.
