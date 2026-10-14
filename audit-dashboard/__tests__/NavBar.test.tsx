@@ -88,6 +88,31 @@ describe('NavBar — mobile menu', () => {
   });
 });
 
+// jsdom evaluates no media queries, so this pins the WIRING: which copy of the chip carries which
+// breakpoint class. That the layout then fits at 320px is a Playwright measurement, not a jest one.
+describe('NavBar — role chip on phones', () => {
+  const chips = () => Array.from(document.querySelectorAll('nav span.rounded-full'));
+
+  it('the compact bar sheds its chip below sm, and the open menu carries it with the Thai role', () => {
+    mockCompact = true;
+    render(<NavBar />);
+    expect(chips()).toHaveLength(1);
+    expect(chips()[0]).toHaveClass('max-sm:hidden');
+    fireEvent.click(screen.getByRole('button', { name: /เมนู/ }));
+    const inMenu = chips().filter((c) => c.closest('nav [id]'));
+    expect(inMenu).toHaveLength(1);
+    expect(inMenu[0]).toHaveClass('sm:hidden');
+    expect(inMenu[0]).toHaveTextContent('Admin · จัดการ pilot');
+    expect(inMenu[0].querySelector('.hidden')).toBeNull();   // the Thai subtitle is not phone-hidden here
+  });
+
+  it('the full desktop row keeps its chip at every width', () => {
+    render(<NavBar />);
+    expect(chips()).toHaveLength(1);
+    expect(chips()[0]).not.toHaveClass('max-sm:hidden');
+  });
+});
+
 function within() {
   const menu = document.querySelector('nav [id]')!;
   return Array.from(menu.querySelectorAll('a'));

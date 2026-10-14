@@ -154,7 +154,7 @@ export function NavBar() {
             </div>
           )}
           {/* On phones the compact bar holds three 44px touch controls and the chip leaves for the menu's
-              identity header below. With all four, the cluster measured 342px wide at a 320px viewport and
+              identity header below. With all four, the cluster ran to x=342 on a 320px viewport and
               scrolled the page sideways. The chip is identity rather than a control, and the name and
               specialty already sit in the menu on phones. */}
           <RoleBadge className={compact ? 'max-sm:hidden' : undefined} />
@@ -188,7 +188,7 @@ export function NavBar() {
           <div className="px-2 pb-1">
             <p className="text-sm font-medium text-foreground">{user.full_name_th || user.full_name_en}</p>
             {specialtyLine && <p className="text-xs text-muted-foreground">{specialtyLine}</p>}
-            <RoleBadge className="mt-1.5 inline-block sm:hidden" />
+            <RoleBadge fullLabel className="mt-1.5 block w-fit max-w-full sm:hidden" />
           </div>
           {links.map(l => (
             <Link key={l.href} href={l.href} onClick={() => setOpen(false)} aria-current={isActive(l.href) ? 'page' : undefined}
