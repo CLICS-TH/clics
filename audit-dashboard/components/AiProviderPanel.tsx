@@ -96,8 +96,10 @@ export function AiProviderPanel() {
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">{PURPOSE_COPY[p].note}</p>
         </div>
+        {/* max-w-full + flex-wrap: the two options need ~350px on one line, so below that they stack
+            (each grows to the full width) instead of running past a phone's viewport. */}
         <div role="radiogroup" aria-label={`${PURPOSE_COPY[p].en} provider`}
-          className="inline-flex shrink-0 overflow-hidden rounded-lg border">
+          className="inline-flex max-w-full shrink-0 flex-wrap overflow-hidden rounded-lg border">
           {data!.choices[p].map(name => {
             const on = name === current;
             return (
@@ -112,7 +114,7 @@ export function AiProviderPanel() {
                 // measures 3.28:1, which fails WCAG body text at this 13px size (the large-text
                 // exemption starts at 18.66px bold). The tint keeps --foreground on the label at
                 // ~16:1 while the ring carries the selection just as unambiguously.
-                className={`px-3 py-2 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60
+                className={`grow px-3 py-2 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60
                   ${on
                     ? 'bg-primary/15 font-semibold text-foreground ring-2 ring-inset ring-primary'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}

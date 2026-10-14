@@ -5,6 +5,7 @@
 //                                small text must use text-link (or text-coral-on-tint on a tint)
 //   text-[10px] / text-[11px]    below the Thai small-text floor (text-xs is 13px here)
 //   a raw <table> in a page that was migrated to ui/table (labelled scroll region, scope, numerics)
+//   text on solid bg-primary     white on bright coral is 3.28:1; a filled control uses bg-coral-active
 //
 // Line-based, so a className split across lines can escape it; that is a limit of the technique, not
 // a licence — write the class on one line.
@@ -48,6 +49,21 @@ describe('design-a11y source guards', () => {
         if (!/text-\[(9|10|11)px\]/.test(l)) return;
         if (/>test<\/span>/.test(l)) return;   // the Latin-only is_test marker on admin/ples
         bad.push(`${rel(f)}:${i + 1}  ${l.trim().slice(0, 110)}`);
+      });
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('no text is painted on a solid bg-primary fill', () => {
+    // --primary is the bright accent (non-text). White on it is 3.28:1, and the shadcn habit of pairing
+    // bg-primary with text-primary-foreground is how the overview's Download button shipped at that
+    // ratio. Filled controls take bg-coral-active, whose pair with --primary-foreground is pinned in
+    // contrast.test.ts. Untexted fills (switch tracks, meters, the slider range) and /NN tints stay fine.
+    const bad: string[] = [];
+    for (const f of SOURCES) {
+      lines(f).forEach((l, i) => {
+        if (!/(^|[\s"'`:])bg-primary(?![-\w/])/.test(l)) return;
+        if (/\btext-(primary-foreground|white)\b/.test(l)) bad.push(`${rel(f)}:${i + 1}  ${l.trim().slice(0, 110)}`);
       });
     }
     expect(bad).toEqual([]);

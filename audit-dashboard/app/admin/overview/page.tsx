@@ -497,8 +497,9 @@ export default function OverviewPage() {
           Compensation / Participants). Pseudonymized (no names) so it honors the PII boundary. */}
       <section className="space-y-3">
         <h2 className="font-heading text-xl text-foreground">Export data</h2>
-        <div className="flex items-center justify-between gap-4 rounded-xl border p-5">
-          <div className="pr-4">
+        {/* Stacks below a 480px container: side by side, the shrink-0 button ran to 347px on a 320px phone. */}
+        <div className="flex flex-col items-start gap-4 rounded-xl border p-5 @min-[480px]:flex-row @min-[480px]:items-center @min-[480px]:justify-between">
+          <div className="min-w-0 @min-[480px]:pr-4">
             <p className="text-sm font-medium">📊 ส่งออกข้อมูล (XLSX) / Export data (XLSX)</p>
             <p className="text-xs text-muted-foreground">
               ดาวน์โหลดสมุดงาน Excel หนึ่งไฟล์ แยกชีตตามหมวด (PLEs · AI evaluations · Auditor scores · Compensation · Participants) •
@@ -506,10 +507,11 @@ export default function OverviewPage() {
             </p>
             {exportErr && <p className="mt-1 text-xs text-destructive">{exportErr}</p>}
           </div>
+          {/* bg-coral-active, the button-fill token: white on bright --primary measures 3.28:1. */}
           <button
             onClick={exportXlsx}
             disabled={exporting}
-            className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity disabled:opacity-50"
+            className="shrink-0 rounded-md bg-coral-active px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity disabled:opacity-50"
           >
             {exporting ? 'กำลังสร้าง… / Building…' : 'ดาวน์โหลด / Download'}
           </button>
@@ -527,7 +529,8 @@ export default function OverviewPage() {
           </div>
           {pendingInvites === null
             ? <Skeleton className="h-8 w-12" />
-            : <span className="rounded-full bg-primary/10 px-4 py-1.5 text-xl font-bold text-primary tabular-nums">{pendingInvites.length}</span>}
+            // text-coral-on-tint: bright --primary on its own /10 tint is 2.81:1, under even the 3:1 large-text bar.
+            : <span className="rounded-full bg-primary/10 px-4 py-1.5 text-xl font-bold text-coral-on-tint tabular-nums">{pendingInvites.length}</span>}
         </a>
       </section>
     </div>

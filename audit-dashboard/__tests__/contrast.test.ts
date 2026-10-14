@@ -67,7 +67,7 @@ const DASH_PAIRS: [string, string, string][] = [
   ['danger', 'card', 'ai-readiness "could not reach RIMPL" panel, evaluator-lock gate notes'],
   ['ok', 'background', 'success text'],
   ['ok', 'card', 'ai-readiness embedding + context readings'],
-  ['primary-foreground', 'coral-active', 'Button default + Badge default (white on coral)'],
+  ['primary-foreground', 'coral-active', 'Button default + Badge default (white on coral), overview Download'],
   ['link', 'background', 'link variant'],
   // The manual (/manual). Its quoted UI-label chips sit on a TINT by design, where --link fails
   // (4.20:1 on --muted, 3.94:1 on --secondary) — which is why --coral-on-tint exists.
@@ -120,6 +120,9 @@ const DASH_TINTS: TintPair[] = [
   ['coral-on-tint', 'primary', 0.12, 'card',
     'manual: language toggle (active); integrity queue: MEDIUM severity badge'],
   ['danger', 'destructive', 0.10, 'card', 'integrity queue: HIGH severity badge'],
+  // Was text-primary: 2.81:1 light, under even the 3:1 bar its text-xl bold size qualifies for.
+  ['coral-on-tint', 'primary', 0.10, 'background', 'overview: pending-invites count chip'],
+  ['coral-on-tint', 'primary', 0.10, 'secondary', 'overview: the same chip while its card is hovered'],
 ];
 
 function checkTints(name: string, css: string, sel: string, pairs: TintPair[]) {

@@ -1,8 +1,10 @@
 'use client';
 import { getUser } from '@/lib/auth';
+import { cn } from '@/lib/utils';
 
 // Tinted-background + foreground-text so it stays legible in both themes. The Thai subtitle is dropped
-// on phones (< 640px) so the nav action cluster fits without horizontal overflow.
+// on phones (< 640px) so the nav action cluster fits without horizontal overflow. `className` lets the
+// NavBar move the whole chip into its menu on phones (see NavBar.tsx).
 const ROLE: Record<string, { label: string; sub: string; cls: string }> = {
     // bg-coral-active: white on bright --primary measures 3.28:1 at this 13px/500. See badge.tsx.
   superadmin: { label: 'Superadmin', sub: 'ดูแลระบบ', cls: 'bg-coral-active text-primary-foreground' },
@@ -11,12 +13,12 @@ const ROLE: Record<string, { label: string; sub: string; cls: string }> = {
   physician: { label: 'Physician', sub: 'แพทย์อาสา', cls: 'bg-primary/15 text-foreground' },
 };
 
-export function RoleBadge() {
+export function RoleBadge({ className }: { className?: string }) {
   const user = getUser();
   if (!user) return null;
   const m = ROLE[user.role] ?? ROLE.physician;
   return (
-    <span className={`min-w-0 shrink truncate rounded-full px-3 py-1 text-xs font-medium ${m.cls}`}>
+    <span className={cn('min-w-0 shrink truncate rounded-full px-3 py-1 text-xs font-medium', m.cls, className)}>
       {m.label}<span className="hidden sm:inline"> · {m.sub}</span>
     </span>
   );
