@@ -85,7 +85,15 @@ const text = 'what is the differential for chest pain';
 const count = (page, sel) => page.locator('#messages ' + sel).count();
 const bodyHas = (page, t, timeout = 15000) => page.waitForFunction((x) => document.body.innerText.includes(x), t, { timeout });
 const sendText = async (page, t) => { await page.fill('#input', t); await page.press('#input', 'Enter'); };
-const pump = async (page, ms) => { for (let i = 0; i < ms / 3000; i++) { await page.clock.runFor(3000); await page.waitForTimeout(25); } };
+// Advance the page's fake clock in 3 s steps (one settle poll per step), yielding real time between
+// steps so each poll's fetch can actually complete. 25 ms was enough on a laptop and not on a loaded
+// CI runner, where polls were dropped and scenario B counted 28 reads instead of ~41.
+const pump = async (page, ms) => {
+  for (let i = 0; i < ms / 3000; i++) {
+    await page.clock.runFor(3000);
+    await page.waitForTimeout(120);
+  }
+};
 
 const server = await startServer();
 const base = `http://127.0.0.1:${server.address().port}`;
@@ -137,7 +145,10 @@ await scenario(browser, base, 'B: nothing stored -> bounded window, then Retry w
   await pump(page, 135000);
   await page.waitForSelector('#messages .msg-act-btn:has-text("Retry")', { timeout: 5000 });
   const polls = store.gets - g0;
-  check(polls >= 30 && polls <= 50, `bounded polling window (${polls} reads at 3 s)`);
+  // The property under test is that polling REPEATS and then STOPS — the upper bound is the real
+  // guard. The exact count depends on how many fake-clock steps land while a fetch is in flight, so
+  // the lower bound stays loose enough to survive a slow runner without hiding an unbounded poll.
+  check(polls >= 20 && polls <= 50, `bounded polling window (${polls} reads at 3 s)`);
   const notice = await page.locator('#messages .msg-system').last().innerText();
   check(/ยังไม่ได้ส่ง/.test(notice) && /was not sent/.test(notice), 'not-received copy');
   check(await page.inputValue('#input') === text, 'text restored to the empty box');
