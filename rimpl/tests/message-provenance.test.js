@@ -80,3 +80,30 @@ test('a citation retry keeps the label: it resends the same instructions', async
   expect(callAI.mock.calls[1][0].systemPrompt).toBe(callAI.mock.calls[0][0].systemPrompt);
   expect(res.body.prompt_version).toBe(promptLabel('chat', P.RIMPL_SYSTEM_PROMPT_NATURAL));
 });
+
+// The evidence-marker guidance (setting chat_evidence_marker) is a second version of each mode's
+// prompt: a stored reply must say which of the two produced it, and OFF must keep today's label.
+test('evidence marker ON is its own version per mode (artifacts too); OFF keeps today\'s label', async () => {
+  const off = (await chat()).body.prompt_version;
+  const onNatural = (await chat({ evidence_marker: true })).body.prompt_version;
+  const onExaminer = (await chat({ socratic: true, evidence_marker: true })).body.prompt_version;
+  const onBoth = (await chat({ artifacts: true, evidence_marker: true })).body.prompt_version;
+  expect(off).toBe(promptLabel('chat', P.RIMPL_SYSTEM_PROMPT_NATURAL));
+  expect(onNatural).toBe(promptLabel('chat', P.RIMPL_SYSTEM_PROMPT_NATURAL + P.EVIDENCE_GUIDANCE.natural));
+  expect(onExaminer).toBe(promptLabel('chat', P.RIMPL_SYSTEM_PROMPT_EXAMINER + P.EVIDENCE_GUIDANCE.examiner));
+  expect(onBoth).toBe(promptLabel('chat', P.RIMPL_SYSTEM_PROMPT_NATURAL + P.ARTIFACT_GUIDANCE + P.EVIDENCE_GUIDANCE.natural));
+  expect(new Set([off, onNatural, onExaminer, onBoth]).size).toBe(4);
+});
+
+test('a marker retry keeps the label (same instructions resent), and a rescue turn is labelled with the rescue prompt alone', async () => {
+  callAI.mockClear();
+  callAI
+    .mockResolvedValueOnce({ text: 'An answer (ADA, 2024).', tokenCount: 50, inputTokens: 40, outputTokens: 10, provider: 'local', model: 'm' })
+    .mockResolvedValueOnce({ text: 'An answer (ADA, 2024).\nEvidence: high', tokenCount: 60, inputTokens: 45, outputTokens: 15, provider: 'local', model: 'm' });
+  const retried = await chat({ evidence_marker: true });
+  expect(callAI).toHaveBeenCalledTimes(2);
+  expect(retried.body.evidence_retry).toBe(true);
+  expect(retried.body.prompt_version).toBe(promptLabel('chat', P.RIMPL_SYSTEM_PROMPT_NATURAL + P.EVIDENCE_GUIDANCE.natural));
+  const rescue = await chat({ socratic: true, evidence_marker: true, rescue_active: true, rescue_rounds: MAX_RESCUE_ROUNDS });
+  expect(rescue.body.prompt_version).toBe(promptLabel('chat', P.RIMPL_SYSTEM_PROMPT_RESCUE));
+});

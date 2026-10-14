@@ -179,3 +179,47 @@ test('summarize: pass rates carry Wilson intervals, failures excluded from denom
   assert.deepEqual(s.items_with_critical, ['b']);
   assert.deepEqual(s.flags.call_failed.items, ['c']);
 });
+
+/* ------------------------------------------------------- evidence marker (CCME R5) */
+
+const MARK = 'ระดับหลักฐาน: สูง (Evidence: high)';
+const marked = (item, text) => {
+  const e = entryFor(item, text);
+  e.request.evidence_marker = true;
+  return e;
+};
+
+test('evidence_marker: present on a --evidence-marker run → pass, and placement per mode', () => {
+  const nat = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, `Start when eGFR is 20 or more (KDIGO, 2022).\n${MARK}`));
+  assert.deepEqual([nat.checks.evidence_marker.pass, nat.checks.evidence_marker.value], [true, 'high']);
+  assert.equal(nat.checks.evidence_marker_placement.pass, true);
+  assert.deepEqual(nat.flags, []);
+  const ex = checkReply(ITEM_TH_EXAMINER, marked(ITEM_TH_EXAMINER, GOOD_TH_EXAMINER.replace('\n❓', `\n${MARK}\n❓`)));
+  assert.equal(ex.checks.evidence_marker.pass, true);
+  assert.equal(ex.checks.evidence_marker_placement.pass, true, ex.checks.evidence_marker_placement.detail);
+  assert.equal(ex.checks.socratic_last_line.pass, true);
+  assert.equal(ex.checks.language.pass, true, 'the bilingual line is not language evidence');
+});
+
+test('evidence_marker: missing / ambiguous is a MINOR flag; misplaced is a separate minor flag', () => {
+  const none = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (KDIGO, 2022).'));
+  assert.equal(none.checks.evidence_marker.pass, false);
+  assert.equal(sev(none, 'no_evidence_marker'), 'minor');
+  const two = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, `${MARK}\nStart when eGFR is 20 or more (KDIGO, 2022).\n${MARK}`));
+  assert.match(two.checks.evidence_marker.detail, /2 evidence lines \(ambiguous\)/);
+  const late = checkReply(ITEM_TH_EXAMINER, marked(ITEM_TH_EXAMINER, `${GOOD_TH_EXAMINER}\n${MARK}`));
+  assert.equal(late.checks.evidence_marker.pass, true);
+  assert.equal(late.checks.evidence_marker_placement.pass, false);
+  assert.equal(sev(late, 'evidence_marker_misplaced'), 'minor');
+  const early = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, `${MARK}\nStart when eGFR is 20 or more (KDIGO, 2022).`));
+  assert.equal(sev(early, 'evidence_marker_misplaced'), 'minor');
+});
+
+test('evidence_marker: not checked on a run without the flag, nor on a rescue turn', () => {
+  const off = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (KDIGO, 2022).'));
+  assert.equal(off.checks.evidence_marker, undefined);
+  const rescue = checkReply(ITEM_RESCUE, { ...marked(ITEM_RESCUE, 'คุณกำลังชั่งน้ำหนักอะไรอยู่?'), request: { ...entryFor(ITEM_RESCUE, '').request, evidence_marker: false } });
+  assert.equal(rescue.checks.evidence_marker, undefined);
+  // Even a stray `true` on a rescue entry cannot apply it: rescue replies take the rescue branch.
+  assert.equal(checkReply(ITEM_RESCUE, marked(ITEM_RESCUE, 'คุณกำลังชั่งน้ำหนักอะไรอยู่?')).checks.evidence_marker, undefined);
+});

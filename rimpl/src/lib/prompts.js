@@ -18,6 +18,71 @@ CLINICAL ARTIFACTS: When your answer includes a substantial piece of structured 
 :::
 Use an artifact ONLY when the content is genuinely substantial (a short answer needs none), at most one or two per reply. Keep your conversational explanation, your (Source, Year) citation, and the closing ❓ question OUTSIDE the fence. A large table or long structured list belongs INSIDE an artifact — that is the one place the "be concise / avoid large tables" guidance above does not apply.`;
 
+// EVIDENCE-LEVEL MARKER (CCME requirement R5: an evidence-based protocol is a citation PLUS an
+// evidence-level marker that is a CHECKABLE field). Appended by the chat route to the NATURAL or the
+// EXAMINER prompt ONLY when the per-request `evidence_marker` flag is true — the backend drives it from
+// the app_setting `chat_evidence_marker` (default OFF, so the shipped prompts are byte-identical to the
+// ones before this existed). Never on a rescue turn (the rescue prompt REPLACES the mode prompt, and a
+// rescue reply recommends nothing to grade) and never on discuss/evaluate: this is a TUTOR-only change,
+// so PROMPT_VERSION (the evaluator) and every calibration number are untouched.
+//
+// Scale: the GRADE certainty of the evidence behind the reply's main recommendation, in the four
+// levels the user chose — high / moderate / low, plus "expert opinion" for no study-level evidence.
+// GRADE's own fourth level, "very low", has no slot of its own and is reported as low.
+//
+// EVIDENCE_LEVELS is the ONE definition of the labels: the prompt lines below are built from it, and
+// services/post-filter.js builds its parser (extractEvidenceLevel) from it, so the line the model is
+// told to write and the line the route accepts cannot drift apart. `key` is what the route returns.
+const EVIDENCE_LEVELS = [
+  { key: 'high', th: 'สูง', en: 'high' },
+  { key: 'moderate', th: 'ปานกลาง', en: 'moderate' },
+  { key: 'low', th: 'ต่ำ', en: 'low' },
+  { key: 'expert', th: 'ความเห็นผู้เชี่ยวชาญ', en: 'expert opinion' },
+];
+const EVIDENCE_TH_LABEL = 'ระดับหลักฐาน';
+const EVIDENCE_EN_LABEL = 'Evidence';
+const evidenceLine = (l) => `${EVIDENCE_TH_LABEL}: ${l.th} (${EVIDENCE_EN_LABEL}: ${l.en})`;
+const EVIDENCE_LINES = EVIDENCE_LEVELS.map(evidenceLine).join('\n');
+
+const EVIDENCE_CORE = `
+
+EVIDENCE LEVEL — mandatory in EVERY reply: exactly ONE line that grades the certainty of the evidence behind your reply's MAIN recommendation, using the GRADE approach. Copy one of these four lines character for character — the same bilingual line whether you reply in Thai or English:
+${EVIDENCE_LINES}
+How to choose:
+- สูง / high — consistent results from well-conducted randomised trials or their meta-analyses; further research is very unlikely to change the recommendation.
+- ปานกลาง / moderate — randomised trials with important limitations, or consistently strong observational evidence; further research may change the recommendation.
+- ต่ำ / low — observational studies, or trials with serious limitations, inconsistency or indirectness. GRADE "very low" is also reported as low.
+- ความเห็นผู้เชี่ยวชาญ / expert opinion — no study-level evidence behind the recommendation: guideline consensus, expert opinion or established practice only.
+If the reply makes no recommendation, grade the evidence behind its main clinical claim. Grade the EVIDENCE, not how sure you feel, and never claim more certainty than you have: if you do not know how strong the evidence is, write ต่ำ (low) or ความเห็นผู้เชี่ยวชาญ (expert opinion) — never guess high. This is the same honesty rule as above, and the line comes IN ADDITION to your (Source, Year) citation, never instead of it. Never write more than one evidence line — not one per bullet, option or drug.`;
+
+const EVIDENCE_GUIDANCE = {
+  natural: `${EVIDENCE_CORE}
+Placement: on its own line as the VERY LAST line of the reply, after everything else. Plain text — never inside a table, a code block or a fenced (::: or \`\`\`) block.
+Before finishing, self-check this too: is there exactly one evidence line, and is it the last line? If not, fix it before sending.`,
+  examiner: `${EVIDENCE_CORE}
+Placement: on its own line immediately BEFORE the closing ❓ question, so the ❓ question is still the VERY LAST line. Plain text — never inside a table, a code block or a fenced (::: or \`\`\`) block.
+Before finishing, self-check this too: is there exactly one evidence line, directly above the ❓ line? If not, fix it before sending.`,
+};
+
+// The evidence marker's share of the chat route's ONE corrective retry (routes/chat.js). Keyed by the
+// route's `language`. `suffix` is appended to another retry prompt (citation re-answer, or the Thai
+// rewrite) when the marker is ALSO missing — the Thai form is bilingual like the language suffix, the
+// English one stays English so an English turn is never nudged into Thai. `only` is the marker-only
+// REWRITE: it keeps everything else, as the language-only rewrite does. The four options are spelled
+// out in full rather than as a "<...>" template, which a model copies literally.
+const EVIDENCE_OPTIONS_INLINE = EVIDENCE_LEVELS.map(evidenceLine).join(' / ');
+const EVIDENCE_RETRY_PROMPT = {
+  suffix: {
+    th: ' และเพิ่มบรรทัดระดับหลักฐานหนึ่งบรรทัดตามรูปแบบและตำแหน่งที่กำหนด (Also add the single evidence-level line, in the required format and position.)',
+    en: ' Also add the single evidence-level line, in the required format and position.',
+  },
+  only: {
+    th: `กรุณาเขียนคำตอบก่อนหน้านี้ใหม่ โดยเพิ่มบรรทัดระดับหลักฐานหนึ่งบรรทัดในตำแหน่งที่กำหนด เลือกหนึ่งบรรทัดจาก: ${EVIDENCE_OPTIONS_INLINE} — ถ้าไม่แน่ใจว่าหลักฐานแข็งแรงเพียงใด ให้ใช้ ต่ำ หรือ ความเห็นผู้เชี่ยวชาญ และคงภาษา เนื้อหาทางคลินิก การอ้างอิง (แหล่ง, ปี) และคำถามที่ขึ้นต้นด้วย ❓ (ถ้ามี) ไว้ตามเดิม และคงบล็อก :::artifact ทั้งบล็อก (ถ้ามี) ไว้ตามเดิมทุกประการ `
+      + '(Please rewrite your previous reply adding the single evidence-level line in the required position, chosen from the four options above — if you are not sure how strong the evidence is, use low or expert opinion. Keep the same language, clinical content, (Source, Year) citations and any ❓ question on its own line. Keep any :::artifact block exactly as is, fence lines included.)',
+    en: `Please rewrite your previous reply adding the single evidence-level line in the required position, chosen from: ${EVIDENCE_OPTIONS_INLINE} — if you are not sure how strong the evidence is, use low or expert opinion, never high. Keep the same language, clinical content, (Source, Year) citations and any ❓ question on its own line. Keep any :::artifact block exactly as is, fence lines included.`,
+  },
+};
+
 const RIMPL_SYSTEM_PROMPT_NATURAL = `You are a warm, collegial clinical mentor supporting physicians in continuing medical education — like a senior colleague thinking alongside them. Be genuinely helpful: engage substantively with every clinical question and let the physician lead the conversation. Always reply in the same language as the physician (Thai or English).
 
 Follow these two principles in every response:
@@ -269,5 +334,6 @@ module.exports = {
   RIMPL_SYSTEM_PROMPT_RESCUE,
   RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS,
   ARTIFACT_GUIDANCE,
+  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, EVIDENCE_LEVELS, EVIDENCE_TH_LABEL, EVIDENCE_EN_LABEL,
   PIS7_EVALUATOR_PROMPT, PIS7_LOCAL_ADDENDUM, pis7PromptFor, CRITERIA_CLASSIFIER_PROMPT,
 };

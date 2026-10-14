@@ -42,6 +42,15 @@ async function chatStreamingEnabled() {
   return (await getSetting('chat_streaming', 0)) === 1;
 }
 
+// Evidence-level marker (app setting `chat_evidence_marker`, default OFF; CCME requirement R5): when ON,
+// the chat call tells RIMPL to make every non-rescue tutor reply carry exactly one GRADE evidence-level
+// line (ระดับหลักฐาน: … (Evidence: …)), which RIMPL checks and folds into its single corrective retry. A
+// tutor-prompt change, so it is a research-stimulus change like clinical_artifacts: switched on
+// deliberately. The evaluator prompt is untouched. Off sends RIMPL exactly the prompt it sends today.
+async function chatEvidenceMarkerEnabled() {
+  return (await getSetting('chat_evidence_marker', 0)) === 1;
+}
+
 // Peer Calibration (superadmin toggle): when ON, a PLE may be assigned to several auditors and the
 // auditor reveal pane shows a you-vs-auditor-average PIS-7 radar. Default OFF (single-auditor blind audit).
 async function peerCalibrationEnabled() {
@@ -186,5 +195,5 @@ async function creditSettings() {
 }
 
 module.exports = {
-  chatStreamingEnabled,
+  chatStreamingEnabled, chatEvidenceMarkerEnabled,
   calibrationRevealLocked, getSetting, getTextSetting, iccGates, transcriptCap, minAuditorsPerPle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };

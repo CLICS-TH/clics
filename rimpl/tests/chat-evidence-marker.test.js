@@ -1,0 +1,261 @@
+// EVIDENCE MARKER in the chat route (CCME R5; app setting chat_evidence_marker, forwarded as
+// `evidence_marker`). Pinned here:
+//   * OFF (the default) changes nothing: same system prompt, same single call, evidence_level null;
+//   * ON appends EVIDENCE_GUIDANCE for the mode — never on a rescue turn;
+//   * a missing / ambiguous marker is folded into the EXISTING single corrective retry (<= 2 calls);
+//   * a marker-only rewrite that does not hold keeps the first reply (billed, never thrown);
+//   * streaming: the `replace` path covers it, and the `done` body equals the non-streamed JSON.
+//
+// HERMETIC: callAI is mocked at the seam; RAG and Supabase are stubbed; nothing leaves the process.
+jest.mock('../src/services/ai', () => ({ callAI: jest.fn() }));
+jest.mock('../src/services/rag', () => ({ ragLookup: jest.fn().mockResolvedValue([]) }));
+jest.mock('../src/lib/supabase', () => ({
+  supabase: { from: jest.fn(() => ({})), rpc: jest.fn().mockResolvedValue({ data: [], error: null }) },
+}));
+
+const request = require('supertest');
+const app = require('../src/index');
+const { callAI } = require('../src/services/ai');
+const P = require('../src/lib/prompts');
+const { promptLabel } = require('../src/lib/versions');
+const { MAX_RESCUE_ROUNDS } = require('../src/services/rescue');
+const { QueueFullError } = require('../src/services/providers/runtime');
+
+const MARK = 'ระดับหลักฐาน: ปานกลาง (Evidence: moderate)';
+const EN = 'Amoxicillin 1 g three times daily for 5 days is first line for low-severity CAP (BTS, 2019).';
+const EN_NO_CITE = 'Amoxicillin 1 g three times daily for 5 days is first line for low-severity CAP.';
+const EN_M = `${EN}\n${MARK}`;
+const Q = '❓ How would a penicillin allergy change your choice?';
+const TH = 'ผู้ป่วยปอดอักเสบชุมชนความรุนแรงต่ำควรได้รับ amoxicillin หนึ่งกรัมวันละสามครั้งเป็นเวลาห้าวัน (BTS, 2019)';
+const TH_MSG = 'ผู้ป่วยปอดอักเสบชุมชนแบบผู้ป่วยนอก ควรเริ่มยาปฏิชีวนะตัวไหนก่อนครับ';
+const FENCE = (body) => `:::artifact{type="evidence" title="Evidence"}\n${body}\n:::`;
+
+const r = (text, i = 10, o = 10) => ({ text, tokenCount: i + o, inputTokens: i, outputTokens: o, provider: 'local', model: 'm' });
+const send = (body = {}) => request(app).post('/chat')
+  .send({ ple_id: 'x', history: [], message: 'First-line for CAP?', language: 'en', ...body });
+const on = (body = {}) => send({ evidence_marker: true, ...body });
+const lastAsk = (n = 1) => callAI.mock.calls[n][0].messages.at(-1).content;
+
+let warn;
+beforeEach(() => { callAI.mockReset(); warn = jest.spyOn(console, 'warn').mockImplementation(() => {}); });
+afterEach(() => warn.mockRestore());
+
+describe('setting OFF (the default): nothing changes', () => {
+  test('no guidance, one call for a cited reply without a marker, evidence_level null', async () => {
+    callAI.mockResolvedValueOnce(r(EN));
+    const res = await send();
+    expect(res.status).toBe(200);
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(callAI.mock.calls[0][0].systemPrompt).toBe(P.RIMPL_SYSTEM_PROMPT_NATURAL);
+    expect(res.body).toMatchObject({ evidence_level: null, evidence_retry: false });
+    expect(res.body.prompt_version).toBe(promptLabel('chat', P.RIMPL_SYSTEM_PROMPT_NATURAL));
+  });
+
+  test('a marker the model wrote anyway is not reported: the field means "checked", and nothing was', async () => {
+    callAI.mockResolvedValueOnce(r(EN_M));
+    expect((await send()).body.evidence_level).toBeNull();
+  });
+});
+
+describe('setting ON: the guidance and the check', () => {
+  test('the guidance is appended per mode, after any artifact guidance', async () => {
+    callAI.mockResolvedValue(r(`${EN}\n${MARK}\n${Q}`));
+    await on();
+    await on({ socratic: true });
+    await on({ artifacts: true });
+    await on({ socratic: true, artifacts: true });
+    const sys = callAI.mock.calls.map((c) => c[0].systemPrompt);
+    expect(sys[0]).toBe(P.RIMPL_SYSTEM_PROMPT_NATURAL + P.EVIDENCE_GUIDANCE.natural);
+    expect(sys[1]).toBe(P.RIMPL_SYSTEM_PROMPT_EXAMINER + P.EVIDENCE_GUIDANCE.examiner);
+    expect(sys[2]).toBe(P.RIMPL_SYSTEM_PROMPT_NATURAL + P.ARTIFACT_GUIDANCE + P.EVIDENCE_GUIDANCE.natural);
+    expect(sys[3]).toBe(P.RIMPL_SYSTEM_PROMPT_EXAMINER + P.ARTIFACT_GUIDANCE + P.EVIDENCE_GUIDANCE.examiner);
+  });
+
+  test('a reply carrying one marker: one call, the level is reported, no retry', async () => {
+    callAI.mockResolvedValueOnce(r(EN_M));
+    const res = await on();
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(res.body).toMatchObject({ content: EN_M, evidence_level: 'moderate', evidence_retry: false });
+  });
+
+  test('examiner: the marker just above the ❓ line reads, and the ❓ is still extracted', async () => {
+    callAI.mockResolvedValueOnce(r(`${EN}\n${MARK}\n${Q}`));
+    const res = await on({ socratic: true });
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(res.body.evidence_level).toBe('moderate');
+    expect(res.body.socratic_question).toBe('How would a penicillin allergy change your choice?');
+  });
+
+  test('missing marker ONLY: one marker-only REWRITE retry (English turn), and its reply is returned', async () => {
+    callAI.mockResolvedValueOnce(r(EN, 100, 40)).mockResolvedValueOnce(r(EN_M, 160, 45));
+    const res = await on();
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(lastAsk()).toBe(P.EVIDENCE_RETRY_PROMPT.only.en);
+    const second = callAI.mock.calls[1][0];
+    expect(second.messages.at(-2)).toEqual({ role: 'assistant', content: EN });
+    expect(second.systemPrompt).toBe(callAI.mock.calls[0][0].systemPrompt);   // the guidance rides along
+    expect(second.provider).toBe('local');                                       // pinned, as every retry is
+    expect(res.body).toMatchObject({ content: EN_M, evidence_level: 'moderate', evidence_retry: true, language_retry: false });
+    expect(res.body.token_count).toBe(140 + 205);
+    expect(res.body.context_tokens).toBe(205);                                    // the returned call only
+  });
+
+  test('a Thai turn gets the Thai (bilingual) marker-only prompt', async () => {
+    callAI.mockResolvedValueOnce(r(TH)).mockResolvedValueOnce(r(`${TH}\n${MARK}`));
+    const res = await on({ language: 'th', message: TH_MSG });
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(lastAsk()).toBe(P.EVIDENCE_RETRY_PROMPT.only.th);
+    expect(res.body).toMatchObject({ evidence_level: 'moderate', evidence_retry: true, language_retry: false });
+  });
+
+  test('several markers are ambiguous: the retry asks for exactly one', async () => {
+    callAI.mockResolvedValueOnce(r(`${EN}\n${MARK}\nระดับหลักฐาน: สูง (Evidence: high)`)).mockResolvedValueOnce(r(EN_M));
+    const res = await on();
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(res.body.evidence_level).toBe('moderate');
+  });
+
+  test('a marker only INSIDE an artifact does not count; the rewrite sees the fence intact (artifacts on)', async () => {
+    const fenced = `${EN}\n${FENCE(`| Trial | Result |\n|---|---|\n${MARK}`)}`;
+    callAI.mockResolvedValueOnce(r(fenced)).mockResolvedValueOnce(r(`${fenced}\n${MARK}`));
+    const res = await on({ artifacts: true });
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(callAI.mock.calls[1][0].messages.at(-2).content).toBe(fenced);       // keepFence: a rewrite
+    expect(res.body.evidence_level).toBe('moderate');
+  });
+});
+
+describe('a marker-only rewrite that does not hold keeps the first reply', () => {
+  test.each([
+    ['still no marker', EN],
+    ['still two markers', `${EN}\n${MARK}\n${MARK}`],
+    ['dropped the citation', `${EN_NO_CITE}\n${MARK}`],
+  ])('%s: first reply returned, both calls billed, context is the first call', async (_n, second) => {
+    callAI.mockResolvedValueOnce(r(EN, 100, 40)).mockResolvedValueOnce(r(second, 160, 45));
+    const res = await on();
+    expect(res.status).toBe(200);
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(res.body).toMatchObject({ content: EN, evidence_level: null, evidence_retry: false });
+    expect(res.body.token_count).toBe(140 + 205);
+    expect(res.body.input_tokens).toBe(260);
+    expect(res.body.context_tokens).toBe(140);
+    expect(warn.mock.calls.at(-1)[0]).toMatch(/evidence retry rejected/);
+    expect(warn.mock.calls.at(-1)[0]).not.toContain('Amoxicillin');
+  });
+
+  test('examiner: a rewrite that dropped the ❓ is rejected', async () => {
+    callAI.mockResolvedValueOnce(r(`${EN}\n${Q}`)).mockResolvedValueOnce(r(EN_M));
+    const res = await on({ socratic: true });
+    expect(res.body.content).toBe(`${EN}\n${Q}`);
+    expect(res.body.socratic_question).toBeTruthy();
+  });
+
+  test('a Thai turn: a rewrite that came back in English is rejected', async () => {
+    callAI.mockResolvedValueOnce(r(TH)).mockResolvedValueOnce(r(EN_M));
+    const res = await on({ language: 'th', message: TH_MSG });
+    expect(res.body).toMatchObject({ content: TH, evidence_retry: false, language_retry: false });
+  });
+
+  test('the retry call failing (queue_full) keeps the first reply: 200, logged by code only', async () => {
+    callAI.mockResolvedValueOnce(r(EN, 100, 40)).mockRejectedValueOnce(new QueueFullError({ provider: 'local', lane: 'interactive', maxQueue: 4, retryAfterMs: 30000 }));
+    const res = await on();
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ content: EN, evidence_level: null, evidence_retry: false, token_count: 140 });
+    expect(warn.mock.calls[0][0]).toMatch(/evidence retry failed \(queue_full\)/);
+  });
+});
+
+describe('folded into the ONE existing retry (never a third call)', () => {
+  test('citation AND marker missing: the citation re-answer plus the marker suffix', async () => {
+    callAI.mockResolvedValueOnce(r(EN_NO_CITE)).mockResolvedValueOnce(r(EN_M));
+    const res = await on();
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(lastAsk()).toBe('Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation. Engage with the question — do not decline, and do not append a follow-up question.'
+      + P.EVIDENCE_RETRY_PROMPT.suffix.en);
+    expect(res.body).toMatchObject({ evidence_level: 'moderate', evidence_retry: true });
+  });
+
+  test('citation AND marker missing, and the retry still lacks the marker: the re-answer is still returned', async () => {
+    callAI.mockResolvedValueOnce(r(EN_NO_CITE)).mockResolvedValueOnce(r(EN));
+    const res = await on();
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(res.body).toMatchObject({ content: EN, evidence_level: null, evidence_retry: true });
+  });
+
+  test('citation + marker: a failed retry still fails closed (the first reply had no citation)', async () => {
+    callAI.mockResolvedValueOnce(r(EN_NO_CITE)).mockRejectedValueOnce(new QueueFullError({ provider: 'local', lane: 'interactive', maxQueue: 4, retryAfterMs: 30000 }));
+    expect((await on()).status).toBe(503);
+  });
+
+  test('citation + language + marker on a Thai turn: one prompt carrying all three asks', async () => {
+    callAI.mockResolvedValueOnce(r(EN_NO_CITE)).mockResolvedValueOnce(r(`${TH}\n${MARK}`));
+    const res = await on({ language: 'th', message: TH_MSG });
+    expect(callAI).toHaveBeenCalledTimes(2);
+    const ask = lastAsk();
+    expect(ask.endsWith(' และเขียนคำตอบทั้งหมดเป็นภาษาไทย (Write the whole reply in Thai.)' + P.EVIDENCE_RETRY_PROMPT.suffix.th)).toBe(true);
+    expect(ask).toMatch(/\(แหล่ง, ปี\)/);
+    expect(res.body).toMatchObject({ language_retry: true, evidence_retry: true, evidence_level: 'moderate' });
+  });
+
+  test('language + marker: the Thai rewrite plus the marker suffix; a Thai rewrite without the marker is still returned', async () => {
+    callAI.mockResolvedValueOnce(r(EN)).mockResolvedValueOnce(r(TH));
+    const res = await on({ language: 'th', message: TH_MSG });
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(lastAsk()).toMatch(/^กรุณาเขียนคำตอบก่อนหน้านี้ใหม่เป็นภาษาไทย/);
+    expect(lastAsk().endsWith(P.EVIDENCE_RETRY_PROMPT.suffix.th)).toBe(true);
+    // The language fix is the one that matters: delivered, with the missing marker visible as null.
+    expect(res.body).toMatchObject({ content: TH, language_retry: true, evidence_retry: true, evidence_level: null });
+  });
+});
+
+describe('never on a rescue turn', () => {
+  test('the rescue prompt replaces the guidance, a marker-less question is fine, evidence_level null', async () => {
+    callAI.mockResolvedValueOnce(r('What would you check before choosing a dose for this patient?'));
+    const res = await on({ socratic: true, rescue_active: true, rescue_rounds: MAX_RESCUE_ROUNDS });
+    expect(res.status).toBe(200);
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(callAI.mock.calls[0][0].systemPrompt).toBe(P.RIMPL_SYSTEM_PROMPT_RESCUE);
+    expect(res.body).toMatchObject({ evidence_level: null, evidence_retry: false });
+    expect(res.body.prompt_version).toBe(promptLabel('chat', P.RIMPL_SYSTEM_PROMPT_RESCUE));
+  });
+
+  test('a rescue rewrite never carries the marker suffix', async () => {
+    callAI.mockResolvedValueOnce(r('Rivaroxaban 20 mg once daily (ROCKET AF, 2011).')).mockResolvedValueOnce(r('What are you weighing here?'));
+    await on({ socratic: true, rescue_active: true, rescue_rounds: MAX_RESCUE_ROUNDS });
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(lastAsk()).not.toMatch(/evidence-level/);
+  });
+});
+
+describe('streaming: the replace path covers the marker retry', () => {
+  const streamed = (text, i = 10, o = 10) => async ({ onDelta }) => { onDelta?.(text); return r(text, i, o); };
+  const parseSse = (t) => t.split('\n\n').filter(Boolean).map((b) => ({
+    event: /^event: (.+)$/m.exec(b)?.[1], data: JSON.parse(/^data: (.+)$/m.exec(b)?.[1] ?? 'null'),
+  }));
+
+  test('accepted rewrite: delta, replace{evidence}, delta, done — draft reported; done body = the JSON body', async () => {
+    callAI.mockImplementationOnce(streamed(EN, 100, 40)).mockImplementationOnce(streamed(EN_M, 160, 45));
+    const sse = await on({ stream: true });
+    const ev = parseSse(sse.text);
+    expect(ev.map((e) => e.event)).toEqual(['delta', 'replace', 'delta', 'done']);
+    expect(ev[1].data).toEqual({ reason: 'evidence' });
+    expect(ev[2].data.text).toBe(EN_M);
+    const done = ev.at(-1).data;
+    expect(done.status).toBe(200);
+    expect(done.body).toMatchObject({ content: EN_M, evidence_level: 'moderate', evidence_retry: true, superseded_draft: EN, superseded_reason: 'evidence' });
+    expect(callAI.mock.calls[1][0].onDelta).toBeUndefined();   // the retry is never streamed
+
+    callAI.mockReset();
+    callAI.mockImplementationOnce(streamed(EN, 100, 40)).mockImplementationOnce(streamed(EN_M, 160, 45));
+    const json = (await on()).body;
+    const { superseded_draft: _d, superseded_reason: _r, ...doneBody } = done.body;
+    expect(doneBody).toEqual(json);
+  });
+
+  test('rejected rewrite: delta, replace, done — the first reply stands and nothing is superseded', async () => {
+    callAI.mockImplementationOnce(streamed(EN)).mockImplementationOnce(streamed(EN));
+    const ev = parseSse((await on({ stream: true })).text);
+    expect(ev.map((e) => e.event)).toEqual(['delta', 'replace', 'done']);
+    expect(ev.at(-1).data.body).toMatchObject({ content: EN, evidence_level: null, evidence_retry: false, superseded_draft: null, superseded_reason: null });
+  });
+});

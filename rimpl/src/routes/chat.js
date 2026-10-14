@@ -3,8 +3,8 @@ const { z } = require('zod');
 const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = require('../services/pii-filter');
 const { ragLookup } = require('../services/rag');
 const { callAI } = require('../services/ai');
-const { hasCitation, extractSocraticQuestion, extractReferences, thaiShare, stripNonProse, isLanguageMismatch, isThaiMessage } = require('../services/post-filter');
-const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE } = require('../lib/prompts');
+const { hasCitation, extractSocraticQuestion, extractReferences, extractEvidenceLevel, thaiShare, stripNonProse, isLanguageMismatch, isThaiMessage } = require('../services/post-filter');
+const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE, EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT } = require('../lib/prompts');
 const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply, RESCUE_RETRY_PROMPT } = require('../services/rescue');
 const { formatDeidentified, stripArtifactDelimiters } = require('../lib/transcript');
 const { requestSignal } = require('../lib/request-signal');
@@ -35,6 +35,10 @@ const ChatSchema = z.object({
   // Superadmin `clinical_artifacts` setting (the backend forwards it): true → allow the AI to emit
   // `:::artifact{...}` side-panel blocks. Default false; the transcript strip runs regardless.
   artifacts: z.boolean().default(false),
+  // App setting `chat_evidence_marker` (the backend forwards it; CCME R5): true -> every non-rescue reply
+  // must carry exactly one GRADE evidence-level line (lib/prompts.js EVIDENCE_GUIDANCE), checked below.
+  // Default false. An older backend never sends it; an older RIMPL strips it (zod drops unknown keys).
+  evidence_marker: z.boolean().default(false),
   // Socratic rescue state, forwarded by the backend from the `ples` row. RIMPL is stateless, so it
   // cannot know whether this session has already been rescued or has already qualified — and both
   // are latches (a session does not un-qualify). Without them the classifier would re-run on every
@@ -108,15 +112,18 @@ router.post('/', async (req, res) => {
   const parsed = ChatSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { history, message, language, chief_complaint, patient_ref, socratic, artifacts,
+  const { history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker,
           rescue_active, already_qualified, rescue_rounds, stream } = parsed.data;
   // KNOWN patient identifiers to scrub deterministically (closes the bare-unlabelled-name leak).
   const hints = deriveHintTokens(patient_ref);
   // Examiner mode (CLE2 / remediation) leads with Socratic questioning and MUST end on ❓; natural
   // mode (CLE1/CLE3) answers directly and must NOT force a ❓ — that's the experimental contrast.
-  // Append the artifact guidance only when the superadmin toggle (forwarded as `artifacts`) is on.
+  // Append the artifact guidance only when the superadmin toggle (forwarded as `artifacts`) is on, and
+  // the evidence-marker guidance (its placement differs by mode) only when `evidence_marker` is on. A
+  // rescue turn REPLACES all of this below, so the rescue prompt never carries either.
   let systemPrompt = (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)
-    + (artifacts ? ARTIFACT_GUIDANCE : '');
+    + (artifacts ? ARTIFACT_GUIDANCE : '')
+    + (evidence_marker ? EVIDENCE_GUIDANCE[socratic ? 'examiner' : 'natural'] : '');
   // Fires if the physician's client (or the backend's deadline) hangs up: a queued call leaves the
   // queue and an in-flight one is cancelled, so a turn nobody is waiting for stops holding the model.
   const signal = requestSignal(req, res);
@@ -233,8 +240,8 @@ router.post('/', async (req, res) => {
     let lastInputTokens = inputTokens;
     let lastOutputTokens = outputTokens;
 
-    // ONE corrective retry, whatever is wrong. Two independent checks decide whether it fires, and a
-    // turn that fails both gets a SINGLE retry whose prompt asks for both fixes, so a turn never makes
+    // ONE corrective retry, whatever is wrong. Independent checks decide whether it fires, and a turn
+    // that fails several gets a SINGLE retry whose prompt asks for every fix, so a turn never makes
     // more than two AI calls in total (and the billing sums below stay a plain two-call sum).
     //   - citation missing (both modes), or — examiner mode only — the ❓ missing. Not on a rescue turn.
     //   - LANGUAGE: the physician wrote substantially in Thai and the reply is mostly-not-Thai
@@ -252,14 +259,19 @@ router.post('/', async (req, res) => {
     // RESCUE: a rescue reply with no question, more than the allowed questions, or a diagnosis/plan breaks
     // the rescue (rescue.js checkRescueReply). It gets the same single retry — a REWRITE into questions.
     const needRescue = rescuing && !checkRescueReply(text).ok;
+    // EVIDENCE MARKER (evidence_marker on): exactly one parseable evidence-level line, outside any fence
+    // (post-filter extractEvidenceLevel). Not on a rescue turn: the rescue prompt replaced the guidance
+    // and a rescue reply recommends nothing to grade.
+    const needEvidence = evidence_marker && !rescuing && extractEvidenceLevel(text) == null;
     let languageRetried = false;   // the retry's reply is the one being returned
     let rescueRetried = false;
+    let evidenceRetried = false;
     // A streamed first draft that the retry below replaces. The physician watched it arrive, so the
     // record keeps it (the backend stores it beside the reply it was replaced by); never set on a
     // non-streamed turn, where nobody saw it.
     let supersededDraft = null;
     let supersededReason = null;
-    if (needCitation || languageMismatch || needRescue) {
+    if (needCitation || languageMismatch || needRescue || needEvidence) {
       let retryPrompt;
       if (needCitation) {
         retryPrompt = socratic
@@ -271,20 +283,27 @@ router.post('/', async (req, res) => {
             : 'Please answer the original question again, fully and helpfully: include at least one (Source, Year) citation. Engage with the question — do not decline, and do not append a follow-up question.');
         // Both checks failed: the same single retry also pins the language.
         if (languageMismatch) retryPrompt += ' และเขียนคำตอบทั้งหมดเป็นภาษาไทย (Write the whole reply in Thai.)';
+        // A re-answer that must also carry the evidence line.
+        if (needEvidence) retryPrompt += EVIDENCE_RETRY_PROMPT.suffix[language];
       } else if (needRescue) {
         retryPrompt = language === 'th' ? RESCUE_RETRY_PROMPT.th : RESCUE_RETRY_PROMPT.en;
         if (languageMismatch) retryPrompt += ' และเขียนเป็นภาษาไทย (Write it in Thai.)';
-      } else {
-        // Language only: the reply is otherwise acceptable, so ask for a rewrite that keeps its
-        // content, citations, any ❓ and any :::artifact block — not a new answer.
+      } else if (languageMismatch) {
+        // Language (and perhaps the evidence line): the reply is otherwise acceptable, so ask for a
+        // rewrite that keeps its content, citations, any ❓ and any :::artifact block — not a new answer.
         retryPrompt = 'กรุณาเขียนคำตอบก่อนหน้านี้ใหม่เป็นภาษาไทย โดยคงเนื้อหาทางคลินิก การอ้างอิง (แหล่ง, ปี) และคำถามที่ขึ้นต้นด้วย ❓ (ถ้ามี) ไว้ตามเดิม และคงบล็อก :::artifact ทั้งบล็อก (ถ้ามี) ไว้ตามเดิมทุกประการ — ชื่อยา ตัวย่อ และชื่อแหล่งอ้างอิงเป็นภาษาอังกฤษได้ '
           + '(Please rewrite your previous reply in Thai, keeping the same clinical content, (Source, Year) citations and any ❓ question on its own line. Keep any :::artifact block exactly as is, fence lines included. Drug names, abbreviations and source titles may stay in English.)';
+        if (needEvidence) retryPrompt += EVIDENCE_RETRY_PROMPT.suffix[language];
+      } else {
+        // Evidence line only: a REWRITE that adds the one line and keeps everything else, like the
+        // language-only rewrite above — not a new answer.
+        retryPrompt = EVIDENCE_RETRY_PROMPT.only[language];
       }
       // A citation retry re-ANSWERS, so the artifact fence is stripped from the just-produced reply
       // before it is fed back, and the corrected reply doesn't echo the literal delimiter. A
-      // language-only retry REWRITES and must keep the fence the side panel depends on, so it sees
-      // the reply intact — but only when artifacts are on (the system prompt then explains the
-      // fence); with them off a stray fence is stripped as before.
+      // language-only (or evidence-only) retry REWRITES and must keep the fence the side panel depends
+      // on, so it sees the reply intact — but only when artifacts are on (the system prompt then
+      // explains the fence); with them off a stray fence is stripped as before.
       const keepFence = !needCitation && !needRescue && artifacts;
       const retryMessages = [...messages,
         { role: 'assistant', content: keepFence ? text : stripArtifactDelimiters(text) },
@@ -300,7 +319,7 @@ router.post('/', async (req, res) => {
       // caller mocked callAI without it, in which case this falls back to normal resolution.
       const firstText = text;
       const firstShown = shown;
-      const reason = needCitation ? 'citation' : needRescue ? 'rescue' : 'language';
+      const reason = needCitation ? 'citation' : needRescue ? 'rescue' : languageMismatch ? 'language' : 'evidence';
       // Tell the caller the text it is showing is about to be replaced. The retry itself is NOT streamed:
       // a retry that failed half-way would leave words on screen that no record holds (and a failed
       // language-only retry keeps the first reply). Its finished text goes out in one piece below.
@@ -312,22 +331,35 @@ router.post('/', async (req, res) => {
         // The client is gone, or the retry was needed for a missing citation/❓ (that reply was not
         // deliverable, and failing closed there is the existing behaviour): propagate.
         if (isAborted(err) || needCitation) throw err;
-        // A LANGUAGE-only retry is a nicety on top of a reply that was already deliverable. Losing the
-        // physician's turn (and, on a rescue turn, the rescue activation riding on this response) to a
-        // queue_full / 413 / 5xx on it would be worse than the English answer. Keep the first reply and
-        // its token sums; log the code only, never content.
-        console.warn(`[RIMPL chat] ${needRescue ? 'rescue' : 'language'} retry failed (${err?.code ?? err?.status ?? 'error'}) — delivering the first reply`);
+        // A LANGUAGE-only (or rescue / evidence-line) retry is a nicety on top of a reply that was
+        // already deliverable. Losing the physician's turn (and, on a rescue turn, the rescue activation
+        // riding on this response) to a queue_full / 413 / 5xx on it would be worse than the first
+        // answer. Keep the first reply and its token sums; log the code only, never content.
+        console.warn(`[RIMPL chat] ${reason} retry failed (${err?.code ?? err?.status ?? 'error'}) — delivering the first reply`);
         retry = null;
       }
+      // An evidence-line-ONLY rewrite exists to add one line to a reply that already passed every other
+      // check. If it came back still without a single parseable marker — or lost something the first
+      // reply had (its citation, its ❓ in examiner mode, Thai on a Thai turn) — it made the turn worse:
+      // keep the first reply, as a failed language-only retry does. Never thrown. The call is still billed.
+      const keepFirst = !!retry && reason === 'evidence' && (extractEvidenceLevel(retry.text) == null
+        || !hasCitation(retry.text) || (socratic && !extractSocraticQuestion(retry.text))
+        || (physicianWroteThai && isLanguageMismatch(retry.text, language)));
       if (retry) {
-        text = retry.text;
         tokenCount += retry.tokenCount;
         inputTokens += retry.inputTokens;
         outputTokens += retry.outputTokens;
+      }
+      if (keepFirst) {
+        // context_tokens stays the first call's: the first reply is the one stored and replayed next turn.
+        console.warn('[RIMPL chat] evidence retry rejected (no single evidence line, or it dropped the citation, ❓ or Thai) — delivering the first reply');
+      } else if (retry) {
+        text = retry.text;
         lastInputTokens = retry.inputTokens;
         lastOutputTokens = retry.outputTokens;
         languageRetried = languageMismatch;
         rescueRetried = needRescue;
+        evidenceRetried = needEvidence;
         if (firstShown) { supersededDraft = firstText; supersededReason = reason; }
         if (sse) sse.send('delta', { text });
         // The one retry is all there is. If the reply is STILL not Thai, deliver it (a late English
@@ -364,6 +396,14 @@ router.post('/', async (req, res) => {
       language_retry: languageRetried,
       // True when the rescue rules failed on the first reply AND the rewrite is the reply returned.
       rescue_retry: rescueRetried,
+      // CCME R5 evidence marker: the level the returned reply's ONE evidence line states — 'high' |
+      // 'moderate' | 'low' | 'expert' — or null: setting off, a rescue turn, or no single parseable
+      // line even after the retry (the reply is delivered regardless; this field is how that shows).
+      // Advisory, like language_retry: the backend whitelists its physician response and does not
+      // forward either field.
+      evidence_level: evidence_marker && !rescuing ? extractEvidenceLevel(text) : null,
+      // True when the evidence check fired on the first reply AND the retry's reply is the one returned.
+      evidence_retry: evidenceRetried,
       // Advisory, for the backend to persist: which turn the rescue fired on, why, and whether the
       // reply actually honoured the protocol's constraints. The SAP analyses trigger rate and
       // activation point, so an unrecorded rescue is a lost data point.

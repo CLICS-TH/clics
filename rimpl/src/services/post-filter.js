@@ -1,3 +1,7 @@
+// The evidence-marker labels come from the prompt module, so the line the model is told to write and
+// the line this file accepts are one definition (see the evidence-level section below).
+const { EVIDENCE_LEVELS, EVIDENCE_TH_LABEL, EVIDENCE_EN_LABEL } = require('../lib/prompts');
+
 // (Source, Year) citations: "(" + at least one char + "," + optional whitespace + 4 digits + anything
 // + ")". This used to be the regex /\([^)]+,\s*\d{4}[^)]*\)/g, which is O(n^2) in the length of the
 // text (and worse with long whitespace runs) on input like "(a, (a, (a, ..." with no ")". It runs on
@@ -57,6 +61,91 @@ function extractReferences(content) {
   return citationSpans(content).map(({ inner }) => ({ source: inner.trim(), title: inner.split(',')[0].trim() }));
 }
 
+// --- Evidence-level marker (CCME R5) -------------------------------------------------------------
+//
+// The line lib/prompts.js EVIDENCE_GUIDANCE asks for, as a checkable field:
+//   ระดับหลักฐาน: <สูง|ปานกลาง|ต่ำ|ความเห็นผู้เชี่ยวชาญ> (Evidence: <high|moderate|low|expert opinion>)
+// Built from EVIDENCE_LEVELS, the same table the prompt is built from, so the two cannot drift.
+//
+// WHAT COUNTS AS A MARKER LINE. A whole line (after trimming and removing markdown bold `**` / `__`)
+// that is the Thai label, the English label, or both — Thai first with the English in parentheses, or
+// English first with the Thai in parentheses. English is case-insensitive; a full-width colon is
+// accepted. A marker run into a prose line, wrapped in `inline code`, bulleted, or carrying a level
+// outside the four (e.g. "very low") is NOT a marker: the prompt asks for the line on its own, and a
+// checkable field that accepted every near-miss would stop being checkable.
+//
+// WHAT DOES NOT COUNT. A marker line inside a fenced ``` code block or inside a :::artifact{...} block
+// (fence syntax as in lib/transcript.js; an unterminated fence runs to the end, as in stripNonProse) is
+// not a marker at all — neither counted nor treated as a conflict. The prompt keeps the marker in the
+// conversational text, outside any fence.
+//
+// AMBIGUITY -> null. Several marker lines (even identical ones), or one whose Thai and English levels
+// disagree ("สูง (Evidence: low)"), is not one checkable answer, so the result is null — the same as
+// no marker — and the chat route's corrective retry asks for exactly one. Picking the first or the last
+// would silently choose between two claims the model made.
+//
+// COST. stripNonProse runs this on a physician's message too, so it is linear: one pass over the lines,
+// a line longer than EVIDENCE_LINE_MAX_CHARS is skipped before any regex sees it, and no regex below
+// has two adjacent unbounded quantifiers over overlapping classes.
+const EVIDENCE_LINE_MAX_CHARS = 200;
+const EVIDENCE_BY_TH = new Map(EVIDENCE_LEVELS.map((l) => [l.th, l.key]));
+const EVIDENCE_BY_EN = new Map(EVIDENCE_LEVELS.map((l) => [l.en, l.key]));
+const TH_ALT = EVIDENCE_LEVELS.map((l) => l.th).join('|');
+// "expert opinion" tolerates more than one space between its words.
+const EN_ALT = EVIDENCE_LEVELS.map((l) => l.en.replace(/ /g, '[ \\t]+')).join('|');
+const TH_PART = `${EVIDENCE_TH_LABEL}[ \\t]*[:：][ \\t]*(${TH_ALT})`;
+const EN_PART = `${EVIDENCE_EN_LABEL}[ \\t]*[:：][ \\t]*(${EN_ALT})`;
+const EVIDENCE_TH_FIRST = new RegExp(`^${TH_PART}(?:[ \\t]*\\([ \\t]*${EN_PART}[ \\t]*\\))?$`, 'i');
+const EVIDENCE_EN_FIRST = new RegExp(`^${EN_PART}(?:[ \\t]*\\([ \\t]*${TH_PART}[ \\t]*\\))?$`, 'i');
+
+// One line -> 'high' | 'moderate' | 'low' | 'expert' | 'conflict' (Thai and English disagree) | null.
+function parseEvidenceLine(line) {
+  if (typeof line !== 'string' || line.length > EVIDENCE_LINE_MAX_CHARS) return null;
+  const t = line.replace(/\*\*|__/g, '').trim();
+  let th = null;
+  let en = null;
+  let m = EVIDENCE_TH_FIRST.exec(t);
+  if (m) { th = m[1]; en = m[2] ?? null; } else {
+    m = EVIDENCE_EN_FIRST.exec(t);
+    if (!m) return null;
+    en = m[1]; th = m[2] ?? null;
+  }
+  const fromTh = th == null ? null : EVIDENCE_BY_TH.get(th);
+  const fromEn = en == null ? null : EVIDENCE_BY_EN.get(en.toLowerCase().replace(/[ \t]+/g, ' '));
+  if (fromTh && fromEn && fromTh !== fromEn) return 'conflict';
+  return fromTh || fromEn || null;
+}
+
+const CODE_FENCE_OPEN = /^[ \t]*```[^`]*$/;   // CommonMark: an opening fence's info string has no backtick
+const CODE_FENCE_CLOSE = /^[ \t]*```[ \t]*$/;
+const ARTIFACT_FENCE_OPEN = /^:::artifact\{[^}\n]*\}/;
+const ARTIFACT_FENCE_CLOSE = /^:::[ \t]*$/;
+
+// Every marker line OUTSIDE a fence, in order: [{ line, level }] where `line` is the 0-based index in
+// content.split('\n') and `level` may be 'conflict'. Exported for the quality harness's placement check.
+function findEvidenceMarkers(content) {
+  const lines = String(content ?? '').split('\n');
+  const found = [];
+  let fence = null;   // null | 'code' | 'artifact'
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].replace(/\r$/, '');
+    if (fence === 'code') { if (CODE_FENCE_CLOSE.test(line)) fence = null; continue; }
+    if (fence === 'artifact') { if (ARTIFACT_FENCE_CLOSE.test(line)) fence = null; continue; }
+    if (CODE_FENCE_OPEN.test(line)) { fence = 'code'; continue; }
+    if (ARTIFACT_FENCE_OPEN.test(line)) { fence = 'artifact'; continue; }
+    const level = parseEvidenceLine(line);
+    if (level) found.push({ line: i, level });
+  }
+  return found;
+}
+
+// 'high' | 'moderate' | 'low' | 'expert' | null — null when there is no marker, more than one, or a
+// self-contradicting one (see AMBIGUITY above).
+function extractEvidenceLevel(content) {
+  const found = findEvidenceMarkers(content);
+  return found.length === 1 && found[0].level !== 'conflict' ? found[0].level : null;
+}
+
 // --- Language guard -------------------------------------------------------------------------------
 //
 // Thai share = Thai codepoints (U+0E00-U+0E7F) / (Thai codepoints + Latin letters). Digits,
@@ -90,6 +179,12 @@ const MIN_JUDGED_LETTERS = 20;
 //   - (Source, Year) citations                   (same pattern as hasCitation; source titles are
 //                                                 often English even in a Thai answer, and the
 //                                                 prompt REQUIRES them)
+//   - evidence-level marker lines                (parseEvidenceLine; the prompt REQUIRES the line,
+//                                                 bilingual, in every reply of either language. Each
+//                                                 is 54-60% Thai by itself, so measuring it would lift
+//                                                 a short English reply to a Thai question over the
+//                                                 bar and hide it, and would credit an English turn's
+//                                                 reply with Thai it never wrote)
 // Deliberately NOT ignored: drug names, lab names and abbreviations in running prose. They cannot be
 // told apart from English prose by a regex, and the 0.30 bar already allows for them.
 //
@@ -107,6 +202,10 @@ function stripNonProse(text) {
   let s = String(text ?? '');
   if (s.length > MAX_PROSE_CHARS) s = s.slice(0, MAX_PROSE_CHARS);
   s = s.replace(/^:::artifact\{[^}\n]*\}[^\n]*(?:\n[\s\S]*?^:::[ \t]*$|[\s\S]*$)/gm, ' ');
+  // Whole marker lines, wherever they are (one inside a code block would be stripped as code anyway).
+  if (s.includes(EVIDENCE_TH_LABEL) || /evidence/i.test(s)) {
+    s = s.split('\n').filter((line) => !parseEvidenceLine(line.replace(/\r$/, ''))).join('\n');
+  }
   const heading = REFERENCES_HEADING.exec(s);
   if (heading) s = s.slice(0, heading.index);
   s = s
@@ -145,6 +244,7 @@ function isLanguageMismatch(text, language, { min = THAI_MIN_SHARE } = {}) {
 
 module.exports = {
   hasCitation, extractSocraticQuestion, extractReferences,
+  extractEvidenceLevel, findEvidenceMarkers, parseEvidenceLine, EVIDENCE_LINE_MAX_CHARS,
   thaiShare, isLanguageMismatch, isThaiMessage, stripNonProse, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
   MAX_PROSE_CHARS, MESSAGE_SAMPLE_CHARS,
 };

@@ -12,9 +12,11 @@ import { fileURLToPath } from 'node:url';
 import {
   buildChatRequest, buildMessages, retryDecision, retryPrompt, retryMessages, RETRY_PROMPTS, CC_PREFIX, CHAT_MAX_TOKENS, routeLanguage,
   LANGUAGE_SUFFIX, LANGUAGE_ONLY_PROMPT, LANGUAGE_ONLY_PROMPT_TH, LANGUAGE_ONLY_PROMPT_EN, expectedReplyLanguage,
+  keepFirstReply, retryReason,
 } from './request.mjs';
 import {
   RIMPL_FILES, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE, promptLabel,
+  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT,
 } from './rimpl.mjs';
 import { runItem, makeAnthropicArm, productionAnthropicModel, spendOf, runQueue, carriedTokens } from './tutor-audit.mjs';
 import { ITEM_TH_EXAMINER, ITEM_EN_NATURAL, ITEM_RESCUE, ITEM_PII, GOOD_TH_EXAMINER } from './test-fixtures.mjs';
@@ -41,13 +43,15 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
     'const history = cleanHistory.map(m => ({',
   ]) assert.ok(chatSrc.includes(line), `one-registry de-identification drifted: ${line}`);
   assert.ok(chatSrc.includes('const hints = deriveHintTokens(patient_ref);'), 'PII hint derivation drifted');
-  assert.ok(chatSrc.includes("+ (artifacts ? ARTIFACT_GUIDANCE : '');"), 'ARTIFACT_GUIDANCE concatenation drifted');
+  // System prompt = mode prompt + artifact guidance + the evidence guidance for the mode, in that order.
+  assert.ok(chatSrc.includes("+ (artifacts ? ARTIFACT_GUIDANCE : '')\n    + (evidence_marker ? EVIDENCE_GUIDANCE[socratic ? 'examiner' : 'natural'] : '');"),
+    'ARTIFACT_GUIDANCE / EVIDENCE_GUIDANCE concatenation drifted');
   // The single corrective retry (#109): both triggers, how they combine, prompts, fence, failure rule.
   for (const line of [
     'const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));',
     "const physicianWroteThai = language === 'th' && isThaiMessage(message);",
     'const languageMismatch = physicianWroteThai && isLanguageMismatch(text, language);',
-    'if (needCitation || languageMismatch || needRescue) {',
+    'if (needCitation || languageMismatch || needRescue || needEvidence) {',
     'const needRescue = rescuing && !checkRescueReply(text).ok;',
     'rescueRetried = needRescue;',
     'rescue_retry: rescueRetried,',
@@ -57,7 +61,23 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
     'if (isAborted(err) || needCitation) throw err;',
     'languageRetried = languageMismatch;',
     'language_retry: languageRetried,',
+    // The evidence marker (CCME R5): its trigger, its share of the prompt selection, the rewrite that
+    // does not hold, and the two response fields — request.mjs retryDecision / retryPrompt /
+    // retryReason / keepFirstReply replicate exactly these.
+    'const needEvidence = evidence_marker && !rescuing && extractEvidenceLevel(text) == null;',
+    '} else if (languageMismatch) {',
+    'retryPrompt = EVIDENCE_RETRY_PROMPT.only[language];',
+    "const reason = needCitation ? 'citation' : needRescue ? 'rescue' : languageMismatch ? 'language' : 'evidence';",
+    "const keepFirst = !!retry && reason === 'evidence' && (extractEvidenceLevel(retry.text) == null",
+    '|| !hasCitation(retry.text) || (socratic && !extractSocraticQuestion(retry.text))',
+    '|| (physicianWroteThai && isLanguageMismatch(retry.text, language)));',
+    'evidenceRetried = needEvidence;',
+    'evidence_retry: evidenceRetried,',
+    'evidence_level: evidence_marker && !rescuing ? extractEvidenceLevel(text) : null,',
   ]) assert.ok(chatSrc.includes(line), `retry logic drifted from chat.js: ${line}`);
+  // The suffix rides on BOTH the citation re-answer and the Thai rewrite, and nowhere else (not rescue).
+  assert.equal(chatSrc.split('if (needEvidence) retryPrompt += EVIDENCE_RETRY_PROMPT.suffix[language];').length - 1, 2,
+    'the evidence suffix must be appended in exactly the citation and language branches');
   for (const str of [LANGUAGE_SUFFIX, LANGUAGE_ONLY_PROMPT_TH, LANGUAGE_ONLY_PROMPT_EN]) {
     assert.ok(chatSrc.includes(str), `language retry prompt drifted: ${str.slice(0, 40)}…`);
   }
@@ -124,7 +144,7 @@ const TH_MSG = 'ผู้ป่วยเจ็บหน้าอก ควรท
 const EN_REPLY_CITED = 'Do an ECG within ten minutes of arrival and measure troponin (ESC ACS, 2023).';
 test('retry decision = chat.js: citation/❓ check and the language guard, combined into ONE retry', () => {
   const base = { socratic: false, rescuing: false, language: 'th', message: TH_MSG };
-  assert.deepEqual(retryDecision('ตอบโดยไม่มีอ้างอิง', base), { fire: true, needCitation: true, languageMismatch: false, needRescue: false, physicianWroteThai: true });
+  assert.deepEqual(retryDecision('ตอบโดยไม่มีอ้างอิง', base), { fire: true, needCitation: true, languageMismatch: false, needRescue: false, needEvidence: false, physicianWroteThai: true });
   assert.equal(retryDecision('มีอ้างอิง (KDIGO, 2022)', base).fire, false);
   assert.equal(retryDecision('มีอ้างอิง (KDIGO, 2022)', { ...base, socratic: true }).needCitation, true, 'examiner also needs ❓');
   // Language only: Thai turn, English but cited reply -> rewrite prompt, no citation prompt.
@@ -352,4 +372,98 @@ test('rescue retry = chat.js: a rescue reply that breaks the rules fires ONE rew
   assert.equal(retryDecision('What are you weighing here?', base).fire, false);
   assert.equal(retryDecision('Rivaroxaban 20 mg once daily (ROCKET AF, 2011).', { ...base, rescuing: false, socratic: false }).needRescue, false);
   assert.ok(chatSrc.includes("retryPrompt = language === 'th' ? RESCUE_RETRY_PROMPT.th : RESCUE_RETRY_PROMPT.en;"), 'rescue retry prompt choice drifted');
+});
+
+/* ------------------------------------------------------- evidence marker (CCME R5) */
+
+const MARK = 'ระดับหลักฐาน: ปานกลาง (Evidence: moderate)';
+const EN_CITED = 'Do an ECG within ten minutes of arrival and measure troponin (ESC ACS, 2023).';
+
+test('evidence marker: the guidance is appended per mode, after artifacts, never on a rescue item', () => {
+  assert.equal(buildChatRequest(ITEM_EN_NATURAL, { evidenceMarker: true }).systemPrompt, RIMPL_SYSTEM_PROMPT_NATURAL + EVIDENCE_GUIDANCE.natural);
+  assert.equal(buildChatRequest(ITEM_TH_EXAMINER, { evidenceMarker: true, artifacts: true }).systemPrompt,
+    RIMPL_SYSTEM_PROMPT_EXAMINER + ARTIFACT_GUIDANCE + EVIDENCE_GUIDANCE.examiner);
+  const rescue = buildChatRequest(ITEM_RESCUE, { evidenceMarker: true });
+  assert.equal(rescue.systemPrompt, RIMPL_SYSTEM_PROMPT_RESCUE);
+  assert.equal(rescue.evidenceMarker, false, 'chat.js never checks the marker on a rescue turn');
+  assert.equal(buildChatRequest(ITEM_EN_NATURAL).evidenceMarker, false, 'off by default, as the setting is');
+  assert.equal(buildChatRequest(ITEM_EN_NATURAL).systemPrompt, RIMPL_SYSTEM_PROMPT_NATURAL);
+});
+
+test('evidence marker: decision, prompt and reason replicate chat.js', () => {
+  const base = { socratic: false, rescuing: false, language: 'en', message: 'Chest pain, what next?', evidenceMarker: true };
+  const only = retryDecision(EN_CITED, base);
+  assert.deepEqual([only.fire, only.needEvidence, only.needCitation, only.languageMismatch], [true, true, false, false]);
+  assert.equal(retryReason(only), 'evidence');
+  assert.equal(retryPrompt(only, base), EVIDENCE_RETRY_PROMPT.only.en);
+  assert.equal(retryPrompt(only, { ...base, language: 'th' }), EVIDENCE_RETRY_PROMPT.only.th);
+  assert.equal(retryDecision(`${EN_CITED}\n${MARK}`, base).fire, false);
+  assert.equal(retryDecision(EN_CITED, { ...base, evidenceMarker: false }).fire, false, 'off: never fires');
+  assert.equal(retryDecision(EN_CITED, { ...base, rescuing: true }).needEvidence, false, 'never on a rescue turn');
+  // Folded into the other retries as a suffix.
+  const cit = retryDecision('Do an ECG within ten minutes.', base);
+  assert.equal(retryPrompt(cit, base), RETRY_PROMPTS.natural.en + EVIDENCE_RETRY_PROMPT.suffix.en);
+  const th = { ...base, language: 'th', message: TH_MSG };
+  const all3 = retryDecision('Do an ECG within ten minutes.', th);
+  assert.equal(retryPrompt(all3, th), RETRY_PROMPTS.natural.th + LANGUAGE_SUFFIX + EVIDENCE_RETRY_PROMPT.suffix.th);
+  const langEv = retryDecision(EN_CITED, th);
+  assert.equal(retryPrompt(langEv, th), LANGUAGE_ONLY_PROMPT + EVIDENCE_RETRY_PROMPT.suffix.th);
+  // A rewrite (evidence only) keeps the fence when artifacts are on, like the language-only rewrite.
+  const fenced = `${EN_CITED}\n:::artifact{type="x" title="t"}\nbody\n:::`;
+  assert.match(retryMessages([], fenced, only, { ...base, artifacts: true })[0].content, /:::artifact/);
+});
+
+test('evidence marker: keepFirstReply = chat.js keepFirst (evidence-only rewrites that do not hold)', () => {
+  const base = { socratic: false, rescuing: false, language: 'en', message: 'Chest pain, what next?', evidenceMarker: true };
+  const only = retryDecision(EN_CITED, base);
+  assert.equal(keepFirstReply(only, `${EN_CITED}\n${MARK}`, base), false, 'a rewrite that holds is used');
+  assert.equal(keepFirstReply(only, EN_CITED, base), true, 'still no marker');
+  assert.equal(keepFirstReply(only, `${EN_CITED}\n${MARK}\n${MARK}`, base), true, 'two markers');
+  assert.equal(keepFirstReply(only, `Do an ECG within ten minutes.\n${MARK}`, base), true, 'lost the citation');
+  const ex = { ...base, socratic: true };
+  const exOnly = retryDecision(`${EN_CITED}\n❓ What next?`, ex);
+  assert.equal(keepFirstReply(exOnly, `${EN_CITED}\n${MARK}`, ex), true, 'lost the ❓');
+  const th = { ...base, language: 'th', message: TH_MSG };
+  const thOnly = retryDecision('ตรวจคลื่นไฟฟ้าหัวใจภายในสิบนาที (ESC ACS, 2023)', th);
+  assert.equal(keepFirstReply(thOnly, `${EN_CITED}\n${MARK}`, th), true, 'came back in English on a Thai turn');
+  // Never for a citation or language retry: those replies are used even without the marker.
+  assert.equal(keepFirstReply(retryDecision('no cite', base), 'no marker (X, 2020)', base), false);
+});
+
+test('runItem --evidence-marker: rewrite delivered when it holds, first reply kept when it does not', async () => {
+  let n = 0;
+  const holds = async () => (++n === 1 ? { ok: true, text: 'Start at eGFR 20 (KDIGO, 2022).', ms: 5 } : { ok: true, text: `Start at eGFR 20 (KDIGO, 2022).\n${MARK}`, ms: 6 });
+  const e = await runItem(ITEM_EN_NATURAL, holds, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1, evidenceMarker: true });
+  assert.equal(n, 2);
+  assert.equal(e.request.evidence_marker, true);
+  assert.match(e.retry.reason, /evidence marker/);
+  assert.deepEqual([e.final.from, e.evidence_retry, e.evidence_level], ['retry', true, 'moderate']);
+  assert.equal(e.checks.checks.evidence_marker.pass, true);
+  n = 0;
+  const useless = async () => { n += 1; return { ok: true, text: 'Start at eGFR 20 (KDIGO, 2022).', ms: 5 }; };
+  const k = await runItem(ITEM_EN_NATURAL, useless, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1, evidenceMarker: true });
+  assert.equal(n, 2, 'still at most two calls');
+  assert.match(k.final.from, /^first \(evidence rewrite rejected/);
+  assert.deepEqual([k.evidence_retry, k.evidence_level], [false, null]);
+  assert.equal(k.checks.flags.find((f) => f.code === 'no_evidence_marker')?.severity, 'minor');
+  n = 0;
+  const failing = async () => (++n === 1 ? { ok: true, text: 'Start at eGFR 20 (KDIGO, 2022).', ms: 5 } : { ok: false, status: 503, error: 'HTTP 503', text: '' });
+  const f = await runItem(ITEM_EN_NATURAL, failing, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1, evidenceMarker: true });
+  assert.equal(f.final.ok, true, 'a failed evidence-only retry keeps the deliverable first reply');
+  // Off: no check, no retry, no field.
+  n = 0;
+  const off = await runItem(ITEM_EN_NATURAL, useless, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1 });
+  assert.equal(n, 1);
+  assert.deepEqual([off.request.evidence_marker, off.evidence_level, off.checks.checks.evidence_marker], [false, null, undefined]);
+});
+
+test('CLI: --dry-run --evidence-marker shows the guidance on, and a different prompt version', () => {
+  const plain = run(['--dry-run', '--ids', 'th-cardio-stemi']);
+  const marked = run(['--dry-run', '--ids', 'th-cardio-stemi', '--evidence-marker']);
+  assert.equal(marked.status, 0, marked.stderr);
+  assert.match(marked.stdout, /evidence marker on/);
+  assert.match(marked.stdout, /\+ EVIDENCE_GUIDANCE/);
+  assert.match(marked.stdout, /0 requests sent/);
+  const label = (out) => out.match(/chat-prompt-[0-9a-f]{8}/)?.[0];
+  assert.notEqual(label(marked.stdout), label(plain.stdout));
 });

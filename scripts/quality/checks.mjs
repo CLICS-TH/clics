@@ -10,6 +10,10 @@
 //                                              cite-verify.mjs for whether the source is real)
 //   socratic     extractSocraticQuestion     — post-filter.js (what chat.js enforces for examiner)
 //   rescue       checkRescueReply            — rimpl/src/services/rescue.js (CREC082 §4 post-check)
+//   evidence_marker  extractEvidenceLevel     — post-filter.js (CCME R5; only on a report run with
+//                                              --evidence-marker, and never on a rescue turn — exactly
+//                                              where chat.js checks it). Its placement (the prompt's rule,
+//                                              not enforced by chat.js) is reported beside it.
 //   length       "keep the whole reply under ~400 words" — rimpl/src/lib/prompts.js
 // plus three this harness adds: echo of the item's synthetic identifiers, must_not_patterns, and an
 // empty / reasoning-only reply (the DeepSeek-style failure rimpl renders as a blank bubble).
@@ -28,6 +32,7 @@ import {
   hasCitation, extractSocraticQuestion, extractReferences, checkRescueReply,
   thaiShare, stripNonProse, isThaiMessage, isLanguageMismatch, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
   stripThink, createThinkFilter,
+  extractEvidenceLevel, findEvidenceMarkers,
 } from './rimpl.mjs';
 import { routeLanguage, includesLoose } from './request.mjs';
 import { wilson, fmtRate } from './stats.mjs';
@@ -37,7 +42,10 @@ import { wilson, fmtRate } from './stats.mjs';
 // no_reasoning_leak asks only what a physician could SEE: reasoning on screen in a streamed reply, or
 // markup in the returned one. Inline markup production removes is an `info` flag, not a leak. A v1
 // figure for no_reasoning_leak counted any <think> in the raw content and is not comparable.
-export const CHECKS_VERSION = 'checks-v2';
+// checks-v3 (2026-10-14): + evidence_marker / evidence_marker_placement (CCME R5), on --evidence-marker
+// reports only. An earlier report re-checked under v3 gains nothing: its entries carry no
+// request.evidence_marker.
+export const CHECKS_VERSION = 'checks-v3';
 // prompts.js: "keep the whole reply under ~400 words". The tilde earns a 10% tolerance.
 export const LENGTH_TARGET_WORDS = 400;
 export const LENGTH_MAX_WORDS = 440;
@@ -179,6 +187,28 @@ export function checkReply(item, entry) {
     const cited = hasCitation(text);
     checks.citation_shape = { pass: cited, value: extractReferences(text).map((r) => r.source) };
     if (!cited) flag('no_citation', 'minor', 'no (Source, Year) citation after the chat.js retry');
+
+    // EVIDENCE MARKER (CCME R5): present only when the run asked for it (entry.request.evidence_marker,
+    // which runItem sets false on a rescue turn). Presence is production's parser — one marker line
+    // outside any fence, else null — so a pass means chat.js would report a level. A SHAPE check only:
+    // whether the level is the right GRADE certainty for the claim is for the judges and a clinician.
+    if (entry.request?.evidence_marker === true) {
+      const level = extractEvidenceLevel(text);
+      const markers = findEvidenceMarkers(text);
+      const why = markers.length > 1 ? `${markers.length} evidence lines (ambiguous)`
+        : markers.length === 1 ? 'the Thai and English levels disagree' : 'no evidence-level line';
+      checks.evidence_marker = { pass: level != null, value: level, detail: level ? `level ${level}` : why };
+      if (level == null) {
+        flag('no_evidence_marker', 'minor', `${why} after the chat.js retry`);
+      } else {
+        // The prompt's placement: natural = the very last line; examiner = directly above the closing ❓.
+        const after = text.split('\n').slice(markers[0].line + 1).map((l) => l.trim()).filter(Boolean);
+        const placed = item.mode === 'examiner' ? (after.length === 1 && after[0].startsWith('❓')) : after.length === 0;
+        const rule = item.mode === 'examiner' ? 'directly above the closing ❓ line' : 'the last line';
+        checks.evidence_marker_placement = { pass: placed, detail: placed ? rule : `not ${rule}` };
+        if (!placed) flag('evidence_marker_misplaced', 'minor', `evidence line is not ${rule}`);
+      }
+    }
   }
 
   const ids = item.identifiers ?? [];

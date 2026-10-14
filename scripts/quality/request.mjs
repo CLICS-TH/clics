@@ -2,17 +2,20 @@
 //
 // WHAT IS IMPORTED vs WHAT IS REPLICATED
 // --------------------------------------
-// Imported from rimpl (via ./rimpl.mjs): the three system prompts and ARTIFACT_GUIDANCE, the PII
-// filter (stripPii / stripHistoryPii / deriveHintTokens / makeRegistry), the artifact-fence strip, and every
-// predicate the retry decision is made of — hasCitation, extractSocraticQuestion, isThaiMessage,
-// isLanguageMismatch (services/post-filter.js) — plus promptLabel (the provenance hash).
+// Imported from rimpl (via ./rimpl.mjs): the three system prompts, ARTIFACT_GUIDANCE and
+// EVIDENCE_GUIDANCE / EVIDENCE_RETRY_PROMPT (the evidence marker), the PII filter (stripPii /
+// stripHistoryPii / deriveHintTokens / makeRegistry), the artifact-fence strip, and every predicate the
+// retry decision is made of — hasCitation, extractSocraticQuestion, isThaiMessage, isLanguageMismatch,
+// extractEvidenceLevel (services/post-filter.js) — plus promptLabel (the provenance hash).
 //
 // Replicated, because chat.js does not export them and requiring chat.js pulls express + zod:
 //   * deidentifyTurn() — ONE pii registry per call, filled chief complaint → history → message.
 //   * buildMessages()  — the chief-complaint prefix, physician→user role mapping, artifact strip.
-//   * the ONE corrective retry (#109): how the two checks combine (citation/❓ and language), which
-//     prompt each case gets, whether the artifact fence is kept, and that a FAILED language-only
-//     retry keeps the first reply while a failed citation retry fails the turn. ≤ 2 calls per turn.
+//   * the ONE corrective retry (#109): how the checks combine (citation/❓, language, rescue rules and
+//     — with the evidence marker on — the evidence line), which prompt each case gets, whether the
+//     artifact fence is kept, that a FAILED language-only / evidence-only retry keeps the first reply
+//     while a failed citation retry fails the turn, and that an evidence-only rewrite which does not
+//     hold is discarded for the first reply. ≤ 2 calls per turn.
 //   * the client's `language` rule — 'th' when the message holds ANY Thai codepoint
 //     (physician-ui/public/js/ple-chat.js).
 //   * CHAT_MAX_TOKENS  — max(1500, RIMPL_CHAT_MAX_TOKENS ?? 4000), defined in rimpl/src/lib/turn-limits.js.
@@ -28,6 +31,7 @@
 
 import {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
+  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, extractEvidenceLevel,
   promptLabel, stripPii, stripHistoryPii, deriveHintTokens, makeRegistry, stripArtifactDelimiters,
   hasCitation, extractSocraticQuestion, isThaiMessage, isLanguageMismatch, checkRescueReply, RESCUE_RETRY_PROMPT,
 } from './rimpl.mjs';
@@ -95,19 +99,23 @@ export function buildMessages(cleanHistory, cleanMessage, cleanChiefComplaint) {
 /**
  * Everything the chat route would decide for this item, before the model call.
  * @param {object} item  a validated bank item
- * @param {{artifacts?: boolean}} opts
+ * @param {{artifacts?: boolean, evidenceMarker?: boolean}} opts  the clinical_artifacts and
+ *   chat_evidence_marker settings, as the backend forwards them
  */
-export function buildChatRequest(item, { artifacts = false } = {}) {
+export function buildChatRequest(item, { artifacts = false, evidenceMarker = false } = {}) {
   const turns = item.turns;
   const history = turns.slice(0, -1);
   const message = turns[turns.length - 1].content;
   const hints = deriveHintTokens(item.patient_ref ?? null);
   const socratic = item.mode === 'examiner';
   const rescuing = item.mode === 'rescue';
-  // chat.js: mode prompt (+ artifact guidance), and the rescue REPLACES it wholesale.
+  // chat.js: mode prompt (+ artifact guidance, + the evidence guidance for the mode), and the rescue
+  // REPLACES it wholesale.
   const systemPrompt = rescuing
     ? RIMPL_SYSTEM_PROMPT_RESCUE
-    : (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL) + (artifacts ? ARTIFACT_GUIDANCE : '');
+    : (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)
+      + (artifacts ? ARTIFACT_GUIDANCE : '')
+      + (evidenceMarker ? EVIDENCE_GUIDANCE[socratic ? 'examiner' : 'natural'] : '');
   const { cleanChiefComplaint, cleanHistory, cleanMessage } =
     deidentifyTurn({ chiefComplaint: item.chief_complaint, history, message, hints });
   const messages = buildMessages(cleanHistory, cleanMessage, cleanChiefComplaint);
@@ -116,6 +124,7 @@ export function buildChatRequest(item, { artifacts = false } = {}) {
     socratic,
     rescuing,
     artifacts: artifacts && !rescuing,
+    evidenceMarker: evidenceMarker && !rescuing,   // chat.js checks the marker only off a rescue turn
     language: routeLanguage(message),
     message,                                  // RAW: chat.js runs isThaiMessage on the un-stripped message
     systemPrompt,
@@ -135,30 +144,54 @@ export function buildChatRequest(item, { artifacts = false } = {}) {
  *                     turns too — it asks for a rewrite, not a new answer.
  *   needRescue        a rescue reply that fails checkRescueReply (no question, too many, or a diagnosis):
  *                     a REWRITE into questions (RESCUE_RETRY_PROMPT).
+ *   needEvidence      evidence marker on, not a rescue turn, and no single parseable evidence line
+ *                     (extractEvidenceLevel null).
  */
-export function retryDecision(text, { socratic, rescuing, language, message }) {
+export function retryDecision(text, { socratic, rescuing, language, message, evidenceMarker = false }) {
   const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));
   const physicianWroteThai = language === 'th' && isThaiMessage(message);
   const languageMismatch = physicianWroteThai && isLanguageMismatch(text, language);
   const needRescue = !!rescuing && !checkRescueReply(text).ok;
-  return { fire: needCitation || languageMismatch || needRescue, needCitation, languageMismatch, needRescue, physicianWroteThai };
+  const needEvidence = !!evidenceMarker && !rescuing && extractEvidenceLevel(text) == null;
+  return {
+    fire: needCitation || languageMismatch || needRescue || needEvidence,
+    needCitation, languageMismatch, needRescue, needEvidence, physicianWroteThai,
+  };
+}
+
+/** chat.js's `reason` for a decision (the SSE `replace` event and superseded_reason). */
+export function retryReason(decision) {
+  return decision.needCitation ? 'citation' : decision.needRescue ? 'rescue' : decision.languageMismatch ? 'language' : 'evidence';
 }
 
 /** The retry prompt chat.js sends for a decision. */
 export function retryPrompt(decision, { socratic, language }) {
+  const lang = language === 'th' ? 'th' : 'en';
+  const evidenceSuffix = decision.needEvidence ? EVIDENCE_RETRY_PROMPT.suffix[lang] : '';
   if (decision.needCitation) {
-    const p = RETRY_PROMPTS[socratic ? 'socratic' : 'natural'][language === 'th' ? 'th' : 'en'];
-    return decision.languageMismatch ? p + LANGUAGE_SUFFIX : p;
+    const p = RETRY_PROMPTS[socratic ? 'socratic' : 'natural'][lang];
+    return (decision.languageMismatch ? p + LANGUAGE_SUFFIX : p) + evidenceSuffix;
   }
   if (decision.needRescue) {
     const p = language === 'th' ? RESCUE_RETRY_PROMPT.th : RESCUE_RETRY_PROMPT.en;
     return decision.languageMismatch ? p + ' และเขียนเป็นภาษาไทย (Write it in Thai.)' : p;
   }
-  return LANGUAGE_ONLY_PROMPT;
+  if (decision.languageMismatch) return LANGUAGE_ONLY_PROMPT + evidenceSuffix;
+  return EVIDENCE_RETRY_PROMPT.only[lang];
+}
+
+/** chat.js `keepFirst`: an evidence-only rewrite is discarded for the first reply when it still has no
+ *  single evidence line, or lost what the first reply had (citation, ❓ in examiner mode, Thai on a
+ *  Thai turn). Only ever true for an evidence-only decision; the retry call itself must have succeeded. */
+export function keepFirstReply(decision, retryText, { socratic, language }) {
+  if (retryReason(decision) !== 'evidence') return false;
+  return extractEvidenceLevel(retryText) == null
+    || !hasCitation(retryText) || (socratic && !extractSocraticQuestion(retryText))
+    || (decision.physicianWroteThai && isLanguageMismatch(retryText, language));
 }
 
 /** Retry messages: a citation retry re-ANSWERS (fence stripped from the fed-back reply); a
- *  language-only retry REWRITES and keeps the fence, but only when artifacts are on. */
+ *  language-only or evidence-only retry REWRITES and keeps the fence, but only when artifacts are on. */
 export function retryMessages(messages, firstText, decision, { socratic, language, artifacts = false }) {
   const keepFence = !decision.needCitation && !decision.needRescue && artifacts;
   return [...messages,

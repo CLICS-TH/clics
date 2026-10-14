@@ -25,7 +25,7 @@ const sentBody = () => JSON.parse(global.fetch.mock.calls[0][1].body);
 const CALL = {
   ple_id: 'p1', history: [], message: 'hello', language: 'th',
   chief_complaint: 'chest pain', patient_ref: null,
-  socratic: false, artifacts: false,
+  socratic: false, artifacts: false, evidence_marker: true,
   rescue_active: true, already_qualified: false,
   rescue_rounds: 5,
 };
@@ -41,7 +41,7 @@ test('every field of the /chat contract is serialized', async () => {
   await rimplChat(CALL);
   const body = sentBody();
   for (const k of ['ple_id', 'history', 'message', 'language', 'chief_complaint', 'patient_ref',
-    'socratic', 'artifacts', 'rescue_active', 'already_qualified', 'rescue_rounds']) {
+    'socratic', 'artifacts', 'evidence_marker', 'rescue_active', 'already_qualified', 'rescue_rounds']) {
     expect(body).toHaveProperty(k);
   }
 });
@@ -53,6 +53,14 @@ test('an absent or nonsense rescue_rounds serializes as 0, never NaN or undefine
   global.fetch = jest.fn(async () => okResponse());
   await rimplChat({ ...CALL, rescue_rounds: -3 });
   expect(sentBody().rescue_rounds).toBe(0);
+});
+
+test('evidence_marker reaches the wire as a boolean — dropping it would leave the setting ON and the marker never asked for', async () => {
+  await rimplChat(CALL);
+  expect(sentBody().evidence_marker).toBe(true);
+  global.fetch = jest.fn(async () => okResponse());
+  await rimplChat({ ...CALL, evidence_marker: undefined });
+  expect(sentBody().evidence_marker).toBe(false);
 });
 
 test('the latches are sent as booleans, so a null row value cannot read as "not rescued"', async () => {

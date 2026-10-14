@@ -42,6 +42,9 @@ const thinkMarkup = require('../../rimpl/src/lib/think-markup.js');
 
 export const {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
+  // The evidence-level marker (CCME R5; setting chat_evidence_marker): the guidance per mode, its share
+  // of the single corrective retry, and the one label table the prompt and the parser are built from.
+  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, EVIDENCE_LEVELS,
 } = prompts;
 export const { promptLabel } = versions;
 export const {
@@ -49,6 +52,8 @@ export const {
   // The production language guard (#109) — ONE definition of "answered in Thai", shared with
   // scripts/probe/thai-probe.mjs. Package-free.
   thaiShare, isLanguageMismatch, isThaiMessage, stripNonProse, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
+  // The evidence-marker parser chat.js checks with (one marker line outside any fence, else null).
+  extractEvidenceLevel, findEvidenceMarkers, parseEvidenceLine,
 } = postFilter;
 export const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = pii;
 export const { stripArtifactDelimiters } = transcript;
