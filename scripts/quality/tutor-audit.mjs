@@ -65,6 +65,7 @@ import {
 import { loadBank, selectItems, composition, QUALITY_DIR } from './bank.mjs';
 import {
   buildChatRequest, retryDecision, retryMessages, retryReason, retryMaxTokens, optionalRetrySkipped, evidenceSplice,
+  evidencePlacement,
   CHAT_MAX_TOKENS, RAG_NOTE,
 } from './request.mjs';
 import {
@@ -207,6 +208,13 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
   // Production's own response fields: the guard fired AND its retry produced the returned reply.
   const languageRetry = !!(retryRec && retryRec.language && finalFrom === 'retry');
   const evidenceRetry = !!(retryRec && retryRec.evidence && (finalFrom === 'retry' || spliced));
+  // chat.js `placeMarker` (evidencePlacement): the returned reply — the first one standing, or an adopted
+  // retry, never a spliced one — has its one valid marker moved into place with no model call.
+  let evidenceMoved = false;
+  if (final.ok && !spliced) {
+    const placed = evidencePlacement(final.text, req);
+    if (placed) { final = { ...final, text: placed }; evidenceMoved = true; }
+  }
   const entry = {
     id: item.id,
     mode: item.mode,
@@ -235,14 +243,18 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
       prompt_tokens: retryRec.prompt_tokens, completion_tokens: retryRec.completion_tokens,
       // A retry whose reply is not the final one (a failed language-only retry, or the line-only
       // answer the evidence line was spliced from) keeps its text here for the record.
-      ...(finalFrom === 'retry' ? {} : { text: retryRec.text }),
+      // (Kept too when the adopted retry's marker was then moved: the final text is no longer its own.)
+      ...(finalFrom === 'retry' && !evidenceMoved ? {} : { text: retryRec.text }),
     } : null,
     retry_skipped: skipped,                 // chat.js `retrySkipped`: an optional retry past the cutoff
     language_retry: languageRetry,          // = chat.js response field `language_retry`
     evidence_retry: evidenceRetry,          // = chat.js response field `evidence_retry`
+    // chat.js moved a misplaced marker (no model call). Not a chat.js response field: on a streamed turn
+    // production records it as superseded_reason 'evidence'; on a plain JSON turn it leaves no trace.
+    evidence_moved: evidenceMoved,
     // = chat.js `evidence_level`: null with the marker off, on a rescue turn, or with no single line.
     evidence_level: req.evidenceMarker && final.ok ? extractEvidenceLevel(final.text) : null,
-    final: { ...final, from: finalFrom },
+    final: { ...final, from: evidenceMoved ? `${finalFrom} + evidence line moved (no model call)` : finalFrom },
     latency_ms_total: (first.ms ?? 0) + (retryRec?.ms ?? 0),
   };
   entry.checks = checkReply(item, entry);

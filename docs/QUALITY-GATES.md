@@ -205,7 +205,11 @@ carries, gain one line. All of the following must hold first:
    is noted in the same review.
 3. **Compliance, measured.** C-0's `evidence_marker` pass rate, after production's retry, with its Wilson
    interval and the share that needed the retry (`evidence_retry`). Also `evidence_marker_placement`
-   (natural: the last line; examiner: directly above the ❓), which production does not enforce.
+   (natural: the last line; examiner: directly above the ❓; and no second, near-miss evidence statement
+   on screen). Production now ENFORCES placement without a model call: chat.js moves a misplaced valid
+   marker and removes near-miss statements (`evidence_moved` in the audit; `superseded_reason`
+   `evidence` on a streamed turn). So a placement failure after production's fix is a move it refused —
+   typically because the near-miss carried the reply's only citation — and should be rare.
 4. **The level set is frozen.** `evidence_level` values (`high`, `moderate`, `low`, `expert`, `not_graded`)
    are a stable contract once anything is stored against them: add a level, never rename or reuse one.
 

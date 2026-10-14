@@ -53,8 +53,10 @@ export const {
   // The production language guard (#109) — ONE definition of "answered in Thai", shared with
   // scripts/probe/thai-probe.mjs. Package-free.
   thaiShare, isLanguageMismatch, isThaiMessage, stripNonProse, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
-  // The evidence-marker parser chat.js checks with (one marker line outside any fence, else null).
+  // The evidence-marker parser chat.js checks with (one marker line outside any fence, else null), the
+  // splice, the near-miss detector the splice removes with, and the placement fix (chat.js placeMarker).
   extractEvidenceLevel, findEvidenceMarkers, parseEvidenceLine, spliceEvidenceLine,
+  isEvidenceStatementLine, findEvidenceStatements, evidenceMarkerPlaced, placeEvidenceLine,
 } = postFilter;
 // The marker-only call's ceiling and the optional-retry cutoff (routes/chat.js reads both from here).
 export const { EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS } = turnLimits;

@@ -16,7 +16,9 @@
 //     artifact fence is kept, that a FAILED language-only / evidence-only retry keeps the first reply
 //     while a failed citation retry fails the turn, that an evidence-only retry is a small line-only
 //     call whose one line is SPLICED into the first reply (post-filter spliceEvidenceLine, imported),
-//     and that an optional retry past the deadline cutoff is skipped. ≤ 2 calls per turn.
+//     that the returned reply's one valid marker, if misplaced, is MOVED with no model call (chat.js
+//     placeMarker → post-filter placeEvidenceLine, imported), and that an optional retry past the
+//     deadline cutoff is skipped. ≤ 2 calls per turn.
 //   * the client's `language` rule — 'th' when the message holds ANY Thai codepoint
 //     (physician-ui/public/js/ple-chat.js).
 //   * CHAT_MAX_TOKENS  — max(1500, RIMPL_CHAT_MAX_TOKENS ?? 4000), defined in rimpl/src/lib/turn-limits.js.
@@ -32,7 +34,7 @@
 
 import {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
-  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, extractEvidenceLevel, spliceEvidenceLine,
+  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, extractEvidenceLevel, spliceEvidenceLine, placeEvidenceLine,
   EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS,
   promptLabel, stripPii, stripHistoryPii, deriveHintTokens, makeRegistry, stripArtifactDelimiters,
   hasCitation, extractSocraticQuestion, isThaiMessage, isLanguageMismatch, checkRescueReply, RESCUE_RETRY_PROMPT,
@@ -202,6 +204,16 @@ export function retryPrompt(decision, { socratic, language }) {
 export function evidenceSplice(decision, firstText, retryText, { socratic }) {
   if (retryReason(decision) !== 'evidence') return null;
   return spliceEvidenceLine(firstText, retryText, { socratic });
+}
+
+/** chat.js `placeMarker`: with the marker on (req.evidenceMarker, already false on a rescue turn, as
+ *  chat.js's `evidence_marker && !rescuing`), a reply holding ONE valid marker in the wrong place — or
+ *  beside a near-miss evidence statement — is put right with NO model call (production's own
+ *  placeEvidenceLine). null = nothing to move. chat.js applies it to the reply it returns when that is
+ *  the first reply (no retry, a skipped / failed one, or a marker retry with no usable line) or an
+ *  adopted retry — never to a spliced one, which spliceEvidenceLine already placed. */
+export function evidencePlacement(text, { evidenceMarker = false, socratic = false } = {}) {
+  return evidenceMarker ? placeEvidenceLine(text, { socratic }) : null;
 }
 
 /** Retry messages: a citation retry re-ANSWERS (fence stripped from the fed-back reply); a

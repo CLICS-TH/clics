@@ -223,6 +223,20 @@ test('evidence_marker: missing / ambiguous is a MINOR flag; misplaced is a separ
   assert.equal(sev(early, 'evidence_marker_misplaced'), 'minor');
 });
 
+test('evidence_marker: a near-miss statement beside a placed marker fails placement (minor), and is named', () => {
+  const both = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, `Start when eGFR is 20 or more (KDIGO, 2022).\nEvidence level: high\n\n${MARK}`));
+  assert.equal(both.checks.evidence_marker.pass, true, 'a near-miss is not a second marker: the level still reads');
+  assert.equal(both.checks.evidence_marker_placement.pass, false);
+  assert.match(both.checks.evidence_marker_placement.detail, /the last line, but 1 other evidence statement/);
+  assert.equal(sev(both, 'evidence_statement_extra'), 'minor');
+  assert.equal(sev(both, 'evidence_marker_misplaced'), undefined);
+  // An examiner reply with no ❓ at all: production appends the line, so last = placed (the missing ❓ is
+  // its own, major, flag).
+  const noQ = checkReply(ITEM_TH_EXAMINER, marked(ITEM_TH_EXAMINER, `${GOOD_TH_EXAMINER.replace(/\n❓[^\n]*$/, '')}\n\n${MARK}`));
+  assert.equal(noQ.checks.evidence_marker_placement.pass, true);
+  assert.equal(sev(noQ, 'no_socratic_question'), 'major');
+});
+
 test('evidence_marker: not checked on a run without the flag, nor on a rescue turn', () => {
   const off = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (KDIGO, 2022).'));
   assert.equal(off.checks.evidence_marker, undefined);

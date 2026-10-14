@@ -3,7 +3,7 @@ const { z } = require('zod');
 const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = require('../services/pii-filter');
 const { ragLookup } = require('../services/rag');
 const { callAI } = require('../services/ai');
-const { hasCitation, extractSocraticQuestion, extractReferences, extractEvidenceLevel, spliceEvidenceLine, thaiShare, stripNonProse, isLanguageMismatch, isThaiMessage } = require('../services/post-filter');
+const { hasCitation, extractSocraticQuestion, extractReferences, extractEvidenceLevel, spliceEvidenceLine, placeEvidenceLine, thaiShare, stripNonProse, isLanguageMismatch, isThaiMessage } = require('../services/post-filter');
 const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE, EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT } = require('../lib/prompts');
 const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply, RESCUE_RETRY_PROMPT } = require('../services/rescue');
 const { formatDeidentified, stripArtifactDelimiters } = require('../lib/transcript');
@@ -241,6 +241,15 @@ router.post('/', async (req, res) => {
     // On a fail-over turn this result already is the fail-over call's, so these are its figures.
     let lastInputTokens = inputTokens;
     let lastOutputTokens = outputTokens;
+    // The first reply as produced, and whether the physician watched it arrive (for the placement fix below).
+    const firstReply = text;
+    const firstReplyShown = shown;
+    // PLACEMENT (evidence marker on, not a rescue turn): a reply with exactly ONE valid marker that sits in
+    // the wrong place — examiner: anywhere but directly above the final ❓ (after it, physician-ui's ❓
+    // display breaks and the question renders twice); natural: anywhere but the last line — or next to a
+    // near-miss evidence statement, is put right by post-filter placeEvidenceLine with NO model call. null
+    // = nothing to move. Applied to whichever reply is returned: an adopted retry below, or the first.
+    const placeMarker = (t) => (evidence_marker && !rescuing ? placeEvidenceLine(t, { socratic }) : null);
 
     // ONE corrective retry, whatever is wrong. Independent checks decide whether it fires, and a turn
     // that fails several gets a SINGLE retry whose prompt asks for every fix, so a turn never makes
@@ -384,18 +393,20 @@ router.post('/', async (req, res) => {
               sse.send('delta', { text: text.slice(firstText.length) });
             } else {
               // EXAMINER: the line goes directly ABOVE the ❓, i.e. mid-text, so it cannot be a delta (nor
-              // can a natural reply whose stray marker lines had to be removed). `replace` with the whole
-              // spliced reply, and the draft is recorded as for any replaced draft. The alternative — appending after the ❓ — would break the examiner rule that the
-              // ❓ is the very last line, which physician-ui relies on to show the question as the
-              // question (ple-chat.js strips a trailing ❓ line into its own element), and would make
-              // the streamed reply differ from the non-streamed one.
+              // can a natural reply whose stray evidence statements had to be removed). `replace` with the
+              // whole spliced reply, and the draft is recorded as for any replaced draft. The alternative —
+              // appending after the ❓ — would break the examiner rule that the ❓ is the very last line,
+              // which physician-ui relies on to show the question as the question (ple-chat.js strips a
+              // trailing ❓ line into its own element), and would make the streamed reply differ from the
+              // non-streamed one.
               if (firstShown) { sse.send('replace', { reason }); supersededDraft = firstText; supersededReason = reason; }
               sse.send('delta', { text });
             }
           }
         }
       } else if (retry) {
-        text = retry.text;
+        // The adopted re-answer / rewrite gets the same placement fix, before it goes out.
+        text = placeMarker(retry.text) ?? retry.text;
         lastInputTokens = retry.inputTokens;
         lastOutputTokens = retry.outputTokens;
         languageRetried = languageMismatch;
@@ -408,6 +419,22 @@ router.post('/', async (req, res) => {
         if (languageMismatch && isLanguageMismatch(text, language)) {
           console.warn(`[RIMPL chat] language retry did not produce Thai (share ${thaiShare(stripNonProse(text)).toFixed(2)}) — delivering as-is`);
         }
+      }
+    }
+
+    // The first reply stands (no retry, a skipped one, a failed one, or a marker retry that gave no line):
+    // put a misplaced marker right. Streamed, the physician has read the misplaced version, so it is
+    // replaced on screen and recorded as a superseded draft, the same path as the examiner splice.
+    if (text === firstReply) {
+      const placed = placeMarker(text);
+      if (placed) {
+        if (sse && firstReplyShown) {
+          if (shown) sse.send('replace', { reason: 'evidence' });   // not already cleared by a retry's replace
+          sse.send('delta', { text: placed });
+          supersededDraft = firstReply;
+          supersededReason = 'evidence';
+        }
+        text = placed;
       }
     }
 

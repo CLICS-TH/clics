@@ -6,8 +6,11 @@
 //   * evidence-only: SPLICE, DON'T ADOPT — a small call asks for the line alone, and that one line is
 //     written into the FIRST reply, which otherwise survives byte for byte (artifact included);
 //   * combined failures (citation + evidence, language + evidence) keep the full re-answer / rewrite;
+//   * the spliced line follows a BLANK line (markdown paragraph break), natural and examiner alike;
 //   * streaming: natural appends a plain delta (no replace); examiner replaces with the spliced reply;
-//     the `done` body equals the non-streamed JSON.
+//     the `done` body equals the non-streamed JSON;
+//   * PLACEMENT: one valid marker in the wrong place (or beside a near-miss) is moved with NO model call,
+//     on the first reply and on an adopted retry; streamed, the moved reply replaces the draft.
 //
 // HERMETIC: callAI is mocked at the seam; RAG and Supabase are stubbed; nothing leaves the process.
 jest.mock('../src/services/ai', () => ({ callAI: jest.fn() }));
@@ -28,7 +31,8 @@ const { CHAT_MAX_TOKENS, EVIDENCE_LINE_MAX_TOKENS } = require('../src/lib/turn-l
 const MARK = P.evidenceLineFor('moderate');
 const EN = 'Amoxicillin 1 g three times daily for 5 days is first line for low-severity CAP (BTS, 2019).';
 const EN_NO_CITE = 'Amoxicillin 1 g three times daily for 5 days is first line for low-severity CAP.';
-const EN_M = `${EN}\n${MARK}`;
+const EN_M = `${EN}\n${MARK}`;          // as a model may write it: placed, no blank line (left as is)
+const EN_S = `${EN}\n\n${MARK}`;        // as the splice / placement writes it
 const Q = '❓ How would a penicillin allergy change your choice?';
 const TH = 'ผู้ป่วยปอดอักเสบชุมชนความรุนแรงต่ำควรได้รับ amoxicillin หนึ่งกรัมวันละสามครั้งเป็นเวลาห้าวัน (BTS, 2019)';
 const TH_MSG = 'ผู้ป่วยปอดอักเสบชุมชนแบบผู้ป่วยนอก ควรเริ่มยาปฏิชีวนะตัวไหนก่อนครับ';
@@ -116,7 +120,7 @@ describe('marker the ONLY failure: SPLICE, DON\'T ADOPT', () => {
     expect(call(1).messages.at(-2)).toEqual({ role: 'assistant', content: EN });
     expect(call(1).systemPrompt).toBe(call(0).systemPrompt);   // same instructions, same label
     expect(call(1).provider).toBe('local');                       // pinned, as every retry is
-    expect(res.body).toMatchObject({ content: EN_M, evidence_level: 'moderate', evidence_retry: true, language_retry: false });
+    expect(res.body).toMatchObject({ content: EN_S, evidence_level: 'moderate', evidence_retry: true, language_retry: false });
     expect(res.body.token_count).toBe(140 + 169);                 // the small call is billed as usual
     expect(res.body.input_tokens).toBe(260);
     expect(res.body.context_tokens).toBe(140);                    // = the FIRST call's in + out
@@ -129,7 +133,7 @@ describe('marker the ONLY failure: SPLICE, DON\'T ADOPT', () => {
     const res = await on({ artifacts: true });
     expect(callAI).toHaveBeenCalledTimes(2);
     expect(call(1).messages.at(-2).content).toBe(first);         // it saw the fence intact
-    expect(res.body.content).toBe(`${first}\n${MARK}`);           // first reply byte for byte, + one line
+    expect(res.body.content).toBe(`${first}\n\n${MARK}`);         // first reply byte for byte, + one line
     expect(res.body.content).toContain(':::artifact{type="differential" title="DDx"}');
     expect(res.body.evidence_level).toBe('moderate');
   });
@@ -139,13 +143,13 @@ describe('marker the ONLY failure: SPLICE, DON\'T ADOPT', () => {
     const res = await on({ language: 'th', message: TH_MSG });
     expect(callAI).toHaveBeenCalledTimes(2);
     expect(lastAsk()).toBe(P.EVIDENCE_RETRY_PROMPT.only.th);
-    expect(res.body).toMatchObject({ content: `${TH}\n${MARK}`, evidence_level: 'moderate', evidence_retry: true, language_retry: false });
+    expect(res.body).toMatchObject({ content: `${TH}\n\n${MARK}`, evidence_level: 'moderate', evidence_retry: true, language_retry: false });
   });
 
   test('examiner: the line goes directly above the ❓, which stays the last line', async () => {
     callAI.mockResolvedValueOnce(r(`${EN}\n${Q}`)).mockResolvedValueOnce(r(`${MARK}\n❓ And then?`));
     const res = await on({ socratic: true });
-    expect(res.body.content).toBe(`${EN}\n${MARK}\n${Q}`);
+    expect(res.body.content).toBe(`${EN}\n\n${MARK}\n${Q}`);
     expect(res.body.socratic_question).toBe('How would a penicillin allergy change your choice?');
   });
 
@@ -153,7 +157,16 @@ describe('marker the ONLY failure: SPLICE, DON\'T ADOPT', () => {
     callAI.mockResolvedValueOnce(r(`${EN}\n${MARK}\n${P.evidenceLineFor('high')}`)).mockResolvedValueOnce(r('Evidence: low'));
     const res = await on();
     expect(callAI).toHaveBeenCalledTimes(2);
-    expect(res.body).toMatchObject({ content: `${EN}\n${P.evidenceLineFor('low')}`, evidence_level: 'low' });
+    expect(res.body).toMatchObject({ content: `${EN}\n\n${P.evidenceLineFor('low')}`, evidence_level: 'low' });
+  });
+
+  test('a NEAR-MISS in the first reply is removed, so the physician never sees two evidence statements', async () => {
+    callAI.mockResolvedValueOnce(r(`${EN}\n### Evidence level: high`)).mockResolvedValueOnce(r('Evidence: moderate'));
+    const res = await on();
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(lastAsk()).toBe(P.EVIDENCE_RETRY_PROMPT.only.en);   // a near-miss is not a level: the check fired
+    expect(res.body).toMatchObject({ content: EN_S, evidence_level: 'moderate', evidence_retry: true });
+    expect(res.body.content).not.toMatch(/Evidence level/);
   });
 
   test.each([
@@ -227,6 +240,59 @@ describe('combined failures keep the full re-answer / rewrite (never a third cal
   });
 });
 
+describe('PLACEMENT: one valid marker in the wrong place is moved with NO model call', () => {
+  test('natural: a marker above the prose goes to the end; one call, no retry', async () => {
+    callAI.mockResolvedValueOnce(r(`${MARK}\n${EN}`));
+    const res = await on();
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(res.body).toMatchObject({ content: EN_S, evidence_level: 'moderate', evidence_retry: false });
+    expect(res.body).not.toHaveProperty('superseded_draft');   // not streamed: nobody saw the draft
+  });
+
+  test('examiner: a marker AFTER the ❓ moves above it, so the ❓ is the last line again', async () => {
+    callAI.mockResolvedValueOnce(r(`${EN}\n${Q}\n${MARK}`));
+    const res = await on({ socratic: true });
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(res.body).toMatchObject({ content: `${EN}\n\n${MARK}\n${Q}`, evidence_level: 'moderate', evidence_retry: false });
+    expect(res.body.socratic_question).toBe('How would a penicillin allergy change your choice?');
+    expect(res.body.content.match(/\n❓[^\n]*$/)[0]).toBe(`\n${Q}`);   // physician-ui's question lift
+  });
+
+  test('a valid marker beside a near-miss: the near-miss goes, one call', async () => {
+    callAI.mockResolvedValueOnce(r(`${EN}\nLevel of evidence: high\n${MARK}`));
+    const res = await on();
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(res.body).toMatchObject({ content: EN_S, evidence_level: 'moderate', evidence_retry: false });
+  });
+
+  test('an ADOPTED retry (citation re-answer) is placed before it goes out', async () => {
+    callAI.mockResolvedValueOnce(r(EN_NO_CITE)).mockResolvedValueOnce(r(`${MARK}\n${EN}`));
+    const res = await on();
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(res.body).toMatchObject({ content: EN_S, evidence_level: 'moderate', evidence_retry: true });
+  });
+
+  test('a failed optional retry keeps the first reply, and that reply is still placed', async () => {
+    callAI.mockResolvedValueOnce(r(`${MARK}\n${EN}`))
+      .mockRejectedValueOnce(new QueueFullError({ provider: 'local', lane: 'interactive', maxQueue: 4, retryAfterMs: 30000 }));
+    const res = await on({ language: 'th', message: TH_MSG });   // English reply to Thai: the language retry
+    expect(callAI).toHaveBeenCalledTimes(2);
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ content: EN_S, evidence_level: 'moderate', language_retry: false, evidence_retry: false });
+  });
+
+  test('OFF: a misplaced marker the model wrote anyway is left exactly as it is', async () => {
+    callAI.mockResolvedValueOnce(r(`${EN}\n${Q}\n${MARK}`));
+    const res = await send({ socratic: true });
+    expect(res.body.content).toBe(`${EN}\n${Q}\n${MARK}`);
+  });
+
+  test('a well-placed marker without the blank line is left as it is (not moved for that alone)', async () => {
+    callAI.mockResolvedValueOnce(r(EN_M));
+    expect((await on()).body.content).toBe(EN_M);
+  });
+});
+
 describe('never on a rescue turn', () => {
   test('the rescue prompt replaces the guidance, a marker-less question is fine, evidence_level null', async () => {
     callAI.mockResolvedValueOnce(r('What would you check before choosing a dose for this patient?'));
@@ -264,11 +330,11 @@ describe('streaming', () => {
     callAI.mockImplementationOnce(streamed(EN, 100, 40)).mockImplementationOnce(streamed('Evidence: moderate', 160, 9));
     const ev = parseSse((await on({ stream: true })).text);
     expect(ev.map((e) => e.event)).toEqual(['delta', 'delta', 'done']);
-    expect(ev[0].data.text + ev[1].data.text).toBe(EN_M);
-    expect(ev[1].data.text).toBe(`\n${MARK}`);
+    expect(ev[0].data.text + ev[1].data.text).toBe(EN_S);
+    expect(ev[1].data.text).toBe(`\n\n${MARK}`);
     const done = ev.at(-1).data;
     expect(done.status).toBe(200);
-    expect(done.body).toMatchObject({ content: EN_M, evidence_level: 'moderate', evidence_retry: true, superseded_draft: null, superseded_reason: null });
+    expect(done.body).toMatchObject({ content: EN_S, evidence_level: 'moderate', evidence_retry: true, superseded_draft: null, superseded_reason: null });
     expect(call(1).onDelta).toBeUndefined();   // the small call is never streamed
     const [doneBody, json] = await sameAsJson(done.body, [streamed(EN, 100, 40), streamed('Evidence: moderate', 160, 9)]);
     expect(doneBody).toEqual(json);
@@ -280,9 +346,9 @@ describe('streaming', () => {
     const ev = parseSse((await on({ stream: true, socratic: true })).text);
     expect(ev.map((e) => e.event)).toEqual(['delta', 'replace', 'delta', 'done']);
     expect(ev[1].data).toEqual({ reason: 'evidence' });
-    expect(ev[2].data.text).toBe(`${EN}\n${MARK}\n${Q}`);
+    expect(ev[2].data.text).toBe(`${EN}\n\n${MARK}\n${Q}`);
     const done = ev.at(-1).data;
-    expect(done.body).toMatchObject({ content: `${EN}\n${MARK}\n${Q}`, superseded_draft: first, superseded_reason: 'evidence' });
+    expect(done.body).toMatchObject({ content: `${EN}\n\n${MARK}\n${Q}`, superseded_draft: first, superseded_reason: 'evidence' });
     callAI.mockReset();
     callAI.mockImplementationOnce(streamed(first)).mockImplementationOnce(streamed('Evidence: moderate'));
     const json = (await on({ socratic: true })).body;
@@ -290,11 +356,64 @@ describe('streaming', () => {
     expect(doneBody).toEqual(json);
   });
 
+  test('NATURAL with a near-miss removed: not a pure append, so replace + the draft recorded', async () => {
+    const first = `${EN}\n- Evidence level: high`;
+    callAI.mockImplementationOnce(streamed(first)).mockImplementationOnce(streamed('Evidence: moderate'));
+    const ev = parseSse((await on({ stream: true })).text);
+    expect(ev.map((e) => e.event)).toEqual(['delta', 'replace', 'delta', 'done']);
+    expect(ev[1].data).toEqual({ reason: 'evidence' });
+    expect(ev[2].data.text).toBe(EN_S);
+    expect(ev.at(-1).data.body).toMatchObject({ content: EN_S, superseded_draft: first, superseded_reason: 'evidence' });
+  });
+
   test('no usable line: delta, done — the screen is never cleared and the first reply stands', async () => {
     callAI.mockImplementationOnce(streamed(EN)).mockImplementationOnce(streamed('no marker here'));
     const ev = parseSse((await on({ stream: true })).text);
     expect(ev.map((e) => e.event)).toEqual(['delta', 'done']);
     expect(ev.at(-1).data.body).toMatchObject({ content: EN, evidence_level: null, evidence_retry: false, superseded_draft: null });
+  });
+
+  test('PLACEMENT, NATURAL streamed: replace with the moved reply, the draft recorded; no model call', async () => {
+    const first = `${MARK}\n${EN}`;
+    callAI.mockImplementationOnce(streamed(first));
+    const ev = parseSse((await on({ stream: true })).text);
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(ev.map((e) => e.event)).toEqual(['delta', 'replace', 'delta', 'done']);
+    expect(ev[1].data).toEqual({ reason: 'evidence' });
+    expect(ev[2].data.text).toBe(EN_S);
+    const done = ev.at(-1).data;
+    expect(done.body).toMatchObject({ content: EN_S, evidence_retry: false, superseded_draft: first, superseded_reason: 'evidence' });
+    const [doneBody, json] = await sameAsJson(done.body, [streamed(first)]);
+    expect(doneBody).toEqual(json);
+  });
+
+  test('PLACEMENT, EXAMINER streamed: the marker after the ❓ is moved above it on screen and in the record', async () => {
+    const first = `${EN}\n${Q}\n${MARK}`;
+    callAI.mockImplementationOnce(streamed(first));
+    const ev = parseSse((await on({ stream: true, socratic: true })).text);
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(ev.map((e) => e.event)).toEqual(['delta', 'replace', 'delta', 'done']);
+    expect(ev[1].data).toEqual({ reason: 'evidence' });
+    expect(ev[2].data.text).toBe(`${EN}\n\n${MARK}\n${Q}`);
+    expect(ev.at(-1).data.body).toMatchObject({ content: `${EN}\n\n${MARK}\n${Q}`, superseded_draft: first, superseded_reason: 'evidence' });
+  });
+
+  test('PLACEMENT after a failed optional retry: ONE replace (the retry\'s), then the moved reply', async () => {
+    const first = `${MARK}\n${EN}`;
+    callAI.mockImplementationOnce(streamed(first))
+      .mockRejectedValueOnce(new QueueFullError({ provider: 'local', lane: 'interactive', maxQueue: 4, retryAfterMs: 30000 }));
+    const ev = parseSse((await on({ stream: true, language: 'th', message: TH_MSG })).text);
+    expect(ev.map((e) => e.event)).toEqual(['delta', 'replace', 'delta', 'done']);
+    expect(ev[1].data).toEqual({ reason: 'language' });
+    expect(ev[2].data.text).toBe(EN_S);
+    expect(ev.at(-1).data.body).toMatchObject({ content: EN_S, superseded_draft: first, superseded_reason: 'evidence' });
+  });
+
+  test('a well-placed streamed reply: delta, done — nothing replaced', async () => {
+    callAI.mockImplementationOnce(streamed(EN_M));
+    const ev = parseSse((await on({ stream: true })).text);
+    expect(ev.map((e) => e.event)).toEqual(['delta', 'done']);
+    expect(ev.at(-1).data.body).toMatchObject({ content: EN_M, superseded_draft: null });
   });
 
   test('a COMBINED failure still replaces the draft as before (citation + evidence)', async () => {

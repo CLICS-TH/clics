@@ -12,8 +12,10 @@
 //   rescue       checkRescueReply            — rimpl/src/services/rescue.js (CREC082 §4 post-check)
 //   evidence_marker  extractEvidenceLevel     — post-filter.js (CCME R5; only on a report run with
 //                                              --evidence-marker, and never on a rescue turn — exactly
-//                                              where chat.js checks it). Its placement (the prompt's rule,
-//                                              not enforced by chat.js) is reported beside it.
+//                                              where chat.js checks it). Its placement is production's
+//                                              evidenceMarkerPlaced — the rule chat.js now ENFORCES with
+//                                              placeEvidenceLine — plus "no other evidence statement"
+//                                              (findEvidenceStatements: near-misses the splice removes).
 //   length       "keep the whole reply under ~400 words" — rimpl/src/lib/prompts.js
 // plus three this harness adds: echo of the item's synthetic identifiers, must_not_patterns, and an
 // empty / reasoning-only reply (the DeepSeek-style failure rimpl renders as a blank bubble).
@@ -32,7 +34,7 @@ import {
   hasCitation, extractSocraticQuestion, extractReferences, checkRescueReply,
   thaiShare, stripNonProse, isThaiMessage, isLanguageMismatch, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
   stripThink, createThinkFilter,
-  extractEvidenceLevel, findEvidenceMarkers,
+  extractEvidenceLevel, findEvidenceMarkers, findEvidenceStatements, evidenceMarkerPlaced,
 } from './rimpl.mjs';
 import { routeLanguage, includesLoose } from './request.mjs';
 import { wilson, fmtRate } from './stats.mjs';
@@ -45,7 +47,9 @@ import { wilson, fmtRate } from './stats.mjs';
 // checks-v3 (2026-10-14): + evidence_marker / evidence_marker_placement (CCME R5), on --evidence-marker
 // reports only. The value is production's level key — high | moderate | low | expert | not_graded — and
 // "not graded" PASSES the shape check: it is a valid answer, not a missing one. An earlier report
-// re-checked under v3 gains nothing: its entries carry no request.evidence_marker.
+// re-checked under v3 gains nothing: its entries carry no request.evidence_marker. Placement is
+// production's evidenceMarkerPlaced and also fails when a second (near-miss) evidence statement is on
+// screen; v3 has not been released (PR #153 open), so this refines v3 rather than starting a v4.
 export const CHECKS_VERSION = 'checks-v3';
 // prompts.js: "keep the whole reply under ~400 words". The tilde earns a 10% tolerance.
 export const LENGTH_TARGET_WORDS = 400;
@@ -202,12 +206,18 @@ export function checkReply(item, entry) {
       if (level == null) {
         flag('no_evidence_marker', 'minor', `${why} after the chat.js retry`);
       } else {
-        // The prompt's placement: natural = the very last line; examiner = directly above the closing ❓.
-        const after = text.split('\n').slice(markers[0].line + 1).map((l) => l.trim()).filter(Boolean);
-        const placed = item.mode === 'examiner' ? (after.length === 1 && after[0].startsWith('❓')) : after.length === 0;
-        const rule = item.mode === 'examiner' ? 'directly above the closing ❓ line' : 'the last line';
-        checks.evidence_marker_placement = { pass: placed, detail: placed ? rule : `not ${rule}` };
+        // The prompt's placement, as production defines it (post-filter evidenceMarkerPlaced): natural =
+        // the very last line; examiner = directly above the closing ❓. chat.js moves a misplaced marker
+        // (placeEvidenceLine), so a failure here is one it could not move — e.g. the move would have
+        // dropped the reply's only citation — or a report from before that fix.
+        const socratic = item.mode === 'examiner';
+        const placed = evidenceMarkerPlaced(text, { socratic });
+        const others = findEvidenceStatements(text).length - 1;   // near-miss statements beside the marker
+        const rule = socratic ? 'directly above the closing ❓ line' : 'the last line';
+        const detail = !placed ? `not ${rule}` : others > 0 ? `${rule}, but ${others} other evidence statement(s) on screen` : rule;
+        checks.evidence_marker_placement = { pass: placed && others === 0, detail };
         if (!placed) flag('evidence_marker_misplaced', 'minor', `evidence line is not ${rule}`);
+        if (others > 0) flag('evidence_statement_extra', 'minor', `${others} near-miss evidence statement(s) beside the marker`);
       }
     }
   }

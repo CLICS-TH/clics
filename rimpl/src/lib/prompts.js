@@ -33,17 +33,30 @@ Use an artifact ONLY when the content is genuinely substantial (a short answer n
 // is IN the label ("…ของข้อแนะนำหลัก" / "for the main recommendation"), so a reader of one line knows
 // what it grades. Needs a clinician check in Thai before the setting is enabled (docs/QUALITY-GATES.md).
 //
+// The blank line the placement asks for is markdown's paragraph break: physician-ui (marked, breaks:false)
+// and the dashboard (ReactMarkdown) would otherwise merge the line into the paragraph, list item or table
+// above it. The route's own splice always inserts one (post-filter spliceEvidenceLine).
+//
 // EVIDENCE_LEVELS is the ONE definition: the prompt lines, the retry prompts and the parser
 // (services/post-filter.js extractEvidenceLevel) are all built from it, so the line the model is told
 // to write and the line the route accepts cannot drift apart. `key` is what the route returns as
 // `evidence_level` — a STABLE contract once shipped: add a level, never rename or reuse a key.
+// `guide` is the level's line under "How to choose" in the prompt.
 const EVIDENCE_LEVELS = [
-  { key: 'high', th: 'สูง', en: 'high' },
-  { key: 'moderate', th: 'ปานกลาง', en: 'moderate' },
-  { key: 'low', th: 'ต่ำ', en: 'low' },
-  { key: 'expert', th: 'ความเห็นผู้เชี่ยวชาญ', en: 'expert opinion' },
-  { key: 'not_graded', th: 'ไม่ได้ประเมิน', en: 'not graded' },
+  { key: 'high', th: 'สูง', en: 'high',
+    guide: 'consistent results from well-conducted randomised trials or their meta-analyses; further research is very unlikely to change the recommendation.' },
+  { key: 'moderate', th: 'ปานกลาง', en: 'moderate',
+    guide: 'randomised trials with important limitations, or consistently strong observational evidence; further research may change the recommendation.' },
+  { key: 'low', th: 'ต่ำ', en: 'low',
+    guide: 'observational studies, or trials with serious limitations, inconsistency or indirectness. GRADE "very low" is also reported as low.' },
+  { key: 'expert', th: 'ความเห็นผู้เชี่ยวชาญ', en: 'expert opinion',
+    guide: 'the recommendation rests only on guideline consensus, expert opinion or established practice, with no study-level evidence behind it.' },
+  { key: 'not_graded', th: 'ไม่ได้ประเมิน', en: 'not graded',
+    guide: 'you cannot grade the evidence behind the main recommendation, or the reply makes no recommendation or clinical claim at all.' },
 ];
+// By key, for the prose below that names particular levels (the honesty rule, the retry prompts).
+const LEVEL = Object.fromEntries(EVIDENCE_LEVELS.map((l) => [l.key, l]));
+const LEVEL_COUNT_WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'][EVIDENCE_LEVELS.length];
 // The labels the prompt asks for. The parser ALSO accepts the short forms (ระดับหลักฐาน / Evidence), so
 // a near-compliant reply is read rather than re-asked; the model is only ever shown the full ones.
 const EVIDENCE_TH_LABEL = 'ระดับหลักฐานของข้อแนะนำหลัก';
@@ -57,25 +70,22 @@ function evidenceLineFor(key) {
   return l ? evidenceLine(l) : null;
 }
 const EVIDENCE_LINES = EVIDENCE_LEVELS.map(evidenceLine).join('\n');
+const EVIDENCE_HOW_TO_CHOOSE = EVIDENCE_LEVELS.map((l) => `- ${l.th} / ${l.en} — ${l.guide}`).join('\n');
 
 const EVIDENCE_CORE = `
 
-EVIDENCE LEVEL — mandatory in EVERY reply: exactly ONE line that grades the certainty of the evidence behind your reply's MAIN recommendation, using the GRADE approach. Copy one of these five lines character for character — the same bilingual line whether you reply in Thai or English:
+EVIDENCE LEVEL — mandatory in EVERY reply: exactly ONE line that grades the certainty of the evidence behind your reply's MAIN recommendation, using the GRADE approach. Copy one of these ${LEVEL_COUNT_WORD} lines character for character — the same bilingual line whether you reply in Thai or English:
 ${EVIDENCE_LINES}
 How to choose:
-- สูง / high — consistent results from well-conducted randomised trials or their meta-analyses; further research is very unlikely to change the recommendation.
-- ปานกลาง / moderate — randomised trials with important limitations, or consistently strong observational evidence; further research may change the recommendation.
-- ต่ำ / low — observational studies, or trials with serious limitations, inconsistency or indirectness. GRADE "very low" is also reported as low.
-- ความเห็นผู้เชี่ยวชาญ / expert opinion — the recommendation rests only on guideline consensus, expert opinion or established practice, with no study-level evidence behind it.
-- ไม่ได้ประเมิน / not graded — you cannot grade the evidence behind the main recommendation, or the reply makes no recommendation or clinical claim at all.
-If the reply makes no recommendation but does make a clinical claim, grade the evidence behind its main clinical claim. Grade the EVIDENCE, not how sure you feel, and never claim more certainty than you have: if you are not sure how strong the evidence is, write ไม่ได้ประเมิน (not graded) — never guess high, and never use ความเห็นผู้เชี่ยวชาญ (expert opinion) as a stand-in for "I don't know". This is the same honesty rule as above, and the line comes IN ADDITION to your (Source, Year) citation, never instead of it. Never write more than one evidence line — not one per bullet, option or drug.`;
+${EVIDENCE_HOW_TO_CHOOSE}
+If the reply makes no recommendation but does make a clinical claim, grade the evidence behind its main clinical claim. Grade the EVIDENCE, not how sure you feel, and never claim more certainty than you have: if you are not sure how strong the evidence is, write ${LEVEL.not_graded.th} (${LEVEL.not_graded.en}) — never guess ${LEVEL.high.en}, and never use ${LEVEL.expert.th} (${LEVEL.expert.en}) as a stand-in for "I don't know". This is the same honesty rule as above, and the line comes IN ADDITION to your (Source, Year) citation, never instead of it. Never write more than one evidence line — not one per bullet, option or drug.`;
 
 const EVIDENCE_GUIDANCE = {
   natural: `${EVIDENCE_CORE}
-Placement: on its own line as the VERY LAST line of the reply, after everything else. Plain text — never inside a table, a code block or a fenced (::: or \`\`\`) block.
+Placement: on its own line, after a blank line, as the VERY LAST line of the reply, after everything else. Plain text — never inside a table, a code block or a fenced (::: or \`\`\`) block.
 Before finishing, self-check this too: is there exactly one evidence line, and is it the last line? If not, fix it before sending.`,
   examiner: `${EVIDENCE_CORE}
-Placement: on its own line immediately BEFORE the closing ❓ question, so the ❓ question is still the VERY LAST line. Plain text — never inside a table, a code block or a fenced (::: or \`\`\`) block.
+Placement: on its own line, after a blank line, immediately BEFORE the closing ❓ question, so the ❓ question is still the VERY LAST line. Plain text — never inside a table, a code block or a fenced (::: or \`\`\`) block.
 Before finishing, self-check this too: is there exactly one evidence line, directly above the ❓ line? If not, fix it before sending.`,
 };
 
@@ -97,9 +107,9 @@ const EVIDENCE_RETRY_PROMPT = {
     en: ' Also add the single evidence-level line, in the required format and position.',
   },
   only: {
-    th: `สำหรับคำตอบก่อนหน้านี้ ให้ตอบกลับด้วยบรรทัดระดับหลักฐานเพียงบรรทัดเดียว ไม่ต้องมีข้อความอื่น เลือกหนึ่งบรรทัดจาก: ${EVIDENCE_OPTIONS_INLINE} — ถ้าไม่แน่ใจว่าหลักฐานแข็งแรงเพียงใด ให้ใช้ ไม่ได้ประเมิน ห้ามเดาว่าสูง และห้ามใช้ ความเห็นผู้เชี่ยวชาญ แทนคำว่าไม่ทราบ `
-      + '(For your previous reply, answer with the single evidence-level line ONLY, and no other text, chosen from the five options above. If you are not sure how strong the evidence is, use not graded: never guess high, and never use expert opinion as a stand-in for "I don\'t know".)',
-    en: `For your previous reply, answer with the single evidence-level line ONLY, and no other text, chosen from: ${EVIDENCE_OPTIONS_INLINE}. If you are not sure how strong the evidence is, use not graded: never guess high, and never use expert opinion as a stand-in for "I don't know".`,
+    th: `สำหรับคำตอบก่อนหน้านี้ ให้ตอบกลับด้วยบรรทัดระดับหลักฐานเพียงบรรทัดเดียว ไม่ต้องมีข้อความอื่น เลือกหนึ่งบรรทัดจาก: ${EVIDENCE_OPTIONS_INLINE} — ถ้าไม่แน่ใจว่าหลักฐานแข็งแรงเพียงใด ให้ใช้ ${LEVEL.not_graded.th} ห้ามเดาว่า${LEVEL.high.th} และห้ามใช้ ${LEVEL.expert.th} แทนคำว่าไม่ทราบ `
+      + `(For your previous reply, answer with the single evidence-level line ONLY, and no other text, chosen from the ${LEVEL_COUNT_WORD} options above. If you are not sure how strong the evidence is, use ${LEVEL.not_graded.en}: never guess ${LEVEL.high.en}, and never use ${LEVEL.expert.en} as a stand-in for "I don't know".)`,
+    en: `For your previous reply, answer with the single evidence-level line ONLY, and no other text, chosen from: ${EVIDENCE_OPTIONS_INLINE}. If you are not sure how strong the evidence is, use ${LEVEL.not_graded.en}: never guess ${LEVEL.high.en}, and never use ${LEVEL.expert.en} as a stand-in for "I don't know".`,
   },
 };
 

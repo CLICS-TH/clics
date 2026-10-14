@@ -78,11 +78,15 @@ function extractReferences(content) {
 //   - in the parenthesised part, the level alone without its label: "ระดับหลักฐาน: สูง (high)";
 //   - English in any case; a full-width colon; any spacing inside "expert opinion" / "not graded";
 //   - decoration around the whole line: surrounding whitespace, markdown bold (** / __) anywhere in it,
-//     ONE italic wrapper (*…* or _…_), a leading > blockquote, ONE trailing "." or "。", and NBSP /
-//     other space-like characters (read as a space) or zero-width characters (removed).
-// WHAT IS NOT: a marker run into a prose line, a bulleted line, `inline code`, a level outside the five
-// (e.g. "very low"), or any other text on the line. The prompt asks for the line on its own; a check
-// that accepted every near-miss would stop being a check.
+//     ONE italic wrapper (*…* or _…_), a leading > blockquote, ONE leading list marker (- * + • ‣ ◦ ▪
+//     or 1. / 1)), ONE trailing "." or "。", and NBSP / other space-like characters (read as a space) or
+//     zero-width characters (removed).
+// WHAT IS NOT READ: a marker run into a prose line, a heading, a leading emoji, `inline code`, a level
+// outside the five (e.g. "very low"), another label ("Level of evidence:"), a "สูง / high" pair, or any
+// other text on the line such as a trailing citation. The prompt asks for the line on its own; a check
+// that accepted every near-miss would stop being a check. Those near-misses are still RECOGNISED as
+// evidence statements (isEvidenceStatementLine below), so the splice can remove them and the reply never
+// shows two evidence statements.
 //
 // WHAT DOES NOT COUNT. A marker line inside a fenced ``` code block or inside a :::artifact{...} block
 // (fence syntax as in lib/transcript.js; an unterminated fence runs to the end, as in stripNonProse) is
@@ -112,12 +116,15 @@ const EVIDENCE_TH_FIRST = new RegExp(
 const EVIDENCE_EN_FIRST = new RegExp(
   `^${EN_LABEL_RE}${COLON}(${EN_ALT})(?:[ \\t]*\\([ \\t]*(?:${TH_LABEL_RE}${COLON})?(${TH_ALT})[ \\t]*\\))?$`, 'i');
 
-const ZERO_WIDTH = /[­᠎​-‍⁠﻿]/g;
-const SPACE_LIKE = /[   -   　]/g;
+const ZERO_WIDTH = /[\u00AD\u180E\u200B-\u200D\u2060\uFEFF]/g;
+const SPACE_LIKE = /[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g;
+// ONE leading list marker: a bullet, or a number with "." or ")". It needs the space after it, so the
+// italic wrapper "*…*" is not mistaken for a bullet.
+const LIST_MARKER = /^(?:[-*+\u2022\u2023\u25E6\u25AA]|\d{1,3}[.)])[ \t]+/;
 // Strip the decoration listed under WHAT IS ACCEPTED, nothing else.
 function normalizeMarkerLine(line) {
   let t = line.replace(ZERO_WIDTH, '').replace(SPACE_LIKE, ' ').replace(/\*\*|__/g, '').trim();
-  t = t.replace(/^(?:>[ \t]*)+/, '');
+  t = t.replace(/^(?:>[ \t]*)+/, '').replace(LIST_MARKER, '');
   let dropped = false;
   const dropDot = () => {
     if (!dropped && /[.。]$/.test(t)) { t = t.slice(0, -1).trimEnd(); dropped = true; }
@@ -151,11 +158,10 @@ const CODE_FENCE_CLOSE = /^[ \t]*```[ \t]*$/;
 const ARTIFACT_FENCE_OPEN = /^:::artifact\{[^}\n]*\}/;
 const ARTIFACT_FENCE_CLOSE = /^:::[ \t]*$/;
 
-// Every marker line OUTSIDE a fence, in order: [{ line, level }] where `line` is the 0-based index in
-// content.split('\n') and `level` may be 'conflict'. Exported for the quality harness's placement check.
-function findEvidenceMarkers(content) {
+// [{ i, line }] for every line OUTSIDE a fence, in order (`i` is the 0-based index in content.split('\n')).
+function linesOutsideFences(content) {
   const lines = String(content ?? '').split('\n');
-  const found = [];
+  const out = [];
   let fence = null;   // null | 'code' | 'artifact'
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].replace(/\r$/, '');
@@ -163,6 +169,16 @@ function findEvidenceMarkers(content) {
     if (fence === 'artifact') { if (ARTIFACT_FENCE_CLOSE.test(line)) fence = null; continue; }
     if (CODE_FENCE_OPEN.test(line)) { fence = 'code'; continue; }
     if (ARTIFACT_FENCE_OPEN.test(line)) { fence = 'artifact'; continue; }
+    out.push({ i, line });
+  }
+  return out;
+}
+
+// Every marker line OUTSIDE a fence, in order: [{ line, level }] where `line` is the 0-based index in
+// content.split('\n') and `level` may be 'conflict'. Exported for the quality harness's placement check.
+function findEvidenceMarkers(content) {
+  const found = [];
+  for (const { i, line } of linesOutsideFences(content)) {
     const level = parseEvidenceLine(line);
     if (level) found.push({ line: i, level });
   }
@@ -176,18 +192,69 @@ function extractEvidenceLevel(content) {
   return found.length === 1 && found[0].level !== 'conflict' ? found[0].level : null;
 }
 
+// --- Near-miss evidence statements: recognised for REMOVAL only, never read as a level ------------
+//
+// The retry fires precisely because the first reply's evidence line did not parse. If the splice removed
+// only the lines the strict parser reads, that near-miss would stay and the canonical line would land
+// next to it: two evidence statements on screen, possibly disagreeing. So this LOOSER test recognises a
+// line that STARTS WITH an evidence label once its decoration is stripped (blockquote, # heading, list
+// marker, leading emoji, bold/italic), whatever follows:
+//   - an unambiguous grading label followed by a colon (an optional "(…)" may sit between them): the
+//     prompt's own labels, "Evidence level / grade / certainty / quality / rating", "Level / grade /
+//     certainty / quality / strength of (the) evidence", "ระดับหลักฐาน…", "คุณภาพ(ของ)หลักฐาน",
+//     "ความน่าเชื่อถือของหลักฐาน";
+//   - the bare label "Evidence:" ONLY when a level word follows the colon at once, as a whole word
+//     ("Evidence: high (BTS, 2019)", "Evidence: very low"). Bare "Evidence:" also introduces ordinary
+//     content ("Evidence: two RCTs show …", "Evidence: high-quality RCTs show …"), and that is not an
+//     evidence-level statement to delete.
+// A line that starts with ❓ is never one (it is the examiner's question). It is used ONLY to decide which
+// lines the splice removes and to check that the result holds one statement; it never yields a level, so
+// it cannot make a near-miss count as compliant.
+const LOOSE_LABEL_EN = `(?:${spaced(EVIDENCE_EN_LABEL)}|evidence[ \\t]+(?:level|grade|certainty|quality|rating)|(?:level|grade|certainty|quality|strength)[ \\t]+of[ \\t]+(?:the[ \\t]+)?evidence)`;
+const LOOSE_LABEL_TH = `(?:${EVIDENCE_TH_LABEL_SHORT}|คุณภาพ(?:ของ)?หลักฐาน|ความน่าเชื่อถือของหลักฐาน)[^:：\\n]{0,30}`;
+const LOOSE_LABELLED = new RegExp(`^(?:${LOOSE_LABEL_EN}|${LOOSE_LABEL_TH})(?:[ \\t]*\\([^)\\n]{0,60}\\))?[ \\t]*[:：]`, 'i');
+const LOOSE_BARE = new RegExp(`^${EVIDENCE_EN_LABEL_SHORT}[ \\t]*[:：][ \\t]*(?:${TH_ALT}|(?:very[ \\t-]+low|${EN_ALT})(?![A-Za-z-]))`, 'i');
+const LEADING_EMOJI = /^(?:[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}][\u{FE0F}\u{20E3}]*[ \t]*)+/u;
+
+function isEvidenceStatementLine(line) {
+  if (typeof line !== 'string' || line.length > EVIDENCE_LINE_MAX_CHARS) return false;
+  if (parseEvidenceLine(line)) return true;
+  let t = line.replace(ZERO_WIDTH, '').replace(SPACE_LIKE, ' ').replace(/\*\*|__/g, '').trim();
+  if (t.startsWith('❓')) return false;
+  // Decoration may stack in any order ("> - ### 📊 *…"); strip it until nothing changes. Bounded: each
+  // pass removes at least one character or stops, and a line is at most EVIDENCE_LINE_MAX_CHARS long.
+  for (let pass = 0, prev = null; pass < 8 && t !== prev; pass++) {
+    prev = t;
+    t = t.replace(/^(?:>[ \t]*)+/, '').replace(/^#{1,6}[ \t]*/, '').replace(LIST_MARKER, '')
+      .replace(LEADING_EMOJI, '').replace(/^[*_]+/, '').trimStart();
+  }
+  return LOOSE_LABELLED.test(t) || LOOSE_BARE.test(t);
+}
+
+// Line indices (outside fences) of every evidence statement: strict markers and near-misses alike.
+function findEvidenceStatements(content) {
+  return linesOutsideFences(content).filter(({ line }) => isEvidenceStatementLine(line)).map(({ i }) => i);
+}
+
 // SPLICE, DON'T ADOPT. The chat route's marker-only retry (EVIDENCE_RETRY_PROMPT.only) asks for the one
 // line alone; this takes the level from that answer and writes the CANONICAL line for it into the FIRST
 // reply, which already passed every other check and which, on a streamed turn, the physician has
 // already been reading. Nothing else in `retryText` is used, so a rewrite can never drop an artifact or
-// reword prose behind the physician's back.
+// reword prose behind the physician's back. (placeEvidenceLine below reuses it, with the reply's own
+// level, to move a misplaced marker without any model call.)
 //   - `retryText` must hold exactly ONE marker line (outside any fence) with a consistent level; else null.
-//   - Any marker lines the first reply already had (two of them, or a self-contradicting one — which is
-//     why the retry fired) are removed, so the result holds exactly one.
-//   - Placement is the prompt's: natural mode -> appended as the last line; examiner mode -> inserted
-//     directly above the LAST ❓ line, so the ❓ stays last (appended if there is none).
-//   - The result must read back as exactly that level (an unterminated fence at the end of a truncated
-//     reply would swallow an appended line); if it does not, null.
+//   - Every evidence statement the first reply already has outside a fence is removed first: strict
+//     markers (two of them, or a self-contradicting one) AND near-misses (isEvidenceStatementLine). So the
+//     result holds exactly ONE evidence statement outside fences — checked on the way out, not assumed.
+//     Lines inside a fence are content and are never touched.
+//   - Placement is the prompt's, after a BLANK line (markdown's paragraph break, without which marked /
+//     ReactMarkdown merge the line into the paragraph, list item or table above it): natural mode ->
+//     appended as the last line, so with nothing removed the result is a pure append of the first reply;
+//     examiner mode -> inserted directly above the LAST ❓ line, so the ❓ stays last (appended if there is
+//     none).
+//   - On the way out the result must read back as exactly that level, hold one evidence statement, keep a
+//     citation if the first reply had one (removing a near-miss such as "Evidence: high (BTS, 2019)" must
+//     not take the reply's only citation with it), and keep the same ❓ question. Otherwise null.
 // Returns { text, level } or null. On null the caller keeps the first reply unchanged.
 function spliceEvidenceLine(firstText, retryText, { socratic = false } = {}) {
   const found = findEvidenceMarkers(retryText);
@@ -195,19 +262,49 @@ function spliceEvidenceLine(firstText, retryText, { socratic = false } = {}) {
   const { level } = found[0];
   const line = evidenceLineFor(level);
   const first = String(firstText ?? '');
-  const stale = new Set(findEvidenceMarkers(first).map((mk) => mk.line));
+  const stale = new Set(findEvidenceStatements(first));
   const lines = first.split('\n').filter((_, i) => !stale.has(i));
   let text = null;
   if (socratic) {
     let q = -1;
     for (let i = lines.length - 1; i >= 0; i--) if (lines[i].trim().startsWith('❓')) { q = i; break; }
-    if (q >= 0) { lines.splice(q, 0, line); text = lines.join('\n'); }
+    if (q >= 0) {
+      const blankAbove = q === 0 || lines[q - 1].trim() === '';
+      lines.splice(q, 0, ...(blankAbove ? [line] : ['', line]));
+      text = lines.join('\n');
+    }
   }
   if (text == null) {
     const base = lines.join('\n');
-    text = base + (base === '' || base.endsWith('\n') ? '' : '\n') + line;
+    text = base === '' ? line : base + (base.endsWith('\n\n') ? '' : base.endsWith('\n') ? '\n' : '\n\n') + line;
   }
-  return extractEvidenceLevel(text) === level ? { text, level } : null;
+  if (extractEvidenceLevel(text) !== level || findEvidenceStatements(text).length !== 1) return null;
+  if (hasCitation(first) && !hasCitation(text)) return null;
+  if (extractSocraticQuestion(first) !== extractSocraticQuestion(text)) return null;
+  return { text, level };
+}
+
+// Is the reply's ONE marker where the prompt puts it? natural (or examiner with no ❓): nothing but blank
+// lines after it. examiner with a ❓: exactly one non-blank line after it, and that line is the ❓.
+// Exported so the quality harness's placement check is this same definition.
+function evidenceMarkerPlaced(text, { socratic = false } = {}) {
+  const markers = findEvidenceMarkers(text);
+  if (markers.length !== 1 || markers[0].level === 'conflict') return false;
+  const after = String(text ?? '').split('\n').slice(markers[0].line + 1).map((l) => l.trim()).filter(Boolean);
+  if (socratic && extractSocraticQuestion(String(text ?? '')) != null) return after.length === 1 && after[0].startsWith('❓');
+  return after.length === 0;
+}
+
+// A reply that carries exactly one VALID marker in the wrong place (e.g. examiner: after the ❓, which
+// also breaks physician-ui's question display), or next to a near-miss evidence statement, is put right
+// WITHOUT a model call: the same splice, fed the reply's own level. Returns the new text, or null when
+// nothing needs moving (or the splice's own checks refuse, in which case the reply stands as it is).
+function placeEvidenceLine(text, { socratic = false } = {}) {
+  const level = extractEvidenceLevel(text);
+  if (!level) return null;
+  if (evidenceMarkerPlaced(text, { socratic }) && findEvidenceStatements(text).length === 1) return null;
+  const fixed = spliceEvidenceLine(text, evidenceLineFor(level), { socratic });
+  return fixed && fixed.text !== text ? fixed.text : null;
 }
 
 // --- Language guard -------------------------------------------------------------------------------
@@ -310,6 +407,7 @@ function isLanguageMismatch(text, language, { min = THAI_MIN_SHARE } = {}) {
 module.exports = {
   hasCitation, extractSocraticQuestion, extractReferences,
   extractEvidenceLevel, findEvidenceMarkers, parseEvidenceLine, spliceEvidenceLine, EVIDENCE_LINE_MAX_CHARS,
+  isEvidenceStatementLine, findEvidenceStatements, evidenceMarkerPlaced, placeEvidenceLine,
   thaiShare, isLanguageMismatch, isThaiMessage, stripNonProse, THAI_MIN_SHARE, MIN_JUDGED_LETTERS,
   MAX_PROSE_CHARS, MESSAGE_SAMPLE_CHARS,
 };

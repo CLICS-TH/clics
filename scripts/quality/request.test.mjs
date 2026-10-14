@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import {
   buildChatRequest, buildMessages, retryDecision, retryPrompt, retryMessages, RETRY_PROMPTS, CC_PREFIX, CHAT_MAX_TOKENS, routeLanguage,
   LANGUAGE_SUFFIX, LANGUAGE_ONLY_PROMPT, LANGUAGE_ONLY_PROMPT_TH, LANGUAGE_ONLY_PROMPT_EN, expectedReplyLanguage,
-  retryReason, evidenceSplice, optionalRetrySkipped, retryMaxTokens,
+  retryReason, evidenceSplice, optionalRetrySkipped, retryMaxTokens, evidencePlacement,
 } from './request.mjs';
 import {
   RIMPL_FILES, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE, promptLabel,
@@ -81,7 +81,15 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
     'evidenceRetried = needEvidence;',
     'evidence_retry: evidenceRetried,',
     'evidence_level: evidence_marker && !rescuing ? extractEvidenceLevel(text) : null,',
+    // PLACEMENT (evidencePlacement + runItem replicate these): the same gate as the check; applied to an
+    // adopted retry, and to the first reply when it is the one returned — never to a spliced reply.
+    'const placeMarker = (t) => (evidence_marker && !rescuing ? placeEvidenceLine(t, { socratic }) : null);',
+    'text = placeMarker(retry.text) ?? retry.text;',
+    'const firstReply = text;',
+    'if (text === firstReply) {',
+    'const placed = placeMarker(text);',
   ]) assert.ok(chatSrc.includes(line), `retry logic drifted from chat.js: ${line}`);
+  assert.equal(chatSrc.split('placeMarker(').length - 1, 2, 'placeMarker: exactly two uses (adopted retry, first reply)');
   // The suffix rides on BOTH the citation re-answer and the Thai rewrite, and nowhere else (not rescue).
   assert.equal(chatSrc.split('if (needEvidence) retryPrompt += EVIDENCE_RETRY_PROMPT.suffix[language];').length - 1, 2,
     'the evidence suffix must be appended in exactly the citation and language branches');
@@ -432,17 +440,34 @@ test('evidence marker: decision, prompt, reason and call size replicate chat.js'
 test('evidence marker: evidenceSplice = chat.js splice (one line into the FIRST reply, nothing else)', () => {
   const base = { socratic: false, rescuing: false, language: 'en', message: 'Chest pain, what next?', evidenceMarker: true };
   const only = retryDecision(EN_CITED, base);
-  assert.deepEqual(evidenceSplice(only, EN_CITED, 'Evidence: moderate', base), { text: `${EN_CITED}\n${MARK}`, level: 'moderate' });
+  assert.deepEqual(evidenceSplice(only, EN_CITED, 'Evidence: moderate', base), { text: `${EN_CITED}\n\n${MARK}`, level: 'moderate' });
   // A whole rewrite that dropped the artifact cannot get through: only the line is taken.
   const first = `${EN_CITED}\n:::artifact{type="differential" title="DDx"}\n| a | b |\n:::`;
-  assert.equal(evidenceSplice(only, first, `Rewritten without the table.\n${MARK}`, base).text, `${first}\n${MARK}`);
+  assert.equal(evidenceSplice(only, first, `Rewritten without the table.\n${MARK}`, base).text, `${first}\n\n${MARK}`);
   assert.equal(evidenceSplice(only, EN_CITED, 'no line here', base), null, 'no line: the first reply stands');
   assert.equal(evidenceSplice(only, EN_CITED, `${MARK}\n${MARK}`, base), null, 'two lines: the first reply stands');
   const ex = { ...base, socratic: true };
   const exOnly = retryDecision(`${EN_CITED}\n❓ What next?`, ex);
-  assert.equal(evidenceSplice(exOnly, `${EN_CITED}\n❓ What next?`, MARK, ex).text, `${EN_CITED}\n${MARK}\n❓ What next?`);
+  assert.equal(evidenceSplice(exOnly, `${EN_CITED}\n❓ What next?`, MARK, ex).text, `${EN_CITED}\n\n${MARK}\n❓ What next?`);
+  // A near-miss in the first reply is removed, so the result holds one evidence statement.
+  const nm = retryDecision(`${EN_CITED}\nEvidence level: high`, base);
+  assert.equal(retryReason(nm), 'evidence', 'a near-miss is not a level: the check fires');
+  assert.equal(evidenceSplice(nm, `${EN_CITED}\nEvidence level: high`, MARK, base).text, `${EN_CITED}\n\n${MARK}`);
   // Never for a citation or language retry: those replies are used whole.
   assert.equal(evidenceSplice(retryDecision('no cite', base), 'no cite', MARK, base), null);
+});
+
+test('evidence marker: evidencePlacement = chat.js placeMarker (off, rescue, misplaced, placed)', () => {
+  const nat = { evidenceMarker: true, socratic: false };
+  const ex = { evidenceMarker: true, socratic: true };
+  assert.equal(evidencePlacement(`${MARK}\n${EN_CITED}`, nat), `${EN_CITED}\n\n${MARK}`);
+  assert.equal(evidencePlacement(`${EN_CITED}\n❓ What next?\n${MARK}`, ex), `${EN_CITED}\n\n${MARK}\n❓ What next?`);
+  assert.equal(evidencePlacement(`${EN_CITED}\nLevel of evidence: high\n${MARK}`, nat), `${EN_CITED}\n\n${MARK}`);
+  assert.equal(evidencePlacement(`${EN_CITED}\n${MARK}`, nat), null, 'placed: left as it is');
+  assert.equal(evidencePlacement(`${MARK}\n${EN_CITED}`, { ...nat, evidenceMarker: false }), null, 'off: never');
+  // A rescue item's request carries evidenceMarker false (buildChatRequest), so a rescue turn is never touched.
+  const rescueReq = buildChatRequest(ITEM_RESCUE, { evidenceMarker: true });
+  assert.equal(evidencePlacement(`${MARK}\nWhat are you weighing?`, rescueReq), null);
 });
 
 test('deadline: optionalRetrySkipped = chat.js retrySkipped (only language/evidence, only past the cutoff)', () => {
@@ -466,8 +491,8 @@ test('runItem --evidence-marker: line spliced when given, first reply kept uncha
   assert.equal(calls[1].maxTokens, EVIDENCE_LINE_MAX_TOKENS);
   assert.equal(e.request.evidence_marker, true);
   assert.match(e.retry.reason, /evidence marker/);
-  assert.equal(e.final.text, `Start at eGFR 20 (KDIGO, 2022).\n${MARK}`);
-  assert.deepEqual([e.final.from, e.evidence_retry, e.evidence_level], ['first + spliced evidence line', true, 'moderate']);
+  assert.equal(e.final.text, `Start at eGFR 20 (KDIGO, 2022).\n\n${MARK}`);
+  assert.deepEqual([e.final.from, e.evidence_retry, e.evidence_level, e.evidence_moved], ['first + spliced evidence line', true, 'moderate', false]);
   assert.equal(e.retry.text, 'Evidence: moderate', 'the line-only answer is kept for the record');
   assert.equal(e.checks.checks.evidence_marker.pass, true);
   assert.equal(e.checks.checks.evidence_marker_placement.pass, true);
@@ -489,6 +514,30 @@ test('runItem --evidence-marker: line spliced when given, first reply kept uncha
   const off = await runItem(ITEM_EN_NATURAL, useless, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1 });
   assert.equal(n, 1);
   assert.deepEqual([off.request.evidence_marker, off.evidence_level, off.checks.checks.evidence_marker], [false, null, undefined]);
+});
+
+test('runItem --evidence-marker: a misplaced marker is MOVED with no model call (first reply and adopted retry)', async () => {
+  let n = 0;
+  const misplaced = async () => { n += 1; return { ok: true, text: `${MARK}\nStart at eGFR 20 (KDIGO, 2022).`, ms: 5 }; };
+  const m = await runItem(ITEM_EN_NATURAL, misplaced, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1, evidenceMarker: true });
+  assert.equal(n, 1, 'no retry: the first reply carries a valid level');
+  assert.equal(m.first.text, `${MARK}\nStart at eGFR 20 (KDIGO, 2022).`, 'the first reply is recorded as produced');
+  assert.equal(m.final.text, `Start at eGFR 20 (KDIGO, 2022).\n\n${MARK}`);
+  assert.deepEqual([m.final.from, m.evidence_moved, m.evidence_retry, m.evidence_level],
+    ['first + evidence line moved (no model call)', true, false, 'moderate']);
+  assert.equal(m.checks.checks.evidence_marker_placement.pass, true);
+  // An adopted citation re-answer with its marker above the prose: moved, and the retry's own text kept.
+  n = 0;
+  const adopted = async () => (++n === 1 ? { ok: true, text: 'Start at eGFR 20.', ms: 5 } : { ok: true, text: `${MARK}\nStart at eGFR 20 (KDIGO, 2022).`, ms: 5 });
+  const a = await runItem(ITEM_EN_NATURAL, adopted, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1, evidenceMarker: true });
+  assert.equal(n, 2);
+  assert.equal(a.final.text, `Start at eGFR 20 (KDIGO, 2022).\n\n${MARK}`);
+  assert.deepEqual([a.final.from, a.evidence_moved, a.evidence_retry], ['retry + evidence line moved (no model call)', true, true]);
+  assert.equal(a.retry.text, `${MARK}\nStart at eGFR 20 (KDIGO, 2022).`);
+  // Off: the misplaced marker the model wrote anyway is left alone.
+  n = 0;
+  const off = await runItem(ITEM_EN_NATURAL, misplaced, { maxTokens: 4000, retry: true, artifacts: false, attempts: 1 });
+  assert.deepEqual([off.final.text, off.evidence_moved], [`${MARK}\nStart at eGFR 20 (KDIGO, 2022).`, false]);
 });
 
 test('runItem: an optional retry past the cutoff is skipped and recorded, as chat.js skips it', async () => {
