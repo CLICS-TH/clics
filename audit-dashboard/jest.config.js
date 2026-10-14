@@ -31,6 +31,7 @@ const config = {
     'components/ConsistencyChip.tsx',
     'components/LocalAiCapacityCard.tsx',
     'components/AiProviderPanel.tsx',
+    'app/admin/ai-readiness/page.tsx',
   ],
   coverageThreshold: {
     global: { statements: 100, branches: 90, functions: 100, lines: 100 },
