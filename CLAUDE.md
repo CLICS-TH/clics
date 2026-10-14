@@ -76,4 +76,5 @@ yet (`/domain-modeling` creates it lazily). See [docs/agents/domain.md](docs/age
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Prioritized next steps (pilot-readiness → spec gaps → flagship) |
 | [docs/ONPREM-INSTALL.th.md](docs/ONPREM-INSTALL.th.md) | Thai install spec handed to the box owner — footprint, ports, data path, install/verify/remove (render: `node scripts/docs/th-doc-pdf.mjs`) |
 | [docs/LOCAL-MODEL-ROADMAP.md](docs/LOCAL-MODEL-ROADMAP.md) | Plan for moving AI calls to the on-prem DGX model (phases, gates, the mid-pilot timing constraint) |
+| [docs/ARCHITECTURE-MAPPING-CCME.md](docs/ARCHITECTURE-MAPPING-CCME.md) | CCME's 2026-10 architecture proposal mapped against what is built (R1–R10, 8 of 10 present), plus which model endpoints are reachable from the tailnet. **Read before designing anything for the on-prem move.** |
 | [docs/adr/](docs/adr/) | Architecture decision records. **0001 — build no more D3 transport until a GDCC VM exists** (read before designing any backend→RIMPL network path) |
