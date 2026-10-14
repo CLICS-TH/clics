@@ -2,8 +2,8 @@
 // throughput.mjs — sizing, NOT a gate.
 //
 // Gate 0 asks "can this model do the job at all". This script asks the next question: "how many
-// physicians can be on it at once", so LOCAL_MAX_CONCURRENCY (rimpl/src/services/providers/local.js)
-// comes from a measurement instead of a guess.
+// physicians can be on it at once", so LOCAL_MAX_CONCURRENCY (read by getRunner() in createLocalProvider,
+// rimpl/src/services/providers/local-factory.js) comes from a measurement instead of a guess.
 //
 // WHY THIS EXISTS AT ALL
 // ----------------------
@@ -195,9 +195,11 @@ if (rows.length < 2) {
 hr('what to put in rimpl');
 const suggested = knee ?? (rows.length ? rows[rows.length - 1].concurrency : null);
 console.log(`  LOCAL_MAX_CONCURRENCY=${suggested ?? '<measure first>'}`);
-console.log(`  ${dim('providers/local.js defaults this to 24 — a placeholder, not a measurement. Set it')}`);
-console.log(`  ${dim('at or below the knee so the excess waits in rimpl\'s FIFO queue (observable, and')}`);
-console.log(`  ${dim('bounded by LOCAL_AI_TIMEOUT_MS) rather than invisibly inside the GPU scheduler.')}`);
+console.log(`  ${dim('rimpl defaults this to 2 (getRunner() in rimpl/src/services/providers/local-factory.js, from the')}`);
+console.log(`  ${dim('DGX measurement: two concurrent PIS-7 evaluations already push p95 to 114 s). Set it at or below')}`);
+console.log(`  ${dim('the knee so the excess waits in rimpl\'s two-lane queue (visible in /health/deep queues, and')}`);
+console.log(`  ${dim('bounded: beyond LOCAL_MAX_QUEUE_* it is refused with 503 queue_full) rather than invisibly')}`);
+console.log(`  ${dim('inside the GPU scheduler.')}`);
 const worstP95 = rows.length ? Math.max(...rows.filter((r) => r.concurrency <= (suggested ?? Infinity)).map((r) => r.p95 ?? 0)) : 0;
 if (worstP95 > 85000) {
   console.log(`\n  ${red(`⚠ p95 at that level is ${Math.round(worstP95 / 1000)}s, past rimpl's 85s LOCAL_AI_TIMEOUT_MS.`)}`);

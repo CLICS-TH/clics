@@ -28,8 +28,19 @@ const mockLocal = {
   stats: jest.fn(() => ({ provider: 'local', active: 0, queued: 0, maxConcurrency: 24 })),
 };
 
+// The on-prem TUTOR (providers/local-tutor.js): a second instance of the local transport, on its own
+// endpoint and its own check key. Dormant unless a purpose names it.
+const mockTutor = {
+  name: 'local-tutor',
+  call: jest.fn(async () => ({ text: 'T', inputTokens: 5, outputTokens: 6, tokenCount: 11, stopReason: 'end_turn', model: 'qwen-tutor' })),
+  model: jest.fn(() => 'qwen-tutor'),
+  ready: jest.fn(async () => ({ checks: { local_tutor_ai: { status: 'up', model: 'qwen-tutor' } } })),
+  stats: jest.fn(() => ({ provider: 'local-tutor', active: 0, queued: 0, maxConcurrency: 2 })),
+};
+
 jest.mock('../src/services/providers/anthropic', () => mockAnthropic);
 jest.mock('../src/services/providers/local', () => mockLocal);
+jest.mock('../src/services/providers/local-tutor', () => mockTutor);
 
 const AI_ENV = ['AI_PROVIDER', 'AI_PROVIDER_CHAT', 'AI_PROVIDER_EVALUATE', 'AI_PROVIDER_CRITERIA', 'AI_PROVIDER_DISCUSS',
   // The embed lane leaked between tests until 2026-09-05 — harmless while nothing probed it,
@@ -394,8 +405,8 @@ describe('readiness() aggregates and NEVER throws', () => {
 
 // ---------------------------------------------------------------------------
 describe('the exported provider registry', () => {
-  test('exposes exactly the two providers, keyed by the name each reports', () => {
-    expect(Object.keys(ai.PROVIDERS).sort()).toEqual(['anthropic', 'local']);
+  test('exposes exactly the three providers, keyed by the name each reports', () => {
+    expect(Object.keys(ai.PROVIDERS).sort()).toEqual(['anthropic', 'local', 'local-tutor']);
     for (const [key, p] of Object.entries(ai.PROVIDERS)) expect(p.name).toBe(key);
   });
 
@@ -403,5 +414,166 @@ describe('the exported provider registry', () => {
     for (const p of Object.values(ai.PROVIDERS)) {
       for (const fn of ['call', 'model', 'ready', 'stats']) expect(typeof p[fn]).toBe('function');
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The on-prem TUTOR provider (CCME R3: the evaluator must be a distinct model artifact from the
+// tutor). It serves chat and discuss ONLY; evaluate / criteria routed to it must fail loudly, the same
+// way an unknown provider name does — the alternative is scoring a PLE with the tutor's own model.
+describe('local-tutor: routing, the purpose guard, and dormancy', () => {
+  test('dormant: nothing routes to it, nothing probes it, nothing reports its queue', async () => {
+    for (const p of PURPOSES) expect(ai.providerNameFor(p)).not.toBe('local-tutor');
+    expect(ai.activeProviders()).toEqual(['anthropic']);
+    const checks = await ai.readiness();
+    expect(checks).not.toHaveProperty('local_tutor_ai');
+    expect(mockTutor.ready).not.toHaveBeenCalled();
+  });
+
+  test('chat and discuss route to it independently of the evaluator', async () => {
+    process.env.AI_PROVIDER_CHAT = 'local-tutor';
+    process.env.AI_PROVIDER_DISCUSS = 'local-tutor';
+    process.env.AI_PROVIDER_EVALUATE = 'local';
+    process.env.AI_PROVIDER_CRITERIA = 'local';
+    expect(await ai.callAI(args('chat'))).toMatchObject({ provider: 'local-tutor', model: 'qwen-tutor', text: 'T' });
+    expect(await ai.callAI(args('discuss'))).toMatchObject({ provider: 'local-tutor' });
+    expect(await ai.callAI(args('evaluate'))).toMatchObject({ provider: 'local', model: 'qwen3-32b-medical' });
+    expect(await ai.callAI(args('criteria'))).toMatchObject({ provider: 'local' });
+    expect(mockTutor.call).toHaveBeenCalledTimes(2);
+    expect(mockLocal.call).toHaveBeenCalledTimes(2);
+    expect(ai.activeProviders().sort()).toEqual(['local', 'local-tutor']);
+    expect(ai.modelsByPurpose()).toMatchObject({
+      chat: { provider: 'local-tutor', model: 'qwen-tutor' }, discuss: { provider: 'local-tutor', model: 'qwen-tutor' },
+      evaluate: { provider: 'local', model: 'qwen3-32b-medical' }, criteria: { provider: 'local', model: 'qwen3-32b-medical' },
+    });
+    // Two boxes, two checks: distinct keys, so readiness() merging them loses neither.
+    expect(Object.keys(await ai.readiness()).sort()).toEqual(['local_ai', 'local_tutor_ai']);
+  });
+
+  test.each(['evaluate', 'criteria'])('%s routed to local-tutor THROWS — via env, the global default, or a pin — and never calls it', async (purpose) => {
+    process.env[`AI_PROVIDER_${purpose.toUpperCase()}`] = 'local-tutor';
+    await expect(ai.callAI(args(purpose))).rejects.toThrow(new RegExp(`"local-tutor".*cannot serve "${purpose}".*chat, discuss`));
+    await expect(ai.resolveProviderName(purpose)).rejects.toThrow(/cannot serve/);
+    delete process.env[`AI_PROVIDER_${purpose.toUpperCase()}`];
+
+    process.env.AI_PROVIDER = 'local-tutor';   // the easy way to mean "all on-prem" and get it wrong
+    await expect(ai.callAI(args(purpose))).rejects.toThrow(/cannot serve/);
+    delete process.env.AI_PROVIDER;
+
+    await expect(ai.callAI({ ...args(purpose), provider: 'local-tutor' })).rejects.toThrow(/a pinned provider.*cannot serve/);
+    expect(mockTutor.call).not.toHaveBeenCalled();
+    expect(mockAnthropic.call).not.toHaveBeenCalled();   // and it does not quietly fall back either
+  });
+
+  test('a misrouted purpose is reported DOWN by readiness(), even though the tutor box itself is up', async () => {
+    process.env.AI_PROVIDER_EVALUATE = 'local-tutor';
+    const checks = await ai.readiness();
+    expect(checks.evaluate_routing).toEqual({ status: 'down', error: '"local-tutor" cannot serve "evaluate" — it serves only chat, discuss' });
+    expect(checks.local_tutor_ai.status).toBe('up');
+    expect(Object.values(checks).every((c) => c.status === 'up')).toBe(false);
+  });
+
+  test('probeProvider refuses it for evaluate / criteria without probing, and probes it for chat', async () => {
+    for (const purpose of ['evaluate', 'criteria']) {
+      expect(await ai.probeProvider('local-tutor', purpose)).toMatchObject({ fit: false, code: 'purpose_not_served' });
+    }
+    expect(mockTutor.ready).not.toHaveBeenCalled();
+    expect(await ai.probeProvider('local-tutor', 'chat')).toMatchObject({ fit: true, provider: 'local-tutor' });
+    expect(mockTutor.ready).toHaveBeenCalledTimes(1);
+  });
+
+  test('it is NOT an embedding provider', async () => {
+    expect(Object.keys(ai.EMBED_PROVIDERS).sort()).toEqual(['local', 'openai']);
+    expect(await ai.probeProvider('local-tutor', 'embed')).toMatchObject({ fit: false, code: 'unknown_provider' });
+    process.env.AI_PROVIDER_EMBED = 'local-tutor';
+    await expect(ai.embedText('x')).rejects.toThrow(/Unknown AI provider "local-tutor"/);
+  });
+
+  test('the guard leaves every other provider and purpose alone', () => {
+    for (const p of [...PURPOSES, 'shadow']) {
+      expect(ai.servesPurpose('anthropic', p)).toBe(true);
+      expect(ai.servesPurpose('local', p)).toBe(true);
+    }
+    expect(ai.PROVIDER_PURPOSES).toEqual({ 'local-tutor': ['chat', 'discuss'] });
+  });
+
+  // `shadow` is an evaluation (a second PIS-7 score of the same transcript), so it follows the
+  // evaluate rule from the SAME list rather than a second one.
+  test('shadow is evaluate-class: local-tutor may not shadow either', () => {
+    expect(ai.servesPurpose('local-tutor', 'shadow')).toBe(false);
+    expect(ai.servesPurpose('local-tutor', 'chat')).toBe(true);
+  });
+
+  test('callProvider (routing bypassed by name) still refuses local-tutor for shadow / evaluate — the backstop behind services/shadow.js', async () => {
+    for (const purpose of ['shadow', 'evaluate', 'criteria']) {
+      await expect(ai.callProvider({ provider: 'local-tutor', purpose, systemPrompt: 's', messages: [] }))
+        .rejects.toThrow(new RegExp(`an explicit provider name.*cannot serve "${purpose}"`));
+    }
+    expect(mockTutor.call).not.toHaveBeenCalled();
+    await ai.callProvider({ provider: 'local-tutor', purpose: 'chat', systemPrompt: 's', messages: [] });
+    expect(mockTutor.call).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// `thinking` / `onReasoning` — plumbing for a later router; nobody passes them yet, so a call without
+// them must reach the provider with EXACTLY the arguments it always had.
+describe('thinking + onReasoning pass-through', () => {
+  test('absent: not a key on the provider call (the pre-existing exact-args contract holds)', async () => {
+    process.env.AI_PROVIDER = 'local';
+    await ai.callAI(args('chat'));
+    const sent = mockLocal.call.mock.calls[0][0];
+    expect(sent).not.toHaveProperty('thinking');
+    expect(sent).not.toHaveProperty('onReasoning');
+    expect(sent).not.toHaveProperty('onDelta');
+  });
+
+  test('given: forwarded verbatim through callAI and callProvider', async () => {
+    process.env.AI_PROVIDER_CHAT = 'local-tutor';
+    const onReasoning = jest.fn();
+    await ai.callAI({ ...args('chat'), thinking: { enabled: false, budget: 0 }, onReasoning });
+    expect(mockTutor.call).toHaveBeenCalledWith(expect.objectContaining({ thinking: { enabled: false, budget: 0 }, onReasoning }));
+
+    await ai.callProvider({ provider: 'local', purpose: 'shadow', systemPrompt: 's', messages: [], thinking: true });
+    expect(mockLocal.call).toHaveBeenCalledWith(expect.objectContaining({ purpose: 'shadow', thinking: true }));
+    expect(mockLocal.call.mock.calls[0][0]).not.toHaveProperty('onReasoning');
+  });
+
+  test('a reasoning notification does not commit the turn: chat fail-over still applies', async () => {
+    process.env.AI_PROVIDER_CHAT = 'local-tutor';
+    const savedFailover = process.env.CHAT_FAILOVER_PROVIDER;
+    process.env.CHAT_FAILOVER_PROVIDER = 'local';
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      mockTutor.call.mockImplementationOnce(async ({ onReasoning }) => {
+        onReasoning();
+        throw Object.assign(new Error('fetch failed'), { cause: { code: 'ECONNREFUSED' } });
+      });
+      const r = await ai.callAI({ ...args('chat'), onReasoning: jest.fn(), onDelta: jest.fn() });
+      expect(r).toMatchObject({ provider: 'local', failed_over_from: 'local-tutor' });
+    } finally {
+      warn.mockRestore();
+      if (savedFailover === undefined) delete process.env.CHAT_FAILOVER_PROVIDER; else process.env.CHAT_FAILOVER_PROVIDER = savedFailover;
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+describe('r3_distinct_models (readiness)', () => {
+  afterEach(() => { delete mockLocal.endpointKey; delete mockTutor.endpointKey; });
+
+  test('equal keys: one warn check; providers without endpointKey (or unconfigured) add nothing', async () => {
+    expect(await ai.readiness()).not.toHaveProperty('r3_distinct_models');   // mocks without endpointKey
+    mockLocal.endpointKey = () => 'http://box/v1 m';
+    mockTutor.endpointKey = () => null;                                       // tutor unconfigured
+    expect(await ai.readiness()).not.toHaveProperty('r3_distinct_models');
+    mockTutor.endpointKey = () => 'http://box/v1 m';
+    expect((await ai.readiness()).r3_distinct_models).toMatchObject({ status: 'warn' });
+  });
+
+  test('it does not make the provider probe unfit: probeProvider reads only the provider\'s own checks', async () => {
+    mockLocal.endpointKey = () => 'k';
+    mockTutor.endpointKey = () => 'k';
+    expect(await ai.probeProvider('local-tutor', 'chat')).toMatchObject({ fit: true });
   });
 });

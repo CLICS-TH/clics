@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 import { existsSync } from 'node:fs';
 import { thaiShare, THAI_MIN_SHARE } from './rimpl.mjs';
-import { checkReply, summarize, wordCount, LENGTH_MAX_WORDS } from './checks.mjs';
+import { checkReply, summarize, wordCount, LENGTH_MAX_WORDS, CHECKS_VERSION } from './checks.mjs';
 import { ITEM_TH_EXAMINER, ITEM_EN_NATURAL, ITEM_RESCUE, ITEM_PII, ITEM_LEAK, GOOD_TH_EXAMINER, entryFor } from './test-fixtures.mjs';
 
 const codes = (r) => r.flags.map((f) => f.code);
@@ -120,8 +120,46 @@ test('length uses Thai word segmentation, truncation and <think> leaks are flagg
   assert.equal(sev(checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, long)), 'too_long'), 'minor');
   const cut = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, 'Start at eGFR 20 (KDIGO, 2022)', { finish_reason: 'length' }));
   assert.equal(sev(cut, 'truncated'), 'major');
-  const think = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, '<think>hmm</think> Start at eGFR 20 (KDIGO, 2022)'));
-  assert.equal(sev(think, 'reasoning_leak'), 'major');
+});
+
+// checks-v2: no_reasoning_leak asks what a physician can SEE, judged on the reply production RETURNS.
+test('a model-opened <think> block is NOT a leak: production strips it and withholds it from a stream — info only', () => {
+  const r = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, '<think>hmm</think> Start at eGFR 20 (KDIGO, 2022)'));
+  assert.equal(r.checks.no_reasoning_leak.pass, true);
+  assert.equal(sev(r, 'reasoning_leak'), undefined);
+  assert.equal(sev(r, 'reasoning_markup'), 'info');
+  assert.equal(r.checks.citation_shape.pass, true, 'judged on the stripped reply');
+});
+
+test('a template-opened block (no <think>, a later </think>) IS a leak when streamed — unless THINK_PREOPENED was on', () => {
+  const raw = 'the physician seems unsure, I should hedge\n</think>\n\nStart at eGFR 20 (KDIGO, 2022)';
+  // v1 report shape: `text` is the served content.
+  const v1 = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, raw));
+  assert.equal(v1.checks.no_reasoning_leak.pass, false);
+  assert.equal(sev(v1, 'reasoning_leak'), 'major');
+  assert.match(v1.flags.find((f) => f.code === 'reasoning_leak').detail, /THINK_PREOPENED=1/);
+  // v2 shape, knob on: production withheld everything before the </think>.
+  const v2 = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, 'Start at eGFR 20 (KDIGO, 2022)', { raw_text: raw, think_preopened: true }));
+  assert.equal(v2.checks.no_reasoning_leak.pass, true);
+  assert.equal(sev(v2, 'reasoning_markup'), 'info');
+});
+
+test('markup left in the RETURNED reply is a leak (a production bug if it ever happens)', () => {
+  const r = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, 'Start <think>x</think> at eGFR 20 (KDIGO, 2022)', { raw_text: 'whatever' }));
+  assert.equal(r.checks.no_reasoning_leak.pass, false);
+  assert.match(r.checks.no_reasoning_leak.detail, /returned reply/);
+});
+
+test('content that was nothing but reasoning is reasoning_only (critical), named for the pre-opened case', () => {
+  const v1 = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, '<think>all thought, no answer'));
+  assert.equal(sev(v1, 'reasoning_only'), 'critical');
+  const pre = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, '', { raw_text: 'thinking and never closing', think_preopened: true, reasoning_only: true }));
+  assert.equal(sev(pre, 'reasoning_only'), 'critical');
+  assert.match(pre.flags.find((f) => f.code === 'reasoning_only').detail, /error \(reasoning_only\)/);
+});
+
+test('the semantics changed, so the version did', () => {
+  assert.equal(CHECKS_VERSION, 'checks-v2');
 });
 
 test('summarize: pass rates carry Wilson intervals, failures excluded from denominators', () => {

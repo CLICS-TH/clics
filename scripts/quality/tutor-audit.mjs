@@ -125,7 +125,12 @@ async function withAttempts(fn, attempts) {
 function callRecord(r) {
   return {
     ok: !!r.ok,
+    // What production would RETURN (probe/lib.mjs chatCompletion applies rimpl's stripThink) …
     text: r.text ?? '',
+    // … and the content exactly as served, for checks.mjs no_reasoning_leak (what a STREAMING
+    // physician would have seen). The paid arm has no inline markup to strip, so the two are equal.
+    raw_text: r.rawText ?? r.text ?? '',
+    think_preopened: !!r.thinkPreopened,
     error: r.error ?? null,
     status: r.status ?? null,
     ms: r.ms == null ? null : Math.round(r.ms),
@@ -347,7 +352,8 @@ async function main() {
     const cfg = readConfig({ needModel: true });
     printTarget(cfg, { items: String(items.length), concurrency: String(concurrency) });
     complete = (req) => chatCompletion(cfg, req);
-    target = { arm, provider: 'local', base_url: cfg.baseUrl, model_requested: cfg.model, timeout_ms: cfg.timeoutMs };
+    target = { arm, provider: 'local', base_url: cfg.baseUrl, model_requested: cfg.model, timeout_ms: cfg.timeoutMs,
+      think_preopened: cfg.thinkPreopened };
   } else {
     if (!budget) {
       fail('--arm anthropic needs a spend ceiling: --max-usd <x> --usd-per-mtok-in <p> --usd-per-mtok-out <q>.\n' +

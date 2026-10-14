@@ -56,7 +56,9 @@ const keyFor = (purpose) => `ai_provider_${String(purpose).toLowerCase()}`;
 // Operational settings that are NOT per-purpose provider names but must still be changeable without
 // a redeploy. Read in the same round trip as the overrides — a second query on the same TTL would be
 // pure waste, and a second cache would be a second thing that can go stale differently.
-const NUMBER_KEYS = ['local_ai_min_context', 'rag_enabled'];
+// local_tutor_ai_min_context is the tutor box's own floor (providers/local-tutor.js): a different
+// server, a different context window, so not the evaluator's number.
+const NUMBER_KEYS = ['local_ai_min_context', 'local_tutor_ai_min_context', 'rag_enabled'];
 
 let cache = { values: {}, numbers: {}, lockedAt: null, fetchedAt: 0, loaded: false };
 let inflight = null;

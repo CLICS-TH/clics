@@ -2,9 +2,11 @@
 /*
  * What is the real input ceiling for a PLE evaluation, and does the server tell us when we cross it?
  *
- * WHY THIS EXISTS. providers/local.js:52 leaves LOCAL_AI_NUM_CTX at 0, so rimpl never sends num_ctx
- * and the SERVER decides the context window. We do not know what that window is. The comment at
- * local.js:158 records a measured 400 on the DGX under Ollama — "exceeds the available context size
+ * WHY THIS EXISTS. rimpl's local transport leaves LOCAL_AI_NUM_CTX at 0 by default (the `numCtx`
+ * field of cfg() in createLocalProvider, rimpl/src/services/providers/local-factory.js), so rimpl
+ * never sends num_ctx and the SERVER decides the context window. We do not know what that window is.
+ * The comment on call()'s context-overflow branch (the /exceeds the available context/ match, same
+ * file) records a measured 400 on the DGX under Ollama — "exceeds the available context size
  * (4096)" at 9,144 tokens — but the 26-fixture run through Open WebUI on cme-dev never errored, even
  * on a ~7,346-token transcript. Two explanations with opposite consequences:
  *

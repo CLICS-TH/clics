@@ -16,6 +16,7 @@ const retention = require('../services/retention');
 const { decryptJson } = require('../lib/crypto');
 const { probeRimplProvider, probeRimplDeep } = require('../services/rimpl-client');
 const { decisiveVerdict } = require('../services/agreement');
+const { AI_PROVIDER_CHOICES, evaluateClass } = require('../lib/ai-providers');
 const { getTextSetting, minAuditorsPerPle } = require('../lib/settings');
 
 const router = Router();
@@ -556,16 +557,11 @@ router.patch('/usage-settings', async (req, res) => {
 // The values are read by RIMPL (services/provider-settings.js), which layers them OVER its env:
 //   app_settings.ai_provider_<purpose> → AI_PROVIDER_<PURPOSE> → AI_PROVIDER → 'anthropic'
 const AI_PURPOSES = ['chat', 'evaluate', 'criteria', 'discuss', 'embed'];
-// Embeddings are a different market from chat: Anthropic has no embeddings API and Claude cannot
-// serve `embed`, so the valid answers differ per purpose. Offering a provider that would throw on
-// first use is not a switch, it is a trap.
-const AI_PROVIDER_CHOICES = {
-  chat: ['anthropic', 'local'],
-  evaluate: ['anthropic', 'local'],
-  criteria: ['anthropic', 'local'],
-  discuss: ['anthropic', 'local'],
-  embed: ['openai', 'local'],
-};
+// The valid providers per purpose live in lib/ai-providers.js — ONE list, shared with
+// services/agreement.js's candidate filter. Embeddings differ (no Anthropic embeddings API), and the
+// on-prem tutor `local-tutor` is offered for chat / discuss only (CCME R3); rimpl enforces the same
+// rule itself (services/ai.js PROVIDER_PURPOSES), so a row written around this list still cannot
+// route it there.
 const AI_PROVIDER_DEFAULT = { chat: 'anthropic', evaluate: 'anthropic', criteria: 'anthropic', discuss: 'anthropic', embed: 'openai' };
 
 // Typed confirmations. Not theatre: `evaluate` is the measuring instrument the whole credit gate
@@ -659,7 +655,7 @@ router.get('/evaluator-lock', async (_req, res) => {
     // The form is unavailable until the candidate has cleared the DECISIVE bar. Not the screening
     // bar: two models agreeing closely can be similarly wrong, and freezing the study's measuring
     // instrument against a number that never touched a human judgement is the thing this prevents.
-    can_declare: verdict?.state === 'pass',
+    can_declare: verdict?.state === 'pass' && evaluateClass(gate.candidate?.provider),
     gate: verdict,
   });
 });
@@ -686,6 +682,16 @@ router.post('/evaluator-lock', async (req, res) => {
     return res.status(409).json({
       error: `The candidate has not cleared the decisive threshold (${gate.verdict.state}): ${gate.verdict.why}`,
       code: 'gate_not_passed', gate: gate.verdict,
+    });
+  }
+  // The candidate must be a provider that may serve `evaluate`. services/agreement.js already only
+  // picks one from such rows; this is the same rule restated at the one write that freezes the study's
+  // instrument, so it holds even if the assembly changes. The tutor model (`local-tutor`) is never a
+  // lockable evaluator: CCME R3 needs the evaluator to be a distinct artifact from the tutor.
+  if (!evaluateClass(gate.candidate?.provider)) {
+    return res.status(409).json({
+      error: `The candidate provider "${gate.candidate?.provider ?? 'none'}" cannot serve as the PIS-7 evaluator.`,
+      code: 'candidate_not_evaluator', candidate: gate.candidate ?? null,
     });
   }
 

@@ -226,3 +226,17 @@ test('ready() reports up when ANTHROPIC_API_KEY is present (no completion call, 
   expect(checks.anthropic_client.status).toBe('up');
   expect(mockCall).not.toHaveBeenCalled(); // readiness must never burn a token
 });
+
+// `thinking` / `onReasoning` are local-transport options (providers/local-factory.js). services/ai.js
+// forwards them to whichever provider serves the call — including this one, on a fail-over — and the
+// Anthropic request must be exactly what it always was: no extended-thinking parameter appears here
+// unless someone deliberately builds it.
+test('ignores `thinking` and `onReasoning`: the request body is unchanged and nothing is called', async () => {
+  mockCall.mockResolvedValueOnce(okResp);
+  const onReasoning = jest.fn();
+  await call({ ...args(), thinking: { enabled: true, budget: 2048 }, onReasoning });
+  const [body] = mockCall.mock.calls[0];
+  expect(Object.keys(body).sort()).toEqual(['max_tokens', 'messages', 'model', 'system']);
+  expect(JSON.stringify(body)).not.toMatch(/thinking|2048/);
+  expect(onReasoning).not.toHaveBeenCalled();
+});

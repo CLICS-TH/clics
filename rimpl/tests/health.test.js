@@ -141,6 +141,112 @@ describe('GET /health/deep (rimpl)', () => {
     }
   });
 
+  // The on-prem TUTOR provider (providers/local-tutor.js) ships dormant. A deployment that never
+  // routes to it must not be probed for it, reported degraded for it, or show its queue — whatever its
+  // env says. Routed to and unconfigured, it is (correctly) down, under its OWN check key.
+  test('local-tutor dormant: no local_tutor_ai check, no queue, still 200 — even with its env unset', async () => {
+    const TUTOR_KEYS = ['LOCAL_TUTOR_AI_BASE_URL', 'LOCAL_TUTOR_AI_MODEL'];
+    const saved = Object.fromEntries(TUTOR_KEYS.map((k) => [k, process.env[k]]));
+    for (const k of TUTOR_KEYS) delete process.env[k];
+    try {
+      const res = await request(app).get('/health/deep');
+      expect(res.status).toBe(200);
+      expect(res.body.checks).not.toHaveProperty('local_tutor_ai');
+      expect(res.body.queues).not.toHaveProperty('local-tutor');
+      expect(res.body.providers).toEqual(['anthropic']);
+    } finally {
+      for (const k of TUTOR_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
+    }
+  });
+
+  test('local-tutor routed for chat but unconfigured: 503, local_tutor_ai down, its own queue reported — no outbound request', async () => {
+    const TUTOR_KEYS = ['LOCAL_TUTOR_AI_BASE_URL', 'LOCAL_TUTOR_AI_MODEL'];
+    const saved = Object.fromEntries(TUTOR_KEYS.map((k) => [k, process.env[k]]));
+    for (const k of TUTOR_KEYS) delete process.env[k];
+    const fetchSpy = jest.spyOn(global, 'fetch').mockRejectedValue(new Error('no network in tests'));
+    try {
+      process.env.AI_PROVIDER_CHAT = 'local-tutor';
+      const res = await request(app).get('/health/deep');
+      expect(res.status).toBe(503);
+      expect(res.body.checks.local_tutor_ai).toEqual({ status: 'down', error: 'LOCAL_TUTOR_AI_BASE_URL not set' });
+      expect(res.body.checks.anthropic_key.status).toBe('up');      // the other side of the hybrid is unaffected
+      expect(res.body.checks).not.toHaveProperty('local_ai');      // the evaluator box is not active here
+      expect(res.body.models.chat).toEqual({ provider: 'local-tutor', model: '' });
+      expect(Object.keys(res.body.queues).sort()).toEqual(['anthropic', 'local-tutor']);
+      expect(res.body.queues['local-tutor']).toMatchObject({ provider: 'local-tutor', active: 0, queued: 0 });
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+      fetchSpy.mockRestore();
+      for (const k of TUTOR_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
+    }
+  });
+
+  test('evaluate routed to local-tutor is reported down as a ROUTING fault, not hidden behind a healthy box', async () => {
+    const fetchSpy = jest.spyOn(global, 'fetch').mockRejectedValue(new Error('no network in tests'));
+    try {
+      process.env.AI_PROVIDER_EVALUATE = 'local-tutor';
+      const res = await request(app).get('/health/deep');
+      expect(res.status).toBe(503);
+      expect(res.body.checks.evaluate_routing).toMatchObject({ status: 'down', error: expect.stringMatching(/"local-tutor" cannot serve "evaluate"/) });
+    } finally {
+      fetchSpy.mockRestore();
+    }
+  });
+
+  // CCME R3: the tutor must be a distinct artifact from the evaluator. Configured to the very same
+  // endpoint + model, it is not — a WARNING (reported, never 503: backend reads 503 as "rimpl down").
+  describe('r3_distinct_models', () => {
+    const KEYS = ['LOCAL_AI_BASE_URL', 'LOCAL_AI_MODEL', 'LOCAL_TUTOR_AI_BASE_URL', 'LOCAL_TUTOR_AI_MODEL'];
+    let saved;
+    beforeEach(() => { saved = Object.fromEntries(KEYS.map((k) => [k, process.env[k]])); for (const k of KEYS) delete process.env[k]; });
+    afterEach(() => { for (const k of KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; } });
+
+    test('same endpoint + model: a warn check, still 200 ok, and neither URL in the body', async () => {
+      process.env.LOCAL_AI_BASE_URL = 'http://Box.Tailnet:80/v1/';   // same box, written differently
+      process.env.LOCAL_AI_MODEL = 'qwen-same';
+      process.env.LOCAL_TUTOR_AI_BASE_URL = 'http://box.tailnet/v1';
+      process.env.LOCAL_TUTOR_AI_MODEL = 'qwen-same';
+      const res = await request(app).get('/health/deep');
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('ok');
+      expect(res.body.checks.r3_distinct_models).toMatchObject({ status: 'warn', warning: expect.stringMatching(/CCME R3/) });
+      expect(res.body.warnings).toEqual(['r3_distinct_models']);
+      expect(JSON.stringify(res.body)).not.toMatch(/tailnet/i);
+    });
+
+    test('a warn never masks a real failure: with a down check as well, it is 503 degraded', async () => {
+      process.env.LOCAL_AI_BASE_URL = 'http://box.tailnet/v1';
+      process.env.LOCAL_AI_MODEL = 'qwen-same';
+      process.env.LOCAL_TUTOR_AI_BASE_URL = 'http://box.tailnet/v1';
+      process.env.LOCAL_TUTOR_AI_MODEL = 'qwen-same';
+      delete process.env.ANTHROPIC_API_KEY;
+      const res = await request(app).get('/health/deep');
+      expect(res.status).toBe(503);
+      expect(res.body.checks.r3_distinct_models.status).toBe('warn');
+    });
+
+    test.each([
+      ['a different model on the same endpoint', 'http://box.tailnet/v1', 'qwen-tutor'],
+      ['the same model on a different endpoint', 'http://other.tailnet/v1', 'qwen-same'],
+    ])('%s: no warning', async (_l, tutorUrl, tutorModel) => {
+      process.env.LOCAL_AI_BASE_URL = 'http://box.tailnet/v1';
+      process.env.LOCAL_AI_MODEL = 'qwen-same';
+      process.env.LOCAL_TUTOR_AI_BASE_URL = tutorUrl;
+      process.env.LOCAL_TUTOR_AI_MODEL = tutorModel;
+      const res = await request(app).get('/health/deep');
+      expect(res.body.checks).not.toHaveProperty('r3_distinct_models');
+      expect(res.body).not.toHaveProperty('warnings');
+    });
+
+    test('the tutor unconfigured: no warning (nothing to compare)', async () => {
+      process.env.LOCAL_AI_BASE_URL = 'http://box.tailnet/v1';
+      process.env.LOCAL_AI_MODEL = 'qwen-same';
+      const res = await request(app).get('/health/deep');
+      expect(res.status).toBe(200);
+      expect(res.body.checks).not.toHaveProperty('r3_distinct_models');
+    });
+  });
+
   // The chat fail-over target (CHAT_FAILOVER_PROVIDER) is probed too, so a fail-over that could not
   // work — no ANTHROPIC_API_KEY on an all-local box — is visible here, before the outage it is meant
   // to cover. It is probed, not made active: `providers` and `queues` still name only what routes.
