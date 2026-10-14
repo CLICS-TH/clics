@@ -43,7 +43,7 @@ above: those are project-local reviewers/verifiers, these are workflow skills (`
 
 ### Issue tracker
 
-GitHub Issues on `jjnnaappaatt/clics`, via the `gh` CLI. **Never put PII, IRB content, or manuscript
+GitHub Issues on `CLICS-TH/clics`, via the `gh` CLI. **Never put PII, IRB content, or manuscript
 text in an issue.** See [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md).
 
 ### Triage labels

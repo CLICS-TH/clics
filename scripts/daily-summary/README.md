@@ -63,24 +63,24 @@ self-heal backstop guarded against double-sending.
 
 1. **Add the Resend secret** (encrypted; never committed):
    ```bash
-   gh secret set RESEND_API_KEY -R jjnnaappaatt/clics --body 'YOUR_RESEND_KEY'
+   gh secret set RESEND_API_KEY -R CLICS-TH/clics --body 'YOUR_RESEND_KEY'
    ```
    Rotate at resend.com first if the value was ever exposed.
 
 2. *(optional)* Override the recipient via a repo **variable** (defaults to
    `napat72235@gmail.com`):
    ```bash
-   gh variable set DAILY_TO -R jjnnaappaatt/clics --body 'someone@example.com'
+   gh variable set DAILY_TO -R CLICS-TH/clics --body 'someone@example.com'
    ```
 
 ## Test it
 
 ```bash
 # Send now (manual dispatch always sends, bypassing the dedup guard):
-gh workflow run "CLICS Daily Summary" -R jjnnaappaatt/clics --ref master
+gh workflow run "CLICS Daily Summary" -R CLICS-TH/clics --ref master
 
 # Watch it:
-gh run list -R jjnnaappaatt/clics --workflow="CLICS Daily Summary" --limit 1
+gh run list -R CLICS-TH/clics --workflow="CLICS Daily Summary" --limit 1
 ```
 
 Preview the generated content locally (no send):
