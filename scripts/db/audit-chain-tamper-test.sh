@@ -7,8 +7,10 @@
 # Asserts: backfill chains pre-existing rows; the migration is idempotent; 50 concurrent inserts give
 # a contiguous 1..n chain that verifies; the verdict does not depend on TimeZone; UPDATE / DELETE /
 # TRUNCATE are refused even for the service role and a superuser; purging a referenced user works and
-# keeps actor_id; a caller cannot supply its own seq or hash; anon/authenticated cannot call verify;
-# and with the triggers forcibly disabled, an edited row and a deleted row are both reported.
+# keeps actor_id; a caller cannot supply its own seq, hash or created_at; the service role CAN verify
+# (explicit grants, not Supabase's default function ACL) while anon/authenticated cannot; with the
+# triggers forcibly disabled an edited or deleted MIDDLE row is reported; and, pinned as a known
+# limit, a cut tail or a forward re-hash passes an unanchored walk and is caught only by an anchor.
 set -euo pipefail
 export LC_ALL=C LANG=C
 
@@ -78,7 +80,12 @@ expect "purging a referenced user keeps actor_id" "11111111-1111-1111-1111-11111
 echo "spoofing + access"
 P -c "set role service_role; insert into audit_log(action, seq, row_hash, prev_hash) values ('spoof', 1, '\\x00', '\\x00')"
 expect "caller-supplied seq/hash ignored" "53|32" "$(P -c "select seq, length(row_hash) from audit_log where action = 'spoof'")"
-expect "still verifies after spoof attempt" "t" "$(P -c "select ok from audit_log_verify()")"
+P -c "set role service_role; insert into audit_log(action, created_at) values ('backdated', '2026-01-01Z')"
+expect "caller-supplied created_at overwritten" "f" \
+  "$(P -c "select created_at < now() - interval '1 day' from audit_log where action = 'backdated'")"
+expect "still verifies after spoof attempts" "t" "$(P -c "select ok from audit_log_verify()")"
+expect "service_role CAN verify (explicit grants)" "t" "$(P -c "set role service_role; select ok from audit_log_verify()")"
+expect "service_role CAN read head" "54" "$(P -c "set role service_role; select head_seq from audit_log_head()")"
 refused "anon cannot verify" "set role anon; select * from audit_log_verify()"
 refused "authenticated cannot read head" "set role authenticated; select * from audit_log_head()"
 
@@ -87,10 +94,42 @@ tamper() { P -c "alter table audit_log disable trigger audit_log_no_update; $1; 
 tamper "update audit_log set metadata = '{\"i\": 999}' where seq = 20"
 expect "edited row reported" "f|20|row_hash_mismatch" "$(P -c "select ok, first_bad_seq, reason from audit_log_verify()")"
 
-# Fresh chain for the deletion case (the edit above cannot be undone without its original value).
-P -c "alter table audit_log disable trigger audit_log_no_update; alter table audit_log disable trigger audit_log_no_truncate; truncate audit_log; alter table audit_log enable trigger audit_log_no_update; alter table audit_log enable trigger audit_log_no_truncate"
-for i in $(seq 1 10); do P -c "insert into audit_log(action) values ('x$i')"; done
+# Fresh chain per case (an edit cannot be undone without its original value).
+fresh() {
+  P -c "alter table audit_log disable trigger audit_log_no_update; alter table audit_log disable trigger audit_log_no_truncate; truncate audit_log; alter table audit_log enable trigger audit_log_no_update; alter table audit_log enable trigger audit_log_no_truncate"
+  for i in $(seq 1 10); do P -c "insert into audit_log(action) values ('x$i')"; done
+}
+fresh
 tamper "delete from audit_log where seq = 7"
-expect "deleted row reported" "f|8|seq_gap" "$(P -c "select ok, first_bad_seq, reason from audit_log_verify()")"
+expect "deleted middle row reported" "f|8|seq_gap" "$(P -c "select ok, first_bad_seq, reason from audit_log_verify()")"
+
+echo "KNOWN LIMIT, pinned: a cut tail / forward re-hash pass an UNANCHORED walk; an anchor catches both"
+head_now() { P -c "select head_seq || ' ' || head_hash from audit_log_head()"; }
+fresh
+read -r A_SEQ A_HASH <<< "$(head_now)"
+expect "untouched chain, anchored walk → intact" "t|t" "$(P -c "select ok, anchored from audit_log_verify($A_SEQ, '$A_HASH')")"
+tamper "delete from audit_log where seq = $A_SEQ"
+expect "cut tail: unanchored walk still passes" "t" "$(P -c "select ok from audit_log_verify()")"
+expect "cut tail: anchored walk catches it" "f|truncated_below_anchor" \
+  "$(P -c "select ok, reason from audit_log_verify($A_SEQ, '$A_HASH')")"
+
+fresh
+read -r A_SEQ A_HASH <<< "$(head_now)"
+# Edit an early row, then re-hash every row from it forward with the (keyless) row-hash function.
+P -c "alter table audit_log disable trigger audit_log_no_update;
+do \$\$ declare r record; v_prev bytea; begin
+  update audit_log set action = 'rewritten' where seq = 2;
+  select row_hash into v_prev from audit_log where seq = 1;
+  for r in select * from audit_log where seq >= 2 order by seq loop
+    update audit_log set prev_hash = v_prev,
+      row_hash = public.audit_log_row_hash(v_prev, r.seq, r.id, r.created_at, r.actor_id, r.actor_role,
+                                           r.action, r.target_type, r.target_id, r.council_id, r.metadata)
+     where seq = r.seq returning row_hash into v_prev;
+  end loop; end \$\$;
+alter table audit_log enable trigger audit_log_no_update"
+expect "forward re-hash: unanchored walk still passes" "t" "$(P -c "select ok from audit_log_verify()")"
+expect "forward re-hash: anchored walk catches it" "f|anchor_mismatch" \
+  "$(P -c "select ok, reason from audit_log_verify($A_SEQ, '$A_HASH')")"
+refused "half an anchor is refused" "select * from audit_log_verify(5, null)"
 
 if [ "$FAIL" = 0 ]; then echo "ALL PASS"; else echo "FAILURES"; exit 1; fi

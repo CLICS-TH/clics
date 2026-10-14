@@ -218,11 +218,22 @@ router.get('/audit-log', requireRole('ethics', 'superadmin'), async (req, res) =
   res.json({ total: count ?? 0, limit, offset, events: data ?? [] });
 });
 
-// Is the audit trail complete and unaltered? The database recomputes its own hash chain
-// (db/migration-audit-log-chain.sql) and names the first row that does not link. Same roles as the
-// log itself. `broken` is still a 200: the answer IS the finding, and the ethics view must show it.
+// Does the audit trail still link, row to row? The database recomputes its own hash chain
+// (db/migration-audit-log-chain.sql) and names the first row that does not. Same roles as the log.
+// Pass ?anchor_seq=&anchor_hash= — a head recorded earlier, held outside Supabase — to also detect a
+// truncated tail or a re-hashed chain; only an anchored pass reports `intact`. `broken` is still a
+// 200: the answer IS the finding, and the ethics view must show it.
 router.get('/audit-log/verify', requireRole('ethics', 'superadmin'), async (req, res) => {
-  const result = await verifyChain();
+  const { anchor_seq: seqRaw, anchor_hash: hashRaw } = req.query;
+  let anchor = null;
+  if (seqRaw != null || hashRaw != null) {
+    const seq = Number(seqRaw);
+    if (!Number.isSafeInteger(seq) || seq < 1 || !/^[0-9a-f]{64}$/i.test(String(hashRaw || ''))) {
+      return res.status(400).json({ error: 'anchor_seq must be a positive integer and anchor_hash 64 hex characters' });
+    }
+    anchor = { seq, hash: String(hashRaw).toLowerCase() };
+  }
+  const result = await verifyChain(anchor);
   if (result.status === 'error') return res.status(500).json(result);
   res.json(result);
 });

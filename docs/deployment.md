@@ -92,6 +92,14 @@ select column_name from information_schema.columns
 select key, value from app_settings where key in ('standard_usage_limit_tokens','ple_max_transcript_tokens','eval_drain_concurrency');
 ```
 
+**`migration-audit-log-chain.sql` (hash-chained, append-only `audit_log`) goes the OTHER way: deploy
+the backend first, then apply it.** The code reports `not_installed` until the functions exist. After
+applying, check `select has_function_privilege('service_role','public.audit_log_genesis()','execute')`
+is true and `GET /oversight/audit-log/verify` answers `consistent`. Then record the head from
+`/health/deep` → `checks.audit_chain` somewhere outside Supabase; that copy is the anchor that turns
+`consistent` into `intact`. From then on, `audit_log` refuses UPDATE / DELETE / TRUNCATE for every role,
+so no script may clean it up.
+
 **Deploy ordering:** apply `migration-usage-reserve.sql` + `migration-eval-unique.sql` BEFORE (or with)
 a backend deploy — never a new backend against a DB missing them. (`migration-eval-unique.sql` was
 historically orphaned from the runbooks — it is required, not optional.)

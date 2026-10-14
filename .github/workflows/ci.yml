@@ -123,6 +123,17 @@ jobs:
       - name: Offline tests (bank, checks, citations, judging, clinician export)
         run: node --test scripts/quality/*.test.mjs
 
+  # The hash-chained, append-only audit_log (db/migration-audit-log-chain.sql) lives in TRIGGERS, which
+  # the jest suites mock away. This runs the migration against a real, throwaway PostgreSQL — the one
+  # preinstalled on the runner, started by the script itself in a temp dir — and asserts concurrency,
+  # refusals, spoofing, grants and tamper detection. Touches no shared database.
+  audit-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tamper tests against a throwaway PostgreSQL
+        run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/audit-chain-tamper-test.sh
+
   # Calibration — three-way.js decides G0.5, the programme's go/no-go. Its output is a number an
   # operator writes into a protocol document, so a plausible-but-wrong figure is far worse here than
   # a crash. The same SCOPE-LEAK defect (a `--manifest` filter narrowing a set a later consumer still

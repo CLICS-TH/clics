@@ -1,7 +1,8 @@
 // Hash-chained audit_log, read side: GET /oversight/audit-log/verify and the informational
 // audit_chain entry in /health/deep. The chain is computed by a database trigger, so what is tested
 // here is how the backend reports the database's own verdict — including before the migration is
-// applied, which must read `not_installed`, never `intact`. The SQL itself is exercised against a
+// applied, which must read `not_installed`, never a pass — and an unanchored pass is `consistent`, never
+// `intact`, because a walk alone cannot see a truncated tail or a re-hashed chain. The SQL itself is exercised against a
 // real Postgres by scripts/db/audit-chain-tamper-test.sh.
 jest.mock('../src/lib/supabase', () => require('./helpers/supabase-mock').makeSupabaseMock());
 jest.mock('../src/services/rimpl-client', () => ({ probeRimplDeep: jest.fn() }));
@@ -34,18 +35,49 @@ beforeEach(() => {
 afterEach(() => rpc.mockRestore());
 
 describe('GET /oversight/audit-log/verify', () => {
-  test('intact chain → 200 intact with the head', async () => {
+  test('unanchored pass → consistent (NOT intact), with the limit spelled out', async () => {
     m.state.caller = ETHICS;
-    rpc.mockResolvedValue({ data: [{ ok: true, checked: 52, first_bad_seq: null, reason: null, head_seq: 52, head_hash: HASH }], error: null });
+    rpc.mockResolvedValue({ data: [{ ok: true, checked: 52, first_bad_seq: null, reason: null, head_seq: 52, head_hash: HASH, anchored: false }], error: null });
     const r = await auth(request(app).get('/oversight/audit-log/verify'));
     expect(r.status).toBe(200);
-    expect(r.body).toEqual({ status: 'intact', checked: 52, first_bad_seq: null, reason: null, head_seq: 52, head_hash: HASH });
-    expect(rpc).toHaveBeenCalledWith('audit_log_verify');
+    expect(r.body).toMatchObject({ status: 'consistent', anchored: false, checked: 52, first_bad_seq: null, head_seq: 52, head_hash: HASH });
+    expect(r.body.limits).toMatch(/truncated tail/);
+    expect(rpc).toHaveBeenCalledWith('audit_log_verify', {});
+  });
+
+  test('anchored pass → intact; the anchor is forwarded lower-cased', async () => {
+    m.state.caller = SUPER;
+    rpc.mockResolvedValue({ data: [{ ok: true, checked: 60, first_bad_seq: null, reason: null, head_seq: 60, head_hash: HASH, anchored: true }], error: null });
+    const r = await auth(request(app).get(`/oversight/audit-log/verify?anchor_seq=52&anchor_hash=${HASH.toUpperCase()}`));
+    expect(r.status).toBe(200);
+    expect(r.body.status).toBe('intact');
+    expect(r.body.anchored).toBe(true);
+    expect(r.body.limits).toBeUndefined();
+    expect(rpc).toHaveBeenCalledWith('audit_log_verify', { p_anchor_seq: 52, p_anchor_hash: HASH });
+  });
+
+  test('a cut tail against an anchor → broken truncated_below_anchor', async () => {
+    m.state.caller = ETHICS;
+    rpc.mockResolvedValue({ data: [{ ok: false, checked: 6, first_bad_seq: 7, reason: 'truncated_below_anchor', head_seq: null, head_hash: null, anchored: false }], error: null });
+    const r = await auth(request(app).get(`/oversight/audit-log/verify?anchor_seq=9&anchor_hash=${HASH}`));
+    expect(r.body).toMatchObject({ status: 'broken', reason: 'truncated_below_anchor', first_bad_seq: 7 });
+  });
+
+  test.each([
+    ['anchor_seq=0&anchor_hash=' + 'ab'.repeat(32)],
+    ['anchor_seq=5&anchor_hash=nothex'],
+    ['anchor_seq=5'],
+    ['anchor_hash=' + 'ab'.repeat(32)],
+  ])('malformed anchor (%s) → 400, no rpc', async (qs) => {
+    m.state.caller = ETHICS;
+    const r = await auth(request(app).get(`/oversight/audit-log/verify?${qs}`));
+    expect(r.status).toBe(400);
+    expect(rpc).not.toHaveBeenCalledWith('audit_log_verify', expect.anything());
   });
 
   test('broken chain → still 200, names the first bad row (the finding is the answer)', async () => {
     m.state.caller = SUPER;
-    rpc.mockResolvedValue({ data: [{ ok: false, checked: 8, first_bad_seq: 8, reason: 'seq_gap', head_seq: null, head_hash: null }], error: null });
+    rpc.mockResolvedValue({ data: [{ ok: false, checked: 8, first_bad_seq: 8, reason: 'seq_gap', head_seq: null, head_hash: null, anchored: false }], error: null });
     const r = await auth(request(app).get('/oversight/audit-log/verify'));
     expect(r.status).toBe(200);
     expect(r.body.status).toBe('broken');
@@ -61,6 +93,13 @@ describe('GET /oversight/audit-log/verify', () => {
     expect(r.body).toEqual({ status: 'not_installed' });
   });
 
+  test('a relation/column error is an error, not not_installed', async () => {
+    m.state.caller = ETHICS;
+    rpc.mockResolvedValue({ data: null, error: { code: '42703', message: 'column "seq" does not exist' } });
+    const r = await auth(request(app).get('/oversight/audit-log/verify'));
+    expect(r.status).toBe(500);
+  });
+
   test('database error → 500, not a pass', async () => {
     m.state.caller = ETHICS;
     rpc.mockResolvedValue({ data: null, error: { code: '57014', message: 'canceling statement due to statement timeout' } });
@@ -73,7 +112,7 @@ describe('GET /oversight/audit-log/verify', () => {
     m.state.caller = ANALYST;
     const r = await auth(request(app).get('/oversight/audit-log/verify'));
     expect(r.status).toBe(403);
-    expect(rpc).not.toHaveBeenCalledWith('audit_log_verify');
+    expect(rpc).not.toHaveBeenCalledWith('audit_log_verify', expect.anything());
   });
 });
 

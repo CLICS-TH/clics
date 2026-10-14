@@ -8,27 +8,39 @@
 // report that as `not_installed` rather than as a failure or — worse — as a pass.
 const { supabase } = require('../lib/supabase');
 
-// Unknown function: 42883 (Postgres) / PGRST202 (PostgREST schema cache).
+// Unknown function: 42883 (Postgres) / PGRST202 (PostgREST schema cache). Deliberately narrow: a
+// broader "does not exist" match would report a later column or relation error as not_installed.
 const isMissingFn = (err) => !!err && (['42883', 'PGRST202'].includes(err.code) ||
-  /could not find the function|does not exist/i.test(err.message || ''));
+  /could not find the function/i.test(err.message || ''));
 
 const firstRow = (data) => (Array.isArray(data) ? data[0] : data) || null;
 
+// What a walk WITHOUT an anchor can and cannot say. Whoever can disable the triggers can cut rows off
+// the end, or edit a row and re-hash everything after it, and the chain still links. Only a head hash
+// held outside Supabase catches those — so an unanchored pass is `consistent`, never `intact`.
+const UNANCHORED_LIMIT = 'Internally consistent. Without an anchor (a head seq + hash recorded outside the '
+  + 'database) a truncated tail or a re-hashed chain would also pass.';
+
 // Full walk of the chain. O(rows) — on demand only, never on a health probe.
-async function verifyChain() {
-  const { data, error } = await supabase.rpc('audit_log_verify');
+// `anchor` = { seq, hash } from an earlier GET /health/deep head, held somewhere Supabase cannot rewrite.
+async function verifyChain(anchor = null) {
+  const args = anchor ? { p_anchor_seq: anchor.seq, p_anchor_hash: anchor.hash } : {};
+  const { data, error } = await supabase.rpc('audit_log_verify', args);
   if (isMissingFn(error)) return { status: 'not_installed' };
   if (error) return { status: 'error', error: error.message || String(error) };
   const r = firstRow(data);
   if (!r) return { status: 'error', error: 'empty verify result' };
-  return {
-    status: r.ok ? 'intact' : 'broken',
+  const out = {
+    status: !r.ok ? 'broken' : (r.anchored ? 'intact' : 'consistent'),
+    anchored: !!r.anchored,
     checked: Number(r.checked) || 0,
     first_bad_seq: r.first_bad_seq == null ? null : Number(r.first_bad_seq),
     reason: r.reason ?? null,
     head_seq: r.head_seq == null ? null : Number(r.head_seq),
     head_hash: r.head_hash ?? null,
   };
+  if (out.status === 'consistent') out.limits = UNANCHORED_LIMIT;
+  return out;
 }
 
 // The latest (seq, hash). Cheap — an index lookup — so /health/deep can report it. Copying this value

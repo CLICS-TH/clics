@@ -22,6 +22,7 @@ cd audit-dashboard  && npx tsc --noEmit   # typecheck (blocking gate)
 cd audit-dashboard  && npm run lint       # ESLint (blocking gate)
 cd physician-ui     && for f in public/js/*.js; do node --check "$f"; done   # syntax
 node --test scripts/quality/*.test.mjs    # tutor-reply audit harness, offline (CI job `quality`; gates in docs/QUALITY-GATES.md)
+scripts/db/audit-chain-tamper-test.sh     # audit_log hash chain vs a THROWAWAY local Postgres (CI job `audit-chain`)
 ```
 
 > One-command local stack: `npm run dev` at the repo root boots all four layers together (backend 3001,
