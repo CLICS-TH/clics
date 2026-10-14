@@ -209,8 +209,10 @@ carries, gain one line. All of the following must hold first:
    on screen). Production now ENFORCES placement without a model call: chat.js moves a misplaced valid
    marker and removes BARE near-miss statements — label, colon, level and nothing else (`evidence_moved`
    in the audit; `superseded_reason` `evidence` on a streamed turn). A near-miss that carries anything
-   more (a citation, a trial size) is never deleted: the whole move is refused and the reply stands, so a
-   placement failure after production's fix is such a refusal, and should be rare. Lines that merely
+   more (a citation, a trial size, a population or outcome qualifier such as "Level of evidence (adults):"
+   or "ระดับหลักฐานในเด็ก:") is never deleted, nor are near-misses that state different levels (per-option
+   grades): the whole move is refused and the reply stands. A placement failure after production's fix
+   is such a refusal. Lines that merely
    start like one ("Evidence: low molecular weight heparin …") are content and never touched, nor is a
    nested list item ("  - Evidence: high" under one option).
 4. **The level set is frozen.** `evidence_level` values (`high`, `moderate`, `low`, `expert`, `not_graded`)

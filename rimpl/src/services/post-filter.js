@@ -238,14 +238,19 @@ function extractEvidenceLevel(content) {
 const LOOSE_LABEL_EN = `(?:${spaced(EVIDENCE_EN_LABEL)}|evidence[ \\t]+(?:level|grade|certainty|quality|rating)|(?:level|grade|certainty|quality|strength)[ \\t]+of[ \\t]+(?:the[ \\t]+)?evidence)`;
 const LOOSE_LABEL_TH_ROOT = `(?:${EVIDENCE_TH_LABEL_SHORT}|คุณภาพ(?:ของ)?หลักฐาน|ความน่าเชื่อถือของหลักฐาน)`;
 const LOOSE_LABEL_TH = `${LOOSE_LABEL_TH_ROOT}[^:：\\n]{0,30}`;
-const LOOSE_LABEL_TH_REMOVABLE = `${LOOSE_LABEL_TH_ROOT}[\\u0E00-\\u0E7F]{0,30}`;   // Thai letters only: no "(Smith, 2020)"
+// ALLOWLIST: the label alone, or the prompt's own scope ("…ของข้อแนะนำหลัก" / "…ของข้อแนะนำนี้") or "overall".
+// Any other suffix is a QUALIFIER — "ระดับหลักฐานในเด็ก", "…ในผู้ใหญ่", "…สำหรับผู้ป่วยไตวาย" — and a grade
+// for one population or outcome is clinical content: still detected (LOOSE_LABEL_TH), never removed.
+const LOOSE_LABEL_TH_REMOVABLE = `${LOOSE_LABEL_TH_ROOT}(?:ของข้อแนะนำ(?:หลัก|นี้)?|โดยรวม)?`;
 const EN_LEVEL_WORD = `(?:very[ \\t-]+low|very[ \\t-]+high|${EN_ALT})(?![A-Za-z])`;
 const TH_LEVEL_WORD = `(?:สูงมาก|ต่ำมาก|${TH_ALT})(?![\\u0E00-\\u0E7F])`;
 const ONE_LEVEL = `(?:${EN_LEVEL_WORD}|${TH_LEVEL_WORD})`;
 const LEVEL_VALUE = `${ONE_LEVEL}(?:[ \\t]*/[ \\t]*${ONE_LEVEL})?(?:[ \\t-]+(?:certainty|quality)(?![A-Za-z]))?`;
 const GRADE_TOKEN = `(?:grade[ \\t]+)?(?:[A-D](?:-[A-Z]{1,3})?|[1-5][a-c]?|I{1,3}|IV)(?![A-Za-z0-9])`;
 const PRE_COLON_PAREN = '(?:[ \\t]*\\([^)\\n]{0,60}\\))?';
-const PRE_COLON_PAREN_REMOVABLE = '(?:[ \\t]*\\([ \\t]*[A-Za-z\\u0E00-\\u0E7F]{1,20}(?:[ \\t]+[A-Za-z\\u0E00-\\u0E7F]{1,20})?[ \\t]*\\))?';
+// ALLOWLIST likewise: "(GRADE)" or "(overall)" only. "Level of evidence (adults): high", "Certainty of evidence
+// (mortality): moderate" grade one population or outcome — content, detected (PRE_COLON_PAREN), never removed.
+const PRE_COLON_PAREN_REMOVABLE = '(?:[ \\t]*\\([ \\t]*(?:GRADE|overall)[ \\t]*\\))?';
 const LINE_END = '(?:[ \\t]*[.。])?[ \\t]*$';
 const TAIL_ANY = `(?:[ \\t]*\\([^()\\n]{0,80}\\)){0,2}${LINE_END}`;
 const PAREN_LEVEL = `\\([ \\t]*(?:GRADE|(?:(?:${LOOSE_LABEL_EN}|${EN_LABEL_RE}|${TH_LABEL_RE})[ \\t]*[:：][ \\t]*)?(?:${LEVEL_VALUE}))[ \\t]*\\)`;
@@ -289,6 +294,30 @@ function isRemovableEvidenceStatement(line) {
   return t != null && (parseEvidenceLine(t) != null || LOOSE_REMOVABLE.some((re) => re.test(t)));
 }
 
+// The level(s) a near-miss states, normalised: a level key where there is one ('high', …), else the
+// level word or grade token in lower case ('very low', 'สูงมาก', 'b-r'). Used only to tell whether the
+// near-misses a splice would remove AGREE — several that differ ("- Evidence level: high" under option 1,
+// "- Evidence level: moderate" under option 2) are per-option grades, i.e. content.
+const LEVEL_WORD_G = new RegExp(`(?<![A-Za-z\\u0E00-\\u0E7F])${ONE_LEVEL}`, 'gi');
+const GRADE_AFTER_COLON = new RegExp(`[:：][ \\t]*(${GRADE_TOKEN})`, 'i');
+function statedLevels(line) {
+  const t = looseCore(line);
+  if (t == null) return [];
+  const strict = parseEvidenceLine(t);
+  if (strict) return [strict];
+  const colon = t.search(/[:：]/);
+  if (colon < 0) return [];
+  const words = t.slice(colon + 1).match(LEVEL_WORD_G);
+  if (words) {
+    return words.map((w) => {
+      const n = w.toLowerCase().replace(/[ \t-]+/g, ' ');
+      return EVIDENCE_BY_TH.get(w) ?? EVIDENCE_BY_EN.get(n) ?? n;
+    });
+  }
+  const g = GRADE_AFTER_COLON.exec(t);
+  return g ? [g[1].toLowerCase()] : [];
+}
+
 // Line indices (outside fences) of every evidence statement: strict markers and near-misses alike.
 function findEvidenceStatements(content) {
   return linesOutsideFences(content).filter(({ line }) => isEvidenceStatementLine(line)).map(({ i }) => i);
@@ -304,8 +333,9 @@ function findEvidenceStatements(content) {
 //   - Every evidence statement the first reply already has outside a fence is removed first: strict
 //     markers (two of them, or a self-contradicting one) AND near-misses (isEvidenceStatementLine). So the
 //     result holds exactly ONE evidence statement outside fences — checked on the way out, not assumed.
-//     If any of them carries more than a level (isRemovableEvidenceStatement: a citation, a trial size,
-//     any content), NOTHING is removed and the result is null. Lines inside a fence are content and are
+//     If any of them carries more than a level (isRemovableEvidenceStatement: a citation, a trial size, a
+//     population or outcome qualifier, any content), or the near-misses among them state different
+//     levels (per-option grades), NOTHING is removed and the result is null. Lines inside a fence are content and are
 //     never touched; nor are nested list items or indented blocks. Blank lines a removal exposes at the
 //     end (or the start) of the reply go with it.
 //   - Placement is the prompt's, after a BLANK line (markdown's paragraph break, without which marked /
@@ -327,6 +357,10 @@ function spliceEvidenceLine(firstText, retryText, { socratic = false } = {}) {
   const staleAt = findEvidenceStatements(first);
   // Everything removed must be a bare evidence statement; one that carries content refuses the whole splice.
   if (staleAt.some((i) => !isRemovableEvidenceStatement(firstLines[i]))) return null;
+  // Near-misses that state DIFFERENT levels grade different options or outcomes: content, refused whole.
+  // (Strict markers are not counted: two of them that disagree are the ambiguity the retry exists to fix.)
+  const nearMissLevels = new Set(staleAt.filter((i) => !parseEvidenceLine(firstLines[i])).flatMap((i) => statedLevels(firstLines[i])));
+  if (nearMissLevels.size > 1) return null;
   const stale = new Set(staleAt);
   const lines = firstLines.filter((_, i) => !stale.has(i));
   // A removed line leaves the blank line that preceded (or followed) it. At the end that would leave the

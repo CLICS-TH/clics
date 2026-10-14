@@ -340,7 +340,8 @@ describe('near-miss evidence statements: recognised for REMOVAL, never read as a
     'ระดับหลักฐาน: สูง / high',                         // slash pair
     'Evidence level: high',
     'Level of evidence: moderate',
-    'Level of evidence (GRADE): low',
+    'Level of evidence (GRADE): low',                  // the pre-colon ALLOWLIST: (GRADE) / (overall)
+    'Level of evidence (overall): moderate',
     'Level of evidence: moderate (GRADE)',
     'Level of the evidence: low',
     'Quality of evidence: moderate',
@@ -360,7 +361,8 @@ describe('near-miss evidence statements: recognised for REMOVAL, never read as a
     'Evidence: moderate-certainty',
     'ระดับหลักฐาน: สูงมาก',
     'ระดับหลักฐาน: high',
-    'ระดับหลักฐานของข้อแนะนำนี้: ปานกลาง',
+    'ระดับหลักฐานของข้อแนะนำนี้: ปานกลาง',               // the Thai ALLOWLIST: the prompt's scope, or โดยรวม
+    'ระดับหลักฐานโดยรวม: สูง',
     'คุณภาพหลักฐาน: ปานกลาง',
     'คุณภาพของหลักฐาน: ต่ำ',
     'ความน่าเชื่อถือของหลักฐาน: สูง',
@@ -373,6 +375,16 @@ describe('near-miss evidence statements: recognised for REMOVAL, never read as a
     'Evidence level: high (two RCTs, n=120)',          // a trial size
     'Level of evidence (Smith, 2020): low',
     'ระดับหลักฐาน (Smith, 2020): สูง',
+    // A QUALIFIER before the colon: a grade for one population or outcome is clinical content.
+    'Level of evidence (adults): high',
+    'Level of evidence (children): low',
+    'Evidence level (pregnancy): low',
+    'Certainty of evidence (mortality): moderate',
+    'Certainty of evidence (bleeding): low',
+    'Quality of evidence (stroke prevention): high',
+    'ระดับหลักฐานในเด็ก: ต่ำ',
+    'ระดับหลักฐานในผู้ใหญ่: สูง',
+    'ระดับหลักฐานสำหรับผู้ป่วยไตวาย: ต่ำ',
   ];
   const BULLETED = [`- ${LINE.high}`, `* ${LINE.high}`, `• ${LINE.high}`, `1. ${LINE.high}`];
   // Clinical lines that START like an evidence statement. A start-anchored detector deleted these from
@@ -445,6 +457,19 @@ describe('near-miss evidence statements: recognised for REMOVAL, never read as a
     expect(exam.text).toBe(`${PROSE}\n\n${LINE.low}\n${Q}`);
     expect(findEvidenceStatements(exam.text)).toEqual([2]);
     expect(extractSocraticQuestion(exam.text)).toBe(Q.slice(2));
+  });
+
+  test('near-misses that state DIFFERENT levels are per-option grades: refused whole, though each is bare', () => {
+    const options = `${PROSE}\n**Option 1: Apixaban**\n- Evidence level: high\n**Option 2: LMWH**\n- Evidence level: moderate`;
+    for (const line of ['- Evidence level: high', '- Evidence level: moderate']) expect(isRemovableEvidenceStatement(line)).toBe(true);
+    expect(spliceEvidenceLine(options, LINE.moderate)).toBeNull();                        // the retry splice
+    expect(placeEvidenceLine(`${options}\n\n${LINE.moderate}`)).toBeNull();             // beside a valid marker
+    expect(spliceEvidenceLine(`${PROSE}\nระดับหลักฐาน: สูง / low`, LINE.low)).toBeNull();  // one line, two levels
+    // Near-misses that AGREE are one statement said twice: removed.
+    expect(spliceEvidenceLine(`${PROSE}\nEvidence level: high\n### Level of evidence: high`, LINE.high).text)
+      .toBe(`${PROSE}\n\n${LINE.high}`);
+    // Strict markers that disagree are the ambiguity the retry fixes: still replaced (not counted here).
+    expect(spliceEvidenceLine(`${PROSE}\n${LINE.high}\n${LINE.low}`, LINE.moderate).text).toBe(`${PROSE}\n\n${LINE.moderate}`);
   });
 
   test('one content-carrying statement refuses the whole splice, even beside removable ones', () => {

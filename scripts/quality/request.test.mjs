@@ -468,6 +468,10 @@ test('evidence marker: evidencePlacement = chat.js placeMarker (off, rescue, mis
   assert.equal(evidencePlacement(`${EN_CITED}\nEvidence: low molecular weight heparin remains preferred.\n\n${MARK}`, nat), null);
   // A near-miss carrying content beside a misplaced marker: the move is refused, nothing is deleted.
   assert.equal(evidencePlacement(`${MARK}\n${EN_CITED}\nEvidence: high (NICE, 2023)`, nat), null);
+  // Per-population grades (a qualifier before the colon) and per-option grades that differ: content, untouched.
+  assert.equal(evidencePlacement(`${EN_CITED}\n\nLevel of evidence (adults): high\nLevel of evidence (children): low\n\n${MARK}`, nat), null);
+  assert.equal(evidencePlacement(`${EN_CITED}\n- Evidence level: high\n- Evidence level: moderate\n\n${MARK}`, nat), null);
+  assert.equal(evidencePlacement(`${EN_CITED}\nระดับหลักฐานในเด็ก: ต่ำ\n\n${MARK}`, nat), null);
   // A nested item grades one option: never the reply-level marker.
   assert.equal(evidencePlacement(`${EN_CITED}\n- Option A\n  - Evidence: high\n\n${MARK}`, nat), null);
   // The examiner move leaves no trailing newline after the ❓.

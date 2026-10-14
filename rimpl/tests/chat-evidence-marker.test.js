@@ -310,6 +310,18 @@ describe('PLACEMENT: one valid marker in the wrong place is moved with NO model 
     expect((await on({ socratic: true })).body.content).toBe(exam);
   });
 
+  test('per-population grades before the canonical line: the reviewer\'s reply comes back BYTE-IDENTICAL', async () => {
+    const reply = `Start apixaban 5 mg twice daily for non-valvular AF (ESC, 2023).\n\nLevel of evidence (adults): high\nLevel of evidence (children): low\n\n${MARK}`;
+    callAI.mockResolvedValueOnce(r(reply));
+    const res = await on();
+    expect(callAI).toHaveBeenCalledTimes(1);
+    expect(res.body).toMatchObject({ content: reply, evidence_level: 'moderate', evidence_retry: false });
+    // Per-option grades as top-level bullets: likewise untouched.
+    const options = `${EN}\n**Option 1: Apixaban**\n- Evidence level: high\n**Option 2: LMWH**\n- Evidence level: moderate\n\n${MARK}`;
+    callAI.mockResolvedValueOnce(r(options));
+    expect((await on()).body.content).toBe(options);
+  });
+
   test('a content-carrying near-miss beside a valid marker: the move is REFUSED, the reply stands as written', async () => {
     const reply = `${EN}\nEvidence: high (NICE, 2023)\n${MARK}\nMore advice.`;   // misplaced AND beside a cited near-miss
     callAI.mockResolvedValueOnce(r(reply));
