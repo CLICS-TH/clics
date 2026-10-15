@@ -170,8 +170,10 @@ async function checkAuditChain() {
 // cached <= 60 s). The logic is services/model-lock.js modelLockCheck, shared with /admin/ai-readiness.
 //
 // It degrades ONLY while locked, when the frozen instrument cannot be shown to be the one scoring:
-// evaluator_changed_since_lock, live_manifest_unknown, lock_not_bound_to_manifest (no digest on the
-// record: locked before it existed, or the retired quick lock), lock_record_unmigrated / _unreadable.
+// evaluator_changed_since_lock, evaluator_live_drift (the digest matches, but rimpl reports a live
+// override on an evaluator key for the locked provider; `drift_keys`, keys only), live_manifest_unknown,
+// lock_not_bound_to_manifest (no digest on the record: locked before it existed, or the retired quick
+// lock), lock_record_unmigrated / _unreadable.
 //   * A tutor, router or chat change after a lock does NOT degrade: whole-manifest sha changed, evaluator
 //     digest unchanged -> `up` with note 'tutor_or_router_changed_since_lock'.
 //   * Unlocked — production today — is informational, never degrades, and fetches no manifest.
