@@ -14,7 +14,8 @@ import { ATTESTATIONS } from '@/lib/pis7-rubric';
 import { ANCHOR_CLARITY } from '@/components/DomainScorer';
 import { REPORT_REASON, REPORTED_REPLY_SIGNAL } from '@/lib/report-reasons';
 import { EVALUATOR_LOCK_BLOCKERS } from '@/lib/types';
-import { ANTICIPATED_BLOCKER_COPY, BLOCKER_COPY, DECODING_FIELDS, LOCK_NOTE, LOCK_REASON, NOTE_MAX, POST_ERROR_TITLE, TEXT_FIELDS, UNBOUND_COPY, blockerCopy } from '@/lib/evaluator-lock';
+import { BLOCKER_COPY, DECODING_FIELDS, LOCK_NOTE, LOCK_REASON, NOTE_MAX, POST_ERROR_TITLE, TEXT_FIELDS, UNBOUND_COPY, blockerCopy } from '@/lib/evaluator-lock';
+import { NULL_DIGEST_REASONS } from './fixtures/model-lock-check';
 
 const REPO = path.join(__dirname, '..', '..');
 const SCHEMAS = path.join(REPO, 'backend', 'src', 'lib', 'schemas.js');
@@ -126,6 +127,14 @@ describe('Model Lock mirrors of back-end vocabulary', () => {
     expect(/seed: z\.number\(\)\.int\(\)\.nullable\(\)/.test(schema)).toBe(true);
   });
 
+  // services/model-lock.js modelLockCheck, sliced so a pin on what it sends cannot be met by another
+  // function in the same file. It ends at the first closing brace in column 0.
+  const modelLockCheck = () => {
+    const fn = /async function modelLockCheck\([\s\S]*?\n\}\n/.exec(lockSvc)?.[0];
+    if (!fn) throw new Error('modelLockCheck not found in model-lock.js — did it change shape?');
+    return fn;
+  };
+
   if (!has6b) {
     it('this checkout predates PR 6b, so the 6b vocabulary pins below cannot run here', () => {
       // Not a skip: if 6b's GET is here and its service file is not, something moved.
@@ -140,13 +149,16 @@ describe('Model Lock mirrors of back-end vocabulary', () => {
       for (const q of call[1].matchAll(/'([a-z_]+)'/g)) sent.add(q[1]);
     }
     expect(sent.size).toBeGreaterThan(5);
-    // A blocker the backend sends and the screen cannot name would render as a bare key. An ANTICIPATED
-    // one (evaluator_live_drift, from the backend change after 6b) is named before it is sent.
+    // A blocker the backend sends and the screen cannot name would render as a bare key.
     expect([...sent].filter((b) => !blockerCopy(b))).toEqual([]);
-    // The typed list is exactly what the backend sends today, plus nothing it does not.
+    // The typed list is exactly what the backend sends: nothing missing, nothing extra.
     expect([...EVALUATOR_LOCK_BLOCKERS].filter((b) => !sent.has(b))).toEqual([]);
-    expect([...sent].filter((b) => !(EVALUATOR_LOCK_BLOCKERS as readonly string[]).includes(b) && !(b in ANTICIPATED_BLOCKER_COPY))).toEqual([]);
-    for (const copy of [...Object.values(BLOCKER_COPY), ...Object.values(ANTICIPATED_BLOCKER_COPY)]) {
+    expect([...sent].filter((b) => !(EVALUATOR_LOCK_BLOCKERS as readonly string[]).includes(b))).toEqual([]);
+    expect(Object.keys(BLOCKER_COPY).sort()).toEqual([...EVALUATOR_LOCK_BLOCKERS].sort());
+    // evaluator_live_drift (#160) is a real blocker, sent with its key list as the detail the page lists.
+    expect(sent.has('evaluator_live_drift')).toBe(true);
+    expect(superadmin).toMatch(/blocker_detail\.evaluator_live_drift\s*=/);
+    for (const copy of Object.values(BLOCKER_COPY)) {
       expect(copy.th.trim().length).toBeGreaterThan(0);
       expect(copy.en.trim().length).toBeGreaterThan(0);
     }
@@ -173,24 +185,39 @@ describe('Model Lock mirrors of back-end vocabulary', () => {
     expect(post).toMatch(/manifest_sha256: manifest\.sha256, evaluator_sha256:/);
     // /admin/ai-providers: the binding the panel warns on.
     expect(superadmin).toMatch(/evaluator_lock:\s*\{[\s\S]{0,120}manifest_bound:/);
+    // POST's 409 evaluator_live_drift: the refusal lists `keys` and names `provider`. A rename would leave
+    // only the inline sentence, with no list to act on. Each is checked as a PROPERTY (a line that opens
+    // with the name): a bare \bkeys\b also matches the `${keys.length}` inside the error template, so it
+    // would pass with the property gone.
+    expect(post).toMatch(/res\.status\(409\)\.json\(evaluatorLiveDrift\(/);
+    const liveDriftBody = /const evaluatorLiveDrift = \([\s\S]*?\n\}\);/.exec(lockSvc)?.[0];
+    if (!liveDriftBody) throw new Error('evaluatorLiveDrift not found in model-lock.js — did it change shape?');
+    expect(liveDriftBody).toMatch(/code: 'evaluator_live_drift'/);
+    expect(liveDriftBody).toMatch(/^\s*keys\b\s*[,:]/m);
+    expect(liveDriftBody).toMatch(/^\s*provider\b\s*[,:]/m);
+    // modelLockCheck (/admin/ai-readiness): the drifted keys ride as `drift_keys`, which the readiness
+    // screen lists and which qualify its "evaluator match"; `live_manifest` says why the live manifest
+    // was refused.
+    expect(modelLockCheck()).toMatch(/\.drift_keys\s*=/);
+    expect(modelLockCheck()).toMatch(/\blive_manifest:/);
   });
 
-  // The evaluator-scope drift list. The backend PR after 6b classifies drift itself (services/model-lock.js
-  // isEvaluatorDriftKey) and sends the keys as manifest.evaluator_drift_keys, with the provider they were
-  // computed for as manifest.evaluator_provider, on GET /admin/evaluator-lock and GET /admin/ai-readiness.
-  // Both pages read exactly those two names; without them they say "could not classify" and call nothing
-  // expected. Before that PR the names must be absent (this branch predates it); once model-lock.js exports
-  // isEvaluatorDriftKey they must be present — a rename then fails here instead of silently turning every
-  // drift report into "could not classify".
-  it('the evaluator-scope drift fields are sent once the backend classifies drift', () => {
+  // The evaluator-scope drift list. The backend classifies drift itself (services/model-lock.js
+  // isEvaluatorDriftKey / evaluatorDriftKeys, #160) and sends the keys as manifest.evaluator_drift_keys,
+  // with the provider they were computed for as manifest.evaluator_provider, on GET /admin/evaluator-lock
+  // and GET /admin/ai-readiness. Both pages read exactly those two names; without them they say "could
+  // not classify" and call nothing expected. So the classifier must be exported and both names sent — a
+  // rename fails here instead of silently turning every drift report into "could not classify".
+  it('the backend classifies drift and sends the evaluator-scope drift fields', () => {
     const exportsBlock = /module\.exports\s*=\s*\{([\s\S]*?)\};/.exec(lockSvc)?.[1];
     if (exportsBlock == null) throw new Error('module.exports not found in model-lock.js — did it change shape?');
-    const classifies = /\bisEvaluatorDriftKey\b/.test(exportsBlock);
+    expect(exportsBlock).toMatch(/\bisEvaluatorDriftKey\b/);
+    expect(exportsBlock).toMatch(/\bevaluatorDriftKeys\b/);
     const src = `${superadmin}\n${lockSvc}`;
     // A property key: `name: value`, or shorthand `{ ..., name }` / `name,`.
     const sends = (name: string) => new RegExp(`\\b${name}\\s*(:|,|\\n\\s*\\})`).test(src);
     for (const name of ['evaluator_drift_keys', 'evaluator_provider']) {
-      expect({ name, sent: sends(name) }).toEqual({ name, sent: classifies });
+      expect({ name, sent: sends(name) }).toEqual({ name, sent: true });
     }
   });
 
@@ -212,6 +239,29 @@ describe('Model Lock mirrors of back-end vocabulary', () => {
     expect(reasons.length).toBeGreaterThan(3);
     expect([...new Set(reasons)].sort()).toEqual(Object.keys(LOCK_REASON).sort());
     expect(notes).toEqual(Object.keys(LOCK_NOTE));
+  });
+
+  // Which reasons arrive with NO live evaluator digest. modelLockCheck builds `out` with
+  // live_evaluator_sha256: null and match: FALSE, returns four reasons from it before reading the live
+  // manifest, and only then builds `result` with the live digest. The readiness screen reads `match` only
+  // beside a live digest, and AiReadinessPage.test.tsx renders exactly NULL_DIGEST_REASONS in this shape —
+  // so a new early return, or a `match` that stops being false, fails here first.
+  it('the lock reasons sent before any comparison are the ones the readiness test renders with no live digest', () => {
+    const fn = modelLockCheck();
+    const out = /const out = \{([\s\S]*?)\};/.exec(fn)?.[1];
+    if (!out) throw new Error('the `out` body of modelLockCheck was not found — did it change shape?');
+    expect(out).toMatch(/\blive_evaluator_sha256: null\b/);
+    expect(out).toMatch(/\bmatch: false\b/);
+    const fromOut = [...fn.matchAll(/\{ \.\.\.out, reason: '([a-z_]+)'/g)].map((m) => m[1]);
+    expect([...fromOut].sort()).toEqual([...NULL_DIGEST_REASONS].sort());
+    // Everything after the comparison carries the live digest it was compared with: some object in
+    // modelLockCheck sets a live digest that is not null, and a `match` that is computed, not a literal.
+    // (?!\s) makes each \s* take all the whitespace, so the lookahead sees the value, not a space.
+    expect(fn).toMatch(/\{[^{}]*\blive_evaluator_sha256:\s*(?!\s)(?!null\b)[^{}]*\bmatch:\s*(?!\s)(?!(?:false|true|null)\b)/);
+    const fromResult = [...fn.matchAll(/\{ \.\.\.result, reason: '([a-z_]+)'/g)].map((m) => m[1]);
+    expect([...fromResult].sort()).toEqual(['evaluator_changed_since_lock', 'evaluator_live_drift']);
+    // Between them, every reason modelLockCheck sends.
+    expect([...fromOut, ...fromResult].sort()).toEqual(Object.keys(LOCK_REASON).sort());
   });
 
   it('every lock-record state /admin/ai-providers reports has its own sentence', () => {

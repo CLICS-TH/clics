@@ -213,19 +213,15 @@ export const BLOCKER_COPY: Record<EvaluatorLockBlocker, { th: string; en: string
   candidate_not_serving: { th: 'ผู้ท้าชิงไม่ใช่ผู้ให้บริการที่ให้คะแนนอยู่ตอนนี้', en: 'The candidate is not the provider serving evaluate.' },
   manifest_unavailable: { th: 'ไม่มี model manifest ที่ใช้ผูกการล็อกได้', en: 'There is no usable model manifest to bind the lock to.' },
   manifest_mismatch: { th: 'ผู้ท้าชิงไม่ตรงกับ model manifest', en: 'The candidate does not match the model manifest.' },
+  evaluator_live_drift: { th: 'การตั้งค่าที่ผู้ให้คะแนนใช้งานอยู่จริงต่างจาก model manifest', en: 'The evaluator’s serving configuration differs from the model manifest.' },
   migration_required: { th: 'ฐานข้อมูลยังไม่พร้อม ต้องรัน migration ก่อน', en: 'The database needs a migration before a manifest-bound lock.' },
   lock_table_unreadable: { th: 'อ่านตารางบันทึกการล็อกไม่ได้', en: 'The lock table could not be read.' },
 };
 
-// Blockers a backend change after 6b is adding (not in EVALUATOR_LOCK_BLOCKERS, which mirrors what the
-// backend sends TODAY). They get words now so the screen never names them by their key; the mirror test
-// accepts them as known whether or not the backend sends them yet.
-export const ANTICIPATED_BLOCKER_COPY: Record<string, { th: string; en: string }> = {
-  evaluator_live_drift: { th: 'ค่าที่รันอยู่ของเครื่องมือวัดต่างจาก model manifest', en: 'Live values in the evaluator’s scope differ from the model manifest.' },
-};
-
+// The words for a blocker, or null for one this screen does not know (a backend newer than the
+// dashboard): the page then names it by its key rather than dropping it.
 export function blockerCopy(b: string): { th: string; en: string } | null {
-  return BLOCKER_COPY[b as EvaluatorLockBlocker] ?? ANTICIPATED_BLOCKER_COPY[b] ?? null;
+  return BLOCKER_COPY[b as EvaluatorLockBlocker] ?? null;
 }
 
 // ---- what a POST answer says about whether the lock was written ------------------------------------
@@ -257,6 +253,7 @@ export const POST_ERROR_TITLE: Record<string, string> = {
   candidate_not_serving: 'ผู้ท้าชิงไม่ได้ให้คะแนนอยู่ / Not locked: the candidate is not serving evaluate',
   manifest_mismatch: 'ค่าที่ประกาศไม่ตรงกับ model manifest / Not locked: the declaration does not match the manifest',
   manifest_unavailable: 'อ่าน model manifest ไม่ได้ / Not locked: no usable model manifest',
+  evaluator_live_drift: 'การตั้งค่าที่ผู้ให้คะแนนใช้งานอยู่จริงต่างจาก model manifest จึงยังไม่ได้ล็อก / Not locked: the evaluator’s serving configuration differs from the manifest',
   migration_required: 'ต้องรัน migration ก่อน / Not locked: a database migration is needed',
   lock_state_unreadable: 'อ่านสถานะการล็อกไม่ได้ / Not locked: the lock state could not be read',
   verdict_unavailable: 'คำนวณผลความสอดคล้องไม่ได้ / Not locked: the agreement verdict could not be computed',
@@ -305,6 +302,8 @@ export const DRIFT_COPY = {
     + 'Expected while production runs every purpose on Claude: the manifest declares the on-prem target (CCME R1/R3), so live routing differs from it until those close.',
   other: 'ตามที่เซิร์ฟเวอร์จัดประเภท ค่าเหล่านี้ไม่ใช่ส่วนของเครื่องมือวัด / '
     + 'By the server’s classification, these are not part of the scoring instrument.',
+  // The accessible name of a list of evaluator-scope keys, wherever one is listed.
+  evaluatorList: 'ค่าในขอบเขตเครื่องมือวัดที่ต่างไป / Evaluator-scope values that differ',
   unclassifiedTitle: 'จัดประเภทค่าที่ต่างไปไม่ได้ / Could not classify the live drift',
   unclassifiedBody: 'เซิร์ฟเวอร์ไม่ได้บอกว่าค่าใดเป็นส่วนของเครื่องมือวัด จึงไม่ถือว่ารายการใดเป็นเรื่องที่คาดไว้ รายการใดก็อาจกระทบการให้คะแนน / '
     + 'The server did not say which of these belong to the scoring instrument, so none of them is treated as expected: any of them may affect scoring.',
@@ -338,6 +337,10 @@ export const fmtNum = (v: number | null | undefined, digits = 3): string =>
 // backend-mirrors.test.ts. Used by /admin/ai-readiness.
 export const LOCK_REASON: Record<string, string> = {
   evaluator_changed_since_lock: 'ส่วนผู้ให้คะแนนใน manifest ที่รันอยู่ต่างจากที่ล็อกไว้ / The evaluator part of the live manifest differs from what was frozen.',
+  // "Since the lock" is exact here, unlike on the lock form: POST refuses a lock while this drift is present,
+  // so drift found while locked appeared after it.
+  evaluator_live_drift: 'ค่าที่ผู้ให้คะแนนใช้งานอยู่จริงถูกเปลี่ยนหลังล็อก คะแนนที่ออกตอนนี้จึงไม่ได้มาจากการตั้งค่าที่ล็อกไว้ แม้ส่วนผู้ให้คะแนนใน manifest จะยังตรงกันก็ตาม / '
+    + 'The settings the evaluator is actually running with have changed since the lock, so the scores it gives now do not come from the locked configuration, even though the evaluator part of the manifest still matches.',
   live_manifest_unknown: 'อ่านหรือยืนยัน manifest ที่รันอยู่ไม่ได้ / The live manifest could not be read or verified.',
   lock_not_bound_to_manifest: 'การล็อกนี้ไม่ได้ผูกกับ manifest ต้องแทนที่ที่หน้า Model Lock / This lock names no evaluator digest (taken before binding, or a flag with no record). Replace it on Model Lock.',
   lock_record_unmigrated: 'ตารางบันทึกการล็อกยังไม่ได้ migrate / The lock table has not been migrated for the manifest columns.',

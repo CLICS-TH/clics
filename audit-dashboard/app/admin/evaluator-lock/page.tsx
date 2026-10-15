@@ -659,8 +659,10 @@ function ManifestPanel({ state, drift }: { state: EvaluatorLockState; drift: Dri
   );
 }
 
-// Evaluator-scope live drift, before the form and never as "expected". Today's backend does not refuse a
-// lock for it; the backend change after 6b adds the evaluator_live_drift blocker, which replaces this box.
+// Evaluator-scope live drift with no blocker carrying it, before the form and never as "expected". The
+// backend refuses a lock on it (the evaluator_live_drift blocker, and POST's 409) only for an evaluator
+// candidate; with no candidate, or a tutor one, the drift is still real and is shown here. When the
+// blocker is listed it names the same keys, and this box is not rendered.
 function EvaluatorDrift({ keys, provider }: { keys: string[]; provider?: string }) {
   return (
     <section aria-labelledby="lock-drift-h" className="space-y-2 rounded-lg border border-warn/50 p-4">
@@ -669,7 +671,7 @@ function EvaluatorDrift({ keys, provider }: { keys: string[]; provider?: string 
         <span>{DRIFT_COPY.evaluatorTitle}</span>
       </h2>
       {provider && <p className="text-xs text-muted-foreground">ผู้ให้คะแนน / Evaluator: <span className="font-mono text-foreground">{provider}</span></p>}
-      <DriftKeyList keys={keys} label="ค่าในขอบเขตเครื่องมือวัดที่ต่างไป / Evaluator-scope values that differ" />
+      <DriftKeyList keys={keys} label={DRIFT_COPY.evaluatorList} />
       <p className="text-sm text-foreground">{DRIFT_COPY.evaluatorBody}</p>
       <p className="text-sm text-foreground">
         แก้ให้ตรงก่อนล็อก / Resolve them before locking: a lock taken now would record a configuration that is not the one scoring.
@@ -721,11 +723,11 @@ function Blockers({ state }: { state: EvaluatorLockState }) {
   );
 }
 
-// A blocker's backend detail: a sentence, or a list of keys (evaluator_live_drift). Anything else is
-// not guessed at.
-function Detail({ detail }: { detail: string | readonly string[] | undefined }) {
+// A blocker's or a refusal's backend detail: a sentence, or a list of keys (evaluator_live_drift).
+// Anything else is not guessed at.
+function Detail({ detail, label = 'รายการ / Items' }: { detail: string | readonly string[] | undefined; label?: string }) {
   if (typeof detail === 'string') return detail ? <p className="break-words">{detail}</p> : null;
-  if (Array.isArray(detail) && detail.length) return <DriftKeyList keys={detail} label="รายการ / Items" />;
+  if (Array.isArray(detail) && detail.length) return <DriftKeyList keys={detail} label={label} />;
   return null;
 }
 
@@ -779,7 +781,7 @@ function BlockerDetail({ blocker, state }: { blocker: string; state: EvaluatorLo
       const fallback = state.manifest?.ok ? state.manifest.evaluator_drift_keys : undefined;
       return (
         <>
-          <Detail detail={detail ?? fallback} />
+          <Detail detail={detail ?? fallback} label={DRIFT_COPY.evaluatorList} />
           <p>{DRIFT_COPY.evaluatorBody}</p>
         </>
       );
@@ -922,6 +924,14 @@ function SubmitError({ res }: { res: EvaluatorLockPostResult | undefined }) {
         <ol className="mt-2 list-decimal space-y-0.5 pl-5">{res.migrations.map((f) => <li key={f} className="font-mono text-xs break-all">{f}</li>)}</ol>
       ) : null}
       {res.code === 'manifest_unavailable' && res.reason ? <p className="mt-2 font-mono text-xs">reason: {res.reason}</p> : null}
+      {/* The evaluator-scope keys whose live value differs from the manifest, listed as the GET blocker
+          lists them. The bilingual `error` above names them inline; the list reads one key per chip. */}
+      {res.code === 'evaluator_live_drift' && res.keys?.length ? (
+        <div className="mt-3 space-y-1.5">
+          {res.provider && <p className="text-xs">ผู้ให้คะแนน / Evaluator: <span className="font-mono">{res.provider}</span></p>}
+          <Detail detail={res.keys} label={DRIFT_COPY.evaluatorList} />
+        </div>
+      ) : null}
       {res.code === 'rollback_incomplete' && res.inconsistent?.length ? (
         <ul className="mt-2 list-disc space-y-1 pl-5">
           {res.inconsistent.map((x) => <li key={`${x.step}|${x.left}`}><span className="font-mono">{x.step}</span>: {x.left}</li>)}

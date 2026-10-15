@@ -304,7 +304,7 @@ function ManifestBlock({ m }: { m: ReadinessManifest }) {
             {m.evaluator_provider && (
               <p className="text-xs text-muted-foreground">ผู้ให้คะแนน / Evaluator: <span className="font-mono text-foreground">{m.evaluator_provider}</span></p>
             )}
-            <DriftKeyList keys={drift.evaluator} label="ค่าในขอบเขตเครื่องมือวัดที่ต่างไป / Evaluator-scope values that differ" />
+            <DriftKeyList keys={drift.evaluator} label={DRIFT_COPY.evaluatorList} />
             <p className="text-xs text-foreground">{DRIFT_COPY.evaluatorBody}</p>
           </div>
         )}
@@ -327,11 +327,29 @@ function ManifestBlock({ m }: { m: ReadinessManifest }) {
   );
 }
 
+// `match` compares the live evaluator DIGEST with the frozen one, and nothing else. With live drift the
+// digest still matches while the running rimpl overrides an evaluator value, so a bare "match" beside
+// Down would contradict the reason under it: the comparison is named for what it compared.
+// No live digest means no comparison was made: modelLockCheck stops before reading the live manifest
+// (lock_record_unmigrated, lock_record_unreadable, lock_not_bound_to_manifest, live_manifest_unknown)
+// yet still sends `match: false`. So `match` is read only beside a live digest; otherwise it is "—".
+function evaluatorMatch(l: ReadinessModelLock, drifted: boolean): string {
+  const live = drifted ? ', live config drifted' : '';
+  if (typeof l.live_evaluator_sha256 !== 'string') return `evaluator —${live}`;
+  if (l.match === true) return drifted ? `evaluator digest match${live}` : 'evaluator match';
+  if (l.match === false) return `evaluator MISMATCH${live}`;
+  return `evaluator —${live}`;
+}
+
 function ModelLockBlock({ l }: { l: ReadinessModelLock }) {
   const status: Status | 'unknown' = l.status === 'up' ? 'up' : l.status === 'unknown' ? 'unknown' : 'down';
   const view = status === 'unknown'
     ? { tone: 'text-muted-foreground', Icon: HelpCircle, label: 'ไม่ทราบ / Unknown' }
     : STATUS_VIEW[status];
+  // Keys only, as the backend sends them (services/model-lock.js modelLockCheck). The reason alone also
+  // counts as drift, so a body that lost its list still never reads as a plain match.
+  const driftKeys = (Array.isArray(l.drift_keys) ? l.drift_keys : []).filter((k): k is string => typeof k === 'string');
+  const drifted = driftKeys.length > 0 || l.reason === 'evaluator_live_drift';
   return (
     <section className="space-y-2">
       <h2 className="font-sans text-sm font-medium">การล็อกผู้ให้คะแนน / Evaluator Model Lock</h2>
@@ -350,10 +368,19 @@ function ModelLockBlock({ l }: { l: ReadinessModelLock }) {
         {l.locked === true && (
           <p className="font-mono text-xs break-words text-muted-foreground">
             {l.provider ?? '—'} · frozen manifest {short(l.manifest_sha256) ?? '—'} · live {short(l.live_sha256) ?? '—'}
-            {' '}· evaluator {l.match === true ? 'match' : l.match === false ? 'MISMATCH' : '—'}
+            {' '}· {evaluatorMatch(l, drifted)}
           </p>
         )}
         {l.reason && <p className="break-words text-foreground">{LOCK_REASON[l.reason] ?? <span className="font-mono">{l.reason}</span>}</p>}
+        {driftKeys.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">
+              ค่าของผู้ให้คะแนนที่ RIMPL ใช้งานอยู่ต่างจาก manifest {driftKeys.length} รายการ / {driftKeys.length} evaluator value(s) on the running RIMPL differ from the manifest:
+            </p>
+            <DriftKeyList keys={driftKeys} label={DRIFT_COPY.evaluatorList} />
+          </div>
+        )}
+        {l.live_manifest && <p className="font-mono text-xs break-words text-muted-foreground">live manifest: {l.live_manifest}</p>}
         {l.note && <p className="break-words text-muted-foreground">{LOCK_NOTE[l.note] ?? <span className="font-mono">{l.note}</span>}</p>}
         {l.error && <p className="break-words text-muted-foreground">{l.error}</p>}
       </div>

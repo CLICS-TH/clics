@@ -14,6 +14,7 @@ const apiFetch = jest.fn();
 jest.mock('@/lib/api', () => ({ apiFetch: (...a: unknown[]) => apiFetch(...a) }));
 
 import AiReadinessPage from '@/app/admin/ai-readiness/page';
+import { NULL_DIGEST_REASONS, nullDigestLock } from './fixtures/model-lock-check';
 
 const R3_WARNING = 'local-tutor is configured to the same endpoint and model as local (the evaluator): '
   + 'LOCAL_TUTOR_AI_BASE_URL + LOCAL_TUTOR_AI_MODEL equal LOCAL_AI_BASE_URL + LOCAL_AI_MODEL, so the tutor '
@@ -280,26 +281,41 @@ describe('AI readiness — the model manifest and the Model Lock', () => {
     expect(screen.getByText(/the scoring instrument did not/)).toBeInTheDocument();
   });
 
-  it('locked and Down, for each reason — a reason it does not know is shown by its key', async () => {
-    for (const [reason, text] of [
-      ['evaluator_changed_since_lock', /differs from what was frozen/],
-      ['live_manifest_unknown', /could not be read or verified/],
-      ['lock_not_bound_to_manifest', /names no evaluator digest/],
-      ['lock_record_unmigrated', /has not been migrated/],
-      ['lock_record_unreadable', /lock record could not be read/],
-      ['brand_new_reason', /^brand_new_reason$/],
-    ] as const) {
-      wire(body({ model_lock: { status: 'down', locked: true, locked_at: 'not-a-date', provider: null,
-        manifest_sha256: null, live_sha256: null, match: reason === 'evaluator_changed_since_lock' ? false : null, reason } }));
-      const r = render(<AiReadinessPage />);
-      expect(await screen.findByText(text)).toBeInTheDocument();
-      expect(screen.getAllByText(DOWN).some((el) => el.classList.contains('text-danger'))).toBe(true);
-      // An unparseable timestamp is shown as sent rather than as "Invalid Date".
-      expect(screen.getByText(/Locked since not-a-date/)).toBeInTheDocument();
-      expect(screen.getByText(/frozen manifest/)).toHaveTextContent(
-        `— · frozen manifest — · live — · evaluator ${reason === 'evaluator_changed_since_lock' ? 'MISMATCH' : '—'}`);
-      r.unmount();
-    }
+  // The four reasons modelLockCheck returns before it reads the live manifest, in the body the backend
+  // really sends: `match: false` with `live_evaluator_sha256: null`. Nothing was compared, so the screen
+  // must not say MISMATCH (nor match) — the false "evaluator MISMATCH" an earlier fixture (match: null)
+  // could not catch. The list is pinned to the backend by backend-mirrors.test.ts.
+  const NULL_DIGEST_WORDS: Record<(typeof NULL_DIGEST_REASONS)[number], RegExp> = {
+    lock_record_unmigrated: /has not been migrated/,
+    lock_record_unreadable: /lock record could not be read/,
+    lock_not_bound_to_manifest: /names no evaluator digest/,
+    live_manifest_unknown: /could not be read or verified/,
+  };
+  it.each(NULL_DIGEST_REASONS)('%s: Down, in words, and "evaluator —" — nothing was compared, so never MISMATCH', async (reason) => {
+    wire(body({ model_lock: nullDigestLock(reason) }));
+    render(<AiReadinessPage />);
+    expect(await screen.findByText(NULL_DIGEST_WORDS[reason])).toBeInTheDocument();
+    expect(screen.getAllByText(DOWN).some((el) => el.classList.contains('text-danger'))).toBe(true);
+    const line = screen.getByText(/frozen manifest/);
+    expect(line).toHaveTextContent(`local · frozen manifest ${SHA.slice(0, 12)}… · live ${LIVE.slice(0, 12)}… · evaluator —`);
+    expect(line.textContent).not.toMatch(/MISMATCH|match|drifted/);
+  });
+
+  it('a compared mismatch says MISMATCH; a reason it does not know is shown by its key; an odd date as sent', async () => {
+    wire(body({ model_lock: { status: 'down', locked: true, locked_at: 'not-a-date', provider: null, manifest_sha256: null,
+      evaluator_sha256: 'e'.repeat(64), live_sha256: null, live_evaluator_sha256: 'd'.repeat(64), match: false, reason: 'evaluator_changed_since_lock' } }));
+    const r = render(<AiReadinessPage />);
+    expect(await screen.findByText(/differs from what was frozen/)).toBeInTheDocument();
+    expect(screen.getAllByText(DOWN).some((el) => el.classList.contains('text-danger'))).toBe(true);
+    // An unparseable timestamp is shown as sent rather than as "Invalid Date".
+    expect(screen.getByText(/Locked since not-a-date/)).toBeInTheDocument();
+    expect(screen.getByText(/frozen manifest/)).toHaveTextContent('— · frozen manifest — · live — · evaluator MISMATCH');
+    r.unmount();
+
+    wire(body({ model_lock: { status: 'down', locked: true, locked_at: null, provider: null, live_evaluator_sha256: null, match: false, reason: 'brand_new_reason' } }));
+    render(<AiReadinessPage />);
+    expect(await screen.findByText(/^brand_new_reason$/)).toBeInTheDocument();
+    expect(screen.getByText(/frozen manifest/)).toHaveTextContent('· evaluator —');
   });
 
   it('an unreadable lock state is Unknown, never Not locked; an unknown note is shown by its key', async () => {
@@ -310,6 +326,73 @@ describe('AI readiness — the model manifest and the Model Lock', () => {
     expect(screen.queryByText('ยังไม่ล็อก / Not locked')).not.toBeInTheDocument();
     expect(screen.getByText('connection reset')).toBeInTheDocument();
     expect(screen.getByText('odd_note')).toBeInTheDocument();
+  });
+
+  // services/model-lock.js modelLockCheck (#160): the frozen evaluator DIGEST matches, but the running
+  // rimpl overrides an evaluator value. Down, with `match: true` — so the screen must not print a bare
+  // "evaluator match" beside it.
+  const LIVE_KEYS = ['code.decoding.evaluate.temperature', 'declared.local.model'];
+  const liveDrift = (over: Record<string, unknown> = {}) => ({ status: 'down', locked: true, locked_at: '2026-10-14T03:00:00Z', provider: 'local',
+    manifest_sha256: SHA, evaluator_sha256: 'e'.repeat(64), live_sha256: SHA, live_evaluator_sha256: 'e'.repeat(64), match: true,
+    drift_keys: LIVE_KEYS, reason: 'evaluator_live_drift', ...over });
+
+  it('evaluator_live_drift: Down, the reason in words, the drifted keys listed, and the digest match qualified', async () => {
+    wire(body({ model_lock: liveDrift() }));
+    render(<AiReadinessPage />);
+    const section = (await screen.findByText(/Evaluator Model Lock/)).closest('section') as HTMLElement;
+    expect(within(section).getByText(DOWN)).toHaveClass('text-danger');
+    // The reason, in both languages, never the bare key.
+    expect(within(section).getByText(/^ค่าที่ผู้ให้คะแนนใช้งานอยู่จริงถูกเปลี่ยนหลังล็อก คะแนนที่ออกตอนนี้จึงไม่ได้มาจากการตั้งค่าที่ล็อกไว้ แม้ส่วนผู้ให้คะแนนใน manifest จะยังตรงกันก็ตาม \//)).toHaveTextContent(
+      'The settings the evaluator is actually running with have changed since the lock, so the scores it gives now do not come from the locked configuration, even though the evaluator part of the manifest still matches.');
+    expect(within(section).queryByText('evaluator_live_drift')).not.toBeInTheDocument();
+    // The digest comparison says what it compared, and that the live config drifted.
+    const line = within(section).getByText(/frozen manifest/);
+    expect(line).toHaveTextContent(`local · frozen manifest ${SHA.slice(0, 12)}… · live ${SHA.slice(0, 12)}… · evaluator digest match, live config drifted`);
+    expect(line.textContent).not.toMatch(/evaluator match/);
+    // The keys, by name, under a caption that counts them.
+    expect(within(section).getByText(/2 evaluator value\(s\) on the running RIMPL differ from the manifest/)).toHaveClass('text-muted-foreground');
+    const list = within(section).getByRole('list', { name: /Evaluator-scope values that differ/ });
+    expect(within(list).getAllByRole('listitem').map((li) => li.textContent)).toEqual(LIVE_KEYS);
+    // Explicit, not implied: jsdom infers `list` from <ul>, but Safari/VoiceOver drops it (and the label)
+    // under Tailwind's `list-style: none` unless the role is stated (components/DriftKeyList.tsx).
+    expect(list).toHaveAttribute('role', 'list');
+  });
+
+  it('drift is qualified however it arrives: a reason without its list, a mismatch with one, an unknown match; odd entries are dropped', async () => {
+    wire(body({ model_lock: liveDrift({ drift_keys: undefined }) }));
+    let r = render(<AiReadinessPage />);
+    expect(await screen.findByText(/frozen manifest/)).toHaveTextContent('· evaluator digest match, live config drifted');
+    expect(screen.queryByRole('list', { name: /Evaluator-scope values/ })).not.toBeInTheDocument();
+    r.unmount();
+
+    wire(body({ model_lock: liveDrift({ match: false, live_evaluator_sha256: 'd'.repeat(64), reason: 'evaluator_changed_since_lock', drift_keys: ['code.decoding.evaluate.temperature', 7, null] }) }));
+    r = render(<AiReadinessPage />);
+    expect(await screen.findByText(/frozen manifest/)).toHaveTextContent('· evaluator MISMATCH, live config drifted');
+    expect(screen.getByText(/differs from what was frozen/)).toBeInTheDocument();
+    expect(within(screen.getByRole('list', { name: /Evaluator-scope values/ })).getAllByRole('listitem').map((li) => li.textContent))
+      .toEqual(['code.decoding.evaluate.temperature']);
+    expect(screen.getByText(/1 evaluator value\(s\) on the running RIMPL/)).toBeInTheDocument();
+    r.unmount();
+
+    wire(body({ model_lock: liveDrift({ match: null }) }));
+    r = render(<AiReadinessPage />);
+    expect(await screen.findByText(/frozen manifest/)).toHaveTextContent('· evaluator —, live config drifted');
+    r.unmount();
+
+    // No live digest: nothing was compared, so `match` is not read — the drift is still said.
+    wire(body({ model_lock: liveDrift({ live_evaluator_sha256: null, match: false }) }));
+    render(<AiReadinessPage />);
+    const line = await screen.findByText(/frozen manifest/);
+    expect(line).toHaveTextContent('· evaluator —, live config drifted');
+    expect(line.textContent).not.toMatch(/MISMATCH/);
+  });
+
+  it('live_manifest_unknown says why the live manifest was refused', async () => {
+    wire(body({ model_lock: nullDigestLock('live_manifest_unknown') }));
+    render(<AiReadinessPage />);
+    expect(await screen.findByText(/could not be read or verified/)).toBeInTheDocument();
+    expect(screen.getByText('live manifest: unreachable')).toHaveClass('font-mono');
+    expect(screen.queryByText(/live config drifted/)).not.toBeInTheDocument();
   });
 
   it('a locked lock with no locked_at still renders', async () => {

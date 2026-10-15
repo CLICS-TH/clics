@@ -989,16 +989,74 @@ describe('Model Lock — live drift in the evaluator scope is never "expected"',
     expect(screen.queryByText(/Could not classify|evaluator’s scope differ/)).not.toBeInTheDocument();
   });
 
-  it('an evaluator_live_drift blocker names its keys and replaces the separate warning', async () => {
+  it('an evaluator_live_drift blocker (GET, #160) names its keys and replaces the separate warning', async () => {
     wire(withDrift({}, { can_declare: false, blockers: ['evaluator_live_drift'],
       blocker_detail: { evaluator_live_drift: ['code.decoding.evaluate.temperature', 'declared.local.engine'] } }));
     render(<EvaluatorLockPage />);
     await screen.findByText(/Why the lock cannot be declared yet \(1\)/);
     const item = document.querySelector('[data-blocker="evaluator_live_drift"]') as HTMLElement;
-    expect(item).toHaveTextContent('Live values in the evaluator’s scope differ from the model manifest.');
+    expect(item).toHaveTextContent('การตั้งค่าที่ผู้ให้คะแนนใช้งานอยู่จริงต่างจาก model manifest / The evaluator’s serving configuration differs from the model manifest.');
+    expect(within(item).getByRole('list', { name: /Evaluator-scope values that differ/ })).toBeInTheDocument();
     expect(within(item).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['code.decoding.evaluate.temperature', 'declared.local.engine']);
+    expect(item).toHaveTextContent('the evaluator that is scoring is not the configuration the manifest describes');
     expect(item).not.toHaveTextContent('does not know');
+    expect(item).not.toHaveTextContent('evaluator_live_drift');
     expect(screen.queryByRole('region', { name: /Live values in the evaluator’s scope differ/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('form')).not.toBeInTheDocument();
+  });
+
+  // POST /admin/evaluator-lock re-reads the live manifest and can refuse on drift that appeared after the
+  // page loaded (services/model-lock.js evaluatorLiveDrift): a 409 with `keys` and `provider`.
+  const LIVE_DRIFT_ERROR = 'ค่าที่ RIMPL ใช้งานอยู่จริงไม่ตรงกับ model manifest ในส่วนของผู้ให้คะแนน 2 รายการ (code.decoding.evaluate.temperature, declared.local.model) จึงยังล็อกไม่ได้ / '
+    + 'The live RIMPL configuration differs from the model manifest on 2 evaluator key(s) (code.decoding.evaluate.temperature, declared.local.model), so the instrument scoring now is not the one a lock would record.';
+  const LIVE_KEYS = ['code.decoding.evaluate.temperature', 'declared.local.model'];
+
+  it('a POST refused with 409 evaluator_live_drift: its title, the bilingual error, the keys as a list, and the re-read blocker', async () => {
+    wire((n) => (n === 1 ? state() : withDrift({}, { can_declare: false, blockers: ['evaluator_live_drift'], blocker_detail: { evaluator_live_drift: LIVE_KEYS } })),
+      () => ({ error: LIVE_DRIFT_ERROR, code: 'evaluator_live_drift', keys: LIVE_KEYS, provider: 'local', httpStatus: 409 }));
+    render(<EvaluatorLockPage />);
+    await formReady();
+    fillRequired();
+    fireEvent.click(submitBtn());
+    const alert = await screen.findByRole('alert');
+    expect(within(alert).getByText(/^การตั้งค่าที่ผู้ให้คะแนนใช้งานอยู่จริงต่างจาก model manifest จึงยังไม่ได้ล็อก \/ Not locked: the evaluator’s serving configuration differs from the manifest$/)).toBeInTheDocument();
+    expect(alert).toHaveTextContent(LIVE_DRIFT_ERROR);
+    expect(alert).toHaveTextContent('ผู้ให้คะแนน / Evaluator: local');
+    const keys = within(alert).getByRole('list', { name: /Evaluator-scope values that differ/ });
+    expect(within(keys).getAllByRole('listitem').map((li) => li.textContent)).toEqual(LIVE_KEYS);
+    expect(alert).not.toHaveTextContent('The lock was not applied');
+    expect(alert.parentElement).toHaveFocus();
+    expect(toast).not.toHaveBeenCalled();
+    // The state is re-read: the form closes on the blocker, which lists the same keys.
+    await waitFor(() => expect(getCount()).toBe(2));
+    await screen.findByText(/Why the lock cannot be declared yet \(1\)/);
+    const item = document.querySelector('[data-blocker="evaluator_live_drift"]') as HTMLElement;
+    expect(within(item).getAllByRole('listitem').map((li) => li.textContent)).toEqual(LIVE_KEYS);
+    expect(screen.queryByRole('form')).not.toBeInTheDocument();
+    // The refusal stays on the page above the closed form.
+    expect(screen.getByRole('alert')).toHaveTextContent('Not locked: the evaluator’s serving configuration differs from the manifest');
+  });
+
+  it('a 409 evaluator_live_drift with no keys and no provider: the title and the error, and no empty list', async () => {
+    wire(state(), () => ({ error: LIVE_DRIFT_ERROR, code: 'evaluator_live_drift', keys: [], provider: null, httpStatus: 409 }));
+    const first = render(<EvaluatorLockPage />);
+    await formReady();
+    fillRequired();
+    fireEvent.click(submitBtn());
+    let alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Not locked: the evaluator’s serving configuration differs from the manifest');
+    expect(within(alert).queryByRole('list')).not.toBeInTheDocument();
+    expect(alert).not.toHaveTextContent('Evaluator:');
+    first.unmount();
+
+    wire(state(), () => ({ error: LIVE_DRIFT_ERROR, code: 'evaluator_live_drift', keys: LIVE_KEYS, httpStatus: 409 }));
+    render(<EvaluatorLockPage />);
+    await formReady();
+    fillRequired();
+    fireEvent.click(submitBtn());
+    alert = await screen.findByRole('alert');
+    expect(within(alert).getAllByRole('listitem').map((li) => li.textContent)).toEqual(LIVE_KEYS);
+    expect(alert).not.toHaveTextContent('Evaluator:');
   });
 
   it('without a key list on the blocker, it lists the manifest’s evaluator keys; a string detail is shown as written; with neither, only the reason', async () => {

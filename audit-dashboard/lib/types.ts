@@ -468,7 +468,7 @@ export interface EvaluationProvenance {
 // `blockers.push(...)` calls by __tests__/backend-mirrors.test.ts.
 export const EVALUATOR_LOCK_BLOCKERS = [
   'no_candidate', 'verdict_unavailable', 'gate_not_passed', 'candidate_not_evaluator', 'candidate_not_serving',
-  'manifest_unavailable', 'manifest_mismatch', 'migration_required', 'lock_table_unreadable',
+  'manifest_unavailable', 'manifest_mismatch', 'evaluator_live_drift', 'migration_required', 'lock_table_unreadable',
 ] as const;
 export type EvaluatorLockBlocker = (typeof EVALUATOR_LOCK_BLOCKERS)[number];
 
@@ -536,8 +536,8 @@ export type EvaluatorLockManifest =
   | {
     ok: true; sha256: string; file: string; code_match: true; drift_keys: string[];
     expected_for_candidate: ManifestExpectedForCandidate | null;
-    // From the backend PR after 6b (services/model-lock.js isEvaluatorDriftKey): the drift keys in the
-    // evaluator's scope, and the provider that scope was computed for. Absent from an older backend.
+    // The drift keys in the evaluator's scope (services/model-lock.js evaluatorDriftKeys, #160), and the
+    // provider that scope was computed for. Absent from a backend older than #160.
     evaluator_drift_keys?: string[];
     evaluator_provider?: string;
   }
@@ -562,7 +562,7 @@ export interface EvaluatorLockState {
   serving_provider: string | null;
   can_declare: boolean;
   blockers: string[];
-  // A string, or (evaluator_live_drift, from the backend PR after 6b) the list of drifting keys.
+  // A string, or (evaluator_live_drift) the list of evaluator-scope keys that drift.
   blocker_detail?: Partial<Record<string, string | string[]>>;
   gate: (IccVerdict & { groups?: LockCorpusGroup[] }) | null;
   manifest: EvaluatorLockManifest | null;
@@ -588,6 +588,10 @@ export interface EvaluatorLockPostResult {
   reason?: string;
   inconsistent?: { step: string; left: string }[];
   detail?: string;
+  // 409 evaluator_live_drift (services/model-lock.js evaluatorLiveDrift): the evaluator-scope keys whose
+  // live value differs from the manifest, by name only, and the candidate provider they were read for.
+  keys?: string[];
+  provider?: string | null;
   // lib/api.ts: the answer was not the backend's JSON (a proxy page, an empty body).
   unreadableBody?: boolean;
 }
@@ -609,8 +613,8 @@ export interface ReadinessManifest {
   file: string | null;
   code_match: boolean | null;
   drift?: { key: string }[] | null;
-  // Added by the backend beside rimpl's block (the PR after 6b). Null when it could not be computed,
-  // absent from an older backend: either way the screen does not classify.
+  // Added by the backend beside rimpl's block (routes/superadmin.js, #160). Null when it could not be
+  // computed, absent from a backend older than #160: either way the screen does not classify.
   evaluator_drift_keys?: string[] | null;
   evaluator_provider?: string | null;
 }
@@ -625,8 +629,18 @@ export interface ReadinessModelLock {
   evaluator_sha256?: string | null;
   live_sha256?: string | null;
   live_evaluator_sha256?: string | null;
+  // The live evaluator DIGEST against the frozen one. It says nothing about live overrides: with
+  // reason 'evaluator_live_drift' it is true while the serving configuration has drifted. Meaningful
+  // only beside a live_evaluator_sha256: the reasons sent before the live manifest is read carry
+  // `match: false` with no live digest, although nothing was compared.
   match?: boolean | null;
   reason?: string;
+  // The evaluator-scope keys the running rimpl overrides, by name (never values). Set whenever there are
+  // any, so with 'evaluator_changed_since_lock' as well as 'evaluator_live_drift'.
+  drift_keys?: string[];
+  // With 'live_manifest_unknown': why the live manifest was refused (unreachable, file_not_present,
+  // unverified, code_mismatch, malformed — services/model-lock.js MANIFEST_REASONS).
+  live_manifest?: string;
   note?: string;
   error?: string;
 }
