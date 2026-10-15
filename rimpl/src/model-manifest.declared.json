@@ -1,0 +1,28 @@
+{
+  "notes": [
+    "Hand-maintained input to rimpl/src/model-manifest.json (scripts/manifest/build.mjs). It DECLARES the target deployment; it measures nothing.",
+    "Production does not run this target today: every purpose is routed to anthropic (app_settings.ai_provider_*, read 2026-10-15), so /health/deep reports drift against this file, as a warning, until CCME R1 (local evaluator) and R3 (distinct tutor) close.",
+    "Never put a URL, host, IP or key here: these values appear in the drift report on the unauthenticated /health/deep. The build refuses a string that looks like one."
+  ],
+  "target": "CCME on-prem deployment (docs/ARCHITECTURE-MAPPING-CCME.md): DeepSeek as the PIS-7 evaluator and classifier (provider local), the CCME tutor model for chat and discuss (provider local-tutor)",
+  "providers": {
+    "chat": "local-tutor",
+    "criteria": "local",
+    "discuss": "local-tutor",
+    "evaluate": "local"
+  },
+  "local": {
+    "role": "evaluator",
+    "model": "deepseek-v4-flash-dspark",
+    "engine": "vllm",
+    "system_fingerprint": "vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0",
+    "source": "The model id is the one the evaluator was calibrated on (docs/ARCHITECTURE-MAPPING-CCME.md section 4, item 3). The fingerprint is the one last seen, on 2026-10-02 (scripts/quality/report/BASELINE-2026-10-02.md); the endpoint address is not recorded. CCME has not confirmed either for the target box."
+  },
+  "local-tutor": {
+    "role": "tutor",
+    "model": null,
+    "engine": null,
+    "system_fingerprint": null,
+    "source": "Unknown. CCME has not confirmed the tutor model, its server or its thinking switch (docs/ARCHITECTURE-MAPPING-CCME.md section 4, items 6-7), and its endpoint is not reachable from here, so nothing has been observed."
+  }
+}

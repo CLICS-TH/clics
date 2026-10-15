@@ -1121,6 +1121,19 @@ a build hash that can change on a routine restart, so folding it in would churn 
 every fingerprint stored before today incomparable with the ones after. Drift stays visible because
 the value is stamped on each score, which is where D15 says it is read from.
 
+> **Reversed 2026-10-15** (the model-manifest PR, CCME R2; #75 gap 1). `engine`, `quantization` and
+> `runtime` now enter `config_fingerprint` when they are present, so a local row that carries a
+> `system_fingerprint` gets a new value. A local row also moves when `LOCAL_AI_NUM_CTX` is set, because
+> `decoding.num_ctx` is now recorded as sent. Before this, `evaluate.js` never passed it, so it was
+> always null. Why the reversal:
+> - **The churn worry did not hold up.** The one served build reported the identical string from this
+>   day to 2026-10-03.
+> - **A change of runtime is information.** If a restart ever does change the string, the serving stack
+>   is different, and that is the drift the Model Lock exists to catch.
+> - **Stored fingerprints stay comparable.** Anthropic reports none of these fields, and production
+>   has only scored with anthropic, so no stored production fingerprint moves. The pins are in
+>   `rimpl/tests/provenance-fingerprint.test.js`.
+
 **This is the general lesson of §8.10.** No unit test could have found it, because the mocks never
 carried the field; no probe could have, because the probes never ran this code. A fact recorded as
 "not discoverable" for months was arriving on every call. §5.2's row is now ✅ and three §10.2 fields

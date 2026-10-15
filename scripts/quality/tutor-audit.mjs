@@ -79,7 +79,6 @@
 // Output: scripts/quality/report/<label>.json — synthetic questions + verbatim replies, safe to keep.
 
 import { readFile, writeFile, rename, mkdir } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -96,7 +95,7 @@ import {
 } from './request.mjs';
 import {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
-  EVIDENCE_GUIDANCE, promptLabel, hasCitation, extractSocraticQuestion, extractEvidenceLevel, RIMPL_FILES,
+  EVIDENCE_GUIDANCE, promptLabel, hasCitation, extractSocraticQuestion, extractEvidenceLevel, ANTHROPIC_MODEL,
   ROUTER_VERSION, ROUTER_LABEL, ROUTER_RULES_SHA256, ROUTER_KEYWORDS_SHA256,
 } from './rimpl.mjs';
 import { checkReply, summarize, printSummary, CHECKS_VERSION } from './checks.mjs';
@@ -140,10 +139,9 @@ export function armThinkingProblem(arm, cfg) {
 
 /** The paid arm's model, read from the production provider module so it cannot drift. */
 export function productionAnthropicModel() {
-  const src = readFileSync(RIMPL_FILES.anthropicProvider, 'utf8');
-  const m = src.match(/const MODEL = '(claude-[a-z0-9.-]+)'/);
-  if (!m) throw new Error(`no MODEL constant in ${RIMPL_FILES.anthropicProvider}`);
-  return m[1];
+  // rimpl/src/lib/provider-policy.js ANTHROPIC_MODEL: the pinned id providers/anthropic.js sends (its
+  // MODEL is this constant). IMPORTED — package-free — rather than read out of the provider's source.
+  return ANTHROPIC_MODEL;
 }
 
 /** Anthropic Messages API, same body shape as rimpl/src/services/providers/anthropic.js. Only ever

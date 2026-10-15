@@ -20,7 +20,9 @@ const { callProvider, providerNameFor, servesPurpose, PROVIDER_PURPOSES, PROVIDE
 const { supabase } = require('../lib/supabase');
 const { pis7PromptFor } = require('../lib/prompts');
 const { Pis7ScoreError } = require('../lib/pis7');
-const { scoreWithConsistency, MODES: CONSISTENCY_MODES } = require('./consistency');
+const { scoreWithConsistency } = require('./consistency');
+const { shadowConsistencyMode, maxSumDelta } = require('../lib/consistency-config');
+const { SHADOW_DECODING, shadowMaxTokens } = require('../lib/decoding');
 const { modelVersion, promptVersionFor, RUBRIC_VERSION } = require('../lib/versions');
 
 // Math.max(x, parseInt('auto',10)) is NaN, not x — Math.max PROPAGATES NaN, and a NaN maxTokens
@@ -34,9 +36,14 @@ function intEnv(name, dflt, min = 0) {
 // Default OFF. Set to a provider name ('local') to start collecting.
 const shadowProvider = () => String(process.env.SHADOW_EVAL_PROVIDER || '').trim().toLowerCase();
 
-// Same ceiling as the served evaluation (routes/evaluate.js) — a shadow score truncated at a smaller
-// ceiling would look like a model failure when it was really our own budget.
-const shadowMaxTokens = () => intEnv('SHADOW_EVAL_MAX_TOKENS', 4096, 1000);
+// The SAME decoding as the served evaluation (lib/decoding.js SHADOW_DECODING): temperature 0, and the
+// served ceiling (SHADOW_EVAL_MAX_TOKENS may override it, floor 1000) — a shadow score truncated at a
+// smaller ceiling would look like a model failure when it was really our own budget. Until 2026-10-15
+// the shadow sent NO temperature (the candidate server's default) while the served evaluator sent 0:
+// the corpus the Model Lock's decisive verdict is computed on measured the candidate under different
+// decoding from the instrument being frozen. shadow_evaluations has no column for the decoding, so a
+// row does not record it: a row written before that date was sampled at the server default (production
+// held no shadow rows when this changed, 2026-10-15).
 
 // Shed the shadow when anyone is already WAITING for that provider. Both providers share one FIFO
 // queue per provider (services/providers/runtime.js), so an unshed shadow would take a slot ahead of
@@ -44,7 +51,8 @@ const shadowMaxTokens = () => intEnv('SHADOW_EVAL_MAX_TOKENS', 4096, 1000);
 // which is strictly better than a delayed physician. Raise SHADOW_MAX_QUEUE only if the box is idle.
 const shadowMaxQueue = () => intEnv('SHADOW_MAX_QUEUE', 0, 0);
 
-// Self-consistency for the SHADOW arm (services/consistency.js): off (default) | adaptive | median3.
+// Self-consistency for the SHADOW arm (services/consistency.js; SHADOW_EVAL_CONSISTENCY, read through
+// lib/consistency-config.js shadowConsistencyMode): off (default) | adaptive | median3.
 // Default off on purpose — three shadow calls per PLE is exactly the load the shed rule above exists to
 // prevent. Enable only on an idle box, when the shadow corpus should be produced under the same rule
 // the served local arm uses (EVAL_CONSISTENCY). The row records call 1's tokens and stop reason, so it
@@ -57,14 +65,10 @@ const shadowMaxQueue = () => intEnv('SHADOW_MAX_QUEUE', 0, 0);
 // instead of 90% — a laundered failure rate, in the flattering direction, on the one dataset a
 // decision to swap the scoring instrument rests on. A `consistency` column on shadow_evaluations
 // would be needed before the extra calls could be kept honestly.
-const shadowConsistencyMode = () => {
-  const mode = String(process.env.SHADOW_EVAL_CONSISTENCY || '').trim().toLowerCase();
-  return CONSISTENCY_MODES.includes(mode) ? mode : 'off';
-};
 // The pair-agreement thresholds are a property of the RULE, not of the arm, so the shadow reads the
-// same EVAL_CONSISTENCY_MAX_SUM_DELTA the served evaluation does — a corpus produced under a different
-// rule than the one being decided on would be the two-validators problem all over again.
-const shadowMaxSumDelta = () => intEnv('EVAL_CONSISTENCY_MAX_SUM_DELTA', 0, 0);
+// same EVAL_CONSISTENCY_MAX_SUM_DELTA the served evaluation does (lib/consistency-config.js maxSumDelta)
+// — a corpus produced under a different rule than the one being decided on would be the
+// two-validators problem all over again.
 
 // Said once per provider name per process: shadowTarget runs on every evaluation, and a refused
 // configuration is a standing condition, not an event.
@@ -155,6 +159,9 @@ async function runShadowEvaluation({ pleId, transcriptText, servedProvider }) {
         // different exam.
         systemPrompt: pis7PromptFor(provider),
         messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
+        // The served evaluator's decoding (see SHADOW_DECODING above): the same exam, under the same
+        // sampling, or the agreement it measures is partly a decoding difference.
+        temperature: SHADOW_DECODING.temperature,
         maxTokens: shadowMaxTokens(),
       });
       // Call 1 stamps the row — the same attribution the served evaluation uses — so a row stays
@@ -173,7 +180,7 @@ async function runShadowEvaluation({ pleId, transcriptText, servedProvider }) {
       // (services/consistency.js) — but NEVER a re-ask (jsonRetries 0, see shadowConsistencyMode):
       // a garbage reply is recorded below as the failure it is, so the contract rate stays honest.
       const { scores, composite, rationale } = await scoreWithConsistency({
-        callOnce, mode, jsonRetries: 0, agree: { maxSumDelta: shadowMaxSumDelta() },
+        callOnce, mode, jsonRetries: 0, agree: { maxSumDelta: maxSumDelta() },
       });
       Object.assign(row, pickDomains(scores), { composite_score: composite, domain_rationale: rationale });
     } catch (scoreErr) {

@@ -388,3 +388,41 @@ describe('SHADOW_EVAL_CONSISTENCY — the E2 knobs, same rule as the served arm'
     expect(mockCallProvider).toHaveBeenCalledTimes(1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// The candidate is scored under the SAME decoding as the instrument it may replace (lib/decoding.js
+// SHADOW_DECODING). Until 2026-10-15 the shadow sent no temperature — the candidate server's own default —
+// while the served evaluator sent 0, so the corpus the Model Lock's decisive verdict is computed on
+// measured the candidate under different decoding from the instrument being frozen.
+describe('shadow decoding = the served evaluator\'s', () => {
+  const { EVAL_DECODING } = require('../src/lib/decoding');
+  beforeEach(() => { process.env.SHADOW_EVAL_PROVIDER = 'local'; });
+  afterEach(() => { delete process.env.SHADOW_EVAL_MAX_TOKENS; });
+
+  test('temperature 0 and max_tokens 4096 — EVAL_DECODING, the values routes/evaluate.js sends', async () => {
+    mockCallProvider.mockResolvedValue(ok(VALID));
+    await run();
+    expect(mockCallProvider).toHaveBeenCalledTimes(1);
+    expect(mockCallProvider.mock.calls[0][0]).toMatchObject({
+      provider: 'local', purpose: 'shadow', temperature: EVAL_DECODING.temperature, maxTokens: EVAL_DECODING.maxTokens,
+    });
+    expect(EVAL_DECODING).toEqual({ temperature: 0, maxTokens: 4096 });
+  });
+
+  test('SHADOW_EVAL_MAX_TOKENS still moves the ceiling (floor 1000); nothing moves the temperature', async () => {
+    mockCallProvider.mockResolvedValue(ok(VALID));
+    process.env.SHADOW_EVAL_MAX_TOKENS = '6000';
+    await run();
+    process.env.SHADOW_EVAL_MAX_TOKENS = '500';      // below the floor: the default
+    await run();
+    expect(mockCallProvider.mock.calls.map((c) => [c[0].temperature, c[0].maxTokens])).toEqual([[0, 6000], [0, 4096]]);
+  });
+
+  test('the row still has no decoding column to put it in — the payload keys are unchanged', async () => {
+    mockCallProvider.mockResolvedValue(ok(VALID));
+    await run();
+    expect(Object.keys(row()).sort()).toEqual(['composite_score', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'domain_rationale', 'error',
+      'evaluated_at', 'input_tokens', 'latency_ms', 'model_version', 'output_tokens', 'ple_id', 'prompt_version', 'provider',
+      'rubric_version', 'stop_reason']);
+  });
+});

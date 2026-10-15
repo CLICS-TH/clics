@@ -6,6 +6,7 @@ const { parseJsonObject } = require('../lib/parse');
 const { flattenForPrompt, seedWithChiefComplaint } = require('../lib/transcript');
 const { deriveHintTokens, makeRegistry } = require('../services/pii-filter');
 const { MAX_TURN_CHARS } = require('../lib/turn-limits');
+const { CRITERIA_DECODING } = require('../lib/decoding');
 const { requestSignal } = require('../lib/request-signal');
 const { sendAiError, logAiError } = require('../lib/ai-errors');
 
@@ -45,7 +46,8 @@ router.post('/', async (req, res) => {
       purpose: 'criteria',
       systemPrompt: CRITERIA_CLASSIFIER_PROMPT,
       messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
-      maxTokens: 200,
+      maxTokens: CRITERIA_DECODING.maxTokens,   // 200: one small JSON object (lib/decoding.js)
+      temperature: CRITERIA_DECODING.temperature,   // null: not sent, the provider default
       signal,
     });
 

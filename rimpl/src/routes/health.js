@@ -6,6 +6,7 @@ const { Router } = require('express');
 const { supabase } = require('../lib/supabase');
 const { readiness, activeProviders, modelsByPurpose, providerSettingsStatus, probeProvider, PROVIDERS } = require('../services/ai');
 const { internalAuth } = require('../lib/internal-auth');
+const modelManifest = require('../services/manifest');
 
 const router = Router();
 
@@ -81,14 +82,25 @@ router.get('/deep', async (_req, res) => {
     providerChecks = { ai_provider: { status: 'down', error: e?.message || String(e) } };
   }
 
+  // The model manifest (CCME R2, services/manifest.js), after readiness() so the routing it reports
+  // reads the settings cache that call just warmed. WARN-ONLY: production runs every purpose on
+  // anthropic while the declared target is on-prem, so drift is expected and must never make this 503.
+  let manifest;
+  try {
+    manifest = modelManifest.health();
+  } catch (e) {
+    manifest = { block: null, check: { status: 'warn', warning: `model manifest: could not be evaluated (${e?.message || e})` } };
+  }
+
   const checks = {
     ...providerChecks,
     supabase: await checkSupabase(),
+    manifest: manifest.check,
   };
 
-  // `warn` is a finding about the configuration, not a dependency that cannot serve (today only
-  // r3_distinct_models, services/ai.js readiness()): it is reported in `checks` and `warnings` but
-  // never turns the endpoint 503 — backend's /health/deep reads that status code as "rimpl is down".
+  // `warn` is a finding about the configuration, not a dependency that cannot serve (r3_distinct_models,
+  // services/ai.js readiness(); manifest, services/manifest.js): it is reported in `checks` and `warnings`
+  // but never turns the endpoint 503 — backend's /health/deep reads that status code as "rimpl is down".
   const allUp = Object.values(checks).every((c) => c.status === 'up' || c.status === 'warn');
   const warnings = Object.entries(checks).filter(([, c]) => c.status === 'warn').map(([k]) => k);
   res.status(allUp ? 200 : 503).json({
@@ -107,6 +119,11 @@ router.get('/deep', async (_req, res) => {
     // Per-provider `{active, queued, maxConcurrency, lanes?}` — how close each active provider is to
     // refusing work (503 queue_full). Backend's /health/deep bubbles this up as checks.rimpl.deep.
     queues: queueStats(),
+    // { sha256 (verified, else null), claimed_sha256, file: present|missing|invalid, code_match, drift }.
+    // The drift is the PUBLIC form (lib/manifest.js publicDrift): a free-text live value — a model id, a
+    // server fingerprint — appears only as live_present + live_sha256_12, never raw. The full manifest
+    // and the raw live view are GET /manifest, behind the internal token.
+    manifest: manifest.block,
     checks,
   });
 });

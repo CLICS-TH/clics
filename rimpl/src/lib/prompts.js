@@ -359,9 +359,22 @@ function pis7PromptFor(provider, addendum = PIS7_LOCAL_ADDENDUM) {
   return PIS7_EVALUATOR_PROMPT + (provider === 'local' && addendum ? `\n\n${addendum}` : '');
 }
 
+// The system prompt a /chat turn sends — the ONE assembly, used by routes/chat.js and enumerated by the
+// model manifest (lib/manifest.js CHAT_PROMPT_VARIANTS), so every stored chat prompt_version label maps
+// back to exactly one variant. Examiner mode (CLE2 / remediation) or natural (CLE1/CLE3), then the
+// artifact guidance when the superadmin `clinical_artifacts` toggle is on, then the evidence-marker
+// guidance (its placement differs by mode) when `chat_evidence_marker` is on. A rescue turn REPLACES all
+// of it with the rescue prompt, which carries neither.
+function chatSystemPrompt({ socratic = false, artifacts = false, evidenceMarker = false, rescue = false } = {}) {
+  if (rescue) return RIMPL_SYSTEM_PROMPT_RESCUE;
+  return (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)
+    + (artifacts ? ARTIFACT_GUIDANCE : '')
+    + (evidenceMarker ? EVIDENCE_GUIDANCE[socratic ? 'examiner' : 'natural'] : '');
+}
+
 module.exports = {
   RIMPL_SYSTEM_PROMPT, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER,
-  RIMPL_SYSTEM_PROMPT_RESCUE,
+  RIMPL_SYSTEM_PROMPT_RESCUE, chatSystemPrompt,
   RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS,
   ARTIFACT_GUIDANCE,
   EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, EVIDENCE_LEVELS, evidenceLineFor,

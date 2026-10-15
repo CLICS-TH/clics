@@ -44,12 +44,17 @@ const turnLimits = require('../../rimpl/src/lib/turn-limits.js');
 // requires only Node built-ins and its keyword file. IMPORTED, so a routed audit arm runs production's
 // rules, and its provenance carries the version and the keyword file's sha256.
 const router = require('../../rimpl/src/services/router.js');
+// The routing policy and the pinned Anthropic model id (providers/anthropic.js sends exactly this).
+// Package-free: lib/provider-policy.js requires nothing.
+const providerPolicy = require('../../rimpl/src/lib/provider-policy.js');
 
 export const {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
   // The evidence-level marker (CCME R5; setting chat_evidence_marker): the guidance per mode, its share
   // of the single corrective retry, and the one label table the prompt and the parser are built from.
   EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, EVIDENCE_LEVELS, evidenceLineFor,
+  // The ONE assembly of a chat turn's system prompt (chat.js calls it; so does request.mjs).
+  chatSystemPrompt,
 } = prompts;
 export const { promptLabel } = versions;
 export const {
@@ -64,7 +69,8 @@ export const {
 } = postFilter;
 // The marker-only call's ceiling and the optional-retry cutoff (routes/chat.js reads both from here), and
 // the deep tier's ceiling (the router's larger max_tokens: reasoning tokens count against it).
-export const { EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS, CHAT_DEEP_MAX_TOKENS } = turnLimits;
+export const { EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS, CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS } = turnLimits;
+export const { ANTHROPIC_MODEL } = providerPolicy;
 export const { routeTurn, ROUTER_VERSION, ROUTER_LABEL, ROUTER_RULES_SHA256, ROUTER_KEYWORDS_SHA256, REASONS: ROUTER_REASONS } = router;
 export const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = pii;
 export const { stripArtifactDelimiters } = transcript;
@@ -76,5 +82,6 @@ export const RIMPL_FILES = {
   chatRoute: require.resolve('../../rimpl/src/routes/chat.js'),
   turnLimits: require.resolve('../../rimpl/src/lib/turn-limits.js'),
   router: require.resolve('../../rimpl/src/services/router.js'),
-  anthropicProvider: require.resolve('../../rimpl/src/services/providers/anthropic.js'),
+  // The pinned Claude id is IMPORTED (ANTHROPIC_MODEL above), never read out of providers/anthropic.js.
+  providerPolicy: require.resolve('../../rimpl/src/lib/provider-policy.js'),
 };

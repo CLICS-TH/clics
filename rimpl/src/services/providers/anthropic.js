@@ -7,6 +7,7 @@
 // retention (ZDR) arrangement on the Anthropic account, not by code. Track that in GO-LIVE-CHECKLIST.
 const Anthropic = require('@anthropic-ai/sdk');
 const { createRunner } = require('./runtime');
+const { ANTHROPIC_MODEL } = require('../../lib/provider-policy');
 
 // We do our own retry (via the shared runner), so disable the SDK's internal retry to avoid
 // double-retrying.
@@ -53,11 +54,12 @@ if (CLIENT_TIMEOUT_MS + EVAL_LATE_RETRY_SLACK_MS >= EVAL_CALLER_DEADLINE_MS) {
 // the background after the response has been sent, so nobody is waiting on it and it keeps every retry.
 const EVAL_PURPOSES = new Set(['evaluate']);
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: CLIENT_TIMEOUT_MS, maxRetries: 0 });
-// PINNED, not an alias. From the 4.6 generation on, Anthropic's canonical model ids carry no date:
-// GET /v1/models/claude-sonnet-4-6 resolves to itself (created 2026-02-17), the same way the older
-// dated ids (claude-sonnet-4-5-20250929) do. Verified 2026-10-02. Never swap this for a moving alias
-// (a "-latest" name): CREC082 §10.2 requires the model behind every score to be fixed and recorded.
-const MODEL = 'claude-sonnet-4-6';
+// PINNED, not an alias: lib/provider-policy.js ANTHROPIC_MODEL, with the reason it is pinned. It lives
+// there, package-free, so the model manifest (lib/manifest.js) and the probe/quality harnesses read the id
+// this file sends without loading the SDK. No model id is written in this file, not even in a comment: the
+// probes once regex-scraped the first one they found here. Never swap it for a moving alias (a "-latest"
+// name): CREC082 §10.2 requires the model behind every score to be fixed and recorded.
+const MODEL = ANTHROPIC_MODEL;
 
 // Prompt caching (default OFF). The ~2k-token system prompt is re-sent every turn at full input price;
 // caching it cuts that to ~10% after the first call. DEFAULT OFF because zero-data-retention (ZDR)

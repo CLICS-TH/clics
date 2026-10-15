@@ -43,9 +43,10 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
     'const history = cleanHistory.map(m => ({',
   ]) assert.ok(chatSrc.includes(line), `one-registry de-identification drifted: ${line}`);
   assert.ok(chatSrc.includes('const hints = deriveHintTokens(patient_ref);'), 'PII hint derivation drifted');
-  // System prompt = mode prompt + artifact guidance + the evidence guidance for the mode, in that order.
-  assert.ok(chatSrc.includes("+ (artifacts ? ARTIFACT_GUIDANCE : '')\n    + (evidence_marker ? EVIDENCE_GUIDANCE[socratic ? 'examiner' : 'natural'] : '');"),
-    'ARTIFACT_GUIDANCE / EVIDENCE_GUIDANCE concatenation drifted');
+  // System prompt = mode prompt + artifact guidance + the evidence guidance for the mode, in that order:
+  // lib/prompts.js chatSystemPrompt, which chat.js calls with the request's flags and request.mjs imports.
+  assert.ok(chatSrc.includes('let systemPrompt = chatSystemPrompt({ socratic, artifacts, evidenceMarker: evidence_marker });'),
+    'chat.js no longer assembles its system prompt with lib/prompts.js chatSystemPrompt');
   // The single corrective retry (#109): both triggers, how they combine, prompts, fence, failure rule.
   for (const line of [
     'const needCitation = !rescuing && (!hasCitation(text) || (socratic && !extractSocraticQuestion(text)));',
@@ -102,8 +103,6 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
   assert.ok(pleChat.includes("const language = /[\u0E00-\u0E7F]/.test(message) ? 'th' : 'en';"), 'client language rule drifted');
   // CHAT_MAX_TOKENS and CHAT_DEEP_MAX_TOKENS live in lib/turn-limits.js (they also size the per-turn
   // length cap); chat.js must still take them from there.
-  const limitsSrc = readFileSync(RIMPL_FILES.turnLimits, 'utf8');
-  assert.ok(limitsSrc.includes("const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));"), 'CHAT_MAX_TOKENS drifted');
   assert.ok(chatSrc.includes("const { CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS, MAX_TURN_CHARS, EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS } = require('../lib/turn-limits');"), 'chat.js no longer takes its limits from turn-limits');
   // At most two calls a turn (request.mjs tierOptions / retryMaxTokens replicate the ceilings):
   //   * the FIRST call runs under the turn's ceiling: CHAT_MAX_TOKENS, unless an APPLIED deep tier makes it
@@ -120,11 +119,10 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
   const retryCall = chatSrc.slice(chatSrc.indexOf('retry = await callAI('), chatSrc.indexOf('} catch (err) {', chatSrc.indexOf('retry = await callAI(')));
   assert.ok(retryCall.length > 0 && retryCall.length < 400, 'could not isolate the retry call');
   assert.doesNotMatch(retryCall, /turnMaxTokens|CHAT_DEEP_MAX_TOKENS|\bdeep\b/, 'the retry must not inherit the deep tier or its ceiling');
-  assert.ok(chatSrc.includes("(socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)"), 'mode→prompt selection drifted');
-  assert.ok(chatSrc.includes('systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE'), 'rescue prompt replacement drifted');
+  // Both rescue branches replace the prompt wholesale, through the same helper.
+  assert.equal(chatSrc.split('systemPrompt = chatSystemPrompt({ rescue: true });').length - 1, 2, 'rescue prompt replacement drifted');
   assert.ok(chatSrc.includes("promptLabel('chat', systemPrompt)"), 'prompt_version label drifted');
-  assert.equal(CHAT_MAX_TOKENS, Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10)));
-  assert.equal(CHAT_MAX_TOKENS, require(RIMPL_FILES.turnLimits).CHAT_MAX_TOKENS, 'the replica must equal production\'s value');
+  assert.equal(CHAT_MAX_TOKENS, require(RIMPL_FILES.turnLimits).CHAT_MAX_TOKENS, 'the fast ceiling is IMPORTED, never copied');
   assert.equal(CHAT_DEEP_MAX_TOKENS, require(RIMPL_FILES.turnLimits).CHAT_DEEP_MAX_TOKENS, 'the deep ceiling is IMPORTED, never copied');
 });
 
@@ -179,7 +177,8 @@ test('loads without a single package — the CI quality job has no npm install',
   };
   const roots = ['../../rimpl/src/services/rescue.js', '../../rimpl/src/lib/prompts.js', '../../rimpl/src/services/pii-filter.js',
     '../../rimpl/src/lib/transcript.js', '../../rimpl/src/services/post-filter.js', '../../rimpl/src/lib/versions.js',
-    '../../rimpl/src/services/router.js', '../../rimpl/src/lib/thinking-control.js', '../../rimpl/src/lib/turn-limits.js'].map((p) => require.resolve(p));
+    '../../rimpl/src/services/router.js', '../../rimpl/src/lib/thinking-control.js', '../../rimpl/src/lib/turn-limits.js',
+    '../../rimpl/src/lib/provider-policy.js', '../../rimpl/src/lib/decoding.js'].map((p) => require.resolve(p));
   const deps = [...new Set(roots.flatMap((r) => [...closure(r)]))];
   assert.ok(deps.some((f) => f.endsWith(path.join('services', 'rescue.js'))), 'rescue.js must be in the closure');
   assert.deepEqual(deps.filter((f) => f.includes(`${path.sep}node_modules${path.sep}`)), []);

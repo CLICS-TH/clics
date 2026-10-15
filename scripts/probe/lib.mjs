@@ -41,6 +41,12 @@ export { stripThink, closesThink, flagOn, createThinkFilter };
 const { thinkingFields, thinkingEnabled, parseThinkingStyle } = requireCjs('../../rimpl/src/lib/thinking-control.js');
 export { thinkingFields, thinkingEnabled, parseThinkingStyle };
 
+// The Claude model production pins: rimpl/src/lib/provider-policy.js ANTHROPIC_MODEL, the id
+// providers/anthropic.js sends (its MODEL is this constant). IMPORTED — package-free — so a cloud arm can
+// never compare against a model production does not use. Until 2026-10-15 the probes regex-scraped the
+// first claude-* string out of providers/anthropic.js, which a comment in that file could satisfy.
+export const { ANTHROPIC_MODEL: PRODUCTION_CLOUD_MODEL } = requireCjs('../../rimpl/src/lib/provider-policy.js');
+
 export const PROBE_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(PROBE_DIR, '..', '..');
 export const RIMPL_DIR = path.join(REPO_ROOT, 'rimpl');

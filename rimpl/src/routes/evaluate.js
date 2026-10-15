@@ -3,7 +3,9 @@ const { z } = require('zod');
 const { callAI, resolveProviderName } = require('../services/ai');
 const { pis7PromptFor } = require('../lib/prompts');
 const { Pis7ScoreError } = require('../lib/pis7');
-const { scoreWithConsistency, MODES: CONSISTENCY_MODES } = require('../services/consistency');
+const { scoreWithConsistency } = require('../services/consistency');
+const { consistencyModeFor, maxSumDelta, jsonRetries } = require('../lib/consistency-config');
+const { EVAL_DECODING } = require('../lib/decoding');
 const { flattenForPrompt, seedWithChiefComplaint } = require('../lib/transcript');
 const { buildProvenance } = require('../lib/provenance');
 const { deriveHintTokens, makeRegistry } = require('../services/pii-filter');
@@ -15,33 +17,16 @@ const { sendAiError, logAiError, isQueueFull } = require('../lib/ai-errors');
 
 const router = Router();
 
-// The evaluator's decoding parameters, in ONE place. §10.2 requires them frozen and recorded, and
-// the only way the recorded value cannot drift from the value sent is for both to read this.
-// temperature 0: the scoring instrument must be reproducible, and a sampled score is not.
-const EVAL_DECODING = { temperature: 0, maxTokens: 4096 };
-
-// Self-consistency (services/consistency.js; docs/LOCAL-MODEL-ROADMAP.md D18 / D21) — for the LOCAL
-// arm only. EVAL_CONSISTENCY: off (default) | adaptive (two calls, a third when the pair disagrees) |
-// median3 (always three). The incumbent (anthropic) path is unchanged whatever the env says, so its
-// response stays byte-identical to before this existed. An unknown value is off.
-const consistencyModeFor = (provider) => {
-  const mode = String(process.env.EVAL_CONSISTENCY || '').trim().toLowerCase();
-  return provider === 'local' && CONSISTENCY_MODES.includes(mode) ? mode : 'off';
-};
-// Σ|Δ| ceiling for the adaptive pair to count as agreeing (0 = the per-domain check alone). A uniform
-// ±1 level shift across 5–6 domains passes the per-domain check with Σ|Δ| = 5–6, and the D18
-// repeatability bar is Σ|Δ| median ≤ 2 — see services/consistency.js DEFAULT_AGREE.
-function maxSumDelta() {
-  const n = parseInt(process.env.EVAL_CONSISTENCY_MAX_SUM_DELTA, 10);
-  return Number.isFinite(n) && n >= 0 ? n : 0;
-}
-// Re-asks allowed across one adaptive / median3 evaluation when the model returns unparseable /
-// out-of-range JSON. Not applied to the incumbent path: a re-ask there would be a new cloud-spend
-// path on the instrument the pilot is locked to, and it has had none.
-function jsonRetries() {
-  const n = parseInt(process.env.EVAL_JSON_RETRIES, 10);
-  return Number.isFinite(n) && n >= 0 ? n : 2;
-}
+// The evaluator's decoding parameters (§10.2: frozen and recorded) are EVAL_DECODING, lib/decoding.js —
+// temperature 0, max_tokens 4096 — read by the call AND the provenance record below, so the two cannot
+// drift. The shadow evaluator sends the same (services/shadow.js).
+//
+// Self-consistency (services/consistency.js; docs/LOCAL-MODEL-ROADMAP.md D18 / D21) — for the LOCAL arm
+// only, configured in lib/consistency-config.js. EVAL_CONSISTENCY: off (default) | adaptive (two calls, a
+// third when the pair disagrees) | median3 (always three). The incumbent (anthropic) path is unchanged
+// whatever the env says, so its response stays byte-identical to before this existed. An unknown value
+// is off. EVAL_CONSISTENCY_MAX_SUM_DELTA is the adaptive pair's Σ|Δ| ceiling (0 = per-domain check
+// alone); EVAL_JSON_RETRIES the re-ask budget, never applied to the incumbent (mode off).
 
 const EvalSchema = z.object({
   ple_id: z.string(),
@@ -166,11 +151,14 @@ router.post('/', async (req, res) => {
     // §10.2: the model that ACTUALLY produced this score — from the billed call, which every further
     // call was pinned to the same provider as.
     const model = first?.model;
-    // Same call, same reason: the engine and its version as the SERVER reported them. Providers that
-    // report nothing (anthropic) leave both undefined, so the incumbent path's provenance — and its
-    // config_fingerprint, which does not cover these fields — is byte-identical to before.
+    // Same call, same reason: the engine and its version as the SERVER reported them, and the context
+    // override when one was sent (providers/local-factory.js; absent unless <prefix>NUM_CTX > 0).
+    // Providers that report none of these (anthropic) leave them undefined, so the incumbent path's
+    // provenance — and its config_fingerprint, which folds engine/runtime in only when present — is
+    // byte-identical to before.
     const engine = first?.engine ?? null;
     const runtime = first?.runtime ?? null;
+    const numCtx = first?.numCtx ?? null;
 
     res.json({
       ple_id,
@@ -192,7 +180,7 @@ router.post('/', async (req, res) => {
       provenance: buildProvenance({
         provider, model,
         promptVersion, rubricVersion: RUBRIC_VERSION,
-        temperature: EVAL_DECODING.temperature, maxTokens: EVAL_DECODING.maxTokens,
+        temperature: EVAL_DECODING.temperature, maxTokens: EVAL_DECODING.maxTokens, numCtx,
         weightsSha256: weights_sha256 ?? null,
         engine, runtime,
         consistency,

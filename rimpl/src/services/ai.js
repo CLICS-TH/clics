@@ -26,8 +26,13 @@ const { isQueueFull, isAborted, isTooLarge } = require('../lib/ai-errors');
 // must equal the provider's own `name`: results, provenance and bills are stamped with that name.
 const PROVIDERS = { anthropic, local, 'local-tutor': localTutor };
 
-// 'criteria' = the C1–C6 classifier, 'discuss' = the auditor calibration tutor.
-const PURPOSES = ['chat', 'evaluate', 'criteria', 'discuss'];
+// The routing POLICY (purposes, which provider may serve which, which purposes may fail over) is data in
+// lib/provider-policy.js, package-free, so the model manifest (lib/manifest.js) records the very lists
+// this file routes with. 'criteria' = the C1–C6 classifier, 'discuss' = the auditor calibration tutor.
+const {
+  PURPOSES, PROVIDER_NAMES, EMBED_PROVIDER_NAMES, PROVIDER_PURPOSES, servesPurpose,
+  FAILOVER_PURPOSES: FAILOVER_PURPOSE_LIST, DEFAULT_PROVIDER, DEFAULT_EMBED_PROVIDER,
+} = require('../lib/provider-policy');
 
 // Embeddings are a SEPARATE registry, not a fifth entry in PURPOSES. Anthropic has no embeddings
 // API, so folding 'embed' into the chat purposes would let a config name a provider that cannot
@@ -35,6 +40,14 @@ const PURPOSES = ['chat', 'evaluate', 'criteria', 'discuss'];
 // that never uses one. Same switch semantics, different set of valid answers.
 const EMBED_PROVIDERS = { openai: openaiEmbed, local };
 const EMBED_PURPOSE = 'embed';
+
+// The two registries and the policy's name lists must agree, or the manifest would record a provider set
+// this file does not route with. Fails at boot, where every test catches it.
+for (const [label, registry, names] of [['PROVIDERS', PROVIDERS, PROVIDER_NAMES], ['EMBED_PROVIDERS', EMBED_PROVIDERS, EMBED_PROVIDER_NAMES]]) {
+  if (Object.keys(registry).join() !== names.join()) {
+    throw new Error(`services/ai.js ${label} (${Object.keys(registry).join(', ')}) disagrees with lib/provider-policy.js (${names.join(', ')})`);
+  }
+}
 
 // Every purpose whose override this process reads from the database.
 const SETTING_PURPOSES = [...PURPOSES, EMBED_PURPOSE];
@@ -47,38 +60,17 @@ function envProviderName(purpose, fallbackEnv, dflt) {
 // SYNCHRONOUS by contract — shadow.js and /health/deep both call it outside an async resolution
 // step. The database value therefore comes from provider-settings' cache, which fails soft to env.
 function providerNameFor(purpose) {
-  return settings.overrideFor(purpose) || envProviderName(purpose, 'AI_PROVIDER', 'anthropic');
+  return settings.overrideFor(purpose) || envProviderName(purpose, 'AI_PROVIDER', DEFAULT_PROVIDER);
 }
 
 function embedProviderName() {
-  return settings.overrideFor(EMBED_PURPOSE) || envProviderName(EMBED_PURPOSE, 'EMBED_PROVIDER', 'openai');
+  return settings.overrideFor(EMBED_PURPOSE) || envProviderName(EMBED_PURPOSE, 'EMBED_PROVIDER', DEFAULT_EMBED_PROVIDER);
 }
 
-// The purposes a provider may serve, for a provider that may NOT serve all of them; a provider absent
-// from this map serves every purpose.
-//
-// `local-tutor` is the TUTOR model, and CCME R3 requires the evaluator to be a distinct model
-// artifact from the tutor. evaluate scores the very dialogue the tutor produced, and criteria decides
-// whether that dialogue counts — routing either to the tutor would judge a model's conversation with
-// the same model, under a prompt nobody calibrated it on. Backend's superadmin switch offers
-// local-tutor for chat and discuss only; this is the same rule at the boundary, so an env var
-// (AI_PROVIDER=local-tutor, the easy way to mean "all on-prem" and get it wrong) or a hand-written
-// app_settings row cannot do what the switch refuses. It fails LOUDLY — the call throws, and
-// readiness() reports the purpose down — exactly like an unknown provider name.
-const PROVIDER_PURPOSES = { 'local-tutor': ['chat', 'discuss'] };
-
-// Purposes that are not in PURPOSES but must obey the same rule as one that is. `shadow` is a second,
-// never-served PIS-7 score of the same transcript (services/shadow.js): it IS an evaluation, and its
-// rows are the corpus a candidate evaluator is judged and locked on. Shadow-scoring with the tutor
-// would produce agreement data that looks like a candidate evaluator and is not one — so whatever
-// may not `evaluate` may not `shadow` either. One list (PROVIDER_PURPOSES), read through this map.
-const PURPOSE_CLASS = { shadow: 'evaluate' };
-
-function servesPurpose(name, purpose) {
-  const allowed = PROVIDER_PURPOSES[name];
-  return !purpose || !allowed || allowed.includes(PURPOSE_CLASS[purpose] ?? purpose);
-}
-
+// PROVIDER_PURPOSES / servesPurpose (lib/provider-policy.js): `local-tutor` is the TUTOR and may serve
+// only chat and discuss (CCME R3: the evaluator must be a distinct artifact from the tutor), and
+// `shadow` obeys the `evaluate` rule. Enforced HERE, loudly: the call throws and readiness() reports
+// the purpose down, exactly like an unknown provider name.
 function assertServes(provider, purpose, whence) {
   if (!servesPurpose(provider.name, purpose)) {
     throw new Error(`AI provider "${provider.name}" (from ${whence}) cannot serve "${purpose}" — it serves only ${PROVIDER_PURPOSES[provider.name].join(', ')}`);
@@ -153,7 +145,7 @@ async function providerSupportsThinking(purpose) {
 //     the provider rejected, which a second provider would reject too.
 //   * a configuration error (LOCAL_AI_BASE_URL unset) is not DOWN either. A misconfigured box must
 //     fail loudly, not quietly serve the cloud while an operator believes traffic is on-prem.
-const FAILOVER_PURPOSES = new Set(['chat']);
+const FAILOVER_PURPOSES = new Set(FAILOVER_PURPOSE_LIST);
 
 // Transport-level "nobody is answering", wherever the code sits in the cause chain: Node's fetch
 // rejects with TypeError('fetch failed') and puts the real code on .cause.
@@ -541,6 +533,12 @@ async function probeProvider(name, purpose = 'chat') {
     required: typeof min === 'number' ? min : null, checks };
 }
 
+// Warm the settings cache (fail-soft, like readiness()) for a reader that reports the routing without
+// making a call: GET /manifest (routes/manifest.js).
+async function ensureFreshSettings() {
+  await settings.ensureFresh(SETTING_PURPOSES).catch(() => {});
+}
+
 // Where the current routing came from (database vs env) and how stale it is. A box that BELIEVES it
 // is superadmin-controlled but is silently running on env should be visible, not inferred.
 function providerSettingsStatus() {
@@ -550,6 +548,6 @@ function providerSettingsStatus() {
 module.exports = {
   callAI, callProvider, embedText, ragEnabled, resolveProviderName, providerSupportsThinking, supportsThinking,
   activeProviders, defaultProvider, modelsByPurpose, providerNameFor, embedProviderName,
-  providerSettingsStatus, readiness, probeProvider, isProviderDown, servesPurpose,
+  providerSettingsStatus, ensureFreshSettings, readiness, probeProvider, isProviderDown, servesPurpose,
   PURPOSES, PROVIDERS, EMBED_PROVIDERS, EMBED_PURPOSE, SETTING_PURPOSES, PROVIDER_PURPOSES,
 };

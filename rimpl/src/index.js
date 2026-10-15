@@ -30,6 +30,8 @@ app.use('/evaluate-criteria', require('./routes/evaluate-criteria'));
 app.use('/audit-discuss', require('./routes/audit-discuss'));
 // Masked copy of a stored transcript for a human reader (the auditor). No AI call.
 app.use('/deidentify', require('./routes/deidentify'));
+// The model manifest + live configuration + drift (CCME R2), for the backend's evaluator lock. No AI call.
+app.use('/manifest', require('./routes/manifest'));
 
 if (require.main === module) {
   const PORT = process.env.PORT || 3003;
