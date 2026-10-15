@@ -102,7 +102,7 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
     return res.json({
       arms: { ai_vs_human: emptyArm(), shadow_vs_human: null, ai_vs_shadow: null },
       coverage: { ples_with_human: 0, ples_with_ai: 0, ples_with_shadow: 0, ples_all_three: 0, shadow_failed: 0, shadow_contract_rate: null, shadow_ineligible: 0 },
-      shadow: { available: false, provider: null, model_version: null },
+      shadow: { available: false, provider: null, model_version: null, prompt_version: null },
       gates: {
         screening: { arm: 'ai_vs_shadow', ...verdictFor(null, gates.screening) },
         decisive: { arm: 'shadow_vs_human', ...verdictFor(null, gates.decisive) },
@@ -118,11 +118,17 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
   // is the most disqualifying number here — so it must be measured over every run recorded for this
   // candidate. Deliberately NOT is_test-filtered: a sandbox transcript exercises the contract exactly
   // as a real one does. Count-only (head), so this stays cheap.
+  // Scoped to the candidate's prompt_version as well (services/agreement.js groups by it): the
+  // addendum is what changed between local prompt versions, and it is aimed squarely at the JSON
+  // contract, so a contract rate pooled across two addenda describes neither prompt.
   let corpusScored = null, corpusFailed = null;
   if (candidate) {
-    const forCandidate = () => supabase.from('shadow_evaluations')
-      .select('ple_id', { count: 'exact', head: true })
-      .eq('provider', candidate.provider).eq('model_version', candidate.model_version);
+    const forCandidate = () => {
+      const q = supabase.from('shadow_evaluations')
+        .select('ple_id', { count: 'exact', head: true })
+        .eq('provider', candidate.provider).eq('model_version', candidate.model_version);
+      return candidate.prompt_version == null ? q.is('prompt_version', null) : q.eq('prompt_version', candidate.prompt_version);
+    };
     const [okRes, errRes] = await Promise.all([forCandidate().is('error', null), forCandidate().not('error', 'is', null)]);
     // Best-effort: a failure here must not break the arms — fall back to the cohort figures.
     if (!okRes.error && !errRes.error) { corpusScored = okRes.count ?? 0; corpusFailed = errRes.count ?? 0; }
@@ -187,6 +193,9 @@ router.get('/icc/three-way', requireRole('analyst', 'ethics', 'superadmin'), asy
       available: shadowAvailable,
       provider: candidate?.provider ?? null,
       model_version: candidate?.model_version ?? null,
+      // Additive. The candidate is one (provider, model_version, prompt_version) group; rows under
+      // another prompt version are a different candidate and are NOT in these arms.
+      prompt_version: candidate?.prompt_version ?? null,
     },
   });
 });

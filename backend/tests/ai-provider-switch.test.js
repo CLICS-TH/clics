@@ -14,7 +14,12 @@ const mockEvents = [];
 const mockProf = { data: { id: 'sa-1', role: 'superadmin', status: 'active' }, error: null };
 const mockUser = { data: { user: { id: 'sa-1', email: 'superadmin@clics.th' } }, error: null };
 
-jest.mock('../src/lib/audit', () => ({ logEvent: (e) => { mockEvents.push(e); } }));
+// logEventStrict is AWAITED by the lock/unlock paths and must answer { ok } — a sync stub returning
+// undefined would hide exactly the failure those paths now handle (tests/evaluator-model-lock.test.js).
+jest.mock('../src/lib/audit', () => ({
+  logEvent: async (e) => { mockEvents.push(e); },
+  logEventStrict: async (e) => { mockEvents.push(e); return { ok: true }; },
+}));
 
 // The switch now asks RIMPL whether the target can actually serve before pointing traffic at it.
 // Default FIT, so every pre-existing case here still exercises what it was written to exercise.
@@ -32,7 +37,11 @@ jest.mock('../src/lib/supabase', () => {
     const c = {
       select: () => c,
       eq: (_col, v) => { key = v; return c; },
-      upsert: (payload) => { mockUpserts.push(payload); mockSettings[payload.key] = payload.value_text; return c; },
+      // A single row or an array (the lock settings are written as one pair).
+      upsert: (payload) => {
+        for (const row of [].concat(payload)) { mockUpserts.push(row); mockSettings[row.key] = row.value_text; }
+        return c;
+      },
       maybeSingle: () => Promise.resolve({ data: key in mockSettings ? { value_text: mockSettings[key] } : null, error: null }),
       single: () => Promise.resolve({ data: key in mockSettings ? { value_text: mockSettings[key] } : null, error: null }),
       then: (r) => r({ data: null, error: null }),   // bare `await ... .upsert(...)`
@@ -136,9 +145,15 @@ describe('the evaluator is guarded', () => {
     }));
   });
 
+  // A lock is now declared only through POST /admin/evaluator-lock (tests/evaluator-model-lock.test.js),
+  // which writes these two settings. Here they are set directly: this suite is about the switch.
+  const lockedByDeclaration = () => {
+    mockSettings.evaluator_locked_at = '2026-10-15T00:00:00.000Z';
+    mockSettings.evaluator_weights_sha256 = 'a'.repeat(64);
+  };
+
   test('once LOCKED the change is REFUSED OUTRIGHT — the confirmation no longer helps', async () => {
-    await patch({ evaluator_locked: true });
-    expect(mockSettings.evaluator_locked_at).toBeTruthy();
+    lockedByDeclaration();
 
     const r = await patch({ purpose: 'evaluate', provider: 'local', confirm: 'CHANGE EVALUATOR' });
 
@@ -148,21 +163,24 @@ describe('the evaluator is guarded', () => {
   });
 
   test('the lock does NOT freeze the other purposes — chat can still move on-prem mid-pilot', async () => {
-    await patch({ evaluator_locked: true });
+    lockedByDeclaration();
     const r = await patch({ purpose: 'chat', provider: 'local' });
     expect(r.status).toBe(200);
     expect(r.body.providers.chat).toBe('local');
   });
 
-  test('locking is idempotent — re-locking keeps the ORIGINAL timestamp', async () => {
-    await patch({ evaluator_locked: true });
+  test('this switch cannot lock: 409 use_model_lock, and an existing lock is left exactly as it was', async () => {
+    lockedByDeclaration();
     const first = mockSettings.evaluator_locked_at;
-    await patch({ evaluator_locked: true });
+    const r = await patch({ evaluator_locked: true });
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('use_model_lock');
     expect(mockSettings.evaluator_locked_at).toBe(first);
+    expect(mockUpserts).toHaveLength(0);
   });
 
   test('unlocking needs its own typed phrase — the dangerous direction is the harder one', async () => {
-    await patch({ evaluator_locked: true });
+    lockedByDeclaration();
 
     const refused = await patch({ evaluator_locked: false });
     expect(refused.status).toBe(409);
@@ -172,13 +190,18 @@ describe('the evaluator is guarded', () => {
     const ok = await patch({ evaluator_locked: false, confirm: 'UNLOCK EVALUATOR' });
     expect(ok.status).toBe(200);
     expect(ok.body.evaluator_locked_at).toBeNull();
+    // ...and the digest goes with it, or every later score is stamped `locked: true` against no lock.
+    expect(mockSettings.evaluator_weights_sha256).toBeNull();
     expect(mockEvents).toContainEqual(expect.objectContaining({ action: 'evaluator_lock' }));
   });
 
-  test('locking is always allowed without a phrase — making the SAFE action harder gets it skipped', async () => {
+  test('a lock request without a declaration is refused, pointing at the Model Lock — not quietly applied', async () => {
+    // It used to be "always allowed without a phrase". It also set the flag with no record, no digest,
+    // no agreement gate and no manifest: a lock that only looked real.
     const r = await patch({ evaluator_locked: true });
-    expect(r.status).toBe(200);
-    expect(r.body.evaluator_locked_at).toBeTruthy();
+    expect(r.status).toBe(409);
+    expect(r.body).toMatchObject({ code: 'use_model_lock', lock_endpoint: 'POST /admin/evaluator-lock' });
+    expect(mockSettings.evaluator_locked_at).toBeUndefined();
   });
 });
 

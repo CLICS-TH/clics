@@ -33,3 +33,42 @@ describe('probeRimplDeep', () => {
     await expect(probeRimplDeep({ timeoutMs: 100 })).rejects.toThrow(/aborted/);
   });
 });
+
+// GET /manifest (CCME R2) feeds the Model Lock. It THROWS on anything but a 2xx JSON object, so the
+// caller (services/model-lock.js) can fail closed on one path rather than reason about half-answers.
+describe('fetchRimplManifest', () => {
+  const { fetchRimplManifest } = require('../src/services/rimpl-client');
+  const origFetch = global.fetch;
+  const origToken = process.env.INTERNAL_TOKEN;
+  afterEach(() => { global.fetch = origFetch; if (origToken === undefined) delete process.env.INTERNAL_TOKEN; else process.env.INTERNAL_TOKEN = origToken; });
+
+  test('200 → the parsed body, fetched from /manifest WITH the internal token and a timeout', async () => {
+    process.env.INTERNAL_TOKEN = 'tok-test';
+    const body = { manifest: { expected: {} }, sha256: 'f'.repeat(64), file: 'present', code_match: true, live: {}, drift: [] };
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => body });
+    await expect(fetchRimplManifest({ timeoutMs: 100 })).resolves.toEqual(body);
+    const [url, init] = global.fetch.mock.calls[0];
+    expect(url).toMatch(/\/manifest$/);
+    expect(init.headers['x-internal-token']).toBe('tok-test');
+    expect(init.signal).toBeDefined();
+  });
+
+  test('a non-2xx (an older rimpl answers 404; a token mismatch 401) throws with the status', async () => {
+    for (const status of [404, 401, 500]) {
+      global.fetch = jest.fn().mockResolvedValue({ ok: false, status, json: async () => ({ error: 'x' }), headers: { get: () => null } });
+      await expect(fetchRimplManifest({ timeoutMs: 100 })).rejects.toMatchObject({ status });
+    }
+  });
+
+  test('a body that is not a JSON object throws', async () => {
+    for (const bad of [null, [], 'manifest']) {
+      global.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => bad });
+      await expect(fetchRimplManifest({ timeoutMs: 100 })).rejects.toThrow(/not a JSON object/);
+    }
+  });
+
+  test('a network error / timeout propagates', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('The operation was aborted'));
+    await expect(fetchRimplManifest({ timeoutMs: 100 })).rejects.toThrow(/aborted/);
+  });
+});

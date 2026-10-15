@@ -33,7 +33,10 @@ describe('design-a11y source guards', () => {
       lines(f).forEach((l, i) => {
         // `text-primary` as a colour class — not text-primary-foreground, not hover:/dark: variants of other tokens.
         if (!/(^|[\s"'`])text-primary(?![-\w/])/.test(l)) return;
-        // Large text (>= 24px) is held to 3:1, which 3.11:1 clears on the canvas.
+        // Large text (>= 24px) is held to 3:1, which 3.11:1 clears on the canvas. Only there: on
+        // --secondary it is 2.71:1, so a large coral figure on a hover:bg-secondary surface must swap
+        // to text-coral-on-tint while hovered (StatStrip does; contrast.test.ts pins the pair). This
+        // line-based check cannot see a hover surface set on another element, so that stays manual.
         if (/\btext-(2xl|3xl|4xl|5xl|6xl|display|fluid-xl|fluid-2xl)\b/.test(l)) return;
         // Small: an explicit small size on the same line.
         if (/\btext-(xs|sm|base|\[1\dpx\])\b/.test(l)) bad.push(`${rel(f)}:${i + 1}  ${l.trim().slice(0, 110)}`);

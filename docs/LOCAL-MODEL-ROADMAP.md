@@ -264,9 +264,10 @@ Facts, not decisions. Everything downstream waits on these.
    for. Which of `:8000` and `:8888` serves `deepseek-v4-flash-dspark` is **inferred, not measured**:
    `:8000` is vLLM's default and the served `system_fingerprint` is `vllm-...-tp2` (§8.10), but the two
    cannot be told apart from outside the LAN.
-3. **`sha256sum` of the evaluator weights**, and who can run it. This fills
-   `app_settings.evaluator_weights_sha256`, which is seeded and null. It is **not** readable over an
-   inference API — it must be declared by someone with filesystem access.
+3. **`sha256sum` of the evaluator weights**, and who can run it. It is the digest declared at
+   `/admin/evaluator-lock` (P5), which fills `app_settings.evaluator_weights_sha256` (seeded null) —
+   never set by hand. It is **not** readable over an inference API — it must be declared by someone
+   with filesystem access.
 4. ~~**Can rimpl be hosted on a tailnet node?**~~ **ANSWERED YES, 2026-09-05 — and it needs no
    firewall change.** A nine-port sweep from inside the Railway container, read by curl exit code,
    found `cme-dev:3003` **refused (RST)** rather than dropped: packets from production reach the box's
@@ -472,8 +473,29 @@ Runs immediately before the first participant.
 - **Amend the Model Lock Record (D5)** to name the model `cme-dev` actually serves. The Record
   currently names a **DeepSeek**-based model; resolve against the G0 inventory. This is a protocol
   amendment note, not a code change.
-- **Set `evaluator_weights_sha256`** from the G0 digest, then **set `evaluator_locked_at`**. After
-  that the backend refuses an evaluator provider change outright.
+- **Declare the lock at `/admin/evaluator-lock`** (superadmin; the page POSTs
+  `/admin/evaluator-lock`) with the G0 weights digest, the inference engine, and the prompt and
+  rubric versions. The declaration is refused unless the candidate cleared the **decisive** gate on
+  exactly the declared prompt version, the candidate is the provider currently **serving
+  `evaluate`** (switch `evaluate` to it first), and the declaration matches rimpl's checked-in model
+  manifest (`GET /manifest`, code-matched). On success the backend writes the Model Lock Record row,
+  freezes the manifest sha256, the expected half of the manifest and the **evaluator digest**, sets
+  both settings, and writes the audit event. After that the backend refuses an evaluator provider
+  change outright, and every score's provenance carries the digest.
+- **Never set `evaluator_locked_at` or `evaluator_weights_sha256` by hand** (SQL, the Supabase
+  console, or an old script). A hand-set lock has no Model Lock Record row and no frozen manifest,
+  so nothing can say what was frozen: `/health/deep` reports `checks.model_lock` as
+  `lock_not_bound_to_manifest` and stays **degraded until the lock is replaced through the
+  endpoint** — and the scores issued under it carry a digest no record explains. The old quick-lock
+  toggle on the AI provider panel is gone for the same reason (it answers 409 `use_model_lock`).
+  Replacing or lifting a lock also goes through the endpoint and its typed confirmation phrase.
+- **What the lock freezes is the evaluator only.** Tutor, router and chat changes after a lock are
+  allowed and appear on `/health/deep` as a note (`tutor_or_router_changed_since_lock`); a change
+  to any evaluator key (prompt or addendum, rubric, model-version prefix, evaluate decoding, the
+  consistency reconciliation rules except the shadow's, the evaluate provider, or the declared block
+  for the locked provider) degrades
+  health and needs **REPLACE THE LOCK**. The exact key list is in [deployment.md](deployment.md)
+  (the evaluator Model Lock section).
 - **Disclose in the Record (D11, D12):** that a **shadow evaluator runs and does not serve**, and that
   **retrieval is inert** (empty corpus). Both must be stated, or §10.2 describes a system that does
   not exist and a later change looks like an undisclosed second scorer or a silent instrument swap.

@@ -9,6 +9,7 @@ const evalDrain = require('../services/eval-drain');
 const { resolveScope } = require('../lib/eval-scope');
 const { getSetting } = require('../lib/settings');
 const { chainHead } = require('../services/audit-chain');
+const { lockInForce, modelLockCheck } = require('../services/model-lock');
 
 const router = Router();
 
@@ -162,12 +163,46 @@ async function checkAuditChain() {
   }
 }
 
+// The Model Lock against the instrument that is actually scoring (CCME R2). The lock FREEZES THE SCORING
+// INSTRUMENT, not the whole build: POST /admin/evaluator-lock stores an evaluator digest
+// (services/model-lock.js evaluatorDigest, over exactly the evaluator keys of the model manifest), and
+// here, while locked, the same helper recomputes it on rimpl's live GET /manifest (internal token,
+// cached <= 60 s). The logic is services/model-lock.js modelLockCheck, shared with /admin/ai-readiness.
+//
+// It degrades ONLY while locked, when the frozen instrument cannot be shown to be the one scoring:
+// evaluator_changed_since_lock, live_manifest_unknown, lock_not_bound_to_manifest (no digest on the
+// record: locked before it existed, or the retired quick lock), lock_record_unmigrated / _unreadable.
+//   * A tutor, router or chat change after a lock does NOT degrade: whole-manifest sha changed, evaluator
+//     digest unchanged -> `up` with note 'tutor_or_router_changed_since_lock'.
+//   * Unlocked — production today — is informational, never degrades, and fetches no manifest.
+//   * An unreadable lock state is reported, not degraded on: the supabase check already fails the
+//     verdict when the database is down, and guessing "locked" here would page on a guess.
+const MANIFEST_FETCH_TIMEOUT_MS = parseInt(process.env.HEALTH_RIMPL_TIMEOUT_MS || '2500', 10);
+async function readModelLock() {
+  try {
+    return await withTimeout(lockInForce(), SUPABASE_TIMEOUT_MS);
+  } catch (e) {
+    return { error: e.message };
+  }
+}
+
+async function checkModelLock(lock, rimplCheck) {
+  try {
+    return await modelLockCheck(lock, { deep: rimplCheck?.deep ?? null, fetchTimeoutMs: MANIFEST_FETCH_TIMEOUT_MS });
+  } catch (e) {
+    // modelLockCheck does not throw; if it ever does, the lock's state is unknown, not "fine".
+    return { status: 'unknown', locked: lock?.locked ?? null, error: e.message };
+  }
+}
+
 router.get('/deep', async (_req, res) => {
-  const [supabaseCheck, rimplCheck, evalQueue, auditChain] = await Promise.all([
-    checkSupabase(), checkRimpl(), checkEvalQueue(), checkAuditChain(),
+  const [supabaseCheck, rimplCheck, evalQueue, auditChain, modelLock] = await Promise.all([
+    checkSupabase(), checkRimpl(), checkEvalQueue(), checkAuditChain(), readModelLock(),
   ]);
-  const checks = { supabase: supabaseCheck, rimpl: rimplCheck, eval_queue: evalQueue, audit_chain: auditChain };
-  const allUp = supabaseCheck.status === 'up' && rimplCheck.status === 'up' && evalQueue.status !== 'down';
+  const lockCheck = await checkModelLock(modelLock, rimplCheck);
+  const checks = { supabase: supabaseCheck, rimpl: rimplCheck, eval_queue: evalQueue, audit_chain: auditChain, model_lock: lockCheck };
+  const allUp = supabaseCheck.status === 'up' && rimplCheck.status === 'up' && evalQueue.status !== 'down'
+    && lockCheck.status !== 'down';
   res.status(allUp ? 200 : 503).json({
     status: allUp ? 'ok' : 'degraded',
     service: 'backend',
