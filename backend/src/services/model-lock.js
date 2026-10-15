@@ -167,8 +167,9 @@ function judgeManifest(r) {
   try { bytes = JSON.stringify(expected).length; } catch { bytes = Infinity; }
   if (bytes > MAX_EXPECTED_BYTES) return manifestUnavailable('malformed', `manifest.expected is ${bytes} bytes`, { file });
   // The live drift's KEYS only (`code.decoding.evaluate.temperature`, `declared.local.model`, ...): which
-  // values differ, never what they are. The values can be operator- or server-supplied strings.
-  const drift_keys = (Array.isArray(r.drift) ? r.drift : []).map((d) => d?.key).filter((k) => typeof k === 'string');
+  // values differ, never what they are. The values can be operator- or server-supplied strings. A key
+  // that is not a plain dotted name is kept as a placeholder (driftKeysOf), so it still counts.
+  const drift_keys = driftKeysOf(r.drift);
   return { ok: true, sha256: sha, expected, file, code_match: true, drift_keys };
 }
 
@@ -422,34 +423,77 @@ function evaluatorDigest(expected, provider) {
 //   declared.<provider>.*               model, served_model, engine,   -> declared[provider]
 //                                       system_fingerprint
 //   code.models.anthropic               ONLY for an anthropic lock     -> code.anthropic
-// Outside, as they are outside the digest: chat / criteria / discuss / shadow decoding,
-// consistency.shadow_mode, thinking_style, another provider's num_ctx, every other purpose's provider,
-// and every other provider's declared block. Only the KEYS are read. The values are operator- and
-// server-supplied strings, and they never leave this module.
+// Outside, as they are outside the digest: see DRIFT_OUT. Only the KEYS are read. The values are
+// operator- and server-supplied strings, and they never leave this module.
+//
+// FAILS CLOSED. Every key is classified by an explicit rule: DRIFT_IN (on the instrument) or DRIFT_OUT
+// (off it). A key that matches NEITHER is one this code has never classified, such as a knob rimpl adds
+// later (code.think_preopened.local, code.evaluator.prompt_override), and it counts as IN until someone
+// classifies it. A key that is not a plain dotted name (DRIFT_KEY) counts as IN too, and is reported as
+// MALFORMED_DRIFT_KEY, never as the string it carried. tests/evaluator-model-lock.test.js checks that
+// IN and OUT partition every key rimpl emits, for every provider that may evaluate.
 //
 // `expected` is the manifest's expected half (the one the keys came with). Without it, whether
-// consistency governs the provider is unknown, and its keys stay in scope (failing closed).
+// consistency governs the provider is unknown, and its keys stay in scope (failing closed). Without a
+// provider, nothing provider-specific can be ruled OUT.
 const DRIFT_KEY = /^[a-z0-9_.-]+$/i;
-function isEvaluatorDriftKey(key, provider, expected = null) {
-  if (typeof key !== 'string' || !DRIFT_KEY.test(key)) return false;
-  if (key.startsWith('code.decoding.evaluate.')) return true;
-  if (key.startsWith('code.consistency.')) {
-    return !key.startsWith('code.consistency.shadow') && consistencyGoverns(expected?.code?.consistency, provider);
-  }
-  if (key === 'declared.providers.evaluate') return true;
-  // Without a provider name, nothing provider-specific is in scope. 'providers' is the purpose map,
-  // never a provider name.
-  if (typeof provider !== 'string' || !provider || provider === 'providers') return false;
-  if (key === 'code.models.anthropic') return provider === 'anthropic';
-  if (key === `code.decoding.num_ctx.${provider}`) return sendsNumCtx(provider);
-  return key.startsWith(`declared.${provider}.`);
+const MALFORMED_DRIFT_KEY = '(malformed drift key)';
+const isConsistencyKey = (k) => k.startsWith('code.consistency.') && !k.startsWith('code.consistency.shadow');
+
+// Each rule: [name, (key, c) => boolean], c = { provider (null when unknown), numCtx, governs }.
+const DRIFT_IN = Object.freeze([
+  ['evaluate decoding', (k) => k.startsWith('code.decoding.evaluate.')],
+  ['the evaluator\'s num_ctx (on-prem)', (k, c) => c.numCtx && k === `code.decoding.num_ctx.${c.provider}`],
+  ['consistency, governing this provider', (k, c) => isConsistencyKey(k) && c.governs],
+  ['the evaluate route', (k) => k === 'declared.providers.evaluate'],
+  ['the evaluator\'s declared block', (k, c) => c.provider != null && k.startsWith(`declared.${c.provider}.`)],
+  ['the pinned Claude model (anthropic lock)', (k, c) => k === 'code.models.anthropic' && c.provider === 'anthropic'],
+]);
+const DRIFT_OUT = Object.freeze([
+  ['chat decoding', (k) => k.startsWith('code.decoding.chat.')],
+  ['shadow decoding', (k) => k.startsWith('code.decoding.shadow.')],
+  ['criteria decoding', (k) => k.startsWith('code.decoding.criteria.')],
+  ['discuss decoding', (k) => k.startsWith('code.decoding.discuss.')],
+  ['shadow consistency', (k) => k.startsWith('code.consistency.shadow')],
+  ['thinking style (chat turns only)', (k) => k.startsWith('code.thinking_style.')],
+  ['another provider\'s num_ctx', (k, c) => c.provider != null && k.startsWith('code.decoding.num_ctx.')
+    && k !== `code.decoding.num_ctx.${c.provider}`],
+  ['another provider\'s declared block', (k, c) => c.provider != null && /^declared\.[^.]+\./.test(k)
+    && !k.startsWith('declared.providers.') && !k.startsWith(`declared.${c.provider}.`)],
+  ['another purpose\'s route', (k) => k.startsWith('declared.providers.') && k !== 'declared.providers.evaluate'],
+  ['the Claude model (non-anthropic lock)', (k, c) => k === 'code.models.anthropic' && c.provider != null && c.provider !== 'anthropic'],
+  ['consistency, not governing this provider', (k, c) => isConsistencyKey(k) && !c.governs],
+]);
+
+// Which rules a key matches, by name, for `provider`. 'providers' is the purpose map, never a provider.
+function driftKeyRules(key, provider, expected = null) {
+  const p = typeof provider === 'string' && provider && provider !== 'providers' ? provider : null;
+  const c = { provider: p, numCtx: sendsNumCtx(p), governs: p == null || consistencyGoverns(expected?.code?.consistency, p) };
+  const names = (rules) => rules.filter(([, test]) => test(key, c)).map(([name]) => name);
+  return { in: names(DRIFT_IN), out: names(DRIFT_OUT) };
 }
 
-// The evaluator-scope subset of a manifest's drift keys (judgeManifest's `drift_keys`, or the keys of
-// rimpl's public /health/deep drift, which are the same strings), in rimpl's order, for the candidate or
-// locked `provider`.
+function isEvaluatorDriftKey(key, provider, expected = null) {
+  if (typeof key !== 'string' || !DRIFT_KEY.test(key)) return true;   // unreadable: in, as a placeholder
+  const rules = driftKeyRules(key, provider, expected);
+  if (rules.in.length) return true;
+  if (rules.out.length) return false;
+  return true;   // matches no rule: never classified, so part of the instrument until it is
+}
+
+// The keys of a drift array (GET /manifest's raw drift, or rimpl's public /health/deep drift, which
+// carries the same key strings), in rimpl's order. An entry whose key is missing or not a plain dotted
+// name becomes MALFORMED_DRIFT_KEY: kept, so it still counts, but never relayed as the string it carried.
+function driftKeysOf(drift) {
+  return (Array.isArray(drift) ? drift : []).map((d) => (typeof d?.key === 'string' && DRIFT_KEY.test(d.key) ? d.key : MALFORMED_DRIFT_KEY));
+}
+
+// The evaluator-scope subset of a manifest's drift keys, in rimpl's order, for the candidate or locked
+// `provider`.
 function evaluatorDriftKeys(driftKeys, provider, expected = null) {
-  return [...new Set((Array.isArray(driftKeys) ? driftKeys : []).filter((k) => isEvaluatorDriftKey(k, provider, expected)))];
+  const keys = (Array.isArray(driftKeys) ? driftKeys : [])
+    .map((k) => (typeof k === 'string' && DRIFT_KEY.test(k) ? k : MALFORMED_DRIFT_KEY));
+  return [...new Set(keys.filter((k) => isEvaluatorDriftKey(k, provider, expected)))];
 }
 
 const evaluatorLiveDrift = (keys, provider) => ({
@@ -582,6 +626,7 @@ module.exports = {
   manifestForLock, judgeManifest, cachedLiveManifest, resetManifestCache, expectedFor, manifestDiff, manifestMismatch,
   evaluatorScope, evaluatorDigest, canonicalJson, EVALUATOR_SCOPE_VERSION, lockSchemaStatus, lockInForce, modelLockCheck,
   isEvaluatorDriftKey, evaluatorDriftKeys, evaluatorLiveDrift, consistencyGoverns,
+  driftKeyRules, driftKeysOf, DRIFT_IN, DRIFT_OUT, MALFORMED_DRIFT_KEY,
   migrationRequired, isMissingColumnOrTable, isMissingTable,
   relockRequired, unlockRequired, evaluatorLocked, gateNotPassed, candidateNotEvaluator, candidateNotServing,
   LOCK_STATE_UNREADABLE, USE_MODEL_LOCK, SAVED_STATE_UNREADABLE, INVALID_DECLARATION_ERROR,

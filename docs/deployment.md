@@ -247,6 +247,27 @@ So a `local` lock watches 11 keys and an `anthropic` lock watches 4 (`code.decod
 `declared.providers.evaluate`, `code.models.anthropic`). The consistency condition is read from the
 manifest's own `code.consistency.evaluate.mode`. Without it, the consistency keys stay in (fails closed).
 
+**Unclassified keys count as the instrument (fails closed).** Every drift key is classified by an explicit
+rule: in (the keys above), or out. A key that matches neither counts as **in**. That covers a knob rimpl
+adds later, such as `code.think_preopened.local` or `code.evaluator.prompt_override`, which blocks a lock and
+degrades a locked one until someone classifies it. A key that is not a plain dotted name counts as in too,
+and is reported as `(malformed drift key)`, never as the string it carried. The out rules
+(`DRIFT_OUT` in `backend/src/services/model-lock.js`):
+
+- chat, shadow, criteria and discuss decoding (`code.decoding.{chat,shadow,criteria,discuss}.*`, their
+  `temperature` keys included)
+- the shadow evaluator's consistency (`code.consistency.shadow*`)
+- the thinking style (`code.thinking_style.*`), which is sent on chat turns only
+- another provider's `num_ctx` (`code.decoding.num_ctx.<other>`)
+- another provider's declared block (`declared.<other>.*`)
+- another purpose's route (`declared.providers.<anything but evaluate>`)
+- `code.models.anthropic`, for a non-anthropic lock
+- the consistency keys, for a provider the rule does not govern
+
+`backend/tests/evaluator-model-lock.test.js` checks that, for `anthropic` and for `local`, the in and out
+rules partition all 33 keys rimpl emits, with no key in both and none in neither. A new rimpl key fails that
+test until it is classified.
+
 **The server-reported keys are blind until the server has answered once.** rimpl compares
 `declared.local.served_model`, `.engine` and `.system_fingerprint` only against what the local server
 reported on its most recent call since rimpl booted (unobserved is not drift). Straight after a rimpl
@@ -270,14 +291,17 @@ the first evaluate call lands, the next manifest fetch sees the mismatch, and `/
   rimpl's public block. These are computed for the locked provider while locked, otherwise for the serving
   one, and both are `null` when neither can be read. The public block carries the same drift keys, but not
   the manifest's expected half. So when a consistency key is present, the route reads `GET /manifest`
-  through the same 60 s cache. The dashboard reads these fields and does not re-implement the filter.
+  through the same 60 s cache. The dashboard PR that follows this one (6c) reads these fields instead of
+  re-implementing the filter. Until it ships, the lock page shows a generic blocked message for
+  `evaluator_live_drift`.
 - **Never block or degrade:** `SHADOW_EVAL_MAX_TOKENS`, `SHADOW_EVAL_CONSISTENCY`, `RIMPL_DISCUSS_MAX_TOKENS`,
   `RIMPL_CHAT_MAX_TOKENS`, `RIMPL_CHAT_DEEP_MAX_TOKENS`, `AI_PROVIDER_CHAT` / `_CRITERIA` / `_DISCUSS`, every
   `LOCAL_TUTOR_AI_*` variable (including `LOCAL_TUTOR_AI_NUM_CTX`) and `LOCAL_AI_THINKING_STYLE`. For an
   `anthropic` lock, add `EVAL_CONSISTENCY`, `EVAL_CONSISTENCY_MAX_SUM_DELTA`, `EVAL_JSON_RETRIES`,
   `LOCAL_AI_NUM_CTX` and `declared.local.*`. For a `local` lock, add `code.models.anthropic`.
-- **Unlocked:** unchanged. rimpl's own `/health/deep` warns on drift. The backend fetches nothing and never
-  degrades.
+- **Unlocked:** unchanged. rimpl's own `/health/deep` warns on drift. The backend's `/health/deep` fetches no
+  manifest and never degrades. (`/admin/ai-readiness` may still read `GET /manifest` while unlocked, as
+  described above, to compute `evaluator_drift_keys`.)
 
 **Declaring needs the candidate to be serving.** POST refuses with 409 `candidate_not_serving` unless the
 candidate's provider is the one in `ai_provider_evaluate`, and with 409 `manifest_mismatch` (a `provider`

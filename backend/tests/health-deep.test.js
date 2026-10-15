@@ -586,7 +586,6 @@ describe('checks.model_lock', () => {
       ['chat', 'code.decoding.chat.temperature'], ['chat', 'code.decoding.chat.deep_max_tokens'], ['chat', 'declared.providers.chat'],
       ['discuss', 'code.decoding.discuss.max_tokens'], ['criteria', 'declared.providers.criteria'],
       ['shadow', 'code.decoding.shadow.max_tokens'], ['shadow', 'code.consistency.shadow_mode'],
-      ['router (no such key today)', 'code.router.version'],
       ['the tutor\'s num_ctx', 'code.decoding.num_ctx.local-tutor'], ['chat-only', 'code.thinking_style.local'],
       ['another provider', 'code.models.anthropic'],
     ])('%s drift (%s) → 200, up, no drift_keys', async (_area, key) => {
@@ -595,6 +594,33 @@ describe('checks.model_lock', () => {
       expect(res.status).toBe(200);
       expect(res.body.checks.model_lock).toEqual({ status: 'up', locked: true, locked_at: LOCKED_AT, provider: 'local',
         manifest_sha256: FROZEN, evaluator_sha256: EVAL, live_sha256: FROZEN, live_evaluator_sha256: EVAL, match: true });
+      noValues(res.body);
+    });
+
+    // FAILS CLOSED: a key no rule classifies (a knob rimpl adds later) is on the instrument until it is.
+    test.each(['code.think_preopened.local', 'code.evaluator.prompt_override', 'code.router.version'])(
+      'an UNKNOWN key (%s) degrades a locked evaluator', async (key) => {
+        world({ lock: locked(), live: liveWith(key, 'code.decoding.chat.temperature') });
+        const res = await get();
+        expect(res.status).toBe(503);
+        expect(res.body.checks.model_lock).toMatchObject({ status: 'down', match: true, reason: 'evaluator_live_drift', drift_keys: [key] });
+        noValues(res.body);
+      });
+
+    test('an unknown key degrades an anthropic lock too', async () => {
+      world({ lock: locked(lockedRow({ provider: 'anthropic', evaluator_sha256: evaluatorDigest(EXPECTED, 'anthropic') })),
+        live: liveWith('code.think_preopened.local') });
+      expect((await get()).body.checks.model_lock).toMatchObject({ status: 'down', reason: 'evaluator_live_drift',
+        drift_keys: ['code.think_preopened.local'] });
+    });
+
+    test('a malformed key degrades, reported as a placeholder, never as the string it carried', async () => {
+      world({ lock: locked(), live: { expected: EXPECTED, sha256: FROZEN,
+        drift: [{ key: 'declared.local.model=qwen-SECRET-72b', expected: EXP_VALUE, live: LIVE_VALUE }, { live: LIVE_VALUE }] } });
+      const res = await get();
+      expect(res.status).toBe(503);
+      expect(res.body.checks.model_lock).toMatchObject({ reason: 'evaluator_live_drift', drift_keys: ['(malformed drift key)'] });
+      expect(JSON.stringify(res.body)).not.toContain('SECRET');
       noValues(res.body);
     });
 

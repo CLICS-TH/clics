@@ -20,7 +20,7 @@ const { AI_PROVIDER_CHOICES, evaluateClass } = require('../lib/ai-providers');
 const { getTextSetting, getTextSettingStrict, minAuditorsPerPle } = require('../lib/settings');
 const {
   manifestForLock, expectedFor, manifestDiff, manifestMismatch, evaluatorDigest, lockSchemaStatus, lockInForce,
-  evaluatorDriftKeys, evaluatorLiveDrift, cachedLiveManifest,
+  evaluatorDriftKeys, evaluatorLiveDrift, cachedLiveManifest, driftKeysOf,
   modelLockCheck, resetManifestCache, migrationRequired, isMissingColumnOrTable, isMissingTable,
   relockRequired, unlockRequired, evaluatorLocked, gateNotPassed, candidateNotEvaluator, candidateNotServing,
   LOCK_STATE_UNREADABLE, USE_MODEL_LOCK, SAVED_STATE_UNREADABLE, INVALID_DECLARATION_ERROR,
@@ -1103,7 +1103,7 @@ async function readinessManifest(block, lock) {
     provider = serving.error ? null : serving.value;
   }
   if (!provider) return { ...block, evaluator_provider: null, evaluator_drift_keys: null };
-  const keys = (Array.isArray(block.drift) ? block.drift : []).map((d) => d?.key).filter((k) => typeof k === 'string');
+  const keys = driftKeysOf(block.drift);
   let expected = null;
   if (keys.some((k) => k.startsWith('code.consistency.'))) {
     const live = await cachedLiveManifest();

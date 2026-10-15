@@ -1238,8 +1238,6 @@ const NOT_EVALUATOR_DRIFT = [
   ['discuss', 'code.decoding.discuss.max_tokens'], ['discuss', 'declared.providers.discuss'],
   ['criteria', 'code.decoding.criteria.max_tokens'], ['criteria', 'declared.providers.criteria'],
   ['shadow', 'code.decoding.shadow.max_tokens'], ['shadow', 'code.consistency.shadow_mode'],
-  // rimpl emits no router key today. One added later stays outside until the filter says otherwise.
-  ['router', 'code.router.version'],
   // The evaluator instance's thinking style is sent on chat turns only, never on evaluate.
   ['chat-only', 'code.thinking_style.local'],
   ['another provider', 'code.models.anthropic'],
@@ -1296,6 +1294,50 @@ describe('live drift on an evaluator key blocks a lock', () => {
     expect(p.status).toBe(409);
     expect(p.body.keys).toEqual(['declared.local.model', 'code.consistency.evaluate_mode']);
     expect(p.body.error).toMatch(/on 2 evaluator key\(s\)/);
+  });
+
+  // FAILS CLOSED: a key no rule classifies (a knob rimpl adds later) is on the instrument until it is.
+  test.each([
+    'code.think_preopened.local', 'code.evaluator.prompt_override', 'code.router.version', 'declared.local',
+  ])('an UNKNOWN key (%s) blocks: GET blocker, POST 409', async (key) => {
+    withDrift(key, 'code.decoding.chat.temperature');
+    const g = await getLock();
+    expect(g.body.blockers).toEqual(['evaluator_live_drift']);
+    expect(g.body.blocker_detail.evaluator_live_drift).toEqual([key]);
+    const p = await declare();
+    expect(p.status).toBe(409);
+    expect(p.body).toMatchObject({ code: 'evaluator_live_drift', keys: [key] });
+    expectNoLock();
+  });
+
+  test('a malformed key blocks too, reported as a placeholder, never as the string it carried', async () => {
+    const SMUGGLED = 'declared.local.model=qwen-SECRET-72b';
+    fetchRimplManifest.mockResolvedValue(manifestBody({ drift: [
+      { key: SMUGGLED, expected: EXP_VALUE, live: LIVE_VALUE }, { expected: EXP_VALUE, live: LIVE_VALUE }, { key: 42 },
+    ] }));
+    const g = await getLock();
+    expect(g.body.blocker_detail.evaluator_live_drift).toEqual(['(malformed drift key)']);
+    expect(g.body.manifest.drift_keys).toEqual(['(malformed drift key)', '(malformed drift key)', '(malformed drift key)']);
+    const p = await declare();
+    expect(p.status).toBe(409);
+    expect(p.body.keys).toEqual(['(malformed drift key)']);
+    for (const body of [g.body, p.body]) {
+      expect(JSON.stringify(body)).not.toContain('SECRET');
+      noDriftValues(body);
+    }
+    expectNoLock();
+  });
+
+  test('an anthropic candidate is blocked by an unknown key as well', async () => {
+    db.settings.ai_provider_evaluate = 'anthropic';
+    const expected = { ...EXPECTED, declared: { ...EXPECTED.declared, providers: { evaluate: 'anthropic' } } };
+    fetchRimplManifest.mockResolvedValue(manifestBody({ manifest: { sha256: MSHA, expected }, drift: driftOn('code.evaluator.prompt_override') }));
+    decisiveVerdict.mockResolvedValue(verdict('pass', {}, {
+      provider: 'anthropic', model_version: 'CCME_LLM_v8.0+claude-sonnet-4-6', prompt_version: 'pis7-prompt-59561c29', rubric_versions: [RV],
+    }));
+    const p = await declare({ ...DECLARATION, evaluator_prompt_version: 'pis7-prompt-59561c29' });
+    expect(p.status).toBe(409);
+    expect(p.body).toMatchObject({ code: 'evaluator_live_drift', keys: ['code.evaluator.prompt_override'], provider: 'anthropic' });
   });
 
   test('both reasons at once are both on the screen; POST answers the manifest mismatch first', async () => {
@@ -1620,30 +1662,107 @@ describe('evaluatorDriftKeys: pinned to rimpl/src/lib/manifest.js', () => {
     }
   });
 
-  test('every NOT_EVALUATOR_DRIFT key above is a real key, or the one hypothetical router key', () => {
+  test('every NOT_EVALUATOR_DRIFT key above is a real key, and OUT for a local lock', () => {
     for (const [, key] of NOT_EVALUATOR_DRIFT) {
-      if (key !== 'code.router.version') expect(ALL_KEYS).toContain(key);
+      expect(ALL_KEYS).toContain(key);
       expect(isEvaluatorDriftKey(key, 'local', REAL)).toBe(false);
     }
   });
 
-  test('with no provider, only the provider-agnostic keys; odd input is never in scope', () => {
-    expect(sorted(evaluatorDriftKeys(ALL_KEYS, null))).toEqual(sorted([
-      'code.decoding.evaluate.temperature', 'code.decoding.evaluate.max_tokens',
-      'code.consistency.evaluate_mode', 'code.consistency.max_sum_delta', 'code.consistency.json_retries',
-      'declared.providers.evaluate',
-    ]));
-    // With the expected half: consistency governs only applies_to ('local'), so not "no provider".
-    expect(sorted(evaluatorDriftKeys(ALL_KEYS, null, REAL))).toEqual(sorted([
-      'code.decoding.evaluate.temperature', 'code.decoding.evaluate.max_tokens', 'declared.providers.evaluate',
-    ]));
+  // The dev-time half of failing closed: for every provider that may evaluate, the explicit IN and OUT
+  // rules PARTITION every key rimpl emits. A key added to rimpl (and so to ALL_KEYS) that no rule
+  // names fails here, even though at runtime it would already count as IN.
+  describe('IN and OUT partition every key, for every provider that may evaluate', () => {
+    const { driftKeyRules } = require('../src/services/model-lock');
+    const { PROVIDER_NAMES, servesPurpose } = require('../../rimpl/src/lib/provider-policy');
+    const EVALUATORS = PROVIDER_NAMES.filter((n) => servesPurpose(n, 'evaluate'));
+    const OUT = {
+      local: [
+        'code.decoding.shadow.temperature', 'code.decoding.shadow.max_tokens',
+        'code.decoding.criteria.temperature', 'code.decoding.criteria.max_tokens',
+        'code.decoding.discuss.temperature', 'code.decoding.discuss.max_tokens',
+        'code.decoding.chat.temperature', 'code.decoding.chat.fast_max_tokens', 'code.decoding.chat.deep_max_tokens',
+        'code.decoding.chat.evidence_line_max_tokens',
+        'code.consistency.shadow_mode', 'code.models.anthropic',
+        'code.decoding.num_ctx.local-tutor', 'code.thinking_style.local', 'code.thinking_style.local-tutor',
+        'declared.providers.chat', 'declared.providers.criteria', 'declared.providers.discuss',
+        'declared.local-tutor.model', 'declared.local-tutor.served_model', 'declared.local-tutor.engine', 'declared.local-tutor.system_fingerprint',
+      ],
+      anthropic: [
+        'code.decoding.shadow.temperature', 'code.decoding.shadow.max_tokens',
+        'code.decoding.criteria.temperature', 'code.decoding.criteria.max_tokens',
+        'code.decoding.discuss.temperature', 'code.decoding.discuss.max_tokens',
+        'code.decoding.chat.temperature', 'code.decoding.chat.fast_max_tokens', 'code.decoding.chat.deep_max_tokens',
+        'code.decoding.chat.evidence_line_max_tokens',
+        'code.consistency.shadow_mode', ...CONSISTENCY_DRIFT,
+        'code.decoding.num_ctx.local', 'code.decoding.num_ctx.local-tutor', 'code.thinking_style.local', 'code.thinking_style.local-tutor',
+        'declared.providers.chat', 'declared.providers.criteria', 'declared.providers.discuss',
+        'declared.local.model', 'declared.local.served_model', 'declared.local.engine', 'declared.local.system_fingerprint',
+        'declared.local-tutor.model', 'declared.local-tutor.served_model', 'declared.local-tutor.engine', 'declared.local-tutor.system_fingerprint',
+      ],
+    };
+    const IN = { local: LOCAL_EVALUATOR_DRIFT, anthropic: ANTHROPIC_EVALUATOR_DRIFT };
+
+    test('the providers that may evaluate are rimpl\'s: anthropic and local', () => {
+      expect(sorted(EVALUATORS)).toEqual(['anthropic', 'local']);
+    });
+
+    test.each(['anthropic', 'local'])('%s: each key matches an IN or an OUT rule, never both, never neither', (provider) => {
+      const inKeys = [];
+      const outKeys = [];
+      for (const key of ALL_KEYS) {
+        const rules = driftKeyRules(key, provider, REAL);
+        expect({ key, both: rules.in.length > 0 && rules.out.length > 0 }).toEqual({ key, both: false });
+        expect({ key, neither: rules.in.length === 0 && rules.out.length === 0 }).toEqual({ key, neither: false });
+        (rules.in.length ? inKeys : outKeys).push(key);
+      }
+      expect(sorted([...inKeys, ...outKeys])).toEqual(sorted(ALL_KEYS));
+      expect(sorted(inKeys)).toEqual(sorted(IN[provider]));
+      expect(sorted(outKeys)).toEqual(sorted(OUT[provider]));
+      expect(IN[provider].length + OUT[provider].length).toBe(ALL_KEYS.length);
+    });
+
+    test('the three temperatures with no env override are OUT by name, not by default', () => {
+      for (const provider of ['anthropic', 'local']) {
+        expect(driftKeyRules('code.decoding.shadow.temperature', provider, REAL).out).toEqual(['shadow decoding']);
+        expect(driftKeyRules('code.decoding.criteria.temperature', provider, REAL).out).toEqual(['criteria decoding']);
+        expect(driftKeyRules('code.decoding.discuss.temperature', provider, REAL).out).toEqual(['discuss decoding']);
+      }
+    });
+
+    test('a key no rule names is IN at runtime, for every provider', () => {
+      for (const provider of ['anthropic', 'local']) {
+        for (const key of ['code.think_preopened.local', 'code.evaluator.prompt_override', 'code.router.version']) {
+          expect(driftKeyRules(key, provider, REAL)).toEqual({ in: [], out: [] });
+          expect(isEvaluatorDriftKey(key, provider, REAL)).toBe(true);
+        }
+      }
+    });
+  });
+
+  test('with no provider, nothing provider-specific can be ruled out; odd input is always in, as a placeholder', () => {
+    // Only the provider-independent OUT rules apply: other purposes' decoding, routes and thinking, and
+    // the shadow. Every provider-specific key (num_ctx, declared blocks, the Claude model) stays IN.
+    const providerFree = [
+      'code.decoding.shadow.temperature', 'code.decoding.shadow.max_tokens',
+      'code.decoding.criteria.temperature', 'code.decoding.criteria.max_tokens',
+      'code.decoding.discuss.temperature', 'code.decoding.discuss.max_tokens',
+      'code.decoding.chat.temperature', 'code.decoding.chat.fast_max_tokens', 'code.decoding.chat.deep_max_tokens',
+      'code.decoding.chat.evidence_line_max_tokens', 'code.consistency.shadow_mode',
+      'code.thinking_style.local', 'code.thinking_style.local-tutor',
+      'declared.providers.chat', 'declared.providers.criteria', 'declared.providers.discuss',
+    ];
+    for (const expected of [null, REAL]) {
+      expect(sorted(evaluatorDriftKeys(ALL_KEYS, null, expected))).toEqual(sorted(ALL_KEYS.filter((k) => !providerFree.includes(k))));
+    }
+    for (const bad of [null, undefined, 42, {}, 'declared.local.model\n', 'code.consistency.evaluate_mode value=x']) {
+      expect(isEvaluatorDriftKey(bad, 'local', REAL)).toBe(true);
+    }
+    expect(evaluatorDriftKeys(['code.decoding.chat.temperature', 'a b', 'c=d'], 'local', REAL)).toEqual(['(malformed drift key)']);
     // 'providers' is the purpose map, never a provider: it must not pull in every purpose's route.
     expect(evaluatorDriftKeys(ALL_KEYS, 'providers')).not.toContain('declared.providers.chat');
     // 'local' must not match 'local-tutor' by prefix.
     expect(evaluatorDriftKeys(ALL_KEYS, 'local').filter((k) => k.includes('local-tutor'))).toEqual([]);
-    for (const bad of [null, undefined, 42, {}, 'declared.local.model\n', 'code.consistency.evaluate_mode value=x']) {
-      expect(isEvaluatorDriftKey(bad, 'local')).toBe(false);
-    }
     expect(evaluatorDriftKeys(null, 'local')).toEqual([]);
     expect(evaluatorDriftKeys(['declared.local.model', 'declared.local.model'], 'local')).toEqual(['declared.local.model']);
   });
