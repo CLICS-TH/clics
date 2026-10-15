@@ -27,6 +27,10 @@
 -- code-before-migration is safe. Additive + nullable: no existing row or older code path is touched.
 -- Safe to re-run (idempotent). Pre-existing rows stay NULL: they were never keyed and must not be
 -- back-filled with a guess.
+--
+-- SUPERSEDED for store_chat_turn() by db/migration-chat-turn-flags.sql (three trailing params). Re-running
+-- THIS file after that one re-creates the 12-param overload beside it, and an old-shape named call becomes
+-- ambiguous (42725) — re-run migration-chat-turn-flags.sql afterwards, which drops it again.
 -- ===========================================================================
 
 alter table public.messages

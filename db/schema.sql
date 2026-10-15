@@ -279,6 +279,10 @@ create table public.ples (
   socratic_reason  text check (socratic_reason is null or socratic_reason in ('cle2_examiner','t1_remediation','pilot_test')),
   ple_code         text unique,   -- PLE-NNN study pseudonym (the only session id in exports); see migration-pseudonym-codes.sql
   provider_used    text default 'claude',   -- reserved for L4 multi-provider rotation (roadmap); currently always 'claude'
+  -- chat router (migration-chat-turn-flags.sql): set ONCE, on the session's first deep turn with thinking
+  -- applied (tier deep AND thinking true); while set the backend sends deep_mode: true so the session
+  -- stays deep. NULL = never deep.
+  deep_mode_at     timestamptz,
   created_at       timestamptz default now()
 );
 create index ples_folder_idx on public.ples(folder_id);
@@ -327,7 +331,16 @@ create table public.messages (
   model             text,
   prompt_version    text,
   -- idempotency key of the chat turn (migration-message-client-turn-id.sql); NULL when the client sent none
-  client_turn_id    uuid
+  client_turn_id    uuid,
+  -- assistant rows only: a streamed draft a corrective retry replaced, and which check replaced it
+  -- (migration-message-superseded-draft.sql; 'evidence' added by migration-chat-turn-flags.sql)
+  superseded_draft  text,
+  superseded_reason text,
+  -- assistant rows only: rimpl's per-turn middleware flags, whitelisted by the backend to router_version,
+  -- tier, reason, thinking, thinking_budget, evidence_level, failed_over_from (migration-chat-turn-flags.sql)
+  middleware_flags  jsonb,
+  constraint messages_superseded_reason_check
+    check (superseded_reason is null or superseded_reason in ('citation', 'language', 'rescue', 'evidence'))
 );
 -- one physician row per (PLE, client turn id): a retried turn cannot be stored twice
 create unique index messages_ple_client_turn_uidx
@@ -347,8 +360,10 @@ create table public.chat_turn_claims (
 );
 alter table public.chat_turn_claims enable row level security;
 
--- Store one keyed chat turn (physician + assistant) atomically; refuses a PLE that is no longer active
--- (SQLSTATE CT409). Service role only. (migration-message-client-turn-id.sql)
+-- Store one chat turn (physician + assistant) atomically, keyed or not; refuses a PLE that is no longer
+-- active (SQLSTATE CT409). The assistant row also takes the turn's middleware flags and a streamed
+-- superseded draft + reason (three trailing, defaulted params). Service role only.
+-- (migration-message-client-turn-id.sql, then migration-chat-turn-flags.sql)
 create or replace function public.store_chat_turn(
   p_ple_id               uuid,
   p_client_turn_id       uuid,      -- NULL for an unkeyed turn: same atomicity and refusal, no idempotency
@@ -361,7 +376,10 @@ create or replace function public.store_chat_turn(
   p_provider             text,
   p_model                text,
   p_prompt_version       text,
-  p_replace_physician_id uuid default null)  -- an orphaned question of THIS key to replace (repair)
+  p_replace_physician_id uuid default null,   -- an orphaned question of THIS key to replace (repair)
+  p_middleware_flags     jsonb default null,  -- whitelisted by the backend; assistant row only
+  p_superseded_draft     text default null,   -- a streamed draft a corrective retry replaced
+  p_superseded_reason    text default null)   -- which check replaced it (messages_superseded_reason_check)
 returns table (physician_id uuid, assistant_id uuid)
 language plpgsql
 set search_path = public
@@ -395,21 +413,24 @@ begin
   -- Explicit column lists (never an array insert, which sends NULL instead of DEFAULT for an omitted key).
   -- clock_timestamp(), not now(): now() is the transaction start, so both rows would tie on created_at and
   -- the transcript order (ORDER BY created_at) would become arbitrary. A 23505 on the physician key aborts
-  -- the whole call, so neither row is stored (and a replaced orphan is restored).
+  -- the whole call, so neither row is stored (and a replaced orphan is restored). A reason the CHECK
+  -- refuses (23514) aborts it the same way; the backend sends only reasons the constraint knows.
   insert into public.messages (ple_id, role, content, token_count, client_turn_id, created_at)
   values (p_ple_id, 'physician', p_physician_content, coalesce(p_physician_tokens, 0), p_client_turn_id, clock_timestamp())
   returning id into v_physician;
   insert into public.messages (ple_id, role, content, refs, socratic_question, token_count,
-                               provider, model, prompt_version, client_turn_id, created_at)
+                               provider, model, prompt_version, client_turn_id,
+                               middleware_flags, superseded_draft, superseded_reason, created_at)
   values (p_ple_id, 'assistant', p_assistant_content, coalesce(p_refs, '[]'::jsonb), p_socratic_question,
-          coalesce(p_assistant_tokens, 0), p_provider, p_model, p_prompt_version, p_client_turn_id, clock_timestamp())
+          coalesce(p_assistant_tokens, 0), p_provider, p_model, p_prompt_version, p_client_turn_id,
+          p_middleware_flags, p_superseded_draft, p_superseded_reason, clock_timestamp())
   returning id into v_assistant;
   return query select v_physician, v_assistant;
 end $$;
 
-revoke all on function public.store_chat_turn(uuid, uuid, text, integer, text, jsonb, text, integer, text, text, text, uuid)
+revoke all on function public.store_chat_turn(uuid, uuid, text, integer, text, jsonb, text, integer, text, text, text, uuid, jsonb, text, text)
   from public, anon, authenticated;
-grant execute on function public.store_chat_turn(uuid, uuid, text, integer, text, jsonb, text, integer, text, text, text, uuid)
+grant execute on function public.store_chat_turn(uuid, uuid, text, integer, text, jsonb, text, integer, text, text, text, uuid, jsonb, text, text)
   to service_role;
 
 -- PIS-7 scored by AI

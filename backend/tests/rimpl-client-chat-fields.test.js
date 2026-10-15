@@ -26,6 +26,7 @@ const CALL = {
   ple_id: 'p1', history: [], message: 'hello', language: 'th',
   chief_complaint: 'chest pain', patient_ref: null,
   socratic: false, artifacts: false, evidence_marker: true,
+  router_enabled: true, deep_mode: true,
   rescue_active: true, already_qualified: false,
   rescue_rounds: 5,
 };
@@ -41,7 +42,7 @@ test('every field of the /chat contract is serialized', async () => {
   await rimplChat(CALL);
   const body = sentBody();
   for (const k of ['ple_id', 'history', 'message', 'language', 'chief_complaint', 'patient_ref',
-    'socratic', 'artifacts', 'evidence_marker', 'rescue_active', 'already_qualified', 'rescue_rounds']) {
+    'socratic', 'artifacts', 'evidence_marker', 'router_enabled', 'deep_mode', 'rescue_active', 'already_qualified', 'rescue_rounds']) {
     expect(body).toHaveProperty(k);
   }
 });
@@ -68,4 +69,15 @@ test('the latches are sent as booleans, so a null row value cannot read as "not 
   const body = sentBody();
   expect(body.rescue_active).toBe(false);
   expect(body.already_qualified).toBe(true);
+});
+
+test('router_enabled and deep_mode reach the wire as booleans — a dropped deep_mode would un-stick a deep session', async () => {
+  await rimplChat(CALL);
+  expect(sentBody()).toMatchObject({ router_enabled: true, deep_mode: true });
+  global.fetch = jest.fn(async () => okResponse());
+  await rimplChat({ ...CALL, router_enabled: undefined, deep_mode: '2026-10-15T00:00:00Z' });
+  expect(sentBody()).toMatchObject({ router_enabled: false, deep_mode: true });
+  global.fetch = jest.fn(async () => okResponse());
+  await rimplChat({ ...CALL, router_enabled: 0, deep_mode: null });
+  expect(sentBody()).toMatchObject({ router_enabled: false, deep_mode: false });
 });

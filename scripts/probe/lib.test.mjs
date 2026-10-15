@@ -77,3 +77,23 @@ test('readConfig reads LOCAL_AI_THINK_PREOPENED — the same variable rimpl\'s e
     }
   }
 });
+
+test('readConfig({ prefix }) reads the named rimpl instance\'s variables — LOCAL_TUTOR_AI_* for the tutor', () => {
+  const KEYS = ['LOCAL_TUTOR_AI_BASE_URL', 'LOCAL_TUTOR_AI_MODEL', 'LOCAL_TUTOR_AI_API_KEY', 'LOCAL_TUTOR_AI_THINK_PREOPENED',
+    'LOCAL_TUTOR_AI_THINKING_STYLE', 'LOCAL_AI_THINKING_STYLE'];
+  const saved = Object.fromEntries(KEYS.map((k) => [k, process.env[k]]));
+  try {
+    for (const k of KEYS) delete process.env[k];
+    process.env.LOCAL_TUTOR_AI_BASE_URL = 'http://tutor.invalid/v1/';
+    process.env.LOCAL_TUTOR_AI_MODEL = 'qwen-tutor';
+    process.env.LOCAL_TUTOR_AI_THINKING_STYLE = 'Chat_Template_Kwargs';
+    const c = readConfig({ prefix: 'LOCAL_TUTOR_AI_' });
+    assert.deepEqual([c.prefix, c.baseUrl, c.model, c.thinkingStyle, c.thinkPreopened], ['LOCAL_TUTOR_AI_', 'http://tutor.invalid/v1', 'qwen-tutor', 'chat_template_kwargs', false]);
+    process.env.LOCAL_TUTOR_AI_THINKING_STYLE = 'qwen';
+    assert.equal(readConfig({ prefix: 'LOCAL_TUTOR_AI_' }).thinkingStyle, null, 'not a style: null, so a caller that needs one can refuse');
+    delete process.env.LOCAL_TUTOR_AI_THINKING_STYLE;
+    assert.equal(readConfig({ prefix: 'LOCAL_TUTOR_AI_' }).thinkingStyle, 'none');
+  } finally {
+    for (const [k, v] of Object.entries(saved)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+  }
+});

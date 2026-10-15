@@ -21,6 +21,24 @@
 //   * transport = scripts/probe/lib.mjs chatCompletion: the same `${LOCAL_AI_BASE_URL}/chat/completions`
 //     join rimpl's providers/local.js uses, no queue, raw finish_reason kept.
 //
+// THE ROUTER ARMS (the fast/deep router, rimpl/src/services/router.js; docs/QUALITY-GATES.md "Before
+// chat_router_enabled is switched on"). Three arms on the on-prem TUTOR (provider `local-tutor`, read
+// from the same LOCAL_TUTOR_AI_* variables rimpl's local-tutor instance reads):
+//   --arm local-tutor-fast     every non-rescue turn fast  (thinking:false, CHAT_MAX_TOKENS)
+//   --arm local-tutor-deep     every non-rescue turn deep  (thinking:true,  CHAT_DEEP_MAX_TOKENS)
+//   --arm local-tutor-routed   production's routeTurn decides, exactly as chat.js with router_enabled
+// A rescue item is fast in all three (the router's first rule). Each needs
+// LOCAL_TUTOR_AI_THINKING_STYLE (chat_template_kwargs | ollama): without it production would not apply
+// a tier at all, and the three arms would be one. The first call of a non-rescue item is STREAMED, as a
+// physician's turn is, through probe/lib.mjs chatCompletionStream, which records the two TTFT clocks
+// (first reasoning signal = when chat.js would send SSE `status`; first visible text). The retry is
+// not streamed, as in chat.js. Every entry carries chat.js's `middleware_flags`, and the report a
+// `router_summary` (deep share with its Wilson interval, reasons, TTFT p50/p95, deadline-exceeded turns,
+// and fast turns that reasoned anyway — "status on fast"). A corrective retry never thinks, as in
+// chat.js. The routed arm replays the backend's sticky latch over each item's own earlier turns
+// (request.mjs stickyLatch). The box address is
+// recorded REDACTED for these arms. Run one job at a time on the shared box.
+//
 // Usage:
 //   LOCAL_AI_BASE_URL=… LOCAL_AI_MODEL=… [LOCAL_AI_API_KEY=…] node scripts/quality/tutor-audit.mjs
 //     --dry-run             print what would be sent for each selected item; send nothing, write nothing
@@ -34,6 +52,14 @@
 //                           the evidence_marker check (checks.mjs) then apply
 //     --no-retry            skip the chat.js corrective retry (first-pass compliance only)
 //     --attempts <n>        transport attempts per call on a network/5xx failure (default 2; recorded)
+//     --turn-deadline-ms <n> the backend's chat deadline the turn must fit (default 100000, the backend's
+//                           RIMPL_CHAT_TIMEOUT_MS default; 150000 on the local stack, where the backend
+//                           runs RIMPL_CHAT_TIMEOUT_MS=150000). A turn whose first call + retry
+//                           (latency_ms_total) runs past it is flagged deadline_exceeded: production would
+//                           have failed it closed (502). Its reply stays in the report, for inspection;
+//                           the k/n with its Wilson interval is in deadline_summary (every arm) and
+//                           router_summary (the router arms)
+//     --arm local-tutor-fast | local-tutor-deep | local-tutor-routed   the router arms (above)
 //     --arm anthropic --allow-paid   the cloud arm. OFF by default and refuses without --allow-paid:
 //                           it spends real API credit (ANTHROPIC_API_KEY). Budget approval first.
 //     --max-usd <x> --usd-per-mtok-in <p> --usd-per-mtok-out <q>
@@ -59,25 +85,58 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import {
-  readConfig, chatCompletion, parseArgs, intArg, floatArg, fail, hr, bold, dim, cyan, yellow, red, green,
-  progress, progressDone, printTarget,
+  readConfig, chatCompletion, chatCompletionStream, parseArgs, intArg, floatArg, fail, hr, bold, dim, cyan, yellow, red, green,
+  progress, progressDone, printTarget, percentile,
 } from '../probe/lib.mjs';
 import { loadBank, selectItems, composition, QUALITY_DIR } from './bank.mjs';
 import {
   buildChatRequest, retryDecision, retryMessages, retryReason, retryMaxTokens, optionalRetrySkipped, evidenceSplice,
-  evidencePlacement,
-  CHAT_MAX_TOKENS, RAG_NOTE,
+  evidencePlacement, retryThinking, middlewareFlags,
+  CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS, RAG_NOTE,
 } from './request.mjs';
 import {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
   EVIDENCE_GUIDANCE, promptLabel, hasCitation, extractSocraticQuestion, extractEvidenceLevel, RIMPL_FILES,
+  ROUTER_VERSION, ROUTER_LABEL, ROUTER_RULES_SHA256, ROUTER_KEYWORDS_SHA256,
 } from './rimpl.mjs';
 import { checkReply, summarize, printSummary, CHECKS_VERSION } from './checks.mjs';
+import { wilson, fmtRate } from './stats.mjs';
 
 export const REPORT_SCHEMA = 'clics-tutor-audit/v1';
+// The backend's chat deadline (backend/src/services/rimpl-client.js RIMPL_CHAT_TIMEOUT_MS, default 100 s;
+// 150 s on the local stack). A turn that takes longer is a 502 in production, whatever its reply says.
+export const TURN_DEADLINE_DEFAULT_MS = 100000;
 export const REPORT_DIR = path.join(QUALITY_DIR, 'report');
 
 /* --------------------------------------------------------------- arms */
+
+/** Every arm: which provider it measures, how it drives the router (request.mjs ROUTER_MODES), and
+ *  whether its first call is streamed. `thinking`: the arm's provider must honour `thinking`
+ *  (the router arms refuse to run otherwise). */
+export const ARMS = Object.freeze({
+  local: { provider: 'local', prefix: 'LOCAL_AI_', router: 'off', thinking: false, stream: false },
+  anthropic: { provider: 'anthropic', router: 'off', thinking: false, stream: false },
+  'local-tutor-fast': { provider: 'local-tutor', prefix: 'LOCAL_TUTOR_AI_', router: 'fast', thinking: true, stream: true },
+  'local-tutor-deep': { provider: 'local-tutor', prefix: 'LOCAL_TUTOR_AI_', router: 'deep', thinking: true, stream: true },
+  'local-tutor-routed': { provider: 'local-tutor', prefix: 'LOCAL_TUTOR_AI_', router: 'routed', thinking: true, stream: true },
+});
+
+/** The local transport for an arm: streamed when the call asks for it (the router arms' first call),
+ *  else the plain completion. Both are probe/lib.mjs, raw, and send `thinking` as rimpl does. */
+export function localComplete(cfg, { streamImpl = chatCompletionStream, plainImpl = chatCompletion } = {}) {
+  return (req) => (req.stream ? streamImpl(cfg, req) : plainImpl(cfg, req));
+}
+
+/** Why a router arm cannot run against `cfg`, or null. Without a thinking style production applies no
+ *  tier (it sends no `thinking` field at all), so the fast / deep / routed arms would measure one
+ *  configuration three times. */
+export function armThinkingProblem(arm, cfg) {
+  if (!ARMS[arm]?.thinking) return null;
+  const p = cfg.prefix || 'LOCAL_TUTOR_AI_';
+  if (cfg.thinkingStyle == null) return `${p}THINKING_STYLE is set but is not a style (chat_template_kwargs | ollama): rimpl would send no thinking control, so --arm ${arm} would measure nothing.`;
+  if (cfg.thinkingStyle === 'none') return `--arm ${arm} needs ${p}THINKING_STYLE (chat_template_kwargs for vLLM / SGLang, ollama for Ollama): without it rimpl applies no tier, and the three router arms would be one arm.`;
+  return null;
+}
 
 /** The paid arm's model, read from the production provider module so it cannot drift. */
 export function productionAnthropicModel() {
@@ -150,15 +209,32 @@ function callRecord(r) {
     reasoning_only: !!r.reasoningOnly,
     transport_attempts: r.transportAttempts ?? 1,
     transport_errors: r.transportErrors ?? [],
+    // A STREAMED call (the router arms' first call, probe/lib.mjs chatCompletionStream): the two TTFT
+    // clocks and how much reasoning arrived. Its length only — the reasoning text is not kept.
+    ...(r.streamed != null ? {
+      streamed: !!r.streamed,
+      ttft_reasoning_ms: r.ttft_reasoning_ms == null ? null : Math.round(r.ttft_reasoning_ms),
+      ttft_content_ms: r.ttft_content_ms == null ? null : Math.round(r.ttft_content_ms),
+      reasoning_chars: typeof r.reasoning === 'string' ? r.reasoning.length : 0,
+    } : {}),
   };
 }
 
 /* ------------------------------------------------------------ one item */
 
-export async function runItem(item, complete, { maxTokens, retry, artifacts, attempts, evidenceMarker = false }) {
-  const req = buildChatRequest(item, { artifacts, evidenceMarker });
+export async function runItem(item, complete, {
+  maxTokens, retry, artifacts, attempts, evidenceMarker = false,
+  router = 'off', thinkingSupported = false, stream = false, deepMaxTokens = CHAT_DEEP_MAX_TOKENS,
+  turnDeadlineMs = TURN_DEADLINE_DEFAULT_MS,
+}) {
+  const req = buildChatRequest(item, { artifacts, evidenceMarker, router, thinkingSupported, maxTokens, deepMaxTokens });
   const startedAt = new Date().toISOString();
-  const first = callRecord(await withAttempts(() => complete({ systemPrompt: req.systemPrompt, messages: req.messages, maxTokens }), attempts));
+  // chat.js: the first call at the turn's ceiling (req.maxTokens — the deep one on an applied deep tier)
+  // with the tier's `thinking` field when applied; streamed when the arm streams, never on a rescue turn.
+  const first = callRecord(await withAttempts(() => complete({
+    systemPrompt: req.systemPrompt, messages: req.messages, maxTokens: req.maxTokens, ...req.thinkingField,
+    ...(stream && !req.rescuing ? { stream: true } : {}),
+  }), attempts));
   let retryRec = null;
   let final = first;
   let finalFrom = 'first';
@@ -181,9 +257,11 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
       decision.needRescue && 'rescue rules',
       decision.needEvidence && 'evidence marker',
     ].filter(Boolean).join(' + ');
+    // chat.js: a retry never thinks — thinking:false (tier applied) at the FAST ceiling, even after a deep
+    // first call; the marker-only call at its small cap.
     const second = callRecord(await withAttempts(() => complete({
       systemPrompt: req.systemPrompt, messages: retryMessages(req.messages, first.text, decision, req),
-      maxTokens: retryMaxTokens(decision, maxTokens),
+      maxTokens: retryMaxTokens(decision, maxTokens), ...retryThinking(req),
     }), attempts));
     retryRec = { reason, citation: decision.needCitation, language: decision.languageMismatch, rescue: decision.needRescue, evidence: decision.needEvidence, ...second };
     if (retryReason(decision) === 'evidence') {
@@ -230,6 +308,10 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
       route_language: req.language,
       evidence_marker: req.evidenceMarker,     // the guidance was on AND chat.js checks this turn
       physician_wrote_thai: decision?.physicianWroteThai ?? null,
+      router: req.router,                      // request.mjs ROUTER_MODES
+      sticky: req.sticky,                      // the deep_mode latch the backend would have sent
+      max_tokens: req.maxTokens,               // the first call's (and a full retry's) ceiling
+      thinking: req.tierApplied ? req.deep : null,   // the `thinking` field sent, or null (none sent)
       messages: req.messages,                 // AS SENT: de-identified by rimpl's filter
       identifiers_sent: req.identifiersSent,
     },
@@ -257,8 +339,65 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
     final: { ...final, from: evidenceMoved ? `${finalFrom} + evidence line moved (no model call)` : finalFrom },
     latency_ms_total: (first.ms ?? 0) + (retryRec?.ms ?? 0),
   };
+  // The backend hangs up at its chat deadline and fails the turn closed: past it, production delivers
+  // NOTHING, so this reply is not one a physician would see. Kept for inspection, flagged. (A lower
+  // bound on production's turn time: it leaves out rimpl's work before the call, e.g. the rescue
+  // classifier, and the harness's own transport-retry waits.)
+  entry.deadline_exceeded = entry.latency_ms_total > turnDeadlineMs;
+  // = chat.js `middleware_flags` (the harness has no fail-over, so failed_over_from is always null).
+  entry.middleware_flags = middlewareFlags(req, { evidenceLevel: entry.evidence_level });
   entry.checks = checkReply(item, entry);
   return entry;
+}
+
+/* ------------------------------------------------------------ deadline */
+
+/** How many turns ran past the backend's chat deadline (runItem `deadline_exceeded`): k/n with its
+ *  Wilson interval, over every item in the report. */
+export function deadlineSummary(items, turnDeadlineMs = null) {
+  const k = items.filter((e) => e.deadline_exceeded === true).length;
+  return { ...(turnDeadlineMs != null ? { turn_deadline_ms: turnDeadlineMs } : {}), exceeded: wilson(k, items.length) };
+}
+
+/* -------------------------------------------------------------- router */
+
+const msOf = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+const dist = (vals) => ({ n: vals.length, p50: percentile(vals, 50), p95: percentile(vals, 95) });
+
+/** The router figures of a report: how often it went deep (k/n with its Wilson interval), why, and the
+ *  TTFT distributions of the STREAMED first calls. `ttft_first_ms` is when the physician first sees
+ *  ANYTHING — the `status` event (first reasoning signal) or the first text, whichever is earlier: the
+ *  number the router's latency gate is written against (docs/QUALITY-GATES.md). Nearest-rank
+ *  percentiles (probe/lib.mjs), null with no data. */
+export function routerSummary(items) {
+  const routed = items.filter((e) => e.middleware_flags?.tier != null);
+  const deepK = routed.filter((e) => e.middleware_flags.tier === 'deep').length;
+  const reasons = {};
+  for (const e of routed) reasons[e.middleware_flags.reason] = (reasons[e.middleware_flags.reason] ?? 0) + 1;
+  const streamed = items.filter((e) => e.first?.streamed && e.first?.ok);
+  const first = (c) => {
+    const seen = [msOf(c.ttft_reasoning_ms), msOf(c.ttft_content_ms)].filter((v) => v != null);
+    return seen.length ? Math.min(...seen) : null;
+  };
+  const pick = (arr, f) => arr.map(f).filter((v) => v != null);
+  const byTier = (tier) => streamed.filter((e) => e.middleware_flags?.tier === tier);
+  // A FAST turn that reasoned anyway (the model ignored enable_thinking=false): chat.js sends `status`
+  // on ANY reasoning signal while the router is on, so these are "thinking…" shown on a fast turn.
+  const fastStreamed = byTier('fast');
+  return {
+    n: routed.length,
+    deep: wilson(deepK, routed.length),
+    reasons,
+    streamed: streamed.length,
+    status_on_fast: wilson(fastStreamed.filter((e) => msOf(e.first.ttft_reasoning_ms) != null).length, fastStreamed.length),
+    deadline_exceeded: deadlineSummary(items).exceeded,
+    ttft_first_ms: dist(pick(streamed, (e) => first(e.first))),
+    ttft_content_ms: dist(pick(streamed, (e) => msOf(e.first.ttft_content_ms))),
+    ttft_content_fast_ms: dist(pick(byTier('fast'), (e) => msOf(e.first.ttft_content_ms))),
+    ttft_content_deep_ms: dist(pick(byTier('deep'), (e) => msOf(e.first.ttft_content_ms))),
+    ttft_reasoning_ms: dist(pick(streamed, (e) => msOf(e.first.ttft_reasoning_ms))),
+    total_ms: dist(pick(items.filter((e) => e.final?.ok), (e) => msOf(e.latency_ms_total))),
+  };
 }
 
 /* ---------------------------------------------------------------- spend */
@@ -354,7 +493,11 @@ export function promptLabels(artifacts, evidenceMarker = false) {
 async function main() {
   const { flags } = parseArgs();
   const arm = flags.arm && flags.arm !== true ? String(flags.arm) : 'local';
-  if (!['local', 'anthropic'].includes(arm)) fail(`--arm must be local or anthropic (got ${arm})`);
+  if (!ARMS[arm]) fail(`--arm must be one of ${Object.keys(ARMS).join(' | ')} (got ${arm})`);
+  const armSpec = ARMS[arm];
+  // The router options every request of this arm is built with (request.mjs buildChatRequest). A router
+  // arm only runs once its provider is known to honour `thinking` (armThinkingProblem, below).
+  const routerOpts = { router: armSpec.router, thinkingSupported: armSpec.thinking, stream: armSpec.stream, deepMaxTokens: CHAT_DEEP_MAX_TOKENS };
   const dryRun = Boolean(flags['dry-run']);
   if (arm === 'anthropic' && !flags['allow-paid']) {
     fail('--arm anthropic spends real Anthropic API credit and is OFF by default.\n' +
@@ -363,6 +506,8 @@ async function main() {
   const budget = budgetFromFlags(flags);
   const concurrency = Math.max(1, intArg(flags, 'concurrency', 1));
   const attempts = Math.max(1, intArg(flags, 'attempts', 2));
+  const turnDeadlineMs = intArg(flags, 'turn-deadline-ms', TURN_DEADLINE_DEFAULT_MS);
+  if (!(turnDeadlineMs > 0)) fail('--turn-deadline-ms must be a positive number of milliseconds (100000 = the backend default; 150000 on the local stack)');
   const limit = intArg(flags, 'limit', Infinity);
   const ids = flags.ids && flags.ids !== true ? String(flags.ids).split(',').map((s) => s.trim()).filter(Boolean) : [];
   const artifacts = Boolean(flags.artifacts);
@@ -380,11 +525,15 @@ async function main() {
     hr('tutor-audit — DRY RUN (nothing is sent, nothing is written)');
     console.log(`  arm ${arm}${arm === 'anthropic' ? ` (${productionAnthropicModel()})` : ''} · ${items.length} item(s) · bank ${bank.sha} · max_tokens ${maxTokens} · retry ${retry ? 'on' : 'off'} · artifacts ${artifacts ? 'on' : 'off'} · evidence marker ${evidenceMarker ? 'on' : 'off'}`);
     console.log(`  rag ${RAG_NOTE}`);
+    console.log(`  turn deadline ${turnDeadlineMs} ms (a turn past it is flagged deadline_exceeded)`);
+    if (armSpec.router !== 'off') {
+      console.log(`  router ${armSpec.router} · ${ROUTER_LABEL} · deep max_tokens ${CHAT_DEEP_MAX_TOKENS} · ${dim(`assumes ${armSpec.prefix}THINKING_STYLE is set — a real run refuses without it`)}`);
+    }
     for (const it of items) {
-      const req = buildChatRequest(it, { artifacts, evidenceMarker });
+      const req = buildChatRequest(it, { artifacts, evidenceMarker, maxTokens, ...routerOpts });
       hr(`${it.id}  [${it.mode} · ${it.language} · ${it.specialty}${it.adversarial ? ` · ${it.adversarial.type}` : ''}]`);
       console.log(`  system  ${cyan(req.promptVersion)}  ${dim(`(${req.systemPrompt.length} chars; ${it.mode === 'rescue' ? 'RIMPL_SYSTEM_PROMPT_RESCUE' : it.mode === 'examiner' ? 'RIMPL_SYSTEM_PROMPT_EXAMINER' : 'RIMPL_SYSTEM_PROMPT_NATURAL'}${artifacts && it.mode !== 'rescue' ? ' + ARTIFACT_GUIDANCE' : ''}${evidenceMarker && it.mode !== 'rescue' ? ' + EVIDENCE_GUIDANCE' : ''})`)}`);
-      console.log(`  route   socratic=${req.socratic} rescuing=${req.rescuing} language=${req.language}`);
+      console.log(`  route   socratic=${req.socratic} rescuing=${req.rescuing} language=${req.language}${req.route ? ` · tier ${req.route.tier} (${req.route.reason}) · thinking ${req.tierApplied ? req.deep : 'not sent'} · max_tokens ${req.maxTokens}${req.sticky ? ' · sticky (an earlier turn went deep)' : ''}` : ''}`);
       req.messages.forEach((m, i) => console.log(`  [${i}] ${m.role.padEnd(9)} ${m.content.replace(/\n/g, '\n            ')}`));
       if (it.identifiers?.length) {
         console.log(`  ${req.identifiersSent.length ? yellow('identifiers reaching the model: ' + req.identifiersSent.join(', ')) : green('all synthetic identifiers masked by rimpl\'s PII filter')}`);
@@ -402,6 +551,17 @@ async function main() {
     complete = (req) => chatCompletion(cfg, req);
     target = { arm, provider: 'local', base_url: cfg.baseUrl, model_requested: cfg.model, timeout_ms: cfg.timeoutMs,
       think_preopened: cfg.thinkPreopened };
+  } else if (armSpec.provider === 'local-tutor') {
+    const cfg = readConfig({ needModel: true, prefix: armSpec.prefix });
+    const problem = armThinkingProblem(arm, cfg);
+    if (problem) fail(problem);
+    printTarget(cfg, { items: String(items.length), concurrency: String(concurrency), router: `${armSpec.router} (${ROUTER_LABEL})` });
+    complete = localComplete(cfg);
+    // The box address is NOT written into the report: committed runs redact it, so these arms never
+    // record it in the first place.
+    target = { arm, provider: 'local-tutor', base_url: '(redacted: on-prem tutor box, LOCAL_TUTOR_AI_BASE_URL)',
+      model_requested: cfg.model, timeout_ms: cfg.timeoutMs, think_preopened: cfg.thinkPreopened,
+      thinking_style: cfg.thinkingStyle, router: armSpec.router };
   } else {
     if (!budget) {
       fail('--arm anthropic needs a spend ceiling: --max-usd <x> --usd-per-mtok-in <p> --usd-per-mtok-out <q>.\n' +
@@ -449,6 +609,13 @@ async function main() {
       artifacts,
       evidence_marker: evidenceMarker,
       rag: RAG_NOTE,
+      // The fast/deep router (rimpl/src/services/router.js): which rules, and the ceilings each tier ran under.
+      turn_deadline_ms: turnDeadlineMs,
+      router: armSpec.router === 'off' ? { mode: 'off' } : {
+        mode: armSpec.router, version: ROUTER_VERSION, label: ROUTER_LABEL,
+        rules_sha256: ROUTER_RULES_SHA256, keywords_sha256: ROUTER_KEYWORDS_SHA256,
+        fast_max_tokens: maxTokens, deep_max_tokens: CHAT_DEEP_MAX_TOKENS, first_call_streamed: armSpec.stream,
+      },
       checks_version: CHECKS_VERSION,
       synthetic: 'every question, case and identifier is invented — replies are safe to store',
     },
@@ -487,7 +654,7 @@ async function main() {
   if (budget) console.log(`  spend   $${spendNow().usd.toFixed(4)} recorded so far · ceiling $${budget.maxUsd}`);
   const runOne = async (it) => {
     progress(`[${finished + 1}/${todo.length}] ${it.id}…`);
-    const entry = await runItem(it, complete, { maxTokens, retry, artifacts, attempts, evidenceMarker });
+    const entry = await runItem(it, complete, { maxTokens, retry, artifacts, attempts, evidenceMarker, turnDeadlineMs, ...routerOpts });
     report.items = report.items.filter((e) => e.id !== it.id).concat(entry);
     finished += 1;
     progressDone();
@@ -512,6 +679,8 @@ async function main() {
   const bankById = new Map(bank.items.map((it) => [it.id, it]));
   const results = report.items.filter((e) => bankById.has(e.id)).map((e) => ({ id: e.id, language: e.language, mode: e.mode, result: e.checks }));
   report.checks_summary = summarize(results);
+  report.deadline_summary = deadlineSummary(report.items, turnDeadlineMs);
+  if (armSpec.router !== 'off') report.router_summary = routerSummary(report.items);
   await save();
 
   hr('summary');
@@ -524,6 +693,15 @@ async function main() {
   if (evidenceMarker) {
     const marked = report.items.filter((e) => e.evidence_level != null).length;
     console.log(`  evidence marker: fired the retry on ${retried.filter((e) => e.retry.evidence).length}, its reply delivered on ${report.items.filter((e) => e.evidence_retry).length} · final replies carrying one marker ${marked}/${report.items.length}`);
+  }
+  console.log(`  turns past the ${turnDeadlineMs} ms deadline (production would 502 them): ${fmtRate(report.deadline_summary.exceeded)}`);
+  if (report.router_summary) {
+    const rs = report.router_summary;
+    const p = (d) => (d.n ? `p50 ${Math.round(d.p50)} ms · p95 ${Math.round(d.p95)} ms (n ${d.n})` : 'no data');
+    console.log(`  router ${armSpec.router}: deep ${fmtRate(rs.deep)} · reasons ${Object.entries(rs.reasons).map(([k, v]) => `${k} ${v}`).join(', ') || '—'}`);
+    console.log(`  TTFT, first thing the physician sees (status or text): ${p(rs.ttft_first_ms)}`);
+    console.log(`  TTFT, first text: ${p(rs.ttft_content_ms)} · fast turns ${p(rs.ttft_content_fast_ms)} · deep turns ${p(rs.ttft_content_deep_ms)}`);
+    console.log(`  fast turns that reasoned anyway (status shown on a fast turn): ${fmtRate(rs.status_on_fast)}`);
   }
   if (report.spend) console.log(`  spend: $${report.spend.usd} (${report.spend.in_tokens} in / ${report.spend.out_tokens} out tokens) · ceiling $${report.spend.max_usd}${report.spend.stopped_early ? red(' · stopped early') : ''}`);
   printSummary(report.checks_summary);

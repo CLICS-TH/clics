@@ -1,10 +1,13 @@
 // EVIDENCE MARKER (CCME R5) on the physician turn — POST /ples/:id/message.
 //
 // The backend's whole part: read the app setting `chat_evidence_marker` (default OFF) and forward it to
-// RIMPL as `evidence_marker`, the way `artifacts` travels. It persists nothing new and does NOT forward
-// rimpl's evidence_level / evidence_retry to the physician (the response is a whitelist; a replayed
-// turn could not reproduce them, since nothing is stored). A streamed draft the marker retry replaced
-// is still recorded — with a NULL reason, because the DB's CHECK constraint does not know 'evidence'.
+// RIMPL as `evidence_marker`, the way `artifacts` travels. It adds no column to the assistant INSERT and
+// does NOT forward rimpl's evidence_level / evidence_retry to the physician (the response is a
+// whitelist; the level is kept only inside middleware_flags, see ples-chat-router.test.js). A streamed
+// draft the marker retry replaced
+// is still recorded, with reason 'evidence' (db/migration-chat-turn-flags.sql widens the CHECK
+// constraint to accept it). Until that migration is applied the old constraint refuses 'evidence'
+// (23514); the draft is then written again with a NULL reason, so it is never lost.
 jest.mock('../src/lib/supabase', () => {
   const base = require('./helpers/supabase-mock').makeSupabaseMock();
   base.supabase.rpc = (name) => Promise.resolve(name === 'store_chat_turn'
@@ -91,16 +94,40 @@ describe('a streamed draft replaced by the marker retry', () => {
     return result;
   };
 
-  test('is recorded, with reason NULL — the CHECK constraint knows only citation | language | rescue', async () => {
-    expect([...KNOWN_REASONS].sort()).toEqual(['citation', 'language', 'rescue']);
+  const evidenceTurn = () => streams(
+    [['delta', { text: 'Amoxicillin 1 g tds (BTS, 2019).' }], ['replace', { reason: 'evidence' }], ['delta', { text: MARKED }]],
+    body({ evidence_retry: true, superseded_draft: 'Amoxicillin 1 g tds (BTS, 2019).', superseded_reason: 'evidence' }));
+
+  test('is recorded with reason \'evidence\' — the widened CHECK constraint knows it', async () => {
+    expect([...KNOWN_REASONS].sort()).toEqual(['citation', 'evidence', 'language', 'rescue']);
     settings.chat_streaming = 1;
-    mockRimplChat.mockImplementation(streams(
-      [['delta', { text: 'Amoxicillin 1 g tds (BTS, 2019).' }], ['replace', { reason: 'evidence' }], ['delta', { text: MARKED }]],
-      body({ evidence_retry: true, superseded_draft: 'Amoxicillin 1 g tds (BTS, 2019).', superseded_reason: 'evidence' })));
+    mockRimplChat.mockImplementation(evidenceTurn());
     const r = await send({ stream: true });
     expect(r.status).toBe(200);
     const draft = m.all('messages', 'update').find((q) => q.payload && 'superseded_draft' in q.payload);
-    expect(draft.payload).toEqual({ superseded_draft: 'Amoxicillin 1 g tds (BTS, 2019).', superseded_reason: null });
+    expect(draft.payload).toEqual({ superseded_draft: 'Amoxicillin 1 g tds (BTS, 2019).', superseded_reason: 'evidence' });
+  });
+
+  test('the OLD constraint refuses \'evidence\' (23514): the draft is written again with reason NULL, and kept', async () => {
+    settings.chat_streaming = 1;
+    const resolve = m.state.resolve;
+    m.state.resolve = (table, kind, ctx) => {
+      if (table === 'messages' && kind === 'update' && ctx.payload?.superseded_reason === 'evidence') {
+        return { data: null, error: { code: '23514', message: 'new row for relation "messages" violates check constraint "messages_superseded_reason_check"' } };
+      }
+      return resolve(table, kind, ctx);
+    };
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mockRimplChat.mockImplementation(evidenceTurn());
+    const r = await send({ stream: true });
+    expect(r.status).toBe(200);
+    const drafts = m.all('messages', 'update').filter((q) => q.payload && 'superseded_draft' in q.payload).map((q) => q.payload);
+    expect(drafts).toEqual([
+      { superseded_draft: 'Amoxicillin 1 g tds (BTS, 2019).', superseded_reason: 'evidence' },
+      { superseded_draft: 'Amoxicillin 1 g tds (BTS, 2019).', superseded_reason: null },
+    ]);
+    expect(warn.mock.calls.some((c) => /refused by the CHECK constraint/.test(String(c[0])))).toBe(true);
+    warn.mockRestore();
   });
 
   test('a known reason is still stored as itself', async () => {

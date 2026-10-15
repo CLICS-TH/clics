@@ -540,8 +540,28 @@ async function withTurnLock(fn) {
 // sanitised markdown (markdownFragment, plain text if the libs did not load) and is hidden from screen
 // readers — the finished reply is announced once, as before, when renderMessage draws it. A clinical
 // artifact block is held back until the end (it opens in the side panel from the stored reply).
+//
+// `status` { phase: 'thinking' } (at most once a turn, before the first delta, sent only while the router is
+// on and the model has begun reasoning — usually a deep-tier turn, but a model that ignores a thinking-off
+// request can trigger it on a fast turn too) means a wait of tens of seconds with nothing to show yet. One line
+// in the bubble says so, and it is announced once through #chatLive. It stays until a delta brings visible
+// text (a whitespace-only first piece would leave the bubble blank); `replace` takes it down too, and only
+// another `status` brings it back. done / an error / an abort remove the whole bubble (deliverTurn), line and
+// all. It replaces the generic "Still working…" line (armSlowNote), which says less. It names no model or
+// provider. Any other phase, like any other event name, is ignored.
+const THINKING_COPY = { th: 'กำลังวิเคราะห์เชิงลึก…', en: 'Thinking more deeply…' };
+function typingNote(th, en) {
+  const n = document.createElement('div');
+  n.className = 'typing-note';
+  n.textContent = th;
+  const e = document.createElement('span');
+  e.className = 'bi-en';
+  e.textContent = en;
+  n.appendChild(e);
+  return n;
+}
 function liveReply(bubble, disarmSlow) {
-  let text = '', body = null, note = null, frame = 0;
+  let text = '', body = null, note = null, thinking = null, frame = 0;
   const paint = () => {
     frame = 0;
     if (!body) return;
@@ -561,27 +581,42 @@ function liveReply(bubble, disarmSlow) {
     body = document.createElement('div');
     body.className = 'msg-stream-body';
     body.setAttribute('aria-hidden', 'true');
-    note = document.createElement('div');
-    note.className = 'typing-note';
+    note = typingNote('กำลังปรับคำตอบ…', 'Refining the answer…');
     note.hidden = true;
-    note.textContent = 'กำลังปรับคำตอบ…';
-    const en = document.createElement('span');
-    en.className = 'bi-en';
-    en.textContent = 'Refining the answer…';
-    note.appendChild(en);
-    bubble.append(note, body);
+    bubble.append(note);
+    if (thinking) bubble.append(thinking);   // kept until visible text arrives
+    bubble.append(body);
   };
+  const showThinking = () => {
+    if (thinking) return;   // already up: never drawn or announced twice
+    const stick = nearBottom();
+    thinking = typingNote(THINKING_COPY.th, THINKING_COPY.en);
+    thinking.classList.add('typing-thinking');
+    if (body) bubble.insertBefore(thinking, body);
+    else {
+      disarmSlow();
+      bubble.querySelectorAll('.typing-note').forEach(n => n.remove());   // the "Still working…" line, if shown
+      bubble.appendChild(thinking);
+    }
+    announceChat(aiSpeakerLabel(), THINKING_COPY.th + ' / ' + THINKING_COPY.en);
+    if (stick) scrollToBottom();
+  };
+  const hideThinking = () => { if (thinking) { thinking.remove(); thinking = null; } };
   const onEvent = (name, data) => {
     if (name === 'delta' && data && typeof data.text === 'string') {
       if (!body) start();
       if (note) note.hidden = true;
+      if (/\S/.test(data.text)) hideThinking();
       text += data.text;
       if (!frame) frame = requestAnimationFrame(paint);
     } else if (name === 'replace') {
       if (!body) start();
+      hideThinking();
       text = '';
       note.hidden = false;
       paint();
+    } else if (name === 'status' && data && data.phase === 'thinking') {
+      showThinking();
     }
   };
   return { onEvent };

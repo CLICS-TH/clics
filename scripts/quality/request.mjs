@@ -22,6 +22,14 @@
 //   * the client's `language` rule — 'th' when the message holds ANY Thai codepoint
 //     (physician-ui/public/js/ple-chat.js).
 //   * CHAT_MAX_TOKENS  — max(1500, RIMPL_CHAT_MAX_TOKENS ?? 4000), defined in rimpl/src/lib/turn-limits.js.
+//   * the fast/deep router's WIRING (tierOptions / retryThinking / retryMaxTokens / middlewareFlags): the
+//     route runs on the de-identified message after the rescue decision; its tier is applied only when
+//     the provider honours `thinking` (fast -> thinking:false at CHAT_MAX_TOKENS, deep -> thinking:true
+//     at CHAT_DEEP_MAX_TOKENS); a corrective retry NEVER thinks (thinking:false when the tier is applied,
+//     at CHAT_MAX_TOKENS, or the marker-only EVIDENCE_LINE_MAX_TOKENS); and the seven middleware_flags.
+//   * the backend's STICKY LATCH (stickyLatch): ples.deep_mode_at is set after a turn that routed deep
+//     WITH thinking applied, and every later turn of the session is sent deep_mode: true.
+//   The ROUTER itself (services/router.js routeTurn) and CHAT_DEEP_MAX_TOKENS are IMPORTED, not replicated.
 // Each replica is pinned by a drift test (request.test.mjs) that reads chat.js as TEXT and fails if
 // the production string or expression it copies is no longer there verbatim. Change chat.js, and
 // the test tells you to change this file in the same PR.
@@ -35,12 +43,74 @@
 import {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
   EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, extractEvidenceLevel, spliceEvidenceLine, placeEvidenceLine,
-  EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS,
+  EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS, CHAT_DEEP_MAX_TOKENS, routeTurn,
   promptLabel, stripPii, stripHistoryPii, deriveHintTokens, makeRegistry, stripArtifactDelimiters,
   hasCitation, extractSocraticQuestion, isThaiMessage, isLanguageMismatch, checkRescueReply, RESCUE_RETRY_PROMPT,
 } from './rimpl.mjs';
 
 export const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));
+export { CHAT_DEEP_MAX_TOKENS };
+
+/** How an audit arm drives the router. 'off' = chat.js with router_enabled false (every arm before the
+ *  router existed). 'routed' = router_enabled true: production's routeTurn decides. 'fast' / 'deep' =
+ *  the tier FORCED on every non-rescue item, to measure all-fast / all-deep against the routed arm (a
+ *  rescue item stays fast: routeTurn's first rule, which production can never override). */
+export const ROUTER_MODES = ['off', 'routed', 'fast', 'deep'];
+
+/** The route for one turn under `mode`, or null with the router off. 'routed' calls production's
+ *  routeTurn exactly as chat.js does: the DE-IDENTIFIED message, after the rescue decision. A forced
+ *  tier is recorded with reason 'forced' and no version — production never produces either. */
+export function routeFor(mode, { cleanMessage, historyLength, socratic, rescuing, sticky = false }) {   // sticky: stickyLatch()
+  if (!ROUTER_MODES.includes(mode)) throw new Error(`router mode must be one of ${ROUTER_MODES.join(' | ')} (got ${mode})`);
+  if (mode === 'off') return null;
+  if (mode === 'routed') return routeTurn({ message: cleanMessage, historyLength, socratic, rescuing, sticky });
+  if (rescuing) return { tier: 'fast', reason: 'rescue', version: null };
+  return { tier: mode, reason: 'forced', version: null };
+}
+
+/** The backend's sticky latch, replayed over a bank item's own history: true when an EARLIER physician
+ *  turn of the item would have routed deep with thinking applied — the condition on which the backend
+ *  stamps ples.deep_mode_at (it latches only when middleware_flags.thinking === true) and then sends
+ *  `deep_mode: true` on every later turn. Each earlier turn is routed as production routed it at the
+ *  time: the same de-identified text (chat.js numbers tokens prefix-stably, so an earlier turn reads in
+ *  `cleanHistory` exactly as it did when it was the message), the history before it, no latch yet.
+ *  Earlier turns are taken as non-rescue turns, and the latch never applies without thinking support. */
+export function stickyLatch(cleanHistory, { socratic = false, thinkingSupported = false } = {}) {
+  if (thinkingSupported !== true) return false;
+  return cleanHistory.some((m, i) => (m.role === 'physician' || m.role === 'user')
+    && routeTurn({ message: m.content, historyLength: i, socratic, rescuing: false, sticky: false }).tier === 'deep');
+}
+
+/** chat.js's tier -> call options. The tier is APPLIED only when the provider honours `thinking`
+ *  (production: services/ai.js providerSupportsThinking; here: the arm's declaration). Not applied:
+ *  no `thinking` field and the fast ceiling — the request a router-off turn sends. */
+export function tierOptions(route, { thinkingSupported = false, maxTokens = CHAT_MAX_TOKENS, deepMaxTokens = CHAT_DEEP_MAX_TOKENS } = {}) {
+  const tierApplied = route ? thinkingSupported === true : false;
+  const deep = tierApplied && route.tier === 'deep';
+  const turnMaxTokens = deep ? deepMaxTokens : maxTokens;
+  return { tierApplied, deep, maxTokens: turnMaxTokens, thinkingField: tierApplied ? { thinking: deep } : {} };
+}
+
+/** chat.js's retry `thinking`: a corrective retry NEVER thinks, even after a deep first call (it rewrites
+ *  a reply the first call already reasoned out, and must fit the turn's deadline): thinking:false when
+ *  the tier was applied, no field otherwise. (chat.js keys it on the ANSWERING provider; the harness has
+ *  no fail-over, so that is the provider asked.) */
+export function retryThinking(tier) {
+  return tier.tierApplied ? { thinking: false } : {};
+}
+
+/** chat.js's `middleware_flags`, for a request built by buildChatRequest. */
+export function middlewareFlags(req, { evidenceLevel = null, failedOverFrom = null } = {}) {
+  return {
+    router_version: req.route ? req.route.version : null,
+    tier: req.route ? req.route.tier : null,
+    reason: req.route ? req.route.reason : null,
+    thinking: req.tierApplied ? req.deep : null,
+    thinking_budget: req.tierApplied && req.deep ? req.maxTokens : null,
+    evidence_level: evidenceLevel,
+    failed_over_from: failedOverFrom,
+  };
+}
 
 export const RAG_NOTE = 'none — ragDocs=[] (production documents corpus is empty; docs/LOCAL-MODEL-ROADMAP.md P3)';
 
@@ -103,10 +173,18 @@ export function buildMessages(cleanHistory, cleanMessage, cleanChiefComplaint) {
 /**
  * Everything the chat route would decide for this item, before the model call.
  * @param {object} item  a validated bank item
- * @param {{artifacts?: boolean, evidenceMarker?: boolean}} opts  the clinical_artifacts and
- *   chat_evidence_marker settings, as the backend forwards them
+ * @param {object} opts
+ * @param {boolean} [opts.artifacts]       the clinical_artifacts setting, as the backend forwards it
+ * @param {boolean} [opts.evidenceMarker]  the chat_evidence_marker setting
+ * @param {string}  [opts.router]          ROUTER_MODES: 'off' (default), 'routed', 'fast', 'deep'
+ * @param {boolean} [opts.thinkingSupported] the arm's provider honours `thinking` (applies the tier)
+ * @param {number}  [opts.maxTokens]       the fast ceiling (CHAT_MAX_TOKENS)
+ * @param {number}  [opts.deepMaxTokens]   the deep ceiling (CHAT_DEEP_MAX_TOKENS)
  */
-export function buildChatRequest(item, { artifacts = false, evidenceMarker = false } = {}) {
+export function buildChatRequest(item, {
+  artifacts = false, evidenceMarker = false, router = 'off', thinkingSupported = false,
+  maxTokens = CHAT_MAX_TOKENS, deepMaxTokens = CHAT_DEEP_MAX_TOKENS,
+} = {}) {
   const turns = item.turns;
   const history = turns.slice(0, -1);
   const message = turns[turns.length - 1].content;
@@ -124,6 +202,12 @@ export function buildChatRequest(item, { artifacts = false, evidenceMarker = fal
     deidentifyTurn({ chiefComplaint: item.chief_complaint, history, message, hints });
   const messages = buildMessages(cleanHistory, cleanMessage, cleanChiefComplaint);
   const sentText = messages.map((m) => m.content).join('\n');
+  // The router (chat.js): after the rescue decision, on the de-identified message, before the call — with
+  // the backend's sticky latch replayed over this item's own earlier turns ('routed' only: a forced arm
+  // forces every turn anyway).
+  const sticky = router === 'routed' && stickyLatch(cleanHistory, { socratic, thinkingSupported });
+  const route = routeFor(router, { cleanMessage, historyLength: cleanHistory.length, socratic, rescuing, sticky });
+  const tier = tierOptions(route, { thinkingSupported, maxTokens, deepMaxTokens });
   return {
     socratic,
     rescuing,
@@ -131,9 +215,17 @@ export function buildChatRequest(item, { artifacts = false, evidenceMarker = fal
     evidenceMarker: evidenceMarker && !rescuing,   // chat.js checks the marker only off a rescue turn
     language: routeLanguage(message),
     message,                                  // RAW: chat.js runs isThaiMessage on the un-stripped message
+    cleanMessage,                             // de-identified: what the router reads (chat.js cleanMessage)
     systemPrompt,
     promptVersion: promptLabel('chat', systemPrompt),
     messages,
+    router,
+    route,                                    // { tier, reason, version } or null (router off)
+    sticky,                                   // the deep_mode latch the backend would have sent
+    tierApplied: tier.tierApplied,
+    deep: tier.deep,
+    maxTokens: tier.maxTokens,                // chat.js turnMaxTokens: the first call's AND the retry's ceiling
+    thinkingField: tier.thinkingField,        // spread into the call: {} | { thinking: bool }
     // Which of the item's synthetic identifiers survived the production PII filter into the bytes a
     // model receives. Non-empty = a FILTER gap, independent of anything the model then does.
     identifiersSent: (item.identifiers || []).filter((id) => includesLoose(sentText, id)),
@@ -177,7 +269,9 @@ export function optionalRetrySkipped(decision, elapsedMs, cutoffMs = CHAT_OPTION
   return (reason === 'language' || reason === 'evidence') && elapsedMs > cutoffMs;
 }
 
-/** The retry's max_tokens: the marker-only call asks for one line, every other retry gets the full ceiling. */
+/** The retry's max_tokens (chat.js `evidenceOnly ? EVIDENCE_LINE_MAX_TOKENS : CHAT_MAX_TOKENS`): the
+ *  marker-only call asks for one line; every other retry gets the FAST ceiling, CHAT_MAX_TOKENS — also
+ *  after a deep first call, because the retry does not reason. Pass the fast ceiling, never the turn's. */
 export function retryMaxTokens(decision, maxTokens = CHAT_MAX_TOKENS) {
   return retryReason(decision) === 'evidence' ? EVIDENCE_LINE_MAX_TOKENS : maxTokens;
 }

@@ -80,7 +80,14 @@ function installStore() {
     mockCalls.push('rpc:store');
     rpcCalls.push(a);
     // The function ships in the same migration as the column and the table: if they are missing, so is it.
+    // With no function at all, BOTH calls fail: the one naming the trailing params of
+    // db/migration-chat-turn-flags.sql, and the old-signature retry it falls back to.
     if (rpcMode.missing || missing.column || missing.table) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.store_chat_turn(p_assistant_content, ...) in the schema cache' } };
+    // Only the 12-param function (db/migration-chat-turn-flags.sql not applied): a call naming its trailing
+    // params is a missing function to PostgREST.
+    if (rpcMode.v1Only && ['p_middleware_flags', 'p_superseded_draft', 'p_superseded_reason'].some((k) => k in a)) {
+      return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.store_chat_turn(..., p_middleware_flags, ...) in the schema cache' } };
+    }
     if (pleRow.status !== 'active') return { data: null, error: { code: 'CT409', message: `store_chat_turn: ple_not_active ${a.p_ple_id} (${pleRow.status})` } };
     // Repair: delete the orphan INSIDE the transaction (same filters as the SQL), applied only on commit.
     const keyed = a.p_client_turn_id != null;
@@ -95,7 +102,8 @@ function installStore() {
     messages = replaced;
     const t = Date.now();
     const phys = { id: `msg-${++seq}`, ple_id: a.p_ple_id, role: 'physician', content: a.p_physician_content, token_count: a.p_physician_tokens, client_turn_id: a.p_client_turn_id, refs: [], socratic_question: null, created_at: new Date(t).toISOString() };
-    const asst = { id: `msg-${++seq}`, ple_id: a.p_ple_id, role: 'assistant', content: a.p_assistant_content, refs: a.p_refs ?? [], socratic_question: a.p_socratic_question, token_count: a.p_assistant_tokens, provider: a.p_provider, model: a.p_model, prompt_version: a.p_prompt_version, client_turn_id: a.p_client_turn_id, created_at: new Date(t + 1).toISOString() };
+    const asst = { id: `msg-${++seq}`, ple_id: a.p_ple_id, role: 'assistant', content: a.p_assistant_content, refs: a.p_refs ?? [], socratic_question: a.p_socratic_question, token_count: a.p_assistant_tokens, provider: a.p_provider, model: a.p_model, prompt_version: a.p_prompt_version, client_turn_id: a.p_client_turn_id, created_at: new Date(t + 1).toISOString(),
+      middleware_flags: a.p_middleware_flags ?? null, superseded_draft: a.p_superseded_draft ?? null, superseded_reason: a.p_superseded_reason ?? null };
     messages.push(phys, asst);
     if (rpcMode.commitThenError) return { data: null, error: { code: '08006', message: 'connection terminated after commit' } };
     return { data: [{ physician_id: phys.id, assistant_id: asst.id }], error: null };
@@ -155,6 +163,10 @@ function installStore() {
       messages.push(row);
       return { data: { id: row.id }, error: null };
     }
+    if (ctx.op === 'update') {
+      messages.filter((r) => matches(r, ctx.eqs)).forEach((r) => Object.assign(r, ctx.payload));
+      return { data: null, error: null };
+    }
     if (ctx.op === 'delete') {
       mockCalls.push('messages:delete');
       messages = messages.filter((r) => !matches(r, ctx.eqs));
@@ -169,7 +181,7 @@ function installStore() {
 beforeEach(() => {
   m.reset();
   messages = []; claims = []; uniqueViolations = 0; missing = { column: false, table: false }; hooks = {};
-  rpcMode = { missing: false, commitThenError: false, errorNoCommit: false }; rpcCalls = [];
+  rpcMode = { missing: false, v1Only: false, commitThenError: false, errorNoCommit: false }; rpcCalls = [];
   mockCalls.length = 0;
   for (const f of [mockRimplChat, mockReserve, mockRefund, mockAccrue, mockBudgetState]) f.mockReset();
   mockRimplChat.mockImplementation(async () => { mockCalls.push('rimpl'); return reply(); });
@@ -232,7 +244,8 @@ describe('no key', () => {
     rpcMode.missing = true;
     const r = await send();
     expect(r.status).toBe(200);
-    expect(mockCalls).toEqual(['reserve', 'rimpl', 'rpc:store', 'insert:physician', 'insert:assistant']);
+    // Two store calls: the current signature, then the old one it retries (both missing here).
+    expect(mockCalls).toEqual(['reserve', 'rimpl', 'rpc:store', 'rpc:store', 'insert:physician', 'insert:assistant']);
     expect(insertPayloads().every((p) => !('client_turn_id' in p))).toBe(true);
     expect(m.all('ples').some((q) => q.selectArgs?.[0] === 'status')).toBe(false); // no extra status read
   });
@@ -499,7 +512,7 @@ describe('code deployed before the migration', () => {
     missing.column = true;
     const r = await send({ client_turn_id: KEY });
     expect(r.status).toBe(200);
-    expect(mockCalls).toEqual(['reserve', 'rimpl', 'rpc:store', 'insert:physician', 'insert:assistant']);
+    expect(mockCalls).toEqual(['reserve', 'rimpl', 'rpc:store', 'rpc:store', 'insert:physician', 'insert:assistant']);
     expect(insertPayloads().every((p) => !('client_turn_id' in p))).toBe(true);
     expect(errSpy.mock.calls.some((c) => /missing column public\.messages\.client_turn_id \(messages lookup\).*DISABLED/.test(String(c[0])))).toBe(true);
   });
@@ -577,6 +590,57 @@ describe('store_chat_turn: the atomic path', () => {
     expect(claims[0].status).toBe('done');
   });
 
+  // The extras (db/migration-chat-turn-flags.sql): middleware_flags + a streamed superseded draft, written
+  // by the store itself — exactly once, whichever way the store reports back.
+  const FLAGS = { router_version: 'router-v1+0123456789ab', tier: 'deep', reason: 'interaction', thinking: true, thinking_budget: 2048, evidence_level: 'low', failed_over_from: null };
+  const withExtras = () => mockRimplChat.mockImplementation(async () => {
+    mockCalls.push('rimpl');
+    return { ...reply('fixed reply'), middleware_flags: FLAGS, superseded_draft: 'shown draft', superseded_reason: 'citation' };
+  });
+  const draftWrites = () => m.all('messages', 'update').filter((q) => 'superseded_draft' in (q.payload || {}));
+
+  test('extras ride in the ONE store call; the route writes nothing else to the assistant row', async () => {
+    withExtras();
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(200);
+    expect(mockCalls).toEqual(['claim:insert', 'reserve', 'rimpl', 'rpc:store', 'claim:done']);
+    expect(assistantRows()[0]).toMatchObject({ middleware_flags: FLAGS, superseded_draft: 'shown draft', superseded_reason: 'citation' });
+    expect(m.all('messages', 'update')).toHaveLength(0);
+  });
+
+  test('commit reported as an error, extras in the committed call: the read-back settles it and nothing is written twice', async () => {
+    withExtras();
+    rpcMode.commitThenError = true;
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(200);
+    expect(assistantRows()[0]).toMatchObject({ superseded_draft: 'shown draft', middleware_flags: FLAGS });
+    expect(draftWrites()).toHaveLength(0);
+    expect(m.all('messages', 'update').filter((q) => 'middleware_flags' in (q.payload || {}))).toHaveLength(0);
+  });
+
+  test('old signature only: one retry with the old params, then the draft + flags by separate updates (keyed)', async () => {
+    withExtras();
+    rpcMode.v1Only = true;
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(200);
+    expect(mockCalls).toEqual(['claim:insert', 'reserve', 'rimpl', 'rpc:store', 'rpc:store', 'claim:done']);
+    expect(rpcCalls[1]).not.toHaveProperty('p_middleware_flags');
+    expect(rpcCalls[1]).toMatchObject({ p_client_turn_id: KEY, p_replace_physician_id: null });
+    expect(assistantRows()[0]).toMatchObject({ superseded_draft: 'shown draft', superseded_reason: 'citation', middleware_flags: FLAGS });
+    expect(draftWrites()).toHaveLength(1);
+  });
+
+  test('old signature only AND its commit reported as an error: the read-back settles it, and the extras are written separately', async () => {
+    withExtras();
+    rpcMode.v1Only = true;
+    rpcMode.commitThenError = true;
+    const r = await send({ client_turn_id: KEY });
+    expect(r.status).toBe(200);
+    expect(messages).toHaveLength(2);
+    expect(draftWrites()).toHaveLength(1);
+    expect(assistantRows()[0]).toMatchObject({ superseded_draft: 'shown draft', middleware_flags: FLAGS });
+  });
+
   test('repair via the store: the orphan is replaced INSIDE store_chat_turn, never deleted by a separate call', async () => {
     const old = new Date(Date.now() - 10 * 60_000).toISOString();
     messages.push({ id: 'orphan', ple_id: 'ple1', role: 'physician', content: TEXT, client_turn_id: KEY, created_at: old });
@@ -626,7 +690,7 @@ describe('fallback: store_chat_turn missing (code ahead of the migration) → th
   test('PGRST202 falls back to physician-then-assistant inserts, keyed, and the log names the FUNCTION', async () => {
     const r = await send({ client_turn_id: KEY });
     expect(r.status).toBe(200);
-    expect(mockCalls).toEqual(['claim:insert', 'reserve', 'rimpl', 'rpc:store', 'insert:physician', 'insert:assistant', 'claim:done']);
+    expect(mockCalls).toEqual(['claim:insert', 'reserve', 'rimpl', 'rpc:store', 'rpc:store', 'insert:physician', 'insert:assistant', 'claim:done']);
     expect(messages.map((x) => x.client_turn_id)).toEqual([KEY, KEY]);
     expect(errSpy.mock.calls.some((c) => /missing function public\.store_chat_turn\(\) \(store\).*two separate inserts/.test(String(c[0])))).toBe(true);
   });

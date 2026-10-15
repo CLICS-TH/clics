@@ -29,6 +29,7 @@
 const { createRunner } = require('./runtime');
 const settings = require('../provider-settings');
 const { stripThink, createThinkFilter, closesThink, flagOn } = require('../../lib/think-markup');
+const { THINKING_STYLES, thinkingEnabled, parseThinkingStyle, thinkingFields } = require('../../lib/thinking-control');
 
 // Config is read LAZILY (first call), not at module load: this module is required unconditionally by
 // services/ai.js, and must not throw or capture stale env when the local provider is not in use.
@@ -300,13 +301,8 @@ function engineOf(fingerprint) {
 //                             | chat_template_kwargs  (vLLM / SGLang: { chat_template_kwargs: { enable_thinking } })
 //                             | ollama                 (Ollama: { think })
 // `budget` is accepted for the caller's interface, but none of these has a portable field for it,
-// so it is not sent. The Anthropic provider ignores `thinking` altogether.
-const THINKING_STYLES = ['none', 'chat_template_kwargs', 'ollama'];
-function thinkingEnabled(thinking) {
-  if (typeof thinking === 'boolean') return thinking;
-  if (thinking && typeof thinking === 'object' && typeof thinking.enabled === 'boolean') return thinking.enabled;
-  return null;
-}
+// so it is not sent. The Anthropic provider ignores `thinking` altogether. The mapping itself lives in
+// lib/thinking-control.js (package-free), shared with the probe/quality harness.
 
 /**
  * Build one OpenAI-compatible on-prem provider.
@@ -383,17 +379,27 @@ function createLocalProvider({
 
   // A typo here must not silently send a field the server rejects, nor silently pretend thinking was
   // controlled: fall back to `none` (send nothing) and say so once. Only read when a caller actually
-  // passed `thinking`, so a deployment that never uses it never sees the warning.
+  // passed `thinking`, or the chat router asks supportsThinking() (router_enabled), so a deployment that
+  // never uses either never sees the warning.
   let warnedThinkingStyle = false;
   function thinkingStyle() {
-    const raw = String(process.env[`${envPrefix}THINKING_STYLE`] || '').trim().toLowerCase();
-    if (!raw) return 'none';
-    if (THINKING_STYLES.includes(raw)) return raw;
+    const raw = process.env[`${envPrefix}THINKING_STYLE`];
+    const style = parseThinkingStyle(raw);
+    if (style) return style;
     if (!warnedThinkingStyle) {
       warnedThinkingStyle = true;
-      console.warn(`${log} ${envPrefix}THINKING_STYLE="${raw}" is not one of ${THINKING_STYLES.join(' | ')} — sending no thinking control`);
+      console.warn(`${log} ${envPrefix}THINKING_STYLE="${String(raw).trim().toLowerCase()}" is not one of ${THINKING_STYLES.join(' | ')} — sending no thinking control`);
     }
     return 'none';
+  }
+
+  // Does this instance honour a `thinking` request at all? services/ai.js providerSupportsThinking asks,
+  // so routes/chat.js applies the fast/deep router (services/router.js) only where a tier changes what
+  // the server does. True iff <envPrefix>THINKING_STYLE names a style that sends a field. It proves the
+  // operator's DECLARATION, not that the served model can switch reasoning off: a template that ignores
+  // the field (DeepSeek-R1) still thinks on a "fast" turn. Read per call, like every other knob here.
+  function supportsThinking() {
+    return thinkingStyle() !== 'none';
   }
 
   // A dedicated GPU box has no per-account quota, but it is NOT unbounded — throughput is capped by
@@ -532,11 +538,7 @@ function createLocalProvider({
     if (temperature != null) body.temperature = temperature;
     if (numCtx > 0) body.options = { ...(body.options || {}), num_ctx: numCtx };
     const thinkingOn = thinkingEnabled(thinking);
-    if (thinkingOn != null) {
-      const style = thinkingStyle();
-      if (style === 'chat_template_kwargs') body.chat_template_kwargs = { enable_thinking: thinkingOn };
-      else if (style === 'ollama') body.think = thinkingOn;
-    }
+    if (thinkingOn != null) Object.assign(body, thinkingFields(thinkingStyle(), thinkingOn));
 
     // Size backstop BEFORE the queue: a prompt that cannot fit must not take a slot from one that can,
     // and must not be retried (it cannot shrink). The error carries numbers only — never the text.
@@ -764,6 +766,7 @@ function createLocalProvider({
     _resetDispatcher,
     name,
     call,
+    supportsThinking,
     endpointKey,
     ...(embeddings ? { embed } : {}),
     model: () => cfg().model,

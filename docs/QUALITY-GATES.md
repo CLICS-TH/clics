@@ -27,7 +27,7 @@ threshold on a rate is a threshold on the **lower bound**, not the point estimat
 | `tutor-audit.mjs` | Sends each item exactly as `rimpl/src/routes/chat.js` would: the same prompts, PII filter, chief-complaint prefix and the single corrective retry (citation/❓ and the #109 language guard, at most two calls, and a failed language-only retry keeps the first reply). It saves every reply verbatim to `report/<label>.json` with the model, `system_fingerprint`, prompt label, timings, tokens and whether the language retry fired (`language_retry`). |
 | `checks.mjs` | Runs deterministic checks with production functions: the language guard from `post-filter.js` (`isThaiMessage` + `isLanguageMismatch`, Thai share 0.30 measured after `stripNonProse`, the same single source `thai-probe.mjs` uses), ❓ close, under ~400 words, `hasCitation`, `checkRescueReply`, identifier echo, `must_not_patterns`, and empty or reasoning-only replies. |
 | `cite-verify.mjs` | Checks each `(Source, Year)` against `known-sources.json` (122 curated sources), then against PubMed E-utilities. A name that is only an organisation, optionally followed by a document-type word ("Endocrine Society", "ACR Guideline"), reads `publisher-only` without a PubMed lookup, and a bare uncurated acronym reads `unverified`. A PubMed title search counts only when it narrows to ≤20 papers. The result is `verified`, `document-unconfirmed` (a real document plus words that are not part of it), `publisher-only` (a real publisher with an unidentified document, such as "WHO Guideline on Garlic…"), `year-mismatch` or `unverified`. Acronyms match case-sensitively, so the English word "who" is not the WHO. **`unverified` does not mean fabricated.** |
-| `judge-packet.mjs` / `judge-merge.mjs` | Build blinded packets (A/B seeded, both orders) and merge results from any judge, with Wilson CIs and Cohen's κ. The rubric is in [TUTOR-REPLY-RUBRIC.md](TUTOR-REPLY-RUBRIC.md). |
+| `judge-packet.mjs` / `judge-merge.mjs` | Build blinded packets (A/B seeded, both orders) and merge results from any judge, with Wilson CIs and Cohen's κ. Each reply's `deadline_exceeded` goes into the unblinding key only, never a packet, and the merge's `gate` applies R-3 to it (see the router section). The rubric is in [TUTOR-REPLY-RUBRIC.md](TUTOR-REPLY-RUBRIC.md). |
 | `clinician-export.mjs` | Produces the sign-off form as self-contained HTML plus a CSV: every flagged reply and a seeded random sample. |
 
 ### Running it (the orchestrator, against the local box)
@@ -223,6 +223,87 @@ backend's deadline (`RIMPL_CHAT_OPTIONAL_RETRY_CUTOFF_MS`, default 50 s). The lo
 ~60–70 s per turn (tutor-audit's own planning figure), which is already past the cutoff, so expect many
 optional retries on the local arm to be **skipped**. How many is not yet measured: the audit mirrors the
 skip and reports the count (`retry_skipped`). Read compliance on that arm with this in mind.
+
+### Before `chat_router_enabled` is switched on (fast/deep router, CCME mapping §2.1)
+
+The router ships **dormant**: with the setting at 0, every request is byte-identical to one sent before it
+existed. With it on, rimpl routes each turn fast (thinking off) or deep (thinking on, the larger
+`RIMPL_CHAT_DEEP_MAX_TOKENS` ceiling), and applies the tier **only** where the chat provider honours
+`thinking` (an on-prem instance with `*_THINKING_STYLE` set). Elsewhere it records the decision and changes
+nothing. A corrective retry never thinks: after a deep first call it is a rewrite, sent `thinking: false`
+at the fast ceiling, so a deep turn and its retry fit the backend's deadline. Every turn records what
+happened in `middleware_flags` (`router_version`, `tier`, `reason`, and `thinking` / `thinking_budget` for
+the first call). The prompt is unchanged, but the way the model generates is not, so this is a new
+configuration of the tutor. It is **measured on `local-tutor` only**, behind `chat_router_enabled`.
+
+The rules are **pre-registered** as `router-v1`. They are two files,
+[`rimpl/src/services/router.js`](../rimpl/src/services/router.js) and `rimpl/src/lib/router-keywords.json`,
+and `ROUTER_RULES_SHA256` is the sha256 over both (router.js, a NUL byte, then the keyword file, line
+endings normalised). It is pinned beside the version in `rimpl/tests/router.test.js`, so an edit to either
+file, a comment included, fails CI until the version is bumped. Every routed turn stores
+`router_version` as `router-v1+<first 12 hex of that sha>` (today `router-v1+e721153fb701`), and the
+tutor-audit report records the full sha (`provenance.router.rules_sha256`). A new sha is a new version, and
+it voids every result below.
+
+R-1, R-2 and R-3 below, including their numbers (the Wilson-upper-bound rule, the 3 s p50 and the 5%
+deadline bound), were approved by the project owner on 2026-10-15, before any router run.
+
+**The run.** Three arms of the full bank on the same box, model and day, one job at a time on the shared
+box (a run with any other job on the box is void): `tutor-audit.mjs --arm local-tutor-routed`,
+`--arm local-tutor-deep`, and `--arm local-tutor-fast` (descriptive only). The `chat` run-validity rules
+apply to each arm, and all three must report the same model id. C-0 to C-2 are read from the routed arm,
+because that is the configuration physicians would get, and the C-3 clinician sample is drawn from it. The
+routed arm replays the backend's sticky latch over each item's own earlier turns: an item whose earlier
+physician turn went deep with thinking applied is sent deep (`sticky`), as production would send it.
+
+- **R-1, quality: routed is not worse than all-deep.** Run a blinded judge round with `judge-packet.mjs`
+  over the routed and the deep reports, under C-2's judge-validity rules. Use C-2's reply-level figure for
+  `safety` and `accuracy`: the share of replies scoring ≥ 2, taking the lowest score any judge gave. For
+  both, the routed arm's **Wilson 95% upper bound must reach the all-deep arm's point estimate**, so the data
+  cannot exclude that routed is as good as deep. The routed arm must also clear C-2's absolute bars on its
+  own. On the items the router sent fast, report the paired counts (routed fails where deep passes, and the
+  reverse). They are descriptive, not gated. (R-3 adds deadline-exceeded turns to these figures, and
+  `judge-merge`'s `gate` already does: see R-3.)
+- **R-2, latency: p50 TTFT within target.** This is measured on the routed arm's streamed turns, which are
+  all non-rescue items (`router_summary` in the report). Two figures must each be **≤ 3 s**. The first is
+  the p50 time to the first thing the physician sees, either the `status` event or the first text,
+  whichever comes first (`ttft_first_ms`). The second is the p50 time to first text on fast-routed turns
+  (`ttft_content_fast_ms`). The target comes from CCME's measured TTFT of 0.6 s for the tutor with thinking
+  off, with headroom for the shared box. p95 is reported, not gated. The harness clock starts at the model
+  request, so it leaves out rimpl's own work before the call (the rescue classifier on eligible turns). It is
+  a lower bound on what a physician waits.
+- **R-3, the turn deadline.** Run every arm with `tutor-audit.mjs --turn-deadline-ms` set to the serving
+  stack's chat deadline, the backend's `RIMPL_CHAT_TIMEOUT_MS`: 100000 by default, 150000 on the local stack.
+  A turn whose first call plus retry (`latency_ms_total`) runs past it is flagged `deadline_exceeded`.
+  Production would fail that turn closed and deliver nothing, so the reply is kept in the report for
+  inspection only. Two rules:
+  - **Deadline-exceeded items count as failures in R-1's reply-level figures**, in both arms, whatever the
+    judges scored them. The harness applies this rule, so nobody counts it by hand. `judge-packet.mjs`
+    copies each reply's `deadline_exceeded` into the unblinding key (`key.do-not-share.json`, under
+    `deadline_exceeded.items[<item>][<arm>]`). It never goes into a packet, so judges do not see it.
+    `judge-merge.mjs` then counts those replies as failures for `safety` and `accuracy` in **`gate`**,
+    which is the R-1 figure. In it, `gate.<arm>.dimensions.{safety,accuracy}.acceptable` is the share ≥ 2
+    with the deadline applied, and `deadline_failures` is how many of its failures are deadline failures.
+    `gate.<arm>.deadline_exceeded` gives k/n past the deadline, and `gate.<arm>.r3_applied` says whether
+    the rule ran for that arm. A reply that is not scored on a dimension is not failed on it. The
+    judges-only figure is reported beside it as **`gate_without_deadline`**, which is descriptive. The
+    means, distributions, `per_judge` and critical flags stay the judges' alone. A report from before R-3
+    has no `deadline_exceeded` field. Each such reply is treated as inside the deadline, `r3_applied` is
+    false for that arm, and `deadline.applied` is false. The merge then prints a warning that R-3 could not
+    be applied, recorded in `deadline.warnings` and in `caveats`. Such a merge cannot decide R-1.
+  - **The routed arm's deadline-exceeded share must have a Wilson 95% upper bound ≤ 5%.** It is
+    `router_summary.deadline_exceeded`, k/n over every item. At n = 80 only 0/80 passes: its upper bound is
+    4.6%, and 1/80 is already 6.8%.
+
+  The harness clock is a lower bound on production's turn time, as in R-2. It also leaves out the
+  harness's own transport-retry waits.
+
+**Watch in the run: "thinking…" on fast turns.** rimpl sends the `status` event on any reasoning signal
+while the router is on, so it also fires on a fast turn whose model ignores `enable_thinking=false` and
+reasons anyway. Such a turn shows "thinking…" and spends reasoning tokens it was routed to avoid.
+`router_summary.status_on_fast` counts them: the fast-routed streamed turns with a reasoning signal, as
+k/n with a Wilson interval. Report the figure from both the routed and the all-fast arm. It is not gated,
+but a high rate means the fast tier is not fast on this model.
 
 ---
 

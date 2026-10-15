@@ -11,6 +11,13 @@
 // "[model]" — a judge that can read the vendor off the reply is not blind. The mapping from slot to
 // arm lives ONLY in key.do-not-share.json, which must not be shown to a judge; judge-merge.mjs unblinds with it.
 //
+// R-3 (docs/QUALITY-GATES.md, the turn deadline): whether each judged reply's turn ran past the backend's
+// chat deadline (tutor-audit `deadline_exceeded`) goes into the KEY, per item and per arm
+// (`key.deadline_exceeded`), and NEVER into a packet: a judge scores what the reply says, and must not
+// learn that a reply was late — that would unblind the arm (deep turns are the slow ones) and colour the
+// score. judge-merge.mjs counts those replies as failures in the gate figure. A report written before
+// tutor-audit recorded the field is carried as `recorded: false` for its arm, and the merge warns.
+//
 // Usage:
 //   node scripts/quality/judge-packet.mjs <reportA.json> [<reportB.json>] --out <dir>
 //        [--seed <s>] [--orders 1|2] [--ids a,b] [--no-embed-rubric]
@@ -113,13 +120,19 @@ export function buildPackets(reports, bankById, { seed = 'clics', orders = 2, ru
     .filter((id) => !ids.length || ids.includes(id));
   const packets = [];
   const key = {
-    schema: 'clics-tutor-judge-key/v1',
+    schema: 'clics-tutor-judge-key/v2',   // v2: + deadline_exceeded (R-3); judge-merge reads v1 keys too
     WARNING: 'UNBLINDING KEY — never show this file to a judge.',
     seed, orders: nOrders, pairwise, rubric_version: rubricVersion,
     created_at: new Date().toISOString(),
     arms: reports.map((r, i) => ({ arm: `arm${i + 1}`, label: r.label, provider: r.target?.provider ?? null, model: r.target?.model_requested ?? null, models_reported: r.provenance?.models_reported ?? [] })),
     packets: {},
     excluded: [],
+    // R-3, KEY ONLY (see the header). items: { [item_id]: { arm1: bool, arm2: bool } } for every judged
+    // item; arms: whether each arm's report recorded the field at all (missing = treated as false).
+    deadline_exceeded: {
+      arms: Object.fromEntries(reports.map((r, i) => [`arm${i + 1}`, { recorded: true, missing: 0, turn_deadline_ms: r.provenance?.turn_deadline_ms ?? null }])),
+      items: {},
+    },
   };
 
   for (const id of itemIds) {
@@ -132,6 +145,12 @@ export function buildPackets(reports, bankById, { seed = 'clics', orders = 2, ru
       key.excluded.push({ item_id: id, reason: `no answered reply from ${failed.join(', ')}` });
       continue;
     }
+    // R-3: recorded in the key only. A missing field (a report from before R-3) is false, and counted.
+    key.deadline_exceeded.items[id] = Object.fromEntries(entries.map((e, i) => {
+      const arm = key.deadline_exceeded.arms[`arm${i + 1}`];
+      if (typeof e.deadline_exceeded !== 'boolean') { arm.missing += 1; arm.recorded = false; }
+      return [`arm${i + 1}`, e.deadline_exceeded === true];
+    }));
     const replies = entries.map((e) => redactModelNames(e.final.text, allModelIds));
     // Per-item PRNG: the order of item X depends only on (seed, X) — narrowing a run never reshuffles.
     const rand = rng(hash32(`${seed}\0${id}`));

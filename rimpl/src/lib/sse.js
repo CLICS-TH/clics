@@ -9,8 +9,12 @@
 //   event: done   data: {"status": n, "body": {...the JSON the route would have sent...}}
 // so the final reply, its provenance and every error shape stay ONE contract in both modes.
 // Events before it:
+//   event: status   data: {"phase": "thinking"}         the model has started reasoning; at most once a
+//                                                       turn, before any delta, and only with the fast/deep
+//                                                       router on (routes/chat.js `router_enabled`)
 //   event: delta    data: {"text": "..."}               a piece of the reply, in order
 //   event: replace  data: {"reason": "citation"|...}    the text so far is being replaced by a retry
+// Any event opens the stream, `status` included: from then on a failure is the `done` event.
 
 function sseStream(res) {
   let open = false;

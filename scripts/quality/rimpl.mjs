@@ -40,6 +40,10 @@ const rescue = require('../../rimpl/src/services/rescue.js');
 // re-exports it). Package-free: lib/think-markup.js requires nothing.
 const thinkMarkup = require('../../rimpl/src/lib/think-markup.js');
 const turnLimits = require('../../rimpl/src/lib/turn-limits.js');
+// The fast/deep chat router (services/router.js): pure, and package-free like everything above — it
+// requires only Node built-ins and its keyword file. IMPORTED, so a routed audit arm runs production's
+// rules, and its provenance carries the version and the keyword file's sha256.
+const router = require('../../rimpl/src/services/router.js');
 
 export const {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
@@ -58,8 +62,10 @@ export const {
   extractEvidenceLevel, findEvidenceMarkers, parseEvidenceLine, spliceEvidenceLine,
   isEvidenceStatementLine, isRemovableEvidenceStatement, findEvidenceStatements, evidenceMarkerPlaced, placeEvidenceLine,
 } = postFilter;
-// The marker-only call's ceiling and the optional-retry cutoff (routes/chat.js reads both from here).
-export const { EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS } = turnLimits;
+// The marker-only call's ceiling and the optional-retry cutoff (routes/chat.js reads both from here), and
+// the deep tier's ceiling (the router's larger max_tokens: reasoning tokens count against it).
+export const { EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS, CHAT_DEEP_MAX_TOKENS } = turnLimits;
+export const { routeTurn, ROUTER_VERSION, ROUTER_LABEL, ROUTER_RULES_SHA256, ROUTER_KEYWORDS_SHA256, REASONS: ROUTER_REASONS } = router;
 export const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = pii;
 export const { stripArtifactDelimiters } = transcript;
 export const { checkRescueReply, RESCUE_AFTER_EXCHANGES, MAX_RESCUE_QUESTIONS, RESCUE_RETRY_PROMPT } = rescue;
@@ -68,5 +74,7 @@ export const { stripThink, createThinkFilter } = thinkMarkup;
 /** Absolute paths of the production files this module mirrors behaviour from (for drift tests). */
 export const RIMPL_FILES = {
   chatRoute: require.resolve('../../rimpl/src/routes/chat.js'),
+  turnLimits: require.resolve('../../rimpl/src/lib/turn-limits.js'),
+  router: require.resolve('../../rimpl/src/services/router.js'),
   anthropicProvider: require.resolve('../../rimpl/src/services/providers/anthropic.js'),
 };

@@ -73,10 +73,10 @@ async function apiFetch(path, options = {}) {
   }
 }
 
-// Read a server-sent event stream: `delta` / `replace` events go to onEvent in order, and the final
-// `done` event ({ status, body }) resolves with its body. A stream that breaks off before `done` is the
-// same "no answer came back" as a dropped request (code network_error): the turn may or may not have
-// been stored, and the caller settles it the same way.
+// Read a server-sent event stream: every named event but `done` (`delta` / `replace` / `status`) goes to
+// onEvent in order, and the final `done` event ({ status, body }) resolves with its body. A stream that
+// breaks off before `done` is the same "no answer came back" as a dropped request (code network_error):
+// the turn may or may not have been stored, and the caller settles it the same way.
 async function readEventStream(res, onEvent) {
   const reader = res.body && res.body.getReader ? res.body.getReader() : null;
   if (!reader) return { error: 'เซิร์ฟเวอร์ขัดข้องชั่วคราว กรุณาลองใหม่ / Server error — please try again.', code: 'bad_response' };
