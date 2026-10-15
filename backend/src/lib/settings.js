@@ -151,17 +151,9 @@ async function reflectionRequired() {
   return (await getSetting('reflection_required', 1)) === 1;
 }
 
-// The DECLARED weights checksum from the CREC082 Model Lock Record (§10.2). Text, because it is a
-// hex digest. NULL until the evaluator is locked — and a score produced before that says so on its
-// face rather than implying a lock that had not happened.
-//
-// STRICT: { value } or { error }, never a default. Every score's provenance.locked is computed from it
-// (rimpl provenance.js: locked = !!weights_sha256), so a read error mapped to null (the old behaviour)
-// stamped a post-lock score `locked: false` for good: ai_evaluations is written once per PLE. The
-// caller (services/ple-evaluation.js) defers the evaluation instead.
-async function evaluatorWeightsSha256() {
-  return getTextSettingStrict('evaluator_weights_sha256');
-}
+// The DECLARED weights checksum (app_settings.evaluator_weights_sha256) is read with the lock flag, in
+// one statement, by services/model-lock.js evaluationLockStamp(): strictly, so a read error defers the
+// evaluation instead of stamping a post-lock score `locked: false`.
 
 // The two agreement gates a candidate evaluator must clear, as configuration.
 //
@@ -231,4 +223,4 @@ async function creditSettings() {
 
 module.exports = {
   chatStreamingEnabled, chatEvidenceMarkerEnabled, chatRouterEnabled,
-  calibrationRevealLocked, getSetting, getTextSetting, getTextSettingStrict, iccGates, transcriptCap, minAuditorsPerPle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };
+  calibrationRevealLocked, getSetting, getTextSetting, getTextSettingStrict, iccGates, transcriptCap, minAuditorsPerPle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };

@@ -41,6 +41,12 @@ const EvalSchema = z.object({
   // The DECLARED weights checksum from the Model Lock Record, forwarded by the backend from
   // app_settings. Absent = the evaluator is not locked yet, which the score then says on its face.
   weights_sha256: z.string().trim().max(128).nullish(),
+  // The digest of the WHOLE declaration behind the lock in force (backend services/model-lock.js
+  // lockDeclarationDigest): weights, engine, quantization, environment, prompt/rubric versions,
+  // decoding. Sent only while locked. Strict shape: the backend computes it as lowercase sha256 hex, so
+  // anything else is a bug upstream and a 400 (deterministic, so the backend routes it to a human) is
+  // the right answer, never a score stamped with a value nobody can match to a lock record.
+  lock_declaration_sha256: z.string().regex(/^[0-9a-f]{64}$/, 'expected a lowercase SHA-256 hex digest').nullish(),
   // Opt OUT of the shadow evaluation. Default true (shadow runs when SHADOW_EVAL_PROVIDER is set).
   // scripts/calibration/calibrate.js sets this false: --mode rescore re-scores the REAL cohort
   // through this route, which would otherwise overwrite the pilot's accumulated shadow rows with
@@ -52,7 +58,7 @@ router.post('/', async (req, res) => {
   const parsed = EvalSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const { ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256 } = parsed.data;
+  const { ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256, lock_declaration_sha256 } = parsed.data;
   // PII-strip (incl. the known patient identifier) + defang injected role markers before the cloud model.
   // Assigned INSIDE the try below: a de-identification failure must answer 500 (fail closed, nothing
   // sent anywhere), never escape as an unhandled rejection that takes the whole process down.
@@ -158,6 +164,12 @@ router.post('/', async (req, res) => {
     // byte-identical to before.
     const engine = first?.engine ?? null;
     const runtime = first?.runtime ?? null;
+    // Passed through on the same terms, but NO transport reports it today: an OpenAI-compatible
+    // completion carries no quantization (providers/local-factory.js says so where it builds the reply)
+    // and Anthropic reports none of the serving stack. So this is null on every current path and the
+    // fingerprint is unchanged. The DECLARED quantization reaches the score through
+    // lock_declaration_sha256 instead; it is never inferred here from a model name.
+    const quantization = first?.quantization ?? null;
     const numCtx = first?.numCtx ?? null;
 
     res.json({
@@ -182,7 +194,8 @@ router.post('/', async (req, res) => {
         promptVersion, rubricVersion: RUBRIC_VERSION,
         temperature: EVAL_DECODING.temperature, maxTokens: EVAL_DECODING.maxTokens, numCtx,
         weightsSha256: weights_sha256 ?? null,
-        engine, runtime,
+        lockDeclarationSha256: lock_declaration_sha256 ?? null,
+        engine, quantization, runtime,
         consistency,
         deid,
       }),
