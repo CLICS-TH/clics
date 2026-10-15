@@ -37,11 +37,13 @@ const fails = [];
 const check = (c, msg) => { console.log((c ? 'PASS ' : 'FAIL ') + msg); if (!c) fails.push(msg); };
 const json = (route, status, body) => route.fulfill({ status, headers: CORS, contentType: 'application/json', body: JSON.stringify(body) });
 
-async function scenario(browser, base, name, { onPost, onEnd, keyed = false, useClock = false, ceiling = null, getDelayMs = 0, colorScheme = 'light', reducedMotion = 'no-preference' }, drive) {
+async function scenario(browser, base, name, { onPost, onEnd, keyed = false, useClock = false, ceiling = null, getDelayMs = 0, colorScheme = 'light', reducedMotion = 'no-preference', width = 1000, height = 800, init = null }, drive) {
   console.log('\n== ' + name);
-  const ctx = await browser.newContext({ viewport: { width: 1000, height: 800 }, colorScheme, reducedMotion });
+  // Below 768px the context is a phone (touch, mobile UA), so the page sets html[data-mobile] as it would on one.
+  const ctx = await browser.newContext({ viewport: { width, height }, colorScheme, reducedMotion, ...(width < 768 ? { isMobile: true, hasTouch: true } : {}) });
   const page = await ctx.newPage();
   await page.addInitScript(() => { try { localStorage.setItem('clics_token', 'x'); } catch {} });
+  if (init) await page.addInitScript(init);
   const store = { messages: [], posts: [], gets: 0 };
   let n = 0;
   // keyed = the backend has the client_turn_id column: physician rows carry it (null when unkeyed).
@@ -549,6 +551,200 @@ await scenario(browser, base, 'W: the live bubble itself (liveReply): text grows
   check(r.afterReplace.trim() === '' && r.noteShown && /Refining/.test(r.noteText), 'replace clears the text under the refining note');
   check(r.hidden === 'true', 'live text is aria-hidden (the finished reply is announced once)');
   check(!r.dots, 'typing dots replaced');
+});
+
+// ---- The "thinking more deeply" line (SSE `status` { phase: 'thinking' }, the chat router's deep tier) ----
+// route.fulfill sends a whole body at once, so it cannot show the state BETWEEN `status` and the first delta.
+// Here the message POST is answered in the page instead: a fetch wrapper hands back a ReadableStream the test
+// writes one event at a time (__sse.push / close / fail). Every value #chatLive takes is kept in __live.
+const STREAM_HOOK = () => {
+  const orig = window.fetch.bind(window);
+  window.__sse = null;
+  window.__live = [];
+  window.fetch = (input, init = {}) => {
+    const url = typeof input === 'string' ? input : input.url;
+    if (/\/ples\/ple1\/message$/.test(url) && (init.method || 'GET') === 'POST') {
+      let ctrl; const enc = new TextEncoder();
+      const stream = new ReadableStream({ start(c) { ctrl = c; } });
+      window.__sse = {
+        push: (name, data) => ctrl.enqueue(enc.encode(`event: ${name}\ndata: ${JSON.stringify(data)}\n\n`)),
+        close: () => ctrl.close(),
+        fail: () => ctrl.error(new TypeError('network')),
+      };
+      return Promise.resolve(new Response(stream, { status: 200, headers: { 'content-type': 'text/event-stream; charset=utf-8' } }));
+    }
+    return orig(input, init);
+  };
+  document.addEventListener('DOMContentLoaded', () => {
+    const n = document.getElementById('chatLive');
+    if (n) new MutationObserver(() => { if (n.textContent) window.__live.push(n.textContent); }).observe(n, { childList: true, characterData: true, subtree: true });
+  });
+};
+const STREAMED = { init: STREAM_HOOK, onPost: ({ route }) => json(route, 500, { error: 'the message POST should have been answered in the page' }) };
+const THINK_TH = 'กำลังวิเคราะห์เชิงลึก…', THINK_EN = 'Thinking more deeply…';
+// Send with the button: on a phone, Enter is a new line.
+const streamSend = async (page, t = text) => {
+  await page.waitForFunction(() => !document.getElementById('sendBtn').disabled);
+  await page.evaluate(() => { window.__sse = null; });
+  await page.fill('#input', t); await page.click('#sendBtn');
+  await page.waitForFunction(() => !!window.__sse);
+};
+const push = (page, name, data) => page.evaluate(([n, d]) => window.__sse.push(n, d), [name, data]);
+const announcedThinking = (page) => page.evaluate((en) => window.__live.filter((t) => t.includes(en)).length, THINK_EN);
+const doneOk = (content) => ({ status: 200, body: { message_id: 'a1', content, refs: [], socratic_question: null, input_tokens: 1, output_tokens: 1 } });
+
+for (const colorScheme of ['light', 'dark']) for (const width of [320, 375, 768, 1280]) {
+  await scenario(browser, base, `X (${colorScheme}, ${width}px): status thinking -> one line in the pending bubble, readable, fits; the first delta replaces it`, {
+    ...STREAMED, colorScheme, width, height: width < 768 ? 740 : 800,
+  }, async ({ page }) => {
+    check(await page.evaluate(() => document.documentElement.hasAttribute('data-mobile')) === (width < 768), `data-mobile ${width < 768 ? 'set' : 'unset'} at ${width}px`);
+    await streamSend(page);
+    await push(page, 'status', { phase: 'thinking' });
+    await page.waitForSelector('#messages .typing-thinking', { timeout: 3000 });
+    await page.waitForTimeout(300);
+    const r = await page.evaluate(() => {
+      const n = document.querySelector('#messages .typing-thinking');
+      const b = n.closest('.msg-assistant');
+      const en = n.querySelector('.bi-en');
+      const br = b.getBoundingClientRect(), bs = getComputedStyle(b);
+      const range = document.createRange(); range.selectNodeContents(n.firstChild);
+      return {
+        th: n.firstChild.nodeValue, en: en.textContent, inPending: !!b.querySelector('.typing-dots'),
+        thPx: parseFloat(getComputedStyle(n).fontSize), enPx: parseFloat(getComputedStyle(en).fontSize),
+        fg: getComputedStyle(n).color, bg: bs.backgroundColor,
+        anim: getComputedStyle(n).animationName + '/' + getComputedStyle(en).animationName,
+        spill: document.documentElement.scrollWidth - window.innerWidth,
+        textRight: Math.max(range.getBoundingClientRect().right, en.getBoundingClientRect().right),
+        innerRight: br.right - parseFloat(bs.paddingRight) - parseFloat(bs.borderRightWidth),
+        bubbleRight: br.right, vw: window.innerWidth, clipped: n.scrollWidth > n.clientWidth + 0.5,
+      };
+    });
+    check(r.th === THINK_TH && r.en === THINK_EN, `copy: "${r.th}" / "${r.en}"`);
+    check(r.inPending, 'inside the pending bubble, typing dots still there');
+    check(r.thPx >= 15.33, `Thai ${r.thPx}px >= 15.33px (the 11.5pt body floor, --fs-body-th)`);
+    check(r.enPx >= 12, `English ${r.enPx}px >= 12px (the 9pt micro floor)`);
+    const cTh = await page.locator('#messages .typing-thinking').evaluate(CONTRAST);
+    const cEn = await page.locator('#messages .typing-thinking .bi-en').evaluate(CONTRAST);
+    check(cTh >= 4.5 && cEn >= 4.5, `contrast ${r.fg} on ${r.bg}: Thai ${cTh}:1, English ${cEn}:1 >= 4.5 (${colorScheme})`);
+    check(r.spill <= 0, `no horizontal page overflow (${r.spill}px)`);
+    check(r.textRight <= r.innerRight + 0.5 && r.bubbleRight <= r.vw && !r.clipped, `fits: text right ${r.textRight.toFixed(1)} <= ${r.innerRight.toFixed(1)}, bubble inside the viewport, not clipped`);
+    check(r.anim === 'none/none', `the line itself never animates (${r.anim}); the dots carry the motion`);
+    check(await announcedThinking(page) === 1, 'announced once through #chatLive');
+    await push(page, 'delta', { text: 'Amoxicillin 1 g' });
+    await page.waitForTimeout(150);
+    check(await count(page, '.typing-thinking') === 0, 'the first delta takes the line down');
+    check((await page.locator('#messages .msg-stream-body').innerText()).includes('Amoxicillin'), 'and the reply text shows');
+    await push(page, 'done', doneOk('Amoxicillin 1 g tds.'));
+    await bodyHas(page, 'Amoxicillin 1 g tds.');
+    check(await count(page, '.typing-thinking') === 0 && await count(page, '.msg-streaming') === 0, 'done: no line, no live bubble left');
+  });
+}
+
+await scenario(browser, base, 'Y: prefers-reduced-motion -> the line is static and the dots stop', { ...STREAMED, reducedMotion: 'reduce' }, async ({ page }) => {
+  await streamSend(page);
+  await push(page, 'status', { phase: 'thinking' });
+  await page.waitForSelector('#messages .typing-thinking', { timeout: 3000 });
+  const r = await page.evaluate(() => ({
+    line: getComputedStyle(document.querySelector('#messages .typing-thinking')).animationName,
+    dots: getComputedStyle(document.querySelector('#messages .typing-dots span')).animationName,
+  }));
+  check(r.line === 'none' && r.dots === 'none', `reduce: line ${r.line}, dots ${r.dots}`);
+});
+
+await scenario(browser, base, 'Z: unknown phase / event ignored; a second status neither draws nor announces it twice', STREAMED, async ({ page }) => {
+  await streamSend(page);
+  await push(page, 'status', { phase: 'searching' });
+  await push(page, 'ping', { x: 1 });
+  await push(page, 'status', {});
+  await push(page, 'status', null);
+  await page.waitForTimeout(300);
+  check(await count(page, '.typing-thinking') === 0, 'unknown phase, no phase, null data, unknown event: nothing shown');
+  check(await count(page, '.typing-dots') === 1, 'the pending bubble is untouched');
+  await push(page, 'status', { phase: 'thinking' });
+  await page.waitForTimeout(300);
+  await push(page, 'status', { phase: 'thinking' });
+  await page.waitForTimeout(300);
+  check(await count(page, '.typing-thinking') === 1, 'one line after two status events');
+  check(await announcedThinking(page) === 1, `announced once (${await announcedThinking(page)})`);
+});
+
+await scenario(browser, base, 'AA: a whitespace-only first delta keeps the line (never a blank bubble); real text replaces it', STREAMED, async ({ page }) => {
+  await streamSend(page);
+  await push(page, 'status', { phase: 'thinking' });
+  await page.waitForSelector('#messages .typing-thinking');
+  await push(page, 'delta', { text: '\n\n' });
+  await page.waitForTimeout(150);
+  check(await count(page, '.msg-streaming .typing-thinking') === 1, 'still shown after a whitespace-only delta');
+  await push(page, 'delta', { text: 'Real text' });
+  await page.waitForTimeout(150);
+  check(await count(page, '.typing-thinking') === 0, 'gone once text arrives');
+  check(await announcedThinking(page) === 1, 'announced once');
+});
+
+await scenario(browser, base, 'AB: replace takes the line down without re-showing it; another status brings it back', STREAMED, async ({ page }) => {
+  await streamSend(page);
+  await push(page, 'status', { phase: 'thinking' });
+  await page.waitForSelector('#messages .typing-thinking');
+  await push(page, 'delta', { text: 'DRAFT' });
+  await push(page, 'replace', { reason: 'citation' });
+  await page.waitForTimeout(150);
+  const refining = await page.locator('#messages .msg-streaming .typing-note:not(.typing-thinking)').isVisible();
+  check(await count(page, '.typing-thinking') === 0 && refining, 'after replace: the refining note, no thinking line');
+  await push(page, 'status', { phase: 'thinking' });
+  await page.waitForTimeout(300);
+  check(await count(page, '.msg-streaming .typing-thinking') === 1, 'another status: the line is back');
+  const order = await page.evaluate(() => [...document.querySelector('#messages .msg-streaming').children].map((c) => c.className));
+  check(order.indexOf('typing-note typing-thinking') < order.indexOf('msg-stream-body'), `above the reply text (${order.join(' > ')})`);
+  check(await announcedThinking(page) === 2, `announced again for the new appearance (${await announcedThinking(page)})`);
+  await push(page, 'delta', { text: 'CORRECTED' });
+  await page.waitForTimeout(150);
+  check(await count(page, '.typing-thinking') === 0, 'the next delta takes it down');
+  await push(page, 'done', doneOk('CORRECTED'));
+  await page.waitForFunction(() => document.body.innerText.includes('CORRECTED') && !document.querySelector('.msg-streaming'));
+  check(await count(page, '.typing-thinking') === 0, 'done: gone');
+});
+
+await scenario(browser, base, 'AC: status, then done 503 ai_busy before any text -> the busy notice, no line left', STREAMED, async ({ page }) => {
+  await streamSend(page);
+  await push(page, 'status', { phase: 'thinking' });
+  await page.waitForSelector('#messages .typing-thinking');
+  await push(page, 'done', { status: 503, body: { error: 'busy', code: 'ai_busy', retry_after_s: 20 } });
+  await bodyHas(page, 'AI is busy');
+  check(await count(page, '.typing-thinking') === 0, 'no thinking line left');
+  check(await page.inputValue('#input') === text, 'text restored');
+});
+
+for (const how of ['fail', 'close']) {
+  await scenario(browser, base, `AD (${how}): status, then the stream ${how === 'fail' ? 'errors' : 'ends without done'} -> settled as a dropped turn, no line left`, {
+    ...STREAMED, ceiling: 4000,
+  }, async ({ page, addTurn }) => {
+    await streamSend(page);
+    await push(page, 'status', { phase: 'thinking' });
+    await page.waitForSelector('#messages .typing-thinking');
+    addTurn(text, 'STORED AFTER BREAK');
+    await page.evaluate((h) => window.__sse[h](), how);
+    await page.waitForTimeout(200);
+    check(await count(page, '.typing-thinking') === 0, 'the line goes as soon as the stream breaks');
+    await bodyHas(page, 'STORED AFTER BREAK');
+    check(await count(page, '.typing-thinking') === 0, 'and stays gone after the settle');
+  });
+}
+
+await scenario(browser, base, 'AE: the thinking line replaces "Still working…", and keeps it from appearing once up', STREAMED, async ({ page }) => {
+  await page.evaluate(() => { AI_SLOW.afterMs = 400; });
+  await streamSend(page);
+  await page.waitForFunction(() => document.body.innerText.includes(AI_SLOW.en));
+  await push(page, 'status', { phase: 'thinking' });
+  await page.waitForTimeout(200);
+  const notes = await page.locator('#messages .typing-note').allInnerTexts();
+  check(notes.length === 1 && notes[0].includes(THINK_EN), `one status line, the specific one (${JSON.stringify(notes)})`);
+  await push(page, 'done', doneOk('R1'));
+  await bodyHas(page, 'R1');
+  await streamSend(page, 'second question');
+  await push(page, 'status', { phase: 'thinking' });
+  await page.waitForTimeout(800);
+  const notes2 = await page.locator('#messages .typing-note').allInnerTexts();
+  check(notes2.length === 1 && notes2[0].includes(THINK_EN), `"Still working…" never added under it (${JSON.stringify(notes2)})`);
 });
 
 await browser.close(); server.close();

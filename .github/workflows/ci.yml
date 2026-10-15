@@ -134,6 +134,17 @@ jobs:
       - name: Tamper tests against a throwaway PostgreSQL
         run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/audit-chain-tamper-test.sh
 
+  # store_chat_turn() with the chat router's trailing params (db/migration-chat-turn-flags.sql) is SQL the
+  # jest suites only model. This applies the migration twice to a real, throwaway PostgreSQL on top of its
+  # prerequisites and asserts: one function, unchanged security/grants, old-shape calls still resolve, the
+  # flags + superseded draft land on the assistant row, the widened CHECK, and the CT409 / 23505 refusals.
+  chat-turn-flags:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: store_chat_turn + middleware_flags against a throwaway PostgreSQL
+        run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/chat-turn-flags-test.sh
+
   # Calibration — three-way.js decides G0.5, the programme's go/no-go. Its output is a number an
   # operator writes into a protocol document, so a plausible-but-wrong figure is far worse here than
   # a crash. The same SCOPE-LEAK defect (a `--manifest` filter narrowing a set a later consumer still

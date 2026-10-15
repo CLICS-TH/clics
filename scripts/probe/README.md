@@ -19,12 +19,13 @@ They were authored while the tailnet was down and have never touched the box.
 | `json-contract.mjs` | **THE GATE.** Runs `PIS7_EVALUATOR_PROMPT` over de-identified transcripts and applies the identical validation `rimpl/src/routes/evaluate.js` applies. Reports parse rate, `finish_reason` distribution, output-token distribution, tokens/sec. Exits non-zero below 95%. |
 | `thai-probe.mjs` | **Is the Thai usable?** Runs Thai clinical turns under `RIMPL_SYSTEM_PROMPT_EXAMINER` and reports, per reply, the Thai-script share, whether a `(Source, Year)` citation is present, and whether it closes with a `❓` line — using `services/post-filter.js`, not a reimplementation. Prints every reply for a human to judge. |
 | `throughput.mjs` | **How many physicians at once?** Ramps concurrency 1→32 on a fixed prompt, reports p50/p95 latency and aggregate tokens/sec per level, and locates the saturation knee so `LOCAL_MAX_CONCURRENCY` comes from a measurement. Not a gate. |
-| `lib.mjs` | Shared config, raw HTTP/chat transport, stats, table printer. Not run directly. |
+| `lib.mjs` | Shared config, raw HTTP/chat transport, stats, table printer. Not run directly. `chatCompletionStream` is the TTFT probe: a streamed completion timed on two separate clocks, the first reasoning signal (when rimpl would send SSE `status`) and the first visible text. `readConfig({ prefix: 'LOCAL_TUTOR_AI_' })` reads the tutor instance's variables. |
 
 Everything that must stay single-source is **imported from `rimpl/`**, never copied:
 `PIS7_EVALUATOR_PROMPT`, `RIMPL_SYSTEM_PROMPT_EXAMINER`, `ARTIFACT_GUIDANCE`, `parseJsonObject`,
 `flattenForPrompt`, `deriveHintTokens`, `hasCitation`, `extractSocraticQuestion`,
-`extractReferences`, and `zod` itself (resolved from `rimpl/node_modules` so the schema check runs on
+`extractReferences`, the reasoning-markup rules (`lib/think-markup.js`), how a `thinking` flag reaches the
+server (`lib/thinking-control.js`), and `zod` itself (resolved from `rimpl/node_modules` so the schema check runs on
 the same version `evaluate.js` runs).
 
 Two small things *are* duplicated, deliberately, because the production modules do not export them —

@@ -12,6 +12,8 @@
 // Events before it:
 //   event: delta    data: {"text": "..."}               a piece of the reply, in order
 //   event: replace  data: {"reason": "citation"|...}    the text so far is being replaced by a retry
+//   event: status   data: {"phase": "thinking"}         the model is thinking (chat router); no text yet
+// A `status` before the first delta opens the stream, so a failure after it arrives as `done`.
 
 function sseStream(res) {
   let open = false;

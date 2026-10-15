@@ -13,9 +13,10 @@ const { pilotTestMode, clinicalArtifactsEnabled, holdResultUntilAudited, calibra
 const identity = require('../services/identity');
 const reflection = require('../services/reflection');
 const acceptability = require('../lib/acceptability');
-const { creditSettings, getSetting, transcriptCap, chatStreamingEnabled, chatEvidenceMarkerEnabled } = require('../lib/settings');
+const { creditSettings, getSetting, transcriptCap, chatStreamingEnabled, chatEvidenceMarkerEnabled, chatRouterEnabled } = require('../lib/settings');
 const { sseStream } = require('../lib/sse');
-const { recordSupersededDraft } = require('../services/superseded-draft');
+const { recordSupersededDraft, knownReason } = require('../services/superseded-draft');
+const { sanitizeMiddlewareFlags, recordMiddlewareFlags, latchDeepMode } = require('../services/middleware-flags');
 const { creditFor, creditTable } = require('../services/credit');
 const { COMPLETED_STATUSES } = require('../lib/ple-status');
 const { scanPle, flagRescueReplyBreach, recordReportedReply } = require('../services/integrity-scan');
@@ -57,6 +58,17 @@ async function requireBudget(req, res, next) {
 }
 
 // (toPassCols lives in services/ple-finalize — shared with the reconcile sweep.)
+
+// Columns of a `ples` row the physician is never sent. The two responses below that hand back the whole
+// row (create, GET /:id) go through physicianPle(). deep_mode_at is chat-router provenance (when the router
+// first went deep: services/middleware-flags.js); like messages.middleware_flags it is a research record,
+// not something the physician's portal reads or should be shown.
+const PHYSICIAN_HIDDEN_PLE_COLS = ['deep_mode_at'];
+function physicianPle(row) {
+  const out = { ...row };
+  for (const c of PHYSICIAN_HIDDEN_PLE_COLS) delete out[c];
+  return out;
+}
 
 // What the client shows about transcript size: { used, limit, pct, warn }. `warn` is the server's call
 // (warn_pct of the cap) so the portal never has to know the threshold.
@@ -211,7 +223,7 @@ router.post('/', requireConsent, requireVerifiedIdentity, requireBudget, async (
   logEvent({ actorId: req.user.id, actorRole: req.user.role, action: 'ple.create', targetType: 'ple',
     targetId: data.ple_code ?? data.id, councilId: req.user.council_id,
     metadata: { episode_number: episodeNumber, socratic_reason: socraticReason } });
-  res.status(201).json({ ...data, patient_ref: ref || null });
+  res.status(201).json({ ...physicianPle(data), patient_ref: ref || null });
 });
 
 // List physician's own PLEs
@@ -397,7 +409,7 @@ router.get('/:id', async (req, res) => {
     .select('patient_ref').eq('ple_id', req.params.id).eq('physician_id', req.user.id).maybeSingle();
 
   const cap = await transcriptCap();
-  res.json({ ...ple, patient_ref: ref?.patient_ref ?? null, messages: messages ?? [],
+  res.json({ ...physicianPle(ple), patient_ref: ref?.patient_ref ?? null, messages: messages ?? [],
     transcript: transcriptBlock(Number(ple.context_tokens ?? 0), cap),
     // How long one chat turn can still be in flight on the server (RIMPL_CHAT_TIMEOUT_MS + margin): the
     // portal sizes its lost-connection settle window from this instead of hard-coding the number.
@@ -475,6 +487,10 @@ async function replayKeyedTurn(req, res, next) {
     return res.status(500).json({ error: 'Could not check this message. Please try again.', code: 'turn_lookup_failed' });
   }
 }
+
+// The `status` phases a streamed turn may show the physician (rimpl's SSE `status` event). Only the phase
+// travels; a phase not listed here is dropped.
+const STATUS_PHASES = new Set(['thinking']);
 
 // Send a message turn
 router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, async (req, res) => {
@@ -595,6 +611,11 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
       socratic: ple.socratic_active === true, // CLE2 / remediation → Socratic clinical-examiner mode
       artifacts: await clinicalArtifactsEnabled(), // superadmin toggle → allow side-panel artifacts
       evidence_marker: await chatEvidenceMarkerEnabled(), // setting chat_evidence_marker → GRADE evidence line (CCME R5)
+      router_enabled: await chatRouterEnabled(), // setting chat_router_enabled → rimpl picks fast | deep per turn
+      // The deep-mode latch (services/middleware-flags.js): once a session has had a deep turn it stays
+      // deep. Read from the `*` row fetchOwnedPle returns, so before db/migration-chat-turn-flags.sql the
+      // column is simply absent (undefined → false) — no column list names it, so no select can fail on it.
+      deep_mode: !!ple.deep_mode_at,
       // CREC082 PLE Instruction Sheet §4 rescue. Both are latches: a rescued session stays rescued,
       // and a session that has qualified does not un-qualify — so RIMPL can skip the classifier.
       rescue_active: ple.rescue_activated_at != null,
@@ -603,12 +624,20 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
       // answer has not changed. Derived, not stored: rescue_exchanges_before is the turn count at
       // activation, so the difference IS the number of rounds spent in rescue.
       rescue_rounds: Math.max(0, (ple.turn_count ?? 0) - (ple.rescue_exchanges_before ?? 0)),
-      // Pieces of the reply go straight on to the physician; only `delta` and `replace` exist.
+      // Pieces of the reply go straight on to the physician: `delta` and `replace` as rimpl sent them,
+      // and `status` (the router's "thinking" phase) reduced to its known phase. Any other event name is
+      // not relayed — the stream to the physician is a whitelist like the final body.
       stream: !!sse,
       onEvent: sse ? (name, data) => {
-        if (name === 'delta' && typeof data?.text === 'string') onScreen += data.text;
-        else if (name === 'replace') onScreen = '';
-        sse.send(name, data);
+        if (name === 'delta') {
+          if (typeof data?.text === 'string') onScreen += data.text;
+          sse.send(name, data);
+        } else if (name === 'replace') {
+          onScreen = '';
+          sse.send(name, data);
+        } else if (name === 'status') {
+          if (STATUS_PHASES.has(data?.phase)) sse.send('status', { phase: data.phase });
+        }
       } : undefined,
     });
   } catch (err) {
@@ -668,13 +697,26 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
     await refundUsage(req.user.id, RESERVE_ESTIMATE_USD, reservation.applied);
     await releaseClaim();
   };
+  // What goes on the assistant row beside the reply: rimpl's per-turn middleware flags (whitelisted —
+  // never its JSON as it came), and a streamed draft a corrective retry replaced, with the reason only if
+  // the CHECK constraint knows it. With db/migration-chat-turn-flags.sql they are stored IN the turn's
+  // transaction; without it (`extrasStored` false) they are written separately further down.
+  const middlewareFlags = sanitizeMiddlewareFlags(rimplResponse.middleware_flags);
+  const supersededDraft = typeof rimplResponse.superseded_draft === 'string' && rimplResponse.superseded_draft
+    ? rimplResponse.superseded_draft : null;
+  let extrasStored = false;
   const atomic = await turnIdem.storeTurnAtomic({
     pleId: req.params.id, key: keyStored ? turnKey : null,
     physician: { content: message, token_count: physicianTokens },
     assistant: rimplResponse,
     replacePhysicianId: keyStored ? replaceOrphanId : null,
+    middlewareFlags,
+    supersededDraft,
+    supersededReason: supersededDraft ? knownReason(rimplResponse.superseded_reason) : null,
   });
-  if (atomic.state === 'stored') { storedAtomically = true; assistantRow = { id: atomic.assistantId }; }
+  if (atomic.state === 'stored') {
+    storedAtomically = true; assistantRow = { id: atomic.assistantId }; extrasStored = atomic.withExtras === true;
+  }
   else if (atomic.state === 'duplicate') return loseToConcurrent();
   else if (atomic.state === 'not_active') {
     await refundAndRelease();   // nothing stored; a repaired orphan is untouched (the delete rolled back)
@@ -687,6 +729,7 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
       if (check.state === 'done' && check.assistant.content === rimplResponse.content) {
         console.warn(`[turn-idem] PLE ${req.params.id}: store_chat_turn reported an error but the turn is stored — continuing`);
         storedAtomically = true; assistantRow = { id: check.assistant.id };
+        extrasStored = atomic.withExtras === true;   // the call that committed carried them, or did not
       } else {
         // Logged, because if the commit lands AFTER this read (a slow commit) the turn is in the record
         // although the physician was refunded and told it failed — this line is how that case is found.
@@ -872,8 +915,20 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
   if (claimToken) await (keyStored ? turnIdem.completeClaim(req.params.id, turnKey, claimToken) : releaseClaim());
   // A streamed draft the corrective retry replaced: the physician saw it, so the record keeps it beside
   // the reply that replaced it. Never on the scored transcript (content), never sent back to the client.
-  if (rimplResponse.superseded_draft && assistantRow?.id) {
-    await recordSupersededDraft(assistantRow.id, rimplResponse.superseded_draft, rimplResponse.superseded_reason);
+  // The middleware flags likewise. Already in the stored turn when store_chat_turn took them
+  // (extrasStored) — writing them again here would be a second, non-atomic write of the same thing.
+  // Otherwise (old signature, two-insert fallback) each is its own update, skipped with a throttled log
+  // while its column is missing.
+  if (!extrasStored && assistantRow?.id) {
+    if (supersededDraft) await recordSupersededDraft(assistantRow.id, supersededDraft, rimplResponse.superseded_reason);
+    if (middlewareFlags) await recordMiddlewareFlags(assistantRow.id, middlewareFlags);
+  }
+  // Sticky deep mode: the first deep turn latches ples.deep_mode_at (set once, `.is(null)` in the write).
+  // Only a deep turn that was APPLIED (thinking === true): a turn routed deep on a provider that cannot
+  // think (thinking null) changed nothing, and latching it would start the session sticky-deep the moment
+  // chat moves to a model that can. A failed latch is logged and does not fail the turn.
+  if (middlewareFlags?.tier === 'deep' && middlewareFlags.thinking === true && ple.deep_mode_at == null) {
+    await latchDeepMode(req.params.id);
   }
 
   // Settle the reservation to the turn's REAL cost, priced against the provider that ACTUALLY served
@@ -892,8 +947,8 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
   }));
 
   // A WHITELIST, never a spread of rimpl's body. That body also carries provider / model /
-  // prompt_version / failed_over_from / rescue — research provenance that would tell a physician which
-  // arm they are in (and that the rescue fired). physician-ui reads exactly these fields.
+  // prompt_version / failed_over_from / rescue / middleware_flags — research provenance that would tell
+  // a physician which arm they are in (and that the rescue fired). physician-ui reads exactly these fields.
   out().json({
     // The stored assistant row's id (null only if the insert returned no row). Not provenance: it is
     // the same id GET /ples/:id already returns for every message.

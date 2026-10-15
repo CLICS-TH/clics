@@ -53,6 +53,16 @@ async function chatEvidenceMarkerEnabled() {
   return (await getSetting('chat_evidence_marker', 0)) === 1;
 }
 
+// Chat router (app setting `chat_router_enabled`, default OFF): when ON, RIMPL picks a tier per turn
+// (fast | deep — how much thinking the tutor model gets) and reports it in `middleware_flags`. The
+// backend forwards the setting as `router_enabled`, stores the flags on the assistant row
+// (messages.middleware_flags) and latches ples.deep_mode_at the first time a session gets a deep turn
+// with thinking applied, so it stays deep (`deep_mode`). Off sends RIMPL `router_enabled: false` and a turn is answered exactly
+// as it is today. A tutor-behaviour change, so like clinical_artifacts it is switched on deliberately.
+async function chatRouterEnabled() {
+  return (await getSetting('chat_router_enabled', 0)) === 1;
+}
+
 // Peer Calibration (superadmin toggle): when ON, a PLE may be assigned to several auditors and the
 // auditor reveal pane shows a you-vs-auditor-average PIS-7 radar. Default OFF (single-auditor blind audit).
 async function peerCalibrationEnabled() {
@@ -197,5 +207,5 @@ async function creditSettings() {
 }
 
 module.exports = {
-  chatStreamingEnabled, chatEvidenceMarkerEnabled,
+  chatStreamingEnabled, chatEvidenceMarkerEnabled, chatRouterEnabled,
   calibrationRevealLocked, getSetting, getTextSetting, iccGates, transcriptCap, minAuditorsPerPle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };

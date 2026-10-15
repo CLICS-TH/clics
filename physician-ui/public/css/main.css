@@ -340,7 +340,8 @@ body:has(.chat-page) nav { flex:none; }
 .msg-physician { align-self:flex-end; background:var(--coral-active); color:var(--on-primary); padding:13px 17px; border-radius:18px 18px 5px 18px; max-width:78%; min-width:0; overflow-wrap:anywhere; line-height:1.6; box-shadow:0 1px 2px rgba(20,20,19,0.08); }
 .msg-assistant { align-self:flex-start; background:var(--surface-card); border:1px solid var(--hairline); padding:18px 20px; border-radius:18px 18px 18px 5px; max-width:90%; min-width:0; color:var(--body-color); overflow-wrap:anywhere; line-height:1.72; box-shadow:0 1px 3px rgba(20,20,19,0.05); }
 
-/* Line shown in the typing bubble once a turn has run long (js/ui.js armSlowNote). */
+/* A status line in the typing bubble: the turn has run long (js/ui.js armSlowNote), the model is reasoning before it
+   writes (.typing-thinking) or a reply is being corrected (ple-chat.js liveReply). --muted on the --surface-card bubble. */
 .typing-note { margin-top:6px; font-size:var(--fs-body-th); color:var(--muted); line-height:1.5; }
 .typing-note .bi-en { font-size:.84em; }
 

@@ -51,7 +51,7 @@ Deploys run from the **local working tree** (not GitHub). Backend + RIMPL on **R
   rimpl refuses it for evaluate / criteria / embed, and `/health/deep` reports it as `local_tutor_ai`
   only while it is routed. Backend bills it at `LOCAL_TUTOR_INPUT_PER_M` / `_OUTPUT_PER_M` (default 0).
 - **backend, `/health/deep` queue verdict (2026-09-03, optional — defaults shown):** `HEALTH_PROBE_TIMEOUT_MS=2000`, `HEALTH_QUEUE_STUCK_S=900`, `HEALTH_QUEUE_STUCK_ETA_MULTIPLE=3`. The evaluation queue can now fail the verdict, so `/health/deep` answering 200 finally means the drain is claiming work. The stuck grace is `max(HEALTH_QUEUE_STUCK_S, predicted_wait × multiple)` where the prediction uses the same `eval_drain_concurrency` / `eval_p50_seconds` the physician's queue ETA uses — raise the multiple if a legitimate cohort backlog ever reads red.
-- **rimpl** (Railway): `INTERNAL_TOKEN` (must match backend byte-for-byte), `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `PORT=3003`. Local-model lanes (optional, defaults): `LOCAL_MAX_CONCURRENCY=2`, `LOCAL_INTERACTIVE_RESERVE=1`, `LOCAL_MAX_QUEUE_INTERACTIVE=4`, `LOCAL_MAX_QUEUE_BACKGROUND=2`, `RIMPL_BODY_LIMIT=2mb`. `RIMPL_CHAT_OPTIONAL_RETRY_CUTOFF_MS` (default `50000`): a language-only or evidence-only chat retry that would start later than this into the turn is skipped and the first reply is delivered. Keep it at about **half the backend's `RIMPL_CHAT_TIMEOUT_MS`** (50000 for the default 100000; about 75000 on the local stack, where `RIMPL_CHAT_TIMEOUT_MS=150000` per `docs/GATE0-DGX-RESULTS.md`), and change the two together. It applies to the **language retry even with `chat_evidence_marker` off**. **Never set `PROVIDER_SETTINGS_SOURCE=env` in prod (rimpl refuses to boot); leave `CHAT_FAILOVER_PROVIDER` unset (CREC decision pending).**
+- **rimpl** (Railway): `INTERNAL_TOKEN` (must match backend byte-for-byte), `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `PORT=3003`. Local-model lanes (optional, defaults): `LOCAL_MAX_CONCURRENCY=2`, `LOCAL_INTERACTIVE_RESERVE=1`, `LOCAL_MAX_QUEUE_INTERACTIVE=4`, `LOCAL_MAX_QUEUE_BACKGROUND=2`, `RIMPL_BODY_LIMIT=2mb`. `RIMPL_CHAT_OPTIONAL_RETRY_CUTOFF_MS` (default `50000`): a language-only or evidence-only chat retry that would start later than this into the turn is skipped and the first reply is delivered. Keep it at about **half the backend's `RIMPL_CHAT_TIMEOUT_MS`** (50000 for the default 100000; about 75000 on the local stack, where `RIMPL_CHAT_TIMEOUT_MS=150000` per `docs/GATE0-DGX-RESULTS.md`), and change the two together. It applies to the **language retry even with `chat_evidence_marker` off**. `RIMPL_CHAT_DEEP_MAX_TOKENS` (default `RIMPL_CHAT_MAX_TOKENS` + 4000 = `8000`, never below the fast ceiling): the `max_tokens` of a chat turn the router serves deep with thinking on, since reasoning tokens count against it. Read only when `chat_router_enabled` = 1 and the chat provider can think. **Never set `PROVIDER_SETTINGS_SOURCE=env` in prod (rimpl refuses to boot); leave `CHAT_FAILOVER_PROVIDER` unset (CREC decision pending).**
 - **audit-dashboard** (Vercel): `NEXT_PUBLIC_API_URL`.
 
 ## Seed the 4 role accounts (idempotent)
@@ -111,6 +111,32 @@ is true and `GET /oversight/audit-log/verify` answers `consistent`. Then record 
 `/health/deep` → `checks.audit_chain` somewhere outside Supabase; that copy is the anchor that turns
 `consistent` into `intact`. From then on, `audit_log` refuses UPDATE / DELETE / TRUNCATE for every role,
 so no script may clean it up.
+
+**`migration-chat-turn-flags.sql` (chat router): either order is safe; apply the migration first if you
+can.** It needs `migration-message-provenance.sql` and `migration-message-client-turn-id.sql` already
+applied. It adds `messages.middleware_flags` and `ples.deep_mode_at`, lets `messages_superseded_reason_check`
+accept `'evidence'`, and replaces `store_chat_turn` with ONE function that has three trailing, defaulted
+params (`p_middleware_flags`, `p_superseded_draft`, `p_superseded_reason`), so the flags and a streamed
+draft are stored in the turn's own transaction.
+- *Migration first (preferred):* the deployed backend's old call, with the 12 old param names, resolves to
+  the new function through the defaults, so nothing changes for it. `scripts/db/chat-turn-flags-test.sh`
+  asserts this.
+- *Code first:* also safe, but until the migration lands every turn costs a failed RPC (the new signature)
+  before the old-signature retry, plus a failed PATCH while `middleware_flags` is missing. The draft and the
+  flags are then written as separate updates, and the backend logs `[turn-idem] store_chat_turn has only its
+  old 12-param signature` and `[router] … missing`, throttled. The turn itself is unaffected.
+
+The file is re-runnable. If `migration-message-client-turn-id.sql` is ever re-run after it, re-run this one
+too, because the old file re-creates the 12-param overload. Verified by `scripts/db/chat-turn-flags-test.sh`
+(CI job `chat-turn-flags`). Gate, which returns `1|15` once applied:
+`select count(*), max(pronargs) from pg_proc where proname = 'store_chat_turn';`
+
+**App setting `chat_router_enabled`** (0/1, default 0; a missing row means off): when 1, the backend sends
+rimpl `router_enabled: true`, and rimpl picks a fast or deep tier for each turn. It has no superadmin
+toggle, so set the row directly (`insert into app_settings (key, value) values ('chat_router_enabled', 1)
+on conflict (key) do update set value = excluded.value`). **`migration-chat-turn-flags.sql` MUST be applied
+before it is set to 1** (check the gate above). Without the migration, deep mode cannot stick to a session
+and the per-turn flags are not recorded.
 
 **Deploy ordering:** apply `migration-usage-reserve.sql` + `migration-eval-unique.sql` BEFORE (or with)
 a backend deploy — never a new backend against a DB missing them. (`migration-eval-unique.sql` was

@@ -1,0 +1,86 @@
+{
+  "ignore": {
+    "en": [
+      "mg/dl", "mg/l", "mg/mmol", "mg/g", "mg%", "mg/24h", "mg/24 h", "serum mg",
+      "child-pugh", "child pugh", "child-bearing", "child bearing", "as a child"
+    ],
+    "th": [
+      "มก./ดล.", "มก./ดล", "มก./ล.", "มก.%", "มิลลิกรัมต่อเดซิลิตร", "มิลลิกรัมเปอร์เซ็นต์",
+      "ตั้งแต่เด็ก", "ตั้งแต่วัยเด็ก", "ตอนเด็ก", "ตอนเป็นเด็ก", "สมัยเด็ก", "สมัยเป็นเด็ก",
+      "ตั้งแต่วัยรุ่น", "ตอนวัยรุ่น", "สมัยวัยรุ่น"
+    ]
+  },
+  "categories": [
+    {
+      "name": "dosing",
+      "en": [
+        "dose*", "dosing", "dosage*", "overdose*", "titrat*", "posology",
+        "mg", "mcg", "ml/kg", "units/kg", "unit/kg", "per kg"
+      ],
+      "th": [
+        "ขนาดยา", "ปริมาณยา", "ปรับขนาด", "ยาเกินขนาด", "มิลลิกรัม", "ไมโครกรัม", "มก.", "มล./กก.",
+        "ต่อกิโลกรัม", "วันละกี่ครั้ง", "กี่เม็ด", "กี่ซีซี"
+      ]
+    },
+    {
+      "name": "interaction",
+      "en": [
+        "drug interaction*", "drug-drug interaction*", "interact* with", "interaction* between",
+        "co-prescrib*", "coadminist*", "co-administ*"
+      ],
+      "th": [
+        "ยาตีกัน", "ยาที่ตีกัน", "ปฏิกิริยาระหว่างยา", "อันตรกิริยา", "ใช้ร่วมกับยา", "กินร่วมกับ",
+        "ให้ร่วมกับ", "ใช้ร่วมกันได้", "กินด้วยกันได้"
+      ]
+    },
+    {
+      "name": "pregnancy",
+      "en": [
+        "pregnan*", "gestation*", "trimester*", "breastfeed*", "breast-feed*", "breast feeding",
+        "lactation", "lactating", "nursing mother*", "postpartum", "post-partum", "antenatal",
+        "prenatal", "teratogen*", "obstetric*", "conceive", "eclampsia", "preeclampsia", "pre-eclampsia"
+      ],
+      "th": [
+        "ครรภ์", "ตั้งท้อง", "แพ้ท้อง", "ให้นมบุตร", "ให้นมลูก", "นมแม่", "คลอด", "ไตรมาส",
+        "ประจำเดือนขาด"
+      ]
+    },
+    {
+      "name": "paediatric",
+      "en": [
+        "child", "children", "infant*", "neonat*", "newborn*", "paediatric*", "pediatric*", "paeds",
+        "peds", "toddler*", "kid", "kids", "baby", "babies", "adolescen*", "teen", "teens", "teenager*",
+        "juvenile", "preterm", "nicu", "picu", "school-age*", "month-old", "months-old", "week-old",
+        "weeks-old", "day-old", "days-old"
+      ],
+      "th": [
+        "เด็ก", "ทารก", "กุมาร", "ขวบ", "วัยรุ่น"
+      ]
+    },
+    {
+      "name": "differential",
+      "en": [
+        "differential diagnos*", "differentials", "ddx", "d/dx", "rule out", "ruling out", "r/o",
+        "what else could", "other causes", "possible causes", "other possibilities", "likely diagnos*",
+        "what could this be", "what could it be"
+      ],
+      "th": [
+        "วินิจฉัยแยก", "แยกโรคจาก", "แยกจากโรค", "โรคอะไรได้บ้าง", "ภาวะอะไรได้บ้าง", "คิดถึงโรคอะไร",
+        "นึกถึงโรคอะไร", "สาเหตุที่เป็นไปได้", "สาเหตุอื่น"
+      ]
+    },
+    {
+      "name": "explicit",
+      "en": [
+        "in depth", "in-depth", "in detail", "more detail", "more details", "detailed explanation",
+        "explain thoroughly", "step by step", "step-by-step", "elaborate", "deep dive", "think carefully",
+        "think it through"
+      ],
+      "th": [
+        "อธิบายละเอียด", "อธิบายอย่างละเอียด", "วิเคราะห์อย่างละเอียด", "ขอรายละเอียด", "ลงรายละเอียด",
+        "ละเอียดกว่านี้", "ละเอียดขึ้น", "อธิบายเพิ่มเติม", "เชิงลึก", "เจาะลึก", "ลงลึก", "อย่างลึกซึ้ง",
+        "ทีละขั้น", "คิดอย่างรอบคอบ"
+      ]
+    }
+  ]
+}

@@ -4,6 +4,27 @@
 // is derived from the SAME number and can never fall under a legitimate reply.
 const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));
 
+// Per-reply ceiling for the FIRST call of a DEEP turn of the fast/deep router (services/router.js), used
+// only when the router is on AND the chat provider honours `thinking` (routes/chat.js). A corrective retry
+// never thinks, so it runs at CHAT_MAX_TOKENS even after a deep first call. RIMPL_CHAT_DEEP_MAX_TOKENS.
+//
+// WHY LARGER THAN CHAT_MAX_TOKENS: on every OpenAI-compatible server the reasoning tokens count against
+// max_tokens. A deep ceiling equal to the fast one would let the reasoning eat the reply: a model that
+// thought for 3000 tokens would have 1000 left for an answer the fast tier gives 4000. So the default is
+// the fast ceiling PLUS a reasoning allowance, and the ceiling is floored at the fast one — a deep turn
+// never has less room for its reply than a fast turn.
+//
+// WHY THIS ALLOWANCE (4000, so 8000 by default): a clinical reasoning trace on the CCME tutor class of
+// model runs ~1-3k tokens; 4000 covers that with headroom, while still stopping a runaway at twice the
+// fast ceiling. On the measured on-prem decode rate (~21 tok/s, docs/ARCHITECTURE-MAPPING-CCME.md §2)
+// the backend's chat deadline (RIMPL_CHAT_TIMEOUT_MS: 100 s, 150 s on the local stack) binds at ~2-3k
+// generated tokens, i.e. BEFORE this ceiling: on that box the deadline, not the ceiling, ends a turn
+// that reasons too long. A larger ceiling would buy nothing there; a smaller one would truncate replies
+// on a faster box. Cost is the tokens actually generated, not the ceiling.
+const DEEP_REASONING_ALLOWANCE = 4000;
+const deepEnv = parseInt(process.env.RIMPL_CHAT_DEEP_MAX_TOKENS ?? '', 10);
+const CHAT_DEEP_MAX_TOKENS = Math.max(CHAT_MAX_TOKENS, Number.isFinite(deepEnv) ? deepEnv : CHAT_MAX_TOKENS + DEEP_REASONING_ALLOWANCE);
+
 // Longest content one transcript / history turn may carry into /chat and /audit-discuss.
 //
 // Why a cap at all: guest history is held by an anonymous client and replayed each turn, and every
@@ -12,11 +33,16 @@ const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKEN
 //
 // Why this size: it must NEVER reject a real turn, because on the scored path a 400 here fails the
 // physician's CLE. Physician turns are capped at 5000 chars by the backend (MessageSchema, guest.js).
-// An assistant turn is one model reply, at most CHAT_MAX_TOKENS tokens (the stored content is that reply
-// text, see routes/chat.js). Thai runs ~1-2 chars/token and English ~4, so 6 chars/token is a generous
-// upper bound: 24000 chars at the default 4000 tokens. Raising RIMPL_CHAT_MAX_TOKENS raises the cap
-// with it. The backend guest route uses the same 24000 (backend/src/routes/guest.js); keep them aligned.
-const MAX_TURN_CHARS = Math.max(24000, CHAT_MAX_TOKENS * 6);
+// An assistant turn is one model reply, at most CHAT_MAX_TOKENS tokens — or CHAT_DEEP_MAX_TOKENS on a
+// deep turn of the router (the stored content is that reply text, see routes/chat.js; reasoning is
+// stripped, but a model that did not reason could fill the whole deep ceiling with reply). Thai runs
+// ~1-2 chars/token and English ~4, so 6 chars/token is a generous upper bound: 48000 chars at the
+// default 8000 deep tokens (24000 at the fast 4000). Sized from the LARGER ceiling whether or not the
+// router is on now: chat_router_enabled is a live setting, and a deep reply stored while it was on stays
+// in the history after it is switched off — a cap sized from the fast ceiling would then 400 every later
+// turn of that PLE. Raising either env raises the cap with it. The backend guest route has its own copy
+// (backend/src/routes/guest.js, 24000); it must be raised with this if guest turns can ever be routed deep.
+const MAX_TURN_CHARS = Math.max(24000, Math.max(CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS) * 6);
 
 // The evidence marker's marker-ONLY retry (routes/chat.js) asks for one line, never a reply. Sized from
 // the longest valid line (lib/prompts.js EVIDENCE_LEVELS, "…ความเห็นผู้เชี่ยวชาญ (Evidence for the main
@@ -37,4 +63,4 @@ const OPTIONAL_RETRY_CUTOFF_DEFAULT_MS = 50000;
 const cutoffEnv = parseInt(process.env.RIMPL_CHAT_OPTIONAL_RETRY_CUTOFF_MS ?? '', 10);
 const CHAT_OPTIONAL_RETRY_CUTOFF_MS = Number.isFinite(cutoffEnv) && cutoffEnv >= 0 ? cutoffEnv : OPTIONAL_RETRY_CUTOFF_DEFAULT_MS;
 
-module.exports = { CHAT_MAX_TOKENS, MAX_TURN_CHARS, EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS };
+module.exports = { CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS, MAX_TURN_CHARS, EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS };

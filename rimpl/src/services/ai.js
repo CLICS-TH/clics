@@ -113,6 +113,26 @@ async function resolveProviderName(purpose) {
   return providerFor(purpose).name;
 }
 
+// Does the provider NAMED here honour a `thinking` request? Asked by routes/chat.js after a call, of
+// the provider that actually ANSWERED it (a fail-over, or a toggle flipped between the question below
+// and the call, can make that a different one), so a turn is never recorded as thinking on a provider
+// that ignores the flag. A provider says so itself (providers/local-factory.js supportsThinking: its
+// <PREFIX>THINKING_STYLE is set); one that has no such method does not: Anthropic ignores `thinking`
+// altogether (providers/anthropic.js), so it is false. An unknown name is false, never a throw: this is
+// a description of a call that already happened.
+function supportsThinking(name) {
+  const provider = PROVIDERS[String(name || '').trim().toLowerCase()];
+  return typeof provider?.supportsThinking === 'function' && provider.supportsThinking() === true;
+}
+
+// The same question BEFORE a call: resolve the provider for `purpose` exactly as an unpinned callAI
+// would (database layer included, validated — resolveProviderName above), then ask it. routes/chat.js
+// applies the fast/deep router's tier (services/router.js) only when this is true, so a deployment
+// whose chat provider cannot think sends byte-identical requests whether the router is on or off.
+async function providerSupportsThinking(purpose) {
+  return supportsThinking(await resolveProviderName(purpose));
+}
+
 // ---------------------------------------------------------------------------------------------
 // Chat fail-over — DORMANT. Ships with CHAT_FAILOVER_PROVIDER unset, which changes nothing anywhere.
 //
@@ -210,7 +230,8 @@ function failoverProviderFor(primary) {
 // `onReasoning()` (optional, streamed calls only): called once, with nothing, when the reply's
 // reasoning starts arriving, so a caller can show "thinking…". The reasoning text never leaves the
 // provider. It does NOT commit the turn the way onDelta does: no reply text has been shown yet.
-// Nobody passes either yet.
+// routes/chat.js passes both only with the fast/deep router on (`router_enabled`): `thinking` when the
+// chat provider honours it (providerSupportsThinking), `onReasoning` on a streamed turn.
 async function callAI({ purpose, provider: pinned, systemPrompt, messages, maxTokens, temperature, signal, onDelta, thinking, onReasoning }) {
   if (purpose && !PURPOSES.includes(purpose)) {
     throw new Error(`Unknown AI purpose "${purpose}". Valid: ${PURPOSES.join(', ')}`);
@@ -527,7 +548,7 @@ function providerSettingsStatus() {
 }
 
 module.exports = {
-  callAI, callProvider, embedText, ragEnabled, resolveProviderName,
+  callAI, callProvider, embedText, ragEnabled, resolveProviderName, providerSupportsThinking, supportsThinking,
   activeProviders, defaultProvider, modelsByPurpose, providerNameFor, embedProviderName,
   providerSettingsStatus, readiness, probeProvider, isProviderDown, servesPurpose,
   PURPOSES, PROVIDERS, EMBED_PROVIDERS, EMBED_PURPOSE, SETTING_PURPOSES, PROVIDER_PURPOSES,

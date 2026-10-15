@@ -16,7 +16,7 @@ jest.mock('../src/lib/supabase', () => ({
 const request = require('supertest');
 const app = require('../src/index');
 const { callAI } = require('../src/services/ai');
-const { CHAT_MAX_TOKENS, MAX_TURN_CHARS } = require('../src/lib/turn-limits');
+const { CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS, MAX_TURN_CHARS } = require('../src/lib/turn-limits');
 
 beforeEach(() => callAI.mockClear());
 
@@ -24,6 +24,32 @@ describe('turn length caps', () => {
   test('the cap sits safely above the largest possible chat reply (6 chars/token) and the 5000-char physician cap', () => {
     expect(MAX_TURN_CHARS).toBeGreaterThanOrEqual(CHAT_MAX_TOKENS * 6);
     expect(MAX_TURN_CHARS).toBeGreaterThanOrEqual(24000);
+  });
+
+  test('a DEEP reply (the router\'s larger ceiling) fits too — the cap is sized from the larger of the two', () => {
+    expect(CHAT_DEEP_MAX_TOKENS).toBeGreaterThanOrEqual(CHAT_MAX_TOKENS);
+    expect(MAX_TURN_CHARS).toBeGreaterThanOrEqual(CHAT_DEEP_MAX_TOKENS * 6);
+  });
+
+  test('RIMPL_CHAT_DEEP_MAX_TOKENS: default = fast ceiling + 4000 reasoning; floored at the fast ceiling; garbage = default', () => {
+    const load = (env) => {
+      const saved = { d: process.env.RIMPL_CHAT_DEEP_MAX_TOKENS, f: process.env.RIMPL_CHAT_MAX_TOKENS };
+      try {
+        for (const [k, v] of Object.entries(env)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+        let mod;
+        jest.isolateModules(() => { mod = require('../src/lib/turn-limits'); });
+        return mod;
+      } finally {
+        for (const [k, v] of [['RIMPL_CHAT_DEEP_MAX_TOKENS', saved.d], ['RIMPL_CHAT_MAX_TOKENS', saved.f]]) {
+          if (v === undefined) delete process.env[k]; else process.env[k] = v;
+        }
+      }
+    };
+    expect(load({ RIMPL_CHAT_DEEP_MAX_TOKENS: undefined, RIMPL_CHAT_MAX_TOKENS: undefined }))
+      .toMatchObject({ CHAT_MAX_TOKENS: 4000, CHAT_DEEP_MAX_TOKENS: 8000, MAX_TURN_CHARS: 48000 });
+    expect(load({ RIMPL_CHAT_DEEP_MAX_TOKENS: '12000', RIMPL_CHAT_MAX_TOKENS: undefined }).CHAT_DEEP_MAX_TOKENS).toBe(12000);
+    expect(load({ RIMPL_CHAT_DEEP_MAX_TOKENS: '1000', RIMPL_CHAT_MAX_TOKENS: undefined }).CHAT_DEEP_MAX_TOKENS).toBe(4000);
+    expect(load({ RIMPL_CHAT_DEEP_MAX_TOKENS: 'auto', RIMPL_CHAT_MAX_TOKENS: '6000' }).CHAT_DEEP_MAX_TOKENS).toBe(10000);
   });
 
   test('/chat: an over-length history item is a 400 and no model is called', async () => {

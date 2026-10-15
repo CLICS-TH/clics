@@ -577,3 +577,44 @@ describe('r3_distinct_models (readiness)', () => {
     expect(await ai.probeProvider('local-tutor', 'chat')).toMatchObject({ fit: true });
   });
 });
+
+// ---------------------------------------------------------------------------
+// providerSupportsThinking / supportsThinking — the capability routes/chat.js asks before it applies the
+// fast/deep router's tier, and after the call of the provider that answered. Resolution must be callAI's.
+describe('thinking capability (the router applies a tier only where it changes the request)', () => {
+  afterEach(() => { delete mockTutor.supportsThinking; delete mockLocal.supportsThinking; });
+
+  test('Anthropic (the default) has no such method: false, and nothing is called', async () => {
+    expect(await ai.providerSupportsThinking('chat')).toBe(false);
+    expect(ai.supportsThinking('anthropic')).toBe(false);
+    expect(mockAnthropic.call).not.toHaveBeenCalled();
+  });
+
+  test('resolves the provider for the purpose exactly as callAI would, then asks IT', async () => {
+    mockTutor.supportsThinking = jest.fn(() => true);
+    mockLocal.supportsThinking = jest.fn(() => false);
+    process.env.AI_PROVIDER_CHAT = 'local-tutor';
+    expect(await ai.providerSupportsThinking('chat')).toBe(true);
+    process.env.AI_PROVIDER_CHAT = 'local';
+    expect(await ai.providerSupportsThinking('chat')).toBe(false);
+    // The database layer wins over env, as in callAI.
+    const spy = jest.spyOn(settings, 'overrideFor').mockImplementation((p) => (p === 'chat' ? 'local-tutor' : undefined));
+    try { expect(await ai.providerSupportsThinking('chat')).toBe(true); } finally { spy.mockRestore(); }
+    expect(mockTutor.call).not.toHaveBeenCalled();   // a capability question never makes a model call
+  });
+
+  test('only a literal true counts; an unknown name is false (it describes a call already made), never a throw', () => {
+    mockTutor.supportsThinking = () => 'yes';
+    expect(ai.supportsThinking('local-tutor')).toBe(false);
+    mockTutor.supportsThinking = () => true;
+    expect(ai.supportsThinking(' Local-Tutor ')).toBe(true);
+    expect(ai.supportsThinking('nope')).toBe(false);
+    expect(ai.supportsThinking(undefined)).toBe(false);
+  });
+
+  test('a purpose routed to a provider that may not serve it fails as loudly as callAI would', async () => {
+    mockTutor.supportsThinking = () => true;
+    process.env.AI_PROVIDER_EVALUATE = 'local-tutor';
+    await expect(ai.providerSupportsThinking('evaluate')).rejects.toThrow(/cannot serve "evaluate"/);
+  });
+});

@@ -454,3 +454,53 @@ describe('THINK_PREOPENED is per instance', () => {
     expect(isProviderDown(Object.assign(new Error('x'), { status: 502 }))).toBe(true);   // an ordinary 5xx still is
   });
 });
+
+// ---------------------------------------------------------------------------
+// supportsThinking() — what services/ai.js providerSupportsThinking asks before routes/chat.js applies
+// the fast/deep router's tier. It must mean exactly "a `thinking` request changes the body".
+describe('supportsThinking — true iff this instance would send a thinking field', () => {
+  const sent = () => JSON.parse(fetchMock.mock.calls.at(-1)[1].body);
+
+  test.each(['local', 'local-tutor'])('%s: unset / none / unknown -> false; a real style -> true', (which) => {
+    const prefix = which === 'local' ? 'LOCAL_AI_' : 'LOCAL_TUTOR_AI_';
+    expect(load(which).supportsThinking()).toBe(false);
+    for (const [raw, want] of [['none', false], ['qwen', false], ['chat_template_kwargs', true], [' Ollama ', true]]) {
+      process.env[`${prefix}THINKING_STYLE`] = raw;
+      expect(load(which).supportsThinking()).toBe(want);
+    }
+  });
+
+  test('per instance, and read per call (no restart needed to change it)', () => {
+    const tutor = load('local-tutor');
+    const evaluator = require('../src/services/providers/local');
+    process.env.LOCAL_TUTOR_AI_THINKING_STYLE = 'chat_template_kwargs';
+    expect(tutor.supportsThinking()).toBe(true);
+    expect(evaluator.supportsThinking()).toBe(false);
+    delete process.env.LOCAL_TUTOR_AI_THINKING_STYLE;
+    expect(tutor.supportsThinking()).toBe(false);
+  });
+
+  test('true agrees with the body: whenever it says yes, `thinking` reaches the server; whenever no, nothing does', async () => {
+    fetchMock.mockResolvedValue(json('ok'));
+    for (const raw of [undefined, 'none', 'bogus', 'chat_template_kwargs', 'ollama']) {
+      if (raw === undefined) delete process.env.LOCAL_TUTOR_AI_THINKING_STYLE; else process.env.LOCAL_TUTOR_AI_THINKING_STYLE = raw;
+      const p = load('local-tutor');
+      await p.call(args({ thinking: true }));
+      const carries = 'chat_template_kwargs' in sent() || 'think' in sent();
+      expect(carries).toBe(p.supportsThinking());
+    }
+  });
+
+  test('ONE definition: the transport re-exports lib/thinking-control.js (the harness imports the same file)', () => {
+    const control = require('../src/lib/thinking-control');
+    const factory = require('../src/services/providers/local-factory');
+    expect(factory.thinkingEnabled).toBe(control.thinkingEnabled);
+    expect(factory.THINKING_STYLES).toBe(control.THINKING_STYLES);
+    expect(control.thinkingFields('chat_template_kwargs', true)).toEqual({ chat_template_kwargs: { enable_thinking: true } });
+    expect(control.thinkingFields('ollama', false)).toEqual({ think: false });
+    expect(control.thinkingFields('none', true)).toEqual({});
+    expect(control.thinkingFields('chat_template_kwargs', null)).toEqual({});
+    expect(control.parseThinkingStyle(undefined)).toBe('none');
+    expect(control.parseThinkingStyle('nope')).toBeNull();
+  });
+});

@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import {
   buildChatRequest, buildMessages, retryDecision, retryPrompt, retryMessages, RETRY_PROMPTS, CC_PREFIX, CHAT_MAX_TOKENS, routeLanguage,
   LANGUAGE_SUFFIX, LANGUAGE_ONLY_PROMPT, LANGUAGE_ONLY_PROMPT_TH, LANGUAGE_ONLY_PROMPT_EN, expectedReplyLanguage,
-  retryReason, evidenceSplice, optionalRetrySkipped, retryMaxTokens, evidencePlacement,
+  retryReason, evidenceSplice, optionalRetrySkipped, retryMaxTokens, evidencePlacement, middlewareFlags, CHAT_DEEP_MAX_TOKENS,
 } from './request.mjs';
 import {
   RIMPL_FILES, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE, promptLabel,
@@ -74,13 +74,14 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
     // Evidence-only: a small line-only call, no up-front replace, the one line spliced into the first reply.
     "const evidenceOnly = reason === 'evidence';",
     "if (sse && firstShown && !evidenceOnly) { sse.send('replace', { reason }); shown = false; }",
-    'maxTokens: evidenceOnly ? EVIDENCE_LINE_MAX_TOKENS : CHAT_MAX_TOKENS, signal });',
+    'maxTokens: evidenceOnly ? EVIDENCE_LINE_MAX_TOKENS : CHAT_MAX_TOKENS, signal,',
     'if (retry && evidenceOnly) {',
     'const spliced = spliceEvidenceLine(firstText, retry.text, { socratic });',
     'text = spliced.text;',
     'evidenceRetried = needEvidence;',
     'evidence_retry: evidenceRetried,',
-    'evidence_level: evidence_marker && !rescuing ? extractEvidenceLevel(text) : null,',
+    'const evidenceLevel = evidence_marker && !rescuing ? extractEvidenceLevel(text) : null;',
+    'evidence_level: evidenceLevel,',
     // PLACEMENT (evidencePlacement + runItem replicate these): the same gate as the check; applied to an
     // adopted retry, and to the first reply when it is the one returned — never to a spliced reply.
     'const placeMarker = (t) => (evidence_marker && !rescuing ? placeEvidenceLine(t, { socratic }) : null);',
@@ -99,20 +100,73 @@ test('drift guard: every replicated string and rule still appears verbatim in ro
   // The client's language label (ple-chat.js): 'th' when the message holds ANY Thai codepoint.
   const pleChat = readFileSync(path.join(HERE, '..', '..', 'physician-ui', 'public', 'js', 'ple-chat.js'), 'utf8');
   assert.ok(pleChat.includes("const language = /[\u0E00-\u0E7F]/.test(message) ? 'th' : 'en';"), 'client language rule drifted');
-  // CHAT_MAX_TOKENS lives in lib/turn-limits.js (it also sizes the per-turn length cap); chat.js
-  // must still take it from there and pass it as maxTokens on both the first call and the retry.
-  const limitsSrc = readFileSync(path.join(HERE, '..', '..', 'rimpl', 'src', 'lib', 'turn-limits.js'), 'utf8');
+  // CHAT_MAX_TOKENS and CHAT_DEEP_MAX_TOKENS live in lib/turn-limits.js (they also size the per-turn
+  // length cap); chat.js must still take them from there.
+  const limitsSrc = readFileSync(RIMPL_FILES.turnLimits, 'utf8');
   assert.ok(limitsSrc.includes("const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));"), 'CHAT_MAX_TOKENS drifted');
-  assert.ok(chatSrc.includes("const { CHAT_MAX_TOKENS, MAX_TURN_CHARS, EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS } = require('../lib/turn-limits');"), 'chat.js no longer takes its limits from turn-limits');
-  // At most two calls a turn: the first at the full ceiling, and the retry at the full ceiling unless
-  // it is the marker-only call, which gets the small cap.
-  assert.equal(chatSrc.split('maxTokens: CHAT_MAX_TOKENS,').length - 1, 1, 'chat.js must pass CHAT_MAX_TOKENS on the first call');
-  assert.equal(chatSrc.split('maxTokens: evidenceOnly ? EVIDENCE_LINE_MAX_TOKENS : CHAT_MAX_TOKENS').length - 1, 1, 'chat.js must size the retry by its kind');
+  assert.ok(chatSrc.includes("const { CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS, MAX_TURN_CHARS, EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS } = require('../lib/turn-limits');"), 'chat.js no longer takes its limits from turn-limits');
+  // At most two calls a turn (request.mjs tierOptions / retryMaxTokens replicate the ceilings):
+  //   * the FIRST call runs under the turn's ceiling: CHAT_MAX_TOKENS, unless an APPLIED deep tier makes it
+  //     CHAT_DEEP_MAX_TOKENS (the room the reasoning needs);
+  //   * the RETRY never reasons, so it runs at the FAST ceiling even after a deep first call (the
+  //     marker-only call at its small cap) — a deep turn plus its mandatory retry must fit the deadline.
+  assert.equal(chatSrc.split('const turnMaxTokens = deep ? CHAT_DEEP_MAX_TOKENS : CHAT_MAX_TOKENS;').length - 1, 1, 'the tier -> ceiling rule drifted');
+  assert.equal(chatSrc.split('maxTokens: turnMaxTokens,').length - 1, 1, 'chat.js must pass the turn\'s ceiling on the first call');
+  assert.equal(chatSrc.split('maxTokens: evidenceOnly ? EVIDENCE_LINE_MAX_TOKENS : CHAT_MAX_TOKENS').length - 1, 1, 'chat.js must size the retry by its kind, at the FAST ceiling');
+  assert.equal(chatSrc.split('maxTokens:').length - 1, 2, 'exactly two sized calls: the first and the retry');
   assert.equal(chatSrc.split('await callAI(').length - 1, 2, 'chat.js must make at most two model calls a turn');
+  // The retry call itself names neither the deep ceiling nor the tier: nothing a deep first call set can
+  // leak into it (its `thinking` is the literal false, below).
+  const retryCall = chatSrc.slice(chatSrc.indexOf('retry = await callAI('), chatSrc.indexOf('} catch (err) {', chatSrc.indexOf('retry = await callAI(')));
+  assert.ok(retryCall.length > 0 && retryCall.length < 400, 'could not isolate the retry call');
+  assert.doesNotMatch(retryCall, /turnMaxTokens|CHAT_DEEP_MAX_TOKENS|\bdeep\b/, 'the retry must not inherit the deep tier or its ceiling');
   assert.ok(chatSrc.includes("(socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)"), 'mode→prompt selection drifted');
   assert.ok(chatSrc.includes('systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE'), 'rescue prompt replacement drifted');
   assert.ok(chatSrc.includes("promptLabel('chat', systemPrompt)"), 'prompt_version label drifted');
   assert.equal(CHAT_MAX_TOKENS, Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10)));
+  assert.equal(CHAT_MAX_TOKENS, require(RIMPL_FILES.turnLimits).CHAT_MAX_TOKENS, 'the replica must equal production\'s value');
+  assert.equal(CHAT_DEEP_MAX_TOKENS, require(RIMPL_FILES.turnLimits).CHAT_DEEP_MAX_TOKENS, 'the deep ceiling is IMPORTED, never copied');
+});
+
+test('drift guard: the fast/deep router wiring request.mjs replicates is still chat.js\'s, verbatim', () => {
+  for (const line of [
+    // The two request fields (the backend's contract).
+    'router_enabled: z.boolean().default(false),',
+    'deep_mode: z.boolean().default(false),',
+    // routeFor('routed'): production's routeTurn, on the de-identified message, after the rescue decision.
+    'const route = router_enabled',
+    'routeTurn({ message: cleanMessage, historyLength: cleanHistory.length, socratic, rescuing, sticky: deep_mode })',
+    // tierOptions: applied only where the provider honours `thinking`; deep -> the larger ceiling.
+    "const tierApplied = route ? await providerSupportsThinking('chat') : false;",
+    "const deep = tierApplied && route.tier === 'deep';",
+    '...(tierApplied ? { thinking: deep } : {}), ...(onReasoning ? { onReasoning } : {}) });',
+    // retryThinking: a retry NEVER thinks (thinking:false when the tier is applied, no field otherwise);
+    // keyed on the provider that answered.
+    'const thinkingHonoured = tierApplied && supportsThinking(provider);',
+    '...(thinkingHonoured ? { thinking: false } : {}) });',
+    // middlewareFlags: the seven keys.
+    'router_version: route ? route.version : null,',
+    'tier: route ? route.tier : null,',
+    'reason: route ? route.reason : null,',
+    'thinking: thinkingHonoured ? deep : null,',
+    'thinking_budget: thinkingHonoured && deep ? turnMaxTokens : null,',
+    'evidence_level: evidenceLevel,',
+    'failed_over_from: failed_over_from ?? null,',
+    // The SSE status: router on, streamed, once, never after text.
+    'const onReasoning = sse && router_enabled',
+    "if (statusSent || contentStarted) return; statusSent = true; sse.send('status', { phase: 'thinking' });",
+  ]) assert.ok(chatSrc.includes(line), `router wiring drifted from chat.js: ${line}`);
+  // ORDER: the route is decided after the rescue decision and before the first model call.
+  const at = (needle) => { const i = chatSrc.indexOf(needle); assert.ok(i >= 0, needle); return i; };
+  assert.ok(at('const rescuing = !!rescue?.rescuing;') < at('const route = router_enabled'), 'the route must follow the rescue decision');
+  assert.ok(at('const route = router_enabled') < chatSrc.indexOf('await callAI({ purpose: \'chat\', systemPrompt, messages, maxTokens: turnMaxTokens'), 'the route must precede the first call');
+  assert.equal(chatSrc.split("sse.send('status'").length - 1, 1, 'one place sends the status event');
+  // The seven keys request.mjs emits are the seven chat.js emits.
+  const flags = middlewareFlags(buildChatRequest(ITEM_EN_NATURAL));
+  const block = chatSrc.slice(chatSrc.indexOf('middleware_flags: {'), chatSrc.indexOf('},', chatSrc.indexOf('middleware_flags: {')));
+  const keys = [...block.matchAll(/^\s+([a-z_]+):/gm)].map((m) => m[1]);
+  assert.deepEqual(keys.sort(), Object.keys(flags).sort());
+  assert.equal(keys.length, 7);
 });
 
 test('loads without a single package — the CI quality job has no npm install', () => {
@@ -124,7 +178,8 @@ test('loads without a single package — the CI quality job has no npm install',
     return seen;
   };
   const roots = ['../../rimpl/src/services/rescue.js', '../../rimpl/src/lib/prompts.js', '../../rimpl/src/services/pii-filter.js',
-    '../../rimpl/src/lib/transcript.js', '../../rimpl/src/services/post-filter.js', '../../rimpl/src/lib/versions.js'].map((p) => require.resolve(p));
+    '../../rimpl/src/lib/transcript.js', '../../rimpl/src/services/post-filter.js', '../../rimpl/src/lib/versions.js',
+    '../../rimpl/src/services/router.js', '../../rimpl/src/lib/thinking-control.js', '../../rimpl/src/lib/turn-limits.js'].map((p) => require.resolve(p));
   const deps = [...new Set(roots.flatMap((r) => [...closure(r)]))];
   assert.ok(deps.some((f) => f.endsWith(path.join('services', 'rescue.js'))), 'rescue.js must be in the closure');
   assert.deepEqual(deps.filter((f) => f.includes(`${path.sep}node_modules${path.sep}`)), []);

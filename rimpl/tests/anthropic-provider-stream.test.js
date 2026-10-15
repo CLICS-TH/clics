@@ -62,3 +62,17 @@ test('a 529 after text has gone out is terminal: no retry, noRetry set', async (
   await expect(call(args(() => {}))).rejects.toMatchObject({ status: 529, noRetry: true });
   expect(mockStream).toHaveBeenCalledTimes(1);
 });
+
+// The fast/deep router (routes/chat.js) passes `thinking` only to a provider that honours it, but
+// `onReasoning` to any streamed call with the router on — and a fail-over could hand either to this
+// provider. A streamed Anthropic call must send exactly the body it always sent and never call the hook
+// (no "thinking…" status for a model that was not asked to think, and no extended-thinking parameter).
+test('streamed: `thinking` and `onReasoning` are ignored — same body, the hook never called', async () => {
+  mockStream.mockReturnValueOnce({ pieces: ['Hello there'], message: MSG });
+  const onReasoning = jest.fn();
+  await call({ ...args(() => {}), thinking: true, onReasoning });
+  const [body] = mockStream.mock.calls[0];
+  expect(Object.keys(body).sort()).toEqual(['max_tokens', 'messages', 'model', 'system']);
+  expect(JSON.stringify(body)).not.toMatch(/thinking/);
+  expect(onReasoning).not.toHaveBeenCalled();
+});

@@ -2,7 +2,8 @@ const { Router } = require('express');
 const { z } = require('zod');
 const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = require('../services/pii-filter');
 const { ragLookup } = require('../services/rag');
-const { callAI } = require('../services/ai');
+const { callAI, providerSupportsThinking, supportsThinking } = require('../services/ai');
+const { routeTurn } = require('../services/router');
 const { hasCitation, extractSocraticQuestion, extractReferences, extractEvidenceLevel, spliceEvidenceLine, placeEvidenceLine, thaiShare, stripNonProse, isLanguageMismatch, isThaiMessage } = require('../services/post-filter');
 const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE, EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT } = require('../lib/prompts');
 const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply, RESCUE_RETRY_PROMPT } = require('../services/rescue');
@@ -17,7 +18,7 @@ const router = Router();
 // Per-reply output ceiling. Raised from the historical 1500/2500 so a substantial clinical artifact
 // (DDx table / care plan) plus the prose + citation + closing ❓ fit without truncation. Cost is the
 // ACTUAL tokens used, not the ceiling; the per-user $0.50 cap still bounds total spend.
-const { CHAT_MAX_TOKENS, MAX_TURN_CHARS, EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS } = require('../lib/turn-limits'); // RIMPL_CHAT_MAX_TOKENS, default 4000
+const { CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS, MAX_TURN_CHARS, EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS } = require('../lib/turn-limits'); // RIMPL_CHAT_MAX_TOKENS, default 4000; RIMPL_CHAT_DEEP_MAX_TOKENS, default 8000
 
 const ChatSchema = z.object({
   ple_id: z.string(),
@@ -51,6 +52,14 @@ const ChatSchema = z.object({
   // which is answered whole as before: its post-check may rewrite the reply, and a physician who had
   // watched the first draft arrive would already have read the answer the rescue exists to withhold.
   stream: z.boolean().default(false),
+  // App setting `chat_router_enabled` (the backend forwards it; CCME mapping §2.1): true -> run the
+  // fast/deep router (services/router.js) on this turn. Default false, and an older backend never sends
+  // it: the request each provider receives is then byte-identical to one sent before the router existed.
+  router_enabled: z.boolean().default(false),
+  // The router's sticky latch, forwarded by the backend from the `ples` row: true once
+  // ples.deep_mode_at is set (a turn of this session has already been routed deep). RIMPL is stateless,
+  // so it cannot remember that itself. Read only when router_enabled.
+  deep_mode: z.boolean().default(false),
 });
 
 // De-identify everything one outbound call carries under ONE registry, so a token means one person
@@ -115,7 +124,7 @@ router.post('/', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker,
-          rescue_active, already_qualified, rescue_rounds, stream } = parsed.data;
+          rescue_active, already_qualified, rescue_rounds, stream, router_enabled, deep_mode } = parsed.data;
   // KNOWN patient identifiers to scrub deterministically (closes the bare-unlabelled-name leak).
   const hints = deriveHintTokens(patient_ref);
   // Examiner mode (CLE2 / remediation) leads with Socratic questioning and MUST end on ❓; natural
@@ -230,13 +239,48 @@ router.post('/', async (req, res) => {
     // one thing the rescue must not do.
     const rescuing = !!rescue?.rescuing;   // EVERY rescue round, not only the first
 
+    // FAST/DEEP ROUTER (services/router.js; app setting chat_router_enabled, forwarded as
+    // `router_enabled`). Decided HERE: after the rescue decision, because a rescue turn is always fast,
+    // and before the first call. It reads `cleanMessage` — the de-identified text the model is about to
+    // receive, never the raw `message` — and returns only a tier, a reason from a fixed set and its
+    // version. `route` is recorded whatever happens next (middleware_flags below), so the record says
+    // what the router decided even on a turn where the tier could not be applied.
+    const route = router_enabled
+      ? routeTurn({ message: cleanMessage, historyLength: cleanHistory.length, socratic, rescuing, sticky: deep_mode })
+      : null;
+    // The tier is APPLIED only where it changes what the provider does: a chat provider that honours
+    // `thinking` (services/ai.js providerSupportsThinking: an on-prem instance whose THINKING_STYLE is
+    // set). Anywhere else, and always with the router off, no `thinking` field is sent and the ceiling
+    // stays CHAT_MAX_TOKENS, so the request is byte-identical to one sent before the router existed.
+    const tierApplied = route ? await providerSupportsThinking('chat') : false;
+    const deep = tierApplied && route.tier === 'deep';
+    // Reasoning tokens count against max_tokens, so a deep turn runs under the larger ceiling.
+    const turnMaxTokens = deep ? CHAT_DEEP_MAX_TOKENS : CHAT_MAX_TOKENS;
+
     // Streaming: known only now, because a rescue turn is never streamed (see the schema).
     if (stream && !rescuing) sse = sseStream(res);
     let shown = false;   // text of the CURRENT call has reached the caller
-    const onDelta = sse ? (t) => { shown = true; sse.send('delta', { text: t }); } : undefined;
+    let contentStarted = false;   // ANY reply text has been streamed this turn (never reset, unlike `shown`)
+    const onDelta = sse ? (t) => { shown = true; contentStarted = true; sse.send('delta', { text: t }); } : undefined;
+    // SSE `status` {phase:'thinking'}: sent ONCE, when the reply's reasoning starts arriving and before
+    // any reply text, so the physician sees "thinking…" through a deep turn's silence. Router on and
+    // streamed turns only: with the router off the stream is exactly what it was. The provider reports
+    // THAT reasoning began (providers/local-factory.js onReasoning), never what it was. Sending it opens
+    // the stream, so a failure after reasoning began arrives as the `done` event carrying its usual
+    // status and body — the same as a failure after the first delta (lib/sse.js).
+    let statusSent = false;
+    const onReasoning = sse && router_enabled
+      ? () => { if (statusSent || contentStarted) return; statusSent = true; sse.send('status', { phase: 'thinking' }); }
+      : undefined;
 
     let { text, tokenCount, inputTokens, outputTokens, provider, model, failed_over_from } =
-      await callAI({ purpose: 'chat', systemPrompt, messages, maxTokens: CHAT_MAX_TOKENS, signal, onDelta });
+      await callAI({ purpose: 'chat', systemPrompt, messages, maxTokens: turnMaxTokens, signal, onDelta,
+        ...(tierApplied ? { thinking: deep } : {}), ...(onReasoning ? { onReasoning } : {}) });
+    // Was the tier honoured by the provider that ANSWERED? Normally the one asked above — but not after
+    // the (dormant) chat fail-over, or a superadmin toggle flipped between that question and the call.
+    // A turn must never be recorded as thought on a provider that ignores `thinking`; nor is the retry
+    // below, pinned to `provider`, sent a field that provider would ignore (it is sent thinking:false).
+    const thinkingHonoured = tierApplied && supportsThinking(provider);
     // The call whose answer goes back: the retry below REPLACES these while the billing sums accumulate.
     // On a fail-over turn this result already is the fail-over call's, so these are its figures.
     let lastInputTokens = inputTokens;
@@ -340,9 +384,19 @@ router.post('/', async (req, res) => {
         { role: 'assistant', content: keepFence ? text : stripArtifactDelimiters(text) },
         { role: 'user', content: retryPrompt },
       ];
-      // Same ceiling as the first call — a corrected reply may itself carry an artifact, so a LOWER retry
-      // cap would truncate it worse than the original (the old 1500 cap assumed a "<400 words" reply).
+      // The full reply ceiling, CHAT_MAX_TOKENS — a corrected reply may itself carry an artifact, so a LOWER
+      // retry cap would truncate it worse than the original (the old 1500 cap assumed a "<400 words" reply).
       // The exception is the marker-only call, which asks for one line (EVIDENCE_LINE_MAX_TOKENS).
+      //
+      // The retry NEVER THINKS, even after a deep first call: with the router's tier applied it is sent
+      // `thinking: false` (and with it not applied, no field at all, as before). The first call already did
+      // the reasoning, and every retry is a rewrite of that reply (cite it, close it on ❓, put it in Thai,
+      // turn it into questions, give the evidence line) — not a fresh problem. A second reasoning pass would
+      // roughly double a deep turn, and a deep first call plus its MANDATORY citation retry, both thinking,
+      // would not fit inside the backend's chat deadline (RIMPL_CHAT_TIMEOUT_MS), which fails the whole
+      // turn closed. So the retry also drops back to the FAST ceiling: CHAT_DEEP_MAX_TOKENS exists only to
+      // leave the reasoning room, and this call has none to leave. The marker-only call never thought
+      // either: a reasoning trace cannot fit in 128 tokens, and would eat the line it exists to fetch.
       //
       // PINNED to whichever provider served the first call. Now that the provider is a live setting
       // rather than an env var, a superadmin flipping `chat` between these two calls would otherwise
@@ -359,7 +413,8 @@ router.post('/', async (req, res) => {
       let retry;
       try {
         retry = await callAI({ purpose: 'chat', provider, systemPrompt, messages: retryMessages,
-          maxTokens: evidenceOnly ? EVIDENCE_LINE_MAX_TOKENS : CHAT_MAX_TOKENS, signal });
+          maxTokens: evidenceOnly ? EVIDENCE_LINE_MAX_TOKENS : CHAT_MAX_TOKENS, signal,
+          ...(thinkingHonoured ? { thinking: false } : {}) });
       } catch (err) {
         // The client is gone, or the retry was needed for a missing citation/❓ (that reply was not
         // deliverable, and failing closed there is the existing behaviour): propagate.
@@ -438,6 +493,7 @@ router.post('/', async (req, res) => {
       }
     }
 
+    const evidenceLevel = evidence_marker && !rescuing ? extractEvidenceLevel(text) : null;
     (sse ? sse.out() : res).json({
       content: text,
       refs: extractReferences(text),
@@ -469,7 +525,7 @@ router.post('/', async (req, res) => {
       // line even after the retry (the reply is delivered regardless; this field is how that shows).
       // Advisory, like language_retry: the backend whitelists its physician response and does not
       // forward either field.
-      evidence_level: evidence_marker && !rescuing ? extractEvidenceLevel(text) : null,
+      evidence_level: evidenceLevel,
       // True when the evidence check fired on the first reply AND the returned reply came from its retry:
       // the marker line spliced in (evidence-only), or the combined re-answer / rewrite returned. False
       // when the check did not fire, the retry failed or was skipped (deadline), or gave no single line.
@@ -480,6 +536,32 @@ router.post('/', async (req, res) => {
       // Post-checked on every round that ran under the rescue prompt. Checking only the first round
       // left rounds two onward of a rescued session governed by no constraint at all.
       rescue: rescue && { ...rescue, reply_check: rescue.rescuing ? checkRescueReply(text) : null },
+      // The per-turn middleware record (CCME mapping §2: with a router, the thinking flag has to be
+      // recorded PER TURN). ALWAYS present on success, same seven keys, so the backend stores one object
+      // per turn whatever is switched on. Every value is a fixed vocabulary, a number or null — nothing
+      // derived from the conversation's text:
+      //   router_version  'router-v1' … (services/router.js ROUTER_VERSION); null with the router off
+      //   tier            'fast' | 'deep' as ROUTED; null with the router off
+      //   reason          services/router.js REASONS ('rescue' | 'sticky' | a keyword category | 'default')
+      //   thinking        true | false as sent to, and honoured by, the provider that answered; null when
+      //                   no tier was applied (router off, or a provider that ignores `thinking`) — so a
+      //                   routed `tier: 'deep'` with `thinking: null` was decided but NOT applied
+      //   thinking_budget the max_tokens a deep turn ran under (reasoning + reply); null otherwise
+      // `thinking` and `thinking_budget` describe the FIRST call of the turn — the one the tier governs.
+      // A corrective retry, if one ran, is always thinking:false at CHAT_MAX_TOKENS (or the marker-only
+      // EVIDENCE_LINE_MAX_TOKENS), so it has nothing to record here; whether it ran is language_retry /
+      // rescue_retry / evidence_retry (and, streamed, superseded_reason) in this same body.
+      //   evidence_level  = evidence_level above
+      //   failed_over_from = failed_over_from above
+      middleware_flags: {
+        router_version: route ? route.version : null,
+        tier: route ? route.tier : null,
+        reason: route ? route.reason : null,
+        thinking: thinkingHonoured ? deep : null,
+        thinking_budget: thinkingHonoured && deep ? turnMaxTokens : null,
+        evidence_level: evidenceLevel,
+        failed_over_from: failed_over_from ?? null,
+      },
       // Streamed turns only (absent otherwise, so a non-streamed body is unchanged): the draft the
       // physician saw before the retry replaced it, and which check replaced it.
       ...(sse ? { superseded_draft: supersededDraft, superseded_reason: supersededReason } : {}),

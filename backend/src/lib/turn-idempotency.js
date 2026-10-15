@@ -148,14 +148,52 @@ async function deleteKeyRows(pleId, key) {
 // (an unkeyed turn: same atomicity and refusal, no idempotency). `replacePhysicianId` names an orphaned
 // question to delete INSIDE the same transaction before the pair is written (the repair path), so the
 // delete happens only if the new pair is stored, and never in a session that has ended.
-//   { state: 'stored', physicianId, assistantId }
+//
+// The EXTRAS (db/migration-chat-turn-flags.sql): the turn's whitelisted `middlewareFlags` and a streamed
+// `supersededDraft` + `supersededReason` go on the assistant row in the same transaction, as three
+// trailing, defaulted params. The caller passes them already vetted (services/middleware-flags.js
+// sanitizeMiddlewareFlags; a reason from services/superseded-draft.js knownReason, else null).
+//
+// CODE AHEAD OF THE MIGRATION (either order is safe; migration first is preferred, since this path costs a
+// failed call per turn). Until that migration is applied the database has only the 12-param function, and
+// a call naming the new params fails as a missing function (PGRST202 / 42883). It is then made ONCE more
+// with the old params — exactly the call this code made before — and the result says `withExtras: false`:
+// the caller writes the draft and the flags the old, separate way. No function at all → that second call
+// fails the same way → 'unavailable' (two inserts), as before.
+//   { state: 'stored', physicianId, assistantId, withExtras }
 //   { state: 'duplicate' }     the physician key already exists (23505): both rows rolled back
 //   { state: 'not_active' }    the session ended while the AI was answering: nothing stored
 //   { state: 'unavailable' }   function missing: fall back to the two inserts (logged)
-//   { state: 'error', error }  anything else (which may include a commit whose reply was lost)
+//   { state: 'error', error, withExtras }  anything else (which may include a commit whose reply was lost)
+// `withExtras` says whether the call that produced the result carried the extras — so a commit that is
+// read back after an error also tells the caller whether the extras are already in it.
 const NOT_ACTIVE_SQLSTATE = 'CT409';
-async function storeTurnAtomic({ pleId, key, physician, assistant, replacePhysicianId = null }) {
-  const { data, error } = await supabase.rpc('store_chat_turn', {
+const MISSING_FUNCTION_CODES = ['42883', 'PGRST202'];
+const CHECK_VIOLATION = '23514';
+// Said AFTER the old-signature retry, so the line names the path that was actually taken:
+//   'old'   the 12-param function answered (stored, or refused for its own reason): the turn went through
+//           the old signature, and the extras are written by separate updates
+//   'none'  the retry was a missing function too: there is no store_chat_turn at all, so the turn goes to
+//           the two-insert fallback (logMissing('store') says that too) and the extras to separate updates
+// Throttled per path.
+function logMissingExtras(path, err) {
+  const key = `store_chat_turn extras:${path}`;
+  const now = Date.now();
+  if (now - (lastMissingLogAt.get(key) || 0) < 60_000) return;
+  lastMissingLogAt.set(key, now);
+  if (path === 'old') {
+    console.error('[turn-idem] store_chat_turn has only its old 12-param signature (no p_middleware_flags / p_superseded_draft): ' +
+      'db/migration-chat-turn-flags.sql is not applied, or PostgREST has not reloaded. Turns go through the old ' +
+      `signature; middleware_flags and a streamed draft are written by separate updates (not atomic) until it is: ${err.message}`);
+  } else {
+    console.error('[turn-idem] store_chat_turn is missing in BOTH signatures (neither db/migration-message-client-turn-id.sql ' +
+      'nor db/migration-chat-turn-flags.sql is applied): the turn is stored by two separate inserts, and middleware_flags ' +
+      `and a streamed draft by separate updates (not atomic): ${err.message}`);
+  }
+}
+async function storeTurnAtomic({ pleId, key, physician, assistant, replacePhysicianId = null,
+  middlewareFlags = null, supersededDraft = null, supersededReason = null }) {
+  const base = {
     p_ple_id: pleId,
     p_client_turn_id: key,
     p_physician_content: physician.content,
@@ -168,20 +206,40 @@ async function storeTurnAtomic({ pleId, key, physician, assistant, replacePhysic
     p_model: assistant.model ?? null,
     p_prompt_version: assistant.prompt_version ?? null,
     p_replace_physician_id: replacePhysicianId,
-  });
+  };
+  const extras = {
+    p_middleware_flags: middlewareFlags ?? null,
+    p_superseded_draft: supersededDraft ?? null,
+    p_superseded_reason: supersededDraft != null ? (supersededReason ?? null) : null,
+  };
+  let withExtras = true;
+  let { data, error } = await supabase.rpc('store_chat_turn', { ...base, ...extras });
+  if (error && error.code === CHECK_VIOLATION && extras.p_superseded_reason != null) {
+    // The reason was refused (a reason added in code ahead of the constraint). Nothing was stored — the
+    // transaction rolled back. Never lose the TURN over a label: store it again with the reason NULL.
+    console.error(`[turn-idem] store_chat_turn refused superseded_reason '${extras.p_superseded_reason}' (${error.message}) — ` +
+      'storing the turn with the draft and a NULL reason');
+    ({ data, error } = await supabase.rpc('store_chat_turn', { ...base, ...extras, p_superseded_reason: null }));
+  }
+  if (error && MISSING_FUNCTION_CODES.includes(error.code)) {
+    const firstError = error;
+    withExtras = false;
+    ({ data, error } = await supabase.rpc('store_chat_turn', base));
+    logMissingExtras(error && MISSING_FUNCTION_CODES.includes(error.code) ? 'none' : 'old', firstError);
+  }
   if (error) {
     if (isMissingSchema(error)) { logMissing('store', error); return { state: 'unavailable' }; }
     if (isUniqueViolation(error)) return { state: 'duplicate' };
     if (error.code === NOT_ACTIVE_SQLSTATE || /ple_not_active/.test(error.message || '')) return { state: 'not_active' };
     console.error('[turn-idem] store_chat_turn failed:', error.message);
-    return { state: 'error', error };
+    return { state: 'error', error, withExtras };
   }
   const row = Array.isArray(data) ? data[0] : data;
   if (!row?.physician_id || !row?.assistant_id) {
     console.error('[turn-idem] store_chat_turn returned no ids:', JSON.stringify(data));
-    return { state: 'error', error: new Error('store_chat_turn returned no ids') };
+    return { state: 'error', error: new Error('store_chat_turn returned no ids'), withExtras };
   }
-  return { state: 'stored', physicianId: row.physician_id, assistantId: row.assistant_id };
+  return { state: 'stored', physicianId: row.physician_id, assistantId: row.assistant_id, withExtras };
 }
 
 // ---- claims ------------------------------------------------------------------------------------------

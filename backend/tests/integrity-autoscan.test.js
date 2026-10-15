@@ -26,6 +26,7 @@ jest.mock('../src/lib/settings', () => ({
   pilotTestMode: async () => false,
   clinicalArtifactsEnabled: async () => false,
   chatEvidenceMarkerEnabled: async () => false,
+  chatRouterEnabled: async () => false,
   holdResultUntilAudited: async () => false,
   t1RemediationEnabled: async () => false,
   identityVerificationRequired: async () => false,
