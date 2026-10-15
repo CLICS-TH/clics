@@ -20,6 +20,7 @@ describe('apiFetch httpStatus on error envelopes', () => {
     const r = await apiFetch<{ error?: string; httpStatus?: number }>('/x');
     expect(r.error).toMatch(/did not respond/);
     expect(r.httpStatus).toBe(502);
+    expect((r as { unreadableBody?: boolean }).unreadableBody).toBe(true);
   });
 
   it('a success body is returned exactly as sent, even one with its own `status` field', async () => {
