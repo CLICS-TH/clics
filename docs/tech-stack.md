@@ -10,3 +10,8 @@
 ## Design system
 
 Anthropic warm-editorial: cream canvas `#faf9f5`, coral `#cc785c` (active `#a9583e`), dark navy `#181715`, ink `#141413`. Display = Cormorant Garamond + Noto Serif Thai; body = Inter + Noto Sans Thai; mono = JetBrains Mono. Bilingual (Thai/English) throughout. Full spec: `DESIGN-claude.md`.
+
+The two apps get those fonts differently:
+
+- The **audit-dashboard** self-hosts them. The woff2 files are committed under `audit-dashboard/app/fonts/` and loaded with `next/font/local`, so `next build` needs no network. Provenance, sha256 and licences are in `audit-dashboard/app/fonts/README.md`.
+- The **physician-ui** still links Google Fonts in every page `<head>`, so a browser fetches them from `fonts.googleapis.com` / `fonts.gstatic.com` at page load.
