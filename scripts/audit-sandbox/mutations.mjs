@@ -40,7 +40,7 @@ export const MUTATIONS = [
     id: 'rescue/prompt-held-at-cap',
     why: 'At the round cap the turn must still run under the rescue prompt, not fall through to the general examiner.',
     file: 'rimpl/src/routes/chat.js',
-    find: '      systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE;\n      rescue = {',
+    find: '      systemPrompt = chatSystemPrompt({ rescue: true });\n      rescue = {',
     replace: '      rescue = {',
     dir: 'rimpl',
     suite: 'tests/rescue.test.js',
@@ -145,8 +145,8 @@ export const MUTATIONS = [
     id: 'pii/outbound-de-identification',
     why: 'The single rule the whole architecture exists for: nothing identifying leaves the on-prem layer.',
     file: 'rimpl/src/routes/chat.js',
-    find: '    const cleanMessage = stripPii(message, undefined, hints);',
-    replace: '    const cleanMessage = message;',
+    find: '  const cleanMessage = stripPii(message, registry, hints);',
+    replace: '  const cleanMessage = message;',
     dir: 'rimpl',
     // NOT pii-leak-adversarial.test.js, which exercises stripPii as a pure function and stays green
     // with the call deleted from the route. This suite covers what reaches the MODEL; rag-pii covers
