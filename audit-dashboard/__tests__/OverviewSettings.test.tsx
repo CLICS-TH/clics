@@ -1,9 +1,10 @@
-// /admin/overview "Minimum auditors per PLE" is a radiogroup that SAVES on every choice. Two keyboard
-// promises it has to keep, both pinned here against the real page:
-//   - it is operated with arrows from a single tab stop (what role="radiogroup" announces), and
-//   - choosing an option never drops focus. The options used to be `disabled` while the save ran,
-//     which blurred the option just chosen to <body>; they are aria-disabled now, and the page's own
-//     guard refuses a second write until the first one lands.
+// /admin/overview's settings controls SAVE the moment they are used: the "Minimum auditors per PLE"
+// radiogroup and the five on/off toggles below it. The keyboard promises they have to keep, pinned
+// here against the real page:
+//   - the radiogroup is operated with arrows from a single tab stop (what role="radiogroup" announces);
+//   - using a control never drops focus. Every one of them used to be `disabled` while its save ran,
+//     which blurred the control just used to <body>; they are aria-disabled now, and the page's own
+//     guards refuse a second write until the first one lands.
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
@@ -152,5 +153,79 @@ describe('overview — Minimum auditors per PLE radiogroup', () => {
     fireEvent.keyDown(g, { key: 'a' });
     expect(radios[1]).toHaveFocus();
     expect(patches()).toHaveLength(0);
+  });
+});
+
+// [usage-settings key, the toggle's accessible name (its title) without the ON/OFF state]
+const TOGGLES: [string, string][] = [
+  ['pilot_test_mode', 'Pilot test mode is'],
+  ['clinical_artifacts_enabled', 'Clinical artifacts are'],
+  ['peer_calibration_enabled', 'Peer calibration is'],
+  ['hold_result_until_audited', 'Hold result until audited is'],
+  ['calibration_reveal_locked', 'Calibration reveal lock is'],
+];
+
+async function toggle(name: string) {
+  const b = await screen.findByRole('button', { name: new RegExp(`^${name} (ON|OFF)$`) });
+  // Enabled once /admin/usage-settings has loaded.
+  await waitFor(() => expect(b).toBeEnabled());
+  return b;
+}
+
+describe('overview — on/off setting toggles', () => {
+  it.each(TOGGLES)('%s keeps focus while it saves, and refuses a second write until it lands', async (key, name) => {
+    let land!: () => void;
+    const usage = { [key]: false };
+    wire(usage, (body) => new Promise((res) => { land = () => res({ ...usage, ...body }); }));
+    render(<OverviewPage />);
+    const b = await toggle(name);
+    expect(b).toHaveAttribute('aria-pressed', 'false');
+
+    b.focus();
+    fireEvent.click(b);
+    await waitFor(() => expect(b).toHaveAttribute('aria-disabled', 'true'));
+    expect(b).toBeEnabled();
+    expect(b).toHaveFocus();
+    expect(b).toHaveClass('aria-disabled:opacity-50', 'aria-disabled:focus-visible:opacity-100');
+
+    fireEvent.click(b);   // a second press during the save is ignored
+    expect(patches()).toHaveLength(1);
+    expect(JSON.parse(String(patches()[0][1].body))).toEqual({ [key]: true });
+
+    await act(async () => { land(); });
+    await waitFor(() => expect(b).toHaveAttribute('aria-pressed', 'true'));
+    expect(b).not.toHaveAttribute('aria-disabled');
+    expect(b).toHaveFocus();
+  });
+
+  it.each(TOGGLES)('%s: a failed save keeps the old state, says so, and keeps focus', async (key, name) => {
+    wire({ [key]: true }, () => Promise.resolve({ error: 'nope' }));
+    render(<OverviewPage />);
+    const b = await toggle(name);
+    b.focus();
+    fireEvent.click(b);
+    await waitFor(() => expect(mockToast).toHaveBeenCalledWith(expect.stringContaining('Could not save'), 'error'));
+    await waitFor(() => expect(b).not.toHaveAttribute('aria-disabled'));
+    expect(b).toHaveAttribute('aria-pressed', 'true');
+    expect(b).toHaveFocus();
+  });
+
+  it('one toggle saving does not block another', async () => {
+    const held: (() => void)[] = [];
+    const usage = {};
+    wire(usage, (body) => new Promise((res) => { held.push(() => res({ ...usage, ...body })); }));
+    render(<OverviewPage />);
+    const pilot = await toggle('Pilot test mode is');
+    const lock = await toggle('Calibration reveal lock is');
+    fireEvent.click(pilot);
+    await waitFor(() => expect(pilot).toHaveAttribute('aria-disabled', 'true'));
+    expect(lock).not.toHaveAttribute('aria-disabled');
+    fireEvent.click(lock);
+    expect(patches().map(([, init]) => JSON.parse(String(init.body)))).toEqual([
+      { pilot_test_mode: true }, { calibration_reveal_locked: true },
+    ]);
+    await act(async () => { held.forEach((land) => land()); });
+    await waitFor(() => expect(lock).toHaveAttribute('aria-pressed', 'true'));
+    expect(pilot).toHaveAttribute('aria-pressed', 'true');
   });
 });
