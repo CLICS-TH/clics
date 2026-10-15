@@ -14,7 +14,7 @@ import { ATTESTATIONS } from '@/lib/pis7-rubric';
 import { ANCHOR_CLARITY } from '@/components/DomainScorer';
 import { REPORT_REASON, REPORTED_REPLY_SIGNAL } from '@/lib/report-reasons';
 import { EVALUATOR_LOCK_BLOCKERS } from '@/lib/types';
-import { BLOCKER_COPY, DECODING_FIELDS, LOCK_NOTE, LOCK_REASON, NOTE_MAX, POST_ERROR_TITLE, TEXT_FIELDS, UNBOUND_COPY } from '@/lib/evaluator-lock';
+import { ANTICIPATED_BLOCKER_COPY, BLOCKER_COPY, DECODING_FIELDS, LOCK_NOTE, LOCK_REASON, NOTE_MAX, POST_ERROR_TITLE, TEXT_FIELDS, UNBOUND_COPY, blockerCopy } from '@/lib/evaluator-lock';
 
 const REPO = path.join(__dirname, '..', '..');
 const SCHEMAS = path.join(REPO, 'backend', 'src', 'lib', 'schemas.js');
@@ -134,17 +134,45 @@ describe('Model Lock mirrors of back-end vocabulary', () => {
     return;
   }
 
-  it('every blocker GET /admin/evaluator-lock can send is typed and has bilingual copy', () => {
+  it('every blocker GET /admin/evaluator-lock can send is named, and every typed blocker is one it sends', () => {
     const sent = new Set<string>();
     for (const call of superadmin.matchAll(/blockers\.push\(([^)]*)\)/g)) {
       for (const q of call[1].matchAll(/'([a-z_]+)'/g)) sent.add(q[1]);
     }
     expect(sent.size).toBeGreaterThan(5);
-    expect([...sent].sort()).toEqual([...EVALUATOR_LOCK_BLOCKERS].sort());
-    for (const b of EVALUATOR_LOCK_BLOCKERS) {
-      expect(BLOCKER_COPY[b].th.trim().length).toBeGreaterThan(0);
-      expect(BLOCKER_COPY[b].en.trim().length).toBeGreaterThan(0);
+    // A blocker the backend sends and the screen cannot name would render as a bare key. An ANTICIPATED
+    // one (evaluator_live_drift, from the backend change after 6b) is named before it is sent.
+    expect([...sent].filter((b) => !blockerCopy(b))).toEqual([]);
+    // The typed list is exactly what the backend sends today, plus nothing it does not.
+    expect([...EVALUATOR_LOCK_BLOCKERS].filter((b) => !sent.has(b))).toEqual([]);
+    expect([...sent].filter((b) => !(EVALUATOR_LOCK_BLOCKERS as readonly string[]).includes(b) && !(b in ANTICIPATED_BLOCKER_COPY))).toEqual([]);
+    for (const copy of [...Object.values(BLOCKER_COPY), ...Object.values(ANTICIPATED_BLOCKER_COPY)]) {
+      expect(copy.th.trim().length).toBeGreaterThan(0);
+      expect(copy.en.trim().length).toBeGreaterThan(0);
     }
+  });
+
+  // The page's safety branches read these keys. A rename would not be a type error anywhere: the relock
+  // block would silently stop appearing, the banner would read every lock as legacy, and a success would
+  // be reported as an unknown outcome. So the response shapes are pinned here.
+  it('the response keys the safety branches depend on are still the ones the routes send', () => {
+    const get = /router\.get\('\/evaluator-lock'[\s\S]*?\n\}\);/.exec(superadmin)?.[0];
+    const post = /router\.post\('\/evaluator-lock'[\s\S]*?\n\}\);/.exec(superadmin)?.[0];
+    if (!get || !post) throw new Error('the /evaluator-lock routes were not found — did they change shape?');
+    // GET: whether `current` is the lock in force, the relock phrase, the blockers and the drift keys.
+    expect(get).toMatch(/\bin_force:/);
+    expect(get).toMatch(/confirm_phrases:\s*\{\s*replace_lock:/);
+    expect(get).toMatch(/\blocked_at: lock\.value/);
+    expect(get).toMatch(/\bblockers,/);
+    expect(get).toMatch(/\bblocker_detail,/);
+    expect(get).toMatch(/\bdrift_keys:/);
+    expect(get).toMatch(/\bexpected_for_candidate:/);
+    // POST: the 409 that asks for the phrase, and the success body the page treats as success.
+    expect(post).toMatch(/code: 'confirmation_required',\s*confirm_phrase:/);
+    expect(post).toMatch(/res\.json\(\{\s*ok: true,\s*locked_at:/);
+    expect(post).toMatch(/manifest_sha256: manifest\.sha256, evaluator_sha256:/);
+    // /admin/ai-providers: the binding the panel warns on.
+    expect(superadmin).toMatch(/evaluator_lock:\s*\{[\s\S]{0,120}manifest_bound:/);
   });
 
   it('every refusal POST /admin/evaluator-lock can send has a title', () => {

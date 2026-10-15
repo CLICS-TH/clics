@@ -7,6 +7,7 @@
 // server stays the authority and its 400 `details` are shown per field too.
 import type {
   EvaluatorLockBlocker,
+  EvaluatorLockPostResult,
   EvaluatorLockManifest,
   ManifestDecodingValue,
   ManifestExpectedForCandidate,
@@ -216,6 +217,37 @@ export const BLOCKER_COPY: Record<EvaluatorLockBlocker, { th: string; en: string
   lock_table_unreadable: { th: 'อ่านตารางบันทึกการล็อกไม่ได้', en: 'The lock table could not be read.' },
 };
 
+// Blockers a backend change after 6b is adding (not in EVALUATOR_LOCK_BLOCKERS, which mirrors what the
+// backend sends TODAY). They get words now so the screen never names them by their key; the mirror test
+// accepts them as known whether or not the backend sends them yet.
+export const ANTICIPATED_BLOCKER_COPY: Record<string, { th: string; en: string }> = {
+  evaluator_live_drift: { th: 'ค่าที่รันอยู่ของเครื่องมือวัดต่างจาก model manifest', en: 'Live values in the evaluator’s scope differ from the model manifest.' },
+};
+
+export function blockerCopy(b: string): { th: string; en: string } | null {
+  return BLOCKER_COPY[b as EvaluatorLockBlocker] ?? ANTICIPATED_BLOCKER_COPY[b] ?? null;
+}
+
+// ---- what a POST answer says about whether the lock was written ------------------------------------
+//
+//   success   { ok: true }
+//   session   apiFetch resolved undefined: a 401, refused by auth before the handler ran
+//   refused   the backend's own answer: a `code`, or a JSON 4xx/500 body. It says what happened.
+//   unknown   nothing readable came back — a dropped connection, a timeout, a 502/503/504, a proxy's
+//             HTML page, a 200 that is not { ok: true }. The handler may have finished and written the
+//             lock; "not applied, try again" would invite a second lock on top of the first.
+export type PostOutcome = 'success' | 'session' | 'refused' | 'unknown';
+// lib/api.ts REQUEST_TIMEOUT_CODE, restated so this module stays free of api.ts (test files mock it).
+// EvaluatorLockPage.test.tsx pins the two together.
+export const TIMEOUT_CODE = 'timeout';
+export function postOutcome(res: EvaluatorLockPostResult | undefined): PostOutcome {
+  if (res === undefined) return 'session';
+  if (res.ok === true && !res.error) return 'success';
+  if (res.code && res.code !== TIMEOUT_CODE) return 'refused';
+  if (res.httpStatus != null && res.httpStatus < 502 && !res.unreadableBody) return 'refused';
+  return 'unknown';
+}
+
 // Titles for a refused POST. The body's own `error` (bilingual) is shown beneath as the detail.
 export const POST_ERROR_TITLE: Record<string, string> = {
   invalid_declaration: 'ข้อมูลที่ประกาศไม่ครบหรือไม่ถูกต้อง / The declaration was refused as incomplete or malformed',
@@ -234,6 +266,47 @@ export const POST_ERROR_TITLE: Record<string, string> = {
   rollback_incomplete: 'ย้อนกลับได้ไม่ครบ ต้องแก้ไขด้วยมือ / Rollback incomplete: manual repair is needed',
 };
 export const POST_ERROR_FALLBACK = 'ล็อกไม่สำเร็จ / The lock was not applied';
+export const OUTCOME_UNKNOWN = 'ไม่ทราบผล / Outcome unknown';
+
+// ---- live drift, by what it means for the instrument ------------------------------------------------
+//
+// rimpl reports which live values differ from the manifest (lib/manifest.js driftOf). They are not one
+// kind of finding:
+//   evaluator  part of the scoring instrument a lock freezes (services/model-lock.js evaluatorScope):
+//              code.decoding.evaluate.*, code.consistency.* except the shadow evaluator's, the pinned
+//              Claude model when the evaluator IS anthropic, and the evaluator provider's declared block.
+//              Never "expected": while these differ, what scores is not what the manifest describes.
+//   expected   the rest of declared.*: the manifest declares the on-prem target, and production runs
+//              every purpose on Claude until CCME R1/R3 close.
+//   other      everything else (chat, tutor, router, shadow, context and thinking settings).
+export interface DriftClasses { evaluator: string[]; expected: string[]; other: string[] }
+
+export function isEvaluatorDrift(key: string, evaluatorProvider: string | null | undefined): boolean {
+  if (key.startsWith('code.decoding.evaluate.')) return true;
+  if (key.startsWith('code.consistency.')) return !key.includes('shadow');
+  if (key === 'code.models.anthropic') return evaluatorProvider === 'anthropic';
+  return !!evaluatorProvider && key.startsWith(`declared.${evaluatorProvider}.`);
+}
+
+export function classifyDrift(keys: readonly string[], evaluatorProvider: string | null | undefined): DriftClasses {
+  const out: DriftClasses = { evaluator: [], expected: [], other: [] };
+  for (const k of keys) {
+    if (isEvaluatorDrift(k, evaluatorProvider)) out.evaluator.push(k);
+    else if (k.startsWith('declared.')) out.expected.push(k);
+    else out.other.push(k);
+  }
+  return out;
+}
+
+export const DRIFT_COPY = {
+  evaluatorTitle: 'ค่าที่รันอยู่ของเครื่องมือวัดต่างจาก manifest / Live values in the evaluator’s scope differ from the manifest',
+  evaluatorBody: 'ค่าเหล่านี้เป็นส่วนของเครื่องมือวัด ขณะที่ยังต่างกัน ผู้ให้คะแนนที่ทำงานอยู่ไม่ใช่ค่าที่ manifest ระบุ / '
+    + 'These belong to the scoring instrument: while they differ, the evaluator that is scoring is not the configuration the manifest describes.',
+  expected: 'คาดว่าจะต่างขณะ production ใช้ Claude ทุกงาน เพราะ manifest ระบุเครื่องในองค์กรเป็นเป้าหมาย (CCME R1/R3) / '
+    + 'Expected while production runs every purpose on Claude: the manifest declares the on-prem target (CCME R1/R3), so live routing differs from it until those close.',
+  other: 'ค่าอื่นที่ไม่ใช่ส่วนของเครื่องมือวัด (แชต ผู้สอน ตัวจัดเส้นทาง หรือผู้ให้คะแนนคู่ขนาน) / '
+    + 'Not part of the scoring instrument (chat, tutor, router, shadow or context settings).',
+};
 
 // ---- formatting ------------------------------------------------------------------------------------
 

@@ -12,7 +12,8 @@ import { apiFetch } from '@/lib/api';
 import { PageIntro } from '@/components/PageIntro';
 import { Button } from '@/components/ui/button';
 import type { ReadinessManifest, ReadinessModelLock } from '@/lib/types';
-import { LOCK_NOTE, LOCK_REASON } from '@/lib/evaluator-lock';
+import { DRIFT_COPY, LOCK_NOTE, LOCK_REASON, classifyDrift } from '@/lib/evaluator-lock';
+import { DriftKeyList } from '@/components/DriftKeyList';
 import { AlertTriangle, CheckCircle2, XCircle, HelpCircle, RefreshCw } from 'lucide-react';
 
 // `warning` rides on a `warn` check, `error` on a `down` one (rimpl services/ai.js readiness()).
@@ -251,16 +252,19 @@ export default function AiReadinessPage() {
         </section>
       )}
 
-      {data?.manifest && <ManifestBlock m={data.manifest} />}
+      {/* The evaluator is the locked provider when there is a lock, else whatever serves evaluate now. */}
+      {data?.manifest && <ManifestBlock m={data.manifest} evaluator={data.model_lock?.provider ?? data.models?.evaluate?.provider ?? null} />}
       {data?.model_lock && <ModelLockBlock l={data.model_lock} />}
     </div>
   );
 }
 
 // The KEYS of the drift only. rimpl already hashes free-text live values on this public block, but the
-// values are still not this screen's business: which settings differ is the finding.
-function ManifestBlock({ m }: { m: ReadinessManifest }) {
+// values are still not this screen's business: which settings differ is the finding. Split by what they
+// mean (lib/evaluator-lock.ts classifyDrift): only deployment-target drift is "expected".
+function ManifestBlock({ m, evaluator }: { m: ReadinessManifest; evaluator: string | null }) {
   const keys = (m.drift ?? []).map((d) => d?.key).filter((k): k is string => typeof k === 'string');
+  const drift = classifyDrift(keys, evaluator);
   const sha = short(m.sha256);
   return (
     <section className="space-y-2">
@@ -279,23 +283,30 @@ function ManifestBlock({ m }: { m: ReadinessManifest }) {
             <span className="inline-flex items-center gap-1.5 text-muted-foreground"><HelpCircle className="size-4" aria-hidden="true" />ไม่ทราบว่าตรงกับโค้ดหรือไม่ / Code match unknown</span>
           )}
         </div>
-        {keys.length > 0 ? (
-          <>
-            <p className="inline-flex items-center gap-1.5 text-warn">
-              <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
-              ค่าที่รันอยู่ต่างจาก manifest {keys.length} รายการ / {keys.length} live value(s) differ from the manifest
+        {keys.length === 0 && <p className="text-muted-foreground">ไม่มีค่าที่ต่างจาก manifest / No live value differs from the manifest.</p>}
+        {drift.evaluator.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="flex gap-1.5 text-warn">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <span>{DRIFT_COPY.evaluatorTitle} ({drift.evaluator.length})</span>
             </p>
-            <ul className="flex flex-wrap gap-1.5">
-              {keys.map((k) => <li key={k} className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs break-all text-foreground">{k}</li>)}
-            </ul>
-            <p className="text-xs text-muted-foreground">
-              คาดว่าจะมีคำเตือนนี้ขณะ production ใช้ Claude ทุกงาน เพราะ manifest ระบุเครื่องในองค์กรเป็นเป้าหมาย (CCME R1/R3) /
-              Expected while production runs every purpose on Claude: the manifest declares the on-prem target (CCME R1/R3), so live
-              routing differs from it until those close.
-            </p>
-          </>
-        ) : (
-          <p className="text-muted-foreground">ไม่มีค่าที่ต่างจาก manifest / No live value differs from the manifest.</p>
+            <DriftKeyList keys={drift.evaluator} label="ค่าในขอบเขตเครื่องมือวัดที่ต่างไป / Evaluator-scope values that differ" />
+            <p className="text-xs text-foreground">{DRIFT_COPY.evaluatorBody}</p>
+          </div>
+        )}
+        {drift.expected.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-muted-foreground">ค่าที่ประกาศต่างจากที่รันอยู่ {drift.expected.length} รายการ / {drift.expected.length} declared value(s) differ from what is running</p>
+            <DriftKeyList keys={drift.expected} label="ค่าที่ประกาศที่ต่างไป / Declared values that differ" />
+            <p className="text-xs text-muted-foreground">{DRIFT_COPY.expected}</p>
+          </div>
+        )}
+        {drift.other.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-muted-foreground">ค่าอื่นที่ต่างไป {drift.other.length} รายการ / {drift.other.length} other value(s) differ</p>
+            <DriftKeyList keys={drift.other} label="ค่าอื่นที่ต่างไป / Other values that differ" />
+            <p className="text-xs text-muted-foreground">{DRIFT_COPY.other}</p>
+          </div>
         )}
       </div>
     </section>

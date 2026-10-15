@@ -555,7 +555,8 @@ export interface EvaluatorLockState {
   serving_provider: string | null;
   can_declare: boolean;
   blockers: string[];
-  blocker_detail?: Partial<Record<string, string>>;
+  // A string, or (evaluator_live_drift, from the backend PR after 6b) the list of drifting keys.
+  blocker_detail?: Partial<Record<string, string | string[]>>;
   gate: (IccVerdict & { groups?: LockCorpusGroup[] }) | null;
   manifest: EvaluatorLockManifest | null;
   manifest_diff: ManifestDiffRow[] | null;
@@ -580,6 +581,8 @@ export interface EvaluatorLockPostResult {
   reason?: string;
   inconsistent?: { step: string; left: string }[];
   detail?: string;
+  // lib/api.ts: the answer was not the backend's JSON (a proxy page, an empty body).
+  unreadableBody?: boolean;
 }
 
 // /admin/ai-providers `evaluator_lock`: whether the lock in force has a record behind it, and whether

@@ -242,6 +242,20 @@ describe('AiProviderPanel — the evaluator', () => {
     expect(screen.getByText(/Opens Model Lock/)).toBeInTheDocument();
   });
 
+  // jsdom cannot measure, so this pins what the browser measurement depends on: on one nowrap line the
+  // label was 257px in a 213px card at 320px. Thai over English, each line nowrap, the link capped at
+  // its container — measured inside the card at 320/360/1280.
+  it('the lock link stacks Thai over English and never outgrows its card', async () => {
+    render(<AiProviderPanel />);
+    await loaded();
+    const link = screen.getByRole('link', { name: /Lock the evaluator/ });
+    expect(link).toHaveClass('max-w-full');
+    expect(link).not.toHaveClass('whitespace-nowrap');
+    const lines = [...link.querySelectorAll('span > span')];
+    expect(lines.map((l) => l.textContent)).toEqual(['ล็อกผู้ให้คะแนน', 'Lock the evaluator']);
+    lines.forEach((l) => expect(l).toHaveClass('block', 'whitespace-nowrap'));
+  });
+
   it('a lock with a manifest-bound record shows no binding warning', async () => {
     wire(shape({ evaluator_locked_at: '2026-10-14T03:00:00Z', evaluator_lock: { locked: true, record: 'found', manifest_bound: true } }));
     render(<AiProviderPanel />);

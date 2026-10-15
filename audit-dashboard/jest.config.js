@@ -34,6 +34,7 @@ const config = {
     'app/admin/ai-readiness/page.tsx',
     'app/admin/evaluator-lock/page.tsx',
     'lib/evaluator-lock.ts',
+    'components/DriftKeyList.tsx',
     'components/StatStrip.tsx',
     'lib/radio-keys.ts',
   ],

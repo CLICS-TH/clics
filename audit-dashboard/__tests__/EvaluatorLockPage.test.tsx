@@ -19,7 +19,7 @@ const toast = jest.fn();
 jest.mock('@/components/Overlays', () => ({ toast: (...a: unknown[]) => toast(...a) }));
 
 import EvaluatorLockPage from '@/app/admin/evaluator-lock/page';
-import { emptyForm, validate, buildBody, decodingValue, manifestValue, fmtValue, fmtDate, shortSha, differsFromManifest } from '@/lib/evaluator-lock';
+import { emptyForm, validate, buildBody, decodingValue, manifestValue, fmtValue, fmtDate, shortSha, differsFromManifest, postOutcome, classifyDrift, isEvaluatorDrift, TIMEOUT_CODE } from '@/lib/evaluator-lock';
 
 const PV = 'pis7-prompt-59561c29+local-c5ffe572aa81';
 const RV = 'pis7-weights-08b0cb1a';
@@ -264,8 +264,10 @@ describe('Model Lock — the candidate, the gate and the manifest', () => {
     expect(within(m).getByText(`${MSHA.slice(0, 12)}…`)).toHaveAttribute('title', MSHA);
     expect(within(m).getByText(`${ESHA.slice(0, 12)}…`)).toHaveAttribute('title', ESHA);
     expect(m).toHaveTextContent('Matches the running code');
-    expect(m).toHaveTextContent('2 live value(s) differ from the manifest');
+    expect(m).toHaveTextContent('2 declared value(s) differ from what is running');
     expect(m).toHaveTextContent('Expected while production runs every purpose on Claude');
+    // Deployment-target drift only: no evaluator-scope warning.
+    expect(screen.queryByRole('region', { name: /evaluator’s scope/ })).not.toBeInTheDocument();
   });
 
   it('a failed gate reads as failed; an unknown state by its name; missing numbers as dashes', async () => {
@@ -588,16 +590,17 @@ describe('Model Lock — declaring', () => {
     await waitFor(() => expect(getCount()).toBe(2));
   });
 
-  it('a 200 that is not { ok: true } is not treated as success', async () => {
-    wire(state(), () => ({ locked_at: T }));
+  it('a JSON 500 with no code is still the backend saying no: definite, and the state is re-read', async () => {
+    wire(state(), () => ({ error: 'database connection reset', httpStatus: 500 }));
     render(<EvaluatorLockPage />);
     await formReady();
     fillRequired();
     fireEvent.click(submitBtn());
     const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent('The lock was not applied');
-    expect(alert).toHaveTextContent('The server gave no reason.');
-    expect(toast).not.toHaveBeenCalled();
+    expect(alert).toHaveTextContent('ล็อกไม่สำเร็จ / The lock was not applied');
+    expect(alert).toHaveTextContent('database connection reset');
+    expect(alert).not.toHaveTextContent('Outcome unknown');
+    await waitFor(() => expect(getCount()).toBe(2));
   });
 });
 
@@ -788,5 +791,215 @@ describe('Model Lock — the pure helpers', () => {
     expect(fmtDate(null)).toBe('—');
     expect(fmtValue([])).toBe('— (ไม่มี / none)');
     expect(fmtValue(3)).toBe('3');
+  });
+});
+
+// apiFetch never rejects: a dropped connection, a timeout or a gateway's HTML page all arrive as an
+// envelope with no `code`. The handler may still have finished and written the lock, so none of them may
+// be reported as "not applied" — the reviewer reproduced exactly that: a lock written, a 502 back, and the
+// page saying "not applied" beside a "Locked since…" banner with the form ready to send it again.
+describe('Model Lock — a POST whose outcome is unknown', () => {
+  const NET = { error: 'เครือข่ายขัดข้อง กรุณาลองใหม่ / Network error. Please try again.' };
+  const HTML_502 = { error: 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณาลองใหม่ / The server did not respond. Please try again.', httpStatus: 502, unreadableBody: true };
+  const send = async () => { await formReady(); fillRequired(); fireEvent.click(submitBtn()); return screen.findByRole('alert'); };
+  const neverDefinite = (alert: HTMLElement) => {
+    expect(alert).toHaveTextContent('ไม่ทราบผล / Outcome unknown');
+    expect(alert).toHaveTextContent('the lock may or may not have been written');
+    expect(alert).not.toHaveTextContent(/was not applied|Not locked/);
+    expect(within(alert).queryByRole('button', { name: /Retry|ลองใหม่/ })).not.toBeInTheDocument();
+    expect(alert).not.toHaveTextContent(/try again|ลองใหม่/i);
+  };
+
+  it('a 502 after the lock was written: says a lock is now in force and may be this one, and clears the form', async () => {
+    const locked = state({ locked_at: T, current: RECORD, in_force: true });
+    wire((n) => (n === 1 ? state() : locked), () => HTML_502);
+    render(<EvaluatorLockPage />);
+    const alert = await send();
+    neverDefinite(alert);
+    expect(alert).toHaveTextContent('The answer was not the server’s JSON (HTTP 502)');
+    expect(await within(alert).findByText(/may be the one just sent/)).toHaveTextContent(
+      `A lock is now in force (since ${new Date(T).toLocaleString('th-TH')}), and it may be the one just sent. Check the banner above before sending anything.`);
+    expect(alert).toHaveTextContent('The form was cleared');
+    expect(screen.getByRole('region', { name: /Locked since/ })).toBeInTheDocument();
+    // Nothing typed survives to be re-sent on top: the digest is gone, the relock phrase is empty.
+    expect(field(/Weights SHA-256/).value).toBe('');
+    expect(field(/System prompt version/).value).toBe('');
+    expect((screen.getByLabelText(/Type it to confirm/) as HTMLInputElement).value).toBe('');
+    expect(submitBtn()).toBeDisabled();
+    expect(posts()).toHaveLength(1);
+    expect(toast).not.toHaveBeenCalled();
+  });
+
+  it('a relock whose answer was lost: a NEW locked_at is a new lock, the old one is not', async () => {
+    const OLD = '2026-09-01T00:00:00.000Z';
+    wire((n) => (n === 1 ? state({ locked_at: OLD, current: { ...RECORD, locked_at: OLD }, in_force: true })
+      : state({ locked_at: T, current: RECORD, in_force: true })), () => NET);
+    render(<EvaluatorLockPage />);
+    await formReady();
+    fillRequired();
+    fireEvent.change(screen.getByLabelText(/Type it to confirm/), { target: { value: PHRASE } });
+    fireEvent.click(submitBtn());
+    const alert = await screen.findByRole('alert');
+    expect(await within(alert).findByText(/may be the one just sent/)).toBeInTheDocument();
+    expect(posts()[0].confirm_relock).toBe(PHRASE);
+  });
+
+  it('a lost answer with no new lock on re-read: says so, and to wait and reload before sending again; the form is kept', async () => {
+    let release: (v: unknown) => void = () => {};
+    wire((n) => (n === 1 ? state() : new Promise((r) => { release = r; })), () => ({ error: 'หมดเวลารอการตอบกลับ / The request timed out.', code: 'timeout' }));
+    render(<EvaluatorLockPage />);
+    const alert = await send();
+    neverDefinite(alert);
+    // While the state is re-read, it says that is what is happening.
+    expect(alert).toHaveTextContent('Re-reading the lock state…');
+    release(state());
+    expect(await within(alert).findByText(/A fresh read shows no new lock yet/)).toHaveTextContent('Wait a minute and reload this page before sending again.');
+    expect(alert).not.toHaveTextContent('Re-reading');
+    expect(field(/Weights SHA-256/).value).toBe(DIGEST);
+  });
+
+  it('a lost answer and an unreadable re-read: the outcome stays on screen above the load error', async () => {
+    wire((n) => (n === 1 ? state() : { error: 'unreadable', code: 'lock_state_unreadable', httpStatus: 503 }), () => NET);
+    render(<EvaluatorLockPage />);
+    await formReady();
+    fillRequired();
+    fireEvent.click(submitBtn());
+    expect(await screen.findByText(/could not be re-read either/)).toBeInTheDocument();
+    const alerts = screen.getAllByRole('alert');
+    expect(alerts[0]).toHaveTextContent('Outcome unknown');
+    expect(alerts[1]).toHaveTextContent('The lock state could not be read');
+  });
+
+  it.each([
+    ['a network error (no status at all)', NET, 'No answer (network)'],
+    ['a timeout', { error: 'timed out', code: 'timeout' }, 'The browser stopped waiting (timeout)'],
+    ['a gateway HTML page', HTML_502, 'The answer was not the server’s JSON (HTTP 502)'],
+    ['a JSON 504 with no code', { error: 'Gateway Timeout', httpStatus: 504 }, 'HTTP 504, ไม่มีรหัสผล / with no result code'],
+    ['a non-JSON 500', { error: 'did not respond', httpStatus: 500, unreadableBody: true }, 'not the server’s JSON (HTTP 500)'],
+    ['an empty answer', { unreadableBody: true }, 'The answer was not the server’s JSON'],
+    ['a 200 that is not { ok: true }', { locked_at: T }, 'The answer did not confirm the lock'],
+  ])('%s is an unknown outcome, never "not applied"', async (_what, res, cause) => {
+    wire(state(), () => res);
+    render(<EvaluatorLockPage />);
+    const alert = await send();
+    neverDefinite(alert);
+    expect(alert).toHaveTextContent(cause);
+    await screen.findByText(/A fresh read shows no new lock yet/);
+  });
+
+  it('postOutcome, branch by branch', () => {
+    expect(postOutcome(undefined)).toBe('session');
+    expect(postOutcome({ ok: true, locked_at: T })).toBe('success');
+    expect(postOutcome({ ok: true, error: 'odd' })).toBe('unknown');
+    expect(postOutcome({ error: 'x', code: 'gate_not_passed', httpStatus: 409 })).toBe('refused');
+    expect(postOutcome({ error: 'x', code: 'some_new_code' })).toBe('refused');
+    expect(postOutcome({ error: 'x', httpStatus: 400 })).toBe('refused');
+    expect(postOutcome({ error: 'x', httpStatus: 500 })).toBe('refused');
+    expect(postOutcome({ error: 'x', httpStatus: 500, unreadableBody: true })).toBe('unknown');
+    expect(postOutcome({ error: 'x', httpStatus: 502 })).toBe('unknown');
+    expect(postOutcome({ error: 'x', code: 'timeout' })).toBe('unknown');
+    expect(postOutcome({ error: 'x' })).toBe('unknown');
+  });
+
+  it("the timeout code is lib/api's", () => {
+    expect(TIMEOUT_CODE).toBe(jest.requireActual('@/lib/api').REQUEST_TIMEOUT_CODE);
+  });
+});
+
+describe('Model Lock — environment rows keep keyboard focus', () => {
+  it('Add focuses the new row; Remove focuses the previous row, the row that moved up, or Add when none are left', async () => {
+    render(<EvaluatorLockPage />);
+    await formReady();
+    const add = screen.getByRole('button', { name: 'เพิ่มรายการ / Add an entry' });
+    fireEvent.click(add);
+    expect(field(/Name 2/)).toHaveFocus();
+    fireEvent.click(add);
+    expect(field(/Name 3/)).toHaveFocus();
+    // Remove the middle row: focus goes to the row before it.
+    fireEvent.click(screen.getByRole('button', { name: 'ลบ / Remove 2' }));
+    expect(screen.getByRole('button', { name: 'ลบ / Remove 1' })).toHaveFocus();
+    // Remove the first row: the row that moved into its place takes focus.
+    fireEvent.click(screen.getByRole('button', { name: 'ลบ / Remove 1' }));
+    const last = screen.getByRole('button', { name: 'ลบ / Remove 1' });
+    expect(last).toHaveFocus();
+    // Remove the only row left: focus goes to Add, never to <body>.
+    fireEvent.click(last);
+    expect(screen.queryByRole('button', { name: /^ลบ \/ Remove/ })).not.toBeInTheDocument();
+    expect(add).toHaveFocus();
+    expect(document.body).not.toHaveFocus();
+  });
+});
+
+describe('Model Lock — live drift in the evaluator scope is never "expected"', () => {
+  const DRIFT = ['declared.providers.evaluate', 'declared.local-tutor.model', 'code.decoding.evaluate.temperature',
+    'code.consistency.json_retries', 'code.consistency.shadow_mode', 'declared.local.model', 'code.models.anthropic'];
+  const withDrift = (over: State = {}) => state({ manifest: { ...MANIFEST, drift_keys: DRIFT }, ...over });
+  const list = (name: RegExp) => within(screen.getAllByRole('list', { name })[0]).getAllByRole('listitem').map((li) => li.textContent);
+
+  it('lists evaluator-scope keys by name in a warning before the form, and calls only declared drift expected', async () => {
+    wire(withDrift());
+    render(<EvaluatorLockPage />);
+    const form = await formReady();
+    const box = screen.getByRole('region', { name: /Live values in the evaluator’s scope differ/ });
+    expect(within(box).getByRole('heading')).toHaveClass('text-warn');
+    expect(list(/Evaluator-scope values/)).toEqual(['code.decoding.evaluate.temperature', 'code.consistency.json_retries', 'declared.local.model']);
+    expect(box).toHaveTextContent('Resolve them before locking');
+    expect(box.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const m = screen.getByRole('region', { name: 'Model manifest' });
+    expect(m).toHaveTextContent('3 value(s) in the evaluator’s scope differ: listed below.');
+    expect(list(/Declared values that differ/)).toEqual(['declared.providers.evaluate', 'declared.local-tutor.model']);
+    expect(list(/Other values that differ/)).toEqual(['code.consistency.shadow_mode', 'code.models.anthropic']);
+    const expected = within(m).getByText(/Expected while production runs every purpose on Claude/);
+    expect(expected.parentElement).not.toHaveTextContent('code.decoding.evaluate');
+  });
+
+  it('an evaluator_live_drift blocker names its keys and replaces the separate warning', async () => {
+    wire(withDrift({ can_declare: false, blockers: ['evaluator_live_drift'],
+      blocker_detail: { evaluator_live_drift: ['code.decoding.evaluate.temperature', 'declared.local.engine'] } }));
+    render(<EvaluatorLockPage />);
+    await screen.findByText(/Why the lock cannot be declared yet \(1\)/);
+    const item = document.querySelector('[data-blocker="evaluator_live_drift"]') as HTMLElement;
+    expect(item).toHaveTextContent('Live values in the evaluator’s scope differ from the model manifest.');
+    expect(within(item).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['code.decoding.evaluate.temperature', 'declared.local.engine']);
+    expect(item).not.toHaveTextContent('does not know');
+    expect(screen.queryByRole('region', { name: /Live values in the evaluator’s scope differ/ })).not.toBeInTheDocument();
+  });
+
+  it('without a key list from the backend, the blocker lists the manifest’s evaluator-scope keys; a string detail is shown as written', async () => {
+    wire(withDrift({ can_declare: false, blockers: ['evaluator_live_drift'] }));
+    const first = render(<EvaluatorLockPage />);
+    await screen.findByText(/Why the lock cannot be declared/);
+    let item = document.querySelector('[data-blocker="evaluator_live_drift"]') as HTMLElement;
+    expect(within(item).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['code.decoding.evaluate.temperature', 'code.consistency.json_retries', 'declared.local.model']);
+    first.unmount();
+
+    wire(state({ can_declare: false, blockers: ['evaluator_live_drift'], blocker_detail: { evaluator_live_drift: 'temperature 0.7 is live, 0 is frozen' }, manifest: { ok: false } }));
+    render(<EvaluatorLockPage />);
+    await screen.findByText(/Why the lock cannot be declared/);
+    item = document.querySelector('[data-blocker="evaluator_live_drift"]') as HTMLElement;
+    expect(item).toHaveTextContent('temperature 0.7 is live, 0 is frozen');
+  });
+
+  it('an unknown blocker with a key list renders the list; an empty or odd detail renders nothing extra', async () => {
+    wire(state({ can_declare: false, blockers: ['future_a', 'future_b', 'future_c'],
+      blocker_detail: { future_a: ['k.one', 'k.two'], future_b: [], future_c: '' } }));
+    render(<EvaluatorLockPage />);
+    await screen.findByText(/Why the lock cannot be declared/);
+    const a = document.querySelector('[data-blocker="future_a"]') as HTMLElement;
+    expect(a).toHaveTextContent('A reason this screen does not know: future_a');
+    expect(within(a).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['k.one', 'k.two']);
+    for (const b of ['future_b', 'future_c']) {
+      const el = document.querySelector(`[data-blocker="${b}"]`) as HTMLElement;
+      expect(el.querySelectorAll('li, p')).toHaveLength(1);
+    }
+  });
+
+  it('classifyDrift / isEvaluatorDrift by provider', () => {
+    expect(isEvaluatorDrift('code.models.anthropic', 'anthropic')).toBe(true);
+    expect(isEvaluatorDrift('code.models.anthropic', 'local')).toBe(false);
+    expect(isEvaluatorDrift('declared.local.model', null)).toBe(false);
+    expect(isEvaluatorDrift('code.consistency.shadow_mode', 'local')).toBe(false);
+    expect(classifyDrift(['declared.local.model', 'code.thinking_style.local', 'declared.providers.evaluate'], undefined))
+      .toEqual({ evaluator: [], expected: ['declared.local.model', 'declared.providers.evaluate'], other: ['code.thinking_style.local'] });
   });
 });

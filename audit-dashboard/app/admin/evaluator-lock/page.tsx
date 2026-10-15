@@ -22,14 +22,16 @@ import { Button } from '@/components/ui/button';
 import { Checkbox, Input, Textarea } from '@/components/ui/input';
 import { StateMessage } from '@/components/ui/state-message';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DriftKeyList } from '@/components/DriftKeyList';
 import { formatApiError } from '@/lib/types';
 import type {
-  ApiError, EvaluatorLockBlocker, EvaluatorLockPostResult, EvaluatorLockRecord, EvaluatorLockState, ManifestDiffRow,
+  ApiError, EvaluatorLockPostResult, EvaluatorLockRecord, EvaluatorLockState, ManifestDiffRow,
 } from '@/lib/types';
 import {
-  BLOCKER_COPY, DECODING_FIELDS, NOTE_MAX, POST_ERROR_FALLBACK, POST_ERROR_TITLE, TEXT_FIELDS,
-  applyPrefill, buildBody, differsFromManifest, emptyForm, fmtDate, fmtNum, fmtValue, manifestValue, shortSha, validate,
-  type DecodingKey, type LockForm, type TextKey,
+  DECODING_FIELDS, DRIFT_COPY, NOTE_MAX, OUTCOME_UNKNOWN, POST_ERROR_FALLBACK, POST_ERROR_TITLE, TEXT_FIELDS,
+  applyPrefill, blockerCopy, buildBody, classifyDrift, differsFromManifest, emptyForm, fmtDate, fmtNum, fmtValue, manifestValue,
+  postOutcome, shortSha, validate, TIMEOUT_CODE,
+  type DecodingKey, type DriftClasses, type LockForm, type TextKey,
 } from '@/lib/evaluator-lock';
 
 type LoadBody = EvaluatorLockState & { error?: ApiError; code?: string; httpStatus?: number; detail?: string };
@@ -38,7 +40,14 @@ type Load =
   | { kind: 'error'; title: string; message: string }
   | { kind: 'ready'; state: EvaluatorLockState };
 // `res` undefined is a 401: apiFetch is already navigating to sign-in, and nothing was locked.
-type Submit = { kind: 'idle' } | { kind: 'error'; res: EvaluatorLockPostResult | undefined } | { kind: 'success'; res: EvaluatorLockPostResult };
+// `unknown` is a POST that came back with nothing readable (lib/evaluator-lock.ts postOutcome): the lock
+// may have been written. Its phase is what re-reading the state found.
+type UnknownPhase = 'checking' | 'new_lock' | 'no_change' | 'unreadable';
+type Submit =
+  | { kind: 'idle' }
+  | { kind: 'error'; res: EvaluatorLockPostResult | undefined }
+  | { kind: 'success'; res: EvaluatorLockPostResult }
+  | { kind: 'unknown'; res: EvaluatorLockPostResult; phase: UnknownPhase; lockedAt?: string | null };
 
 const SESSION_EXPIRED = 'เซสชันหมดอายุ / Your session has expired';
 const LOAD_FAILED = 'โหลดหน้านี้ไม่สำเร็จ / This page could not be loaded';
@@ -69,16 +78,18 @@ export default function EvaluatorLockPage() {
   const nextEnvId = useRef(2);
 
   // Every setState lands in a promise callback (react-hooks/set-state-in-effect).
-  const fetchState = useCallback(() => (
+  // Resolves with the state it read, or null when it could not read one.
+  const fetchState = useCallback((): Promise<EvaluatorLockState | null> => (
     apiFetch<LoadBody | undefined>('/admin/evaluator-lock')
       .then((d) => {
         const err = loadError(d);
-        if (err) { setLoad({ kind: 'error', ...err }); return; }
+        if (err) { setLoad({ kind: 'error', ...err }); return null; }
         const state = d as EvaluatorLockState;
         setLoad({ kind: 'ready', state });
         setForm((f) => applyPrefill(f, state.manifest));
+        return state;
       })
-      .catch(() => setLoad({ kind: 'error', title: LOAD_FAILED, message: 'เครือข่ายขัดข้อง / Network error.' }))
+      .catch(() => { setLoad({ kind: 'error', title: LOAD_FAILED, message: 'เครือข่ายขัดข้อง / Network error.' }); return null; })
   ), []);
   useEffect(() => { fetchState(); }, [fetchState]);
   const retry = () => { setLoad({ kind: 'loading' }); fetchState(); };
@@ -87,12 +98,31 @@ export default function EvaluatorLockPage() {
   // reader lands after pressing submit, whatever happened to the form beneath it.
   useEffect(() => { if (submit.kind !== 'idle') resultRef.current?.focus(); }, [submit]);
 
+  // Where focus goes once an environment row is added or removed. Removing the focused row's button
+  // would otherwise drop a keyboard user on <body>, at the top of the page.
+  const focusAfter = useRef<string | null>(null);
+  useEffect(() => {
+    const id = focusAfter.current;
+    if (!id) return;
+    focusAfter.current = null;
+    document.getElementById(id)?.focus();
+  }, [form.env]);
+
+  const result = submit.kind === 'idle' ? null : (
+    <div ref={resultRef} tabIndex={-1} className="outline-none">
+      {submit.kind === 'success' ? <SubmitSuccess res={submit.res} />
+        : submit.kind === 'unknown' ? <SubmitUnknown res={submit.res} phase={submit.phase} lockedAt={submit.lockedAt} />
+          : <SubmitError res={submit.res} />}
+    </div>
+  );
+
   if (load.kind === 'loading') {
     return <Shell><StateMessage kind="loading" title="กำลังโหลดสถานะการล็อก… / Loading the lock state…" /></Shell>;
   }
   if (load.kind === 'error') {
     return (
       <Shell>
+        {result}
         <StateMessage kind="error" title={load.title} onRetry={retry}>
           <p className="break-words">{load.message}</p>
           <p className="mt-1">
@@ -118,18 +148,42 @@ export default function EvaluatorLockPage() {
     setForm((f) => ({ ...f, decoding: { ...f.decoding, [key]: v }, touched: touch(f, `decoding.${key}`) }));
   const setEnv = (id: number, part: 'key' | 'value', v: string) =>
     setForm((f) => ({ ...f, env: f.env.map((r) => (r.id === id ? { ...r, [part]: v } : r)) }));
-  const addEnv = () => { const id = nextEnvId.current++; setForm((f) => ({ ...f, env: [...f.env, { id, key: '', value: '' }] })); };
-  const removeEnv = (id: number) => setForm((f) => ({ ...f, env: f.env.filter((r) => r.id !== id) }));
+  const addEnv = () => {
+    const id = nextEnvId.current++;
+    focusAfter.current = `lock-env-${id}-key`;
+    setForm((f) => ({ ...f, env: [...f.env, { id, key: '', value: '' }] }));
+  };
+  // Focus lands on the previous row's Remove, or the row that moved into this one's place, or — with no
+  // rows left — on "Add an entry".
+  const removeEnv = (id: number) => {
+    const i = form.env.findIndex((r) => r.id === id);
+    const rest = form.env.filter((r) => r.id !== id);
+    const next = rest[i - 1] ?? rest[i];
+    focusAfter.current = next ? `lock-env-${next.id}-remove` : 'lock-env-add';
+    setForm((f) => ({ ...f, env: f.env.filter((r) => r.id !== id) }));
+  };
+  const drift = state.manifest?.ok ? classifyDrift(state.manifest.drift_keys, state.candidate?.provider) : null;
 
   async function declare(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
+    const lockedBefore = state.locked_at;
     setBusy(true);
     const res = await apiFetch<EvaluatorLockPostResult | undefined>('/admin/evaluator-lock', {
       method: 'POST', body: JSON.stringify(buildBody(form, relockPhrase ? typed : null)),
     });
     setBusy(false);
-    if (!res || res.error || res.ok !== true) {
+    const outcome = postOutcome(res);
+    if (outcome === 'success') {
+      setSubmit({ kind: 'success', res: res! });
+      toast('ล็อกเรียบร้อย / Configuration frozen.', 'success');
+      setForm(emptyForm());
+      setTyped('');
+      setPhrase409(null);
+      fetchState();
+      return;
+    }
+    if (outcome !== 'unknown') {
       setSubmit({ kind: 'error', res });
       if (res?.code === 'confirmation_required') {
         setPhrase409(res.confirm_phrase ?? state.confirm_phrases?.replace_lock ?? null);
@@ -140,26 +194,31 @@ export default function EvaluatorLockPage() {
       if (res && res.code !== 'invalid_declaration') fetchState();
       return;
     }
-    setSubmit({ kind: 'success', res });
-    toast('ล็อกเรียบร้อย / Configuration frozen.', 'success');
-    setForm(emptyForm());
-    setTyped('');
-    setPhrase409(null);
-    fetchState();
+    // Nothing readable came back, so the lock may have been written. Never "not applied, try again":
+    // re-read the state and say what it shows.
+    setSubmit({ kind: 'unknown', res: res!, phase: 'checking' });
+    const after = await fetchState();
+    if (!after) { setSubmit({ kind: 'unknown', res: res!, phase: 'unreadable' }); return; }
+    if (after.locked_at && after.locked_at !== lockedBefore) {
+      // A lock appeared, and it may be this one. Clear what was typed so it cannot be re-sent on top.
+      setSubmit({ kind: 'unknown', res: res!, phase: 'new_lock', lockedAt: after.locked_at });
+      setForm(applyPrefill(emptyForm(), after.manifest));
+      setTyped('');
+      setPhrase409(null);
+      return;
+    }
+    setSubmit({ kind: 'unknown', res: res!, phase: 'no_change' });
   }
 
   return (
     <Shell>
       <LockBanner state={state} />
       <CandidatePanel state={state} />
-      {state.manifest?.ok && <ManifestPanel state={state} />}
+      {state.manifest?.ok && <ManifestPanel state={state} drift={drift!} />}
       {state.blockers.length > 0 && <Blockers state={state} />}
+      {drift && drift.evaluator.length > 0 && !state.blockers.includes('evaluator_live_drift') && <EvaluatorDrift keys={drift.evaluator} />}
 
-      {submit.kind !== 'idle' && (
-        <div ref={resultRef} tabIndex={-1} className="outline-none">
-          {submit.kind === 'success' ? <SubmitSuccess res={submit.res} /> : <SubmitError res={submit.res} />}
-        </div>
-      )}
+      {result}
 
       {!state.can_declare ? (
         <p className="rounded-lg border border-dashed border-field p-4 text-sm text-muted-foreground">
@@ -256,14 +315,14 @@ export default function EvaluatorLockPage() {
                     <label htmlFor={`lock-env-${r.id}-value`} className="block text-xs text-muted-foreground">ค่า / Value {i + 1}</label>
                     <Input id={`lock-env-${r.id}-value`} value={r.value} onChange={(e) => setEnv(r.id, 'value', e.target.value)} autoComplete="off" spellCheck={false} className="font-mono" />
                   </div>
-                  <button type="button" onClick={() => removeEnv(r.id)} aria-label={`ลบ / Remove ${i + 1}`} className="justify-self-start rounded-lg border border-field px-3 py-2 text-sm whitespace-nowrap text-foreground hover:bg-muted">
+                  <button type="button" id={`lock-env-${r.id}-remove`} onClick={() => removeEnv(r.id)} aria-label={`ลบ / Remove ${i + 1}`} className="justify-self-start rounded-lg border border-field px-3 py-2 text-sm whitespace-nowrap text-foreground hover:bg-muted">
                     ลบ / Remove
                   </button>
                   {keyErr && <p id={`lock-env-${r.id}-error`} className="text-xs text-danger @min-[640px]:col-span-3">{keyErr}</p>}
                 </div>
               );
             })}
-            <button type="button" onClick={addEnv} className="rounded-lg border border-field px-3 py-2 text-sm whitespace-nowrap text-foreground hover:bg-muted">
+            <button type="button" id="lock-env-add" onClick={addEnv} className="rounded-lg border border-field px-3 py-2 text-sm whitespace-nowrap text-foreground hover:bg-muted">
               เพิ่มรายการ / Add an entry
             </button>
           </fieldset>
@@ -404,7 +463,7 @@ function LockBanner({ state }: { state: EvaluatorLockState }) {
       ['Environment', env.length
         ? <ul key="env" className="space-y-0.5 font-mono text-xs break-all">{env.map(([k, v]) => <li key={k}>{k} = {v}</li>)}</ul>
         : 'ไม่ได้ประกาศ / Not declared'],
-      ...(current.note ? [['หมายเหตุ / Note', <span key="n" className="whitespace-pre-wrap break-words">{current.note}</span>] as Row] : []),
+      ...(current.note ? [['หมายเหตุ / Note', <span key="n" className="block whitespace-pre-wrap break-words">{current.note}</span>] as Row] : []),
     ];
     return (
       <section aria-labelledby="lock-banner-h" className="rounded-lg border border-ok/40 p-4">
@@ -539,7 +598,7 @@ function CandidatePanel({ state }: { state: EvaluatorLockState }) {
   );
 }
 
-function ManifestPanel({ state }: { state: EvaluatorLockState }) {
+function ManifestPanel({ state, drift }: { state: EvaluatorLockState; drift: DriftClasses }) {
   const m = state.manifest as Extract<NonNullable<EvaluatorLockState['manifest']>, { ok: true }>;
   const exp = m.expected_for_candidate;
   return (
@@ -562,12 +621,46 @@ function ManifestPanel({ state }: { state: EvaluatorLockState }) {
           </>
         )}
       </dl>
-      {m.drift_keys.length > 0 && (
-        <p className="text-xs text-muted-foreground">
-          ค่าที่รันอยู่ต่างจาก manifest {m.drift_keys.length} รายการ (ดูที่หน้าความพร้อม AI) คาดว่าจะเป็นเช่นนี้ขณะ production ใช้ Claude ทุกงาน /
-          {' '}{m.drift_keys.length} live value(s) differ from the manifest (see AI readiness). Expected while production runs every purpose on Claude.
+      {/* Live drift, by kind. Only the deployment-target kind is "expected"; evaluator-scope keys are a
+          warning of their own before the form (EvaluatorDrift, or the evaluator_live_drift blocker). */}
+      {drift.evaluator.length > 0 && (
+        <p className="flex gap-1.5 text-xs text-warn">
+          <AlertTriangle className="mt-px size-3.5 shrink-0" aria-hidden="true" />
+          <span>ค่าในขอบเขตเครื่องมือวัดต่างจาก manifest {drift.evaluator.length} รายการ ดูด้านล่าง / {drift.evaluator.length} value(s) in the evaluator’s scope differ: listed below.</span>
         </p>
       )}
+      {drift.expected.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-xs text-muted-foreground">ค่าที่ประกาศต่างจากที่รันอยู่ {drift.expected.length} รายการ / {drift.expected.length} declared value(s) differ from what is running:</p>
+          <DriftKeyList keys={drift.expected} label="ค่าที่ประกาศที่ต่างไป / Declared values that differ" />
+          <p className="text-xs text-muted-foreground">{DRIFT_COPY.expected}</p>
+        </div>
+      )}
+      {drift.other.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-xs text-muted-foreground">ค่าอื่นที่ต่างไป {drift.other.length} รายการ / {drift.other.length} other value(s) differ:</p>
+          <DriftKeyList keys={drift.other} label="ค่าอื่นที่ต่างไป / Other values that differ" />
+          <p className="text-xs text-muted-foreground">{DRIFT_COPY.other}</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+// Evaluator-scope live drift, before the form and never as "expected". Today's backend does not refuse a
+// lock for it; the backend change after 6b adds the evaluator_live_drift blocker, which replaces this box.
+function EvaluatorDrift({ keys }: { keys: string[] }) {
+  return (
+    <section aria-labelledby="lock-drift-h" className="space-y-2 rounded-lg border border-warn/50 p-4">
+      <h2 id="lock-drift-h" className="flex gap-2 font-sans text-sm font-medium text-warn">
+        <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <span>{DRIFT_COPY.evaluatorTitle}</span>
+      </h2>
+      <DriftKeyList keys={keys} label="ค่าในขอบเขตเครื่องมือวัดที่ต่างไป / Evaluator-scope values that differ" />
+      <p className="text-sm text-foreground">{DRIFT_COPY.evaluatorBody}</p>
+      <p className="text-sm text-foreground">
+        แก้ให้ตรงก่อนล็อก / Resolve them before locking: a lock taken now would record a configuration that is not the one scoring.
+      </p>
     </section>
   );
 }
@@ -582,7 +675,7 @@ function Blockers({ state }: { state: EvaluatorLockState }) {
       </h2>
       <ul className="space-y-3">
         {state.blockers.map((b) => {
-          const copy = BLOCKER_COPY[b as EvaluatorLockBlocker];
+          const copy = blockerCopy(b);
           return (
             <li key={b} data-blocker={b} className="min-w-0 rounded-lg border border-danger/40 p-3">
               <p className="flex gap-2 text-sm font-medium text-foreground">
@@ -598,6 +691,14 @@ function Blockers({ state }: { state: EvaluatorLockState }) {
       </ul>
     </section>
   );
+}
+
+// A blocker's backend detail: a sentence, or a list of keys (evaluator_live_drift). Anything else is
+// not guessed at.
+function Detail({ detail }: { detail: string | readonly string[] | undefined }) {
+  if (typeof detail === 'string') return detail ? <p className="break-words">{detail}</p> : null;
+  if (Array.isArray(detail) && detail.length) return <DriftKeyList keys={detail} label="รายการ / Items" />;
+  return null;
 }
 
 function BlockerDetail({ blocker, state }: { blocker: string; state: EvaluatorLockState }) {
@@ -645,8 +746,18 @@ function BlockerDetail({ blocker, state }: { blocker: string; state: EvaluatorLo
           </ol>
         </>
       ) : null;
+    case 'evaluator_live_drift': {
+      // The backend's key list when it sends one; else the evaluator-scope keys the manifest reports.
+      const fallback = state.manifest?.ok ? classifyDrift(state.manifest.drift_keys, state.candidate?.provider).evaluator : undefined;
+      return (
+        <>
+          <Detail detail={detail ?? fallback} />
+          <p>{DRIFT_COPY.evaluatorBody}</p>
+        </>
+      );
+    }
     default:
-      return detail ? <p className="break-words">{detail}</p> : null;
+      return <Detail detail={detail} />;
   }
 }
 
@@ -708,6 +819,52 @@ function SubmitSuccess({ res }: { res: EvaluatorLockPostResult }) {
   return (
     <StateMessage kind="notice" title={`ล็อกแล้วเมื่อ ${fmtDate(res.locked_at)} / Locked at ${fmtDate(res.locked_at)}`}>
       <p className="font-mono text-xs">manifest {shortSha(res.manifest_sha256)} · evaluator {shortSha(res.evaluator_sha256)}</p>
+    </StateMessage>
+  );
+}
+
+// Nothing readable came back. Amber, not red, and never "try again": the lock may already be written.
+// What came back, named — not apiFetch's own envelope text, which ends "please try again".
+function unknownCause(res: EvaluatorLockPostResult): string {
+  if (res.code === TIMEOUT_CODE) return 'หมดเวลารอคำตอบ / The browser stopped waiting (timeout)';
+  if (res.unreadableBody) return `คำตอบไม่ใช่ข้อมูลจากเซิร์ฟเวอร์ / The answer was not the server’s JSON${res.httpStatus ? ` (HTTP ${res.httpStatus})` : ''}`;
+  if (res.httpStatus) return `HTTP ${res.httpStatus}, ไม่มีรหัสผล / with no result code`;
+  if (res.error) return 'ไม่ได้รับคำตอบ (เครือข่าย) / No answer (network)';
+  return 'คำตอบไม่ได้ยืนยันการล็อก / The answer did not confirm the lock';
+}
+
+function SubmitUnknown({ res, phase, lockedAt }: { res: EvaluatorLockPostResult; phase: UnknownPhase; lockedAt?: string | null }) {
+  const why = unknownCause(res);
+  return (
+    <StateMessage kind="notice" role="alert" title={OUTCOME_UNKNOWN}>
+      <p className="break-words">
+        คำขอถูกส่งไปแล้ว แต่ไม่ได้รับคำตอบที่อ่านได้ การล็อกอาจถูกบันทึกแล้วหรือไม่ก็ได้ / The request was sent but no readable answer came
+        back, so the lock may or may not have been written.
+      </p>
+      <p className="mt-1 text-xs break-words">{why}</p>
+      {phase === 'checking' && <p className="mt-2">กำลังอ่านสถานะการล็อกอีกครั้ง… / Re-reading the lock state…</p>}
+      {phase === 'new_lock' && (
+        <>
+          <p className="mt-2 font-medium">
+            ตอนนี้มีการล็อกที่มีผลอยู่ (ตั้งแต่ {fmtDate(lockedAt)}) ซึ่งอาจเป็นการล็อกที่เพิ่งส่ง ตรวจแถบสถานะด้านบนก่อนส่งอะไรอีก /
+            A lock is now in force (since {fmtDate(lockedAt)}), and it may be the one just sent. Check the banner above before sending anything.
+          </p>
+          <p className="mt-1">แบบฟอร์มถูกล้างแล้ว เพื่อไม่ให้ส่งซ้ำโดยไม่ตั้งใจ / The form was cleared so the declaration cannot be sent twice by accident.</p>
+        </>
+      )}
+      {phase === 'no_change' && (
+        <p className="mt-2">
+          อ่านสถานะอีกครั้งแล้วยังไม่พบการล็อกใหม่ แต่เซิร์ฟเวอร์อาจทำคำขอเสร็จหลังจากนี้ รอสักครู่แล้วโหลดหน้าใหม่ก่อนส่งอีกครั้ง /
+          A fresh read shows no new lock yet, but the server may still finish the request after the browser stopped waiting. Wait a
+          minute and reload this page before sending again.
+        </p>
+      )}
+      {phase === 'unreadable' && (
+        <p className="mt-2">
+          อ่านสถานะการล็อกอีกครั้งไม่ได้ โหลดหน้าใหม่ก่อนส่งอะไรอีก / The lock state could not be re-read either. Reload this page before
+          sending anything.
+        </p>
+      )}
     </StateMessage>
   );
 }

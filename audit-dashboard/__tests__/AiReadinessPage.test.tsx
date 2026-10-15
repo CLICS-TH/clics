@@ -233,7 +233,10 @@ describe('AI readiness — the model manifest and the Model Lock', () => {
     expect(sha).toHaveAttribute('title', SHA);
     expect(screen.getByText('present')).toBeInTheDocument();
     expect(screen.getByText(/Matches the code/)).toHaveClass('text-ok');
-    expect(screen.getByText(/2 live value\(s\) differ from the manifest/)).toHaveClass('text-warn');
+    // With no lock and no serving evaluator named, both keys are deployment-target drift: muted, and the
+    // only kind the "expected while production runs on Claude" sentence is allowed to describe.
+    expect(screen.getByText(/2 declared value\(s\) differ from what is running/)).toHaveClass('text-muted-foreground');
+    expect(screen.queryByText(/evaluator’s scope/)).not.toBeInTheDocument();
     expect(screen.getByText('declared.providers.evaluate')).toBeInTheDocument();
     expect(screen.getByText('declared.local.model')).toBeInTheDocument();
     // Keys, never values — not even the hashed ones.
@@ -313,5 +316,44 @@ describe('AI readiness — the model manifest and the Model Lock', () => {
     wire(body({ model_lock: { status: 'down', locked: true, locked_at: null } }));
     render(<AiReadinessPage />);
     expect(await screen.findByText('ล็อกตั้งแต่ — / Locked since —')).toBeInTheDocument();
+  });
+});
+
+describe('AI readiness — drift by what it means for the instrument', () => {
+  const SHA = 'ab'.repeat(32);
+  const KEYS = ['code.decoding.evaluate.temperature', 'code.consistency.evaluate_mode', 'code.consistency.shadow_mode',
+    'code.models.anthropic', 'declared.providers.chat', 'declared.local.model', 'code.decoding.chat.temperature'];
+  const manifest = { sha256: SHA, file: 'present', code_match: true, drift: KEYS.map((key) => ({ key, expected: null, live: null })) };
+  const group = (label: RegExp) => screen.getByRole('list', { name: label });
+  const items = (label: RegExp) => within(group(label)).getAllByRole('listitem').map((li) => li.textContent);
+
+  it('a locked local evaluator: its declared block and its decoding/consistency are evaluator scope, in warning tone', async () => {
+    wire(body({ manifest, model_lock: { status: 'up', locked: true, locked_at: '2026-10-14T03:00:00Z', provider: 'local', match: true } }));
+    render(<AiReadinessPage />);
+    expect((await screen.findByText(/Live values in the evaluator’s scope differ from the manifest \(3\)/)).closest('p')).toHaveClass('text-warn');
+    expect(items(/Evaluator-scope values/)).toEqual(['code.decoding.evaluate.temperature', 'code.consistency.evaluate_mode', 'declared.local.model']);
+    expect(items(/Declared values that differ/)).toEqual(['declared.providers.chat']);
+    // The shadow evaluator's consistency, chat decoding and (for a local evaluator) the Claude model are not the instrument.
+    expect(items(/Other values that differ/)).toEqual(['code.consistency.shadow_mode', 'code.models.anthropic', 'code.decoding.chat.temperature']);
+    // "Expected" sits with the declared group only, never beside the evaluator keys.
+    const expected = screen.getByText(/Expected while production runs every purpose on Claude/);
+    expect(expected.parentElement).toContainElement(group(/Declared values that differ/));
+    expect(expected.parentElement).not.toContainElement(group(/Evaluator-scope values/));
+  });
+
+  it('unlocked, serving anthropic: the pinned Claude model is evaluator scope; the on-prem declared block is expected', async () => {
+    wire(body({ manifest, models: { evaluate: { provider: 'anthropic', model: 'claude' } } }));
+    render(<AiReadinessPage />);
+    await screen.findByText(/evaluator’s scope differ from the manifest \(3\)/);
+    expect(items(/Evaluator-scope values/)).toEqual(['code.decoding.evaluate.temperature', 'code.consistency.evaluate_mode', 'code.models.anthropic']);
+    expect(items(/Declared values that differ/)).toEqual(['declared.providers.chat', 'declared.local.model']);
+  });
+
+  it('only evaluator-scope drift: no "expected" sentence anywhere', async () => {
+    wire(body({ manifest: { ...manifest, drift: [{ key: 'code.decoding.evaluate.max_tokens' }] } }));
+    render(<AiReadinessPage />);
+    await screen.findByText(/evaluator’s scope differ from the manifest \(1\)/);
+    expect(screen.queryByText(/Expected while production/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/No live value differs/)).not.toBeInTheDocument();
   });
 });

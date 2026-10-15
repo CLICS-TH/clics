@@ -231,13 +231,18 @@ export function AiProviderPanel() {
               </div>
             ) : (
               <div className="mt-3">
-                {/* A link, styled as the control it replaces — not a Button nested in an <a>. */}
+                {/* A link, styled as the control it replaces — not a Button nested in an <a>. Thai over
+                    English, each a nowrap line, as the provider options do: on one line the label was 257px
+                    in a 213px card at 320px. max-w-full keeps it inside the card whatever the width. */}
                 <Link
                   href="/admin/evaluator-lock"
-                  className="inline-flex items-center gap-1.5 rounded-lg border-2 border-primary bg-primary/15 px-3 py-2 text-xs font-semibold whitespace-nowrap text-foreground hover:bg-primary/25 pointer-coarse:min-h-11"
+                  className="inline-flex max-w-full items-center gap-2 rounded-lg border-2 border-primary bg-primary/15 px-3 py-2 text-left text-xs font-semibold text-foreground hover:bg-primary/25 pointer-coarse:min-h-11"
                 >
                   <Lock className="size-3.5 shrink-0" aria-hidden="true" />
-                  ล็อกผู้ให้คะแนน / Lock the evaluator
+                  <span className="min-w-0">
+                    <span className="block whitespace-nowrap">ล็อกผู้ให้คะแนน</span>{' '}
+                    <span className="block whitespace-nowrap">Lock the evaluator</span>
+                  </span>
                 </Link>
                 <p className="mt-1.5 text-xs text-muted-foreground">
                   เปิดหน้า Model Lock ซึ่งบันทึกค่าที่ล็อก ผลความสอดคล้องกับผู้ตรวจ และ model manifest ไว้ด้วยกัน /
