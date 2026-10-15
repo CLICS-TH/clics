@@ -270,32 +270,31 @@ export const OUTCOME_UNKNOWN = 'ไม่ทราบผล / Outcome unknown';
 
 // ---- live drift, by what it means for the instrument ------------------------------------------------
 //
-// rimpl reports which live values differ from the manifest (lib/manifest.js driftOf). They are not one
-// kind of finding:
-//   evaluator  part of the scoring instrument a lock freezes (services/model-lock.js evaluatorScope):
-//              code.decoding.evaluate.*, code.consistency.* except the shadow evaluator's, the pinned
-//              Claude model when the evaluator IS anthropic, and the evaluator provider's declared block.
-//              Never "expected": while these differ, what scores is not what the manifest describes.
-//   expected   the rest of declared.*: the manifest declares the on-prem target, and production runs
+// rimpl reports which live values differ from the manifest (lib/manifest.js driftOf). Which of them are
+// part of the scoring instrument is the BACKEND's call (services/model-lock.js isEvaluatorDriftKey, sent
+// as manifest.evaluator_drift_keys): the rule depends on the provider (num_ctx counts for an on-prem
+// evaluator, consistency only where it governs that provider), and a second copy of it here would drift
+// from the one that decides whether a lock may be taken. This module only splits the REST for display:
+//   evaluator  exactly evaluator_drift_keys. Never "expected".
+//   expected   any other declared.* key: the manifest declares the on-prem target, and production runs
 //              every purpose on Claude until CCME R1/R3 close.
-//   other      everything else (chat, tutor, router, shadow, context and thinking settings).
-export interface DriftClasses { evaluator: string[]; expected: string[]; other: string[] }
+//   other      everything else.
+// When the backend sends no list (an older backend, or one that could not compute it), nothing is
+// classified and nothing is called expected: the keys are listed as they are, under a warning.
+export type DriftView =
+  | { classified: true; evaluator: string[]; expected: string[]; other: string[] }
+  | { classified: false; all: string[] };
 
-export function isEvaluatorDrift(key: string, evaluatorProvider: string | null | undefined): boolean {
-  if (key.startsWith('code.decoding.evaluate.')) return true;
-  if (key.startsWith('code.consistency.')) return !key.includes('shadow');
-  if (key === 'code.models.anthropic') return evaluatorProvider === 'anthropic';
-  return !!evaluatorProvider && key.startsWith(`declared.${evaluatorProvider}.`);
-}
-
-export function classifyDrift(keys: readonly string[], evaluatorProvider: string | null | undefined): DriftClasses {
-  const out: DriftClasses = { evaluator: [], expected: [], other: [] };
-  for (const k of keys) {
-    if (isEvaluatorDrift(k, evaluatorProvider)) out.evaluator.push(k);
-    else if (k.startsWith('declared.')) out.expected.push(k);
-    else out.other.push(k);
-  }
-  return out;
+export function classifyDrift(keys: readonly string[], evaluatorKeys: readonly string[] | null | undefined): DriftView {
+  if (!Array.isArray(evaluatorKeys)) return { classified: false, all: [...keys] };
+  const inScope = new Set(evaluatorKeys);
+  const rest = keys.filter((k) => !inScope.has(k));
+  return {
+    classified: true,
+    evaluator: [...evaluatorKeys],
+    expected: rest.filter((k) => k.startsWith('declared.')),
+    other: rest.filter((k) => !k.startsWith('declared.')),
+  };
 }
 
 export const DRIFT_COPY = {
@@ -304,8 +303,11 @@ export const DRIFT_COPY = {
     + 'These belong to the scoring instrument: while they differ, the evaluator that is scoring is not the configuration the manifest describes.',
   expected: 'คาดว่าจะต่างขณะ production ใช้ Claude ทุกงาน เพราะ manifest ระบุเครื่องในองค์กรเป็นเป้าหมาย (CCME R1/R3) / '
     + 'Expected while production runs every purpose on Claude: the manifest declares the on-prem target (CCME R1/R3), so live routing differs from it until those close.',
-  other: 'ค่าอื่นที่ไม่ใช่ส่วนของเครื่องมือวัด (แชต ผู้สอน ตัวจัดเส้นทาง หรือผู้ให้คะแนนคู่ขนาน) / '
-    + 'Not part of the scoring instrument (chat, tutor, router, shadow or context settings).',
+  other: 'ตามที่เซิร์ฟเวอร์จัดประเภท ค่าเหล่านี้ไม่ใช่ส่วนของเครื่องมือวัด / '
+    + 'By the server’s classification, these are not part of the scoring instrument.',
+  unclassifiedTitle: 'จัดประเภทค่าที่ต่างไปไม่ได้ / Could not classify the live drift',
+  unclassifiedBody: 'เซิร์ฟเวอร์ไม่ได้บอกว่าค่าใดเป็นส่วนของเครื่องมือวัด จึงไม่ถือว่ารายการใดเป็นเรื่องที่คาดไว้ รายการใดก็อาจกระทบการให้คะแนน / '
+    + 'The server did not say which of these belong to the scoring instrument, so none of them is treated as expected: any of them may affect scoring.',
 };
 
 // ---- formatting ------------------------------------------------------------------------------------

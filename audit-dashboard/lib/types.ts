@@ -533,7 +533,14 @@ export interface ManifestExpectedForCandidate {
   evaluator_sha256: string;
 }
 export type EvaluatorLockManifest =
-  | { ok: true; sha256: string; file: string; code_match: true; drift_keys: string[]; expected_for_candidate: ManifestExpectedForCandidate | null }
+  | {
+    ok: true; sha256: string; file: string; code_match: true; drift_keys: string[];
+    expected_for_candidate: ManifestExpectedForCandidate | null;
+    // From the backend PR after 6b (services/model-lock.js isEvaluatorDriftKey): the drift keys in the
+    // evaluator's scope, and the provider that scope was computed for. Absent from an older backend.
+    evaluator_drift_keys?: string[];
+    evaluator_provider?: string;
+  }
   | { ok: false; code?: string; reason?: string; error?: string; file?: string | null; code_match?: boolean | null };
 
 // services/model-lock.js manifestDiff. `source: 'candidate'` is MEASURED (the shadow rows); 'declaration'
@@ -602,6 +609,10 @@ export interface ReadinessManifest {
   file: string | null;
   code_match: boolean | null;
   drift?: { key: string }[] | null;
+  // Added by the backend beside rimpl's block (the PR after 6b). Null when it could not be computed,
+  // absent from an older backend: either way the screen does not classify.
+  evaluator_drift_keys?: string[] | null;
+  evaluator_provider?: string | null;
 }
 
 // /admin/ai-readiness `model_lock`: services/model-lock.js modelLockCheck (the /health/deep verdict).

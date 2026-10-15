@@ -19,7 +19,7 @@ const toast = jest.fn();
 jest.mock('@/components/Overlays', () => ({ toast: (...a: unknown[]) => toast(...a) }));
 
 import EvaluatorLockPage from '@/app/admin/evaluator-lock/page';
-import { emptyForm, validate, buildBody, decodingValue, manifestValue, fmtValue, fmtDate, shortSha, differsFromManifest, postOutcome, classifyDrift, isEvaluatorDrift, TIMEOUT_CODE } from '@/lib/evaluator-lock';
+import { emptyForm, validate, buildBody, decodingValue, manifestValue, fmtValue, fmtDate, shortSha, differsFromManifest, postOutcome, classifyDrift, TIMEOUT_CODE } from '@/lib/evaluator-lock';
 
 const PV = 'pis7-prompt-59561c29+local-c5ffe572aa81';
 const RV = 'pis7-weights-08b0cb1a';
@@ -248,7 +248,7 @@ describe('Model Lock — every blocker is its own reason', () => {
 
 describe('Model Lock — the candidate, the gate and the manifest', () => {
   it('shows candidate vs serving, the verdict, the corpus groups and the manifest the lock would freeze', async () => {
-    wire(state({ manifest: { ...MANIFEST, drift_keys: ['declared.providers.chat', 'declared.providers.evaluate'] } }));
+    wire(state({ manifest: { ...MANIFEST, drift_keys: ['declared.providers.chat', 'declared.providers.evaluate'], evaluator_drift_keys: [], evaluator_provider: 'local' } }));
     render(<EvaluatorLockPage />);
     await formReady();
     const panel = screen.getByRole('region', { name: /The candidate and the serving evaluator/ });
@@ -931,30 +931,66 @@ describe('Model Lock — environment rows keep keyboard focus', () => {
 });
 
 describe('Model Lock — live drift in the evaluator scope is never "expected"', () => {
-  const DRIFT = ['declared.providers.evaluate', 'declared.local-tutor.model', 'code.decoding.evaluate.temperature',
-    'code.consistency.json_retries', 'code.consistency.shadow_mode', 'declared.local.model', 'code.models.anthropic'];
-  const withDrift = (over: State = {}) => state({ manifest: { ...MANIFEST, drift_keys: DRIFT }, ...over });
+  // Which keys are the evaluator's is the BACKEND's answer (manifest.evaluator_drift_keys, from
+  // services/model-lock.js isEvaluatorDriftKey). The screen only splits the rest. These lists are
+  // deliberately ones a front-end rule would get wrong (num_ctx IN for an on-prem evaluator; a
+  // consistency key OUT), so a re-implemented rule here would fail.
+  const DRIFT = ['declared.providers.evaluate', 'declared.local-tutor.model', 'code.decoding.num_ctx.local',
+    'code.decoding.evaluate.temperature', 'code.consistency.json_retries', 'declared.local.model', 'code.models.anthropic'];
+  const EVAL = ['code.decoding.num_ctx.local', 'code.decoding.evaluate.temperature', 'declared.local.model'];
+  const withDrift = (m: State = {}, over: State = {}) => state({ manifest: { ...MANIFEST, drift_keys: DRIFT, evaluator_drift_keys: EVAL, evaluator_provider: 'local', ...m }, ...over });
   const list = (name: RegExp) => within(screen.getAllByRole('list', { name })[0]).getAllByRole('listitem').map((li) => li.textContent);
 
-  it('lists evaluator-scope keys by name in a warning before the form, and calls only declared drift expected', async () => {
+  it('lists the backend’s evaluator-scope keys in a warning before the form, and calls only the remaining declared drift expected', async () => {
     wire(withDrift());
     render(<EvaluatorLockPage />);
     const form = await formReady();
     const box = screen.getByRole('region', { name: /Live values in the evaluator’s scope differ/ });
     expect(within(box).getByRole('heading')).toHaveClass('text-warn');
-    expect(list(/Evaluator-scope values/)).toEqual(['code.decoding.evaluate.temperature', 'code.consistency.json_retries', 'declared.local.model']);
+    expect(box).toHaveTextContent('ผู้ให้คะแนน / Evaluator: local');
+    expect(list(/Evaluator-scope values/)).toEqual(EVAL);
     expect(box).toHaveTextContent('Resolve them before locking');
     expect(box.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     const m = screen.getByRole('region', { name: 'Model manifest' });
     expect(m).toHaveTextContent('3 value(s) in the evaluator’s scope differ: listed below.');
+    // declared.local.model is the evaluator's, so it is NOT in the expected group.
     expect(list(/Declared values that differ/)).toEqual(['declared.providers.evaluate', 'declared.local-tutor.model']);
-    expect(list(/Other values that differ/)).toEqual(['code.consistency.shadow_mode', 'code.models.anthropic']);
+    expect(list(/Other values that differ/)).toEqual(['code.consistency.json_retries', 'code.models.anthropic']);
     const expected = within(m).getByText(/Expected while production runs every purpose on Claude/);
-    expect(expected.parentElement).not.toHaveTextContent('code.decoding.evaluate');
+    expect(expected.parentElement).not.toHaveTextContent('declared.local.model');
+    expect(screen.queryByText(/Could not classify/)).not.toBeInTheDocument();
+  });
+
+  it('an empty evaluator list: no warning box, the declared keys are expected', async () => {
+    wire(withDrift({ evaluator_drift_keys: [], evaluator_provider: undefined }));
+    render(<EvaluatorLockPage />);
+    await formReady();
+    expect(screen.queryByRole('region', { name: /evaluator’s scope differ/ })).not.toBeInTheDocument();
+    expect(list(/Declared values that differ/)).toEqual(['declared.providers.evaluate', 'declared.local-tutor.model', 'declared.local.model']);
+  });
+
+  it('no evaluator list from the backend: "could not classify", every key listed as it is, none called expected', async () => {
+    wire(withDrift({ evaluator_drift_keys: undefined }));
+    render(<EvaluatorLockPage />);
+    const form = await formReady();
+    const box = screen.getByRole('region', { name: /Could not classify the live drift/ });
+    expect(within(box).getByRole('heading')).toHaveClass('text-warn');
+    expect(list(/Values that differ, unclassified/)).toEqual(DRIFT);
+    expect(box).toHaveTextContent('none of them is treated as expected');
+    expect(box.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Model manifest' })).toHaveTextContent('7 live value(s) differ and could not be classified: listed below.');
+    expect(screen.queryByText(/Expected while production/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('list', { name: /Declared values that differ|Evaluator-scope values/ })).not.toBeInTheDocument();
+  });
+
+  it('no drift and no list: nothing to classify, nothing shown', async () => {
+    render(<EvaluatorLockPage />);
+    await formReady();
+    expect(screen.queryByText(/Could not classify|evaluator’s scope differ/)).not.toBeInTheDocument();
   });
 
   it('an evaluator_live_drift blocker names its keys and replaces the separate warning', async () => {
-    wire(withDrift({ can_declare: false, blockers: ['evaluator_live_drift'],
+    wire(withDrift({}, { can_declare: false, blockers: ['evaluator_live_drift'],
       blocker_detail: { evaluator_live_drift: ['code.decoding.evaluate.temperature', 'declared.local.engine'] } }));
     render(<EvaluatorLockPage />);
     await screen.findByText(/Why the lock cannot be declared yet \(1\)/);
@@ -965,19 +1001,26 @@ describe('Model Lock — live drift in the evaluator scope is never "expected"',
     expect(screen.queryByRole('region', { name: /Live values in the evaluator’s scope differ/ })).not.toBeInTheDocument();
   });
 
-  it('without a key list from the backend, the blocker lists the manifest’s evaluator-scope keys; a string detail is shown as written', async () => {
-    wire(withDrift({ can_declare: false, blockers: ['evaluator_live_drift'] }));
+  it('without a key list on the blocker, it lists the manifest’s evaluator keys; a string detail is shown as written; with neither, only the reason', async () => {
+    wire(withDrift({}, { can_declare: false, blockers: ['evaluator_live_drift'] }));
     const first = render(<EvaluatorLockPage />);
     await screen.findByText(/Why the lock cannot be declared/);
     let item = document.querySelector('[data-blocker="evaluator_live_drift"]') as HTMLElement;
-    expect(within(item).getAllByRole('listitem').map((li) => li.textContent)).toEqual(['code.decoding.evaluate.temperature', 'code.consistency.json_retries', 'declared.local.model']);
+    expect(within(item).getAllByRole('listitem').map((li) => li.textContent)).toEqual(EVAL);
     first.unmount();
 
     wire(state({ can_declare: false, blockers: ['evaluator_live_drift'], blocker_detail: { evaluator_live_drift: 'temperature 0.7 is live, 0 is frozen' }, manifest: { ok: false } }));
-    render(<EvaluatorLockPage />);
+    const second = render(<EvaluatorLockPage />);
     await screen.findByText(/Why the lock cannot be declared/);
     item = document.querySelector('[data-blocker="evaluator_live_drift"]') as HTMLElement;
     expect(item).toHaveTextContent('temperature 0.7 is live, 0 is frozen');
+    second.unmount();
+
+    wire(withDrift({ evaluator_drift_keys: undefined }, { can_declare: false, blockers: ['evaluator_live_drift'] }));
+    render(<EvaluatorLockPage />);
+    await screen.findByText(/Why the lock cannot be declared/);
+    item = document.querySelector('[data-blocker="evaluator_live_drift"]') as HTMLElement;
+    expect(within(item).queryAllByRole('listitem')).toHaveLength(0);
   });
 
   it('an unknown blocker with a key list renders the list; an empty or odd detail renders nothing extra', async () => {
@@ -994,12 +1037,10 @@ describe('Model Lock — live drift in the evaluator scope is never "expected"',
     }
   });
 
-  it('classifyDrift / isEvaluatorDrift by provider', () => {
-    expect(isEvaluatorDrift('code.models.anthropic', 'anthropic')).toBe(true);
-    expect(isEvaluatorDrift('code.models.anthropic', 'local')).toBe(false);
-    expect(isEvaluatorDrift('declared.local.model', null)).toBe(false);
-    expect(isEvaluatorDrift('code.consistency.shadow_mode', 'local')).toBe(false);
-    expect(classifyDrift(['declared.local.model', 'code.thinking_style.local', 'declared.providers.evaluate'], undefined))
-      .toEqual({ evaluator: [], expected: ['declared.local.model', 'declared.providers.evaluate'], other: ['code.thinking_style.local'] });
+  it('classifyDrift splits around the backend’s list, and refuses to classify without one', () => {
+    expect(classifyDrift(['declared.a.x', 'code.b', 'code.c'], ['code.c']))
+      .toEqual({ classified: true, evaluator: ['code.c'], expected: ['declared.a.x'], other: ['code.b'] });
+    expect(classifyDrift(['declared.a.x'], null)).toEqual({ classified: false, all: ['declared.a.x'] });
+    expect(classifyDrift(['declared.a.x'], undefined)).toEqual({ classified: false, all: ['declared.a.x'] });
   });
 });

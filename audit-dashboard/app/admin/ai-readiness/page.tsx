@@ -252,19 +252,20 @@ export default function AiReadinessPage() {
         </section>
       )}
 
-      {/* The evaluator is the locked provider when there is a lock, else whatever serves evaluate now. */}
-      {data?.manifest && <ManifestBlock m={data.manifest} evaluator={data.model_lock?.provider ?? data.models?.evaluate?.provider ?? null} />}
+      {data?.manifest && <ManifestBlock m={data.manifest} />}
       {data?.model_lock && <ModelLockBlock l={data.model_lock} />}
     </div>
   );
 }
 
 // The KEYS of the drift only. rimpl already hashes free-text live values on this public block, but the
-// values are still not this screen's business: which settings differ is the finding. Split by what they
-// mean (lib/evaluator-lock.ts classifyDrift): only deployment-target drift is "expected".
-function ManifestBlock({ m, evaluator }: { m: ReadinessManifest; evaluator: string | null }) {
+// values are still not this screen's business: which settings differ is the finding. Which keys are the
+// evaluator's is the backend's answer (manifest.evaluator_drift_keys); without it nothing is classified
+// and nothing is called expected (lib/evaluator-lock.ts classifyDrift).
+function ManifestBlock({ m }: { m: ReadinessManifest }) {
   const keys = (m.drift ?? []).map((d) => d?.key).filter((k): k is string => typeof k === 'string');
-  const drift = classifyDrift(keys, evaluator);
+  const drift = classifyDrift(keys, m.evaluator_drift_keys);
+  const none = keys.length === 0 && (!drift.classified || drift.evaluator.length === 0);
   const sha = short(m.sha256);
   return (
     <section className="space-y-2">
@@ -283,25 +284,38 @@ function ManifestBlock({ m, evaluator }: { m: ReadinessManifest; evaluator: stri
             <span className="inline-flex items-center gap-1.5 text-muted-foreground"><HelpCircle className="size-4" aria-hidden="true" />ไม่ทราบว่าตรงกับโค้ดหรือไม่ / Code match unknown</span>
           )}
         </div>
-        {keys.length === 0 && <p className="text-muted-foreground">ไม่มีค่าที่ต่างจาก manifest / No live value differs from the manifest.</p>}
-        {drift.evaluator.length > 0 && (
+        {none && <p className="text-muted-foreground">ไม่มีค่าที่ต่างจาก manifest / No live value differs from the manifest.</p>}
+        {!drift.classified && drift.all.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="flex gap-1.5 text-warn">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <span>{DRIFT_COPY.unclassifiedTitle} ({drift.all.length})</span>
+            </p>
+            <DriftKeyList keys={drift.all} label="ค่าที่ต่างไป ยังไม่จัดประเภท / Values that differ, unclassified" />
+            <p className="text-xs text-foreground">{DRIFT_COPY.unclassifiedBody}</p>
+          </div>
+        )}
+        {drift.classified && drift.evaluator.length > 0 && (
           <div className="space-y-1.5">
             <p className="flex gap-1.5 text-warn">
               <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
               <span>{DRIFT_COPY.evaluatorTitle} ({drift.evaluator.length})</span>
             </p>
+            {m.evaluator_provider && (
+              <p className="text-xs text-muted-foreground">ผู้ให้คะแนน / Evaluator: <span className="font-mono text-foreground">{m.evaluator_provider}</span></p>
+            )}
             <DriftKeyList keys={drift.evaluator} label="ค่าในขอบเขตเครื่องมือวัดที่ต่างไป / Evaluator-scope values that differ" />
             <p className="text-xs text-foreground">{DRIFT_COPY.evaluatorBody}</p>
           </div>
         )}
-        {drift.expected.length > 0 && (
+        {drift.classified && drift.expected.length > 0 && (
           <div className="space-y-1.5">
             <p className="text-muted-foreground">ค่าที่ประกาศต่างจากที่รันอยู่ {drift.expected.length} รายการ / {drift.expected.length} declared value(s) differ from what is running</p>
             <DriftKeyList keys={drift.expected} label="ค่าที่ประกาศที่ต่างไป / Declared values that differ" />
             <p className="text-xs text-muted-foreground">{DRIFT_COPY.expected}</p>
           </div>
         )}
-        {drift.other.length > 0 && (
+        {drift.classified && drift.other.length > 0 && (
           <div className="space-y-1.5">
             <p className="text-muted-foreground">ค่าอื่นที่ต่างไป {drift.other.length} รายการ / {drift.other.length} other value(s) differ</p>
             <DriftKeyList keys={drift.other} label="ค่าอื่นที่ต่างไป / Other values that differ" />

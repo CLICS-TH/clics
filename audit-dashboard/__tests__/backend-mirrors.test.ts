@@ -175,6 +175,25 @@ describe('Model Lock mirrors of back-end vocabulary', () => {
     expect(superadmin).toMatch(/evaluator_lock:\s*\{[\s\S]{0,120}manifest_bound:/);
   });
 
+  // The evaluator-scope drift list. The backend PR after 6b classifies drift itself (services/model-lock.js
+  // isEvaluatorDriftKey) and sends the keys as manifest.evaluator_drift_keys, with the provider they were
+  // computed for as manifest.evaluator_provider, on GET /admin/evaluator-lock and GET /admin/ai-readiness.
+  // Both pages read exactly those two names; without them they say "could not classify" and call nothing
+  // expected. Before that PR the names must be absent (this branch predates it); once model-lock.js exports
+  // isEvaluatorDriftKey they must be present — a rename then fails here instead of silently turning every
+  // drift report into "could not classify".
+  it('the evaluator-scope drift fields are sent once the backend classifies drift', () => {
+    const exportsBlock = /module\.exports\s*=\s*\{([\s\S]*?)\};/.exec(lockSvc)?.[1];
+    if (exportsBlock == null) throw new Error('module.exports not found in model-lock.js — did it change shape?');
+    const classifies = /\bisEvaluatorDriftKey\b/.test(exportsBlock);
+    const src = `${superadmin}\n${lockSvc}`;
+    // A property key: `name: value`, or shorthand `{ ..., name }` / `name,`.
+    const sends = (name: string) => new RegExp(`\\b${name}\\s*(:|,|\\n\\s*\\})`).test(src);
+    for (const name of ['evaluator_drift_keys', 'evaluator_provider']) {
+      expect({ name, sent: sends(name) }).toEqual({ name, sent: classifies });
+    }
+  });
+
   it('every refusal POST /admin/evaluator-lock can send has a title', () => {
     const post = /router\.post\('\/evaluator-lock'[\s\S]*?\n\}\);/.exec(superadmin)?.[0];
     if (!post) throw new Error("router.post('/evaluator-lock') not found — did the route change shape?");

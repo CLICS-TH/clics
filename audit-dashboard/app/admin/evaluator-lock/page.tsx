@@ -31,7 +31,7 @@ import {
   DECODING_FIELDS, DRIFT_COPY, NOTE_MAX, OUTCOME_UNKNOWN, POST_ERROR_FALLBACK, POST_ERROR_TITLE, TEXT_FIELDS,
   applyPrefill, blockerCopy, buildBody, classifyDrift, differsFromManifest, emptyForm, fmtDate, fmtNum, fmtValue, manifestValue,
   postOutcome, shortSha, validate, TIMEOUT_CODE,
-  type DecodingKey, type DriftClasses, type LockForm, type TextKey,
+  type DecodingKey, type DriftView, type LockForm, type TextKey,
 } from '@/lib/evaluator-lock';
 
 type LoadBody = EvaluatorLockState & { error?: ApiError; code?: string; httpStatus?: number; detail?: string };
@@ -162,7 +162,10 @@ export default function EvaluatorLockPage() {
     focusAfter.current = next ? `lock-env-${next.id}-remove` : 'lock-env-add';
     setForm((f) => ({ ...f, env: f.env.filter((r) => r.id !== id) }));
   };
-  const drift = state.manifest?.ok ? classifyDrift(state.manifest.drift_keys, state.candidate?.provider) : null;
+  // Only a verified manifest has drift to show; the provider rides along for the evaluator warning.
+  const drift = state.manifest?.ok
+    ? { ...classifyDrift(state.manifest.drift_keys, state.manifest.evaluator_drift_keys), provider: state.manifest.evaluator_provider }
+    : null;
 
   async function declare(e: React.FormEvent) {
     e.preventDefault();
@@ -216,7 +219,10 @@ export default function EvaluatorLockPage() {
       <CandidatePanel state={state} />
       {state.manifest?.ok && <ManifestPanel state={state} drift={drift!} />}
       {state.blockers.length > 0 && <Blockers state={state} />}
-      {drift && drift.evaluator.length > 0 && !state.blockers.includes('evaluator_live_drift') && <EvaluatorDrift keys={drift.evaluator} />}
+      {drift?.classified && drift.evaluator.length > 0 && !state.blockers.includes('evaluator_live_drift') && (
+        <EvaluatorDrift keys={drift.evaluator} provider={drift.provider} />
+      )}
+      {drift && !drift.classified && drift.all.length > 0 && <UnclassifiedDrift keys={drift.all} />}
 
       {result}
 
@@ -598,7 +604,7 @@ function CandidatePanel({ state }: { state: EvaluatorLockState }) {
   );
 }
 
-function ManifestPanel({ state, drift }: { state: EvaluatorLockState; drift: DriftClasses }) {
+function ManifestPanel({ state, drift }: { state: EvaluatorLockState; drift: DriftView }) {
   const m = state.manifest as Extract<NonNullable<EvaluatorLockState['manifest']>, { ok: true }>;
   const exp = m.expected_for_candidate;
   return (
@@ -621,22 +627,28 @@ function ManifestPanel({ state, drift }: { state: EvaluatorLockState; drift: Dri
           </>
         )}
       </dl>
-      {/* Live drift, by kind. Only the deployment-target kind is "expected"; evaluator-scope keys are a
-          warning of their own before the form (EvaluatorDrift, or the evaluator_live_drift blocker). */}
-      {drift.evaluator.length > 0 && (
+      {/* Live drift, by kind. Only the deployment-target kind is "expected"; evaluator-scope keys (and
+          unclassified ones) are a warning of their own before the form. */}
+      {!drift.classified && drift.all.length > 0 && (
+        <p className="flex gap-1.5 text-xs text-warn">
+          <AlertTriangle className="mt-px size-3.5 shrink-0" aria-hidden="true" />
+          <span>ค่าที่รันอยู่ต่างจาก manifest {drift.all.length} รายการ และจัดประเภทไม่ได้ ดูด้านล่าง / {drift.all.length} live value(s) differ and could not be classified: listed below.</span>
+        </p>
+      )}
+      {drift.classified && drift.evaluator.length > 0 && (
         <p className="flex gap-1.5 text-xs text-warn">
           <AlertTriangle className="mt-px size-3.5 shrink-0" aria-hidden="true" />
           <span>ค่าในขอบเขตเครื่องมือวัดต่างจาก manifest {drift.evaluator.length} รายการ ดูด้านล่าง / {drift.evaluator.length} value(s) in the evaluator’s scope differ: listed below.</span>
         </p>
       )}
-      {drift.expected.length > 0 && (
+      {drift.classified && drift.expected.length > 0 && (
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground">ค่าที่ประกาศต่างจากที่รันอยู่ {drift.expected.length} รายการ / {drift.expected.length} declared value(s) differ from what is running:</p>
           <DriftKeyList keys={drift.expected} label="ค่าที่ประกาศที่ต่างไป / Declared values that differ" />
           <p className="text-xs text-muted-foreground">{DRIFT_COPY.expected}</p>
         </div>
       )}
-      {drift.other.length > 0 && (
+      {drift.classified && drift.other.length > 0 && (
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground">ค่าอื่นที่ต่างไป {drift.other.length} รายการ / {drift.other.length} other value(s) differ:</p>
           <DriftKeyList keys={drift.other} label="ค่าอื่นที่ต่างไป / Other values that differ" />
@@ -649,18 +661,34 @@ function ManifestPanel({ state, drift }: { state: EvaluatorLockState; drift: Dri
 
 // Evaluator-scope live drift, before the form and never as "expected". Today's backend does not refuse a
 // lock for it; the backend change after 6b adds the evaluator_live_drift blocker, which replaces this box.
-function EvaluatorDrift({ keys }: { keys: string[] }) {
+function EvaluatorDrift({ keys, provider }: { keys: string[]; provider?: string }) {
   return (
     <section aria-labelledby="lock-drift-h" className="space-y-2 rounded-lg border border-warn/50 p-4">
       <h2 id="lock-drift-h" className="flex gap-2 font-sans text-sm font-medium text-warn">
         <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
         <span>{DRIFT_COPY.evaluatorTitle}</span>
       </h2>
+      {provider && <p className="text-xs text-muted-foreground">ผู้ให้คะแนน / Evaluator: <span className="font-mono text-foreground">{provider}</span></p>}
       <DriftKeyList keys={keys} label="ค่าในขอบเขตเครื่องมือวัดที่ต่างไป / Evaluator-scope values that differ" />
       <p className="text-sm text-foreground">{DRIFT_COPY.evaluatorBody}</p>
       <p className="text-sm text-foreground">
         แก้ให้ตรงก่อนล็อก / Resolve them before locking: a lock taken now would record a configuration that is not the one scoring.
       </p>
+    </section>
+  );
+}
+
+// The backend sent no evaluator-scope list, so no key is known to be harmless: all of them, as they are,
+// under a warning. Never "expected".
+function UnclassifiedDrift({ keys }: { keys: string[] }) {
+  return (
+    <section aria-labelledby="lock-drift-h" className="space-y-2 rounded-lg border border-warn/50 p-4">
+      <h2 id="lock-drift-h" className="flex gap-2 font-sans text-sm font-medium text-warn">
+        <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <span>{DRIFT_COPY.unclassifiedTitle}</span>
+      </h2>
+      <DriftKeyList keys={keys} label="ค่าที่ต่างไป ยังไม่จัดประเภท / Values that differ, unclassified" />
+      <p className="text-sm text-foreground">{DRIFT_COPY.unclassifiedBody}</p>
     </section>
   );
 }
@@ -747,8 +775,8 @@ function BlockerDetail({ blocker, state }: { blocker: string; state: EvaluatorLo
         </>
       ) : null;
     case 'evaluator_live_drift': {
-      // The backend's key list when it sends one; else the evaluator-scope keys the manifest reports.
-      const fallback = state.manifest?.ok ? classifyDrift(state.manifest.drift_keys, state.candidate?.provider).evaluator : undefined;
+      // The blocker's own key list when it sends one; else the manifest's evaluator-scope keys.
+      const fallback = state.manifest?.ok ? state.manifest.evaluator_drift_keys : undefined;
       return (
         <>
           <Detail detail={detail ?? fallback} />
