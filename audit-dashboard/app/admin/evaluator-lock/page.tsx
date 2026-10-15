@@ -128,7 +128,7 @@ export default function EvaluatorLockPage() {
         </p>
       ) : (
         <section className="space-y-3 rounded-lg border p-4">
-          <h2 className="text-sm font-medium">
+          <h2 className="text-base font-medium">
             บันทึกค่าที่ระบบอ่านเองไม่ได้ / Declare what the system cannot read for itself
             {state.candidate?.model_version && (
               <span className="ml-2 font-normal text-muted-foreground">· {state.candidate.provider} {state.candidate.model_version}</span>

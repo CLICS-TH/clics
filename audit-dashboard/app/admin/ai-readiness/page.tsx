@@ -184,7 +184,7 @@ export default function AiReadinessPage() {
 
       {data?.embedding && (
         <section className="space-y-2">
-          <h2 className="text-sm font-medium">มิติเวกเตอร์ของการฝัง / Embedding dimension</h2>
+          <h2 className="text-base font-medium">มิติเวกเตอร์ของการฝัง / Embedding dimension</h2>
           <div className="rounded-lg border border-border bg-card p-4 text-sm">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               <span className="font-medium">{data.embedding.provider}</span>
@@ -219,7 +219,7 @@ export default function AiReadinessPage() {
 
       {data?.models && (
         <section className="space-y-2">
-          <h2 className="text-sm font-medium">งานแต่ละประเภทวิ่งที่ไหน / Which provider serves each purpose</h2>
+          <h2 className="text-base font-medium">งานแต่ละประเภทวิ่งที่ไหน / Which provider serves each purpose</h2>
           <ul className="space-y-1 text-sm text-muted-foreground">
             {Object.entries(data.models).map(([purpose, m]) => (
               <li key={purpose} className="flex flex-wrap gap-x-2">

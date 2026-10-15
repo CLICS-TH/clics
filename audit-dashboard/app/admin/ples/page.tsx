@@ -157,7 +157,7 @@ function AdminClesContent() {
           {ples.map(p => (
             <div key={p.id} className="rounded-xl border border-border p-4">
               <div className="flex items-start justify-between gap-3">
-                <p className="font-medium">{p.professionals?.full_name_th ?? '—'}{p.is_test && <span className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground border border-border rounded px-1">test</span>}</p>
+                <p className="font-medium">{p.professionals?.full_name_th ?? '—'}{p.is_test && <span className="ml-2 text-xs uppercase tracking-wide text-muted-foreground border border-border rounded px-1">test</span>}</p>
                 <StatusBadge status={p.status} />
               </div>
               <p className="mt-1 text-xs text-muted-foreground">{new Date(p.started_at).toLocaleDateString('th-TH')} · {councilName(p)}</p>
@@ -184,7 +184,7 @@ function AdminClesContent() {
           </TableHeader>
           <TableBody>{ples.map(p => (
             <TableRow key={p.id} className="hover:bg-secondary">
-              <TableCell className="px-4 py-3">{p.professionals?.full_name_th ?? '—'}{p.is_test && <span className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground border border-border rounded px-1">test</span>}</TableCell>
+              <TableCell className="px-4 py-3">{p.professionals?.full_name_th ?? '—'}{p.is_test && <span className="ml-2 text-xs uppercase tracking-wide text-muted-foreground border border-border rounded px-1">test</span>}</TableCell>
               <TableCell className="px-4 py-3 text-muted-foreground">{councilName(p)}</TableCell>
               <TableCell className="px-4 py-3">{new Date(p.started_at).toLocaleDateString('th-TH')}</TableCell>
               <TableCell className="px-4 py-3"><StatusBadge status={p.status} /></TableCell>

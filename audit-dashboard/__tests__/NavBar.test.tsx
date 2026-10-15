@@ -5,9 +5,10 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 
 let mockPath = '/auditor/queue';
 let mockCompact = false;
+const mockNavCounts: number[] = [];
 jest.mock('next/navigation', () => ({ usePathname: () => mockPath }));
 jest.mock('@/components/ViewportProvider', () => ({
-  useIsNavCompact: () => mockCompact,
+  useIsNavCompact: (n: number) => { mockNavCounts.push(n); return mockCompact; },
   useViewport: () => ({ view: 'auto', setView: () => {} }),
 }));
 
@@ -20,6 +21,39 @@ beforeEach(() => {
   }));
   mockPath = '/admin/ples';
   mockCompact = false;
+  mockNavCounts.length = 0;
+});
+
+const signIn = (u: Record<string, unknown>) =>
+  localStorage.setItem('clics_user', JSON.stringify({ id: 'u1', email: 'a@b.c', full_name_th: 'ผู้ใช้', full_name_en: 'User', ...u }));
+
+// The width model (lib/client-store.ts navRowWidthPx) is calibrated per CONTROL in the row, so what
+// NavBar feeds it is part of the calibration: the dual-role physician's Return to Physician control
+// is a full bilingual control and counts as one more link. Fed the bare roster (2), the row went
+// inline at 1026px and wrapped "Return to/Physician" up to 1194px.
+describe('NavBar — what the width model is sized by', () => {
+  it.each([
+    ['admin', 9, { role: 'admin' }],
+    ['auditor', 2, { role: 'auditor' }],
+    ['dual-role physician (Return counts)', 3, { role: 'physician', can_audit: true }],
+  ])('%s → %i', (_label, n, u) => {
+    signIn(u);
+    render(<NavBar />);
+    expect(mockNavCounts[mockNavCounts.length - 1]).toBe(n);
+  });
+
+  it('every control in the inline row is whitespace-nowrap, so a squeeze overflows instead of wrapping', () => {
+    // A wrapped control is invisible to an overflow check; that is how the old constants came out
+    // too eager. nav-width-audit.mjs now also fails on a wrap — this pins the cause at source.
+    signIn({ role: 'physician', can_audit: true });
+    mockPath = '/auditor/queue';
+    render(<NavBar />);
+    const row = document.querySelector('nav > div')!;
+    const controls = [...row.querySelectorAll('a, button')].filter((el) => el.textContent?.trim());
+    expect(controls.length).toBeGreaterThanOrEqual(6);   // wordmark, 2 links, 2 toggles, Return, Logout
+    const wrapping = controls.filter((el) => !el.className.includes('whitespace-nowrap') && el.textContent !== 'CLICS');
+    expect(wrapping.map((el) => el.textContent)).toEqual([]);
+  });
 });
 
 describe('NavBar — active link', () => {

@@ -62,3 +62,26 @@ describe('@theme inline', () => {
     expect(missing).toEqual([]);
   });
 });
+
+// The text-sm body floor (globals.css, "Body-text floor") overrides the --text-sm VARIABLE below
+// 1280px. That reaches `.text-sm` only while Tailwind emits it as `font-size: var(--text-sm)`, which
+// it does for a default-theme value and does NOT for one declared in @theme inline (inline bakes the
+// literal into the utility, the way .text-xs ships). Declaring --text-sm in the inline block, as the
+// --text-xs line beside it invites, would silently put Thai body text back to 14px on every phone.
+// The rendered value is measured by scripts/readability/audit.mjs; this pins the cause.
+describe('text-sm body floor', () => {
+  const inline = /@theme inline\s*\{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+
+  it('keeps --text-sm out of @theme inline, so the width-scoped override can reach .text-sm', () => {
+    expect(inline).toContain('--text-xs:');           // the parse found the real block
+    expect(inline).not.toMatch(/^\s*--text-sm(--line-height)?\s*:/m);
+  });
+
+  it('raises --text-sm to 0.96rem with a Thai-safe line-height below 1280px only', () => {
+    const rule = /@media \(width < 1280px\)\s*\{\s*:root\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+    expect(rule).toMatch(/--text-sm:\s*0\.96rem;/);
+    expect(rule).toMatch(/--text-sm--line-height:\s*1\.5;/);
+    // The >=1280 root step it is scoped against must still be there, or 0.875rem is 14px again.
+    expect(css).toMatch(/@media \(min-width: 1280px\) \{ html \{ font-size: 118%; \} \}/);
+  });
+});

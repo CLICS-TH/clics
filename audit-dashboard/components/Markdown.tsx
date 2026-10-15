@@ -20,8 +20,11 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 // Visual style per ORIGINAL level (what the author meant), applied to the SHIFTED element.
-const H1 = "mt-5 mb-2 font-sans text-base font-semibold";
-const H2 = "mt-4 mb-1.5 font-sans text-[15px] font-semibold";
+// rem steps only, never px: the body is text-sm (15.36px below 1280, 16.52px at 1280), and a px size
+// does not follow it. H2 was text-[15px], which sat BELOW its own body text on every width once
+// text-sm cleared the Thai floor (and below H3 at >=1280 even before). Ladder: lg > base > sm-bold.
+const H1 = "mt-5 mb-2 font-sans text-lg font-semibold";
+const H2 = "mt-4 mb-1.5 font-sans text-base font-semibold";
 const H3 = "mt-3 mb-1 font-sans text-sm font-semibold";
 
 // react-markdown passes the hast `node` to every override; spreading it onto a DOM element would emit
@@ -40,6 +43,8 @@ const COMPONENTS: Components = {
   h4: (p) => <h6 className={H3} {...clean(p)} />,
   h5: (p) => <h6 className={H3} {...clean(p)} />,
   h6: (p) => <h6 className={H3} {...clean(p)} />,
+  // No size of its own: cells inherit the body's text-sm. It was text-[13px], so a Thai table in an
+  // AI reply read under the body floor at every width. Wide tables scroll inside this group.
   table: (p) => (
     <div
       role="group"
@@ -48,7 +53,7 @@ const COMPONENTS: Components = {
       className="my-3 max-w-full overflow-x-auto"
     >
       <table
-        className="w-full border-collapse text-[13px] [&_th]:border [&_th]:border-border [&_th]:bg-muted [&_th]:px-2.5 [&_th]:py-2 [&_th]:text-left [&_th]:font-semibold [&_td]:border [&_td]:border-border [&_td]:px-2.5 [&_td]:py-2 [&_td]:align-top"
+        className="w-full border-collapse [&_th]:border [&_th]:border-border [&_th]:bg-muted [&_th]:px-2.5 [&_th]:py-2 [&_th]:text-left [&_th]:font-semibold [&_td]:border [&_td]:border-border [&_td]:px-2.5 [&_td]:py-2 [&_td]:align-top"
         {...clean(p)}
       />
     </div>

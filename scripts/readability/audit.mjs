@@ -20,6 +20,13 @@
  *                  not simply "small text": the loop (หัว) that distinguishes many letters closes up
  *                  before Latin becomes unreadable, and Thai stacks up to four levels vertically.
  *   3. CLIP      — text wider than the box that clips it (overflow hidden/clip, or a nowrap ancestor).
+ *   4. BODY      — dashboard only: an element carrying the `text-sm` utility (its body size) with Thai
+ *                  in it, rendered below the 11.5pt Thai body floor. It does not try to decide what is
+ *                  "body" from the page — that cannot be done reliably — it checks that the BODY TOKEN
+ *                  reaches its utility. That token is a width-scoped variable override in globals.css,
+ *                  and it fails silently (back to 14px on every phone) if --text-sm is ever declared in
+ *                  `@theme inline`. Elements whose own classes carry a variant size (md:text-base …)
+ *                  are skipped, since which size applies there is the breakpoint's choice.
  *
  * Exits non-zero if any AA failure or clip is found, so it can gate CI later.
  *
@@ -47,6 +54,9 @@ const AA_LARGE = 3.0;
 // Thai floor. 12px is where the loop detail starts to close; the dashboard already bumped its
 // text-xs to 13px for exactly this reason (audit-dashboard/app/globals.css).
 const THAI_MIN_PX = 12;
+// Thai BODY floor: 11.5pt = 15.33px. audit-dashboard's text-sm is 0.96rem (15.36px) below 1280px and
+// the stock 0.875rem on the 118% root (16.52px) at 1280px, so it clears this at every width.
+const BODY_MIN_PX = 15.33;
 
 function startServer() {
   const server = createServer(async (req, res) => {
@@ -94,7 +104,7 @@ const DASH_PAGES = ['/admin/privacy', '/admin/identity', '/admin/governance', '/
 
 // ---- the in-page collector -------------------------------------------------------------------
 // Returns raw records; all colour maths happens here so the page never ships a library.
-function collect(thaiMinPx) {
+function collect([thaiMinPx, bodyMinPx]) {
   const parseRgb = (s) => {
     const m = /rgba?\(([^)]+)\)/.exec(s || '');
     if (!m) return null;
@@ -138,7 +148,31 @@ function collect(thaiMinPx) {
     return `${el.tagName.toLowerCase()}${id}${cls}`;
   };
 
-  const contrast = [], thai = [], clips = [];
+  // An element is skipped only when a VARIANT SIZES IT — md:text-base, hover:text-lg,
+  // group-data-[size=sm]/card:text-sm, @min-[768px]:text-base — because which size applies is then
+  // the breakpoint's or state's choice. Two things do NOT skip it:
+  //   * a variant that targets OTHER elements: `*:`, `**:`, or an arbitrary selector with a
+  //     combinator — `[&_code]:text-[0.85em]` sizes the <code> inside the Markdown wrapper, not the
+  //     wrapper, and skipping on it left every Markdown body unchecked;
+  //   * an arbitrary text-[…] that is a COLOUR — `dark:hover:text-[#1a1714]` is on every default
+  //     Button, and skipping on it left every text-sm button unchecked.
+  const SIZE_UTIL = /^text-(xs|sm|base|lg|[2-9]?xl|fluid-|display|\[(length:)?([\d.]+(px|rem|em|%)|(max|min|clamp|calc)\())/;
+  const sizesItself = (cls) => {
+    const parts = []; let depth = 0, cur = '';
+    for (const ch of cls) {                      // split on ':' outside [...] — brackets hold selectors
+      if (ch === '[') depth++;
+      if (ch === ']') depth--;
+      if (ch === ':' && depth === 0) { parts.push(cur); cur = ''; } else cur += ch;
+    }
+    if (!parts.length || !SIZE_UTIL.test(cur)) return false;   // no variant, or not a size utility
+    return !parts.some((v) => v === '*' || v === '**' || (v.startsWith('[') && /[_>+~]/.test(v.replace(/^\[&/, ''))));
+  };
+  const bareTextSm = (el) => {
+    const c = typeof el.className === 'string' ? el.className.split(/\s+/) : [];
+    return c.some((x) => /^text-sm(\/\S+)?$/.test(x)) && !c.some(sizesItself);
+  };
+
+  const contrast = [], thai = [], clips = [], body = [];
   for (const el of document.querySelectorAll('body *')) {
     const cs = getComputedStyle(el);
     if (cs.visibility === 'hidden' || cs.display === 'none' || parseFloat(cs.opacity) === 0) continue;
@@ -155,6 +189,12 @@ function collect(thaiMinPx) {
     const ellipsis = cs.textOverflow === 'ellipsis';
     const clipped = !ellipsis && (cs.overflowX === 'hidden' || cs.overflowX === 'clip') && el.scrollWidth > el.clientWidth + 1;
     if (clipped) clips.push({ sel: sel(el), text: el.textContent.trim().slice(0, 60), over: el.scrollWidth - el.clientWidth });
+
+    // ---- body floor: does the text-sm token reach the element that asks for it?
+    if (bodyMinPx && bareTextSm(el) && THAI.test(el.textContent)) {
+      const s = parseFloat(cs.fontSize);
+      if (s < bodyMinPx) body.push({ sel: sel(el), size: s, text: el.textContent.trim().slice(0, 40) });
+    }
 
     if (!owns(el)) continue;
     const text = [...el.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim();
@@ -185,7 +225,7 @@ function collect(thaiMinPx) {
       thai: THAI.test(text), text: text.slice(0, 40),
     });
   }
-  return { contrast, thai, clips };
+  return { contrast, thai, clips, body };
 }
 
 // ---- runner ----------------------------------------------------------------------------------
@@ -255,12 +295,15 @@ async function run(url, label, token, manualLang) {
         await page.evaluate(() => document.fonts && document.fonts.ready);
         await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
         await page.waitForTimeout(300);
-        const r = await page.evaluate(collect, THAI_MIN_PX);
+        // The body check is the dashboard's: the portal has no `text-sm` utility, and its Thai
+        // body floor is its own token (--fs-body-th in physician-ui main.css).
+        const r = await page.evaluate(collect, [THAI_MIN_PX, label.startsWith('dash') ? BODY_MIN_PX : 0]);
         checked++;
         const where = `${label} @${w}px ${theme}`;
         for (const c of r.contrast) if (c.ratio < c.need) findings.push({ kind: 'CONTRAST', where, ...c });
         for (const t of r.thai) findings.push({ kind: 'THAI', where, ...t });
         for (const c of r.clips) findings.push({ kind: 'CLIP', where, ...c });
+        for (const b of r.body) findings.push({ kind: 'BODY', where, ...b });
       } catch (e) {
         findings.push({ kind: 'ERROR', where: `${label} @${w}px ${theme}`, text: String(e.message || e) });
       }
@@ -300,11 +343,14 @@ for (const r of rows) {
     console.log(`THAI      ${r.size}px < ${THAI_MIN_PX}px floor  ${r.sel}  "${r.text}"  [${r.font}]`);
   } else if (r.kind === 'CLIP') {
     console.log(`CLIP      +${r.over}px past its clip box  ${r.sel}  "${r.text}"`);
+  } else if (r.kind === 'BODY') {
+    console.log(`BODY      text-sm rendered ${r.size}px < ${BODY_MIN_PX}px Thai body floor  ${r.sel}  "${r.text}"`);
   } else {
     console.log(`ERROR     ${r.where}: ${r.text}`);
   }
   console.log(`          ${r.seen.length}× — e.g. ${r.seen.slice(0, 3).join(', ')}`);
 }
-if (!rows.length) console.log('✅ no contrast failures, no Thai below the type floor, no clipped text.');
+if (!rows.length) console.log('✅ no contrast failures, no Thai below the type floor, no clipped text'
+  + `${dashUrl ? ', dashboard text-sm at or above the Thai body floor' : ''}.`);
 if (jsonAt) { await writeFile(jsonAt, JSON.stringify(rows, null, 2)); console.log(`\njson → ${jsonAt}`); }
 process.exit(rows.length ? 1 : 0);

@@ -96,7 +96,7 @@ export default function IdentityQueuePage() {
           <button key={f.key} onClick={() => setFilter(f.key)} aria-pressed={filter === f.key}
             className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
               filter === f.key ? 'bg-coral-active text-primary-foreground border-coral-active' : 'text-muted-foreground hover:bg-secondary'}`}>
-            {f.th} <span className="text-[0.84em] font-normal">/ {f.en}</span>
+            {f.th} <span className="text-[length:max(0.84em,12px)] font-normal">/ {f.en}</span>
           </button>
         ))}
       </div>
@@ -164,10 +164,10 @@ export default function IdentityQueuePage() {
                   className="mt-1.5 w-full rounded-lg border bg-background p-2.5 text-sm" />
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button size="sm" disabled={acting !== null} onClick={() => decide(v.id, 'verified')}>
-                    <BadgeCheck className="size-4" /> ยืนยัน <span className="text-[0.84em] font-normal">/ Verify</span>
+                    <BadgeCheck className="size-4" /> ยืนยัน <span className="text-[length:max(0.84em,12px)] font-normal">/ Verify</span>
                   </Button>
                   <Button size="sm" variant="destructive" disabled={acting !== null} onClick={() => decide(v.id, 'rejected')}>
-                    <XCircle className="size-4" /> ไม่ผ่าน <span className="text-[0.84em] font-normal">/ Reject</span>
+                    <XCircle className="size-4" /> ไม่ผ่าน <span className="text-[length:max(0.84em,12px)] font-normal">/ Reject</span>
                   </Button>
                 </div>
               </>

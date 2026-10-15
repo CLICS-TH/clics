@@ -86,6 +86,9 @@
      smaller than Latin). Cascades to every `text-xs` utility app-wide. Keep the paired line-height. */
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.45;
+  /* --text-sm is deliberately NOT in this block. `@theme inline` bakes the value into the utility
+     (.text-xs ships as a literal font-size: .8125rem), and text-sm needs a width-scoped value: see
+     "Body-text floor" beside the desktop scale below. */
 
   /* Fluid type — one clamp() ladder mirrored from physician-ui/public/css/main.css (keep in sync).
      Exposes `text-fluid-lg/xl/2xl` + `text-display` utilities so headings & key numbers scale
@@ -286,6 +289,23 @@
 @media (min-width: 1600px) { html { font-size: 132%; } }
 @media (min-width: 1920px) { html { font-size: 145%; } }
 
+/* Body-text floor below 1280px. `text-sm` is this app's body size, and Tailwind's 0.875rem renders
+   14px = 10.5pt on the 100% root below 1280px, under the Thai body floor of 11.5pt (15.33px).
+   0.96rem = 15.36px clears it (same value as physician-ui's --fs-body-th). Line-height 1.5 (from
+   1.43) gives Thai's stacked vowel and tone marks room.
+   WIDTH-SCOPED because the 118% root above already lifts the stock 0.875rem to 16.52px = 12.4pt at
+   >=1280px, so >=1280 keeps Tailwind's own values untouched. `width < 1280px` is the exact complement
+   of the min-width step, with no fractional-pixel gap.
+   It overrides the theme VARIABLE, which works only because Tailwind's default theme (not inline)
+   emits `.text-sm{font-size:var(--text-sm)}`. Moving --text-sm into `@theme inline` above would bake
+   0.875rem into the utility and silently disable this rule. Unlayered, so it beats @layer theme. */
+@media (width < 1280px) {
+  :root {
+    --text-sm: 0.96rem;
+    --text-sm--line-height: 1.5;
+  }
+}
+
 /* Serif (--font-heading) is the brand voice: section headers + key numbers. Minimum legible serif
    size is 1.5rem (24px) / weight 600 — a thin serif below that on cream is low-contrast. */
 
@@ -293,7 +313,7 @@
 @layer base {
   /* iOS/iPadOS Safari auto-zooms the viewport when a focused field is < 16px. Floor every
      text-entry field to 16px on touch (covers all `text-sm` inputs/selects without per-field edits);
-     fine-pointer devices keep the denser 14px the components author. */
+     fine-pointer devices keep the denser text-sm the components author (15.36px below 1280px). */
   @media (pointer: coarse) {
     /* !important so this a11y floor beats Tailwind's `text-sm` (a utility-layer rule that otherwise
        wins the cascade over this @layer base rule) — every focused field stays ≥16px on touch. */

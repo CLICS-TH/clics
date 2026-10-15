@@ -107,7 +107,7 @@ export function AuditorChatBox({ pleId }: { pleId: string }) {
 
   return (
     <div className="space-y-3 border-t pt-4">
-      <h3 className="text-sm font-medium">พูดคุยกับ AI เกี่ยวกับผลการประเมิน / Discuss this evaluation with AI</h3>
+      <h3 className="text-base font-medium">พูดคุยกับ AI เกี่ยวกับผลการประเมิน / Discuss this evaluation with AI</h3>
       <AuditorUsageBar version={usageVersion} />
       <div ref={listRef} onScroll={onListScroll} className="h-[32rem] max-h-[70vh] overflow-y-auto space-y-3 rounded-lg border bg-background p-3">
         {loadErr && (

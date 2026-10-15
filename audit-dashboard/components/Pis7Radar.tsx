@@ -56,7 +56,7 @@ export function Pis7Radar({ ai, peer, human, peerLabel }: { ai?: ScoreMap; peer?
         <RadarChart data={data} outerRadius="70%" margin={{ top: 28, right: 52, bottom: 24, left: 52 }}>
           <PolarGrid stroke="currentColor" strokeOpacity={0.2} />
           <PolarAngleAxis dataKey="domain" tick={{ fill: 'currentColor', fontSize: 12 }} />
-          <PolarRadiusAxis domain={[0, 5]} tickCount={6} angle={90} tick={{ fill: 'currentColor', fontSize: 10 }} />
+          <PolarRadiusAxis domain={[0, 5]} tickCount={6} angle={90} tick={{ fill: 'currentColor', fontSize: 12 }} />
           <Radar name={cmpName} dataKey="cmp" stroke={cmpColor} fill={cmpColor} fillOpacity={0.25} strokeWidth={2} />
           <Radar name="คุณ / You" dataKey="you" stroke={CHART.human} fill={CHART.human} fillOpacity={0.25} strokeWidth={2} />
           <Tooltip content={<ChartTooltip cmpName={cmpName} />} />

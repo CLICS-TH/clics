@@ -68,10 +68,15 @@ export function NavBar() {
     user.role === 'ethics' ? ETHICS_LINKS :
     // Auditors and dual-role physicians (can_audit) get the auditor workspace.
     canAudit(user) ? AUDITOR_LINKS : [];
+  // "Special" dual-role user (a physician who also audits). They reach the auditor workspace via the
+  // portal token-handoff, so they can hop back to their physician workspace WITHOUT logging out — the
+  // session still lives on the portal origin. Resolved here, before the hook, because their inline
+  // row carries one more bilingual control (Return to Physician) and is sized as one more link.
+  const isSpecial = !!user && user.role === 'physician' && !!user.can_audit;
   // Below the width this row needs (or in forced-mobile) we show the hamburger so the Thai+English
   // labels never wrap and the identity cluster is never pushed off-screen. The threshold scales with
   // links.length; a FIXED one is what let admin (9) and superadmin (14) overflow every real monitor.
-  const compact = useIsNavCompact(links.length);
+  const compact = useIsNavCompact(links.length + (isSpecial ? 1 : 0));
   const menuId = useId();
   const menuBtn = useRef<HTMLButtonElement>(null);
   const menuOpen = open && compact;
@@ -104,10 +109,6 @@ export function NavBar() {
     window.location.href = `${portal}/?logout=1`;
   }
 
-  // "Special" dual-role user (a physician who also audits). They reach the auditor workspace via the
-  // portal token-handoff, so they can hop back to their physician workspace WITHOUT logging out — the
-  // session still lives on the portal origin.
-  const isSpecial = user.role === 'physician' && !!user.can_audit;
   function returnToPhysician() {
     const portal = process.env.NEXT_PUBLIC_PORTAL_URL || 'https://physician-ui.vercel.app';
     window.location.href = `${portal}/dashboard`;
@@ -160,15 +161,18 @@ export function NavBar() {
           <RoleBadge className={compact ? 'max-sm:hidden' : undefined} />
           <ViewportToggle />
           <ThemeToggle />
+          {/* whitespace-nowrap on these and on the toggles: squeezed, they used to WRAP ("ออกจาก/ระบบ")
+              instead of overflowing, so the nav-width audit's overflow check never saw a too-eager
+              threshold. Now a squeeze shows up as overflow, which the audit and the model catch. */}
           {!compact && isSpecial && (
             <button onClick={returnToPhysician}
-              className="rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-link">
+              className="whitespace-nowrap rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-link">
               <BiLabel th="กลับสู่หน้าแพทย์" en="Return to Physician" />
             </button>
           )}
           {!compact && (
             <button onClick={logout}
-              className="rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-destructive">
+              className="whitespace-nowrap rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-destructive">
               <BiLabel th="ออกจากระบบ" en="Logout" />
             </button>
           )}

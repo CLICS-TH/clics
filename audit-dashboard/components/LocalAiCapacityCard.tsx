@@ -62,6 +62,8 @@ const fmtWait = (s: number | undefined) => {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
 };
 
+// self-stretch here and on the input beside it: one shared height. The text-sm input grew past this
+// text-xs button below 1280px, and on touch the 44px floor grows the button past the input.
 function SaveButton({ th, en, busy, disabled, onClick }: { th: string; en: string; busy: boolean; disabled: boolean; onClick: () => void }) {
   return (
     <button
@@ -69,7 +71,7 @@ function SaveButton({ th, en, busy, disabled, onClick }: { th: string; en: strin
       onClick={onClick}
       disabled={disabled}
       aria-label={`บันทึก ${th} / Save ${en}`}
-      className="shrink-0 rounded-md border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary disabled:opacity-50"
+      className="shrink-0 self-stretch rounded-md border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary disabled:opacity-50"
     >
       {busy ? 'กำลังบันทึก… / Saving…' : 'บันทึก / Save'}
     </button>
@@ -231,7 +233,7 @@ export function LocalAiCapacityCard({ usage, onChange }: { usage: UsageSettings 
                     min={f.min}
                     max={f.max}
                     step={1}
-                    className="w-full min-w-0 flex-1 rounded-md border bg-background px-2 py-1.5 text-sm tabular-nums"
+                    className="w-full min-w-0 flex-1 self-stretch rounded-md border bg-background px-2 py-1.5 text-sm tabular-nums"
                     value={shown(f.key)}
                     onChange={(e) => edit(f.key, e.target.value)}
                   />
@@ -259,7 +261,7 @@ export function LocalAiCapacityCard({ usage, onChange }: { usage: UsageSettings 
                 spellCheck={false}
                 maxLength={200}
                 placeholder="เช่น SANDBOX / e.g. SANDBOX"
-                className="w-full min-w-0 flex-1 rounded-md border bg-background px-2 py-1.5 font-mono text-sm uppercase"
+                className="w-full min-w-0 flex-1 self-stretch rounded-md border bg-background px-2 py-1.5 font-mono text-sm uppercase"
                 value={shown(CODES_KEY)}
                 onChange={(e) => edit(CODES_KEY, e.target.value)}
               />

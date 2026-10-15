@@ -105,10 +105,11 @@ function BlockView({ b, lang }: { b: Block; lang: ManualLang }) {
       );
     case 'table':
       // Its own scroller — a three-column Thai table does not fit 320px, and the page body must
-      // never scroll sideways.
+      // never scroll sideways. 0.96em, not the old 0.90625em: on the 16px body that was 14.5px, and the
+      // cells are Thai rubric text a rater learns from, so they sit at the 15.33px body floor.
       return (
         <div className="mb-5 overflow-x-auto rounded-xl border border-border">
-          <table data-role="table" className="w-full min-w-[33em] text-[0.90625em]">
+          <table data-role="table" className="w-full min-w-[33em] text-[0.96em]">
             <thead>
               <tr>{b.head.map((h, i) => (
                 <th key={i} className="whitespace-nowrap border-b border-border bg-muted p-2.5 text-left font-semibold text-foreground">{h}</th>

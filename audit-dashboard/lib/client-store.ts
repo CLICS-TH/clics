@@ -71,22 +71,35 @@ export function useIsTableNarrow(): boolean {
  * scrolling the whole page sideways on every monitor anybody actually owns. A fixed threshold
  * cannot survive a roster that grows, so the threshold is now DERIVED from the link count.
  *
- * The two constants below were measured against the built app (Playwright, both label languages
- * rendered, the widest identity block), by binary-searching the narrowest viewport at which
- * `nav > div` reports no overflow:
+ * MEASURED, not estimated: `node scripts/responsive/nav-width-audit.mjs --calibrate` against the
+ * built app forces each persona's row inline and finds the narrowest viewport from which it FITS at
+ * every wider width — fits meaning no control wraps and nothing overflows the row or the page:
  *
- *     2 links → fits at ≤1536px      8 links → 2060px      13 links → 2976px
+ *     ethics 1 → 900    analyst 1 → 855    auditor 2 → 945    dual-role 3 → 1327
+ *     admin 9 → 2348    superadmin 14 → 3265
  *
- * which is 183px per link over 594px of fixed chrome (the CLICS wordmark, the identity block, the
- * role badge, both toggles and logout). Rounded UP in both terms, because Thai label widths vary
- * per item and the two errors are not symmetric: too cautious costs a hamburger, too eager costs a
- * sideways-scrolling page.
+ * 757 is the smallest chrome that clears every one of those at 190 per link, and the dual-role row
+ * is the one that sets it. Rounded toward caution because the two errors are not symmetric: too
+ * cautious costs a hamburger, too eager costs a wrapped Thai label or a sideways-scrolling page.
+ *
+ * WHY THE DUAL-ROLE ROW NEEDS 1327 AND NOT ~1195. It fits from about 1195 on the 100% root, then
+ * stops fitting at 1280, where the root steps to 118% and every rem in the row grows; it fits again
+ * from 1327. A threshold must hold for EVERY wider width, so the row's need is the end of the last
+ * band that does not fit. The calibration searches each breakpoint band separately for this reason.
+ *
+ * THE OLD CONSTANTS WERE TOO EAGER, AND THE MEASUREMENT COULD NOT SEE IT. Chrome 620 was fitted on
+ * overflow alone, but the toggles, Return to Physician and Logout had no whitespace-nowrap: squeezed,
+ * they WRAPPED ("ออกจาก/ระบบ Logout") rather than overflowing, which the old check never saw.
+ * Master wrapped them on the ethics row at 810–893 and the dual-role row at 1000–1149. Those
+ * controls are nowrap now (a squeeze becomes overflow) and "fits" also requires no wrap.
  *
  * Counting matters here and got it wrong once already — the first fit of these constants counted
  * `nav a[href^="/"]`, which includes the wordmark's link to /home, so every count was one too high
  * and the model came out ~100px under. `linkCount` is the ROSTER length; the wordmark is chrome.
+ * The dual-role physician's Return to Physician control is a full bilingual control in the same row,
+ * so NavBar counts it as one more link.
  */
-export const NAV_CHROME_PX = 620;
+export const NAV_CHROME_PX = 757;
 export const NAV_PER_LINK_PX = 190;
 /** The narrowest viewport that fits `n` bilingual links on one line. */
 export const navRowWidthPx = (n: number) => NAV_CHROME_PX + n * NAV_PER_LINK_PX;
