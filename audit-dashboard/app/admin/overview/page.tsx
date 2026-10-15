@@ -20,6 +20,7 @@ import { AiProviderPanel } from '@/components/AiProviderPanel';
 import { LocalAiCapacityCard } from '@/components/LocalAiCapacityCard';
 import { Skeleton, CardGridSkeleton } from '@/components/Skeleton';
 import { useAuthUser } from '@/lib/client-store';
+import { radioKeys } from '@/lib/radio-keys';
 import type { CleStats, UsageSettings } from '@/lib/types';
 
 // ---- API shapes (verified against backend/src/routes/admin.js + superadmin.js) ----
@@ -151,8 +152,14 @@ export default function OverviewPage() {
   // in the ICC report — it never withholds a score.
   const [minAudSaving, setMinAudSaving] = useState(false);
   const minAuditors = usage?.min_auditors_per_cle ?? 1;
+  // The API accepts 1-10; the control offers 1-3. A value set elsewhere (e.g. 5) checks no option,
+  // so the group's single tab stop falls back to the first one.
+  const minAudChoices = [1, 2, 3];
+  const minAudStop = minAudChoices.includes(minAuditors) ? minAuditors : minAudChoices[0];
   async function setMinAuditors(n: number) {
-    if (!usage || n === minAuditors || n < 1 || n > 10) return;
+    // minAudSaving: the options stay focusable while a save runs (aria-disabled, below), so this
+    // guard is what keeps a second click or arrow from starting a second write.
+    if (!usage || minAudSaving || n === minAuditors || n < 1 || n > 10) return;
     await patchSetting('min_auditors_per_cle', n, setMinAudSaving);
   }
 
@@ -345,17 +352,30 @@ export default function OverviewPage() {
               overflow-hidden clipped the global :focus-visible outline (drawn 2px OUTSIDE the
               button), so a keyboard user saw almost no focus indicator. The gap-2 leaves the outline
               room, and it stays distinct from the selected state's INSET ring. */}
-          <div role="radiogroup" aria-label="Minimum auditors per PLE" className="flex shrink-0 flex-wrap gap-2">
-            {[1, 2, 3].map(n => {
+          {/* Keyboard: one tab stop (the checked option) and arrows to move, the radiogroup contract;
+              an arrow selects and saves, as a radio does. While a save runs the options are
+              aria-disabled, not `disabled`: disabling the option a keyboard user just chose blurs it
+              and drops focus to <body>, as AiProviderPanel found. setMinAuditors ignores input then.
+              The dimming skips the focused option: opacity would fade its focus ring with it. */}
+          <div
+            role="radiogroup"
+            aria-label="Minimum auditors per PLE"
+            className="flex shrink-0 flex-wrap gap-2"
+            onKeyDown={radioKeys(minAudChoices, minAuditors, setMinAuditors)}
+          >
+            {minAudChoices.map(n => {
               const on = n === minAuditors;
               return (
                 <button
                   key={n}
+                  type="button"
                   role="radio"
                   aria-checked={on}
-                  disabled={!usage || minAudSaving}
+                  tabIndex={n === minAudStop ? 0 : -1}
+                  disabled={!usage}
+                  aria-disabled={minAudSaving || undefined}
                   onClick={() => setMinAuditors(n)}
-                  className={`rounded-lg border px-4 py-2 text-sm tabular-nums transition-colors disabled:opacity-50
+                  className={`rounded-lg border px-4 py-2 text-sm tabular-nums transition-colors disabled:opacity-50 aria-disabled:cursor-wait aria-disabled:opacity-50 aria-disabled:focus-visible:opacity-100
                     ${on ? 'border-primary bg-primary/15 font-semibold text-foreground ring-2 ring-inset ring-primary' : 'border-field text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                 >
                   {n}

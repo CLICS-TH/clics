@@ -33,6 +33,7 @@ const config = {
     'components/AiProviderPanel.tsx',
     'app/admin/ai-readiness/page.tsx',
     'components/StatStrip.tsx',
+    'lib/radio-keys.ts',
   ],
   coverageThreshold: {
     global: { statements: 100, branches: 90, functions: 100, lines: 100 },
