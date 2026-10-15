@@ -328,8 +328,11 @@ export default function OverviewPage() {
       {/* Minimum auditors per PLE — a target the queue badges against, never a gate. */}
       <section className="space-y-3">
         <h2 className="font-heading text-xl text-foreground">ผู้ตรวจขั้นต่ำต่อ PLE / Minimum auditors per PLE</h2>
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-5">
-          <div className="min-w-0 flex-1 pr-4">
+        {/* The description takes a 28rem basis, as in AiProviderPanel: when it cannot keep that much
+            room beside the choices, they wrap below it. It was flex-1 (basis 0) beside a shrink-0
+            group, so at 320px it was squeezed to 84px and Thai split mid-word down a 782px column. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-xl border p-5">
+          <div className="min-w-0 flex-[1_1_28rem]">
             <p className="text-sm font-medium">👥 จำนวนผู้ตรวจเป้าหมาย / Target auditor count</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               PLE ที่มีผู้ตรวจน้อยกว่าเป้าหมายจะถูกทำเครื่องหมายในคิว แต่ <strong>ยังปล่อยผลตามปกติ</strong> —
@@ -338,7 +341,11 @@ export default function OverviewPage() {
               credit for the specialties that have no eligible auditor at all.
             </p>
           </div>
-          <div role="radiogroup" aria-label="Minimum auditors per PLE" className="inline-flex shrink-0 overflow-hidden rounded-lg border">
+          {/* Separate bordered options, as in AiProviderPanel. This was one joined segment whose
+              overflow-hidden clipped the global :focus-visible outline (drawn 2px OUTSIDE the
+              button), so a keyboard user saw almost no focus indicator. The gap-2 leaves the outline
+              room, and it stays distinct from the selected state's INSET ring. */}
+          <div role="radiogroup" aria-label="Minimum auditors per PLE" className="flex shrink-0 flex-wrap gap-2">
             {[1, 2, 3].map(n => {
               const on = n === minAuditors;
               return (
@@ -348,8 +355,8 @@ export default function OverviewPage() {
                   aria-checked={on}
                   disabled={!usage || minAudSaving}
                   onClick={() => setMinAuditors(n)}
-                  className={`px-4 py-2 text-sm tabular-nums transition-colors disabled:opacity-50
-                    ${on ? 'bg-primary/15 font-semibold text-foreground ring-2 ring-inset ring-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                  className={`rounded-lg border px-4 py-2 text-sm tabular-nums transition-colors disabled:opacity-50
+                    ${on ? 'border-primary bg-primary/15 font-semibold text-foreground ring-2 ring-inset ring-primary' : 'border-field text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                 >
                   {n}
                 </button>

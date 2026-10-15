@@ -13,7 +13,10 @@ export type Stat = {
 };
 
 const TONE: Record<NonNullable<Stat['tone']>, string> = {
-  default: 'text-primary',
+  // Bright coral is large-text-safe on the canvas (3.11:1, 4xl bold needs 3:1) but 2.71:1 on the
+  // --secondary a linked card turns on hover, so the figure moves to --coral-on-tint there (5.65:1).
+  // group-hover only fires inside the linked card; a static card never tints and keeps text-primary.
+  default: 'text-primary group-hover:text-coral-on-tint',
   pass: 'text-[var(--chart-pass-text)]',
   // text-warn, not --chart-warn: that token is for solid fills and measures 2.55:1 as text here.
   warn: 'text-warn',
@@ -41,7 +44,7 @@ export function StatStrip({
             key={s.label}
             href={s.href}
             title={s.title ?? 'คลิกเพื่อดูรายการในหมวดนี้ / Click to explore this category'}
-            className="block rounded-xl border p-5 text-center transition-colors hover:bg-secondary hover:border-primary/40 cursor-pointer"
+            className="group block rounded-xl border p-5 text-center transition-colors hover:bg-secondary hover:border-primary/40 cursor-pointer"
           >
             {inner}
           </a>
