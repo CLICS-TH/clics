@@ -123,6 +123,27 @@ jobs:
       - name: Offline tests (bank, checks, citations, judging, clinician export)
         run: node --test scripts/quality/*.test.mjs
 
+  # The model manifest (CCME R2): rimpl/src/model-manifest.json is GENERATED from the code
+  # (scripts/manifest/build.mjs) and committed. --check regenerates it and fails if the committed copy
+  # differs — a prompt, rubric, decoding default, router rule or provider-policy edit that did not
+  # regenerate it would otherwise ship a manifest describing a different instrument from the one that
+  # runs. `env -i`: the output must depend on the code alone, never on what the runner exports.
+  # No npm install, like the probe and quality jobs: lib/manifest.js and everything it loads are
+  # package-free, and this job is what proves it.
+  manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check manifest scripts
+        run: for f in scripts/manifest/*.mjs; do node --check "$f"; done
+      - name: Canonicalisation and check-mode tests
+        run: node --test scripts/manifest/*.test.mjs
+      - name: The committed manifest is what the code generates (scrubbed env)
+        run: env -i PATH="$PATH" node scripts/manifest/build.mjs --check
+
   # The hash-chained, append-only audit_log (db/migration-audit-log-chain.sql) lives in TRIGGERS, which
   # the jest suites mock away. This runs the migration against a real, throwaway PostgreSQL — the one
   # preinstalled on the runner, started by the script itself in a temp dir — and asserts concurrency,

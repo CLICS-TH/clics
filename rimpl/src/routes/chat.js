@@ -5,7 +5,7 @@ const { ragLookup } = require('../services/rag');
 const { callAI, providerSupportsThinking, supportsThinking } = require('../services/ai');
 const { routeTurn } = require('../services/router');
 const { hasCitation, extractSocraticQuestion, extractReferences, extractEvidenceLevel, spliceEvidenceLine, placeEvidenceLine, thaiShare, stripNonProse, isLanguageMismatch, isThaiMessage } = require('../services/post-filter');
-const { RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE, EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT } = require('../lib/prompts');
+const { chatSystemPrompt, EVIDENCE_RETRY_PROMPT } = require('../lib/prompts');
 const { shouldAssess, rescueExhausted, assessQualifying, rescueDecision, checkRescueReply, RESCUE_RETRY_PROMPT } = require('../services/rescue');
 const { formatDeidentified, stripArtifactDelimiters } = require('../lib/transcript');
 const { requestSignal } = require('../lib/request-signal');
@@ -131,10 +131,9 @@ router.post('/', async (req, res) => {
   // mode (CLE1/CLE3) answers directly and must NOT force a ❓ — that's the experimental contrast.
   // Append the artifact guidance only when the superadmin toggle (forwarded as `artifacts`) is on, and
   // the evidence-marker guidance (its placement differs by mode) only when `evidence_marker` is on. A
-  // rescue turn REPLACES all of this below, so the rescue prompt never carries either.
-  let systemPrompt = (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)
-    + (artifacts ? ARTIFACT_GUIDANCE : '')
-    + (evidence_marker ? EVIDENCE_GUIDANCE[socratic ? 'examiner' : 'natural'] : '');
+  // rescue turn REPLACES all of this below, so the rescue prompt never carries either. The assembly is
+  // lib/prompts.js chatSystemPrompt, the one the model manifest enumerates.
+  let systemPrompt = chatSystemPrompt({ socratic, artifacts, evidenceMarker: evidence_marker });
   // Fires if the physician's client (or the backend's deadline) hangs up: a queued call leaves the
   // queue and an in-flight one is cancelled, so a turn nobody is waiting for stops holding the model.
   const signal = requestSignal(req, res);
@@ -166,7 +165,7 @@ router.post('/', async (req, res) => {
     // below instead would have produced a turn on the general examiner prompt, which is the
     // instrument swap the per-round rescue exists to prevent.
     if (rescueExhausted({ rescueActive: rescue_active, rescueRounds: rescue_rounds })) {
-      systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE;
+      systemPrompt = chatSystemPrompt({ rescue: true });
       rescue = {
         activated: false, rescuing: true, recovered: false, exhausted: true,
         reason: 'rescue round cap reached without the session qualifying',
@@ -211,7 +210,7 @@ router.post('/', async (req, res) => {
             provider: assessed.provider ?? null,
           },
         };
-        if (decision.rescue) systemPrompt = RIMPL_SYSTEM_PROMPT_RESCUE;
+        if (decision.rescue) systemPrompt = chatSystemPrompt({ rescue: true });
       } catch (e) {
         // The client has hung up: there is no turn to deliver, so do not buy the reply either.
         if (isAborted(e)) throw e;
@@ -255,6 +254,8 @@ router.post('/', async (req, res) => {
     const tierApplied = route ? await providerSupportsThinking('chat') : false;
     const deep = tierApplied && route.tier === 'deep';
     // Reasoning tokens count against max_tokens, so a deep turn runs under the larger ceiling.
+    // (lib/turn-limits.js TIER_POLICY / RETRY_POLICY describe this wiring for the model manifest;
+    // tests/manifest-chat-policy.test.js holds the two equal.)
     const turnMaxTokens = deep ? CHAT_DEEP_MAX_TOKENS : CHAT_MAX_TOKENS;
 
     // Streaming: known only now, because a rescue turn is never streamed (see the schema).

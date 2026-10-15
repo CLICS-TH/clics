@@ -47,12 +47,25 @@ describe('engine / runtime (§10.2, added 2026-09-05)', () => {
     expect(p.runtime).toBe('vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0');
   });
 
-  test('do NOT enter the fingerprint — every score already stored must stay comparable', () => {
-    // The runtime string carries a build hash that can change on a routine restart. Folding it into
-    // the fingerprint would churn on non-events AND make every pre-2026-09-05 fingerprint
-    // incomparable with the ones written after. Drift stays visible because the value is stamped on
-    // each score (D15), which is where the roadmap says it is read from.
-    expect(buildProvenance({ ...base, engine: 'vllm', runtime: 'vllm-0.21.1rc1-tp2' }).config_fingerprint)
+  // REVERSED 2026-10-15 (#75 gap 1, the model manifest): they now enter the fingerprint, ONLY when present.
+  // The 2026-09-05 rule kept them out on two grounds. (1) "The runtime string can change on a routine
+  // restart": the one served build has reported the identical string from 2026-09-05 (GATE0 §8.10) to
+  // 2026-10-03 (scripts/quality/report), and if a restart ever does change it, that IS a different serving
+  // stack and the lock should see it. (2) "Stored fingerprints stop being comparable": only rows that carry
+  // an engine/runtime move — local rows; production has scored with anthropic only, which reports neither,
+  // so no stored production fingerprint changes (pinned in tests/provenance-fingerprint.test.js). A local
+  // row also moves when LOCAL_AI_NUM_CTX is set: decoding.num_ctx is now recorded as sent, not always null.
+  test('enter the fingerprint when present: a different engine build is a different configuration', () => {
+    const plain = buildProvenance(base).config_fingerprint;
+    const served = buildProvenance({ ...base, engine: 'vllm', runtime: 'vllm-0.21.1rc1-tp2' }).config_fingerprint;
+    expect(served).not.toBe(plain);
+    expect(buildProvenance({ ...base, engine: 'vllm', runtime: 'vllm-0.22.0-tp2' }).config_fingerprint).not.toBe(served);
+    expect(buildProvenance({ ...base, engine: 'sglang', runtime: 'vllm-0.21.1rc1-tp2' }).config_fingerprint).not.toBe(served);
+    expect(buildProvenance({ ...base, quantization: 'fp8' }).config_fingerprint).not.toBe(plain);
+  });
+
+  test('absent (or null) leaves the fingerprint exactly as before the fields existed', () => {
+    expect(buildProvenance({ ...base, engine: null, runtime: null, quantization: null }).config_fingerprint)
       .toBe(buildProvenance(base).config_fingerprint);
   });
 

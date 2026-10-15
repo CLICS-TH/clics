@@ -28,12 +28,11 @@
 // NOTHING IN THE RETURNED `consistency` BLOCK IS TEXT FROM THE MODEL: integers, nulls, and strings
 // from the fixed vocabulary in this file. The rationale travels beside it, exactly as one call's would.
 const { scoreFromText, compositeOf, DOMAIN_KEYS, Pis7ScoreError } = require('../lib/pis7');
+// The vocabulary and the default thresholds live in lib/consistency-config.js, package-free, so the model
+// manifest records the values this rule runs with. Re-exported below: every caller's import is unchanged.
+const { METHOD, MODES, RULES, DEFAULT_AGREE } = require('../lib/consistency-config');
 
-const METHOD = 'self-consistency';
-const MODES = ['off', 'adaptive', 'median3'];
-const RULES = { single: 'single', pair: 'first-of-agreeing-pair', median: 'median-of-3' };
-
-// When does the pair c1/c2 AGREE?
+// When does the pair c1/c2 AGREE? (DEFAULT_AGREE)
 //   maxDomainDelta  no domain may differ by more than this (the historical rule);
 //   maxSumDelta     Σ|Δ| over d1..d7 may not exceed this; 0 = off, i.e. the per-domain check alone.
 // Both must hold. WHY the second knob: on the tuning split 16/16 first pairs "agreed" under
@@ -41,7 +40,6 @@ const RULES = { single: 'single', pair: 'first-of-agreeing-pair', median: 'media
 // across 5–6 domains (composites 21/17/15/17/17). A uniform shift has max |Δ| = 1 but Σ|Δ| = 5–6, so
 // the per-domain check accepts it and returns c1 — while the D18 repeatability bar is Σ|Δ| median ≤ 2.
 // The defaults reproduce the historical behaviour byte for byte.
-const DEFAULT_AGREE = { maxDomainDelta: 1, maxSumDelta: 0 };
 const AGREE_WITHIN = DEFAULT_AGREE.maxDomainDelta;   // the historical constant, kept for readers of it
 
 const vectorOf = (scores) => DOMAIN_KEYS.map((k) => scores[k]);

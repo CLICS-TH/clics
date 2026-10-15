@@ -50,19 +50,36 @@ describe('honest about what it can and cannot measure', () => {
     expect(p.locked).toBe(true);
   });
 
+  // EVAL_DECODING moved out of routes/evaluate.js into rimpl/src/lib/decoding.js (package-free, so the
+  // model manifest can record it on a bare checkout). The pins follow it: ONE definition there, and the
+  // route reading it for both the call and the record.
+  const rimplSrc = (rel) => require('fs').readFileSync(require('path').join(__dirname, '../../rimpl/src', rel), 'utf8');
+
   test('the decoding parameters recorded are the ones the evaluator actually sends', () => {
     // Not a module constant restated: routes/evaluate.js reads EVAL_DECODING for both the call and
     // the record, so the two cannot drift.
-    const src = require('fs').readFileSync(require('path').join(__dirname, '../../rimpl/src/routes/evaluate.js'), 'utf8');
-    expect(src).toMatch(/const EVAL_DECODING = \{ temperature: 0, maxTokens: 4096 \}/);
+    const { EVAL_DECODING } = require('../../rimpl/src/lib/decoding');
+    expect(EVAL_DECODING).toEqual({ temperature: 0, maxTokens: 4096 });
+    expect(Object.isFrozen(EVAL_DECODING)).toBe(true);
+    expect(rimplSrc('lib/decoding.js')).toMatch(/const EVAL_DECODING = Object\.freeze\(\{ temperature: 0, maxTokens: 4096 \}\);/);
+    const src = rimplSrc('routes/evaluate.js');
+    expect(src).toMatch(/const \{ EVAL_DECODING \} = require\('\.\.\/lib\/decoding'\);/);
+    expect(src).not.toMatch(/const EVAL_DECODING =/);   // one definition, not a second copy in the route
     expect(src).toMatch(/maxTokens: EVAL_DECODING\.maxTokens/);
     expect(src).toMatch(/temperature: EVAL_DECODING\.temperature/);
     expect(src).toMatch(/temperature: EVAL_DECODING\.temperature, maxTokens: EVAL_DECODING\.maxTokens/);
   });
 
+  test('the shadow evaluator sends the same decoding — the candidate is measured under the instrument\'s', () => {
+    const { EVAL_DECODING, SHADOW_DECODING } = require('../../rimpl/src/lib/decoding');
+    expect(SHADOW_DECODING.temperature).toBe(EVAL_DECODING.temperature);
+    expect(SHADOW_DECODING.maxTokens.default).toBe(EVAL_DECODING.maxTokens);
+    expect(rimplSrc('services/shadow.js')).toMatch(/temperature: SHADOW_DECODING\.temperature,/);
+  });
+
   test('temperature is 0 — a sampled scoring instrument is not reproducible', () => {
-    const src = require('fs').readFileSync(require('path').join(__dirname, '../../rimpl/src/routes/evaluate.js'), 'utf8');
-    expect(src).toMatch(/temperature: 0,/);
+    expect(require('../../rimpl/src/lib/decoding').EVAL_DECODING.temperature).toBe(0);
+    expect(rimplSrc('lib/decoding.js')).toMatch(/temperature: 0,/);
   });
 
   test('every §10.2 field has a slot, present even when unfilled', () => {

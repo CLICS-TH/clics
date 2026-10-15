@@ -65,7 +65,7 @@ import { deriveHintTokens } from '../../../rimpl/src/services/pii-filter.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
-const EVAL = { temperature: 0, maxTokens: 4096 };          // rimpl/src/routes/evaluate.js EVAL_DECODING
+const EVAL = { temperature: 0, maxTokens: 4096 };          // rimpl/src/lib/decoding.js EVAL_DECODING (what routes/evaluate.js sends)
 export const SECONDS_PER_EVAL_ESTIMATE = 90;
 export const EVIDENCE_LEVEL = 'screening-synthetic (AI-authored, AI-scored) — not a decisive gate';
 

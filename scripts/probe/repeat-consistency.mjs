@@ -29,8 +29,7 @@
  */
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { readFileSync } from 'node:fs';
-import { PROBE_DIR, RIMPL_DIR, bold, dim, red, green, yellow, hr, fail, readConfig, chatCompletion } from './lib.mjs';
+import { PROBE_DIR, RIMPL_DIR, bold, dim, red, green, yellow, hr, fail, readConfig, chatCompletion, PRODUCTION_CLOUD_MODEL } from './lib.mjs';
 
 import { pis7PromptFor, PIS7_LOCAL_ADDENDUM } from '../../rimpl/src/lib/prompts.js';
 import { PROMPT_VERSION, promptVersionFor } from '../../rimpl/src/lib/versions.js';
@@ -74,20 +73,12 @@ const env = Object.fromEntries(
     .map((l) => { const i = l.indexOf('='); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; }),
 );
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY;
-// Read the model id out of the provider module rather than hardcoding it, so this cannot drift into
-// comparing against a model production does not use. NOTE: this MUST use an imported readFileSync —
-// a bare require() throws ReferenceError in ESM, and an earlier version silently swallowed that in a
-// catch and fell through to a hardcoded default, making the anti-drift guard decorative. If the read
-// fails now, that is fatal: a silent fallback is exactly the failure this guard exists to prevent.
-const CLOUD_MODEL = process.env.CLOUD_MODEL || (() => {
-  const p = path.join(RIMPL_DIR, 'src/services/providers/anthropic.js');
-  let src;
-  try { src = readFileSync(p, 'utf8'); }
-  catch (e) { fail(`cannot read ${p} to determine the production model: ${e.message}`); }
-  const m = src.match(/claude-[a-z0-9.-]+/);
-  if (!m) fail(`no claude-* model id found in ${p} — cannot confirm which model production uses.`);
-  return m[0];
-})();
+// The model rimpl actually runs: lib/provider-policy.js ANTHROPIC_MODEL, IMPORTED through ./lib.mjs —
+// never hardcoded, and no longer regex-scraped out of providers/anthropic.js, where the first claude-*
+// string could as well be a comment as the constant. A failed import is fatal at load (no silent default:
+// an earlier version swallowed a ReferenceError and fell through to a hardcoded id, which made this guard
+// decorative). CLOUD_MODEL overrides it explicitly for a deliberate off-production comparison.
+const CLOUD_MODEL = process.env.CLOUD_MODEL || PRODUCTION_CLOUD_MODEL;
 if (ARM !== 'local' && !ANTHROPIC_KEY) fail('No ANTHROPIC_API_KEY (checked env and rimpl/.env).');
 
 const cfg = ARM === 'cloud' ? null : readConfig();

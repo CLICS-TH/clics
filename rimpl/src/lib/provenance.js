@@ -55,6 +55,18 @@ function configFingerprint(p) {
     // produced before the field existed, or every stored fingerprint in the pilot stops being
     // comparable with the ones written after this change.
     ...(p.consistency ? { consistency: canonicalConsistency(p.consistency) } : {}),
+    // The serving stack, by the same rule (#75 gap 1). Two scores from the same weights under a
+    // different engine build or quantisation did not come from the same configuration — a vLLM upgrade
+    // under an unchanged model id is exactly the drift §10.2 asks to be detectable — so each folds in
+    // when it is known, and ONLY then. Anthropic reports none of the three, so an Anthropic row hashes
+    // byte-identically to one fingerprinted before this (tests/provenance-fingerprint.test.js pins
+    // that against master's value). A local row gets a new value when it carries a system_fingerprint
+    // — and also when <prefix>NUM_CTX is set, because decoding.num_ctx above is now the value actually
+    // sent (routes/evaluate.js), where until 2026-10-15 it was always null. Reverses the 2026-09-05 rule
+    // (docs/GATE0-DGX-RESULTS.md §8.10).
+    ...(p.engine ? { engine: p.engine } : {}),
+    ...(p.quantization ? { quantization: p.quantization } : {}),
+    ...(p.runtime ? { runtime: p.runtime } : {}),
   });
   return createHash('sha256').update(canonical).digest('hex').slice(0, 16);
 }

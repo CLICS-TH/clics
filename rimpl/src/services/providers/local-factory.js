@@ -30,6 +30,7 @@ const { createRunner } = require('./runtime');
 const settings = require('../provider-settings');
 const { stripThink, createThinkFilter, closesThink, flagOn } = require('../../lib/think-markup');
 const { THINKING_STYLES, thinkingEnabled, parseThinkingStyle, thinkingFields } = require('../../lib/thinking-control');
+const { LOCAL_NUM_CTX_DEFAULT, KNOWN_ENGINES: ENGINE_NAMES } = require('../../lib/provider-policy');
 
 // Config is read LAZILY (first call), not at module load: this module is required unconditionally by
 // services/ai.js, and must not throw or capture stale env when the local provider is not in use.
@@ -287,7 +288,7 @@ const FINISH_REASON = { length: 'max_tokens', stop: 'end_turn', tool_calls: 'too
 // reads as "inference engine" is worse than leaving it empty. Nothing is lost by being strict: the
 // raw string is recorded verbatim as `runtime` either way, which is what an auditor can actually
 // check, and parsing a vendor string into parts is how the NEXT engine gets mis-recorded.
-const KNOWN_ENGINES = new Set(['vllm', 'ollama', 'llamacpp', 'tgi', 'sglang', 'mlx', 'trtllm', 'lmdeploy']);
+const KNOWN_ENGINES = new Set(ENGINE_NAMES);   // lib/provider-policy.js, the one list
 function engineOf(fingerprint) {
   const head = String(fingerprint || '').split('-')[0].trim().toLowerCase();
   return KNOWN_ENGINES.has(head) ? head : null;
@@ -357,7 +358,7 @@ function createLocalProvider({
     // launch flag); servers that accept an `options` bag will honour this, and those that ignore
     // unknown body fields are unaffected. Left unset by default so we never send a field a stricter
     // server would reject.
-    numCtx: intEnv(`${envPrefix}NUM_CTX`, 0, 0),
+    numCtx: intEnv(`${envPrefix}NUM_CTX`, LOCAL_NUM_CTX_DEFAULT, 0),
     // Proactive size backstop (0 = off). A prompt estimated above this is refused BEFORE it takes a
     // queue slot or a network round-trip, with 413 transcript_too_large — the server's own 400 for
     // an over-long prompt only arrives after the box has already spent time on it. Set from the WP0
@@ -392,6 +393,13 @@ function createLocalProvider({
     }
     return 'none';
   }
+
+  // What the SERVER last said it was, from a completed call: the model id it reported and its
+  // system_fingerprint (engine + runtime). ready() only reaches /models, which reports neither the
+  // engine nor its build, so this is the only place they are ever observed. Read by the model manifest's
+  // live view (services/manifest.js) — the configuration a lock is compared against is the one that
+  // ANSWERED, not the one that was asked for. Never the prompt, never the reply; null until a call lands.
+  let lastSeen = null;
 
   // Does this instance honour a `thinking` request at all? services/ai.js providerSupportsThinking asks,
   // so routes/chat.js applies the fast/deep router (services/router.js) only where a tier changes what
@@ -619,6 +627,12 @@ function createLocalProvider({
       if (!streamedNoUsage) observePromptTokens(est, data.usage?.prompt_tokens);
       const outputTokens = streamedNoUsage ? Math.ceil(Buffer.byteLength(raw, 'utf8') / 3) : (data.usage?.completion_tokens ?? 0);
       const rawFinish = choice?.finish_reason ?? null;
+      lastSeen = {
+        model: typeof data.model === 'string' && data.model ? data.model : null,
+        engine: engineOf(data.system_fingerprint),
+        runtime: data.system_fingerprint || null,
+        observed_at: new Date().toISOString(),
+      };
 
       // THINK_PREOPENED and the reply never closed its reasoning block: by the operator's own
       // declaration, every byte of it was reasoning (most often it hit max_tokens mid-thought).
@@ -653,6 +667,10 @@ function createLocalProvider({
         // null on this transport, which is the honest answer rather than one inferred from a model name.
         runtime: data.system_fingerprint || null,
         engine: engineOf(data.system_fingerprint),
+        // The per-request context override, ONLY when one was sent (body.options.num_ctx above), so
+        // routes/evaluate.js records the decoding actually sent (§10.2 provenance.decoding.num_ctx).
+        // Absent otherwise: a call without it returns exactly the shape it always did.
+        ...(numCtx > 0 ? { numCtx } : {}),
       };
     }, { lane: laneFor(purpose), signal });
   }
@@ -762,12 +780,28 @@ function createLocalProvider({
     return `${where} ${model}`;
   }
 
+  // This instance's configuration as the model manifest's live view reports it (services/manifest.js),
+  // on the unauthenticated /health/deep: the base URL as present/absent ONLY — never the address — the
+  // model id, the context override (null = not sent) and the thinking style, an unknown value as
+  // 'invalid' rather than the 'none' a call falls back to, so a typo shows as drift.
+  function configured() {
+    const { baseUrl, model, numCtx } = cfg();
+    return {
+      base_url: baseUrl ? 'present' : 'absent',
+      model: model || null,
+      num_ctx: numCtx > 0 ? numCtx : null,
+      thinking_style: parseThinkingStyle(process.env[`${envPrefix}THINKING_STYLE`]) ?? 'invalid',
+    };
+  }
+
   return {
     _resetDispatcher,
     name,
     call,
     supportsThinking,
     endpointKey,
+    configured,
+    lastSeen: () => (lastSeen ? { ...lastSeen } : null),
     ...(embeddings ? { embed } : {}),
     model: () => cfg().model,
     ...(embeddings ? { embedModel: () => cfg().embedModel } : {}),

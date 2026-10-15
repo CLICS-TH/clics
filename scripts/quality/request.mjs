@@ -2,8 +2,9 @@
 //
 // WHAT IS IMPORTED vs WHAT IS REPLICATED
 // --------------------------------------
-// Imported from rimpl (via ./rimpl.mjs): the three system prompts, ARTIFACT_GUIDANCE and
-// EVIDENCE_GUIDANCE / EVIDENCE_RETRY_PROMPT (the evidence marker), the PII filter (stripPii /
+// Imported from rimpl (via ./rimpl.mjs): the system-prompt assembly (lib/prompts.js chatSystemPrompt: the
+// mode prompts, ARTIFACT_GUIDANCE, EVIDENCE_GUIDANCE, the rescue prompt) and EVIDENCE_RETRY_PROMPT (the
+// evidence marker), both chat ceilings (lib/turn-limits.js), the PII filter (stripPii /
 // stripHistoryPii / deriveHintTokens / makeRegistry), the artifact-fence strip, and every predicate the
 // retry decision is made of — hasCitation, extractSocraticQuestion, isThaiMessage, isLanguageMismatch,
 // extractEvidenceLevel (services/post-filter.js) — plus promptLabel (the provenance hash).
@@ -21,7 +22,6 @@
 //     deadline cutoff is skipped. ≤ 2 calls per turn.
 //   * the client's `language` rule — 'th' when the message holds ANY Thai codepoint
 //     (physician-ui/public/js/ple-chat.js).
-//   * CHAT_MAX_TOKENS  — max(1500, RIMPL_CHAT_MAX_TOKENS ?? 4000), defined in rimpl/src/lib/turn-limits.js.
 //   * the fast/deep router's WIRING (tierOptions / retryThinking / retryMaxTokens / middlewareFlags): the
 //     route runs on the de-identified message after the rescue decision; its tier is applied only when
 //     the provider honours `thinking` (fast -> thinking:false at CHAT_MAX_TOKENS, deep -> thinking:true
@@ -41,15 +41,15 @@
 // (provenance.rag).
 
 import {
-  RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
-  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, extractEvidenceLevel, spliceEvidenceLine, placeEvidenceLine,
-  EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS, CHAT_DEEP_MAX_TOKENS, routeTurn,
+  chatSystemPrompt,
+  EVIDENCE_RETRY_PROMPT, extractEvidenceLevel, spliceEvidenceLine, placeEvidenceLine,
+  EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS, CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS, routeTurn,
   promptLabel, stripPii, stripHistoryPii, deriveHintTokens, makeRegistry, stripArtifactDelimiters,
   hasCitation, extractSocraticQuestion, isThaiMessage, isLanguageMismatch, checkRescueReply, RESCUE_RETRY_PROMPT,
 } from './rimpl.mjs';
 
-export const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));
-export { CHAT_DEEP_MAX_TOKENS };
+// Both ceilings are IMPORTED from lib/turn-limits.js (the values chat.js runs under), never copied.
+export { CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS };
 
 /** How an audit arm drives the router. 'off' = chat.js with router_enabled false (every arm before the
  *  router existed). 'routed' = router_enabled true: production's routeTurn decides. 'fast' / 'deep' =
@@ -192,12 +192,8 @@ export function buildChatRequest(item, {
   const socratic = item.mode === 'examiner';
   const rescuing = item.mode === 'rescue';
   // chat.js: mode prompt (+ artifact guidance, + the evidence guidance for the mode), and the rescue
-  // REPLACES it wholesale.
-  const systemPrompt = rescuing
-    ? RIMPL_SYSTEM_PROMPT_RESCUE
-    : (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)
-      + (artifacts ? ARTIFACT_GUIDANCE : '')
-      + (evidenceMarker ? EVIDENCE_GUIDANCE[socratic ? 'examiner' : 'natural'] : '');
+  // REPLACES it wholesale — production's own assembly, lib/prompts.js chatSystemPrompt, IMPORTED.
+  const systemPrompt = chatSystemPrompt({ socratic, artifacts, evidenceMarker, rescue: rescuing });
   const { cleanChiefComplaint, cleanHistory, cleanMessage } =
     deidentifyTurn({ chiefComplaint: item.chief_complaint, history, message, hints });
   const messages = buildMessages(cleanHistory, cleanMessage, cleanChiefComplaint);

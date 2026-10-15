@@ -41,8 +41,15 @@ Every request must carry the `x-internal-token` shared secret (matched against t
   presented…`) — can slip through. Mitigated by structured patient intake +
   physician guidance; the full reversible-pseudonym table is ROADMAP P2. Treat any change here as
   security-sensitive and run `npm test` (the PII-leak adversarial suite).
-- **Reproducibility:** AI evaluations are tagged `CCME_LLM_v8.0`. If you change the model in `claude.js`,
+- **Reproducibility:** AI evaluations are tagged `CCME_LLM_v8.0`. If you change the pinned Claude model
+  (`src/lib/provider-policy.js` `ANTHROPIC_MODEL`, which `services/providers/anthropic.js` sends),
   re-run the Tier-2 calibration sample for drift (pilot protocol — see [../docs/ROADMAP.md](../docs/ROADMAP.md)).
+- **Model manifest (CCME R2):** `src/model-manifest.json` is GENERATED from the code — prompts, evaluator
+  prompt versions, rubric, decoding defaults, router, thinking and provider policy — plus the declared
+  target in `src/model-manifest.declared.json`. After changing any of those, run
+  `node scripts/manifest/build.mjs` and commit the result; CI's `manifest` job fails otherwise.
+  `/health/deep` reports drift against it (warn-only); `GET /manifest` (internal token) returns it with
+  the live view. See [../scripts/manifest/README.md](../scripts/manifest/README.md).
 
 Deploy: `railway up . --path-as-root --service rimpl --ci` (the local `rimpl/` dir is mis-linked to the
 `backend` service — **always pass `--service rimpl`**). See [../docs/deployment.md](../docs/deployment.md).

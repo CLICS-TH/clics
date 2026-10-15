@@ -20,6 +20,7 @@ const { callAI } = require('./ai');
 const { CRITERIA_CLASSIFIER_PROMPT } = require('../lib/prompts');
 const { parseJsonObject } = require('../lib/parse');
 const { flattenForPrompt } = require('../lib/transcript');
+const { CRITERIA_DECODING } = require('../lib/decoding');
 
 // The protocol's threshold, in physician turns. Four exchanges means the physician has had four
 // goes at making this a learning conversation; intervening earlier would cut across a session that
@@ -95,7 +96,8 @@ async function assessQualifying(transcriptText, { signal } = {}) {
     purpose: 'criteria',
     systemPrompt: CRITERIA_CLASSIFIER_PROMPT,
     messages: [{ role: 'user', content: `TRANSCRIPT:\n${transcriptText}` }],
-    maxTokens: 200,
+    maxTokens: CRITERIA_DECODING.maxTokens,   // the same classifier call as /evaluate-criteria (lib/decoding.js)
+    temperature: CRITERIA_DECODING.temperature,
     signal,
   });
   const ELEMENTS = ['c4', 'c5', 'c6', 'c7'];

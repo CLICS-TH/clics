@@ -1,0 +1,323 @@
+{
+  "expected": {
+    "code": {
+      "anthropic": {
+        "model": "claude-sonnet-4-6",
+        "model_version": "CCME_LLM_v8.0+claude-sonnet-4-6"
+      },
+      "consistency": {
+        "agree": {
+          "max_domain_delta": 1,
+          "max_sum_delta": {
+            "default": 0,
+            "env": "EVAL_CONSISTENCY_MAX_SUM_DELTA"
+          }
+        },
+        "evaluate": {
+          "json_retries": {
+            "default": 2,
+            "env": "EVAL_JSON_RETRIES"
+          },
+          "mode": {
+            "applies_to": "local",
+            "default": "off",
+            "env": "EVAL_CONSISTENCY"
+          }
+        },
+        "method": "self-consistency",
+        "modes": [
+          "off",
+          "adaptive",
+          "median3"
+        ],
+        "rules": {
+          "median": "median-of-3",
+          "pair": "first-of-agreeing-pair",
+          "single": "single"
+        },
+        "shadow": {
+          "json_retries": 0,
+          "mode": {
+            "default": "off",
+            "env": "SHADOW_EVAL_CONSISTENCY"
+          }
+        }
+      },
+      "decoding": {
+        "chat": {
+          "deep": {
+            "max_tokens": {
+              "default": 8000,
+              "env": "RIMPL_CHAT_DEEP_MAX_TOKENS",
+              "floor": "the fast ceiling",
+              "reasoning_allowance": 4000
+            }
+          },
+          "evidence_line": {
+            "max_tokens": 128
+          },
+          "fast": {
+            "max_tokens": {
+              "default": 4000,
+              "env": "RIMPL_CHAT_MAX_TOKENS",
+              "min": 1500
+            }
+          },
+          "temperature": null
+        },
+        "criteria": {
+          "max_tokens": 200,
+          "temperature": null
+        },
+        "discuss": {
+          "max_tokens": {
+            "default": 1200,
+            "env": "RIMPL_DISCUSS_MAX_TOKENS",
+            "min": 800
+          },
+          "temperature": null
+        },
+        "evaluate": {
+          "max_tokens": 4096,
+          "temperature": 0
+        },
+        "num_ctx": {
+          "local": {
+            "default": null,
+            "env": "LOCAL_AI_NUM_CTX",
+            "sent": "as options.num_ctx, only when > 0"
+          },
+          "local-tutor": {
+            "default": null,
+            "env": "LOCAL_TUTOR_AI_NUM_CTX",
+            "sent": "as options.num_ctx, only when > 0"
+          }
+        },
+        "shadow": {
+          "max_tokens": {
+            "default": 4096,
+            "env": "SHADOW_EVAL_MAX_TOKENS",
+            "min": 1000
+          },
+          "temperature": 0
+        }
+      },
+      "evaluator": {
+        "local_addendum_sha256": "c5ffe572aa81c586d78d37451ad16f475b8ba6cc9fbe1e3e11b52d5b334a60a2",
+        "prompt_sha256": {
+          "anthropic": "59561c292df0bd7cfb9d41f1b4839fa3fb7937dae3bd865503d9992c6881b03d",
+          "local": "6433003315e04069ede694a6125598b702564071b52274f3edb91bb7882c06c9"
+        },
+        "prompt_version": {
+          "anthropic": "pis7-prompt-59561c29",
+          "local": "pis7-prompt-59561c29+local-c5ffe572aa81"
+        },
+        "prompt_version_note": "The +local-<12 hex> suffix is the first 12 hex of sha256(PIS7_LOCAL_ADDENDUM): the addendum text ALONE. pis7PromptFor('local') joins base and addendum with \"\\n\\n\", which the suffix does not cover; prompt_sha256.local covers the whole prompt sent. The version scheme is unchanged.",
+        "rubric_version": "pis7-weights-08b0cb1a",
+        "weights": {
+          "d1": 0.15,
+          "d2": 0.2,
+          "d3": 0.15,
+          "d4": 0.15,
+          "d5": 0.15,
+          "d6": 0.1,
+          "d7": 0.1
+        }
+      },
+      "model_version_prefix": "CCME_LLM_v8.0+",
+      "prompts": {
+        "chat": {
+          "examiner": {
+            "label": "chat-prompt-c6efcfc6",
+            "sha256": "c6efcfc63661e45e0216f04cd231b7ed2583b7b86e2bc981615bdb9b18068db2"
+          },
+          "examiner+artifacts": {
+            "label": "chat-prompt-318800f7",
+            "sha256": "318800f76ebff9af0d9dde665ab841b9775cd6e17c5bee8f81df631dcd65dc90"
+          },
+          "examiner+artifacts+evidence": {
+            "label": "chat-prompt-0cf5f4a5",
+            "sha256": "0cf5f4a5ded170828f04fc8dee77da64f96d00df83b527dc98b0ece53e8d5304"
+          },
+          "examiner+evidence": {
+            "label": "chat-prompt-fbf5ada2",
+            "sha256": "fbf5ada20d0a9bbb0c85879390edf25915ef7c8a1da8121915a67aa32700e27a"
+          },
+          "natural": {
+            "label": "chat-prompt-d63340e1",
+            "sha256": "d63340e1669f2cc1cd1c6c5a73f7f2fbb77477c98a6190af1238f9e5be0f71ea"
+          },
+          "natural+artifacts": {
+            "label": "chat-prompt-ac11fe72",
+            "sha256": "ac11fe720ee2433195d2e939424b01127b57f36f8e853229def9dab404ae56ee"
+          },
+          "natural+artifacts+evidence": {
+            "label": "chat-prompt-e2ed5608",
+            "sha256": "e2ed5608f04b15621b0ba1f427838e87e6c53b4e0aca8da05ab96445ae95b1a0"
+          },
+          "natural+evidence": {
+            "label": "chat-prompt-4f745a3a",
+            "sha256": "4f745a3a529c879918d8f58ffb3cb0fbbf352254dbd2de965c5067274c174ea1"
+          },
+          "rescue": {
+            "label": "chat-prompt-55d91dbd",
+            "sha256": "55d91dbd7ea083ea413bcdc561e4e98c270464e292dfb03e8d7abd79f41cbffe"
+          }
+        },
+        "criteria": {
+          "label": "criteria-prompt-ce3ddf29",
+          "sha256": "ce3ddf29eb4d5a1e8346a7d7d68d5cadba7310500525fbd68ed0c8049b782795"
+        },
+        "discuss": {
+          "label": "discuss-prompt-bf9df487",
+          "sha256": "bf9df48724ab00a6dc9ffefa001a9d53722f170ae747c580b239f5b86ad8d229"
+        }
+      },
+      "providers": {
+        "allowed": {
+          "chat": [
+            "anthropic",
+            "local",
+            "local-tutor"
+          ],
+          "criteria": [
+            "anthropic",
+            "local"
+          ],
+          "discuss": [
+            "anthropic",
+            "local",
+            "local-tutor"
+          ],
+          "evaluate": [
+            "anthropic",
+            "local"
+          ],
+          "shadow": [
+            "anthropic",
+            "local"
+          ]
+        },
+        "default": "anthropic",
+        "embed_default": "openai",
+        "embed_names": [
+          "openai",
+          "local"
+        ],
+        "failover_purposes": [
+          "chat"
+        ],
+        "local_env_prefix": {
+          "local": "LOCAL_AI_",
+          "local-tutor": "LOCAL_TUTOR_AI_"
+        },
+        "names": [
+          "anthropic",
+          "local",
+          "local-tutor"
+        ],
+        "purpose_class": {
+          "shadow": "evaluate"
+        },
+        "purposes": [
+          "chat",
+          "evaluate",
+          "criteria",
+          "discuss"
+        ],
+        "resolution": "app_settings.ai_provider_<purpose> -> AI_PROVIDER_<PURPOSE> -> AI_PROVIDER (EMBED_PROVIDER for embed) -> default",
+        "restricted": {
+          "local-tutor": [
+            "chat",
+            "discuss"
+          ]
+        }
+      },
+      "router": {
+        "keywords_sha256": "de75bae215df740985fa0d48656c054d6f1ee6a7471c328ec58819f976716e1c",
+        "label": "router-v1+e721153fb701",
+        "reasons": [
+          "rescue",
+          "sticky",
+          "dosing",
+          "interaction",
+          "pregnancy",
+          "paediatric",
+          "differential",
+          "explicit",
+          "default"
+        ],
+        "rules_sha256": "e721153fb701ab2ccf4f2e51979cf6cd5cd558c75c661c3ec1ba08e9b1250c61",
+        "tiers": [
+          "fast",
+          "deep"
+        ],
+        "version": "router-v1"
+      },
+      "thinking": {
+        "anthropic": "ignores thinking",
+        "applied_when": "chat_router_enabled (backend app_settings) AND the chat provider honours thinking (<prefix>THINKING_STYLE is not none)",
+        "retry": {
+          "evidence_line_max_tokens": 128,
+          "max_tokens": 4000,
+          "thinking": false
+        },
+        "style": {
+          "local": {
+            "default": "none",
+            "env": "LOCAL_AI_THINKING_STYLE"
+          },
+          "local-tutor": {
+            "default": "none",
+            "env": "LOCAL_TUTOR_AI_THINKING_STYLE"
+          }
+        },
+        "styles": [
+          "none",
+          "chat_template_kwargs",
+          "ollama"
+        ],
+        "tiers": {
+          "deep": {
+            "max_tokens": 8000,
+            "thinking": true
+          },
+          "fast": {
+            "max_tokens": 4000,
+            "thinking": false
+          }
+        }
+      }
+    },
+    "declared": {
+      "local": {
+        "engine": "vllm",
+        "model": "deepseek-v4-flash-dspark",
+        "role": "evaluator",
+        "source": "The model id is the one the evaluator was calibrated on (docs/ARCHITECTURE-MAPPING-CCME.md section 4, item 3). The fingerprint is the one last seen, on 2026-10-02 (scripts/quality/report/BASELINE-2026-10-02.md); the endpoint address is not recorded. CCME has not confirmed either for the target box.",
+        "system_fingerprint": "vllm-0.21.1rc1.dev339+g1967a5627bc3-tp2-48c629c0"
+      },
+      "local-tutor": {
+        "engine": null,
+        "model": null,
+        "role": "tutor",
+        "source": "Unknown. CCME has not confirmed the tutor model, its server or its thinking switch (docs/ARCHITECTURE-MAPPING-CCME.md section 4, items 6-7), and its endpoint is not reachable from here, so nothing has been observed.",
+        "system_fingerprint": null
+      },
+      "notes": [
+        "Hand-maintained input to rimpl/src/model-manifest.json (scripts/manifest/build.mjs). It DECLARES the target deployment; it measures nothing.",
+        "Production does not run this target today: every purpose is routed to anthropic (app_settings.ai_provider_*, read 2026-10-15), so /health/deep reports drift against this file, as a warning, until CCME R1 (local evaluator) and R3 (distinct tutor) close.",
+        "Never put a URL, host, IP or key here: these values appear in the drift report on the unauthenticated /health/deep. The build refuses a string that looks like one."
+      ],
+      "providers": {
+        "chat": "local-tutor",
+        "criteria": "local",
+        "discuss": "local-tutor",
+        "evaluate": "local"
+      },
+      "target": "CCME on-prem deployment (docs/ARCHITECTURE-MAPPING-CCME.md): DeepSeek as the PIS-7 evaluator and classifier (provider local), the CCME tutor model for chat and discuss (provider local-tutor)"
+    }
+  },
+  "schema": "clics-model-manifest/v1",
+  "sha256": "3d4ff5af381615dccf4acdc71edaeea811195331b02202aaf56a5f56852d9d47"
+}

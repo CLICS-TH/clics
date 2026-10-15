@@ -7,13 +7,15 @@ const { callAI } = require('../services/ai');
 const { RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS } = require('../lib/prompts');
 const { requestSignal } = require('../lib/request-signal');
 const { promptLabel } = require('../lib/versions');
+const { discussMaxTokens, DISCUSS_DECODING } = require('../lib/decoding');
 const { sendAiError, logAiError } = require('../lib/ai-errors');
 
 const router = Router();
 
 // A calibration-chat reply is short prose (no tables/artifacts); keep the ceiling modest — the
 // auditor's separate $0.50 pool bounds total spend, but the transcript context per turn is large.
-const DISCUSS_MAX_TOKENS = Math.max(800, parseInt(process.env.RIMPL_DISCUSS_MAX_TOKENS || '1200', 10));
+// RIMPL_DISCUSS_MAX_TOKENS, default 1200, floor 800 (lib/decoding.js DISCUSS_DECODING), read per call —
+// the same read the model manifest's live view makes (services/manifest.js), so the two cannot differ.
 
 const DOMAINS = [
   ['d1', 'Clinical Question Intelligence'], ['d2', 'Reasoning Depth'], ['d3', 'Contextual Integration'],
@@ -87,7 +89,8 @@ router.post('/', async (req, res) => {
     const messages = [...cleanHistory, { role: 'user', content: cleanMessage }];
 
     const { text, tokenCount, inputTokens, outputTokens, provider, model } =
-      await callAI({ purpose: 'discuss', systemPrompt, messages, maxTokens: DISCUSS_MAX_TOKENS, signal });
+      await callAI({ purpose: 'discuss', systemPrompt, messages, maxTokens: discussMaxTokens(),
+        temperature: DISCUSS_DECODING.temperature, signal });
 
     // prompt_version hashes the fixed instructions only — the transcript/scores block appended to the
     // system prompt is per-episode data, and hashing it would give every episode its own "version".

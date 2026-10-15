@@ -20,15 +20,16 @@
 // providers/local-factory.js; this file only fixes this instance's names. Its env names are exactly
 // the ones this module has always read.
 const { createLocalProvider } = require('./local-factory');
+const { LOCAL_INSTANCES } = require('../../lib/provider-policy');
 
 module.exports = createLocalProvider({
   name: 'local',
   // LOCAL_AI_BASE_URL / _MODEL / _API_KEY / _TIMEOUT_MS / _MIN_CONTEXT / _NUM_CTX / _MAX_PROMPT_TOKENS /
   // _EMBED_MODEL / _EMBED_TIMEOUT_MS / _HTTP_PROXY / _THINKING_STYLE
-  envPrefix: 'LOCAL_AI_',
+  envPrefix: LOCAL_INSTANCES.local.envPrefix,   // 'LOCAL_AI_'
   // LOCAL_MAX_CONCURRENCY / _MAX_RETRIES / _RETRY_BASE_MS / _INTERACTIVE_RESERVE / _MAX_QUEUE_INTERACTIVE /
   // _MAX_QUEUE_BACKGROUND / _QUEUE_RETRY_AFTER_S / _LOG_PROMPT_RATIO
-  queuePrefix: 'LOCAL_',
+  queuePrefix: LOCAL_INSTANCES.local.queuePrefix,   // 'LOCAL_'
   checkKey: 'local_ai',
   minContextKey: 'local_ai_min_context',
   // The embed lane (services/ai.js EMBED_PROVIDERS) runs on this box when ai_provider_embed = local.

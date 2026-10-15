@@ -1,8 +1,21 @@
 'use strict';
 
+// Every ceiling here is read from env ONCE, at load. The CODE DEFAULTS and the env names are exported
+// as well (CHAT_LIMIT_DEFAULTS, and resolveChatMaxTokens / resolveChatDeepMaxTokens take the env as an
+// argument), so the model manifest (lib/manifest.js) records what the code ships with — resolve({}) —
+// rather than whatever env the build machine happens to have. Package-free: no require() at all.
+
 // Per-reply output ceiling for the PLE dialogue (routes/chat.js). Lives here so the history cap below
 // is derived from the SAME number and can never fall under a legitimate reply.
-const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKENS || '4000', 10));
+// RIMPL_CHAT_MAX_TOKENS, default 4000, floor 1500. A value that does not parse falls back to the default:
+// it used to be Math.max(1500, NaN) = NaN, i.e. `"max_tokens": null` on every chat turn (Anthropic 400s).
+function resolveChatMaxTokens(env = process.env) {
+  const n = parseInt(env?.RIMPL_CHAT_MAX_TOKENS || String(CHAT_FAST_DEFAULT), 10);
+  return Number.isFinite(n) ? Math.max(CHAT_FAST_MIN, n) : CHAT_FAST_DEFAULT;
+}
+const CHAT_FAST_DEFAULT = 4000;
+const CHAT_FAST_MIN = 1500;
+const CHAT_MAX_TOKENS = resolveChatMaxTokens();
 
 // Per-reply ceiling for the FIRST call of a DEEP turn of the fast/deep router (services/router.js), used
 // only when the router is on AND the chat provider honours `thinking` (routes/chat.js). A corrective retry
@@ -22,8 +35,11 @@ const CHAT_MAX_TOKENS = Math.max(1500, parseInt(process.env.RIMPL_CHAT_MAX_TOKEN
 // that reasons too long. A larger ceiling would buy nothing there; a smaller one would truncate replies
 // on a faster box. Cost is the tokens actually generated, not the ceiling.
 const DEEP_REASONING_ALLOWANCE = 4000;
-const deepEnv = parseInt(process.env.RIMPL_CHAT_DEEP_MAX_TOKENS ?? '', 10);
-const CHAT_DEEP_MAX_TOKENS = Math.max(CHAT_MAX_TOKENS, Number.isFinite(deepEnv) ? deepEnv : CHAT_MAX_TOKENS + DEEP_REASONING_ALLOWANCE);
+function resolveChatDeepMaxTokens(env = process.env, fast = resolveChatMaxTokens(env)) {
+  const deepEnv = parseInt(env?.RIMPL_CHAT_DEEP_MAX_TOKENS ?? '', 10);
+  return Math.max(fast, Number.isFinite(deepEnv) ? deepEnv : fast + DEEP_REASONING_ALLOWANCE);
+}
+const CHAT_DEEP_MAX_TOKENS = resolveChatDeepMaxTokens(process.env, CHAT_MAX_TOKENS);
 
 // Longest content one transcript / history turn may carry into /chat and /audit-discuss.
 //
@@ -63,4 +79,32 @@ const OPTIONAL_RETRY_CUTOFF_DEFAULT_MS = 50000;
 const cutoffEnv = parseInt(process.env.RIMPL_CHAT_OPTIONAL_RETRY_CUTOFF_MS ?? '', 10);
 const CHAT_OPTIONAL_RETRY_CUTOFF_MS = Number.isFinite(cutoffEnv) && cutoffEnv >= 0 ? cutoffEnv : OPTIONAL_RETRY_CUTOFF_DEFAULT_MS;
 
-module.exports = { CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS, MAX_TURN_CHARS, EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS };
+// The code defaults and env names, for the model manifest. The resolved values above are what runs.
+const CHAT_LIMIT_DEFAULTS = Object.freeze({
+  fast: Object.freeze({ maxTokens: CHAT_FAST_DEFAULT, min: CHAT_FAST_MIN, env: 'RIMPL_CHAT_MAX_TOKENS' }),
+  deep: Object.freeze({
+    maxTokens: resolveChatDeepMaxTokens({}), reasoningAllowance: DEEP_REASONING_ALLOWANCE,
+    floor: 'the fast ceiling', env: 'RIMPL_CHAT_DEEP_MAX_TOKENS',
+  }),
+  evidenceLine: Object.freeze({ maxTokens: EVIDENCE_LINE_MAX_TOKENS }),
+  optionalRetryCutoffMs: Object.freeze({ default: OPTIONAL_RETRY_CUTOFF_DEFAULT_MS, env: 'RIMPL_CHAT_OPTIONAL_RETRY_CUTOFF_MS' }),
+});
+
+// The fast/deep router's tiers (services/router.js) as routes/chat.js applies them to the FIRST call of a
+// turn, when the router is on AND the chat provider honours `thinking`: whether thinking is asked for, and
+// which ceiling. A corrective retry never thinks and always runs at the fast ceiling (the marker-only
+// evidence retry at EVIDENCE_LINE_MAX_TOKENS): a deep first call plus a thinking retry would roughly
+// double a deep turn against the backend's chat deadline. A DESCRIPTION of chat.js's wiring for the model
+// manifest — chat.js keeps its own expressions, which the quality harness pins as text (scripts/quality/
+// request.test.mjs) — and tests/manifest-chat-policy.test.js runs the route and holds the two equal.
+const TIER_POLICY = Object.freeze({
+  fast: Object.freeze({ thinking: false, maxTokens: CHAT_MAX_TOKENS }),
+  deep: Object.freeze({ thinking: true, maxTokens: CHAT_DEEP_MAX_TOKENS }),
+});
+const RETRY_POLICY = Object.freeze({ thinking: false, maxTokens: CHAT_MAX_TOKENS });
+
+module.exports = {
+  CHAT_MAX_TOKENS, CHAT_DEEP_MAX_TOKENS, MAX_TURN_CHARS, EVIDENCE_LINE_MAX_TOKENS, CHAT_OPTIONAL_RETRY_CUTOFF_MS,
+  DEEP_REASONING_ALLOWANCE, CHAT_LIMIT_DEFAULTS, TIER_POLICY, RETRY_POLICY,
+  resolveChatMaxTokens, resolveChatDeepMaxTokens,
+};

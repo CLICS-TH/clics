@@ -19,7 +19,7 @@ const LOCAL_ENV = [
   'LOCAL_MAX_CONCURRENCY', 'LOCAL_MAX_RETRIES', 'LOCAL_RETRY_BASE_MS', 'HEALTH_PROBE_TIMEOUT_MS',
   'LOCAL_AI_MIN_CONTEXT', 'LOCAL_AI_NUM_CTX', 'LOCAL_AI_EMBED_MODEL', 'LOCAL_AI_EMBED_TIMEOUT_MS',
   'LOCAL_INTERACTIVE_RESERVE', 'LOCAL_MAX_QUEUE_INTERACTIVE', 'LOCAL_MAX_QUEUE_BACKGROUND',
-  'LOCAL_QUEUE_RETRY_AFTER_S', 'LOCAL_AI_MAX_PROMPT_TOKENS', 'LOCAL_LOG_PROMPT_RATIO',
+  'LOCAL_QUEUE_RETRY_AFTER_S', 'LOCAL_AI_MAX_PROMPT_TOKENS', 'LOCAL_LOG_PROMPT_RATIO', 'LOCAL_AI_THINKING_STYLE',
 ];
 
 let savedEnv;
@@ -1035,5 +1035,48 @@ describe('embed()', () => {
     process.env.LOCAL_AI_EMBED_MODEL = 'bge-m3';
     fetchMock.mockResolvedValue(res({ data: [] }));
     await expect(load().embed('x')).rejects.toThrow(/no vector/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The model manifest's live view (services/manifest.js) and the evaluator's provenance read three things
+// from this transport: what the server last said it was, the context override that was sent, and the
+// instance's configuration — the last without the address, because /health/deep is unauthenticated.
+describe('what the manifest and provenance read from the transport', () => {
+  test('numCtx is on the result ONLY when it was sent (so a call without it keeps its exact shape)', async () => {
+    fetchMock.mockResolvedValue(res(completion()));
+    expect(await load().call(args())).not.toHaveProperty('numCtx');
+    process.env.LOCAL_AI_NUM_CTX = '32768';
+    fetchMock.mockResolvedValue(res(completion()));
+    expect(await load().call(args())).toMatchObject({ numCtx: 32768 });
+  });
+
+  test('lastSeen(): null until a call lands, then the SERVER-reported model and fingerprint — never the prompt or reply', async () => {
+    const local = load();
+    expect(local.lastSeen()).toBeNull();
+    fetchMock.mockResolvedValue(res(completion({ model: 'served-id', system_fingerprint: 'vllm-0.21.1rc1-tp2-48c629c0' })));
+    await local.call(args());
+    const seen = local.lastSeen();
+    expect(seen).toEqual({ model: 'served-id', engine: 'vllm', runtime: 'vllm-0.21.1rc1-tp2-48c629c0', observed_at: expect.any(String) });
+    expect(JSON.stringify(seen)).not.toMatch(/Socratic|chest pain|hello/);
+    seen.model = 'mutated';
+    expect(local.lastSeen().model).toBe('served-id');   // a copy, not the instance's state
+  });
+
+  test('lastSeen() reports a server that sent no model or fingerprint as null fields, not as the configured id', async () => {
+    const local = load();
+    fetchMock.mockResolvedValue(res(completion({ model: undefined })));
+    await local.call(args());
+    expect(local.lastSeen()).toMatchObject({ model: null, engine: null, runtime: null });
+  });
+
+  test('configured(): base URL as present/absent only; a thinking-style typo reads as invalid', () => {
+    process.env.LOCAL_AI_THINKING_STYLE = 'chat-template-kwargs';
+    const c = load().configured();
+    expect(c).toEqual({ base_url: 'present', model: 'qwen3-32b-medical', num_ctx: null, thinking_style: 'invalid' });
+    expect(JSON.stringify(c)).not.toMatch(/tailnet|http/);
+    delete process.env.LOCAL_AI_BASE_URL;
+    process.env.LOCAL_AI_THINKING_STYLE = 'ollama';
+    expect(load().configured()).toMatchObject({ base_url: 'absent', thinking_style: 'ollama' });
   });
 });
