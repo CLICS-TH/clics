@@ -182,6 +182,48 @@ passed screening. A model change, a prompt change (a new `chat-prompt-<sha>`), a
 quantisation change, or a Phase 4 production guard landing **voids every gate**, and the run is
 repeated.
 
+### Before `chat_evidence_marker` is switched on (CCME R5)
+
+The evidence-level marker ships **dormant**: with the setting at 0, the tutor prompts are byte-identical
+to the ones without it. Switching it on changes the tutor prompt (a new `chat-prompt-<sha>` per mode, so
+it **voids every gate above** and C-0 to C-3 are re-run with `tutor-audit.mjs --evidence-marker`). It
+also changes the study stimulus: the AI turns physicians read, and that the evaluator's transcript
+carries, gain one line. All of the following must hold first:
+
+1. **The scale, checked by a clinician in Thai.** The five levels are GRADE certainty (สูง / ปานกลาง /
+   ต่ำ, with GRADE "very low" reported as low), plus ความเห็นผู้เชี่ยวชาญ / expert opinion (a
+   recommendation that rests only on consensus or practice) and ไม่ได้ประเมิน / not graded (the evidence
+   cannot be graded, or the reply makes no recommendation or clinical claim). The clinician also checks
+   the label ระดับหลักฐานของข้อแนะนำหลัก and the definitions the model is given (`EVIDENCE_CORE` in
+   [`rimpl/src/lib/prompts.js`](../rimpl/src/lib/prompts.js)). The point is that a Thai physician reads
+   the line as intended, and that the scale is not a mistranslation of GRADE.
+2. **Precision of "high", against a Wilson CI.** On the `--evidence-marker` run, the clinician judges
+   every reply whose `evidence_level` is `high`: is the main recommendation really backed by high-certainty
+   evidence? Report k/n with the Wilson 95% interval, and set the bar before the run. A model that says
+   "high" for consensus-only advice tells physicians the opposite of what the field is for, so this is the
+   number that decides go / no-go. Over-use of "expert opinion" for "I don't know" (the prompt forbids it)
+   is noted in the same review.
+3. **Compliance, measured.** C-0's `evidence_marker` pass rate, after production's retry, with its Wilson
+   interval and the share that needed the retry (`evidence_retry`). Also `evidence_marker_placement`
+   (natural: the last line; examiner: directly above the ❓; and no second, near-miss evidence statement
+   on screen). Production now ENFORCES placement without a model call: chat.js moves a misplaced valid
+   marker and removes BARE near-miss statements — label, colon, level and nothing else (`evidence_moved`
+   in the audit; `superseded_reason` `evidence` on a streamed turn). A near-miss that carries anything
+   more (a citation, a trial size, a population or outcome qualifier such as "Level of evidence (adults):"
+   or "ระดับหลักฐานในเด็ก:") is never deleted, nor are near-misses that state different levels (per-option
+   grades): the whole move is refused and the reply stands. A placement failure after production's fix
+   is such a refusal. Lines that merely
+   start like one ("Evidence: low molecular weight heparin …") are content and never touched, nor is a
+   nested list item ("  - Evidence: high" under one option).
+4. **The level set is frozen.** `evidence_level` values (`high`, `moderate`, `low`, `expert`, `not_graded`)
+   are a stable contract once anything is stored against them: add a level, never rename or reuse one.
+
+Optional retries (language-only and evidence-only) are skipped once a turn has run past half the
+backend's deadline (`RIMPL_CHAT_OPTIONAL_RETRY_CUTOFF_MS`, default 50 s). The local box is estimated at
+~60–70 s per turn (tutor-audit's own planning figure), which is already past the cutoff, so expect many
+optional retries on the local arm to be **skipped**. How many is not yet measured: the audit mirrors the
+skip and reports the count (`retry_skipped`). Read compliance on that arm with this in mind.
+
 ---
 
 ## `criteria` (C4–C7 + on_topic classifier)

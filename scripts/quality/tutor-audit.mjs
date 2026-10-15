@@ -7,12 +7,14 @@
 // replies, and could not tell a real citation from a fabricated one.
 //
 // FAITHFUL TO PRODUCTION (see request.mjs for the import-vs-replica ledger):
-//   * system prompt = RIMPL_SYSTEM_PROMPT_NATURAL | _EXAMINER (+ ARTIFACT_GUIDANCE with --artifacts),
-//     or RIMPL_SYSTEM_PROMPT_RESCUE for rescue items — imported from rimpl/src/lib/prompts.js;
+//   * system prompt = RIMPL_SYSTEM_PROMPT_NATURAL | _EXAMINER (+ ARTIFACT_GUIDANCE with --artifacts,
+//     + EVIDENCE_GUIDANCE for the mode with --evidence-marker), or RIMPL_SYSTEM_PROMPT_RESCUE for rescue
+//     items — imported from rimpl/src/lib/prompts.js;
 //   * messages = chat.js buildMessages(): PII-stripped by rimpl's own filter, chief complaint
 //     prefixed, physician→user, artifact fences stripped from history;
 //   * the chat.js ONE corrective retry (#109): citation/❓ missing and/or a Thai turn answered in
-//     English, ≤ 2 calls, a failed language-only retry keeps the first reply. Both replies are kept;
+//     English (and, with --evidence-marker, no single evidence line), ≤ 2 calls, a failed language-only
+//     or evidence-only retry keeps the first reply. Both replies are kept;
 //     the checks judge the FINAL one, which is what a physician sees, and `language_retry` records
 //     whether the language guard's retry produced it. --no-retry measures first-pass compliance;
 //   * max_tokens = CHAT_MAX_TOKENS, temperature unset (chat.js sends none);
@@ -27,6 +29,9 @@
 //     --label <name>        report name (default <arm>-<model>-<UTC stamp>)
 //     --resume              reuse report/<label>.json, skip items that already have an answered reply
 //     --artifacts           append ARTIFACT_GUIDANCE (the superadmin clinical_artifacts toggle)
+//     --evidence-marker     append EVIDENCE_GUIDANCE (the chat_evidence_marker setting, CCME R5): every
+//                           non-rescue reply must end with one GRADE evidence-level line; the retry and
+//                           the evidence_marker check (checks.mjs) then apply
 //     --no-retry            skip the chat.js corrective retry (first-pass compliance only)
 //     --attempts <n>        transport attempts per call on a network/5xx failure (default 2; recorded)
 //     --arm anthropic --allow-paid   the cloud arm. OFF by default and refuses without --allow-paid:
@@ -59,11 +64,13 @@ import {
 } from '../probe/lib.mjs';
 import { loadBank, selectItems, composition, QUALITY_DIR } from './bank.mjs';
 import {
-  buildChatRequest, retryDecision, retryMessages, CHAT_MAX_TOKENS, RAG_NOTE,
+  buildChatRequest, retryDecision, retryMessages, retryReason, retryMaxTokens, optionalRetrySkipped, evidenceSplice,
+  evidencePlacement,
+  CHAT_MAX_TOKENS, RAG_NOTE,
 } from './request.mjs';
 import {
   RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER, RIMPL_SYSTEM_PROMPT_RESCUE, ARTIFACT_GUIDANCE,
-  promptLabel, hasCitation, extractSocraticQuestion, RIMPL_FILES,
+  EVIDENCE_GUIDANCE, promptLabel, hasCitation, extractSocraticQuestion, extractEvidenceLevel, RIMPL_FILES,
 } from './rimpl.mjs';
 import { checkReply, summarize, printSummary, CHECKS_VERSION } from './checks.mjs';
 
@@ -148,8 +155,8 @@ function callRecord(r) {
 
 /* ------------------------------------------------------------ one item */
 
-export async function runItem(item, complete, { maxTokens, retry, artifacts, attempts }) {
-  const req = buildChatRequest(item, { artifacts });
+export async function runItem(item, complete, { maxTokens, retry, artifacts, attempts, evidenceMarker = false }) {
+  const req = buildChatRequest(item, { artifacts, evidenceMarker });
   const startedAt = new Date().toISOString();
   const first = callRecord(await withAttempts(() => complete({ systemPrompt: req.systemPrompt, messages: req.messages, maxTokens }), attempts));
   let retryRec = null;
@@ -158,28 +165,56 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
   // chat.js (#109): ONE corrective retry, at most two calls per turn. A thrown first call ends the
   // turn (500) — no retry. Otherwise the retry fires when the citation/❓ check OR the language guard
   // fails (one prompt asks for both fixes). If the retry call itself fails: a citation retry fails
-  // the turn (the first reply was not deliverable); a LANGUAGE-only retry keeps the first reply.
+  // the turn (the first reply was not deliverable); a LANGUAGE-only (or evidence-only) retry keeps the
+  // first reply. An evidence-only retry is a small line-only call whose one line is SPLICED into the
+  // first reply (evidenceSplice); without a usable line the first reply stands unchanged. An optional
+  // retry past the deadline cutoff is skipped (optionalRetrySkipped), as chat.js does.
   const decision = retry && first.ok ? retryDecision(first.text, req) : null;
-  if (decision?.fire) {
+  const skipped = decision?.fire && optionalRetrySkipped(decision, first.ms ?? 0)
+    ? { reason: retryReason(decision), elapsed_ms: first.ms } : null;
+  let spliced = null;
+  if (decision?.fire && !skipped) {
     const reason = [
       decision.needCitation && !hasCitation(first.text) && 'no citation',
       decision.needCitation && req.socratic && !extractSocraticQuestion(first.text) && 'no ❓',
       decision.languageMismatch && 'language',
       decision.needRescue && 'rescue rules',
+      decision.needEvidence && 'evidence marker',
     ].filter(Boolean).join(' + ');
     const second = callRecord(await withAttempts(() => complete({
-      systemPrompt: req.systemPrompt, messages: retryMessages(req.messages, first.text, decision, req), maxTokens,
+      systemPrompt: req.systemPrompt, messages: retryMessages(req.messages, first.text, decision, req),
+      maxTokens: retryMaxTokens(decision, maxTokens),
     }), attempts));
-    retryRec = { reason, citation: decision.needCitation, language: decision.languageMismatch, rescue: decision.needRescue, ...second };
-    if (second.ok || decision.needCitation) {
+    retryRec = { reason, citation: decision.needCitation, language: decision.languageMismatch, rescue: decision.needRescue, evidence: decision.needEvidence, ...second };
+    if (retryReason(decision) === 'evidence') {
+      spliced = second.ok ? evidenceSplice(decision, first.text, second.text, req) : null;
+      if (spliced) {
+        final = { ...first, text: spliced.text };
+        finalFrom = 'first + spliced evidence line';
+      } else {
+        finalFrom = second.ok
+          ? 'first (the evidence retry gave no single line — chat.js keeps the first reply unchanged)'
+          : 'first (evidence retry failed — chat.js keeps the first reply)';
+      }
+    } else if (second.ok || decision.needCitation) {
       final = second;
       finalFrom = 'retry';
     } else {
       finalFrom = 'first (language/rescue retry failed — chat.js keeps the first reply)';
     }
+  } else if (skipped) {
+    finalFrom = `first (${skipped.reason} retry skipped: past the deadline cutoff — chat.js delivers the first reply)`;
   }
-  // Production's own response field: the language guard fired AND its retry's reply is returned.
+  // Production's own response fields: the guard fired AND its retry produced the returned reply.
   const languageRetry = !!(retryRec && retryRec.language && finalFrom === 'retry');
+  const evidenceRetry = !!(retryRec && retryRec.evidence && (finalFrom === 'retry' || spliced));
+  // chat.js `placeMarker` (evidencePlacement): the returned reply — the first one standing, or an adopted
+  // retry, never a spliced one — has its one valid marker moved into place with no model call.
+  let evidenceMoved = false;
+  if (final.ok && !spliced) {
+    const placed = evidencePlacement(final.text, req);
+    if (placed) { final = { ...final, text: placed }; evidenceMoved = true; }
+  }
   const entry = {
     id: item.id,
     mode: item.mode,
@@ -193,6 +228,7 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
       socratic: req.socratic,
       rescuing: req.rescuing,
       route_language: req.language,
+      evidence_marker: req.evidenceMarker,     // the guidance was on AND chat.js checks this turn
       physician_wrote_thai: decision?.physicianWroteThai ?? null,
       messages: req.messages,                 // AS SENT: de-identified by rimpl's filter
       identifiers_sent: req.identifiersSent,
@@ -200,15 +236,25 @@ export async function runItem(item, complete, { maxTokens, retry, artifacts, att
     first,
     retry: retryRec ? {
       reason: retryRec.reason, citation: retryRec.citation, language: retryRec.language, rescue: retryRec.rescue,
+      evidence: retryRec.evidence,
       ok: retryRec.ok, error: retryRec.error, ms: retryRec.ms,
       // Both token counts: the retry resends the whole conversation plus the first reply, so its
       // input is the larger of the two calls' and a spend figure that omits it undercounts.
       prompt_tokens: retryRec.prompt_tokens, completion_tokens: retryRec.completion_tokens,
-      // A failed language-only retry is not the final reply, so keep its text here for the record.
-      ...(finalFrom === 'retry' ? {} : { text: retryRec.text }),
+      // A retry whose reply is not the final one (a failed language-only retry, or the line-only
+      // answer the evidence line was spliced from) keeps its text here for the record.
+      // (Kept too when the adopted retry's marker was then moved: the final text is no longer its own.)
+      ...(finalFrom === 'retry' && !evidenceMoved ? {} : { text: retryRec.text }),
     } : null,
+    retry_skipped: skipped,                 // chat.js `retrySkipped`: an optional retry past the cutoff
     language_retry: languageRetry,          // = chat.js response field `language_retry`
-    final: { ...final, from: finalFrom },
+    evidence_retry: evidenceRetry,          // = chat.js response field `evidence_retry`
+    // chat.js moved a misplaced marker (no model call). Not a chat.js response field: on a streamed turn
+    // production records it as superseded_reason 'evidence'; on a plain JSON turn it leaves no trace.
+    evidence_moved: evidenceMoved,
+    // = chat.js `evidence_level`: null with the marker off, on a rescue turn, or with no single line.
+    evidence_level: req.evidenceMarker && final.ok ? extractEvidenceLevel(final.text) : null,
+    final: { ...final, from: evidenceMoved ? `${finalFrom} + evidence line moved (no model call)` : finalFrom },
     latency_ms_total: (first.ms ?? 0) + (retryRec?.ms ?? 0),
   };
   entry.checks = checkReply(item, entry);
@@ -295,11 +341,12 @@ async function writeAtomic(file, obj) {
   await rename(tmp, file);
 }
 
-export function promptLabels(artifacts) {
+export function promptLabels(artifacts, evidenceMarker = false) {
   const ag = artifacts ? ARTIFACT_GUIDANCE : '';
+  const eg = (mode) => (evidenceMarker ? EVIDENCE_GUIDANCE[mode] : '');
   return {
-    natural: promptLabel('chat', RIMPL_SYSTEM_PROMPT_NATURAL + ag),
-    examiner: promptLabel('chat', RIMPL_SYSTEM_PROMPT_EXAMINER + ag),
+    natural: promptLabel('chat', RIMPL_SYSTEM_PROMPT_NATURAL + ag + eg('natural')),
+    examiner: promptLabel('chat', RIMPL_SYSTEM_PROMPT_EXAMINER + ag + eg('examiner')),
     rescue: promptLabel('chat', RIMPL_SYSTEM_PROMPT_RESCUE),
   };
 }
@@ -319,6 +366,7 @@ async function main() {
   const limit = intArg(flags, 'limit', Infinity);
   const ids = flags.ids && flags.ids !== true ? String(flags.ids).split(',').map((s) => s.trim()).filter(Boolean) : [];
   const artifacts = Boolean(flags.artifacts);
+  const evidenceMarker = Boolean(flags['evidence-marker']);
   const retry = !flags['no-retry'];
   const maxTokens = CHAT_MAX_TOKENS;
 
@@ -330,12 +378,12 @@ async function main() {
 
   if (dryRun) {
     hr('tutor-audit — DRY RUN (nothing is sent, nothing is written)');
-    console.log(`  arm ${arm}${arm === 'anthropic' ? ` (${productionAnthropicModel()})` : ''} · ${items.length} item(s) · bank ${bank.sha} · max_tokens ${maxTokens} · retry ${retry ? 'on' : 'off'} · artifacts ${artifacts ? 'on' : 'off'}`);
+    console.log(`  arm ${arm}${arm === 'anthropic' ? ` (${productionAnthropicModel()})` : ''} · ${items.length} item(s) · bank ${bank.sha} · max_tokens ${maxTokens} · retry ${retry ? 'on' : 'off'} · artifacts ${artifacts ? 'on' : 'off'} · evidence marker ${evidenceMarker ? 'on' : 'off'}`);
     console.log(`  rag ${RAG_NOTE}`);
     for (const it of items) {
-      const req = buildChatRequest(it, { artifacts });
+      const req = buildChatRequest(it, { artifacts, evidenceMarker });
       hr(`${it.id}  [${it.mode} · ${it.language} · ${it.specialty}${it.adversarial ? ` · ${it.adversarial.type}` : ''}]`);
-      console.log(`  system  ${cyan(req.promptVersion)}  ${dim(`(${req.systemPrompt.length} chars; ${it.mode === 'rescue' ? 'RIMPL_SYSTEM_PROMPT_RESCUE' : it.mode === 'examiner' ? 'RIMPL_SYSTEM_PROMPT_EXAMINER' : 'RIMPL_SYSTEM_PROMPT_NATURAL'}${artifacts && it.mode !== 'rescue' ? ' + ARTIFACT_GUIDANCE' : ''})`)}`);
+      console.log(`  system  ${cyan(req.promptVersion)}  ${dim(`(${req.systemPrompt.length} chars; ${it.mode === 'rescue' ? 'RIMPL_SYSTEM_PROMPT_RESCUE' : it.mode === 'examiner' ? 'RIMPL_SYSTEM_PROMPT_EXAMINER' : 'RIMPL_SYSTEM_PROMPT_NATURAL'}${artifacts && it.mode !== 'rescue' ? ' + ARTIFACT_GUIDANCE' : ''}${evidenceMarker && it.mode !== 'rescue' ? ' + EVIDENCE_GUIDANCE' : ''})`)}`);
       console.log(`  route   socratic=${req.socratic} rescuing=${req.rescuing} language=${req.language}`);
       req.messages.forEach((m, i) => console.log(`  [${i}] ${m.role.padEnd(9)} ${m.content.replace(/\n/g, '\n            ')}`));
       if (it.identifiers?.length) {
@@ -394,11 +442,12 @@ async function main() {
       git_commit: gitCommit(),
       bank_sha: bank.sha,
       bank_files: bank.files,
-      prompt_versions: promptLabels(artifacts),
+      prompt_versions: promptLabels(artifacts, evidenceMarker),
       max_tokens: maxTokens,
       temperature: null,
-      retry: retry ? 'chat.js single corrective retry (citation/❓ + language guard, #109)' : 'off (--no-retry)',
+      retry: retry ? `chat.js single corrective retry (citation/❓ + language guard, #109${evidenceMarker ? ' + evidence marker' : ''})` : 'off (--no-retry)',
       artifacts,
+      evidence_marker: evidenceMarker,
       rag: RAG_NOTE,
       checks_version: CHECKS_VERSION,
       synthetic: 'every question, case and identifier is invented — replies are safe to store',
@@ -438,7 +487,7 @@ async function main() {
   if (budget) console.log(`  spend   $${spendNow().usd.toFixed(4)} recorded so far · ceiling $${budget.maxUsd}`);
   const runOne = async (it) => {
     progress(`[${finished + 1}/${todo.length}] ${it.id}…`);
-    const entry = await runItem(it, complete, { maxTokens, retry, artifacts, attempts });
+    const entry = await runItem(it, complete, { maxTokens, retry, artifacts, attempts, evidenceMarker });
     report.items = report.items.filter((e) => e.id !== it.id).concat(entry);
     finished += 1;
     progressDone();
@@ -470,6 +519,12 @@ async function main() {
   if (fps.length) console.log(`  system_fingerprint(s): ${fps.join(', ')}`);
   const retried = report.items.filter((e) => e.retry);
   console.log(`  corrective retries: ${retried.length}/${report.items.length} turns · language guard fired on ${retried.filter((e) => e.retry.language).length}, its reply delivered on ${report.items.filter((e) => e.language_retry).length}`);
+  const skippedRetries = report.items.filter((e) => e.retry_skipped).length;
+  if (skippedRetries) console.log(`  optional retries skipped past the deadline cutoff: ${skippedRetries} (chat.js delivers the first reply on these)`);
+  if (evidenceMarker) {
+    const marked = report.items.filter((e) => e.evidence_level != null).length;
+    console.log(`  evidence marker: fired the retry on ${retried.filter((e) => e.retry.evidence).length}, its reply delivered on ${report.items.filter((e) => e.evidence_retry).length} · final replies carrying one marker ${marked}/${report.items.length}`);
+  }
   if (report.spend) console.log(`  spend: $${report.spend.usd} (${report.spend.in_tokens} in / ${report.spend.out_tokens} out tokens) · ceiling $${report.spend.max_usd}${report.spend.stopped_early ? red(' · stopped early') : ''}`);
   printSummary(report.checks_summary);
   console.log(`\n  ${bold('next:')} node scripts/quality/cite-verify.mjs ${path.relative(process.cwd(), file)}`);

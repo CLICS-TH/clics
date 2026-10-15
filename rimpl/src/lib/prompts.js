@@ -18,6 +18,101 @@ CLINICAL ARTIFACTS: When your answer includes a substantial piece of structured 
 :::
 Use an artifact ONLY when the content is genuinely substantial (a short answer needs none), at most one or two per reply. Keep your conversational explanation, your (Source, Year) citation, and the closing ❓ question OUTSIDE the fence. A large table or long structured list belongs INSIDE an artifact — that is the one place the "be concise / avoid large tables" guidance above does not apply.`;
 
+// EVIDENCE-LEVEL MARKER (CCME requirement R5: an evidence-based protocol is a citation PLUS an
+// evidence-level marker that is a CHECKABLE field). Appended by the chat route to the NATURAL or the
+// EXAMINER prompt ONLY when the per-request `evidence_marker` flag is true — the backend drives it from
+// the app_setting `chat_evidence_marker` (default OFF, so the shipped prompts are byte-identical to the
+// ones before this existed). Never on a rescue turn (the rescue prompt REPLACES the mode prompt, and a
+// rescue reply recommends nothing to grade) and never on discuss/evaluate: this is a TUTOR-only change,
+// so PROMPT_VERSION (the evaluator) and every calibration number are untouched.
+//
+// Scale (decided by the user, 2026-10-14): the GRADE certainty of the evidence behind the reply's MAIN
+// recommendation — high / moderate / low — plus "expert opinion" for a recommendation that rests only
+// on consensus or practice, and "not graded" for a reply whose evidence the model cannot grade or
+// that makes no recommendation or clinical claim. GRADE's own "very low" is reported as low. The scope
+// is IN the label ("…ของข้อแนะนำหลัก" / "for the main recommendation"), so a reader of one line knows
+// what it grades. Needs a clinician check in Thai before the setting is enabled (docs/QUALITY-GATES.md).
+//
+// The blank line the placement asks for is markdown's paragraph break: physician-ui (marked, breaks:false)
+// and the dashboard (ReactMarkdown) would otherwise merge the line into the paragraph, list item or table
+// above it. The route's own splice always inserts one (post-filter spliceEvidenceLine).
+//
+// EVIDENCE_LEVELS is the ONE definition: the prompt lines, the retry prompts and the parser
+// (services/post-filter.js extractEvidenceLevel) are all built from it, so the line the model is told
+// to write and the line the route accepts cannot drift apart. `key` is what the route returns as
+// `evidence_level` — a STABLE contract once shipped: add a level, never rename or reuse a key.
+// `guide` is the level's line under "How to choose" in the prompt.
+const EVIDENCE_LEVELS = [
+  { key: 'high', th: 'สูง', en: 'high',
+    guide: 'consistent results from well-conducted randomised trials or their meta-analyses; further research is very unlikely to change the recommendation.' },
+  { key: 'moderate', th: 'ปานกลาง', en: 'moderate',
+    guide: 'randomised trials with important limitations, or consistently strong observational evidence; further research may change the recommendation.' },
+  { key: 'low', th: 'ต่ำ', en: 'low',
+    guide: 'observational studies, or trials with serious limitations, inconsistency or indirectness. GRADE "very low" is also reported as low.' },
+  { key: 'expert', th: 'ความเห็นผู้เชี่ยวชาญ', en: 'expert opinion',
+    guide: 'the recommendation rests only on guideline consensus, expert opinion or established practice, with no study-level evidence behind it.' },
+  { key: 'not_graded', th: 'ไม่ได้ประเมิน', en: 'not graded',
+    guide: 'you cannot grade the evidence behind the main recommendation, or the reply makes no recommendation or clinical claim at all.' },
+];
+// By key, for the prose below that names particular levels (the honesty rule, the retry prompts).
+const LEVEL = Object.fromEntries(EVIDENCE_LEVELS.map((l) => [l.key, l]));
+const LEVEL_COUNT_WORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight'][EVIDENCE_LEVELS.length];
+// The labels the prompt asks for. The parser ALSO accepts the short forms (ระดับหลักฐาน / Evidence), so
+// a near-compliant reply is read rather than re-asked; the model is only ever shown the full ones.
+const EVIDENCE_TH_LABEL = 'ระดับหลักฐานของข้อแนะนำหลัก';
+const EVIDENCE_EN_LABEL = 'Evidence for the main recommendation';
+const EVIDENCE_TH_LABEL_SHORT = 'ระดับหลักฐาน';
+const EVIDENCE_EN_LABEL_SHORT = 'Evidence';
+const evidenceLine = (l) => `${EVIDENCE_TH_LABEL}: ${l.th} (${EVIDENCE_EN_LABEL}: ${l.en})`;
+// The canonical line for a level key (what the chat route splices in after a marker-only retry).
+function evidenceLineFor(key) {
+  const l = EVIDENCE_LEVELS.find((x) => x.key === key);
+  return l ? evidenceLine(l) : null;
+}
+const EVIDENCE_LINES = EVIDENCE_LEVELS.map(evidenceLine).join('\n');
+const EVIDENCE_HOW_TO_CHOOSE = EVIDENCE_LEVELS.map((l) => `- ${l.th} / ${l.en} — ${l.guide}`).join('\n');
+
+const EVIDENCE_CORE = `
+
+EVIDENCE LEVEL — mandatory in EVERY reply: exactly ONE line that grades the certainty of the evidence behind your reply's MAIN recommendation, using the GRADE approach. Copy one of these ${LEVEL_COUNT_WORD} lines character for character — the same bilingual line whether you reply in Thai or English:
+${EVIDENCE_LINES}
+How to choose:
+${EVIDENCE_HOW_TO_CHOOSE}
+If the reply makes no recommendation but does make a clinical claim, grade the evidence behind its main clinical claim. Grade the EVIDENCE, not how sure you feel, and never claim more certainty than you have: if you are not sure how strong the evidence is, write ${LEVEL.not_graded.th} (${LEVEL.not_graded.en}) — never guess ${LEVEL.high.en}, and never use ${LEVEL.expert.th} (${LEVEL.expert.en}) as a stand-in for "I don't know". This is the same honesty rule as above, and the line comes IN ADDITION to your (Source, Year) citation, never instead of it. Never write more than one evidence line — not one per bullet, option or drug.`;
+
+const EVIDENCE_GUIDANCE = {
+  natural: `${EVIDENCE_CORE}
+Placement: on its own line, after a blank line, as the VERY LAST line of the reply, after everything else. Plain text — never inside a table, a code block or a fenced (::: or \`\`\`) block.
+Before finishing, self-check this too: is there exactly one evidence line, and is it the last line? If not, fix it before sending.`,
+  examiner: `${EVIDENCE_CORE}
+Placement: on its own line, after a blank line, immediately BEFORE the closing ❓ question, so the ❓ question is still the VERY LAST line. Plain text — never inside a table, a code block or a fenced (::: or \`\`\`) block.
+Before finishing, self-check this too: is there exactly one evidence line, directly above the ❓ line? If not, fix it before sending.`,
+};
+
+// The evidence marker's share of the chat route's ONE corrective retry (routes/chat.js). Keyed by the
+// route's `language`.
+//   suffix  appended to another retry prompt (the citation re-answer, or the Thai rewrite) when the
+//           marker is ALSO missing — those retries replace the reply anyway, so the new reply must carry
+//           the line itself. The Thai form is bilingual like the language suffix; the English form stays
+//           English, so an English turn is never nudged into Thai.
+//   only    the marker is the ONLY failure. The first reply already passed every other check and the
+//           physician may already be reading it, so it is KEPT: this asks for the one line alone, and the
+//           route splices that line into the first reply (post-filter spliceEvidenceLine). Nothing else
+//           the model writes in answer to it is used.
+// The five options are spelled out in full rather than as a "<...>" template, which a model copies.
+const EVIDENCE_OPTIONS_INLINE = EVIDENCE_LEVELS.map(evidenceLine).join(' / ');
+const EVIDENCE_RETRY_PROMPT = {
+  suffix: {
+    th: ' และเพิ่มบรรทัดระดับหลักฐานหนึ่งบรรทัดตามรูปแบบและตำแหน่งที่กำหนด (Also add the single evidence-level line, in the required format and position.)',
+    en: ' Also add the single evidence-level line, in the required format and position.',
+  },
+  only: {
+    th: `สำหรับคำตอบก่อนหน้านี้ ให้ตอบกลับด้วยบรรทัดระดับหลักฐานเพียงบรรทัดเดียว ไม่ต้องมีข้อความอื่น เลือกหนึ่งบรรทัดจาก: ${EVIDENCE_OPTIONS_INLINE} — ถ้าไม่แน่ใจว่าหลักฐานแข็งแรงเพียงใด ให้ใช้ ${LEVEL.not_graded.th} ห้ามเดาว่า${LEVEL.high.th} และห้ามใช้ ${LEVEL.expert.th} แทนคำว่าไม่ทราบ `
+      + `(For your previous reply, answer with the single evidence-level line ONLY, and no other text, chosen from the ${LEVEL_COUNT_WORD} options above. If you are not sure how strong the evidence is, use ${LEVEL.not_graded.en}: never guess ${LEVEL.high.en}, and never use ${LEVEL.expert.en} as a stand-in for "I don't know".)`,
+    en: `For your previous reply, answer with the single evidence-level line ONLY, and no other text, chosen from: ${EVIDENCE_OPTIONS_INLINE}. If you are not sure how strong the evidence is, use ${LEVEL.not_graded.en}: never guess ${LEVEL.high.en}, and never use ${LEVEL.expert.en} as a stand-in for "I don't know".`,
+  },
+};
+
 const RIMPL_SYSTEM_PROMPT_NATURAL = `You are a warm, collegial clinical mentor supporting physicians in continuing medical education — like a senior colleague thinking alongside them. Be genuinely helpful: engage substantively with every clinical question and let the physician lead the conversation. Always reply in the same language as the physician (Thai or English).
 
 Follow these two principles in every response:
@@ -269,5 +364,7 @@ module.exports = {
   RIMPL_SYSTEM_PROMPT_RESCUE,
   RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS,
   ARTIFACT_GUIDANCE,
+  EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, EVIDENCE_LEVELS, evidenceLineFor,
+  EVIDENCE_TH_LABEL, EVIDENCE_EN_LABEL, EVIDENCE_TH_LABEL_SHORT, EVIDENCE_EN_LABEL_SHORT,
   PIS7_EVALUATOR_PROMPT, PIS7_LOCAL_ADDENDUM, pis7PromptFor, CRITERIA_CLASSIFIER_PROMPT,
 };

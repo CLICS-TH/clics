@@ -159,7 +159,7 @@ test('content that was nothing but reasoning is reasoning_only (critical), named
 });
 
 test('the semantics changed, so the version did', () => {
-  assert.equal(CHECKS_VERSION, 'checks-v2');
+  assert.equal(CHECKS_VERSION, 'checks-v3');
 });
 
 test('summarize: pass rates carry Wilson intervals, failures excluded from denominators', () => {
@@ -178,4 +178,82 @@ test('summarize: pass rates carry Wilson intervals, failures excluded from denom
   assert.ok(s.overall.language.lo < 0.5 && s.overall.language.hi > 0.5);
   assert.deepEqual(s.items_with_critical, ['b']);
   assert.deepEqual(s.flags.call_failed.items, ['c']);
+});
+
+/* ------------------------------------------------------- evidence marker (CCME R5) */
+
+const MARK = 'ระดับหลักฐานของข้อแนะนำหลัก: สูง (Evidence for the main recommendation: high)';
+const marked = (item, text) => {
+  const e = entryFor(item, text);
+  e.request.evidence_marker = true;
+  return e;
+};
+
+test('evidence_marker: present on a --evidence-marker run → pass, and placement per mode', () => {
+  const nat = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, `Start when eGFR is 20 or more (KDIGO, 2022).\n${MARK}`));
+  assert.deepEqual([nat.checks.evidence_marker.pass, nat.checks.evidence_marker.value], [true, 'high']);
+  assert.equal(nat.checks.evidence_marker_placement.pass, true);
+  assert.deepEqual(nat.flags, []);
+  const ex = checkReply(ITEM_TH_EXAMINER, marked(ITEM_TH_EXAMINER, GOOD_TH_EXAMINER.replace('\n❓', `\n${MARK}\n❓`)));
+  assert.equal(ex.checks.evidence_marker.pass, true);
+  assert.equal(ex.checks.evidence_marker_placement.pass, true, ex.checks.evidence_marker_placement.detail);
+  assert.equal(ex.checks.socratic_last_line.pass, true);
+  assert.equal(ex.checks.language.pass, true, 'the bilingual line is not language evidence');
+});
+
+test('evidence_marker: "not graded" and the short forms are valid answers, not missing ones', () => {
+  const ng = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (KDIGO, 2022).\nระดับหลักฐานของข้อแนะนำหลัก: ไม่ได้ประเมิน (Evidence for the main recommendation: not graded)'));
+  assert.deepEqual([ng.checks.evidence_marker.pass, ng.checks.evidence_marker.value], [true, 'not_graded']);
+  const short = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (KDIGO, 2022).\n*Evidence: low*.'));
+  assert.deepEqual([short.checks.evidence_marker.pass, short.checks.evidence_marker.value], [true, 'low']);
+  assert.deepEqual(short.flags, []);
+});
+
+test('evidence_marker: missing / ambiguous is a MINOR flag; misplaced is a separate minor flag', () => {
+  const none = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (KDIGO, 2022).'));
+  assert.equal(none.checks.evidence_marker.pass, false);
+  assert.equal(sev(none, 'no_evidence_marker'), 'minor');
+  const two = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, `${MARK}\nStart when eGFR is 20 or more (KDIGO, 2022).\n${MARK}`));
+  assert.match(two.checks.evidence_marker.detail, /2 evidence lines \(ambiguous\)/);
+  const late = checkReply(ITEM_TH_EXAMINER, marked(ITEM_TH_EXAMINER, `${GOOD_TH_EXAMINER}\n${MARK}`));
+  assert.equal(late.checks.evidence_marker.pass, true);
+  assert.equal(late.checks.evidence_marker_placement.pass, false);
+  assert.equal(sev(late, 'evidence_marker_misplaced'), 'minor');
+  const early = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, `${MARK}\nStart when eGFR is 20 or more (KDIGO, 2022).`));
+  assert.equal(sev(early, 'evidence_marker_misplaced'), 'minor');
+});
+
+test('evidence_marker: a near-miss statement beside a placed marker fails placement (minor), and is named', () => {
+  const both = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, `Start when eGFR is 20 or more (KDIGO, 2022).\nEvidence level: high\n\n${MARK}`));
+  assert.equal(both.checks.evidence_marker.pass, true, 'a near-miss is not a second marker: the level still reads');
+  assert.equal(both.checks.evidence_marker_placement.pass, false);
+  assert.match(both.checks.evidence_marker_placement.detail, /the last line, but 1 other evidence statement/);
+  assert.equal(sev(both, 'evidence_statement_extra'), 'minor');
+  assert.equal(sev(both, 'evidence_marker_misplaced'), undefined);
+  // An examiner reply with no ❓ at all: production appends the line, so last = placed (the missing ❓ is
+  // its own, major, flag).
+  const noQ = checkReply(ITEM_TH_EXAMINER, marked(ITEM_TH_EXAMINER, `${GOOD_TH_EXAMINER.replace(/\n❓[^\n]*$/, '')}\n\n${MARK}`));
+  assert.equal(noQ.checks.evidence_marker_placement.pass, true);
+  assert.equal(sev(noQ, 'no_socratic_question'), 'major');
+});
+
+test('evidence_marker: clinical lines that merely START like a statement, and nested items, are not extra statements', () => {
+  for (const line of [
+    'Evidence: low molecular weight heparin remains preferred in cancer-associated VTE.',
+    'Quality of evidence: two small RCTs (n=120), no trials in children.',
+    '- Option A\n  - Evidence: high',
+  ]) {
+    const r = checkReply(ITEM_EN_NATURAL, marked(ITEM_EN_NATURAL, `Start when eGFR is 20 or more (KDIGO, 2022).\n${line}\n\n${MARK}`));
+    assert.equal(r.checks.evidence_marker_placement.pass, true, line);
+    assert.equal(sev(r, 'evidence_statement_extra'), undefined, line);
+  }
+});
+
+test('evidence_marker: not checked on a run without the flag, nor on a rescue turn', () => {
+  const off = checkReply(ITEM_EN_NATURAL, entryFor(ITEM_EN_NATURAL, 'Start when eGFR is 20 or more (KDIGO, 2022).'));
+  assert.equal(off.checks.evidence_marker, undefined);
+  const rescue = checkReply(ITEM_RESCUE, { ...marked(ITEM_RESCUE, 'คุณกำลังชั่งน้ำหนักอะไรอยู่?'), request: { ...entryFor(ITEM_RESCUE, '').request, evidence_marker: false } });
+  assert.equal(rescue.checks.evidence_marker, undefined);
+  // Even a stray `true` on a rescue entry cannot apply it: rescue replies take the rescue branch.
+  assert.equal(checkReply(ITEM_RESCUE, marked(ITEM_RESCUE, 'คุณกำลังชั่งน้ำหนักอะไรอยู่?')).checks.evidence_marker, undefined);
 });

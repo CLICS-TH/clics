@@ -25,6 +25,7 @@ jest.mock('../src/lib/settings', () => ({
   transcriptCap: async () => ({ limit: 64000, warnPct: 80 }),
   pilotTestMode: async () => false,
   clinicalArtifactsEnabled: async () => false,
+  chatEvidenceMarkerEnabled: async () => false,
   holdResultUntilAudited: async () => false,
   t1RemediationEnabled: async () => false,
   identityVerificationRequired: async () => false,

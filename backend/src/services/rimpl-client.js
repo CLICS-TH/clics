@@ -94,7 +94,7 @@ async function parseWithProvider(res) {
 // event is handed to `onEvent(name, data)` as it arrives, and the call still resolves with the same
 // body (or throws the same error) as a non-streamed call — taken from the final `done` event. rimpl
 // answers a rescue turn, and any failure before the first word, in plain JSON; both are read as before.
-async function rimplChat({ ple_id, history, message, language, chief_complaint, patient_ref, socratic, artifacts, rescue_active, already_qualified, rescue_rounds, stream = false, onEvent }) {
+async function rimplChat({ ple_id, history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker, rescue_active, already_qualified, rescue_rounds, stream = false, onEvent }) {
   const res = await fetch(`${RIMPL_URL}/chat`, {
     method: 'POST',
     headers: {
@@ -105,8 +105,10 @@ async function rimplChat({ ple_id, history, message, language, chief_complaint, 
     // without them it would re-run the qualifying classifier on every turn past the fourth.
     // rescue_rounds must travel too: RIMPL defaults it to 0, so dropping it here silently disables
     // the eight-round rescue ceiling and re-assesses a never-recovering session on every turn.
+    // evidence_marker likewise: RIMPL defaults it to false, so a field missing here would leave the
+    // setting ON and the marker silently never asked for. An older RIMPL strips the key (zod).
     body: JSON.stringify({ ple_id, history, message, language, chief_complaint, patient_ref,
-      socratic: !!socratic, artifacts: !!artifacts,
+      socratic: !!socratic, artifacts: !!artifacts, evidence_marker: !!evidence_marker,
       rescue_active: !!rescue_active, already_qualified: !!already_qualified,
       rescue_rounds: Math.max(0, Number(rescue_rounds) || 0),
       ...(stream ? { stream: true } : {}) }),

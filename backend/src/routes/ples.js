@@ -13,7 +13,7 @@ const { pilotTestMode, clinicalArtifactsEnabled, holdResultUntilAudited, calibra
 const identity = require('../services/identity');
 const reflection = require('../services/reflection');
 const acceptability = require('../lib/acceptability');
-const { creditSettings, getSetting, transcriptCap, chatStreamingEnabled } = require('../lib/settings');
+const { creditSettings, getSetting, transcriptCap, chatStreamingEnabled, chatEvidenceMarkerEnabled } = require('../lib/settings');
 const { sseStream } = require('../lib/sse');
 const { recordSupersededDraft } = require('../services/superseded-draft');
 const { creditFor, creditTable } = require('../services/credit');
@@ -594,6 +594,7 @@ router.post('/:id/message', replayKeyedTurn, requireConsent, requireBudget, asyn
       patient_ref: pref?.patient_ref ?? null, // scrubbed on-prem; never reaches the cloud
       socratic: ple.socratic_active === true, // CLE2 / remediation → Socratic clinical-examiner mode
       artifacts: await clinicalArtifactsEnabled(), // superadmin toggle → allow side-panel artifacts
+      evidence_marker: await chatEvidenceMarkerEnabled(), // setting chat_evidence_marker → GRADE evidence line (CCME R5)
       // CREC082 PLE Instruction Sheet §4 rescue. Both are latches: a rescued session stays rescued,
       // and a session that has qualified does not un-qualify — so RIMPL can skip the classifier.
       rescue_active: ple.rescue_activated_at != null,
