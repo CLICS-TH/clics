@@ -20,6 +20,7 @@ const { AI_PROVIDER_CHOICES, evaluateClass } = require('../lib/ai-providers');
 const { getTextSetting, getTextSettingStrict, minAuditorsPerPle } = require('../lib/settings');
 const {
   manifestForLock, expectedFor, manifestDiff, manifestMismatch, evaluatorDigest, lockSchemaStatus, lockInForce,
+  evaluatorDriftKeys, evaluatorLiveDrift, cachedLiveManifest, driftKeysOf,
   modelLockCheck, resetManifestCache, migrationRequired, isMissingColumnOrTable, isMissingTable,
   relockRequired, unlockRequired, evaluatorLocked, gateNotPassed, candidateNotEvaluator, candidateNotServing,
   LOCK_STATE_UNREADABLE, USE_MODEL_LOCK, SAVED_STATE_UNREADABLE, INVALID_DECLARATION_ERROR,
@@ -763,6 +764,11 @@ router.get('/evaluator-lock', async (_req, res) => {
   const candidate = gate.ok ? gate.candidate : null;
   const diff = manifest.ok && candidate ? manifestDiff({ expected: manifest.expected, candidate }) : null;
   const expectedNow = manifest.ok && candidate ? expectedFor(manifest.expected, candidate.provider) : null;
+  // The live drift on the evaluator's keys (services/model-lock.js evaluatorDriftKeys), for the candidate,
+  // or for the provider serving evaluate when there is none. Keys only. The screen shows this list and
+  // never re-implements the filter.
+  const driftProvider = candidate?.provider ?? serving.value;
+  const evaluatorDrift = manifest.ok ? evaluatorDriftKeys(manifest.drift_keys, driftProvider, manifest.expected) : null;
 
   // The form is unavailable until the candidate has cleared the DECISIVE bar. Not the screening
   // bar: two models agreeing closely can be similarly wrong, and freezing the study's measuring
@@ -780,7 +786,15 @@ router.get('/evaluator-lock', async (_req, res) => {
     else if (candidate.provider !== serving.value) blockers.push('candidate_not_serving');
   }
   if (!manifest.ok) blockers.push('manifest_unavailable');
-  else if (diff?.length) blockers.push('manifest_mismatch');
+  else {
+    if (diff?.length) blockers.push('manifest_mismatch');
+    // A live override on an evaluator key: what is scoring now is not what the manifest describes.
+    // It blocks only for an evaluator candidate (a tutor candidate is candidate_not_evaluator).
+    if (candidate && evaluateClass(candidate.provider) && evaluatorDrift.length) {
+      blockers.push('evaluator_live_drift');
+      blocker_detail.evaluator_live_drift = evaluatorDrift;
+    }
+  }
   if (!schema.ok) {
     blockers.push(schema.missing ? 'migration_required' : 'lock_table_unreadable');
     if (!schema.missing) blocker_detail.lock_table_unreadable = publicDbMessage(schema.error);
@@ -804,6 +818,9 @@ router.get('/evaluator-lock', async (_req, res) => {
       ? { ok: true, sha256: manifest.sha256, file: manifest.file, code_match: true,
         // Which live values differ from the manifest, by key only — never the values.
         drift_keys: manifest.drift_keys,
+        // The subset on the evaluator's scope, and the provider it was computed for. [] when none.
+        evaluator_drift_keys: evaluatorDrift,
+        evaluator_provider: driftProvider,
         expected_for_candidate: expectedNow ? {
           prompt_version: expectedNow.prompt_version, rubric_version: expectedNow.rubric_version,
           model_version: expectedNow.model_version, provider_declared: expectedNow.provider_declared,
@@ -899,6 +916,13 @@ router.post('/evaluator-lock', async (req, res) => {
     return res.status(409).json(manifestMismatch(diff, { candidate: gate.candidate, manifest_sha256: manifest.sha256 }));
   }
 
+  // LIVE vs EXPECTED. What is frozen below is the manifest's expected half. An env override on one of
+  // its evaluator keys (EVAL_CONSISTENCY, LOCAL_AI_MODEL, ...) means rimpl is running a different
+  // instrument from the one that half describes, so the record would describe an instrument that is
+  // not the one scoring. The manifest is the one judged above; only its drift KEYS are read.
+  const liveDrift = evaluatorDriftKeys(manifest.drift_keys, gate.candidate.provider, manifest.expected);
+  if (liveDrift.length) return res.status(409).json(evaluatorLiveDrift(liveDrift, gate.candidate.provider));
+
   const now = new Date().toISOString();
   const evaluatorSha = evaluatorDigest(manifest.expected, gate.candidate.provider);
   const { data: row, error } = await supabase.from('evaluator_model_lock').insert({
@@ -991,6 +1015,8 @@ router.post('/evaluator-lock', async (req, res) => {
 // useless: nobody opens a JSON endpoint before flipping a switch. Surfacing them beside the switch
 // turns "is the box ready" from something you have to know to curl into something you can see.
 router.get('/ai-readiness', async (_req, res) => {
+  // Read beside the probe, once, for both the lock verdict and the evaluator drift. Never rejects.
+  const lockRead = readinessLock();
   try {
     const { body } = await probeRimplDeep({ timeoutMs: 8000 });
 
@@ -1021,6 +1047,7 @@ router.get('/ai-readiness', async (_req, res) => {
       }
     }
 
+    const lock = await lockRead;
     res.json({
       reachable: true,
       checks: body?.checks ?? {},
@@ -1028,25 +1055,61 @@ router.get('/ai-readiness', async (_req, res) => {
       routing: body?.routing ?? null,
       embedding,
       // rimpl's PUBLIC manifest block, as its /health/deep publishes it (already redacted there: a
-      // free-text live value appears only as a short hash), and the backend's verdict on the lock.
-      manifest: body?.manifest ?? null,
-      model_lock: await modelLockForReadiness(body),
+      // free-text live value appears only as a short hash), plus which of its drift keys are on the
+      // evaluator's scope, and the backend's verdict on the lock.
+      manifest: await readinessManifest(body?.manifest ?? null, lock),
+      model_lock: await modelLockForReadiness(body, lock),
     });
   } catch (e) {
     // A degraded RIMPL is an ANSWER here, not a server error — the screen exists to show exactly this.
     res.json({ reachable: false, error: e.message, checks: {}, models: null, routing: null, embedding: null,
-      manifest: null, model_lock: await modelLockForReadiness(null) });
+      manifest: null, model_lock: await modelLockForReadiness(null, await lockRead) });
   }
 });
 
-// The same check /health/deep runs (services/model-lock.js modelLockCheck). Never throws: the readiness
-// screen must render whatever the lock's state.
-async function modelLockForReadiness(deep) {
+// The lock in force, for the readiness screen. Never rejects: the screen must render whatever the
+// lock's state, and an unreadable state is { error } (modelLockCheck reports it as `unknown`).
+async function readinessLock() {
   try {
-    return await modelLockCheck(await lockInForce(), { deep });
+    return await lockInForce();
+  } catch (e) {
+    return { error: publicDbMessage(e) };
+  }
+}
+
+// The same check /health/deep runs (services/model-lock.js modelLockCheck). Never throws.
+async function modelLockForReadiness(deep, lock) {
+  try {
+    return await modelLockCheck(lock, { deep });
   } catch (e) {
     return { status: 'unknown', error: publicDbMessage(e) };
   }
+}
+
+// rimpl's public manifest block, plus `evaluator_drift_keys`: which of its drift keys are on the
+// evaluator's scope (services/model-lock.js evaluatorDriftKeys), so the dashboard never re-implements
+// the filter. Keys only. They are computed for `evaluator_provider`: the locked provider while locked,
+// otherwise the provider serving evaluate (while locked the two are the same: the switch refuses a
+// change). The public block carries the same drift KEYS as GET /manifest, with the live values hashed,
+// but not the manifest's expected half, which the consistency rule reads (consistencyGoverns). So when
+// a consistency key is present, that half comes from GET /manifest through the same <= 60 s cache
+// /health/deep uses. If it cannot be read, the consistency keys stay in (the filter fails closed).
+// With no provider known, both fields are null.
+async function readinessManifest(block, lock) {
+  if (!block || typeof block !== 'object' || Array.isArray(block)) return block ?? null;
+  let provider = lock?.locked && lock.provider ? lock.provider : null;
+  if (!provider) {
+    const serving = await servingEvaluator();
+    provider = serving.error ? null : serving.value;
+  }
+  if (!provider) return { ...block, evaluator_provider: null, evaluator_drift_keys: null };
+  const keys = driftKeysOf(block.drift);
+  let expected = null;
+  if (keys.some((k) => k.startsWith('code.consistency.'))) {
+    const live = await cachedLiveManifest();
+    if (live.ok) expected = live.expected;
+  }
+  return { ...block, evaluator_provider: provider, evaluator_drift_keys: evaluatorDriftKeys(keys, provider, expected) };
 }
 
 router.patch('/ai-providers', async (req, res) => {

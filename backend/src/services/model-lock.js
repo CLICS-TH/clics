@@ -10,6 +10,8 @@
 //   expectedFor()          what the manifest says a given evaluator provider is stamped with
 //   manifestDiff()         declared / measured vs expected, field by field
 //   evaluatorDigest()      THE scope of the lock: a digest over the evaluator part of the manifest only
+//   evaluatorDriftKeys()   which of rimpl's LIVE drift keys fall in that scope (an env override the
+//                          expected-half digest cannot see): blocks a lock, degrades one in force
 //   lockSchemaStatus()     whether db/migration-evaluator-lock-manifest.sql has been applied
 //   lockInForce()          the lock the flag points at, and what was frozen on it
 //   modelLockCheck()       /health/deep's verdict on the lock in force (also relayed by /admin/ai-readiness)
@@ -165,8 +167,9 @@ function judgeManifest(r) {
   try { bytes = JSON.stringify(expected).length; } catch { bytes = Infinity; }
   if (bytes > MAX_EXPECTED_BYTES) return manifestUnavailable('malformed', `manifest.expected is ${bytes} bytes`, { file });
   // The live drift's KEYS only (`code.decoding.evaluate.temperature`, `declared.local.model`, ...): which
-  // values differ, never what they are. The values can be operator- or server-supplied strings.
-  const drift_keys = (Array.isArray(r.drift) ? r.drift : []).map((d) => d?.key).filter((k) => typeof k === 'string');
+  // values differ, never what they are. The values can be operator- or server-supplied strings. A key
+  // that is not a plain dotted name is kept as a placeholder (driftKeysOf), so it still counts.
+  const drift_keys = driftKeysOf(r.drift);
   return { ok: true, sha256: sha, expected, file, code_match: true, drift_keys };
 }
 
@@ -327,21 +330,45 @@ const canonicalJson = (value) => JSON.stringify(canonical(value));
  *                                            addendum sha, rubric_version, weights
  *   expected.code.model_version_prefix       what every score's model_version starts with
  *   expected.code.decoding.evaluate          temperature and max_tokens the evaluator sends
- *   expected.code.consistency                MINUS its `shadow` key: agree (max_domain_delta,
- *                                            max_sum_delta), evaluate (mode, JSON retries), method,
- *                                            modes, rules — how the local evaluator's repeated scores
- *                                            are reconciled into one when consistency is on
+ *   expected.code.decoding.num_ctx[provider] ONLY for an on-prem provider (not anthropic): the context
+ *                                            override the local transport sends on every call when > 0,
+ *                                            which decides how much of the transcript the model sees
+ *   expected.code.consistency                MINUS its `shadow` key, AS IT GOVERNS THIS PROVIDER (see
+ *                                            consistencyGoverns): the whole block (agree, evaluate,
+ *                                            method, modes, rules) when it governs; otherwise only
+ *                                            evaluate.mode.{applies_to, default}, the two values that
+ *                                            keep it off this provider's scores
  *   expected.code.providers.allowed.evaluate which providers may evaluate at all
  *   expected.declared.providers.evaluate     the provider the target deployment scores with
  *   expected.declared[provider]              that provider's declared model, engine, fingerprint
  *   expected.code.anthropic                  ONLY when provider is anthropic: the pinned Claude model
  */
-// code.consistency without `shadow`: the shadow evaluator's own consistency settings never score a PLE.
-function consistencyScope(consistency) {
+// Does the self-consistency rule govern `provider`'s scores? The rule is rimpl's own
+// (lib/consistency-config.js consistencyModeFor): EVAL_CONSISTENCY reaches only the provider named by
+// code.consistency.evaluate.mode.applies_to, and every other provider runs the code DEFAULT mode. So the
+// rule governs the applies_to provider always, and any other provider only while that default is not
+// 'off'. A manifest that does not name applies_to is read as governing: kept in scope, failing closed.
+// Used for both the digest and the live-drift filter, so the two cannot disagree.
+function consistencyGoverns(consistency, provider) {
+  const mode = consistency?.evaluate?.mode;
+  if (!mode || typeof mode !== 'object' || typeof mode.applies_to !== 'string') return true;
+  return provider === mode.applies_to || mode.default !== 'off';
+}
+
+// code.consistency without `shadow` (the shadow evaluator's own settings never score a PLE), as it
+// governs `provider`. For a provider it does not govern, a change to applies_to or to the default mode
+// would put the rule on that provider's scores, so those two values stay in scope.
+function consistencyScope(consistency, provider) {
   if (!consistency || typeof consistency !== 'object' || Array.isArray(consistency)) return consistency ?? null;
   const { shadow: _shadow, ...rest } = consistency;
-  return rest;
+  if (consistencyGoverns(consistency, provider)) return rest;
+  const { applies_to, default: dflt } = consistency.evaluate.mode;
+  return { evaluate: { mode: { applies_to, default: dflt } } };
 }
+
+// num_ctx is sent by the on-prem transport only (services/providers/local-factory.js call()); the
+// Anthropic transport has no such option. Every provider other than anthropic is an on-prem instance.
+const sendsNumCtx = (provider) => typeof provider === 'string' && !!provider && provider !== 'anthropic';
 
 function evaluatorScope(expected, provider) {
   const code = expected?.code ?? {};
@@ -350,7 +377,8 @@ function evaluatorScope(expected, provider) {
     'code.evaluator': code.evaluator ?? null,
     'code.model_version_prefix': code.model_version_prefix ?? null,
     'code.decoding.evaluate': code.decoding?.evaluate ?? null,
-    'code.consistency (minus shadow)': consistencyScope(code.consistency),
+    ...(sendsNumCtx(provider) ? { [`code.decoding.num_ctx.${provider}`]: code.decoding?.num_ctx?.[provider] ?? null } : {}),
+    'code.consistency (minus shadow, as it governs this provider)': consistencyScope(code.consistency, provider),
     'code.providers.allowed.evaluate': code.providers?.allowed?.evaluate ?? null,
     'declared.providers.evaluate': declared.providers?.evaluate ?? null,
     [`declared.${provider}`]: declared[provider] ?? null,
@@ -360,14 +388,125 @@ function evaluatorScope(expected, provider) {
 
 // The ONE function that computes the evaluator digest: called at lock time (frozen on the row as
 // evaluator_sha256) and at health time (on the live manifest), so the two cannot diverge.
-// The tag names the scope. v1 froze code.consistency.evaluate alone; v2 widens it to all of
-// code.consistency except `shadow`. Changing the scope again means a new tag: a frozen digest can only
-// be recomputed by the scope it was taken under, and no lock has been taken under v1.
-const EVALUATOR_SCOPE_VERSION = 'clics-evaluator-scope/v2';
+// The tag names the scope. v1 froze code.consistency.evaluate alone; v2 widened it to all of
+// code.consistency except `shadow`. v3 (2026-10-15) adds the evaluate provider's num_ctx entry for an
+// on-prem provider, and keeps consistency only as it governs the provider (consistencyGoverns), so an
+// anthropic lock is not moved by the local arm's consistency settings. Changing the scope again means a
+// new tag: a frozen digest can only be recomputed by the scope it was taken under. No lock has been
+// taken under v1 or v2.
+const EVALUATOR_SCOPE_VERSION = 'clics-evaluator-scope/v3';
 function evaluatorDigest(expected, provider) {
   const body = canonicalJson({ v: EVALUATOR_SCOPE_VERSION, provider: provider ?? null, scope: evaluatorScope(expected, provider) });
   return crypto.createHash('sha256').update(body, 'utf8').digest('hex');
 }
+
+// ---- live drift on the evaluator's keys ----------------------------------------------------------
+//
+// evaluatorDigest() covers the manifest's EXPECTED half: code defaults plus declared values. An env
+// override changes what rimpl RUNS without changing what its manifest says, so the digest cannot see
+// it. Examples: EVAL_CONSISTENCY=adaptive, or LOCAL_AI_MODEL naming another model. rimpl reports that
+// difference separately, as GET /manifest `drift[]`: one { key, expected, live } for each live value
+// that differs (rimpl/src/lib/manifest.js driftOf; tests/evaluator-model-lock.test.js pins this filter
+// to the key strings it emits). Drift on one of the keys below means the instrument actually scoring
+// is not the one the manifest describes. A lock declared now would freeze a description of a different
+// instrument, and a lock already in force no longer holds.
+//
+// The keys follow the digest's scope (v3) as closely as the drift key names allow:
+//   code.decoding.evaluate.*            temperature, max_tokens        -> code.decoding.evaluate
+//   code.decoding.num_ctx.<provider>    ONLY for an on-prem provider   -> code.decoding.num_ctx[provider]
+//   code.consistency.*, minus shadow_*  evaluate_mode, max_sum_delta,  -> code.consistency minus shadow,
+//                                       json_retries; ONLY while the      as it governs this provider
+//                                       rule governs this provider
+//                                       (consistencyGoverns, on the
+//                                       manifest's expected half)
+//   declared.providers.evaluate                                        -> declared.providers.evaluate
+//   declared.<provider>.*               model, served_model, engine,   -> declared[provider]
+//                                       system_fingerprint
+//   code.models.anthropic               ONLY for an anthropic lock     -> code.anthropic
+// Outside, as they are outside the digest: see DRIFT_OUT. Only the KEYS are read. The values are
+// operator- and server-supplied strings, and they never leave this module.
+//
+// FAILS CLOSED. Every key is classified by an explicit rule: DRIFT_IN (on the instrument) or DRIFT_OUT
+// (off it). A key that matches NEITHER is one this code has never classified, such as a knob rimpl adds
+// later (code.think_preopened.local, code.evaluator.prompt_override), and it counts as IN until someone
+// classifies it. A key that is not a plain dotted name (DRIFT_KEY) counts as IN too, and is reported as
+// MALFORMED_DRIFT_KEY, never as the string it carried. tests/evaluator-model-lock.test.js checks that
+// IN and OUT partition every key rimpl emits, for every provider that may evaluate.
+//
+// `expected` is the manifest's expected half (the one the keys came with). Without it, whether
+// consistency governs the provider is unknown, and its keys stay in scope (failing closed). Without a
+// provider, nothing provider-specific can be ruled OUT.
+const DRIFT_KEY = /^[a-z0-9_.-]+$/i;
+const MALFORMED_DRIFT_KEY = '(malformed drift key)';
+const isConsistencyKey = (k) => k.startsWith('code.consistency.') && !k.startsWith('code.consistency.shadow');
+
+// Each rule: [name, (key, c) => boolean], c = { provider (null when unknown), numCtx, governs }.
+const DRIFT_IN = Object.freeze([
+  ['evaluate decoding', (k) => k.startsWith('code.decoding.evaluate.')],
+  ['the evaluator\'s num_ctx (on-prem)', (k, c) => c.numCtx && k === `code.decoding.num_ctx.${c.provider}`],
+  ['consistency, governing this provider', (k, c) => isConsistencyKey(k) && c.governs],
+  ['the evaluate route', (k) => k === 'declared.providers.evaluate'],
+  ['the evaluator\'s declared block', (k, c) => c.provider != null && k.startsWith(`declared.${c.provider}.`)],
+  ['the pinned Claude model (anthropic lock)', (k, c) => k === 'code.models.anthropic' && c.provider === 'anthropic'],
+]);
+const DRIFT_OUT = Object.freeze([
+  ['chat decoding', (k) => k.startsWith('code.decoding.chat.')],
+  ['shadow decoding', (k) => k.startsWith('code.decoding.shadow.')],
+  ['criteria decoding', (k) => k.startsWith('code.decoding.criteria.')],
+  ['discuss decoding', (k) => k.startsWith('code.decoding.discuss.')],
+  ['shadow consistency', (k) => k.startsWith('code.consistency.shadow')],
+  ['thinking style (chat turns only)', (k) => k.startsWith('code.thinking_style.')],
+  ['another provider\'s num_ctx', (k, c) => c.provider != null && k.startsWith('code.decoding.num_ctx.')
+    && k !== `code.decoding.num_ctx.${c.provider}`],
+  ['another provider\'s declared block', (k, c) => c.provider != null && /^declared\.[^.]+\./.test(k)
+    && !k.startsWith('declared.providers.') && !k.startsWith(`declared.${c.provider}.`)],
+  ['another purpose\'s route', (k) => k.startsWith('declared.providers.') && k !== 'declared.providers.evaluate'],
+  ['the Claude model (non-anthropic lock)', (k, c) => k === 'code.models.anthropic' && c.provider != null && c.provider !== 'anthropic'],
+  ['consistency, not governing this provider', (k, c) => isConsistencyKey(k) && !c.governs],
+]);
+
+// Which rules a key matches, by name, for `provider`. 'providers' is the purpose map, never a provider.
+function driftKeyRules(key, provider, expected = null) {
+  const p = typeof provider === 'string' && provider && provider !== 'providers' ? provider : null;
+  const c = { provider: p, numCtx: sendsNumCtx(p), governs: p == null || consistencyGoverns(expected?.code?.consistency, p) };
+  const names = (rules) => rules.filter(([, test]) => test(key, c)).map(([name]) => name);
+  return { in: names(DRIFT_IN), out: names(DRIFT_OUT) };
+}
+
+function isEvaluatorDriftKey(key, provider, expected = null) {
+  if (typeof key !== 'string' || !DRIFT_KEY.test(key)) return true;   // unreadable: in, as a placeholder
+  const rules = driftKeyRules(key, provider, expected);
+  if (rules.in.length) return true;
+  if (rules.out.length) return false;
+  return true;   // matches no rule: never classified, so part of the instrument until it is
+}
+
+// The keys of a drift array (GET /manifest's raw drift, or rimpl's public /health/deep drift, which
+// carries the same key strings), in rimpl's order. An entry whose key is missing or not a plain dotted
+// name becomes MALFORMED_DRIFT_KEY: kept, so it still counts, but never relayed as the string it carried.
+function driftKeysOf(drift) {
+  return (Array.isArray(drift) ? drift : []).map((d) => (typeof d?.key === 'string' && DRIFT_KEY.test(d.key) ? d.key : MALFORMED_DRIFT_KEY));
+}
+
+// The evaluator-scope subset of a manifest's drift keys, in rimpl's order, for the candidate or locked
+// `provider`.
+function evaluatorDriftKeys(driftKeys, provider, expected = null) {
+  const keys = (Array.isArray(driftKeys) ? driftKeys : [])
+    .map((k) => (typeof k === 'string' && DRIFT_KEY.test(k) ? k : MALFORMED_DRIFT_KEY));
+  return [...new Set(keys.filter((k) => isEvaluatorDriftKey(k, provider, expected)))];
+}
+
+const evaluatorLiveDrift = (keys, provider) => ({
+  error: `ค่าที่ RIMPL ใช้งานอยู่จริงไม่ตรงกับ model manifest ในส่วนของผู้ให้คะแนน ${keys.length} รายการ (${keys.join(', ')}) `
+    + 'จึงยังล็อกไม่ได้ เพราะเครื่องมือที่กำลังให้คะแนนอยู่ไม่ใช่เครื่องมือที่การล็อกจะบันทึกไว้ ให้ยกเลิกค่าที่ override ไว้ก่อน '
+    + 'หรือถ้าตั้งใจเปลี่ยนจริง ให้แก้ค่าในโค้ดหรือไฟล์ declared สร้าง manifest ใหม่ (scripts/manifest/build.mjs) และ deploy RIMPL ใหม่ แล้วจึงล็อก / '
+    + `The live RIMPL configuration differs from the model manifest on ${keys.length} evaluator key(s) (${keys.join(', ')}), `
+    + 'so the instrument scoring now is not the one a lock would record. Remove the override, or, if the change is intended, '
+    + 'make it in the code or the declared file, regenerate the manifest (scripts/manifest/build.mjs) and redeploy RIMPL. Then lock.',
+  code: 'evaluator_live_drift',
+  keys,
+  provider: provider ?? null,
+});
 
 // ---- schema ------------------------------------------------------------------------------------
 
@@ -438,6 +577,10 @@ const lower = (v) => (typeof v === 'string' && v ? v.toLowerCase() : null);
  *
  * It DEGRADES only while locked, and only when it cannot show the frozen INSTRUMENT is the one scoring:
  *   evaluator_changed_since_lock  the live manifest's evaluator digest differs from the frozen one
+ *   evaluator_live_drift          the digest matches, but rimpl reports live drift on an evaluator key
+ *                                 for the locked provider (an env override): `drift_keys`, keys only.
+ *                                 Drift on any other key (tutor, chat, router, shadow, another
+ *                                 provider) changes nothing here.
  *   live_manifest_unknown         GET /manifest cannot be read, or fails the same rules a lock needs
  *   lock_not_bound_to_manifest    the record has no evaluator digest (locked before it existed, or a
  *                                 flag with no record behind it)
@@ -469,7 +612,11 @@ async function modelLockCheck(lock, { deep = null, fetchTimeoutMs } = {}) {
   if (!live.ok) return { ...out, reason: 'live_manifest_unknown', live_manifest: live.reason };
   const liveEvaluator = evaluatorDigest(live.expected, lock.provider);
   const result = { ...out, live_sha256: live.sha256, live_evaluator_sha256: liveEvaluator, match: liveEvaluator === frozen.evaluator };
+  // Which evaluator values the running rimpl overrides, by key. Never what the values are.
+  const overridden = evaluatorDriftKeys(live.drift_keys, lock.provider, live.expected);
+  if (overridden.length) result.drift_keys = overridden;
   if (!result.match) return { ...result, reason: 'evaluator_changed_since_lock' };
+  if (overridden.length) return { ...result, reason: 'evaluator_live_drift' };
   result.status = 'up';
   if (live.sha256 !== frozen.manifest) result.note = 'tutor_or_router_changed_since_lock';
   return result;
@@ -478,6 +625,8 @@ async function modelLockCheck(lock, { deep = null, fetchTimeoutMs } = {}) {
 module.exports = {
   manifestForLock, judgeManifest, cachedLiveManifest, resetManifestCache, expectedFor, manifestDiff, manifestMismatch,
   evaluatorScope, evaluatorDigest, canonicalJson, EVALUATOR_SCOPE_VERSION, lockSchemaStatus, lockInForce, modelLockCheck,
+  isEvaluatorDriftKey, evaluatorDriftKeys, evaluatorLiveDrift, consistencyGoverns,
+  driftKeyRules, driftKeysOf, DRIFT_IN, DRIFT_OUT, MALFORMED_DRIFT_KEY,
   migrationRequired, isMissingColumnOrTable, isMissingTable,
   relockRequired, unlockRequired, evaluatorLocked, gateNotPassed, candidateNotEvaluator, candidateNotServing,
   LOCK_STATE_UNREADABLE, USE_MODEL_LOCK, SAVED_STATE_UNREADABLE, INVALID_DECLARATION_ERROR,
