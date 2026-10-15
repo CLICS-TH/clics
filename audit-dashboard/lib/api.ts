@@ -62,10 +62,13 @@ export async function apiFetch<T>(path: string, options: RequestInit & { timeout
   // a success body comes back untouched, and the name cannot collide with a body's own `status`.
   // `status >= 400`, not `res.ok`, so a minimal Response stand-in (tests) without `ok` reads as success.
   const httpStatus = res.status >= 400 ? res.status : undefined;
+  // `unreadableBody` says the answer was not the backend's JSON (a proxy's HTML page, an empty body): a
+  // caller that must know whether a WRITE happened cannot read anything from the status code alone.
   if (body == null) {
     return {
       error: 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณาลองใหม่ / The server did not respond. Please try again.',
       ...(httpStatus ? { httpStatus } : {}),
+      unreadableBody: true,
     } as unknown as T;
   }
   if (httpStatus && typeof body === 'object' && !Array.isArray(body)) return { ...body, httpStatus } as T;
