@@ -13,9 +13,10 @@ Deploys run from the **local working tree** (not GitHub). Backend + RIMPL on **R
 
 ## Deploy commands (and the gotchas that break prod silently)
 
-- **Railway deploys MUST use `railway up . --path-as-root --ci`.** Plain `railway up` builds but the new image **never promotes** (old deployment stays active / "Deploy failed"), because each service has a configured root directory.
+- **Railway deploys MUST use `railway up . --path-as-root --service <name> --ci`.** Plain `railway up` builds but the new image **never promotes** (old deployment stays active / "Deploy failed"), because each service has a configured root directory.
   - Backend: `cd backend && railway up . --path-as-root --service backend --ci`
-  - RIMPL: `cd rimpl && railway up . --path-as-root --service rimpl --ci`  ← the local `rimpl/` dir is mis-linked to the `backend` service, so **always pass `--service rimpl`**.
+  - RIMPL: `cd rimpl && railway up . --path-as-root --service rimpl --ci`
+  - **Never omit `--service`.** Without it the CLI deploys to whatever service the directory is linked to. On 2026-10-14 `rimpl/` was linked to `backend`, so a rimpl deploy replaced the backend: the public URL answered `"service":"rimpl"` with a 503 until the backend was redeployed. After any backend deploy, check `curl -s https://backend-production-c12e4.up.railway.app/health/deep` reports `"service":"backend"`.
   - `railway up` often prints a `reqwest timeout` even on success — verify with `railway status --json` (look for a fresh active deployment), not the CLI message.
 - **Front-ends:** `cd physician-ui && vercel --prod --yes` · `cd audit-dashboard && vercel --prod --yes`.
 - **The audit-dashboard needs `NEXT_PUBLIC_API_URL` set on Vercel** or its login silently hangs in prod (build inlines the `localhost:3001` fallback). Set once, then rebuild:

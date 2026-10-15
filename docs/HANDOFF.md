@@ -4,10 +4,13 @@
 Pairs with [../README.md](../README.md) (orientation), [../CONTRIBUTING.md](../CONTRIBUTING.md) (how to
 work in it), and [ROADMAP.md](ROADMAP.md) (what to build next).*
 
-> ## Current state — 2026-10-14
+> ## Current state — 2026-10-15
 >
-> **Production is live and healthy** on master `2aad1d7a`: physician-ui + audit-dashboard on Vercel,
-> backend + rimpl on Railway, Supabase Postgres (ap-northeast-1). `/health/deep` green.
+> **Production is live and healthy** on master `bfedcc5f` (rimpl, backend, audit-dashboard):
+> physician-ui + audit-dashboard on Vercel, backend + rimpl on Railway, Supabase Postgres
+> (ap-northeast-1). `/health/deep` green. Merged but **not yet deployed**: #153 (rimpl + backend) and
+> #151 (audit-dashboard). Not yet applied: `db/migration-audit-log-chain.sql`, so `/health/deep`
+> reports `audit_chain: not_installed`.
 >
 > **The pilot has not started.** No participant is enrolled; every account in production is a test
 > account. The one thing gating the local-model decision is **human auditor scores**, not more code.
@@ -24,6 +27,13 @@ work in it), and [ROADMAP.md](ROADMAP.md) (what to build next).*
 > | PR #144 | the rescue rules are now **enforced** by one corrective retry — final replies breaking them fell 6/12 → 1/18 (Fisher p = 0.009) |
 > | PR #145 | items 24–25: the v4 addendum is adoptable on tuning but **not shown** on held-out |
 > | PR #146 | **streamed chat replies** (SSE end-to-end), setting `chat_streaming`, live since 2026-10-06 |
+> | PR #149 | one PII registry per AI call (a token means the same person throughout a prompt); **auditors now see the de-identified transcript**, as the consent form says, and the view fails closed (503) when rimpl cannot mask |
+> | PR #150 | `audit_log` hash-chained and append-only (trigger-built chain, UPDATE/DELETE/TRUNCATE refused, `GET /oversight/audit-log/verify`); migration not yet applied |
+> | PR #152 | a second, dormant on-prem provider `local-tutor` for `chat` / `discuss` only, with thinking control (CCME R3) |
+> | PR #153 | GRADE evidence-level line on tutor replies behind `chat_evidence_marker` (default 0) (CCME R5) |
+> | PR #151 | `/admin/overview` fits 320 px; the Download button clears AA contrast |
+>
+> CCME's architecture proposal, mapped against the system, and what is still open: [ARCHITECTURE-MAPPING-CCME.md](ARCHITECTURE-MAPPING-CCME.md).
 >
 > ### Where the local evaluator actually stands
 >
