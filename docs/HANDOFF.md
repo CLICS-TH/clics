@@ -6,11 +6,18 @@ work in it), and [ROADMAP.md](ROADMAP.md) (what to build next).*
 
 > ## Current state — 2026-10-15
 >
-> **Production is live and healthy** on master `bfedcc5f` (rimpl, backend, audit-dashboard):
-> physician-ui + audit-dashboard on Vercel, backend + rimpl on Railway, Supabase Postgres
-> (ap-northeast-1). `/health/deep` green. Merged but **not yet deployed**: #153 (rimpl + backend) and
-> #151 (audit-dashboard). Not yet applied: `db/migration-audit-log-chain.sql`, so `/health/deep`
-> reports `audit_chain: not_installed`.
+> **Production is live and healthy.** Every layer runs master `127226f6`'s code for its directory:
+> physician-ui and audit-dashboard on Vercel, backend and rimpl on Railway, Supabase Postgres
+> (ap-northeast-1). `/health/deep` is `ok`, `model_lock` is up and unlocked, and rimpl's `manifest` row
+> warns by design, because production runs Claude while the manifest declares the on-prem target.
+>
+> **Migrations not yet applied in production** (checked 2026-10-15). Each one gates a switch, not the
+> running system:
+> - `db/migration-evaluator-lock-manifest.sql`: before the first evaluator lock.
+>   `migration-evaluator-model-lock.sql` is already applied.
+> - `db/migration-chat-turn-flags.sql`: before `chat_router_enabled` = 1.
+> - `db/migration-audit-log-chain.sql`: declined for now, so `/health/deep` reports
+>   `audit_chain: not_installed`.
 >
 > **The pilot has not started.** No participant is enrolled; every account in production is a test
 > account. The one thing gating the local-model decision is **human auditor scores**, not more code.
@@ -32,6 +39,12 @@ work in it), and [ROADMAP.md](ROADMAP.md) (what to build next).*
 > | PR #152 | a second, dormant on-prem provider `local-tutor` for `chat` / `discuss` only, with thinking control (CCME R3) |
 > | PR #153 | GRADE evidence-level line on tutor replies behind `chat_evidence_marker` (default 0) (CCME R5) |
 > | PR #151 | `/admin/overview` fits 320 px; the Download button clears AA contrast |
+> | PR #155 | fast/deep chat router, dormant behind `chat_router_enabled`. Per-turn `middleware_flags` (tier, reason, thinking, budget) are written atomically with the turn, and so is the superseded draft. Its gates are pre-registered in [QUALITY-GATES.md](QUALITY-GATES.md) |
+> | PR #156 | **model manifest** (CCME R2): `rimpl/src/model-manifest.json`, generated from the code and content-addressed. CI fails when it is stale. rimpl's `/health/deep` and `GET /manifest` report live drift |
+> | PR #159 | **evaluator Model Lock bound to the manifest**. The lock freezes the manifest sha and an evaluator-only digest, and fails closed on an unreadable lock state; a lock cannot be declared through PATCH `/ai-providers` |
+> | PR #160 | the lock also refuses, and `/health/deep` degrades, on **live** evaluator drift (scope `clics-evaluator-scope/v3`, which adds the on-prem `num_ctx`) |
+> | PR #161 | dashboard `/admin/evaluator-lock` (declaration prefilled from the manifest, every blocker, drifted keys) and the lock and manifest blocks on `/admin/ai-readiness` |
+> | PR #157 | StatStrip hover contrast; the overview settings are keyboard-operable |
 >
 > CCME's architecture proposal, mapped against the system, and what is still open: [ARCHITECTURE-MAPPING-CCME.md](ARCHITECTURE-MAPPING-CCME.md).
 >
@@ -60,6 +73,17 @@ work in it), and [ROADMAP.md](ROADMAP.md) (what to build next).*
 > See **[ARCHITECTURE-MAPPING-CCME.md](ARCHITECTURE-MAPPING-CCME.md)** — maps the CCME architecture
 > proposal's R1–R10 against what is already built (8 of 10 present), and records which model
 > endpoints are reachable from the CLICS tailnet.
+>
+> The build side of CCME's gaps is done:
+> - **R2:** built and deployed; one migration remains before the first lock.
+> - **R3 and R5:** built and dormant.
+> - **R8:** built; its migration is declined for now.
+>
+> What is left is **R1**, a gated sequence with no code:
+> 1. CCME makes the endpoints reachable and confirms the evaluator model.
+> 2. The auditor round produces a decisive verdict.
+> 3. The evaluator is locked against the manifest.
+> 4. `evaluate` is switched to `local`.
 
 ## Read this first — the 2026-08/09 outage
 
