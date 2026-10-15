@@ -113,8 +113,11 @@ labels/badge single source of truth). End-to-end auth proof: `scripts/e2e/`. Loa
   Never `git add -A` blindly; the `.gitignore` covers `.env`, `LOGIN-ACCOUNTS.txt`, `*.creds`, and the
   provision rosters, but stage explicit paths and check `git status` before committing.
 - **Deploy** ([`docs/deployment.md`](docs/deployment.md)): backend/rimpl → Railway with
-  `railway up . --path-as-root --ci` (plain `railway up` builds but never promotes); both front-ends →
-  Vercel with `vercel --prod --yes`. The audit-dashboard needs `NEXT_PUBLIC_API_URL` set on Vercel or its
-  login silently hangs in prod. Apply DB migrations **before** the backend deploy that needs them.
+  `railway up . --path-as-root --service backend|rimpl --ci` (plain `railway up` builds but never
+  promotes; always name the service, because a directory's link can point at the other one); both
+  front-ends → Vercel with `vercel --prod --yes`. The audit-dashboard needs `NEXT_PUBLIC_API_URL` set on
+  Vercel or its login silently hangs in prod. Each migration's order relative to its code is stated in
+  `docs/deployment.md`: most new ones ship code first (the code tolerates the missing object), a few
+  must land before. Never rename or drop anything ahead of the code.
 - **Never `sbClient.auth.signOut()` after storing the token** — the CLICS token *is* the Supabase session
   access token; gotrue's `/logout` revokes it and every subsequent API call 401s.
