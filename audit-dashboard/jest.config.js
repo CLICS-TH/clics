@@ -32,6 +32,8 @@ const config = {
     'components/LocalAiCapacityCard.tsx',
     'components/AiProviderPanel.tsx',
     'app/admin/ai-readiness/page.tsx',
+    'app/admin/evaluator-lock/page.tsx',
+    'lib/evaluator-lock.ts',
   ],
   coverageThreshold: {
     global: { statements: 100, branches: 90, functions: 100, lines: 100 },

@@ -215,3 +215,103 @@ describe('AI readiness — the rest of the screen', () => {
     await waitFor(() => expect(screen.queryByText(/Evaluator locked at/)).not.toBeInTheDocument());
   });
 });
+
+// GET /admin/ai-readiness relays rimpl's PUBLIC manifest block ({ sha256, claimed_sha256, file,
+// code_match, drift }) and the backend's lock verdict (services/model-lock.js modelLockCheck).
+describe('AI readiness — the model manifest and the Model Lock', () => {
+  const SHA = 'ab'.repeat(32);
+  const LIVE = 'cd'.repeat(32);
+
+  it('shows the manifest as a short sha, its file, code_match, and the drift KEYS only', async () => {
+    wire(body({ manifest: { sha256: SHA, claimed_sha256: SHA, file: 'present', code_match: true, drift: [
+      { key: 'declared.providers.evaluate', expected: 'local', live: 'anthropic' },
+      { key: 'declared.local.model', expected: 'deepseek', live_present: true, live_sha256_12: '0123456789ab' },
+      { expected: 'no key' },
+    ] } }));
+    render(<AiReadinessPage />);
+    const sha = await screen.findByText(`${SHA.slice(0, 12)}…`);
+    expect(sha).toHaveAttribute('title', SHA);
+    expect(screen.getByText('present')).toBeInTheDocument();
+    expect(screen.getByText(/Matches the code/)).toHaveClass('text-ok');
+    expect(screen.getByText(/2 live value\(s\) differ from the manifest/)).toHaveClass('text-warn');
+    expect(screen.getByText('declared.providers.evaluate')).toBeInTheDocument();
+    expect(screen.getByText('declared.local.model')).toBeInTheDocument();
+    // Keys, never values — not even the hashed ones.
+    expect(screen.queryByText(/anthropic/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/0123456789ab/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/deepseek/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Expected while production runs every purpose on Claude/)).toBeInTheDocument();
+  });
+
+  it('an unverified manifest, a code mismatch, an unknown match, and no drift each say so', async () => {
+    wire(body({ manifest: { sha256: null, file: 'invalid', code_match: false, drift: [] } }));
+    const first = render(<AiReadinessPage />);
+    expect(await screen.findByText(/sha256 not verified/)).toHaveClass('text-danger');
+    expect(screen.getByText(/Differs from the code/)).toHaveClass('text-danger');
+    expect(screen.getByText(/No live value differs from the manifest/)).toBeInTheDocument();
+    expect(screen.queryByText(/Expected while production/)).not.toBeInTheDocument();
+    first.unmount();
+
+    wire(body({ manifest: { sha256: SHA, file: null, code_match: null } }));
+    render(<AiReadinessPage />);
+    expect(await screen.findByText(/Code match unknown/)).toBeInTheDocument();
+    expect(screen.getByText('—')).toBeInTheDocument();
+  });
+
+  it('unlocked: the lock check is Up and says Not locked', async () => {
+    wire(body({ model_lock: { status: 'up', locked: false, locked_at: null, manifest_sha256: null, live_sha256: SHA, match: null } }));
+    render(<AiReadinessPage />);
+    expect(await screen.findByText('ยังไม่ล็อก / Not locked')).toBeInTheDocument();
+    expect(screen.getByText('Evaluator Model Lock', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText(UP)).toHaveClass('text-ok');
+    expect(screen.queryByText(/frozen manifest/)).not.toBeInTheDocument();
+  });
+
+  it('locked and matching, with the tutor/router note', async () => {
+    wire(body({ model_lock: { status: 'up', locked: true, locked_at: '2026-10-14T03:00:00Z', provider: 'local',
+      manifest_sha256: SHA, evaluator_sha256: 'e'.repeat(64), live_sha256: LIVE, live_evaluator_sha256: 'e'.repeat(64), match: true,
+      note: 'tutor_or_router_changed_since_lock' } }));
+    render(<AiReadinessPage />);
+    expect(await screen.findByText(/Locked since/)).toHaveTextContent(new Date('2026-10-14T03:00:00Z').toLocaleString('th-TH'));
+    expect(screen.getByText(/frozen manifest/)).toHaveTextContent(`local · frozen manifest ${SHA.slice(0, 12)}… · live ${LIVE.slice(0, 12)}… · evaluator match`);
+    expect(screen.getByText(/the scoring instrument did not/)).toBeInTheDocument();
+  });
+
+  it('locked and Down, for each reason — a reason it does not know is shown by its key', async () => {
+    for (const [reason, text] of [
+      ['evaluator_changed_since_lock', /differs from what was frozen/],
+      ['live_manifest_unknown', /could not be read or verified/],
+      ['lock_not_bound_to_manifest', /names no evaluator digest/],
+      ['lock_record_unmigrated', /has not been migrated/],
+      ['lock_record_unreadable', /lock record could not be read/],
+      ['brand_new_reason', /^brand_new_reason$/],
+    ] as const) {
+      wire(body({ model_lock: { status: 'down', locked: true, locked_at: 'not-a-date', provider: null,
+        manifest_sha256: null, live_sha256: null, match: reason === 'evaluator_changed_since_lock' ? false : null, reason } }));
+      const r = render(<AiReadinessPage />);
+      expect(await screen.findByText(text)).toBeInTheDocument();
+      expect(screen.getAllByText(DOWN).some((el) => el.classList.contains('text-danger'))).toBe(true);
+      // An unparseable timestamp is shown as sent rather than as "Invalid Date".
+      expect(screen.getByText(/Locked since not-a-date/)).toBeInTheDocument();
+      expect(screen.getByText(/frozen manifest/)).toHaveTextContent(
+        `— · frozen manifest — · live — · evaluator ${reason === 'evaluator_changed_since_lock' ? 'MISMATCH' : '—'}`);
+      r.unmount();
+    }
+  });
+
+  it('an unreadable lock state is Unknown, never Not locked; an unknown note is shown by its key', async () => {
+    wire(body({ model_lock: { status: 'unknown', locked: null, error: 'connection reset', note: 'odd_note' } }));
+    render(<AiReadinessPage />);
+    expect(await screen.findByText('อ่านสถานะการล็อกไม่ได้ / Lock state unreadable')).toBeInTheDocument();
+    expect(screen.getByText('ไม่ทราบ / Unknown')).toHaveClass('text-muted-foreground');
+    expect(screen.queryByText('ยังไม่ล็อก / Not locked')).not.toBeInTheDocument();
+    expect(screen.getByText('connection reset')).toBeInTheDocument();
+    expect(screen.getByText('odd_note')).toBeInTheDocument();
+  });
+
+  it('a locked lock with no locked_at still renders', async () => {
+    wire(body({ model_lock: { status: 'down', locked: true, locked_at: null } }));
+    render(<AiReadinessPage />);
+    expect(await screen.findByText('ล็อกตั้งแต่ — / Locked since —')).toBeInTheDocument();
+  });
+});

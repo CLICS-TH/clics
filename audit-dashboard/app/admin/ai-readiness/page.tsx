@@ -11,6 +11,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { PageIntro } from '@/components/PageIntro';
 import { Button } from '@/components/ui/button';
+import type { ReadinessManifest, ReadinessModelLock } from '@/lib/types';
+import { LOCK_NOTE, LOCK_REASON } from '@/lib/evaluator-lock';
 import { AlertTriangle, CheckCircle2, XCircle, HelpCircle, RefreshCw } from 'lucide-react';
 
 // `warning` rides on a `warn` check, `error` on a `down` one (rimpl services/ai.js readiness()).
@@ -33,7 +35,19 @@ interface Readiness {
   models: Record<string, { provider: string; model: string | null }> | null;
   routing: { source?: string; evaluator_locked_at?: string | null } | null;
   embedding: Embedding | null;
+  // rimpl's public manifest block and the backend's verdict on the lock (services/model-lock.js
+  // modelLockCheck). Absent from a backend that predates the Model Lock binding.
+  manifest?: ReadinessManifest | null;
+  model_lock?: ReadinessModelLock | null;
 }
+
+const short = (s: string | null | undefined) => (s ? `${s.slice(0, 12)}…` : null);
+const thDate = (s: string | null | undefined) => {
+  if (!s) return '—';
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? s : d.toLocaleString('th-TH');
+};
+
 
 // The same verdict rimpl's /health/deep reaches (routes/health.js): `up` and `warn` both SERVE — a
 // warning is a finding about the configuration, e.g. r3_distinct_models (tutor and evaluator are one
@@ -184,7 +198,7 @@ export default function AiReadinessPage() {
 
       {data?.embedding && (
         <section className="space-y-2">
-          <h2 className="text-sm font-medium">มิติเวกเตอร์ของการฝัง / Embedding dimension</h2>
+          <h2 className="font-sans text-sm font-medium">มิติเวกเตอร์ของการฝัง / Embedding dimension</h2>
           <div className="rounded-lg border border-border bg-card p-4 text-sm">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               <span className="font-medium">{data.embedding.provider}</span>
@@ -219,7 +233,7 @@ export default function AiReadinessPage() {
 
       {data?.models && (
         <section className="space-y-2">
-          <h2 className="text-sm font-medium">งานแต่ละประเภทวิ่งที่ไหน / Which provider serves each purpose</h2>
+          <h2 className="font-sans text-sm font-medium">งานแต่ละประเภทวิ่งที่ไหน / Which provider serves each purpose</h2>
           <ul className="space-y-1 text-sm text-muted-foreground">
             {Object.entries(data.models).map(([purpose, m]) => (
               <li key={purpose} className="flex flex-wrap gap-x-2">
@@ -236,6 +250,88 @@ export default function AiReadinessPage() {
           )}
         </section>
       )}
+
+      {data?.manifest && <ManifestBlock m={data.manifest} />}
+      {data?.model_lock && <ModelLockBlock l={data.model_lock} />}
     </div>
+  );
+}
+
+// The KEYS of the drift only. rimpl already hashes free-text live values on this public block, but the
+// values are still not this screen's business: which settings differ is the finding.
+function ManifestBlock({ m }: { m: ReadinessManifest }) {
+  const keys = (m.drift ?? []).map((d) => d?.key).filter((k): k is string => typeof k === 'string');
+  const sha = short(m.sha256);
+  return (
+    <section className="space-y-2">
+      <h2 className="font-sans text-sm font-medium">Model manifest</h2>
+      <div className="space-y-2 rounded-lg border border-border bg-card p-4 text-sm">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="font-mono text-xs" title={m.sha256 ?? undefined}>
+            {sha ?? <span className="text-danger">ยืนยัน sha256 ไม่ได้ / sha256 not verified</span>}
+          </span>
+          <span className="text-muted-foreground">file: <span className="font-mono text-xs text-foreground">{m.file ?? '—'}</span></span>
+          {m.code_match === true ? (
+            <span className="inline-flex items-center gap-1.5 text-ok"><CheckCircle2 className="size-4" aria-hidden="true" />ตรงกับโค้ด / Matches the code</span>
+          ) : m.code_match === false ? (
+            <span className="inline-flex items-center gap-1.5 text-danger"><XCircle className="size-4" aria-hidden="true" />ไม่ตรงกับโค้ด / Differs from the code</span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-muted-foreground"><HelpCircle className="size-4" aria-hidden="true" />ไม่ทราบว่าตรงกับโค้ดหรือไม่ / Code match unknown</span>
+          )}
+        </div>
+        {keys.length > 0 ? (
+          <>
+            <p className="inline-flex items-center gap-1.5 text-warn">
+              <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
+              ค่าที่รันอยู่ต่างจาก manifest {keys.length} รายการ / {keys.length} live value(s) differ from the manifest
+            </p>
+            <ul className="flex flex-wrap gap-1.5">
+              {keys.map((k) => <li key={k} className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs break-all text-foreground">{k}</li>)}
+            </ul>
+            <p className="text-xs text-muted-foreground">
+              คาดว่าจะมีคำเตือนนี้ขณะ production ใช้ Claude ทุกงาน เพราะ manifest ระบุเครื่องในองค์กรเป็นเป้าหมาย (CCME R1/R3) /
+              Expected while production runs every purpose on Claude: the manifest declares the on-prem target (CCME R1/R3), so live
+              routing differs from it until those close.
+            </p>
+          </>
+        ) : (
+          <p className="text-muted-foreground">ไม่มีค่าที่ต่างจาก manifest / No live value differs from the manifest.</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ModelLockBlock({ l }: { l: ReadinessModelLock }) {
+  const status: Status | 'unknown' = l.status === 'up' ? 'up' : l.status === 'unknown' ? 'unknown' : 'down';
+  const view = status === 'unknown'
+    ? { tone: 'text-muted-foreground', Icon: HelpCircle, label: 'ไม่ทราบ / Unknown' }
+    : STATUS_VIEW[status];
+  return (
+    <section className="space-y-2">
+      <h2 className="font-sans text-sm font-medium">การล็อกผู้ให้คะแนน / Evaluator Model Lock</h2>
+      <div className="space-y-1.5 rounded-lg border border-border bg-card p-4 text-sm">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className={`inline-flex items-center gap-1.5 ${view.tone}`}>
+            <view.Icon className="size-4 shrink-0" aria-hidden="true" />
+            {view.label}
+          </span>
+          <span className="text-foreground">
+            {l.locked === true
+              ? `ล็อกตั้งแต่ ${thDate(l.locked_at)} / Locked since ${thDate(l.locked_at)}`
+              : l.locked === false ? 'ยังไม่ล็อก / Not locked' : 'อ่านสถานะการล็อกไม่ได้ / Lock state unreadable'}
+          </span>
+        </div>
+        {l.locked === true && (
+          <p className="font-mono text-xs break-words text-muted-foreground">
+            {l.provider ?? '—'} · frozen manifest {short(l.manifest_sha256) ?? '—'} · live {short(l.live_sha256) ?? '—'}
+            {' '}· evaluator {l.match === true ? 'match' : l.match === false ? 'MISMATCH' : '—'}
+          </p>
+        )}
+        {l.reason && <p className="break-words text-foreground">{LOCK_REASON[l.reason] ?? <span className="font-mono">{l.reason}</span>}</p>}
+        {l.note && <p className="break-words text-muted-foreground">{LOCK_NOTE[l.note] ?? <span className="font-mono">{l.note}</span>}</p>}
+        {l.error && <p className="break-words text-muted-foreground">{l.error}</p>}
+      </div>
+    </section>
   );
 }

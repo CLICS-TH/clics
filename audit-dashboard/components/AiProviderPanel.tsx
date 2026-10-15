@@ -1,6 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { AlertTriangle, Lock } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
+import type { ProviderEvaluatorLock } from '@/lib/types';
+import { UNBOUND_COPY } from '@/lib/evaluator-lock';
 
 // Superadmin control for WHICH model serves each AI purpose — Claude in the cloud, or the on-prem
 // model on the DGX. Reads and writes /admin/ai-providers; RIMPL layers those values over its env
@@ -11,6 +15,11 @@ import { apiFetch } from '@/lib/api';
 // the measuring instrument that every PIS-7 score and the ICC ≥ 0.75 credit gate are defined
 // against. Putting it in the same list as "which model writes the chat reply" would make the two
 // look like the same kind of decision.
+//
+// LOCKING IS NOT DONE HERE. This panel used to PATCH { evaluator_locked: true }: a flag with no record,
+// no weights digest, no agreement verdict and no manifest behind it. The backend now refuses that with
+// 409 use_model_lock; the lock is declared on /admin/evaluator-lock, which records all four together.
+// This panel links there, and keeps only the (typed) unlock.
 
 type Purpose = 'chat' | 'evaluate' | 'criteria' | 'discuss' | 'embed';
 type Providers = Record<Purpose, string>;
@@ -18,11 +27,14 @@ type ApiShape = {
   providers: Providers;
   choices: Record<Purpose, string[]>;
   evaluator_locked_at: string | null;
+  // Absent from a backend older than the Model Lock binding (6b): then nothing is said about it.
+  evaluator_lock?: ProviderEvaluatorLock;
   confirm_phrases: { change_evaluator: string; unlock_evaluator: string };
   error?: string;
   code?: string;
   confirm_phrase?: string;
 };
+
 
 // What each purpose actually is, in the operator's terms — not the internal key. Someone deciding
 // whether to move a purpose on-prem needs to know what breaks if the box is slow, not what the
@@ -150,7 +162,8 @@ export function AiProviderPanel() {
   });
 
   return (
-    <section className="space-y-3">
+    // id: the Model Lock page links here (#ai-provider) when the candidate is not the serving evaluator.
+    <section id="ai-provider" className="scroll-mt-20 space-y-3">
       <h2 className="font-heading text-xl text-foreground">ผู้ให้บริการ AI / AI provider</h2>
 
       {err && (
@@ -194,6 +207,20 @@ export function AiProviderPanel() {
                   gate are defined against this model, so swapping it mid-cohort would confound the outcome with
                   the instrument.
                 </p>
+                {/* A lock the health check cannot tie to the instrument that is scoring. `=== false`, not
+                    falsy: null (unlocked) and absent (an older backend) say nothing either way. */}
+                {data.evaluator_lock?.manifest_bound === false && (
+                  <div role="status" className="mt-3 flex gap-2 text-sm text-foreground">
+                    <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warn" aria-hidden="true" />
+                    <div className="min-w-0">
+                      <p className="font-medium">ไม่ได้ผูกกับ model manifest / Not bound to the model manifest</p>
+                      <p className="mt-0.5 text-xs">{UNBOUND_COPY[data.evaluator_lock.record ?? ''] ?? UNBOUND_COPY.unreadable}</p>
+                      <Link href="/admin/evaluator-lock" className="mt-1 inline-block text-xs text-foreground underline underline-offset-2">
+                        แทนที่ที่หน้า Model Lock / Replace it on Model Lock
+                      </Link>
+                    </div>
+                  </div>
+                )}
                 <button
                   onClick={() => setPending({ purpose: 'evaluate', provider: '', phrase: data.confirm_phrases.unlock_evaluator })}
                   disabled={saving === 'lock'}
@@ -203,13 +230,20 @@ export function AiProviderPanel() {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={() => send({ evaluator_locked: true }, 'lock')}
-                disabled={saving === 'lock'}
-                className="mt-3 rounded-lg border-2 border-primary bg-primary/15 px-3 py-2 text-xs font-semibold text-foreground hover:bg-primary/25 disabled:opacity-50"
-              >
-                🔒 ล็อกผู้ให้คะแนนสำหรับ pilot / Lock the evaluator for the pilot
-              </button>
+              <div className="mt-3">
+                {/* A link, styled as the control it replaces — not a Button nested in an <a>. */}
+                <Link
+                  href="/admin/evaluator-lock"
+                  className="inline-flex items-center gap-1.5 rounded-lg border-2 border-primary bg-primary/15 px-3 py-2 text-xs font-semibold whitespace-nowrap text-foreground hover:bg-primary/25 pointer-coarse:min-h-11"
+                >
+                  <Lock className="size-3.5 shrink-0" aria-hidden="true" />
+                  ล็อกผู้ให้คะแนน / Lock the evaluator
+                </Link>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  เปิดหน้า Model Lock ซึ่งบันทึกค่าที่ล็อก ผลความสอดคล้องกับผู้ตรวจ และ model manifest ไว้ด้วยกัน /
+                  Opens Model Lock, which records the frozen configuration, the agreement verdict and the model manifest together.
+                </p>
+              </div>
             )}
           </div>
         </>
