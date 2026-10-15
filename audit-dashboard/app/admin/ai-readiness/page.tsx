@@ -11,6 +11,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
 import { PageIntro } from '@/components/PageIntro';
 import { Button } from '@/components/ui/button';
+import type { ReadinessManifest, ReadinessModelLock } from '@/lib/types';
+import { DRIFT_COPY, LOCK_NOTE, LOCK_REASON, classifyDrift } from '@/lib/evaluator-lock';
+import { DriftKeyList } from '@/components/DriftKeyList';
 import { AlertTriangle, CheckCircle2, XCircle, HelpCircle, RefreshCw } from 'lucide-react';
 
 // `warning` rides on a `warn` check, `error` on a `down` one (rimpl services/ai.js readiness()).
@@ -33,7 +36,19 @@ interface Readiness {
   models: Record<string, { provider: string; model: string | null }> | null;
   routing: { source?: string; evaluator_locked_at?: string | null } | null;
   embedding: Embedding | null;
+  // rimpl's public manifest block and the backend's verdict on the lock (services/model-lock.js
+  // modelLockCheck). Absent from a backend that predates the Model Lock binding.
+  manifest?: ReadinessManifest | null;
+  model_lock?: ReadinessModelLock | null;
 }
+
+const short = (s: string | null | undefined) => (s ? `${s.slice(0, 12)}…` : null);
+const thDate = (s: string | null | undefined) => {
+  if (!s) return '—';
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? s : d.toLocaleString('th-TH');
+};
+
 
 // The same verdict rimpl's /health/deep reaches (routes/health.js): `up` and `warn` both SERVE — a
 // warning is a finding about the configuration, e.g. r3_distinct_models (tutor and evaluator are one
@@ -184,7 +199,7 @@ export default function AiReadinessPage() {
 
       {data?.embedding && (
         <section className="space-y-2">
-          <h2 className="text-base font-medium">มิติเวกเตอร์ของการฝัง / Embedding dimension</h2>
+          <h2 className="font-sans text-base font-medium">มิติเวกเตอร์ของการฝัง / Embedding dimension</h2>
           <div className="rounded-lg border border-border bg-card p-4 text-sm">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               <span className="font-medium">{data.embedding.provider}</span>
@@ -219,7 +234,7 @@ export default function AiReadinessPage() {
 
       {data?.models && (
         <section className="space-y-2">
-          <h2 className="text-base font-medium">งานแต่ละประเภทวิ่งที่ไหน / Which provider serves each purpose</h2>
+          <h2 className="font-sans text-base font-medium">งานแต่ละประเภทวิ่งที่ไหน / Which provider serves each purpose</h2>
           <ul className="space-y-1 text-sm text-muted-foreground">
             {Object.entries(data.models).map(([purpose, m]) => (
               <li key={purpose} className="flex flex-wrap gap-x-2">
@@ -236,6 +251,139 @@ export default function AiReadinessPage() {
           )}
         </section>
       )}
+
+      {data?.manifest && <ManifestBlock m={data.manifest} />}
+      {data?.model_lock && <ModelLockBlock l={data.model_lock} />}
     </div>
+  );
+}
+
+// The KEYS of the drift only. rimpl already hashes free-text live values on this public block, but the
+// values are still not this screen's business: which settings differ is the finding. Which keys are the
+// evaluator's is the backend's answer (manifest.evaluator_drift_keys); without it nothing is classified
+// and nothing is called expected (lib/evaluator-lock.ts classifyDrift).
+function ManifestBlock({ m }: { m: ReadinessManifest }) {
+  const keys = (m.drift ?? []).map((d) => d?.key).filter((k): k is string => typeof k === 'string');
+  const drift = classifyDrift(keys, m.evaluator_drift_keys);
+  const none = keys.length === 0 && (!drift.classified || drift.evaluator.length === 0);
+  const sha = short(m.sha256);
+  return (
+    <section className="space-y-2">
+      <h2 className="font-sans text-base font-medium">Model manifest</h2>
+      <div className="space-y-2 rounded-lg border border-border bg-card p-4 text-sm">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="font-mono text-xs" title={m.sha256 ?? undefined}>
+            {sha ?? <span className="text-danger">ยืนยัน sha256 ไม่ได้ / sha256 not verified</span>}
+          </span>
+          <span className="text-muted-foreground">file: <span className="font-mono text-xs text-foreground">{m.file ?? '—'}</span></span>
+          {m.code_match === true ? (
+            <span className="inline-flex items-center gap-1.5 text-ok"><CheckCircle2 className="size-4" aria-hidden="true" />ตรงกับโค้ด / Matches the code</span>
+          ) : m.code_match === false ? (
+            <span className="inline-flex items-center gap-1.5 text-danger"><XCircle className="size-4" aria-hidden="true" />ไม่ตรงกับโค้ด / Differs from the code</span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-muted-foreground"><HelpCircle className="size-4" aria-hidden="true" />ไม่ทราบว่าตรงกับโค้ดหรือไม่ / Code match unknown</span>
+          )}
+        </div>
+        {none && <p className="text-muted-foreground">ไม่มีค่าที่ต่างจาก manifest / No live value differs from the manifest.</p>}
+        {!drift.classified && drift.all.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="flex gap-1.5 text-warn">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <span>{DRIFT_COPY.unclassifiedTitle} ({drift.all.length})</span>
+            </p>
+            <DriftKeyList keys={drift.all} label="ค่าที่ต่างไป ยังไม่จัดประเภท / Values that differ, unclassified" />
+            <p className="text-xs text-foreground">{DRIFT_COPY.unclassifiedBody}</p>
+          </div>
+        )}
+        {drift.classified && drift.evaluator.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="flex gap-1.5 text-warn">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <span>{DRIFT_COPY.evaluatorTitle} ({drift.evaluator.length})</span>
+            </p>
+            {m.evaluator_provider && (
+              <p className="text-xs text-muted-foreground">ผู้ให้คะแนน / Evaluator: <span className="font-mono text-foreground">{m.evaluator_provider}</span></p>
+            )}
+            <DriftKeyList keys={drift.evaluator} label={DRIFT_COPY.evaluatorList} />
+            <p className="text-xs text-foreground">{DRIFT_COPY.evaluatorBody}</p>
+          </div>
+        )}
+        {drift.classified && drift.expected.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-muted-foreground">ค่าที่ประกาศต่างจากที่รันอยู่ {drift.expected.length} รายการ / {drift.expected.length} declared value(s) differ from what is running</p>
+            <DriftKeyList keys={drift.expected} label="ค่าที่ประกาศที่ต่างไป / Declared values that differ" />
+            <p className="text-xs text-muted-foreground">{DRIFT_COPY.expected}</p>
+          </div>
+        )}
+        {drift.classified && drift.other.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-muted-foreground">ค่าอื่นที่ต่างไป {drift.other.length} รายการ / {drift.other.length} other value(s) differ</p>
+            <DriftKeyList keys={drift.other} label="ค่าอื่นที่ต่างไป / Other values that differ" />
+            <p className="text-xs text-muted-foreground">{DRIFT_COPY.other}</p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// `match` compares the live evaluator DIGEST with the frozen one, and nothing else. With live drift the
+// digest still matches while the running rimpl overrides an evaluator value, so a bare "match" beside
+// Down would contradict the reason under it: the comparison is named for what it compared.
+// No live digest means no comparison was made: modelLockCheck stops before reading the live manifest
+// (lock_record_unmigrated, lock_record_unreadable, lock_not_bound_to_manifest, live_manifest_unknown)
+// yet still sends `match: false`. So `match` is read only beside a live digest; otherwise it is "—".
+function evaluatorMatch(l: ReadinessModelLock, drifted: boolean): string {
+  const live = drifted ? ', live config drifted' : '';
+  if (typeof l.live_evaluator_sha256 !== 'string') return `evaluator —${live}`;
+  if (l.match === true) return drifted ? `evaluator digest match${live}` : 'evaluator match';
+  if (l.match === false) return `evaluator MISMATCH${live}`;
+  return `evaluator —${live}`;
+}
+
+function ModelLockBlock({ l }: { l: ReadinessModelLock }) {
+  const status: Status | 'unknown' = l.status === 'up' ? 'up' : l.status === 'unknown' ? 'unknown' : 'down';
+  const view = status === 'unknown'
+    ? { tone: 'text-muted-foreground', Icon: HelpCircle, label: 'ไม่ทราบ / Unknown' }
+    : STATUS_VIEW[status];
+  // Keys only, as the backend sends them (services/model-lock.js modelLockCheck). The reason alone also
+  // counts as drift, so a body that lost its list still never reads as a plain match.
+  const driftKeys = (Array.isArray(l.drift_keys) ? l.drift_keys : []).filter((k): k is string => typeof k === 'string');
+  const drifted = driftKeys.length > 0 || l.reason === 'evaluator_live_drift';
+  return (
+    <section className="space-y-2">
+      <h2 className="font-sans text-base font-medium">การล็อกผู้ให้คะแนน / Evaluator Model Lock</h2>
+      <div className="space-y-1.5 rounded-lg border border-border bg-card p-4 text-sm">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className={`inline-flex items-center gap-1.5 ${view.tone}`}>
+            <view.Icon className="size-4 shrink-0" aria-hidden="true" />
+            {view.label}
+          </span>
+          <span className="text-foreground">
+            {l.locked === true
+              ? `ล็อกตั้งแต่ ${thDate(l.locked_at)} / Locked since ${thDate(l.locked_at)}`
+              : l.locked === false ? 'ยังไม่ล็อก / Not locked' : 'อ่านสถานะการล็อกไม่ได้ / Lock state unreadable'}
+          </span>
+        </div>
+        {l.locked === true && (
+          <p className="font-mono text-xs break-words text-muted-foreground">
+            {l.provider ?? '—'} · frozen manifest {short(l.manifest_sha256) ?? '—'} · live {short(l.live_sha256) ?? '—'}
+            {' '}· {evaluatorMatch(l, drifted)}
+          </p>
+        )}
+        {l.reason && <p className="break-words text-foreground">{LOCK_REASON[l.reason] ?? <span className="font-mono">{l.reason}</span>}</p>}
+        {driftKeys.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">
+              ค่าของผู้ให้คะแนนที่ RIMPL ใช้งานอยู่ต่างจาก manifest {driftKeys.length} รายการ / {driftKeys.length} evaluator value(s) on the running RIMPL differ from the manifest:
+            </p>
+            <DriftKeyList keys={driftKeys} label={DRIFT_COPY.evaluatorList} />
+          </div>
+        )}
+        {l.live_manifest && <p className="font-mono text-xs break-words text-muted-foreground">live manifest: {l.live_manifest}</p>}
+        {l.note && <p className="break-words text-muted-foreground">{LOCK_NOTE[l.note] ?? <span className="font-mono">{l.note}</span>}</p>}
+        {l.error && <p className="break-words text-muted-foreground">{l.error}</p>}
+      </div>
+    </section>
   );
 }

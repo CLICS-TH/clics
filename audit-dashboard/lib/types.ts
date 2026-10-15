@@ -459,3 +459,188 @@ export interface EvaluationProvenance {
   consistency?: EvaluationConsistency | null;
   [key: string]: unknown;
 }
+
+// ---- The Primary Evaluator Model Lock (CCME R2, GitHub #75) ----------------------------------------
+// GET/POST /admin/evaluator-lock and the lock fields of /admin/ai-providers + /admin/ai-readiness, as
+// backend/src/routes/superadmin.js and services/model-lock.js return them.
+
+// Every reason GET /admin/evaluator-lock can give for `can_declare: false`. Pinned against the backend's
+// `blockers.push(...)` calls by __tests__/backend-mirrors.test.ts.
+export const EVALUATOR_LOCK_BLOCKERS = [
+  'no_candidate', 'verdict_unavailable', 'gate_not_passed', 'candidate_not_evaluator', 'candidate_not_serving',
+  'manifest_unavailable', 'manifest_mismatch', 'evaluator_live_drift', 'migration_required', 'lock_table_unreadable',
+] as const;
+export type EvaluatorLockBlocker = (typeof EVALUATOR_LOCK_BLOCKERS)[number];
+
+// What the declaration states about decoding. `seed: null` is a stated "no seed", distinct from an
+// omitted key (never declared).
+export interface LockDecoding {
+  temperature?: number;
+  top_p?: number;
+  max_tokens?: number;
+  seed?: number | null;
+}
+
+// One evaluator_model_lock row (select '*'). The manifest columns are absent on an unmigrated table and
+// null on a lock taken before they existed.
+export interface EvaluatorLockRecord {
+  id?: string;
+  locked_at: string;
+  locked_by?: string | null;
+  provider?: string | null;
+  model_version?: string | null;
+  weights_sha256?: string | null;
+  inference_engine?: string | null;
+  quantization?: string | null;
+  system_prompt_version?: string | null;
+  evaluator_prompt_version?: string | null;
+  rubric_version?: string | null;
+  decoding?: LockDecoding | null;
+  environment?: Record<string, string> | null;
+  note?: string | null;
+  gate?: IccVerdict | null;
+  manifest_sha256?: string | null;
+  evaluator_sha256?: string | null;
+  manifest?: unknown;
+}
+
+// services/agreement.js candidateSummary: the latest (provider, model_version, prompt_version) group.
+export interface LockCandidate {
+  provider: string | null;
+  model_version: string | null;
+  prompt_version: string | null;
+  rubric_versions: (string | null)[];
+}
+export interface LockCorpusGroup {
+  provider: string | null;
+  model_version: string | null;
+  prompt_version: string | null;
+  rows: number;
+  rubric_versions: (string | null)[];
+  latest: string | null;
+}
+
+// A manifest decoding value: a number, or { default, env, min } for an env-tunable one.
+export type ManifestDecodingValue = number | null | { default?: number | null; env?: string; min?: number };
+
+export interface ManifestExpectedForCandidate {
+  prompt_version: string | null;
+  rubric_version: string | null;
+  model_version: string | null;
+  provider_declared?: string | null;
+  decoding: Record<string, ManifestDecodingValue> | null;
+  declared: { engine: string | null; model: string | null } | null;
+  evaluator_sha256: string;
+}
+export type EvaluatorLockManifest =
+  | {
+    ok: true; sha256: string; file: string; code_match: true; drift_keys: string[];
+    expected_for_candidate: ManifestExpectedForCandidate | null;
+    // The drift keys in the evaluator's scope (services/model-lock.js evaluatorDriftKeys, #160), and the
+    // provider that scope was computed for. Absent from a backend older than #160.
+    evaluator_drift_keys?: string[];
+    evaluator_provider?: string;
+  }
+  | { ok: false; code?: string; reason?: string; error?: string; file?: string | null; code_match?: boolean | null };
+
+// services/model-lock.js manifestDiff. `source: 'candidate'` is MEASURED (the shadow rows); 'declaration'
+// is what the operator typed. `value`/`expected` are strings, string arrays (candidate_rubric_versions),
+// numbers (decoding) or null.
+export interface ManifestDiffRow {
+  field: string;
+  source: 'candidate' | 'declaration' | string;
+  value: unknown;
+  expected: unknown;
+  manifest_path: string;
+}
+
+export interface EvaluatorLockState {
+  locked_at: string | null;
+  current: EvaluatorLockRecord | null;
+  in_force: boolean;
+  candidate: LockCandidate | null;
+  serving_provider: string | null;
+  can_declare: boolean;
+  blockers: string[];
+  // A string, or (evaluator_live_drift) the list of evaluator-scope keys that drift.
+  blocker_detail?: Partial<Record<string, string | string[]>>;
+  gate: (IccVerdict & { groups?: LockCorpusGroup[] }) | null;
+  manifest: EvaluatorLockManifest | null;
+  manifest_diff: ManifestDiffRow[] | null;
+  migrations_pending?: string[];
+  confirm_phrases?: { replace_lock?: string };
+}
+
+// POST /admin/evaluator-lock. Success, or one bilingual { error, code, ...detail } body.
+export interface EvaluatorLockPostResult {
+  ok?: boolean;
+  locked_at?: string;
+  record?: EvaluatorLockRecord;
+  manifest_sha256?: string;
+  evaluator_sha256?: string;
+  error?: ApiError;
+  code?: string;
+  httpStatus?: number;
+  details?: { fieldErrors?: Record<string, string[] | undefined>; formErrors?: string[] };
+  confirm_phrase?: string;
+  diff?: ManifestDiffRow[];
+  migrations?: string[];
+  reason?: string;
+  inconsistent?: { step: string; left: string }[];
+  detail?: string;
+  // 409 evaluator_live_drift (services/model-lock.js evaluatorLiveDrift): the evaluator-scope keys whose
+  // live value differs from the manifest, by name only, and the candidate provider they were read for.
+  keys?: string[];
+  provider?: string | null;
+  // lib/api.ts: the answer was not the backend's JSON (a proxy page, an empty body).
+  unreadableBody?: boolean;
+}
+
+// /admin/ai-providers `evaluator_lock`: whether the lock in force has a record behind it, and whether
+// that record carries the evaluator digest. `record` is null-free only while locked.
+export interface ProviderEvaluatorLock {
+  locked: boolean;
+  record: 'found' | 'none' | 'migration_pending' | 'unreadable' | null;
+  manifest_bound: boolean | null;
+}
+
+// /admin/ai-readiness `manifest`: rimpl's PUBLIC /health/deep block (services/manifest.js health()).
+// Each drift entry carries a key and its expected value; free-text live values arrive only hashed. The
+// readiness screen shows the KEYS only.
+export interface ReadinessManifest {
+  sha256: string | null;
+  claimed_sha256?: string | null;
+  file: string | null;
+  code_match: boolean | null;
+  drift?: { key: string }[] | null;
+  // Added by the backend beside rimpl's block (routes/superadmin.js, #160). Null when it could not be
+  // computed, absent from a backend older than #160: either way the screen does not classify.
+  evaluator_drift_keys?: string[] | null;
+  evaluator_provider?: string | null;
+}
+
+// /admin/ai-readiness `model_lock`: services/model-lock.js modelLockCheck (the /health/deep verdict).
+export interface ReadinessModelLock {
+  status: 'up' | 'down' | 'unknown' | string;
+  locked?: boolean | null;
+  locked_at?: string | null;
+  provider?: string | null;
+  manifest_sha256?: string | null;
+  evaluator_sha256?: string | null;
+  live_sha256?: string | null;
+  live_evaluator_sha256?: string | null;
+  // The live evaluator DIGEST against the frozen one. It says nothing about live overrides: with
+  // reason 'evaluator_live_drift' it is true while the serving configuration has drifted. Meaningful
+  // only beside a live_evaluator_sha256: the reasons sent before the live manifest is read carry
+  // `match: false` with no live digest, although nothing was compared.
+  match?: boolean | null;
+  reason?: string;
+  // The evaluator-scope keys the running rimpl overrides, by name (never values). Set whenever there are
+  // any, so with 'evaluator_changed_since_lock' as well as 'evaluator_live_drift'.
+  drift_keys?: string[];
+  // With 'live_manifest_unknown': why the live manifest was refused (unreachable, file_not_present,
+  // unverified, code_mismatch, malformed — services/model-lock.js MANIFEST_REASONS).
+  live_manifest?: string;
+  note?: string;
+  error?: string;
+}

@@ -20,7 +20,8 @@ const CHOICES = {
 };
 const PROVIDERS = { chat: 'anthropic', evaluate: 'anthropic', criteria: 'anthropic', discuss: 'anthropic', embed: 'openai' };
 const PHRASES = { change_evaluator: 'CHANGE EVALUATOR', unlock_evaluator: 'UNLOCK EVALUATOR', switch_unfit: 'SWITCH ANYWAY', replace_lock: 'REPLACE THE LOCK' };
-type Shape = { providers: typeof PROVIDERS; choices: Record<string, string[]>; evaluator_locked_at: string | null; confirm_phrases: typeof PHRASES };
+type Lock = { locked: boolean; record: 'found' | 'none' | 'migration_pending' | 'unreadable' | null; manifest_bound: boolean | null };
+type Shape = { providers: typeof PROVIDERS; choices: Record<string, string[]>; evaluator_locked_at: string | null; evaluator_lock?: Lock; confirm_phrases: typeof PHRASES };
 const shape = (over: Partial<Shape> = {}): Shape => ({ providers: { ...PROVIDERS }, choices: CHOICES, evaluator_locked_at: null, confirm_phrases: PHRASES, ...over });
 
 // GET answers with `get`; a PATCH answers with `patch(body)` (default: echo the change, as the backend does).
@@ -33,7 +34,6 @@ function wire(get: unknown = shape(), patch?: (b: Record<string, unknown>) => un
     if (patch) return Promise.resolve(patch(body));
     const s = shape();
     if (body.purpose) (s.providers as Record<string, string>)[body.purpose] = body.provider;
-    if (body.evaluator_locked === true) s.evaluator_locked_at = '2026-10-14T03:00:00Z';
     return Promise.resolve(s);
   });
 }
@@ -224,12 +224,76 @@ describe('AiProviderPanel — the evaluator', () => {
     expect(checked('PIS-7 evaluator')).toHaveAccessibleName(/Claude/);
   });
 
-  it('locks the evaluator with one PATCH', async () => {
+  // Locking moved to the Model Lock declaration (POST /admin/evaluator-lock): the backend answers
+  // PATCH { evaluator_locked: true } with 409 use_model_lock, so the panel must never send it.
+  it('offers locking only as a link to Model Lock, and sends no PATCH', async () => {
     render(<AiProviderPanel />);
     await loaded();
-    fireEvent.click(screen.getByRole('button', { name: /Lock the evaluator for the pilot/ }));
-    await screen.findByText(/locked/, { selector: 'span' });
-    expect(patches()).toEqual([{ evaluator_locked: true }]);
+    const link = screen.getByRole('link', { name: /Lock the evaluator/ });
+    expect(link).toHaveAttribute('href', '/admin/evaluator-lock');
+    // Styled itself, not a Button nested inside an <a>.
+    expect(link.querySelector('button')).toBeNull();
+    expect(link.closest('button')).toBeNull();
+    expect(screen.queryByRole('button', { name: /Lock the evaluator/ })).not.toBeInTheDocument();
+    // jsdom cannot navigate; stop the default so the click exercises only the panel's own handlers.
+    link.addEventListener('click', (e) => e.preventDefault());
+    fireEvent.click(link);
+    expect(patches()).toEqual([]);
+    expect(screen.getByText(/Opens Model Lock/)).toBeInTheDocument();
+  });
+
+  // jsdom cannot measure, so this pins what the browser measurement depends on: on one nowrap line the
+  // label was 257px in a 213px card at 320px. Thai over English, each line nowrap, the link capped at
+  // its container — measured inside the card at 320/360/1280.
+  it('the lock link stacks Thai over English and never outgrows its card', async () => {
+    render(<AiProviderPanel />);
+    await loaded();
+    const link = screen.getByRole('link', { name: /Lock the evaluator/ });
+    expect(link).toHaveClass('max-w-full');
+    expect(link).not.toHaveClass('whitespace-nowrap');
+    const lines = [...link.querySelectorAll('span > span')];
+    expect(lines.map((l) => l.textContent)).toEqual(['ล็อกผู้ให้คะแนน', 'Lock the evaluator']);
+    lines.forEach((l) => expect(l).toHaveClass('block', 'whitespace-nowrap'));
+  });
+
+  it('a lock with a manifest-bound record shows no binding warning', async () => {
+    wire(shape({ evaluator_locked_at: '2026-10-14T03:00:00Z', evaluator_lock: { locked: true, record: 'found', manifest_bound: true } }));
+    render(<AiProviderPanel />);
+    await loaded();
+    expect(screen.queryByText(/Not bound to the model manifest/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Lock the evaluator/ })).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['none', /retired quick-lock switch or by hand/],
+    ['found', /declared before locks were bound/],
+    ['migration_pending', /has not been migrated yet/],
+    ['unreadable', /could not be read, so whether it is bound to the manifest is unknown/],
+    [null, /could not be read, so whether it is bound to the manifest is unknown/],
+  ] as const)('a lock not bound to the manifest (record %s) says why, and links to Model Lock', async (record, why) => {
+    wire(shape({ evaluator_locked_at: '2026-10-14T03:00:00Z', evaluator_lock: { locked: true, record, manifest_bound: false } }));
+    render(<AiProviderPanel />);
+    await loaded();
+    const warning = screen.getByText('ไม่ได้ผูกกับ model manifest / Not bound to the model manifest').closest('[role="status"]') as HTMLElement;
+    expect(warning).toBeInTheDocument();
+    expect(within(warning).getByText(why)).toBeInTheDocument();
+    expect(within(warning).getByRole('link', { name: /Replace it on Model Lock/ })).toHaveAttribute('href', '/admin/evaluator-lock');
+    // Unlock is still there, unchanged.
+    expect(screen.getByRole('button', { name: 'ปลดล็อก / Unlock…' })).toBeInTheDocument();
+  });
+
+  it('says nothing about binding when the backend predates it, or when unlocked', async () => {
+    wire(shape({ evaluator_locked_at: '2026-10-14T03:00:00Z' }));
+    const first = render(<AiProviderPanel />);
+    await loaded();
+    expect(screen.queryByText(/Not bound to the model manifest/)).not.toBeInTheDocument();
+    first.unmount();
+
+    wire(shape({ evaluator_lock: { locked: false, record: null, manifest_bound: null } }));
+    render(<AiProviderPanel />);
+    await loaded();
+    expect(screen.queryByText(/Not bound to the model manifest/)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Lock the evaluator/ })).toBeInTheDocument();
   });
 
   it('once locked, the evaluator options are disabled and unlocking needs its own phrase', async () => {
