@@ -283,7 +283,9 @@ describe('checks.model_lock', () => {
       model_version_prefix: 'CCME_LLM_v8.0+',
       evaluator: { prompt_version: { anthropic: 'pis7-prompt-59561c29', local: 'pis7-prompt-59561c29+local-c5ffe572aa81' },
         rubric_version: 'pis7-weights-08b0cb1a' },
-      decoding: { evaluate: { max_tokens: 4096, temperature: 0 }, chat: { max_tokens: 1024, temperature: 0.7 } },
+      decoding: { evaluate: { max_tokens: 4096, temperature: 0 }, chat: { max_tokens: 1024, temperature: 0.7 },
+        num_ctx: { local: { default: null, env: 'LOCAL_AI_NUM_CTX', sent: 'as options.num_ctx, only when > 0' },
+          'local-tutor': { default: null, env: 'LOCAL_TUTOR_AI_NUM_CTX', sent: 'as options.num_ctx, only when > 0' } } },
       consistency: {
         agree: { max_domain_delta: 1, max_sum_delta: { default: 0, env: 'EVAL_CONSISTENCY_MAX_SUM_DELTA' } },
         evaluate: { json_retries: { default: 2, env: 'EVAL_JSON_RETRIES' }, mode: { applies_to: 'local', default: 'off', env: 'EVAL_CONSISTENCY' } },
@@ -313,7 +315,7 @@ describe('checks.model_lock', () => {
   afterEach(() => { jest.restoreAllMocks(); });
 
   // `lock`: { locked_at?, row?: {...}|null, rowError?, readError? }. `live`: the GET /manifest answer
-  // (expected half + whole sha), or an Error to reject with.
+  // (expected half + whole sha, optionally its raw `drift[]`), or an Error to reject with.
   function world({ lock = {}, live = { expected: EXPECTED, sha256: FROZEN }, deepSha = FROZEN } = {}) {
     m.state.resolve = (table, kind, c) => {
       if (table === 'professionals') return { count: 1, error: null };
@@ -336,7 +338,7 @@ describe('checks.model_lock', () => {
       fetchRimplManifest.mockResolvedValue({
         manifest: { schema: 'clics-model-manifest/v1', expected: live.expected, sha256: live.sha256 },
         sha256: live.sha256, claimed_sha256: live.sha256, file: live.file ?? 'present',
-        code_match: live.code_match ?? true, live: {}, drift: [],
+        code_match: live.code_match ?? true, live: {}, drift: live.drift ?? [],
       });
     }
   }
@@ -446,6 +448,7 @@ describe('checks.model_lock', () => {
       ['the rubric', (e) => { e.code.evaluator.rubric_version = 'pis7-weights-ffffffff'; }],
       ['the model-version prefix', (e) => { e.code.model_version_prefix = 'CCME_LLM_v9.0+'; }],
       ['evaluate decoding', (e) => { e.code.decoding.evaluate.temperature = 0.3; }],
+      ['the evaluator\'s num_ctx (v3)', (e) => { e.code.decoding.num_ctx.local.default = 32768; }],
       ['evaluate consistency', (e) => { e.code.consistency.evaluate.json_retries.default = 5; }],
       ['the consistency agreement bound (agree.max_domain_delta)', (e) => { e.code.consistency.agree.max_domain_delta = 2; }],
       ['the consistency rules', (e) => { e.code.consistency.rules.pair = 'mean-of-agreeing-pair'; }],
@@ -504,6 +507,151 @@ describe('checks.model_lock', () => {
       const res = await get();
       expect(res.status).toBe(200);
       expect(res.body.checks.model_lock).toMatchObject({ status: 'unknown', locked: null, error: 'connection reset' });
+      expect(fetchRimplManifest).not.toHaveBeenCalled();
+    });
+  });
+
+  // Scope v3: consistency counts only as it governs the locked provider (rimpl's consistencyModeFor rule:
+  // EVAL_CONSISTENCY reaches applies_to, every other provider runs the default mode), and num_ctx counts
+  // only for an on-prem provider.
+  describe('scope v3: consistency as it governs the locked provider; num_ctx on-prem only', () => {
+    const anthropicLock = () => locked(lockedRow({ provider: 'anthropic', evaluator_sha256: evaluatorDigest(EXPECTED, 'anthropic') }));
+    const after = (mutate) => { const e = clone(); mutate(e); return { expected: e, sha256: OTHER }; };
+
+    test.each([
+      ['agree.max_domain_delta', (e) => { e.code.consistency.agree.max_domain_delta = 2; }],
+      ['agree.max_sum_delta', (e) => { e.code.consistency.agree.max_sum_delta.default = 3; }],
+      ['evaluate.json_retries', (e) => { e.code.consistency.evaluate.json_retries.default = 5; }],
+      ['rules', (e) => { e.code.consistency.rules.pair = 'mean-of-agreeing-pair'; }],
+      ['method', (e) => { e.code.consistency.method = 'majority'; }],
+      ['the local num_ctx', (e) => { e.code.decoding.num_ctx.local.default = 32768; }],
+    ])('an anthropic lock: %s changing → 200 with the note (not its instrument)', async (_label, mutate) => {
+      world({ lock: anthropicLock(), live: after(mutate) });
+      const res = await get();
+      expect(res.status).toBe(200);
+      expect(res.body.checks.model_lock).toMatchObject({ status: 'up', provider: 'anthropic', match: true,
+        note: 'tutor_or_router_changed_since_lock' });
+    });
+
+    test.each([
+      ['the default mode turning on (it would reach anthropic)', (e) => { e.code.consistency.evaluate.mode.default = 'adaptive'; }],
+      ['applies_to naming anthropic', (e) => { e.code.consistency.evaluate.mode.applies_to = 'anthropic'; }],
+    ])('an anthropic lock: %s → 503', async (_label, mutate) => {
+      world({ lock: anthropicLock(), live: after(mutate) });
+      expect((await get()).body.checks.model_lock).toMatchObject({ status: 'down', reason: 'evaluator_changed_since_lock' });
+    });
+
+    test('a local lock: the tutor\'s num_ctx changing → 200 with the note', async () => {
+      world({ lock: locked(), live: after((e) => { e.code.decoding.num_ctx['local-tutor'].default = 8192; }) });
+      const res = await get();
+      expect(res.status).toBe(200);
+      expect(res.body.checks.model_lock).toMatchObject({ status: 'up', note: 'tutor_or_router_changed_since_lock' });
+    });
+  });
+
+  // The digest covers the manifest's EXPECTED half, so an env override on an evaluator key
+  // (EVAL_CONSISTENCY, LOCAL_AI_MODEL, ...) leaves it equal while rimpl runs a different instrument.
+  // rimpl's GET /manifest reports that as `drift[]` with RAW values. Only the keys may reach the body.
+  describe('locked: live drift on an evaluator key degrades, keys only', () => {
+    const EXP_VALUE = 'EXPECTED-VALUE-SENTINEL-7f3a';
+    const LIVE_VALUE = 'LIVE-VALUE-SENTINEL-9c1e';
+    const liveWith = (...keys) => ({ expected: EXPECTED, sha256: FROZEN,
+      drift: keys.map((key) => ({ key, expected: EXP_VALUE, live: LIVE_VALUE })) });
+    const noValues = (body) => {
+      const text = JSON.stringify(body);
+      expect(text).not.toContain(LIVE_VALUE);
+      expect(text).not.toContain(EXP_VALUE);
+    };
+
+    test.each([
+      'code.decoding.evaluate.temperature', 'code.decoding.evaluate.max_tokens', 'code.decoding.num_ctx.local',
+      'code.consistency.evaluate_mode', 'code.consistency.max_sum_delta', 'code.consistency.json_retries',
+      'declared.providers.evaluate',
+      'declared.local.model', 'declared.local.served_model', 'declared.local.engine', 'declared.local.system_fingerprint',
+    ])('%s → 503 evaluator_live_drift; the digest still matches', async (key) => {
+      world({ lock: locked(), live: liveWith(key) });
+      const res = await get();
+      expect(res.status).toBe(503);
+      expect(res.body.status).toBe('degraded');
+      expect(res.body.checks.model_lock).toEqual({ status: 'down', locked: true, locked_at: LOCKED_AT, provider: 'local',
+        manifest_sha256: FROZEN, evaluator_sha256: EVAL, live_sha256: FROZEN, live_evaluator_sha256: EVAL, match: true,
+        reason: 'evaluator_live_drift', drift_keys: [key] });
+      expect(res.body.checks.rimpl.status).toBe('up');   // the lock alone degrades the verdict
+      noValues(res.body);
+    });
+
+    test.each([
+      ['tutor', 'declared.local-tutor.model'], ['tutor', 'declared.local-tutor.engine'],
+      ['tutor', 'declared.local-tutor.system_fingerprint'], ['tutor', 'code.thinking_style.local-tutor'],
+      ['chat', 'code.decoding.chat.temperature'], ['chat', 'code.decoding.chat.deep_max_tokens'], ['chat', 'declared.providers.chat'],
+      ['discuss', 'code.decoding.discuss.max_tokens'], ['criteria', 'declared.providers.criteria'],
+      ['shadow', 'code.decoding.shadow.max_tokens'], ['shadow', 'code.consistency.shadow_mode'],
+      ['router (no such key today)', 'code.router.version'],
+      ['the tutor\'s num_ctx', 'code.decoding.num_ctx.local-tutor'], ['chat-only', 'code.thinking_style.local'],
+      ['another provider', 'code.models.anthropic'],
+    ])('%s drift (%s) → 200, up, no drift_keys', async (_area, key) => {
+      world({ lock: locked(), live: liveWith(key) });
+      const res = await get();
+      expect(res.status).toBe(200);
+      expect(res.body.checks.model_lock).toEqual({ status: 'up', locked: true, locked_at: LOCKED_AT, provider: 'local',
+        manifest_sha256: FROZEN, evaluator_sha256: EVAL, live_sha256: FROZEN, live_evaluator_sha256: EVAL, match: true });
+      noValues(res.body);
+    });
+
+    test('a mix reports only the evaluator keys, in rimpl\'s order', async () => {
+      world({ lock: locked(), live: liveWith('declared.local-tutor.model', 'code.consistency.json_retries', 'code.decoding.chat.temperature', 'declared.local.model') });
+      const res = await get();
+      expect(res.status).toBe(503);
+      expect(res.body.checks.model_lock.drift_keys).toEqual(['code.consistency.json_retries', 'declared.local.model']);
+    });
+
+    describe('an anthropic lock', () => {
+      const anthropicLock = () => locked(lockedRow({ provider: 'anthropic', evaluator_sha256: evaluatorDigest(EXPECTED, 'anthropic') }));
+
+      test('the pinned Claude model drifting → 503', async () => {
+        world({ lock: anthropicLock(), live: liveWith('code.models.anthropic') });
+        const res = await get();
+        expect(res.status).toBe(503);
+        expect(res.body.checks.model_lock).toMatchObject({ status: 'down', provider: 'anthropic', match: true,
+          reason: 'evaluator_live_drift', drift_keys: ['code.models.anthropic'] });
+        noValues(res.body);
+      });
+
+      test('consistency overrides (EVAL_CONSISTENCY and siblings) and the local num_ctx drifting → 200', async () => {
+        world({ lock: anthropicLock(), live: liveWith('code.consistency.evaluate_mode', 'code.consistency.max_sum_delta',
+          'code.consistency.json_retries', 'code.decoding.num_ctx.local') });
+        const res = await get();
+        expect(res.status).toBe(200);
+        expect(res.body.checks.model_lock).toMatchObject({ status: 'up', provider: 'anthropic', match: true });
+        expect(res.body.checks.model_lock).not.toHaveProperty('drift_keys');
+      });
+
+      test('another provider\'s declared block (declared.local.*) drifting → 200', async () => {
+        world({ lock: anthropicLock(), live: liveWith('declared.local.model', 'declared.local.engine', 'declared.local.served_model') });
+        const res = await get();
+        expect(res.status).toBe(200);
+        expect(res.body.checks.model_lock).toMatchObject({ status: 'up', provider: 'anthropic', match: true });
+        expect(res.body.checks.model_lock).not.toHaveProperty('drift_keys');
+      });
+    });
+
+    test('a changed digest AND live drift: the digest is the reason, the keys still listed', async () => {
+      const live = clone();
+      live.code.evaluator.rubric_version = 'pis7-weights-ffffffff';
+      world({ lock: locked(), live: { ...liveWith('code.consistency.evaluate_mode'), expected: live, sha256: OTHER } });
+      const res = await get();
+      expect(res.status).toBe(503);
+      expect(res.body.checks.model_lock).toMatchObject({ status: 'down', match: false, reason: 'evaluator_changed_since_lock',
+        drift_keys: ['code.consistency.evaluate_mode'] });
+      noValues(res.body);
+    });
+
+    test('unlocked: evaluator drift on GET /manifest is never fetched, and never degrades', async () => {
+      world({ live: liveWith('code.consistency.evaluate_mode', 'declared.local.model') });
+      const res = await get();
+      expect(res.status).toBe(200);
+      expect(res.body.checks.model_lock).toEqual({ status: 'up', locked: false, locked_at: null,
+        manifest_sha256: null, live_sha256: FROZEN, match: null });
       expect(fetchRimplManifest).not.toHaveBeenCalled();
     });
   });

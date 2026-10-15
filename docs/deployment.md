@@ -168,24 +168,43 @@ select count(*) from information_schema.columns                         -- 1 whe
 **What the lock freezes: the evaluator only.** At declaration the backend stores three things on the lock
 record: `manifest_sha256` (the whole manifest, for the record), `manifest` (its expected half), and
 `evaluator_sha256`, the digest of the **scoring instrument**. `evaluator_sha256` is sha256 over canonical
-JSON (object keys sorted recursively, array order kept), tagged `clics-evaluator-scope/v2` plus the locked
+JSON (object keys sorted recursively, array order kept), tagged `clics-evaluator-scope/v3` plus the locked
 provider, over exactly these keys of the manifest's `expected` (one helper, `evaluatorDigest` in
 `backend/src/services/model-lock.js`, used at lock time and at health time):
 
 - `code.evaluator` (prompt versions incl. the local addendum, rubric version)
 - `code.model_version_prefix`
 - `code.decoding.evaluate`
-- `code.consistency` **minus its `shadow` key**: `agree` (`max_domain_delta`, `max_sum_delta`), `evaluate`
-  (mode, JSON retries), `method`, `modes`, `rules` — how the local evaluator's repeated scores are reconciled
-  when consistency is on. (`v1` covered `code.consistency.evaluate` alone; no lock was taken under it.)
+- `code.decoding.num_ctx.<locked provider>`, **only for an on-prem provider** (not `anthropic`): the
+  `LOCAL_AI_NUM_CTX` context override the local transport sends on every call when it is above 0. It decides
+  how much of the transcript the model sees. The Anthropic transport sends no such option.
+- `code.consistency` **minus its `shadow` key, as it governs the locked provider.** rimpl's rule
+  (`consistencyModeFor` in `rimpl/src/lib/consistency-config.js`): `EVAL_CONSISTENCY` reaches only the
+  provider named in `code.consistency.evaluate.mode.applies_to` (`local`), and every other provider runs the
+  code default mode (`off`).
+  - When it governs the locked provider, that is, the provider is `applies_to` or the default mode is not
+    `off`, the whole block is in: `agree` (`max_domain_delta`, `max_sum_delta`), `evaluate` (mode, JSON
+    retries), `method`, `modes` and `rules`. This is how the local evaluator's repeated scores are reconciled
+    into one.
+  - Otherwise only `evaluate.mode.applies_to` and `evaluate.mode.default` are in, because changing either
+    would put the rule on that provider's scores. An `anthropic` lock is therefore not moved by the local
+    arm's consistency settings.
+  - A manifest that does not name `applies_to` keeps the whole block in for every provider (fails closed).
 - `code.providers.allowed.evaluate`
 - `declared.providers.evaluate`
 - `declared.<locked provider>` (e.g. `declared.local`: engine + model)
 - `code.anthropic`, only when the locked provider is `anthropic`
 
-Tutor, router, chat, the shadow evaluator's consistency settings and other providers' declared blocks are
-outside it. Changing them after a lock is
-allowed. Changing any listed key needs a new declaration (`REPLACE THE LOCK`).
+Tutor, router, chat, the shadow evaluator's consistency settings, other providers' declared blocks and other
+providers' `num_ctx` are outside it. Changing them after a lock is allowed. Changing any listed key needs a
+new declaration (`REPLACE THE LOCK`).
+
+Scope history: `v1` covered `code.consistency.evaluate` alone. `v2` widened it to all of `code.consistency`
+except `shadow`. `v3` (2026-10-15) adds the on-prem evaluator's `num_ctx`, which `v2` missed although it
+truncates what the evaluator sees. It also limits consistency to the provider the rule governs, because
+under `v2` an `anthropic` lock was blocked and degraded by `EVAL_CONSISTENCY`, which never reaches it. No
+lock was taken under `v1` or `v2`. A frozen digest can only be recomputed by the scope it was taken under,
+so any further change to the scope needs a new tag.
 
 **Once a lock is in force,** `/health/deep` → `checks.model_lock` fetches rimpl `GET /manifest` (internal
 token, cached at most 60 s: `HEALTH_MANIFEST_CACHE_MS`, default and ceiling `60000`; fetch bounded by
@@ -198,11 +217,67 @@ clears the cache), recomputes the evaluator digest with the same helper, and com
 - **mismatch** → **503**, `reason: 'evaluator_changed_since_lock'` (both evaluator digests reported). The
   instrument the study froze is no longer the one scoring: roll rimpl back, or stop scoring and re-declare
   (`REPLACE THE LOCK`).
-- **503 also when** rimpl cannot report a code-matched manifest (`live_manifest_unknown`), the lock record
+- **503 also when** rimpl reports a live override on an evaluator key (`evaluator_live_drift`, below),
+  rimpl cannot report a code-matched manifest (`live_manifest_unknown`), the lock record
   has no `evaluator_sha256` or provider (`lock_not_bound_to_manifest`: a lock taken before this change, or
   set by hand), the record table is unmigrated (`lock_record_unmigrated`) or unreadable
   (`lock_record_unreadable`). An unreadable lock state reports `unknown`.
 - **Unlocked:** unchanged. Never degrades, and makes no manifest fetch.
+
+**Live overrides on the evaluator's keys block a lock, and degrade one in force.** The evaluator digest is
+taken over the manifest's `expected` half: code defaults plus the declared file. An env override changes
+what rimpl runs without changing that half, so the digest cannot see it. rimpl reports the difference
+separately, as `GET /manifest` → `drift[]` (key names from `rimpl/src/lib/manifest.js`). The backend reads
+only the **keys** that fall in the evaluator's scope (`evaluatorDriftKeys` in
+`backend/src/services/model-lock.js`). It never relays the values, which that endpoint returns raw.
+
+| Drift key | What sets it on rimpl |
+|-----------|-----------------------|
+| `code.consistency.evaluate_mode` (when consistency governs the provider: a `local` lock) | `EVAL_CONSISTENCY` (applies to the `local` arm only) |
+| `code.consistency.max_sum_delta` (same condition) | `EVAL_CONSISTENCY_MAX_SUM_DELTA` |
+| `code.consistency.json_retries` (same condition) | `EVAL_JSON_RETRIES` |
+| `code.decoding.num_ctx.local` (local lock) | `LOCAL_AI_NUM_CTX` |
+| `code.decoding.evaluate.temperature`, `code.decoding.evaluate.max_tokens` | No env var: `EVAL_DECODING` is fixed in `rimpl/src/lib/decoding.js`. Drifts only if the running code is not the manifest's. |
+| `declared.providers.evaluate` | `app_settings.ai_provider_evaluate`, then `AI_PROVIDER_EVALUATE`, then `AI_PROVIDER` (default `anthropic`) |
+| `declared.local.model` (local lock) | `LOCAL_AI_MODEL` |
+| `declared.local.served_model`, `.engine`, `.system_fingerprint` (local lock) | What the server at `LOCAL_AI_BASE_URL` reported on its last call. Not compared until it has answered once since rimpl booted. |
+| `code.models.anthropic` (anthropic lock) | No env var: `ANTHROPIC_MODEL` is pinned in `rimpl/src/lib/provider-policy.js`. |
+
+So a `local` lock watches 11 keys and an `anthropic` lock watches 4 (`code.decoding.evaluate.*`,
+`declared.providers.evaluate`, `code.models.anthropic`). The consistency condition is read from the
+manifest's own `code.consistency.evaluate.mode`. Without it, the consistency keys stay in (fails closed).
+
+**The server-reported keys are blind until the server has answered once.** rimpl compares
+`declared.local.served_model`, `.engine` and `.system_fingerprint` only against what the local server
+reported on its most recent call since rimpl booted (unobserved is not drift). Straight after a rimpl
+restart, a lock can therefore be declared before a server mismatch is visible. This is left as is. Once
+the first evaluate call lands, the next manifest fetch sees the mismatch, and `/health/deep` degrades
+(`evaluator_live_drift`) within the 60 s cache window.
+
+- **Declaring:** `GET /admin/evaluator-lock` adds the blocker `evaluator_live_drift`, with the keys in
+  `blocker_detail.evaluator_live_drift`. `POST` refuses with **409 `evaluator_live_drift`** (`keys`,
+  `provider`). Remove the override. If the change is intended, make it in the code or in
+  `rimpl/src/model-manifest.declared.json`, regenerate the manifest (`node scripts/manifest/build.mjs`),
+  redeploy rimpl, then lock.
+- **Locked:** `checks.model_lock` → **503**, `reason: 'evaluator_live_drift'`, `drift_keys: [...]`, while the
+  digest still matches. `/admin/ai-readiness` → `model_lock` reports the same. When the digest has changed
+  as well, the reason is `evaluator_changed_since_lock`, and `drift_keys` is still listed. Remove the
+  override, or stop scoring and re-declare (`REPLACE THE LOCK`).
+- **Shown on the screens, keys only:** `GET /admin/evaluator-lock` → `manifest.evaluator_drift_keys` (always
+  present on a verified manifest, `[]` when nothing on the scope drifts) and `manifest.evaluator_provider`
+  (the candidate's provider, or the one serving `evaluate` when there is no candidate).
+  `GET /admin/ai-readiness` → `manifest.evaluator_drift_keys` and `manifest.evaluator_provider`, beside
+  rimpl's public block. These are computed for the locked provider while locked, otherwise for the serving
+  one, and both are `null` when neither can be read. The public block carries the same drift keys, but not
+  the manifest's expected half. So when a consistency key is present, the route reads `GET /manifest`
+  through the same 60 s cache. The dashboard reads these fields and does not re-implement the filter.
+- **Never block or degrade:** `SHADOW_EVAL_MAX_TOKENS`, `SHADOW_EVAL_CONSISTENCY`, `RIMPL_DISCUSS_MAX_TOKENS`,
+  `RIMPL_CHAT_MAX_TOKENS`, `RIMPL_CHAT_DEEP_MAX_TOKENS`, `AI_PROVIDER_CHAT` / `_CRITERIA` / `_DISCUSS`, every
+  `LOCAL_TUTOR_AI_*` variable (including `LOCAL_TUTOR_AI_NUM_CTX`) and `LOCAL_AI_THINKING_STYLE`. For an
+  `anthropic` lock, add `EVAL_CONSISTENCY`, `EVAL_CONSISTENCY_MAX_SUM_DELTA`, `EVAL_JSON_RETRIES`,
+  `LOCAL_AI_NUM_CTX` and `declared.local.*`. For a `local` lock, add `code.models.anthropic`.
+- **Unlocked:** unchanged. rimpl's own `/health/deep` warns on drift. The backend fetches nothing and never
+  degrades.
 
 **Declaring needs the candidate to be serving.** POST refuses with 409 `candidate_not_serving` unless the
 candidate's provider is the one in `ai_provider_evaluate`, and with 409 `manifest_mismatch` (a `provider`
