@@ -67,6 +67,13 @@ function configFingerprint(p) {
     ...(p.engine ? { engine: p.engine } : {}),
     ...(p.quantization ? { quantization: p.quantization } : {}),
     ...(p.runtime ? { runtime: p.runtime } : {}),
+    // The DECLARATION behind the lock in force, by the same rule (#75 acceptance criterion 7). Its
+    // declared quantization, inference engine, environment and system prompt version are things no
+    // API reports, so without this two locks over the same weights checksum — the same file served at
+    // fp8 and at bf16, say — gave scores with identical fingerprints. The backend sends it ONLY while a
+    // lock is in force (services/model-lock.js lockDeclarationDigest), so an unlocked or pre-lock row
+    // hashes byte-identically to before (tests/provenance-lock-declaration.test.js pins master's values).
+    ...(p.lock_declaration_sha256 ? { lock_declaration_sha256: p.lock_declaration_sha256 } : {}),
   });
   return createHash('sha256').update(canonical).digest('hex').slice(0, 16);
 }
@@ -78,11 +85,15 @@ function configFingerprint(p) {
  * the backend). Null means the evaluator has not been locked yet — which is itself the honest
  * answer, and is exactly what a reviewer asking "was this score produced under the locked
  * configuration?" needs to see.
+ *
+ * `lockDeclarationSha256` is the backend's digest over the whole declared Model Lock Record (weights,
+ * engine, quantization, environment, prompt and rubric versions, decoding). Null = no lock in force.
+ * Opaque here: rimpl cannot recompute it, it only carries it into the score and its fingerprint.
  */
 function buildProvenance({
   provider, model, promptVersion, rubricVersion,
   temperature, maxTokens, topP, seed, numCtx,
-  weightsSha256 = null, engine = null, quantization = null, runtime = null,
+  weightsSha256 = null, lockDeclarationSha256 = null, engine = null, quantization = null, runtime = null,
   consistency = null,
   deid = null,
 }) {
@@ -101,6 +112,7 @@ function buildProvenance({
     },
     // Declared: filled from the Model Lock Record. Null until the evaluator is locked.
     weights_sha256: weightsSha256 || null,
+    lock_declaration_sha256: lockDeclarationSha256 || null,
     engine: engine || null,
     quantization: quantization || null,
     runtime: runtime || null,

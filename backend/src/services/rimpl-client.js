@@ -208,14 +208,21 @@ async function rimplDeidentify({ messages, patient_ref, chief_complaint }) {
 // and the persisted PII map, the auditor's view and the evaluator's input agree on every token. A
 // caller that omits it (the calibration harness) gets the transcript-only numbering, recorded as such
 // in provenance.deid. An older RIMPL ignores the key (its zod schemas strip unknown keys).
-async function rimplEvaluate({ ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256 }) {
+async function rimplEvaluate({ ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256, lock_declaration_sha256 }) {
   const res = await fetch(`${RIMPL_URL}/evaluate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
     // weights_sha256: the DECLARED Model Lock checksum (§10.2). RIMPL cannot read it — the weights
     // file sits on the DGX, not behind the inference API — so it is stamped onto the score from the
     // declaration instead, and its absence is recorded as "not locked" rather than hidden.
-    body: JSON.stringify({ ple_id, transcript, patient_ref, chief_complaint: chief_complaint ?? null, shadow, weights_sha256: weights_sha256 ?? null }),
+    // lock_declaration_sha256: the digest of the whole declaration behind the lock in force
+    // (services/model-lock.js lockDeclarationDigest), which rimpl folds into config_fingerprint. The key
+    // is ABSENT when unlocked, not null, so an unlocked request is byte-identical to before. A config
+    // hash, never a transcript or an identifier; rimpl stamps it on the score and sends it nowhere else.
+    // An older rimpl strips the key (zod) and answers 200 anyway; services/ple-evaluation.js's echo check
+    // then refuses to save the score and defers it, so deploy rimpl first.
+    body: JSON.stringify({ ple_id, transcript, patient_ref, chief_complaint: chief_complaint ?? null, shadow, weights_sha256: weights_sha256 ?? null,
+      ...(lock_declaration_sha256 ? { lock_declaration_sha256 } : {}) }),
     signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
   });
   if (!res.ok) throw await rimplError('/evaluate', res);

@@ -14,6 +14,8 @@
 //                          expected-half digest cannot see): blocks a lock, degrades one in force
 //   lockSchemaStatus()     whether db/migration-evaluator-lock-manifest.sql has been applied
 //   lockInForce()          the lock the flag points at, and what was frozen on it
+//   lockDeclarationDigest() a digest over a lock record's DECLARED fields, carried by every post-lock score
+//                          (read back for each evaluation by services/ple-evaluation.js evaluationLockStamp)
 //   modelLockCheck()       /health/deep's verdict on the lock in force (also relayed by /admin/ai-readiness)
 //
 // WHAT THE LOCK FREEZES: THE SCORING INSTRUMENT, NOT THE WHOLE BUILD (owner's decision, 2026-10-15).
@@ -572,6 +574,43 @@ async function lockInForce() {
 
 const lower = (v) => (typeof v === 'string' && v ? v.toLowerCase() : null);
 
+// ---- the declaration every post-lock score carries (#75 acceptance criterion 7) -------------------
+//
+// rimpl's per-score config_fingerprint (rimpl/src/lib/provenance.js) covers what rimpl can see: provider,
+// model, the declared weights digest, prompt and rubric versions, the decoding actually sent, and the
+// serving stack WHEN the server reports it. The rest of the declaration exists only on the lock record:
+// the declared inference engine, the quantization (vLLM can load the same weights file at fp8 or bf16),
+// the environment (library versions), the system prompt version and the declared decoding. Without it,
+// two locks over the same weights checksum gave scores with identical fingerprints.
+//
+// So an evaluation run while a lock is in force carries lockDeclarationDigest() of the record the flag
+// points at (services/ple-evaluation.js evaluationLockStamp reads it), and rimpl folds it into the
+// fingerprint. ONLY then: unlocked, nothing is sent, and the fingerprint is the one it always was.
+//
+// IN IT: exactly LOCK_DECLARATION_FIELDS, each the record's value or null when the record lacks it, as
+// canonical JSON (canonicalJson above: keys sorted recursively, array order kept) tagged with
+// LOCK_DECLARATION_VERSION. Values are taken as stored, so a STATED "no seed" (decoding.seed: null) and
+// an undeclared seed (no key) are different declarations, as the lock form treats them.
+// NOT IN IT: id, locked_at, locked_by, gate, note and the manifest columns. They say when, by whom and on
+// what evidence a lock was taken, not what it froze; with them, re-declaring identical values would give
+// a new digest and split one configuration's scores into two groups. The manifest columns describe
+// rimpl's build: its evaluator part is what each score already measures (prompt, rubric, decoding,
+// consistency) and what /health/deep compares against evaluator_sha256.
+// Changing the field set or the payload means a new tag: a digest can only be recomputed by the version
+// it was taken under.
+const LOCK_DECLARATION_VERSION = 'clics-lock-declaration/v1';
+const LOCK_DECLARATION_FIELDS = Object.freeze([
+  'weights_sha256', 'inference_engine', 'quantization', 'environment',
+  'system_prompt_version', 'evaluator_prompt_version', 'rubric_version', 'decoding',
+  'provider', 'model_version',
+]);
+
+function lockDeclarationDigest(record) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) throw new TypeError('lockDeclarationDigest needs a lock record');
+  const declaration = Object.fromEntries(LOCK_DECLARATION_FIELDS.map((k) => [k, record[k] ?? null]));
+  return crypto.createHash('sha256').update(canonicalJson({ v: LOCK_DECLARATION_VERSION, declaration }), 'utf8').digest('hex');
+}
+
 /**
  * /health/deep's verdict on the lock (and /admin/ai-readiness's relay of it).
  *
@@ -625,6 +664,7 @@ async function modelLockCheck(lock, { deep = null, fetchTimeoutMs } = {}) {
 module.exports = {
   manifestForLock, judgeManifest, cachedLiveManifest, resetManifestCache, expectedFor, manifestDiff, manifestMismatch,
   evaluatorScope, evaluatorDigest, canonicalJson, EVALUATOR_SCOPE_VERSION, lockSchemaStatus, lockInForce, modelLockCheck,
+  lockDeclarationDigest, LOCK_DECLARATION_VERSION, LOCK_DECLARATION_FIELDS,
   isEvaluatorDriftKey, evaluatorDriftKeys, evaluatorLiveDrift, consistencyGoverns,
   driftKeyRules, driftKeysOf, DRIFT_IN, DRIFT_OUT, MALFORMED_DRIFT_KEY,
   migrationRequired, isMissingColumnOrTable, isMissingTable,

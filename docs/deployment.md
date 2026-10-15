@@ -206,6 +206,22 @@ under `v2` an `anthropic` lock was blocked and degraded by `EVAL_CONSISTENCY`, w
 lock was taken under `v1` or `v2`. A frozen digest can only be recomputed by the scope it was taken under,
 so any further change to the scope needs a new tag.
 
+**Post-lock scores carry the declaration (#75 criterion 7).** While a lock is in force, each evaluation
+also carries `lock_declaration_sha256`. It is sha256 over canonical JSON, tagged `clics-lock-declaration/v1`,
+of the in-force record's declared fields: `weights_sha256`, `inference_engine`, `quantization`,
+`environment`, `system_prompt_version`, `evaluator_prompt_version`, `rubric_version`, `decoding`, `provider`
+and `model_version` (`lockDeclarationDigest` in `backend/src/services/model-lock.js`). rimpl stamps it in
+`provenance` and folds it into `config_fingerprint`. So two locks over the same weights checksum, for
+example the same file served at fp8 and at bf16, now give different fingerprints. It enters the
+fingerprint **only while locked**: unlocked and pre-lock scores send nothing and keep their fingerprint
+byte for byte. Re-declaring identical values gives the same digest, because `id`, `locked_at`,
+`locked_by`, `gate`, `note` and the manifest columns are left out. `POST /admin/evaluator-lock` returns
+the value and records it in its audit entry. If the record behind the flag cannot be read, is missing,
+or names other weights than `evaluator_weights_sha256`, the evaluation defers (503, retried by the drain).
+A rimpl older than this change makes locked evaluations defer, not mis-stamp: the backend saves a locked
+score only if its provenance echoes both digests it sent (else 503 `lock_declaration_not_stamped` /
+`lock_weights_not_stamped`, then manual QA after `EVAL_MAX_ATTEMPTS`), so deploy rimpl first.
+
 **Once a lock is in force,** `/health/deep` → `checks.model_lock` fetches rimpl `GET /manifest` (internal
 token, cached at most 60 s: `HEALTH_MANIFEST_CACHE_MS`, default and ceiling `60000`; fetch bounded by
 `HEALTH_RIMPL_TIMEOUT_MS`, default `2500`; a failed fetch is cached too, and a successful declaration

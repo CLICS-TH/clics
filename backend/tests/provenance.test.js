@@ -97,14 +97,16 @@ describe('the backend stamps it onto the score', () => {
   test('persistEvaluation writes provenance through to ai_evaluations', () => {
     const src = require('fs').readFileSync(require('path').join(__dirname, '../src/services/ple-evaluation.js'), 'utf8');
     expect(src).toMatch(/provenance: result\.provenance/);
-    // ...and the declared checksum is read per call, so a mid-pilot re-declaration is visible as a
-    // fingerprint change in the data rather than being hidden by a cached value.
-    expect(src).toMatch(/await evaluatorWeightsSha256\(\)/);
+    // ...and the declared checksum (with the declaration digest) is read per call, so a mid-pilot
+    // re-declaration is visible as a fingerprint change in the data rather than hidden by a cached value.
+    expect(src).toMatch(/await evaluationLockStamp\(\)/);
   });
 
   test('the checksum reaches RIMPL — a value read but not forwarded would stamp nothing', () => {
     const src = require('fs').readFileSync(require('path').join(__dirname, '../src/services/rimpl-client.js'), 'utf8');
     expect(src).toMatch(/weights_sha256: weights_sha256 \?\? null/);
+    // The declaration digest too, and only when there is one (#75 criterion 7).
+    expect(src).toMatch(/\.\.\.\(lock_declaration_sha256 \? \{ lock_declaration_sha256 \} : \{\}\)/);
   });
 });
 

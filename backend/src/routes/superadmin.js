@@ -21,7 +21,7 @@ const { getTextSetting, getTextSettingStrict, minAuditorsPerPle } = require('../
 const {
   manifestForLock, expectedFor, manifestDiff, manifestMismatch, evaluatorDigest, lockSchemaStatus, lockInForce,
   evaluatorDriftKeys, evaluatorLiveDrift, cachedLiveManifest, driftKeysOf,
-  modelLockCheck, resetManifestCache, migrationRequired, isMissingColumnOrTable, isMissingTable,
+  modelLockCheck, resetManifestCache, migrationRequired, isMissingColumnOrTable, isMissingTable, lockDeclarationDigest,
   relockRequired, unlockRequired, evaluatorLocked, gateNotPassed, candidateNotEvaluator, candidateNotServing,
   LOCK_STATE_UNREADABLE, USE_MODEL_LOCK, SAVED_STATE_UNREADABLE, INVALID_DECLARATION_ERROR,
 } = require('../services/model-lock');
@@ -960,6 +960,10 @@ router.post('/evaluator-lock', async (req, res) => {
       code: 'lock_record_unconfirmed', locked_at: now,
     });
   }
+  // What every score from now on carries as provenance.lock_declaration_sha256 (services/ple-evaluation.js
+  // evaluationLockStamp reads this record back and digests it the same way). From the row the database
+  // RETURNED, not the request body, so the value recorded here is the one the evaluations compute.
+  const declarationSha = lockDeclarationDigest(row);
 
   // Two settings, deliberately written AFTER the record exists: evaluator_locked_at is what the
   // provider-switch endpoint refuses on, and evaluator_weights_sha256 is what every subsequent score
@@ -987,7 +991,7 @@ router.post('/evaluator-lock', async (req, res) => {
     metadata: { locked_at: now, record_id: row.id, weights_sha256: declaration.weights_sha256, replaced_lock: existingLock ?? null,
       provider: gate.candidate?.provider ?? null, model_version: gate.candidate?.model_version ?? null,
       prompt_version: declaration.evaluator_prompt_version, rubric_version: declaration.rubric_version,
-      manifest_sha256: manifest.sha256, evaluator_sha256: evaluatorSha, gate: gate.verdict } });
+      manifest_sha256: manifest.sha256, evaluator_sha256: evaluatorSha, lock_declaration_sha256: declarationSha, gate: gate.verdict } });
   if (audit.error) {
     console.error(`[evaluator-lock] audit write failed after lock ${row.id} — rolling back`);
     const failures = [
@@ -1005,7 +1009,8 @@ router.post('/evaluator-lock', async (req, res) => {
   // The health check's cached live manifest predates this declaration. Re-declaring after a rimpl
   // redeploy (REPLACE THE LOCK) would otherwise compare the new lock to the old build for up to 60 s.
   resetManifestCache();
-  res.json({ ok: true, locked_at: now, record: row, manifest_sha256: manifest.sha256, evaluator_sha256: evaluatorSha });
+  res.json({ ok: true, locked_at: now, record: row, manifest_sha256: manifest.sha256, evaluator_sha256: evaluatorSha,
+    lock_declaration_sha256: declarationSha });
 });
 
 // What each provider is actually able to do right now — model served, context window, reachability,
