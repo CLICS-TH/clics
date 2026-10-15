@@ -205,7 +205,7 @@ describe('local-vs-auditor with no Claude row required (anchor PLEs)', () => {
   const D = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
   const vec = (base, i) => Object.fromEntries(D.map((d, k) => [d, Math.max(0, Math.min(5, base + ((i + k) % 3) - 1))]));
   const comp = (v) => D.reduce((s, d) => s + v[d], 0) * 20 / 7;
-  function makeDb({ claudeOn = [], promptOf = () => 'pis7-prompt-x+local-y' } = {}) {
+  function makeDb({ claudeOn = [], promptOf = () => 'pis7-prompt-x+local-y', rubricOf = () => 'pis7-weights-z' } = {}) {
     const db = { ples: [], ai_evaluations: [], audit_scores: [], shadow_evaluations: [],
       professionals: [{ id: 'ph1', pseudonym: 'P-001' }, { id: 'aud-1', pseudonym: 'P-101', exp_code: 'EXP-R1' }] };
     for (let i = 0; i < 8; i++) {
@@ -217,7 +217,7 @@ describe('local-vs-auditor with no Claude row required (anchor PLEs)', () => {
       db.audit_scores.push({ id: `au-${id}`, ple_id: id, auditor_id: 'aud-1', composite_score: comp(human), ...human });
       db.shadow_evaluations.push({ id: `sh-${id}`, ple_id: id, provider: 'local', model_version: 'CCME_LLM_v8.0+m',
         evaluated_at: '2026-10-02T10:00:00Z', error: null, stop_reason: null, composite_score: comp(local), ...local,
-        prompt_version: promptOf(i), rubric_version: 'pis7-weights-z' });
+        prompt_version: promptOf(i), rubric_version: rubricOf(i) });
       if (claudeOn.includes(id)) {
         db.ai_evaluations.push({ id: `ai-${id}`, ple_id: id, composite_score: comp(local), ...local, prompt_version: 'p1', model_version: 'CCME_LLM_v8.0' });
       }
@@ -279,11 +279,15 @@ describe('local-vs-auditor with no Claude row required (anchor PLEs)', () => {
     assert.match(clean.stdout, /shadow prompt version\(s\): pis7-prompt-x\+local-y/);
     assert.doesNotMatch(clean.stdout, /this arm pools/);
 
-    const mixed = runOn(makeDb({ promptOf: (i) => (i < 4 ? 'pis7-prompt-x+local-y' : 'pis7-prompt-x+local-NEW') }), 'two-prompts');
+    // A PROMPT mixture can no longer reach this arm: the candidate is (provider, model, prompt), so two
+    // addenda are two candidates (see the next describe). A RUBRIC mixture under one prompt still can,
+    // and is still warned on.
+    const mixed = runOn(makeDb({ rubricOf: (i) => (i < 4 ? 'pis7-weights-z' : 'pis7-weights-NEW') }), 'two-rubrics');
     assert.equal(mixed.status, 0, mixed.stderr);
     a = latestArchive().local_vs_auditor_no_claude;
-    assert.deepEqual(a.prompt_versions, ['pis7-prompt-x+local-NEW', 'pis7-prompt-x+local-y']);
-    assert.match(mixed.stdout, /!! this arm pools 2 prompt and 1 rubric version/);
+    assert.deepEqual(a.prompt_versions, ['pis7-prompt-x+local-y']);
+    assert.deepEqual(a.rubric_versions, ['pis7-weights-NEW', 'pis7-weights-z']);
+    assert.match(mixed.stdout, /!! this arm pools 1 prompt and 2 rubric version/);
 
     const unrec = runOn(makeDb({ promptOf: () => null }), 'no-prompt');
     assert.equal(unrec.status, 0, unrec.stderr);
@@ -299,5 +303,133 @@ describe('local-vs-auditor with no Claude row required (anchor PLEs)', () => {
     const a = latestArchive();
     assert.equal(a.local_vs_auditor_no_claude.n, 0);
     assert.equal(a.local_vs_auditor_no_claude.arm, null);
+  });
+});
+
+describe('two prompt addenda are two candidates, and the script agrees with the endpoint', () => {
+  // The Model Lock freezes the candidate chosen by backend/src/services/agreement.js (pairedSets),
+  // grouped on (provider, model_version, prompt_version). This script reports the number an operator
+  // reads before declaring that lock. If the two group differently, the screen and the lock describe
+  // different instruments -- so this suite runs BOTH on the same fixture and compares.
+  const D = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
+  const clamp = (x) => Math.max(0, Math.min(5, x));
+  const comp = (v) => D.reduce((s, d) => s + v[d], 0) * 20 / 7;
+  const OLD = 'pis7-prompt-x+local-OLD';
+  const NEW = 'pis7-prompt-x+local-NEW';
+  const MODEL = 'CCME_LLM_v8.0+m';
+  // Ten audited PLEs, every one with a Claude row, scored by ONE model under TWO addenda. The OLD
+  // addendum tracks the auditor closely; the NEW one is noisy and runs later. Pooled, the arm would be
+  // a blend of both (and the per-PLE map would keep whichever row came last).
+  function twoAddendaDb() {
+    const db = { ples: [], ai_evaluations: [], audit_scores: [], shadow_evaluations: [],
+      professionals: [{ id: 'ph1', pseudonym: 'P-001' }, { id: 'aud-1', pseudonym: 'P-101', exp_code: 'EXP-R1' }] };
+    for (let i = 0; i < 10; i++) {
+      const id = `t${String(i).padStart(2, '0')}`;
+      const base = 1 + (i % 5);
+      const human = Object.fromEntries(D.map((d, k) => [d, clamp(base + ((k + i) % 2))]));
+      const oldS = Object.fromEntries(D.map((d, k) => [d, clamp(base + ((k + i + 1) % 2))]));
+      const newS = Object.fromEntries(D.map((d, k) => [d, clamp(((i * 3 + k) % 6))]));
+      const claude = Object.fromEntries(D.map((d, k) => [d, clamp(base + (k % 2))]));
+      db.ples.push({ id, is_test: false, physician_id: 'ph1' });
+      db.audit_scores.push({ id: `au-${id}`, ple_id: id, auditor_id: 'aud-1', composite_score: comp(human), ...human });
+      db.ai_evaluations.push({ id: `ai-${id}`, ple_id: id, composite_score: comp(claude), ...claude,
+        prompt_version: 'pis7-prompt-x', model_version: 'CCME_LLM_v8.0' });
+      db.shadow_evaluations.push({ id: `sh-old-${id}`, ple_id: id, provider: 'local', model_version: MODEL,
+        evaluated_at: `2026-10-01T10:${String(i).padStart(2, '0')}:00Z`, error: null, stop_reason: null,
+        composite_score: comp(oldS), ...oldS, prompt_version: OLD, rubric_version: 'pis7-weights-z' });
+      db.shadow_evaluations.push({ id: `sh-new-${id}`, ple_id: id, provider: 'local', model_version: MODEL,
+        evaluated_at: `2026-10-05T10:${String(i).padStart(2, '0')}:00Z`, error: null, stop_reason: null,
+        composite_score: comp(newS), ...newS, prompt_version: NEW, rubric_version: 'pis7-weights-z' });
+    }
+    return db;
+  }
+
+  let dbDir;
+  let dbFile;
+  before(() => {
+    dbDir = mkdtempSync(path.join(tmpdir(), 'three-way-addenda-'));
+    dbFile = path.join(dbDir, 'two-addenda.json');
+    writeFileSync(dbFile, JSON.stringify(twoAddendaDb()));
+  });
+  after(() => { rmSync(dbDir, { recursive: true, force: true }); });
+
+  // The endpoint's own code, against the same fixture: backend/src/lib/supabase.js is replaced in the
+  // require cache by the fixture client, so pairedSets runs unmodified. No network, no backend/.env.
+  const BACKEND = path.resolve(HERE, '..', '..', 'backend');
+  function endpoint(promptVersion) {
+    const src = `
+      const Module = require('module');
+      const stub = require(${JSON.stringify(path.join(FIX, 'stub-modules', '@supabase', 'supabase-js'))});
+      const supaPath = require.resolve(${JSON.stringify(path.join(BACKEND, 'src', 'lib', 'supabase.js'))});
+      const m = new Module(supaPath); m.filename = supaPath; m.loaded = true;
+      m.exports = { supabase: stub.createClient(), authSupabase: null, authAnon: null };
+      require.cache[supaPath] = m;
+      const { pairedSets, decisiveOverall, candidateSummary } = require(${JSON.stringify(path.join(BACKEND, 'src', 'services', 'agreement.js'))});
+      const want = process.env.WANT_PV;
+      (async () => {
+        const sets = await pairedSets(want === undefined ? {} : { promptVersion: want === 'unrecorded' ? null : want });
+        if (!sets.ok) throw new Error(JSON.stringify(sets.error));
+        const o = decisiveOverall(sets);
+        process.stdout.write(JSON.stringify({ candidate: candidateSummary(sets.candidate), groups: sets.groups,
+          icc: o ? o.icc : null, n: sets.compareIds.length }));
+      })().catch((e) => { console.error(e); process.exit(1); });`;
+    const env = { ...process.env, MOCK_DB: dbFile, SUPABASE_URL: 'http://fixture.invalid', SUPABASE_SERVICE_ROLE_KEY: 'fixture' };
+    if (promptVersion === undefined) delete env.WANT_PV; else env.WANT_PV = promptVersion;
+    const out = execFileSync(process.execPath, ['-e', src], { env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    return JSON.parse(out);
+  }
+
+  test('the script lists two candidates for one model under two prompts, and never pools them', () => {
+    const r = run([], { db: dbFile });
+    assert.equal(r.status, 0, r.stderr);
+    const a = latestArchive();
+    assert.equal(a.shadow.candidates.length, 2);
+    assert.deepEqual(a.shadow.candidates.map(c => c.prompt_version).sort(), [NEW, OLD]);
+    assert.deepEqual(a.shadow.candidates.map(c => c.rows), [10, 10], 'each candidate holds only its own rows');
+    // The most recent wins, exactly as the endpoint picks it.
+    assert.equal(a.shadow.prompt_version, NEW);
+    assert.deepEqual(a.shadow.rubric_versions, ['pis7-weights-z']);
+    assert.match(r.stdout, /Shadow candidate: local\/CCME_LLM_v8\.0\+m, prompt_version pis7-prompt-x\+local-NEW/);
+    assert.match(r.stdout, /one model appears under more than one prompt_version/);
+    assert.equal(a.corpus.shadow_scored, 10, 'the contract counts are one candidate, not both');
+  });
+
+  test('--shadow-prompt selects the other addendum; --prompt does not', () => {
+    const r = run(['--shadow-prompt', OLD], { db: dbFile });
+    assert.equal(r.status, 0, r.stderr);
+    const picked = latestArchive();
+    assert.equal(picked.shadow.prompt_version, OLD);
+    assert.equal(measuredCandidate(r.stdout), `local/${MODEL}`);
+    assert.match(r.stdout, new RegExp(`->\\s+local/\\S+ prompt=${OLD.replace(/[+.]/g, '\\$&')}`));
+
+    // 'unrecorded' names the null-prompt group; there is none here, so the arms go unavailable
+    // rather than silently falling back to another prompt.
+    const none = run(['--shadow-prompt', 'unrecorded'], { db: dbFile });
+    assert.equal(none.status, 0, none.stderr);
+    assert.match(none.stdout, /no shadow rows match .*--shadow-prompt=unrecorded/);
+    assert.equal(latestArchive().shadow.prompt_version, null);
+    assert.equal(latestArchive().arms.shadow_vs_human, null);
+  });
+
+  test('endpoint and script choose the same candidate and report the same decisive ICC', () => {
+    for (const pv of [undefined, OLD, NEW]) {
+      const r = run(pv === undefined ? [] : ['--shadow-prompt', pv], { db: dbFile });
+      assert.equal(r.status, 0, r.stderr);
+      const a = latestArchive();
+      const e = endpoint(pv);
+      const label = pv ?? '(default)';
+      assert.equal(a.shadow.provider, e.candidate.provider, label);
+      assert.equal(a.shadow.model_version, e.candidate.model_version, label);
+      assert.equal(a.shadow.prompt_version, e.candidate.prompt_version, label);
+      assert.equal(a.arms.shadow_vs_human.n, e.n, label);
+      assert.ok(Math.abs(a.arms.shadow_vs_human.overall.icc - e.icc) < 1e-9,
+        `${label}: script ICC ${a.arms.shadow_vs_human.overall.icc} vs endpoint ${e.icc}`);
+      // Both list the same groups.
+      assert.deepEqual(
+        a.shadow.candidates.map(c => [c.provider, c.model_version, c.prompt_version, c.rows]),
+        e.groups.map(g => [g.provider, g.model_version, g.prompt_version, g.rows]), label);
+    }
+    // And the two addenda really are different instruments here, so the test can tell them apart.
+    assert.notEqual(endpoint(OLD).icc, endpoint(NEW).icc);
   });
 });

@@ -2,6 +2,9 @@
 // (jest requires factory-referenced vars to be `mock`-prefixed.)
 let mockUpdates = [];
 let mockInsertErr = {}; // { tableName: 'message' } to simulate an insert failure
+// The evaluator lock settings (app_settings.value_text by key), and an error to answer their read with.
+let mockLockSettings = {};
+let mockSettingsReadErr = null;
 
 jest.mock('../src/lib/supabase', () => ({
   supabase: {
@@ -11,6 +14,10 @@ jest.mock('../src/lib/supabase', () => ({
         ? (typeof mockInsertErr[table] === 'string' ? { message: mockInsertErr[table] } : mockInsertErr[table])
         : null }),
       update: (patch) => ({ eq: () => { mockUpdates.push({ table, patch }); return Promise.resolve({ error: null }); } }),
+      // The weights-digest read (lib/settings.js evaluatorWeightsSha256, strict).
+      select: () => ({ eq: (_c, key) => ({ maybeSingle: () => Promise.resolve(mockSettingsReadErr
+        ? { data: null, error: { message: mockSettingsReadErr } }
+        : { data: key in mockLockSettings ? { value_text: mockLockSettings[key] } : null, error: null }) }) }),
     }),
   },
 }));
@@ -36,7 +43,7 @@ jest.mock('../src/lib/usage', () => ({ accrueUsage: (...a) => mockAccrue(...a) }
 
 const { triggerEvaluation, persistEvaluation } = require('../src/services/ple-evaluation');
 
-beforeEach(() => { mockAttempts = 0; mockFailFirst = 0; mockRejectStatus = null; mockUpdates = []; mockInsertErr = {}; mockAccrue.mockClear(); });
+beforeEach(() => { mockAttempts = 0; mockFailFirst = 0; mockRejectStatus = null; mockUpdates = []; mockInsertErr = {}; mockAccrue.mockClear(); mockLockSettings = {}; mockSettingsReadErr = null; require('../src/services/rimpl-client').rimplEvaluate.mockClear(); });
 
 test('succeeds on first try when RIMPL is healthy', async () => {
   await triggerEvaluation('ple1', [{ role: 'physician', content: 'x' }], 'doc1');
@@ -80,4 +87,35 @@ test('persistEvaluation throws and does NOT flip status when the score insert fa
   await expect(persistEvaluation('ple4', 'doc1', result)).rejects.toThrow(/ai_evaluations insert failed/);
   // no partial state: the PLE must not have been marked evaluated
   expect(mockUpdates.some(u => u.table === 'ples' && u.patch.status === 'evaluated')).toBe(false);
+});
+
+// The evaluator lock state rides on every evaluation: rimpl stamps provenance.locked = !!weights_sha256,
+// and ai_evaluations is written once per PLE. An unreadable digest used to read as null ("unlocked"),
+// so a post-lock score could be stamped `locked: false` for good.
+describe('the lock state is read strictly', () => {
+  const { rimplEvaluate } = require('../src/services/rimpl-client');
+
+  test('the declared digest travels to rimpl when the lock is in force', async () => {
+    mockLockSettings = { evaluator_weights_sha256: 'a'.repeat(64) };
+    await triggerEvaluation('ple-locked', [{ role: 'physician', content: 'x' }], 'doc1');
+    expect(rimplEvaluate).toHaveBeenCalledWith(expect.objectContaining({ weights_sha256: 'a'.repeat(64) }));
+  });
+
+  test('no digest (never locked, or unlocked) sends null — the honest "not locked"', async () => {
+    await triggerEvaluation('ple-unlocked', [{ role: 'physician', content: 'x' }], 'doc1');
+    expect(rimplEvaluate).toHaveBeenCalledWith(expect.objectContaining({ weights_sha256: null }));
+  });
+
+  test('an unreadable lock state DEFERS: a transient 503, thrown before rimpl is called, nothing written', async () => {
+    mockSettingsReadErr = 'connection reset';
+    const err = await triggerEvaluation('ple-unknown', [{ role: 'physician', content: 'x' }], 'doc1').catch((e) => e);
+    expect(err).toBeInstanceOf(Error);
+    expect(err.status).toBe(503);
+    expect(err.code).toBe('lock_state_unreadable');
+    // Transient by the drain's own rule, so it is deferred with backoff rather than routed to manual QA.
+    expect([400, 401, 403, 413, 422, 502]).not.toContain(err.status);
+    expect(rimplEvaluate).not.toHaveBeenCalled();     // nothing paid for, nothing scored with a guess
+    expect(mockUpdates).toHaveLength(0);
+    expect(mockAccrue).not.toHaveBeenCalled();
+  });
 });
