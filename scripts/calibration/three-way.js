@@ -45,6 +45,11 @@
  *   --include-test        include is_test PLEs (default: excluded, matching GET /oversight/icc)
  *   --provider <name>     pick the shadow candidate explicitly (default: most recent evaluated_at)
  *   --model <version>     ditto by model_version -- a provider is a TRANSPORT, not a candidate
+ *   --shadow-prompt <v>   ditto by the SHADOW row's prompt_version ('unrecorded' = a null one). The
+ *                         candidate is (provider, model_version, prompt_version), as in
+ *                         backend/src/services/agreement.js: two local addenda are two instruments,
+ *                         never one pooled arm. Not the same flag as --prompt, which filters the
+ *                         served ai_evaluations rows (the Claude arm).
  *   --margin <0.10>       pre-registered non-inferiority margin, local vs Claude (see README)
  *   --top <25|all>        how many per-PLE deltas to print (the archived JSON always holds all)
  *
@@ -106,6 +111,12 @@ const hasFlag = (name) => args.includes(`--${name}`);
 const INCLUDE_TEST = hasFlag('include-test') || flagVal('include-test') === 'true';
 const WANT_PROVIDER = flagVal('provider');
 const WANT_MODEL = flagVal('model');
+// The shadow candidate's prompt. 'unrecorded' selects the null-prompt group, the same sentinel
+// --prompt and the version lists use. Kept apart from WANT_PROMPT on purpose: --prompt scopes the
+// served (Claude) rows, this picks the local instrument.
+const WANT_SHADOW_PROMPT_RAW = flagVal('shadow-prompt');
+const WANT_SHADOW_PROMPT = WANT_SHADOW_PROMPT_RAW === 'unrecorded' ? null : WANT_SHADOW_PROMPT_RAW;
+const PICK_SHADOW_PROMPT = WANT_SHADOW_PROMPT_RAW != null;
 const MARGIN = Number(flagVal('margin') ?? 0.10);
 const TOP_RAW = flagVal('top');
 const TOP = TOP_RAW === 'all' ? Infinity : Number(TOP_RAW ?? 25);
@@ -520,9 +531,13 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   const auditedIds = [...human.keys()];
   const auditedSet = new Set(auditedIds);
 
-  // Local (shadow candidate). `provider` is the TRANSPORT ('local'); the candidate is the PAIR
-  // (provider, model_version). Pooling two candidates into one arm reports a number describing
-  // neither, so group on the pair and measure exactly one -- the most recent, as the endpoint does.
+  // Local (shadow candidate). `provider` is the TRANSPORT ('local'); the candidate is the TRIPLE
+  // (provider, model_version, prompt_version) -- the same identity the endpoint and the Model Lock
+  // use (backend/src/services/agreement.js pairedSets). Pooling two candidates into one arm reports
+  // a number describing neither, so group on the triple and measure exactly one -- the most recent,
+  // as the endpoint does. prompt_version is in the key because the local prompt carries an addendum
+  // (`pis7-prompt-<base>+local-<addendum>`) that has been rewritten mid-programme: two addenda are
+  // two instruments. A null prompt_version is its own group, never pooled with a known one.
   // Group over the CORPUS, never the manifest cohort. WHICH candidate is measured is a property of
   // the model set, exactly like the contract rate above it -- and `--manifest` must not change it.
   // Grouping over the cohort made `g.latest` mean "most recent INSIDE the manifest", so a stale
@@ -534,25 +549,34 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
   const shadowScoped = shadowCorpus.filter(r => allowed.has(r.ple_id));
   const groups = new Map();
   for (const r of shadowCorpus) {
-    const key = `${r.provider} ${r.model_version}`;
-    const g = groups.get(key) ?? { provider: r.provider, model_version: r.model_version, rows: [], inCohort: 0, latest: 0, audited: 0 };
+    const pv = r.prompt_version ?? null;
+    const key = JSON.stringify([r.provider, r.model_version, pv]);
+    const g = groups.get(key) ?? { provider: r.provider, model_version: r.model_version, prompt_version: pv,
+      rows: [], inCohort: 0, latest: 0, audited: 0, rubricVersions: new Set() };
     g.rows.push(r);
+    g.rubricVersions.add(r.rubric_version ?? 'unrecorded');
     g.latest = Math.max(g.latest, Date.parse(r.evaluated_at ?? '') || 0);
     if (allowed.has(r.ple_id)) g.inCohort += 1;
     if (auditedSet.has(r.ple_id)) g.audited += 1;
     groups.set(key, g);
   }
+  // Same order as the endpoint: most recent, then model_version, then prompt_version (descending).
   const byRecency = (x, y) => (y.latest - x.latest)
-    || String(y.model_version ?? '').localeCompare(String(x.model_version ?? ''));
+    || String(y.model_version ?? '').localeCompare(String(x.model_version ?? ''))
+    || String(y.prompt_version ?? '').localeCompare(String(x.prompt_version ?? ''));
   const allGroups = [...groups.values()].sort(byRecency);
+  const promptLabel = (g) => g.prompt_version ?? 'unrecorded';
+  const groupLabel = (g) => `${g.provider}/${g.model_version} prompt=${promptLabel(g)}`;
 
   let candidate = null;
-  if (WANT_PROVIDER || WANT_MODEL) {
+  if (WANT_PROVIDER || WANT_MODEL || PICK_SHADOW_PROMPT) {
     candidate = allGroups.find(g =>
-      (!WANT_PROVIDER || g.provider === WANT_PROVIDER) && (!WANT_MODEL || g.model_version === WANT_MODEL)) || null;
+      (!WANT_PROVIDER || g.provider === WANT_PROVIDER) && (!WANT_MODEL || g.model_version === WANT_MODEL)
+      && (!PICK_SHADOW_PROMPT || g.prompt_version === WANT_SHADOW_PROMPT)) || null;
     if (!candidate) {
-      console.log(`\n! no shadow rows match --provider=${WANT_PROVIDER ?? '*'} --model=${WANT_MODEL ?? '*'} - shadow arms will be unavailable.`);
-      if (allGroups.length) console.log(`  available: ${allGroups.map(g => `${g.provider}/${g.model_version} (${g.rows.length} rows)`).join(', ')}`);
+      console.log(`\n! no shadow rows match --provider=${WANT_PROVIDER ?? '*'} --model=${WANT_MODEL ?? '*'}`
+        + ` --shadow-prompt=${PICK_SHADOW_PROMPT ? WANT_SHADOW_PROMPT_RAW : '*'} - shadow arms will be unavailable.`);
+      if (allGroups.length) console.log(`  available: ${allGroups.map(g => `${groupLabel(g)} (${g.rows.length} rows)`).join(', ')}`);
     }
   } else {
     // Prefer the most recent candidate that actually overlaps the audited universe -- a newer
@@ -561,11 +585,22 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
     candidate = allGroups.find(g => g.audited > 0) || allGroups[0] || null;
   }
   if (allGroups.length > 1) {
-    console.log(`\nShadow candidates present (${allGroups.length}) - measuring the marked one; --provider/--model to switch:`);
+    console.log(`\nShadow candidates present (${allGroups.length}) - measuring the marked one; --provider/--model/--shadow-prompt to switch:`);
     for (const g of allGroups) {
-      console.log(`  ${g === candidate ? '->' : '  '} ${g.provider}/${g.model_version}  ${plural(g.rows.length, 'row')} corpus`
+      console.log(`  ${g === candidate ? '->' : '  '} ${groupLabel(g)}  ${plural(g.rows.length, 'row')} corpus`
         + `${MANIFEST ? ` (${g.inCohort} in cohort)` : ''}, ${g.audited} on audited PLEs`);
     }
+    // The case the triple exists for: one model on one transport, scored under two prompts. Say so
+    // in words, because the list above only shows it as two lines that look almost alike.
+    const sameModel = new Set(allGroups.map(g => JSON.stringify([g.provider, g.model_version])));
+    if (sameModel.size < allGroups.length) {
+      console.log(`  !! one model appears under more than one prompt_version. Each prompt is measured on its own,`
+        + ` never pooled; --shadow-prompt <version> picks one.`);
+    }
+  }
+  if (candidate) {
+    console.log(`\nShadow candidate: ${candidate.provider}/${candidate.model_version}, prompt_version ${promptLabel(candidate)}`
+      + `, rubric_version(s) ${[...candidate.rubricVersions].sort().join(', ')}`);
   }
 
   // A row with a non-null `error` carries NO scores (constraint shadow_scored_xor_failed). It is
@@ -732,7 +767,11 @@ function printArm(spec, armCommon, armOwn, cohortNote) {
       table_present: !shadowTableMissing,
       provider: candidate?.provider ?? null,
       model_version: candidate?.model_version ?? null,
+      // The third part of the candidate's identity. null when the rows carry none, as in the DB.
+      prompt_version: candidate?.prompt_version ?? null,
+      rubric_versions: candidate ? [...candidate.rubricVersions].sort() : [],
       candidates: allGroups.map(g => ({ provider: g.provider, model_version: g.model_version,
+        prompt_version: g.prompt_version, rubric_versions: [...g.rubricVersions].sort(),
         rows: g.rows.length, rows_in_cohort: g.inCohort, on_audited_cles: g.audited })),
     },
     coverage,

@@ -50,3 +50,38 @@ test('GET /superadmin/audit-log returns the events newest-first', async () => {
   expect(r.body.events[0].action).toBe('export');
   expect(r.body.total).toBe(1);
 });
+
+// Two contracts, side by side. logEvent stays fail-soft for its ~40 callers (a logging failure must
+// never break the action it records). logEventStrict is for the lock and unlock of the PIS-7
+// evaluator, where the entry IS part of the action: it reports the failure so the caller can undo.
+describe('logEvent vs logEventStrict', () => {
+  const { logEvent, logEventStrict } = require('../src/lib/audit');
+  const { supabase } = require('../src/lib/supabase');
+  beforeEach(() => { jest.spyOn(console, 'error').mockImplementation(() => {}); });
+  afterEach(() => { console.error.mockRestore(); });
+  const event = { actorId: 'sa', actorRole: 'superadmin', action: 'evaluator_lock', metadata: { locked: false } };
+
+  test('strict: success is { ok: true }, and the row is the same row logEvent writes', async () => {
+    m.state.resolve = () => undefined;
+    expect(await logEventStrict(event)).toEqual({ ok: true });
+    await logEvent(event);
+    const [a, b] = m.all('audit_log', 'insert');
+    expect(a.payload).toEqual(b.payload);
+    expect(a.payload).toMatchObject({ actor_id: 'sa', actor_role: 'superadmin', action: 'evaluator_lock', target_type: null });
+  });
+
+  test('strict: an insert error comes back as { error } — logEvent swallows the same error', async () => {
+    m.state.resolve = (t, kind) => (t === 'audit_log' && kind === 'insert' ? { error: { message: 'append-only trigger refused' } } : undefined);
+    expect(await logEventStrict(event)).toEqual({ error: { message: 'append-only trigger refused' } });
+    await expect(logEvent(event)).resolves.toBeUndefined();
+  });
+
+  test('strict: a throw comes back as { error } too, never as a rejection', async () => {
+    const real = supabase.from;
+    supabase.from = () => { throw new Error('client not initialised'); };
+    try {
+      expect(await logEventStrict(event)).toEqual({ error: { message: 'client not initialised' } });
+      await expect(logEvent(event)).resolves.toBeUndefined();
+    } finally { supabase.from = real; }
+  });
+});

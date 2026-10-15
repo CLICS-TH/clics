@@ -76,7 +76,22 @@ async function triggerEvaluation(pleId, transcript, physicianId, patientRef, { a
   // The declared Model Lock checksum travels WITH the evaluation so it is stamped on the score at
   // the moment it is produced. Read per call rather than cached: if it is declared (or re-declared)
   // mid-pilot, the scores either side carry different values and the break is visible in the data.
-  const weights_sha256 = await evaluatorWeightsSha256().catch(() => null);
+  //
+  // FAIL CLOSED, BY DEFERRING. An unreadable lock state is not "unlocked": scoring through it would
+  // stamp a post-lock score `locked: false` (rimpl provenance.js: locked = !!weights_sha256), and the
+  // score is written once per PLE and never re-stamped. So the evaluation does not run. The error
+  // carries status 503 — transient, not in rimpl-client's DETERMINISTIC_STATUSES — so the drain
+  // (services/eval-drain.js) defers the row with backoff, exactly as for a full rimpl queue, and only
+  // routes it to manual QA once EVAL_MAX_ATTEMPTS is spent. Thrown BEFORE the rimpl call: nothing is
+  // paid for, nothing is queued on the box, and the physician sees "queued", not a wrong score.
+  const lock = await evaluatorWeightsSha256();
+  if (lock.error) {
+    const e = new Error(`evaluator lock state unreadable (${lock.error.message ?? 'unknown error'}) — evaluation deferred, not scored`);
+    e.status = 503;
+    e.code = 'lock_state_unreadable';
+    throw e;
+  }
+  const weights_sha256 = lock.value;
   const result = await evaluateWithRetry({ ple_id: pleId, transcript, patient_ref: patientRef, chief_complaint: chiefComplaint ?? null, weights_sha256 }, attempts);
   const { fresh } = await persistEvaluation(pleId, physicianId, result);
   // Accrue the PIS-7 evaluation's cost to the physician's meter ONLY when this call actually wrote

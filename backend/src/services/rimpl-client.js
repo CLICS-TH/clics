@@ -265,4 +265,23 @@ async function probeRimplProvider({ name, purpose = 'chat', timeoutMs = PROVIDER
   return res.json();
 }
 
-module.exports = { rimplChat, rimplAuditDiscuss, rimplDeidentify, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep, probeRimplProvider, DEFAULT_PROVIDER };
+// The model manifest (CCME R2): rimpl's GET /manifest, behind the internal token. Returns the parsed
+// body, { manifest, sha256, claimed_sha256, file, code_match, live, drift }, and THROWS on anything
+// else: network error, timeout, non-2xx (an older rimpl answers 404), or a body that is not a JSON
+// object. No judgement here: whether the manifest is good enough to freeze is services/model-lock.js's
+// call, and it fails closed. Short timeout: rimpl answers from memory and probes no provider.
+const MANIFEST_TIMEOUT_MS = parseInt(process.env.RIMPL_MANIFEST_TIMEOUT_MS || '8000', 10);
+async function fetchRimplManifest({ timeoutMs = MANIFEST_TIMEOUT_MS } = {}) {
+  const res = await fetch(`${RIMPL_URL}/manifest`, {
+    headers: { 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!res.ok) throw await rimplError('/manifest', res);
+  const body = await res.json();
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    throw new Error('RIMPL /manifest returned a body that is not a JSON object');
+  }
+  return body;
+}
+
+module.exports = { rimplChat, rimplAuditDiscuss, rimplDeidentify, rimplEvaluate, rimplEvaluateCriteria, isDeterministicRimplError, RIMPL_URL, probeRimplDeep, probeRimplProvider, fetchRimplManifest, DEFAULT_PROVIDER };

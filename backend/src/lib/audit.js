@@ -4,16 +4,37 @@
 // so every call is wrapped and swallowed. Call WITHOUT await (fire-and-forget) on hot paths.
 const { supabase } = require('./supabase');
 
-async function logEvent({ actorId = null, actorRole = null, action, targetType = null, targetId = null, councilId = null, metadata = null }) {
+const auditRow = ({ actorId = null, actorRole = null, action, targetType = null, targetId = null, councilId = null, metadata = null }) => ({
+  actor_id: actorId, actor_role: actorRole, action,
+  target_type: targetType, target_id: targetId, council_id: councilId, metadata,
+});
+
+async function logEvent(event) {
   try {
-    const { error } = await supabase.from('audit_log').insert({
-      actor_id: actorId, actor_role: actorRole, action,
-      target_type: targetType, target_id: targetId, council_id: councilId, metadata,
-    });
+    const { error } = await supabase.from('audit_log').insert(auditRow(event));
     if (error) console.error('[audit] logEvent failed:', error.message);
   } catch (e) {
     console.error('[audit] logEvent threw:', e.message);
   }
 }
 
-module.exports = { logEvent };
+// The opposite contract, for the few actions whose audit entry IS the point: locking and unlocking the
+// PIS-7 evaluator (routes/superadmin.js). An unaudited lock or unlock is a change to the study's
+// measuring instrument with nothing on the record, so the caller awaits this and undoes the action
+// when it fails. Returns { ok: true } or { error } — never throws, never swallows. logEvent above is
+// unchanged for its other callers.
+async function logEventStrict(event) {
+  try {
+    const { error } = await supabase.from('audit_log').insert(auditRow(event));
+    if (error) {
+      console.error('[audit] logEventStrict failed:', error.message);
+      return { error };
+    }
+    return { ok: true };
+  } catch (e) {
+    console.error('[audit] logEventStrict threw:', e?.message || String(e));
+    return { error: { message: e?.message || String(e) } };
+  }
+}
+
+module.exports = { logEvent, logEventStrict };

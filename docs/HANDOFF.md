@@ -647,7 +647,7 @@ them is a deploy):
 | Setting | Now | Must be | Why it is not already set |
 |---|---|---|---|
 | `identity_verification_required` | 0 | **1** | Fails closed by blocking every physician; guards nothing until there are real participants |
-| `evaluator_weights_sha256` | null | **the digest** | Declared at Model Lock time; needs B4 resolved first |
+| `evaluator_weights_sha256` | null | **the digest** | Declared through POST `/admin/evaluator-lock` (the Model Lock page), never by hand — a hand-set value has no lock record and degrades `/health/deep`; needs B4 resolved first |
 | `min_auditors_per_cle` | 1 | **3** | CREC wants ≥3 raters/PLE. Raising it before recruiting stalls the queue — prod has 3 auditors across 3 of 19 specialties |
 | `pilot_test_mode` | 1 | **0** | Held until Napat says so |
 

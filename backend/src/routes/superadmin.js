@@ -5,19 +5,25 @@ const { supabase, authSupabase } = require('../lib/supabase');
 const { verifyJwt, requireRole } = require('../middleware/auth');
 const { computeICC21, iccOneWay, iccTwoWayAverage } = require('../services/icc');
 const { weightedKappaByDomain } = require('../services/kappa');
-const { sendDbError, pageParams, toCsv } = require('../lib/db-helpers');
+const { sendDbError, publicDbMessage, pageParams, toCsv } = require('../lib/db-helpers');
 const { compRateCap, cappedPles } = require('../lib/compensation');
 const { COMPLETED_STATUSES } = require('../lib/ple-status');
 const { assertSlotAvailable, nextPseudonym, allSlotUsage, allCouncilSlotUsage, allCouncilsSlotUsage, ROLES } = require('../lib/accounts');
 const { normalizeCanAudit } = require('../lib/dual-role');
 const { POSITIONS, checkSpecialty } = require('../lib/specialties');
-const { logEvent } = require('../lib/audit');
+const { logEvent, logEventStrict } = require('../lib/audit');
 const retention = require('../services/retention');
 const { decryptJson } = require('../lib/crypto');
 const { probeRimplProvider, probeRimplDeep } = require('../services/rimpl-client');
 const { decisiveVerdict } = require('../services/agreement');
 const { AI_PROVIDER_CHOICES, evaluateClass } = require('../lib/ai-providers');
-const { getTextSetting, minAuditorsPerPle } = require('../lib/settings');
+const { getTextSetting, getTextSettingStrict, minAuditorsPerPle } = require('../lib/settings');
+const {
+  manifestForLock, expectedFor, manifestDiff, manifestMismatch, evaluatorDigest, lockSchemaStatus, lockInForce,
+  modelLockCheck, resetManifestCache, migrationRequired, isMissingColumnOrTable, isMissingTable,
+  relockRequired, unlockRequired, evaluatorLocked, gateNotPassed, candidateNotEvaluator, candidateNotServing,
+  LOCK_STATE_UNREADABLE, USE_MODEL_LOCK, SAVED_STATE_UNREADABLE, INVALID_DECLARATION_ERROR,
+} = require('../services/model-lock');
 
 const router = Router();
 router.use(verifyJwt, requireRole('superadmin'));
@@ -581,6 +587,8 @@ const CONFIRM_RELOCK = 'REPLACE THE LOCK';
 const AiProviderSchema = z.object({
   purpose: z.enum(AI_PURPOSES).optional(),
   provider: z.string().min(1).optional(),
+  // `false` unlocks. `true` is accepted by the schema only to be refused with 409 use_model_lock: the
+  // lock is declared through POST /evaluator-lock, which records what it freezes.
   evaluator_locked: z.boolean().optional(),
   confirm: z.string().optional(),
   confirm_unfit: z.string().optional(),
@@ -589,22 +597,40 @@ const AiProviderSchema = z.object({
   { message: 'send either {purpose, provider} or {evaluator_locked}' },
 );
 
+// The provider switch's state. The LOCK is read strictly (services/model-lock.js lockInForce): an
+// unreadable flag used to display as "unlocked", which offered the Lock button and enabled the evaluator
+// choices on a guess. Returns { body } or { error }.
 async function readAiProviders() {
-  const [providers, locked] = await Promise.all([
+  const [providers, lock] = await Promise.all([
     Promise.all(AI_PURPOSES.map(async (p) => [p, await getTextSetting(`ai_provider_${p}`, AI_PROVIDER_DEFAULT[p])])),
-    getTextSetting('evaluator_locked_at', null),
+    lockInForce(),
   ]);
-  return {
+  if (lock.error) return { error: lock.error };
+  return { body: {
     providers: Object.fromEntries(providers),
     choices: AI_PROVIDER_CHOICES,
-    evaluator_locked_at: locked,
+    evaluator_locked_at: lock.locked_at,
+    // Additive: whether the lock in force has a record behind it, and whether that record is bound to
+    // the evaluator digest. A flag with neither is what the retired quick lock left behind.
+    evaluator_lock: {
+      locked: lock.locked,
+      record: lock.record,
+      manifest_bound: lock.locked ? !!lock.evaluator_sha256 : null,
+    },
     // Echoed so the UI never has to hardcode the phrases — one source of truth for both sides.
     confirm_phrases: { change_evaluator: CONFIRM_EVALUATOR, unlock_evaluator: CONFIRM_UNLOCK, switch_unfit: CONFIRM_UNFIT, replace_lock: CONFIRM_RELOCK },
-  };
+  } };
+}
+
+// After a successful write, an unreadable read-back must not say "nothing was changed".
+async function sendAiProviders(res, { afterWrite = false } = {}) {
+  const r = await readAiProviders();
+  if (r.error) return res.status(503).json(afterWrite ? SAVED_STATE_UNREADABLE : LOCK_STATE_UNREADABLE);
+  return res.json(r.body);
 }
 
 router.get('/ai-providers', async (_req, res) => {
-  res.json(await readAiProviders());
+  await sendAiProviders(res);
 });
 
 // The Primary Evaluator Model Lock.
@@ -633,55 +659,216 @@ const ModelLockSchema = z.object({
   confirm_relock: z.string().optional(),
 });
 
-// Current lock, plus whether a new declaration is permitted and why not.
+// The lock settings as they stand, for undoing a lock that must not stand. Both are read STRICTLY:
+// a guessed "previous value" written back on a rollback would itself be a change to the instrument.
+async function readLockSettings() {
+  const [lockedAt, digest] = await Promise.all([
+    getTextSettingStrict('evaluator_locked_at'),
+    getTextSettingStrict('evaluator_weights_sha256'),
+  ]);
+  if (lockedAt.error || digest.error) return { error: lockedAt.error ?? digest.error };
+  return { lockedAt: lockedAt.value, digest: digest.value };
+}
+
+// The provider serving `evaluate` now, read STRICTLY. A lock freezes the instrument that is scoring; a
+// candidate that is only shadowing is not that instrument. Unset means the code default, which is what
+// the switch above reports too. Returns { value } or { error }.
+async function servingEvaluator() {
+  const r = await getTextSettingStrict('ai_provider_evaluate');
+  if (r.error) return { error: r.error };
+  return { value: String(r.value ?? AI_PROVIDER_DEFAULT.evaluate).trim().toLowerCase() };
+}
+
+// Everything the lock writes into app_settings, in one row set. A lock sets both; an unlock clears
+// both. Clearing only the flag (the old quick unlock) left the digest behind, and every later score
+// went on being stamped `locked: true` against a lock that no longer existed.
+const lockSettingRows = ({ lockedAt, digest }, now) => [
+  { key: 'evaluator_locked_at', value: 0, value_text: lockedAt ?? null, updated_at: now },
+  { key: 'evaluator_weights_sha256', value: 0, value_text: digest ?? null, updated_at: now },
+];
+
+// Put the lock settings back to `previous`, and CHECK it: the upsert must come back with both rows.
+// Returns null on success, or a description of what is now inconsistent.
+async function restoreLockSettings(previous, now, left) {
+  const rows = lockSettingRows(previous, now);
+  try {
+    const { data, error } = await supabase.from('app_settings').upsert(rows).select('key');
+    if (error) return { step: 'restore_settings', detail: error.message ?? String(error), left };
+    if (!Array.isArray(data) || data.length !== rows.length) {
+      return { step: 'restore_settings', detail: `the upsert confirmed ${Array.isArray(data) ? data.length : 'no'} of ${rows.length} rows`, left };
+    }
+    return null;
+  } catch (e) {
+    return { step: 'restore_settings', detail: e?.message || String(e), left };
+  }
+}
+
+// Delete the record THIS request inserted, by its id — never by (locked_at, locked_by), which could
+// match a row another request wrote in the same millisecond. CHECKED: exactly one row must go.
+async function deleteLockRecord(id) {
+  const left = `evaluator_model_lock row ${id} still exists without a lock in force behind it`;
+  try {
+    const { data, error } = await supabase.from('evaluator_model_lock').delete().eq('id', id).select('id');
+    if (error) return { step: 'delete_record', detail: error.message ?? String(error), left };
+    const n = Array.isArray(data) ? data.length : 0;
+    if (n !== 1) return { step: 'delete_record', detail: `the delete matched ${n} rows, expected 1`, left };
+    return null;
+  } catch (e) {
+    return { step: 'delete_record', detail: e?.message || String(e), left };
+  }
+}
+
+// A rollback that did not complete is the one failure that must not be quiet: the database now holds
+// part of a lock. 500, naming each piece left behind, and a log line nobody can miss.
+// `what` is { th, en }: the failure that started the rollback, in both languages.
+function rollbackIncomplete(res, what, failures, extra = {}) {
+  console.error(`[evaluator-lock] ROLLBACK INCOMPLETE after: ${what.en} — manual repair needed:`
+    + failures.map((f) => ` [${f.step}] ${f.detail} → ${f.left}`).join(';'));
+  return res.status(500).json({
+    error: `${what.th} และย้อนกลับได้ไม่ครบ ต้องแก้ไขด้วยมือ / ${what.en}, and the rollback did not complete. Manual repair is needed: `
+      + failures.map((f) => f.left).join('; '),
+    code: 'rollback_incomplete',
+    inconsistent: failures.map(({ step, left }) => ({ step, left })),
+    ...extra,
+  });
+}
+
+// Current lock, plus whether a new declaration is permitted and every reason it is not.
 router.get('/evaluator-lock', async (_req, res) => {
+  // The lock state decides what this screen offers, so it is read strictly: an unreadable flag is
+  // not "unlocked", and offering the form on a guess is the failure this exists to stop.
+  const [lock, serving] = await Promise.all([getTextSettingStrict('evaluator_locked_at'), servingEvaluator()]);
+  if (lock.error || serving.error) return res.status(503).json(LOCK_STATE_UNREADABLE);
+
   // Express 4 hangs the client on an async rejection rather than reaching the error middleware, and
   // Promise.all rejects as a unit — one failing read would take the whole screen down silently.
-  let current = null, lockedAt = null, gate = { ok: false };
+  // select('*') on the record tolerates an unmigrated table: the manifest columns are simply absent.
+  let current = null, gate = { ok: false }, schema = { ok: false }, manifest = { ok: false };
   try {
-    [{ data: current }, lockedAt, gate] = await Promise.all([
+    let currentRes;
+    [currentRes, gate, schema, manifest] = await Promise.all([
       supabase.from('evaluator_model_lock').select('*').order('locked_at', { ascending: false }).limit(1).maybeSingle(),
-      getTextSetting('evaluator_locked_at', null),
       decisiveVerdict({}),
+      lockSchemaStatus(),
+      manifestForLock(),
     ]);
+    current = currentRes?.data ?? null;
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    return res.status(500).json({
+      error: 'อ่านข้อมูลการล็อกผู้ให้คะแนนไม่สำเร็จ / The evaluator lock could not be read.',
+      code: 'lock_read_failed', detail: publicDbMessage(e),
+    });
   }
   const verdict = gate.ok ? gate.verdict : null;
+  const candidate = gate.ok ? gate.candidate : null;
+  const diff = manifest.ok && candidate ? manifestDiff({ expected: manifest.expected, candidate }) : null;
+  const expectedNow = manifest.ok && candidate ? expectedFor(manifest.expected, candidate.provider) : null;
+
+  // The form is unavailable until the candidate has cleared the DECISIVE bar. Not the screening
+  // bar: two models agreeing closely can be similarly wrong, and freezing the study's measuring
+  // instrument against a number that never touched a human judgement is the thing this prevents.
+  // The rest mirror POST's refusals, so the form never opens on a declaration POST would refuse.
+  const blockers = [];
+  const blocker_detail = {};
+  if (!gate.ok) {
+    blockers.push('verdict_unavailable');
+    blocker_detail.verdict_unavailable = publicDbMessage(gate.error);
+  } else {
+    if (verdict?.state !== 'pass') blockers.push('gate_not_passed');
+    if (!candidate) blockers.push('no_candidate');
+    else if (!evaluateClass(candidate.provider)) blockers.push('candidate_not_evaluator');
+    else if (candidate.provider !== serving.value) blockers.push('candidate_not_serving');
+  }
+  if (!manifest.ok) blockers.push('manifest_unavailable');
+  else if (diff?.length) blockers.push('manifest_mismatch');
+  if (!schema.ok) {
+    blockers.push(schema.missing ? 'migration_required' : 'lock_table_unreadable');
+    if (!schema.missing) blocker_detail.lock_table_unreadable = publicDbMessage(schema.error);
+  }
+
   res.json({
-    locked_at: lockedAt,
-    current: current ?? null,
-    candidate: gate.ok ? gate.candidate : null,
-    // The form is unavailable until the candidate has cleared the DECISIVE bar. Not the screening
-    // bar: two models agreeing closely can be similarly wrong, and freezing the study's measuring
-    // instrument against a number that never touched a human judgement is the thing this prevents.
-    can_declare: verdict?.state === 'pass' && evaluateClass(gate.candidate?.provider),
-    gate: verdict,
+    locked_at: lock.value,
+    current,
+    // Is `current` the lock the flag points at? After an unlock the latest record stays on file
+    // (append-only) while the flag is cleared; this says which state the pair is in.
+    in_force: !!(lock.value && current?.locked_at && Date.parse(current.locked_at) === Date.parse(lock.value)),
+    candidate,
+    serving_provider: serving.value,
+    can_declare: blockers.length === 0,
+    blockers,
+    blocker_detail,
+    // The verdict, plus every (provider, model_version, prompt_version) group the corpus holds, so the
+    // screen can show what was NOT pooled into the candidate.
+    gate: verdict ? { ...verdict, groups: gate.groups ?? [] } : null,
+    manifest: manifest.ok
+      ? { ok: true, sha256: manifest.sha256, file: manifest.file, code_match: true,
+        // Which live values differ from the manifest, by key only — never the values.
+        drift_keys: manifest.drift_keys,
+        expected_for_candidate: expectedNow ? {
+          prompt_version: expectedNow.prompt_version, rubric_version: expectedNow.rubric_version,
+          model_version: expectedNow.model_version, provider_declared: expectedNow.provider_declared,
+          decoding: expectedNow.decoding, declared: expectedNow.declared,
+          // What the lock would freeze as the instrument for this candidate (services/model-lock.js).
+          evaluator_sha256: evaluatorDigest(manifest.expected, candidate.provider),
+        } : null }
+      : { ok: false, ...manifest.body },
+    manifest_diff: diff,
+    migrations_pending: schema.missing ? migrationRequired({ tableMissing: schema.tableMissing }).migrations : [],
+    confirm_phrases: { replace_lock: CONFIRM_RELOCK },
   });
 });
 
 router.post('/evaluator-lock', async (req, res) => {
   const parsed = ModelLockSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  if (!parsed.success) {
+    return res.status(400).json({ error: INVALID_DECLARATION_ERROR, code: 'invalid_declaration', details: parsed.error.flatten() });
+  }
+
+  const { confirm_relock: _c, ...declaration } = parsed.data;
+
+  // FAIL CLOSED on the lock state. Both settings are needed: the flag decides whether this is a
+  // re-declaration, and both values are what a rollback restores. A read error is not "unlocked".
+  const previous = await readLockSettings();
+  if (previous.error) return res.status(503).json(LOCK_STATE_UNREADABLE);
+  const existingLock = previous.lockedAt;
 
   // Already locked? Re-declaring is not a repeat of the same action — the change-control rule allows
   // it only for a critical safety or security reason, with scoring stopped and the data either side
   // separated. Pressing the button twice must not be able to do that quietly.
-  const existingLock = await getTextSetting('evaluator_locked_at', null);
   if (existingLock && parsed.data.confirm_relock !== CONFIRM_RELOCK) {
     return res.status(409).json({
-      error: `The evaluator was locked on ${existingLock}. Replacing that lock means stopping scoring and separating the data either side of the change.`,
+      ...relockRequired(existingLock),
       code: 'confirmation_required', confirm_phrase: CONFIRM_RELOCK, locked_at: existingLock,
     });
   }
 
+  // Code ships BEFORE db/migration-evaluator-lock-manifest.sql. Until it is applied, say what to apply
+  // rather than failing half-way through the insert.
+  const schema = await lockSchemaStatus();
+  if (!schema.ok && schema.missing) return res.status(503).json(migrationRequired({ tableMissing: schema.tableMissing }));
+  if (!schema.ok) return sendDbError(res, schema.error);
+
+  // BIND TO THE MANIFEST. A lock that cannot name the build it froze is a weights digest and a promise.
+  const manifest = await manifestForLock();
+  if (!manifest.ok) return res.status(503).json(manifest.body);
+
+  // The verdict that permits the freeze is computed on the DECLARED prompt version's own rows: a
+  // candidate scored under another prompt addendum is a different instrument and does not count here.
   let gate;
-  try { gate = await decisiveVerdict({}); } catch (e) { return res.status(500).json({ error: e.message }); }
+  try {
+    gate = await decisiveVerdict({ promptVersion: declaration.evaluator_prompt_version });
+  } catch (e) {
+    return res.status(500).json({
+      error: 'คำนวณผลความสอดคล้องไม่สำเร็จ จึงยังไม่ได้ล็อก / The agreement verdict could not be computed, so nothing was locked.',
+      code: 'verdict_unavailable', detail: publicDbMessage(e),
+    });
+  }
   if (!gate.ok) return sendDbError(res, gate.error);
   if (gate.verdict.state !== 'pass') {
     return res.status(409).json({
-      error: `The candidate has not cleared the decisive threshold (${gate.verdict.state}): ${gate.verdict.why}`,
-      code: 'gate_not_passed', gate: gate.verdict,
+      ...gateNotPassed(gate.verdict, { promptVersion: declaration.evaluator_prompt_version, noCandidate: !gate.candidate }),
+      code: 'gate_not_passed', gate: gate.verdict, prompt_version: declaration.evaluator_prompt_version,
+      candidate: gate.candidate ?? null,
     });
   }
   // The candidate must be a provider that may serve `evaluate`. services/agreement.js already only
@@ -690,13 +877,30 @@ router.post('/evaluator-lock', async (req, res) => {
   // lockable evaluator: CCME R3 needs the evaluator to be a distinct artifact from the tutor.
   if (!evaluateClass(gate.candidate?.provider)) {
     return res.status(409).json({
-      error: `The candidate provider "${gate.candidate?.provider ?? 'none'}" cannot serve as the PIS-7 evaluator.`,
+      ...candidateNotEvaluator(gate.candidate?.provider),
       code: 'candidate_not_evaluator', candidate: gate.candidate ?? null,
     });
   }
 
+  // The candidate must be the provider SERVING evaluate. Otherwise the lock freezes a shadow while
+  // another model scores every PLE: switch first (CHANGE EVALUATOR), then lock.
+  const serving = await servingEvaluator();
+  if (serving.error) return res.status(503).json(LOCK_STATE_UNREADABLE);
+  if (serving.value !== gate.candidate.provider) {
+    return res.status(409).json({ ...candidateNotServing(gate.candidate.provider, serving.value), candidate: gate.candidate });
+  }
+
+  // DECLARED vs EXPECTED. The declared prompt and rubric versions, the measured candidate model and
+  // the rubric its rows were scored under must all be what the manifest says this build stamps for
+  // the candidate's provider. A pass earned under a prompt that no longer ships is the case this
+  // catches: the verdict is real, and it describes a different instrument from the one being frozen.
+  const diff = manifestDiff({ expected: manifest.expected, candidate: gate.candidate, declaration });
+  if (diff.length) {
+    return res.status(409).json(manifestMismatch(diff, { candidate: gate.candidate, manifest_sha256: manifest.sha256 }));
+  }
+
   const now = new Date().toISOString();
-  const { confirm_relock: _c, ...declaration } = parsed.data;
+  const evaluatorSha = evaluatorDigest(manifest.expected, gate.candidate.provider);
   const { data: row, error } = await supabase.from('evaluator_model_lock').insert({
     locked_at: now, locked_by: req.user.id,
     provider: gate.candidate?.provider ?? null,
@@ -705,30 +909,79 @@ router.post('/evaluator-lock', async (req, res) => {
     // The proof that the freeze was permitted, kept beside the thing it permitted. Reconstructing
     // the corpus as it stood on the day is not something anyone will actually do later.
     gate: gate.verdict,
+    // The build that was frozen: its content address, and the EXPECTED half of the manifest (code +
+    // declared target). Never `live`: that carries operator- and server-supplied strings.
+    //
+    // No expected config_fingerprint is frozen, deliberately. Shadow rows carry none, and the one on
+    // served scores (rimpl provenance.js) hashes weights_sha256, which only exists from this moment
+    // on — no score produced before the lock can carry the fingerprint scores after it will.
+    // Computing one here would mean re-implementing rimpl's hash in the backend: an invented value,
+    // not a measured one. The manifest sha256 is what binds the lock to the build.
+    manifest_sha256: manifest.sha256,
+    manifest: manifest.expected,
+    // THE binding (owner's decision: the lock freezes the scoring instrument, not the whole build). The
+    // same helper recomputes it on the live manifest at health time.
+    evaluator_sha256: evaluatorSha,
   }).select('*').maybeSingle();
+  if (error && isMissingColumnOrTable(error)) {
+    return res.status(503).json(migrationRequired({ tableMissing: isMissingTable(error) }));
+  }
   if (sendDbError(res, error)) return;
+  if (!row?.id) {
+    // Without the id there is nothing safe to roll back by. Nothing else has been written yet, so the
+    // lock is NOT in force; say so, and say where to look.
+    console.error(`[evaluator-lock] insert at ${now} returned no row id — lock not applied, record unconfirmed`);
+    return res.status(500).json({
+      error: `บันทึกการล็อกไม่ได้รับการยืนยัน จึงยังไม่ได้ล็อก / The lock record was not confirmed, so the lock was not applied. Check evaluator_model_lock for locked_at = ${now}.`,
+      code: 'lock_record_unconfirmed', locked_at: now,
+    });
+  }
 
   // Two settings, deliberately written AFTER the record exists: evaluator_locked_at is what the
   // provider-switch endpoint refuses on, and evaluator_weights_sha256 is what every subsequent score
   // is stamped with. A flag set without a record behind it is the state this whole change removes.
-  const { error: setErr } = await supabase.from('app_settings').upsert([
-    { key: 'evaluator_locked_at', value: 0, value_text: now, updated_at: now },
-    { key: 'evaluator_weights_sha256', value: 0, value_text: declaration.weights_sha256, updated_at: now },
-  ]);
+  // ONE upsert, so the pair is written by one statement: never a flag without its digest.
+  const { error: setErr } = await supabase.from('app_settings')
+    .upsert(lockSettingRows({ lockedAt: now, digest: declaration.weights_sha256 }, now));
   if (setErr) {
     // The record landed and the flag did not. Left alone, that is the worst of both: a signed record
     // asserting a freeze the provider-switch endpoint would still happily override. Roll the record
     // back so the failure is total and legible, rather than a lock that only looks real.
-    await supabase.from('evaluator_model_lock').delete().eq('locked_at', now).eq('locked_by', req.user.id);
-    return res.status(500).json({ error: `Lock not applied (${setErr.message}); the draft record was rolled back.` });
+    console.error(`[evaluator-lock] settings write failed: ${setErr.message} — rolling back record ${row.id}`);
+    const failed = await deleteLockRecord(row.id);
+    if (failed) return rollbackIncomplete(res, { th: 'บันทึกค่าการล็อกไม่สำเร็จ', en: 'Lock not applied (the lock settings could not be written)' }, [failed]);
+    return res.status(500).json({
+      error: 'บันทึกค่าการล็อกไม่สำเร็จ จึงยกเลิกบันทึกที่สร้างไว้แล้ว / Lock not applied (the lock settings could not be written); the draft record was rolled back.',
+      code: 'lock_not_applied',
+    });
   }
 
-  logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'evaluator_model_lock',
-    metadata: { locked_at: now, weights_sha256: declaration.weights_sha256, replaced_lock: existingLock ?? null,
+  // ONE audit entry, AWAITED. A lock with nothing on the audit trail is a change to the study's
+  // measuring instrument nobody can account for, so a failed write undoes the lock: settings first
+  // (so the flag stops claiming a freeze), then the record. Every step is checked.
+  const audit = await logEventStrict({ actorId: req.user.id, actorRole: 'superadmin', action: 'evaluator_model_lock',
+    metadata: { locked_at: now, record_id: row.id, weights_sha256: declaration.weights_sha256, replaced_lock: existingLock ?? null,
       provider: gate.candidate?.provider ?? null, model_version: gate.candidate?.model_version ?? null,
-      gate: gate.verdict } });
+      prompt_version: declaration.evaluator_prompt_version, rubric_version: declaration.rubric_version,
+      manifest_sha256: manifest.sha256, evaluator_sha256: evaluatorSha, gate: gate.verdict } });
+  if (audit.error) {
+    console.error(`[evaluator-lock] audit write failed after lock ${row.id} — rolling back`);
+    const failures = [
+      await restoreLockSettings(previous, now,
+        `app_settings evaluator_locked_at / evaluator_weights_sha256 still carry the unaudited lock of ${now}`),
+      await deleteLockRecord(row.id),
+    ].filter(Boolean);
+    if (failures.length) return rollbackIncomplete(res, { th: 'บันทึก audit log ของการล็อกไม่สำเร็จ', en: 'The lock could not be written to the audit trail' }, failures);
+    return res.status(500).json({
+      error: 'บันทึก audit log ไม่สำเร็จ จึงยกเลิกการล็อกแล้ว / The lock could not be written to the audit trail, so it was undone.',
+      code: 'audit_write_failed',
+    });
+  }
 
-  res.json({ ok: true, locked_at: now, record: row ?? null });
+  // The health check's cached live manifest predates this declaration. Re-declaring after a rimpl
+  // redeploy (REPLACE THE LOCK) would otherwise compare the new lock to the old build for up to 60 s.
+  resetManifestCache();
+  res.json({ ok: true, locked_at: now, record: row, manifest_sha256: manifest.sha256, evaluator_sha256: evaluatorSha });
 });
 
 // What each provider is actually able to do right now — model served, context window, reachability,
@@ -774,37 +1027,69 @@ router.get('/ai-readiness', async (_req, res) => {
       models: body?.models ?? null,
       routing: body?.routing ?? null,
       embedding,
+      // rimpl's PUBLIC manifest block, as its /health/deep publishes it (already redacted there: a
+      // free-text live value appears only as a short hash), and the backend's verdict on the lock.
+      manifest: body?.manifest ?? null,
+      model_lock: await modelLockForReadiness(body),
     });
   } catch (e) {
     // A degraded RIMPL is an ANSWER here, not a server error — the screen exists to show exactly this.
-    res.json({ reachable: false, error: e.message, checks: {}, models: null, routing: null, embedding: null });
+    res.json({ reachable: false, error: e.message, checks: {}, models: null, routing: null, embedding: null,
+      manifest: null, model_lock: await modelLockForReadiness(null) });
   }
 });
+
+// The same check /health/deep runs (services/model-lock.js modelLockCheck). Never throws: the readiness
+// screen must render whatever the lock's state.
+async function modelLockForReadiness(deep) {
+  try {
+    return await modelLockCheck(await lockInForce(), { deep });
+  } catch (e) {
+    return { status: 'unknown', error: publicDbMessage(e) };
+  }
+}
 
 router.patch('/ai-providers', async (req, res) => {
   const parsed = AiProviderSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   const { purpose, provider, evaluator_locked, confirm, confirm_unfit } = parsed.data;
   const now = new Date().toISOString();
-  const lockedAt = await getTextSetting('evaluator_locked_at', null);
 
   // --- lock / unlock ---------------------------------------------------------------------------
-  if (evaluator_locked != null) {
-    // Unlocking is the dangerous direction, so it is the one that has to be typed out. Locking is
-    // always allowed: making the safe action harder than the unsafe one gets it skipped.
-    if (!evaluator_locked && lockedAt && confirm !== CONFIRM_UNLOCK) {
-      return res.status(409).json({
-        error: `The evaluator is locked (since ${lockedAt}). Unlocking changes the instrument the ICC credit gate is defined against.`,
-        code: 'confirmation_required', confirm_phrase: CONFIRM_UNLOCK,
+  // LOCKING IS NOT DONE HERE ANY MORE. This switch used to set the flag on its own: no record, no
+  // weights digest, no agreement gate, no manifest — a lock that only looked real, which is exactly
+  // what POST /evaluator-lock exists to prevent. Refused before anything is read or written.
+  if (evaluator_locked === true) return res.status(409).json(USE_MODEL_LOCK);
+
+  if (evaluator_locked === false) {
+    // Strict: the phrase check and the rollback both need the real values. Unreadable is not unlocked.
+    const previous = await readLockSettings();
+    if (previous.error) return res.status(503).json(LOCK_STATE_UNREADABLE);
+    const lockedAt = previous.lockedAt;
+    // Unlocking is the dangerous direction, so it is the one that has to be typed out.
+    if (lockedAt && confirm !== CONFIRM_UNLOCK) {
+      return res.status(409).json({ ...unlockRequired(lockedAt), code: 'confirmation_required', confirm_phrase: CONFIRM_UNLOCK });
+    }
+    // Unlock clears EVERYTHING the lock set: the flag and the weights digest, in one statement. With
+    // the digest left behind, every later score was stamped `locked: true` against no lock at all.
+    // The lock record stays on file (append-only); the audit entry below is the record of the unlock.
+    const { error } = await supabase.from('app_settings').upsert(lockSettingRows({ lockedAt: null, digest: null }, now));
+    if (sendDbError(res, error)) return;
+    // AWAITED. An unaudited unlock changes the instrument with nothing on the record, so a failed
+    // write puts the lock back (checked) and says so.
+    const audit = await logEventStrict({ actorId: req.user.id, actorRole: 'superadmin', action: 'evaluator_lock',
+      metadata: { locked: false, locked_at: null, previous_locked_at: lockedAt,
+        previous_weights_sha256: previous.digest, cleared: ['evaluator_locked_at', 'evaluator_weights_sha256'] } });
+    if (audit.error) {
+      const failed = await restoreLockSettings(previous, now,
+        `app_settings evaluator_locked_at / evaluator_weights_sha256 are cleared, but the unlock is not on the audit trail (previous lock ${lockedAt ?? 'none'})`);
+      if (failed) return rollbackIncomplete(res, { th: 'บันทึก audit log ของการปลดล็อกไม่สำเร็จ', en: 'The unlock could not be written to the audit trail' }, [failed]);
+      return res.status(500).json({
+        error: 'บันทึก audit log ไม่สำเร็จ จึงคืนค่าการล็อกเป็นแบบเดิม / The unlock could not be written to the audit trail, so the lock settings were put back as they were.',
+        code: 'audit_write_failed',
       });
     }
-    const value_text = evaluator_locked ? (lockedAt || now) : null;
-    const { error } = await supabase.from('app_settings')
-      .upsert({ key: 'evaluator_locked_at', value: 0, value_text, updated_at: now });
-    if (sendDbError(res, error)) return;
-    logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'evaluator_lock',
-      metadata: { locked: evaluator_locked, locked_at: value_text, previous_locked_at: lockedAt } });
-    return res.json(await readAiProviders());
+    return sendAiProviders(res, { afterWrite: true });
   }
 
   // --- provider change -------------------------------------------------------------------------
@@ -815,11 +1100,16 @@ router.patch('/ai-providers', async (req, res) => {
   }
 
   if (purpose === 'evaluate') {
+    // Read STRICTLY, and only here: the lock freezes `evaluate` alone, so a chat switch does not wait
+    // on it. A read error must not let an evaluator switch through while it might be locked.
+    const lock = await getTextSettingStrict('evaluator_locked_at');
+    if (lock.error) return res.status(503).json(LOCK_STATE_UNREADABLE);
+    const lockedAt = lock.value;
     // Refuse OUTRIGHT once locked — not a warning. During the pilot the scoring model is frozen by
     // §10.2, and a mid-cohort swap would confound the primary outcome with the instrument.
     if (lockedAt) {
       return res.status(409).json({
-        error: `The PIS-7 evaluator was locked on ${lockedAt} and cannot be changed while the pilot is running. Unlock it first if this is deliberate.`,
+        ...evaluatorLocked(lockedAt),
         code: 'evaluator_locked', evaluator_locked_at: lockedAt,
       });
     }
@@ -877,7 +1167,7 @@ router.patch('/ai-providers', async (req, res) => {
   logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'ai_provider_change',
     metadata: { purpose, from: previous, to: name } });
 
-  res.json(await readAiProviders());
+  await sendAiProviders(res, { afterWrite: true });
 });
 
 // Reset a member's running AI usage meter back to zero (manual-reset escape hatch).

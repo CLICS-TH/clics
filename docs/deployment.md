@@ -138,6 +138,81 @@ on conflict (key) do update set value = excluded.value`). **`migration-chat-turn
 before it is set to 1** (check the gate above). Without the migration, deep mode cannot stick to a session
 and the per-turn flags are not recorded.
 
+**The evaluator Model Lock: `migration-evaluator-model-lock.sql`, then `migration-evaluator-lock-manifest.sql`
+(GitHub #75, CCME R2).** Apply them in that order: the second refuses to run without the first (`apply
+db/migration-evaluator-model-lock.sql first`). The first file's header says "apply BEFORE deploying the
+backend", and until now no runbook carried it. From this backend on, either order is safe, because the code
+fails closed and nothing is written until both are applied:
+- `POST /admin/evaluator-lock` answers **503 `migration_required`**, naming the file or files still missing.
+- `GET /admin/evaluator-lock` lists them in `migrations_pending` and keeps the form closed (`blockers`
+  includes `migration_required`).
+- `/health/deep` is unaffected while the evaluator is unlocked, which is the state production is in.
+
+Apply both **before anyone declares a lock**. A lock also needs rimpl at #156 or later, which serves
+`GET /manifest` behind `INTERNAL_TOKEN`. An older rimpl answers 404, and POST then refuses with **503
+`manifest_unavailable`** (`reason: unreachable`). Both files are re-runnable. The second adds
+`shadow_evaluations.decoding` only when that table exists, so **re-run it if
+`migration-shadow-evaluations.sql` is applied later**. Verified by `scripts/db/evaluator-lock-manifest-test.sh`
+(CI job `evaluator-lock-manifest`). Gate, run in this order:
+
+```sql
+select to_regclass('public.evaluator_model_lock');                      -- model-lock: non-null once applied
+select count(*) from information_schema.columns                         -- lock-manifest: 3 once applied
+  where table_schema = 'public' and table_name = 'evaluator_model_lock'
+    and column_name in ('manifest_sha256', 'manifest', 'evaluator_sha256');
+select relrowsecurity from pg_class where oid = 'public.evaluator_model_lock'::regclass;  -- true (deny-all)
+select count(*) from information_schema.columns                         -- 1 when shadow_evaluations exists
+  where table_schema = 'public' and table_name = 'shadow_evaluations' and column_name = 'decoding';
+```
+
+**What the lock freezes: the evaluator only.** At declaration the backend stores three things on the lock
+record: `manifest_sha256` (the whole manifest, for the record), `manifest` (its expected half), and
+`evaluator_sha256`, the digest of the **scoring instrument**. `evaluator_sha256` is sha256 over canonical
+JSON (object keys sorted recursively, array order kept), tagged `clics-evaluator-scope/v2` plus the locked
+provider, over exactly these keys of the manifest's `expected` (one helper, `evaluatorDigest` in
+`backend/src/services/model-lock.js`, used at lock time and at health time):
+
+- `code.evaluator` (prompt versions incl. the local addendum, rubric version)
+- `code.model_version_prefix`
+- `code.decoding.evaluate`
+- `code.consistency` **minus its `shadow` key**: `agree` (`max_domain_delta`, `max_sum_delta`), `evaluate`
+  (mode, JSON retries), `method`, `modes`, `rules` — how the local evaluator's repeated scores are reconciled
+  when consistency is on. (`v1` covered `code.consistency.evaluate` alone; no lock was taken under it.)
+- `code.providers.allowed.evaluate`
+- `declared.providers.evaluate`
+- `declared.<locked provider>` (e.g. `declared.local`: engine + model)
+- `code.anthropic`, only when the locked provider is `anthropic`
+
+Tutor, router, chat, the shadow evaluator's consistency settings and other providers' declared blocks are
+outside it. Changing them after a lock is
+allowed. Changing any listed key needs a new declaration (`REPLACE THE LOCK`).
+
+**Once a lock is in force,** `/health/deep` → `checks.model_lock` fetches rimpl `GET /manifest` (internal
+token, cached at most 60 s: `HEALTH_MANIFEST_CACHE_MS`, default and ceiling `60000`; fetch bounded by
+`HEALTH_RIMPL_TIMEOUT_MS`, default `2500`; a failed fetch is cached too, and a successful declaration
+clears the cache), recomputes the evaluator digest with the same helper, and compares it with
+`evaluator_sha256`:
+- **match, whole manifest unchanged** → `up`.
+- **match, whole manifest changed** → `up` with `note: 'tutor_or_router_changed_since_lock'` and both shas
+  (`manifest_sha256`, `live_sha256`). Informational: the scoring instrument is unchanged.
+- **mismatch** → **503**, `reason: 'evaluator_changed_since_lock'` (both evaluator digests reported). The
+  instrument the study froze is no longer the one scoring: roll rimpl back, or stop scoring and re-declare
+  (`REPLACE THE LOCK`).
+- **503 also when** rimpl cannot report a code-matched manifest (`live_manifest_unknown`), the lock record
+  has no `evaluator_sha256` or provider (`lock_not_bound_to_manifest`: a lock taken before this change, or
+  set by hand), the record table is unmigrated (`lock_record_unmigrated`) or unreadable
+  (`lock_record_unreadable`). An unreadable lock state reports `unknown`.
+- **Unlocked:** unchanged. Never degrades, and makes no manifest fetch.
+
+**Declaring needs the candidate to be serving.** POST refuses with 409 `candidate_not_serving` unless the
+candidate's provider is the one in `ai_provider_evaluate`, and with 409 `manifest_mismatch` (a `provider`
+entry) unless it equals the manifest's `declared.providers.evaluate`. Switch `evaluate` to the candidate
+first, then lock. Backend env `RIMPL_MANIFEST_TIMEOUT_MS` (default `8000`) bounds the manifest fetch at
+declaration. **The quick lock is gone:** `PATCH /admin/ai-providers {evaluator_locked: true}` now answers
+409 `use_model_lock`. Locking happens only at `/admin/evaluator-lock`, and unlocking (`evaluator_locked:
+false` + `UNLOCK EVALUATOR`) clears the flag **and** the weights digest. Never set `evaluator_locked_at` or
+`evaluator_weights_sha256` by hand: a hand-set lock has no record and degrades `/health/deep` until replaced.
+
 **Deploy ordering:** apply `migration-usage-reserve.sql` + `migration-eval-unique.sql` BEFORE (or with)
 a backend deploy — never a new backend against a DB missing them. (`migration-eval-unique.sql` was
 historically orphaned from the runbooks — it is required, not optional.)

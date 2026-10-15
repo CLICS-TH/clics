@@ -262,3 +262,22 @@ describe('the org-wide budget pool actually stops evaluation', () => {
     expect(triggerEvaluation).toHaveBeenCalledWith('p1', MSGS, 'doc1', null, { attempts: 1, chiefComplaint: null });
   });
 });
+
+// services/ple-evaluation.js refuses to score while the evaluator lock state cannot be read (a
+// post-lock score stamped `locked: false` is written once and never corrected). The refusal is a
+// 503 — this pins that the drain treats it as TRANSIENT: deferred with backoff, never manual QA.
+test('an unreadable evaluator lock state DEFERS the row (never flags it), and says why', async () => {
+  mockRows = { p1: { id: 'p1', physician_id: 'doc1', status: 'ple_pass', eval_attempts: 1 } };
+  mockMsgs = { p1: MSGS }; mockClaims = ['p1'];
+  triggerEvaluation.mockImplementation(() => {
+    const e = new Error('evaluator lock state unreadable (connection reset) — evaluation deferred, not scored');
+    e.status = 503; e.code = 'lock_state_unreadable';
+    return Promise.reject(e);
+  });
+  await drain.tick(); await settle();
+  const deferred = updates('ples').find((w) => w.payload.eval_next_at);
+  expect(deferred).toBeTruthy();
+  expect(deferred.payload.eval_last_error).toBe('503:lock_state_unreadable');
+  expect(updates('ples').some((w) => w.payload.status === 'ple_flag_t2')).toBe(false);
+  expect(drain.status().counters).toMatchObject({ deferred: 1, flagged: 0, evaluated: 0 });
+});

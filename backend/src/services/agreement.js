@@ -15,7 +15,10 @@ const { iccGates } = require('../lib/settings');
 const { evaluateClass } = require('../lib/ai-providers');
 
 const ICC_DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
-const SHADOW_COLS = 'ple_id, provider, model_version, composite_score, d1,d2,d3,d4,d5,d6,d7, error, evaluated_at';
+// prompt_version + rubric_version: the candidate is grouped by prompt version (below), and the Model
+// Lock checks the group's rubric against the declaration. Without them a shadow corpus scored under two
+// prompt addenda read as ONE candidate, and the decisive ICC pooled two instruments.
+const SHADOW_COLS = 'ple_id, provider, model_version, prompt_version, rubric_version, composite_score, d1,d2,d3,d4,d5,d6,d7, error, evaluated_at';
 
 // PostgREST reports an unapplied migration as a missing relation. That is a KNOWN state, not a
 // fault: db/migration-shadow-evaluations.sql is deliberately unapplied in some environments, and it
@@ -35,17 +38,23 @@ function isMissingRelation(error) {
 /**
  * Assemble the human / incumbent / candidate score sets over the audited universe.
  *
+ * @param {object} [opts]
+ * @param {boolean} [opts.includeTest]
+ * @param {string|null} [opts.promptVersion] when given (null included), the candidate is chosen only
+ *   among groups scored under exactly this prompt_version. The Model Lock passes the DECLARED version,
+ *   so the verdict that permits a freeze is computed on the prompt being frozen. Omitted, the most
+ *   recent group wins, as before.
  * @returns {Promise<{ok: true, ...}|{ok: false, error: object}>} `ok:false` carries the db error for
  *   the caller to surface — this returns rather than throws so an express handler cannot die
  *   silently mid-response (this router has no error middleware; a throw hangs the client).
  */
-async function pairedSets({ includeTest = false } = {}) {
+async function pairedSets({ includeTest = false, promptVersion } = {}) {
   const { data: auditScores, error: auditErr } = await supabase
     .from('audit_scores').select('ple_id, composite_score, d1,d2,d3,d4,d5,d6,d7');
   if (auditErr) return { ok: false, error: auditErr };
   if (!auditScores?.length) {
     return { ok: true, empty: true, humanBy: new Map(), aiBy: new Map(), shadowBy: new Map(),
-      withAi: [], allThree: [], compareIds: [], candidate: null, shadowAvailable: false, shadowFailed: 0, shadowIneligible: 0 };
+      withAi: [], allThree: [], compareIds: [], candidate: null, groups: [], shadowAvailable: false, shadowFailed: 0, shadowIneligible: 0 };
   }
 
   const scoredIds = [...new Set(auditScores.map(a => a.ple_id))];
@@ -81,7 +90,14 @@ async function pairedSets({ includeTest = false } = {}) {
 
   // ONE candidate per arm. `provider` is the TRANSPORT ('local'), not the candidate — a second
   // candidate model on the same transport is a SEPARATE paired set. Pooling two models into one arm
-  // would report a number that describes neither, so pick the most recent (provider, model_version).
+  // would report a number that describes neither, so pick the most recent
+  // (provider, model_version, prompt_version).
+  //
+  // prompt_version is part of the identity for the same reason. The local evaluator's prompt carries
+  // an addendum (rimpl versions.js: `pis7-prompt-<base>+local-<addendum>`), and the addendum has been
+  // rewritten mid-programme: rows scored under two addenda are two instruments. Pooling them would let
+  // the Model Lock freeze one prompt on agreement partly earned by another. A null prompt_version (an
+  // older writer, a hand insert) is its own group, never pooled with a known one.
   //
   // ONLY from a provider that may serve `evaluate` (lib/ai-providers.js evaluateClass). The candidate
   // chosen here is what POST /admin/evaluator-lock freezes as the study's measuring instrument, and
@@ -93,14 +109,27 @@ async function pairedSets({ includeTest = false } = {}) {
   for (const r of (shadowRes.data ?? [])) {
     if (!inScope(r.ple_id)) continue;
     if (!evaluateClass(r.provider)) { shadowIneligible++; continue; }
-    const key = `${r.provider} ${r.model_version}`;
-    const g = groups.get(key) ?? { provider: r.provider, model_version: r.model_version, rows: [], latest: 0 };
+    const pv = r.prompt_version ?? null;
+    const key = JSON.stringify([r.provider, r.model_version, pv]);
+    const g = groups.get(key) ?? { provider: r.provider, model_version: r.model_version, prompt_version: pv, rows: [], latest: 0, rubricVersions: new Set() };
     g.rows.push(r);
+    g.rubricVersions.add(r.rubric_version ?? null);
     g.latest = Math.max(g.latest, Date.parse(r.evaluated_at ?? '') || 0);
     groups.set(key, g);
   }
-  const candidate = [...groups.values()].sort((x, y) =>
-    (y.latest - x.latest) || String(y.model_version ?? '').localeCompare(String(x.model_version ?? '')))[0] ?? null;
+  const ranked = [...groups.values()].sort((x, y) =>
+    (y.latest - x.latest)
+    || String(y.model_version ?? '').localeCompare(String(x.model_version ?? ''))
+    || String(y.prompt_version ?? '').localeCompare(String(x.prompt_version ?? '')));
+  const candidate = (promptVersion === undefined
+    ? ranked[0]
+    : ranked.find((g) => g.prompt_version === promptVersion)) ?? null;
+  // Every group, summarised, so a reader can see what was NOT pooled into the candidate.
+  const groupSummaries = ranked.map((g) => ({
+    provider: g.provider, model_version: g.model_version, prompt_version: g.prompt_version,
+    rows: g.rows.length, rubric_versions: [...g.rubricVersions],
+    latest: g.latest ? new Date(g.latest).toISOString() : null,
+  }));
 
   // A row with `error` set carries no scores, so it cannot enter an ICC — but it IS counted, because
   // "the candidate could not produce a valid score set 8% of the time" is a first-class, potentially
@@ -122,7 +151,17 @@ async function pairedSets({ includeTest = false } = {}) {
     ok: true, empty: false,
     humanBy, aiBy, shadowBy, withAi, allThree,
     compareIds: shadowAvailable ? allThree : withAi,
-    candidate, shadowAvailable, shadowFailed, shadowIneligible,
+    candidate, groups: groupSummaries, shadowAvailable, shadowFailed, shadowIneligible,
+  };
+}
+
+// The candidate as callers see it: its identity, plus the rubric versions its rows were scored under.
+function candidateSummary(candidate) {
+  if (!candidate) return null;
+  return {
+    provider: candidate.provider, model_version: candidate.model_version,
+    prompt_version: candidate.prompt_version ?? null,
+    rubric_versions: [...(candidate.rubricVersions ?? [])],
   };
 }
 
@@ -142,15 +181,17 @@ function decisiveOverall(sets) {
  * two models agreeing closely can be similarly wrong, and freezing the study's measuring instrument
  * against a number that never touched a human judgement is exactly what this must prevent.
  */
-async function decisiveVerdict({ includeTest = false } = {}) {
-  const sets = await pairedSets({ includeTest });
+async function decisiveVerdict({ includeTest = false, promptVersion } = {}) {
+  const sets = await pairedSets({ includeTest, promptVersion });
   if (!sets.ok) return { ok: false, error: sets.error };
   const gates = await iccGates();
   return {
     ok: true,
     verdict: verdictFor(decisiveOverall(sets), gates.decisive),
-    candidate: sets.candidate ? { provider: sets.candidate.provider, model_version: sets.candidate.model_version } : null,
+    // prompt_version and rubric_versions are additive beside provider and model_version.
+    candidate: candidateSummary(sets.candidate),
+    groups: sets.groups ?? [],
   };
 }
 
-module.exports = { pairedSets, decisiveOverall, decisiveVerdict, isMissingRelation, ICC_DOMAINS, SHADOW_COLS };
+module.exports = { pairedSets, decisiveOverall, decisiveVerdict, candidateSummary, isMissingRelation, ICC_DOMAINS, SHADOW_COLS };

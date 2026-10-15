@@ -1033,3 +1033,40 @@ create policy "consents: own" on public.consents for all
 create policy "consents: oversight read" on public.consents for select using (
   exists (select 1 from public.professionals p where p.id = auth.uid() and p.role in ('superadmin','ethics'))
 );
+
+-- ===== Primary Evaluator Model Lock (see db/migration-evaluator-model-lock.sql, then
+-- db/migration-evaluator-lock-manifest.sql) — one row per declaration, append-only in practice =====
+-- app_settings.evaluator_locked_at is the flag the provider switch consults; this is the record behind
+-- it. evaluator_sha256 binds the lock to the scoring instrument it froze (CCME R2): /health/deep degrades
+-- while locked if the live manifest's evaluator keys differ. manifest_sha256 + manifest record the whole
+-- build; a tutor/router change is a note, not a failure. Unlocks are on the audit trail, not here.
+create table public.evaluator_model_lock (
+  id                       uuid primary key default gen_random_uuid(),
+  locked_at                timestamptz not null default now(),
+  locked_by                uuid references public.professionals(id),
+  provider                 text,
+  model_version            text,
+  weights_sha256           text not null,
+  inference_engine         text not null,
+  quantization             text,
+  system_prompt_version    text not null,
+  evaluator_prompt_version text not null,
+  rubric_version           text not null,
+  decoding                 jsonb,          -- temperature / top_p / max tokens / seed, as declared
+  environment              jsonb,          -- container, OS, library versions
+  gate                     jsonb,          -- the decisive verdict that permitted the freeze
+  note                     text,
+  manifest_sha256          text,           -- rimpl/src/model-manifest.json, as rimpl verified it
+  manifest                 jsonb,          -- its EXPECTED half (code + declared), never the live view
+  evaluator_sha256         text,           -- THE binding: evaluator-scoped digest (services/model-lock.js)
+  constraint evaluator_model_lock_manifest_sha256_hex check (manifest_sha256 is null or manifest_sha256 ~ '^[0-9a-f]{64}$'),
+  constraint evaluator_model_lock_evaluator_sha256_hex check (evaluator_sha256 is null or evaluator_sha256 ~ '^[0-9a-f]{64}$'),
+  constraint evaluator_model_lock_manifest_pair check ((manifest_sha256 is null) = (manifest is null))
+);
+create index evaluator_model_lock_locked_at_idx on public.evaluator_model_lock (locked_at desc);
+-- Service-role only (DENY-ALL policy): no client role reads or writes a lock record directly.
+alter table public.evaluator_model_lock enable row level security;
+create policy evaluator_model_lock_no_access on public.evaluator_model_lock for all using (false);
+-- shadow_evaluations is not declared in this file. The table is created by
+-- db/migration-shadow-evaluations.sql, and its nullable `decoding` column is added by
+-- db/migration-evaluator-lock-manifest.sql.

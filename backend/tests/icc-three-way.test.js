@@ -26,14 +26,19 @@ const doms = (v) => Object.fromEntries(D.map((d) => [d, v]));
 
 // A scored row (audit_scores / ai_evaluations / shadow_evaluations all share the score columns).
 const row = (ple_id, composite, domain, extra = {}) => ({ ple_id, composite_score: composite, ...doms(domain), ...extra });
+// The prompt and rubric every shadow row here was scored under, unless a test says otherwise. The
+// candidate is a (provider, model_version, prompt_version) group, so the prompt is part of its name.
+const PV = 'pis7-prompt-59561c29+local-c5ffe572aa81';
+const RV = 'pis7-weights-08b0cb1a';
 // A shadow run that failed to hold the JSON contract: no scores at all (shadow_scored_xor_failed).
 const failedShadow = (ple_id, extra = {}) => ({
   ple_id, composite_score: null, ...Object.fromEntries(D.map((d) => [d, null])),
   error: 'invalid JSON', stop_reason: 'max_tokens', provider: 'local', model_version: 'qwen-2.5-72b',
-  evaluated_at: '2026-08-20T00:00:00Z', ...extra,
+  prompt_version: PV, rubric_version: RV, evaluated_at: '2026-08-20T00:00:00Z', ...extra,
 });
 const shadowRow = (ple_id, composite, domain, extra = {}) => row(ple_id, composite, domain, {
-  error: null, provider: 'local', model_version: 'qwen-2.5-72b', evaluated_at: '2026-08-20T00:00:00Z', ...extra,
+  error: null, provider: 'local', model_version: 'qwen-2.5-72b', prompt_version: PV, rubric_version: RV,
+  evaluated_at: '2026-08-20T00:00:00Z', ...extra,
 });
 
 // Wire one table -> rows map into the shared mock. `shadow` may be an array OR a {data,error} result.
@@ -55,7 +60,9 @@ function tables({ audit = [], ai = [], ples = [], shadow = [], corpus = null, se
         const rows = Array.isArray(shadow) ? shadow : (shadow.data ?? []);
         const scored = corpus ? corpus.scored : rows.filter((r) => r.error == null).length;
         const failed = corpus ? corpus.failed : rows.filter((r) => r.error != null).length;
-        return { data: null, error: null, count: ctx.iss.length ? scored : failed };
+        // Matched on the `error` column specifically: the query is also scoped by prompt_version, which
+        // is an .is() when the candidate's prompt_version is null.
+        return { data: null, error: null, count: ctx.iss.some(([c]) => c === 'error') ? scored : failed };
       }
       return shadow;
     }
@@ -135,7 +142,40 @@ describe('three arms', () => {
       shadow_scored_corpus: 4, shadow_failed_corpus: 1, shadow_contract_rate_corpus: 0.8,
       shadow_ineligible: 0,
     });
-    expect(shadow).toEqual({ available: true, provider: 'local', model_version: 'qwen-2.5-72b' });
+    expect(shadow).toEqual({ available: true, provider: 'local', model_version: 'qwen-2.5-72b', prompt_version: PV });
+  });
+
+  // The corpus contract counts describe the CANDIDATE, and the candidate is a prompt version too. An
+  // older addendum's failures are not this one's: unscoped by prompt, the rate below reads 0.45.
+  test('the corpus counts are scoped to the candidate\'s prompt_version', async () => {
+    const OLD = 'pis7-prompt-59561c29+local-aaaaaaaaaaaa';
+    const corpusRows = [
+      ...Array.from({ length: 9 }, () => ({ provider: 'local', model_version: 'qwen-2.5-72b', prompt_version: PV, error: null })),
+      { provider: 'local', model_version: 'qwen-2.5-72b', prompt_version: PV, error: 'invalid JSON' },
+      ...Array.from({ length: 10 }, () => ({ provider: 'local', model_version: 'qwen-2.5-72b', prompt_version: OLD, error: 'invalid JSON' })),
+    ];
+    tables({
+      audit: [row('c1', 80, 4), row('c2', 60, 3)],
+      ai: [row('c1', 82, 4), row('c2', 58, 3)],
+      ples: [{ id: 'c1', is_test: false }, { id: 'c2', is_test: false }],
+      shadow: [shadowRow('c1', 78, 4, { evaluated_at: '2026-09-01T00:00:00Z' }), shadowRow('c2', 55, 3, { evaluated_at: '2026-09-01T00:00:00Z' }),
+        shadowRow('c1', 70, 3, { prompt_version: OLD, evaluated_at: '2026-08-01T00:00:00Z' })],
+    });
+    const base = m.state.resolve;
+    m.state.resolve = (table, kind, ctx) => {
+      const isCount = table === 'shadow_evaluations' && (ctx?.selectArgs ?? []).some((a) => a && typeof a === 'object' && a.head);
+      if (!isCount) return base(table, kind, ctx);
+      // Honour every filter the route applies: eq (provider, model, prompt), is (error / a null prompt), not.
+      const hits = corpusRows.filter((r) => ctx.eqs.every(([c, v]) => r[c] === v)
+        && ctx.iss.every(([c, v]) => r[c] === v)
+        && ctx.nots.every(([c, op, v]) => op === 'is' && r[c] !== v));
+      return { data: null, error: null, count: hits.length };
+    };
+    const { coverage, shadow } = (await auth(request(app).get('/oversight/icc/three-way'))).body;
+    expect(shadow.prompt_version).toBe(PV);
+    expect(coverage.shadow_scored_corpus).toBe(9);
+    expect(coverage.shadow_failed_corpus).toBe(1);
+    expect(coverage.shadow_contract_rate_corpus).toBe(0.9);
   });
 
   // REGRESSION (confirmed by two review lenses, 2026-08-24). The cohort figures count only this
@@ -262,7 +302,7 @@ describe('missing shadow_evaluations table', () => {
     tables({ ...base, shadow: { data: null, error } });
     const r = await auth(request(app).get('/oversight/icc/three-way'));
     expect(r.status).toBe(200);
-    expect(r.body.shadow).toEqual({ available: false, provider: null, model_version: null });
+    expect(r.body.shadow).toEqual({ available: false, provider: null, model_version: null, prompt_version: null });
     expect(r.body.arms.shadow_vs_human).toBeNull();
     expect(r.body.arms.ai_vs_shadow).toBeNull();
     expect(r.body.coverage.ples_with_shadow).toBe(0);
@@ -373,7 +413,7 @@ test('with two candidate models, only the most recent one is used and it is name
     ],
   });
   const { arms, coverage, shadow } = (await auth(request(app).get('/oversight/icc/three-way'))).body;
-  expect(shadow).toEqual({ available: true, provider: 'local', model_version: 'qwen-2.5-72b' });
+  expect(shadow).toEqual({ available: true, provider: 'local', model_version: 'qwen-2.5-72b', prompt_version: PV });
   expect(coverage.ples_with_shadow).toBe(2);       // 2, not 5 — the older candidate is a separate set
   expect(coverage.ples_all_three).toBe(2);
   expect(arms.shadow_vs_human.n).toBe(2);
@@ -400,7 +440,7 @@ describe('local-tutor shadow rows', () => {
       tutorRow('c1', 80, 4), tutorRow('c2', 60, 3), tutorRow('c3', 90, 5),
     ] });
     const { arms, coverage, shadow } = (await auth(request(app).get('/oversight/icc/three-way'))).body;
-    expect(shadow).toEqual({ available: true, provider: 'local', model_version: 'qwen-2.5-72b' });
+    expect(shadow).toEqual({ available: true, provider: 'local', model_version: 'qwen-2.5-72b', prompt_version: PV });
     expect(coverage.ples_with_shadow).toBe(2);
     expect(coverage.shadow_ineligible).toBe(3);
     expect(arms.shadow_vs_human.n).toBe(2);
@@ -410,7 +450,7 @@ describe('local-tutor shadow rows', () => {
     m.state.caller = ANALYST;
     tables({ ...base, shadow: [tutorRow('c1', 80, 4), tutorRow('c2', 60, 3), tutorRow('c3', 90, 5)] });
     const { arms, coverage, shadow } = (await auth(request(app).get('/oversight/icc/three-way'))).body;
-    expect(shadow).toEqual({ available: false, provider: null, model_version: null });
+    expect(shadow).toEqual({ available: false, provider: null, model_version: null, prompt_version: null });
     expect(arms.shadow_vs_human).toBeNull();
     expect(coverage.shadow_ineligible).toBe(3);
 

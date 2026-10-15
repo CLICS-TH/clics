@@ -29,6 +29,15 @@ function sendDbError(res, error) {
   return false;
 }
 
+// The same rule, for an error that travels as a DETAIL inside another body (a blocker on a 200, a field
+// beside a bilingual message) rather than as the 500 itself: logged in full, generic in production.
+function publicDbMessage(error) {
+  if (!error) return null;
+  const msg = error.message ?? String(error);
+  console.error('[db]', msg);
+  return IS_PROD ? 'Internal server error' : msg;
+}
+
 // Parse ?limit&offset (clamped) for paginated list endpoints — bounds the rows pulled from an
 // 80K/400K-row table and dodges PostgREST's silent 1000-row truncation. Default 50, max 200.
 function pageParams(req, { def = 50, max = 200 } = {}) {
@@ -44,4 +53,4 @@ function toCsv(header, rows) {
   return '﻿' + [header, ...rows].map((r) => r.map(esc).join(',')).join('\n');
 }
 
-module.exports = { fetchOwnedPle, ownsFolder, sendDbError, pageParams, toCsv };
+module.exports = { fetchOwnedPle, ownsFolder, sendDbError, publicDbMessage, pageParams, toCsv };

@@ -23,6 +23,24 @@ async function getTextSetting(key, def = null) {
   } catch { return def; }
 }
 
+// The same read, WITHOUT the default. For a setting whose value decides something that must not be
+// guessed: the evaluator lock state. getTextSetting turns a failed read into "unset", and for
+// evaluator_locked_at "unset" means "unlocked" — so a database blip could let an evaluator switch
+// through while the lock was in force, and stamp a post-lock score `locked: false`.
+//
+// Returns { value } (null when the row is absent or blank — a genuinely unset setting) or { error }.
+// Never throws, never substitutes anything for an error: the caller decides what failing closed means.
+async function getTextSettingStrict(key) {
+  try {
+    const { data, error } = await supabase.from('app_settings').select('value_text').eq('key', key).maybeSingle();
+    if (error) return { error };
+    const v = typeof data?.value_text === 'string' ? data.value_text.trim() : '';
+    return { value: v || null };
+  } catch (e) {
+    return { error: { message: e?.message || String(e) } };
+  }
+}
+
 // Pilot Test Mode (CLICS pilot): when ON, PLE creation produces TEST sessions, bypasses the 3-PLE
 // study cap, and honours a physician-chosen Socratic mode — so the team can exercise the experiment.
 async function pilotTestMode() {
@@ -136,8 +154,13 @@ async function reflectionRequired() {
 // The DECLARED weights checksum from the CREC082 Model Lock Record (§10.2). Text, because it is a
 // hex digest. NULL until the evaluator is locked — and a score produced before that says so on its
 // face rather than implying a lock that had not happened.
+//
+// STRICT: { value } or { error }, never a default. Every score's provenance.locked is computed from it
+// (rimpl provenance.js: locked = !!weights_sha256), so a read error mapped to null (the old behaviour)
+// stamped a post-lock score `locked: false` for good: ai_evaluations is written once per PLE. The
+// caller (services/ple-evaluation.js) defers the evaluation instead.
 async function evaluatorWeightsSha256() {
-  return getTextSetting('evaluator_weights_sha256', null);
+  return getTextSettingStrict('evaluator_weights_sha256');
 }
 
 // The two agreement gates a candidate evaluator must clear, as configuration.
@@ -208,4 +231,4 @@ async function creditSettings() {
 
 module.exports = {
   chatStreamingEnabled, chatEvidenceMarkerEnabled, chatRouterEnabled,
-  calibrationRevealLocked, getSetting, getTextSetting, iccGates, transcriptCap, minAuditorsPerPle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };
+  calibrationRevealLocked, getSetting, getTextSetting, getTextSettingStrict, iccGates, transcriptCap, minAuditorsPerPle, t1RemediationEnabled, privacyReviewRequired, identityVerificationRequired, reflectionRequired, evaluatorWeightsSha256, creditSettings, pilotTestMode, clinicalArtifactsEnabled, peerCalibrationEnabled, holdResultUntilAudited };
