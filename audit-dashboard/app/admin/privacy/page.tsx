@@ -100,7 +100,7 @@ export default function PrivacyReviewPage() {
             className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
               filter === f.key ? 'bg-coral-active text-primary-foreground border-coral-active' : 'text-muted-foreground hover:bg-secondary'}`}
           >
-            {f.th} <span className="text-[0.84em] font-normal">/ {f.en}</span>
+            {f.th} <span className="text-[length:max(0.84em,12px)] font-normal">/ {f.en}</span>
           </button>
         ))}
       </div>
@@ -177,7 +177,7 @@ export default function PrivacyReviewPage() {
                 {DECISIONS.map(d => (
                   <Button key={d.key} size="sm" variant={d.variant} disabled={acting || transcript === null || transcriptError}
                           onClick={() => decide(p.id, d.key)}>
-                    <d.icon className="size-4" /> {d.th} <span className="text-[0.84em] font-normal">/ {d.en}</span>
+                    <d.icon className="size-4" /> {d.th} <span className="text-[length:max(0.84em,12px)] font-normal">/ {d.en}</span>
                   </Button>
                 ))}
               </div>

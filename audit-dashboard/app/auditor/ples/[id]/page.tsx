@@ -324,7 +324,7 @@ export default function AuditorScorePage() {
               </div>
               {/* Per-domain comparison: where you scored above/below the AI across the 7 PIS-7 axes. */}
               <div>
-                <h3 className="font-sans text-sm font-medium mb-1">เทียบกับ AI รายหมวด PIS-7 / PIS-7 by domain — vs AI</h3>
+                <h3 className="font-sans text-base font-medium mb-1">เทียบกับ AI รายหมวด PIS-7 / PIS-7 by domain — vs AI</h3>
                 <Pis7Radar ai={data.ai_evaluation} human={scores} />
                 <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(data.ai_evaluation, scores)}</p>
               </div>
@@ -332,7 +332,7 @@ export default function AuditorScorePage() {
                   this PLE. Shown once ≥1 other auditor has submitted (backend gates peer_avg/peer_n). */}
               {data.peer_avg && (data.peer_n ?? 0) >= 1 && (
                 <div>
-                  <h3 className="font-sans text-sm font-medium mb-1">{onePeer
+                  <h3 className="font-sans text-base font-medium mb-1">{onePeer
                     ? 'เทียบกับผู้ประเมินอีกคน / vs the other auditor'
                     : <>เทียบกับค่าเฉลี่ยผู้ประเมินคนอื่น / vs Other auditors <span className="font-normal text-muted-foreground">· n={data.peer_n}</span></>}</h3>
                   <Pis7Radar peer={data.peer_avg} human={scores} peerLabel={onePeer ? 'อีกคน / Other' : undefined} />

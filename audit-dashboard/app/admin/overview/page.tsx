@@ -232,8 +232,8 @@ export default function OverviewPage() {
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={domainData}>
                   <CartesianGrid stroke="currentColor" strokeOpacity={0.18} />
-                  <XAxis dataKey="domain" tick={{ fill: 'currentColor', fontSize: 11 }} />
-                  <YAxis domain={[0, 1]} tick={{ fill: 'currentColor', fontSize: 11 }} />
+                  <XAxis dataKey="domain" tick={{ fill: 'currentColor', fontSize: 12 }} />
+                  <YAxis domain={[0, 1]} tick={{ fill: 'currentColor', fontSize: 12 }} />
                   <Tooltip />
                   <ReferenceLine y={0.75} stroke={CHART.threshold} strokeDasharray="4 4" label="เกณฑ์ 0.75" />
                   <Bar dataKey="icc" radius={[4, 4, 0, 0]}>

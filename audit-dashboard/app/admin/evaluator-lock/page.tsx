@@ -234,7 +234,7 @@ export default function EvaluatorLockPage() {
       ) : (
         <form noValidate onSubmit={declare} aria-labelledby="lock-form-h" className="space-y-5 rounded-lg border border-border p-4">
           <div>
-            <h2 id="lock-form-h" className="font-sans text-sm font-medium text-foreground">
+            <h2 id="lock-form-h" className="font-sans text-base font-medium text-foreground">
               บันทึกค่าที่ระบบอ่านเองไม่ได้ / Declare what the system cannot read for itself
             </h2>
             {state.candidate?.provider && (
@@ -473,7 +473,7 @@ function LockBanner({ state }: { state: EvaluatorLockState }) {
     ];
     return (
       <section aria-labelledby="lock-banner-h" className="rounded-lg border border-ok/40 p-4">
-        <h2 id="lock-banner-h" className="flex items-center gap-2 font-sans text-sm font-medium text-ok">
+        <h2 id="lock-banner-h" className="flex items-center gap-2 font-sans text-base font-medium text-ok">
           <Lock className="size-4 shrink-0" aria-hidden="true" />
           ล็อกอยู่ตั้งแต่ / Locked since {fmtDate(current.locked_at)}
         </h2>
@@ -550,7 +550,7 @@ function CandidatePanel({ state }: { state: EvaluatorLockState }) {
   const tone = gate?.state === 'pass' ? 'ok' : gate?.state === 'fail' ? 'fail' : 'open';
   return (
     <section aria-labelledby="lock-candidate-h" className="space-y-3 rounded-lg border border-border p-4">
-      <h2 id="lock-candidate-h" className="font-sans text-sm font-medium text-foreground">ผู้ท้าชิงและผู้ให้คะแนนตอนนี้ / The candidate and the serving evaluator</h2>
+      <h2 id="lock-candidate-h" className="font-sans text-base font-medium text-foreground">ผู้ท้าชิงและผู้ให้คะแนนตอนนี้ / The candidate and the serving evaluator</h2>
       <dl className="grid grid-cols-1 gap-x-4 gap-y-1 text-sm @min-[640px]:grid-cols-[max-content_minmax(0,1fr)]">
         <dt className="text-muted-foreground">ผู้ท้าชิง / Candidate</dt>
         <dd className="min-w-0 pb-1 font-mono text-xs break-all text-foreground @min-[640px]:pb-0">
@@ -609,7 +609,7 @@ function ManifestPanel({ state, drift }: { state: EvaluatorLockState; drift: Dri
   const exp = m.expected_for_candidate;
   return (
     <section aria-labelledby="lock-manifest-h" className="space-y-2 rounded-lg border border-border p-4 text-sm">
-      <h2 id="lock-manifest-h" className="font-sans text-sm font-medium text-foreground">Model manifest</h2>
+      <h2 id="lock-manifest-h" className="font-sans text-base font-medium text-foreground">Model manifest</h2>
       <dl className="grid grid-cols-1 gap-x-4 gap-y-1 @min-[640px]:grid-cols-[max-content_minmax(0,1fr)]">
         <dt className="text-muted-foreground">sha256</dt>
         <dd className="min-w-0 pb-1 text-foreground @min-[640px]:pb-0">{sha(m.sha256)}</dd>
@@ -666,7 +666,7 @@ function ManifestPanel({ state, drift }: { state: EvaluatorLockState; drift: Dri
 function EvaluatorDrift({ keys, provider }: { keys: string[]; provider?: string }) {
   return (
     <section aria-labelledby="lock-drift-h" className="space-y-2 rounded-lg border border-warn/50 p-4">
-      <h2 id="lock-drift-h" className="flex gap-2 font-sans text-sm font-medium text-warn">
+      <h2 id="lock-drift-h" className="flex gap-2 font-sans text-base font-medium text-warn">
         <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
         <span>{DRIFT_COPY.evaluatorTitle}</span>
       </h2>
@@ -685,7 +685,7 @@ function EvaluatorDrift({ keys, provider }: { keys: string[]; provider?: string 
 function UnclassifiedDrift({ keys }: { keys: string[] }) {
   return (
     <section aria-labelledby="lock-drift-h" className="space-y-2 rounded-lg border border-warn/50 p-4">
-      <h2 id="lock-drift-h" className="flex gap-2 font-sans text-sm font-medium text-warn">
+      <h2 id="lock-drift-h" className="flex gap-2 font-sans text-base font-medium text-warn">
         <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
         <span>{DRIFT_COPY.unclassifiedTitle}</span>
       </h2>
@@ -700,7 +700,7 @@ function UnclassifiedDrift({ keys }: { keys: string[] }) {
 function Blockers({ state }: { state: EvaluatorLockState }) {
   return (
     <section aria-labelledby="lock-blockers-h" className="space-y-3">
-      <h2 id="lock-blockers-h" className="font-sans text-sm font-medium text-foreground">
+      <h2 id="lock-blockers-h" className="font-sans text-base font-medium text-foreground">
         ทำไมยังล็อกไม่ได้ ({state.blockers.length}) / Why the lock cannot be declared yet ({state.blockers.length})
       </h2>
       <ul className="space-y-3">

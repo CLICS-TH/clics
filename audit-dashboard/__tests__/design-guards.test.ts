@@ -4,6 +4,7 @@
 //   text-primary as SMALL text   bright coral is 3.11:1 on the light canvas and 2.71:1 on --secondary;
 //                                small text must use text-link (or text-coral-on-tint on a tint)
 //   text-[10px] / text-[11px]    below the Thai small-text floor (text-xs is 13px here)
+//   text-[Npx] of any size       frozen against the root scale and the text-sm body floor
 //   a raw <table> in a page that was migrated to ui/table (labelled scroll region, scope, numerics)
 //   text on solid bg-primary     white on bright coral is 3.28:1; a filled control uses bg-coral-active
 //
@@ -45,13 +46,38 @@ describe('design-a11y source guards', () => {
     expect(bad).toEqual([]);
   });
 
-  it('nothing is set below the Thai small-text floor, except Latin-only "test" tags', () => {
+  it('nothing is set below the small-text floor', () => {
+    // The Latin-only is_test tag on admin/ples was exempt at 10px; it is text-xs now, so nothing is.
     const bad: string[] = [];
     for (const f of SOURCES) {
       lines(f).forEach((l, i) => {
         if (!/text-\[(9|10|11)px\]/.test(l)) return;
-        if (/>test<\/span>/.test(l)) return;   // the Latin-only is_test marker on admin/ples
         bad.push(`${rel(f)}:${i + 1}  ${l.trim().slice(0, 110)}`);
+      });
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('no font size is written in px', () => {
+    // A px size is frozen. It does not follow the 118/132/145% desktop root, and it dodges the
+    // width-scoped text-sm body floor in globals.css. Both hits this was written for were Thai body
+    // text under 15.33px on a phone: the AI-reply table (13px) and its h2 (15px, smaller than the
+    // paragraph under it). Use a token (text-xs / text-sm / text-base ...) or an em step of one.
+    // Covered: text-[13px], text-[length:13px] (any variant prefix), and a JSX style attribute whose
+    // fontSize is a number (React reads it as px) or a '…px' string. Exempt: a px FLOOR inside
+    // max()/min()/clamp() — text-[length:max(0.8em,12px)] follows its parent and only stops it
+    // falling below 12px. A size held in a variable (ClicsLogo's `fontSize: size`) and a style object
+    // split across lines are out of reach of a line scan.
+    const TW_PX = /(^|[\s"'`:])text-\[(length:)?\d+(\.\d+)?px\]/;
+    const STYLE_PX = /\bstyle=\{\{.*?\bfontSize:\s*(\d+(?:\.\d+)?\s*(?=[,}])|(['"`])(?:(?!\2).)*?px\2)/;
+    const bad: string[] = [];
+    for (const f of SOURCES) {
+      lines(f).forEach((l, i) => {
+        if (/^\s*(\/\/|\/\*|\*)/.test(l)) return;   // prose about a class, not a class
+        const style = STYLE_PX.exec(l);
+        if (TW_PX.test(l) || (style && !/\b(max|min|clamp)\(/.test(style[1]))) {
+          bad.push(`${rel(f)}:${i + 1}  ${l.trim().slice(0, 110)}`);
+        }
       });
     }
     expect(bad).toEqual([]);

@@ -62,7 +62,7 @@ export default function IccPage() {
 
       {councils.length > 0 && (
         <div className="border rounded-xl p-5">
-          <h2 className="font-semibold mb-1">ICC แยกตามสภาวิชาชีพ / By professional council</h2>
+          <h2 className="text-lg font-semibold mb-1">ICC แยกตามสภาวิชาชีพ / By professional council</h2>
           <p className="text-xs text-muted-foreground mb-4">ดูความน่าเชื่อถือของแต่ละวิชาชีพแยกกัน / Each profession&apos;s calibration, separately.</p>
           <div className="grid gap-3 @min-[640px]:grid-cols-2">
             {councils.map((c) => {
@@ -82,7 +82,7 @@ export default function IccPage() {
       )}
       {per_domain && (
         <div className="border rounded-xl p-5">
-          <h2 className="font-semibold mb-4">ICC รายโดเมน</h2>
+          <h2 className="text-lg font-semibold mb-4">ICC รายโดเมน</h2>
           <div className="space-y-3">
             {Object.entries(per_domain).map(([key, d], i) => (
               <div key={key} className="flex items-center gap-3">
@@ -103,7 +103,7 @@ export default function IccPage() {
           publishing whichever is larger without saying so is the failure this pairing prevents. */}
       {(inter_auditor || inter_auditor_average) && (
         <div className="border rounded-xl p-5">
-          <h2 className="font-semibold mb-1">ความสอดคล้องระหว่างผู้ตรวจ / Human interrater agreement</h2>
+          <h2 className="text-lg font-semibold mb-1">ความสอดคล้องระหว่างผู้ตรวจ / Human interrater agreement</h2>
           <p className="text-xs text-muted-foreground mb-4">
             เป้าหมายตามโปรโตคอล: ผู้ตรวจ ≥ {min_auditors ?? 3} คนต่อ PLE / Protocol target: ≥ {min_auditors ?? 3} raters per PLE
           </p>
@@ -131,7 +131,7 @@ export default function IccPage() {
               the raters all chose the same value — a fact about the cohort, not agreement. */}
           {inter_auditor_per_domain && Object.values(inter_auditor_per_domain).some(Boolean) && (
             <div className="mt-4 border-t pt-4">
-              <h3 className="text-sm font-medium mb-1">รายโดเมน / by PIS-7 domain</h3>
+              <h3 className="text-base font-medium mb-1">รายโดเมน / by PIS-7 domain</h3>
               <p className="text-xs text-muted-foreground mb-3">
                 โดเมนที่ผู้ตรวจให้คะแนนเท่ากันทุกคนจะไม่มีค่า ICC เพราะไม่มีความแปรปรวนให้วัด ไม่ใช่เพราะไม่สอดคล้อง •
                 A domain every rater scored identically has no ICC because there is no variance to measure — that is not disagreement.
@@ -179,7 +179,7 @@ export default function IccPage() {
           often two raters land on the SAME 0–5 category, corrected for chance. */}
       {weighted_kappa?.pooled && (
         <div className="border rounded-xl p-5">
-          <h2 className="font-semibold mb-1">Weighted kappa (quadratic)</h2>
+          <h2 className="text-lg font-semibold mb-1">Weighted kappa (quadratic)</h2>
           <p className="text-xs text-muted-foreground mb-4">
             แก้ค่าความบังเอิญ — ต่างกัน 1 ระดับถูกหักน้อยกว่าต่างกัน 2 ระดับสี่เท่า / Chance-corrected; an adjacent miss costs a quarter of a two-band miss.
           </p>

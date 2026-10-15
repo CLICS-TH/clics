@@ -224,7 +224,7 @@ function Frame({ children }: { children: React.ReactNode }) {
   return (
     <section className="space-y-5 rounded-xl border p-5">
       <div>
-        <h2 className="font-semibold">เปรียบเทียบความสอดคล้องสามทาง / Three-way agreement</h2>
+        <h2 className="text-lg font-semibold">เปรียบเทียบความสอดคล้องสามทาง / Three-way agreement</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           ICC(2,1) ระหว่างผู้ให้คะแนนสองรายต่อหนึ่งคู่ · Claude, <NoBreak>โมเดลผู้ท้าชิงภายในองค์กร</NoBreak> และ
           <NoBreak>ผู้ตรวจสอบที่เป็นมนุษย์</NoBreak>
@@ -363,7 +363,7 @@ export function ThreeWayIcc({ includeTest = false }: { includeTest?: boolean }) 
           contract-failure rate carry the same weight as the point estimates. */}
       {cov && (
         <div>
-          <h3 className="mb-2 text-sm font-semibold">ความครอบคลุมของข้อมูล / Coverage</h3>
+          <h3 className="mb-2 text-base font-semibold">ความครอบคลุมของข้อมูล / Coverage</h3>
           {/* One column at 320px: the Thai labels are unspaced runs and a 2-up grid crushes them. */}
           <div className="grid grid-cols-1 gap-3 @min-[420px]:grid-cols-2 @min-[720px]:grid-cols-4">
             <CoverageTile
@@ -415,7 +415,7 @@ export function ThreeWayIcc({ includeTest = false }: { includeTest?: boolean }) 
 
       {/* The two arms that matter — measured against the human reference standard. */}
       <div>
-        <h3 className="mb-2 text-sm font-semibold">
+        <h3 className="mb-2 text-base font-semibold">
           เทียบกับ<NoBreak>ผู้ตรวจสอบ</NoBreak> (<NoBreak>มาตรฐานอ้างอิง</NoBreak>) / Measured against the human auditor
         </h3>
         <div className="grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2">
@@ -442,7 +442,7 @@ export function ThreeWayIcc({ includeTest = false }: { includeTest?: boolean }) 
 
       {/* Subordinate by design: no gate colouring, no gate bar, smaller figure. */}
       <div>
-        <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
+        <h3 className="mb-2 text-base font-semibold text-muted-foreground">
           สัญญาณรอง / Secondary signal — model vs model
         </h3>
         <div className="rounded-xl border border-dashed bg-muted/40 p-4">
@@ -472,7 +472,7 @@ export function ThreeWayIcc({ includeTest = false }: { includeTest?: boolean }) 
 
       {/* Per-domain: wide by nature, so it scrolls inside its own container instead of the page. */}
       <div>
-        <h3 className="mb-2 text-sm font-semibold">รายโดเมน PIS-7 / Per-domain (ICC · 95% CI)</h3>
+        <h3 className="mb-2 text-base font-semibold">รายโดเมน PIS-7 / Per-domain (ICC · 95% CI)</h3>
         <div className="overflow-x-auto rounded-xl border">
           <table className="w-full min-w-[560px] text-sm">
             <caption className="sr-only">

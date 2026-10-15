@@ -41,7 +41,7 @@ export default function AnalystPage() {
       />
 
       <div className="border rounded-xl p-5">
-        <h2 className="font-semibold mb-3">สถานะ PLE / PLE status {stats ? <span className="text-muted-foreground text-sm">· n = {stats.total}</span> : null}</h2>
+        <h2 className="text-lg font-semibold mb-3">สถานะ PLE / PLE status {stats ? <span className="text-muted-foreground text-sm">· n = {stats.total}</span> : null}</h2>
         {!stats ? <Skeleton className="h-20 w-full" /> : (
           <div className="grid grid-cols-2 gap-3 @min-[640px]:grid-cols-3">
             {Object.entries(STATUS_LABEL).map(([k, label]) => (
@@ -61,7 +61,7 @@ export default function AnalystPage() {
             <IccPanel {...icc.overall} />
             {icc.per_domain && (
               <div className="border rounded-xl p-5">
-                <h2 className="font-semibold mb-4">ICC รายโดเมน / Per-domain</h2>
+                <h2 className="text-lg font-semibold mb-4">ICC รายโดเมน / Per-domain</h2>
                 <div className="space-y-3">
                   {Object.entries(icc.per_domain).map(([key, d], i) => (
                     <div key={key} className="flex items-center gap-3">

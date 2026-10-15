@@ -4,7 +4,9 @@ import { useTheme } from './ThemeProvider';
 import { useViewport } from './ViewportProvider';
 import { NEXT_PREF, type ThemePref } from '@/lib/theme';
 
-const BTN = 'inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors';
+// whitespace-nowrap: a squeezed nav must overflow (which the nav-width audit sees), never wrap
+// "ตาม/ระบบ" onto two lines (which it did, invisibly to that audit).
+const BTN = 'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors';
 
 const THEME_LABEL: Record<ThemePref, { th: string; en: string }> = {
   system: { th: 'ตามระบบ', en: 'System' },

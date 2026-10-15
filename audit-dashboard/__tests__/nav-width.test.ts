@@ -9,15 +9,16 @@
  * sweep measured it.
  *
  * The threshold is now derived from the link count, which stops the same drift. This file pins the
- * DERIVATION against the three widths it was calibrated at, so a future change to either constant —
- * or a roster that outgrows the model — fails here with the number rather than in production.
+ * DERIVATION against the widths it was calibrated at, so a future change to either constant — or a
+ * roster that outgrows the model — fails here with the number rather than in production.
  *
  * Measured with Playwright against the built app, both label languages rendered, the widest identity
- * block, binary-searching the narrowest viewport at which `nav > div` reports no overflow. That
+ * block: each persona's row is forced inline and the narrowest viewport from which it FITS at every
+ * wider width is found (fits = no control wraps, nothing overflows the row or the page). That
  * measurement is committed and repeatable:
  *
  *     cd audit-dashboard && npm run build && npx next start -p 3002
- *     npm run test:nav-width              # sweeps 5 roles × 13 widths, 320–3400px
+ *     npm run test:nav-width              # 6 personas × 11 widths + both sides of every threshold
  *     node scripts/responsive/nav-width-audit.mjs --calibrate   # re-derive after a roster change
  *
  * The sweep is what caught the original bug; this file is what makes it cheap to keep caught, since
@@ -34,17 +35,29 @@ import { ADMIN_LINKS, SUPERADMIN_LINKS, AUDITOR_LINKS, ANALYST_LINKS, ETHICS_LIN
  * the model came out ~100px under and left a band where the row still went inline and overflowed.
  *
  * These are LOWER bounds: the row provably needed this much, so the model must demand at least it.
+ *
+ * Measured with the text-sm body floor in place (nav text 15.36px below 1280, 16.52px at 1280) and
+ * the row's controls whitespace-nowrap. Short rosters go inline below 1280 — the 1-link rows from
+ * 947 and the 2-link auditor row from 1137 — so the 100% root is calibrated as carefully as the
+ * desktop steps. The dual-role row is 3: its two links plus Return to Physician, which NavBar counts
+ * as a link. It fits from ~1195 on the 100% root but not at 1280–1326, where the 118% root grows
+ * every rem, so its need is 1327; that row sets NAV_CHROME_PX.
+ *
+ * The earlier pairs here — [8, 2060], [13, 2976] and [1, 836] — were fitted on overflow alone, which
+ * could not see a control WRAP instead of overflowing. Every one of them was too eager.
  */
 const NEEDED: [links: number, fitsFromPx: number][] = [
-  [8, 2060],
-  [13, 2976],
+  [1, 900],     // ethics — the longest single-link label
+  [1, 855],     // analyst
+  [2, 945],     // auditor
+  [3, 1327],    // dual-role physician (2 links + Return to Physician)
+  [9, 2348],    // admin
+  [14, 3265],   // superadmin
 ];
 
 /*
- * The binary search floor was 1536px, so a row that fit there has an unknown true need — only an
- * UPPER bound. Asserting `>= 1536` on it would be asserting something never measured; what was
- * measured is that a 2-link row must be ALLOWED inline at 1536, and a model that demanded more
- * would hamburger the auditor nav on a laptop for no reason.
+ * The other direction: a model that demanded far more than any row needs would hamburger the auditor
+ * nav on an ordinary laptop for no reason. A 2-link row must stay ALLOWED inline at 1536.
  */
 const FITS_AT_FLOOR: [links: number, floorPx: number][] = [[2, 1536]];
 
@@ -65,7 +78,7 @@ describe('the desktop nav collapses before its row can overflow', () => {
 
   it('the constants are the ones the measurements were fitted to', () => {
     // A silent edit to either constant would move every threshold at once.
-    expect(NAV_CHROME_PX).toBe(620);
+    expect(NAV_CHROME_PX).toBe(757);
     expect(NAV_PER_LINK_PX).toBe(190);
   });
 

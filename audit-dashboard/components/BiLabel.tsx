@@ -28,10 +28,13 @@ export function BiLabel({
         {th}
       </span>
     );
+  // 0.8em of the label, floored at the 12px micro size: inside a text-xs parent (13px) or a small
+  // button (0.8rem) a bare 0.8em rendered 10.2-10.4px. Wherever the parent is large enough, the
+  // floor is inert and the English half is exactly 0.8em as before.
   return (
     <span className={className}>
       {th}
-      <span className="ml-1 text-[0.8em] font-normal">{en}</span>
+      <span className="ml-1 text-[length:max(0.8em,12px)] font-normal">{en}</span>
     </span>
   );
 }

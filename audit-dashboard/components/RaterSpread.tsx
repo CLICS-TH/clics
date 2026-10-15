@@ -56,7 +56,7 @@ export function RaterSpreadPanel({ data }: { data: RaterSpread | null }) {
   if (data.empty) {
     return (
       <div className="border rounded-xl p-5">
-        <h2 className="font-semibold">การกระจายคะแนนผู้ตรวจ / Rater spread</h2>
+        <h2 className="text-lg font-semibold">การกระจายคะแนนผู้ตรวจ / Rater spread</h2>
         <p className="mt-2 text-sm text-muted-foreground">ยังไม่มีคะแนนจากผู้ตรวจ / No auditor scores yet.</p>
       </div>
     );
@@ -68,7 +68,7 @@ export function RaterSpreadPanel({ data }: { data: RaterSpread | null }) {
   return (
     <div className="border rounded-xl p-5 space-y-5">
       <div>
-        <h2 className="font-semibold">
+        <h2 className="text-lg font-semibold">
           การกระจายคะแนนผู้ตรวจ / Rater spread
           <span className="ml-2 text-sm font-normal text-muted-foreground">
             · {data.n_scores} scores · {data.n_episodes} episodes · {data.n_auditors} auditors
@@ -87,7 +87,7 @@ export function RaterSpreadPanel({ data }: { data: RaterSpread | null }) {
           restriction of range rather than of the two disagreeing about which episode is better. */}
       {c.n > 0 && (
         <div>
-          <h3 className="text-sm font-medium">ช่วงคะแนนบนเคสเดียวกัน / Range on the same {c.n} episodes</h3>
+          <h3 className="text-base font-medium">ช่วงคะแนนบนเคสเดียวกัน / Range on the same {c.n} episodes</h3>
           <div className="mt-2 grid gap-3 @min-[560px]:grid-cols-2">
             <Figure label="ผู้ตรวจ (คน) / Human range" value={c.human_range} unit="pts" />
             <Figure label="AI / AI range" value={c.ai_range} unit="pts" />
@@ -105,7 +105,7 @@ export function RaterSpreadPanel({ data }: { data: RaterSpread | null }) {
           scores IDENTICALLY is a discrimination problem; a domain everyone calls AMBIGUOUS is a
           rubric problem. */}
       <div>
-        <h3 className="text-sm font-medium mb-2">รายด้าน / Per domain</h3>
+        <h3 className="text-base font-medium mb-2">รายด้าน / Per domain</h3>
         <Table label="รายด้าน / Per domain">
           <TableHeader>
             <TableRow className="border-border text-left">
@@ -143,7 +143,7 @@ export function RaterSpreadPanel({ data }: { data: RaterSpread | null }) {
 
       {/* Per auditor, so one rater flattening the scale is distinguishable from everyone doing it. */}
       <div>
-        <h3 className="text-sm font-medium mb-2">รายผู้ตรวจ / Per auditor</h3>
+        <h3 className="text-base font-medium mb-2">รายผู้ตรวจ / Per auditor</h3>
         <Table label="รายผู้ตรวจ / Per auditor">
           <TableHeader>
             <TableRow className="border-border text-left">

@@ -13,14 +13,14 @@ export function BlandAltmanPlot({ pairs }: Props) {
   const loa = sd * 1.96;
   return (
     <div className="border rounded-xl p-5">
-      <h2 className="font-semibold mb-1">Bland-Altman Plot</h2>
+      <h2 className="text-lg font-semibold mb-1">Bland-Altman Plot</h2>
       <p className="text-xs text-muted-foreground mb-3">Mean diff: {meanDiff.toFixed(2)} · LoA: ±{loa.toFixed(2)}</p>
       <div className="text-muted-foreground">
       <ResponsiveContainer width="100%" height={220}>
         <ScatterChart>
           <CartesianGrid stroke="currentColor" strokeOpacity={0.18} />
-          <XAxis dataKey="mean" name="Mean" label={{ value:'Mean score', position:'insideBottom', offset:-2 }} tick={{ fill: 'currentColor', fontSize: 11 }} />
-          <YAxis dataKey="diff" name="AI − Human" label={{ value:'AI − Human', angle:-90, position:'insideLeft' }} tick={{ fill: 'currentColor', fontSize: 11 }} />
+          <XAxis dataKey="mean" name="Mean" label={{ value:'Mean score', position:'insideBottom', offset:-2 }} tick={{ fill: 'currentColor', fontSize: 12 }} />
+          <YAxis dataKey="diff" name="AI − Human" label={{ value:'AI − Human', angle:-90, position:'insideLeft' }} tick={{ fill: 'currentColor', fontSize: 12 }} />
           <Tooltip />
           <ReferenceLine y={meanDiff} stroke={CHART.teal} strokeDasharray="4 4" />
           <ReferenceLine y={meanDiff + loa} stroke={CHART.fail} strokeDasharray="3 3" />

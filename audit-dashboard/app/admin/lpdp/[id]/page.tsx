@@ -70,7 +70,7 @@ export default function PhysicianProfilePage() {
         <p className="text-muted-foreground text-sm py-8 text-center">ยังไม่มีเซสชัน / No sessions yet.</p>
       ) : Object.entries(groups).map(([label, items]) => (
         <div key={label} className="mb-5">
-          <h3 className="text-sm font-semibold text-link mb-2">{label} <span className="text-muted-foreground font-normal">({items.length})</span></h3>
+          <h3 className="text-base font-semibold text-link mb-2">{label} <span className="text-muted-foreground font-normal">({items.length})</span></h3>
           <div className="space-y-2">
             {items.map((s) => {
               const humanAvg = s.audits?.length

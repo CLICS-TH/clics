@@ -90,7 +90,7 @@ export default function GovernancePage() {
 
       {/* ---- Retention ---------------------------------------------------------------------- */}
       <section className="border rounded-xl p-5 mb-6">
-        <h2 className="flex items-center gap-2 font-semibold"><CalendarClock className="size-4" /> การเก็บรักษาข้อมูล <span className="text-muted-foreground font-normal">/ Retention</span></h2>
+        <h2 className="flex items-center gap-2 text-lg font-semibold"><CalendarClock className="size-4" /> การเก็บรักษาข้อมูล <span className="text-muted-foreground font-normal">/ Retention</span></h2>
         <p className="mt-1 text-sm text-muted-foreground">
           ข้อมูลวิจัยเก็บไม่เกิน {plan?.retention_years ?? 5} ปีหลังสิ้นสุดโครงการ แล้วทำให้ไม่สามารถเชื่อมโยงกลับได้ / Research data is kept for at most {plan?.retention_years ?? 5} years after the project ends, then de-identified.
         </p>
@@ -99,7 +99,11 @@ export default function GovernancePage() {
         <div className="mt-1.5 flex flex-wrap gap-2">
           <input id="endDate" type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
             className="rounded-lg border bg-background p-2.5 text-sm" />
-          <Button size="sm" variant="outline" disabled={busy} onClick={savePolicy}>บันทึก / Save</Button>
+          {/* h-auto lets the row's default stretch match the field's height (size sm is a fixed h-7).
+              When the row wraps there is no field to match, so a fine pointer keeps sm's 28px; it is
+              pointer-fine only, because a bare min-h-7 utility would beat the 44px touch floor in
+              globals.css and shrink the touch target to 28px. */}
+          <Button size="sm" variant="outline" className="h-auto pointer-fine:min-h-7" disabled={busy} onClick={savePolicy}>บันทึก / Save</Button>
         </div>
         <p className="mt-2 text-sm">
           {plan?.due_at
@@ -109,7 +113,7 @@ export default function GovernancePage() {
 
         {plan && (
           <>
-            <h3 className="mt-5 text-sm font-medium">จะถูกลบหรือล้างค่า / What would be cleared</h3>
+            <h3 className="mt-5 text-base font-medium">จะถูกลบหรือล้างค่า / What would be cleared</h3>
             <ul className="mt-1.5 space-y-1.5">
               {plan.targets.map(t => (
                 <li key={t.table} className="text-xs">
@@ -123,7 +127,7 @@ export default function GovernancePage() {
               ))}
             </ul>
 
-            <h3 className="mt-4 flex items-center gap-1.5 text-sm font-medium"><Lock className="size-3.5" /> ไม่ถูกแตะต้อง / Excluded by policy</h3>
+            <h3 className="mt-4 flex items-center gap-1.5 text-base font-medium"><Lock className="size-3.5" /> ไม่ถูกแตะต้อง / Excluded by policy</h3>
             <ul className="mt-1.5 space-y-1">
               {plan.excluded.map(e => (
                 <li key={e.table} className="text-xs">
@@ -154,7 +158,7 @@ export default function GovernancePage() {
 
       {/* ---- Monthly security review -------------------------------------------------------- */}
       <section className="border rounded-xl p-5">
-        <h2 className="font-semibold">การทบทวนความปลอดภัยรายเดือน <span className="text-muted-foreground font-normal">/ Monthly security review</span></h2>
+        <h2 className="text-lg font-semibold">การทบทวนความปลอดภัยรายเดือน <span className="text-muted-foreground font-normal">/ Monthly security review</span></h2>
         <p className="mt-1 text-sm text-muted-foreground">
           สามส่วนตามที่ระบุไว้: การเข้าถึง · audit log · เหตุการณ์ / The three parts the protocol names: access, audit log, incidents.
         </p>
@@ -182,7 +186,7 @@ export default function GovernancePage() {
 
         <Button size="sm" className="mt-4" disabled={busy} onClick={saveReview}>บันทึกการทบทวน / Record review</Button>
 
-        <h3 className="mt-6 text-sm font-medium">ประวัติ / History</h3>
+        <h3 className="mt-6 text-base font-medium">ประวัติ / History</h3>
         {reviews === null ? <p className="mt-2 text-sm text-muted-foreground">กำลังโหลด… / Loading…</p>
           : reviews.length === 0 ? <p className="mt-2 text-sm text-muted-foreground">ยังไม่มีบันทึกการทบทวน / No reviews recorded yet.</p>
           : (

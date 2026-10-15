@@ -573,11 +573,14 @@ export default function UsersPage() {
               {perCouncil ? (
                 <p className="text-xs text-muted-foreground mt-2">ตั้งค่าต่อสภาด้านล่าง / set per-council below</p>
               ) : (
+                // Every input + button row on this page shares one height (self-stretch, or an
+                // items-stretch pair where a label wraps): the text-sm field and the text-xs button
+                // differ below 1280px, and on touch the 44px floor grows the button.
                 <div className="flex items-center gap-1.5 mt-2">
                   <input type="number" min={0} disabled={locked}
-                    className="flex-1 min-w-0 border rounded-md px-2 py-1 text-sm bg-background disabled:opacity-50"
+                    className="flex-1 min-w-0 self-stretch border rounded-md px-2 py-1 text-sm bg-background disabled:opacity-50"
                     value={cap[s.role] ?? ''} onChange={e => setCap(c => ({ ...c, [s.role]: e.target.value }))} />
-                  <Button variant="outline" className="text-xs px-2 py-1 h-auto shrink-0" disabled={locked} onClick={() => saveCap(s.role)}>
+                  <Button variant="outline" className="text-xs px-2 py-1 h-auto shrink-0 self-stretch" disabled={locked} onClick={() => saveCap(s.role)}>
                     {locked ? '🔒' : 'ตั้งค่า'}
                   </Button>
                 </div>
@@ -660,9 +663,9 @@ export default function UsersPage() {
                   <p className="text-xs text-muted-foreground">เหลือ {s.remaining} ช่อง / {s.remaining} left</p>
                   <div className="flex items-center gap-1.5 mt-2">
                     <input type="number" min={0}
-                      className="flex-1 min-w-0 border rounded-md px-2 py-1 text-sm bg-background"
+                      className="flex-1 min-w-0 self-stretch border rounded-md px-2 py-1 text-sm bg-background"
                       value={ccap[s.role] ?? ''} onChange={e => setCcap(c => ({ ...c, [s.role]: e.target.value }))} />
-                    <Button variant="outline" className="text-xs px-2 py-1 h-auto shrink-0" onClick={() => saveCouncilCap(s.role)}>ตั้งค่า / Set</Button>
+                    <Button variant="outline" className="text-xs px-2 py-1 h-auto shrink-0 self-stretch" onClick={() => saveCouncilCap(s.role)}>ตั้งค่า / Set</Button>
                   </div>
                 </div>
               );
@@ -705,10 +708,14 @@ export default function UsersPage() {
         )}
         <div className="flex items-center gap-2 mt-3">
           <span className="text-sm text-muted-foreground">ตั้งงบรวม $ / Set pool $</span>
-          <input type="number" min={0} step="1"
-            className="w-28 border rounded-md px-2 py-1 text-sm bg-background"
-            placeholder="เช่น 50" value={poolLimit} onChange={e => setPoolLimit(e.target.value)} />
-          <Button variant="outline" className="text-xs px-3 py-1 h-auto" onClick={savePool}>บันทึก / Save</Button>
+          {/* Its own pair: this label wraps on a phone, and a row-level stretch would pull the
+              field and button up to the label's three lines. */}
+          <div className="flex items-stretch gap-2">
+            <input type="number" min={0} step="1"
+              className="w-28 border rounded-md px-2 py-1 text-sm bg-background"
+              placeholder="เช่น 50" value={poolLimit} onChange={e => setPoolLimit(e.target.value)} />
+            <Button variant="outline" className="text-xs px-3 py-1 h-auto" onClick={savePool}>บันทึก / Save</Button>
+          </div>
         </div>
         <p className="text-xs text-muted-foreground mt-1.5">
           * ตัวเลขนี้คือยอดที่ระบบคำนวณ — ยอดคงเหลือจริงดูได้ที่ Anthropic Console / This is the amount metered by CLICS; the real remaining balance lives in the Anthropic Console (linked above).
@@ -722,9 +729,9 @@ export default function UsersPage() {
         <div className="flex items-center gap-2 mt-2">
           <span className="text-sm text-muted-foreground">$</span>
           <input type="number" min={0} step="0.05"
-            className="w-24 border rounded-md px-2 py-1 text-sm bg-background"
+            className="w-24 self-stretch border rounded-md px-2 py-1 text-sm bg-background"
             value={stdLimit} onChange={e => setStdLimit(e.target.value)} />
-          <Button variant="outline" className="text-xs px-3 py-1 h-auto" onClick={saveStdLimit}>บันทึก / Save</Button>
+          <Button variant="outline" className="text-xs px-3 py-1 h-auto self-stretch" onClick={saveStdLimit}>บันทึก / Save</Button>
         </div>
       </div>
 
@@ -738,9 +745,9 @@ export default function UsersPage() {
         <div className="flex items-center gap-2 mt-2">
           <span className="text-sm text-muted-foreground">$</span>
           <input type="number" min={0} step="0.05"
-            className="w-24 border rounded-md px-2 py-1 text-sm bg-background"
+            className="w-24 self-stretch border rounded-md px-2 py-1 text-sm bg-background"
             value={auditorStdLimit} onChange={e => setAuditorStdLimit(e.target.value)} />
-          <Button variant="outline" className="text-xs px-3 py-1 h-auto" onClick={saveAuditorStdLimit}>บันทึก / Save</Button>
+          <Button variant="outline" className="text-xs px-3 py-1 h-auto self-stretch" onClick={saveAuditorStdLimit}>บันทึก / Save</Button>
         </div>
       </div>
       </>)}

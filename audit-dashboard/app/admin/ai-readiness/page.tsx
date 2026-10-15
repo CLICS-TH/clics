@@ -199,7 +199,7 @@ export default function AiReadinessPage() {
 
       {data?.embedding && (
         <section className="space-y-2">
-          <h2 className="font-sans text-sm font-medium">มิติเวกเตอร์ของการฝัง / Embedding dimension</h2>
+          <h2 className="font-sans text-base font-medium">มิติเวกเตอร์ของการฝัง / Embedding dimension</h2>
           <div className="rounded-lg border border-border bg-card p-4 text-sm">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               <span className="font-medium">{data.embedding.provider}</span>
@@ -234,7 +234,7 @@ export default function AiReadinessPage() {
 
       {data?.models && (
         <section className="space-y-2">
-          <h2 className="font-sans text-sm font-medium">งานแต่ละประเภทวิ่งที่ไหน / Which provider serves each purpose</h2>
+          <h2 className="font-sans text-base font-medium">งานแต่ละประเภทวิ่งที่ไหน / Which provider serves each purpose</h2>
           <ul className="space-y-1 text-sm text-muted-foreground">
             {Object.entries(data.models).map(([purpose, m]) => (
               <li key={purpose} className="flex flex-wrap gap-x-2">
@@ -269,7 +269,7 @@ function ManifestBlock({ m }: { m: ReadinessManifest }) {
   const sha = short(m.sha256);
   return (
     <section className="space-y-2">
-      <h2 className="font-sans text-sm font-medium">Model manifest</h2>
+      <h2 className="font-sans text-base font-medium">Model manifest</h2>
       <div className="space-y-2 rounded-lg border border-border bg-card p-4 text-sm">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="font-mono text-xs" title={m.sha256 ?? undefined}>
@@ -352,7 +352,7 @@ function ModelLockBlock({ l }: { l: ReadinessModelLock }) {
   const drifted = driftKeys.length > 0 || l.reason === 'evaluator_live_drift';
   return (
     <section className="space-y-2">
-      <h2 className="font-sans text-sm font-medium">การล็อกผู้ให้คะแนน / Evaluator Model Lock</h2>
+      <h2 className="font-sans text-base font-medium">การล็อกผู้ให้คะแนน / Evaluator Model Lock</h2>
       <div className="space-y-1.5 rounded-lg border border-border bg-card p-4 text-sm">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className={`inline-flex items-center gap-1.5 ${view.tone}`}>
