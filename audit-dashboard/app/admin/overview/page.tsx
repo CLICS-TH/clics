@@ -20,6 +20,7 @@ import { AiProviderPanel } from '@/components/AiProviderPanel';
 import { LocalAiCapacityCard } from '@/components/LocalAiCapacityCard';
 import { Skeleton, CardGridSkeleton } from '@/components/Skeleton';
 import { useAuthUser } from '@/lib/client-store';
+import { radioKeys } from '@/lib/radio-keys';
 import type { CleStats, UsageSettings } from '@/lib/types';
 
 // ---- API shapes (verified against backend/src/routes/admin.js + superadmin.js) ----
@@ -35,6 +36,12 @@ type Slot = { role: string; capacity: number; used: number; remaining: number };
 // UsageSettings lives in lib/types.ts — one definition shared with the users page + the capacity card.
 type CountRow = { council_id: string; role: string; n: number };
 type Invite = { id: string; email: string; status: string };
+
+// A settings control whose save is in flight (the min-auditors radios and the on/off toggles). It is
+// aria-disabled, never `disabled`: disabling the control a keyboard user just pressed blurs it and drops
+// focus to <body>, as AiProviderPanel found first. Each handler's own saving guard does what `disabled`
+// did. The dimming skips the keyboard-focused control, because opacity would fade its focus ring too.
+const BUSY = 'aria-disabled:cursor-wait aria-disabled:opacity-50 aria-disabled:focus-visible:opacity-100';
 
 
 export default function OverviewPage() {
@@ -107,7 +114,7 @@ export default function OverviewPage() {
   const [pilotSaving, setPilotSaving] = useState(false);
   const pilotOn = usage?.pilot_test_mode === true;
   async function togglePilot() {
-    if (!usage) return;
+    if (!usage || pilotSaving) return;
     await patchSetting('pilot_test_mode', !pilotOn, setPilotSaving);
   }
 
@@ -115,21 +122,21 @@ export default function OverviewPage() {
   const [artifactsSaving, setArtifactsSaving] = useState(false);
   const artifactsOn = usage?.clinical_artifacts_enabled === true;
   async function toggleArtifacts() {
-    if (!usage) return;
+    if (!usage || artifactsSaving) return;
     await patchSetting('clinical_artifacts_enabled', !artifactsOn, setArtifactsSaving);
   }
 
   const [peerSaving, setPeerSaving] = useState(false);
   const peerOn = usage?.peer_calibration_enabled === true;
   async function togglePeer() {
-    if (!usage) return;
+    if (!usage || peerSaving) return;
     await patchSetting('peer_calibration_enabled', !peerOn, setPeerSaving);
   }
 
   const [holdSaving, setHoldSaving] = useState(false);
   const holdOn = usage?.hold_result_until_audited === true;
   async function toggleHold() {
-    if (!usage) return;
+    if (!usage || holdSaving) return;
     await patchSetting('hold_result_until_audited', !holdOn, setHoldSaving);
   }
 
@@ -140,7 +147,7 @@ export default function OverviewPage() {
   const [lockSaving, setLockSaving] = useState(false);
   const lockOn = usage?.calibration_reveal_locked === true;
   async function toggleLock() {
-    if (!usage) return;
+    if (!usage || lockSaving) return;
     await patchSetting('calibration_reveal_locked', !lockOn, setLockSaving);
   }
 
@@ -151,8 +158,14 @@ export default function OverviewPage() {
   // in the ICC report — it never withholds a score.
   const [minAudSaving, setMinAudSaving] = useState(false);
   const minAuditors = usage?.min_auditors_per_cle ?? 1;
+  // The API accepts 1-10; the control offers 1-3. A value set elsewhere (e.g. 5) checks no option,
+  // so the group's single tab stop falls back to the first one.
+  const minAudChoices = [1, 2, 3];
+  const minAudStop = minAudChoices.includes(minAuditors) ? minAuditors : minAudChoices[0];
   async function setMinAuditors(n: number) {
-    if (!usage || n === minAuditors || n < 1 || n > 10) return;
+    // minAudSaving: the options stay focusable while a save runs (BUSY, not disabled), so this
+    // guard is what keeps a second click or arrow from starting a second write.
+    if (!usage || minAudSaving || n === minAuditors || n < 1 || n > 10) return;
     await patchSetting('min_auditors_per_cle', n, setMinAudSaving);
   }
 
@@ -328,8 +341,11 @@ export default function OverviewPage() {
       {/* Minimum auditors per PLE — a target the queue badges against, never a gate. */}
       <section className="space-y-3">
         <h2 className="font-heading text-xl text-foreground">ผู้ตรวจขั้นต่ำต่อ PLE / Minimum auditors per PLE</h2>
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-5">
-          <div className="min-w-0 flex-1 pr-4">
+        {/* The description takes a 28rem basis, as in AiProviderPanel: when it cannot keep that much
+            room beside the choices, they wrap below it. It was flex-1 (basis 0) beside a shrink-0
+            group, so at 320px it was squeezed to 84px and Thai split mid-word down a 782px column. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-xl border p-5">
+          <div className="min-w-0 flex-[1_1_28rem]">
             <p className="text-sm font-medium">👥 จำนวนผู้ตรวจเป้าหมาย / Target auditor count</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               PLE ที่มีผู้ตรวจน้อยกว่าเป้าหมายจะถูกทำเครื่องหมายในคิว แต่ <strong>ยังปล่อยผลตามปกติ</strong> —
@@ -338,18 +354,33 @@ export default function OverviewPage() {
               credit for the specialties that have no eligible auditor at all.
             </p>
           </div>
-          <div role="radiogroup" aria-label="Minimum auditors per PLE" className="inline-flex shrink-0 overflow-hidden rounded-lg border">
-            {[1, 2, 3].map(n => {
+          {/* Separate bordered options, as in AiProviderPanel. This was one joined segment whose
+              overflow-hidden clipped the global :focus-visible outline (drawn 2px OUTSIDE the
+              button), so a keyboard user saw almost no focus indicator. The gap-2 leaves the outline
+              room, and it stays distinct from the selected state's INSET ring. */}
+          {/* Keyboard: one tab stop (the checked option) and arrows to move, the radiogroup contract;
+              an arrow selects and saves, as a radio does. While a save runs the options are BUSY
+              (aria-disabled, see the constant) and setMinAuditors ignores input. */}
+          <div
+            role="radiogroup"
+            aria-label="Minimum auditors per PLE"
+            className="flex shrink-0 flex-wrap gap-2"
+            onKeyDown={radioKeys(minAudChoices, minAuditors, setMinAuditors)}
+          >
+            {minAudChoices.map(n => {
               const on = n === minAuditors;
               return (
                 <button
                   key={n}
+                  type="button"
                   role="radio"
                   aria-checked={on}
-                  disabled={!usage || minAudSaving}
+                  tabIndex={n === minAudStop ? 0 : -1}
+                  disabled={!usage}
+                  aria-disabled={minAudSaving || undefined}
                   onClick={() => setMinAuditors(n)}
-                  className={`px-4 py-2 text-sm tabular-nums transition-colors disabled:opacity-50
-                    ${on ? 'bg-primary/15 font-semibold text-foreground ring-2 ring-inset ring-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                  className={`rounded-lg border px-4 py-2 text-sm tabular-nums transition-colors disabled:opacity-50 ${BUSY}
+                    ${on ? 'border-primary bg-primary/15 font-semibold text-foreground ring-2 ring-inset ring-primary' : 'border-field text-muted-foreground hover:bg-muted hover:text-foreground'}`}
                 >
                   {n}
                 </button>
@@ -379,9 +410,10 @@ export default function OverviewPage() {
           </div>
           <button
             onClick={togglePilot}
-            disabled={!usage || pilotSaving}
+            disabled={!usage}
+            aria-disabled={pilotSaving || undefined}
             aria-pressed={pilotOn}
-            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${pilotOn ? 'bg-primary' : 'bg-muted'}`}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${BUSY} ${pilotOn ? 'bg-primary' : 'bg-muted'}`}
             title={pilotOn ? 'Pilot test mode is ON' : 'Pilot test mode is OFF'}
           >
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${pilotOn ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -404,9 +436,10 @@ export default function OverviewPage() {
           </div>
           <button
             onClick={toggleArtifacts}
-            disabled={!usage || artifactsSaving}
+            disabled={!usage}
+            aria-disabled={artifactsSaving || undefined}
             aria-pressed={artifactsOn}
-            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${artifactsOn ? 'bg-primary' : 'bg-muted'}`}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${BUSY} ${artifactsOn ? 'bg-primary' : 'bg-muted'}`}
             title={artifactsOn ? 'Clinical artifacts are ON' : 'Clinical artifacts are OFF'}
           >
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${artifactsOn ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -429,9 +462,10 @@ export default function OverviewPage() {
           </div>
           <button
             onClick={togglePeer}
-            disabled={!usage || peerSaving}
+            disabled={!usage}
+            aria-disabled={peerSaving || undefined}
             aria-pressed={peerOn}
-            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${peerOn ? 'bg-primary' : 'bg-muted'}`}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${BUSY} ${peerOn ? 'bg-primary' : 'bg-muted'}`}
             title={peerOn ? 'Peer calibration is ON' : 'Peer calibration is OFF'}
           >
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${peerOn ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -454,9 +488,10 @@ export default function OverviewPage() {
           </div>
           <button
             onClick={toggleHold}
-            disabled={!usage || holdSaving}
+            disabled={!usage}
+            aria-disabled={holdSaving || undefined}
             aria-pressed={holdOn}
-            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${holdOn ? 'bg-primary' : 'bg-muted'}`}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${BUSY} ${holdOn ? 'bg-primary' : 'bg-muted'}`}
             title={holdOn ? 'Hold result until audited is ON' : 'Hold result until audited is OFF'}
           >
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${holdOn ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -483,9 +518,10 @@ export default function OverviewPage() {
           </div>
           <button
             onClick={toggleLock}
-            disabled={!usage || lockSaving}
+            disabled={!usage}
+            aria-disabled={lockSaving || undefined}
             aria-pressed={lockOn}
-            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${lockOn ? 'bg-primary' : 'bg-muted'}`}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${BUSY} ${lockOn ? 'bg-primary' : 'bg-muted'}`}
             title={lockOn ? 'Calibration reveal lock is ON' : 'Calibration reveal lock is OFF'}
           >
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${lockOn ? 'translate-x-6' : 'translate-x-1'}`} />

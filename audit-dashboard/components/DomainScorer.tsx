@@ -8,6 +8,7 @@ import { PIS7_RUBRIC, PIS7_SCALE, PIS7_EVIDENCE_NOTE, PIS7_PRINCIPLE, COMMENT_EX
 import { WEIGHTS } from "@/lib/labels";
 import { BiLabel } from "@/components/BiLabel";
 import { cn } from "@/lib/utils";
+import { radioKeys } from "@/lib/radio-keys";
 
 // How clear this domain's behavioural anchor was for THIS transcript. The approved assessment form
 // asks it per domain, and the calibration workshop's stated output is a map of exactly this — where
@@ -26,27 +27,6 @@ export const ANCHOR_CLARITY = [
 
 const ANCHOR_VALUES = ANCHOR_CLARITY.map((a) => a.value);
 const LEVELS = PIS7_SCALE.map((s) => s.level);
-
-// Arrow-key navigation for a radiogroup, plus the roving tab stop that goes with it.
-//
-// A group announced as a radiogroup is operated with arrows, not Tab — that is what the role
-// promises. Both groups below were Tab-and-Space only, so a screen-reader user who heard "radio
-// group" pressed an arrow key and nothing happened. Applied to the score chips as well as the new
-// anchor chips: the older group had the same gap, and fixing only the new one would be arbitrary.
-function radioKeys<T>(values: readonly T[], current: T | null | undefined, pick: (v: T) => void) {
-  return (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1
-      : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
-    if (!step) return;
-    e.preventDefault();
-    const at = values.findIndex((v) => v === current);
-    // No selection yet: an arrow enters the group at the first option rather than doing nothing.
-    const next = at < 0 ? 0 : (at + step + values.length) % values.length;
-    pick(values[next]);
-    // Focus follows the selection, or the visible ring stays on the option just left behind.
-    e.currentTarget.querySelectorAll<HTMLElement>('[role="radio"]')[next]?.focus();
-  };
-}
 
 interface Props {
   scores: Record<string, number | null>;

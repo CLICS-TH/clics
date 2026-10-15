@@ -222,6 +222,8 @@ describe('WCAG AA on the token pairs both apps render', () => {
 type MinPair = [fg: string, bg: string, min: number, where: string];
 
 const NON_TEXT = 3;
+// WCAG 1.4.3 large text: >= 24px, or >= 18.66px bold. StatStrip's text-4xl bold figures qualify.
+const LARGE_TEXT = 3;
 
 const DA_PAIRS: MinPair[] = [
   // --- amber text. Was 4.51 on the canvas (0.01 of margin) and not guarded at all.
@@ -261,6 +263,16 @@ const DA_PAIRS: MinPair[] = [
   ['chart-human', 'card', NON_TEXT, 'radar: auditor series'],
   ['chart-ai', 'card', NON_TEXT, 'radar: AI series'],
   ['chart-peer', 'card', NON_TEXT, 'radar: peer-average series'],
+  // --- StatStrip figures (text-4xl bold). A linked card turns --secondary on hover, and bright
+  // --primary is 2.71:1 there in light, so the default tone swaps to --coral-on-tint while hovered.
+  // Callers: /admin/overview headline cards (default), /home admin (default) and auditor (default,
+  // pass, warn), all linked except the auditor's ICC card (default, static: rest pair only). `fail`
+  // has no caller, so it is not pinned.
+  ['primary', 'background', LARGE_TEXT, 'StatStrip default figure at rest (the design-guards 2xl+ exemption)'],
+  ['coral-on-tint', 'secondary', LARGE_TEXT, 'StatStrip default figure while its linked card is hovered'],
+  ['chart-pass-text', 'background', LARGE_TEXT, 'StatStrip pass figure at rest (/home auditor: Scored)'],
+  ['chart-pass-text', 'secondary', LARGE_TEXT, 'StatStrip pass figure while its card is hovered'],
+  ['warn', 'secondary', LARGE_TEXT, 'StatStrip warn figure while its card is hovered (/home auditor: To score)'],
 ];
 
 // Tokens declared only in :root are inherited by .dark (same element), so the dark palette is the

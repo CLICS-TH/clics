@@ -105,7 +105,7 @@
   --popover-foreground: #141413;
   --primary: #cc785c;
   --primary-foreground: #ffffff;
-  /* Button FILL: #a9583e gives white text ~4.6:1 (WCAG AA). Bright --primary is a NON-TEXT token:
+  /* Button FILL: #a9583e gives white text 5.06:1 (WCAG AA). Bright --primary is a NON-TEXT token:
      focus rings, borders, accents & charts. It is not for links or active nav — it measures 3.11:1
      on this canvas and 2.71:1 on --secondary, which is what --link and --coral-on-tint below are
      for. (This note used to say "links, active nav"; the 2026-08 readability sweep found the nav's
@@ -209,7 +209,7 @@
   --popover-foreground: #faf9f5;
   --primary: #cc785c;
   --primary-foreground: #ffffff;
-  --coral-active: #a9583e;  /* white text ~4.6:1 on any canvas */
+  --coral-active: #a9583e;  /* white text 5.06:1 — the fill sets it, so it holds on any canvas */
   --secondary: #1f1e1b;
   --secondary-foreground: #faf9f5;
   --muted: #1f1e1b;
