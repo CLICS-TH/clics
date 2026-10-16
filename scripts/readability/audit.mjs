@@ -125,7 +125,9 @@ const PORTAL_PAGES = [
 //           analyst, compensation: anyone else is pushed to /home). Rendered as the default
 //           physician+can_audit, those pages measured /home instead — every render "passed" a page
 //           nobody looked at. The ROUTE check below now fails a render that lands somewhere else.
-//   expect  Markers the render must contain: `text:…` (visible text) or `sel:…` (a visible element).
+//   expect  REQUIRED. Markers the render must contain: `text:…` (visible text) or `sel:…` (a visible
+//           element), chosen so they appear only when the fixture's data does — a heading that also
+//           renders on the empty or error state proves nothing.
 //           A fixture that drifts from the page's API shape renders the empty state, and an empty
 //           state passes. A missing marker is a MISSING finding, so a stale fixture fails the gate
 //           instead of quietly shrinking what it measures.
@@ -142,20 +144,27 @@ const DASH_PAGES = [
   { path: '/admin/compensation?as=admin', role: 'admin', expect: ['text:฿4,500'] },
   { path: '/admin/invites', role: 'superadmin', expect: ['text:revoked.account@example.ac.th'] },
   { path: '/admin/users', role: 'superadmin', expect: ['text:14/14', 'text:P-002'] },
-  // The provider panel and the Local AI capacity card carry most of the overview's help text.
-  { path: '/admin/overview', role: 'superadmin', expect: ['text:0.75', 'text:Switch freely', 'text:Eval p50'] },
+  // The provider panel and the Local AI capacity card carry most of the overview's help text. Both
+  // markers come from fixture data: the unbound-lock note needs evaluator_lock.manifest_bound false,
+  // and 64,000 is the fixture's transcript cap, shown as the card's current value.
+  { path: '/admin/overview', role: 'superadmin', expect: ['text:0.75', 'text:declared before locks were bound', 'text:64,000'] },
   // The integrity queue. Its severity badges paint text on a TINT (`bg-primary/12`,
   // `bg-destructive/10`), which is where --link and --destructive both fail as text and where
-  // --coral-on-tint / --danger exist — so it is exactly the kind of page this gate is for.
-  { path: '/admin/integrity', expect: ['text:PLE-301', 'text:Raw counts, not a conclusion'] },
+  // --coral-on-tint / --danger exist — so it is exactly the kind of page this gate is for. It had no
+  // fixture and no markers until 2026-10-16, so all 8 renders measured "No sessions are flagged".
+  // PLE-301 carries every signal's explanatory note and the paste-genre disclaimer, for PROSE.
+  { path: '/admin/integrity', role: 'superadmin',
+    expect: ['text:PLE-302', 'sel:[data-slot=badge]', 'text:PLE-301', 'text:Raw counts, not a conclusion'] },
   // ---- added 2026-10-16: pages a 26-route render pass found failing that this gate never opened.
   // ThreeWayIcc renders only for analyst/ethics/superadmin (the blinding guard), so it needs the role.
   // Its small-sample note and contract-rate figure were raw-palette amber; they are tokens now.
-  { path: '/analyst', role: 'analyst', expect: ['text:Three-way agreement', 'text:Small shared sample'] },
-  { path: '/admin/icc', role: 'superadmin', expect: ['text:Three-way agreement', 'text:Inter-rater'] },
+  // Markers here render only WITH data: the candidate's model_version comes from the three-way fixture
+  // alone ("Three-way agreement", the frame heading, also renders on the panel's error state).
+  { path: '/analyst', role: 'analyst', expect: ['text:deepseek-v3.1-local@2026-09', 'text:Small shared sample'] },
+  { path: '/admin/icc', role: 'superadmin', expect: ['text:deepseek-v3.1-local@2026-09', 'text:0.710'] },
   // DomainScorer, both halves: the unscored form ("ยังไม่ให้คะแนน" per domain) and the submitted one
   // (the comment prompt at an extreme level, the AI reveal, both radars and the AI discussion).
-  { path: `/auditor/ples/${AUDITOR_PLE_OPEN}`, expect: ['text:ยังไม่ให้คะแนน'] },
+  { path: `/auditor/ples/${AUDITOR_PLE_OPEN}`, expect: ['text:ยังไม่ให้คะแนน', 'text:ผู้ป่วยกังวลเรื่องภาระค่าใช้จ่าย'] },
   { path: `/auditor/ples/${AUDITOR_PLE_REVEALED}`,
     expect: ['text:A comment is expected at this level', 'sel:.recharts-legend-item-text'] },
   { path: '/admin/lpdp/p1', role: 'superadmin', expect: ['sel:.recharts-line'] },
@@ -165,8 +174,10 @@ const DASH_PAGES = [
   { path: '/reset', expect: ['text:Password reset is not configured'] },
   // The dashboard's longest help text, for PROSE: readiness's drift explanations, and the Model Lock
   // form's hints with a lock in force (so the re-lock warning and its typed confirmation render too).
-  { path: '/admin/ai-readiness', role: 'superadmin', expect: ['text:These belong to the scoring instrument'] },
-  { path: '/admin/evaluator-lock', role: 'superadmin', expect: ['sel:#lock-relock-confirm', 'sel:#lock-weights_sha256-hint-0'] },
+  // Data-only markers: the evaluator-scope drift block needs the fixture's evaluator_drift_keys, the
+  // re-lock confirmation needs a lock in force, and the model version is the fixture's candidate.
+  { path: '/admin/ai-readiness', role: 'superadmin', expect: ['text:These belong to the scoring instrument', 'text:EVAL_MAX_TOKENS'] },
+  { path: '/admin/evaluator-lock', role: 'superadmin', expect: ['sel:#lock-relock-confirm', 'text:CCME_LLM_v8.0+qwen-2.5-72b'] },
 ];
 
 // ---- the in-page collector -------------------------------------------------------------------
@@ -473,7 +484,17 @@ for (const p of PORTAL_PAGES) await run(base + p.path, `portal${p.path}`, p.toke
 // translation is new text in the same boxes and the boxes are what fail.
 await run(base + '/manual', 'portal/manual[en]', false, 'en');
 if (dashUrl) {
-  for (const p of DASH_PAGES) await run(dashUrl.replace(/\/$/, '') + p.path, `dash${p.path}`, true, null, p);
+  for (const p of DASH_PAGES) {
+    // No markers means an empty or error state passes as a clean page, which is how /admin/integrity
+    // measured nothing but "No sessions are flagged". Required, not optional.
+    if (!Array.isArray(p.expect) || !p.expect.length) {
+      if (wanted(`dash${p.path}`)) {
+        findings.push({ kind: 'ERROR', where: `dash${p.path}`,
+          text: 'no `expect` markers — every dashboard page must name what it renders (DASH_PAGES)' });
+      }
+    }
+    await run(dashUrl.replace(/\/$/, '') + p.path, `dash${p.path}`, true, null, p);
+  }
 }
 
 await browser.close();
@@ -514,8 +535,8 @@ for (const r of rows) {
   }
   // Pages by name, not three sample renders: one selector (an SVG `tspan`) can fail on several pages.
   const pages = [...new Set(r.seen.map((w) => w.replace(/ @.*$/, '')))];
-  const themes = [...new Set(r.seen.map((w) => w.split(' ').pop()))];
-  console.log(`          ${r.seen.length}× (${themes.join('+')}) on ${pages.join(', ')}`);
+  const themes = [...new Set(r.seen.map((w) => w.split(' ').pop()))].filter((t) => t === 'light' || t === 'dark');
+  console.log(`          ${r.seen.length}×${themes.length ? ` (${themes.join('+')})` : ''} on ${pages.join(', ')}`);
 }
 const byKind = {};
 for (const r of rows) byKind[r.kind] = (byKind[r.kind] || 0) + 1;
