@@ -56,7 +56,7 @@ export function DomainScorer({ scores, onChange, anchors, onAnchorChange, disabl
               <BiLabel th={d.th} en={d.en} className="text-sm font-medium" />
               <span className="shrink-0 text-xs text-muted-foreground">
                 {Math.round(WEIGHTS[d.key] * 100)}%
-                {picked ? <> · <strong className="text-foreground tabular-nums">{val}/5</strong></> : <> · <span className="text-coral-active">ยังไม่ให้คะแนน</span></>}
+                {picked ? <> · <strong className="text-foreground tabular-nums">{val}/5</strong></> : <> · <span className="text-coral-on-tint">ยังไม่ให้คะแนน</span></>}
               </span>
             </div>
             <div
@@ -115,7 +115,7 @@ export function DomainScorer({ scores, onChange, anchors, onAnchorChange, disabl
                   document asks for a comment at the extremes. Prompted, never enforced: a rater
                   blocked from submitting will write "n/a" and the record is worse than silence. */}
               {picked && COMMENT_EXPECTED_LEVELS.includes(val) && (
-                <p className="mt-2 text-sm text-coral-active">
+                <p className="mt-2 text-sm text-coral-on-tint">
                   ควรบันทึกเหตุผลสำหรับคะแนนนี้ / A comment is expected at this level.
                 </p>
               )}

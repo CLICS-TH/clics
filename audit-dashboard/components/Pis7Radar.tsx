@@ -28,6 +28,10 @@ function ChartTooltip({ active, payload, cmpName }: { active?: boolean; payload?
   );
 }
 
+// Legend label in the body colour (the <Legend> below says why); its own span overrides the series
+// colour recharts sets on the wrapper.
+export const legendLabel = (value: string) => <span className="text-foreground">{value}</span>;
+
 // Two-series PIS-7 radar: the auditor's own scores ("You", coral) overlaid on a comparison series —
 // either the AI (slate-blue, pass `ai`) or the auditor-cohort average (violet, pass `peer`). The same
 // component powers both the vs-AI and vs-peer cards so they read identically.
@@ -60,7 +64,10 @@ export function Pis7Radar({ ai, peer, human, peerLabel }: { ai?: ScoreMap; peer?
           <Radar name={cmpName} dataKey="cmp" stroke={cmpColor} fill={cmpColor} fillOpacity={0.25} strokeWidth={2} />
           <Radar name="คุณ / You" dataKey="you" stroke={CHART.human} fill={CHART.human} fillOpacity={0.25} strokeWidth={2} />
           <Tooltip content={<ChartTooltip cmpName={cmpName} />} />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          {/* The swatch carries the series colour; the label is body text. recharts paints legend
+              text in the series colour, a MARK colour (3:1 bar), not a text one: coral, slate-blue
+              and violet measured 2.71–4.48:1 as 12px text on the page, the card and --secondary. */}
+          <Legend wrapperStyle={{ fontSize: 12 }} formatter={legendLabel} />
         </RadarChart>
       </ResponsiveContainer>
     </div>

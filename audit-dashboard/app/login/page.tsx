@@ -73,7 +73,7 @@ function LoginGate() {
         </h1>
         {error ? (
           <>
-            <p className="mt-1 text-sm text-destructive">{error}</p>
+            <p className="mt-1 text-sm text-danger">{error}</p>
             <a href={PORTAL_URL} className="mt-3 inline-block text-sm text-link underline underline-offset-4">
               กลับไปหน้าเข้าสู่ระบบ / Back to the sign-in portal
             </a>

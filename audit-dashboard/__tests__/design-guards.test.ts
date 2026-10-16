@@ -7,6 +7,9 @@
 //   text-[Npx] of any size       frozen against the root scale and the text-sm body floor
 //   a raw <table> in a page that was migrated to ui/table (labelled scroll region, scope, numerics)
 //   text on solid bg-primary     white on bright coral is 3.28:1; a filled control uses bg-coral-active
+//   text in a fill token         text-coral-active (3.54:1 dark) and small text-destructive (3.24:1 on
+//                                the dark card) — text takes --coral-on-tint / --link and --danger
+//   a raw palette class          text-amber-800, bg-green-50 … : a colour outside the token block
 //
 // Line-based, so a className split across lines can escape it; that is a limit of the technique, not
 // a licence — write the class on one line.
@@ -93,6 +96,61 @@ describe('design-a11y source guards', () => {
       lines(f).forEach((l, i) => {
         if (!/(^|[\s"'`:])bg-primary(?![-\w/])/.test(l)) return;
         if (/\btext-(primary-foreground|white)\b/.test(l)) bad.push(`${rel(f)}:${i + 1}  ${l.trim().slice(0, 110)}`);
+      });
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('no text is coloured with a FILL token (text-coral-active anywhere, text-destructive when small)', () => {
+    // --coral-active is the fill behind white text (5.06:1); as text it is 3.54:1 on the dark canvas
+    // (DomainScorer shipped it). --destructive is the red fill and border; as small text it is 3.70:1
+    // on the dark canvas and 3.24:1 on the dark card (/reset, /admin/flagged, every admin error line).
+    // Text takes --coral-on-tint (or --link on the plain canvas) and --danger. A display figure
+    // (>= 24px, the 3:1 large-text bar) may keep text-destructive; same size rule as the text-primary
+    // guard above, and the same line-based limit — a size on another line escapes it, which is what
+    // the rendered gate (scripts/readability/audit.mjs) is for.
+    const bad: string[] = [];
+    for (const f of SOURCES) {
+      lines(f).forEach((l, i) => {
+        if (/^\s*(\/\/|\/\*|\*)/.test(l)) return;   // prose about a class, not a class
+        if (/(^|[\s"'`:])text-coral-active(?![-\w/])/.test(l)) {
+          bad.push(`${rel(f)}:${i + 1}  ${l.trim().slice(0, 110)}`);
+          return;
+        }
+        if (!/(^|[\s"'`:])text-destructive(?![-\w/])/.test(l)) return;
+        if (/\btext-(2xl|3xl|4xl|5xl|6xl|display|fluid-xl|fluid-2xl)\b/.test(l)) return;
+        if (/\btext-(xs|sm|base|lg|xl|\[1\dpx\])\b/.test(l)) bad.push(`${rel(f)}:${i + 1}  ${l.trim().slice(0, 110)}`);
+      });
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('no colour comes from the raw Tailwind palette (amber-800, green-50 …)', () => {
+    // A palette class is a colour outside the token block: it has no dark value of its own, nothing in
+    // contrast.test.ts measures it, and it reaches getComputedStyle as oklch()/lab(), which the
+    // readability gate could not read until 2026-10-16. ThreeWayIcc's small-sample note and the invite
+    // email-status pill both carried hand-paired light/dark palette classes; they use the tinted
+    // status pairs (--notice-*, --chart-pass-*) now. Add a token, then use it.
+    const RAW = /(^|[\s"'`:])(text|bg|border|ring|fill|stroke|from|to|via|outline|decoration|accent|caret|divide)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/;
+    const bad: string[] = [];
+    for (const f of SOURCES) {
+      lines(f).forEach((l, i) => {
+        if (/^\s*(\/\/|\/\*|\*)/.test(l)) return;
+        if (RAW.test(l)) bad.push(`${rel(f)}:${i + 1}  ${l.trim().slice(0, 110)}`);
+      });
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('every recharts <Legend> sets its label colour (a formatter), never the series colour', () => {
+    // recharts' default legend paints the label in the series colour — a mark colour, which measured
+    // 2.71–4.48:1 as 12px text (Pis7Radar, both themes). A <Legend> must pass a formatter that sets a
+    // text colour (Pis7Radar's legendLabel), or a content renderer of its own.
+    const bad: string[] = [];
+    for (const f of SOURCES) {
+      lines(f).forEach((l, i) => {
+        if (/^\s*(\/\/|\/\*|\*|\{\/\*)/.test(l)) return;
+        if (/<Legend\b/.test(l) && !/\b(formatter|content)=/.test(l)) bad.push(`${rel(f)}:${i + 1}  ${l.trim().slice(0, 110)}`);
       });
     }
     expect(bad).toEqual([]);

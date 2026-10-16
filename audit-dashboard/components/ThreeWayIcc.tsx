@@ -131,7 +131,7 @@ function VerdictBadge({ verdict }: { verdict: IccVerdict | null | undefined }) {
     : state === 'fail' ? `ไม่ผ่านเกณฑ์ ≥ ${threshold} / Below ≥ ${threshold}`
     : `ยังตัดสินไม่ได้ / Not yet decidable`;
   return (
-    <p className={`mt-2 rounded-lg border px-3 py-2 text-xs ${look}`}>
+    <p className={`mt-2 rounded-lg border px-3 py-2 text-sm ${look}`}>
       <span className="font-semibold">{label}</span>
       <span className="mt-0.5 block text-muted-foreground">{why}</span>
     </p>
@@ -336,7 +336,7 @@ export function ThreeWayIcc({ includeTest = false }: { includeTest?: boolean }) 
       : rate >= CONTRACT_OK
         ? 'text-[var(--ok)]'
         : rate >= CONTRACT_WARN
-          ? 'text-amber-800 dark:text-amber-300'
+          ? 'text-warn'
           : 'text-destructive';
   const secondary = arms.ai_vs_shadow;
   const secondaryN = secondary?.n ?? secondary?.overall?.n ?? 0;
@@ -399,7 +399,7 @@ export function ThreeWayIcc({ includeTest = false }: { includeTest?: boolean }) 
             </p>
           </div>
           {commonN != null && commonN > 0 && commonN < SMALL_SAMPLE && (
-            <p className="mt-3 rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+            <p className="mt-3 rounded-lg bg-notice-bg px-3 py-2 text-sm text-notice-text">
               ชุดข้อมูลร่วมยังเล็ก ({commonN} PLE) ค่า ICC และช่วงความเชื่อมั่นยังไม่เสถียร / Small shared sample — these ICCs
               and their intervals are unstable.
             </p>

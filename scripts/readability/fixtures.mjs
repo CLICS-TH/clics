@@ -23,9 +23,6 @@ const LONG_NOTE = 'พบเลขประจำตัวผู้ป่วย 
 const LONG_NAME_TH = 'ศาสตราจารย์เกียรติคุณ นายแพทย์ประเสริฐศักดิ์ วงศ์เจริญรุ่งเรืองพิพัฒน์';
 
 const iso = (daysAgo) => new Date(Date.UTC(2026, 7, 27 - daysAgo)).toISOString();
-const D7 = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
-const byDomain = (vals) => Object.fromEntries(D7.map((k, i) => [k, vals[i]]));
-const iccStat = (icc, n = 24) => ({ icc, lower: +(icc - 0.1).toFixed(3), upper: +(icc + 0.05).toFixed(3), n, interpretation: icc >= 0.75 ? 'Good' : 'Below target' });
 
 const pleRow = (i, status, extra = {}) => ({
   id: `00000000-0000-4000-8000-00000000000${i}`,
@@ -36,27 +33,173 @@ const pleRow = (i, status, extra = {}) => ({
   ...extra,
 });
 
+// ---- dashboard scoring + calibration (added 2026-10-16) ----------------------------------------
+// The two auditor PLE ids audit.mjs opens. OPEN has no score yet, so every DomainScorer domain shows
+// "ยังไม่ให้คะแนน". REVEALED is the post-submit page: its own score sits at the extremes (0, 1, 4, 5)
+// that make DomainScorer ask for a comment, and the AI score + peer average are revealed, which is
+// what renders the two radars. Never real scores — the shapes mirror lib/types.ts AuditorPle.
+export const AUDITOR_PLE_OPEN = '00000000-0000-4000-8000-0000000000a1';
+export const AUDITOR_PLE_REVEALED = '00000000-0000-4000-8000-0000000000a2';
+const AUDITOR_TRANSCRIPT = [
+  { role: 'physician', content: LONG_TH },
+  { role: 'assistant', content: 'การประเมินเบื้องต้นควรครอบคลุมภาวะน้ำเกิน ระดับอิเล็กโทรไลต์ และการทำงานของหัวใจ **โดยเฉพาะ** ในผู้สูงอายุที่มีโรคร่วมหลายระบบ',
+    refs: [{ source: 'Thai Heart Association', title: 'แนวทางเวชปฏิบัติภาวะหัวใจล้มเหลว พ.ศ. ๒๕๖๗' }],
+    socratic_question: 'ท่านคิดว่าปัจจัยใดที่ทำให้ผู้ป่วยรายนี้ปฏิเสธการฟอกเลือด และจะสำรวจเรื่องนี้อย่างไร' },
+  { role: 'physician', content: 'ผู้ป่วยกังวลเรื่องภาระค่าใช้จ่ายของครอบครัวและการเดินทางมาฟอกเลือดสัปดาห์ละสามครั้ง' },
+];
+const MY_SCORES = { d1: 5, d2: 4, d3: 3, d4: 1, d5: 0, d6: 2, d7: 4 };
+const AI_SCORES = { d1: 4, d2: 4, d3: 2, d4: 3, d5: 2, d6: 3, d7: 3 };
+const PEER_AVG = { d1: 4.5, d2: 3.5, d3: 3, d4: 2, d5: 1.5, d6: 2.5, d7: 3.5 };
+const DOMAINS = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
+const anchorsOf = (v) => Object.fromEntries(DOMAINS.map((k, i) => [`${k}_anchor`, v[i % v.length]]));
+
+// An ICC stat with its interval; `interpretation` is the server's label.
+const icc = (v, n = 8, w = 0.18) => ({ icc: v, lower: +(v - w).toFixed(3), upper: +Math.min(0.99, v + w / 2).toFixed(3), n,
+  interpretation: v >= 0.95 ? 'Excellent' : v >= 0.85 ? 'Good' : v >= 0.75 ? 'Moderate' : 'Poor — ต่ำกว่าเกณฑ์' });
+const perDomain = (base) => Object.fromEntries(DOMAINS
+  .map((k, i) => [k, icc(+(base + (i % 2 ? -0.09 : 0.06) * (i % 3)).toFixed(3))]));
+const verdict = (state, v) => ({ state, threshold: 0.75, icc: v, lower: +(v - 0.18).toFixed(3), upper: +(v + 0.09).toFixed(3), n: 8,
+  why: state === 'pass' ? 'ขอบล่างของช่วงความเชื่อมั่นอยู่เหนือเกณฑ์ / the lower bound clears the threshold'
+    : state === 'fail' ? 'ขอบบนของช่วงความเชื่อมั่นต่ำกว่าเกณฑ์ / the upper bound is below the threshold'
+      : 'ช่วงความเชื่อมั่นคร่อมเกณฑ์ ยังสรุปไม่ได้ / the interval spans the threshold — not yet decidable' });
+const ICC_DATA = {
+  overall: icc(0.71, 14), per_domain: perDomain(0.74), n: 14,
+  min_auditors: 2, auditors_per_cle: { 1: 6, 2: 8 }, n_at_target: 8, n_below_target: 6,
+  inter_auditor: { ...icc(0.66, 8), model: 'ICC(1,1)', n_ratings: 16, k0: 2 },
+  inter_auditor_average: { ...icc(0.79, 8), model: 'ICC(A,k)', model_alt: 'ICC(2,k)', k: 2 },
+  inter_auditor_note: 'ผู้ตรวจแต่ละคนได้รับ PLE ไม่เท่ากัน จึงรายงานทั้งสองแบบ / raters were not crossed, so both models are reported',
+  inter_auditor_per_domain: perDomain(0.62),
+  weighted_kappa: {
+    pooled: { kappa: 0.58, n: 98, weights: 'quadratic', exact_agreement: 0.41, interpretation: 'Moderate' },
+    domains: Object.fromEntries(DOMAINS
+      .map((k, i) => [k, { kappa: +(0.4 + 0.06 * i).toFixed(2), n: 14, interpretation: i < 3 ? 'Fair' : 'Moderate' }])),
+  },
+};
+
 export const FIXTURES = [
-  // ---- auditor scoring (/auditor/ples/:id) ---------------------------------------------------
-  // FIRST, because the physician-session pattern below (/ples/<uuid>$) would otherwise answer these
-  // too. .a1 is unscored: the transcript with its Socratic questions, the scorer's instructions and
-  // evidence rule. .a2 is scored with the AI revealed and a peer average, so both radar conclusions
-  // render, and its tutor chat is empty, so the example-question prompt renders.
-  [/\/auditor\/ples\/[^/]+\/discussion/, []],
-  [/\/auditor\/ples\/[0-9a-f-]+a1$/, { messages: [
-    { role: 'physician', content: LONG_TH },
-    { role: 'assistant', content: 'การประเมินเบื้องต้นควรครอบคลุมภาวะน้ำเกิน ระดับอิเล็กโทรไลต์ และการทำงานของหัวใจ',
-      refs: [{ source: 'Thai Heart Association' }],
-      socratic_question: 'ท่านคิดว่าปัจจัยใดที่ทำให้ผู้ป่วยรายนี้ปฏิเสธการฟอกเลือด และท่านจะสำรวจเรื่องนี้กับผู้ป่วยอย่างไร' },
-    { role: 'reflection', content: 'บทเรียนสำคัญคือการสื่อสารเรื่องเป้าหมายการรักษากับผู้ป่วยสูงอายุต้องเริ่มจากคุณค่าที่ผู้ป่วยให้ความสำคัญ' },
-  ], audit_score: null }],
-  [/\/auditor\/ples\/[0-9a-f-]+a2$/, { messages: [{ role: 'physician', content: LONG_TH }],
-    audit_score: { ...byDomain([3, 4, 4, 2, 3, 4, 3]), notes: null },
-    ai_evaluation: { composite_score: 71.4, ...byDomain([4, 3, 4, 3, 2, 4, 3]) },
-    peer_avg: byDomain([3.5, 3, 4, 2.5, 3, 4.5, 3]), peer_n: 2 }],
-  [/\/auditor\/calibration/, { n: 6, auditor: byDomain([3.2, 3.5, 4, 2.4, 3.1, 4, 3]), ai: byDomain([3.8, 3.1, 4, 3, 2.2, 3.9, 3.4]),
-    peer: byDomain([3.4, 3.3, 3.8, 2.6, 2.9, 4.1, 3.2]) }],
+  // Ahead of the portal's generic /ples/<uuid> entry below, which would otherwise answer these.
+  [new RegExp(`/auditor/ples/${AUDITOR_PLE_OPEN}(\\?|$)`), { messages: AUDITOR_TRANSCRIPT, audit_score: null }],
+  [new RegExp(`/auditor/ples/${AUDITOR_PLE_REVEALED}(\\?|$)`), {
+    messages: AUDITOR_TRANSCRIPT,
+    audit_score: { ...MY_SCORES, ...anchorsOf(['clear', 'moderate', 'ambiguous']),
+      notes: 'คะแนนต่ำในหมวดการสื่อสาร เนื่องจากไม่ได้สำรวจความกังวลของผู้ป่วยก่อนเสนอทางเลือก' },
+    ai_evaluation: { composite_score: 61.4, ...AI_SCORES, domain_rationale: null,
+      provenance: { consistency: { method: 'median3', rule: 'median', calls: 3, max_delta: 6, per_call_scores: [58, 61.4, 64] } } },
+    peer_avg: PEER_AVG, peer_n: 2, reveal_locked: false,
+  }],
+  [/\/auditor\/ples\/[^/]+\/discussion/, [
+    { role: 'auditor', content: 'ทำไม AI จึงให้หมวด d5 สูงกว่าที่ข้าพเจ้าให้ ทั้งที่แพทย์ไม่ได้ถามเรื่องความกังวลของผู้ป่วยเลย' },
+    { role: 'assistant', content: 'ในบทสนทนารอบที่ ๓ แพทย์ได้กล่าวถึงภาระของครอบครัว ซึ่ง AI ตีความว่าเป็นการสำรวจบริบทของผู้ป่วยบางส่วน **แต่ยังไม่ครบ** ตามเกณฑ์ระดับ ๓' },
+  ]],
+  // The auditor home: both calibration radars render only when n > 0 and both series are present.
+  [/\/auditor\/calibration/, { n: 6, auditor: MY_SCORES, ai: AI_SCORES, peer: PEER_AVG, locked: false }],
   [/\/auditor\/icc/, { icc: 0.71, n: 6 }],
+
+  // ---- oversight (analyst / ethics / superadmin) ---------------------------------------------
+  // ThreeWayIcc. ples_all_three = 8 (< SMALL_SAMPLE 10) renders the small-sample note, and a 0.97
+  // contract rate (between CONTRACT_WARN and CONTRACT_OK) renders the amber rate — the two raw-palette
+  // amber sites in that component. Verdicts of two kinds, so "fail" and "not yet decidable" are both
+  // on screen. Must precede /oversight/icc below.
+  [/\/oversight\/icc\/three-way/, {
+    arms: {
+      ai_vs_human: { overall: icc(0.81), per_domain: perDomain(0.8), n: 8, verdict: verdict('insufficient', 0.81) },
+      shadow_vs_human: { overall: icc(0.58), per_domain: perDomain(0.6), n: 7, verdict: verdict('fail', 0.58) },
+      ai_vs_shadow: { overall: icc(0.9), per_domain: perDomain(0.88), n: 8 },
+    },
+    coverage: { ples_with_human: 14, ples_with_ai: 30, ples_with_shadow: 9, ples_all_three: 8,
+      shadow_failed: 1, shadow_contract_rate: 0.97, shadow_scored_corpus: 33, shadow_failed_corpus: 1,
+      shadow_contract_rate_corpus: 0.97 },
+    shadow: { available: true, provider: 'vllm', model_version: 'deepseek-v3.1-local@2026-09' },
+  }],
+  [/\/oversight\/icc(\?|$)/, ICC_DATA],
+  [/\/admin\/icc(\?|$)/, ICC_DATA],
+  [/\/oversight\/stats/, { counts: { ple_pass: 9, ple_fail_t1: 3, ple_flag_t2: 4, evaluated: 14, ended: 2, active: 5 }, total: 37 }],
+  [/\/oversight\/rater-spread/, {
+    ok: true, n_scores: 22, n_episodes: 14, n_auditors: 3, n_multi_rated_episodes: 8,
+    between_episodes: { sd: 2.44, min: 52, max: 80, range: 28 },
+    comparison_on_shared: { n: 8, human_sd: 2.44, ai_sd: 9.84, human_range: 6, ai_range: 20 },
+    gate: { measurable: true, why: null, sd_error: 2.69, sd_between_observed: 2.44, sd_between_required: 4.66, meets: false },
+    scale_use: { min: 52, max: 80, span_pct_of_scale: 28 },
+    per_domain: Object.fromEntries(DOMAINS
+      .map((k, i) => [k, { n: 22, sd: i < 2 ? 0 : 0.8, modal_value: 4, modal_share: i < 2 ? 1 : 0.6, distinct: i < 2 ? 1 : 3 }])),
+    anchor_clarity: Object.fromEntries(DOMAINS
+      .map((k, i) => [k, { answered: 8, unanswered: 14, clear: 4, moderate: 2 + (i % 2), ambiguous: 2 - (i % 2), ambiguous_share: 0.25 }])),
+    scored_between: { first: iso(40), last: iso(1) },
+    per_auditor: [
+      { auditor_id: 'a1', n: 9, mean: 66.2, sd: 3.21, min: 52, max: 80 },
+      { auditor_id: 'a2', n: 8, mean: 64.0, sd: 2.1, min: 58, max: 71 },
+      { auditor_id: 'a3', n: 5, mean: 70.5, sd: 0, min: 70.5, max: 70.5 },
+    ],
+  }],
+
+  // ---- superadmin: AI provider switch, local-AI capacity, readiness, Model Lock, integrity ------
+  // The overview's AiProviderPanel and LocalAiCapacityCard read these two; without them the panel
+  // stays a skeleton and the capacity card's queue row reads "—", so neither one's notes are measured.
+  [/\/admin\/ai-providers/, {
+    providers: { chat: 'anthropic', evaluate: 'local', criteria: 'anthropic', discuss: 'anthropic', embed: 'openai' },
+    choices: { chat: ['anthropic', 'local', 'local-tutor'], evaluate: ['anthropic', 'local'], criteria: ['anthropic', 'local'],
+      discuss: ['anthropic', 'local', 'local-tutor'], embed: ['openai', 'local'] },
+    evaluator_locked_at: iso(1), evaluator_lock: { locked: true, record: 'found', manifest_bound: false },
+    confirm_phrases: { change_evaluator: 'CHANGE EVALUATOR', unlock_evaluator: 'UNLOCK EVALUATOR', switch_unfit: 'SWITCH ANYWAY', replace_lock: 'REPLACE THE LOCK' },
+  }],
+  [/\/health\/deep/, { status: 'ok', service: 'backend', checks: { eval_queue: { queued: 3, scoring: 2, oldest_wait_s: 65,
+    drain: { running: true, in_flight: 2, last_tick_at: iso(0), last_error: null } } } }],
+  // /admin/ai-readiness and /admin/evaluator-lock carry the dashboard's longest help text (drift
+  // explanations, the Model Lock form's hints); can_declare with a lock in force renders the whole form
+  // and the re-lock warning.
+  [/\/admin\/ai-readiness/, {
+    reachable: true,
+    checks: { local: { status: 'up', model: 'qwen3-32b', context_length: 32768, min_context: 16384 },
+      r3_distinct_models: { status: 'warn', warning: 'local-tutor is configured to the same endpoint and model as local (the evaluator)' } },
+    models: { evaluate: { provider: 'local', model: 'qwen3-32b' } }, routing: { evaluator_locked_at: iso(1) },
+    embedding: { provider: 'local', model: 'bge-m3', fit: false, dimension: 1024, required: 1536, reason: null },
+    manifest: { sha256: 'f'.repeat(64), file: 'present', code_match: true, evaluator_provider: 'local',
+      drift: [{ key: 'LOCAL_AI_MODEL' }, { key: 'EVAL_MAX_TOKENS' }, { key: 'CHAT_TEMPERATURE' }], evaluator_drift_keys: ['LOCAL_AI_MODEL', 'EVAL_MAX_TOKENS'] },
+    model_lock: { status: 'down', locked: true, locked_at: iso(1), provider: 'local', reason: 'evaluator_live_drift', drift_keys: ['LOCAL_AI_MODEL'] },
+  }],
+  // can_declare with a lock in force: the form renders with every hint, and so does the re-lock warning.
+  [/\/admin\/evaluator-lock/, {
+    locked_at: iso(1), in_force: true, serving_provider: 'local', can_declare: true, blockers: [], blocker_detail: {},
+    current: { id: 'r1', locked_at: iso(1), provider: 'local', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b', weights_sha256: 'a'.repeat(64),
+      inference_engine: 'vllm 0.21.1', quantization: 'Q8_0', system_prompt_version: 'sys-v3', evaluator_prompt_version: 'pis7-prompt-59561c29',
+      rubric_version: 'pis7-weights-08b0cb1a', decoding: { temperature: 0, top_p: 1, max_tokens: 1500, seed: null }, environment: { os: 'ubuntu 24.04' },
+      note: 'first freeze', manifest_sha256: 'f'.repeat(64), evaluator_sha256: 'e'.repeat(64) },
+    candidate: { provider: 'local', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b', prompt_version: 'pis7-prompt-59561c29', rubric_versions: ['pis7-weights-08b0cb1a'] },
+    gate: { state: 'pass', threshold: 0.75, icc: 0.82, lower: 0.77, upper: 0.9, n: 60, why: 'the whole interval is at or above 0.75',
+      groups: [{ provider: 'local', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b', prompt_version: 'pis7-prompt-59561c29', rows: 60, rubric_versions: ['pis7-weights-08b0cb1a'] }] },
+    manifest: { ok: true, sha256: 'f'.repeat(64), file: 'present', code_match: true, drift_keys: ['CHAT_TEMPERATURE', 'RAG_TOP_K'], evaluator_drift_keys: [],
+      expected_for_candidate: { prompt_version: 'pis7-prompt-59561c29', rubric_version: 'pis7-weights-08b0cb1a', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b',
+        provider_declared: 'local', decoding: { max_tokens: { default: 1500, env: 'EVAL_MAX_TOKENS' }, temperature: 0 }, declared: { engine: 'vllm' }, evaluator_sha256: 'e'.repeat(64) } },
+    manifest_diff: [], migrations_pending: [], confirm_phrases: { replace_lock: 'REPLACE THE LOCK' },
+  }],
+  // One session carrying every signal, so each signal's explanatory note renders.
+  [/\/admin\/integrity-queue/, { ples: [{ id: 'i-1', ple_code: 'PLE-301', status: 'evaluated', ended_at: iso(2), turn_count: 14, flags: [
+    { signal: 'F1_NEAR_DUPLICATE', severity: 'medium', created_at: iso(2), evidence: { pairs: 2 } },
+    { signal: 'F2_CROSS_SESSION_REUSE', severity: 'low', created_at: iso(2), evidence: { other_ple_id: '33333333-3333-4333-8333-333333333333' } },
+    { signal: 'F3_PASTE_BURST', severity: 'high', created_at: iso(2), evidence: { chars: 1800, genre: { clinical_density: 12, discourse_density: 1, markdown_marks: 0 } } },
+    { signal: 'F5_LATENCY_UNIFORMITY', severity: 'medium', created_at: iso(2), evidence: { cv: 0.04 } },
+    { signal: 'F6_REGISTER_DISCONTINUITY', severity: 'medium', created_at: iso(2), evidence: { shifted_features: [{ feature: 'discourse', value: 3.21, z: 4.4 }] } },
+    { signal: 'S1_PHYSICIAN_REPORTED_REPLY', severity: 'high', created_at: iso(2), evidence: { report_count: 1, reports: [
+      { message_id: '11111111-1111-4111-8111-111111111111', reason: 'unsafe_advice', note: 'ขนาดยาที่แนะนำสูงเกินไปสิบเท่า', turn: 3, provider: 'local', model: 'deepseek-v4', reported_at: iso(2) }] } },
+  ] }] }],
+
+  // ---- QA queue + physician profile ----------------------------------------------------------
+  // C4–C6 mixed pass/fail: a failing flag is the small red "C5:" label.
+  [/\/admin\/ples\/flagged/, [
+    { id: 'f1', status: 'ple_flag_t2', started_at: iso(3), turn_count: 18, token_count: 40200,
+      c4_pass: true, c5_pass: false, c6_pass: true, professionals: { full_name_th: LONG_NAME_TH } },
+    { id: 'f2', status: 'ple_flag_t2', started_at: iso(5), turn_count: 7, token_count: 12100,
+      c4_pass: false, c5_pass: false, c6_pass: false, professionals: { full_name_th: 'แพทย์หญิงกนกวรรณ ศรีสุวรรณโชติ' } },
+  ]],
+  [/\/admin\/physicians\/[^/]+\/profile/, {
+    physician: { full_name_th: LONG_NAME_TH, pseudonym: 'P-001', specialty: 'อายุรศาสตร์' },
+    lpdp: [{ composite_score: 58 }, { composite_score: 66.5 }, { composite_score: 71 }, { composite_score: 79.5 }],
+    sessions: [
+      { id: 's1', status: 'evaluated', chief_complaint: LONG_TH, folder_name: 'หัวใจล้มเหลว', started_at: iso(30), turn_count: 14,
+        ai: { composite_score: 71 }, audits: [{ composite_score: 66, auditor_name: 'P-011' }] },
+      { id: 's2', status: 'ple_flag_t2', chief_complaint: 'เจ็บหน้าอกร้าวไปแขนซ้าย', started_at: iso(12), turn_count: 9, ai: null, audits: [] },
+    ],
+  }],
 
   // ---- physician portal ----------------------------------------------------------------------
   // The reflection page bails to the result screen unless the session is 'ended' with no reflection
@@ -124,9 +267,9 @@ export const FIXTURES = [
   // ---- governance ----------------------------------------------------------------------------
   // due:true on purpose — the destructive control is disabled until the deadline passes, and a
   // disabled control is exempt from contrast, so leaving it locked would skip the thing worth testing.
-  // Mounted at /admin, not /superadmin (backend/src/index.js mounts routes/superadmin.js there): the
-  // old /superadmin/ patterns never matched, so governance rendered empty in every earlier run.
-  [/\/admin\/retention$/, {
+  // The page calls /admin/* (app/admin/governance/page.tsx); these were keyed /superadmin/*, so the
+  // gate rendered governance with the empty fallback and measured neither table.
+  [/\/admin\/retention(\?|$)/, {
     project_end_date: '2026-09-30', retention_years: 5, due_at: '2031-09-30', due: true,
     confirm_phrase: 'DE-IDENTIFY THE RESEARCH DATASET',
     targets: [
@@ -161,12 +304,38 @@ export const FIXTURES = [
   ]],
 
   // ---- compensation (the amber "outstanding" stat) --------------------------------------------
-  [/\/admin\/payouts/, { rows: [], total_owed_thb: 4500, total_paid_thb: 1500 }],
+  // GET /admin/payouts is a PayoutReport (lib/types.ts). This was `{ rows, total_owed_thb, … }`, a
+  // shape the page never reads — and the page only fetches it as superadmin, which the gate never
+  // rendered (it redirected to /home), so the amber "outstanding" stat it was written for never drew.
+  [/\/admin\/payouts(\?|$)/, { rate_thb_per_cle: 500, cap_cles: 3, n: 3, recipients: [
+    { physician_id: 'p1', name: LONG_NAME_TH, pseudonym: 'P-001', completed_cles: 3, owed_thb: 1500, paid_thb: 0,
+      outstanding_thb: 1500, has_payment_info: false, account_masked: null },
+    { physician_id: 'p2', name: 'แพทย์หญิงกนกวรรณ ศรีสุวรรณโชติ', pseudonym: 'P-002', completed_cles: 3, owed_thb: 1500,
+      paid_thb: 1500, outstanding_thb: 0, has_payment_info: true, account_masked: 'xxx-x-x4821-x' },
+    { physician_id: 'p3', name: 'นายแพทย์ธนกฤต', pseudonym: 'P-003', completed_cles: 2, owed_thb: 1000, paid_thb: 0,
+      outstanding_thb: 1000, has_payment_info: true, account_masked: 'PromptPay ••••6612' },
+  ] }],
+  // One settings object serves compensation (comp_*), users and overview (the UsageSettings keys).
+  // The pool sits at 92% so the users page's >= 90% red figure renders.
   [/\/admin\/usage-settings/, { comp_rate_thb: 500, comp_cap_cles: 3, standard_usage_limit_usd: 0.5,
-    standard_limit_usd: 0.5, auditor_standard_limit_usd: 0.5, api_budget_pool_usd: 50, total_used_usd: 12.4,
+    standard_limit_usd: 0.5, auditor_standard_limit_usd: 0.5, api_budget_pool_usd: 50, total_used_usd: 46.2,
+    auditor_api_budget_pool_usd: 10, auditor_total_used_usd: 3.1,
+    // The overview's toggles and the Local AI capacity card (their descriptions and field notes).
     pilot_test_mode: true, peer_calibration_enabled: true, hold_result_until_audited: true, min_auditors_per_cle: 2,
     standard_limit_tokens: 300000, auditor_standard_limit_tokens: 0, ple_max_transcript_tokens: 64000,
     ple_transcript_warn_pct: 80, eval_drain_concurrency: 1, eval_p50_seconds: 90, eval_drain_exclude_councils: 'SBX' }],
+  // The superadmin user page's slot pools. Each must be an ARRAY: the fallback envelope reached
+  // `(s ?? []).map` and took the page down to the error boundary. remaining 0 renders the red count.
+  [/\/admin\/slots(\?|$)/, [
+    { role: 'physician', capacity: 100, used: 28, remaining: 72 }, { role: 'auditor', capacity: 14, used: 14, remaining: 0 },
+    { role: 'admin', capacity: 5, used: 2, remaining: 3 }, { role: 'superadmin', capacity: 1, used: 1, remaining: 0 },
+  ]],
+  [/\/admin\/council-slots/, [{ council_id: 'c1', code: 'TMC', name_th: 'แพทยสภา', name_en: 'Thai Medical Council', slots: [
+    { role: 'admin', capacity: 2, used: 2, remaining: 0 }, { role: 'auditor', capacity: 14, used: 9, remaining: 5 },
+  ] }]],
+  [/\/admin\/auditor-requests/, [
+    { id: 'ar1', email: 'kanokwan@example.ac.th', created_at: iso(2), full_name_th: 'แพทย์หญิงกนกวรรณ ศรีสุวรรณโชติ' },
+  ]],
   [/\/admin\/compensation/, {
     rate_thb_per_cle: 500, cap_cles: 3, n: 9, total_thb: 4500,
     recipients: [
@@ -177,7 +346,7 @@ export const FIXTURES = [
   }],
 
   // ---- invites (the destructive Badge variant, on revoked/expired) -----------------------------
-  [/\/admin\/invites$/, [
+  [/\/admin\/invites(\?|$)/, [
     { id: 'i1', email: 'somchai.wongcharoen@example.ac.th', role: 'physician', status: 'pending', created_at: iso(2), expires_at: iso(-5) },
     { id: 'i2', email: 'kanokwan@example.ac.th', role: 'auditor', status: 'accepted', created_at: iso(10) },
     { id: 'i3', email: 'revoked.account@example.ac.th', role: 'admin', status: 'revoked', created_at: iso(20) },
@@ -185,84 +354,20 @@ export const FIXTURES = [
   ]],
   [/\/admin\/specialties/, [{ id: 's1', name_th: 'อายุรศาสตร์', name_en: 'Internal Medicine' }]],
   [/\/admin\/councils/, [{ id: 'c1', name_th: 'แพทยสภา', name_en: 'Thai Medical Council' }]],
-  [/\/admin\/users/, { users: [
+  // apiFetchPaged (lib/api.ts) accepts a bare ARRAY only — anything else is logged as a failure and
+  // rendered as an empty page. This was `{ users: [...] }`, so /admin/users measured no rows.
+  [/\/admin\/users(\?|$)/, [
     { id: 'p1', pseudonym: 'P-001', full_name_th: LONG_NAME_TH, role: 'physician', status: 'active',
       specialty_name_th: 'อายุรศาสตร์', usage_usd: 0.42, usage_limit_usd: 0.5, can_audit: false },
     { id: 'p2', pseudonym: 'P-002', full_name_th: 'แพทย์หญิงกนกวรรณ ศรีสุวรรณโชติ', role: 'auditor', status: 'active',
       specialty_name_th: 'สูติศาสตร์-นรีเวชวิทยา', usage_usd: 0.49, usage_limit_usd: 0.5, can_audit: true },
-  ], total: 2 }],
-  // ---- superadmin overview, reliability, Model Lock, readiness ----------------------------------
-  [/\/admin\/ai-providers/, {
-    providers: { chat: 'anthropic', evaluate: 'local', criteria: 'anthropic', discuss: 'anthropic', embed: 'openai' },
-    choices: { chat: ['anthropic', 'local', 'local-tutor'], evaluate: ['anthropic', 'local'], criteria: ['anthropic', 'local'],
-      discuss: ['anthropic', 'local', 'local-tutor'], embed: ['openai', 'local'] },
-    evaluator_locked_at: iso(1), evaluator_lock: { locked: true, record: 'found', manifest_bound: false },
-    confirm_phrases: { change_evaluator: 'CHANGE EVALUATOR', unlock_evaluator: 'UNLOCK EVALUATOR', switch_unfit: 'SWITCH ANYWAY', replace_lock: 'REPLACE THE LOCK' },
-  }],
-  [/\/health\/deep/, { status: 'ok', service: 'backend', checks: { eval_queue: { queued: 3, scoring: 2, oldest_wait_s: 65,
-    drain: { running: true, in_flight: 2, last_tick_at: iso(0), last_error: null } } } }],
-  [/\/admin\/slots/, [{ role: 'admin', capacity: 10, used: 4, remaining: 6 }, { role: 'auditor', capacity: 30, used: 14, remaining: 16 },
-    { role: 'physician', capacity: 200, used: 91, remaining: 109 }]],
-  [/\/admin\/overview-counts/, [{ council_id: 'c1', role: 'physician', n: 28 }, { council_id: 'c1', role: 'auditor', n: 14 }]],
-  [/\/admin\/icc/, {
-    overall: iccStat(0.81, 34), per_domain: byDomain([0.71, 0.66, 0.79, 0.52, 0.83, 0.77, 0.69].map((v) => iccStat(v))),
-    per_council: { c1: { council: { id: 'c1', code: 'TMC', name_th: 'แพทยสภา', name_en: 'Thai Medical Council' }, overall: iccStat(0.81, 30), n: 30 } },
-    n: 34, min_auditors: 2, auditors_per_cle: { 1: 10, 2: 20, 3: 4 }, n_at_target: 24, n_below_target: 10,
-    inter_auditor: { ...iccStat(0.58), model: 'ICC(1,1)' }, inter_auditor_average: { ...iccStat(0.73), model: 'ICC(A,k)', model_alt: 'ICC(2,k)', k: 2 },
-    inter_auditor_per_domain: byDomain([0.51, 0.44, 0.62, 0.31, 0.71, 0.55, 0.49].map((v) => ({ ...iccStat(v), model: 'ICC(1,1)' }))),
-    weighted_kappa: { domains: byDomain([0.6, 0.5, 0.7, 0.3, 0.8, 0.55, 0.45].map((k) => ({ kappa: k, n: 24, interpretation: 'moderate' }))),
-      pooled: { kappa: 0.58, n: 168, exact_agreement: 0.48, interpretation: 'moderate' } },
-  }],
-  [/\/admin\/ai-readiness/, {
-    reachable: true,
-    checks: { local: { status: 'up', model: 'qwen3-32b', context_length: 32768, min_context: 16384 },
-      r3_distinct_models: { status: 'warn', warning: 'local-tutor is configured to the same endpoint and model as local (the evaluator)' } },
-    models: { evaluate: { provider: 'local', model: 'qwen3-32b' } }, routing: { evaluator_locked_at: iso(1) },
-    embedding: { provider: 'local', model: 'bge-m3', fit: false, dimension: 1024, required: 1536, reason: null },
-    manifest: { sha256: 'f'.repeat(64), file: 'present', code_match: true, evaluator_provider: 'local',
-      drift: [{ key: 'LOCAL_AI_MODEL' }, { key: 'EVAL_MAX_TOKENS' }, { key: 'CHAT_TEMPERATURE' }], evaluator_drift_keys: ['LOCAL_AI_MODEL', 'EVAL_MAX_TOKENS'] },
-    model_lock: { status: 'down', locked: true, locked_at: iso(1), provider: 'local', reason: 'evaluator_live_drift', drift_keys: ['LOCAL_AI_MODEL'] },
-  }],
-  // can_declare with a lock in force: the form renders with every hint, and so does the re-lock warning.
-  [/\/admin\/evaluator-lock/, {
-    locked_at: iso(1), in_force: true, serving_provider: 'local', can_declare: true, blockers: [], blocker_detail: {},
-    current: { id: 'r1', locked_at: iso(1), provider: 'local', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b', weights_sha256: 'a'.repeat(64),
-      inference_engine: 'vllm 0.21.1', quantization: 'Q8_0', system_prompt_version: 'sys-v3', evaluator_prompt_version: 'pis7-prompt-59561c29',
-      rubric_version: 'pis7-weights-08b0cb1a', decoding: { temperature: 0, top_p: 1, max_tokens: 1500, seed: null }, environment: { os: 'ubuntu 24.04' },
-      note: 'first freeze', manifest_sha256: 'f'.repeat(64), evaluator_sha256: 'e'.repeat(64) },
-    candidate: { provider: 'local', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b', prompt_version: 'pis7-prompt-59561c29', rubric_versions: ['pis7-weights-08b0cb1a'] },
-    gate: { state: 'pass', threshold: 0.75, icc: 0.82, lower: 0.77, upper: 0.9, n: 60, why: 'the whole interval is at or above 0.75',
-      groups: [{ provider: 'local', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b', prompt_version: 'pis7-prompt-59561c29', rows: 60, rubric_versions: ['pis7-weights-08b0cb1a'] }] },
-    manifest: { ok: true, sha256: 'f'.repeat(64), file: 'present', code_match: true, drift_keys: ['CHAT_TEMPERATURE', 'RAG_TOP_K'], evaluator_drift_keys: [],
-      expected_for_candidate: { prompt_version: 'pis7-prompt-59561c29', rubric_version: 'pis7-weights-08b0cb1a', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b',
-        provider_declared: 'local', decoding: { max_tokens: { default: 1500, env: 'EVAL_MAX_TOKENS' }, temperature: 0 }, declared: { engine: 'vllm' }, evaluator_sha256: 'e'.repeat(64) } },
-    manifest_diff: [], migrations_pending: [], confirm_phrases: { replace_lock: 'REPLACE THE LOCK' },
-  }],
-  // One session carrying every signal, so each signal's explanatory note renders.
-  [/\/admin\/integrity-queue/, { ples: [{ id: 'i-1', ple_code: 'PLE-301', status: 'evaluated', ended_at: iso(2), turn_count: 14, flags: [
-    { signal: 'F1_NEAR_DUPLICATE', severity: 'medium', created_at: iso(2), evidence: { pairs: 2 } },
-    { signal: 'F2_CROSS_SESSION_REUSE', severity: 'low', created_at: iso(2), evidence: { other_ple_id: '33333333-3333-4333-8333-333333333333' } },
-    { signal: 'F3_PASTE_BURST', severity: 'high', created_at: iso(2), evidence: { chars: 1800, genre: { clinical_density: 12, discourse_density: 1, markdown_marks: 0 } } },
-    { signal: 'F5_LATENCY_UNIFORMITY', severity: 'medium', created_at: iso(2), evidence: { cv: 0.04 } },
-    { signal: 'F6_REGISTER_DISCONTINUITY', severity: 'medium', created_at: iso(2), evidence: { shifted_features: [{ feature: 'discourse', value: 3.21, z: 4.4 }] } },
-    { signal: 'S1_PHYSICIAN_REPORTED_REPLY', severity: 'high', created_at: iso(2), evidence: { report_count: 1, reports: [
-      { message_id: '11111111-1111-4111-8111-111111111111', reason: 'unsafe_advice', note: 'ขนาดยาที่แนะนำสูงเกินไปสิบเท่า', turn: 3, provider: 'local', model: 'deepseek-v4', reported_at: iso(2) }] } },
-  ] }] }],
-
-  // ---- analyst (aggregate only) ------------------------------------------------------------------
-  [/\/oversight\/icc\/three-way/, { arms: { ai_vs_human: { overall: iccStat(0.82), n: 24, verdict: { state: 'pass', threshold: 0.75, icc: 0.82, lower: 0.77, upper: 0.9, n: 24, why: 'the whole interval is at or above 0.75' } },
-    shadow_vs_human: null, ai_vs_shadow: null }, coverage: { ples_with_human: 30, ples_with_ai: 40, ples_with_shadow: 0, ples_all_three: 0, shadow_failed: 0, shadow_contract_rate: null },
-    shadow: { available: false, provider: null, model_version: null } }],
-  [/\/oversight\/icc/, { overall: iccStat(0.81, 34), per_domain: byDomain([0.71, 0.66, 0.79, 0.52, 0.83, 0.77, 0.69].map((v) => iccStat(v))), n: 34 }],
-  [/\/oversight\/stats/, { counts: { ple_pass: 9, ple_fail_t1: 3, ple_flag_t2: 5, evaluated: 14, ended: 2, active: 4 }, total: 37 }],
-  [/\/oversight\/rater-spread/, { ok: true, n_scores: 7, n_episodes: 5, n_auditors: 2, n_multi_rated_episodes: 2,
-    between_episodes: { sd: 2.44, min: 74, max: 80, range: 6 }, comparison_on_shared: { n: 5, human_sd: 2.44, ai_sd: 9.84, human_range: 6, ai_range: 20 },
-    gate: { measurable: true, why: null, sd_error: 2.69, sd_between_observed: 2.44, sd_between_required: 4.66, meets: false },
-    scale_use: { min: 73, max: 80, span_pct_of_scale: 7 },
-    per_domain: Object.fromEntries(D7.map((d) => [d, { n: 5, sd: 0.8, modal_value: 4, modal_share: 0.6, distinct: 3 }])),
-    scored_between: { first: iso(20), last: iso(10) },
-    per_auditor: [{ auditor_id: 'a6a5ba01-2bad-42c2-85f3-e2bb5620b0d0', n: 5, mean: 76.6, sd: 3.21, min: 73, max: 80 }] }],
-  [/\/admin\/overview/, { councils: 1, physicians: 28, auditors: 14, ples: 34, evaluated: 14, icc: 0.811 }],
+  ]],
+  // The overview page fetches /admin/overview-counts (CountRow[]), never /admin/overview. This entry
+  // was keyed /admin\/overview/, which also matched -counts and handed the page an object.
+  [/\/admin\/overview-counts/, [
+    { council_id: 'c1', role: 'physician', n: 28 }, { council_id: 'c1', role: 'auditor', n: 14 },
+    { council_id: 'c1', role: 'admin', n: 2 },
+  ]],
   [/\/admin\/stats/, { by_status: { evaluated: 14, ple_flag_t2: 9, ple_fail_t1: 6, active: 5 } }],
 ];
 

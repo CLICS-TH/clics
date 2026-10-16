@@ -56,9 +56,10 @@ describe('chart-colors.ts mirrors the --chart-* tokens in globals.css', () => {
   });
 
   it('the light set differs from the dark one exactly where the dark hues fail 3:1 on the light card', () => {
-    // pass / threshold / warn / teal were darkened for light; the series colours and fail were not.
+    // pass / threshold / warn / teal were darkened for light, and so was the radar's human series
+    // (brand coral is 2.71:1 on --secondary there); ai, peer and fail were not.
     const changed = (Object.keys(MAP) as (keyof ChartPalette)[]).filter((k) => CHART_LIGHT[k] !== CHART_DARK[k]);
-    expect(changed.sort()).toEqual(['pass', 'teal', 'threshold', 'warn']);
+    expect(changed.sort()).toEqual(['human', 'pass', 'teal', 'threshold', 'warn']);
   });
 });
 

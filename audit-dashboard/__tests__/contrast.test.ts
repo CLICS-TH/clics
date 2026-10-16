@@ -314,9 +314,9 @@ describe('audit-dashboard design-a11y — per-pair minimums and the new tokens',
   const dash = fs.readFileSync(DASH_CSS, 'utf8');
 
   it('the effective-palette overlay lets .dark inherit tokens it does not redeclare', () => {
-    // --chart-human lives only in :root; if the overlay broke, every dark chart pair would report
+    // --chart-ai lives only in :root; if the overlay broke, every dark chart pair would report
     // "not a hex token" instead of being measured.
-    expect(effective(dash, '.dark')['chart-human']).toBe(palette(dash, ':root')['chart-human']);
+    expect(effective(dash, '.dark')['chart-ai']).toBe(palette(dash, ':root')['chart-ai']);
     expect(effective(dash, '.dark').field).toBe(palette(dash, '.dark').field);
   });
 
@@ -510,3 +510,58 @@ describe('physician-ui design-a11y: field border, focus ring, placeholder, error
     expect(portal).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{[^}]*animation:\s*none\s*!important/);
   });
 });
+
+// ===== BEGIN audit-dashboard dark-contrast fix (2026-10-16) ========================================
+// Self-contained and appended, like the two blocks above, so a merge is "take both".
+//
+// A render of the pages the readability gate (scripts/readability/audit.mjs) had never opened found
+// small text painted in FILL tokens: --coral-active (the fill behind white text) on DomainScorer, and
+// --destructive (the red fill) on /reset, /admin/flagged and every admin error line. Both are right for
+// what they are for and wrong as text in dark, so the fix is the text token beside each, not a new hex.
+// These pin the pairs that replaced them, plus the two new surfaces (the radar legend on --secondary,
+// and the comment prompt on DomainScorer's bg-muted/60 panel), which no row above covers.
+const DC_PAIRS: MinPair[] = [
+  ['coral-on-tint', 'background', AA, 'DomainScorer: the "ยังไม่ให้คะแนน" marker beside an unscored domain'],
+  ['foreground', 'background', AA, 'Pis7Radar legend label on the auditor home'],
+  ['foreground', 'secondary', AA, 'Pis7Radar legend label inside the auditor reveal panel (bg-secondary)'],
+  ['danger', 'card', AA, '/reset: link-invalid and save errors on the bg-card form'],
+  ['danger', 'background', AA, '/admin/flagged failing C-screen label; admin error lines; full slot counts'],
+  ['notice-text', 'notice-bg', AA, 'ThreeWayIcc small-sample note (was raw amber-100/800 + amber-950/300)'],
+  ['warn', 'background', LARGE_TEXT, 'ThreeWayIcc contract-rate figure, text-2xl bold (was raw amber-800/300)'],
+  // recharts ReferenceLine labels (overview "เกณฑ์ 0.75", LPDP "เป้าหมาย" + axis label) now ride
+  // currentColor = --muted-foreground; recharts' own #808080 measured 3.75:1 on the light card.
+  ['muted-foreground', 'card', AA, 'chart reference-line + axis labels inside a card'],
+  // The radar's series LINES (2px stroke, WCAG 1.4.11): the auditor home draws them on the page, the
+  // per-PLE reveal on --secondary. Brand coral was 2.71:1 on --secondary in light, hence --chart-human.
+  ...(['chart-human', 'chart-ai', 'chart-peer'] as const).flatMap((s): MinPair[] => [
+    [s, 'background', NON_TEXT, `Pis7Radar ${s} line on the auditor home`],
+    [s, 'secondary', NON_TEXT, `Pis7Radar ${s} line inside the auditor reveal panel (bg-secondary)`],
+  ]),
+];
+const DC_TINTS: { sel: string; name: string; pairs: TintPair[] }[] = [':root', '.dark'].map((sel) => ({
+  sel, name: sel === ':root' ? 'light' : 'dark',
+  pairs: [['coral-on-tint', 'muted', 0.6, 'background', 'DomainScorer: the comment prompt on its bg-muted/60 panel']],
+}));
+
+describe('audit-dashboard dark-contrast fix — the text tokens that replaced fill tokens', () => {
+  const dash = fs.readFileSync(DASH_CSS, 'utf8');
+
+  it('light', () => { expect(checkMin('dash light', dash, ':root', DC_PAIRS)).toEqual([]); });
+  it('dark', () => { expect(checkMin('dash dark', dash, '.dark', DC_PAIRS)).toEqual([]); });
+
+  it.each(DC_TINTS)('the DomainScorer panel tint — $name', ({ sel, name, pairs }) => {
+    expect(checkTints(`dash ${name}`, dash, sel, pairs)).toEqual([]);
+  });
+
+  it('the fill tokens really do fail as small text in dark, so the source guard bans something real', () => {
+    // design-guards.test.ts forbids text-coral-active and small text-destructive. If either fill ever
+    // started passing as text the guard would be noise — this says so instead.
+    const p = effective(dash, '.dark');
+    expect(ratio(p['coral-active'], p['background'])).toBeLessThan(AA);   // 3.54:1 measured, DomainScorer
+    expect(ratio(p['destructive'], p['card'])).toBeLessThan(AA);          // 3.24:1 measured, /reset
+    expect(ratio(p['destructive'], p['background'])).toBeLessThan(AA);    // 3.70:1 measured, /admin/flagged
+    // …and the fill keeps its own job: white on it still clears AA, which is why it does not move.
+    expect(ratio(p['primary-foreground'], p['coral-active'])).toBeGreaterThanOrEqual(AA);
+  });
+});
+// ===== END audit-dashboard dark-contrast fix =======================================================

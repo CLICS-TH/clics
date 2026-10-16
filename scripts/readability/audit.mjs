@@ -27,7 +27,12 @@
  *                  and it fails silently (back to 14px on every phone) if --text-sm is ever declared in
  *                  `@theme inline`. Elements whose own classes carry a variant size (md:text-base …)
  *                  are skipped, since which size applies there is the breakpoint's choice.
- *   5. PROSE     — dashboard only: Thai PROSE rendered at the `text-xs` caption size. text-xs is for
+ *
+ *   5. ROUTE     — the render landed on a different path than it asked for (a client role gate or a
+ *                  stale fixture redirected it), so it measured another page under this one's name.
+ *   6. MISSING   — dashboard only: a marker the page must show (DASH_PAGES `expect`) is absent, i.e.
+ *                  the fixture no longer produces the state the page is in this gate for.
+ *   7. PROSE     — dashboard only: Thai PROSE rendered at the `text-xs` caption size. text-xs is for
  *                  captions, labels, badges and metadata; an instruction, explanation, conclusion,
  *                  question or help paragraph belongs on text-sm, which carries the Thai body floor.
  *                  BODY above cannot see this — it checks the token, not which token a paragraph
@@ -41,7 +46,13 @@
  *                  fragments that moved to text-sm with their paragraph rather than on their own. On
  *                  the build before that move it reported 61 paragraphs; after it, none.
  *
- * Exits non-zero if any AA failure or clip is found, so it can gate CI later.
+ * Colours are read in ANY CSS colour space. Tailwind v4 reaches getComputedStyle as oklch()/oklab()/
+ * lab(); until 2026-10-16 this script parsed rgb() only, so palette classes went unmeasured and every
+ * `/NN` tint was scored as if transparent.
+ *
+ * Exits non-zero if any AA failure, clip, wrong route, missing marker or caption-size Thai prose is
+ * found, so it can gate CI.
+ * READABILITY_ONLY=/reset,/admin/flagged narrows a run while iterating; the full run is the gate.
  *
  * Run:  node scripts/readability/audit.mjs
  *       DASH_URL=http://localhost:3002 node scripts/readability/audit.mjs   (adds the dashboard)
@@ -56,7 +67,7 @@ import { readFile, stat, writeFile } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { fixtureFor } from './fixtures.mjs';
+import { fixtureFor, AUDITOR_PLE_OPEN, AUDITOR_PLE_REVEALED } from './fixtures.mjs';
 
 const ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
@@ -108,31 +119,93 @@ const PORTAL_PAGES = [
   // job is to be read. Public, so no token.
   { path: '/manual', token: false },
 ];
-// A bare path renders as the dual-role physician-auditor the portal hands over; [path, role] signs in
-// as that role instead. The role matters: /admin/overview is superadmin-only and sends anyone else to
-// /home, so under the default persona it measured the home page and none of its own text.
-const DASH_PAGES = ['/admin/privacy', '/admin/identity', '/admin/governance', '/auditor/queue',
-  '/home', '/admin/compensation', '/admin/invites', '/admin/users', ['/admin/overview', 'superadmin'],
+// Each dashboard page: its path, the ROLE it is rendered as, and what it must SHOW.
+//
+//   role    The dashboard gates several pages on the signed-in role in the client (overview, icc,
+//           analyst, compensation: anyone else is pushed to /home). Rendered as the default
+//           physician+can_audit, those pages measured /home instead — every render "passed" a page
+//           nobody looked at. The ROUTE check below now fails a render that lands somewhere else.
+//   expect  Markers the render must contain: `text:…` (visible text) or `sel:…` (a visible element).
+//           A fixture that drifts from the page's API shape renders the empty state, and an empty
+//           state passes. A missing marker is a MISSING finding, so a stale fixture fails the gate
+//           instead of quietly shrinking what it measures.
+const DASH_PAGES = [
+  { path: '/admin/privacy', expect: ['text:PLE-102'] },
+  { path: '/admin/identity', expect: ['text:4821'] },
+  { path: '/admin/governance', role: 'superadmin', expect: ['text:oauth_identities', 'text:2026-08'] },
+  { path: '/auditor/queue', expect: ['text:31200 tokens'] },
+  // The auditor home carries both calibration radars, the only recharts <Legend>s in the app.
+  { path: '/home', expect: ['sel:.recharts-legend-item-text'] },
+  // Both halves: superadmin sees the payout ledger (and its amber "outstanding" figure), an admin the
+  // council report. The query string only keeps the two labels apart; the page ignores it.
+  { path: '/admin/compensation', role: 'superadmin', expect: ['text:฿2,500'] },
+  { path: '/admin/compensation?as=admin', role: 'admin', expect: ['text:฿4,500'] },
+  { path: '/admin/invites', role: 'superadmin', expect: ['text:revoked.account@example.ac.th'] },
+  { path: '/admin/users', role: 'superadmin', expect: ['text:14/14', 'text:P-002'] },
+  // The provider panel and the Local AI capacity card carry most of the overview's help text.
+  { path: '/admin/overview', role: 'superadmin', expect: ['text:0.75', 'text:Switch freely', 'text:Eval p50'] },
   // The integrity queue. Its severity badges paint text on a TINT (`bg-primary/12`,
   // `bg-destructive/10`), which is where --link and --destructive both fail as text and where
   // --coral-on-tint / --danger exist — so it is exactly the kind of page this gate is for.
-  '/admin/integrity',
-  // Where the dashboard's longest Thai prose lives, for the PROSE check: the transcript's Socratic
-  // question, the scorer's instructions and evidence rule, and the radar conclusions (fixtures .a1
-  // unscored, .a2 scored with the AI revealed and an empty tutor chat); the reliability notes; the
-  // Model Lock form's hints; the analyst's disclaimers.
-  '/auditor/ples/00000000-0000-4000-8000-0000000000a1', '/auditor/ples/00000000-0000-4000-8000-0000000000a2',
-  ['/admin/icc', 'superadmin'], ['/admin/ai-readiness', 'superadmin'], ['/admin/evaluator-lock', 'superadmin'],
-  ['/analyst', 'analyst']];
+  { path: '/admin/integrity', expect: ['text:PLE-301', 'text:Raw counts, not a conclusion'] },
+  // ---- added 2026-10-16: pages a 26-route render pass found failing that this gate never opened.
+  // ThreeWayIcc renders only for analyst/ethics/superadmin (the blinding guard), so it needs the role.
+  // Its small-sample note and contract-rate figure were raw-palette amber; they are tokens now.
+  { path: '/analyst', role: 'analyst', expect: ['text:Three-way agreement', 'text:Small shared sample'] },
+  { path: '/admin/icc', role: 'superadmin', expect: ['text:Three-way agreement', 'text:Inter-rater'] },
+  // DomainScorer, both halves: the unscored form ("ยังไม่ให้คะแนน" per domain) and the submitted one
+  // (the comment prompt at an extreme level, the AI reveal, both radars and the AI discussion).
+  { path: `/auditor/ples/${AUDITOR_PLE_OPEN}`, expect: ['text:ยังไม่ให้คะแนน'] },
+  { path: `/auditor/ples/${AUDITOR_PLE_REVEALED}`,
+    expect: ['text:A comment is expected at this level', 'sel:.recharts-legend-item-text'] },
+  { path: '/admin/lpdp/p1', role: 'superadmin', expect: ['sel:.recharts-line'] },
+  { path: '/admin/flagged', role: 'superadmin', expect: ['text:C5:'] },
+  // No Supabase in the audit build, so /reset renders its "not configured" error at once — the same
+  // red text the expired-link state uses.
+  { path: '/reset', expect: ['text:Password reset is not configured'] },
+  // The dashboard's longest help text, for PROSE: readiness's drift explanations, and the Model Lock
+  // form's hints with a lock in force (so the re-lock warning and its typed confirmation render too).
+  { path: '/admin/ai-readiness', role: 'superadmin', expect: ['text:These belong to the scoring instrument'] },
+  { path: '/admin/evaluator-lock', role: 'superadmin', expect: ['sel:#lock-relock-confirm', 'sel:#lock-weights_sha256-hint-0'] },
+];
 
 // ---- the in-page collector -------------------------------------------------------------------
 // Returns raw records; all colour maths happens here so the page never ships a library.
 function collect([thaiMinPx, bodyMinPx, proseCheck]) {
+  // Any computed colour → sRGB + alpha. Chromium serialises a computed colour in the space it was
+  // written in, so Tailwind v4 reaches getComputedStyle as `oklch(…)` (every raw palette class:
+  // text-amber-800) and as `oklab(… / 0.12)` (every `/NN` opacity utility: bg-primary/12,
+  // bg-destructive/10, bg-muted/60). An rgb()-only parser returned null for all of them: the text
+  // was SKIPPED and the tint was treated as TRANSPARENT, so the badge was scored against the card
+  // under it. Non-rgb values are drawn opaque onto a 1×1 canvas (the browser's own conversion) and
+  // the alpha is read from the string, so a low alpha does not lose precision to premultiplication.
+  const cvs = document.createElement('canvas'); cvs.width = 1; cvs.height = 1;
+  const g2d = cvs.getContext('2d', { willReadFrequently: true });
+  const memo = new Map();
   const parseRgb = (s) => {
-    const m = /rgba?\(([^)]+)\)/.exec(s || '');
-    if (!m) return null;
-    const p = m[1].split(',').map(x => parseFloat(x.trim()));
-    return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+    if (!s) return null;
+    if (memo.has(s)) return memo.get(s);
+    let out = null;
+    const m = /^rgba?\(([^)]+)\)$/.exec(s);
+    if (m) {
+      const p = m[1].split(/[\s,/]+/).filter(Boolean).map((x) => parseFloat(x));
+      out = { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 };
+    } else if (s === 'transparent') {
+      out = { r: 0, g: 0, b: 0, a: 0 };
+    } else {
+      const am = /\/\s*([\d.]+)(%?)\s*\)$/.exec(s);
+      const a = am ? parseFloat(am[1]) / (am[2] ? 100 : 1) : 1;
+      const opaque = am ? s.replace(/\s*\/\s*[\d.]+%?\s*\)$/, ')') : s;
+      const SENTINEL = '#010203';
+      g2d.fillStyle = SENTINEL; g2d.fillStyle = opaque;   // an unparseable value leaves the sentinel
+      if (String(g2d.fillStyle).toLowerCase() !== SENTINEL) {
+        g2d.clearRect(0, 0, 1, 1); g2d.fillRect(0, 0, 1, 1);
+        const d = g2d.getImageData(0, 0, 1, 1).data;
+        out = { r: d[0], g: d[1], b: d[2], a };
+      }
+    }
+    memo.set(s, out);
+    return out;
   };
   const over = (fg, bg) => ({          // composite fg over an opaque bg
     r: fg.a * fg.r + (1 - fg.a) * bg.r,
@@ -195,7 +268,7 @@ function collect([thaiMinPx, bodyMinPx, proseCheck]) {
     return c.some((x) => /^text-sm(\/\S+)?$/.test(x)) && !c.some(sizesItself);
   };
 
-  // ---- prose at the caption size (check 5) ----
+  // ---- prose at the caption size (check 7) ----
   // The text-xs size, read off a probe rather than hard-coded: it is 13px below 1280px and scales with
   // the root above it, so a constant would stop matching at the first desktop step.
   const xsProbe = document.createElement('span');
@@ -250,10 +323,10 @@ function collect([thaiMinPx, bodyMinPx, proseCheck]) {
     const weight = parseInt(cs.fontWeight, 10) || 400;
     if (proseCheck && THAI.test(text) && atXs(el) && !el.closest(CAPTION_ROLE)) {
       const blk = blockOf(el);
-      const ellipsis = (n) => getComputedStyle(n).textOverflow === 'ellipsis';
+      const trunc = (n) => getComputedStyle(n).textOverflow === 'ellipsis';
       // A caption-size span inside a body-size paragraph (a unit, a date) is judged on its own text.
       const t = (atXs(blk) ? blk.innerText : el.textContent).replace(/\s+/g, ' ').trim();
-      if (!proseSeen.has(blk) && !ellipsis(el) && !ellipsis(blk) && isProse(t)) {
+      if (!proseSeen.has(blk) && !trunc(el) && !trunc(blk) && isProse(t)) {
         proseSeen.add(blk);
         prose.push({ sel: sel(blk), size, text: t.slice(0, 60) });
       }
@@ -262,7 +335,10 @@ function collect([thaiMinPx, bodyMinPx, proseCheck]) {
       thai.push({ sel: sel(el), size, text: text.slice(0, 40), font: cs.fontFamily.split(',')[0] });
     }
 
-    let fg = parseRgb(cs.color); if (!fg) continue;
+    // SVG text (chart ticks, reference-line labels) is painted by `fill`, not `color`. The two agree
+    // only when fill is currentColor; a recharts default label carries its own grey fill.
+    const svgText = el instanceof SVGElement && el.tagName !== 'foreignObject';
+    let fg = (svgText && parseRgb(cs.fill)) || parseRgb(cs.color); if (!fg) continue;
     const bg = paintedBg(el);
     // The element's own opacity multiplies its text toward whatever is behind it. This is how a
     // "secondary" fade quietly costs contrast, so it must be part of the measurement.
@@ -295,7 +371,13 @@ const browser = await chromium.launch();
 const findings = [];
 let checked = 0;
 
-async function run(url, label, token, manualLang, role) {
+// READABILITY_ONLY=/reset,/admin/flagged narrows a run to the pages whose label contains one of the
+// comma-separated parts — for iterating on a fix. The full run is the gate.
+const only = (process.env.READABILITY_ONLY || '').split(',').map((s) => s.trim()).filter(Boolean);
+const wanted = (label) => !only.length || only.some((s) => label.includes(s));
+
+async function run(url, label, token, manualLang, { role = null, expect = [] } = {}) {
+  if (!wanted(label)) return;
   for (const { w, h } of WIDTHS) {
     for (const theme of THEMES) {
       const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2 });
@@ -316,7 +398,7 @@ async function run(url, label, token, manualLang, role) {
         if (/fonts\.(googleapis|gstatic)\.com/.test(u)) return route.continue();
         return route.abort();
       });
-      await ctx.addInitScript(([t, tok, ml, rl]) => {
+      await ctx.addInitScript(([t, tok, ml, r]) => {
         try {
           localStorage.setItem('clics_theme', t);
           localStorage.setItem('theme', t);
@@ -326,12 +408,15 @@ async function run(url, label, token, manualLang, role) {
           if (ml) localStorage.setItem('clics_manual_lang', ml);
           if (tok) {
             localStorage.setItem('clics_token', 'audit');
-            const u = rl ? { role: rl, name: 'Audit', full_name_th: 'ผู้ตรวจสอบระบบ' } : { role: 'physician', name: 'Audit', can_audit: true };
+            // Default: the dual-role physician, which passes the auditor gates. A page that gates on
+            // another role (superadmin, analyst) names it in DASH_PAGES.
+            const u = r ? { role: r, name: 'Audit', full_name_th: 'ผู้ตรวจสอบระบบ', can_audit: false }
+              : { role: 'physician', name: 'Audit', can_audit: true };
             localStorage.setItem('clics_user', JSON.stringify(u));
-            localStorage.setItem('user', JSON.stringify({ ...u, role: rl ?? 'auditor' }));
+            localStorage.setItem('user', JSON.stringify({ ...u, role: r || 'auditor' }));
           }
         } catch { /* storage unavailable */ }
-      }, [theme, token, manualLang ?? null, role ?? null]);
+      }, [theme, token, manualLang ?? null, role]);
 
       const page = await ctx.newPage();
       try {
@@ -357,6 +442,19 @@ async function run(url, label, token, manualLang, role) {
         const r = await page.evaluate(collect, [THAI_MIN_PX, dash ? BODY_MIN_PX : 0, dash]);
         checked++;
         const where = `${label} @${w}px ${theme}`;
+        // Did the render measure the page it was asked for? A client-side role gate or a stale
+        // fixture redirects, and the redirect target is then scored under this page's name.
+        const landed = new URL(page.url()).pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/';
+        const asked = new URL(url).pathname.replace(/\/$/, '') || '/';
+        if (landed !== asked) findings.push({ kind: 'ROUTE', where, text: `${label}: landed on ${landed}` });
+        // Did it render the STATE this page is in the gate for? (see DASH_PAGES `expect`)
+        const missing = await page.evaluate((markers) => markers.filter((m) => {
+          if (m.startsWith('text:')) return !document.body.innerText.includes(m.slice(5));
+          return ![...document.querySelectorAll(m.slice(4))].some((e) => {
+            const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0;
+          });
+        }), expect);
+        for (const m of missing) findings.push({ kind: 'MISSING', where, text: `${label}: ${m}` });
         for (const c of r.contrast) if (c.ratio < c.need) findings.push({ kind: 'CONTRAST', where, ...c });
         for (const t of r.thai) findings.push({ kind: 'THAI', where, ...t });
         for (const c of r.clips) findings.push({ kind: 'CLIP', where, ...c });
@@ -375,10 +473,7 @@ for (const p of PORTAL_PAGES) await run(base + p.path, `portal${p.path}`, p.toke
 // translation is new text in the same boxes and the boxes are what fail.
 await run(base + '/manual', 'portal/manual[en]', false, 'en');
 if (dashUrl) {
-  for (const entry of DASH_PAGES) {
-    const [p, role] = Array.isArray(entry) ? entry : [entry];
-    await run(dashUrl.replace(/\/$/, '') + p, `dash${p}${role ? `[${role}]` : ''}`, true, undefined, role);
-  }
+  for (const p of DASH_PAGES) await run(dashUrl.replace(/\/$/, '') + p.path, `dash${p.path}`, true, null, p);
 }
 
 await browser.close();
@@ -410,11 +505,21 @@ for (const r of rows) {
     console.log(`BODY      text-sm rendered ${r.size}px < ${BODY_MIN_PX}px Thai body floor  ${r.sel}  "${r.text}"`);
   } else if (r.kind === 'PROSE') {
     console.log(`PROSE     Thai prose at the text-xs caption size (${r.size}px) — use text-sm  ${r.sel}  "${r.text}"`);
+  } else if (r.kind === 'ROUTE') {
+    console.log(`ROUTE     ${r.text}  (redirected: the render measured another page)`);
+  } else if (r.kind === 'MISSING') {
+    console.log(`MISSING   ${r.text}  (the fixture did not produce the state this page is gated for)`);
   } else {
     console.log(`ERROR     ${r.where}: ${r.text}`);
   }
-  console.log(`          ${r.seen.length}× — e.g. ${r.seen.slice(0, 3).join(', ')}`);
+  // Pages by name, not three sample renders: one selector (an SVG `tspan`) can fail on several pages.
+  const pages = [...new Set(r.seen.map((w) => w.replace(/ @.*$/, '')))];
+  const themes = [...new Set(r.seen.map((w) => w.split(' ').pop()))];
+  console.log(`          ${r.seen.length}× (${themes.join('+')}) on ${pages.join(', ')}`);
 }
+const byKind = {};
+for (const r of rows) byKind[r.kind] = (byKind[r.kind] || 0) + 1;
+if (rows.length) console.log(`\n${rows.length} distinct finding(s): ${Object.entries(byKind).map(([k, n]) => `${k} ${n}`).join(', ')}`);
 if (!rows.length) console.log('✅ no contrast failures, no Thai below the type floor, no clipped text'
   + `${dashUrl ? ', dashboard text-sm at or above the Thai body floor, no Thai prose at the caption size' : ''}.`);
 if (jsonAt) { await writeFile(jsonAt, JSON.stringify(rows, null, 2)); console.log(`\njson → ${jsonAt}`); }
