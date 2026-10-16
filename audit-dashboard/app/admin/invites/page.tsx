@@ -229,7 +229,7 @@ export default function InvitesPage() {
             {created.can_audit && ' — พิเศษ / Special (User+Auditor)'}
             {created.role === 'admin' && ' — ผู้ดูแลสภา / Admin'}
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             แสดงเพียงครั้งเดียว — คัดลอกและส่งให้ผู้รับ / Shown once only — copy it and send it to the recipient.
           </p>
           {/* Email-delivery status — only when the backend reported it (backward compatible). */}

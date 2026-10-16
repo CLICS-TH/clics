@@ -63,7 +63,7 @@ export default function IccPage() {
       {councils.length > 0 && (
         <div className="border rounded-xl p-5">
           <h2 className="text-lg font-semibold mb-1">ICC แยกตามสภาวิชาชีพ / By professional council</h2>
-          <p className="text-xs text-muted-foreground mb-4">ดูความน่าเชื่อถือของแต่ละวิชาชีพแยกกัน / Each profession&apos;s calibration, separately.</p>
+          <p className="text-sm text-muted-foreground mb-4">ดูความน่าเชื่อถือของแต่ละวิชาชีพแยกกัน / Each profession&apos;s calibration, separately.</p>
           <div className="grid gap-3 @min-[640px]:grid-cols-2">
             {councils.map((c) => {
               const icc = c.overall.icc; // may be null (degenerate / insufficient variance)
@@ -104,7 +104,7 @@ export default function IccPage() {
       {(inter_auditor || inter_auditor_average) && (
         <div className="border rounded-xl p-5">
           <h2 className="text-lg font-semibold mb-1">ความสอดคล้องระหว่างผู้ตรวจ / Human interrater agreement</h2>
-          <p className="text-xs text-muted-foreground mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             เป้าหมายตามโปรโตคอล: ผู้ตรวจ ≥ {min_auditors ?? 3} คนต่อ PLE / Protocol target: ≥ {min_auditors ?? 3} raters per PLE
           </p>
           <div className="grid gap-3 @min-[640px]:grid-cols-2">
@@ -132,7 +132,7 @@ export default function IccPage() {
           {inter_auditor_per_domain && Object.values(inter_auditor_per_domain).some(Boolean) && (
             <div className="mt-4 border-t pt-4">
               <h3 className="text-base font-medium mb-1">รายโดเมน / by PIS-7 domain</h3>
-              <p className="text-xs text-muted-foreground mb-3">
+              <p className="text-sm text-muted-foreground mb-3">
                 โดเมนที่ผู้ตรวจให้คะแนนเท่ากันทุกคนจะไม่มีค่า ICC เพราะไม่มีความแปรปรวนให้วัด ไม่ใช่เพราะไม่สอดคล้อง •
                 A domain every rater scored identically has no ICC because there is no variance to measure — that is not disagreement.
               </p>
@@ -163,7 +163,7 @@ export default function IccPage() {
               </div>
             </div>
           )}
-          {inter_auditor_note && <p className="mt-3 text-xs text-muted-foreground">{inter_auditor_note}</p>}
+          {inter_auditor_note && <p className="mt-3 text-sm text-muted-foreground">{inter_auditor_note}</p>}
           {auditors_per_cle && (
             // Cohort transparency, not a filter. This project has been burnt once by a headline ICC
             // that was partly an artifact of cases dropping out (n 33 → 30).
@@ -180,7 +180,7 @@ export default function IccPage() {
       {weighted_kappa?.pooled && (
         <div className="border rounded-xl p-5">
           <h2 className="text-lg font-semibold mb-1">Weighted kappa (quadratic)</h2>
-          <p className="text-xs text-muted-foreground mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             แก้ค่าความบังเอิญ — ต่างกัน 1 ระดับถูกหักน้อยกว่าต่างกัน 2 ระดับสี่เท่า / Chance-corrected; an adjacent miss costs a quarter of a two-band miss.
           </p>
           <div className="mb-4 rounded-xl border p-4">
@@ -203,7 +203,7 @@ export default function IccPage() {
               </div>
             ))}
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
+          <p className="mt-3 text-sm text-muted-foreground">
             โดเมนที่ต่ำผิดปกติคือโดเมนที่ควรทบทวนคำอธิบายเกณฑ์ / A domain that stands out low is the one whose anchors need rewriting.
           </p>
         </div>

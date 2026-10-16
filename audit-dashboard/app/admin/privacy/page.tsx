@@ -143,10 +143,10 @@ export default function PrivacyReviewPage() {
                 </p>
               ) : null}
               {p.privacy_concern_note ? (
-                <p className="mt-1 text-xs text-muted-foreground italic break-words">“{p.privacy_concern_note}”</p>
+                <p className="mt-1 text-sm text-muted-foreground italic break-words">“{p.privacy_concern_note}”</p>
               ) : null}
               {p.privacy_review_note ? (
-                <p className="mt-1 text-xs text-muted-foreground italic break-words">“{p.privacy_review_note}”</p>
+                <p className="mt-1 text-sm text-muted-foreground italic break-words">“{p.privacy_review_note}”</p>
               ) : null}
             </div>
             <ChevronDown className={`size-5 shrink-0 text-muted-foreground transition-transform ${openId === p.id ? 'rotate-180' : ''}`} />

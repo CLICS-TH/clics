@@ -132,6 +132,48 @@ export const FIXTURES = [
     ],
   }],
 
+  // ---- superadmin: AI provider switch, local-AI capacity, readiness, Model Lock, integrity ------
+  // The overview's AiProviderPanel and LocalAiCapacityCard read these two; without them the panel
+  // stays a skeleton and the capacity card's queue row reads "—", so neither one's notes are measured.
+  [/\/admin\/ai-providers/, {
+    providers: { chat: 'anthropic', evaluate: 'local', criteria: 'anthropic', discuss: 'anthropic', embed: 'openai' },
+    choices: { chat: ['anthropic', 'local', 'local-tutor'], evaluate: ['anthropic', 'local'], criteria: ['anthropic', 'local'],
+      discuss: ['anthropic', 'local', 'local-tutor'], embed: ['openai', 'local'] },
+    evaluator_locked_at: iso(1), evaluator_lock: { locked: true, record: 'found', manifest_bound: false },
+    confirm_phrases: { change_evaluator: 'CHANGE EVALUATOR', unlock_evaluator: 'UNLOCK EVALUATOR', switch_unfit: 'SWITCH ANYWAY', replace_lock: 'REPLACE THE LOCK' },
+  }],
+  [/\/health\/deep/, { status: 'ok', service: 'backend', checks: { eval_queue: { queued: 3, scoring: 2, oldest_wait_s: 65,
+    drain: { running: true, in_flight: 2, last_tick_at: iso(0), last_error: null } } } }],
+  // /admin/ai-readiness and /admin/evaluator-lock carry the dashboard's longest help text (drift
+  // explanations, the Model Lock form's hints); can_declare with a lock in force renders the whole form
+  // and the re-lock warning.
+  [/\/admin\/ai-readiness/, {
+    reachable: true,
+    checks: { local: { status: 'up', model: 'qwen3-32b', context_length: 32768, min_context: 16384 },
+      r3_distinct_models: { status: 'warn', warning: 'local-tutor is configured to the same endpoint and model as local (the evaluator)' } },
+    models: { evaluate: { provider: 'local', model: 'qwen3-32b' } }, routing: { evaluator_locked_at: iso(1) },
+    embedding: { provider: 'local', model: 'bge-m3', fit: false, dimension: 1024, required: 1536, reason: null },
+    manifest: { sha256: 'f'.repeat(64), file: 'present', code_match: true, evaluator_provider: 'local',
+      // declared.* is the "expected" kind (lib/evaluator-lock.ts classifyDrift), so all three blocks render.
+      drift: [{ key: 'LOCAL_AI_MODEL' }, { key: 'EVAL_MAX_TOKENS' }, { key: 'CHAT_TEMPERATURE' }, { key: 'declared.engine' }],
+      evaluator_drift_keys: ['LOCAL_AI_MODEL', 'EVAL_MAX_TOKENS'] },
+    model_lock: { status: 'down', locked: true, locked_at: iso(1), provider: 'local', reason: 'evaluator_live_drift', drift_keys: ['LOCAL_AI_MODEL'] },
+  }],
+  // can_declare with a lock in force: the form renders with every hint, and so does the re-lock warning.
+  [/\/admin\/evaluator-lock/, {
+    locked_at: iso(1), in_force: true, serving_provider: 'local', can_declare: true, blockers: [], blocker_detail: {},
+    current: { id: 'r1', locked_at: iso(1), provider: 'local', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b', weights_sha256: 'a'.repeat(64),
+      inference_engine: 'vllm 0.21.1', quantization: 'Q8_0', system_prompt_version: 'sys-v3', evaluator_prompt_version: 'pis7-prompt-59561c29',
+      rubric_version: 'pis7-weights-08b0cb1a', decoding: { temperature: 0, top_p: 1, max_tokens: 1500, seed: null }, environment: { os: 'ubuntu 24.04' },
+      note: 'first freeze', manifest_sha256: 'f'.repeat(64), evaluator_sha256: 'e'.repeat(64) },
+    candidate: { provider: 'local', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b', prompt_version: 'pis7-prompt-59561c29', rubric_versions: ['pis7-weights-08b0cb1a'] },
+    gate: { state: 'pass', threshold: 0.75, icc: 0.82, lower: 0.77, upper: 0.9, n: 60, why: 'the whole interval is at or above 0.75',
+      groups: [{ provider: 'local', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b', prompt_version: 'pis7-prompt-59561c29', rows: 60, rubric_versions: ['pis7-weights-08b0cb1a'] }] },
+    manifest: { ok: true, sha256: 'f'.repeat(64), file: 'present', code_match: true, drift_keys: ['CHAT_TEMPERATURE', 'RAG_TOP_K', 'declared.engine'], evaluator_drift_keys: [],
+      expected_for_candidate: { prompt_version: 'pis7-prompt-59561c29', rubric_version: 'pis7-weights-08b0cb1a', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b',
+        provider_declared: 'local', decoding: { max_tokens: { default: 1500, env: 'EVAL_MAX_TOKENS' }, temperature: 0 }, declared: { engine: 'vllm' }, evaluator_sha256: 'e'.repeat(64) } },
+    manifest_diff: [], migrations_pending: [], confirm_phrases: { replace_lock: 'REPLACE THE LOCK' },
+  }],
   // ---- integrity queue ----------------------------------------------------------------------
   // GET /admin/integrity-queue?severity= (app/admin/integrity/page.tsx). Without it the page measured its
   // empty state, "No sessions are flagged", on all 8 renders. The first row is the prose session's
@@ -199,7 +241,9 @@ export const FIXTURES = [
   // ---- privacy review ------------------------------------------------------------------------
   [/\/admin\/privacy-queue/, {
     ples: [
-      pleRow(1, 'pending'),
+      // A rater's stop-and-report: the "Reported by a rater" line and the rater's own note render.
+      pleRow(1, 'pending', { privacy_concern_open: true, privacy_concern_at: iso(1),
+        privacy_concern_note: 'เทิร์นที่ ๓ ระบุชื่อโรงพยาบาลและวันที่เข้ารับการรักษา ซึ่งอาจระบุตัวผู้ป่วยได้เมื่อประกอบกับข้อมูลอื่น' }),
       pleRow(2, 'pending', { privacy_review_note: LONG_NOTE }),
       pleRow(3, 'quarantined', { privacy_review_note: LONG_NOTE }),
       pleRow(4, 'passed', { privacy_review_note: null }),
@@ -291,7 +335,11 @@ export const FIXTURES = [
   // The pool sits at 92% so the users page's >= 90% red figure renders.
   [/\/admin\/usage-settings/, { comp_rate_thb: 500, comp_cap_cles: 3, standard_usage_limit_usd: 0.5,
     standard_limit_usd: 0.5, auditor_standard_limit_usd: 0.5, api_budget_pool_usd: 50, total_used_usd: 46.2,
-    auditor_api_budget_pool_usd: 10, auditor_total_used_usd: 3.1 }],
+    auditor_api_budget_pool_usd: 10, auditor_total_used_usd: 3.1,
+    // The overview's toggles and the Local AI capacity card (their descriptions and field notes).
+    pilot_test_mode: true, peer_calibration_enabled: true, hold_result_until_audited: true, min_auditors_per_cle: 2,
+    standard_limit_tokens: 300000, auditor_standard_limit_tokens: 0, ple_max_transcript_tokens: 64000,
+    ple_transcript_warn_pct: 80, eval_drain_concurrency: 1, eval_p50_seconds: 90, eval_drain_exclude_councils: 'SBX' }],
   // The superadmin user page's slot pools. Each must be an ARRAY: the fallback envelope reached
   // `(s ?? []).map` and took the page down to the error boundary. remaining 0 renders the red count.
   [/\/admin\/slots(\?|$)/, [

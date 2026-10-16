@@ -224,7 +224,7 @@ export default function AiReadinessPage() {
             {data.embedding.reason && (
               <p className="mt-2 text-sm text-muted-foreground">{data.embedding.reason}</p>
             )}
-            <p className="mt-2 text-xs text-muted-foreground">
+            <p className="mt-2 text-sm text-muted-foreground">
               วัดโดยการฝังข้อความทดสอบจริง / Measured by embedding a probe string — no endpoint reports a vector
               width, so this is the only honest way to know it before switching.
             </p>
@@ -292,7 +292,7 @@ function ManifestBlock({ m }: { m: ReadinessManifest }) {
               <span>{DRIFT_COPY.unclassifiedTitle} ({drift.all.length})</span>
             </p>
             <DriftKeyList keys={drift.all} label="ค่าที่ต่างไป ยังไม่จัดประเภท / Values that differ, unclassified" />
-            <p className="text-xs text-foreground">{DRIFT_COPY.unclassifiedBody}</p>
+            <p className="text-sm text-foreground">{DRIFT_COPY.unclassifiedBody}</p>
           </div>
         )}
         {drift.classified && drift.evaluator.length > 0 && (
@@ -305,21 +305,21 @@ function ManifestBlock({ m }: { m: ReadinessManifest }) {
               <p className="text-xs text-muted-foreground">ผู้ให้คะแนน / Evaluator: <span className="font-mono text-foreground">{m.evaluator_provider}</span></p>
             )}
             <DriftKeyList keys={drift.evaluator} label={DRIFT_COPY.evaluatorList} />
-            <p className="text-xs text-foreground">{DRIFT_COPY.evaluatorBody}</p>
+            <p className="text-sm text-foreground">{DRIFT_COPY.evaluatorBody}</p>
           </div>
         )}
         {drift.classified && drift.expected.length > 0 && (
           <div className="space-y-1.5">
             <p className="text-muted-foreground">ค่าที่ประกาศต่างจากที่รันอยู่ {drift.expected.length} รายการ / {drift.expected.length} declared value(s) differ from what is running</p>
             <DriftKeyList keys={drift.expected} label="ค่าที่ประกาศที่ต่างไป / Declared values that differ" />
-            <p className="text-xs text-muted-foreground">{DRIFT_COPY.expected}</p>
+            <p className="text-sm text-muted-foreground">{DRIFT_COPY.expected}</p>
           </div>
         )}
         {drift.classified && drift.other.length > 0 && (
           <div className="space-y-1.5">
             <p className="text-muted-foreground">ค่าอื่นที่ต่างไป {drift.other.length} รายการ / {drift.other.length} other value(s) differ</p>
             <DriftKeyList keys={drift.other} label="ค่าอื่นที่ต่างไป / Other values that differ" />
-            <p className="text-xs text-muted-foreground">{DRIFT_COPY.other}</p>
+            <p className="text-sm text-muted-foreground">{DRIFT_COPY.other}</p>
           </div>
         )}
       </div>
@@ -374,7 +374,7 @@ function ModelLockBlock({ l }: { l: ReadinessModelLock }) {
         {l.reason && <p className="break-words text-foreground">{LOCK_REASON[l.reason] ?? <span className="font-mono">{l.reason}</span>}</p>}
         {driftKeys.length > 0 && (
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               ค่าของผู้ให้คะแนนที่ RIMPL ใช้งานอยู่ต่างจาก manifest {driftKeys.length} รายการ / {driftKeys.length} evaluator value(s) on the running RIMPL differ from the manifest:
             </p>
             <DriftKeyList keys={driftKeys} label={DRIFT_COPY.evaluatorList} />

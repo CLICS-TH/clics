@@ -685,7 +685,7 @@ export default function UsersPage() {
             🔑 API key / Anthropic Console ↗
           </a>
         </div>
-        <p className="text-xs text-muted-foreground mt-0.5">
+        <p className="text-sm text-muted-foreground mt-0.5">
           ยอดใช้รวมทุกสมาชิกเทียบกับงบของคีย์ API / Total spent across all members vs the API key&apos;s budget.
         </p>
         {/* Say what it DOES. Until 2026-09-07 this field was stored, rendered here, and enforced
@@ -693,7 +693,7 @@ export default function UsersPage() {
             ceiling was the Anthropic balance. It now pauses the evaluation drain, which is the
             largest single spend; per-turn chat keeps its own per-user ceilings. Saying so matters
             because pausing scoring is a consequence someone should choose deliberately. */}
-        <p className="text-xs text-muted-foreground mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           เมื่อใช้ครบ ระบบจะ<strong>หยุดคิวให้คะแนน PIS-7</strong>ชั่วคราวจนกว่าจะเพิ่มงบ งานในคิวไม่หาย
           และ <span className="font-mono">/health/deep</span> จะรายงานว่า degraded • ตั้ง <span className="font-mono">0</span> = ไม่จำกัด •
           When the pool is spent the PIS-7 scoring queue <strong>pauses</strong> until it is raised — queued work is
@@ -719,7 +719,7 @@ export default function UsersPage() {
             <Button variant="outline" className="text-xs px-3 py-1 h-auto" onClick={savePool}>บันทึก / Save</Button>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground mt-1.5">
+        <p className="text-sm text-muted-foreground mt-1.5">
           * ตัวเลขนี้คือยอดที่ระบบคำนวณ — ยอดคงเหลือจริงดูได้ที่ Anthropic Console / This is the amount metered by CLICS; the real remaining balance lives in the Anthropic Console (linked above).
         </p>
       </div>
@@ -727,7 +727,7 @@ export default function UsersPage() {
       {/* Standard AI usage limit — default budget per physician (per-user overrides set in Edit). */}
       <div className="rounded-xl border border-border p-4 mb-4">
         <p className="text-sm font-medium">ขีดจำกัดการใช้งาน AI มาตรฐาน / Standard AI usage limit</p>
-        <p className="text-xs text-muted-foreground mt-0.5">ใช้กับแพทย์ทุกคนที่ไม่ได้ตั้งค่าเฉพาะราย / Applies to every physician without a per-user override.</p>
+        <p className="text-sm text-muted-foreground mt-0.5">ใช้กับแพทย์ทุกคนที่ไม่ได้ตั้งค่าเฉพาะราย / Applies to every physician without a per-user override.</p>
         <div className="flex items-center gap-2 mt-2">
           <span className="text-sm text-muted-foreground">$</span>
           <input type="number" min={0} step="0.05"
@@ -741,7 +741,7 @@ export default function UsersPage() {
           Auditors get their own $0.50 credit for the AI discussion chat, independent of physician spend. */}
       <div className="rounded-xl border border-border p-4 mb-6">
         <p className="text-sm font-medium">ขีดจำกัด AI ของผู้ตรวจ (มาตรฐาน) / Standard Auditor AI limit</p>
-        <p className="text-xs text-muted-foreground mt-0.5">
+        <p className="text-sm text-muted-foreground mt-0.5">
           พูลแยกสำหรับผู้ตรวจ — ใช้กับผู้ตรวจทุกคนที่ไม่ได้ตั้งค่าเฉพาะราย (ยอดรวมปัจจุบัน ${auditorTotalUsed.toFixed(4)}) / Separate auditor pool; applies to every auditor without an override (total spent so far ${auditorTotalUsed.toFixed(4)}).
         </p>
         <div className="flex items-center gap-2 mt-2">

@@ -115,7 +115,7 @@ export function AuditorChatBox({ pleId }: { pleId: string }) {
             title="โหลดการสนทนาก่อนหน้าไม่สำเร็จ / Could not load the earlier discussion." />
         )}
         {!loadErr && msgs.length === 0 && (
-          <StateMessage kind="empty" className="py-0 text-xs"
+          <StateMessage kind="empty" className="py-0 text-sm"
             title={<>ถามได้ เช่น “ทำไม AI ให้คะแนนหมวด Critical Appraisal สูงกว่าฉัน?” / Ask e.g. &ldquo;Why did the AI score Critical Appraisal higher than I did?&rdquo;</>} />
         )}
         {msgs.map((m, i) => (

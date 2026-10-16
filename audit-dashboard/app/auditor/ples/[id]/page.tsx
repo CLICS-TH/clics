@@ -220,7 +220,7 @@ export default function AuditorScorePage() {
         <div className="space-y-6">
           <div className="border rounded-xl p-5">
             <h2 className="font-sans text-xl font-semibold mb-1">การให้คะแนน PIS-7</h2>
-            <p className="text-xs text-muted-foreground mb-4">แตะระดับ 0–5 ของแต่ละหมวด — ใช้คำอธิบายระดับเป็นเกณฑ์ร่วม / Tap a 0–5 level per domain; the descriptors are the shared scale.</p>
+            <p className="text-sm text-muted-foreground mb-4">แตะระดับ 0–5 ของแต่ละหมวด — ใช้คำอธิบายระดับเป็นเกณฑ์ร่วม / Tap a 0–5 level per domain; the descriptors are the shared scale.</p>
             <DomainScorer
               scores={scores} onChange={(k,v) => setScores(s => ({...s,[k]:v}))}
               anchors={anchors} onAnchorChange={(k,v) => setAnchors(a => ({...a,[k]:v}))}
@@ -274,7 +274,7 @@ export default function AuditorScorePage() {
                     <Textarea id="concern" rows={3} value={concern} onChange={e => setConcern(e.target.value)}
                       className="p-3"
                       placeholder="เช่น เทิร์นที่ 3 ระบุชื่อโรงพยาบาลและวันที่ / e.g. turn 3 names a hospital and a date" />
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       เซสชันนี้จะถูกกักไว้เพื่อตรวจสอบและออกจากคิวของคุณ ไม่มีการบันทึกคะแนน /
                       The session is quarantined for review and leaves your queue. No score is recorded.
                     </p>
@@ -326,7 +326,7 @@ export default function AuditorScorePage() {
               <div>
                 <h3 className="font-sans text-base font-medium mb-1">เทียบกับ AI รายหมวด PIS-7 / PIS-7 by domain — vs AI</h3>
                 <Pis7Radar ai={data.ai_evaluation} human={scores} />
-                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(data.ai_evaluation, scores)}</p>
+                <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(data.ai_evaluation, scores)}</p>
               </div>
               {/* Peer calibration (toggle): your scores vs the average of the OTHER auditors who scored
                   this PLE. Shown once ≥1 other auditor has submitted (backend gates peer_avg/peer_n). */}
@@ -336,7 +336,7 @@ export default function AuditorScorePage() {
                     ? 'เทียบกับผู้ประเมินอีกคน / vs the other auditor'
                     : <>เทียบกับค่าเฉลี่ยผู้ประเมินคนอื่น / vs Other auditors <span className="font-normal text-muted-foreground">· n={data.peer_n}</span></>}</h3>
                   <Pis7Radar peer={data.peer_avg} human={scores} peerLabel={onePeer ? 'อีกคน / Other' : undefined} />
-                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(data.peer_avg, scores, onePeer ? { th: 'ผู้ประเมินอีกคน', en: 'the other auditor' } : { th: 'ค่าเฉลี่ยผู้ประเมิน', en: 'the auditor average' })}</p>
+                  <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{pis7Conclusion(data.peer_avg, scores, onePeer ? { th: 'ผู้ประเมินอีกคน', en: 'the other auditor' } : { th: 'ค่าเฉลี่ยผู้ประเมิน', en: 'the auditor average' })}</p>
                 </div>
               )}
               {/* Discuss the evaluation with an AI tutor — metered against the auditor's own pool. */}

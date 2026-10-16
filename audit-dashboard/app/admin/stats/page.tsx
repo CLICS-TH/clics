@@ -54,7 +54,7 @@ export default function StatsPage() {
           </a>
         ))}
       </div>
-      <p className="text-xs text-muted-foreground mb-8">
+      <p className="text-sm text-muted-foreground mb-8">
         คลิกการ์ดเพื่อดูรายการในหมวดนั้น · Click a card to explore its sessions · ประเมินแล้ว + รอ QA + ไม่ผ่านเกณฑ์ + กำลังดำเนินการ = ทั้งหมด
       </p>
       {icc?.overall && (

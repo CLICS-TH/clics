@@ -131,7 +131,7 @@ function VerdictBadge({ verdict }: { verdict: IccVerdict | null | undefined }) {
     : state === 'fail' ? `ไม่ผ่านเกณฑ์ ≥ ${threshold} / Below ≥ ${threshold}`
     : `ยังตัดสินไม่ได้ / Not yet decidable`;
   return (
-    <p className={`mt-2 rounded-lg border px-3 py-2 text-xs ${look}`}>
+    <p className={`mt-2 rounded-lg border px-3 py-2 text-sm ${look}`}>
       <span className="font-semibold">{label}</span>
       <span className="mt-0.5 block text-muted-foreground">{why}</span>
     </p>
