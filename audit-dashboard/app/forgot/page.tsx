@@ -54,7 +54,7 @@ export default function ForgotPage() {
               placeholder="อีเมล / Email" value={email}
               onChange={e => setEmail(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && submit()} />
-            {error && <p className="text-destructive text-sm">{error}</p>}
+            {error && <p className="text-danger text-sm">{error}</p>}
             <Button className="w-full" onClick={submit} disabled={busy}>
               {busy ? 'กำลังส่ง...' : 'ส่งลิงก์ตั้งรหัสผ่าน / Send reset link'}
             </Button>

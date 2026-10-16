@@ -172,7 +172,7 @@ export function NavBar() {
           )}
           {!compact && (
             <button onClick={logout}
-              className="whitespace-nowrap rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-destructive">
+              className="whitespace-nowrap rounded-md border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-danger">
               <BiLabel th="ออกจากระบบ" en="Logout" />
             </button>
           )}
@@ -207,7 +207,7 @@ export function NavBar() {
             </button>
           )}
           <button onClick={logout}
-            className="mt-1 rounded-md px-2 py-2 text-left text-sm text-muted-foreground hover:text-destructive">
+            className="mt-1 rounded-md px-2 py-2 text-left text-sm text-muted-foreground hover:text-danger">
             <BiLabel th="ออกจากระบบ" en="Logout" />
           </button>
         </div>

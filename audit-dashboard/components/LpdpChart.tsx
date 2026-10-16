@@ -15,9 +15,10 @@ export function LpdpChart({ data }: Props) {
         <LineChart data={data}>
           <CartesianGrid stroke="currentColor" strokeOpacity={0.18} />
           <XAxis dataKey="label" tick={{ fill: 'currentColor', fontSize: 12 }} />
-          <YAxis domain={[0,100]} label={{ value:'Score/100', angle:-90, position:'insideLeft' }} tick={{ fill: 'currentColor', fontSize: 12 }} />
+          <YAxis domain={[0,100]} label={{ value:'Score/100', angle:-90, position:'insideLeft', fill: 'currentColor' }} tick={{ fill: 'currentColor', fontSize: 12 }} />
           <Tooltip />
-          <ReferenceLine y={75} stroke={CHART.threshold} strokeDasharray="4 4" label="เป้าหมาย" />
+          {/* Labels ride currentColor too: a bare-string label takes recharts' #808080, 3.75:1 here. */}
+          <ReferenceLine y={75} stroke={CHART.threshold} strokeDasharray="4 4" label={{ value: 'เป้าหมาย', fill: 'currentColor' }} />
           <Line type="monotone" dataKey="composite_score" stroke={CHART.human} strokeWidth={2} dot={{ r:4 }} />
         </LineChart>
       </ResponsiveContainer>

@@ -82,7 +82,7 @@ export default function ResetPage() {
 
         {phase === 'invalid' && (
           <div className="space-y-4 text-center">
-            <p className="text-sm text-destructive">{invalidMsg}</p>
+            <p className="text-sm text-danger">{invalidMsg}</p>
             <Link href="/forgot" className="inline-block text-sm text-link underline-offset-4 hover:underline">
               ขอลิงก์ใหม่ / Request a new link
             </Link>
@@ -112,7 +112,7 @@ export default function ResetPage() {
                 {showConfirm ? <EyeOff className="size-4" aria-hidden="true" /> : <Eye className="size-4" aria-hidden="true" />}
               </button>
             </div>
-            {error && <p className="text-destructive text-sm">{error}</p>}
+            {error && <p className="text-danger text-sm">{error}</p>}
             <Button className="w-full" onClick={save} disabled={busy}>
               {busy ? 'กำลังบันทึก...' : 'บันทึกรหัสผ่านใหม่ / Save new password'}
             </Button>
