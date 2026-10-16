@@ -132,6 +132,29 @@ export const FIXTURES = [
     ],
   }],
 
+  // ---- integrity queue ----------------------------------------------------------------------
+  // GET /admin/integrity-queue?severity= (app/admin/integrity/page.tsx). Without it the page measured its
+  // empty state, "No sessions are flagged", on all 8 renders. The first row is the prose session's
+  // fixture verbatim (CLICS-wt-prose); the two after it make the card-level badge show all three
+  // severities and render the outline "test" badge.
+  // One session carrying every signal, so each signal's explanatory note renders.
+  [/\/admin\/integrity-queue/, { ples: [{ id: 'i-1', ple_code: 'PLE-301', status: 'evaluated', ended_at: iso(2), turn_count: 14, flags: [
+    { signal: 'F1_NEAR_DUPLICATE', severity: 'medium', created_at: iso(2), evidence: { pairs: 2 } },
+    { signal: 'F2_CROSS_SESSION_REUSE', severity: 'low', created_at: iso(2), evidence: { other_ple_id: '33333333-3333-4333-8333-333333333333' } },
+    { signal: 'F3_PASTE_BURST', severity: 'high', created_at: iso(2), evidence: { chars: 1800, genre: { clinical_density: 12, discourse_density: 1, markdown_marks: 0 } } },
+    { signal: 'F5_LATENCY_UNIFORMITY', severity: 'medium', created_at: iso(2), evidence: { cv: 0.04 } },
+    { signal: 'F6_REGISTER_DISCONTINUITY', severity: 'medium', created_at: iso(2), evidence: { shifted_features: [{ feature: 'discourse', value: 3.21, z: 4.4 }] } },
+    { signal: 'S1_PHYSICIAN_REPORTED_REPLY', severity: 'high', created_at: iso(2), evidence: { report_count: 1, reports: [
+      { message_id: '11111111-1111-4111-8111-111111111111', reason: 'unsafe_advice', note: 'ขนาดยาที่แนะนำสูงเกินไปสิบเท่า', turn: 3, provider: 'local', model: 'deepseek-v4', reported_at: iso(2) }] } },
+  ] },
+  { id: 'i-2', ple_code: 'PLE-302', status: 'evaluated', ended_at: iso(4), turn_count: 9, is_test: true, flags: [
+    { signal: 'F1_NEAR_DUPLICATE', severity: 'medium', created_at: iso(4), evidence: { pairs: 1 } },
+    { signal: 'F2_CROSS_SESSION_REUSE', severity: 'low', created_at: iso(4), evidence: { other_ple_id: '44444444-4444-4444-8444-444444444444' } },
+  ] },
+  { id: 'i-3', ple_code: 'PLE-303', status: 'evaluated', ended_at: iso(6), turn_count: 21, is_test: false, flags: [
+    { signal: 'F2_CROSS_SESSION_REUSE', severity: 'low', created_at: iso(6), evidence: { other_ple_id: '55555555-5555-4555-8555-555555555555' } },
+  ] }] }],
+
   // ---- QA queue + physician profile ----------------------------------------------------------
   // C4–C6 mixed pass/fail: a failing flag is the small red "C5:" label.
   [/\/admin\/ples\/flagged/, [
