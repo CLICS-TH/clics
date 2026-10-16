@@ -235,7 +235,9 @@ export default function OverviewPage() {
                   <XAxis dataKey="domain" tick={{ fill: 'currentColor', fontSize: 12 }} />
                   <YAxis domain={[0, 1]} tick={{ fill: 'currentColor', fontSize: 12 }} />
                   <Tooltip />
-                  <ReferenceLine y={0.75} stroke={CHART.threshold} strokeDasharray="4 4" label="เกณฑ์ 0.75" />
+                  {/* A bare-string label takes recharts' own #808080 (3.75:1 on the light card); currentColor
+                      is the muted-foreground this wrapper sets, same as the ticks. */}
+                  <ReferenceLine y={0.75} stroke={CHART.threshold} strokeDasharray="4 4" label={{ value: 'เกณฑ์ 0.75', fill: 'currentColor' }} />
                   <Bar dataKey="icc" radius={[4, 4, 0, 0]}>
                     {domainData.map(d => (
                       <Cell key={d.domain} fill={(d.icc ?? 0) >= 0.75 ? CHART.pass : CHART.fail} />
@@ -302,7 +304,7 @@ export default function OverviewPage() {
                         <div className={`h-full rounded-full ${full ? 'bg-destructive' : 'bg-primary'}`}
                           style={{ width: `${pct * 100}%` }} />
                       </div>
-                      <span className={`w-20 text-right font-mono text-xs tabular-nums ${full ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
+                      <span className={`w-20 text-right font-mono text-xs tabular-nums ${full ? 'text-danger font-semibold' : 'text-muted-foreground'}`}>
                         {s.used}/{s.capacity}
                       </span>
                     </div>
@@ -541,7 +543,7 @@ export default function OverviewPage() {
               ดาวน์โหลดสมุดงาน Excel หนึ่งไฟล์ แยกชีตตามหมวด (PLEs · AI evaluations · Auditor scores · Compensation · Participants) •
               One workbook, a sheet per category. Pseudonymized (P-NNN / EXP-NNN) — no names leave the system.
             </p>
-            {exportErr && <p className="mt-1 text-xs text-destructive">{exportErr}</p>}
+            {exportErr && <p className="mt-1 text-xs text-danger">{exportErr}</p>}
           </div>
           {/* bg-coral-active, the button-fill token: white on bright --primary measures 3.28:1. */}
           <button

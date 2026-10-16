@@ -4,6 +4,7 @@
 //
 // THEME-AWARE. The dark-mode hues (#5db872 / #e8a55a / #e08a1e / #5db8a6) measure 2.33 / 2.00 / 2.55 /
 // 2.25:1 on the light card — under the 3:1 non-text bar — so the light set carries darker variants.
+// The same applies to the radar's human series: brand coral #cc785c is 2.71:1 on --secondary in light.
 // CHART_LIGHT and CHART_DARK are MIRRORS of the --chart-* tokens in :root and .dark of
 // app/globals.css; __tests__/chart-mirror.test.ts parses the stylesheet and fails if either drifts.
 // Consumers call useChartColors() (inside a component) or chartColors(theme) (anywhere else).
@@ -15,8 +16,8 @@ export type ChartPalette = {
   threshold: string;
   warn: string;      // saturated amber for budget/usage-meter fills (also lib/labels.ts budgetToneHex)
   teal: string;      // Bland-Altman mean-difference line
-  // Two-series comparison (PIS-7 auditor-vs-AI radar): coral = the human auditor ("you", matches
-  // --primary), slate-blue = the AI — distinct from the pass/fail/warn semantics above.
+  // Two-series comparison (PIS-7 auditor-vs-AI radar): coral = the human auditor ("you"; --primary in
+  // dark, a darker coral in light), slate-blue = the AI — distinct from the pass/fail/warn semantics above.
   human: string;
   ai: string;
   // Peer-calibration radar (you vs the auditor-cohort average): violet — distinct from coral/blue
@@ -30,7 +31,7 @@ export const CHART_LIGHT: ChartPalette = {
   threshold: '#b8741a',
   warn: '#b86e00',
   teal: '#2f8f7e',
-  human: '#cc785c',
+  human: '#b8654a',   // darker than the brand coral: #cc785c is 2.71:1 on --secondary (the reveal panel)
   ai: '#5b7fb9',
   peer: '#8d6fc9',
 };

@@ -175,7 +175,11 @@
   --chart-fail: #c64545;
   --chart-threshold: #b8741a;
   --chart-warn: #b86e00;   /* solid fills (usage/budget meters) */
-  --chart-human: #cc785c;  /* PIS-7 radar: human auditor series (mirror of CHART.human) */
+  /* PIS-7 radar: human auditor series (mirror of CHART.human). Was #cc785c, the brand coral, which as a
+     2px series line measured 3.11:1 on the light page and 2.71:1 on --secondary — the auditor reveal
+     panel the per-PLE radar sits on — under the 3:1 non-text bar. #b8654a: 3.99:1 page, 3.48:1
+     --secondary. Dark keeps the brand coral (.dark below), which already clears 5:1 there. */
+  --chart-human: #b8654a;
   --chart-ai: #5b7fb9;     /* PIS-7 radar: AI series (mirror of CHART.ai) */
   --chart-peer: #8d6fc9;   /* PIS-7 radar: auditor-cohort-average series (mirror of CHART.peer) */
   --chart-pass-bg: #d1f5dc;
@@ -250,6 +254,7 @@
   --chart-warn: #e08a1e;
   --chart-pass-bg: #16331f;
   --chart-pass-text: #8fe0a3;
+  --chart-human: #cc785c;   /* brand coral: 5.47:1 on the dark page, 5.09:1 on --secondary */
   --sidebar: #252320;
   --sidebar-foreground: #faf9f5;
   --sidebar-primary: #cc785c;

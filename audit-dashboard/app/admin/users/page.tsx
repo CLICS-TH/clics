@@ -550,9 +550,10 @@ export default function UsersPage() {
       {/* Role slot pools — superadmin-only (admins can't read /admin/slots). Columns track the CONTAINER
           (@container on AppShell), not the viewport — so this is correct in real-phone, auto, AND the
           forced-mobile 460px frame without needing the JS mobile flag (a container query, unlike md:,
-          shrinks with the frame). */}
+          shrinks with the frame). One column below a 400px container: two cards across a 320px phone left
+          the capacity field 43px wide, which clipped "100" behind its spinner. */}
       {isSuper && (<>
-      <div className="grid grid-cols-2 gap-3 mb-6 @min-[768px]:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 mb-6 @min-[400px]:grid-cols-2 @min-[768px]:grid-cols-4">
         {slots.map(s => {
           // admin/auditor capacity is enforced PER-COUNCIL (council_slots). The card now shows the
           // truthful aggregate: used = cross-council count, capacity = SUM of every council's pool
@@ -575,10 +576,11 @@ export default function UsersPage() {
               ) : (
                 // Every input + button row on this page shares one height (self-stretch, or an
                 // items-stretch pair where a label wraps): the text-sm field and the text-xs button
-                // differ below 1280px, and on touch the 44px floor grows the button.
+                // differ below 1280px, and on touch the 44px floor grows the button. min-w-19 (4.75rem)
+                // holds four digits plus the spinner at the 16px touch font (measured 74px).
                 <div className="flex items-center gap-1.5 mt-2">
                   <input type="number" min={0} disabled={locked}
-                    className="flex-1 min-w-0 self-stretch border rounded-md px-2 py-1 text-sm bg-background disabled:opacity-50"
+                    className="flex-1 min-w-19 self-stretch border rounded-md px-2 py-1 text-sm bg-background disabled:opacity-50"
                     value={cap[s.role] ?? ''} onChange={e => setCap(c => ({ ...c, [s.role]: e.target.value }))} />
                   <Button variant="outline" className="text-xs px-2 py-1 h-auto shrink-0 self-stretch" disabled={locked} onClick={() => saveCap(s.role)}>
                     {locked ? '🔒' : 'ตั้งค่า'}
@@ -609,7 +611,7 @@ export default function UsersPage() {
               const cell = (role: string) => {
                 const s = c.slots.find(x => x.role === role);
                 if (!s) return '—';
-                return <span className={s.remaining <= 0 ? 'text-destructive' : ''}>{s.used}<span className="text-muted-foreground">/{s.capacity}</span></span>;
+                return <span className={s.remaining <= 0 ? 'text-danger' : ''}>{s.used}<span className="text-muted-foreground">/{s.capacity}</span></span>;
               };
               return (
                 <div key={c.council_id} className="rounded-lg border border-border p-3 text-sm">
@@ -638,7 +640,7 @@ export default function UsersPage() {
                   const cell = (role: string) => {
                     const s = c.slots.find(x => x.role === role);
                     if (!s) return <span className="text-muted-foreground">—</span>;
-                    return <span className={s.remaining <= 0 ? 'text-destructive' : ''}>{s.used}<span className="text-muted-foreground">/{s.capacity}</span></span>;
+                    return <span className={s.remaining <= 0 ? 'text-danger' : ''}>{s.used}<span className="text-muted-foreground">/{s.capacity}</span></span>;
                   };
                   return (
                     <tr key={c.council_id} className="border-t border-border">
@@ -659,11 +661,11 @@ export default function UsersPage() {
               return (
                 <div key={s.role} className="rounded-lg border border-border p-3">
                   <p className="text-sm font-medium">{ROLE_LABELS[s.role] ?? s.role}</p>
-                  <p className={`text-xl font-semibold tabular-nums mt-1 ${full ? 'text-destructive' : ''}`}>{s.used}<span className="text-muted-foreground text-base">/{s.capacity}</span></p>
+                  <p className={`text-xl font-semibold tabular-nums mt-1 ${full ? 'text-danger' : ''}`}>{s.used}<span className="text-muted-foreground text-base">/{s.capacity}</span></p>
                   <p className="text-xs text-muted-foreground">เหลือ {s.remaining} ช่อง / {s.remaining} left</p>
                   <div className="flex items-center gap-1.5 mt-2">
                     <input type="number" min={0}
-                      className="flex-1 min-w-0 self-stretch border rounded-md px-2 py-1 text-sm bg-background"
+                      className="flex-1 min-w-19 self-stretch border rounded-md px-2 py-1 text-sm bg-background"
                       value={ccap[s.role] ?? ''} onChange={e => setCcap(c => ({ ...c, [s.role]: e.target.value }))} />
                     <Button variant="outline" className="text-xs px-2 py-1 h-auto shrink-0 self-stretch" onClick={() => saveCouncilCap(s.role)}>ตั้งค่า / Set</Button>
                   </div>
@@ -699,7 +701,7 @@ export default function UsersPage() {
         </p>
         <div className="flex items-baseline justify-between gap-2 mt-2">
           <span className="text-sm text-muted-foreground">ใช้ไปแล้ว / Used</span>
-          <span className={`text-lg font-semibold tabular-nums ${poolPct >= 90 ? 'text-destructive' : ''}`}>
+          <span className={`text-lg font-semibold tabular-nums ${poolPct >= 90 ? 'text-danger' : ''}`}>
             ${totalUsed.toFixed(4)}{poolHasValue ? <span className="text-muted-foreground text-sm"> / ${poolPctNum.toFixed(2)} ({poolPct}%)</span> : null}
           </span>
         </div>
@@ -800,7 +802,7 @@ export default function UsersPage() {
             <option value="">— ระดับการฝึกอบรม / Medical Training Level —</option>
             {POSITION_OPTIONS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
           </select>
-          {err && <p className="text-destructive text-sm">{err}</p>}
+          {err && <p className="text-danger text-sm">{err}</p>}
           <Button className="w-full" onClick={createUser} disabled={creating}>
             {creating ? 'กำลังสร้าง… / Creating…' : 'สร้างผู้ใช้ (active ทันที)'}
           </Button>

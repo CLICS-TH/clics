@@ -74,7 +74,7 @@ export default function FlaggedPage() {
                 <p className="text-xs text-muted-foreground">{p.turn_count} รอบ · {p.token_count} tokens</p>
                 <div className="flex gap-3 mt-2 text-xs">
                   {['c4','c5','c6'].map(c => (
-                    <span key={c} className={`inline-flex items-center gap-1 ${p[c+'_pass'] ? 'text-[var(--ok)]' : 'text-destructive'}`}>
+                    <span key={c} className={`inline-flex items-center gap-1 ${p[c+'_pass'] ? 'text-ok' : 'text-danger'}`}>
                       {c.toUpperCase()}: {p[c+'_pass'] ? <Check className="size-3.5" /> : <X className="size-3.5" />}
                     </span>
                   ))}

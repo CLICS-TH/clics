@@ -215,7 +215,7 @@ export default function InvitesPage() {
         )}
         {SpecialtySelect}
         {PositionSelect}
-        {err && <p className="text-destructive text-sm">{err}</p>}
+        {err && <p className="text-danger text-sm">{err}</p>}
         <Button onClick={createInvite} disabled={busy}>
           {busy ? 'กำลังสร้าง…' : '+ สร้างคำเชิญ / Create invite'}
         </Button>
@@ -236,8 +236,8 @@ export default function InvitesPage() {
           {created.email_sent !== undefined && (
             <p className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${
               created.email_sent
-                ? 'border-green-300 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300'
-                : 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                ? 'border-chart-pass-text/30 bg-chart-pass-bg text-chart-pass-text'
+                : 'border-notice-text/30 bg-notice-bg text-notice-text'
             }`}>
               {created.email_sent
                 ? 'ส่งอีเมลถึงผู้รับแล้ว / Invite email sent'
