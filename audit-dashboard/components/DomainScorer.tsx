@@ -42,7 +42,7 @@ export function DomainScorer({ scores, onChange, anchors, onAnchorChange, disabl
     <div className="space-y-5">
       {/* The governing principle, stated once where it cannot be missed. It is the difference
           between rating an episode and rating a physician. */}
-      <p className="rounded-lg border border-dashed p-3 text-xs leading-relaxed text-muted-foreground">
+      <p className="rounded-lg border border-dashed p-3 text-sm leading-relaxed text-muted-foreground">
         {PIS7_PRINCIPLE.th}
         <span className="mt-1 block">{PIS7_PRINCIPLE.en}</span>
       </p>
@@ -115,7 +115,7 @@ export function DomainScorer({ scores, onChange, anchors, onAnchorChange, disabl
                   document asks for a comment at the extremes. Prompted, never enforced: a rater
                   blocked from submitting will write "n/a" and the record is worse than silence. */}
               {picked && COMMENT_EXPECTED_LEVELS.includes(val) && (
-                <p className="mt-2 text-coral-active">
+                <p className="mt-2 text-sm text-coral-active">
                   ควรบันทึกเหตุผลสำหรับคะแนนนี้ / A comment is expected at this level.
                 </p>
               )}

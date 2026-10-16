@@ -164,7 +164,7 @@ function GenreCounters({ g }: { g: Record<string, number> }) {
   ];
   return (
     <div className="mt-2 rounded-lg border border-border bg-muted/40 p-3">
-      <p className="mb-2 text-xs text-muted-foreground">
+      <p className="mb-2 text-sm text-muted-foreground">
         <BiLabel th="ลักษณะของข้อความที่วาง — ตัวเลขดิบ ไม่ใช่ข้อสรุป"
           en="The pasted turn’s shape. Raw counts, not a conclusion." />
       </p>
@@ -341,7 +341,7 @@ export default function IntegrityQueuePage() {
                           <p className="text-sm font-medium text-foreground">
                             {meta ? <BiLabel th={meta.th} en={meta.en} /> : f.signal}
                           </p>
-                          {meta?.note && <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{meta.note}</p>}
+                          {meta?.note && <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{meta.note}</p>}
                           {f.signal === REPORTED_REPLY_SIGNAL
                             ? <ReportEvidence e={f.evidence ?? {}} />
                             : <EvidenceRows e={f.evidence ?? {}} />}

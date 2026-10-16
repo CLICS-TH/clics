@@ -138,7 +138,7 @@ export default function IdentityQueuePage() {
                 able to see that before deciding. Rendered for every source, not only the bad one:
                 a warning that appears only when something is wrong teaches people to read its
                 absence as a guarantee. */}
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="mt-0.5 text-sm text-muted-foreground">
               ที่มาของการตรวจ / Source: <span className="font-mono">{v.license_check_source || 'none'}</span>
               {v.license_check_source === 'stub' && (
                 <span className="text-danger"> — ค่าจำลองสำหรับทดสอบ ไม่ได้ตรวจกับทะเบียนจริง / test stub, no registry was consulted</span>
@@ -172,7 +172,7 @@ export default function IdentityQueuePage() {
                 </div>
               </>
             ) : (
-              <p className="mt-3 text-xs text-muted-foreground">
+              <p className="mt-3 text-sm text-muted-foreground">
                 {v.status === 'verified' ? 'ยืนยันแล้ว / Verified' : 'ไม่ผ่าน / Rejected'}
                 {v.decided_at ? ` · ${new Date(v.decided_at).toLocaleString('th-TH')}` : ''}
                 {v.reject_reason ? ` · ${v.reject_reason}` : ''}

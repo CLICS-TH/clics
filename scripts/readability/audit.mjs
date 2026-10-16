@@ -27,6 +27,19 @@
  *                  and it fails silently (back to 14px on every phone) if --text-sm is ever declared in
  *                  `@theme inline`. Elements whose own classes carry a variant size (md:text-base …)
  *                  are skipped, since which size applies there is the breakpoint's choice.
+ *   5. PROSE     — dashboard only: Thai PROSE rendered at the `text-xs` caption size. text-xs is for
+ *                  captions, labels, badges and metadata; an instruction, explanation, conclusion,
+ *                  question or help paragraph belongs on text-sm, which carries the Thai body floor.
+ *                  BODY above cannot see this — it checks the token, not which token a paragraph
+ *                  chose. "Prose" is decided by the text of the paragraph that holds the run, never by
+ *                  the class: ≥ 45 Thai characters, or ≥ 25 with a sentence end (. ! ? before a space
+ *                  or the end). Exempt by role, not by length: controls and their labels (button, a,
+ *                  label, legend, summary, radio/tab/option), anything inside a <table>, and text
+ *                  truncated with an ellipsis — those are captions however long they run. Tuned
+ *                  2026-10-16 against a hand-classified inventory of the dashboard's Thai text-xs
+ *                  strings: it flags none of those kept as captions, and misses only short hints and
+ *                  fragments that moved to text-sm with their paragraph rather than on their own. On
+ *                  the build before that move it reported 61 paragraphs; after it, none.
  *
  * Exits non-zero if any AA failure or clip is found, so it can gate CI later.
  *
@@ -95,16 +108,26 @@ const PORTAL_PAGES = [
   // job is to be read. Public, so no token.
   { path: '/manual', token: false },
 ];
+// A bare path renders as the dual-role physician-auditor the portal hands over; [path, role] signs in
+// as that role instead. The role matters: /admin/overview is superadmin-only and sends anyone else to
+// /home, so under the default persona it measured the home page and none of its own text.
 const DASH_PAGES = ['/admin/privacy', '/admin/identity', '/admin/governance', '/auditor/queue',
-  '/home', '/admin/compensation', '/admin/invites', '/admin/users', '/admin/overview',
+  '/home', '/admin/compensation', '/admin/invites', '/admin/users', ['/admin/overview', 'superadmin'],
   // The integrity queue. Its severity badges paint text on a TINT (`bg-primary/12`,
   // `bg-destructive/10`), which is where --link and --destructive both fail as text and where
   // --coral-on-tint / --danger exist — so it is exactly the kind of page this gate is for.
-  '/admin/integrity'];
+  '/admin/integrity',
+  // Where the dashboard's longest Thai prose lives, for the PROSE check: the transcript's Socratic
+  // question, the scorer's instructions and evidence rule, and the radar conclusions (fixtures .a1
+  // unscored, .a2 scored with the AI revealed and an empty tutor chat); the reliability notes; the
+  // Model Lock form's hints; the analyst's disclaimers.
+  '/auditor/ples/00000000-0000-4000-8000-0000000000a1', '/auditor/ples/00000000-0000-4000-8000-0000000000a2',
+  ['/admin/icc', 'superadmin'], ['/admin/ai-readiness', 'superadmin'], ['/admin/evaluator-lock', 'superadmin'],
+  ['/analyst', 'analyst']];
 
 // ---- the in-page collector -------------------------------------------------------------------
 // Returns raw records; all colour maths happens here so the page never ships a library.
-function collect([thaiMinPx, bodyMinPx]) {
+function collect([thaiMinPx, bodyMinPx, proseCheck]) {
   const parseRgb = (s) => {
     const m = /rgba?\(([^)]+)\)/.exec(s || '');
     if (!m) return null;
@@ -172,7 +195,30 @@ function collect([thaiMinPx, bodyMinPx]) {
     return c.some((x) => /^text-sm(\/\S+)?$/.test(x)) && !c.some(sizesItself);
   };
 
-  const contrast = [], thai = [], clips = [], body = [];
+  // ---- prose at the caption size (check 5) ----
+  // The text-xs size, read off a probe rather than hard-coded: it is 13px below 1280px and scales with
+  // the root above it, so a constant would stop matching at the first desktop step.
+  const xsProbe = document.createElement('span');
+  xsProbe.className = 'text-xs'; xsProbe.textContent = 'x';
+  document.body.appendChild(xsProbe);
+  const xsPx = parseFloat(getComputedStyle(xsProbe).fontSize);
+  xsProbe.remove();
+  const atXs = (n) => Math.abs(parseFloat(getComputedStyle(n).fontSize) - xsPx) < 0.05;
+  const CAPTION_ROLE = 'table, button, a, label, legend, summary, select, [role=button], [role=radio], [role=tab], [role=option]';
+  // The paragraph a run belongs to: up through inline boxes (a BiLabel <span>, a <strong>) to the
+  // first block. Its text is what a reader reads as one unit, so it is what decides "prose".
+  const blockOf = (n) => {
+    let b = n;
+    while (b.parentElement && b.parentElement !== document.body && getComputedStyle(b).display.startsWith('inline')) b = b.parentElement;
+    return b;
+  };
+  const isProse = (t) => {
+    const th = (t.match(/[฀-๿]/g) || []).length;
+    return th >= 45 || (th >= 25 && /[.!?](?=\s|$)/.test(t));
+  };
+  const proseSeen = new Set();
+
+  const contrast = [], thai = [], clips = [], body = [], prose = [];
   for (const el of document.querySelectorAll('body *')) {
     const cs = getComputedStyle(el);
     if (cs.visibility === 'hidden' || cs.display === 'none' || parseFloat(cs.opacity) === 0) continue;
@@ -202,6 +248,16 @@ function collect([thaiMinPx, bodyMinPx]) {
 
     const size = parseFloat(cs.fontSize);
     const weight = parseInt(cs.fontWeight, 10) || 400;
+    if (proseCheck && THAI.test(text) && atXs(el) && !el.closest(CAPTION_ROLE)) {
+      const blk = blockOf(el);
+      const ellipsis = (n) => getComputedStyle(n).textOverflow === 'ellipsis';
+      // A caption-size span inside a body-size paragraph (a unit, a date) is judged on its own text.
+      const t = (atXs(blk) ? blk.innerText : el.textContent).replace(/\s+/g, ' ').trim();
+      if (!proseSeen.has(blk) && !ellipsis(el) && !ellipsis(blk) && isProse(t)) {
+        proseSeen.add(blk);
+        prose.push({ sel: sel(blk), size, text: t.slice(0, 60) });
+      }
+    }
     if (THAI.test(text) && size < thaiMinPx) {
       thai.push({ sel: sel(el), size, text: text.slice(0, 40), font: cs.fontFamily.split(',')[0] });
     }
@@ -225,7 +281,7 @@ function collect([thaiMinPx, bodyMinPx]) {
       thai: THAI.test(text), text: text.slice(0, 40),
     });
   }
-  return { contrast, thai, clips, body };
+  return { contrast, thai, clips, body, prose };
 }
 
 // ---- runner ----------------------------------------------------------------------------------
@@ -239,7 +295,7 @@ const browser = await chromium.launch();
 const findings = [];
 let checked = 0;
 
-async function run(url, label, token, manualLang) {
+async function run(url, label, token, manualLang, role) {
   for (const { w, h } of WIDTHS) {
     for (const theme of THEMES) {
       const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2 });
@@ -260,7 +316,7 @@ async function run(url, label, token, manualLang) {
         if (/fonts\.(googleapis|gstatic)\.com/.test(u)) return route.continue();
         return route.abort();
       });
-      await ctx.addInitScript(([t, tok, ml]) => {
+      await ctx.addInitScript(([t, tok, ml, rl]) => {
         try {
           localStorage.setItem('clics_theme', t);
           localStorage.setItem('theme', t);
@@ -270,12 +326,12 @@ async function run(url, label, token, manualLang) {
           if (ml) localStorage.setItem('clics_manual_lang', ml);
           if (tok) {
             localStorage.setItem('clics_token', 'audit');
-            const u = { role: 'physician', name: 'Audit', can_audit: true };
+            const u = rl ? { role: rl, name: 'Audit', full_name_th: 'ผู้ตรวจสอบระบบ' } : { role: 'physician', name: 'Audit', can_audit: true };
             localStorage.setItem('clics_user', JSON.stringify(u));
-            localStorage.setItem('user', JSON.stringify({ ...u, role: 'auditor' }));
+            localStorage.setItem('user', JSON.stringify({ ...u, role: rl ?? 'auditor' }));
           }
         } catch { /* storage unavailable */ }
-      }, [theme, token, manualLang ?? null]);
+      }, [theme, token, manualLang ?? null, role ?? null]);
 
       const page = await ctx.newPage();
       try {
@@ -297,13 +353,15 @@ async function run(url, label, token, manualLang) {
         await page.waitForTimeout(300);
         // The body check is the dashboard's: the portal has no `text-sm` utility, and its Thai
         // body floor is its own token (--fs-body-th in physician-ui main.css).
-        const r = await page.evaluate(collect, [THAI_MIN_PX, label.startsWith('dash') ? BODY_MIN_PX : 0]);
+        const dash = label.startsWith('dash');
+        const r = await page.evaluate(collect, [THAI_MIN_PX, dash ? BODY_MIN_PX : 0, dash]);
         checked++;
         const where = `${label} @${w}px ${theme}`;
         for (const c of r.contrast) if (c.ratio < c.need) findings.push({ kind: 'CONTRAST', where, ...c });
         for (const t of r.thai) findings.push({ kind: 'THAI', where, ...t });
         for (const c of r.clips) findings.push({ kind: 'CLIP', where, ...c });
         for (const b of r.body) findings.push({ kind: 'BODY', where, ...b });
+        for (const p of r.prose) findings.push({ kind: 'PROSE', where, ...p });
       } catch (e) {
         findings.push({ kind: 'ERROR', where: `${label} @${w}px ${theme}`, text: String(e.message || e) });
       }
@@ -316,7 +374,12 @@ for (const p of PORTAL_PAGES) await run(base + p.path, `portal${p.path}`, p.toke
 // The manual again, in English. Same widths, same themes — a second full pass, because a
 // translation is new text in the same boxes and the boxes are what fail.
 await run(base + '/manual', 'portal/manual[en]', false, 'en');
-if (dashUrl) for (const p of DASH_PAGES) await run(dashUrl.replace(/\/$/, '') + p, `dash${p}`, true);
+if (dashUrl) {
+  for (const entry of DASH_PAGES) {
+    const [p, role] = Array.isArray(entry) ? entry : [entry];
+    await run(dashUrl.replace(/\/$/, '') + p, `dash${p}${role ? `[${role}]` : ''}`, true, undefined, role);
+  }
+}
 
 await browser.close();
 server.close();
@@ -345,12 +408,14 @@ for (const r of rows) {
     console.log(`CLIP      +${r.over}px past its clip box  ${r.sel}  "${r.text}"`);
   } else if (r.kind === 'BODY') {
     console.log(`BODY      text-sm rendered ${r.size}px < ${BODY_MIN_PX}px Thai body floor  ${r.sel}  "${r.text}"`);
+  } else if (r.kind === 'PROSE') {
+    console.log(`PROSE     Thai prose at the text-xs caption size (${r.size}px) — use text-sm  ${r.sel}  "${r.text}"`);
   } else {
     console.log(`ERROR     ${r.where}: ${r.text}`);
   }
   console.log(`          ${r.seen.length}× — e.g. ${r.seen.slice(0, 3).join(', ')}`);
 }
 if (!rows.length) console.log('✅ no contrast failures, no Thai below the type floor, no clipped text'
-  + `${dashUrl ? ', dashboard text-sm at or above the Thai body floor' : ''}.`);
+  + `${dashUrl ? ', dashboard text-sm at or above the Thai body floor, no Thai prose at the caption size' : ''}.`);
 if (jsonAt) { await writeFile(jsonAt, JSON.stringify(rows, null, 2)); console.log(`\njson → ${jsonAt}`); }
 process.exit(rows.length ? 1 : 0);

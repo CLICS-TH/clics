@@ -59,8 +59,8 @@ export const TranscriptView = memo(function TranscriptView({ messages }: { messa
             ) : null}
             {m.socratic_question && (
               // text-coral-on-tint, not text-link: link is 4.24:1 on the AI surface, this is 6.08:1.
-              <p className={`mt-2 flex items-start gap-1.5 text-xs italic ${isPhysician ? "text-white" : "text-coral-on-tint"}`}>
-                <HelpCircle className="mt-0.5 size-3.5 shrink-0" />
+              <p className={`mt-2 flex items-start gap-1.5 text-sm italic ${isPhysician ? "text-white" : "text-coral-on-tint"}`}>
+                <HelpCircle className="mt-1 size-4 shrink-0" />
                 {m.socratic_question}
               </p>
             )}

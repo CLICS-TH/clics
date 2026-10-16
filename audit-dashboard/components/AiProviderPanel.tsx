@@ -125,7 +125,7 @@ export function AiProviderPanel() {
             {PURPOSE_COPY[p].icon} {PURPOSE_COPY[p].th}
             <span className="ml-1 text-[0.8em] font-normal opacity-[0.85]">{PURPOSE_COPY[p].en}</span>
           </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{PURPOSE_COPY[p].note}</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">{PURPOSE_COPY[p].note}</p>
         </div>
         <div role="radiogroup" aria-label={`${PURPOSE_COPY[p].en} provider`} className="flex flex-wrap gap-2">
           {data!.choices[p].map(name => {
@@ -178,7 +178,7 @@ export function AiProviderPanel() {
         <>
           <div className="rounded-xl border p-5">
             <p className="mb-1 text-sm font-medium">งานทั่วไป / Operational purposes</p>
-            <p className="mb-3 text-xs text-muted-foreground">
+            <p className="mb-3 text-sm text-muted-foreground">
               ย้ายไป–กลับได้ตลอด มีผลกับคำขอถัดไปทันที ไม่ต้อง deploy ใหม่ •
               Switch freely; the change takes effect on the next request, with no redeploy.
             </p>
@@ -214,7 +214,7 @@ export function AiProviderPanel() {
                     <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warn" aria-hidden="true" />
                     <div className="min-w-0">
                       <p className="font-medium">ไม่ได้ผูกกับ model manifest / Not bound to the model manifest</p>
-                      <p className="mt-0.5 text-xs">{UNBOUND_COPY[data.evaluator_lock.record ?? ''] ?? UNBOUND_COPY.unreadable}</p>
+                      <p className="mt-0.5 text-sm">{UNBOUND_COPY[data.evaluator_lock.record ?? ''] ?? UNBOUND_COPY.unreadable}</p>
                       <Link href="/admin/evaluator-lock" className="mt-1 inline-block text-xs text-foreground underline underline-offset-2">
                         แทนที่ที่หน้า Model Lock / Replace it on Model Lock
                       </Link>
@@ -244,7 +244,7 @@ export function AiProviderPanel() {
                     <span className="block whitespace-nowrap">Lock the evaluator</span>
                   </span>
                 </Link>
-                <p className="mt-1.5 text-xs text-muted-foreground">
+                <p className="mt-1.5 text-sm text-muted-foreground">
                   เปิดหน้า Model Lock ซึ่งบันทึกค่าที่ล็อก ผลความสอดคล้องกับผู้ตรวจ และ model manifest ไว้ด้วยกัน /
                   Opens Model Lock, which records the frozen configuration, the agreement verdict and the model manifest together.
                 </p>
@@ -263,7 +263,7 @@ export function AiProviderPanel() {
               ? `เปลี่ยนผู้ให้คะแนน PIS-7 เป็น ${PROVIDER_COPY[pending.provider]?.label ?? pending.provider}?`
               : 'ปลดล็อกผู้ให้คะแนน PIS-7?'}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             {pending.provider
               ? 'คะแนนที่ให้หลังจากนี้จะมาจากโมเดลคนละตัวกับคะแนนก่อนหน้า และค่า ICC จะเทียบข้ามเครื่องมือ · Scores produced after this come from a different model than the ones before it, and the ICC would then compare across two instruments.'
               : 'การปลดล็อกทำให้เปลี่ยนเครื่องมือวัดระหว่าง pilot ได้ · Unlocking makes it possible to change the measuring instrument mid-pilot.'}

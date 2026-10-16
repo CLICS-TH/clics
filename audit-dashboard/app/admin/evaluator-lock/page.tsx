@@ -265,11 +265,11 @@ export default function EvaluatorLockPage() {
 
           <fieldset className="min-w-0 space-y-3 rounded-lg border border-border p-3" aria-describedby="lock-decoding-hint">
             <legend className="px-1 text-sm font-medium text-foreground"><BiLabel th="ค่าการสร้างข้อความ" en="Decoding" /></legend>
-            <p id="lock-decoding-hint" className="text-xs text-muted-foreground">
+            <p id="lock-decoding-hint" className="text-sm text-muted-foreground">
               ค่าที่ผู้ให้คะแนนส่งไปกับทุกคำขอ ทุกช่องไม่บังคับ เว้นว่างถ้าไม่ได้ตั้ง ค่าที่ manifest ระบุจะถูกเทียบ / What the evaluator sends with every
               call. All optional: leave a value blank if it is not set. Any value the manifest states is compared against it.
             </p>
-            {serverField.decoding && <p className="text-xs text-danger">{serverField.decoding.join(' ')}</p>}
+            {serverField.decoding && <p className="text-sm text-danger">{serverField.decoding.join(' ')}</p>}
             <div className="grid grid-cols-1 gap-3 @min-[640px]:grid-cols-2">
               {DECODING_FIELDS.map((f) => {
                 const fid = `decoding.${f.key}`;
@@ -303,11 +303,11 @@ export default function EvaluatorLockPage() {
 
           <fieldset className="min-w-0 space-y-3 rounded-lg border border-border p-3" aria-describedby="lock-env-hint">
             <legend className="px-1 text-sm font-medium text-foreground"><BiLabel th="สภาพแวดล้อม" en="Environment" /></legend>
-            <p id="lock-env-hint" className="text-xs text-muted-foreground">
+            <p id="lock-env-hint" className="text-sm text-muted-foreground">
               เช่น os, cuda, driver, digest ของ container ห้ามใส่รหัสผ่าน คีย์ token หรือ URL เพราะจะถูกเก็บในบันทึกงานวิจัย /
               e.g. os, cuda, driver, container image digest. Never a password, key, token or URL: this is kept in the study record.
             </p>
-            {serverField.environment && <p className="text-xs text-danger">{serverField.environment.join(' ')}</p>}
+            {serverField.environment && <p className="text-sm text-danger">{serverField.environment.join(' ')}</p>}
             {form.env.map((r, i) => {
               const keyErr = errors[`env.${r.id}.key`];
               return (
@@ -324,7 +324,7 @@ export default function EvaluatorLockPage() {
                   <button type="button" id={`lock-env-${r.id}-remove`} onClick={() => removeEnv(r.id)} aria-label={`ลบ / Remove ${i + 1}`} className="justify-self-start rounded-lg border border-field px-3 py-2 text-sm whitespace-nowrap text-foreground hover:bg-muted">
                     ลบ / Remove
                   </button>
-                  {keyErr && <p id={`lock-env-${r.id}-error`} className="text-xs text-danger @min-[640px]:col-span-3">{keyErr}</p>}
+                  {keyErr && <p id={`lock-env-${r.id}-error`} className="text-sm text-danger @min-[640px]:col-span-3">{keyErr}</p>}
                 </div>
               );
             })}
@@ -348,7 +348,7 @@ export default function EvaluatorLockPage() {
           {relockPhrase && (
             <div className="rounded-lg border-2 border-destructive/50 p-4">
               <p className="text-sm font-medium text-foreground">แทนที่การล็อกที่มีผลอยู่? / Replace the lock in force?</p>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 ทำได้เฉพาะเหตุผลด้านความปลอดภัยที่สำคัญ ต้องหยุดการให้คะแนน บันทึกเหตุผลในหมายเหตุ และแยกข้อมูลก่อนและหลังการเปลี่ยน /
                 Only for a critical safety or security reason: scoring stops, the reason goes in the note, and the data either side of the change is kept apart.
               </p>
@@ -365,7 +365,7 @@ export default function EvaluatorLockPage() {
               <Lock className="size-4" aria-hidden="true" />
               {busy ? 'กำลังบันทึก… / Saving…' : relockPhrase ? 'แทนที่การล็อก / Replace the lock' : 'ล็อกค่าโมเดล / Freeze it'}
             </Button>
-            <p id="lock-submit-hint" className="text-xs break-words text-muted-foreground">
+            <p id="lock-submit-hint" className="text-sm break-words text-muted-foreground">
               {problems > 0
                 ? `ยังขาดหรือไม่ถูกต้อง ${problems} ช่อง / ${problems} field(s) still missing or invalid: ${problemNames.join(', ')}.`
                 : !relockOk
@@ -428,12 +428,12 @@ function Field({ id, th, en, required, marker = true, hints, error, children }: 
       </label>
       {children(ids, !!error)}
       {hints.map((h, i) => (
-        <p key={i} id={`${id}-hint-${i}`} className={`text-xs break-words ${h.warn ? 'text-warn' : 'text-muted-foreground'}`}>
+        <p key={i} id={`${id}-hint-${i}`} className={`text-sm break-words ${h.warn ? 'text-warn' : 'text-muted-foreground'}`}>
           {h.chip && <span className="mr-1.5 rounded bg-muted px-1.5 py-0.5 text-foreground">จาก manifest / from manifest</span>}
           {h.text}
         </p>
       ))}
-      {error && <p id={`${id}-error`} className="text-xs text-danger">{error}</p>}
+      {error && <p id={`${id}-error`} className="text-sm text-danger">{error}</p>}
     </div>
   );
 }
@@ -586,7 +586,7 @@ function CandidatePanel({ state }: { state: EvaluatorLockState }) {
           {groups.length > 0 && (
             <details className="mt-2 text-sm">
               <summary className="cursor-pointer text-foreground">กลุ่มในคลังข้อมูล ({groups.length}) / Groups in the corpus ({groups.length})</summary>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 ผู้ท้าชิงคือกลุ่มเดียว ไม่รวมกลุ่มอื่น / The candidate is one group; the others are listed so nothing is silently pooled.
               </p>
               <ul className="mt-1 space-y-1">
@@ -630,29 +630,29 @@ function ManifestPanel({ state, drift }: { state: EvaluatorLockState; drift: Dri
       {/* Live drift, by kind. Only the deployment-target kind is "expected"; evaluator-scope keys (and
           unclassified ones) are a warning of their own before the form. */}
       {!drift.classified && drift.all.length > 0 && (
-        <p className="flex gap-1.5 text-xs text-warn">
-          <AlertTriangle className="mt-px size-3.5 shrink-0" aria-hidden="true" />
+        <p className="flex gap-1.5 text-warn">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <span>ค่าที่รันอยู่ต่างจาก manifest {drift.all.length} รายการ และจัดประเภทไม่ได้ ดูด้านล่าง / {drift.all.length} live value(s) differ and could not be classified: listed below.</span>
         </p>
       )}
       {drift.classified && drift.evaluator.length > 0 && (
-        <p className="flex gap-1.5 text-xs text-warn">
-          <AlertTriangle className="mt-px size-3.5 shrink-0" aria-hidden="true" />
+        <p className="flex gap-1.5 text-warn">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <span>ค่าในขอบเขตเครื่องมือวัดต่างจาก manifest {drift.evaluator.length} รายการ ดูด้านล่าง / {drift.evaluator.length} value(s) in the evaluator’s scope differ: listed below.</span>
         </p>
       )}
       {drift.classified && drift.expected.length > 0 && (
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">ค่าที่ประกาศต่างจากที่รันอยู่ {drift.expected.length} รายการ / {drift.expected.length} declared value(s) differ from what is running:</p>
+          <p className="text-muted-foreground">ค่าที่ประกาศต่างจากที่รันอยู่ {drift.expected.length} รายการ / {drift.expected.length} declared value(s) differ from what is running:</p>
           <DriftKeyList keys={drift.expected} label="ค่าที่ประกาศที่ต่างไป / Declared values that differ" />
-          <p className="text-xs text-muted-foreground">{DRIFT_COPY.expected}</p>
+          <p className="text-muted-foreground">{DRIFT_COPY.expected}</p>
         </div>
       )}
       {drift.classified && drift.other.length > 0 && (
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">ค่าอื่นที่ต่างไป {drift.other.length} รายการ / {drift.other.length} other value(s) differ:</p>
+          <p className="text-muted-foreground">ค่าอื่นที่ต่างไป {drift.other.length} รายการ / {drift.other.length} other value(s) differ:</p>
           <DriftKeyList keys={drift.other} label="ค่าอื่นที่ต่างไป / Other values that differ" />
-          <p className="text-xs text-muted-foreground">{DRIFT_COPY.other}</p>
+          <p className="text-muted-foreground">{DRIFT_COPY.other}</p>
         </div>
       )}
     </section>

@@ -347,7 +347,7 @@ export default function OverviewPage() {
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-xl border p-5">
           <div className="min-w-0 flex-[1_1_28rem]">
             <p className="text-sm font-medium">👥 จำนวนผู้ตรวจเป้าหมาย / Target auditor count</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="mt-0.5 text-sm text-muted-foreground">
               PLE ที่มีผู้ตรวจน้อยกว่าเป้าหมายจะถูกทำเครื่องหมายในคิว แต่ <strong>ยังปล่อยผลตามปกติ</strong> —
               ไม่บล็อก เพราะบางสาขายังไม่มีผู้ตรวจเลย • PLEs below target are badged in the admin queue and
               counted separately in the ICC report, but their score still releases. Blocking would strand
@@ -402,7 +402,7 @@ export default function OverviewPage() {
         <div className="flex items-center justify-between rounded-xl border p-5">
           <div className="pr-4">
             <p className="text-sm font-medium">🧪 โหมดทดสอบ Pilot / Pilot test mode</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               เปิดเพื่อทดสอบ Socratic mode: PLE ที่สร้างจะเป็น test session (ไม่นับในข้อมูลจริง), ข้ามลิมิต 3 PLE,
               และแพทย์เลือก Natural/Socratic ได้เอง • When on: new PLEs are test sessions, the 3-PLE cap is bypassed,
               and the physician picks Natural/Socratic directly.
@@ -428,7 +428,7 @@ export default function OverviewPage() {
         <div className="flex items-center justify-between rounded-xl border p-5">
           <div className="pr-4">
             <p className="text-sm font-medium">📋 Clinical Artifacts / รายงานคลินิกแบบ artifact</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               เปิดให้ AI สร้าง artifact (ตาราง DDx, แผนการรักษา, อัลกอริทึม) แสดงใน side panel •
               When on: the AI wraps substantial structured output (differential tables, care plans, algorithms,
               evidence summaries) in side-panel artifacts. This changes the stimulus every physician sees — enable deliberately.
@@ -454,7 +454,7 @@ export default function OverviewPage() {
         <div className="flex items-center justify-between rounded-xl border p-5">
           <div className="pr-4">
             <p className="text-sm font-medium">👥 Peer Calibration / การปรับเทียบระหว่างผู้ประเมิน</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               เปิดให้มอบหมาย PLE เดียวกันแก่ผู้ประเมินหลายคน และแสดงเรดาร์เทียบคะแนนของผู้ประเมินกับค่าเฉลี่ยของผู้ประเมินทั้งหมด •
               When on: a PLE can be assigned to multiple auditors, and after submitting each auditor sees a radar
               comparing their PIS-7 scores to the average of all auditors (the vs-AI radar is kept).
@@ -480,7 +480,7 @@ export default function OverviewPage() {
         <div className="flex items-center justify-between rounded-xl border p-5">
           <div className="pr-4">
             <p className="text-sm font-medium">🔒 ระงับผลจนกว่าผู้ตรวจจะให้คะแนน / Hold result until audited</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               สำหรับรอบทดสอบแบบปิดบัง: แพทย์จะไม่เห็นคะแนน PIS-7 (ทั้งหน้าผลและกราฟความก้าวหน้า) จนกว่าผู้ตรวจประเมินจะส่งคะแนนของ PLE นั้นแล้ว •
               For a blinded test round: physicians can&apos;t see their PIS-7 score (result page + LPDP trend) until an
               expert auditor has submitted a score for that PLE. Keep it ON only during the test.
@@ -508,7 +508,7 @@ export default function OverviewPage() {
         <div className="flex items-center justify-between rounded-xl border p-5">
           <div className="pr-4">
             <p className="text-sm font-medium">🙈 ปิดการเผยคะแนน AI ตลอดรอบสอบเทียบ / Lock AI reveal for the round</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               ปกติผู้ตรวจจะเห็นคะแนน AI ทันทีที่ส่งคะแนนของ PLE นั้น ซึ่งทำให้ PLE ถัดไปไม่อิสระอีกต่อไป เปิดสวิตช์นี้ระหว่างรอบสอบเทียบ
               เพื่อปิดทั้งคะแนน AI, การสนทนากับ AI, ค่าเฉลี่ยเพื่อน และค่าความสอดคล้องกับ AI จนกว่าทุกคนจะปิดคะแนนครบ •
               Normally an auditor sees the AI score the moment they submit that PLE, which makes the next
@@ -537,11 +537,11 @@ export default function OverviewPage() {
         <div className="flex flex-col items-start gap-4 rounded-xl border p-5 @min-[480px]:flex-row @min-[480px]:items-center @min-[480px]:justify-between">
           <div className="min-w-0 @min-[480px]:pr-4">
             <p className="text-sm font-medium">📊 ส่งออกข้อมูล (XLSX) / Export data (XLSX)</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               ดาวน์โหลดสมุดงาน Excel หนึ่งไฟล์ แยกชีตตามหมวด (PLEs · AI evaluations · Auditor scores · Compensation · Participants) •
               One workbook, a sheet per category. Pseudonymized (P-NNN / EXP-NNN) — no names leave the system.
             </p>
-            {exportErr && <p className="mt-1 text-xs text-destructive">{exportErr}</p>}
+            {exportErr && <p className="mt-1 text-sm text-destructive">{exportErr}</p>}
           </div>
           {/* bg-coral-active, the button-fill token: white on bright --primary measures 3.28:1. */}
           <button

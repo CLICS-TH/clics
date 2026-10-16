@@ -169,7 +169,7 @@ export function RaterSpreadPanel({ data }: { data: RaterSpread | null }) {
         </Table>
       </div>
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         ทุกตัวเลขเป็นสถิติเชิงพรรณนา ไม่ใช่การอนุมาน และ n ยังน้อยมาก / Every figure here is descriptive,
         not inferential, and n is small — read them with the counts beside them.
       </p>

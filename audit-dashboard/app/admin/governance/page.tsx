@@ -150,7 +150,7 @@ export default function GovernancePage() {
               <Button size="sm" variant="destructive" className="mt-3" disabled={!armed || busy} onClick={runDeidentify}>
                 ดำเนินการ / Run de-identification
               </Button>
-              {!plan.due && <p className="mt-2 text-xs text-muted-foreground">ยังไม่ถึงกำหนด — ปุ่มจะเปิดใช้งานเมื่อครบกำหนด / Not due yet; the button unlocks on the due date.</p>}
+              {!plan.due && <p className="mt-2 text-sm text-muted-foreground">ยังไม่ถึงกำหนด — ปุ่มจะเปิดใช้งานเมื่อครบกำหนด / Not due yet; the button unlocks on the due date.</p>}
             </div>
           </>
         )}
@@ -192,7 +192,7 @@ export default function GovernancePage() {
           : (
             <ul className="mt-2 space-y-2">
               {reviews.map(r => (
-                <li key={r.id} className="rounded-lg border p-3 text-xs">
+                <li key={r.id} className="rounded-lg border p-3 text-sm">
                   <span className="font-medium tabular-nums">{r.period_month.slice(0, 7)}</span>
                   {r.incidents_found
                     ? <span className="ml-2 rounded-full bg-destructive/10 px-2 py-0.5 text-danger">พบเหตุการณ์ / incidents</span>

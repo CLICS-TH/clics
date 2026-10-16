@@ -239,7 +239,7 @@ export function LocalAiCapacityCard({ usage, onChange }: { usage: UsageSettings 
                   />
                   <SaveButton th={f.th} en={f.en} busy={saving === f.key} disabled={saving !== null} onClick={() => void save(current, f.key)} />
                 </div>
-                <p className="mt-1.5 text-xs text-muted-foreground">{f.note}</p>
+                <p className="mt-1.5 text-sm text-muted-foreground">{f.note}</p>
               </div>
             );
           })}
@@ -267,7 +267,7 @@ export function LocalAiCapacityCard({ usage, onChange }: { usage: UsageSettings 
               />
               <SaveButton th="สภาที่ยกเว้น" en="Exclude councils" busy={saving === CODES_KEY} disabled={saving !== null} onClick={() => void save(current, CODES_KEY)} />
             </div>
-            <p className="mt-1.5 text-xs text-muted-foreground">
+            <p className="mt-1.5 text-sm text-muted-foreground">
               รหัสสภาตัวพิมพ์ใหญ่ คั่นด้วยจุลภาค — นี่คือพาร์ติชันสำหรับ sandbox smoke: backend นี้จะไม่ดึง PLE ของสภาเหล่านี้ไปให้คะแนน
               ปล่อยให้เครื่องที่รันโมเดลภายในเป็นผู้ให้คะแนนแทน เว้นว่างเพื่อกลับมารวมทุกสภา •
               Upper-case council codes, comma-separated. This is the sandbox-smoke partition: this backend leaves those councils’
@@ -284,7 +284,7 @@ export function LocalAiCapacityCard({ usage, onChange }: { usage: UsageSettings 
     <section className="space-y-3">
       <h2 className="font-heading text-xl text-foreground">ความจุ AI ภายใน / Local AI capacity</h2>
       <div className="space-y-4 rounded-xl border p-5">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           เพดานโทเคน ขนาดบทสนทนา และคิวการให้คะแนนของโมเดลในองค์กร — โมเดลภายในคิดราคา $0 จึงใช้โทเคนเป็นหน่วยจำกัดแทนเงิน •
           Token ceilings, the transcript cap and the scoring queue for the on-prem model. The local model is priced at $0,
           so tokens — not dollars — are the unit that throttles it.
