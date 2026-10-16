@@ -38,9 +38,12 @@
  *                  BODY above cannot see this — it checks the token, not which token a paragraph
  *                  chose. "Prose" is decided by the text of the paragraph that holds the run, never by
  *                  the class: ≥ 45 Thai characters, or ≥ 25 with a sentence end (. ! ? before a space
- *                  or the end). Exempt by role, not by length: controls and their labels (button, a,
- *                  label, legend, summary, radio/tab/option), anything inside a <table>, and text
- *                  truncated with an ellipsis — those are captions however long they run. Tuned
+ *                  or the end). Exempt by role, not by length: anything inside a <table>, text
+ *                  truncated with an ellipsis, and a control (button, a, label, legend, summary,
+ *                  radio/tab/option) whose own text IS its label — those are captions however long
+ *                  they run. A control that wraps paragraphs (an accordion trigger holding a card
+ *                  summary, a link around a session card) is not a label, and its paragraphs are
+ *                  judged like any other: the privacy queue's notes sit inside such a <button>. Tuned
  *                  2026-10-16 against a hand-classified inventory of the dashboard's Thai text-xs
  *                  strings: it flags none of those kept as captions, and misses only short hints and
  *                  fragments that moved to text-sm with their paragraph rather than on their own. On
@@ -132,7 +135,7 @@ const PORTAL_PAGES = [
 //           state passes. A missing marker is a MISSING finding, so a stale fixture fails the gate
 //           instead of quietly shrinking what it measures.
 const DASH_PAGES = [
-  { path: '/admin/privacy', expect: ['text:PLE-102'] },
+  { path: '/admin/privacy', expect: ['text:PLE-102', 'text:เทิร์นที่ ๓ ระบุชื่อโรงพยาบาล'] },
   { path: '/admin/identity', expect: ['text:4821'] },
   { path: '/admin/governance', role: 'superadmin', expect: ['text:oauth_identities', 'text:2026-08'] },
   { path: '/auditor/queue', expect: ['text:31200 tokens'] },
@@ -176,8 +179,10 @@ const DASH_PAGES = [
   // form's hints with a lock in force (so the re-lock warning and its typed confirmation render too).
   // Data-only markers: the evaluator-scope drift block needs the fixture's evaluator_drift_keys, the
   // re-lock confirmation needs a lock in force, and the model version is the fixture's candidate.
-  { path: '/admin/ai-readiness', role: 'superadmin', expect: ['text:These belong to the scoring instrument', 'text:EVAL_MAX_TOKENS'] },
-  { path: '/admin/evaluator-lock', role: 'superadmin', expect: ['sel:#lock-relock-confirm', 'text:CCME_LLM_v8.0+qwen-2.5-72b'] },
+  { path: '/admin/ai-readiness', role: 'superadmin',
+    expect: ['text:These belong to the scoring instrument', 'text:EVAL_MAX_TOKENS', 'text:Expected while production runs'] },
+  { path: '/admin/evaluator-lock', role: 'superadmin',
+    expect: ['sel:#lock-relock-confirm', 'text:CCME_LLM_v8.0+qwen-2.5-72b', 'text:Expected while production runs'] },
 ];
 
 // ---- the in-page collector -------------------------------------------------------------------
@@ -288,12 +293,22 @@ function collect([thaiMinPx, bodyMinPx, proseCheck]) {
   const xsPx = parseFloat(getComputedStyle(xsProbe).fontSize);
   xsProbe.remove();
   const atXs = (n) => Math.abs(parseFloat(getComputedStyle(n).fontSize) - xsPx) < 0.05;
-  const CAPTION_ROLE = 'table, button, a, label, legend, summary, select, [role=button], [role=radio], [role=tab], [role=option]';
-  // The paragraph a run belongs to: up through inline boxes (a BiLabel <span>, a <strong>) to the
-  // first block. Its text is what a reader reads as one unit, so it is what decides "prose".
+  const CONTROL = 'button, a, label, legend, summary, select, [role=button], [role=radio], [role=tab], [role=option]';
+  // Paragraph-level content. A control holding any of it is a clickable CONTAINER (an accordion
+  // trigger, a card link), not a label, so it exempts nothing.
+  const PARAGRAPHS = 'p, li, div, dl, dt, dd, blockquote, h1, h2, h3, h4, h5, h6';
+  const exempt = (n) => {
+    if (n.closest('table')) return true;
+    const ctl = n.closest(CONTROL);
+    return !!ctl && !ctl.querySelector(PARAGRAPHS);
+  };
+  // The paragraph a run belongs to: up through plain inline boxes (a BiLabel <span>, a <strong>) to
+  // the first box that lays out its own text. Its text is what a reader reads as one unit, so it is
+  // what decides "prose". An inline-block or inline-flex box (a chip, a button) is such a box: the
+  // walk stops there rather than climbing out of it into the row around it.
   const blockOf = (n) => {
     let b = n;
-    while (b.parentElement && b.parentElement !== document.body && getComputedStyle(b).display.startsWith('inline')) b = b.parentElement;
+    while (b.parentElement && b.parentElement !== document.body && ['inline', 'contents'].includes(getComputedStyle(b).display)) b = b.parentElement;
     return b;
   };
   const isProse = (t) => {
@@ -332,7 +347,7 @@ function collect([thaiMinPx, bodyMinPx, proseCheck]) {
 
     const size = parseFloat(cs.fontSize);
     const weight = parseInt(cs.fontWeight, 10) || 400;
-    if (proseCheck && THAI.test(text) && atXs(el) && !el.closest(CAPTION_ROLE)) {
+    if (proseCheck && THAI.test(text) && atXs(el) && !exempt(el)) {
       const blk = blockOf(el);
       const trunc = (n) => getComputedStyle(n).textOverflow === 'ellipsis';
       // A caption-size span inside a body-size paragraph (a unit, a date) is judged on its own text.

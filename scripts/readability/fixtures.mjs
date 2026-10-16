@@ -154,7 +154,9 @@ export const FIXTURES = [
     models: { evaluate: { provider: 'local', model: 'qwen3-32b' } }, routing: { evaluator_locked_at: iso(1) },
     embedding: { provider: 'local', model: 'bge-m3', fit: false, dimension: 1024, required: 1536, reason: null },
     manifest: { sha256: 'f'.repeat(64), file: 'present', code_match: true, evaluator_provider: 'local',
-      drift: [{ key: 'LOCAL_AI_MODEL' }, { key: 'EVAL_MAX_TOKENS' }, { key: 'CHAT_TEMPERATURE' }], evaluator_drift_keys: ['LOCAL_AI_MODEL', 'EVAL_MAX_TOKENS'] },
+      // declared.* is the "expected" kind (lib/evaluator-lock.ts classifyDrift), so all three blocks render.
+      drift: [{ key: 'LOCAL_AI_MODEL' }, { key: 'EVAL_MAX_TOKENS' }, { key: 'CHAT_TEMPERATURE' }, { key: 'declared.engine' }],
+      evaluator_drift_keys: ['LOCAL_AI_MODEL', 'EVAL_MAX_TOKENS'] },
     model_lock: { status: 'down', locked: true, locked_at: iso(1), provider: 'local', reason: 'evaluator_live_drift', drift_keys: ['LOCAL_AI_MODEL'] },
   }],
   // can_declare with a lock in force: the form renders with every hint, and so does the re-lock warning.
@@ -167,7 +169,7 @@ export const FIXTURES = [
     candidate: { provider: 'local', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b', prompt_version: 'pis7-prompt-59561c29', rubric_versions: ['pis7-weights-08b0cb1a'] },
     gate: { state: 'pass', threshold: 0.75, icc: 0.82, lower: 0.77, upper: 0.9, n: 60, why: 'the whole interval is at or above 0.75',
       groups: [{ provider: 'local', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b', prompt_version: 'pis7-prompt-59561c29', rows: 60, rubric_versions: ['pis7-weights-08b0cb1a'] }] },
-    manifest: { ok: true, sha256: 'f'.repeat(64), file: 'present', code_match: true, drift_keys: ['CHAT_TEMPERATURE', 'RAG_TOP_K'], evaluator_drift_keys: [],
+    manifest: { ok: true, sha256: 'f'.repeat(64), file: 'present', code_match: true, drift_keys: ['CHAT_TEMPERATURE', 'RAG_TOP_K', 'declared.engine'], evaluator_drift_keys: [],
       expected_for_candidate: { prompt_version: 'pis7-prompt-59561c29', rubric_version: 'pis7-weights-08b0cb1a', model_version: 'CCME_LLM_v8.0+qwen-2.5-72b',
         provider_declared: 'local', decoding: { max_tokens: { default: 1500, env: 'EVAL_MAX_TOKENS' }, temperature: 0 }, declared: { engine: 'vllm' }, evaluator_sha256: 'e'.repeat(64) } },
     manifest_diff: [], migrations_pending: [], confirm_phrases: { replace_lock: 'REPLACE THE LOCK' },
@@ -239,7 +241,9 @@ export const FIXTURES = [
   // ---- privacy review ------------------------------------------------------------------------
   [/\/admin\/privacy-queue/, {
     ples: [
-      pleRow(1, 'pending'),
+      // A rater's stop-and-report: the "Reported by a rater" line and the rater's own note render.
+      pleRow(1, 'pending', { privacy_concern_open: true, privacy_concern_at: iso(1),
+        privacy_concern_note: 'เทิร์นที่ ๓ ระบุชื่อโรงพยาบาลและวันที่เข้ารับการรักษา ซึ่งอาจระบุตัวผู้ป่วยได้เมื่อประกอบกับข้อมูลอื่น' }),
       pleRow(2, 'pending', { privacy_review_note: LONG_NOTE }),
       pleRow(3, 'quarantined', { privacy_review_note: LONG_NOTE }),
       pleRow(4, 'passed', { privacy_review_note: null }),
