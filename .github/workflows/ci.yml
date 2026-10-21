@@ -135,11 +135,17 @@ jobs:
       CLICS_UID: '10001'
       CLICS_GID: '10001'
       COMPOSE_FILE: deploy/vm1/docker-compose.yml
+      # Job-level, not written to GITHUB_ENV by a step: the always()/failure() steps below interpolate the
+      # compose file too, and must still resolve it when an earlier step failed.
+      CLICS_ENV_DIR: /tmp/clics-env
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      # First, so every later step (including Container logs / Tear down) finds the env files.
+      - name: Dummy env files from the examples
+        run: node scripts/deploy/vm1-ci-env.mjs "$CLICS_ENV_DIR"
       # The remote steps are linted exactly as deploy.sh sends them: remote/lib.sh + remote/<step>.sh
       # (activate is the script staged on vm1 and started detached by launch).
       - name: Script syntax + shellcheck
@@ -151,10 +157,6 @@ jobs:
             cat deploy/vm1/remote/lib.sh "deploy/vm1/remote/$step.sh" | shellcheck -s bash -
           done
           node --check deploy/vm1/health-gate.cjs
-      - name: Dummy env files from the examples
-        run: |
-          node scripts/deploy/vm1-ci-env.mjs "$RUNNER_TEMP/clics-env"
-          echo "CLICS_ENV_DIR=$RUNNER_TEMP/clics-env" >> "$GITHUB_ENV"
       # With docker present, vm1.test.mjs also checks the compose file as docker renders it.
       - name: Guard tests (loopback-only backend, unpublished rimpl, no backend/Dockerfile, no IPs, deploy.sh, remote steps)
         run: node --test scripts/deploy/*.test.mjs
