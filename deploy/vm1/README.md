@@ -30,7 +30,8 @@ Rimpl is built from `rimpl/Dockerfile` unchanged.
   env/                 owner clics, mode 700
     backend.env        owner clics, mode 600, filled in by a human
     rimpl.env          owner clics, mode 600, filled in by a human
-  runs/<run>/          one per activation, root-only: activate.sh (as staged), log, status (exit code)
+  runs/<run>/          one per activation, root-only: activate.sh (as staged), log, status (exit code;
+                       a second line when a signal interrupted it)
   runs/latest -> <run> the most recent activation (what `deploy.sh --attach` follows)
   deploys.log          one line per successful activation
 ```
@@ -58,7 +59,10 @@ names in `backend.env.example` and `rimpl.env.example`:
   into a chat, a ticket, a commit or a command line (shell history).
 - `INTERNAL_TOKEN` is new for the vm1 pair. Run `openssl rand -base64 48` once, and put the **same**
   value in both files, written the same way (unquoted, one line each). The preflight compares the two
-  lines byte for byte (by sha256, so it never prints them) and refuses any difference.
+  lines byte for byte (by sha256, so it never prints them) and refuses any difference. Write it
+  **unquoted**, even though quoting both lines alike passes the preflight. Compose strips the quotes, so
+  the running backend's line then never matches `rimpl.env`'s, and every activation reads that as a
+  token change: it stops the backend and starts it again only after gate 1.
 - `IDENTITY_ENC_KEY` must be **byte-identical** to Railway's. It decrypts rows already in the database.
 - Keep `RECONCILE_INTERVAL_MS=0` in `backend.env`, as the example ships it (see *Parallel run*). A blank
   `RECONCILE_INTERVAL_MS=` is **not** 0: the backend reads it as every 6 hours. The preflight refuses a
@@ -140,13 +144,25 @@ What happens on vm1:
    line to its result.
 4. **activate**: repeat the env checks, build both images (`clics-backend:<sha>`, `clics-rimpl:<sha>`),
    then start **rimpl**. **Gate 1** runs inside the backend image: rimpl `/health/deep` must be 200, and
-   `GET /manifest` must accept the backend's `INTERNAL_TOKEN`. Only then does the **backend** start.
-   **Gate 2**: `/health/deep` must say `service: backend`, rimpl up and Supabase up, and port 3101 must
-   listen on loopback only. Then `current` flips.
-5. **On any failure** the previously live release is put back in the same order: its rimpl, gate 1,
-   then its backend. If its rimpl cannot pass gate 1, the backend is **stopped** and stays stopped, and
-   the last log line says so. On a first deploy, CLICS's containers are stopped instead. Nothing is ever
-   removed (`down` is never run).
+   `GET /manifest` must accept the backend's `INTERNAL_TOKEN`. The token is asked even when
+   `/health/deep` is not 200, so a refused token (exit 3) is never mistaken for a degraded rimpl
+   (exit 2). Only after exit 0 does the **backend** start: a deploy never makes a degraded rimpl
+   `current`. **Gate 2**: `/health/deep` must say `service: backend`, rimpl up and Supabase up, and port
+   3101 must listen on loopback only. Then `current` flips.
+5. **On a failure** the previously live release is put back in the same order: its rimpl, gate 1,
+   then its backend. If its rimpl accepts the token but is **degraded** (gate 1 exit 2: Supabase, the
+   Anthropic balance or a local box is down), its backend starts again, as it ran before this run, and
+   the last log line reads `restored; rimpl degraded: <checks>`. The activation still reports failure.
+   If its rimpl does not come up or does not accept the token, the backend is **stopped** and stays
+   stopped, and the last log line says so. On a first deploy, CLICS's containers are stopped instead.
+   Nothing is ever removed (`down` is never run).
+6. **A signal does not restore.** If the activation is stopped by a signal (`systemctl stop
+   clics-activate-<run>`, or vm1 shutting down), it records exit 143 (TERM) or 129 (HUP), and its
+   `status` and last log line say `interrupted by signal`. It does **not** put the previous release
+   back: systemd would kill a restore that outran its stop timeout, and after a reboot docker restarts
+   what was running. What it had reached stays as it is (it never starts a backend before gate 1), and
+   the last log line says where `current` points. If it had stopped the backend for a token change, the
+   backend stays stopped. Check `docker ps`, then `deploy.sh --rollback` the sha `current` names.
 
 Gate 1 comes first because the backend's evaluation drain claims real queued PLEs the moment it boots,
 and a 401 from rimpl sends each claimed PLE straight to manual QA. For the same reason, when
@@ -246,7 +262,9 @@ CME to remove the nginx site, the certificate and the DNS record.
 | Change an env value | Edit `/opt/clics/env/*.env`, then `deploy.sh --rollback CURRENT_SHA` from the Mac (recreates the containers with both gates) |
 | Rotate `INTERNAL_TOKEN` | Write the same new value into **both** files, then `deploy.sh --rollback CURRENT_SHA`. The running backend is stopped before rimpl is recreated, and starts again only after gate 1. Editing one file alone is refused by the preflight, with nothing changed |
 | Follow the last activation | `deploy.sh --attach` from the Mac. On vm1: `/opt/clics/runs/latest/log`, and `status` once it has finished |
-| Backend left stopped by a failed restore | Fix the env files, then `deploy.sh --rollback CURRENT_SHA`. Do not `docker start` it by hand: that skips gate 1 |
+| Backend left stopped by a failed restore | Only when rimpl did not come up or did not accept `INTERNAL_TOKEN`. Fix the env files, then `deploy.sh --rollback CURRENT_SHA`. Do not `docker start` it by hand: that skips gate 1 |
+| Restore ended `restored; rimpl degraded: <checks>` | The backend runs, against a rimpl with a dependency down. Fix that dependency (Supabase, the Anthropic balance, a local box), then `deploy.sh --rollback CURRENT_SHA` to re-activate |
+| Activation `interrupted by signal` | Nothing was restored. `docker ps --filter label=com.docker.compose.project=clics` shows what runs; then `deploy.sh --rollback` the sha `readlink /opt/clics/current` names |
 | Disk | Keep the two releases `current` and `previous` point at (`readlink -f /opt/clics/current /opt/clics/previous`): a failed activation restores `current` from its directory, and the preflight refuses to deploy while it is missing. Remove any other release by name: `rm -rf /opt/clics/releases/<sha>`, `docker image rm clics-backend:<sha> clics-rimpl:<sha>`. Old `runs/` directories can go too, except the one `runs/latest` points at while it runs |
 
 ## Parallel run (Railway and vm1 against one database)

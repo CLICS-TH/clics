@@ -15,12 +15,13 @@ unit=clics-activate-$RUN
 # activate takes this lock itself; checking it here refuses a second deploy before it creates a run.
 flock -n "$BASE/.deploy.lock" true || die "another activation holds $BASE/.deploy.lock; follow it with deploy.sh --attach. Nothing was started"
 : > "$run/log"
-ln -sfn "$RUN" "$BASE/runs/.latest.next" && mv -Tf "$BASE/runs/.latest.next" "$BASE/runs/latest"
 # A transient unit starts with systemd's environment, not this session's: PATH and HOME are passed on so
 # docker and its compose plugin resolve exactly as they do over SSH.
 systemd-run --unit="$unit" --collect --quiet --setenv=PATH="$PATH" --setenv=HOME="${HOME:-/root}" \
   /bin/bash "$run/activate.sh" "$BASE" "$PROJECT" "$PORT" "$SHA" "$MODE" "$RUN" \
   || die "systemd-run could not start $unit; nothing was started"
+# Only now, so `deploy.sh --attach` never follows a run that did not start.
+ln -sfn "$RUN" "$BASE/runs/.latest.next" && mv -Tf "$BASE/runs/.latest.next" "$BASE/runs/latest"
 log "activation $RUN started detached, as systemd unit $unit (log: $run/log)"
 log "if this connection drops, the activation carries on; follow it again with deploy.sh --attach"
 rc=0

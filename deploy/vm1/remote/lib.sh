@@ -65,7 +65,9 @@ check_current_release() {
 
 # ---- following a detached activation (launch.sh, attach.sh) ------------------------------------------
 # Prints a run's log from the start, as it grows, and returns the run's exit code once runs/<RUN>/status
-# exists. Read-only: following twice, or losing the follower halfway, does nothing to the activation.
+# exists. status holds the exit code; a second line says why when a signal interrupted the run (only
+# activate's ACTIVATED=1 path records 0). Read-only: following twice, or losing the follower halfway,
+# does nothing to the activation.
 FOLLOW_PRINTED=0
 follow_print() { # <log>: print what was appended since the last call
   local size
@@ -76,7 +78,7 @@ follow_print() { # <log>: print what was appended since the last call
   fi
 }
 follow_run() { # <run dir>
-  local run=$1 name unit finished rc
+  local run=$1 name unit finished rc why
   name=$(basename "$run")
   unit=clics-activate-$name
   [ -f "$run/log" ] || die "$run has no log: that activation was never launched"
@@ -96,11 +98,12 @@ follow_run() { # <run dir>
     sleep 1
   done
   rc=$(head -n 1 "$run/status")
+  why=$(sed -n 2p "$run/status")
   case "$rc" in ''|*[!0-9]*) die "$run/status does not hold an exit code" ;; esac
   if [ "$rc" = 0 ]; then
     log "activation $name succeeded"
   else
-    log "activation $name FAILED (exit $rc); the lines above say what is running on vm1 now"
+    log "activation $name FAILED (exit $rc${why:+, $why}); the lines above say what is running on vm1 now"
   fi
   return "$rc"
 }

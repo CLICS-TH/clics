@@ -99,13 +99,13 @@ That holds only while these requirements hold. They are requirements, not prefer
 | R1 | Containers run **non-root**, as the host's dedicated `clics` uid (not the image's uid 1000, which may be a real login user on this host) | `docker-compose.yml` `user:`; CI asserts the uid inside both containers |
 | R2 | **`no-new-privileges`**, **all capabilities dropped**, **read-only root filesystem** (tmpfs `/tmp` only) | `docker-compose.yml` `x-hardened`; guard test; CI asserts docker reports `ReadonlyRootfs: true` for both containers, and that in each a write to world-writable `/var/tmp` fails while the same write to `/tmp` succeeds |
 | R3 | The backend is **published on `127.0.0.1` only** | compose `ports`; guard test (text and, in CI, docker's own rendering); `deploy.sh` refuses a listener beyond loopback |
-| R4 | **RIMPL is not published at all.** It is reachable only on the project's docker network | compose; guard test; CI `docker compose port` |
+| R4 | **RIMPL is not published at all.** It is reachable only on the project's docker network | compose; guard test; CI reads RIMPL's bindings with `docker inspect` and fails on any published port or port binding (not `docker compose port`, which prints `:0` for a port the image exposes but compose does not publish) |
 | R5 | **No PII at rest on vm1**: no volumes, database in Supabase, RIMPL stateless | compose declares no volume; the apps write no files (checked 2026-10-21) |
 | R6 | **Env files mode 600, owned by `clics`**, placed by a human, never shipped by the deploy | `deploy.sh` preflight refuses otherwise; the tarball check refuses any env file; `deploy/vm1/.gitignore` |
 | R7 | **Memory, CPU and process limits** (1 GiB, no swap, 2 CPUs, 256 pids each) | `docker-compose.yml` |
 | R8 | **Log rotation**: json-file, 10 MB × 5 per container | `docker-compose.yml` |
 | R9 | **No IP literal and no tailnet domain in `deploy/vm1/`.** The host comes from `VM1_HOST` at deploy time, so nothing in the kit is tied to vm1. vm1's Tailscale node name (`098215-u`, above) is in this repo and is not a secret: reaching the node still takes tailnet membership and Tailscale SSH access | guard test: no IPv4 literal but loopback, no tailnet domain, under `deploy/vm1/` |
-| R10 | **No backend is started by the deploy kit until RIMPL has passed gate 1** (healthy, and accepting the backend's `INTERNAL_TOKEN`). This holds on every path that starts it: a deploy, a rollback, and the restore after a failed activation, which on a failed gate stops the backend instead of starting it. Preflight, and activate again before it changes anything, refuse unless each env file has exactly one `INTERNAL_TOKEN=` line and the two are byte-identical. A running backend whose token would no longer match the new RIMPL is stopped before RIMPL is recreated | `deploy/vm1/remote/{preflight,activate}.sh` and `lib.sh`; `scripts/deploy/vm1-remote.test.mjs` (the reason is under *Parallel run*). **Not covered:** a container started by hand on vm1 (`docker start`, `docker compose up`) gets no gate. After a host or daemon restart, docker restarts both containers with the env they were created with, which had passed the gate |
+| R10 | **No backend is started by the deploy kit until RIMPL has accepted the backend's `INTERNAL_TOKEN` in gate 1.** This holds on every path that starts it: a deploy, a rollback, and the restore after a failed activation. Gate 1 asks `GET /manifest` with the token every time, so its exit 2 (token accepted, RIMPL degraded) is never a refused token. A deploy also needs RIMPL healthy (exit 0) before `current` moves. The restore starts the backend on exit 0 or 2, and on any other gate failure stops it instead. An activation interrupted by a signal records a failure and restores nothing. Preflight, and activate again before it changes anything, refuse unless each env file has exactly one `INTERNAL_TOKEN=` line and the two are byte-identical. A running backend whose token would no longer match the new RIMPL is stopped before RIMPL is recreated | `deploy/vm1/remote/{preflight,activate}.sh` and `lib.sh`; `scripts/deploy/vm1-remote.test.mjs` (the reason is under *Parallel run*). **Not covered:** a container started by hand on vm1 (`docker start`, `docker compose up`) gets no gate. After a host or daemon restart, docker restarts both containers with the env they were created with, which had passed the gate |
 
 ## Residual risks
 
@@ -135,9 +135,16 @@ real, not hypothetical.
 7. **No reservation.** The limits protect the neighbours from us, not us from the neighbours.
 8. **Deploys are not zero-downtime.** Recreating a container cuts in-flight chat turns (the backend drains
    for 15 s). Deploy outside session hours. And by design (R10), an activation whose restore cannot get
-   RIMPL through gate 1 leaves the backend **stopped**, which after cutover is an outage until the env
-   files are fixed. That is the deliberate trade: a stopped API comes back with one corrected deploy; a
-   queue drained into manual QA needs a human to deal with every flagged PLE.
+   RIMPL to accept the backend's `INTERNAL_TOKEN` (gate 1 exits anything but 0 or 2) leaves the backend
+   **stopped**, which after cutover is an outage until the env files are fixed. That is the deliberate
+   trade: a stopped API comes back with one corrected deploy; a queue drained into manual QA needs a
+   human to deal with every flagged PLE. A RIMPL that accepts the token but is **degraded** (exit 2: the
+   Supabase probe, an exhausted Anthropic balance, an unreachable local box) does not stop it: the
+   restore starts the backend again, as it ran before, because a degraded RIMPL answers `/evaluate` with
+   500 or 503, which the drain retries. Only the 401 does the damage. A deploy still refuses to make a
+   degraded RIMPL `current`. An activation stopped by a signal (`systemctl stop`, a reboot) records exit
+   143 or 129 and restores nothing. If it had stopped the backend for a token change, the backend stays
+   stopped until the next activation, so that is an outage too, reported as one.
 9. **Trend Micro agents** may scan or quarantine files under `/var/lib/docker`. The interaction is
    unknown (ask).
 10. **Container logs rest on vm1's disk.** They hold ids and error messages. RIMPL's parse-failure log
@@ -225,7 +232,7 @@ It is safe **on four conditions**:
 | Trigger | Then |
 |---|---|
 | A dedicated GDCC VM becomes available | Move the same compose project there. Nothing in `deploy/vm1` is specific to vm1 except `VM1_HOST`. Residual risks 1, 2 and 5 largely disappear. |
-| vm1 is retired, or CME withdraws access | Within 7 days of cutover, roll back to Railway (`deploy/vm1/README.md`). After that, redeploy Railway from master. The Railway path is never altered by this work. |
+| vm1 is retired, or CME withdraws access | Within 7 days of cutover, roll back to Railway (`deploy/vm1/README.md`). After that, first make sure vm1 runs no reconcile sweep: in vm1's `backend.env` set `RECONCILE_INTERVAL_MS=0` and delete `CLICS_CUTOVER_DONE=1`, then `deploy.sh --rollback CURRENT_SHA`, or stop vm1's containers (`docker stop clics-backend-1 clics-rimpl-1`, CME's to run if our access is gone). Only then redeploy Railway from master, so that two reconcile sweeps never run at once. The Railway path is never altered by this work. |
 | CME cannot close password SSH, or a runner user turns out to be in the docker group | Re-open this record. Ask for a dedicated VM rather than accept that exposure for participant data. |
 | Tailscale is removed from vm1 | Backend and RIMPL are unaffected (their hop needs no tailnet). Model endpoints are then reached over the GDCC LAN only. |
 | Anything is put in front of vm1's nginx (CDN, load balancer) | A configuration change, not a new decision. nginx needs `real_ip`, or the backend's `trust proxy` must count the extra hop, or every user shares one rate-limit bucket. |

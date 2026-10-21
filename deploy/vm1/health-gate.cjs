@@ -9,13 +9,26 @@
 // classed as deterministic (backend/src/services/rimpl-client.js:70), which sends each claimed PLE
 // straight to manual QA. A mismatched INTERNAL_TOKEN would therefore do damage before any health check
 // noticed. GET /manifest is behind the token and makes no AI call, so it proves the token for free.
+// It is asked EVERY time, healthy or not, so exit 2 always means the token was accepted: rimpl's
+// /health/deep is 503 whenever any one dependency is down (Supabase, an exhausted Anthropic balance, an
+// unreachable local box), and the caller must be able to tell that from a token that is refused. A
+// degraded rimpl answers 500/503 on /evaluate, which the drain retries; only the 401 is the damage.
 //
 // `backend` runs after it starts: /health/deep must report service "backend" (a rimpl image answering
 // on the backend's port is how prod went down on 2026-10-14), rimpl up and Supabase up.
 //
-// Prints check names and statuses only, never env values. Exit codes: 0 pass, 2 rimpl not healthy,
-// 3 INTERNAL_TOKEN mismatch, 4 manifest refused for another reason, 5 backend gate failed,
-// 6 request failed, 64 usage.
+// Prints check names and statuses only, never env values. Exit codes:
+//   0  pass (rimpl: healthy AND the token accepted)
+//   2  rimpl accepted INTERNAL_TOKEN but its /health/deep is degraded; the last line names the checks
+//      that are down, after "; down: " (deploy/vm1/remote/activate.sh quotes them). activate refuses a
+//      deploy on 2, and its restore() starts the live release's backend on 2 (token proven).
+//   3  INTERNAL_TOKEN mismatch (rimpl answered 401 or 403 on GET /manifest)
+//   4  GET /manifest refused for another reason
+//   5  backend gate failed
+//   6  request failed (rimpl or the backend could not be reached)
+//   7  the token was accepted, but /health/deep at RIMPL_URL does not report service "rimpl" (not rimpl,
+//      or not answering as rimpl): never read as "rimpl degraded"
+//   64 usage
 'use strict';
 
 const TIMEOUT_MS = Number(process.env.GATE_TIMEOUT_MS || 15000);
@@ -34,6 +47,16 @@ async function getJson(url, headers = {}) {
   return { status: res.status, body };
 }
 
+// `name=status` for each check that is neither up nor warn: names and statuses only, never the error
+// text (it can quote a host or a provider's reply).
+function downChecks(checks) {
+  if (!checks || typeof checks !== 'object') return '(no checks reported)';
+  const down = Object.entries(checks)
+    .filter(([, c]) => !c || (c.status !== 'up' && c.status !== 'warn'))
+    .map(([name, c]) => `${name}=${c && c.status ? c.status : '?'}`);
+  return down.length ? down.join(', ') : '(none reported down)';
+}
+
 async function gateRimpl() {
   const base = process.env.RIMPL_URL;
   const token = process.env.INTERNAL_TOKEN;
@@ -41,24 +64,33 @@ async function gateRimpl() {
   if (!token) { console.error('[gate] INTERNAL_TOKEN is not set in backend.env'); return 64; }
 
   const deep = await getJson(`${base}/health/deep`);
-  if (deep.status !== 200 || !deep.body || deep.body.service !== 'rimpl') {
-    console.error(`[gate] rimpl /health/deep: HTTP ${deep.status}, service=${deep.body && deep.body.service}; ${summary(deep.body && deep.body.checks)}`);
-    return 2;
-  }
-  console.log(`[gate] rimpl /health/deep ok; ${summary(deep.body.checks)}`);
+  const b = deep.body || {};
+  const healthy = deep.status === 200 && b.service === 'rimpl';
+  const deepLine = `/health/deep HTTP ${deep.status}, service=${b.service}, status=${b.status}`;
 
+  // Asked whether or not /health/deep is healthy (see the top of this file).
   const manifest = await getJson(`${base}/manifest`, { 'x-internal-token': token });
-  if (manifest.status === 401) {
+  if (manifest.status === 401 || manifest.status === 403) {
     // What happens next (backend not started, or stopped) is the caller's to say: this only reports.
-    console.error('[gate] INTERNAL_TOKEN in backend.env does not match the one rimpl runs with (rimpl answered 401).');
+    console.error(`[gate] INTERNAL_TOKEN in backend.env does not match the one rimpl runs with (rimpl answered ${manifest.status}). rimpl ${deepLine}`);
     return 3;
   }
   if (manifest.status !== 200) {
-    console.error(`[gate] rimpl GET /manifest: HTTP ${manifest.status}`);
+    console.error(`[gate] rimpl GET /manifest: HTTP ${manifest.status}. rimpl ${deepLine}`);
     return 4;
   }
-  const sha = deep.body.manifest && deep.body.manifest.sha256;
-  console.log(`[gate] INTERNAL_TOKEN matches; rimpl manifest sha256 ${sha || '(unverified)'}`);
+  console.log('[gate] INTERNAL_TOKEN matches: rimpl accepted it on GET /manifest');
+  if (b.service !== 'rimpl') {
+    console.error(`[gate] /health/deep at RIMPL_URL does not report service "rimpl": ${deepLine}`);
+    return 7;
+  }
+  if (!healthy) {
+    // Keep this line's shape: activate.sh reads the checks after "; down: ".
+    console.error(`[gate] rimpl is DEGRADED: ${deepLine}; down: ${downChecks(b.checks)}`);
+    return 2;
+  }
+  const sha = b.manifest && b.manifest.sha256;
+  console.log(`[gate] rimpl /health/deep ok; ${summary(b.checks)}; rimpl manifest sha256 ${sha || '(unverified)'}`);
   return 0;
 }
 
@@ -94,4 +126,4 @@ if (require.main === module) {
     .catch((e) => { console.error(`[gate] request failed: ${e && e.message ? e.message : e}`); process.exit(6); });
 }
 
-module.exports = { main, summary };
+module.exports = { main, summary, downChecks };

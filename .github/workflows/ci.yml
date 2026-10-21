@@ -192,7 +192,8 @@ jobs:
           done
           docker compose exec -T backend node -e "fetch('http://rimpl:3003/health').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
           # deploy.sh's rimpl gate, run exactly as on vm1. With a dummy Supabase rimpl answers 503, so the
-          # gate must exit 2 (reached rimpl and read its verdict), not 6 (could not reach it) or 64.
+          # gate must exit 2: it reached rimpl, rimpl ACCEPTED the token on GET /manifest (asked even when
+          # /health/deep is 503), and rimpl is degraded. Not 3 (token refused), 6 (unreachable) or 64.
           set +e
           docker compose run --rm --no-deps -T -v "$PWD/deploy/vm1/health-gate.cjs:/gate.cjs:ro" backend node /gate.cjs rimpl
           code=$?

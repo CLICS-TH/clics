@@ -279,6 +279,41 @@ test('gate rimpl: passes on a healthy rimpl with the right token, and says which
   } finally { ok.close(); sick.close(); }
 });
 
+// Exit 2 must mean "token accepted": activate's restore() starts the live backend on it. So the token is
+// asked on every run, and a degraded rimpl that refuses it is a 3, never a 2.
+test('gate rimpl: always checks the token, so exit 2 means "token accepted, rimpl degraded" and nothing else', async () => {
+  const token = 'gate-test-token';
+  const degraded = () => [503, { service: 'rimpl', status: 'degraded', checks: {
+    supabase: { status: 'down', error: 'connect to https://secret-host.invalid refused' },
+    anthropic_serving: { status: 'down', error: 'payment required (402)' },
+    anthropic: { status: 'up' }, manifest: { status: 'warn', warning: 'drift' },
+  } }];
+  const servers = {
+    degraded: await fakeServer({ '/health/deep': degraded, '/manifest': manifestFor(token) }),
+    degraded403: await fakeServer({ '/health/deep': degraded, '/manifest': () => [403, { error: 'Forbidden' }] }),
+    degraded500: await fakeServer({ '/health/deep': degraded, '/manifest': () => [500, { error: 'boom' }] }),
+    healthy403: await fakeServer({ '/health/deep': rimplDeep(200), '/manifest': () => [403, { error: 'Forbidden' }] }),
+    notRimpl: await fakeServer({ '/health/deep': () => [200, { service: 'backend', status: 'ok' }], '/manifest': manifestFor(token) }),
+  };
+  const url = (s) => `http://127.0.0.1:${s.address().port}`;
+  try {
+    let r = await gate('rimpl', { RIMPL_URL: url(servers.degraded), INTERNAL_TOKEN: token });
+    assert.equal(r.code, 2, r.out);
+    assert.match(r.out, /INTERNAL_TOKEN matches/);
+    // The line activate.sh parses: the down checks, by name and status only, after "; down: ".
+    assert.match(r.out, /rimpl is DEGRADED: \/health\/deep HTTP 503, .*; down: supabase=down, anthropic_serving=down$/m);
+    assert.ok(!/secret-host|payment required/.test(r.out), `names and statuses only, never error text:\n${r.out}`);
+
+    r = await gate('rimpl', { RIMPL_URL: url(servers.degraded), INTERNAL_TOKEN: 'a-different-token' });
+    assert.equal(r.code, 3, `degraded AND refused is a token mismatch: ${r.out}`);
+    assert.ok(!r.out.includes('a-different-token'));
+    for (const [name, want] of [['degraded403', 3], ['healthy403', 3], ['degraded500', 4], ['notRimpl', 7]]) {
+      r = await gate('rimpl', { RIMPL_URL: url(servers[name]), INTERNAL_TOKEN: token });
+      assert.equal(r.code, want, `${name}: ${r.out}`);
+    }
+  } finally { for (const s of Object.values(servers)) s.close(); }
+});
+
 test('gate backend: requires service "backend", rimpl up and Supabase up; other degradations only warn', async () => {
   const body = (over = {}) => ({ service: 'backend', status: 'ok',
     checks: { supabase: { status: 'up' }, rimpl: { status: 'up', deep: { manifest: { sha256: 'b'.repeat(64) } } }, ...over.checks },
@@ -391,7 +426,7 @@ test('deploy.sh --dry-run prints every remote step, including the detached activ
     assert.ok(run, r.stdout);
     // The staged activate script, and the resolved command that starts it detached.
     assert.match(r.stdout, /docker compose -p "\$PROJECT" -f docker-compose\.yml/);
-    assert.match(r.stdout, /gate rimpl \|\|/);
+    assert.match(r.stdout, /gate_rimpl \|\| g=\$\?/);
     assert.match(r.stdout, new RegExp(`systemd-run --unit=clics-activate-${run[1]} --collect --quiet .* /bin/bash /opt/clics/runs/${run[1]}/activate\\.sh /opt/clics clics 3101 ${fx.sha} deploy ${run[1]}`));
     assert.match(r.stdout, /nothing was sent to vm1-test/);
   } finally { cleanFx(fx); }

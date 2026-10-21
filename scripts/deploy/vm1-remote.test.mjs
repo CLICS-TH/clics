@@ -5,9 +5,11 @@
 //
 // What this pins: the ORDER on vm1 (rimpl, then the token gate, then the backend, so the evaluation drain
 // never starts against a rimpl that would 401 it), on a deploy AND on every restore; that restore never
-// runs `down` or a service-less `up`, and stops the backend rather than start it ungated; that
-// /opt/clics/current only moves after both gates pass; that preflight and activate refuse bad env files
-// without printing a value; and that a detached activation survives losing its follower.
+// runs `down` or a service-less `up`, stops the backend when the token is not proven, and starts it when
+// the token is proven and rimpl is only degraded (gate exit 2); that /opt/clics/current only moves after
+// both gates pass; that preflight and activate refuse bad env files without printing a value, and a
+// second deploy while the lock is held; that a detached activation survives losing its follower; and that
+// one stopped by a signal records a failure, never success.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
@@ -28,7 +30,8 @@ const TOKEN_R = 'tok-RIMPL-6d5e4f';
 
 const STUBS = {
   // Logs every call with the directory and release it ran under; fails any call matching STUB_FAIL;
-  // sleeps on STUB_SLOW; deletes STUB_RM when a call matches STUB_RM_ON (a release vanishing mid-run).
+  // sleeps on STUB_SLOW; deletes STUB_RM when a call matches STUB_RM_ON (a release vanishing mid-run);
+  // makes gate 1 exit STUB_GATE_RIMPL, printing what health-gate.cjs prints for 2 and 3.
   docker: `#!/usr/bin/env bash
 echo "docker[\${PWD##*/releases/}|\${CLICS_RELEASE:-}] $*" >> "$STUB_LOG"
 case "$*" in
@@ -39,6 +42,16 @@ case "$*" in
   "image inspect"*) [ "\${STUB_IMAGES:-0}" = 1 ]; exit $? ;;
   "inspect -f"*) printf '%s' "\${STUB_BACKEND_ENV:-}"; exit 0 ;;
 esac
+if [ -n "\${STUB_GATE_RIMPL:-}" ]; then
+  case "$*" in *"node /gate.cjs rimpl"*)
+    case "$STUB_GATE_RIMPL" in
+      2) echo "[gate] INTERNAL_TOKEN matches: rimpl accepted it on GET /manifest"
+         echo "[gate] rimpl is DEGRADED: /health/deep HTTP 503, service=rimpl, status=degraded; down: anthropic_serving=down, supabase=down" >&2 ;;
+      3) echo "[gate] INTERNAL_TOKEN in backend.env does not match the one rimpl runs with (rimpl answered 401)." >&2 ;;
+    esac
+    exit "$STUB_GATE_RIMPL" ;;
+  esac
+fi
 if [ -n "\${STUB_RM_ON:-}" ]; then case "$*" in *"$STUB_RM_ON"*) rm -rf "$STUB_RM" ;; esac; fi
 if [ -n "\${STUB_SLOW:-}" ]; then case "$*" in *"$STUB_SLOW"*) sleep "\${STUB_SLOW_S:-3}" ;; esac; fi
 if [ -n "\${STUB_FAIL:-}" ]; then
@@ -54,7 +67,10 @@ printf '%s' "\${STUB_SS:-}"
   curl: `#!/usr/bin/env bash
 echo "curl $*" >> "$STUB_LOG"; exit "\${STUB_CURL_EXIT:-0}"
 `,
+  // STUB_FLOCK_BUSY=1: another deploy holds /opt/clics/.deploy.lock.
   flock: `#!/usr/bin/env bash
+echo "flock $*" >> "$STUB_LOG"
+[ "\${STUB_FLOCK_BUSY:-0}" = 1 ] && exit 1
 exit 0
 `,
   id: `#!/usr/bin/env bash
@@ -335,6 +351,85 @@ test('restore: if the live release vanishes mid-run it stops the backend, and ne
   } finally { cleanup(h); }
 });
 
+// The reported bug: an operator edits ALLOWED_ORIGINS while Anthropic's balance is exhausted and runs
+// `deploy.sh --rollback CURRENT_SHA`. rimpl's /health/deep is 503, the token is fine. Gate 1 used to
+// exit 2 before it asked the token, restore() read that as unsafe, and stopped a working API.
+const indexes = (calls, pred) => calls.flatMap((c, i) => (pred(c) ? [i] : []));
+test('restore: gate 1 exit 2 (token accepted, rimpl degraded) starts the live backend again and never stops it', () => {
+  const h = host({ releases: [SHA], current: SHA });
+  try {
+    const r = remote(h, 'activate', 'rollback', {
+      STUB_IMAGES: '1', STUB_GATE_RIMPL: '2', STUB_PS_BACKEND: 'c0ffee\n', STUB_BACKEND_ENV: `INTERNAL_TOKEN=${TOKEN}\n`,
+    });
+    assert.notEqual(r.status, 0, 'a degraded rimpl still fails the activation');
+    const gates = indexes(r.calls, (c) => c.includes('node /gate.cjs rimpl'));
+    assert.equal(gates.length, 2, `gated on the activation and again on the restore:\n${r.calls.join('\n')}`);
+    const ups = indexes(r.calls, (c) => / compose .* up .* backend$/.test(c));
+    assert.equal(ups.length, 1, `the backend is started once, by the restore:\n${r.calls.join('\n')}`);
+    assert.ok(ups[0] > gates[1], 'after the restore\'s own gate 1');
+    assert.ok(!r.calls.some((c) => / stop( |$)/.test(c)), `nothing is stopped:\n${r.calls.join('\n')}`);
+    assert.ok(!r.calls.some((c) => c.includes('node /gate.cjs backend')), 'the activation itself stopped at gate 1');
+    assert.deepEqual(serviceLessUp(r.calls), []);
+    neverDown(r.calls);
+    assert.match(lastLine(r.out), /gate 1 failed for a{40}: its rimpl accepted INTERNAL_TOKEN but is DEGRADED \(down: anthropic_serving=down, supabase=down\), .* a{40} restored; rimpl degraded: anthropic_serving=down, supabase=down\./);
+    assert.ok(!/STOPPED/.test(r.out), r.out);
+    assert.equal(current(h), `releases/${SHA}`);
+    noTokenPrinted(r.out + r.calls.join('\n'));
+  } finally { cleanup(h); }
+});
+
+test('activate: gate 1 exit 2 still refuses a deploy (current never moves onto a degraded rimpl); restore puts the live release back', () => {
+  const h = host({ releases: [SHA, PREV], current: PREV });
+  try {
+    const r = remote(h, 'activate', 'deploy', { STUB_GATE_RIMPL: '2' });
+    assert.notEqual(r.status, 0);
+    const fromSha = r.calls.filter((c) => c.startsWith(`docker[${SHA}/deploy/vm1|${SHA}]`));
+    assert.deepEqual(backendUp(fromSha), [], `the new release's backend never starts:\n${r.calls.join('\n')}`);
+    const fromPrev = r.calls.filter((c) => c.startsWith(`docker[${PREV}/deploy/vm1|${PREV}]`));
+    const idx = order(fromPrev, [`${UP} rimpl`, 'node /gate.cjs rimpl', `${UP} backend`]);
+    assert.ok(idx.every((i) => i >= 0), `restored ${PREV}:\n${r.calls.join('\n')}`);
+    assert.deepEqual([...idx].sort((a, b) => a - b), idx, 'rimpl, then the gate, then the backend');
+    assert.equal(current(h), `releases/${PREV}`);
+    assert.ok(!existsSync(path.join(h.base, 'deploys.log')), 'no successful activation recorded');
+    assert.match(lastLine(r.out), new RegExp(`${PREV} restored; rimpl degraded: anthropic_serving=down, supabase=down`));
+  } finally { cleanup(h); }
+});
+
+test('restore: gate 1 exit 3 (INTERNAL_TOKEN refused) stops the backend and never starts it', () => {
+  const h = host({ releases: [SHA], current: SHA });
+  try {
+    const r = remote(h, 'activate', 'rollback', {
+      STUB_IMAGES: '1', STUB_GATE_RIMPL: '3', STUB_PS_BACKEND: 'c0ffee\n', STUB_BACKEND_ENV: `INTERNAL_TOKEN=${TOKEN}\n`,
+    });
+    assert.notEqual(r.status, 0);
+    assert.deepEqual(backendUp(r.calls), [], `the backend is never brought up:\n${r.calls.join('\n')}`);
+    assert.ok(r.calls.some((c) => c.endsWith('compose -p clics -f docker-compose.yml stop backend')), r.calls.join('\n'));
+    neverDown(r.calls);
+    assert.match(lastLine(r.out), /CLICS's backend on vm1 is STOPPED, because the rimpl of a{40} failed gate 1 \(exit 3: INTERNAL_TOKEN not proven\)/);
+    assert.equal(current(h), `releases/${SHA}`);
+  } finally { cleanup(h); }
+});
+
+test('activate and launch refuse while another deploy holds the lock, before touching compose or systemd', () => {
+  const h = host({ releases: [SHA, PREV], current: PREV });
+  try {
+    const r = remote(h, 'activate', 'deploy', { STUB_FLOCK_BUSY: '1' });
+    assert.notEqual(r.status, 0);
+    assert.ok(r.calls.includes('flock -n 9'), r.calls.join('\n'));
+    assert.match(lastLine(r.out), /another deploy is running on this host/);
+    assert.deepEqual(r.calls.filter((c) => c.startsWith('docker')), [], `no docker call at all:\n${r.calls.join('\n')}`);
+    assert.equal(current(h), `releases/${PREV}`);
+
+    stage(h);
+    const l = remote(h, 'launch', 'deploy', { STUB_FLOCK_BUSY: '1' }, { run: RUN });
+    assert.notEqual(l.status, 0);
+    assert.match(l.out, /another activation holds .*\.deploy\.lock.*Nothing was started/);
+    assert.ok(!l.calls.some((c) => c.startsWith('systemd-run') || c.startsWith('docker')), l.calls.join('\n'));
+    assert.ok(!existsSync(path.join(h.base, 'runs', RUN, 'log')), 'no run was created');
+    assert.ok(!existsSync(path.join(h.base, 'runs', 'latest')));
+  } finally { cleanup(h); }
+});
+
 // ---- preflight -------------------------------------------------------------------------------------
 test('preflight passes on a well-formed host and refuses the things that must stop a deploy', () => {
   let h = host();
@@ -509,6 +604,60 @@ test('launch: losing the follower (the SSH session) does not stop the activation
   } finally { cleanup(h); }
 });
 
+// `systemctl stop clics-activate-<run>`, or a host shutting down: systemd signals every process in the
+// unit. bash ran the EXIT trap with $? = 0 (the last log line), so the run recorded success. It must
+// record a failure, say "interrupted by signal", and not restore (systemd would cut a restore short).
+for (const [sig, code] of [['SIGTERM', 143], ['SIGHUP', 129]]) {
+  test(`launch: an activation stopped by ${sig} mid-run records exit ${code}, never success, and does not restore`, async () => {
+    const h = host({ releases: [SHA, PREV], current: PREV });
+    try {
+      stage(h);
+      const env = stepEnv(h, { STUB_SLOW: `${UP} rimpl`, STUB_SLOW_S: '30' });
+      const child = spawn('bash', ['-s', '--', h.base, 'clics', '3101', SHA, 'deploy', RUN], { env });
+      let out = '';
+      child.stdout.on('data', (d) => { out += d; });
+      child.stderr.on('data', (d) => { out += d; });
+      const closed = new Promise((resolve) => child.on('close', resolve));
+      child.stdin.end(stepScript('launch'));
+      await waitFor(() => readCalls(h).some((c) => c.endsWith(`${UP} rimpl`)));
+      const pid = Number(readFileSync(path.join(h.units, `clics-activate-${RUN}.pid`), 'utf8'));
+      process.kill(-pid, sig); // the unit's whole process group, the slow `docker compose up` included
+      assert.equal(await closed, code, `the follower exits with the run's code:\n${out}`);
+
+      const [rc, why] = readFileSync(path.join(h.base, 'runs', RUN, 'status'), 'utf8').trim().split('\n');
+      assert.equal(rc, String(code));
+      assert.equal(why, `interrupted by signal ${sig.slice(3)}`);
+      assert.match(lastLine(out), new RegExp(`activation ${RUN} FAILED \\(exit ${code}, interrupted by signal ${sig.slice(3)}\\)`));
+      const log = readFileSync(path.join(h.base, 'runs', RUN, 'log'), 'utf8');
+      assert.match(log, /was interrupted by signal [A-Z]+ .* restore\(\) was NOT attempted\. .*current -> releases\/b{40}\./);
+      assert.ok(!/restoring|succeeded|active: /.test(log), `no restore, no success:\n${log}`);
+      const calls = readCalls(h);
+      const upRimpl = calls.findIndex((c) => c.endsWith(`${UP} rimpl`));
+      assert.deepEqual(calls.slice(upRimpl + 1).filter((c) => c.startsWith('docker')), [], `nothing ran after the signal:\n${calls.join('\n')}`);
+      assert.equal(current(h), `releases/${PREV}`);
+
+      const a = remote(h, 'attach', 'attach', {}, { sha: '-', run: '-' });
+      assert.equal(a.status, code, a.out);
+      assert.match(lastLine(a.out), /FAILED \(exit \d+, interrupted by signal/);
+    } finally { cleanup(h); }
+  });
+}
+
+test('launch: an activation that ends with 0 before its last step is recorded as a failure', () => {
+  const h = host();
+  try {
+    const script = stepScript('activate').replace('log "starting rimpl"\n', 'exit 0\n');
+    assert.notEqual(script, stepScript('activate'), 'the early exit was injected');
+    stage(h, script);
+    const r = remote(h, 'launch', 'deploy', {}, { run: RUN });
+    assert.equal(r.status, 1, r.out);
+    assert.equal(statusOf(h), '1');
+    assert.match(r.out, /ended before its last step without reporting an error/);
+    assert.match(lastLine(r.out), /FAILED \(exit 1\)/);
+    assert.equal(current(h), null);
+  } finally { cleanup(h); }
+});
+
 test('follow: an activation that dies without a status is reported, not waited on forever', () => {
   const h = host();
   try {
@@ -531,8 +680,10 @@ test('launch and attach refuse when there is nothing to start or follow', () => 
     assert.notEqual(r.status, 0);
     assert.match(r.out, /no activation has been launched on this host/);
     stage(h);
+    symlinkSync('an-older-run', path.join(h.base, 'runs', 'latest'));
     r = remote(h, 'launch', 'deploy', { STUB_SYSTEMD_RUN_FAIL: '1' }, { run: RUN });
     assert.notEqual(r.status, 0);
     assert.match(r.out, /systemd-run could not start clics-activate-.*; nothing was started/);
+    assert.equal(readlinkSync(path.join(h.base, 'runs', 'latest')), 'an-older-run', '--attach never follows a run that did not start');
   } finally { cleanup(h); }
 });

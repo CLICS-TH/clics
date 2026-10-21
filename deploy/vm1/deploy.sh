@@ -24,9 +24,10 @@
 # /opt/clics/releases/<sha> -> activate, started DETACHED on vm1 (a systemd transient unit) and followed
 # from here: docker compose -p clics build -> rimpl up -> gate 1 (rimpl healthy, INTERNAL_TOKEN matches)
 # -> backend up -> gate 2 (/health/deep says backend, rimpl up, Supabase up) -> /opt/clics/current flips.
-# Any failure restores the previous release in that same order, or leaves the backend STOPPED if rimpl
-# cannot pass gate 1 (on a first deploy, CLICS is stopped). A dropped connection stops only the
-# following, never the activation.
+# Any failure restores the previous release in that same order: its backend starts again if its rimpl
+# accepts INTERNAL_TOKEN (healthy or only degraded), and is left STOPPED if it does not (on a first
+# deploy, CLICS is stopped). A signal on vm1 (systemctl stop, a reboot) is recorded as a failure and
+# restores nothing. A dropped connection stops only the following, never the activation.
 #
 # What it never does: copy an env file (they live in /opt/clics/env, placed by a human), need GitHub
 # credentials on vm1 (the code arrives as a tarball), or touch Railway, Vercel or DNS.
