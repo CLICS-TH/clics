@@ -48,6 +48,9 @@ if [ -n "\${STUB_GATE_RIMPL:-}" ]; then
       2) echo "[gate] INTERNAL_TOKEN matches: rimpl accepted it on GET /manifest"
          echo "[gate] rimpl is DEGRADED: /health/deep HTTP 503, service=rimpl, status=degraded; down: anthropic_serving=down, supabase=down" >&2 ;;
       3) echo "[gate] INTERNAL_TOKEN in backend.env does not match the one rimpl runs with (rimpl answered 401)." >&2 ;;
+      # An older gate (before 08de8572): 2 for a degraded rimpl WITHOUT having asked the token.
+      2old) echo "[gate] rimpl is DEGRADED: /health/deep HTTP 503, service=rimpl, status=degraded; down: supabase=down" >&2
+         exit 2 ;;
     esac
     exit "$STUB_GATE_RIMPL" ;;
   esac
@@ -392,6 +395,23 @@ test('activate: gate 1 exit 2 still refuses a deploy (current never moves onto a
     assert.equal(current(h), `releases/${PREV}`);
     assert.ok(!existsSync(path.join(h.base, 'deploys.log')), 'no successful activation recorded');
     assert.match(lastLine(r.out), new RegExp(`${PREV} restored; rimpl degraded: anthropic_serving=down, supabase=down`));
+  } finally { cleanup(h); }
+});
+
+// restore() runs PREV's health-gate.cjs. A gate from before 08de8572 returned 2 for a degraded rimpl
+// without asking the token, so a bare 2 must not count as "token proven".
+test('restore: an exit 2 that did not report the token as accepted is treated as unproven (backend stopped, never started)', () => {
+  const h = host({ releases: [SHA], current: SHA });
+  try {
+    const r = remote(h, 'activate', 'rollback', {
+      STUB_IMAGES: '1', STUB_GATE_RIMPL: '2old', STUB_PS_BACKEND: 'c0ffee\n', STUB_BACKEND_ENV: `INTERNAL_TOKEN=${TOKEN}\n`,
+    });
+    assert.notEqual(r.status, 0);
+    assert.deepEqual(backendUp(r.calls), [], `the backend is never brought up:\n${r.calls.join('\n')}`);
+    assert.ok(r.calls.some((c) => c.endsWith('compose -p clics -f docker-compose.yml stop backend')), r.calls.join('\n'));
+    assert.match(r.out, /did not report the token as accepted/);
+    neverDown(r.calls);
+    assert.equal(current(h), `releases/${SHA}`);
   } finally { cleanup(h); }
 });
 

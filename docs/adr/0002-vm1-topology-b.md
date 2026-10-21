@@ -140,8 +140,11 @@ real, not hypothetical.
    trade: a stopped API comes back with one corrected deploy; a queue drained into manual QA needs a
    human to deal with every flagged PLE. A RIMPL that accepts the token but is **degraded** (exit 2: the
    Supabase probe, an exhausted Anthropic balance, an unreachable local box) does not stop it: the
-   restore starts the backend again, as it ran before, because a degraded RIMPL answers `/evaluate` with
-   500 or 503, which the drain retries. Only the 401 does the damage. A deploy still refuses to make a
+   restore starts the backend again, because a degraded RIMPL answers `/evaluate` with 500 or 503, which
+   the drain retries rather than flagging at once (a 401 is flagged on the first claim). The retries are
+   bounded: `EVAL_MAX_ATTEMPTS` (20, about 4 h of capped backoff), after which each claimed PLE is flagged
+   `exhausted` for manual QA. So a degraded RIMPL must be fixed within hours, or the backend stopped. A
+   deploy still refuses to make a
    degraded RIMPL `current`. An activation stopped by a signal (`systemctl stop`, a reboot) records exit
    143 or 129 and restores nothing. If it had stopped the backend for a token change, the backend stays
    stopped until the next activation, so that is an outage too, reported as one.

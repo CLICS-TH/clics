@@ -160,10 +160,17 @@ restore() {
   fi
   local g=0
   gate_rimpl || g=$?
+  # restore() runs PREV's health-gate.cjs. A gate older than this kit's may return 2 without asking the
+  # token, so 2 counts as "token proven" only if the gate also printed that rimpl accepted it.
+  if [ "$g" = 2 ] && ! printf '%s\n' "$GATE_OUT" | grep -q 'INTERNAL_TOKEN matches'; then
+    log "gate 1 exited 2 but did not report the token as accepted (an older gate?): treating it as unproven"
+    g=1
+  fi
   if [ "$g" = 2 ]; then
     # The token is proven, so the drain cannot be 401'd: a degraded rimpl answers /evaluate with 500 or
-    # 503, which the drain retries (backend/src/services/rimpl-client.js:70). Stopping the backend here
-    # would turn, say, an exhausted Anthropic balance into a full API outage.
+    # 503, which the drain retries (backend/src/services/rimpl-client.js:70) up to EVAL_MAX_ATTEMPTS
+    # (20, about 4 h) before flagging each PLE `exhausted`. Stopping the backend here would turn, say, an
+    # exhausted Anthropic balance into a full API outage at once; leaving it gives hours to fix it.
     if start_backend; then
       OUTCOME="$PREV restored; rimpl degraded: $(down_checks). Its rimpl accepted the backend's INTERNAL_TOKEN, so its backend runs again, as it did before this run. Once that dependency is back: deploy.sh --rollback $PREV"
     else
