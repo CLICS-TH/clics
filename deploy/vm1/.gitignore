@@ -1,0 +1,3 @@
+# Real env files hold live secrets and belong only on vm1 (/opt/clics/env). The *.env.example files
+# beside this hold names only and stay tracked.
+*.env

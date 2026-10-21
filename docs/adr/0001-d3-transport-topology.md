@@ -1,6 +1,8 @@
 # ADR 0001 — Build no more D3 transport until a GDCC VM exists
 
-- **Status:** Accepted, 2026-09-08. Revisit when the VM is provisioned or refused.
+- **Status:** Accepted, 2026-09-08. **Superseded in part by [ADR 0002](0002-vm1-topology-b.md)**
+  (2026-10-21): a GDCC host now exists, and Topology B on vm1 is adopted. The statement on data custody
+  below still stands.
 - **Scope:** how the CLICS backend reaches an on-premise RIMPL under decision **D3**.
 - **Supersedes nothing.** **D7** (accept the Railway→on-prem raw-PII hop over Tailscale) still
   stands; this record is about *transport*, not about where PII is processed.

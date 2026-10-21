@@ -123,6 +123,90 @@ jobs:
       - name: Offline tests (bank, checks, citations, judging, clinician export)
         run: node --test scripts/quality/*.test.mjs
 
+  # vm1 (Topology B, docs/adr/0002-vm1-topology-b.md): the compose project, both images, the nginx site
+  # and deploy.sh. Nobody has Docker on the Mac these are written on, so THIS is where the images are
+  # proven to build and the hardened containers (read-only, non-root, no capabilities) proven to boot.
+  # Hermetic: the env files are dummies generated from the committed examples, every host in them is
+  # *.invalid, and nothing is pushed anywhere. Production stays on Railway; this deploys nothing.
+  deploy-vm1:
+    runs-on: ubuntu-latest
+    env:
+      CLICS_RELEASE: ci
+      CLICS_UID: '10001'
+      CLICS_GID: '10001'
+      COMPOSE_FILE: deploy/vm1/docker-compose.yml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The remote steps are linted exactly as deploy.sh sends them: remote/lib.sh + remote/<step>.sh
+      # (activate is the script staged on vm1 and started detached by launch).
+      - name: Script syntax + shellcheck
+        run: |
+          bash -n deploy/vm1/deploy.sh
+          shellcheck deploy/vm1/deploy.sh
+          for step in preflight activate launch attach; do
+            cat deploy/vm1/remote/lib.sh "deploy/vm1/remote/$step.sh" | bash -n
+            cat deploy/vm1/remote/lib.sh "deploy/vm1/remote/$step.sh" | shellcheck -s bash -
+          done
+          node --check deploy/vm1/health-gate.cjs
+      - name: Dummy env files from the examples
+        run: |
+          node scripts/deploy/vm1-ci-env.mjs "$RUNNER_TEMP/clics-env"
+          echo "CLICS_ENV_DIR=$RUNNER_TEMP/clics-env" >> "$GITHUB_ENV"
+      # With docker present, vm1.test.mjs also checks the compose file as docker renders it.
+      - name: Guard tests (loopback-only backend, unpublished rimpl, no backend/Dockerfile, no IPs, deploy.sh, remote steps)
+        run: node --test scripts/deploy/*.test.mjs
+      - name: Compose renders
+        run: docker compose config -q
+      - name: Build both images
+        run: docker compose build
+      - name: Boot the hardened containers
+        run: docker compose up -d --wait --wait-timeout 120
+      - name: Loopback binding, no rimpl port, non-root, read-only, and the deploy gate's mechanics
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 5 http://127.0.0.1:3101/health
+          [ "$(docker compose port backend 3001)" = "127.0.0.1:3101" ]
+          if docker compose port rimpl 3003 2>/dev/null | grep -q .; then echo "::error::rimpl publishes a port"; exit 1; fi
+          [ "$(docker compose exec -T backend id -u)" = 10001 ]
+          [ "$(docker compose exec -T rimpl id -u)" = 10001 ]
+          # Read-only root filesystem, both services. Docker's own flag first. Then a write that only a
+          # read-only root can refuse: /var/tmp is world-writable (1777) in both images, so the non-root
+          # uid could write it on a writable root. (/app would refuse on permissions alone, proving
+          # nothing.) The same write to the tmpfs /tmp must succeed, which proves the probe itself works.
+          for svc in backend rimpl; do
+            [ "$(docker inspect -f '{{.HostConfig.ReadonlyRootfs}}' "$(docker compose ps -q "$svc")")" = true ] \
+              || { echo "::error::$svc does not run with a read-only root filesystem"; exit 1; }
+            docker compose exec -T "$svc" sh -c 'touch /tmp/probe' || { echo "::error::$svc cannot write its tmpfs /tmp"; exit 1; }
+            if docker compose exec -T "$svc" sh -c 'touch /var/tmp/probe' 2>/dev/null; then echo "::error::$svc root filesystem is writable"; exit 1; fi
+          done
+          docker compose exec -T backend node -e "fetch('http://rimpl:3003/health').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+          # deploy.sh's rimpl gate, run exactly as on vm1. With a dummy Supabase rimpl answers 503, so the
+          # gate must exit 2 (reached rimpl and read its verdict), not 6 (could not reach it) or 64.
+          set +e
+          docker compose run --rm --no-deps -T -v "$PWD/deploy/vm1/health-gate.cjs:/gate.cjs:ro" backend node /gate.cjs rimpl
+          code=$?
+          set -e
+          [ "$code" = 2 ] || { echo "::error::rimpl gate exited $code, expected 2"; exit 1; }
+      - name: nginx site parses (nginx 1.18, as Ubuntu 20.04 ships)
+        run: |
+          set -euo pipefail
+          d="$RUNNER_TEMP/nginx"; mkdir -p "$d"
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj '/CN=clics.ccme.or.th' \
+            -keyout "$d/privkey.pem" -out "$d/fullchain.pem" 2>/dev/null
+          sed 's#/PLACEHOLDER/cme-cert-manager/clics.ccme.or.th/#/etc/nginx/test-cert/#' \
+            deploy/vm1/nginx/clics.ccme.or.th.conf > "$d/clics.conf"
+          docker run --rm -v "$d/clics.conf:/etc/nginx/conf.d/clics.conf:ro" \
+            -v "$d:/etc/nginx/test-cert:ro" nginx:1.18 nginx -t
+      - name: Container logs
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
+
   # The model manifest (CCME R2): rimpl/src/model-manifest.json is GENERATED from the code
   # (scripts/manifest/build.mjs) and committed. --check regenerates it and fails if the committed copy
   # differs — a prompt, rubric, decoding default, router rule or provider-policy edit that did not

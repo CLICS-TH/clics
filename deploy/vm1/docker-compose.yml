@@ -1,0 +1,121 @@
+# CLICS backend + rimpl on vm1 — Topology B (docs/adr/0002-vm1-topology-b.md).
+#
+# PREPARED, NOT LIVE. Production stays on Railway until the cutover in deploy/vm1/README.md.
+#
+# vm1 is a SHARED production host (ccme.or.th, WordPress, superset, other teams' CI runners), so
+# every setting below that narrows what a container can do is a requirement from ADR 0002, not a
+# preference. scripts/deploy/vm1.test.mjs guards the ones that matter most (loopback-only backend,
+# rimpl unpublished, no IPv4 literals) and CI (job `deploy-vm1`) builds and boots both images.
+#
+# deploy.sh supplies four variables; `docker compose config` refuses to render without them:
+#   CLICS_RELEASE  git sha being run (image tag)      CLICS_ENV_DIR  /opt/clics/env on vm1
+#   CLICS_UID      uid of the host's `clics` user      CLICS_GID      its gid
+name: clics
+
+x-hardened: &hardened
+  restart: unless-stopped
+  # tini as PID 1: forwards SIGTERM to node and reaps children. rimpl registers no SIGTERM handler,
+  # and node as PID 1 ignores a signal it does not handle, so without this every stop waits for the
+  # grace period and ends in SIGKILL.
+  init: true
+  # Non-root: the host's dedicated `clics` uid, not the image's `node` (uid 1000 may be a real login
+  # user on this host). No file in either image is written at runtime, so any uid can run them.
+  user: "${CLICS_UID:?set by deploy.sh to the uid of the clics user on the host}:${CLICS_GID:?set by deploy.sh to the gid of the clics user on the host}"
+  # Neither app writes to its filesystem (checked 2026-10-21: no fs writes in backend/src or
+  # rimpl/src). /tmp is the one writable path, for anything a dependency puts in os.tmpdir().
+  read_only: true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+  security_opt:
+    - no-new-privileges:true
+  # Both listen above 1024 and need no capability at all.
+  cap_drop:
+    - ALL
+  # Limits protect the host's other tenants from us. They do not reserve anything for us.
+  mem_limit: 1g
+  memswap_limit: 1g
+  cpus: 2.0
+  pids_limit: 256
+  # json-file with rotation: at most 5 x 10 MB per container on vm1's disk. The apps log ids and
+  # error messages, not transcripts.
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+  networks:
+    - clics
+
+services:
+  # rimpl publishes NO port. It is reachable only as http://rimpl:3003 from containers on the
+  # `clics` network, i.e. from the backend. It needs egress (Anthropic, Supabase, and later the
+  # on-prem model through the host's own routes), which is why the network is not `internal: true`.
+  #
+  # Built from rimpl/Dockerfile unchanged, so Railway's build of the same file is unaffected. Its
+  # optional userspace Tailscale client stays off because rimpl.env never sets TS_AUTHKEY: on vm1 a
+  # LOCAL_AI_BASE_URL on the tailnet or the GDCC LAN is reached through the HOST's kernel Tailscale
+  # and routing table via docker's default NAT egress, with no Tailscale inside any container.
+  rimpl:
+    <<: *hardened
+    image: clics-rimpl:${CLICS_RELEASE:?set by deploy.sh to the git sha being run}
+    build:
+      context: ../../rimpl
+      dockerfile: Dockerfile
+    env_file:
+      - ${CLICS_ENV_DIR:?set by deploy.sh to /opt/clics/env}/rimpl.env
+    environment:
+      PORT: "3003"
+      NODE_ENV: production
+      # Below the 1g limit, so V8 collects before the kernel OOM-kills the container.
+      NODE_OPTIONS: --max-old-space-size=768
+    healthcheck:
+      # The liveness route (rimpl/src/index.js:11). /health/deep is deploy.sh's gate, not this one:
+      # it probes Supabase and the providers, which must not restart a container when they blip.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3003/health').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    stop_grace_period: 20s
+
+  backend:
+    <<: *hardened
+    image: clics-backend:${CLICS_RELEASE:?set by deploy.sh to the git sha being run}
+    build:
+      context: ../../backend
+      # Deliberately NOT backend/Dockerfile: Railway would detect that file and switch the live
+      # backend's builder away from Railpack (ADR 0001). Resolved relative to the context.
+      dockerfile: ../deploy/vm1/backend.Dockerfile
+    env_file:
+      - ${CLICS_ENV_DIR:?set by deploy.sh to /opt/clics/env}/backend.env
+    environment:
+      PORT: "3001"
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=768
+      # The backend→rimpl hop is one docker bridge on one kernel; it never leaves vm1 (ADR 0002, D7).
+      RIMPL_URL: http://rimpl:3003
+    # Host port 3101, loopback only: nginx on the host is the only client. 3101 was free in the
+    # 2026-10-21 inventory (in use: 22, 80, 443, 8443, 3000, 3002, 3007, 4118, 8088, 6379, 53 and a
+    # tailscaled port). 3001, the backend's own default, is free too, but it sits inside the
+    # 3000/3002/3007 run other teams' services use on this host, so a CLICS-specific 31xx port is
+    # less likely to be taken by the next service someone adds. nginx/clics.ccme.or.th.conf proxies
+    # to this exact port; scripts/deploy/vm1.test.mjs fails if the two disagree.
+    ports:
+      - "127.0.0.1:3101:3001"
+    depends_on:
+      rimpl:
+        condition: service_healthy
+    healthcheck:
+      # The liveness route (backend/src/index.js:70).
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/health').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    # Above the backend's own 15 s drain timer (backend/src/index.js:138), so its graceful shutdown
+    # finishes before docker sends SIGKILL.
+    stop_grace_period: 20s
+
+networks:
+  clics:
+    driver: bridge
