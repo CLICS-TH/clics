@@ -11,6 +11,14 @@ Deploys run from the **local working tree** (not GitHub). Backend + RIMPL on **R
 | Backend API | https://backend-production-c12e4.up.railway.app |
 | RIMPL | internal-only — `rimpl.railway.internal:3003` (no public domain) |
 
+## vm1 (Topology B): prepared, not live
+
+Backend + RIMPL can also run as one Docker Compose project on vm1, the CME host
+([ADR 0002](adr/0002-vm1-topology-b.md)), behind `https://clics.ccme.or.th`. The runbook (host setup, the
+asks to CME, `deploy/vm1/deploy.sh`, cutover and rollback) is [`deploy/vm1/README.md`](../deploy/vm1/README.md).
+**Until that cutover is run, production is the Railway deployment described here, and nothing in
+`deploy/vm1/` changes it.** The database stays in Supabase (Tokyo) either way.
+
 ## Deploy commands (and the gotchas that break prod silently)
 
 - **Railway deploys MUST use `railway up . --path-as-root --service <name> --ci`.** Plain `railway up` builds but the new image **never promotes** (old deployment stays active / "Deploy failed"), because each service has a configured root directory.
