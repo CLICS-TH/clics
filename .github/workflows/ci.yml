@@ -171,7 +171,13 @@ jobs:
           set -euo pipefail
           curl -fsS --max-time 5 http://127.0.0.1:3101/health
           [ "$(docker compose port backend 3001)" = "127.0.0.1:3101" ]
-          if docker compose port rimpl 3003 2>/dev/null | grep -q .; then echo "::error::rimpl publishes a port"; exit 1; fi
+          # rimpl must have NO host binding. Not `docker compose port`: for a port the image EXPOSEs but
+          # compose does not publish, it prints ":0", which looks like output. Read the bindings instead.
+          rimpl_id="$(docker compose ps -q rimpl)"
+          bound="$(docker inspect -f '{{range $p, $v := .NetworkSettings.Ports}}{{if $v}}{{$p}} {{end}}{{end}}' "$rimpl_id")"
+          [ -z "$bound" ] || { echo "::error::rimpl publishes host ports: $bound"; exit 1; }
+          [ "$(docker inspect -f '{{len .HostConfig.PortBindings}}' "$rimpl_id")" = 0 ] \
+            || { echo "::error::rimpl has port bindings"; exit 1; }
           [ "$(docker compose exec -T backend id -u)" = 10001 ]
           [ "$(docker compose exec -T rimpl id -u)" = 10001 ]
           # Read-only root filesystem, both services. Docker's own flag first. Then a write that only a
