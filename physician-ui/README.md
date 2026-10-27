@@ -36,7 +36,7 @@ when on localhost, and the prod URLs otherwise.
 
 ## Conventions
 
-- **The `<head>` is intentionally duplicated** across pages (no-FOUC theme snippet + Google Fonts links).
+- **The `<head>` is intentionally duplicated** across pages (no-FOUC theme snippet + the `/css/fonts.css` link).
   With no build there's no include mechanism, and the boot snippet must be inline to run before first
   paint. When you add a page, copy the `<head>` from an existing one.
 - **Design tokens** live in `public/css/main.css` as CSS custom properties (cream canvas, coral

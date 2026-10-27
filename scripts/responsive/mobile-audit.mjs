@@ -34,7 +34,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
 const PUI_ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.ico': 'image/x-icon' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
 
 // Phone portrait widths (coarse/touch) + one landscape + a desktop baseline (fine pointer).
 const WIDTHS = [
