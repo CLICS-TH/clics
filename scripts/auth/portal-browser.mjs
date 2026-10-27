@@ -37,6 +37,7 @@ const USERS = {
   admin: { id: 'u-admin', email: 'admin@ci.test', role: 'admin', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'ผู้ดูแล ทดสอบ', full_name_en: 'CI Admin', council_id: 'c1' },
   alpha: { id: 'u-alpha', email: 'alpha@ci.test', role: 'physician', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'ALPHA', full_name_en: 'ALPHA' },
   bravo: { id: 'u-bravo', email: 'bravo@ci.test', role: 'physician', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'BRAVO', full_name_en: 'BRAVO' },
+  invitee: { id: 'u-invitee', email: 'invitee@ci.test', role: 'admin', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'ผู้รับเชิญ', full_name_en: 'CI Invitee', council_id: 'c1' },
   dualRole: { id: 'u-dual', email: 'dual@ci.test', role: 'physician', can_audit: true, consented_at: '2026-01-01T00:00:00Z', full_name_th: 'แพทย์ ผู้ตรวจ', full_name_en: 'CI Dual Role' },
 };
 // Bank details only their owner may see; the cross-user scenario looks for the marker on screen.
@@ -50,7 +51,12 @@ function fakeJwt(user) {
   const now = Math.floor(Date.now() / 1000);
   return `${b64url({ alg: 'HS256', typ: 'JWT' })}.${b64url({ sub: user.id, email: user.email, clics_role: user.role, role: 'authenticated', aud: 'authenticated', iat: now, exp: now + 3600 })}.ci-signature`;
 }
-function userOf(authHeader) {
+// Tokens revoked by POST /auth/logout answer 401 afterwards, as the real backend's revoke does.
+// A request arriving with one means a page ran under a signed-out session.
+const revoked = new Set();
+const revokedUse = [];
+function userOf(authHeader, path) {
+  if (revoked.has(authHeader.replace(/^Bearer /, ''))) { revokedUse.push(path); return null; }
   try {
     const p = JSON.parse(Buffer.from(authHeader.replace(/^Bearer /, '').split('.')[1], 'base64url'));
     return Object.values(USERS).find((u) => u.id === p.sub) || null;
@@ -101,8 +107,15 @@ function apiServer() {
       return u ? session(u) : json(401, { error: 'Invalid email or password' });
     }
     if (path === '/auth/oauth/google/complete') return session(USERS.physician);
-    if (path === '/auth/logout') return json(200, { ok: true });
-    const u = userOf(req.headers.authorization || '');
+    if (path === '/auth/invite/CI-INVITE' && req.method === 'GET') return json(200, { email: USERS.invitee.email, role: 'admin', council: { name_th: 'สภาทดสอบ', name_en: 'CI Council' } });
+    if (path === '/auth/invite/CI-INVITE/accept') {
+      return body.otp ? json(201, { access_token: fakeJwt(USERS.invitee), user: USERS.invitee }) : json(202, { status: 'otp_sent', email: USERS.invitee.email });
+    }
+    if (path === '/auth/logout') {
+      revoked.add((req.headers.authorization || '').replace(/^Bearer /, ''));
+      return json(200, { ok: true });
+    }
+    const u = userOf(req.headers.authorization || '', path);
     if (!u) return json(401, { error: 'unauthenticated' });
     if (path === '/auth/me') return json(200, { user: u });
     if (path === '/auth/payment-info') return json(200, { payment_info: PAYMENT_INFO[u.id] || null });
@@ -168,6 +181,20 @@ function isPrivate(href) {
   const url = new URL(href);
   if (url.origin === PORTAL) return !PORTAL_PUBLIC.has(url.pathname);
   return url.origin === DASH && url.pathname !== '/login';
+}
+
+async function dashboardTokens(ctx) {
+  return (await storedTokens(ctx)).filter((e) => e.startsWith(DASH));
+}
+
+async function dualRoleToConsole(page) {
+  await page.goto(`${PORTAL}/forgot`);
+  await emailSignIn(page, USERS.dualRole);
+  await page.waitForURL(`${PORTAL}/dashboard`);
+  await settle(page);
+  await page.getByRole('link', { name: /Auditor console/ }).click();
+  await page.waitForURL(`${DASH}/auditor/queue`);
+  await settle(page);
 }
 
 // Whether the page shows the marker as text or as a form value.
@@ -278,6 +305,84 @@ const SCENARIOS = [
       await settle(page);
       await assertSignedOut(t, page, ctx, 'after Sign out');
       await walkBack(t, page, ctx, 'dual-role');
+    },
+  },
+  {
+    name: 'dual-role Handoff, browser Back, Portal Sign out, Forward',
+    async run(t, page, ctx) {
+      await dualRoleToConsole(page);
+      await page.goBack({ waitUntil: 'commit' });
+      await settle(page);
+      await page.click('#logoutBtn');
+      await page.waitForURL(`${PORTAL}/login`);
+      await settle(page);
+      await assertSignedOut(t, page, ctx, 'after Sign out');
+      revokedUse.length = 0;
+      await walk(page, 'Forward', async (step) => {
+        await assertSignedOut(t, page, ctx, `dual-role ${step}`);
+        t.check(revokedUse.length === 0, `dual-role ${step}: a page called ${revokedUse.join(', ')} with the signed-out token`);
+      });
+    },
+  },
+  {
+    name: 'dual-role Handoff, browser Back, Portal Sign out, B signs in, Forward',
+    async run(t, page, ctx) {
+      await dualRoleToConsole(page);
+      await page.goBack({ waitUntil: 'commit' });
+      await settle(page);
+      await page.click('#logoutBtn');
+      await page.waitForURL(`${PORTAL}/login`);
+      await settle(page);
+      await emailSignIn(page, USERS.bravo, { open: false });
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      revokedUse.length = 0;
+      await walk(page, 'Forward', async (step) => {
+        t.check(revokedUse.length === 0, `${step}: a page called ${revokedUse.join(', ')} with the signed-out token`);
+        const left = await dashboardTokens(ctx);
+        t.check(left.length === 0, `${step}: dashboard storage holds ${left.join(', ')}`);
+        t.check(!isPrivate(page.url()) || new URL(page.url()).origin === PORTAL, `${step}: dashboard page shown ${page.url()}`);
+        t.check(!(await shows(page, 'CI Dual Role')), `${step}: the signed-out user's console shown to B at ${page.url()}`);
+      });
+    },
+  },
+  {
+    name: 'invite, Go to console, dashboard Sign out, Back, invite link opens no session',
+    async run(t, page, ctx) {
+      await page.goto(`${PORTAL}/forgot`);
+      await page.goto(`${PORTAL}/invite?token=CI-INVITE`);
+      await page.locator('#acceptCard').waitFor({ state: 'visible', timeout: 10000 });
+      await page.fill('#th', 'ผู้รับเชิญ');
+      await page.fill('#en', 'CI Invitee');
+      await page.fill('#password', 'Passw0rd1234');
+      await page.click('#passwordBtn');
+      await page.locator('#otpCard').waitFor({ state: 'visible', timeout: 10000 });
+      await page.fill('#otp', '123456');
+      await page.click('#verifyBtn');
+      await page.locator('#doneCard').waitFor({ state: 'visible', timeout: 10000 });
+      t.check(!TOKEN_IN_URL.test(await page.locator('#doneCta').getAttribute('href') || ''), 'the invite CTA carries a token in its href');
+      const inviteToken = await page.evaluate(() => localStorage.getItem('clics_token'));
+      await page.click('#doneCta');
+      await page.waitForURL(`${DASH}/home`);
+      await settle(page);
+      const menu = page.getByRole('button', { name: 'เมนู / Menu' });
+      if (await menu.isVisible()) await menu.click();
+      await page.getByRole('button', { name: /ออกจากระบบ/ }).click();
+      await page.waitForURL(`${PORTAL}/login`);
+      await settle(page);
+      t.check(revoked.has(inviteToken), 'dashboard Sign out did not revoke the session at /auth/logout');
+      await assertSignedOut(t, page, ctx, 'after Sign out');
+      let ctaSeen = false;
+      await walk(page, 'Back', async (step) => {
+        const cta = page.locator('#doneCta');
+        if (new URL(page.url()).pathname === '/invite' && await cta.isVisible()) {
+          ctaSeen = true;
+          await cta.click();
+          await settle(page);
+        }
+        await assertSignedOut(t, page, ctx, `invite ${step}`);
+      });
+      t.check(ctaSeen, 'Back never reached the invite page with its link, so the link went untested');
     },
   },
   {
