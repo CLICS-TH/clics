@@ -145,21 +145,27 @@ async function storedTokens(ctx) {
 
 // The state every Back step after Sign out must be in.
 async function assertSignedOut(t, page, ctx, where) {
-  const url = new URL(page.url());
+  const url = page.url();
   const leaks = await storedTokens(ctx);
   t.check(leaks.length === 0, `${where}: storage holds ${leaks.join(', ')}`);
-  t.check(!TOKEN_IN_URL.test(url.href), `${where}: token in address bar ${url.href}`);
-  const signedInPage = url.origin === PORTAL ? !PORTAL_PUBLIC.has(url.pathname) : url.origin === DASH && url.pathname !== '/login';
-  t.check(!signedInPage, `${where}: signed-in page shown ${url.href}`);
+  t.check(!TOKEN_IN_URL.test(url), `${where}: token in address bar ${url}`);
+  t.check(!isPrivate(url), `${where}: signed-in page shown ${url}`);
 }
 
-// Presses Back through the whole history, checking each step.
+function isPrivate(href) {
+  const url = new URL(href);
+  if (url.origin === PORTAL) return !PORTAL_PUBLIC.has(url.pathname);
+  return url.origin === DASH && url.pathname !== '/login';
+}
+
+// Presses Back once per entry behind the current one, checking every step. A working guard
+// bounces a restored private page back to /login, so the URL alone cannot end the walk.
 async function walkBack(t, page, ctx, label) {
-  for (let i = 1; i <= 8; i++) {
-    const before = page.url();
+  const entries = await page.evaluate(() => history.length);
+  for (let i = 1; i < entries; i++) {
     await page.goBack({ waitUntil: 'commit' }).catch(() => null);
     await settle(page);
-    if (page.url() === before || page.url() === 'about:blank') break;
+    if (page.url() === 'about:blank') break;
     await assertSignedOut(t, page, ctx, `${label} Back #${i}`);
   }
 }
@@ -184,6 +190,23 @@ const SCENARIOS = [
       await settle(page);
       await assertSignedOut(t, page, ctx, 'after Sign out');
       await walkBack(t, page, ctx, 'email');
+    },
+  },
+  {
+    name: 'email sign-in, two private pages, Sign out, Back',
+    privateRestore: true,
+    async run(t, page, ctx) {
+      await page.goto(`${PORTAL}/forgot`);
+      await emailSignIn(page, USERS.physician);
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      await page.goto(`${PORTAL}/payment`);
+      await settle(page);
+      await page.click('#logoutBtn');
+      await page.waitForURL(`${PORTAL}/login`);
+      await settle(page);
+      await assertSignedOut(t, page, ctx, 'after Sign out');
+      await walkBack(t, page, ctx, 'deep');
     },
   },
   {
@@ -315,19 +338,27 @@ async function main() {
     });
     await ctx.addInitScript(() => addEventListener('pageshow', (e) => { if (e.persisted) console.log('pw:bfcache-restore ' + location.href); }));
     const page = await ctx.newPage();
-    page.on('console', (m) => { if (m.text().startsWith('pw:bfcache-restore')) bfcacheRestores++; });
+    let privateRestores = 0;
+    page.on('console', (m) => {
+      const [tag, href] = m.text().split(' ');
+      if (tag === 'pw:bfcache-restore' && isPrivate(href)) privateRestores++;
+    });
     const problems = [];
     const t = { check: (ok, msg) => { if (!ok) problems.push(msg); } };
-    try { await s.run(t, page, ctx); } catch (e) { problems.push(`threw: ${e.message.split('\n').slice(0, 12).join(' | ')}`); }
+    try {
+      await s.run(t, page, ctx);
+      // Without a restore of a private page, the bfcache guards went untested in this scenario.
+      if (s.privateRestore) t.check(privateRestores > 0, 'no private page was restored from the back/forward cache');
+    } catch (e) { problems.push(`threw: ${e.message.split('\n').slice(0, 12).join(' | ')}`); }
     console.log(`${problems.length ? 'FAIL' : 'ok  '} ${s.name}`);
     for (const p of problems) console.log(`     - ${p}`);
     if (problems.length) failed++;
+    bfcacheRestores += privateRestores;
     await ctx.close();
   }
   await browser.close();
   for (const s of servers) s.close();
-  console.log(`back/forward cache restores observed: ${bfcacheRestores}`);
-  if (!only && bfcacheRestores === 0) { console.log('FAIL no Back was served from the back/forward cache, so the bfcache path went untested'); failed++; }
+  console.log(`private pages restored from the back/forward cache: ${bfcacheRestores}`);
   process.exit(failed ? 1 : 0);
 }
 
