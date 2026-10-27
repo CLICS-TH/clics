@@ -24,6 +24,22 @@ afterEach(() => {
   Object.defineProperty(window, 'location', { configurable: true, value: realLocation });
 });
 
+// The Portal's Sign out leaves through here, so Forward cannot reopen the dashboard signed in (#189).
+it('with ?logout=1, drops this origin\'s session but keeps theme/view, then replaces itself with the Portal sign-in', () => {
+  mockParams = new URLSearchParams('logout=1&token=stale');
+  localStorage.setItem('clics_token', 'tok');
+  localStorage.setItem('clics_user', '{"id":"u1","role":"physician","can_audit":true}');
+  localStorage.setItem('clics_theme', 'dark');
+  localStorage.setItem('clics_view', 'mobile');
+  render(<LoginPage />);
+  expect(replace).toHaveBeenCalledWith('https://physician-ui.vercel.app/login');
+  expect(localStorage.getItem('clics_token')).toBeNull();
+  expect(localStorage.getItem('clics_user')).toBeNull();
+  expect(localStorage.getItem('clics_theme')).toBe('dark');
+  expect(localStorage.getItem('clics_view')).toBe('mobile');
+  expect(mockApiFetch).not.toHaveBeenCalled();
+});
+
 it('without a token, replaces the visit with the Portal sign-in', () => {
   mockParams = new URLSearchParams();
   render(<LoginPage />);

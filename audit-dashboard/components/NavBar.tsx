@@ -2,7 +2,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
-import { canAudit } from '@/lib/auth';
+import { canAudit, clearSession } from '@/lib/auth';
+import { getToken, revokeSession } from '@/lib/api';
 import { RoleBadge } from './RoleBadge';
 import { ThemeToggle, ViewportToggle } from './Toggles';
 import { useIsNavCompact } from './ViewportProvider';
@@ -99,18 +100,17 @@ export function NavBar() {
     // Clearing only our (dashboard-origin) token isn't enough — the PORTAL origin still holds a valid
     // token and autoForward there would re-log us straight back in. Bounce to the portal's logout,
     // which clears its own storage and shows the login form (so you can sign in as another account).
-    // Preserve the dashboard-origin theme/view prefs (mirror the portal's /login?logout=1 handler) so logging
-    // out doesn't reset a dark-mode user to light.
-    const theme = localStorage.getItem('clics_theme');
-    const view = localStorage.getItem('clics_view');
-    localStorage.clear();
-    if (theme) localStorage.setItem('clics_theme', theme);
-    if (view) localStorage.setItem('clics_view', view);
+    const token = getToken();
+    clearSession();
+    revokeSession(token);
     window.location.href = PORTAL.logout;
   }
 
+  // The Portal's Sign out cannot reach this origin's storage, so a session left here would outlive it
+  // and Back would show the dashboard signed in. The Portal hands over a fresh token on the next visit.
   function returnToPhysician() {
-    window.location.href = PORTAL.dashboard;
+    clearSession();
+    window.location.replace(PORTAL.dashboard);
   }
 
   // Active when the path matches OR is a child (detail page) of the link, so /admin/ples/[id] keeps

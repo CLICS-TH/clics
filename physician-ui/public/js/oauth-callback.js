@@ -99,7 +99,7 @@ async function completeLink() {
   try { for (const k of Object.keys(localStorage)) if (k.indexOf('sb-') === 0) localStorage.removeItem(k); } catch {}
   if (res && res.ok) {
     try { sessionStorage.setItem('clics_link_msg', 'เชื่อมบัญชี Google สำเร็จ / Google account linked.'); } catch {}
-    window.location.href = '/dashboard';
+    window.location.replace('/dashboard');
   } else {
     showError(errText(res));
   }
@@ -264,8 +264,8 @@ function routeActive(body) {
   // 'local' — that only spares other sessions), 401-ing all API calls right after login.
   try { for (const k of Object.keys(localStorage)) if (k.indexOf('sb-') === 0) localStorage.removeItem(k); } catch {}
   if (role === 'physician') {
-    window.location.href = '/dashboard';
+    window.location.replace('/dashboard');
   } else {
-    window.location.href = (window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?token=' + encodeURIComponent(body.access_token);
+    window.location.replace((window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?token=' + encodeURIComponent(body.access_token));
   }
 }

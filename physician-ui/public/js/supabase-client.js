@@ -18,8 +18,9 @@ window.sbClient = configured
   ? createClient(url, anonKey, {
       auth: {
         // Recovery links + OAuth redirects come back with the session in the URL hash
-        // (flowType 'implicit' — the hash-based flow our /auth/callback handling expects);
-        // detectSessionInUrl lets the client pick it up automatically on /reset and /auth/callback.
+        // (flowType 'implicit' — the hash-based flow our /auth/callback handling expects).
+        // /reset and /auth/callback lift that hash before this module runs and call setSession(),
+        // so detectSessionInUrl finds nothing there and cannot leave the token in Back history.
         flowType: 'implicit',
         detectSessionInUrl: true,
         persistSession: true,

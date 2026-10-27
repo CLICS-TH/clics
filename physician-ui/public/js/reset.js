@@ -1,7 +1,8 @@
-// Password reset. The recovery link from Supabase lands here with a recovery token in the URL
-// hash; supabase-client.js was built with detectSessionInUrl:true, so the client picks it up
-// and emits a PASSWORD_RECOVERY auth event. We then collect a new password and call
-// sbClient.auth.updateUser({ password }). No backend call — Supabase owns the password here.
+// Password reset. The recovery link from Supabase lands here with the recovery tokens in the URL
+// hash. The page head lifts that hash into window.CLICS_RECOVERY_HASH and strips it from history
+// (the #185 pattern), so Back never replays the token; we hand the tokens to supabase-js with
+// setSession(), collect a new password and call sbClient.auth.updateUser({ password }).
+// No backend call — Supabase owns the password here.
 
 const loadingCard = document.getElementById('loadingCard');
 const formCard = document.getElementById('formCard');
@@ -38,29 +39,25 @@ withClient(async () => {
     return;
   }
 
-  // Either a recovery session already exists (detectSessionInUrl parsed the hash), or it's
-  // about to via the PASSWORD_RECOVERY event. Give the client a beat, then check.
-  let resolved = false;
-  const ready = () => {
-    if (resolved) return;
-    resolved = true;
-    show(formCard);
-    document.getElementById('password').focus();
-  };
-
-  window.sbClient.auth.onAuthStateChange((event) => {
-    if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') ready();
-  });
-
-  const { data } = await window.sbClient.auth.getSession();
-  if (data?.session) { ready(); return; }
-
-  // Hash not parsed into a session and no recovery event — bad/expired link.
-  setTimeout(() => {
-    if (!resolved) {
-      showInvalid('ลิงก์ไม่ถูกต้องหรือหมดอายุ กรุณาขอลิงก์ใหม่ / This reset link is invalid or expired. Please request a new one.');
-    }
-  }, 1500);
+  const lifted = new URLSearchParams(window.CLICS_RECOVERY_HASH || '');
+  window.CLICS_RECOVERY_HASH = null;
+  // Trust only the session these tokens yield. getSession() would fall back to a stale sb-*
+  // session left on this browser — possibly another person's — and let it set a new password.
+  let session = null;
+  if (lifted.get('access_token') && lifted.get('refresh_token')) {
+    const { data, error } = await window.sbClient.auth.setSession({
+      access_token: lifted.get('access_token'),
+      refresh_token: lifted.get('refresh_token'),
+    });
+    if (!error) session = data?.session;
+  }
+  if (!session) {
+    try { for (const k of Object.keys(localStorage)) if (k.indexOf('sb-') === 0) localStorage.removeItem(k); } catch {}
+    showInvalid('ลิงก์ไม่ถูกต้องหรือหมดอายุ กรุณาขอลิงก์ใหม่ / This reset link is invalid or expired. Please request a new one.');
+    return;
+  }
+  show(formCard);
+  document.getElementById('password').focus();
 });
 
 // ---- Save the new password ----

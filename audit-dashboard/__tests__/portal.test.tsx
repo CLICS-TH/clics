@@ -13,7 +13,7 @@ jest.mock('@/components/ViewportProvider', () => ({
   useIsNavCompact: () => false,
   useViewport: () => ({ view: 'auto', setView: () => {} }),
 }));
-jest.mock('@/lib/api', () => ({ apiFetch: jest.fn() }));
+jest.mock('@/lib/api', () => ({ apiFetch: jest.fn(), getToken: () => 'tok', revokeSession: jest.fn() }));
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { NavBar } = require('@/components/NavBar');
@@ -49,5 +49,5 @@ it('Sign out', () => {
 it('Return to Physician', () => {
   render(<NavBar />);
   fireEvent.click(screen.getByRole('button', { name: /Return to Physician/ }));
-  expect(window.location.href).toBe('https://portal.example.test/dashboard');
+  expect(replace).toHaveBeenCalledWith('https://portal.example.test/dashboard');
 });

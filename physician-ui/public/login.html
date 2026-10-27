@@ -153,7 +153,8 @@
     // the audit-dashboard handoff, not /dashboard (whose physician guard would bounce it back
     // here, reading as "logged in but thrown out"). Never forward when the URL carries an OAuth
     // return (hash tokens / ?code=): the head forwarder has a replace() to /auth/callback
-    // pending, and this href assignment would win the race and eat the sign-in.
+    // pending, and this forward would win the race and eat the sign-in. Forwards use replace() so
+    // Back from the destination skips /login instead of bouncing forward again (#176).
     (function autoForward() {
       var tok = localStorage.getItem('clics_token');
       if (!tok || location.hash || location.search.indexOf('code=') !== -1) return;
@@ -182,11 +183,11 @@
       var fwdUser = null;
       try { fwdUser = JSON.parse(localStorage.getItem('clics_user') || 'null'); } catch (e) {}
       if (!fwdUser || fwdUser.role === 'physician') {
-        window.location.href = '/dashboard'; // missing user → guardRole heals the state there
+        window.location.replace('/dashboard'); // missing user → guardRole heals the state there
       } else {
         try { sessionStorage.setItem('clics_handoff', String(Date.now())); } catch (e) {}
-        window.location.href = (window.CLICS_DASHBOARD_URL || 'http://localhost:3002')
-          + '/login?token=' + encodeURIComponent(tok);
+        window.location.replace((window.CLICS_DASHBOARD_URL || 'http://localhost:3002')
+          + '/login?token=' + encodeURIComponent(tok));
       }
     })();
     // Surface why the user was just signed out (written by auth.js / api.js before redirecting).
@@ -248,8 +249,8 @@
       if (data?.access_token) {
         localStorage.setItem('clics_token', data.access_token);
         localStorage.setItem('clics_user', JSON.stringify(data.user));
-        if (data.user.role === 'physician') window.location.href = '/dashboard';
-        else window.location.href = (window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?token=' + encodeURIComponent(data.access_token);
+        if (data.user.role === 'physician') window.location.replace('/dashboard');
+        else window.location.replace((window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?token=' + encodeURIComponent(data.access_token));
       } else {
         // data.error may be a zod flatten OBJECT (invalid email / short password) — assigning it to
         // textContent shows "[object Object]". Pull a readable string out.

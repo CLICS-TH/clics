@@ -15,6 +15,16 @@ function redirectToLogin(): void {
   window.location.href = '/login';
 }
 
+// Best-effort server-side revoke on Sign out. keepalive lets it finish after the page navigates
+// away, and every failure is swallowed: a slow or broken backend must never keep the session.
+export function revokeSession(token: string | null): void {
+  if (!token) return;
+  try {
+    fetch(`${BASE}/auth/logout`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, keepalive: true })
+      .catch(() => {});
+  } catch {}
+}
+
 // `timeoutMs` is opt-in (most calls are short). When set, the request is aborted at that point and
 // resolves with { error, code: 'timeout' } — still an envelope, never a rejection. An abort does NOT
 // mean the server stopped: the backend may finish and store the work after the client gave up, so a

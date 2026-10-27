@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { ClicsLogo } from '@/components/ClicsLogo';
 import { PORTAL } from '@/lib/portal';
+import { clearSession } from '@/lib/auth';
 
 // The Portal's sign-in hands admin/auditor/superadmin sessions to this dashboard via
 // /login?token=<jwt>. Without a token, this page only forwards the visitor to the Portal.
@@ -34,11 +35,17 @@ function LoginGate() {
   // Read once at mount: stripping the token below re-syncs useSearchParams without it, and
   // re-running the effect on that would bounce a signing-in user to the Portal.
   const [token] = useState(() => params.get('token'));
-  const hasToken = !!token;
+  const [loggingOut] = useState(() => params.get('logout') === '1');
+  const hasToken = !!token && !loggingOut;
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (token) {
+    if (loggingOut) {
+      // The Portal's Sign out routes through here: its own storage is a different origin, and a
+      // session left on this one would let Forward reopen the dashboard signed in.
+      clearSession();
+      window.location.replace(PORTAL.login);
+    } else if (token) {
       // Drop ?token= from history so Back after Sign out cannot restore this session (#182).
       // Keep the entry's state so Next's router can still restore it.
       window.history.replaceState(window.history.state, '', '/login');
@@ -69,7 +76,7 @@ function LoginGate() {
       // No handoff token — send the visitor to the single sign-in portal.
       window.location.replace(PORTAL.login);
     }
-  }, [token, router]);
+  }, [token, loggingOut, router]);
 
   return (
     <div className="flex items-center justify-center min-h-dvh bg-background p-6">

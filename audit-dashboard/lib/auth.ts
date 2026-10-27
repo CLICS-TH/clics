@@ -38,3 +38,13 @@ export function getUser(): ClicsUser | null {
 export function canAudit(u?: Pick<ClicsUser, 'role' | 'can_audit'> | null): boolean {
   return !!u && (u.role === 'auditor' || (u.role === 'physician' && !!u.can_audit));
 }
+
+// Drops this origin's session but keeps the theme/view display prefs (mirror the Portal's
+// /login?logout=1 handler), so signing out doesn't reset a dark-mode user to light.
+export function clearSession(): void {
+  const theme = localStorage.getItem('clics_theme');
+  const view = localStorage.getItem('clics_view');
+  localStorage.clear();
+  if (theme) localStorage.setItem('clics_theme', theme);
+  if (view) localStorage.setItem('clics_view', view);
+}

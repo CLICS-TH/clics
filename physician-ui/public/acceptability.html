@@ -42,13 +42,9 @@
   <script src="/js/icons.js"></script>
   <script src="/js/boot.js" defer></script>
   <script>
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await api.logout();
-      const t = localStorage.getItem('clics_theme'), v = localStorage.getItem('clics_view');
-      localStorage.clear();
-      if (t) localStorage.setItem('clics_theme', t);
-      if (v) localStorage.setItem('clics_view', v);
-      window.location.href = '/login';
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      clicsSignOut();
     });
 
     const $ = (id) => document.getElementById(id);

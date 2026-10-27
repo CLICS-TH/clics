@@ -18,20 +18,40 @@ function clearChatTurnState() {
 }
 window.clearChatTurnState = clearChatTurnState;
 
-// Display prefs survive the wipe (mirror the portal's ?logout=1 handler): an expired token
-// shouldn't reset a dark-mode user to light.
-function expireSession(msg = 'เซสชันหมดอายุ — กรุณาเข้าสู่ระบบอีกครั้ง / Session expired — please sign in again.') {
+// Display prefs (theme, view, manual language) survive the wipe, mirroring the portal's ?logout=1
+// handler: ending a session shouldn't reset a dark-mode user to light.
+function clearPortalSession() {
   clearChatTurnState();
-  try { sessionStorage.setItem('clics_auth_msg', msg); } catch {}
   try {
-    const t = localStorage.getItem('clics_theme'), v = localStorage.getItem('clics_view');
+    const keep = ['clics_theme', 'clics_view', 'clics_manual_lang']
+      .map(k => [k, localStorage.getItem(k)]).filter(([, v]) => v);
     localStorage.clear();
-    if (t) localStorage.setItem('clics_theme', t);
-    if (v) localStorage.setItem('clics_view', v);
+    keep.forEach(([k, v]) => localStorage.setItem(k, v));
   } catch {}
+}
+
+function expireSession(msg = 'เซสชันหมดอายุ — กรุณาเข้าสู่ระบบอีกครั้ง / Session expired — please sign in again.') {
+  try { sessionStorage.setItem('clics_auth_msg', msg); } catch {}
+  clearPortalSession();
   window.location.replace('/login');
 }
 window.expireSession = expireSession;
+
+// The one Sign out for every Portal page. It leaves through the dashboard's /login?logout=1, which
+// clears that origin's copy of the handed-over token and returns to the Portal's sign-in: this
+// origin cannot reach the dashboard's storage, and a session left there would let Forward reopen it.
+// The revoke starts before the wipe (apiFetch reads the token synchronously) and gets a short wait,
+// so a slow or failing backend never keeps the session.
+async function clicsSignOut() {
+  let revoke;
+  try { revoke = window.api.logout(); } catch {}
+  clearPortalSession();
+  await Promise.race([Promise.resolve(revoke).catch(() => {}), new Promise(r => setTimeout(r, 2000))]);
+  // A 401 on the revoke runs expireSession, whose "session expired" notice is wrong after a Sign out.
+  try { sessionStorage.removeItem('clics_auth_msg'); } catch {}
+  location.replace((window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?logout=1');
+}
+window.clicsSignOut = clicsSignOut;
 
 function timeoutSignal() {
   try { return AbortSignal.timeout(REQUEST_TIMEOUT_MS); } catch { return undefined; } // older browsers: no timeout

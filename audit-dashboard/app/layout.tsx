@@ -5,6 +5,7 @@ import { THEME_BOOT } from "@/lib/theme";
 import { ViewportProvider } from "@/components/ViewportProvider";
 import { AppShell } from "@/components/AppShell";
 import { Overlays } from "@/components/Overlays";
+import { AuthGuard } from "@/components/AuthGuard";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -140,6 +141,7 @@ export default function RootLayout({
               "}catch(e){}})();",
           }}
         />
+        <AuthGuard />
         <ThemeProvider>
           <ViewportProvider>
             <AppShell>
