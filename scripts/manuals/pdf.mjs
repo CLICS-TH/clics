@@ -33,7 +33,7 @@ const PORTAL = join(ROOT, 'physician-ui/public');
 // is the one place that has all of them.
 const IMG_SRC = join(ROOT, 'docs/manuals/source/img');
 const OUT = join(ROOT, 'docs/manuals');
-const MIME = { '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg' };
+const MIME = { '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.woff2': 'font/woff2' };
 
 const TITLES = {
   physician: { th: 'คู่มือแพทย์ผู้ใช้งาน', en: 'Physician user manual' },
@@ -62,9 +62,7 @@ function printPage(name, lang, sections) {
 <head>
   <meta charset="UTF-8" />
   <title>CLICS — ${esc(TITLES[name][lang])}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/fonts.css" />
   <link rel="stylesheet" href="/css/main.css" />
   <link rel="stylesheet" href="/css/guide.css" />
 </head>

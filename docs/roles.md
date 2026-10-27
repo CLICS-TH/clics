@@ -36,14 +36,14 @@ A council has **specialties** (`specialties` table, `council_id` FK; the 15 Roya
 
 ## Post-login routing (which app + landing)
 
-Login happens on **either** front-end. The physician portal routes non-physicians to the dashboard (token hand-off); the dashboard routes every role to a shared role-aware `/home` landing.
+Everyone signs in at the physician portal's `/login` (Google or email+password). The portal routes non-physicians to the dashboard with a token hand-off (`/login?token=`); the dashboard's `/login` only consumes that token, and a bare visit redirects to the portal's `/login`. The dashboard then routes every staff role to a shared role-aware `/home` landing.
 
 | Role | Entry | Lands on |
 |------|-------|----------|
-| A Superadmin | dashboard `/login` | dashboard `/home` (role cards) → ICC / Users / LPDP |
-| B Admin | dashboard `/login` | dashboard `/home` → PLEs / QA Queue / Stats |
+| A Superadmin | physician-ui `/login` → dashboard hand-off | dashboard `/home` (role cards) → ICC / Users / LPDP |
+| B Admin | physician-ui `/login` → dashboard hand-off | dashboard `/home` → PLEs / QA Queue / Stats |
 | C Physician | physician-ui `/login` | physician-ui `/dashboard` |
-| D Auditor | dashboard `/login` | dashboard `/home` → scoring Queue |
+| D Auditor | physician-ui `/login` → dashboard hand-off | dashboard `/home` → scoring Queue |
 
 **Nav is role-keyed** (`audit-dashboard/components/NavBar.tsx`): Admin sees PLEs / QA Queue / Stats only; Superadmin additionally sees Users + ICC; Auditor sees Queue only. Admin's auditor-assignment uses the admin-accessible `GET /admin/auditors`.
 

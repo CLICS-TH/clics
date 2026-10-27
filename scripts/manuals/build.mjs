@@ -38,9 +38,7 @@ const BOOT = `<script>(function(){var d=document.documentElement,p,dk;try{p=loca
 // chose English watches the Thai copy paint first and then vanish.
 const LANG_BOOT = `<script>(function(){try{var l=localStorage.getItem('clics_manual_lang');if(l==='en')document.documentElement.setAttribute('data-manual-lang','en');}catch(e){}})();</script>`;
 
-const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />`;
+const FONTS = `<link rel="stylesheet" href="/css/fonts.css" />`;
 
 // The five-item portal nav, byte-identical to dashboard.html:19-24 plus the manual itself.
 const NAV = `<nav>

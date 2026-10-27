@@ -11,7 +11,7 @@ Base-UI + recharts. Deployed to **Vercel**.
 
 ```bash
 npm install
-cp .env.example .env.local           # NEXT_PUBLIC_API_URL + NEXT_PUBLIC_SUPABASE_*
+cp .env.example .env.local           # NEXT_PUBLIC_API_URL, NEXT_PUBLIC_PORTAL_URL, NEXT_PUBLIC_SUPABASE_*
 npm run dev -- -p 3002               # port 3002 (the portal expects the dashboard here; next dev
                                      # defaults to 3000, which collides with physician-ui)
 npm run build && npm start           # production build / serve
@@ -20,6 +20,10 @@ npm run lint                         # eslint
 
 `NEXT_PUBLIC_*` is **inlined at build time** — after changing it (incl. on Vercel) you must rebuild, or
 the old value (e.g. `localhost:3001`) stays baked in and prod login silently hangs.
+
+`NEXT_PUBLIC_PORTAL_URL` is the Portal (physician-ui) origin that sign-in, Sign out and Return to physician
+go to. Left unset it falls back to the prod Portal (`https://physician-ui.vercel.app`), so a local stack
+without it signs you out to prod. Set it to `http://localhost:3000` locally.
 
 ## Layout
 

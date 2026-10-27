@@ -18,6 +18,21 @@ function clearChatTurnState() {
 }
 window.clearChatTurnState = clearChatTurnState;
 
+// Display prefs survive the wipe (mirror the portal's ?logout=1 handler): an expired token
+// shouldn't reset a dark-mode user to light.
+function expireSession(msg = 'เซสชันหมดอายุ — กรุณาเข้าสู่ระบบอีกครั้ง / Session expired — please sign in again.') {
+  clearChatTurnState();
+  try { sessionStorage.setItem('clics_auth_msg', msg); } catch {}
+  try {
+    const t = localStorage.getItem('clics_theme'), v = localStorage.getItem('clics_view');
+    localStorage.clear();
+    if (t) localStorage.setItem('clics_theme', t);
+    if (v) localStorage.setItem('clics_view', v);
+  } catch {}
+  window.location.replace('/login');
+}
+window.expireSession = expireSession;
+
 function timeoutSignal() {
   try { return AbortSignal.timeout(REQUEST_TIMEOUT_MS); } catch { return undefined; } // older browsers: no timeout
 }
@@ -48,17 +63,7 @@ async function apiFetch(path, options = {}) {
   // Session-expiry handling — ONLY when a token was attached. An unauthenticated 401
   // (e.g. a wrong password on /auth/login) must fall through so the page shows the
   // error inline instead of bouncing through the "session expired" redirect.
-  if (res.status === 401 && token) {
-    clearChatTurnState();
-    try { sessionStorage.setItem('clics_auth_msg', 'เซสชันหมดอายุ — กรุณาเข้าสู่ระบบอีกครั้ง / Session expired — please sign in again.'); } catch {}
-    // Preserve display prefs across the session-expiry wipe (mirror the portal's ?logout=1 handler) —
-    // a dark-mode user shouldn't get reset to light just because their token expired.
-    const t = localStorage.getItem('clics_theme'), v = localStorage.getItem('clics_view');
-    localStorage.clear();
-    if (t) localStorage.setItem('clics_theme', t);
-    if (v) localStorage.setItem('clics_view', v);
-    window.location.href = '/login'; return;
-  }
+  if (res.status === 401 && token) { expireSession(); return; }
   if (res.status === 204) return null;
   // A streamed reply (server-sent events): pieces go to onEvent, and the result is the final `done`
   // event's body — the same object a plain JSON answer would have been.
