@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="th" data-public>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Browser chrome follows the OS; js/boot.js and the snippet below pin both to the chosen theme when the reader overrides it. -->
+  <meta name="theme-color" content="#faf9f5" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#181715" media="(prefers-color-scheme: dark)" />
+  <title>CLICS — เข้าสู่ระบบ</title>
+  <meta name="description" content="CLICS — เปลี่ยนบทสนทนาทางคลินิกกับ AI ให้เป็นเครดิตการเรียนรู้ต่อเนื่องที่ตรวจสอบได้ · Case-based Learning Intelligence Credit System" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <!-- Logout endpoint: the dashboard (a different origin) sends staff to ?logout=1 (on / or here) to
+       clear the PORTAL-origin token too — otherwise autoForward below would re-log them straight back in.
+       Runs FIRST, before any storage is read; keeps the theme/view display prefs across logout. -->
+  <script>(function(){try{if(location.search.indexOf('logout=1')!==-1){var t=localStorage.getItem('clics_theme'),v=localStorage.getItem('clics_view');localStorage.clear();sessionStorage.clear();if(t)localStorage.setItem('clics_theme',t);if(v)localStorage.setItem('clics_view',v);if(history.replaceState)history.replaceState(null,'',location.pathname);}}catch(e){}})();</script>
+  <script>(function(){try{var h=location.hash,s=location.search;if(h.indexOf('access_token')!==-1||h.indexOf('error_description')!==-1||s.indexOf('code=')!==-1){location.replace('/auth/callback'+s+h);}}catch(e){}})();</script>
+  <script>(function(){var d=document.documentElement,p,dk;try{p=localStorage.getItem('clics_theme')}catch(e){}if(p!=='light'&&p!=='dark')p='system';d.setAttribute('data-theme-pref',p);try{dk=p==='dark'||(p==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);if(dk)d.setAttribute('data-theme','dark');if(p!=='system'){var m=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<m.length;i++)m[i].setAttribute('content',dk?'#181715':'#faf9f5');}var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/');}catch(e){}})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+Thai:wght@500;600&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    /* Hero grid: stacked single column is the DEFAULT (what data-mobile and 320–1023px get);
+       two-column is the ≥1024px enhancement, guarded so forced-mobile view stays stacked. */
+    .login-hero {
+      display: grid; gap: 26px; width: 100%; max-width: 420px;
+      padding: 76px 16px 36px; /* top inset clears the floating theme/view toggle cluster */
+      grid-template-areas: "brand" "card" "points" "foot";
+    }
+    .hero-brand { grid-area: brand; text-align: center; }
+    .hero-brand h1 { font-size: clamp(38px, 4.5vw, 52px); font-weight: 600; color: var(--coral); font-family: var(--font-display); letter-spacing: -0.02em; line-height: 1.05; }
+    .hero-brand .logo-sub { color: var(--muted); font-size: 13px; margin-top: 8px; }
+    .hero-badge { margin-top: 14px; }
+    .login-box { grid-area: card; width: 100%; }
+    /* Ground the form: a near-invisible 1px border on cream makes it float — add soft elevation. */
+    .login-box .card { box-shadow: 0 6px 26px rgba(20,20,19,0.08); }
+    .hero-points { grid-area: points; }
+    .hero-lede { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 600; color: var(--ink); line-height: 1.4; }
+    .hero-lede-en { display: block; font-family: var(--font-body); font-size: 14px; font-weight: 400; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+    .hero-bullets { list-style: none; margin-top: 18px; display: grid; gap: 14px; }
+    .hero-bullets li { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; color: var(--body-color); line-height: 1.55; }
+    .hero-bullets svg { flex: none; width: 20px; height: 20px; color: var(--coral-active); margin-top: 2px; }
+    .trust-foot { grid-area: foot; text-align: center; }
+    .trust-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .trust-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border: 1px solid var(--hairline); background: var(--surface-soft); border-radius: var(--r-pill); font-size: 12.5px; color: var(--muted); }
+    .trust-chip svg { width: 13px; height: 13px; }
+    /* Routing detail for staff — demoted to a quiet footnote, off the physician's first impression. */
+    .login-foot { text-align: center; font-size: 12px; color: var(--muted-soft); margin-top: 14px; line-height: 1.5; }
+    /* --muted-soft on the dark canvas is 5.34:1 (passes AA at 12px); the dark override still lifts the footnote to --muted (6.62:1) for headroom on a 12px line. */
+    :root[data-theme="dark"] .login-foot { color: var(--muted); }
+    @media (min-width: 1024px) {
+      html:not([data-mobile]) .login-hero {
+        max-width: 1060px; column-gap: clamp(48px, 6vw, 96px); align-items: center;
+        grid-template-columns: minmax(0, 1fr) 420px;
+        grid-template-areas: "brand card" "points card" "foot foot";
+      }
+      html:not([data-mobile]) .hero-brand, html:not([data-mobile]) .hero-points { text-align: left; }
+      html:not([data-mobile]) .logo-ecg { margin-left: 0; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .hero-brand { animation: clics-rise .6s ease both; }
+      .hero-points { animation: clics-rise .6s ease .08s both; }
+      .trust-foot { animation: clics-rise .6s ease .14s both; }
+    }
+  </style>
+</head>
+<body>
+  <main class="login-hero">
+    <div class="hero-brand">
+      <h1>CLICS</h1>
+      <!-- CANONICAL CLICS ECG mark — master copy; forgot/reset/invite/auth-callback carry
+           line-only duplicates (no idle beat). Geometry-only SVG: survives fonts-blocked renders. -->
+      <svg class="logo-ecg" viewBox="0 0 220 40" width="220" height="40" fill="none" aria-hidden="true" focusable="false">
+        <path class="ecg-line" pathLength="100" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M2 28 H58 C62 28 63 23.5 66 23.5 C69 23.5 70 28 74 28 H84 L89 34 L96 6 L102 33 L106 28 H118 C122 28 124 20.5 128 20.5 C132 20.5 134 28 138 28 H218"/>
+        <path class="ecg-beat" pathLength="100" stroke="var(--coral)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+              d="M84 28 L89 34 L96 6 L102 33 L106 28"/>
+      </svg>
+      <p class="logo-sub">Case-based Learning Intelligence Credit System</p>
+      <div class="hero-badge"><span class="role-badge">แพทย์อาสา · Physician Portal</span></div>
+    </div>
+
+    <div class="login-box">
+      <div class="card">
+        <form id="loginForm" novalidate>
+          <div class="form-group">
+            <label for="email">อีเมล<span class="bi-en">Email</span></label>
+            <input type="email" id="email" placeholder="doctor@hospital.th" autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label for="password">รหัสผ่าน<span class="bi-en">Password</span></label>
+            <div style="position:relative">
+              <input type="password" id="password" autocomplete="current-password" style="padding-right:44px" />
+              <button type="button" class="pw-toggle" aria-label="แสดงรหัสผ่าน / Show password" onclick="var i=document.getElementById('password');var s=i.type==='password';i.type=s?'text':'password';this.classList.toggle('pw-on',s)"><svg class="pw-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="pw-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg></button>
+            </div>
+          </div>
+          <div id="error" class="error-msg" role="alert" aria-live="assertive" style="display:none"></div>
+          <button type="submit" class="btn btn-primary" style="width:100%" id="loginBtn">เข้าสู่ระบบ<span class="bi-en">Login</span></button>
+        </form>
+
+        <p class="auth-links" style="margin-top:12px">
+          <a href="/forgot">ลืมรหัสผ่าน?<span class="bi-en">Forgot password?</span></a>
+        </p>
+
+        <!-- Google self-service sign-up / sign-in (shown only when Supabase OAuth is configured) -->
+        <div id="googleWrap" style="display:none">
+          <div class="auth-divider">ยังไม่มีบัญชี?<span class="bi-en">New here?</span></div>
+          <div class="auth-oauth">
+            <button type="button" class="btn btn-ghost" style="width:100%" id="googleBtn"><svg class="oauth-g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> เข้าสู่ระบบด้วย Google / Sign in with Google</button>
+          </div>
+        </div>
+
+        <p class="auth-links">
+          <a href="/guest-chat">ลองใช้แบบผู้เยี่ยมชม<span class="bi-en">Try as guest</span></a>
+        </p>
+      </div>
+    </div>
+
+    <div class="hero-points">
+      <p class="hero-lede">เปลี่ยนบทสนทนาทางคลินิกกับ AI ให้เป็นเครดิตการเรียนรู้ต่อเนื่อง
+        <span class="hero-lede-en">Turn clinical conversations with AI into verified continuing-education credit.</span>
+      </p>
+      <ul class="hero-bullets">
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+          <span class="bi-stack">สนทนาเคสผู้ป่วยกับ AI แล้วรับเครดิต PLE<span class="bi-en">Discuss patient cases with AI, earn PLE credit</span></span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+          <span class="bi-stack">ทุกเครดิตผ่านการตรวจประเมินโดยผู้ตรวจอิสระ<span class="bi-en">Every credit is independently audited</span></span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+          <span class="bi-stack">ข้อมูลผู้ป่วยไม่ออกจากระบบภายในของสภาวิชาชีพ<span class="bi-en">Patient data never leaves the council's systems</span></span>
+        </li>
+      </ul>
+    </div>
+
+    <footer class="trust-foot">
+      <div class="trust-chips">
+        <span class="trust-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>ติดตั้งภายในองค์กร · On-premise</span>
+        <span class="trust-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>PDPA</span>
+        <span class="trust-chip">Pilot 2026</span>
+      </div>
+      <p class="login-foot">ผู้ดูแลระบบและผู้ตรวจประเมินเข้าสู่ระบบที่นี่เช่นกัน · Admins & auditors sign in here too.</p>
+    </footer>
+  </main>
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
+  <script type="module" src="/js/supabase-client.js"></script>
+  <script src="/js/boot.js" defer></script>
+  <script>
+    // Auto-forward signed-in users BY ROLE — a stored admin/auditor/superadmin token must go to
+    // the audit-dashboard handoff, not /dashboard (whose physician guard would bounce it back
+    // here, reading as "logged in but thrown out"). Never forward when the URL carries an OAuth
+    // return (hash tokens / ?code=): the head forwarder has a replace() to /auth/callback
+    // pending, and this href assignment would win the race and eat the sign-in.
+    (function autoForward() {
+      var tok = localStorage.getItem('clics_token');
+      if (!tok || location.hash || location.search.indexOf('code=') !== -1) return;
+
+      // Decode the JWT expiry. An EXPIRED / unparseable token must be DISCARDED, never forwarded —
+      // forwarding a dead staff token to the dashboard (which 401s and bounces back here) caused an
+      // infinite refresh loop, because localStorage is per-origin so our copy was never cleared.
+      function jwtExp(t) {
+        try { var p = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); var pad = p.length % 4; if (pad) p += '===='.slice(pad); return JSON.parse(atob(p)).exp; }
+        catch (e) { return null; }
+      }
+      var exp = jwtExp(tok);
+      if (!exp || exp <= Math.floor(Date.now() / 1000)) {
+        try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); sessionStorage.removeItem('clics_handoff'); } catch (e) {}
+        return; // fall through to the login form
+      }
+      // Loop guard: if we forwarded to the dashboard handoff <6s ago and we're already back here,
+      // the dashboard rejected the token (revoked / wrong signature) — discard it rather than
+      // ping-pong forever.
+      var last = parseInt(sessionStorage.getItem('clics_handoff') || '0', 10);
+      if (last && Date.now() - last < 6000) {
+        try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); sessionStorage.removeItem('clics_handoff'); } catch (e) {}
+        return;
+      }
+
+      var fwdUser = null;
+      try { fwdUser = JSON.parse(localStorage.getItem('clics_user') || 'null'); } catch (e) {}
+      if (!fwdUser || fwdUser.role === 'physician') {
+        window.location.href = '/dashboard'; // missing user → guardRole heals the state there
+      } else {
+        try { sessionStorage.setItem('clics_handoff', String(Date.now())); } catch (e) {}
+        window.location.href = (window.CLICS_DASHBOARD_URL || 'http://localhost:3002')
+          + '/login?token=' + encodeURIComponent(tok);
+      }
+    })();
+    // Surface why the user was just signed out (written by auth.js / api.js before redirecting).
+    try {
+      var authMsg = sessionStorage.getItem('clics_auth_msg');
+      if (authMsg) {
+        sessionStorage.removeItem('clics_auth_msg');
+        var authErrEl = document.getElementById('error');
+        authErrEl.textContent = authMsg;
+        authErrEl.style.display = 'block';
+      }
+    } catch (e) {}
+
+    // Wire the Google button once we know whether Supabase OAuth is configured.
+    (function () {
+      function setup() {
+        if (!window.sbClient) return; // not configured → leave Google hidden
+        document.getElementById('googleWrap').style.display = '';
+        document.getElementById('googleBtn').addEventListener('click', async () => {
+          localStorage.setItem('clics_oauth_flow', JSON.stringify({ kind: 'signup' }));
+          const redirectTo = location.origin + '/auth/callback';
+          const { error } = await window.sbClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
+          if (error) {
+            const errEl = document.getElementById('error');
+            errEl.textContent = error.message || 'ไม่สามารถเริ่ม Google ได้ / Could not start Google sign-in.';
+            errEl.style.display = 'block';
+          }
+        });
+      }
+      if (typeof window.CLICS_SUPABASE_CONFIGURED === 'boolean') setup();
+      else window.addEventListener('clics:sbready', setup, { once: true });
+    })();
+
+    // Restore the bilingual button label with DOM methods (static strings only — avoids innerHTML).
+    function setLoginBtnLabel(btn) {
+      btn.textContent = 'เข้าสู่ระบบ';
+      var en = document.createElement('span');
+      en.className = 'bi-en';
+      en.textContent = 'Login';
+      btn.appendChild(en);
+    }
+    // Native form submit: covers the button click AND Enter from either field, and the real <form>
+    // (with autocomplete attributes) lets password managers offer to save credentials.
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errEl = document.getElementById('error');
+      errEl.style.display = 'none';
+      if (!email || !password) {
+        errEl.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน / Please enter your email and password.';
+        errEl.style.display = 'block';
+        return;
+      }
+      const btn = document.getElementById('loginBtn');
+      btn.textContent = 'กำลังเข้าสู่ระบบ... / Signing in…'; btn.disabled = true;
+      const data = await api.login(email, password);
+      setLoginBtnLabel(btn); btn.disabled = false;
+      if (data?.access_token) {
+        localStorage.setItem('clics_token', data.access_token);
+        localStorage.setItem('clics_user', JSON.stringify(data.user));
+        if (data.user.role === 'physician') window.location.href = '/dashboard';
+        else window.location.href = (window.CLICS_DASHBOARD_URL || 'http://localhost:3002') + '/login?token=' + encodeURIComponent(data.access_token);
+      } else {
+        // data.error may be a zod flatten OBJECT (invalid email / short password) — assigning it to
+        // textContent shows "[object Object]". Pull a readable string out.
+        errEl.textContent = errText(data?.error);
+        errEl.style.display = 'block';
+      }
+    });
+    // Turn a zod flatten ({fieldErrors, formErrors}) or a string into a displayable message.
+    function errText(e) {
+      if (typeof e === 'string') return e;
+      if (e && typeof e === 'object') {
+        const first = Object.values(e.fieldErrors || {}).flat()[0] || (e.formErrors || [])[0];
+        if (first) return first;
+      }
+      return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง / Invalid email or password.';
+    }
+  </script>
+</body>
+</html>

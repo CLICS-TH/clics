@@ -177,7 +177,7 @@ function startServer() {
 // stays empty/loading — the layout is what we overflow-check). /ple-chat needs a real ?id + backend so
 // it can't render hermetically (it redirects to /dashboard); it's audited live separately.
 const PUI_PAGES = [
-  { path: '/', label: 'login' },
+  { path: '/login', label: 'login' },
   { path: '/forgot', label: 'forgot' },
   { path: '/reset', label: 'reset' },
   { path: '/invite', label: 'invite' },

@@ -17,7 +17,9 @@ when on localhost, and the prod URLs otherwise.
 
 ## Pages (`public/*.html`)
 
-`index.html` (login) · `dashboard.html` (CLE list + folders + usage meter + consent gate) ·
+`login.html` (sign-in, served at `/login`) · `index.html` (thin root redirect, see
+[ADR 0003](../docs/adr/0003-portal-root-keeps-auth-rescue.md)) ·
+`dashboard.html` (CLE list + folders + usage meter + consent gate) ·
 `ple-new.html` (start a CLE) · `ple-chat.html` (chat) · `ple-result.html` (PIS-7 result) ·
 `lpdp.html` (longitudinal trend) · `guest-chat.html` (anonymous trial) · `invite.html` (accept invite) ·
 `forgot.html` / `reset.html` (password reset).

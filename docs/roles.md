@@ -42,7 +42,7 @@ Login happens on **either** front-end. The physician portal routes non-physician
 |------|-------|----------|
 | A Superadmin | dashboard `/login` | dashboard `/home` (role cards) → ICC / Users / LPDP |
 | B Admin | dashboard `/login` | dashboard `/home` → PLEs / QA Queue / Stats |
-| C Physician | physician-ui `/` | physician-ui `/dashboard` |
+| C Physician | physician-ui `/login` | physician-ui `/dashboard` |
 | D Auditor | dashboard `/login` | dashboard `/home` → scoring Queue |
 
 **Nav is role-keyed** (`audit-dashboard/components/NavBar.tsx`): Admin sees PLEs / QA Queue / Stats only; Superadmin additionally sees Users + ICC; Auditor sees Queue only. Admin's auditor-assignment uses the admin-accessible `GET /admin/auditors`.
