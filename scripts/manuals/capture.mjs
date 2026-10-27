@@ -199,16 +199,21 @@ async function capture(browser, base, frame, variant = { view: VIEW, file: join(
       // getChart() exists from the first animation frame; stop() + update('none') draws the final
       // state now, and the pixel check proves it is not a blank canvas.
       await page.waitForFunction((sel) => window.Chart && Chart.getChart(document.querySelector(sel)), frame.chart, { timeout: 15000 });
-      const drawn = await page.evaluate((sel) => {
+      const chartProblem = await page.evaluate((sel) => {
         const c = document.querySelector(sel); const ch = Chart.getChart(c); ch.stop(); ch.update('none');
         // Grid lines alone paint pixels, so an empty dataset must be refused separately.
         const data = ch.data.datasets[0]?.data ?? [];
-        if (!data.length || !data.every(Number.isFinite)) return false;
+        if (!data.length || !data.every(Number.isFinite)) return 'the chart has no data';
+        // A label Chart.js placed past the canvas edge is cut off in the frame ("eflective Synthesis").
+        const items = ch.scales.r?._pointLabelItems;
+        if (!items?.length) return 'the radar exposes no point labels to measure';
+        const out = items.filter((b) => b.left < 0 || b.top < 0 || b.right > ch.width || b.bottom > ch.height);
+        if (out.length) return `${out.length} point label(s) fall outside the canvas`;
         const px = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
-        for (let i = 3; i < px.length; i += 4) if (px[i]) return true;
-        return false;
+        for (let i = 3; i < px.length; i += 4) if (px[i]) return null;
+        return 'the chart canvas is blank';
       }, frame.chart);
-      if (!drawn) { problems.push(`${label}: the chart canvas is blank`); return; }
+      if (chartProblem) { problems.push(`${label}: ${chartProblem}`); return; }
     }
     // Thai renders as tofu if the shot beats the webfont — the same line pdf.mjs calls its most
     // important. Motion is frozen so a mid-animation frame is not what gets committed.

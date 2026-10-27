@@ -60,10 +60,13 @@
       if (!el) return;
       if (radarChart) radarChart.destroy();
       const coral = cssVar('--coral'), grid = cssVar('--hairline'), text = cssVar('--muted');
+      // At phone width one-line labels overrun the canvas edge ("eflective Synthesis"), and Chart.js's
+      // fit does not pull them back in, so each label wraps to two lines there.
+      const narrow = document.documentElement.hasAttribute('data-mobile');
       radarChart = new Chart(el, {
         type: 'radar',
         data: {
-          labels: DOMAIN_LABELS.map(l => l.split(' ').slice(0,2).join(' ')),
+          labels: DOMAIN_LABELS.map(l => { const w = l.split(' ').slice(0,2); return narrow ? w : w.join(' '); }),
           datasets: [{ label: 'PIS-7 Score', data: lastScores, backgroundColor: coral + '26', borderColor: coral, pointBackgroundColor: coral }],
         },
         options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 5, ticks: { stepSize: 1, color: text, backdropColor: 'transparent' }, grid: { color: grid }, angleLines: { color: grid }, pointLabels: { color: text } } }, plugins: { legend: { display: false } } },
