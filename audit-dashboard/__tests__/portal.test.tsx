@@ -49,5 +49,5 @@ it('Sign out', () => {
 it('Return to Physician', () => {
   render(<NavBar />);
   fireEvent.click(screen.getByRole('button', { name: /Return to Physician/ }));
-  expect(window.location.href).toBe('https://portal.example.test/dashboard');
+  expect(replace).toHaveBeenCalledWith('https://portal.example.test/dashboard');
 });
