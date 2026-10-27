@@ -35,6 +35,14 @@ const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css
 const USERS = {
   physician: { id: 'u-phys', email: 'phys@ci.test', role: 'physician', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'แพทย์ ทดสอบ', full_name_en: 'CI Physician' },
   admin: { id: 'u-admin', email: 'admin@ci.test', role: 'admin', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'ผู้ดูแล ทดสอบ', full_name_en: 'CI Admin', council_id: 'c1' },
+  alpha: { id: 'u-alpha', email: 'alpha@ci.test', role: 'physician', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'ALPHA', full_name_en: 'ALPHA' },
+  bravo: { id: 'u-bravo', email: 'bravo@ci.test', role: 'physician', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'BRAVO', full_name_en: 'BRAVO' },
+  dualRole: { id: 'u-dual', email: 'dual@ci.test', role: 'physician', can_audit: true, consented_at: '2026-01-01T00:00:00Z', full_name_th: 'แพทย์ ผู้ตรวจ', full_name_en: 'CI Dual Role' },
+};
+// Bank details only their owner may see; the cross-user scenario looks for the marker on screen.
+const PAYMENT_INFO = {
+  'u-alpha': { account_name: 'ALPHA', bank: 'ALPHA-BANK', account_no: '1111111111', promptpay: '' },
+  'u-bravo': { account_name: 'BRAVO', bank: 'BRAVO-BANK', account_no: '2222222222', promptpay: '' },
 };
 
 const b64url = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
@@ -93,12 +101,13 @@ function apiServer() {
       return u ? session(u) : json(401, { error: 'Invalid email or password' });
     }
     if (path === '/auth/oauth/google/complete') return session(USERS.physician);
-    if (path === '/auth/me') {
-      const u = userOf(req.headers.authorization || '');
-      return u ? json(200, { user: u }) : json(401, { error: 'unauthenticated' });
-    }
     if (path === '/auth/logout') return json(200, { ok: true });
-    if (req.method === 'GET' && /^\/(ples|ples\/folders)$/.test(path)) return json(200, []);
+    const u = userOf(req.headers.authorization || '');
+    if (!u) return json(401, { error: 'unauthenticated' });
+    if (path === '/auth/me') return json(200, { user: u });
+    if (path === '/auth/payment-info') return json(200, { payment_info: PAYMENT_INFO[u.id] || null });
+    if (path === '/auth/request-auditor') return json(200, { can_audit: !!u.can_audit });
+    if (req.method === 'GET' && /^\/(ples|ples\/folders|auditor\/queue)$/.test(path)) return json(200, []);
     return json(200, {});
   });
 }
@@ -110,12 +119,15 @@ async function supabaseModule() {
 }
 
 // GoTrue's endpoints, enough for setSession (GET /user), updateUser (PUT /user) and signOut.
+// Each PUT /user body is kept, so a scenario can check what the page actually sent.
+const gotrueUpdates = [];
 function gotrue(route) {
   const req = route.request();
   const { pathname } = new URL(req.url());
   const user = { id: 'sb-user', aud: 'authenticated', role: 'authenticated', email: 'phys@ci.test', app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' };
   const headers = { 'access-control-allow-origin': PORTAL, 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
   if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
+  if (pathname === '/auth/v1/user' && req.method() === 'PUT') gotrueUpdates.push(req.postDataJSON());
   if (pathname === '/auth/v1/user') return route.fulfill({ status: 200, headers, json: user });
   if (pathname === '/auth/v1/logout') return route.fulfill({ status: 204, headers });
   return route.fulfill({ status: 404, headers, json: { error: 'not stubbed' } });
@@ -158,20 +170,30 @@ function isPrivate(href) {
   return url.origin === DASH && url.pathname !== '/login';
 }
 
+// Whether the page shows the marker as text or as a form value.
+function shows(page, marker) {
+  return page.evaluate((m) => document.body.innerText.includes(m)
+    || [...document.querySelectorAll('input, select, textarea')].some((el) => el.value.includes(m)), marker).catch(() => false);
+}
+
 // Presses Back once per entry behind the current one, checking every step. A working guard
 // bounces a restored private page back to /login, so the URL alone cannot end the walk.
 async function walkBack(t, page, ctx, label) {
+  await walk(page, 'Back', (step) => assertSignedOut(t, page, ctx, `${label} ${step}`));
+}
+
+async function walk(page, direction, check) {
   const entries = await page.evaluate(() => history.length);
   for (let i = 1; i < entries; i++) {
-    await page.goBack({ waitUntil: 'commit' }).catch(() => null);
+    await (direction === 'Back' ? page.goBack({ waitUntil: 'commit' }) : page.goForward({ waitUntil: 'commit' })).catch(() => null);
     await settle(page);
-    if (page.url() === 'about:blank') break;
-    await assertSignedOut(t, page, ctx, `${label} Back #${i}`);
+    if (page.url() === 'about:blank') { if (direction === 'Back') break; continue; }
+    await check(`${direction} #${i}`);
   }
 }
 
-async function emailSignIn(page, user) {
-  await page.goto(`${PORTAL}/login`);
+async function emailSignIn(page, user, { open = true } = {}) {
+  if (open) await page.goto(`${PORTAL}/login`);
   await page.fill('#email', user.email);
   await page.fill('#password', 'ci-password-1');
   await page.click('#loginBtn');
@@ -207,6 +229,68 @@ const SCENARIOS = [
       await settle(page);
       await assertSignedOut(t, page, ctx, 'after Sign out');
       await walkBack(t, page, ctx, 'deep');
+    },
+  },
+  {
+    name: 'physician A signs out, B signs in on the same tab, Back and Forward never show A',
+    privateRestore: true,
+    async run(t, page) {
+      await page.goto(`${PORTAL}/forgot`);
+      await emailSignIn(page, USERS.alpha);
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      await page.goto(`${PORTAL}/payment`);
+      await settle(page);
+      t.check(await shows(page, 'ALPHA-BANK'), 'setup: A\'s payment page never showed A\'s bank');
+      await page.goBack({ waitUntil: 'commit' });
+      await settle(page);
+      await page.click('#logoutBtn');
+      await page.waitForURL(`${PORTAL}/login`);
+      await settle(page);
+      await emailSignIn(page, USERS.bravo, { open: false });
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      const noAlpha = async (step) => {
+        await sleep(500);
+        t.check(!(await shows(page, 'ALPHA')), `${step}: A's data shown to B at ${page.url()}`);
+      };
+      await walk(page, 'Back', noAlpha);
+      await walk(page, 'Forward', noAlpha);
+    },
+  },
+  {
+    name: 'dual-role Handoff, Return to Physician, Portal Sign out, Back',
+    async run(t, page, ctx) {
+      await page.goto(`${PORTAL}/forgot`);
+      await emailSignIn(page, USERS.dualRole);
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      await page.getByRole('link', { name: /Auditor console/ }).click();
+      await page.waitForURL(`${DASH}/auditor/queue`);
+      await settle(page);
+      const menu = page.getByRole('button', { name: 'เมนู / Menu' });
+      if (await menu.isVisible()) await menu.click();
+      await page.getByRole('button', { name: /กลับสู่หน้าแพทย์/ }).click();
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      await page.click('#logoutBtn');
+      await page.waitForURL(`${PORTAL}/login`);
+      await settle(page);
+      await assertSignedOut(t, page, ctx, 'after Sign out');
+      await walkBack(t, page, ctx, 'dual-role');
+    },
+  },
+  {
+    name: 'Google sign-in, then Back from /dashboard skips /auth/callback',
+    async run(t, page) {
+      await page.goto(`${PORTAL}/forgot`);
+      await page.goto(`${PORTAL}/auth/callback#access_token=${fakeJwt(USERS.physician)}&refresh_token=ci-refresh&expires_in=3600&token_type=bearer`);
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      await page.goBack({ waitUntil: 'commit' });
+      await settle(page);
+      t.check(new URL(page.url()).pathname !== '/auth/callback', `Back after Google sign-in landed on ${page.url()}`);
+      t.check(await page.evaluate(() => !!localStorage.getItem('clics_token')), 'Back after Google sign-in dropped clics_token');
     },
   },
   {
@@ -264,12 +348,19 @@ const SCENARIOS = [
     name: 'root keeps the ?logout=1 handler and the OAuth rescue (ADR 0003)',
     async run(t, page, ctx) {
       await page.goto(`${PORTAL}/forgot`);
-      await page.evaluate(() => { localStorage.setItem('clics_token', 'x'); localStorage.setItem('clics_user', '{}'); localStorage.setItem('clics_theme', 'dark'); });
+      // A live session that /login would forward on, plus a supabase-js key /login never touches:
+      // only the root handler clears all of it.
+      await page.evaluate(([token, user]) => {
+        localStorage.setItem('clics_token', token);
+        localStorage.setItem('clics_user', user);
+        localStorage.setItem('sb-rgwnnexokstctugwtwub-auth-token', '{}');
+        localStorage.setItem('clics_theme', 'dark');
+      }, [fakeJwt(USERS.physician), JSON.stringify(USERS.physician)]);
       await page.goto(`${PORTAL}/?logout=1`);
       await settle(page);
-      const left = await page.evaluate(() => ({ token: localStorage.getItem('clics_token'), theme: localStorage.getItem('clics_theme') }));
-      t.check(left.token === null, '/?logout=1 left clics_token');
-      t.check(left.theme === 'dark', '/?logout=1 dropped the theme preference');
+      const left = await page.evaluate(() => Object.keys(localStorage));
+      t.check(left.every((k) => k === 'clics_theme' || k === 'clics_view'), `/?logout=1 left ${left.join(', ')}`);
+      t.check(left.includes('clics_theme'), '/?logout=1 dropped the theme preference');
       t.check(new URL(page.url()).pathname === '/login', `/?logout=1 ended on ${page.url()}`);
       const seen = [];
       page.on('framenavigated', (f) => { if (f === page.mainFrame()) seen.push(f.url()); });
@@ -290,6 +381,7 @@ const SCENARIOS = [
       await page.fill('#confirm', 'NewPassw0rd99');
       await page.click('#saveBtn');
       await page.locator('#successCard').waitFor({ state: 'visible', timeout: 10000 });
+      t.check(gotrueUpdates.at(-1)?.password === 'NewPassw0rd99', `GoTrue got ${JSON.stringify(gotrueUpdates.at(-1))}, not the new password`);
       await page.click('#successCard a[href="/login"]');
       await page.waitForURL(`${PORTAL}/login`);
       await settle(page);
