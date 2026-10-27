@@ -110,16 +110,7 @@
         headers: { Authorization: `Bearer ${localStorage.getItem('clics_token')}` }
       })
       .then(r => {
-        if (r.status === 401) {
-          try { sessionStorage.setItem('clics_auth_msg', 'เซสชันหมดอายุ — กรุณาเข้าสู่ระบบอีกครั้ง / Session expired — please sign in again.'); } catch (e) {}
-          // Preserve display prefs across the forced re-login (mirror js/api.js) — only the session dies.
-          const theme = localStorage.getItem('clics_theme'), view = localStorage.getItem('clics_view');
-          localStorage.clear();
-          if (theme) localStorage.setItem('clics_theme', theme);
-          if (view) localStorage.setItem('clics_view', view);
-          window.location.href = '/login';
-          throw new Error('auth');
-        }
+        if (r.status === 401) { endSession(); throw new Error('auth'); }
         if (!r.ok) throw new Error('http ' + r.status);
         return r.json();
       })

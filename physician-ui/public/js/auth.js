@@ -5,22 +5,13 @@ function getUser() {
   } catch { return null; }
 }
 
-// On guard failure we must HEAL the stored state, not just bounce: a stale clics_token with a
-// missing/corrupt clics_user otherwise ping-pongs forever between '/login' (whose token auto-forward
-// sends it back here) and the guarded page — nothing in that cycle ever clears the bad token.
+// A guard failure must clear the token, not just bounce. /login forwards an unexpired clics_token
+// to /dashboard when clics_user is a physician or is missing/corrupt; in the second case guardRole
+// fails there, so a token left in place loops forever. (/login itself discards expired tokens, and
+// staff tokens go to the dashboard handoff, which has its own 6 s guard.)
 // Throws to halt the calling page's script (the page is navigating away).
 function redirectToLogin(msg) {
-  try { sessionStorage.setItem('clics_auth_msg', msg); } catch {}
-  try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); } catch {}
-  // …and any unsettled chat-turn key (js/api.js clearChatTurnState): it belongs to the session that just ended.
-  try {
-    if (typeof window.clearChatTurnState === 'function') window.clearChatTurnState();
-    else for (let i = sessionStorage.length - 1; i >= 0; i--) {
-      const k = sessionStorage.key(i);
-      if (k && k.startsWith('clics_turn_')) sessionStorage.removeItem(k);
-    }
-  } catch {}
-  window.location.replace('/login');
+  window.endSession(msg);
   throw new Error('clics: redirecting to login');
 }
 
