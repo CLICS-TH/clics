@@ -52,7 +52,7 @@ async function captureScreenshots(browser) {
   const page = await ctx.newPage();
   try {
     try {
-      await page.goto(`${PORTAL}/`, { waitUntil: 'networkidle', timeout: 30000 });
+      await page.goto(`${PORTAL}/login`, { waitUntil: 'networkidle', timeout: 30000 });
       await page.waitForTimeout(1200);
       await page.screenshot({ path: join(IMG, 'login.png') });
       console.log('  ✓ login.png');
