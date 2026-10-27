@@ -33,6 +33,7 @@ asks to CME, `deploy/vm1/deploy.sh`, cutover and rollback) is [`deploy/vm1/READM
   cd audit-dashboard && vercel --prod --yes   # NEXT_PUBLIC_* is inlined at build time
   ```
   physician-ui is unaffected (uses hardcoded `public/js/config.js`).
+- **`NEXT_PUBLIC_PORTAL_URL`** is the Portal origin the audit-dashboard sends people to: a bare `/login` visit goes to `<portal>/login`, Logout to `<portal>/login?logout=1`, Return to Physician to `<portal>/dashboard`. Default `https://physician-ui.vercel.app`, no trailing slash. It is inlined at build time like `NEXT_PUBLIC_API_URL`, so a change on Vercel needs a rebuild.
 
 ## Required env vars
 
@@ -60,7 +61,7 @@ asks to CME, `deploy/vm1/deploy.sh`, cutover and rollback) is [`deploy/vm1/READM
   only while it is routed. Backend bills it at `LOCAL_TUTOR_INPUT_PER_M` / `_OUTPUT_PER_M` (default 0).
 - **backend, `/health/deep` queue verdict (2026-09-03, optional — defaults shown):** `HEALTH_PROBE_TIMEOUT_MS=2000`, `HEALTH_QUEUE_STUCK_S=900`, `HEALTH_QUEUE_STUCK_ETA_MULTIPLE=3`. The evaluation queue can now fail the verdict, so `/health/deep` answering 200 finally means the drain is claiming work. The stuck grace is `max(HEALTH_QUEUE_STUCK_S, predicted_wait × multiple)` where the prediction uses the same `eval_drain_concurrency` / `eval_p50_seconds` the physician's queue ETA uses — raise the multiple if a legitimate cohort backlog ever reads red.
 - **rimpl** (Railway): `INTERNAL_TOKEN` (must match backend byte-for-byte), `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `PORT=3003`. Local-model lanes (optional, defaults): `LOCAL_MAX_CONCURRENCY=2`, `LOCAL_INTERACTIVE_RESERVE=1`, `LOCAL_MAX_QUEUE_INTERACTIVE=4`, `LOCAL_MAX_QUEUE_BACKGROUND=2`, `RIMPL_BODY_LIMIT=2mb`. `RIMPL_CHAT_OPTIONAL_RETRY_CUTOFF_MS` (default `50000`): a language-only or evidence-only chat retry that would start later than this into the turn is skipped and the first reply is delivered. Keep it at about **half the backend's `RIMPL_CHAT_TIMEOUT_MS`** (50000 for the default 100000; about 75000 on the local stack, where `RIMPL_CHAT_TIMEOUT_MS=150000` per `docs/GATE0-DGX-RESULTS.md`), and change the two together. It applies to the **language retry even with `chat_evidence_marker` off**. `RIMPL_CHAT_DEEP_MAX_TOKENS` (default `RIMPL_CHAT_MAX_TOKENS` + 4000 = `8000`, never below the fast ceiling): the `max_tokens` of a chat turn the router serves deep with thinking on, since reasoning tokens count against it. Read only when `chat_router_enabled` = 1 and the chat provider can think. **Never set `PROVIDER_SETTINGS_SOURCE=env` in prod (rimpl refuses to boot); leave `CHAT_FAILOVER_PROVIDER` unset (CREC decision pending).**
-- **audit-dashboard** (Vercel): `NEXT_PUBLIC_API_URL`.
+- **audit-dashboard** (Vercel): `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_PORTAL_URL` (Portal origin, default `https://physician-ui.vercel.app`, no trailing slash).
 
 ## Seed the 4 role accounts (idempotent)
 

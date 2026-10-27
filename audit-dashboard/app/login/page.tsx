@@ -3,11 +3,10 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { ClicsLogo } from '@/components/ClicsLogo';
+import { PORTAL } from '@/lib/portal';
 
-// The physician-ui app is THE login portal for every role; its login screen hands
-// admin/auditor/superadmin sessions to this dashboard via /login?token=<jwt>.
-// Without a token, this page only forwards the visitor to that portal.
-const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL || 'https://physician-ui.vercel.app';
+// The Portal's sign-in hands admin/auditor/superadmin sessions to this dashboard via
+// /login?token=<jwt>. Without a token, this page only forwards the visitor to the Portal.
 
 interface ClicsUser { id: string; role: string; full_name_th: string; full_name_en: string; can_audit?: boolean; }
 
@@ -58,7 +57,7 @@ function LoginGate() {
         });
     } else {
       // No handoff token — send the visitor to the single sign-in portal.
-      window.location.replace(PORTAL_URL);
+      window.location.replace(PORTAL.login);
     }
   }, [params, router]);
 
@@ -74,7 +73,7 @@ function LoginGate() {
         {error ? (
           <>
             <p className="mt-1 text-sm text-danger">{error}</p>
-            <a href={PORTAL_URL} className="mt-3 inline-block text-sm text-link underline underline-offset-4">
+            <a href={PORTAL.login} className="mt-3 inline-block text-sm text-link underline underline-offset-4">
               กลับไปหน้าเข้าสู่ระบบ / Back to the sign-in portal
             </a>
           </>

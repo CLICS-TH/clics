@@ -24,7 +24,7 @@ the old value (e.g. `localhost:3001`) stays baked in and prod login silently han
 ## Layout
 
 - `app/` — App Router. `login/` (consumes the `?token=` handoff from the portal — a bare visit redirects
-  back to the portal), `home/`, `admin/` (`overview`, `cles`, `cles/[id]`, `flagged`, `invites`, `users`,
+  to the portal's `/login`), `home/`, `admin/` (`overview`, `cles`, `cles/[id]`, `flagged`, `invites`, `users`,
   `icc`, `lpdp`, `stats`), `auditor/` (`queue`, `cles/[id]`), `forgot/`, `reset/`. `globals.css` holds the
   Tailwind v4 `@theme` block + design tokens.
 - `components/` — `NavBar`, `Toggles` (theme/viewport), `AppShell`, `PageIntro`, `Footer`, `RoleBadge`,
