@@ -489,7 +489,7 @@ describe('physician-ui design-a11y: field border, focus ring, placeholder, error
     const dir = path.join(REPO, 'physician-ui', 'public');
     const pages = fs.readdirSync(dir).filter((f) => f.endsWith('.html')).map((f) => path.join(dir, f))
       .concat(path.join(dir, 'auth', 'callback.html'));
-    expect(pages.length).toBe(16);
+    expect(pages.length).toBe(17);
     const prefix = "p=localStorage.getItem('clics_theme')}catch(e){}if(p!=='light'&&p!=='dark')p='system';d.setAttribute('data-theme-pref',p);";
     for (const f of pages) {
       const html = fs.readFileSync(f, 'utf8');
