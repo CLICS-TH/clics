@@ -6,7 +6,7 @@ function getUser() {
 }
 
 // On guard failure we must HEAL the stored state, not just bounce: a stale clics_token with a
-// missing/corrupt clics_user otherwise ping-pongs forever between '/' (whose token auto-forward
+// missing/corrupt clics_user otherwise ping-pongs forever between '/login' (whose token auto-forward
 // sends it back here) and the guarded page — nothing in that cycle ever clears the bad token.
 // Throws to halt the calling page's script (the page is navigating away).
 function redirectToLogin(msg) {
@@ -20,7 +20,7 @@ function redirectToLogin(msg) {
       if (k && k.startsWith('clics_turn_')) sessionStorage.removeItem(k);
     }
   } catch {}
-  window.location.replace('/');
+  window.location.replace('/login');
   throw new Error('clics: redirecting to login');
 }
 
