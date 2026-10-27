@@ -17,6 +17,12 @@
  * on purpose (see lib/pii-gate.mjs DIRECT) — a manual that could not show a date would be useless.
  */
 
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { creditFor } = require('../../../backend/src/services/credit.js');
+const { compositeOf } = require('../../../rimpl/src/lib/composite.js');
+
 const iso = (daysAgo) => new Date(Date.UTC(2026, 7, 28 - daysAgo)).toISOString();
 
 // An invented case, written the way the manual asks physicians to write one: no name, no HN, no
@@ -35,14 +41,46 @@ const ple = (i, extra = {}) => ({
   ...extra,
 });
 
+// Two more turns of the same invented case, for the landing page's chat frame: a PLE in progress
+// needs a conversation that visibly develops, not one exchange.
+const FOLLOW_UPS = [
+  ['ผลตรวจพบอัตราการกรองของไต (eGFR) 38 และ NT-proBNP สูง ผู้ป่วยใช้เมตฟอร์มินอยู่ ควรปรับยาอย่างไร',
+    'เมื่อ eGFR อยู่ระหว่าง 30 ถึง 45 ควรลดขนาดเมตฟอร์มินลงและติดตามการทำงานของไตทุก 3 เดือน '
+    + 'ยากลุ่ม SGLT2 inhibitor ยังใช้ได้และช่วยลดการนอนโรงพยาบาลจากภาวะหัวใจล้มเหลว '
+    + 'ส่วนยากลุ่มไทอะโซลิดีนไดโอนควรหลีกเลี่ยง เพราะทำให้บวมน้ำมากขึ้น'],
+  ['ถ้าเริ่มยากลุ่ม SGLT2 inhibitor ต้องระวังอะไรเป็นพิเศษในผู้ป่วยรายนี้',
+    'ควรระวังภาวะขาดน้ำและความดันโลหิตต่ำ โดยเฉพาะเมื่อได้ยาขับปัสสาวะร่วมด้วย อาจต้องลดขนาดยาขับปัสสาวะลง '
+    + 'แนะนำให้ผู้ป่วยหยุดยาชั่วคราวเมื่อเจ็บป่วยเฉียบพลันหรือรับประทานอาหารไม่ได้ '
+    + 'และอธิบายอาการของภาวะเลือดเป็นกรดจากคีโตน ซึ่งอาจเกิดได้แม้ระดับน้ำตาลไม่สูงมาก'],
+];
+
+export const CHAT_MESSAGES = [[VIGNETTE, ASSISTANT], ...FOLLOW_UPS].flatMap(([q, a], i) => [
+  { id: `m${2 * i + 1}`, role: 'physician', content: q, created_at: iso(0) },
+  { id: `m${2 * i + 2}`, role: 'assistant', content: a, created_at: iso(0) },
+]);
+
+export const ACTIVE_PLE = { ...ple(1), status: 'active', ended_at: null, turn_count: 3, token_count: 6400,
+  messages: CHAT_MESSAGES };
+
+// The composite and band come from the real functions, so the published score can always be
+// re-derived from the domain rows beside it with the weights the manual prints.
+const SCORES = { d1: 4, d2: 4, d3: 4, d4: 3, d5: 4, d6: 3, d7: 4 };
+const COMPOSITE = compositeOf(SCORES);
+
+// No `status` key: ple-result.html reads any `status` on /evaluation as the 202 "still scoring" body.
 const EVALUATION = {
-  ple_id: '00000000-0000-4000-8000-000000000001', status: 'evaluated', composite_score: 78,
-  d1: 4, d2: 4, d3: 4, d4: 3, d5: 4, d6: 3, d7: 4,
+  ple_id: '00000000-0000-4000-8000-000000000001', composite_score: COMPOSITE, ...SCORES,
   domain_rationale: {
     d1: 'ตั้งคำถามเจาะจงกับจุดตัดสินใจจริงของเคส ไม่ใช่คำถามกว้าง',
     d2: 'จัดลำดับสมมติฐานพร้อมเหตุผล และทบทวนเมื่อพบข้อมูลค้าน',
+    d3: 'นำผลการทำงานของไตมาประกอบการเลือกยา ไม่พิจารณาโรคหัวใจแยกจากโรคเบาหวาน',
+    d4: 'ถามต่อยอดจากคำตอบก่อนหน้า แต่ยังไม่ย้อนตรวจสมมติฐานแรกเมื่อได้ผลตรวจใหม่',
     d5: 'ขอหลักฐานอ้างอิงและระบุจุดที่ยังไม่แน่ใจอย่างชัดเจน',
+    d6: 'สรุปแผนการรักษาได้ แต่ยังไม่ระบุสิ่งที่จะทำต่างไปในผู้ป่วยรายถัดไป',
+    d7: 'ให้บริบทของผู้ป่วยครบก่อนถาม และตรวจสอบคำตอบของ AI กับแนวทางเวชปฏิบัติ',
   },
+  // `enabled: false` at the shipped defaults: the calibration-phase preview, never an award.
+  credit: creditFor(COMPOSITE),
 };
 
 export const CAPTURE_FIXTURES = [
