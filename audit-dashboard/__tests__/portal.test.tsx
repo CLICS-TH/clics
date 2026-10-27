@@ -13,7 +13,7 @@ jest.mock('@/components/ViewportProvider', () => ({
   useIsNavCompact: () => false,
   useViewport: () => ({ view: 'auto', setView: () => {} }),
 }));
-jest.mock('@/lib/api', () => ({ apiFetch: jest.fn() }));
+jest.mock('@/lib/api', () => ({ apiFetch: jest.fn(), getToken: () => 'tok', revokeSession: jest.fn() }));
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { NavBar } = require('@/components/NavBar');

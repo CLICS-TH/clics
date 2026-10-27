@@ -67,19 +67,9 @@
 
   var logout = document.getElementById('logoutBtn');
   if (logout) {
-    logout.addEventListener('click', async function (e) {
+    logout.addEventListener('click', function (e) {
       e.preventDefault();
-      try { if (window.api && window.api.logout) await window.api.logout(); } catch (err) { /* sign out locally regardless */ }
-      // Preserve display prefs across logout, mirroring dashboard.js:239-243 — signing out must not
-      // reset a dark-mode reader to light. The manual language is a display pref too.
-      var t = localStorage.getItem('clics_theme');
-      var v = localStorage.getItem('clics_view');
-      var l = localStorage.getItem(LANG_KEY);
-      localStorage.clear();
-      if (t) localStorage.setItem('clics_theme', t);
-      if (v) localStorage.setItem('clics_view', v);
-      if (l) localStorage.setItem(LANG_KEY, l);
-      window.location.replace('/login');
+      window.clicsSignOut();
     });
   }
 })();

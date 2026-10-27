@@ -151,11 +151,16 @@ describe('NavBar — role chip on phones', () => {
 describe('NavBar — leaving for the Portal', () => {
   const realLocation = window.location;
   const replace = jest.fn();
+  const realFetch = global.fetch;
+  const fetchMock = jest.fn();
   beforeEach(() => {
     replace.mockClear();
+    fetchMock.mockReset().mockResolvedValue({ ok: true });
+    global.fetch = fetchMock;
     Object.defineProperty(window, 'location', { configurable: true, value: { href: '', replace } });
   });
   afterEach(() => {
+    global.fetch = realFetch;
     Object.defineProperty(window, 'location', { configurable: true, value: realLocation });
   });
 
@@ -170,6 +175,25 @@ describe('NavBar — leaving for the Portal', () => {
     expect(localStorage.getItem('clics_user')).toBeNull();
     expect(localStorage.getItem('clics_theme')).toBe('dark');
     expect(localStorage.getItem('clics_view')).toBe('mobile');
+  });
+
+  // Without the revoke the token stays valid for its TTL, and a restored page holding it still works (#189).
+  it('Logout revokes the old token server-side with a request that outlives the page', () => {
+    localStorage.setItem('clics_token', 'tok');
+    render(<NavBar />);
+    fireEvent.click(screen.getByRole('button', { name: /Logout/ }));
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3001/auth/logout', expect.objectContaining({
+      method: 'POST', keepalive: true, headers: { Authorization: 'Bearer tok' },
+    }));
+  });
+
+  it('Logout still signs out when the revoke request fails', () => {
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+    localStorage.setItem('clics_token', 'tok');
+    render(<NavBar />);
+    fireEvent.click(screen.getByRole('button', { name: /Logout/ }));
+    expect(window.location.href).toBe('https://physician-ui.vercel.app/login?logout=1');
+    expect(localStorage.getItem('clics_token')).toBeNull();
   });
 
   // The Portal's Sign out cannot clear this origin, so a session kept here would survive it (#189).
