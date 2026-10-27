@@ -1,5 +1,6 @@
-// Google OAuth callback. Supabase redirected back here with the session in the URL;
-// supabase-client.js (detectSessionInUrl) turns it into a session we read with getSession().
+// Google OAuth callback. Supabase redirected back here with the session in the URL hash. The
+// page head lifts that hash into window.CLICS_OAUTH_HASH and strips it from history (#183), so
+// we hand the tokens to supabase-js with setSession() and read the session back with getSession().
 // Then one of two flows runs, distinguished by localStorage('clics_oauth_flow')
 // (sessionStorage is read as a legacy fallback):
 //   - invite  → POST /auth/invite/:token/accept { method:'google', access_token }
@@ -65,12 +66,25 @@ withClient(async () => {
     try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); } catch {}
   }
 
-  const { data } = await window.sbClient.auth.getSession();
-  if (!data?.session?.access_token) {
+  const lifted = new URLSearchParams(window.CLICS_OAUTH_HASH || '');
+  window.CLICS_OAUTH_HASH = null;
+  // Trust only the session these tokens yield. getSession() would fall back to a stale sb-*
+  // session left by an earlier, abandoned callback — possibly another person's — so a cancelled
+  // or rejected sign-in clears it (no signOut: see routeActive) and stops at the error card.
+  let session = null;
+  if (lifted.get('access_token') && lifted.get('refresh_token')) {
+    const { data, error } = await window.sbClient.auth.setSession({
+      access_token: lifted.get('access_token'),
+      refresh_token: lifted.get('refresh_token'),
+    });
+    if (!error) session = data?.session;
+  }
+  if (!session?.access_token) {
+    try { for (const k of Object.keys(localStorage)) if (k.indexOf('sb-') === 0) localStorage.removeItem(k); } catch {}
     showError('ไม่พบเซสชันจาก Google ลิงก์อาจหมดอายุ กรุณาลองใหม่ / No Google session found. The link may have expired — please try again.');
     return;
   }
-  accessToken = data.session.access_token;
+  accessToken = session.access_token;
 
   if (flow.kind === 'invite') { await completeInvite(); }
   else if (flow.kind === 'link') { await completeLink(); }
