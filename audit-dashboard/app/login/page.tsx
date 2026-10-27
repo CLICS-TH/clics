@@ -20,18 +20,28 @@ function redirectByRole(user: Pick<ClicsUser, 'role' | 'can_audit'>, router: Ret
   else if (user.role === 'ethics') router.push('/ethics');
   else if (user.role === 'auditor' || user.role === 'admin') router.push('/home');
   else if (user.role === 'physician' && user.can_audit) router.push('/auditor/queue');
-  else router.push('/login');
+  else {
+    // No dashboard home for this role: drop the session and return to the Portal's sign-in.
+    localStorage.removeItem('clics_token');
+    localStorage.removeItem('clics_user');
+    window.location.replace(PORTAL.login);
+  }
 }
 
 function LoginGate() {
   const router = useRouter();
   const params = useSearchParams();
-  const hasToken = !!params.get('token');
+  // Read once at mount: stripping the token below re-syncs useSearchParams without it, and
+  // re-running the effect on that would bounce a signing-in user to the Portal.
+  const [token] = useState(() => params.get('token'));
+  const hasToken = !!token;
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = params.get('token');
     if (token) {
+      // Drop ?token= from history so Back after Sign out cannot restore this session (#182).
+      // Keep the entry's state so Next's router can still restore it.
+      window.history.replaceState(window.history.state, '', '/login');
       localStorage.setItem('clics_token', token);
       // apiFetch only special-cases 401 — a 403 (account pending/deactivated) resolves with
       // the JSON error body ({ error, code }), NOT { user }. Validate the shape before
@@ -59,7 +69,7 @@ function LoginGate() {
       // No handoff token — send the visitor to the single sign-in portal.
       window.location.replace(PORTAL.login);
     }
-  }, [params, router]);
+  }, [token, router]);
 
   return (
     <div className="flex items-center justify-center min-h-dvh bg-background p-6">
