@@ -152,5 +152,11 @@ tests run in `npm run test:manuals`.
 `source/img/` is still the home of the screenshots; `build.mjs` copies them to
 `physician-ui/public/img/manual/`.
 
+The same script also shoots the **landing set**: frames marked `set: 'landing'` in `FRAMES` (the
+PLE chat, the PIS-7 score and radar, the per-domain scores). Each is written as WebP at desktop
+(1120×840) and mobile (390×844) in light and dark, as `<frame>-<view>-<theme>.webp` in
+`physician-ui/public/img/landing/`, under the same gate. `--set landing` or `--set manual` runs one
+set only; `--check` covers both.
+
 `source/test-login-guide-th.html` is **gitignored and contains credentials** — never port it, never
 publish it.
