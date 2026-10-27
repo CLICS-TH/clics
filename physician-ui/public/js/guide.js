@@ -79,7 +79,7 @@
       if (t) localStorage.setItem('clics_theme', t);
       if (v) localStorage.setItem('clics_view', v);
       if (l) localStorage.setItem(LANG_KEY, l);
-      window.location.href = '/login';
+      window.location.replace('/login');
     });
   }
 })();

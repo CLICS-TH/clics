@@ -143,6 +143,13 @@
     }
   }
 
+  // The <head> snippet's sign-in guard runs only on a fresh load. A back/forward-cache restore
+  // skips it, so Back after Sign out would show the signed-in page again; repeat the same rule here.
+  window.addEventListener('pageshow', function (e) {
+    if (!e.persisted || d.hasAttribute('data-public')) return;
+    try { if (!localStorage.getItem('clics_token')) location.replace('/login'); } catch (err) {}
+  });
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount);
   else mount();
 })();

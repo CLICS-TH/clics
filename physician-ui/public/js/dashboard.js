@@ -243,7 +243,8 @@ async function renderHeroStats() {
   else renderRequest();
 })();
 
-document.getElementById('logoutBtn').addEventListener('click', async () => {
+document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+  e.preventDefault();
   await api.logout();
   // Preserve display prefs across logout (mirror the login.html ?logout=1 handler) so signing out
   // doesn't reset a dark-mode user to light.
@@ -251,7 +252,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   localStorage.clear();
   if (t) localStorage.setItem('clics_theme', t);
   if (v) localStorage.setItem('clics_view', v);
-  window.location.href = '/login';
+  window.location.replace('/login');
 });
 
 // STATUS_LABELS comes from /js/labels.js (loaded before this script).
