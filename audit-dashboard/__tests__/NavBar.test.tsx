@@ -150,8 +150,10 @@ describe('NavBar — role chip on phones', () => {
 // The Portal owns sign-in, so both exits leave this origin. jsdom cannot navigate, so location is a stub.
 describe('NavBar — leaving for the Portal', () => {
   const realLocation = window.location;
+  const replace = jest.fn();
   beforeEach(() => {
-    Object.defineProperty(window, 'location', { configurable: true, value: { href: '' } });
+    replace.mockClear();
+    Object.defineProperty(window, 'location', { configurable: true, value: { href: '', replace } });
   });
   afterEach(() => {
     Object.defineProperty(window, 'location', { configurable: true, value: realLocation });
@@ -170,13 +172,19 @@ describe('NavBar — leaving for the Portal', () => {
     expect(localStorage.getItem('clics_view')).toBe('mobile');
   });
 
-  it('Return to Physician goes to the Portal dashboard and keeps the session', () => {
+  // The Portal's Sign out cannot clear this origin, so a session kept here would survive it (#189).
+  it('Return to Physician drops this origin\'s session but keeps theme/view, then replaces itself with the Portal dashboard', () => {
     signIn({ role: 'physician', can_audit: true });
     localStorage.setItem('clics_token', 'tok');
+    localStorage.setItem('clics_theme', 'dark');
+    localStorage.setItem('clics_view', 'mobile');
     render(<NavBar />);
     fireEvent.click(screen.getByRole('button', { name: /Return to Physician/ }));
-    expect(window.location.href).toBe('https://physician-ui.vercel.app/dashboard');
-    expect(localStorage.getItem('clics_token')).toBe('tok');
+    expect(replace).toHaveBeenCalledWith('https://physician-ui.vercel.app/dashboard');
+    expect(localStorage.getItem('clics_token')).toBeNull();
+    expect(localStorage.getItem('clics_user')).toBeNull();
+    expect(localStorage.getItem('clics_theme')).toBe('dark');
+    expect(localStorage.getItem('clics_view')).toBe('mobile');
   });
 });
 

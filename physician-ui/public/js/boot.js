@@ -145,9 +145,17 @@
 
   // The <head> snippet's sign-in guard runs only on a fresh load. A back/forward-cache restore
   // skips it, so Back after Sign out would show the signed-in page again; repeat the same rule here.
+  // A different token means another user signed in on this tab since the page rendered, so the page
+  // re-renders under them instead of showing the previous user's data.
+  var renderedToken = null;
+  try { renderedToken = localStorage.getItem('clics_token'); } catch (err) {}
   window.addEventListener('pageshow', function (e) {
     if (!e.persisted || d.hasAttribute('data-public')) return;
-    try { if (!localStorage.getItem('clics_token')) location.replace('/login'); } catch (err) {}
+    try {
+      var token = localStorage.getItem('clics_token');
+      if (!token) location.replace('/login');
+      else if (token !== renderedToken) location.reload();
+    } catch (err) {}
   });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount);
