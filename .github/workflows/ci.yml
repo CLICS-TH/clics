@@ -395,6 +395,53 @@ jobs:
         if: always()
         run: kill "$DASH_PID" 2>/dev/null || true
 
+  # Portal browser: Sign out then Back restores no session on either app, and no sign-in token stays
+  # in the address bar or Back history (#189). Hermetic: the harness serves the Portal and a stub
+  # backend, serves supabase-js from the pinned npm package, stubs GoTrue, and aborts every other
+  # external request. Chromium keeps its back/forward cache on, as real browsers do.
+  portal-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            audit-dashboard/package-lock.json
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Install dashboard deps
+        run: npm ci
+        working-directory: audit-dashboard
+      - name: Build the dashboard against the stub backend
+        run: npm run build
+        working-directory: audit-dashboard
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          NEXT_PUBLIC_API_URL: http://localhost:3001
+          NEXT_PUBLIC_PORTAL_URL: http://localhost:3000
+      - name: Serve the dashboard on :3002
+        working-directory: audit-dashboard
+        run: |
+          ./node_modules/.bin/next start -p 3002 > "$RUNNER_TEMP/dash.log" 2>&1 &
+          echo "DASH_PID=$!" >> "$GITHUB_ENV"
+      - name: Wait for the dashboard
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS --max-time 5 -o /dev/null http://localhost:3002/login; then echo "ready after ${i}s"; exit 0; fi
+            if ! kill -0 "$DASH_PID" 2>/dev/null; then echo "::error::next start exited"; cat "$RUNNER_TEMP/dash.log"; exit 1; fi
+            sleep 1
+          done
+          echo "::error::dashboard not ready within 60s"; cat "$RUNNER_TEMP/dash.log"; exit 1
+      - name: Back after Sign out, login forward, /reset token history
+        run: npm run test:portal-browser
+      - name: Stop the dashboard server
+        if: always()
+        run: kill "$DASH_PID" 2>/dev/null || true
+
   # Responsive regression guard — renders the static physician-ui portal at 320/375/768/1280 under
   # coarse-pointer emulation and asserts 0 horizontal overflow, ≥44px touch targets, and ≥16px form
   # fields (iOS no-zoom). Hermetic: a built-in static server serves the pages and all external

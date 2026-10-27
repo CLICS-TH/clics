@@ -15,6 +15,7 @@
     "test:readability": "node scripts/readability/audit.mjs",
     "test:chat-settle": "node scripts/chat/turn-settle-smoke.mjs",
     "test:chat-scroll": "node scripts/responsive/chat-scroll-guard.mjs",
+    "test:portal-browser": "node scripts/auth/portal-browser.mjs",
     "manuals": "node scripts/manuals/build.mjs",
     "test:manuals": "node --test scripts/manuals/lib/parse.test.mjs scripts/manuals/lib/pii-gate.test.mjs && node scripts/manuals/build.mjs --check && node scripts/manuals/verify-labels.mjs && node scripts/manuals/prose-audit.mjs",
     "test:manuals-embed": "node scripts/manuals/embed-smoke.mjs",
@@ -25,6 +26,7 @@
     "test:calibration": "node --check scripts/calibration/three-way.js && node --check scripts/calibration/anchors/score-local.mjs && node --check scripts/calibration/anchors/revalidate.mjs && node --check scripts/calibration/anchors/import-sandbox.mjs && node --check scripts/calibration/anchors/import-shadow.mjs && node --check scripts/calibration/anchors/sandbox-import-lib.mjs && node --check scripts/calibration/anchors/sandbox-db.mjs && node --test scripts/calibration/three-way.test.mjs scripts/calibration/anchors/anchors.test.mjs scripts/calibration/anchors/sandbox-import.test.mjs"
   },
   "devDependencies": {
+    "@supabase/supabase-js": "2.49.4",
     "concurrently": "^9.1.0",
     "playwright": "^1.49.0"
   },
