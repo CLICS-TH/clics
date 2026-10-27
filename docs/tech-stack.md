@@ -14,4 +14,4 @@ Anthropic warm-editorial: cream canvas `#faf9f5`, coral `#cc785c` (active `#a958
 The two apps get those fonts differently:
 
 - The **audit-dashboard** self-hosts them. The woff2 files are committed under `audit-dashboard/app/fonts/` and loaded with `next/font/local`, so `next build` needs no network. Provenance, sha256 and licences are in `audit-dashboard/app/fonts/README.md`.
-- The **physician-ui** self-hosts the same five files under `physician-ui/public/fonts/`, declared once in `public/css/fonts.css` and linked from every page `<head>`, so no page contacts `fonts.googleapis.com` or `fonts.gstatic.com`. The responsive smoke fails if one does. See `physician-ui/public/fonts/README.md`.
+- The **physician-ui** self-hosts the same five files under `physician-ui/public/fonts/`, declared once in `public/css/fonts.css` and linked from every page `<head>`, so no page contacts `fonts.googleapis.com` or `fonts.gstatic.com`. The responsive smoke fails if any file under `physician-ui/public/` names either host, or if a page it loads requests one. See `physician-ui/public/fonts/README.md`.

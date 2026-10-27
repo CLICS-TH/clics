@@ -18,13 +18,14 @@
  * Override the dashboard target (optional, e.g. against a running dev server):  DASH_URL=http://localhost:3002/login
  */
 import { createServer } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
 // The Portal self-hosts its fonts (#193) so a visitor's IP is not sent to Google just for viewing a page.
 const GOOGLE_FONT_HOST = /^https?:\/\/fonts\.(googleapis|gstatic)\.com\//;
+const GOOGLE_FONT_REF = /fonts\.(googleapis|gstatic)\.com/;
 const ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 
@@ -111,6 +112,13 @@ async function run() {
   const browser = await chromium.launch();
   const fails = [];
   let checks = 0;
+
+  // The browser pass below loads only PAGES; this catches a Google font link on a page it never visits.
+  for (const rel of await readdir(ROOT, { recursive: true })) {
+    if (!['.html', '.css', '.js'].includes(extname(rel))) continue;
+    const hit = (await readFile(join(ROOT, rel), 'utf8')).match(GOOGLE_FONT_REF);
+    if (hit) fails.push(`GOOGLE-FONT in physician-ui/public/${rel}: ${hit[0]}`);
+  }
 
   for (const { w, h, coarse } of WIDTHS) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: coarse, hasTouch: coarse });
