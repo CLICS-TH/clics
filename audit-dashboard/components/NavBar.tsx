@@ -9,6 +9,7 @@ import { useIsNavCompact } from './ViewportProvider';
 import { useAuthUser } from '@/lib/client-store';
 import { BiLabel } from './BiLabel';
 import { POSITION_TH } from '@/lib/labels';
+import { PORTAL } from '@/lib/portal';
 import { Menu } from 'lucide-react';
 
 // Role-keyed nav. Users is council-scoped for admins (read-only view); Overview + ICC stay
@@ -98,20 +99,18 @@ export function NavBar() {
     // Clearing only our (dashboard-origin) token isn't enough — the PORTAL origin still holds a valid
     // token and autoForward there would re-log us straight back in. Bounce to the portal's logout,
     // which clears its own storage and shows the login form (so you can sign in as another account).
-    // Preserve the dashboard-origin theme/view prefs (mirror the portal's ?logout=1 handler) so logging
+    // Preserve the dashboard-origin theme/view prefs (mirror the portal's /login?logout=1 handler) so logging
     // out doesn't reset a dark-mode user to light.
     const theme = localStorage.getItem('clics_theme');
     const view = localStorage.getItem('clics_view');
     localStorage.clear();
     if (theme) localStorage.setItem('clics_theme', theme);
     if (view) localStorage.setItem('clics_view', view);
-    const portal = process.env.NEXT_PUBLIC_PORTAL_URL || 'https://physician-ui.vercel.app';
-    window.location.href = `${portal}/?logout=1`;
+    window.location.href = PORTAL.logout;
   }
 
   function returnToPhysician() {
-    const portal = process.env.NEXT_PUBLIC_PORTAL_URL || 'https://physician-ui.vercel.app';
-    window.location.href = `${portal}/dashboard`;
+    window.location.href = PORTAL.dashboard;
   }
 
   // Active when the path matches OR is a child (detail page) of the link, so /admin/ples/[id] keeps

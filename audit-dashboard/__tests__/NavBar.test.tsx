@@ -147,6 +147,39 @@ describe('NavBar — role chip on phones', () => {
   });
 });
 
+// The Portal owns sign-in, so both exits leave this origin. jsdom cannot navigate, so location is a stub.
+describe('NavBar — leaving for the Portal', () => {
+  const realLocation = window.location;
+  beforeEach(() => {
+    Object.defineProperty(window, 'location', { configurable: true, value: { href: '' } });
+  });
+  afterEach(() => {
+    Object.defineProperty(window, 'location', { configurable: true, value: realLocation });
+  });
+
+  it('Logout clears the session but keeps theme/view, then lands on the Portal sign-in in logout mode', () => {
+    localStorage.setItem('clics_token', 'tok');
+    localStorage.setItem('clics_theme', 'dark');
+    localStorage.setItem('clics_view', 'mobile');
+    render(<NavBar />);
+    fireEvent.click(screen.getByRole('button', { name: /Logout/ }));
+    expect(window.location.href).toBe('https://physician-ui.vercel.app/login?logout=1');
+    expect(localStorage.getItem('clics_token')).toBeNull();
+    expect(localStorage.getItem('clics_user')).toBeNull();
+    expect(localStorage.getItem('clics_theme')).toBe('dark');
+    expect(localStorage.getItem('clics_view')).toBe('mobile');
+  });
+
+  it('Return to Physician goes to the Portal dashboard and keeps the session', () => {
+    signIn({ role: 'physician', can_audit: true });
+    localStorage.setItem('clics_token', 'tok');
+    render(<NavBar />);
+    fireEvent.click(screen.getByRole('button', { name: /Return to Physician/ }));
+    expect(window.location.href).toBe('https://physician-ui.vercel.app/dashboard');
+    expect(localStorage.getItem('clics_token')).toBe('tok');
+  });
+});
+
 function within() {
   const menu = document.querySelector('nav [id]')!;
   return Array.from(menu.querySelectorAll('a'));
