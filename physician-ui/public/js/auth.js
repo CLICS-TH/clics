@@ -8,10 +8,10 @@ function getUser() {
 // A guard failure must clear the token, not just bounce. /login forwards an unexpired clics_token
 // to /dashboard when clics_user is a physician or is missing/corrupt; in the second case guardRole
 // fails there, so a token left in place loops forever. (/login itself discards expired tokens, and
-// staff tokens go to the dashboard handoff, which has its own 6 s guard.)
+// staff tokens go to the dashboard handoff, which /login guards for 6 s itself.)
 // Throws to halt the calling page's script (the page is navigating away).
 function redirectToLogin(msg) {
-  window.endSession(msg);
+  window.expireSession(msg);
   throw new Error('clics: redirecting to login');
 }
 
