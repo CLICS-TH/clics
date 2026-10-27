@@ -251,7 +251,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   localStorage.clear();
   if (t) localStorage.setItem('clics_theme', t);
   if (v) localStorage.setItem('clics_view', v);
-  window.location.href = '/';
+  window.location.href = '/login';
 });
 
 // STATUS_LABELS comes from /js/labels.js (loaded before this script).

@@ -55,7 +55,7 @@
     // habit is to not hand strings to the parser.
     while (links.firstChild) links.removeChild(links.firstChild);
     var a = document.createElement('a');
-    a.href = '/';
+    a.href = '/login';
     a.appendChild(document.createTextNode('เข้าสู่ระบบ'));
     var en = document.createElement('span');
     en.className = 'bi-en';
@@ -79,7 +79,7 @@
       if (t) localStorage.setItem('clics_theme', t);
       if (v) localStorage.setItem('clics_view', v);
       if (l) localStorage.setItem(LANG_KEY, l);
-      window.location.href = '/';
+      window.location.href = '/login';
     });
   }
 })();

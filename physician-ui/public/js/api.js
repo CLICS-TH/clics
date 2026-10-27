@@ -57,7 +57,7 @@ async function apiFetch(path, options = {}) {
     localStorage.clear();
     if (t) localStorage.setItem('clics_theme', t);
     if (v) localStorage.setItem('clics_view', v);
-    window.location.href = '/'; return;
+    window.location.href = '/login'; return;
   }
   if (res.status === 204) return null;
   // A streamed reply (server-sent events): pieces go to onEvent, and the result is the final `done`

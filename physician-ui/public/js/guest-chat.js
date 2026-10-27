@@ -98,7 +98,7 @@ function endSession(msg) {
           <div class="consent-point">${icon('shield', 22)}<div><b>เครดิต CPD / CME<span class="bi-en">CPD / CME credit</span></b><p>คะแนน PIS-7 ที่นับเป็นหน่วยกิตการศึกษาต่อเนื่อง / PIS-7 scores that count toward continuing-education credit.</p></div></div>
           <div class="consent-point">${icon('checkCircle', 22)}<div><b>ติดตามความก้าวหน้า<span class="bi-en">Track your progress</span></b><p>ดูพัฒนาการการให้เหตุผลทางคลินิกของคุณตามเวลา / Watch your clinical reasoning improve over time.</p></div></div>
         </div>
-        <a href="/" class="btn btn-primary btn-lg" style="width:100%">สมัครด้วย Google<span class="bi-en">Sign up with Google</span></a>
+        <a href="/login" class="btn btn-primary btn-lg" style="width:100%">สมัครด้วย Google<span class="bi-en">Sign up with Google</span></a>
       </div>`;
     cta.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
   }
