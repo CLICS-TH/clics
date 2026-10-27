@@ -2,12 +2,11 @@
 /*
  * Readability audit — CONTRAST, Thai type floor, and text clipping (FIT), measured in a real browser.
  *
- * Why this exists alongside scripts/responsive/responsive-smoke.mjs rather than inside it: that smoke
- * ABORTS every external request, including Google Fonts, so its text renders in a fallback face. That
- * is fine for the overflow/tap-target checks it makes, and useless here — Thai metrics differ sharply
- * between Noto Sans Thai and whatever the system substitutes, so a FIT measurement taken without the
- * real webfont measures nothing. This script therefore lets the two font hosts through and blocks the
- * rest (no backend, no CDN scripts).
+ * Why this exists alongside scripts/responsive/responsive-smoke.mjs rather than inside it: it answers
+ * backend calls from long-Thai fixtures and renders both themes, where the smoke checks layout only.
+ * Both render with the real webfonts, which the Portal serves itself from /fonts/: Thai metrics differ
+ * sharply between Noto Sans Thai and whatever the system substitutes, so a FIT measurement taken
+ * without the real webfont measures nothing. Every other external request is blocked.
  *
  * It also runs each page in BOTH themes. Several tokens in this repo are identical across light and
  * dark (--destructive, --primary), which is exactly how a colour that passes in one and fails in the
@@ -73,7 +72,7 @@ import { chromium } from 'playwright';
 import { fixtureFor, AUDITOR_PLE_OPEN, AUDITOR_PLE_REVEALED } from './fixtures.mjs';
 
 const ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 
 // AA for body text. 3.0 is the large-text bar; we apply it at >=24px, or >=18.66px when bold, per WCAG.
 const AA_BODY = 4.5;
@@ -407,8 +406,6 @@ async function run(url, label, token, manualLang, { role = null, expect = [] } =
   for (const { w, h } of WIDTHS) {
     for (const theme of THEMES) {
       const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2 });
-      // Fonts through, everything else blocked. This is the one deliberate difference from
-      // responsive-smoke.mjs and the whole reason the numbers here can be trusted for Thai.
       await ctx.route('**/*', (route) => {
         const u = route.request().url();
         // Backend calls are FULFILLED, not forwarded: populated rows are the whole point, and a
@@ -421,7 +418,6 @@ async function run(url, label, token, manualLang, { role = null, expect = [] } =
           });
         }
         if (u.startsWith(base) || u.startsWith('http://localhost') || u.startsWith('http://127.0.0.1')) return route.continue();
-        if (/fonts\.(googleapis|gstatic)\.com/.test(u)) return route.continue();
         return route.abort();
       });
       await ctx.addInitScript(([t, tok, ml, r]) => {

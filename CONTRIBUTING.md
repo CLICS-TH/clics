@@ -42,8 +42,10 @@ for the dashboard (pass `-p 3002` — `next dev` defaults to 3000 and would coll
   `GUEST_TOKEN_SECRET`, `IDENTITY_ENC_KEY`, `ALLOWED_ORIGINS`, `RIMPL_URL`, `SITE_URL`.
 - **rimpl** (`rimpl/.env.example`): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`,
   `INTERNAL_TOKEN` (must match backend byte-for-byte), `PORT`. `OPENAI_API_KEY` is reserved (L4, not wired).
-- **audit-dashboard** (`audit-dashboard/.env.example`): `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`,
-  `NEXT_PUBLIC_SUPABASE_ANON_KEY`. `NEXT_PUBLIC_*` is **inlined at build time** — rebuild after changing.
+- **audit-dashboard** (`audit-dashboard/.env.example`): `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_PORTAL_URL`,
+  `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. `NEXT_PUBLIC_*` is **inlined at build time** — rebuild
+  after changing. `NEXT_PUBLIC_PORTAL_URL` unset falls back to the prod Portal, so a local stack without it signs
+  out to prod; set it to `http://localhost:3000`.
 - **physician-ui**: none — `public/js/config.js` auto-targets localhost vs prod by hostname.
 
 **How the layers talk:** frontend → backend over HTTPS with a `Bearer` JWT (the Supabase session token);

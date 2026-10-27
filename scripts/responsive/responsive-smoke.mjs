@@ -9,21 +9,25 @@
  *   2. Touch targets >= 44x44 (WCAG 2.5.5) (buttons / role=radio / .icon-btn / composer-send …)
  *   3. Form fields >= 16px on touch        (so iOS Safari never auto-zooms on focus)
  *
- * Hermetic: a tiny built-in static server serves physician-ui/public; all external requests
- * (fonts / Chart.js CDN / backend API) are aborted; a fake token bypasses the auth redirect so the
- * authed shells render. No secrets, no live infra. Exits non-zero on any failure.
+ * Hermetic: a tiny built-in static server serves physician-ui/public, self-hosted fonts included; all
+ * external requests (Chart.js CDN / backend API) are aborted; a fake token bypasses the auth redirect so
+ * the authed shells render. No secrets, no live infra. Exits non-zero on any failure, on a font that
+ * fails to load, and on any request to a Google font host.
  *
  * Run: node scripts/responsive/responsive-smoke.mjs   (from repo root)
  * Override the dashboard target (optional, e.g. against a running dev server):  DASH_URL=http://localhost:3002/login
  */
 import { createServer } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
+// The Portal self-hosts its fonts (#193) so a visitor's IP is not sent to Google just for viewing a page.
+const GOOGLE_FONT_HOST = /^https?:\/\/fonts\.(googleapis|gstatic)\.com\//;
+const GOOGLE_FONT_REF = /fonts\.(googleapis|gstatic)\.com/;
 const ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 
 // ---- tiny static server: '/' -> index.html, extensionless -> .html (mirrors the Vercel rewrites) ----
 function startServer() {
@@ -109,11 +113,21 @@ async function run() {
   const fails = [];
   let checks = 0;
 
+  // The browser pass below loads only PAGES; this catches a Google font link on a page it never visits.
+  for (const rel of await readdir(ROOT, { recursive: true })) {
+    if (!['.html', '.css', '.js'].includes(extname(rel))) continue;
+    const hit = (await readFile(join(ROOT, rel), 'utf8')).match(GOOGLE_FONT_REF);
+    if (hit) fails.push(`GOOGLE-FONT in physician-ui/public/${rel}: ${hit[0]}`);
+  }
+
   for (const { w, h, coarse } of WIDTHS) {
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: coarse, hasTouch: coarse });
-    // Hermetic: drop every non-local request (fonts, Chart.js CDN, backend) so the run is offline + fast.
+    // Hermetic: drop every non-local request (Chart.js CDN, backend) so the run is offline + fast.
+    const googleFontRequests = new Set();
     await ctx.route('**/*', (route) => {
-      route.request().url().startsWith(base) ? route.continue() : route.abort();
+      const u = route.request().url();
+      if (GOOGLE_FONT_HOST.test(u)) googleFontRequests.add(u);
+      u.startsWith(base) ? route.continue() : route.abort();
     });
     for (const pg of PAGES) {
       const page = await ctx.newPage();
@@ -121,9 +135,14 @@ async function run() {
       try {
         await page.goto(base + pg.path, { waitUntil: 'domcontentloaded', timeout: 15000 });
         await page.waitForTimeout(600); // let boot.js apply data-mobile + the shell settle
+        const failedFonts = await page.evaluate(async () => {
+          await document.fonts.ready;
+          return [...document.fonts].filter((f) => f.status === 'error').map((f) => f.family);
+        });
         const r = await page.evaluate(`(${AUDIT_FN})()`);
         checks++;
         const where = `${pg.label} @ ${w}px`;
+        if (failedFonts.length) fails.push(`FONT-ERR  ${where}: ${failedFonts.join(', ')} failed to load`);
         if (r.overflow > 1) fails.push(`OVERFLOW  ${where}: scrollWidth +${r.overflow}px`);
         if (coarse && r.badTargets.length) fails.push(`TAP<44    ${where}: ${r.badTargets.slice(0, 6).join(', ')}`);
         if (coarse && r.badInputs.length) fails.push(`INPUT<16  ${where}: ${r.badInputs.slice(0, 6).join(', ')}`);
@@ -134,6 +153,7 @@ async function run() {
       }
     }
     await ctx.close();
+    for (const u of googleFontRequests) fails.push(`GOOGLE-FONT @ ${w}px: ${u}`);
   }
 
   await browser.close();
@@ -145,7 +165,7 @@ async function run() {
     for (const f of fails) console.error('   ' + f);
     process.exit(1);
   }
-  console.log('✅ 0 horizontal overflow · all touch targets ≥44px · all inputs ≥16px on touch.');
+  console.log('✅ 0 horizontal overflow · all touch targets ≥44px · all inputs ≥16px on touch · 0 Google font requests.');
 }
 
 run().catch((e) => { console.error(e); process.exit(1); });

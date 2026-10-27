@@ -22,7 +22,7 @@ Onboarding is **Google self-service for physicians (auto-active) + A/B invite li
 
 ### Invite emails (backend mailer)
 
-The backend sends invite accept-links itself (not via Supabase Auth) using `backend/src/lib/mailer.js`. Point it at the **same SMTP credentials you configured in the Supabase dashboard** (§1): `SMTP_HOST`, `SMTP_PORT` (587), `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` — see `backend/.env.example`. It is **fail-soft**: enabled only when `SMTP_HOST` + `MAIL_FROM` are both set; left unset, `POST /admin/invites` still succeeds and returns `accept_url` + `email_sent:false`, so admins copy the link manually. The same caveat as §1 applies — a verified sending domain at your SMTP provider gates real delivery here too.
+The backend sends invite accept-links itself (not via Supabase Auth) using `backend/src/lib/mailer.js`. In prod it sends through the **Resend HTTPS API**: set `RESEND_API_KEY` and `MAIL_FROM`. Railway's egress drops outbound SMTP, so SMTP (`SMTP_HOST`, `SMTP_PORT` (587), `SMTP_USER`, `SMTP_PASS`, see `backend/.env.example`) is only a fallback for hosts that allow it; when both are set, `RESEND_API_KEY` wins. It is **fail-soft**: enabled only when `MAIL_FROM` and one of `RESEND_API_KEY` / `SMTP_HOST` are set; left unset, `POST /admin/invites` still succeeds and returns `accept_url` + `email_sent:false`, so admins copy the link manually. The same caveat as §1 applies — until a sending domain is verified at Resend, its sandbox delivers only to the account owner's address, and everyone else gets the copy-link fallback.
 
 **physician-ui**: `window.CLICS_SUPABASE_URL` / `window.CLICS_SUPABASE_ANON_KEY` in `public/js/config.js` (public values).
 

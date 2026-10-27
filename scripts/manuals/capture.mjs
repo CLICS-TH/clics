@@ -40,7 +40,7 @@ import { scanText, describe } from './lib/pii-gate.mjs';
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const PORTAL = join(ROOT, 'physician-ui/public');
 const OUT = join(ROOT, 'docs/manuals/source/img');
-const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.png': 'image/png', '.svg': 'image/svg+xml' };
+const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 const DASH = process.env.DASH_URL;
 // Both consoles talk to the backend on :3001 — the portal via window.CLICS_API_URL, the dashboard
 // via NEXT_PUBLIC_API_URL. Matching the API by its BASE rather than by a path pattern is what
@@ -168,7 +168,6 @@ async function capture(browser, base, frame, variant = { view: VIEW, file: join(
       });
     }
     if (u.startsWith(base) || u.startsWith('http://127.0.0.1') || u.startsWith('http://localhost')) return route.continue();
-    if (/fonts\.(googleapis|gstatic)\.com/.test(u)) return route.continue();
     // Chart.js, marked and DOMPurify. Aborted, the radar is a blank card and the chat is raw text.
     if (u.startsWith('https://cdn.jsdelivr.net/')) return route.continue();
     return route.abort();
