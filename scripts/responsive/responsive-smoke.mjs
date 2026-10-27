@@ -55,7 +55,7 @@ const WIDTHS = [
 // Pages whose LAYOUT renders without a backend (token injected to pass the auth gate; content may be
 // empty/loading, but the shell — nav, container, forms, chat composer — is what we overflow-check).
 const PAGES = [
-  { path: '/', token: false, label: 'login (index)' },
+  { path: '/login', token: false, label: 'login' },
   { path: '/forgot', token: false, label: 'forgot' },
   { path: '/guest-chat', token: false, label: 'guest-chat' },
   { path: '/dashboard', token: true, label: 'dashboard' },

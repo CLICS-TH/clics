@@ -68,7 +68,7 @@ const VIEW = { width: 1120, height: 840 };
  *         about submitting, so that frame asks for the state the reader is being taught.
  */
 const FRAMES = [
-  { name: 'login', app: 'portal', url: '/', wait: 'form, .login-box',
+  { name: 'login', app: 'portal', url: '/login', wait: 'form, .login-box',
     why: 'physician §2 first-login' },
   { name: 'guest-composer', app: 'portal', url: '/guest-chat', wait: 'textarea',
     fill: ['textarea', 'ผู้ป่วยชายอายุ 62 ปี เบาหวานชนิดที่ 2 มาด้วยอาการเหนื่อยง่ายขณะออกแรง 3 สัปดาห์'],

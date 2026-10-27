@@ -51,7 +51,7 @@
   if (!token && links) {
     // Signed out: the console links would all bounce off the boot redirect, and Logout is
     // meaningless. Replace the row with the one action that works. Built with DOM methods rather
-    // than innerHTML, matching index.html:222-229 — the CSP allows inline script, and the house
+    // than innerHTML, matching login.html:226-232 — the CSP allows inline script, and the house
     // habit is to not hand strings to the parser.
     while (links.firstChild) links.removeChild(links.firstChild);
     var a = document.createElement('a');

@@ -19,6 +19,11 @@ work in it), and [ROADMAP.md](ROADMAP.md) (what to build next).*
 > - `db/migration-audit-log-chain.sql`: declined for now, so `/health/deep` reports
 >   `audit_chain: not_installed`.
 >
+> **Portal sign-in is at `/login`** (#172, live once physician-ui deploys). The portal root `/` no
+> longer shows the form. It handles `?logout=1` and Supabase OAuth returns, then sends everyone else
+> to `/login`. `/login` forwards signed-in users. See
+> [ADR 0003](adr/0003-portal-root-keeps-auth-rescue.md).
+>
 > **The pilot has not started.** No participant is enrolled; every account in production is a test
 > account. The one thing gating the local-model decision is **human auditor scores**, not more code.
 >

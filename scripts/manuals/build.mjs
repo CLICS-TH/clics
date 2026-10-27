@@ -55,7 +55,7 @@ const NAV = `<nav>
     </div>
   </nav>`;
 
-// Geometry-only, from the canonical mark at physician-ui/public/index.html:71-77. No <text>, so it
+// Geometry-only, from the canonical mark at physician-ui/public/login.html:74-79. No <text>, so it
 // survives a fonts-blocked render; currentColor, so dark mode re-themes it with no extra rules.
 const ECG = `<svg class="logo-ecg" viewBox="0 0 220 40" width="220" height="40" fill="none" aria-hidden="true" focusable="false">
         <path class="ecg-line" pathLength="100" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"

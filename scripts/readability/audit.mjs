@@ -112,7 +112,7 @@ const PORTAL_PAGES = [
   { path: '/identity', token: true },
   { path: '/acceptability', token: true }, { path: '/dashboard', token: true },
   { path: '/ple-new', token: true }, { path: '/lpdp', token: true },
-  { path: '/payment', token: true }, { path: '/', token: false },
+  { path: '/payment', token: true }, { path: '/login', token: false },
   // Also carry class="sub" and were missed in the first pass — .sub is now a global rule,
   // so every page that uses it is in this audit's blast radius.
   { path: '/ple-result', token: true }, { path: '/guest-chat', token: false },
