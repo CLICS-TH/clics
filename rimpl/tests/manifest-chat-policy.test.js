@@ -55,7 +55,7 @@ describe('prompt labels: every manifest variant is what /chat stamps', () => {
     expect(M.canonicalJson(committed.manifest.expected.code)).toBe(M.canonicalJson(M.expectedCode()));
   });
 
-  const variants = M.CHAT_PROMPT_VARIANTS.filter((v) => v.name !== 'rescue');
+  const variants = M.CHAT_PROMPT_VARIANTS.filter((v) => v.name !== 'rescue' && v.name !== 'booth');
   test.each(variants.map((v) => [v.name, v.opts]))('%s', async (name, opts) => {
     callAI.mockResolvedValue(r(`${GOOD}\n\n${P.evidenceLineFor('moderate')}`));
     const res = await send({ socratic: opts.socratic, artifacts: opts.artifacts, evidence_marker: opts.evidenceMarker });
@@ -72,10 +72,18 @@ describe('prompt labels: every manifest variant is what /chat stamps', () => {
     expect(res.body.prompt_version).toBe(committed.manifest.expected.code.prompts.chat.rescue.label);
   });
 
-  test('nine variants, nine distinct labels', () => {
+  test('booth — the prompt that replaces all of the above on a kiosk turn, at its own ceiling', async () => {
+    callAI.mockResolvedValue(r('An ECG first is reasonable.'));
+    const res = await send({ socratic: true, artifacts: true, evidence_marker: true, booth_mode: true });
+    expect(call(0).systemPrompt).toBe(P.RIMPL_SYSTEM_PROMPT_BOOTH);
+    expect(res.body.prompt_version).toBe(committed.manifest.expected.code.prompts.chat.booth.label);
+    expect(call(0).maxTokens).toBe(committed.manifest.expected.code.decoding.chat.booth.max_tokens);
+  });
+
+  test('ten variants, ten distinct labels', () => {
     const labels = Object.values(committed.manifest.expected.code.prompts.chat).map((e) => e.label);
-    expect(labels).toHaveLength(9);
-    expect(new Set(labels).size).toBe(9);
+    expect(labels).toHaveLength(10);
+    expect(new Set(labels).size).toBe(10);
   });
 });
 

@@ -45,6 +45,9 @@
       },
       "decoding": {
         "chat": {
+          "booth": {
+            "max_tokens": 400
+          },
           "deep": {
             "max_tokens": {
               "default": 8000,
@@ -127,6 +130,10 @@
       "model_version_prefix": "CCME_LLM_v8.0+",
       "prompts": {
         "chat": {
+          "booth": {
+            "label": "chat-prompt-4132dfe8",
+            "sha256": "4132dfe83c87399018e54d68834f797f4e3f1498cbd0afdc757bf154e5612257"
+          },
           "examiner": {
             "label": "chat-prompt-c6efcfc6",
             "sha256": "c6efcfc63661e45e0216f04cd231b7ed2583b7b86e2bc981615bdb9b18068db2"
@@ -319,5 +326,5 @@
     }
   },
   "schema": "clics-model-manifest/v1",
-  "sha256": "3d4ff5af381615dccf4acdc71edaeea811195331b02202aaf56a5f56852d9d47"
+  "sha256": "891da8524c340da30d002c3665603834bf61e338457364c545d4589ae57824b9"
 }
