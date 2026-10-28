@@ -19,3 +19,25 @@ _Avoid_: login, splash
 **Handoff**:
 The Portal passing a signed-in admin, auditor or superadmin to the audit-dashboard with their token.
 _Avoid_: SSO, redirect login
+
+## Booth
+
+**Booth Mode**:
+The kiosk version of the Portal that runs on the touch screen at the CCME booth of the National Forum on CME. It awards no prize and collects no personal data.
+_Avoid_: kiosk app, demo mode, booth version
+
+**Booth event**:
+One venue's run of Booth Mode, named by an event code such as NFCME-2026, with its own case and leaderboard.
+_Avoid_: batch, campaign, venue (alone)
+
+**Booth play**:
+One visitor's run on the booth screen, from tap to demo score. It is not a PLE: it earns no credit and never enters pilot data.
+_Avoid_: booth PLE, booth session, demo PLE
+
+**Demo score**:
+The PIS-7 score a booth play earns, always shown as a demo: not CME credit and not validated.
+_Avoid_: CME score, credit, PIS-7 score (alone)
+
+**Booth tag**:
+The auto-made label, such as "Booth #042", that names one visitor's play on the booth leaderboard. The visitor never types it.
+_Avoid_: nickname, username, player name
