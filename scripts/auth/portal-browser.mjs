@@ -630,6 +630,7 @@ const SCENARIOS = [
       const restores = [];
       page.on('console', (m) => { if (m.text() === `pw:bfcache-restore ${PORTAL}/`) restores.push(m.text()); });
       await watchLanding(ctx);
+      await page.goto(`${PORTAL}/forgot`);
       await page.goto(`${PORTAL}/`);
       await settle(page);
       t.check(seen.includes('pw:landing-visible /'), `the signed-out Landing page never showed: ${seen.join(', ')}`);
@@ -647,7 +648,7 @@ const SCENARIOS = [
       t.check(restoredSightings.length === 0, `the restored Landing page was shown: ${restoredSightings.join(', ')}`);
       await page.goBack({ waitUntil: 'commit' }).catch(() => null);
       await settle(page);
-      t.check(new URL(page.url()).pathname !== '/' || page.url() === 'about:blank', `a second Back is trapped on ${page.url()}`);
+      t.check(new URL(page.url()).pathname === '/forgot', `a second Back did not leave /dashboard for the page before /: ${page.url()}`);
     },
   },
   {
