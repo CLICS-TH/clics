@@ -688,6 +688,22 @@ const SCENARIOS = [
     },
   },
   {
+    name: 'the ECG logo stops moving within 5 seconds on /, /login and /manual (WCAG 2.2.2)',
+    motion: true,
+    async run(t, page) {
+      for (const path of ['/', '/login', '/manual']) {
+        await page.goto(`${PORTAL}${path}`, { waitUntil: 'domcontentloaded' });
+        const anims = await page.evaluate(() => [...document.querySelectorAll('.logo-ecg *')].flatMap((el) => el.getAnimations())
+          .map((a) => ({ name: a.animationName, iterations: a.effect.getTiming().iterations, end: a.effect.getComputedTiming().endTime })));
+        t.check(anims.some((a) => a.name === 'ecg-beat'), `${path}: the ECG beat does not animate, so this check tested nothing`);
+        for (const a of anims) {
+          t.check(Number.isFinite(a.iterations), `${path}: ${a.name} repeats forever`);
+          t.check(a.end <= 5000, `${path}: ${a.name} moves until ${a.end} ms`);
+        }
+      }
+    },
+  },
+  {
     name: 'dark colour scheme: signed-out / paints dark from the first frame',
     async run(t, page, ctx) {
       await page.emulateMedia({ colorScheme: 'dark' });
@@ -739,8 +755,9 @@ async function main() {
   let bfcacheRestores = 0;
   for (const s of SCENARIOS.filter((x) => !only || x.name.includes(only))) {
     // Reduced motion turns off the Portal's cross-document view transition, which stalls every
-    // animation frame in headless Chromium and leaves no element "stable" enough to click.
-    const ctx = await browser.newContext({ reducedMotion: 'reduce' });
+    // animation frame in headless Chromium and leaves no element "stable" enough to click. A `motion`
+    // scenario clicks nothing and reads the animations a reader with no motion preference gets.
+    const ctx = await browser.newContext({ reducedMotion: s.motion ? 'no-preference' : 'reduce' });
     if (DASH_UPSTREAM !== DASH) {
       await ctx.route((url) => url.href.startsWith(DASH), async (route) => {
         const response = await route.fetch({ url: DASH_UPSTREAM + route.request().url().slice(DASH.length) });
