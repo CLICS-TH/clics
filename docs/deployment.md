@@ -26,7 +26,8 @@ asks to CME, `deploy/vm1/deploy.sh`, cutover and rollback) is [`deploy/vm1/READM
   - RIMPL: `cd rimpl && railway up . --path-as-root --service rimpl --ci`
   - **Never omit `--service`.** Without it the CLI deploys to whatever service the directory is linked to. On 2026-10-14 `rimpl/` was linked to `backend`, so a rimpl deploy replaced the backend: the public URL answered `"service":"rimpl"` with a 503 until the backend was redeployed. After any backend deploy, check `curl -s https://backend-production-c12e4.up.railway.app/health/deep` reports `"service":"backend"`.
   - `railway up` often prints a `reqwest timeout` even on success — verify with `railway status --json` (look for a fresh active deployment), not the CLI message.
-- **Front-ends:** `cd physician-ui && vercel --prod --yes` · `cd audit-dashboard && vercel --prod --yes`.
+- **Front-ends:** `cd audit-dashboard && vercel --prod --yes`, **then** `cd physician-ui && vercel --prod --yes`.
+  - **Deploy the audit-dashboard first, or both together (owner ruling, 2026-10-27, #202).** Portal Sign out now leaves through the dashboard's `/login?logout=1` so a dual-role user's dashboard session ends too. A Portal deployed ahead of the dashboard sends that Sign out to an old dashboard build that does not clear its session.
 - **The audit-dashboard needs `NEXT_PUBLIC_API_URL` set on Vercel** or its login silently hangs in prod (build inlines the `localhost:3001` fallback). Set once, then rebuild:
   ```bash
   echo "https://backend-production-c12e4.up.railway.app" | vercel env add NEXT_PUBLIC_API_URL production

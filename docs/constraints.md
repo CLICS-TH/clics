@@ -13,3 +13,4 @@
 - Live credentials live **only** in gitignored `backend/.env` / `rimpl/.env` and platform env vars (Railway/Vercel dashboards) — never in committed files. `.claude/`, `*.rtf`, `*.env` are gitignored.
 - `INTERNAL_TOKEN` is the shared secret between backend and RIMPL; it must match byte-for-byte on both services. RIMPL refuses to boot in production if it is unset.
 - Anything sent to the manager (creds + URLs) must contain **zero** secrets.
+- **Sign out revokes globally** (owner ruling, 2026-10-27, #202): `POST /auth/logout` calls `admin.signOut(token, 'global')`, which ends every session of that user on every device, not only the current browser. This is intended; do not re-raise it as a defect. The route must report a failed revoke (#203).
