@@ -1,4 +1,5 @@
 const fs = require('fs');
+const crypto = require('crypto');
 const path = require('path');
 const { z } = require('zod');
 const { supabase } = require('../lib/supabase');
@@ -25,12 +26,23 @@ const ANSWER_MAX_CHARS = 500;
 const REPLY_MAX_CHARS = 1200;
 const STEPS = 3;
 const DOMAIN_KEYS = Object.keys(WEIGHTS);
+const BOARD_SIZE = 10;
+// The read is ordered like byStanding, so every play above a fetched one is fetched too: a play outside the top
+// STANDINGS_MAX just has no rank, and the today board draws on that top only. One kiosk finishes a play about
+// every 5 minutes, far below this.
+const STANDINGS_MAX = 1000;
+const BANGKOK_OFFSET_MS = 7 * 3_600_000;
+const DAY_MS = 86_400_000;
 
 /**
  * @typedef {{ choice: string } | { text: string }} Answer
- * @typedef {{ answers: Answer[], replies: string[] }} Dialogue
+ * @typedef {{ answers: Answer[], replies: string[], reply_sigs: string[] }} Dialogue
  *   reply: 1..3 answers and answers.length - 1 replies (the step being answered is answers.length).
  *   score: exactly 3 of each. A reply may be '' when the AI gave none for that step.
+ *   reply_sigs[i] is the reply_sig /reply answered with replies[i], so a client cannot send a reply the AI never
+ *   gave. It is ignored for an empty reply.
+ * @typedef {{ tag: number, score: number, at: string }} BoardEntry
+ * @typedef {{ today: BoardEntry[], event: BoardEntry[] }} Board
  * @typedef {'bad_request' | 'closed' | 'not_found' | 'not_started' | 'ai_unavailable' | 'unavailable'} Refusal
  * @typedef {{ body: object } | { refused: Refusal }} Result
  */
@@ -55,6 +67,7 @@ const DialogueSchema = z.object({
     z.object({ text: z.string().trim().min(1).max(ANSWER_MAX_CHARS) }).strict(),
   ])).min(1).max(STEPS),
   replies: z.array(z.string().max(REPLY_MAX_CHARS)).max(STEPS),
+  reply_sigs: z.array(z.string().max(64)).max(STEPS),
 }).strict();
 
 const DomainsSchema = ScoreSchema.pick(Object.fromEntries(DOMAIN_KEYS.map((k) => [k, true])));
@@ -121,16 +134,36 @@ async function openEvent(now) {
   return state.open ? { event, kase: state.kase } : { refused: 'closed' };
 }
 
+function replyKey() {
+  const secret = process.env.GUEST_TOKEN_SECRET;
+  if (!secret && process.env.NODE_ENV === 'production') throw new Error('GUEST_TOKEN_SECRET is required in production');
+  return crypto.createHmac('sha256', secret || 'clics-dev-guest-secret-do-not-use-in-prod').update('booth-reply-v1').digest();
+}
+
+/** Binds reply `step` (0-based) to its play, the dialogue it answered (answers 0..step, replies before it) and its
+ *  text, so replies from separate calls cannot be spliced into one dialogue. */
+function replySig(playId, step, { answers, replies }, reply) {
+  return crypto.createHmac('sha256', replyKey())
+    .update(JSON.stringify([playId, step, answers.slice(0, step + 1), replies.slice(0, step), reply])).digest('base64url');
+}
+
+function sigMatches(expected, given) {
+  const a = Buffer.from(expected);
+  const b = Buffer.from(given);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
 /** @returns {Dialogue | null} */
-function parseDialogue(kase, raw, phase) {
+function parseDialogue(kase, playId, raw, phase) {
   const parsed = DialogueSchema.safeParse(raw);
   if (!parsed.success) return null;
-  const { answers, replies } = parsed.data;
-  const counted = phase === 'score'
+  const { answers, replies, reply_sigs: sigs } = parsed.data;
+  const counted = (phase === 'score'
     ? answers.length === STEPS && replies.length === STEPS
-    : replies.length === answers.length - 1;
+    : replies.length === answers.length - 1) && sigs.length === replies.length;
   const known = answers.every((a, i) => !('choice' in a) || kase.steps[i].options.some((o) => o.id === a.choice));
-  return counted && known ? parsed.data : null;
+  const given = counted && replies.every((r, i) => r === '' || sigMatches(replySig(playId, i, parsed.data, r), sigs[i]));
+  return counted && known && given ? parsed.data : null;
 }
 
 // Turn 1 carries the vignette because the evaluator reads the transcript alone (chief_complaint only seeds
@@ -157,17 +190,65 @@ async function settle(playId, res, reserved) {
   if (error) console.error(`[booth] settle failed for ${playId}: ${error.message}`);
 }
 
-const scoredBody = (composite, domains) => ({ status: 'scored', composite, domains });
+const bangkokDayStart = (ms) => Math.floor((ms + BANGKOK_OFFSET_MS) / DAY_MS) * DAY_MS - BANGKOK_OFFSET_MS;
+
+/** Higher score first; an equal score ranks the earlier play first. */
+function byStanding(a, b) {
+  return b.composite - a.composite || Date.parse(a.scored_at) - Date.parse(b.scored_at) || a.tag - b.tag;
+}
+
+/**
+ * Pure: the event's scored plays, ranked for the event and for the Bangkok day that `dayOf` falls in.
+ * @param {{ id: string, tag: number, composite: number, scored_at: string }[]} rows scored plays of one event
+ */
+function standings(rows, dayOf) {
+  const event = [...rows].sort(byStanding);
+  const start = bangkokDayStart(dayOf);
+  const today = event.filter((r) => { const t = Date.parse(r.scored_at); return t >= start && t < start + DAY_MS; });
+  return { event, today };
+}
+
+const entry = (r) => ({ tag: r.tag, score: r.composite, at: r.scored_at });
+
+/** @returns {Board} */
+const boardOf = ({ today, event }) => ({ today: today.slice(0, BOARD_SIZE).map(entry), event: event.slice(0, BOARD_SIZE).map(entry) });
+
+async function readStandings(event, dayOf) {
+  const { data, error } = await supabase.from('booth_plays').select('id, tag, composite, scored_at')
+    .eq('event_code', event.code).eq('status', 'scored')
+    .order('composite', { ascending: false }).order('scored_at').order('tag').limit(STANDINGS_MAX);
+  if (error || !Array.isArray(data)) {
+    console.error(`[booth] standings read failed for ${event.code}: ${error?.message ?? 'not a list'}`);
+    return null;
+  }
+  const rows = data.map((r) => ({ id: r.id, tag: r.tag, composite: Number(r.composite), scored_at: r.scored_at }));
+  return standings(rows, dayOf);
+}
+
+/** A rank of null means unknown: the standings did not load, or the play is outside the top STANDINGS_MAX. */
+async function scoredBody(playId, event, composite, domains, scoredAt) {
+  const s = await readStandings(event, Date.parse(scoredAt));
+  const rank = (list) => {
+    const i = list.findIndex((r) => r.id === playId);
+    return i >= 0 ? i + 1 : null;
+  };
+  return {
+    status: 'scored', composite, domains,
+    rank_today: rank(s?.today ?? []), rank_event: rank(s?.event ?? []),
+    board: s ? boardOf(s) : null,
+  };
+}
 
 async function settledOutcome(playId, event) {
   const { data: row, error } = await supabase.from('booth_plays')
-    .select(`id, status, composite, ${DOMAIN_KEYS.join(', ')}`)
+    .select(`id, status, composite, scored_at, ${DOMAIN_KEYS.join(', ')}`)
     .eq('id', playId).eq('event_code', event.code).maybeSingle();
   if (error) return { refused: 'unavailable' };
   if (!row) return { refused: 'not_found' };
   if (row.status === 'started') return null;
   if (row.status !== 'scored') return UNAVAILABLE;
-  return { body: scoredBody(Number(row.composite), Object.fromEntries(DOMAIN_KEYS.map((k) => [k, Number(row[k])]))) };
+  const domains = Object.fromEntries(DOMAIN_KEYS.map((k) => [k, Number(row[k])]));
+  return { body: await scoredBody(playId, event, Number(row.composite), domains, row.scored_at) };
 }
 
 async function claimAsUnavailable(playId, event) {
@@ -176,13 +257,14 @@ async function claimAsUnavailable(playId, event) {
   return !error && Array.isArray(data) && data.length === 1;
 }
 
-async function finish(playId, domains) {
+async function finish(playId, event, domains) {
   const composite = compositeScore(domains);
+  const scoredAt = new Date().toISOString();
   const { data, error } = await supabase.from('booth_plays')
-    .update({ status: 'scored', composite, ...domains, scored_at: new Date().toISOString() })
+    .update({ status: 'scored', composite, ...domains, scored_at: scoredAt })
     .eq('id', playId).eq('status', 'unavailable').is('scored_at', null).select('id');
   if (error || !Array.isArray(data) || data.length !== 1) return UNAVAILABLE;
-  return { body: scoredBody(composite, domains) };
+  return { body: await scoredBody(playId, event, composite, domains, scoredAt) };
 }
 
 /** @returns {Promise<Result>} body: { open, reason?, event_code, case_version } */
@@ -211,12 +293,20 @@ async function startPlay(now = new Date()) {
   return { body: { play_id: row.play_id, tag: row.play_tag, case: opened.kase, answer_max_chars: ANSWER_MAX_CHARS } };
 }
 
-/** @returns {Promise<Result>} body: { status: 'replied', reply } | { status: 'unavailable' } */
+/** @returns {Promise<Result>} body: { board: Board } */
+async function boardFor(now = new Date()) {
+  const opened = await openEvent(now);
+  if (opened.refused) return opened;
+  const s = await readStandings(opened.event, now.getTime());
+  return s ? { body: { board: boardOf(s) } } : { refused: 'unavailable' };
+}
+
+/** @returns {Promise<Result>} body: { status: 'replied', reply, reply_sig } | { status: 'unavailable' } */
 async function replyToStep(playId, input, now = new Date()) {
   const opened = await openEvent(now);
   if (opened.refused) return opened;
   const { event, kase } = opened;
-  const dialogue = parseDialogue(kase, input, 'reply');
+  const dialogue = parseDialogue(kase, playId, input, 'reply');
   if (!dialogue) return { refused: 'bad_request' };
 
   const reserved = await reserve(playId, event, REPLY_RESERVE_USD);
@@ -238,17 +328,19 @@ async function replyToStep(playId, input, now = new Date()) {
   }
   await settle(playId, res, REPLY_RESERVE_USD);
   const reply = typeof res?.content === 'string' ? res.content.trim().slice(0, REPLY_MAX_CHARS) : '';
-  return reply ? { body: { status: 'replied', reply } } : { refused: 'ai_unavailable' };
+  if (!reply) return { refused: 'ai_unavailable' };
+  return { body: { status: 'replied', reply, reply_sig: replySig(playId, dialogue.answers.length - 1, dialogue, reply) } };
 }
 
 // shadow MUST be false: rimpl's shadow evaluation upserts shadow_evaluations, whose ple_id references ples, and a
 // booth play is not a PLE.
-/** @returns {Promise<Result>} body: { status: 'scored', composite, domains } | { status: 'unavailable' } */
+/** @returns {Promise<Result>} body: { status: 'scored', composite, domains, rank_today, rank_event, board }
+ *    | { status: 'unavailable' } */
 async function scorePlay(playId, input, now = new Date()) {
   const opened = await openEvent(now);
   if (opened.refused) return opened;
   const { event, kase } = opened;
-  const dialogue = parseDialogue(kase, input, 'score');
+  const dialogue = parseDialogue(kase, playId, input, 'score');
   if (!dialogue) return { refused: 'bad_request' };
 
   const settled = await settledOutcome(playId, event);
@@ -271,7 +363,8 @@ async function scorePlay(playId, input, now = new Date()) {
   }
   await settle(playId, res, SCORE_RESERVE_USD);
   const domains = DomainsSchema.safeParse(res);
-  return domains.success ? finish(playId, domains.data) : UNAVAILABLE;
+  return domains.success ? finish(playId, event, domains.data) : UNAVAILABLE;
 }
 
-module.exports = { BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, boothStatus, startPlay, replyToStep, scorePlay };
+module.exports = { BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, replySig, standings, boothStatus, boardFor, startPlay,
+  replyToStep, scorePlay };
