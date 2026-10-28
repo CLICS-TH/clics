@@ -12,6 +12,7 @@ const { requestSignal } = require('../lib/request-signal');
 const { promptLabel } = require('../lib/versions');
 const { sendAiError, logAiError, isAborted } = require('../lib/ai-errors');
 const { sseStream } = require('../lib/sse');
+const { boothReply } = require('../services/booth');
 
 const router = Router();
 
@@ -60,6 +61,9 @@ const ChatSchema = z.object({
   // ples.deep_mode_at is set (a turn of this session has already been routed deep). RIMPL is stateless,
   // so it cannot remember that itself. Read only when router_enabled.
   deep_mode: z.boolean().default(false),
+  // Booth Mode (#209/#211): the backend (#210) sends it for a conference-kiosk play. true -> the turn is
+  // answered by services/booth.js, not the PLE pipeline below. An older RIMPL strips it (zod drops it).
+  booth_mode: z.boolean().default(false),
 });
 
 // De-identify everything one outbound call carries under ONE registry, so a token means one person
@@ -124,7 +128,7 @@ router.post('/', async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
   const { history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker,
-          rescue_active, already_qualified, rescue_rounds, stream, router_enabled, deep_mode } = parsed.data;
+          rescue_active, already_qualified, rescue_rounds, stream, router_enabled, deep_mode, booth_mode } = parsed.data;
   // KNOWN patient identifiers to scrub deterministically (closes the bare-unlabelled-name leak).
   const hints = deriveHintTokens(patient_ref);
   // Examiner mode (CLE2 / remediation) leads with Socratic questioning and MUST end on ❓; natural
@@ -147,6 +151,9 @@ router.post('/', async (req, res) => {
     // ragLookup previously received the raw message.
     const { cleanChiefComplaint, cleanHistory, cleanMessage } =
       deidentifyTurn({ chiefComplaint: chief_complaint, history, message, hints });
+    // BOOTH MODE (#211): after the de-identification above and before anything else a PLE turn does. No
+    // RAG, and always plain JSON, even with `stream`; a failure takes the catch below.
+    if (booth_mode) return res.json(await boothReply({ messages: buildMessages(cleanHistory, cleanMessage, [], cleanChiefComplaint), signal }));
     const ragDocs = await ragLookup(cleanMessage);
     const messages = buildMessages(cleanHistory, cleanMessage, ragDocs, cleanChiefComplaint);
 

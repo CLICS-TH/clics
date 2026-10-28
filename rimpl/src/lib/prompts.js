@@ -295,6 +295,18 @@ Rules for this reply, all of them mandatory:
 - Be brief and warm. Two or three sentences of framing at most, then the question(s).
 - Do not mention that a mode changed, that this is a rescue, or that the conversation was judged insufficient. Simply engage.`;
 
+// BOOTH (#209/#211): the conference kiosk's demo turn (services/booth.js), never a PLE and never scored.
+// Short because it is read standing at a large screen; it never names the best option because the next
+// scripted step would then have no answer left to find.
+const RIMPL_SYSTEM_PROMPT_BOOTH = `You are a warm, collegial clinical mentor in a short demo of CLICS at a conference booth. A physician is working through a short fictional case in a few scripted steps. At each step they choose an option or type their own answer, and your reply appears on a large touch screen that they read standing about a metre away. Always reply in the same language as the physician (Thai or English).
+
+Rules for every reply, all of them mandatory:
+- At most THREE short sentences. Plain text only: no headings, lists, tables, markdown, emoji, citations, links or reference lists.
+- Respond to the reasoning in the physician's latest answer: one point that supports it, or one consideration it may have missed. Never invent facts.
+- Never say or hint which option is best, correct or preferred, for this step or any other step. Do not rank the options, do not grade the physician's choice as right or wrong, and do not preview what a later step will ask.
+- Do not ask the physician a question: the screen leads them to the next step.
+- The case is fictional. Never ask for real patient details.`;
+
 // Local-model addendum to the evaluator prompt (ON since E2, 2026-09-02). It is appended AFTER the
 // rubric, and only for provider 'local', so the rubric text itself never moves: that text is
 // mirrored in audit-dashboard/lib/pis7-rubric.ts and pinned by backend/tests/rubric-sync.test.js,
@@ -363,9 +375,10 @@ function pis7PromptFor(provider, addendum = PIS7_LOCAL_ADDENDUM) {
 // model manifest (lib/manifest.js CHAT_PROMPT_VARIANTS), so every stored chat prompt_version label maps
 // back to exactly one variant. Examiner mode (CLE2 / remediation) or natural (CLE1/CLE3), then the
 // artifact guidance when the superadmin `clinical_artifacts` toggle is on, then the evidence-marker
-// guidance (its placement differs by mode) when `chat_evidence_marker` is on. A rescue turn REPLACES all
-// of it with the rescue prompt, which carries neither.
-function chatSystemPrompt({ socratic = false, artifacts = false, evidenceMarker = false, rescue = false } = {}) {
+// guidance (its placement differs by mode) when `chat_evidence_marker` is on. A booth turn, then a rescue
+// turn, REPLACES all of it with its own prompt, which carries neither.
+function chatSystemPrompt({ socratic = false, artifacts = false, evidenceMarker = false, rescue = false, booth = false } = {}) {
+  if (booth) return RIMPL_SYSTEM_PROMPT_BOOTH;
   if (rescue) return RIMPL_SYSTEM_PROMPT_RESCUE;
   return (socratic ? RIMPL_SYSTEM_PROMPT_EXAMINER : RIMPL_SYSTEM_PROMPT_NATURAL)
     + (artifacts ? ARTIFACT_GUIDANCE : '')
@@ -374,7 +387,7 @@ function chatSystemPrompt({ socratic = false, artifacts = false, evidenceMarker 
 
 module.exports = {
   RIMPL_SYSTEM_PROMPT, RIMPL_SYSTEM_PROMPT_NATURAL, RIMPL_SYSTEM_PROMPT_EXAMINER,
-  RIMPL_SYSTEM_PROMPT_RESCUE, chatSystemPrompt,
+  RIMPL_SYSTEM_PROMPT_RESCUE, RIMPL_SYSTEM_PROMPT_BOOTH, chatSystemPrompt,
   RIMPL_SYSTEM_PROMPT_AUDIT_DISCUSS,
   ARTIFACT_GUIDANCE,
   EVIDENCE_GUIDANCE, EVIDENCE_RETRY_PROMPT, EVIDENCE_LEVELS, evidenceLineFor,
