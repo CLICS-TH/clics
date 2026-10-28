@@ -471,6 +471,8 @@ jobs:
       # /ple-chat lost-connection settle (#141 client_turn_id + the one-bubble rules). Hermetic, fake clock.
       - name: Chat turn-settle smoke
         run: npm run test:chat-settle
+      - name: Booth kiosk harness (1080x1920, coarse pointer)
+        run: npm run test:booth
       # Mobile audit: physician-ui hermetic (always) + dashboard auditor live-smoke only on master
       # pushes. Same-repository PRs otherwise inherit the production secrets too. The harness
       # exits non-zero on any finding. SUPER_* deliberately unset → no real admin creds in CI.

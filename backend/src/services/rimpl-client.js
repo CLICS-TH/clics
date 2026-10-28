@@ -94,7 +94,7 @@ async function parseWithProvider(res) {
 // event is handed to `onEvent(name, data)` as it arrives, and the call still resolves with the same
 // body (or throws the same error) as a non-streamed call — taken from the final `done` event. rimpl
 // answers a rescue turn, and any failure before the first word, in plain JSON; both are read as before.
-async function rimplChat({ ple_id, history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker, router_enabled, deep_mode, rescue_active, already_qualified, rescue_rounds, stream = false, onEvent }) {
+async function rimplChat({ ple_id, history, message, language, chief_complaint, patient_ref, socratic, artifacts, evidence_marker, router_enabled, deep_mode, rescue_active, already_qualified, rescue_rounds, booth_mode, stream = false, onEvent }, { timeoutMs = CHAT_TIMEOUT_MS } = {}) {
   const res = await fetch(`${RIMPL_URL}/chat`, {
     method: 'POST',
     headers: {
@@ -114,8 +114,9 @@ async function rimplChat({ ple_id, history, message, language, chief_complaint, 
       router_enabled: !!router_enabled, deep_mode: !!deep_mode,
       rescue_active: !!rescue_active, already_qualified: !!already_qualified,
       rescue_rounds: Math.max(0, Number(rescue_rounds) || 0),
+      ...(booth_mode ? { booth_mode: true } : {}),
       ...(stream ? { stream: true } : {}) }),
-    signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) throw await rimplError('/chat', res);
   if (stream && /text\/event-stream/i.test(res.headers?.get?.('content-type') || '')) return readChatStream(res, onEvent);
@@ -199,7 +200,7 @@ async function rimplDeidentify({ messages, patient_ref, chief_complaint }) {
   return body;
 }
 
-// `shadow: false` opts out of RIMPL's shadow evaluation. Only the calibration harness sets it: a
+// `shadow: false` opts out of RIMPL's shadow evaluation. The calibration harness sets it because a
 // --mode rescore run re-scores the real cohort through this route and would otherwise overwrite the
 // pilot's accumulated shadow rows with calibration-run rows.
 //
@@ -208,7 +209,7 @@ async function rimplDeidentify({ messages, patient_ref, chief_complaint }) {
 // and the persisted PII map, the auditor's view and the evaluator's input agree on every token. A
 // caller that omits it (the calibration harness) gets the transcript-only numbering, recorded as such
 // in provenance.deid. An older RIMPL ignores the key (its zod schemas strip unknown keys).
-async function rimplEvaluate({ ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256, lock_declaration_sha256 }) {
+async function rimplEvaluate({ ple_id, transcript, patient_ref, chief_complaint, shadow, weights_sha256, lock_declaration_sha256 }, { timeoutMs = EVAL_TIMEOUT_MS } = {}) {
   const res = await fetch(`${RIMPL_URL}/evaluate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-internal-token': process.env.INTERNAL_TOKEN || '' },
@@ -223,7 +224,7 @@ async function rimplEvaluate({ ple_id, transcript, patient_ref, chief_complaint,
     // then refuses to save the score and defers it, so deploy rimpl first.
     body: JSON.stringify({ ple_id, transcript, patient_ref, chief_complaint: chief_complaint ?? null, shadow, weights_sha256: weights_sha256 ?? null,
       ...(lock_declaration_sha256 ? { lock_declaration_sha256 } : {}) }),
-    signal: AbortSignal.timeout(EVAL_TIMEOUT_MS),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) throw await rimplError('/evaluate', res);
   return parseWithProvider(res);
