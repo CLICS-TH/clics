@@ -1,0 +1,32 @@
+<!doctype html>
+<!--
+  Booth Mode kiosk (#209/#210). Its own head, on purpose:
+  - no inline theme snippet and no js/boot.js: both read and write localStorage, and the booth uses no storage;
+  - no css/main.css: under (pointer: coarse) it forces form fields to 16px, below the booth's 28px floor, and its
+    touch floors are the Portal's 44px, not the kiosk's 80px;
+  - js/ui.js for AI_LABEL, the one blinding label every AI bubble carries. At load it only defines globals: no
+    storage, no DOM, no other script;
+  - the CSP meta makes "no third-party scripts" a browser rule: only same-origin script files run (no inline
+    script, no CDN).
+-->
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self'; object-src 'none'; base-uri 'self'">
+  <meta name="robots" content="noindex">
+  <title>CLICS Booth</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/booth.css">
+  <link rel="stylesheet" href="/css/booth-shell.css">
+  <link rel="stylesheet" href="/css/booth-board.css">
+  <script src="/js/config.js"></script>
+  <script src="/js/icons.js"></script>
+  <script src="/js/ui.js"></script>
+  <script type="module" src="/js/booth-shell.js"></script>
+</head>
+<body class="booth">
+  <main id="booth" aria-live="polite"></main>
+</body>
+</html>

@@ -486,10 +486,13 @@ describe('physician-ui design-a11y: field border, focus ring, placeholder, error
   it('every page head carries the same theme snippet and the two theme-color metas', () => {
     // The pre-paint snippet is hand-duplicated (no build step), so drift is the failure mode: a head left
     // on the old snippet flashes the wrong theme for System readers.
+    // booth.html is the one exception: the kiosk stores nothing, so it carries no theme snippet at all (#210).
     const dir = path.join(REPO, 'physician-ui', 'public');
-    const pages = fs.readdirSync(dir).filter((f) => f.endsWith('.html')).map((f) => path.join(dir, f))
+    const pages = fs.readdirSync(dir).filter((f) => f.endsWith('.html') && f !== 'booth.html').map((f) => path.join(dir, f))
       .concat(path.join(dir, 'auth', 'callback.html'));
     expect(pages.length).toBe(17);
+    expect(fs.readFileSync(path.join(dir, 'booth.html'), 'utf8').replace(/<!--[\s\S]*?-->/g, ''))
+      .not.toMatch(/localStorage|clics_theme/);
     const prefix = "p=localStorage.getItem('clics_theme')}catch(e){}if(p!=='light'&&p!=='dark')p='system';d.setAttribute('data-theme-pref',p);";
     for (const f of pages) {
       const html = fs.readFileSync(f, 'utf8');
