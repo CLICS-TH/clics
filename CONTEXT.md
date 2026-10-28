@@ -16,6 +16,10 @@ _Avoid_: index, home
 The public page at the Portal root `/`, readable without signing in.
 _Avoid_: login, splash
 
+**Privacy page**:
+The public Portal page at `/privacy` that states what personal data CLICS collects, who processes it, and the reader's rights.
+_Avoid_: privacy policy page, PDPA page, terms
+
 **Handoff**:
 The Portal passing a signed-in admin, auditor or superadmin to the audit-dashboard with their token.
 _Avoid_: SSO, redirect login
