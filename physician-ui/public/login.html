@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#faf9f5" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#181715" media="(prefers-color-scheme: dark)" />
   <title>CLICS — เข้าสู่ระบบ</title>
-  <meta name="description" content="CLICS — เปลี่ยนบทสนทนาทางคลินิกกับ AI ให้เป็นเครดิตการเรียนรู้ต่อเนื่องที่ตรวจสอบได้ · Case-based Learning Intelligence Credit System" />
+  <meta name="description" content="CLICS — ฝึกให้เหตุผลทางคลินิกกับ AI แล้วรับผลประเมิน PIS-7 · Case-based Learning Intelligence Credit System" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <!-- Logout endpoint: the dashboard (a different origin) sends staff to ?logout=1 (on / or here) to
        clear the PORTAL-origin token too — otherwise js/forward.js would re-log them straight back in.
@@ -38,6 +38,7 @@
     .hero-lede-en { display: block; font-family: var(--font-body); font-size: 14px; font-weight: 400; color: var(--muted); margin-top: 8px; line-height: 1.5; }
     .hero-bullets { list-style: none; margin-top: 18px; display: grid; gap: 14px; }
     .hero-bullets li { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; color: var(--body-color); line-height: 1.55; }
+    .hero-bullets .bi-en { white-space: normal; }
     .hero-bullets svg { flex: none; width: 20px; height: 20px; color: var(--coral-active); margin-top: 2px; }
     .trust-foot { grid-area: foot; text-align: center; }
     .trust-chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
@@ -116,30 +117,30 @@
     </div>
 
     <div class="hero-points">
-      <p class="hero-lede">เปลี่ยนบทสนทนาทางคลินิกกับ AI ให้เป็นเครดิตการเรียนรู้ต่อเนื่อง
-        <span class="hero-lede-en">Turn clinical conversations with AI into verified continuing-education credit.</span>
+      <p class="hero-lede">ฝึกให้เหตุผลทางคลินิกกับ AI แล้วดูว่าการให้เหตุผลของคุณได้รับการประเมินอย่างไร
+        <span class="hero-lede-en">Practise clinical reasoning with AI, and see how your reasoning is assessed.</span>
       </p>
       <ul class="hero-bullets">
         <li>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-          <span class="bi-stack">สนทนาเคสผู้ป่วยกับ AI แล้วรับเครดิต PLE<span class="bi-en">Discuss patient cases with AI, earn PLE credit</span></span>
+          <span class="bi-stack">คุยเคสสมมติกับ AI แล้วรับผลประเมิน PIS-7<span class="bi-en">Talk a hypothetical case through with AI, get PIS-7 feedback</span></span>
         </li>
         <li>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-          <span class="bi-stack">ทุกเครดิตผ่านการตรวจประเมินโดยผู้ตรวจอิสระ<span class="bi-en">Every credit is independently audited</span></span>
+          <span class="bi-stack">ผู้ตรวจผู้เชี่ยวชาญประเมินแบบปกปิดเพื่อเทียบกับ AI<span class="bi-en">Expert auditors score blind, to check the AI</span></span>
         </li>
         <li>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
-          <span class="bi-stack">ข้อมูลผู้ป่วยไม่ออกจากระบบภายในของสภาวิชาชีพ<span class="bi-en">Patient data never leaves the council's systems</span></span>
+          <span class="bi-stack">ตัวตนของคุณอยู่ในระบบ CLICS ส่วน AI ได้รับเฉพาะข้อความที่ไม่ระบุตัวตน<span class="bi-en">Your identity stays in CLICS; the AI gets only de-identified text</span></span>
         </li>
       </ul>
     </div>
 
     <footer class="trust-foot">
       <div class="trust-chips">
-        <span class="trust-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>ติดตั้งภายในองค์กร · On-premise</span>
+        <span class="trust-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>ตัดข้อมูลระบุตัวตนก่อนถึง AI · De-identified before AI</span>
         <span class="trust-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>PDPA</span>
-        <span class="trust-chip">Pilot 2026</span>
+        <span class="trust-chip">โครงการนำร่องยังไม่เริ่ม · Pilot not yet started</span>
       </div>
       <p class="login-foot">ผู้ดูแลระบบและผู้ตรวจประเมินเข้าสู่ระบบที่นี่เช่นกัน · Admins & auditors sign in here too.</p>
     </footer>
