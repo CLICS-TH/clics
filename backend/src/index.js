@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
+const { limit } = require('./lib/rate-limit');
 
 // Fail closed in production: the encrypted identity vault, signed guest tokens, RIMPL shared secret,
 // and locked CORS all depend on these. Refuse to start without them rather than degrade silently.
@@ -55,7 +55,6 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '1mb' })); // cap payloads (transcripts fit well under 1mb); after CORS
 
 // Rate limits: a general cap + stricter caps on the abuse-prone endpoints (auth + the costly guest AI).
-const limit = (windowMs, max, message) => rateLimit({ windowMs, max, standardHeaders: true, legacyHeaders: false, message: { error: message } });
 app.use(limit(60_000, 300, 'Too many requests — slow down.'));            // general: 300/min/IP
 app.use('/auth/login', limit(60_000, 10, 'Too many login attempts — wait a minute.'));
 // (request-access + signup/* limiters removed with those flows — the routes are 404 stubs now;
@@ -71,6 +70,7 @@ app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 app.use('/health', require('./routes/health')); // /health/deep — unauthenticated readiness probe
 app.use('/auth', require('./routes/auth'));
 app.use('/guest', require('./routes/guest')); // ephemeral guest mode (no auth, no persistence)
+app.use('/booth', require('./routes/booth'));
 app.use('/ples/folders', require('./routes/folders')); // before /ples so "folders" isn't read as :id
 app.use('/ples', require('./routes/ples'));
 // ORDER LOAD-BEARING: admin.js must mount before superadmin.js — superadmin.js opens with a
