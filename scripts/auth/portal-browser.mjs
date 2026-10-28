@@ -227,15 +227,21 @@ async function emailSignIn(page, user, { open = true } = {}) {
 }
 
 
-// Visible text of the page minus the language switch (each button names its own language) and
-// boot.js's theme/view toggles, which are shared chrome outside the Landing page's copy.
-function landingText(page) {
+// Every string a reader sees or hears: the tab title, visible text, and the accessible names and
+// image alts of visible elements. The only text left out is an element whose own `lang` differs from
+// the page's, which is how the language switch names each language in that language.
+function pageStrings(page) {
   return page.evaluate(() => {
-    const skip = [...document.querySelectorAll('.lang-switch, .toggle-cluster')];
-    skip.forEach((el) => { el.dataset.pwDisplay = el.style.display; el.style.display = 'none'; });
+    const lang = document.documentElement.lang;
+    const foreign = [...document.querySelectorAll('body [lang]')].filter((el) => el.lang !== lang);
+    const inForeign = (el) => foreign.some((f) => f.contains(el));
+    foreign.forEach((el) => { el.dataset.pwDisplay = el.style.display; el.style.display = 'none'; });
     const text = document.body.innerText;
-    skip.forEach((el) => { el.style.display = el.dataset.pwDisplay; });
-    return text;
+    foreign.forEach((el) => { el.style.display = el.dataset.pwDisplay; });
+    const named = [...document.querySelectorAll('[aria-label], img[alt]')]
+      .filter((el) => !inForeign(el) && el.checkVisibility())
+      .map((el) => el.getAttribute('aria-label') ?? el.alt);
+    return [document.title, ...text.split('\n'), ...named].filter((s) => s.trim());
   });
 }
 const THAI = /[฀-๿]/;
@@ -586,16 +592,16 @@ const SCENARIOS = [
       await page.goto(`${PORTAL}/`);
       await settle(page);
       t.check(await page.evaluate(() => document.documentElement.lang) === 'th', 'the Landing page does not start in Thai');
-      t.check(THAI.test(await landingText(page)), 'the Thai Landing page shows no Thai');
-      const group = page.getByRole('group', { name: /Choose language/ });
+      t.check(THAI.test((await pageStrings(page)).join('\n')), 'the Thai Landing page shows no Thai');
+      t.check(THAI.test(await page.title()), `the Thai Landing page's title is not Thai: ${await page.title()}`);
+      const group = page.getByRole('group', { name: /Choose language|เลือกภาษา/ });
       t.check(await group.getByRole('button', { name: 'ไทย', pressed: true }).isVisible(), 'the Thai button is not pressed by default');
       t.check(await tabTo(page, '[data-set-lang="en"]'), 'Tab never reached the English button');
       await page.keyboard.press('Enter');
       const checkEnglish = async (where) => {
         t.check(await page.evaluate(() => document.documentElement.lang) === 'en', `${where}: html[lang] is not en`);
-        const text = await landingText(page);
-        const thai = text.split('\n').filter((l) => THAI.test(l));
-        t.check(thai.length === 0, `${where}: Thai still visible: ${thai.slice(0, 3).join(' | ')}`);
+        const thai = (await pageStrings(page)).filter((l) => THAI.test(l));
+        t.check(thai.length === 0, `${where}: Thai still seen or heard: ${thai.slice(0, 4).join(' | ')}`);
         t.check(await group.getByRole('button', { name: 'English', pressed: true }).isVisible(), `${where}: English is not pressed`);
         t.check(await group.getByRole('button', { name: 'ไทย', pressed: false }).isVisible(), `${where}: Thai is still pressed`);
         const alts = await page.locator('img[data-alt-en]').evaluateAll((imgs) => imgs.map((i) => [i.alt, i.dataset.altEn]));
@@ -608,8 +614,27 @@ const SCENARIOS = [
       t.check(await tabTo(page, '[data-set-lang="th"]'), 'Tab never reached the Thai button');
       await page.keyboard.press('Space');
       t.check(await page.evaluate(() => document.documentElement.lang) === 'th', 'Space on ไทย did not switch back');
+      t.check(THAI.test(await page.title()), `the title did not switch back to Thai: ${await page.title()}`);
       const alts = await page.locator('img[data-alt-th]').evaluateAll((imgs) => imgs.map((i) => [i.alt, i.dataset.altTh]));
       t.check(alts.every(([a, th]) => a === th), 'image alts did not switch back to Thai');
+    },
+  },
+  {
+    name: 'manual TH/EN switch flips the title and the theme and view toggles',
+    async run(t, page) {
+      await page.goto(`${PORTAL}/manual`);
+      await settle(page);
+      const toggles = () => page.locator('.toggle-cluster .toggle-btn').evaluateAll((bs) => bs.flatMap((b) => [b.innerText, b.getAttribute('aria-label')]));
+      t.check(THAI.test(await page.title()), `the Thai manual's title is not Thai: ${await page.title()}`);
+      t.check((await toggles()).every((s) => THAI.test(s)), `Thai manual toggles: ${(await toggles()).join(' | ')}`);
+      await page.click('.lang-switch [data-set-lang="en"]');
+      for (const where of ['after the switch', 'after reload']) {
+        t.check(!THAI.test(await page.title()), `${where}: the English manual's title is ${await page.title()}`);
+        const thai = (await toggles()).filter((s) => THAI.test(s));
+        t.check(thai.length === 0, `${where}: English manual toggles say ${thai.join(' | ')}`);
+        await page.reload();
+        await settle(page);
+      }
     },
   },
   {

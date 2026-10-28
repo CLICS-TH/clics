@@ -625,6 +625,10 @@ html[data-mobile] .artifact-panel.open { transform:translateX(0); }
 .toggle-btn svg { width:15px; height:15px; flex-shrink:0; }
 /* Icon-only on phones (label would crowd the nav), text shows ≥640px — mirrors the auditor toggle. */
 @media (max-width:639px) { .toggle-btn .toggle-label { display:none; } }
+/* On a page with the TH/EN switch (js/lang.js) boot.js labels the toggles in both languages; show one. */
+.toggle-label [data-lang="en"],
+html[data-manual-lang="en"] .toggle-label [data-lang="th"] { display:none; }
+html[data-manual-lang="en"] .toggle-label [data-lang="en"] { display:inline; }
 
 /* ===== Shared responsive primitives (utilities + coarse-pointer floors) ===== */
 /* ONE coarse-pointer rule replaces the scattered per-class `@media (hover:none)` bumps: every

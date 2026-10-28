@@ -80,14 +80,15 @@ const INTRO = {
 function portalPage({ th, en }) {
   const langs = en ? ['th', 'en'] : ['th'];
   const toggle = en ? `
-      <div class="lang-switch" role="group" aria-label="เลือกภาษา / Choose language">
+      <div class="lang-switch" role="group" aria-label="เลือกภาษา" data-label-th="เลือกภาษา" data-label-en="Choose language">
         <button type="button" data-set-lang="th" class="toggle-btn is-on" aria-pressed="true">ไทย</button>
         <button type="button" data-set-lang="en" class="toggle-btn" aria-pressed="false">English</button>
       </div>` : '';
 
   const sections = { th, en };
+  const titles = en ? ` data-title-th="CLICS — ${esc(INTRO.th.h1)}" data-title-en="CLICS — Physician manual"` : '';
   return `<!DOCTYPE html>
-<html lang="th" data-public>
+<html lang="th" data-public${titles}>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />

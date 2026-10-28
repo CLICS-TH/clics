@@ -9,7 +9,12 @@
   var LANG_KEY = 'clics_manual_lang';
 
   // The pre-paint snippet in <head> has already applied the stored choice; this wires the buttons
-  // and keeps them, `lang` and image alts in sync.
+  // and keeps them, `lang`, the tab title, accessible names and image alts in sync. boot.js listens
+  // for clics:langchange to relabel the theme and view toggles.
+  function swap(selector, attr, set) {
+    var els = document.querySelectorAll(selector);
+    for (var i = 0; i < els.length; i++) set(els[i], els[i].getAttribute(attr));
+  }
   function applyLang(lang) {
     if (lang === 'en') doc.setAttribute('data-manual-lang', 'en');
     else doc.removeAttribute('data-manual-lang');
@@ -23,9 +28,13 @@
       btns[i].classList.toggle('is-on', on);
       btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
     }
-    var imgs = document.querySelectorAll('img[data-alt-th][data-alt-en]');
-    for (var j = 0; j < imgs.length; j++) imgs[j].alt = imgs[j].getAttribute(lang === 'en' ? 'data-alt-en' : 'data-alt-th');
+    var en = lang === 'en';
+    swap('img[data-alt-th][data-alt-en]', en ? 'data-alt-en' : 'data-alt-th', function (el, v) { el.alt = v; });
+    swap('[data-label-th][data-label-en]', en ? 'data-label-en' : 'data-label-th', function (el, v) { el.setAttribute('aria-label', v); });
+    var title = doc.getAttribute(en ? 'data-title-en' : 'data-title-th');
+    if (title) document.title = title;
     try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* private mode: session-only is fine */ }
+    window.dispatchEvent(new CustomEvent('clics:langchange'));
   }
 
   var stored = 'th';
