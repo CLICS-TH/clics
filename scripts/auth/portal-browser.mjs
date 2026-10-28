@@ -247,7 +247,7 @@ function pageStrings(page) {
 const THAI = /[฀-๿]/;
 // Each phrase claims more than the code does: the PII filter (rimpl stripPii) misses some names, so no
 // copy may promise the AI never sees a name or gets only de-identified text.
-const OVERCLAIM = /on-?premise|validated|ติดตั้งภายในองค์กร|never your name|ไม่ได้รับชื่อหรืออีเมลของคุณ|only (de-identified|case) text|ได้รับเฉพาะข้อความ|de-identified before AI/i;
+const OVERCLAIM = /on-?premise|validated|ติดตั้งภายในองค์กร|never your name|ไม่ได้รับชื่อหรืออีเมลของคุณ|only (de-identified|case) text|ได้รับเฉพาะข้อความ|de-identified before AI|never see your name|ไม่เห็นชื่อของคุณ/i;
 // Who can read a transcript with the physician's name (backend/src/routes/admin.js /ples/:id/transcript).
 const NAMED_READERS = { th: /ผู้ดูแลสภา/, en: /administrators of your council/i };
 
