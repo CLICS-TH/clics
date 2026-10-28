@@ -260,12 +260,15 @@ h1, h2, h3 {
 .btn-lg { padding:13px 24px; font-size:15px; }
 .btn-ghost { background:var(--surface-card); color:var(--ink); border:1px solid var(--hairline); }
 .btn-ghost:hover { background:var(--surface-soft); }
+.btn-ghost:active { background:var(--hairline); }  /* --ink on it: 13.97:1 light, 12.29:1 dark */
 
 /* Nav */
 nav { background:var(--canvas); border-bottom:1px solid var(--hairline); color:var(--ink); padding:12px 24px; display:flex; align-items:center; justify-content:space-between; }
 nav .brand { font-family:var(--font-display); font-weight:600; font-size:18px; letter-spacing:-0.02em; color:var(--coral-text); }  /* 18px/600 is not WCAG-large; --coral was 3.11:1 */
 nav a { color:var(--muted); text-decoration:none; font-size:13px; margin-left:16px; }
 nav a:hover { color:var(--ink); }
+/* Pressed: the underline, so it differs from hover's colour change. */
+nav a:active { text-decoration:underline; }
 
 /* Forms */
 .form-group { margin-bottom:16px; }
@@ -622,6 +625,7 @@ html[data-mobile] .artifact-panel.open { transform:translateX(0); }
   cursor:pointer; transition:background .15s, color .15s, border-color .15s;
 }
 .toggle-btn:hover { color:var(--ink); border-color:var(--muted-soft); }
+.toggle-btn:active { background:var(--surface-card); color:var(--ink); }  /* 15.26:1 light, 14.88:1 dark */
 .toggle-btn svg { width:15px; height:15px; flex-shrink:0; }
 /* Icon-only on phones (label would crowd the nav), text shows ≥640px — mirrors the auditor toggle. */
 @media (max-width:639px) { .toggle-btn .toggle-label { display:none; } }

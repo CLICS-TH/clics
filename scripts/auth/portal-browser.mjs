@@ -685,6 +685,57 @@ const SCENARIOS = [
     },
   },
   {
+    // ui-gates gate 11: every control on / shows hover, pressed and keyboard focus, each as a computed
+    // style change (pressed is compared with hover, which a mouse press always sits on top of).
+    name: 'every interactive control on / has a hover, pressed and focus-visible state (both themes, both languages)',
+    async run(t, page) {
+      const PROPS = ['color', 'backgroundColor', 'borderTopColor', 'outlineStyle', 'outlineColor', 'boxShadow', 'textDecorationLine', 'opacity', 'transform', 'filter'];
+      const snap = (i) => page.evaluate(([i, props]) => { const cs = getComputedStyle(window.__els[i]); return props.map((k) => cs[k]); }, [i, PROPS]);
+      const changed = (a, b) => PROPS.filter((_, k) => a[k] !== b[k]);
+      for (const scheme of ['light', 'dark']) for (const lang of ['th', 'en']) {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.goto(`${PORTAL}/forgot`);
+        await page.evaluate((l) => localStorage.setItem('clics_manual_lang', l), lang);
+        await page.goto(`${PORTAL}/`);
+        await settle(page);
+        const labels = await page.evaluate(() => {
+          window.__els = [...document.querySelectorAll('a[href], button, summary, input, select, textarea, [tabindex]')].filter((e) => e.checkVisibility());
+          return window.__els.map((e) => `${e.tagName.toLowerCase()}${e.className ? '.' + String(e.className).split(' ').join('.') : ''} «${e.innerText.trim().slice(0, 20)}»`);
+        });
+        const where = `${scheme} ${lang}`;
+        t.check(labels.length >= 15, `${where}: only ${labels.length} controls found on /, so this check tested little`);
+        await page.mouse.move(0, 0);
+        const rest = [];
+        for (let i = 0; i < labels.length; i++) rest.push(await snap(i));
+        const focused = new Set();
+        for (let k = 0; k < labels.length + 3; k++) {
+          await page.keyboard.press('Tab');
+          const i = await page.evaluate(() => window.__els.indexOf(document.activeElement));
+          if (i < 0 || focused.has(i)) continue;
+          if (await page.evaluate(() => document.activeElement.matches(':focus-visible')) && changed(rest[i], await snap(i)).length) focused.add(i);
+        }
+        for (let i = 0; i < labels.length; i++) {
+          await page.evaluate(() => document.activeElement?.blur());
+          // The skip link sits above the viewport until it has focus; a pointer can only reach it then.
+          await page.evaluate((i) => window.__els[i].classList.contains('skip-link') && window.__els[i].focus(), i);
+          await page.evaluate((i) => window.__els[i].scrollIntoView({ block: 'center' }), i);
+          await page.mouse.move(0, 0);
+          const before = await snap(i);
+          const box = await page.evaluate((i) => { const r = window.__els[i].getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }, i);
+          await page.mouse.move(...box);
+          const hover = await snap(i);
+          await page.mouse.down();
+          const pressed = await snap(i);
+          // Release off the control, so nothing is activated.
+          await page.mouse.move(0, 0);
+          await page.mouse.up();
+          const missing = [!changed(before, hover).length && 'hover', !changed(hover, pressed).length && 'pressed', !focused.has(i) && 'focus-visible'].filter(Boolean);
+          t.check(!missing.length, `${where}: ${labels[i]} has no ${missing.join(', ')} state`);
+        }
+      }
+    },
+  },
+  {
     name: 'manual TH/EN switch flips the title and the theme and view toggles',
     async run(t, page) {
       await page.goto(`${PORTAL}/manual`);

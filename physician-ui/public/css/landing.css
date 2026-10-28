@@ -29,6 +29,9 @@ html[data-manual-lang="en"] .landing [data-lang="en"] { display: revert; }
 .landing .lang-switch .toggle-btn.is-on {
   background: var(--coral-ring); border-color: var(--coral); color: var(--coral-text);
 }
+/* The pressed language still answers the pointer; this rule outranks main.css's .toggle-btn states. */
+.landing .lang-switch .toggle-btn.is-on:hover { color: var(--ink); }
+.landing .lang-switch .toggle-btn.is-on:active { background: var(--surface-card); color: var(--ink); }
 
 .landing .skip-link {
   position: absolute; left: 16px; top: -100px; z-index: 60;
@@ -36,6 +39,8 @@ html[data-manual-lang="en"] .landing [data-lang="en"] { display: revert; }
   background: var(--canvas); color: var(--ink); border: 1px solid var(--field-border);
 }
 .landing .skip-link:focus { top: 12px; }
+.landing .skip-link:hover { background: var(--surface-soft); }
+.landing .skip-link:active { background: var(--surface-card); }
 
 /* ===== Nav ======================================================================== */
 .landing .landing-nav { gap: 12px; flex-wrap: wrap; }
@@ -46,6 +51,7 @@ html[data-manual-lang="en"] .landing [data-lang="en"] { display: revert; }
   font-size: 0.875rem; font-weight: 600; color: var(--coral-text);
 }
 .landing .landing-nav a.nav-signin:hover { color: var(--ink); }
+.landing .landing-nav .brand:active, .landing .landing-nav a.nav-signin:active { text-decoration: underline; }
 .landing .landing-nav .toggle-cluster { margin-left: 0; }
 @media (pointer: coarse) { .landing .landing-nav a.nav-signin { min-height: var(--tap-min); } }
 
@@ -165,6 +171,8 @@ html[data-manual-lang="en"] .landing [data-lang="en"] { display: revert; }
   min-height: var(--tap-min); padding: 14px 0; font-weight: 600; color: var(--ink);
 }
 .landing .faq summary::-webkit-details-marker { display: none; }
+.landing .faq summary:hover { color: var(--coral-text); }  /* 5.25:1 light, 6.83:1 dark */
+.landing .faq summary:active { color: var(--coral-text); text-decoration: underline; }
 .landing .faq-chev { flex: none; color: var(--muted); transition: transform .2s ease; }
 .landing .faq details[open] .faq-chev { transform: rotate(180deg); }
 .landing .faq details p { padding: 0 0 18px; font-size: var(--fs-body-th); line-height: 1.7; color: var(--body-color); }
@@ -191,3 +199,4 @@ html[data-manual-lang="en"] .landing [data-lang="en"] { display: revert; }
   color: var(--coral-text); font-weight: 600; text-decoration: none;
 }
 .landing .foot-links a:hover { text-decoration: underline; }
+.landing .foot-links a:active { color: var(--ink); text-decoration: underline; }
