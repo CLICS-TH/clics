@@ -3,8 +3,8 @@
 //   - root.dataset.screen always names the current screen (SCREEN). #213 reads it to hold its idle timer while
 //     'scoring' and to start its result timer; the harness waits on it.
 //   - runPlay resolves once a terminal screen is showing. The screen stays up until the shell resets the page.
-// Contract with the board (booth-board.js; #212 fills it in, never this file): the result card's tag is
-// renderTag(tag), and its board panel is mountResultBoard(slot, { tag, scoreBody }).
+// Contract with the board (booth-board.js): the result card's tag is renderTag(tag), and its board panel is
+// mountResultBoard(slot, { tag, scoreBody }).
 import { COPY, DEMO_LABEL, DOMAINS, scoreText, fill } from './booth-copy.js';
 import { renderTag, mountResultBoard } from './booth-board.js';
 import { BoothApiError } from './booth-api.js';
@@ -28,10 +28,12 @@ const GHOST_TAP_MS = 350;
  * @typedef {{ at: 'vignette' } | { at: 'step' } | { at: 'typing' } | { at: 'replying' } | { at: 'reply' }
  *         | { at: 'scoring' } | { at: 'scored', score: Score } | { at: 'unavailable' }
  *         | { at: 'stopped', offline: boolean }} Screen
- * @typedef {{ play: Play, answers: Answer[], replies: string[], screen: Screen }} PlayState
+ * @typedef {{ play: Play, answers: Answer[], replies: string[], sigs: string[], screen: Screen }} PlayState
+ *   sigs[i] is the reply_sig /reply gave with replies[i] ('' when the AI gave none); the backend scores only
+ *   replies that carry theirs.
  *
  * @typedef {{ type: 'begin' } | { type: 'openTyping' } | { type: 'closeTyping' } | { type: 'answer', answer: Answer }
- *         | { type: 'replied', text: string } | { type: 'next' } | { type: 'scored', score: Score }
+ *         | { type: 'replied', text: string, sig: string } | { type: 'next' } | { type: 'scored', score: Score }
  *         | { type: 'unavailable' } | { type: 'stop', offline: boolean }} PlayEvent
  * @typedef {{ kind: 'scored' | 'unavailable' | 'stopped' }} PlayOutcome
  */
@@ -60,7 +62,7 @@ export async function runPlay({ root, api }) {
     return { kind: 'stopped' };
   }
   return new Promise((resolve) => {
-    let state = { play, answers: [], replies: [], screen: { at: 'vignette' } };
+    let state = { play, answers: [], replies: [], sigs: [], screen: { at: 'vignette' } };
     const dispatch = (ev) => {
       const next = transition(state, ev);
       if (next === state) return;
@@ -85,7 +87,8 @@ function transition(s, ev) {
       const answer = acceptAnswer(s, ev.answer);
       return answer ? { ...s, answers: [...s.answers, answer], screen: { at: 'replying' } } : s;
     }
-    case 'replied': return at === 'replying' ? { ...s, replies: [...s.replies, ev.text], screen: { at: 'reply' } } : s;
+    case 'replied': return at === 'replying'
+      ? { ...s, replies: [...s.replies, ev.text], sigs: [...s.sigs, ev.sig], screen: { at: 'reply' } } : s;
     case 'next':
       if (at !== 'reply') return s;
       return { ...s, screen: { at: s.answers.length < STEPS ? 'step' : 'scoring' } };
@@ -109,17 +112,19 @@ function acceptAnswer(s, answer) {
 
 const stepIndex = (s) => (s.screen.at === 'step' || s.screen.at === 'typing' ? s.answers.length : s.answers.length - 1);
 const stepOf = (s) => s.play.kase.steps[stepIndex(s)];
-const dialogue = (s) => ({ answers: s.answers, replies: s.replies });
+const dialogue = (s) => ({ answers: s.answers, replies: s.replies, reply_sigs: s.sigs });
 const isOffline = (e) => !(e instanceof BoothApiError && e.kind === 'http');
 
 async function requestReply(api, s) {
   try {
     const body = await api.post(`/booth/plays/${encodeURIComponent(s.play.id)}/reply`, dialogue(s), { timeoutMs: REPLY_TIMEOUT_MS });
-    if (body?.status === 'replied' && typeof body.reply === 'string') return { type: 'replied', text: body.reply };
+    if (body?.status === 'replied' && typeof body.reply === 'string' && typeof body.reply_sig === 'string') {
+      return { type: 'replied', text: body.reply, sig: body.reply_sig };
+    }
     if (body?.status === 'unavailable') return { type: 'unavailable' };
     return { type: 'stop', offline: false };
   } catch (e) {
-    if (e instanceof BoothApiError && e.status === 502 && e.reason === 'ai_unavailable') return { type: 'replied', text: '' };
+    if (e instanceof BoothApiError && e.status === 502 && e.reason === 'ai_unavailable') return { type: 'replied', text: '', sig: '' };
     return { type: 'stop', offline: isOffline(e) };
   }
 }
@@ -258,9 +263,9 @@ const VIEWS = {
         el('p', { class: 'result-score' },
           el('span', { class: 'result-number', dataset: { score: '' } }, scoreText(score.composite)),
           el('span', { class: 'result-outof' }, '/ 100'))),
+      slot,
       el('ol', { class: 'domains' }, ...DOMAINS.map((d) => domainRow(d, score.domains[d.key]))),
-      demoLabel('card-label'),
-      slot);
+      demoLabel('card-label'));
     mountResultBoard(slot, { tag: s.play.tag, scoreBody: score.body });
     return frame([card], [], { foot: false });
   },
