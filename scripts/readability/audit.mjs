@@ -70,6 +70,7 @@ import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { fixtureFor, AUDITOR_PLE_OPEN, AUDITOR_PLE_REVEALED } from './fixtures.mjs';
+import { watchPageHealth, resolvedTheme } from '../responsive/page-health.mjs';
 
 const ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.webp': 'image/webp' };
@@ -443,11 +444,18 @@ async function run(url, label, token, manualLang, { role = null, expect = [], wi
       }, [theme, token, manualLang ?? null, role]);
 
       const page = await ctx.newPage();
+      // A signed-out Portal page must render with no page error, console error or failed request.
+      const health = !token && !label.startsWith('dash') ? watchPageHealth(page, (u) => u.startsWith(base)) : null;
       try {
         // 45s: the font CDN throttles once the run has issued a few hundred requests, and a
         // slow stylesheet stalls domcontentloaded. Retried once before it counts as an error.
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 })
           .catch(() => page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 }));
+        // The stored preference must resolve to the theme on its own, before the line below forces it.
+        if (!label.startsWith('dash')) {
+          const resolved = await resolvedTheme(page);
+          if (resolved !== theme) findings.push({ kind: 'THEME', where: `${label} @${w}px ${theme}`, text: `${label}: rendered ${resolved}` });
+        }
         // The dashboard sets dark via a class, the portal via data-theme. Force both, then let the
         // webfonts actually arrive — measuring before they land measures the fallback face.
         await page.evaluate((t) => {
@@ -484,6 +492,7 @@ async function run(url, label, token, manualLang, { role = null, expect = [], wi
         for (const c of r.clips) findings.push({ kind: 'CLIP', where, ...c });
         for (const b of r.body) findings.push({ kind: 'BODY', where, ...b });
         for (const p of r.prose) findings.push({ kind: 'PROSE', where, ...p });
+        for (const text of health ?? []) findings.push({ kind: 'HEALTH', where, text });
       } catch (e) {
         findings.push({ kind: 'ERROR', where: `${label} @${w}px ${theme}`, text: String(e.message || e) });
       }
@@ -545,6 +554,10 @@ for (const r of rows) {
     console.log(`PROSE     Thai prose at the text-xs caption size (${r.size}px) — use text-sm  ${r.sel}  "${r.text}"`);
   } else if (r.kind === 'ROUTE') {
     console.log(`ROUTE     ${r.text}  (redirected: the render measured another page)`);
+  } else if (r.kind === 'HEALTH') {
+    console.log(`HEALTH    ${r.text}`);
+  } else if (r.kind === 'THEME') {
+    console.log(`THEME     ${r.text}  (the stored clics_theme did not resolve to this theme)`);
   } else if (r.kind === 'MISSING') {
     console.log(`MISSING   ${r.text}  (the fixture did not produce the state this page is gated for)`);
   } else {

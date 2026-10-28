@@ -22,6 +22,7 @@ import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { watchPageHealth, resolvedTheme } from './page-health.mjs';
 
 // The Portal self-hosts its fonts (#193) so a visitor's IP is not sent to Google just for viewing a page.
 const GOOGLE_FONT_HOST = /^https?:\/\/fonts\.(googleapis|gstatic)\.com\//;
@@ -56,12 +57,16 @@ const WIDTHS = [
   { w: 1280, h: 900, coarse: false },
   { w: 1440, h: 900, coarse: false },
 ];
+// Pages marked `dark` render again under a dark system colour scheme at these widths.
+const DARK_WIDTHS = new Set([320, 768, 1440]);
 
 // Pages whose LAYOUT renders without a backend (token injected to pass the auth gate; content may be
 // empty/loading, but the shell — nav, container, forms, chat composer — is what we overflow-check).
+// A signed-out page must also render with no page error, console error or failed request. A token
+// page runs on a fake token with its backend aborted, so its errors are not checked.
 const PAGES = [
   // The public Landing page; signed out, so it renders instead of forwarding.
-  { path: '/', token: false, label: 'landing' },
+  { path: '/', token: false, label: 'landing', dark: true },
   { path: '/login', token: false, label: 'login' },
   { path: '/forgot', token: false, label: 'forgot' },
   { path: '/guest-chat', token: false, label: 'guest-chat' },
@@ -123,8 +128,10 @@ async function run() {
     if (hit) fails.push(`GOOGLE-FONT in physician-ui/public/${rel}: ${hit[0]}`);
   }
 
-  for (const { w, h, coarse } of WIDTHS) {
-    const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: coarse, hasTouch: coarse });
+  const runs = WIDTHS.flatMap((width) => [{ ...width, scheme: 'light', pages: PAGES },
+    ...(DARK_WIDTHS.has(width.w) ? [{ ...width, scheme: 'dark', pages: PAGES.filter((p) => p.dark) }] : [])]);
+  for (const { w, h, coarse, scheme, pages } of runs) {
+    const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: coarse, hasTouch: coarse, colorScheme: scheme });
     // Hermetic: drop every non-local request (Chart.js CDN, backend) so the run is offline + fast.
     const googleFontRequests = new Set();
     await ctx.route('**/*', (route) => {
@@ -132,8 +139,9 @@ async function run() {
       if (GOOGLE_FONT_HOST.test(u)) googleFontRequests.add(u);
       u.startsWith(base) ? route.continue() : route.abort();
     });
-    for (const pg of PAGES) {
+    for (const pg of pages) {
       const page = await ctx.newPage();
+      const health = watchPageHealth(page, (u) => u.startsWith(base));
       if (pg.token) await page.addInitScript(() => { try { localStorage.setItem('clics_token', 'responsive-smoke'); } catch {} });
       try {
         await page.goto(base + pg.path, { waitUntil: 'domcontentloaded', timeout: 15000 });
@@ -144,31 +152,34 @@ async function run() {
         });
         const r = await page.evaluate(`(${AUDIT_FN})()`);
         checks++;
-        const where = `${pg.label} @ ${w}px`;
+        const where = `${pg.label} @ ${w}px ${scheme}`;
+        const theme = await resolvedTheme(page);
+        if (theme !== scheme) fails.push(`THEME     ${where}: rendered ${theme}`);
+        if (!pg.token) for (const p of health) fails.push(`${p.split(' ')[0].padEnd(9)} ${where}: ${p.slice(p.indexOf(' ') + 1).trim()}`);
         if (failedFonts.length) fails.push(`FONT-ERR  ${where}: ${failedFonts.join(', ')} failed to load`);
         if (r.overflow > 1) fails.push(`OVERFLOW  ${where}: scrollWidth +${r.overflow}px`);
         if (coarse && r.badTargets.length) fails.push(`TAP<44    ${where}: ${r.badTargets.slice(0, 6).join(', ')}`);
         if (coarse && r.badInputs.length) fails.push(`INPUT<16  ${where}: ${r.badInputs.slice(0, 6).join(', ')}`);
       } catch (e) {
-        fails.push(`LOAD-ERR  ${pg.label} @ ${w}px: ${e.message}`);
+        fails.push(`LOAD-ERR  ${pg.label} @ ${w}px ${scheme}: ${e.message}`);
       } finally {
         await page.close();
       }
     }
     await ctx.close();
-    for (const u of googleFontRequests) fails.push(`GOOGLE-FONT @ ${w}px: ${u}`);
+    for (const u of googleFontRequests) fails.push(`GOOGLE-FONT @ ${w}px ${scheme}: ${u}`);
   }
 
   await browser.close();
   server.close();
 
-  console.log(`\nResponsive smoke: ${checks} page×width checks across ${PAGES.length} pages × ${WIDTHS.length} widths.`);
+  console.log(`\nResponsive smoke: ${checks} page×width×scheme checks across ${PAGES.length} pages × ${WIDTHS.length} widths, dark for ${PAGES.filter((p) => p.dark).map((p) => p.path).join(', ')} at ${[...DARK_WIDTHS].join('/')} px.`);
   if (fails.length) {
     console.error(`\n❌ ${fails.length} responsive regression(s):`);
     for (const f of fails) console.error('   ' + f);
     process.exit(1);
   }
-  console.log('✅ 0 horizontal overflow · all touch targets ≥44px · all inputs ≥16px on touch · 0 Google font requests.');
+  console.log('✅ 0 horizontal overflow · all touch targets ≥44px · all inputs ≥16px on touch · 0 Google font requests · 0 page errors, console errors or failed requests.');
 }
 
 run().catch((e) => { console.error(e); process.exit(1); });

@@ -32,6 +32,7 @@ import { readFile, stat, writeFile } from 'node:fs/promises';
 import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { watchPageHealth, resolvedTheme } from './page-health.mjs';
 
 const PUI_ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.webp': 'image/webp' };
@@ -45,7 +46,10 @@ const WIDTHS = [
   { w: 768, h: 1024, coarse: true },                     // iPad portrait
   { w: 812, h: 375, coarse: true, tag: 'landscape' },    // phone landscape
   { w: 1280, h: 900, coarse: false },                    // desktop baseline
+  { w: 1440, h: 900, coarse: false },                    // wide desktop
 ];
+// physician-ui pages marked `dark` render again under a dark system colour scheme at these widths.
+const DARK_WIDTHS = new Set([320, 768, 1440]);
 
 // The in-page assertion battery. Returns the 5 finding-arrays for the current viewport.
 const AUDIT_FN = `() => {
@@ -174,10 +178,12 @@ function startServer() {
 }
 
 // physician-ui pages. token:true injects a fake clics_token so the auth-gated shell renders (content
-// stays empty/loading — the layout is what we overflow-check). /ple-chat needs a real ?id + backend so
+// stays empty/loading — the layout is what we overflow-check). A signed-out page must also render with
+// no page error, console error or failed request; a token page's backend is aborted, so its errors are
+// not checked. /ple-chat needs a real ?id + backend so
 // it can't render hermetically (it redirects to /dashboard); it's audited live separately.
 const PUI_PAGES = [
-  { path: '/', label: 'landing' },
+  { path: '/', label: 'landing', dark: true },
   { path: '/login', label: 'login' },
   { path: '/forgot', label: 'forgot' },
   { path: '/reset', label: 'reset' },
@@ -216,17 +222,24 @@ async function run() {
   // ---------- physician-ui (hermetic) ----------
   const server = await startServer();
   const base = `http://127.0.0.1:${server.address().port}`;
-  for (const width of WIDTHS) {
-    const ctx = await browser.newContext({ viewport: { width: width.w, height: width.h }, isMobile: width.coarse, hasTouch: width.coarse });
+  const runs = WIDTHS.flatMap((width) => [{ width, scheme: 'light', pages: PUI_PAGES },
+    ...(DARK_WIDTHS.has(width.w) ? [{ width: { ...width, tag: [width.tag, 'dark'].filter(Boolean).join(' ') }, scheme: 'dark', pages: PUI_PAGES.filter((p) => p.dark) }] : [])]);
+  for (const { width, scheme, pages } of runs) {
+    const ctx = await browser.newContext({ viewport: { width: width.w, height: width.h }, isMobile: width.coarse, hasTouch: width.coarse, colorScheme: scheme });
     await ctx.route('**/*', (route) => route.request().url().startsWith(base) ? route.continue() : route.abort());
-    for (const pg of PUI_PAGES) {
+    for (const pg of pages) {
       const page = await ctx.newPage();
+      const health = watchPageHealth(page, (u) => u.startsWith(base));
       if (pg.token) await page.addInitScript(() => { try { localStorage.setItem('clics_token', 'mobile-audit'); } catch {} });
+      const where = `pui:${pg.label} @ ${width.w}px ${scheme}`;
       try {
         await page.goto(base + pg.path, { waitUntil: 'domcontentloaded', timeout: 15000 });
         await auditAt(ctx, page, 'pui', pg.label, '', width);
+        const theme = await resolvedTheme(page);
+        if (theme !== scheme) findings.push(`THEME     ${where}: rendered ${theme}`);
+        if (!pg.token) for (const p of health) findings.push(`${p.split(' ')[0].padEnd(9)} ${where}: ${p.slice(p.indexOf(' ') + 1).trim()}`);
         checks++;
-      } catch (e) { findings.push(`LOAD-ERR  pui:${pg.label} @ ${width.w}px: ${e.message.split('\\n')[0]}`); }
+      } catch (e) { findings.push(`LOAD-ERR  ${where}: ${e.message.split('\\n')[0]}`); }
       finally { await page.close(); }
     }
     await ctx.close();
