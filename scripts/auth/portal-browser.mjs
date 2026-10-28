@@ -260,6 +260,8 @@ const OVERCLAIM_SAMPLES = {
   ],
   passed: ['Auditors see a code in place of the name on your account', 'ผู้ตรวจเห็นรหัสแทนชื่อในบัญชีของคุณ'],
 };
+// The controller and lawful basis are still pending, so no trust chip may read as a compliance claim.
+const COMPLIANCE_CHIP = /PDPA|GDPR|complian|\bISO\b|HIPAA|ได้มาตรฐาน|สอดคล้อง/i;
 // Who can read a transcript with the physician's name (backend/src/routes/admin.js /ples/:id/transcript).
 const NAMED_READERS = { th: /ผู้ดูแลสภา/, en: /administrators of your council/i };
 
@@ -747,6 +749,9 @@ const SCENARIOS = [
         const hit = text.match(OVERCLAIM);
         t.check(!hit, `${path} [${lang}] says "${hit?.[0]}"`);
         if (path === '/') t.check(NAMED_READERS[lang].test(text), `/ [${lang}] does not say council administrators can read a named transcript`);
+        for (const chip of await page.locator('.trust-chip').allInnerTexts()) {
+          t.check(!COMPLIANCE_CHIP.test(chip), `${path} [${lang}] trust chip reads as a compliance claim: "${chip}"`);
+        }
       }
     },
   },
