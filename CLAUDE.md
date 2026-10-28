@@ -100,9 +100,8 @@ See [docs/agents/triage-labels.md](docs/agents/triage-labels.md).
 
 ### Domain docs
 
-Single-context: `CONTEXT.md` + `docs/adr/`. `docs/adr/` now exists and holds
-[ADR 0001 — D3 transport topology](docs/adr/0001-d3-transport-topology.md); `CONTEXT.md` does not
-yet (`/domain-modeling` creates it lazily). See [docs/agents/domain.md](docs/agents/domain.md).
+Single-context: [`CONTEXT.md`](CONTEXT.md) (the glossary) + [`docs/adr/`](docs/adr/) (ADRs 0001–0004).
+See [docs/agents/domain.md](docs/agents/domain.md).
 
 ## Documentation index
 
@@ -124,4 +123,4 @@ yet (`/domain-modeling` creates it lazily). See [docs/agents/domain.md](docs/age
 | [docs/ONPREM-INSTALL.th.md](docs/ONPREM-INSTALL.th.md) | Thai install spec handed to the box owner — footprint, ports, data path, install/verify/remove (render: `node scripts/docs/th-doc-pdf.mjs`) |
 | [docs/LOCAL-MODEL-ROADMAP.md](docs/LOCAL-MODEL-ROADMAP.md) | Plan for moving AI calls to the on-prem DGX model (phases, gates, the mid-pilot timing constraint) |
 | [docs/ARCHITECTURE-MAPPING-CCME.md](docs/ARCHITECTURE-MAPPING-CCME.md) | CCME's 2026-10 architecture proposal mapped against what is built (R1–R10, 8 of 10 present), plus which model endpoints are reachable from the tailnet. **Read before designing anything for the on-prem move.** |
-| [docs/adr/](docs/adr/) | Architecture decision records. **0001 — build no more D3 transport until a GDCC VM exists** (read before designing any backend→RIMPL network path), superseded in part by **0002 — Topology B on vm1**, the shared CME host (prepared, not live; runbook `deploy/vm1/README.md`) |
+| [docs/adr/](docs/adr/) | Architecture decision records. **0001 — build no more D3 transport until a GDCC VM exists** (read before designing any backend→RIMPL network path), superseded in part by **0002 — Topology B on vm1**, the shared CME host (prepared, not live; runbook `deploy/vm1/README.md`). **0003 — the Portal root keeps the OAuth rescue and the `?logout=1` handler, whatever it renders.** **0004 — booth plays live outside pilot data** (own `booth_plays` table, scores only, no transcripts; read before touching Booth Mode) |
