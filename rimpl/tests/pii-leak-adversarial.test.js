@@ -316,6 +316,71 @@ describe('adversarial — bare unlabelled names', () => {
   test('a clinical phrase that is NOT a gazetteer name survives byte-for-byte', () => {
     assertSurvives('ผู้ป่วยมาด้วยอาการปวดท้องและไข้ 3 วัน');
   });
+
+  // LEAK CLASS (#224): a bare native Thai surname after a masked Thai given name, with no patient_ref,
+  // no chief complaint and no นามสกุล keyword. The given name was masked (gazetteer / title rule) but
+  // the surname went to the model in clear. It must take the SAME token as the given name.
+  test('bare surname after a gazetteer given name folds into its token, across turns (#224)', () => {
+    const out = stripHistoryPii([
+      { role: 'physician', content: 'สมชาย ใจดี HN 12345678' },
+      { role: 'physician', content: 'ผู้ป่วย สมชาย ใจดี' },
+    ]).map(m => m.content);
+    for (const frag of ['ใจดี', 'สมชาย', '12345678']) expect(out.join(' || ')).not.toContain(frag);
+    expect(out).toEqual(['[NAME-1] [NAME-1] [HN-1]', 'ผู้ป่วย [NAME-1] [NAME-1]']);
+  });
+  test('bare surname after a title-led given name folds into its token (#224)', () => {
+    expect(stripPii('นายสมชาย ใจดี HN 12345678')).toBe('นาย[NAME-1] [NAME-1] [HN-1]');
+  });
+  test('the captured surname is an alias: a later bare repeat in another message folds too (#224)', () => {
+    const out = stripHistoryPii([
+      { role: 'physician', content: 'นายสมชาย ใจดี มาด้วยไข้' },
+      { role: 'physician', content: 'ใจดี บอกว่ายังมีไข้' },
+    ]).map(m => m.content);
+    expect(out).toEqual(['นาย[NAME-1] [NAME-1] มาด้วยไข้', '[NAME-1] บอกว่ายังมีไข้']);
+  });
+  test('the captured surname folds in later only as a WHOLE word, never inside another word (#224)', () => {
+    const out = stripHistoryPii([
+      { role: 'physician', content: 'นายสมชาย ใจดี มาด้วยไข้' },
+      { role: 'physician', content: 'จิตใจดีขึ้น ให้ยากันชักเกร็ง' },
+      { role: 'physician', content: 'ติดตาม ใจดี. นัด [NAME-9]ใจดี 2 สัปดาห์' },
+    ]).map(m => m.content);
+    expect(out).toEqual([
+      'นาย[NAME-1] [NAME-1] มาด้วยไข้',
+      'จิตใจดีขึ้น ให้ยากันชักเกร็ง',
+      'ติดตาม [NAME-1]. นัด [NAME-9][NAME-1] 2 สัปดาห์',
+    ]);
+  });
+  test('a word that is only captured as a surname does not mask later prose that contains it (#224)', () => {
+    const out = stripHistoryPii([
+      { role: 'physician', content: 'นายสมชาย ชักเกร็ง 2 ครั้ง' },
+      { role: 'physician', content: 'มีประวัติชักเกร็งตอนเด็ก ให้ยากันชักเกร็ง' },
+    ]).map(m => m.content);
+    expect(out).toEqual(['นาย[NAME-1] ชักเกร็ง 2 ครั้ง', 'มีประวัติชักเกร็งตอนเด็ก ให้ยากันชักเกร็ง']);
+  });
+  // A trailing "." or a glued token used to make the pass skip the surname (review of #224).
+  test.each([
+    ['สมชาย ใจดี.', '[NAME-1] [NAME-1].'],
+    ['Pt is นายสมชาย ใจดี.', 'Pt is นาย[NAME-1] [NAME-1].'],
+    ['นายสมชาย ใจดี0812345678', 'นาย[NAME-1] [NAME-1][PHONE-1]'],
+  ])('bare surname before "." or a glued token is still taken: %s (#224)', (input, expected) => {
+    expect(stripPii(input)).toBe(expected);
+  });
+  // Common native surnames, several built on words that also open clinical text (ทอง, ใจ, แก้ว, สุข).
+  // The measured clinical-lead list must not block any of them.
+  test.each(['ใจดี', 'ศรีสุข', 'วงศ์ใหญ่', 'ทองดี', 'สุขสวัสดิ์', 'รัตนพันธ์', 'บุญมา', 'แก้วมณี'])(
+    'common surname %s after a masked given name is masked (#224)', (surname) => {
+      for (const input of [`นายสมชาย ${surname} มาด้วยไข้`, `สมชาย ${surname}`, `นพ.สมศักดิ์ ${surname}.`]) {
+        const out = stripPii(input);
+        expect(out).not.toContain(surname);
+        expect(out).toMatch(/(\[NAME-\d+\]) \1/);
+      }
+    });
+  test('no generated clinical lead is a prefix of a common surname component (#224)', () => {
+    const { TH_CORPUS_CLINICAL_LEADS } = require('../src/services/pii-clinical-leads.th');
+    const { TH_SURNAME_LEAD_MORPHEMES } = require('../src/services/pii-names.th');
+    const blocking = TH_CORPUS_CLINICAL_LEADS.filter((lead) => TH_SURNAME_LEAD_MORPHEMES.some((m) => m.startsWith(lead)));
+    expect(blocking).toEqual([]); // rerun rimpl/scripts/build-th-clinical-leads.js after editing the morphemes
+  });
 });
 
 // ===========================================================================
@@ -719,6 +784,25 @@ describe('adversarial — one registry per outbound call (coreference across the
     const nextTurn = sentMessages(1);
     expect(nextTurn[0].content).toBe(firstTurn[0].content);   // h1 masked identically on both turns
     expect(nextTurn[2].content).toBe(firstTurn[2].content.split('\n\n').slice(1).join('\n\n')); // turn-1 message, now history
+  });
+
+  // #224: no patient_ref, no chief_complaint — only the in-text name rules stand between the surname and
+  // the model. Both the history turn and the current message (and the RAG embed of it) must be clean.
+  test.each([
+    ['gazetteer given name', 'สมชาย ใจดี HN 12345678', 'ผู้ป่วย สมชาย ใจดี'],
+    ['title-led given name', 'นายสมชาย ใจดี HN 12345678', 'ผู้ป่วย นายสมชาย ใจดี'],
+  ])('/chat: a bare Thai surname after a %s never reaches the model (#224)', async (_label, turn, message) => {
+    await chat({ history: [{ role: 'physician', content: turn }, { role: 'assistant', content: 'ขอข้อมูลเพิ่ม' }], message });
+    const sent = sentMessages();
+    const ragArg = require('../src/services/rag').ragLookup.mock.calls[0][0];
+    for (const frag of ['ใจดี', 'สมชาย', '12345678']) {
+      expect(JSON.stringify(sent)).not.toContain(frag);
+      expect(ragArg).not.toContain(frag);
+    }
+    // given name and surname resolve to ONE referent, in the history and in the message
+    expect(sent[0].content).toMatch(/(\[NAME-\d+\]) \1 \[HN-\d+\]/);
+    const tok = /\[NAME-\d+\]/.exec(sent[0].content)[0];
+    expect(sent.at(-1).content).toContain(`${tok} ${tok}`);
   });
 
   test('/chat rescue classifier reads the SAME tokens as the chat call', async () => {

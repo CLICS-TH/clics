@@ -133,6 +133,49 @@ describe('ชื่อ — เชื่อ ("believe") and thing-labels are not 
   });
 });
 
+describe('bare surname after a masked Thai given name (#224) — clinical phrases are not a surname', () => {
+  test.each([
+    ['สมชาย มาด้วยไข้', '[NAME-1] มาด้วยไข้'],
+    ['นายสมชาย ปวดท้อง 2 วัน', 'นาย[NAME-1] ปวดท้อง 2 วัน'],
+    ['นพ.สมชาย ตรวจคนไข้', 'นพ.[NAME-1] ตรวจคนไข้'],
+    ['นพ.สมชาย ปรึกษา พญ.สมหญิง', 'นพ.[NAME-1] ปรึกษา พญ.[NAME-2]'],
+    ['นายสมชาย บอกว่าเจ็บหน้าอก', 'นาย[NAME-1] บอกว่าเจ็บหน้าอก'],
+    ['นายสมชาย สูบบุหรี่วันละซอง', 'นาย[NAME-1] สูบบุหรี่วันละซอง'],
+    ['นายสมชาย ปฏิเสธโรคประจำตัว', 'นาย[NAME-1] ปฏิเสธโรคประจำตัว'],
+    ['นายสมชาย กินยาไม่สม่ำเสมอ', 'นาย[NAME-1] กินยาไม่สม่ำเสมอ'],
+    ['สมชาย และ สมหญิง', '[NAME-1] และ [NAME-2]'],
+    ['นายสมชาย นางสมหญิง', 'นาย[NAME-1] นาง[NAME-2]'],
+    ['คนไข้ นายวีระ นามสกุล ทองดี', 'คนไข้ นาย[NAME-2] นามสกุล [NAME-1]'], // the label is not a surname
+    ['นายสมชาย แซ่ลี้ มาด้วยไข้', 'นาย[NAME-1] [NAME-2] มาด้วยไข้'],
+  ])('%s → %s', (input, expected) => {
+    expect(stripPii(input)).toBe(expected);
+  });
+
+  // Review of #224: 26 name + clinical phrases the round-1 deny list turned into "[NAME-1] [NAME-1]".
+  // They now survive through the measured lead list (scripts/build-th-clinical-leads.js).
+  test.each([
+    'นายสมชาย แพ้ยาเพนนิซิลลิน', 'นายสมชาย ชักเกร็ง 2 ครั้ง', 'นายสมชาย ซึมลง', 'นายสมชาย หายใจเหนื่อย',
+    'นายสมชาย หมดสติ', 'นายสมชาย เข้ารับการรักษา', 'นายสมชาย ความดันสูง', 'นายสมชาย ประวัติเบาหวาน',
+    'นายสมชาย น้ำหนักลด', 'นายสมชาย ตัวเหลือง', 'นายสมชาย เวียนศีรษะ', 'นายสมชาย นอนโรงพยาบาล',
+    'นายสมชาย ปัสสาวะแสบขัด', 'นายสมชาย ล้มในห้องน้ำ', 'นายสมชาย หกล้ม', 'นายสมชาย ญาติพามา',
+    'นายสมชาย เบื่ออาหาร', 'นายสมชาย ซีด', 'นายสมชาย อ่อนเพลีย', 'นายสมชาย จุกแน่นท้อง', 'นายสมชาย แน่นหน้าอก',
+  ])('%s keeps the clinical phrase', (input) => {
+    expect(stripPii(input)).toBe(input.replace('สมชาย', '[NAME-1]'));
+  });
+  test.each(['สั่งยา', 'วินิจฉัย', 'ส่งต่อ', 'แนะนำให้นอนพัก', 'เห็นว่า'])('นพ.สมชาย %s keeps the plan / opinion', (rest) => {
+    expect(stripPii(`นพ.สมชาย ${rest}`)).toBe(`นพ.[NAME-1] ${rest}`);
+  });
+  test('the head of an abbreviated title after a name is not a surname', () => {
+    expect(stripPii('สมชาย นพ.สมหญิง')).toMatch(/^\[NAME-\d+\] นพ\.\[NAME-\d+\]$/);
+    expect(stripPii('สมชาย ด.ช.วีระ')).toMatch(/^\[NAME-\d+\] ด\.ช\.\[NAME-\d+\]$/);
+  });
+
+  test('near miss: a real surname in the same slot is taken, and folds into the given name\'s token', () => {
+    expect(stripPii('นายสมชาย ใจดี มาด้วยไข้')).toBe('นาย[NAME-1] [NAME-1] มาด้วยไข้');
+    expect(stripPii('สมชาย ใจดี')).toBe('[NAME-1] [NAME-1]');
+  });
+});
+
 describe('LINE — the English word "line" is clinical vocabulary', () => {
   test.each([
     'first-line therapy is metformin',

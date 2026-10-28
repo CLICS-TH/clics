@@ -31,16 +31,19 @@
 // full name "นายสมชาย ใจดี" already got — preserving coreference across turns
 // even when the surface form differs.
 const { TH_GIVEN_NAMES, TH_SURNAMES } = require('./pii-names.th');
+const { TH_CORPUS_CLINICAL_LEADS } = require('./pii-clinical-leads.th');
 
 function makeRegistry() {
   const counters = Object.create(null); // category -> next index
   const seen = Object.create(null);     // category -> { surfaceForm -> token }
   const aliases = Object.create(null);  // category -> { alias -> token }
+  const wordAliases = Object.create(null); // category -> { whole-word-only alias -> token }
 
   function ensure(category) {
     if (!seen[category]) {
       seen[category] = Object.create(null);
       aliases[category] = Object.create(null);
+      wordAliases[category] = Object.create(null);
       counters[category] = 0;
     }
   }
@@ -50,7 +53,7 @@ function makeRegistry() {
     const key = surfaceForm.trim();
     if (seen[category][key] === undefined) {
       // Reuse a token already bound to one of this surface form's parts.
-      const existing = aliases[category][key];
+      const existing = aliases[category][key] ?? wordAliases[category][key];
       if (existing !== undefined) {
         seen[category][key] = existing;
       } else {
@@ -71,10 +74,28 @@ function makeRegistry() {
     }
   }
 
+  // Like alias(), but the bare-name pass folds it in only as a WHOLE word, never inside another word.
+  // For a surface that is also an ordinary word (a bare surname taken after a given name): a substring
+  // alias "ชักเกร็ง" would turn a later "ให้ยากันชักเกร็ง" into "ให้ยากัน[NAME-1]". A surface already
+  // bound as an ordinary alias keeps that binding. The surface also enters `seen`, so the Tier-1 reverse
+  // map (entries()) can restore "[NAME-1] [NAME-1]" to the full name, not the given name twice.
+  function wordAlias(category, surfaceForm, tok) {
+    ensure(category);
+    const key = surfaceForm.trim();
+    if (key && aliases[category][key] === undefined && wordAliases[category][key] === undefined) {
+      wordAliases[category][key] = tok;
+      if (seen[category][key] === undefined) seen[category][key] = tok;
+    }
+  }
+
   // Snapshot of all NAME aliases currently known (used to catch bare names).
   function knownAliases(category) {
     ensure(category);
     return aliases[category];
+  }
+  function knownWordAliases(category) {
+    ensure(category);
+    return wordAliases[category];
   }
 
   // Dump the reverse map (token -> the raw surface form that produced it) for the on-prem reversible
@@ -91,7 +112,9 @@ function makeRegistry() {
   }
 
   token.alias = alias;
+  token.wordAlias = wordAlias;
   token.knownAliases = knownAliases;
+  token.knownWordAliases = knownWordAliases;
   token.entries = entries;
   return token;
 }
@@ -149,14 +172,13 @@ const MED_SHIELD = new Set([
 
 // Build the honorific-led name regex.
 //
-// Thai: title then a SINGLE following name token (the given name). We do NOT
-// grab a second space-separated Thai token as a "surname": Thai compounds words
-// without spaces, so the token after a name is just as likely a clinical phrase
-// ("ปวดท้อง" = abdominal pain, "ตรวจคนไข้" = examined the patient) as a surname,
-// and the brief requires symptoms to SURVIVE. An explicit surname is masked via
-// the labelled "ชื่อ ... นามสกุล ..." rule. KNOWN GAP: a bare, unlabelled Thai
-// surname following a given name is left in clear text; masking the given name
-// already de-identifies, and over-masking clinical phrases is the worse error.
+// Thai: title then a SINGLE following name token (the given name). This regex
+// does not grab the space-separated token after it: Thai compounds words without
+// spaces, so that token is just as likely a clinical phrase ("ปวดท้อง" = abdominal
+// pain, "ตรวจคนไข้" = examined the patient) as a surname. The bare surname is
+// taken afterwards by the 'th-given-surname' pass (applyGivenSurnamePass), which
+// folds it into the given name's [NAME-n] unless it opens a clinical / function
+// phrase (#224: "นายสมชาย ใจดี" sent ใจดี to the model in clear).
 const TH_NAME_RE = new RegExp(
   `(${TH_TITLES.join('|')})\\s*(${TH_NAME})`,
   'g'
@@ -569,8 +591,11 @@ const PASSES = [
   // unambiguous surname marker), closing the bare-surname leak after a title-led given name.
   { cat: 'NAME', kind: 'th-clan-surname' },
   // Thai given-name gazetteer — best-effort backstop for a bare name with NO intake/title/label,
-  // guarded by boundary + clinical-lead so clinical phrases survive. Runs LAST among name passes.
+  // guarded by boundary + clinical-lead so clinical phrases survive.
   { cat: 'NAME', kind: 'th-gazetteer' },
+  // Bare surname after a masked Thai given name ("[NAME-1] ใจดี"), from ANY Thai name rule above.
+  // Runs LAST among name passes so every given-name token already exists.
+  { cat: 'NAME', kind: 'th-given-surname' },
 
   // --- Age (AFTER ids/phones so it never eats their digits) ---
   // Thai: "อายุ 45 ปี", "45 ปี", "อายุ 45". No trailing \b after ปี — \b is
@@ -612,6 +637,14 @@ function applyBareNamePass(text, token) {
       ? new RegExp(escaped, 'g')
       : new RegExp(`\\b${escaped}\\b`, 'g');
     out = out.replace(re, known[part]);
+  }
+  // Whole-word aliases (token.wordAlias): only between start / whitespace / punctuation / a [TOKEN-n]
+  // on the left and whitespace / punctuation / a digit / end on the right — never inside a Thai or
+  // Latin word, so "ชักเกร็ง" taken as a surname leaves "ให้ยากันชักเกร็ง" alone.
+  const words = token.knownWordAliases('NAME');
+  for (const word of Object.keys(words).sort((a, b) => b.length - a.length)) {
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    out = out.replace(new RegExp(`(?<![\\u0E01-\\u0E4EA-Za-z0-9])${escaped}(?![\\u0E01-\\u0E4EA-Za-z])`, 'g'), words[word]);
   }
   return out;
 }
@@ -690,6 +723,61 @@ function applyClanSurnamePass(text, token) {
   });
 }
 
+// The bare-surname pass (#224). A Thai name is "given surname", space-separated, and every Thai name
+// rule above masks only the given name — so "สมชาย ใจดี" / "นายสมชาย ใจดี" left "[NAME-1] ใจดี", and the
+// surname reached the model whenever no patient_ref / chief complaint seeded it. Here the Thai token
+// right after a Thai given-name token takes the SAME [NAME-n] and becomes an alias of it, so a later bare
+// "ใจดี" (this message or a later one in the call) folds in too.
+// The token is NOT taken when it begins with a clinical lead (มาด้วยไข้, ปวดท้อง, หายใจเหนื่อย), a function
+// word / particle / role word from the คุณ-shield lists (บอกว่า, ครับ, ผู้ป่วย, คุณหมอ), a grammatical lead
+// (เพื่อ, อยู่, ใน), a verb a subject name is followed by (TH_POST_NAME_VERBS), a title (นาง…, คุณ…) or a
+// name label; or when it is the first part of an abbreviated title (the นพ of "นพ.[NAME-2]"). The bulk of
+// the leads is MEASURED: TH_CORPUS_CLINICAL_LEADS, the first words of the repo's Thai clinical corpus,
+// generated by scripts/build-th-clinical-leads.js with every prefix of a common surname component removed.
+// A surname that itself begins with a lead (มีสุข, รักษาศรี) stays in clear — the same trade the labelled
+// rule makes. Any OTHER word after a masked given name is taken (fail-closed: rule 1 outranks
+// over-masking) and becomes "[NAME-1] [NAME-1]". To fix an over-masked phrase, add its opener
+// to the script's seed list (or the corpus) and regenerate — never loosen the given-name side.
+// The taken word folds into later text only as a WHOLE word (token.wordAlias), since it may be an
+// ordinary word.
+// Only given-name tokens qualify: not a แซ่ clan surname, not a labelled "given surname" pair, and not
+// the token right after the นามสกุล keyword (that one already IS the surname).
+const TH_POST_NAME_VERBS = [
+  // follow a name in the existing exact-output tests (นพ.สมชาย ปรึกษา…, ดูแลผู้ป่วย, พบ, กลับมา, ยังมีไข้,
+  // โทร, ต้องได้)
+  'ปรึกษา', 'ดูแล', 'พบ', 'กลับ', 'ยัง', 'โทร', 'ต้อง',
+  // history-taking verbs: masking them would erase smoking / alcohol / medication history PIS-7 scores
+  'ปฏิเสธ', 'สูบ', 'ดื่ม', 'กิน', 'ทาน', 'รับ', 'ขอ',
+];
+const TH_TITLE_WORDS = TH_TITLES.map((t) => t.replace(/\\/g, ''));
+const TH_ABBREVIATED_TITLES = TH_TITLE_WORDS.filter((t) => t.includes('.')); // นพ. พญ. ด.ช. ด.ญ.
+const TH_SURNAME_NON_NAME_LEADS = [...new Set([
+  ...TH_CLINICAL_LEADS, ...TH_RUN_WORDS, ...TH_PROVINCE_NON_PLACE_LEADS, ...TH_POST_NAME_VERBS,
+  ...TH_CORPUS_CLINICAL_LEADS, ...TH_TITLE_WORDS, 'ชื่อ', 'นามสกุล',
+  'ๆ', 'ฯ', // repetition / abbreviation marks: never open a word
+])];
+const TH_GIVEN_SURNAME_RE = new RegExp(`(?<!นามสกุล\\s*)(\\[NAME-\\d+\\])(\\s+)(${TH_NAME})`, 'g');
+function applyGivenSurnamePass(text, token) {
+  const givenTokens = new Set(token.entries()
+    .filter((e) => e.category === 'NAME' && TH_LETTER_RE.test(e.value) && !/\s/.test(e.value) && !TH_SURNAMES.has(e.value))
+    .map((e) => e.token));
+  if (givenTokens.size === 0) return text;
+  let captured = false;
+  const out = text.replace(TH_GIVEN_SURNAME_RE, (match, tok, ws, word, offset, full) => {
+    if (!givenTokens.has(tok)) return match;
+    // "[NAME-1] นพ.[NAME-2]": the word is the head of an abbreviated title, not a surname. Any other word
+    // followed by "." ("ใจดี.") or glued to a token ("ใจดี[PHONE-1]") is still a surname candidate.
+    const wordStart = offset + tok.length + ws.length;
+    if (TH_ABBREVIATED_TITLES.some((t) => full.startsWith(t, wordStart))) return match;
+    if (MED_SHIELD.has(word) || wordAt(word, 0, TH_SURNAME_NON_NAME_LEADS)) return match;
+    if (word.length >= 2) token.wordAlias('NAME', word, tok);
+    captured = true;
+    return tok + ws + tok;
+  });
+  // A repeat of the new alias elsewhere in THIS text ran past the bare-name pass already: catch it now.
+  return captured ? applyBareNamePass(out, token) : out;
+}
+
 // Apply one pass, threading the shared registry so tokens are stable per call.
 function applyPass(text, pass, token, hints) {
   const { re, cat, guard, kind } = pass;
@@ -698,6 +786,7 @@ function applyPass(text, pass, token, hints) {
   if (kind === 'intake-hint') return applyHintPass(text, token, hints);
   if (kind === 'th-clan-surname') return applyClanSurnamePass(text, token);
   if (kind === 'th-gazetteer') return applyGazetteerPass(text, token);
+  if (kind === 'th-given-surname') return applyGivenSurnamePass(text, token);
   if (kind === 'th-admin') return applyThAdminPass(text, token);
 
   // Resumable (not String#replace): the คุณ / ชื่อ shields may consume only part of a match and let

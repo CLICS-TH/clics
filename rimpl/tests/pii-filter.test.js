@@ -431,6 +431,14 @@ describe('makeRegistry().entries() — reverse map', () => {
       .toEqual([{ token: '[NAME-1]', category: 'NAME', value: 'สมชาย' }]);
   });
 
+  test('a bare surname taken after the given name is in the reverse map under the same token (#224)', () => {
+    const reg = makeRegistry();
+    stripPii('สมชาย ใจดี HN 12345678', reg);
+    const names = reg.entries().filter((e) => e.category === 'NAME');
+    expect(names).toContainEqual({ token: '[NAME-1]', category: 'NAME', value: 'สมชาย' });
+    expect(names).toContainEqual({ token: '[NAME-1]', category: 'NAME', value: 'ใจดี' });
+  });
+
   test('supplying a registry does not change the masked text', () => {
     const out = stripHistoryPii([{ role: 'physician', content: 'นพ.สมชาย' }], [], makeRegistry());
     expect(out[0].content).toBe('นพ.[NAME-1]');
