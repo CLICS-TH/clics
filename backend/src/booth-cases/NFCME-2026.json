@@ -1,43 +1,42 @@
 {
-  "placeholder": true,
   "event_code": "NFCME-2026",
-  "version": "placeholder-1",
+  "version": "1",
   "vignette": {
-    "th": "[เคสตัวอย่างชั่วคราว] ผู้ป่วยสมมติ ชายอายุ 58 ปี เป็นเบาหวาน มาที่คลินิกด้วยไข้ ไอมีเสมหะ และหอบเหนื่อยมา 3 วัน อุณหภูมิ 38.6 องศาเซลเซียส ชีพจร 104 ครั้งต่อนาที หายใจ 24 ครั้งต่อนาที ออกซิเจนปลายนิ้ว 93% ฟังปอดได้เสียงกรอบแกรบที่ปอดขวาด้านล่าง",
-    "en": "[PLACEHOLDER CASE] A fictional 58-year-old man with diabetes comes to the clinic with 3 days of fever, productive cough and breathlessness. Temperature 38.6 °C, pulse 104/min, respiratory rate 24/min, SpO2 93% on room air. Crackles at the right lung base."
+    "th": "ผู้ป่วยสมมติ ชายอายุ 42 ปี อาชีพทำนา มาโรงพยาบาลชุมชนด้วยไข้สูง ปวดศีรษะ และปวดน่องมาก เป็นมา 3 วัน สัปดาห์ก่อนลุยน้ำท่วมในนาอยู่หลายวัน อุณหภูมิ 39.0 องศาเซลเซียส ชีพจร 100 ครั้งต่อนาที ความดันโลหิต 118/74 มม.ปรอท ตาแดงแต่ไม่มีขี้ตา กดเจ็บที่น่องทั้งสองข้าง ไม่มีผื่น ตรวจทั่วตัวไม่พบแผลสะเก็ดดำ รู้สึกตัวดีและปัสสาวะออกปกติ",
+    "en": "A fictional 42-year-old rice farmer comes to a community hospital with 3 days of high fever, headache and severe calf pain. Last week he waded through flooded paddy fields for several days. Temperature 39.0 °C, pulse 100/min, BP 118/74 mmHg. Red eyes without discharge, and both calves are tender. No rash, and no eschar on a full skin check. He is alert and passing urine normally."
   },
   "steps": [
     {
       "question": { "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร", "en": "What is the most likely diagnosis?" },
       "options": [
-        { "id": "a", "label": { "th": "ปอดอักเสบติดเชื้อในชุมชน", "en": "Community-acquired pneumonia" },
-          "line": { "th": "ไข้ เสมหะ และเสียงกรอบแกรบเฉพาะที่เข้ากันได้", "en": "Fever, sputum and focal crackles fit." } },
-        { "id": "b", "label": { "th": "หลอดลมอักเสบเฉียบพลัน", "en": "Acute bronchitis" },
-          "line": { "th": "อธิบายอาการไอได้ แต่ไม่อธิบายสัญญาณชีพ", "en": "Explains the cough, not the vital signs." } },
-        { "id": "c", "label": { "th": "หัวใจล้มเหลวกำเริบ", "en": "Acute heart failure" },
-          "line": { "th": "อธิบายอาการหอบได้ แต่ไม่เข้ากับไข้และเสมหะ", "en": "Explains the breathlessness, not the fever." } }
+        { "id": "a", "label": { "th": "ไข้เลือดออก", "en": "Dengue" },
+          "line": { "th": "ไข้สูงเฉียบพลัน ปวดศีรษะ และปวดกล้ามเนื้อในหน้าฝน", "en": "Sudden high fever, headache and muscle pain in the rainy season." } },
+        { "id": "b", "label": { "th": "โรคฉี่หนู (เลปโตสไปโรซิส)", "en": "Leptospirosis" },
+          "line": { "th": "ลุยน้ำท่วม ปวดน่อง และตาแดงในคนทำนา", "en": "Flood-water exposure, calf pain and red eyes in a rice farmer." } },
+        { "id": "c", "label": { "th": "สครับไทฟัส", "en": "Scrub typhus" },
+          "line": { "th": "ไข้และปวดศีรษะในคนทำงานกลางทุ่ง โรคนี้พบบ่อยในชนบท", "en": "Fever and headache in a field worker, common in rural areas." } }
       ]
     },
     {
-      "question": { "th": "ควรส่งตรวจอะไรเป็นอันดับแรก", "en": "Which investigation comes first?" },
+      "question": { "th": "ควรส่งตรวจอะไรเป็นอันดับแรก", "en": "Which tests come first?" },
       "options": [
-        { "id": "a", "label": { "th": "เอกซเรย์ทรวงอก", "en": "Chest X-ray" },
-          "line": { "th": "ยืนยันรอยโรคในปอดและดูภาวะแทรกซ้อน", "en": "Confirms the lung lesion and checks for complications." } },
-        { "id": "b", "label": { "th": "ซีทีทรวงอก", "en": "CT chest" },
-          "line": { "th": "เห็นละเอียดกว่า แต่ไม่ใช่การตรวจแรกในคลินิก", "en": "More detail, but not a first test in clinic." } },
-        { "id": "c", "label": { "th": "ไม่ต้องตรวจเพิ่ม", "en": "No further tests" },
-          "line": { "th": "เริ่มรักษาจากอาการที่เห็นอย่างเดียว", "en": "Treat on the clinical picture alone." } }
+        { "id": "a", "label": { "th": "ชุดตรวจโรคฉี่หนูแบบเร็ว", "en": "Leptospira rapid test" },
+          "line": { "th": "ได้ผลเร็ว อาจช่วยยืนยันการวินิจฉัยได้ภายในวันนี้", "en": "Quick, and may support the diagnosis today." } },
+        { "id": "b", "label": { "th": "เพาะเชื้อในเลือด", "en": "Blood culture" },
+          "line": { "th": "หาเชื้อแบคทีเรียก่อนเริ่มยาปฏิชีวนะ", "en": "Looks for a bacterial cause before antibiotics start." } },
+        { "id": "c", "label": { "th": "ตรวจเลือดและปัสสาวะพื้นฐาน", "en": "Basic blood and urine tests" },
+          "line": { "th": "CBC ค่าไต ค่าตับ และปัสสาวะ เพื่อดูความรุนแรง", "en": "CBC, kidney and liver function, and urinalysis to gauge severity." } }
       ]
     },
     {
-      "question": { "th": "ควรดูแลผู้ป่วยรายนี้อย่างไร", "en": "How should this patient be managed?" },
+      "question": { "th": "ผลเลือดปกติ ยกเว้นเกล็ดเลือดต่ำเล็กน้อย จะดูแลอย่างไร", "en": "Blood tests are normal except mildly low platelets. How do you manage him?" },
       "options": [
-        { "id": "a", "label": { "th": "ประเมินความรุนแรงก่อน", "en": "Assess severity first" },
-          "line": { "th": "ใช้เกณฑ์ความรุนแรงเลือกระหว่างรักษาที่บ้านหรือนอนโรงพยาบาล", "en": "Use a severity score to choose home care or admission." } },
-        { "id": "b", "label": { "th": "ให้ยาปฏิชีวนะชนิดกินแล้วกลับบ้าน", "en": "Oral antibiotics, then home" },
-          "line": { "th": "สะดวก แต่ยังไม่ได้ประเมินความเสี่ยง", "en": "Convenient, but the risk is not yet assessed." } },
-        { "id": "c", "label": { "th": "ให้ยาลดไข้และนัดดูอาการ", "en": "Fever relief and a review visit" },
-          "line": { "th": "ยังไม่ได้รักษาที่สาเหตุ", "en": "Does not treat the cause." } }
+        { "id": "a", "label": { "th": "ให้ดอกซีไซคลินกลับบ้าน", "en": "Oral doxycycline at home" },
+          "line": { "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัส นัดดูอาการพรุ่งนี้", "en": "Covers leptospirosis and scrub typhus. Review tomorrow." } },
+        { "id": "b", "label": { "th": "รับนอนโรงพยาบาล ฉีดเพนิซิลลิน", "en": "Admit for IV penicillin" },
+          "line": { "th": "ได้ยาทางหลอดเลือดเต็มที่ และเฝ้าดูอาการได้ใกล้ชิด", "en": "Full IV treatment and a close watch on his course." } },
+        { "id": "c", "label": { "th": "ให้พาราเซตามอล รอผลยืนยันก่อน", "en": "Paracetamol, await confirmation" },
+          "line": { "th": "เลี่ยงยาปฏิชีวนะจนกว่าจะรู้สาเหตุแน่ชัด นัดดูอาการพรุ่งนี้", "en": "Avoids antibiotics until the cause is clear. Review tomorrow." } }
       ]
     }
   ]
