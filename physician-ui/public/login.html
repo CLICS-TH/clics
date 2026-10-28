@@ -10,7 +10,7 @@
   <meta name="description" content="CLICS — เปลี่ยนบทสนทนาทางคลินิกกับ AI ให้เป็นเครดิตการเรียนรู้ต่อเนื่องที่ตรวจสอบได้ · Case-based Learning Intelligence Credit System" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <!-- Logout endpoint: the dashboard (a different origin) sends staff to ?logout=1 (on / or here) to
-       clear the PORTAL-origin token too — otherwise autoForward below would re-log them straight back in.
+       clear the PORTAL-origin token too — otherwise js/forward.js would re-log them straight back in.
        Runs FIRST, before any storage is read; keeps the theme/view display prefs across logout. -->
   <script>(function(){try{if(location.search.indexOf('logout=1')!==-1){var t=localStorage.getItem('clics_theme'),v=localStorage.getItem('clics_view');localStorage.clear();sessionStorage.clear();if(t)localStorage.setItem('clics_theme',t);if(v)localStorage.setItem('clics_view',v);if(history.replaceState)history.replaceState(null,'',location.pathname);}}catch(e){}})();</script>
   <script>(function(){try{var h=location.hash,s=location.search;if(h.indexOf('access_token')!==-1||h.indexOf('error_description')!==-1||s.indexOf('code=')!==-1){location.replace('/auth/callback'+s+h);}}catch(e){}})();</script>
@@ -145,51 +145,11 @@
     </footer>
   </main>
   <script src="/js/config.js"></script>
+  <script src="/js/forward.js"></script>
   <script src="/js/api.js"></script>
   <script type="module" src="/js/supabase-client.js"></script>
   <script src="/js/boot.js" defer></script>
   <script>
-    // Auto-forward signed-in users BY ROLE — a stored admin/auditor/superadmin token must go to
-    // the audit-dashboard handoff, not /dashboard (whose physician guard would bounce it back
-    // here, reading as "logged in but thrown out"). Never forward when the URL carries an OAuth
-    // return (hash tokens / ?code=): the head forwarder has a replace() to /auth/callback
-    // pending, and this forward would win the race and eat the sign-in. Forwards use replace() so
-    // Back from the destination skips /login instead of bouncing forward again (#176).
-    (function autoForward() {
-      var tok = localStorage.getItem('clics_token');
-      if (!tok || location.hash || location.search.indexOf('code=') !== -1) return;
-
-      // Decode the JWT expiry. An EXPIRED / unparseable token must be DISCARDED, never forwarded —
-      // forwarding a dead staff token to the dashboard (which 401s and bounces back here) caused an
-      // infinite refresh loop, because localStorage is per-origin so our copy was never cleared.
-      function jwtExp(t) {
-        try { var p = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); var pad = p.length % 4; if (pad) p += '===='.slice(pad); return JSON.parse(atob(p)).exp; }
-        catch (e) { return null; }
-      }
-      var exp = jwtExp(tok);
-      if (!exp || exp <= Math.floor(Date.now() / 1000)) {
-        try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); sessionStorage.removeItem('clics_handoff'); } catch (e) {}
-        return; // fall through to the login form
-      }
-      // Loop guard: if we forwarded to the dashboard handoff <6s ago and we're already back here,
-      // the dashboard rejected the token (revoked / wrong signature) — discard it rather than
-      // ping-pong forever.
-      var last = parseInt(sessionStorage.getItem('clics_handoff') || '0', 10);
-      if (last && Date.now() - last < 6000) {
-        try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); sessionStorage.removeItem('clics_handoff'); } catch (e) {}
-        return;
-      }
-
-      var fwdUser = null;
-      try { fwdUser = JSON.parse(localStorage.getItem('clics_user') || 'null'); } catch (e) {}
-      if (!fwdUser || fwdUser.role === 'physician') {
-        window.location.replace('/dashboard'); // missing user → guardRole heals the state there
-      } else {
-        try { sessionStorage.setItem('clics_handoff', String(Date.now())); } catch (e) {}
-        window.location.replace((window.CLICS_DASHBOARD_URL || 'http://localhost:3002')
-          + '/login?token=' + encodeURIComponent(tok));
-      }
-    })();
     // Surface why the user was just signed out (written by auth.js / api.js before redirecting).
     try {
       var authMsg = sessionStorage.getItem('clics_auth_msg');
