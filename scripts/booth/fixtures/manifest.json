@@ -1,0 +1,10 @@
+{
+  "items": [
+    { "type": "image", "src": "/booth-loop/slide-a.png", "seconds": 1 },
+    { "type": "video", "src": "/booth-loop/clip.mp4" },
+    { "type": "image", "src": "/booth-loop/ผลฟอรั่ม 2026.png", "seconds": 1 },
+    { "type": "image", "src": "https://example.com/booth-loop/foreign.png", "seconds": 1 },
+    { "type": "image", "src": "/booth-loop/no-seconds.png" },
+    { "type": "video", "src": "/booth-loop/clip.webm" }
+  ]
+}
