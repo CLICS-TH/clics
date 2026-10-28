@@ -36,21 +36,30 @@
     return { go: dashboardUrl + '/login?token=' + encodeURIComponent(token), handoff: true };
   }
 
-  if (isOAuthReturn(location)) return;
-  var token = null, user = null, last = 0;
-  try {
-    token = localStorage.getItem('clics_token');
-    user = JSON.parse(localStorage.getItem('clics_user') || 'null');
-    last = parseInt(sessionStorage.getItem('clics_handoff') || '0', 10);
-  } catch (e) {}
+  function forward(restored) {
+    var token = null, user = null, last = 0;
+    try {
+      token = localStorage.getItem('clics_token');
+      user = JSON.parse(localStorage.getItem('clics_user') || 'null');
+      last = parseInt(sessionStorage.getItem('clics_handoff') || '0', 10);
+    } catch (e) {}
 
-  var d = decide(token, user, Date.now(), last, window.CLICS_DASHBOARD_URL || 'http://localhost:3002');
-  if (d.discard) {
-    try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); sessionStorage.removeItem('clics_handoff'); } catch (e) {}
+    var d = decide(token, user, Date.now(), last, window.CLICS_DASHBOARD_URL || 'http://localhost:3002');
+    if (d.discard) {
+      try { localStorage.removeItem('clics_token'); localStorage.removeItem('clics_user'); sessionStorage.removeItem('clics_handoff'); } catch (e) {}
+    }
+    // The Landing page hides its body under this attribute, so a signed-in visitor never sees it flash.
+    // A restored page that was hidden for a forward but is now signed out must show again; on a fresh
+    // load the head's ?logout=1 rescue may have set it for its own pending replace, so leave it.
+    if (!d.go) { if (restored) document.documentElement.removeAttribute('data-forwarding'); return; }
+    if (d.handoff) { try { sessionStorage.setItem('clics_handoff', String(Date.now())); } catch (e) {} }
+    document.documentElement.setAttribute('data-forwarding', '');
+    location.replace(d.go);
   }
-  if (!d.go) return;
-  if (d.handoff) { try { sessionStorage.setItem('clics_handoff', String(Date.now())); } catch (e) {} }
-  // The Landing page hides its body under this attribute, so a signed-in visitor never sees it flash.
-  document.documentElement.setAttribute('data-forwarding', '');
-  location.replace(d.go);
+
+  if (isOAuthReturn(location)) return;
+  forward();
+  // A back/forward-cache restore runs no script, so Back to a page first shown signed out would show
+  // it again after signing in elsewhere in the tab. Decide again on every restore.
+  window.addEventListener('pageshow', function (e) { if (e.persisted) forward(true); });
 })();

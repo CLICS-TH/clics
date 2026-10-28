@@ -255,15 +255,34 @@ async function tabTo(page, selector) {
   return false;
 }
 
-// Logs whether the Landing heading was on screen once the document finished parsing, from every
-// document the tab loads; a forwarded visit never gets that far, so it logs nothing.
+// Logs `pw:landing-visible <path>` on the first animation frame in which the Landing heading would
+// paint, in every document the tab loads and again after a back/forward-cache restore (suffix
+// ` restored`). Pair it with slowDown() on the forward's destination, so the Landing document lives
+// long enough to paint if nothing hides it.
 function watchLanding(ctx) {
-  return ctx.addInitScript(() => document.addEventListener('DOMContentLoaded', () => {
-    const h = document.querySelector('.hero h1');
-    if (!h) return;
-    const shown = getComputedStyle(document.body).visibility !== 'hidden' && h.getBoundingClientRect().height > 0;
-    console.log('pw:landing ' + location.pathname + ' ' + shown);
-  }));
+  return ctx.addInitScript(() => {
+    let restored = false;
+    const look = () => {
+      const h = document.querySelector('.hero h1');
+      if (h && h.checkVisibility({ visibilityProperty: true }) && h.getBoundingClientRect().height > 0) {
+        console.log('pw:landing-visible ' + location.pathname + (restored ? ' restored' : ''));
+        return;
+      }
+      if (h || document.readyState !== 'complete') requestAnimationFrame(look);
+    };
+    requestAnimationFrame(look);
+    addEventListener('pageshow', (e) => { if (e.persisted) { restored = true; requestAnimationFrame(look); } });
+  });
+}
+function landingSightings(page) {
+  const seen = [];
+  page.on('console', (m) => { if (m.text().startsWith('pw:landing-visible ')) seen.push(m.text()); });
+  return seen;
+}
+
+// Holds every response under `prefix` for a while, as a slow network would.
+function slowDown(ctx, prefix, ms = 1500) {
+  return ctx.route((url) => url.href.startsWith(prefix), async (route) => { await sleep(ms); await route.fallback(); });
 }
 
 const SCENARIOS = [
@@ -558,13 +577,13 @@ const SCENARIOS = [
       await page.goto(`${PORTAL}/forgot`);
       await page.evaluate(([token, user]) => { localStorage.setItem('clics_token', token); localStorage.setItem('clics_user', user); },
         [fakeJwt(USERS.physician), JSON.stringify(USERS.physician)]);
-      const seen = [];
-      page.on('console', (m) => { if (m.text().startsWith('pw:landing ')) seen.push(m.text()); });
+      const seen = landingSightings(page);
       await watchLanding(ctx);
-      await page.goto(`${PORTAL}/`);
+      await slowDown(ctx, `${PORTAL}/dashboard`);
+      await page.goto(`${PORTAL}/`, { waitUntil: 'commit' });
       await page.waitForURL(`${PORTAL}/dashboard`);
       await settle(page);
-      t.check(!seen.some((l) => l.endsWith(' true')), `the Landing page was shown before the forward: ${seen.join(', ')}`);
+      t.check(seen.length === 0, `the Landing page was shown before the forward: ${seen.join(', ')}`);
       await page.goBack({ waitUntil: 'commit' });
       await settle(page);
       t.check(new URL(page.url()).pathname !== '/', `Back from /dashboard landed on the Landing page ${page.url()}`);
@@ -576,14 +595,41 @@ const SCENARIOS = [
       await page.goto(`${PORTAL}/forgot`);
       await page.evaluate(([token, user]) => { localStorage.setItem('clics_token', token); localStorage.setItem('clics_user', user); },
         [fakeJwt(USERS.admin), JSON.stringify(USERS.admin)]);
-      const seen = [];
-      page.on('console', (m) => { if (m.text().startsWith('pw:landing ')) seen.push(m.text()); });
+      const seen = landingSightings(page);
       await watchLanding(ctx);
-      await page.goto(`${PORTAL}/`);
+      await slowDown(ctx, `${DASH}/login`);
+      await page.goto(`${PORTAL}/`, { waitUntil: 'commit' });
       await page.waitForURL(`${DASH}/home`);
       await settle(page);
       t.check(!TOKEN_IN_URL.test(page.url()), `handoff left a token in the address bar ${page.url()}`);
-      t.check(!seen.some((l) => l.endsWith(' true')), `the Landing page was shown before the Handoff: ${seen.join(', ')}`);
+      t.check(seen.length === 0, `the Landing page was shown before the Handoff: ${seen.join(', ')}`);
+    },
+  },
+  {
+    name: 'signed-out /, Sign in, Back: the restored Landing page forwards without showing',
+    async run(t, page, ctx) {
+      const seen = landingSightings(page);
+      const restores = [];
+      page.on('console', (m) => { if (m.text() === `pw:bfcache-restore ${PORTAL}/`) restores.push(m.text()); });
+      await watchLanding(ctx);
+      await page.goto(`${PORTAL}/`);
+      await settle(page);
+      t.check(seen.includes('pw:landing-visible /'), `the signed-out Landing page never showed: ${seen.join(', ')}`);
+      await page.locator('.hero-actions a[href="/login"]').click();
+      await page.waitForURL(`${PORTAL}/login`);
+      await emailSignIn(page, USERS.physician, { open: false });
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      await slowDown(ctx, `${PORTAL}/dashboard`);
+      await page.goBack({ waitUntil: 'commit' });
+      await settle(page);
+      t.check(restores.length > 0, 'Back did not restore / from the back/forward cache, so the restore went untested');
+      t.check(new URL(page.url()).pathname === '/dashboard', `Back from /dashboard ended on ${page.url()}`);
+      const restoredSightings = seen.filter((l) => l.endsWith(' restored'));
+      t.check(restoredSightings.length === 0, `the restored Landing page was shown: ${restoredSightings.join(', ')}`);
+      await page.goBack({ waitUntil: 'commit' }).catch(() => null);
+      await settle(page);
+      t.check(new URL(page.url()).pathname !== '/' || page.url() === 'about:blank', `a second Back is trapped on ${page.url()}`);
     },
   },
   {
