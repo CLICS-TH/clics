@@ -245,7 +245,11 @@ function pageStrings(page) {
   });
 }
 const THAI = /[฀-๿]/;
-const OVERCLAIM = /on-?premise|validated|ติดตั้งภายในองค์กร/i;
+// Each phrase claims more than the code does: the PII filter (rimpl stripPii) misses some names, so no
+// copy may promise the AI never sees a name or gets only de-identified text.
+const OVERCLAIM = /on-?premise|validated|ติดตั้งภายในองค์กร|never your name|ไม่ได้รับชื่อหรืออีเมลของคุณ|only (de-identified|case) text|ได้รับเฉพาะข้อความ|de-identified before AI/i;
+// Who can read a transcript with the physician's name (backend/src/routes/admin.js /ples/:id/transcript).
+const NAMED_READERS = { th: /ผู้ดูแลสภา/, en: /administrators of your council/i };
 
 async function tabTo(page, selector) {
   for (let i = 0; i < 20; i++) {
@@ -704,13 +708,15 @@ const SCENARIOS = [
   {
     name: 'public copy on / (both languages) and /login makes no overclaim',
     async run(t, page) {
-      for (const [path, lang] of [['/', 'th'], ['/', 'en'], ['/login', 'th']]) {
+      for (const [path, lang] of [['/', 'th'], ['/', 'en'], ['/login', 'th'], ['/login', 'en']]) {
         await page.goto(`${PORTAL}/forgot`);
         await page.evaluate((l) => localStorage.setItem('clics_manual_lang', l), lang);
         await page.goto(`${PORTAL}${path}`);
         await settle(page);
-        const hit = (await page.evaluate(() => document.body.innerText)).match(OVERCLAIM);
+        const text = await page.evaluate(() => { document.querySelectorAll('details').forEach((d) => { d.open = true; }); return document.body.innerText; });
+        const hit = text.match(OVERCLAIM);
         t.check(!hit, `${path} [${lang}] says "${hit?.[0]}"`);
+        if (path === '/') t.check(NAMED_READERS[lang].test(text), `/ [${lang}] does not say council administrators can read a named transcript`);
       }
     },
   },

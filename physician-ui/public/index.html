@@ -143,7 +143,7 @@
 
     <section class="band" aria-labelledby="data-h">
       <h2 id="data-h"><span data-lang="th">ข้อมูลของคุณไปที่ไหน</span><span data-lang="en">Where your data goes</span></h2>
-      <p class="band-lede"><span data-lang="th">ตัวตนของคุณอยู่ในระบบ CLICS ส่วน AI ได้รับเฉพาะข้อความที่ตัดข้อมูล<span class="nw">ระบุตัวตน</span>ออกแล้ว</span><span data-lang="en">Your identity stays in the CLICS system. The AI receives only text with identifying details removed.</span></p>
+      <p class="band-lede"><span data-lang="th">ชื่อและอีเมลในบัญชีของคุณอยู่ในระบบ CLICS และไม่ถูกส่งให้ AI ส่วนบทสนทนาจะผ่านตัวกรองที่ตัดข้อมูล<span class="nw">ระบุตัวตน</span>ที่ตรวจพบออกก่อนถึง AI</span><span data-lang="en">The name and email on your account stay in the CLICS system and are never sent to the AI. Your conversation passes through a filter that removes the identifying details it detects before it reaches the AI.</span></p>
       <figure class="flow">
         <div class="flow-node flow-you">
           <h3><span data-lang="th">คุณ</span><span data-lang="en">You</span></h3>
@@ -155,16 +155,16 @@
           <ul>
             <li><span data-lang="th">เก็บตัวตนบัญชี Google ที่ใช้เข้าสู่ระบบไว้ในคลังที่เข้ารหัส</span><span data-lang="en">Keeps your Google sign-in identity in an encrypted vault</span></li>
             <li><span data-lang="th">ผู้ตรวจและข้อมูลวิจัยที่ส่งออกเห็นคุณเป็นรหัสแทนชื่อเท่านั้น</span><span data-lang="en">Auditors and the research data export see only a code in place of your name</span></li>
-            <li><span data-lang="th">ตัดข้อมูล<span class="nw">ระบุตัวบุคคล</span>ออกจากข้อความก่อนส่งให้ AI</span><span data-lang="en">Removes identifying details from the text before it goes to the AI</span></li>
+            <li><span data-lang="th">ตัดข้อมูล<span class="nw">ระบุตัวบุคคล</span>ที่ตรวจพบออกจากข้อความก่อนส่งให้ AI</span><span data-lang="en">Removes the identifying details it detects from the text before it goes to the AI</span></li>
             <li><span data-lang="th">ข้อมูลบัญชีรับเงินเข้ารหัส และไม่ถูกส่งให้ AI</span><span data-lang="en">Encrypts payment details and never sends them to the AI</span></li>
           </ul>
         </div>
         <div class="flow-link flow-link-labelled"><svg class="flow-arrow" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg><span><span data-lang="th">ข้อความที่ไม่<span class="nw">ระบุตัวตน</span></span><span data-lang="en">De-identified text</span></span></div>
         <div class="flow-node flow-ai">
           <h3><span data-lang="th">ผู้ช่วย AI</span><span data-lang="en">AI assistant</span></h3>
-          <p><span data-lang="th">ได้รับเฉพาะข้อความเคสที่ตัดข้อมูล<span class="nw">ระบุตัวตน</span>ออกแล้ว ไม่ได้รับชื่อหรืออีเมลของคุณ</span><span data-lang="en">Receives only case text with identifying details removed. Never your name or email.</span></p>
+          <p><span data-lang="th">ได้รับบทสนทนาที่ผ่านตัวกรองแล้ว แต่ไม่ได้รับชื่อหรืออีเมลในบัญชีของคุณ</span><span data-lang="en">Receives the conversation after the filter, but not the name or email on your account.</span></p>
         </div>
-        <figcaption><span data-lang="th">การตัดข้อมูล<span class="nw">ระบุตัวตน</span>เป็นเพียงด่านกันพลาด ไม่ได้แปลว่าพิมพ์ข้อมูลผู้ป่วยจริงได้ โปรดใช้เคสสมมติทุกครั้ง</span><span data-lang="en">Removing identifying details is a safety net, not permission. Always use a hypothetical case.</span></figcaption>
+        <figcaption><span data-lang="th">ตัวกรองเป็นเพียงด่านกันพลาด และอาจตรวจไม่พบข้อมูลบางอย่าง เช่น ชื่อหรือนามสกุล จึงไม่ได้แปลว่าพิมพ์ข้อมูลจริงได้ โปรดใช้เคสสมมติทุกครั้ง และอย่าพิมพ์ชื่อของคุณหรือของผู้ป่วยลงในบทสนทนา</span><span data-lang="en">The filter is a safety net and can miss some details, such as a name or surname, so it is not permission to type real ones. Always use a hypothetical case, and never type your own or a patient’s name into the conversation.</span></figcaption>
       </figure>
     </section>
 
@@ -181,7 +181,7 @@
         </details>
         <details>
           <summary><span data-lang="th">ใครเห็นคำตอบของฉันบ้าง</span><span data-lang="en">Who sees my answers?</span><svg class="faq-chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></summary>
-          <p><span data-lang="th">ผู้ช่วย AI เห็นเฉพาะข้อความเคสที่ตัดข้อมูล<span class="nw">ระบุตัวตน</span>ออกแล้ว ผู้ตรวจผู้เชี่ยวชาญอาจอ่านบทสนทนาของคุณเพื่อให้คะแนนเทียบกับ AI โดยเห็นเพียงรหัสแทนตัว ไม่เห็นชื่อของคุณ</span><span data-lang="en">The AI assistant sees only case text with identifying details removed. Expert auditors may read your conversation to score it against the AI; they see a code in place of your name, never the name itself.</span></p>
+          <p><span data-lang="th">ผู้ช่วย AI เห็นบทสนทนาที่ผ่านตัวกรองแล้ว แต่ไม่เห็นชื่อหรืออีเมลในบัญชีของคุณ ผู้ตรวจผู้เชี่ยวชาญอาจอ่านบทสนทนาของคุณเพื่อให้คะแนนเทียบกับ AI โดยเห็นรหัสแทนชื่อของคุณ ส่วนผู้ดูแลสภาที่คุณสังกัดและผู้ดูแลระบบ CLICS เปิดอ่านบทสนทนาทั้งหมดพร้อมชื่อของคุณได้</span><span data-lang="en">The AI assistant sees the conversation after the filter, but not the name or email on your account. Expert auditors may read your conversation to score it against the AI; they see a code in place of your name. Administrators of your council and the CLICS system administrators can open the whole conversation together with your name.</span></p>
         </details>
         <details>
           <summary><span data-lang="th">โครงการนำร่องเริ่มแล้วหรือยัง</span><span data-lang="en">Has the pilot started?</span><svg class="faq-chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></summary>
