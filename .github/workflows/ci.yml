@@ -14,34 +14,162 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Fully-hermetic suites (jest for backend, node --test for license-verifier) — no env needed.
-  # backend enforces coverage thresholds (jest.config.js) via --coverage.
-  test:
-    name: test (${{ matrix.layer }})
+  # Every check under a minute, folded into one job: GitHub bills each job as at least one whole
+  # minute, so nine 10-second jobs billed nine minutes. Each step keeps the old job's name, so a
+  # failure still names its check, and each step runs whatever an earlier step did (!cancelled()),
+  # as the separate jobs did. The first step decides which checks this run needs: on a pull request
+  # .github/scripts/ci-select.sh reads the changed paths; the push to master selects every check.
+  # The heavier jobs below read the same outputs.
+  fast-checks:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - layer: backend
-            cmd: npm test -- --coverage
-          - layer: license-verifier
-            cmd: npm test
+    outputs:
+      backend: ${{ steps.select.outputs.backend }}
+      license_verifier: ${{ steps.select.outputs.license_verifier }}
+      rimpl: ${{ steps.select.outputs.rimpl }}
+      dashboard: ${{ steps.select.outputs.dashboard }}
+      physician_ui: ${{ steps.select.outputs.physician_ui }}
+      probe: ${{ steps.select.outputs.probe }}
+      quality: ${{ steps.select.outputs.quality }}
+      vm1: ${{ steps.select.outputs.vm1 }}
+      manifest: ${{ steps.select.outputs.manifest }}
+      pg: ${{ steps.select.outputs.pg }}
+      calibration: ${{ steps.select.outputs.calibration }}
+      manuals: ${{ steps.select.outputs.manuals }}
+      portal_browser: ${{ steps.select.outputs.portal_browser }}
+      responsive: ${{ steps.select.outputs.responsive }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2   # a PR checks out its merge commit; HEAD^1 is the base it merged onto
+      - name: Select checks from the changed paths
+        id: select
+        shell: bash   # explicit: adds pipefail, so a failing selector fails this step and is never hidden by tee
+        run: |
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            git diff --name-only HEAD^1 HEAD
+          fi | bash .github/scripts/ci-select.sh "${{ github.event_name }}" | tee -a "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: license-verifier/package-lock.json
+      # Fully-hermetic (node --test) — no env needed.
+      - name: test (license-verifier)
+        if: ${{ !cancelled() && steps.select.outputs.license_verifier == 'true' }}
+        working-directory: license-verifier
+        run: |
+          npm ci
+          npm test
+      # Static portal has no build step — gate on JS syntax.
+      - name: physician-ui — Syntax-check JS
+        if: ${{ !cancelled() && steps.select.outputs.physician_ui == 'true' }}
+        run: for f in public/js/*.js; do node --check "$f"; done
+        working-directory: physician-ui
+      # Probe scripts decide the D18 local-model gate verdict, and until 2026-09-04 CI did not touch them at
+      # all — no test, no lint, not even a syntax check. That is how one accounting bug was fixed in
+      # repeat-consistency.mjs and then written again, independently, in screening-verdict.mjs and
+      # e2-compare.mjs, where it produced three different wrong answers about the same run in a single day.
+      # The scripts themselves need a live box and secrets; their PURE logic does not, and that is what runs
+      # here. Anything decision-bearing extracted from them belongs in a *.test.mjs beside it.
+      - name: probe — Syntax-check probe scripts
+        if: ${{ !cancelled() && steps.select.outputs.probe == 'true' }}
+        run: for f in scripts/probe/*.mjs; do node --check "$f"; done
+      - name: probe — Pure-logic tests
+        if: ${{ !cancelled() && steps.select.outputs.probe == 'true' }}
+        run: node --test scripts/probe/*.test.mjs
+      # Tutor-reply quality harness (docs/QUALITY-GATES.md). Like the probe job: the scripts need a live
+      # box, but the bank validation, the deterministic checks, citation classification, packet blinding
+      # and the kappa/Wilson math do not — and they decide a go/no-go, so they are tested offline here.
+      # No npm install: scripts/quality must load rimpl's production modules without a single package.
+      - name: quality — Syntax-check quality scripts
+        if: ${{ !cancelled() && steps.select.outputs.quality == 'true' }}
+        run: for f in scripts/quality/*.mjs; do node --check "$f"; done
+      - name: quality — Offline tests (bank, checks, citations, judging, clinician export)
+        if: ${{ !cancelled() && steps.select.outputs.quality == 'true' }}
+        run: node --test scripts/quality/*.test.mjs
+      # The model manifest (CCME R2): rimpl/src/model-manifest.json is GENERATED from the code
+      # (scripts/manifest/build.mjs) and committed. --check regenerates it and fails if the committed copy
+      # differs — a prompt, rubric, decoding default, router rule or provider-policy edit that did not
+      # regenerate it would otherwise ship a manifest describing a different instrument from the one that
+      # runs. `env -i`: the output must depend on the code alone, never on what the runner exports.
+      # No npm install, like the probe and quality jobs: lib/manifest.js and everything it loads are
+      # package-free, and this job is what proves it.
+      - name: manifest — Syntax-check manifest scripts
+        if: ${{ !cancelled() && steps.select.outputs.manifest == 'true' }}
+        run: for f in scripts/manifest/*.mjs; do node --check "$f"; done
+      - name: manifest — Canonicalisation and check-mode tests
+        if: ${{ !cancelled() && steps.select.outputs.manifest == 'true' }}
+        run: node --test scripts/manifest/*.test.mjs
+      - name: manifest — The committed manifest is what the code generates (scrubbed env)
+        if: ${{ !cancelled() && steps.select.outputs.manifest == 'true' }}
+        run: env -i PATH="$PATH" node scripts/manifest/build.mjs --check
+      # The hash-chained, append-only audit_log (db/migration-audit-log-chain.sql) lives in TRIGGERS, which
+      # the jest suites mock away. This runs the migration against a real, throwaway PostgreSQL — the one
+      # preinstalled on the runner, started by the script itself in a temp dir — and asserts concurrency,
+      # refusals, spoofing, grants and tamper detection. Touches no shared database.
+      - name: audit-chain — Tamper tests against a throwaway PostgreSQL
+        if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
+        run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/audit-chain-tamper-test.sh
+      # store_chat_turn() with the chat router's trailing params (db/migration-chat-turn-flags.sql) is SQL the
+      # jest suites only model. This applies the migration twice to a real, throwaway PostgreSQL on top of its
+      # prerequisites and asserts: one function, unchanged security/grants, old-shape calls still resolve, the
+      # flags + superseded draft land on the assistant row, the widened CHECK, and the CT409 / 23505 refusals.
+      - name: chat-turn-flags — store_chat_turn + middleware_flags against a throwaway PostgreSQL
+        if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
+        run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/chat-turn-flags-test.sh
+      # The Model Lock's manifest columns (db/migration-evaluator-lock-manifest.sql) are DDL the jest suites
+      # only mock. This applies it to a real, throwaway PostgreSQL: refused before its prerequisite, applied
+      # with and without shadow_evaluations, twice; grants, RLS and the deny-all policy unchanged; the CHECKs
+      # refuse a malformed sha or a half-written pair; and db/schema.sql declares the same table.
+      - name: evaluator-lock-manifest — evaluator_model_lock manifest columns against a throwaway PostgreSQL
+        if: ${{ !cancelled() && steps.select.outputs.pg == 'true' }}
+        run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/evaluator-lock-manifest-test.sh
+      # Calibration — three-way.js decides G0.5, the programme's go/no-go. Its output is a number an
+      # operator writes into a protocol document, so a plausible-but-wrong figure is far worse here than
+      # a crash. The same SCOPE-LEAK defect (a `--manifest` filter narrowing a set a later consumer still
+      # read under a broader meaning) shipped into it twice and was caught by human review both times,
+      # never by a test -- once flipping the contract gate FAIL 50% -> PASS 100% on the same database.
+      # The suite runs the real script against a fixture DB through a stubbed supabase client: no
+      # network, no paid API, no writes into the committed runs/.
+      # The same job runs the anchor-cohort suite (scripts/calibration/anchors/anchors.test.mjs): the design
+      # matrix must regenerate byte-for-byte from its seed, every committed synthetic fixture must pass
+      # schema / blindness / pii-filter / citation-allowlist checks, and manifest.json must match the files.
+      # And the SANDBOX import planner (anchors/sandbox-import.test.mjs): fixture -> ples/messages/reflection
+      # rows, held-out sha refusal, non-SANDBOX council refusal, median-of-K shadow rows — dry-run only.
+      # Package-free like the rest of this job.
+          # The anchor suite compares HELDOUT-LOCK.json with master's copy: a held-out fixture locked on
+          # master may never change. A depth-1 checkout has no origin/master, and under CI the test FAILS
+          # without it rather than skipping, so fetch master explicitly.
+      - name: calibration — Fetch origin/master for the held-out lock check
+        if: ${{ !cancelled() && steps.select.outputs.calibration == 'true' }}
+        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
+      - name: calibration — Scope-leak regression suite + anchor cohort checks
+        if: ${{ !cancelled() && steps.select.outputs.calibration == 'true' }}
+        run: npm run test:calibration
+
+  # Fully-hermetic jest — no env needed. Enforces coverage thresholds (jest.config.js) via --coverage.
+  test:
+    name: test (backend)
+    needs: fast-checks
+    if: ${{ !cancelled() && needs.fast-checks.outputs.backend == 'true' }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: ${{ matrix.layer }}/package-lock.json
+          cache-dependency-path: backend/package-lock.json
       - run: npm ci
-        working-directory: ${{ matrix.layer }}
-      - run: ${{ matrix.cmd }}
-        working-directory: ${{ matrix.layer }}
+        working-directory: backend
+      - run: npm test -- --coverage
+        working-directory: backend
 
   # rimpl: all 8 suites are hermetic — Supabase + the Anthropic SDK are jest.mock'd (incl. the PII
   # boundary + adversarial-leak suites), so no env is needed. test:ci == test (jest --runInBand).
   rimpl:
+    needs: fast-checks
+    if: ${{ !cancelled() && needs.fast-checks.outputs.rimpl == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -57,6 +185,8 @@ jobs:
 
   # Next.js dashboard: typecheck + jest (with coverage thresholds) + lint — all blocking.
   audit-dashboard:
+    needs: fast-checks
+    if: ${{ !cancelled() && needs.fast-checks.outputs.dashboard == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,58 +207,14 @@ jobs:
         run: npm run lint
         working-directory: audit-dashboard
 
-  # Static portal has no build step — gate on JS syntax.
-  physician-ui:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Syntax-check JS
-        run: for f in public/js/*.js; do node --check "$f"; done
-        working-directory: physician-ui
-
-  # Probe scripts decide the D18 local-model gate verdict, and until 2026-09-04 CI did not touch them at
-  # all — no test, no lint, not even a syntax check. That is how one accounting bug was fixed in
-  # repeat-consistency.mjs and then written again, independently, in screening-verdict.mjs and
-  # e2-compare.mjs, where it produced three different wrong answers about the same run in a single day.
-  # The scripts themselves need a live box and secrets; their PURE logic does not, and that is what runs
-  # here. Anything decision-bearing extracted from them belongs in a *.test.mjs beside it.
-  probe:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Syntax-check probe scripts
-        run: for f in scripts/probe/*.mjs; do node --check "$f"; done
-      - name: Pure-logic tests
-        run: node --test scripts/probe/*.test.mjs
-
-  # Tutor-reply quality harness (docs/QUALITY-GATES.md). Like the probe job: the scripts need a live
-  # box, but the bank validation, the deterministic checks, citation classification, packet blinding
-  # and the kappa/Wilson math do not — and they decide a go/no-go, so they are tested offline here.
-  # No npm install: scripts/quality must load rimpl's production modules without a single package.
-  quality:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Syntax-check quality scripts
-        run: for f in scripts/quality/*.mjs; do node --check "$f"; done
-      - name: Offline tests (bank, checks, citations, judging, clinician export)
-        run: node --test scripts/quality/*.test.mjs
-
   # vm1 (Topology B, docs/adr/0002-vm1-topology-b.md): the compose project, both images, the nginx site
   # and deploy.sh. Nobody has Docker on the Mac these are written on, so THIS is where the images are
   # proven to build and the hardened containers (read-only, non-root, no capabilities) proven to boot.
   # Hermetic: the env files are dummies generated from the committed examples, every host in them is
   # *.invalid, and nothing is pushed anywhere. Production stays on Railway; this deploys nothing.
   deploy-vm1:
+    needs: fast-checks
+    if: ${{ !cancelled() && needs.fast-checks.outputs.vm1 == 'true' }}
     runs-on: ubuntu-latest
     env:
       CLICS_RELEASE: ci
@@ -216,88 +302,6 @@ jobs:
         if: always()
         run: docker compose down -v
 
-  # The model manifest (CCME R2): rimpl/src/model-manifest.json is GENERATED from the code
-  # (scripts/manifest/build.mjs) and committed. --check regenerates it and fails if the committed copy
-  # differs — a prompt, rubric, decoding default, router rule or provider-policy edit that did not
-  # regenerate it would otherwise ship a manifest describing a different instrument from the one that
-  # runs. `env -i`: the output must depend on the code alone, never on what the runner exports.
-  # No npm install, like the probe and quality jobs: lib/manifest.js and everything it loads are
-  # package-free, and this job is what proves it.
-  manifest:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Syntax-check manifest scripts
-        run: for f in scripts/manifest/*.mjs; do node --check "$f"; done
-      - name: Canonicalisation and check-mode tests
-        run: node --test scripts/manifest/*.test.mjs
-      - name: The committed manifest is what the code generates (scrubbed env)
-        run: env -i PATH="$PATH" node scripts/manifest/build.mjs --check
-
-  # The hash-chained, append-only audit_log (db/migration-audit-log-chain.sql) lives in TRIGGERS, which
-  # the jest suites mock away. This runs the migration against a real, throwaway PostgreSQL — the one
-  # preinstalled on the runner, started by the script itself in a temp dir — and asserts concurrency,
-  # refusals, spoofing, grants and tamper detection. Touches no shared database.
-  audit-chain:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Tamper tests against a throwaway PostgreSQL
-        run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/audit-chain-tamper-test.sh
-
-  # store_chat_turn() with the chat router's trailing params (db/migration-chat-turn-flags.sql) is SQL the
-  # jest suites only model. This applies the migration twice to a real, throwaway PostgreSQL on top of its
-  # prerequisites and asserts: one function, unchanged security/grants, old-shape calls still resolve, the
-  # flags + superseded draft land on the assistant row, the widened CHECK, and the CT409 / 23505 refusals.
-  chat-turn-flags:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: store_chat_turn + middleware_flags against a throwaway PostgreSQL
-        run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/chat-turn-flags-test.sh
-
-  # The Model Lock's manifest columns (db/migration-evaluator-lock-manifest.sql) are DDL the jest suites
-  # only mock. This applies it to a real, throwaway PostgreSQL: refused before its prerequisite, applied
-  # with and without shadow_evaluations, twice; grants, RLS and the deny-all policy unchanged; the CHECKs
-  # refuse a malformed sha or a half-written pair; and db/schema.sql declares the same table.
-  evaluator-lock-manifest:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: evaluator_model_lock manifest columns against a throwaway PostgreSQL
-        run: PG_BIN="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1)" scripts/db/evaluator-lock-manifest-test.sh
-
-  # Calibration — three-way.js decides G0.5, the programme's go/no-go. Its output is a number an
-  # operator writes into a protocol document, so a plausible-but-wrong figure is far worse here than
-  # a crash. The same SCOPE-LEAK defect (a `--manifest` filter narrowing a set a later consumer still
-  # read under a broader meaning) shipped into it twice and was caught by human review both times,
-  # never by a test -- once flipping the contract gate FAIL 50% -> PASS 100% on the same database.
-  # The suite runs the real script against a fixture DB through a stubbed supabase client: no
-  # network, no paid API, no writes into the committed runs/.
-  # The same job runs the anchor-cohort suite (scripts/calibration/anchors/anchors.test.mjs): the design
-  # matrix must regenerate byte-for-byte from its seed, every committed synthetic fixture must pass
-  # schema / blindness / pii-filter / citation-allowlist checks, and manifest.json must match the files.
-  # And the SANDBOX import planner (anchors/sandbox-import.test.mjs): fixture -> ples/messages/reflection
-  # rows, held-out sha refusal, non-SANDBOX council refusal, median-of-K shadow rows — dry-run only.
-  # Package-free like the rest of this job.
-  calibration:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      # The anchor suite compares HELDOUT-LOCK.json with master's copy: a held-out fixture locked on
-      # master may never change. A depth-1 checkout has no origin/master, and under CI the test FAILS
-      # without it rather than skipping, so fetch master explicitly.
-      - name: Fetch origin/master for the held-out lock check
-        run: git fetch --no-tags --depth=1 origin +refs/heads/master:refs/remotes/origin/master
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Scope-leak regression suite + anchor cohort checks
-        run: npm run test:calibration
-
   # Manuals — the physician + auditor guides are GENERATED from docs/manuals/content/*.md into
   # physician-ui/public/manual.html and audit-dashboard/lib/manual-content.ts, both committed. This
   # job is the reason that can be trusted:
@@ -313,6 +317,8 @@ jobs:
   # Needs no secrets and no live infra, but it is NOT browserless: the type-scale gate installs
   # Chromium, BUILDS AND SERVES the dashboard, and renders BOTH manuals at 11 widths.
   manuals:
+    needs: fast-checks
+    if: ${{ !cancelled() && needs.fast-checks.outputs.manuals == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -400,6 +406,8 @@ jobs:
   # backend, serves supabase-js from the pinned npm package, stubs GoTrue, and aborts every other
   # external request. Chromium keeps its back/forward cache on, as real browsers do.
   portal-browser:
+    needs: fast-checks
+    if: ${{ !cancelled() && needs.fast-checks.outputs.portal_browser == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -451,6 +459,8 @@ jobs:
   # always stay hermetic, including branches in this repository. Superadmin smoke is omitted (no
   # SUPER_* secrets) to keep real admin creds out of CI.
   responsive:
+    needs: fast-checks
+    if: ${{ !cancelled() && needs.fast-checks.outputs.responsive == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
