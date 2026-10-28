@@ -120,6 +120,7 @@ ${langs.map((l) => renderBody(sections[l], l)).join('\n')}
   <script src="/js/api.js"></script>
   <script src="/js/icons.js"></script>
   <script src="/js/ui.js"></script>
+  <script src="/js/lang.js"></script>
   <script src="/js/guide.js"></script>
   <script src="/js/boot.js" defer></script>
 </body>
