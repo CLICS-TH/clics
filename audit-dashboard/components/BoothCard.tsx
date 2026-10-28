@@ -11,6 +11,7 @@ import { BiLabel } from '@/components/BiLabel';
 import { Skeleton } from '@/components/Skeleton';
 import { toast } from '@/components/Overlays';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { type ApiResult, type BoothSettings, type BoothState, formatApiError } from '@/lib/types';
 
 // Thailand has no daylight saving, so a fixed offset is exact.
@@ -96,6 +97,11 @@ export function BoothCard() {
       }
       body.ceiling_usd = c;
     }
+    // A half-deleted datetime-local reads as '' and would clear the window, which shuts a running booth.
+    if (booth.enabled && (body.opens_at === null || body.closes_at === null)) {
+      setFormError('ปิดสวิตช์ก่อนล้างช่วงเวลา / Switch the booth off before clearing its window.');
+      return;
+    }
     if (opensShown && closesShown && opensShown >= closesShown) {
       setFormError('เวลาปิดต้องอยู่หลังเวลาเปิด / Closes-at must be after opens-at.');
       return;
@@ -150,20 +156,20 @@ export function BoothCard() {
             <div className="grid gap-4 @min-[640px]:grid-cols-3">
               <div className="space-y-1">
                 <label htmlFor="booth-opens" className="block text-sm font-medium"><BiLabel th="เวลาเปิด" en="Opens at" /></label>
-                <input id="booth-opens" type="datetime-local"
-                  className="w-full min-w-0 rounded-md border bg-background px-2 py-1.5 text-sm tabular-nums"
+                <Input id="booth-opens" type="datetime-local"
+                  className="tabular-nums"
                   value={opensShown} onChange={(e) => setDraft((d) => ({ ...d, opens: e.target.value }))} />
               </div>
               <div className="space-y-1">
                 <label htmlFor="booth-closes" className="block text-sm font-medium"><BiLabel th="เวลาปิด" en="Closes at" /></label>
-                <input id="booth-closes" type="datetime-local"
-                  className="w-full min-w-0 rounded-md border bg-background px-2 py-1.5 text-sm tabular-nums"
+                <Input id="booth-closes" type="datetime-local"
+                  className="tabular-nums"
                   value={closesShown} onChange={(e) => setDraft((d) => ({ ...d, closes: e.target.value }))} />
               </div>
               <div className="space-y-1">
                 <label htmlFor="booth-ceiling" className="block text-sm font-medium"><BiLabel th="เพดานต่อการเล่น ($)" en="Per-play ceiling ($)" /></label>
-                <input id="booth-ceiling" type="number" inputMode="decimal" min={0.01} max={CEILING_MAX_USD} step={0.01}
-                  className="w-full min-w-0 rounded-md border bg-background px-2 py-1.5 text-sm tabular-nums"
+                <Input id="booth-ceiling" type="number" inputMode="decimal" min={0.01} max={CEILING_MAX_USD} step={0.01}
+                  className="tabular-nums"
                   value={ceilingShown} onChange={(e) => setDraft((d) => ({ ...d, ceiling: e.target.value }))} />
               </div>
             </div>
@@ -172,21 +178,23 @@ export function BoothCard() {
                 เวลาประเทศไทย (UTC+07:00) • Bangkok time, saved with an explicit +07:00 offset.
               </p>
               <button type="button" onClick={save} disabled={!dirty || saving}
-                className="shrink-0 rounded-md border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary disabled:opacity-50">
+                className="shrink-0 rounded-md border border-field px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary disabled:opacity-50">
                 {saving ? 'กำลังบันทึก… / Saving…' : 'บันทึก / Save'}
               </button>
             </div>
             {formError && <p role="alert" className="text-sm text-danger">{formError}</p>}
 
-            <dl role="group" className="grid grid-cols-3 gap-3" aria-label="Booth totals">
-              {([['การเล่น', 'Plays', count(booth.plays)], ['ให้คะแนนแล้ว', 'Scored', count(booth.scored)], ['ค่าใช้จ่าย AI', 'Spend', money(booth.spend_usd)]] as const)
-                .map(([th, en, value]) => (
-                  <div key={en} className="rounded-lg border p-3">
-                    <dt className="text-xs text-muted-foreground"><BiLabel th={th} en={en} /></dt>
-                    <dd className="mt-1 text-xl font-bold tabular-nums text-foreground">{value}</dd>
-                  </div>
-                ))}
-            </dl>
+            <div role="group" aria-label="Booth totals">
+              <dl className="grid grid-cols-1 gap-3 @min-[480px]:grid-cols-3">
+                {([['การเล่น', 'Plays', count(booth.plays)], ['ให้คะแนนแล้ว', 'Scored', count(booth.scored)], ['ค่าใช้จ่าย AI', 'Spend', money(booth.spend_usd)]] as const)
+                  .map(([th, en, value]) => (
+                    <div key={en} className="rounded-lg border p-3">
+                      <dt className="text-xs text-muted-foreground"><BiLabel th={th} en={en} /></dt>
+                      <dd className="mt-1 text-xl font-bold tabular-nums text-foreground">{value}</dd>
+                    </div>
+                  ))}
+              </dl>
+            </div>
           </>
         )}
       </div>

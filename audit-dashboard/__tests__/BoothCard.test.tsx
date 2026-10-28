@@ -98,6 +98,16 @@ describe('BoothCard', () => {
     expect(patches()).toEqual([]);
   });
 
+  it('will not clear the window of a booth that is switched on', async () => {
+    wire({ ...BOOTH, enabled: true, state: 'open' });
+    render(<BoothCard />);
+    await loaded();
+    fireEvent.change(screen.getByLabelText(/Closes at/), { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: /Save/ }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Switch the booth off/);
+    expect(patches()).toEqual([]);
+  });
+
   it('shows a failed count read as "—", not 0', async () => {
     wire({ ...BOOTH, plays: null, scored: null, spend_usd: null });
     render(<BoothCard />);
