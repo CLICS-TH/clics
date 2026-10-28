@@ -27,7 +27,7 @@ import { chromium } from 'playwright';
 const GOOGLE_FONT_HOST = /^https?:\/\/fonts\.(googleapis|gstatic)\.com\//;
 const GOOGLE_FONT_REF = /fonts\.(googleapis|gstatic)\.com/;
 const ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.webp': 'image/webp' };
 
 // ---- tiny static server: '/' -> index.html, extensionless -> .html (mirrors the Vercel rewrites) ----
 function startServer() {
@@ -54,11 +54,14 @@ const WIDTHS = [
   { w: 375, h: 800, coarse: true },
   { w: 768, h: 1024, coarse: true },
   { w: 1280, h: 900, coarse: false },
+  { w: 1440, h: 900, coarse: false },
 ];
 
 // Pages whose LAYOUT renders without a backend (token injected to pass the auth gate; content may be
 // empty/loading, but the shell — nav, container, forms, chat composer — is what we overflow-check).
 const PAGES = [
+  // The public Landing page; signed out, so it renders instead of forwarding.
+  { path: '/', token: false, label: 'landing' },
   { path: '/login', token: false, label: 'login' },
   { path: '/forgot', token: false, label: 'forgot' },
   { path: '/guest-chat', token: false, label: 'guest-chat' },

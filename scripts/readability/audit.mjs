@@ -72,7 +72,7 @@ import { chromium } from 'playwright';
 import { fixtureFor, AUDITOR_PLE_OPEN, AUDITOR_PLE_REVEALED } from './fixtures.mjs';
 
 const ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.webp': 'image/webp' };
 
 // AA for body text. 3.0 is the large-text bar; we apply it at >=24px, or >=18.66px when bold, per WCAG.
 const AA_BODY = 4.5;
@@ -120,6 +120,8 @@ const PORTAL_PAGES = [
   // The manual: long-form Thai prose, the densest text on the portal, and the one page whose whole
   // job is to be read. Public, so no token.
   { path: '/manual', token: false },
+  // The public Landing page, also bilingual; rendered again in English below.
+  { path: '/', token: false },
 ];
 // Each dashboard page: its path, the ROLE it is rendered as, and what it must SHOW.
 //
@@ -401,9 +403,9 @@ let checked = 0;
 const only = (process.env.READABILITY_ONLY || '').split(',').map((s) => s.trim()).filter(Boolean);
 const wanted = (label) => !only.length || only.some((s) => label.includes(s));
 
-async function run(url, label, token, manualLang, { role = null, expect = [] } = {}) {
+async function run(url, label, token, manualLang, { role = null, expect = [], widths = WIDTHS } = {}) {
   if (!wanted(label)) return;
-  for (const { w, h } of WIDTHS) {
+  for (const { w, h } of widths) {
     for (const theme of THEMES) {
       const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2 });
       await ctx.route('**/*', (route) => {
@@ -494,6 +496,10 @@ for (const p of PORTAL_PAGES) await run(base + p.path, `portal${p.path}`, p.toke
 // The manual again, in English. Same widths, same themes — a second full pass, because a
 // translation is new text in the same boxes and the boxes are what fail.
 await run(base + '/manual', 'portal/manual[en]', false, 'en');
+await run(base + '/', 'portal/[en]', false, 'en');
+// The Landing page is the one portal page read on a wide desktop monitor, so it also gets 1440.
+await run(base + '/', 'portal/@1440', false, null, { widths: [{ w: 1440, h: 900 }] });
+await run(base + '/', 'portal/[en]@1440', false, 'en', { widths: [{ w: 1440, h: 900 }] });
 if (dashUrl) {
   for (const p of DASH_PAGES) {
     // No markers means an empty or error state passes as a clean page, which is how /admin/integrity

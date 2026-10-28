@@ -34,7 +34,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
 const PUI_ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.webp': 'image/webp' };
 
 // Phone portrait widths (coarse/touch) + one landscape + a desktop baseline (fine pointer).
 const WIDTHS = [
@@ -177,6 +177,7 @@ function startServer() {
 // stays empty/loading — the layout is what we overflow-check). /ple-chat needs a real ?id + backend so
 // it can't render hermetically (it redirects to /dashboard); it's audited live separately.
 const PUI_PAGES = [
+  { path: '/', label: 'landing' },
   { path: '/login', label: 'login' },
   { path: '/forgot', label: 'forgot' },
   { path: '/reset', label: 'reset' },
