@@ -19,6 +19,7 @@ jest.mock('@/components/Overlays', () => ({ toast: (...a: unknown[]) => mockToas
 // Panels that fetch their own data, and the charts (jsdom has no layout): not what this file tests.
 jest.mock('@/components/AiProviderPanel', () => ({ AiProviderPanel: () => null }));
 jest.mock('@/components/LocalAiCapacityCard', () => ({ LocalAiCapacityCard: () => null }));
+jest.mock('@/components/BoothCard', () => ({ BoothCard: () => null }));
 jest.mock('@/components/IccPanel', () => ({ IccPanel: () => null }));
 jest.mock('recharts', () => {
   const Nil = () => null;
