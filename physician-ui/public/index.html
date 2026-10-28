@@ -3,17 +3,209 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Browser chrome follows the OS; js/boot.js and the snippet below pin both to the chosen theme when the reader overrides it. -->
   <meta name="theme-color" content="#faf9f5" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#181715" media="(prefers-color-scheme: dark)" />
-  <title>CLICS</title>
+  <title>CLICS — ฝึกให้เหตุผลทางคลินิกกับ AI</title>
+  <meta name="description" content="CLICS ให้แพทย์คุยเคสสมมติกับผู้ช่วย AI แล้วประเมินการให้เหตุผลทางคลินิกด้วยเกณฑ์ PIS-7 · Physicians talk a hypothetical case through with an AI assistant; CLICS assesses the clinical reasoning against the PIS-7 rubric." />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <!-- Sign-in lives at /login. These two scripts must survive any future landing page at /:
-       deployed dashboards sign out via /?logout=1, and Supabase returns OAuth to its Site URL (this
-       root) when the redirect is not allow-listed. See docs/adr/0003-portal-root-keeps-auth-rescue.md. -->
-  <script>(function(){try{if(location.search.indexOf('logout=1')!==-1){var t=localStorage.getItem('clics_theme'),v=localStorage.getItem('clics_view');localStorage.clear();sessionStorage.clear();if(t)localStorage.setItem('clics_theme',t);if(v)localStorage.setItem('clics_view',v);if(history.replaceState)history.replaceState(null,'',location.pathname);}}catch(e){}})();</script>
-  <script>(function(){try{var h=location.hash,s=location.search;if(h.indexOf('access_token')!==-1||h.indexOf('error_description')!==-1||s.indexOf('code=')!==-1){location.replace('/auth/callback'+s+h);return;}}catch(e){}location.replace('/login');})();</script>
-  <script>(function(){var d=document.documentElement,p,dk;try{p=localStorage.getItem('clics_theme')}catch(e){}if(p!=='light'&&p!=='dark')p='system';d.setAttribute('data-theme-pref',p);try{dk=p==='dark'||(p==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);if(dk)d.setAttribute('data-theme','dark');if(p!=='system'){var m=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<m.length;i++)m[i].setAttribute('content',dk?'#181715':'#faf9f5');}var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/login');}catch(e){}})();</script>
-  <noscript><meta http-equiv="refresh" content="0;url=/login" /></noscript>
+  <!-- Theme first, before anything can navigate away, so a dark-mode visitor passing through / never
+       sees a light frame (#176). -->
+    <script>(function(){var d=document.documentElement,p,dk;try{p=localStorage.getItem('clics_theme')}catch(e){}if(p!=='light'&&p!=='dark')p='system';d.setAttribute('data-theme-pref',p);try{dk=p==='dark'||(p==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);if(dk)d.setAttribute('data-theme','dark');if(p!=='system'){var m=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<m.length;i++)m[i].setAttribute('content',dk?'#181715':'#faf9f5');}var v=localStorage.getItem('clics_view');if(v==='mobile'||v==='desktop')d.setAttribute('data-view',v);if(v==='mobile'||(v!=='desktop'&&matchMedia('(max-width:767px)').matches))d.setAttribute('data-mobile','');if(!d.hasAttribute('data-public')&&!localStorage.getItem('clics_token'))location.replace('/login');}catch(e){}})();</script>
+  <!-- These two scripts must survive whatever / renders: deployed dashboards sign out via /?logout=1,
+       and Supabase returns OAuth to its Site URL (this root) when the redirect is not allow-listed.
+       See docs/adr/0003-portal-root-keeps-auth-rescue.md. -->
+  <script>(function(){try{if(location.search.indexOf('logout=1')!==-1){var t=localStorage.getItem('clics_theme'),v=localStorage.getItem('clics_view');localStorage.clear();sessionStorage.clear();if(t)localStorage.setItem('clics_theme',t);if(v)localStorage.setItem('clics_view',v);document.documentElement.setAttribute('data-forwarding','');location.replace('/login');}}catch(e){}})();</script>
+  <script>(function(){try{var h=location.hash,s=location.search;if(h.indexOf('access_token')!==-1||h.indexOf('error_description')!==-1||s.indexOf('code=')!==-1){document.documentElement.setAttribute('data-forwarding','');location.replace('/auth/callback'+s+h);}}catch(e){}})();</script>
+  <script>(function(){try{var l=localStorage.getItem('clics_manual_lang');if(l==='en')document.documentElement.setAttribute('data-manual-lang','en');}catch(e){}})();</script>
+  <script src="/js/config.js"></script>
+  <script src="/js/forward.js"></script>
+  <link rel="stylesheet" href="/css/fonts.css" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/landing.css" />
 </head>
-<body></body>
+<body class="landing">
+  <a class="skip-link" href="#main"><span data-lang="th">ข้ามไปที่เนื้อหา</span><span data-lang="en">Skip to content</span></a>
+  <nav class="landing-nav" aria-label="CLICS">
+    <a class="brand" href="/">CLICS</a>
+    <div>
+      <div class="lang-switch" role="group" aria-label="เลือกภาษา / Choose language">
+        <button type="button" data-set-lang="th" class="toggle-btn is-on" aria-pressed="true" lang="th">ไทย</button>
+        <button type="button" data-set-lang="en" class="toggle-btn" aria-pressed="false" lang="en">English</button>
+      </div>
+      <a class="nav-signin" href="/login"><span data-lang="th">เข้าสู่ระบบ</span><span data-lang="en">Sign in</span></a>
+    </div>
+  </nav>
+
+  <main id="main" class="landing-main">
+    <header class="hero">
+      <h1><span data-lang="th">วัดที่วิธีคิด<br />ไม่ใช่ชั่วโมงที่นั่งฟัง</span><span data-lang="en">Assessing how you reason, not hours in a lecture hall</span></h1>
+      <svg class="logo-ecg hero-ecg" viewBox="0 0 220 40" width="220" height="40" fill="none" aria-hidden="true" focusable="false">
+        <path class="ecg-line" pathLength="100" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M2 28 H58 C62 28 63 23.5 66 23.5 C69 23.5 70 28 74 28 H84 L89 34 L96 6 L102 33 L106 28 H118 C122 28 124 20.5 128 20.5 C132 20.5 134 28 138 28 H218"/>
+        <path class="ecg-beat" pathLength="100" stroke="var(--coral)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+              d="M84 28 L89 34 L96 6 L102 33 L106 28"/>
+      </svg>
+      <p class="hero-lede"><span data-lang="th">CLICS ให้คุณคุยเคสสมมติกับผู้ช่วย AI แล้วประเมินการให้เหตุผลทางคลินิกของคุณด้วยเกณฑ์ PIS-7 โครงการนำร่องจะศึกษาว่าวิธีนี้ใช้แทนการเก็บหน่วยกิต CME/CPD จากการเข้าฟังบรรยายได้หรือไม่</span><span data-lang="en">CLICS lets you talk a hypothetical case through with an AI assistant, then assesses your clinical reasoning against the PIS-7 rubric. The pilot study will test whether this could replace earning CME/CPD credit by attending lectures.</span></p>
+      <p class="hero-status"><span data-lang="th">โครงการนำร่องยังไม่เริ่มเก็บข้อมูล และผลในระยะนี้ยังไม่นับเป็นหน่วยกิต CME</span><span data-lang="en">The pilot has not started collecting data, and results at this stage do not count as CME credit.</span></p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-lg" href="/login"><span data-lang="th">เข้าสู่ระบบ</span><span data-lang="en">Sign in</span></a>
+        <a class="btn btn-ghost btn-lg" href="/manual"><span data-lang="th">อ่านคู่มือ</span><span data-lang="en">Read the manual</span></a>
+      </div>
+    </header>
+
+    <section class="band" aria-labelledby="how-h">
+      <h2 id="how-h"><span data-lang="th">PLE หนึ่งครั้งมีอะไรบ้าง</span><span data-lang="en">What one PLE involves</span></h2>
+      <p class="band-lede"><span data-lang="th">PLE (Professional Learning Episode) คือการสนทนาหนึ่งครั้งเกี่ยวกับเคสหนึ่งเคส</span><span data-lang="en">A PLE (Professional Learning Episode) is one conversation about one case.</span></p>
+      <ol class="steps">
+        <li class="step">
+          <h3><span data-lang="th">คุยเคสกับ AI</span><span data-lang="en">Talk the case through with AI</span></h3>
+          <p><span data-lang="th">เริ่มจากเคสสมมติที่ไม่<span class="nw">ระบุตัวผู้ป่วย</span> แล้วถามตอบกับผู้ช่วย AI เพื่อตั้งสมมติฐาน ทดสอบ และสรุป ทุกคำตอบของ AI มีแหล่งอ้างอิงอย่างน้อยหนึ่งรายการ</span><span data-lang="en">Start from a hypothetical case with no patient identifiers, and work it through with the AI assistant: form hypotheses, test them, draw conclusions. Every AI answer cites at least one source.</span></p>
+        </li>
+        <li class="step">
+          <h3><span data-lang="th">สะท้อนการเรียนรู้</span><span data-lang="en">Reflect</span></h3>
+          <p><span data-lang="th">หลังส่ง ตอบคำถามสั้น ๆ สามข้อ ใช้เวลาราว <span class="nw">5–10 นาที</span> ว่าได้เรียนรู้อะไร ยังไม่แน่ใจตรงไหน และจะนำไปตรวจสอบหรือใช้ต่ออย่างไร</span><span data-lang="en">After you submit, answer three short questions in about <span class="nw">5–10 minutes</span>: what you learned, what you are still unsure of, and how you will check or use it.</span></p>
+        </li>
+        <li class="step">
+          <h3><span data-lang="th">รับผล PIS-7</span><span data-lang="en">Get PIS-7 feedback</span></h3>
+          <p><span data-lang="th">AI ให้คะแนนการให้เหตุผลของคุณ 7 ด้าน รวมเป็นคะแนนเต็ม 100 พร้อมคำอธิบายเหตุผลของแต่ละด้าน</span><span data-lang="en">The AI scores your reasoning in seven domains, totalled out of 100, and explains the score in each domain.</span></p>
+        </li>
+        <li class="step">
+          <h3><span data-lang="th">ผู้ตรวจประเมินแบบปกปิด</span><span data-lang="en">Blind peer audit</span></h3>
+          <p><span data-lang="th">ผู้ตรวจผู้เชี่ยวชาญอ่านบทสนทนาแบบไม่เห็นชื่อของคุณ และให้คะแนนก่อนเห็นคะแนนของ AI เพื่อวัดว่า AI ให้คะแนนตรงกับผู้เชี่ยวชาญแค่ไหน</span><span data-lang="en">An expert auditor reads the conversation without seeing your name, and scores it before seeing the AI’s score, so the study can measure how closely the AI agrees with experts.</span></p>
+        </li>
+      </ol>
+      <figure class="shot shot-chat">
+        <picture class="shot-light">
+          <source media="(max-width:767px)" srcset="/img/landing/ple-chat-mobile-light.webp" width="780" height="1568" />
+          <img src="/img/landing/ple-chat-desktop-light.webp" width="1720" height="1568" loading="lazy" decoding="async"
+               alt="หน้าสนทนา PLE: แพทย์ถามว่าถ้าเริ่มยากลุ่ม SGLT2 inhibitor ในผู้ป่วยเบาหวานรายนี้ต้องระวังอะไร และผู้ช่วย AI ตอบเรื่องภาวะขาดน้ำ ความดันโลหิตต่ำ และภาวะเลือดเป็นกรดจากคีโตน" data-alt-th="หน้าสนทนา PLE: แพทย์ถามว่าถ้าเริ่มยากลุ่ม SGLT2 inhibitor ในผู้ป่วยเบาหวานรายนี้ต้องระวังอะไร และผู้ช่วย AI ตอบเรื่องภาวะขาดน้ำ ความดันโลหิตต่ำ และภาวะเลือดเป็นกรดจากคีโตน" data-alt-en="The PLE conversation screen: the physician asks what to watch for when starting an SGLT2 inhibitor in this diabetic patient, and the AI assistant answers about dehydration, low blood pressure and ketoacidosis." />
+        </picture>
+        <picture class="shot-dark">
+          <source media="(max-width:767px)" srcset="/img/landing/ple-chat-mobile-dark.webp" width="780" height="1568" />
+          <img src="/img/landing/ple-chat-desktop-dark.webp" width="1720" height="1568" loading="lazy" decoding="async"
+               alt="หน้าสนทนา PLE: แพทย์ถามว่าถ้าเริ่มยากลุ่ม SGLT2 inhibitor ในผู้ป่วยเบาหวานรายนี้ต้องระวังอะไร และผู้ช่วย AI ตอบเรื่องภาวะขาดน้ำ ความดันโลหิตต่ำ และภาวะเลือดเป็นกรดจากคีโตน" data-alt-th="หน้าสนทนา PLE: แพทย์ถามว่าถ้าเริ่มยากลุ่ม SGLT2 inhibitor ในผู้ป่วยเบาหวานรายนี้ต้องระวังอะไร และผู้ช่วย AI ตอบเรื่องภาวะขาดน้ำ ความดันโลหิตต่ำ และภาวะเลือดเป็นกรดจากคีโตน" data-alt-en="The PLE conversation screen: the physician asks what to watch for when starting an SGLT2 inhibitor in this diabetic patient, and the AI assistant answers about dehydration, low blood pressure and ketoacidosis." />
+        </picture>
+        <figcaption><span data-lang="th">หน้าสนทนา ตัวอย่างจากเคสสมมติ</span><span data-lang="en">The conversation screen, shown with a made-up case</span></figcaption>
+      </figure>
+    </section>
+
+    <section class="band" aria-labelledby="pis7-h">
+      <div class="split">
+        <div class="split-text">
+          <h2 id="pis7-h"><span data-lang="th">PIS-7: การให้เหตุผล 7 ด้าน</span><span data-lang="en">PIS-7: seven domains of reasoning</span></h2>
+          <p><span data-lang="th">แต่ละด้านให้คะแนน 0–5 แล้วถ่วงน้ำหนักรวมเป็น 0–100 ด้านที่มีน้ำหนักมากที่สุดคือความลึกของการให้เหตุผล</span><span data-lang="en">Each domain is scored 0–5, then weighted into a total out of 100. The heaviest is Reasoning Depth.</span></p>
+          <ul class="domains" aria-label="น้ำหนักของแต่ละด้าน / Weight of each domain">
+          <li><span class="domain-name"><span data-lang="th">ความสามารถในการตั้งคำถามทางคลินิก</span><span data-lang="en">Clinical Question Intelligence</span></span><span class="domain-weight">15%</span></li>
+          <li><span class="domain-name"><span data-lang="th">ความลึกของการให้เหตุผล</span><span data-lang="en">Reasoning Depth</span></span><span class="domain-weight">20%</span></li>
+          <li><span class="domain-name"><span data-lang="th">การบูรณาการบริบท</span><span data-lang="en">Contextual Integration</span></span><span class="domain-weight">15%</span></li>
+          <li><span class="domain-name"><span data-lang="th">การสืบค้นแบบต่อยอด</span><span data-lang="en">Iterative Inquiry</span></span><span class="domain-weight">15%</span></li>
+          <li><span class="domain-name"><span data-lang="th">การประเมินอย่างมีวิจารณญาณ</span><span data-lang="en">Critical Appraisal</span></span><span class="domain-weight">15%</span></li>
+          <li><span class="domain-name"><span data-lang="th">การสังเคราะห์เชิงสะท้อนคิด</span><span data-lang="en">Reflective Synthesis</span></span><span class="domain-weight">10%</span></li>
+          <li><span class="domain-name"><span data-lang="th">ความรู้เท่าทัน AI และทักษะการใช้พรอมต์</span><span data-lang="en">AI Literacy &amp; Prompt Skill</span></span><span class="domain-weight">10%</span></li>
+          </ul>
+        </div>
+      <figure class="shot shot-radar">
+        <picture class="shot-light">
+          <source media="(max-width:767px)" srcset="/img/landing/pis7-radar-mobile-light.webp" width="700" height="1084" />
+          <img src="/img/landing/pis7-radar-desktop-light.webp" width="1184" height="1322" loading="lazy" decoding="async"
+               alt="ตัวอย่างผล PIS-7: คะแนนรวม 75 จาก 100 ระดับดีมาก พร้อมข้อความว่ายังไม่นับเป็นหน่วยกิต CME และกราฟเรดาร์ของทั้ง 7 ด้าน" data-alt-th="ตัวอย่างผล PIS-7: คะแนนรวม 75 จาก 100 ระดับดีมาก พร้อมข้อความว่ายังไม่นับเป็นหน่วยกิต CME และกราฟเรดาร์ของทั้ง 7 ด้าน" data-alt-en="A sample PIS-7 result: 75 out of 100, band Very good, a note that it is not yet CME credit, and a radar chart of all seven domains." />
+        </picture>
+        <picture class="shot-dark">
+          <source media="(max-width:767px)" srcset="/img/landing/pis7-radar-mobile-dark.webp" width="700" height="1084" />
+          <img src="/img/landing/pis7-radar-desktop-dark.webp" width="1184" height="1322" loading="lazy" decoding="async"
+               alt="ตัวอย่างผล PIS-7: คะแนนรวม 75 จาก 100 ระดับดีมาก พร้อมข้อความว่ายังไม่นับเป็นหน่วยกิต CME และกราฟเรดาร์ของทั้ง 7 ด้าน" data-alt-th="ตัวอย่างผล PIS-7: คะแนนรวม 75 จาก 100 ระดับดีมาก พร้อมข้อความว่ายังไม่นับเป็นหน่วยกิต CME และกราฟเรดาร์ของทั้ง 7 ด้าน" data-alt-en="A sample PIS-7 result: 75 out of 100, band Very good, a note that it is not yet CME credit, and a radar chart of all seven domains." />
+        </picture>
+        <figcaption><span data-lang="th">ตัวอย่างผล PIS-7 ของเคสสมมติ</span><span data-lang="en">A sample PIS-7 result from a made-up case</span></figcaption>
+      </figure>
+      </div>
+      <div class="split split-flip">
+        <div class="split-text">
+          <h3 class="sub-h"><span data-lang="th">การตรวจประเมินแบบปกปิด</span><span data-lang="en">Blind peer audit</span></h3>
+          <p><span data-lang="th">ผู้ตรวจไม่เห็นชื่อของคุณ เห็นเพียงรหัสแทนตัว และต้องส่งคะแนนของตัวเองก่อนจึงจะเห็นคะแนนของ AI ความสอดคล้องระหว่างผู้ตรวจกับ AI วัดด้วยค่า ICC โดยตั้งเป้าไว้ที่ 0.75 ขึ้นไป</span><span data-lang="en">Auditors never see your name, only a code in its place, and they must submit their own score before the AI’s score is revealed. Agreement between auditors and the AI is measured as ICC, with a target of 0.75 or higher.</span></p>
+          <p><span data-lang="th">ระยะนี้คือการปรับเทียบเครื่องมือ คะแนนจึงยังเป็นข้อมูลวิจัย ไม่ใช้ประกอบการตัดสินใบอนุญาตหรือการประเมินผลการปฏิบัติงาน</span><span data-lang="en">This phase calibrates the instrument, so scores are research data. They are not used for licensing or any appraisal.</span></p>
+        </div>
+      <figure class="shot shot-result">
+        <picture class="shot-light">
+          <source media="(max-width:767px)" srcset="/img/landing/ple-result-mobile-light.webp" width="700" height="1436" />
+          <img src="/img/landing/ple-result-desktop-light.webp" width="1184" height="1252" loading="lazy" decoding="async"
+               alt="ตัวอย่างคะแนนรายด้าน: แต่ละด้านได้ 3 หรือ 4 จาก 5 พร้อมเหตุผลสั้น ๆ ของแต่ละด้าน" data-alt-th="ตัวอย่างคะแนนรายด้าน: แต่ละด้านได้ 3 หรือ 4 จาก 5 พร้อมเหตุผลสั้น ๆ ของแต่ละด้าน" data-alt-en="Sample domain scores: each domain scored 3 or 4 out of 5, with a short reason for each." />
+        </picture>
+        <picture class="shot-dark">
+          <source media="(max-width:767px)" srcset="/img/landing/ple-result-mobile-dark.webp" width="700" height="1436" />
+          <img src="/img/landing/ple-result-desktop-dark.webp" width="1184" height="1252" loading="lazy" decoding="async"
+               alt="ตัวอย่างคะแนนรายด้าน: แต่ละด้านได้ 3 หรือ 4 จาก 5 พร้อมเหตุผลสั้น ๆ ของแต่ละด้าน" data-alt-th="ตัวอย่างคะแนนรายด้าน: แต่ละด้านได้ 3 หรือ 4 จาก 5 พร้อมเหตุผลสั้น ๆ ของแต่ละด้าน" data-alt-en="Sample domain scores: each domain scored 3 or 4 out of 5, with a short reason for each." />
+        </picture>
+        <figcaption><span data-lang="th">คะแนนรายด้านพร้อมเหตุผล</span><span data-lang="en">Domain scores, each with its reason</span></figcaption>
+      </figure>
+      </div>
+    </section>
+
+    <section class="band" aria-labelledby="data-h">
+      <h2 id="data-h"><span data-lang="th">ข้อมูลของคุณไปที่ไหน</span><span data-lang="en">Where your data goes</span></h2>
+      <p class="band-lede"><span data-lang="th">ตัวตนของคุณอยู่ในระบบ CLICS ส่วน AI ได้รับเฉพาะข้อความที่ตัดข้อมูล<span class="nw">ระบุตัวตน</span>ออกแล้ว</span><span data-lang="en">Your identity stays in the CLICS system. The AI receives only text with identifying details removed.</span></p>
+      <figure class="flow">
+        <div class="flow-node flow-you">
+          <h3><span data-lang="th">คุณ</span><span data-lang="en">You</span></h3>
+          <p><span data-lang="th">พิมพ์เคสสมมติในเบราว์เซอร์ โดยไม่ใส่ชื่อ เลขประจำตัว หรือ HN ของผู้ป่วย</span><span data-lang="en">You type a hypothetical case in your browser, with no patient name, ID number or HN.</span></p>
+        </div>
+        <div class="flow-link"><svg class="flow-arrow" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></div>
+        <div class="flow-node flow-clics">
+          <h3><span data-lang="th">ระบบ CLICS</span><span data-lang="en">The CLICS system</span></h3>
+          <ul>
+            <li><span data-lang="th">เก็บชื่อ อีเมล และบัญชี Google ของคุณแบบเข้ารหัส</span><span data-lang="en">Stores your name, email and Google account encrypted</span></li>
+            <li><span data-lang="th">ผู้ตรวจและข้อมูลที่ส่งออกเห็นคุณเป็นรหัสแทนตัวเท่านั้น</span><span data-lang="en">Auditors and data exports see only a code in place of your name</span></li>
+            <li><span data-lang="th">ตัดข้อมูล<span class="nw">ระบุตัวบุคคล</span>ออกจากข้อความก่อนส่งให้ AI</span><span data-lang="en">Removes identifying details from the text before it goes to the AI</span></li>
+            <li><span data-lang="th">ข้อมูลบัญชีรับเงินเข้ารหัส และไม่ถูกส่งให้ AI</span><span data-lang="en">Encrypts payment details and never sends them to the AI</span></li>
+          </ul>
+        </div>
+        <div class="flow-link flow-link-labelled"><svg class="flow-arrow" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg><span><span data-lang="th">ข้อความที่ไม่<span class="nw">ระบุตัวตน</span></span><span data-lang="en">De-identified text</span></span></div>
+        <div class="flow-node flow-ai">
+          <h3><span data-lang="th">ผู้ช่วย AI</span><span data-lang="en">AI assistant</span></h3>
+          <p><span data-lang="th">ได้รับเฉพาะข้อความเคสที่ตัดข้อมูล<span class="nw">ระบุตัวตน</span>ออกแล้ว ไม่ได้รับชื่อหรืออีเมลของคุณ</span><span data-lang="en">Receives only case text with identifying details removed. Never your name or email.</span></p>
+        </div>
+        <figcaption><span data-lang="th">การตัดข้อมูล<span class="nw">ระบุตัวตน</span>เป็นเพียงด่านกันพลาด ไม่ได้แปลว่าพิมพ์ข้อมูลผู้ป่วยจริงได้ โปรดใช้เคสสมมติทุกครั้ง</span><span data-lang="en">Removing identifying details is a safety net, not permission. Always use a hypothetical case.</span></figcaption>
+      </figure>
+    </section>
+
+    <section class="band" aria-labelledby="faq-h">
+      <h2 id="faq-h"><span data-lang="th">คำถามที่พบบ่อย</span><span data-lang="en">Common questions</span></h2>
+      <div class="faq">
+        <details>
+          <summary><span data-lang="th">ใช้เวลานานแค่ไหน</span><span data-lang="en">How long does it take?</span><svg class="faq-chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p><span data-lang="th">ไม่มีเกณฑ์ความยาวขั้นต่ำ ระบบบันทึกเวลาและจำนวนรอบสนทนาไว้ แต่ไม่ได้ใช้ตัดสิน บทเรียนสั้นที่ให้เหตุผลชัดเจนก็ผ่านได้ ส่วนการสะท้อนการเรียนรู้หลังส่งใช้เวลาราว <span class="nw">5–10 นาที</span></span><span data-lang="en">There is no minimum length. Time and the number of exchanges are recorded but decide nothing: a short episode with clear reasoning can pass. The reflection after you submit takes about <span class="nw">5–10 minutes</span>.</span></p>
+        </details>
+        <details>
+          <summary><span data-lang="th">ได้หน่วยกิต CME หรือไม่</span><span data-lang="en">Do I get CME credit?</span><svg class="faq-chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p><span data-lang="th">ยังไม่ได้ในระยะนี้ หน้าผลจะแสดงระดับของบทเรียนแทนจำนวนหน่วยกิต เพราะระยะนี้คือการปรับเทียบเครื่องมือ คะแนนเป็นข้อมูลวิจัย และไม่ใช้ประกอบการตัดสินใบอนุญาตหรือการประเมินผลการปฏิบัติงาน</span><span data-lang="en">Not at this stage. The result page shows a band instead of a number of credits, because this phase calibrates the instrument. Scores are research data and are not used for licensing or any appraisal.</span></p>
+        </details>
+        <details>
+          <summary><span data-lang="th">ใครเห็นคำตอบของฉันบ้าง</span><span data-lang="en">Who sees my answers?</span><svg class="faq-chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p><span data-lang="th">ผู้ช่วย AI เห็นเฉพาะข้อความเคสที่ตัดข้อมูล<span class="nw">ระบุตัวตน</span>ออกแล้ว ผู้ตรวจผู้เชี่ยวชาญอาจอ่านบทสนทนาของคุณเพื่อให้คะแนนเทียบกับ AI โดยเห็นเพียงรหัสแทนตัว ไม่เห็นชื่อของคุณ</span><span data-lang="en">The AI assistant sees only case text with identifying details removed. Expert auditors may read your conversation to score it against the AI; they see a code in place of your name, never the name itself.</span></p>
+        </details>
+        <details>
+          <summary><span data-lang="th">โครงการนำร่องเริ่มแล้วหรือยัง</span><span data-lang="en">Has the pilot started?</span><svg class="faq-chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p><span data-lang="th">ยังไม่เริ่ม การเก็บข้อมูลจะเริ่มหลังโครงการได้รับอนุมัติจากคณะกรรมการจริยธรรมการวิจัย ตอนนี้ระบบใช้ทดสอบภายในเท่านั้น และเมื่อเริ่มแล้ว การเข้าร่วมจะเป็นไปโดยสมัครใจและถอนตัวได้ทุกเมื่อ</span><span data-lang="en">Not yet. Data collection starts after the study is approved by the research ethics committee. For now the system is used for internal testing only. Once the pilot starts, taking part will be voluntary and you can withdraw at any time.</span></p>
+        </details>
+      </div>
+    </section>
+
+    <section class="cta" aria-labelledby="cta-h">
+      <h2 id="cta-h"><span data-lang="th">พร้อมแล้วก็เข้าสู่ระบบได้เลย</span><span data-lang="en">Ready? Sign in.</span></h2>
+      <p><span data-lang="th">เข้าสู่ระบบด้วยบัญชี Google หรืออีเมลและรหัสผ่าน</span><span data-lang="en">Sign in with Google, or with your email and password.</span></p>
+      <a class="btn btn-primary btn-lg" href="/login"><span data-lang="th">เข้าสู่ระบบ</span><span data-lang="en">Sign in</span></a>
+    </section>
+  </main>
+
+  <footer class="landing-foot">
+    <p class="foot-name" lang="en">CLICS: Case-based Learning Intelligence Credit System</p>
+    <ul class="foot-links">
+      <li><a href="/privacy"><span data-lang="th">ความเป็นส่วนตัว</span><span data-lang="en">Privacy</span></a></li>
+      <li><a href="/manual"><span data-lang="th">คู่มือ</span><span data-lang="en">Manual</span></a></li>
+      <li><a href="/login"><span data-lang="th">เข้าสู่ระบบ</span><span data-lang="en">Sign in</span></a></li>
+    </ul>
+  </footer>
+  <script src="/js/lang.js"></script>
+  <script src="/js/boot.js" defer></script>
+</body>
 </html>

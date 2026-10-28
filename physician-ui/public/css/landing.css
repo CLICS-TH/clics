@@ -1,0 +1,193 @@
+/* ===== CLICS Landing page (/) ======================================================
+ *
+ * Loaded only by index.html, after main.css. Every selector is scoped under `.landing` (the body
+ * class) so nothing here can restyle another page. No new colours: every value is a main.css token,
+ * which is what makes dark mode free. Coral marks the physician and slate-blue (--ai-*) marks the AI,
+ * the same split the chat page uses.
+ *
+ * Sizes are rem, not em: main.css scales body text to 22px at >=1280px for the app's dense screens,
+ * and a marketing measure built on that would balloon. Thai running text stays >= --fs-body-th.
+ */
+
+/* A signed-in visitor is being forwarded (js/forward.js) or an auth return is being carried on:
+   paint nothing rather than flash the page. */
+html[data-forwarding] body { visibility: hidden; }
+
+/* ===== Language ===================================================================
+ * Same mechanism as guide.css: both languages are in the document and one is display:none, which
+ * also drops it from the accessibility tree and in-page find. The switch's buttons carry
+ * `data-set-lang`, not `data-lang`, or the rule below would hide the English button itself. */
+.landing [data-lang="en"] { display: none; }
+html[data-manual-lang="en"] .landing [data-lang="th"] { display: none; }
+html[data-manual-lang="en"] .landing [data-lang="en"] { display: revert; }
+
+/* Chrome's Thai dictionary breaks ระบุตัว|ตน and 5–|10; these few phrases must stay whole. */
+.landing .nw { white-space: nowrap; }
+
+.landing .lang-switch { display: inline-flex; gap: 6px; }
+.landing .lang-switch .toggle-btn { font-size: 0.8125rem; }
+.landing .lang-switch .toggle-btn.is-on {
+  background: var(--coral-ring); border-color: var(--coral); color: var(--coral-text);
+}
+
+.landing .skip-link {
+  position: absolute; left: 16px; top: -100px; z-index: 60;
+  padding: 10px 16px; border-radius: var(--r-md);
+  background: var(--canvas); color: var(--ink); border: 1px solid var(--field-border);
+}
+.landing .skip-link:focus { top: 12px; }
+
+/* ===== Nav ======================================================================== */
+.landing .landing-nav { gap: 12px; flex-wrap: wrap; }
+.landing .landing-nav .brand { font-size: 1.25rem; margin-left: 0; text-decoration: none; }
+.landing .landing-nav > div { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.landing .landing-nav a.nav-signin {
+  margin-left: 0; display: inline-flex; align-items: center; min-height: 36px; padding: 0 6px; white-space: nowrap;
+  font-size: 0.875rem; font-weight: 600; color: var(--coral-text);
+}
+.landing .landing-nav a.nav-signin:hover { color: var(--ink); }
+.landing .landing-nav .toggle-cluster { margin-left: 0; }
+@media (pointer: coarse) { .landing .landing-nav a.nav-signin { min-height: var(--tap-min); } }
+
+/* ===== Page measure =============================================================== */
+/* Cormorant's default old-style figures sink the 7 in PIS-7 and the step numbers below the line. */
+.landing h1, .landing h2, .landing .sub-h, .landing .step::before { font-variant-numeric: lining-nums; }
+
+.landing .landing-main {
+  max-width: 1120px; margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 40px);
+  font-size: 1.0625rem; line-height: 1.7;
+}
+.landing .landing-main p { max-width: 64ch; }
+.landing h2 {
+  font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem); font-weight: 600; line-height: 1.2;
+  margin-bottom: 14px;
+}
+.landing h3 { font-family: var(--font-body); font-size: 1.125rem; font-weight: 600; letter-spacing: 0; line-height: 1.45; color: var(--ink); }
+.landing .band { padding: clamp(48px, 7vw, 96px) 0 0; }
+.landing .band-lede { color: var(--body-color); margin-bottom: 28px; }
+
+/* ===== Hero =======================================================================
+ * The one bold move on the page: the ECG mark, stretched to the headline's measure, draws itself
+ * once under a large serif headline. Everything after it stays quiet. */
+.landing .hero { padding: clamp(40px, 8vw, 104px) 0 0; max-width: 820px; }
+.landing .hero h1 {
+  font-size: clamp(2.25rem, 1.5rem + 3.6vw, 4.25rem); font-weight: 600; line-height: 1.12;
+  letter-spacing: -0.02em; overflow-wrap: break-word;
+}
+.landing .hero-ecg { width: min(100%, 560px); height: auto; margin: 22px 0 26px; }
+.landing .hero-lede { font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem); color: var(--body-color); }
+.landing .hero-status {
+  margin-top: 16px; padding-left: 14px; border-left: 3px solid var(--coral);
+  font-size: var(--fs-body-th); color: var(--muted); line-height: 1.6;
+}
+.landing .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.landing .hero-actions .btn, .landing .cta .btn { min-height: var(--tap-min); font-size: 1rem; white-space: nowrap; }
+@media (prefers-reduced-motion: no-preference) {
+  .landing .hero { animation: clics-rise .6s ease both; }
+}
+
+/* ===== How a PLE works ============================================================
+ * A real sequence, so it is a numbered list; the numbers are the list's own counter. */
+.landing .steps { list-style: none; counter-reset: step; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px 32px; margin-bottom: 40px; }
+.landing .step { counter-increment: step; padding-top: 14px; border-top: 2px solid var(--hairline); min-width: 0; }
+.landing .step::before {
+  content: counter(step); display: block; margin-bottom: 6px;
+  font-family: var(--font-display); font-size: 2rem; font-weight: 600; line-height: 1; color: var(--coral-text);
+}
+.landing .step h3 { margin-bottom: 6px; }
+.landing .step p { font-size: var(--fs-body-th); color: var(--body-color); line-height: 1.65; }
+@media (min-width: 640px) { html:not([data-mobile]) .landing .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { html:not([data-mobile]) .landing .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* ===== Screenshots ================================================================
+ * Two <picture>s per shot, one per theme, keyed on the APP theme (data-theme), which can differ from
+ * the OS. Lazy images under display:none are never fetched, so only the visible theme downloads. */
+.landing .shot { margin: 0; min-width: 0; }
+.landing .shot picture { display: block; border: 1px solid var(--hairline); border-radius: var(--r-lg); overflow: hidden; background: var(--surface-soft); }
+.landing .shot img { display: block; width: 100%; height: auto; }
+.landing .shot .shot-dark { display: none; }
+:root[data-theme="dark"] .landing .shot .shot-light { display: none; }
+:root[data-theme="dark"] .landing .shot .shot-dark { display: block; }
+.landing .shot figcaption { margin-top: 10px; font-size: var(--fs-body-th); color: var(--muted); line-height: 1.5; }
+.landing .shot-chat { max-width: 860px; }
+/* The phone crops are tall; at full phone width they would fill three screens. */
+@media (max-width: 767px) { .landing .shot { max-width: 340px; margin-left: auto; margin-right: auto; } }
+
+/* ===== PIS-7 and blind audit ====================================================== */
+.landing .split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-items: start; }
+.landing .split + .split { margin-top: clamp(40px, 6vw, 72px); }
+.landing .split-text p + p { margin-top: 12px; }
+.landing .sub-h { font-family: var(--font-display); font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.875rem); font-weight: 600; letter-spacing: -0.01em; margin-bottom: 12px; }
+.landing .domains { list-style: none; margin-top: 20px; border-top: 1px solid var(--hairline); }
+.landing .domains li {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+  padding: 10px 0; border-bottom: 1px solid var(--hairline); font-size: var(--fs-body-th); line-height: 1.5;
+}
+.landing .domain-name { min-width: 0; color: var(--ink); }
+.landing .domain-weight { flex: none; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--coral-text); }
+@media (min-width: 1024px) {
+  html:not([data-mobile]) .landing .split { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(40px, 5vw, 72px); }
+  html:not([data-mobile]) .landing .split-flip .split-text { order: 2; }
+}
+
+/* ===== Data boundary ==============================================================
+ * The CLICS node's dashed coral edge IS the boundary: identity inside it, only de-identified text
+ * crosses the labelled arrow into the slate-blue AI node. */
+.landing .flow { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; align-items: stretch; }
+.landing .flow-node { border-radius: var(--r-lg); padding: 20px; min-width: 0; }
+.landing .flow-node h3 { margin-bottom: 8px; }
+.landing .flow-node p, .landing .flow-node li { font-size: var(--fs-body-th); line-height: 1.6; }
+.landing .flow-you { border: 1px solid var(--hairline); background: var(--surface-soft); }
+.landing .flow-clics { border: 2px dashed var(--coral); background: var(--canvas); }
+.landing .flow-clics ul { padding-left: 1.1em; display: grid; gap: 6px; }
+.landing .flow-ai { border: 1px solid var(--ai-border); background: var(--ai-bg); color: var(--ai-text); }
+.landing .flow-ai h3 { color: var(--ai-text); }
+.landing .flow-link {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  color: var(--muted); text-align: center;
+}
+.landing .flow-arrow { transform: rotate(90deg); flex: none; }
+.landing .flow-link span { font-size: var(--fs-body-th); font-weight: 600; color: var(--ink); line-height: 1.4; }
+.landing .flow figcaption { margin-top: 14px; font-size: var(--fs-body-th); color: var(--muted); line-height: 1.6; max-width: 64ch; }
+@media (min-width: 1024px) {
+  html:not([data-mobile]) .landing .flow { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.35fr) minmax(96px, auto) minmax(0, 1fr); }
+  html:not([data-mobile]) .landing .flow-arrow { transform: none; }
+  html:not([data-mobile]) .landing .flow-link span { max-width: 9em; }
+  html:not([data-mobile]) .landing .flow figcaption { grid-column: 1 / -1; }
+}
+
+/* ===== FAQ ======================================================================== */
+.landing .faq { border-top: 1px solid var(--hairline); max-width: 820px; }
+.landing .faq details { border-bottom: 1px solid var(--hairline); }
+.landing .faq summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  min-height: var(--tap-min); padding: 14px 0; font-weight: 600; color: var(--ink);
+}
+.landing .faq summary::-webkit-details-marker { display: none; }
+.landing .faq-chev { flex: none; color: var(--muted); transition: transform .2s ease; }
+.landing .faq details[open] .faq-chev { transform: rotate(180deg); }
+.landing .faq details p { padding: 0 0 18px; font-size: var(--fs-body-th); line-height: 1.7; color: var(--body-color); }
+
+/* ===== Sign-in call to action ===================================================== */
+.landing .cta {
+  margin: clamp(56px, 8vw, 104px) 0 0; padding: clamp(28px, 4vw, 48px);
+  border-radius: var(--r-xl); background: var(--surface-card);
+}
+:root[data-theme="dark"] .landing .cta { background: var(--surface-soft); }
+.landing .cta p { margin: 6px 0 22px; color: var(--body-color); }
+
+/* ===== Footer ===================================================================== */
+.landing .landing-foot {
+  max-width: 1120px; margin: clamp(48px, 7vw, 80px) auto 0;
+  padding: 24px clamp(16px, 4vw, 40px) calc(32px + var(--safe-b));
+  border-top: 1px solid var(--hairline);
+  display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; justify-content: space-between;
+  font-size: var(--fs-body-th); color: var(--muted);
+}
+.landing .foot-links { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.landing .foot-links a {
+  display: inline-flex; align-items: center; min-height: var(--tap-min); white-space: nowrap;
+  color: var(--coral-text); font-weight: 600; text-decoration: none;
+}
+.landing .foot-links a:hover { text-decoration: underline; }

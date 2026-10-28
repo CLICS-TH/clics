@@ -30,7 +30,7 @@ const DASH = 'http://localhost:3002';
 const DASH_UPSTREAM = process.env.DASH_UPSTREAM || DASH;
 const SUPABASE = 'https://rgwnnexokstctugwtwub.supabase.co';
 const SUPABASE_JS = 'https://esm.sh/@supabase/supabase-js@2.49.4';
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.woff2': 'font/woff2' };
 
 const USERS = {
   physician: { id: 'u-phys', email: 'phys@ci.test', role: 'physician', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'แพทย์ ทดสอบ', full_name_en: 'CI Physician' },
@@ -224,6 +224,40 @@ async function emailSignIn(page, user, { open = true } = {}) {
   await page.fill('#email', user.email);
   await page.fill('#password', 'ci-password-1');
   await page.click('#loginBtn');
+}
+
+
+// Visible text of the page minus the language switch (each button names its own language) and
+// boot.js's theme/view toggles, which are shared chrome outside the Landing page's copy.
+function landingText(page) {
+  return page.evaluate(() => {
+    const skip = [...document.querySelectorAll('.lang-switch, .toggle-cluster')];
+    skip.forEach((el) => { el.dataset.pwDisplay = el.style.display; el.style.display = 'none'; });
+    const text = document.body.innerText;
+    skip.forEach((el) => { el.style.display = el.dataset.pwDisplay; });
+    return text;
+  });
+}
+const THAI = /[฀-๿]/;
+const OVERCLAIM = /on-?premise|validated|ติดตั้งภายในองค์กร/i;
+
+async function tabTo(page, selector) {
+  for (let i = 0; i < 20; i++) {
+    await page.keyboard.press('Tab');
+    if (await page.evaluate((sel) => document.activeElement?.matches(sel), selector)) return true;
+  }
+  return false;
+}
+
+// Logs whether the Landing heading was on screen once the document finished parsing, from every
+// document the tab loads; a forwarded visit never gets that far, so it logs nothing.
+function watchLanding(ctx) {
+  return ctx.addInitScript(() => document.addEventListener('DOMContentLoaded', () => {
+    const h = document.querySelector('.hero h1');
+    if (!h) return;
+    const shown = getComputedStyle(document.body).visibility !== 'hidden' && h.getBoundingClientRect().height > 0;
+    console.log('pw:landing ' + location.pathname + ' ' + shown);
+  }));
 }
 
 const SCENARIOS = [
@@ -498,6 +532,115 @@ const SCENARIOS = [
         if (page.url() === before) break;
       }
       t.check((await storedTokens(ctx)).length === 0, `storage after reset: ${(await storedTokens(ctx)).join(', ')}`);
+    },
+  },
+  {
+    name: 'signed-out / shows the Landing page and stays on /',
+    async run(t, page) {
+      await page.goto(`${PORTAL}/`);
+      await settle(page);
+      t.check(new URL(page.url()).pathname === '/', `signed-out / ended on ${page.url()}`);
+      t.check(await page.getByRole('main').getByRole('heading', { level: 1 }).isVisible(), 'no Landing heading on signed-out /');
+      t.check(await page.getByRole('main').getByRole('link', { name: 'เข้าสู่ระบบ' }).first().isVisible(), 'no sign-in link in the Landing main');
+      t.check(await page.locator('main a[href="/login"]').count() > 0, 'the sign-in call to action does not lead to /login');
+      t.check(await page.locator('footer a[href="/privacy"]').isVisible(), 'no Privacy link in the Landing footer');
+    },
+  },
+  {
+    name: 'signed-in physician at / forwards to /dashboard without showing the Landing page',
+    async run(t, page, ctx) {
+      await page.goto(`${PORTAL}/forgot`);
+      await page.evaluate(([token, user]) => { localStorage.setItem('clics_token', token); localStorage.setItem('clics_user', user); },
+        [fakeJwt(USERS.physician), JSON.stringify(USERS.physician)]);
+      const seen = [];
+      page.on('console', (m) => { if (m.text().startsWith('pw:landing ')) seen.push(m.text()); });
+      await watchLanding(ctx);
+      await page.goto(`${PORTAL}/`);
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      t.check(!seen.some((l) => l.endsWith(' true')), `the Landing page was shown before the forward: ${seen.join(', ')}`);
+      await page.goBack({ waitUntil: 'commit' });
+      await settle(page);
+      t.check(new URL(page.url()).pathname !== '/', `Back from /dashboard landed on the Landing page ${page.url()}`);
+    },
+  },
+  {
+    name: 'signed-in staff at / reaches the dashboard Handoff',
+    async run(t, page, ctx) {
+      await page.goto(`${PORTAL}/forgot`);
+      await page.evaluate(([token, user]) => { localStorage.setItem('clics_token', token); localStorage.setItem('clics_user', user); },
+        [fakeJwt(USERS.admin), JSON.stringify(USERS.admin)]);
+      const seen = [];
+      page.on('console', (m) => { if (m.text().startsWith('pw:landing ')) seen.push(m.text()); });
+      await watchLanding(ctx);
+      await page.goto(`${PORTAL}/`);
+      await page.waitForURL(`${DASH}/home`);
+      await settle(page);
+      t.check(!TOKEN_IN_URL.test(page.url()), `handoff left a token in the address bar ${page.url()}`);
+      t.check(!seen.some((l) => l.endsWith(' true')), `the Landing page was shown before the Handoff: ${seen.join(', ')}`);
+    },
+  },
+  {
+    name: 'Landing TH/EN switch flips every string, persists, and works by keyboard',
+    async run(t, page) {
+      await page.goto(`${PORTAL}/`);
+      await settle(page);
+      t.check(await page.evaluate(() => document.documentElement.lang) === 'th', 'the Landing page does not start in Thai');
+      t.check(THAI.test(await landingText(page)), 'the Thai Landing page shows no Thai');
+      const group = page.getByRole('group', { name: /Choose language/ });
+      t.check(await group.getByRole('button', { name: 'ไทย', pressed: true }).isVisible(), 'the Thai button is not pressed by default');
+      t.check(await tabTo(page, '[data-set-lang="en"]'), 'Tab never reached the English button');
+      await page.keyboard.press('Enter');
+      const checkEnglish = async (where) => {
+        t.check(await page.evaluate(() => document.documentElement.lang) === 'en', `${where}: html[lang] is not en`);
+        const text = await landingText(page);
+        const thai = text.split('\n').filter((l) => THAI.test(l));
+        t.check(thai.length === 0, `${where}: Thai still visible: ${thai.slice(0, 3).join(' | ')}`);
+        t.check(await group.getByRole('button', { name: 'English', pressed: true }).isVisible(), `${where}: English is not pressed`);
+        t.check(await group.getByRole('button', { name: 'ไทย', pressed: false }).isVisible(), `${where}: Thai is still pressed`);
+        const alts = await page.locator('img[data-alt-en]').evaluateAll((imgs) => imgs.map((i) => [i.alt, i.dataset.altEn]));
+        t.check(alts.length > 0 && alts.every(([a, en]) => a === en && !/[฀-๿]/.test(a)), `${where}: image alts did not switch to English`);
+      };
+      await checkEnglish('after Enter');
+      await page.reload();
+      await settle(page);
+      await checkEnglish('after reload');
+      t.check(await tabTo(page, '[data-set-lang="th"]'), 'Tab never reached the Thai button');
+      await page.keyboard.press('Space');
+      t.check(await page.evaluate(() => document.documentElement.lang) === 'th', 'Space on ไทย did not switch back');
+      const alts = await page.locator('img[data-alt-th]').evaluateAll((imgs) => imgs.map((i) => [i.alt, i.dataset.altTh]));
+      t.check(alts.every(([a, th]) => a === th), 'image alts did not switch back to Thai');
+    },
+  },
+  {
+    name: 'dark colour scheme: signed-out / paints dark from the first frame',
+    async run(t, page, ctx) {
+      await page.emulateMedia({ colorScheme: 'dark' });
+      await ctx.addInitScript(() => {
+        new MutationObserver((_, obs) => {
+          if (!document.body) return;
+          obs.disconnect();
+          console.log('pw:theme-at-body ' + document.documentElement.getAttribute('data-theme'));
+        }).observe(document, { childList: true, subtree: true });
+      });
+      const seen = [];
+      page.on('console', (m) => { if (m.text().startsWith('pw:theme-at-body')) seen.push(m.text()); });
+      await page.goto(`${PORTAL}/`);
+      await settle(page);
+      t.check(seen[0] === 'pw:theme-at-body dark', `data-theme when the body began: ${seen.join(', ') || 'never logged'}`);
+    },
+  },
+  {
+    name: 'public copy on / (both languages) and /login makes no overclaim',
+    async run(t, page) {
+      for (const [path, lang] of [['/', 'th'], ['/', 'en'], ['/login', 'th']]) {
+        await page.goto(`${PORTAL}/forgot`);
+        await page.evaluate((l) => localStorage.setItem('clics_manual_lang', l), lang);
+        await page.goto(`${PORTAL}${path}`);
+        await settle(page);
+        const hit = (await page.evaluate(() => document.body.innerText)).match(OVERCLAIM);
+        t.check(!hit, `${path} [${lang}] says "${hit?.[0]}"`);
+      }
     },
   },
 ];
