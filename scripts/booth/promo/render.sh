@@ -11,4 +11,5 @@ node "$here/capture.mjs"
 # booth service worker's cache.
 ffmpeg -y -loglevel error -i "$here/renders/promo-master.mp4" -an -c:v libx264 -profile:v main -pix_fmt yuv420p \
   -preset slow -crf 20 -g 60 -movflags +faststart "$out"
+node "$here/lock.mjs" --write
 ffprobe -v error -show_entries format=duration,size:stream=codec_name,width,height,profile -of default=nw=1 "$out"

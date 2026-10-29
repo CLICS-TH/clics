@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /*
  * Captures the source frames for the booth promo (#216) into scripts/booth/promo/assets/capture/:
- * the booth flow at 1080x1920 against a stubbed booth API with the real case file, and the Landing
- * page's fixture-built screenshots (physician-ui/public/img/landing). No network, no prod, no AI.
+ * the booth flow at 1080x1920 in the fixture world of stub.mjs (stubbed booth API with the real case file, empty
+ * attract loop), and the Landing page's fixture-built screenshots (physician-ui/public/img/landing). No network,
+ * no prod, no AI, no staff loop file.
  *
  * Run: node scripts/booth/promo/capture.mjs   then render with scripts/booth/promo/render.sh
  */
@@ -11,33 +12,11 @@ import { readFile, stat, mkdir, copyFile, rm } from 'node:fs/promises';
 import { join, extname, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { installStub } from './stub.mjs';
 
 const ROOT = fileURLToPath(new URL('../../../physician-ui/public', import.meta.url));
-const KASE = JSON.parse(await readFile(fileURLToPath(new URL('../../../backend/src/booth-cases/NFCME-2026.json', import.meta.url)), 'utf8'));
 const OUT = fileURLToPath(new URL('./assets/capture/', import.meta.url));
-const API = 'http://localhost:3001';
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.png': 'image/png', '.webp': 'image/webp' };
-const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
-
-// Fictional replies shaped by the booth prompt (rimpl/src/lib/prompts.js RIMPL_SYSTEM_PROMPT_BOOTH): one strength and one
-// thing worth weighing, no grading, no preview of a later step, no question, nothing the answer did not name.
-const REPLIES = [
-  'คุณเชื่อมโยงประวัติลุยน้ำท่วมเข้ากับอาการปวดน่องและตาแดงได้ตรงประเด็น สิ่งที่ควรชั่งน้ำหนักคือโรคไข้ในหน้าฝนหลายโรคมีอาการช่วงแรกคล้ายกัน',
-  'ผลเลือดและปัสสาวะพื้นฐานช่วยดูการทำงานของไต ตับ และเกล็ดเลือดได้ตั้งแต่เนิ่น ๆ สิ่งที่ควรชั่งน้ำหนักคือผลเหล่านี้อาจยังปกติในวันแรกของโรค',
-  'การรับไว้ในโรงพยาบาลช่วยให้เฝ้าดูอาการที่อาจแย่ลงได้ใกล้ชิด สิ่งที่ควรชั่งน้ำหนักคือภาระของการนอนโรงพยาบาลต่อผู้ป่วยและครอบครัว',
-];
-const SCORE = { status: 'scored', composite: 71.6, domains: { d1: 4, d2: 4, d3: 4, d4: 3, d5: 3, d6: 3, d7: 3 } };
-const at = (min) => new Date(Date.UTC(2026, 10, 3, 2, min)).toISOString();
-const entries = (tags, top) => tags.map((tag, i) => ({ tag, score: top - i * 2.9, at: at(i) }));
-const BOARD = { today: entries([7, 19, 42, 3, 25, 11, 30, 8, 14, 2], 79.4), event: entries([7, 19, 42, 3, 25, 11, 30, 8, 14, 2], 79.4) };
-
-const ROUTES = {
-  'GET /booth/status': () => ({ open: true, event_code: KASE.event_code, case_version: KASE.version }),
-  'POST /booth/plays': () => ({ play_id: '6f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f', tag: 42, case: KASE, answer_max_chars: 500 }),
-  'POST /booth/plays/:id/reply': (body) => ({ status: 'replied', reply: REPLIES[body.answers.length - 1], reply_sig: `sig-${body.answers.length}` }),
-  'POST /booth/plays/:id/score': () => ({ ...SCORE, rank_today: 3, rank_event: 3, board: BOARD }),
-  'GET /booth/board': () => ({ board: BOARD }),
-};
 
 const server = createServer(async (req, res) => {
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
@@ -56,19 +35,8 @@ await rm(OUT, { recursive: true, force: true });
 await mkdir(OUT, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 try {
-  const ctx = await browser.newContext({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
-  await ctx.route('**/*', async (route) => {
-    const req = route.request();
-    const url = new URL(req.url());
-    if (req.url().startsWith(base + '/')) return route.continue();
-    if (!req.url().startsWith(API + '/booth/')) return route.abort();
-    if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
-    const key = `${req.method()} ${url.pathname.replace(/^\/booth\/plays\/[^/]+\/(reply|score)$/, '/booth/plays/:id/$1')}`;
-    const make = ROUTES[key];
-    if (!make) return route.fulfill({ status: 404, headers: CORS, body: '{}' });
-    if (key.endsWith('/score')) await new Promise((r) => setTimeout(r, 2500));
-    return route.fulfill({ status: 200, headers: CORS, contentType: 'application/json', body: JSON.stringify(make(JSON.parse(req.postData() ?? 'null'))) });
-  });
+  const ctx = await browser.newContext({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
+  await installStub(ctx, base, { scoreDelayMs: 2500 });
   const page = await ctx.newPage();
   const settle = async () => {
     await page.evaluate(() => document.fonts.ready);
@@ -79,7 +47,7 @@ try {
 
   await page.goto(base + '/booth', { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#booth[data-shell="start"]', { timeout: 10_000 });
-  await shot('start');
+  await settle();
   await page.locator('[data-action="start"]').tap();
   await screen('vignette');
   await shot('vignette');

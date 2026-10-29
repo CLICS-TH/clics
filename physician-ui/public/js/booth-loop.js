@@ -6,7 +6,11 @@ const LOOP_DIR = '/booth-loop/';
 const MANIFEST = `${LOOP_DIR}manifest.json`;
 const RETRY_MS = 60_000;
 
-/** @typedef {{ type: 'image', src: string, seconds: number } | { type: 'video', src: string }} LoopItem */
+/**
+ * `board: false` hides the loop board while that item shows, for a file whose own text reaches the bottom of the
+ * frame (the promo's demo labels and end card, #216).
+ * @typedef {({ type: 'image', src: string, seconds: number } | { type: 'video', src: string }) & { board: boolean }} LoopItem
+ */
 
 /** The item's path, percent-encoded as the browser sends it (staff file names have spaces and Thai), or null. */
 const loopPath = (src) => {
@@ -25,9 +29,9 @@ const loopPath = (src) => {
 function parseItem(item) {
   const src = loopPath(item?.src);
   if (src && item.type === 'image' && Number.isInteger(item.seconds) && item.seconds >= 1 && item.seconds <= 120) {
-    return { type: 'image', src, seconds: item.seconds };
+    return { type: 'image', src, seconds: item.seconds, board: item.board !== false };
   }
-  if (src && item.type === 'video' && src.endsWith('.mp4')) return { type: 'video', src };
+  if (src && item.type === 'video' && src.endsWith('.mp4')) return { type: 'video', src, board: item.board !== false };
   console.warn('booth loop: skipped manifest item', item);
   return null;
 }
@@ -46,7 +50,8 @@ export async function loadLoopItems() {
 
 /**
  * Plays the loop in a media layer appended to `container`. The layer is empty (and hidden by CSS) until an item
- * has loaded, so whatever sits under it shows through. data-loop-kind / data-loop-src name the item on screen.
+ * has loaded, so whatever sits under it shows through. data-loop-kind / data-loop-src name the item on screen, and
+ * data-loop-board says whether the loop board may show over it.
  * @param {HTMLElement} container
  * @returns {{ stop: () => void }}
  */
@@ -59,11 +64,13 @@ export function mountLoop(container) {
     layer.replaceChildren(node);
     layer.dataset.loopKind = item.type;
     layer.dataset.loopSrc = item.src;
+    layer.dataset.loopBoard = item.board ? 'on' : 'off';
   };
   const clear = () => {
     layer.replaceChildren();
     delete layer.dataset.loopKind;
     delete layer.dataset.loopSrc;
+    delete layer.dataset.loopBoard;
   };
 
   /** Resolves true once the item has played through, false if it failed to load or play, or the loop stopped. */
