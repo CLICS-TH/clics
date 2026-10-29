@@ -31,3 +31,14 @@ test('the migration seeds exactly the BOOTH_SETTINGS keys, switched off, for an 
   expect(code).toBe('NFCME-2026');
   expect(fs.existsSync(path.join(__dirname, '../src/booth-cases', `${code}.json`))).toBe(true);
 });
+
+test('the purge function locks the switch rows the backend reads and the advisory key booth_start_play takes', () => {
+  const purge = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-purge.sql'), 'utf8').replace(/--[^\n]*/g, '');
+  const locked = /where key in \(([^)]*)\) order by key for update/.exec(purge);
+  expect(locked).not.toBeNull();
+  expect([...locked[1].matchAll(/'([a-z_]+)'/g)].map(([, k]) => k).sort())
+    .toEqual([BOOTH_SETTINGS.code, BOOTH_SETTINGS.enabled].sort());
+  const lockKey = (sql) => /pg_advisory_xact_lock\(([^;]+)\);/.exec(sql)?.[1];
+  expect(lockKey(purge)).toBe(lockKey(SQL));
+  expect(lockKey(purge)).toBeDefined();
+});

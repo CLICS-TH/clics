@@ -587,6 +587,59 @@ describe('POST /booth/plays/:id/score', () => {
       expect(lines(console.warn)).toEqual([expect.stringMatching(new RegExp(`^\\[booth\\] score unavailable play=${play.id} ms=\\d+ reason=${reason}$`))]);
       expect(lines(console.info)).toEqual([]);
     });
+
+    const unavailableLine = (id, reason) =>
+      expect.stringMatching(new RegExp(`^\\[booth\\] score unavailable play=${id} ms=\\d+ reason=${reason}$`));
+
+    test.each([
+      ['a play over the spend ceiling', 'ceiling', () => seedPlay({ spend_usd: 2.8 })],
+      ['a reservation the database refuses', 'reserve', () => {
+        rpcOverride.booth_reserve_spend = () => ({ data: null, error: { message: 'down' } });
+        return seedPlay();
+      }],
+      ['a claim that finds the play already taken', 'claim', () => {
+        afterReserve = (p) => { p.status = 'unavailable'; };
+        return seedPlay();
+      }],
+      ['an already unavailable play', 'settled', () => seedPlay({ status: 'unavailable' })],
+      ['an abandoned play', 'settled', () => seedPlay({ status: 'abandoned' })],
+      ['a switch that cannot be read', 'event', () => {
+        settings = { error: { message: 'down' } };
+        return seedPlay();
+      }],
+    ])('%s logs one warn line with reason %s before any evaluator call', async (_name, reason, arrange) => {
+      const play = arrange();
+      await post(`/booth/plays/${play.id}/score`, FULL);
+      expect(lines(console.warn)).toEqual([unavailableLine(play.id, reason)]);
+      expect(lines(console.info)).toEqual([]);
+      expect(rimplEvaluate).not.toHaveBeenCalled();
+    });
+
+    test('a throw inside the score logs reason error and still answers 503', async () => {
+      const logged = jest.spyOn(console, 'error').mockImplementation(() => {});
+      rpcOverride.booth_reserve_spend = () => { throw new Error('boom'); };
+      const play = seedPlay();
+      const res = await post(`/booth/plays/${play.id}/score`, FULL);
+      expect(res.status).toBe(503);
+      expect(lines(console.warn)).toEqual([unavailableLine(play.id, 'error')]);
+      logged.mockRestore();
+    });
+
+    test('a replayed score logs a scored line with provider=replay', async () => {
+      const play = seedPlay({ ...SCORED });
+      await post(`/booth/plays/${play.id}/score`, FULL);
+      expect(lines(console.info)).toEqual([expect.stringMatching(new RegExp(`^\\[booth\\] score scored play=${play.id} ms=\\d+ provider=replay$`))]);
+      expect(lines(console.warn)).toEqual([]);
+    });
+
+    test.each([
+      ['a closed booth', () => { settings = { rows: eventSettings({ enabled: 0 }) }; return seedPlay().id; }],
+      ['an unknown play', () => crypto.randomUUID()],
+    ])('%s logs no score line', async (_name, arrange) => {
+      const id = arrange();
+      await post(`/booth/plays/${id}/score`, FULL);
+      expect([...lines(console.warn), ...lines(console.info)]).toEqual([]);
+    });
   });
 
   test.each([

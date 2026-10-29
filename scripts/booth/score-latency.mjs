@@ -6,8 +6,8 @@
  *   railway logs --service backend --since 2h --filter '"[booth] score"' | node scripts/booth/score-latency.mjs
  *   node scripts/booth/score-latency.mjs backend.log [--min 5]
  *
- * PASS needs at least --min scored plays (default 5), no unavailable play, p95 under 60 s and every scored play on
- * provider anthropic. Exit 0 on PASS, 1 on FAIL, 2 on a bad argument.
+ * Counts distinct plays, not lines. PASS needs at least --min scored plays (default 5), no unavailable play, p95
+ * under 60 s and every scored play on provider anthropic. Exit 0 on PASS, 1 on FAIL, 2 on a bad argument.
  */
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -15,6 +15,7 @@ import { pathToFileURL } from 'node:url';
 const P95_LIMIT_MS = 60_000;
 // Matched anywhere in the line: Railway prefixes its own timestamp and level.
 const SCORED = /\[booth\] score scored play=(\S+) ms=(\d+) provider=(\S+)/;
+const REPLAY = 'replay';
 const UNAVAILABLE = /\[booth\] score unavailable play=(\S+) ms=(\d+) reason=(\S+)/;
 
 /** @returns {{ scored: { play: string, ms: number, provider: string }[], unavailable: { play: string, ms: number, reason: string }[] }} */
@@ -35,20 +36,35 @@ export function nearestRank(sorted, p) {
   return sorted.length ? sorted[Math.max(1, Math.ceil((p / 100) * sorted.length)) - 1] : null;
 }
 
-export function summarize({ scored, unavailable }, { min = 5 } = {}) {
+/**
+ * Per distinct play: a replayed /score answers again from the stored row and logs again, so a play counts once, with
+ * the ms and provider of its first live scored line (a replay logs provider=replay and carries neither). A play with
+ * any unavailable line counts as unavailable, even if it also scored.
+ */
+function plays({ scored, unavailable }) {
+  const missed = new Set(unavailable.map((u) => u.play));
+  const first = new Map();
+  for (const s of scored) {
+    if (s.provider !== REPLAY && !missed.has(s.play) && !first.has(s.play)) first.set(s.play, s);
+  }
+  return { scored: [...first.values()], unavailable: missed.size };
+}
+
+export function summarize(log, { min = 5 } = {}) {
+  const { scored, unavailable } = plays(log);
   const ms = scored.map((s) => s.ms).sort((a, b) => a - b);
   const providers = {};
   for (const s of scored) providers[s.provider] = (providers[s.provider] ?? 0) + 1;
   const p95 = nearestRank(ms, 95);
   const failures = [
     ms.length < min && `only ${ms.length} scored plays, need ${min}`,
-    unavailable.length > 0 && `${unavailable.length} unavailable`,
+    unavailable > 0 && `${unavailable} unavailable`,
     p95 != null && p95 >= P95_LIMIT_MS && `p95 ${(p95 / 1000).toFixed(1)} s is not under 60 s`,
     scored.some((s) => s.provider !== 'anthropic') && 'a scored play did not run on anthropic',
   ].filter(Boolean);
   return {
     n: ms.length,
-    unavailable: unavailable.length,
+    unavailable,
     p50_s: seconds(nearestRank(ms, 50)),
     p95_s: seconds(p95),
     max_s: seconds(ms.at(-1) ?? null),

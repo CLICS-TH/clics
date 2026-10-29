@@ -3,21 +3,23 @@
  * Booth retention (#217, ADR 0004): prints the counts summary for CCME, then with --delete removes every
  * booth_plays row of one event. Run it 30 days after the forum's last day.
  *
+ * Needs db/migration-booth-purge.sql applied: one call to booth_event_summary() checks the switch, deletes and
+ * summarizes in one transaction, so the printed summary describes exactly the rows deleted.
+ *
  * Run from backend/ (dotenv loads backend/.env and @supabase/supabase-js resolves from backend/node_modules):
  *   cd backend && node ../scripts/booth/purge-event.mjs --event NFCME-2026            # summary only
- *   cd backend && node ../scripts/booth/purge-event.mjs --event NFCME-2026 --delete   # summary, then delete
+ *   cd backend && node ../scripts/booth/purge-event.mjs --event NFCME-2026 --delete   # summary of the deleted rows
  *
  * --delete refuses while the event is the configured booth_event_code and booth_enabled = 1: switch the booth off
  * first. Re-running on a purged event prints plays 0 and exits 0.
  *
- * Exit codes: 0 = done · 1 = a read or the delete failed, or rows remain · 2 = bad arguments, misconfigured, or
- * refused because the event is still switched on.
+ * Exit codes: 0 = done · 1 = the call failed, or rows remain · 2 = bad arguments, misconfigured, or refused because
+ * the event is still switched on.
  */
 import { createRequire } from 'node:module';
-import { SAFE_EVENT_CODE, DOMAIN_KEYS, summarize, report } from './purge-summary.mjs';
+import { SAFE_EVENT_CODE, report } from './purge-summary.mjs';
 
 const USAGE = 'usage: cd backend && node ../scripts/booth/purge-event.mjs --event <CODE> [--delete]';
-const PAGE = 1000;
 
 function parseArgs(argv) {
   let code = null;
@@ -50,26 +52,6 @@ try {
   fail(2, `Could not load the backend modules, run this from backend/:\n  ${USAGE}\n\n${e.message}`);
 }
 
-async function readPlays(code) {
-  const rows = [];
-  for (let from = 0; ; from += PAGE) {
-    const { data, error } = await supabase.from('booth_plays')
-      .select(`status, spend_usd, composite, ranked, created_at, ${DOMAIN_KEYS.join(', ')}`)
-      .eq('event_code', code).order('created_at').order('id').range(from, from + PAGE - 1);
-    if (error || !Array.isArray(data)) fail(1, `booth_plays read failed: ${error?.message ?? 'not a list'}`);
-    rows.push(...data);
-    if (data.length < PAGE) return rows;
-  }
-}
-
-async function switchedOn(code) {
-  const { data, error } = await supabase.from('app_settings').select('key, value, value_text')
-    .in('key', ['booth_event_code', 'booth_enabled']);
-  if (error || !Array.isArray(data)) fail(2, `app_settings read failed, so the event switch cannot be checked: ${error?.message ?? 'not a list'}`);
-  const by = Object.fromEntries(data.map((r) => [r.key, r]));
-  return by.booth_event_code?.value_text?.trim() === code && Number(by.booth_enabled?.value) === 1;
-}
-
 async function remaining(code) {
   const { count, error } = await supabase.from('booth_plays').select('id', { count: 'exact', head: true }).eq('event_code', code);
   if (error || count == null) fail(1, `booth_plays recount failed: ${error?.message ?? 'no count'}`);
@@ -77,17 +59,18 @@ async function remaining(code) {
 }
 
 const { code, del } = args;
-console.log(report(code, summarize(await readPlays(code))));
+const { data: summary, error } = await supabase.rpc('booth_event_summary', { p_event: code, p_delete: del });
+if (error?.code === 'BP409') {
+  fail(2, `refused: ${code} is the booth's event and booth_enabled = 1. Switch the booth off on the superadmin overview first.`);
+}
+if (error?.code === 'PGRST202') fail(2, `booth_event_summary is missing: apply db/migration-booth-purge.sql first.\n${error.message}`);
+if (error || !summary) fail(1, `booth_event_summary failed: ${error?.message ?? 'no result'}`);
+console.log(report(code, summary));
 
 if (!del) {
   console.log('dry run: nothing deleted');
   process.exit(0);
 }
-if (await switchedOn(code)) {
-  fail(2, `refused: ${code} is the booth's event and booth_enabled = 1. Switch the booth off on the superadmin overview first.`);
-}
-const { count: deleted, error } = await supabase.from('booth_plays').delete({ count: 'exact' }).eq('event_code', code);
-if (error) fail(1, `delete failed: ${error.message}`);
 const left = await remaining(code);
-console.log(`deleted ${deleted ?? 0} rows, ${left} remain`);
+console.log(`deleted ${summary.plays} rows, ${left} remain`);
 process.exit(left === 0 ? 0 : 1);

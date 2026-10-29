@@ -351,49 +351,66 @@ async function replyToStep(playId, input, now = new Date()) {
   return { body: { status: 'replied', reply, reply_sig: replySig(playId, step, dialogue, reply) } };
 }
 
-// shadow MUST be false: rimpl's shadow evaluation upserts shadow_evaluations, whose ple_id references ples, and a
-// booth play is not a PLE.
-/** @returns {Promise<Result>} body: { status: 'scored', composite, domains, rank_today, rank_event, board }
- *    | { status: 'unavailable' } */
-async function scorePlay(playId, input, now = new Date()) {
+/** The score call's outcome, and what its latency line needs: `reason` for an unavailable one, `provider` for a
+ *  scored one (a replay of a stored score has none). */
+async function scoreOutcome(playId, input, now) {
   const opened = await openEvent(now);
-  if (opened.refused) return opened;
+  if (opened.refused) return { result: opened, reason: 'event' };
   const { event, kase } = opened;
   const dialogue = parseDialogue(kase, playId, input, 'score');
-  if (!dialogue) return { refused: 'bad_request' };
+  if (!dialogue) return { result: { refused: 'bad_request' } };
 
+  const stored = (result) => ({ result, reason: result.refused === 'unavailable' ? 'read' : 'settled' });
   const settled = await settledOutcome(playId, event);
-  if (settled) return settled;
+  if (settled) return stored(settled);
 
   const reserved = await reserve(playId, event, SCORE_RESERVE_USD);
-  if (reserved === 'ceiling') return UNAVAILABLE;
-  if (PAST_STARTED.has(reserved)) return (await settledOutcome(playId, event)) ?? UNAVAILABLE;
-  if (reserved !== 'reserved') return { refused: 'unavailable' };
+  if (reserved === 'ceiling') return { result: UNAVAILABLE, reason: 'ceiling' };
+  if (PAST_STARTED.has(reserved)) return stored((await settledOutcome(playId, event)) ?? UNAVAILABLE);
+  if (reserved !== 'reserved') return { result: { refused: 'unavailable' }, reason: 'reserve' };
 
-  if (!(await claimAsUnavailable(playId, event))) return UNAVAILABLE;
+  if (!(await claimAsUnavailable(playId, event))) return { result: UNAVAILABLE, reason: 'claim' };
 
-  // One line per outcome, timing the evaluator call alone: scripts/booth/score-latency.mjs reads them from
-  // `railway logs` for the rehearsal's p95 and provider check.
-  const startedAt = Date.now();
-  const unavailable = (ms, reason) => {
-    console.warn(`[booth] score unavailable play=${playId} ms=${ms} reason=${reason}`);
-    return UNAVAILABLE;
-  };
+  // shadow MUST be false: rimpl's shadow evaluation upserts shadow_evaluations, whose ple_id references ples, and a
+  // booth play is not a PLE.
   let res;
   try {
     res = await rimplEvaluate({ ple_id: playId, transcript: dialogueTurns(kase, dialogue), patient_ref: null,
       chief_complaint: kase.vignette.th, shadow: false }, { timeoutMs: SCORE_TIMEOUT_MS });
   } catch (err) {
-    return unavailable(Date.now() - startedAt, err.status || err.name);
+    return { result: UNAVAILABLE, reason: err.status || err.name };
   }
-  const ms = Date.now() - startedAt;
   await settle(playId, res, SCORE_RESERVE_USD);
   const domains = DomainsSchema.safeParse(res);
-  if (!domains.success) return unavailable(ms, 'schema');
+  if (!domains.success) return { result: UNAVAILABLE, reason: 'schema' };
   const result = await finish(playId, event, domains.data, rankable(dialogue));
-  if (result === UNAVAILABLE) return unavailable(ms, 'finish');
-  console.info(`[booth] score scored play=${playId} ms=${ms} provider=${res.provider}`);
-  return result;
+  return result === UNAVAILABLE ? { result, reason: 'finish' } : { result, provider: res.provider };
+}
+
+// One line per score call that ends scored or unavailable, timing the whole call (what the visitor waits):
+// scripts/booth/score-latency.mjs reads them from `railway logs` for the rehearsal's p95 and provider check. A
+// replay of a stored score logs provider=replay.
+function logScore(playId, ms, { result, reason, provider }) {
+  if (result.body?.status === 'scored') {
+    console.info(`[booth] score scored play=${playId} ms=${ms} provider=${provider ?? 'replay'}`);
+  } else if (result.body?.status === 'unavailable' || result.refused === 'unavailable') {
+    console.warn(`[booth] score unavailable play=${playId} ms=${ms} reason=${reason}`);
+  }
+}
+
+/** @returns {Promise<Result>} body: { status: 'scored', composite, domains, rank_today, rank_event, board }
+ *    | { status: 'unavailable' } */
+async function scorePlay(playId, input, now = new Date()) {
+  const startedAt = Date.now();
+  let outcome;
+  try {
+    outcome = await scoreOutcome(playId, input, now);
+  } catch (err) {
+    logScore(playId, Date.now() - startedAt, { result: { refused: 'unavailable' }, reason: 'error' });
+    throw err;
+  }
+  logScore(playId, Date.now() - startedAt, outcome);
+  return outcome.result;
 }
 
 // Superadmin booth card (#214). An 'unavailable' play may still be scoring (scorePlay claims it before the AI call),

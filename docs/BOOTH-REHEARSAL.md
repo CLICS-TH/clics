@@ -15,6 +15,8 @@ deletes them, so opening day starts at Booth #001 with an empty board.
       or a stop.
 - [ ] **The backend deploy has #217.** Its score log lines are what section 3 reads: with an older backend,
       `score-latency.mjs` finds 0 lines and fails.
+- [ ] **Purge function applied.** `db/migration-booth-purge.sql` is applied to the prod Supabase (owner-gated).
+      Without it, section 6's purge stops with "apply the migration first".
 - [ ] **Railway logged in.** `railway whoami` prints the owner's account (the CLI was logged out on 28 Oct). A
       rollback on the day needs it.
 - [ ] **Backend is the backend.** `curl -s https://backend-production-c12e4.up.railway.app/health/deep` reports
@@ -24,13 +26,16 @@ deletes them, so opening day starts at Booth #001 with an empty board.
 
 ## 1. Event switch, on and off
 
-In the dashboard Overview, Booth Mode card:
+In the dashboard Overview, Booth Mode card. The card saves two ways: the switch saves itself the moment it is
+tapped, but opens-at, closes-at and the per-play ceiling are saved only by the card's **บันทึก / Save** button. A
+time typed and not saved changes nothing, and the backend refuses to switch on a booth with no saved window.
 
-- [ ] Set opens-at to now (or earlier) and closes-at to tonight, switch **on**. Within 30 s the kiosk bar reads
-      แตะเพื่อลอง CLICS / Tap to try CLICS.
-- [ ] Switch **off**. Within 30 s the bar reads ขณะนี้บูทปิดอยู่ / The booth is closed right now, and a tap does not
-      start a play.
-- [ ] Set opens-at in the future with the switch on. The bar still reads closed. Put it back to now.
+- [ ] Set opens-at to now (or earlier) and closes-at to tonight, press **Save**, then tap the switch **on**. Within
+      30 s the kiosk bar reads แตะเพื่อลอง CLICS / Tap to try CLICS.
+- [ ] Tap the switch **off**. Within 30 s the bar reads ขณะนี้บูทปิดอยู่ / The booth is closed right now, and a tap
+      does not start a play.
+- [ ] With the switch on, set opens-at in the future and press **Save**. The bar reads closed again. Set opens-at
+      back to now and press **Save**.
 
 ## 2. Start-up and touch
 
@@ -70,9 +75,10 @@ In the dashboard Overview, Booth Mode card:
 
 ## 6. Clean up after rehearsal
 
-- [ ] Switch the event **off** in the Booth Mode card.
+- [ ] Tap the switch **off** in the Booth Mode card (it saves itself).
 - [ ] `cd backend && node ../scripts/booth/purge-event.mjs --event NFCME-2026` prints the rehearsal plays' summary.
       Then rerun it with `--delete`: it reports `0 remain`. This is also the dress rehearsal of the 30-day retention
       step in the runbook.
-- [ ] Set opens-at and closes-at to Tue 3 Nov's booth hours and leave the switch off until the morning.
+- [ ] Set opens-at and closes-at to Tue 3 Nov's booth hours and press **Save**. Reload the page and check both
+      times are still shown. Leave the switch off until the morning.
 - [ ] Write the staff names and phone numbers by hand on the printed runbook, section 7.

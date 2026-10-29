@@ -49,6 +49,27 @@ test('each PASS condition fails on its own', () => {
   assert.equal(s.pass, false);
 });
 
+test('a play logged more than once counts once: five copies of one scored line fail on the play count', () => {
+  const line = '2026-11-02T03:00:00Z [booth] score scored play=11111111-1111-4111-8111-111111111111 ms=25000 provider=anthropic';
+  const s = summarize(parseLog(Array(5).fill(line).join('\n')), { min: 5 });
+  assert.equal(s.pass, false);
+  assert.equal(s.n, 1);
+  assert.deepEqual(s.providers, { anthropic: 1 });
+  assert.match(s.failures.join(), /only 1 scored plays, need 5/);
+});
+
+test('a replay keeps the first live line: its ms and provider=replay never enter the gate', () => {
+  const replay = (i, ms) => `2026-11-02T10:0${i}:30Z [booth] score scored play=p${i} ms=${ms} provider=replay`;
+  const s = summarize(parseLog(`${fiveFast}\n${replay(0, 90000)}\n${replay(9, 200)}`));
+  assert.deepEqual(s, { n: 5, unavailable: 0, p50_s: 21, p95_s: 30, max_s: 30, providers: { anthropic: 5 }, pass: true, failures: [] });
+});
+
+test('a play with an unavailable line counts as unavailable, not scored, and counts once', () => {
+  const miss = '[booth] score unavailable play=p0 ms=10 reason=settled';
+  const s = summarize(parseLog(`${fiveFast}\n${miss}\n${miss}`));
+  assert.deepEqual([s.n, s.unavailable, s.pass], [4, 1, false]);
+});
+
 test('an empty log fails on the play count and prints no percentiles', () => {
   const s = summarize(parseLog(''));
   assert.equal(s.pass, false);
