@@ -6,7 +6,7 @@
 // enforces it.
 //
 // It is a module of its own, not four functions inside the page, for two reasons: the same attribute
-// and the same storage key drive the portal's copy of the manual (physician-ui/public/js/guide.js),
+// and the same storage key drive the portal's copy of the manual (physician-ui/public/js/lang.js),
 // so this is shared behaviour rather than page detail; and `serverSnapshot` is only ever reached
 // during SSR, which a jsdom test cannot exercise — as a plain exported function it can simply be
 // called.

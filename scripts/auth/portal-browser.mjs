@@ -30,7 +30,7 @@ const DASH = 'http://localhost:3002';
 const DASH_UPSTREAM = process.env.DASH_UPSTREAM || DASH;
 const SUPABASE = 'https://rgwnnexokstctugwtwub.supabase.co';
 const SUPABASE_JS = 'https://esm.sh/@supabase/supabase-js@2.49.4';
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.woff2': 'font/woff2' };
 
 const USERS = {
   physician: { id: 'u-phys', email: 'phys@ci.test', role: 'physician', consented_at: '2026-01-01T00:00:00Z', full_name_th: 'แพทย์ ทดสอบ', full_name_en: 'CI Physician' },
@@ -224,6 +224,83 @@ async function emailSignIn(page, user, { open = true } = {}) {
   await page.fill('#email', user.email);
   await page.fill('#password', 'ci-password-1');
   await page.click('#loginBtn');
+}
+
+
+// Every string a reader sees or hears: the tab title, visible text, and the accessible names and
+// image alts of visible elements. The only text left out is an element whose own `lang` differs from
+// the page's, which is how the language switch names each language in that language.
+function pageStrings(page) {
+  return page.evaluate(() => {
+    const lang = document.documentElement.lang;
+    const foreign = [...document.querySelectorAll('body [lang]')].filter((el) => el.lang !== lang);
+    const inForeign = (el) => foreign.some((f) => f.contains(el));
+    foreign.forEach((el) => { el.dataset.pwDisplay = el.style.display; el.style.display = 'none'; });
+    const text = document.body.innerText;
+    foreign.forEach((el) => { el.style.display = el.dataset.pwDisplay; });
+    const named = [...document.querySelectorAll('[aria-label], img[alt]')]
+      .filter((el) => !inForeign(el) && el.checkVisibility())
+      .map((el) => el.getAttribute('aria-label') ?? el.alt);
+    return [document.title, ...text.split('\n'), ...named].filter((s) => s.trim());
+  });
+}
+const THAI = /[฀-๿]/;
+// Each phrase claims more than the code does: the PII filter (rimpl stripPii) misses some names, so no
+// copy may promise the AI never sees a name or gets only de-identified text.
+// A code replaces only the name on the account: a name typed into the conversation can reach the
+// auditor's de-identified transcript, so no copy may say auditors see a code in place of "your name".
+const OVERCLAIM = /on-?premise|validated|ติดตั้งภายในองค์กร|never your name|ไม่ได้รับชื่อหรืออีเมลของคุณ|only (de-identified|case) text|ได้รับเฉพาะข้อความ|de-identified before AI|never see your name|ไม่เห็นชื่อของคุณ|(code|pseudonym) (in place of|instead of) your name|only (by|as) a code|รหัสแทนชื่อ(?!ในบัญชี)|เห็นคุณเป็นรหัส/i;
+const OVERCLAIM_SAMPLES = {
+  caught: [
+    'Auditors and the research data export see only a code in place of your name',
+    'they see a code in place of your name.',
+    'Auditors know you only by a code',
+    'ผู้ตรวจและข้อมูลวิจัยที่ส่งออกเห็นคุณเป็นรหัสแทนชื่อเท่านั้น',
+    'โดยเห็นรหัสแทนชื่อของคุณ',
+  ],
+  passed: ['Auditors see a code in place of the name on your account', 'ผู้ตรวจเห็นรหัสแทนชื่อในบัญชีของคุณ'],
+};
+// The controller and lawful basis are still pending, so no trust chip may read as a compliance claim.
+const COMPLIANCE_CHIP = /PDPA|GDPR|complian|\bISO\b|HIPAA|ได้มาตรฐาน|สอดคล้อง/i;
+// Who can read a transcript with the physician's name (backend/src/routes/admin.js /ples/:id/transcript).
+const NAMED_READERS = { th: /ผู้ดูแลสภา/, en: /administrators of your council/i };
+
+async function tabTo(page, selector) {
+  for (let i = 0; i < 20; i++) {
+    await page.keyboard.press('Tab');
+    if (await page.evaluate((sel) => document.activeElement?.matches(sel), selector)) return true;
+  }
+  return false;
+}
+
+// Logs `pw:landing-visible <path>` on the first animation frame in which the Landing heading would
+// paint, in every document the tab loads and again after a back/forward-cache restore (suffix
+// ` restored`). Pair it with slowDown() on the forward's destination, so the Landing document lives
+// long enough to paint if nothing hides it.
+function watchLanding(ctx) {
+  return ctx.addInitScript(() => {
+    let restored = false;
+    const look = () => {
+      const h = document.querySelector('.hero h1');
+      if (h && h.checkVisibility({ visibilityProperty: true }) && h.getBoundingClientRect().height > 0) {
+        console.log('pw:landing-visible ' + location.pathname + (restored ? ' restored' : ''));
+        return;
+      }
+      if (h || document.readyState !== 'complete') requestAnimationFrame(look);
+    };
+    requestAnimationFrame(look);
+    addEventListener('pageshow', (e) => { if (e.persisted) { restored = true; requestAnimationFrame(look); } });
+  });
+}
+function landingSightings(page) {
+  const seen = [];
+  page.on('console', (m) => { if (m.text().startsWith('pw:landing-visible ')) seen.push(m.text()); });
+  return seen;
+}
+
+// Holds every response under `prefix` for a while, as a slow network would.
+function slowDown(ctx, prefix, ms = 1500) {
+  return ctx.route((url) => url.href.startsWith(prefix), async (route) => { await sleep(ms); await route.fallback(); });
 }
 
 const SCENARIOS = [
@@ -500,6 +577,236 @@ const SCENARIOS = [
       t.check((await storedTokens(ctx)).length === 0, `storage after reset: ${(await storedTokens(ctx)).join(', ')}`);
     },
   },
+  {
+    name: 'signed-out / shows the Landing page and stays on /',
+    async run(t, page) {
+      await page.goto(`${PORTAL}/`);
+      await settle(page);
+      t.check(new URL(page.url()).pathname === '/', `signed-out / ended on ${page.url()}`);
+      t.check(await page.getByRole('main').getByRole('heading', { level: 1 }).isVisible(), 'no Landing heading on signed-out /');
+      t.check(await page.getByRole('main').getByRole('link', { name: 'เข้าสู่ระบบ' }).first().isVisible(), 'no sign-in link in the Landing main');
+      t.check(await page.locator('main a[href="/login"]').count() > 0, 'the sign-in call to action does not lead to /login');
+      t.check(await page.locator('footer a[href="/privacy"]').isVisible(), 'no Privacy link in the Landing footer');
+    },
+  },
+  {
+    name: 'signed-in physician at / forwards to /dashboard without showing the Landing page',
+    async run(t, page, ctx) {
+      await page.goto(`${PORTAL}/forgot`);
+      await page.evaluate(([token, user]) => { localStorage.setItem('clics_token', token); localStorage.setItem('clics_user', user); },
+        [fakeJwt(USERS.physician), JSON.stringify(USERS.physician)]);
+      const seen = landingSightings(page);
+      await watchLanding(ctx);
+      await slowDown(ctx, `${PORTAL}/dashboard`);
+      await page.goto(`${PORTAL}/`, { waitUntil: 'commit' });
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      t.check(seen.length === 0, `the Landing page was shown before the forward: ${seen.join(', ')}`);
+      await page.goBack({ waitUntil: 'commit' });
+      await settle(page);
+      t.check(new URL(page.url()).pathname !== '/', `Back from /dashboard landed on the Landing page ${page.url()}`);
+    },
+  },
+  {
+    name: 'signed-in staff at / reaches the dashboard Handoff',
+    async run(t, page, ctx) {
+      await page.goto(`${PORTAL}/forgot`);
+      await page.evaluate(([token, user]) => { localStorage.setItem('clics_token', token); localStorage.setItem('clics_user', user); },
+        [fakeJwt(USERS.admin), JSON.stringify(USERS.admin)]);
+      const seen = landingSightings(page);
+      await watchLanding(ctx);
+      await slowDown(ctx, `${DASH}/login`);
+      await page.goto(`${PORTAL}/`, { waitUntil: 'commit' });
+      await page.waitForURL(`${DASH}/home`);
+      await settle(page);
+      t.check(!TOKEN_IN_URL.test(page.url()), `handoff left a token in the address bar ${page.url()}`);
+      t.check(seen.length === 0, `the Landing page was shown before the Handoff: ${seen.join(', ')}`);
+    },
+  },
+  {
+    name: 'signed-out /, Sign in, Back: the restored Landing page forwards without showing',
+    async run(t, page, ctx) {
+      const seen = landingSightings(page);
+      const restores = [];
+      page.on('console', (m) => { if (m.text() === `pw:bfcache-restore ${PORTAL}/`) restores.push(m.text()); });
+      await watchLanding(ctx);
+      await page.goto(`${PORTAL}/forgot`);
+      await page.goto(`${PORTAL}/`);
+      await settle(page);
+      t.check(seen.includes('pw:landing-visible /'), `the signed-out Landing page never showed: ${seen.join(', ')}`);
+      await page.locator('.hero-actions a[href="/login"]').click();
+      await page.waitForURL(`${PORTAL}/login`);
+      await emailSignIn(page, USERS.physician, { open: false });
+      await page.waitForURL(`${PORTAL}/dashboard`);
+      await settle(page);
+      await slowDown(ctx, `${PORTAL}/dashboard`);
+      await page.goBack({ waitUntil: 'commit' });
+      await settle(page);
+      t.check(restores.length > 0, 'Back did not restore / from the back/forward cache, so the restore went untested');
+      t.check(new URL(page.url()).pathname === '/dashboard', `Back from /dashboard ended on ${page.url()}`);
+      const restoredSightings = seen.filter((l) => l.endsWith(' restored'));
+      t.check(restoredSightings.length === 0, `the restored Landing page was shown: ${restoredSightings.join(', ')}`);
+      await page.goBack({ waitUntil: 'commit' }).catch(() => null);
+      await settle(page);
+      t.check(new URL(page.url()).pathname === '/forgot', `a second Back did not leave /dashboard for the page before /: ${page.url()}`);
+    },
+  },
+  {
+    name: 'Landing TH/EN switch flips every string, persists, and works by keyboard',
+    async run(t, page) {
+      await page.goto(`${PORTAL}/`);
+      await settle(page);
+      t.check(await page.evaluate(() => document.documentElement.lang) === 'th', 'the Landing page does not start in Thai');
+      t.check(THAI.test((await pageStrings(page)).join('\n')), 'the Thai Landing page shows no Thai');
+      t.check(THAI.test(await page.title()), `the Thai Landing page's title is not Thai: ${await page.title()}`);
+      const group = page.getByRole('group', { name: /Choose language|เลือกภาษา/ });
+      t.check(await group.getByRole('button', { name: 'ไทย', pressed: true }).isVisible(), 'the Thai button is not pressed by default');
+      t.check(await tabTo(page, '[data-set-lang="en"]'), 'Tab never reached the English button');
+      await page.keyboard.press('Enter');
+      const checkEnglish = async (where) => {
+        t.check(await page.evaluate(() => document.documentElement.lang) === 'en', `${where}: html[lang] is not en`);
+        const thai = (await pageStrings(page)).filter((l) => THAI.test(l));
+        t.check(thai.length === 0, `${where}: Thai still seen or heard: ${thai.slice(0, 4).join(' | ')}`);
+        t.check(await group.getByRole('button', { name: 'English', pressed: true }).isVisible(), `${where}: English is not pressed`);
+        t.check(await group.getByRole('button', { name: 'ไทย', pressed: false }).isVisible(), `${where}: Thai is still pressed`);
+        const alts = await page.locator('img[data-alt-en]').evaluateAll((imgs) => imgs.map((i) => [i.alt, i.dataset.altEn]));
+        t.check(alts.length > 0 && alts.every(([a, en]) => a === en && !/[฀-๿]/.test(a)), `${where}: image alts did not switch to English`);
+      };
+      await checkEnglish('after Enter');
+      await page.reload();
+      await settle(page);
+      await checkEnglish('after reload');
+      t.check(await tabTo(page, '[data-set-lang="th"]'), 'Tab never reached the Thai button');
+      await page.keyboard.press('Space');
+      t.check(await page.evaluate(() => document.documentElement.lang) === 'th', 'Space on ไทย did not switch back');
+      t.check(THAI.test(await page.title()), `the title did not switch back to Thai: ${await page.title()}`);
+      const alts = await page.locator('img[data-alt-th]').evaluateAll((imgs) => imgs.map((i) => [i.alt, i.dataset.altTh]));
+      t.check(alts.every(([a, th]) => a === th), 'image alts did not switch back to Thai');
+    },
+  },
+  {
+    // ui-gates gate 11: every control on / shows hover, pressed and keyboard focus, each as a computed
+    // style change (pressed is compared with hover, which a mouse press always sits on top of).
+    name: 'every interactive control on / has a hover, pressed and focus-visible state (both themes, both languages)',
+    async run(t, page) {
+      const PROPS = ['color', 'backgroundColor', 'borderTopColor', 'outlineStyle', 'outlineColor', 'boxShadow', 'textDecorationLine', 'opacity', 'transform', 'filter'];
+      const snap = (i) => page.evaluate(([i, props]) => { const cs = getComputedStyle(window.__els[i]); return props.map((k) => cs[k]); }, [i, PROPS]);
+      const changed = (a, b) => PROPS.filter((_, k) => a[k] !== b[k]);
+      for (const scheme of ['light', 'dark']) for (const lang of ['th', 'en']) {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.goto(`${PORTAL}/forgot`);
+        await page.evaluate((l) => localStorage.setItem('clics_manual_lang', l), lang);
+        await page.goto(`${PORTAL}/`);
+        await settle(page);
+        const labels = await page.evaluate(() => {
+          window.__els = [...document.querySelectorAll('a[href], button, summary, input, select, textarea, [tabindex]')].filter((e) => e.checkVisibility());
+          return window.__els.map((e) => `${e.tagName.toLowerCase()}${e.className ? '.' + String(e.className).split(' ').join('.') : ''} «${e.innerText.trim().slice(0, 20)}»`);
+        });
+        const where = `${scheme} ${lang}`;
+        t.check(labels.length >= 15, `${where}: only ${labels.length} controls found on /, so this check tested little`);
+        await page.mouse.move(0, 0);
+        const rest = [];
+        for (let i = 0; i < labels.length; i++) rest.push(await snap(i));
+        const focused = new Set();
+        for (let k = 0; k < labels.length + 3; k++) {
+          await page.keyboard.press('Tab');
+          const i = await page.evaluate(() => window.__els.indexOf(document.activeElement));
+          if (i < 0 || focused.has(i)) continue;
+          if (await page.evaluate(() => document.activeElement.matches(':focus-visible')) && changed(rest[i], await snap(i)).length) focused.add(i);
+        }
+        for (let i = 0; i < labels.length; i++) {
+          await page.evaluate(() => document.activeElement?.blur());
+          // The skip link sits above the viewport until it has focus; a pointer can only reach it then.
+          await page.evaluate((i) => window.__els[i].classList.contains('skip-link') && window.__els[i].focus(), i);
+          await page.evaluate((i) => window.__els[i].scrollIntoView({ block: 'center' }), i);
+          await page.mouse.move(0, 0);
+          const before = await snap(i);
+          const box = await page.evaluate((i) => { const r = window.__els[i].getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }, i);
+          await page.mouse.move(...box);
+          const hover = await snap(i);
+          await page.mouse.down();
+          const pressed = await snap(i);
+          // Release off the control, so nothing is activated.
+          await page.mouse.move(0, 0);
+          await page.mouse.up();
+          const missing = [!changed(before, hover).length && 'hover', !changed(hover, pressed).length && 'pressed', !focused.has(i) && 'focus-visible'].filter(Boolean);
+          t.check(!missing.length, `${where}: ${labels[i]} has no ${missing.join(', ')} state`);
+        }
+      }
+    },
+  },
+  {
+    name: 'manual TH/EN switch flips the title and the theme and view toggles',
+    async run(t, page) {
+      await page.goto(`${PORTAL}/manual`);
+      await settle(page);
+      const toggles = () => page.locator('.toggle-cluster .toggle-btn').evaluateAll((bs) => bs.flatMap((b) => [b.innerText, b.getAttribute('aria-label')]));
+      t.check(THAI.test(await page.title()), `the Thai manual's title is not Thai: ${await page.title()}`);
+      t.check((await toggles()).every((s) => THAI.test(s)), `Thai manual toggles: ${(await toggles()).join(' | ')}`);
+      await page.click('.lang-switch [data-set-lang="en"]');
+      for (const where of ['after the switch', 'after reload']) {
+        t.check(!THAI.test(await page.title()), `${where}: the English manual's title is ${await page.title()}`);
+        const thai = (await toggles()).filter((s) => THAI.test(s));
+        t.check(thai.length === 0, `${where}: English manual toggles say ${thai.join(' | ')}`);
+        await page.reload();
+        await settle(page);
+      }
+    },
+  },
+  {
+    name: 'the ECG logo stops moving within 5 seconds on /, /login and /manual (WCAG 2.2.2)',
+    motion: true,
+    async run(t, page) {
+      for (const path of ['/', '/login', '/manual']) {
+        await page.goto(`${PORTAL}${path}`, { waitUntil: 'domcontentloaded' });
+        const anims = await page.evaluate(() => [...document.querySelectorAll('.logo-ecg *')].flatMap((el) => el.getAnimations())
+          .map((a) => ({ name: a.animationName, iterations: a.effect.getTiming().iterations, end: a.effect.getComputedTiming().endTime })));
+        t.check(anims.some((a) => a.name === 'ecg-beat'), `${path}: the ECG beat does not animate, so this check tested nothing`);
+        for (const a of anims) {
+          t.check(Number.isFinite(a.iterations), `${path}: ${a.name} repeats forever`);
+          t.check(a.end <= 5000, `${path}: ${a.name} moves until ${a.end} ms`);
+        }
+      }
+    },
+  },
+  {
+    name: 'dark colour scheme: signed-out / paints dark from the first frame',
+    async run(t, page, ctx) {
+      await page.emulateMedia({ colorScheme: 'dark' });
+      await ctx.addInitScript(() => {
+        new MutationObserver((_, obs) => {
+          if (!document.body) return;
+          obs.disconnect();
+          console.log('pw:theme-at-body ' + document.documentElement.getAttribute('data-theme'));
+        }).observe(document, { childList: true, subtree: true });
+      });
+      const seen = [];
+      page.on('console', (m) => { if (m.text().startsWith('pw:theme-at-body')) seen.push(m.text()); });
+      await page.goto(`${PORTAL}/`);
+      await settle(page);
+      t.check(seen[0] === 'pw:theme-at-body dark', `data-theme when the body began: ${seen.join(', ') || 'never logged'}`);
+    },
+  },
+  {
+    name: 'public copy on / (both languages) and /login makes no overclaim',
+    async run(t, page) {
+      for (const line of OVERCLAIM_SAMPLES.caught) t.check(OVERCLAIM.test(line), `OVERCLAIM misses "${line}"`);
+      for (const line of OVERCLAIM_SAMPLES.passed) t.check(!OVERCLAIM.test(line), `OVERCLAIM rejects the accurate "${line}"`);
+      for (const [path, lang] of [['/', 'th'], ['/', 'en'], ['/login', 'th'], ['/login', 'en']]) {
+        await page.goto(`${PORTAL}/forgot`);
+        await page.evaluate((l) => localStorage.setItem('clics_manual_lang', l), lang);
+        await page.goto(`${PORTAL}${path}`);
+        await settle(page);
+        const text = await page.evaluate(() => { document.querySelectorAll('details').forEach((d) => { d.open = true; }); return document.body.innerText; });
+        const hit = text.match(OVERCLAIM);
+        t.check(!hit, `${path} [${lang}] says "${hit?.[0]}"`);
+        if (path === '/') t.check(NAMED_READERS[lang].test(text), `/ [${lang}] does not say council administrators can read a named transcript`);
+        for (const chip of await page.locator('.trust-chip').allInnerTexts()) {
+          t.check(!COMPLIANCE_CHIP.test(chip), `${path} [${lang}] trust chip reads as a compliance claim: "${chip}"`);
+        }
+      }
+    },
+  },
 ];
 
 async function main() {
@@ -519,8 +826,9 @@ async function main() {
   let bfcacheRestores = 0;
   for (const s of SCENARIOS.filter((x) => !only || x.name.includes(only))) {
     // Reduced motion turns off the Portal's cross-document view transition, which stalls every
-    // animation frame in headless Chromium and leaves no element "stable" enough to click.
-    const ctx = await browser.newContext({ reducedMotion: 'reduce' });
+    // animation frame in headless Chromium and leaves no element "stable" enough to click. A `motion`
+    // scenario clicks nothing and reads the animations a reader with no motion preference gets.
+    const ctx = await browser.newContext({ reducedMotion: s.motion ? 'no-preference' : 'reduce' });
     if (DASH_UPSTREAM !== DASH) {
       await ctx.route((url) => url.href.startsWith(DASH), async (route) => {
         const response = await route.fetch({ url: DASH_UPSTREAM + route.request().url().slice(DASH.length) });

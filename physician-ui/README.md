@@ -17,8 +17,8 @@ when on localhost, and the prod URLs otherwise.
 
 ## Pages (`public/*.html`)
 
-`login.html` (sign-in, served at `/login`) · `index.html` (thin root redirect, see
-[ADR 0003](../docs/adr/0003-portal-root-keeps-auth-rescue.md)) ·
+`login.html` (sign-in, served at `/login`) · `index.html` (public Landing page; signed-in visitors are forwarded by `js/forward.js`; keeps the
+[ADR 0003](../docs/adr/0003-portal-root-keeps-auth-rescue.md) head scripts) ·
 `dashboard.html` (CLE list + folders + usage meter + consent gate) ·
 `ple-new.html` (start a CLE) · `ple-chat.html` (chat) · `ple-result.html` (PIS-7 result) ·
 `lpdp.html` (longitudinal trend) · `guest-chat.html` (anonymous trial) · `invite.html` (accept invite) ·
