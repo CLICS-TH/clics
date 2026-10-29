@@ -4,20 +4,22 @@
  * booth_plays row of one event. Run it 30 days after the forum's last day.
  *
  * Needs db/migration-booth-purge.sql applied: one call to booth_event_summary() checks the switch, deletes and
- * summarizes in one transaction, so the printed summary describes exactly the rows deleted.
+ * summarizes in one transaction, so the printed summary describes exactly the rows deleted. That transaction also
+ * records the summary in booth_event_purges, and every run prints the latest recorded purge, so a delete whose
+ * response was lost is recovered by running the same command again.
  *
  * Run from backend/ (dotenv loads backend/.env and @supabase/supabase-js resolves from backend/node_modules):
  *   cd backend && node ../scripts/booth/purge-event.mjs --event NFCME-2026            # summary only
  *   cd backend && node ../scripts/booth/purge-event.mjs --event NFCME-2026 --delete   # summary of the deleted rows
  *
- * --delete refuses while the event is the configured booth_event_code and booth_enabled = 1: switch the booth off
- * first. Re-running on a purged event prints plays 0 and exits 0.
+ * --delete refuses while any booth event is switched on (booth_enabled = 1): switch the booth off first.
+ * Re-running on a purged event prints plays 0, then the summary recorded when it was purged, and exits 0.
  *
- * Exit codes: 0 = done · 1 = the call failed, or rows remain · 2 = bad arguments, misconfigured, or refused because
- * the event is still switched on.
+ * Exit codes: 0 = done · 1 = the call failed (with --delete it may have committed: rerun), or rows remain · 2 = bad
+ * arguments, misconfigured, or refused because a booth event is switched on.
  */
 import { createRequire } from 'node:module';
-import { SAFE_EVENT_CODE, report } from './purge-summary.mjs';
+import { SAFE_EVENT_CODE, report, bangkokTime } from './purge-summary.mjs';
 
 const USAGE = 'usage: cd backend && node ../scripts/booth/purge-event.mjs --event <CODE> [--delete]';
 
@@ -59,13 +61,26 @@ async function remaining(code) {
 }
 
 const { code, del } = args;
-const { data: summary, error } = await supabase.rpc('booth_event_summary', { p_event: code, p_delete: del });
+const MAY_HAVE_COMMITTED = `The delete may have committed. Run the same command again to read the summary recorded for ${code}.`;
+let summary;
+let error;
+try {
+  ({ data: summary, error } = await supabase.rpc('booth_event_summary', { p_event: code, p_delete: del }));
+} catch (e) {
+  error = { message: e?.message ?? String(e) };
+}
 if (error?.code === 'BP409') {
-  fail(2, `refused: ${code} is the booth's event and booth_enabled = 1. Switch the booth off on the superadmin overview first.`);
+  fail(2, 'refused: a booth event is switched on (booth_enabled = 1). Switch the booth off on the superadmin overview first.');
 }
 if (error?.code === 'PGRST202') fail(2, `booth_event_summary is missing: apply db/migration-booth-purge.sql first.\n${error.message}`);
-if (error || !summary) fail(1, `booth_event_summary failed: ${error?.message ?? 'no result'}`);
+if (error || !summary) {
+  fail(1, `booth_event_summary failed: ${error?.message ?? 'no result'}${del ? `\n${MAY_HAVE_COMMITTED}` : ''}`);
+}
 console.log(report(code, summary));
+if (summary.recorded) {
+  console.log(`\nalready purged at ${bangkokTime(summary.recorded.purged_at)}; the summary recorded then:`);
+  console.log(report(code, summary.recorded.summary));
+}
 
 if (!del) {
   console.log('dry run: nothing deleted');

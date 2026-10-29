@@ -4,12 +4,19 @@
 #
 #   scripts/db/booth-purge-test.sh            # needs initdb/pg_ctl/psql on PATH (or PG_BIN)
 #
-# Loads stand-in Supabase roles and app_settings, applies migration-booth-plays.sql then migration-booth-purge.sql
-# (each twice), and asserts: the summary math against hand-computed values; a delete removes only that event's rows
-# and returns their summary; a refusal while switched on raises BP409 and deletes nothing; an empty event returns
-# plays 0; anon/authenticated cannot execute; and, with two sessions interleaved, a switch-on waits for an open purge,
-# a purge waits for an open switch-on and then refuses, a play cannot start mid-purge, and a score that lands
-# before or during the purge leaves the returned summary equal to the rows deleted.
+# Loads stand-in Supabase roles (with Supabase's default grants to anon and authenticated) and app_settings, applies
+# migration-booth-plays.sql then migration-booth-purge.sql (each twice), and asserts: the summary math against
+# hand-computed values; a delete removes only that event's rows and returns their summary; any delete while
+# booth_enabled = 1 raises BP409 and deletes nothing, whatever booth_event_code holds (padded with whitespace JS
+# trim() strips, or another event); a purge records its summary and a rerun returns it under `recorded`; an empty
+# event returns plays 0; anon/authenticated cannot execute or read booth_event_purges; and, with two sessions
+# interleaved, a switch-on waits for an open purge, a purge waits for an open switch-on and then refuses, a play
+# start waits for an open purge and then starts nothing while the booth is off, and a score that lands before or
+# during the purge leaves the returned summary equal to the rows deleted.
+#
+# #217 round 2 changed both migrations (the fail-closed refusal, booth_event_purges, booth_start_play's switch
+# check): the owner re-applies migration-booth-plays.sql, then migration-booth-purge.sql, before the Sun 1 Nov
+# 18:00 freeze.
 set -euo pipefail
 export LC_ALL=C LANG=C
 export PGOPTIONS="-c client_min_messages=warning"
@@ -49,6 +56,9 @@ sqlstate() { # sqlstate <sql> → the SQLSTATE it raised, or "ok"
 # the value_text column booth_plays' seed writes.
 P <<'SQL'
 create role anon; create role authenticated; create role service_role bypassrls;
+alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
 create table public.app_settings (key text primary key, value numeric not null, value_text text,
   updated_at timestamptz default now());
 grant usage on schema public to service_role, anon, authenticated;
@@ -110,20 +120,41 @@ expect "refused while EVT-A is switched on: BP409" "BP409" "$(sqlstate "$(SR "$(
 expect "  → the message names booth_event_switched_on" "1" \
   "$(P -c "$(SR "$(SUMMARY EVT-A true)")" 2>&1 | grep -c booth_event_switched_on || true)"
 expect "  → nothing deleted" "7" "$(P -c "select count(*) from booth_plays where event_code = 'EVT-A'")"
-expect "another event deletes while EVT-A is on" "ok" "$(sqlstate "$(SR "$(SUMMARY EVT-B true)")")"
-setting booth_event_code 0 "' EVT-A '"
-expect "a padded event code is still the same event (trimmed, as the backend reads it)" "BP409" "$(sqlstate "$(SR "$(SUMMARY EVT-A true)")")"
-setting booth_enabled 0 null
+expect "another event is refused too while the booth is on: BP409" "BP409" "$(sqlstate "$(SR "$(SUMMARY EVT-B true)")")"
+expect "  → nothing deleted" "1" "$(P -c "select count(*) from booth_plays where event_code = 'EVT-B'")"
+for padded in "E'EVT-A\\n'" "chr(160) || 'EVT-A' || chr(160)" "'OTHER-9'"; do
+  setting booth_event_code 0 "$padded"
+  expect "booth_event_code = $padded, booth_enabled = 1: BP409" "BP409" "$(sqlstate "$(SR "$(SUMMARY EVT-A true)")")"
+  expect "  → nothing deleted" "7" "$(P -c "select count(*) from booth_plays where event_code = 'EVT-A'")"
+done
+setting booth_event_code 0 "'EVT-A'"; setting booth_enabled 0 null
+expect "switched off: another event deletes" "ok" "$(sqlstate "$(SR "$(SUMMARY EVT-B true)")")"
 D="$(J EVT-A true)"
 expect "switched off: the delete returns the same summary the dry run gave" "t" "$(P -c "select '$D'::jsonb = '$S'::jsonb")"
+expect "  → nothing was recorded before this first purge" "t" "$(P -c "select j->'recorded' = 'null' from (select '$D'::jsonb j) s")"
 expect "  → only EVT-A's rows are gone" "0|1" \
   "$(P -c "select (select count(*) from booth_plays where event_code = 'EVT-A'), (select count(*) from booth_plays where event_code = 'OTHER-1')")"
-expect "a second delete returns plays 0" "0" "$(P -c "select j->>'plays' from (select '$(J EVT-A true)'::jsonb j) s")"
+expect "  → its summary is recorded once, without ids or tags" "1|0" \
+  "$(P -c "select count(*), count(*) filter (where summary::text ~ '\"(id|tag|recorded)\"') from booth_event_purges where event_code = 'EVT-A'")"
+for del in false true; do
+  R="$(J EVT-A $del)"
+  expect "a rerun (p_delete $del) returns plays 0 and the first purge's summary under recorded" "0|t|t" \
+    "$(P -c "select j->>'plays', j->'recorded'->'summary' = ('$D'::jsonb - 'recorded'), (j->'recorded'->>'purged_at')::timestamptz <= now()
+             from (select '$R'::jsonb j) s")"
+done
+expect "  → an empty rerun records nothing" "1" "$(P -c "select count(*) from booth_event_purges where event_code = 'EVT-A'")"
 
 echo "privileges"
 expect "anon cannot execute" "42501" "$(sqlstate "set role anon; $(SUMMARY EVT-A false)")"
 expect "authenticated cannot execute" "42501" "$(sqlstate "set role authenticated; $(SUMMARY EVT-A false)")"
 expect "service_role can" "ok" "$(sqlstate "$(SR "$(SUMMARY EVT-A false)")")"
+for role in anon authenticated; do
+  expect "$role cannot read booth_event_purges" "42501" "$(sqlstate "set role $role; select count(*) from booth_event_purges")"
+  expect "$role cannot write booth_event_purges" "42501" \
+    "$(sqlstate "set role $role; insert into booth_event_purges (event_code, summary) values ('EVT-Z', '{}')")"
+done
+expect "booth_event_purges: RLS on, no policy" "t|0" \
+  "$(P -c "select relrowsecurity, (select count(*) from pg_policies where tablename = 'booth_event_purges') from pg_class where relname = 'booth_event_purges'")"
 
 # Interleavings: one session runs in the background, the other in the foreground; clock_timestamp() stamps show
 # who waited for whom.
@@ -162,10 +193,14 @@ setting booth_enabled 0 null
 P -c "truncate probe"
 bg "$(SR "begin; $(SUMMARY EVT-C true); select pg_sleep(2); $(stamp purge_commit) commit;")" a; A=$!
 sleep 0.5
-P -c "$(SR "select * from booth_start_play('EVT-C'); $(stamp start_done)")" >/dev/null
+STARTED="$(P -c "$(SR "with s as (select * from booth_start_play('EVT-C')) select count(*) from s; $(stamp start_done)")")"
 wait "$A"
 expect "booth_start_play waited for the purge (same advisory lock)" "t" "$(waited purge_commit start_done)"
-expect "  → the new play is the only row, tag 1" "1|1" "$(P -c "select count(*), max(tag) from booth_plays where event_code = 'EVT-C'")"
+expect "  → and, the booth being off, started nothing: no row returned, none left" "0|0" \
+  "$STARTED|$(P -c "select count(*) from booth_plays where event_code = 'EVT-C'")"
+setting booth_enabled 1 null
+expect "with booth_enabled = 1 a start gets tag 1" "1" "$(P -c "$(SR "select play_tag from booth_start_play('EVT-C')")" | tail -1)"
+setting booth_enabled 0 null
 
 echo "interleaving: a score that commits while the purge waits on its row"
 P -c "delete from booth_plays where event_code = 'EVT-D'; $(play EVT-D 1 unavailable 0.3) $(play EVT-D 2 abandoned 0.1)"

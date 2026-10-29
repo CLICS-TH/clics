@@ -7,16 +7,29 @@ Run on the real mini-PC and touch panel, with the owner's phone hotspot, against
 Rehearsal plays are real `NFCME-2026` plays: they take tags from #001 and appear on the public board. Section 6
 deletes them, so opening day starts at Booth #001 with an empty board.
 
+## Before the freeze (by Sun 1 Nov 18:00, +07:00)
+
+Owner-gated production writes. Do them before the deploy freeze, not on the day.
+
+- [ ] **Booth migrations applied, in this order,** to the prod Supabase: re-apply `db/migration-booth-plays.sql`
+      (idempotent; it replaces `booth_start_play` with the version that refuses a start once the switch is off),
+      then apply `db/migration-booth-purge.sql` (`booth_event_summary` and the `booth_event_purges` record).
+- [ ] **Check, read-only:** `cd backend && node ../scripts/booth/purge-event.mjs --event FREEZE-CHECK` prints a
+      summary with `plays 0` and `dry run: nothing deleted`. "booth_event_summary is missing: apply
+      db/migration-booth-purge.sql first" means the purge migration is not applied.
+- [ ] **Check, read-only,** in the Supabase SQL editor:
+      `select position('booth_enabled' in prosrc) > 0 from pg_proc where proname = 'booth_start_play';` returns
+      `true`. `false` means `migration-booth-plays.sql` was not re-applied.
+- [ ] **The backend deploy has #217** and is live before the freeze. Its score log lines are what section 3
+      reads: with an older backend, `score-latency.mjs` finds 0 lines and fails.
+
 ## 0. Before you start
 
 - [ ] **Freeze held.** No deploy after Sun 1 Nov 18:00 (+07:00), only rollbacks. Check the newest deploy time of
       each service: `railway deployment list --service backend`, the same for `--service rimpl`, and the Portal and
       dashboard production deployments on Vercel. Anything newer than the freeze is either a rollback you can name
       or a stop.
-- [ ] **The backend deploy has #217.** Its score log lines are what section 3 reads: with an older backend,
-      `score-latency.mjs` finds 0 lines and fails.
-- [ ] **Purge function applied.** `db/migration-booth-purge.sql` is applied to the prod Supabase (owner-gated).
-      Without it, section 6's purge stops with "apply the migration first".
+- [ ] **The pre-freeze section is all ticked.** Rerun its two read-only checks: they still pass.
 - [ ] **Railway logged in.** `railway whoami` prints the owner's account (the CLI was logged out on 28 Oct). A
       rollback on the day needs it.
 - [ ] **Backend is the backend.** `curl -s https://backend-production-c12e4.up.railway.app/health/deep` reports

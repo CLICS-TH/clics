@@ -42,3 +42,19 @@ test('the purge function locks the switch rows the backend reads and the advisor
   expect(lockKey(purge)).toBe(lockKey(SQL));
   expect(lockKey(purge)).toBeDefined();
 });
+
+test('booth_start_play is defined only in the plays migration, and starts a play only while booth_enabled = 1', () => {
+  const purge = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-purge.sql'), 'utf8').replace(/--[^\n]*/g, '');
+  expect(purge).not.toMatch(/function\s+public\.booth_start_play/);
+  const body = /function public\.booth_start_play\(p_event text\)[\s\S]*?\$\$([\s\S]*?)\$\$/.exec(SQL)?.[1];
+  expect(body).toBeDefined();
+  expect(body).toContain(`key = '${BOOTH_SETTINGS.enabled}' and value = 1`);
+});
+
+test('booth_event_purges holds aggregates only, under the booth_plays event-code CHECK', () => {
+  expect([...(schemaFromSql().booth_event_purges ?? [])].sort()).toEqual(['event_code', 'id', 'purged_at', 'summary']);
+  const purge = fs.readFileSync(path.join(__dirname, '../../db/migration-booth-purge.sql'), 'utf8').replace(/--[^\n]*/g, '');
+  const check = (sql) => /check \(event_code ~ '([^']+)'\)/.exec(sql)?.[1];
+  expect(check(purge)).toBe(check(SQL));
+  expect(check(purge)).toBeDefined();
+});

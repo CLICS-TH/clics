@@ -62,13 +62,14 @@ test('purge-event refuses a bad --event before it loads the backend or reaches t
   }
 });
 
-test('purge-event against a fake backend: one rpc per run, the refusal, the delete, then an idempotent re-run', (t) => {
+// A stand-in for booth_event_summary() over a JSON file (the SQL itself is scripts/db/booth-purge-test.sh's job).
+// FAKE_RPC=lost commits the delete and its recorded summary, then throws as a dropped connection does.
+function fakeBackend(t, settings) {
   const dir = mkdtempSync(join(tmpdir(), 'booth-purge-'));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   mkdirSync(join(dir, 'src/lib'), { recursive: true });
   mkdirSync(join(dir, 'node_modules/dotenv'), { recursive: true });
   writeFileSync(join(dir, 'node_modules/dotenv/index.js'), 'module.exports = { config: () => ({}) };');
-  // A stand-in for booth_event_summary() over a JSON file (the SQL itself is scripts/db/booth-purge-test.sh's job).
   writeFileSync(join(dir, 'src/lib/supabase.js'), `
     const fs = require('fs');
     const DB = process.env.FAKE_DB;
@@ -80,14 +81,20 @@ test('purge-event against a fake backend: one rpc per run, the refusal, the dele
       save(db);
       if (process.env.FAKE_RPC === 'missing') return { data: null, error: { code: 'PGRST202', message: 'Could not find the function' } };
       if (process.env.FAKE_RPC === 'error') return { data: null, error: { code: '57014', message: 'canceling statement' } };
-      const on = db.settings.code === args.p_event && db.settings.enabled === 1;
-      if (args.p_delete && on) return { data: null, error: { code: 'BP409', message: 'booth_event_switched_on' } };
+      if (args.p_delete && db.settings.enabled === 1) return { data: null, error: { code: 'BP409', message: 'booth_event_switched_on' } };
+      const recorded = db.purges.filter((p) => p.event_code === args.p_event).at(-1) ?? null;
       const rows = db.booth_plays.filter((r) => r.event_code === args.p_event);
-      if (args.p_delete) { db.booth_plays = db.booth_plays.filter((r) => r.event_code !== args.p_event); save(db); }
       const n = (s) => rows.filter((r) => r.status === s).length;
-      return { data: { plays: rows.length, scored: n('scored'), unavailable: n('unavailable'), abandoned: n('abandoned'),
+      const summary = { plays: rows.length, scored: n('scored'), unavailable: n('unavailable'), abandoned: n('abandoned'),
         started: n('started'), ranked: 0, spend_usd: rows.length * 0.1, first_play_at: null, last_play_at: null,
-        spread: {}, domain_mean: {} }, error: null };
+        spread: {}, domain_mean: {} };
+      if (args.p_delete) {
+        db.booth_plays = db.booth_plays.filter((r) => r.event_code !== args.p_event);
+        if (rows.length) db.purges.push({ event_code: args.p_event, purged_at: '2026-12-06T03:04:05.123456+00:00', summary });
+        save(db);
+      }
+      if (process.env.FAKE_RPC === 'lost') throw new TypeError('fetch failed');
+      return { data: { ...summary, recorded: recorded && { purged_at: recorded.purged_at, summary: recorded.summary } }, error: null };
     }
     function from(table) {
       const filters = [];
@@ -106,7 +113,7 @@ test('purge-event against a fake backend: one rpc per run, the refusal, the dele
   const db = join(dir, 'db.json');
   const play = (i, event_code = 'NFCME-2026') => ({ id: String(i), event_code, status: i % 2 ? 'scored' : 'abandoned' });
   const plays = [...Array.from({ length: 21 }, (_, i) => play(i)), play(9999, 'OTHER-2025')];
-  writeFileSync(db, JSON.stringify({ booth_plays: plays, settings: { code: 'NFCME-2026', enabled: 1 }, calls: [] }));
+  writeFileSync(db, JSON.stringify({ booth_plays: plays, purges: [], settings, calls: [] }));
   const state = () => JSON.parse(readFileSync(db, 'utf8'));
   const run = (args, env = {}) => {
     try {
@@ -115,16 +122,22 @@ test('purge-event against a fake backend: one rpc per run, the refusal, the dele
       return { code: e.status, out: `${e.stdout}${e.stderr}` };
     }
   };
+  return { db, state, run };
+}
+
+test('purge-event against a fake backend: one rpc per run, the refusal, the delete, then an idempotent re-run', (t) => {
+  const { db, state, run } = fakeBackend(t, { code: 'NFCME-2026', enabled: 1 });
 
   const dry = run(['--event', 'NFCME-2026']);
   assert.equal(dry.code, 0);
   assert.match(dry.out, /plays 21 {2}scored 10/);
   assert.match(dry.out, /dry run: nothing deleted/);
+  assert.doesNotMatch(dry.out, /already purged/);
   assert.deepEqual(state().calls, [['booth_event_summary', { p_event: 'NFCME-2026', p_delete: false }]], 'one rpc call, no delete');
 
   const refused = run(['--event', 'NFCME-2026', '--delete']);
   assert.equal(refused.code, 2);
-  assert.match(refused.out, /refused: .*booth_enabled = 1/);
+  assert.match(refused.out, /refused: a booth event is switched on \(booth_enabled = 1\)/);
   assert.doesNotMatch(refused.out, /plays 21/, 'no summary printed for a refusal');
   assert.equal(state().booth_plays.length, 22, 'nothing deleted while switched on');
 
@@ -134,11 +147,13 @@ test('purge-event against a fake backend: one rpc per run, the refusal, the dele
   const failed = run(['--event', 'NFCME-2026', '--delete'], { FAKE_RPC: 'error' });
   assert.equal(failed.code, 1);
   assert.match(failed.out, /booth_event_summary failed: canceling statement/);
+  assert.match(failed.out, /may have committed\. Run the same command again/);
 
   writeFileSync(db, JSON.stringify({ ...state(), settings: { code: 'NFCME-2026', enabled: 0 }, calls: [] }));
   const deleted = run(['--event', 'NFCME-2026', '--delete']);
   assert.equal(deleted.code, 0);
   assert.match(deleted.out, /plays 21 {2}scored 10/, 'the summary printed is the one the delete returned');
+  assert.doesNotMatch(deleted.out, /already purged/, 'a first purge has nothing recorded before it');
   assert.match(deleted.out, /deleted 21 rows, 0 remain/);
   assert.deepEqual(state().calls, [['booth_event_summary', { p_event: 'NFCME-2026', p_delete: true }]], 'one rpc call does both');
   assert.deepEqual(state().booth_plays.map((r) => r.event_code), ['OTHER-2025'], 'other events are kept');
@@ -146,5 +161,23 @@ test('purge-event against a fake backend: one rpc per run, the refusal, the dele
   const again = run(['--event', 'NFCME-2026', '--delete']);
   assert.equal(again.code, 0);
   assert.match(again.out, /plays 0 /);
+  assert.match(again.out, /already purged at 2026-12-06T10:04:05\+07:00; the summary recorded then:\nBooth event NFCME-2026\nplays 21 {2}scored 10/);
   assert.match(again.out, /deleted 0 rows, 0 remain/);
+});
+
+test('purge-event: a delete that commits but loses its response says to rerun, and the rerun prints the recorded counts', (t) => {
+  const { state, run } = fakeBackend(t, { code: 'NFCME-2026', enabled: 0 });
+
+  const lost = run(['--event', 'NFCME-2026', '--delete'], { FAKE_RPC: 'lost' });
+  assert.equal(lost.code, 1);
+  assert.match(lost.out, /booth_event_summary failed: fetch failed\nThe delete may have committed\. Run the same command again to read the summary recorded for NFCME-2026\./);
+  assert.equal(state().booth_plays.length, 1, 'the delete did commit');
+
+  for (const args of [['--event', 'NFCME-2026'], ['--event', 'NFCME-2026', '--delete']]) {
+    const rerun = run(args);
+    assert.equal(rerun.code, 0, `exit 0 for ${args.join(' ')}`);
+    assert.match(rerun.out, /^Booth event NFCME-2026\nplays 0 /, 'the live summary first');
+    assert.match(rerun.out, /already purged at 2026-12-06T10:04:05\+07:00; the summary recorded then:\nBooth event NFCME-2026\nplays 21 {2}scored 10 {2}unavailable 0 {2}abandoned 11/,
+      `the recorded counts for ${args.join(' ')}`);
+  }
 });
