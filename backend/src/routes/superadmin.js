@@ -13,6 +13,7 @@ const { normalizeCanAudit } = require('../lib/dual-role');
 const { POSITIONS, checkSpecialty } = require('../lib/specialties');
 const { logEvent, logEventStrict } = require('../lib/audit');
 const retention = require('../services/retention');
+const booth = require('../services/booth');
 const { decryptJson } = require('../lib/crypto');
 const { probeRimplProvider, probeRimplDeep } = require('../services/rimpl-client');
 const { decisiveVerdict } = require('../services/agreement');
@@ -551,6 +552,23 @@ router.patch('/usage-settings', async (req, res) => {
   // Echo EVERY key the GET returns, so a client can `setState(res)` after a PATCH without losing fields.
   res.json({ standard_limit_usd, auditor_standard_limit_usd, api_budget_pool_usd, pilot_test_mode: pilot === 1, clinical_artifacts_enabled: artifacts === 1, peer_calibration_enabled: peer === 1, hold_result_until_audited: hold === 1, calibration_reveal_locked: revealLock === 1, comp_rate_thb, comp_cap_cles, min_auditors_per_cle,
     standard_limit_tokens, auditor_standard_limit_tokens, ple_max_transcript_tokens, ple_transcript_warn_pct, eval_drain_concurrency, eval_p50_seconds, eval_drain_exclude_councils });
+});
+
+// Booth Mode event (#214): the switch, the window, the per-play ceiling, and the event's plays and spend.
+router.get('/booth', async (_req, res) => {
+  const body = await booth.boothSettings();
+  if (!body) return res.status(502).json({ error: 'Could not read the booth settings — try again' });
+  res.json(body);
+});
+
+router.patch('/booth', async (req, res) => {
+  const result = await booth.updateBoothSettings(req.body);
+  if (result.refused === 'bad_request') return res.status(400).json({ error: result.error });
+  if (result.refused) return res.status(502).json({ error: 'Could not save the booth settings — try again' });
+  logEvent({ actorId: req.user.id, actorRole: 'superadmin', action: 'booth_settings', metadata: result.changed });
+  const body = await booth.boothSettings();
+  if (!body) return res.status(502).json({ error: 'Saved, but the booth settings could not be re-read — reload' });
+  res.json(body);
 });
 
 // ---------------------------------------------------------------------------------------------

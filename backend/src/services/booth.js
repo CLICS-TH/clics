@@ -83,6 +83,7 @@ const BoothTimeSchema = z.string().datetime({ offset: true }).refine((text) => !
 
 const UNAVAILABLE = Object.freeze({ body: Object.freeze({ status: 'unavailable' }) });
 const PAST_STARTED = new Set(['not_started', 'not_found']);
+const usd = (x) => Math.round(x * 1e6) / 1e6;
 
 function boothCase(code) {
   if (typeof code !== 'string' || !SAFE_EVENT_CODE.test(code)) return null;
@@ -101,20 +102,29 @@ function loadCase(code) {
 
 const instant = (text) => (BoothTimeSchema.safeParse(text).success ? new Date(text) : null);
 
-async function readBoothEvent() {
+async function readBoothRows() {
   const { data, error } = await supabase.from('app_settings').select('key, value, value_text')
     .in('key', Object.values(BOOTH_SETTINGS));
   if (error || !Array.isArray(data)) return null;
-  const rows = Object.fromEntries(data.map((r) => [r.key, r]));
-  const text = (key) => (typeof rows[key]?.value_text === 'string' && rows[key].value_text.trim()) || null;
+  return Object.fromEntries(data.map((r) => [r.key, r]));
+}
+
+const rowText = (rows, key) => (typeof rows[key]?.value_text === 'string' && rows[key].value_text.trim()) || null;
+
+function boothEvent(rows) {
   const ceiling = Number(rows[BOOTH_SETTINGS.ceilingUsd]?.value);
   return {
-    code: text(BOOTH_SETTINGS.code),
+    code: rowText(rows, BOOTH_SETTINGS.code),
     enabled: Number(rows[BOOTH_SETTINGS.enabled]?.value) === 1,
-    opensAt: instant(text(BOOTH_SETTINGS.opensAt)),
-    closesAt: instant(text(BOOTH_SETTINGS.closesAt)),
+    opensAt: instant(rowText(rows, BOOTH_SETTINGS.opensAt)),
+    closesAt: instant(rowText(rows, BOOTH_SETTINGS.closesAt)),
     ceilingUsd: Number.isFinite(ceiling) && ceiling > 0 ? ceiling : null,
   };
+}
+
+async function readBoothEvent() {
+  const rows = await readBoothRows();
+  return rows ? boothEvent(rows) : null;
 }
 
 function eventState(event, now) {
@@ -375,5 +385,77 @@ async function scorePlay(playId, input, now = new Date()) {
   return domains.success ? finish(playId, event, domains.data, rankable(dialogue)) : UNAVAILABLE;
 }
 
-module.exports = { BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, replySig, standings, boothStatus, boardFor, startPlay,
-  replyToStep, scorePlay };
+// Superadmin booth card (#214). An 'unavailable' play may still be scoring (scorePlay claims it before the AI call),
+// so the card counts plays and scored plays only and never reports 'unavailable' as a final outcome.
+const BoothSettingsPatch = z.object({
+  enabled: z.boolean().optional(),
+  opens_at: BoothTimeSchema.nullable().optional(),
+  closes_at: BoothTimeSchema.nullable().optional(),
+  ceiling_usd: z.number().positive().max(20).optional(),
+}).strict().refine((b) => Object.keys(b).length > 0, { message: 'No fields to update' });
+
+async function playTotals(code) {
+  if (!code) return { plays: 0, scored: 0, spend_usd: 0 };
+  const { data, error } = await supabase.from('booth_plays').select('status, spend_usd').eq('event_code', code);
+  if (error || !Array.isArray(data)) return { plays: null, scored: null, spend_usd: null };
+  return {
+    plays: data.length,
+    scored: data.filter((r) => r.status === 'scored').length,
+    spend_usd: usd(data.reduce((acc, r) => acc + Number(r.spend_usd ?? 0), 0)),
+  };
+}
+
+/** @returns {Promise<object | null>} null when the settings cannot be read */
+async function boothSettings(now = new Date()) {
+  const rows = await readBoothRows();
+  if (!rows) return null;
+  const event = boothEvent(rows);
+  const state = eventState(event, now);
+  return {
+    event_code: event.code,
+    enabled: event.enabled,
+    opens_at: rowText(rows, BOOTH_SETTINGS.opensAt),
+    closes_at: rowText(rows, BOOTH_SETTINGS.closesAt),
+    ceiling_usd: event.ceilingUsd,
+    state: state.open ? 'open' : state.reason,
+    ...(await playTotals(event.code)),
+  };
+}
+
+/** @returns {Promise<{ refused: 'bad_request', error: unknown } | { refused: 'unavailable' } | { changed: object }>} */
+async function updateBoothSettings(input) {
+  const parsed = BoothSettingsPatch.safeParse(input);
+  if (!parsed.success) return { refused: 'bad_request', error: parsed.error.flatten() };
+  const patch = parsed.data;
+  const rows = await readBoothRows();
+  if (!rows) return { refused: 'unavailable' };
+  const enabled = patch.enabled ?? Number(rows[BOOTH_SETTINGS.enabled]?.value) === 1;
+  const opens = patch.opens_at !== undefined ? patch.opens_at : rowText(rows, BOOTH_SETTINGS.opensAt);
+  const closes = patch.closes_at !== undefined ? patch.closes_at : rowText(rows, BOOTH_SETTINGS.closesAt);
+  if (opens && closes && instant(opens) && instant(closes) && instant(opens) >= instant(closes)) {
+    return { refused: 'bad_request', error: 'closes_at must be after opens_at' };
+  }
+  if (enabled && !(opens && closes)) {
+    return { refused: 'bad_request', error: 'A booth that is switched on needs both opens_at and closes_at' };
+  }
+  const updated_at = new Date().toISOString();
+  const row = (key, value, value_text = null) => ({ key, value, value_text, updated_at });
+  // The switch and both bounds are checked together above, so they are written together from the merged values:
+  // a patch that writes only its own field would combine with another request's field, checked against a read
+  // neither saw, into a window that closes before it opens. One upsert is one statement, so two writers land
+  // whole, last one wins. The rows go in the same key order every time, so the row locks never deadlock.
+  const touchesWindow = ['enabled', 'opens_at', 'closes_at'].some((k) => patch[k] !== undefined);
+  const upserts = [
+    touchesWindow && row(BOOTH_SETTINGS.enabled, enabled ? 1 : 0),
+    touchesWindow && row(BOOTH_SETTINGS.opensAt, 0, opens),
+    touchesWindow && row(BOOTH_SETTINGS.closesAt, 0, closes),
+    patch.ceiling_usd !== undefined && row(BOOTH_SETTINGS.ceilingUsd, patch.ceiling_usd),
+  ].filter(Boolean);
+  const { error } = await supabase.from('app_settings').upsert(upserts);
+  return error ? { refused: 'unavailable' } : { changed: patch };
+}
+
+module.exports = {
+  BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, replySig, standings, boothStatus, boardFor, startPlay, replyToStep,
+  scorePlay, boothSettings, updateBoothSettings,
+};
