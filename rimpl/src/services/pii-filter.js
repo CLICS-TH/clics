@@ -645,7 +645,7 @@ function applyBareNamePass(text, token) {
   const ordered = Object.keys(words).sort((a, b) => b.length - a.length);
   for (const word of ordered.filter((w) => !TH_LETTER_RE.test(w))) {
     const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    out = out.replace(new RegExp(`\\b${escaped}\\b`, 'g'), words[word]);
+    out = out.replace(new RegExp(`(?<![A-Za-z])${escaped}(?![A-Za-z])`, 'g'), words[word]); // Jaidee2 too
   }
   const thai = ordered.filter((w) => TH_LETTER_RE.test(w) && !/\s/.test(w));
   if (thai.length === 0) return out;
@@ -748,7 +748,7 @@ function applyClanSurnamePass(text, token) {
 // zero-width characters are removed up front by stripPii); a two-part "ณ อยุธยา"; a Latin surname
 // ("นายสมชาย Jaidee"); and the surname written BEFORE the given name ("ใจดี นายสมชาย"), for a word of at most
 // SURNAME_BEFORE_MAX letters (a longer run is a clause, not a surname). A trailing particle ("ใจดีครับ") does
-// not hide a later bare "ใจดี": every head of the word whose rest is vocabulary becomes an alias too.
+// not hide a later bare "ใจดี": the word with its trailing particles cut off becomes an alias too.
 // Only given-name tokens qualify: not a แซ่ clan surname, and not the token right after the นามสกุล keyword
 // (that one already IS the surname).
 const TH_POST_NAME_VERBS = [
@@ -784,12 +784,17 @@ function isClinicalRun(run) {
 const EN_NOT_SURNAME = new Set([
   'the', 'and', 'with', 'for', 'has', 'had', 'was', 'not', 'plan', 'admit', 'note', 'case', 'ward', 'bed',
   'room', 'day', 'post', 'pre', 'test', 'lab', 'labs', 'dose', 'stop', 'start', 'follow', 'visit', 'refer',
+  'dengue', 'covid', 'influenza', 'malaria', 'aspirin', 'warfarin', 'insulin', 'heparin', 'morphine',
 ]);
-const ZERO_WIDTH_RE = /[​-‍⁠﻿]/g;
-const SURNAME_SEP = '[ \\t\\u00A0\\u3000,，、/()（）\\-–—]+'; // never a newline: the next line is a new field
+// Drug-name endings (Amoxicillin, Paracetamol, Omeprazole). No romanised Thai surname ends in one.
+const EN_DRUG_SUFFIX_RE = /(?:cillin|mycin|cycline|statin|pril|sartan|olol|azole|oxacin|vir|mab|nib|amide|azepam|tidine|formin|profen|etamol|dipine|parin|xaban|sone|olone)$/i;
+// Invisible format characters (zero-width space / joiners, soft hyphen, bidi marks).
+const ZERO_WIDTH_RE = /\p{Cf}/gu;
+// Any whitespace but a line break (the next line is a new field), or list / bracket punctuation.
+const SURNAME_SEP = '(?:[^\\S\\r\\n\\u2028\\u2029]|[,，、/()（）\\-–—:"“”\'‘’])+';
 const SURNAME_BEFORE_MAX = 20;
 const TH_GIVEN_SURNAME_RE = new RegExp(
-  `(?<!นามสกุล\\s*)(\\[NAME-\\d+\\])(${SURNAME_SEP})(ณ${SURNAME_SEP}${TH_NAME}|${TH_NAME}|[A-Z][a-z]{2,}(?:-[A-Z][a-z]+)?)`,
+  `(?<!นามสกุล\\s*)(\\[NAME-\\d+\\])(${SURNAME_SEP})(ณ${SURNAME_SEP}${TH_NAME}|${TH_NAME}|(?:Na\\s+)?[A-Z][a-z]{2,}(?:-[A-Z][a-z]+)?)`,
   'g'
 );
 const TH_SURNAME_BEFORE_RE = new RegExp(
@@ -807,19 +812,28 @@ function givenNameTokens(token) {
   }
   return out;
 }
-// Bind a taken surname, and every head of it whose rest is vocabulary (ใจดีครับ → ใจดี), to `tok`.
+// Bind a taken surname to `tok`, and the surname with trailing polite particles cut off (ใจดีครับ → ใจดี),
+// keeping 3+ letters. Only particles: a head cut at any vocabulary word (แก้วใส → แก้ว, บุญมา → บุญ) would
+// mask ordinary words everywhere in the history. Linear in the word's length.
 function aliasSurname(token, surname, tok) {
   token.wordAlias('NAME', surname, tok);
   const parts = surname.split(new RegExp(SURNAME_SEP));
-  if (parts.length > 1) for (const p of parts) if (p.length >= 2) token.wordAlias('NAME', p, tok); // ณ อยุธยา
-  if (!TH_LETTER_RE.test(surname)) return;
-  for (let i = 2; i < surname.length; i++) {
-    if (isClinicalRun(surname.slice(i))) token.wordAlias('NAME', surname.slice(0, i), tok);
+  if (parts.length > 1) for (const p of parts) if (p.length >= 3) token.wordAlias('NAME', p, tok); // ณ อยุธยา
+  let head = surname;
+  for (let p = wordEndingAt(head, TH_PARTICLES); p && head.length - p.length >= 3; p = wordEndingAt(head, TH_PARTICLES)) {
+    head = head.slice(0, -p.length);
+    token.wordAlias('NAME', head, tok);
   }
+}
+// Longest entry of `list` that `s` ends with, or ''.
+function wordEndingAt(s, list) {
+  let best = '';
+  for (const w of list) if (w.length > best.length && s.endsWith(w)) best = w;
+  return best;
 }
 function isSurnameCandidate(word, full, wordStart) {
   if (MED_SHIELD.has(word)) return false;
-  if (/^[A-Z]/.test(word)) return !EN_NOT_SURNAME.has(word.toLowerCase());
+  if (/^[A-Z]/.test(word)) return !EN_NOT_SURNAME.has(word.toLowerCase()) && !EN_DRUG_SUFFIX_RE.test(word);
   if (/^ณ[^ก-๎]/.test(word)) return true; // ณ อยุธยา
   // "[NAME-1] นพ.[NAME-2]": the head of an abbreviated title, not a surname.
   if (TH_ABBREVIATED_TITLES.some((t) => full.startsWith(t, wordStart))) return false;

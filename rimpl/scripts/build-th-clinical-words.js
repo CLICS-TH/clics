@@ -10,12 +10,16 @@
 //      anchor fixtures, held-out and pilot cases, model runs, the quality bank) plus the PIS-7 rubric text
 //      (rimpl/src/lib/prompts.js, audit-dashboard/lib/pis7-rubric.ts). These hold no patient names.
 //   2. Each maximal Thai run is split with ICU's Thai dictionary (Intl.Segmenter). A word seen at least
-//      MIN_COUNT times is kept.
+//      MIN_COUNT times is kept if it is a real dictionary word of 3+ letters: ICU keeps it whole when it
+//      stands alone. That drops the syllable fragments ICU makes of an unknown word (กา, บิ, การก): short
+//      pieces combine into names (สี + หา, มา + ลา), so a 1-2 letter word enters only from SEED_WORDS or
+//      the hand lists in pii-filter.js.
 //   3. Plus SEED_WORDS: common symptom / history / exam / plan words a small corpus may not hold yet.
+//      Seeds are reviewed by hand and skip the corpus filters (หายใจ, ดีขึ้น, คอ, ขา).
 //   4. Surname safety: a word that IS a common surname component (TH_SURNAME_MORPHEMES, pii-names.th.js)
-//      would let a surname built from it and another list word through (มี + สุข), so it is dropped and
-//      replaced by its two-word forms seen at least MIN_COUNT times whose second word is no component
-//      either (ใจ → ใจสั่น; ดี → ดีขึ้น; never ใจดี). Given names are dropped too.
+//      would let a surname built from it through (มี + สุข), so it is dropped, as are given names. A word
+//      that begins or ends with a component (ตัวดี, สมผล) is kept only when it is frequent, seen at least
+//      TOUCH_MIN_COUNT times (ประเมิน, หัวใจ, วันนี้): a rare one is more likely a name.
 //
 // Run from anywhere:  node rimpl/scripts/build-th-clinical-words.js          (rewrites the file)
 //                     node rimpl/scripts/build-th-clinical-words.js --check  (exit 1 if it would change)
@@ -31,6 +35,7 @@ const OUT = path.join(REPO, 'rimpl', 'src', 'services', 'pii-clinical-words.th.j
 const JSON_ROOTS = ['scripts/calibration', 'scripts/quality'];
 const TEXT_FILES = ['rimpl/src/lib/prompts.js', 'audit-dashboard/lib/pis7-rubric.ts'];
 const MIN_COUNT = 3;
+const TOUCH_MIN_COUNT = 15;
 
 // Symptom / history / exam / plan words (each also passes the surname-safety filter below).
 const SEED_WORDS = [
@@ -40,7 +45,10 @@ const SEED_WORDS = [
   'หน้ามืด', 'ใจสั่น', 'ชา', 'คัน', 'ผื่น', 'ไข้สูง', 'หนาวสั่น', 'เสมหะ', 'ปัสสาวะ', 'อุจจาระ', 'เลือด',
   'น้ำหนัก', 'ผอม', 'นอนไม่หลับ', 'สับสน', 'กระสับกระส่าย', 'บ้าน', 'ตาเหลือง', 'ตัวเหลือง', 'ตามัว', 'หูอื้อ', 'กลืน',
   'สำลัก', 'แสบ', 'ร้อน', 'หนาว', 'เกร็ง', 'กระตุก', 'มึน', 'งง', 'ปาก', 'คอ', 'แขน', 'ขา', 'หลัง', 'เข่า',
-  'บ่น', 'จิตใจ', 'ตัวแดง', 'แดงทั้งตัว', 'ผื่นแดง', 'ดีขึ้น', 'แย่ลง', 'คงที่', 'ขัด', 'ศีรษะ', 'หน้าอก', 'ห้องน้ำ',
+  'บ่น', 'จิตใจ', 'ลง', 'ตา', 'โต', 'ตก', 'อด', 'นม', 'ตัวแดง', 'แดงทั้งตัว', 'ผื่นแดง', 'ดีขึ้น', 'แย่ลง', 'คงที่', 'ขัด', 'ศีรษะ', 'หน้าอก', 'ห้องน้ำ',
+  // short function / unit words (2 letters: corpus pieces this short are fragments, so they are seeded)
+  'ผม', 'ใน', 'จะ', 'ไป', 'ขอ', 'ผล', 'ชม', 'ลด', 'คน', 'รพ', 'ทำ', 'รอ', 'ดู', 'นะ', 'พอ', 'ละ', 'พบ',
+  'วันนี้', 'วันละ', 'วันที่', 'ทุกวัน', 'รายวัน', 'ปี', 'ที', 'คะ', 'ใด', 'จน', 'กม', 'กก', 'ลบ', 'ไว', 'นำ', 'รถ', 'บน', 'กด',
   // history
   'ความ', 'ประวัติ', 'เคย', 'เป็น', 'มี', 'ไม่', 'ได้รับ', 'ญาติ', 'มารดา', 'บิดา', 'ครอบครัว', 'โรค',
   'เบาหวาน', 'ความดัน', 'ไขมัน', 'หัวใจ', 'ไต', 'ตับ', 'มะเร็ง', 'หอบหืด', 'ผ่าตัด', 'ตั้งครรภ์', 'คลอด',
@@ -79,32 +87,22 @@ function collectStrings() {
 
 const MORPHEMES = new Set(TH_SURNAME_MORPHEMES);
 const usable = (w) => w.length >= 2 && !MORPHEMES.has(w) && !TH_GIVEN_NAMES.has(w);
+const wholeWord = (w) => [...segmenter.segment(w)].length === 1;
+const touchesMorpheme = (w) => TH_SURNAME_MORPHEMES.some((m) => w !== m && (w.startsWith(m) || w.endsWith(m)));
+const corpusUsable = (w, n) => w.length >= 3 && usable(w) && wholeWord(w) && (n >= TOUCH_MIN_COUNT || !touchesMorpheme(w));
 
 function build() {
   const strings = collectStrings();
   const counts = new Map();
-  const pairs = new Map(); // morpheme word -> Map(two-word form -> count)
   let tokens = 0;
   for (const s of strings) {
     for (const [run] of s.matchAll(THAI_RUN)) {
       tokens += 1;
-      const words = [...segmenter.segment(run)].map((x) => x.segment);
-      words.forEach((w, i) => {
-        counts.set(w, (counts.get(w) || 0) + 1);
-        const next = words[i + 1];
-        if (next === undefined || !MORPHEMES.has(w) || MORPHEMES.has(next)) return;
-        if (!pairs.has(w)) pairs.set(w, new Map());
-        const m = pairs.get(w);
-        m.set(w + next, (m.get(w + next) || 0) + 1);
-      });
+      for (const { segment } of segmenter.segment(run)) counts.set(segment, (counts.get(segment) || 0) + 1);
     }
   }
   const words = new Set();
-  for (const [w, n] of counts) {
-    if (n < MIN_COUNT) continue;
-    if (usable(w)) words.add(w);
-    else for (const [two, k] of pairs.get(w) || []) if (k >= MIN_COUNT && usable(two)) words.add(two);
-  }
+  for (const [w, n] of counts) if (n >= MIN_COUNT && corpusUsable(w, n)) words.add(w);
   for (const w of SEED_WORDS) if (usable(w)) words.add(w);
   const sorted = [...words].sort((a, b) => a.localeCompare(b, 'th') || a.length - b.length);
   return { sorted, strings: strings.length, tokens };
@@ -118,7 +116,8 @@ function render({ sorted, strings, tokens }) {
 // GENERATED by rimpl/scripts/build-th-clinical-words.js — do not edit by hand; edit the script's SEED_WORDS
 // or TH_SURNAME_MORPHEMES (pii-names.th.js) and rerun it.
 // Corpus: ${strings} Thai strings / ${tokens} Thai runs (${JSON_ROOTS.join(', ')}, ${TEXT_FILES.join(', ')});
-// every ICU word seen >= ${MIN_COUNT} times, plus seed words, minus surname components and given names.
+// every whole ICU word of 3+ letters seen >= ${MIN_COUNT} times that is no surname component or given name
+// (one that begins or ends with a component: >= ${TOUCH_MIN_COUNT} times), plus seed words.
 // ICU ${process.versions.icu}. ${sorted.length} words.
 //
 // Thai clinical / function words. The 'th-given-surname' pass (pii-filter.js) keeps a word next to a masked

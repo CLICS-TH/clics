@@ -423,6 +423,46 @@ describe('adversarial — bare unlabelled names', () => {
     expect(out).toMatch(/(\[NAME-\d+\]) \1/);
   });
 
+  // Security review of the fix round: Unicode spaces, a digit after a Latin alias, and surnames built from
+  // short vocabulary pieces or from a word that ends / begins with a surname component.
+  test.each([
+    ['นายสมชาย ใจดี', 'ใจดี'], ['นายสมชาย ใจดี', 'ใจดี'], ['นายสมชาย ใจดี', 'ใจดี'],
+    ['นายสมชาย สีหา', 'สีหา'], ['นายสมชาย มาลา', 'มาลา'], ['นายสมชาย สมผล', 'สมผล'], ['นายสมชาย ตัวดี', 'ตัวดี'],
+  ])('separator / vocabulary edge: %s (#224)', (input, frag) => {
+    expect(stripPii(input)).not.toContain(frag);
+  });
+  test.each([
+    ['นายสมชาย\u00ADใจดี', 'ใจดี'], ['นายสมชาย "ใจดี"', 'ใจดี'], ['นายสมชาย: ใจดี', 'ใจดี'],
+    ['นายสมชาย Na Ayutthaya', 'Ayutthaya'],
+  ])('soft hyphen, quotes, colon, Na + Latin: %s (#224)', (input, frag) => {
+    expect(stripPii(input)).not.toContain(frag);
+  });
+  // Review of the fix round: only trailing PARTICLES are cut off a taken surname for an alias. A head cut at
+  // any vocabulary word made ordinary words (แก้ว, บุญ, ใจ) into aliases across the whole history.
+  test.each([
+    ['นายสมชาย แก้วใส ดื่มน้ำวันละ 8 แก้ว', 'ดื่มน้ำวันละ 8 แก้ว'],
+    ['นายสมชาย บุญมา ไปทำบุญที่วัด', 'ไปทำบุญที่วัด'],
+  ])('a taken surname does not make its first word an alias: %s', (input, kept) => {
+    expect(stripPii(input)).toContain(kept);
+  });
+  test('a particle-glued surname does not mask a symptom in an earlier turn', () => {
+    const out = stripHistoryPii([{ content: 'หายใจหอบเหนื่อย ใจหวิว' }, { content: 'ผู้ป่วยคือนายสมชาย ใจดีครับ' }]);
+    expect(out[0].content).toBe('หายใจหอบเหนื่อย ใจหวิว');
+  });
+  test('a long glued word after a name is masked in linear time', () => {
+    const t = Date.now();
+    expect(stripPii('นายสมชาย ฮ' + 'กา'.repeat(2490))).not.toContain('กากา');
+    expect(Date.now() - t).toBeLessThan(500);
+  });
+  test.each(['Amoxicillin', 'Paracetamol', 'Omeprazole', 'Dengue'])('a Latin drug / disease %s after a name is not a surname', (drug) => {
+    const out = stripHistoryPii([{ content: `ผู้ป่วยแพ้ยา ${drug} มาก่อน` }, { content: `คุณสมชาย ${drug} ห้ามให้` }]);
+    expect(out.map((m) => m.content).join(' || ')).toBe(`ผู้ป่วยแพ้ยา ${drug} มาก่อน || คุณ[NAME-1] ${drug} ห้ามให้`);
+  });
+  test('a Latin surname alias folds in next to a digit (#224)', () => {
+    const out = stripHistoryPii([{ content: 'นายสมชาย Jaidee' }, { content: 'Jaidee2 โทรมา' }]).map((m) => m.content);
+    expect(out.join(' || ')).not.toContain('Jaidee');
+  });
+
   // #238: ordering and spelling paths through a history. Each one leaked on master 81eabc86.
   test.each([
     ['surname in an earlier turn than the full name', ['ใจดี ปวดหัว 2 วัน', 'สมชาย ใจดี HN 12345678'], 'ใจดี'],
