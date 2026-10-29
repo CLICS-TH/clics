@@ -372,17 +372,28 @@ async function scorePlay(playId, input, now = new Date()) {
 
   if (!(await claimAsUnavailable(playId, event))) return UNAVAILABLE;
 
+  // One line per outcome, timing the evaluator call alone: scripts/booth/score-latency.mjs reads them from
+  // `railway logs` for the rehearsal's p95 and provider check.
+  const startedAt = Date.now();
+  const unavailable = (ms, reason) => {
+    console.warn(`[booth] score unavailable play=${playId} ms=${ms} reason=${reason}`);
+    return UNAVAILABLE;
+  };
   let res;
   try {
     res = await rimplEvaluate({ ple_id: playId, transcript: dialogueTurns(kase, dialogue), patient_ref: null,
       chief_complaint: kase.vignette.th, shadow: false }, { timeoutMs: SCORE_TIMEOUT_MS });
   } catch (err) {
-    console.warn(`[booth] score unavailable for ${playId}: ${err.status || err.name}`);
-    return UNAVAILABLE;
+    return unavailable(Date.now() - startedAt, err.status || err.name);
   }
+  const ms = Date.now() - startedAt;
   await settle(playId, res, SCORE_RESERVE_USD);
   const domains = DomainsSchema.safeParse(res);
-  return domains.success ? finish(playId, event, domains.data, rankable(dialogue)) : UNAVAILABLE;
+  if (!domains.success) return unavailable(ms, 'schema');
+  const result = await finish(playId, event, domains.data, rankable(dialogue));
+  if (result === UNAVAILABLE) return unavailable(ms, 'finish');
+  console.info(`[booth] score scored play=${playId} ms=${ms} provider=${res.provider}`);
+  return result;
 }
 
 // Superadmin booth card (#214). An 'unavailable' play may still be scoring (scorePlay claims it before the AI call),

@@ -170,8 +170,9 @@ beforeEach(() => {
   rimplChat.mockImplementation(async () => ({ ...CHAT_OK }));
   rimplEvaluate.mockImplementation(async () => ({ ...EVAL_OK }));
   jest.spyOn(console, 'warn').mockImplementation(() => {});
+  jest.spyOn(console, 'info').mockImplementation(() => {});
 });
-afterEach(() => console.warn.mockRestore());
+afterEach(() => { console.warn.mockRestore(); console.info.mockRestore(); });
 
 const picked = (i, id) => {
   const o = KASE.steps[i].options.find((x) => x.id === id);
@@ -562,6 +563,30 @@ describe('POST /booth/plays/:id/score', () => {
     const res = await post(`/booth/plays/${play.id}/score`, FULL);
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ status: 'unavailable' });
+  });
+
+  describe('the score-latency log (#217: the rehearsal reads p95 and the provider from it)', () => {
+    const lines = (spy) => spy.mock.calls.map(([line]) => line).filter((l) => String(l).startsWith('[booth] score '));
+
+    test('a scored play logs one info line with its id, a whole-number ms and the provider', async () => {
+      const play = seedPlay();
+      await post(`/booth/plays/${play.id}/score`, FULL);
+      expect(lines(console.info)).toEqual([expect.stringMatching(new RegExp(`^\\[booth\\] score scored play=${play.id} ms=\\d+ provider=anthropic$`))]);
+      expect(lines(console.warn)).toEqual([]);
+    });
+
+    test.each([
+      ['a timeout', 'TimeoutError', () => Promise.reject(Object.assign(new Error('aborted'), { name: 'TimeoutError' }))],
+      ['rimpl 502', '502', () => Promise.reject(Object.assign(new Error('RIMPL /evaluate error: 502'), { status: 502 }))],
+      ['a body that fails the domain schema', 'schema', async () => ({ ...EVAL_OK, d3: 6 })],
+      ['a finish that matches no row', 'finish', null],
+    ])('%s logs one warn line with its id, a whole-number ms and reason %s', async (_name, reason, impl) => {
+      const play = seedPlay();
+      rimplEvaluate.mockImplementation(impl ?? (async () => { plays.delete(play.id); return { ...EVAL_OK }; }));
+      await post(`/booth/plays/${play.id}/score`, FULL);
+      expect(lines(console.warn)).toEqual([expect.stringMatching(new RegExp(`^\\[booth\\] score unavailable play=${play.id} ms=\\d+ reason=${reason}$`))]);
+      expect(lines(console.info)).toEqual([]);
+    });
   });
 
   test.each([
