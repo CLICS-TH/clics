@@ -71,6 +71,19 @@ test('the latches are sent as booleans, so a null row value cannot read as "not 
   expect(body.already_qualified).toBe(true);
 });
 
+test('booth_mode: true reaches the wire, or rimpl answers a booth turn in tutor mode', async () => {
+  await rimplChat({ ...CALL, booth_mode: true });
+  expect(sentBody().booth_mode).toBe(true);
+});
+
+test('a PLE turn sends no booth_mode key at all, so its body is unchanged by the booth', async () => {
+  for (const booth_mode of [undefined, false]) {
+    global.fetch = jest.fn(async () => okResponse());
+    await rimplChat({ ...CALL, booth_mode });
+    expect(sentBody()).not.toHaveProperty('booth_mode');
+  }
+});
+
 test('router_enabled and deep_mode reach the wire as booleans — a dropped deep_mode would un-stick a deep session', async () => {
   await rimplChat(CALL);
   expect(sentBody()).toMatchObject({ router_enabled: true, deep_mode: true });

@@ -260,12 +260,15 @@ h1, h2, h3 {
 .btn-lg { padding:13px 24px; font-size:15px; }
 .btn-ghost { background:var(--surface-card); color:var(--ink); border:1px solid var(--hairline); }
 .btn-ghost:hover { background:var(--surface-soft); }
+.btn-ghost:active { background:var(--hairline); }  /* --ink on it: 13.97:1 light, 12.29:1 dark */
 
 /* Nav */
 nav { background:var(--canvas); border-bottom:1px solid var(--hairline); color:var(--ink); padding:12px 24px; display:flex; align-items:center; justify-content:space-between; }
 nav .brand { font-family:var(--font-display); font-weight:600; font-size:18px; letter-spacing:-0.02em; color:var(--coral-text); }  /* 18px/600 is not WCAG-large; --coral was 3.11:1 */
 nav a { color:var(--muted); text-decoration:none; font-size:13px; margin-left:16px; }
 nav a:hover { color:var(--ink); }
+/* Pressed: the underline, so it differs from hover's colour change. */
+nav a:active { text-decoration:underline; }
 
 /* Forms */
 .form-group { margin-bottom:16px; }
@@ -622,9 +625,14 @@ html[data-mobile] .artifact-panel.open { transform:translateX(0); }
   cursor:pointer; transition:background .15s, color .15s, border-color .15s;
 }
 .toggle-btn:hover { color:var(--ink); border-color:var(--muted-soft); }
+.toggle-btn:active { background:var(--surface-card); color:var(--ink); }  /* 15.26:1 light, 14.88:1 dark */
 .toggle-btn svg { width:15px; height:15px; flex-shrink:0; }
 /* Icon-only on phones (label would crowd the nav), text shows ≥640px — mirrors the auditor toggle. */
 @media (max-width:639px) { .toggle-btn .toggle-label { display:none; } }
+/* On a page with the TH/EN switch (js/lang.js) boot.js labels the toggles in both languages; show one. */
+.toggle-label [data-lang="en"],
+html[data-manual-lang="en"] .toggle-label [data-lang="th"] { display:none; }
+html[data-manual-lang="en"] .toggle-label [data-lang="en"] { display:inline; }
 
 /* ===== Shared responsive primitives (utilities + coarse-pointer floors) ===== */
 /* ONE coarse-pointer rule replaces the scattered per-class `@media (hover:none)` bumps: every
@@ -823,20 +831,23 @@ html[data-mobile] .hero-stats { grid-template-columns: repeat(2, 1fr); }
    Geometry-only inline SVG under the serif wordmark — no <text> in SVG, so the lockup survives
    the fonts-blocked CI render. Both paths carry pathLength="100" (dash math is length-independent).
    currentColor inherits --coral-active, so the dark theme re-colors it with zero extra rules.
-   Reduced-motion default = fully drawn, static (animation is opt-in under no-preference). */
+   Reduced-motion default = fully drawn, static (animation is opt-in under no-preference).
+   The beat runs three times and has stopped by 4.8 s (WCAG 2.2.2: nothing moves past 5 s without a
+   pause control). Each cycle ends at the base style, so the logo comes to rest exactly as reduced
+   motion shows it: the drawn trace, no overlay. */
 .logo-ecg { display: block; margin: 10px auto 0; color: var(--coral-active); max-width: 100%; height: auto; }
 .logo-ecg .ecg-beat { opacity: 0; transform-box: fill-box; transform-origin: center; }
 @media (prefers-reduced-motion: no-preference) {
   .logo-ecg .ecg-line { stroke-dasharray: 100; stroke-dashoffset: 100; animation: ecg-draw 1.2s cubic-bezier(.4,0,.2,1) .15s forwards; }
-  .logo-ecg .ecg-beat { animation: ecg-beat 4s ease-in-out 1.6s infinite; }
+  .logo-ecg .ecg-beat { animation: ecg-beat 1.1s ease-in-out 1.5s 3; }
 }
 @keyframes ecg-draw { to { stroke-dashoffset: 0; } }
-/* Idle lub-dub: the QRS overlay flashes twice in the first ~14% of each 4s cycle, then rests. */
+/* Lub-dub: the QRS overlay flashes twice in the first half of each 1.1 s cycle, then rests. */
 @keyframes ecg-beat {
-  0%, 14%, 100% { opacity: 0; transform: scale(1); }
-  4%  { opacity: .9;  transform: scale(1.06); }
-  8%  { opacity: .15; transform: scale(1); }
-  11% { opacity: .6;  transform: scale(1.04); }
+  0%, 51%, 100% { opacity: 0; transform: scale(1); }
+  15% { opacity: .9;  transform: scale(1.06); }
+  29% { opacity: .15; transform: scale(1); }
+  40% { opacity: .6;  transform: scale(1.04); }
 }
 
 /* ===== Bilingual label hierarchy (#12a) — Thai primary, English smaller + dimmed =====

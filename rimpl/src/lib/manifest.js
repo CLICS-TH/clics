@@ -114,13 +114,14 @@ function redactDeep(value) {
 const promptEntry = (kind, text) => ({ label: V.promptLabel(kind, text), sha256: sha256(text) });
 
 // Every system prompt a /chat turn can send (lib/prompts.js chatSystemPrompt): 2 modes x artifacts x the
-// evidence marker, plus the rescue prompt that replaces all of them. Stored turns carry the label.
+// evidence marker, plus the rescue and booth prompts that replace all of them. Stored turns carry the label.
 const CHAT_PROMPT_VARIANTS = Object.freeze([
   ...['natural', 'examiner'].flatMap((mode) => [false, true].flatMap((artifacts) => [false, true].map((evidenceMarker) => ({
     name: `${mode}${artifacts ? '+artifacts' : ''}${evidenceMarker ? '+evidence' : ''}`,
     opts: { socratic: mode === 'examiner', artifacts, evidenceMarker },
   })))),
   { name: 'rescue', opts: { rescue: true } },
+  { name: 'booth', opts: { booth: true } },
 ]);
 
 const evaluators = () => POLICY.PROVIDER_NAMES.filter((n) => POLICY.servesPurpose(n, 'evaluate'));
@@ -172,6 +173,7 @@ function expectedCode() {
           env: T.CHAT_LIMIT_DEFAULTS.deep.env,
         } },
         evidence_line: { max_tokens: T.CHAT_LIMIT_DEFAULTS.evidenceLine.maxTokens },
+        booth: { max_tokens: T.CHAT_LIMIT_DEFAULTS.booth.maxTokens },
       },
       num_ctx: Object.fromEntries(localInstances.map(([name, { envPrefix }]) => [name, {
         default: POLICY.LOCAL_NUM_CTX_DEFAULT > 0 ? POLICY.LOCAL_NUM_CTX_DEFAULT : null,
