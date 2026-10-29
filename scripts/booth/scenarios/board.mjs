@@ -60,7 +60,9 @@ export default [
       h.check(label.includes(h.DEMO_LABEL.th) && label.includes(h.DEMO_LABEL.en), 'board: the panel carries the demo label, TH and EN');
       h.check(await page.locator('[data-board] button, [data-board] a').count() === 0, 'board: no controls in the panel');
       h.check(await page.locator('[data-landing-qr]').count() === 0, 'QR: hidden while js/config.js leaves it off');
-      h.check(stub.of(BOARD_KEY).length === 0, 'result: the board comes with the score, no extra request');
+      const playAt = stub.calls.findIndex((c) => c.key === 'POST /booth/plays');
+      h.check(playAt >= 0 && stub.calls.slice(playAt).every((c) => c.key !== BOARD_KEY),
+        'result: the board comes with the score, no extra request once the play starts');
       await k.close();
     },
   },
@@ -99,23 +101,14 @@ export default [
     },
   },
   {
-    name: 'loop board: mountLoopBoard renders GET /booth/board, refreshes, renders nothing on error, and stops',
+    name: 'loop board: the attract loop mounts GET /booth/board, a start stops it, and an error renders nothing',
     async run(h) {
       let fail = false;
       const stub = h.makeStub({ routes: { [BOARD_KEY]: () => (fail ? { status: 503, body: { reason: 'unavailable' } } : { status: 200, body: { board: BOARD } }) } });
       const k = await h.kiosk({ stub });
       const { page } = k;
       await k.shell('start');
-      await page.evaluate(async () => {
-        const { mountLoopBoard } = await import('/js/booth-board.js');
-        const { createBoothApi } = await import('/js/booth-api.js');
-        const slot = document.createElement('div');
-        slot.dataset.boothSlot = 'loop-board';
-        slot.style.cssText = 'position: fixed; left: 64px; right: 64px; bottom: 64px;';
-        document.body.append(slot);
-        window.__stopBoard = mountLoopBoard(slot, { api: createBoothApi(window.CLICS_API_URL) });
-      });
-      await page.waitForSelector('[data-booth-slot="loop-board"] [data-board]', { timeout: 10_000 });
+      await page.waitForSelector('.loop-stage [data-booth-slot="loop-board"] [data-board]', { timeout: 10_000 });
       await page.evaluate(() => document.fonts.ready);
       await h.screenCheck(page, 'loop board', { demo: true });
       await h.shot(page, 'loop-board');
@@ -125,15 +118,19 @@ export default [
       h.check(stub.of(BOARD_KEY).length === 1, 'loop board: one request on mount');
 
       fail = true;
-      await page.evaluate(() => { window.__stopBoard(); });
+      await k.tap('[data-action="start"]');
+      await k.screen('vignette');
       const before = stub.of(BOARD_KEY).length;
       await h.sleep(300);
-      h.check(stub.of(BOARD_KEY).length === before, 'loop board: stop() ends the refreshes');
+      h.check(stub.of(BOARD_KEY).length === before && await page.locator('[data-booth-slot="loop-board"]').count() === 0,
+        'loop board: a start leaves the loop and stop() ends the refreshes');
 
       await page.evaluate(async () => {
         const { mountLoopBoard } = await import('/js/booth-board.js');
         const { createBoothApi } = await import('/js/booth-api.js');
-        const slot = document.querySelector('[data-booth-slot="loop-board"]');
+        const slot = document.createElement('div');
+        slot.dataset.boothSlot = 'loop-board';
+        document.body.append(slot);
         window.__stopBoard = mountLoopBoard(slot, { api: createBoothApi(window.CLICS_API_URL) });
       });
       await page.waitForFunction(() => document.querySelector('[data-booth-slot="loop-board"]').childElementCount === 0, null, { timeout: 10_000 });
