@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { z } = require('zod');
-const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = require('../services/pii-filter');
+const { stripPii, stripHistoryPii, primeRegistry, deriveHintTokens, makeRegistry } = require('../services/pii-filter');
 const { MAX_TURN_CHARS } = require('../lib/turn-limits');
 
 // POST /deidentify — the de-identified copy of a stored transcript, for a HUMAN reader who must not
@@ -39,6 +39,7 @@ router.post('/', (req, res) => {
   try {
     const hints = deriveHintTokens(patient_ref);
     const registry = makeRegistry();
+    primeRegistry([chief_complaint || '', ...messages.map((m) => m.content)], registry, hints); // #238
     // Chief complaint FIRST: see the header. Empty string stays empty (stripPii returns it as is).
     const cleanChiefComplaint = chief_complaint ? stripPii(chief_complaint, registry, hints) : chief_complaint;
     const cleanMessages = stripHistoryPii(messages, hints, registry)

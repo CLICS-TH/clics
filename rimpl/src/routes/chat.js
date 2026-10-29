@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { z } = require('zod');
-const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = require('../services/pii-filter');
+const { stripPii, stripHistoryPii, primeRegistry, deriveHintTokens, makeRegistry } = require('../services/pii-filter');
 const { ragLookup } = require('../services/rag');
 const { callAI, providerSupportsThinking, supportsThinking } = require('../services/ai');
 const { routeTurn } = require('../services/router');
@@ -82,6 +82,8 @@ const ChatSchema = z.object({
 // string to the model (the RAG lookup and the AI call must see identical de-identified text).
 function deidentifyTurn({ chiefComplaint, history, message, hints }) {
   const registry = makeRegistry();
+  // Every surname found anywhere in the turn masks every other mention, in the same order as below (#238).
+  primeRegistry([chiefComplaint || '', ...history.map((m) => m.content), message], registry, hints);
   const cleanChiefComplaint = chiefComplaint ? stripPii(chiefComplaint, registry, hints) : '';
   const cleanHistory = stripHistoryPii(history, hints, registry);
   const cleanMessage = stripPii(message, registry, hints);

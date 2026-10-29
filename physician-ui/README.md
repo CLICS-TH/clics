@@ -45,4 +45,26 @@ when on localhost, and the prod URLs otherwise.
 - **Auth:** the stored `clics_token` *is* the Supabase session token — never call `auth.signOut()` after
   storing it.
 
+## Booth loop files
+
+The booth's idle screen (`/booth`) plays the files listed in `public/booth-loop/manifest.json`, in order:
+
+```json
+{ "items": [
+  { "type": "image", "src": "/booth-loop/forum-results.png", "seconds": 10 },
+  { "type": "video", "src": "/booth-loop/promo.mp4" }
+] }
+```
+
+- Drop the file in `public/booth-loop/` and list it in the manifest. An image needs `seconds` (1 to 120); a
+  video plays to its end. File names may have spaces and Thai; write them as named. Anything else, or a `src`
+  outside `/booth-loop/`, is skipped with a `booth loop: skipped manifest item` warning in the console.
+- Portrait 1080×1920. Videos are H.264 MP4 with no sound track (the booth plays them muted).
+- The booth caches loop files and keeps playing them offline. Each time it reads the manifest online it asks
+  the server whether each cached file changed (ETag), so a file replaced under the same name plays from the next
+  pass of the loop; a file taken out of the manifest is dropped from the cache.
+- The booth also keeps the case of the last play started. Offline it still plays the loop, under the offline bar
+  with no Tap-to-try: a play needs the server to start and to score, so none starts until the network is back.
+- Deploy before the event freeze: the booth only sees files that are live on Vercel.
+
 Deploy: `vercel --prod --yes`. See [../docs/deployment.md](../docs/deployment.md).

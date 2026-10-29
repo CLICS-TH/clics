@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { z } = require('zod');
-const { stripPii, stripHistoryPii, deriveHintTokens, makeRegistry } = require('../services/pii-filter');
+const { stripPii, stripHistoryPii, primeRegistry, deriveHintTokens, makeRegistry } = require('../services/pii-filter');
 const { seedWithChiefComplaint } = require('../lib/transcript');
 const { MAX_TURN_CHARS } = require('../lib/turn-limits');
 const { callAI } = require('../services/ai');
@@ -72,6 +72,9 @@ router.post('/', async (req, res) => {
     // as the discussion grows.
     const registry = makeRegistry();
     seedWithChiefComplaint(registry, chief_complaint, hints);
+    // Every surname found anywhere (transcript, discussion, question) masks every other mention (#238).
+    primeRegistry([chief_complaint || '', ...transcript.map((m) => m.content), ...history.map((m) => m.content), message],
+      registry, hints);
     // De-identify the transcript BEFORE it reaches the cloud (it is stored raw on-prem). Each turn
     // re-sends it as grounding — the auditor's separate budget pool bounds the cost.
     const cleanTranscript = stripHistoryPii(transcript, hints, registry)

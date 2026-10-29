@@ -23,7 +23,7 @@ const REFUSAL = {
 function send(res, result, ok = 200) {
   if ('body' in result) return res.status(ok).json(result.body);
   const [status, error] = REFUSAL[result.refused];
-  return res.status(status).json({ error, reason: result.refused });
+  return res.status(status).json({ error, reason: result.refused, ...(result.reply_sig ? { reply_sig: result.reply_sig } : {}) });
 }
 
 // Express 4 does not catch a rejected async handler.
@@ -40,6 +40,7 @@ router.use('/plays', limit(60_000, PLAY_CALLS_PER_MIN, 'The booth is busy. Slow 
 router.param('id', (_req, res, next, id) => (UUID_RE.test(id) ? next() : send(res, { refused: 'not_found' })));
 
 router.get('/status', route(() => booth.boothStatus()));
+router.get('/board', route(() => booth.boardFor()));
 router.post('/plays', route(() => booth.startPlay(), 201));
 router.post('/plays/:id/reply', route((req) => booth.replyToStep(req.params.id, req.body)));
 router.post('/plays/:id/score', route((req) => booth.scorePlay(req.params.id, req.body)));
