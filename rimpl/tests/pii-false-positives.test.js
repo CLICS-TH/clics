@@ -152,7 +152,7 @@ describe('bare surname after a masked Thai given name (#224) — clinical phrase
   });
 
   // Review of #224: 26 name + clinical phrases the round-1 deny list turned into "[NAME-1] [NAME-1]".
-  // They now survive through the measured lead list (scripts/build-th-clinical-leads.js).
+  // They survive because every word in them is clinical vocabulary (scripts/build-th-clinical-words.js).
   test.each([
     'นายสมชาย แพ้ยาเพนนิซิลลิน', 'นายสมชาย ชักเกร็ง 2 ครั้ง', 'นายสมชาย ซึมลง', 'นายสมชาย หายใจเหนื่อย',
     'นายสมชาย หมดสติ', 'นายสมชาย เข้ารับการรักษา', 'นายสมชาย ความดันสูง', 'นายสมชาย ประวัติเบาหวาน',
@@ -161,6 +161,13 @@ describe('bare surname after a masked Thai given name (#224) — clinical phrase
     'นายสมชาย เบื่ออาหาร', 'นายสมชาย ซีด', 'นายสมชาย อ่อนเพลีย', 'นายสมชาย จุกแน่นท้อง', 'นายสมชาย แน่นหน้าอก',
   ])('%s keeps the clinical phrase', (input) => {
     expect(stripPii(input)).toBe(input.replace('สมชาย', '[NAME-1]'));
+  });
+  // Gate of PR #232, finding 4: the prefix-free rule must not mask these, which master keeps.
+  test.each([
+    'สมชาย บ่นเหนื่อย', 'นายสมชาย ฟอกไต', 'นายสมชาย ขาบวม', 'นายสมชาย แดงทั้งตัว', 'นางสมศรี สามีเล่าว่าหมดสติ',
+    'สมชาย ดีขึ้น', 'นายสมชาย คงที่', 'ผู้ป่วย นายสมชาย มาด้วยไข้', 'ตรวจ นายสมชาย', 'นายสมชาย BP 120/80',
+  ])('%s keeps the clinical words', (input) => {
+    expect(stripPii(input)).toBe(input.replace(/สม(ชาย|ศรี)/, '[NAME-1]'));
   });
   test.each(['สั่งยา', 'วินิจฉัย', 'ส่งต่อ', 'แนะนำให้นอนพัก', 'เห็นว่า'])('นพ.สมชาย %s keeps the plan / opinion', (rest) => {
     expect(stripPii(`นพ.สมชาย ${rest}`)).toBe(`นพ.[NAME-1] ${rest}`);

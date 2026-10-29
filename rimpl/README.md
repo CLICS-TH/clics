@@ -37,11 +37,11 @@ Every request must carry the `x-internal-token` shared secret (matched against t
   `audit-dashboard/lib/pis7-rubric.ts` — **change both together** or human raters and the AI evaluator
   drift apart (which corrupts ICC).
 - **Known PII gap:** `pii-filter.js` masks labelled identifiers (names with a title/anchor, dates, HN,
-  ward) but a **bare, unlabelled Thai surname** with no masked given name right before it (`ใจดี
-  มาด้วยไข้`; after a masked given name it folds into that `[NAME-n]` since #224, unless it begins
-  with a clinical / verb lead such as `มี…` or `รักษา…` — the leads are measured from the repo's Thai
-  clinical corpus by `scripts/build-th-clinical-leads.js`), or a **bare English name with no title** (`John Smith
-  presented…`), can slip through. Mitigated by structured patient intake +
+  ward) but a **bare, unlabelled Thai surname** with no masked given name beside it (`ใจดี
+  มาด้วยไข้`; next to a masked given name it folds into that `[NAME-n]` since #224, unless the whole word
+  is clinical vocabulary measured from the repo's Thai corpus by `scripts/build-th-clinical-words.js` —
+  so a surname that is also an everyday phrase, such as `ปลอดภัย`, still passes), or a **bare English name
+  with no title** (`John Smith presented…`), can slip through. Mitigated by structured patient intake +
   physician guidance; the full reversible-pseudonym table is ROADMAP P2. Treat any change here as
   security-sensitive and run `npm test` (the PII-leak adversarial suite).
 - **Reproducibility:** AI evaluations are tagged `CCME_LLM_v8.0`. If you change the pinned Claude model

@@ -338,16 +338,18 @@ describe('adversarial — bare unlabelled names', () => {
     ]).map(m => m.content);
     expect(out).toEqual(['นาย[NAME-1] [NAME-1] มาด้วยไข้', '[NAME-1] บอกว่ายังมีไข้']);
   });
-  test('the captured surname folds in later only as a WHOLE word, never inside another word (#224)', () => {
+  test('the captured surname folds in glued to other text, unless that run is clinical prose (#224, #238)', () => {
     const out = stripHistoryPii([
       { role: 'physician', content: 'นายสมชาย ใจดี มาด้วยไข้' },
       { role: 'physician', content: 'จิตใจดีขึ้น ให้ยากันชักเกร็ง' },
       { role: 'physician', content: 'ติดตาม ใจดี. นัด [NAME-9]ใจดี 2 สัปดาห์' },
+      { role: 'physician', content: 'ญาติของใจดีโทรมา' },
     ]).map(m => m.content);
     expect(out).toEqual([
       'นาย[NAME-1] [NAME-1] มาด้วยไข้',
-      'จิตใจดีขึ้น ให้ยากันชักเกร็ง',
+      'จิตใจดีขึ้น ให้ยากันชักเกร็ง', // จิตใจ + ดีขึ้น: every word is clinical vocabulary
       'ติดตาม [NAME-1]. นัด [NAME-9][NAME-1] 2 สัปดาห์',
+      'ญาติของ[NAME-1]โทรมา',
     ]);
   });
   test('a word that is only captured as a surname does not mask later prose that contains it (#224)', () => {
@@ -366,7 +368,6 @@ describe('adversarial — bare unlabelled names', () => {
     expect(stripPii(input)).toBe(expected);
   });
   // Common native surnames, several built on words that also open clinical text (ทอง, ใจ, แก้ว, สุข).
-  // The measured clinical-lead list must not block any of them.
   test.each(['ใจดี', 'ศรีสุข', 'วงศ์ใหญ่', 'ทองดี', 'สุขสวัสดิ์', 'รัตนพันธ์', 'บุญมา', 'แก้วมณี'])(
     'common surname %s after a masked given name is masked (#224)', (surname) => {
       for (const input of [`นายสมชาย ${surname} มาด้วยไข้`, `สมชาย ${surname}`, `นพ.สมศักดิ์ ${surname}.`]) {
@@ -375,11 +376,68 @@ describe('adversarial — bare unlabelled names', () => {
         expect(out).toMatch(/(\[NAME-\d+\]) \1/);
       }
     });
-  test('no generated clinical lead is a prefix of a common surname component (#224)', () => {
-    const { TH_CORPUS_CLINICAL_LEADS } = require('../src/services/pii-clinical-leads.th');
-    const { TH_SURNAME_LEAD_MORPHEMES } = require('../src/services/pii-names.th');
-    const blocking = TH_CORPUS_CLINICAL_LEADS.filter((lead) => TH_SURNAME_LEAD_MORPHEMES.some((m) => m.startsWith(lead)));
-    expect(blocking).toEqual([]); // rerun rimpl/scripts/build-th-clinical-leads.js after editing the morphemes
+  test('no clinical vocabulary word is a surname component or a given name (#224)', () => {
+    const { TH_CORPUS_CLINICAL_WORDS } = require('../src/services/pii-clinical-words.th');
+    const { TH_SURNAME_MORPHEMES, TH_GIVEN_NAMES } = require('../src/services/pii-names.th');
+    const morphemes = new Set(TH_SURNAME_MORPHEMES);
+    // rerun rimpl/scripts/build-th-clinical-words.js after editing pii-names.th.js
+    expect(TH_CORPUS_CLINICAL_WORDS.filter((w) => morphemes.has(w) || TH_GIVEN_NAMES.has(w))).toEqual([]);
+  });
+
+  // INDEPENDENT SAMPLE (gate of PR #232). Native Thai surnames written from general knowledge, NOT drawn from
+  // TH_SURNAME_MORPHEMES, TH_CORPUS_CLINICAL_WORDS or anything build-th-clinical-words.js reads; the first row
+  // is the gate's own probe list. Never tune a list to this sample — a leak here is a finding, not a fixture
+  // to edit. Each surname is tried in every spelling the pass must cover.
+  const INDEPENDENT_SURNAMES = [
+    'มีสุข', 'ไตรรัตน์', 'ใบหยก', 'พบสุข', 'โอภาส', 'กมลรัตน์', 'ชมชื่น', 'หาญกล้า', 'รอดภัย', 'ใจดี',
+    'รักไทย', 'ปานทอง', 'คงมั่น', 'เย็นใจ', 'ยืนยง', 'อยู่สุข', 'มากมูล', 'พูลผล', 'เพิ่มพูน', 'ขำดี', 'หมื่นไวย',
+    'ชูศรี', 'ปิ่นทอง', 'กล่อมจิต', 'ประทุมทอง', 'นิ่มนวล', 'มีทรัพย์', 'มีบุญ', 'ทาสี', 'โพธิ์ทอง', 'โพธิ์ศรี',
+    'จันทร์หอม', 'สีดา', 'คำแหง', 'พรมมา', 'ดวงดี', 'ดวงแก้ว', 'เพียรดี', 'หนูแก้ว', 'บัวขาว', 'สายสุข', 'เกตุแก้ว',
+    'สุดใจ', 'ยิ้มแย้ม', 'อิ่มเอม', 'สวนแก้ว', 'แสนดี', 'กลิ่นหอม', 'ทองมา', 'ชื่นชม', 'มั่นคง', 'ภู่ระหงษ์', 'พึ่งบุญ',
+    'กาญจนวงศ์', 'ลือชา', 'ขวัญเมือง', 'สิงห์ทอง', 'เสือเหลือง', 'ช้างเผือก', 'ม่วงงาม', 'ไกรสร', 'สมใจ', 'จงเจริญ',
+    'ใจงาม', 'หมั่นเพียร', 'ทรงศักดิ์', 'บุญยืน', 'คำมา', 'ดีพร้อม', 'ใจซื่อ', 'สุขสบาย', 'หายโศก', 'เนียมหอม',
+    'อุ่นเรือน', 'ศรีเมือง', 'แก่นจันทร์', 'ถนอมศักดิ์', 'เทียนทอง', 'วงศ์ไทย', 'บำรุงสุข', 'ผลดี',
+  ];
+  // Same sample, the surnames that are ALSO everyday phrases built wholly of clinical vocabulary ("นายสมชาย
+  // ปลอดภัย" = "Mr Somchai is safe"). No word list can tell them from the clinical statement, so they still
+  // leak: docs/MIDDLEWARE-KNOWN-GAPS.md, owner decision pending. test.failing turns red the day they are masked.
+  const PHRASE_SURNAMES = ['อยู่เย็น', 'มีมาก', 'ตั้งใจ', 'ปลอดภัย', 'แข็งแรง', 'อยู่ดี', 'รอดพ้น', 'เกิดผล'];
+  const SURNAME_SPELLINGS = (x) => [
+    `นายสมชาย ${x} มาด้วยไข้`, `สมชาย ${x}`, `นพ.สมศักดิ์ ${x}.`, `นายสมชาย,${x}`, `นายสมชาย (${x})`,
+    `นายสมชาย​${x}`, `นายสมชาย-${x}`, `นายสมชาย/${x}`, `${x} นายสมชาย`, `ชื่อ สมชาย ${x}`,
+  ];
+  test.each(INDEPENDENT_SURNAMES)('independent sample: surname %s never leaves rimpl, in any spelling (#224)', (surname) => {
+    for (const input of SURNAME_SPELLINGS(surname)) expect([input, stripPii(input)]).toEqual([input, expect.not.stringContaining(surname)]);
+  });
+  test.failing.each(PHRASE_SURNAMES)('KNOWN GAP: phrase surname %s is masked (#224)', (surname) => {
+    expect(stripPii(`นายสมชาย ${surname}`)).not.toContain(surname);
+  });
+  test.each([
+    ['นายสมชาย ณ อยุธยา', 'อยุธยา'],
+    ['นายสมชาย ณ อยุธยา มาด้วยไข้', 'อยุธยา'],
+    ['นายสมชาย Jaidee', 'Jaidee'],
+    ['สมชาย Jaidee-Somboon', 'Somboon'],
+  ])('multi-part and Latin surnames are masked whole: %s (#224)', (input, frag) => {
+    const out = stripPii(input);
+    expect(out).not.toContain(frag);
+    expect(out).toMatch(/(\[NAME-\d+\]) \1/);
+  });
+
+  // #238: ordering and spelling paths through a history. Each one leaked on master 81eabc86.
+  test.each([
+    ['surname in an earlier turn than the full name', ['ใจดี ปวดหัว 2 วัน', 'สมชาย ใจดี HN 12345678'], 'ใจดี'],
+    ['particle glued to the surname', ['นายสมชาย ใจดีครับ', 'ใจดี มาด้วยไข้'], 'ใจดี'],
+    ['two-word labelled name, then a new surname', ['ชื่อ สมชาย ใจดี', 'สมชาย ทองคำ'], 'ทองคำ'],
+    ['later mention glued to other text', ['นายสมชาย ใจดี ญาติของใจดีโทรมา'], 'ใจดี'],
+    ['surname written before the given name', ['ใจดี นายสมชาย', 'ญาติ ใจดี โทรมา'], 'ใจดี'],
+  ])('history: %s never leaks (#238)', (_label, turns, frag) => {
+    const out = stripHistoryPii(turns.map((content) => ({ role: 'physician', content }))).map((m) => m.content);
+    expect(out.join(' || ')).not.toContain(frag);
+  });
+  test('history: the clinical text around the folded surname survives (#238)', () => {
+    const out = stripHistoryPii(['ใจดี ปวดหัว 2 วัน', 'สมชาย ใจดี HN 12345678']
+      .map((content) => ({ role: 'physician', content }))).map((m) => m.content);
+    expect(out).toEqual(['[NAME-1] ปวดหัว 2 วัน', '[NAME-1] [NAME-1] [HN-1]']);
   });
 });
 

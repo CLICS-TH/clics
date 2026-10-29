@@ -385,7 +385,8 @@ describe('stripPii — Thai gazetteer backstop (no hints)', () => {
 // Chinese-Thai clan surnames (แซ่X) — masked VERBATIM in any position, because
 // the แซ่ prefix is an unambiguous surname marker (never clinical text). Closes
 // the bare-surname leak after a title-led given name, incl. the glued form.
-// Native-surname recall is the intake-hint pass's job (see SCOPE in pii-names.th.js).
+// Native surnames: the intake-hint pass, or the 'th-given-surname' pass next to a
+// masked given name (see SCOPE in pii-names.th.js).
 // ---------------------------------------------------------------------------
 describe('stripPii — Chinese-Thai clan surnames (แซ่)', () => {
   test('a bare surname after a title-led given name is masked (the documented leak)', () => {
