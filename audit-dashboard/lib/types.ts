@@ -368,6 +368,22 @@ export interface RaterSpread {
   per_auditor: { auditor_id: string; n: number; mean: number | null; sd: number | null; min: number | null; max: number | null }[];
 }
 
+// GET / PATCH /admin/booth (superadmin, #214). Mirrors boothSettings() in backend/src/services/booth.js.
+// opens_at / closes_at are the stored text, always with an explicit offset. A null count is a failed read,
+// not zero. `state` is why the kiosk is or is not taking plays right now.
+export type BoothState = 'open' | 'off' | 'not_yet' | 'ended' | 'misconfigured';
+export interface BoothSettings {
+  event_code: string | null;
+  enabled: boolean;
+  opens_at: string | null;
+  closes_at: string | null;
+  ceiling_usd: number | null;
+  state: BoothState;
+  plays: number | null;
+  scored: number | null;
+  spend_usd: number | null;
+}
+
 // GET / PATCH /admin/usage-settings (superadmin). ONE definition, shared by the overview page, the users
 // page and the Local AI capacity card, so a setting cannot be typed three different ways. The $ budget
 // keys were always here; the token / transcript / evaluation-drain keys arrived with

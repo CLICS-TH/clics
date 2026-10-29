@@ -18,6 +18,7 @@ import { StatStrip, type Stat } from '@/components/StatStrip';
 import { IccPanel } from '@/components/IccPanel';
 import { AiProviderPanel } from '@/components/AiProviderPanel';
 import { LocalAiCapacityCard } from '@/components/LocalAiCapacityCard';
+import { BoothCard } from '@/components/BoothCard';
 import { Skeleton, CardGridSkeleton } from '@/components/Skeleton';
 import { useAuthUser } from '@/lib/client-store';
 import { radioKeys } from '@/lib/radio-keys';
@@ -530,6 +531,10 @@ export default function OverviewPage() {
           </button>
         </div>
       </section>
+
+      {/* Booth Mode (#214): its own component, reading /admin/booth, because the event carries a window and
+          a ceiling as well as its switch. */}
+      <BoothCard />
 
       {/* Data export — one XLSX workbook, a sheet per category (PLEs / AI evaluations / Auditor scores /
           Compensation / Participants). Pseudonymized (no names) so it honors the PII boundary. */}
