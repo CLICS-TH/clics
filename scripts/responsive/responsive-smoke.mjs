@@ -67,6 +67,7 @@ const DARK_WIDTHS = new Set([320, 768, 1440]);
 const PAGES = [
   // The public Landing page; signed out, so it renders instead of forwarding.
   { path: '/', token: false, label: 'landing', dark: true },
+  { path: '/privacy', token: false, label: 'privacy', dark: true },
   { path: '/login', token: false, label: 'login' },
   { path: '/forgot', token: false, label: 'forgot' },
   { path: '/guest-chat', token: false, label: 'guest-chat' },
