@@ -270,6 +270,9 @@ const AUDIT_OVERCLAIM = new RegExp([
   /(?<!พยายาม)บันทึก(?:(?!ไม่)\S){0,20}?ทุก(?:ครั้ง|การ|รายการ)/.source,
   /(?<!some )\bsettings changes/.source,
   /การเปลี่ยนการตั้งค่า(?!บางรายการ)/.source,
+  // logEventStrict undoes the evaluator lock or unlock when its write fails, so "the action still goes
+  // ahead" is false as a blanket rule (lib/audit.js, superadmin.js).
+  /\bthe action still goes ahead|การกระทำนั้นก็ยังดำเนินต่อไป/.source,
 ].join('|'), 'i');
 const AUDIT_OVERCLAIM_SAMPLES = {
   caught: [
@@ -279,6 +282,8 @@ const AUDIT_OVERCLAIM_SAMPLES = {
     'and the system records each view and export in the audit log.',
     'ระบบบันทึกการเปิดดูทุกครั้งไว้ในบันทึกการตรวจสอบ',
     "auditors' scores, and settings changes.",
+    'Recording is best effort, so if writing the log fails, the action still goes ahead.',
+    'และถ้าระบบบันทึกไม่สำเร็จ การกระทำนั้นก็ยังดำเนินต่อไป',
     'การให้คะแนนของผู้ตรวจ และการเปลี่ยนการตั้งค่า',
   ],
   passed: [
@@ -650,6 +655,16 @@ const SCENARIOS = [
         t.check((th ? /อาการสำคัญ/ : /chief complaint/i).test(gap) && (th ? /ชื่อเรื่อง/ : /title/i).test(gap), `[${lang}] the auditor-gap line does not name both the chief complaint and the title: "${gap}"`);
         // admin.js /identity-queue serves admins (own council) and the superadmin (every council).
         const identity = line(th ? /เลขใบอนุญาต/ : /licence number/i);
+        // A superadmin can also store professionals.license_number on create or edit (lib/provisioning.js),
+        // so the licence number is not collected only at identity verification.
+        const idPara = await page.locator('section[aria-labelledby="collect-h"] li').filter({ hasText: th ? 'เลขประจำตัวประชาชน' : 'national ID' }).first().innerText();
+        t.check((th ? /ผู้ดูแลระบบ CLICS ใส่ไว้ในบัญชี/ : /administrator enters it on your account/i).test(idPara), `[${lang}] the identity paragraph does not say a system administrator can store the licence number on your account`);
+        // The browser talks to *.supabase.co directly, and Supabase Auth keeps the IP with the session.
+        const supabase = await page.locator('section[aria-labelledby="proc-h"] .policy-facts > div').filter({ hasText: 'Supabase' }).locator('dd').innerText();
+        t.check(/\bIP\b/.test(supabase), `[${lang}] the Supabase line does not say it receives your IP address`);
+        // logEventStrict's rollback is the exception to "most actions still go ahead".
+        const logPara = await page.locator('section[aria-labelledby="collect-h"] li').filter({ hasText: th ? 'บันทึกการตรวจสอบเก็บ' : 'The audit log records' }).first().innerText();
+        t.check((th ? /ถูกยกเลิก/ : /undone/).test(logPara), `[${lang}] the log-failure sentence has no lock exception`);
         t.check((th ? /ผู้ดูแลระบบ CLICS/ : /CLICS system administrators/i).test(identity), `[${lang}] no readers line says the CLICS system administrators see the licence number and last four digits`);
       }
       await page.click('.lang-switch [data-set-lang="th"]');
