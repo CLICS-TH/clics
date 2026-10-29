@@ -10,7 +10,7 @@ const SQL = MIGRATION.replace(/--[^\n]*/g, '');
 
 test('booth_plays has exactly the allowed columns', () => {
   expect([...(schemaFromSql().booth_plays ?? [])].sort()).toEqual(['id', 'event_code', 'tag', 'status', 'spend_usd',
-    'composite', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'created_at', 'scored_at'].sort());
+    'composite', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'created_at', 'scored_at', 'ranked'].sort());
 });
 
 test('the case-file name guard is the booth_plays.event_code CHECK', () => {

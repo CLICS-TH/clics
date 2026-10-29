@@ -60,13 +60,15 @@ function startServer() {
 }
 
 const REPLY = (n) => `AI reply ${n}: <b>not markup</b>\nsecond line\nคำตอบนี้ครอบคลุมประเด็นสำคัญแล้ว ลองพิจารณาผลน้ำตาลสะสมร่วมกับประวัติครอบครัว และนัดติดตามอาการภายใน 3 เดือน`;
+const SIG = (n) => `sig-${n}`;
 const SCORED = { status: 'scored', composite: 72.4, domains: { d1: 4, d2: 3, d3: 4, d4: 2, d5: 3, d6: 5, d7: 1 } };
 
 /**
  * A fresh stub per kiosk. Default routes:
  *   'GET /booth/status'            { open: true, event_code, case_version }
  *   'POST /booth/plays'            { play_id, tag: 42, case: <the real case file>, answer_max_chars: 500 }
- *   'POST /booth/plays/:id/reply'  { status: 'replied', reply: REPLY(answers.length) }
+ *   'POST /booth/plays/:id/reply'  { status: 'replied', reply: REPLY(answers.length), reply_sig: SIG(answers.length) }
+ *   'GET /booth/board'             { board: { today: [], event: [] } }
  *   'POST /booth/plays/:id/score'  SCORED
  * opts.routes merges over these: key -> (call, calls) => ({ status, body }) | 'abort'. Unknown keys answer 404.
  * stub.hold(key) returns release(): matching requests wait until released. stub.calls records every request as
@@ -78,7 +80,8 @@ function makeStub({ routes = {} } = {}) {
   const table = {
     'GET /booth/status': () => ({ status: 200, body: { open: true, event_code: KASE.event_code, case_version: KASE.version } }),
     'POST /booth/plays': () => ({ status: 201, body: { play_id: PLAY_ID, tag: 42, case: KASE, answer_max_chars: 500 } }),
-    'POST /booth/plays/:id/reply': (call) => ({ status: 200, body: { status: 'replied', reply: REPLY(call.body?.answers?.length) } }),
+    'POST /booth/plays/:id/reply': (call) => ({ status: 200, body: { status: 'replied', reply: REPLY(call.body?.answers?.length), reply_sig: SIG(call.body?.answers?.length) } }),
+    'GET /booth/board': () => ({ status: 200, body: { board: { today: [], event: [] } } }),
     'POST /booth/plays/:id/score': () => ({ status: 200, body: SCORED }),
     ...routes,
   };
@@ -393,7 +396,7 @@ async function shot(page, name) {
 const server = await startServer();
 base = `http://127.0.0.1:${server.address().port}`;
 browser = await chromium.launch();
-const h = { kiosk, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, PLAY_ID, REPLY, SCORED };
+const h = { kiosk, makeStub, screenCheck, check, shot, sleep, same: isDeepStrictEqual, FLOOR, DEMO_LABEL, DOMAINS, COPY, KASE, PLAY_ID, REPLY, SIG, SCORED };
 
 try {
   await scanSources();

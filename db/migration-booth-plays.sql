@@ -42,6 +42,10 @@ create table if not exists public.booth_plays (
   )
 );
 
+-- #212: a play whose answers were all tapped choices. Only these rank on the public board: a typed answer reaches the
+-- evaluator as written and could address it. Added after the table went out, so it is an ALTER.
+alter table public.booth_plays add column if not exists ranked boolean not null default false;
+
 -- DENY-ALL (RLS on, no policy): only the backend's service role reads or writes booth plays.
 alter table public.booth_plays enable row level security;
 

@@ -61,7 +61,7 @@ export default [
       h.check(stub.of(REPLY_KEY).length === 1, `a double tap on an option sends one reply request (${stub.of(REPLY_KEY).length})`);
       const r1 = stub.of(REPLY_KEY)[0];
       h.check(r1.path === `/booth/plays/${h.PLAY_ID}/reply`, 'step 1: the reply goes to the play\'s own id');
-      h.check(h.same(r1.body, { answers: [{ choice: 'b' }], replies: [] }), `step 1: reply body is { answers: [{ choice: 'b' }], replies: [] } (${JSON.stringify(r1.body)})`);
+      h.check(h.same(r1.body, { answers: [{ choice: 'b' }], replies: [], reply_sigs: [] }), `step 1: reply body is { answers: [{ choice: 'b' }], replies: [], reply_sigs: [] } (${JSON.stringify(r1.body)})`);
       const aiLabel = await page.evaluate(() => window.AI_LABEL?.th);
       h.check(await text(page, '.ai-label') === aiLabel && aiLabel === 'AI', 'reply 1: labelled "AI" (js/ui.js AI_LABEL) and nothing else');
       const bubble = await page.locator('.ai-text').evaluate((e) => {
@@ -96,7 +96,7 @@ export default [
       h.check((await text(page, '.step-of')).includes('2') && await text(page, '.question .bi-th') === h.KASE.steps[1].question.th, 'step 2: "Step 2 of 3" and the case\'s question');
       await k.tap('[data-option="a"]');
       await k.screen('reply');
-      h.check(h.same(stub.of(REPLY_KEY)[1]?.body, { answers: [{ choice: 'b' }, { choice: 'a' }], replies: [h.REPLY(1)] }),
+      h.check(h.same(stub.of(REPLY_KEY)[1]?.body, { answers: [{ choice: 'b' }, { choice: 'a' }], replies: [h.REPLY(1)], reply_sigs: [h.SIG(1)] }),
         'step 2: reply body carries both answers and reply 1 back verbatim');
       await k.tap('[data-action="next"]');
 
@@ -124,7 +124,7 @@ export default [
       await h.shot(page, 'typing');
       await k.tap('[data-action="send"]');
       await k.screen('reply');
-      h.check(h.same(stub.of(REPLY_KEY)[2]?.body, { answers: [{ choice: 'b' }, { choice: 'a' }, { text: 'line one\nline two' }], replies: [h.REPLY(1), h.REPLY(2)] }),
+      h.check(h.same(stub.of(REPLY_KEY)[2]?.body, { answers: [{ choice: 'b' }, { choice: 'a' }, { text: 'line one\nline two' }], replies: [h.REPLY(1), h.REPLY(2)], reply_sigs: [h.SIG(1), h.SIG(2)] }),
         'step 3: reply body carries the typed answer, newline kept, and both earlier replies');
       h.check(await text(page, '.answer-text') === 'line one\nline two', 'reply 3: the typed answer is shown as typed');
 
@@ -141,6 +141,7 @@ export default [
       const score = stub.of(SCORE_KEY);
       h.check(score.length === 1 && h.same(score[0].body, {
         answers: [{ choice: 'b' }, { choice: 'a' }, { text: 'line one\nline two' }], replies: [h.REPLY(1), h.REPLY(2), h.REPLY(3)],
+        reply_sigs: [h.SIG(1), h.SIG(2), h.SIG(3)],
       }), 'score: one request with all three answers and all three replies as the stub sent them');
       h.check(await text(page, '.result-card .booth-tag') === 'Booth #042', 'result: the booth tag "Booth #042"');
       h.check(await text(page, '[data-score]') === '72' && await text(page, '.result-outof') === '/ 100', 'result: the composite as a whole number out of 100 (72.4 -> 72)');
@@ -190,12 +191,12 @@ export default [
     },
   },
   {
-    name: 'soft reply failure: 502 ai_unavailable shows a note and the play goes on',
+    name: 'soft reply failure: 502 ai_unavailable shows a note, and the play goes on with its receipt',
     async run(h) {
       const stub = h.makeStub({ routes: {
         [REPLY_KEY]: (call, calls) => (calls.filter((c) => c.key === REPLY_KEY).length === 1
-          ? { status: 502, body: { error: 'The AI is unavailable.', reason: 'ai_unavailable' } }
-          : { status: 200, body: { status: 'replied', reply: h.REPLY(call.body.answers.length) } }),
+          ? { status: 502, body: { error: 'The AI is unavailable.', reason: 'ai_unavailable', reply_sig: 'sig-none-1' } }
+          : { status: 200, body: { status: 'replied', reply: h.REPLY(call.body.answers.length), reply_sig: h.SIG(call.body.answers.length) } }),
       } });
       const k = await h.kiosk({ stub });
       await toStep(k);
@@ -213,11 +214,12 @@ export default [
       await k.screen('step');
       h.check((await text(k.page, '.step-of')).includes('2'), 'the play goes on to step 2');
       h.check(await answerAll(k, 'b') === 'reply', 'steps 2 and 3 answered');
-      h.check(h.same(stub.of(REPLY_KEY)[1]?.body, { answers: [{ choice: 'c' }, { choice: 'b' }], replies: [''] }),
-        `step 2: the missing reply goes back as "" (${JSON.stringify(stub.of(REPLY_KEY)[1]?.body)})`);
+      h.check(h.same(stub.of(REPLY_KEY)[1]?.body, { answers: [{ choice: 'c' }, { choice: 'b' }], replies: [''], reply_sigs: ['sig-none-1'] }),
+        `step 2: the missing reply goes back as "" with the 502's receipt (${JSON.stringify(stub.of(REPLY_KEY)[1]?.body)})`);
       await k.tap('[data-action="see-score"]');
       await k.screen('scored');
       h.check(h.same(stub.of(SCORE_KEY)[0]?.body?.replies, ['', h.REPLY(2), h.REPLY(3)]), 'score: replies are "", reply 2, reply 3');
+      h.check(h.same(stub.of(SCORE_KEY)[0]?.body?.reply_sigs, ['sig-none-1', h.SIG(2), h.SIG(3)]), 'score: reply_sigs carry the receipt, sig 2, sig 3');
       await k.close();
     },
   },
@@ -227,7 +229,7 @@ export default [
       const stub = h.makeStub({ routes: {
         [REPLY_KEY]: (call) => (call.body.answers.length === 2
           ? { status: 200, body: { status: 'unavailable' } }
-          : { status: 200, body: { status: 'replied', reply: h.REPLY(call.body.answers.length) } }),
+          : { status: 200, body: { status: 'replied', reply: h.REPLY(call.body.answers.length), reply_sig: h.SIG(call.body.answers.length) } }),
       } });
       const k = await h.kiosk({ stub });
       await toStep(k);
