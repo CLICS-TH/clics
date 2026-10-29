@@ -92,26 +92,37 @@
       TGL_ICONS[name] + '</svg>';
   }
 
+  // A page with the TH/EN switch (js/lang.js) shows one language at a time, so its toggles carry both
+  // labels as data-lang pairs and an accessible name in the chosen language. Every other page keeps
+  // the inline-bilingual labels below.
+  var langSwitch = false;
+  function inEnglish() { return d.getAttribute('data-manual-lang') === 'en'; }
+  function pair(th, en) { return '<span data-lang="th">' + th + '</span><span data-lang="en">' + en + '</span>'; }
+
   function updateLabels() {
     if (themeBtn) {
       // The button shows the CURRENT mode (a tri-state has no single "other" mode to name).
       var p = themePref(), dark = currentTheme() === 'dark';
       var th = p === 'system' ? 'ตามระบบ' : p === 'dark' ? 'มืด' : 'สว่าง';
       var en = p === 'system' ? 'System' : p === 'dark' ? 'Dark' : 'Light';
-      themeBtn.innerHTML = tglSvg(p === 'system' ? 'sunMoon' : p === 'dark' ? 'moon' : 'sun') + '<span class="toggle-label">' + th + '</span>';
-      // Accessible name states the current mode, Thai first, and contains the visible word (WCAG 2.5.3).
+      var nameTh = 'ธีมสี: ' + th + (p === 'system' ? ' (ขณะนี้' + (dark ? 'มืด' : 'สว่าง') + ')' : '');
+      var nameEn = 'Theme: ' + en + (p === 'system' ? ' (currently ' + (dark ? 'dark' : 'light') + ')' : '');
+      themeBtn.innerHTML = tglSvg(p === 'system' ? 'sunMoon' : p === 'dark' ? 'moon' : 'sun') +
+        '<span class="toggle-label">' + (langSwitch ? pair(th, en) : th) + '</span>';
+      // Accessible name states the current mode and contains the visible word (WCAG 2.5.3).
       // Under System it also says what the OS currently resolves to.
-      themeBtn.setAttribute('aria-label',
-        'ธีมสี: ' + th + (p === 'system' ? ' (ขณะนี้' + (dark ? 'มืด' : 'สว่าง') + ')' : '') +
-        ' / Theme: ' + en + (p === 'system' ? ' (currently ' + (dark ? 'dark' : 'light') + ')' : '') +
-        ' — กดเพื่อเปลี่ยน / press to change');
+      themeBtn.setAttribute('aria-label', !langSwitch
+        ? nameTh + ' / ' + nameEn + ' — กดเพื่อเปลี่ยน / press to change'
+        : inEnglish() ? nameEn + ', press to change' : nameTh + ' กดเพื่อเปลี่ยน');
     }
     if (viewBtn) {
       var v = currentView();
       var name = v === 'mobile' ? 'smartphone' : v === 'desktop' ? 'monitor' : 'monitorSmartphone';
       var label = v === 'mobile' ? 'Mobile' : v === 'desktop' ? 'Desktop' : 'Auto';
-      viewBtn.innerHTML = tglSvg(name) + '<span class="toggle-label">' + label + '</span>';
-      viewBtn.setAttribute('aria-label', 'Layout view: ' + v);
+      var labelTh = v === 'mobile' ? 'มือถือ' : v === 'desktop' ? 'เดสก์ท็อป' : 'อัตโนมัติ';
+      viewBtn.innerHTML = tglSvg(name) + '<span class="toggle-label">' + (langSwitch ? pair(labelTh, label) : label) + '</span>';
+      viewBtn.setAttribute('aria-label', !langSwitch ? 'Layout view: ' + v
+        : inEnglish() ? 'Layout view: ' + label : 'มุมมองหน้าจอ: ' + labelTh);
     }
   }
 
@@ -123,6 +134,8 @@
   }
 
   function mount() {
+    langSwitch = !!document.querySelector('[data-set-lang]');
+    if (langSwitch) window.addEventListener('clics:langchange', updateLabels);
     themeBtn = makeBtn(); themeBtn.addEventListener('click', cycleTheme);
     viewBtn = makeBtn(); viewBtn.addEventListener('click', cycleView);
     updateLabels();

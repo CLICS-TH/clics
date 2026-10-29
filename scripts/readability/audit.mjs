@@ -70,9 +70,10 @@ import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { fixtureFor, AUDITOR_PLE_OPEN, AUDITOR_PLE_REVEALED } from './fixtures.mjs';
+import { watchPageHealth, resolvedTheme } from '../responsive/page-health.mjs';
 
 const ROOT = fileURLToPath(new URL('../../physician-ui/public', import.meta.url));
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.webp': 'image/webp' };
 
 // AA for body text. 3.0 is the large-text bar; we apply it at >=24px, or >=18.66px when bold, per WCAG.
 const AA_BODY = 4.5;
@@ -120,6 +121,8 @@ const PORTAL_PAGES = [
   // The manual: long-form Thai prose, the densest text on the portal, and the one page whose whole
   // job is to be read. Public, so no token.
   { path: '/manual', token: false },
+  // The public Landing page, also bilingual; rendered again in English below.
+  { path: '/', token: false },
 ];
 // Each dashboard page: its path, the ROLE it is rendered as, and what it must SHOW.
 //
@@ -401,9 +404,9 @@ let checked = 0;
 const only = (process.env.READABILITY_ONLY || '').split(',').map((s) => s.trim()).filter(Boolean);
 const wanted = (label) => !only.length || only.some((s) => label.includes(s));
 
-async function run(url, label, token, manualLang, { role = null, expect = [] } = {}) {
+async function run(url, label, token, manualLang, { role = null, expect = [], widths = WIDTHS } = {}) {
   if (!wanted(label)) return;
-  for (const { w, h } of WIDTHS) {
+  for (const { w, h } of widths) {
     for (const theme of THEMES) {
       const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2 });
       await ctx.route('**/*', (route) => {
@@ -441,11 +444,18 @@ async function run(url, label, token, manualLang, { role = null, expect = [] } =
       }, [theme, token, manualLang ?? null, role]);
 
       const page = await ctx.newPage();
+      // A signed-out Portal page must render with no page error, console error or failed request.
+      const health = !token && !label.startsWith('dash') ? watchPageHealth(page, (u) => u.startsWith(base)) : null;
       try {
         // 45s: the font CDN throttles once the run has issued a few hundred requests, and a
         // slow stylesheet stalls domcontentloaded. Retried once before it counts as an error.
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 })
           .catch(() => page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 }));
+        // The stored preference must resolve to the theme on its own, before the line below forces it.
+        if (!label.startsWith('dash')) {
+          const resolved = await resolvedTheme(page);
+          if (resolved !== theme) findings.push({ kind: 'THEME', where: `${label} @${w}px ${theme}`, text: `${label}: rendered ${resolved}` });
+        }
         // The dashboard sets dark via a class, the portal via data-theme. Force both, then let the
         // webfonts actually arrive — measuring before they land measures the fallback face.
         await page.evaluate((t) => {
@@ -482,6 +492,7 @@ async function run(url, label, token, manualLang, { role = null, expect = [] } =
         for (const c of r.clips) findings.push({ kind: 'CLIP', where, ...c });
         for (const b of r.body) findings.push({ kind: 'BODY', where, ...b });
         for (const p of r.prose) findings.push({ kind: 'PROSE', where, ...p });
+        for (const text of health ?? []) findings.push({ kind: 'HEALTH', where, text });
       } catch (e) {
         findings.push({ kind: 'ERROR', where: `${label} @${w}px ${theme}`, text: String(e.message || e) });
       }
@@ -494,6 +505,10 @@ for (const p of PORTAL_PAGES) await run(base + p.path, `portal${p.path}`, p.toke
 // The manual again, in English. Same widths, same themes — a second full pass, because a
 // translation is new text in the same boxes and the boxes are what fail.
 await run(base + '/manual', 'portal/manual[en]', false, 'en');
+await run(base + '/', 'portal/[en]', false, 'en');
+// The Landing page is the one portal page read on a wide desktop monitor, so it also gets 1440.
+await run(base + '/', 'portal/@1440', false, null, { widths: [{ w: 1440, h: 900 }] });
+await run(base + '/', 'portal/[en]@1440', false, 'en', { widths: [{ w: 1440, h: 900 }] });
 if (dashUrl) {
   for (const p of DASH_PAGES) {
     // No markers means an empty or error state passes as a clean page, which is how /admin/integrity
@@ -539,6 +554,10 @@ for (const r of rows) {
     console.log(`PROSE     Thai prose at the text-xs caption size (${r.size}px) — use text-sm  ${r.sel}  "${r.text}"`);
   } else if (r.kind === 'ROUTE') {
     console.log(`ROUTE     ${r.text}  (redirected: the render measured another page)`);
+  } else if (r.kind === 'HEALTH') {
+    console.log(`HEALTH    ${r.text}`);
+  } else if (r.kind === 'THEME') {
+    console.log(`THEME     ${r.text}  (the stored clics_theme did not resolve to this theme)`);
   } else if (r.kind === 'MISSING') {
     console.log(`MISSING   ${r.text}  (the fixture did not produce the state this page is gated for)`);
   } else {
