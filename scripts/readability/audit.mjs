@@ -123,6 +123,7 @@ const PORTAL_PAGES = [
   { path: '/manual', token: false },
   // The public Landing page, also bilingual; rendered again in English below.
   { path: '/', token: false },
+  { path: '/privacy', token: false },
 ];
 // Each dashboard page: its path, the ROLE it is rendered as, and what it must SHOW.
 //
@@ -506,9 +507,12 @@ for (const p of PORTAL_PAGES) await run(base + p.path, `portal${p.path}`, p.toke
 // translation is new text in the same boxes and the boxes are what fail.
 await run(base + '/manual', 'portal/manual[en]', false, 'en');
 await run(base + '/', 'portal/[en]', false, 'en');
-// The Landing page is the one portal page read on a wide desktop monitor, so it also gets 1440.
+await run(base + '/privacy', 'portal/privacy[en]', false, 'en');
+// The Landing page and the Privacy page it links to are the portal pages read on a wide desktop
+// monitor, so they also get 1440.
 await run(base + '/', 'portal/@1440', false, null, { widths: [{ w: 1440, h: 900 }] });
 await run(base + '/', 'portal/[en]@1440', false, 'en', { widths: [{ w: 1440, h: 900 }] });
+await run(base + '/privacy', 'portal/privacy@1440', false, null, { widths: [{ w: 1440, h: 900 }] });
 if (dashUrl) {
   for (const p of DASH_PAGES) {
     // No markers means an empty or error state passes as a clean page, which is how /admin/integrity
