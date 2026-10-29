@@ -19,11 +19,12 @@ const API = 'http://localhost:3001';
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.png': 'image/png', '.webp': 'image/webp' };
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
 
-// Fictional booth-mode replies: three short sentences at most, none naming the best option for a later step.
+// Fictional replies shaped by the booth prompt (rimpl/src/lib/prompts.js RIMPL_SYSTEM_PROMPT_BOOTH): one strength and one
+// thing worth weighing, no grading, no preview of a later step, no question, nothing the answer did not name.
 const REPLIES = [
-  'ประวัติลุยน้ำท่วม ปวดน่อง และตาแดง เป็นเบาะแสสำคัญที่คุณหยิบมาใช้ได้ดี ลองคิดต่อว่าจะยืนยันการวินิจฉัยและประเมินความรุนแรงอย่างไร',
-  'ผลเลือดและปัสสาวะช่วยประเมินไต ตับ และเกล็ดเลือด ซึ่งบอกความรุนแรงได้ตั้งแต่เนิ่น ๆ ขั้นต่อไปลองชั่งน้ำหนักว่าผู้ป่วยรายนี้ควรรักษาที่ไหน',
-  'คุณชั่งน้ำหนักความเสี่ยงของโรคกับสภาพผู้ป่วยตอนนี้ได้ชัดเจน ลองสรุปให้ตัวเองว่าจะติดตามอาการอะไรบ้างในวันแรก ๆ',
+  'คุณเชื่อมโยงประวัติลุยน้ำท่วมเข้ากับอาการปวดน่องและตาแดงได้ตรงประเด็น สิ่งที่ควรชั่งน้ำหนักคือโรคไข้ในหน้าฝนหลายโรคมีอาการช่วงแรกคล้ายกัน',
+  'ผลเลือดและปัสสาวะพื้นฐานช่วยดูการทำงานของไต ตับ และเกล็ดเลือดได้ตั้งแต่เนิ่น ๆ สิ่งที่ควรชั่งน้ำหนักคือผลเหล่านี้อาจยังปกติในวันแรกของโรค',
+  'การรับไว้ในโรงพยาบาลช่วยให้เฝ้าดูอาการที่อาจแย่ลงได้ใกล้ชิด สิ่งที่ควรชั่งน้ำหนักคือภาระของการนอนโรงพยาบาลต่อผู้ป่วยและครอบครัว',
 ];
 const SCORE = { status: 'scored', composite: 71.6, domains: { d1: 4, d2: 4, d3: 4, d4: 3, d5: 3, d6: 3, d7: 3 } };
 const at = (min) => new Date(Date.UTC(2026, 10, 3, 2, min)).toISOString();
