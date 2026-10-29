@@ -100,7 +100,7 @@ See [docs/agents/triage-labels.md](docs/agents/triage-labels.md).
 
 ### Domain docs
 
-Single-context: [`CONTEXT.md`](CONTEXT.md) (the glossary) + [`docs/adr/`](docs/adr/) (ADRs 0001–0006).
+Single-context: [`GLOSSARY.md`](GLOSSARY.md) (the glossary) + [`docs/adr/`](docs/adr/) (ADRs 0001–0006).
 See [docs/agents/domain.md](docs/agents/domain.md).
 
 ## Documentation index
