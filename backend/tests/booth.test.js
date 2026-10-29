@@ -194,7 +194,7 @@ describe('GET /booth/status', () => {
   test('an open event answers 200 open with its code and case version, and is never cached', async () => {
     const res = await get('/booth/status');
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ open: true, event_code: 'NFCME-2026', case_version: 'placeholder-1' });
+    expect(res.body).toEqual({ open: true, event_code: 'NFCME-2026', case_version: KASE.version });
     expect(res.headers['cache-control']).toBe('no-store');
   });
 
@@ -246,7 +246,6 @@ describe('POST /booth/plays', () => {
     const res = await post('/booth/plays', {});
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ play_id: playId, tag: 42, case: KASE, answer_max_chars: 500 });
-    expect(res.body.case.placeholder).toBe(true);
     expect(rpcCalls).toEqual([['booth_start_play', { p_event: 'NFCME-2026' }]]);
   });
 

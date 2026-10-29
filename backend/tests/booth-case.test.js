@@ -41,6 +41,80 @@ test('NFCME-2026 says it is a placeholder in the flag and in both vignette prefi
   expect(kase.vignette.en.startsWith('[PLACEHOLDER CASE]')).toBe(placeholder);
 });
 
+describe('the NFCME-2026 case fits the kiosk pop-up', () => {
+  const kase = readCase('NFCME-2026.json');
+
+  // Thai combining marks take no width, so Thai counts spacing characters. The step-3 sheet fills
+  // the 1080x1920 screen down to the case card's minimum height, so each field keeps the line
+  // count measured at the kiosk's font sizes: question 2 lines, label 1, line th 1 / en 2.
+  const LIMITS = {
+    vignette: { th: 300, en: 450 },
+    question: { th: 48, en: 80 },
+    label: { th: 26, en: 36 },
+    line: { th: 44, en: 70 },
+  };
+  const COMBINING = /[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]/gu;
+  const THAI = /[\u0E00-\u0E7F]/;
+  const width = { th: (s) => s.replace(COMBINING, '').length, en: (s) => s.length };
+
+  const fields = [{ kind: 'vignette', path: 'vignette', text: kase.vignette }];
+  kase.steps.forEach((step, i) => {
+    fields.push({ kind: 'question', path: `steps[${i}].question`, text: step.question });
+    step.options.forEach((o, j) => {
+      fields.push({ kind: 'label', path: `steps[${i}].options[${j}].label`, text: o.label });
+      fields.push({ kind: 'line', path: `steps[${i}].options[${j}].line`, text: o.line });
+    });
+  });
+  const texts = fields.flatMap((f) => ['th', 'en'].map((lang) => ({ ...f, lang, s: f.text[lang] })));
+  const allStrings = (v, at = '') => (typeof v === 'string' ? [[at, v]]
+    : Object.entries(v ?? {}).flatMap(([k, x]) => allStrings(x, at ? `${at}.${k}` : k)));
+
+  test('is the real case, not a placeholder', () => {
+    expect([undefined, false]).toContain(kase.placeholder);
+  });
+
+  test('has three steps of options a, b and c', () => {
+    expect(kase.steps.map((s) => s.options.map((o) => o.id))).toEqual([['a', 'b', 'c'], ['a', 'b', 'c'], ['a', 'b', 'c']]);
+  });
+
+  test('writes every field in Thai script for th and without it for en', () => {
+    const bad = texts.filter(({ lang, s }) => typeof s !== 'string' || !s.trim()
+      || (lang === 'th' ? !THAI.test(s) : THAI.test(s)));
+    expect(bad.map(({ path, lang, s }) => `${path}.${lang}: ${JSON.stringify(s)}`)).toEqual([]);
+  });
+
+  test('keeps every field within its line budget', () => {
+    const over = texts.map((t) => ({ ...t, n: width[t.lang](t.s), max: LIMITS[t.kind][t.lang] }))
+      .filter(({ n, max }) => n > max);
+    expect(over.map(({ path, lang, n, max }) => `${path}.${lang} is ${n} (limit ${max})`)).toEqual([]);
+  });
+
+  test('makes no overclaim', () => {
+    const BANNED = ['on-premise', 'on premise', 'validated', 'ติดตั้งภายในองค์กร'];
+    const hits = allStrings(kase).flatMap(([at, s]) => BANNED
+      .filter((w) => s.toLowerCase().includes(w)).map((w) => `${at}: ${w}`));
+    expect(hits).toEqual([]);
+  });
+
+  test('argues each option line for its option, never against it', () => {
+    const against = { th: (s) => /แต่(?!ละ)|ไม่/.test(s), en: (s) => /\b(but|not|no)\b/i.test(s) };
+    const bad = texts.filter(({ kind, lang, s }) => kind === 'line' && against[lang](s));
+    expect(bad.map(({ path, lang, s }) => `${path}.${lang}: ${s}`)).toEqual([]);
+  });
+
+  // The booth prompt may not name the better choice, so nothing guarantees the AI reply corrects an
+  // unsafe option. A word scan catches the wait-and-see class (holding treatment until a result); it
+  // cannot judge every other unsafe plan, which stays with the physician read.
+  test('offers no option that withholds or delays treatment', () => {
+    const withholds = {
+      th: /เลี่ยง|งดยา|ชะลอ|รอผล|รอดูอาการ|ยังไม่ให้|ไม่ให้ยา/,
+      en: /\b(avoid|avoids|withhold|withholds|delay|delays|defer|defers|await|awaits|wait|waits|hold off|until)\b/i,
+    };
+    const bad = texts.filter(({ kind, lang, s }) => (kind === 'label' || kind === 'line') && withholds[lang].test(s));
+    expect(bad.map(({ path, lang, s }) => `${path}.${lang}: ${s}`)).toEqual([]);
+  });
+});
+
 describe('a broken case closes the booth as misconfigured', () => {
   const good = readCase('NFCME-2026.json');
   const edit = (code, fn) => { const k = structuredClone(good); k.event_code = code; fn(k); return k; };

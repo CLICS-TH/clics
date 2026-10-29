@@ -38,8 +38,10 @@ export default [
       await k.screen('vignette');
       await h.screenCheck(page, 'vignette');
       await h.shot(page, 'vignette');
-      h.check(h.KASE.placeholder === true && (await text(page, '[data-placeholder]')).includes(h.COPY.placeholder.th)
-        && (await text(page, '[data-placeholder]')).includes(h.COPY.placeholder.en), 'vignette: the placeholder case is marked as one, TH and EN');
+      h.check(h.KASE.placeholder === true
+        ? (await text(page, '[data-placeholder]')).includes(h.COPY.placeholder.th) && (await text(page, '[data-placeholder]')).includes(h.COPY.placeholder.en)
+        : await count(page, '[data-placeholder]') === 0,
+      'vignette: the placeholder badge shows, TH and EN, exactly when the case file is a placeholder');
       h.check(await text(page, '.vignette .bi-th') === h.KASE.vignette.th && await text(page, '.vignette .bi-en') === h.KASE.vignette.en,
         'vignette: the case file\'s vignette, Thai then English');
       await k.tap('[data-action="begin"]');
