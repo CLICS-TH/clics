@@ -1,10 +1,13 @@
 // Booth Mode offline cache (#213), registered by js/booth-shell.js with scope /booth. There is no hand-kept
 // precache list: the page posts { type: 'precache', urls } with everything it loaded plus the loop's files.
-// Loop media is cache-first, so staff replacing a file give it a new name (README, "Booth loop files").
+// Loop media is cache-first. Each time the manifest comes from the network, every cached loop file is revalidated
+// (a file replaced under the same name is fetched again) and files the manifest no longer lists are dropped.
+// The page also posts { type: 'case', kase } after a play starts, so the last case served is kept offline.
 const CACHE = 'clics-booth-v1';
 const NETWORK_TIMEOUT_MS = 4_000;
 const LOOP_DIR = '/booth-loop/';
 const MANIFEST = `${LOOP_DIR}manifest.json`;
+const CASE_KEY = '/booth-case.json';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -14,9 +17,14 @@ self.addEventListener('activate', (event) => event.waitUntil((async () => {
 })()));
 
 self.addEventListener('message', (event) => {
-  if (event.data?.type !== 'precache' || !Array.isArray(event.data.urls)) return;
-  event.waitUntil(precache(event.data.urls));
+  if (event.data?.type === 'precache' && Array.isArray(event.data.urls)) event.waitUntil(precache(event.data.urls));
+  if (event.data?.type === 'case' && event.data.kase && typeof event.data.kase === 'object') event.waitUntil(keepCase(event.data.kase));
 });
+
+async function keepCase(kase) {
+  const cache = await caches.open(CACHE);
+  await cache.put(CASE_KEY, new Response(JSON.stringify(kase), { headers: { 'Content-Type': 'application/json' } }));
+}
 
 async function precache(urls) {
   const cache = await caches.open(CACHE);
@@ -34,9 +42,46 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  if (url.pathname === CASE_KEY) {
+    event.respondWith(caches.open(CACHE).then((c) => c.match(CASE_KEY)).then((hit) => hit ?? new Response(null, { status: 404 })));
+    return;
+  }
   const isMedia = url.pathname.startsWith(LOOP_DIR) && url.pathname !== MANIFEST;
-  event.respondWith(isMedia ? cacheFirst(event, url) : networkFirst(event));
+  event.respondWith(isMedia ? cacheFirst(event, url) : networkFirst(event, url.pathname === MANIFEST ? refreshLoop : null));
 });
+
+let refreshing = null;
+/** One pass at a time: drop cached loop files the manifest no longer lists, revalidate the rest. */
+function refreshLoop(manifest) {
+  refreshing ??= (async () => {
+    const items = (await manifest.json())?.items;
+    if (!Array.isArray(items)) return;
+    const listed = new Set();
+    for (const item of items) {
+      try { listed.add(new URL(item?.src, self.location.origin).pathname); } catch { /* parseItem warns on the page */ }
+    }
+    const cache = await caches.open(CACHE);
+    for (const req of await cache.keys()) {
+      const { pathname } = new URL(req.url);
+      if (!pathname.startsWith(LOOP_DIR) || pathname === MANIFEST) continue;
+      if (!listed.has(pathname)) await cache.delete(req);
+      else await revalidate(cache, req);
+    }
+  })().catch(() => {}).finally(() => { refreshing = null; });
+  return refreshing;
+}
+
+/** A conditional GET: 304 keeps the cached file, a 200 (the file was replaced under its name) replaces it. */
+async function revalidate(cache, req) {
+  const hit = await cache.match(req);
+  const headers = {};
+  const etag = hit?.headers.get('ETag');
+  const modified = hit?.headers.get('Last-Modified');
+  if (etag) headers['If-None-Match'] = etag;
+  if (modified) headers['If-Modified-Since'] = modified;
+  const res = await fetch(req.url, { cache: 'no-store', headers }).catch(() => null);
+  if (res?.status === 200) await cache.put(req.url, res);
+}
 
 async function cacheFirst(event, url) {
   const cache = await caches.open(CACHE);
@@ -76,11 +121,15 @@ async function sliceRange(hit, header) {
   });
 }
 
-async function networkFirst(event) {
+/** @param {((res: Response) => Promise<void>) | null} onFresh runs on a copy of each OK network answer */
+async function networkFirst(event, onFresh) {
   const { request } = event;
   const cache = await caches.open(CACHE);
   const network = fetch(request).then((res) => {
-    if (res.ok && res.status !== 206) event.waitUntil(cache.put(request.url, res.clone()).catch(() => {}));
+    if (res.ok && res.status !== 206) {
+      event.waitUntil(cache.put(request.url, res.clone()).catch(() => {}));
+      if (onFresh) event.waitUntil(onFresh(res.clone()));
+    }
     return res;
   });
   event.waitUntil(network.catch(() => {}));

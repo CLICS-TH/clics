@@ -21,7 +21,7 @@ const BAR = {
 };
 
 const root = document.getElementById('booth');
-const api = createBoothApi(window.CLICS_API_URL);
+const api = keepingCase(createBoothApi(window.CLICS_API_URL));
 const reset = () => location.reload();
 
 /** @returns {Promise<ShellStatus>} */
@@ -49,6 +49,18 @@ function guardGhostTaps() {
       e.stopPropagation();
     }
   }, true);
+}
+
+/** Hands the case each started play returns to the offline cache (booth-sw.js), so the last case served is kept. */
+function keepingCase(base) {
+  return {
+    ...base,
+    async post(path, body, opts) {
+      const res = await base.post(path, body, opts);
+      if (path === '/booth/plays' && res?.case) navigator.serviceWorker?.controller?.postMessage({ type: 'case', kase: res.case });
+      return res;
+    },
+  };
 }
 
 /** Offline cache (booth-sw.js): the page tells the worker what it loaded, so there is no hand-kept list. */

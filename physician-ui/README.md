@@ -60,8 +60,11 @@ The booth's idle screen (`/booth`) plays the files listed in `public/booth-loop/
   video plays to its end. File names may have spaces and Thai; write them as named. Anything else, or a `src`
   outside `/booth-loop/`, is skipped with a `booth loop: skipped manifest item` warning in the console.
 - Portrait 1080×1920. Videos are H.264 MP4 with no sound track (the booth plays them muted).
-- The booth caches loop files and keeps playing them offline, so **a replaced file needs a new file name**;
-  reusing a name leaves the old file playing on a booth that already cached it.
+- The booth caches loop files and keeps playing them offline. Each time it reads the manifest online it asks
+  the server whether each cached file changed (ETag), so a file replaced under the same name plays from the next
+  pass of the loop; a file taken out of the manifest is dropped from the cache.
+- The booth also keeps the case of the last play started. Offline it still plays the loop, under the offline bar
+  with no Tap-to-try: a play needs the server to start and to score, so none starts until the network is back.
 - Deploy before the event freeze: the booth only sees files that are live on Vercel.
 
 Deploy: `vercel --prod --yes`. See [../docs/deployment.md](../docs/deployment.md).

@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url';
+import { statSync } from 'node:fs';
 
 const fixture = (name) => fileURLToPath(new URL(`../fixtures/${name}`, import.meta.url));
 const SLIDE_A = '/booth-loop/slide-a.png';
@@ -254,6 +255,65 @@ export default [
       await waitSrc(page, CLIP);
       h.check(await videoPlays(page), 'offline reload: the video plays from the cache');
       await h.screenCheck(page, 'offline loop');
+      await k.close();
+    },
+  },
+  {
+    name: 'offline cache: a loop file replaced under the same name, and a file dropped from the manifest, reach a kiosk that cached them',
+    async run(h) {
+      const files = { ...FILES };
+      const k = await h.kiosk({ files, label: 'same-name refresh' });
+      const { page } = k;
+      await k.shell('start');
+      const missing = await cached(k);
+      if (!h.check(missing.length === 0, `refresh: the first load cached the loop${missing.length ? ` (missing ${missing.join(', ')})` : ''}`)) return;
+      files[SLIDE_A] = fixture('loop-slide-recut.png');
+      files['/booth-loop/manifest.json'] = fixture('manifest-trimmed.json');
+      const recut = statSync(files[SLIDE_A]).size;
+      const state = () => page.evaluate(async ([a, b]) => ({
+        bytes: (await (await caches.match(a))?.arrayBuffer())?.byteLength ?? 0,
+        dropped: !(await caches.match(b)),
+      }), [SLIDE_A, SLIDE_B]);
+      let now = await state();
+      for (let i = 0; i < 60 && !(now.bytes === recut && now.dropped); i++) { await h.sleep(250); now = await state(); }
+      h.check(now.bytes === recut, `refresh: the cache now holds the file replaced under ${SLIDE_A} (${now.bytes} bytes, the new cut is ${recut})`);
+      h.check(now.dropped, 'refresh: the file the manifest no longer lists is gone from the cache');
+      await k.offline(true);
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await k.shell('offline');
+      await waitSrc(page, SLIDE_A);
+      const width = await page.locator('.loop-media img').evaluate((img) => img.naturalWidth);
+      h.check(width === 54, `refresh, offline reload: the loop shows the new cut (naturalWidth ${width}, the new cut is 54, the old 108)`);
+      await k.close();
+    },
+  },
+  {
+    name: 'offline cache: the case of the last play started is kept, and offline the kiosk shows the loop with no way to start',
+    async run(h) {
+      const k = await h.kiosk({ files: FILES, label: 'case offline' });
+      const { page, stub } = k;
+      await k.shell('start');
+      const missing = await cached(k);
+      if (!h.check(missing.length === 0, `case: the offline cache is ready${missing.length ? ` (missing ${missing.join(', ')})` : ''}`)) return;
+      await toVignette(k);
+      const readCase = () => page.evaluate(async () => {
+        const res = await caches.match('/booth-case.json');
+        return res ? res.json() : null;
+      });
+      let kase = await readCase();
+      for (let i = 0; i < 40 && !kase; i++) { await h.sleep(250); kase = await readCase(); }
+      h.check(h.same(kase, h.KASE), 'case: the case the play started with is in the booth cache');
+      await k.offline(true);
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await k.shell('offline');
+      const served = await page.evaluate(async () => {
+        const res = await fetch('/booth-case.json');
+        return res.ok ? res.json() : res.status;
+      });
+      h.check(h.same(served, h.KASE), 'case, offline reload: GET /booth-case.json serves the case from the cache');
+      h.check(await page.locator('[data-action="start"]').count() === 0 && hasBoth(await barText(page), h.COPY.offline),
+        'case, offline reload: the offline bar shows and there is no Tap-to-try (a play needs the server to start and to score)');
+      h.check(stub.of(START).length === 1, `case, offline reload: no play was started offline (${stub.of(START).length} starts in all)`);
       await k.close();
     },
   },

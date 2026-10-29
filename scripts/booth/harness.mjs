@@ -9,6 +9,7 @@
  * Run: npm run test:booth   (repo root). Exits non-zero on any FAIL. Set BOOTH_SHOTS=<dir> to save screenshots.
  */
 import { createServer } from 'node:http';
+import { createHash } from 'node:crypto';
 import { readFile, readdir, stat, mkdir } from 'node:fs/promises';
 import { join, extname, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -110,6 +111,15 @@ function makeStub({ routes = {} } = {}) {
   };
 }
 
+/** A fixture loop file with a content ETag, answering a matching If-None-Match with 304 the way Vercel does. */
+async function fulfillFile(route, file) {
+  const body = await readFile(file);
+  const etag = `"${createHash('sha1').update(body).digest('hex')}"`;
+  const headers = { 'cache-control': 'no-store', etag };
+  if (route.request().headers()['if-none-match'] === etag) return route.fulfill({ status: 304, headers });
+  return route.fulfill({ body, contentType: MIME[extname(file)] || 'application/octet-stream', headers });
+}
+
 let browser;
 let base;
 const open = new Set();
@@ -119,7 +129,8 @@ const open = new Set();
  * pointer 'coarse': isMobile + hasTouch, and the run asserts matchMedia('(pointer: coarse)') really matches.
  * pointer 'fine':   a plain desktop context (the mini-PC reporting a mouse); taps become clicks.
  * close() fails the run if any foreign request was made or any page error, CSP refusal or storage write happened.
- * files: { '/path': absolute file } served instead of disk for same-origin requests (fixture loop files).
+ * files: { '/path': absolute file } served instead of disk for same-origin requests (fixture loop files), with an
+ *   ETag; it is read per request, so a scenario that reassigns an entry replaces the file under the same name.
  * k.offline(on): the context goes offline and every request (page origin and booth API) aborts.
  */
 async function kiosk({ width = 1080, height = 1920, pointer = 'coarse', stub = makeStub(), label = `${width}x${height} ${pointer}`, files = {} } = {}) {
@@ -133,7 +144,7 @@ async function kiosk({ width = 1080, height = 1920, pointer = 'coarse', stub = m
     if (offline) return route.abort('internetdisconnected');
     if (url.startsWith(base + '/')) {
       const file = files[new URL(url).pathname];
-      if (file) return route.fulfill({ path: file, contentType: MIME[extname(file)] || 'application/octet-stream', headers: { 'cache-control': 'no-store' } });
+      if (file) return fulfillFile(route, file);
       return route.continue();
     }
     if (url.startsWith(API + '/booth/')) return stub.handle(route);

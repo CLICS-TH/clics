@@ -1,0 +1,6 @@
+{
+  "items": [
+    { "type": "image", "src": "/booth-loop/slide-a.png", "seconds": 1 },
+    { "type": "video", "src": "/booth-loop/clip.mp4" }
+  ]
+}
