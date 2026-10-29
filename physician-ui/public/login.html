@@ -48,6 +48,9 @@
     .login-foot { text-align: center; font-size: 12px; color: var(--muted-soft); margin-top: 14px; line-height: 1.5; }
     /* --muted-soft on the dark canvas is 5.34:1 (passes AA at 12px); the dark override still lifts the footnote to --muted (6.62:1) for headroom on a 12px line. */
     :root[data-theme="dark"] .login-foot { color: var(--muted); }
+    .foot-privacy { display: inline-flex; align-items: center; min-height: var(--tap-min); margin-top: 4px; font-size: 14px; font-weight: 600; color: var(--coral-text); text-decoration: none; }
+    .foot-privacy:hover { text-decoration: underline; }
+    .foot-privacy:active { color: var(--ink); text-decoration: underline; }
     @media (min-width: 1024px) {
       html:not([data-mobile]) .login-hero {
         max-width: 1060px; column-gap: clamp(48px, 6vw, 96px); align-items: center;
@@ -142,6 +145,7 @@
         <span class="trust-chip">โครงการนำร่องยังไม่เริ่ม · Pilot not yet started</span>
       </div>
       <p class="login-foot">ผู้ดูแลระบบและผู้ตรวจประเมินเข้าสู่ระบบที่นี่เช่นกัน · Admins & auditors sign in here too.</p>
+      <a class="foot-privacy" href="/privacy">ความเป็นส่วนตัว · Privacy</a>
     </footer>
   </main>
   <script src="/js/config.js"></script>

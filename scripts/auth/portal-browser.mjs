@@ -590,6 +590,34 @@ const SCENARIOS = [
     },
   },
   {
+    name: 'signed-out /privacy renders in Thai, shares the language choice with /, and marks the PI fields pending',
+    async run(t, page) {
+      await page.goto(`${PORTAL}/login`);
+      await settle(page);
+      t.check(await page.locator('footer a[href="/privacy"]').isVisible(), 'no Privacy link in the Login footer');
+      await page.goto(`${PORTAL}/privacy`);
+      await settle(page);
+      t.check(new URL(page.url()).pathname === '/privacy', `signed-out /privacy ended on ${page.url()}`);
+      t.check(await page.getByRole('main').getByRole('heading', { level: 1 }).isVisible(), 'no heading on /privacy');
+      t.check(await page.evaluate(() => document.documentElement.lang) === 'th', '/privacy does not start in Thai');
+      t.check(THAI.test(await page.title()), `the Thai Privacy page's title is not Thai: ${await page.title()}`);
+      const pending = await page.locator('.pending').evaluateAll((els) => els.filter((e) => e.checkVisibility()).length);
+      t.check(pending >= 4, `only ${pending} visible pending markers on /privacy (controller, contact, retention, lawful basis)`);
+      await page.click('.lang-switch [data-set-lang="en"]');
+      await page.goto(`${PORTAL}/`);
+      await settle(page);
+      t.check(await page.evaluate(() => document.documentElement.lang) === 'en', 'English chosen on /privacy did not carry to /');
+      await page.click('.lang-switch [data-set-lang="th"]');
+      await page.goto(`${PORTAL}/privacy`);
+      await settle(page);
+      t.check(await page.evaluate(() => document.documentElement.lang) === 'th', 'Thai chosen on / did not carry to /privacy');
+      await page.click('.lang-switch [data-set-lang="en"]');
+      const thai = (await pageStrings(page)).filter((l) => THAI.test(l));
+      t.check(thai.length === 0, `English /privacy still shows Thai: ${thai.slice(0, 4).join(' | ')}`);
+      t.check(!THAI.test(await page.title()), `the English Privacy page's title is ${await page.title()}`);
+    },
+  },
+  {
     name: 'signed-in physician at / forwards to /dashboard without showing the Landing page',
     async run(t, page, ctx) {
       await page.goto(`${PORTAL}/forgot`);
@@ -687,23 +715,23 @@ const SCENARIOS = [
   {
     // ui-gates gate 11: every control on / shows hover, pressed and keyboard focus, each as a computed
     // style change (pressed is compared with hover, which a mouse press always sits on top of).
-    name: 'every interactive control on / has a hover, pressed and focus-visible state (both themes, both languages)',
+    name: 'every interactive control on / and /privacy has a hover, pressed and focus-visible state (both themes, both languages)',
     async run(t, page) {
       const PROPS = ['color', 'backgroundColor', 'borderTopColor', 'outlineStyle', 'outlineColor', 'boxShadow', 'textDecorationLine', 'opacity', 'transform', 'filter'];
       const snap = (i) => page.evaluate(([i, props]) => { const cs = getComputedStyle(window.__els[i]); return props.map((k) => cs[k]); }, [i, PROPS]);
       const changed = (a, b) => PROPS.filter((_, k) => a[k] !== b[k]);
-      for (const scheme of ['light', 'dark']) for (const lang of ['th', 'en']) {
+      for (const [path, least] of [['/', 15], ['/privacy', 6]]) for (const scheme of ['light', 'dark']) for (const lang of ['th', 'en']) {
         await page.emulateMedia({ colorScheme: scheme });
         await page.goto(`${PORTAL}/forgot`);
         await page.evaluate((l) => localStorage.setItem('clics_manual_lang', l), lang);
-        await page.goto(`${PORTAL}/`);
+        await page.goto(`${PORTAL}${path}`);
         await settle(page);
         const labels = await page.evaluate(() => {
           window.__els = [...document.querySelectorAll('a[href], button, summary, input, select, textarea, [tabindex]')].filter((e) => e.checkVisibility());
           return window.__els.map((e) => `${e.tagName.toLowerCase()}${e.className ? '.' + String(e.className).split(' ').join('.') : ''} «${e.innerText.trim().slice(0, 20)}»`);
         });
-        const where = `${scheme} ${lang}`;
-        t.check(labels.length >= 15, `${where}: only ${labels.length} controls found on /, so this check tested little`);
+        const where = `${path} ${scheme} ${lang}`;
+        t.check(labels.length >= least, `${where}: only ${labels.length} controls found, so this check tested little`);
         await page.mouse.move(0, 0);
         const rest = [];
         for (let i = 0; i < labels.length; i++) rest.push(await snap(i));
@@ -788,11 +816,11 @@ const SCENARIOS = [
     },
   },
   {
-    name: 'public copy on / (both languages) and /login makes no overclaim',
+    name: 'public copy on / and /privacy (both languages) and /login makes no overclaim',
     async run(t, page) {
       for (const line of OVERCLAIM_SAMPLES.caught) t.check(OVERCLAIM.test(line), `OVERCLAIM misses "${line}"`);
       for (const line of OVERCLAIM_SAMPLES.passed) t.check(!OVERCLAIM.test(line), `OVERCLAIM rejects the accurate "${line}"`);
-      for (const [path, lang] of [['/', 'th'], ['/', 'en'], ['/login', 'th'], ['/login', 'en']]) {
+      for (const [path, lang] of [['/', 'th'], ['/', 'en'], ['/privacy', 'th'], ['/privacy', 'en'], ['/login', 'th'], ['/login', 'en']]) {
         await page.goto(`${PORTAL}/forgot`);
         await page.evaluate((l) => localStorage.setItem('clics_manual_lang', l), lang);
         await page.goto(`${PORTAL}${path}`);
@@ -800,7 +828,7 @@ const SCENARIOS = [
         const text = await page.evaluate(() => { document.querySelectorAll('details').forEach((d) => { d.open = true; }); return document.body.innerText; });
         const hit = text.match(OVERCLAIM);
         t.check(!hit, `${path} [${lang}] says "${hit?.[0]}"`);
-        if (path === '/') t.check(NAMED_READERS[lang].test(text), `/ [${lang}] does not say council administrators can read a named transcript`);
+        if (path !== '/login') t.check(NAMED_READERS[lang].test(text), `${path} [${lang}] does not say council administrators can read a named transcript`);
         for (const chip of await page.locator('.trust-chip').allInnerTexts()) {
           t.check(!COMPLIANCE_CHIP.test(chip), `${path} [${lang}] trust chip reads as a compliance claim: "${chip}"`);
         }

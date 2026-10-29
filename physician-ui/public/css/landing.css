@@ -1,6 +1,6 @@
-/* ===== CLICS Landing page (/) ======================================================
+/* ===== CLICS Landing page (/) and Privacy page (/privacy) ===========================
  *
- * Loaded only by index.html, after main.css. Every selector is scoped under `.landing` (the body
+ * Loaded only by index.html and privacy.html, after main.css. Every selector is scoped under `.landing` (the body
  * class) so nothing here can restyle another page. No new colours: every value is a main.css token,
  * which is what makes dark mode free. Coral marks the physician and slate-blue (--ai-*) marks the AI,
  * the same split the chat page uses.
@@ -200,3 +200,38 @@ html[data-manual-lang="en"] .landing [data-lang="en"] { display: revert; }
 }
 .landing .foot-links a:hover { text-decoration: underline; }
 .landing .foot-links a:active { color: var(--ink); text-decoration: underline; }
+
+/* ===== Privacy page (/privacy) ====================================================== */
+.landing .policy { max-width: 880px; }
+.landing .policy-head { padding: clamp(40px, 7vw, 88px) 0 0; }
+.landing .policy-head h1 {
+  font-family: var(--font-display); font-weight: 600; letter-spacing: -0.015em; line-height: 1.15;
+  font-size: clamp(2.25rem, 1.8rem + 2vw, 3.5rem); margin-bottom: 18px;
+}
+.landing .policy-lede { font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem); color: var(--body-color); }
+.landing .policy-draft { margin-top: 18px; font-size: var(--fs-body-th); color: var(--body-color); line-height: 1.7; }
+.landing .policy section { padding-top: clamp(40px, 6vw, 72px); }
+.landing .policy section > p { font-size: var(--fs-body-th); color: var(--body-color); line-height: 1.7; }
+.landing .policy section > p + p { margin-top: 12px; }
+/* Marks a field the PI has not decided yet. Dashed coral, the same "not settled" cue as the data-flow
+   diagram's CLICS box; the text stays --ink so it reads at AA on both canvases. */
+.landing .pending {
+  display: inline-block; padding: 1px 10px; border: 1.5px dashed var(--coral); border-radius: var(--r-pill);
+  background: var(--surface-soft); color: var(--ink); font-weight: 600; font-size: 0.9375rem; line-height: 1.6;
+}
+.landing .policy-facts { border-top: 1px solid var(--hairline); }
+.landing .policy-facts > div {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px 24px; padding: 14px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.landing .policy-facts dt { font-weight: 600; color: var(--ink); min-width: 0; }
+.landing .policy-facts dd { margin: 0; min-width: 0; font-size: var(--fs-body-th); color: var(--body-color); line-height: 1.65; }
+@media (min-width: 768px) {
+  html:not([data-mobile]) .landing .policy-facts > div { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
+}
+.landing .policy-list { list-style: none; display: grid; gap: 22px; }
+.landing .policy-list li { padding-top: 14px; border-top: 2px solid var(--hairline); min-width: 0; }
+.landing .policy-list h3 { margin-bottom: 6px; }
+.landing .policy-list p { font-size: var(--fs-body-th); color: var(--body-color); line-height: 1.65; }
+.landing .policy-bullets { padding-left: 1.2em; display: grid; gap: 8px; margin-top: 12px; }
+.landing .policy-bullets li { font-size: var(--fs-body-th); color: var(--body-color); line-height: 1.65; }
