@@ -260,6 +260,41 @@ const OVERCLAIM_SAMPLES = {
   ],
   passed: ['Auditors see a code in place of the name on your account', 'ผู้ตรวจเห็นรหัสแทนชื่อในบัญชีของคุณ'],
 };
+// The audit log does not record admin transcript reads or the account purge (admin.js /ples/:id/transcript,
+// superadmin.js /users/:id/purge), so no copy may say it records who did what to every record.
+// logEvent is fire-and-forget and logs only some settings (superadmin.js PATCH /usage-settings), so any
+// "records every/each/all …" not qualified by "tries to", and any unqualified "settings changes", overclaims.
+const AUDIT_OVERCLAIM = new RegExp([
+  /who did what to which record|ใครทำอะไรกับข้อมูลใดเมื่อใด/.source,
+  /(?<!(?:tries to|not) )\brecords? (?:every|each|all)\b[^.]{0,60}?\b(?:access|view|action|read|reveal|export)/.source,
+  /(?<!พยายาม)บันทึก(?:(?!ไม่)\S){0,20}?ทุก(?:ครั้ง|การ|รายการ)/.source,
+  /(?<!some )\bsettings changes/.source,
+  /การเปลี่ยนการตั้งค่า(?!บางรายการ)/.source,
+  // logEventStrict undoes the evaluator lock or unlock when its write fails, so "the action still goes
+  // ahead" is false as a blanket rule (lib/audit.js, superadmin.js).
+  /\bthe action still goes ahead|การกระทำนั้นก็ยังดำเนินต่อไป/.source,
+].join('|'), 'i');
+const AUDIT_OVERCLAIM_SAMPLES = {
+  caught: [
+    'The audit log records who did what to which record, and when.',
+    'และบันทึกว่าใครทำอะไรกับข้อมูลใดเมื่อใดในบันทึกการตรวจสอบ',
+    'The system records every access to your data.',
+    'and the system records each view and export in the audit log.',
+    'ระบบบันทึกการเปิดดูทุกครั้งไว้ในบันทึกการตรวจสอบ',
+    "auditors' scores, and settings changes.",
+    'Recording is best effort, so if writing the log fails, the action still goes ahead.',
+    'และถ้าระบบบันทึกไม่สำเร็จ การกระทำนั้นก็ยังดำเนินต่อไป',
+    'การให้คะแนนของผู้ตรวจ และการเปลี่ยนการตั้งค่า',
+  ],
+  passed: [
+    'and the system tries to record each reveal in the audit log.',
+    'The log does not record every action: an administrator opening a conversation is not recorded.',
+    'ระบบพยายามบันทึกการเปิดดูทุกครั้งไว้ในบันทึกการตรวจสอบ',
+    'บันทึกนี้ไม่ได้เก็บทุกการกระทำ',
+    "auditors' scores, and some settings changes, such as the AI provider",
+    'และการเปลี่ยนการตั้งค่าบางรายการ เช่น ผู้ให้บริการ AI',
+  ],
+};
 // The controller and lawful basis are still pending, so no trust chip may read as a compliance claim.
 const COMPLIANCE_CHIP = /PDPA|GDPR|complian|\bISO\b|HIPAA|ได้มาตรฐาน|สอดคล้อง/i;
 // Who can read a transcript with the physician's name (backend/src/routes/admin.js /ples/:id/transcript).
@@ -590,6 +625,64 @@ const SCENARIOS = [
     },
   },
   {
+    name: 'signed-out /privacy renders in Thai, shares the language choice with /, and marks the PI fields pending',
+    async run(t, page) {
+      await page.goto(`${PORTAL}/login`);
+      await settle(page);
+      t.check(await page.locator('footer a[href="/privacy"]').isVisible(), 'no Privacy link in the Login footer');
+      await page.goto(`${PORTAL}/privacy`);
+      await settle(page);
+      t.check(new URL(page.url()).pathname === '/privacy', `signed-out /privacy ended on ${page.url()}`);
+      t.check(await page.getByRole('main').getByRole('heading', { level: 1 }).isVisible(), 'no heading on /privacy');
+      t.check(await page.evaluate(() => document.documentElement.lang) === 'th', '/privacy does not start in Thai');
+      t.check(THAI.test(await page.title()), `the Thai Privacy page's title is not Thai: ${await page.title()}`);
+      for (const lang of ['th', 'en']) {
+        await page.click(`.lang-switch [data-set-lang="${lang}"]`);
+        const fields = await page.locator('section[aria-labelledby="who-h"] .policy-facts > div').evaluateAll((rows) => rows.map((r) => [
+          r.querySelector('dt').innerText.trim(),
+          [...r.querySelectorAll('dd .pending')].some((e) => e.checkVisibility()),
+        ]));
+        t.check(fields.length === 4, `[${lang}] /privacy lists ${fields.length} PI fields, not the 4 (controller, contact, lawful basis, retention)`);
+        for (const [name, marked] of fields) t.check(marked, `[${lang}] PI field "${name}" has no visible pending marker`);
+        const readers = await page.locator('section[aria-labelledby="see-h"] li').evaluateAll((lis) => lis.filter((li) => li.checkVisibility()).map((li) => li.innerText));
+        const th = lang === 'th';
+        const line = (re) => readers.find((r) => re.test(r)) ?? '';
+        const ethics = line(th ? /จริยธรรม/ : /ethics/i);
+        t.check(ethics, `[${lang}] the /privacy readers list does not name the ethics role`);
+        t.check((th ? /คำตอบของ AI/ : /AI reply/i).test(ethics) && (th ? /บันทึกการตรวจสอบ/ : /audit log/i).test(ethics), `[${lang}] the ethics line does not say the audit log can hold AI reply text`);
+        // #242: an assigned auditor can still read ples.chief_complaint and ples.title, which defaults to its first 120 characters.
+        const gap = line(th ? /ฐานข้อมูลยังไม่ได้กัน/ : /database does not yet stop/i);
+        t.check((th ? /อาการสำคัญ/ : /chief complaint/i).test(gap) && (th ? /ชื่อเรื่อง/ : /title/i).test(gap), `[${lang}] the auditor-gap line does not name both the chief complaint and the title: "${gap}"`);
+        // admin.js /identity-queue serves admins (own council) and the superadmin (every council).
+        const identity = line(th ? /เลขใบอนุญาต/ : /licence number/i);
+        // A superadmin can also store professionals.license_number on create or edit (lib/provisioning.js),
+        // so the licence number is not collected only at identity verification.
+        const idPara = await page.locator('section[aria-labelledby="collect-h"] li').filter({ hasText: th ? 'เลขประจำตัวประชาชน' : 'national ID' }).first().innerText();
+        t.check((th ? /ผู้ดูแลระบบ CLICS ใส่ไว้ในบัญชี/ : /administrator enters it on your account/i).test(idPara), `[${lang}] the identity paragraph does not say a system administrator can store the licence number on your account`);
+        // The browser talks to *.supabase.co directly, and Supabase Auth keeps the IP with the session.
+        const supabase = await page.locator('section[aria-labelledby="proc-h"] .policy-facts > div').filter({ hasText: 'Supabase' }).locator('dd').innerText();
+        t.check(/\bIP\b/.test(supabase), `[${lang}] the Supabase line does not say it receives your IP address`);
+        // logEventStrict's rollback is the exception to "most actions still go ahead".
+        const logPara = await page.locator('section[aria-labelledby="collect-h"] li').filter({ hasText: th ? 'บันทึกการตรวจสอบเก็บ' : 'The audit log records' }).first().innerText();
+        t.check((th ? /ถูกยกเลิก/ : /undone/).test(logPara), `[${lang}] the log-failure sentence has no lock exception`);
+        t.check((th ? /ผู้ดูแลระบบ CLICS/ : /CLICS system administrators/i).test(identity), `[${lang}] no readers line says the CLICS system administrators see the licence number and last four digits`);
+      }
+      await page.click('.lang-switch [data-set-lang="th"]');
+      await page.click('.lang-switch [data-set-lang="en"]');
+      await page.goto(`${PORTAL}/`);
+      await settle(page);
+      t.check(await page.evaluate(() => document.documentElement.lang) === 'en', 'English chosen on /privacy did not carry to /');
+      await page.click('.lang-switch [data-set-lang="th"]');
+      await page.goto(`${PORTAL}/privacy`);
+      await settle(page);
+      t.check(await page.evaluate(() => document.documentElement.lang) === 'th', 'Thai chosen on / did not carry to /privacy');
+      await page.click('.lang-switch [data-set-lang="en"]');
+      const thai = (await pageStrings(page)).filter((l) => THAI.test(l));
+      t.check(thai.length === 0, `English /privacy still shows Thai: ${thai.slice(0, 4).join(' | ')}`);
+      t.check(!THAI.test(await page.title()), `the English Privacy page's title is ${await page.title()}`);
+    },
+  },
+  {
     name: 'signed-in physician at / forwards to /dashboard without showing the Landing page',
     async run(t, page, ctx) {
       await page.goto(`${PORTAL}/forgot`);
@@ -687,23 +780,23 @@ const SCENARIOS = [
   {
     // ui-gates gate 11: every control on / shows hover, pressed and keyboard focus, each as a computed
     // style change (pressed is compared with hover, which a mouse press always sits on top of).
-    name: 'every interactive control on / has a hover, pressed and focus-visible state (both themes, both languages)',
+    name: 'every interactive control on / and /privacy has a hover, pressed and focus-visible state (both themes, both languages)',
     async run(t, page) {
       const PROPS = ['color', 'backgroundColor', 'borderTopColor', 'outlineStyle', 'outlineColor', 'boxShadow', 'textDecorationLine', 'opacity', 'transform', 'filter'];
       const snap = (i) => page.evaluate(([i, props]) => { const cs = getComputedStyle(window.__els[i]); return props.map((k) => cs[k]); }, [i, PROPS]);
       const changed = (a, b) => PROPS.filter((_, k) => a[k] !== b[k]);
-      for (const scheme of ['light', 'dark']) for (const lang of ['th', 'en']) {
+      for (const [path, least] of [['/', 15], ['/privacy', 6]]) for (const scheme of ['light', 'dark']) for (const lang of ['th', 'en']) {
         await page.emulateMedia({ colorScheme: scheme });
         await page.goto(`${PORTAL}/forgot`);
         await page.evaluate((l) => localStorage.setItem('clics_manual_lang', l), lang);
-        await page.goto(`${PORTAL}/`);
+        await page.goto(`${PORTAL}${path}`);
         await settle(page);
         const labels = await page.evaluate(() => {
           window.__els = [...document.querySelectorAll('a[href], button, summary, input, select, textarea, [tabindex]')].filter((e) => e.checkVisibility());
           return window.__els.map((e) => `${e.tagName.toLowerCase()}${e.className ? '.' + String(e.className).split(' ').join('.') : ''} «${e.innerText.trim().slice(0, 20)}»`);
         });
-        const where = `${scheme} ${lang}`;
-        t.check(labels.length >= 15, `${where}: only ${labels.length} controls found on /, so this check tested little`);
+        const where = `${path} ${scheme} ${lang}`;
+        t.check(labels.length >= least, `${where}: only ${labels.length} controls found, so this check tested little`);
         await page.mouse.move(0, 0);
         const rest = [];
         for (let i = 0; i < labels.length; i++) rest.push(await snap(i));
@@ -788,19 +881,21 @@ const SCENARIOS = [
     },
   },
   {
-    name: 'public copy on / (both languages) and /login makes no overclaim',
+    name: 'public copy on / and /privacy (both languages) and /login makes no overclaim',
     async run(t, page) {
       for (const line of OVERCLAIM_SAMPLES.caught) t.check(OVERCLAIM.test(line), `OVERCLAIM misses "${line}"`);
       for (const line of OVERCLAIM_SAMPLES.passed) t.check(!OVERCLAIM.test(line), `OVERCLAIM rejects the accurate "${line}"`);
-      for (const [path, lang] of [['/', 'th'], ['/', 'en'], ['/login', 'th'], ['/login', 'en']]) {
+      for (const line of AUDIT_OVERCLAIM_SAMPLES.caught) t.check(AUDIT_OVERCLAIM.test(line), `AUDIT_OVERCLAIM misses "${line}"`);
+      for (const line of AUDIT_OVERCLAIM_SAMPLES.passed) t.check(!AUDIT_OVERCLAIM.test(line), `AUDIT_OVERCLAIM rejects the accurate "${line}"`);
+      for (const [path, lang] of [['/', 'th'], ['/', 'en'], ['/privacy', 'th'], ['/privacy', 'en'], ['/login', 'th'], ['/login', 'en']]) {
         await page.goto(`${PORTAL}/forgot`);
         await page.evaluate((l) => localStorage.setItem('clics_manual_lang', l), lang);
         await page.goto(`${PORTAL}${path}`);
         await settle(page);
         const text = await page.evaluate(() => { document.querySelectorAll('details').forEach((d) => { d.open = true; }); return document.body.innerText; });
-        const hit = text.match(OVERCLAIM);
+        const hit = text.match(OVERCLAIM) || text.match(AUDIT_OVERCLAIM);
         t.check(!hit, `${path} [${lang}] says "${hit?.[0]}"`);
-        if (path === '/') t.check(NAMED_READERS[lang].test(text), `/ [${lang}] does not say council administrators can read a named transcript`);
+        if (path !== '/login') t.check(NAMED_READERS[lang].test(text), `${path} [${lang}] does not say council administrators can read a named transcript`);
         for (const chip of await page.locator('.trust-chip').allInnerTexts()) {
           t.check(!COMPLIANCE_CHIP.test(chip), `${path} [${lang}] trust chip reads as a compliance claim: "${chip}"`);
         }

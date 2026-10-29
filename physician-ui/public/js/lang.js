@@ -1,4 +1,4 @@
-// TH/EN switch for the public bilingual pages (/, /manual). Both languages are in the DOM and CSS
+// TH/EN switch for the public bilingual pages (/, /privacy, /manual). Both languages are in the DOM and CSS
 // hides one under html[data-manual-lang="en"]; see scripts/manuals/build.mjs for why. The key and
 // attribute keep their manual-era names because the manual tooling keys on them, and one stored
 // choice should hold across every public page.

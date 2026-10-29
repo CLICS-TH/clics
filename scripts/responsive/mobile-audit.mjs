@@ -184,6 +184,7 @@ function startServer() {
 // it can't render hermetically (it redirects to /dashboard); it's audited live separately.
 const PUI_PAGES = [
   { path: '/', label: 'landing', dark: true },
+  { path: '/privacy', label: 'privacy', dark: true },
   { path: '/login', label: 'login' },
   { path: '/forgot', label: 'forgot' },
   { path: '/reset', label: 'reset' },
