@@ -23,7 +23,7 @@ const REFUSAL = {
 function send(res, result, ok = 200) {
   if ('body' in result) return res.status(ok).json(result.body);
   const [status, error] = REFUSAL[result.refused];
-  return res.status(status).json({ error, reason: result.refused });
+  return res.status(status).json({ error, reason: result.refused, ...(result.reply_sig ? { reply_sig: result.reply_sig } : {}) });
 }
 
 // Express 4 does not catch a rejected async handler.

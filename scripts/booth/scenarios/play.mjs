@@ -191,11 +191,11 @@ export default [
     },
   },
   {
-    name: 'soft reply failure: 502 ai_unavailable shows a note and the play goes on',
+    name: 'soft reply failure: 502 ai_unavailable shows a note, and the play goes on with its receipt',
     async run(h) {
       const stub = h.makeStub({ routes: {
         [REPLY_KEY]: (call, calls) => (calls.filter((c) => c.key === REPLY_KEY).length === 1
-          ? { status: 502, body: { error: 'The AI is unavailable.', reason: 'ai_unavailable' } }
+          ? { status: 502, body: { error: 'The AI is unavailable.', reason: 'ai_unavailable', reply_sig: 'sig-none-1' } }
           : { status: 200, body: { status: 'replied', reply: h.REPLY(call.body.answers.length), reply_sig: h.SIG(call.body.answers.length) } }),
       } });
       const k = await h.kiosk({ stub });
@@ -214,11 +214,12 @@ export default [
       await k.screen('step');
       h.check((await text(k.page, '.step-of')).includes('2'), 'the play goes on to step 2');
       h.check(await answerAll(k, 'b') === 'reply', 'steps 2 and 3 answered');
-      h.check(h.same(stub.of(REPLY_KEY)[1]?.body, { answers: [{ choice: 'c' }, { choice: 'b' }], replies: [''], reply_sigs: [''] }),
-        `step 2: the missing reply goes back as "" (${JSON.stringify(stub.of(REPLY_KEY)[1]?.body)})`);
+      h.check(h.same(stub.of(REPLY_KEY)[1]?.body, { answers: [{ choice: 'c' }, { choice: 'b' }], replies: [''], reply_sigs: ['sig-none-1'] }),
+        `step 2: the missing reply goes back as "" with the 502's receipt (${JSON.stringify(stub.of(REPLY_KEY)[1]?.body)})`);
       await k.tap('[data-action="see-score"]');
       await k.screen('scored');
       h.check(h.same(stub.of(SCORE_KEY)[0]?.body?.replies, ['', h.REPLY(2), h.REPLY(3)]), 'score: replies are "", reply 2, reply 3');
+      h.check(h.same(stub.of(SCORE_KEY)[0]?.body?.reply_sigs, ['sig-none-1', h.SIG(2), h.SIG(3)]), 'score: reply_sigs carry the receipt, sig 2, sig 3');
       await k.close();
     },
   },

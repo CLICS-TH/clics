@@ -4,13 +4,15 @@
  *   http     the backend answered non-2xx (status and the body's `reason` attached), or 2xx with a non-JSON body
  */
 export class BoothApiError extends Error {
-  /** @param {BoothApiErrorKind} kind @param {number} status 0 unless kind is 'http' @param {string | null} reason */
-  constructor(kind, status, reason) {
+  /** @param {BoothApiErrorKind} kind @param {number} status 0 unless kind is 'http' @param {string | null} reason
+   *  @param {string | null} [replySig] the reply_sig a 502 ai_unavailable /reply carries for its empty reply */
+  constructor(kind, status, reason, replySig = null) {
     super(`booth api ${kind}${status ? ` ${status}` : ''}${reason ? ` ${reason}` : ''}`);
     this.name = 'BoothApiError';
     this.kind = kind;
     this.status = status;
     this.reason = reason;
+    this.replySig = replySig;
   }
 }
 
@@ -41,7 +43,10 @@ export function createBoothApi(baseUrl) {
     }
     const parsed = await res.json().catch(() => undefined);
     if (deadline.aborted) throw new BoothApiError('offline', 0, null);
-    if (!res.ok) throw new BoothApiError('http', res.status, typeof parsed?.reason === 'string' ? parsed.reason : null);
+    if (!res.ok) {
+      throw new BoothApiError('http', res.status, typeof parsed?.reason === 'string' ? parsed.reason : null,
+        typeof parsed?.reply_sig === 'string' ? parsed.reply_sig : null);
+    }
     if (parsed === undefined) throw new BoothApiError('http', res.status, 'bad_body');
     return parsed;
   }

@@ -40,11 +40,12 @@ const DAY_MS = 86_400_000;
  *   reply: 1..3 answers and answers.length - 1 replies (the step being answered is answers.length).
  *   score: exactly 3 of each. A reply may be '' when the AI gave none for that step.
  *   reply_sigs[i] is the reply_sig /reply answered with replies[i], so a client cannot send a reply the AI never
- *   gave. It is ignored for an empty reply.
+ *   gave. An empty reply needs one too: /reply signs '' when the AI call for that step failed, so a client cannot
+ *   skip the AI.
  * @typedef {{ tag: number, score: number, at: string }} BoardEntry
  * @typedef {{ today: BoardEntry[], event: BoardEntry[] }} Board
  * @typedef {'bad_request' | 'closed' | 'not_found' | 'not_started' | 'ai_unavailable' | 'unavailable'} Refusal
- * @typedef {{ body: object } | { refused: Refusal }} Result
+ * @typedef {{ body: object } | { refused: Refusal, reply_sig?: string }} Result
  */
 
 const Bilingual = z.object({ th: z.string().trim().min(1), en: z.string().trim().min(1) }).strict();
@@ -162,7 +163,7 @@ function parseDialogue(kase, playId, raw, phase) {
     ? answers.length === STEPS && replies.length === STEPS
     : replies.length === answers.length - 1) && sigs.length === replies.length;
   const known = answers.every((a, i) => !('choice' in a) || kase.steps[i].options.some((o) => o.id === a.choice));
-  const given = counted && replies.every((r, i) => r === '' || sigMatches(replySig(playId, i, parsed.data, r), sigs[i]));
+  const given = counted && replies.every((r, i) => sigMatches(replySig(playId, i, parsed.data, r), sigs[i]));
   return counted && known && given ? parsed.data : null;
 }
 
@@ -199,7 +200,7 @@ function byStanding(a, b) {
 
 /**
  * Pure: the event's scored plays, ranked for the event and for the Bangkok day that `dayOf` falls in.
- * @param {{ id: string, tag: number, composite: number, scored_at: string }[]} rows scored plays of one event
+ * @param {{ id: string, tag: number, composite: number, scored_at: string }[]} rows ranked scored plays of one event
  */
 function standings(rows, dayOf) {
   const event = [...rows].sort(byStanding);
@@ -215,7 +216,7 @@ const boardOf = ({ today, event }) => ({ today: today.slice(0, BOARD_SIZE).map(e
 
 async function readStandings(event, dayOf) {
   const { data, error } = await supabase.from('booth_plays').select('id, tag, composite, scored_at')
-    .eq('event_code', event.code).eq('status', 'scored')
+    .eq('event_code', event.code).eq('status', 'scored').eq('ranked', true)
     .order('composite', { ascending: false }).order('scored_at').order('tag').limit(STANDINGS_MAX);
   if (error || !Array.isArray(data)) {
     console.error(`[booth] standings read failed for ${event.code}: ${error?.message ?? 'not a list'}`);
@@ -225,7 +226,8 @@ async function readStandings(event, dayOf) {
   return standings(rows, dayOf);
 }
 
-/** A rank of null means unknown: the standings did not load, or the play is outside the top STANDINGS_MAX. */
+/** A rank of null means none: the standings did not load, the play is outside the top STANDINGS_MAX, or it has a
+ *  typed answer and is not ranked. */
 async function scoredBody(playId, event, composite, domains, scoredAt) {
   const s = await readStandings(event, Date.parse(scoredAt));
   const rank = (list) => {
@@ -257,11 +259,14 @@ async function claimAsUnavailable(playId, event) {
   return !error && Array.isArray(data) && data.length === 1;
 }
 
-async function finish(playId, event, domains) {
+/** A typed answer reaches the evaluator as written and could address it, so only a play of tapped choices ranks. */
+const rankable = ({ answers }) => answers.every((a) => 'choice' in a);
+
+async function finish(playId, event, domains, ranked) {
   const composite = compositeScore(domains);
   const scoredAt = new Date().toISOString();
   const { data, error } = await supabase.from('booth_plays')
-    .update({ status: 'scored', composite, ...domains, scored_at: scoredAt })
+    .update({ status: 'scored', composite, ...domains, scored_at: scoredAt, ranked })
     .eq('id', playId).eq('status', 'unavailable').is('scored_at', null).select('id');
   if (error || !Array.isArray(data) || data.length !== 1) return UNAVAILABLE;
   return { body: await scoredBody(playId, event, composite, domains, scoredAt) };
@@ -301,7 +306,8 @@ async function boardFor(now = new Date()) {
   return s ? { body: { board: boardOf(s) } } : { refused: 'unavailable' };
 }
 
-/** @returns {Promise<Result>} body: { status: 'replied', reply, reply_sig } | { status: 'unavailable' } */
+/** @returns {Promise<Result>} body: { status: 'replied', reply, reply_sig } | { status: 'unavailable' }; an
+ *    ai_unavailable refusal carries the reply_sig of '' for the step. */
 async function replyToStep(playId, input, now = new Date()) {
   const opened = await openEvent(now);
   if (opened.refused) return opened;
@@ -314,6 +320,9 @@ async function replyToStep(playId, input, now = new Date()) {
   if (PAST_STARTED.has(reserved)) return { refused: reserved };
   if (reserved !== 'reserved') return { refused: 'unavailable' };
 
+  const step = dialogue.answers.length - 1;
+  // The receipt for a step the AI was asked and gave nothing: the score accepts '' for that step only with it.
+  const failed = { refused: 'ai_unavailable', reply_sig: replySig(playId, step, dialogue, '') };
   const history = dialogueTurns(kase, dialogue);
   const { content: message } = history.pop();
   let res;
@@ -324,12 +333,12 @@ async function replyToStep(playId, input, now = new Date()) {
   } catch (err) {
     // The reservation stays: a call that failed or timed out may still have been billed.
     console.warn(`[booth] reply failed for ${playId}: ${err.status || err.name}`);
-    return { refused: 'ai_unavailable' };
+    return failed;
   }
   await settle(playId, res, REPLY_RESERVE_USD);
   const reply = typeof res?.content === 'string' ? res.content.trim().slice(0, REPLY_MAX_CHARS) : '';
-  if (!reply) return { refused: 'ai_unavailable' };
-  return { body: { status: 'replied', reply, reply_sig: replySig(playId, dialogue.answers.length - 1, dialogue, reply) } };
+  if (!reply) return failed;
+  return { body: { status: 'replied', reply, reply_sig: replySig(playId, step, dialogue, reply) } };
 }
 
 // shadow MUST be false: rimpl's shadow evaluation upserts shadow_evaluations, whose ple_id references ples, and a
@@ -363,7 +372,7 @@ async function scorePlay(playId, input, now = new Date()) {
   }
   await settle(playId, res, SCORE_RESERVE_USD);
   const domains = DomainsSchema.safeParse(res);
-  return domains.success ? finish(playId, event, domains.data) : UNAVAILABLE;
+  return domains.success ? finish(playId, event, domains.data, rankable(dialogue)) : UNAVAILABLE;
 }
 
 module.exports = { BOOTH_SETTINGS, BoothTimeSchema, SAFE_EVENT_CODE, replySig, standings, boothStatus, boardFor, startPlay,

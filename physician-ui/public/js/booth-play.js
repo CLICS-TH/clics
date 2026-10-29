@@ -29,8 +29,8 @@ const GHOST_TAP_MS = 350;
  *         | { at: 'scoring' } | { at: 'scored', score: Score } | { at: 'unavailable' }
  *         | { at: 'stopped', offline: boolean }} Screen
  * @typedef {{ play: Play, answers: Answer[], replies: string[], sigs: string[], screen: Screen }} PlayState
- *   sigs[i] is the reply_sig /reply gave with replies[i] ('' when the AI gave none); the backend scores only
- *   replies that carry theirs.
+ *   sigs[i] is the reply_sig /reply gave with replies[i], also for an empty one (its 502 carries it); the backend
+ *   scores only replies that carry theirs.
  *
  * @typedef {{ type: 'begin' } | { type: 'openTyping' } | { type: 'closeTyping' } | { type: 'answer', answer: Answer }
  *         | { type: 'replied', text: string, sig: string } | { type: 'next' } | { type: 'scored', score: Score }
@@ -124,7 +124,7 @@ async function requestReply(api, s) {
     if (body?.status === 'unavailable') return { type: 'unavailable' };
     return { type: 'stop', offline: false };
   } catch (e) {
-    if (e instanceof BoothApiError && e.status === 502 && e.reason === 'ai_unavailable') return { type: 'replied', text: '', sig: '' };
+    if (e instanceof BoothApiError && e.status === 502 && e.reason === 'ai_unavailable') return { type: 'replied', text: '', sig: e.replySig ?? '' };
     return { type: 'stop', offline: isOffline(e) };
   }
 }
