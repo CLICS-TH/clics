@@ -139,17 +139,36 @@ expect "  → its summary is recorded once, without ids or tags" "1|0" \
 for del in false true; do
   R="$(J EVT-A $del)"
   expect "a rerun (p_delete $del) returns plays 0 and the first purge's summary under recorded" "0|t|t" \
-    "$(P -c "select j->>'plays', j->'recorded'->'summary' = ('$D'::jsonb - 'recorded'), (j->'recorded'->>'purged_at')::timestamptz <= now()
+    "$(P -c "select j->>'plays', j->'recorded'->'summary' = ('$D'::jsonb - 'recorded' - 'attempt'), (j->'recorded'->>'purged_at')::timestamptz <= now()
              from (select '$R'::jsonb j) s")"
 done
 expect "  → an empty rerun records nothing" "1" "$(P -c "select count(*) from booth_event_purges where event_code = 'EVT-A'")"
+
+echo "attempt ids: a later call finds a delete's record exactly when that delete committed"
+ATT() { echo "select booth_event_summary('$1', $2, '$3'::uuid)"; }
+JA() { P -c "$(SR "$(ATT "$1" "$2" "$3")")" | tail -1; }
+A1=11111111-1111-4111-8111-111111111111; A2=22222222-2222-4222-8222-222222222222; A3=33333333-3333-4333-8333-333333333333
+P -c "$(play EVT-T 1 abandoned 0.1) $(play EVT-T 2 abandoned 0.2)"
+setting booth_enabled 1 null
+expect "a delete refused while switched on (attempt A1)" "BP409" "$(sqlstate "$(SR "$(ATT EVT-T true $A1)")")"
+setting booth_enabled 0 null
+expect "  → A1 did not commit: its attempt is null, the plays are still there" "null|2" \
+  "$(P -c "select coalesce(j->>'attempt', 'null'), j->>'plays' from (select '$(JA EVT-T false $A1)'::jsonb j) s")"
+DT="$(JA EVT-T true $A2)"
+expect "a delete under attempt A2 commits 2 plays" "2" "$(P -c "select j->>'plays' from (select '$DT'::jsonb j) s")"
+P -c "$(play EVT-T 3 abandoned 0.3)"
+expect "  → later, with a new play: attempt A2 returns its own summary, not the live play" "1|2|t" \
+  "$(P -c "select j->>'plays', j->'attempt'->'summary'->>'plays', j->'attempt'->'summary' = ('$DT'::jsonb - 'recorded' - 'attempt') from (select '$(JA EVT-T false $A2)'::jsonb j) s")"
+expect "  → an attempt id no delete used returns null" "null" \
+  "$(P -c "select coalesce(j->>'attempt', 'null') from (select '$(JA EVT-T false $A3)'::jsonb j) s")"
+expect "  → the record stores A2" "1" "$(P -c "select count(*) from booth_event_purges where attempt_id = '$A2'")"
 
 echo "privileges"
 # Asked of the catalog, not by calling: a call by anon also fails on booth_plays' own revoke, so it would stay 42501
 # with the function's EXECUTE restored.
 for role in anon authenticated; do
   expect "$role holds no EXECUTE on booth_event_summary" "f" \
-    "$(P -c "select has_function_privilege('$role', 'public.booth_event_summary(text, boolean)', 'execute')")"
+    "$(P -c "select has_function_privilege('$role', 'public.booth_event_summary(text, boolean, uuid)', 'execute')")"
   expect "$role holds no privilege on booth_event_purges_id_seq" "f|f|f" \
     "$(P -c "select has_sequence_privilege('$role', 'public.booth_event_purges_id_seq', 'usage'), has_sequence_privilege('$role', 'public.booth_event_purges_id_seq', 'select'), has_sequence_privilege('$role', 'public.booth_event_purges_id_seq', 'update')")"
 done

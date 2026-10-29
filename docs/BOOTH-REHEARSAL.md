@@ -14,9 +14,9 @@ Owner-gated production writes. Do them before the deploy freeze, not on the day.
 - [ ] **Booth migrations applied, in this order,** to the prod Supabase: re-apply `db/migration-booth-plays.sql`
       (idempotent; it replaces `booth_start_play` with the version that refuses a start once the switch is off),
       then apply `db/migration-booth-purge.sql` (`booth_event_summary` and the `booth_event_purges` record).
-- [ ] **Check, read-only:** `cd backend && node ../scripts/booth/purge-event.mjs --event FREEZE-CHECK` prints a
-      summary with `plays 0` and `dry run: nothing deleted`. "booth_event_summary is missing: apply
-      db/migration-booth-purge.sql first" means the purge migration is not applied.
+- [ ] **Check, read-only:** `cd backend && node ../scripts/booth/purge-event.mjs --event FREEZE-CHECK` prints
+      `dry run: nothing deleted` and `plays 0`. A `Next step:` line that says to apply
+      `db/migration-booth-purge.sql` means the purge migration is not applied.
 - [ ] **Check, read-only,** in the Supabase SQL editor:
       `select position('booth_enabled' in prosrc) > 0 from pg_proc where proname = 'booth_start_play';` returns
       `true`. `false` means `migration-booth-plays.sql` was not re-applied.
@@ -89,12 +89,10 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
 ## 6. Clean up after rehearsal
 
 - [ ] Tap the switch **off** in the Booth Mode card (it saves itself).
-- [ ] `cd backend && node ../scripts/booth/purge-event.mjs --event NFCME-2026` prints the rehearsal plays' summary.
-      Then rerun it with `--delete`: it reports `0 remain`. The CCME summary is the first block that run prints
-      (`Booth event NFCME-2026`, the rows it deleted). If the `--delete` run fails, never rerun it with `--delete`:
-      run the dry run it names, and the CCME summary is the block headed `already purged at …`. A block headed
-      `previous purge at …` is an earlier purge shown beside live plays, not this one. This is also the dress
-      rehearsal of the 30-day retention step in the runbook.
+- [ ] In `backend/`, run `node ../scripts/booth/purge-event.mjs --event NFCME-2026`. Every run ends with a block
+      labelled `== CCME summary (…) ==` (or a line saying there is none yet) and a `Next step:` line. Do exactly
+      what each `Next step:` says until one starts with `Done`, which ends with `0 remain`. This is the dress
+      rehearsal of the 30-day retention step in the runbook. Rehearsal plays are not CCME data: send nothing.
 - [ ] Set opens-at and closes-at to Tue 3 Nov's booth hours and press **Save**. Reload the page and check both
       times are still shown. Leave the switch off until the morning.
 - [ ] Write the staff names and phone numbers by hand on the printed runbook, section 7.

@@ -4,6 +4,10 @@
 -- to booth_event_purges, so a delete whose response is lost still leaves its counts: every call returns the
 -- latest recorded purge of the event under `recorded` ({purged_at, summary} or null).
 --
+-- Each --delete run passes a fresh p_attempt uuid, stored with its record. A later call with that p_attempt (and
+-- p_delete false) returns the record under `attempt`, or null: the record exists exactly when that delete committed,
+-- with no clock comparison between the operator's laptop and the database.
+--
 -- Why one function: as separate requests, a superadmin could switch the event on between the switch check and the
 -- delete, and a score still running (switching off does not stop one) could land between the summary read and the
 -- delete. Here the event's advisory lock (the key booth_start_play takes) keeps a play from starting, the
@@ -24,8 +28,10 @@ create table if not exists public.booth_event_purges (
   id          bigserial primary key,
   event_code  text not null check (event_code ~ '^[A-Z0-9][A-Z0-9-]{0,31}$'),
   purged_at   timestamptz not null default now(),
-  summary     jsonb not null
+  summary     jsonb not null,
+  attempt_id  uuid unique
 );
+alter table public.booth_event_purges add column if not exists attempt_id uuid unique;
 
 -- DENY-ALL (RLS on, no policy), like booth_plays: only the service role reads it, through booth_event_summary().
 alter table public.booth_event_purges enable row level security;
@@ -38,7 +44,10 @@ comment on table public.booth_event_purges is
   'Booth retention (#217, ADR 0004): the counts summary of each booth_plays purge, written in the purge''s '
   'transaction. Aggregates only, outside pilot data: no play id, tag or per-play row.';
 
-create or replace function public.booth_event_summary(p_event text, p_delete boolean)
+-- The two-argument version, from before p_attempt: dropped so one signature stays.
+drop function if exists public.booth_event_summary(text, boolean);
+
+create or replace function public.booth_event_summary(p_event text, p_delete boolean, p_attempt uuid default null)
 returns jsonb
 language plpgsql as $$
 declare
@@ -46,12 +55,15 @@ declare
   v_enabled numeric;
   v_summary jsonb;
   v_recorded jsonb;
+  v_attempt jsonb;
 begin
   perform pg_advisory_xact_lock(hashtext('booth_plays:' || p_event));
 
   -- Read before this call's own insert, so `recorded` is always an earlier purge.
   select jsonb_build_object('purged_at', p.purged_at, 'summary', p.summary) into v_recorded
     from public.booth_event_purges p where p.event_code = p_event order by p.purged_at desc, p.id desc limit 1;
+  select jsonb_build_object('purged_at', p.purged_at, 'summary', p.summary) into v_attempt
+    from public.booth_event_purges p where p.event_code = p_event and p.attempt_id = p_attempt;
 
   if p_delete then
     perform 1 from public.app_settings where key in ('booth_enabled', 'booth_event_code') order by key for update;
@@ -97,10 +109,10 @@ begin
   from unnest(coalesce(v_rows, '{}')) r;
 
   if p_delete and v_rows is not null then
-    insert into public.booth_event_purges (event_code, summary) values (p_event, v_summary);
+    insert into public.booth_event_purges (event_code, summary, attempt_id) values (p_event, v_summary, p_attempt);
   end if;
-  return v_summary || jsonb_build_object('recorded', v_recorded);
+  return v_summary || jsonb_build_object('recorded', v_recorded, 'attempt', v_attempt);
 end $$;
 
-revoke all on function public.booth_event_summary(text, boolean) from public, anon, authenticated;
-grant execute on function public.booth_event_summary(text, boolean) to service_role;
+revoke all on function public.booth_event_summary(text, boolean, uuid) from public, anon, authenticated;
+grant execute on function public.booth_event_summary(text, boolean, uuid) to service_role;

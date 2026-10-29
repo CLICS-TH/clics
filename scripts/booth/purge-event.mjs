@@ -1,48 +1,61 @@
 #!/usr/bin/env node
 /*
- * Booth retention (#217, ADR 0004): prints the counts summary for CCME, then with --delete removes every
+ * Booth retention (#217, ADR 0004): prints the counts summary for CCME and, with --delete, removes every
  * booth_plays row of one event. Run it 30 days after the forum's last day.
  *
  * Needs db/migration-booth-purge.sql applied: one call to booth_event_summary() checks the switch, deletes and
  * summarizes in one transaction, so the printed summary describes exactly the rows deleted. That transaction also
- * records the summary in booth_event_purges, and every run prints the latest recorded purge, so a delete whose
- * response was lost is recovered by running the same command again.
+ * records the summary in booth_event_purges under the run's attempt id, so whether a delete whose response was lost
+ * committed is read back exactly, with --attempt.
  *
  * Run from backend/ (dotenv loads backend/.env and @supabase/supabase-js resolves from backend/node_modules):
- *   cd backend && node ../scripts/booth/purge-event.mjs --event NFCME-2026            # summary only
- *   cd backend && node ../scripts/booth/purge-event.mjs --event NFCME-2026 --delete   # summary of the deleted rows
+ *   node ../scripts/booth/purge-event.mjs --event NFCME-2026                  # read only
+ *   node ../scripts/booth/purge-event.mjs --event NFCME-2026 --delete         # delete, print what was deleted
+ *   node ../scripts/booth/purge-event.mjs --event NFCME-2026 --attempt <id>   # read only: did that delete commit?
  *
- * --delete refuses while any booth event is switched on (booth_enabled = 1): switch the booth off first.
- * Re-running on a purged event prints plays 0, then the summary recorded when it was purged, and exits 0.
+ * Every run ends with the one block to send CCME (or a line saying there is none yet) and a "Next step:" line naming
+ * the exact command to run next, if any (plan() in purge-summary.mjs decides both). The operator follows that line.
  *
- * Exit codes: 0 = done · 1 = the call failed (with --delete it may have committed: rerun), or rows remain · 2 = bad
- * arguments, misconfigured, or refused because a booth event is switched on.
+ * Exit codes: 0 = done · 1 = the call failed, or rows remain · 2 = bad arguments, misconfigured, or refused because
+ * a booth event is switched on.
  */
 import { createRequire } from 'node:module';
-import { SAFE_EVENT_CODE, report, bangkokTime } from './purge-summary.mjs';
+import { randomUUID } from 'node:crypto';
+import { SAFE_EVENT_CODE, report, bangkokTime, command, plan, ending } from './purge-summary.mjs';
 
-const USAGE = 'usage: cd backend && node ../scripts/booth/purge-event.mjs --event <CODE> [--delete]';
+const USAGE = 'usage: node ../scripts/booth/purge-event.mjs --event <CODE> [--delete | --attempt <id>]   (run from backend/)';
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function parseArgs(argv) {
   let code = null;
   let del = false;
+  let attempt = null;
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--event') code = argv[++i] ?? null;
     else if (argv[i] === '--delete') del = true;
+    else if (argv[i] === '--attempt') attempt = argv[++i] ?? '';
     else return { error: `unknown argument ${argv[i]}` };
   }
   if (!code) return { error: '--event is required' };
   if (!SAFE_EVENT_CODE.test(code)) return { error: `--event ${JSON.stringify(code)} is not an event code (A-Z, 0-9 and -, up to 32)` };
-  return { code, del };
+  if (attempt !== null && !UUID.test(attempt)) return { error: `--attempt ${JSON.stringify(attempt)} is not an attempt id` };
+  if (attempt && del) return { error: '--attempt reads only: use it without --delete' };
+  return { code, del, attempt };
 }
 
-const fail = (code, message) => {
-  console.error(message);
-  process.exit(code);
-};
-
 const args = parseArgs(process.argv.slice(2));
-if (args.error) fail(2, `${args.error}\n${USAGE}`);
+if (args.error) {
+  console.error(`${args.error}\n${USAGE}`);
+  process.exit(2);
+}
+const { code, del } = args;
+// A --delete run's own id, stored with its record; a read passes the id it was given to look that record up.
+const attempt = del ? randomUUID() : args.attempt;
+
+const end = (p, exit) => {
+  console.log(ending(code, p));
+  process.exit(exit);
+};
 
 // Resolved against backend/, not this file: every dependency lives there.
 const require = createRequire(`${process.cwd()}/`);
@@ -51,47 +64,48 @@ try {
   require('dotenv').config();
   ({ supabase } = require(`${process.cwd()}/src/lib/supabase`));
 } catch (e) {
-  fail(2, `Could not load the backend modules, run this from backend/:\n  ${USAGE}\n\n${e.message}`);
+  console.error(`Could not load the backend modules: ${e.message}`);
+  end({ ccme: null, none: 'none yet (nothing was read or deleted)',
+    next: `From the backend/ folder, run \`${command(code, del ? '--delete' : args.attempt ? `--attempt ${args.attempt}` : '')}\`.` }, 2);
 }
 
-async function remaining(code) {
-  const { count, error } = await supabase.from('booth_plays').select('id', { count: 'exact', head: true }).eq('event_code', code);
-  if (error || count == null) fail(1, `booth_plays recount failed: ${error?.message ?? 'no count'}`);
-  return count;
-}
-
-const { code, del } = args;
-// Recovery is always the dry run: a rerun with --delete would also delete any play started since.
-const DRY_RUN = `cd backend && node ../scripts/booth/purge-event.mjs --event ${code}`;
-const MAY_HAVE_COMMITTED = `The delete may have committed. Read the summary recorded for ${code}, deleting nothing, with the dry run:\n  ${DRY_RUN}`;
 let summary;
 let error;
 try {
-  ({ data: summary, error } = await supabase.rpc('booth_event_summary', { p_event: code, p_delete: del }));
+  ({ data: summary, error } = await supabase.rpc('booth_event_summary', { p_event: code, p_delete: del, p_attempt: attempt }));
 } catch (e) {
   error = { message: e?.message ?? String(e) };
 }
 if (error?.code === 'BP409') {
-  fail(2, 'refused: a booth event is switched on (booth_enabled = 1). Switch the booth off on the superadmin overview first.');
+  console.error('refused: a booth event is switched on (booth_enabled = 1).');
+  end(plan(code, { kind: 'refused' }), 2);
 }
-if (error?.code === 'PGRST202') fail(2, `booth_event_summary is missing: apply db/migration-booth-purge.sql first.\n${error.message}`);
+if (error?.code === 'PGRST202') {
+  console.error(`booth_event_summary is missing: ${error.message}`);
+  end(plan(code, { kind: 'missing' }), 2);
+}
 if (error || !summary) {
-  fail(1, `booth_event_summary failed: ${error?.message ?? 'no result'}${del ? `\n${MAY_HAVE_COMMITTED}` : ''}`);
-}
-console.log(report(code, summary));
-// With no live plays the recorded purge is this event's CCME summary; beside live plays it is an earlier purge only.
-if (summary.recorded) {
-  const at = bangkokTime(summary.recorded.purged_at);
-  console.log(summary.plays === 0
-    ? `\nalready purged at ${at}; the summary recorded then (the CCME summary):`
-    : `\nprevious purge at ${at}, before the ${summary.plays} plays above; the summary recorded then:`);
-  console.log(report(code, summary.recorded.summary));
+  console.error(`booth_event_summary failed: ${error?.message ?? 'no result'}`);
+  end(plan(code, { kind: 'failed', del, attempt }), 1);
 }
 
 if (!del) {
-  console.log('dry run: nothing deleted');
-  process.exit(0);
+  console.log(`Live plays of ${code} now (dry run: nothing deleted):\n${report(code, summary)}\n`);
+  const p = plan(code, { kind: 'read', summary, attempt });
+  const earlier = summary.recorded;
+  const shown = p.ccme && (p.ccme.summary === earlier?.summary || earlier?.purged_at === summary.attempt?.purged_at);
+  if (earlier && !shown) {
+    console.log(`Earlier purge at ${bangkokTime(earlier.purged_at)} (not the CCME summary of this run):\n${report(code, earlier.summary)}\n`);
+  }
+  end(p, 0);
 }
-const left = await remaining(code);
-console.log(`deleted ${summary.plays} rows, ${left} remain`);
-process.exit(left === 0 ? 0 : 1);
+
+const p = plan(code, { kind: 'deleted', summary });
+const { count: left, error: countError } = await supabase.from('booth_plays').select('id', { count: 'exact', head: true }).eq('event_code', code);
+if (countError || left == null) {
+  console.error(`booth_plays recount failed: ${countError?.message ?? 'no count'}`);
+  end({ ...p, next: `The delete committed and its CCME summary is above: send it. Then run \`${command(code)}\` to check no plays remain.` }, 1);
+}
+console.log(`deleted ${summary.plays} rows, ${left} remain\n`);
+if (left > 0) end({ ...p, next: `${left} plays remain. Send the CCME summary block above, then run \`${command(code)}\` and follow its next step.` }, 1);
+end(p, 0);
