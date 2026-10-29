@@ -53,7 +53,7 @@
         </li>
         <li>
           <h3><span data-lang="th">ตัวตนบัญชี Google</span><span data-lang="en">Google sign-in identity</span></h3>
-          <p><span data-lang="th">ถ้าคุณเข้าสู่ระบบด้วย Google ระบบเก็บชื่อและอีเมลจากบัญชี Google ไว้ในคลังที่เข้ารหัส โดยกุญแจถอดรหัสอยู่ที่เซิร์ฟเวอร์ของ CLICS</span><span data-lang="en">If you sign in with Google, the name and email from your Google account are kept in an encrypted vault. The decryption key is held by the CLICS server.</span></p>
+          <p><span data-lang="th">ถ้าคุณเข้าสู่ระบบด้วย Google ชื่อจากบัญชี Google จะกลายเป็นชื่อในบัญชี CLICS ของคุณ และบริการยืนยันตัวตนเก็บอีเมลกับข้อมูลโปรไฟล์ Google ไว้ นอกจากนี้ระบบยังเก็บสำเนาชื่อและอีเมลไว้ในคลังที่เข้ารหัส โดยกุญแจถอดรหัสอยู่ที่เซิร์ฟเวอร์ของ CLICS</span><span data-lang="en">If you sign in with Google, the name on your Google account becomes the name on your CLICS account, and the sign-in service keeps your email and Google profile. The system also keeps a copy of the name and email in an encrypted vault. The decryption key is held by the CLICS server.</span></p>
         </li>
         <li>
           <h3><span data-lang="th">เลขประจำตัวประชาชนและเลขใบอนุญาต</span><span data-lang="en">National ID and licence number</span></h3>
@@ -69,7 +69,7 @@
         </li>
         <li>
           <h3><span data-lang="th">ข้อมูลบัญชีรับเงิน</span><span data-lang="en">Payment details</span></h3>
-          <p><span data-lang="th">ชื่อบัญชี ธนาคาร เลขบัญชี และพร้อมเพย์ ถูกเข้ารหัสและเก็บแยกจากข้อมูลวิจัย ใช้เพื่อจ่ายค่าตอบแทน คุณเปิดดูของตัวเองได้ ผู้ดูแลระบบ CLICS เปิดดูและส่งออกเพื่อทำจ่ายได้ และทุกครั้งที่เปิดดูหรือส่งออกจะถูกบันทึกในบันทึกการตรวจสอบ ข้อมูลนี้ไม่ถูกส่งให้ AI</span><span data-lang="en">Account name, bank, account number and PromptPay are encrypted and kept apart from the research data. They are used to pay compensation. You can view your own. The CLICS system administrators can view and export them to make payments, and every view or export is written to the audit log. They are never sent to the AI.</span></p>
+          <p><span data-lang="th">ชื่อบัญชี ธนาคาร เลขบัญชี และพร้อมเพย์ ถูกเข้ารหัสและเก็บแยกจากข้อมูลวิจัย ใช้เพื่อจ่ายค่าตอบแทน คุณเปิดดูของตัวเองได้ ผู้ดูแลระบบ CLICS เปิดดูและส่งออกเพื่อทำจ่ายได้ และระบบบันทึกการเปิดดูและการส่งออกไว้ในบันทึกการตรวจสอบ ข้อมูลนี้ไม่ถูกส่งให้ AI</span><span data-lang="en">Account name, bank, account number and PromptPay are encrypted and kept apart from the research data. They are used to pay compensation. You can view your own. The CLICS system administrators can view and export them to make payments, and the system records each view and export in the audit log. They are never sent to the AI.</span></p>
         </li>
         <li>
           <h3><span data-lang="th">การใช้งานและบันทึกการตรวจสอบ</span><span data-lang="en">Usage and the audit log</span></h3>
@@ -80,7 +80,7 @@
 
     <section aria-labelledby="ai-h">
       <h2 id="ai-h"><span data-lang="th">ข้อมูลที่ส่งถึง AI</span><span data-lang="en">What reaches the AI</span></h2>
-      <p><span data-lang="th">ก่อนส่งให้ AI บทสนทนา อาการสำคัญของเคส และคำตอบสะท้อนการเรียนรู้จะผ่านตัวกรองที่ตรวจหาชื่อ เลขประจำตัว เบอร์โทรศัพท์ และข้อมูล<span class="nw">ระบุตัวตน</span>อื่น แล้วแทนด้วยป้าย เช่น [NAME-1] ชื่อและอีเมลในบัญชีของคุณและข้อมูลบัญชีรับเงินไม่ถูกส่งให้ AI</span><span data-lang="en">Before anything goes to the AI, the conversation, the case's chief complaint and your reflection pass through a filter that replaces names, ID numbers, phone numbers and other identifying details it detects with placeholders such as [NAME-1]. The name and email on your account and your payment details are not sent to the AI.</span></p>
+      <p><span data-lang="th">ก่อนส่งให้ AI บทสนทนา อาการสำคัญของเคส และคำตอบสะท้อนการเรียนรู้จะผ่านตัวกรองที่ตรวจหาชื่อ เลขประจำตัว เบอร์โทรศัพท์ และข้อมูล<span class="nw">ระบุตัวตน</span>อื่น แล้วแทนด้วยป้าย เช่น [NAME-1] ชื่อและอีเมลในบัญชีของคุณและข้อมูลบัญชีรับเงินไม่ถูกส่งให้ AI</span><span data-lang="en">Before they go to the AI, the conversation, the case's chief complaint and your reflection pass through a filter that replaces names, ID numbers, phone numbers and other identifying details it detects with placeholders such as [NAME-1]. The name and email on your account and your payment details are not sent to the AI.</span></p>
       <p><span data-lang="th">ตัวกรองตรวจไม่พบทุกอย่าง เช่น ชื่อภาษาอังกฤษที่ไม่มีคำนำหน้า หรือนามสกุลภาษาไทยที่ไม่ได้ระบุว่าเป็นนามสกุล โปรดใช้เคสสมมติ และอย่าพิมพ์ชื่อของคุณหรือของผู้ป่วยลงในบทสนทนา</span><span data-lang="en">The filter does not catch everything, for example an English name with no title, or a Thai surname that is not labelled as one. Use a hypothetical case, and never type your own or a patient's name into the conversation.</span></p>
       <p><span data-lang="th">ค่าเริ่มต้นของระบบใช้ AI ของ Anthropic ผู้ดูแลระบบ CLICS สลับงานบางอย่างไปใช้ผู้ให้บริการ AI รายอื่นได้ และผู้ให้บริการทุกรายได้รับข้อความที่ผ่านตัวกรองแล้วแบบเดียวกัน</span><span data-lang="en">By default the system uses Anthropic's AI. The CLICS system administrators can switch some tasks to another AI provider, and every provider gets the same filtered text.</span></p>
     </section>
@@ -88,9 +88,9 @@
     <section aria-labelledby="see-h">
       <h2 id="see-h"><span data-lang="th">ใครเห็นข้อมูลของคุณ</span><span data-lang="en">Who can see your data</span></h2>
       <ul class="policy-bullets">
-        <li><span data-lang="th">ผู้ตรวจผู้เชี่ยวชาญเห็นบทสนทนาที่ผ่านตัวกรองแล้ว โดยเห็นรหัสแทนชื่อในบัญชีของคุณ และไม่เห็นข้อมูลบัญชีอื่นของคุณ</span><span data-lang="en">Expert auditors see the conversation after the filter, with a code in place of the name on your account, and none of your other account details.</span></li>
+        <li><span data-lang="th">ผู้ตรวจผู้เชี่ยวชาญเห็นบทสนทนาที่ผ่านตัวกรองแล้ว แต่ไม่เห็นชื่อหรือข้อมูลอื่นในบัญชีของคุณ</span><span data-lang="en">Expert auditors see the conversation after the filter, but not the name or any other details on your account.</span></li>
         <li><span data-lang="th">ผู้ดูแลสภาที่คุณสังกัดและผู้ดูแลระบบ CLICS เปิดอ่านบทสนทนาทั้งหมดตามที่พิมพ์พร้อมชื่อของคุณได้</span><span data-lang="en">Administrators of your council and the CLICS system administrators can open the whole conversation as typed, together with your name.</span></li>
-        <li><span data-lang="th">ผู้ดูแลระบบ CLICS เปิดดูค่าจริงที่ตัวกรองแทนด้วยป้ายได้ และทุกครั้งจะถูกบันทึกในบันทึกการตรวจสอบ</span><span data-lang="en">The CLICS system administrators can reveal the original values behind the filter's placeholders, and each time is written to the audit log.</span></li>
+        <li><span data-lang="th">ผู้ดูแลระบบ CLICS เปิดดูค่าจริงที่ตัวกรองแทนด้วยป้ายได้ และระบบบันทึกการเปิดดูไว้ในบันทึกการตรวจสอบ</span><span data-lang="en">The CLICS system administrators can reveal the original values behind the filter's placeholders, and the system records each reveal in the audit log.</span></li>
         <li><span data-lang="th">ไฟล์ข้อมูลวิจัยที่ส่งออกใช้รหัสแทนชื่อในบัญชีของคุณ ในไฟล์มีสภา สาขาเฉพาะทาง ตำแหน่ง คะแนน และบันทึกข้อความของผู้ตรวจ แต่ไม่มีบทสนทนา</span><span data-lang="en">The research data export uses a code in place of the name on your account. It holds your council, specialty, position and scores, and the auditors' written notes, but no conversations.</span></li>
       </ul>
     </section>
@@ -104,13 +104,13 @@
         <div><dt>Anthropic</dt><dd><span data-lang="th">ผู้ให้บริการ AI ตามค่าเริ่มต้น ได้รับข้อความที่ผ่านตัวกรองแล้ว</span><span data-lang="en">The default AI provider. It receives the filtered text.</span></dd></div>
         <div><dt>Resend</dt><dd><span data-lang="th">ส่งอีเมลคำเชิญ ได้รับอีเมลผู้รับ ลิงก์ตอบรับ บทบาท และชื่อสภา</span><span data-lang="en">Sends invitation emails. It receives the recipient's email, the accept link, the role and the council name.</span></dd></div>
         <div><dt>Google</dt><dd><span data-lang="th">เฉพาะเมื่อคุณเลือกเข้าสู่ระบบด้วย Google</span><span data-lang="en">Only if you choose to sign in with Google.</span></dd></div>
-        <div><dt>jsDelivr, esm.sh</dt><dd><span data-lang="th">หน้าเว็บบางหน้าหลังเข้าสู่ระบบโหลดโค้ดโอเพนซอร์สจากสองบริการนี้ ซึ่งจะเห็นหมายเลข IP และข้อมูลเบราว์เซอร์ของคุณ</span><span data-lang="en">Some pages after sign-in load open-source code from these two services, which see your IP address and browser details.</span></dd></div>
+        <div><dt>jsDelivr, esm.sh</dt><dd><span data-lang="th">หน้าเว็บบางหน้า รวมถึงหน้าเข้าสู่ระบบ โหลดโค้ดโอเพนซอร์สจากสองบริการนี้ ซึ่งจะเห็นหมายเลข IP และข้อมูลเบราว์เซอร์ของคุณ</span><span data-lang="en">Some pages, including the sign-in page, load open-source code from these two services, which see your IP address and browser details.</span></dd></div>
       </dl>
     </section>
 
     <section aria-labelledby="track-h">
       <h2 id="track-h"><span data-lang="th">คุกกี้และการติดตาม</span><span data-lang="en">Cookies and tracking</span></h2>
-      <p><span data-lang="th">CLICS ไม่ใช้เครื่องมือวิเคราะห์การใช้งานและไม่ใช้คุกกี้ติดตาม เบราว์เซอร์ของคุณเก็บเฉพาะข้อมูลการเข้าสู่ระบบ และการตั้งค่าธีม ภาษา และมุมมองไว้ในพื้นที่จัดเก็บของเบราว์เซอร์</span><span data-lang="en">CLICS uses no analytics and no tracking cookies. Your browser keeps only your sign-in session and your theme, language and view settings, in the browser's own storage.</span></p>
+      <p><span data-lang="th">CLICS ไม่ใช้เครื่องมือวิเคราะห์การใช้งานและไม่ใช้คุกกี้ติดตาม พื้นที่จัดเก็บของเบราว์เซอร์คุณเก็บข้อมูลการเข้าสู่ระบบ ชื่อและอีเมลในบัญชีเพื่อแสดงบนหน้าจอ ข้อความที่พิมพ์ค้างไว้แต่ยังไม่ได้ส่ง และการตั้งค่าธีม ภาษา และมุมมอง</span><span data-lang="en">CLICS uses no analytics and no tracking cookies. Your browser's own storage keeps your sign-in session, the name and email on your account for display, a message you have typed but not yet sent, and your theme, language and view settings.</span></p>
     </section>
 
     <section aria-labelledby="rights-h">

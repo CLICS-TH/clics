@@ -212,12 +212,12 @@ html[data-manual-lang="en"] .landing [data-lang="en"] { display: revert; }
 .landing .policy-draft { margin-top: 18px; font-size: var(--fs-body-th); color: var(--body-color); line-height: 1.7; }
 .landing .policy section { padding-top: clamp(40px, 6vw, 72px); }
 .landing .policy section > p { font-size: var(--fs-body-th); color: var(--body-color); line-height: 1.7; }
-.landing .policy section > p + p { margin-top: 12px; }
+.landing .policy section > p + p, .landing .policy section > ul + p { margin-top: 12px; }
 /* Marks a field the PI has not decided yet. Dashed coral, the same "not settled" cue as the data-flow
    diagram's CLICS box; the text stays --ink so it reads at AA on both canvases. */
 .landing .pending {
   display: inline-block; padding: 1px 10px; border: 1.5px dashed var(--coral); border-radius: var(--r-pill);
-  background: var(--surface-soft); color: var(--ink); font-weight: 600; font-size: 0.9375rem; line-height: 1.6;
+  background: var(--surface-soft); color: var(--ink); font-weight: 600; font-size: var(--fs-body-th); line-height: 1.6;
 }
 .landing .policy-facts { border-top: 1px solid var(--hairline); }
 .landing .policy-facts > div {
