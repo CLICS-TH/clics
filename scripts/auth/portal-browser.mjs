@@ -260,6 +260,9 @@ const OVERCLAIM_SAMPLES = {
   ],
   passed: ['Auditors see a code in place of the name on your account', 'ผู้ตรวจเห็นรหัสแทนชื่อในบัญชีของคุณ'],
 };
+// The audit log does not record admin transcript reads or the account purge (admin.js /ples/:id/transcript,
+// superadmin.js /users/:id/purge), so no copy may say it records who did what to every record.
+const AUDIT_OVERCLAIM = /who did what to which record|ใครทำอะไรกับข้อมูลใดเมื่อใด/i;
 // The controller and lawful basis are still pending, so no trust chip may read as a compliance claim.
 const COMPLIANCE_CHIP = /PDPA|GDPR|complian|\bISO\b|HIPAA|ได้มาตรฐาน|สอดคล้อง/i;
 // Who can read a transcript with the physician's name (backend/src/routes/admin.js /ples/:id/transcript).
@@ -601,8 +604,18 @@ const SCENARIOS = [
       t.check(await page.getByRole('main').getByRole('heading', { level: 1 }).isVisible(), 'no heading on /privacy');
       t.check(await page.evaluate(() => document.documentElement.lang) === 'th', '/privacy does not start in Thai');
       t.check(THAI.test(await page.title()), `the Thai Privacy page's title is not Thai: ${await page.title()}`);
-      const pending = await page.locator('.pending').evaluateAll((els) => els.filter((e) => e.checkVisibility()).length);
-      t.check(pending >= 4, `only ${pending} visible pending markers on /privacy (controller, contact, retention, lawful basis)`);
+      for (const lang of ['th', 'en']) {
+        await page.click(`.lang-switch [data-set-lang="${lang}"]`);
+        const fields = await page.locator('section[aria-labelledby="who-h"] .policy-facts > div').evaluateAll((rows) => rows.map((r) => [
+          r.querySelector('dt').innerText.trim(),
+          [...r.querySelectorAll('dd .pending')].some((e) => e.checkVisibility()),
+        ]));
+        t.check(fields.length === 4, `[${lang}] /privacy lists ${fields.length} PI fields, not the 4 (controller, contact, lawful basis, retention)`);
+        for (const [name, marked] of fields) t.check(marked, `[${lang}] PI field "${name}" has no visible pending marker`);
+        const readers = await page.locator('section[aria-labelledby="see-h"]').innerText();
+        t.check((lang === 'th' ? /จริยธรรม/ : /ethics/i).test(readers), `[${lang}] the /privacy readers list does not name the ethics role`);
+      }
+      await page.click('.lang-switch [data-set-lang="th"]');
       await page.click('.lang-switch [data-set-lang="en"]');
       await page.goto(`${PORTAL}/`);
       await settle(page);
@@ -820,13 +833,16 @@ const SCENARIOS = [
     async run(t, page) {
       for (const line of OVERCLAIM_SAMPLES.caught) t.check(OVERCLAIM.test(line), `OVERCLAIM misses "${line}"`);
       for (const line of OVERCLAIM_SAMPLES.passed) t.check(!OVERCLAIM.test(line), `OVERCLAIM rejects the accurate "${line}"`);
+      for (const line of ['The audit log records who did what to which record, and when.', 'และบันทึกว่าใครทำอะไรกับข้อมูลใดเมื่อใดในบันทึกการตรวจสอบ']) {
+        t.check(AUDIT_OVERCLAIM.test(line), `AUDIT_OVERCLAIM misses "${line}"`);
+      }
       for (const [path, lang] of [['/', 'th'], ['/', 'en'], ['/privacy', 'th'], ['/privacy', 'en'], ['/login', 'th'], ['/login', 'en']]) {
         await page.goto(`${PORTAL}/forgot`);
         await page.evaluate((l) => localStorage.setItem('clics_manual_lang', l), lang);
         await page.goto(`${PORTAL}${path}`);
         await settle(page);
         const text = await page.evaluate(() => { document.querySelectorAll('details').forEach((d) => { d.open = true; }); return document.body.innerText; });
-        const hit = text.match(OVERCLAIM);
+        const hit = text.match(OVERCLAIM) || text.match(AUDIT_OVERCLAIM);
         t.check(!hit, `${path} [${lang}] says "${hit?.[0]}"`);
         if (path !== '/login') t.check(NAMED_READERS[lang].test(text), `${path} [${lang}] does not say council administrators can read a named transcript`);
         for (const chip of await page.locator('.trust-chip').allInnerTexts()) {
