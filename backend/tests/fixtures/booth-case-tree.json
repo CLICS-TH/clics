@@ -1,0 +1,1067 @@
+{
+  "case_id": "cap-adult",
+  "version": "1",
+  "event_code": "FIXTURE-2026",
+  "teaser": {
+    "th": "ชายวัย 52 ปี มีไข้และไอมา 3 วัน",
+    "en": "A 52-year-old man with fever and cough for 3 days"
+  },
+  "vignette": {
+    "th": "ชายอายุ 52 ปี พนักงานออฟฟิศ สุขภาพดี มีไข้ ไอมีเสมหะสีเหลือง และเจ็บหน้าอกขวาเวลาหายใจลึกมา 3 วัน อุณหภูมิ 38.6 °C ชีพจร 102 หายใจ 22 ครั้ง/นาที ความดัน 128/78 SpO2 95% ขณะหายใจอากาศปกติ ฟังได้เสียงกรอบแกรบที่ปอดขวาล่าง รู้สึกตัวดี ดื่มน้ำได้",
+    "en": "A 52-year-old office worker in good health has had fever, cough with yellow sputum and right chest pain on deep breathing for 3 days. Temperature 38.6 °C, pulse 102, respiratory rate 22, BP 128/78, SpO2 95% on room air. Crackles over the right lower chest. He is alert and drinking well."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "อาการและผลตรวจนี้เข้าได้กับโรคใดมากที่สุด",
+            "en": "Which diagnosis fits this picture best?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "ปอดอักเสบจากชุมชน",
+            "en": "Community-acquired pneumonia"
+          },
+          "line": {
+            "th": "ไข้ ไอมีเสมหะ และเสียงกรอบแกรบเฉพาะที่เข้าได้ดี",
+            "en": "Fever, productive cough and focal crackles fit it well."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "ปอดอักเสบกลีบล่างขวา",
+            "en": "Right lower lobe pneumonia"
+          },
+          "line": {
+            "th": "เสียงกรอบแกรบและเจ็บอกขวาชี้ตำแหน่งนี้",
+            "en": "Right basal crackles and pleuritic pain point here."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "หลอดลมอักเสบเฉียบพลัน",
+            "en": "Acute bronchitis"
+          },
+          "line": {
+            "th": "ไอมีเสมหะช่วงสั้น ๆ มักมาจากหลอดลม",
+            "en": "A short spell of productive cough often comes from the airways."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "weaker",
+          "label": {
+            "th": "ไข้หวัดจากไวรัส",
+            "en": "Viral upper respiratory infection"
+          },
+          "line": {
+            "th": "ไข้และไอพบบ่อยในไข้หวัดจากไวรัส",
+            "en": "Fever and cough are common in a viral cold."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "วัณโรคปอด",
+            "en": "Pulmonary tuberculosis"
+          },
+          "line": {
+            "th": "ไอร่วมกับไข้อาจเป็นอาการแรกของวัณโรค",
+            "en": "Cough with fever can be an early sign of TB."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "d"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which first tests do you order?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "วันนี้ที่คลินิกคุณจะตรวจอะไรก่อน",
+              "en": "What do you check first in clinic today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เอกซเรย์ปอดและวัด SpO2",
+              "en": "Chest X-ray and SpO2"
+            },
+            "line": {
+              "th": "ยืนยันรอยโรคในปอดและประเมินออกซิเจนทันที",
+              "en": "Confirms the infiltrate and checks oxygen from the start."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เอกซเรย์ปอดและคะแนน CURB-65",
+              "en": "Chest X-ray and CURB-65 score"
+            },
+            "line": {
+              "th": "เห็นรอยโรคและประเมินความรุนแรงได้ในครั้งเดียว",
+              "en": "Shows the infiltrate and grades severity in one visit."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจ CBC และ CRP",
+              "en": "CBC and CRP"
+            },
+            "line": {
+              "th": "ช่วยสนับสนุนการติดเชื้อแบคทีเรียขณะวางแผนรักษา",
+              "en": "Supports a bacterial infection while the plan is set."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ย้อมเสมหะแกรมอย่างเดียว",
+              "en": "Sputum Gram stain alone"
+            },
+            "line": {
+              "th": "อาจช่วยบอกเชื้อที่น่าจะเป็นในเสมหะ",
+              "en": "Can show the likely organism in the sputum."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ก่อนเริ่มรักษา คุณจะส่งตรวจอะไรก่อน",
+              "en": "Before treating, which tests come first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจอะไรจึงจะแยกโรคได้ชัดที่สุด",
+              "en": "Which first test best separates the likely causes?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เอกซเรย์ปอดและวัด SpO2",
+              "en": "Chest X-ray and SpO2"
+            },
+            "line": {
+              "th": "ยืนยันรอยโรคในปอดและประเมินออกซิเจนทันที",
+              "en": "Confirms the infiltrate and checks oxygen from the start."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เอกซเรย์ปอดและคะแนน CURB-65",
+              "en": "Chest X-ray and CURB-65 score"
+            },
+            "line": {
+              "th": "เห็นรอยโรคและประเมินความรุนแรงได้ในครั้งเดียว",
+              "en": "Shows the infiltrate and grades severity in one visit."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจ CBC และ CRP",
+              "en": "CBC and CRP"
+            },
+            "line": {
+              "th": "ช่วยสนับสนุนการติดเชื้อแบคทีเรียขณะวางแผนรักษา",
+              "en": "Supports a bacterial infection while the plan is set."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ย้อมเสมหะแกรมอย่างเดียว",
+              "en": "Sputum Gram stain alone"
+            },
+            "line": {
+              "th": "อาจช่วยบอกเชื้อที่น่าจะเป็นในเสมหะ",
+              "en": "Can show the likely organism in the sputum."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ไข้ 38.6 และหายใจเร็ว คุณจะตรวจอะไรก่อน",
+              "en": "Fever of 38.6 and a fast breathing rate. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which first tests do you order?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "ตรวจอะไรก่อนเพื่อวางแผนรักษาวันนี้",
+              "en": "What do you test first to plan care today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "เอกซเรย์ปอดและวัด SpO2",
+              "en": "Chest X-ray and SpO2"
+            },
+            "line": {
+              "th": "ยืนยันรอยโรคในปอดและประเมินออกซิเจนทันที",
+              "en": "Confirms the infiltrate and checks oxygen from the start."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เอกซเรย์ปอดและคะแนน CURB-65",
+              "en": "Chest X-ray and CURB-65 score"
+            },
+            "line": {
+              "th": "เห็นรอยโรคและประเมินความรุนแรงได้ในครั้งเดียว",
+              "en": "Shows the infiltrate and grades severity in one visit."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ตรวจ CBC และ CRP",
+              "en": "CBC and CRP"
+            },
+            "line": {
+              "th": "ช่วยสนับสนุนการติดเชื้อแบคทีเรียขณะวางแผนรักษา",
+              "en": "Supports a bacterial infection while the plan is set."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ย้อมเสมหะแกรมอย่างเดียว",
+              "en": "Sputum Gram stain alone"
+            },
+            "line": {
+              "th": "อาจช่วยบอกเชื้อที่น่าจะเป็นในเสมหะ",
+              "en": "Can show the likely organism in the sputum."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "ป้ายคอตรวจไข้หวัดใหญ่",
+              "en": "Throat swab for influenza"
+            },
+            "line": {
+              "th": "หาไข้หวัดใหญ่ซึ่งเป็นสาเหตุที่พบบ่อยของไข้และไอ",
+              "en": "Finds influenza, a common cause of fever and cough."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    },
+    "step3": {
+      "BB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะรักษาผู้ป่วยรายนี้อย่างไรตั้งแต่วันนี้",
+              "en": "How do you treat him from today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินขนาดสูงชนิดกิน",
+              "en": "High-dose oral amoxicillin"
+            },
+            "line": {
+              "th": "ครอบคลุมนิวโมคอคคัสในผู้ใหญ่ความเสี่ยงต่ำที่บ้าน",
+              "en": "Covers pneumococcus in a low-risk adult treated at home."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินและนัดดู 48 ชม.",
+              "en": "Amoxicillin and review in 48 hours"
+            },
+            "line": {
+              "th": "เริ่มรักษาวันนี้และบอกอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and says when to come back at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ด็อกซีไซคลินชนิดกิน 5 วัน",
+              "en": "Oral doxycycline for 5 days"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อทั่วไปและเชื้อ atypical ในผู้ใหญ่",
+              "en": "Covers common and atypical causes in an adult."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "รับไว้ฉีดเซฟไตรอะโซน",
+              "en": "Admit for IV ceftriaxone"
+            },
+            "line": {
+              "th": "ให้ยาฉีดครอบคลุมกว้างและเฝ้าดูใกล้ชิด",
+              "en": "Gives broad IV cover while he is watched closely."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "BR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะรักษาผู้ป่วยรายนี้อย่างไรตั้งแต่วันนี้",
+              "en": "How do you treat him from today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินขนาดสูงชนิดกิน",
+              "en": "High-dose oral amoxicillin"
+            },
+            "line": {
+              "th": "ครอบคลุมนิวโมคอคคัสในผู้ใหญ่ความเสี่ยงต่ำที่บ้าน",
+              "en": "Covers pneumococcus in a low-risk adult treated at home."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินและนัดดู 48 ชม.",
+              "en": "Amoxicillin and review in 48 hours"
+            },
+            "line": {
+              "th": "เริ่มรักษาวันนี้และบอกอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and says when to come back at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ด็อกซีไซคลินชนิดกิน 5 วัน",
+              "en": "Oral doxycycline for 5 days"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อทั่วไปและเชื้อ atypical ในผู้ใหญ่",
+              "en": "Covers common and atypical causes in an adult."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "รับไว้ฉีดเซฟไตรอะโซน",
+              "en": "Admit for IV ceftriaxone"
+            },
+            "line": {
+              "th": "ให้ยาฉีดครอบคลุมกว้างและเฝ้าดูใกล้ชิด",
+              "en": "Gives broad IV cover while he is watched closely."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "BW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "คุณจะรักษาผู้ป่วยรายนี้อย่างไรตั้งแต่วันนี้",
+              "en": "How do you treat him from today?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินขนาดสูงชนิดกิน",
+              "en": "High-dose oral amoxicillin"
+            },
+            "line": {
+              "th": "ครอบคลุมนิวโมคอคคัสในผู้ใหญ่ความเสี่ยงต่ำที่บ้าน",
+              "en": "Covers pneumococcus in a low-risk adult treated at home."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินและนัดดู 48 ชม.",
+              "en": "Amoxicillin and review in 48 hours"
+            },
+            "line": {
+              "th": "เริ่มรักษาวันนี้และบอกอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and says when to come back at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ด็อกซีไซคลินชนิดกิน 5 วัน",
+              "en": "Oral doxycycline for 5 days"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อทั่วไปและเชื้อ atypical ในผู้ใหญ่",
+              "en": "Covers common and atypical causes in an adult."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "รับไว้ฉีดเซฟไตรอะโซน",
+              "en": "Admit for IV ceftriaxone"
+            },
+            "line": {
+              "th": "ให้ยาฉีดครอบคลุมกว้างและเฝ้าดูใกล้ชิด",
+              "en": "Gives broad IV cover while he is watched closely."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะซิโทรมัยซินชนิดกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "กินวันละครั้งเพียง 3 วัน ใช้ง่าย",
+              "en": "One tablet a day for just 3 days is easy to take."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์พบปอดขวาล่างอักเสบ คุณจะรักษาอย่างไร",
+              "en": "The X-ray shows right lower lobe consolidation. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเอกซเรย์เข้าได้กับปอดอักเสบ ขั้นต่อไปคืออะไร",
+              "en": "His X-ray fits pneumonia. What is your next step?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินขนาดสูงชนิดกิน",
+              "en": "High-dose oral amoxicillin"
+            },
+            "line": {
+              "th": "ครอบคลุมนิวโมคอคคัสในผู้ใหญ่ความเสี่ยงต่ำที่บ้าน",
+              "en": "Covers pneumococcus in a low-risk adult treated at home."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินและนัดดู 48 ชม.",
+              "en": "Amoxicillin and review in 48 hours"
+            },
+            "line": {
+              "th": "เริ่มรักษาวันนี้และบอกอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and says when to come back at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ด็อกซีไซคลินชนิดกิน 5 วัน",
+              "en": "Oral doxycycline for 5 days"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อทั่วไปและเชื้อ atypical ในผู้ใหญ่",
+              "en": "Covers common and atypical causes in an adult."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "รับไว้ฉีดเซฟไตรอะโซน",
+              "en": "Admit for IV ceftriaxone"
+            },
+            "line": {
+              "th": "ให้ยาฉีดครอบคลุมกว้างและเฝ้าดูใกล้ชิด",
+              "en": "Gives broad IV cover while he is watched closely."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์พบปอดขวาล่างอักเสบ คุณจะรักษาอย่างไร",
+              "en": "The X-ray shows right lower lobe consolidation. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเอกซเรย์เข้าได้กับปอดอักเสบ ขั้นต่อไปคืออะไร",
+              "en": "His X-ray fits pneumonia. What is your next step?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินขนาดสูงชนิดกิน",
+              "en": "High-dose oral amoxicillin"
+            },
+            "line": {
+              "th": "ครอบคลุมนิวโมคอคคัสในผู้ใหญ่ความเสี่ยงต่ำที่บ้าน",
+              "en": "Covers pneumococcus in a low-risk adult treated at home."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินและนัดดู 48 ชม.",
+              "en": "Amoxicillin and review in 48 hours"
+            },
+            "line": {
+              "th": "เริ่มรักษาวันนี้และบอกอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and says when to come back at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ด็อกซีไซคลินชนิดกิน 5 วัน",
+              "en": "Oral doxycycline for 5 days"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อทั่วไปและเชื้อ atypical ในผู้ใหญ่",
+              "en": "Covers common and atypical causes in an adult."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "รับไว้ฉีดเซฟไตรอะโซน",
+              "en": "Admit for IV ceftriaxone"
+            },
+            "line": {
+              "th": "ให้ยาฉีดครอบคลุมกว้างและเฝ้าดูใกล้ชิด",
+              "en": "Gives broad IV cover while he is watched closely."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์พบปอดขวาล่างอักเสบ คุณจะรักษาอย่างไร",
+              "en": "The X-ray shows right lower lobe consolidation. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเอกซเรย์เข้าได้กับปอดอักเสบ ขั้นต่อไปคืออะไร",
+              "en": "His X-ray fits pneumonia. What is your next step?"
+            }
+          },
+          {
+            "id": "v3",
+            "question": {
+              "th": "แผนการรักษาของคุณคืออะไร",
+              "en": "What is your management plan?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินขนาดสูงชนิดกิน",
+              "en": "High-dose oral amoxicillin"
+            },
+            "line": {
+              "th": "ครอบคลุมนิวโมคอคคัสในผู้ใหญ่ความเสี่ยงต่ำที่บ้าน",
+              "en": "Covers pneumococcus in a low-risk adult treated at home."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินและนัดดู 48 ชม.",
+              "en": "Amoxicillin and review in 48 hours"
+            },
+            "line": {
+              "th": "เริ่มรักษาวันนี้และบอกอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and says when to come back at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ด็อกซีไซคลินชนิดกิน 5 วัน",
+              "en": "Oral doxycycline for 5 days"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อทั่วไปและเชื้อ atypical ในผู้ใหญ่",
+              "en": "Covers common and atypical causes in an adult."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "รับไว้ฉีดเซฟไตรอะโซน",
+              "en": "Admit for IV ceftriaxone"
+            },
+            "line": {
+              "th": "ให้ยาฉีดครอบคลุมกว้างและเฝ้าดูใกล้ชิด",
+              "en": "Gives broad IV cover while he is watched closely."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะซิโทรมัยซินชนิดกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "กินวันละครั้งเพียง 3 วัน ใช้ง่าย",
+              "en": "One tablet a day for just 3 days is easy to take."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "WB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์พบปอดขวาล่างอักเสบ คุณจะรักษาอย่างไร",
+              "en": "The X-ray shows right lower lobe consolidation. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเอกซเรย์เข้าได้กับปอดอักเสบ ขั้นต่อไปคืออะไร",
+              "en": "His X-ray fits pneumonia. What is your next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินขนาดสูงชนิดกิน",
+              "en": "High-dose oral amoxicillin"
+            },
+            "line": {
+              "th": "ครอบคลุมนิวโมคอคคัสในผู้ใหญ่ความเสี่ยงต่ำที่บ้าน",
+              "en": "Covers pneumococcus in a low-risk adult treated at home."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ด็อกซีไซคลินชนิดกิน 5 วัน",
+              "en": "Oral doxycycline for 5 days"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อทั่วไปและเชื้อ atypical ในผู้ใหญ่",
+              "en": "Covers common and atypical causes in an adult."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "รับไว้ฉีดเซฟไตรอะโซน",
+              "en": "Admit for IV ceftriaxone"
+            },
+            "line": {
+              "th": "ให้ยาฉีดครอบคลุมกว้างและเฝ้าดูใกล้ชิด",
+              "en": "Gives broad IV cover while he is watched closely."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะซิโทรมัยซินชนิดกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "กินวันละครั้งเพียง 3 วัน ใช้ง่าย",
+              "en": "One tablet a day for just 3 days is easy to take."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "WR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์พบปอดขวาล่างอักเสบ คุณจะรักษาอย่างไร",
+              "en": "The X-ray shows right lower lobe consolidation. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเอกซเรย์เข้าได้กับปอดอักเสบ ขั้นต่อไปคืออะไร",
+              "en": "His X-ray fits pneumonia. What is your next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินขนาดสูงชนิดกิน",
+              "en": "High-dose oral amoxicillin"
+            },
+            "line": {
+              "th": "ครอบคลุมนิวโมคอคคัสในผู้ใหญ่ความเสี่ยงต่ำที่บ้าน",
+              "en": "Covers pneumococcus in a low-risk adult treated at home."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ด็อกซีไซคลินชนิดกิน 5 วัน",
+              "en": "Oral doxycycline for 5 days"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อทั่วไปและเชื้อ atypical ในผู้ใหญ่",
+              "en": "Covers common and atypical causes in an adult."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "รับไว้ฉีดเซฟไตรอะโซน",
+              "en": "Admit for IV ceftriaxone"
+            },
+            "line": {
+              "th": "ให้ยาฉีดครอบคลุมกว้างและเฝ้าดูใกล้ชิด",
+              "en": "Gives broad IV cover while he is watched closely."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะซิโทรมัยซินชนิดกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "กินวันละครั้งเพียง 3 วัน ใช้ง่าย",
+              "en": "One tablet a day for just 3 days is easy to take."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "WW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "เอกซเรย์พบปอดขวาล่างอักเสบ คุณจะรักษาอย่างไร",
+              "en": "The X-ray shows right lower lobe consolidation. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเอกซเรย์เข้าได้กับปอดอักเสบ ขั้นต่อไปคืออะไร",
+              "en": "His X-ray fits pneumonia. What is your next step?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินขนาดสูงชนิดกิน",
+              "en": "High-dose oral amoxicillin"
+            },
+            "line": {
+              "th": "ครอบคลุมนิวโมคอคคัสในผู้ใหญ่ความเสี่ยงต่ำที่บ้าน",
+              "en": "Covers pneumococcus in a low-risk adult treated at home."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "อะม็อกซีซิลลินและนัดดู 48 ชม.",
+              "en": "Amoxicillin and review in 48 hours"
+            },
+            "line": {
+              "th": "เริ่มรักษาวันนี้และบอกอาการที่ต้องกลับมาทันที",
+              "en": "Starts treatment today and says when to come back at once."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "ด็อกซีไซคลินชนิดกิน 5 วัน",
+              "en": "Oral doxycycline for 5 days"
+            },
+            "line": {
+              "th": "ครอบคลุมเชื้อทั่วไปและเชื้อ atypical ในผู้ใหญ่",
+              "en": "Covers common and atypical causes in an adult."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "รับไว้ฉีดเซฟไตรอะโซน",
+              "en": "Admit for IV ceftriaxone"
+            },
+            "line": {
+              "th": "ให้ยาฉีดครอบคลุมกว้างและเฝ้าดูใกล้ชิด",
+              "en": "Gives broad IV cover while he is watched closely."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อะซิโทรมัยซินชนิดกิน 3 วัน",
+              "en": "Oral azithromycin for 3 days"
+            },
+            "line": {
+              "th": "กินวันละครั้งเพียง 3 วัน ใช้ง่าย",
+              "en": "One tablet a day for just 3 days is easy to take."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "fixture",
+      "date": "2026-10-29",
+      "findings": "Test fixture. No safety review was run."
+    },
+    "sandbox": {
+      "run_id": "fixture",
+      "date": "2026-10-29"
+    }
+  }
+}
