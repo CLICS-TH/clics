@@ -97,10 +97,18 @@ describe('PATCH /admin/booth', () => {
       metadata: { enabled: true, opens_at: OPENS, closes_at: CLOSES, ceiling_usd: 2.5 } }));
   });
 
-  it('writes only the fields sent', async () => {
+  it('writes the switch and both bounds together, and leaves the ceiling alone unless it is sent', async () => {
+    settings.set('booth_opens_at', { value: 0, value_text: OPENS });
+    settings.set('booth_closes_at', { value: 0, value_text: CLOSES });
     await as(SUPERADMIN).patch({ enabled: true });
     const upsert = m.find('app_settings', 'upsert');
-    expect(upsert.payload.map((r) => r.key)).toEqual(['booth_enabled']);
+    expect(upsert.payload.map((r) => [r.key, r.value, r.value_text])).toEqual([
+      ['booth_enabled', 1, null], ['booth_opens_at', 0, OPENS], ['booth_closes_at', 0, CLOSES]]);
+  });
+
+  it('writes only the ceiling when only the ceiling is sent', async () => {
+    await as(SUPERADMIN).patch({ ceiling_usd: 2 });
+    expect(m.find('app_settings', 'upsert').payload.map((r) => r.key)).toEqual(['booth_play_ceiling_usd']);
   });
 
   it.each([
@@ -120,6 +128,59 @@ describe('PATCH /admin/booth', () => {
     settings.set('booth_closes_at', { value: 0, value_text: OPENS });
     const res = await as(SUPERADMIN).patch({ opens_at: CLOSES });
     expect(res.status).toBe(400);
+  });
+
+  it.each([
+    ['clearing a bound while the booth is on', true, { closes_at: null }],
+    ['switching on with no window stored', false, { enabled: true }],
+    ['switching on with only one bound', false, { enabled: true, opens_at: OPENS, closes_at: null }],
+  ])('refuses %s, leaving the stored settings as they were', async (_name, on, body) => {
+    settings.set('booth_enabled', { value: on ? 1 : 0, value_text: null });
+    if (on) {
+      settings.set('booth_opens_at', { value: 0, value_text: OPENS });
+      settings.set('booth_closes_at', { value: 0, value_text: CLOSES });
+    }
+    const res = await as(SUPERADMIN).patch(body);
+    expect(res.status).toBe(400);
+    expect(m.find('app_settings', 'upsert')).toBeUndefined();
+    expect((await as(SUPERADMIN).get()).body.state).not.toBe('misconfigured');
+  });
+
+  it('never stores a window that closes before it opens, whatever order two overlapping saves run in', async () => {
+    // Two tabs both loaded 08:00-18:00. One moves the opening to 17:00, the other the closing to 09:00; each is a
+    // valid window on its own. Both reads are held until both have happened, so each request checks its edit
+    // against the window the other is about to change.
+    const day = (h) => `2026-11-03T${h}:00:00+07:00`;
+    settings.set('booth_opens_at', { value: 0, value_text: day('08') });
+    settings.set('booth_closes_at', { value: 0, value_text: day('18') });
+    const { supabase } = require('../src/lib/supabase');
+    const from = supabase.from;
+    let release;
+    const bothRead = new Promise((r) => { release = r; });
+    let held = 0;
+    const spy = jest.spyOn(supabase, 'from').mockImplementation((table) => {
+      const q = from(table);
+      if (table !== 'app_settings') return q;
+      const select = q.select;
+      q.select = (...a) => {
+        if (held >= 2) return select(...a);
+        held += 1;
+        if (held === 2) release();
+        const then = q.then;
+        q.then = (ok, fail) => { const read = then((r) => r); return bothRead.then(() => read).then(ok, fail); };
+        return select(...a);
+      };
+      return q;
+    });
+    try {
+      const results = await Promise.all([as(SUPERADMIN).patch({ opens_at: day('17') }), as(SUPERADMIN).patch({ closes_at: day('09') })]);
+      expect(results.map((r) => r.status)).toEqual([200, 200]);
+    } finally {
+      spy.mockRestore();
+    }
+    expect(held).toBe(2);
+    expect(Date.parse(settings.get('booth_opens_at').value_text))
+      .toBeLessThan(Date.parse(settings.get('booth_closes_at').value_text));
   });
 
   it('clears the window with null', async () => {

@@ -328,17 +328,26 @@ async function updateBoothSettings(input) {
   const patch = parsed.data;
   const rows = await readBoothRows();
   if (!rows) return { refused: 'unavailable' };
+  const enabled = patch.enabled ?? Number(rows[BOOTH_SETTINGS.enabled]?.value) === 1;
   const opens = patch.opens_at !== undefined ? patch.opens_at : rowText(rows, BOOTH_SETTINGS.opensAt);
   const closes = patch.closes_at !== undefined ? patch.closes_at : rowText(rows, BOOTH_SETTINGS.closesAt);
   if (opens && closes && instant(opens) && instant(closes) && instant(opens) >= instant(closes)) {
     return { refused: 'bad_request', error: 'closes_at must be after opens_at' };
   }
+  if (enabled && !(opens && closes)) {
+    return { refused: 'bad_request', error: 'A booth that is switched on needs both opens_at and closes_at' };
+  }
   const updated_at = new Date().toISOString();
   const row = (key, value, value_text = null) => ({ key, value, value_text, updated_at });
+  // The switch and both bounds are checked together above, so they are written together from the merged values:
+  // a patch that writes only its own field would combine with another request's field, checked against a read
+  // neither saw, into a window that closes before it opens. One upsert is one statement, so two writers land
+  // whole, last one wins. The rows go in the same key order every time, so the row locks never deadlock.
+  const touchesWindow = ['enabled', 'opens_at', 'closes_at'].some((k) => patch[k] !== undefined);
   const upserts = [
-    patch.enabled !== undefined && row(BOOTH_SETTINGS.enabled, patch.enabled ? 1 : 0),
-    patch.opens_at !== undefined && row(BOOTH_SETTINGS.opensAt, 0, patch.opens_at),
-    patch.closes_at !== undefined && row(BOOTH_SETTINGS.closesAt, 0, patch.closes_at),
+    touchesWindow && row(BOOTH_SETTINGS.enabled, enabled ? 1 : 0),
+    touchesWindow && row(BOOTH_SETTINGS.opensAt, 0, opens),
+    touchesWindow && row(BOOTH_SETTINGS.closesAt, 0, closes),
     patch.ceiling_usd !== undefined && row(BOOTH_SETTINGS.ceilingUsd, patch.ceiling_usd),
   ].filter(Boolean);
   const { error } = await supabase.from('app_settings').upsert(upserts);

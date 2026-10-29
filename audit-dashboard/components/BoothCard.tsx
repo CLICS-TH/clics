@@ -68,11 +68,16 @@ export function BoothCard() {
     return '';
   }
 
-  async function toggle() {
-    if (!booth || switching) return;
+  // One write at a time. A save's echo is read before a toggle that overlaps it, so letting both fly could land the
+  // older echo last: the switch would then show a state the server no longer holds, and the next click would ask
+  // for the state the booth is already in.
+  const busy = switching || saving;
+
+  async function toggle(enabled: boolean) {
+    if (!booth || busy) return;
     setSwitching(true);
     try {
-      const err = await patch({ enabled: !booth.enabled });
+      const err = await patch({ enabled });
       if (err) toast(err, 'error');
     } finally {
       setSwitching(false);
@@ -85,7 +90,7 @@ export function BoothCard() {
   const dirty = Object.keys(draft).length > 0;
 
   async function save() {
-    if (!booth || saving) return;
+    if (!booth || busy) return;
     const body: Record<string, unknown> = {};
     if (draft.opens !== undefined) body.opens_at = fromBangkokInput(draft.opens);
     if (draft.closes !== undefined) body.closes_at = fromBangkokInput(draft.closes);
@@ -142,8 +147,8 @@ export function BoothCard() {
               </div>
               <button
                 type="button"
-                onClick={toggle}
-                aria-disabled={switching || undefined}
+                onClick={() => toggle(!booth.enabled)}
+                aria-disabled={busy || undefined}
                 aria-pressed={booth.enabled}
                 aria-label="Booth event switch"
                 className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors aria-disabled:cursor-wait aria-disabled:opacity-50 aria-disabled:focus-visible:opacity-100 ${booth.enabled ? 'bg-primary' : 'bg-muted'}`}
@@ -177,7 +182,7 @@ export function BoothCard() {
               <p className="min-w-0 flex-[1_1_20rem] text-sm text-muted-foreground">
                 เวลาประเทศไทย (UTC+07:00) • Bangkok time, saved with an explicit +07:00 offset.
               </p>
-              <button type="button" onClick={save} disabled={!dirty || saving}
+              <button type="button" onClick={save} disabled={!dirty || busy}
                 className="shrink-0 rounded-md border border-field px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary disabled:opacity-50">
                 {saving ? 'กำลังบันทึก… / Saving…' : 'บันทึก / Save'}
               </button>

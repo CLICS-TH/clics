@@ -2,7 +2,7 @@
 // with an explicit +07:00 offset and come back as Bangkok wall-clock; the switch shows the server's echo, not
 // the click; a window that closes before it opens or an out-of-range ceiling never leaves the page; and a
 // failed count read shows "—", never 0.
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 const apiFetch = jest.fn();
@@ -66,6 +66,40 @@ describe('BoothCard', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Booth event switch' })).toHaveAttribute('aria-pressed', 'true'));
     expect(patches()).toEqual([{ enabled: true }]);
     expect(screen.getByTestId('booth-state')).toHaveTextContent('Not open yet');
+  });
+
+  it('never lets a slow save echo leave the switch showing a state the server does not hold', async () => {
+    // The server reads its echo when a PATCH arrives; the save's reply is held back until the switch has been
+    // clicked and answered. If both could fly, the save's older echo would land last and show the booth off
+    // while it is on, so the next click would ask for "on" again.
+    let server: BoothSettings = { ...BOOTH };
+    let releaseSave = () => {};
+    wire(BOOTH, () => null);
+    apiFetch.mockImplementation((_path: string, init?: RequestInit) => {
+      if (init?.method !== 'PATCH') return Promise.resolve(server);
+      server = { ...server, ...JSON.parse(String(init.body)) };
+      const echo = { ...server };
+      if ('opens_at' in echo && patches().length === 1) return new Promise((r) => { releaseSave = () => r(echo); });
+      return Promise.resolve(echo);
+    });
+    render(<BoothCard />);
+    await loaded();
+    fireEvent.change(screen.getByLabelText(/Opens at/), { target: { value: '2026-11-03T09:30' } });
+    fireEvent.click(screen.getByRole('button', { name: /Save/ }));
+    await waitFor(() => expect(patches()).toHaveLength(1));
+    fireEvent.click(screen.getByRole('button', { name: 'Booth event switch' }));
+    await act(async () => { await Promise.resolve(); });
+    releaseSave();
+    await waitFor(() => expect(screen.getByRole('button', { name: /Save/ })).toBeDisabled());
+    await act(async () => { await Promise.resolve(); });
+    expect(screen.getByRole('button', { name: 'Booth event switch' })).toHaveAttribute('aria-pressed', String(server.enabled));
+  });
+
+  it('sends the state shown on the switch the moment it is clicked', async () => {
+    wire({ ...BOOTH, enabled: true, state: 'open' });
+    render(<BoothCard />);
+    fireEvent.click(await loaded());
+    await waitFor(() => expect(patches()).toEqual([{ enabled: false }]));
   });
 
   it('keeps the switch where it was and toasts when the save fails', async () => {
