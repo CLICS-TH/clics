@@ -10,7 +10,7 @@
 //  - Each entry MUST be >= 3 Thai characters.
 //  - Each entry MUST be a distinctly personal name, NOT a common clinical/everyday word, and MUST NOT
 //    be in MED_SHIELD or begin a TH_CLINICAL_LEADS phrase. Re-check the survive-corpus test on any add.
-//  - scripts/build-th-clinical-words.js drops these from the clinical vocabulary, so rerun it on any add.
+//  - pii-filter.js keeps these out of the clinical allowlist (isClinicalRun) whatever its lists hold.
 //  - Keep the list SMALL and high-precision. Recall is intentionally sacrificed for precision; the
 //    intake-hint layer is what gives broad coverage.
 const TH_GIVEN_NAMES = Object.freeze(new Set([
@@ -22,7 +22,7 @@ const TH_GIVEN_NAMES = Object.freeze(new Set([
 
 // Curated list of Chinese-Thai CLAN surnames (the "แซ่X" family). The title-led name rule masks ONLY
 // the given name; a bare surname next to it is taken by the 'th-given-surname' pass (pii-filter.js
-// applyGivenSurnamePass), which keeps a word only when the whole word is clinical vocabulary. The
+// applyGivenSurnamePass), which keeps a word only when the whole word is on the clinical allowlist. The
 // "แซ่" prefix is an UNAMBIGUOUS surname marker that never appears in clinical text, so these are masked
 // VERBATIM in any position by the 'th-clan-surname' pass — no boundary/clinical-lead guard needed,
 // which also closes the glued-surname form ("...แซ่ลี้เข้ารับการรักษา") the 'th-given-surname' pass cannot see.
@@ -34,7 +34,7 @@ const TH_GIVEN_NAMES = Object.freeze(new Set([
 //    ศิริวัฒน์ both a given name and a surname), so a standalone occurrence would over-mask
 //    clinical/contextual content. A native surname is masked by the intake-hint pass (the recorded
 //    patient_ref — the PRIMARY layer) or, next to a masked given name, by the 'th-given-surname' pass
-//    (no list: any word that is not wholly clinical vocabulary). A native surname with no masked given name
+//    (no list: any word not wholly on the clinical allowlist). A native surname with no masked given name
 //    beside it and no patient_ref still leaks: docs/MIDDLEWARE-KNOWN-GAPS.md.
 //  - Exact strings (a generic "แซ่"+run regex can't tell where a glued surname ends).
 const TH_SURNAMES = Object.freeze(new Set([
@@ -43,13 +43,11 @@ const TH_SURNAMES = Object.freeze(new Set([
 ]));
 
 // Common components of native Thai surnames (ศรี-สุข, ทอง-ดี, วงศ์-ใหญ่, แก้ว-มณี, บุญ-มา…). NOT used to mask
-// anything. scripts/build-th-clinical-words.js drops every corpus word EQUAL to one of these from the
-// clinical vocabulary: the 'th-given-surname' pass keeps a word next to a masked given name when it splits
-// wholly into vocabulary words, so a vocabulary word "สุข" would let มีสุข (มี + สุข) through in clear. A word
-// dropped here falls back to its two-word forms whose second word is no component either (ใจ → ใจสั่น,
-// ดี → ดีขึ้น, never ใจดี). Adding an entry only ever narrows the vocabulary (fail-closed): add freely, then
-// rerun the script. tests/pii-leak-adversarial.test.js checks that no vocabulary word is one of these; its
-// independent surname sample is deliberately NOT drawn from this list.
+// anything. pii-filter.js keeps every one of these out of the clinical allowlist (the 'th-given-surname' pass
+// keeps a word next to a masked given name only when it splits wholly into allowlist words, so an allowlist
+// word "สุข" would let มีสุข through in clear), and never takes a lone component as an alias head. Adding an
+// entry only ever narrows the allowlist (fail-closed). tests/pii-leak-adversarial.test.js checks no allowlist
+// word is one of these; its independent surname sample is deliberately NOT drawn from this list.
 const TH_SURNAME_MORPHEMES = Object.freeze([
   'ใจ', 'ดี', 'ศรี', 'สุข', 'ทอง', 'บุญ', 'แก้ว', 'วงศ์', 'วงษ์', 'รัตน', 'รัตนะ', 'ชัย', 'ไชย',
   'ประเสริฐ', 'สมบูรณ์', 'เจริญ', 'ทรัพย์', 'มณี', 'พันธ์', 'พันธุ์', 'กุล', 'ศักดิ์', 'จันทร์', 'จันทร',

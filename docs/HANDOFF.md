@@ -636,8 +636,8 @@ Loose ends a successor inherits, most urgent first:
   rotation not built (Claude-only, `claude-sonnet-4-6`); the "4 pre-filter signals" and "ELM" are
   spec'd but not implemented; PII is regex-mask + pseudonym, not yet a fully reversible lookup table
   (residual risk: a bare unlabelled **native** Thai surname not recorded at intake and with no masked
-  given name beside it, or a surname that is also an everyday phrase such as `ปลอดภัย`; next to a masked
-  given name it is masked since #224 / #238, and the `แซ่` clan-surname class is masked verbatim as of
+  given name beside it; next to a masked given name any word off a short clinical allowlist is masked
+  since #224 / #238, and the `แซ่` clan-surname class is masked verbatim as of
   2026-06-22 — see `rimpl/src/services/pii-filter.js`).
 - **#12b full i18n** — only the *label hierarchy* exists (`BiLabel`/`.bi`); there is **no i18n system**
   (a ไทย/EN toggle showing one language at a time, hundreds of strings). Deferred; needs a real i18n layer.

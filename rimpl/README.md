@@ -38,9 +38,8 @@ Every request must carry the `x-internal-token` shared secret (matched against t
   drift apart (which corrupts ICC).
 - **Known PII gap:** `pii-filter.js` masks labelled identifiers (names with a title/anchor, dates, HN,
   ward) but a **bare, unlabelled Thai surname** with no masked given name beside it (`ใจดี
-  มาด้วยไข้`; next to a masked given name it folds into that `[NAME-n]` since #224, unless the whole word
-  is clinical vocabulary measured from the repo's Thai corpus by `scripts/build-th-clinical-words.js` —
-  so a surname that is also an everyday phrase, such as `ปลอดภัย`, still passes), or a **bare English name
+  มาด้วยไข้`; next to a masked given name any word is taken for the surname since #224 unless it is on
+  the short clinical allowlist in `src/services/pii-clinical-words.th.js`), or a **bare English name
   with no title** (`John Smith presented…`), can slip through. Mitigated by structured patient intake +
   physician guidance; the full reversible-pseudonym table is ROADMAP P2. Treat any change here as
   security-sensitive and run `npm test` (the PII-leak adversarial suite).

@@ -347,7 +347,7 @@ describe('adversarial — bare unlabelled names', () => {
     ]).map(m => m.content);
     expect(out).toEqual([
       'นาย[NAME-1] [NAME-1] มาด้วยไข้',
-      'จิตใจดีขึ้น ให้ยากันชักเกร็ง', // จิตใจ + ดีขึ้น: every word is clinical vocabulary
+      'จิตใจดีขึ้น ให้ยากันชักเกร็ง', // จิตใจ + ดีขึ้น: every word is on the allowlist
       'ติดตาม [NAME-1]. นัด [NAME-9][NAME-1] 2 สัปดาห์',
       'ญาติของ[NAME-1]โทรมา',
     ]);
@@ -376,16 +376,15 @@ describe('adversarial — bare unlabelled names', () => {
         expect(out).toMatch(/(\[NAME-\d+\]) \1/);
       }
     });
-  test('no clinical vocabulary word is a surname component or a given name (#224)', () => {
-    const { TH_CORPUS_CLINICAL_WORDS } = require('../src/services/pii-clinical-words.th');
+  test('no clinical allowlist word is a surname component or a given name (#224)', () => {
+    const { TH_CLINICAL_CONTINUATIONS } = require('../src/services/pii-clinical-words.th');
     const { TH_SURNAME_MORPHEMES, TH_GIVEN_NAMES } = require('../src/services/pii-names.th');
     const morphemes = new Set(TH_SURNAME_MORPHEMES);
-    // rerun rimpl/scripts/build-th-clinical-words.js after editing pii-names.th.js
-    expect(TH_CORPUS_CLINICAL_WORDS.filter((w) => morphemes.has(w) || TH_GIVEN_NAMES.has(w))).toEqual([]);
+    expect(TH_CLINICAL_CONTINUATIONS.filter((w) => morphemes.has(w) || TH_GIVEN_NAMES.has(w))).toEqual([]);
   });
 
   // INDEPENDENT SAMPLE (gate of PR #232). Native Thai surnames written from general knowledge, NOT drawn from
-  // TH_SURNAME_MORPHEMES, TH_CORPUS_CLINICAL_WORDS or anything build-th-clinical-words.js reads; the first row
+  // TH_SURNAME_MORPHEMES, TH_CLINICAL_CONTINUATIONS or any other list the filter reads; the first row
   // is the gate's own probe list. Never tune a list to this sample — a leak here is a finding, not a fixture
   // to edit. Each surname is tried in every spelling the pass must cover.
   const INDEPENDENT_SURNAMES = [
@@ -398,10 +397,10 @@ describe('adversarial — bare unlabelled names', () => {
     'ใจงาม', 'หมั่นเพียร', 'ทรงศักดิ์', 'บุญยืน', 'คำมา', 'ดีพร้อม', 'ใจซื่อ', 'สุขสบาย', 'หายโศก', 'เนียมหอม',
     'อุ่นเรือน', 'ศรีเมือง', 'แก่นจันทร์', 'ถนอมศักดิ์', 'เทียนทอง', 'วงศ์ไทย', 'บำรุงสุข', 'ผลดี',
   ];
-  // Same sample, the surnames that are ALSO everyday phrases built wholly of clinical vocabulary ("นายสมชาย
-  // ปลอดภัย" = "Mr Somchai is safe"). No word list can tell them from the clinical statement, so they still
-  // leak: docs/MIDDLEWARE-KNOWN-GAPS.md, owner decision pending. test.failing turns red the day they are masked.
-  const PHRASE_SURNAMES = ['อยู่เย็น', 'มีมาก', 'ตั้งใจ', 'ปลอดภัย', 'แข็งแรง', 'อยู่ดี', 'รอดพ้น', 'เกิดผล'];
+  // Same sample, the surnames that are ALSO everyday phrases ("นายสมชาย ปลอดภัย" = "Mr Somchai is safe"). Owner
+  // ruling 2026-10-29, "Mask any word after a name": masked, at the price of the clinical statement. Gate round
+  // 3 added ถาวร, มากมี, ยืนยาว.
+  const PHRASE_SURNAMES = ['อยู่เย็น', 'มีมาก', 'ตั้งใจ', 'ปลอดภัย', 'แข็งแรง', 'อยู่ดี', 'รอดพ้น', 'เกิดผล', 'ถาวร', 'มากมี', 'ยืนยาว'];
   const SURNAME_SPELLINGS = (x) => [
     `นายสมชาย ${x} มาด้วยไข้`, `สมชาย ${x}`, `นพ.สมศักดิ์ ${x}.`, `นายสมชาย,${x}`, `นายสมชาย (${x})`,
     `นายสมชาย​${x}`, `นายสมชาย-${x}`, `นายสมชาย/${x}`, `${x} นายสมชาย`, `ชื่อ สมชาย ${x}`,
@@ -409,8 +408,8 @@ describe('adversarial — bare unlabelled names', () => {
   test.each(INDEPENDENT_SURNAMES)('independent sample: surname %s never leaves rimpl, in any spelling (#224)', (surname) => {
     for (const input of SURNAME_SPELLINGS(surname)) expect([input, stripPii(input)]).toEqual([input, expect.not.stringContaining(surname)]);
   });
-  test.failing.each(PHRASE_SURNAMES)('KNOWN GAP: phrase surname %s is masked (#224)', (surname) => {
-    expect(stripPii(`นายสมชาย ${surname}`)).not.toContain(surname);
+  test.each(PHRASE_SURNAMES)('phrase surname %s never leaves rimpl, in any spelling (owner ruling)', (surname) => {
+    for (const input of SURNAME_SPELLINGS(surname)) expect([input, stripPii(input)]).toEqual([input, expect.not.stringContaining(surname)]);
   });
   test.each([
     ['นายสมชาย ณ อยุธยา', 'อยุธยา'],
@@ -468,6 +467,54 @@ describe('adversarial — bare unlabelled names', () => {
   test('a Latin surname alias folds in next to a digit (#224)', () => {
     const out = stripHistoryPii([{ content: 'นายสมชาย Jaidee' }, { content: 'Jaidee2 โทรมา' }]).map((m) => m.content);
     expect(out.join(' || ')).not.toContain('Jaidee');
+  });
+
+  // Gate round 3 of PR #232 (review of 4d1dffdf). Each case below leaked or erased on 4d1dffdf.
+  test.each([
+    ['patient_ref through deriveHintTokens', (t) => stripPii(t, null, deriveHintTokens('สมชาย​ใจดี'))],
+    ['a raw hint', (t) => stripPii(t, null, ['สมชาย​ใจดี'])],
+  ])('item 1: a hint with an invisible character still masks its name (%s)', (_label, run) => {
+    const out = run('ผู้ป่วย สมชาย​ใจดี มาด้วยไข้');
+    for (const frag of ['สมชาย', 'ใจดี']) expect(out).not.toContain(frag);
+    expect(out).toContain('มาด้วยไข้');
+  });
+  test('item 2: an allowlisted compound clinical term after a name is kept', () => {
+    expect(stripPii('นายสมชาย ไข้หวัดใหญ่')).toBe('นาย[NAME-1] ไข้หวัดใหญ่');
+  });
+  test('item 2: a word off the allowlist after a name is masked, clinical or not (owner ruling)', () => {
+    expect(stripPii('นายสมชาย แข็งแรงดี')).toBe('นาย[NAME-1] [NAME-1]');
+  });
+  test.each(['นายสมชาย JAIDEE', 'นายสมชาย jaidee', 'นายสมชาย na Ayudhya', 'นายสมชาย NA AYUDHYA'])(
+    'item 3: a Latin surname in any case is masked: %s', (input) => {
+      expect(stripPii(input)).toMatch(/^นาย(\[NAME-\d+\]) \1$/);
+    });
+  test('item 3: a Latin surname alias folds in whatever its case', () => {
+    const out = stripHistoryPii([{ content: 'นายสมชาย Jaidee' }, { content: 'JAIDEE โทรมา' }]).map((m) => m.content);
+    expect(out.join(' || ')).not.toMatch(/jaidee/i);
+  });
+  test.each(['นายสมชาย\nใจดี', 'นายสมชาย\r\nใจดี', 'นายสมชาย\u0085ใจดี', 'นายสมชาย \n ใจดี'])(
+    'item 4: a surname on the next line is masked (owner ruling): %j', (input) => {
+      expect(stripPii(input)).not.toContain('ใจดี');
+    });
+  test.each([
+    ['across turns', ['ทองคำ', 'ใจดี ทองคำ', 'นายสมชาย ใจดี']],
+    ['four hops', ['เงินดี', 'ทองคำ เงินดี', 'ใจดี ทองคำ', 'นายสมชาย ใจดี']],
+    ['inside one text', ['ทองคำ มาตามนัด / ใจดี ทองคำ / นายสมชาย ใจดี']],
+  ])('item 5: every surname masks every other mention, whatever the order (%s)', (_label, turns) => {
+    const out = stripHistoryPii(turns.map((content) => ({ content }))).map((m) => m.content).join(' || ');
+    for (const frag of ['ทองคำ', 'ใจดี', 'เงินดี', 'สมชาย']) expect(out).not.toContain(frag);
+  });
+  test('item 6: a particle glued to a given name does not stop it masking later mentions', () => {
+    const out = stripHistoryPii([{ content: 'นายอรุณครับ' }, { content: 'อรุณ มาตามนัด' }]).map((m) => m.content);
+    expect(out).toEqual(['นาย[NAME-1]', '[NAME-1] มาตามนัด']);
+  });
+  test('item 7: a surname glued to a long particle repeat is masked in linear time', () => {
+    const t = Date.now();
+    expect(stripPii('นายสมชาย ใจดี' + 'ครับ'.repeat(16000))).not.toContain('ใจดี');
+    expect(Date.now() - t).toBeLessThan(250);
+  });
+  test('a word after a taken surname is not taken for another surname', () => {
+    expect(stripPii('นายสมชาย บุญมา ไปทำบุญที่วัด')).toBe('นาย[NAME-1] [NAME-1] ไปทำบุญที่วัด');
   });
 
   // #238: ordering and spelling paths through a history. Each one leaked on master 81eabc86.
@@ -889,6 +936,15 @@ describe('adversarial — one registry per outbound call (coreference across the
     const nextTurn = sentMessages(1);
     expect(nextTurn[0].content).toBe(firstTurn[0].content);   // h1 masked identically on both turns
     expect(nextTurn[2].content).toBe(firstTurn[2].content.split('\n\n').slice(1).join('\n\n')); // turn-1 message, now history
+  });
+
+  // Gate round 3 (#238, item 5): a surname the CURRENT message reveals is masked in the chief complaint and
+  // the history it was sent with, and every hop of a chain is followed.
+  test('/chat: a surname revealed only by the current message is masked in the chief complaint and history', async () => {
+    await chat({ chief_complaint: 'ทองคำ ปวดท้อง', history: [{ role: 'physician', content: 'ใจดี ทองคำ มาตามนัด' }],
+      message: 'นายสมชาย ใจดี ยังปวดอยู่' });
+    const sent = JSON.stringify(sentMessages());
+    for (const frag of ['ทองคำ', 'ใจดี', 'สมชาย']) expect(sent).not.toContain(frag);
   });
 
   // #224: no patient_ref, no chief_complaint — only the in-text name rules stand between the surname and

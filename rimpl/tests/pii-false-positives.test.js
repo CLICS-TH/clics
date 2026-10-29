@@ -152,7 +152,7 @@ describe('bare surname after a masked Thai given name (#224) — clinical phrase
   });
 
   // Review of #224: 26 name + clinical phrases the round-1 deny list turned into "[NAME-1] [NAME-1]".
-  // They survive because every word in them is clinical vocabulary (scripts/build-th-clinical-words.js).
+  // They survive because every word in them is on the clinical allowlist (pii-clinical-words.th.js).
   test.each([
     'นายสมชาย แพ้ยาเพนนิซิลลิน', 'นายสมชาย ชักเกร็ง 2 ครั้ง', 'นายสมชาย ซึมลง', 'นายสมชาย หายใจเหนื่อย',
     'นายสมชาย หมดสติ', 'นายสมชาย เข้ารับการรักษา', 'นายสมชาย ความดันสูง', 'นายสมชาย ประวัติเบาหวาน',
