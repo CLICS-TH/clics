@@ -449,6 +449,13 @@ describe('adversarial — bare unlabelled names', () => {
     const out = stripHistoryPii([{ content: 'หายใจหอบเหนื่อย ใจหวิว' }, { content: 'ผู้ป่วยคือนายสมชาย ใจดีครับ' }]);
     expect(out[0].content).toBe('หายใจหอบเหนื่อย ใจหวิว');
   });
+  test('the head of a surname glued to a clinical tail becomes an alias for later turns', () => {
+    const out = stripHistoryPii([{ content: 'นายสมชาย ใจดีมาด้วยไข้' }, { content: 'ใจดี บอกว่ายังไอ' }]);
+    expect(out.map((m) => m.content).join(' || ')).not.toContain('ใจดี');
+  });
+  test.each(['ตาโต', 'นำชม', 'ตกนม'])('a surname built only of short vocabulary words is masked: %s', (surname) => {
+    expect(stripPii(`นายสมชาย ${surname}`)).not.toContain(surname);
+  });
   test('a long glued word after a name is masked in linear time', () => {
     const t = Date.now();
     expect(stripPii('นายสมชาย ฮ' + 'กา'.repeat(2490))).not.toContain('กากา');

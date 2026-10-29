@@ -769,16 +769,19 @@ const TH_CLINICAL_VOCAB = new Set([
 ].filter((w) => !NOT_VOCABULARY.has(w)));
 const TH_VOCAB_MAX = Math.max(...[...TH_CLINICAL_VOCAB].map((w) => w.length));
 // True when ALL of `run` splits into vocabulary words (word-break over a closed list; O(len x longest word)).
+// A split into several words must hold one of 3+ letters: short words alone combine into names (ตา + โต).
 function isClinicalRun(run) {
-  const ok = new Uint8Array(run.length + 1);
-  ok[0] = 1;
+  if (TH_CLINICAL_VOCAB.has(run)) return true;
+  // reach[i]: bit 1 = run[0, i) splits into words, bit 2 = such a split holds a word of 3+ letters
+  const reach = new Uint8Array(run.length + 1);
+  reach[0] = 1;
   for (let i = 0; i < run.length; i++) {
-    if (!ok[i]) continue;
+    if (!reach[i]) continue;
     for (let l = 1; l <= TH_VOCAB_MAX && i + l <= run.length; l++) {
-      if (TH_CLINICAL_VOCAB.has(run.slice(i, i + l))) ok[i + l] = 1;
+      if (TH_CLINICAL_VOCAB.has(run.slice(i, i + l))) reach[i + l] |= reach[i] | (l >= 3 ? 3 : 1);
     }
   }
-  return ok[run.length] === 1;
+  return (reach[run.length] & 2) === 2;
 }
 // Capitalised English words that follow a name in mixed notes without being a surname.
 const EN_NOT_SURNAME = new Set([
@@ -786,8 +789,9 @@ const EN_NOT_SURNAME = new Set([
   'room', 'day', 'post', 'pre', 'test', 'lab', 'labs', 'dose', 'stop', 'start', 'follow', 'visit', 'refer',
   'dengue', 'covid', 'influenza', 'malaria', 'aspirin', 'warfarin', 'insulin', 'heparin', 'morphine',
 ]);
-// Drug-name endings (Amoxicillin, Paracetamol, Omeprazole). No romanised Thai surname ends in one.
-const EN_DRUG_SUFFIX_RE = /(?:cillin|mycin|cycline|statin|pril|sartan|olol|azole|oxacin|vir|mab|nib|amide|azepam|tidine|formin|profen|etamol|dipine|parin|xaban|sone|olone)$/i;
+// Long drug-name endings after a 3+ letter stem (Amoxicillin, Paracetamol, Omeprazole). Short, ambiguous
+// endings (-vir, -mab, -sone) are left out: a missed drug is over-masked, a wrongly spared surname leaks.
+const EN_DRUG_SUFFIX_RE = /^[A-Za-z]{3,}(?:cillin|mycin|cycline|statin|sartan|olol|azole|oxacin|azepam|tidine|formin|profen|etamol|dipine|parin|xaban)$/i;
 // Invisible format characters (zero-width space / joiners, soft hyphen, bidi marks).
 const ZERO_WIDTH_RE = /\p{Cf}/gu;
 // Any whitespace but a line break (the next line is a new field), or list / bracket punctuation.
@@ -812,24 +816,30 @@ function givenNameTokens(token) {
   }
   return out;
 }
-// Bind a taken surname to `tok`, and the surname with trailing polite particles cut off (ใจดีครับ → ใจดี),
-// keeping 3+ letters. Only particles: a head cut at any vocabulary word (แก้วใส → แก้ว, บุญมา → บุญ) would
-// mask ordinary words everywhere in the history. Linear in the word's length.
+// Bind a taken surname to `tok`, and also its shortest head before a wholly clinical tail (ใจดีครับ → ใจดี,
+// ใจดีมาด้วยไข้ → ใจดี), so a later bare "ใจดี" folds in. The head must be 3+ letters, not itself clinical
+// vocabulary and not a lone surname component: a head such as แก้ว (แก้วใส) or บุญ (บุญมา) is an ordinary word
+// and would mask it everywhere in the history. Heads are tried up to SURNAME_HEAD_MAX letters, so the cost
+// stays linear in the word's length.
+const SURNAME_HEAD_MAX = 30;
+const SURNAME_MORPHEME_SET = new Set(TH_SURNAME_MORPHEMES);
+// A lone component (บุญ, แก้ว) — not a whole surname built of two (ใจ + ดี, ศรี + สุข).
+function isLoneMorpheme(w) {
+  if (!SURNAME_MORPHEME_SET.has(w)) return false;
+  for (let i = 1; i < w.length; i++) if (SURNAME_MORPHEME_SET.has(w.slice(0, i)) && SURNAME_MORPHEME_SET.has(w.slice(i))) return false;
+  return true;
+}
 function aliasSurname(token, surname, tok) {
   token.wordAlias('NAME', surname, tok);
   const parts = surname.split(new RegExp(SURNAME_SEP));
   if (parts.length > 1) for (const p of parts) if (p.length >= 3) token.wordAlias('NAME', p, tok); // ณ อยุธยา
-  let head = surname;
-  for (let p = wordEndingAt(head, TH_PARTICLES); p && head.length - p.length >= 3; p = wordEndingAt(head, TH_PARTICLES)) {
-    head = head.slice(0, -p.length);
+  if (!TH_LETTER_RE.test(surname)) return;
+  for (let i = 3; i < surname.length && i <= SURNAME_HEAD_MAX; i++) {
+    const head = surname.slice(0, i);
+    if (isLoneMorpheme(head) || isClinicalRun(head) || !isClinicalRun(surname.slice(i))) continue;
     token.wordAlias('NAME', head, tok);
+    return;
   }
-}
-// Longest entry of `list` that `s` ends with, or ''.
-function wordEndingAt(s, list) {
-  let best = '';
-  for (const w of list) if (w.length > best.length && s.endsWith(w)) best = w;
-  return best;
 }
 function isSurnameCandidate(word, full, wordStart) {
   if (MED_SHIELD.has(word)) return false;
