@@ -61,7 +61,9 @@ async function remaining(code) {
 }
 
 const { code, del } = args;
-const MAY_HAVE_COMMITTED = `The delete may have committed. Run the same command again to read the summary recorded for ${code}.`;
+// Recovery is always the dry run: a rerun with --delete would also delete any play started since.
+const DRY_RUN = `cd backend && node ../scripts/booth/purge-event.mjs --event ${code}`;
+const MAY_HAVE_COMMITTED = `The delete may have committed. Read the summary recorded for ${code}, deleting nothing, with the dry run:\n  ${DRY_RUN}`;
 let summary;
 let error;
 try {
@@ -77,8 +79,12 @@ if (error || !summary) {
   fail(1, `booth_event_summary failed: ${error?.message ?? 'no result'}${del ? `\n${MAY_HAVE_COMMITTED}` : ''}`);
 }
 console.log(report(code, summary));
+// With no live plays the recorded purge is this event's CCME summary; beside live plays it is an earlier purge only.
 if (summary.recorded) {
-  console.log(`\nalready purged at ${bangkokTime(summary.recorded.purged_at)}; the summary recorded then:`);
+  const at = bangkokTime(summary.recorded.purged_at);
+  console.log(summary.plays === 0
+    ? `\nalready purged at ${at}; the summary recorded then (the CCME summary):`
+    : `\nprevious purge at ${at}, before the ${summary.plays} plays above; the summary recorded then:`);
   console.log(report(code, summary.recorded.summary));
 }
 

@@ -145,8 +145,15 @@ done
 expect "  → an empty rerun records nothing" "1" "$(P -c "select count(*) from booth_event_purges where event_code = 'EVT-A'")"
 
 echo "privileges"
+# Asked of the catalog, not by calling: a call by anon also fails on booth_plays' own revoke, so it would stay 42501
+# with the function's EXECUTE restored.
+for role in anon authenticated; do
+  expect "$role holds no EXECUTE on booth_event_summary" "f" \
+    "$(P -c "select has_function_privilege('$role', 'public.booth_event_summary(text, boolean)', 'execute')")"
+  expect "$role holds no privilege on booth_event_purges_id_seq" "f|f|f" \
+    "$(P -c "select has_sequence_privilege('$role', 'public.booth_event_purges_id_seq', 'usage'), has_sequence_privilege('$role', 'public.booth_event_purges_id_seq', 'select'), has_sequence_privilege('$role', 'public.booth_event_purges_id_seq', 'update')")"
+done
 expect "anon cannot execute" "42501" "$(sqlstate "set role anon; $(SUMMARY EVT-A false)")"
-expect "authenticated cannot execute" "42501" "$(sqlstate "set role authenticated; $(SUMMARY EVT-A false)")"
 expect "service_role can" "ok" "$(sqlstate "$(SR "$(SUMMARY EVT-A false)")")"
 for role in anon authenticated; do
   expect "$role cannot read booth_event_purges" "42501" "$(sqlstate "set role $role; select count(*) from booth_event_purges")"

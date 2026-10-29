@@ -147,7 +147,8 @@ test('purge-event against a fake backend: one rpc per run, the refusal, the dele
   const failed = run(['--event', 'NFCME-2026', '--delete'], { FAKE_RPC: 'error' });
   assert.equal(failed.code, 1);
   assert.match(failed.out, /booth_event_summary failed: canceling statement/);
-  assert.match(failed.out, /may have committed\. Run the same command again/);
+  assert.match(failed.out, /may have committed\. Read the summary recorded for NFCME-2026, deleting nothing, with the dry run:/);
+  assert.doesNotMatch(failed.out.split('\n').filter((l) => !/^usage:/.test(l)).join('\n'), /--delete/, 'no recovery advice carries --delete');
 
   writeFileSync(db, JSON.stringify({ ...state(), settings: { code: 'NFCME-2026', enabled: 0 }, calls: [] }));
   const deleted = run(['--event', 'NFCME-2026', '--delete']);
@@ -161,23 +162,40 @@ test('purge-event against a fake backend: one rpc per run, the refusal, the dele
   const again = run(['--event', 'NFCME-2026', '--delete']);
   assert.equal(again.code, 0);
   assert.match(again.out, /plays 0 /);
-  assert.match(again.out, /already purged at 2026-12-06T10:04:05\+07:00; the summary recorded then:\nBooth event NFCME-2026\nplays 21 {2}scored 10/);
+  assert.match(again.out, /already purged at 2026-12-06T10:04:05\+07:00; the summary recorded then \(the CCME summary\):\nBooth event NFCME-2026\nplays 21 {2}scored 10/);
   assert.match(again.out, /deleted 0 rows, 0 remain/);
 });
 
-test('purge-event: a delete that commits but loses its response says to rerun, and the rerun prints the recorded counts', (t) => {
-  const { state, run } = fakeBackend(t, { code: 'NFCME-2026', enabled: 0 });
+test('purge-event: after a lost --delete response, the advised recovery deletes nothing and prints the recorded counts', (t) => {
+  const { db, state, run } = fakeBackend(t, { code: 'NFCME-2026', enabled: 0 });
 
   const lost = run(['--event', 'NFCME-2026', '--delete'], { FAKE_RPC: 'lost' });
   assert.equal(lost.code, 1);
-  assert.match(lost.out, /booth_event_summary failed: fetch failed\nThe delete may have committed\. Run the same command again to read the summary recorded for NFCME-2026\./);
+  assert.match(lost.out, /booth_event_summary failed: fetch failed\nThe delete may have committed\./);
   assert.equal(state().booth_plays.length, 1, 'the delete did commit');
+  const advice = /^ {2}cd backend && node \.\.\/scripts\/booth\/purge-event\.mjs (.+)$/m.exec(lost.out);
+  assert.ok(advice, 'the advice names a command to run');
+  const advised = advice[1].split(' ');
+  assert.ok(!advised.includes('--delete'), 'the advised recovery is the dry run');
 
-  for (const args of [['--event', 'NFCME-2026'], ['--event', 'NFCME-2026', '--delete']]) {
-    const rerun = run(args);
-    assert.equal(rerun.code, 0, `exit 0 for ${args.join(' ')}`);
-    assert.match(rerun.out, /^Booth event NFCME-2026\nplays 0 /, 'the live summary first');
-    assert.match(rerun.out, /already purged at 2026-12-06T10:04:05\+07:00; the summary recorded then:\nBooth event NFCME-2026\nplays 21 {2}scored 10 {2}unavailable 0 {2}abandoned 11/,
-      `the recorded counts for ${args.join(' ')}`);
-  }
+  // Two new plays under the same code (the event switched on again) before the operator recovers.
+  const late = (id) => ({ id, event_code: 'NFCME-2026', status: 'scored' });
+  writeFileSync(db, JSON.stringify({ ...state(), booth_plays: [...state().booth_plays, late('n1'), late('n2')] }));
+
+  const recovery = run(advised);
+  assert.equal(recovery.code, 0);
+  assert.equal(state().booth_plays.filter((r) => r.event_code === 'NFCME-2026').length, 2, 'the new plays remain');
+  assert.match(recovery.out, /^Booth event NFCME-2026\nplays 2 /, 'the live summary first');
+  assert.match(recovery.out, /previous purge at 2026-12-06T10:04:05\+07:00, before the 2 plays above; the summary recorded then:\nBooth event NFCME-2026\nplays 21 {2}scored 10 {2}unavailable 0 {2}abandoned 11/);
+  assert.doesNotMatch(recovery.out, /already purged/, 'never "already purged" beside live plays');
+  assert.match(recovery.out, /dry run: nothing deleted/);
+});
+
+test('purge-event: a recorded purge with no live plays is the CCME summary', (t) => {
+  const { run } = fakeBackend(t, { code: 'NFCME-2026', enabled: 0 });
+  assert.equal(run(['--event', 'NFCME-2026', '--delete']).code, 0);
+  const dry = run(['--event', 'NFCME-2026']);
+  assert.match(dry.out, /^Booth event NFCME-2026\nplays 0 /);
+  assert.match(dry.out, /already purged at 2026-12-06T10:04:05\+07:00; the summary recorded then \(the CCME summary\):\nBooth event NFCME-2026\nplays 21 /);
+  assert.doesNotMatch(dry.out, /previous purge/);
 });

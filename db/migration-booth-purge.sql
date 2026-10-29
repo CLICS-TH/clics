@@ -31,6 +31,7 @@ create table if not exists public.booth_event_purges (
 alter table public.booth_event_purges enable row level security;
 revoke all on table public.booth_event_purges from public, anon, authenticated;
 grant select, insert on table public.booth_event_purges to service_role;
+revoke all on sequence public.booth_event_purges_id_seq from public, anon, authenticated;
 grant usage on sequence public.booth_event_purges_id_seq to service_role;
 
 comment on table public.booth_event_purges is

@@ -90,8 +90,11 @@ time typed and not saved changes nothing, and the backend refuses to switch on a
 
 - [ ] Tap the switch **off** in the Booth Mode card (it saves itself).
 - [ ] `cd backend && node ../scripts/booth/purge-event.mjs --event NFCME-2026` prints the rehearsal plays' summary.
-      Then rerun it with `--delete`: it reports `0 remain`. This is also the dress rehearsal of the 30-day retention
-      step in the runbook.
+      Then rerun it with `--delete`: it reports `0 remain`. The CCME summary is the first block that run prints
+      (`Booth event NFCME-2026`, the rows it deleted). If the `--delete` run fails, never rerun it with `--delete`:
+      run the dry run it names, and the CCME summary is the block headed `already purged at …`. A block headed
+      `previous purge at …` is an earlier purge shown beside live plays, not this one. This is also the dress
+      rehearsal of the 30-day retention step in the runbook.
 - [ ] Set opens-at and closes-at to Tue 3 Nov's booth hours and press **Save**. Reload the page and check both
       times are still shown. Leave the switch off until the morning.
 - [ ] Write the staff names and phone numbers by hand on the printed runbook, section 7.
