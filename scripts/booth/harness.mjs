@@ -9,6 +9,7 @@
  * Run: npm run test:booth   (repo root). Exits non-zero on any FAIL. Set BOOTH_SHOTS=<dir> to save screenshots.
  */
 import { createServer } from 'node:http';
+import { createHash } from 'node:crypto';
 import { readFile, readdir, stat, mkdir } from 'node:fs/promises';
 import { join, extname, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,7 +32,7 @@ const FLOOR = { textPx: 28, optionLabelPx: 32, tapPx: 80, contrast: 4.5, thaiLea
 const PLAY_ID = '6f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f';
 const API = 'http://localhost:3001';
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*', 'cache-control': 'no-store' };
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.png': 'image/png' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.png': 'image/png', '.mp4': 'video/mp4' };
 const WAIT_MS = 10_000;
 const SETTLE_MS = 400;
 const SHOTS = process.env.BOOTH_SHOTS || null;
@@ -110,6 +111,15 @@ function makeStub({ routes = {} } = {}) {
   };
 }
 
+/** A fixture loop file with a content ETag, answering a matching If-None-Match with 304 the way Vercel does. */
+async function fulfillFile(route, file) {
+  const body = await readFile(file);
+  const etag = `"${createHash('sha1').update(body).digest('hex')}"`;
+  const headers = { 'cache-control': 'no-store', etag };
+  if (route.request().headers()['if-none-match'] === etag) return route.fulfill({ status: 304, headers });
+  return route.fulfill({ body, contentType: MIME[extname(file)] || 'application/octet-stream', headers });
+}
+
 let browser;
 let base;
 const open = new Set();
@@ -119,15 +129,24 @@ const open = new Set();
  * pointer 'coarse': isMobile + hasTouch, and the run asserts matchMedia('(pointer: coarse)') really matches.
  * pointer 'fine':   a plain desktop context (the mini-PC reporting a mouse); taps become clicks.
  * close() fails the run if any foreign request was made or any page error, CSP refusal or storage write happened.
+ * files: { '/path': absolute file } served instead of disk for same-origin requests (fixture loop files), with an
+ *   ETag; it is read per request, so a scenario that reassigns an entry replaces the file under the same name.
+ * k.offline(on): the context goes offline and every request (page origin and booth API) aborts.
  */
-async function kiosk({ width = 1080, height = 1920, pointer = 'coarse', stub = makeStub(), label = `${width}x${height} ${pointer}` } = {}) {
+async function kiosk({ width = 1080, height = 1920, pointer = 'coarse', stub = makeStub(), label = `${width}x${height} ${pointer}`, files = {} } = {}) {
   const coarse = pointer === 'coarse';
   const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, ...(coarse ? { isMobile: true, hasTouch: true } : {}) });
   const foreign = [];
   const errors = [];
+  let offline = false;
   await ctx.route('**/*', (route) => {
     const url = route.request().url();
-    if (url.startsWith(base + '/')) return route.continue();
+    if (offline) return route.abort('internetdisconnected');
+    if (url.startsWith(base + '/')) {
+      const file = files[new URL(url).pathname];
+      if (file) return fulfillFile(route, file);
+      return route.continue();
+    }
     if (url.startsWith(API + '/booth/')) return stub.handle(route);
     foreign.push(url);
     return route.abort();
@@ -140,7 +159,11 @@ async function kiosk({ width = 1080, height = 1920, pointer = 'coarse', stub = m
   check(await page.evaluate((q) => matchMedia(q).matches, media), `${label}: matchMedia('${media}') matches`);
 
   const k = {
-    page, stub, foreign, errors,
+    page, ctx, stub, foreign, errors,
+    async offline(on) {
+      offline = on;
+      await ctx.setOffline(on);
+    },
     async tap(selector) {
       const loc = page.locator(selector);
       if (coarse) await loc.tap({ timeout: WAIT_MS }); else await loc.click({ timeout: WAIT_MS });
