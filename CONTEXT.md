@@ -31,7 +31,7 @@ The kiosk version of the Portal that runs on the touch screen at the CCME booth 
 _Avoid_: kiosk app, demo mode, booth version
 
 **Booth event**:
-One venue's run of Booth Mode, named by an event code such as NFCME-2026, with its own case and leaderboard.
+One venue's run of Booth Mode, named by an event code such as NFCME-2026, with its own case pool and leaderboard.
 _Avoid_: batch, campaign, venue (alone)
 
 **Booth play**:
@@ -45,3 +45,43 @@ _Avoid_: CME score, credit, PIS-7 score (alone)
 **Booth tag**:
 The auto-made label, such as "Booth #042", that names one visitor's play on the booth leaderboard. The visitor never types it.
 _Avoid_: nickname, username, player name
+
+**Booth case**:
+One fictional clinical case written for Booth Mode as a branching tree of three steps, in Thai with English beneath.
+_Avoid_: trigger case, scenario, CT (those are DPU curriculum terms)
+
+**Case pool**:
+The admitted booth cases of one booth event, from which each booth play draws its case.
+_Avoid_: case bank, case list
+
+**Admission**:
+A booth case passing both the AI safety review and the physician sandbox, which is what puts it in the case pool.
+_Avoid_: approval, sign-off, physician read
+
+**Physician sandbox**:
+Simulated physicians (scripted paths and AI personas) playing every candidate booth case through the real evaluator, to check that the cases are of matched difficulty. It writes no booth plays.
+_Avoid_: dry run, simulation (alone), test players
+
+**Case teaser**:
+The card that shows a visitor which booth case they drew: presenting complaint and setting, never the diagnosis.
+_Avoid_: case title, preview
+
+**Reroll**:
+A visitor drawing a different booth case from the case pool before the play starts.
+_Avoid_: gacha, shuffle, skip
+
+**Grill play**:
+The booth play's dialogue: the AI asks one question per step and offers three choices from the option bank, never marking a best one.
+_Avoid_: Socratic mode (that is the pilot's rescue tutor), quiz
+
+**Option bank**:
+The reviewed question variants and options that a booth case holds for one point on its branching path.
+_Avoid_: choice pool, answer key
+
+**Tier**:
+The quality grade of a booth option or answer: best, reasonable, or weaker but safe. Each question offers one option of each tier.
+_Avoid_: grade, level, difficulty
+
+**Band descriptor**:
+The fixed Thai and English line that says what a score band in one PIS-7 domain means and what to practise next.
+_Avoid_: AI feedback, comment, rationale (the evaluator's rationale is a different thing)
