@@ -262,7 +262,34 @@ const OVERCLAIM_SAMPLES = {
 };
 // The audit log does not record admin transcript reads or the account purge (admin.js /ples/:id/transcript,
 // superadmin.js /users/:id/purge), so no copy may say it records who did what to every record.
-const AUDIT_OVERCLAIM = /who did what to which record|ใครทำอะไรกับข้อมูลใดเมื่อใด/i;
+// logEvent is fire-and-forget and logs only some settings (superadmin.js PATCH /usage-settings), so any
+// "records every/each/all …" not qualified by "tries to", and any unqualified "settings changes", overclaims.
+const AUDIT_OVERCLAIM = new RegExp([
+  /who did what to which record|ใครทำอะไรกับข้อมูลใดเมื่อใด/.source,
+  /(?<!(?:tries to|not) )\brecords? (?:every|each|all)\b[^.]{0,60}?\b(?:access|view|action|read|reveal|export)/.source,
+  /(?<!พยายาม)บันทึก(?:(?!ไม่)\S){0,20}?ทุก(?:ครั้ง|การ|รายการ)/.source,
+  /(?<!some )\bsettings changes/.source,
+  /การเปลี่ยนการตั้งค่า(?!บางรายการ)/.source,
+].join('|'), 'i');
+const AUDIT_OVERCLAIM_SAMPLES = {
+  caught: [
+    'The audit log records who did what to which record, and when.',
+    'และบันทึกว่าใครทำอะไรกับข้อมูลใดเมื่อใดในบันทึกการตรวจสอบ',
+    'The system records every access to your data.',
+    'and the system records each view and export in the audit log.',
+    'ระบบบันทึกการเปิดดูทุกครั้งไว้ในบันทึกการตรวจสอบ',
+    "auditors' scores, and settings changes.",
+    'การให้คะแนนของผู้ตรวจ และการเปลี่ยนการตั้งค่า',
+  ],
+  passed: [
+    'and the system tries to record each reveal in the audit log.',
+    'The log does not record every action: an administrator opening a conversation is not recorded.',
+    'ระบบพยายามบันทึกการเปิดดูทุกครั้งไว้ในบันทึกการตรวจสอบ',
+    'บันทึกนี้ไม่ได้เก็บทุกการกระทำ',
+    "auditors' scores, and some settings changes, such as the AI provider",
+    'และการเปลี่ยนการตั้งค่าบางรายการ เช่น ผู้ให้บริการ AI',
+  ],
+};
 // The controller and lawful basis are still pending, so no trust chip may read as a compliance claim.
 const COMPLIANCE_CHIP = /PDPA|GDPR|complian|\bISO\b|HIPAA|ได้มาตรฐาน|สอดคล้อง/i;
 // Who can read a transcript with the physician's name (backend/src/routes/admin.js /ples/:id/transcript).
@@ -612,8 +639,18 @@ const SCENARIOS = [
         ]));
         t.check(fields.length === 4, `[${lang}] /privacy lists ${fields.length} PI fields, not the 4 (controller, contact, lawful basis, retention)`);
         for (const [name, marked] of fields) t.check(marked, `[${lang}] PI field "${name}" has no visible pending marker`);
-        const readers = await page.locator('section[aria-labelledby="see-h"]').innerText();
-        t.check((lang === 'th' ? /จริยธรรม/ : /ethics/i).test(readers), `[${lang}] the /privacy readers list does not name the ethics role`);
+        const readers = await page.locator('section[aria-labelledby="see-h"] li').evaluateAll((lis) => lis.filter((li) => li.checkVisibility()).map((li) => li.innerText));
+        const th = lang === 'th';
+        const line = (re) => readers.find((r) => re.test(r)) ?? '';
+        const ethics = line(th ? /จริยธรรม/ : /ethics/i);
+        t.check(ethics, `[${lang}] the /privacy readers list does not name the ethics role`);
+        t.check((th ? /คำตอบของ AI/ : /AI reply/i).test(ethics) && (th ? /บันทึกการตรวจสอบ/ : /audit log/i).test(ethics), `[${lang}] the ethics line does not say the audit log can hold AI reply text`);
+        // #242: an assigned auditor can still read ples.chief_complaint and ples.title, which defaults to its first 120 characters.
+        const gap = line(th ? /ฐานข้อมูลยังไม่ได้กัน/ : /database does not yet stop/i);
+        t.check((th ? /อาการสำคัญ/ : /chief complaint/i).test(gap) && (th ? /ชื่อเรื่อง/ : /title/i).test(gap), `[${lang}] the auditor-gap line does not name both the chief complaint and the title: "${gap}"`);
+        // admin.js /identity-queue serves admins (own council) and the superadmin (every council).
+        const identity = line(th ? /เลขใบอนุญาต/ : /licence number/i);
+        t.check((th ? /ผู้ดูแลระบบ CLICS/ : /CLICS system administrators/i).test(identity), `[${lang}] no readers line says the CLICS system administrators see the licence number and last four digits`);
       }
       await page.click('.lang-switch [data-set-lang="th"]');
       await page.click('.lang-switch [data-set-lang="en"]');
@@ -833,9 +870,8 @@ const SCENARIOS = [
     async run(t, page) {
       for (const line of OVERCLAIM_SAMPLES.caught) t.check(OVERCLAIM.test(line), `OVERCLAIM misses "${line}"`);
       for (const line of OVERCLAIM_SAMPLES.passed) t.check(!OVERCLAIM.test(line), `OVERCLAIM rejects the accurate "${line}"`);
-      for (const line of ['The audit log records who did what to which record, and when.', 'และบันทึกว่าใครทำอะไรกับข้อมูลใดเมื่อใดในบันทึกการตรวจสอบ']) {
-        t.check(AUDIT_OVERCLAIM.test(line), `AUDIT_OVERCLAIM misses "${line}"`);
-      }
+      for (const line of AUDIT_OVERCLAIM_SAMPLES.caught) t.check(AUDIT_OVERCLAIM.test(line), `AUDIT_OVERCLAIM misses "${line}"`);
+      for (const line of AUDIT_OVERCLAIM_SAMPLES.passed) t.check(!AUDIT_OVERCLAIM.test(line), `AUDIT_OVERCLAIM rejects the accurate "${line}"`);
       for (const [path, lang] of [['/', 'th'], ['/', 'en'], ['/privacy', 'th'], ['/privacy', 'en'], ['/login', 'th'], ['/login', 'en']]) {
         await page.goto(`${PORTAL}/forgot`);
         await page.evaluate((l) => localStorage.setItem('clics_manual_lang', l), lang);
