@@ -21,7 +21,7 @@
       "question": { "th": "ควรส่งตรวจอะไรเป็นอันดับแรก", "en": "Which tests come first?" },
       "options": [
         { "id": "a", "label": { "th": "ชุดตรวจโรคฉี่หนูแบบเร็ว", "en": "Leptospira rapid test" },
-          "line": { "th": "ได้ผลเร็ว อาจช่วยยืนยันการวินิจฉัยได้ภายในวันนี้", "en": "Quick, and may support the diagnosis today." } },
+          "line": { "th": "ได้ผลเร็ว อาจช่วยสนับสนุนการวินิจฉัยได้ในวันนี้", "en": "Quick, and may support the diagnosis today." } },
         { "id": "b", "label": { "th": "เพาะเชื้อในเลือด", "en": "Blood culture" },
           "line": { "th": "หาเชื้อแบคทีเรียก่อนเริ่มยาปฏิชีวนะ", "en": "Looks for a bacterial cause before antibiotics start." } },
         { "id": "c", "label": { "th": "ตรวจเลือดและปัสสาวะพื้นฐาน", "en": "Basic blood and urine tests" },
@@ -35,8 +35,8 @@
           "line": { "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัส นัดดูอาการพรุ่งนี้", "en": "Covers leptospirosis and scrub typhus. Review tomorrow." } },
         { "id": "b", "label": { "th": "รับนอนโรงพยาบาล ฉีดเพนิซิลลิน", "en": "Admit for IV penicillin" },
           "line": { "th": "ได้ยาทางหลอดเลือดเต็มที่ และเฝ้าดูอาการได้ใกล้ชิด", "en": "Full IV treatment and a close watch on his course." } },
-        { "id": "c", "label": { "th": "ให้พาราเซตามอล รอผลยืนยันก่อน", "en": "Paracetamol, await confirmation" },
-          "line": { "th": "เลี่ยงยาปฏิชีวนะจนกว่าจะรู้สาเหตุแน่ชัด นัดดูอาการพรุ่งนี้", "en": "Avoids antibiotics until the cause is clear. Review tomorrow." } }
+        { "id": "c", "label": { "th": "ให้อะม็อกซีซิลลินกลับบ้าน", "en": "Oral amoxicillin at home" },
+          "line": { "th": "รักษาโรคฉี่หนูที่อาการเล็กน้อยได้ นัดดูอาการพรุ่งนี้", "en": "Treats mild leptospirosis. Review tomorrow." } }
       ]
     }
   ]

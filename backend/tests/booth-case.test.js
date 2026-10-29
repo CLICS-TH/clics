@@ -101,6 +101,18 @@ describe('the NFCME-2026 case fits the kiosk pop-up', () => {
     const bad = texts.filter(({ kind, lang, s }) => kind === 'line' && against[lang](s));
     expect(bad.map(({ path, lang, s }) => `${path}.${lang}: ${s}`)).toEqual([]);
   });
+
+  // The booth prompt may not name the better choice, so nothing guarantees the AI reply corrects an
+  // unsafe option. A word scan catches the wait-and-see class (holding treatment until a result); it
+  // cannot judge every other unsafe plan, which stays with the physician read.
+  test('offers no option that withholds or delays treatment', () => {
+    const withholds = {
+      th: /เลี่ยง|งดยา|ชะลอ|รอผล|รอดูอาการ|ยังไม่ให้|ไม่ให้ยา/,
+      en: /\b(avoid|avoids|withhold|withholds|delay|delays|defer|defers|await|awaits|wait|waits|hold off|until)\b/i,
+    };
+    const bad = texts.filter(({ kind, lang, s }) => (kind === 'label' || kind === 'line') && withholds[lang].test(s));
+    expect(bad.map(({ path, lang, s }) => `${path}.${lang}: ${s}`)).toEqual([]);
+  });
 });
 
 describe('a broken case closes the booth as misconfigured', () => {
