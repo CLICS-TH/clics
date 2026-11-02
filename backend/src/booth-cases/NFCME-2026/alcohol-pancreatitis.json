@@ -1,0 +1,1294 @@
+{
+  "case_id": "alcohol-pancreatitis",
+  "version": "1",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "ชายวัย 45 ปี ปวดท้องลิ้นปี่รุนแรงหลังดื่มหนักช่วงสุดสัปดาห์",
+    "en": "A 45-year-old man with severe upper belly pain after a weekend of heavy drinking"
+  },
+  "vignette": {
+    "th": "ชายอายุ 45 ปี ดื่มเหล้าขาวทุกวันมา 10 ปี ปวดท้องลิ้นปี่รุนแรงร้าวไปหลังมา 1 วัน หลังดื่มหนักช่วงสุดสัปดาห์ คลื่นไส้และอาเจียนหลายครั้ง อุณหภูมิ 37.8 °C ชีพจร 110 หายใจ 22 ครั้ง/นาที ความดัน 116/74 SpO2 97% ขณะหายใจอากาศปกติ กดเจ็บบริเวณลิ้นปี่ ท้องไม่แข็งเกร็ง รู้สึกตัวดี",
+    "en": "A 45-year-old man who has drunk rice spirit daily for 10 years has had severe epigastric pain going through to the back for 1 day, after a weekend of heavy drinking, with nausea and repeated vomiting. Temperature 37.8 °C, pulse 110, respiratory rate 22, BP 116/74, SpO2 97% on room air. Epigastric tenderness, abdomen not rigid. He is alert."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "ภาพทางคลินิกนี้เข้าได้กับโรคใดมากที่สุด",
+            "en": "Which diagnosis fits this picture best?"
+          }
+        },
+        {
+          "id": "v3",
+          "question": {
+            "th": "ดื่มหนักแล้วปวดลิ้นปี่ร้าวไปหลัง นึกถึงโรคใดก่อน",
+            "en": "Heavy drinking, then epigastric pain to the back: what comes first?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "ตับอ่อนอักเสบเฉียบพลัน",
+            "en": "Acute pancreatitis"
+          },
+          "line": {
+            "th": "ปวดลิ้นปี่ร้าวไปหลังร่วมกับอาเจียนเข้าได้ดี",
+            "en": "Epigastric pain to the back with vomiting fits it well."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "ตับอ่อนอักเสบจากสุรา",
+            "en": "Alcohol-related pancreatitis"
+          },
+          "line": {
+            "th": "การดื่มหนักเป็นสาเหตุที่พบบ่อยอันดับต้น ๆ",
+            "en": "Heavy drinking is one of its commonest causes."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "แผลกระเพาะอาหารทะลุ",
+            "en": "Perforated peptic ulcer"
+          },
+          "line": {
+            "th": "คนดื่มหนักที่ปวดลิ้นปี่รุนแรงอาจมีแผลทะลุ",
+            "en": "Severe epigastric pain in a heavy drinker can be a perforation."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "reasonable",
+          "label": {
+            "th": "ถุงน้ำดีอักเสบเฉียบพลัน",
+            "en": "Acute cholecystitis"
+          },
+          "line": {
+            "th": "ปวดท้องส่วนบน ไข้ต่ำ และอาเจียนเข้าได้",
+            "en": "Upper abdominal pain, low fever and vomiting can fit."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "กระเพาะอาหารอักเสบจากสุรา",
+            "en": "Alcoholic gastritis"
+          },
+          "line": {
+            "th": "สุราระคายกระเพาะจนปวดลิ้นปี่และอาเจียนได้",
+            "en": "Alcohol irritates the stomach and can cause pain and vomiting."
+          }
+        },
+        {
+          "id": "f",
+          "tier": "weaker",
+          "label": {
+            "th": "กรดไหลย้อน",
+            "en": "Acid reflux disease"
+          },
+          "line": {
+            "th": "แสบลิ้นปี่หลังดื่มหนักพบได้บ่อย",
+            "en": "Burning epigastric pain after heavy drinking is common."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "e"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "จะส่งตรวจอะไรเป็นอย่างแรก",
+              "en": "Which first tests will you order?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจอะไรเพื่อยืนยันโรคและประเมินความรุนแรง",
+              "en": "Which tests confirm it and gauge severity?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "lipase",
+            "tier": "best",
+            "label": {
+              "th": "ไลเปสในเลือด",
+              "en": "Serum lipase"
+            },
+            "line": {
+              "th": "ไลเปสเกิน 3 เท่าร่วมกับปวดแบบนี้ยืนยันโรคได้",
+              "en": "Lipase above 3 times normal confirms it with typical pain."
+            }
+          },
+          {
+            "id": "severity",
+            "tier": "best",
+            "label": {
+              "th": "ไลเปส BUN ครีเอตินิน CBC",
+              "en": "Lipase, BUN, creatinine, CBC"
+            },
+            "line": {
+              "th": "ยืนยันโรคและประเมินความรุนแรงได้ในคราวเดียว",
+              "en": "Confirms it and gauges severity from one blood draw."
+            }
+          },
+          {
+            "id": "amylase",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะไมเลสในเลือด",
+              "en": "Serum amylase"
+            },
+            "line": {
+              "th": "อะไมเลสขึ้นเร็วและห้องแล็บส่วนใหญ่ตรวจได้",
+              "en": "Amylase rises early and most labs can run it."
+            }
+          },
+          {
+            "id": "us",
+            "tier": "reasonable",
+            "label": {
+              "th": "อัลตราซาวด์ช่องท้องส่วนบน",
+              "en": "Upper abdominal ultrasound"
+            },
+            "line": {
+              "th": "อัลตราซาวด์หานิ่วถุงน้ำดีที่อาจเป็นสาเหตุร่วม",
+              "en": "Ultrasound looks for gallstones as a second cause."
+            }
+          },
+          {
+            "id": "ct",
+            "tier": "weaker",
+            "label": {
+              "th": "CT ช่องท้องทันทีที่มาถึง",
+              "en": "CT abdomen on arrival"
+            },
+            "line": {
+              "th": "CT เห็นตับอ่อนและเนื้อเยื่อรอบ ๆ ได้ละเอียด",
+              "en": "CT shows the pancreas and the tissue around it in detail."
+            }
+          },
+          {
+            "id": "axr",
+            "tier": "weaker",
+            "label": {
+              "th": "เอกซเรย์ช่องท้อง",
+              "en": "Plain abdominal X-ray"
+            },
+            "line": {
+              "th": "ฟิล์มท้องอาจเห็นลำไส้อืดหรือหินปูนในตับอ่อน",
+              "en": "A plain film may show ileus or pancreatic calcification."
+            }
+          }
+        ],
+        "default_trio": [
+          "severity",
+          "amylase",
+          "ct"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "จะส่งตรวจอะไรก่อนเพื่อแยกสาเหตุที่อันตราย",
+              "en": "Which first tests will sort out the dangerous causes?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ควรเริ่มตรวจอะไรในผู้ป่วยรายนี้",
+              "en": "Where would you start the workup?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "lipase_cxr",
+            "tier": "best",
+            "label": {
+              "th": "ไลเปสและเอกซเรย์ปอดท่ายืน",
+              "en": "Lipase and upright chest X-ray"
+            },
+            "line": {
+              "th": "ตรวจตับอ่อนและหาลมใต้กะบังลมได้พร้อมกัน",
+              "en": "Checks the pancreas and looks for free air together."
+            }
+          },
+          {
+            "id": "lipase",
+            "tier": "best",
+            "label": {
+              "th": "ไลเปสในเลือด",
+              "en": "Serum lipase"
+            },
+            "line": {
+              "th": "ไลเปสที่สูงมากชี้ไปทางตับอ่อนได้ชัด",
+              "en": "A very high lipase points clearly to the pancreas."
+            }
+          },
+          {
+            "id": "cxr",
+            "tier": "reasonable",
+            "label": {
+              "th": "เอกซเรย์ปอดท่ายืน",
+              "en": "Upright chest X-ray"
+            },
+            "line": {
+              "th": "ลมใต้กะบังลมช่วยจับแผลทะลุได้เร็ว",
+              "en": "Free air under the diaphragm flags a perforation fast."
+            }
+          },
+          {
+            "id": "us",
+            "tier": "reasonable",
+            "label": {
+              "th": "อัลตราซาวด์ช่องท้องส่วนบน",
+              "en": "Upper abdominal ultrasound"
+            },
+            "line": {
+              "th": "อัลตราซาวด์ดูถุงน้ำดีและนิ่วได้ข้างเตียง",
+              "en": "Bedside ultrasound shows the gallbladder and any stones."
+            }
+          },
+          {
+            "id": "hp",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจเชื้อเอชไพโลไร",
+              "en": "Helicobacter pylori test"
+            },
+            "line": {
+              "th": "เอชไพโลไรเป็นสาเหตุสำคัญของแผลในกระเพาะ",
+              "en": "H. pylori is a major cause of peptic ulcer."
+            }
+          },
+          {
+            "id": "fobt",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจเลือดแฝงในอุจจาระ",
+              "en": "Stool occult blood test"
+            },
+            "line": {
+              "th": "เลือดแฝงในอุจจาระบอกถึงแผลที่มีเลือดออก",
+              "en": "Occult blood in stool can reveal a bleeding ulcer."
+            }
+          }
+        ],
+        "default_trio": [
+          "lipase",
+          "cxr",
+          "hp"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ให้ยาลดกรดแล้วยังปวดมากและอาเจียนซ้ำ ตรวจอะไรดี",
+              "en": "An antacid did little and he vomits again. Which tests?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "อาการหนักกว่ากระเพาะอักเสบทั่วไป จะส่งตรวจอะไร",
+              "en": "This looks worse than plain gastritis. Which tests now?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "lipase",
+            "tier": "best",
+            "label": {
+              "th": "ไลเปสในเลือด",
+              "en": "Serum lipase"
+            },
+            "line": {
+              "th": "ปวดรุนแรงร้าวไปหลังควรตรวจไลเปสในเลือด",
+              "en": "Severe pain to the back calls for a serum lipase."
+            }
+          },
+          {
+            "id": "severity",
+            "tier": "best",
+            "label": {
+              "th": "ไลเปส BUN ครีเอตินิน CBC",
+              "en": "Lipase, BUN, creatinine, CBC"
+            },
+            "line": {
+              "th": "ยืนยันโรคและประเมินความรุนแรงได้ในคราวเดียว",
+              "en": "Confirms it and gauges severity from one blood draw."
+            }
+          },
+          {
+            "id": "amylase",
+            "tier": "reasonable",
+            "label": {
+              "th": "อะไมเลสในเลือด",
+              "en": "Serum amylase"
+            },
+            "line": {
+              "th": "อะไมเลสขึ้นเร็วและห้องแล็บส่วนใหญ่ตรวจได้",
+              "en": "Amylase rises early and most labs can run it."
+            }
+          },
+          {
+            "id": "cxr",
+            "tier": "reasonable",
+            "label": {
+              "th": "เอกซเรย์ปอดท่ายืน",
+              "en": "Upright chest X-ray"
+            },
+            "line": {
+              "th": "ปวดลิ้นปี่รุนแรงควรดูลมใต้กะบังลมด้วย",
+              "en": "Severe epigastric pain warrants a look for free air."
+            }
+          },
+          {
+            "id": "hp",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจเชื้อเอชไพโลไร",
+              "en": "Helicobacter pylori test"
+            },
+            "line": {
+              "th": "เอชไพโลไรเป็นสาเหตุสำคัญของแผลในกระเพาะ",
+              "en": "H. pylori is a major cause of peptic ulcer."
+            }
+          },
+          {
+            "id": "fobt",
+            "tier": "weaker",
+            "label": {
+              "th": "ตรวจเลือดแฝงในอุจจาระ",
+              "en": "Stool occult blood test"
+            },
+            "line": {
+              "th": "เลือดแฝงในอุจจาระบอกถึงแผลที่มีเลือดออก",
+              "en": "Occult blood in stool can reveal a bleeding ulcer."
+            }
+          }
+        ],
+        "default_trio": [
+          "severity",
+          "amylase",
+          "hp"
+        ]
+      }
+    },
+    "step3": {
+      "BB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ไลเปสสูง 6 เท่าของค่าปกติ จะดูแลอย่างไร",
+              "en": "Lipase is 6 times normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเข้าได้กับตับอ่อนอักเสบ จะเริ่มรักษาอย่างไร",
+              "en": "The results fit acute pancreatitis. How do you start treatment?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "thiamine",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด และไทอามีน",
+              "en": "IV fluids, analgesia, thiamine"
+            },
+            "line": {
+              "th": "คนดื่มสุราประจำควรได้ไทอามีนร่วมกับสารน้ำ",
+              "en": "Daily drinkers need thiamine alongside the fluids."
+            }
+          },
+          {
+            "id": "alcohol",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด คุยเรื่องเลิกสุรา",
+              "en": "Fluids, pain relief, alcohol advice"
+            },
+            "line": {
+              "th": "คุยสั้น ๆ เรื่องเลิกสุราช่วยลดการกลับเป็นซ้ำ",
+              "en": "A brief talk on stopping alcohol cuts repeat attacks."
+            }
+          },
+          {
+            "id": "npo",
+            "tier": "reasonable",
+            "label": {
+              "th": "สารน้ำและงดน้ำงดอาหาร",
+              "en": "IV fluids, nil by mouth"
+            },
+            "line": {
+              "th": "พักลำไส้ช่วงแรกช่วยลดคลื่นไส้อาเจียน",
+              "en": "Resting the gut early can ease nausea and vomiting."
+            }
+          },
+          {
+            "id": "saline",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับไว้ ให้น้ำเกลือนอร์มัล",
+              "en": "Admit on a normal saline drip"
+            },
+            "line": {
+              "th": "น้ำเกลือนอร์มัลหาได้ทุกที่และแก้ภาวะขาดน้ำ",
+              "en": "Normal saline is everywhere and corrects dehydration."
+            }
+          },
+          {
+            "id": "ppi",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและยาลดกรดทางหลอดเลือด",
+              "en": "IV fluids plus IV acid blocker"
+            },
+            "line": {
+              "th": "ยาลดกรดช่วยบรรเทาอาการปวดลิ้นปี่",
+              "en": "An acid blocker can ease the epigastric pain."
+            }
+          },
+          {
+            "id": "daily_amylase",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและตรวจอะไมเลสทุกวัน",
+              "en": "IV fluids, daily amylase checks"
+            },
+            "line": {
+              "th": "ตรวจอะไมเลสทุกวันเพื่อติดตามโรค",
+              "en": "A daily amylase aims to track the disease."
+            }
+          }
+        ],
+        "default_trio": [
+          "thiamine",
+          "npo",
+          "ppi"
+        ]
+      },
+      "BR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ไลเปสที่ส่งเพิ่มสูง 6 เท่า จะดูแลอย่างไร",
+              "en": "A lipase sent next is 6 times normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ไลเปสที่ส่งเพิ่มเข้าได้กับตับอ่อนอักเสบ จะรักษาอย่างไร",
+              "en": "An added lipase fits acute pancreatitis. How do you start treatment?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "admit",
+            "tier": "best",
+            "label": {
+              "th": "รับไว้ ให้สารน้ำและยาแก้ปวด",
+              "en": "Admit, IV fluids, pain relief"
+            },
+            "line": {
+              "th": "สารน้ำอัตราปานกลางกับยาแก้ปวดคือหัวใจของการรักษา",
+              "en": "Moderate-rate IV fluids and analgesia are the core of early care."
+            }
+          },
+          {
+            "id": "alcohol",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด คุยเรื่องเลิกสุรา",
+              "en": "Fluids, pain relief, alcohol advice"
+            },
+            "line": {
+              "th": "คุยสั้น ๆ เรื่องเลิกสุราช่วยลดการกลับเป็นซ้ำ",
+              "en": "A brief talk on stopping alcohol cuts repeat attacks."
+            }
+          },
+          {
+            "id": "npo",
+            "tier": "reasonable",
+            "label": {
+              "th": "สารน้ำและงดน้ำงดอาหาร",
+              "en": "IV fluids, nil by mouth"
+            },
+            "line": {
+              "th": "พักลำไส้ช่วงแรกช่วยลดคลื่นไส้อาเจียน",
+              "en": "Resting the gut early can ease nausea and vomiting."
+            }
+          },
+          {
+            "id": "saline",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับไว้ ให้น้ำเกลือนอร์มัล",
+              "en": "Admit on a normal saline drip"
+            },
+            "line": {
+              "th": "น้ำเกลือนอร์มัลหาได้ทุกที่และแก้ภาวะขาดน้ำ",
+              "en": "Normal saline is everywhere and corrects dehydration."
+            }
+          },
+          {
+            "id": "ppi",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและยาลดกรดทางหลอดเลือด",
+              "en": "IV fluids plus IV acid blocker"
+            },
+            "line": {
+              "th": "ยาลดกรดช่วยบรรเทาอาการปวดลิ้นปี่",
+              "en": "An acid blocker can ease the epigastric pain."
+            }
+          },
+          {
+            "id": "daily_amylase",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและตรวจอะไมเลสทุกวัน",
+              "en": "IV fluids, daily amylase checks"
+            },
+            "line": {
+              "th": "ตรวจอะไมเลสทุกวันเพื่อติดตามโรค",
+              "en": "A daily amylase aims to track the disease."
+            }
+          }
+        ],
+        "default_trio": [
+          "admit",
+          "saline",
+          "daily_amylase"
+        ]
+      },
+      "BW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ไลเปสที่ส่งเพิ่มสูง 6 เท่า จะดูแลอย่างไร",
+              "en": "A lipase sent next is 6 times normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ไลเปสที่ส่งเพิ่มเข้าได้กับตับอ่อนอักเสบ จะรักษาอย่างไร",
+              "en": "An added lipase fits acute pancreatitis. How do you start treatment?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "thiamine",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด และไทอามีน",
+              "en": "IV fluids, analgesia, thiamine"
+            },
+            "line": {
+              "th": "คนดื่มสุราประจำควรได้ไทอามีนร่วมกับสารน้ำ",
+              "en": "Daily drinkers need thiamine alongside the fluids."
+            }
+          },
+          {
+            "id": "oral",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด เริ่มกินเร็ว",
+              "en": "Fluids, pain relief, early diet"
+            },
+            "line": {
+              "th": "เริ่มกินทางปากเมื่อปวดลดลงช่วยให้ฟื้นเร็ว",
+              "en": "Eating again once pain eases speeds recovery."
+            }
+          },
+          {
+            "id": "npo",
+            "tier": "reasonable",
+            "label": {
+              "th": "สารน้ำและงดน้ำงดอาหาร",
+              "en": "IV fluids, nil by mouth"
+            },
+            "line": {
+              "th": "พักลำไส้ช่วงแรกช่วยลดคลื่นไส้อาเจียน",
+              "en": "Resting the gut early can ease nausea and vomiting."
+            }
+          },
+          {
+            "id": "saline",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับไว้ ให้น้ำเกลือนอร์มัล",
+              "en": "Admit on a normal saline drip"
+            },
+            "line": {
+              "th": "น้ำเกลือนอร์มัลหาได้ทุกที่และแก้ภาวะขาดน้ำ",
+              "en": "Normal saline is everywhere and corrects dehydration."
+            }
+          },
+          {
+            "id": "ppi",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและยาลดกรดทางหลอดเลือด",
+              "en": "IV fluids plus IV acid blocker"
+            },
+            "line": {
+              "th": "ยาลดกรดช่วยบรรเทาอาการปวดลิ้นปี่",
+              "en": "An acid blocker can ease the epigastric pain."
+            }
+          },
+          {
+            "id": "daily_amylase",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและตรวจอะไมเลสทุกวัน",
+              "en": "IV fluids, daily amylase checks"
+            },
+            "line": {
+              "th": "ตรวจอะไมเลสทุกวันเพื่อติดตามโรค",
+              "en": "A daily amylase aims to track the disease."
+            }
+          }
+        ],
+        "default_trio": [
+          "thiamine",
+          "npo",
+          "ppi"
+        ]
+      },
+      "RB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ไลเปสสูง 6 เท่าของค่าปกติ จะดูแลอย่างไร",
+              "en": "Lipase is 6 times normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเข้าได้กับตับอ่อนอักเสบ จะเริ่มรักษาอย่างไร",
+              "en": "The results fit acute pancreatitis. How do you start treatment?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "admit",
+            "tier": "best",
+            "label": {
+              "th": "รับไว้ ให้สารน้ำและยาแก้ปวด",
+              "en": "Admit, IV fluids, pain relief"
+            },
+            "line": {
+              "th": "สารน้ำอัตราปานกลางกับยาแก้ปวดคือหัวใจของการรักษา",
+              "en": "Moderate-rate IV fluids and analgesia are the core of early care."
+            }
+          },
+          {
+            "id": "alcohol",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด คุยเรื่องเลิกสุรา",
+              "en": "Fluids, pain relief, alcohol advice"
+            },
+            "line": {
+              "th": "คุยสั้น ๆ เรื่องเลิกสุราช่วยลดการกลับเป็นซ้ำ",
+              "en": "A brief talk on stopping alcohol cuts repeat attacks."
+            }
+          },
+          {
+            "id": "npo",
+            "tier": "reasonable",
+            "label": {
+              "th": "สารน้ำและงดน้ำงดอาหาร",
+              "en": "IV fluids, nil by mouth"
+            },
+            "line": {
+              "th": "พักลำไส้ช่วงแรกช่วยลดคลื่นไส้อาเจียน",
+              "en": "Resting the gut early can ease nausea and vomiting."
+            }
+          },
+          {
+            "id": "saline",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับไว้ ให้น้ำเกลือนอร์มัล",
+              "en": "Admit on a normal saline drip"
+            },
+            "line": {
+              "th": "น้ำเกลือนอร์มัลหาได้ทุกที่และแก้ภาวะขาดน้ำ",
+              "en": "Normal saline is everywhere and corrects dehydration."
+            }
+          },
+          {
+            "id": "ppi",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและยาลดกรดทางหลอดเลือด",
+              "en": "IV fluids plus IV acid blocker"
+            },
+            "line": {
+              "th": "ยาลดกรดช่วยบรรเทาอาการปวดลิ้นปี่",
+              "en": "An acid blocker can ease the epigastric pain."
+            }
+          },
+          {
+            "id": "daily_amylase",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและตรวจอะไมเลสทุกวัน",
+              "en": "IV fluids, daily amylase checks"
+            },
+            "line": {
+              "th": "ตรวจอะไมเลสทุกวันเพื่อติดตามโรค",
+              "en": "A daily amylase aims to track the disease."
+            }
+          }
+        ],
+        "default_trio": [
+          "alcohol",
+          "saline",
+          "daily_amylase"
+        ]
+      },
+      "RR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ไลเปสที่ส่งเพิ่มสูง 6 เท่า จะดูแลอย่างไร",
+              "en": "A lipase sent next is 6 times normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ไลเปสที่ส่งเพิ่มเข้าได้กับตับอ่อนอักเสบ จะรักษาอย่างไร",
+              "en": "An added lipase fits acute pancreatitis. How do you start treatment?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "oral",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด เริ่มกินเร็ว",
+              "en": "Fluids, pain relief, early diet"
+            },
+            "line": {
+              "th": "เริ่มกินทางปากเมื่อปวดลดลงช่วยให้ฟื้นเร็ว",
+              "en": "Eating again once pain eases speeds recovery."
+            }
+          },
+          {
+            "id": "alcohol",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด คุยเรื่องเลิกสุรา",
+              "en": "Fluids, pain relief, alcohol advice"
+            },
+            "line": {
+              "th": "คุยสั้น ๆ เรื่องเลิกสุราช่วยลดการกลับเป็นซ้ำ",
+              "en": "A brief talk on stopping alcohol cuts repeat attacks."
+            }
+          },
+          {
+            "id": "npo",
+            "tier": "reasonable",
+            "label": {
+              "th": "สารน้ำและงดน้ำงดอาหาร",
+              "en": "IV fluids, nil by mouth"
+            },
+            "line": {
+              "th": "พักลำไส้ช่วงแรกช่วยลดคลื่นไส้อาเจียน",
+              "en": "Resting the gut early can ease nausea and vomiting."
+            }
+          },
+          {
+            "id": "saline",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับไว้ ให้น้ำเกลือนอร์มัล",
+              "en": "Admit on a normal saline drip"
+            },
+            "line": {
+              "th": "น้ำเกลือนอร์มัลหาได้ทุกที่และแก้ภาวะขาดน้ำ",
+              "en": "Normal saline is everywhere and corrects dehydration."
+            }
+          },
+          {
+            "id": "ppi",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและยาลดกรดทางหลอดเลือด",
+              "en": "IV fluids plus IV acid blocker"
+            },
+            "line": {
+              "th": "ยาลดกรดช่วยบรรเทาอาการปวดลิ้นปี่",
+              "en": "An acid blocker can ease the epigastric pain."
+            }
+          },
+          {
+            "id": "daily_amylase",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและตรวจอะไมเลสทุกวัน",
+              "en": "IV fluids, daily amylase checks"
+            },
+            "line": {
+              "th": "ตรวจอะไมเลสทุกวันเพื่อติดตามโรค",
+              "en": "A daily amylase aims to track the disease."
+            }
+          }
+        ],
+        "default_trio": [
+          "oral",
+          "npo",
+          "ppi"
+        ]
+      },
+      "RW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ไลเปสที่แพทย์อีกท่านส่งไว้สูง 6 เท่า จะดูแลอย่างไร",
+              "en": "A colleague's lipase comes back 6 times normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ไลเปสที่ส่งเพิ่มเข้าได้กับตับอ่อนอักเสบ จะรักษาอย่างไร",
+              "en": "An added lipase fits acute pancreatitis. How do you start treatment?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "thiamine",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด และไทอามีน",
+              "en": "IV fluids, analgesia, thiamine"
+            },
+            "line": {
+              "th": "คนดื่มสุราประจำควรได้ไทอามีนร่วมกับสารน้ำ",
+              "en": "Daily drinkers need thiamine alongside the fluids."
+            }
+          },
+          {
+            "id": "alcohol",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด คุยเรื่องเลิกสุรา",
+              "en": "Fluids, pain relief, alcohol advice"
+            },
+            "line": {
+              "th": "คุยสั้น ๆ เรื่องเลิกสุราช่วยลดการกลับเป็นซ้ำ",
+              "en": "A brief talk on stopping alcohol cuts repeat attacks."
+            }
+          },
+          {
+            "id": "npo",
+            "tier": "reasonable",
+            "label": {
+              "th": "สารน้ำและงดน้ำงดอาหาร",
+              "en": "IV fluids, nil by mouth"
+            },
+            "line": {
+              "th": "พักลำไส้ช่วงแรกช่วยลดคลื่นไส้อาเจียน",
+              "en": "Resting the gut early can ease nausea and vomiting."
+            }
+          },
+          {
+            "id": "saline",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับไว้ ให้น้ำเกลือนอร์มัล",
+              "en": "Admit on a normal saline drip"
+            },
+            "line": {
+              "th": "น้ำเกลือนอร์มัลหาได้ทุกที่และแก้ภาวะขาดน้ำ",
+              "en": "Normal saline is everywhere and corrects dehydration."
+            }
+          },
+          {
+            "id": "ppi",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและยาลดกรดทางหลอดเลือด",
+              "en": "IV fluids plus IV acid blocker"
+            },
+            "line": {
+              "th": "ยาลดกรดช่วยบรรเทาอาการปวดลิ้นปี่",
+              "en": "An acid blocker can ease the epigastric pain."
+            }
+          },
+          {
+            "id": "daily_amylase",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและตรวจอะไมเลสทุกวัน",
+              "en": "IV fluids, daily amylase checks"
+            },
+            "line": {
+              "th": "ตรวจอะไมเลสทุกวันเพื่อติดตามโรค",
+              "en": "A daily amylase aims to track the disease."
+            }
+          }
+        ],
+        "default_trio": [
+          "thiamine",
+          "npo",
+          "daily_amylase"
+        ]
+      },
+      "WB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ไลเปสสูง 6 เท่า ยืนยันตับอ่อนอักเสบ จะดูแลอย่างไร",
+              "en": "Lipase is 6 times normal, confirming pancreatitis. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลเข้าได้กับตับอ่อนอักเสบ จะเริ่มรักษาอย่างไร",
+              "en": "The results fit acute pancreatitis. How do you start treatment?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "thiamine",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด และไทอามีน",
+              "en": "IV fluids, analgesia, thiamine"
+            },
+            "line": {
+              "th": "คนดื่มสุราประจำควรได้ไทอามีนร่วมกับสารน้ำ",
+              "en": "Daily drinkers need thiamine alongside the fluids."
+            }
+          },
+          {
+            "id": "oral",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด เริ่มกินเร็ว",
+              "en": "Fluids, pain relief, early diet"
+            },
+            "line": {
+              "th": "เริ่มกินทางปากเมื่อปวดลดลงช่วยให้ฟื้นเร็ว",
+              "en": "Eating again once pain eases speeds recovery."
+            }
+          },
+          {
+            "id": "npo",
+            "tier": "reasonable",
+            "label": {
+              "th": "สารน้ำและงดน้ำงดอาหาร",
+              "en": "IV fluids, nil by mouth"
+            },
+            "line": {
+              "th": "พักลำไส้ช่วงแรกช่วยลดคลื่นไส้อาเจียน",
+              "en": "Resting the gut early can ease nausea and vomiting."
+            }
+          },
+          {
+            "id": "saline",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับไว้ ให้น้ำเกลือนอร์มัล",
+              "en": "Admit on a normal saline drip"
+            },
+            "line": {
+              "th": "น้ำเกลือนอร์มัลหาได้ทุกที่และแก้ภาวะขาดน้ำ",
+              "en": "Normal saline is everywhere and corrects dehydration."
+            }
+          },
+          {
+            "id": "ppi",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและยาลดกรดทางหลอดเลือด",
+              "en": "IV fluids plus IV acid blocker"
+            },
+            "line": {
+              "th": "ยาลดกรดช่วยบรรเทาอาการปวดลิ้นปี่",
+              "en": "An acid blocker can ease the epigastric pain."
+            }
+          },
+          {
+            "id": "daily_amylase",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและตรวจอะไมเลสทุกวัน",
+              "en": "IV fluids, daily amylase checks"
+            },
+            "line": {
+              "th": "ตรวจอะไมเลสทุกวันเพื่อติดตามโรค",
+              "en": "A daily amylase aims to track the disease."
+            }
+          }
+        ],
+        "default_trio": [
+          "oral",
+          "saline",
+          "ppi"
+        ]
+      },
+      "WR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ไลเปสที่ส่งเพิ่มสูง 6 เท่า จะดูแลอย่างไร",
+              "en": "A lipase sent next is 6 times normal. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ไลเปสที่ส่งเพิ่มเข้าได้กับตับอ่อนอักเสบ จะรักษาอย่างไร",
+              "en": "An added lipase fits acute pancreatitis. How do you start treatment?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "admit",
+            "tier": "best",
+            "label": {
+              "th": "รับไว้ ให้สารน้ำและยาแก้ปวด",
+              "en": "Admit, IV fluids, pain relief"
+            },
+            "line": {
+              "th": "สารน้ำอัตราปานกลางกับยาแก้ปวดคือหัวใจของการรักษา",
+              "en": "Moderate-rate IV fluids and analgesia are the core of early care."
+            }
+          },
+          {
+            "id": "alcohol",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด คุยเรื่องเลิกสุรา",
+              "en": "Fluids, pain relief, alcohol advice"
+            },
+            "line": {
+              "th": "คุยสั้น ๆ เรื่องเลิกสุราช่วยลดการกลับเป็นซ้ำ",
+              "en": "A brief talk on stopping alcohol cuts repeat attacks."
+            }
+          },
+          {
+            "id": "npo",
+            "tier": "reasonable",
+            "label": {
+              "th": "สารน้ำและงดน้ำงดอาหาร",
+              "en": "IV fluids, nil by mouth"
+            },
+            "line": {
+              "th": "พักลำไส้ช่วงแรกช่วยลดคลื่นไส้อาเจียน",
+              "en": "Resting the gut early can ease nausea and vomiting."
+            }
+          },
+          {
+            "id": "saline",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับไว้ ให้น้ำเกลือนอร์มัล",
+              "en": "Admit on a normal saline drip"
+            },
+            "line": {
+              "th": "น้ำเกลือนอร์มัลหาได้ทุกที่และแก้ภาวะขาดน้ำ",
+              "en": "Normal saline is everywhere and corrects dehydration."
+            }
+          },
+          {
+            "id": "ppi",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและยาลดกรดทางหลอดเลือด",
+              "en": "IV fluids plus IV acid blocker"
+            },
+            "line": {
+              "th": "ยาลดกรดช่วยบรรเทาอาการปวดลิ้นปี่",
+              "en": "An acid blocker can ease the epigastric pain."
+            }
+          },
+          {
+            "id": "daily_amylase",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและตรวจอะไมเลสทุกวัน",
+              "en": "IV fluids, daily amylase checks"
+            },
+            "line": {
+              "th": "ตรวจอะไมเลสทุกวันเพื่อติดตามโรค",
+              "en": "A daily amylase aims to track the disease."
+            }
+          }
+        ],
+        "default_trio": [
+          "admit",
+          "npo",
+          "ppi"
+        ]
+      },
+      "WW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ไลเปสที่ส่งเพิ่มสูง 6 เท่า เป็นตับอ่อนอักเสบ ดูแลอย่างไร",
+              "en": "A lipase sent next is 6 times normal: pancreatitis. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ไลเปสที่ส่งเพิ่มเข้าได้กับตับอ่อนอักเสบ จะรักษาอย่างไร",
+              "en": "An added lipase fits acute pancreatitis. How do you start treatment?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "thiamine",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด และไทอามีน",
+              "en": "IV fluids, analgesia, thiamine"
+            },
+            "line": {
+              "th": "คนดื่มสุราประจำควรได้ไทอามีนร่วมกับสารน้ำ",
+              "en": "Daily drinkers need thiamine alongside the fluids."
+            }
+          },
+          {
+            "id": "alcohol",
+            "tier": "best",
+            "label": {
+              "th": "สารน้ำ ยาแก้ปวด คุยเรื่องเลิกสุรา",
+              "en": "Fluids, pain relief, alcohol advice"
+            },
+            "line": {
+              "th": "คุยสั้น ๆ เรื่องเลิกสุราช่วยลดการกลับเป็นซ้ำ",
+              "en": "A brief talk on stopping alcohol cuts repeat attacks."
+            }
+          },
+          {
+            "id": "npo",
+            "tier": "reasonable",
+            "label": {
+              "th": "สารน้ำและงดน้ำงดอาหาร",
+              "en": "IV fluids, nil by mouth"
+            },
+            "line": {
+              "th": "พักลำไส้ช่วงแรกช่วยลดคลื่นไส้อาเจียน",
+              "en": "Resting the gut early can ease nausea and vomiting."
+            }
+          },
+          {
+            "id": "saline",
+            "tier": "reasonable",
+            "label": {
+              "th": "รับไว้ ให้น้ำเกลือนอร์มัล",
+              "en": "Admit on a normal saline drip"
+            },
+            "line": {
+              "th": "น้ำเกลือนอร์มัลหาได้ทุกที่และแก้ภาวะขาดน้ำ",
+              "en": "Normal saline is everywhere and corrects dehydration."
+            }
+          },
+          {
+            "id": "ppi",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและยาลดกรดทางหลอดเลือด",
+              "en": "IV fluids plus IV acid blocker"
+            },
+            "line": {
+              "th": "ยาลดกรดช่วยบรรเทาอาการปวดลิ้นปี่",
+              "en": "An acid blocker can ease the epigastric pain."
+            }
+          },
+          {
+            "id": "daily_amylase",
+            "tier": "weaker",
+            "label": {
+              "th": "สารน้ำและตรวจอะไมเลสทุกวัน",
+              "en": "IV fluids, daily amylase checks"
+            },
+            "line": {
+              "th": "ตรวจอะไมเลสทุกวันเพื่อติดตามโรค",
+              "en": "A daily amylase aims to track the disease."
+            }
+          }
+        ],
+        "default_trio": [
+          "alcohol",
+          "saline",
+          "daily_amylase"
+        ]
+      }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-02",
+      "findings": "No unsafe option and no tier mislabel. Fixed: seven step-3 questions showed results the player never ordered (BUN, free air, amylase, ultrasound) and now reveal only an added lipase; the moderate-rate fluid message (WATERFALL, ACG 2024) went into the admit line; a best option for brief alcohol advice was added; one Thai lipase line now matches its English; four wording nits and two default trios now lead with the severity panel."
+    }
+  }
+}
