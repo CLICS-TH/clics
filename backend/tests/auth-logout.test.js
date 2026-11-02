@@ -19,7 +19,7 @@ app.use(express.json());
 app.use('/auth', authRouter);
 
 const CALLER = { id: 'u-1', email: 'u1@test.local', role: 'physician', status: 'active' };
-const { AuthApiError } = require('@supabase/auth-js');
+const { AuthApiError, AuthSessionMissingError } = require('@supabase/supabase-js');
 const authError = (status, message) => new AuthApiError(message, status, 'test');
 
 let errorLog;
@@ -55,6 +55,16 @@ describe('POST /auth/logout', () => {
     const res = await logout();
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ ok: true });
+    expect(errorLog).not.toHaveBeenCalled();
+  });
+
+  // auth-js maps GoTrue's session_not_found, at any HTTP status, to this error with status 400.
+  it('treats session_not_found (AuthSessionMissingError) as signed out, with no error log', async () => {
+    authSupabase.auth.admin.signOut.mockResolvedValue({ data: null, error: new AuthSessionMissingError() });
+    const res = await logout();
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true });
+    expect(errorLog).not.toHaveBeenCalled();
   });
 
   it('answers 502 revoke_failed and logs when the revoke throws', async () => {
