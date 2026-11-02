@@ -1,14 +1,14 @@
 {
   "case_id": "leptospirosis",
-  "version": "1",
+  "version": "2",
   "event_code": "NFCME-2026",
   "teaser": {
-    "th": "ชาวนาอายุ 42 ปี ไข้สูง ปวดศีรษะ และปวดน่องมา 3 วัน",
-    "en": "A 42-year-old rice farmer with high fever, headache and calf pain for 3 days"
+    "th": "ชาวนาอายุ 42 ปี มาโรงพยาบาลชุมชนด้วยไข้สูง ปวดศีรษะ และปวดน่องมา 3 วัน",
+    "en": "A 42-year-old rice farmer at a community hospital with high fever, headache and calf pain for 3 days"
   },
   "vignette": {
     "th": "ผู้ป่วยสมมติ ชายอายุ 42 ปี อาชีพทำนา มาโรงพยาบาลชุมชนด้วยไข้สูง ปวดศีรษะ และปวดน่องมาก เป็นมา 3 วัน สัปดาห์ก่อนลุยน้ำท่วมในนาอยู่หลายวัน อุณหภูมิ 39.0 องศาเซลเซียส ชีพจร 100 ครั้งต่อนาที ความดันโลหิต 118/74 มม.ปรอท ตาแดงแต่ไม่มีขี้ตา กดเจ็บที่น่องทั้งสองข้าง ไม่มีผื่น ตรวจทั่วตัวไม่พบแผลสะเก็ดดำ รู้สึกตัวดีและปัสสาวะออกปกติ",
-    "en": "A fictional 42-year-old rice farmer comes to a community hospital with 3 days of high fever, headache and severe calf pain. Last week he waded through flooded paddy fields for several days. Temperature 39.0 °C, pulse 100/min, BP 118/74 mmHg. Red eyes without discharge, and both calves are tender. No rash, and no eschar on a full skin check. He is alert and passing urine normally."
+    "en": "A fictional 42-year-old rice farmer comes to a community hospital with 3 days of high fever, headache and severe calf pain. Last week he waded through flooded paddy fields for several days. Temperature 39.0 °C, pulse 100/min, BP 118/74 mmHg. Red eyes without discharge, and both calves are tender. No rash, and no eschar on a full skin check. He is alert and passing urine normally."
   },
   "banks": {
     "step1": {
@@ -83,18 +83,6 @@
             "th": "ไข้สูงเฉียบพลันและปวดกล้ามเนื้อในหน้าฝน",
             "en": "Sudden high fever and muscle pain in the rainy season."
           }
-        },
-        {
-          "id": "e",
-          "tier": "weaker",
-          "label": {
-            "th": "ไข้หวัดใหญ่",
-            "en": "Influenza"
-          },
-          "line": {
-            "th": "ไข้สูง ปวดศีรษะ และปวดเมื่อยตัวเข้าได้กับไข้หวัดใหญ่",
-            "en": "High fever, headache and body aches fit influenza."
-          }
         }
       ],
       "default_trio": [
@@ -145,11 +133,11 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ตรวจเลือดพื้นฐานและชุดตรวจเร็ว",
-              "en": "Basic bloods and a rapid test"
+              "th": "CBC ไต ตับ ชุดตรวจเร็วฉี่หนู",
+              "en": "CBC, kidney, liver, Leptospira RDT"
             },
             "line": {
-              "th": "ประเมินความรุนแรงและอาจช่วยยืนยันโรคได้ในวันนี้",
+              "th": "ประเมินความรุนแรงและอาจช่วยสนับสนุนการวินิจฉัยวันนี้",
               "en": "Grades severity and may support the diagnosis today."
             }
           },
@@ -157,36 +145,36 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "ชุดตรวจโรคฉี่หนูแบบเร็ว",
-              "en": "Leptospira rapid test"
+              "th": "CBC ค่าไต และชุดตรวจเร็วฉี่หนู",
+              "en": "CBC, kidney tests, Leptospira RDT"
             },
             "line": {
-              "th": "ได้ผลเร็ว อาจช่วยสนับสนุนการวินิจฉัยได้ในวันนี้",
-              "en": "Quick, and may support the diagnosis today."
+              "th": "ได้ผลวันนี้ เห็นเกล็ดเลือดและไต อาจสนับสนุนการวินิจฉัย",
+              "en": "Results today on platelets and kidneys, and may support the diagnosis."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ตรวจ PCR เชื้อเลปโตสไปรา",
-              "en": "Leptospira PCR"
+              "th": "CBC ค่าไต และ PCR ฉี่หนู",
+              "en": "CBC, kidney tests and Leptospira PCR"
             },
             "line": {
-              "th": "ตรวจพบดีเอ็นเอของเชื้อได้ตั้งแต่สัปดาห์แรก",
-              "en": "Detects Leptospira DNA from the first week."
+              "th": "ดูเกล็ดเลือดและไต พร้อมหาดีเอ็นเอเชื้อในสัปดาห์แรก",
+              "en": "Checks platelets and kidneys and detects Leptospira DNA in week 1."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "เพาะเชื้อในเลือดอย่างเดียว",
-              "en": "Blood culture alone"
+              "th": "CBC ค่าไต และเพาะเชื้อในเลือด",
+              "en": "CBC, kidney tests and blood culture"
             },
             "line": {
-              "th": "หาเชื้อแบคทีเรียในกระแสเลือดก่อนเริ่มยา",
-              "en": "Looks for bacteria in the blood before antibiotics start."
+              "th": "ประเมินเกล็ดเลือดและไต พร้อมหาเชื้อในกระแสเลือด",
+              "en": "Checks platelets and kidneys and looks for bacteria in the blood."
             }
           }
         ],
@@ -230,48 +218,48 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ตรวจเลือดพื้นฐานและชุดตรวจเร็ว",
-              "en": "Basic bloods and a rapid test"
+              "th": "CBC ไต ตับ RDT สครับไทฟัส",
+              "en": "CBC, kidney, liver, scrub typhus RDT"
             },
             "line": {
-              "th": "ประเมินความรุนแรงและอาจช่วยยืนยันโรคได้ในวันนี้",
-              "en": "Grades severity and may support the diagnosis today."
+              "th": "ประเมินความรุนแรงและอาจช่วยแยกสครับไทฟัสได้วันนี้",
+              "en": "Grades severity and may help sort out scrub typhus today."
             }
           },
           {
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "ชุดตรวจสครับไทฟัสแบบเร็ว",
-              "en": "Scrub typhus rapid test"
+              "th": "CBC ค่าไต และชุดตรวจสครับไทฟัส",
+              "en": "CBC, kidney tests, scrub typhus RDT"
             },
             "line": {
-              "th": "ได้ผลเร็ว อาจช่วยแยกสครับไทฟัสได้ในวันนี้",
-              "en": "Quick, and may help sort out scrub typhus today."
+              "th": "ดูเกล็ดเลือดและไต และอาจช่วยแยกสครับไทฟัสได้วันนี้",
+              "en": "Checks platelets and kidneys and may help sort out scrub typhus today."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ตรวจ Weil-Felix",
-              "en": "Weil-Felix test"
+              "th": "CBC ค่าไต และ Weil-Felix",
+              "en": "CBC, kidney tests and Weil-Felix"
             },
             "line": {
-              "th": "ราคาถูกและมีในโรงพยาบาลหลายแห่ง",
-              "en": "Cheap and available in many hospitals."
+              "th": "ดูเกล็ดเลือดและไต ราคาถูกและมีในหลายโรงพยาบาล",
+              "en": "Checks platelets and kidneys, cheap and widely available."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "เพาะเชื้อในเลือดอย่างเดียว",
-              "en": "Blood culture alone"
+              "th": "CBC ค่าไต และเพาะเชื้อในเลือด",
+              "en": "CBC, kidney tests and blood culture"
             },
             "line": {
-              "th": "หาเชื้อแบคทีเรียในกระแสเลือดก่อนเริ่มยา",
-              "en": "Looks for bacteria in the blood before antibiotics start."
+              "th": "ประเมินเกล็ดเลือดและไต พร้อมหาเชื้อในกระแสเลือด",
+              "en": "Checks platelets and kidneys and looks for bacteria in the blood."
             }
           }
         ],
@@ -286,7 +274,7 @@
           {
             "id": "v1",
             "question": {
-              "th": "ทดสอบทูร์นิเคต์ได้ผลลบ คุณจะตรวจอะไรก่อน",
+              "th": "ทูร์นิเคต์เทสต์ให้ผลลบ คุณจะตรวจอะไรก่อน",
               "en": "The tourniquet test is negative. Which tests first?"
             }
           },
@@ -322,8 +310,8 @@
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ตรวจเลือดพื้นฐานและ NS1",
-              "en": "Basic bloods and dengue NS1"
+              "th": "CBC ไต ตับ NS1 ไข้เลือดออก",
+              "en": "CBC, kidney, liver tests, dengue NS1"
             },
             "line": {
               "th": "ประเมินความรุนแรงและตรวจไข้เลือดออกได้ในคราวเดียว",
@@ -334,36 +322,36 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "CBC และ NS1 ไข้เลือดออก",
-              "en": "CBC and dengue NS1"
+              "th": "CBC ค่าไต และ NS1 ไข้เลือดออก",
+              "en": "CBC, kidney tests, dengue NS1"
             },
             "line": {
-              "th": "ดูเกล็ดเลือด ฮีมาโตคริต และหาไข้เลือดออกได้เร็ว",
-              "en": "Shows platelets and haematocrit and finds dengue fast."
+              "th": "ดูเกล็ดเลือดและไต พร้อมตรวจไข้เลือดออกได้เร็ว",
+              "en": "Checks platelets and kidneys and tests for dengue fast."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "ตรวจ CBC อย่างเดียว",
-              "en": "CBC alone"
+              "th": "CBC และค่าไต",
+              "en": "CBC and kidney tests"
             },
             "line": {
-              "th": "ดูเกล็ดเลือดและเม็ดเลือดขาวได้เร็วและถูก",
-              "en": "Shows platelets and white cells quickly and cheaply."
+              "th": "ดูเกล็ดเลือดและการทำงานของไตได้เร็วและถูก",
+              "en": "Shows platelets and kidney function quickly and cheaply."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "ตรวจ IgM ไข้เลือดออก",
-              "en": "Dengue IgM serology"
+              "th": "CBC ค่าไต และ IgM ไข้เลือดออก",
+              "en": "CBC, kidney tests and dengue IgM"
             },
             "line": {
-              "th": "ช่วยยืนยันการติดเชื้อไข้เลือดออกที่เพิ่งเกิด",
-              "en": "Helps confirm a recent dengue infection."
+              "th": "ประเมินเกล็ดเลือดและไต พร้อมดูภูมิต่อไข้เลือดออก",
+              "en": "Checks platelets and kidneys and looks for dengue antibodies."
             }
           }
         ],
@@ -440,36 +428,36 @@
             "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
-              "en": "Admit for IV ceftriaxone plus doxy"
+              "th": "รับนอนให้ดอกซีไซคลินกิน",
+              "en": "Admit for oral doxycycline"
             },
             "line": {
-              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
-              "en": "Covers both infections with a close watch on his course."
+              "th": "ครอบคลุมทั้งสองโรคและเฝ้าดูอาการในโรงพยาบาล",
+              "en": "Covers both infections, with a watch on his course in hospital."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อะม็อกซีซิลลินกิน 7 วัน",
-              "en": "Oral amoxicillin for 7 days"
+              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
+              "en": "IV ceftriaxone plus doxycycline"
             },
             "line": {
-              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
-              "en": "Treats mild leptospirosis with tablets at home."
+              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
+              "en": "Admitted, covering both infections under a close watch."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "รับนอน ฉีดเพนิซิลลิน",
-              "en": "Admit for IV penicillin"
+              "th": "เพนิซิลลิน IV ร่วมดอกซีไซคลิน",
+              "en": "IV penicillin plus doxycycline"
             },
             "line": {
-              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
-              "en": "Full IV treatment and a close watch on his course."
+              "th": "รับนอนให้ยาทางหลอดเลือดดำ ครอบคลุมทั้งสองโรค",
+              "en": "Admitted for IV treatment, with both infections covered."
             }
           }
         ],
@@ -537,36 +525,36 @@
             "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
-              "en": "Admit for IV ceftriaxone plus doxy"
+              "th": "รับนอนให้ดอกซีไซคลินกิน",
+              "en": "Admit for oral doxycycline"
             },
             "line": {
-              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
-              "en": "Covers both infections with a close watch on his course."
+              "th": "ครอบคลุมทั้งสองโรคและเฝ้าดูอาการในโรงพยาบาล",
+              "en": "Covers both infections, with a watch on his course in hospital."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อะม็อกซีซิลลินกิน 7 วัน",
-              "en": "Oral amoxicillin for 7 days"
+              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
+              "en": "IV ceftriaxone plus doxycycline"
             },
             "line": {
-              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
-              "en": "Treats mild leptospirosis with tablets at home."
+              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
+              "en": "Admitted, covering both infections under a close watch."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "รับนอน ฉีดเพนิซิลลิน",
-              "en": "Admit for IV penicillin"
+              "th": "เพนิซิลลิน IV ร่วมดอกซีไซคลิน",
+              "en": "IV penicillin plus doxycycline"
             },
             "line": {
-              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
-              "en": "Full IV treatment and a close watch on his course."
+              "th": "รับนอนให้ยาทางหลอดเลือดดำ ครอบคลุมทั้งสองโรค",
+              "en": "Admitted for IV treatment, with both infections covered."
             }
           }
         ],
@@ -581,8 +569,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "ส่งเลือดเพิ่ม: เกล็ดเลือด 110,000 ไตตับปกติ รักษาอย่างไร",
-              "en": "Basic bloods added: platelets 110,000, kidney and liver normal. Your plan?"
+              "th": "เกล็ดเลือด 110,000 ค่าไตปกติ จะรักษาอย่างไร",
+              "en": "Platelets 110,000, kidney tests normal. Your plan?"
             }
           },
           {
@@ -634,36 +622,36 @@
             "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
-              "en": "Admit for IV ceftriaxone plus doxy"
+              "th": "รับนอนให้ดอกซีไซคลินกิน",
+              "en": "Admit for oral doxycycline"
             },
             "line": {
-              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
-              "en": "Covers both infections with a close watch on his course."
+              "th": "ครอบคลุมทั้งสองโรคและเฝ้าดูอาการในโรงพยาบาล",
+              "en": "Covers both infections, with a watch on his course in hospital."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อะม็อกซีซิลลินกิน 7 วัน",
-              "en": "Oral amoxicillin for 7 days"
+              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
+              "en": "IV ceftriaxone plus doxycycline"
             },
             "line": {
-              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
-              "en": "Treats mild leptospirosis with tablets at home."
+              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
+              "en": "Admitted, covering both infections under a close watch."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "รับนอน ฉีดเพนิซิลลิน",
-              "en": "Admit for IV penicillin"
+              "th": "เพนิซิลลิน IV ร่วมดอกซีไซคลิน",
+              "en": "IV penicillin plus doxycycline"
             },
             "line": {
-              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
-              "en": "Full IV treatment and a close watch on his course."
+              "th": "รับนอนให้ยาทางหลอดเลือดดำ ครอบคลุมทั้งสองโรค",
+              "en": "Admitted for IV treatment, with both infections covered."
             }
           }
         ],
@@ -706,20 +694,20 @@
               "en": "Oral doxycycline for 7 days"
             },
             "line": {
-              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
-              "en": "Covers leptospirosis and scrub typhus in a mild case."
+              "th": "ยาตัวเดียวรักษาได้ทั้งสครับไทฟัสและโรคฉี่หนู",
+              "en": "One drug treats both scrub typhus and leptospirosis."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
-              "en": "Doxycycline and review tomorrow"
+              "th": "ดอกซีไซคลินและสอนอาการเตือน",
+              "en": "Doxycycline and warning-sign advice"
             },
             "line": {
-              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
-              "en": "Starts treatment today and explains the signs to return at once."
+              "th": "เริ่มยาและสอนให้สังเกตตาเหลืองหรือปัสสาวะน้อย",
+              "en": "Starts treatment and teaches him to spot jaundice or low urine."
             }
           },
           {
@@ -735,39 +723,15 @@
             }
           },
           {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
-              "en": "Admit for IV ceftriaxone plus doxy"
-            },
-            "line": {
-              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
-              "en": "Covers both infections with a close watch on his course."
-            }
-          },
-          {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อะม็อกซีซิลลินกิน 7 วัน",
-              "en": "Oral amoxicillin for 7 days"
+              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
+              "en": "IV ceftriaxone plus doxycycline"
             },
             "line": {
-              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
-              "en": "Treats mild leptospirosis with tablets at home."
-            }
-          },
-          {
-            "id": "f",
-            "tier": "weaker",
-            "label": {
-              "th": "รับนอน ฉีดเพนิซิลลิน",
-              "en": "Admit for IV penicillin"
-            },
-            "line": {
-              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
-              "en": "Full IV treatment and a close watch on his course."
+              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
+              "en": "Admitted, covering both infections under a close watch."
             }
           }
         ],
@@ -803,20 +767,20 @@
               "en": "Oral doxycycline for 7 days"
             },
             "line": {
-              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
-              "en": "Covers leptospirosis and scrub typhus in a mild case."
+              "th": "ยาตัวเดียวรักษาได้ทั้งสครับไทฟัสและโรคฉี่หนู",
+              "en": "One drug treats both scrub typhus and leptospirosis."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
-              "en": "Doxycycline and review tomorrow"
+              "th": "ดอกซีไซคลินและสอนอาการเตือน",
+              "en": "Doxycycline and warning-sign advice"
             },
             "line": {
-              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
-              "en": "Starts treatment today and explains the signs to return at once."
+              "th": "เริ่มยาและสอนให้สังเกตตาเหลืองหรือปัสสาวะน้อย",
+              "en": "Starts treatment and teaches him to spot jaundice or low urine."
             }
           },
           {
@@ -832,39 +796,15 @@
             }
           },
           {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
-              "en": "Admit for IV ceftriaxone plus doxy"
-            },
-            "line": {
-              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
-              "en": "Covers both infections with a close watch on his course."
-            }
-          },
-          {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อะม็อกซีซิลลินกิน 7 วัน",
-              "en": "Oral amoxicillin for 7 days"
+              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
+              "en": "IV ceftriaxone plus doxycycline"
             },
             "line": {
-              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
-              "en": "Treats mild leptospirosis with tablets at home."
-            }
-          },
-          {
-            "id": "f",
-            "tier": "weaker",
-            "label": {
-              "th": "รับนอน ฉีดเพนิซิลลิน",
-              "en": "Admit for IV penicillin"
-            },
-            "line": {
-              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
-              "en": "Full IV treatment and a close watch on his course."
+              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
+              "en": "Admitted, covering both infections under a close watch."
             }
           }
         ],
@@ -879,8 +819,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "ส่งเลือดเพิ่ม: เกล็ดเลือด 110,000 ไตตับปกติ รักษาอย่างไร",
-              "en": "Basic bloods added: platelets 110,000, kidney and liver normal. Your plan?"
+              "th": "เกล็ดเลือด 110,000 ค่าไตปกติ จะรักษาอย่างไร",
+              "en": "Platelets 110,000, kidney tests normal. Your plan?"
             }
           },
           {
@@ -900,20 +840,20 @@
               "en": "Oral doxycycline for 7 days"
             },
             "line": {
-              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
-              "en": "Covers leptospirosis and scrub typhus in a mild case."
+              "th": "ยาตัวเดียวรักษาได้ทั้งสครับไทฟัสและโรคฉี่หนู",
+              "en": "One drug treats both scrub typhus and leptospirosis."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
-              "en": "Doxycycline and review tomorrow"
+              "th": "ดอกซีไซคลินและสอนอาการเตือน",
+              "en": "Doxycycline and warning-sign advice"
             },
             "line": {
-              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
-              "en": "Starts treatment today and explains the signs to return at once."
+              "th": "เริ่มยาและสอนให้สังเกตตาเหลืองหรือปัสสาวะน้อย",
+              "en": "Starts treatment and teaches him to spot jaundice or low urine."
             }
           },
           {
@@ -929,39 +869,15 @@
             }
           },
           {
-            "id": "d",
-            "tier": "reasonable",
-            "label": {
-              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
-              "en": "Admit for IV ceftriaxone plus doxy"
-            },
-            "line": {
-              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
-              "en": "Covers both infections with a close watch on his course."
-            }
-          },
-          {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อะม็อกซีซิลลินกิน 7 วัน",
-              "en": "Oral amoxicillin for 7 days"
+              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
+              "en": "IV ceftriaxone plus doxycycline"
             },
             "line": {
-              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
-              "en": "Treats mild leptospirosis with tablets at home."
-            }
-          },
-          {
-            "id": "f",
-            "tier": "weaker",
-            "label": {
-              "th": "รับนอน ฉีดเพนิซิลลิน",
-              "en": "Admit for IV penicillin"
-            },
-            "line": {
-              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
-              "en": "Full IV treatment and a close watch on his course."
+              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
+              "en": "Admitted, covering both infections under a close watch."
             }
           }
         ],
@@ -997,20 +913,20 @@
               "en": "Oral doxycycline for 7 days"
             },
             "line": {
-              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
-              "en": "Covers leptospirosis and scrub typhus in a mild case."
+              "th": "ครอบคลุมโรคฉี่หนูและสครับไทฟัส พร้อมสอนอาการเตือน",
+              "en": "Covers leptospirosis and scrub typhus, with warning signs taught."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
-              "en": "Doxycycline and review tomorrow"
+              "th": "ดอกซีไซคลินและนัดดูทุกวัน",
+              "en": "Doxycycline and daily review"
             },
             "line": {
-              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
-              "en": "Starts treatment today and explains the signs to return at once."
+              "th": "ให้พาราเซตามอลลดไข้และติดตามไข้เลือดออกทุกวัน",
+              "en": "Adds paracetamol for fever and checks for dengue daily."
             }
           },
           {
@@ -1029,36 +945,36 @@
             "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
-              "en": "Admit for IV ceftriaxone plus doxy"
+              "th": "รับนอนให้ดอกซีไซคลินกิน",
+              "en": "Admit for oral doxycycline"
             },
             "line": {
-              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
-              "en": "Covers both infections with a close watch on his course."
+              "th": "ครอบคลุมทั้งสองโรคและเฝ้าดูอาการในโรงพยาบาล",
+              "en": "Covers both infections, with a watch on his course in hospital."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อะม็อกซีซิลลินกิน 7 วัน",
-              "en": "Oral amoxicillin for 7 days"
+              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
+              "en": "IV ceftriaxone plus doxycycline"
             },
             "line": {
-              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
-              "en": "Treats mild leptospirosis with tablets at home."
+              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
+              "en": "Admitted, covering both infections under a close watch."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "รับนอน ฉีดเพนิซิลลิน",
-              "en": "Admit for IV penicillin"
+              "th": "เพนิซิลลิน IV ร่วมดอกซีไซคลิน",
+              "en": "IV penicillin plus doxycycline"
             },
             "line": {
-              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
-              "en": "Full IV treatment and a close watch on his course."
+              "th": "รับนอนให้ยาทางหลอดเลือดดำ ครอบคลุมทั้งสองโรค",
+              "en": "Admitted for IV treatment, with both infections covered."
             }
           }
         ],
@@ -1094,20 +1010,20 @@
               "en": "Oral doxycycline for 7 days"
             },
             "line": {
-              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
-              "en": "Covers leptospirosis and scrub typhus in a mild case."
+              "th": "ครอบคลุมโรคฉี่หนูและสครับไทฟัส พร้อมสอนอาการเตือน",
+              "en": "Covers leptospirosis and scrub typhus, with warning signs taught."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
-              "en": "Doxycycline and review tomorrow"
+              "th": "ดอกซีไซคลินและนัดดูทุกวัน",
+              "en": "Doxycycline and daily review"
             },
             "line": {
-              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
-              "en": "Starts treatment today and explains the signs to return at once."
+              "th": "ให้พาราเซตามอลลดไข้และติดตามไข้เลือดออกทุกวัน",
+              "en": "Adds paracetamol for fever and checks for dengue daily."
             }
           },
           {
@@ -1126,36 +1042,36 @@
             "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
-              "en": "Admit for IV ceftriaxone plus doxy"
+              "th": "รับนอนให้ดอกซีไซคลินกิน",
+              "en": "Admit for oral doxycycline"
             },
             "line": {
-              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
-              "en": "Covers both infections with a close watch on his course."
+              "th": "ครอบคลุมทั้งสองโรคและเฝ้าดูอาการในโรงพยาบาล",
+              "en": "Covers both infections, with a watch on his course in hospital."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อะม็อกซีซิลลินกิน 7 วัน",
-              "en": "Oral amoxicillin for 7 days"
+              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
+              "en": "IV ceftriaxone plus doxycycline"
             },
             "line": {
-              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
-              "en": "Treats mild leptospirosis with tablets at home."
+              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
+              "en": "Admitted, covering both infections under a close watch."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "รับนอน ฉีดเพนิซิลลิน",
-              "en": "Admit for IV penicillin"
+              "th": "เพนิซิลลิน IV ร่วมดอกซีไซคลิน",
+              "en": "IV penicillin plus doxycycline"
             },
             "line": {
-              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
-              "en": "Full IV treatment and a close watch on his course."
+              "th": "รับนอนให้ยาทางหลอดเลือดดำ ครอบคลุมทั้งสองโรค",
+              "en": "Admitted for IV treatment, with both infections covered."
             }
           }
         ],
@@ -1170,8 +1086,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "ส่งเลือดเพิ่ม: เกล็ดเลือด 110,000 ไตตับปกติ รักษาอย่างไร",
-              "en": "Basic bloods added: platelets 110,000, kidney and liver normal. Your plan?"
+              "th": "เกล็ดเลือด 110,000 ค่าไตปกติ จะรักษาอย่างไร",
+              "en": "Platelets 110,000, kidney tests normal. Your plan?"
             }
           },
           {
@@ -1191,20 +1107,20 @@
               "en": "Oral doxycycline for 7 days"
             },
             "line": {
-              "th": "ครอบคลุมทั้งโรคฉี่หนูและสครับไทฟัสในผู้ป่วยอาการน้อย",
-              "en": "Covers leptospirosis and scrub typhus in a mild case."
+              "th": "ครอบคลุมโรคฉี่หนูและสครับไทฟัส พร้อมสอนอาการเตือน",
+              "en": "Covers leptospirosis and scrub typhus, with warning signs taught."
             }
           },
           {
             "id": "b",
             "tier": "best",
             "label": {
-              "th": "ดอกซีไซคลินและนัดดูพรุ่งนี้",
-              "en": "Doxycycline and review tomorrow"
+              "th": "ดอกซีไซคลินและนัดดูทุกวัน",
+              "en": "Doxycycline and daily review"
             },
             "line": {
-              "th": "เริ่มยาวันนี้และอธิบายอาการที่ต้องกลับมาทันที",
-              "en": "Starts treatment today and explains the signs to return at once."
+              "th": "ให้พาราเซตามอลลดไข้และติดตามไข้เลือดออกทุกวัน",
+              "en": "Adds paracetamol for fever and checks for dengue daily."
             }
           },
           {
@@ -1223,36 +1139,36 @@
             "id": "d",
             "tier": "reasonable",
             "label": {
-              "th": "รับนอน ฉีดเซฟไตรอะโซนร่วมดอกซี",
-              "en": "Admit for IV ceftriaxone plus doxy"
+              "th": "รับนอนให้ดอกซีไซคลินกิน",
+              "en": "Admit for oral doxycycline"
             },
             "line": {
-              "th": "ได้ยาครอบคลุมทั้งสองโรคและเฝ้าดูอาการใกล้ชิด",
-              "en": "Covers both infections with a close watch on his course."
+              "th": "ครอบคลุมทั้งสองโรคและเฝ้าดูอาการในโรงพยาบาล",
+              "en": "Covers both infections, with a watch on his course in hospital."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อะม็อกซีซิลลินกิน 7 วัน",
-              "en": "Oral amoxicillin for 7 days"
+              "th": "เซฟไตรอะโซน IV + ดอกซีไซคลิน",
+              "en": "IV ceftriaxone plus doxycycline"
             },
             "line": {
-              "th": "รักษาโรคฉี่หนูอาการน้อยได้ด้วยยากินที่บ้าน",
-              "en": "Treats mild leptospirosis with tablets at home."
+              "th": "รับนอนโรงพยาบาล ครอบคลุมทั้งสองโรคและเฝ้าดูใกล้ชิด",
+              "en": "Admitted, covering both infections under a close watch."
             }
           },
           {
             "id": "f",
             "tier": "weaker",
             "label": {
-              "th": "รับนอน ฉีดเพนิซิลลิน",
-              "en": "Admit for IV penicillin"
+              "th": "เพนิซิลลิน IV ร่วมดอกซีไซคลิน",
+              "en": "IV penicillin plus doxycycline"
             },
             "line": {
-              "th": "ได้ยาทางหลอดเลือดเต็มที่และเฝ้าดูได้ใกล้ชิด",
-              "en": "Full IV treatment and a close watch on his course."
+              "th": "รับนอนให้ยาทางหลอดเลือดดำ ครอบคลุมทั้งสองโรค",
+              "en": "Admitted for IV treatment, with both infections covered."
             }
           }
         ],
@@ -1268,7 +1184,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
-      "findings": "No harmful option on any path; doxycycline-first is correct where leptospirosis and scrub typhus are co-endemic. Fixed: step-3 reveals on BR, BW, RR, RW, WW and WB that cited results their step-2 test never produced; the step-1 incubation line; the review-tomorrow Thai/English mismatch; the scrub typhus Thai term; the community-hospital wording."
+      "findings": "Three fresh reviews on 2026-11-02 against WHO/ILS 2003, WHO dengue 2009, Phimda 2007 and Suputtamongkol 2004 (the Thai DDC guideline could not be retrieved). Doxycycline-first is correct where leptospirosis and scrub typhus are co-endemic. Fixed before recording: amoxicillin and single-drug IV plans that left scrub typhus untreated (every step-3 plan now covers both); step-2 options without kidney tests, which also made two reasonable options worse than weaker ones; step-3 reveals of results their path never ordered; influenza routing into the dengue bank; warning-sign advice on the dengue paths; Thai/English parity in route words, drug names, test names and evidence verbs."
     }
   }
 }
