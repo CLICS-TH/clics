@@ -1,10 +1,10 @@
 {
   "case_id": "adhf",
-  "version": "1",
+  "version": "2",
   "event_code": "NFCME-2026",
   "teaser": {
-    "th": "ชายวัย 68 ปี หอบเหนื่อยและนอนราบไม่ได้มา 5 วัน",
-    "en": "A 68-year-old man, breathless and unable to lie flat for 5 days"
+    "th": "ชายวัย 68 ปี มาโรงพยาบาลชุมชน หอบเหนื่อยและนอนราบไม่ได้มา 5 วัน",
+    "en": "A 68-year-old man at a community hospital, breathless and unable to lie flat for 5 days"
   },
   "vignette": {
     "th": "ผู้ป่วยสมมติ ชาย 68 ปี ความดันโลหิตสูง เคยเป็นกล้ามเนื้อหัวใจตายเมื่อ 2 ปีก่อน เลิกบุหรี่ 10 ปี ขาดยา 2 สัปดาห์ มาโรงพยาบาลชุมชน หอบเหนื่อยมากขึ้น 5 วัน ต้องลุกนั่งหายใจตอนกลางคืน ขาบวมสองข้าง ไม่มีไข้ ชีพจร 108/นาที สม่ำเสมอ ความดัน 168/96 มม.ปรอท หายใจ 28/นาที SpO2 89% (อากาศปกติ) หลอดเลือดดำที่คอโป่ง มีเสียงกรอบแกรบที่ฐานปอดสองข้าง ขากดบุ๋ม รู้สึกตัวดี",
@@ -50,7 +50,7 @@
           },
           "line": {
             "th": "เสียงกรอบแกรบที่ฐานปอดและออกซิเจนต่ำในผู้ป่วยโรคหัวใจ",
-            "en": "Crackles at both bases and low oxygen in a heart patient."
+            "en": "Crackles at the lung bases and low oxygen in a heart patient."
           }
         },
         {
@@ -116,31 +116,31 @@
         ],
         "options": [
           {
-            "id": "a",
+            "id": "ecg_trop",
             "tier": "best",
             "label": {
               "th": "คลื่นไฟฟ้าหัวใจและโทรโปนิน",
               "en": "ECG and troponin"
             },
             "line": {
-              "th": "หากล้ามเนื้อหัวใจขาดเลือดที่อาจเป็นตัวกระตุ้น",
-              "en": "Looks for a heart attack that may have set this off."
+              "th": "ตรวจหากล้ามเนื้อหัวใจขาดเลือดที่อาจเป็นตัวกระตุ้น",
+              "en": "Looks for heart muscle ischaemia that may have set this off."
             }
           },
           {
-            "id": "b",
+            "id": "cxr_ecg",
             "tier": "best",
             "label": {
               "th": "เอกซเรย์ปอดและคลื่นไฟฟ้าหัวใจ",
               "en": "Chest X-ray and ECG"
             },
             "line": {
-              "th": "เห็นน้ำในปอดและดูหัวใจได้ในคราวเดียว",
-              "en": "Shows lung fluid and checks the heart in one go."
+              "th": "ดูน้ำในปอดและดูหัวใจได้ในคราวเดียว",
+              "en": "Looks for lung fluid and checks the heart in one go."
             }
           },
           {
-            "id": "c",
+            "id": "labs",
             "tier": "reasonable",
             "label": {
               "th": "ค่าไต เกลือแร่ และน้ำตาลในเลือด",
@@ -152,19 +152,19 @@
             }
           },
           {
-            "id": "f",
+            "id": "ntprobnp",
             "tier": "reasonable",
             "label": {
               "th": "ระดับ NT-proBNP",
               "en": "NT-proBNP"
             },
             "line": {
-              "th": "ช่วยยืนยันว่าอาการหอบมาจากหัวใจ",
-              "en": "Confirms the breathlessness comes from the heart."
+              "th": "ค่าสูงสนับสนุนว่าอาการหอบมาจากหัวใจ",
+              "en": "A high level supports a heart cause for the breathlessness."
             }
           },
           {
-            "id": "d",
+            "id": "ddimer",
             "tier": "weaker",
             "label": {
               "th": "ดีไดเมอร์",
@@ -172,26 +172,14 @@
             },
             "line": {
               "th": "ช่วยคัดกรองลิ่มเลือดอุดกั้นในปอด",
-              "en": "Screens for a clot in the lungs."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "ย้อมเสมหะและเพาะเชื้อ",
-              "en": "Sputum Gram stain and culture"
-            },
-            "line": {
-              "th": "หาเชื้อก่อโรคหากเป็นปอดอักเสบ",
-              "en": "Finds the organism if this is pneumonia."
+              "en": "Helps screen for a clot in the lungs."
             }
           }
         ],
         "default_trio": [
-          "a",
-          "c",
-          "d"
+          "ecg_trop",
+          "ntprobnp",
+          "ddimer"
         ]
       },
       "R": {
@@ -213,31 +201,43 @@
         ],
         "options": [
           {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "คลื่นไฟฟ้าหัวใจและโทรโปนิน",
-              "en": "ECG and troponin"
-            },
-            "line": {
-              "th": "หากล้ามเนื้อหัวใจขาดเลือดที่อาจเป็นตัวกระตุ้น",
-              "en": "Looks for a heart attack that may have set this off."
-            }
-          },
-          {
-            "id": "b",
+            "id": "cxr_ecg",
             "tier": "best",
             "label": {
               "th": "เอกซเรย์ปอดและคลื่นไฟฟ้าหัวใจ",
               "en": "Chest X-ray and ECG"
             },
             "line": {
-              "th": "เห็นน้ำในปอดและดูหัวใจได้ในคราวเดียว",
-              "en": "Shows lung fluid and checks the heart in one go."
+              "th": "ดูน้ำในปอดและดูหัวใจได้ในคราวเดียว",
+              "en": "Looks for lung fluid and checks the heart in one go."
             }
           },
           {
-            "id": "c",
+            "id": "ecg_trop",
+            "tier": "best",
+            "label": {
+              "th": "คลื่นไฟฟ้าหัวใจและโทรโปนิน",
+              "en": "ECG and troponin"
+            },
+            "line": {
+              "th": "ตรวจหากล้ามเนื้อหัวใจขาดเลือดที่อาจเป็นตัวกระตุ้น",
+              "en": "Looks for heart muscle ischaemia that may have set this off."
+            }
+          },
+          {
+            "id": "ntprobnp",
+            "tier": "reasonable",
+            "label": {
+              "th": "ระดับ NT-proBNP",
+              "en": "NT-proBNP"
+            },
+            "line": {
+              "th": "ค่าสูงสนับสนุนว่าอาการหอบมาจากหัวใจ",
+              "en": "A high level supports a heart cause for the breathlessness."
+            }
+          },
+          {
+            "id": "labs",
             "tier": "reasonable",
             "label": {
               "th": "ค่าไต เกลือแร่ และน้ำตาลในเลือด",
@@ -249,46 +249,22 @@
             }
           },
           {
-            "id": "f",
-            "tier": "reasonable",
-            "label": {
-              "th": "ระดับ NT-proBNP",
-              "en": "NT-proBNP"
-            },
-            "line": {
-              "th": "ช่วยยืนยันว่าอาการหอบมาจากหัวใจ",
-              "en": "Confirms the breathlessness comes from the heart."
-            }
-          },
-          {
-            "id": "d",
+            "id": "sputum",
             "tier": "weaker",
             "label": {
-              "th": "ดีไดเมอร์",
-              "en": "D-dimer"
-            },
-            "line": {
-              "th": "ช่วยคัดกรองลิ่มเลือดอุดกั้นในปอด",
-              "en": "Screens for a clot in the lungs."
-            }
-          },
-          {
-            "id": "e",
-            "tier": "weaker",
-            "label": {
-              "th": "ย้อมเสมหะและเพาะเชื้อ",
+              "th": "ย้อมแกรมเสมหะและเพาะเชื้อ",
               "en": "Sputum Gram stain and culture"
             },
             "line": {
               "th": "หาเชื้อก่อโรคหากเป็นปอดอักเสบ",
-              "en": "Finds the organism if this is pneumonia."
+              "en": "Looks for the organism if this is pneumonia."
             }
           }
         ],
         "default_trio": [
-          "b",
-          "c",
-          "e"
+          "cxr_ecg",
+          "labs",
+          "sputum"
         ]
       },
       "W": {
@@ -317,31 +293,19 @@
         ],
         "options": [
           {
-            "id": "a",
-            "tier": "best",
-            "label": {
-              "th": "คลื่นไฟฟ้าหัวใจและโทรโปนิน",
-              "en": "ECG and troponin"
-            },
-            "line": {
-              "th": "หากล้ามเนื้อหัวใจขาดเลือดที่อาจเป็นตัวกระตุ้น",
-              "en": "Looks for a heart attack that may have set this off."
-            }
-          },
-          {
-            "id": "b",
+            "id": "cxr_ecg",
             "tier": "best",
             "label": {
               "th": "เอกซเรย์ปอดและคลื่นไฟฟ้าหัวใจ",
               "en": "Chest X-ray and ECG"
             },
             "line": {
-              "th": "เห็นน้ำในปอดและดูหัวใจได้ในคราวเดียว",
-              "en": "Shows lung fluid and checks the heart in one go."
+              "th": "ดูน้ำในปอดและดูหัวใจได้ในคราวเดียว",
+              "en": "Looks for lung fluid and checks the heart in one go."
             }
           },
           {
-            "id": "c",
+            "id": "labs",
             "tier": "reasonable",
             "label": {
               "th": "ค่าไต เกลือแร่ และน้ำตาลในเลือด",
@@ -353,19 +317,7 @@
             }
           },
           {
-            "id": "f",
-            "tier": "reasonable",
-            "label": {
-              "th": "ระดับ NT-proBNP",
-              "en": "NT-proBNP"
-            },
-            "line": {
-              "th": "ช่วยยืนยันว่าอาการหอบมาจากหัวใจ",
-              "en": "Confirms the breathlessness comes from the heart."
-            }
-          },
-          {
-            "id": "d",
+            "id": "ddimer",
             "tier": "weaker",
             "label": {
               "th": "ดีไดเมอร์",
@@ -373,26 +325,26 @@
             },
             "line": {
               "th": "ช่วยคัดกรองลิ่มเลือดอุดกั้นในปอด",
-              "en": "Screens for a clot in the lungs."
+              "en": "Helps screen for a clot in the lungs."
             }
           },
           {
-            "id": "e",
+            "id": "sputum",
             "tier": "weaker",
             "label": {
-              "th": "ย้อมเสมหะและเพาะเชื้อ",
+              "th": "ย้อมแกรมเสมหะและเพาะเชื้อ",
               "en": "Sputum Gram stain and culture"
             },
             "line": {
               "th": "หาเชื้อก่อโรคหากเป็นปอดอักเสบ",
-              "en": "Finds the organism if this is pneumonia."
+              "en": "Looks for the organism if this is pneumonia."
             }
           }
         ],
         "default_trio": [
-          "b",
-          "c",
-          "d"
+          "cxr_ecg",
+          "labs",
+          "sputum"
         ]
       }
     },
@@ -416,10 +368,10 @@
         ],
         "options": [
           {
-            "id": "a",
+            "id": "nitrate",
             "tier": "best",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ อมไนเตรต",
+              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
               "en": "Oxygen, IV furosemide, SL nitrate"
             },
             "line": {
@@ -428,46 +380,58 @@
             }
           },
           {
-            "id": "b",
+            "id": "cpap",
             "tier": "best",
             "label": {
-              "th": "ใส่ CPAP และฉีดฟูโรซีไมด์",
+              "th": "ใส่ CPAP และให้ฟูโรซีไมด์ IV",
               "en": "CPAP and IV furosemide"
             },
             "line": {
-              "th": "หายใจเร็วและ SpO2 ต่ำกว่า 90% เข้าเกณฑ์ใช้ CPAP",
-              "en": "Fast breathing and SpO2 under 90% meet the threshold for CPAP."
+              "th": "หายใจเร็ว SpO2 ต่ำกว่า 90% เข้าเกณฑ์พิจารณา CPAP",
+              "en": "Fast breathing and SpO2 under 90% meet criteria to consider CPAP."
             }
           },
           {
-            "id": "c",
+            "id": "refer",
             "tier": "reasonable",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ ยาปฏิชีวนะ",
+              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
+              "en": "Oxygen, IV furosemide, then refer"
+            },
+            "line": {
+              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
+              "en": "The provincial hospital has intensive care and a cardiologist."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
               "en": "Oxygen, IV furosemide, antibiotic"
             },
             "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้น",
+              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
               "en": "Also covers a chest infection that may have set this off."
             }
           },
           {
-            "id": "d",
+            "id": "catheter",
             "tier": "weaker",
             "label": {
-              "th": "ออกซิเจน ฟูโรซีไมด์กิน รับนอน",
-              "en": "Oxygen, oral furosemide, admit"
+              "th": "O2 ฟูโรซีไมด์ IV สวนปัสสาวะ",
+              "en": "Oxygen, IV furosemide, catheter"
             },
             "line": {
-              "th": "ออกซิเจนช่วยให้หายใจสบายขึ้น และยากินก็ช่วยขับน้ำ",
-              "en": "Oxygen eases breathing now and the tablets still clear fluid."
+              "th": "สายสวนวัดปริมาณปัสสาวะได้ทุกชั่วโมง",
+              "en": "A urinary catheter measures urine output every hour."
             }
           }
         ],
         "default_trio": [
-          "a",
-          "c",
-          "d"
+          "nitrate",
+          "refer",
+          "catheter"
         ]
       },
       "BR": {
@@ -475,8 +439,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "ค่าไตและเกลือแร่ปกติ จะรักษาอย่างไร",
-              "en": "Kidney function and electrolytes are normal. Your plan?"
+              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
+              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
             }
           },
           {
@@ -489,10 +453,10 @@
         ],
         "options": [
           {
-            "id": "a",
+            "id": "nitrate",
             "tier": "best",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ อมไนเตรต",
+              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
               "en": "Oxygen, IV furosemide, SL nitrate"
             },
             "line": {
@@ -501,46 +465,58 @@
             }
           },
           {
-            "id": "b",
+            "id": "cpap",
             "tier": "best",
             "label": {
-              "th": "ใส่ CPAP และฉีดฟูโรซีไมด์",
+              "th": "ใส่ CPAP และให้ฟูโรซีไมด์ IV",
               "en": "CPAP and IV furosemide"
             },
             "line": {
-              "th": "หายใจเร็วและ SpO2 ต่ำกว่า 90% เข้าเกณฑ์ใช้ CPAP",
-              "en": "Fast breathing and SpO2 under 90% meet the threshold for CPAP."
+              "th": "หายใจเร็ว SpO2 ต่ำกว่า 90% เข้าเกณฑ์พิจารณา CPAP",
+              "en": "Fast breathing and SpO2 under 90% meet criteria to consider CPAP."
             }
           },
           {
-            "id": "c",
+            "id": "refer",
             "tier": "reasonable",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ ยาปฏิชีวนะ",
+              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
+              "en": "Oxygen, IV furosemide, then refer"
+            },
+            "line": {
+              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
+              "en": "The provincial hospital has intensive care and a cardiologist."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
               "en": "Oxygen, IV furosemide, antibiotic"
             },
             "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้น",
+              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
               "en": "Also covers a chest infection that may have set this off."
             }
           },
           {
-            "id": "d",
+            "id": "catheter",
             "tier": "weaker",
             "label": {
-              "th": "ออกซิเจน ฟูโรซีไมด์กิน รับนอน",
-              "en": "Oxygen, oral furosemide, admit"
+              "th": "O2 ฟูโรซีไมด์ IV สวนปัสสาวะ",
+              "en": "Oxygen, IV furosemide, catheter"
             },
             "line": {
-              "th": "ออกซิเจนช่วยให้หายใจสบายขึ้น และยากินก็ช่วยขับน้ำ",
-              "en": "Oxygen eases breathing now and the tablets still clear fluid."
+              "th": "สายสวนวัดปริมาณปัสสาวะได้ทุกชั่วโมง",
+              "en": "A urinary catheter measures urine output every hour."
             }
           }
         ],
         "default_trio": [
-          "a",
-          "c",
-          "d"
+          "nitrate",
+          "refer",
+          "catheter"
         ]
       },
       "BW": {
@@ -548,8 +524,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "เอกซเรย์ปอดแรกรับพบหัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "The admission chest X-ray shows a large heart and lung fluid. Your plan?"
+              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
+              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
             }
           },
           {
@@ -562,10 +538,10 @@
         ],
         "options": [
           {
-            "id": "a",
+            "id": "nitrate",
             "tier": "best",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ อมไนเตรต",
+              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
               "en": "Oxygen, IV furosemide, SL nitrate"
             },
             "line": {
@@ -574,46 +550,58 @@
             }
           },
           {
-            "id": "b",
+            "id": "cpap",
             "tier": "best",
             "label": {
-              "th": "ใส่ CPAP และฉีดฟูโรซีไมด์",
+              "th": "ใส่ CPAP และให้ฟูโรซีไมด์ IV",
               "en": "CPAP and IV furosemide"
             },
             "line": {
-              "th": "หายใจเร็วและ SpO2 ต่ำกว่า 90% เข้าเกณฑ์ใช้ CPAP",
-              "en": "Fast breathing and SpO2 under 90% meet the threshold for CPAP."
+              "th": "หายใจเร็ว SpO2 ต่ำกว่า 90% เข้าเกณฑ์พิจารณา CPAP",
+              "en": "Fast breathing and SpO2 under 90% meet criteria to consider CPAP."
             }
           },
           {
-            "id": "c",
+            "id": "refer",
             "tier": "reasonable",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ ยาปฏิชีวนะ",
+              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
+              "en": "Oxygen, IV furosemide, then refer"
+            },
+            "line": {
+              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
+              "en": "The provincial hospital has intensive care and a cardiologist."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
               "en": "Oxygen, IV furosemide, antibiotic"
             },
             "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้น",
+              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
               "en": "Also covers a chest infection that may have set this off."
             }
           },
           {
-            "id": "d",
+            "id": "catheter",
             "tier": "weaker",
             "label": {
-              "th": "ออกซิเจน ฟูโรซีไมด์กิน รับนอน",
-              "en": "Oxygen, oral furosemide, admit"
+              "th": "O2 ฟูโรซีไมด์ IV สวนปัสสาวะ",
+              "en": "Oxygen, IV furosemide, catheter"
             },
             "line": {
-              "th": "ออกซิเจนช่วยให้หายใจสบายขึ้น และยากินก็ช่วยขับน้ำ",
-              "en": "Oxygen eases breathing now and the tablets still clear fluid."
+              "th": "สายสวนวัดปริมาณปัสสาวะได้ทุกชั่วโมง",
+              "en": "A urinary catheter measures urine output every hour."
             }
           }
         ],
         "default_trio": [
-          "a",
-          "c",
-          "d"
+          "nitrate",
+          "refer",
+          "catheter"
         ]
       },
       "RB": {
@@ -621,8 +609,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "เอกซเรย์ปอดแรกรับพบหัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "The admission chest X-ray shows a large heart and lung fluid. Your plan?"
+              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
+              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
             }
           },
           {
@@ -635,10 +623,22 @@
         ],
         "options": [
           {
-            "id": "a",
+            "id": "o2_iv",
             "tier": "best",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ อมไนเตรต",
+              "th": "ออกซิเจนและฟูโรซีไมด์ IV",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "nitrate",
+            "tier": "best",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
               "en": "Oxygen, IV furosemide, SL nitrate"
             },
             "line": {
@@ -647,46 +647,46 @@
             }
           },
           {
-            "id": "b",
-            "tier": "best",
+            "id": "refer",
+            "tier": "reasonable",
             "label": {
-              "th": "ใส่ CPAP และฉีดฟูโรซีไมด์",
-              "en": "CPAP and IV furosemide"
+              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
+              "en": "Oxygen, IV furosemide, then refer"
             },
             "line": {
-              "th": "หายใจเร็วและ SpO2 ต่ำกว่า 90% เข้าเกณฑ์ใช้ CPAP",
-              "en": "Fast breathing and SpO2 under 90% meet the threshold for CPAP."
+              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
+              "en": "The provincial hospital has intensive care and a cardiologist."
             }
           },
           {
-            "id": "c",
-            "tier": "reasonable",
+            "id": "abx",
+            "tier": "weaker",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ ยาปฏิชีวนะ",
+              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
               "en": "Oxygen, IV furosemide, antibiotic"
             },
             "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้น",
+              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
               "en": "Also covers a chest infection that may have set this off."
             }
           },
           {
-            "id": "d",
+            "id": "dual_abx",
             "tier": "weaker",
             "label": {
-              "th": "ออกซิเจน ฟูโรซีไมด์กิน รับนอน",
-              "en": "Oxygen, oral furosemide, admit"
+              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ 2 ตัว",
+              "en": "Oxygen, IV furosemide, 2 antibiotics"
             },
             "line": {
-              "th": "ออกซิเจนช่วยให้หายใจสบายขึ้น และยากินก็ช่วยขับน้ำ",
-              "en": "Oxygen eases breathing now and the tablets still clear fluid."
+              "th": "ครอบคลุมเชื้อก่อปอดอักเสบได้กว้างขึ้น",
+              "en": "Gives wider cover for a chest infection."
             }
           }
         ],
         "default_trio": [
-          "a",
-          "c",
-          "d"
+          "o2_iv",
+          "refer",
+          "dual_abx"
         ]
       },
       "RR": {
@@ -694,15 +694,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "เอกซเรย์ปอดแรกรับพบหัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "The admission chest X-ray shows a large heart and lung fluid. Your plan?"
+              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
+              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "ค่าไตและเกลือแร่ปกติ จะรักษาอย่างไร",
-              "en": "Kidney function and electrolytes are normal. Your plan?"
+              "th": "ตอนนี้จะเริ่มรักษาอย่างไร",
+              "en": "How do you start treatment now?"
             }
           },
           {
@@ -715,10 +715,22 @@
         ],
         "options": [
           {
-            "id": "a",
+            "id": "o2_iv",
             "tier": "best",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ อมไนเตรต",
+              "th": "ออกซิเจนและฟูโรซีไมด์ IV",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "nitrate",
+            "tier": "best",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
               "en": "Oxygen, IV furosemide, SL nitrate"
             },
             "line": {
@@ -727,46 +739,46 @@
             }
           },
           {
-            "id": "b",
-            "tier": "best",
+            "id": "refer",
+            "tier": "reasonable",
             "label": {
-              "th": "ใส่ CPAP และฉีดฟูโรซีไมด์",
-              "en": "CPAP and IV furosemide"
+              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
+              "en": "Oxygen, IV furosemide, then refer"
             },
             "line": {
-              "th": "หายใจเร็วและ SpO2 ต่ำกว่า 90% เข้าเกณฑ์ใช้ CPAP",
-              "en": "Fast breathing and SpO2 under 90% meet the threshold for CPAP."
+              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
+              "en": "The provincial hospital has intensive care and a cardiologist."
             }
           },
           {
-            "id": "c",
-            "tier": "reasonable",
+            "id": "abx",
+            "tier": "weaker",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ ยาปฏิชีวนะ",
+              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
               "en": "Oxygen, IV furosemide, antibiotic"
             },
             "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้น",
+              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
               "en": "Also covers a chest infection that may have set this off."
             }
           },
           {
-            "id": "d",
+            "id": "dual_abx",
             "tier": "weaker",
             "label": {
-              "th": "ออกซิเจน ฟูโรซีไมด์กิน รับนอน",
-              "en": "Oxygen, oral furosemide, admit"
+              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ 2 ตัว",
+              "en": "Oxygen, IV furosemide, 2 antibiotics"
             },
             "line": {
-              "th": "ออกซิเจนช่วยให้หายใจสบายขึ้น และยากินก็ช่วยขับน้ำ",
-              "en": "Oxygen eases breathing now and the tablets still clear fluid."
+              "th": "ครอบคลุมเชื้อก่อปอดอักเสบได้กว้างขึ้น",
+              "en": "Gives wider cover for a chest infection."
             }
           }
         ],
         "default_trio": [
-          "a",
-          "c",
-          "d"
+          "o2_iv",
+          "refer",
+          "dual_abx"
         ]
       },
       "RW": {
@@ -774,8 +786,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "เอกซเรย์ปอดแรกรับพบหัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "The admission chest X-ray shows a large heart and lung fluid. Your plan?"
+              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
+              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
             }
           },
           {
@@ -788,10 +800,22 @@
         ],
         "options": [
           {
-            "id": "a",
+            "id": "o2_iv",
             "tier": "best",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ อมไนเตรต",
+              "th": "ออกซิเจนและฟูโรซีไมด์ IV",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "nitrate",
+            "tier": "best",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV อมไนเตรต",
               "en": "Oxygen, IV furosemide, SL nitrate"
             },
             "line": {
@@ -800,46 +824,46 @@
             }
           },
           {
-            "id": "b",
-            "tier": "best",
+            "id": "refer",
+            "tier": "reasonable",
             "label": {
-              "th": "ใส่ CPAP และฉีดฟูโรซีไมด์",
-              "en": "CPAP and IV furosemide"
+              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
+              "en": "Oxygen, IV furosemide, then refer"
             },
             "line": {
-              "th": "หายใจเร็วและ SpO2 ต่ำกว่า 90% เข้าเกณฑ์ใช้ CPAP",
-              "en": "Fast breathing and SpO2 under 90% meet the threshold for CPAP."
+              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
+              "en": "The provincial hospital has intensive care and a cardiologist."
             }
           },
           {
-            "id": "c",
-            "tier": "reasonable",
+            "id": "abx",
+            "tier": "weaker",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ ยาปฏิชีวนะ",
+              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
               "en": "Oxygen, IV furosemide, antibiotic"
             },
             "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้น",
+              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
               "en": "Also covers a chest infection that may have set this off."
             }
           },
           {
-            "id": "d",
+            "id": "dual_abx",
             "tier": "weaker",
             "label": {
-              "th": "ออกซิเจน ฟูโรซีไมด์กิน รับนอน",
-              "en": "Oxygen, oral furosemide, admit"
+              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ 2 ตัว",
+              "en": "Oxygen, IV furosemide, 2 antibiotics"
             },
             "line": {
-              "th": "ออกซิเจนช่วยให้หายใจสบายขึ้น และยากินก็ช่วยขับน้ำ",
-              "en": "Oxygen eases breathing now and the tablets still clear fluid."
+              "th": "ครอบคลุมเชื้อก่อปอดอักเสบได้กว้างขึ้น",
+              "en": "Gives wider cover for a chest infection."
             }
           }
         ],
         "default_trio": [
-          "a",
-          "c",
-          "d"
+          "o2_iv",
+          "refer",
+          "dual_abx"
         ]
       },
       "WB": {
@@ -847,15 +871,15 @@
           {
             "id": "v1",
             "question": {
-              "th": "เอกซเรย์ปอดแรกรับพบหัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "The admission chest X-ray shows a large heart and lung fluid. Your plan?"
+              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
+              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
             }
           },
           {
             "id": "v2",
             "question": {
               "th": "คลื่นไฟฟ้าหัวใจพบหัวใจเต้นเร็ว มีคลื่น Q เก่า จะรักษาอย่างไร",
-              "en": "ECG: sinus tachycardia with old Q waves. Your plan?"
+              "en": "ECG: a fast heart rate with old Q waves. Your plan?"
             }
           },
           {
@@ -868,58 +892,70 @@
         ],
         "options": [
           {
-            "id": "a",
+            "id": "cpap",
             "tier": "best",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ อมไนเตรต",
-              "en": "Oxygen, IV furosemide, SL nitrate"
-            },
-            "line": {
-              "th": "ความดันสูง ไนเตรตอมใต้ลิ้นช่วยลดภาระหัวใจได้อีก",
-              "en": "His BP is high, so a sublingual nitrate further unloads the heart."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "ใส่ CPAP และฉีดฟูโรซีไมด์",
+              "th": "ใส่ CPAP และให้ฟูโรซีไมด์ IV",
               "en": "CPAP and IV furosemide"
             },
             "line": {
-              "th": "หายใจเร็วและ SpO2 ต่ำกว่า 90% เข้าเกณฑ์ใช้ CPAP",
-              "en": "Fast breathing and SpO2 under 90% meet the threshold for CPAP."
+              "th": "หายใจเร็ว SpO2 ต่ำกว่า 90% เข้าเกณฑ์พิจารณา CPAP",
+              "en": "Fast breathing and SpO2 under 90% meet criteria to consider CPAP."
             }
           },
           {
-            "id": "c",
+            "id": "o2_iv",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ IV",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "refer",
             "tier": "reasonable",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ ยาปฏิชีวนะ",
+              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
+              "en": "Oxygen, IV furosemide, then refer"
+            },
+            "line": {
+              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
+              "en": "The provincial hospital has intensive care and a cardiologist."
+            }
+          },
+          {
+            "id": "iprat",
+            "tier": "weaker",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV ไอพราโทรเปียม",
+              "en": "Oxygen, IV furosemide, ipratropium"
+            },
+            "line": {
+              "th": "พ่นไอพราโทรเปียมขยายหลอดลมหากมีโรคปอดร่วม",
+              "en": "Ipratropium opens the airways if lung disease adds to this."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
               "en": "Oxygen, IV furosemide, antibiotic"
             },
             "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้น",
+              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
               "en": "Also covers a chest infection that may have set this off."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "weaker",
-            "label": {
-              "th": "ออกซิเจน ฟูโรซีไมด์กิน รับนอน",
-              "en": "Oxygen, oral furosemide, admit"
-            },
-            "line": {
-              "th": "ออกซิเจนช่วยให้หายใจสบายขึ้น และยากินก็ช่วยขับน้ำ",
-              "en": "Oxygen eases breathing now and the tablets still clear fluid."
             }
           }
         ],
         "default_trio": [
-          "a",
-          "c",
-          "d"
+          "cpap",
+          "refer",
+          "iprat"
         ]
       },
       "WR": {
@@ -927,8 +963,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "เอกซเรย์ปอดแรกรับพบหัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "The admission chest X-ray shows a large heart and lung fluid. Your plan?"
+              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
+              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
             }
           },
           {
@@ -941,58 +977,70 @@
         ],
         "options": [
           {
-            "id": "a",
+            "id": "cpap",
             "tier": "best",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ อมไนเตรต",
-              "en": "Oxygen, IV furosemide, SL nitrate"
-            },
-            "line": {
-              "th": "ความดันสูง ไนเตรตอมใต้ลิ้นช่วยลดภาระหัวใจได้อีก",
-              "en": "His BP is high, so a sublingual nitrate further unloads the heart."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "ใส่ CPAP และฉีดฟูโรซีไมด์",
+              "th": "ใส่ CPAP และให้ฟูโรซีไมด์ IV",
               "en": "CPAP and IV furosemide"
             },
             "line": {
-              "th": "หายใจเร็วและ SpO2 ต่ำกว่า 90% เข้าเกณฑ์ใช้ CPAP",
-              "en": "Fast breathing and SpO2 under 90% meet the threshold for CPAP."
+              "th": "หายใจเร็ว SpO2 ต่ำกว่า 90% เข้าเกณฑ์พิจารณา CPAP",
+              "en": "Fast breathing and SpO2 under 90% meet criteria to consider CPAP."
             }
           },
           {
-            "id": "c",
+            "id": "o2_iv",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ IV",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "refer",
             "tier": "reasonable",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ ยาปฏิชีวนะ",
+              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
+              "en": "Oxygen, IV furosemide, then refer"
+            },
+            "line": {
+              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
+              "en": "The provincial hospital has intensive care and a cardiologist."
+            }
+          },
+          {
+            "id": "iprat",
+            "tier": "weaker",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV ไอพราโทรเปียม",
+              "en": "Oxygen, IV furosemide, ipratropium"
+            },
+            "line": {
+              "th": "พ่นไอพราโทรเปียมขยายหลอดลมหากมีโรคปอดร่วม",
+              "en": "Ipratropium opens the airways if lung disease adds to this."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
               "en": "Oxygen, IV furosemide, antibiotic"
             },
             "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้น",
+              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
               "en": "Also covers a chest infection that may have set this off."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "weaker",
-            "label": {
-              "th": "ออกซิเจน ฟูโรซีไมด์กิน รับนอน",
-              "en": "Oxygen, oral furosemide, admit"
-            },
-            "line": {
-              "th": "ออกซิเจนช่วยให้หายใจสบายขึ้น และยากินก็ช่วยขับน้ำ",
-              "en": "Oxygen eases breathing now and the tablets still clear fluid."
             }
           }
         ],
         "default_trio": [
-          "a",
-          "c",
-          "d"
+          "cpap",
+          "refer",
+          "iprat"
         ]
       },
       "WW": {
@@ -1000,8 +1048,8 @@
           {
             "id": "v1",
             "question": {
-              "th": "เอกซเรย์ปอดแรกรับพบหัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
-              "en": "The admission chest X-ray shows a large heart and lung fluid. Your plan?"
+              "th": "เอกซเรย์แรกรับ หัวใจโตและน้ำท่วมปอด จะรักษาอย่างไร",
+              "en": "Admission X-ray: large heart, fluid in both lungs. Your plan?"
             }
           },
           {
@@ -1021,58 +1069,70 @@
         ],
         "options": [
           {
-            "id": "a",
+            "id": "cpap",
             "tier": "best",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ อมไนเตรต",
-              "en": "Oxygen, IV furosemide, SL nitrate"
-            },
-            "line": {
-              "th": "ความดันสูง ไนเตรตอมใต้ลิ้นช่วยลดภาระหัวใจได้อีก",
-              "en": "His BP is high, so a sublingual nitrate further unloads the heart."
-            }
-          },
-          {
-            "id": "b",
-            "tier": "best",
-            "label": {
-              "th": "ใส่ CPAP และฉีดฟูโรซีไมด์",
+              "th": "ใส่ CPAP และให้ฟูโรซีไมด์ IV",
               "en": "CPAP and IV furosemide"
             },
             "line": {
-              "th": "หายใจเร็วและ SpO2 ต่ำกว่า 90% เข้าเกณฑ์ใช้ CPAP",
-              "en": "Fast breathing and SpO2 under 90% meet the threshold for CPAP."
+              "th": "หายใจเร็ว SpO2 ต่ำกว่า 90% เข้าเกณฑ์พิจารณา CPAP",
+              "en": "Fast breathing and SpO2 under 90% meet criteria to consider CPAP."
             }
           },
           {
-            "id": "c",
+            "id": "o2_iv",
+            "tier": "best",
+            "label": {
+              "th": "ออกซิเจนและฟูโรซีไมด์ IV",
+              "en": "Oxygen and IV furosemide"
+            },
+            "line": {
+              "th": "แก้ออกซิเจนต่ำและขับน้ำออกจากปอดได้เร็ว",
+              "en": "Corrects low oxygen and clears lung fluid fast."
+            }
+          },
+          {
+            "id": "refer",
             "tier": "reasonable",
             "label": {
-              "th": "ออกซิเจน ฉีดฟูโรซีไมด์ ยาปฏิชีวนะ",
+              "th": "O2 ฟูโรซีไมด์ IV แล้วส่งต่อ",
+              "en": "Oxygen, IV furosemide, then refer"
+            },
+            "line": {
+              "th": "โรงพยาบาลจังหวัดมีหอผู้ป่วยหนักและอายุรแพทย์โรคหัวใจ",
+              "en": "The provincial hospital has intensive care and a cardiologist."
+            }
+          },
+          {
+            "id": "iprat",
+            "tier": "weaker",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV ไอพราโทรเปียม",
+              "en": "Oxygen, IV furosemide, ipratropium"
+            },
+            "line": {
+              "th": "พ่นไอพราโทรเปียมขยายหลอดลมหากมีโรคปอดร่วม",
+              "en": "Ipratropium opens the airways if lung disease adds to this."
+            }
+          },
+          {
+            "id": "abx",
+            "tier": "weaker",
+            "label": {
+              "th": "O2 ฟูโรซีไมด์ IV ยาฆ่าเชื้อ",
               "en": "Oxygen, IV furosemide, antibiotic"
             },
             "line": {
-              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้น",
+              "th": "ครอบคลุมปอดติดเชื้อที่อาจเป็นตัวกระตุ้นด้วย",
               "en": "Also covers a chest infection that may have set this off."
-            }
-          },
-          {
-            "id": "d",
-            "tier": "weaker",
-            "label": {
-              "th": "ออกซิเจน ฟูโรซีไมด์กิน รับนอน",
-              "en": "Oxygen, oral furosemide, admit"
-            },
-            "line": {
-              "th": "ออกซิเจนช่วยให้หายใจสบายขึ้น และยากินก็ช่วยขับน้ำ",
-              "en": "Oxygen eases breathing now and the tablets still clear fluid."
             }
           }
         ],
         "default_trio": [
-          "a",
-          "c",
-          "d"
+          "cpap",
+          "refer",
+          "iprat"
         ]
       }
     }
@@ -1081,7 +1141,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
-      "findings": "Fresh reviewer, checked against ESC 2021/2023, AHA/ACC/HFSA 2022, Thai HF guidance and WHO oxygen guidance. No must-fix; diagnosis and test tiers confirmed. Fixed: the reasonable step-3 option omitted oxygen at SpO2 89% (now oxygen, IV furosemide and an antibiotic); the weaker oral-furosemide option now states admission; CPAP added as a best option (RR > 25, SpO2 < 90%, ESC IIa) in place of plain oxygen and IV furosemide, since a bank holds at most two best options; the nitrate now names the sublingual route; step-3 questions reveal an admission chest X-ray and the ECG instead of an unordered troponin; Thai and English aligned on lung bases and the step-1 label; NT-proBNP added as a reasonable test; Thai wording made less translated."
+      "findings": "Fresh reviewer, final text (version 2), checked all 13 banks against ESC 2021 HF and its 2023 update, AHA/ACC/HFSA 2022 and WHO oxygen guidance; no option was unsafe, and every step-3 option gives oxygen or CPAP with IV furosemide. Six should-fix issues were fixed: kidney results revealed on paths where only NT-proBNP may have been ordered, a referral line implying CPAP is unavailable, overclaims in the chest X-ray, sputum and dual-antibiotic lines, and a nebuliser label that named no drug. Two notes were applied: the CPAP line now says the criteria are met for considering it, and the empirical antibiotic is weaker on every path."
     }
   }
 }
