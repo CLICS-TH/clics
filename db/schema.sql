@@ -1070,3 +1070,107 @@ create policy evaluator_model_lock_no_access on public.evaluator_model_lock for 
 -- shadow_evaluations is not declared in this file. The table is created by
 -- db/migration-shadow-evaluations.sql, and its nullable `decoding` column is added by
 -- db/migration-evaluator-lock-manifest.sql.
+
+-- ===== PostgREST data surface closed (see db/migration-postgrest-closed.sql, #281, ADR 0007) =====
+-- The backend and RIMPL use the service-role key for all data; anon and authenticated hold no privilege on
+-- anything in public. RLS policies above stay as they are. The messages column grant below is the state
+-- db/migration-message-provenance.sql left; the closing revoke then removes it with the rest.
+revoke select on public.messages from anon, authenticated;
+grant select (id, ple_id, role, content, refs, socratic_question, token_count, created_at)
+  on public.messages to authenticated;
+
+revoke all on all tables in schema public from anon, authenticated;
+revoke all on all sequences in schema public from anon, authenticated;
+
+do $$
+declare
+  f regprocedure;
+begin
+  for f in
+    select p.oid::regprocedure
+    from pg_catalog.pg_proc p
+    where p.pronamespace = 'public'::regnamespace
+      and not exists (select 1 from pg_catalog.pg_depend d
+                      where d.classid = 'pg_catalog.pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e')
+  loop
+    execute format('revoke all on routine %s from public, anon, authenticated', f);
+    execute format('grant execute on routine %s to service_role', f);
+  end loop;
+end $$;
+
+alter default privileges in schema public revoke all on tables from anon, authenticated;
+alter default privileges in schema public revoke all on sequences from anon, authenticated;
+alter default privileges in schema public revoke all on functions from anon, authenticated;
+-- The built-in PUBLIC execute on new functions is a global default. It stays: changing it would reach every
+-- schema this role writes. A new function in public must revoke PUBLIC itself, and postgrest_exposure() lists
+-- it until then. Most earlier migrations do not, so re-running one that re-creates a function re-opens it: re-run
+-- this file after it.
+
+do $$
+begin
+  alter default privileges for role supabase_admin in schema public revoke all on tables from anon, authenticated;
+  alter default privileges for role supabase_admin in schema public revoke all on sequences from anon, authenticated;
+  alter default privileges for role supabase_admin in schema public revoke all on functions from anon, authenticated;
+exception
+  when insufficient_privilege then
+    raise notice 'supabase_admin default privileges unchanged (insufficient privilege); /health/deep postgrest_surface guards objects it creates';
+  when undefined_object then
+    raise notice 'supabase_admin does not exist; its default privileges were not changed';
+end $$;
+
+do $$
+begin
+  if to_regclass('public.ple_code_migration') is not null then
+    alter table public.ple_code_migration enable row level security;
+  end if;
+end $$;
+
+create or replace function public.postgrest_exposure()
+returns table(object_name text, object_kind text, grantee text, privilege text)
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+  with roles(grantee) as (values ('anon'::text), ('authenticated'::text)),
+  rels as (
+    select c.oid, c.relname::text as name, c.relkind
+    from pg_catalog.pg_class c
+    where c.relnamespace = 'public'::pg_catalog.regnamespace
+      and c.relkind in ('r', 'p', 'v', 'm', 'f', 'S')
+      and not exists (select 1 from pg_catalog.pg_depend d
+                      where d.classid = 'pg_catalog.pg_class'::pg_catalog.regclass and d.objid = c.oid and d.deptype = 'e')
+  )
+  select r.name, case when r.relkind in ('v', 'm') then 'view' else 'table' end, g.grantee, p.priv
+  from rels r
+  cross join roles g
+  cross join unnest(array['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER']) p(priv)
+  where r.relkind <> 'S' and pg_catalog.has_table_privilege(g.grantee, r.oid, p.priv)
+  union all
+  select r.name, 'sequence', g.grantee, p.priv
+  from rels r
+  cross join roles g
+  cross join unnest(array['USAGE', 'SELECT', 'UPDATE']) p(priv)
+  where r.relkind = 'S' and pg_catalog.has_sequence_privilege(g.grantee, r.oid, p.priv)
+  union all
+  select r.name || '.' || a.attname::text, 'column', g.grantee, p.priv
+  from rels r
+  join pg_catalog.pg_attribute a on a.attrelid = r.oid and a.attnum > 0 and not a.attisdropped
+  cross join roles g
+  cross join unnest(array['SELECT', 'INSERT', 'UPDATE', 'REFERENCES']) p(priv)
+  where r.relkind <> 'S'
+    and pg_catalog.has_column_privilege(g.grantee, r.oid, a.attnum, p.priv)
+    and not pg_catalog.has_table_privilege(g.grantee, r.oid, p.priv)
+  union all
+  select f.proname::text || '(' || pg_catalog.pg_get_function_identity_arguments(f.oid) || ')', 'function', g.grantee, 'EXECUTE'
+  from pg_catalog.pg_proc f
+  cross join roles g
+  where f.pronamespace = 'public'::pg_catalog.regnamespace
+    and not exists (select 1 from pg_catalog.pg_depend d
+                    where d.classid = 'pg_catalog.pg_proc'::pg_catalog.regclass and d.objid = f.oid and d.deptype = 'e')
+    and pg_catalog.has_function_privilege(g.grantee, f.oid, 'EXECUTE')
+  order by 1, 2, 3, 4
+$$;
+
+revoke all on function public.postgrest_exposure() from public, anon, authenticated;
+grant execute on function public.postgrest_exposure() to service_role;
