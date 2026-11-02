@@ -1,14 +1,14 @@
 {
   "case_id": "copd-exacerbation",
-  "version": "3",
+  "version": "4",
   "event_code": "NFCME-2026",
   "teaser": {
-    "th": "ชายวัย 68 ปี เหนื่อยหอบและไอมากขึ้นมา 3 วัน",
-    "en": "A 68-year-old man, more breathless and coughing for 3 days"
+    "th": "ชายวัย 68 ปี ที่ห้องฉุกเฉินโรงพยาบาลชุมชน เหนื่อยหอบและไอมากขึ้นมา 3 วัน",
+    "en": "A 68-year-old man at a community hospital ER, more breathless and coughing for 3 days"
   },
   "vignette": {
-    "th": "ผู้ป่วยสมมติ ชายอายุ 68 ปี ทำสวนผลไม้ เคยสูบบุหรี่ 40 ปี เลิกได้ 2 ปี ใช้ยาพ่นทุกวัน 3 วันนี้เหนื่อยมากขึ้น ไอมีเสมหะมากขึ้นและเปลี่ยนเป็นสีเขียว อุณหภูมิ 37.8 °C ชีพจร 106 หายใจ 26 ครั้ง/นาที ความดัน 136/82 SpO2 88% ขณะหายใจอากาศปกติ พูดได้เป็นวลีสั้น ๆ ใช้กล้ามเนื้อช่วยหายใจ ฟังปอดได้เสียงวี้ดทั้งสองข้างและหายใจออกยาว ขาไม่บวม รู้สึกตัวดี",
-    "en": "A fictional 68-year-old fruit farmer smoked for 40 years and quit 2 years ago. He uses an inhaler every day. Over 3 days he has grown more breathless and coughs up more sputum, which has turned green. Temperature 37.8 °C, pulse 106, respiratory rate 26/min, BP 136/82, SpO2 88% on room air. He speaks in short phrases and uses his accessory muscles to breathe. Wheeze on both sides with a long expiration. No leg swelling. He is alert."
+    "th": "ผู้ป่วยสมมติ ชายอายุ 68 ปี ทำสวนผลไม้ เคยสูบบุหรี่ 40 ปี เลิกได้ 2 ปี ใช้ยาพ่นทุกวัน มาห้องฉุกเฉิน รพ.ชุมชน เพราะ 3 วันนี้เหนื่อยมากขึ้น ไอมีเสมหะมากขึ้นและเปลี่ยนเป็นสีเขียว อุณหภูมิ 37.8 °C ชีพจร 106 หายใจ 26 ครั้ง/นาที ความดัน 136/82 SpO2 88% ขณะหายใจอากาศปกติ พูดได้เป็นวลีสั้น ๆ ใช้กล้ามเนื้อช่วยหายใจ ฟังปอดได้เสียงวี้ดทั้งสองข้างและหายใจออกยาว ขาไม่บวม รู้สึกตัวดี",
+    "en": "A fictional 68-year-old fruit farmer smoked for 40 years, quit 2 years ago and uses an inhaler daily. He comes to a community hospital ER because for 3 days he has been more breathless, coughing up more sputum that has turned green. Temperature 37.8 °C, pulse 106, RR 26/min, BP 136/82, SpO2 88% on room air. He speaks in short phrases, using his accessory muscles. Wheeze on both sides with a long expiration. No leg swelling. He is alert."
   },
   "banks": {
     "step1": {
@@ -116,8 +116,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "เริ่มพ่นยาและให้ออกซิเจนแล้ว จะส่งตรวจอะไรต่อ",
-              "en": "The inhaled drug and oxygen have started. What do you order next?"
+              "th": "เริ่มพ่นยาและ O2 88–92% แล้ว ส่งตรวจอะไร",
+              "en": "The inhaled drug and O2 at 88–92% have started. What do you order?"
             }
           }
         ],
@@ -150,24 +150,24 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "CBC และเกลือแร่ในเลือด",
-              "en": "CBC and electrolytes"
+              "th": "ABG, CBC และเกลือแร่",
+              "en": "ABG, CBC and electrolytes"
             },
             "line": {
-              "th": "ดูการติดเชื้อและโพแทสเซียมต่ำจากยาขยายหลอดลม",
-              "en": "Checks for infection and low potassium from bronchodilators."
+              "th": "ดู CO2 คั่ง การติดเชื้อ และโพแทสเซียมต่ำ",
+              "en": "Checks CO2 retention, infection and low potassium."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "เพาะเชื้อเสมหะ",
-              "en": "Sputum culture"
+              "th": "ABG และเพาะเชื้อเสมหะ",
+              "en": "ABG and sputum culture"
             },
             "line": {
-              "th": "หาชนิดเชื้อที่ทำให้เสมหะเปลี่ยนเป็นสีเขียว",
-              "en": "Looks for the germ that turned the sputum green."
+              "th": "ดู CO2 คั่ง และหาเชื้อที่ทำให้เสมหะเขียว",
+              "en": "Checks CO2 retention and looks for the germ in the sputum."
             }
           }
         ],
@@ -189,8 +189,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "เริ่มพ่นยาและให้ออกซิเจนแล้ว จะส่งตรวจอะไรต่อ",
-              "en": "The inhaled drug and oxygen have started. What do you order next?"
+              "th": "เริ่มพ่นยาและ O2 88–92% แล้ว ส่งตรวจอะไร",
+              "en": "The inhaled drug and O2 at 88–92% have started. What do you order?"
             }
           }
         ],
@@ -223,24 +223,24 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "CBC และ CRP",
-              "en": "CBC and CRP"
+              "th": "ABG, CBC และ CRP",
+              "en": "ABG, CBC and CRP"
             },
             "line": {
-              "th": "ช่วยตัดสินใจเรื่องการให้ยาปฏิชีวนะ",
-              "en": "Helps decide whether he needs an antibiotic."
+              "th": "ดู CO2 คั่ง และช่วยตัดสินใจเรื่องยาปฏิชีวนะ",
+              "en": "Checks CO2 retention and helps decide on an antibiotic."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "เพาะเชื้อเสมหะ",
-              "en": "Sputum culture"
+              "th": "ABG และเพาะเชื้อเสมหะ",
+              "en": "ABG and sputum culture"
             },
             "line": {
-              "th": "หาชนิดเชื้อที่ทำให้เสมหะเปลี่ยนเป็นสีเขียว",
-              "en": "Looks for the germ that turned the sputum green."
+              "th": "ดู CO2 คั่ง และหาเชื้อที่ทำให้เสมหะเขียว",
+              "en": "Checks CO2 retention and looks for the germ in the sputum."
             }
           }
         ],
@@ -255,8 +255,8 @@
           {
             "id": "v3",
             "question": {
-              "th": "SpO2 88% เริ่มพ่นยาและ O2 แล้ว ตรวจอะไร",
-              "en": "SpO2 88%; the inhaled drug and O2 have started. Which tests?"
+              "th": "SpO2 88% เริ่มพ่นยาและ O2 88–92% แล้ว ตรวจอะไร",
+              "en": "SpO2 88%; the inhaled drug and O2 to 88–92% have started. Which tests?"
             }
           },
           {
@@ -269,8 +269,8 @@
           {
             "id": "v2",
             "question": {
-              "th": "เริ่มพ่นยาและให้ออกซิเจนแล้ว จะส่งตรวจอะไรต่อ",
-              "en": "The inhaled drug and oxygen have started. What do you order next?"
+              "th": "เริ่มพ่นยาและ O2 88–92% แล้ว ส่งตรวจอะไร",
+              "en": "The inhaled drug and O2 at 88–92% have started. What do you order?"
             }
           }
         ],
@@ -303,36 +303,36 @@
             "id": "c",
             "tier": "reasonable",
             "label": {
-              "th": "ตรวจเลือด NT-proBNP",
-              "en": "NT-proBNP blood test"
+              "th": "ABG และ NT-proBNP",
+              "en": "ABG and NT-proBNP"
             },
             "line": {
-              "th": "ช่วยแยกหัวใจล้มเหลวออกจากโรคปอด",
-              "en": "Helps tell heart failure apart from lung disease."
+              "th": "ดู CO2 คั่ง และแยกหัวใจล้มเหลวจากโรคปอด",
+              "en": "Checks CO2 retention and tells heart failure from lung disease."
             }
           },
           {
             "id": "d",
             "tier": "weaker",
             "label": {
-              "th": "วัด peak flow ข้างเตียง",
-              "en": "Bedside peak flow"
+              "th": "ABG และ peak flow ข้างเตียง",
+              "en": "ABG and bedside peak flow"
             },
             "line": {
-              "th": "วัดการตีบของหลอดลมได้เร็วข้างเตียง",
-              "en": "Gives a quick bedside measure of airway narrowing."
+              "th": "ดู CO2 คั่ง และวัดการตีบของหลอดลมข้างเตียง",
+              "en": "Checks CO2 retention and measures airway narrowing at the bedside."
             }
           },
           {
             "id": "e",
             "tier": "weaker",
             "label": {
-              "th": "อัลตราซาวด์หัวใจ",
-              "en": "Echocardiogram"
+              "th": "ABG และอัลตราซาวด์หัวใจ",
+              "en": "ABG and echocardiogram"
             },
             "line": {
-              "th": "เห็นการบีบตัวของหัวใจได้ชัดเจน",
-              "en": "Shows clearly how well the heart pumps."
+              "th": "ดู CO2 คั่ง และเห็นการบีบตัวของหัวใจ",
+              "en": "Checks CO2 retention and shows how well the heart pumps."
             }
           }
         ],
@@ -349,22 +349,22 @@
           {
             "id": "v3",
             "question": {
-              "th": "ABG pH 7.37 PaCO2 48 CXR ไม่มีปอดอักเสบ ให้ยาอะไร",
-              "en": "ABG pH 7.37, PaCO2 48; no pneumonia on CXR. Which drugs?"
+              "th": "CXR ปกติ ABG pH 7.37 PaCO2 48 ให้ยาอะไร",
+              "en": "Normal CXR; ABG pH 7.37, PaCO2 48. Which drugs?"
             }
           },
           {
             "id": "v1",
             "question": {
-              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2, what else do you give?"
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
             }
           }
         ],
@@ -401,8 +401,8 @@
               "en": "IV hydrocortisone + amox-clav"
             },
             "line": {
-              "th": "ใช้ได้เมื่อกลืนยาลำบาก",
-              "en": "Suits a patient who finds swallowing hard."
+              "th": "สเตียรอยด์เข้าหลอดเลือดดำ ร่วม amox-clav ชนิดกิน",
+              "en": "Steroid into a vein, with amox-clav by mouth."
             }
           },
           {
@@ -429,22 +429,22 @@
           {
             "id": "v3",
             "question": {
-              "th": "WBC 13,000/มม.³ K 3.6 มิลลิโมล/ล. ให้ยาอะไร",
-              "en": "WBC 13,000/µL, K 3.6 mmol/L. Which drugs do you give?"
+              "th": "pH 7.37 WBC 13,000/มม.³ K 3.6 มิลลิโมล/ล. ให้ยาอะไร",
+              "en": "pH 7.37, WBC 13,000/µL, K 3.6 mmol/L. Which drugs do you give?"
             }
           },
           {
             "id": "v1",
             "question": {
-              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2, what else do you give?"
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
             }
           }
         ],
@@ -481,8 +481,8 @@
               "en": "Pred 5 days + IV amox-clav"
             },
             "line": {
-              "th": "ให้ทางหลอดเลือดดำเมื่อกลืนยาลำบาก",
-              "en": "Goes IV for a patient who struggles to swallow."
+              "th": "สเตียรอยด์ชนิดกิน ร่วม amox-clav เข้าหลอดเลือดดำ",
+              "en": "Steroid by mouth, with amox-clav into a vein."
             }
           },
           {
@@ -507,17 +507,24 @@
       "BW": {
         "variants": [
           {
+            "id": "v3",
+            "question": {
+              "th": "ABG pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
+              "en": "ABG pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
+            }
+          },
+          {
             "id": "v1",
             "question": {
-              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2, what else do you give?"
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
             }
           }
         ],
@@ -594,22 +601,22 @@
           {
             "id": "v3",
             "question": {
-              "th": "ABG pH 7.37 PaCO2 48 CXR ไม่มีปอดอักเสบ ให้ยาอะไร",
-              "en": "ABG pH 7.37, PaCO2 48; no pneumonia on CXR. Which drugs?"
+              "th": "CXR ปกติ ABG pH 7.37 PaCO2 48 ให้ยาอะไร",
+              "en": "Normal CXR; ABG pH 7.37, PaCO2 48. Which drugs?"
             }
           },
           {
             "id": "v1",
             "question": {
-              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2, what else do you give?"
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
             }
           }
         ],
@@ -646,8 +653,8 @@
               "en": "IV hydrocortisone + amox-clav"
             },
             "line": {
-              "th": "ใช้ได้เมื่อกลืนยาลำบาก",
-              "en": "Suits a patient who finds swallowing hard."
+              "th": "สเตียรอยด์เข้าหลอดเลือดดำ ร่วม amox-clav ชนิดกิน",
+              "en": "Steroid into a vein, with amox-clav by mouth."
             }
           },
           {
@@ -674,22 +681,22 @@
           {
             "id": "v3",
             "question": {
-              "th": "WBC 13,000/มม.³ CRP 60 มก./ล. ให้ยาอะไร",
-              "en": "WBC 13,000/µL, CRP 60 mg/L. Which drugs do you give?"
+              "th": "pH 7.37 WBC 13,000/มม.³ CRP 60 มก./ล. ให้ยาอะไร",
+              "en": "pH 7.37, WBC 13,000/µL, CRP 60 mg/L. Which drugs do you give?"
             }
           },
           {
             "id": "v1",
             "question": {
-              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2, what else do you give?"
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
             }
           }
         ],
@@ -726,8 +733,8 @@
               "en": "Pred 5 days + IV amox-clav"
             },
             "line": {
-              "th": "ให้ทางหลอดเลือดดำเมื่อกลืนยาลำบาก",
-              "en": "Goes IV for a patient who struggles to swallow."
+              "th": "สเตียรอยด์ชนิดกิน ร่วม amox-clav เข้าหลอดเลือดดำ",
+              "en": "Steroid by mouth, with amox-clav into a vein."
             }
           },
           {
@@ -752,17 +759,24 @@
       "RW": {
         "variants": [
           {
+            "id": "v3",
+            "question": {
+              "th": "ABG pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
+              "en": "ABG pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
+            }
+          },
+          {
             "id": "v1",
             "question": {
-              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2, what else do you give?"
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
             }
           }
         ],
@@ -839,22 +853,22 @@
           {
             "id": "v3",
             "question": {
-              "th": "ABG pH 7.37 PaCO2 48 CXR ไม่มีปอดอักเสบ ให้ยาอะไร",
-              "en": "ABG pH 7.37, PaCO2 48; no pneumonia on CXR. Which drugs?"
+              "th": "CXR ปกติ ABG pH 7.37 PaCO2 48 ให้ยาอะไร",
+              "en": "Normal CXR; ABG pH 7.37, PaCO2 48. Which drugs?"
             }
           },
           {
             "id": "v1",
             "question": {
-              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2, what else do you give?"
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
             }
           }
         ],
@@ -891,8 +905,8 @@
               "en": "IV hydrocortisone + amox-clav"
             },
             "line": {
-              "th": "ใช้ได้เมื่อกลืนยาลำบาก",
-              "en": "Suits a patient who finds swallowing hard."
+              "th": "สเตียรอยด์เข้าหลอดเลือดดำ ร่วม amox-clav ชนิดกิน",
+              "en": "Steroid into a vein, with amox-clav by mouth."
             }
           },
           {
@@ -919,22 +933,22 @@
           {
             "id": "v3",
             "question": {
-              "th": "NT-proBNP ปกติ จะให้ยาอะไรเพิ่ม",
-              "en": "NT-proBNP is normal. Which drugs do you add?"
+              "th": "pH 7.37 NT-proBNP ปกติ จะให้ยาอะไรเพิ่ม",
+              "en": "pH 7.37, NT-proBNP normal. Which drugs do you add?"
             }
           },
           {
             "id": "v1",
             "question": {
-              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2, what else do you give?"
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
             }
           }
         ],
@@ -971,8 +985,8 @@
               "en": "Pred 5 days + IV amox-clav"
             },
             "line": {
-              "th": "ให้ทางหลอดเลือดดำเมื่อกลืนยาลำบาก",
-              "en": "Goes IV for a patient who struggles to swallow."
+              "th": "สเตียรอยด์ชนิดกิน ร่วม amox-clav เข้าหลอดเลือดดำ",
+              "en": "Steroid by mouth, with amox-clav into a vein."
             }
           },
           {
@@ -997,17 +1011,24 @@
       "WW": {
         "variants": [
           {
+            "id": "v3",
+            "question": {
+              "th": "ABG pH 7.37 PaCO2 48 mmHg ให้ยาอะไร",
+              "en": "ABG pH 7.37, PaCO2 48 mmHg. Which drugs do you give?"
+            }
+          },
+          {
             "id": "v1",
             "question": {
-              "th": "พ่นยาและ O2 ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
-              "en": "The inhaled drug and O2 continue. Which drugs do you add?"
+              "th": "พ่นยาและ O2 88–92% ยังให้อยู่ จะให้ยาอะไรเพิ่ม",
+              "en": "The inhaled drug and O2 to 88–92% continue. Which drugs do you add?"
             }
           },
           {
             "id": "v2",
             "question": {
-              "th": "นอกจากยาพ่นและ O2 คุณจะให้ยาอะไรอีก",
-              "en": "Besides the inhaled drug and O2, what else do you give?"
+              "th": "นอกจากยาพ่นและ O2 88–92% จะให้ยาอะไรอีก",
+              "en": "Besides the inhaled drug and O2 to 88–92%, what else do you give?"
             }
           }
         ],
@@ -1085,7 +1106,7 @@
     "safety_review": {
       "model": "claude-opus-5-5",
       "date": "2026-11-02",
-      "findings": "Re-run on the version-3 text against GOLD 2025, the Thai COPD guideline, WHO COPD guidance and the repo bank entry. No unsafe option, by content or by omission: every step-3 option pairs a steroid with an antibiotic while the stems keep the bronchodilator and oxygen running. No tier error in any of the 13 banks, and each reveal shows only what its path's step-2 tests ordered. Fixed in this round: the IV hydrocortisone and IV amox-clav lines no longer claim an advantage over oral, the step-1 Thai variant ends as a question, the echocardiogram label lost 'first', and the step-2 W fallback question matches in Thai and English. Notes kept: azithromycin stays reasonable given pneumococcal macrolide resistance in Thailand; levofloxacin, IV ceftriaxone and peak flow stay weaker and safe."
+      "findings": "Re-run on version 4 against GOLD 2025, the Thai COPD guideline, WHO COPD guidance and the repo bank entry: prednisolone 40 mg for 5 days, first-line amox-clav or doxycycline, O2 at 88-92% stated in every oxygen stem, and an ABG on every step-2 option. Every option is safe, including by omission, and correctly tiered; every line matches the drugs and routes in its label; every reveal matches the tests ordered on its path; Thai and English agree. Fixed after this review: each step-3 path now reveals the blood gas (pH 7.37, no acidosis), the gas-only reveals give PaCO2 in mmHg, and the English peak-flow line says at the bedside, as the Thai does."
     }
   }
 }
