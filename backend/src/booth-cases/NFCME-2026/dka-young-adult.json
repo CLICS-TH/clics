@@ -1,0 +1,1030 @@
+{
+  "case_id": "dka-young-adult",
+  "version": "1",
+  "event_code": "NFCME-2026",
+  "teaser": {
+    "th": "นักศึกษาหญิงอายุ 20 ปี อาเจียนและหายใจหอบลึกตั้งแต่เมื่อวาน",
+    "en": "A 20-year-old student vomiting and breathing deep and fast since yesterday"
+  },
+  "vignette": {
+    "th": "ผู้ป่วยสมมติ หญิงอายุ 20 ปี นักศึกษามหาวิทยาลัย มาโรงพยาบาลชุมชนด้วยอาเจียนหลายครั้งและปวดท้องมา 1 วัน สองสัปดาห์ก่อนกระหายน้ำ ปัสสาวะบ่อย และน้ำหนักลด 4 กิโลกรัม อุณหภูมิ 37.2 องศาเซลเซียส ชีพจร 120 ครั้งต่อนาที ความดันโลหิต 100/62 มม.ปรอท หายใจลึกและเร็ว 30 ครั้งต่อนาที ปากแห้ง ลมหายใจมีกลิ่นผลไม้ ท้องกดเจ็บทั่วไปเล็กน้อย ซึมเล็กน้อยแต่ตอบคำถามได้",
+    "en": "A fictional 20-year-old university student comes to a community hospital with 1 day of repeated vomiting and abdominal pain. For 2 weeks she has been thirsty, passing urine often, and has lost 4 kg. Temperature 37.2 °C, pulse 120/min, BP 100/62 mmHg, deep rapid breathing at 30/min. Dry mouth, fruity breath and mild diffuse abdominal tenderness. She is drowsy but answers questions."
+  },
+  "banks": {
+    "step1": {
+      "variants": [
+        {
+          "id": "v1",
+          "question": {
+            "th": "การวินิจฉัยที่น่าจะเป็นมากที่สุดคืออะไร",
+            "en": "What is the most likely diagnosis?"
+          }
+        },
+        {
+          "id": "v2",
+          "question": {
+            "th": "อาการทั้งหมดนี้เข้าได้กับภาวะใดมากที่สุด",
+            "en": "Which condition best explains all of this?"
+          }
+        },
+        {
+          "id": "v3",
+          "question": {
+            "th": "หายใจหอบลึกร่วมกับอาเจียน นึกถึงภาวะใด",
+            "en": "Deep breathing with vomiting. What do you suspect?"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "tier": "best",
+          "label": {
+            "th": "ภาวะกรดคีโตนจากเบาหวาน",
+            "en": "Diabetic ketoacidosis"
+          },
+          "line": {
+            "th": "กระหายน้ำ ปัสสาวะบ่อย ผอมลง หายใจหอบลึก เข้ากันได้ดี",
+            "en": "Thirst, polyuria, weight loss and deep breathing fit it."
+          }
+        },
+        {
+          "id": "b",
+          "tier": "best",
+          "label": {
+            "th": "เบาหวานชนิดที่ 1 รายใหม่ มี DKA",
+            "en": "New type 1 diabetes with DKA"
+          },
+          "line": {
+            "th": "อายุน้อย ผอมลงเร็ว และมาด้วยภาวะกรดคีโตน",
+            "en": "Young, losing weight fast, and presenting with ketoacidosis."
+          }
+        },
+        {
+          "id": "c",
+          "tier": "reasonable",
+          "label": {
+            "th": "ภาวะออสโมลาร์สูง (HHS)",
+            "en": "Hyperosmolar hyperglycaemic state"
+          },
+          "line": {
+            "th": "กระหายน้ำ ปัสสาวะมาก และขาดน้ำชัดเจนเข้ากับภาวะนี้",
+            "en": "Thirst, heavy urine output and marked dehydration fit it."
+          }
+        },
+        {
+          "id": "d",
+          "tier": "weaker",
+          "label": {
+            "th": "กระเพาะและลำไส้อักเสบเฉียบพลัน",
+            "en": "Acute gastroenteritis"
+          },
+          "line": {
+            "th": "อาเจียน ปวดท้อง และขาดน้ำพบบ่อยในโรคนี้",
+            "en": "Vomiting, abdominal pain and dehydration are common in it."
+          }
+        },
+        {
+          "id": "e",
+          "tier": "weaker",
+          "label": {
+            "th": "ไส้ติ่งอักเสบเฉียบพลัน",
+            "en": "Acute appendicitis"
+          },
+          "line": {
+            "th": "ปวดท้องและอาเจียนในคนหนุ่มสาวอาจเป็นไส้ติ่ง",
+            "en": "Abdominal pain and vomiting in a young adult can be appendicitis."
+          }
+        }
+      ],
+      "default_trio": [
+        "a",
+        "c",
+        "d"
+      ]
+    },
+    "step2": {
+      "B": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณสงสัย DKA จะส่งตรวจอะไรก่อน",
+              "en": "You suspect DKA. Which tests come first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจอะไรเพื่อยืนยันและประเมินความรุนแรง",
+              "en": "Which tests confirm it and gauge its severity?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "น้ำตาล คีโตน VBG และเกลือแร่",
+              "en": "Glucose, ketones, VBG, electrolytes"
+            },
+            "line": {
+              "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
+              "en": "Confirms the crisis type, grades acidosis and measures K."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลปลายนิ้วและปัสสาวะ",
+              "en": "Fingerstick glucose, urine dipstick"
+            },
+            "line": {
+              "th": "ทำข้างเตียงได้ทันที เห็นน้ำตาลและคีโตนในปัสสาวะ",
+              "en": "Bedside and instant, showing glucose and urine ketones."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลและคีโตนปลายนิ้ว",
+              "en": "Fingerstick glucose and ketone"
+            },
+            "line": {
+              "th": "ตรวจข้างเตียง ได้ผลเร็ว และยืนยันคีโตนสูงได้",
+              "en": "Quick bedside tests that confirm high ketones."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "CBC และเพาะเชื้อในเลือด",
+              "en": "CBC and blood culture"
+            },
+            "line": {
+              "th": "หาการติดเชื้อที่อาจเป็นตัวกระตุ้นของอาการ",
+              "en": "Looks for an infection that may have set this off."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อัลตราซาวด์ช่องท้อง",
+              "en": "Abdominal ultrasound"
+            },
+            "line": {
+              "th": "หาสาเหตุของอาการปวดท้องและอาเจียน",
+              "en": "Looks for a cause of the pain and vomiting."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "b",
+          "d"
+        ]
+      },
+      "R": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "คุณสงสัยภาวะน้ำตาลสูงวิกฤต จะตรวจอะไรก่อน",
+              "en": "You suspect a hyperglycaemic crisis. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ควรส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Which tests come first?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "น้ำตาล คีโตน VBG และเกลือแร่",
+              "en": "Glucose, ketones, VBG, electrolytes"
+            },
+            "line": {
+              "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
+              "en": "Confirms the crisis type, grades acidosis and measures K."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลปลายนิ้วและปัสสาวะ",
+              "en": "Fingerstick glucose, urine dipstick"
+            },
+            "line": {
+              "th": "ทำข้างเตียงได้ทันที เห็นน้ำตาลและคีโตนในปัสสาวะ",
+              "en": "Bedside and instant, showing glucose and urine ketones."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลและคีโตนปลายนิ้ว",
+              "en": "Fingerstick glucose and ketone"
+            },
+            "line": {
+              "th": "ตรวจข้างเตียง ได้ผลเร็ว และยืนยันคีโตนสูงได้",
+              "en": "Quick bedside tests that confirm high ketones."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "CBC และเพาะเชื้อในเลือด",
+              "en": "CBC and blood culture"
+            },
+            "line": {
+              "th": "หาการติดเชื้อที่อาจเป็นตัวกระตุ้นของอาการ",
+              "en": "Looks for an infection that may have set this off."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อัลตราซาวด์ช่องท้อง",
+              "en": "Abdominal ultrasound"
+            },
+            "line": {
+              "th": "หาสาเหตุของอาการปวดท้องและอาเจียน",
+              "en": "Looks for a cause of the pain and vomiting."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "b",
+          "d"
+        ]
+      },
+      "W": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "ญาติเล่าว่าเธอดื่มน้ำและปัสสาวะบ่อยมาก ตรวจอะไรก่อน",
+              "en": "Her family says she drinks and urinates a lot. Which tests first?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ลมหายใจมีกลิ่นผลไม้ ควรส่งตรวจอะไรเป็นอันดับแรก",
+              "en": "Her breath smells fruity. Which tests come first?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "น้ำตาล คีโตน VBG และเกลือแร่",
+              "en": "Glucose, ketones, VBG, electrolytes"
+            },
+            "line": {
+              "th": "ยืนยันชนิดของภาวะวิกฤต วัดความเป็นกรด และได้ค่า K",
+              "en": "Confirms the crisis type, grades acidosis and measures K."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลปลายนิ้วและปัสสาวะ",
+              "en": "Fingerstick glucose, urine dipstick"
+            },
+            "line": {
+              "th": "ทำข้างเตียงได้ทันที เห็นน้ำตาลและคีโตนในปัสสาวะ",
+              "en": "Bedside and instant, showing glucose and urine ketones."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "น้ำตาลและคีโตนปลายนิ้ว",
+              "en": "Fingerstick glucose and ketone"
+            },
+            "line": {
+              "th": "ตรวจข้างเตียง ได้ผลเร็ว และยืนยันคีโตนสูงได้",
+              "en": "Quick bedside tests that confirm high ketones."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "CBC และเพาะเชื้อในเลือด",
+              "en": "CBC and blood culture"
+            },
+            "line": {
+              "th": "หาการติดเชื้อที่อาจเป็นตัวกระตุ้นของอาการ",
+              "en": "Looks for an infection that may have set this off."
+            }
+          },
+          {
+            "id": "e",
+            "tier": "weaker",
+            "label": {
+              "th": "อัลตราซาวด์ช่องท้อง",
+              "en": "Abdominal ultrasound"
+            },
+            "line": {
+              "th": "หาสาเหตุของอาการปวดท้องและอาเจียน",
+              "en": "Looks for a cause of the pain and vomiting."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "b",
+          "d"
+        ]
+      }
+    },
+    "step3": {
+      "BB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 pH 7.15 HCO₃ 11 K 4.6 จะรักษาอย่างไร",
+              "en": "Glucose 450 mg/dL, pH 7.15, HCO₃ 11, K 4.6. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลยืนยัน DKA ปานกลาง K 4.6 ขั้นต่อไปคืออะไร",
+              "en": "Moderate DKA is confirmed and K is 4.6. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS อินซูลินหยด และเติม K",
+              "en": "IV saline, insulin drip, potassium"
+            },
+            "line": {
+              "th": "สารน้ำก่อน หยดอินซูลิน 0.1 ยูนิต/กก./ชม. เติม K",
+              "en": "Fluids first, then insulin at 0.1 units/kg/h with K added."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำและอินซูลินที่นี่ แล้วส่งไปดูแลใกล้ชิด",
+              "en": "Fluids and insulin start here, then transfer for close care."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS และอินซูลินใต้ผิวหนัง",
+              "en": "IV saline and SC rapid insulin"
+            },
+            "line": {
+              "th": "อินซูลินใต้ผิวหนังใช้ได้ใน DKA ระดับเบาถึงปานกลาง",
+              "en": "SC rapid insulin works in mild to moderate DKA."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้ NSS และส่งต่อด่วน",
+              "en": "IV saline and urgent referral"
+            },
+            "line": {
+              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
+              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "BR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 มก./ดล. คีโตนสูงมาก จะรักษาอย่างไร",
+              "en": "Glucose is 450 mg/dL with very high ketones. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลข้างเตียงพบน้ำตาลและคีโตนสูง ขั้นต่อไปคืออะไร",
+              "en": "Bedside tests show high glucose and ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline now, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลิน แล้วส่งต่อ",
+              "en": "Fluids, a K check and insulin start here before transfer."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินใต้ผิวหนัง",
+              "en": "Saline, check K, SC rapid insulin"
+            },
+            "line": {
+              "th": "ตรวจ K ก่อน ใช้ได้ดีใน DKA ระดับเบาถึงปานกลาง",
+              "en": "After a K check, SC insulin suits mild to moderate DKA."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้ NSS และส่งต่อด่วน",
+              "en": "IV saline and urgent referral"
+            },
+            "line": {
+              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
+              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "BW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "พยาบาลพบน้ำตาล 450 มก./ดล. คีโตนปัสสาวะ 3+ ทำอย่างไร",
+              "en": "The nurse finds glucose 450 mg/dL and urine ketones 3+. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจเพิ่มพบน้ำตาลสูงและคีโตนในปัสสาวะ ขั้นต่อไปคืออะไร",
+              "en": "Extra checks show high glucose and urine ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline now, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลิน แล้วส่งต่อ",
+              "en": "Fluids, a K check and insulin start here before transfer."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินใต้ผิวหนัง",
+              "en": "Saline, check K, SC rapid insulin"
+            },
+            "line": {
+              "th": "ตรวจ K ก่อน ใช้ได้ดีใน DKA ระดับเบาถึงปานกลาง",
+              "en": "After a K check, SC insulin suits mild to moderate DKA."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้ NSS และส่งต่อด่วน",
+              "en": "IV saline and urgent referral"
+            },
+            "line": {
+              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
+              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 pH 7.15 HCO₃ 11 K 4.6 จะรักษาอย่างไร",
+              "en": "Glucose 450 mg/dL, pH 7.15, HCO₃ 11, K 4.6. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลยืนยัน DKA ปานกลาง K 4.6 ขั้นต่อไปคืออะไร",
+              "en": "Moderate DKA is confirmed and K is 4.6. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS อินซูลินหยด และเติม K",
+              "en": "IV saline, insulin drip, potassium"
+            },
+            "line": {
+              "th": "สารน้ำก่อน หยดอินซูลิน 0.1 ยูนิต/กก./ชม. เติม K",
+              "en": "Fluids first, then insulin at 0.1 units/kg/h with K added."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำและอินซูลินที่นี่ แล้วส่งไปดูแลใกล้ชิด",
+              "en": "Fluids and insulin start here, then transfer for close care."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS และอินซูลินใต้ผิวหนัง",
+              "en": "IV saline and SC rapid insulin"
+            },
+            "line": {
+              "th": "อินซูลินใต้ผิวหนังใช้ได้ใน DKA ระดับเบาถึงปานกลาง",
+              "en": "SC rapid insulin works in mild to moderate DKA."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้ NSS และส่งต่อด่วน",
+              "en": "IV saline and urgent referral"
+            },
+            "line": {
+              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
+              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 มก./ดล. คีโตนสูงมาก จะรักษาอย่างไร",
+              "en": "Glucose is 450 mg/dL with very high ketones. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลข้างเตียงพบน้ำตาลและคีโตนสูง ขั้นต่อไปคืออะไร",
+              "en": "Bedside tests show high glucose and ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline now, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลิน แล้วส่งต่อ",
+              "en": "Fluids, a K check and insulin start here before transfer."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินใต้ผิวหนัง",
+              "en": "Saline, check K, SC rapid insulin"
+            },
+            "line": {
+              "th": "ตรวจ K ก่อน ใช้ได้ดีใน DKA ระดับเบาถึงปานกลาง",
+              "en": "After a K check, SC insulin suits mild to moderate DKA."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้ NSS และส่งต่อด่วน",
+              "en": "IV saline and urgent referral"
+            },
+            "line": {
+              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
+              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "RW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "พยาบาลพบน้ำตาล 450 มก./ดล. คีโตนปัสสาวะ 3+ ทำอย่างไร",
+              "en": "The nurse finds glucose 450 mg/dL and urine ketones 3+. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจเพิ่มพบน้ำตาลสูงและคีโตนในปัสสาวะ ขั้นต่อไปคืออะไร",
+              "en": "Extra checks show high glucose and urine ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline now, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลิน แล้วส่งต่อ",
+              "en": "Fluids, a K check and insulin start here before transfer."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินใต้ผิวหนัง",
+              "en": "Saline, check K, SC rapid insulin"
+            },
+            "line": {
+              "th": "ตรวจ K ก่อน ใช้ได้ดีใน DKA ระดับเบาถึงปานกลาง",
+              "en": "After a K check, SC insulin suits mild to moderate DKA."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้ NSS และส่งต่อด่วน",
+              "en": "IV saline and urgent referral"
+            },
+            "line": {
+              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
+              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "WB": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 pH 7.15 HCO₃ 11 K 4.6 จะรักษาอย่างไร",
+              "en": "Glucose 450 mg/dL, pH 7.15, HCO₃ 11, K 4.6. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลยืนยัน DKA ปานกลาง K 4.6 ขั้นต่อไปคืออะไร",
+              "en": "Moderate DKA is confirmed and K is 4.6. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS อินซูลินหยด และเติม K",
+              "en": "IV saline, insulin drip, potassium"
+            },
+            "line": {
+              "th": "สารน้ำก่อน หยดอินซูลิน 0.1 ยูนิต/กก./ชม. เติม K",
+              "en": "Fluids first, then insulin at 0.1 units/kg/h with K added."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำและอินซูลินที่นี่ แล้วส่งไปดูแลใกล้ชิด",
+              "en": "Fluids and insulin start here, then transfer for close care."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS และอินซูลินใต้ผิวหนัง",
+              "en": "IV saline and SC rapid insulin"
+            },
+            "line": {
+              "th": "อินซูลินใต้ผิวหนังใช้ได้ใน DKA ระดับเบาถึงปานกลาง",
+              "en": "SC rapid insulin works in mild to moderate DKA."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้ NSS และส่งต่อด่วน",
+              "en": "IV saline and urgent referral"
+            },
+            "line": {
+              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
+              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "WR": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "น้ำตาล 450 มก./ดล. คีโตนสูงมาก จะรักษาอย่างไร",
+              "en": "Glucose is 450 mg/dL with very high ketones. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ผลข้างเตียงพบน้ำตาลและคีโตนสูง ขั้นต่อไปคืออะไร",
+              "en": "Bedside tests show high glucose and ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline now, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลิน แล้วส่งต่อ",
+              "en": "Fluids, a K check and insulin start here before transfer."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินใต้ผิวหนัง",
+              "en": "Saline, check K, SC rapid insulin"
+            },
+            "line": {
+              "th": "ตรวจ K ก่อน ใช้ได้ดีใน DKA ระดับเบาถึงปานกลาง",
+              "en": "After a K check, SC insulin suits mild to moderate DKA."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้ NSS และส่งต่อด่วน",
+              "en": "IV saline and urgent referral"
+            },
+            "line": {
+              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
+              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      },
+      "WW": {
+        "variants": [
+          {
+            "id": "v1",
+            "question": {
+              "th": "พยาบาลพบน้ำตาล 450 มก./ดล. คีโตนปัสสาวะ 3+ ทำอย่างไร",
+              "en": "The nurse finds glucose 450 mg/dL and urine ketones 3+. Your plan?"
+            }
+          },
+          {
+            "id": "v2",
+            "question": {
+              "th": "ตรวจเพิ่มพบน้ำตาลสูงและคีโตนในปัสสาวะ ขั้นต่อไปคืออะไร",
+              "en": "Extra checks show high glucose and urine ketones. What next?"
+            }
+          }
+        ],
+        "options": [
+          {
+            "id": "a",
+            "tier": "best",
+            "label": {
+              "th": "NSS ตรวจ K แล้วหยดอินซูลิน",
+              "en": "Saline now, check K, insulin drip"
+            },
+            "line": {
+              "th": "เริ่มสารน้ำทันที อินซูลินตามมาเมื่อ K ปลอดภัย",
+              "en": "Fluids start at once and insulin follows a safe K level."
+            }
+          },
+          {
+            "id": "b",
+            "tier": "best",
+            "label": {
+              "th": "เริ่มรักษา DKA แล้วส่งต่อ",
+              "en": "Start DKA treatment, then refer"
+            },
+            "line": {
+              "th": "ให้สารน้ำ ตรวจ K เริ่มอินซูลิน แล้วส่งต่อ",
+              "en": "Fluids, a K check and insulin start here before transfer."
+            }
+          },
+          {
+            "id": "c",
+            "tier": "reasonable",
+            "label": {
+              "th": "NSS ตรวจ K อินซูลินใต้ผิวหนัง",
+              "en": "Saline, check K, SC rapid insulin"
+            },
+            "line": {
+              "th": "ตรวจ K ก่อน ใช้ได้ดีใน DKA ระดับเบาถึงปานกลาง",
+              "en": "After a K check, SC insulin suits mild to moderate DKA."
+            }
+          },
+          {
+            "id": "d",
+            "tier": "weaker",
+            "label": {
+              "th": "ให้ NSS และส่งต่อด่วน",
+              "en": "IV saline and urgent referral"
+            },
+            "line": {
+              "th": "เริ่มให้สารน้ำทันที และส่งถึงโรงพยาบาลใหญ่เร็ว",
+              "en": "Rehydration starts at once and she reaches a larger hospital fast."
+            }
+          }
+        ],
+        "default_trio": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    }
+  },
+  "admission": {
+    "safety_review": {
+      "model": "claude-opus-5-5",
+      "date": "2026-11-02",
+      "findings": "Fresh reviewer checked all 13 banks against the 2024 ADA/EASD/JBDS hyperglycaemic-crisis consensus, WHO and Thai practice. 2 must-fix: on the six step-3 paths with potassium unmeasured, a best and a reasonable option started insulin with no K check; both now check K first. 4 should-fix: a urine result shown to players who ordered a blood ketone test (now 'bedside tests'), and three Thai/English mismatches (K in the drip, transfer in the refer line, 'diabetic' in the DKA label). 4 nits fixed: no 'Confirms DKA' on the HHS path, 'new' in the T1DM label, a Thai line that only listed symptoms, Thai units. Key numbers (moderate DKA pH 7.15, HCO3 11; insulin 0.1 U/kg/h) confirmed correct. Sandbox run pending."
+    }
+  }
+}
