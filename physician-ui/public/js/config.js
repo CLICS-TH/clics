@@ -17,5 +17,5 @@
   window.CLICS_GOOGLE_SIGNIN = { login: 'gis', invite: 'gis', link: 'gis' };
   window.CLICS_GOOGLE_ORIGINS = ['https://physician-ui.vercel.app', 'http://localhost:3000'];
   // Public OAuth client ID of the Supabase Google provider (not a secret). Empty keeps every flow on the redirect.
-  window.CLICS_GOOGLE_CLIENT_ID = '';
+  window.CLICS_GOOGLE_CLIENT_ID = '723476258825-6ocmvnqt8on5bodhaa4qure55260n0q2.apps.googleusercontent.com';
 })();

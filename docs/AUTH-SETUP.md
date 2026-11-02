@@ -22,7 +22,7 @@ The Portal asks Google itself through Google Identity Services (GIS), so Google'
 |---|---|
 | `CLICS_GOOGLE_SIGNIN = { login, invite, link }` | Per flow, `'gis'` (default) or `'redirect'` (the old Supabase redirect). Only `login` is wired today; invite and Link Google follow. |
 | `CLICS_GOOGLE_ORIGINS` | Allow-list of page origins where `gis` runs: `https://physician-ui.vercel.app`, `http://localhost:3000`. Any other origin (Vercel previews) uses the redirect. Must match the OAuth client's **Authorized JavaScript origins** exactly (no wildcards). |
-| `CLICS_GOOGLE_CLIENT_ID` | Public OAuth client ID of the Supabase Google provider. **Empty keeps every flow on the redirect**, so `gis` goes live only when this is filled (console ticket #282). |
+| `CLICS_GOOGLE_CLIENT_ID` | Public OAuth client ID of the Supabase Google provider. **Empty keeps every flow on the redirect.** Set to the client ID listed in Supabase's Google provider (registered 2026-11-02, #282). |
 
 How it runs: pressing "Continue with Google" loads Google's script (never on page load), swaps in Google's own button (popup, no One Tap), trades the credential with `signInWithIdToken` and a fresh hashed nonce, writes the same flow marker the redirect writes, and goes to `/auth/callback#access_token=…`. The Callback page finishes both modes. **Rollback:** set the flow to `'redirect'` and redeploy.
 
