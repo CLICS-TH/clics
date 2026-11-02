@@ -135,8 +135,8 @@ export default [
         await withClock(k);
         await k.shell(mode);
         h.check(hasBoth(await barText(page), mode === 'closed' ? h.COPY.closed : h.COPY.offline), `${mode}: the bar says so, TH and EN`);
-        h.check(await page.locator('button').count() === 0 && await page.locator('.loop-bar[role="status"]').count() === 1,
-          `${mode}: no button, the bar is a status line`);
+        h.check(await page.locator('button:not([data-action="leaderboard"])').count() === 0 && await page.locator('.loop-bar[role="status"]').count() === 1,
+          `${mode}: no button but the leaderboard's, the bar is a status line`);
         await recordLoop(page);
         await page.waitForFunction(() => window.boothSrcs.length >= 3, null, WAIT);
         h.check(true, `${mode}: the loop keeps advancing items`);

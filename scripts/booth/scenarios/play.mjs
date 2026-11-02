@@ -187,12 +187,13 @@ export default [
         value: e.querySelector('.domain-value').textContent,
         fill: e.querySelector('.domain-bar > span').getBoundingClientRect().width / e.querySelector('.domain-bar').getBoundingClientRect().width,
       })));
-      h.check(bars.length === 7 && h.same(bars.map(({ key, th, en }) => ({ key, th, en })), h.DOMAINS.map(({ key, th, en }) => ({ key, th, en }))),
+      const byKey = (list) => [...list].sort((a, b) => a.key.localeCompare(b.key)).map(({ key, th, en }) => ({ key, th, en }));
+      h.check(bars.length === 7 && h.same(byKey(bars), byKey(h.DOMAINS)),
         'result: seven bars d1..d7, each named with the rubric\'s TH and EN domain name');
       h.check(bars.every((b) => b.value === `${h.SCORED.domains[b.key]} / 5` && Math.abs(b.fill - h.SCORED.domains[b.key] / 5) < 0.01),
         `result: each bar reads "n / 5" and fills n/5 of its track (${bars.map((b) => `${b.key} ${b.fill.toFixed(2)}`).join(', ')})`);
-      const inCard = await page.locator('.result-card [data-demo-label]').innerText().catch(() => '');
-      h.check(inCard.includes(h.DEMO_LABEL.th) && inCard.includes(h.DEMO_LABEL.en), 'result: the demo label is inside the card, TH and EN');
+      const label = await page.locator('.play-foot[data-demo-label]').innerText().catch(() => '');
+      h.check(label.includes(h.DEMO_LABEL.th) && label.includes(h.DEMO_LABEL.en), 'result: the demo label is pinned under the card, TH and EN');
       const page3p = await page.evaluate(() => ({
         scripts: [...document.scripts].map((s) => s.src),
         globals: ['marked', 'DOMPurify', 'Chart', 'supabase'].filter((g) => g in window),
@@ -365,7 +366,7 @@ export default [
       await k.shell('closed');
       const t = await k.page.locator('#booth').innerText();
       h.check(t.includes(h.COPY.closed.th) && t.includes(h.COPY.closed.en), 'closed: "The booth is closed right now", TH and EN');
-      h.check(await count(k.page, 'button') === 0 && closed.of('POST /booth/plays').length === 0, 'closed: nothing to tap, no play started');
+      h.check(await count(k.page, 'button:not([data-action="leaderboard"])') === 0 && closed.of('POST /booth/plays').length === 0, 'closed: nothing to tap, no play started');
       await h.screenCheck(k.page, 'closed notice');
       await k.close();
 

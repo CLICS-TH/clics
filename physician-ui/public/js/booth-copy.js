@@ -37,6 +37,8 @@ export const COPY = Object.freeze({
   scoring: { th: 'กำลังให้คะแนนตามเกณฑ์ PIS-7', en: 'Scoring with the PIS-7 rubric' },
   scoringWait: { th: 'ใช้เวลาประมาณ 30 วินาที', en: 'This takes about 30 seconds' },
   overall: { th: 'คะแนนรวม', en: 'Overall score' },
+  practiseNext: { th: 'ด้านที่ควรฝึกเพิ่ม', en: 'Practise next' },
+  otherDomains: { th: 'ด้านอื่น ๆ', en: 'Other domains' },
   unavailable: { th: 'รอบนี้ให้คะแนนไม่ได้', en: 'Your score is unavailable this time' },
   thanks: { th: 'ขอบคุณที่ลองใช้ CLICS', en: 'Thank you for trying CLICS' },
   stopped: { th: 'รอบนี้หยุดแล้ว', en: 'This play has stopped' },

@@ -4,9 +4,10 @@
 //     'scoring' and to start its result timer; the harness waits on it.
 //   - runPlay resolves once a terminal screen is showing. The screen stays up until the shell resets the page.
 // Contract with the board (booth-board.js): the result card's tag is renderTag(tag), and its board panel is
-// mountResultBoard(slot, { tag, scoreBody }).
+// mountResultBoard(slot, { tag, scoreBody }); its leaderboard button is leaderboardButton({ host, api, board, tag }).
 import { COPY, DEMO_LABEL, DOMAINS, scoreText, fill } from './booth-copy.js';
-import { renderTag, mountResultBoard } from './booth-board.js';
+import { renderTag, mountResultBoard, leaderboardButton } from './booth-board.js';
+import { BAND_LINES, bandOf, weakestFirst } from './booth-bands.js';
 import { BoothApiError } from './booth-api.js';
 import { el, phrases, bi } from './booth-dom.js';
 
@@ -68,12 +69,12 @@ export async function runPlay({ root, api }) {
       const next = transition(state, ev);
       if (next === state) return;
       state = next;
-      render(root, state, dispatch);
+      render(root, state, dispatch, api);
       if (state.screen.at === 'replying') requestReply(api, state).then(dispatch);
       else if (state.screen.at === 'scoring') requestScore(api, state).then(dispatch);
       else if (TERMINAL.has(state.screen.at)) resolve({ kind: state.screen.at });
     };
-    render(root, state, dispatch);
+    render(root, state, dispatch, api);
   });
 }
 
@@ -202,14 +203,14 @@ function draw(root, at, node) {
 }
 
 /** @param {HTMLElement} root @param {PlayState} s @param {(ev: PlayEvent) => void} dispatch */
-function render(root, s, dispatch) {
+function render(root, s, dispatch, api) {
   const drawnAt = performance.now();
   const button = (kids, cls, ev, attrs = {}) => {
     const b = el('button', { type: 'button', class: `booth-btn ${cls}`, ...attrs }, ...kids);
     b.addEventListener('click', () => { if (performance.now() - drawnAt >= GHOST_TAP_MS) dispatch(ev()); });
     return b;
   };
-  draw(root, s.screen.at, VIEWS[s.screen.at](s, button));
+  draw(root, s.screen.at, VIEWS[s.screen.at](s, button, root, api));
 }
 
 const VIEWS = {
@@ -262,7 +263,7 @@ const VIEWS = {
 
   scoring: () => frame([waitView(COPY.scoring, COPY.scoringWait)]),
 
-  scored: (s) => {
+  scored: (s, button, root, api) => {
     const { score } = s.screen;
     const slot = el('div', { class: 'board-slot', dataset: { boothSlot: 'board' } });
     const card = el('article', { class: 'result-card' },
@@ -273,10 +274,9 @@ const VIEWS = {
           el('span', { class: 'result-number', dataset: { score: '' } }, scoreText(score.composite)),
           el('span', { class: 'result-outof' }, '/ 100'))),
       slot,
-      el('ol', { class: 'domains' }, ...DOMAINS.map((d) => domainRow(d, score.domains[d.key]))),
-      demoLabel('card-label'));
+      ...domainSections(score.domains, leaderboardButton({ host: root.closest('#booth') ?? root, api, board: score.body.board, tag: s.play.tag })));
     mountResultBoard(slot, { tag: s.play.tag, scoreBody: score.body });
-    return frame([card], [], { foot: false });
+    return frame([card]);
   },
 
   unavailable: () => frame([el('article', { class: 'end-card' }, bi(COPY.unavailable, 'end-title'), bi(COPY.thanks))]),
@@ -336,10 +336,21 @@ function stoppedView(offline) {
     bi(COPY.stopped, 'end-title'), offline ? bi(COPY.stoppedOffline) : null, bi(COPY.restarting));
 }
 
+/** The two weakest domains under "Practise next", `between` them and the other five, which sit below the fold. */
+function domainSections(scores, between) {
+  const order = weakestFirst(scores);
+  const section = (title, keys, cls) => el('section', { class: `domain-section ${cls}`, 'aria-label': title.en },
+    bi(title, 'section-title'),
+    el('ol', { class: 'domains' }, ...keys.map((key) => domainRow(DOMAINS.find((d) => d.key === key), scores[key]))));
+  return [section(COPY.practiseNext, order.slice(0, 2), 'practise-next'), between, section(COPY.otherDomains, order.slice(2), 'other-domains')];
+}
+
 function domainRow(d, value) {
-  return el('li', { class: 'domain', dataset: { key: d.key, value: String(value) } },
+  const band = bandOf(value);
+  return el('li', { class: 'domain', dataset: { key: d.key, value: String(value), band } },
     el('div', { class: 'domain-head' },
       bi(d, 'domain-name'),
       el('span', { class: 'domain-value' }, `${value} / 5`)),
-    el('div', { class: 'domain-bar', 'aria-hidden': 'true' }, el('span', { style: `width: ${value * 20}%` })));
+    el('div', { class: 'domain-bar', 'aria-hidden': 'true' }, el('span', { style: `width: ${value * 20}%` })),
+    bi(BAND_LINES[d.key][band], 'domain-band'));
 }

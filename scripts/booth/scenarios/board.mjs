@@ -48,13 +48,17 @@ const expectRows = (list, mine) => list.map((e, i) => ({
 
 export default [
   {
-    name: 'result card: the tag with its icon, the ranks, and the board panel (today and the event), QR off by default',
+    name: 'result card: the tag with its icon and the ranks; the board (today and the event) opens from the leaderboard button, QR off by default',
     async run(h) {
-      const stub = h.makeStub({ routes: { [SCORE_KEY]: () => ({ status: 200, body: RANKED(h) }) } });
+      const stub = h.makeStub({ routes: { [SCORE_KEY]: () => ({ status: 200, body: RANKED(h) }), [BOARD_KEY]: () => ({ status: 200, body: { board: BOARD } }) } });
       const k = await h.kiosk({ stub });
       const { page } = k;
       await toResult(k);
-      await h.screenCheck(page, 'result card with board', { demo: true });
+      await h.screenCheck(page, 'result card with ranks', { demo: true });
+      h.check(await page.locator('.result-card [data-board]').count() === 0, 'result: the board is not inline on the card, the button opens it');
+      await k.tap('.result-card [data-action="leaderboard"]');
+      await page.waitForSelector('[data-board-overlay] [data-board]');
+      await h.screenCheck(page, 'result leaderboard overlay', { demo: true });
       await h.shot(page, 'result-board');
       const tag = await page.locator('.result-card .booth-tag').evaluate((e) => ({
         text: e.textContent, icon: e.querySelector('.booth-icon')?.dataset.icon, drawn: !!e.querySelector('.booth-icon svg'),
@@ -69,10 +73,11 @@ export default [
       const label = await page.locator('[data-board] [data-demo-label]').innerText().catch(() => '');
       h.check(label.includes(h.DEMO_LABEL.th) && label.includes(h.DEMO_LABEL.en), 'board: the panel carries the demo label, TH and EN');
       h.check(await page.locator('[data-board] button, [data-board] a').count() === 0, 'board: no controls in the panel');
+      h.check(await page.locator('[data-board-overlay] button').count() === 1, 'board: the overlay has one control, Close');
       h.check(await page.locator('[data-landing-qr]').count() === 0, 'QR: hidden while js/config.js leaves it off');
-      const playAt = stub.calls.findIndex((c) => c.key === 'POST /booth/plays');
-      h.check(playAt >= 0 && stub.calls.slice(playAt).every((c) => c.key !== BOARD_KEY),
-        'result: the board comes with the score, no extra request once the play starts');
+      await h.sleep(500);
+      await k.tap('[data-board-overlay] [data-action="close-board"]');
+      h.check(await page.locator('[data-board-overlay]').count() === 0 && await k.screenNow() === 'scored', 'board: Close returns to the result card');
       await k.close();
     },
   },
