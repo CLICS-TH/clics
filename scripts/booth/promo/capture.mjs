@@ -8,16 +8,19 @@
  * Run: node scripts/booth/promo/capture.mjs   then render with scripts/booth/promo/render.sh
  */
 import { createServer } from 'node:http';
-import { readFile, stat, mkdir, copyFile, rm } from 'node:fs/promises';
-import { join, extname, normalize, sep } from 'node:path';
+import { readFile, stat, mkdir, copyFile, rm, writeFile } from 'node:fs/promises';
+import { join, extname, normalize, sep, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { installStub } from './stub.mjs';
+import { SERVED, REPO } from './lock.mjs';
 
 const ROOT = fileURLToPath(new URL('../../../physician-ui/public', import.meta.url));
 const OUT = fileURLToPath(new URL('./assets/capture/', import.meta.url));
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.png': 'image/png', '.webp': 'image/webp' };
 
+// Every file the page loads, so promo.lock.json can digest exactly what the frames were rendered from.
+const served = new Set();
 const server = createServer(async (req, res) => {
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
   if (p.endsWith('/')) p += 'index.html';
@@ -26,6 +29,7 @@ const server = createServer(async (req, res) => {
   if (!(await stat(file).catch(() => null))?.isFile() && !extname(file)) file += '.html';
   const body = await readFile(file).catch(() => null);
   if (!body) return res.writeHead(404).end();
+  served.add(relative(REPO, file));
   res.writeHead(200, { 'content-type': MIME[extname(file)] || 'application/octet-stream', 'cache-control': 'no-store' }).end(body);
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
@@ -72,6 +76,7 @@ try {
   await browser.close();
   server.close();
 }
+await writeFile(SERVED, `${JSON.stringify([...served].sort(), null, 2)}\n`);
 
 for (const name of ['ple-chat-desktop-light', 'pis7-radar-mobile-light', 'ple-result-mobile-light']) {
   await copyFile(join(ROOT, 'img', 'landing', `${name}.webp`), join(OUT, `${name}.webp`));

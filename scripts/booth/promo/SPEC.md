@@ -20,10 +20,13 @@ OBJECTS: the Landing page's fixture-built screenshots (PLE chat, PIS-7 radar, do
          both boards show Booth #042 with one score. Nothing invented: every screen is the product's own render.
 CASE:    the video shows the case's vignette and step 1 (question, options, the visitor's pick). The owner kept
          the NFCME-2026 case for the promo (2026-10-29): if a clinical review changes the vignette or step 1,
-         re-run render.sh. promo.lock.json digests exactly those two parts, so the booth harness fails until
-         the promo is re-rendered; changes to steps 2-3 leave it alone.
+         re-run render.sh. promo.lock.json digests those parts (and the placeholder flag), so the booth harness
+         fails until the promo is re-rendered; changes to steps 2-3 leave it alone. The lock also digests every
+         file the capture served the booth page (capture-files.json), so a kiosk copy or CSS edit needs a
+         re-render too.
 LOOP:    the manifest item carries "board": false, so the loop board hides while the promo plays and nothing
-         covers its demo labels or end card. The board shows over every other loop item.
+         covers its demo labels or end card. A { "type": "board", "seconds": 15 } item follows it, so every loop
+         cycle shows the board alone over the stage's wordmark. The board shows over every other loop item.
 MOTION:  arrive expo.out 0.6-0.7 s; camera pans power2.inOut 1.2-1.6 s; exits power3.in 0.3-0.35 s;
          captions blur 8 px -> 0 in 0.18 s, Thai first then English 0.1 s later, dead still while read,
          blur out 0.18 s.

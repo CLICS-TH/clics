@@ -1,12 +1,13 @@
 import { readFile, readdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { sourcesDigest, promoDigest, LOCK, PROMO } from '../promo/lock.mjs';
+import { sourcesDigest, promoDigest, LOCK, PROMO, SERVED, REPO } from '../promo/lock.mjs';
 import { installStub, SCORE, BOARD, TAG } from '../promo/stub.mjs';
 
 const PUBLIC = fileURLToPath(new URL('../../../physician-ui/public', import.meta.url));
 const PROMO_DIR = fileURLToPath(new URL('../promo', import.meta.url));
 const SCENES = join(PROMO_DIR, 'compositions');
+const CLIP = fileURLToPath(new URL('../fixtures/loop-clip.mp4', import.meta.url));
 const PROMO_SRC = '/booth-loop/promo.mp4';
 const MAX_BYTES = 25 * 1024 * 1024;
 const BANNED = [/on[-\s]?premise/i, /validated/i, /ติดตั้งภายในองค์กร/];
@@ -110,6 +111,32 @@ export default [
     },
   },
   {
+    name: 'promo: every file the booth page loads, and every file the capture served, is in the source digest',
+    async run(h) {
+      const k = await h.kiosk();
+      const seen = new Set();
+      k.page.on('request', (r) => {
+        const url = new URL(r.url());
+        if (url.origin === new URL(k.page.url()).origin) seen.add(decodeURIComponent(url.pathname));
+      });
+      await k.page.reload({ waitUntil: 'domcontentloaded' });
+      await k.shell('start');
+      await k.close();
+      const toFile = (p) => { const f = join(PUBLIC, p); return extname(f) ? f : `${f}.html`; };
+      const pagePaths = [...seen].filter((p) => !p.startsWith('/booth-loop/') && p !== '/booth-sw.js').map(toFile);
+      const served = JSON.parse(await readFile(SERVED, 'utf8').catch(() => '[]')).map((f) => join(REPO, f));
+      const files = [...new Set([...pagePaths, ...served])].sort();
+      const base = await sourcesDigest();
+      const missed = [];
+      for (const file of files) {
+        const read = async (f, enc) => (f === file ? `${await readFile(f, 'utf8')}\n/* edit */` : readFile(f, enc));
+        if (await sourcesDigest({ read }) === base) missed.push(file.slice(REPO.length));
+      }
+      h.check(pagePaths.length > 5 && missed.length === 0,
+        `promo: an edit to any of ${files.length} booth page files (${pagePaths.length} loaded at /booth) moves the source digest${missed.length ? ` (not covered: ${missed.join(', ')})` : ''}`);
+    },
+  },
+  {
     name: 'promo: its captions follow the copy rule, and every scene built on a scored screen carries the demo label',
     async run(h) {
       const files = (await readdir(SCENES)).filter((f) => f.endsWith('.html')).sort();
@@ -155,6 +182,49 @@ export default [
       await k.close();
     },
   })),
+  {
+    name: 'promo: the shipped loop shows the board for part of every cycle, never over the promo, and never as a flash at mount',
+    async run(h) {
+      const manifest = JSON.parse(await readFile(join(PUBLIC, 'booth-loop', 'manifest.json'), 'utf8'));
+      const boardItem = manifest.items.find((i) => i.type === 'board');
+      const stub = h.makeStub({ routes: { 'GET /booth/board': () => ({ status: 200, body: { board: BOARD } }) } });
+      // The shipped manifest, with a 1 s clip served under the promo's name so a whole cycle fits in the run.
+      const k = await h.kiosk({ stub, files: { [PROMO_SRC]: CLIP } });
+      // Every animation frame from the first paint: is the board shown, and what is the loop showing under it?
+      await k.page.addInitScript(() => {
+        window.__samples = [];
+        const tick = () => {
+          const b = document.querySelector('.loop-board');
+          const m = document.querySelector('.loop-media');
+          const shown = !!b && getComputedStyle(b).display !== 'none' && b.getBoundingClientRect().height > 0;
+          window.__samples.push({ shown, kind: m?.dataset.loopKind ?? null, src: m?.dataset.loopSrc ?? null });
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+      await k.page.reload({ waitUntil: 'domcontentloaded' });
+      const reached = await k.page.waitForFunction(() => document.querySelector('.loop-media')?.dataset.loopKind === 'board', null, { timeout: 15_000 }).then(() => true, () => false);
+      const early = await k.page.evaluate((src) => {
+        const s = window.__samples;
+        const first = s.findIndex((x) => x.kind === 'board');
+        const before = first === -1 ? s : s.slice(0, first);
+        return { shown: before.filter((x) => x.shown).length, promo: before.filter((x) => x.src === src).length };
+      }, PROMO_SRC);
+      h.check(early.promo > 0 && early.shown === 0, `shipped loop: the board stays hidden from page load through the promo (${early.shown} frames shown in ${early.promo} promo frames)`);
+      await h.sleep(500);
+      const onBoard = await k.page.evaluate(() => {
+        const b = document.querySelector('.loop-board');
+        return { shown: getComputedStyle(b).display !== 'none' && b.getBoundingClientRect().height > 0, media: document.querySelectorAll('.loop-media video, .loop-media img').length };
+      });
+      h.check(!!boardItem && reached && onBoard.shown && onBoard.media === 0,
+        `shipped loop: after the promo, a board item shows the board with no media under it (${JSON.stringify({ boardItem, reached, ...onBoard })})`);
+      const back = boardItem && await k.page.waitForFunction((src) => document.querySelector('.loop-media')?.dataset.loopSrc === src, PROMO_SRC, { timeout: (boardItem.seconds + 10) * 1000 }).then(() => true, () => false);
+      await h.sleep(500);
+      const over = await k.page.evaluate(() => window.__samples.filter((s) => s.shown && s.kind !== 'board').length);
+      h.check(!!back && over === 0, `shipped loop: the cycle returns to the promo, and in ${await k.page.evaluate(() => window.__samples.length)} frames the board never showed over anything but its own item (${over} frames over another)`);
+      await k.close();
+    },
+  },
   {
     name: 'promo capture: only fixture content reaches a frame, and the result card and board agree on the score',
     async run(h) {
