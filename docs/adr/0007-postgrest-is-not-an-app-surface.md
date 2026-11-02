@@ -12,10 +12,18 @@ Every CLICS data read and write goes through the backend or RIMPL on the service
 
 - `anon` and `authenticated` hold whatever `PUBLIC` holds, so the rule is: revoke from `public, anon, authenticated`, and never grant the client roles.
 - A table or sequence that the migration role (`postgres`) creates later arrives closed, because the closure migration changes that role's default privileges. An object that `supabase_admin` creates in `public` may still arrive granted, because `postgres` is expected to be refused when it tries to change `supabase_admin`'s defaults.
-- Every new function gets the built-in `PUBLIC` execute, which the closure migration leaves in place because it is a global default. So a migration that creates a function in `public` must revoke `PUBLIC` on it in the same file. Re-running an older migration that re-creates a function reopens it, so re-run the closure migration after it.
-- CI checks two things and nothing more:
-  - The hermetic Postgres test proves the closure migration itself: the client roles are refused every read, write and function call, and the privilege listing sees a re-grant.
-  - A static lint of `db/schema.sql` and `db/migration-*.sql` fails on a grant to `anon`, `authenticated` or `PUBLIC`, and on a function in `public` with no `REVOKE ... FROM PUBLIC` in the same file. Findings that predate the closure sit in a baseline that can only shrink.
-  The lint reads SQL text. It does not see dynamic `EXECUTE`, role membership, or anything done in the SQL editor or by `supabase_admin`.
-- In production, `/health/deep`'s `postgrest_surface` check reads the effective privileges, counting `PUBLIC`, and reports degraded when the client roles hold any. It is the only guard against drift that CI cannot see.
+- Every new function gets the built-in `PUBLIC` execute. The closure migration leaves that default in place, because it is global. So a migration that creates a function in `public` must revoke `PUBLIC` on that signature in the same file.
+  - `create or replace` of an existing function keeps its ACL.
+  - A drop and re-create, or a new overload, is a new function and arrives open.
+  - Re-running an older migration that does either reopens the surface until the closure migration is re-run after it.
+- CI checks two things:
+  - **The hermetic Postgres test** proves the closure migration on stand-in tables. The stand-ins carry the real RLS policies on `ples`, `messages` and `audit_scores`. The test checks that `anon`, an assigned auditor and the owning physician are refused reads, writes and app function calls, and that the privilege listing sees a deliberate re-grant.
+  - **A static lint** of `db/schema.sql` and `db/migration-*.sql` fails on any of these:
+    - a grant to `anon`, `authenticated` or `PUBLIC`, except `USAGE` alone on a schema;
+    - default privileges granted to those roles;
+    - ownership given to `anon` or `authenticated`;
+    - a function in `public` with no `REVOKE ... FROM PUBLIC` on the same signature in the same file.
+  - Findings in migrations that predate the closure are listed in a reviewed baseline. A baseline line that no longer matches fails the lint, but nothing stops a new line being added.
+  - The lint reads SQL text, so it does not see grants built in dynamic `EXECUTE`, `CREATE AGGREGATE`, `ALTER FUNCTION ... SET SCHEMA public`, SQL outside the top level of `db/`, a `--` inside a string literal, role membership, or anything done in the SQL editor or by `supabase_admin`.
+- In production, `/health/deep`'s `postgrest_surface` check lists the tables, views, sequences, columns and functions in `public` on which `anon` or `authenticated` holds an effective privilege, counting `PUBLIC`, and reports degraded when the list is not empty. It does not read schema privileges or default privileges.
 - A future feature that wants direct client reads (Realtime, a client-side query) needs a new ADR, not a grant.
